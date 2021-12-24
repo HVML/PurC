@@ -296,8 +296,9 @@ pcintr_element_eval_vcm_content(struct pcintr_stack_frame *frame,
     if (vcm_content == NULL)
         return 0;
 
-    pcintr_stack_t stack = purc_get_stack();
-    purc_variant_t v = pcvcm_eval(vcm_content, stack);
+    purc_variant_t v; /* = pcvcm_eval(vcm_content, stack) */
+    // NOTE: element is still the owner of vcm_content
+    v = purc_variant_make_ulongint((uint64_t)vcm_content);
     if (v == PURC_VARIANT_INVALID)
         return -1;
 

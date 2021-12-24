@@ -92,6 +92,7 @@ after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     frame->next_step = NEXT_STEP_SELECT_CHILD;
     frame->ctxt_destroy = ctxt_destroy;
     co->state = CO_STATE_READY;
+    purc_clr_error();
 }
 
 static void
@@ -109,6 +110,7 @@ on_popping(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     }
     pcintr_pop_stack_frame(stack);
     co->state = CO_STATE_READY;
+    purc_clr_error();
 }
 
 static void
@@ -135,6 +137,7 @@ on_element(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     ctxt->curr = &element->node;
     frame->next_step = NEXT_STEP_SELECT_CHILD;
     co->state = CO_STATE_READY;
+    purc_clr_error();
 }
 
 static void
@@ -151,6 +154,7 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     ctxt->curr = &content->node;
     frame->next_step = NEXT_STEP_SELECT_CHILD;
     co->state = CO_STATE_READY;
+    purc_clr_error();
 }
 
 static void
@@ -167,6 +171,7 @@ on_comment(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     ctxt->curr = &comment->node;
     frame->next_step = NEXT_STEP_SELECT_CHILD;
     co->state = CO_STATE_READY;
+    purc_clr_error();
 }
 
 static void

@@ -79,6 +79,30 @@ after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         return;
     }
 
+    purc_variant_t name;
+    name = purc_variant_object_get_by_ckey(frame->attr_vars, "name");
+    if (name == PURC_VARIANT_INVALID) {
+        frame->next_step = -1;
+        co->state = CO_STATE_TERMINATED;
+        return;
+    }
+    const char *s_name = purc_variant_get_string_const(name);
+    if (s_name == NULL) {
+        frame->next_step = -1;
+        co->state = CO_STATE_TERMINATED;
+        return;
+    }
+
+    struct pcvdom_element *parent = pcvdom_element_parent(element);
+    PC_ASSERT(parent);
+    bool ok;
+    ok = pcintr_bind_scope_variable(parent, s_name, frame->ctnt_var);
+    if (!ok) {
+        frame->next_step = -1;
+        co->state = CO_STATE_TERMINATED;
+        return;
+    }
+
     struct ctxt_for_archetype *ctxt;
     ctxt = (struct ctxt_for_archetype*)calloc(1, sizeof(*ctxt));
     if (!ctxt) {

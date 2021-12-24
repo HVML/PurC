@@ -70,6 +70,7 @@ after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     frame->next_step = NEXT_STEP_ON_POPPING;
     frame->ctxt_destroy = ctxt_destroy;
     co->state = CO_STATE_READY;
+    purc_clr_error();
 }
 
 static void
@@ -81,6 +82,7 @@ on_popping(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     pcintr_stack_t stack = co->stack;
     pcintr_pop_stack_frame(stack);
     PC_ASSERT(list_empty(&stack->frames));
+    purc_clr_error();
 }
 
 static struct pcintr_element_ops

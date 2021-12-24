@@ -346,7 +346,7 @@ purc_variant_t
 pcvdom_document_get_variable(purc_vdom_t vdom,
         const char *name)
 {
-    if (!vdom || vdom->document || !name) {
+    if (!vdom || !vdom->document || !name) {
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
     }

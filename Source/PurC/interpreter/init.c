@@ -151,7 +151,9 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         return;
     }
 
-    PC_ASSERT(0);
+    purc_set_error(PURC_ERROR_NOT_EXISTS);
+    frame->next_step = -1;
+    co->state = CO_STATE_TERMINATED;
 }
 
 static void
@@ -172,12 +174,20 @@ after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         return;
     }
 
-    r = pcintr_element_eval_vcm_content(frame, element);
-    if (r) {
+    struct pcvcm_node *vcm_content = element->vcm_content;
+    PC_ASSERT(vcm_content);
+
+    pcintr_stack_t stack = co->stack;
+    PC_ASSERT(stack);
+
+    purc_variant_t v = pcvcm_eval(vcm_content, stack);
+    if (v == PURC_VARIANT_INVALID) {
         frame->next_step = -1;
         co->state = CO_STATE_TERMINATED;
         return;
     }
+    PURC_VARIANT_SAFE_CLEAR(frame->ctnt_var);
+    frame->ctnt_var = v;
 
     struct ctxt_for_init *ctxt;
     ctxt = (struct ctxt_for_init*)calloc(1, sizeof(*ctxt));
