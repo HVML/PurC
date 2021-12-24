@@ -142,12 +142,7 @@ pcintr_timer_destroy(pcintr_timer_t timer)
 #define TIMERS_STR_INTERVAL         "interval"
 #define TIMERS_STR_ACTIVE           "active"
 #define TIMERS_STR_ON               "on"
-
-#define TIMERS_STR_GROWN            "grown"
-#define TIMERS_STR_SHRUNK           "shrunk"
 #define TIMERS_STR_TIMERS           "timers"
-#define TIMERS_STR_TIMER            "timer"
-#define TIMERS_STR_CHANGE           "change"
 #define TIMERS_STR_HANDLE           "__handle"
 
 
@@ -209,7 +204,6 @@ get_inner_timer(purc_vdom_t vdom, purc_variant_t timer_var)
     return timer;
 }
 
-#if 0
 static void
 destroy_inner_timer(purc_variant_t timer_var)
 {
@@ -220,7 +214,6 @@ destroy_inner_timer(purc_variant_t timer_var)
         pcintr_timer_destroy(timer);
     }
 }
-#endif
 
 bool
 timer_listener_handler(purc_variant_t source, purc_atom_t msg_type,
@@ -276,20 +269,16 @@ timers_listener_handler(purc_variant_t source, purc_atom_t msg_type,
             if (is_euqal(active, TIMERS_STR_ON)) {
                 pcintr_timer_start(timer);
             }
-#if 0
             purc_variant_register_listener(argv[i], pcvariant_atom_timer,
                     timer_listener_handler, ctxt);
-#endif
         }
     }
-#if 0
     else if (msg_type == pcvariant_atom_shrunk) {
         for (size_t i = 0; i < nr_args; i++) {
-            void *handle = purc_variant_revoke_listener(argv[i], pcvariant_atom_timer);
+            purc_variant_revoke_listener(argv[i], pcvariant_atom_timer);
             destroy_inner_timer(argv[1]);
         }
     }
-#endif
     return true;
 }
 
@@ -312,7 +301,6 @@ pcintr_init_timers(purc_vdom_t vdom)
         return false;
     }
 
-#if 0
     // regist listener
     bool regist = purc_variant_register_listener(ret, pcvariant_atom_timers,
             timers_listener_handler, vdom);
@@ -320,7 +308,6 @@ pcintr_init_timers(purc_vdom_t vdom)
         purc_variant_unref(ret);
         return false;
     }
-#endif
 
     return true;
 }
