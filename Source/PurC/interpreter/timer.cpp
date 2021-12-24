@@ -288,7 +288,7 @@ timers_listener_handler(purc_variant_t source, purc_atom_t msg_type,
     }
     else if (msg_type == pcatom_shrunk) {
         for (size_t i = 0; i < nr_args; i++) {
-            purc_variant_revoke_listener(argv[i], pcatom_timer);
+            void *handle = purc_variant_revoke_listener(argv[i], pcatom_timer);
             destroy_inner_timer(argv[1]);
         }
     }

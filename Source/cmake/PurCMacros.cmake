@@ -526,3 +526,29 @@ macro(PURC_CREATE_SYMLINK target src dest)
         DEPENDS ${dest}
         COMMENT "Create symlink from ${src} to ${dest}")
 endmacro()
+
+# TODO:
+macro(PURC_GEN_ATOMS target prefix name src)
+    set(_o "${CMAKE_CURRENT_BINARY_DIR}/${name}")
+    set(_h "${CMAKE_CURRENT_BINARY_DIR}/${name}.h")
+    set(_c "${CMAKE_CURRENT_BINARY_DIR}/${name}.c")
+    set(_t "${CMAKE_SOURCE_DIR}/Source/build-tools/make-atoms.sh")
+    set(_s "${CMAKE_CURRENT_SOURCE_DIR}/${src}")
+    add_custom_command(
+        OUTPUT "${_h}"
+               "${_c}"
+        MAIN_DEPENDENCY "${_t}"
+        DEPENDS "${_s}"
+        COMMAND "${_t}" -s "${_s}" --prefix "${prefix}" -o "${_o}"
+        COMMENT "Generating files for ATOMs by using ${_t}"
+        WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+        VERBATIM)
+    list(APPEND ${target}_PRIVATE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_BINARY_DIR})
+    list(APPEND ${target}_SOURCES ${_c})
+    unset(_o)
+    unset(_h)
+    unset(_c)
+    unset(_t)
+    unset(_s)
+endmacro()
+

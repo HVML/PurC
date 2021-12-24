@@ -211,6 +211,16 @@ purc_variant_t pcvariant_make_object(size_t nr_kvs, ...);
 __attribute__ ((format (printf, 1, 2)))
 purc_variant_t pcvariant_make_with_printf(const char *fmt, ...);
 
+// TODO: better generate with tool
+purc_atom_t pcvariant_atom_grown;
+purc_atom_t pcvariant_atom_shrunk;
+purc_atom_t pcvariant_atom_change;
+purc_atom_t pcvariant_atom_referenced;
+purc_atom_t pcvariant_atom_unreferenced;
+purc_atom_t pcvariant_atom_destroyed;
+purc_atom_t pcvariant_atom_timers;
+purc_atom_t pcvariant_atom_timer;
+
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */

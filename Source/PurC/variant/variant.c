@@ -128,6 +128,14 @@ void pcvariant_init_once(void)
     pcinst_register_error_message_segment(&_variant_err_msgs_seg);
 
     // initialize others
+    pcvariant_atom_grown = purc_atom_from_static_string("grown");
+    pcvariant_atom_shrunk = purc_atom_from_static_string("shrunk");
+    pcvariant_atom_change = purc_atom_from_static_string("change");
+    pcvariant_atom_referenced = purc_atom_from_static_string("referenced");
+    pcvariant_atom_unreferenced = purc_atom_from_static_string("unreferenced");
+    pcvariant_atom_destroyed = purc_atom_from_static_string("destroyed");
+    pcvariant_atom_destroyed = purc_atom_from_static_string("timers");
+    pcvariant_atom_destroyed = purc_atom_from_static_string("timer");
 }
 
 void pcvariant_init_instance(struct pcinst *inst)
@@ -301,7 +309,7 @@ referenced(purc_variant_t value)
 {
     if (!list_empty(&value->listeners))
         return;
-    purc_atom_t msg_type = purc_atom_from_string("referenced");
+    purc_atom_t msg_type = pcvariant_atom_referenced;
     PC_ASSERT(msg_type);
 
     struct list_head *p;
@@ -322,7 +330,7 @@ unreferenced(purc_variant_t value)
 {
     if (!list_empty(&value->listeners))
         return;
-    purc_atom_t msg_type = purc_atom_from_string("unreferenced");
+    purc_atom_t msg_type = pcvariant_atom_unreferenced;
     PC_ASSERT(msg_type);
 
     struct list_head *p;
@@ -360,7 +368,7 @@ destroyed(purc_variant_t value)
 {
     if (!list_empty(&value->listeners))
         return;
-    purc_atom_t msg_type = purc_atom_from_string("destroyed");
+    purc_atom_t msg_type = pcvariant_atom_destroyed;
     PC_ASSERT(msg_type);
 
     struct list_head *p, *n;

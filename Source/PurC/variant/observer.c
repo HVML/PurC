@@ -28,13 +28,13 @@
 
 #include <stdlib.h>
 
-bool
+void*
 purc_variant_register_listener(purc_variant_t v, purc_atom_t name,
         pcvar_msg_handler handler, void *ctxt)
 {
     if (v == PURC_VARIANT_INVALID || !name || !handler) {
         pcinst_set_error(PCVARIANT_ERROR_WRONG_ARGS);
-        return false;
+        return NULL;
     }
 
     enum purc_variant_type type;
@@ -50,7 +50,7 @@ purc_variant_register_listener(purc_variant_t v, purc_atom_t name,
             break;
         default:
             pcinst_set_error(PCVARIANT_ERROR_NOT_SUPPORTED);
-            return false;
+            return NULL;
     }
 
     struct list_head *p, *n;
@@ -59,7 +59,7 @@ purc_variant_register_listener(purc_variant_t v, purc_atom_t name,
         listener = container_of(p, struct pcvar_listener, list_node);
         if (listener->name == name) {
             pcinst_set_error(PCVARIANT_ERROR_DUPLICATED);
-            return false;
+            return NULL;
         }
     }
 
@@ -75,13 +75,13 @@ purc_variant_register_listener(purc_variant_t v, purc_atom_t name,
     listener->handler        = handler;
     list_add_tail(&listener->list_node, &v->listeners);
 
-    return true;
+    return listener;
 }
 
 bool
-purc_variant_revoke_listener(purc_variant_t v, purc_atom_t name)
+purc_variant_revoke_listener(purc_variant_t v, void *handle)
 {
-    if (v == PURC_VARIANT_INVALID || !name) {
+    if (v == PURC_VARIANT_INVALID || !handle) {
         pcinst_set_error(PCVARIANT_ERROR_WRONG_ARGS);
         return false;
     }
@@ -106,7 +106,7 @@ purc_variant_revoke_listener(purc_variant_t v, purc_atom_t name)
     list_for_each_safe(p, n, &v->listeners) {
         struct pcvar_listener *listener;
         listener = container_of(p, struct pcvar_listener, list_node);
-        if (listener->name == name) {
+        if (listener == handle) {
             list_del(p);
             free(listener);
             return true;

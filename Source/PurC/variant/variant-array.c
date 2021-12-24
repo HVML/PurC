@@ -42,7 +42,7 @@ grown(purc_variant_t array, purc_variant_t value)
 {
     if (!list_empty(&array->listeners))
         return;
-    purc_atom_t msg_type = purc_atom_from_string("grown");
+    purc_atom_t msg_type = pcvariant_atom_grown;
     PC_ASSERT(msg_type);
 
     struct list_head *p;
@@ -67,7 +67,7 @@ shrunk(purc_variant_t array, purc_variant_t value)
 {
     if (!list_empty(&array->listeners))
         return;
-    purc_atom_t msg_type = purc_atom_from_string("shrunk");
+    purc_atom_t msg_type = pcvariant_atom_shrunk;
     PC_ASSERT(msg_type);
 
     struct list_head *p;
@@ -93,7 +93,7 @@ change(purc_variant_t array,
 {
     if (!list_empty(&array->listeners))
         return;
-    purc_atom_t msg_type = purc_atom_from_string("change");
+    purc_atom_t msg_type = pcvariant_atom_change;
     PC_ASSERT(msg_type);
 
     struct list_head *p;

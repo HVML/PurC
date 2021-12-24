@@ -1828,7 +1828,7 @@ purc_variant_stringify_alloc(char **strp, purc_variant_t value);
  *
  * Since: 0.0.4
  */
-PCA_EXPORT bool
+PCA_EXPORT void*
 purc_variant_register_listener(purc_variant_t v, purc_atom_t name,
         pcvar_msg_handler handler, void *ctxt);
 
@@ -1844,7 +1844,7 @@ purc_variant_register_listener(purc_variant_t v, purc_atom_t name,
  * Since: 0.0.4
  */
 PCA_EXPORT bool
-purc_variant_revoke_listener(purc_variant_t v, purc_atom_t name);
+purc_variant_revoke_listener(purc_variant_t v, void *handle);
 
 PCA_EXTERN_C_END
 
