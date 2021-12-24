@@ -143,8 +143,8 @@ void pcvariant_init_once(void)
     pcvariant_atom_referenced = purc_atom_from_static_string("referenced");
     pcvariant_atom_unreferenced = purc_atom_from_static_string("unreferenced");
     pcvariant_atom_destroyed = purc_atom_from_static_string("destroyed");
-    pcvariant_atom_destroyed = purc_atom_from_static_string("timers");
-    pcvariant_atom_destroyed = purc_atom_from_static_string("timer");
+    pcvariant_atom_timers = purc_atom_from_static_string("timers");
+    pcvariant_atom_timer = purc_atom_from_static_string("timer");
 }
 
 void pcvariant_init_instance(struct pcinst *inst)
