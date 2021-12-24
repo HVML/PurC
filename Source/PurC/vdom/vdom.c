@@ -1096,6 +1096,38 @@ vdom_node_destroy(struct pcvdom_node *node)
     }
 }
 
+static inline enum pchvml_tag_category
+pcvdom_element_categories(struct pcvdom_element *element)
+{
+    PC_ASSERT(element);
+    enum pchvml_tag_id tag_id = element->tag_id;
+
+    const struct pchvml_tag_entry *entry;
+    entry = pchvml_tag_static_get_by_id(tag_id);
+
+    if (entry == NULL) {
+        return PCHVML_TAGCAT__UNDEF;
+    }
+
+    return entry->cats;
+}
+
+bool
+pcvdom_element_is_foreign(struct pcvdom_element *element)
+{
+    enum pchvml_tag_category cats;
+    cats = pcvdom_element_categories(element);
+    return cats & PCHVML_TAGCAT_FOREIGN;
+}
+
+bool
+pcvdom_element_is_hvml_native(struct pcvdom_element *element)
+{
+    enum pchvml_tag_category cats;
+    cats = pcvdom_element_categories(element);
+    return cats & (PCHVML_TAGCAT_TEMPLATE | PCHVML_TAGCAT_VERB);
+}
+
 struct pcvdom_attr*
 pcvdom_element_find_attr(struct pcvdom_element *element, const char *key)
 {
