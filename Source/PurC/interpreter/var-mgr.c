@@ -109,9 +109,6 @@ _find_named_scope_var(pcvdom_element_t elem, const char* name)
 
     purc_variant_t v = pcintr_get_scope_variable(elem, name);
     if (v) {
-        fprintf(stderr, "==%s[%d]:%s()==[%s/<%s>]\n",
-                __FILE__, __LINE__, __func__,
-                name, pcvariant_get_typename(purc_variant_get_type(v)));
         return v;
     }
 
@@ -134,9 +131,6 @@ _find_doc_buildin_var(purc_vdom_t vdom, const char* name)
 
     purc_variant_t v = pcvdom_document_get_variable(vdom, name);
     if (v) {
-        fprintf(stderr, "==%s[%d]:%s()==[%s/<%s>]\n",
-                __FILE__, __LINE__, __func__,
-                name, pcvariant_get_typename(purc_variant_get_type(v)));
         return v;
     }
     purc_set_error_exinfo(PCVARIANT_ERROR_NOT_FOUND, "name:%s", name);
@@ -190,7 +184,6 @@ pcintr_find_named_var(pcintr_stack_t stack, const char* name)
         return v;
     }
 
-    D("no variable for [%s]", name);
     return purc_variant_make_undefined();
 }
 

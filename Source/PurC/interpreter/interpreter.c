@@ -246,10 +246,12 @@ visit_attr(void *key, void *val, void *ud)
         }
     }
 
-    const char *s = purc_variant_get_string_const(value);
-    fprintf(stderr, "==%s[%d]:%s()==[%s/<%s>%s]\n",
-            __FILE__, __LINE__, __func__,
-            attr->key, pcvariant_get_typename(purc_variant_get_type(value)), s);
+    if (0) {
+        const char *s = purc_variant_get_string_const(value);
+        D("==[%s/<%s>%s]==",
+                attr->key,
+                pcvariant_get_typename(purc_variant_get_type(value)), s);
+    }
 
     const struct pchvml_attr_entry *pre_defined = attr->pre_defined;
     bool ok;
@@ -507,17 +509,11 @@ static int run_coroutines(void *ctxt)
             }
             pcintr_stack_t stack = co->stack;
             PC_ASSERT(stack);
-                fprintf(stderr, "==%s[%d]:%s()==\n",
-                        __FILE__, __LINE__, __func__);
             if (stack->except) {
-                fprintf(stderr, "==%s[%d]:%s()==\n",
-                        __FILE__, __LINE__, __func__);
                 dump_stack(stack);
                 co->state = CO_STATE_TERMINATED;
             }
             if (co->state == CO_STATE_TERMINATED) {
-                fprintf(stderr, "==%s[%d]:%s()==terminating...\n",
-                        __FILE__, __LINE__, __func__);
                 stack->stage = STACK_STAGE_TERMINATING;
                 list_del(&co->node);
                 stack_release(stack);

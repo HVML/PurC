@@ -60,9 +60,6 @@ after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     struct pcvdom_element *element = frame->scope;
     PC_ASSERT(element);
 
-    fprintf(stderr, "==co[%p]<%s>@%s[%d]:%s()==\n", co, element->tag_name,
-            basename((char*)__FILE__), __LINE__, __func__);
-
     int r;
     r = pcintr_element_eval_attrs(frame, element);
     if (r) {
@@ -98,9 +95,6 @@ after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 static void
 on_popping(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
-    struct pcvdom_element *element = frame->scope;
-    fprintf(stderr, "==co[%p]</%s>@%s[%d]:%s()==\n", co, element->tag_name,
-            basename((char*)__FILE__), __LINE__, __func__);
     pcintr_stack_t stack = co->stack;
     struct ctxt_for_body *ctxt;
     ctxt = (struct ctxt_for_body*)frame->ctxt;
@@ -130,9 +124,6 @@ on_element(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     child_frame->ops = pcintr_get_ops_by_element(element);
     child_frame->scope = element;
     child_frame->next_step = NEXT_STEP_AFTER_PUSHED;
-    fprintf(stderr, "==co[%p]@%s[%d]:%s():element[%s]==\n",
-            co, basename((char*)__FILE__), __LINE__, __func__,
-            element->tag_name);
 
     ctxt->curr = &element->node;
     frame->next_step = NEXT_STEP_SELECT_CHILD;
@@ -147,10 +138,6 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     struct ctxt_for_body *ctxt;
     ctxt = (struct ctxt_for_body*)frame->ctxt;
 
-    fprintf(stderr, "==co[%p]@%s[%d]:%s():content[%s]==\n",
-            co, basename((char*)__FILE__), __LINE__, __func__,
-            content->text);
-
     ctxt->curr = &content->node;
     frame->next_step = NEXT_STEP_SELECT_CHILD;
     co->state = CO_STATE_READY;
@@ -163,10 +150,6 @@ on_comment(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 {
     struct ctxt_for_body *ctxt;
     ctxt = (struct ctxt_for_body*)frame->ctxt;
-
-    fprintf(stderr, "==co[%p]@%s[%d]:%s():content[%s]==\n",
-            co, basename((char*)__FILE__), __LINE__, __func__,
-            comment->text);
 
     ctxt->curr = &comment->node;
     frame->next_step = NEXT_STEP_SELECT_CHILD;

@@ -42,7 +42,6 @@ ctxt_destroy(void *ctxt)
 static void
 after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
-    fprintf(stderr, "==%s[%d]==\n", __FILE__, __LINE__);
     pcintr_stack_t stack = co->stack;
     purc_vdom_t vdom = stack->vdom;
     struct pcvdom_document *document = vdom->document;
@@ -76,7 +75,6 @@ after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 static void
 on_popping(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
-    fprintf(stderr, "==%s[%d]==\n", __FILE__, __LINE__);
     UNUSED_PARAM(frame);
     frame->ctxt = NULL;
     pcintr_stack_t stack = co->stack;
