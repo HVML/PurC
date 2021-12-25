@@ -543,6 +543,8 @@ char* pcvcm_node_to_string (struct pcvcm_node* node, size_t* nr_bytes)
 
     pcvcm_node_write_to_rwstream(rws, node);
 
+    purc_rwstream_write(rws, "", 1); // writing null-terminator
+
     size_t sz_content = 0;
     char* buf = (char*) purc_rwstream_get_mem_buffer_ex(rws, &sz_content,
         NULL, true);

@@ -54,174 +54,84 @@ ctxt_destroy(void *ctxt)
     ctxt_for_archetype_destroy((struct ctxt_for_archetype*)ctxt);
 }
 
-static void
-after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
+static void*
+after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 {
-    struct pcvdom_element *element = frame->scope;
+    PC_ASSERT(stack && pos);
+    PC_ASSERT(stack == purc_get_stack());
+
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_stack_get_bottom_frame(stack);
+
+    frame->pos = pos; // ATTENTION!!
+
+    struct pcvdom_element *element = frame->pos;
     PC_ASSERT(element);
+    D("<%s>", element->tag_name);
 
     int r;
     r = pcintr_element_eval_attrs(frame, element);
-    if (r) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        frame->next_step = -1;
-        co->state = CO_STATE_TERMINATED;
-        return;
-    }
+    if (r)
+        return NULL;
 
     r = pcintr_element_eval_vcm_content(frame, element);
-    if (r) {
-        frame->next_step = -1;
-        co->state = CO_STATE_TERMINATED;
-        return;
-    }
+    if (r)
+        return NULL;
 
     purc_variant_t name;
     name = purc_variant_object_get_by_ckey(frame->attr_vars, "name");
-    if (name == PURC_VARIANT_INVALID) {
-        frame->next_step = -1;
-        co->state = CO_STATE_TERMINATED;
-        return;
-    }
-    const char *s_name = purc_variant_get_string_const(name);
-    if (s_name == NULL) {
-        frame->next_step = -1;
-        co->state = CO_STATE_TERMINATED;
-        return;
-    }
+    if (name == PURC_VARIANT_INVALID)
+        return NULL;
 
-    struct pcvdom_element *parent = pcvdom_element_parent(element);
-    PC_ASSERT(parent);
+    const char *s_name = purc_variant_get_string_const(name);
+    if (s_name == NULL)
+        return NULL;
+
+    struct pcvdom_element *scope = frame->scope;
+    PC_ASSERT(scope);
+
     bool ok;
-    ok = pcintr_bind_scope_variable(parent, s_name, frame->ctnt_var);
-    if (!ok) {
-        frame->next_step = -1;
-        co->state = CO_STATE_TERMINATED;
-        return;
-    }
+    ok = pcintr_bind_scope_variable(scope, s_name, frame->ctnt_var);
+    if (!ok)
+        return NULL;
 
     struct ctxt_for_archetype *ctxt;
     ctxt = (struct ctxt_for_archetype*)calloc(1, sizeof(*ctxt));
     if (!ctxt) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        frame->next_step = -1;
-        co->state = CO_STATE_TERMINATED;
-        return;
+        return NULL;
     }
 
     frame->ctxt = ctxt;
-    frame->next_step = NEXT_STEP_SELECT_CHILD;
     frame->ctxt_destroy = ctxt_destroy;
-    co->state = CO_STATE_READY;
     purc_clr_error();
+
+    return ctxt;
 }
 
-static void
-on_popping(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
+static bool
+on_popping(pcintr_stack_t stack, void* ctxt)
 {
-    pcintr_stack_t stack = co->stack;
-    struct ctxt_for_archetype *ctxt;
-    ctxt = (struct ctxt_for_archetype*)frame->ctxt;
-    if (ctxt) {
+    PC_ASSERT(stack);
+    PC_ASSERT(stack == purc_get_stack());
+
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_stack_get_bottom_frame(stack);
+    PC_ASSERT(frame);
+    PC_ASSERT(ctxt == frame->ctxt);
+
+    struct pcvdom_element *element = frame->pos;
+    PC_ASSERT(element);
+
+    struct ctxt_for_archetype *archetype_ctxt;
+    archetype_ctxt = (struct ctxt_for_archetype*)frame->ctxt;
+    if (archetype_ctxt) {
         ctxt_for_archetype_destroy(ctxt);
         frame->ctxt = NULL;
     }
-    pcintr_pop_stack_frame(stack);
-    co->state = CO_STATE_READY;
-    purc_clr_error();
-}
 
-static void
-on_element(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
-        struct pcvdom_element *element)
-{
-    struct ctxt_for_archetype *ctxt;
-    ctxt = (struct ctxt_for_archetype*)frame->ctxt;
-
-    pcintr_stack_t stack = co->stack;
-    struct pcintr_stack_frame *child_frame;
-    child_frame = pcintr_push_stack_frame(stack);
-    if (!child_frame) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return;
-    }
-    child_frame->ops = pcintr_get_ops_by_element(element);
-    child_frame->scope = element;
-    child_frame->next_step = NEXT_STEP_AFTER_PUSHED;
-
-    ctxt->curr = &element->node;
-    frame->next_step = NEXT_STEP_SELECT_CHILD;
-    co->state = CO_STATE_READY;
-    purc_clr_error();
-}
-
-static void
-on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
-        struct pcvdom_content *content)
-{
-    struct ctxt_for_archetype *ctxt;
-    ctxt = (struct ctxt_for_archetype*)frame->ctxt;
-
-    ctxt->curr = &content->node;
-    frame->next_step = NEXT_STEP_SELECT_CHILD;
-    co->state = CO_STATE_READY;
-    purc_clr_error();
-}
-
-static void
-on_comment(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
-        struct pcvdom_comment *comment)
-{
-    struct ctxt_for_archetype *ctxt;
-    ctxt = (struct ctxt_for_archetype*)frame->ctxt;
-
-    ctxt->curr = &comment->node;
-    frame->next_step = NEXT_STEP_SELECT_CHILD;
-    co->state = CO_STATE_READY;
-    purc_clr_error();
-}
-
-static void
-select_child(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
-{
-    struct ctxt_for_archetype *ctxt;
-    ctxt = (struct ctxt_for_archetype*)frame->ctxt;
-
-    if (ctxt->curr == NULL) {
-        struct pcvdom_element *element = frame->scope;
-        struct pcvdom_node *node = &element->node;
-        node = pcvdom_node_first_child(node);
-        ctxt->curr = node;
-    }
-    else {
-        ctxt->curr = pcvdom_node_next_sibling(ctxt->curr);
-    }
-
-    if (ctxt->curr == NULL) {
-        frame->next_step = NEXT_STEP_ON_POPPING;
-        co->state = CO_STATE_READY;
-        purc_clr_error();
-        return;
-    }
-
-    switch (ctxt->curr->type) {
-        case PCVDOM_NODE_DOCUMENT:
-            PC_ASSERT(0); // Not implemented yet
-            break;
-        case PCVDOM_NODE_ELEMENT:
-            on_element(co, frame, PCVDOM_ELEMENT_FROM_NODE(ctxt->curr));
-            return;
-        case PCVDOM_NODE_CONTENT:
-            on_content(co, frame, PCVDOM_CONTENT_FROM_NODE(ctxt->curr));
-            return;
-        case PCVDOM_NODE_COMMENT:
-            on_comment(co, frame, PCVDOM_COMMENT_FROM_NODE(ctxt->curr));
-            return;
-        default:
-            PC_ASSERT(0); // Not implemented yet
-    }
-
-    PC_ASSERT(0);
+    D("</%s>", element->tag_name);
+    return true;
 }
 
 static struct pcintr_element_ops
@@ -229,7 +139,7 @@ ops = {
     .after_pushed       = after_pushed,
     .on_popping         = on_popping,
     .rerun              = NULL,
-    .select_child       = select_child,
+    .select_child       = NULL,
 };
 
 struct pcintr_element_ops* pcintr_get_archetype_ops(void)
