@@ -32,7 +32,8 @@
 #include "private/variant.h"
 #include "private/map.h"
 
-typedef struct pcutils_map*  pcvarmgr_list_t;
+struct pcvarmgr_list;
+typedef struct pcvarmgr_list*  pcvarmgr_list_t;
 
 PCA_EXTERN_C_BEGIN
 
