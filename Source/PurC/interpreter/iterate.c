@@ -32,18 +32,35 @@
 
 #include "ops.h"
 
+#include "purc-executor.h"
+
 #include <pthread.h>
 #include <unistd.h>
 #include <libgen.h>
 
 struct ctxt_for_iterate {
     struct pcvdom_node           *curr;
+
+    purc_variant_t                on;
+    purc_variant_t                by;
+
+    struct purc_exec_ops          ops;
+    purc_exec_inst_t              exec_inst;
+    purc_exec_iter_t              it;
 };
 
 static void
 ctxt_for_iterate_destroy(struct ctxt_for_iterate *ctxt)
 {
     if (ctxt) {
+        if (ctxt->exec_inst) {
+            bool ok = ctxt->ops.destroy(ctxt->exec_inst);
+            PC_ASSERT(ok);
+            ctxt->exec_inst = NULL;
+        }
+        PURC_VARIANT_SAFE_CLEAR(ctxt->by);
+        PURC_VARIANT_SAFE_CLEAR(ctxt->on);
+
         free(ctxt);
     }
 }
@@ -52,6 +69,74 @@ static void
 ctxt_destroy(void *ctxt)
 {
     ctxt_for_iterate_destroy((struct ctxt_for_iterate*)ctxt);
+}
+
+static int
+post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
+{
+    UNUSED_PARAM(co);
+    struct ctxt_for_iterate *ctxt;
+    ctxt = (struct ctxt_for_iterate*)frame->ctxt;
+    PC_ASSERT(ctxt);
+
+    purc_variant_t on;
+    on = purc_variant_object_get_by_ckey(frame->attr_vars, "on");
+    if (on == PURC_VARIANT_INVALID)
+        return -1;
+    PURC_VARIANT_SAFE_CLEAR(ctxt->on);
+    ctxt->on = on;
+    purc_variant_ref(on);
+
+    purc_variant_t by;
+    by = purc_variant_object_get_by_ckey(frame->attr_vars, "by");
+    if (by == PURC_VARIANT_INVALID) {
+        by = purc_variant_make_string_static("RANGE: FROM 0", false);
+        if (by == PURC_VARIANT_INVALID)
+            return -1;
+    }
+    else {
+        purc_variant_ref(by);
+    }
+    purc_clr_error();
+    PURC_VARIANT_SAFE_CLEAR(ctxt->by);
+    ctxt->by = by;
+
+    const char *rule = purc_variant_get_string_const(by);
+    PC_ASSERT(rule);
+    bool ok = purc_get_executor(rule, &ctxt->ops);
+    if (!ok)
+        return -1;
+
+    PC_ASSERT(ctxt->ops.create);
+    PC_ASSERT(ctxt->ops.it_begin);
+    PC_ASSERT(ctxt->ops.it_next);
+    PC_ASSERT(ctxt->ops.it_value);
+    PC_ASSERT(ctxt->ops.destroy);
+
+    purc_exec_inst_t exec_inst;
+    exec_inst = ctxt->ops.create(PURC_EXEC_TYPE_ITERATE, on, false);
+    if (!exec_inst)
+        return -1;
+
+    ctxt->exec_inst = exec_inst;
+
+    purc_exec_iter_t it;
+    it = ctxt->ops.it_begin(exec_inst, rule);
+    if (!it)
+        return -1;
+
+    ctxt->it = it;
+
+    purc_variant_t value;
+    value = ctxt->ops.it_value(exec_inst, it);
+    if (value == PURC_VARIANT_INVALID)
+        return -1;
+
+    PURC_VARIANT_SAFE_CLEAR(frame->symbol_vars[PURC_SYMBOL_VAR_QUESTION_MARK]);
+    frame->symbol_vars[PURC_SYMBOL_VAR_QUESTION_MARK] = value;
+    purc_variant_ref(value);
+
+    return 0;
 }
 
 static void*
@@ -74,10 +159,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (r)
         return NULL;
 
-    r = pcintr_element_eval_vcm_content(frame, element);
-    if (r)
-        return NULL;
-
     struct ctxt_for_iterate *ctxt;
     ctxt = (struct ctxt_for_iterate*)calloc(1, sizeof(*ctxt));
     if (!ctxt) {
@@ -89,11 +170,15 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     frame->ctxt_destroy = ctxt_destroy;
     purc_clr_error();
 
+    r = post_process(&stack->co, frame);
+    if (r)
+        return NULL;
+
     return ctxt;
 }
 
 static bool
-on_popping(pcintr_stack_t stack, void* ctxt)
+on_popping(pcintr_stack_t stack, void* ud)
 {
     PC_ASSERT(stack);
     PC_ASSERT(stack == purc_get_stack());
@@ -101,19 +186,63 @@ on_popping(pcintr_stack_t stack, void* ctxt)
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame);
-    PC_ASSERT(ctxt == frame->ctxt);
+    PC_ASSERT(ud == frame->ctxt);
 
-    struct pcvdom_element *element = frame->pos;
-    PC_ASSERT(element);
+    struct ctxt_for_iterate *ctxt;
+    ctxt = (struct ctxt_for_iterate*)frame->ctxt;
 
-    struct ctxt_for_iterate *iterate_ctxt;
-    iterate_ctxt = (struct ctxt_for_iterate*)frame->ctxt;
-    if (iterate_ctxt) {
-        ctxt_for_iterate_destroy(ctxt);
-        frame->ctxt = NULL;
+    purc_exec_inst_t exec_inst;
+    exec_inst = ctxt->exec_inst;
+    if (!exec_inst)
+        return true;
+
+    purc_exec_iter_t it = ctxt->it;
+    if (!it)
+        return true;
+
+    it = ctxt->ops.it_next(exec_inst, it, NULL); // TODO: re-eval rule????
+    ctxt->it = it;
+    if (!it) {
+        int err = purc_get_last_error();
+        if (err == PURC_ERROR_NOT_EXISTS) {
+            purc_clr_error();
+        }
+        return true;
     }
 
-    D("</%s>", element->tag_name);
+    return false;
+}
+
+static bool
+rerun(pcintr_stack_t stack, void* ud)
+{
+    PC_ASSERT(stack);
+    PC_ASSERT(stack == purc_get_stack());
+
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_stack_get_bottom_frame(stack);
+    PC_ASSERT(frame);
+    PC_ASSERT(ud == frame->ctxt);
+
+    struct ctxt_for_iterate *ctxt;
+    ctxt = (struct ctxt_for_iterate*)frame->ctxt;
+
+    purc_exec_inst_t exec_inst;
+    exec_inst = ctxt->exec_inst;
+    PC_ASSERT(exec_inst);
+
+    purc_exec_iter_t it = ctxt->it;
+    PC_ASSERT(it);
+
+    purc_variant_t value;
+    value = ctxt->ops.it_value(exec_inst, it);
+    if (value == PURC_VARIANT_INVALID)
+        return true;
+
+    PURC_VARIANT_SAFE_CLEAR(frame->symbol_vars[PURC_SYMBOL_VAR_QUESTION_MARK]);
+    frame->symbol_vars[PURC_SYMBOL_VAR_QUESTION_MARK] = value;
+    purc_variant_ref(value);
+
     return true;
 }
 
@@ -216,7 +345,7 @@ static struct pcintr_element_ops
 ops = {
     .after_pushed       = after_pushed,
     .on_popping         = on_popping,
-    .rerun              = NULL,
+    .rerun              = rerun,
     .select_child       = select_child,
 };
 

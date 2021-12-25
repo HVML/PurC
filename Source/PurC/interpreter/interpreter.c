@@ -187,6 +187,16 @@ pcintr_push_stack_frame(pcintr_stack_t stack)
     if (!frame)
         return NULL;
 
+    purc_variant_t undefined = purc_variant_make_undefined();
+    if (undefined == PURC_VARIANT_INVALID) {
+        free(frame);
+        return NULL;
+    }
+    for (size_t i=0; i<PCA_TABLESIZE(frame->symbol_vars); ++i) {
+        frame->symbol_vars[i] = undefined;
+        purc_variant_ref(undefined);
+    }
+
     list_add_tail(&frame->node, &stack->frames);
     ++stack->nr_frames;
 
@@ -241,6 +251,7 @@ visit_attr(void *key, void *val, void *ud)
         PC_ASSERT(vcm);
 
         struct pcvdom_element *element = frame->pos;
+        PC_ASSERT(element);
         char *s = pcvcm_node_to_string(vcm, NULL);
         D("<%s>attr: [%s:%s]", element->tag_name, attr->key, s);
         free(s);
@@ -321,12 +332,9 @@ pcintr_element_eval_vcm_content(struct pcintr_stack_frame *frame,
 static void
 after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
-    void *ctxt = NULL;
     if (frame->ops.after_pushed) {
-        ctxt = frame->ops.after_pushed(co->stack, frame->pos);
+        frame->ops.after_pushed(co->stack, frame->pos);
     }
-
-    PC_ASSERT(frame->ctxt == ctxt);
 
     frame->next_step = NEXT_STEP_SELECT_CHILD;
 }

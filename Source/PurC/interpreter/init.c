@@ -71,10 +71,12 @@ post_process_bind_scope_var(pcintr_coroutine_t co,
     struct ctxt_for_init *ctxt = (struct ctxt_for_init*)frame->ctxt;
     if (ctxt->under_head) {
         ok = purc_bind_document_variable(co->stack->vdom, s_name, val);
+        D("[%s] bound at doc[%p]", s_name, co->stack->vdom);
     } else {
         element = pcvdom_element_parent(element);
         PC_ASSERT(element);
         ok = pcintr_bind_scope_variable(element, s_name, val);
+        D("[%s] bound at scope[%s]", s_name, element->tag_name);
     }
     purc_variant_unref(val);
 
