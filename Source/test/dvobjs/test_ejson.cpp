@@ -23,15 +23,16 @@ extern void get_variant_total_info (size_t *mem, size_t *value, size_t *resv);
 
 TEST(dvobjs, dvobjs_ejson_type)
 {
-    pcutils_url *url = pcutils_url_new ("https://mspider.sf.net:8080/index.html?long#part2", NULL, 0);
+    //pcutils_url *url = pcutils_url_new ("https://gengyue:hello@mspider.sf.net:8080/index.html?long#part2", NULL, 0);
+    pcutils_url *url = pcutils_url_new ("abcd", NULL, 0);
 
-    printf ("%s\n", url->scheme);
-    printf ("%s\n", url->authority);
-    printf ("%s\n", url->path);
-    printf ("%s\n", url->query);
-    printf ("%s\n", url->fragment);
-    printf ("%s\n", url->hostname);
-    printf ("%d\n", url->port);
+    printf ("scheme: %s\n", url->scheme);
+    printf ("authority: %s\n", url->authority);
+    printf ("path: %s\n", url->path);
+    printf ("query: %s\n", url->query);
+    printf ("fragment: %s\n", url->fragment);
+    printf ("hostname: %s\n", url->hostname);
+    printf ("port: %d\n", url->port);
 
 
 

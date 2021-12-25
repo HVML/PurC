@@ -26,6 +26,7 @@
 #include "private/errors.h"
 #include "private/vdom.h"
 #include "private/dvobjs.h"
+#include "private/url.h"
 #include "purc-variant.h"
 #include "helper.h"
 
@@ -323,8 +324,9 @@ purc_variant_t pcdvobjs_get_hvml (struct pcvdom_dvobj_hvml *dvobj_hvml)
         purc_variant_unref (ret_var);
         return PURC_VARIANT_INVALID;
     }
-
     strcpy (dvobj_hvml->url, DEFAULT_HVML_BASE);
+
+    dvobj_hvml->new_url = pcutils_url_new (DEFAULT_HVML_BASE, NULL, 0);
     dvobj_hvml->maxIterationCount = ULONG_MAX;
     dvobj_hvml->maxRecursionDepth = USHRT_MAX;
     dvobj_hvml->timeout.tv_sec = (long) DEFAULT_HVML_TIMEOUT;

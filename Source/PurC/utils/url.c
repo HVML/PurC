@@ -64,7 +64,8 @@ char *pcutils_url_str(const pcutils_url *u)
     /* Internal url handling IS transparent to the caller */
     pcutils_url *url = (pcutils_url *) u;
 
-    g_return_val_if_fail (url != NULL, NULL);
+    if (url == NULL)
+        return NULL;
 
     if (!url->url_string) {
         url->url_string = g_string_sized_new(60);
@@ -101,7 +102,7 @@ const char *pcutils_url_hostname(const pcutils_url *u)
     if (!url->hostname && url->authority) {
         if ((p = strchr(url->authority, ':'))) {
             url->port = strtol(p + 1, NULL, 10);
-            url->hostname = g_strndup(url->authority,
+            url->hostname = strndup(url->authority,
                     (guint)(p - url->authority));
         } else
             url->hostname = url->authority;
@@ -120,9 +121,10 @@ static pcutils_url *Url_object_new(const char *uri_str)
     char *s, *p, *x;
     GString *tmpstr;
 
-    g_return_val_if_fail (uri_str != NULL, NULL);
+    if (uri_str == NULL)
+        return NULL;
 
-    url = g_new0(pcutils_url, 1);
+    url = calloc(sizeof(pcutils_url), 1);
 
 
     /* remove leading & trailing space from buffer */
@@ -196,13 +198,13 @@ void pcutils_url_free(pcutils_url *url)
         if (url->url_string)
             g_string_free(url->url_string, TRUE);
         if (url->hostname != url->authority)
-            g_free((char *)url->hostname);
-        g_free((char *)url->buffer);
-        g_free((char *)url->data);
-        g_free((char *)url->alt);
-        g_free((char *)url->target);
-        g_free((char *)url->referer);
-        g_free(url);
+            free((void *)url->hostname);
+        free((void *)url->buffer);
+        free((void *)url->data);
+        free((void *)url->alt);
+        free((void *)url->target);
+        free((void *)url->referer);
+        free(url);
     }
 }
 
@@ -367,7 +369,8 @@ pcutils_url* pcutils_url_new(const char *url_str, const char *base_url,
     GString *SolvedUrl;
     int n_ic;
 
-    g_return_val_if_fail (url_str != NULL, NULL);
+    if (url_str == NULL)
+        return NULL;
 
     /* denounce illegal characters (0x00-0x1F, 0x7F and space) */
     urlstring = (char *)url_str;
@@ -420,16 +423,18 @@ pcutils_url* pcutils_url_dup(const pcutils_url *ori)
     pcutils_url *url;
 
     url = Url_object_new(URL_STR_(ori));
-    g_return_val_if_fail (url != NULL, NULL);
+
+    if (url == NULL)
+        return NULL;
 
     url->url_string           = g_string_new(URL_STR(ori));
     url->port                 = ori->port;
     url->flags                = ori->flags;
-    url->data                 = g_strdup(ori->data);
-    url->alt                  = g_strdup(ori->alt);
-    url->target               = g_strdup(ori->target);
+    url->data                 = strdup(ori->data);
+    url->alt                  = strdup(ori->alt);
+    url->target               = strdup(ori->target);
     url->ismap_url_len        = ori->ismap_url_len;
-    url->referer              = g_strdup(ori->referer);
+    url->referer              = strdup(ori->referer);
 
     return url;
 }
@@ -472,8 +477,8 @@ void pcutils_url_set_flags(pcutils_url *u, unsigned int flags)
 void pcutils_url_set_data(pcutils_url *u, char *data)
 {
     if (u) {
-        g_free((char *)u->data);
-        u->data = g_strdup(data);
+        free((void *)u->data);
+        u->data = strdup(data);
     }
 }
 
@@ -483,8 +488,8 @@ void pcutils_url_set_data(pcutils_url *u, char *data)
 void pcutils_url_set_alt(pcutils_url *u, const char *alt)
 {
     if (u) {
-        g_free((char *)u->alt);
-        u->alt = g_strdup(alt);
+        free((void *)u->alt);
+        u->alt = strdup(alt);
     }
 }
 
@@ -495,8 +500,8 @@ void pcutils_url_set_target(pcutils_url *u, const char *target)
 {
     if (u) {
         if (u->target)
-            g_free((char *)u->target);
-        u->target = g_strdup(target);
+            free((char *)u->target);
+        u->target = strdup(target);
     }
 }
 
@@ -507,8 +512,8 @@ void pcutils_url_set_referer(pcutils_url *u, pcutils_url *ref)
 {
     if (u && ref) {
         if (u->referer)
-            g_free((char *)u->referer);
-        u->referer = g_strdup(pcutils_url_str(ref));
+            free((char *)u->referer);
+        u->referer = strdup(pcutils_url_str(ref));
     }
 }
 
@@ -564,9 +569,9 @@ char *pcutils_url_decode_hex_str(const char *str)
 
     /* most cases won't have hex octets */
     if (!strchr(str, '%'))
-        return g_strdup(str);
+        return strdup(str);
 
-    dest = new_str = g_new(char, strlen(str) + 1);
+    dest = new_str = malloc(strlen(str) + 1);
 
     for (i = 0; str[i]; i++) {
         *dest++ = (str[i] == '%' && (val = Url_decode_hex_octet(str+i+1)) >= 0) ?
@@ -574,7 +579,7 @@ char *pcutils_url_decode_hex_str(const char *str)
     }
     *dest++ = 0;
 
-    new_str = g_realloc(new_str, sizeof(char) * (dest - new_str));
+    new_str = realloc(new_str, sizeof(char) * (dest - new_str));
     return new_str;
 }
 
@@ -597,7 +602,7 @@ char *pcutils_url_encode_hex_str(const char *str)
     if (!str)
         return NULL;
 
-    newstr = g_new(char, 6*strlen(str)+1);
+    newstr = malloc(6*strlen(str)+1);
 
     for (c = newstr; *str; str++)
         if ((isalnum(*str) && !(*str & 0x80)) || strchr(verbatim, *str))
@@ -631,7 +636,7 @@ char *pcutils_url_string_strip_delimiters(char *str)
 {
     char *p, *new_str, *text;
 
-    new_str = text = g_strdup(str);
+    new_str = text = strdup(str);
 
     if (new_str) {
         if (strncmp(new_str, "URL:", 4) == 0)
@@ -682,10 +687,10 @@ char *pcutils_url_parse_hex_path(const pcutils_url *u)
 
     /* most cases won't have hex octets */
     if (!strchr(u->path, '%'))
-        return g_strdup(u->path);
+        return strdup(u->path);
 
     src = u->path;
-    dest = new_uri = g_new(char, strlen(src) + 1);
+    dest = new_uri = malloc(strlen(src) + 1);
 
     for (i = 0; src[i]; i++) {
         *dest++ = (src[i] == '%' && (val = Url_parse_hex_octet(src+i+1)) >= 0) ?
@@ -693,6 +698,6 @@ char *pcutils_url_parse_hex_path(const pcutils_url *u)
     }
     *dest++ = 0;
 
-    new_uri = g_realloc(new_uri, sizeof(char) * (dest - new_uri));
+    new_uri = realloc(new_uri, sizeof(char) * (dest - new_uri));
     return new_uri;
 }

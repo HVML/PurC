@@ -108,6 +108,7 @@ struct pcvdom_doctype {
 
 struct pcvdom_dvobj_hvml {
     char                   *url;
+    void                   *new_url;    // todo, include url.h
     unsigned long int      maxIterationCount;
     unsigned long int      maxRecursionDepth;
     struct timespec        timeout;

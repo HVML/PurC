@@ -124,11 +124,11 @@ struct __tag_pcutils_url {
    GString *url_string;
    const char *buffer;
    const char *scheme;            //
+   const char *hostname;          //
    const char *authority;         //
    const char *path;              // These are references only
    const char *query;             // (no need to free them)
    const char *fragment;          //
-   const char *hostname;          //
    unsigned int port;
    unsigned int flags;
    const char *data;              /* POST */
