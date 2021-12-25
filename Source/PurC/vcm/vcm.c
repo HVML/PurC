@@ -549,7 +549,7 @@ char* pcvcm_node_to_string (struct pcvcm_node* node, size_t* nr_bytes)
     char* buf = (char*) purc_rwstream_get_mem_buffer_ex(rws, &sz_content,
         NULL, true);
     if (nr_bytes) {
-        *nr_bytes = sz_content;
+        *nr_bytes = sz_content - 1;
     }
 
     purc_rwstream_destroy(rws);
