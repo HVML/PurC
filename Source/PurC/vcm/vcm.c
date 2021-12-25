@@ -687,6 +687,7 @@ purc_variant_t pcvcm_node_concat_string_to_variant (struct pcvcm_node* node,
                 purc_rwstream_write(rws, buf, total);
             }
             free(buf);
+            purc_variant_unref(v);
         }
         else {
             goto err;
