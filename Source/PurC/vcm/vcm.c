@@ -26,6 +26,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <errno.h>
+#include <ctype.h>
 
 #include "config.h"
 #include "purc-utils.h"
@@ -1095,6 +1096,10 @@ purc_variant_t find_stack_var (void* ctxt, const char* name)
         return is_digit(last) ?
             pcintr_get_numbered_var(stack, number) :
             pcintr_get_symbolized_var(stack, number, last);
+    }
+
+    if (nr_name == 1 && ispunct(last)) {
+        return pcintr_get_symbolized_var(stack, 0, last);
     }
 
     return pcintr_find_named_var(ctxt, name);

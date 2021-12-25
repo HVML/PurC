@@ -223,6 +223,9 @@ pcintr_get_symbolized_var (pcintr_stack_t stack, unsigned int number,
     for (unsigned int i = 0; i < number; i++) {
         frame = pcintr_stack_frame_get_parent(frame);
     }
+    if (symbol == '?') {
+        frame = pcintr_stack_frame_get_parent(frame);
+    }
 
     if (!frame) {
         return purc_variant_make_undefined();

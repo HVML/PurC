@@ -203,6 +203,14 @@ int pcvariant_set_sort(purc_variant_t value, void *ud,
 
 const char* pcvariant_get_typename(enum purc_variant_type type);
 
+static inline const char*
+pcvariant_typename(purc_variant_t v)
+{
+    enum purc_variant_type type;
+    type = purc_variant_get_type(v);
+    return pcvariant_get_typename(type);
+}
+
 int pcvariant_serialize(char *buf, size_t sz, purc_variant_t val);
 char* pcvariant_serialize_alloc(char *buf, size_t sz, purc_variant_t val);
 

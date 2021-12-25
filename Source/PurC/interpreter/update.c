@@ -38,12 +38,20 @@
 
 struct ctxt_for_update {
     struct pcvdom_node           *curr;
+
+    purc_variant_t                on;
+    purc_variant_t                to;
+    purc_variant_t                with;
+
 };
 
 static void
 ctxt_for_update_destroy(struct ctxt_for_update *ctxt)
 {
     if (ctxt) {
+        PURC_VARIANT_SAFE_CLEAR(ctxt->on);
+        PURC_VARIANT_SAFE_CLEAR(ctxt->to);
+        PURC_VARIANT_SAFE_CLEAR(ctxt->with);
         free(ctxt);
     }
 }
@@ -52,6 +60,62 @@ static void
 ctxt_destroy(void *ctxt)
 {
     ctxt_for_update_destroy((struct ctxt_for_update*)ctxt);
+}
+
+static int
+post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
+{
+    UNUSED_PARAM(co);
+    struct ctxt_for_update *ctxt;
+    ctxt = (struct ctxt_for_update*)frame->ctxt;
+    PC_ASSERT(ctxt);
+
+    // TODO: '$@'
+    // purc_variant_t on;
+    // on = purc_variant_object_get_by_ckey(frame->attr_vars, "on");
+    // if (on == PURC_VARIANT_INVALID)
+    //     return -1;
+    // PURC_VARIANT_SAFE_CLEAR(ctxt->on);
+    // ctxt->on = on;
+    // purc_variant_ref(on);
+
+    purc_variant_t to;
+    to = purc_variant_object_get_by_ckey(frame->attr_vars, "to");
+    if (to == PURC_VARIANT_INVALID)
+        return -1;
+    PURC_VARIANT_SAFE_CLEAR(ctxt->to);
+    ctxt->to = to;
+    purc_variant_ref(to);
+
+    purc_variant_t with;
+    with = purc_variant_object_get_by_ckey(frame->attr_vars, "with");
+    if (with == PURC_VARIANT_INVALID)
+        return -1;
+
+    PURC_VARIANT_SAFE_CLEAR(ctxt->with);
+    ctxt->with = with;
+    purc_variant_ref(with);
+
+    PC_ASSERT(purc_variant_is_type(with, PURC_VARIANT_TYPE_ULONGINT));
+    bool ok;
+    uint64_t u64;
+    ok = purc_variant_cast_to_ulongint(with, &u64, false);
+    PC_ASSERT(ok);
+    struct pcvcm_node *vcm_content;
+    vcm_content = (struct pcvcm_node*)u64;
+    PC_ASSERT(vcm_content);
+
+    pcintr_stack_t stack = co->stack;
+    PC_ASSERT(stack);
+
+    purc_variant_t v = pcvcm_eval(vcm_content, stack);
+    if (v == PURC_VARIANT_INVALID)
+        return -1;
+
+    D("to output [%s]", purc_variant_get_string_const(v));
+    purc_variant_unref(v);
+
+    return 0;
 }
 
 static void*
@@ -74,10 +138,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (r)
         return NULL;
 
-    r = pcintr_element_eval_vcm_content(frame, element);
-    if (r)
-        return NULL;
-
     struct ctxt_for_update *ctxt;
     ctxt = (struct ctxt_for_update*)calloc(1, sizeof(*ctxt));
     if (!ctxt) {
@@ -88,6 +148,10 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     frame->ctxt = ctxt;
     frame->ctxt_destroy = ctxt_destroy;
     purc_clr_error();
+
+    r = post_process(&stack->co, frame);
+    if (r)
+        return NULL;
 
     return ctxt;
 }
