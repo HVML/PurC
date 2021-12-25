@@ -30,6 +30,8 @@
 
 #include <libgen.h>
 
+#define TO_DEBUG 0
+
 #ifndef VTT
 #define VTT(x)         PCHVML_TOKEN##x
 #define VTT_S(x)       #x
@@ -99,30 +101,14 @@ vgim_to_string(struct pcvdom_gen *gen)
 }
 
 
-#define TO_DEBUG
-
-#ifdef TO_DEBUG
-#ifndef D
-#define D(fmt, ...)                                           \
-    fprintf(stderr, "%s[%d]:%s(): %s[%s] @ %s: " fmt "\n",    \
-        basename((char*)__FILE__), __LINE__, __func__,        \
-        vtt_to_string(token),                                 \
-        pchvml_token_get_name(token),                         \
-        vgim_to_string(gen),                                  \
-        ##__VA_ARGS__);
-#endif // D
-#else // ! TO_DEBUG
-#define D(fmt, ...) ({                                        \
-    UNUSED_PARAM(vtt_to_string);                              \
-    UNUSED_PARAM(vgim_to_string);                             \
-    })
-#endif // TO_DEBUG
-
 #ifndef FAIL_RET
-#define FAIL_RET()        \
-    do {                  \
-        D("fail_ret");    \
-        return -1;        \
+#define FAIL_RET()                                                \
+    do {                                                          \
+        D("%s[%s] @ %s: fail_ret",                                \
+            vtt_to_string(token),                                 \
+            pchvml_token_get_name(token),                         \
+            vgim_to_string(gen));                                 \
+        return -1;                                                \
     } while (0)
 #endif // FAIL_RET
 

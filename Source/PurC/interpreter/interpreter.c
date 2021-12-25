@@ -35,6 +35,8 @@
 #include "../hvml/hvml-gen.h"
 #include "hvml-attr.h"
 
+#define TO_DEBUG 0
+
 void pcintr_stack_init_once(void)
 {
     pcrunloop_init_main();

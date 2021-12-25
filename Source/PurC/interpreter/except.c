@@ -36,6 +36,8 @@
 #include <unistd.h>
 #include <libgen.h>
 
+#define TO_DEBUG 0
+
 struct ctxt_for_except {
     struct pcvdom_node           *curr;
 };
@@ -93,7 +95,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 }
 
 static bool
-on_popping(pcintr_stack_t stack, void* ctxt)
+on_popping(pcintr_stack_t stack, void* ud)
 {
     PC_ASSERT(stack);
     PC_ASSERT(stack == purc_get_stack());
@@ -101,14 +103,14 @@ on_popping(pcintr_stack_t stack, void* ctxt)
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame);
-    PC_ASSERT(ctxt == frame->ctxt);
+    PC_ASSERT(ud == frame->ctxt);
 
     struct pcvdom_element *element = frame->pos;
     PC_ASSERT(element);
 
-    struct ctxt_for_except *except_ctxt;
-    except_ctxt = (struct ctxt_for_except*)frame->ctxt;
-    if (except_ctxt) {
+    struct ctxt_for_except *ctxt;
+    ctxt = (struct ctxt_for_except*)frame->ctxt;
+    if (ctxt) {
         ctxt_for_except_destroy(ctxt);
         frame->ctxt = NULL;
     }
@@ -149,7 +151,7 @@ on_comment(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 }
 
 static pcvdom_element_t
-select_child(pcintr_stack_t stack, void* ctxt)
+select_child(pcintr_stack_t stack, void* ud)
 {
     PC_ASSERT(stack);
     PC_ASSERT(stack == purc_get_stack());
@@ -157,15 +159,15 @@ select_child(pcintr_stack_t stack, void* ctxt)
     pcintr_coroutine_t co = &stack->co;
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
-    PC_ASSERT(ctxt == frame->ctxt);
+    PC_ASSERT(ud == frame->ctxt);
 
-    struct ctxt_for_except *except_ctxt;
-    except_ctxt = (struct ctxt_for_except*)frame->ctxt;
+    struct ctxt_for_except *ctxt;
+    ctxt = (struct ctxt_for_except*)frame->ctxt;
 
     struct pcvdom_node *curr;
 
 again:
-    curr = except_ctxt->curr;
+    curr = ctxt->curr;
 
     if (curr == NULL) {
         struct pcvdom_element *element = frame->pos;
@@ -177,7 +179,7 @@ again:
         curr = pcvdom_node_next_sibling(curr);
     }
 
-    except_ctxt->curr = curr;
+    ctxt->curr = curr;
 
     if (curr == NULL) {
         purc_clr_error();

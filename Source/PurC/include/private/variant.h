@@ -49,6 +49,15 @@ extern "C" {
 #define EXOBJ_LOAD_ENTRY        "__purcex_load_dynamic_variant"
 #define EXOBJ_LOAD_HANDLE_KEY   "__intr_dlhandle"
 
+#ifndef D
+#define D(fmt, ...)                                           \
+    if (TO_DEBUG) {                                           \
+        fprintf(stderr, "%s[%d]:%s(): " fmt "\n",             \
+            basename((char*)__FILE__), __LINE__, __func__,    \
+            ##__VA_ARGS__);                                   \
+    }
+#endif // D
+
 
 
 struct pcvar_listener {
