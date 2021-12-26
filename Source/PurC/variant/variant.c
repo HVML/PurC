@@ -170,6 +170,8 @@ void pcvariant_init_instance(struct pcinst *inst)
 
     inst->variant_heap.gc = NULL;
 
+    inst->variant_heap.variables = NULL;
+
     /* VWNOTE: there are two values of boolean.  */
     struct purc_variant_stat *stat = &(inst->variant_heap.stat);
     stat->nr_values[PURC_VARIANT_TYPE_UNDEFINED] = 0;
@@ -285,6 +287,11 @@ void pcvariant_cleanup_instance(struct pcinst *inst)
 {
     struct pcvariant_heap *heap = &(inst->variant_heap);
     int i = 0;
+
+    if (heap->variables) {
+        pcvarmgr_list_destroy(heap->variables);
+        heap->variables = NULL;
+    }
 
     /* VWNOTE: do not try to release the extra memory here. */
     for (i = 0; i < MAX_RESERVED_VARIANTS; i++) {

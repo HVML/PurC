@@ -27,6 +27,7 @@
 
 #include "config.h"
 #include "purc-variant.h"
+#include "var-mgr.h"
 #include "list.h"
 #include "rbtree.h"
 
@@ -147,6 +148,9 @@ struct pcvariant_heap {
     purc_variant_t v_reserved [MAX_RESERVED_VARIANTS];
     int headpos;
     int tailpos;
+
+    struct pcvarmgr_list      *variables;
+
 
     // experiment
     struct pcvariant_gc       *gc;

@@ -27,6 +27,15 @@ int _node_count(struct pcvdom_node *top,
 
 TEST(vdom, basic)
 {
+    purc_instance_extra_info info = {};
+    int ret = 0;
+    bool cleanup = false;
+
+    // initial purc
+    ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
     struct pcvdom_document *doc;
     doc = pcvdom_document_create_with_doctype("hvml", "v: MATH FS");
     ASSERT_NE(doc, nullptr);
@@ -100,5 +109,8 @@ TEST(vdom, basic)
     EXPECT_EQ(nodes, 12);
 
     pcvdom_document_destroy(doc);
+
+    cleanup = purc_cleanup ();
+    ASSERT_EQ (cleanup, true);
 }
 

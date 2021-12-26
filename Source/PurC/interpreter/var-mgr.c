@@ -154,13 +154,13 @@ static purc_variant_t _find_inst_var(const char* name)
         return PURC_VARIANT_INVALID;
     }
 
-    struct pcinst* inst = pcinst_current();
-    if (inst == NULL) {
+    pcvarmgr_list_t varmgr = pcinst_get_variables();
+    if (varmgr == NULL) {
         PC_ASSERT(0); // FIXME: still recoverable???
         return PURC_VARIANT_INVALID;
     }
 
-    purc_variant_t v = pcvarmgr_list_get(inst->variables, name);
+    purc_variant_t v = pcvarmgr_list_get(varmgr, name);
     if (v) {
         return v;
     }

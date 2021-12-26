@@ -119,11 +119,6 @@ static void cleanup_instance (struct pcinst *curr_inst)
         curr_inst->local_data_map = NULL;
     }
 
-    if (curr_inst->variables) {
-        pcvarmgr_list_destroy(curr_inst->variables);
-        curr_inst->variables = NULL;
-    }
-
     if (curr_inst->app_name) {
         free (curr_inst->app_name);
         curr_inst->app_name = NULL;
@@ -172,13 +167,9 @@ int purc_init(const char* app_name, const char* runner_name,
         pcutils_map_create (copy_key_string,
                 free_key_string, NULL, NULL, comp_key_string, false);
 
-
-    curr_inst->variables = pcvarmgr_list_create();
-
     if (curr_inst->app_name == NULL ||
             curr_inst->runner_name == NULL ||
-            curr_inst->local_data_map == NULL ||
-            curr_inst->variables == NULL)
+            curr_inst->local_data_map == NULL)
         goto failed;
 
     // TODO: init other fields
@@ -285,11 +276,10 @@ purc_get_local_data(const char* data_name, uintptr_t *local_data,
 
 bool purc_bind_variable(const char* name, purc_variant_t variant)
 {
-    struct pcinst* inst = pcinst_current();
-    if (inst == NULL)
-        return false;
+    pcvarmgr_list_t varmgr = pcinst_get_variables();
+    PC_ASSERT(varmgr);
 
-    return pcvarmgr_list_add(inst->variables, name, variant);
+    return pcvarmgr_list_add(varmgr, name, variant);
 }
 
 #if 0
@@ -303,13 +293,25 @@ bool purc_unbind_variable(const char* name)
 }
 #endif
 
-purc_variant_t purc_get_variable(const char* name)
+pcvarmgr_list_t pcinst_get_variables(void)
 {
     struct pcinst* inst = pcinst_current();
     if (inst == NULL)
-        return false;
+        return NULL;
 
-    return pcvarmgr_list_get(inst->variables, name);
+    if (inst->variant_heap.variables == NULL) {
+        inst->variant_heap.variables = pcvarmgr_list_create();
+    }
+
+    return inst->variant_heap.variables;
+}
+
+purc_variant_t purc_get_variable(const char* name)
+{
+    pcvarmgr_list_t varmgr = pcinst_get_variables();
+    PC_ASSERT(varmgr);
+
+    return pcvarmgr_list_get(varmgr, name);
 }
 
 bool
