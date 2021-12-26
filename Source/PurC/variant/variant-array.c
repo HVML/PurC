@@ -40,78 +40,29 @@
 static inline void
 grown(purc_variant_t array, purc_variant_t value)
 {
-    if (!list_empty(&array->listeners))
-        return;
-    purc_atom_t msg_type = pcvariant_atom_grown;
-    PC_ASSERT(msg_type);
+    purc_variant_t vals[] = { value };
 
-    struct list_head *p;
-    list_for_each(p, &array->listeners) {
-        struct pcvar_listener *l;
-        l = container_of(p, struct pcvar_listener, list_node);
-        PC_ASSERT(l->handler);
-        if (l->name != msg_type)
-            continue;
-
-        purc_variant_t args[] = {
-            value,
-        };
-        bool ok = l->handler(array, msg_type, l->ctxt,
-            PCA_TABLESIZE(args), args);
-        PC_ASSERT(ok);
-    }
+    pcvariant_on_post_fired(array, pcvariant_atom_grow,
+            PCA_TABLESIZE(vals), vals);
 }
 
 static inline void
 shrunk(purc_variant_t array, purc_variant_t value)
 {
-    if (!list_empty(&array->listeners))
-        return;
-    purc_atom_t msg_type = pcvariant_atom_shrunk;
-    PC_ASSERT(msg_type);
+    purc_variant_t vals[] = { value };
 
-    struct list_head *p;
-    list_for_each(p, &array->listeners) {
-        struct pcvar_listener *l;
-        l = container_of(p, struct pcvar_listener, list_node);
-        PC_ASSERT(l->handler);
-        if (l->name != msg_type)
-            continue;
-
-        purc_variant_t args[] = {
-            value,
-        };
-        bool ok = l->handler(array, msg_type, l->ctxt,
-            PCA_TABLESIZE(args), args);
-        PC_ASSERT(ok);
-    }
+    pcvariant_on_post_fired(array, pcvariant_atom_shrink,
+            PCA_TABLESIZE(vals), vals);
 }
 
 static inline void
 change(purc_variant_t array,
         purc_variant_t o, purc_variant_t n)
 {
-    if (!list_empty(&array->listeners))
-        return;
-    purc_atom_t msg_type = pcvariant_atom_change;
-    PC_ASSERT(msg_type);
+    purc_variant_t vals[] = { o, n };
 
-    struct list_head *p;
-    list_for_each(p, &array->listeners) {
-        struct pcvar_listener *l;
-        l = container_of(p, struct pcvar_listener, list_node);
-        PC_ASSERT(l->handler);
-        if (l->name != msg_type)
-            continue;
-
-        purc_variant_t args[] = {
-            n,
-            o,
-        };
-        bool ok = l->handler(array, msg_type, l->ctxt,
-            PCA_TABLESIZE(args), args);
-        PC_ASSERT(ok);
-    }
+    pcvariant_on_post_fired(array, pcvariant_atom_change,
+            PCA_TABLESIZE(vals), vals);
 }
 
 static void _fill_empty_with_undefined(struct pcutils_arrlist *al)

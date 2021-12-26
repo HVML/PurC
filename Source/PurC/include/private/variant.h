@@ -60,15 +60,23 @@ extern "C" {
 #endif // D
 
 
+// mutually exclusive
+#define PCVAR_LISTENER_PRE_OR_POST      (0x01)
+
+#define PCVAR_LISTENER_PRE   (0x00)
+#define PCVAR_LISTENER_POST  (0x01)
 
 struct pcvar_listener {
-    // the name of the listener; using atom
-    purc_atom_t         name;
+    // the operation in which this listener is intersted.
+    purc_atom_t         op;
 
     // the context for the listener
     void*               ctxt;
 
-    // the message callback
+    // flags of the listener; only one flag currently: PRE or POST.
+    unsigned int        flags;
+
+    // the operation handler
     pcvar_op_handler    handler;
 
     // list node
@@ -93,7 +101,8 @@ struct purc_variant {
     unsigned int refc;
 
     /* observer listeners */
-    struct list_head        listeners;
+    struct list_head        pre_listeners;
+    struct list_head        post_listeners;
 
     /* value */
     union {
@@ -233,14 +242,31 @@ __attribute__ ((format (printf, 1, 2)))
 purc_variant_t pcvariant_make_with_printf(const char *fmt, ...);
 
 // TODO: better generate with tool
-extern purc_atom_t pcvariant_atom_grown;
-extern purc_atom_t pcvariant_atom_shrunk;
+extern purc_atom_t pcvariant_atom_grow;
+extern purc_atom_t pcvariant_atom_shrink;
 extern purc_atom_t pcvariant_atom_change;
-extern purc_atom_t pcvariant_atom_referenced;
-extern purc_atom_t pcvariant_atom_unreferenced;
-extern purc_atom_t pcvariant_atom_destroyed;
-extern purc_atom_t pcvariant_atom_timers;
-extern purc_atom_t pcvariant_atom_timer;
+extern purc_atom_t pcvariant_atom_reference;
+extern purc_atom_t pcvariant_atom_unreference;
+
+bool pcvariant_on_pre_fired(
+        purc_variant_t source,  // the source variant
+        purc_atom_t op,  // the atom of the operation,
+                         // such as `grow`,  `shrink`, or `change`
+        size_t nr_args,  // the number of the relevant child variants
+                         // (only for container).
+        purc_variant_t *argv    // the array of all relevant child variants
+                                // (only for container).
+        );
+
+void pcvariant_on_post_fired(
+        purc_variant_t source,  // the source variant
+        purc_atom_t op,  // the atom of the operation,
+                         // such as `grow`,  `shrink`, or `change`
+        size_t nr_args,  // the number of the relevant child variants
+                         // (only for container).
+        purc_variant_t *argv    // the array of all relevant child variants
+                                // (only for container).
+        );
 
 #ifdef __cplusplus
 }
