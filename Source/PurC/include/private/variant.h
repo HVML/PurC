@@ -27,6 +27,7 @@
 
 #include "config.h"
 #include "purc-variant.h"
+#include "var-mgr.h"
 #include "list.h"
 #include "rbtree.h"
 
@@ -49,6 +50,15 @@ extern "C" {
 #define EXOBJ_LOAD_ENTRY        "__purcex_load_dynamic_variant"
 #define EXOBJ_LOAD_HANDLE_KEY   "__intr_dlhandle"
 
+#ifndef D
+#define D(fmt, ...)                                           \
+    if (TO_DEBUG) {                                           \
+        fprintf(stderr, "%s[%d]:%s(): " fmt "\n",             \
+            basename((char*)__FILE__), __LINE__, __func__,    \
+            ##__VA_ARGS__);                                   \
+    }
+#endif // D
+
 
 
 struct pcvar_listener {
@@ -59,7 +69,7 @@ struct pcvar_listener {
     void*               ctxt;
 
     // the message callback
-    pcvar_msg_handler   handler;
+    pcvar_op_handler    handler;
 
     // list node
     struct list_head    list_node;
@@ -139,6 +149,9 @@ struct pcvariant_heap {
     int headpos;
     int tailpos;
 
+    struct pcvarmgr_list      *variables;
+
+
     // experiment
     struct pcvariant_gc       *gc;
 };
@@ -203,6 +216,14 @@ int pcvariant_set_sort(purc_variant_t value, void *ud,
 
 const char* pcvariant_get_typename(enum purc_variant_type type);
 
+static inline const char*
+pcvariant_typename(purc_variant_t v)
+{
+    enum purc_variant_type type;
+    type = purc_variant_get_type(v);
+    return pcvariant_get_typename(type);
+}
+
 int pcvariant_serialize(char *buf, size_t sz, purc_variant_t val);
 char* pcvariant_serialize_alloc(char *buf, size_t sz, purc_variant_t val);
 
@@ -210,6 +231,16 @@ purc_variant_t pcvariant_make_object(size_t nr_kvs, ...);
 
 __attribute__ ((format (printf, 1, 2)))
 purc_variant_t pcvariant_make_with_printf(const char *fmt, ...);
+
+// TODO: better generate with tool
+extern purc_atom_t pcvariant_atom_grown;
+extern purc_atom_t pcvariant_atom_shrunk;
+extern purc_atom_t pcvariant_atom_change;
+extern purc_atom_t pcvariant_atom_referenced;
+extern purc_atom_t pcvariant_atom_unreferenced;
+extern purc_atom_t pcvariant_atom_destroyed;
+extern purc_atom_t pcvariant_atom_timers;
+extern purc_atom_t pcvariant_atom_timer;
 
 #ifdef __cplusplus
 }

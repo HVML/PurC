@@ -122,12 +122,29 @@ static inline void free_variant(purc_variant *v) {
 }
 #endif
 
+purc_atom_t pcvariant_atom_grown;
+purc_atom_t pcvariant_atom_shrunk;
+purc_atom_t pcvariant_atom_change;
+purc_atom_t pcvariant_atom_referenced;
+purc_atom_t pcvariant_atom_unreferenced;
+purc_atom_t pcvariant_atom_destroyed;
+purc_atom_t pcvariant_atom_timers;
+purc_atom_t pcvariant_atom_timer;
+
 void pcvariant_init_once(void)
 {
     // register error message
     pcinst_register_error_message_segment(&_variant_err_msgs_seg);
 
     // initialize others
+    pcvariant_atom_grown = purc_atom_from_static_string("grown");
+    pcvariant_atom_shrunk = purc_atom_from_static_string("shrunk");
+    pcvariant_atom_change = purc_atom_from_static_string("change");
+    pcvariant_atom_referenced = purc_atom_from_static_string("referenced");
+    pcvariant_atom_unreferenced = purc_atom_from_static_string("unreferenced");
+    pcvariant_atom_destroyed = purc_atom_from_static_string("destroyed");
+    pcvariant_atom_timers = purc_atom_from_static_string("timers");
+    pcvariant_atom_timer = purc_atom_from_static_string("timer");
 }
 
 void pcvariant_init_instance(struct pcinst *inst)
@@ -152,6 +169,8 @@ void pcvariant_init_instance(struct pcinst *inst)
     inst->variant_heap.v_true.b = true;
 
     inst->variant_heap.gc = NULL;
+
+    inst->variant_heap.variables = NULL;
 
     /* VWNOTE: there are two values of boolean.  */
     struct purc_variant_stat *stat = &(inst->variant_heap.stat);
@@ -269,6 +288,11 @@ void pcvariant_cleanup_instance(struct pcinst *inst)
     struct pcvariant_heap *heap = &(inst->variant_heap);
     int i = 0;
 
+    if (heap->variables) {
+        pcvarmgr_list_destroy(heap->variables);
+        heap->variables = NULL;
+    }
+
     /* VWNOTE: do not try to release the extra memory here. */
     for (i = 0; i < MAX_RESERVED_VARIANTS; i++) {
         if (heap->v_reserved[i]) {
@@ -301,7 +325,7 @@ referenced(purc_variant_t value)
 {
     if (!list_empty(&value->listeners))
         return;
-    purc_atom_t msg_type = purc_atom_from_string("referenced");
+    purc_atom_t msg_type = pcvariant_atom_referenced;
     PC_ASSERT(msg_type);
 
     struct list_head *p;
@@ -322,7 +346,7 @@ unreferenced(purc_variant_t value)
 {
     if (!list_empty(&value->listeners))
         return;
-    purc_atom_t msg_type = purc_atom_from_string("unreferenced");
+    purc_atom_t msg_type = pcvariant_atom_unreferenced;
     PC_ASSERT(msg_type);
 
     struct list_head *p;
@@ -360,7 +384,7 @@ destroyed(purc_variant_t value)
 {
     if (!list_empty(&value->listeners))
         return;
-    purc_atom_t msg_type = purc_atom_from_string("destroyed");
+    purc_atom_t msg_type = pcvariant_atom_destroyed;
     PC_ASSERT(msg_type);
 
     struct list_head *p, *n;

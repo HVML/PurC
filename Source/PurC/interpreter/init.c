@@ -36,6 +36,8 @@
 #include <unistd.h>
 #include <libgen.h>
 
+#define TO_DEBUG 0
+
 struct ctxt_for_init {
     struct pcvdom_node           *curr;
 
@@ -56,7 +58,7 @@ ctxt_destroy(void *ctxt)
     ctxt_for_init_destroy((struct ctxt_for_init*)ctxt);
 }
 
-static void
+static int
 post_process_bind_scope_var(pcintr_coroutine_t co,
         struct pcintr_stack_frame *frame,
         purc_variant_t name, purc_variant_t val)
@@ -71,20 +73,19 @@ post_process_bind_scope_var(pcintr_coroutine_t co,
     struct ctxt_for_init *ctxt = (struct ctxt_for_init*)frame->ctxt;
     if (ctxt->under_head) {
         ok = purc_bind_document_variable(co->stack->vdom, s_name, val);
+        D("[%s] bound at doc[%p]", s_name, co->stack->vdom);
     } else {
         element = pcvdom_element_parent(element);
         PC_ASSERT(element);
         ok = pcintr_bind_scope_variable(element, s_name, val);
+        D("[%s] bound at scope[%s]", s_name, element->tag_name);
     }
     purc_variant_unref(val);
-    if (!ok) {
-        frame->next_step = -1;
-        co->state = CO_STATE_TERMINATED;
-        return;
-    }
+
+    return ok ? 0 : -1;
 }
 
-static void
+static int
 post_process_array(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         purc_variant_t name)
 {
@@ -93,11 +94,8 @@ post_process_array(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     purc_clr_error();
     purc_variant_t set;
     set = purc_variant_make_set(0, via, PURC_VARIANT_INVALID);
-    if (set == PURC_VARIANT_INVALID) {
-        frame->next_step = -1;
-        co->state = CO_STATE_TERMINATED;
-        return;
-    }
+    if (set == PURC_VARIANT_INVALID)
+        return -1;
 
     purc_variant_t val;
     foreach_value_in_variant_array(frame->ctnt_var, val)
@@ -107,91 +105,81 @@ post_process_array(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         }
         if (!ok) {
             purc_variant_unref(set);
-            purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
-            frame->next_step = -1;
-            co->state = CO_STATE_TERMINATED;
-            return;
+            return -1;
         }
     end_foreach;
 
-    fprintf(stderr, "==%s[%d]:%s()==[<%s>]\n",
-            __FILE__, __LINE__, __func__,
-            pcvariant_get_typename(purc_variant_get_type(set)));
-    post_process_bind_scope_var(co, frame, name, set);
+    return post_process_bind_scope_var(co, frame, name, set);
 }
 
-static void
+static int
 post_process_object(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         purc_variant_t name)
 {
     purc_variant_t val = frame->ctnt_var;
 
     purc_variant_ref(val);
-    post_process_bind_scope_var(co, frame, name, val);
+    return post_process_bind_scope_var(co, frame, name, val);
 }
 
-static void
+static int
 post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
     purc_variant_t name;
     name = purc_variant_object_get_by_ckey(frame->attr_vars, "as");
-    if (name == PURC_VARIANT_INVALID) {
-        purc_set_error(PURC_ERROR_NOT_EXISTS);
-        frame->next_step = -1;
-        co->state = CO_STATE_TERMINATED;
-        return;
-    }
+    if (name == PURC_VARIANT_INVALID)
+        return -1;
 
     if (purc_variant_is_type(frame->ctnt_var, PURC_VARIANT_TYPE_ARRAY)) {
-        post_process_array(co, frame, name);
-        return;
+        return post_process_array(co, frame, name);
     }
     if (purc_variant_is_type(frame->ctnt_var, PURC_VARIANT_TYPE_OBJECT)) {
-        post_process_object(co, frame, name);
-        return;
+        return post_process_object(co, frame, name);
     }
 
-    PC_ASSERT(0);
+    purc_set_error(PURC_ERROR_NOT_EXISTS);
+    return -1;
 }
 
-static void
-after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
+static void*
+after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 {
-    struct pcvdom_element *element = frame->scope;
-    PC_ASSERT(element);
+    PC_ASSERT(stack && pos);
+    PC_ASSERT(stack == purc_get_stack());
 
-    fprintf(stderr, "==co[%p]<%s>@%s[%d]:%s()==\n", co, element->tag_name,
-            basename((char*)__FILE__), __LINE__, __func__);
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_stack_get_bottom_frame(stack);
+
+    frame->pos = pos; // ATTENTION!!
+
+    struct pcvdom_element *element = frame->pos;
+    PC_ASSERT(element);
+    D("<%s>", element->tag_name);
 
     int r;
     r = pcintr_element_eval_attrs(frame, element);
-    if (r) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        frame->next_step = -1;
-        co->state = CO_STATE_TERMINATED;
-        return;
-    }
+    if (r)
+        return NULL;
 
-    r = pcintr_element_eval_vcm_content(frame, element);
-    if (r) {
-        frame->next_step = -1;
-        co->state = CO_STATE_TERMINATED;
-        return;
-    }
+    struct pcvcm_node *vcm_content = element->vcm_content;
+    PC_ASSERT(vcm_content);
+
+    purc_variant_t v = pcvcm_eval(vcm_content, stack);
+    if (v == PURC_VARIANT_INVALID)
+        return NULL;
+
+    PURC_VARIANT_SAFE_CLEAR(frame->ctnt_var);
+    frame->ctnt_var = v;
 
     struct ctxt_for_init *ctxt;
     ctxt = (struct ctxt_for_init*)calloc(1, sizeof(*ctxt));
     if (!ctxt) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        frame->next_step = -1;
-        co->state = CO_STATE_TERMINATED;
-        return;
+        return NULL;
     }
 
     frame->ctxt = ctxt;
-    frame->next_step = NEXT_STEP_ON_POPPING;
     frame->ctxt_destroy = ctxt_destroy;
-    co->state = CO_STATE_READY;
 
     while ((element=pcvdom_element_parent(element))) {
         if (element->tag_id == PCHVML_TAG_HEAD) {
@@ -199,125 +187,36 @@ after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         }
     }
 
-    post_process(co, frame);
+    r = post_process(&stack->co, frame);
+    if (r)
+        return NULL;
+
+    return ctxt;
 }
 
-static void
-on_popping(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
+static bool
+on_popping(pcintr_stack_t stack, void* ud)
 {
-    struct pcvdom_element *element = frame->scope;
-    fprintf(stderr, "==co[%p]</%s>@%s[%d]:%s()==\n", co, element->tag_name,
-            basename((char*)__FILE__), __LINE__, __func__);
-    pcintr_stack_t stack = co->stack;
+    PC_ASSERT(stack);
+    PC_ASSERT(stack == purc_get_stack());
+
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_stack_get_bottom_frame(stack);
+    PC_ASSERT(frame);
+    PC_ASSERT(ud == frame->ctxt);
+
+    struct pcvdom_element *element = frame->pos;
+    PC_ASSERT(element);
+
     struct ctxt_for_init *ctxt;
     ctxt = (struct ctxt_for_init*)frame->ctxt;
     if (ctxt) {
         ctxt_for_init_destroy(ctxt);
         frame->ctxt = NULL;
     }
-    pcintr_pop_stack_frame(stack);
-    co->state = CO_STATE_READY;
-}
 
-static void
-on_element(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
-        struct pcvdom_element *element)
-{
-    struct ctxt_for_init *ctxt;
-    ctxt = (struct ctxt_for_init*)frame->ctxt;
-
-    pcintr_stack_t stack = co->stack;
-    struct pcintr_stack_frame *child_frame;
-    child_frame = pcintr_push_stack_frame(stack);
-    if (!child_frame) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return;
-    }
-    child_frame->ops = pcintr_get_ops_by_element(element);
-    child_frame->scope = element;
-    child_frame->next_step = NEXT_STEP_AFTER_PUSHED;
-    fprintf(stderr, "==co[%p]@%s[%d]:%s():element[%s]==\n",
-            co, basename((char*)__FILE__), __LINE__, __func__,
-            element->tag_name);
-
-    ctxt->curr = &element->node;
-    frame->next_step = NEXT_STEP_SELECT_CHILD;
-    co->state = CO_STATE_READY;
-}
-
-static void
-on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
-        struct pcvdom_content *content)
-{
-    struct ctxt_for_init *ctxt;
-    ctxt = (struct ctxt_for_init*)frame->ctxt;
-
-    fprintf(stderr, "==co[%p]@%s[%d]:%s():content[%s]==\n",
-            co, basename((char*)__FILE__), __LINE__, __func__,
-            content->text);
-
-    ctxt->curr = &content->node;
-    frame->next_step = NEXT_STEP_SELECT_CHILD;
-    co->state = CO_STATE_READY;
-}
-
-static void
-on_comment(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
-        struct pcvdom_comment *comment)
-{
-    struct ctxt_for_init *ctxt;
-    ctxt = (struct ctxt_for_init*)frame->ctxt;
-
-    fprintf(stderr, "==co[%p]@%s[%d]:%s():content[%s]==\n",
-            co, basename((char*)__FILE__), __LINE__, __func__,
-            comment->text);
-
-    ctxt->curr = &comment->node;
-    frame->next_step = NEXT_STEP_SELECT_CHILD;
-    co->state = CO_STATE_READY;
-}
-
-static void
-select_child(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
-{
-    struct ctxt_for_init *ctxt;
-    ctxt = (struct ctxt_for_init*)frame->ctxt;
-
-    if (ctxt->curr == NULL) {
-        struct pcvdom_element *element = frame->scope;
-        struct pcvdom_node *node = &element->node;
-        node = pcvdom_node_first_child(node);
-        ctxt->curr = node;
-    }
-    else {
-        ctxt->curr = pcvdom_node_next_sibling(ctxt->curr);
-    }
-
-    if (ctxt->curr == NULL) {
-        purc_clr_error();
-        frame->next_step = NEXT_STEP_ON_POPPING;
-        co->state = CO_STATE_READY;
-        return;
-    }
-
-    switch (ctxt->curr->type) {
-        case PCVDOM_NODE_DOCUMENT:
-            PC_ASSERT(0); // Not implemented yet
-            break;
-        case PCVDOM_NODE_ELEMENT:
-            on_element(co, frame, PCVDOM_ELEMENT_FROM_NODE(ctxt->curr));
-            return;
-        case PCVDOM_NODE_CONTENT:
-            on_content(co, frame, PCVDOM_CONTENT_FROM_NODE(ctxt->curr));
-            return;
-        case PCVDOM_NODE_COMMENT:
-            on_comment(co, frame, PCVDOM_COMMENT_FROM_NODE(ctxt->curr));
-            return;
-        default:
-            PC_ASSERT(0); // Not implemented yet
-    }
-
-    PC_ASSERT(0);
+    D("</%s>", element->tag_name);
+    return true;
 }
 
 static struct pcintr_element_ops
@@ -325,7 +224,7 @@ ops = {
     .after_pushed       = after_pushed,
     .on_popping         = on_popping,
     .rerun              = NULL,
-    .select_child       = select_child,
+    .select_child       = NULL,
 };
 
 struct pcintr_element_ops* pcintr_get_init_ops(void)

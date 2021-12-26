@@ -33,7 +33,6 @@
 #include "private/map.h"
 #include "private/executor.h"
 #include "private/interpreter.h"
-#include "private/var-mgr.h"
 
 struct pcinst {
     int errcode;
@@ -46,7 +45,6 @@ struct pcinst {
     char* runner_name;
 
     pcutils_map* local_data_map;
-    pcvarmgr_list_t variables;
 
     struct pcvariant_heap variant_heap;
     struct pcexecutor_heap executor_heap;
@@ -56,6 +54,7 @@ struct pcinst {
 
 /* gets the current instance */
 struct pcinst* pcinst_current(void) WTF_INTERNAL;
+pcvarmgr_list_t pcinst_get_variables(void) WTF_INTERNAL;
 
 #endif /* not defined PURC_PRIVATE_INSTANCE_H */
 

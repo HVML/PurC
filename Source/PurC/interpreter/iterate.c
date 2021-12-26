@@ -32,18 +32,37 @@
 
 #include "ops.h"
 
+#include "purc-executor.h"
+
 #include <pthread.h>
 #include <unistd.h>
 #include <libgen.h>
 
+#define TO_DEBUG 0
+
 struct ctxt_for_iterate {
     struct pcvdom_node           *curr;
+
+    purc_variant_t                on;
+    purc_variant_t                by;
+
+    struct purc_exec_ops          ops;
+    purc_exec_inst_t              exec_inst;
+    purc_exec_iter_t              it;
 };
 
 static void
 ctxt_for_iterate_destroy(struct ctxt_for_iterate *ctxt)
 {
     if (ctxt) {
+        if (ctxt->exec_inst) {
+            bool ok = ctxt->ops.destroy(ctxt->exec_inst);
+            PC_ASSERT(ok);
+            ctxt->exec_inst = NULL;
+        }
+        PURC_VARIANT_SAFE_CLEAR(ctxt->by);
+        PURC_VARIANT_SAFE_CLEAR(ctxt->on);
+
         free(ctxt);
     }
 }
@@ -54,169 +73,281 @@ ctxt_destroy(void *ctxt)
     ctxt_for_iterate_destroy((struct ctxt_for_iterate*)ctxt);
 }
 
-static void
-after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
+static int
+post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
-    struct pcvdom_element *element = frame->scope;
-    PC_ASSERT(element);
+    UNUSED_PARAM(co);
+    struct ctxt_for_iterate *ctxt;
+    ctxt = (struct ctxt_for_iterate*)frame->ctxt;
+    PC_ASSERT(ctxt);
 
-    fprintf(stderr, "==co[%p]<%s>@%s[%d]:%s()==\n", co, element->tag_name,
-            basename((char*)__FILE__), __LINE__, __func__);
+    purc_variant_t on;
+    on = purc_variant_object_get_by_ckey(frame->attr_vars, "on");
+    if (on == PURC_VARIANT_INVALID)
+        return -1;
+    PURC_VARIANT_SAFE_CLEAR(ctxt->on);
+    ctxt->on = on;
+    purc_variant_ref(on);
+
+    purc_variant_t by;
+    by = purc_variant_object_get_by_ckey(frame->attr_vars, "by");
+    if (by == PURC_VARIANT_INVALID) {
+        by = purc_variant_make_string_static("RANGE: FROM 0", false);
+        if (by == PURC_VARIANT_INVALID)
+            return -1;
+    }
+    else {
+        purc_variant_ref(by);
+    }
+    purc_clr_error();
+    PURC_VARIANT_SAFE_CLEAR(ctxt->by);
+    ctxt->by = by;
+
+    const char *rule = purc_variant_get_string_const(by);
+    PC_ASSERT(rule);
+    bool ok = purc_get_executor(rule, &ctxt->ops);
+    if (!ok)
+        return -1;
+
+    PC_ASSERT(ctxt->ops.create);
+    PC_ASSERT(ctxt->ops.it_begin);
+    PC_ASSERT(ctxt->ops.it_next);
+    PC_ASSERT(ctxt->ops.it_value);
+    PC_ASSERT(ctxt->ops.destroy);
+
+    purc_exec_inst_t exec_inst;
+    exec_inst = ctxt->ops.create(PURC_EXEC_TYPE_ITERATE, on, false);
+    if (!exec_inst)
+        return -1;
+
+    ctxt->exec_inst = exec_inst;
+
+    purc_exec_iter_t it;
+    it = ctxt->ops.it_begin(exec_inst, rule);
+    if (!it)
+        return -1;
+
+    ctxt->it = it;
+
+    purc_variant_t value;
+    value = ctxt->ops.it_value(exec_inst, it);
+    if (value == PURC_VARIANT_INVALID)
+        return -1;
+
+    PURC_VARIANT_SAFE_CLEAR(frame->symbol_vars[PURC_SYMBOL_VAR_QUESTION_MARK]);
+    frame->symbol_vars[PURC_SYMBOL_VAR_QUESTION_MARK] = value;
+    purc_variant_ref(value);
+
+    return 0;
+}
+
+static void*
+after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
+{
+    PC_ASSERT(stack && pos);
+    PC_ASSERT(stack == purc_get_stack());
+
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_stack_get_bottom_frame(stack);
+
+    frame->pos = pos; // ATTENTION!!
+
+    struct pcvdom_element *element = frame->pos;
+    PC_ASSERT(element);
+    D("<%s>", element->tag_name);
 
     int r;
     r = pcintr_element_eval_attrs(frame, element);
-    if (r) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        frame->next_step = -1;
-        co->state = CO_STATE_TERMINATED;
-        return;
-    }
-
-    r = pcintr_element_eval_vcm_content(frame, element);
-    if (r) {
-        frame->next_step = -1;
-        co->state = CO_STATE_TERMINATED;
-        return;
-    }
+    if (r)
+        return NULL;
 
     struct ctxt_for_iterate *ctxt;
     ctxt = (struct ctxt_for_iterate*)calloc(1, sizeof(*ctxt));
     if (!ctxt) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        frame->next_step = -1;
-        co->state = CO_STATE_TERMINATED;
-        return;
+        return NULL;
     }
 
     frame->ctxt = ctxt;
-    frame->next_step = NEXT_STEP_SELECT_CHILD;
     frame->ctxt_destroy = ctxt_destroy;
-    co->state = CO_STATE_READY;
+    purc_clr_error();
+
+    r = post_process(&stack->co, frame);
+    if (r)
+        return NULL;
+
+    return ctxt;
 }
 
-static void
-on_popping(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
+static bool
+on_popping(pcintr_stack_t stack, void* ud)
 {
-    struct pcvdom_element *element = frame->scope;
-    fprintf(stderr, "==co[%p]</%s>@%s[%d]:%s()==\n", co, element->tag_name,
-            basename((char*)__FILE__), __LINE__, __func__);
-    pcintr_stack_t stack = co->stack;
+    PC_ASSERT(stack);
+    PC_ASSERT(stack == purc_get_stack());
+
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_stack_get_bottom_frame(stack);
+    PC_ASSERT(frame);
+    PC_ASSERT(ud == frame->ctxt);
+
     struct ctxt_for_iterate *ctxt;
     ctxt = (struct ctxt_for_iterate*)frame->ctxt;
-    if (ctxt) {
-        ctxt_for_iterate_destroy(ctxt);
-        frame->ctxt = NULL;
+
+    purc_exec_inst_t exec_inst;
+    exec_inst = ctxt->exec_inst;
+    if (!exec_inst)
+        return true;
+
+    purc_exec_iter_t it = ctxt->it;
+    if (!it)
+        return true;
+
+    it = ctxt->ops.it_next(exec_inst, it, NULL); // TODO: re-eval rule????
+    ctxt->it = it;
+    if (!it) {
+        int err = purc_get_last_error();
+        if (err == PURC_ERROR_NOT_EXISTS) {
+            purc_clr_error();
+        }
+        return true;
     }
-    pcintr_pop_stack_frame(stack);
-    co->state = CO_STATE_READY;
+
+    return false;
+}
+
+static bool
+rerun(pcintr_stack_t stack, void* ud)
+{
+    PC_ASSERT(stack);
+    PC_ASSERT(stack == purc_get_stack());
+
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_stack_get_bottom_frame(stack);
+    PC_ASSERT(frame);
+    PC_ASSERT(ud == frame->ctxt);
+
+    struct ctxt_for_iterate *ctxt;
+    ctxt = (struct ctxt_for_iterate*)frame->ctxt;
+
+    purc_exec_inst_t exec_inst;
+    exec_inst = ctxt->exec_inst;
+    PC_ASSERT(exec_inst);
+
+    purc_exec_iter_t it = ctxt->it;
+    PC_ASSERT(it);
+
+    purc_variant_t value;
+    value = ctxt->ops.it_value(exec_inst, it);
+    if (value == PURC_VARIANT_INVALID)
+        return true;
+
+    PURC_VARIANT_SAFE_CLEAR(frame->symbol_vars[PURC_SYMBOL_VAR_QUESTION_MARK]);
+    frame->symbol_vars[PURC_SYMBOL_VAR_QUESTION_MARK] = value;
+    purc_variant_ref(value);
+
+    return true;
 }
 
 static void
 on_element(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         struct pcvdom_element *element)
 {
-    struct ctxt_for_iterate *ctxt;
-    ctxt = (struct ctxt_for_iterate*)frame->ctxt;
-
-    pcintr_stack_t stack = co->stack;
-    struct pcintr_stack_frame *child_frame;
-    child_frame = pcintr_push_stack_frame(stack);
-    if (!child_frame) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return;
-    }
-    child_frame->ops = pcintr_get_ops_by_element(element);
-    child_frame->scope = element;
-    child_frame->next_step = NEXT_STEP_AFTER_PUSHED;
-    fprintf(stderr, "==co[%p]@%s[%d]:%s():element[%s]==\n",
-            co, basename((char*)__FILE__), __LINE__, __func__,
-            element->tag_name);
-
-    ctxt->curr = &element->node;
-    frame->next_step = NEXT_STEP_SELECT_CHILD;
-    co->state = CO_STATE_READY;
+    UNUSED_PARAM(co);
+    UNUSED_PARAM(frame);
+    UNUSED_PARAM(element);
 }
 
 static void
 on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         struct pcvdom_content *content)
 {
-    struct ctxt_for_iterate *ctxt;
-    ctxt = (struct ctxt_for_iterate*)frame->ctxt;
-
-    fprintf(stderr, "==co[%p]@%s[%d]:%s():content[%s]==\n",
-            co, basename((char*)__FILE__), __LINE__, __func__,
-            content->text);
-
-    ctxt->curr = &content->node;
-    frame->next_step = NEXT_STEP_SELECT_CHILD;
-    co->state = CO_STATE_READY;
+    UNUSED_PARAM(co);
+    UNUSED_PARAM(frame);
+    PC_ASSERT(content);
+    char *text = content->text;
+    D("content: [%s]", text);
 }
 
 static void
 on_comment(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         struct pcvdom_comment *comment)
 {
-    struct ctxt_for_iterate *ctxt;
-    ctxt = (struct ctxt_for_iterate*)frame->ctxt;
-
-    fprintf(stderr, "==co[%p]@%s[%d]:%s():content[%s]==\n",
-            co, basename((char*)__FILE__), __LINE__, __func__,
-            comment->text);
-
-    ctxt->curr = &comment->node;
-    frame->next_step = NEXT_STEP_SELECT_CHILD;
-    co->state = CO_STATE_READY;
+    UNUSED_PARAM(co);
+    UNUSED_PARAM(frame);
+    PC_ASSERT(comment);
+    char *text = comment->text;
+    D("comment: [%s]", text);
 }
 
-static void
-select_child(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
+static pcvdom_element_t
+select_child(pcintr_stack_t stack, void* ud)
 {
+    PC_ASSERT(stack);
+    PC_ASSERT(stack == purc_get_stack());
+
+    pcintr_coroutine_t co = &stack->co;
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_stack_get_bottom_frame(stack);
+    PC_ASSERT(ud == frame->ctxt);
+
     struct ctxt_for_iterate *ctxt;
     ctxt = (struct ctxt_for_iterate*)frame->ctxt;
 
-    if (ctxt->curr == NULL) {
-        struct pcvdom_element *element = frame->scope;
+    struct pcvdom_node *curr;
+
+again:
+    curr = ctxt->curr;
+
+    if (curr == NULL) {
+        struct pcvdom_element *element = frame->pos;
         struct pcvdom_node *node = &element->node;
         node = pcvdom_node_first_child(node);
-        ctxt->curr = node;
+        curr = node;
     }
     else {
-        ctxt->curr = pcvdom_node_next_sibling(ctxt->curr);
+        curr = pcvdom_node_next_sibling(curr);
     }
 
-    if (ctxt->curr == NULL) {
+    ctxt->curr = curr;
+
+    if (curr == NULL) {
         purc_clr_error();
-        frame->next_step = NEXT_STEP_ON_POPPING;
-        co->state = CO_STATE_READY;
-        return;
+        return NULL;
     }
 
-    switch (ctxt->curr->type) {
+    switch (curr->type) {
         case PCVDOM_NODE_DOCUMENT:
             PC_ASSERT(0); // Not implemented yet
             break;
         case PCVDOM_NODE_ELEMENT:
-            on_element(co, frame, PCVDOM_ELEMENT_FROM_NODE(ctxt->curr));
-            return;
+            {
+            D("");
+                pcvdom_element_t element = PCVDOM_ELEMENT_FROM_NODE(curr);
+                on_element(co, frame, element);
+                PC_ASSERT(stack->except == 0);
+                return element;
+            }
         case PCVDOM_NODE_CONTENT:
-            on_content(co, frame, PCVDOM_CONTENT_FROM_NODE(ctxt->curr));
-            return;
+            D("");
+            on_content(co, frame, PCVDOM_CONTENT_FROM_NODE(curr));
+            goto again;
         case PCVDOM_NODE_COMMENT:
-            on_comment(co, frame, PCVDOM_COMMENT_FROM_NODE(ctxt->curr));
-            return;
+            D("");
+            on_comment(co, frame, PCVDOM_COMMENT_FROM_NODE(curr));
+            goto again;
         default:
             PC_ASSERT(0); // Not implemented yet
     }
 
     PC_ASSERT(0);
+    return NULL; // NOTE: never reached here!!!
 }
 
 static struct pcintr_element_ops
 ops = {
     .after_pushed       = after_pushed,
     .on_popping         = on_popping,
-    .rerun              = NULL,
+    .rerun              = rerun,
     .select_child       = select_child,
 };
 

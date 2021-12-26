@@ -26,6 +26,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <errno.h>
+#include <ctype.h>
 
 #include "config.h"
 #include "purc-utils.h"
@@ -543,11 +544,13 @@ char* pcvcm_node_to_string (struct pcvcm_node* node, size_t* nr_bytes)
 
     pcvcm_node_write_to_rwstream(rws, node);
 
+    purc_rwstream_write(rws, "", 1); // writing null-terminator
+
     size_t sz_content = 0;
     char* buf = (char*) purc_rwstream_get_mem_buffer_ex(rws, &sz_content,
         NULL, true);
     if (nr_bytes) {
-        *nr_bytes = sz_content;
+        *nr_bytes = sz_content - 1;
     }
 
     purc_rwstream_destroy(rws);
@@ -676,39 +679,18 @@ purc_variant_t pcvcm_node_concat_string_to_variant (struct pcvcm_node* node,
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     struct pcvcm_node* child = FIRST_CHILD(node);
     while (child) {
-        switch (child->type)
-        {
-            case PCVCM_NODE_TYPE_STRING:
-                purc_rwstream_write(rws, (char*)child->sz_ptr[1], child->sz_ptr[0]);
-                break;
-
-            case PCVCM_NODE_TYPE_OBJECT:
-            case PCVCM_NODE_TYPE_ARRAY:
-            case PCVCM_NODE_TYPE_NULL:
-            case PCVCM_NODE_TYPE_BOOLEAN:
-            case PCVCM_NODE_TYPE_NUMBER:
-            case PCVCM_NODE_TYPE_LONG_INT:
-            case PCVCM_NODE_TYPE_ULONG_INT:
-            case PCVCM_NODE_TYPE_LONG_DOUBLE:
-            case PCVCM_NODE_TYPE_FUNC_CONCAT_STRING:
-            case PCVCM_NODE_TYPE_FUNC_GET_VARIABLE:
-            case PCVCM_NODE_TYPE_FUNC_GET_ELEMENT:
-            case PCVCM_NODE_TYPE_FUNC_CALL_GETTER:
-            case PCVCM_NODE_TYPE_FUNC_CALL_SETTER:
-            case PCVCM_NODE_TYPE_BYTE_SEQUENCE:
-            default:
-                {
-                    purc_variant_t v = pcvcm_node_to_variant(child, ops);
-                    if (v) {
-                        size_t len_expected = 0;
-                        purc_variant_serialize(v, rws, 0,
-                                PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);
-                        purc_variant_unref(v);
-                    }
-                    else {
-                        goto err;
-                    }
-                }
+        purc_variant_t v = pcvcm_node_to_variant(child, ops);
+        if (v) {
+            char* buf = NULL;
+            int total = purc_variant_stringify_alloc(&buf, v);
+            if (total) {
+                purc_rwstream_write(rws, buf, total);
+            }
+            free(buf);
+            purc_variant_unref(v);
+        }
+        else {
+            goto err;
         }
         child = NEXT_CHILD(child);
     }
@@ -1093,6 +1075,10 @@ purc_variant_t find_stack_var (void* ctxt, const char* name)
         return is_digit(last) ?
             pcintr_get_numbered_var(stack, number) :
             pcintr_get_symbolized_var(stack, number, last);
+    }
+
+    if (nr_name == 1 && ispunct(last)) {
+        return pcintr_get_symbolized_var(stack, 0, last);
     }
 
     return pcintr_find_named_var(ctxt, name);

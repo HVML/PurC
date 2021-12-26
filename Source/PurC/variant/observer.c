@@ -30,7 +30,7 @@
 
 bool
 purc_variant_register_listener(purc_variant_t v, purc_atom_t name,
-        pcvar_msg_handler handler, void *ctxt)
+        pcvar_op_handler handler, void *ctxt)
 {
     if (v == PURC_VARIANT_INVALID || !name || !handler) {
         pcinst_set_error(PCVARIANT_ERROR_WRONG_ARGS);
@@ -76,6 +76,42 @@ purc_variant_register_listener(purc_variant_t v, purc_atom_t name,
     list_add_tail(&listener->list_node, &v->listeners);
 
     return true;
+}
+
+pcvar_op_handler
+purc_variant_get_listener(purc_variant_t v, purc_atom_t name)
+{
+    if (v == PURC_VARIANT_INVALID || !name) {
+        pcinst_set_error(PCVARIANT_ERROR_WRONG_ARGS);
+        return NULL;
+    }
+
+    enum purc_variant_type type;
+    type = purc_variant_get_type(v);
+
+    switch (type)
+    {
+        case PURC_VARIANT_TYPE_OBJECT:
+            break;
+        case PURC_VARIANT_TYPE_ARRAY:
+            break;
+        case PURC_VARIANT_TYPE_SET:
+            break;
+        default:
+            pcinst_set_error(PCVARIANT_ERROR_NOT_SUPPORTED);
+            return NULL;
+    }
+
+    struct list_head *p, *n;
+    list_for_each_safe(p, n, &v->listeners) {
+        struct pcvar_listener *listener;
+        listener = container_of(p, struct pcvar_listener, list_node);
+        if (listener->name == name) {
+            return listener->handler;
+        }
+    }
+
+    return NULL;
 }
 
 bool
