@@ -106,9 +106,19 @@ struct pcvdom_doctype {
     char                   *system_info;
 };
 
+struct purc_broken_down_url {
+    char *schema;
+    char *user;
+    char *passwd;
+    char *host;
+    char *path;
+    char *query;
+    char *fragment;
+    unsigned int port;
+};
+
 struct pcvdom_dvobj_hvml {
-    char                   *url;
-    void                   *new_url;    // todo, include url.h
+    struct purc_broken_down_url url;
     unsigned long int      maxIterationCount;
     unsigned long int      maxRecursionDepth;
     struct timespec        timeout;

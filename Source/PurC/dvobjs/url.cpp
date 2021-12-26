@@ -25,6 +25,7 @@
 #include "private/instance.h"
 #include "private/errors.h"
 #include "private/dvobjs.h"
+#include "private/vdom.h"
 #include "purc-variant.h"
 #include "wtf/URL.h"
 #include "helper.h"
@@ -33,42 +34,130 @@
 extern "C" {
 #endif
 
-void get_url ()
+char * get_url (const struct purc_broken_down_url *url_struct)
 {
-    std::unique_ptr<WTF::URL> url = makeUnique<URL>(URL(), "http://gengyue:hello@www.minigui.org:8080/abd.html?a=b&c=d#zzz");
-    bool a = url->isValid();
+    char * url_string = NULL;
+    String string = "";
+    std::unique_ptr<WTF::URL> url = makeUnique<URL>(URL(), string);
 
-    if (a) {
-        String string = url->string();
-        printf ("=============== string: %s\n", string.latin1().data());
+    if (url_struct->schema)
+        url->setProtocol (url_struct->schema);
 
+    if (url_struct->host)
+        url->setHost (url_struct->host);
+
+    if (url_struct->port)
+        url->setPort (url_struct->port);
+
+    if (url_struct->path)
+        url->setPath (url_struct->path);
+
+    if (url_struct->query)
+        url->setQuery (url_struct->query);
+
+    if (url_struct->fragment)
+        url->setFragmentIdentifier (url_struct->fragment);
+
+    if (url_struct->user)
+        url->setUser (url_struct->user);
+
+    if (url_struct->passwd)
+        url->setPassword (url_struct->passwd);
+
+    if (url->isValid()) {
+        String tempstring = url->string();
+        url_string = strdup (tempstring.latin1().data());
+    }
+
+    return url_string;
+}
+
+bool set_url (struct purc_broken_down_url *url_struct, const char *url_string)
+{
+    std::unique_ptr<WTF::URL> url = makeUnique<URL>(URL(), url_string);
+    bool valid = url->isValid();
+    size_t length = 0;
+    const char *tempstring = NULL;
+
+    if (valid) {
+        if (url_struct->schema)
+            free (url_struct->schema);
         StringView protocol = url->protocol();
-        printf ("=============== protocol: %s\n", protocol.toString().latin1().data());
+        tempstring = protocol.toString().latin1().data();
+        length = strlen (tempstring);
+        if (length)
+            url_struct->schema = strdup (tempstring);
+        else
+            url_struct->schema = NULL;
 
+        if (url_struct->user)
+            free (url_struct->user);
         String user = url->user();
-        printf ("=============== user: %s\n", user.latin1().data());
+        tempstring = user.latin1().data();
+        length = strlen (tempstring);
+        if (length)
+            url_struct->user = strdup (tempstring);
+        else
+            url_struct->user = NULL;
 
+        if (url_struct->passwd)
+            free (url_struct->passwd);
         String password = url->password();
-        printf ("=============== password: %s\n", password.latin1().data());
+        tempstring = password.latin1().data();
+        length = strlen (tempstring);
+        if (length)
+            url_struct->passwd = strdup (tempstring);
+        else
+            url_struct->passwd = NULL;
 
+        if (url_struct->host)
+            free (url_struct->host);
         StringView host = url->host();
-        printf ("=============== host: %s\n", host.toString().latin1().data());
+        tempstring = host.toString().latin1().data();
+        length = strlen (tempstring);
+        if (length)
+            url_struct->host = strdup (tempstring);
+        else
+            url_struct->host = NULL;
+
+        if (url_struct->path)
+            free (url_struct->path);
+        StringView path = url->path();
+        tempstring = path.toString().latin1().data();
+        length = strlen (tempstring);
+        if (length)
+            url_struct->path = strdup (tempstring);
+        else
+            url_struct->path = NULL;
+
+        if (url_struct->query)
+            free (url_struct->query);
+        StringView query = url->query();
+        tempstring = query.toString().latin1().data();
+        length = strlen (tempstring);
+        if (length)
+            url_struct->query = strdup (tempstring);
+        else
+            url_struct->query = NULL;
+
+        if (url_struct->fragment)
+            free (url_struct->fragment);
+        StringView fragmentIdentifier = url->fragmentIdentifier();
+        tempstring = fragmentIdentifier.toString().latin1().data();
+        length = strlen (tempstring);
+        if (length)
+            url_struct->fragment = strdup (tempstring);
+        else
+            url_struct->fragment = NULL;
 
         Optional<uint16_t> port = url->port();
-        if (port) {
-            printf ("================= port: %d\n", *port);
-        }
-
-        StringView path = url->path();
-        printf ("=============== path: %s\n", path.toString().latin1().data());
-
-        StringView query = url->query();
-        printf ("=============== query: %s\n", query.toString().latin1().data());
-
-        StringView fragmentIdentifier = url->fragmentIdentifier();
-        printf ("=============== fragmentIdentifier: %s\n", fragmentIdentifier.toString().latin1().data());
+        if (port)
+            url_struct->port = (unsigned int) (*port);
+        else
+            url_struct->port = 0;
     }
-    return;
+
+    return valid;
 }
 
 #ifdef __cplusplus

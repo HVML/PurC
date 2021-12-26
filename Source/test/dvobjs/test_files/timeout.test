@@ -50,7 +50,7 @@ test_begin
 param_begin
 number:5;
 param_end
-invalid:;
+number:5;
 test_end
 
 test_begin
@@ -69,29 +69,14 @@ test_end
 
 test_begin
 param_begin
-ulongint:1000;
+number: 3.5;
 param_end
-ulongint:1000;
+number: 3.5;
 test_end
 
 test_begin
 param_begin
-ulongint: 100;
+number: -3.5;
 param_end
-ulongint: 100;
+number: 3.5;
 test_end
-
-test_begin
-param_begin
-ulongint: 0;
-param_end
-ulongint: 0;
-test_end
-
-test_begin
-param_begin
-ulongint: 100000;
-param_end
-ulongint: 100000;
-test_end
-

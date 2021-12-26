@@ -444,14 +444,10 @@ sort_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     return ret_var;
 }
 
-extern void get_url();
-
 static purc_variant_t
 compare_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(root);
-
-    get_url();
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     const char *option = NULL;

@@ -28,6 +28,8 @@
 #include "purc-variant.h"
 #include "helper.h"
 
+#define T_MAP_NAME          "map"
+
 static purc_variant_t
 get_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 {
@@ -48,7 +50,7 @@ get_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
-    purc_variant_t var = purc_variant_object_get_by_ckey (root, "map");
+    purc_variant_t var = purc_variant_object_get_by_ckey (root, T_MAP_NAME);
     if (var) {
         ret_var = purc_variant_object_get (var, argv[0]);
         // ret_var is a reference of value
@@ -76,7 +78,7 @@ purc_variant_t pcdvobjs_get_t (void)
     if (ret_var) {
         purc_variant_t dict = purc_variant_make_object (0,
                 PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
-        purc_variant_object_set_by_static_ckey (ret_var, "map", dict);
+        purc_variant_object_set_by_static_ckey (ret_var, T_MAP_NAME, dict);
         purc_variant_unref (dict);
     }
 

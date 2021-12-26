@@ -58,21 +58,28 @@ test_begin
 param_begin
 string:"";
 param_end
-string:"";
+string:"https://minigui.fmsoft.cn/";
 test_end
 
 test_begin
 param_begin
-string:"https://www.minigui.org"
+string:"www.minigui.org"
 param_end
-string:"https://www.minigui.org"
+string:"https://minigui.fmsoft.cn/"
 test_end
 
 test_begin
 param_begin
-string:"";
+string:"http://hello:world@www.minigui.org"
 param_end
-string:"";
+string:"http://hello:world@www.minigui.org/"
+test_end
+
+test_begin
+param_begin
+string:"http://hello@www.minigui.org"
+param_end
+string:"http://hello@www.minigui.org/"
 test_end
 
 test_begin
@@ -84,15 +91,14 @@ test_end
 
 test_begin
 param_begin
-string:"https://www.hybridos.fmsoft.cn";
+string:"https://www.baidu.com/s?wd=php%20ext%20dom&rsv_spt=1&rsv_iqid=0x93618176000047bc&issp=1&f=8&rsv_bp=1&rsv_idx=2&ie=utf-8&tn=baiduhome_pg&rsv_enter=1&rsv_dl=tb&rsv_sug3=11&rsv_sug1=3&rsv_sug7=100&rsv_sug2=0&rsv_btype=i&inputT=3239&rsv_sug4=3239#abcd";
 param_end
-string:"https://www.hybridos.fmsoft.cn";
+string:"https://www.baidu.com/s?wd=php%20ext%20dom&rsv_spt=1&rsv_iqid=0x93618176000047bc&issp=1&f=8&rsv_bp=1&rsv_idx=2&ie=utf-8&tn=baiduhome_pg&rsv_enter=1&rsv_dl=tb&rsv_sug3=11&rsv_sug1=3&rsv_sug7=100&rsv_sug2=0&rsv_btype=i&inputT=3239&rsv_sug4=3239#abcd";
 test_end
 
 test_begin
 param_begin
-string:"";
+string:"https://www.hybridos.fmsoft.cn";
 param_end
-string:"";
+string:"https://www.hybridos.fmsoft.cn/";
 test_end
-
