@@ -594,7 +594,7 @@ bool pchtml_edom_insert_node(pcedom_node_t *node, pcedom_node_t *fragment_root,
         pcedom_node_destroy(fragment_root);
     }
     else if (op == pcvariant_atom_prepend) {
-        ret = true;
+        ret = false;
     }
     else if (op == pcvariant_atom_insertBefore) {
         while (fragment_root->first_child != NULL) {
