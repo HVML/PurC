@@ -111,10 +111,10 @@ stack_release(pcintr_stack_t stack)
     }
 
     if (stack->vdom) {
-        vdom_destroy(stack->vdom);
         if (stack->vdom->timers) {
             pcintr_timers_destroy(stack->vdom->timers);
         }
+        vdom_destroy(stack->vdom);
         stack->vdom = NULL;
     }
 
