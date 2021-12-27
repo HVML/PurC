@@ -224,8 +224,7 @@ struct pcintr_observer {
 
 struct pcinst;
 
-typedef void* pcintr_timer_t;
-typedef void (*pcintr_timer_fire_func)(const char* id, void* ctxt);
+struct pcintr_timers;
 
 PCA_EXTERN_C_BEGIN
 
@@ -284,7 +283,6 @@ pcintr_get_scope_variable(pcvdom_element_t elem, const char* name)
     return pcvdom_element_get_variable(elem, name);
 }
 
-
 purc_variant_t
 pcintr_find_named_var(pcintr_stack_t stack, const char* name);
 
@@ -295,9 +293,12 @@ pcintr_get_symbolized_var (pcintr_stack_t stack, unsigned int number,
 purc_variant_t
 pcintr_get_numbered_var (pcintr_stack_t stack, unsigned int number);
 
+// $TIMERS
+struct pcintr_timers*
+pcintr_timers_init(purc_vdom_t vdom);
 
-bool
-pcintr_init_timers(purc_vdom_t vdom);
+void
+pcintr_timers_destroy(struct pcintr_timers* timers);
 
 struct pcintr_observer*
 pcintr_register_observer(enum pcintr_observer_type type, purc_variant_t observed,

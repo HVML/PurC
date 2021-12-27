@@ -146,6 +146,11 @@ pcintr_timer_destroy(pcintr_timer_t timer)
 #define TIMERS_STR_TIMERS           "timers"
 #define TIMERS_STR_HANDLE           "__handle"
 
+struct pcintr_timers {
+    purc_variant_t timers_var;
+    struct pcvar_listener* grow_listener;
+    struct pcvar_listener* shrink_listener;
+};
 
 void timer_fire_func(const char* id, void* ctxt)
 {
@@ -291,35 +296,66 @@ timers_listener_handler(purc_variant_t source, purc_atom_t msg_type,
     return true;
 }
 
-bool
-pcintr_init_timers(purc_vdom_t vdom)
+struct pcintr_timers*
+pcintr_timers_init(purc_vdom_t vdom)
 {
     if (vdom == NULL) {
         purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
-        return false;
+        return NULL;
     }
 
     purc_variant_t ret = purc_variant_make_set_by_ckey(0, TIMERS_STR_ID, NULL);
     if (!ret) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return false;
+        return NULL;
     }
 
     if (!pcintr_bind_document_variable(vdom, TIMERS_STR_TIMERS, ret)) {
         purc_variant_unref(ret);
-        return false;
+        return NULL;
     }
 
-#if 0
-    // regist listener
-    bool regist = purc_variant_register_listener(ret, pcvariant_atom_timers,
-            timers_listener_handler, vdom);
-    if (!regist) {
+    struct pcintr_timers* timers = (struct pcintr_timers*) calloc(1, 
+            sizeof(struct pcintr_timers));
+    if (!timers) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         purc_variant_unref(ret);
-        return false;
+        return NULL;
     }
-#endif // 0
 
-    return true;
+    timers->timers_var = ret;
+    timers->grow_listener = purc_variant_register_post_listener(ret,
+        pcvariant_atom_grow, timers_listener_handler, vdom);
+    if (!timers->grow_listener) {
+        free(timers);
+        purc_variant_unref(ret);
+        return NULL;
+    }
+
+    timers->shrink_listener = purc_variant_register_post_listener(ret,
+        pcvariant_atom_shrink, timers_listener_handler, vdom);
+    if (!timers->shrink_listener) {
+        purc_variant_revoke_listener(ret, timers->grow_listener);
+        free(timers);
+        purc_variant_unref(ret);
+        return NULL;
+    }
+
+    return timers;
 }
 
+void
+pcintr_timers_destroy(struct pcintr_timers* timers)
+{
+    if (timers) {
+        purc_variant_revoke_listener(timers->timers_var,
+                timers->grow_listener);
+        purc_variant_revoke_listener(timers->timers_var,
+                timers->shrink_listener);
+
+        // TODO revoke listener of timer
+
+        //
+        free(timers);
+    }
+}
