@@ -175,6 +175,7 @@ struct pcvdom_comment {
 
 struct purc_vdom {
     struct pcvdom_document          *document;
+    struct pcintr_timers            *timers;
 };
 
 // creating and destroying api

@@ -112,22 +112,25 @@ stack_release(pcintr_stack_t stack)
 
     if (stack->vdom) {
         vdom_destroy(stack->vdom);
+        if (stack->vdom->timers) {
+            pcintr_timers_destroy(stack->vdom->timers);
+        }
         stack->vdom = NULL;
     }
 
-    if (stack->common_observer_list) {
-        pcutils_arrlist_free(stack->common_observer_list);
-        stack->common_observer_list = NULL;
+    if (stack->common_variant_observer_list) {
+        pcutils_arrlist_free(stack->common_variant_observer_list);
+        stack->common_variant_observer_list = NULL;
     }
 
-    if (stack->special_observer_list) {
-        pcutils_arrlist_free(stack->special_observer_list);
-        stack->special_observer_list = NULL;
+    if (stack->dynamic_variant_observer_list) {
+        pcutils_arrlist_free(stack->dynamic_variant_observer_list);
+        stack->dynamic_variant_observer_list = NULL;
     }
 
-    if (stack->native_observer_list) {
-        pcutils_arrlist_free(stack->native_observer_list);
-        stack->native_observer_list = NULL;
+    if (stack->native_variant_observer_list) {
+        pcutils_arrlist_free(stack->native_variant_observer_list);
+        stack->native_variant_observer_list = NULL;
     }
 
     if (stack->output) {
@@ -761,6 +764,14 @@ purc_load_hvml_from_rwstream(purc_rwstream_t stream)
         return NULL;
     }
 
+    // init $TIMERS
+    stack->vdom->timers = pcintr_timers_init(stack);
+    if (!stack->vdom->timers) {
+        stack_destroy(stack);
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return NULL;
+    }
+
     struct pcintr_stack_frame *frame;
     frame = pcintr_push_stack_frame(stack);
     if (!frame) {
@@ -941,38 +952,21 @@ void observer_free_func(void *data)
 }
 
 struct pcintr_observer*
-pcintr_register_observer(enum pcintr_observer_type type, purc_variant_t observed,
+pcintr_register_observer(purc_variant_t observed,
         purc_variant_t for_value, pcvdom_element_t ele)
 {
     UNUSED_PARAM(for_value);
 
     pcintr_stack_t stack = purc_get_stack();
     struct pcutils_arrlist* list = NULL;
-    switch (type) {
-        case PCINTR_OBSERVER_TYPE_SPECIAL:
-            if (!stack->special_observer_list) {
-                stack->special_observer_list =  pcutils_arrlist_new(
-                        observer_free_func);
-            }
-            list = stack->special_observer_list;
-            break;
-
-        case PCINTR_OBSERVER_TYPE_NATIVE:
-            if (!stack->native_observer_list) {
-                stack->native_observer_list =  pcutils_arrlist_new(
-                        observer_free_func);
-            }
-            list = stack->native_observer_list;
-            break;
-
-        case PCINTR_OBSERVER_TYPE_COMMON:
-        default:
-            if (!stack->common_observer_list) {
-                stack->common_observer_list =  pcutils_arrlist_new(
-                        observer_free_func);
-            }
-            list = stack->common_observer_list;
-            break;
+    if (purc_variant_is_type(observed, PURC_VARIANT_TYPE_DYNAMIC)) {
+        list = stack->dynamic_variant_observer_list;
+    }
+    else if (purc_variant_is_type(observed, PURC_VARIANT_TYPE_NATIVE)) {
+        list = stack->native_variant_observer_list;
+    }
+    else {
+        list = stack->common_variant_observer_list;
     }
 
     if (!list) {
@@ -1028,3 +1022,121 @@ pcintr_revoke_observer(struct pcintr_observer* observer)
     del_observer_from_list(observer->list, observer);
     return true;
 }
+
+struct pcintr_observer*
+pcintr_find_observer(purc_variant_t observed, purc_variant_t msg_type,
+        purc_variant_t sub_type)
+{
+    if (observed == PURC_VARIANT_INVALID ||
+            msg_type == PURC_VARIANT_INVALID) {
+        return NULL;
+    }
+    const char* msg = purc_variant_get_string_const(msg_type);
+    const char* sub = (sub_type != PURC_VARIANT_INVALID) ?
+        purc_variant_get_string_const(sub_type) : NULL;
+
+    pcintr_stack_t stack = purc_get_stack();
+    struct pcutils_arrlist* list = NULL;
+    if (purc_variant_is_type(observed, PURC_VARIANT_TYPE_DYNAMIC)) {
+        list = stack->dynamic_variant_observer_list;
+    }
+    else if (purc_variant_is_type(observed, PURC_VARIANT_TYPE_NATIVE)) {
+        list = stack->native_variant_observer_list;
+    }
+    else {
+        list = stack->common_variant_observer_list;
+    }
+
+    if (!list) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return NULL;
+    }
+
+    size_t n = pcutils_arrlist_length(list);
+    for (size_t i = 0; i < n; i++) {
+        struct pcintr_observer* observer = pcutils_arrlist_get_idx(list, i);
+        if (observer->observed == observed &&
+                (strcmp(observer->msg_type, msg) == 0) &&
+                (strcmp(observer->sub_type, sub) == 0)
+                ) {
+            return observer;
+        }
+    }
+    return NULL;
+}
+
+struct pcintr_message {
+    pcintr_stack_t stack;
+    purc_variant_t source;
+    purc_variant_t type;
+    purc_variant_t sub_type;
+    purc_variant_t extra;
+};
+
+struct pcintr_message*
+pcintr_message_create(pcintr_stack_t stack, purc_variant_t source,
+        purc_variant_t type, purc_variant_t sub_type, purc_variant_t extra)
+{
+    struct pcintr_message* msg = (struct pcintr_message*)malloc(
+            sizeof(struct pcintr_message));
+    msg->stack = stack;
+
+    msg->source = source;
+    purc_variant_ref(msg->source);
+
+    msg->type = type;
+    purc_variant_ref(msg->type);
+
+    msg->sub_type = sub_type;
+    if (sub_type != PURC_VARIANT_INVALID) {
+        purc_variant_ref(msg->sub_type);
+    }
+
+    msg->extra = extra;
+    if (extra != PURC_VARIANT_INVALID) {
+        purc_variant_ref(msg->extra);
+    }
+    return msg;
+}
+
+void
+pcintr_message_destroy(struct pcintr_message* msg)
+{
+    if (msg) {
+        purc_variant_unref(msg->source);
+        purc_variant_unref(msg->type);
+        purc_variant_unref(msg->sub_type);
+        purc_variant_unref(msg->extra);
+        free(msg);
+    }
+}
+
+static int
+pcintr_handle_message(void *ctxt)
+{
+    struct pcintr_message* msg = (struct pcintr_message*) ctxt;
+
+    struct pcintr_observer* observer = pcintr_find_observer(msg->source,
+            msg->type, msg->sub_type);
+    if (observer == NULL) {
+        return 0;
+    }
+
+    // TODO : jump to handle observer
+    // msg->stack
+
+    return 0;
+}
+
+void
+pcintr_dispatch_message(pcintr_stack_t stack, purc_variant_t source,
+        purc_variant_t type, purc_variant_t sub_type, purc_variant_t extra)
+{
+    struct pcintr_message* msg = pcintr_message_create(stack, source, type,
+            sub_type, extra);
+
+    pcrunloop_t runloop = pcrunloop_get_current();
+    PC_ASSERT(runloop);
+    pcrunloop_dispatch(runloop, pcintr_handle_message, msg);
+}
+
