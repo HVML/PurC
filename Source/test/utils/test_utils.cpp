@@ -18,8 +18,8 @@ static struct atom_info {
     purc_atom_t atom;
 } my_atoms [] = {
     /* generic */
-    { "hvml", 0, 0 },
-    { "PURC", 0, 0 },
+    { "HVML", 0, 0 },
+    { "PurC", 0, 0 },
 
     /* HVML tags */
     { "hvml", 1, 0 },
@@ -78,6 +78,11 @@ TEST(utils, atom_basic)
     ASSERT_EQ(atom, 0);
 
     for (size_t i = 0; i < sizeof(my_atoms)/sizeof(my_atoms[0]); i++) {
+        purc_atom_t atom = purc_atom_try_string(my_atoms[i].string);
+        ASSERT_EQ(atom, 0);
+    }
+
+    for (size_t i = 0; i < sizeof(my_atoms)/sizeof(my_atoms[0]); i++) {
         my_atoms[i].atom = purc_atom_from_string(my_atoms[i].string);
     }
 
@@ -104,6 +109,14 @@ TEST(utils, atom_ex)
     atom = purc_atom_from_string_ex(1, NULL);
     ASSERT_EQ(atom, 0);
 
+    for (int bucket = 1; bucket < PURC_ATOM_BUCKETS_NR; bucket++) {
+        for (size_t i = 0; i < sizeof(my_atoms)/sizeof(my_atoms[0]); i++) {
+            purc_atom_t atom = purc_atom_try_string_ex(bucket,
+                    my_atoms[i].string);
+            ASSERT_EQ(atom, 0);
+        }
+    }
+
     for (size_t i = 0; i < sizeof(my_atoms)/sizeof(my_atoms[0]); i++) {
         my_atoms[i].atom = purc_atom_from_string_ex(my_atoms[i].bucket,
                 my_atoms[i].string);
@@ -113,6 +126,10 @@ TEST(utils, atom_ex)
         const char *string = purc_atom_to_string(my_atoms[i].atom);
         int cmp = strcmp(string, my_atoms[i].string);
         ASSERT_EQ(cmp, 0);
+
+        purc_atom_t atom = purc_atom_try_string_ex(my_atoms[i].bucket,
+                my_atoms[i].string);
+        ASSERT_NE(atom, 0);
     }
 
     purc_cleanup ();
