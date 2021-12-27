@@ -132,31 +132,17 @@ enum purc_symbol_var {
 };
 
 struct pcintr_element_ops {
-    // FIXME:
-    // all function returns nothing
-    // let's take `after_pushed` as an example to explain:
-    // specifically, during after_pushed call, the coroutine might yield
-    // it's execution(eg.: <init ... from=<url> .../>),
-    // thus caller can not simply rely on return'd status to determine
-    // what next step it shall take. as a result, return'd value means nothing
-    // to caller
-    // NOTE: because all functions returns nothing, these functions shall
-    // set coroutine's next step correctly when returning.
-    // eg.: ref. Source/PurC/interpreter/undefined.c
-    void (*after_pushed) (pcintr_coroutine_t co,
-            struct pcintr_stack_frame *frame);
+    // called after pushed
+    void *(*after_pushed) (pcintr_stack_t stack, pcvdom_element_t pos);
 
     // called on popping
-    void (*on_popping) (pcintr_coroutine_t co,
-            struct pcintr_stack_frame *frame);
+    bool (*on_popping) (pcintr_stack_t stack, void* ctxt);
 
     // called to rerun
-    void (*rerun) (pcintr_coroutine_t co,
-            struct pcintr_stack_frame *frame);
+    bool (*rerun) (pcintr_stack_t stack, void* ctxt);
 
-    // called after executed
-    void (*select_child) (pcintr_coroutine_t co,
-            struct pcintr_stack_frame *frame);
+    // select a child
+    pcvdom_element_t (*select_child) (pcintr_stack_t stack, void* ctxt);
 };
 
 enum pcintr_stack_frame_next_step {
@@ -194,13 +180,16 @@ struct pcintr_stack_frame {
     struct pcintr_element_ops ops;
 
     // context for current action
+    // managed by element-implementer
     void *ctxt;
-    enum pcintr_stack_frame_next_step next_step;
     void (*ctxt_destroy)(void *);
 
+    // managed by coroutine-coordinator
+    enum pcintr_stack_frame_next_step next_step;
+
+    // coordinated between element-implementer and coroutine-coordinator
     preemptor_f        preemptor;
 };
-
 
 struct pcintr_dynamic_args {
     const char                    *name;
@@ -328,7 +317,7 @@ void
 pcintr_timer_destroy(pcintr_timer_t timer);
 
 bool
-pcintr_init_timers(void);
+pcintr_init_timers(purc_vdom_t vdom);
 
 struct pcintr_observer*
 pcintr_register_observer(enum pcintr_observer_type type, purc_variant_t observed,

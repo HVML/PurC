@@ -28,103 +28,186 @@
 #include "internal.h"
 
 #include "private/debug.h"
+#include "private/runloop.h"
 
 #include "ops.h"
+
+#include <pthread.h>
+#include <unistd.h>
+#include <libgen.h>
+
+#define TO_DEBUG 0
 
 struct ctxt_for_hvml {
     struct pcvdom_node           *curr;
 };
 
 static void
-ctxt_for_hvml_destroy(struct ctxt_for_hvml *hvml_ctxt)
+ctxt_for_hvml_destroy(struct ctxt_for_hvml *ctxt)
 {
-    if (hvml_ctxt) {
-        free(hvml_ctxt);
+    if (ctxt) {
+        free(ctxt);
     }
 }
 
 static void
 ctxt_destroy(void *ctxt)
 {
-    struct ctxt_for_hvml *hvml_ctxt;
-    hvml_ctxt = (struct ctxt_for_hvml*)ctxt;
-    ctxt_for_hvml_destroy(hvml_ctxt);
+    ctxt_for_hvml_destroy((struct ctxt_for_hvml*)ctxt);
 }
 
-static void
-after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
+static void*
+after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 {
+    PC_ASSERT(stack && pos);
+    PC_ASSERT(stack == purc_get_stack());
+
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_stack_get_bottom_frame(stack);
+
+    frame->pos = pos; // ATTENTION!!
+
+    struct pcvdom_element *element = frame->pos;
+    PC_ASSERT(element);
+    D("<%s>", element->tag_name);
+
+    int r;
+    r = pcintr_element_eval_attrs(frame, element);
+    if (r)
+        return NULL;
+
+    r = pcintr_element_eval_vcm_content(frame, element);
+    if (r)
+        return NULL;
+
     struct ctxt_for_hvml *ctxt;
     ctxt = (struct ctxt_for_hvml*)calloc(1, sizeof(*ctxt));
     if (!ctxt) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        frame->next_step = -1;
-        co->state = CO_STATE_TERMINATED;
-        return;
+        return NULL;
     }
 
     frame->ctxt = ctxt;
-    frame->next_step = NEXT_STEP_SELECT_CHILD;
     frame->ctxt_destroy = ctxt_destroy;
-    co->state = CO_STATE_READY;
+    purc_clr_error();
+
+    return ctxt;
 }
 
-static void
-on_popping(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
+static bool
+on_popping(pcintr_stack_t stack, void* ud)
 {
-    pcintr_stack_t stack = co->stack;
+    PC_ASSERT(stack);
+    PC_ASSERT(stack == purc_get_stack());
+
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_stack_get_bottom_frame(stack);
+    PC_ASSERT(frame);
+    PC_ASSERT(ud == frame->ctxt);
+
+    struct pcvdom_element *element = frame->pos;
+    PC_ASSERT(element);
+
     struct ctxt_for_hvml *ctxt;
     ctxt = (struct ctxt_for_hvml*)frame->ctxt;
     if (ctxt) {
         ctxt_for_hvml_destroy(ctxt);
         frame->ctxt = NULL;
     }
-    pcintr_pop_stack_frame(stack);
-    co->state = CO_STATE_READY;
+
+    D("</%s>", element->tag_name);
+    return true;
 }
 
 static void
-select_child(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
+on_element(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element)
 {
+    UNUSED_PARAM(co);
+    UNUSED_PARAM(frame);
+    UNUSED_PARAM(element);
+}
+
+static void
+on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
+        struct pcvdom_content *content)
+{
+    UNUSED_PARAM(co);
+    UNUSED_PARAM(frame);
+    PC_ASSERT(content);
+    char *text = content->text;
+    D("content: [%s]", text);
+}
+
+static void
+on_comment(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
+        struct pcvdom_comment *comment)
+{
+    UNUSED_PARAM(co);
+    UNUSED_PARAM(frame);
+    UNUSED_PARAM(comment);
+    char *text = comment->text;
+    D("comment: [%s]", text);
+}
+
+static pcvdom_element_t
+select_child(pcintr_stack_t stack, void* ud)
+{
+    PC_ASSERT(stack);
+    PC_ASSERT(stack == purc_get_stack());
+
+    pcintr_coroutine_t co = &stack->co;
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_stack_get_bottom_frame(stack);
+    PC_ASSERT(ud == frame->ctxt);
+
     struct ctxt_for_hvml *ctxt;
     ctxt = (struct ctxt_for_hvml*)frame->ctxt;
 
-    if (ctxt->curr == NULL) {
-        struct pcvdom_element *element = frame->scope;
+    struct pcvdom_node *curr;
+
+again:
+    curr = ctxt->curr;
+
+    if (curr == NULL) {
+        struct pcvdom_element *element = frame->pos;
         struct pcvdom_node *node = &element->node;
         node = pcvdom_node_first_child(node);
-        ctxt->curr = node;
+        curr = node;
     }
     else {
-        ctxt->curr = pcvdom_node_next_sibling(ctxt->curr);
+        curr = pcvdom_node_next_sibling(curr);
     }
 
-    if (ctxt->curr == NULL) {
-        frame->next_step = NEXT_STEP_ON_POPPING;
-        co->state = CO_STATE_READY;
-        return;
+    ctxt->curr = curr;
+
+    if (curr == NULL) {
+        purc_clr_error();
+        return NULL;
     }
 
-    if (!PCVDOM_NODE_IS_ELEMENT(ctxt->curr)) {
-        co->state = CO_STATE_READY;
-        return;
+    switch (curr->type) {
+        case PCVDOM_NODE_DOCUMENT:
+            PC_ASSERT(0); // Not implemented yet
+            break;
+        case PCVDOM_NODE_ELEMENT:
+            {
+                pcvdom_element_t element = PCVDOM_ELEMENT_FROM_NODE(curr);
+                on_element(co, frame, element);
+                return element;
+            }
+        case PCVDOM_NODE_CONTENT:
+            on_content(co, frame, PCVDOM_CONTENT_FROM_NODE(curr));
+            goto again;
+        case PCVDOM_NODE_COMMENT:
+            on_comment(co, frame, PCVDOM_COMMENT_FROM_NODE(curr));
+            goto again;
+        default:
+            PC_ASSERT(0); // Not implemented yet
     }
 
-    struct pcvdom_element *element = PCVDOM_ELEMENT_FROM_NODE(ctxt->curr);
-
-    pcintr_stack_t stack = co->stack;
-    struct pcintr_stack_frame *child_frame;
-    child_frame = pcintr_push_stack_frame(stack);
-    if (!child_frame) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return;
-    }
-    child_frame->ops = pcintr_get_ops_by_element(element);
-    child_frame->scope = element;
-
-    ctxt->curr = &element->node;
-    frame->next_step = NEXT_STEP_SELECT_CHILD;
-    co->state = CO_STATE_READY;
+    PC_ASSERT(0);
+    return NULL; // NOTE: never reached here!!!
 }
 
 static struct pcintr_element_ops
@@ -139,6 +222,4 @@ struct pcintr_element_ops* pcintr_get_hvml_ops(void)
 {
     return &ops;
 }
-
-
 

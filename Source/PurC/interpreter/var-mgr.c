@@ -36,53 +36,64 @@
 #include <stdlib.h>
 #include <string.h>
 
-static void* pcvarmgr_list_copy_val(const void* val)
-{
-    purc_variant_t var = (purc_variant_t)val;
-    purc_variant_ref(var);
-    return var;
-}
-
-static void pcvarmgr_list_free_val(void* val)
-{
-    purc_variant_t var = (purc_variant_t)val;
-    purc_variant_unref(var);
-}
+struct pcvarmgr_list {
+    purc_variant_t object;
+};
 
 pcvarmgr_list_t pcvarmgr_list_create(void)
 {
-    return pcutils_map_create (copy_key_string, free_key_string,
-            pcvarmgr_list_copy_val, pcvarmgr_list_free_val,
-            comp_key_string, false);
+    pcvarmgr_list_t mgr = (pcvarmgr_list_t)calloc(1,
+            sizeof(struct pcvarmgr_list));
+    if (!mgr) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return NULL;
+    }
+    mgr->object = purc_variant_make_object(0, PURC_VARIANT_INVALID,
+            PURC_VARIANT_INVALID);
+    if (mgr->object == PURC_VARIANT_INVALID) {
+        free(mgr);
+        return NULL;
+    }
+    return mgr;
 }
 
 int pcvarmgr_list_destroy(pcvarmgr_list_t list)
 {
-    return pcutils_map_destroy(list);
+    if (list) {
+        purc_variant_unref(list->object);
+        free(list);
+    }
+    return 0;
 }
 
 bool pcvarmgr_list_add(pcvarmgr_list_t list, const char* name,
         purc_variant_t variant)
 {
-    if (pcutils_map_find_replace_or_insert(list, name,
-                (void *)variant, NULL)) {
+    if (list == NULL || list->object == PURC_VARIANT_INVALID
+            || name == NULL || !variant) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
         return false;
     }
 
-    return true;
+    purc_variant_t k = purc_variant_make_string(name, true);
+    if (k == PURC_VARIANT_INVALID) {
+        return false;
+    }
+    bool b = purc_variant_object_set(list->object, k, variant);
+    purc_variant_unref(k);
+    return b;
 }
 
 purc_variant_t pcvarmgr_list_get(pcvarmgr_list_t list, const char* name)
 {
-    const pcutils_map_entry* entry = NULL;
-
-    if (name == NULL) {
+    if (list == NULL || name == NULL) {
         PC_ASSERT(0); // FIXME: still recoverable???
         return PURC_VARIANT_INVALID;
     }
 
-    if ((entry = pcutils_map_find(list, name))) {
-        return (purc_variant_t) entry->val;
+    purc_variant_t v =  purc_variant_object_get_by_ckey(list->object, name);
+    if (v) {
+        return v;
     }
 
     purc_set_error_exinfo(PCVARIANT_ERROR_NOT_FOUND, "name:%s", name);
@@ -92,8 +103,7 @@ purc_variant_t pcvarmgr_list_get(pcvarmgr_list_t list, const char* name)
 bool pcvarmgr_list_remove(pcvarmgr_list_t list, const char* name)
 {
     if (name) {
-        if (pcutils_map_erase (list, (void*)name))
-            return true;
+        return purc_variant_object_remove_by_static_ckey(list->object, name);
     }
     return false;
 }
@@ -109,9 +119,6 @@ _find_named_scope_var(pcvdom_element_t elem, const char* name)
 
     purc_variant_t v = pcintr_get_scope_variable(elem, name);
     if (v) {
-        fprintf(stderr, "==%s[%d]:%s()==[%s/<%s>]\n",
-                __FILE__, __LINE__, __func__,
-                name, pcvariant_get_typename(purc_variant_get_type(v)));
         return v;
     }
 
@@ -134,9 +141,6 @@ _find_doc_buildin_var(purc_vdom_t vdom, const char* name)
 
     purc_variant_t v = pcvdom_document_get_variable(vdom, name);
     if (v) {
-        fprintf(stderr, "==%s[%d]:%s()==[%s/<%s>]\n",
-                __FILE__, __LINE__, __func__,
-                name, pcvariant_get_typename(purc_variant_get_type(v)));
         return v;
     }
     purc_set_error_exinfo(PCVARIANT_ERROR_NOT_FOUND, "name:%s", name);
@@ -150,13 +154,13 @@ static purc_variant_t _find_inst_var(const char* name)
         return PURC_VARIANT_INVALID;
     }
 
-    struct pcinst* inst = pcinst_current();
-    if (inst == NULL) {
+    pcvarmgr_list_t varmgr = pcinst_get_variables();
+    if (varmgr == NULL) {
         PC_ASSERT(0); // FIXME: still recoverable???
         return PURC_VARIANT_INVALID;
     }
 
-    purc_variant_t v = pcvarmgr_list_get(inst->variables, name);
+    purc_variant_t v = pcvarmgr_list_get(varmgr, name);
     if (v) {
         return v;
     }
@@ -190,7 +194,6 @@ pcintr_find_named_var(pcintr_stack_t stack, const char* name)
         return v;
     }
 
-    D("no variable for [%s]", name);
     return purc_variant_make_undefined();
 }
 
@@ -228,6 +231,9 @@ pcintr_get_symbolized_var (pcintr_stack_t stack, unsigned int number,
 
     struct pcintr_stack_frame* frame = pcintr_stack_get_bottom_frame(stack);
     for (unsigned int i = 0; i < number; i++) {
+        frame = pcintr_stack_frame_get_parent(frame);
+    }
+    if (symbol == '?') {
         frame = pcintr_stack_frame_get_parent(frame);
     }
 

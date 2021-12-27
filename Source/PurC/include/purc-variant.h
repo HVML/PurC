@@ -43,9 +43,18 @@ typedef struct purc_variant* purc_variant_t;
 
 PCA_EXTERN_C_BEGIN
 
-typedef bool (*pcvar_msg_handler) (purc_variant_t source,
-        purc_atom_t msg_type, void *ctxt,
-        size_t nr_args, purc_variant_t *argv);
+typedef bool (*pcvar_op_handler) (
+        purc_variant_t source,  // the source variant.
+        purc_atom_t op,         // the atom of the operation string,
+                                // such as `grown`,  `shrunk`, or `change`.
+        void *ctxt,             // the context stored when registering
+                                // the handler.
+        size_t nr_args,         // the number of the relevant child variants
+                                // (only for container).
+        purc_variant_t *argv    // the array of all relevant child variants
+                                // (only for container).
+        );
+
 
 /**
  * Adds ref for a variant value
@@ -1830,7 +1839,21 @@ purc_variant_stringify_alloc(char **strp, purc_variant_t value);
  */
 PCA_EXPORT bool
 purc_variant_register_listener(purc_variant_t v, purc_atom_t name,
-        pcvar_msg_handler handler, void *ctxt);
+        pcvar_op_handler handler, void *ctxt);
+
+/**
+ * Get op handler of a variant listener
+ *
+ * @param v: the variant that is to be observed
+ *
+ * @param name: the name of the observer
+ *
+ * Returns: the callback if found
+ *
+ * Since: 0.0.4
+ */
+PCA_EXPORT pcvar_op_handler
+purc_variant_get_listener(purc_variant_t v, purc_atom_t name);
 
 /**
  * Revoke a variant listener

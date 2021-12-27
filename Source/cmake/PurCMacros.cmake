@@ -526,3 +526,4 @@ macro(PURC_CREATE_SYMLINK target src dest)
         DEPENDS ${dest}
         COMMENT "Create symlink from ${src} to ${dest}")
 endmacro()
+
