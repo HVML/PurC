@@ -300,7 +300,7 @@ pcintr_get_numbered_var (pcintr_stack_t stack, unsigned int number);
 
 // $TIMERS
 struct pcintr_timers*
-pcintr_timers_init(purc_vdom_t vdom);
+pcintr_timers_init(pcintr_stack_t stack);
 
 void
 pcintr_timers_destroy(struct pcintr_timers* timers);
@@ -315,6 +315,10 @@ pcintr_revoke_observer(struct pcintr_observer* observer);
 struct pcintr_observer*
 pcintr_find_observer(purc_variant_t observed, purc_variant_t msg_type,
         purc_variant_t sub_type);
+
+void
+pcintr_dispatch_message(pcintr_stack_t stack, purc_variant_t source,
+        purc_variant_t type, purc_variant_t sub_type, purc_variant_t extra);
 
 PCA_EXTERN_C_END
 

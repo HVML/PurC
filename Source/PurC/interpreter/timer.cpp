@@ -164,8 +164,9 @@ pcintr_timer_get_attach(pcintr_timer_t timer)
 #define TIMERS_STR_INTERVAL         "interval"
 #define TIMERS_STR_ACTIVE           "active"
 #define TIMERS_STR_ON               "on"
-#define TIMERS_STR_TIMERS           "timers"
+#define TIMERS_STR_TIMERS           "TIMERS"
 #define TIMERS_STR_HANDLE           "__handle"
+#define TIMERS_STR_EXPIRED          "expired"
 
 struct pcintr_timers {
     purc_variant_t timers_var;
@@ -175,8 +176,16 @@ struct pcintr_timers {
 
 void timer_fire_func(const char* id, void* ctxt)
 {
-    UNUSED_PARAM(id);
-    UNUSED_PARAM(ctxt);  // vdom
+    pcintr_stack_t stack = (pcintr_stack_t) ctxt;
+    purc_variant_t type = purc_variant_make_string(TIMERS_STR_EXPIRED, false);
+    purc_variant_t sub_type = purc_variant_make_string(id, false);
+
+    pcintr_dispatch_message((pcintr_stack_t)ctxt,
+            stack->vdom->timers->timers_var,
+            type, sub_type, PURC_VARIANT_INVALID);
+
+    purc_variant_unref(type);
+    purc_variant_unref(sub_type);
 }
 
 bool
@@ -208,7 +217,7 @@ variant_to_pointer(purc_variant_t var)
 }
 
 static pcintr_timer_t
-get_inner_timer(purc_vdom_t vdom, purc_variant_t timer_var)
+get_inner_timer(pcintr_stack_t stack, purc_variant_t timer_var)
 {
     purc_variant_t tm = purc_variant_object_get_by_ckey(timer_var,
             TIMERS_STR_HANDLE);
@@ -224,7 +233,7 @@ get_inner_timer(purc_vdom_t vdom, purc_variant_t timer_var)
     }
 
     timer = pcintr_timer_create(purc_variant_get_string_const(id),
-            vdom, timer_fire_func);
+            stack, timer_fire_func);
     if (timer == NULL) {
         return NULL;
     }
@@ -234,7 +243,7 @@ get_inner_timer(purc_vdom_t vdom, purc_variant_t timer_var)
     purc_variant_unref(native);
 
     struct pcvar_listener* listener = purc_variant_register_post_listener(
-            timer_var, pcvariant_atom_change, timer_listener_handler, vdom);
+            timer_var, pcvariant_atom_change, timer_listener_handler, stack);
     if (!listener) {
         pcintr_timer_destroy(timer);
         purc_variant_object_remove_by_static_ckey(timer_var,TIMERS_STR_HANDLE);
@@ -267,8 +276,8 @@ timer_listener_handler(purc_variant_t source, purc_atom_t msg_type,
     if (msg_type != pcvariant_atom_change) {
         return true;
     }
-    purc_vdom_t dom = (purc_vdom_t) ctxt;
-    pcintr_timer_t timer = get_inner_timer(dom, source);
+    pcintr_stack_t stack = (pcintr_stack_t) ctxt;
+    pcintr_timer_t timer = get_inner_timer(stack, source);
     if (!timer) {
         return false;
     }
@@ -300,13 +309,13 @@ timers_listener_handler(purc_variant_t source, purc_atom_t msg_type,
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
 
-    purc_vdom_t dom = (purc_vdom_t) ctxt;
+    pcintr_stack_t stack = (pcintr_stack_t) ctxt;
     if (msg_type == pcvariant_atom_grow) {
         purc_variant_t interval = purc_variant_object_get_by_ckey(argv[0],
                 TIMERS_STR_INTERVAL);
         purc_variant_t active = purc_variant_object_get_by_ckey(argv[0],
                 TIMERS_STR_ACTIVE);
-        pcintr_timer_t timer = get_inner_timer(dom, argv[0]);
+        pcintr_timer_t timer = get_inner_timer(stack, argv[0]);
         if (!timer) {
             return false;
         }
@@ -324,25 +333,20 @@ timers_listener_handler(purc_variant_t source, purc_atom_t msg_type,
 }
 
 struct pcintr_timers*
-pcintr_timers_init(purc_vdom_t vdom)
+pcintr_timers_init(pcintr_stack_t stack)
 {
-    if (vdom == NULL) {
-        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
-        return NULL;
-    }
-
     purc_variant_t ret = purc_variant_make_set_by_ckey(0, TIMERS_STR_ID, NULL);
     if (!ret) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
     }
 
-    if (!pcintr_bind_document_variable(vdom, TIMERS_STR_TIMERS, ret)) {
+    if (!pcintr_bind_document_variable(stack->vdom, TIMERS_STR_TIMERS, ret)) {
         purc_variant_unref(ret);
         return NULL;
     }
 
-    struct pcintr_timers* timers = (struct pcintr_timers*) calloc(1, 
+    struct pcintr_timers* timers = (struct pcintr_timers*) calloc(1,
             sizeof(struct pcintr_timers));
     if (!timers) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
@@ -352,7 +356,7 @@ pcintr_timers_init(purc_vdom_t vdom)
 
     timers->timers_var = ret;
     timers->grow_listener = purc_variant_register_post_listener(ret,
-        pcvariant_atom_grow, timers_listener_handler, vdom);
+        pcvariant_atom_grow, timers_listener_handler, stack);
     if (!timers->grow_listener) {
         free(timers);
         purc_variant_unref(ret);
@@ -360,7 +364,7 @@ pcintr_timers_init(purc_vdom_t vdom)
     }
 
     timers->shrink_listener = purc_variant_register_post_listener(ret,
-        pcvariant_atom_shrink, timers_listener_handler, vdom);
+        pcvariant_atom_shrink, timers_listener_handler, stack);
     if (!timers->shrink_listener) {
         purc_variant_revoke_listener(ret, timers->grow_listener);
         free(timers);

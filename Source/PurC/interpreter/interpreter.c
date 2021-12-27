@@ -112,6 +112,9 @@ stack_release(pcintr_stack_t stack)
 
     if (stack->vdom) {
         vdom_destroy(stack->vdom);
+        if (stack->vdom->timers) {
+            pcintr_timers_destroy(stack->vdom->timers);
+        }
         stack->vdom = NULL;
     }
 
@@ -761,6 +764,14 @@ purc_load_hvml_from_rwstream(purc_rwstream_t stream)
         return NULL;
     }
 
+    // init $TIMERS
+    stack->vdom->timers = pcintr_timers_init(stack);
+    if (!stack->vdom->timers) {
+        stack_destroy(stack);
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return NULL;
+    }
+
     struct pcintr_stack_frame *frame;
     frame = pcintr_push_stack_frame(stack);
     if (!frame) {
@@ -1042,4 +1053,15 @@ pcintr_find_observer(purc_variant_t observed, purc_variant_t msg_type,
         }
     }
     return NULL;
+}
+
+void
+pcintr_dispatch_message(pcintr_stack_t stack, purc_variant_t source,
+        purc_variant_t type, purc_variant_t sub_type, purc_variant_t extra)
+{
+    UNUSED_PARAM(stack);
+    UNUSED_PARAM(source);
+    UNUSED_PARAM(type);
+    UNUSED_PARAM(sub_type);
+    UNUSED_PARAM(extra);
 }
