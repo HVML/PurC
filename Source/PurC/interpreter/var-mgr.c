@@ -49,9 +49,6 @@ struct pcvarmgr_list {
 bool mgr_listener_handler(purc_variant_t source, purc_atom_t msg_type,
         void* ctxt, size_t nr_args, purc_variant_t* argv)
 {
-    UNUSED_PARAM(source);
-    UNUSED_PARAM(msg_type);
-    UNUSED_PARAM(ctxt);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
     if (ctxt == NULL) {

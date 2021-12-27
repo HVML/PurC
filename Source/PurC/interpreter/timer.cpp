@@ -304,11 +304,7 @@ timers_listener_handler(purc_variant_t source, purc_atom_t msg_type,
         void* ctxt, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(source);
-    UNUSED_PARAM(msg_type);
-    UNUSED_PARAM(ctxt);
     UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(argv);
-
     pcintr_stack_t stack = (pcintr_stack_t) ctxt;
     if (msg_type == pcvariant_atom_grow) {
         purc_variant_t interval = purc_variant_object_get_by_ckey(argv[0],
