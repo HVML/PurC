@@ -2,6 +2,7 @@
 
 #include "private/runloop.h"
 #include "private/interpreter.h"
+#include "private/timer.h"
 
 #include <gtest/gtest.h>
 

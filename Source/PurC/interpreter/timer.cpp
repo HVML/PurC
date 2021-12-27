@@ -29,6 +29,7 @@
 #include "internal.h"
 
 #include "private/errors.h"
+#include "private/timer.h"
 #include "private/interpreter.h"
 #include "private/runloop.h"
 
