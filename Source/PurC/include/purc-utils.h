@@ -45,10 +45,10 @@
  * purc_atom_from_static_string().
  *
  * To find the string corresponding to a given #purc_atom_t, use
- * g_atom_to_string().
+ * purc_atom_to_string() or purc_atom_to_string_ex().
  *
  * To find the #purc_atom_t corresponding to a given string, use
- * g_atom_try_string().
+ * purc_atom_try_string() or purc_atom_try_string_ex().
  */
 
 /**
