@@ -1,5 +1,6 @@
 #include "purc.h"
 #include "private/html.h"
+#include "private/variant.h"
 #include "private/edom.h"
 
 #include <limits.h>
@@ -976,7 +977,7 @@ TEST(html, html_parser_replace)
                 doc, div, rwstream);
 
         // set the fragment to the node. append: is the sub tree.
-        pchtml_edom_insert_node (div, fragment_root, purc_atom_try_string ("append"));
+        pchtml_edom_insert_node (div, fragment_root, pcvariant_atom_append);
 
         purc_rwstream_destroy (rwstream);
     }
@@ -1032,7 +1033,7 @@ TEST(html, html_parser_replace)
                 doc, div, rwstream);
 
         // set the fragment to the node. insertBefore: before the node
-        pchtml_edom_insert_node (div, fragment_root, purc_atom_try_string ("insertBefore"));
+        pchtml_edom_insert_node (div, fragment_root, pcvariant_atom_insertBefore);
 
         purc_rwstream_destroy (rwstream);
     }
@@ -1092,7 +1093,7 @@ TEST(html, html_parser_replace)
                 doc, div, rwstream);
 
         // set the fragment to the node. insertBefore: before the node
-        pchtml_edom_insert_node (div, fragment_root, purc_atom_try_string ("insertAfter"));
+        pchtml_edom_insert_node (div, fragment_root, pcvariant_atom_insertAfter);
 
         purc_rwstream_destroy (rwstream);
     }

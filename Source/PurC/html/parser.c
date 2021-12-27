@@ -580,7 +580,7 @@ bool pchtml_edom_insert_node(pcedom_node_t *node, pcedom_node_t *fragment_root,
     bool ret = true;
     pcedom_node_t *child = NULL;
 
-    if (op == purc_atom_try_string ("append")) {
+    if (op == pcvariant_atom_append) {
         while (node->first_child != NULL) {
             pcedom_node_destroy_deep(node->first_child);
         }
@@ -594,10 +594,10 @@ bool pchtml_edom_insert_node(pcedom_node_t *node, pcedom_node_t *fragment_root,
         }
         pcedom_node_destroy(fragment_root);
     }
-    else if (op == purc_atom_try_string ("prepend")) {
+    else if (op == pcvariant_atom_prepend) {
         ret = true;
     }
-    else if (op == purc_atom_try_string ("insertBefore")) {
+    else if (op == pcvariant_atom_insertBefore) {
         while (fragment_root->first_child != NULL) {
             child = fragment_root->first_child;
 
@@ -606,7 +606,7 @@ bool pchtml_edom_insert_node(pcedom_node_t *node, pcedom_node_t *fragment_root,
         }
         pcedom_node_destroy(fragment_root);
     }
-    else if (op == purc_atom_try_string ("insertAfter")) {
+    else if (op == pcvariant_atom_insertAfter) {
         while (fragment_root->first_child != NULL) {
             child = fragment_root->first_child;
 
