@@ -682,7 +682,7 @@ static pcedom_node_t * get_node (pcedom_node_t *node, unsigned int tag, int *ind
     return return_node;
 }
 
-
+#if 0
 static unsigned int replace_node_with_fragment_chunk (
         pchtml_html_document_t *document, pcedom_node_t *root_node,
         const char fragment[][64])
@@ -753,7 +753,7 @@ static unsigned int replace_node_with_fragment (
     purc_rwstream_destroy (rwstream);
     return status;
 }
-
+#endif
 static unsigned int serializer_callback(const unsigned char *data,  long unsigned int len, void *ctx)
 {
     UNUSED_PARAM(ctx);
@@ -773,6 +773,7 @@ enum pchtml_html_serialize_opt {
     PCHTML_HTML_SERIALIZE_OPT_FULL_DOCTYPE        = 0x40
 };
 
+#if 0
 TEST(html, html_parser_replace)
 //int
 //main(int argc, const char *argv[])
@@ -861,4 +862,254 @@ TEST(html, html_parser_replace)
 
     /* Destroy document*/
     pchtml_html_document_destroy(doc);
+}
+#endif
+
+TEST(html, html_parser_replace)
+{
+    purc_rwstream_t rwstream = NULL;
+    unsigned int status;
+    pchtml_html_document_t *doc;
+
+    // original html
+    static const char html[] = "<div><p>First<p>second</div><div><p>third<p>fourth</div>";
+    size_t html_len = sizeof(html) - 1;
+    int index = 0;
+
+    // html fragment2, in one string
+    static const char fragment2[] = "<h2>Flower</h2><img src=\"img_white_flower.jpg\" width=\"214\" height=\"204\">";
+
+/*  original tree
+    <html>
+        <head>
+        </head>
+        <body>
+            <div>
+                <p>
+                    "First"
+                </p>
+                <p>
+                    "second"
+                </p>
+            </div>
+
+            <div>
+                <p>
+                    "third"
+                </p>
+                <p>
+                    "fourth"
+                </p>
+            </div>
+        </body>
+    </html>
+
+    fragment tree
+    fragment#document
+        <h2>
+            "Flower"
+        </h2>
+        <img src="img_white_flower.jpg" width="214" height="204">
+*/
+
+    purc_instance_extra_info info = {};
+    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    // parse html file, get original edom tree
+    // create document
+    doc = pchtml_html_document_create();
+    if (doc == NULL)
+        return;
+
+    rwstream = purc_rwstream_new_from_mem((void*)html, html_len);
+    status = pchtml_html_document_parse(doc, rwstream);
+    if (status != PCHTML_STATUS_OK) {
+        printf ("Failed to parse HTML file");
+    }
+    purc_rwstream_destroy (rwstream);
+
+    /* Serialization html*/
+    printf("HTML Document:\n");
+
+    status = pchtml_html_serialize_pretty_tree_cb(pcedom_interface_node(doc),
+                                               PCHTML_HTML_SERIALIZE_OPT_UNDEF,
+                                               0, serializer_callback, NULL);
+    if (status != PCHTML_STATUS_OK) {
+        printf ("Failed to serialization HTML tree");
+    }
+
+    // test case1: append fragment tree under first div
+/*  after append
+    <html>
+        <head>
+        </head>
+        <body>
+            <div>
+                <h2>
+                    "Flower"
+                </h2>
+                <img src="img_white_flower.jpg" width="214" height="204">
+            </div>
+
+            <div>
+                <p>
+                    "third"
+                </p>
+                <p>
+                    "fourth"
+                </p>
+            </div>
+        </body>
+    </html>
+*/
+
+    index = 0;
+    pcedom_node_t *div = get_node (&(doc->dom_document.node), PCHTML_TAG_DIV, &index);
+    if (div) {
+        purc_rwstream_t rwstream = NULL;
+        rwstream = purc_rwstream_new_from_mem((void*)fragment2,
+                strlen((const char *) fragment2));
+
+        // get the fragment root
+        pcedom_node_t *fragment_root = pchtml_edom_document_parse_fragment (
+                doc, div, rwstream);
+
+        // set the fragment to the node. append: is the sub tree.
+        pchtml_edom_insert_node (div, fragment_root, purc_atom_try_string ("append"));
+
+        purc_rwstream_destroy (rwstream);
+    }
+    // print the result
+    printf("\n\nAfter replace, HTML Document:\n");
+    status = pchtml_html_serialize_pretty_tree_cb(pcedom_interface_node(doc),
+                                               PCHTML_HTML_SERIALIZE_OPT_UNDEF,
+                                               0, serializer_callback, NULL);
+    if (status != PCHTML_STATUS_OK) {
+        printf ("Failed to serialization HTML tree");
+    }
+
+
+    // test case 2: insertBefore first div
+/*  after insertBefore
+    <html>
+        <head>
+        </head>
+        <body>
+            <h2>
+                "Flower"
+            </h2>
+            <img src="img_white_flower.jpg" width="214" height="204">
+
+            <div>
+                <h2>
+                    "Flower"
+                </h2>
+                <img src="img_white_flower.jpg" width="214" height="204">
+            </div>
+
+            <div>
+                <p>
+                    "third"
+                </p>
+                <p>
+                    "fourth"
+                </p>
+            </div>
+        </body>
+    </html>
+*/
+
+    index = 0;
+    div = get_node (&(doc->dom_document.node), PCHTML_TAG_DIV, &index);
+    if (div) {
+        purc_rwstream_t rwstream = NULL;
+        rwstream = purc_rwstream_new_from_mem((void*)fragment2,
+                strlen((const char *) fragment2));
+
+        // get the fragment root
+        pcedom_node_t *fragment_root = pchtml_edom_document_parse_fragment (
+                doc, div, rwstream);
+
+        // set the fragment to the node. insertBefore: before the node
+        pchtml_edom_insert_node (div, fragment_root, purc_atom_try_string ("insertBefore"));
+
+        purc_rwstream_destroy (rwstream);
+    }
+    // print the result
+    printf("\n\nAfter replace, HTML Document:\n");
+    status = pchtml_html_serialize_pretty_tree_cb(pcedom_interface_node(doc),
+                                               PCHTML_HTML_SERIALIZE_OPT_UNDEF,
+                                               0, serializer_callback, NULL);
+    if (status != PCHTML_STATUS_OK) {
+        printf ("Failed to serialization HTML tree");
+    }
+
+
+    // test case 3: insertAfter second div
+/*  Result:
+    <html>
+        <head>
+        </head>
+        <body>
+            <h2>
+                "Flower"
+            </h2>
+            <img src="img_white_flower.jpg" width="214" height="204">
+
+            <div>
+                <h2>
+                    "Flower"
+                </h2>
+                <img src="img_white_flower.jpg" width="214" height="204">
+            </div>
+
+            <div>
+                <p>
+                    "third"
+                </p>
+                <p>
+                    "fourth"
+                </p>
+            </div>
+
+            <h2>
+                "Flower"
+            </h2>
+            <img src="img_white_flower.jpg" width="214" height="204">
+        </body>
+    </html>
+*/
+    index = 1;
+    div = get_node (&(doc->dom_document.node), PCHTML_TAG_DIV, &index);
+    if (div) {
+        purc_rwstream_t rwstream = NULL;
+        rwstream = purc_rwstream_new_from_mem((void*)fragment2,
+                strlen((const char *) fragment2));
+
+        // get the fragment root
+        pcedom_node_t *fragment_root = pchtml_edom_document_parse_fragment (
+                doc, div, rwstream);
+
+        // set the fragment to the node. insertBefore: before the node
+        pchtml_edom_insert_node (div, fragment_root, purc_atom_try_string ("insertAfter"));
+
+        purc_rwstream_destroy (rwstream);
+    }
+    // print the result
+    printf("\n\nAfter replace, HTML Document:\n");
+    status = pchtml_html_serialize_pretty_tree_cb(pcedom_interface_node(doc),
+                                               PCHTML_HTML_SERIALIZE_OPT_UNDEF,
+                                               0, serializer_callback, NULL);
+    if (status != PCHTML_STATUS_OK) {
+        printf ("Failed to serialization HTML tree");
+    }
+
+    /* Destroy document*/
+    pchtml_html_document_destroy(doc);
+
+    // clean instance
+    purc_cleanup ();
+
+    printf(" OK\n");
 }

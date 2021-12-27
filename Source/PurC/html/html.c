@@ -47,6 +47,10 @@ void pchtml_init_instance(struct pcinst* inst)
     UNUSED_PARAM(inst);
 
     // initialize others
+    purc_atom_from_static_string ("append");
+    purc_atom_from_static_string ("prepend");
+    purc_atom_from_static_string ("insertBefore");
+    purc_atom_from_static_string ("insertAfter");
 }
 
 void pchtml_cleanup_instance(struct pcinst* inst)
