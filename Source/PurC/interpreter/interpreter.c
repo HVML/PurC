@@ -1055,13 +1055,78 @@ pcintr_find_observer(purc_variant_t observed, purc_variant_t msg_type,
     return NULL;
 }
 
+struct pcintr_message {
+    pcintr_stack_t stack;
+    purc_variant_t source;
+    purc_variant_t type;
+    purc_variant_t sub_type;
+    purc_variant_t extra;
+};
+
+struct pcintr_message*
+pcintr_message_create(pcintr_stack_t stack, purc_variant_t source,
+        purc_variant_t type, purc_variant_t sub_type, purc_variant_t extra)
+{
+    struct pcintr_message* msg = (struct pcintr_message*)malloc(
+            sizeof(struct pcintr_message));
+    msg->stack = stack;
+
+    msg->source = source;
+    purc_variant_ref(msg->source);
+
+    msg->type = type;
+    purc_variant_ref(msg->type);
+
+    msg->sub_type = sub_type;
+    if (sub_type != PURC_VARIANT_INVALID) {
+        purc_variant_ref(msg->sub_type);
+    }
+
+    msg->extra = extra;
+    if (extra != PURC_VARIANT_INVALID) {
+        purc_variant_ref(msg->extra);
+    }
+    return msg;
+}
+
+void
+pcintr_message_destroy(struct pcintr_message* msg)
+{
+    if (msg) {
+        purc_variant_unref(msg->source);
+        purc_variant_unref(msg->type);
+        purc_variant_unref(msg->sub_type);
+        purc_variant_unref(msg->extra);
+        free(msg);
+    }
+}
+
+static int
+pcintr_handle_message(void *ctxt)
+{
+    struct pcintr_message* msg = (struct pcintr_message*) ctxt;
+
+    struct pcintr_observer* observer = pcintr_find_observer(msg->source,
+            msg->type, msg->sub_type);
+    if (observer == NULL) {
+        return 0;
+    }
+
+    // TODO : jump to handle observer
+    // msg->stack
+
+    return 0;
+}
+
 void
 pcintr_dispatch_message(pcintr_stack_t stack, purc_variant_t source,
         purc_variant_t type, purc_variant_t sub_type, purc_variant_t extra)
 {
-    UNUSED_PARAM(stack);
-    UNUSED_PARAM(source);
-    UNUSED_PARAM(type);
-    UNUSED_PARAM(sub_type);
-    UNUSED_PARAM(extra);
+    struct pcintr_message* msg = pcintr_message_create(stack, source, type,
+            sub_type, extra);
+
+    pcrunloop_t runloop = pcrunloop_get_current();
+    PC_ASSERT(runloop);
+    pcrunloop_dispatch(runloop, pcintr_handle_message, msg);
 }
+
