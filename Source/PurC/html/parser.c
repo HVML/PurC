@@ -615,5 +615,8 @@ bool pchtml_edom_insert_node(pcedom_node_t *node, pcedom_node_t *fragment_root,
         }
         pcedom_node_destroy(fragment_root);
     }
+    else
+        ret = false;
+
     return ret;
 }
