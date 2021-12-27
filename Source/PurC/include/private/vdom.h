@@ -157,6 +157,8 @@ struct pcvdom_element {
     // FIXME: scoped-variables
     //  for those `defined` in `init`、`bind`、`connect`、`load`、`define`
     pcvarmgr_list_t         variables;
+
+    unsigned int            self_closing:1;
 };
 
 struct pcvdom_content {

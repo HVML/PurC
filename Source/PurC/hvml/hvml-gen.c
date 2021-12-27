@@ -323,6 +323,7 @@ create_head(struct pcvdom_gen *gen, struct pchvml_token *token)
     }
     else {
         gen->insertion_mode = VGIM(_AFTER_HEAD);
+        elem->self_closing = 1;
     }
 
     gen->doc->head      = elem;
@@ -362,6 +363,7 @@ create_body(struct pcvdom_gen *gen, struct pchvml_token *token)
         gen->insertion_mode = VGIM(_IN_BODY);
     } else {
         gen->insertion_mode = VGIM(_AFTER_BODY);
+        elem->self_closing = 1;
     }
 
     gen->doc->body      = elem;
@@ -550,6 +552,9 @@ create_hvml(struct pcvdom_gen *gen, struct pchvml_token *token)
             pcvdom_node_destroy(&elem->node);
             FAIL_RET();
         }
+    }
+    else {
+        elem->self_closing = 1;
     }
 
     r = pcvdom_document_set_root(gen->doc, elem);
@@ -775,6 +780,9 @@ on_mode_in_head(struct pcvdom_gen *gen, struct pchvml_token *token)
                 FAIL_RET();
             }
         }
+        else {
+            elem->self_closing = 1;
+        }
 
         set_parser_state_if_necessary(gen);
 
@@ -939,6 +947,9 @@ on_mode_in_body(struct pcvdom_gen *gen, struct pchvml_token *token)
                 pcvdom_node_destroy(&elem->node);
                 FAIL_RET();
             }
+        }
+        else {
+            elem->self_closing = 1;
         }
 
         set_parser_state_if_necessary(gen);

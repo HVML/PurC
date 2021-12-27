@@ -111,10 +111,10 @@ stack_release(pcintr_stack_t stack)
     }
 
     if (stack->vdom) {
-        vdom_destroy(stack->vdom);
         if (stack->vdom->timers) {
             pcintr_timers_destroy(stack->vdom->timers);
         }
+        vdom_destroy(stack->vdom);
         stack->vdom = NULL;
     }
 
@@ -597,9 +597,7 @@ static int run_coroutines(void *ctxt)
     }
 
     if (readies) {
-        pcrunloop_t runloop = pcrunloop_get_current();
-        PC_ASSERT(runloop);
-        pcrunloop_dispatch(runloop, run_coroutines, NULL);
+        pcintr_coroutine_ready();
     }
     else if (waits==0) {
         pcrunloop_t runloop = pcrunloop_get_current();
@@ -787,9 +785,7 @@ purc_load_hvml_from_rwstream(purc_rwstream_t stream)
     struct list_head *coroutines = &heap->coroutines;
     list_add_tail(&stack->co.node, coroutines);
 
-    pcrunloop_t runloop = pcrunloop_get_current();
-    PC_ASSERT(runloop);
-    pcrunloop_dispatch(runloop, run_coroutines, NULL);
+    pcintr_coroutine_ready();
 
     // FIXME: double-free, potentially!!!
     return vdom;
@@ -852,7 +848,12 @@ pcintr_printf_start_element_to_edom(pcintr_stack_t stack)
         end_foreach;
     }
 
-    return pcintr_printf_to_edom(stack, ">");
+    if (element->self_closing) {
+        return pcintr_printf_to_edom(stack, "/>");
+    }
+    else {
+        return pcintr_printf_to_edom(stack, ">");
+    }
 }
 
 int
@@ -865,7 +866,12 @@ pcintr_printf_end_element_to_edom(pcintr_stack_t stack)
     struct pcvdom_element *element = frame->scope;
     PC_ASSERT(element);
 
-    return pcintr_printf_to_edom(stack, "</%s>", element->tag_name);
+    if (element->self_closing) {
+        return 0;
+    }
+    else {
+        return pcintr_printf_to_edom(stack, "</%s>", element->tag_name);
+    }
 }
 
 static bool
