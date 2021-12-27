@@ -80,6 +80,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (r)
         return NULL;
 
+    pcintr_printf_start_element_to_edom(stack);
+
     struct ctxt_for_undefined *ctxt;
     ctxt = (struct ctxt_for_undefined*)calloc(1, sizeof(*ctxt));
     if (!ctxt) {
@@ -99,6 +101,8 @@ on_popping(pcintr_stack_t stack, void* ud)
 {
     PC_ASSERT(stack);
     PC_ASSERT(stack == purc_get_stack());
+
+    pcintr_printf_end_element_to_edom(stack);
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);

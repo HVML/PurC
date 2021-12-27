@@ -117,6 +117,9 @@ struct pcintr_stack {
     struct pcutils_arrlist* common_observer_list;
     struct pcutils_arrlist* special_observer_list;
     struct pcutils_arrlist* native_observer_list;
+
+    // TODO: switch to edom dynamically
+    purc_rwstream_t    output;
 };
 
 enum purc_symbol_var {
@@ -240,6 +243,16 @@ void
 pcintr_pop_stack_frame(pcintr_stack_t stack);
 struct pcintr_stack_frame*
 pcintr_push_stack_frame(pcintr_stack_t stack);
+
+__attribute__ ((format (printf, 2, 3)))
+int
+pcintr_printf_to_edom(pcintr_stack_t stack, const char *fmt, ...);
+
+int
+pcintr_printf_start_element_to_edom(pcintr_stack_t stack);
+
+int
+pcintr_printf_end_element_to_edom(pcintr_stack_t stack);
 
 purc_variant_t
 pcintr_make_object_of_dynamic_variants(size_t nr_args,

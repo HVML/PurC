@@ -35,6 +35,8 @@
 #include "../hvml/hvml-gen.h"
 #include "hvml-attr.h"
 
+#include <stdarg.h>
+
 #define TO_DEBUG 0
 
 void pcintr_stack_init_once(void)
@@ -127,6 +129,24 @@ stack_release(pcintr_stack_t stack)
         pcutils_arrlist_free(stack->native_observer_list);
         stack->native_observer_list = NULL;
     }
+
+    if (stack->output) {
+        purc_rwstream_write(stack->output, "", 1); // null-terminator
+        const char *s;
+        s = (const char*)purc_rwstream_get_mem_buffer(stack->output, NULL);
+        fprintf(stderr, "generated html:\n%s\n", s);
+        purc_rwstream_destroy(stack->output);
+        stack->output = NULL;
+    }
+}
+
+static void
+stack_destroy(pcintr_stack_t stack)
+{
+    if (stack) {
+        stack_release(stack);
+        free(stack);
+    }
 }
 
 static void
@@ -149,8 +169,7 @@ void pcintr_stack_cleanup_instance(struct pcinst* inst)
         co = container_of(p, struct pcintr_coroutine, node);
         list_del(p);
         struct pcintr_stack *stack = co->stack;
-        stack_release(stack);
-        free(stack);
+        stack_destroy(stack);
     }
 }
 
@@ -569,8 +588,7 @@ static int run_coroutines(void *ctxt)
             if (co->state == CO_STATE_TERMINATED) {
                 stack->stage = STACK_STAGE_TERMINATING;
                 list_del(&co->node);
-                stack_release(stack);
-                free(stack);
+                stack_destroy(stack);
             }
         }
     }
@@ -736,10 +754,17 @@ purc_load_hvml_from_rwstream(purc_rwstream_t stream)
     stack->co.stack = stack;
     stack->co.state = CO_STATE_READY;
 
+    stack->output = purc_rwstream_new_buffer(1024, 16*1024*1024);
+    if (!stack->output) {
+        stack_destroy(stack);
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return NULL;
+    }
+
     struct pcintr_stack_frame *frame;
     frame = pcintr_push_stack_frame(stack);
     if (!frame) {
-        stack_release(stack);
+        stack_destroy(stack);
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
     }
@@ -767,6 +792,69 @@ purc_run(purc_variant_t request, purc_event_handler handler)
     pcrunloop_run();
 
     return true;
+}
+
+int
+pcintr_printf_to_edom(pcintr_stack_t stack, const char *fmt, ...)
+{
+    // TODO: 1. alloc?; 2. two-scans?
+    char buf[1024];
+
+    va_list ap;
+    va_start(ap, fmt);
+    int r = vsnprintf(buf, sizeof(buf), fmt, ap);
+    PC_ASSERT(r >= 0 && (size_t)r < sizeof(buf));
+    va_end(ap);
+
+    ssize_t sz;
+    sz = purc_rwstream_write(stack->output, buf, r);
+    PC_ASSERT(sz == r);
+    return 0;
+}
+
+int
+pcintr_printf_start_element_to_edom(pcintr_stack_t stack)
+{
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_stack_get_bottom_frame(stack);
+    PC_ASSERT(frame);
+
+    struct pcvdom_element *element = frame->scope;
+    PC_ASSERT(element);
+
+    int r = pcintr_printf_to_edom(stack, "<%s", element->tag_name);
+    PC_ASSERT(r == 0);
+
+    if (frame->attr_vars) {
+        purc_variant_t k, v;
+        foreach_key_value_in_variant_object(frame->attr_vars, k, v)
+            fprintf(stderr, "=========[%s]=======\n", pcvariant_typename(k));
+            const char *key = purc_variant_get_string_const(k);
+            PC_ASSERT(key);
+            pcintr_printf_to_edom(stack, " %s", key);
+
+            const char *val = purc_variant_get_string_const(v);
+            if (val) {
+                // FIXME: escape???
+                pcintr_printf_to_edom(stack, "='%s'", val);
+            }
+        end_foreach;
+    }
+
+    return pcintr_printf_to_edom(stack, ">");
+}
+
+int
+pcintr_printf_end_element_to_edom(pcintr_stack_t stack)
+{
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_stack_get_bottom_frame(stack);
+    PC_ASSERT(frame);
+
+    struct pcvdom_element *element = frame->scope;
+    PC_ASSERT(element);
+
+    return pcintr_printf_to_edom(stack, "</%s>", element->tag_name);
 }
 
 static bool

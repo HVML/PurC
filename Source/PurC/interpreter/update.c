@@ -114,7 +114,9 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     if (v == PURC_VARIANT_INVALID)
         return -1;
 
-    fprintf(stderr, "[%s]\n", purc_variant_get_string_const(v));
+    const char *s = purc_variant_get_string_const(v);
+    fprintf(stderr, "[%s]\n", s);
+    pcintr_printf_to_edom(stack, "%s", s);
     purc_variant_unref(v);
 
     return 0;

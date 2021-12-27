@@ -38,7 +38,7 @@ TEST(interpreter, basic)
     "    </head>"
     ""
     "    <body>"
-    "        <div id=\"calculator\" test=\"$buttons\">"
+    "        <div id=\"calculator\">"
     ""
     "            <div id=\"c_title\">"
     "                <h2>计算器</h2>"
