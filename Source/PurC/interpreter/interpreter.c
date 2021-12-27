@@ -597,9 +597,7 @@ static int run_coroutines(void *ctxt)
     }
 
     if (readies) {
-        pcrunloop_t runloop = pcrunloop_get_current();
-        PC_ASSERT(runloop);
-        pcrunloop_dispatch(runloop, run_coroutines, NULL);
+        pcintr_coroutine_ready();
     }
     else if (waits==0) {
         pcrunloop_t runloop = pcrunloop_get_current();
@@ -787,9 +785,7 @@ purc_load_hvml_from_rwstream(purc_rwstream_t stream)
     struct list_head *coroutines = &heap->coroutines;
     list_add_tail(&stack->co.node, coroutines);
 
-    pcrunloop_t runloop = pcrunloop_get_current();
-    PC_ASSERT(runloop);
-    pcrunloop_dispatch(runloop, run_coroutines, NULL);
+    pcintr_coroutine_ready();
 
     // FIXME: double-free, potentially!!!
     return vdom;
