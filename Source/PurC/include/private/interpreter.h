@@ -114,9 +114,9 @@ struct pcintr_stack {
     struct pcintr_coroutine        co;
 
     // for observe
-    struct pcutils_arrlist* common_observer_list;
-    struct pcutils_arrlist* special_observer_list;
-    struct pcutils_arrlist* native_observer_list;
+    struct pcutils_arrlist* common_variant_observer_list;
+    struct pcutils_arrlist* dynamic_variant_observer_list;
+    struct pcutils_arrlist* native_variant_observer_list;
 
     // TODO: switch to edom dynamically
     purc_rwstream_t    output;
@@ -200,15 +200,7 @@ struct pcintr_dynamic_args {
     purc_dvariant_method           setter;
 };
 
-enum pcintr_observer_type {
-    PCINTR_OBSERVER_TYPE_COMMON,
-    PCINTR_OBSERVER_TYPE_SPECIAL,
-    PCINTR_OBSERVER_TYPE_NATIVE,
-};
-
 struct pcintr_observer {
-    enum pcintr_observer_type type;
-
     // the observed variant.
     purc_variant_t observed;
 
@@ -314,12 +306,15 @@ void
 pcintr_timers_destroy(struct pcintr_timers* timers);
 
 struct pcintr_observer*
-pcintr_register_observer(enum pcintr_observer_type type, purc_variant_t observed,
+pcintr_register_observer(purc_variant_t observed,
         purc_variant_t for_value, pcvdom_element_t ele);
 
 bool
 pcintr_revoke_observer(struct pcintr_observer* observer);
 
+struct pcintr_observer*
+pcintr_find_observer(purc_variant_t observed, purc_variant_t msg_type,
+        purc_variant_t sub_type);
 
 PCA_EXTERN_C_END
 

@@ -115,19 +115,19 @@ stack_release(pcintr_stack_t stack)
         stack->vdom = NULL;
     }
 
-    if (stack->common_observer_list) {
-        pcutils_arrlist_free(stack->common_observer_list);
-        stack->common_observer_list = NULL;
+    if (stack->common_variant_observer_list) {
+        pcutils_arrlist_free(stack->common_variant_observer_list);
+        stack->common_variant_observer_list = NULL;
     }
 
-    if (stack->special_observer_list) {
-        pcutils_arrlist_free(stack->special_observer_list);
-        stack->special_observer_list = NULL;
+    if (stack->dynamic_variant_observer_list) {
+        pcutils_arrlist_free(stack->dynamic_variant_observer_list);
+        stack->dynamic_variant_observer_list = NULL;
     }
 
-    if (stack->native_observer_list) {
-        pcutils_arrlist_free(stack->native_observer_list);
-        stack->native_observer_list = NULL;
+    if (stack->native_variant_observer_list) {
+        pcutils_arrlist_free(stack->native_variant_observer_list);
+        stack->native_variant_observer_list = NULL;
     }
 
     if (stack->output) {
@@ -931,38 +931,21 @@ void observer_free_func(void *data)
 }
 
 struct pcintr_observer*
-pcintr_register_observer(enum pcintr_observer_type type, purc_variant_t observed,
+pcintr_register_observer(purc_variant_t observed,
         purc_variant_t for_value, pcvdom_element_t ele)
 {
     UNUSED_PARAM(for_value);
 
     pcintr_stack_t stack = purc_get_stack();
     struct pcutils_arrlist* list = NULL;
-    switch (type) {
-        case PCINTR_OBSERVER_TYPE_SPECIAL:
-            if (!stack->special_observer_list) {
-                stack->special_observer_list =  pcutils_arrlist_new(
-                        observer_free_func);
-            }
-            list = stack->special_observer_list;
-            break;
-
-        case PCINTR_OBSERVER_TYPE_NATIVE:
-            if (!stack->native_observer_list) {
-                stack->native_observer_list =  pcutils_arrlist_new(
-                        observer_free_func);
-            }
-            list = stack->native_observer_list;
-            break;
-
-        case PCINTR_OBSERVER_TYPE_COMMON:
-        default:
-            if (!stack->common_observer_list) {
-                stack->common_observer_list =  pcutils_arrlist_new(
-                        observer_free_func);
-            }
-            list = stack->common_observer_list;
-            break;
+    if (purc_variant_is_type(observed, PURC_VARIANT_TYPE_DYNAMIC)) {
+        list = stack->dynamic_variant_observer_list;
+    }
+    else if (purc_variant_is_type(observed, PURC_VARIANT_TYPE_NATIVE)) {
+        list = stack->native_variant_observer_list;
+    }
+    else {
+        list = stack->common_variant_observer_list;
     }
 
     if (!list) {
@@ -1017,4 +1000,46 @@ pcintr_revoke_observer(struct pcintr_observer* observer)
 
     del_observer_from_list(observer->list, observer);
     return true;
+}
+
+struct pcintr_observer*
+pcintr_find_observer(purc_variant_t observed, purc_variant_t msg_type,
+        purc_variant_t sub_type)
+{
+    if (observed == PURC_VARIANT_INVALID ||
+            msg_type == PURC_VARIANT_INVALID) {
+        return NULL;
+    }
+    const char* msg = purc_variant_get_string_const(msg_type);
+    const char* sub = (sub_type != PURC_VARIANT_INVALID) ?
+        purc_variant_get_string_const(sub_type) : NULL;
+
+    pcintr_stack_t stack = purc_get_stack();
+    struct pcutils_arrlist* list = NULL;
+    if (purc_variant_is_type(observed, PURC_VARIANT_TYPE_DYNAMIC)) {
+        list = stack->dynamic_variant_observer_list;
+    }
+    else if (purc_variant_is_type(observed, PURC_VARIANT_TYPE_NATIVE)) {
+        list = stack->native_variant_observer_list;
+    }
+    else {
+        list = stack->common_variant_observer_list;
+    }
+
+    if (!list) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return NULL;
+    }
+
+    size_t n = pcutils_arrlist_length(list);
+    for (size_t i = 0; i < n; i++) {
+        struct pcintr_observer* observer = pcutils_arrlist_get_idx(list, i);
+        if (observer->observed == observed &&
+                (strcmp(observer->msg_type, msg) == 0) &&
+                (strcmp(observer->sub_type, sub) == 0)
+                ) {
+            return observer;
+        }
+    }
+    return NULL;
 }
