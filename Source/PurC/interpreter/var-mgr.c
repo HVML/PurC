@@ -32,13 +32,27 @@
 #include "private/errors.h"
 #include "private/instance.h"
 #include "private/utils.h"
+#include "private/variant.h"
 
 #include <stdlib.h>
 #include <string.h>
 
 struct pcvarmgr_list {
     purc_variant_t object;
+    struct pcvar_listener* grow_listener;
+    struct pcvar_listener* shrink_listener;
 };
+
+bool mgr_listener_handler(purc_variant_t source, purc_atom_t msg_type,
+        void* ctxt, size_t nr_args, purc_variant_t* argv)
+{
+    UNUSED_PARAM(source);
+    UNUSED_PARAM(msg_type);
+    UNUSED_PARAM(ctxt);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    return true;
+}
 
 pcvarmgr_list_t pcvarmgr_list_create(void)
 {
@@ -54,22 +68,41 @@ pcvarmgr_list_t pcvarmgr_list_create(void)
         free(mgr);
         return NULL;
     }
+
+    mgr->grow_listener = purc_variant_register_post_listener(mgr->object,
+        pcvariant_atom_grow, mgr_listener_handler, mgr);
+    if (!mgr->grow_listener) {
+        purc_variant_unref(mgr->object);
+        free(mgr);
+        return NULL;
+    }
+
+    mgr->shrink_listener = purc_variant_register_post_listener(mgr->object,
+        pcvariant_atom_shrink, mgr_listener_handler, mgr);
+    if (!mgr->shrink_listener) {
+        purc_variant_revoke_listener(mgr->object, mgr->grow_listener);
+        purc_variant_unref(mgr->object);
+        free(mgr);
+        return NULL;
+    }
     return mgr;
 }
 
-int pcvarmgr_list_destroy(pcvarmgr_list_t list)
+int pcvarmgr_list_destroy(pcvarmgr_list_t mgr)
 {
-    if (list) {
-        purc_variant_unref(list->object);
-        free(list);
+    if (mgr) {
+        purc_variant_revoke_listener(mgr->object, mgr->grow_listener);
+        purc_variant_revoke_listener(mgr->object, mgr->shrink_listener);
+        purc_variant_unref(mgr->object);
+        free(mgr);
     }
     return 0;
 }
 
-bool pcvarmgr_list_add(pcvarmgr_list_t list, const char* name,
+bool pcvarmgr_list_add(pcvarmgr_list_t mgr, const char* name,
         purc_variant_t variant)
 {
-    if (list == NULL || list->object == PURC_VARIANT_INVALID
+    if (mgr == NULL || mgr->object == PURC_VARIANT_INVALID
             || name == NULL || !variant) {
         purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
         return false;
@@ -79,19 +112,19 @@ bool pcvarmgr_list_add(pcvarmgr_list_t list, const char* name,
     if (k == PURC_VARIANT_INVALID) {
         return false;
     }
-    bool b = purc_variant_object_set(list->object, k, variant);
+    bool b = purc_variant_object_set(mgr->object, k, variant);
     purc_variant_unref(k);
     return b;
 }
 
-purc_variant_t pcvarmgr_list_get(pcvarmgr_list_t list, const char* name)
+purc_variant_t pcvarmgr_list_get(pcvarmgr_list_t mgr, const char* name)
 {
-    if (list == NULL || name == NULL) {
+    if (mgr == NULL || name == NULL) {
         PC_ASSERT(0); // FIXME: still recoverable???
         return PURC_VARIANT_INVALID;
     }
 
-    purc_variant_t v =  purc_variant_object_get_by_ckey(list->object, name);
+    purc_variant_t v =  purc_variant_object_get_by_ckey(mgr->object, name);
     if (v) {
         return v;
     }
@@ -100,10 +133,10 @@ purc_variant_t pcvarmgr_list_get(pcvarmgr_list_t list, const char* name)
     return PURC_VARIANT_INVALID;
 }
 
-bool pcvarmgr_list_remove(pcvarmgr_list_t list, const char* name)
+bool pcvarmgr_list_remove(pcvarmgr_list_t mgr, const char* name)
 {
     if (name) {
-        return purc_variant_object_remove_by_static_ckey(list->object, name);
+        return purc_variant_object_remove_by_static_ckey(mgr->object, name);
     }
     return false;
 }
