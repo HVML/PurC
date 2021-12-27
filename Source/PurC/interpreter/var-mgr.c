@@ -37,6 +37,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define TYPE_STR_ATTACHED  "attached"
+#define TYPE_STR_DETACHED  "detached"
+
 struct pcvarmgr_list {
     purc_variant_t object;
     struct pcvar_listener* grow_listener;
@@ -51,6 +54,27 @@ bool mgr_listener_handler(purc_variant_t source, purc_atom_t msg_type,
     UNUSED_PARAM(ctxt);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
+    if (ctxt == NULL) {
+        return true;
+    }
+
+    purc_variant_t type = PURC_VARIANT_INVALID;
+    if (msg_type == pcvariant_atom_grow) {
+        type = purc_variant_make_string(TYPE_STR_ATTACHED, false);
+    }
+    else if (msg_type == pcvariant_atom_shrink) {
+        type = purc_variant_make_string(TYPE_STR_DETACHED, false);
+    }
+
+    purc_variant_t sub_type = argv[0];
+    purc_variant_ref(sub_type);
+
+    pcintr_dispatch_message((pcintr_stack_t)ctxt,
+            source, type, sub_type, PURC_VARIANT_INVALID);
+
+    purc_variant_unref(type);
+    purc_variant_unref(sub_type);
+
     return true;
 }
 
@@ -69,8 +93,9 @@ pcvarmgr_list_t pcvarmgr_list_create(void)
         return NULL;
     }
 
+    pcintr_stack_t stack = purc_get_stack ();
     mgr->grow_listener = purc_variant_register_post_listener(mgr->object,
-        pcvariant_atom_grow, mgr_listener_handler, mgr);
+        pcvariant_atom_grow, mgr_listener_handler, stack);
     if (!mgr->grow_listener) {
         purc_variant_unref(mgr->object);
         free(mgr);
@@ -78,7 +103,7 @@ pcvarmgr_list_t pcvarmgr_list_create(void)
     }
 
     mgr->shrink_listener = purc_variant_register_post_listener(mgr->object,
-        pcvariant_atom_shrink, mgr_listener_handler, mgr);
+        pcvariant_atom_shrink, mgr_listener_handler, stack);
     if (!mgr->shrink_listener) {
         purc_variant_revoke_listener(mgr->object, mgr->grow_listener);
         purc_variant_unref(mgr->object);
