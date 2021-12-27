@@ -61,6 +61,9 @@ class PurcTimer : public WTF::RunLoop::TimerBase {
 
         void setInterval(uint32_t interval) { m_interval = interval; }
         uint32_t getInterval() { return m_interval; }
+
+        void setAttach(void* attach) { m_attach = attach; }
+        void* getAttach(void) { return m_attach; }
     private:
         void fired() final { m_func(m_id, m_ctxt); }
 
@@ -70,6 +73,7 @@ class PurcTimer : public WTF::RunLoop::TimerBase {
         pcintr_timer_fire_func m_func;
 
         uint32_t m_interval;
+        void* m_attach;
 };
 
 pcintr_timer_t
@@ -137,6 +141,23 @@ pcintr_timer_destroy(pcintr_timer_t timer)
     }
 }
 
+void
+pcintr_timer_set_attach(pcintr_timer_t timer, void* attach)
+{
+    if (timer) {
+        return ((PurcTimer*)timer)-> setAttach(attach);
+    }
+}
+
+void*
+pcintr_timer_get_attach(pcintr_timer_t timer)
+{
+    if (timer) {
+        return ((PurcTimer*)timer)-> getAttach();
+    }
+    return NULL;
+}
+
 //  $TIMERS begin
 
 #define TIMERS_STR_ID               "id"
@@ -157,6 +178,10 @@ void timer_fire_func(const char* id, void* ctxt)
     UNUSED_PARAM(id);
     UNUSED_PARAM(ctxt);  // vdom
 }
+
+bool
+timer_listener_handler(purc_variant_t source, purc_atom_t msg_type,
+        void* ctxt, size_t nr_args, purc_variant_t* argv);
 
 static bool
 is_euqal(purc_variant_t var, const char* comp)
@@ -207,10 +232,18 @@ get_inner_timer(purc_vdom_t vdom, purc_variant_t timer_var)
     purc_variant_t native = pointer_to_variant(timer);
     purc_variant_object_set_by_static_ckey(timer_var, TIMERS_STR_HANDLE, native);
     purc_variant_unref(native);
+
+    struct pcvar_listener* listener = purc_variant_register_post_listener(
+            timer_var, pcvariant_atom_change, timer_listener_handler, vdom);
+    if (!listener) {
+        pcintr_timer_destroy(timer);
+        purc_variant_object_remove_by_static_ckey(timer_var,TIMERS_STR_HANDLE);
+        return NULL;
+    }
+    pcintr_timer_set_attach(timer, listener);
     return timer;
 }
 
-#if 0
 static void
 destroy_inner_timer(purc_variant_t timer_var)
 {
@@ -218,10 +251,13 @@ destroy_inner_timer(purc_variant_t timer_var)
             TIMERS_STR_HANDLE);
     pcintr_timer_t timer = variant_to_pointer(tm);
     if (timer) {
+        struct pcvar_listener* listener =
+            (struct pcvar_listener*)pcintr_timer_get_attach(timer);
+        purc_variant_revoke_listener(timer_var, listener);
+        purc_variant_object_remove_by_static_ckey(timer_var,TIMERS_STR_HANDLE);
         pcintr_timer_destroy(timer);
     }
 }
-#endif // 0
 
 bool
 timer_listener_handler(purc_variant_t source, purc_atom_t msg_type,
@@ -263,36 +299,27 @@ timers_listener_handler(purc_variant_t source, purc_atom_t msg_type,
     UNUSED_PARAM(ctxt);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
-#if 0
-    purc_vdom_t dom = (purc_vdom_t) ctxt;
-    if (msg_type == pcvariant_atom_grown) {
-        for (size_t i = 0; i < nr_args; i++) {
-            purc_variant_t interval = purc_variant_object_get_by_ckey(argv[i],
-                    TIMERS_STR_INTERVAL);
-            purc_variant_t active = purc_variant_object_get_by_ckey(argv[i],
-                    TIMERS_STR_ACTIVE);
 
-            pcintr_timer_t timer = get_inner_timer(dom, argv[i]);
-            if (!timer) {
-                return false;
-            }
-            uint64_t ret = 0;
-            purc_variant_cast_to_ulongint(interval, &ret, false);
-            pcintr_timer_set_interval(timer, ret);
-            if (is_euqal(active, TIMERS_STR_ON)) {
-                pcintr_timer_start(timer);
-            }
-            purc_variant_register_listener(argv[i], pcvariant_atom_timer,
-                    timer_listener_handler, ctxt);
+    purc_vdom_t dom = (purc_vdom_t) ctxt;
+    if (msg_type == pcvariant_atom_grow) {
+        purc_variant_t interval = purc_variant_object_get_by_ckey(argv[0],
+                TIMERS_STR_INTERVAL);
+        purc_variant_t active = purc_variant_object_get_by_ckey(argv[0],
+                TIMERS_STR_ACTIVE);
+        pcintr_timer_t timer = get_inner_timer(dom, argv[0]);
+        if (!timer) {
+            return false;
+        }
+        uint64_t ret = 0;
+        purc_variant_cast_to_ulongint(interval, &ret, false);
+        pcintr_timer_set_interval(timer, ret);
+        if (is_euqal(active, TIMERS_STR_ON)) {
+            pcintr_timer_start(timer);
         }
     }
-    else if (msg_type == pcvariant_atom_shrunk) {
-        for (size_t i = 0; i < nr_args; i++) {
-            purc_variant_revoke_listener(argv[i], pcvariant_atom_timer);
-            destroy_inner_timer(argv[1]);
-        }
+    else if (msg_type == pcvariant_atom_shrink) {
+        destroy_inner_timer(argv[0]);
     }
-#endif // 0
     return true;
 }
 
@@ -353,9 +380,20 @@ pcintr_timers_destroy(struct pcintr_timers* timers)
         purc_variant_revoke_listener(timers->timers_var,
                 timers->shrink_listener);
 
-        // TODO revoke listener of timer
+        // remove inner timer
+        size_t sz;
+        bool ok = purc_variant_set_size(timers->timers_var, &sz);
+        if (ok) {
+            for (size_t i=0; i<sz; ++i) {
+                purc_variant_t v = purc_variant_set_get_by_index(
+                        timers->timers_var, i);
+                if (v != PURC_VARIANT_INVALID) {
+                    destroy_inner_timer(v);
+                }
+            }
+        }
 
-        //
+        purc_variant_unref(timers->timers_var);
         free(timers);
     }
 }
