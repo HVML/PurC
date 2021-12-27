@@ -58,14 +58,14 @@ test_begin
 param_begin
 string:"";
 param_end
-string:"https://minigui.fmsoft.cn/";
+invalid:;
 test_end
 
 test_begin
 param_begin
-string:"www.minigui.org"
+string:"https://www.minigui.org"
 param_end
-string:"https://minigui.fmsoft.cn/"
+string:"https://www.minigui.org/"
 test_end
 
 test_begin

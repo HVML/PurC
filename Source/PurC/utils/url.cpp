@@ -1,8 +1,8 @@
 /*
- * @file t.c
+ * @file url.c
  * @author Geng Yue
- * @date 2021/07/02
- * @brief The implementation of T dynamic variant object.
+ * @date 2021/12/26
+ * @brief The implementation of URL implementation.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -28,7 +28,6 @@
 #include "private/vdom.h"
 #include "purc-variant.h"
 #include "wtf/URL.h"
-#include "helper.h"
 
 #ifdef __cplusplus
 extern "C" {

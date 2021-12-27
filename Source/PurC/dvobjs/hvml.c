@@ -32,13 +32,17 @@
 
 #include <limits.h>
 
-#define DEFAULT_HVML_BASE           "https://minigui.fmsoft.cn/"
+#define DEFAULT_HVML_BASE           ""
 #define DEFAULT_HVML_TIMEOUT        10.0
 #define DVOBJ_HVML_DATA_NAME        "__handle_dvobj_hvml"
 
-extern char * pcdvobjs_get_url (struct purc_broken_down_url * url);
-extern bool pcdvobjs_set_url (struct purc_broken_down_url *url,
-        const char *url_string);
+#define DEFAULT_HVML_TIMEOUT_SEC    (time_t)DEFAULT_HVML_TIMEOUT
+#define DEFAULT_HVML_TIMEOUT_NSEC   (long)((DEFAULT_HVML_TIMEOUT -  \
+            DEFAULT_HVML_TIMEOUT_SEC) * 1000000000)
+
+//extern char * pcdvobjs_get_url (struct purc_broken_down_url * url);
+//extern bool pcdvobjs_set_url (struct purc_broken_down_url *url,
+//        const char *url_string);
 
 static purc_variant_t
 base_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
@@ -316,13 +320,38 @@ purc_variant_t pcdvobjs_get_hvml (struct pcvdom_dvobj_hvml *dvobj_hvml)
 
     dvobj_hvml->maxIterationCount = ULONG_MAX;
     dvobj_hvml->maxRecursionDepth = USHRT_MAX;
-    dvobj_hvml->timeout.tv_sec = (long) DEFAULT_HVML_TIMEOUT;
-    dvobj_hvml->timeout.tv_nsec = (long) ((DEFAULT_HVML_TIMEOUT -
-                dvobj_hvml->timeout.tv_sec) * 1000000000);
+    dvobj_hvml->timeout.tv_sec = DEFAULT_HVML_TIMEOUT_SEC;
+    dvobj_hvml->timeout.tv_nsec = DEFAULT_HVML_TIMEOUT_NSEC;
 
     purc_variant_t val = purc_variant_make_native ((void *)dvobj_hvml, NULL);
     purc_variant_object_set_by_static_ckey (ret_var, DVOBJ_HVML_DATA_NAME, val);
     purc_variant_unref (val);
 
     return ret_var;
+}
+
+void pcdvobjs_destroy_hvml (struct pcvdom_dvobj_hvml *hvml)
+{
+    struct purc_broken_down_url url = hvml->url;
+
+    if (url.schema)
+        free (url.schema);
+
+    if (url.user)
+        free (url.user);
+
+    if (url.passwd)
+        free (url.passwd);
+
+    if (url.host)
+        free (url.host);
+
+    if (url.path)
+        free (url.path);
+
+    if (url.query)
+        free (url.query);
+
+    if (url.fragment)
+        free (url.fragment);
 }
