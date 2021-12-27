@@ -34,7 +34,7 @@
 extern "C" {
 #endif
 
-char * get_url (const struct purc_broken_down_url *url_struct)
+char * pcdvobjs_get_url (const struct purc_broken_down_url *url_struct)
 {
     char * url_string = NULL;
     String string = "";
@@ -72,7 +72,7 @@ char * get_url (const struct purc_broken_down_url *url_struct)
     return url_string;
 }
 
-bool set_url (struct purc_broken_down_url *url_struct, const char *url_string)
+bool pcdvobjs_set_url (struct purc_broken_down_url *url_struct, const char *url_string)
 {
     std::unique_ptr<WTF::URL> url = makeUnique<URL>(URL(), url_string);
     bool valid = url->isValid();

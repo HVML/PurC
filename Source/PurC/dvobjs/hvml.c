@@ -32,12 +32,13 @@
 
 #include <limits.h>
 
-extern char * get_url (struct purc_broken_down_url * url);
-extern bool set_url (struct purc_broken_down_url *url, const char *url_string);
-
 #define DEFAULT_HVML_BASE           "https://minigui.fmsoft.cn/"
 #define DEFAULT_HVML_TIMEOUT        10.0
 #define DVOBJ_HVML_DATA_NAME        "__handle_dvobj_hvml"
+
+extern char * pcdvobjs_get_url (struct purc_broken_down_url * url);
+extern bool pcdvobjs_set_url (struct purc_broken_down_url *url,
+        const char *url_string);
 
 static purc_variant_t
 base_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
@@ -59,7 +60,7 @@ base_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         get_dvobj_internal_pointer(root, DVOBJ_HVML_DATA_NAME);
 
     if (dvobj_hvml) {
-        char *url = get_url (&(dvobj_hvml->url));
+        char *url = pcdvobjs_get_url (&(dvobj_hvml->url));
         if (url)
             ret_var = purc_variant_make_string_reuse_buff (
                     url, strlen (url), false);
@@ -92,17 +93,17 @@ base_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         get_dvobj_internal_pointer(root, DVOBJ_HVML_DATA_NAME);
     if (dvobj_hvml) {
         /* If the url is invlid, dvobj_hvml->url will not be changed.
-         If the url is valid, perhaps the string which get_url() returned
+         If the url is valid, perhaps the string which pcdvobjs_get_url() returned
          is not identical to input string. For example:
-         input string to set_url is:  http://www.minigui.org
-         output string of get_url is: http://www.minigui.org/
+         input string to pcdvobjs_set_url is:  http://www.minigui.org
+         output string of pcdvobjs_get_url is: http://www.minigui.org/
          */
-        set_url (&(dvobj_hvml->url), url);
+        pcdvobjs_set_url (&(dvobj_hvml->url), url);
 
-        char *url = get_url (&(dvobj_hvml->url));
+        char *url = pcdvobjs_get_url (&(dvobj_hvml->url));
         if (url) {
-                ret_var = purc_variant_make_string_reuse_buff (
-                        url, strlen (url), false);
+            ret_var = purc_variant_make_string_reuse_buff (
+                    url, strlen (url), false);
         }
     }
     return ret_var;
@@ -311,7 +312,7 @@ purc_variant_t pcdvobjs_get_hvml (struct pcvdom_dvobj_hvml *dvobj_hvml)
     // initialize pcvdom_dvobj_hvml
     // set default URL
     memset (&(dvobj_hvml->url), 0, sizeof(struct purc_broken_down_url));
-    set_url (&(dvobj_hvml->url), DEFAULT_HVML_BASE);
+    pcdvobjs_set_url (&(dvobj_hvml->url), DEFAULT_HVML_BASE);
 
     dvobj_hvml->maxIterationCount = ULONG_MAX;
     dvobj_hvml->maxRecursionDepth = USHRT_MAX;
