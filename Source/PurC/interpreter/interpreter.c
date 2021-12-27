@@ -841,7 +841,12 @@ pcintr_printf_start_element_to_edom(pcintr_stack_t stack)
         end_foreach;
     }
 
-    return pcintr_printf_to_edom(stack, ">");
+    if (element->self_closing) {
+        return pcintr_printf_to_edom(stack, "/>");
+    }
+    else {
+        return pcintr_printf_to_edom(stack, ">");
+    }
 }
 
 int
@@ -854,7 +859,12 @@ pcintr_printf_end_element_to_edom(pcintr_stack_t stack)
     struct pcvdom_element *element = frame->scope;
     PC_ASSERT(element);
 
-    return pcintr_printf_to_edom(stack, "</%s>", element->tag_name);
+    if (element->self_closing) {
+        return 0;
+    }
+    else {
+        return pcintr_printf_to_edom(stack, "</%s>", element->tag_name);
+    }
 }
 
 static bool

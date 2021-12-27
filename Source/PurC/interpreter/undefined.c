@@ -141,6 +141,9 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     PC_ASSERT(content);
     char *text = content->text;
     D("content: [%s]", text);
+    // FIXME: escape!!!!
+    int r = pcintr_printf_to_edom(co->stack, "%s", text);
+    PC_ASSERT(r == 0);
 }
 
 static void
