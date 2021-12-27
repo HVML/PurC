@@ -971,14 +971,14 @@ pcintr_register_observer(purc_variant_t observed,
         return NULL;
     }
 
-    char* msg_type = strtok(value, ":");
+    char* msg_type = strtok_r(value, ":", &value);
     if (!msg_type) {
         //TODO : purc_set_error();
         free(value);
         return NULL;
     }
 
-    char* sub_type = strtok(NULL, ":");
+    char* sub_type = strtok_r(value, ":", &value);
     if (!sub_type) {
         //TODO : purc_set_error();
         free(value);
