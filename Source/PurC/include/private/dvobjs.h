@@ -106,7 +106,7 @@ purc_variant_t pcdvobjs_get_logical (void);
 purc_variant_t pcdvobjs_get_ejson (void);
 purc_variant_t pcdvobjs_get_hvml (struct pcvdom_dvobj_hvml *);
 purc_variant_t pcdvobjs_get_t (void);
-void pcdvobjs_destroy_hvml (struct pcvdom_dvobj_hvml *) WTF_INTERNAL;
+void pcdvobjs_destroy_hvml (struct pcvdom_dvobj_hvml *);
 
 // make sure root is a valid object variant
 static inline void * get_dvobj_internal_pointer (

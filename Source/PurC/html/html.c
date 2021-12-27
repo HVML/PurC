@@ -37,9 +37,36 @@
 #include "private/edom.h"
 #include "private/html.h"
 
+#define ATOM_HTML_BUCKET    1
+
+#if 0
+static struct atom_info {
+    const char *string;
+    purc_atom_t atom;
+} my_atoms [] = {
+    { "append", 0 },
+    { "prepend", 0 },
+    { "insertBefore", 0 },
+    { "insertAfter", 0 },
+};
+#endif
+
+purc_atom_t pcvariant_atom_append;
+purc_atom_t pcvariant_atom_prepend;
+purc_atom_t pcvariant_atom_insertBefore;
+purc_atom_t pcvariant_atom_insertAfter;
+
 void pchtml_init_once(void)
 {
     // initialize others
+    pcvariant_atom_append  = purc_atom_from_static_string_ex (
+            ATOM_HTML_BUCKET, "append");
+    pcvariant_atom_prepend = purc_atom_from_static_string_ex (
+            ATOM_HTML_BUCKET, "prepend");
+    pcvariant_atom_insertBefore  = purc_atom_from_static_string_ex (
+            ATOM_HTML_BUCKET, "insertBefore");
+    pcvariant_atom_insertAfter = purc_atom_from_static_string_ex (
+            ATOM_HTML_BUCKET, "insertAfter");
 }
 
 void pchtml_init_instance(struct pcinst* inst)

@@ -130,10 +130,6 @@ purc_atom_t pcvariant_atom_unreferenced;
 purc_atom_t pcvariant_atom_destroyed;
 purc_atom_t pcvariant_atom_timers;
 purc_atom_t pcvariant_atom_timer;
-purc_atom_t pcvariant_atom_append;
-purc_atom_t pcvariant_atom_prepend;
-purc_atom_t pcvariant_atom_insertBefore;
-purc_atom_t pcvariant_atom_insertAfter;
 
 void pcvariant_init_once(void)
 {
@@ -149,10 +145,6 @@ void pcvariant_init_once(void)
     pcvariant_atom_destroyed = purc_atom_from_static_string("destroyed");
     pcvariant_atom_timers = purc_atom_from_static_string("timers");
     pcvariant_atom_timer = purc_atom_from_static_string("timer");
-    pcvariant_atom_append  = purc_atom_from_static_string ("append");
-    pcvariant_atom_prepend = purc_atom_from_static_string ("prepend");
-    pcvariant_atom_insertBefore  = purc_atom_from_static_string ("insertBefore");
-    pcvariant_atom_insertAfter = purc_atom_from_static_string ("insertAfter");
 }
 
 void pcvariant_init_instance(struct pcinst *inst)

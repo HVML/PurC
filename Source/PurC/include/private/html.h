@@ -173,6 +173,11 @@ pchtml_doc_write_to_stream(pchtml_html_document_t *doc, purc_rwstream_t out);
 struct pcedom_document*
 pchtml_doc_get_document(pchtml_html_document_t *doc);
 
+extern purc_atom_t pcvariant_atom_append;
+extern purc_atom_t pcvariant_atom_prepend;
+extern purc_atom_t pcvariant_atom_insertBefore;
+extern purc_atom_t pcvariant_atom_insertAfter;
+
 // doc:  html document root
 // node: the node fragment associated.If it is NULL, <body> will be used;
 // html: html stream

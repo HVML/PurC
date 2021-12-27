@@ -214,8 +214,10 @@ TEST(dvobjs, dvobjs_hvml_setter)
         fclose(fp);
         if (line)
             free(line);
+
     }
 
+    pcdvobjs_destroy_hvml (&hvml_struct);
     purc_variant_unref(hvml);
     purc_cleanup ();
 }

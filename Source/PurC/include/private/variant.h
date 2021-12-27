@@ -241,10 +241,6 @@ extern purc_atom_t pcvariant_atom_unreferenced;
 extern purc_atom_t pcvariant_atom_destroyed;
 extern purc_atom_t pcvariant_atom_timers;
 extern purc_atom_t pcvariant_atom_timer;
-extern purc_atom_t pcvariant_atom_append;
-extern purc_atom_t pcvariant_atom_prepend;
-extern purc_atom_t pcvariant_atom_insertBefore;
-extern purc_atom_t pcvariant_atom_insertAfter;
 
 #ifdef __cplusplus
 }
