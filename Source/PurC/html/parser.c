@@ -584,7 +584,6 @@ bool pchtml_edom_insert_node(pcedom_node_t *node, pcedom_node_t *fragment_root,
         while (node->first_child != NULL) {
             pcedom_node_destroy_deep(node->first_child);
         }
-        child = NULL;
 
         while (fragment_root->first_child != NULL) {
             child = fragment_root->first_child;
@@ -612,6 +611,7 @@ bool pchtml_edom_insert_node(pcedom_node_t *node, pcedom_node_t *fragment_root,
 
             pcedom_node_remove(child);
             pcedom_node_insert_after (node, child);
+            node = node->next;
         }
         pcedom_node_destroy(fragment_root);
     }
