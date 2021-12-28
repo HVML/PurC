@@ -57,10 +57,10 @@ static struct atom_info {
 
     /* update actions */
     { "displace", 2, 0 },
-    { "append", 2, 0 },
-    { "prepend", 2, 0 },
-    { "insertBefore", 2, 0 },
-    { "insertAfter", 2, 0 },
+    /* { "append", 2, 0 }, */
+    /* { "prepend", 2, 0 }, */
+    /* { "insertBefore", 2, 0 }, */
+    /* { "insertAfter", 2, 0 }, */
 };
 
 // to test basic functions of atom

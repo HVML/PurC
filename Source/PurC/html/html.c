@@ -51,10 +51,10 @@ static struct atom_info {
 };
 #endif
 
-purc_atom_t pcvariant_atom_append;
-purc_atom_t pcvariant_atom_prepend;
-purc_atom_t pcvariant_atom_insertBefore;
-purc_atom_t pcvariant_atom_insertAfter;
+purc_atom_t pcvariant_atom_append = 0;
+purc_atom_t pcvariant_atom_prepend = 0;
+purc_atom_t pcvariant_atom_insertBefore = 0;
+purc_atom_t pcvariant_atom_insertAfter = 0;
 
 void pchtml_init_once(void)
 {
