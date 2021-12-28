@@ -954,7 +954,8 @@ void observer_free_func(void *data)
 
 struct pcintr_observer*
 pcintr_register_observer(purc_variant_t observed,
-        purc_variant_t for_value, pcvdom_element_t scope, pcvdom_element_t pos)
+        purc_variant_t for_value, pcvdom_element_t scope,
+        pcvdom_element_t pos, pcvdom_element_t child)
 {
     UNUSED_PARAM(for_value);
 
@@ -1019,6 +1020,7 @@ pcintr_register_observer(purc_variant_t observed,
     observer->observed = observed;
     observer->scope = scope;
     observer->pos = pos;
+    observer->child= child;
     observer->msg_type = strdup(msg_type);
     observer->sub_type = strdup(sub_type);
     add_observer_into_list(list, observer);

@@ -42,6 +42,9 @@ struct ctxt_for_observe {
     struct pcvdom_node           *curr;
 };
 
+static pcvdom_element_t
+select_child(pcintr_stack_t stack, void* ud);
+
 static void
 ctxt_for_observe_destroy(struct ctxt_for_observe *ctxt)
 {
@@ -86,12 +89,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (for_var == PURC_VARIANT_INVALID)
         return NULL;
 
-    struct pcintr_observer* observer;
-    observer = pcintr_register_observer(on, for_var, frame->scope, pos);
-    if (observer == NULL) {
-        return NULL;
-    }
-
     struct ctxt_for_observe *ctxt;
     ctxt = (struct ctxt_for_observe*)calloc(1, sizeof(*ctxt));
     if (!ctxt) {
@@ -101,7 +98,19 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     frame->ctxt = ctxt;
     frame->ctxt_destroy = ctxt_destroy;
-    stack->co.waits++;
+
+    pcvdom_element_t child = select_child(stack, ctxt);
+    if (child != NULL) {
+        struct pcintr_observer* observer;
+        observer = pcintr_register_observer(on, for_var, frame->scope, pos,
+                child);
+        if (observer == NULL) {
+            return NULL;
+        }
+        // TODO:
+        //stack->co.waits++;
+    }
+
     purc_clr_error();
 
     return ctxt;
@@ -130,6 +139,103 @@ on_popping(pcintr_stack_t stack, void* ud)
 
     D("</%s>", element->tag_name);
     return true;
+}
+
+static void
+on_element(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element)
+{
+    UNUSED_PARAM(co);
+    UNUSED_PARAM(frame);
+    UNUSED_PARAM(element);
+}
+
+static void
+on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
+        struct pcvdom_content *content)
+{
+    UNUSED_PARAM(co);
+    UNUSED_PARAM(frame);
+    PC_ASSERT(content);
+    char *text = content->text;
+    D("content: [%s]", text);
+}
+
+static void
+on_comment(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
+        struct pcvdom_comment *comment)
+{
+    UNUSED_PARAM(co);
+    UNUSED_PARAM(frame);
+    PC_ASSERT(comment);
+    char *text = comment->text;
+    D("comment: [%s]", text);
+}
+
+
+pcvdom_element_t
+select_child(pcintr_stack_t stack, void* ud)
+{
+    PC_ASSERT(stack);
+    PC_ASSERT(stack == purc_get_stack());
+
+    pcintr_coroutine_t co = &stack->co;
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_stack_get_bottom_frame(stack);
+    PC_ASSERT(ud == frame->ctxt);
+
+    struct ctxt_for_observe *ctxt;
+    ctxt = (struct ctxt_for_observe*)frame->ctxt;
+
+    struct pcvdom_node *curr;
+
+again:
+    curr = ctxt->curr;
+
+    if (curr == NULL) {
+        struct pcvdom_element *element = frame->pos;
+        struct pcvdom_node *node = &element->node;
+        node = pcvdom_node_first_child(node);
+        curr = node;
+    }
+    else {
+        curr = pcvdom_node_next_sibling(curr);
+    }
+
+    ctxt->curr = curr;
+
+    if (curr == NULL) {
+        purc_clr_error();
+        return NULL;
+    }
+
+    switch (curr->type) {
+        case PCVDOM_NODE_DOCUMENT:
+            PC_ASSERT(0); // Not implemented yet
+            break;
+        case PCVDOM_NODE_ELEMENT:
+            {
+            D("");
+                pcvdom_element_t element = PCVDOM_ELEMENT_FROM_NODE(curr);
+                on_element(co, frame, element);
+// FIXME:
+//                PC_ASSERT(stack->except == 0);
+                return element;
+            }
+        case PCVDOM_NODE_CONTENT:
+            D("");
+            on_content(co, frame, PCVDOM_CONTENT_FROM_NODE(curr));
+            goto again;
+        case PCVDOM_NODE_COMMENT:
+            D("");
+            on_comment(co, frame, PCVDOM_COMMENT_FROM_NODE(curr));
+            goto again;
+        default:
+            PC_ASSERT(0); // Not implemented yet
+    }
+
+    PC_ASSERT(0);
+    return NULL; // NOTE: never reached here!!!
 }
 
 static struct pcintr_element_ops

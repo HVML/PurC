@@ -215,6 +215,8 @@ struct pcintr_observer {
     // the `observe` element who creates this observer.
     pcvdom_element_t pos;
 
+    pcvdom_element_t child;
+
     // the arraylist containing this struct pointer
     struct pcutils_arrlist* list;
 };
@@ -309,7 +311,8 @@ pcintr_timers_destroy(struct pcintr_timers* timers);
 
 struct pcintr_observer*
 pcintr_register_observer(purc_variant_t observed,
-        purc_variant_t for_value, pcvdom_element_t scope, pcvdom_element_t pos);
+        purc_variant_t for_value, pcvdom_element_t scope,
+        pcvdom_element_t pos, pcvdom_element_t child);
 
 bool
 pcintr_revoke_observer(struct pcintr_observer* observer);
