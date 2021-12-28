@@ -2,7 +2,7 @@
 
 #include <gtest/gtest.h>
 
-TEST(interpreter, basic)
+TEST(observe, basic)
 {
     const char *observer_hvml =
     "<!DOCTYPE hvml>"
