@@ -1,5 +1,6 @@
 #include "purc.h"
 #include "private/html.h"
+#include "private/variant.h"
 #include "private/edom.h"
 
 #include <limits.h>
@@ -10,81 +11,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-
-/* NOTE:
-    This PurC HTML parser is derived from lexbor parser. In lexbor parser,
-    it exports lots of APIs for other modules.
-    But for concise reason, in this version of purc html parser, only
-    exports limited APIs.
-    The user can move API reference from source code to include/private/html.h,
-    and remove WTF_INTERNAL, when it is necessary.
-    For convenience in this test case, when use APIs whose are not exported,
-    I include the header file in source code directory directly.
-*/
-
-
-/* How to use html moudle
-   PARSE HTML STREAM
-   There are two ways to use html moudle to parse a html string:
-   1. use parser and document
-
-         pchtml_html_parser_t *parser = NULL;
-         pchtml_html_document_t *doc = NULL;
-         purc_rwstream_t rwstream =  purc_rwstream_new_xxxxxx (); 
-         
-         parser = pchtml_html_parser_create();      // create parser
-         status = pchtml_html_parser_init(parser);  // initialize parser
-         doc = pchtml_html_parse(parser, rwstream); // parse and get tree
-
-         pchtml_html_parser_destroy(parser);        // destroy parse
-         pchtml_html_document_destroy(doc);         // destroy document
-
-    2. only use document
-
-         pchtml_html_document_t *doc = NULL;
-         purc_rwstream_t rwstream =  purc_rwstream_new_xxxxxx (); 
-
-         doc = pchtml_html_document_create();       // create document
-         status = pchtml_html_document_parse(doc, rwstream); // parse and get tree
-
-         pchtml_html_document_destroy(doc);         // destroy document
-
-
-     PARSE CHUNK
-     1. use parser and document
-
-         pchtml_html_parser_t *parser = NULL;
-         pchtml_html_document_t *doc = NULL;
-         purc_rwstream_t rwstream =  purc_rwstream_new_xxxxxx (); 
-         
-         parser = pchtml_html_parser_create();      // create parser
-         status = pchtml_html_parser_init(parser);  // initialize parser
-
-         doc = pchtml_html_parse_chunk_begin(parser);   // create document
-
-         // use statement below repeatedly
-         status = pchtml_html_parse_chunk_process(parser, rwstream);
-
-         status = pchtml_html_parse_chunk_end(parser);
-
-         pchtml_html_parser_destroy(parser);        // destroy parse
-         pchtml_html_document_destroy(doc);         // destroy document
-
-     2. only use document
-
-         pchtml_html_document_t *doc = NULL;
-         purc_rwstream_t rwstream =  purc_rwstream_new_xxxxxx (); 
-
-         doc = pchtml_html_document_create();       // create document
-
-         status = pchtml_html_document_parse_chunk_begin(doc);
-
-         // use statement below repeatedly
-         status = pchtml_html_document_parse_chunk(doc, rwstream);
-         status = pchtml_html_document_parse_chunk_end(doc);
-
-         pchtml_html_document_destroy(doc);         // destroy document
-*/
 
 void test_html_file(char * data_path, char * file_name)
 {
@@ -123,7 +49,7 @@ void test_html_file(char * data_path, char * file_name)
         printf(" ERROR, %s.file is empty.\n", file_name);
         return;
     }
-    
+
     // initialize the instance
     purc_instance_extra_info info = {};
     ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
@@ -212,7 +138,7 @@ void test_html_chunk(char * data_path, char * file_name)
         printf(" ERROR, %s.chunk is empty.\n", file_name);
         return;
     }
-    
+
     // initialize the instance
     purc_instance_extra_info info = {};
     ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
@@ -229,7 +155,7 @@ void test_html_chunk(char * data_path, char * file_name)
     if (fp) {
         char* line = NULL;
         int read = 0;
-        
+
         // step 1: read one line from html file;
         // step 2: create rwstream object with read content;
         // step 3: feed HTML PARSER with rwstream object.
@@ -330,7 +256,7 @@ void test_parser_fragment(char * data_path, char * file_name)
         printf(" ERROR, %s.file is empty.\n", file_name);
         return;
     }
-    
+
     // initialize the instance
     purc_instance_extra_info info = {};
     ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
@@ -682,78 +608,6 @@ static pcedom_node_t * get_node (pcedom_node_t *node, unsigned int tag, int *ind
     return return_node;
 }
 
-
-static unsigned int replace_node_with_fragment_chunk (
-        pchtml_html_document_t *document, pcedom_node_t *root_node,
-        const char fragment[][64])
-{
-    purc_rwstream_t rwstream = NULL;
-    unsigned int status = PCHTML_STATUS_OK;
-    pcedom_element_t *root_element = pcedom_interface_element (root_node);
-
-    // start parse fragment chunk
-    status = pchtml_html_document_parse_fragment_chunk_begin (document, root_element);
-    if (status != PCHTML_STATUS_OK) {
-        printf ("Failed to start parse HTML chunk");
-        return status;
-    }
-
-    // parse fragment chunk
-    for (size_t i = 0; fragment[i][0] != '\0'; i++) {
-        rwstream = purc_rwstream_new_from_mem((void*)fragment[i],
-                strlen((const char *) fragment[i]));
-
-        status = pchtml_html_document_parse_fragment_chunk (document, rwstream);
-        if (status != PCHTML_STATUS_OK) {
-            printf ("Failed to parse HTML chunk");
-            purc_rwstream_destroy (rwstream);
-            return status;
-        }
-
-        purc_rwstream_destroy (rwstream);
-    }
-
-    // end parse fragment chunk, get the tree, which root is 'html'
-    pcedom_node_t *fragment_root = pchtml_html_document_parse_fragment_chunk_end (document);
-    if (fragment_root == NULL) {
-        printf ("Failed to parse HTML");
-        status = PCHTML_STATUS_ERROR;
-        return status;
-    }
-
-    // remove all sons of root node
-    while (root_node->first_child != NULL) {
-        pcedom_node_destroy_deep(root_node->first_child);
-    }
-
-    pcedom_node_t *child = NULL;
-    while (fragment_root->first_child != NULL) {
-        child = fragment_root->first_child;
-
-        pcedom_node_remove(child);
-        pcedom_node_insert_child(root_node, child);
-    }
-
-    pcedom_node_destroy(fragment_root);
-
-    return status;
-}
-
-static unsigned int replace_node_with_fragment (
-        pcedom_node_t *node, const char *fragment, size_t size)
-{
-    purc_rwstream_t rwstream = NULL;
-    unsigned int status = PCHTML_STATUS_OK;
-
-    pchtml_html_element_t *html_element = pchtml_html_interface_element (node);
-    rwstream = purc_rwstream_new_from_mem((void*)fragment, size);
-    if (pchtml_html_element_inner_html_set (html_element, rwstream) == NULL)
-        status = PCHTML_STATUS_ERROR;
-
-    purc_rwstream_destroy (rwstream);
-    return status;
-}
-
 static unsigned int serializer_callback(const unsigned char *data,  long unsigned int len, void *ctx)
 {
     UNUSED_PARAM(ctx);
@@ -774,8 +628,6 @@ enum pchtml_html_serialize_opt {
 };
 
 TEST(html, html_parser_replace)
-//int
-//main(int argc, const char *argv[])
 {
     purc_rwstream_t rwstream = NULL;
     unsigned int status;
@@ -784,30 +636,47 @@ TEST(html, html_parser_replace)
     // original html
     static const char html[] = "<div><p>First<p>second</div><div><p>third<p>fourth</div>";
     size_t html_len = sizeof(html) - 1;
-
-    // html fragment1, in string array
-    static const char fragment1[][64] = {
-        "<p cla",
-        "ss=",
-        "\"bestof",
-        "class",
-        "\">",
-        "good for me",
-        "</p>",
-        "<p cla",
-        "ss=",
-        "\"bestof",
-        "class",
-        "\">",
-        "good for you",
-        "</p>",
-        "\0"
-    };
+    int index = 0;
 
     // html fragment2, in one string
     static const char fragment2[] = "<h2>Flower</h2><img src=\"img_white_flower.jpg\" width=\"214\" height=\"204\">";
 
-    int index = 0;
+/*  original tree
+    <html>
+        <head>
+        </head>
+        <body>
+            <div>
+                <p>
+                    "First"
+                </p>
+                <p>
+                    "second"
+                </p>
+            </div>
+
+            <div>
+                <p>
+                    "third"
+                </p>
+                <p>
+                    "fourth"
+                </p>
+            </div>
+        </body>
+    </html>
+
+    fragment tree
+    fragment#document
+        <h2>
+            "Flower"
+        </h2>
+        <img src="img_white_flower.jpg" width="214" height="204">
+*/
+
+    purc_instance_extra_info info = {};
+    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
 
     // parse html file, get original edom tree
     // create document
@@ -832,24 +701,163 @@ TEST(html, html_parser_replace)
         printf ("Failed to serialization HTML tree");
     }
 
+    // test case1: append fragment tree under first div
+/*  after append
+    <html>
+        <head>
+        </head>
+        <body>
+            <div>
+                <h2>
+                    "Flower"
+                </h2>
+                <img src="img_white_flower.jpg" width="214" height="204">
+            </div>
 
-    // method 1: parse the fragment in string arry, replace the first div node
-    // get the parent node, first div
+            <div>
+                <p>
+                    "third"
+                </p>
+                <p>
+                    "fourth"
+                </p>
+            </div>
+        </body>
+    </html>
+*/
+
+    index = 0;
     pcedom_node_t *div = get_node (&(doc->dom_document.node), PCHTML_TAG_DIV, &index);
-    status = replace_node_with_fragment_chunk (doc, div, fragment1);
+    if (div) {
+        purc_rwstream_t rwstream = NULL;
+        rwstream = purc_rwstream_new_from_mem((void*)fragment2,
+                strlen((const char *) fragment2));
+
+        // get the fragment root
+        pcedom_node_t *fragment_root = pchtml_edom_document_parse_fragment (
+                doc, div, rwstream);
+
+        // set the fragment to the node. append: is the sub tree.
+        pchtml_edom_insert_node (div, fragment_root, pcvariant_atom_append);
+
+        purc_rwstream_destroy (rwstream);
+    }
+    // print the result
+    printf("\n\nAfter replace, HTML Document:\n");
+    status = pchtml_html_serialize_pretty_tree_cb(pcedom_interface_node(doc),
+                                               PCHTML_HTML_SERIALIZE_OPT_UNDEF,
+                                               0, serializer_callback, NULL);
     if (status != PCHTML_STATUS_OK) {
-        printf ("Failed to replace HTML tree");
+        printf ("Failed to serialization HTML tree");
     }
 
-    // method 2: parse the fragment in one string, replace second div node
-    // get the parent node, the second div
+
+    // test case 2: insertBefore first div
+/*  after insertBefore
+    <html>
+        <head>
+        </head>
+        <body>
+            <h2>
+                "Flower"
+            </h2>
+            <img src="img_white_flower.jpg" width="214" height="204">
+
+            <div>
+                <h2>
+                    "Flower"
+                </h2>
+                <img src="img_white_flower.jpg" width="214" height="204">
+            </div>
+
+            <div>
+                <p>
+                    "third"
+                </p>
+                <p>
+                    "fourth"
+                </p>
+            </div>
+        </body>
+    </html>
+*/
+
+    index = 0;
+    div = get_node (&(doc->dom_document.node), PCHTML_TAG_DIV, &index);
+    if (div) {
+        purc_rwstream_t rwstream = NULL;
+        rwstream = purc_rwstream_new_from_mem((void*)fragment2,
+                strlen((const char *) fragment2));
+
+        // get the fragment root
+        pcedom_node_t *fragment_root = pchtml_edom_document_parse_fragment (
+                doc, div, rwstream);
+
+        // set the fragment to the node. insertBefore: before the node
+        pchtml_edom_insert_node (div, fragment_root, pcvariant_atom_insertBefore);
+
+        purc_rwstream_destroy (rwstream);
+    }
+    // print the result
+    printf("\n\nAfter replace, HTML Document:\n");
+    status = pchtml_html_serialize_pretty_tree_cb(pcedom_interface_node(doc),
+                                               PCHTML_HTML_SERIALIZE_OPT_UNDEF,
+                                               0, serializer_callback, NULL);
+    if (status != PCHTML_STATUS_OK) {
+        printf ("Failed to serialization HTML tree");
+    }
+
+
+    // test case 3: insertAfter second div
+/*  Result:
+    <html>
+        <head>
+        </head>
+        <body>
+            <h2>
+                "Flower"
+            </h2>
+            <img src="img_white_flower.jpg" width="214" height="204">
+
+            <div>
+                <h2>
+                    "Flower"
+                </h2>
+                <img src="img_white_flower.jpg" width="214" height="204">
+            </div>
+
+            <div>
+                <p>
+                    "third"
+                </p>
+                <p>
+                    "fourth"
+                </p>
+            </div>
+
+            <h2>
+                "Flower"
+            </h2>
+            <img src="img_white_flower.jpg" width="214" height="204">
+        </body>
+    </html>
+*/
     index = 1;
     div = get_node (&(doc->dom_document.node), PCHTML_TAG_DIV, &index);
-    status = replace_node_with_fragment (div, fragment2, strlen ((char *)fragment2));
-    if (status != PCHTML_STATUS_OK) {
-        printf ("Failed to replace HTML tree");
-    }
+    if (div) {
+        purc_rwstream_t rwstream = NULL;
+        rwstream = purc_rwstream_new_from_mem((void*)fragment2,
+                strlen((const char *) fragment2));
 
+        // get the fragment root
+        pcedom_node_t *fragment_root = pchtml_edom_document_parse_fragment (
+                doc, div, rwstream);
+
+        // set the fragment to the node. insertBefore: before the node
+        pchtml_edom_insert_node (div, fragment_root, pcvariant_atom_insertAfter);
+
+        purc_rwstream_destroy (rwstream);
+    }
     // print the result
     printf("\n\nAfter replace, HTML Document:\n");
     status = pchtml_html_serialize_pretty_tree_cb(pcedom_interface_node(doc),
@@ -861,4 +869,9 @@ TEST(html, html_parser_replace)
 
     /* Destroy document*/
     pchtml_html_document_destroy(doc);
+
+    // clean instance
+    purc_cleanup ();
+
+    printf(" OK\n");
 }

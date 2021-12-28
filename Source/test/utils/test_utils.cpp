@@ -10,15 +10,64 @@
 #include <errno.h>
 #include <gtest/gtest.h>
 
-#if 0
-// TODO
+#define ATOM_BUCKET     1
+
+static struct atom_info {
+    const char *string;
+    int         bucket;
+    purc_atom_t atom;
+} my_atoms [] = {
+    /* generic */
+    { "HVML", 0, 0 },
+    { "PurC", 0, 0 },
+
+    /* HVML tags */
+    { "hvml", 1, 0 },
+    { "head", 1, 0 },
+    { "body", 1, 0 },
+    { "archetype", 1, 0 },
+    { "archedata", 1, 0 },
+    { "error", 1, 0 },
+    { "except", 1, 0 },
+    { "init", 1, 0 },
+    { "update", 1, 0 },
+    { "erase", 1, 0 },
+    { "clear", 1, 0 },
+    { "test", 1, 0 },
+    { "match", 1, 0 },
+    { "choose", 1, 0 },
+    { "iterate", 1, 0 },
+    { "reduce", 1, 0 },
+    { "sort", 1, 0 },
+    { "observe", 1, 0 },
+    { "forget", 1, 0 },
+    { "fire", 1, 0 },
+    { "request", 1, 0 },
+    { "connect", 1, 0 },
+    { "send", 1, 0 },
+    { "disconnect", 1, 0 },
+    { "load", 1, 0 },
+    { "back", 1, 0 },
+    { "define", 1, 0 },
+    { "include", 1, 0 },
+    { "call", 1, 0 },
+    { "return", 1, 0 },
+    { "catch", 1, 0 },
+    { "bind", 1, 0 },
+
+    /* update actions */
+    { "displace", 2, 0 },
+    /* { "append", 2, 0 }, */
+    /* { "prepend", 2, 0 }, */
+    /* { "insertBefore", 2, 0 }, */
+    /* { "insertAfter", 2, 0 }, */
+};
+
 // to test basic functions of atom
 TEST(utils, atom_basic)
 {
     int ret = purc_init ("cn.fmsoft.hybridos.test", "variant", NULL);
     ASSERT_EQ (ret, PURC_ERROR_OK);
-    char buff [] = "HVML";
-    const char *str;
 
     purc_atom_t atom;
 
@@ -28,48 +77,63 @@ TEST(utils, atom_basic)
     atom = purc_atom_from_string(NULL);
     ASSERT_EQ(atom, 0);
 
-    atom = purc_atom_from_static_string("HVML");
-    ASSERT_EQ(atom, 1);
+    for (size_t i = 0; i < sizeof(my_atoms)/sizeof(my_atoms[0]); i++) {
+        purc_atom_t atom = purc_atom_try_string(my_atoms[i].string);
+        ASSERT_EQ(atom, 0);
+    }
 
-    str = purc_atom_to_string(1);
-    ASSERT_STREQ(str, "HVML");
+    for (size_t i = 0; i < sizeof(my_atoms)/sizeof(my_atoms[0]); i++) {
+        my_atoms[i].atom = purc_atom_from_string(my_atoms[i].string);
+    }
 
-    atom = purc_atom_try_string("HVML");
-    ASSERT_EQ(atom, 1);
-
-    atom = purc_atom_try_string("PurC");
-    ASSERT_EQ(atom, 0);
-
-    atom = purc_atom_try_string(NULL);
-    ASSERT_EQ(atom, 0);
-
-    atom = purc_atom_from_string(buff);
-    ASSERT_EQ(atom, 1);
-
-    atom = purc_atom_from_string("PurC");
-    ASSERT_EQ(atom, 2);
-
-    atom = purc_atom_try_string("HVML");
-    ASSERT_EQ(atom, 1);
-
-    atom = purc_atom_try_string("PurC");
-    ASSERT_EQ(atom, 2);
-
-    str = purc_atom_to_string(1);
-    ASSERT_STREQ(str, "HVML");
-
-    str = purc_atom_to_string(2);
-    ASSERT_STREQ(str, "PurC");
-
-    str = purc_atom_to_string(3);
-    ASSERT_EQ(str, nullptr);
-
-    atom = purc_atom_try_string(NULL);
-    ASSERT_EQ(atom, 0);
+    for (size_t i = 0; i < sizeof(my_atoms)/sizeof(my_atoms[0]); i++) {
+        const char *string = purc_atom_to_string(my_atoms[i].atom);
+        int cmp = strcmp(string, my_atoms[i].string);
+        ASSERT_EQ(cmp, 0);
+    }
 
     purc_cleanup ();
 }
-#endif
+
+// to test extended functions of atom
+TEST(utils, atom_ex)
+{
+    int ret = purc_init ("cn.fmsoft.hybridos.test", "variant", NULL);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    purc_atom_t atom;
+
+    atom = purc_atom_from_static_string_ex(0, NULL);
+    ASSERT_EQ(atom, 0);
+
+    atom = purc_atom_from_string_ex(1, NULL);
+    ASSERT_EQ(atom, 0);
+
+    for (int bucket = 1; bucket < PURC_ATOM_BUCKETS_NR; bucket++) {
+        for (size_t i = 0; i < sizeof(my_atoms)/sizeof(my_atoms[0]); i++) {
+            purc_atom_t atom = purc_atom_try_string_ex(bucket,
+                    my_atoms[i].string);
+            ASSERT_EQ(atom, 0);
+        }
+    }
+
+    for (size_t i = 0; i < sizeof(my_atoms)/sizeof(my_atoms[0]); i++) {
+        my_atoms[i].atom = purc_atom_from_string_ex(my_atoms[i].bucket,
+                my_atoms[i].string);
+    }
+
+    for (size_t i = 0; i < sizeof(my_atoms)/sizeof(my_atoms[0]); i++) {
+        const char *string = purc_atom_to_string(my_atoms[i].atom);
+        int cmp = strcmp(string, my_atoms[i].string);
+        ASSERT_EQ(cmp, 0);
+
+        purc_atom_t atom = purc_atom_try_string_ex(my_atoms[i].bucket,
+                my_atoms[i].string);
+        ASSERT_NE(atom, 0);
+    }
+
+    purc_cleanup ();
+}
 
 // to test sorted array
 static int sortv[10] = { 1, 8, 7, 5, 4, 6, 9, 0, 2, 3 };

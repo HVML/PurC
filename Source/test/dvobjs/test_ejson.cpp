@@ -7,6 +7,7 @@
 #include "private/debug.h"
 #include "private/utils.h"
 #include "private/dvobjs.h"
+#include "private/url.h"
 
 #include "../helpers.h"
 

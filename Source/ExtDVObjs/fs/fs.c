@@ -259,9 +259,8 @@ list_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] != PURC_VARIANT_INVALID) &&
-            (!purc_variant_is_string (argv[0]))) {
-        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+    if (!purc_variant_is_string (argv[0])) {
+        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
 
@@ -270,14 +269,14 @@ list_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     strcpy (dir_name, string_filename);
 
     if (access(dir_name, F_OK | R_OK) != 0) {
-        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
         return PURC_VARIANT_INVALID;
     }
 
     // get the filter
-    if ((nr_args > 1) && (argv[1] != NULL) &&
-            (!purc_variant_is_string (argv[1]))) {
-        purc_set_error (PURC_ERROR_INVALID_VALUE);
+    if ((nr_args > 1) && (argv[1] == NULL ||
+            (!purc_variant_is_string (argv[1])))) {
+        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
     if ((nr_args > 1) && (argv[1] != NULL))
@@ -318,7 +317,7 @@ list_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     struct stat file_stat;
 
     if ((dir = opendir (dir_name)) == NULL) {
-        purc_set_error (PURC_ERROR_INVALID_VALUE);
+        purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
         goto error;
     }
 
@@ -538,9 +537,8 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] != PURC_VARIANT_INVALID) &&
-            (!purc_variant_is_string (argv[0]))) {
-        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+    if (!purc_variant_is_string (argv[0])) {
+        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
 
@@ -549,14 +547,14 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     strcpy (dir_name, string_filename);
 
     if (access(dir_name, F_OK | R_OK) != 0) {
-        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
         return PURC_VARIANT_INVALID;
     }
 
     // get the filter
-    if ((nr_args > 1) && (argv[1] != NULL) &&
-            (!purc_variant_is_string (argv[1]))) {
-        purc_set_error (PURC_ERROR_INVALID_VALUE);
+    if ((nr_args > 1) && (argv[1] != PURC_VARIANT_INVALID &&
+            (!purc_variant_is_string (argv[1])))) {
+        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
     if ((nr_args > 1) && (argv[1] != NULL))
@@ -591,8 +589,8 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     }
 
     // get the mode
-    if ((nr_args > 2) && (argv[2] != NULL) && (!purc_variant_is_string (argv[2]))) {
-        purc_set_error (PURC_ERROR_INVALID_VALUE);
+    if ((nr_args > 2) && (argv[2] == NULL || (!purc_variant_is_string (argv[2])))) {
+        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         goto error;
     }
     if ((nr_args > 2) && (argv[2] != NULL)) {
@@ -702,7 +700,7 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     char info[PATH_MAX] = {0};
 
     if ((dir = opendir (dir_name)) == NULL) {
-        purc_set_error (PURC_ERROR_INVALID_VALUE);
+        purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
         goto error;
     }
 
@@ -847,14 +845,13 @@ mkdir_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     const char *filename = NULL;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
-    if ((argv == NULL) || (nr_args != 1)) {
+    if ((argv == NULL) || (nr_args < 1)) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] != PURC_VARIANT_INVALID) &&
-            (!purc_variant_is_string (argv[0]))) {
-        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+    if (!purc_variant_is_string (argv[0])) {
+        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
 
@@ -882,14 +879,13 @@ rmdir_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     bool empty = true;
 
-    if ((argv == NULL) || (nr_args != 1)) {
+    if ((argv == NULL) || (nr_args < 1)) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] != PURC_VARIANT_INVALID) &&
-            (!purc_variant_is_string (argv[0]))) {
-        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+    if (!purc_variant_is_string (argv[0])) {
+        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
 
@@ -897,7 +893,7 @@ rmdir_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     filename = purc_variant_get_string_const (argv[0]);
 
     if (access(filename, F_OK | R_OK) != 0) {
-        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
         return purc_variant_make_boolean (false);
     }
 
@@ -942,14 +938,13 @@ touch_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     const char *filename = NULL;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
-    if ((argv == NULL) || (nr_args != 1)) {
+    if ((argv == NULL) || (nr_args < 1)) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] != PURC_VARIANT_INVALID) &&
-            (!purc_variant_is_string (argv[0]))) {
-        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+    if (!purc_variant_is_string (argv[0])) {
+        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
 
@@ -994,14 +989,13 @@ unlink_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     struct stat filestat;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
-    if ((argv == NULL) || (nr_args != 1)) {
+    if ((argv == NULL) || (nr_args < 1)) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] != PURC_VARIANT_INVALID) &&
-            (!purc_variant_is_string (argv[0]))) {
-        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+    if (!purc_variant_is_string (argv[0])) {
+        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
 
@@ -1009,7 +1003,7 @@ unlink_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     filename = purc_variant_get_string_const (argv[0]);
 
     if (access(filename, F_OK | R_OK) != 0) {
-        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
         return purc_variant_make_boolean (false);
     }
 
@@ -1036,14 +1030,13 @@ rm_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     const char *filename = NULL;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
-    if ((argv == NULL) || (nr_args != 1)) {
+    if ((argv == NULL) || (nr_args < 1)) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] != PURC_VARIANT_INVALID) &&
-            (!purc_variant_is_string (argv[0]))) {
-        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+    if (!purc_variant_is_string (argv[0])) {
+        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
 

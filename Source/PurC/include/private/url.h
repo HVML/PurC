@@ -1,8 +1,8 @@
 /*
- * @file dvobjs.c
- * @author Geng Yue
- * @date 2021/07/02
- * @brief The interface of dynamic variant objects.
+ * @file url.h
+ * @author gengyue
+ * @date 2021/12/26
+ * @brief The header file of URL implementation.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -22,27 +22,22 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "private/instance.h"
-#include "private/errors.h"
-#include "private/interpreter.h"
-#include "private/dvobjs.h"
-#include "purc-variant.h"
+#ifndef PURC_PRIVATE_URL_H
+#define PURC_PRIVATE_URL_H
 
-#include <time.h>
-#include <limits.h>
+#include "private/vdom.h"
 
-void pcdvobjs_init_once(void)
-{
-    // initialize others
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
+char * pcdvobjs_get_url (const struct purc_broken_down_url *);
+bool pcdvobjs_set_url (struct purc_broken_down_url *, const char *);
+
+#ifdef __cplusplus
 }
+#endif  /* __cplusplus */
 
-void pcdvobjs_init_instance(struct pcinst* inst)
-{
-    UNUSED_PARAM(inst);
-    srand(time(NULL));
-}
+#endif /* not defined PURC_PRIVATE_URL_H*/
 
-void pcdvobjs_cleanup_instance(struct pcinst* inst)
-{
-    UNUSED_PARAM(inst);
-}

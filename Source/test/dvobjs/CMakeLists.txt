@@ -194,6 +194,8 @@ list(APPEND test_dvobjejson_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR}
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
+    ${GLIB_INCLUDE_DIR}
+    ${GLIBCONFIG_INCLUDE_DIR}
 )
 
 PURC_EXECUTABLE(test_dvobjejson)
@@ -243,3 +245,32 @@ set(test_dvobjhvml_LIBRARIES
 PURC_COMPUTE_SOURCES(test_dvobjhvml)
 PURC_FRAMEWORK(test_dvobjhvml)
 GTEST_DISCOVER_TESTS(test_dvobjhvml DISCOVERY_TIMEOUT 10)
+
+# test_dvobjt
+PURC_EXECUTABLE_DECLARE(test_dvobjt)
+
+list(APPEND test_dvobjt_PRIVATE_INCLUDE_DIRECTORIES
+    ${PURC_DIR}/include
+    ${PurC_DERIVED_SOURCES_DIR}
+    ${PURC_DIR}
+    ${CMAKE_BINARY_DIR}
+    ${WTF_DIR}
+)
+
+PURC_EXECUTABLE(test_dvobjt)
+
+set(test_dvobjt_SOURCES
+    test_t.cpp
+    test_helper.cpp
+)
+
+set(test_dvobjt_LIBRARIES
+    PurC::PurC
+    gtest_main
+    gtest
+    pthread
+)
+
+PURC_COMPUTE_SOURCES(test_dvobjt)
+PURC_FRAMEWORK(test_dvobjt)
+GTEST_DISCOVER_TESTS(test_dvobjt DISCOVERY_TIMEOUT 10)

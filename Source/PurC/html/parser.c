@@ -43,6 +43,7 @@
 #include "html/interfaces/form_element.h"
 #include "html/tree/template_insertion.h"
 #include "html/tree/insertion_mode.h"
+#include "html/interfaces/document.h"
 
 #define PCHTML_HTML_TAG_RES_DATA
 #define PCHTML_HTML_TAG_RES_SHS_DATA
@@ -519,3 +520,103 @@ pchtml_doc_get_document(pchtml_html_document_t *doc)
     return &doc->dom_document;
 }
 
+static pcedom_node_t * get_node (pcedom_node_t *node, unsigned int tag, int *index)
+{
+    if (node && node->local_name == tag) {
+        (*index)--;
+        if ((*index) < 0)
+            return node;
+    }
+
+    node = node->first_child;
+    pcedom_node_t *return_node = NULL;
+
+    while (node != NULL) {
+        return_node = get_node (node, tag, index);
+        if (return_node)
+            return return_node;
+
+        node = node->next;
+    }
+
+    return return_node;
+}
+
+pcedom_node_t * pchtml_edom_document_parse_fragment (pchtml_html_document_t *document,
+                pcedom_node_t *node, purc_rwstream_t html)
+{
+    int index = 0;
+    unsigned int status = PCHTML_STATUS_OK;
+    if (node == NULL) {
+        node = get_node (&(document->dom_document.node), PCHTML_TAG_BODY, &index);
+    }
+    pcedom_element_t *root_element = pcedom_interface_element (node);
+
+    status = pchtml_html_document_parse_fragment_chunk_begin (document, root_element);
+    if (status != PCHTML_STATUS_OK) {
+        printf ("Failed to start parse HTML chunk");
+        return NULL;
+    }
+
+    status = pchtml_html_document_parse_fragment_chunk (document, html);
+    if (status != PCHTML_STATUS_OK) {
+        printf ("Failed to parse HTML chunk");
+        return NULL;
+    }
+
+    pcedom_node_t *fragment_root = pchtml_html_document_parse_fragment_chunk_end (document);
+    if (fragment_root == NULL) {
+        printf ("Failed to parse HTML");
+        status = PCHTML_STATUS_ERROR;
+        return NULL;
+    }
+
+    return fragment_root;
+}
+
+bool pchtml_edom_insert_node(pcedom_node_t *node, pcedom_node_t *fragment_root,
+        purc_atom_t op)
+{
+    bool ret = true;
+    pcedom_node_t *child = NULL;
+
+    if (op == pcvariant_atom_append) {
+        while (node->first_child != NULL) {
+            pcedom_node_destroy_deep(node->first_child);
+        }
+
+        while (fragment_root->first_child != NULL) {
+            child = fragment_root->first_child;
+
+            pcedom_node_remove(child);
+            pcedom_node_insert_child(node, child);
+        }
+        pcedom_node_destroy(fragment_root);
+    }
+    else if (op == pcvariant_atom_prepend) {
+        ret = false;
+    }
+    else if (op == pcvariant_atom_insertBefore) {
+        while (fragment_root->first_child != NULL) {
+            child = fragment_root->first_child;
+
+            pcedom_node_remove(child);
+            pcedom_node_insert_before (node, child);
+        }
+        pcedom_node_destroy(fragment_root);
+    }
+    else if (op == pcvariant_atom_insertAfter) {
+        while (fragment_root->first_child != NULL) {
+            child = fragment_root->first_child;
+
+            pcedom_node_remove(child);
+            pcedom_node_insert_after (node, child);
+            node = node->next;
+        }
+        pcedom_node_destroy(fragment_root);
+    }
+    else
+        ret = false;
+
+    return ret;
+}

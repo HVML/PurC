@@ -28,6 +28,7 @@
 #include "config.h"
 #include "purc-rwstream.h"
 #include "purc-variant.h"
+#include "private/vdom.h"
 
 #include <assert.h>
 
@@ -81,26 +82,44 @@
 #define LOCALE_MEASUREMENT          "measurement"
 #define LOCALE_IDENTIFICATION       "identification"
 
+#define HVML_MAP_APPEND             "append"
+#define HVML_MAP_DISPLACE           "displace"
+
 #ifdef __cplusplus
 extern "C" {
 #endif  /* __cplusplus */
 
 // initialize dvobjs module (once)
-void pcdvobjs_init_once(void) WTF_INTERNAL;
+void pcdvobjs_init_once (void) WTF_INTERNAL;
 
 struct pcinst;
 
 // initialize the dvobjs module for a PurC instance.
-void pcdvobjs_init_instance(struct pcinst* inst) WTF_INTERNAL;
+void pcdvobjs_init_instance (struct pcinst* inst) WTF_INTERNAL;
 
 // clean up the dvobjs module for a PurC instance.
-void pcdvobjs_cleanup_instance(struct pcinst* inst) WTF_INTERNAL;
+void pcdvobjs_cleanup_instance (struct pcinst* inst) WTF_INTERNAL;
 
-purc_variant_t pcdvobjs_get_system(void);
-purc_variant_t pcdvobjs_get_string(void);
-purc_variant_t pcdvobjs_get_logical(void);
-purc_variant_t pcdvobjs_get_ejson(void);
-purc_variant_t pcdvobjs_get_hvml(void);
+purc_variant_t pcdvobjs_get_system (void);
+purc_variant_t pcdvobjs_get_string (void);
+purc_variant_t pcdvobjs_get_logical (void);
+purc_variant_t pcdvobjs_get_ejson (void);
+purc_variant_t pcdvobjs_get_hvml (struct pcvdom_dvobj_hvml *);
+purc_variant_t pcdvobjs_get_t (void);
+void pcdvobjs_destroy_hvml (struct pcvdom_dvobj_hvml *);
+
+// make sure root is a valid object variant
+static inline void * get_dvobj_internal_pointer (
+        purc_variant_t root, const char *name)
+{
+    void *ret = NULL;
+    purc_variant_t var = purc_variant_object_get_by_ckey (root, name);
+    if (var) {
+        if (purc_variant_is_native (var))
+            ret = purc_variant_native_get_entity (var);
+    }
+    return ret;
+}
 
 struct wildcard_list {
     char * wildcard;

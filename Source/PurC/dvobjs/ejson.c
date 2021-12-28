@@ -199,7 +199,7 @@ stringify_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         case PURC_VARIANT_TYPE_SET:
             total = purc_variant_stringify_alloc (&buffer, argv[0]);
             if (total == -1) {
-                pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+                pcinst_set_error (PURC_ERROR_INVALID_VALUE);
                 ret_var = PURC_VARIANT_INVALID;
             }
             else
@@ -223,7 +223,7 @@ stringify_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
             }
 
             if (buffer == NULL) {
-                pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+                pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
                 ret_var = PURC_VARIANT_INVALID;
             }
             else {
@@ -381,16 +381,15 @@ sort_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         return PURC_VARIANT_INVALID;
     }
 
-    if ((argv[0] != PURC_VARIANT_INVALID) && !(purc_variant_is_array (argv[0])
-                || purc_variant_is_set (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
+    if (!(purc_variant_is_array (argv[0]) || purc_variant_is_set (argv[0]))) {
+        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
 
     // get sort order: asc, desc
     if ((argv[1] == PURC_VARIANT_INVALID) ||
                 (!purc_variant_is_string (argv[1]))) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
     order = purc_variant_get_string_const (argv[1]);
@@ -462,7 +461,7 @@ compare_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
     if ((argv[2] != PURC_VARIANT_INVALID) &&
          (!purc_variant_is_string (argv[2]))) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
 

@@ -106,6 +106,24 @@ struct pcvdom_doctype {
     char                   *system_info;
 };
 
+struct purc_broken_down_url {
+    char *schema;
+    char *user;
+    char *passwd;
+    char *host;
+    char *path;
+    char *query;
+    char *fragment;
+    unsigned int port;
+};
+
+struct pcvdom_dvobj_hvml {
+    struct purc_broken_down_url url;
+    unsigned long int      maxIterationCount;
+    unsigned long int      maxRecursionDepth;
+    struct timespec        timeout;
+};
+
 struct pcvdom_document {
     struct pcvdom_node      node;
 
@@ -119,6 +137,9 @@ struct pcvdom_document {
     // document-variables
     // such as `$REQUEST`、`$TIMERS`、`$T` and etc.
     pcvarmgr_list_t         variables;
+
+    // for dvobj hvml
+    struct pcvdom_dvobj_hvml dvobj_hvml;
 
     unsigned int            quirks:1;
 };
