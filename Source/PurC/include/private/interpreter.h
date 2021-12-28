@@ -210,8 +210,10 @@ struct pcintr_observer {
     // the sub type of the message observed (cloned from the `for` attribute; nullable).
     char* sub_type;
 
+    pcvdom_element_t scope;
+
     // the `observe` element who creates this observer.
-    pcvdom_element_t obs_ele;
+    pcvdom_element_t pos;
 
     // the arraylist containing this struct pointer
     struct pcutils_arrlist* list;
@@ -307,7 +309,7 @@ pcintr_timers_destroy(struct pcintr_timers* timers);
 
 struct pcintr_observer*
 pcintr_register_observer(purc_variant_t observed,
-        purc_variant_t for_value, pcvdom_element_t ele);
+        purc_variant_t for_value, pcvdom_element_t scope, pcvdom_element_t pos);
 
 bool
 pcintr_revoke_observer(struct pcintr_observer* observer);

@@ -87,7 +87,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         return NULL;
 
     struct pcintr_observer* observer;
-    observer = pcintr_register_observer(on, for_var, pos);
+    observer = pcintr_register_observer(on, for_var, frame->scope, pos);
     if (observer == NULL) {
         return NULL;
     }
