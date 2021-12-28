@@ -1139,8 +1139,31 @@ pcintr_handle_message(void *ctxt)
         return 0;
     }
 
-    // TODO : jump to handle observer
-    // msg->stack
+    // TODO : run observe
+    // FIXME:
+    // push stack frame
+    pcintr_stack_t stack = msg->stack;
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_push_stack_frame(stack);
+    if (!frame) {
+        pcintr_pop_stack_frame(stack);
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return -1;
+    }
+
+    frame->ops = pcintr_get_ops_by_element(observer->child);
+    frame->pos = observer->child;
+    // observer->scope : parent of observe element
+    // observer->pos : observe element
+    // FIXME:
+    frame->scope = observer->scope;
+    frame->next_step = NEXT_STEP_AFTER_PUSHED;
+
+    coroutine_set_current(&stack->co);
+    pcvariant_push_gc();
+    execute_one_step(&stack->co);
+    pcvariant_pop_gc();
+    coroutine_set_current(NULL);
 
     return 0;
 }
