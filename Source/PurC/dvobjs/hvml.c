@@ -40,9 +40,18 @@
 #define DEFAULT_HVML_TIMEOUT_NSEC   (long)((DEFAULT_HVML_TIMEOUT -  \
             DEFAULT_HVML_TIMEOUT_SEC) * 1000000000)
 
-//extern char * pcdvobjs_get_url (struct purc_broken_down_url * url);
-//extern bool pcdvobjs_set_url (struct purc_broken_down_url *url,
-//        const char *url_string);
+static inline struct pcvdom_dvobj_hvml * get_dvobj_hvml_pointer (
+        purc_variant_t root, const char *name)
+{
+    struct pcvdom_dvobj_hvml *ret = NULL;
+    purc_variant_t var = purc_variant_object_get_by_ckey (root, name);
+    if (var) {
+        if (purc_variant_is_native (var))
+            ret = (struct pcvdom_dvobj_hvml *)
+                purc_variant_native_get_entity (var);
+    }
+    return ret;
+}
 
 static purc_variant_t
 base_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
@@ -60,8 +69,9 @@ base_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     }
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
-    struct pcvdom_dvobj_hvml *dvobj_hvml = (struct pcvdom_dvobj_hvml *)
-        get_dvobj_internal_pointer(root, DVOBJ_HVML_DATA_NAME);
+
+    struct pcvdom_dvobj_hvml *dvobj_hvml =
+        get_dvobj_hvml_pointer(root, DVOBJ_HVML_DATA_NAME);
 
     if (dvobj_hvml) {
         char *url = pcdvobjs_get_url (&(dvobj_hvml->url));
@@ -93,8 +103,8 @@ base_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
     const char *url = purc_variant_get_string_const (argv[0]);
 
-    struct pcvdom_dvobj_hvml *dvobj_hvml = (struct pcvdom_dvobj_hvml *)
-        get_dvobj_internal_pointer(root, DVOBJ_HVML_DATA_NAME);
+    struct pcvdom_dvobj_hvml *dvobj_hvml =
+        get_dvobj_hvml_pointer(root, DVOBJ_HVML_DATA_NAME);
     if (dvobj_hvml) {
         /* If the url is invlid, dvobj_hvml->url will not be changed.
          If the url is valid, perhaps the string which pcdvobjs_get_url() returned
@@ -131,15 +141,14 @@ maxIterationCount_getter (
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
-    struct pcvdom_dvobj_hvml *dvobj_hvml = (struct pcvdom_dvobj_hvml *)
-        get_dvobj_internal_pointer(root, DVOBJ_HVML_DATA_NAME);
+    struct pcvdom_dvobj_hvml *dvobj_hvml =
+        get_dvobj_hvml_pointer(root, DVOBJ_HVML_DATA_NAME);
     if (dvobj_hvml) {
         ret_var = purc_variant_make_ulongint (dvobj_hvml->maxIterationCount);
     }
 
     return ret_var;
 }
-
 
 static purc_variant_t
 maxIterationCount_setter (
@@ -162,8 +171,8 @@ maxIterationCount_setter (
     uint64_t u64;
     purc_variant_cast_to_ulongint (argv[0], &u64, false);
 
-    struct pcvdom_dvobj_hvml *dvobj_hvml = (struct pcvdom_dvobj_hvml *)
-        get_dvobj_internal_pointer(root, DVOBJ_HVML_DATA_NAME);
+    struct pcvdom_dvobj_hvml *dvobj_hvml =
+        get_dvobj_hvml_pointer(root, DVOBJ_HVML_DATA_NAME);
     if (dvobj_hvml) {
         dvobj_hvml->maxIterationCount = u64;
         ret_var = purc_variant_make_ulongint (u64);
@@ -171,7 +180,6 @@ maxIterationCount_setter (
 
     return ret_var;
 }
-
 
 static purc_variant_t
 maxRecursionDepth_getter (
@@ -190,15 +198,14 @@ maxRecursionDepth_getter (
     }
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
-    struct pcvdom_dvobj_hvml *dvobj_hvml = (struct pcvdom_dvobj_hvml *)
-        get_dvobj_internal_pointer(root, DVOBJ_HVML_DATA_NAME);
+    struct pcvdom_dvobj_hvml *dvobj_hvml =
+        get_dvobj_hvml_pointer(root, DVOBJ_HVML_DATA_NAME);
     if (dvobj_hvml) {
         ret_var = purc_variant_make_ulongint (dvobj_hvml->maxRecursionDepth);
     }
 
     return ret_var;
 }
-
 
 static purc_variant_t
 maxRecursionDepth_setter (
@@ -221,8 +228,8 @@ maxRecursionDepth_setter (
     uint64_t u64;
     purc_variant_cast_to_ulongint (argv[0], &u64, false);
 
-    struct pcvdom_dvobj_hvml *dvobj_hvml = (struct pcvdom_dvobj_hvml *)
-        get_dvobj_internal_pointer(root, DVOBJ_HVML_DATA_NAME);
+    struct pcvdom_dvobj_hvml *dvobj_hvml =
+        get_dvobj_hvml_pointer(root, DVOBJ_HVML_DATA_NAME);
     if (dvobj_hvml) {
         dvobj_hvml->maxRecursionDepth = u64;
         ret_var = purc_variant_make_ulongint (u64);
@@ -249,8 +256,8 @@ timeout_getter (
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
-    struct pcvdom_dvobj_hvml *dvobj_hvml = (struct pcvdom_dvobj_hvml *)
-        get_dvobj_internal_pointer(root, DVOBJ_HVML_DATA_NAME);
+    struct pcvdom_dvobj_hvml *dvobj_hvml =
+        get_dvobj_hvml_pointer(root, DVOBJ_HVML_DATA_NAME);
     if (dvobj_hvml) {
         double number = (double)dvobj_hvml->timeout.tv_sec +
                 (double)dvobj_hvml->timeout.tv_nsec / 1000000000.0;
@@ -259,7 +266,6 @@ timeout_getter (
 
     return ret_var;
 }
-
 
 static purc_variant_t
 timeout_setter (
@@ -282,8 +288,8 @@ timeout_setter (
     double number = 0.0;
     purc_variant_cast_to_number (argv[0], &number, false);
 
-    struct pcvdom_dvobj_hvml *dvobj_hvml = (struct pcvdom_dvobj_hvml *)
-        get_dvobj_internal_pointer(root, DVOBJ_HVML_DATA_NAME);
+    struct pcvdom_dvobj_hvml *dvobj_hvml =
+        get_dvobj_hvml_pointer(root, DVOBJ_HVML_DATA_NAME);
     if (dvobj_hvml) {
         if (number > 0) {
             dvobj_hvml->timeout.tv_sec = (long) number;
@@ -300,39 +306,12 @@ timeout_setter (
     return ret_var;
 }
 
-purc_variant_t pcdvobjs_get_hvml (struct pcvdom_dvobj_hvml *dvobj_hvml)
+static inline bool eraser(void* native_entity)
 {
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    PC_ASSERT(native_entity);
 
-    static struct pcdvobjs_dvobjs method [] = {
-        {"base",               base_getter,              base_setter},
-        {"maxIterationCount",  maxIterationCount_getter, maxIterationCount_setter},
-        {"maxRecursionDepth",  maxRecursionDepth_getter, maxRecursionDepth_setter},
-        {"timeout",            timeout_getter,           timeout_setter},
-    };
-
-    ret_var = pcdvobjs_make_dvobjs (method, PCA_TABLESIZE(method));
-
-    // initialize pcvdom_dvobj_hvml
-    // set default URL
-    memset (&(dvobj_hvml->url), 0, sizeof(struct purc_broken_down_url));
-    pcdvobjs_set_url (&(dvobj_hvml->url), DEFAULT_HVML_BASE);
-
-    dvobj_hvml->maxIterationCount = ULONG_MAX;
-    dvobj_hvml->maxRecursionDepth = USHRT_MAX;
-    dvobj_hvml->timeout.tv_sec = DEFAULT_HVML_TIMEOUT_SEC;
-    dvobj_hvml->timeout.tv_nsec = DEFAULT_HVML_TIMEOUT_NSEC;
-
-    purc_variant_t val = purc_variant_make_native ((void *)dvobj_hvml, NULL);
-    purc_variant_object_set_by_static_ckey (ret_var, DVOBJ_HVML_DATA_NAME, val);
-    purc_variant_unref (val);
-
-    return ret_var;
-}
-
-void pcdvobjs_destroy_hvml (struct pcvdom_dvobj_hvml *hvml)
-{
-    struct purc_broken_down_url url = hvml->url;
+    struct purc_broken_down_url url = ((struct pcvdom_dvobj_hvml *)
+        native_entity)->url;
 
     if (url.schema)
         free (url.schema);
@@ -354,4 +333,62 @@ void pcdvobjs_destroy_hvml (struct pcvdom_dvobj_hvml *hvml)
 
     if (url.fragment)
         free (url.fragment);
+
+    free (native_entity);
+
+    return true;
+}
+
+purc_variant_t pcdvobjs_get_hvml (void)
+{
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+
+    struct pcvdom_dvobj_hvml *dvobj_hvml = NULL;
+    static struct purc_native_ops ops = {
+        .property_getter          = NULL,
+        .property_setter          = NULL,
+        .property_eraser          = NULL,
+        .property_cleaner         = NULL,
+        .cleaner                  = NULL,
+        .eraser                   = eraser,
+        .observe                  = NULL,
+    };
+
+    static struct pcdvobjs_dvobjs method [] = {
+        {"base",               base_getter,              base_setter},
+        {"maxIterationCount",  maxIterationCount_getter, maxIterationCount_setter},
+        {"maxRecursionDepth",  maxRecursionDepth_getter, maxRecursionDepth_setter},
+        {"timeout",            timeout_getter,           timeout_setter},
+    };
+
+    ret_var = pcdvobjs_make_dvobjs (method, PCA_TABLESIZE(method));
+    if (ret_var == PURC_VARIANT_INVALID)
+        return PURC_VARIANT_INVALID;
+
+    // initialize pcvdom_dvobj_hvml
+    dvobj_hvml = malloc (sizeof(struct pcvdom_dvobj_hvml));
+    if (dvobj_hvml == NULL) {
+        purc_variant_unref (ret_var);
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
+        return PURC_VARIANT_INVALID;
+    }
+
+    memset (&(dvobj_hvml->url), 0, sizeof(struct purc_broken_down_url));
+    pcdvobjs_set_url (&(dvobj_hvml->url), DEFAULT_HVML_BASE);
+
+    dvobj_hvml->maxIterationCount = ULONG_MAX;
+    dvobj_hvml->maxRecursionDepth = USHRT_MAX;
+    dvobj_hvml->timeout.tv_sec = DEFAULT_HVML_TIMEOUT_SEC;
+    dvobj_hvml->timeout.tv_nsec = DEFAULT_HVML_TIMEOUT_NSEC;
+
+    purc_variant_t val = purc_variant_make_native ((void *)dvobj_hvml, &ops);
+    if (val == PURC_VARIANT_INVALID) {
+        purc_variant_unref (val);
+        return PURC_VARIANT_INVALID;
+    }
+
+    purc_variant_object_set_by_static_ckey (ret_var, DVOBJ_HVML_DATA_NAME, val);
+    purc_variant_unref (val);
+
+    return ret_var;
 }
