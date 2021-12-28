@@ -469,6 +469,11 @@ execute_one_step(pcintr_coroutine_t co)
     bool no_frames = list_empty(&co->stack->frames);
     if (no_frames)
         co->stack->stage = STACK_STAGE_EVENT_LOOP;
+
+    // do not run execute_one_step until event's fired if co->waits > 0
+    if (co->waits)
+        co->state = CO_STATE_WAIT;
+
     if (co->waits)
         return;
     if (no_frames)
