@@ -117,3 +117,31 @@ set(test_idle_LIBRARIES
 PURC_COMPUTE_SOURCES(test_idle)
 PURC_FRAMEWORK(test_idle)
 GTEST_DISCOVER_TESTS(test_idle DISCOVERY_TIMEOUT 10)
+
+# test_observe
+PURC_EXECUTABLE_DECLARE(test_observe)
+
+list(APPEND test_observe_PRIVATE_INCLUDE_DIRECTORIES
+    ${PURC_DIR}/include
+    ${PurC_DERIVED_SOURCES_DIR}
+    ${PURC_DIR}
+    ${CMAKE_BINARY_DIR}
+    ${WTF_DIR}
+)
+
+PURC_EXECUTABLE(test_observe)
+
+set(test_observe_SOURCES
+    test-observe.cpp
+)
+
+set(test_observe_LIBRARIES
+    PurC::PurC
+    gtest_main
+    gtest
+    pthread
+)
+
+PURC_COMPUTE_SOURCES(test_observe)
+PURC_FRAMEWORK(test_observe)
+GTEST_DISCOVER_TESTS(test_observe DISCOVERY_TIMEOUT 10)
