@@ -32,7 +32,7 @@
 
 struct err_msg_info {
     const char* msg;
-    const char* except_name;
+    int except_id;
     unsigned int flags;
     purc_atom_t except_atom;
 };

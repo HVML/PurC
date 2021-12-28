@@ -157,8 +157,8 @@ void pcinst_register_error_message_segment(struct err_msg_seg* seg)
 
     int count = seg->last_errcode - seg->first_errcode + 1;
     for (int i = 0; i < count; i++) {
-        seg->info[i].except_atom = purc_atom_from_static_string(
-                seg->info[i].except_name);
+        seg->info[i].except_atom = purc_get_except_atom_by_id(
+                seg->info[i].except_id);
     }
 }
 

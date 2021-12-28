@@ -37,11 +37,65 @@
 #include "private/edom.h"
 #include "private/dvobjs.h"
 #include "private/executor.h"
+#include "private/atom-buckets.h"
 
 #include <stdlib.h>
 #include <string.h>
 
 #include "generic_err_msgs.inc"
+
+static struct const_str_atom _except_names[] = {
+    { "BadEncoding", 0 },
+    { "BadHVMLTag", 0 },
+    { "BadHVMLAttrName", 0 },
+    { "BadHVMLAttrValue", 0 },
+    { "BadHVMLContent", 0 },
+    { "BadTargetHTML", 0 },
+    { "BadTargetXGML", 0 },
+    { "BadTargetXML", 0 },
+    { "BadExpression", 0 },
+    { "BadExecutor", 0 },
+    { "BadName", 0 },
+    { "NoData", 0 },
+    { "NotIterable", 0 },
+    { "BadIndex", 0 },
+    { "NoSuchKey", 0 },
+    { "DuplicateKey", 0 },
+    { "ArgumentMissed", 0 },
+    { "WrongDataType", 0 },
+    { "InvalidValue", 0 },
+    { "MaxIterationCount", 0 },
+    { "MaxRecursionDepth", 0 },
+    { "Unauthorized", 0 },
+    { "Timeout", 0 },
+    { "eDOMFailure", 0 },
+    { "LostRenderer", 0 },
+    { "MemoryFailure", 0 },
+    { "InternalFailure", 0 },
+    { "ZeroDivision", 0 },
+    { "Overflow", 0 },
+    { "Underflow", 0 },
+    { "InvalidFloat", 0 },
+    { "AccessDenied", 0 },
+    { "IOFailure", 0 },
+    { "TooSmall", 0 },
+    { "TooMany", 0 },
+    { "TooLong", 0 },
+    { "TooLarge", 0 },
+    { "NotDesiredEntity", 0 },
+    { "EntityNotFound", 0 },
+    { "EntityExists", 0 },
+    { "NoStorageSpace", 0 },
+    { "BrokenPipe", 0 },
+    { "ConnectionAborted", 0 },
+    { "ConnectionRefused", 0 },
+    { "ConnectionReset", 0 },
+    { "NameResolutionFailed", 0 },
+    { "RequestFailed", 0 },
+    { "OSFailure", 0 },
+    { "NotReady", 0 },
+    { "NotImplemented", 0 },
+};
 
 /* Make sure the number of error messages matches the number of error codes */
 #define _COMPILE_TIME_ASSERT(name, x)               \
@@ -49,6 +103,9 @@
 
 _COMPILE_TIME_ASSERT(msgs,
         PCA_TABLESIZE(generic_err_msgs) == PURC_ERROR_NR);
+
+_COMPILE_TIME_ASSERT(excepts,
+        PCA_TABLESIZE(_except_names) == PURC_EXCEPT_NR);
 
 #undef _COMPILE_TIME_ASSERT
 
@@ -58,9 +115,37 @@ static struct err_msg_seg _generic_err_msgs_seg = {
     generic_err_msgs,
 };
 
+
+bool purc_is_except_atom (purc_atom_t atom)
+{
+    if (atom < _except_names[0].atom ||
+            atom > _except_names[PURC_EXCEPT_NR - 1].atom)
+        return false;
+
+    return true;
+}
+
+purc_atom_t purc_get_except_atom_by_id (int id)
+{
+    if (id < PURC_EXCEPT_NR)
+        return _except_names[id].atom;
+
+    return 0;
+}
+
+void pcexcept_init_once(void)
+{
+    for (size_t n = 0; n < PURC_EXCEPT_NR; n++) {
+        _except_names[n].atom =
+            purc_atom_from_static_string_ex(ATOM_BUCKET_EXCEPT,
+                _except_names[n].str);
+    }
+}
+
 static void init_modules(void)
 {
     pcutils_atom_init_once();
+    pcexcept_init_once();
 
     pcinst_register_error_message_segment(&_generic_err_msgs_seg);
 

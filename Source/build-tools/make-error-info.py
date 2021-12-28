@@ -184,9 +184,9 @@ def make_error_code(prefix, name):
     return make_snake_name(prefix, name)
 
 def make_except(except_value):
-    if except_value != 'NULL':
-        return make_snake_name('PURC_EXCEPT', except_value)
-    return except_value
+    if except_value == 'NULL':
+        return '0'
+    return make_snake_name('PURC_EXCEPT', except_value)
 
 def make_flag_value(flag):
     return make_snake_name('PURC_EXCEPT_FLAGS', flag)

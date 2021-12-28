@@ -32,54 +32,64 @@
 #include "purc-utils.h"
 #include "purc-variant.h"
 
-#define PURC_EXCEPT_BAD_ENCODING         "BadEncoding"
-#define PURC_EXCEPT_BAD_HVML_TAG         "BadHVMLTag"
-#define PURC_EXCEPT_BAD_HVML_ATTR_NAME   "BadHVMLAttrName"
-#define PURC_EXCEPT_BAD_HVML_ATTR_VALUE  "BadHVMLAttrValue"
-#define PURC_EXCEPT_BAD_HVML_CONTENT     "BadHVMLContent"
-#define PURC_EXCEPT_BAD_TARGET_HTML      "BadTargetHTML"
-#define PURC_EXCEPT_BAD_TARGET_XGML      "BadTargetXGML"
-#define PURC_EXCEPT_BAD_TARGET_XML       "BadTargetXML"
-#define PURC_EXCEPT_BAD_EXPRESSION       "BadExpression"
-#define PURC_EXCEPT_BAD_EXECUTOR         "BadExecutor"
-#define PURC_EXCEPT_BAD_NAME             "BadName"
-#define PURC_EXCEPT_NO_DATA              "NoData"
-#define PURC_EXCEPT_NOT_ITERABLE         "NotIterable"
-#define PURC_EXCEPT_BAD_INDEX            "BadIndex"
-#define PURC_EXCEPT_NO_SUCH_KEY          "NoSuchKey"
-#define PURC_EXCEPT_DUPLICATE_KEY        "DuplicateKey"
-#define PURC_EXCEPT_ARGUMENT_MISSED      "ArgumentMissed"
-#define PURC_EXCEPT_WRONG_DATA_TYPE      "WrongDataType"
-#define PURC_EXCEPT_INVALID_VALUE        "InvalidValue"
-#define PURC_EXCEPT_MAX_ITERATION_COUNT  "MaxIterationCount"
-#define PURC_EXCEPT_MAX_RECURSION_DEPTH  "MaxRecursionDepth"
-#define PURC_EXCEPT_UNAUTHORIZED         "Unauthorized"
-#define PURC_EXCEPT_TIMEOUT              "Timeout"
-#define PURC_EXCEPT_E_DOM_FAILURE        "eDOMFailure"
-#define PURC_EXCEPT_LOST_RENDERER        "LostRenderer"
-#define PURC_EXCEPT_MEMORY_FAILURE       "MemoryFailure"
-#define PURC_EXCEPT_INTERNAL_FAILURE     "InternalFailure"
-#define PURC_EXCEPT_ZERO_DIVISION        "ZeroDivision"
-#define PURC_EXCEPT_OVERFLOW             "Overflow"
-#define PURC_EXCEPT_UNDERFLOW            "Underflow"
-#define PURC_EXCEPT_INVALID_FLOAT        "InvalidFloat"
-#define PURC_EXCEPT_ACCESS_DENIED        "AccessDenied"
-#define PURC_EXCEPT_IO_FAILURE           "IOFailure"
-#define PURC_EXCEPT_TOO_SMALL            "TooSmall"
-#define PURC_EXCEPT_TOO_MANY             "TooMany"
-#define PURC_EXCEPT_TOO_LONG             "TooLong"
-#define PURC_EXCEPT_TOO_LARGE            "TooLarge"
-#define PURC_EXCEPT_NOT_DESIRED_ENTITY   "NotDesiredEntity"
-#define PURC_EXCEPT_ENTITY_NOT_FOUND     "EntityNotFound"
-#define PURC_EXCEPT_ENTITY_EXISTS        "EntityExists"
-#define PURC_EXCEPT_NO_STORAGE_SPACE     "NoStorageSpace"
-#define PURC_EXCEPT_BROKEN_PIPE          "BrokenPipe"
-#define PURC_EXCEPT_CONNECTION_ABORTED   "ConnectionAborted"
-#define PURC_EXCEPT_CONNECTION_REFUSED   "ConnectionRefused"
-#define PURC_EXCEPT_CONNECTION_RESET     "ConnectionReset"
-#define PURC_EXCEPT_OS_FAILURE           "OSFailure"
-#define PURC_EXCEPT_NOT_IMPLEMENTED      "NotImplemented"
-#define PURC_EXCEPT_NOT_READY            "NotReady"
+enum {
+    PURC_EXCEPT_FIRST = 0,
+
+    PURC_EXCEPT_BAD_ENCODING = PURC_EXCEPT_FIRST,
+    PURC_EXCEPT_BAD_HVML_TAG,
+    PURC_EXCEPT_BAD_HVML_ATTR_NAME,
+    PURC_EXCEPT_BAD_HVML_ATTR_VALUE,
+    PURC_EXCEPT_BAD_HVML_CONTENT,
+    PURC_EXCEPT_BAD_TARGET_HTML,
+    PURC_EXCEPT_BAD_TARGET_XGML,
+    PURC_EXCEPT_BAD_TARGET_XML,
+    PURC_EXCEPT_BAD_EXPRESSION,
+    PURC_EXCEPT_BAD_EXECUTOR,
+    PURC_EXCEPT_BAD_NAME,
+    PURC_EXCEPT_NO_DATA,
+    PURC_EXCEPT_NOT_ITERABLE,
+    PURC_EXCEPT_BAD_INDEX,
+    PURC_EXCEPT_NO_SUCH_KEY,
+    PURC_EXCEPT_DUPLICATE_KEY,
+    PURC_EXCEPT_ARGUMENT_MISSED,
+    PURC_EXCEPT_WRONG_DATA_TYPE,
+    PURC_EXCEPT_INVALID_VALUE,
+    PURC_EXCEPT_MAX_ITERATION_COUNT,
+    PURC_EXCEPT_MAX_RECURSION_DEPTH,
+    PURC_EXCEPT_UNAUTHORIZED,
+    PURC_EXCEPT_TIMEOUT,
+    PURC_EXCEPT_E_DOM_FAILURE,
+    PURC_EXCEPT_LOST_RENDERER,
+    PURC_EXCEPT_MEMORY_FAILURE,
+    PURC_EXCEPT_INTERNAL_FAILURE,
+    PURC_EXCEPT_ZERO_DIVISION,
+    PURC_EXCEPT_OVERFLOW,
+    PURC_EXCEPT_UNDERFLOW,
+    PURC_EXCEPT_INVALID_FLOAT,
+    PURC_EXCEPT_ACCESS_DENIED,
+    PURC_EXCEPT_IO_FAILURE,
+    PURC_EXCEPT_TOO_SMALL,
+    PURC_EXCEPT_TOO_MANY,
+    PURC_EXCEPT_TOO_LONG,
+    PURC_EXCEPT_TOO_LARGE,
+    PURC_EXCEPT_NOT_DESIRED_ENTITY,
+    PURC_EXCEPT_ENTITY_NOT_FOUND,
+    PURC_EXCEPT_ENTITY_EXISTS,
+    PURC_EXCEPT_NO_STORAGE_SPACE,
+    PURC_EXCEPT_BROKEN_PIPE,
+    PURC_EXCEPT_CONNECTION_ABORTED,
+    PURC_EXCEPT_CONNECTION_REFUSED,
+    PURC_EXCEPT_CONNECTION_RESET,
+    PURC_EXCEPT_NAME_RESOLUTION_FAILED,
+    PURC_EXCEPT_REQUEST_FAILED,
+    PURC_EXCEPT_OS_FAILURE,
+    PURC_EXCEPT_NOT_READY,
+    PURC_EXCEPT_NOT_IMPLEMENTED,
+
+    PURC_EXCEPT_LAST = PURC_EXCEPT_NOT_IMPLEMENTED,
+};
+
+#define PURC_EXCEPT_NR       (PURC_EXCEPT_LAST - PURC_EXCEPT_FIRST + 1)
 
 #define PURC_EXCEPT_FLAGS_NONE          0x0000
 #define PURC_EXCEPT_FLAGS_REQUIRED      0x0001
@@ -388,6 +398,27 @@ purc_get_error_message (int errcode);
  */
 PCA_EXPORT purc_atom_t
 purc_get_error_exception (int errcode);
+
+
+/**
+ * purc_is_except_atom:
+ *
+ * @atom: the atom string.
+ *
+ * Returns: @true for @atom is except atom string.
+ */
+PCA_EXPORT bool
+purc_is_except_atom (purc_atom_t atom);
+
+/**
+ * purc_get_except_atom_by_id:
+ *
+ * @id: the except id.
+ *
+ * Returns: The exception atom string for the specified id.
+ */
+PCA_EXPORT purc_atom_t
+purc_get_except_atom_by_id (int id);
 
 PCA_EXTERN_C_END
 
