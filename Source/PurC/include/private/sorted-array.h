@@ -43,31 +43,32 @@ extern "C" {
 
 /* create an empty sorted array; free_fn can be NULL */
 struct sorted_array *
-sorted_array_create(unsigned int flags, size_t sz_init,
+pcutils_sorted_array_create(unsigned int flags, size_t sz_init,
         sacb_free free_fn, sacb_compare cmp_fn);
 
 /* destroy a sorted array */
-void sorted_array_destroy(struct sorted_array *sa);
+void pcutils_sorted_array_destroy(struct sorted_array *sa);
 
 /* add a new member with the sort value and the data. */
-int sorted_array_add(struct sorted_array *sa, void *sortv, void *data);
+int pcutils_sorted_array_add(struct sorted_array *sa, void *sortv, void *data);
 
 /* remove one member which has the same sort value. */
-bool sorted_array_remove(struct sorted_array *sa, const void* sortv);
+bool pcutils_sorted_array_remove(struct sorted_array *sa, const void* sortv);
 
 /* find the first member which has the same sort value. */
-bool sorted_array_find(struct sorted_array *sa,
+bool pcutils_sorted_array_find(struct sorted_array *sa,
         const void *sortv, void **data);
 
 /* retrieve the number of the members of the sorted array */
-size_t sorted_array_count(struct sorted_array *sa);
+size_t pcutils_sorted_array_count(struct sorted_array *sa);
 
 /* retrieve the member by the index and return the sort value;
    data can be NULL. */
-const void* sorted_array_get(struct sorted_array *sa, size_t idx, void **data);
+const void* pcutils_sorted_array_get(struct sorted_array *sa,
+        size_t idx, void **data);
 
 /* delete the member by the index */
-void sorted_array_delete(struct sorted_array *sa, size_t idx);
+void pcutils_sorted_array_delete(struct sorted_array *sa, size_t idx);
 
 #ifdef __cplusplus
 }
