@@ -12,4 +12,28 @@
    fun:_dl_init
    obj:/usr/lib/x86_64-linux-gnu/ld-2.31.so
 }
-
+{
+   <pcutils_atom_init_once>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:atom_init_bucket
+   fun:atom_get_bucket
+   fun:pcutils_atom_init_once
+   fun:init_modules
+   fun:__pthread_once_slow
+   fun:init_once
+   fun:purc_init
+   fun:_ZN21utils_atom_basic_Test8TestBodyEv
+   fun:_ZN7testing8internal38HandleSehExceptionsInMethodIfSupportedINS_4TestEvEET0_PT_MS4_FS3_vEPKc
+   fun:_ZN7testing8internal35HandleExceptionsInMethodIfSupportedINS_4TestEvEET0_PT_MS4_FS3_vEPKc
+   fun:_ZN7testing4Test3RunEv
+   fun:_ZN7testing8TestInfo3RunEv
+   fun:_ZN7testing9TestSuite3RunEv
+   fun:_ZN7testing8internal12UnitTestImpl11RunAllTestsEv
+   fun:_ZN7testing8internal38HandleSehExceptionsInMethodIfSupportedINS0_12UnitTestImplEbEET0_PT_MS4_FS3_vEPKc
+   fun:_ZN7testing8internal35HandleExceptionsInMethodIfSupportedINS0_12UnitTestImplEbEET0_PT_MS4_FS3_vEPKc
+   fun:_ZN7testing8UnitTest3RunEv
+   fun:_Z13RUN_ALL_TESTSv
+   fun:main
+}

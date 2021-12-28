@@ -73,16 +73,18 @@ char * pcdvobjs_get_url (const struct purc_broken_down_url *url_struct)
 
 bool pcdvobjs_set_url (struct purc_broken_down_url *url_struct, const char *url_string)
 {
-    std::unique_ptr<WTF::URL> url = makeUnique<URL>(URL(), url_string);
-    bool valid = url->isValid();
+    // std::unique_ptr<WTF::URL> url = makeUnique<URL>(URL(), url_string);
+    WTF::URL url(URL(), url_string);
+    bool valid = url.isValid();
     size_t length = 0;
     const char *tempstring = NULL;
 
     if (valid) {
         if (url_struct->schema)
             free (url_struct->schema);
-        StringView protocol = url->protocol();
-        tempstring = protocol.toString().latin1().data();
+        StringView protocol = url.protocol();
+        CString latin1 = protocol.toString().latin1();
+        tempstring = latin1.data();
         length = strlen (tempstring);
         if (length)
             url_struct->schema = strdup (tempstring);
@@ -91,8 +93,9 @@ bool pcdvobjs_set_url (struct purc_broken_down_url *url_struct, const char *url_
 
         if (url_struct->user)
             free (url_struct->user);
-        String user = url->user();
-        tempstring = user.latin1().data();
+        String user = url.user();
+        latin1 = user.latin1();
+        tempstring = latin1.data();
         length = strlen (tempstring);
         if (length)
             url_struct->user = strdup (tempstring);
@@ -101,8 +104,9 @@ bool pcdvobjs_set_url (struct purc_broken_down_url *url_struct, const char *url_
 
         if (url_struct->passwd)
             free (url_struct->passwd);
-        String password = url->password();
-        tempstring = password.latin1().data();
+        String password = url.password();
+        latin1 = password.latin1();
+        tempstring = latin1.data();
         length = strlen (tempstring);
         if (length)
             url_struct->passwd = strdup (tempstring);
@@ -111,8 +115,9 @@ bool pcdvobjs_set_url (struct purc_broken_down_url *url_struct, const char *url_
 
         if (url_struct->host)
             free (url_struct->host);
-        StringView host = url->host();
-        tempstring = host.toString().latin1().data();
+        StringView host = url.host();
+        latin1 = host.toString().latin1();
+        tempstring = latin1.data();
         length = strlen (tempstring);
         if (length)
             url_struct->host = strdup (tempstring);
@@ -121,8 +126,9 @@ bool pcdvobjs_set_url (struct purc_broken_down_url *url_struct, const char *url_
 
         if (url_struct->path)
             free (url_struct->path);
-        StringView path = url->path();
-        tempstring = path.toString().latin1().data();
+        StringView path = url.path();
+        latin1 = path.toString().latin1();
+        tempstring = latin1.data();
         length = strlen (tempstring);
         if (length)
             url_struct->path = strdup (tempstring);
@@ -131,8 +137,9 @@ bool pcdvobjs_set_url (struct purc_broken_down_url *url_struct, const char *url_
 
         if (url_struct->query)
             free (url_struct->query);
-        StringView query = url->query();
-        tempstring = query.toString().latin1().data();
+        StringView query = url.query();
+        latin1 = query.toString().latin1();
+        tempstring = latin1.data();
         length = strlen (tempstring);
         if (length)
             url_struct->query = strdup (tempstring);
@@ -141,15 +148,16 @@ bool pcdvobjs_set_url (struct purc_broken_down_url *url_struct, const char *url_
 
         if (url_struct->fragment)
             free (url_struct->fragment);
-        StringView fragmentIdentifier = url->fragmentIdentifier();
-        tempstring = fragmentIdentifier.toString().latin1().data();
+        StringView fragmentIdentifier = url.fragmentIdentifier();
+        latin1 = fragmentIdentifier.toString().latin1();
+        tempstring = latin1.data();
         length = strlen (tempstring);
         if (length)
             url_struct->fragment = strdup (tempstring);
         else
             url_struct->fragment = NULL;
 
-        Optional<uint16_t> port = url->port();
+        Optional<uint16_t> port = url.port();
         if (port)
             url_struct->port = (unsigned int) (*port);
         else
