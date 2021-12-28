@@ -34,39 +34,24 @@
 #include "private/errors.h"
 #include "private/debug.h"
 #include "private/utils.h"
-#include "private/edom.h"
+#include "private/atom-buckets.h"
 #include "private/html.h"
 
-#define ATOM_HTML_BUCKET    1
-
-#if 0
-static struct atom_info {
-    const char *string;
-    purc_atom_t atom;
-} my_atoms [] = {
+static struct const_str_atom html_atoms [] = {
     { "append", 0 },
     { "prepend", 0 },
     { "insertBefore", 0 },
     { "insertAfter", 0 },
 };
-#endif
-
-purc_atom_t pcvariant_atom_append = 0;
-purc_atom_t pcvariant_atom_prepend = 0;
-purc_atom_t pcvariant_atom_insertBefore = 0;
-purc_atom_t pcvariant_atom_insertAfter = 0;
 
 void pchtml_init_once(void)
 {
     // initialize others
-    pcvariant_atom_append  = purc_atom_from_static_string_ex (
-            ATOM_HTML_BUCKET, "append");
-    pcvariant_atom_prepend = purc_atom_from_static_string_ex (
-            ATOM_HTML_BUCKET, "prepend");
-    pcvariant_atom_insertBefore  = purc_atom_from_static_string_ex (
-            ATOM_HTML_BUCKET, "insertBefore");
-    pcvariant_atom_insertAfter = purc_atom_from_static_string_ex (
-            ATOM_HTML_BUCKET, "insertAfter");
+
+    for (size_t i = 0; i < sizeof(html_atoms)/sizeof(html_atoms[0]); i++) {
+        html_atoms[i].atom = purc_atom_from_static_string_ex (
+                ATOM_BUCKET_HTML, html_atoms[i].str);
+    }
 }
 
 void pchtml_init_instance(struct pcinst* inst)
@@ -79,4 +64,13 @@ void pchtml_init_instance(struct pcinst* inst)
 void pchtml_cleanup_instance(struct pcinst* inst)
 {
     UNUSED_PARAM(inst);
+}
+
+purc_atom_t get_html_cmd_atom (size_t id)
+{
+    purc_atom_t atom = 0;
+    if (id < sizeof(html_atoms)/sizeof(html_atoms[0]))
+        atom = html_atoms[id].atom;
+
+    return atom;
 }

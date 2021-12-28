@@ -173,10 +173,17 @@ pchtml_doc_write_to_stream(pchtml_html_document_t *doc, purc_rwstream_t out);
 struct pcedom_document*
 pchtml_doc_get_document(pchtml_html_document_t *doc);
 
-extern purc_atom_t pcvariant_atom_append;
-extern purc_atom_t pcvariant_atom_prepend;
-extern purc_atom_t pcvariant_atom_insertBefore;
-extern purc_atom_t pcvariant_atom_insertAfter;
+
+// for html command
+enum {
+    ID_HTML_CMD_APPEND = 0,
+    ID_HTML_CMD_PREPEND,
+    ID_HTML_CMD_INSERTBEFORE,
+    ID_HTML_CMD_INSERTAFTER,
+};
+
+purc_atom_t get_html_cmd_atom(size_t id);
+
 
 // doc:  html document root
 // node: the node fragment associated.If it is NULL, <body> will be used;
