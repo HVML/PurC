@@ -21,6 +21,7 @@ TEST(observe, basic)
     "                <observe on=\"$TIMERS\" for=\"expired:clock\">"
     "                    <update on=\"#clock\" at=\"textContent\" with=\"$SYSTEM.time('%H:%m')\" />"
     "                </observe>"
+    "                <p>this is after observe</p>"
     "            </div>"
     ""
     "        </div>"
