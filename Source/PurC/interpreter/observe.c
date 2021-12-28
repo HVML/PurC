@@ -101,6 +101,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     frame->ctxt = ctxt;
     frame->ctxt_destroy = ctxt_destroy;
+    //stack->co.waits++;
     purc_clr_error();
 
     return ctxt;

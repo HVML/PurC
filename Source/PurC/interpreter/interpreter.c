@@ -956,12 +956,24 @@ pcintr_register_observer(purc_variant_t observed,
     pcintr_stack_t stack = purc_get_stack();
     struct pcutils_arrlist* list = NULL;
     if (purc_variant_is_type(observed, PURC_VARIANT_TYPE_DYNAMIC)) {
+        if (stack->dynamic_variant_observer_list == NULL) {
+            stack->dynamic_variant_observer_list = pcutils_arrlist_new(
+                    observer_free_func);
+        }
         list = stack->dynamic_variant_observer_list;
     }
     else if (purc_variant_is_type(observed, PURC_VARIANT_TYPE_NATIVE)) {
+        if (stack->native_variant_observer_list == NULL) {
+            stack->native_variant_observer_list = pcutils_arrlist_new(
+                    observer_free_func);
+        }
         list = stack->native_variant_observer_list;
     }
     else {
+        if (stack->common_variant_observer_list == NULL) {
+            stack->common_variant_observer_list = pcutils_arrlist_new(
+                    observer_free_func);
+        }
         list = stack->common_variant_observer_list;
     }
 
@@ -977,17 +989,18 @@ pcintr_register_observer(purc_variant_t observed,
         return NULL;
     }
 
-    char* msg_type = strtok_r(value, ":", &value);
+    char* p = value;
+    char* msg_type = strtok_r(p, ":", &p);
     if (!msg_type) {
         //TODO : purc_set_error();
-        free(value);
+        free(p);
         return NULL;
     }
 
-    char* sub_type = strtok_r(value, ":", &value);
+    char* sub_type = strtok_r(p, ":", &p);
     if (!sub_type) {
         //TODO : purc_set_error();
-        free(value);
+        free(p);
         return NULL;
     }
 
@@ -995,7 +1008,7 @@ pcintr_register_observer(purc_variant_t observed,
             sizeof(struct pcintr_observer));
     if (!observer) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        free(value);
+        free(p);
         return NULL;
     }
     observer->observed = observed;
