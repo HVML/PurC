@@ -1,7 +1,7 @@
 /**
  * @file observe.c
- * @author Xu Xiaohong
- * @date 2021/12/06
+ * @author Xue Shuming
+ * @date 2021/12/28
  * @brief
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
