@@ -4,6 +4,7 @@
 #include "private/hashtable.h"
 #include "private/map.h"
 #include "private/rbtree.h"
+#include "private/atom-buckets.h"
 #include "private/sorted-array.h"
 
 #include <stdio.h>

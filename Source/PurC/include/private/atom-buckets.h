@@ -25,27 +25,32 @@
 #ifndef PURC_PRIVATE_ATOM_BUCKETS_H
 #define PURC_PRIVATE_ATOM_BUCKETS_H
 
-#include "config.h"
 #include "purc-utils.h"
 
 #include <assert.h>
 
 enum {
-    ATOM_BUCKET_DEF = 0,
+    ATOM_BUCKET_FIRST = 0,
+
+    ATOM_BUCKET_DEF = ATOM_BUCKET_FIRST,
     ATOM_BUCKET_HVML,   /* HVML tag names and attribute names */
     ATOM_BUCKET_HTML,   /* HTML tag names and attribute names */
     ATOM_BUCKET_XGML,   /* XGML tag names and attribute names */
-    ATOM_BUCKET_ACTION, /* the update action names: merge, displace, ... */
+    ATOM_BUCKET_ACTION, /* the update actions: merge, displace, ... */
     ATOM_BUCKET_EXCEPT, /* the error and exception names such as NoData */
-    ATOM_BUCKET_EVENT,  /* the event names such as changed, attached, ... */
+    ATOM_BUCKET_MSG,    /* the message types such as changed, attached, ... */
 
     /* XXX: change this if you append a new bucket. */
-    PURC_VARIANT_TYPE_LAST = ATOM_BUCKET_UPDATE_ACTION,
+    ATOM_BUCKET_LAST = ATOM_BUCKET_MSG,
 };
 
-#if PURC_VARIANT_TYPE_LAST >= PURC_ATOM_BUCKETS_NR
-#error "Too many buckets; please adjust PURC_ATOM_BUCKET_BITS"
-#endif
+/* Make sure ATOM_BUCKET_LAST is less than PURC_ATOM_BUCKETS_NR */
+#define _COMPILE_TIME_ASSERT(name, x)               \
+       typedef int _dummy_ ## name[(x) * 2 - 1]
+
+_COMPILE_TIME_ASSERT(buckets, ATOM_BUCKET_LAST < PURC_ATOM_BUCKETS_NR);
+
+#undef _COMPILE_TIME_ASSERT
 
 struct const_str_atom {
     const char *str;
