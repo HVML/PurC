@@ -17,7 +17,7 @@ static struct atom_info {
     const char *string;
     int         bucket;
     purc_atom_t atom;
-} my_atoms [] = {
+} my_atoms[] = {
     /* generic */
     { "HVML", 0, 0 },
     { "PurC", 0, 0 },
@@ -131,6 +131,179 @@ TEST(utils, atom_ex)
         purc_atom_t atom = purc_atom_try_string_ex(my_atoms[i].bucket,
                 my_atoms[i].string);
         ASSERT_NE(atom, 0);
+    }
+
+    purc_cleanup ();
+}
+
+enum {
+    ID_EXCEPT_BusError = 0,
+    ID_EXCEPT_SegFault,
+    ID_EXCEPT_Terminated,
+    ID_EXCEPT_CPUTimeLimitExceeded,
+    ID_EXCEPT_FileSizeLimitExceeded,
+    ID_EXCEPT_BadEncoding,
+    ID_EXCEPT_BadHVMLTag,
+    ID_EXCEPT_BadHVMLAttrName,
+    ID_EXCEPT_BadHVMLAttrValue,
+    ID_EXCEPT_BadHVMLContent,
+    ID_EXCEPT_BadTargetHTML,
+    ID_EXCEPT_BadTargetXGML,
+    ID_EXCEPT_BadTargetXML,
+    ID_EXCEPT_BadExpression,
+    ID_EXCEPT_BadExecutor,
+    ID_EXCEPT_BadName,
+    ID_EXCEPT_NoData,
+    ID_EXCEPT_NotIterable,
+    ID_EXCEPT_BadIndex,
+    ID_EXCEPT_NoSuchKey,
+    ID_EXCEPT_DuplicateKey,
+    ID_EXCEPT_ArgumentMissed,
+    ID_EXCEPT_WrongDataType,
+    ID_EXCEPT_InvalidValue,
+    ID_EXCEPT_MaxIterationCount,
+    ID_EXCEPT_MaxRecursionDepth,
+    ID_EXCEPT_Unauthorized,
+    ID_EXCEPT_Timeout,
+    ID_EXCEPT_eDOMFailure,
+    ID_EXCEPT_LostRenderer,
+    ID_EXCEPT_MemoryFailure,
+    ID_EXCEPT_InternalFailure,
+    ID_EXCEPT_ZeroDivision,
+    ID_EXCEPT_Overflow,
+    ID_EXCEPT_Underflow,
+    ID_EXCEPT_InvalidFloat,
+    ID_EXCEPT_AccessDenied,
+    ID_EXCEPT_IOFailure,
+    ID_EXCEPT_TooSmall,
+    ID_EXCEPT_TooMany,
+    ID_EXCEPT_TooLong,
+    ID_EXCEPT_TooLarge,
+    ID_EXCEPT_NotDesiredEntity,
+    ID_EXCEPT_EntityNotFound,
+    ID_EXCEPT_EntityExists,
+    ID_EXCEPT_NoStorageSpace,
+    ID_EXCEPT_BrokenPipe,
+    ID_EXCEPT_ConnectionAborted,
+    ID_EXCEPT_ConnectionRefused,
+    ID_EXCEPT_ConnectionReset,
+    ID_EXCEPT_NameResolutionFailed,
+    ID_EXCEPT_RequestFailed,
+    ID_EXCEPT_OSFailure,
+    ID_EXCEPT_NotReady,
+    ID_EXCEPT_NotImplemented,
+
+    ID_EXCEPT_LAST = ID_EXCEPT_NotImplemented,
+};
+
+// to test extended functions of atom
+static struct const_str_atom _except_names[] = {
+    { "BusError", 0 },
+
+    { "SegFault", 0 },
+    { "Terminated", 0 },
+    { "CPUTimeLimitExceeded", 0 },
+    { "FileSizeLimitExceeded", 0 },
+
+    { "BadEncoding", 0 },
+    { "BadHVMLTag", 0 },
+    { "BadHVMLAttrName", 0 },
+    { "BadHVMLAttrValue", 0 },
+    { "BadHVMLContent", 0 },
+    { "BadTargetHTML", 0 },
+    { "BadTargetXGML", 0 },
+    { "BadTargetXML", 0 },
+    { "BadExpression", 0 },
+    { "BadExecutor", 0 },
+    { "BadName", 0 },
+    { "NoData", 0 },
+    { "NotIterable", 0 },
+    { "BadIndex", 0 },
+    { "NoSuchKey", 0 },
+    { "DuplicateKey", 0 },
+    { "ArgumentMissed", 0 },
+    { "WrongDataType", 0 },
+    { "InvalidValue", 0 },
+    { "MaxIterationCount", 0 },
+    { "MaxRecursionDepth", 0 },
+    { "Unauthorized", 0 },
+    { "Timeout", 0 },
+    { "eDOMFailure", 0 },
+    { "LostRenderer", 0 },
+    { "MemoryFailure", 0 },
+    { "InternalFailure", 0 },
+    { "ZeroDivision", 0 },
+    { "Overflow", 0 },
+    { "Underflow", 0 },
+    { "InvalidFloat", 0 },
+    { "AccessDenied", 0 },
+    { "IOFailure", 0 },
+    { "TooSmall", 0 },
+    { "TooMany", 0 },
+    { "TooLong", 0 },
+    { "TooLarge", 0 },
+    { "NotDesiredEntity", 0 },
+    { "EntityNotFound", 0 },
+    { "EntityExists", 0 },
+    { "NoStorageSpace", 0 },
+    { "BrokenPipe", 0 },
+    { "ConnectionAborted", 0 },
+    { "ConnectionRefused", 0 },
+    { "ConnectionReset", 0 },
+    { "NameResolutionFailed", 0 },
+    { "RequestFailed", 0 },
+    { "OSFailure", 0 },
+    { "NotReady", 0 },
+    { "NotImplemented", 0 },
+};
+
+#define NR_CUSTOM_ATOMS (sizeof(_except_names)/sizeof(_except_names[0]))
+
+static int is_custom_atom(purc_atom_t atom)
+{
+    if (atom < _except_names[0].atom ||
+            atom > _except_names[NR_CUSTOM_ATOMS - 1].atom)
+        return 0;
+
+    return 1;
+}
+
+static purc_atom_t get_custom_atom_by_id(size_t id)
+{
+    if (id < NR_CUSTOM_ATOMS)
+        return _except_names[id].atom;
+
+    return 0;
+}
+
+TEST(utils, atom_buckets)
+{
+    int ret = purc_init ("cn.fmsoft.hybridos.test", "variant", NULL);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    purc_atom_t atom;
+
+    for (size_t n = 0; n < NR_CUSTOM_ATOMS; n++) {
+        atom = purc_atom_try_string_ex(ATOM_BUCKET_CUSTOM,
+                _except_names[n].str);
+        ASSERT_EQ(atom, 0);
+
+        _except_names[n].atom =
+            purc_atom_from_static_string_ex(ATOM_BUCKET_CUSTOM,
+                _except_names[n].str);
+    }
+
+    ret = is_custom_atom(1);
+    ASSERT_EQ (ret, 0);
+
+    for (size_t n = 0; n < NR_CUSTOM_ATOMS; n++) {
+        ret = is_custom_atom(_except_names[n].atom);
+        ASSERT_EQ (ret, 1);
+    }
+
+    for (size_t i = 0; i < ID_EXCEPT_LAST; i++) {
+        atom = get_custom_atom_by_id(i);
+        ASSERT_NE (atom, 0);
     }
 
     purc_cleanup ();

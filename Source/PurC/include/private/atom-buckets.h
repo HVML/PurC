@@ -40,8 +40,10 @@ enum {
     ATOM_BUCKET_EXCEPT, /* the error and exception names such as NoData */
     ATOM_BUCKET_MSG,    /* the message types such as changed, attached, ... */
 
-    /* XXX: change this if you append a new bucket. */
-    ATOM_BUCKET_LAST = ATOM_BUCKET_MSG,
+    /* XXX: add a new bucket before this. */
+    ATOM_BUCKET_CUSTOM,
+
+    ATOM_BUCKET_LAST = ATOM_BUCKET_CUSTOM,
 };
 
 /* Make sure ATOM_BUCKET_LAST is less than PURC_ATOM_BUCKETS_NR */
