@@ -46,6 +46,7 @@ struct pcintr_element_ops* pcintr_get_archetype_ops(void);
 struct pcintr_element_ops* pcintr_get_iterate_ops(void);
 struct pcintr_element_ops* pcintr_get_update_ops(void);
 struct pcintr_element_ops* pcintr_get_except_ops(void);
+struct pcintr_element_ops* pcintr_get_observe_ops(void);
 
 PCA_EXTERN_C_END
 
