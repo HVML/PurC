@@ -44,7 +44,6 @@ struct ctxt_for_update {
     purc_variant_t                on;
     purc_variant_t                to;
     purc_variant_t                with;
-
 };
 
 static void
@@ -115,8 +114,9 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         return -1;
 
     const char *s = purc_variant_get_string_const(v);
-    fprintf(stderr, "[%s]\n", s);
-    pcintr_printf_to_edom(stack, "%s", s);
+    // fprintf(stderr, "[%s]\n", s);
+    // pcintr_printf_to_edom(stack, "%s", s);
+    pcintr_printf_to_fragment(stack, "%s", s);
     purc_variant_unref(v);
 
     return 0;

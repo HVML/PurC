@@ -33,6 +33,7 @@
 
 #include "private/debug.h"
 #include "private/errors.h"
+#include "private/html.h"
 #include "private/list.h"
 #include "private/vdom.h"
 
@@ -74,6 +75,12 @@ enum pcintr_stack_stage {
     STACK_STAGE_FIRST_ROUND,
     STACK_STAGE_EVENT_LOOP,
     STACK_STAGE_TERMINATING,
+};
+
+struct pcintr_edom_gen {
+    pchtml_html_document_t     *doc;
+    pchtml_html_parser_t       *parser;
+    purc_rwstream_t             cache;
 };
 
 struct pcintr_stack {
@@ -118,8 +125,19 @@ struct pcintr_stack {
     struct pcutils_arrlist* dynamic_variant_observer_list;
     struct pcutils_arrlist* native_variant_observer_list;
 
-    // TODO: switch to edom dynamically
-    purc_rwstream_t    output;
+    // streamlizing to generate edom in one pass
+    struct pcintr_edom_gen     edom_gen;
+
+    // collect fragments chunk by chunk by `update` during `iterate`
+    // temporary, temporary, temporary
+    // iterate[after_pushed]: make fragment or reset fragment
+    // update: write content into fragment, CURRENT implementation
+    //         concerning prepend operation, better use string-buffers instead
+    // iterate[on_popping(true)]: write fragment into `edom_gen`
+    // TODO: this is temporary implementation!!!!
+    // ultimate: recording action as well as content, and `replay` to the
+    //           right position in edom when done!
+    purc_rwstream_t            fragment;
 };
 
 enum purc_symbol_var {
@@ -239,6 +257,13 @@ void
 pcintr_pop_stack_frame(pcintr_stack_t stack);
 struct pcintr_stack_frame*
 pcintr_push_stack_frame(pcintr_stack_t stack);
+
+void
+pcintr_stack_write_fragment(pcintr_stack_t stack);
+
+__attribute__ ((format (printf, 2, 3)))
+void
+pcintr_printf_to_fragment(pcintr_stack_t stack, const char *fmt, ...);
 
 __attribute__ ((format (printf, 2, 3)))
 int

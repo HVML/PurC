@@ -33,6 +33,8 @@
 
 #include "ops.h"
 #include "../hvml/hvml-gen.h"
+#include "../html/parser.h"
+
 #include "hvml-attr.h"
 
 #include <stdarg.h>
@@ -96,6 +98,129 @@ vdom_destroy(purc_vdom_t vdom)
 }
 
 static void
+edom_gen_release(struct pcintr_edom_gen *edom_gen)
+{
+    if (edom_gen->parser) {
+        pchtml_html_parser_destroy(edom_gen->parser);
+        edom_gen->parser = NULL;
+    }
+    if (edom_gen->cache) {
+        purc_rwstream_write(edom_gen->cache, "", 1); // null-terminator
+        const char *s;
+        s = (const char*)purc_rwstream_get_mem_buffer(edom_gen->cache, NULL);
+        fprintf(stderr, "generated html:\n%s\n", s);
+        purc_rwstream_destroy(edom_gen->cache);
+        edom_gen->cache = NULL;
+    }
+    if (edom_gen->doc) {
+        purc_rwstream_t out = purc_rwstream_new_buffer(1024, 1024*1024*16);
+        if (out) {
+            pchtml_doc_write_to_stream(edom_gen->doc, out);
+            purc_rwstream_write(out, "", 1);
+            const char *buf = purc_rwstream_get_mem_buffer(out, NULL);
+            fprintf(stderr, "serialized html:\n%s\n", buf);
+            purc_rwstream_destroy(out);
+        }
+        pchtml_html_document_destroy(edom_gen->doc);
+        edom_gen->doc = NULL;
+    }
+}
+
+static int
+edom_gen_init(struct pcintr_edom_gen *edom_gen)
+{
+    edom_gen->parser = pchtml_html_parser_create();
+    if (!edom_gen->parser) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return -1;
+    }
+
+    unsigned int ui = pchtml_html_parser_init(edom_gen->parser);
+    if (ui) {
+        // FIXME: out of memory????
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return -1;
+    }
+
+    edom_gen->doc = pchtml_html_parse_chunk_begin(edom_gen->parser);
+    if (!edom_gen->doc) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return -1;
+    }
+
+    edom_gen->cache = purc_rwstream_new_buffer(1024, 1024*1024*16);
+    if (!edom_gen->cache) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return -1;
+    }
+
+    return 0;
+}
+
+static int
+edom_gen_write(struct pcintr_edom_gen *edom_gen, const char *buf, int sz)
+{
+    PC_ASSERT(edom_gen->parser);
+    PC_ASSERT(edom_gen->doc);
+    PC_ASSERT(edom_gen->cache);
+    ssize_t n = purc_rwstream_write(edom_gen->cache, buf, sz);
+    if (n != sz)
+        return -1;
+
+    purc_rwstream_t ws = purc_rwstream_new_from_mem((void*)buf, sz);
+    if (!ws)
+        return -1;
+
+    unsigned int ui;
+    ui = pchtml_html_parse_chunk_process(edom_gen->parser, ws);
+    purc_rwstream_destroy(ws);
+    if (ui) {
+        // FIXME: out of memory????
+        return -1;
+    }
+
+    // pchtml_html_tree_t *tree = edom_gen->parser->tree;
+    // if (!tree)
+    //     return 0;
+
+    // pcutils_array_t *open_elements = tree->open_elements;
+    // if (!open_elements)
+    //     return 0;
+
+    // if (open_elements->length < 1)
+    //     return 0;
+
+    // pcedom_element_t *element = open_elements->list[open_elements->length-1];
+    // if (!element)
+    //     return 0;
+
+    // const unsigned char *tag_name;
+    // size_t len;
+    // tag_name = pcedom_element_tag_name(element, &len);
+    // PC_ASSERT(tag_name);
+    // PC_ASSERT(tag_name[len] == 0);
+    // fprintf(stderr, "==[%s]==tag_name:[%s]==\n", buf, tag_name);
+
+    return 0;
+}
+
+void
+pcintr_stack_write_fragment(pcintr_stack_t stack)
+{
+    if (!stack->fragment)
+        return;
+    ssize_t n = purc_rwstream_write(stack->fragment, "", 1);
+    PC_ASSERT(n == 1);
+
+    const char *s;
+    s = (const char*)purc_rwstream_get_mem_buffer(stack->fragment, NULL);
+    PC_ASSERT(s);
+
+    int r = edom_gen_write(&stack->edom_gen, s, strlen(s));
+    PC_ASSERT(r == 0);
+}
+
+static void
 stack_release(pcintr_stack_t stack)
 {
     struct list_head *frames = &stack->frames;
@@ -133,13 +258,10 @@ stack_release(pcintr_stack_t stack)
         stack->native_variant_observer_list = NULL;
     }
 
-    if (stack->output) {
-        purc_rwstream_write(stack->output, "", 1); // null-terminator
-        const char *s;
-        s = (const char*)purc_rwstream_get_mem_buffer(stack->output, NULL);
-        fprintf(stderr, "generated html:\n%s\n", s);
-        purc_rwstream_destroy(stack->output);
-        stack->output = NULL;
+    edom_gen_release(&stack->edom_gen);
+    if (stack->fragment) {
+        purc_rwstream_destroy(stack->fragment);
+        stack->fragment = NULL;
     }
 }
 
@@ -760,8 +882,7 @@ purc_load_hvml_from_rwstream(purc_rwstream_t stream)
     stack->co.stack = stack;
     stack->co.state = CO_STATE_READY;
 
-    stack->output = purc_rwstream_new_buffer(1024, 16*1024*1024);
-    if (!stack->output) {
+    if (edom_gen_init(&stack->edom_gen)) {
         stack_destroy(stack);
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
@@ -819,9 +940,28 @@ pcintr_printf_to_edom(pcintr_stack_t stack, const char *fmt, ...)
     va_end(ap);
 
     ssize_t sz;
-    sz = purc_rwstream_write(stack->output, buf, r);
-    PC_ASSERT(sz == r);
+    sz = edom_gen_write(&stack->edom_gen, buf, r);
+    PC_ASSERT(sz == 0);
     return 0;
+}
+
+void
+pcintr_printf_to_fragment(pcintr_stack_t stack, const char *fmt, ...)
+{
+    PC_ASSERT(stack->fragment);
+
+    // TODO: 1. alloc?; 2. two-scans?
+    char buf[1024];
+
+    va_list ap;
+    va_start(ap, fmt);
+    int r = vsnprintf(buf, sizeof(buf), fmt, ap);
+    PC_ASSERT(r >= 0 && (size_t)r < sizeof(buf));
+    va_end(ap);
+
+    ssize_t sz;
+    sz = purc_rwstream_write(stack->fragment, buf, r);
+    PC_ASSERT(sz == r);
 }
 
 int
@@ -840,7 +980,7 @@ pcintr_printf_start_element_to_edom(pcintr_stack_t stack)
     if (frame->attr_vars) {
         purc_variant_t k, v;
         foreach_key_value_in_variant_object(frame->attr_vars, k, v)
-            fprintf(stderr, "=========[%s]=======\n", pcvariant_typename(k));
+            // fprintf(stderr, "=========[%s]=======\n", pcvariant_typename(k));
             const char *key = purc_variant_get_string_const(k);
             PC_ASSERT(key);
             pcintr_printf_to_edom(stack, " %s", key);
