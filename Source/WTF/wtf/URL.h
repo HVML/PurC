@@ -257,6 +257,7 @@ WTF_EXPORT_PRIVATE String mimeTypeFromDataURL(StringView dataURL);
 
 // FIXME: This needs a new, more specific name. The general thing named here can't be implemented correctly, since different parts of a URL need different escaping.
 WTF_EXPORT_PRIVATE String encodeWithURLEscapeSequences(const String&);
+WTF_EXPORT_PRIVATE String decodeEscapeSequencesFromParsedURL(StringView input);
 
 #ifdef __OBJC__
 

@@ -65,6 +65,8 @@ char * pcdvobjs_get_url (const struct purc_broken_down_url *url_struct)
 
     if (url.isValid()) {
         String tempstring = url.string();
+// if you wana decode URL, use the line below
+// String tempstring = WTF::decodeEscapeSequencesFromParsedURL(url.string());
         url_string = strdup (tempstring.latin1().data());
     }
 
@@ -75,6 +77,7 @@ bool pcdvobjs_set_url (struct purc_broken_down_url *url_struct, const char *url_
 {
     // std::unique_ptr<WTF::URL> url = makeUnique<URL>(URL(), url_string);
     WTF::URL url(URL(), url_string);
+
     bool valid = url.isValid();
     size_t length = 0;
     const char *tempstring = NULL;
