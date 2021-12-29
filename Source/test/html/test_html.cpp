@@ -939,12 +939,22 @@ TEST(html, html_parser_specialchars)
     /* Serialization html*/
     printf("\n\nHTML Document:\n");
 
+#if 0
     status = pchtml_html_serialize_pretty_tree_cb(pcedom_interface_node(doc),
                                                PCHTML_HTML_SERIALIZE_OPT_UNDEF,
                                                0, serializer_callback, NULL);
     if (status != PCHTML_STATUS_OK) {
         printf ("Failed to serialization HTML tree");
     }
+#endif
+    rwstream = purc_rwstream_new_buffer (1024, 1024 * 1024);
+    pchtml_doc_write_to_stream (doc, rwstream);
+    size_t content_size = 0;
+    size_t rw_size = 0;
+    char *rw_string = (char *)purc_rwstream_get_mem_buffer_ex (rwstream,
+                                            &content_size, &rw_size, true);
+    printf ("Use pchtml_doc_write_to_stream: \n %s\n", rw_string);
+    purc_rwstream_destroy (rwstream);
 
     /* Destroy document*/
     pchtml_html_document_destroy(doc);
