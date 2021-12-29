@@ -346,6 +346,9 @@ struct pcintr_observer*
 pcintr_find_observer(pcintr_stack_t stack, purc_variant_t observed,
         purc_variant_t msg_type, purc_variant_t sub_type);
 
+bool
+pcintr_is_observer_empty(pcintr_stack_t stack);
+
 void
 pcintr_dispatch_message(pcintr_stack_t stack, purc_variant_t source,
         purc_variant_t type, purc_variant_t sub_type, purc_variant_t extra);

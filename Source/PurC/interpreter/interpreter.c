@@ -1221,6 +1221,30 @@ pcintr_find_observer(pcintr_stack_t stack, purc_variant_t observed,
     return NULL;
 }
 
+bool
+pcintr_is_observer_empty(pcintr_stack_t stack)
+{
+    if (!stack) {
+        return false;
+    }
+
+    if (stack->native_variant_observer_list
+            && pcutils_arrlist_length(stack->native_variant_observer_list)) {
+        return false;
+    }
+
+    if (stack->dynamic_variant_observer_list
+            && pcutils_arrlist_length(stack->dynamic_variant_observer_list)) {
+        return false;
+    }
+
+    if (stack->common_variant_observer_list
+            && pcutils_arrlist_length(stack->common_variant_observer_list)) {
+        return false;
+    }
+    return true;
+}
+
 struct pcintr_message {
     pcintr_stack_t stack;
     purc_variant_t source;
