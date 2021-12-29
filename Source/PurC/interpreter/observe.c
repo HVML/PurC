@@ -102,8 +102,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     pcvdom_element_t child = select_child(stack, ctxt);
     if (child != NULL) {
         struct pcintr_observer* observer;
-        observer = pcintr_register_observer(on, for_var, frame->scope, pos,
-                child);
+        observer = pcintr_register_observer(on, for_var, frame->scope,
+                frame->edom_element, pos, child);
         if (observer == NULL) {
             return NULL;
         }

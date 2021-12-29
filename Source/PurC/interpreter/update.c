@@ -72,10 +72,10 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     PC_ASSERT(ctxt);
 
     // TODO: '$@'
-    // purc_variant_t on;
-    // on = purc_variant_object_get_by_ckey(frame->attr_vars, "on");
-    // if (on == PURC_VARIANT_INVALID)
-    //     return -1;
+    purc_variant_t on;
+    on = purc_variant_object_get_by_ckey(frame->attr_vars, "on");
+    if (on == PURC_VARIANT_INVALID)
+        return -1;
     // PURC_VARIANT_SAFE_CLEAR(ctxt->on);
     // ctxt->on = on;
     // purc_variant_ref(on);
@@ -116,7 +116,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     const char *s = purc_variant_get_string_const(v);
     // fprintf(stderr, "[%s]\n", s);
     // pcintr_printf_to_edom(stack, "%s", s);
-    pcintr_printf_to_fragment(stack, "%s", s);
+    pcintr_printf_to_fragment(stack, on, "%s", s);
     purc_variant_unref(v);
 
     return 0;
@@ -258,7 +258,7 @@ again:
             break;
         case PCVDOM_NODE_ELEMENT:
             {
-            D("");
+                D("");
                 pcvdom_element_t element = PCVDOM_ELEMENT_FROM_NODE(curr);
                 on_element(co, frame, element);
                 PC_ASSERT(stack->except == 0);

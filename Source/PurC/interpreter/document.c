@@ -68,6 +68,9 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
+    PC_ASSERT(frame);
+
+    frame->edom_element = NULL;
 
     frame->pos = pos; // ATTENTION!!
 

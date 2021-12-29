@@ -64,6 +64,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
+    PC_ASSERT(frame);
 
     frame->pos = pos; // ATTENTION!!
 
@@ -81,6 +82,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         return NULL;
 
     pcintr_printf_start_element_to_edom(stack);
+    frame->edom_element = pcintr_stack_get_edom_open_element(stack);
 
     struct ctxt_for_undefined *ctxt;
     ctxt = (struct ctxt_for_undefined*)calloc(1, sizeof(*ctxt));

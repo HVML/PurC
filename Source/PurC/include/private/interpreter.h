@@ -81,6 +81,7 @@ struct pcintr_edom_gen {
     pchtml_html_document_t     *doc;
     pchtml_html_parser_t       *parser;
     purc_rwstream_t             cache;
+    unsigned int                finished:1;
 };
 
 struct pcintr_stack {
@@ -138,6 +139,8 @@ struct pcintr_stack {
     // ultimate: recording action as well as content, and `replay` to the
     //           right position in edom when done!
     purc_rwstream_t            fragment;
+
+    struct list_head           edom_fragments; // struct edom_fragment
 };
 
 enum purc_symbol_var {
@@ -182,6 +185,8 @@ struct pcintr_stack_frame {
 
     // the current scope.
     pcvdom_element_t scope;
+    // the current edom element;
+    pcedom_element_t *edom_element;
 
     // the current execution position.
     pcvdom_element_t pos;
@@ -229,6 +234,7 @@ struct pcintr_observer {
     char* sub_type;
 
     pcvdom_element_t scope;
+    pcedom_element_t *edom_element;
 
     // the `observe` element who creates this observer.
     pcvdom_element_t pos;
@@ -261,9 +267,10 @@ pcintr_push_stack_frame(pcintr_stack_t stack);
 void
 pcintr_stack_write_fragment(pcintr_stack_t stack);
 
-__attribute__ ((format (printf, 2, 3)))
+__attribute__ ((format (printf, 3, 4)))
 void
-pcintr_printf_to_fragment(pcintr_stack_t stack, const char *fmt, ...);
+pcintr_printf_to_fragment(pcintr_stack_t stack,
+        purc_variant_t on, const char *fmt, ...);
 
 __attribute__ ((format (printf, 2, 3)))
 int
@@ -274,6 +281,9 @@ pcintr_printf_start_element_to_edom(pcintr_stack_t stack);
 
 int
 pcintr_printf_end_element_to_edom(pcintr_stack_t stack);
+
+pcedom_element_t*
+pcintr_stack_get_edom_open_element(pcintr_stack_t stack);
 
 purc_variant_t
 pcintr_make_object_of_dynamic_variants(size_t nr_args,
@@ -337,6 +347,7 @@ pcintr_timers_destroy(struct pcintr_timers* timers);
 struct pcintr_observer*
 pcintr_register_observer(purc_variant_t observed,
         purc_variant_t for_value, pcvdom_element_t scope,
+        pcedom_element_t *edom_element,
         pcvdom_element_t pos, pcvdom_element_t child);
 
 bool
