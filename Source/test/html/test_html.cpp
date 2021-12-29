@@ -890,7 +890,7 @@ TEST(html, html_parser_specialchars)
     static const char html[] = "<div><p>First<p>second</div><div><p>third<p>fourth</div><div><h2>Flower</h2><img src=\"img_white_flower.jpg\" width=\"214\" height=\"204\"></div>";
     size_t html_len = sizeof(html) - 1;
 
-    static const char html1[] = "<div><p>Fir&<>\"\'st<p>second</div><div><p>third<p>fourth</div><div><h2>Flower</h2><img src=\"img_&<>\"\'white_flower.jpg\" width=\"214\" height=\"204\"></div>";
+    static const char html1[] = "<div><p>Fir&<>\"\'st<p>second</div><div><p>third<p>fourth</div><div><h2>Flower</h2><img src='img_&<>\"&#039;white_flower.jpg' width=\"214\" height=\"204\"></div>";
     size_t html1_len = sizeof(html1) - 1;
 
     purc_instance_extra_info info = {};

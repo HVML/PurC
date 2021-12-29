@@ -630,6 +630,45 @@ pchtml_html_serialize_send_escaping_attribute_string(const unsigned char *data,
 
                 break;
 
+            /* U+0027 double quotation marks (') */
+            case 0x27:
+                if (pos != data) {
+                    pchtml_html_serialize_send(pos, (data - pos), ctx);
+                }
+
+                pchtml_html_serialize_send("&#039;", 6, ctx);
+
+                data++;
+                pos = data;
+
+                break;
+
+            /* U+003C LESS-THAN SIGN (<) */
+            case 0x3C:
+                if (pos != data) {
+                    pchtml_html_serialize_send(pos, (data - pos), ctx);
+                }
+
+                pchtml_html_serialize_send("&lt;", 4, ctx);
+
+                data++;
+                pos = data;
+
+                break;
+
+            /* U+003E GREATER-THAN SIGN (>) */
+            case 0x3E:
+                if (pos != data) {
+                    pchtml_html_serialize_send(pos, (data - pos), ctx);
+                }
+
+                pchtml_html_serialize_send("&gt;", 4, ctx);
+
+                data++;
+                pos = data;
+
+                break;
+
             default:
                 data++;
 
