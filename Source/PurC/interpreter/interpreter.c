@@ -186,13 +186,9 @@ edom_gen_write(struct pcintr_edom_gen *edom_gen, const char *buf, int sz)
     if (n != sz)
         return -1;
 
-    purc_rwstream_t ws = purc_rwstream_new_from_mem((void*)buf, sz);
-    if (!ws)
-        return -1;
-
     unsigned int ui;
-    ui = pchtml_html_parse_chunk_process(edom_gen->parser, ws);
-    purc_rwstream_destroy(ws);
+    ui = pchtml_html_parse_chunk_process(edom_gen->parser,
+            (unsigned char*)buf, sz);
     if (ui) {
         // FIXME: out of memory????
         return -1;
