@@ -946,16 +946,14 @@ TEST(html, html_parser_specialchars)
     if (status != PCHTML_STATUS_OK) {
         printf ("Failed to serialization HTML tree");
     }
-#endif
-    rwstream = purc_rwstream_new_buffer (1024, 1024 * 1024);
+#else
+    void * memory = malloc (1024 * 1024);
+    rwstream = purc_rwstream_new_from_mem (memory, 1024 * 1024);
     pchtml_doc_write_to_stream (doc, rwstream);
-    size_t content_size = 0;
-    size_t rw_size = 0;
-    char *rw_string = (char *)purc_rwstream_get_mem_buffer_ex (rwstream,
-                                            &content_size, &rw_size, true);
-    printf ("Use pchtml_doc_write_to_stream: \n %s\n", rw_string);
+    printf ("Use pchtml_doc_write_to_stream: \n %s\n", (char *)memory);
+    free (memory);
     purc_rwstream_destroy (rwstream);
-
+#endif
     /* Destroy document*/
     pchtml_html_document_destroy(doc);
     // clean instance
