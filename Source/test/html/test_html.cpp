@@ -950,6 +950,7 @@ TEST(html, html_parser_specialchars)
     void * memory = malloc (1024 * 1024);
     rwstream = purc_rwstream_new_from_mem (memory, 1024 * 1024);
     pchtml_doc_write_to_stream (doc, rwstream);
+    purc_rwstream_write(rwstream, "", 1);
     printf ("Use pchtml_doc_write_to_stream: \n %s\n", (char *)memory);
     free (memory);
     purc_rwstream_destroy (rwstream);
