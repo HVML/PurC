@@ -163,7 +163,7 @@ pcintr_timer_get_attach(pcintr_timer_t timer)
 #define TIMERS_STR_ID               "id"
 #define TIMERS_STR_INTERVAL         "interval"
 #define TIMERS_STR_ACTIVE           "active"
-#define TIMERS_STR_ON               "on"
+#define TIMERS_STR_YES              "yes"
 #define TIMERS_STR_TIMERS           "TIMERS"
 #define TIMERS_STR_HANDLE           "__handle"
 #define TIMERS_STR_EXPIRED          "expired"
@@ -289,7 +289,7 @@ timer_listener_handler(purc_variant_t source, purc_atom_t msg_type,
         pcintr_timer_set_interval(timer, ret);
     }
     else if (is_euqal(argv[0], TIMERS_STR_ACTIVE)) {
-        if (is_euqal(argv[1], TIMERS_STR_ON)) {
+        if (is_euqal(argv[1], TIMERS_STR_YES)) {
             pcintr_timer_start(timer);
         }
         else {
@@ -318,7 +318,7 @@ timers_listener_handler(purc_variant_t source, purc_atom_t msg_type,
         uint64_t ret = 0;
         purc_variant_cast_to_ulongint(interval, &ret, false);
         pcintr_timer_set_interval(timer, ret);
-        if (is_euqal(active, TIMERS_STR_ON)) {
+        if (is_euqal(active, TIMERS_STR_YES)) {
             pcintr_timer_start(timer);
         }
     }
