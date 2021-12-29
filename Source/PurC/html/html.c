@@ -66,7 +66,7 @@ void pchtml_cleanup_instance(struct pcinst* inst)
     UNUSED_PARAM(inst);
 }
 
-purc_atom_t get_html_cmd_atom (size_t id)
+purc_atom_t pchtml_html_cmd_atom (size_t id)
 {
     purc_atom_t atom = 0;
     if (id < sizeof(html_atoms)/sizeof(html_atoms[0]))
