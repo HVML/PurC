@@ -344,16 +344,15 @@ static void
 edom_fragments_post_process(pcintr_stack_t stack)
 {
     struct list_head *edom_fragments = &stack->edom_fragments;
-    if (list_empty(edom_fragments))
-        return;
-
-    struct list_head *p, *n;
-    list_for_each_safe(p, n, edom_fragments) {
-        struct edom_fragment *curr;
-        curr = container_of(p, struct edom_fragment, node);
-        list_del(p);
-        edom_fragment_post_process(stack, curr);
-        edom_fragment_destroy(curr);
+    if (list_empty(edom_fragments)) {
+        struct list_head *p, *n;
+        list_for_each_safe(p, n, edom_fragments) {
+            struct edom_fragment *curr;
+            curr = container_of(p, struct edom_fragment, node);
+            list_del(p);
+            edom_fragment_post_process(stack, curr);
+            edom_fragment_destroy(curr);
+        }
     }
 
     struct pcintr_edom_gen *edom_gen = &stack->edom_gen;
