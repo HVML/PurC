@@ -108,7 +108,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
             return NULL;
         }
         // TODO:
-#if 0
+#if 1
         stack->co.waits++;
 
         // for test

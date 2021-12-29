@@ -747,18 +747,21 @@ execute_one_step(pcintr_coroutine_t co)
         if (co->stack->stage == STACK_STAGE_FIRST_ROUND)
             edom_gen_finish(&stack->edom_gen);
         edom_fragments_post_process(stack);
-    }
-    if (no_frames)
         co->stack->stage = STACK_STAGE_EVENT_LOOP;
-
-    // do not run execute_one_step until event's fired if co->waits > 0
-    if (co->waits)
-        co->state = CO_STATE_WAIT;
-
-    if (co->waits)
-        return;
-    if (no_frames)
+        // do not run execute_one_step until event's fired if co->waits > 0
+        if (co->waits) {
+            co->state = CO_STATE_WAIT;
+            return;
+        }
         co->state = CO_STATE_TERMINATED;
+    }
+    else {
+        frame = pcintr_stack_get_bottom_frame(stack);
+        if (frame && frame->preemptor) {
+            PC_ASSERT(0); // Not implemented yet
+        }
+        // continue coroutine even if it's in wait state
+    }
 }
 
 static void
