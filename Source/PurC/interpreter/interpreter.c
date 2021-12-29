@@ -1352,8 +1352,8 @@ pcintr_revoke_observer(struct pcintr_observer* observer)
 }
 
 struct pcintr_observer*
-pcintr_find_observer(purc_variant_t observed, purc_variant_t msg_type,
-        purc_variant_t sub_type)
+pcintr_find_observer(pcintr_stack_t stack, purc_variant_t observed,
+        purc_variant_t msg_type, purc_variant_t sub_type)
 {
     if (observed == PURC_VARIANT_INVALID ||
             msg_type == PURC_VARIANT_INVALID) {
@@ -1363,7 +1363,6 @@ pcintr_find_observer(purc_variant_t observed, purc_variant_t msg_type,
     const char* sub = (sub_type != PURC_VARIANT_INVALID) ?
         purc_variant_get_string_const(sub_type) : NULL;
 
-    pcintr_stack_t stack = purc_get_stack();
     struct pcutils_arrlist* list = NULL;
     if (purc_variant_is_type(observed, PURC_VARIANT_TYPE_DYNAMIC)) {
         list = stack->dynamic_variant_observer_list;
@@ -1391,6 +1390,30 @@ pcintr_find_observer(purc_variant_t observed, purc_variant_t msg_type,
         }
     }
     return NULL;
+}
+
+bool
+pcintr_is_observer_empty(pcintr_stack_t stack)
+{
+    if (!stack) {
+        return false;
+    }
+
+    if (stack->native_variant_observer_list
+            && pcutils_arrlist_length(stack->native_variant_observer_list)) {
+        return false;
+    }
+
+    if (stack->dynamic_variant_observer_list
+            && pcutils_arrlist_length(stack->dynamic_variant_observer_list)) {
+        return false;
+    }
+
+    if (stack->common_variant_observer_list
+            && pcutils_arrlist_length(stack->common_variant_observer_list)) {
+        return false;
+    }
+    return true;
 }
 
 struct pcintr_message {
@@ -1444,8 +1467,8 @@ pcintr_handle_message(void *ctxt)
 {
     struct pcintr_message* msg = (struct pcintr_message*) ctxt;
 
-    struct pcintr_observer* observer = pcintr_find_observer(msg->source,
-            msg->type, msg->sub_type);
+    struct pcintr_observer* observer = pcintr_find_observer(msg->stack,
+            msg->source, msg->type, msg->sub_type);
     if (observer == NULL) {
         return 0;
     }
@@ -1462,6 +1485,7 @@ pcintr_handle_message(void *ctxt)
         return -1;
     }
 
+    fprintf(stderr, "pcintr_handle_message|run observe begin|waits=%d\n", stack->co.waits);
     frame->ops = pcintr_get_ops_by_element(observer->child);
     frame->pos = observer->child;
     // observer->scope : parent of observe element
@@ -1471,11 +1495,16 @@ pcintr_handle_message(void *ctxt)
     frame->edom_element = observer->edom_element;
     frame->next_step = NEXT_STEP_AFTER_PUSHED;
 
+    stack->co.state = CO_STATE_RUN;
     coroutine_set_current(&stack->co);
     pcvariant_push_gc();
     execute_one_step(&stack->co);
     pcvariant_pop_gc();
     coroutine_set_current(NULL);
+    if (stack->co.waits) {
+        stack->co.waits--;
+    }
+    fprintf(stderr, "pcintr_handle_message|run observe end|waits=%d\n", stack->co.waits);
 
     return 0;
 }
