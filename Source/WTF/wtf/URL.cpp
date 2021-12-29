@@ -147,7 +147,7 @@ static Optional<LChar> decodeEscapeSequence(StringView input, unsigned index, un
     return toASCIIHexValue(digit1, digit2);
 }
 
-static String decodeEscapeSequencesFromParsedURL(StringView input)
+String decodeEscapeSequencesFromParsedURL(StringView input)
 {
     ASSERT(input.isAllASCII());
 
