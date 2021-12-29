@@ -739,7 +739,7 @@ TEST(html, html_parser_replace)
 
         // set the fragment to the node. append: is the sub tree.
         pchtml_edom_insert_node (div, fragment_root,
-                get_html_cmd_atom(ID_HTML_CMD_APPEND));
+                pchtml_html_cmd_atom (ID_HTML_CMD_APPEND));
 
         purc_rwstream_destroy (rwstream);
     }
@@ -796,7 +796,7 @@ TEST(html, html_parser_replace)
 
         // set the fragment to the node. insertBefore: before the node
         pchtml_edom_insert_node (div, fragment_root,
-                get_html_cmd_atom (ID_HTML_CMD_INSERTBEFORE));
+                pchtml_html_cmd_atom (ID_HTML_CMD_INSERTBEFORE));
 
         purc_rwstream_destroy (rwstream);
     }
@@ -857,7 +857,7 @@ TEST(html, html_parser_replace)
 
         // set the fragment to the node. insertBefore: before the node
         pchtml_edom_insert_node (div, fragment_root,
-                get_html_cmd_atom (ID_HTML_CMD_INSERTAFTER));
+                pchtml_html_cmd_atom (ID_HTML_CMD_INSERTAFTER));
 
         purc_rwstream_destroy (rwstream);
     }

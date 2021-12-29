@@ -182,7 +182,7 @@ enum {
     ID_HTML_CMD_INSERTAFTER,
 };
 
-purc_atom_t get_html_cmd_atom(size_t id);
+purc_atom_t pchtml_html_cmd_atom(size_t id);
 
 
 // doc:  html document root
