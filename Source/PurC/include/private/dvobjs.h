@@ -28,9 +28,9 @@
 #include "config.h"
 #include "purc-rwstream.h"
 #include "purc-variant.h"
-#include "private/vdom.h"
 
 #include <assert.h>
+#include <time.h>
 
 #define VARIANT_TYPE_NAME_UNDEFINED     "undefined"
 #define VARIANT_TYPE_NAME_NULL          "null"
@@ -104,22 +104,26 @@ purc_variant_t pcdvobjs_get_system (void);
 purc_variant_t pcdvobjs_get_string (void);
 purc_variant_t pcdvobjs_get_logical (void);
 purc_variant_t pcdvobjs_get_ejson (void);
-purc_variant_t pcdvobjs_get_hvml (struct pcvdom_dvobj_hvml *);
+purc_variant_t pcdvobjs_get_hvml (void);
 purc_variant_t pcdvobjs_get_t (void);
-void pcdvobjs_destroy_hvml (struct pcvdom_dvobj_hvml *);
 
-// make sure root is a valid object variant
-static inline void * get_dvobj_internal_pointer (
-        purc_variant_t root, const char *name)
-{
-    void *ret = NULL;
-    purc_variant_t var = purc_variant_object_get_by_ckey (root, name);
-    if (var) {
-        if (purc_variant_is_native (var))
-            ret = purc_variant_native_get_entity (var);
-    }
-    return ret;
-}
+struct purc_broken_down_url {
+    char *schema;
+    char *user;
+    char *passwd;
+    char *host;
+    char *path;
+    char *query;
+    char *fragment;
+    unsigned int port;
+};
+
+struct pcvdom_dvobj_hvml {
+    struct purc_broken_down_url url;
+    unsigned long int      maxIterationCount;
+    unsigned long int      maxRecursionDepth;
+    struct timespec        timeout;
+};
 
 struct wildcard_list {
     char * wildcard;

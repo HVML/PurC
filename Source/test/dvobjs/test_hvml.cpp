@@ -23,10 +23,6 @@ extern void get_variant_total_info (size_t *mem, size_t *value, size_t *resv);
 
 TEST(dvobjs, dvobjs_hvml_setter)
 {
-    if (1)
-        return;
-
-    pcvdom_dvobj_hvml hvml_struct = {};
     const char *function[] = {"base", "maxIterationCount", "maxRecursionDepth",
                               "timeout"};
     purc_variant_t param[MAX_PARAM_NR] = {0};
@@ -54,13 +50,7 @@ TEST(dvobjs, dvobjs_hvml_setter)
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-//    purc_variant_t root = purc_variant_make_object (0, PURC_VARIANT_INVALID,
-//                                                    PURC_VARIANT_INVALID);
-//    purc_variant_t native = purc_variant_make_native ((void *)&hvml_struct, NULL);
-//    purc_variant_object_set_by_static_ckey (root, "__handle_dvobj_hvml", native);
-//    purc_variant_unref (native);
-
-    purc_variant_t hvml = pcdvobjs_get_hvml(&hvml_struct);
+    purc_variant_t hvml = pcdvobjs_get_hvml();
     ASSERT_NE(hvml, nullptr);
     ASSERT_EQ(purc_variant_is_object (hvml), true);
 
@@ -220,7 +210,6 @@ TEST(dvobjs, dvobjs_hvml_setter)
 
     }
 
-    pcdvobjs_destroy_hvml (&hvml_struct);
     purc_variant_unref(hvml);
     purc_cleanup ();
 }

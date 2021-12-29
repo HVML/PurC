@@ -27,7 +27,6 @@
 #include "private/errors.h"
 #include "private/debug.h"
 #include "private/utils.h"
-#include "private/dvobjs.h"
 #include "private/vdom.h"
 
 #include "hvml-attr.h"
@@ -751,9 +750,6 @@ document_reset(struct pcvdom_document *doc)
         pctree_node_remove(doc->node.node.first_child);
         pcvdom_node_destroy(node);
     }
-
-    // add by gengyue
-    pcdvobjs_destroy_hvml (&(doc->dvobj_hvml));
 
     if (doc->variables) {
         r = pcvarmgr_list_destroy(doc->variables);

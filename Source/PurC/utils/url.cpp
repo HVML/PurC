@@ -37,34 +37,34 @@ char * pcdvobjs_get_url (const struct purc_broken_down_url *url_struct)
 {
     char * url_string = NULL;
     String string = "";
-    std::unique_ptr<WTF::URL> url = makeUnique<URL>(URL(), string);
+    WTF::URL url(WTF::URL(), string);
 
     if (url_struct->schema)
-        url->setProtocol (url_struct->schema);
+        url.setProtocol (url_struct->schema);
 
     if (url_struct->host)
-        url->setHost (url_struct->host);
+        url.setHost (url_struct->host);
 
     if (url_struct->port)
-        url->setPort (url_struct->port);
+        url.setPort (url_struct->port);
 
     if (url_struct->path)
-        url->setPath (url_struct->path);
+        url.setPath (url_struct->path);
 
     if (url_struct->query)
-        url->setQuery (url_struct->query);
+        url.setQuery (url_struct->query);
 
     if (url_struct->fragment)
-        url->setFragmentIdentifier (url_struct->fragment);
+        url.setFragmentIdentifier (url_struct->fragment);
 
     if (url_struct->user)
-        url->setUser (url_struct->user);
+        url.setUser (url_struct->user);
 
     if (url_struct->passwd)
-        url->setPassword (url_struct->passwd);
+        url.setPassword (url_struct->passwd);
 
-    if (url->isValid()) {
-        String tempstring = url->string();
+    if (url.isValid()) {
+        String tempstring = url.string();
         url_string = strdup (tempstring.latin1().data());
     }
 
