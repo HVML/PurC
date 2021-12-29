@@ -57,7 +57,7 @@ struct sorted_array {
 #define SASZ_DEFAULT            4
 
 struct sorted_array *
-sorted_array_create(unsigned int flags, size_t sz_init,
+pcutils_sorted_array_create(unsigned int flags, size_t sz_init,
         sacb_free free_fn, sacb_compare cmp_fn)
 {
     struct sorted_array *sa;
@@ -81,7 +81,7 @@ sorted_array_create(unsigned int flags, size_t sz_init,
     return sa;
 }
 
-void sorted_array_destroy(struct sorted_array *sa)
+void pcutils_sorted_array_destroy(struct sorted_array *sa)
 {
     size_t idx;
 
@@ -97,13 +97,13 @@ void sorted_array_destroy(struct sorted_array *sa)
     free(sa);
 }
 
-int sorted_array_add(struct sorted_array *sa, void *sortv, void *data)
+int pcutils_sorted_array_add(struct sorted_array *sa, void *sortv, void *data)
 {
     ssize_t i, idx;
     ssize_t low, high, mid;
 
     if (!(sa->flags & SAFLAG_DUPLCATE_SORTV)) {
-        if (sorted_array_find(sa, sortv, NULL)) {
+        if (pcutils_sorted_array_find(sa, sortv, NULL)) {
             return -1;
         }
     }
@@ -173,7 +173,7 @@ int sorted_array_add(struct sorted_array *sa, void *sortv, void *data)
     return 0;
 }
 
-bool sorted_array_remove(struct sorted_array *sa, const void* sortv)
+bool pcutils_sorted_array_remove(struct sorted_array *sa, const void* sortv)
 {
     ssize_t low, high, mid;
     size_t i;
@@ -223,7 +223,7 @@ found:
     return true;
 }
 
-bool sorted_array_find(struct sorted_array *sa, const void *sortv, void **data)
+bool pcutils_sorted_array_find(struct sorted_array *sa, const void *sortv, void **data)
 {
     ssize_t low, high, mid;
 
@@ -265,12 +265,12 @@ found:
     return true;
 }
 
-size_t sorted_array_count(struct sorted_array *sa)
+size_t pcutils_sorted_array_count(struct sorted_array *sa)
 {
     return sa->nr_members;
 }
 
-const void* sorted_array_get(struct sorted_array *sa, size_t idx, void **data)
+const void* pcutils_sorted_array_get(struct sorted_array *sa, size_t idx, void **data)
 {
     assert (idx < sa->nr_members);
 
@@ -281,7 +281,7 @@ const void* sorted_array_get(struct sorted_array *sa, size_t idx, void **data)
     return sa->members[idx].sortv;
 }
 
-void sorted_array_delete(struct sorted_array *sa, size_t idx)
+void pcutils_sorted_array_delete(struct sorted_array *sa, size_t idx)
 {
     size_t i;
 
