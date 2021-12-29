@@ -2,7 +2,7 @@
  * @file observe.c
  * @author Xue Shuming
  * @date 2021/12/28
- * @brief
+ * @brief The ops for <observe>
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -41,9 +41,6 @@
 struct ctxt_for_observe {
     struct pcvdom_node           *curr;
 };
-
-static pcvdom_element_t
-select_child(pcintr_stack_t stack, void* ud);
 
 static void
 ctxt_for_observe_destroy(struct ctxt_for_observe *ctxt)
@@ -99,42 +96,44 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     frame->ctxt = ctxt;
     frame->ctxt_destroy = ctxt_destroy;
 
-    pcvdom_element_t child = select_child(stack, ctxt);
-    if (child != NULL) {
-        struct pcintr_observer* observer;
-        observer = pcintr_register_observer(on, for_var, frame->scope,
-                frame->edom_element, pos, child);
-        if (observer == NULL) {
-            return NULL;
-        }
-        // TODO:
-#if 1
-        stack->co.waits++;
-
-        // for test
-        purc_variant_t timers = pcintr_find_named_var(stack, "TIMERS");
-        if (timers != PURC_VARIANT_INVALID) {
-            purc_variant_t id = purc_variant_make_string("id", false);
-            purc_variant_t id_value = purc_variant_make_string("clock", false);
-            purc_variant_t interval = purc_variant_make_string("interval", false);
-            purc_variant_t interval_value = purc_variant_make_ulongint(1500);
-            purc_variant_t active = purc_variant_make_string("active", false);
-            purc_variant_t active_value = purc_variant_make_string("yes", false);
-
-            purc_variant_t timer = purc_variant_make_object(3, id, id_value,
-                    interval, interval_value, active, active_value);
-            purc_variant_set_add(timers, timer, false);
-
-            purc_variant_unref(id);
-            purc_variant_unref(id_value);
-            purc_variant_unref(interval);
-            purc_variant_unref(interval_value);
-            purc_variant_unref(active);
-            purc_variant_unref(active_value);
-            purc_variant_unref(timer);
-        }
-#endif
+    if (stack->stage != STACK_STAGE_FIRST_ROUND) {
+        purc_clr_error();
+        return ctxt;
     }
+
+    struct pcintr_observer* observer;
+    observer = pcintr_register_observer(on, for_var, frame->scope,
+            frame->edom_element, pos);
+    if (observer == NULL) {
+        return NULL;
+    }
+    // TODO:
+#if 1
+    stack->co.waits++;
+
+    // for test
+    purc_variant_t timers = pcintr_find_named_var(stack, "TIMERS");
+    if (timers != PURC_VARIANT_INVALID) {
+        purc_variant_t id = purc_variant_make_string("id", false);
+        purc_variant_t id_value = purc_variant_make_string("clock", false);
+        purc_variant_t interval = purc_variant_make_string("interval", false);
+        purc_variant_t interval_value = purc_variant_make_ulongint(1500);
+        purc_variant_t active = purc_variant_make_string("active", false);
+        purc_variant_t active_value = purc_variant_make_string("yes", false);
+
+        purc_variant_t timer = purc_variant_make_object(3, id, id_value,
+                interval, interval_value, active, active_value);
+        purc_variant_set_add(timers, timer, false);
+
+        purc_variant_unref(id);
+        purc_variant_unref(id_value);
+        purc_variant_unref(interval);
+        purc_variant_unref(interval_value);
+        purc_variant_unref(active);
+        purc_variant_unref(active_value);
+        purc_variant_unref(timer);
+    }
+#endif
 
     purc_clr_error();
 
@@ -198,11 +197,15 @@ on_comment(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 }
 
 
-pcvdom_element_t
+static pcvdom_element_t
 select_child(pcintr_stack_t stack, void* ud)
 {
     PC_ASSERT(stack);
     PC_ASSERT(stack == purc_get_stack());
+
+    if (stack->stage == STACK_STAGE_FIRST_ROUND) {
+        return NULL;
+    }
 
     pcintr_coroutine_t co = &stack->co;
     struct pcintr_stack_frame *frame;
@@ -268,7 +271,7 @@ ops = {
     .after_pushed       = after_pushed,
     .on_popping         = on_popping,
     .rerun              = NULL,
-    .select_child       = NULL,
+    .select_child       = select_child,
 };
 
 struct pcintr_element_ops* pcintr_get_observe_ops(void)

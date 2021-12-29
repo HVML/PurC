@@ -1271,7 +1271,7 @@ struct pcintr_observer*
 pcintr_register_observer(purc_variant_t observed,
         purc_variant_t for_value, pcvdom_element_t scope,
         pcedom_element_t *edom_element,
-        pcvdom_element_t pos, pcvdom_element_t child)
+        pcvdom_element_t pos)
 {
     UNUSED_PARAM(for_value);
 
@@ -1337,7 +1337,6 @@ pcintr_register_observer(purc_variant_t observed,
     observer->scope = scope;
     observer->edom_element = edom_element;
     observer->pos = pos;
-    observer->child= child;
     observer->msg_type = strdup(msg_type);
     observer->sub_type = strdup(sub_type);
     add_observer_into_list(list, observer);
@@ -1492,21 +1491,14 @@ pcintr_handle_message(void *ctxt)
     }
 
     fprintf(stderr, "pcintr_handle_message|run observe begin|waits=%d\n", stack->co.waits);
-    frame->ops = pcintr_get_ops_by_element(observer->child);
-    frame->pos = observer->child;
-    // observer->scope : parent of observe element
-    // observer->pos : observe element
-    // FIXME:
+    frame->ops = pcintr_get_ops_by_element(observer->pos);
     frame->scope = observer->scope;
+    frame->pos = observer->pos;
     frame->edom_element = observer->edom_element;
     frame->next_step = NEXT_STEP_AFTER_PUSHED;
 
-    stack->co.state = CO_STATE_RUN;
-    coroutine_set_current(&stack->co);
-    pcvariant_push_gc();
-    execute_one_step(&stack->co);
-    pcvariant_pop_gc();
-    coroutine_set_current(NULL);
+    stack->co.state = CO_STATE_READY;
+    run_coroutines(NULL);
     if (stack->co.waits) {
         stack->co.waits--;
     }
