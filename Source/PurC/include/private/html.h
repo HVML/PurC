@@ -78,7 +78,7 @@ pchtml_html_parse_chunk_begin(pchtml_html_parser_t *parser);
 
 unsigned int
 pchtml_html_parse_chunk_process(pchtml_html_parser_t *parser,
-                const purc_rwstream_t html);
+                const unsigned char *data, size_t sz);
 
 unsigned int
 pchtml_html_parse_chunk_end(pchtml_html_parser_t *parser);
@@ -102,7 +102,7 @@ pchtml_html_parse_fragment_chunk_begin(pchtml_html_parser_t *parser,
 
 unsigned int
 pchtml_html_parse_fragment_chunk_process(pchtml_html_parser_t *parser,
-                const purc_rwstream_t html);
+                const unsigned char *data, size_t sz);
 
 pcedom_node_t *
 pchtml_html_parse_fragment_chunk_end(pchtml_html_parser_t *parser);
@@ -129,7 +129,7 @@ pchtml_html_document_parse_chunk_begin(
 
 unsigned int
 pchtml_html_document_parse_chunk(pchtml_html_document_t *document,
-                const purc_rwstream_t html) ;
+                const unsigned char *data, size_t sz);
 
 unsigned int
 pchtml_html_document_parse_chunk_end(
@@ -148,7 +148,7 @@ pchtml_html_document_parse_fragment_chunk_begin(
 
 unsigned int
 pchtml_html_document_parse_fragment_chunk(pchtml_html_document_t *document,
-                const purc_rwstream_t html) ;
+                const unsigned char *data, size_t sz);
 
 pcedom_node_t *
 pchtml_html_document_parse_fragment_chunk_end(

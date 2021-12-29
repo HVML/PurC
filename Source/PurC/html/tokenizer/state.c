@@ -255,11 +255,11 @@ pchtml_html_tokenizer_state_data_before(pchtml_html_tokenizer_t *tkz,
  */
 static const unsigned char *
 pchtml_html_tokenizer_state_data(pchtml_html_tokenizer_t *tkz,
-                              const unsigned char *data, const unsigned char *end)
+                              const unsigned char *data, const unsigned char * const end)
 {
     pchtml_html_tokenizer_state_begin_set(tkz, data);
 
-    while (data != end) {
+    while (data < end) {
         switch (*data) {
             /* U+003C LESS-THAN SIGN (<) */
             case 0x3C:

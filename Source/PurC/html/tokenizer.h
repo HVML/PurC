@@ -168,7 +168,7 @@ pchtml_html_tokenizer_begin(pchtml_html_tokenizer_t *tkz) WTF_INTERNAL;
 
 unsigned int
 pchtml_html_tokenizer_chunk(pchtml_html_tokenizer_t *tkz,
-                const purc_rwstream_t html) WTF_INTERNAL;
+                const unsigned char *data, size_t sz) WTF_INTERNAL;
 
 unsigned int
 pchtml_html_tokenizer_end(pchtml_html_tokenizer_t *tkz) WTF_INTERNAL;

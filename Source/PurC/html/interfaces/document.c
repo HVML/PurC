@@ -162,9 +162,18 @@ pchtml_html_document_parse(pchtml_html_document_t *document,
         goto failed;
     }
 
-    status = pchtml_html_parse_chunk_process(doc->parser, html);
-    if (status != PCHTML_STATUS_OK) {
-        goto failed;
+    ssize_t sz;
+    while (1) {
+        char buf[1024];
+        sz = purc_rwstream_read(html, buf, sizeof(buf));
+        if (sz <= 0)
+            break;
+
+        status = pchtml_html_parse_chunk_process(doc->parser,
+                (unsigned char*)buf, sz);
+        if (status != PCHTML_STATUS_OK) {
+            goto failed;
+        }
     }
 
     document->opt = opt;
@@ -198,10 +207,10 @@ pchtml_html_document_parse_chunk_begin(pchtml_html_document_t *document)
 
 unsigned int
 pchtml_html_document_parse_chunk(pchtml_html_document_t *document,
-                        const purc_rwstream_t html)
+                const unsigned char *data, size_t sz)
 {
     return pchtml_html_parse_chunk_process(document->dom_document.parser,
-                                        html);
+                                        data, sz);
 }
 
 unsigned int
@@ -233,9 +242,18 @@ pchtml_html_document_parse_fragment(pchtml_html_document_t *document,
         goto failed;
     }
 
-    status = pchtml_html_parse_fragment_chunk_process(parser, html);
-    if (status != PCHTML_STATUS_OK) {
-        goto failed;
+    ssize_t sz;
+    while (1) {
+        char buf[1024];
+        sz = purc_rwstream_read(html, buf, sizeof(buf));
+        if (sz <= 0)
+            break;
+
+        status = pchtml_html_parse_fragment_chunk_process(parser,
+                (unsigned char*)buf, sz);
+        if (status != PCHTML_STATUS_OK) {
+            goto failed;
+        }
     }
 
     document->opt = opt;
@@ -268,10 +286,10 @@ pchtml_html_document_parse_fragment_chunk_begin(pchtml_html_document_t *document
 
 unsigned int
 pchtml_html_document_parse_fragment_chunk(pchtml_html_document_t *document,
-                        const purc_rwstream_t html)
+                const unsigned char *data, size_t sz)
 {
     return pchtml_html_parse_fragment_chunk_process(document->dom_document.parser,
-                                                 html);
+                                                 data, sz);
 }
 
 pcedom_node_t *
