@@ -337,7 +337,7 @@ edom_fragment_post_process(pcintr_stack_t stack,
     PC_ASSERT(node->type == PCEDOM_NODE_TYPE_ELEMENT);
 
     pchtml_edom_insert_node(&curr->node, node,
-            get_html_cmd_atom(ID_HTML_CMD_INSERTBEFORE));
+            pchtml_html_cmd_atom(ID_HTML_CMD_INSERTBEFORE));
 }
 
 static void
