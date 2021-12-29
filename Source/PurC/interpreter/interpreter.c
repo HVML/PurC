@@ -132,12 +132,14 @@ edom_gen_release(struct pcintr_edom_gen *edom_gen)
         purc_rwstream_write(edom_gen->cache, "", 1); // null-terminator
         const char *s;
         s = (const char*)purc_rwstream_get_mem_buffer(edom_gen->cache, NULL);
-        fprintf(stderr, "generated html:\n%s\n", s);
+        if (0)
+            fprintf(stderr, "generated html:\n%s\n", s);
         purc_rwstream_destroy(edom_gen->cache);
         edom_gen->cache = NULL;
     }
     if (edom_gen->doc) {
-        dump_document(edom_gen->doc);
+        if (0)
+            dump_document(edom_gen->doc);
         pchtml_html_document_destroy(edom_gen->doc);
         edom_gen->doc = NULL;
     }
@@ -334,8 +336,8 @@ edom_fragment_post_process(pcintr_stack_t stack,
     PC_ASSERT(node);
     PC_ASSERT(node->type == PCEDOM_NODE_TYPE_ELEMENT);
 
-    pchtml_edom_insert_node(&curr->node, node, pcvariant_atom_append);
-    dump_document(doc);
+    pchtml_edom_insert_node(&curr->node, node,
+            get_html_cmd_atom(ID_HTML_CMD_INSERTBEFORE));
 }
 
 static void
@@ -353,6 +355,12 @@ edom_fragments_post_process(pcintr_stack_t stack)
         edom_fragment_post_process(stack, curr);
         edom_fragment_destroy(curr);
     }
+
+    struct pcintr_edom_gen *edom_gen = &stack->edom_gen;
+    PC_ASSERT(edom_gen->finished);
+    pchtml_html_document_t *doc = edom_gen->doc;
+    PC_ASSERT(doc);
+    dump_document(doc);
 }
 
 static void
