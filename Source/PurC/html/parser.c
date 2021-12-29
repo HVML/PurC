@@ -159,9 +159,17 @@ pchtml_html_parse(pchtml_html_parser_t *parser,
         return NULL;
     }
 
-    pchtml_html_parse_chunk_process(parser, html);
-    if (parser->status != PCHTML_STATUS_OK) {
-        goto failed;
+    ssize_t sz;
+    while (1) {
+        char buf[1024];
+        sz = purc_rwstream_read(html, buf, sizeof(buf));
+        if (sz <= 0)
+            break;
+
+        pchtml_html_parse_chunk_process(parser, (unsigned char*)buf, sz);
+        if (parser->status != PCHTML_STATUS_OK) {
+            goto failed;
+        }
     }
 
     pchtml_html_parse_chunk_end(parser);
@@ -200,9 +208,18 @@ pchtml_html_parse_fragment_by_tag_id(pchtml_html_parser_t *parser,
         return NULL;
     }
 
-    pchtml_html_parse_fragment_chunk_process(parser, html);
-    if (parser->status != PCHTML_STATUS_OK) {
-        return NULL;
+    ssize_t sz;
+    while (1) {
+        char buf[1024];
+        sz = purc_rwstream_read(html, buf, sizeof(buf));
+        if (sz <= 0)
+            break;
+
+        pchtml_html_parse_fragment_chunk_process(parser,
+                (unsigned char*)buf, sz);
+        if (parser->status != PCHTML_STATUS_OK) {
+            return NULL;
+        }
     }
 
     return pchtml_html_parse_fragment_chunk_end(parser);
@@ -313,14 +330,14 @@ done:
 
 unsigned int
 pchtml_html_parse_fragment_chunk_process(pchtml_html_parser_t *parser,
-                                      const purc_rwstream_t html)
+                const unsigned char *data, size_t sz)
 {
     if (parser->state != PCHTML_HTML_PARSER_STATE_FRAGMENT_PROCESS) {
         pcinst_set_error (PURC_ERROR_WRONG_STAGE);
         return PCHTML_STATUS_ERROR_WRONG_STAGE;
     }
 
-    parser->status = pchtml_html_tree_chunk(parser->tree, html);
+    parser->status = pchtml_html_tree_chunk(parser->tree, data, sz);
     if (parser->status != PCHTML_STATUS_OK) {
         pchtml_html_html_element_interface_destroy(pchtml_html_interface_html(parser->root));
 
@@ -439,14 +456,14 @@ pchtml_html_parse_chunk_begin(pchtml_html_parser_t *parser)
 
 unsigned int
 pchtml_html_parse_chunk_process(pchtml_html_parser_t *parser,
-                             const purc_rwstream_t html)
+                const unsigned char *data, size_t sz)
 {
     if (parser->state != PCHTML_HTML_PARSER_STATE_PROCESS) {
         pcinst_set_error (PURC_ERROR_WRONG_STAGE);
         return PCHTML_STATUS_ERROR_WRONG_STAGE;
     }
 
-    parser->status = pchtml_html_tree_chunk(parser->tree, html);
+    parser->status = pchtml_html_tree_chunk(parser->tree, data, sz);
     if (parser->status != PCHTML_STATUS_OK) {
         parser->state = PCHTML_HTML_PARSER_STATE_ERROR;
     }
@@ -558,10 +575,19 @@ pcedom_node_t * pchtml_edom_document_parse_fragment (pchtml_html_document_t *doc
         return NULL;
     }
 
-    status = pchtml_html_document_parse_fragment_chunk (document, html);
-    if (status != PCHTML_STATUS_OK) {
-        printf ("Failed to parse HTML chunk");
-        return NULL;
+    ssize_t sz;
+    while (1) {
+        char buf[1024];
+        sz = purc_rwstream_read(html, buf, sizeof(buf));
+        if (sz <= 0)
+            break;
+
+        status = pchtml_html_document_parse_fragment_chunk (document,
+                (unsigned char*)buf, sz);
+        if (status != PCHTML_STATUS_OK) {
+            printf ("Failed to parse HTML chunk");
+            return NULL;
+        }
     }
 
     pcedom_node_t *fragment_root = pchtml_html_document_parse_fragment_chunk_end (document);

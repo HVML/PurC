@@ -162,13 +162,9 @@ void test_html_chunk(char * data_path, char * file_name)
         while ((read = getline(&line, &size, fp)) != -1) {
             *(line + read - 1) = 0;
 
-            rwstream = purc_rwstream_new_from_mem((void*)line, read - 1);
-            ASSERT_NE(rwstream, nullptr);
-
-            ret = pchtml_html_document_parse_chunk(document, rwstream);
+            ret = pchtml_html_document_parse_chunk(document,
+                    (unsigned char*)line, read-1);
             ASSERT_EQ(ret, 0);
-
-            purc_rwstream_destroy (rwstream);
         }
     }
 

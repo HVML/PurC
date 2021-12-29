@@ -122,11 +122,8 @@ TEST(html, html_parser_chunk)
     for (size_t i = 0; html[i][0] != '\0'; i++) {
         const char *buf = html[i];
         size_t      len = strlen(buf);
-        io = purc_rwstream_new_from_mem((void*)buf, len);
-        ASSERT_NE(io, nullptr);
-        ur = pchtml_html_document_parse_chunk(doc, io);
+        ur = pchtml_html_document_parse_chunk(doc, (unsigned char*)buf, len);
         ASSERT_EQ(ur, PCHTML_STATUS_OK);
-        purc_rwstream_destroy(io);
     }
 
     ur = pchtml_html_document_parse_chunk_end(doc);
