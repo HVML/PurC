@@ -634,7 +634,7 @@ TEST(html, html_parser_replace)
     pchtml_html_document_t *doc;
 
     // original html
-    static const char html[] = "<div><p>First<p>second</div><div><p>third<p>fourth</div>";
+    static const char html[] = "<div><p>Fir&\"\'<>st<p>second</div><div><p>third<p>fourth</div>";
     size_t html_len = sizeof(html) - 1;
     int index = 0;
 
@@ -873,6 +873,81 @@ TEST(html, html_parser_replace)
     /* Destroy document*/
     pchtml_html_document_destroy(doc);
 
+    // clean instance
+    purc_cleanup ();
+
+    printf(" OK\n");
+}
+
+
+TEST(html, html_parser_specialchars)
+{
+    purc_rwstream_t rwstream = NULL;
+    unsigned int status;
+    pchtml_html_document_t *doc;
+
+    // original html
+    static const char html[] = "<div><p>First<p>second</div><div><p>third<p>fourth</div><div><h2>Flower</h2><img src=\"img_white_flower.jpg\" width=\"214\" height=\"204\"></div>";
+    size_t html_len = sizeof(html) - 1;
+
+    static const char html1[] = "<div><p>Fir&<>\"\'st<p>second</div><div><p>third<p>fourth</div><div><h2>Flower</h2><img src=\"img_&<>\"\'white_flower.jpg\" width=\"214\" height=\"204\"></div>";
+    size_t html1_len = sizeof(html1) - 1;
+
+    purc_instance_extra_info info = {};
+    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    // parse html file without specail chars
+    // create document
+    doc = pchtml_html_document_create();
+    if (doc == NULL)
+        return;
+
+    rwstream = purc_rwstream_new_from_mem((void*)html, html_len);
+    status = pchtml_html_document_parse(doc, rwstream);
+    if (status != PCHTML_STATUS_OK) {
+        printf ("Failed to parse HTML file");
+    }
+    purc_rwstream_destroy (rwstream);
+
+    /* Serialization html*/
+    printf("HTML Document:\n");
+
+    status = pchtml_html_serialize_pretty_tree_cb(pcedom_interface_node(doc),
+                                               PCHTML_HTML_SERIALIZE_OPT_UNDEF,
+                                               0, serializer_callback, NULL);
+    if (status != PCHTML_STATUS_OK) {
+        printf ("Failed to serialization HTML tree");
+    }
+
+    /* Destroy document*/
+    pchtml_html_document_destroy(doc);
+
+    // parse html file with special chars
+    // create document
+    doc = pchtml_html_document_create();
+    if (doc == NULL)
+        return;
+
+    rwstream = purc_rwstream_new_from_mem((void*)html1, html1_len);
+    status = pchtml_html_document_parse(doc, rwstream);
+    if (status != PCHTML_STATUS_OK) {
+        printf ("Failed to parse HTML file");
+    }
+    purc_rwstream_destroy (rwstream);
+
+    /* Serialization html*/
+    printf("\n\nHTML Document:\n");
+
+    status = pchtml_html_serialize_pretty_tree_cb(pcedom_interface_node(doc),
+                                               PCHTML_HTML_SERIALIZE_OPT_UNDEF,
+                                               0, serializer_callback, NULL);
+    if (status != PCHTML_STATUS_OK) {
+        printf ("Failed to serialization HTML tree");
+    }
+
+    /* Destroy document*/
+    pchtml_html_document_destroy(doc);
     // clean instance
     purc_cleanup ();
 
