@@ -28,6 +28,8 @@
 #include "private/vdom.h"
 #include "purc-variant.h"
 #include "wtf/URL.h"
+#include "wtf/ASCIICType.h"
+#include "wtf/text/StringBuilder.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -73,10 +75,37 @@ char * pcdvobjs_get_url (const struct purc_broken_down_url *url_struct)
     return url_string;
 }
 
+// escape char which is grater than 127.
+// whether other char is valid, URL parser will do it.
+static bool shouldEncode (unsigned char c)
+{
+    if (c > 127)
+        return true;
+    else
+        return false;
+}
+
+static String percentEncodeCharacters(const unsigned char * data)
+{
+    WTF::StringBuilder builder;
+    auto length = strlen ((char *)data);
+    for (unsigned j = 0; j < length; j++) {
+        auto c = data[j];
+        if (shouldEncode(c)) {
+            builder.append('%');
+            builder.append(upperNibbleToASCIIHexDigit(c));
+            builder.append(lowerNibbleToASCIIHexDigit(c));
+        } else
+            builder.append(c);
+    }
+    return builder.toString();
+}
+
 bool pcdvobjs_set_url (struct purc_broken_down_url *url_struct, const char *url_string)
 {
     // std::unique_ptr<WTF::URL> url = makeUnique<URL>(URL(), url_string);
-    WTF::URL url(URL(), url_string);
+    String encode_url = percentEncodeCharacters ((const unsigned char *) url_string);
+    WTF::URL url(URL(), encode_url);
 
     bool valid = url.isValid();
     size_t length = 0;

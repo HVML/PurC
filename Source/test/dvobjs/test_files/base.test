@@ -107,12 +107,19 @@ test_begin
 param_begin
 string:"https://gitlab.fmsoft.cn/hvml/hvml-docs/blob/master/zh/hvml-spec-predefined-variables-v1.0-zh.md#355-stringify-方法"
 param_end
-string:"https://gitlab.fmsoft.cn/hvml/hvml-docs/blob/master/zh/hvml-spec-predefined-variables-v1.0-zh.md#355-stringify-%C3%A6%C2%96%C2%B9%C3%A6%C2%B3%C2%95"
+string:"https://gitlab.fmsoft.cn/hvml/hvml-docs/blob/master/zh/hvml-spec-predefined-variables-v1.0-zh.md#355-stringify-%E6%96%B9%E6%B3%95"
 test_end
 
 test_begin
 param_begin
 string:"https://www.baidu.com/春天#秋天"
 param_end
-string:"https://www.baidu.com/%C3%A6%C2%98%C2%A5%C3%A5%C2%A4%C2%A9#%C3%A7%C2%A7%C2%8B%C3%A5%C2%A4%C2%A9"
+string:"https://www.baidu.com/%E6%98%A5%E5%A4%A9#%E7%A7%8B%E5%A4%A9"
+test_end
+
+test_begin
+param_begin
+string:"https://www.baidu.com/ab cd.html"
+param_end
+string:"https://www.baidu.com/ab%20cd.html"
 test_end
