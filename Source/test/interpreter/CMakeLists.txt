@@ -76,7 +76,7 @@ list(APPEND test_timer_PRIVATE_INCLUDE_DIRECTORIES
 PURC_EXECUTABLE(test_timer)
 
 set(test_timer_SOURCES
-    test-timer.cpp
+    test_timer.cpp
 )
 
 set(test_timer_LIBRARIES
@@ -104,7 +104,7 @@ list(APPEND test_idle_PRIVATE_INCLUDE_DIRECTORIES
 PURC_EXECUTABLE(test_idle)
 
 set(test_idle_SOURCES
-    test-idle.cpp
+    test_idle.cpp
 )
 
 set(test_idle_LIBRARIES
