@@ -1012,7 +1012,9 @@ end:
     return doc;
 }
 
-#define BUILDIN_VAR_HVML    "HVML"
+#define BUILDIN_VAR_HVML        "HVML"
+#define BUILDIN_VAR_SYSTEM      "SYSTEM"
+#define BUILDIN_VAR_T           "T"
 
 static bool
 bind_doc_named_variable(pcintr_stack_t stack, const char* name,
@@ -1041,10 +1043,21 @@ init_buidin_doc_variable(pcintr_stack_t stack)
     }
 
     // $HVML
-    if(bind_doc_named_variable(stack, BUILDIN_VAR_HVML, pcdvobjs_get_hvml())) {
+    if(!bind_doc_named_variable(stack, BUILDIN_VAR_HVML, pcdvobjs_get_hvml())) {
         return false;
     }
 
+    // $SYSTEM
+    if(!bind_doc_named_variable(stack, BUILDIN_VAR_SYSTEM,
+                pcdvobjs_get_system())) {
+        return false;
+    }
+
+    // $T
+    if(!bind_doc_named_variable(stack, BUILDIN_VAR_T,
+                pcdvobjs_get_t())) {
+        return false;
+    }
 
     return true;
 }
@@ -1084,7 +1097,7 @@ purc_load_hvml_from_rwstream(purc_rwstream_t stream)
         return NULL;
     }
 
-    if(init_buidin_doc_variable(stack)) {
+    if(!init_buidin_doc_variable(stack)) {
         stack_destroy(stack);
         return NULL;
     }
