@@ -1012,6 +1012,43 @@ end:
     return doc;
 }
 
+#define BUILDIN_VAR_HVML    "HVML"
+
+static bool
+bind_doc_named_variable(pcintr_stack_t stack, const char* name,
+        purc_variant_t var)
+{
+    if (var == PURC_VARIANT_INVALID) {
+        return false;
+    }
+
+    if (!pcintr_bind_document_variable(stack->vdom, name, var)) {
+        purc_variant_unref(var);
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return false;
+    }
+    purc_variant_unref(var);
+    return true;
+}
+
+static bool
+init_buidin_doc_variable(pcintr_stack_t stack)
+{
+    // $TIMERS
+    stack->vdom->timers = pcintr_timers_init(stack);
+    if (!stack->vdom->timers) {
+        return false;
+    }
+
+    // $HVML
+    if(bind_doc_named_variable(stack, BUILDIN_VAR_HVML, pcdvobjs_get_hvml())) {
+        return false;
+    }
+
+
+    return true;
+}
+
 purc_vdom_t
 purc_load_hvml_from_rwstream(purc_rwstream_t stream)
 {
@@ -1047,29 +1084,10 @@ purc_load_hvml_from_rwstream(purc_rwstream_t stream)
         return NULL;
     }
 
-    // init $TIMERS
-    stack->vdom->timers = pcintr_timers_init(stack);
-    if (!stack->vdom->timers) {
+    if(init_buidin_doc_variable(stack)) {
         stack_destroy(stack);
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
     }
-
-    // init $HVML
-    purc_variant_t hvml = pcdvobjs_get_hvml();
-    if (hvml == PURC_VARIANT_INVALID) {
-        stack_destroy(stack);
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return NULL;
-    }
-
-    if (!pcintr_bind_document_variable(stack->vdom, "HVML", hvml)) {
-        stack_destroy(stack);
-        purc_variant_unref(hvml);
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return NULL;
-    }
-    purc_variant_unref(hvml);
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_push_stack_frame(stack);
