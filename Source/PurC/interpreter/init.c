@@ -130,15 +130,18 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     if (name == PURC_VARIANT_INVALID)
         return -1;
 
-    if (purc_variant_is_type(frame->ctnt_var, PURC_VARIANT_TYPE_ARRAY)) {
-        return post_process_array(co, frame, name);
-    }
-    if (purc_variant_is_type(frame->ctnt_var, PURC_VARIANT_TYPE_OBJECT)) {
-        return post_process_object(co, frame, name);
-    }
+    if (frame->ctnt_var != PURC_VARIANT_INVALID) {
+        if (purc_variant_is_type(frame->ctnt_var, PURC_VARIANT_TYPE_ARRAY)) {
+            return post_process_array(co, frame, name);
+        }
+        if (purc_variant_is_type(frame->ctnt_var, PURC_VARIANT_TYPE_OBJECT)) {
+            return post_process_object(co, frame, name);
+        }
+        purc_set_error(PURC_ERROR_NOT_EXISTS);
+        return -1;
+   }
 
-    purc_set_error(PURC_ERROR_NOT_EXISTS);
-    return -1;
+    return 0;
 }
 
 static void*
@@ -162,14 +165,14 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         return NULL;
 
     struct pcvcm_node *vcm_content = element->vcm_content;
-    PC_ASSERT(vcm_content);
+    if (vcm_content) {
+        purc_variant_t v = pcvcm_eval(vcm_content, stack);
+        if (v == PURC_VARIANT_INVALID)
+            return NULL;
 
-    purc_variant_t v = pcvcm_eval(vcm_content, stack);
-    if (v == PURC_VARIANT_INVALID)
-        return NULL;
-
-    PURC_VARIANT_SAFE_CLEAR(frame->ctnt_var);
-    frame->ctnt_var = v;
+        PURC_VARIANT_SAFE_CLEAR(frame->ctnt_var);
+        frame->ctnt_var = v;
+    }
 
     struct ctxt_for_init *ctxt;
     ctxt = (struct ctxt_for_init*)calloc(1, sizeof(*ctxt));
