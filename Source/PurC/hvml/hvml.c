@@ -2543,6 +2543,8 @@ next_state:
                 else {
                     parser->vcm_node->extra &= EXTRA_PROTECT_FLAG;
                 }
+                // FIXME : <update from="assets/{$SYSTEM.locale}.json" />
+                POP_AS_VCM_PARENT_AND_UPDATE_VCM();
                 ADVANCE_TO(PCHVML_EJSON_RIGHT_BRACE_STATE);
             }
             else if (uc == '(' || uc == '<' || uc == '"') {
@@ -2573,6 +2575,10 @@ next_state:
         if (character == '.' && uc == '$') {
             ejson_stack_pop();
             POP_AS_VCM_PARENT_AND_UPDATE_VCM();
+        }
+        // FIXME : <update from="assets/{$SYSTEM.locale}.json" />
+        if (character == '.' && uc == '"') {
+            RECONSUME_IN(PCHVML_EJSON_JSONEE_STRING_STATE);
         }
         RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
     END_STATE()
