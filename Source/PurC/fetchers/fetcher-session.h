@@ -62,6 +62,7 @@ public:
     void close();
 
     purc_variant_t requestAsync(
+        const char* base_uri,
         const char* url,
         enum pcfetcher_request_method method,
         purc_variant_t params,
@@ -70,6 +71,7 @@ public:
         void* ctxt);
 
     purc_rwstream_t requestSync(
+        const char* base_uri,
         const char* url,
         enum pcfetcher_request_method method,
         purc_variant_t params,

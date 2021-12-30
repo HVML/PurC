@@ -2,7 +2,7 @@
 
 #include <gtest/gtest.h>
 
-TEST(doc_var, basic)
+TEST(from_attr, basic)
 {
     const char *test_hvml =
     "<!DOCTYPE hvml>"
@@ -10,24 +10,13 @@ TEST(doc_var, basic)
     "<head>"
     "    <base href=\"$HVML.base(! 'https://gitlab.fmsoft.cn/hvml/hvml-docs/raw/master/samples/calculator/' )\" />"
     ""
+    "     <init as=\"buttons\" from=\"assets/buttons.json\" />"
+    ""
     "    <link rel=\"stylesheet\" type=\"text/css\" href=\"assets/calculator.css\" />"
     "</head>"
     ""
     "<body>"
     "    <div id=\"calculator\">"
-    ""
-    "        <div value=\"assets/{$SYSTEM.locale}.json\">"
-    "        </div>"
-    ""
-    "        <div value=\"$T.get('HVML Calculator')\">"
-    "        </div>"
-    ""
-    "        <div>"
-    "            $T.get('HVML Calculator')"
-    "        </div>"
-    ""
-    "        <div value=\"$SYSTEM.time('%H:%M:%S')\">"
-    "        </div>"
     ""
     "    </div>"
     "</body>"

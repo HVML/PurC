@@ -35,6 +35,7 @@
 struct pcfetcher_remote {
     struct pcfetcher base;
     PcFetcherProcess* process;
+    char* base_uri;
 };
 
 struct pcfetcher* pcfetcher_remote_init(size_t max_conns, size_t cache_quota)
@@ -57,6 +58,7 @@ struct pcfetcher* pcfetcher_remote_init(size_t max_conns, size_t cache_quota)
 
     remote->process = new PcFetcherProcess(fetcher);
     remote->process->connect();
+    remote->base_uri = NULL;
 
     return (struct pcfetcher*)remote;
 }
@@ -65,8 +67,11 @@ int pcfetcher_remote_term(struct pcfetcher* fetcher)
 {
     struct pcfetcher_remote* remote = (struct pcfetcher_remote*)fetcher;
     remote->process->terminate();
-
     delete remote->process;
+
+    if (remote->base_uri) {
+        free(remote->base_uri);
+    }
     free(remote);
 
     return 0;
@@ -75,9 +80,22 @@ int pcfetcher_remote_term(struct pcfetcher* fetcher)
 const char* pcfetcher_remote_set_base_url(struct pcfetcher* fetcher,
         const char* base_url)
 {
-    UNUSED_PARAM(fetcher);
-    UNUSED_PARAM(base_url);
-    return NULL;
+    if (!fetcher) {
+        return NULL;
+    }
+
+    struct pcfetcher_remote* remote = (struct pcfetcher_remote*)fetcher;
+    if (remote->base_uri) {
+        free(remote->base_uri);
+    }
+
+    if (base_url == NULL) {
+        remote->base_uri = NULL;
+        return NULL;
+    }
+
+    remote->base_uri = strdup(base_url);
+    return remote->base_uri;
 }
 
 void pcfetcher_cookie_remote_set(struct pcfetcher* fetcher,
@@ -128,6 +146,7 @@ purc_variant_t pcfetcher_remote_request_async(
 {
     struct pcfetcher_remote* remote = (struct pcfetcher_remote*)fetcher;
     return remote->process->requestAsync(
+            remote->base_uri,
             url, method, params, timeout, handler, ctxt);
 }
 
@@ -142,6 +161,7 @@ purc_rwstream_t pcfetcher_remote_request_sync(
 {
     struct pcfetcher_remote* remote = (struct pcfetcher_remote*)fetcher;
     return remote->process->requestSync(
+            remote->base_uri,
             url, method, params, timeout, resp_header);
 }
 

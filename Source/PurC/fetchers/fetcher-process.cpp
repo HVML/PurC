@@ -249,6 +249,7 @@ PcFetcherSession* PcFetcherProcess::createSession(void)
 }
 
 purc_variant_t PcFetcherProcess::requestAsync(
+        const char* base_uri,
         const char* url,
         enum pcfetcher_request_method method,
         purc_variant_t params,
@@ -257,10 +258,11 @@ purc_variant_t PcFetcherProcess::requestAsync(
         void* ctxt)
 {
     PcFetcherSession* session = createSession();
-    return session->requestAsync(url, method, params, timeout, handler, ctxt);
+    return session->requestAsync(base_uri, url, method, params, timeout, handler, ctxt);
 }
 
 purc_rwstream_t PcFetcherProcess::requestSync(
+        const char* base_uri,
         const char* url,
         enum pcfetcher_request_method method,
         purc_variant_t params,
@@ -268,7 +270,7 @@ purc_rwstream_t PcFetcherProcess::requestSync(
         struct pcfetcher_resp_header *resp_header)
 {
     PcFetcherSession* session = createSession();
-    return session->requestSync(url, method, params, timeout, resp_header);
+    return session->requestSync(base_uri, url, method, params, timeout, resp_header);
 }
 
 int PcFetcherProcess::checkResponse(uint32_t timeout_ms)
