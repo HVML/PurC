@@ -30,6 +30,7 @@
 #include "private/debug.h"
 #include "private/instance.h"
 #include "private/runloop.h"
+#include "private/dvobjs.h"
 
 #include "ops.h"
 #include "../hvml/hvml-gen.h"
@@ -1053,6 +1054,22 @@ purc_load_hvml_from_rwstream(purc_rwstream_t stream)
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
     }
+
+    // init $HVML
+    purc_variant_t hvml = pcdvobjs_get_hvml();
+    if (hvml == PURC_VARIANT_INVALID) {
+        stack_destroy(stack);
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return NULL;
+    }
+
+    if (!pcintr_bind_document_variable(stack->vdom, "HVML", hvml)) {
+        stack_destroy(stack);
+        purc_variant_unref(hvml);
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return NULL;
+    }
+    purc_variant_unref(hvml);
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_push_stack_frame(stack);
