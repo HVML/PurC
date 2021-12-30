@@ -81,6 +81,19 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (r)
         return NULL;
 
+#if 0
+    // FIXME
+    // base tag, set base uri
+    if (strcmp(element->tag_name, "base") == 0) {
+        purc_variant_t href;
+        href = purc_variant_object_get_by_ckey(frame->attr_vars, "href");
+        if (href != PURC_VARIANT_INVALID && purc_variant_is_string(href)) {
+            const char* base_url = purc_variant_get_string_const(href);
+            pcintr_set_base_uri(base_url);
+        }
+    }
+#endif
+
     pcintr_printf_start_element_to_edom(stack);
     frame->edom_element = pcintr_stack_get_edom_open_element(stack);
 

@@ -37,6 +37,7 @@
 #include "../html/parser.h"
 
 #include "hvml-attr.h"
+#include "fetcher.h"
 
 #include <stdarg.h>
 
@@ -1128,7 +1129,10 @@ purc_run(purc_variant_t request, purc_event_handler handler)
 {
     UNUSED_PARAM(request);
     UNUSED_PARAM(handler);
+
+    pcfetcher_init(10, 1024);
     pcrunloop_run();
+    pcfetcher_term();
 
     return true;
 }
@@ -1594,3 +1598,32 @@ pcintr_dispatch_message(pcintr_stack_t stack, purc_variant_t source,
     pcrunloop_dispatch(runloop, pcintr_handle_message, msg);
 }
 
+void
+pcintr_set_base_uri(const char* base_uri)
+{
+    pcfetcher_set_base_url(base_uri);
+}
+
+purc_variant_t
+pcintr_load_from_uri(const char* uri)
+{
+    if (uri == NULL) {
+        return PURC_VARIANT_INVALID;
+    }
+
+    struct pcfetcher_resp_header resp_header;
+    purc_rwstream_t resp = pcfetcher_request_sync(
+            uri,
+            PCFETCHER_REQUEST_METHOD_GET,
+            NULL,
+            10,
+            &resp_header);
+    if (resp_header.ret_code != 200) {
+        return PURC_VARIANT_INVALID;
+    }
+    size_t sz_content = 0;
+    size_t sz_buffer = 0;
+    char* buf = (char*)purc_rwstream_get_mem_buffer_ex(resp, &sz_content,
+            &sz_buffer, false);
+    return purc_variant_make_from_json_string(buf, sz_content);
+}

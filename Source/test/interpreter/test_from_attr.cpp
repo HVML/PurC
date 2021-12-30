@@ -10,7 +10,7 @@ TEST(from_attr, basic)
     "<head>"
     "    <base href=\"$HVML.base(! 'https://gitlab.fmsoft.cn/hvml/hvml-docs/raw/master/samples/calculator/' )\" />"
     ""
-    "     <init as=\"buttons\" from=\"assets/buttons.json\" />"
+    "    <init as=\"buttons\" from=\"assets/buttons.json\" />"
     ""
     "    <link rel=\"stylesheet\" type=\"text/css\" href=\"assets/calculator.css\" />"
     "</head>"

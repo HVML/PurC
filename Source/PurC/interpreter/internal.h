@@ -45,6 +45,12 @@ pcintr_element_eval_vcm_content(struct pcintr_stack_frame *frame,
 
 void pcintr_coroutine_ready(void);
 
+void
+pcintr_set_base_uri(const char* base_uri);
+
+purc_variant_t
+pcintr_load_from_uri(const char* uri);
+
 PCA_EXTERN_C_END
 
 #endif  /* PURC_INTERPRETER_INTERNAL_H */

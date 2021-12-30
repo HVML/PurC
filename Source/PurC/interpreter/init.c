@@ -164,6 +164,21 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (r)
         return NULL;
 
+#if 0
+    // FIXME
+    // load from network
+    purc_variant_t from;
+    from = purc_variant_object_get_by_ckey(frame->attr_vars, "from");
+    if (from != PURC_VARIANT_INVALID && purc_variant_is_string(from)) {
+        const char* uri = purc_variant_get_string_const(from);
+        purc_variant_t v = pcintr_load_from_uri(uri);
+        if (v == PURC_VARIANT_INVALID)
+            return NULL;
+        PURC_VARIANT_SAFE_CLEAR(frame->ctnt_var);
+        frame->ctnt_var = v;
+    }
+#endif
+
     struct pcvcm_node *vcm_content = element->vcm_content;
     if (vcm_content) {
         purc_variant_t v = pcvcm_eval(vcm_content, stack);
