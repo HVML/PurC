@@ -20,7 +20,6 @@ TEST(observe, basic)
     "                </h2>"
     "                <observe on=\"$TIMERS\" for=\"expired:clock\">"
     "                    <update on=\"#clock\" at=\"textContent\" with=\"12:30\" />"
-    "                    <p>this is in observe, after update</p>"
     "                </observe>"
     "                <p>this is after observe</p>"
     "            </div>"
