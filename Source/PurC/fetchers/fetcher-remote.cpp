@@ -140,6 +140,7 @@ purc_variant_t pcfetcher_remote_request_async(
 {
     struct pcfetcher_remote* remote = (struct pcfetcher_remote*)fetcher;
     return remote->process->requestAsync(
+            remote->base_uri,
             url, method, params, timeout, handler, ctxt);
 }
 
@@ -154,6 +155,7 @@ purc_rwstream_t pcfetcher_remote_request_sync(
 {
     struct pcfetcher_remote* remote = (struct pcfetcher_remote*)fetcher;
     return remote->process->requestSync(
+            remote->base_uri,
             url, method, params, timeout, resp_header);
 }
 

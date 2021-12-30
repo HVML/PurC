@@ -79,6 +79,7 @@ static const char* transMethod(enum pcfetcher_request_method method)
 }
 
 purc_variant_t PcFetcherSession::requestAsync(
+        const char* base_uri,
         const char* url,
         enum pcfetcher_request_method method,
         purc_variant_t params,
@@ -93,7 +94,13 @@ purc_variant_t PcFetcherSession::requestAsync(
     m_req_ctxt = ctxt;
     m_is_async = true;
 
-    std::unique_ptr<WTF::URL> wurl = makeUnique<URL>(URL(), url);;
+    String uri;
+    if (base_uri) {
+        uri.append(base_uri);
+    }
+    uri.append(url);
+    std::unique_ptr<WTF::URL> wurl = makeUnique<URL>(URL(), uri);
+
     ResourceRequest request;
     request.setURL(*wurl);
     request.setHTTPMethod(transMethod(method));
@@ -117,6 +124,7 @@ purc_variant_t PcFetcherSession::requestAsync(
 }
 
 purc_rwstream_t PcFetcherSession::requestSync(
+        const char* base_uri,
         const char* url,
         enum pcfetcher_request_method method,
         purc_variant_t params,
@@ -128,7 +136,13 @@ purc_rwstream_t PcFetcherSession::requestSync(
 
     m_is_async = false;
 
-    std::unique_ptr<WTF::URL> wurl = makeUnique<URL>(URL(), url);;
+    String uri;
+    if (base_uri) {
+        uri.append(base_uri);
+    }
+    uri.append(url);
+    std::unique_ptr<WTF::URL> wurl = makeUnique<URL>(URL(), uri);
+
     ResourceRequest request;
     request.setURL(*wurl);
     request.setHTTPMethod(transMethod(method));
