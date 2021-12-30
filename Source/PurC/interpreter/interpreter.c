@@ -1151,7 +1151,7 @@ pcintr_printf_to_edom(pcintr_stack_t stack, const char *fmt, ...)
     return 0;
 }
 
-void
+int
 pcintr_printf_to_fragment(pcintr_stack_t stack,
         purc_variant_t on, const char *fmt, ...)
 {
@@ -1177,7 +1177,7 @@ pcintr_printf_to_fragment(pcintr_stack_t stack,
     char *buf = (char*)malloc(r+1);
     if (!buf) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return;
+        return -1;
     }
     r = vsnprintf(buf, r+1, fmt, ap_dup);
     PC_ASSERT(r >= 0);
@@ -1185,6 +1185,7 @@ pcintr_printf_to_fragment(pcintr_stack_t stack,
     fragment->content = buf;
 
     list_add_tail(&fragment->node, &stack->edom_fragments);
+    return 0;
 }
 
 int
@@ -1240,6 +1241,32 @@ pcintr_printf_end_element_to_edom(pcintr_stack_t stack)
     else {
         return pcintr_printf_to_edom(stack, "</%s>", element->tag_name);
     }
+}
+
+int
+pcintr_printf_vcm_content_to_edom(pcintr_stack_t stack, purc_variant_t vcm)
+{
+    PC_ASSERT(purc_variant_is_type(vcm, PURC_VARIANT_TYPE_ULONGINT));
+    bool ok;
+    uint64_t u64;
+    ok = purc_variant_cast_to_ulongint(vcm, &u64, false);
+    PC_ASSERT(ok);
+
+    struct pcvcm_node *vcm_content;
+    vcm_content = (struct pcvcm_node*)u64;
+    PC_ASSERT(vcm_content);
+
+    purc_variant_t v = pcvcm_eval(vcm_content, stack);
+    if (v == PURC_VARIANT_INVALID)
+        return -1;
+
+    const char *s = purc_variant_get_string_const(v);
+    int r = pcintr_printf_to_edom(stack, "%s", s);
+    purc_variant_unref(v);
+    if (r)
+        return -1;
+
+    return 0;
 }
 
 static bool

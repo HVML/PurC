@@ -84,6 +84,12 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     pcintr_printf_start_element_to_edom(stack);
     frame->edom_element = pcintr_stack_get_edom_open_element(stack);
 
+    purc_variant_t with = frame->ctnt_var;
+    if (with != PURC_VARIANT_INVALID) {
+        if (pcintr_printf_vcm_content_to_edom(stack, with))
+            return NULL;
+    }
+
     struct ctxt_for_undefined *ctxt;
     ctxt = (struct ctxt_for_undefined*)calloc(1, sizeof(*ctxt));
     if (!ctxt) {

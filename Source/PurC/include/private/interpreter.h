@@ -266,7 +266,7 @@ void
 pcintr_stack_write_fragment(pcintr_stack_t stack);
 
 __attribute__ ((format (printf, 3, 4)))
-void
+int
 pcintr_printf_to_fragment(pcintr_stack_t stack,
         purc_variant_t on, const char *fmt, ...);
 
@@ -279,6 +279,10 @@ pcintr_printf_start_element_to_edom(pcintr_stack_t stack);
 
 int
 pcintr_printf_end_element_to_edom(pcintr_stack_t stack);
+
+int
+pcintr_printf_vcm_content_to_edom(pcintr_stack_t stack,
+        purc_variant_t vcm);
 
 pcedom_element_t*
 pcintr_stack_get_edom_open_element(pcintr_stack_t stack);
