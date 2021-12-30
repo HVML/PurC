@@ -38,16 +38,13 @@
         ")</archetype>
 
         <archedata name="item_user">
-            {
-                "id": "$?.attr.data-value", "avatar": "$?.content[0].attr.src",
-                "name": "$?.content[1].textContent", "region": "$?.attr.data-region"
-            },
+            make_object("id",concat_string(get_element(get_element(get_variable("?"),"attr"),"data-value")),"avatar",concat_string(get_element(get_element(get_element(get_element(get_variable("?"),"content"),0),"attr"),"src")),"name",concat_string(get_element(get_element(get_element(get_variable("?"),"content"),1),"textContent")),"region",concat_string(get_element(get_element(get_variable("?"),"attr"),"data-region")))
         </archedata>
 
         <observe on="#the-user-list" for="change:content" to="iterate">
 
             <init as="users">
-                [ ]
+                make_array()
             </init>
 
             <iterate on=get_variable("@") to="append" in=concat_string(get_variable("users")) with=get_variable("item_user") by="TRAVEL: BREADTH">

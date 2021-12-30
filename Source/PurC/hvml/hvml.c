@@ -916,6 +916,22 @@ next_state:
         if (is_eof(character)) {
             RETURN_NEW_EOF_TOKEN();
         }
+        if (is_whitespace(character)) {
+            APPEND_TO_TOKEN_TEXT(character);
+            ADVANCE_TO(PCHVML_DATA_STATE);
+        }
+        // FIXME : <div>   $AAA.BB   </div>
+#if 1
+        else if (character == '$' || character == '{' || character == '[') {
+            if (parser->token) {
+                pchvml_rwswrap_buffer_chars(parser->rwswrap, &character, 1);
+                RETURN_AND_SWITCH_TO(PCHVML_EJSON_DATA_STATE);
+            }
+            else {
+                RECONSUME_IN(PCHVML_EJSON_DATA_STATE);
+            }
+        }
+#endif
         APPEND_TO_TOKEN_TEXT(character);
         ADVANCE_TO(PCHVML_DATA_STATE);
     END_STATE()
@@ -2308,6 +2324,10 @@ next_state:
             parser->token = pchvml_token_new_vcm(parser->vcm_node);
             parser->vcm_node = NULL;
             RESET_VCM_NODE();
+            // FIXME: keep \n
+            if (is_whitespace(character)) {
+                pchvml_rwswrap_buffer_chars(parser->rwswrap, &character, 1);
+            }
             RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
         }
         if (character == '<') {

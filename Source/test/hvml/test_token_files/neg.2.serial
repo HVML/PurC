@@ -2,14 +2,11 @@
 <hvml target="html">
     <body>
         <init as="global">
-            { "locale" : "zh_CN" }
+            make_object("locale","zh_CN")
         </init>
 
         <init as="locales">
-          {
-              "zh_CN" : {"se_name" : "Baidu", "se_url": "https://www.baidu.com", "se_title": "百度" },
-              "zh_TW" : {"se_name" : "Bing", "se_url": "https://www.bing.com", "se_title": "必应" }
-          }
+          make_object("zh_CN",make_object("se_name","Baidu","se_url","https://www.baidu.com","se_title","百度"),"zh_TW",make_object("se_name","Bing","se_url","https://www.bing.com","se_title","必应"))
         </init>
 
         <footer id="the-footer">

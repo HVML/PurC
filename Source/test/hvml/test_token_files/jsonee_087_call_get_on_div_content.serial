@@ -1,4 +1,5 @@
 <hvml>
-    <update from=concat_string("assets/",get_element(get_variable("SYSTEM"),"locale"),".json")/>
-    <update from=concat_string("assets/",get_element(get_element(get_variable("SYSTEM"),"time"),"tm"))/>
+    <div>
+        get_element(get_variable("SYSTEM"),"time")
+    </div>
 </hvml>
