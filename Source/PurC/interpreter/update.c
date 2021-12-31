@@ -36,14 +36,14 @@
 #include <unistd.h>
 #include <libgen.h>
 
-#define TO_DEBUG 0
+#define TO_DEBUG 1
 
 struct ctxt_for_update {
     struct pcvdom_node           *curr;
 
     purc_variant_t                on;
     purc_variant_t                to;
-    purc_variant_t                with;
+    purc_variant_t                with, from; // logically exclusive
 };
 
 static void
@@ -53,6 +53,7 @@ ctxt_for_update_destroy(struct ctxt_for_update *ctxt)
         PURC_VARIANT_SAFE_CLEAR(ctxt->on);
         PURC_VARIANT_SAFE_CLEAR(ctxt->to);
         PURC_VARIANT_SAFE_CLEAR(ctxt->with);
+        PURC_VARIANT_SAFE_CLEAR(ctxt->from);
         free(ctxt);
     }
 }
@@ -90,36 +91,53 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 
     purc_variant_t with;
     with = purc_variant_object_get_by_ckey(frame->attr_vars, "with");
-    if (with == PURC_VARIANT_INVALID)
-        return -1;
+    if (with != PURC_VARIANT_INVALID) {
+        PURC_VARIANT_SAFE_CLEAR(ctxt->with);
+        ctxt->with = with;
+        purc_variant_ref(with);
 
-    PURC_VARIANT_SAFE_CLEAR(ctxt->with);
-    ctxt->with = with;
-    purc_variant_ref(with);
+        PC_ASSERT(purc_variant_is_type(with, PURC_VARIANT_TYPE_ULONGINT));
+        bool ok;
+        uint64_t u64;
+        ok = purc_variant_cast_to_ulongint(with, &u64, false);
+        PC_ASSERT(ok);
+        struct pcvcm_node *vcm_content;
+        vcm_content = (struct pcvcm_node*)u64;
+        PC_ASSERT(vcm_content);
 
-    PC_ASSERT(purc_variant_is_type(with, PURC_VARIANT_TYPE_ULONGINT));
-    bool ok;
-    uint64_t u64;
-    ok = purc_variant_cast_to_ulongint(with, &u64, false);
-    PC_ASSERT(ok);
-    struct pcvcm_node *vcm_content;
-    vcm_content = (struct pcvcm_node*)u64;
-    PC_ASSERT(vcm_content);
+        pcintr_stack_t stack = co->stack;
+        PC_ASSERT(stack);
 
-    pcintr_stack_t stack = co->stack;
-    PC_ASSERT(stack);
+        purc_variant_t v = pcvcm_eval(vcm_content, stack);
+        if (v == PURC_VARIANT_INVALID)
+            return -1;
 
-    purc_variant_t v = pcvcm_eval(vcm_content, stack);
-    if (v == PURC_VARIANT_INVALID)
-        return -1;
+        const char *s = purc_variant_get_string_const(v);
+        // fprintf(stderr, "[%s]\n", s);
+        // pcintr_printf_to_edom(stack, "%s", s);
+        pcintr_printf_to_fragment(stack, on, "%s", s);
+        purc_variant_unref(v);
+        return 0;
+    }
 
-    const char *s = purc_variant_get_string_const(v);
-    // fprintf(stderr, "[%s]\n", s);
-    // pcintr_printf_to_edom(stack, "%s", s);
-    pcintr_printf_to_fragment(stack, on, "%s", s);
-    purc_variant_unref(v);
+    purc_variant_t from;
+    from = purc_variant_object_get_by_ckey(frame->attr_vars, "from");
+    if (from != PURC_VARIANT_INVALID) {
+        PURC_VARIANT_SAFE_CLEAR(ctxt->from);
+        ctxt->from = from;
+        purc_variant_ref(from);
 
-    return 0;
+        const char* uri = purc_variant_get_string_const(from);
+        D("uri: [%s]\n", uri);
+        purc_variant_t v = pcintr_load_from_uri(uri);
+        if (v == PURC_VARIANT_INVALID) {
+            D("uri: [%s] failed\n", uri);
+            return -1;
+        }
+        PC_ASSERT(0); // TODO:
+    }
+
+    return -1;
 }
 
 static void*

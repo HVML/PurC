@@ -41,7 +41,7 @@
 
 #include <stdarg.h>
 
-#define TO_DEBUG 0
+#define TO_DEBUG 1
 
 struct edom_fragment {
     struct list_head           node;

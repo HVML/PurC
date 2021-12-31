@@ -38,7 +38,7 @@
 #include <unistd.h>
 #include <libgen.h>
 
-#define TO_DEBUG 0
+#define TO_DEBUG 1
 
 struct ctxt_for_iterate {
     struct pcvdom_node           *curr;
