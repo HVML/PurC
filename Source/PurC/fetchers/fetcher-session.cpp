@@ -240,7 +240,8 @@ void PcFetcherSession::didReceiveResponse(
     if (m_resp_header.mime_type) {
         free(m_resp_header.mime_type);
     }
-    m_resp_header.mime_type = strdup((const char*)response.mimeType().characters8());
+    const CString &utf8 = response.mimeType().utf8();
+    m_resp_header.mime_type = strdup((const char*)utf8.data());
     m_resp_header.sz_resp = response.expectedContentLength();
     if (m_resp_rwstream) {
         purc_rwstream_destroy(m_resp_rwstream);
