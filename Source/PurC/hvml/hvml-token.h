@@ -98,6 +98,11 @@ const char* pchvml_token_get_name (struct pchvml_token* token);
 void pchvml_token_append_to_text (struct pchvml_token* token,
         uint32_t uc);
 
+void pchvml_token_delete_tail_chars_of_text (
+        struct pchvml_token* token, size_t sz);
+
+uint32_t pchvml_token__get_last_char_of_text (struct pchvml_token* token);
+
 void pchvml_token_append_bytes_to_text (struct pchvml_token* token,
         const char* bytes, size_t sz_bytes);
 

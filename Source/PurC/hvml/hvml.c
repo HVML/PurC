@@ -934,13 +934,37 @@ next_state:
         }
         // FIXME : <div>   $AAA.BB   </div>
 #if 1
-        else if (character == '$' || character == '{' || character == '[') {
+        else if ((character == '{' || character == '[')
+                && parser->tag_is_operation) {
             if (parser->token) {
                 pchvml_rwswrap_buffer_chars(parser->rwswrap, &character, 1);
                 RETURN_AND_SWITCH_TO(PCHVML_EJSON_DATA_STATE);
             }
             else {
                 RECONSUME_IN(PCHVML_EJSON_DATA_STATE);
+            }
+        }
+        else if (character == '$') {
+            pchvml_rwswrap_buffer_chars(parser->rwswrap, &character, 1);
+
+            // {$SYSTEM.time}  {{$SYSTEM.time}}
+            uint32_t c = pchvml_token__get_last_char_of_text(parser->token);
+            if (c == '{') {
+                pchvml_rwswrap_buffer_chars(parser->rwswrap, &c, 1);
+                pchvml_token_delete_tail_chars_of_text(parser->token, 1);
+            }
+
+            c = pchvml_token__get_last_char_of_text(parser->token);
+            if (c == '{') {
+                pchvml_rwswrap_buffer_chars(parser->rwswrap, &c, 1);
+                pchvml_token_delete_tail_chars_of_text(parser->token, 1);
+            }
+
+            if (parser->token) {
+                RETURN_AND_SWITCH_TO(PCHVML_EJSON_DATA_STATE);
+            }
+            else {
+                ADVANCE_TO(PCHVML_EJSON_DATA_STATE);
             }
         }
 #endif
