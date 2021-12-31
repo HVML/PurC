@@ -1625,5 +1625,9 @@ pcintr_load_from_uri(const char* uri)
     size_t sz_buffer = 0;
     char* buf = (char*)purc_rwstream_get_mem_buffer_ex(resp, &sz_content,
             &sz_buffer, false);
+    // FIXME:
+    if (purc_get_last_error()) {
+        pcinst_set_error(PURC_ERROR_OK);
+    }
     return purc_variant_make_from_json_string(buf, sz_content);
 }
