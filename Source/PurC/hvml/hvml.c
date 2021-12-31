@@ -785,12 +785,21 @@ bool pchvml_parser_is_appropriate_tag_name(struct pchvml_parser* parser,
             strlen(name));
 }
 
+bool pchvml_parser_is_operation_tag(const char* name)
+{
+    if (!name) {
+        return NULL;
+    }
+    const struct pchvml_tag_entry* entry = pchvml_tag_static_search(name,
+            strlen(name));
+    return (entry &&
+            (entry->cats & (PCHVML_TAGCAT_TEMPLATE | PCHVML_TAGCAT_VERB)));
+}
+
 bool pchvml_parser_is_operation_tag_token (struct pchvml_token* token)
 {
     const char* name = pchvml_token_get_name(token);
-    const struct pchvml_tag_entry* entry = pchvml_tag_static_search(name,
-            strlen(name));
-    return (entry && (entry->cats & PCHVML_TAGCAT_ORDINARY));
+    return pchvml_parser_is_operation_tag(name);
 }
 
 bool pchvml_parser_is_ordinary_attribute (struct pchvml_token_attr* attr)
