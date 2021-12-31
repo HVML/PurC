@@ -502,6 +502,7 @@ struct pchvml_parser* pchvml_create(uint32_t flags, size_t queue_size)
     parser->quoted_buffer = pchvml_buffer_new ();
     parser->vcm_stack = pcvcm_stack_new();
     parser->ejson_stack = pcutils_stack_new(0);
+    parser->tag_is_operation = false;
     return parser;
 }
 
@@ -758,16 +759,29 @@ const char* pchvml_pchvml_state_desc (enum pchvml_state state)
     return NULL;
 }
 
+bool pchvml_parser_is_operation_tag(const char* name)
+{
+    if (!name) {
+        return NULL;
+    }
+    const struct pchvml_tag_entry* entry = pchvml_tag_static_search(name,
+            strlen(name));
+    return (entry &&
+            (entry->cats & (PCHVML_TAGCAT_TEMPLATE | PCHVML_TAGCAT_VERB)));
+}
+
 void pchvml_parser_save_tag_name (struct pchvml_parser* parser)
 {
     if (pchvml_token_is_type (parser->token, PCHVML_TOKEN_START_TAG)) {
         const char* name = pchvml_token_get_name(parser->token);
+        parser->tag_is_operation = pchvml_parser_is_operation_tag(name);
         pchvml_buffer_reset(parser->tag_name);
         pchvml_buffer_append_bytes(parser->tag_name,
                 name, strlen(name));
     }
     else {
         pchvml_buffer_reset(parser->tag_name);
+        parser->tag_is_operation = false;
     }
 }
 
@@ -783,17 +797,6 @@ bool pchvml_parser_is_appropriate_tag_name(struct pchvml_parser* parser,
 {
     return pchvml_buffer_equal_to (parser->tag_name, name,
             strlen(name));
-}
-
-bool pchvml_parser_is_operation_tag(const char* name)
-{
-    if (!name) {
-        return NULL;
-    }
-    const struct pchvml_tag_entry* entry = pchvml_tag_static_search(name,
-            strlen(name));
-    return (entry &&
-            (entry->cats & (PCHVML_TAGCAT_TEMPLATE | PCHVML_TAGCAT_VERB)));
 }
 
 bool pchvml_parser_is_operation_tag_token (struct pchvml_token* token)

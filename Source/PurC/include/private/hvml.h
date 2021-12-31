@@ -166,6 +166,7 @@ struct pchvml_parser {
     struct pcutils_stack* ejson_stack;
     uint64_t char_ref_code;
     uint32_t prev_separator;
+    bool tag_is_operation;
 };
 
 #ifdef __cplusplus
