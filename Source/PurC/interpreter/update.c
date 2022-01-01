@@ -110,6 +110,42 @@ get_source(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 }
 
 static int
+process_object(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
+{
+    UNUSED_PARAM(co);
+    struct ctxt_for_update *ctxt;
+    ctxt = (struct ctxt_for_update*)frame->ctxt;
+    PC_ASSERT(ctxt);
+    purc_variant_t on  = ctxt->on;
+    purc_variant_t to  = ctxt->to;
+    purc_variant_t src = ctxt->src;
+    PC_ASSERT(on != PURC_VARIANT_INVALID);
+    PC_ASSERT(to != PURC_VARIANT_INVALID);
+    PC_ASSERT(src != PURC_VARIANT_INVALID);
+
+    const char *op = purc_variant_get_string_const(to);
+    PC_ASSERT(op);
+    if (strcmp(op, "merge")==0) {
+        if (!purc_variant_is_type(src, PURC_VARIANT_TYPE_OBJECT)) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            return -1;
+        }
+        if (!purc_variant_is_type(on, PURC_VARIANT_TYPE_OBJECT)) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            return -1;
+        }
+        purc_variant_t k, v;
+        foreach_key_value_in_variant_object(src, k, v)
+            bool ok = purc_variant_object_set(on, k, v);
+            PC_ASSERT(ok); // TODO: debug-only-now
+        end_foreach;
+        return 0;
+    }
+    PC_ASSERT(0); // Not implemented yet
+    return -1;
+}
+
+static int
 process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
     UNUSED_PARAM(co);
@@ -131,6 +167,17 @@ process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         // pcintr_printf_to_edom(stack, "%s", s);
         pcintr_printf_to_fragment(co->stack, on, to, "%s", s);
         return 0;
+    }
+    if (type == PURC_VARIANT_TYPE_OBJECT) {
+        return process_object(co, frame);
+    }
+    if (type == PURC_VARIANT_TYPE_ARRAY) {
+        PC_ASSERT(0); // Not implemented yet
+        return -1;
+    }
+    if (type == PURC_VARIANT_TYPE_SET) {
+        PC_ASSERT(0); // Not implemented yet
+        return -1;
     }
     PC_ASSERT(0); // Not implemented yet
     return -1;
