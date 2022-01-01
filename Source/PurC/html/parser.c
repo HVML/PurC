@@ -607,27 +607,30 @@ bool pchtml_edom_insert_node(pcedom_node_t *node, pcedom_node_t *fragment_root,
     pcedom_node_t *child = NULL;
 
     if (op == pchtml_html_cmd_atom (ID_HTML_CMD_APPEND)) {
-        while (node->first_child != NULL) {
-            pcedom_node_destroy_deep(node->first_child);
-        }
-
         while (fragment_root->first_child != NULL) {
             child = fragment_root->first_child;
 
             pcedom_node_remove(child);
-            pcedom_node_insert_child(node, child);
+            pcedom_node_insert_child (node, child);
         }
         pcedom_node_destroy(fragment_root);
     }
     else if (op == pchtml_html_cmd_atom (ID_HTML_CMD_PREPEND)) {
-        ret = false;
+        while (fragment_root->last_child != NULL) {
+            child = fragment_root->last_child;
+
+            pcedom_node_remove(child);
+            pcedom_node_insert_child_prepend (node, child);
+        }
+        pcedom_node_destroy(fragment_root);
     }
     else if (op == pchtml_html_cmd_atom (ID_HTML_CMD_INSERTBEFORE)) {
-        while (fragment_root->first_child != NULL) {
-            child = fragment_root->first_child;
+        while (fragment_root->last_child != NULL) {
+            child = fragment_root->last_child;
 
             pcedom_node_remove(child);
             pcedom_node_insert_before (node, child);
+            node = node->prev;
         }
         pcedom_node_destroy(fragment_root);
     }
@@ -641,8 +644,10 @@ bool pchtml_edom_insert_node(pcedom_node_t *node, pcedom_node_t *fragment_root,
         }
         pcedom_node_destroy(fragment_root);
     }
-    else
+    else {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
         ret = false;
+    }
 
     return ret;
 }

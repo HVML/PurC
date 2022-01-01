@@ -45,8 +45,8 @@
 
 struct edom_fragment {
     struct list_head           node;
-    pcedom_element_t          *curr;
     purc_variant_t             on;
+    purc_variant_t             to;
     char                      *content;
 };
 
@@ -293,6 +293,7 @@ edom_fragment_release(struct edom_fragment *fragment)
         return;
 
     PURC_VARIANT_SAFE_CLEAR(fragment->on);
+    PURC_VARIANT_SAFE_CLEAR(fragment->to);
     if (fragment->content) {
         free(fragment->content);
         fragment->content = NULL;
@@ -318,8 +319,29 @@ edom_fragment_post_process(pcintr_stack_t stack,
     PC_ASSERT(doc);
     pchtml_html_parser_t *parser = edom_gen->parser;
     PC_ASSERT(parser);
-    pcedom_element_t *curr = fragment->curr;
-    PC_ASSERT(curr);
+
+    purc_variant_t on = fragment->on;
+    PC_ASSERT(on != PURC_VARIANT_INVALID);
+    PC_ASSERT(purc_variant_is_type(on, PURC_VARIANT_TYPE_NATIVE));
+    struct pcedom_element *target;
+    target = (struct pcedom_element*)purc_variant_native_get_entity(on);
+    PC_ASSERT(target);
+
+    purc_variant_t to = fragment->to;
+    PC_ASSERT(to != PURC_VARIANT_INVALID);
+    PC_ASSERT(purc_variant_is_type(to, PURC_VARIANT_TYPE_STRING));
+    const char *op = purc_variant_get_string_const(fragment->to);
+    purc_atom_t op_atom;
+    if (strcmp(op, "append") == 0) {
+        op_atom = pchtml_html_cmd_atom(ID_HTML_CMD_APPEND);
+    }
+    else if (strcmp(op, "prepend") == 0) {
+        op_atom = pchtml_html_cmd_atom(ID_HTML_CMD_PREPEND);
+    }
+    else {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        PC_ASSERT(0); // FIXME:
+    }
 
     const char *content = fragment->content;
 
@@ -328,14 +350,13 @@ edom_fragment_post_process(pcintr_stack_t stack,
     if (!in)
         return;
 
-    pcedom_node_t *node = pchtml_html_document_parse_fragment(doc, curr,
+    pcedom_node_t *node = pchtml_html_document_parse_fragment(doc, target,
             in);
     purc_rwstream_destroy(in);
     PC_ASSERT(node);
     PC_ASSERT(node->type == PCEDOM_NODE_TYPE_ELEMENT);
 
-    pchtml_edom_insert_node(&curr->node, node,
-            pchtml_html_cmd_atom(ID_HTML_CMD_INSERTBEFORE));
+    pchtml_edom_insert_node(&target->node, node, op_atom);
 }
 
 static void
@@ -1157,7 +1178,7 @@ pcintr_printf_to_edom(pcintr_stack_t stack, const char *fmt, ...)
 
 int
 pcintr_printf_to_fragment(pcintr_stack_t stack,
-        purc_variant_t on, const char *fmt, ...)
+        purc_variant_t on, purc_variant_t to, const char *fmt, ...)
 {
     PC_ASSERT(stack->fragment);
 
@@ -1165,11 +1186,13 @@ pcintr_printf_to_fragment(pcintr_stack_t stack,
     fragment = (struct edom_fragment*)calloc(1, sizeof(*fragment));
     fragment->on = on;
     purc_variant_ref(on);
+    fragment->to = to;
+    purc_variant_ref(to);
+
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame);
     PC_ASSERT(frame->edom_element);
-    fragment->curr = frame->edom_element;
 
     va_list ap, ap_dup;
     va_start(ap, fmt);
@@ -1284,7 +1307,7 @@ pcintr_set_symbol_var_at_sign(void)
     PC_ASSERT(frame);
     PC_ASSERT(frame->scope);
 
-    purc_variant_t at = pcintr_make_element_variant(frame->scope);
+    purc_variant_t at = pcintr_make_element_variant(frame->edom_element);
     if (at == PURC_VARIANT_INVALID)
         return -1;
     PURC_VARIANT_SAFE_CLEAR(frame->symbol_vars[PURC_SYMBOL_VAR_AT_SIGN]);

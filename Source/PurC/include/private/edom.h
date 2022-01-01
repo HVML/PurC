@@ -365,6 +365,10 @@ pcedom_node_insert_child(pcedom_node_t *to,
                 pcedom_node_t *node);
 
 void
+pcedom_node_insert_child_prepend(pcedom_node_t *to,
+                pcedom_node_t *node);
+
+void
 pcedom_node_insert_before(pcedom_node_t *to,
                 pcedom_node_t *node) WTF_INTERNAL;
 

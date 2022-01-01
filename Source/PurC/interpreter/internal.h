@@ -52,7 +52,7 @@ purc_variant_t
 pcintr_load_from_uri(const char* uri);
 
 purc_variant_t
-pcintr_make_element_variant(struct pcvdom_element *element);
+pcintr_make_element_variant(struct pcedom_element *element);
 
 int
 pcintr_set_symbol_var_at_sign(void);

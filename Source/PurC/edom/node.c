@@ -194,6 +194,23 @@ pcedom_node_insert_child(pcedom_node_t *to, pcedom_node_t *node)
 }
 
 void
+pcedom_node_insert_child_prepend(pcedom_node_t *to, pcedom_node_t *node)
+{
+    if (to->first_child != NULL) {
+        to->first_child->prev = node;
+    }
+    else {
+        to->last_child = node;
+    }
+
+    node->parent = to;
+    node->prev = NULL;
+    node->next = to->first_child;
+
+    to->first_child = node;
+}
+
+void
 pcedom_node_insert_before(pcedom_node_t *to, pcedom_node_t *node)
 {
     if (to->prev != NULL) {

@@ -233,7 +233,7 @@ pcvariant_typename(purc_variant_t v)
     return pcvariant_get_typename(type);
 }
 
-int pcvariant_serialize(char *buf, size_t sz, purc_variant_t val);
+ssize_t pcvariant_serialize(char *buf, size_t sz, purc_variant_t val);
 char* pcvariant_serialize_alloc(char *buf, size_t sz, purc_variant_t val);
 
 purc_variant_t pcvariant_make_object(size_t nr_kvs, ...);

@@ -2019,7 +2019,7 @@ void pcvariant_gc_mov(purc_variant_t val)
     purc_variant_unref(val);
 }
 
-int pcvariant_serialize(char *buf, size_t sz, purc_variant_t val)
+ssize_t pcvariant_serialize(char *buf, size_t sz, purc_variant_t val)
 {
     PC_ASSERT(val != PURC_VARIANT_INVALID);
     purc_rwstream_t out = purc_rwstream_new_from_mem(buf, sz);

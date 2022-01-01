@@ -265,10 +265,10 @@ pcintr_push_stack_frame(pcintr_stack_t stack);
 void
 pcintr_stack_write_fragment(pcintr_stack_t stack);
 
-__attribute__ ((format (printf, 3, 4)))
+__attribute__ ((format (printf, 4, 5)))
 int
 pcintr_printf_to_fragment(pcintr_stack_t stack,
-        purc_variant_t on, const char *fmt, ...);
+        purc_variant_t on, purc_variant_t to, const char *fmt, ...);
 
 __attribute__ ((format (printf, 2, 3)))
 int
