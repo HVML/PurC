@@ -342,7 +342,7 @@ static void
 edom_fragments_post_process(pcintr_stack_t stack)
 {
     struct list_head *edom_fragments = &stack->edom_fragments;
-    if (list_empty(edom_fragments)) {
+    if (!list_empty(edom_fragments)) {
         struct list_head *p, *n;
         list_for_each_safe(p, n, edom_fragments) {
             struct edom_fragment *curr;
@@ -1269,6 +1269,26 @@ pcintr_printf_vcm_content_to_edom(pcintr_stack_t stack, purc_variant_t vcm)
     purc_variant_unref(v);
     if (r)
         return -1;
+
+    return 0;
+}
+
+int
+pcintr_set_symbol_var_at_sign(void)
+{
+    pcintr_stack_t stack = purc_get_stack();
+    PC_ASSERT(stack);
+
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_stack_get_bottom_frame(stack);
+    PC_ASSERT(frame);
+    PC_ASSERT(frame->scope);
+
+    purc_variant_t at = pcintr_make_element_variant(frame->scope);
+    if (at == PURC_VARIANT_INVALID)
+        return -1;
+    PURC_VARIANT_SAFE_CLEAR(frame->symbol_vars[PURC_SYMBOL_VAR_AT_SIGN]);
+    frame->symbol_vars[PURC_SYMBOL_VAR_AT_SIGN] = at;
 
     return 0;
 }

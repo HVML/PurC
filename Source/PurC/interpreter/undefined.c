@@ -68,6 +68,9 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     frame->pos = pos; // ATTENTION!!
 
+    if (pcintr_set_symbol_var_at_sign())
+        return NULL;
+
     struct pcvdom_element *element = frame->pos;
     PC_ASSERT(element);
     D("<%s>", element->tag_name);
