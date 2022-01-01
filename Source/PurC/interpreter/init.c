@@ -167,7 +167,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (r)
         return NULL;
 
-#if 0
     // FIXME
     // load from network
     purc_variant_t from;
@@ -180,7 +179,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         PURC_VARIANT_SAFE_CLEAR(frame->ctnt_var);
         frame->ctnt_var = v;
     }
-#endif
 
     struct pcvcm_node *vcm_content = element->vcm_content;
     if (vcm_content) {
