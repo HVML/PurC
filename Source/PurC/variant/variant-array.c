@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#define _GNU_SOURCE       // qsort_r
+#define _GNU_SOURCE
 
 #include "config.h"
 #include "private/variant.h"
@@ -30,7 +30,6 @@
 #include "variant-internals.h"
 #include "purc-errors.h"
 #include "purc-utils.h"
-
 
 #include <limits.h>
 #include <stdarg.h>
@@ -447,14 +446,25 @@ struct arr_user_data {
     void *ud;
 };
 
-static inline int
-cmp_variant(const void *l, const void *r, void *ud)
+#if OS(HURD) || OS(LINUX)
+static int cmp_variant(const void *l, const void *r, void *ud)
 {
     purc_variant_t vl = *(purc_variant_t*)l;
     purc_variant_t vr = *(purc_variant_t*)r;
     struct arr_user_data *d = (struct arr_user_data*)ud;
     return d->cmp(vl, vr, d->ud);
 }
+#elif OS(DARWIN) || OS(FREEBSD) || OS(NETBSD) || OS(OPENBSD) || OS(WINDOWS)
+static int cmp_variant(void *ud, const void *l, const void *r)
+{
+    purc_variant_t vl = *(purc_variant_t*)l;
+    purc_variant_t vr = *(purc_variant_t*)r;
+    struct arr_user_data *d = (struct arr_user_data*)ud;
+    return d->cmp(vl, vr, d->ud);
+}
+#else
+#error Unsupported operating system.
+#endif
 
 int pcvariant_array_sort(purc_variant_t value, void *ud,
         int (*cmp)(purc_variant_t l, purc_variant_t r, void *ud))
@@ -471,8 +481,14 @@ int pcvariant_array_sort(purc_variant_t value, void *ud,
         .cmp = cmp,
         .ud  = ud,
     };
-    qsort_r(arr, al->length, sizeof(purc_variant_t),
-            cmp_variant, &d);
+
+#if OS(HURD) || OS(LINUX)
+    qsort_r(arr, al->length, sizeof(purc_variant_t), cmp_variant, &d);
+#elif OS(DARWIN) || OS(FREEBSD) || OS(NETBSD) || OS(OPENBSD)
+    qsort_r(arr, al->length, sizeof(purc_variant_t), &d, cmp_variant);
+#elif OS(WINDOWS)
+    qsort_s(arr, al->length, sizeof(purc_variant_t), cmp_variant, &d);
+#endif
 
     return 0;
 }

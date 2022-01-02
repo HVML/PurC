@@ -1088,8 +1088,8 @@ struct set_user_data {
     size_t               nr_keynames;
 };
 
-static inline int
-cmp_variant(const void *l, const void *r, void *ud)
+#if OS(HURD) || OS(LINUX)
+static int cmp_variant(const void *l, const void *r, void *ud)
 {
     struct elem_node *nl = *(struct elem_node**)l;
     struct elem_node *nr = *(struct elem_node**)r;
@@ -1098,6 +1098,19 @@ cmp_variant(const void *l, const void *r, void *ud)
     struct set_user_data *d = (struct set_user_data*)ud;
     return d->cmp(d->nr_keynames, vl, vr, d->ud);
 }
+#elif OS(DARWIN) || OS(FREEBSD) || OS(NETBSD) || OS(OPENBSD) || OS(WINDOWS)
+static int cmp_variant(void *ud, const void *l, const void *r)
+{
+    struct elem_node *nl = *(struct elem_node**)l;
+    struct elem_node *nr = *(struct elem_node**)r;
+    purc_variant_t *vl = nl->kvs;
+    purc_variant_t *vr = nr->kvs;
+    struct set_user_data *d = (struct set_user_data*)ud;
+    return d->cmp(d->nr_keynames, vl, vr, d->ud);
+}
+#else
+#error Unsupported operating system.
+#endif
 
 int pcvariant_set_sort(purc_variant_t value, void *ud,
         int (*cmp)(size_t nr_keynames,
@@ -1118,8 +1131,13 @@ int pcvariant_set_sort(purc_variant_t value, void *ud,
         .nr_keynames = data->nr_keynames,
     };
 
-    qsort_r(arr, al->length, sizeof(struct elem_node*),
-            cmp_variant, &d);
+#if OS(HURD) || OS(LINUX)
+    qsort_r(arr, al->length, sizeof(struct elem_node*), cmp_variant, &d);
+#elif OS(DARWIN) || OS(FREEBSD) || OS(NETBSD) || OS(OPENBSD)
+    qsort_r(arr, al->length, sizeof(struct elem_node*), &d, cmp_variant);
+#elif OS(WINDOWS)
+    qsort_s(arr, al->length, sizeof(struct elem_node*), cmp_variant, &d);
+#endif
 
     refresh_arr(al, 0);
 
