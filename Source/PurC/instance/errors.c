@@ -22,6 +22,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#define _GNU_SOURCE
+
 #include "purc-errors.h"
 
 #include "private/errors.h"
@@ -29,6 +31,11 @@
 
 #include "private/interpreter.h" // FIXME:
 
+#include <dlfcn.h>
+#include <elf.h>
+#include <execinfo.h>
+#include <link.h>
+#include <regex.h>
 #include <stdarg.h>
 
 static const struct err_msg_info* get_error_info(int errcode);
@@ -67,6 +74,8 @@ int purc_set_error_with_location(int errcode, purc_variant_t exinfo,
     inst->file       = file;
     inst->lineno     = lineno;
     inst->func       = func;
+
+    inst->nr_stacks = backtrace(inst->c_stacks, PCA_TABLESIZE(inst->c_stacks));
 
     // set the exception info into stack
     pcintr_stack_t stack = purc_get_stack();
@@ -160,5 +169,165 @@ void pcinst_register_error_message_segment(struct err_msg_seg* seg)
         seg->info[i].except_atom = purc_get_except_atom_by_id(
                 seg->info[i].except_id);
     }
+}
+
+static void
+dump_stack_by_cmd(int *level, const char *cmd)
+{
+    char *func = NULL;
+    size_t func_len = 0;
+    char *file_lineno = NULL;
+    size_t file_lineno_len = 0;
+
+    FILE *in = popen(cmd, "r");
+    PC_ASSERT(in);
+    while (!feof(in)) {
+        ssize_t r = 0;
+        r = getline(&func, &func_len, in);
+        if (r == -1)
+            break;
+
+        PC_ASSERT(r > 0);
+        func[r-1] = '\0';
+
+        r = getline(&file_lineno, &file_lineno_len, in);
+        PC_ASSERT(r > 0);
+        file_lineno[r-1] = '\0';
+
+        fprintf(stderr, "%02d: %s (%s)\n", *level, func, file_lineno);
+        *level = *level + 1;
+    }
+
+    pclose(in);
+    free(file_lineno);
+    free(func);
+}
+
+static void
+dump_stacks_ex(char **stacks, regex_t *regex)
+{
+    char cmd[4096];
+
+    struct pcinst* inst = pcinst_current();
+    PC_ASSERT(inst);
+
+    PC_ASSERT(inst->nr_stacks > 0);
+
+    char *p = cmd;
+    size_t len = sizeof(cmd);
+    int n = snprintf(p, len, "addr2line -Cfsi");
+    PC_ASSERT(n>0 && (size_t)n<len);
+    p += n;
+    len -= n;
+
+    char prev_so[sizeof(inst->so)];
+    prev_so[0] = '\0';
+
+    int level = 0;
+    int added = 0;
+
+    for (int i=0; i<inst->nr_stacks; ++i) {
+        regmatch_t matches[20] = {};
+        int r = regexec(regex, stacks[i], PCA_TABLESIZE(matches), matches, 0);
+        PC_ASSERT(r != REG_NOMATCH);
+        int n;
+        n = snprintf(inst->so, sizeof(inst->so), "%.*s",
+                matches[1].rm_eo - matches[1].rm_so,
+                stacks[i] + matches[1].rm_so);
+        if (n<0 || (size_t)n>=sizeof(inst->so))
+            break;
+        n = snprintf(inst->addr1, sizeof(inst->addr1), "%.*s",
+                matches[2].rm_eo - matches[2].rm_so,
+                stacks[i] + matches[2].rm_so);
+        if (n<0 || (size_t)n>=sizeof(inst->addr1))
+            break;
+        n = snprintf(inst->addr2, sizeof(inst->addr2), "%.*s",
+                matches[3].rm_eo - matches[3].rm_so,
+                stacks[i] + matches[3].rm_so);
+        if (n<0 || (size_t)n>=sizeof(inst->addr2))
+            break;
+
+        void *paddr2 = (void*)strtoll(inst->addr2, NULL, 0);
+        Dl_info info = {};
+        r = dladdr(paddr2, &info);
+        if (r <= 0)
+            break;
+
+        if (strcmp(prev_so, inst->so) == 0) {
+            n = snprintf(p, len,
+                    " 0x%zx",
+                    (char*)paddr2 - (char*)info.dli_fbase);
+            if (n<0 || (size_t)n>=len) {
+                *p = '\0';
+                n = 0;
+                break;
+            }
+            added = 1;
+        }
+        else {
+            if (added)
+                dump_stack_by_cmd(&level, cmd);
+            cmd[0] = '\0';
+            added = 0;
+            p = cmd;
+            len = sizeof(cmd);
+            n = snprintf(p, len, "addr2line -Cfsi");
+            if (n<0 || (size_t)n>=len) {
+                *p = '\0';
+                n = 0;
+                break;
+            }
+            p += n;
+            len -= n;
+
+            n = snprintf(p, len,
+                    " -e '%s' '0x%zx'",
+                    inst->so, (char*)paddr2 - (char*)info.dli_fbase);
+            if (n<0 || (size_t)n>=len) {
+                *p = '\0';
+                n = 0;
+                break;
+            }
+            added = 1;
+        }
+        p += n;
+        len -= n;
+
+        n = snprintf(prev_so, sizeof(prev_so), "%s", inst->so);
+        if (n<0 || (size_t)n>=sizeof(prev_so))
+            break;
+    }
+
+    if (added)
+        dump_stack_by_cmd(&level, cmd);
+}
+
+void pcinst_dump_stack(void)
+{
+    struct pcinst* inst = pcinst_current();
+    PC_ASSERT(inst);
+
+    PC_ASSERT(inst->nr_stacks > 0);
+
+    regex_t regex;
+    const char *pattern = "([^(]+)\\(([^(]+)\\) \\[([^]]+)\\]";
+
+    int r = regcomp(&regex, pattern, REG_EXTENDED);
+    if (r) {
+        char buf[1024];
+        regerror(r, &regex, buf, sizeof(buf));
+        fprintf(stderr, "regcomp failed: [%s]\n", buf);
+        regfree(&regex);
+        return;
+    }
+
+    PC_ASSERT(r == 0);
+    char **stacks = backtrace_symbols(inst->c_stacks, inst->nr_stacks);
+    if (stacks)
+        dump_stacks_ex(stacks, &regex);
+
+    regfree(&regex);
+
+    free(stacks);
 }
 

@@ -828,7 +828,7 @@ dump_err_except_info(purc_variant_t err_except_info)
 static void
 dump_stack(pcintr_stack_t stack)
 {
-    fprintf(stderr, "dumping stack @[%p]\n", stack);
+    fprintf(stderr, "dumping stacks of corroutine [%p] ......\n", &stack->co);
     PC_ASSERT(stack);
     fprintf(stderr, "error_except: generated @%s[%d]:%s()\n",
             basename((char*)stack->file), stack->lineno, stack->func);
@@ -852,6 +852,14 @@ dump_stack(pcintr_stack_t stack)
             dump_stack_frame(stack, frame, level++);
         }
     }
+}
+
+static void
+dump_c_stack(void)
+{
+    struct pcinst *inst = pcinst_current();
+    fprintf(stderr, "dumping stacks of purc instance [%p]......\n", inst);
+    pcinst_dump_stack();
 }
 
 static int run_coroutines(void *ctxt)
@@ -894,6 +902,7 @@ static int run_coroutines(void *ctxt)
             PC_ASSERT(stack);
             if (stack->except) {
                 dump_stack(stack);
+                dump_c_stack();
                 co->state = CO_STATE_TERMINATED;
             }
             if (co->state == CO_STATE_TERMINATED) {
