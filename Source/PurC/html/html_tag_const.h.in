@@ -41,7 +41,8 @@
 #define PCHTML_TAG_CONST_VERSION "%%HASH%%"
 #define PCHTML_TAG_CONST_VERSION_%%HASH%%
 
-typedef uintptr_t pchtml_tag_id_t;
+/* VW: move to purc-html.h
+typedef uintptr_t pchtml_tag_id_t; */
 
 %%BODY%%
 

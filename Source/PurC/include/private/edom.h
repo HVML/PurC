@@ -1,13 +1,13 @@
 /**
  * @file edom.h
- * @author 
+ * @author
  * @date 2021/07/02
  * @brief The internal interfaces for edom.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -38,6 +38,8 @@
 #include "private/str.h"
 #include "private/hash.h"
 
+#include "purc-edom.h"
+#include "purc-html.h"
 #include "purc-errors.h"
 
 #include "ns_const.h"
@@ -52,27 +54,6 @@ extern "C" {
 
 #define PURC_ERROR_EDOM PURC_ERROR_FIRST_EDOM
 
-typedef enum {
-    PCHTML_STATUS_OK                       = PURC_ERROR_OK,
-    PCHTML_STATUS_ERROR                    = PURC_ERROR_INVALID_VALUE,
-    PCHTML_STATUS_ERROR_MEMORY_ALLOCATION  = PURC_ERROR_OUT_OF_MEMORY,
-    PCHTML_STATUS_ERROR_OBJECT_IS_NULL     = PURC_ERROR_NULL_OBJECT,
-    PCHTML_STATUS_ERROR_SMALL_BUFFER       = PURC_ERROR_TOO_SMALL_BUFF,
-    PCHTML_STATUS_ERROR_TOO_SMALL_SIZE     = PURC_ERROR_TOO_SMALL_SIZE,
-    PCHTML_STATUS_ERROR_INCOMPLETE_OBJECT  = PURC_ERROR_INCOMPLETE_OBJECT,
-    PCHTML_STATUS_ERROR_NO_FREE_SLOT       = PURC_ERROR_NO_FREE_SLOT,
-    PCHTML_STATUS_ERROR_NOT_EXISTS         = PURC_ERROR_NOT_EXISTS,
-    PCHTML_STATUS_ERROR_WRONG_ARGS         = PURC_ERROR_ARGUMENT_MISSED,
-    PCHTML_STATUS_ERROR_WRONG_STAGE        = PURC_ERROR_WRONG_STAGE,
-    PCHTML_STATUS_ERROR_OVERFLOW           = PURC_ERROR_OVERFLOW,
-    PCHTML_STATUS_CONTINUE                 = PURC_ERROR_FIRST_HTML,
-    PCHTML_STATUS_SMALL_BUFFER,
-    PCHTML_STATUS_ABORTED,
-    PCHTML_STATUS_STOPPED,
-    PCHTML_STATUS_NEXT,
-    PCHTML_STATUS_STOP,
-} pchtml_status_t;
-
 // ============================= for ns ================================
 typedef struct {
     pcutils_hash_entry_t  entry;
@@ -80,8 +61,7 @@ typedef struct {
     pchtml_ns_id_t          ns_id;
     size_t               ref_count;
     bool                 read_only;
-}
-pchtml_ns_data_t;
+} pchtml_ns_data_t;
 
 typedef struct {
     pcutils_hash_entry_t  entry;
@@ -89,8 +69,7 @@ typedef struct {
     pchtml_ns_prefix_id_t   prefix_id;
     size_t               ref_count;
     bool                 read_only;
-}
-pchtml_ns_prefix_data_t;
+} pchtml_ns_prefix_data_t;
 
 
 /* Link */
@@ -125,9 +104,7 @@ typedef struct {
     pchtml_tag_id_t        tag_id;
     size_t              ref_count;
     bool                read_only;
-}
-pchtml_tag_data_t;
-
+} pchtml_tag_data_t;
 
 const pchtml_tag_data_t *
 pchtml_tag_data_by_id(pcutils_hash_t *hash, pchtml_tag_id_t tag_id) WTF_INTERNAL;
@@ -222,35 +199,6 @@ void pcedom_cleanup_instance(struct pcinst* inst) WTF_INTERNAL;
 #define pcedom_interface_processing_instruction(obj) ((pcedom_processing_instruction_t *) (obj))
 #define pcedom_interface_shadow_root(obj) ((pcedom_shadow_root_t *) (obj))
 #define pcedom_interface_text(obj) ((pcedom_text_t *) (obj))
-
-struct pcedom_node;
-typedef struct pcedom_node pcedom_node_t;
-struct pcedom_document;
-typedef struct pcedom_document pcedom_document_t;
-struct pcedom_document_fragment;
-typedef struct pcedom_document_fragment pcedom_document_fragment_t;
-struct pcedom_attr;
-typedef struct pcedom_attr pcedom_attr_t;
-struct pcedom_document_type;
-typedef struct pcedom_document_type pcedom_document_type_t;
-struct pcedom_element;
-typedef struct pcedom_element pcedom_element_t;
-struct pcedom_character_data;
-typedef struct pcedom_character_data pcedom_character_data_t;
-struct pcedom_processing_instruction;
-typedef struct pcedom_processing_instruction pcedom_processing_instruction_t;
-struct pcedom_shadow_root;
-typedef struct pcedom_shadow_root pcedom_shadow_root_t;
-struct pcedom_event_target;
-typedef struct pcedom_event_target pcedom_event_target_t;
-struct pcedom_text;
-typedef struct pcedom_text pcedom_text_t;
-struct pcedom_cdata_section;
-typedef struct pcedom_cdata_section pcedom_cdata_section_t;
-struct pcedom_comment;
-typedef struct pcedom_comment pcedom_comment_t;
-
-
 
 // ============================= for interface ================================
 typedef void pcedom_interface_t;

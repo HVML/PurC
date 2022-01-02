@@ -24,6 +24,8 @@ set(PurC_INSTALLED_HEADERS
     "${PURC_DIR}/include/purc-variant.h"
     "${PURC_DIR}/include/purc-rwstream.h"
     "${PURC_DIR}/include/purc-utils.h"
+    "${PURC_DIR}/include/purc-edom.h"
+    "${PURC_DIR}/include/purc-html.h"
     "${PURC_DIR}/include/purc-ports.h"
     "${PURC_DIR}/include/purc.h"
 )
