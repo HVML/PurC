@@ -256,8 +256,7 @@ typedef enum {
     PCEDOM_NODE_TYPE_DOCUMENT_FRAGMENT      = 0x0B,
     PCEDOM_NODE_TYPE_NOTATION               = 0x0C, // historical
     PCEDOM_NODE_TYPE_LAST_ENTRY             = 0x0D
-}
-pcedom_node_type_t;
+} pcedom_node_type_t;
 
 struct pcedom_node {
     pcedom_event_target_t event_target;
@@ -331,6 +330,22 @@ void
 pcedom_node_simple_walk(pcedom_node_t *root,
                 pcedom_node_simple_walker_f walker_cb,
                 void *ctx) WTF_INTERNAL;
+
+void
+pcedom_merge_fragment_prepend(pcedom_node_t *parent,
+        pcedom_node_t *fragment);
+
+void
+pcedom_merge_fragment_append(pcedom_node_t *parent,
+        pcedom_node_t *fragment);
+
+void
+pcedom_merge_fragment_insert_before(pcedom_node_t *to,
+        pcedom_node_t *fragment);
+
+void
+pcedom_merge_fragment_insert_after(pcedom_node_t *to,
+        pcedom_node_t *fragment);
 
 /*
  * Memory of returns value will be freed in document destroy moment.
@@ -733,7 +748,6 @@ struct pcedom_document_type {
     pcutils_str_t      system_id;
 };
 
-
 pcedom_document_type_t *
 pcedom_document_type_interface_create(
                 pcedom_document_t *document) WTF_INTERNAL;
@@ -844,8 +858,7 @@ typedef enum {
     PCEDOM_ELEMENT_CUSTOM_STATE_FAILED         = 0x01,
     PCEDOM_ELEMENT_CUSTOM_STATE_UNCUSTOMIZED   = 0x02,
     PCEDOM_ELEMENT_CUSTOM_STATE_CUSTOM         = 0x03
-}
-pcedom_element_custom_state_t;
+} pcedom_element_custom_state_t;
 
 struct pcedom_element {
     pcedom_node_t                 node;
@@ -858,7 +871,7 @@ struct pcedom_element {
     /* original, with prefix: LalAla:DiV */
     pcedom_attr_id_t              qualified_name;
 
-    pcutils_str_t                   *is_value;
+    pcutils_str_t                 *is_value;
 
     pcedom_attr_t                 *first_attr;
     pcedom_attr_t                 *last_attr;

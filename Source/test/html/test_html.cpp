@@ -623,19 +623,30 @@ enum pchtml_html_serialize_opt {
     PCHTML_HTML_SERIALIZE_OPT_FULL_DOCTYPE        = 0x40
 };
 
-TEST(html, html_parser_replace)
+TEST(html, html_parser_fragment_insert)
 {
     purc_rwstream_t rwstream = NULL;
     unsigned int status;
     pchtml_html_document_t *doc;
 
     // original html
-    static const char html[] = "<div><p>Fir&\"\'<>st<p>second</div><div><p>third<p>fourth</div>";
+    static const char html[] =
+        "<div>"
+        "  <p>first"
+        "  <p>second"
+        "</div>"
+        "<div>"
+        "  <p>third"
+        "  <p>fourth"
+        "</div>";
+
     size_t html_len = sizeof(html) - 1;
     int index = 0;
 
     // html fragment2, in one string
-    static const char fragment2[] = "<h2>Flower</h2><img src=\"img_white_flower.jpg\" width=\"214\" height=\"204\">";
+    static const char fragment2[] =
+        "<h2>Flower</h2>"
+        "<img src=\"img_white_flower.jpg\" width=\"214\" height=\"204\">";
 
 /*  original tree
     <html>
@@ -688,8 +699,7 @@ TEST(html, html_parser_replace)
     purc_rwstream_destroy (rwstream);
 
     /* Serialization html*/
-    printf("HTML Document:\n");
-
+    printf("The original HTML Document:\n");
     status = pchtml_html_serialize_pretty_tree_cb(pcedom_interface_node(doc),
                                                PCHTML_HTML_SERIALIZE_OPT_UNDEF,
                                                0, serializer_callback, NULL);
@@ -697,8 +707,8 @@ TEST(html, html_parser_replace)
         printf ("Failed to serialization HTML tree");
     }
 
-    // test case1: append fragment tree under first div
-/*  after append
+    // test case0: prepend fragment tree in the first div
+/*  after prepending
     <html>
         <head>
         </head>
@@ -708,6 +718,12 @@ TEST(html, html_parser_replace)
                     "Flower"
                 </h2>
                 <img src="img_white_flower.jpg" width="214" height="204">
+                <p>
+                    "First"
+                </p>
+                <p>
+                    "second"
+                </p>
             </div>
 
             <div>
@@ -730,17 +746,15 @@ TEST(html, html_parser_replace)
                 strlen((const char *) fragment2));
 
         // get the fragment root
-        pcedom_node_t *fragment_root = pchtml_edom_document_parse_fragment (
-                doc, div, rwstream);
+        pcedom_node_t *fragment_root = pchtml_html_document_parse_fragment (
+                doc, pcedom_interface_element (div), rwstream);
 
-        // set the fragment to the node. append: is the sub tree.
-        pchtml_edom_insert_node (div, fragment_root,
-                pchtml_html_cmd_atom (ID_HTML_CMD_APPEND));
+        pcedom_merge_fragment_prepend (div, fragment_root);
 
         purc_rwstream_destroy (rwstream);
     }
     // print the result
-    printf("\n\nAfter replace, HTML Document:\n");
+    printf("\n\nAfter prepending the fragment in the first div:\n");
     status = pchtml_html_serialize_pretty_tree_cb(pcedom_interface_node(doc),
                                                PCHTML_HTML_SERIALIZE_OPT_UNDEF,
                                                0, serializer_callback, NULL);
@@ -749,18 +763,23 @@ TEST(html, html_parser_replace)
     }
 
 
-    // test case 2: insertBefore first div
-/*  after insertBefore
+    // test case1: append fragment tree under first div
+/*  after appending
     <html>
         <head>
         </head>
         <body>
-            <h2>
-                "Flower"
-            </h2>
-            <img src="img_white_flower.jpg" width="214" height="204">
-
             <div>
+                <h2>
+                    "Flower"
+                </h2>
+                <img src="img_white_flower.jpg" width="214" height="204">
+                <p>
+                    "First"
+                </p>
+                <p>
+                    "second"
+                </p>
                 <h2>
                     "Flower"
                 </h2>
@@ -787,17 +806,16 @@ TEST(html, html_parser_replace)
                 strlen((const char *) fragment2));
 
         // get the fragment root
-        pcedom_node_t *fragment_root = pchtml_edom_document_parse_fragment (
-                doc, div, rwstream);
+        pcedom_node_t *fragment_root = pchtml_html_document_parse_fragment (
+                doc, pcedom_interface_element (div), rwstream);
 
-        // set the fragment to the node. insertBefore: before the node
-        pchtml_edom_insert_node (div, fragment_root,
-                pchtml_html_cmd_atom (ID_HTML_CMD_INSERTBEFORE));
+        // set the fragment to the node. append: is the sub tree.
+        pcedom_merge_fragment_append (div, fragment_root);
 
         purc_rwstream_destroy (rwstream);
     }
     // print the result
-    printf("\n\nAfter replace, HTML Document:\n");
+    printf("\n\nAfter appending fragment in the first div:\n");
     status = pchtml_html_serialize_pretty_tree_cb(pcedom_interface_node(doc),
                                                PCHTML_HTML_SERIALIZE_OPT_UNDEF,
                                                0, serializer_callback, NULL);
@@ -806,7 +824,72 @@ TEST(html, html_parser_replace)
     }
 
 
-    // test case 3: insertAfter second div
+    // test case 2: insert the fragment before the first div
+/*  after insertBefore
+    <html>
+        <head>
+        </head>
+        <body>
+            <h2>
+                "Flower"
+            </h2>
+            <img src="img_white_flower.jpg" width="214" height="204">
+            <div>
+                <h2>
+                    "Flower"
+                </h2>
+                <img src="img_white_flower.jpg" width="214" height="204">
+                <p>
+                    "First"
+                </p>
+                <p>
+                    "second"
+                </p>
+                <h2>
+                    "Flower"
+                </h2>
+                <img src="img_white_flower.jpg" width="214" height="204">
+            </div>
+
+            <div>
+                <p>
+                    "third"
+                </p>
+                <p>
+                    "fourth"
+                </p>
+            </div>
+        </body>
+    </html>
+*/
+
+    index = 0;
+    div = get_node (&(doc->dom_document.node), PCHTML_TAG_DIV, &index);
+    if (div) {
+        purc_rwstream_t rwstream = NULL;
+        rwstream = purc_rwstream_new_from_mem((void*)fragment2,
+                strlen((const char *) fragment2));
+
+        // get the fragment root
+        pcedom_node_t *fragment_root = pchtml_html_document_parse_fragment (
+                doc, pcedom_interface_element (div), rwstream);
+
+        // set the fragment to the node. insertBefore: before the node
+        pcedom_merge_fragment_insert_before (div, fragment_root);
+
+        purc_rwstream_destroy (rwstream);
+    }
+    // print the result
+    printf("\n\nAfter inserting before the first div:\n");
+    status = pchtml_html_serialize_pretty_tree_cb(pcedom_interface_node(doc),
+                                               PCHTML_HTML_SERIALIZE_OPT_UNDEF,
+                                               0, serializer_callback, NULL);
+    if (status != PCHTML_STATUS_OK) {
+        printf ("Failed to serialization HTML tree");
+    }
+
+
+    // test case 3: insert the fragment after the second div
 /*  Result:
     <html>
         <head>
@@ -816,8 +899,17 @@ TEST(html, html_parser_replace)
                 "Flower"
             </h2>
             <img src="img_white_flower.jpg" width="214" height="204">
-
             <div>
+                <h2>
+                    "Flower"
+                </h2>
+                <img src="img_white_flower.jpg" width="214" height="204">
+                <p>
+                    "First"
+                </p>
+                <p>
+                    "second"
+                </p>
                 <h2>
                     "Flower"
                 </h2>
@@ -848,17 +940,16 @@ TEST(html, html_parser_replace)
                 strlen((const char *) fragment2));
 
         // get the fragment root
-        pcedom_node_t *fragment_root = pchtml_edom_document_parse_fragment (
-                doc, div, rwstream);
+        pcedom_node_t *fragment_root = pchtml_html_document_parse_fragment (
+                doc, pcedom_interface_element (div), rwstream);
 
         // set the fragment to the node. insertBefore: before the node
-        pchtml_edom_insert_node (div, fragment_root,
-                pchtml_html_cmd_atom (ID_HTML_CMD_INSERTAFTER));
+        pcedom_merge_fragment_insert_after (div, fragment_root);
 
         purc_rwstream_destroy (rwstream);
     }
     // print the result
-    printf("\n\nAfter replace, HTML Document:\n");
+    printf("\n\nAfter inserting after the second div:\n");
     status = pchtml_html_serialize_pretty_tree_cb(pcedom_interface_node(doc),
                                                PCHTML_HTML_SERIALIZE_OPT_UNDEF,
                                                0, serializer_callback, NULL);

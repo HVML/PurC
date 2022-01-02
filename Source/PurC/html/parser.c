@@ -559,19 +559,29 @@ static pcedom_node_t * get_node (pcedom_node_t *node, unsigned int tag, int *ind
     return return_node;
 }
 
-pcedom_node_t * pchtml_edom_document_parse_fragment (pchtml_html_document_t *document,
-                pcedom_node_t *node, purc_rwstream_t html)
+pcedom_node_t *
+pchtml_html_document_parse_fragment (pchtml_html_document_t *document,
+        pcedom_element_t *element, purc_rwstream_t html)
 {
-    int index = 0;
     unsigned int status = PCHTML_STATUS_OK;
-    if (node == NULL) {
-        node = get_node (&(document->dom_document.node), PCHTML_TAG_BODY, &index);
-    }
-    pcedom_element_t *root_element = pcedom_interface_element (node);
 
-    status = pchtml_html_document_parse_fragment_chunk_begin (document, root_element);
+    if (element == NULL) {
+        int index = 0;
+        pcedom_node_t *node;
+
+        node = get_node (&(document->dom_document.node), PCHTML_TAG_BODY,
+                &index);
+        if (node)
+            element = pcedom_interface_element (node);
+        else {
+            // TODO set error code
+            return NULL;
+        }
+    }
+
+    status = pchtml_html_document_parse_fragment_chunk_begin (document, element);
     if (status != PCHTML_STATUS_OK) {
-        printf ("Failed to start parse HTML chunk");
+        // TODO set error code
         return NULL;
     }
 
@@ -585,64 +595,19 @@ pcedom_node_t * pchtml_edom_document_parse_fragment (pchtml_html_document_t *doc
         status = pchtml_html_document_parse_fragment_chunk (document,
                 (unsigned char*)buf, sz);
         if (status != PCHTML_STATUS_OK) {
-            printf ("Failed to parse HTML chunk");
+            // TODO set error code
             return NULL;
         }
     }
 
-    pcedom_node_t *fragment_root = pchtml_html_document_parse_fragment_chunk_end (document);
-    if (fragment_root == NULL) {
-        printf ("Failed to parse HTML");
+    pcedom_node_t *frag;
+    frag = pchtml_html_document_parse_fragment_chunk_end (document);
+    if (frag == NULL) {
         status = PCHTML_STATUS_ERROR;
+        // TODO set error code
         return NULL;
     }
 
-    return fragment_root;
+    return frag;
 }
 
-bool pchtml_edom_insert_node(pcedom_node_t *node, pcedom_node_t *fragment_root,
-        purc_atom_t op)
-{
-    bool ret = true;
-    pcedom_node_t *child = NULL;
-
-    if (op == pchtml_html_cmd_atom (ID_HTML_CMD_APPEND)) {
-        while (node->first_child != NULL) {
-            pcedom_node_destroy_deep(node->first_child);
-        }
-
-        while (fragment_root->first_child != NULL) {
-            child = fragment_root->first_child;
-
-            pcedom_node_remove(child);
-            pcedom_node_insert_child(node, child);
-        }
-        pcedom_node_destroy(fragment_root);
-    }
-    else if (op == pchtml_html_cmd_atom (ID_HTML_CMD_PREPEND)) {
-        ret = false;
-    }
-    else if (op == pchtml_html_cmd_atom (ID_HTML_CMD_INSERTBEFORE)) {
-        while (fragment_root->first_child != NULL) {
-            child = fragment_root->first_child;
-
-            pcedom_node_remove(child);
-            pcedom_node_insert_before (node, child);
-        }
-        pcedom_node_destroy(fragment_root);
-    }
-    else if (op == pchtml_html_cmd_atom (ID_HTML_CMD_INSERTAFTER)) {
-        while (fragment_root->first_child != NULL) {
-            child = fragment_root->first_child;
-
-            pcedom_node_remove(child);
-            pcedom_node_insert_after (node, child);
-            node = node->next;
-        }
-        pcedom_node_destroy(fragment_root);
-    }
-    else
-        ret = false;
-
-    return ret;
-}
