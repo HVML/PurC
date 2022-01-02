@@ -40,7 +40,8 @@
 #define PCHTML_NS_CONST_VERSION "%%HASH%%"
 #define PCHTML_NS_CONST_VERSION_%%HASH%%
 
-typedef uintptr_t pchtml_ns_id_t;
+/* VW: move to purc-html.h
+typedef uintptr_t pchtml_ns_id_t; */
 typedef uintptr_t pchtml_ns_prefix_id_t;
 
 %%BODY%%
