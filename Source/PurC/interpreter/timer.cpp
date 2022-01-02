@@ -165,14 +165,26 @@ pcintr_timer_get_attach(pcintr_timer_t timer)
 #define TIMERS_STR_ACTIVE           "active"
 #define TIMERS_STR_YES              "yes"
 #define TIMERS_STR_TIMERS           "TIMERS"
-#define TIMERS_STR_HANDLE           "__handle"
 #define TIMERS_STR_EXPIRED          "expired"
 
 struct pcintr_timers {
     purc_variant_t timers_var;
     struct pcvar_listener* grow_listener;
     struct pcvar_listener* shrink_listener;
+    pcutils_map* timers_map; // id : pcintr_timer_t
 };
+
+static void* map_copy_val(const void* val)
+{
+    return (void*)val;
+}
+
+static void map_free_val(void* val)
+{
+    if (val) {
+        pcintr_timer_destroy((pcintr_timer_t)val);
+    }
+}
 
 void timer_fire_func(const char* id, void* ctxt)
 {
@@ -201,52 +213,57 @@ is_euqal(purc_variant_t var, const char* comp)
     return false;
 }
 
-static purc_variant_t
-pointer_to_variant(void* p)
+pcintr_timer_t
+find_timer(struct pcintr_timers* timers, const char* id)
 {
-    return p ? purc_variant_make_native(p, NULL) : PURC_VARIANT_INVALID;
+    pcutils_map_entry* entry = pcutils_map_find(timers->timers_map, id);
+    return entry ? (pcintr_timer_t) entry->val : NULL;
 }
 
-static void*
-variant_to_pointer(purc_variant_t var)
+bool
+add_timer(struct pcintr_timers* timers, const char* id, pcintr_timer_t timer)
 {
-    if (var && purc_variant_is_type(var, PURC_VARIANT_TYPE_NATIVE)) {
-        return purc_variant_native_get_entity(var);
+    if (0 == pcutils_map_insert(timers->timers_map, id, timer)) {
+        return true;
     }
-    return NULL;
+    return false;
+}
+
+void
+remove_timer(struct pcintr_timers* timers, const char* id)
+{
+    pcutils_map_erase(timers->timers_map, (void*)id);
 }
 
 static pcintr_timer_t
 get_inner_timer(pcintr_stack_t stack, purc_variant_t timer_var)
 {
-    purc_variant_t tm = purc_variant_object_get_by_ckey(timer_var,
-            TIMERS_STR_HANDLE);
-    pcintr_timer_t timer = variant_to_pointer(tm);
-    if (timer) {
-        return timer;
-    }
-
     purc_variant_t id = purc_variant_object_get_by_ckey(timer_var, TIMERS_STR_ID);
     if (!id) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         return NULL;
     }
 
-    timer = pcintr_timer_create(purc_variant_get_string_const(id),
-            stack, timer_fire_func);
+    const char* idstr = purc_variant_get_string_const(id);
+    pcintr_timer_t timer = find_timer(stack->vdom->timers, idstr);
+    if (timer) {
+        return timer;
+    }
+
+    timer = pcintr_timer_create(idstr, stack, timer_fire_func);
     if (timer == NULL) {
         return NULL;
     }
 
-    purc_variant_t native = pointer_to_variant(timer);
-    purc_variant_object_set_by_static_ckey(timer_var, TIMERS_STR_HANDLE, native);
-    purc_variant_unref(native);
+    if (!add_timer(stack->vdom->timers, idstr, timer)) {
+        pcintr_timer_destroy(timer);
+        return NULL;
+    }
 
     struct pcvar_listener* listener = purc_variant_register_post_listener(
             timer_var, pcvariant_atom_change, timer_listener_handler, stack);
     if (!listener) {
-        pcintr_timer_destroy(timer);
-        purc_variant_object_remove_by_static_ckey(timer_var,TIMERS_STR_HANDLE);
+        remove_timer(stack->vdom->timers, idstr);
         return NULL;
     }
     pcintr_timer_set_attach(timer, listener);
@@ -254,17 +271,20 @@ get_inner_timer(pcintr_stack_t stack, purc_variant_t timer_var)
 }
 
 static void
-destroy_inner_timer(purc_variant_t timer_var)
+destroy_inner_timer(pcintr_stack_t stack, purc_variant_t timer_var)
 {
-    purc_variant_t tm = purc_variant_object_get_by_ckey(timer_var,
-            TIMERS_STR_HANDLE);
-    pcintr_timer_t timer = variant_to_pointer(tm);
+    purc_variant_t id = purc_variant_object_get_by_ckey(timer_var, TIMERS_STR_ID);
+    if (!id) {
+        return;
+    }
+
+    const char* idstr = purc_variant_get_string_const(id);
+    pcintr_timer_t timer = find_timer(stack->vdom->timers, idstr);
     if (timer) {
         struct pcvar_listener* listener =
             (struct pcvar_listener*)pcintr_timer_get_attach(timer);
         purc_variant_revoke_listener(timer_var, listener);
-        purc_variant_object_remove_by_static_ckey(timer_var,TIMERS_STR_HANDLE);
-        pcintr_timer_destroy(timer);
+        remove_timer(stack->vdom->timers, idstr);
     }
 }
 
@@ -323,7 +343,7 @@ timers_listener_handler(purc_variant_t source, purc_atom_t msg_type,
         }
     }
     else if (msg_type == pcvariant_atom_shrink) {
-        destroy_inner_timer(argv[0]);
+        destroy_inner_timer(stack, argv[0]);
     }
     return true;
 }
@@ -346,6 +366,14 @@ pcintr_timers_init(pcintr_stack_t stack)
             sizeof(struct pcintr_timers));
     if (!timers) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        purc_variant_unref(ret);
+        return NULL;
+    }
+
+    timers->timers_map = pcutils_map_create (copy_key_string, free_key_string,
+                          map_copy_val, map_free_val, comp_key_string, false);
+    if (!timers->timers_map) {
+        free(timers);
         purc_variant_unref(ret);
         return NULL;
     }
@@ -381,17 +409,7 @@ pcintr_timers_destroy(struct pcintr_timers* timers)
                 timers->shrink_listener);
 
         // remove inner timer
-        size_t sz;
-        bool ok = purc_variant_set_size(timers->timers_var, &sz);
-        if (ok) {
-            for (size_t i=0; i<sz; ++i) {
-                purc_variant_t v = purc_variant_set_get_by_index(
-                        timers->timers_var, i);
-                if (v != PURC_VARIANT_INVALID) {
-                    destroy_inner_timer(v);
-                }
-            }
-        }
+        pcutils_map_destroy(timers->timers_map);
 
         purc_variant_unref(timers->timers_var);
         free(timers);
