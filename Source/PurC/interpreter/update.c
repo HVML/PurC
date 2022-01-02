@@ -106,7 +106,10 @@ get_source(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     if (from != PURC_VARIANT_INVALID)
         return get_source_by_from(co, frame, from);
 
-    return PURC_VARIANT_INVALID;
+    if (frame->ctnt_var != PURC_VARIANT_INVALID)
+        purc_variant_ref(frame->ctnt_var);
+
+    return frame->ctnt_var;
 }
 
 static int
@@ -146,6 +149,51 @@ process_object(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 }
 
 static int
+process_set(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
+{
+    UNUSED_PARAM(co);
+    struct ctxt_for_update *ctxt;
+    ctxt = (struct ctxt_for_update*)frame->ctxt;
+    PC_ASSERT(ctxt);
+    purc_variant_t on  = ctxt->on;
+    purc_variant_t to  = ctxt->to;
+    purc_variant_t src = ctxt->src;
+    PC_ASSERT(on != PURC_VARIANT_INVALID);
+    PC_ASSERT(to != PURC_VARIANT_INVALID);
+    PC_ASSERT(src != PURC_VARIANT_INVALID);
+
+    const char *op = purc_variant_get_string_const(to);
+    PC_ASSERT(op);
+    if (strcmp(op, "displace")==0) {
+        if (!purc_variant_is_type(src, PURC_VARIANT_TYPE_ARRAY)) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            return -1;
+        }
+        if (!purc_variant_is_type(on, PURC_VARIANT_TYPE_SET)) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            return -1;
+        }
+        purc_variant_t v;
+        struct rb_node *n;
+        foreach_value_in_variant_set_safe_x(on, v, n)
+            bool ok = purc_variant_set_remove(on, v);
+            PC_ASSERT(ok); // FIXME: debug-only-now
+        end_foreach;
+        foreach_value_in_variant_array(src, v)
+            char buf[1024];
+            pcvariant_serialize(buf, sizeof(buf), v);
+            D("v: %s\n", buf);
+            bool ok = purc_variant_set_add(on, v, true);
+            if (!ok)
+                return -1;
+        end_foreach;
+        return 0;
+    }
+    PC_ASSERT(0); // Not implemented yet
+    return -1;
+}
+
+static int
 process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
     UNUSED_PARAM(co);
@@ -176,8 +224,7 @@ process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         return -1;
     }
     if (type == PURC_VARIANT_TYPE_SET) {
-        PC_ASSERT(0); // Not implemented yet
-        return -1;
+        return process_set(co, frame);
     }
     PC_ASSERT(0); // Not implemented yet
     return -1;
@@ -238,6 +285,16 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     r = pcintr_element_eval_attrs(frame, element);
     if (r)
         return NULL;
+
+    struct pcvcm_node *vcm_content = element->vcm_content;
+    if (vcm_content) {
+        purc_variant_t v = pcvcm_eval(vcm_content, stack);
+        if (v == PURC_VARIANT_INVALID)
+            return NULL;
+
+        PURC_VARIANT_SAFE_CLEAR(frame->ctnt_var);
+        frame->ctnt_var = v;
+    }
 
     struct ctxt_for_update *ctxt;
     ctxt = (struct ctxt_for_update*)calloc(1, sizeof(*ctxt));

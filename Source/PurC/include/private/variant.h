@@ -280,13 +280,13 @@ void pcvariant_on_post_fired(
  * 2. Implement the _safe version for easy change, e.g. removing an item,
  *  in an interation.
  */
-#define foreach_value_in_variant_array(_arr, _val)          \
-    do {                                                    \
-        struct pcutils_arrlist *_al;                        \
-        _al = (struct pcutils_arrlist*)_arr->sz_ptr[1];     \
-        for (size_t _i = 0; _i < _al->length; _i++) {       \
-            _val = (purc_variant_t)_al->array[_i];          \
-     /* } */                                                \
+#define foreach_value_in_variant_array(_arr, _val)                       \
+    do {                                                                 \
+        struct pcutils_arrlist *_al;                                     \
+        _al = (struct pcutils_arrlist*)_arr->sz_ptr[1];                  \
+        for (size_t _i = 0; _i < _al->length; _i++) {                    \
+            _val = (purc_variant_t)_al->array[_i];                       \
+     /* } */                                                             \
  /* } while (0) */
 
 #define foreach_value_in_variant_array_safe(_arr, _val, _curr)         \
@@ -354,16 +354,17 @@ void pcvariant_on_post_fired(
      /* } */                                                            \
   /* } while (0) */
 
-#define foreach_value_in_variant_set_safe_x(_set, _val, _curr)               \
+#define foreach_value_in_variant_set_safe_x(_set, _val, _next)               \
     do {                                                                     \
+        PC_ASSERT(purc_variant_is_type(_set, PURC_VARIANT_TYPE_SET));        \
         variant_set_t _data;                                                 \
         struct rb_root *_root;                                               \
-        struct rb_node *_node, *_next;                                       \
+        struct rb_node *_node;                                               \
         _data = (variant_set_t)_set->sz_ptr[1];                              \
         _root = &_data->elems;                                               \
         for (_node = pcutils_rbtree_first(_root);                            \
              ({_next = _node ? pcutils_rbtree_next(_node) : NULL; _node; }); \
-             _next = _node)                                                  \
+             _node = _next)                                                  \
         {                                                                    \
             struct elem_node *_p;                                            \
             _p = container_of(_node, struct elem_node, node);                \

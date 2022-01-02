@@ -42,7 +42,7 @@ void pcutils_enable_syslog(bool syslog) WTF_INTERNAL;
 void pcutils_debug(const char *msg, ...) WTF_INTERNAL
     __attribute__ ((format (printf, 1, 2)));
 
-void pcutils_error(const char *msg, ...) WTF_INTERNAL
+void pcutils_error(const char *msg, ...)
     __attribute__ ((format (printf, 1, 2)));
 
 void pcutils_info(const char *msg, ...) WTF_INTERNAL
