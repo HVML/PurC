@@ -111,10 +111,10 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         return NULL;
     }
     // TODO:
-#if 0
+#if 1
     stack->co.waits++;
 
-#if 0
+#if 1
     // for test
     purc_variant_t timers = pcintr_find_named_var(stack, "TIMERS");
     if (timers != PURC_VARIANT_INVALID) {

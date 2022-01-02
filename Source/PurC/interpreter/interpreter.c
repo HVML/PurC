@@ -357,6 +357,15 @@ edom_fragment_post_process(pcintr_stack_t stack,
     else if (strcmp(op, "insertBefore") == 0) {
         pcedom_merge_fragment_insert_before(&target->node, node);
     }
+    else if (strcmp(op, "textContent") == 0) {
+        pcedom_node_t *child = target->node.first_child;
+        while (child) {
+            pcedom_node_remove(child);
+            pcedom_node_destroy(child);
+            child = target->node.first_child;
+        }
+        pcedom_merge_fragment_append(&target->node, node);
+    }
     else {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         PC_ASSERT(0); // Not implemented yet

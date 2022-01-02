@@ -40,6 +40,8 @@
 #include <string.h>
 
 
+#define TO_DEBUG 1
+
 class PurcTimer : public WTF::RunLoop::TimerBase {
     public:
         PurcTimer(const char* id, void* ctxt, pcintr_timer_fire_func func,
@@ -396,6 +398,7 @@ pcintr_timers_init(pcintr_stack_t stack)
         return NULL;
     }
 
+    purc_variant_unref(ret);
     return timers;
 }
 
