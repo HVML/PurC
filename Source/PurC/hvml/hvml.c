@@ -2570,9 +2570,6 @@ next_state:
     END_STATE()
 
     BEGIN_STATE(PCHVML_EJSON_RIGHT_BRACE_STATE)
-        if (is_whitespace(character)) {
-            ADVANCE_TO(PCHVML_EJSON_RIGHT_BRACE_STATE);
-        }
         if (is_eof(character)) {
             SET_ERR(PCHVML_ERROR_EOF_IN_TAG);
             RETURN_NEW_EOF_TOKEN();
@@ -2608,6 +2605,12 @@ next_state:
             }
             SET_ERR(PCHVML_ERROR_UNEXPECTED_RIGHT_BRACE);
             RETURN_AND_STOP_PARSE();
+        }
+        if (uc == '"') {
+            RECONSUME_IN(PCHVML_EJSON_JSONEE_STRING_STATE);
+        }
+        if (is_whitespace(character)) {
+            ADVANCE_TO(PCHVML_EJSON_RIGHT_BRACE_STATE);
         }
         if (character == ':') {
             if (uc == '{') {
@@ -2683,7 +2686,7 @@ next_state:
 
     BEGIN_STATE(PCHVML_EJSON_RIGHT_BRACKET_STATE)
         if (is_whitespace(character)) {
-            ADVANCE_TO(PCHVML_EJSON_RIGHT_BRACE_STATE);
+            ADVANCE_TO(PCHVML_EJSON_RIGHT_BRACKET_STATE);
         }
         if (is_eof(character)) {
             SET_ERR(PCHVML_ERROR_EOF_IN_TAG);

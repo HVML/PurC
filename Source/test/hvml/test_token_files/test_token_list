@@ -128,6 +128,7 @@ jsonee_085_unquoted_attribute_without_assignment
 #####jsonee_086_unquoted_multiple_get_variable
 jsonee_087_call_get_on_div_content
 jsonee_088_dot_after_right_brace
+jsonee_089_string_attr
 ejson_001_i_number_double_huge_neg_exp
 ejson_002_i_number_huge_exp
 ejson_003_i_number_neg_int_huge_exp
