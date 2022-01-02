@@ -49,9 +49,6 @@ typedef enum {
     PCHTML_STATUS_STOP,
 } pchtml_status_t;
 
-typedef uintptr_t pchtml_ns_id_t;
-typedef uintptr_t pchtml_tag_id_t;
-
 struct pchtml_html_document;
 typedef struct pchtml_html_document pchtml_html_document_t;
 
@@ -144,7 +141,7 @@ unsigned int
 pchtml_html_document_parse_chunk_end(
                 pchtml_html_document_t *document) ;
 
-// API for parse fragment 
+// API for parsing fragment 
 pcedom_node_t *
 pchtml_html_document_parse_fragment(pchtml_html_document_t *document,
                 pcedom_element_t *element,
@@ -181,30 +178,6 @@ pchtml_doc_write_to_stream(pchtml_html_document_t *doc, purc_rwstream_t out);
 
 struct pcedom_document*
 pchtml_doc_get_document(pchtml_html_document_t *doc);
-
-
-// for html command
-enum {
-    ID_HTML_CMD_APPEND = 0,
-    ID_HTML_CMD_PREPEND,
-    ID_HTML_CMD_INSERTBEFORE,
-    ID_HTML_CMD_INSERTAFTER,
-};
-
-purc_atom_t pchtml_html_cmd_atom(size_t id);
-
-
-// doc:  html document root
-// node: the node fragment associated.If it is NULL, <body> will be used;
-// html: html stream
-pcedom_node_t * pchtml_edom_document_parse_fragment (pchtml_html_document_t *doc,
-                pcedom_node_t *node, purc_rwstream_t html);
-
-// node: the position will be used;
-// fragment_root: the return value from pchtml_edom_document_parse_fragment
-// op: atom value, which can be one of append / prepend / insertBefore /insertAfter
-bool pchtml_edom_insert_node(pcedom_node_t *node, pcedom_node_t *fragment_root,
-        purc_atom_t op);
 
 PCA_EXTERN_C_END
 

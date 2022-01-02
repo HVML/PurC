@@ -472,3 +472,73 @@ pcedom_node_text_content_set(pcedom_node_t *node,
 
     return PCHTML_STATUS_OK;
 }
+
+void
+pcedom_merge_fragment_prepend(pcedom_node_t *parent,
+        pcedom_node_t *fragment)
+{
+    while (fragment->last_child != NULL) {
+        pcedom_node_t *child;
+        child = fragment->last_child;
+
+        pcedom_node_remove(child);
+        if (parent->first_child == NULL) {
+            pcedom_node_insert_child(parent, child);
+        }
+        else {
+            pcedom_node_insert_before(parent->first_child, child);
+        }
+    }
+
+    pcedom_node_destroy(fragment);
+}
+
+void
+pcedom_merge_fragment_append(pcedom_node_t *parent,
+        pcedom_node_t *fragment)
+{
+    while (fragment->first_child != NULL) {
+        pcedom_node_t *child;
+        child = fragment->first_child;
+
+        pcedom_node_remove(child);
+        if (parent->last_child == NULL) {
+            pcedom_node_insert_child(parent, child);
+        }
+        else {
+            pcedom_node_insert_after(parent->last_child, child);
+        }
+    }
+
+    pcedom_node_destroy(fragment);
+}
+
+void
+pcedom_merge_fragment_insert_before(pcedom_node_t *to,
+        pcedom_node_t *fragment)
+{
+    while (fragment->first_child != NULL) {
+        pcedom_node_t *child;
+        child = fragment->first_child;
+
+        pcedom_node_remove(child);
+        pcedom_node_insert_before(to, child);
+    }
+
+    pcedom_node_destroy(fragment);
+}
+
+void
+pcedom_merge_fragment_insert_after(pcedom_node_t *to,
+        pcedom_node_t *fragment)
+{
+    while (fragment->last_child != NULL) {
+        pcedom_node_t *child;
+        child = fragment->last_child;
+
+        pcedom_node_remove(child);
+        pcedom_node_insert_after(to, child);
+    }
+
+    pcedom_node_destroy(fragment);
+}

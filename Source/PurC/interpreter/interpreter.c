@@ -330,18 +330,6 @@ edom_fragment_post_process(pcintr_stack_t stack,
     purc_variant_t to = fragment->to;
     PC_ASSERT(to != PURC_VARIANT_INVALID);
     PC_ASSERT(purc_variant_is_type(to, PURC_VARIANT_TYPE_STRING));
-    const char *op = purc_variant_get_string_const(fragment->to);
-    purc_atom_t op_atom;
-    if (strcmp(op, "append") == 0) {
-        op_atom = pchtml_html_cmd_atom(ID_HTML_CMD_APPEND);
-    }
-    else if (strcmp(op, "prepend") == 0) {
-        op_atom = pchtml_html_cmd_atom(ID_HTML_CMD_PREPEND);
-    }
-    else {
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
-        PC_ASSERT(0); // FIXME:
-    }
 
     const char *content = fragment->content;
 
@@ -356,7 +344,23 @@ edom_fragment_post_process(pcintr_stack_t stack,
     PC_ASSERT(node);
     PC_ASSERT(node->type == PCEDOM_NODE_TYPE_ELEMENT);
 
-    pchtml_edom_insert_node(&target->node, node, op_atom);
+    const char *op = purc_variant_get_string_const(fragment->to);
+    if (strcmp(op, "append") == 0) {
+        pcedom_merge_fragment_append(&target->node, node);
+    }
+    else if (strcmp(op, "prepend") == 0) {
+        pcedom_merge_fragment_prepend(&target->node, node);
+    }
+    else if (strcmp(op, "insertAfter") == 0) {
+        pcedom_merge_fragment_insert_after(&target->node, node);
+    }
+    else if (strcmp(op, "insertBefore") == 0) {
+        pcedom_merge_fragment_insert_before(&target->node, node);
+    }
+    else {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        PC_ASSERT(0); // Not implemented yet
+    }
 }
 
 static void
