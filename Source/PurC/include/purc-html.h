@@ -49,9 +49,6 @@ typedef enum {
     PCHTML_STATUS_STOP,
 } pchtml_status_t;
 
-typedef uintptr_t pchtml_ns_id_t;
-typedef uintptr_t pchtml_tag_id_t;
-
 struct pchtml_html_document;
 typedef struct pchtml_html_document pchtml_html_document_t;
 
