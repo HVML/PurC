@@ -110,35 +110,9 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (observer == NULL) {
         return NULL;
     }
+
     // TODO:
-#if 1
     stack->co.waits++;
-
-#if 1
-    // for test
-    purc_variant_t timers = pcintr_find_named_var(stack, "TIMERS");
-    if (timers != PURC_VARIANT_INVALID) {
-        purc_variant_t id = purc_variant_make_string("id", false);
-        purc_variant_t id_value = purc_variant_make_string("clock", false);
-        purc_variant_t interval = purc_variant_make_string("interval", false);
-        purc_variant_t interval_value = purc_variant_make_ulongint(1500);
-        purc_variant_t active = purc_variant_make_string("active", false);
-        purc_variant_t active_value = purc_variant_make_string("yes", false);
-
-        purc_variant_t timer = purc_variant_make_object(3, id, id_value,
-                interval, interval_value, active, active_value);
-        purc_variant_set_add(timers, timer, false);
-
-        purc_variant_unref(id);
-        purc_variant_unref(id_value);
-        purc_variant_unref(interval);
-        purc_variant_unref(interval_value);
-        purc_variant_unref(active);
-        purc_variant_unref(active_value);
-        purc_variant_unref(timer);
-    }
-#endif
-#endif
 
     purc_clr_error();
 
