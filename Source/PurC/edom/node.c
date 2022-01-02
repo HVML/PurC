@@ -465,7 +465,12 @@ pcedom_merge_fragment_prepend(pcedom_node_t *parent,
         child = fragment->last_child;
 
         pcedom_node_remove(child);
-        pcedom_node_insert_before(parent->first_child, child);
+        if (parent->first_child == NULL) {
+            pcedom_node_insert_child(parent, child);
+        }
+        else {
+            pcedom_node_insert_before(parent->first_child, child);
+        }
     }
 
     pcedom_node_destroy(fragment);
@@ -480,7 +485,12 @@ pcedom_merge_fragment_append(pcedom_node_t *parent,
         child = fragment->first_child;
 
         pcedom_node_remove(child);
-        pcedom_node_insert_after(parent->last_child, child);
+        if (parent->last_child == NULL) {
+            pcedom_node_insert_child(parent, child);
+        }
+        else {
+            pcedom_node_insert_after(parent->last_child, child);
+        }
     }
 
     pcedom_node_destroy(fragment);
