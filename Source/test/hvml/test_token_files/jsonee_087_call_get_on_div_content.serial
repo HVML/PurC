@@ -9,7 +9,8 @@
         { get_element(get_variable("SYSTEM"),"time") }
     </div>
     <div>
-        get_element(get_variable("SYSTEM"),"time")</div>
+        get_element(get_variable("SYSTEM"),"time")
+    </div>
     <div>
         { "key": 1}
     </div>

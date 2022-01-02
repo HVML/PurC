@@ -2338,8 +2338,8 @@ next_state:
     END_STATE()
 
     BEGIN_STATE(PCHVML_EJSON_FINISHED_STATE)
-        if (is_whitespace(character) || character == '}' ||
-                character == '"' || character == '>') {
+        if (is_whitespace(character) || character == '}' || character == ')'
+                || character == '"' || character == '>') {
             while (!vcm_stack_is_empty()) {
                 ejson_stack_pop();
                 POP_AS_VCM_PARENT_AND_UPDATE_VCM();
@@ -2384,11 +2384,25 @@ next_state:
             SET_ERR(PCHVML_ERROR_EOF_IN_TAG);
             RETURN_NEW_EOF_TOKEN();
         }
+        if (ejson_stack_is_empty()) {
+            parser->token = pchvml_token_new_vcm(parser->vcm_node);
+            parser->vcm_node = NULL;
+            RESET_VCM_NODE();
+            pchvml_rwswrap_buffer_chars(parser->rwswrap, &character, 1);
+            RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
+        }
         SET_ERR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
         RETURN_AND_STOP_PARSE();
     END_STATE()
 
     BEGIN_STATE(PCHVML_EJSON_CONTROL_STATE)
+        if (ejson_stack_is_empty()
+                && parser->vcm_node != NULL
+                && character != '('
+                && character != '['
+                ) {
+            RECONSUME_IN(PCHVML_EJSON_FINISHED_STATE);
+        }
         uint32_t uc = pcutils_stack_top (parser->ejson_stack);
         if (is_whitespace(character)) {
             if (ejson_stack_is_empty()) {
@@ -2598,6 +2612,9 @@ next_state:
                 }
                 // FIXME : <update from="assets/{$SYSTEM.locale}.json" />
                 POP_AS_VCM_PARENT_AND_UPDATE_VCM();
+                if (ejson_stack_is_empty()) {
+                    RECONSUME_IN(PCHVML_EJSON_FINISHED_STATE);
+                }
                 ADVANCE_TO(PCHVML_EJSON_RIGHT_BRACE_STATE);
             }
             else if (uc == '(' || uc == '<' || uc == '"') {
@@ -2775,6 +2792,9 @@ next_state:
                 if (!vcm_stack_is_empty()) {
                     POP_AS_VCM_PARENT_AND_UPDATE_VCM();
                 }
+                if (ejson_stack_is_empty()) {
+                    RECONSUME_IN(PCHVML_EJSON_FINISHED_STATE);
+                }
                 ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
             }
             if (ejson_stack_is_empty()) {
@@ -2813,6 +2833,9 @@ next_state:
     END_STATE()
 
     BEGIN_STATE(PCHVML_EJSON_AFTER_VALUE_STATE)
+        if (ejson_stack_is_empty()) {
+            RECONSUME_IN(PCHVML_EJSON_FINISHED_STATE);
+        }
         uint32_t uc = ejson_stack_top();
         if (is_whitespace(character)) {
             if (uc  == 'U' || uc == '"' || uc == 'T') {
@@ -3936,6 +3959,9 @@ next_state:
                 struct pcvcm_node* node = pcvcm_node_new_object(0, NULL);
                 APPEND_CHILD(node, parser->vcm_node);
                 UPDATE_VCM_NODE(node);
+            }
+            if (ejson_stack_is_empty()) {
+                RECONSUME_IN(PCHVML_EJSON_FINISHED_STATE);
             }
             ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
         }
