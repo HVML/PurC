@@ -30,7 +30,7 @@
 #include "fetcher-internal.h"
 #include "fetcher-process.h"
 
-#if ENABLE(LINK_PURC_FETCHER)
+#if ENABLE(REMOTE_FETCHER)
 
 struct pcfetcher_remote {
     struct pcfetcher base;
@@ -154,4 +154,4 @@ int pcfetcher_remote_check_response(struct pcfetcher* fetcher,
 }
 
 
-#endif // ENABLE(LINK_PURC_FETCHER)
+#endif // ENABLE(REMOTE_FETCHER)

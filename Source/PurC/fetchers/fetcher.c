@@ -35,7 +35,7 @@ int pcfetcher_init(size_t max_conns, size_t cache_quota)
         return 0;
     }
 
-#if ENABLE(LINK_PURC_FETCHER)
+#if ENABLE(REMOTE_FETCHER)
     s_fetcher = pcfetcher_remote_init(max_conns, cache_quota);
 #else
     s_fetcher = pcfetcher_local_init(max_conns, cache_quota);
