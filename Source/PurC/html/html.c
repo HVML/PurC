@@ -42,6 +42,7 @@ void pchtml_init_once(void)
     // initialize others
 }
 
+/* VW NOTE: HTML module should work without instance
 void pchtml_init_instance(struct pcinst* inst)
 {
     UNUSED_PARAM(inst);
@@ -53,4 +54,4 @@ void pchtml_cleanup_instance(struct pcinst* inst)
 {
     UNUSED_PARAM(inst);
 }
-
+*/
