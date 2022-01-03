@@ -58,21 +58,37 @@ static struct err_msg_seg _generic_err_msgs_seg = {
     generic_err_msgs,
 };
 
-static void init_modules(void)
+static unsigned int _modules;
+
+static void init_modules_once(void)
 {
+    // TODO: init modules working without instance here.
     pcutils_atom_init_once();
 
     pcinst_register_error_message_segment(&_generic_err_msgs_seg);
 
-    // TODO: init other modules here.
     pcrwstream_init_once();
-    pcvariant_init_once();
-    pcdvobjs_init_once();
-    pcejson_init_once();
-    pchtml_init_once();
-    pcedom_init_once();
-    pcexecutor_init_once();
-    pcintr_stack_init_once();
+
+    if (_modules & PURC_HAVE_EDOM) {
+        pcedom_init_once();
+    }
+
+    if (_modules & PURC_HAVE_HTML) {
+        pchtml_init_once();
+    }
+
+    // TODO: init modules working with instance here.
+    if (_modules & PURC_HAVE_VARIANT) {
+        pcvariant_init_once();
+        if (_modules & PURC_HAVE_EJSON) {
+            pcejson_init_once();
+        }
+        if (_modules & PURC_HAVE_HVML) {
+            pcdvobjs_init_once();
+            pcexecutor_init_once();
+            pcintr_stack_init_once();
+        }
+    }
 }
 
 #if USE(PTHREADS)
@@ -81,7 +97,7 @@ static void init_modules(void)
 static pthread_once_t once = PTHREAD_ONCE_INIT;
 static inline void init_once(void)
 {
-    pthread_once(&once, init_modules);
+    pthread_once(&once, init_modules_once);
 }
 
 #else
@@ -92,7 +108,7 @@ static inline void init_once(void)
     if (inited)
         return;
 
-    init_modules();
+    init_modules_once();
     inited = true;
 }
 
@@ -102,17 +118,21 @@ PURC_DEFINE_THREAD_LOCAL(struct pcinst, inst);
 
 struct pcinst* pcinst_current(void)
 {
-    struct pcinst* curr_inst;
-    curr_inst = PURC_GET_THREAD_LOCAL(inst);
+    if (_modules & PURC_HAVE_VARIANT) {
+        struct pcinst* curr_inst;
+        curr_inst = PURC_GET_THREAD_LOCAL(inst);
 
-    if (curr_inst == NULL || curr_inst->app_name == NULL) {
-        return NULL;
+        if (curr_inst == NULL || curr_inst->app_name == NULL) {
+            return NULL;
+        }
+
+        return curr_inst;
     }
 
-    return curr_inst;
+    return NULL;
 }
 
-static void cleanup_instance (struct pcinst *curr_inst)
+static void cleanup_instance(struct pcinst *curr_inst)
 {
     if (curr_inst->local_data_map) {
         pcutils_map_destroy(curr_inst->local_data_map);
@@ -130,12 +150,17 @@ static void cleanup_instance (struct pcinst *curr_inst)
     }
 }
 
-int purc_init(const char* app_name, const char* runner_name,
+int purc_init_ex(unsigned int modules,
+        const char* app_name, const char* runner_name,
         const purc_instance_extra_info* extra_info)
 {
     struct pcinst* curr_inst;
 
+    _modules = modules;
     init_once();
+
+    if (!(modules & PURC_HAVE_VARIANT))
+        return PURC_ERROR_OK;
 
     curr_inst = PURC_GET_THREAD_LOCAL(inst);
     if (curr_inst == NULL)
@@ -173,12 +198,19 @@ int purc_init(const char* app_name, const char* runner_name,
         goto failed;
 
     // TODO: init other fields
-    pcvariant_init_instance(curr_inst);
-    pcdvobjs_init_instance(curr_inst);
-    pchtml_init_instance(curr_inst);
+
+    /* VW NOTE: eDOM and HTML modules should work without instance
     pcedom_init_instance(curr_inst);
-    pcexecutor_init_instance(curr_inst);
-    pcintr_stack_init_instance(curr_inst);
+    pchtml_init_instance(curr_inst); */
+
+    // TODO: init XML modules here
+    pcvariant_init_instance(curr_inst);
+    // TODO: init XGML modules here
+    if (modules & PURC_HAVE_HVML) {
+        pcdvobjs_init_instance(curr_inst);
+        pcexecutor_init_instance(curr_inst);
+        pcintr_stack_init_instance(curr_inst);
+    }
 
     /* TODO: connnect to renderer */
     UNUSED_PARAM(extra_info);
@@ -192,20 +224,26 @@ failed:
 
 bool purc_cleanup(void)
 {
-    struct pcinst* curr_inst;
+    if (_modules & PURC_HAVE_VARIANT) {
+        struct pcinst* curr_inst;
 
-    curr_inst = PURC_GET_THREAD_LOCAL(inst);
-    if (curr_inst == NULL || curr_inst->app_name == NULL)
-        return false;
+        curr_inst = PURC_GET_THREAD_LOCAL(inst);
+        if (curr_inst == NULL || curr_inst->app_name == NULL)
+            return false;
 
-    // TODO: clean up other fields in reverse order
-    pcexecutor_cleanup_instance(curr_inst);
-    pcedom_cleanup_instance(curr_inst);
-    pchtml_cleanup_instance(curr_inst);
-    pcdvobjs_cleanup_instance(curr_inst);
-    pcvariant_cleanup_instance(curr_inst);
+        // TODO: clean up other fields in reverse order
+        if (_modules & PURC_HAVE_HVML) {
+            pcexecutor_cleanup_instance(curr_inst);
+            pcdvobjs_cleanup_instance(curr_inst);
+        }
+        pcvariant_cleanup_instance(curr_inst);
+        /* VW NOTE: eDOM and HTML modules should work without instance
+        pchtml_cleanup_instance(curr_inst);
+        pcedom_cleanup_instance(curr_inst); */
 
-    cleanup_instance(curr_inst);
+        cleanup_instance(curr_inst);
+    }
+
     return true;
 }
 
