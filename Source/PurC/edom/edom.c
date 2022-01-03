@@ -41,6 +41,7 @@ void pcedom_init_once(void)
     // initialize others
 }
 
+/* VW NOTE: eDOM module should work without instance
 void pcedom_init_instance(struct pcinst* inst)
 {
     UNUSED_PARAM(inst);
@@ -52,4 +53,4 @@ void pcedom_cleanup_instance(struct pcinst* inst)
 {
     UNUSED_PARAM(inst);
 }
-
+*/

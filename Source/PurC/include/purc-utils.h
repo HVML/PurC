@@ -7,7 +7,7 @@
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -31,8 +31,136 @@
 
 #include "purc-macros.h"
 
+typedef struct {
+    unsigned char * data;
+    size_t          length;
+} pcutils_str_t;
+
+struct pcutils_mraw;
+typedef struct pcutils_mraw pcutils_mraw_t;
+
+PCA_EXTERN_C_BEGIN
+
+pcutils_mraw_t *
+pcutils_mraw_create(void);
+
+unsigned int
+pcutils_mraw_init(pcutils_mraw_t *mraw, size_t chunk_size);
+
+void
+pcutils_mraw_clean(pcutils_mraw_t *mraw);
+
+pcutils_mraw_t *
+pcutils_mraw_destroy(pcutils_mraw_t *mraw, bool destroy_self);
+
+
+void *
+pcutils_mraw_alloc(pcutils_mraw_t *mraw, size_t size);
+
+void *
+pcutils_mraw_calloc(pcutils_mraw_t *mraw, size_t size);
+
+void *
+pcutils_mraw_realloc(pcutils_mraw_t *mraw, void *data, size_t new_size);
+
+void *
+pcutils_mraw_free(pcutils_mraw_t *mraw, void *data);
+
+PCA_EXTERN_C_END
+
+#define PCUTILS_HASH_SHORT_SIZE     16
+
+struct pcutils_hash;
+typedef struct pcutils_hash pcutils_hash_t;
+
+struct pcutils_hash_entry;
+typedef struct pcutils_hash_entry pcutils_hash_entry_t;
+
+struct pcutils_hash_entry {
+    union {
+        unsigned char *long_str;
+        unsigned char short_str[PCUTILS_HASH_SHORT_SIZE + 1];
+    } u;
+
+    size_t              length;
+
+    pcutils_hash_entry_t *next;
+};
+
+static inline unsigned char *
+pcutils_hash_entry_str(const pcutils_hash_entry_t *entry)
+{
+    if (entry->length <= PCUTILS_HASH_SHORT_SIZE) {
+        return (unsigned char *) entry->u.short_str;
+    }
+
+    return entry->u.long_str;
+}
+
 /**
- * SECTION:atom
+ * SECTION: array
+ * @title: array
+ * @short_description: a simple array implementation
+ */
+typedef struct {
+    void   **list;
+    size_t size;
+    size_t length;
+} pcutils_array_t;
+
+PCA_EXTERN_C_BEGIN
+
+pcutils_array_t * pcutils_array_create(void);
+
+unsigned int
+pcutils_array_init(pcutils_array_t *array, size_t size);
+
+void pcutils_array_clean(pcutils_array_t *array);
+
+pcutils_array_t *
+pcutils_array_destroy(pcutils_array_t *array, bool self_destroy);
+
+void **
+pcutils_array_expand(pcutils_array_t *array, size_t up_to);
+
+unsigned int
+pcutils_array_push(pcutils_array_t *array, void *value);
+
+void * pcutils_array_pop(pcutils_array_t *array);
+
+unsigned int
+pcutils_array_insert(pcutils_array_t *array, size_t idx, void *value);
+
+unsigned int
+pcutils_array_set(pcutils_array_t *array, size_t idx, void *value);
+
+void
+pcutils_array_delete(pcutils_array_t *array, size_t begin, size_t length);
+
+/* Inline functions */
+static inline void * pcutils_array_get(pcutils_array_t *array, size_t idx)
+{
+    if (idx >= array->length) {
+        return NULL;
+    }
+
+    return array->list[idx];
+}
+
+static inline size_t pcutils_array_length(pcutils_array_t *array)
+{
+    return array->length;
+}
+
+static inline size_t pcutils_array_size(pcutils_array_t *array)
+{
+    return array->size;
+}
+
+PCA_EXTERN_C_END
+
+/**
+ * SECTION: atom
  * @title: Atom String
  * @short_description: a 2-way association between a string and a
  *     unique integer identifier
@@ -207,7 +335,7 @@ PCA_EXPORT const char*
 purc_atom_to_string(purc_atom_t atom);
 
 /**
- * SECTION:misc_utils
+ * SECTION: misc_utils
  * @title: Misc. Utilities
  * @short_description: Some useful helpers and utilities.
  *
@@ -234,7 +362,7 @@ int pcutils_get_random_seed(void);
 size_t pcutils_get_next_fibonacci_number(size_t n);
 
 /**
- * SECTION:arraylist
+ * SECTION: arraylist
  * @title: Array List
  * @short_description: A basic Array implementation.
  *

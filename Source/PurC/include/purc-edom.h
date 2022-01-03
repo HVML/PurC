@@ -345,22 +345,18 @@ pcedom_comment_t *
 pcedom_comment_interface_destroy(
                 pcedom_comment_t *comment);
 
-
-
 // ============================= for document =================================
 typedef enum {
     PCEDOM_DOCUMENT_CMODE_NO_QUIRKS       = 0x00,
     PCEDOM_DOCUMENT_CMODE_QUIRKS          = 0x01,
     PCEDOM_DOCUMENT_CMODE_LIMITED_QUIRKS  = 0x02
-}
-pcedom_document_cmode_t;
+} pcedom_document_cmode_t;
 
 typedef enum {
     PCEDOM_DOCUMENT_DTYPE_UNDEF = 0x00,
     PCEDOM_DOCUMENT_DTYPE_HTML  = 0x01,
     PCEDOM_DOCUMENT_DTYPE_XML   = 0x02
-}
-pcedom_document_dtype_t;
+} pcedom_document_dtype_t;
 
 struct pcedom_document {
     pcedom_node_t              node;

@@ -33,16 +33,77 @@
 #include "purc-version.h"
 #include "purc-features.h"
 #include "purc-errors.h"
-#include "purc-rwstream.h"
-#include "purc-variant.h"
 #include "purc-ports.h"
 #include "purc-utils.h"
+#include "purc-rwstream.h"
+#include "purc-variant.h"
+#include "purc-edom.h"
+#include "purc-html.h"
 
 typedef struct purc_instance_extra_info {
     const char *renderer_uri;
 } purc_instance_extra_info;
 
 PCA_EXTERN_C_BEGIN
+
+#define PURC_HAVE_UTILS         0x0001
+#define PURC_HAVE_EDOM          0x0002
+#define PURC_HAVE_HTML          0x0004
+#define PURC_HAVE_XML           0x0008
+#define PURC_HAVE_VARIANT       0x0010
+#define PURC_HAVE_EJSON         0x0020
+#define PURC_HAVE_XGML          0x0040
+#define PURC_HAVE_HVML          0x0080
+
+#define PURC_MODULE_UTILS      (PURC_HAVE_UTILS)
+#define PURC_MODULE_EDOM       (PURC_MODULE_UTILS    | PURC_HAVE_EDOM)
+#define PURC_MODULE_HTML       (PURC_MODULE_EDOM     | PURC_HAVE_HTML)
+#define PURC_MODULE_XML        (PURC_MODULE_EDOM     | PURC_HAVE_XML)
+#define PURC_MODULE_VARIANT    (PURC_MODULE_UTILS    | PURC_HAVE_VARIANT)
+#define PURC_MODULE_EJSON      (PURC_MODULE_VARIANT  | PURC_HAVE_EJSON)
+#define PURC_MODULE_XGML       (PURC_MODULE_EJSON    | PURC_HAVE_XGML)
+#define PURC_MODULE_HVML       (PURC_MODULE_EJSON    | PURC_HAVE_HVML)
+#define PURC_MODULE_ALL         0xFFFF
+
+/**
+ * purc_init_ex:
+ *
+ * @modules: The modules will be initialized, can be OR'd with one or more
+ *      the following values:
+ *  - @PURC_MODULE_UTILS: Helpers and utilities.
+ *  - @PURC_MODULE_EDOM: eDOM construction.
+ *  - @PURC_MODULE_HTML: HTML Parser.
+ *  - @PURC_MODULE_XML: XML Parser.
+ *  - @PURC_MODULE_VARIANT: Variant.
+ *  - @PURC_MODULE_EJSON: eJSON parser.
+ *  - @PURC_MODULE_XGML: XGML Parser (not implemented).
+ *  - @PURC_MODULE_ALL: All modules including HVML parser and interpreter.
+ * @app_name: a pointer to the string contains the app name.
+ *      If this argument is null, the executable program name of the command
+ *      line will be used for the app name.
+ * @runner_name: a pointer to the string contains the runner name.
+ *      If this argument is null, `unknown` will be used for the runner name.
+ * @extra_info: a pointer (nullable) to the extra information for the new
+ *      PurC instance, e.g., the URI of the renderer.
+ *
+ * Initializes individual PurC modules and/or a new PurC instance for
+ * the current thread, and creates a new renderer session for this PurC instance.
+ *
+ * Returns: the error code:
+ *  - @PURC_ERROR_OK: success
+ *  - @PURC_ERROR_DUPLICATED: duplicated call of this function.
+ *  - @PURC_ERROR_OUT_OF_MEMORY: Out of memory.
+ *
+ * Note that this function is the only one which returns the error code
+ * directly. Because if it fails, there is no any space to store
+ * the error code.
+ *
+ * Since 0.0.1
+ */
+PCA_EXPORT int
+purc_init_ex(unsigned int modules,
+        const char* app_name, const char* runner_name,
+        const purc_instance_extra_info* extra_info);
 
 /**
  * purc_init:
@@ -69,9 +130,11 @@ PCA_EXTERN_C_BEGIN
  *
  * Since 0.0.1
  */
-PCA_EXPORT int
-purc_init(const char* app_name, const char* runner_name,
-        const purc_instance_extra_info* extra_info);
+static inline int purc_init(const char* app_name, const char* runner_name,
+        const purc_instance_extra_info* extra_info)
+{
+    return purc_init_ex(PURC_MODULE_ALL, app_name, runner_name, extra_info);
+}
 
 /**
  * purc_cleanup:

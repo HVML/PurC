@@ -36,6 +36,8 @@
 
 #include "config.h"
 
+#include "purc-utils.h"
+
 #include "private/mem.h"
 #include "private/bst.h"
 
@@ -52,40 +54,10 @@ extern "C" {
         - (sizeof(size_t) % PCUTILS_MEM_ALIGN_STEP))  \
     : sizeof(size_t))
 
-
-typedef struct {
+struct pcutils_mraw {
     pcutils_mem_t *mem;
     pcutils_bst_t *cache;
-}
-pcutils_mraw_t;
-
-
-pcutils_mraw_t *
-pcutils_mraw_create(void) WTF_INTERNAL;
-
-unsigned int
-pcutils_mraw_init(pcutils_mraw_t *mraw, size_t chunk_size) WTF_INTERNAL;
-
-void
-pcutils_mraw_clean(pcutils_mraw_t *mraw) WTF_INTERNAL;
-
-pcutils_mraw_t *
-pcutils_mraw_destroy(pcutils_mraw_t *mraw, bool destroy_self) WTF_INTERNAL;
-
-
-void *
-pcutils_mraw_alloc(pcutils_mraw_t *mraw, size_t size) WTF_INTERNAL;
-
-void *
-pcutils_mraw_calloc(pcutils_mraw_t *mraw, size_t size) WTF_INTERNAL;
-
-void *
-pcutils_mraw_realloc(pcutils_mraw_t *mraw, void *data, 
-                size_t new_size) WTF_INTERNAL;
-
-void *
-pcutils_mraw_free(pcutils_mraw_t *mraw, void *data) WTF_INTERNAL;
-
+};
 
 /*
  * Inline functions

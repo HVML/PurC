@@ -40,12 +40,13 @@ extern "C" {
 // initialize html module (once)
 void pchtml_init_once(void) WTF_INTERNAL;
 
+/* VW NOTE: HTML module should work without instance
 struct pcinst;
-
 // initialize the html module for a PurC instance.
 void pchtml_init_instance(struct pcinst* inst) WTF_INTERNAL;
 // clean up the html module for a PurC instance.
 void pchtml_cleanup_instance(struct pcinst* inst) WTF_INTERNAL;
+*/
 
 #ifdef __cplusplus
 }

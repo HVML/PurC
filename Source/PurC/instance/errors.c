@@ -40,6 +40,8 @@
 
 static const struct err_msg_info* get_error_info(int errcode);
 
+static int _noinst_errcode;
+
 int purc_get_last_error(void)
 {
     const struct pcinst* inst = pcinst_current();
@@ -47,7 +49,7 @@ int purc_get_last_error(void)
         return inst->errcode;
     }
 
-    return PURC_ERROR_NO_INSTANCE;
+    return _noinst_errcode;
 }
 
 purc_variant_t purc_get_last_error_ex(void)
@@ -60,11 +62,12 @@ purc_variant_t purc_get_last_error_ex(void)
     return PURC_VARIANT_INVALID;
 }
 
-int purc_set_error_with_location(int errcode, purc_variant_t exinfo,
+int purc_set_error_exinfo_with_debug(int errcode, purc_variant_t exinfo,
         const char *file, int lineno, const char *func)
 {
     struct pcinst* inst = pcinst_current();
     if (inst == NULL) {
+        _noinst_errcode = errcode;
         return PURC_ERROR_NO_INSTANCE;
     }
 
@@ -96,11 +99,12 @@ int purc_set_error_with_location(int errcode, purc_variant_t exinfo,
         stack->func = func;
         stack->except = errcode ? 1 : 0; // FIXME: when to set stack->error???
     }
+
     return PURC_ERROR_OK;
 }
 
 int
-purc_set_error_exinfo_printf(int err_code,
+purc_set_error_with_info_debug(int err_code,
         const char *file, int lineno, const char *func,
         const char *fmt, ...)
 {
@@ -119,7 +123,7 @@ purc_set_error_exinfo_printf(int err_code,
     v = purc_variant_make_string(buf, true);
     PC_ASSERT(v != PURC_VARIANT_INVALID);
 
-    r = purc_set_error_with_location(err_code, v,
+    r = purc_set_error_exinfo_with_debug(err_code, v,
             file, lineno, func);
 
     return r;
