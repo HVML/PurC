@@ -47,7 +47,7 @@ list(APPEND test_interpreter_PRIVATE_INCLUDE_DIRECTORIES
 PURC_EXECUTABLE(test_interpreter)
 
 set(test_interpreter_SOURCES
-    test-interpreter.cpp
+    test_interpreter.cpp
 )
 
 set(test_interpreter_LIBRARIES
