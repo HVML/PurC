@@ -368,53 +368,66 @@ pcintr_timers_init(pcintr_stack_t stack)
             sizeof(struct pcintr_timers));
     if (!timers) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        purc_variant_unref(ret);
-        return NULL;
+        goto failure;
     }
+
+    timers->timers_var = ret;
+    purc_variant_ref(ret);
 
     timers->timers_map = pcutils_map_create (copy_key_string, free_key_string,
                           map_copy_val, map_free_val, comp_key_string, false);
     if (!timers->timers_map) {
-        free(timers);
-        purc_variant_unref(ret);
-        return NULL;
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto failure;
     }
 
-    timers->timers_var = ret;
     timers->grow_listener = purc_variant_register_post_listener(ret,
         pcvariant_atom_grow, timers_listener_handler, stack);
     if (!timers->grow_listener) {
-        free(timers);
-        purc_variant_unref(ret);
-        return NULL;
+        goto failure;
     }
 
     timers->shrink_listener = purc_variant_register_post_listener(ret,
         pcvariant_atom_shrink, timers_listener_handler, stack);
     if (!timers->shrink_listener) {
-        purc_variant_revoke_listener(ret, timers->grow_listener);
-        free(timers);
-        purc_variant_unref(ret);
-        return NULL;
+        goto failure;
     }
 
     purc_variant_unref(ret);
     return timers;
+
+failure:
+    if (timers)
+        pcintr_timers_destroy(timers);
+    pcintr_unbind_document_variable(stack->vdom, TIMERS_STR_TIMERS);
+    purc_variant_unref(ret);
+    return NULL;
 }
 
 void
 pcintr_timers_destroy(struct pcintr_timers* timers)
 {
     if (timers) {
-        purc_variant_revoke_listener(timers->timers_var,
-                timers->grow_listener);
-        purc_variant_revoke_listener(timers->timers_var,
-                timers->shrink_listener);
+        if (timers->grow_listener) {
+            PC_ASSERT(timers->timers_var);
+            purc_variant_revoke_listener(timers->timers_var,
+                    timers->grow_listener);
+            timers->grow_listener = NULL;
+        }
+        if (timers->shrink_listener) {
+            PC_ASSERT(timers->timers_var);
+            purc_variant_revoke_listener(timers->timers_var,
+                    timers->shrink_listener);
+            timers->shrink_listener = NULL;
+        }
 
         // remove inner timer
-        pcutils_map_destroy(timers->timers_map);
+        if (timers->timers_map) {
+            pcutils_map_destroy(timers->timers_map);
+            timers->timers_map = NULL;
+        }
 
-        purc_variant_unref(timers->timers_var);
+        PURC_VARIANT_SAFE_CLEAR(timers->timers_var);
         free(timers);
     }
 }

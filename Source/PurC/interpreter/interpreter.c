@@ -781,11 +781,12 @@ execute_one_step(pcintr_coroutine_t co)
         edom_fragments_post_process(stack);
         co->stack->stage = STACK_STAGE_EVENT_LOOP;
         // do not run execute_one_step until event's fired if co->waits > 0
-        if (co->waits || 1) { // FIXME:
+        if (co->waits) { // FIXME:
             co->state = CO_STATE_WAIT;
             return;
         }
         co->state = CO_STATE_TERMINATED;
+        D("co terminating: %p", co);
     }
     else {
         frame = pcintr_stack_get_bottom_frame(stack);
@@ -1644,7 +1645,8 @@ pcintr_handle_message(void *ctxt)
     stack->co.state = CO_STATE_READY;
     run_coroutines(NULL);
     if (stack->co.waits) {
-        stack->co.waits--;
+        if (0)
+            stack->co.waits--;
     }
     fprintf(stderr, "pcintr_handle_message|run observe end|waits=%d\n", stack->co.waits);
 
