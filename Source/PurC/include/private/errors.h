@@ -47,9 +47,8 @@ struct err_msg_seg {
 void pcinst_register_error_message_segment(struct err_msg_seg* seg) WTF_INTERNAL;
 
 /* sets the the last error code */
-#define pcinst_set_error(x)     purc_set_error(x)
-#define pcinst_set_error_ex(x, exinfo)     purc_set_error_ex(x, exinfo)
-// pcinst_set_error(int err_code) WTF_INTERNAL;
+#define pcinst_set_error(x)                 purc_set_error(x)
+#define pcinst_set_error_exinfo(x, exinfo)  purc_set_error_exinfo(x, exinfo)
 
 #endif /* not defined PURC_PRIVATE_ERRORS_H */
 

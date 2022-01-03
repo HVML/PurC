@@ -317,24 +317,24 @@ PCA_EXTERN_C_BEGIN
  * Returns: The last error code.
  */
 PCA_EXPORT int
-purc_get_last_error (void);
+purc_get_last_error(void);
 
 /**
- * purc_set_error_with_location:
+ * purc_set_error_exinfo_with_debug:
  *
  * Returns: PURC_ERROR_OK or PURC_ERROR_NO_INSTANCE.
  */
 PCA_EXPORT int
-purc_set_error_with_location(int err_code, purc_variant_t exinfo,
+purc_set_error_exinfo_with_debug(int err_code, purc_variant_t exinfo,
         const char *file, int lineno, const char *func);
 
 /**
- * purc_set_error_ex:
+ * purc_set_error_exinfo:
  *
  * Returns: PURC_ERROR_OK or PURC_ERROR_NO_INSTANCE.
  */
-#define purc_set_error_ex(err_code, exinfo)                 \
-        purc_set_error_with_location(err_code, exinfo,      \
+#define purc_set_error_exinfo(err_code, exinfo)                 \
+        purc_set_error_exinfo_with_debug(err_code, exinfo,      \
                 __FILE__, __LINE__, __func__)
 
 /**
@@ -343,30 +343,30 @@ purc_set_error_with_location(int err_code, purc_variant_t exinfo,
  * Returns: PURC_ERROR_OK or PURC_ERROR_NO_INSTANCE.
  */
 #define purc_set_error(err_code) \
-        purc_set_error_ex(err_code, PURC_VARIANT_INVALID)
+        purc_set_error_exinfo(err_code, PURC_VARIANT_INVALID)
 
 #define purc_clr_error() \
         purc_set_error(0)
 
 /**
- * purc_set_error_exinfo_printf
+ * purc_set_error_with_info_debug
  *
  * Returns: PURC_ERROR_OK or PURC_ERROR_NO_INSTANCE.
  */
 PCA_EXPORT int
 __attribute__ ((format (printf, 5, 6)))
-purc_set_error_exinfo_printf(int err_code,
+purc_set_error_with_info_debug(int err_code,
         const char *file, int lineno, const char *func,
         const char *fmt, ...);
 
 /**
- * purc_set_error_exinfo
+ * purc_set_error_with_info
  *
  * Returns: PURC_ERROR_OK or PURC_ERROR_NO_INSTANCE.
  */
-#define purc_set_error_exinfo(err_code, fmt, ...)       \
-        purc_set_error_exinfo_printf(err_code,          \
-                __FILE__, __LINE__, __func__,           \
+#define purc_set_error_with_info(err_code, fmt, ...)        \
+        purc_set_error_with_info_debug(err_code,            \
+                __FILE__, __LINE__, __func__,               \
                 "%s" fmt "", "", ##__VA_ARGS__)
 
 /**
@@ -377,7 +377,7 @@ purc_set_error_exinfo_printf(int err_code,
  * Returns: The message for the specified error code.
  */
 PCA_EXPORT const char*
-purc_get_error_message (int errcode);
+purc_get_error_message(int errcode);
 
 /**
  * purc_get_error_exceptions:
@@ -387,7 +387,7 @@ purc_get_error_message (int errcode);
  * Returns: The exception atom string for the specified error code.
  */
 PCA_EXPORT purc_atom_t
-purc_get_error_exception (int errcode);
+purc_get_error_exception(int errcode);
 
 PCA_EXTERN_C_END
 

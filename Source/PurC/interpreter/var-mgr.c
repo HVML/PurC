@@ -96,7 +96,7 @@ purc_variant_t pcvarmgr_list_get(pcvarmgr_list_t list, const char* name)
         return v;
     }
 
-    purc_set_error_exinfo(PCVARIANT_ERROR_NOT_FOUND, "name:%s", name);
+    purc_set_error_with_info(PCVARIANT_ERROR_NOT_FOUND, "name:%s", name);
     return PURC_VARIANT_INVALID;
 }
 
@@ -113,7 +113,7 @@ _find_named_scope_var(pcvdom_element_t elem, const char* name)
 {
     if (!elem || !name) {
         PC_ASSERT(name); // FIXME: still recoverable???
-        purc_set_error_exinfo(PCVARIANT_ERROR_NOT_FOUND, "name:%s", name);
+        purc_set_error_with_info(PCVARIANT_ERROR_NOT_FOUND, "name:%s", name);
         return PURC_VARIANT_INVALID;
     }
 
@@ -126,7 +126,7 @@ _find_named_scope_var(pcvdom_element_t elem, const char* name)
     if (parent) {
         return _find_named_scope_var(parent, name);
     }
-    purc_set_error_exinfo(PCVARIANT_ERROR_NOT_FOUND, "name:%s", name);
+    purc_set_error_with_info(PCVARIANT_ERROR_NOT_FOUND, "name:%s", name);
     return PURC_VARIANT_INVALID;
 }
 
@@ -135,7 +135,7 @@ _find_doc_buildin_var(purc_vdom_t vdom, const char* name)
 {
     PC_ASSERT(name);
     if (!vdom) {
-        purc_set_error_exinfo(PCVARIANT_ERROR_NOT_FOUND, "name:%s", name);
+        purc_set_error_with_info(PCVARIANT_ERROR_NOT_FOUND, "name:%s", name);
         return PURC_VARIANT_INVALID;
     }
 
@@ -143,7 +143,7 @@ _find_doc_buildin_var(purc_vdom_t vdom, const char* name)
     if (v) {
         return v;
     }
-    purc_set_error_exinfo(PCVARIANT_ERROR_NOT_FOUND, "name:%s", name);
+    purc_set_error_with_info(PCVARIANT_ERROR_NOT_FOUND, "name:%s", name);
     return PURC_VARIANT_INVALID;
 }
 
@@ -164,7 +164,7 @@ static purc_variant_t _find_inst_var(const char* name)
     if (v) {
         return v;
     }
-    purc_set_error_exinfo(PCVARIANT_ERROR_NOT_FOUND, "name:%s", name);
+    purc_set_error_with_info(PCVARIANT_ERROR_NOT_FOUND, "name:%s", name);
     return PURC_VARIANT_INVALID;
 }
 
@@ -216,7 +216,7 @@ enum purc_symbol_var _to_symbol(char symbol)
         return PURC_SYMBOL_VAR_PERCENT_SIGN;
     }
     // FIXME: NotFound???
-    purc_set_error_exinfo(PCVARIANT_ERROR_NOT_FOUND, "symbol:%c", symbol);
+    purc_set_error_with_info(PCVARIANT_ERROR_NOT_FOUND, "symbol:%c", symbol);
     return PURC_SYMBOL_VAR_MAX;
 }
 
