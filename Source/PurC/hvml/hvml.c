@@ -2380,16 +2380,16 @@ next_state:
             RESET_VCM_NODE();
             RETURN_AND_SWITCH_TO(PCHVML_TAG_OPEN_STATE);
         }
-        if (is_eof(character)) {
-            SET_ERR(PCHVML_ERROR_EOF_IN_TAG);
-            RETURN_NEW_EOF_TOKEN();
-        }
         if (ejson_stack_is_empty()) {
             parser->token = pchvml_token_new_vcm(parser->vcm_node);
             parser->vcm_node = NULL;
             RESET_VCM_NODE();
             pchvml_rwswrap_buffer_chars(parser->rwswrap, &character, 1);
             RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
+        }
+        if (is_eof(character)) {
+            SET_ERR(PCHVML_ERROR_EOF_IN_TAG);
+            RETURN_NEW_EOF_TOKEN();
         }
         SET_ERR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
         RETURN_AND_STOP_PARSE();
@@ -2405,9 +2405,6 @@ next_state:
         }
         uint32_t uc = pcutils_stack_top (parser->ejson_stack);
         if (is_whitespace(character)) {
-            if (ejson_stack_is_empty()) {
-                RECONSUME_IN(PCHVML_EJSON_FINISHED_STATE);
-            }
             if (uc == 'U' || uc == '"' || uc == '\'') {
                 RECONSUME_IN(PCHVML_EJSON_AFTER_JSONEE_STRING_STATE);
             }
@@ -2613,7 +2610,7 @@ next_state:
                 // FIXME : <update from="assets/{$SYSTEM.locale}.json" />
                 POP_AS_VCM_PARENT_AND_UPDATE_VCM();
                 if (ejson_stack_is_empty()) {
-                    RECONSUME_IN(PCHVML_EJSON_FINISHED_STATE);
+                    ADVANCE_TO(PCHVML_EJSON_FINISHED_STATE);
                 }
                 ADVANCE_TO(PCHVML_EJSON_RIGHT_BRACE_STATE);
             }
@@ -2792,9 +2789,6 @@ next_state:
                 if (!vcm_stack_is_empty()) {
                     POP_AS_VCM_PARENT_AND_UPDATE_VCM();
                 }
-                if (ejson_stack_is_empty()) {
-                    RECONSUME_IN(PCHVML_EJSON_FINISHED_STATE);
-                }
                 ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
             }
             if (ejson_stack_is_empty()) {
@@ -2833,9 +2827,6 @@ next_state:
     END_STATE()
 
     BEGIN_STATE(PCHVML_EJSON_AFTER_VALUE_STATE)
-        if (ejson_stack_is_empty()) {
-            RECONSUME_IN(PCHVML_EJSON_FINISHED_STATE);
-        }
         uint32_t uc = ejson_stack_top();
         if (is_whitespace(character)) {
             if (uc  == 'U' || uc == '"' || uc == 'T') {

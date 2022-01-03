@@ -22,4 +22,5 @@
     <div>
         $VAR[1]
     </div>
+    <div>$VAR[1]</div>
 </hvml>

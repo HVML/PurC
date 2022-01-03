@@ -22,4 +22,5 @@
     <div>
         get_element(get_variable("VAR"),1)
     </div>
+    <div>get_element(get_variable("VAR"),1)</div>
 </hvml>
