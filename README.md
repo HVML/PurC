@@ -85,13 +85,13 @@ The classical `helloworld` program in HVML looks like:
 <!DOCTYPE hvml>
 <hvml target="html">
     <head>
-        <set on="$_T.map" to="replace" with="https://foo.bar/messages/$_SYSTEM.locale" />
+        <init on="$T.map" to="displace" from="https://foo.bar/messages/$_SYSTEM.locale" />
 
         <title>Hello, world!</title>
     </head>
 
     <body>
-        <p>$_T.get("Hello, world!")</p>
+        <p>$T.get("Hello, world!")</p>
     </body>
 
 </hvml>
@@ -115,9 +115,9 @@ Or,
 
     <body>
         <p>
-            <choose on="$messages" to="update" by="KEY: $_SYSTEM.locale">
+            <choose on="$messages" by="KEY: $_SYSTEM.locale">
                 <update on="$@" textContent="$?" />
-                <except on="KeyError">
+                <except type="KeyError">
                     No valid locale defined.
                 </except>
             </choose>
