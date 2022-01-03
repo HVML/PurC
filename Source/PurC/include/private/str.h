@@ -45,32 +45,25 @@ extern "C" {
 #define pcutils_str_set(str, attr) pcutils_str_get(str, attr)
 #define pcutils_str_len(str) pcutils_str_get(str, length)
 
-#define pcutils_str_check_size_arg_m(str, size, mraw, plus_len, return_fail)    \
-    do {                                                                       \
-        void *tmp;                                                             \
-                                                                               \
-        if (str->length > (SIZE_MAX - (plus_len)))                             \
-            return (return_fail);                                              \
-                                                                               \
-        if ((str->length + (plus_len)) > (size)) {                             \
-            tmp = pcutils_mraw_realloc(mraw, str->data,                         \
-                                      (str->length + plus_len));               \
-                                                                               \
-            if (tmp == NULL) {                                                 \
-                return (return_fail);                                          \
-            }                                                                  \
-                                                                               \
-            str->data = (unsigned char *) tmp;                                    \
-        }                                                                      \
-    }                                                                          \
+#define pcutils_str_check_size_arg_m(str, size, mraw, plus_len, return_fail) \
+    do {                                                                     \
+        void *tmp;                                                           \
+                                                                             \
+        if (str->length > (SIZE_MAX - (plus_len)))                           \
+            return (return_fail);                                            \
+                                                                             \
+        if ((str->length + (plus_len)) > (size)) {                           \
+            tmp = pcutils_mraw_realloc(mraw, str->data,                      \
+                                      (str->length + plus_len));             \
+                                                                             \
+            if (tmp == NULL) {                                               \
+                return (return_fail);                                        \
+            }                                                                \
+                                                                             \
+            str->data = (unsigned char *) tmp;                               \
+        }                                                                    \
+    }                                                                        \
     while (0)
-
-
-typedef struct {
-    unsigned char *data;
-    size_t     length;
-}
-pcutils_str_t;
 
 
 pcutils_str_t *

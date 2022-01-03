@@ -179,12 +179,14 @@ pchtml_tag_mraw(pcutils_hash_t *hash)
 // initialize edom module (once)
 void pcedom_init_once(void) WTF_INTERNAL;
 
-struct pcinst;
 
+/* VW NOTE: eDOM module should work without instance
+struct pcinst;
 // initialize the edom module for a PurC instance.
 void pcedom_init_instance(struct pcinst* inst) WTF_INTERNAL;
 // clean up the edom module for a PurC instance.
 void pcedom_cleanup_instance(struct pcinst* inst) WTF_INTERNAL;
+*/
 
 #ifdef __cplusplus
 }

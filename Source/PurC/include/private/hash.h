@@ -34,10 +34,14 @@
 #define PURC_PRIVATE_HASH_H
 
 #include "config.h"
+
+#include "purc-utils.h"
+
 #include "private/dobject.h"
 #include "private/mraw.h"
 
-#define PCUTILS_HASH_SHORT_SIZE     16
+/* VW MOTE: moved to purc-utils.h
+#define PCUTILS_HASH_SHORT_SIZE     16 */
 #define PCUTILS_HASH_TABLE_MIN_SIZE 32
 
 #ifdef __cplusplus
@@ -62,9 +66,9 @@ extern const pcutils_hash_search_t *pcutils_hash_search_upper;
  * It is necessary to add the rebuild of a hash table
  * and optimize collisions.
  */
-
+/* VW NOTE: moved to purc-utils.h
 typedef struct pcutils_hash pcutils_hash_t;
-typedef struct pcutils_hash_entry pcutils_hash_entry_t;
+typedef struct pcutils_hash_entry pcutils_hash_entry_t; */
 
 typedef uint32_t
 (*pcutils_hash_id_f)(const unsigned char *key, size_t size);
@@ -77,6 +81,7 @@ typedef bool
 (*pcutils_hash_cmp_f)(const unsigned char *first,
                      const unsigned char *second, size_t size);
 
+/* VW NOTE: moved to purc-utils.h
 struct pcutils_hash_entry {
     union {
         unsigned char *long_str;
@@ -86,7 +91,7 @@ struct pcutils_hash_entry {
     size_t              length;
 
     pcutils_hash_entry_t *next;
-};
+}; */
 
 struct pcutils_hash {
     pcutils_dobject_t    *entries;
@@ -181,6 +186,7 @@ pcutils_hash_mraw(const pcutils_hash_t *hash)
     return hash->mraw;
 }
 
+/* VW NOTE: moved to purc-utils.h
 static inline unsigned char *
 pcutils_hash_entry_str(const pcutils_hash_entry_t *entry)
 {
@@ -189,7 +195,7 @@ pcutils_hash_entry_str(const pcutils_hash_entry_t *entry)
     }
 
     return entry->u.long_str;
-}
+} */
 
 static inline unsigned char *
 pcutils_hash_entry_str_set(pcutils_hash_entry_t *entry,
