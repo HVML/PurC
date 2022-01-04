@@ -1623,7 +1623,6 @@ pcintr_handle_message(void *ctxt)
         return 0;
     }
 
-    // TODO : run observe
     // FIXME:
     // push stack frame
     pcintr_stack_t stack = msg->stack;
@@ -1635,7 +1634,6 @@ pcintr_handle_message(void *ctxt)
         return -1;
     }
 
-    fprintf(stderr, "pcintr_handle_message|run observe begin|waits=%d\n", stack->co.waits);
     frame->ops = pcintr_get_ops_by_element(observer->pos);
     frame->scope = observer->scope;
     frame->pos = observer->pos;
@@ -1643,13 +1641,7 @@ pcintr_handle_message(void *ctxt)
     frame->next_step = NEXT_STEP_AFTER_PUSHED;
 
     stack->co.state = CO_STATE_READY;
-    run_coroutines(NULL);
-    if (stack->co.waits) {
-        if (0)
-            stack->co.waits--;
-    }
-    fprintf(stderr, "pcintr_handle_message|run observe end|waits=%d\n", stack->co.waits);
-
+    pcintr_coroutine_ready();
     return 0;
 }
 
