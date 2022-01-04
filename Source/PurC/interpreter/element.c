@@ -27,11 +27,6 @@
 
 #include "element.h"
 
-struct pcintr_element
-{
-    struct pcedom_element          *elem;       // NOTE: no ownership
-};
-
 static inline bool
 element_eraser(struct pcintr_element *element)
 {
@@ -143,144 +138,18 @@ make_element(struct pcedom_element *elem)
 }
 
 static inline bool
-set_add_element(purc_variant_t set, struct pcedom_element *elem)
-{
-    purc_variant_t v;
-    v = make_element(elem);
-    if (v == PURC_VARIANT_INVALID)
-        return false;
-
-    bool ok;
-    ok = purc_variant_set_add(set, v, true); // FIXME: true or false!!!!
-    if (!ok) {
-        purc_variant_unref(v);
-        return false;
-    }
-
-    return true;
-}
-
-static inline bool
 set_make_elements(purc_variant_t set,
         size_t nr_elems, struct pcedom_element **elems)
 {
+    UNUSED_PARAM(set);
     for (size_t i=0; i<nr_elems; ++i) {
         struct pcedom_element *elem;
         elem = elems[i];
-        if (!set_add_element(set, elem))
-            return false;
+        PC_ASSERT(elem);
+        PC_ASSERT(0); // Not implemented yet
+        // if (!set_add_element(set, elem))
+        //     return false;
     }
     return true;
-}
-
-purc_variant_t
-pcintr_make_elements(size_t nr_elems, struct pcedom_element **elems)
-{
-    purc_variant_t v;
-    v = purc_variant_make_set_by_ckey(0, NULL, PURC_VARIANT_INVALID);
-    if (v == PURC_VARIANT_INVALID)
-        return PURC_VARIANT_INVALID;
-
-    bool ok = set_make_elements(v, nr_elems, elems);
-    if (!ok) {
-        purc_variant_unref(v);
-        return PURC_VARIANT_INVALID;
-    }
-
-    return v;
-}
-
-typedef void (*traverse_cb)(struct pcedom_element *element, void *ud);
-
-struct visit_args {
-    purc_variant_t            elements;
-    const char               *css;
-};
-
-static inline int
-match_by_class(struct pcedom_element *element, struct visit_args *args)
-{
-    const unsigned char *s;
-    size_t len;
-    s = pcedom_element_class(element, &len);
-
-    if (s && s[len]=='\0' && strcmp((const char*)s, args->css+1)==0)
-        return 0;
-
-    return -1;
-}
-
-static inline int
-match_by_id(struct pcedom_element *element, struct visit_args *args)
-{
-    const unsigned char *s;
-    size_t len;
-    s = pcedom_element_id(element, &len);
-
-    if (s && s[len]=='\0' && strcmp((const char*)s, args->css+1)==0)
-        return 0;
-
-    return -1;
-}
-
-static void visit_element(struct pcedom_element *element, void *ud)
-{
-    struct visit_args *args = (struct visit_args*)ud;
-
-    if (args->css[0] == '.') {
-        if (match_by_class(element, args))
-            return;
-    }
-    else if (args->css[0] == '#') {
-        if (match_by_id(element, args))
-            return;
-    }
-
-    set_add_element(args->elements, element);
-}
-
-static inline void
-traverse_elements(struct pcedom_element *root, traverse_cb cb, void *ud)
-{
-    if (!root)
-        return;
-
-    cb(root, ud);
-
-    pcedom_node_t *node = &root->node;
-
-    pcedom_node_t *child = node->first_child;
-    for (; child; child = child->next) {
-        struct pcedom_element *element;
-        element = container_of(child, struct pcedom_element, node);
-        cb(element, ud);
-    }
-}
-
-purc_variant_t
-pcintr_query_elements(struct pcedom_element *root, const char *css)
-{
-    if (strcmp(css, "*") != 0) {
-        if (css[0] != '.' && css[0] != '#') {
-            pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
-            return PURC_VARIANT_INVALID;
-        }
-        if (css[1] == '\0') {
-            pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
-            return PURC_VARIANT_INVALID;
-        }
-    }
-
-    struct visit_args args;
-    args.elements = purc_variant_make_set_by_ckey(0,
-            NULL, PURC_VARIANT_INVALID);
-    args.css      = css;
-
-    if (args.elements == PURC_VARIANT_INVALID)
-        return PURC_VARIANT_INVALID;
-
-    traverse_elements(root, visit_element, &args);
-
-    return args.elements;
 }
 

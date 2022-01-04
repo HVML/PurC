@@ -137,51 +137,36 @@ doctype_public(struct pcedom_document *doc)
 }
 
 static inline purc_variant_t
-doctype_getter(purc_variant_t root, size_t nr_args, purc_variant_t * argv)
+doctype_getter(void *entity,
+        size_t nr_args, purc_variant_t * argv)
 {
-    PC_ASSERT(root != PURC_VARIANT_INVALID);
-
-    purc_variant_t edom;
-    edom = purc_variant_object_get_by_ckey(root, "__edom");
-    PC_ASSERT(edom != PURC_VARIANT_INVALID);
-    PC_ASSERT(!purc_variant_is_ulongint(edom));
-    uint64_t u64;
-    bool ok;
-    ok = purc_variant_cast_to_ulongint(edom, &u64, false);
-    PC_ASSERT(ok && u64);
-    struct pcedom_document *doc;
-    doc = (struct pcedom_document*)u64;
+    PC_ASSERT(entity);
+    struct pcedom_document *doc = (struct pcedom_document*)entity;
 
     if (nr_args == 0) {
-        if (argv != NULL) {
-            pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
-            return PURC_VARIANT_INVALID;
-        }
-        return doctype_default(doc);
+        return purc_variant_make_string_static("html", false);
     }
 
-    if (nr_args == 1) {
-        if (argv == NULL || argv[0] == PURC_VARIANT_INVALID) {
-            pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
-            return PURC_VARIANT_INVALID;
-        }
-        purc_variant_t v = argv[0];
-        if (!purc_variant_is_string(v)) {
-            pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
-            return PURC_VARIANT_INVALID;
-        }
-        const char *name = purc_variant_get_string_const(v);
-        if (strcmp(name, "system") == 0) {
-            return doctype_system(doc);
-        }
-        if (strcmp(name, "public") == 0) {
-            return doctype_public(doc);
-        }
-        pcinst_set_error(PURC_ERROR_NOT_EXISTS);
+    if (argv == NULL || argv[0] == PURC_VARIANT_INVALID) {
+        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        return PURC_VARIANT_INVALID;
+    }
+    purc_variant_t v = argv[0];
+    if (!purc_variant_is_string(v)) {
+        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
-    pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+    const char *s = purc_variant_get_string_const(v);
+    PC_ASSERT(s);
+    if (strcmp(s, "system") == 0) {
+        return doctype_system(doc);
+    }
+    if (strcmp(s, "public") == 0) {
+        return doctype_public(doc);
+    }
+
+    pcinst_set_error(PURC_ERROR_NOT_EXISTS);
     return PURC_VARIANT_INVALID;
 }
 
@@ -199,22 +184,13 @@ query(struct pcedom_document *doc, const char *css)
 }
 
 static inline purc_variant_t
-query_getter(purc_variant_t root, size_t nr_args, purc_variant_t * argv)
+query_getter(void *entity,
+        size_t nr_args, purc_variant_t * argv)
 {
-    PC_ASSERT(root != PURC_VARIANT_INVALID);
+    PC_ASSERT(entity);
+    struct pcedom_document *doc = (struct pcedom_document*)entity;
 
-    purc_variant_t edom;
-    edom = purc_variant_object_get_by_ckey(root, "__edom");
-    PC_ASSERT(edom != PURC_VARIANT_INVALID);
-    PC_ASSERT(!purc_variant_is_ulongint(edom));
-    uint64_t u64;
-    bool ok;
-    ok = purc_variant_cast_to_ulongint(edom, &u64, false);
-    PC_ASSERT(ok && u64);
-    struct pcedom_document *doc;
-    doc = (struct pcedom_document*)u64;
-
-    if (nr_args == 1) {
+    if (nr_args > 0) {
         if (argv == NULL || argv[0] == PURC_VARIANT_INVALID) {
             pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
             return PURC_VARIANT_INVALID;
@@ -225,6 +201,7 @@ query_getter(purc_variant_t root, size_t nr_args, purc_variant_t * argv)
             return PURC_VARIANT_INVALID;
         }
         const char *css = purc_variant_get_string_const(v);
+        PC_ASSERT(css);
         return query(doc, css);
     }
 
@@ -232,42 +209,112 @@ query_getter(purc_variant_t root, size_t nr_args, purc_variant_t * argv)
     return PURC_VARIANT_INVALID;
 }
 
-static inline bool
-add_edom_doc(purc_variant_t doc, struct pcedom_document *edom_doc)
+static struct native_property_cfg configs[] = {
+    {"doctype", doctype_getter, NULL, NULL, NULL},
+    {"query", query_getter, NULL, NULL, NULL},
+};
+
+static struct native_property_cfg*
+property_cfg_by_name(const char *key_name)
 {
-    uint64_t u64 = (uint64_t)edom_doc;
-    purc_variant_t v;
-    v = purc_variant_make_ulongint(u64);
-    if (v == PURC_VARIANT_INVALID)
-        return PURC_VARIANT_INVALID;
-
-    bool ok = purc_variant_object_set_by_static_ckey(doc, "__edom", v);
-    if (!ok) {
-        purc_variant_unref(v);
-        return false;
+    for (size_t i=0; i<PCA_TABLESIZE(configs); ++i) {
+        struct native_property_cfg *cfg = configs + i;
+        const char *property_name = cfg->property_name;
+        PC_ASSERT(property_name);
+        if (strcmp(property_name, key_name) == 0) {
+            return cfg;
+        }
     }
+    return NULL;
+}
 
-    return true;
+// query the getter for a specific property.
+static purc_nvariant_method
+property_getter(const char* key_name)
+{
+    PC_ASSERT(key_name);
+    struct native_property_cfg *cfg = property_cfg_by_name(key_name);
+    if (cfg)
+        return cfg->property_getter;
+    return NULL;
+}
+
+// query the setter for a specific property.
+static purc_nvariant_method
+property_setter(const char* key_name)
+{
+    PC_ASSERT(key_name);
+    struct native_property_cfg *cfg = property_cfg_by_name(key_name);
+    if (cfg)
+        return cfg->property_setter;
+    return NULL;
+}
+
+// query the eraser for a specific property.
+static purc_nvariant_method
+property_eraser(const char* key_name)
+{
+    PC_ASSERT(key_name);
+    struct native_property_cfg *cfg = property_cfg_by_name(key_name);
+    if (cfg)
+        return cfg->property_eraser;
+    return NULL;
+}
+
+// query the cleaner for a specific property.
+static purc_nvariant_method
+property_cleaner(const char* key_name)
+{
+    PC_ASSERT(key_name);
+    struct native_property_cfg *cfg = property_cfg_by_name(key_name);
+    if (cfg)
+        return cfg->property_cleaner;
+    return NULL;
+}
+
+// the cleaner to clear the content of the native entity.
+static bool
+cleaner(void* native_entity)
+{
+    UNUSED_PARAM(native_entity);
+    PC_ASSERT(0); // Not implemented yet
+    return false;
+}
+
+// the eraser to erase the native entity.
+static bool
+eraser(void* native_entity)
+{
+    UNUSED_PARAM(native_entity);
+    PC_ASSERT(0); // Not implemented yet
+    return false;
+}
+
+// the callback when the variant was observed (nullable).
+static bool
+observe(void* native_entity, ...)
+{
+    UNUSED_PARAM(native_entity);
+    PC_ASSERT(0); // Not implemented yet
+    return false;
 }
 
 purc_variant_t
-pcintr_make_doc_variant(struct pcedom_document *edom_doc)
+pcintr_make_doc_variant(struct pcedom_document *doc)
 {
-    struct dynamic_args args[] = {
-        {"doctype", doctype_getter, NULL},
-        {"query",   query_getter,   NULL},
+    static struct purc_native_ops ops = {
+        .property_getter            = property_getter,
+        .property_setter            = property_setter,
+        .property_eraser            = property_eraser,
+        .property_cleaner           = property_cleaner,
+
+        .cleaner                    = cleaner,
+        .eraser                     = eraser,
+        .observe                    = observe,
     };
 
-    purc_variant_t v = make_object(PCA_TABLESIZE(args), args);
-    if (v == PURC_VARIANT_INVALID)
-        return PURC_VARIANT_INVALID;
+    PC_ASSERT(doc);
 
-    bool ok = add_edom_doc(v, edom_doc);
-    if (!ok) {
-        purc_variant_unref(v);
-        return PURC_VARIANT_INVALID;
-    }
-
-    return v;
+    return purc_variant_make_native(doc, &ops);
 }
 

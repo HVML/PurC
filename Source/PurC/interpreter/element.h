@@ -33,11 +33,16 @@
 #include "private/errors.h"
 #include "private/edom.h"
 
-PCA_EXTERN_C_BEGIN
+struct pcintr_element
+{
+    struct pcedom_element          *elem;       // NOTE: no ownership
+};
 
-purc_variant_t
-pcintr_make_elements(size_t nr_elems,
-        struct pcedom_element **elems) WTF_INTERNAL;
+struct pcintr_elements {
+    pcutils_array_t          *elements;
+};
+
+PCA_EXTERN_C_BEGIN
 
 purc_variant_t
 pcintr_query_elements(struct pcedom_element *root,
