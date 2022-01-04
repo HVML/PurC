@@ -106,6 +106,7 @@ purc_variant_t pcdvobjs_get_logical (void);
 purc_variant_t pcdvobjs_get_ejson (void);
 purc_variant_t pcdvobjs_get_hvml (void);
 purc_variant_t pcdvobjs_get_t (void);
+purc_variant_t pcdvobjs_get_session (void);
 
 struct purc_broken_down_url {
     char *schema;
