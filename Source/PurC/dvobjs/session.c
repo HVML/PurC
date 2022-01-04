@@ -110,6 +110,7 @@ user_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv)
             DVOBJ_SESSION_DATA_NAME);
 
     if (nr_args < 1) {
+        purc_variant_ref(user);
         return user;
     }
 
@@ -120,6 +121,7 @@ user_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
     purc_variant_t var = purc_variant_object_get(user, argv[0]);
     if (var != PURC_VARIANT_INVALID) {
+        purc_variant_ref(var);
         return var;
     }
 
