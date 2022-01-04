@@ -1060,6 +1060,7 @@ end:
 #define BUILDIN_VAR_HVML        "HVML"
 #define BUILDIN_VAR_SYSTEM      "SYSTEM"
 #define BUILDIN_VAR_T           "T"
+#define BUILDIN_VAR_SESSION     "SESSION"
 
 static bool
 bind_doc_named_variable(pcintr_stack_t stack, const char* name,
@@ -1101,6 +1102,12 @@ init_buidin_doc_variable(pcintr_stack_t stack)
     // $T
     if(!bind_doc_named_variable(stack, BUILDIN_VAR_T,
                 pcdvobjs_get_t())) {
+        return false;
+    }
+
+    // $SESSION
+    if(!bind_doc_named_variable(stack, BUILDIN_VAR_SESSION,
+                pcdvobjs_get_session())) {
         return false;
     }
 

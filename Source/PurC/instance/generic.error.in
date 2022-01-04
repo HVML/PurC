@@ -128,3 +128,8 @@ InvalidFloat
     flags: None
     msg: "Float point invalid"
 
+NotDesiredEntity
+    except: NotDesiredEntity
+    flags: None
+    msg: "Not desired entity"
+
