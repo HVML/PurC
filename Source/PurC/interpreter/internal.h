@@ -32,15 +32,6 @@
 
 #include <libgen.h>
 
-struct native_property_cfg {
-    const char            *property_name;
-
-    purc_nvariant_method   property_getter;
-    purc_nvariant_method   property_setter;
-    purc_nvariant_method   property_eraser;
-    purc_nvariant_method   property_cleaner;
-};
-
 PCA_EXTERN_C_BEGIN
 
 int

@@ -2,7 +2,7 @@
  * @file elements.c
  * @author Xu Xiaohong
  * @date 2021/11/18
- * @brief The internal interfaces for interpreter/elements
+ * @brief The implementation for elements native variant
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -24,7 +24,6 @@
  */
 
 #include "internal.h"
-#include "element.h"
 
 static int
 elements_init(struct pcintr_elements *elements)

@@ -2,7 +2,7 @@
  * @file element.h
  * @author Xu Xiaohong
  * @date 2021/11/18
- * @brief The internal interfaces for interpreter/element
+ * @brief The internal interfaces for dvobjs/element
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -23,8 +23,8 @@
  *
  */
 
-#ifndef PURC_INTERPRETER_ELEMENT_H
-#define PURC_INTERPRETER_ELEMENT_H
+#ifndef PURC_DVOBJS_ELEMENT_H
+#define PURC_DVOBJS_ELEMENT_H
 
 #include "purc-macros.h"
 #include "purc-variant.h"
@@ -42,6 +42,15 @@ struct pcintr_elements {
     pcutils_array_t          *elements;
 };
 
+struct native_property_cfg {
+    const char            *property_name;
+
+    purc_nvariant_method   property_getter;
+    purc_nvariant_method   property_setter;
+    purc_nvariant_method   property_eraser;
+    purc_nvariant_method   property_cleaner;
+};
+
 PCA_EXTERN_C_BEGIN
 
 purc_variant_t
@@ -50,5 +59,5 @@ pcintr_query_elements(struct pcedom_element *root,
 
 PCA_EXTERN_C_END
 
-#endif  /* PURC_INTERPRETER_ELEMENT_H */
+#endif  /* PURC_DVOBJS_ELEMENT_H */
 

@@ -22,8 +22,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "element.h"
-
 #include "internal.h"
 
 #include "private/debug.h"

@@ -2,7 +2,7 @@
  * @file element.c
  * @author Xu Xiaohong
  * @date 2021/11/18
- * @brief The internal interfaces for interpreter/element
+ * @brief The implementation for element native variant
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -23,9 +23,7 @@
  *
  */
 
-#include "config.h"
-
-#include "element.h"
+#include "internal.h"
 
 static inline bool
 element_eraser(struct pcintr_element *element)
