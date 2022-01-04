@@ -125,7 +125,7 @@ purc_rwstream_t pcfetcher_local_request_sync(
 int pcfetcher_local_check_response(struct pcfetcher* fetcher,
         uint32_t timeout_ms);
 
-#if ENABLE(LINK_PURC_FETCHER)
+#if ENABLE(REMOTE_FETCHER)
 
 struct pcfetcher* pcfetcher_remote_init(size_t max_conns, size_t cache_quota);
 
@@ -166,7 +166,7 @@ purc_rwstream_t pcfetcher_remote_request_sync(
 int pcfetcher_remote_check_response(struct pcfetcher* fetcher,
         uint32_t timeout_ms);
 
-#endif // ENABLE(LINK_PURC_FETCHER)
+#endif // ENABLE(REMOTE_FETCHER)
 
 #ifdef __cplusplus
 }

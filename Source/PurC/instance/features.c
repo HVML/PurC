@@ -36,36 +36,20 @@ purc_is_feature_enabled(enum purc_feature feature)
             if (PCA_ENABLE_HTML)
                 return true;
             break;
-        case PURC_FEATURE_XGML:
-            if (PCA_ENABLE_XGML)
-                return true;
-            break;
         case PURC_FEATURE_XML:
             if (PCA_ENABLE_XML)
                 return true;
             break;
-        case PURC_FEATURE_LCMD:
-            if (PCA_ENABLE_LCMD)
+        case PURC_FEATURE_XGML:
+            if (PCA_ENABLE_XGML)
                 return true;
             break;
-        case PURC_FEATURE_LSQL:
-            if (PCA_ENABLE_LSQL)
-                return true;
-            break;
-        case PURC_FEATURE_RSQL:
-            if (PCA_ENABLE_RSQL)
-                return true;
-            break;
-        case PURC_FEATURE_HTTP:
-            if (PCA_ENABLE_HTTP)
+        case PURC_FEATURE_REMOTE_FETCHER:
+            if (PCA_ENABLE_REMOTE_FETCHER)
                 return true;
             break;
         case PURC_FEATURE_HIBUS:
             if (PCA_ENABLE_HIBUS)
-                return true;
-            break;
-        case PURC_FEATURE_WEB_SOCKET:
-            if (PCA_ENABLE_WEB_SOCKET)
                 return true;
             break;
         case PURC_FEATURE_MQTT:
@@ -74,6 +58,10 @@ purc_is_feature_enabled(enum purc_feature feature)
             break;
         case PURC_FEATURE_SSL:
             if (PCA_ENABLE_SSL)
+                return true;
+            break;
+        case PURC_FEATURE_WEB_SOCKET:
+            if (PCA_ENABLE_WEB_SOCKET)
                 return true;
             break;
     }

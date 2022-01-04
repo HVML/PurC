@@ -25,7 +25,7 @@
 #ifndef PURC_FETCHER_PROCESS_H
 #define PURC_FETCHER_PROCESS_H
 
-#if ENABLE(LINK_PURC_FETCHER)
+#if ENABLE(REMOTE_FETCHER)
 
 #include "fetcher-session.h"
 #include "fetcher-messages-basic.h"
@@ -198,6 +198,6 @@ void PcFetcherProcess::sendWithAsyncReply(T&& message, C&& completionHandler, ui
 }
 
 
-#endif // ENABLE(LINK_PURC_FETCHER)
+#endif // ENABLE(REMOTE_FETCHER)
 
 #endif /* not defined PURC_FETCHER_PROCESS_H */

@@ -114,7 +114,11 @@ static bool wildcard_cmp (const char *str1, const char *pattern)
 {
     GPatternSpec *glib_pattern = g_pattern_spec_new (pattern);
 
+#if GLIB_CHECK_VERSION(2, 70, 0)
+    gboolean result = g_pattern_spec_match_string (glib_pattern, str1);
+#else
     gboolean result = g_pattern_match_string (glib_pattern, str1);
+#endif
 
     g_pattern_spec_free (glib_pattern);
 

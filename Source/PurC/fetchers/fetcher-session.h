@@ -25,7 +25,7 @@
 #ifndef PURC_FETCHER_SESSION_H
 #define PURC_FETCHER_SESSION_H
 
-#if ENABLE(LINK_PURC_FETCHER)
+#if ENABLE(REMOTE_FETCHER)
 
 #include "fetcher-internal.h"
 #include "fetcher-messages-basic.h"
@@ -120,6 +120,6 @@ private:
 };
 
 
-#endif // ENABLE(LINK_PURC_FETCHER)
+#endif // ENABLE(REMOTE_FETCHER)
 
 #endif /* not defined PURC_FETCHER_SESSION_H */
