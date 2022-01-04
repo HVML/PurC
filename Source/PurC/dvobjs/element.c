@@ -103,8 +103,8 @@ property_getter(const char* key_name)
     return NULL;
 }
 
-static inline purc_variant_t
-make_element(struct pcedom_element *elem)
+purc_variant_t
+pcintr_make_element_variant(struct pcedom_element *elem)
 {
     struct pcintr_element *element;
     element = (struct pcintr_element*)calloc(1, sizeof(*element));
