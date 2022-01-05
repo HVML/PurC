@@ -387,6 +387,8 @@ purc_variant_container_unite(purc_variant_t container,
         end_foreach;
         return true;
     }
+
+    pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
     return false;
 }
 
@@ -421,43 +423,50 @@ purc_variant_container_intersect(purc_variant_t container,
     UNUSED_PARAM(silent);
     if (container == PURC_VARIANT_INVALID || value == PURC_VARIANT_INVALID) {
         pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
-        return false;
+        goto end;
     }
 
     if (!purc_variant_is_set(container)) {
         pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        return false;
+        goto end;
     }
 
     purc_variant_t result = purc_variant_make_array(0, PURC_VARIANT_INVALID);
     if (result == PURC_VARIANT_INVALID) {
-        return false;
+        goto end;
     }
 
+    bool ret = false;
     purc_variant_t val;
     if (purc_variant_is_set(value)) {
         foreach_value_in_variant_set(value, val)
             if (is_in_set(container, val)) {
                 if(!purc_variant_array_append(result, val)) {
-                    purc_variant_unref(result);
-                    return false;
+                    goto error;
                 }
             }
         end_foreach;
+        ret = set_displace(container, result, silent);
     }
     else if (purc_variant_is_array(value)) {
         foreach_value_in_variant_array(value, val)
             if (is_in_set(container, val)) {
                 if(!purc_variant_array_append(result, val)) {
-                    purc_variant_unref(result);
-                    return false;
+                    goto error;
                 }
             }
         end_foreach;
+        ret = set_displace(container, result, silent);
+    }
+    else {
+        pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        ret = false;
     }
 
-    bool ret = set_displace(container, result, silent);
+error:
     purc_variant_unref(result);
+
+end:
     return ret;
 }
 
@@ -468,43 +477,50 @@ purc_variant_container_subtract(purc_variant_t container,
     UNUSED_PARAM(silent);
     if (container == PURC_VARIANT_INVALID || value == PURC_VARIANT_INVALID) {
         pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
-        return false;
+        goto end;
     }
 
     if (!purc_variant_is_set(container)) {
         pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        return false;
+        goto end;
     }
 
     purc_variant_t result = purc_variant_make_array(0, PURC_VARIANT_INVALID);
     if (result == PURC_VARIANT_INVALID) {
-        return false;
+        goto end;
     }
 
+    bool ret = false;
     purc_variant_t val;
     if (purc_variant_is_set(value)) {
         foreach_value_in_variant_set(container, val)
             if (!is_in_set(value, val)) {
                 if(!purc_variant_array_append(result, val)) {
-                    purc_variant_unref(result);
-                    return false;
+                    goto error;
                 }
             }
         end_foreach;
+        ret = set_displace(container, result, silent);
     }
     else if (purc_variant_is_array(value)) {
         foreach_value_in_variant_set(container, val)
             if (!is_in_array(value, val)) {
                 if(!purc_variant_array_append(result, val)) {
-                    purc_variant_unref(result);
-                    return false;
+                    goto error;
                 }
             }
         end_foreach;
+        ret = set_displace(container, result, silent);
+    }
+    else {
+        pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        ret = false;
     }
 
-    bool ret = set_displace(container, result, silent);
+error:
     purc_variant_unref(result);
+
+end:
     return ret;
 }
 
@@ -512,10 +528,71 @@ bool
 purc_variant_container_xor(purc_variant_t container,
         purc_variant_t value, bool silent)
 {
-    UNUSED_PARAM(container);
-    UNUSED_PARAM(value);
     UNUSED_PARAM(silent);
-    return false;
+    if (container == PURC_VARIANT_INVALID || value == PURC_VARIANT_INVALID) {
+        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto end;
+    }
+
+    if (!purc_variant_is_set(container)) {
+        pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto end;
+    }
+
+    purc_variant_t result = purc_variant_make_array(0, PURC_VARIANT_INVALID);
+    if (result == PURC_VARIANT_INVALID) {
+        goto end;
+    }
+
+    bool ret = false;
+    purc_variant_t val;
+    if (purc_variant_is_set(value)) {
+        foreach_value_in_variant_set(container, val)
+            if (!is_in_set(value, val)) {
+                if(!purc_variant_array_append(result, val)) {
+                    goto error;
+                }
+            }
+        end_foreach;
+
+        foreach_value_in_variant_set(value, val)
+            if (!is_in_set(container, val)) {
+                if(!purc_variant_array_append(result, val)) {
+                    goto error;
+                }
+            }
+        end_foreach;
+        ret = set_displace(container, result, silent);
+    }
+    else if (purc_variant_is_array(value)) {
+        foreach_value_in_variant_set(container, val)
+            if (!is_in_array(value, val)) {
+                if(!purc_variant_array_append(result, val)) {
+                    goto error;
+                }
+            }
+        end_foreach;
+
+        foreach_value_in_variant_array(value, val)
+            if (!is_in_set(container, val)) {
+                if(!purc_variant_array_append(result, val)) {
+                    goto error;
+                }
+            }
+        end_foreach;
+        ret = set_displace(container, result, silent);
+    }
+    else {
+        pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        ret = false;
+    }
+
+    ret = set_displace(container, result, silent);
+error:
+    purc_variant_unref(result);
+
+end:
+    return ret;
 }
 
 bool
