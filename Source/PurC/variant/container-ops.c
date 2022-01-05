@@ -599,9 +599,48 @@ bool
 purc_variant_container_overwrite(purc_variant_t container,
         purc_variant_t value, bool silent)
 {
-    UNUSED_PARAM(container);
-    UNUSED_PARAM(value);
     UNUSED_PARAM(silent);
-    return false;
+
+    if (container == PURC_VARIANT_INVALID || value == PURC_VARIANT_INVALID) {
+        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto end;
+    }
+
+    if (!purc_variant_is_set(container)) {
+        pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto end;
+    }
+
+    bool ret = false;
+    enum purc_variant_type type = purc_variant_get_type(value);
+    purc_variant_t val;
+    switch (type) {
+        case PURC_VARIANT_TYPE_OBJECT:
+            ret = purc_variant_set_add(container, value, true);
+            break;
+
+        case PURC_VARIANT_TYPE_ARRAY:
+            foreach_value_in_variant_array(value, val)
+                if (!purc_variant_set_add(container, val, true)) {
+                    goto end;
+                }
+            end_foreach;
+            break;
+
+        case PURC_VARIANT_TYPE_SET:
+            foreach_value_in_variant_set(value, val)
+                if (!purc_variant_set_add(container, val, true)) {
+                    goto end;
+                }
+            end_foreach;
+            break;
+
+        default:
+            pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            break;
+    }
+
+end:
+    return ret;
 }
 
