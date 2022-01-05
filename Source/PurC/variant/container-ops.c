@@ -299,29 +299,60 @@ purc_variant_container_merge(purc_variant_t container,
             return false;
         }
     end_foreach;
-    return false;
+
+    return true;
 }
 
 bool
 purc_variant_container_insert_before(purc_variant_t container, int idx,
         purc_variant_t value, bool silent)
 {
-    UNUSED_PARAM(container);
-    UNUSED_PARAM(idx);
-    UNUSED_PARAM(value);
     UNUSED_PARAM(silent);
-    return false;
+    if (container == PURC_VARIANT_INVALID || value == PURC_VARIANT_INVALID) {
+        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        return false;
+    }
+
+    if (!purc_variant_is_array(container) || !purc_variant_is_array(value)) {
+        pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        return false;
+    }
+
+    // FIXME: like purc_variant_container_prepend
+    purc_variant_t v;
+    foreach_value_in_variant_array(value, v)
+        if (!purc_variant_array_insert_before(container, idx, v)) {
+            return false;
+        }
+    end_foreach;
+
+    return true;
 }
 
 bool
 purc_variant_container_insert_after(purc_variant_t container, int idx,
         purc_variant_t value, bool silent)
 {
-    UNUSED_PARAM(container);
-    UNUSED_PARAM(idx);
-    UNUSED_PARAM(value);
     UNUSED_PARAM(silent);
-    return false;
+    if (container == PURC_VARIANT_INVALID || value == PURC_VARIANT_INVALID) {
+        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        return false;
+    }
+
+    if (!purc_variant_is_array(container) || !purc_variant_is_array(value)) {
+        pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        return false;
+    }
+
+    // FIXME: like purc_variant_container_prepend
+    purc_variant_t v;
+    foreach_value_in_variant_array(value, v)
+        if (!purc_variant_array_insert_after(container, idx, v)) {
+            return false;
+        }
+    end_foreach;
+
+    return true;
 }
 
 bool
