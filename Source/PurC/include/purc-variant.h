@@ -1980,7 +1980,7 @@ purc_variant_container_insert_after(purc_variant_t container,
  * Since: 0.0.5
  */
 PCA_EXPORT bool
-purc_variant_container_unit(purc_variant_t container,
+purc_variant_container_unite(purc_variant_t container,
         purc_variant_t value, bool silent);
 
 /**

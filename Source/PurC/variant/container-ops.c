@@ -356,12 +356,37 @@ purc_variant_container_insert_after(purc_variant_t container, int idx,
 }
 
 bool
-purc_variant_container_unit(purc_variant_t container,
+purc_variant_container_unite(purc_variant_t container,
         purc_variant_t value, bool silent)
 {
-    UNUSED_PARAM(container);
-    UNUSED_PARAM(value);
     UNUSED_PARAM(silent);
+    if (container == PURC_VARIANT_INVALID || value == PURC_VARIANT_INVALID) {
+        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        return false;
+    }
+
+    if (!purc_variant_is_set(container)) {
+        pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        return false;
+    }
+
+    purc_variant_t val;
+    if (purc_variant_is_set(value)) {
+        foreach_value_in_variant_set(value, val)
+            if (!purc_variant_set_add(container, val, true)) {
+                return false;
+            }
+        end_foreach;
+        return true;
+    }
+    else if (purc_variant_is_array(value)) {
+        foreach_value_in_variant_array(value, val)
+            if (!purc_variant_set_add(container, val, true)) {
+                return false;
+            }
+        end_foreach;
+        return true;
+    }
     return false;
 }
 
