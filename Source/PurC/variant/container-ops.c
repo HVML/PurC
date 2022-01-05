@@ -48,60 +48,73 @@
 static bool
 object_clear(purc_variant_t object)
 {
+    bool ret = false;
+
     size_t sz = purc_variant_object_get_size(object);
     if (!sz) {
-        return true;
+        goto end;
     }
     purc_variant_t keys = purc_variant_make_array(0, PURC_VARIANT_INVALID);
     if (keys == PURC_VARIANT_INVALID) {
-        return false;
+        goto end;
     }
+
     purc_variant_t k, v;
     UNUSED_VARIABLE(v);
     foreach_key_value_in_variant_object(object, k, v)
         if(!purc_variant_array_append(keys, k)) {
-            return false;
+            goto error;
         }
     end_foreach;
 
     foreach_value_in_variant_array(keys, k)
         if (!purc_variant_object_remove(object, k)) {
-            return false;
+            goto error;
         }
     end_foreach;
+    ret = true;
 
+error:
     purc_variant_unref(keys);
-    return true;
+end:
+    return ret;
 }
 
-bool
+static bool
 object_displace(purc_variant_t container, purc_variant_t value, bool silent)
 {
     UNUSED_PARAM(silent);
+
+    bool ret = false;
+
     if (!purc_variant_is_object(value)) {
         pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        return false;
+        goto end;
     }
 
     if (!object_clear(container)) {
-        return false;
+        goto end;
     }
     purc_variant_t k, v;
     foreach_key_value_in_variant_object(value, k, v)
         purc_variant_object_set(container, k, v);
     end_foreach;
-    return true;
+    ret = true;
+
+end:
+    return ret;
 }
 
-bool
+static bool
 array_displace(purc_variant_t container, purc_variant_t value, bool silent)
 {
-    UNUSED_PARAM(container);
-    UNUSED_PARAM(value);
     UNUSED_PARAM(silent);
+
+    bool ret = false;
+
     if (!purc_variant_is_array(value) && !purc_variant_is_set(value)) {
         pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        return false;
+        goto end;
     }
 
     // clear
@@ -109,7 +122,7 @@ array_displace(purc_variant_t container, purc_variant_t value, bool silent)
     size_t curr;
     foreach_value_in_variant_array_safe(container, val, curr)
         if (!purc_variant_array_remove(container, curr)) {
-            return false;
+            goto end;
         }
     end_foreach;
 
@@ -117,109 +130,161 @@ array_displace(purc_variant_t container, purc_variant_t value, bool silent)
     if (purc_variant_is_array(value)) {
         foreach_value_in_variant_array_safe(value, val, curr)
             if (!purc_variant_array_append(container, val)) {
-                return false;
+                goto end;
             }
         end_foreach;
     }
     else {
         foreach_value_in_variant_set(value, val)
             if (!purc_variant_array_append(container, val)) {
-                return false;
+                goto end;
             }
         end_foreach;
     }
+    ret = true;
 
-    return false;
+end:
+    return ret;
 }
 
 static bool
 set_clear(purc_variant_t set)
 {
+    bool ret = false;
     purc_variant_t v;
     struct rb_node *n;
+    UNUSED_VARIABLE(n);
     foreach_value_in_variant_set_safe_x(set, v, n)
         if (!purc_variant_set_remove(set, v)) {
-            return false;
+            goto end;
         }
     end_foreach;
-    UNUSED_VARIABLE(n);
-    return true;
+    ret = true;
+
+end:
+    return ret;
 }
 
-bool
+static bool
 set_displace(purc_variant_t container, purc_variant_t value, bool silent)
 {
     UNUSED_PARAM(silent);
+
+    bool ret = false;
+
     enum purc_variant_type type = purc_variant_get_type(value);
     switch (type) {
         case PURC_VARIANT_TYPE_OBJECT:
             if (!set_clear(container)) {
-                return false;
+                goto end;
             }
             if (!purc_variant_set_add(container, value, false)) {
-                return false;
+                goto end;
             }
-            return true;
+            ret = true;
+            break;
 
         case PURC_VARIANT_TYPE_ARRAY:
             if (!set_clear(container)) {
-                return false;
+                goto end;
             }
             purc_variant_t val;
             size_t curr;
             foreach_value_in_variant_array_safe(value, val, curr)
                 if (!purc_variant_set_add(container, val, false)) {
-                    return false;
+                    goto end;
                 }
             end_foreach;
-            return true;
+            ret = true;
+            break;
 
         case PURC_VARIANT_TYPE_SET:
             if (!set_clear(container)) {
-                return false;
+                goto end;
             }
             purc_variant_t v;
             foreach_value_in_variant_set(value, v)
                 if (!purc_variant_set_add(container, v, false)) {
-                    return false;
+                    goto end;
                 }
             end_foreach;
-            return true;
+            ret = true;
+            break;
 
         default:
             pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-            return false;
+            ret = false;
+            break;
     }
-    return false;
+
+end:
+    return ret;
+}
+
+static bool
+is_in_set(purc_variant_t set, purc_variant_t v)
+{
+    bool ret = false;
+    purc_variant_t val;
+    foreach_value_in_variant_set(set, val)
+        if (purc_variant_compare_ex(val, v, PCVARIANT_COMPARE_OPT_AUTO) == 0) {
+            ret = true;
+            goto end;
+        }
+    end_foreach;
+
+end:
+    return ret;
+}
+
+static bool
+is_in_array(purc_variant_t array, purc_variant_t v)
+{
+    bool ret = false;
+    purc_variant_t val;
+    foreach_value_in_variant_array(array, val)
+        if (purc_variant_compare_ex(val, v, PCVARIANT_COMPARE_OPT_AUTO) == 0) {
+            ret = true;
+            goto end;
+        }
+    end_foreach;
+
+end:
+    return ret;
 }
 
 bool
 purc_variant_container_displace(purc_variant_t container,
         purc_variant_t value, bool silent)
 {
+    bool ret = false;
+
     if (container == PURC_VARIANT_INVALID || value == PURC_VARIANT_INVALID) {
         pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
-        return false;
+        goto end;
     }
 
     enum purc_variant_type type = purc_variant_get_type(container);
     switch (type) {
         case PURC_VARIANT_TYPE_OBJECT:
-            return object_displace(container, value, silent);
+            ret = object_displace(container, value, silent);
+            break;
 
         case PURC_VARIANT_TYPE_ARRAY:
-            return array_displace(container, value, silent);
+            ret = array_displace(container, value, silent);
+            break;
 
         case PURC_VARIANT_TYPE_SET:
-            return set_displace(container, value, silent);
+            ret = set_displace(container, value, silent);
+            break;
 
         default:
             pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-            return false;
+            break;
     }
 
-    PC_ASSERT(0);
-    return false;
+end:
+    return ret;
 }
 
 bool
@@ -228,24 +293,28 @@ purc_variant_container_append(purc_variant_t container,
 {
     UNUSED_PARAM(silent);
 
+    bool ret = false;
+
     if (container == PURC_VARIANT_INVALID || value == PURC_VARIANT_INVALID) {
         pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
-        return false;
+        goto end;
     }
 
     if (!purc_variant_is_array(container) || !purc_variant_is_array(value)) {
         pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        return false;
+        goto end;
     }
 
     purc_variant_t v;
     foreach_value_in_variant_array(value, v)
         if (!purc_variant_array_append(container, v)) {
-            return false;
+            goto end;
         }
     end_foreach;
+    ret = true;
 
-    return true;
+end:
+    return ret;
 }
 
 bool
@@ -253,14 +322,17 @@ purc_variant_container_prepend(purc_variant_t container,
         purc_variant_t value, bool silent)
 {
     UNUSED_PARAM(silent);
+
+    bool ret = false;
+
     if (container == PURC_VARIANT_INVALID || value == PURC_VARIANT_INVALID) {
         pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
-        return false;
+        goto end;
     }
 
     if (!purc_variant_is_array(container) || !purc_variant_is_array(value)) {
         pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        return false;
+        goto end;
     }
 
     // FIXME :
@@ -271,11 +343,13 @@ purc_variant_container_prepend(purc_variant_t container,
     purc_variant_t v;
     foreach_value_in_variant_array(value, v)
         if (!purc_variant_array_prepend(container, v)) {
-            return false;
+            goto end;
         }
     end_foreach;
+    ret = true;
 
-    return true;
+end:
+    return ret;
 }
 
 bool
@@ -283,24 +357,29 @@ purc_variant_container_merge(purc_variant_t container,
         purc_variant_t value, bool silent)
 {
     UNUSED_PARAM(silent);
+
+    bool ret = false;
+
     if (container == PURC_VARIANT_INVALID || value == PURC_VARIANT_INVALID) {
         pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
-        return false;
+        goto end;
     }
 
     if (!purc_variant_is_object(container) || !purc_variant_is_object(value)) {
         pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        return false;
+        goto end;
     }
 
     purc_variant_t k, v;
     foreach_key_value_in_variant_object(value, k, v)
         if(!purc_variant_object_set(container, k, v)) {
-            return false;
+            goto end;
         }
     end_foreach;
+    ret = true;
 
-    return true;
+end:
+    return ret;
 }
 
 bool
@@ -308,25 +387,30 @@ purc_variant_container_insert_before(purc_variant_t container, int idx,
         purc_variant_t value, bool silent)
 {
     UNUSED_PARAM(silent);
+
+    bool ret = false;
+
     if (container == PURC_VARIANT_INVALID || value == PURC_VARIANT_INVALID) {
         pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
-        return false;
+        goto end;
     }
 
     if (!purc_variant_is_array(container) || !purc_variant_is_array(value)) {
         pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        return false;
+        goto end;
     }
 
     // FIXME: like purc_variant_container_prepend
     purc_variant_t v;
     foreach_value_in_variant_array(value, v)
         if (!purc_variant_array_insert_before(container, idx, v)) {
-            return false;
+            goto end;
         }
     end_foreach;
+    ret = true;
 
-    return true;
+end:
+    return ret;
 }
 
 bool
@@ -334,25 +418,30 @@ purc_variant_container_insert_after(purc_variant_t container, int idx,
         purc_variant_t value, bool silent)
 {
     UNUSED_PARAM(silent);
+
+    bool ret = false;
+
     if (container == PURC_VARIANT_INVALID || value == PURC_VARIANT_INVALID) {
         pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
-        return false;
+        goto end;
     }
 
     if (!purc_variant_is_array(container) || !purc_variant_is_array(value)) {
         pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        return false;
+        goto end;
     }
 
     // FIXME: like purc_variant_container_prepend
     purc_variant_t v;
     foreach_value_in_variant_array(value, v)
         if (!purc_variant_array_insert_after(container, idx, v)) {
-            return false;
+            goto end;
         }
     end_foreach;
+    ret = true;
 
-    return true;
+end:
+    return ret;
 }
 
 bool
@@ -360,60 +449,43 @@ purc_variant_container_unite(purc_variant_t container,
         purc_variant_t value, bool silent)
 {
     UNUSED_PARAM(silent);
+
+    bool ret = false;
+
     if (container == PURC_VARIANT_INVALID || value == PURC_VARIANT_INVALID) {
         pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
-        return false;
+        goto end;
     }
 
     if (!purc_variant_is_set(container)) {
         pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        return false;
+        goto end;
     }
 
     purc_variant_t val;
     if (purc_variant_is_set(value)) {
         foreach_value_in_variant_set(value, val)
             if (!purc_variant_set_add(container, val, true)) {
-                return false;
+                goto end;
             }
         end_foreach;
-        return true;
+        ret = true;
     }
     else if (purc_variant_is_array(value)) {
         foreach_value_in_variant_array(value, val)
             if (!purc_variant_set_add(container, val, true)) {
-                return false;
+                goto end;
             }
         end_foreach;
-        return true;
+        ret = true;
+    }
+    else {
+        pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        ret = false;
     }
 
-    pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-    return false;
-}
-
-static bool
-is_in_set(purc_variant_t set, purc_variant_t v)
-{
-    purc_variant_t val;
-    foreach_value_in_variant_set(set, val)
-        if (purc_variant_compare_ex(val, v, PCVARIANT_COMPARE_OPT_AUTO) == 0) {
-            return true;
-        }
-    end_foreach;
-    return false;
-}
-
-static bool
-is_in_array(purc_variant_t array, purc_variant_t v)
-{
-    purc_variant_t val;
-    foreach_value_in_variant_array(array, val)
-        if (purc_variant_compare_ex(val, v, PCVARIANT_COMPARE_OPT_AUTO) == 0) {
-            return true;
-        }
-    end_foreach;
-    return false;
+end:
+    return ret;
 }
 
 bool
@@ -421,6 +493,9 @@ purc_variant_container_intersect(purc_variant_t container,
         purc_variant_t value, bool silent)
 {
     UNUSED_PARAM(silent);
+
+    bool ret = false;
+
     if (container == PURC_VARIANT_INVALID || value == PURC_VARIANT_INVALID) {
         pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
         goto end;
@@ -436,7 +511,6 @@ purc_variant_container_intersect(purc_variant_t container,
         goto end;
     }
 
-    bool ret = false;
     purc_variant_t val;
     if (purc_variant_is_set(value)) {
         foreach_value_in_variant_set(value, val)
@@ -475,6 +549,9 @@ purc_variant_container_subtract(purc_variant_t container,
         purc_variant_t value, bool silent)
 {
     UNUSED_PARAM(silent);
+
+    bool ret = false;
+
     if (container == PURC_VARIANT_INVALID || value == PURC_VARIANT_INVALID) {
         pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
         goto end;
@@ -490,7 +567,6 @@ purc_variant_container_subtract(purc_variant_t container,
         goto end;
     }
 
-    bool ret = false;
     purc_variant_t val;
     if (purc_variant_is_set(value)) {
         foreach_value_in_variant_set(container, val)
@@ -529,6 +605,9 @@ purc_variant_container_xor(purc_variant_t container,
         purc_variant_t value, bool silent)
 {
     UNUSED_PARAM(silent);
+
+    bool ret = false;
+
     if (container == PURC_VARIANT_INVALID || value == PURC_VARIANT_INVALID) {
         pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
         goto end;
@@ -544,7 +623,6 @@ purc_variant_container_xor(purc_variant_t container,
         goto end;
     }
 
-    bool ret = false;
     purc_variant_t val;
     if (purc_variant_is_set(value)) {
         foreach_value_in_variant_set(container, val)
@@ -601,6 +679,8 @@ purc_variant_container_overwrite(purc_variant_t container,
 {
     UNUSED_PARAM(silent);
 
+    bool ret = false;
+
     if (container == PURC_VARIANT_INVALID || value == PURC_VARIANT_INVALID) {
         pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
         goto end;
@@ -611,7 +691,6 @@ purc_variant_container_overwrite(purc_variant_t container,
         goto end;
     }
 
-    bool ret = false;
     enum purc_variant_type type = purc_variant_get_type(value);
     purc_variant_t val;
     switch (type) {
