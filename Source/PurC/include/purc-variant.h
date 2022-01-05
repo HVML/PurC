@@ -1874,52 +1874,64 @@ purc_variant_revoke_listener(purc_variant_t v, purc_atom_t name);
  *
  * @param container: the container variant (object, array, set)
  * @param value: the variant to replace (object, array, set)
+ * @param silent: True means do not set common error such as
+ *  PCVARIANT_ERROR_NOT_FOUND
  *
  * Returns: True on success, otherwise False.
  *
  * Since: 0.0.5
  */
 PCA_EXPORT bool
-purc_variant_container_displace(purc_variant_t container, purc_variant_t value);
+purc_variant_container_displace(purc_variant_t container,
+        purc_variant_t value, bool silent);
 
 /**
  * Appends value to the tail of an container.
  *
  * @param container: the container variant (array)
  * @param value: the value to be appended (array)
+ * @param silent: True means do not set common error such as
+ *  PCVARIANT_ERROR_NOT_FOUND
  *
  * Returns: True on success, otherwise False.
  *
  * Since: 0.0.5
  */
 PCA_EXPORT bool
-purc_variant_container_append(purc_variant_t container, purc_variant_t value);
+purc_variant_container_append(purc_variant_t container,
+        purc_variant_t value, bool silent);
 
 /**
  * Insert value to the head of an container.
  *
  * @param container: the container variant (array)
  * @param value: the value to be insert (array)
+ * @param silent: True means do not set common error such as
+ *  PCVARIANT_ERROR_NOT_FOUND
  *
  * Returns: True on success, otherwise False.
  *
  * Since: 0.0.5
  */
 PCA_EXPORT bool
-purc_variant_container_prepend(purc_variant_t container, purc_variant_t value);
+purc_variant_container_prepend(purc_variant_t container,
+        purc_variant_t value, bool silent);
 
 /**
  * Merge value to the container.
  *
  * @param container: the container variant (object)
  * @param value: the value to be merge (object)
+ * @param silent: True means do not set common error such as
+ *  PCVARIANT_ERROR_NOT_FOUND
  *
  * Returns: True on success, otherwise False.
  *
  * Since: 0.0.5
  */
 PCA_EXPORT bool
-purc_variant_container_merge(purc_variant_t container, purc_variant_t value);
+purc_variant_container_merge(purc_variant_t container,
+        purc_variant_t value, bool silent);
 
 /**
  * Inserts the value to an container, places it before an indicated element.
@@ -1927,6 +1939,8 @@ purc_variant_container_merge(purc_variant_t container, purc_variant_t value);
  * @param container: the container variant (array)
  * @param idx: the index of element before which the new value will be placed
  * @param value: the inserted value (array)
+ * @param silent: True means do not set common error such as
+ *  PCVARIANT_ERROR_NOT_FOUND
  *
  * Returns: True on success, otherwise False.
  *
@@ -1934,7 +1948,7 @@ purc_variant_container_merge(purc_variant_t container, purc_variant_t value);
  */
 PCA_EXPORT bool
 purc_variant_container_insert_before(purc_variant_t container,
-        int idx, purc_variant_t value);
+        int idx, purc_variant_t value, bool silent);
 
 /**
  * Inserts the  value to an container, places it after an indicated element.
@@ -1942,6 +1956,8 @@ purc_variant_container_insert_before(purc_variant_t container,
  * @param container: the container variant (array)
  * @param idx: the index of element after which the new value will be placed
  * @param value: the inserted value (array)
+ * @param silent: True means do not set common error such as
+ *  PCVARIANT_ERROR_NOT_FOUND
  *
  * Returns: True on success, otherwise False.
  *
@@ -1949,72 +1965,87 @@ purc_variant_container_insert_before(purc_variant_t container,
  */
 PCA_EXPORT bool
 purc_variant_container_insert_after(purc_variant_t container,
-        int idx, purc_variant_t value);
+        int idx, purc_variant_t value, bool silent);
 
 /**
  * Unite the value to the container
  *
  * @param container: the container variant (set)
  * @param value: the value to be unite (array, set)
+ * @param silent: True means do not set common error such as
+ *  PCVARIANT_ERROR_NOT_FOUND
  *
  * Returns: True on success, otherwise False.
  *
  * Since: 0.0.5
  */
 PCA_EXPORT bool
-purc_variant_container_unit(purc_variant_t container, purc_variant_t value);
+purc_variant_container_unit(purc_variant_t container,
+        purc_variant_t value, bool silent);
 
 /**
  * Intersection operation on the collection
  *
  * @param container: the container variant (set)
  * @param value: the value to intersect (array, set)
+ * @param silent: True means do not set common error such as
+ *  PCVARIANT_ERROR_NOT_FOUND
  *
  * Returns: True on success, otherwise False.
  *
  * Since: 0.0.5
  */
 PCA_EXPORT bool
-purc_variant_container_intersect(purc_variant_t container, purc_variant_t value);
+purc_variant_container_intersect(purc_variant_t container,
+        purc_variant_t value, bool silent);
 
 /**
  * Subtraction operation on the collection
  *
  * @param container: the container variant (set)
  * @param value: the value to substract (array, set)
+ * @param silent: True means do not set common error such as
+ *  PCVARIANT_ERROR_NOT_FOUND
  *
  * Returns: True on success, otherwise False.
  *
  * Since: 0.0.5
  */
 PCA_EXPORT bool
-purc_variant_container_subtract(purc_variant_t container, purc_variant_t value);
+purc_variant_container_subtract(purc_variant_t container,
+        purc_variant_t value, bool silent);
 
 /**
  * Xor operation on the collection
  *
  * @param container: the container variant (set)
  * @param value: the value to xor (array, set)
+ * @param silent: True means do not set common error such as
+ *  PCVARIANT_ERROR_NOT_FOUND
  *
  * Returns: True on success, otherwise False.
  *
  * Since: 0.0.5
  */
 PCA_EXPORT bool
-purc_variant_container_xor(purc_variant_t container, purc_variant_t value);
+purc_variant_container_xor(purc_variant_t container,
+        purc_variant_t value, bool silent);
 
 /**
  * Overwrite operation on the collection
  *
  * @param container: the container variant (set)
  * @param value: the value to overwrite (object, array, set)
+ * @param silent: True means do not set common error such as
+ *  PCVARIANT_ERROR_NOT_FOUND
  *
  * Returns: True on success, otherwise False.
  *
  * Since: 0.0.5
  */
 PCA_EXPORT bool
-purc_variant_container_overwrite(purc_variant_t container, purc_variant_t value);
+purc_variant_container_overwrite(purc_variant_t container,
+        purc_variant_t value, bool silent);
 
 PCA_EXTERN_C_END
 

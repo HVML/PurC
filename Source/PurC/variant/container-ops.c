@@ -37,93 +37,115 @@
 #include <stdlib.h>
 #include <string.h>
 
-PCA_EXPORT bool
-purc_variant_container_displace(purc_variant_t container, purc_variant_t value)
+bool
+purc_variant_container_displace(purc_variant_t container,
+        purc_variant_t value, bool silent)
 {
     UNUSED_PARAM(container);
     UNUSED_PARAM(value);
+    UNUSED_PARAM(silent);
     return false;
 }
 
-PCA_EXPORT bool
-purc_variant_container_append(purc_variant_t container, purc_variant_t value)
+bool
+purc_variant_container_append(purc_variant_t container,
+        purc_variant_t value, bool silent)
 {
     UNUSED_PARAM(container);
     UNUSED_PARAM(value);
+    UNUSED_PARAM(silent);
     return false;
 }
 
-PCA_EXPORT bool
-purc_variant_container_prepend(purc_variant_t container, purc_variant_t value)
+bool
+purc_variant_container_prepend(purc_variant_t container,
+        purc_variant_t value, bool silent)
 {
     UNUSED_PARAM(container);
     UNUSED_PARAM(value);
+    UNUSED_PARAM(silent);
     return false;
 }
 
-PCA_EXPORT bool
-purc_variant_container_merge(purc_variant_t container, purc_variant_t value)
+bool
+purc_variant_container_merge(purc_variant_t container,
+        purc_variant_t value, bool silent)
 {
     UNUSED_PARAM(container);
     UNUSED_PARAM(value);
+    UNUSED_PARAM(silent);
     return false;
 }
 
-PCA_EXPORT bool
-purc_variant_container_insert_before(purc_variant_t container, int idx, purc_variant_t value)
+bool
+purc_variant_container_insert_before(purc_variant_t container, int idx,
+        purc_variant_t value, bool silent)
 {
     UNUSED_PARAM(container);
     UNUSED_PARAM(idx);
     UNUSED_PARAM(value);
+    UNUSED_PARAM(silent);
     return false;
 }
 
-PCA_EXPORT bool
-purc_variant_container_insert_after(purc_variant_t container, int idx, purc_variant_t value)
+bool
+purc_variant_container_insert_after(purc_variant_t container, int idx,
+        purc_variant_t value, bool silent)
 {
     UNUSED_PARAM(container);
     UNUSED_PARAM(idx);
     UNUSED_PARAM(value);
+    UNUSED_PARAM(silent);
     return false;
 }
 
-PCA_EXPORT bool
-purc_variant_container_unit(purc_variant_t container, purc_variant_t value)
+bool
+purc_variant_container_unit(purc_variant_t container,
+        purc_variant_t value, bool silent)
 {
     UNUSED_PARAM(container);
     UNUSED_PARAM(value);
+    UNUSED_PARAM(silent);
     return false;
 }
 
-PCA_EXPORT bool
-purc_variant_container_intersect(purc_variant_t container, purc_variant_t value)
+bool
+purc_variant_container_intersect(purc_variant_t container,
+        purc_variant_t value, bool silent)
 {
     UNUSED_PARAM(container);
     UNUSED_PARAM(value);
+    UNUSED_PARAM(silent);
     return false;
 }
 
-PCA_EXPORT bool
-purc_variant_container_subtract(purc_variant_t container, purc_variant_t value)
+bool
+purc_variant_container_subtract(purc_variant_t container,
+        purc_variant_t value, bool silent)
 {
     UNUSED_PARAM(container);
     UNUSED_PARAM(value);
+    UNUSED_PARAM(silent);
     return false;
 }
 
-PCA_EXPORT bool
-purc_variant_container_xor(purc_variant_t container, purc_variant_t value)
+bool
+purc_variant_container_xor(purc_variant_t container,
+        purc_variant_t value, bool silent)
 {
     UNUSED_PARAM(container);
     UNUSED_PARAM(value);
+    UNUSED_PARAM(silent);
     return false;
 }
 
-PCA_EXPORT bool
-purc_variant_container_overwrite(purc_variant_t container, purc_variant_t value)
+bool
+purc_variant_container_overwrite(purc_variant_t container,
+        purc_variant_t value, bool silent)
 {
     UNUSED_PARAM(container);
     UNUSED_PARAM(value);
+    UNUSED_PARAM(silent);
     return false;
 }
 
