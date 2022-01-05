@@ -282,9 +282,23 @@ bool
 purc_variant_container_merge(purc_variant_t container,
         purc_variant_t value, bool silent)
 {
-    UNUSED_PARAM(container);
-    UNUSED_PARAM(value);
     UNUSED_PARAM(silent);
+    if (container == PURC_VARIANT_INVALID || value == PURC_VARIANT_INVALID) {
+        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        return false;
+    }
+
+    if (!purc_variant_is_object(container) || !purc_variant_is_object(value)) {
+        pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        return false;
+    }
+
+    purc_variant_t k, v;
+    foreach_key_value_in_variant_object(value, k, v)
+        if(!purc_variant_object_set(container, k, v)) {
+            return false;
+        }
+    end_foreach;
     return false;
 }
 
