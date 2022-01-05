@@ -78,7 +78,7 @@ bool
 object_displace(purc_variant_t container, purc_variant_t value, bool silent)
 {
     UNUSED_PARAM(silent);
-    if (value->type != PURC_VARIANT_TYPE_OBJECT) {
+    if (!purc_variant_is_object(value)) {
         pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
         return false;
     }
@@ -99,8 +99,7 @@ array_displace(purc_variant_t container, purc_variant_t value, bool silent)
     UNUSED_PARAM(container);
     UNUSED_PARAM(value);
     UNUSED_PARAM(silent);
-    if (value->type != PURC_VARIANT_TYPE_ARRAY &&
-            value->type != PURC_VARIANT_TYPE_SET) {
+    if (!purc_variant_is_array(value) && !purc_variant_is_set(value)) {
         pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
         return false;
     }
@@ -115,7 +114,7 @@ array_displace(purc_variant_t container, purc_variant_t value, bool silent)
     end_foreach;
 
 
-    if (value->type == PURC_VARIANT_TYPE_ARRAY) {
+    if (purc_variant_is_array(value)) {
         foreach_value_in_variant_array_safe(value, val, curr)
             if (!purc_variant_array_append(container, val)) {
                 return false;
@@ -151,7 +150,8 @@ bool
 set_displace(purc_variant_t container, purc_variant_t value, bool silent)
 {
     UNUSED_PARAM(silent);
-    switch (value->type) {
+    enum purc_variant_type type = purc_variant_get_type(value);
+    switch (type) {
         case PURC_VARIANT_TYPE_OBJECT:
             if (!set_clear(container)) {
                 return false;
@@ -202,7 +202,8 @@ purc_variant_container_displace(purc_variant_t container,
         return false;
     }
 
-    switch (container->type) {
+    enum purc_variant_type type = purc_variant_get_type(container);
+    switch (type) {
         case PURC_VARIANT_TYPE_OBJECT:
             return object_displace(container, value, silent);
 
