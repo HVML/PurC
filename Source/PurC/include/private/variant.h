@@ -335,6 +335,7 @@ extern purc_atom_t pcvariant_atom_timer;
         struct rb_node *_node, *_next;                                       \
         _data = (variant_set_t)_set->sz_ptr[1];                              \
         _root = &_data->elems;                                               \
+        UNUSED_VARIABLE(_next);                                              \
         for (_node = pcutils_rbtree_first(_root);                            \
              ({_next = _node ? pcutils_rbtree_next(_node) : NULL; _node; }); \
              _next = _node)                                                  \
