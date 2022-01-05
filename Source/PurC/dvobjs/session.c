@@ -83,6 +83,7 @@ cwd_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     struct stat st;
     if (dir == NULL || stat(dir, &st) != 0 || !S_ISDIR(st.st_mode)) {
         pcinst_set_error(PURC_ERROR_NOT_DESIRED_ENTITY);
+        return PURC_VARIANT_INVALID;
     }
 
     if (chdir(dir) == 0) {
