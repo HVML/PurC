@@ -226,20 +226,56 @@ bool
 purc_variant_container_append(purc_variant_t container,
         purc_variant_t value, bool silent)
 {
-    UNUSED_PARAM(container);
-    UNUSED_PARAM(value);
     UNUSED_PARAM(silent);
-    return false;
+
+    if (container == PURC_VARIANT_INVALID || value == PURC_VARIANT_INVALID) {
+        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        return false;
+    }
+
+    if (!purc_variant_is_array(container) || !purc_variant_is_array(value)) {
+        pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        return false;
+    }
+
+    purc_variant_t v;
+    foreach_value_in_variant_array(value, v)
+        if (!purc_variant_array_append(container, v)) {
+            return false;
+        }
+    end_foreach;
+
+    return true;
 }
 
 bool
 purc_variant_container_prepend(purc_variant_t container,
         purc_variant_t value, bool silent)
 {
-    UNUSED_PARAM(container);
-    UNUSED_PARAM(value);
     UNUSED_PARAM(silent);
-    return false;
+    if (container == PURC_VARIANT_INVALID || value == PURC_VARIANT_INVALID) {
+        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        return false;
+    }
+
+    if (!purc_variant_is_array(container) || !purc_variant_is_array(value)) {
+        pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        return false;
+    }
+
+    // FIXME :
+    // container : 1, 2, 3, 4
+    // value  : A, B, C, D
+    // now result : D, C, B, A, 1, 2, 3, 4
+    // OR  :  A, B, C, D, 1, 2, 3, 4
+    purc_variant_t v;
+    foreach_value_in_variant_array(value, v)
+        if (!purc_variant_array_prepend(container, v)) {
+            return false;
+        }
+    end_foreach;
+
+    return true;
 }
 
 bool
