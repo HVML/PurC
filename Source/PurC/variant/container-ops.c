@@ -88,7 +88,7 @@ object_displace(purc_variant_t container, purc_variant_t value, bool silent)
     bool ret = false;
 
     if (!purc_variant_is_object(value)) {
-        pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
         goto end;
     }
 
@@ -113,7 +113,7 @@ array_displace(purc_variant_t container, purc_variant_t value, bool silent)
     bool ret = false;
 
     if (!purc_variant_is_array(value) && !purc_variant_is_set(value)) {
-        pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
         goto end;
     }
 
@@ -212,7 +212,7 @@ set_displace(purc_variant_t container, purc_variant_t value, bool silent)
             break;
 
         default:
-            pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
             ret = false;
             break;
     }
@@ -260,7 +260,7 @@ purc_variant_container_displace(purc_variant_t container,
     bool ret = false;
 
     if (container == PURC_VARIANT_INVALID || value == PURC_VARIANT_INVALID) {
-        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        SET_SILENT_ERROR(PURC_ERROR_ARGUMENT_MISSED);
         goto end;
     }
 
@@ -279,7 +279,7 @@ purc_variant_container_displace(purc_variant_t container,
             break;
 
         default:
-            pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
             break;
     }
 
@@ -296,12 +296,12 @@ purc_variant_container_append(purc_variant_t container,
     bool ret = false;
 
     if (container == PURC_VARIANT_INVALID || value == PURC_VARIANT_INVALID) {
-        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        SET_SILENT_ERROR(PURC_ERROR_ARGUMENT_MISSED);
         goto end;
     }
 
     if (!purc_variant_is_array(container) || !purc_variant_is_array(value)) {
-        pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
         goto end;
     }
 
@@ -326,12 +326,12 @@ purc_variant_container_prepend(purc_variant_t container,
     bool ret = false;
 
     if (container == PURC_VARIANT_INVALID || value == PURC_VARIANT_INVALID) {
-        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        SET_SILENT_ERROR(PURC_ERROR_ARGUMENT_MISSED);
         goto end;
     }
 
     if (!purc_variant_is_array(container) || !purc_variant_is_array(value)) {
-        pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
         goto end;
     }
 
@@ -361,12 +361,12 @@ purc_variant_container_merge(purc_variant_t container,
     bool ret = false;
 
     if (container == PURC_VARIANT_INVALID || value == PURC_VARIANT_INVALID) {
-        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        SET_SILENT_ERROR(PURC_ERROR_ARGUMENT_MISSED);
         goto end;
     }
 
     if (!purc_variant_is_object(container) || !purc_variant_is_object(value)) {
-        pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
         goto end;
     }
 
@@ -391,12 +391,12 @@ purc_variant_container_insert_before(purc_variant_t container, int idx,
     bool ret = false;
 
     if (container == PURC_VARIANT_INVALID || value == PURC_VARIANT_INVALID) {
-        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        SET_SILENT_ERROR(PURC_ERROR_ARGUMENT_MISSED);
         goto end;
     }
 
     if (!purc_variant_is_array(container) || !purc_variant_is_array(value)) {
-        pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
         goto end;
     }
 
@@ -422,12 +422,12 @@ purc_variant_container_insert_after(purc_variant_t container, int idx,
     bool ret = false;
 
     if (container == PURC_VARIANT_INVALID || value == PURC_VARIANT_INVALID) {
-        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        SET_SILENT_ERROR(PURC_ERROR_ARGUMENT_MISSED);
         goto end;
     }
 
     if (!purc_variant_is_array(container) || !purc_variant_is_array(value)) {
-        pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
         goto end;
     }
 
@@ -453,12 +453,12 @@ purc_variant_container_unite(purc_variant_t container,
     bool ret = false;
 
     if (container == PURC_VARIANT_INVALID || value == PURC_VARIANT_INVALID) {
-        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        SET_SILENT_ERROR(PURC_ERROR_ARGUMENT_MISSED);
         goto end;
     }
 
     if (!purc_variant_is_set(container)) {
-        pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
         goto end;
     }
 
@@ -480,7 +480,7 @@ purc_variant_container_unite(purc_variant_t container,
         ret = true;
     }
     else {
-        pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
         ret = false;
     }
 
@@ -497,12 +497,12 @@ purc_variant_container_intersect(purc_variant_t container,
     bool ret = false;
 
     if (container == PURC_VARIANT_INVALID || value == PURC_VARIANT_INVALID) {
-        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        SET_SILENT_ERROR(PURC_ERROR_ARGUMENT_MISSED);
         goto end;
     }
 
     if (!purc_variant_is_set(container)) {
-        pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
         goto end;
     }
 
@@ -533,7 +533,7 @@ purc_variant_container_intersect(purc_variant_t container,
         ret = set_displace(container, result, silent);
     }
     else {
-        pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
         ret = false;
     }
 
@@ -553,12 +553,12 @@ purc_variant_container_subtract(purc_variant_t container,
     bool ret = false;
 
     if (container == PURC_VARIANT_INVALID || value == PURC_VARIANT_INVALID) {
-        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        SET_SILENT_ERROR(PURC_ERROR_ARGUMENT_MISSED);
         goto end;
     }
 
     if (!purc_variant_is_set(container)) {
-        pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
         goto end;
     }
 
@@ -589,7 +589,7 @@ purc_variant_container_subtract(purc_variant_t container,
         ret = set_displace(container, result, silent);
     }
     else {
-        pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
         ret = false;
     }
 
@@ -609,12 +609,12 @@ purc_variant_container_xor(purc_variant_t container,
     bool ret = false;
 
     if (container == PURC_VARIANT_INVALID || value == PURC_VARIANT_INVALID) {
-        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        SET_SILENT_ERROR(PURC_ERROR_ARGUMENT_MISSED);
         goto end;
     }
 
     if (!purc_variant_is_set(container)) {
-        pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
         goto end;
     }
 
@@ -661,7 +661,7 @@ purc_variant_container_xor(purc_variant_t container,
         ret = set_displace(container, result, silent);
     }
     else {
-        pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
         ret = false;
     }
 
@@ -682,12 +682,12 @@ purc_variant_container_overwrite(purc_variant_t container,
     bool ret = false;
 
     if (container == PURC_VARIANT_INVALID || value == PURC_VARIANT_INVALID) {
-        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        SET_SILENT_ERROR(PURC_ERROR_ARGUMENT_MISSED);
         goto end;
     }
 
     if (!purc_variant_is_set(container)) {
-        pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
         goto end;
     }
 
@@ -715,7 +715,7 @@ purc_variant_container_overwrite(purc_variant_t container,
             break;
 
         default:
-            pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
             break;
     }
 
