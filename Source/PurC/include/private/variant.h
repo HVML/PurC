@@ -330,14 +330,21 @@ void pcvariant_on_post_fired(
      /* } */                                                        \
  /* } while (0) */
 
-#define foreach_in_variant_object_safe_x(_obj, _curr)                   \
-    do {                                                                \
-        struct pchash_table *_ht;                                       \
-        _ht = (struct pchash_table*)_obj->sz_ptr[1];                    \
-        struct pchash_entry *_tmp;                                      \
-        pchash_foreach_safe(_ht, _curr, _tmp)                           \
-        {                                                               \
-     /* } */                                                            \
+#define foreach_in_variant_object_safe_x(_obj, _key, _val)          \
+    do {                                                            \
+        variant_obj_t _data;                                        \
+        _data = (variant_obj_t)_obj->sz_ptr[1];                     \
+        struct rb_root *_root = &_data->kvs;                        \
+        struct rb_node *_p, _next;                                  \
+        for (_p = pcutils_rbtree_first(_root);                      \
+            ({_next = _p ? pcutils_rbtree_next(_p) : NULL; _p;});   \
+            _p = _next)                                             \
+        {                                                           \
+            struct obj_node *node;                                  \
+            node = container_of(_p, struct obj_node, node);         \
+            _key = node->key;                                       \
+            _val = node->val;                                       \
+     /* } */                                                        \
  /* } while (0) */
 
 #define foreach_value_in_variant_set(_set, _val)                        \
