@@ -1822,52 +1822,74 @@ purc_variant_stringify(char *buf, size_t len, purc_variant_t value);
 PCA_EXPORT int
 purc_variant_stringify_alloc(char **strp, purc_variant_t value);
 
+struct pcvar_listener;
+typedef struct pcvar_listener pcvar_listener;
+typedef struct pcvar_listener *pcvar_listener_t;
+
+typedef bool (*pcvar_op_handler) (
+        purc_variant_t source,  // the source variant
+        purc_atom_t op,  // the atom of the operation,
+                         // such as `grow`,  `shrink`, or `change`
+        void *ctxt,      // the context stored when registering the handler.
+        size_t nr_args,  // the number of the relevant child variants
+                         // (only for container).
+        purc_variant_t *argv    // the array of all relevant child variants
+                                // (only for container).
+        );
+
+
 /**
- * Register a variant listener
+ * Register a pre-operation listener
  *
  * @param v: the variant that is to be observed
  *
- * @param name: the name of the observer
+ * @param op: the atom of the operation, such as `grow`,  `shrink`, or `change`
  *
  * @param handler: the callback that is to be called upon when the observed
  *                 event is fired
  * @param ctxt: the context belongs to the callback
  *
- * Returns: boolean that designates if the operation succeeds or not
+ * Returns: the registered-listener
  *
- * Since: 0.0.4
+ * Since: 0.0.5
  */
-PCA_EXPORT bool
-purc_variant_register_listener(purc_variant_t v, purc_atom_t name,
-        pcvar_op_handler handler, void *ctxt);
+PCA_EXPORT struct pcvar_listener*
+purc_variant_register_pre_listener(purc_variant_t v,
+        purc_atom_t op, pcvar_op_handler handler, void *ctxt);
 
 /**
- * Get op handler of a variant listener
+ * Register a post-operation listener
  *
  * @param v: the variant that is to be observed
  *
- * @param name: the name of the observer
+ * @param op: the atom of the operation, such as `grow`,  `shrink`, or `change`
  *
- * Returns: the callback if found
+ * @param handler: the callback that is to be called upon when the observed
+ *                 event is fired
+ * @param ctxt: the context belongs to the callback
  *
- * Since: 0.0.4
+ * Returns: the registered-listener
+ *
+ * Since: 0.0.5
  */
-PCA_EXPORT pcvar_op_handler
-purc_variant_get_listener(purc_variant_t v, purc_atom_t name);
+PCA_EXPORT struct pcvar_listener*
+purc_variant_register_post_listener(purc_variant_t v,
+        purc_atom_t op, pcvar_op_handler handler, void *ctxt);
 
 /**
  * Revoke a variant listener
  *
  * @param v: the variant whose listener is to be revoked
  *
- * @param name: the name of the listener that is to be revoked
+ * @param listener: the listener that is to be revoked
  *
  * Returns: boolean that designates if the operation succeeds or not
  *
  * Since: 0.0.4
  */
 PCA_EXPORT bool
-purc_variant_revoke_listener(purc_variant_t v, purc_atom_t name);
+purc_variant_revoke_listener(purc_variant_t v,
+        struct pcvar_listener *listener);
 
 /**
  * Displace the values of the container.

@@ -60,15 +60,23 @@ extern "C" {
 #endif // D
 
 
+// mutually exclusive
+#define PCVAR_LISTENER_PRE_OR_POST      (0x01)
+
+#define PCVAR_LISTENER_PRE   (0x00)
+#define PCVAR_LISTENER_POST  (0x01)
 
 struct pcvar_listener {
-    // the name of the listener; using atom
-    purc_atom_t         name;
+    // the operation in which this listener is intersted.
+    purc_atom_t         op;
 
     // the context for the listener
     void*               ctxt;
 
-    // the message callback
+    // flags of the listener; only one flag currently: PRE or POST.
+    unsigned int        flags;
+
+    // the operation handler
     pcvar_op_handler    handler;
 
     // list node
@@ -93,7 +101,8 @@ struct purc_variant {
     unsigned int refc;
 
     /* observer listeners */
-    struct list_head        listeners;
+    struct list_head        pre_listeners;
+    struct list_head        post_listeners;
 
     /* value */
     union {
@@ -224,7 +233,7 @@ pcvariant_typename(purc_variant_t v)
     return pcvariant_get_typename(type);
 }
 
-int pcvariant_serialize(char *buf, size_t sz, purc_variant_t val);
+ssize_t pcvariant_serialize(char *buf, size_t sz, purc_variant_t val);
 char* pcvariant_serialize_alloc(char *buf, size_t sz, purc_variant_t val);
 
 purc_variant_t pcvariant_make_object(size_t nr_kvs, ...);
@@ -233,14 +242,31 @@ __attribute__ ((format (printf, 1, 2)))
 purc_variant_t pcvariant_make_with_printf(const char *fmt, ...);
 
 // TODO: better generate with tool
-extern purc_atom_t pcvariant_atom_grown;
-extern purc_atom_t pcvariant_atom_shrunk;
+extern purc_atom_t pcvariant_atom_grow;
+extern purc_atom_t pcvariant_atom_shrink;
 extern purc_atom_t pcvariant_atom_change;
-extern purc_atom_t pcvariant_atom_referenced;
-extern purc_atom_t pcvariant_atom_unreferenced;
-extern purc_atom_t pcvariant_atom_destroyed;
-extern purc_atom_t pcvariant_atom_timers;
-extern purc_atom_t pcvariant_atom_timer;
+extern purc_atom_t pcvariant_atom_reference;
+extern purc_atom_t pcvariant_atom_unreference;
+
+bool pcvariant_on_pre_fired(
+        purc_variant_t source,  // the source variant
+        purc_atom_t op,  // the atom of the operation,
+                         // such as `grow`,  `shrink`, or `change`
+        size_t nr_args,  // the number of the relevant child variants
+                         // (only for container).
+        purc_variant_t *argv    // the array of all relevant child variants
+                                // (only for container).
+        );
+
+void pcvariant_on_post_fired(
+        purc_variant_t source,  // the source variant
+        purc_atom_t op,  // the atom of the operation,
+                         // such as `grow`,  `shrink`, or `change`
+        size_t nr_args,  // the number of the relevant child variants
+                         // (only for container).
+        purc_variant_t *argv    // the array of all relevant child variants
+                                // (only for container).
+        );
 
 #ifdef __cplusplus
 }
@@ -254,13 +280,13 @@ extern purc_atom_t pcvariant_atom_timer;
  * 2. Implement the _safe version for easy change, e.g. removing an item,
  *  in an interation.
  */
-#define foreach_value_in_variant_array(_arr, _val)          \
-    do {                                                    \
-        struct pcutils_arrlist *_al;                        \
-        _al = (struct pcutils_arrlist*)_arr->sz_ptr[1];     \
-        for (size_t _i = 0; _i < _al->length; _i++) {       \
-            _val = (purc_variant_t)_al->array[_i];          \
-     /* } */                                                \
+#define foreach_value_in_variant_array(_arr, _val)                       \
+    do {                                                                 \
+        struct pcutils_arrlist *_al;                                     \
+        _al = (struct pcutils_arrlist*)_arr->sz_ptr[1];                  \
+        for (size_t _i = 0; _i < _al->length; _i++) {                    \
+            _val = (purc_variant_t)_al->array[_i];                       \
+     /* } */                                                             \
  /* } while (0) */
 
 #define foreach_value_in_variant_array_safe(_arr, _val, _curr)         \
@@ -328,17 +354,18 @@ extern purc_atom_t pcvariant_atom_timer;
      /* } */                                                            \
   /* } while (0) */
 
-#define foreach_value_in_variant_set_safe_x(_set, _val, _curr)               \
+#define foreach_value_in_variant_set_safe_x(_set, _val, _next)               \
     do {                                                                     \
+        PC_ASSERT(purc_variant_is_type(_set, PURC_VARIANT_TYPE_SET));        \
         variant_set_t _data;                                                 \
         struct rb_root *_root;                                               \
-        struct rb_node *_node, *_next;                                       \
+        struct rb_node *_node;                                               \
         _data = (variant_set_t)_set->sz_ptr[1];                              \
         _root = &_data->elems;                                               \
         UNUSED_VARIABLE(_next);                                              \
         for (_node = pcutils_rbtree_first(_root);                            \
              ({_next = _node ? pcutils_rbtree_next(_node) : NULL; _node; }); \
-             _next = _node)                                                  \
+             _node = _next)                                                  \
         {                                                                    \
             struct elem_node *_p;                                            \
             _p = container_of(_node, struct elem_node, node);                \
