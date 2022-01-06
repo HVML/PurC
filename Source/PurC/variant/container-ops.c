@@ -52,8 +52,12 @@ typedef bool (*array_foreach_fn)(void* ctxt, int idx,
 
 typedef bool (*set_foreach_fn)(void* ctxt, purc_variant_t value);
 
+typedef bool (*foreach_member_fn)(void* ctxt, purc_variant_t value,
+        void* extra);
+
+// foreach_member_fn  value=key, extra=value
 static bool
-object_foreach(purc_variant_t object, object_foreach_fn fn, void* ctxt)
+object_foreach(purc_variant_t object, foreach_member_fn fn, void* ctxt)
 {
     bool ret = false;
     size_t sz = purc_variant_object_get_size(object);
@@ -120,10 +124,17 @@ end:
 }
 
 static bool
-object_remove_member(void* ctxt, purc_variant_t key, purc_variant_t value)
+remove_object_member(void* ctxt, purc_variant_t key, void* extra)
 {
-    UNUSED_PARAM(value);
+    UNUSED_PARAM(extra);
     return purc_variant_object_remove((purc_variant_t)ctxt, key);
+}
+
+static bool
+add_object_member(void* dst, purc_variant_t key, void* extra)
+{
+    return purc_variant_object_set((purc_variant_t)dst, key,
+            (purc_variant_t)extra);
 }
 
 static bool
@@ -148,13 +159,6 @@ set_clear(purc_variant_t set)
 }
 
 static bool
-object_kv_to_another(void* dst, purc_variant_t key,
-        purc_variant_t value)
-{
-    return purc_variant_object_set((purc_variant_t)dst, key, value);
-}
-
-static bool
 object_displace(purc_variant_t dst, purc_variant_t src, bool silently)
 {
     UNUSED_PARAM(silently);
@@ -166,11 +170,11 @@ object_displace(purc_variant_t dst, purc_variant_t src, bool silently)
         goto end;
     }
 
-    if(!object_foreach(dst, object_remove_member, dst)) {
+    if(!object_foreach(dst, remove_object_member, dst)) {
         goto end;
     }
 
-    if(!object_foreach(src, object_kv_to_another, dst)) {
+    if(!object_foreach(src, add_object_member, dst)) {
         goto end;
     }
     ret = true;
