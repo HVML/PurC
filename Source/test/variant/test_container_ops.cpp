@@ -8,6 +8,12 @@
 #include <errno.h>
 #include <gtest/gtest.h>
 
+#define PRINTF(...)                                                       \
+    do {                                                                  \
+        fprintf(stderr, "\e[0;32m[          ] \e[0m");                    \
+        fprintf(stderr, __VA_ARGS__);                                     \
+    } while(false)
+
 #define MIN_BUFFER     512
 #define MAX_BUFFER     1024 * 1024 * 1024
 
@@ -214,6 +220,58 @@ TEST(prepend, array_array)
 
     char* dst_result = variant_to_string(dst);
     char* cmp_result = variant_to_string(cmp);
+    PRINTF("dst=%s\n", dst_result);
+    PRINTF("cmp=%s\n", cmp_result);
+    ASSERT_STREQ(dst_result, cmp_result);
+
+    free(cmp_result);
+    free(dst_result);
+
+    purc_variant_unref(cmp);
+    purc_variant_unref(src);
+    purc_variant_unref(dst);
+
+    cleanup = purc_cleanup ();
+    ASSERT_EQ (cleanup, true);
+}
+
+TEST(merge, object_object)
+{
+    purc_instance_extra_info info = {};
+    int ret = 0;
+    bool cleanup = false;
+    struct purc_variant_stat *stat;
+
+    ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ASSERT_EQ(ret, PURC_ERROR_OK);
+
+    stat = purc_variant_usage_stat();
+    ASSERT_NE(stat, nullptr);
+
+    char dst_str[] = "{\"id\":1,\"name\":\"C Language\"}";
+    char src_str[] = "{\"page\":325,\"size\":1024}";
+    char cmp_str[] = "{\"id\":1,\"name\":\"C Language\",\
+         \"page\":325,\"size\":1024}";
+
+    purc_variant_t dst = purc_variant_make_from_json_string(dst_str,
+            strlen(dst_str));
+    ASSERT_NE(dst, PURC_VARIANT_INVALID);
+
+    purc_variant_t src = purc_variant_make_from_json_string(src_str,
+            strlen(src_str));
+    ASSERT_NE(src, PURC_VARIANT_INVALID);
+
+    purc_variant_t cmp = purc_variant_make_from_json_string(cmp_str,
+            strlen(cmp_str));
+    ASSERT_NE(cmp, PURC_VARIANT_INVALID);
+
+    bool result = purc_variant_object_merge_another(dst, src, true);
+    ASSERT_EQ(result, true);
+
+    char* dst_result = variant_to_string(dst);
+    char* cmp_result = variant_to_string(cmp);
+    PRINTF("dst=%s\n", dst_result);
+    PRINTF("cmp=%s\n", cmp_result);
     ASSERT_STREQ(dst_result, cmp_result);
 
     free(cmp_result);
