@@ -43,11 +43,11 @@
         }                                                           \
     } while (0)
 
-// object member=key,   extra=value
-// array  member=value, extra=idx   int idx = (int)(uintptr_t) extra;
-// set    member=value, extra=NULL
+// object member = key,   member_extra = value
+// array  member = value, member_extra = idx((int)(uintptr_t) member_extra)
+// set    member = value, member_extra = NULL
 typedef bool (*foreach_callback_fn)(void* ctxt, purc_variant_t member,
-        void* extra);
+        void* member_extra);
 
 static bool
 object_foreach(purc_variant_t object, foreach_callback_fn fn, void* ctxt)
