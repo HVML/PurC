@@ -43,21 +43,15 @@
         }                                                           \
     } while (0)
 
-
-typedef bool (*object_foreach_fn)(void* ctxt, purc_variant_t key,
-        purc_variant_t value);
-
-typedef bool (*array_foreach_fn)(void* ctxt, int idx,
-        purc_variant_t value);
-
-typedef bool (*set_foreach_fn)(void* ctxt, purc_variant_t value);
-
-typedef bool (*foreach_member_fn)(void* ctxt, purc_variant_t value,
+typedef bool (*foreach_callback_fn)(void* ctxt, purc_variant_t value,
         void* extra);
 
-// foreach_member_fn  value=key, extra=value
+typedef bool (*foreach_fn)(purc_variant_t v, foreach_callback_fn fn,
+        void* ctxt);
+
+// foreach_callback_fn  value=key, extra=value
 static bool
-object_foreach(purc_variant_t object, foreach_member_fn fn, void* ctxt)
+object_foreach(purc_variant_t object, foreach_callback_fn fn, void* ctxt)
 {
     bool ret = false;
     size_t sz = purc_variant_object_get_size(object);
@@ -78,7 +72,7 @@ end:
 }
 
 static bool
-array_foreach(purc_variant_t array, array_foreach_fn fn, void* ctxt)
+array_foreach(purc_variant_t array, foreach_callback_fn fn, void* ctxt)
 {
     bool ret = false;
     size_t sz = purc_variant_array_get_size(array);
@@ -89,7 +83,7 @@ array_foreach(purc_variant_t array, array_foreach_fn fn, void* ctxt)
     purc_variant_t val;
     size_t curr;
     foreach_value_in_variant_array_safe(array, val, curr)
-        if (!fn(ctxt, curr, val)) {
+        if (!fn(ctxt, val, &curr)) {
             goto end;
         }
         --curr;
@@ -101,7 +95,7 @@ end:
 }
 
 static bool
-set_foreach(purc_variant_t set, set_foreach_fn fn, void* ctxt)
+set_foreach(purc_variant_t set, foreach_callback_fn fn, void* ctxt)
 {
     bool ret = false;
     size_t sz = purc_variant_set_get_size(set);
@@ -113,7 +107,7 @@ set_foreach(purc_variant_t set, set_foreach_fn fn, void* ctxt)
     struct rb_node *n;
     UNUSED_VARIABLE(n);
     foreach_value_in_variant_set_safe_x(set, v, n)
-        if (!fn(ctxt, v)) {
+        if (!fn(ctxt, v, NULL)) {
             goto end;
         }
     end_foreach;
@@ -138,24 +132,31 @@ add_object_member(void* dst, purc_variant_t key, void* extra)
 }
 
 static bool
-array_remove_member(void* ctxt, int idx, purc_variant_t value)
+remove_array_member(void* ctxt, purc_variant_t value, void* extra)
 {
     UNUSED_PARAM(value);
-    UNUSED_PARAM(ctxt);
+    int idx = *(int*)extra;
     return purc_variant_array_remove((purc_variant_t)ctxt, idx);
 }
 
-bool
-set_remove_member(void* ctxt, purc_variant_t value)
+static bool
+append_array_member(void* ctxt, purc_variant_t value, void* extra)
 {
-    UNUSED_PARAM(ctxt);
+    UNUSED_PARAM(extra);
+    return purc_variant_array_append((purc_variant_t)ctxt, value);
+}
+
+bool
+remove_set_member(void* ctxt, purc_variant_t value, void* extra)
+{
+    UNUSED_PARAM(extra);
     return purc_variant_set_remove((purc_variant_t)ctxt, value);
 }
 
 static bool
 set_clear(purc_variant_t set)
 {
-    return set_foreach(set, set_remove_member, set);
+    return set_foreach(set, remove_set_member, set);
 }
 
 static bool
@@ -184,19 +185,6 @@ end:
 }
 
 static bool
-array_member_to_another(void* ctxt, int idx, purc_variant_t value)
-{
-    UNUSED_PARAM(idx);
-    return purc_variant_array_append((purc_variant_t)ctxt, value);
-}
-
-static bool
-set_member_to_array(void* ctxt, purc_variant_t value)
-{
-    return purc_variant_array_append((purc_variant_t)ctxt, value);
-}
-
-static bool
 array_displace(purc_variant_t dst, purc_variant_t src, bool silently)
 {
     UNUSED_PARAM(silently);
@@ -208,19 +196,14 @@ array_displace(purc_variant_t dst, purc_variant_t src, bool silently)
         goto end;
     }
 
-    if (!array_foreach(dst, array_remove_member, NULL)) {
+    if (!array_foreach(dst, remove_array_member, dst)) {
         goto end;
     }
 
-    if (purc_variant_is_array(src)) {
-        if (!array_foreach(src, array_member_to_another, dst)) {
-            goto end;
-        }
-    }
-    else {
-        if (!set_foreach(src, set_member_to_array, dst)) {
-            goto end;
-        }
+    foreach_fn foreach = purc_variant_is_array(src) ? array_foreach :
+        set_foreach;
+    if (!foreach(src, append_array_member, dst)) {
+        goto end;
     }
     ret = true;
 
