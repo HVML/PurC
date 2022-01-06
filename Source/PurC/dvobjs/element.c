@@ -33,17 +33,6 @@ element_eraser(struct pcintr_element *element)
     return true;
 }
 
-static inline bool
-eraser(void *native_entity)
-{
-    PC_ASSERT(native_entity);
-
-    struct pcintr_element *element;
-    element = (struct pcintr_element*)native_entity;
-
-    return element_eraser(element);
-}
-
 static inline purc_variant_t
 element_attr_getter_by_type(struct pcintr_element *element,
         purc_variant_t tn)
@@ -92,20 +81,112 @@ attr_getter(void* native_entity, size_t nr_args, purc_variant_t* argv)
     return element_attr_getter(element, nr_args, argv);
 }
 
-static inline purc_nvariant_method
+static struct native_property_cfg configs[] = {
+    {"attr", attr_getter, NULL, NULL, NULL},
+};
+
+static struct native_property_cfg*
+property_cfg_by_name(const char *key_name)
+{
+    for (size_t i=0; i<PCA_TABLESIZE(configs); ++i) {
+        struct native_property_cfg *cfg = configs + i;
+        const char *property_name = cfg->property_name;
+        PC_ASSERT(property_name);
+        if (strcmp(property_name, key_name) == 0) {
+            return cfg;
+        }
+    }
+    return NULL;
+}
+
+// query the getter for a specific property.
+static purc_nvariant_method
 property_getter(const char* key_name)
 {
-    if (strcmp(key_name, "attr") == 0) {
-        return attr_getter;
-    }
-
-    pcinst_set_error(PURC_ERROR_NOT_EXISTS);
+    PC_ASSERT(key_name);
+    struct native_property_cfg *cfg = property_cfg_by_name(key_name);
+    if (cfg)
+        return cfg->property_getter;
     return NULL;
+}
+
+// query the setter for a specific property.
+static purc_nvariant_method
+property_setter(const char* key_name)
+{
+    PC_ASSERT(key_name);
+    struct native_property_cfg *cfg = property_cfg_by_name(key_name);
+    if (cfg)
+        return cfg->property_setter;
+    return NULL;
+}
+
+// query the eraser for a specific property.
+static purc_nvariant_method
+property_eraser(const char* key_name)
+{
+    PC_ASSERT(key_name);
+    struct native_property_cfg *cfg = property_cfg_by_name(key_name);
+    if (cfg)
+        return cfg->property_eraser;
+    return NULL;
+}
+
+// query the cleaner for a specific property.
+static purc_nvariant_method
+property_cleaner(const char* key_name)
+{
+    PC_ASSERT(key_name);
+    struct native_property_cfg *cfg = property_cfg_by_name(key_name);
+    if (cfg)
+        return cfg->property_cleaner;
+    return NULL;
+}
+
+// the cleaner to clear the content of the native entity.
+static bool
+cleaner(void* native_entity)
+{
+    UNUSED_PARAM(native_entity);
+    PC_ASSERT(0); // Not implemented yet
+    return false;
+}
+
+// the eraser to erase the native entity.
+static bool
+eraser(void* native_entity)
+{
+    PC_ASSERT(native_entity);
+
+    struct pcintr_element *element;
+    element = (struct pcintr_element*)native_entity;
+
+    return element_eraser(element);
+}
+
+// the callback when the variant was observed (nullable).
+static bool
+observe(void* native_entity, ...)
+{
+    UNUSED_PARAM(native_entity);
+    PC_ASSERT(0); // Not implemented yet
+    return false;
 }
 
 purc_variant_t
 pcintr_make_element_variant(struct pcedom_element *elem)
 {
+    static struct purc_native_ops ops = {
+        .property_getter            = property_getter,
+        .property_setter            = property_setter,
+        .property_eraser            = property_eraser,
+        .property_cleaner           = property_cleaner,
+
+        .cleaner                    = cleaner,
+        .eraser                     = eraser,
+        .observe                    = observe,
+    };
+
     struct pcintr_element *element;
     element = (struct pcintr_element*)calloc(1, sizeof(*element));
     if (!element) {
@@ -113,18 +194,7 @@ pcintr_make_element_variant(struct pcedom_element *elem)
         return PURC_VARIANT_INVALID;
     }
 
-    static struct purc_native_ops ops = {
-        .property_getter             = property_getter,
-        .property_setter             = NULL,
-        .property_eraser             = NULL,
-        .property_cleaner            = NULL,
-        .cleaner                     = NULL,
-        .eraser                      = eraser,
-        .observe                     = NULL,
-    };
-
-    purc_variant_t v;
-    v = purc_variant_make_native(element, &ops);
+    purc_variant_t v = purc_variant_make_native(element, &ops);
     if (v == PURC_VARIANT_INVALID) {
         free(element);
         return PURC_VARIANT_INVALID;
@@ -134,20 +204,3 @@ pcintr_make_element_variant(struct pcedom_element *elem)
 
     return v;
 }
-
-static inline bool
-set_make_elements(purc_variant_t set,
-        size_t nr_elems, struct pcedom_element **elems)
-{
-    UNUSED_PARAM(set);
-    for (size_t i=0; i<nr_elems; ++i) {
-        struct pcedom_element *elem;
-        elem = elems[i];
-        PC_ASSERT(elem);
-        PC_ASSERT(0); // Not implemented yet
-        // if (!set_add_element(set, elem))
-        //     return false;
-    }
-    return true;
-}
-
