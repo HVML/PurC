@@ -52,28 +52,16 @@ object_clear(purc_variant_t object)
     if (!sz) {
         goto end;
     }
-    purc_variant_t keys = purc_variant_make_array(0, PURC_VARIANT_INVALID);
-    if (keys == PURC_VARIANT_INVALID) {
-        goto end;
-    }
 
     purc_variant_t k, v;
     UNUSED_VARIABLE(v);
-    foreach_key_value_in_variant_object(object, k, v)
-        if(!purc_variant_array_append(keys, k)) {
-            goto error;
-        }
-    end_foreach;
-
-    foreach_value_in_variant_array(keys, k)
+    foreach_in_variant_object_safe_x(object, k, v)
         if (!purc_variant_object_remove(object, k)) {
-            goto error;
+            goto end;
         }
     end_foreach;
     ret = true;
 
-error:
-    purc_variant_unref(keys);
 end:
     return ret;
 }

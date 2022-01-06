@@ -335,7 +335,7 @@ void pcvariant_on_post_fired(
         variant_obj_t _data;                                        \
         _data = (variant_obj_t)_obj->sz_ptr[1];                     \
         struct rb_root *_root = &_data->kvs;                        \
-        struct rb_node *_p, _next;                                  \
+        struct rb_node *_p, *_next;                                 \
         for (_p = pcutils_rbtree_first(_root);                      \
             ({_next = _p ? pcutils_rbtree_next(_p) : NULL; _p;});   \
             _p = _next)                                             \
