@@ -44,7 +44,7 @@
     } while (0)
 
 // object member=key,   extra=value
-// array  member=value, extra=idx   int idx = *(int*) extra;
+// array  member=value, extra=idx   int idx = (int)(uintptr_t) extra;
 // set    member=value, extra=NULL
 typedef bool (*foreach_callback_fn)(void* ctxt, purc_variant_t member,
         void* extra);
@@ -82,7 +82,7 @@ array_foreach(purc_variant_t array, foreach_callback_fn fn, void* ctxt)
     purc_variant_t val;
     size_t curr;
     foreach_value_in_variant_array_safe(array, val, curr)
-        if (!fn(ctxt, val, &curr)) {
+        if (!fn(ctxt, val, (void*)(uintptr_t)curr)) {
             goto end;
         }
         --curr;
@@ -167,7 +167,7 @@ static bool
 remove_array_member(void* ctxt, purc_variant_t value, void* extra)
 {
     UNUSED_PARAM(value);
-    int idx = *(int*)extra;
+    int idx = (uintptr_t)extra;
     return purc_variant_array_remove((purc_variant_t)ctxt, idx);
 }
 
