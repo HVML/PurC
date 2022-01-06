@@ -252,7 +252,7 @@ end:
 }
 
 bool
-purc_variant_dst_displace(purc_variant_t dst,
+purc_variant_container_displace(purc_variant_t dst,
         purc_variant_t src, bool silently)
 {
     bool ret = false;
@@ -286,25 +286,25 @@ end:
 }
 
 bool
-purc_variant_dst_append(purc_variant_t dst,
-        purc_variant_t src, bool silently)
+purc_variant_array_append_another(purc_variant_t dst,
+        purc_variant_t another, bool silently)
 {
     UNUSED_PARAM(silently);
 
     bool ret = false;
 
-    if (dst == PURC_VARIANT_INVALID || src == PURC_VARIANT_INVALID) {
+    if (dst == PURC_VARIANT_INVALID || another == PURC_VARIANT_INVALID) {
         SET_SILENT_ERROR(PURC_ERROR_ARGUMENT_MISSED);
         goto end;
     }
 
-    if (!purc_variant_is_array(dst) || !purc_variant_is_array(src)) {
+    if (!purc_variant_is_array(dst) || !purc_variant_is_array(another)) {
         SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
         goto end;
     }
 
     purc_variant_t v;
-    foreach_value_in_variant_array(src, v)
+    foreach_value_in_variant_array(another, v)
         if (!purc_variant_array_append(dst, v)) {
             goto end;
         }
@@ -316,30 +316,30 @@ end:
 }
 
 bool
-purc_variant_dst_prepend(purc_variant_t dst,
-        purc_variant_t src, bool silently)
+purc_variant_array_prepend_another(purc_variant_t dst,
+        purc_variant_t another, bool silently)
 {
     UNUSED_PARAM(silently);
 
     bool ret = false;
 
-    if (dst == PURC_VARIANT_INVALID || src == PURC_VARIANT_INVALID) {
+    if (dst == PURC_VARIANT_INVALID || another == PURC_VARIANT_INVALID) {
         SET_SILENT_ERROR(PURC_ERROR_ARGUMENT_MISSED);
         goto end;
     }
 
-    if (!purc_variant_is_array(dst) || !purc_variant_is_array(src)) {
+    if (!purc_variant_is_array(dst) || !purc_variant_is_array(another)) {
         SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
         goto end;
     }
 
     // FIXME :
     // dst : 1, 2, 3, 4
-    // src  : A, B, C, D
+    // another  : A, B, C, D
     // now result : D, C, B, A, 1, 2, 3, 4
     // OR  :  A, B, C, D, 1, 2, 3, 4
     purc_variant_t v;
-    foreach_value_in_variant_array(src, v)
+    foreach_value_in_variant_array(another, v)
         if (!purc_variant_array_prepend(dst, v)) {
             goto end;
         }
@@ -351,25 +351,25 @@ end:
 }
 
 bool
-purc_variant_dst_merge(purc_variant_t dst,
-        purc_variant_t src, bool silently)
+purc_variant_object_merge_another(purc_variant_t dst,
+        purc_variant_t another, bool silently)
 {
     UNUSED_PARAM(silently);
 
     bool ret = false;
 
-    if (dst == PURC_VARIANT_INVALID || src == PURC_VARIANT_INVALID) {
+    if (dst == PURC_VARIANT_INVALID || another == PURC_VARIANT_INVALID) {
         SET_SILENT_ERROR(PURC_ERROR_ARGUMENT_MISSED);
         goto end;
     }
 
-    if (!purc_variant_is_object(dst) || !purc_variant_is_object(src)) {
+    if (!purc_variant_is_object(dst) || !purc_variant_is_object(another)) {
         SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
         goto end;
     }
 
     purc_variant_t k, v;
-    foreach_key_value_in_variant_object(src, k, v)
+    foreach_key_value_in_variant_object(another, k, v)
         if(!purc_variant_object_set(dst, k, v)) {
             goto end;
         }
@@ -381,26 +381,26 @@ end:
 }
 
 bool
-purc_variant_dst_insert_before(purc_variant_t dst, int idx,
-        purc_variant_t src, bool silently)
+purc_variant_array_insert_another_before(purc_variant_t dst, int idx,
+        purc_variant_t another, bool silently)
 {
     UNUSED_PARAM(silently);
 
     bool ret = false;
 
-    if (dst == PURC_VARIANT_INVALID || src == PURC_VARIANT_INVALID) {
+    if (dst == PURC_VARIANT_INVALID || another == PURC_VARIANT_INVALID) {
         SET_SILENT_ERROR(PURC_ERROR_ARGUMENT_MISSED);
         goto end;
     }
 
-    if (!purc_variant_is_array(dst) || !purc_variant_is_array(src)) {
+    if (!purc_variant_is_array(dst) || !purc_variant_is_array(another)) {
         SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
         goto end;
     }
 
-    // FIXME: like purc_variant_dst_prepend
+    // FIXME: like purc_variant_array_prepend_another
     purc_variant_t v;
-    foreach_value_in_variant_array(src, v)
+    foreach_value_in_variant_array(another, v)
         if (!purc_variant_array_insert_before(dst, idx, v)) {
             goto end;
         }
@@ -412,26 +412,26 @@ end:
 }
 
 bool
-purc_variant_dst_insert_after(purc_variant_t dst, int idx,
-        purc_variant_t src, bool silently)
+purc_variant_array_insert_another_after(purc_variant_t dst, int idx,
+        purc_variant_t another, bool silently)
 {
     UNUSED_PARAM(silently);
 
     bool ret = false;
 
-    if (dst == PURC_VARIANT_INVALID || src == PURC_VARIANT_INVALID) {
+    if (dst == PURC_VARIANT_INVALID || another == PURC_VARIANT_INVALID) {
         SET_SILENT_ERROR(PURC_ERROR_ARGUMENT_MISSED);
         goto end;
     }
 
-    if (!purc_variant_is_array(dst) || !purc_variant_is_array(src)) {
+    if (!purc_variant_is_array(dst) || !purc_variant_is_array(another)) {
         SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
         goto end;
     }
 
-    // FIXME: like purc_variant_dst_prepend
+    // FIXME: like purc_variant_array_prepend_another
     purc_variant_t v;
-    foreach_value_in_variant_array(src, v)
+    foreach_value_in_variant_array(another, v)
         if (!purc_variant_array_insert_after(dst, idx, v)) {
             goto end;
         }
@@ -443,7 +443,7 @@ end:
 }
 
 bool
-purc_variant_dst_unite(purc_variant_t dst,
+purc_variant_container_unite(purc_variant_t dst,
         purc_variant_t src, bool silently)
 {
     UNUSED_PARAM(silently);
@@ -487,7 +487,7 @@ end:
 }
 
 bool
-purc_variant_dst_intersect(purc_variant_t dst,
+purc_variant_container_intersect(purc_variant_t dst,
         purc_variant_t src, bool silently)
 {
     UNUSED_PARAM(silently);
@@ -543,7 +543,7 @@ end:
 }
 
 bool
-purc_variant_dst_subtract(purc_variant_t dst,
+purc_variant_container_subtract(purc_variant_t dst,
         purc_variant_t src, bool silently)
 {
     UNUSED_PARAM(silently);
@@ -599,7 +599,7 @@ end:
 }
 
 bool
-purc_variant_dst_xor(purc_variant_t dst,
+purc_variant_container_xor(purc_variant_t dst,
         purc_variant_t src, bool silently)
 {
     UNUSED_PARAM(silently);
@@ -672,7 +672,7 @@ end:
 }
 
 bool
-purc_variant_dst_overwrite(purc_variant_t dst,
+purc_variant_container_overwrite(purc_variant_t dst,
         purc_variant_t src, bool silently)
 {
     UNUSED_PARAM(silently);
