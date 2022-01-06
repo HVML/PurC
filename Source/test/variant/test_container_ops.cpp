@@ -84,3 +84,49 @@ TEST(displace, object_object)
     ASSERT_EQ (cleanup, true);
 }
 
+TEST(displace, array_array)
+{
+    purc_instance_extra_info info = {};
+    int ret = 0;
+    bool cleanup = false;
+    struct purc_variant_stat *stat;
+
+    ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ASSERT_EQ(ret, PURC_ERROR_OK);
+
+    stat = purc_variant_usage_stat();
+    ASSERT_NE(stat, nullptr);
+
+    size_t sz = 0;
+
+    char json[] = "[{\"id\":1},{\"id\":2}]";
+    purc_variant_t array = purc_variant_make_from_json_string(json,
+            strlen(json));
+    ASSERT_NE(array, PURC_VARIANT_INVALID);
+    ASSERT_EQ(array->refc, 1);
+    sz = purc_variant_array_get_size(array);
+    ASSERT_EQ(sz, 2);
+
+
+    char json2[] = "[{\"id\":3},{\"id\":4}]";
+    purc_variant_t src = purc_variant_make_from_json_string(json2,
+            strlen(json2));
+    ASSERT_NE(src, PURC_VARIANT_INVALID);
+    ASSERT_EQ(src->refc, 1);
+    sz = purc_variant_array_get_size(array);
+    ASSERT_EQ(sz, 2);
+
+    bool result = purc_variant_container_displace(array, src, true);
+    ASSERT_EQ(result, true);
+
+    char* array_str = variant_to_string(array);
+    char* src_str = variant_to_string(src);
+    ASSERT_STREQ(array_str, src_str);
+    fprintf(stderr, "dst=%s\n", array_str);
+    fprintf(stderr, "src=%s\n", src_str);
+
+    purc_variant_unref(array);
+
+    cleanup = purc_cleanup ();
+    ASSERT_EQ (cleanup, true);
+}

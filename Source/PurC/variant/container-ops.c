@@ -90,7 +90,6 @@ array_foreach(purc_variant_t array, foreach_callback_fn fn, void* ctxt)
         if (!fn(ctxt, val, (void*)(uintptr_t)curr)) {
             goto end;
         }
-        --curr;
     end_foreach;
     ret = true;
 
