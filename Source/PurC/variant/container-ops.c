@@ -97,6 +97,29 @@ end:
     return ret;
 }
 
+bool
+array_reverse_foreach(purc_variant_t array, foreach_callback_fn fn, void* ctxt)
+{
+    bool ret = false;
+    size_t sz = purc_variant_array_get_size(array);
+    if (sz == 0 || sz == PURC_VARIANT_BADSIZE) {
+        goto end;
+    }
+
+    purc_variant_t val;
+    struct pcutils_arrlist* al= (struct pcutils_arrlist*)array->sz_ptr[1];
+    for (size_t i = al->length; i != 0; i--) {
+        val = (purc_variant_t)al->array[i-1];
+        if (!fn(ctxt, val, (void*)(uintptr_t)(i - 1))) {
+            goto end;
+        }
+    }
+    ret = true;
+
+end:
+    return ret;
+}
+
 static bool
 set_foreach(purc_variant_t set, foreach_callback_fn fn, void* ctxt)
 {
@@ -446,12 +469,7 @@ purc_variant_array_prepend_another(purc_variant_t dst,
         goto end;
     }
 
-    // FIXME :
-    // dst : 1, 2, 3, 4
-    // another  : A, B, C, D
-    // now result : D, C, B, A, 1, 2, 3, 4
-    // OR  :  A, B, C, D, 1, 2, 3, 4
-    if(!array_foreach(another, prepend_array_member, dst)) {
+    if(!array_reverse_foreach(another, prepend_array_member, dst)) {
         goto end;
     }
     ret = true;
@@ -503,11 +521,10 @@ purc_variant_array_insert_another_before(purc_variant_t dst, int idx,
         goto end;
     }
 
-    // FIXME: like purc_variant_array_prepend_another
     struct complex_ctxt c_ctxt;
     c_ctxt.ctxt = (uintptr_t) dst;
     c_ctxt.extra = idx;
-    ret = array_foreach(another, insert_before_array_member, &c_ctxt);
+    ret = array_reverse_foreach(another, insert_before_array_member, &c_ctxt);
 
 end:
     return ret;
@@ -531,11 +548,10 @@ purc_variant_array_insert_another_after(purc_variant_t dst, int idx,
         goto end;
     }
 
-    // FIXME: like purc_variant_array_prepend_another
     struct complex_ctxt c_ctxt;
     c_ctxt.ctxt = (uintptr_t) dst;
     c_ctxt.extra = idx;
-    ret = array_foreach(another, insert_after_array_member, &c_ctxt);
+    ret = array_reverse_foreach(another, insert_after_array_member, &c_ctxt);
 
 end:
     return ret;

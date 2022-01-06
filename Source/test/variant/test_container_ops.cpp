@@ -195,7 +195,7 @@ TEST(prepend, array_array)
 
     char dst_str[] = "[{\"id\":1},{\"id\":2}]";
     char src_str[] = "[{\"id\":3},{\"id\":4}]";
-    char cmp_str[] = "[{\"id\":4},{\"id\":3},{\"id\":1},{\"id\":2}]";
+    char cmp_str[] = "[{\"id\":3},{\"id\":4},{\"id\":1},{\"id\":2}]";
 
     purc_variant_t dst = purc_variant_make_from_json_string(dst_str,
             strlen(dst_str));
