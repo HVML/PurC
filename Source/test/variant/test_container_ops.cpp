@@ -396,19 +396,24 @@ TEST(unite, set_array)
     stat = purc_variant_usage_stat();
     ASSERT_NE(stat, nullptr);
 
-    char obj_1_str[] = "{\"id\":1, \"name\":\"1_name\"}";
-    char obj_2_str[] = "{\"id\":2, \"name\":\"2_name\"}";
-    char obj_3_str[] = "{\"id\":3, \"name\":\"3_name\"}";
-    char src_str[] = "[{\"id\":4, \"name\":\"4_name\"},"\
-                      "{\"id\":5, \"name\":\"5_name\"},"\
-                      "{\"id\":6, \"name\":\"6_name\"}";
+    char obj_1_str[] = "{\"id\":1,\"name\":\"1_name\"}";
+    char obj_2_str[] = "{\"id\":2,\"name\":\"2_name\"}";
+    char obj_3_str[] = "{\"id\":3,\"name\":\"3_name\"}";
+    char src_str[] = "["\
+                      "{\"id\":3,\"name\":\"3_name\"},"\
+                      "{\"id\":4,\"name\":\"4_name\"},"\
+                      "{\"id\":5,\"name\":\"5_name\"},"\
+                      "{\"id\":6,\"name\":\"6_name\"}"\
+                      "]";
 
-    char cmp_str[] = "{{\"id\":1,\"name\":\"1_name\"},"\
+    char cmp_str[] = "{"\
+                      "{\"id\":1,\"name\":\"1_name\"},"\
                       "{\"id\":2,\"name\":\"2_name\"},"\
                       "{\"id\":3,\"name\":\"3_name\"},"\
                       "{\"id\":4,\"name\":\"4_name\"},"\
                       "{\"id\":5,\"name\":\"5_name\"},"\
-                      "{\"id\":6,\"name\":\"6_name\"}]";
+                      "{\"id\":6,\"name\":\"6_name\"}"\
+                      "]";
 
     purc_variant_t obj_1 = purc_variant_make_from_json_string(obj_1_str,
             strlen(obj_1_str));
@@ -429,6 +434,215 @@ TEST(unite, set_array)
     ASSERT_NE(src, PURC_VARIANT_INVALID);
 
     bool result = purc_variant_container_unite(dst, src, true);
+    ASSERT_EQ(result, true);
+
+    char* dst_result = variant_to_string(dst);
+    char* cmp_result = cmp_str;
+    PRINTF("dst=%s\n", dst_result);
+    PRINTF("cmp=%s\n", cmp_result);
+    ASSERT_STREQ(dst_result, cmp_result);
+
+    free(dst_result);
+
+    purc_variant_unref(src);
+    purc_variant_unref(dst);
+
+    purc_variant_unref(obj_1);
+    purc_variant_unref(obj_2);
+    purc_variant_unref(obj_3);
+
+    cleanup = purc_cleanup ();
+    ASSERT_EQ (cleanup, true);
+}
+
+TEST(intersect, set_array)
+{
+    purc_instance_extra_info info = {};
+    int ret = 0;
+    bool cleanup = false;
+    struct purc_variant_stat *stat;
+
+    ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ASSERT_EQ(ret, PURC_ERROR_OK);
+
+    stat = purc_variant_usage_stat();
+    ASSERT_NE(stat, nullptr);
+
+    char obj_1_str[] = "{\"id\":1,\"name\":\"1_name\"}";
+    char obj_2_str[] = "{\"id\":2,\"name\":\"2_name\"}";
+    char obj_3_str[] = "{\"id\":3,\"name\":\"3_name\"}";
+    char src_str[] = "["\
+                      "{\"id\":3,\"name\":\"3_name\"},"\
+                      "{\"id\":4,\"name\":\"4_name\"},"\
+                      "{\"id\":5,\"name\":\"5_name\"},"\
+                      "{\"id\":6,\"name\":\"6_name\"}"\
+                      "]";
+
+    char cmp_str[] = "{"\
+                      "{\"id\":3,\"name\":\"3_name\"}"\
+                      "]";
+
+
+    purc_variant_t obj_1 = purc_variant_make_from_json_string(obj_1_str,
+            strlen(obj_1_str));
+    ASSERT_NE(obj_1, PURC_VARIANT_INVALID);
+    purc_variant_t obj_2 = purc_variant_make_from_json_string(obj_2_str,
+            strlen(obj_2_str));
+    ASSERT_NE(obj_2, PURC_VARIANT_INVALID);
+    purc_variant_t obj_3 = purc_variant_make_from_json_string(obj_3_str,
+            strlen(obj_3_str));
+    ASSERT_NE(obj_3, PURC_VARIANT_INVALID);
+
+    purc_variant_t dst = purc_variant_make_set(3, PURC_VARIANT_INVALID,
+            obj_1, obj_2, obj_3);
+    ASSERT_NE(dst, PURC_VARIANT_INVALID);
+
+    purc_variant_t src = purc_variant_make_from_json_string(src_str,
+            strlen(src_str));
+    ASSERT_NE(src, PURC_VARIANT_INVALID);
+
+    bool result = purc_variant_container_intersect(dst, src, true);
+    ASSERT_EQ(result, true);
+
+    char* dst_result = variant_to_string(dst);
+    char* cmp_result = cmp_str;
+    PRINTF("dst=%s\n", dst_result);
+    PRINTF("cmp=%s\n", cmp_result);
+    ASSERT_STREQ(dst_result, cmp_result);
+
+    free(dst_result);
+
+    purc_variant_unref(src);
+    purc_variant_unref(dst);
+
+    purc_variant_unref(obj_1);
+    purc_variant_unref(obj_2);
+    purc_variant_unref(obj_3);
+
+    cleanup = purc_cleanup ();
+    ASSERT_EQ (cleanup, true);
+}
+
+TEST(subtract, set_array)
+{
+    purc_instance_extra_info info = {};
+    int ret = 0;
+    bool cleanup = false;
+    struct purc_variant_stat *stat;
+
+    ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ASSERT_EQ(ret, PURC_ERROR_OK);
+
+    stat = purc_variant_usage_stat();
+    ASSERT_NE(stat, nullptr);
+
+    char obj_1_str[] = "{\"id\":1,\"name\":\"1_name\"}";
+    char obj_2_str[] = "{\"id\":2,\"name\":\"2_name\"}";
+    char obj_3_str[] = "{\"id\":3,\"name\":\"3_name\"}";
+    char src_str[] = "["\
+                      "{\"id\":3,\"name\":\"3_name\"},"\
+                      "{\"id\":4,\"name\":\"4_name\"},"\
+                      "{\"id\":5,\"name\":\"5_name\"},"\
+                      "{\"id\":6,\"name\":\"6_name\"}"\
+                      "]";
+
+    char cmp_str[] = "{"\
+                      "{\"id\":1,\"name\":\"1_name\"},"\
+                      "{\"id\":2,\"name\":\"2_name\"}"\
+                      "]";
+
+
+    purc_variant_t obj_1 = purc_variant_make_from_json_string(obj_1_str,
+            strlen(obj_1_str));
+    ASSERT_NE(obj_1, PURC_VARIANT_INVALID);
+    purc_variant_t obj_2 = purc_variant_make_from_json_string(obj_2_str,
+            strlen(obj_2_str));
+    ASSERT_NE(obj_2, PURC_VARIANT_INVALID);
+    purc_variant_t obj_3 = purc_variant_make_from_json_string(obj_3_str,
+            strlen(obj_3_str));
+    ASSERT_NE(obj_3, PURC_VARIANT_INVALID);
+
+    purc_variant_t dst = purc_variant_make_set(3, PURC_VARIANT_INVALID,
+            obj_1, obj_2, obj_3);
+    ASSERT_NE(dst, PURC_VARIANT_INVALID);
+
+    purc_variant_t src = purc_variant_make_from_json_string(src_str,
+            strlen(src_str));
+    ASSERT_NE(src, PURC_VARIANT_INVALID);
+
+    bool result = purc_variant_container_subtract(dst, src, true);
+    ASSERT_EQ(result, true);
+
+    char* dst_result = variant_to_string(dst);
+    char* cmp_result = cmp_str;
+    PRINTF("dst=%s\n", dst_result);
+    PRINTF("cmp=%s\n", cmp_result);
+    ASSERT_STREQ(dst_result, cmp_result);
+
+    free(dst_result);
+
+    purc_variant_unref(src);
+    purc_variant_unref(dst);
+
+    purc_variant_unref(obj_1);
+    purc_variant_unref(obj_2);
+    purc_variant_unref(obj_3);
+
+    cleanup = purc_cleanup ();
+    ASSERT_EQ (cleanup, true);
+}
+
+TEST(xor, set_array)
+{
+    purc_instance_extra_info info = {};
+    int ret = 0;
+    bool cleanup = false;
+    struct purc_variant_stat *stat;
+
+    ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ASSERT_EQ(ret, PURC_ERROR_OK);
+
+    stat = purc_variant_usage_stat();
+    ASSERT_NE(stat, nullptr);
+
+    char obj_1_str[] = "{\"id\":1,\"name\":\"1_name\"}";
+    char obj_2_str[] = "{\"id\":2,\"name\":\"2_name\"}";
+    char obj_3_str[] = "{\"id\":3,\"name\":\"3_name\"}";
+    char src_str[] = "["\
+                      "{\"id\":3,\"name\":\"3_name\"},"\
+                      "{\"id\":4,\"name\":\"4_name\"},"\
+                      "{\"id\":5,\"name\":\"5_name\"},"\
+                      "{\"id\":6,\"name\":\"6_name\"}"\
+                      "]";
+
+    char cmp_str[] = "{"\
+                      "{\"id\":1,\"name\":\"1_name\"},"\
+                      "{\"id\":2,\"name\":\"2_name\"},"\
+                      "{\"id\":4,\"name\":\"4_name\"},"\
+                      "{\"id\":5,\"name\":\"5_name\"},"\
+                      "{\"id\":6,\"name\":\"6_name\"}"\
+                      "]";
+
+
+    purc_variant_t obj_1 = purc_variant_make_from_json_string(obj_1_str,
+            strlen(obj_1_str));
+    ASSERT_NE(obj_1, PURC_VARIANT_INVALID);
+    purc_variant_t obj_2 = purc_variant_make_from_json_string(obj_2_str,
+            strlen(obj_2_str));
+    ASSERT_NE(obj_2, PURC_VARIANT_INVALID);
+    purc_variant_t obj_3 = purc_variant_make_from_json_string(obj_3_str,
+            strlen(obj_3_str));
+    ASSERT_NE(obj_3, PURC_VARIANT_INVALID);
+
+    purc_variant_t dst = purc_variant_make_set(3, PURC_VARIANT_INVALID,
+            obj_1, obj_2, obj_3);
+    ASSERT_NE(dst, PURC_VARIANT_INVALID);
+
+    purc_variant_t src = purc_variant_make_from_json_string(src_str,
+            strlen(src_str));
+    ASSERT_NE(src, PURC_VARIANT_INVALID);
+
+    bool result = purc_variant_container_xor(dst, src, true);
     ASSERT_EQ(result, true);
 
     char* dst_result = variant_to_string(dst);
