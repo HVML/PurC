@@ -251,35 +251,42 @@ timers_listener_handler(purc_variant_t source, purc_atom_t msg_type,
         void* ctxt, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(source);
-    purc_vdom_t dom = (purc_vdom_t) ctxt;
-    if (msg_type == pcvariant_atom_grown) {
-        for (size_t i = 0; i < nr_args; i++) {
-            purc_variant_t interval = purc_variant_object_get_by_ckey(argv[i],
-                    TIMERS_STR_INTERVAL);
-            purc_variant_t active = purc_variant_object_get_by_ckey(argv[i],
-                    TIMERS_STR_ACTIVE);
+    UNUSED_PARAM(msg_type);
+    UNUSED_PARAM(ctxt);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    (void)destroy_inner_timer;
+    return false;
+    /// UNUSED_PARAM(source);
+    /// purc_vdom_t dom = (purc_vdom_t) ctxt;
+    /// if (msg_type == pcvariant_atom_grown) {
+    ///     for (size_t i = 0; i < nr_args; i++) {
+    ///         purc_variant_t interval = purc_variant_object_get_by_ckey(argv[i],
+    ///                 TIMERS_STR_INTERVAL);
+    ///         purc_variant_t active = purc_variant_object_get_by_ckey(argv[i],
+    ///                 TIMERS_STR_ACTIVE);
 
-            pcintr_timer_t timer = get_inner_timer(dom, argv[i]);
-            if (!timer) {
-                return false;
-            }
-            uint64_t ret = 0;
-            purc_variant_cast_to_ulongint(interval, &ret, false);
-            pcintr_timer_set_interval(timer, ret);
-            if (is_euqal(active, TIMERS_STR_ON)) {
-                pcintr_timer_start(timer);
-            }
-            purc_variant_register_listener(argv[i], pcvariant_atom_timer,
-                    timer_listener_handler, ctxt);
-        }
-    }
-    else if (msg_type == pcvariant_atom_shrunk) {
-        for (size_t i = 0; i < nr_args; i++) {
-            purc_variant_revoke_listener(argv[i], pcvariant_atom_timer);
-            destroy_inner_timer(argv[1]);
-        }
-    }
-    return true;
+    ///         pcintr_timer_t timer = get_inner_timer(dom, argv[i]);
+    ///         if (!timer) {
+    ///             return false;
+    ///         }
+    ///         uint64_t ret = 0;
+    ///         purc_variant_cast_to_ulongint(interval, &ret, false);
+    ///         pcintr_timer_set_interval(timer, ret);
+    ///         if (is_euqal(active, TIMERS_STR_ON)) {
+    ///             pcintr_timer_start(timer);
+    ///         }
+    ///         purc_variant_register_listener(argv[i], pcvariant_atom_timer,
+    ///                 timer_listener_handler, ctxt);
+    ///     }
+    /// }
+    /// else if (msg_type == pcvariant_atom_shrunk) {
+    ///     for (size_t i = 0; i < nr_args; i++) {
+    ///         purc_variant_revoke_listener(argv[i], pcvariant_atom_timer);
+    ///         destroy_inner_timer(argv[1]);
+    ///     }
+    /// }
+    /// return true;
 }
 
 bool
@@ -302,8 +309,9 @@ pcintr_init_timers(purc_vdom_t vdom)
     }
 
     // regist listener
-    bool regist = purc_variant_register_listener(ret, pcvariant_atom_timers,
-            timers_listener_handler, vdom);
+    /// bool regist = purc_variant_register_listener(ret, pcvariant_atom_timers,
+    ///         timers_listener_handler, vdom);
+    bool regist = false;
     if (!regist) {
         purc_variant_unref(ret);
         return false;
