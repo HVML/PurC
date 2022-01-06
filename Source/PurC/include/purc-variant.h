@@ -1894,10 +1894,11 @@ purc_variant_revoke_listener(purc_variant_t v,
 /**
  * Displace the values of the container.
  *
- * @param container: the container variant (object, array, set)
+ * @param dst: the dst variant (object, array, set)
  * @param value: the variant to replace (object, array, set)
- * @param silent: True means do not set common error such as
- *  PCVARIANT_ERROR_NOT_FOUND
+ * @param silently: True means ignore the following error:
+ *      - PURC_ERROR_ARGUMENT_MISSED
+ *      - PURC_ERROR_WRONG_DATA_TYPE
  *
  * Returns: True on success, otherwise False.
  *
@@ -1910,10 +1911,11 @@ purc_variant_container_displace(purc_variant_t dst,
 /**
  * Appends value to the tail of an container.
  *
- * @param container: the container variant (array)
+ * @param dst: the dst variant (array)
  * @param value: the value to be appended (array)
- * @param silent: True means do not set common error such as
- *  PCVARIANT_ERROR_NOT_FOUND
+ * @param silently: True means ignore the following error:
+ *      - PURC_ERROR_ARGUMENT_MISSED
+ *      - PURC_ERROR_WRONG_DATA_TYPE
  *
  * Returns: True on success, otherwise False.
  *
@@ -1926,10 +1928,11 @@ purc_variant_array_append_another(purc_variant_t dst,
 /**
  * Insert value to the head of an container.
  *
- * @param container: the container variant (array)
+ * @param dst: the dst variant (array)
  * @param value: the value to be insert (array)
- * @param silent: True means do not set common error such as
- *  PCVARIANT_ERROR_NOT_FOUND
+ * @param silently: True means ignore the following error:
+ *      - PURC_ERROR_ARGUMENT_MISSED
+ *      - PURC_ERROR_WRONG_DATA_TYPE
  *
  * Returns: True on success, otherwise False.
  *
@@ -1942,10 +1945,11 @@ purc_variant_array_prepend_another(purc_variant_t dst,
 /**
  * Merge value to the container.
  *
- * @param container: the container variant (object)
+ * @param dst: the dst variant (object)
  * @param value: the value to be merge (object)
- * @param silent: True means do not set common error such as
- *  PCVARIANT_ERROR_NOT_FOUND
+ * @param silently: True means ignore the following error:
+ *      - PURC_ERROR_ARGUMENT_MISSED
+ *      - PURC_ERROR_WRONG_DATA_TYPE
  *
  * Returns: True on success, otherwise False.
  *
@@ -1958,11 +1962,12 @@ purc_variant_object_merge_another(purc_variant_t dst,
 /**
  * Inserts the value to an container, places it before an indicated element.
  *
- * @param container: the container variant (array)
+ * @param dst: the dst variant (array)
  * @param idx: the index of element before which the new value will be placed
  * @param value: the inserted value (array)
- * @param silent: True means do not set common error such as
- *  PCVARIANT_ERROR_NOT_FOUND
+ * @param silently: True means ignore the following error:
+ *      - PURC_ERROR_ARGUMENT_MISSED
+ *      - PURC_ERROR_WRONG_DATA_TYPE
  *
  * Returns: True on success, otherwise False.
  *
@@ -1975,11 +1980,12 @@ purc_variant_array_insert_another_before(purc_variant_t dst,
 /**
  * Inserts the  value to an container, places it after an indicated element.
  *
- * @param container: the container variant (array)
+ * @param dst: the dst variant (array)
  * @param idx: the index of element after which the new value will be placed
  * @param value: the inserted value (array)
- * @param silent: True means do not set common error such as
- *  PCVARIANT_ERROR_NOT_FOUND
+ * @param silently: True means ignore the following error:
+ *      - PURC_ERROR_ARGUMENT_MISSED
+ *      - PURC_ERROR_WRONG_DATA_TYPE
  *
  * Returns: True on success, otherwise False.
  *
@@ -1992,10 +1998,11 @@ purc_variant_array_insert_another_after(purc_variant_t dst,
 /**
  * Unite the value to the container
  *
- * @param container: the container variant (set)
+ * @param dst: the dst variant (set)
  * @param value: the value to be unite (array, set)
- * @param silent: True means do not set common error such as
- *  PCVARIANT_ERROR_NOT_FOUND
+ * @param silently: True means ignore the following error:
+ *      - PURC_ERROR_ARGUMENT_MISSED
+ *      - PURC_ERROR_WRONG_DATA_TYPE
  *
  * Returns: True on success, otherwise False.
  *
@@ -2008,10 +2015,11 @@ purc_variant_container_unite(purc_variant_t dst,
 /**
  * Intersection operation on the collection
  *
- * @param container: the container variant (set)
+ * @param dst: the dst variant (set)
  * @param value: the value to intersect (array, set)
- * @param silent: True means do not set common error such as
- *  PCVARIANT_ERROR_NOT_FOUND
+ * @param silently: True means ignore the following error:
+ *      - PURC_ERROR_ARGUMENT_MISSED
+ *      - PURC_ERROR_WRONG_DATA_TYPE
  *
  * Returns: True on success, otherwise False.
  *
@@ -2024,10 +2032,11 @@ purc_variant_container_intersect(purc_variant_t dst,
 /**
  * Subtraction operation on the collection
  *
- * @param container: the container variant (set)
+ * @param dst: the dst variant (set)
  * @param value: the value to substract (array, set)
- * @param silent: True means do not set common error such as
- *  PCVARIANT_ERROR_NOT_FOUND
+ * @param silently: True means ignore the following error:
+ *      - PURC_ERROR_ARGUMENT_MISSED
+ *      - PURC_ERROR_WRONG_DATA_TYPE
  *
  * Returns: True on success, otherwise False.
  *
@@ -2040,10 +2049,11 @@ purc_variant_container_subtract(purc_variant_t dst,
 /**
  * Xor operation on the collection
  *
- * @param container: the container variant (set)
+ * @param dst: the dst variant (set)
  * @param value: the value to xor (array, set)
- * @param silent: True means do not set common error such as
- *  PCVARIANT_ERROR_NOT_FOUND
+ * @param silently: True means ignore the following error:
+ *      - PURC_ERROR_ARGUMENT_MISSED
+ *      - PURC_ERROR_WRONG_DATA_TYPE
  *
  * Returns: True on success, otherwise False.
  *
@@ -2056,10 +2066,11 @@ purc_variant_container_xor(purc_variant_t dst,
 /**
  * Overwrite operation on the collection
  *
- * @param container: the container variant (set)
+ * @param dst: the dst variant (set)
  * @param value: the value to overwrite (object, array, set)
- * @param silent: True means do not set common error such as
- *  PCVARIANT_ERROR_NOT_FOUND
+ * @param silently: True means ignore the following error:
+ *      - PURC_ERROR_ARGUMENT_MISSED
+ *      - PURC_ERROR_WRONG_DATA_TYPE
  *
  * Returns: True on success, otherwise False.
  *
