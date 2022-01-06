@@ -46,9 +46,6 @@
 typedef bool (*foreach_callback_fn)(void* ctxt, purc_variant_t member,
         void* extra);
 
-typedef bool (*foreach_fn)(purc_variant_t v, foreach_callback_fn fn,
-        void* ctxt);
-
 // foreach_callback_fn  value=key, extra=value
 static bool
 object_foreach(purc_variant_t object, foreach_callback_fn fn, void* ctxt)
@@ -248,12 +245,12 @@ array_displace(purc_variant_t dst, purc_variant_t src, bool silently)
         goto end;
     }
 
-    foreach_fn foreach = purc_variant_is_array(src) ? array_foreach :
-        set_foreach;
-    if (!foreach(src, append_array_member, dst)) {
-        goto end;
+    if (purc_variant_is_array(src)) {
+        ret = array_foreach(src, append_array_member, dst);
     }
-    ret = true;
+    else {
+        ret = set_foreach(src, append_array_member, dst);
+    }
 
 end:
     return ret;
