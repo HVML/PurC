@@ -44,14 +44,13 @@
     } while (0)
 
 
-typedef bool (*object_foreach_fn)(purc_variant_t object, purc_variant_t key,
-        purc_variant_t value, void* ctxt);
+typedef bool (*object_foreach_fn)(void* ctxt, purc_variant_t key,
+        purc_variant_t value);
 
-typedef bool (*array_foreach_fn)(purc_variant_t array, int idx,
-        purc_variant_t value, void* ctxt);
+typedef bool (*array_foreach_fn)(void* ctxt, int idx,
+        purc_variant_t value);
 
-typedef bool (*set_foreach_fn)(purc_variant_t set, purc_variant_t value,
-        void* ctxt);
+typedef bool (*set_foreach_fn)(void* ctxt, purc_variant_t value);
 
 static bool
 object_foreach(purc_variant_t object, object_foreach_fn fn, void* ctxt)
@@ -64,7 +63,7 @@ object_foreach(purc_variant_t object, object_foreach_fn fn, void* ctxt)
 
     purc_variant_t k, v;
     foreach_in_variant_object_safe_x(object, k, v)
-        if (!fn(object, k, v, ctxt)) {
+        if (!fn(ctxt, k, v)) {
             goto end;
         }
     end_foreach;
@@ -86,7 +85,7 @@ array_foreach(purc_variant_t array, array_foreach_fn fn, void* ctxt)
     purc_variant_t val;
     size_t curr;
     foreach_value_in_variant_array_safe(array, val, curr)
-        if (!fn(array, curr, val, ctxt)) {
+        if (!fn(ctxt, curr, val)) {
             goto end;
         }
         --curr;
@@ -110,7 +109,7 @@ set_foreach(purc_variant_t set, set_foreach_fn fn, void* ctxt)
     struct rb_node *n;
     UNUSED_VARIABLE(n);
     foreach_value_in_variant_set_safe_x(set, v, n)
-        if (!fn(set, v, ctxt)) {
+        if (!fn(ctxt, v)) {
             goto end;
         }
     end_foreach;
@@ -121,42 +120,37 @@ end:
 }
 
 static bool
-object_remove_member(purc_variant_t object, purc_variant_t key,
-        purc_variant_t value, void* ctxt)
+object_remove_member(void* ctxt, purc_variant_t key, purc_variant_t value)
 {
     UNUSED_PARAM(value);
-    UNUSED_PARAM(ctxt);
-    return purc_variant_object_remove(object, key);
+    return purc_variant_object_remove((purc_variant_t)ctxt, key);
 }
 
 static bool
-array_remove_member(purc_variant_t array, int idx,
-        purc_variant_t value, void* ctxt)
+array_remove_member(void* ctxt, int idx, purc_variant_t value)
 {
     UNUSED_PARAM(value);
     UNUSED_PARAM(ctxt);
-    return purc_variant_array_remove(array, idx);
+    return purc_variant_array_remove((purc_variant_t)ctxt, idx);
 }
 
 bool
-set_remove_member(purc_variant_t set, purc_variant_t value,
-        void* ctxt)
+set_remove_member(void* ctxt, purc_variant_t value)
 {
     UNUSED_PARAM(ctxt);
-    return purc_variant_set_remove(set, value);
+    return purc_variant_set_remove((purc_variant_t)ctxt, value);
 }
 
 static bool
 set_clear(purc_variant_t set)
 {
-    return set_foreach(set, set_remove_member, NULL);
+    return set_foreach(set, set_remove_member, set);
 }
 
 static bool
-object_kv_to_another(purc_variant_t src, purc_variant_t key,
-        purc_variant_t value, void* dst)
+object_kv_to_another(void* dst, purc_variant_t key,
+        purc_variant_t value)
 {
-    UNUSED_PARAM(src);
     return purc_variant_object_set((purc_variant_t)dst, key, value);
 }
 
@@ -172,7 +166,7 @@ object_displace(purc_variant_t dst, purc_variant_t src, bool silently)
         goto end;
     }
 
-    if(!object_foreach(dst, object_remove_member, NULL)) {
+    if(!object_foreach(dst, object_remove_member, dst)) {
         goto end;
     }
 
@@ -186,18 +180,15 @@ end:
 }
 
 static bool
-array_member_to_another(purc_variant_t array, int idx,
-        purc_variant_t value, void* ctxt)
+array_member_to_another(void* ctxt, int idx, purc_variant_t value)
 {
-    UNUSED_PARAM(array);
     UNUSED_PARAM(idx);
     return purc_variant_array_append((purc_variant_t)ctxt, value);
 }
 
 static bool
-set_member_to_array(purc_variant_t set, purc_variant_t value, void* ctxt)
+set_member_to_array(void* ctxt, purc_variant_t value)
 {
-    UNUSED_PARAM(set);
     return purc_variant_array_append((purc_variant_t)ctxt, value);
 }
 
