@@ -8,6 +8,19 @@
 #include <errno.h>
 #include <gtest/gtest.h>
 
+#define MIN_BUFFER     512
+#define MAX_BUFFER     1024 * 1024 * 1024
+
+char* variant_to_string(purc_variant_t v)
+{
+    purc_rwstream_t my_rws = purc_rwstream_new_buffer(MIN_BUFFER, MAX_BUFFER);
+    size_t len_expected = 0;
+    purc_variant_serialize(v, my_rws,
+            0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);
+    char* buf = (char*)purc_rwstream_get_mem_buffer_ex(my_rws, NULL, NULL, true);
+    purc_rwstream_destroy(my_rws);
+    return buf;
+}
 
 TEST(displace, object_object)
 {
