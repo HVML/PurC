@@ -43,6 +43,11 @@
         }                                                           \
     } while (0)
 
+struct complex_ctxt {
+    uintptr_t ctxt;
+    uintptr_t extra;
+};
+
 // object member = key,   member_extra = value
 // array  member = value, member_extra = idx((int)(uintptr_t) member_extra)
 // set    member = value, member_extra = NULL
@@ -186,6 +191,26 @@ prepend_array_member(void* ctxt, purc_variant_t value, void* extra)
 }
 
 static bool
+insert_before_array_member(void* ctxt, purc_variant_t value, void* extra)
+{
+    UNUSED_PARAM(extra);
+    struct complex_ctxt* c_ctxt = (struct complex_ctxt*) ctxt;
+    purc_variant_t array = (purc_variant_t) c_ctxt->ctxt;
+    int idx = c_ctxt->extra;
+    return purc_variant_array_insert_before(array, idx, value);
+}
+
+static bool
+insert_after_array_member(void* ctxt, purc_variant_t value, void* extra)
+{
+    UNUSED_PARAM(extra);
+    struct complex_ctxt* c_ctxt = (struct complex_ctxt*) ctxt;
+    purc_variant_t array = (purc_variant_t) c_ctxt->ctxt;
+    int idx = c_ctxt->extra;
+    return purc_variant_array_insert_after(array, idx, value);
+}
+
+static bool
 remove_set_member(void* ctxt, purc_variant_t value, void* extra)
 {
     UNUSED_PARAM(extra);
@@ -204,6 +229,42 @@ add_set_member_overwrite(void* ctxt, purc_variant_t value, void* extra)
 {
     UNUSED_PARAM(extra);
     return purc_variant_set_add((purc_variant_t)ctxt, value, true);
+}
+
+static bool
+subtract_set(void* ctxt, purc_variant_t value, void* extra)
+{
+    UNUSED_PARAM(extra);
+    struct complex_ctxt* c_ctxt = (struct complex_ctxt*) ctxt;
+    purc_variant_t set = (purc_variant_t) c_ctxt->ctxt;
+    purc_variant_t result = (purc_variant_t) c_ctxt->extra;
+
+    return is_in_set(set, value) ? true :
+        purc_variant_array_append(result, value);
+}
+
+static bool
+subtract_array(void* ctxt, purc_variant_t value, void* extra)
+{
+    UNUSED_PARAM(extra);
+    struct complex_ctxt* c_ctxt = (struct complex_ctxt*) ctxt;
+    purc_variant_t array = (purc_variant_t) c_ctxt->ctxt;
+    purc_variant_t result = (purc_variant_t) c_ctxt->extra;
+
+    return is_in_array(array, value) ? true :
+        purc_variant_array_append(result, value);
+}
+
+static bool
+intersect_set(void* ctxt, purc_variant_t value, void* extra)
+{
+    UNUSED_PARAM(extra);
+    struct complex_ctxt* c_ctxt = (struct complex_ctxt*) ctxt;
+    purc_variant_t set = (purc_variant_t) c_ctxt->ctxt;
+    purc_variant_t result = (purc_variant_t) c_ctxt->extra;
+
+    return is_in_set(set, value) ? purc_variant_array_append(result, value) :
+        true;
 }
 
 static bool
@@ -418,13 +479,8 @@ purc_variant_object_merge_another(purc_variant_t dst,
         goto end;
     }
 
-    purc_variant_t k, v;
-    foreach_key_value_in_variant_object(another, k, v)
-        if(!purc_variant_object_set(dst, k, v)) {
-            goto end;
-        }
-    end_foreach;
-    ret = true;
+    //TODO : id conflict
+    ret = object_foreach(another, add_object_member, dst);
 
 end:
     return ret;
@@ -449,13 +505,10 @@ purc_variant_array_insert_another_before(purc_variant_t dst, int idx,
     }
 
     // FIXME: like purc_variant_array_prepend_another
-    purc_variant_t v;
-    foreach_value_in_variant_array(another, v)
-        if (!purc_variant_array_insert_before(dst, idx, v)) {
-            goto end;
-        }
-    end_foreach;
-    ret = true;
+    struct complex_ctxt c_ctxt;
+    c_ctxt.ctxt = (uintptr_t) dst;
+    c_ctxt.extra = idx;
+    ret = array_foreach(another, insert_before_array_member, &c_ctxt);
 
 end:
     return ret;
@@ -480,13 +533,10 @@ purc_variant_array_insert_another_after(purc_variant_t dst, int idx,
     }
 
     // FIXME: like purc_variant_array_prepend_another
-    purc_variant_t v;
-    foreach_value_in_variant_array(another, v)
-        if (!purc_variant_array_insert_after(dst, idx, v)) {
-            goto end;
-        }
-    end_foreach;
-    ret = true;
+    struct complex_ctxt c_ctxt;
+    c_ctxt.ctxt = (uintptr_t) dst;
+    c_ctxt.extra = idx;
+    ret = array_foreach(another, insert_after_array_member, &c_ctxt);
 
 end:
     return ret;
@@ -548,35 +598,26 @@ purc_variant_container_intersect(purc_variant_t dst,
         goto end;
     }
 
-    purc_variant_t val;
+    struct complex_ctxt c_ctxt;
+    c_ctxt.ctxt = (uintptr_t) dst;
+    c_ctxt.extra = (uintptr_t) result;
+
     if (purc_variant_is_set(src)) {
-        foreach_value_in_variant_set(src, val)
-            if (is_in_set(dst, val)) {
-                if(!purc_variant_array_append(result, val)) {
-                    goto error;
-                }
-            }
-        end_foreach;
-        ret = set_displace(dst, result, silently);
+        if(set_foreach(src, intersect_set, &c_ctxt)) {
+            ret = set_displace(dst, result, silently);
+        }
     }
     else if (purc_variant_is_array(src)) {
-        foreach_value_in_variant_array(src, val)
-            if (is_in_set(dst, val)) {
-                if(!purc_variant_array_append(result, val)) {
-                    goto error;
-                }
-            }
-        end_foreach;
-        ret = set_displace(dst, result, silently);
+        if(array_foreach(src, intersect_set, &c_ctxt)) {
+            ret = set_displace(dst, result, silently);
+        }
     }
     else {
         SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
         ret = false;
     }
 
-error:
     purc_variant_unref(result);
-
 end:
     return ret;
 }
@@ -604,35 +645,26 @@ purc_variant_container_subtract(purc_variant_t dst,
         goto end;
     }
 
-    purc_variant_t val;
+    struct complex_ctxt c_ctxt;
+    c_ctxt.ctxt = (uintptr_t) src;
+    c_ctxt.extra = (uintptr_t) result;
+
     if (purc_variant_is_set(src)) {
-        foreach_value_in_variant_set(dst, val)
-            if (!is_in_set(src, val)) {
-                if(!purc_variant_array_append(result, val)) {
-                    goto error;
-                }
-            }
-        end_foreach;
-        ret = set_displace(dst, result, silently);
+        if (set_foreach(dst, subtract_set, &c_ctxt)) {
+            ret = set_displace(dst, result, silently);
+        }
     }
     else if (purc_variant_is_array(src)) {
-        foreach_value_in_variant_set(dst, val)
-            if (!is_in_array(src, val)) {
-                if(!purc_variant_array_append(result, val)) {
-                    goto error;
-                }
-            }
-        end_foreach;
-        ret = set_displace(dst, result, silently);
+        if (set_foreach(dst, subtract_array, &c_ctxt)) {
+            ret = set_displace(dst, result, silently);
+        }
     }
     else {
         SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
         ret = false;
     }
 
-error:
     purc_variant_unref(result);
-
 end:
     return ret;
 }
@@ -660,41 +692,33 @@ purc_variant_container_xor(purc_variant_t dst,
         goto end;
     }
 
-    purc_variant_t val;
+    struct complex_ctxt c_ctxt;
     if (purc_variant_is_set(src)) {
-        foreach_value_in_variant_set(dst, val)
-            if (!is_in_set(src, val)) {
-                if(!purc_variant_array_append(result, val)) {
-                    goto error;
-                }
-            }
-        end_foreach;
+        c_ctxt.ctxt = (uintptr_t) src;
+        c_ctxt.extra = (uintptr_t) result;
+        if (!set_foreach(dst, subtract_set, &c_ctxt)) {
+            goto error;
+        }
 
-        foreach_value_in_variant_set(src, val)
-            if (!is_in_set(dst, val)) {
-                if(!purc_variant_array_append(result, val)) {
-                    goto error;
-                }
-            }
-        end_foreach;
+        c_ctxt.ctxt = (uintptr_t) dst;
+        c_ctxt.extra = (uintptr_t) result;
+        if (!set_foreach(src, subtract_set, &c_ctxt)) {
+            goto error;
+        }
         ret = set_displace(dst, result, silently);
     }
     else if (purc_variant_is_array(src)) {
-        foreach_value_in_variant_set(dst, val)
-            if (!is_in_array(src, val)) {
-                if(!purc_variant_array_append(result, val)) {
-                    goto error;
-                }
-            }
-        end_foreach;
+        c_ctxt.ctxt = (uintptr_t) src;
+        c_ctxt.extra = (uintptr_t) result;
+        if (!set_foreach(dst, subtract_array, &c_ctxt)) {
+            goto error;
+        }
 
-        foreach_value_in_variant_array(src, val)
-            if (!is_in_set(dst, val)) {
-                if(!purc_variant_array_append(result, val)) {
-                    goto error;
-                }
-            }
-        end_foreach;
+        c_ctxt.ctxt = (uintptr_t) dst;
+        c_ctxt.extra = (uintptr_t) result;
+        if (!array_foreach(src, subtract_set, &c_ctxt)) {
+            goto error;
+        }
         ret = set_displace(dst, result, silently);
     }
     else {
@@ -702,7 +726,6 @@ purc_variant_container_xor(purc_variant_t dst,
         ret = false;
     }
 
-    ret = set_displace(dst, result, silently);
 error:
     purc_variant_unref(result);
 
