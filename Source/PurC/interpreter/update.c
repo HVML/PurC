@@ -28,6 +28,7 @@
 #include "internal.h"
 
 #include "private/debug.h"
+#include "private/dvobjs.h"
 #include "private/runloop.h"
 
 #include "html/interfaces/document.h"

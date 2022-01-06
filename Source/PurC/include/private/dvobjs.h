@@ -26,6 +26,7 @@
 #define PURC_PRIVATE_DVOBJS_H
 
 #include "config.h"
+#include "purc-edom.h"
 #include "purc-rwstream.h"
 #include "purc-variant.h"
 
@@ -130,6 +131,9 @@ struct wildcard_list {
     char * wildcard;
     struct wildcard_list *next;
 };
+
+purc_variant_t
+pcintr_make_element_variant(struct pcedom_element *element);
 
 #ifdef __cplusplus
 }

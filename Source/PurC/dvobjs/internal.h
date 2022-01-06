@@ -39,7 +39,7 @@ struct pcintr_element
 };
 
 struct pcintr_elements {
-    pcutils_array_t          *elements;
+    pcutils_array_t          *elements; // struct pcintr_element *
 };
 
 struct native_property_cfg {

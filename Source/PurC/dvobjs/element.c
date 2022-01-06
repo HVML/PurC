@@ -113,7 +113,7 @@ pcintr_make_element_variant(struct pcedom_element *elem)
         return PURC_VARIANT_INVALID;
     }
 
-    struct purc_native_ops ops = {
+    static struct purc_native_ops ops = {
         .property_getter             = property_getter,
         .property_setter             = NULL,
         .property_eraser             = NULL,

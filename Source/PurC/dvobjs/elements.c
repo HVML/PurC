@@ -25,6 +25,8 @@
 
 #include "internal.h"
 
+#include "private/dvobjs.h"
+
 static int
 elements_init(struct pcintr_elements *elements)
 {
@@ -56,7 +58,7 @@ elements_destroy(struct pcintr_elements *elements)
     }
 }
 
-static inline purc_variant_t
+static purc_variant_t
 count_getter(void *entity,
         size_t nr_args, purc_variant_t * argv)
 {
@@ -71,8 +73,48 @@ count_getter(void *entity,
     return purc_variant_make_ulongint(len);
 }
 
+static purc_variant_t
+at_getter(void *entity,
+        size_t nr_args, purc_variant_t * argv)
+{
+    PC_ASSERT(entity);
+    if (nr_args == 0 || argv[0] == PURC_VARIANT_INVALID) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    bool ok;
+    uint64_t uidx;
+    bool parse_str = true;
+
+    ok = purc_variant_cast_to_ulongint(argv[0], &uidx, parse_str);
+    if (!ok) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    struct pcintr_elements *elements= (struct pcintr_elements*)entity;
+    pcutils_array_t *arr = elements->elements;
+    PC_ASSERT(arr);
+    size_t len = pcutils_array_length(arr);
+    if (uidx >= len) {
+        purc_set_error(PURC_ERROR_OVERFLOW);
+        return PURC_VARIANT_INVALID;
+    }
+
+    struct pcintr_element *element;
+    element = (struct pcintr_element*)pcutils_array_get(arr, uidx);
+    PC_ASSERT(element);
+
+    struct pcedom_element *elem = element->elem;
+    PC_ASSERT(elem);
+
+    return pcintr_make_element_variant(elem);
+}
+
 static struct native_property_cfg configs[] = {
     {"count", count_getter, NULL, NULL, NULL},
+    {"at", at_getter, NULL, NULL, NULL},
 };
 
 static struct native_property_cfg*
