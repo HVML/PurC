@@ -146,7 +146,7 @@ append_array_member(void* ctxt, purc_variant_t value, void* extra)
     return purc_variant_array_append((purc_variant_t)ctxt, value);
 }
 
-bool
+static bool
 remove_set_member(void* ctxt, purc_variant_t value, void* extra)
 {
     UNUSED_PARAM(extra);
@@ -154,9 +154,10 @@ remove_set_member(void* ctxt, purc_variant_t value, void* extra)
 }
 
 static bool
-set_clear(purc_variant_t set)
+add_set_member(void* ctxt, purc_variant_t value, void* extra)
 {
-    return set_foreach(set, remove_set_member, set);
+    UNUSED_PARAM(extra);
+    return purc_variant_set_add((purc_variant_t)ctxt, value, false);
 }
 
 static bool
@@ -221,7 +222,7 @@ set_displace(purc_variant_t dst, purc_variant_t src, bool silently)
     enum purc_variant_type type = purc_variant_get_type(src);
     switch (type) {
         case PURC_VARIANT_TYPE_OBJECT:
-            if (!set_clear(dst)) {
+            if (!set_foreach(dst, remove_set_member, dst)) {
                 goto end;
             }
             if (!purc_variant_set_add(dst, src, false)) {
@@ -231,29 +232,22 @@ set_displace(purc_variant_t dst, purc_variant_t src, bool silently)
             break;
 
         case PURC_VARIANT_TYPE_ARRAY:
-            if (!set_clear(dst)) {
+            if (!set_foreach(dst, remove_set_member, dst)) {
                 goto end;
             }
-            purc_variant_t val;
-            size_t curr;
-            foreach_value_in_variant_array_safe(src, val, curr)
-                if (!purc_variant_set_add(dst, val, false)) {
-                    goto end;
-                }
-            end_foreach;
+            if (!array_foreach(src, add_set_member, dst)) {
+                goto end;
+            }
             ret = true;
             break;
 
         case PURC_VARIANT_TYPE_SET:
-            if (!set_clear(dst)) {
+            if (!set_foreach(dst, remove_set_member, dst)) {
                 goto end;
             }
-            purc_variant_t v;
-            foreach_value_in_variant_set(src, v)
-                if (!purc_variant_set_add(dst, v, false)) {
-                    goto end;
-                }
-            end_foreach;
+            if (!set_foreach(src, add_set_member, dst)) {
+                goto end;
+            }
             ret = true;
             break;
 
