@@ -84,6 +84,7 @@ TEST(displace, object_object)
     ASSERT_EQ (cleanup, true);
 }
 
+#if 0
 TEST(displace, array_array)
 {
     purc_instance_extra_info info = {};
@@ -130,3 +131,4 @@ TEST(displace, array_array)
     cleanup = purc_cleanup ();
     ASSERT_EQ (cleanup, true);
 }
+#endif
