@@ -66,6 +66,44 @@ end:
     return ret;
 }
 
+
+static bool
+array_clear(purc_variant_t array)
+{
+    bool ret = false;
+
+    purc_variant_t val;
+    size_t curr;
+    UNUSED_PARAM(val);
+    foreach_value_in_variant_array_safe(array, val, curr)
+        if (!purc_variant_array_remove(array, curr)) {
+            goto end;
+        }
+    end_foreach;
+    ret = true;
+
+end:
+    return ret;
+}
+
+static bool
+set_clear(purc_variant_t set)
+{
+    bool ret = false;
+    purc_variant_t v;
+    struct rb_node *n;
+    UNUSED_VARIABLE(n);
+    foreach_value_in_variant_set_safe_x(set, v, n)
+        if (!purc_variant_set_remove(set, v)) {
+            goto end;
+        }
+    end_foreach;
+    ret = true;
+
+end:
+    return ret;
+}
+
 static bool
 object_displace(purc_variant_t dst, purc_variant_t src, bool silently)
 {
@@ -103,16 +141,12 @@ array_displace(purc_variant_t dst, purc_variant_t src, bool silently)
         goto end;
     }
 
-    // clear
+    if (!array_clear(dst)) {
+        goto end;
+    }
+
     purc_variant_t val;
     size_t curr;
-    foreach_value_in_variant_array_safe(dst, val, curr)
-        if (!purc_variant_array_remove(dst, curr)) {
-            goto end;
-        }
-    end_foreach;
-
-
     if (purc_variant_is_array(src)) {
         foreach_value_in_variant_array_safe(src, val, curr)
             if (!purc_variant_array_append(dst, val)) {
@@ -127,24 +161,6 @@ array_displace(purc_variant_t dst, purc_variant_t src, bool silently)
             }
         end_foreach;
     }
-    ret = true;
-
-end:
-    return ret;
-}
-
-static bool
-set_clear(purc_variant_t set)
-{
-    bool ret = false;
-    purc_variant_t v;
-    struct rb_node *n;
-    UNUSED_VARIABLE(n);
-    foreach_value_in_variant_set_safe_x(set, v, n)
-        if (!purc_variant_set_remove(set, v)) {
-            goto end;
-        }
-    end_foreach;
     ret = true;
 
 end:
