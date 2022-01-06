@@ -1904,8 +1904,8 @@ purc_variant_revoke_listener(purc_variant_t v,
  * Since: 0.0.5
  */
 PCA_EXPORT bool
-purc_variant_container_displace(purc_variant_t container,
-        purc_variant_t value, bool silent);
+purc_variant_container_displace(purc_variant_t dst,
+        purc_variant_t src, bool silently);
 
 /**
  * Appends value to the tail of an container.
@@ -1920,8 +1920,8 @@ purc_variant_container_displace(purc_variant_t container,
  * Since: 0.0.5
  */
 PCA_EXPORT bool
-purc_variant_container_append(purc_variant_t container,
-        purc_variant_t value, bool silent);
+purc_variant_array_append_another(purc_variant_t dst,
+        purc_variant_t another, bool silently);
 
 /**
  * Insert value to the head of an container.
@@ -1936,8 +1936,8 @@ purc_variant_container_append(purc_variant_t container,
  * Since: 0.0.5
  */
 PCA_EXPORT bool
-purc_variant_container_prepend(purc_variant_t container,
-        purc_variant_t value, bool silent);
+purc_variant_array_prepend_another(purc_variant_t dst,
+        purc_variant_t another, bool silently);
 
 /**
  * Merge value to the container.
@@ -1952,8 +1952,8 @@ purc_variant_container_prepend(purc_variant_t container,
  * Since: 0.0.5
  */
 PCA_EXPORT bool
-purc_variant_container_merge(purc_variant_t container,
-        purc_variant_t value, bool silent);
+purc_variant_object_merge_another(purc_variant_t dst,
+        purc_variant_t another, bool silently);
 
 /**
  * Inserts the value to an container, places it before an indicated element.
@@ -1969,8 +1969,8 @@ purc_variant_container_merge(purc_variant_t container,
  * Since: 0.0.5
  */
 PCA_EXPORT bool
-purc_variant_container_insert_before(purc_variant_t container,
-        int idx, purc_variant_t value, bool silent);
+purc_variant_array_insert_another_before(purc_variant_t dst,
+        int idx, purc_variant_t another, bool silently);
 
 /**
  * Inserts the  value to an container, places it after an indicated element.
@@ -1986,8 +1986,8 @@ purc_variant_container_insert_before(purc_variant_t container,
  * Since: 0.0.5
  */
 PCA_EXPORT bool
-purc_variant_container_insert_after(purc_variant_t container,
-        int idx, purc_variant_t value, bool silent);
+purc_variant_array_insert_another_after(purc_variant_t dst,
+        int idx, purc_variant_t another, bool silently);
 
 /**
  * Unite the value to the container
@@ -2002,8 +2002,8 @@ purc_variant_container_insert_after(purc_variant_t container,
  * Since: 0.0.5
  */
 PCA_EXPORT bool
-purc_variant_container_unite(purc_variant_t container,
-        purc_variant_t value, bool silent);
+purc_variant_container_unite(purc_variant_t dst,
+        purc_variant_t src, bool silently);
 
 /**
  * Intersection operation on the collection
@@ -2018,8 +2018,8 @@ purc_variant_container_unite(purc_variant_t container,
  * Since: 0.0.5
  */
 PCA_EXPORT bool
-purc_variant_container_intersect(purc_variant_t container,
-        purc_variant_t value, bool silent);
+purc_variant_container_intersect(purc_variant_t dst,
+        purc_variant_t src, bool silently);
 
 /**
  * Subtraction operation on the collection
@@ -2034,8 +2034,8 @@ purc_variant_container_intersect(purc_variant_t container,
  * Since: 0.0.5
  */
 PCA_EXPORT bool
-purc_variant_container_subtract(purc_variant_t container,
-        purc_variant_t value, bool silent);
+purc_variant_container_subtract(purc_variant_t dst,
+        purc_variant_t src, bool silently);
 
 /**
  * Xor operation on the collection
@@ -2050,8 +2050,8 @@ purc_variant_container_subtract(purc_variant_t container,
  * Since: 0.0.5
  */
 PCA_EXPORT bool
-purc_variant_container_xor(purc_variant_t container,
-        purc_variant_t value, bool silent);
+purc_variant_container_xor(purc_variant_t dst,
+        purc_variant_t src, bool silently);
 
 /**
  * Overwrite operation on the collection
@@ -2066,8 +2066,8 @@ purc_variant_container_xor(purc_variant_t container,
  * Since: 0.0.5
  */
 PCA_EXPORT bool
-purc_variant_container_overwrite(purc_variant_t container,
-        purc_variant_t value, bool silent);
+purc_variant_container_overwrite(purc_variant_t dst,
+        purc_variant_t src, bool silently);
 
 PCA_EXTERN_C_END
 
