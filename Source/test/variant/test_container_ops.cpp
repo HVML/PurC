@@ -70,13 +70,13 @@ TEST(displace, object_object)
     sz = purc_variant_object_get_size(obj);
     ASSERT_EQ(sz, 2);
 
-    purc_variant_t v = purc_variant_object_get_by_ckey(obj, k1);
+    purc_variant_t v = purc_variant_object_get_by_ckey(obj, k1, false);
     ASSERT_EQ(v, PURC_VARIANT_INVALID);
 
-    v = purc_variant_object_get_by_ckey(obj, k2);
+    v = purc_variant_object_get_by_ckey(obj, k2, false);
     ASSERT_EQ(v, v2);
 
-    v = purc_variant_object_get_by_ckey(obj, k3);
+    v = purc_variant_object_get_by_ckey(obj, k3, false);
     ASSERT_EQ(v, v3);
 
     purc_variant_unref(src);

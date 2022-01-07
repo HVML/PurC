@@ -15,7 +15,7 @@ _check_get_by_key_c(purc_variant_t obj, const char *key, purc_variant_t val,
     size_t refc = 0;
     if (val!=PURC_VARIANT_INVALID)
         refc = val->refc;
-    purc_variant_t v = purc_variant_object_get_by_ckey(obj, key);
+    purc_variant_t v = purc_variant_object_get_by_ckey(obj, key, false);
     ASSERT_EQ(v, val);
     if (found) {
         ASSERT_GT(refc, 0);
@@ -34,7 +34,7 @@ _check_get_by_key(purc_variant_t obj, purc_variant_t key, purc_variant_t val,
     size_t refc = 0;
     if (val!=PURC_VARIANT_INVALID)
         refc = val->refc;
-    purc_variant_t v = purc_variant_object_get(obj, key);
+    purc_variant_t v = purc_variant_object_get(obj, key, false);
     ASSERT_EQ(v, val);
     if (found) {
         ASSERT_GT(refc, 0);

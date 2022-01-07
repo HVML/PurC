@@ -44,7 +44,7 @@ static inline struct pcvdom_dvobj_hvml * get_dvobj_hvml_pointer (
         purc_variant_t root, const char *name)
 {
     struct pcvdom_dvobj_hvml *ret = NULL;
-    purc_variant_t var = purc_variant_object_get_by_ckey (root, name);
+    purc_variant_t var = purc_variant_object_get_by_ckey (root, name, false);
     if (var) {
         if (purc_variant_is_native (var))
             ret = (struct pcvdom_dvobj_hvml *)

@@ -56,7 +56,7 @@ TEST(dvobjs, dvobjs_logical)
         printf ("test _L.%s:\n", function[i]);
 
         purc_variant_t dynamic = purc_variant_object_get_by_ckey (logical,
-                function[i]);
+                function[i], false);
         ASSERT_NE(dynamic, nullptr);
         ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -214,7 +214,7 @@ TEST(dvobjs, dvobjs_logical_eval)
     ASSERT_NE(logical, nullptr);
     ASSERT_EQ(purc_variant_is_object (logical), true);
 
-    purc_variant_t dynamic = purc_variant_object_get_by_ckey (logical, "eval");
+    purc_variant_t dynamic = purc_variant_object_get_by_ckey (logical, "eval", false);
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -367,7 +367,7 @@ TEST(dvobjs, dvobjs_logical_bc)
     ASSERT_NE(logical, nullptr);
     ASSERT_EQ(purc_variant_is_object (logical), true);
 
-    purc_variant_t dynamic = purc_variant_object_get_by_ckey (logical, "eval");
+    purc_variant_t dynamic = purc_variant_object_get_by_ckey (logical, "eval", false);
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 

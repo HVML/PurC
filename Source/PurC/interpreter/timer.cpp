@@ -180,13 +180,14 @@ static pcintr_timer_t
 get_inner_timer(purc_vdom_t vdom, purc_variant_t timer_var)
 {
     purc_variant_t tm = purc_variant_object_get_by_ckey(timer_var,
-            TIMERS_STR_HANDLE);
+            TIMERS_STR_HANDLE, true);
     pcintr_timer_t timer = variant_to_pointer(tm);
     if (timer) {
         return timer;
     }
 
-    purc_variant_t id = purc_variant_object_get_by_ckey(timer_var, TIMERS_STR_ID);
+    purc_variant_t id = purc_variant_object_get_by_ckey(timer_var,
+            TIMERS_STR_ID, true);
     if (!id) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         return NULL;
@@ -208,7 +209,7 @@ static void
 destroy_inner_timer(purc_variant_t timer_var)
 {
     purc_variant_t tm = purc_variant_object_get_by_ckey(timer_var,
-            TIMERS_STR_HANDLE);
+            TIMERS_STR_HANDLE, true);
     pcintr_timer_t timer = variant_to_pointer(tm);
     if (timer) {
         pcintr_timer_destroy(timer);
