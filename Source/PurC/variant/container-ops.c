@@ -35,6 +35,23 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define MIN_BUFFER     512
+#define MAX_BUFFER     1024 * 1024 * 1024
+
+#define PRINT_VARIANT(v)                                                    \
+    do {                                                                    \
+        purc_rwstream_t rws = purc_rwstream_new_buffer(MIN_BUFFER,          \
+                MAX_BUFFER);                                                \
+        size_t len_expected = 0;                                            \
+        purc_variant_serialize(v, rws,                                      \
+                0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);           \
+        char* buf = (char*)purc_rwstream_get_mem_buffer_ex(rws, NULL, NULL, \
+                true);                                                      \
+        fprintf(stderr, "variant=%s\n", buf);                               \
+        free(buf);                                                          \
+        purc_rwstream_destroy(rws);                                         \
+    } while (0)
+
 #define SET_SILENT_ERROR(error)                                     \
     do {                                                            \
         if (!silently)                                              \
@@ -42,6 +59,7 @@
             pcinst_set_error(error);                                \
         }                                                           \
     } while (0)
+
 
 struct complex_ctxt {
     uintptr_t ctxt;
@@ -52,11 +70,13 @@ struct complex_ctxt {
 // array  member = value, member_extra = PURC_VARIANT_INVALID
 // set    member = value, member_extra = PURC_VARIANT_INVALID
 typedef bool (*foreach_func)(void* ctxt, purc_variant_t member,
-        purc_variant_t member_extra);
+        purc_variant_t member_extra, bool silently);
+
 
 // It is unsafe for func to remove the member
 static bool
-object_foreach(purc_variant_t object, foreach_func func, void* ctxt)
+object_foreach(purc_variant_t object, foreach_func func, void* ctxt,
+        bool silently)
 {
     bool ret = false;
     size_t sz = purc_variant_object_get_size(object);
@@ -66,7 +86,7 @@ object_foreach(purc_variant_t object, foreach_func func, void* ctxt)
 
     purc_variant_t k, v;
     foreach_key_value_in_variant_object(object, k, v)
-        if (!func(ctxt, k, v)) {
+        if (!func(ctxt, k, v, silently)) {
             goto end;
         }
     end_foreach;
@@ -78,7 +98,8 @@ end:
 
 // It is unsafe for func to remove the member
 static bool
-array_foreach(purc_variant_t array, foreach_func func, void* ctxt)
+array_foreach(purc_variant_t array, foreach_func func, void* ctxt,
+        bool silently)
 {
     bool ret = false;
     size_t sz = purc_variant_array_get_size(array);
@@ -88,7 +109,7 @@ array_foreach(purc_variant_t array, foreach_func func, void* ctxt)
 
     purc_variant_t val;
     foreach_value_in_variant_array(array, val)
-        if (!func(ctxt, val, PURC_VARIANT_INVALID)) {
+        if (!func(ctxt, val, PURC_VARIANT_INVALID, silently)) {
             goto end;
         }
     end_foreach;
@@ -100,7 +121,8 @@ end:
 
 // It is unsafe for func to remove the member
 bool
-array_reverse_foreach(purc_variant_t array, foreach_func func, void* ctxt)
+array_reverse_foreach(purc_variant_t array, foreach_func func, void* ctxt,
+        bool silently)
 {
     bool ret = false;
     size_t sz = purc_variant_array_get_size(array);
@@ -112,7 +134,7 @@ array_reverse_foreach(purc_variant_t array, foreach_func func, void* ctxt)
     struct pcutils_arrlist* al= (struct pcutils_arrlist*)array->sz_ptr[1];
     for (size_t i = al->length; i != 0; i--) {
         val = (purc_variant_t)al->array[i-1];
-        if (!func(ctxt, val, (void*)(uintptr_t)(i - 1))) {
+        if (!func(ctxt, val, (void*)(uintptr_t)(i - 1), silently)) {
             goto end;
         }
     }
@@ -124,7 +146,7 @@ end:
 
 // It is unsafe for func to remove the member
 static bool
-set_foreach(purc_variant_t set, foreach_func func, void* ctxt)
+set_foreach(purc_variant_t set, foreach_func func, void* ctxt, bool silently)
 {
     bool ret = false;
     size_t sz = purc_variant_set_get_size(set);
@@ -134,7 +156,7 @@ set_foreach(purc_variant_t set, foreach_func func, void* ctxt)
 
     purc_variant_t v;
     foreach_value_in_variant_set(set, v)
-        if (!func(ctxt, v, PURC_VARIANT_INVALID)) {
+        if (!func(ctxt, v, PURC_VARIANT_INVALID, silently)) {
             goto end;
         }
     end_foreach;
@@ -269,32 +291,37 @@ end:
 
 static bool
 add_object_member(void* dst, purc_variant_t key,
-        purc_variant_t value)
+        purc_variant_t value, bool silently)
 {
+    UNUSED_PARAM(silently);
     return purc_variant_object_set((purc_variant_t)dst, key, value);
 }
 
 static bool
-remove_object_member(void* dst, purc_variant_t key, purc_variant_t value)
+remove_object_member(void* dst, purc_variant_t key, purc_variant_t value,
+        bool silently)
 {
     UNUSED_PARAM(value);
+    UNUSED_PARAM(silently);
     // TODO: silently
     return purc_variant_object_remove((purc_variant_t)dst, key);
 }
 
 static bool
 append_array_member(void* ctxt, purc_variant_t member,
-        purc_variant_t member_extra)
+        purc_variant_t member_extra, bool silently)
 {
     UNUSED_PARAM(member_extra);
+    UNUSED_PARAM(silently);
     return purc_variant_array_append((purc_variant_t)ctxt, member);
 }
 
 static bool
 remove_array_member(void* ctxt, purc_variant_t member,
-        purc_variant_t member_extra)
+        purc_variant_t member_extra, bool silently)
 {
     UNUSED_PARAM(member_extra);
+    UNUSED_PARAM(silently);
     int idx = -1;
     purc_variant_t array = (purc_variant_t) ctxt;
     if(is_in_array(array, member, &idx)) {
@@ -305,17 +332,19 @@ remove_array_member(void* ctxt, purc_variant_t member,
 
 static bool
 prepend_array_member(void* ctxt, purc_variant_t member,
-        purc_variant_t member_extra)
+        purc_variant_t member_extra, bool silently)
 {
     UNUSED_PARAM(member_extra);
+    UNUSED_PARAM(silently);
     return purc_variant_array_prepend((purc_variant_t)ctxt, member);
 }
 
 static bool
 insert_before_array_member(void* ctxt, purc_variant_t member,
-        purc_variant_t member_extra)
+        purc_variant_t member_extra, bool silently)
 {
     UNUSED_PARAM(member_extra);
+    UNUSED_PARAM(silently);
     struct complex_ctxt* c_ctxt = (struct complex_ctxt*) ctxt;
     purc_variant_t array = (purc_variant_t) c_ctxt->ctxt;
     int idx = c_ctxt->extra;
@@ -324,9 +353,10 @@ insert_before_array_member(void* ctxt, purc_variant_t member,
 
 static bool
 insert_after_array_member(void* ctxt, purc_variant_t member,
-        purc_variant_t member_extra)
+        purc_variant_t member_extra, bool silently)
 {
     UNUSED_PARAM(member_extra);
+    UNUSED_PARAM(silently);
     struct complex_ctxt* c_ctxt = (struct complex_ctxt*) ctxt;
     purc_variant_t array = (purc_variant_t) c_ctxt->ctxt;
     int idx = c_ctxt->extra;
@@ -335,33 +365,37 @@ insert_after_array_member(void* ctxt, purc_variant_t member,
 
 static bool
 add_set_member(void* ctxt, purc_variant_t member,
-        purc_variant_t member_extra)
+        purc_variant_t member_extra, bool silently)
 {
     UNUSED_PARAM(member_extra);
+    UNUSED_PARAM(silently);
     return purc_variant_set_add((purc_variant_t)ctxt, member, false);
 }
 
 static bool
 remove_set_member(void* ctxt, purc_variant_t member,
-        purc_variant_t member_extra)
+        purc_variant_t member_extra, bool silently)
 {
     UNUSED_PARAM(member_extra);
+    UNUSED_PARAM(silently);
     return purc_variant_set_remove((purc_variant_t)ctxt, member);
 }
 
 static bool
 add_set_member_overwrite(void* ctxt, purc_variant_t member,
-        purc_variant_t member_extra)
+        purc_variant_t member_extra, bool silently)
 {
     UNUSED_PARAM(member_extra);
+    UNUSED_PARAM(silently);
     return purc_variant_set_add((purc_variant_t)ctxt, member, true);
 }
 
 static bool
 subtract_set(void* ctxt, purc_variant_t value,
-        purc_variant_t member_extra)
+        purc_variant_t member_extra, bool silently)
 {
     UNUSED_PARAM(member_extra);
+    UNUSED_PARAM(silently);
     struct complex_ctxt* c_ctxt = (struct complex_ctxt*) ctxt;
     purc_variant_t set = (purc_variant_t) c_ctxt->ctxt;
     purc_variant_t result = (purc_variant_t) c_ctxt->extra;
@@ -372,9 +406,10 @@ subtract_set(void* ctxt, purc_variant_t value,
 
 static bool
 subtract_array(void* ctxt, purc_variant_t value,
-        purc_variant_t member_extra)
+        purc_variant_t member_extra, bool silently)
 {
     UNUSED_PARAM(member_extra);
+    UNUSED_PARAM(silently);
     struct complex_ctxt* c_ctxt = (struct complex_ctxt*) ctxt;
     purc_variant_t array = (purc_variant_t) c_ctxt->ctxt;
     purc_variant_t result = (purc_variant_t) c_ctxt->extra;
@@ -385,9 +420,10 @@ subtract_array(void* ctxt, purc_variant_t value,
 
 static bool
 intersect_set(void* ctxt, purc_variant_t value,
-        purc_variant_t member_extra)
+        purc_variant_t member_extra, bool silently)
 {
     UNUSED_PARAM(member_extra);
+    UNUSED_PARAM(silently);
     struct complex_ctxt* c_ctxt = (struct complex_ctxt*) ctxt;
     purc_variant_t set = (purc_variant_t) c_ctxt->ctxt;
     purc_variant_t result = (purc_variant_t) c_ctxt->extra;
@@ -399,8 +435,6 @@ intersect_set(void* ctxt, purc_variant_t value,
 static bool
 object_displace(purc_variant_t dst, purc_variant_t src, bool silently)
 {
-    UNUSED_PARAM(silently);
-
     bool ret = false;
 
     if (!purc_variant_is_object(src)) {
@@ -412,7 +446,7 @@ object_displace(purc_variant_t dst, purc_variant_t src, bool silently)
         goto end;
     }
 
-    if(!object_foreach(src, add_object_member, dst)) {
+    if(!object_foreach(src, add_object_member, dst, silently)) {
         goto end;
     }
     ret = true;
@@ -424,8 +458,6 @@ end:
 static bool
 object_remove(purc_variant_t dst, purc_variant_t src, bool silently)
 {
-    UNUSED_PARAM(silently);
-
     bool ret = false;
 
     if (!purc_variant_is_object(src)) {
@@ -433,7 +465,7 @@ object_remove(purc_variant_t dst, purc_variant_t src, bool silently)
         goto end;
     }
 
-    if(!object_foreach(src, remove_object_member, dst)) {
+    if(!object_foreach(src, remove_object_member, dst, silently)) {
         goto end;
     }
     ret = true;
@@ -445,8 +477,6 @@ end:
 static bool
 array_displace(purc_variant_t dst, purc_variant_t src, bool silently)
 {
-    UNUSED_PARAM(silently);
-
     bool ret = false;
 
     if (!purc_variant_is_array(src) && !purc_variant_is_set(src)) {
@@ -459,10 +489,10 @@ array_displace(purc_variant_t dst, purc_variant_t src, bool silently)
     }
 
     if (purc_variant_is_array(src)) {
-        ret = array_foreach(src, append_array_member, dst);
+        ret = array_foreach(src, append_array_member, dst, silently);
     }
     else {
-        ret = set_foreach(src, append_array_member, dst);
+        ret = set_foreach(src, append_array_member, dst, silently);
     }
 
 end:
@@ -472,8 +502,6 @@ end:
 static bool
 array_remove(purc_variant_t dst, purc_variant_t src, bool silently)
 {
-    UNUSED_PARAM(silently);
-
     bool ret = false;
 
     if (!purc_variant_is_array(src) && !purc_variant_is_set(src)) {
@@ -482,10 +510,10 @@ array_remove(purc_variant_t dst, purc_variant_t src, bool silently)
     }
 
     if (purc_variant_is_array(src)) {
-        ret = array_foreach(src, remove_array_member, dst);
+        ret = array_foreach(src, remove_array_member, dst, silently);
     }
     else {
-        ret = set_foreach(src, remove_array_member, dst);
+        ret = set_foreach(src, remove_array_member, dst, silently);
     }
 
 end:
@@ -496,8 +524,6 @@ end:
 static bool
 set_displace(purc_variant_t dst, purc_variant_t src, bool silently)
 {
-    UNUSED_PARAM(silently);
-
     bool ret = false;
 
     enum purc_variant_type type = purc_variant_get_type(src);
@@ -516,7 +542,7 @@ set_displace(purc_variant_t dst, purc_variant_t src, bool silently)
             if (!variant_set_clear(dst, silently)) {
                 goto end;
             }
-            if (!array_foreach(src, add_set_member, dst)) {
+            if (!array_foreach(src, add_set_member, dst, silently)) {
                 goto end;
             }
             ret = true;
@@ -526,7 +552,7 @@ set_displace(purc_variant_t dst, purc_variant_t src, bool silently)
             if (!variant_set_clear(dst, silently)) {
                 goto end;
             }
-            if (!set_foreach(src, add_set_member, dst)) {
+            if (!set_foreach(src, add_set_member, dst, silently)) {
                 goto end;
             }
             ret = true;
@@ -545,8 +571,6 @@ end:
 static bool
 set_remove(purc_variant_t dst, purc_variant_t src, bool silently)
 {
-    UNUSED_PARAM(silently);
-
     bool ret = false;
 
     enum purc_variant_type type = purc_variant_get_type(src);
@@ -560,14 +584,14 @@ set_remove(purc_variant_t dst, purc_variant_t src, bool silently)
             break;
 
         case PURC_VARIANT_TYPE_ARRAY:
-            if (!array_foreach(src, remove_set_member, dst)) {
+            if (!array_foreach(src, remove_set_member, dst, silently)) {
                 goto end;
             }
             ret = true;
             break;
 
         case PURC_VARIANT_TYPE_SET:
-            if (!set_foreach(src, remove_set_member, dst)) {
+            if (!set_foreach(src, remove_set_member, dst, silently)) {
                 goto end;
             }
             ret = true;
@@ -665,8 +689,6 @@ bool
 purc_variant_array_append_another(purc_variant_t array,
         purc_variant_t another, bool silently)
 {
-    UNUSED_PARAM(silently);
-
     bool ret = false;
 
     if (array == PURC_VARIANT_INVALID || another == PURC_VARIANT_INVALID) {
@@ -684,7 +706,7 @@ purc_variant_array_append_another(purc_variant_t array,
         goto end;
     }
 
-    if(!array_foreach(another, append_array_member, array)) {
+    if(!array_foreach(another, append_array_member, array, silently)) {
         goto end;
     }
     ret = true;
@@ -697,8 +719,6 @@ bool
 purc_variant_array_prepend_another(purc_variant_t array,
         purc_variant_t another, bool silently)
 {
-    UNUSED_PARAM(silently);
-
     bool ret = false;
 
     if (array == PURC_VARIANT_INVALID || another == PURC_VARIANT_INVALID) {
@@ -716,7 +736,7 @@ purc_variant_array_prepend_another(purc_variant_t array,
         goto end;
     }
 
-    if(!array_reverse_foreach(another, prepend_array_member, array)) {
+    if(!array_reverse_foreach(another, prepend_array_member, array, silently)) {
         goto end;
     }
     ret = true;
@@ -729,8 +749,6 @@ bool
 purc_variant_object_merge_another(purc_variant_t object,
         purc_variant_t another, bool silently)
 {
-    UNUSED_PARAM(silently);
-
     bool ret = false;
 
     if (object == PURC_VARIANT_INVALID || another == PURC_VARIANT_INVALID) {
@@ -749,7 +767,7 @@ purc_variant_object_merge_another(purc_variant_t object,
     }
 
     //TODO : id conflict
-    ret = object_foreach(another, add_object_member, object);
+    ret = object_foreach(another, add_object_member, object, silently);
 
 end:
     return ret;
@@ -759,8 +777,6 @@ bool
 purc_variant_array_insert_another_before(purc_variant_t array, int idx,
         purc_variant_t another, bool silently)
 {
-    UNUSED_PARAM(silently);
-
     bool ret = false;
 
     if (array == PURC_VARIANT_INVALID || another == PURC_VARIANT_INVALID) {
@@ -781,7 +797,8 @@ purc_variant_array_insert_another_before(purc_variant_t array, int idx,
     struct complex_ctxt c_ctxt;
     c_ctxt.ctxt = (uintptr_t) array;
     c_ctxt.extra = idx;
-    ret = array_reverse_foreach(another, insert_before_array_member, &c_ctxt);
+    ret = array_reverse_foreach(another, insert_before_array_member, &c_ctxt,
+            silently);
 
 end:
     return ret;
@@ -791,8 +808,6 @@ bool
 purc_variant_array_insert_another_after(purc_variant_t array, int idx,
         purc_variant_t another, bool silently)
 {
-    UNUSED_PARAM(silently);
-
     bool ret = false;
 
     if (array == PURC_VARIANT_INVALID || another == PURC_VARIANT_INVALID) {
@@ -813,7 +828,8 @@ purc_variant_array_insert_another_after(purc_variant_t array, int idx,
     struct complex_ctxt c_ctxt;
     c_ctxt.ctxt = (uintptr_t) array;
     c_ctxt.extra = idx;
-    ret = array_reverse_foreach(another, insert_after_array_member, &c_ctxt);
+    ret = array_reverse_foreach(another, insert_after_array_member, &c_ctxt,
+            silently);
 
 end:
     return ret;
@@ -823,8 +839,6 @@ bool
 purc_variant_set_unite(purc_variant_t set,
         purc_variant_t src, bool silently)
 {
-    UNUSED_PARAM(silently);
-
     bool ret = false;
 
     if (set == PURC_VARIANT_INVALID || src == PURC_VARIANT_INVALID) {
@@ -843,10 +857,10 @@ purc_variant_set_unite(purc_variant_t set,
     }
 
     if (purc_variant_is_set(src)) {
-        ret = set_foreach(src, add_set_member_overwrite, set);
+        ret = set_foreach(src, add_set_member_overwrite, set, silently);
     }
     else if (purc_variant_is_array(src)) {
-        ret = array_foreach(src, add_set_member_overwrite, set);
+        ret = array_foreach(src, add_set_member_overwrite, set, silently);
     }
     else {
         SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
@@ -861,8 +875,6 @@ bool
 purc_variant_set_intersect(purc_variant_t set,
         purc_variant_t src, bool silently)
 {
-    UNUSED_PARAM(silently);
-
     bool ret = false;
 
     if (set == PURC_VARIANT_INVALID || src == PURC_VARIANT_INVALID) {
@@ -890,12 +902,12 @@ purc_variant_set_intersect(purc_variant_t set,
     c_ctxt.extra = (uintptr_t) result;
 
     if (purc_variant_is_set(src)) {
-        if(set_foreach(src, intersect_set, &c_ctxt)) {
+        if(set_foreach(src, intersect_set, &c_ctxt, silently)) {
             ret = set_displace(set, result, silently);
         }
     }
     else if (purc_variant_is_array(src)) {
-        if(array_foreach(src, intersect_set, &c_ctxt)) {
+        if(array_foreach(src, intersect_set, &c_ctxt, silently)) {
             ret = set_displace(set, result, silently);
         }
     }
@@ -913,8 +925,6 @@ bool
 purc_variant_set_subtract(purc_variant_t set,
         purc_variant_t src, bool silently)
 {
-    UNUSED_PARAM(silently);
-
     bool ret = false;
 
     if (set == PURC_VARIANT_INVALID || src == PURC_VARIANT_INVALID) {
@@ -942,12 +952,12 @@ purc_variant_set_subtract(purc_variant_t set,
     c_ctxt.extra = (uintptr_t) result;
 
     if (purc_variant_is_set(src)) {
-        if (set_foreach(set, subtract_set, &c_ctxt)) {
+        if (set_foreach(set, subtract_set, &c_ctxt, silently)) {
             ret = set_displace(set, result, silently);
         }
     }
     else if (purc_variant_is_array(src)) {
-        if (set_foreach(set, subtract_array, &c_ctxt)) {
+        if (set_foreach(set, subtract_array, &c_ctxt, silently)) {
             ret = set_displace(set, result, silently);
         }
     }
@@ -965,8 +975,6 @@ bool
 purc_variant_set_xor(purc_variant_t set,
         purc_variant_t src, bool silently)
 {
-    UNUSED_PARAM(silently);
-
     bool ret = false;
 
     if (set == PURC_VARIANT_INVALID || src == PURC_VARIANT_INVALID) {
@@ -993,13 +1001,13 @@ purc_variant_set_xor(purc_variant_t set,
     if (purc_variant_is_set(src)) {
         c_ctxt.ctxt = (uintptr_t) src;
         c_ctxt.extra = (uintptr_t) result;
-        if (!set_foreach(set, subtract_set, &c_ctxt)) {
+        if (!set_foreach(set, subtract_set, &c_ctxt, silently)) {
             goto error;
         }
 
         c_ctxt.ctxt = (uintptr_t) set;
         c_ctxt.extra = (uintptr_t) result;
-        if (!set_foreach(src, subtract_set, &c_ctxt)) {
+        if (!set_foreach(src, subtract_set, &c_ctxt, silently)) {
             goto error;
         }
         ret = set_displace(set, result, silently);
@@ -1007,13 +1015,13 @@ purc_variant_set_xor(purc_variant_t set,
     else if (purc_variant_is_array(src)) {
         c_ctxt.ctxt = (uintptr_t) src;
         c_ctxt.extra = (uintptr_t) result;
-        if (!set_foreach(set, subtract_array, &c_ctxt)) {
+        if (!set_foreach(set, subtract_array, &c_ctxt, silently)) {
             goto error;
         }
 
         c_ctxt.ctxt = (uintptr_t) set;
         c_ctxt.extra = (uintptr_t) result;
-        if (!array_foreach(src, subtract_set, &c_ctxt)) {
+        if (!array_foreach(src, subtract_set, &c_ctxt, silently)) {
             goto error;
         }
         ret = set_displace(set, result, silently);
@@ -1034,8 +1042,6 @@ bool
 purc_variant_set_overwrite(purc_variant_t set,
         purc_variant_t src, bool silently)
 {
-    UNUSED_PARAM(silently);
-
     bool ret = false;
 
     if (set == PURC_VARIANT_INVALID || src == PURC_VARIANT_INVALID) {
@@ -1060,11 +1066,11 @@ purc_variant_set_overwrite(purc_variant_t set,
             break;
 
         case PURC_VARIANT_TYPE_ARRAY:
-            ret = array_foreach(src, add_set_member_overwrite, set);
+            ret = array_foreach(src, add_set_member_overwrite, set, silently);
             break;
 
         case PURC_VARIANT_TYPE_SET:
-            ret = set_foreach(src, add_set_member_overwrite, set);
+            ret = set_foreach(src, add_set_member_overwrite, set, silently);
             break;
 
         default:
