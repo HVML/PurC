@@ -34,6 +34,16 @@
 #include <stdarg.h>
 #include <string.h>
 
+struct pcutils_string {
+    char             buf[128];
+    size_t           chunk_size;
+
+    char            *abuf;
+    char            *end;
+
+    char            *curr;
+};
+
 struct pcutils_stringbuilder
 {
     struct list_head           list;
@@ -88,6 +98,25 @@ pcutils_stringbuilder_snprintf(struct pcutils_stringbuilder *sb,
 
 char*
 pcutils_stringbuilder_build(struct pcutils_stringbuilder *sb);
+
+
+void
+pcutils_string_init(struct pcutils_string *string, size_t chunk_size);
+
+void
+pcutils_string_reset(struct pcutils_string *string);
+
+__attribute__ ((format (printf, 2, 3)))
+int
+pcutils_string_append(struct pcutils_string *string, const char *fmt, ...);
+
+
+typedef int (*pcutils_token_found_f)(const char *start, const char *end,
+        void *ud);
+
+int
+pcutils_token_by_delim(const char *start, const char *end, const char c,
+        void *ud, pcutils_token_found_f cb);
 
 PCA_EXTERN_C_END
 

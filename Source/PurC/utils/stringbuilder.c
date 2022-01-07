@@ -176,3 +176,108 @@ pcutils_stringbuilder_build(struct pcutils_stringbuilder *sb)
     return buf;
 }
 
+void
+pcutils_string_init(struct pcutils_string *string, size_t chunk_size)
+{
+    string->chunk_size = chunk_size;
+
+    string->buf[0]     = '\0';
+    string->abuf       = string->buf;
+    string->end        = string->buf + sizeof(string->buf);
+    string->curr       = string->buf;
+}
+
+void
+pcutils_string_reset(struct pcutils_string *string)
+{
+    if (string->abuf != string->buf) {
+        free(string->abuf);
+    }
+
+    string->abuf       = string->buf;
+    string->end        = string->buf + sizeof(string->buf);
+    string->curr       = string->buf;
+}
+
+int
+string_check_size(struct pcutils_string *string, size_t size)
+{
+    if (size < (size_t)(string->end - string->abuf))
+        return 0;
+
+    size_t chunk_size = string->chunk_size;
+    size_t align = (size + chunk_size - 1) / chunk_size * chunk_size;
+    char *p;
+    if (string->abuf == string->buf) {
+        p = (char*)malloc(align);
+        if (!p)
+            return -1;
+
+        snprintf(p, align, "%s", string->abuf);
+    }
+    else {
+        p = (char*)realloc(string->abuf, align);
+        if (!p)
+            return -1;
+    }
+
+    string->curr = p + (string->curr - string->abuf);
+    string->abuf = p;
+    string->end  = p + align;
+
+    return 0;
+}
+
+__attribute__ ((format (printf, 2, 3)))
+int
+pcutils_string_append(struct pcutils_string *string, const char *fmt, ...)
+{
+    int n;
+    va_list ap, ap_dup;
+    va_start(ap, fmt);
+    va_copy(ap_dup, ap);
+    size_t len = string->end - string->curr;
+    n = vsnprintf(string->curr, len, fmt, ap);
+    va_end(ap);
+
+    if (n<0)
+        return -1;
+
+    if ((size_t)n < len)
+        return 0;
+
+    int r = string_check_size(string, (string->end - string->abuf) + n);
+    if (r)
+        return -1;
+
+    n = vsnprintf(string->curr, len, fmt, ap_dup);
+    va_end(ap_dup);
+
+    if (n<0)
+        return -1;
+
+    if ((size_t)n < len)
+        return 0;
+
+    return -1;
+}
+
+int
+pcutils_token_by_delim(const char *start, const char *end, const char c,
+        void *ud, pcutils_token_found_f cb)
+{
+    int r;
+    const char *p = start;
+    for (; p<end; ++p) {
+        if (*p != c)
+            continue;
+        r = cb(start, p, ud);
+        if (r)
+            return -1;
+        start = p + 1;
+    }
+
+    r = cb(start, end, ud);
+    return r ? -1 : 0;
+}
+

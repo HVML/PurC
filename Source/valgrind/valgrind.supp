@@ -20,9 +20,10 @@
    fun:atom_init_bucket
    fun:atom_get_bucket
    fun:pcutils_atom_init_once
-   fun:init_modules
+   fun:init_modules_once
    fun:__pthread_once_slow
    fun:init_once
+   fun:purc_init_ex
    fun:purc_init
    fun:_ZN21utils_atom_basic_Test8TestBodyEv
    fun:_ZN7testing8internal38HandleSehExceptionsInMethodIfSupportedINS_4TestEvEET0_PT_MS4_FS3_vEPKc
