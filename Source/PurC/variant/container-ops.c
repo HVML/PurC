@@ -64,7 +64,7 @@ object_foreach(purc_variant_t object, foreach_callback_fn fn, void* ctxt)
     }
 
     purc_variant_t k, v;
-    foreach_in_variant_object_safe_x(object, k, v)
+    foreach_key_value_in_variant_object(object, k, v)
         if (!fn(ctxt, k, v)) {
             goto end;
         }
@@ -85,9 +85,8 @@ array_foreach(purc_variant_t array, foreach_callback_fn fn, void* ctxt)
     }
 
     purc_variant_t val;
-    size_t curr;
-    foreach_value_in_variant_array_safe(array, val, curr)
-        if (!fn(ctxt, val, (void*)(uintptr_t)curr)) {
+    foreach_value_in_variant_array(array, val)
+        if (!fn(ctxt, val, NULL)) {
             goto end;
         }
     end_foreach;
@@ -130,9 +129,7 @@ set_foreach(purc_variant_t set, foreach_callback_fn fn, void* ctxt)
     }
 
     purc_variant_t v;
-    struct rb_node *n;
-    UNUSED_VARIABLE(n);
-    foreach_value_in_variant_set_safe_x(set, v, n)
+    foreach_value_in_variant_set(set, v)
         if (!fn(ctxt, v, NULL)) {
             goto end;
         }
@@ -175,12 +172,89 @@ end:
     return ret;
 }
 
+static bool
+variant_object_clear(purc_variant_t object, bool silently)
+{
+    bool ret = false;
+    if (object == PURC_VARIANT_INVALID) {
+        SET_SILENT_ERROR(PURC_ERROR_INVALID_VALUE);
+        goto end;
+    }
+
+    if (!purc_variant_is_object(object)) {
+        SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
+        goto end;
+    }
+
+    purc_variant_t key;
+    purc_variant_t value;
+    UNUSED_VARIABLE(value);
+    foreach_in_variant_object_safe_x(object, key, value)
+        if (!purc_variant_object_remove(object, key)) {
+            goto end;
+        }
+    end_foreach;
+    ret = true;
+
+end:
+    return ret;
+}
 
 static bool
-remove_object_member(void* ctxt, purc_variant_t key, void* extra)
+variant_array_clear(purc_variant_t array, bool silently)
 {
-    UNUSED_PARAM(extra);
-    return purc_variant_object_remove((purc_variant_t)ctxt, key);
+    bool ret = false;
+    if (array == PURC_VARIANT_INVALID) {
+        SET_SILENT_ERROR(PURC_ERROR_INVALID_VALUE);
+        goto end;
+    }
+
+    if (!purc_variant_is_array(array)) {
+        SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
+        goto end;
+    }
+
+    purc_variant_t val;
+    size_t curr;
+    UNUSED_VARIABLE(val);
+    foreach_value_in_variant_array_safe(array, val, curr)
+        if (!purc_variant_array_remove(array, curr)) {
+            goto end;
+        }
+        --curr;
+    end_foreach;
+    ret = true;
+
+end:
+    return ret;
+}
+
+static bool
+variant_set_clear(purc_variant_t set, bool silently)
+{
+    bool ret = false;
+    if (set == PURC_VARIANT_INVALID) {
+        SET_SILENT_ERROR(PURC_ERROR_INVALID_VALUE);
+        goto end;
+    }
+
+    if (!purc_variant_is_set(set)) {
+        SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
+        goto end;
+    }
+
+    purc_variant_t v;
+    struct rb_node *n;
+    UNUSED_VARIABLE(n);
+    foreach_value_in_variant_set_safe_x(set, v, n)
+        if (!purc_variant_set_remove(set, v)) {
+            goto end;
+        }
+    end_foreach;
+    ret = true;
+
+end:
+    return ret;
 }
 
 static bool
@@ -188,14 +262,6 @@ add_object_member(void* dst, purc_variant_t key, void* extra)
 {
     return purc_variant_object_set((purc_variant_t)dst, key,
             (purc_variant_t)extra);
-}
-
-static bool
-remove_array_member(void* ctxt, purc_variant_t value, void* extra)
-{
-    UNUSED_PARAM(value);
-    int idx = (uintptr_t)extra;
-    return purc_variant_array_remove((purc_variant_t)ctxt, idx);
 }
 
 static bool
@@ -230,13 +296,6 @@ insert_after_array_member(void* ctxt, purc_variant_t value, void* extra)
     purc_variant_t array = (purc_variant_t) c_ctxt->ctxt;
     int idx = c_ctxt->extra;
     return purc_variant_array_insert_after(array, idx, value);
-}
-
-static bool
-remove_set_member(void* ctxt, purc_variant_t value, void* extra)
-{
-    UNUSED_PARAM(extra);
-    return purc_variant_set_remove((purc_variant_t)ctxt, value);
 }
 
 static bool
@@ -301,7 +360,7 @@ object_displace(purc_variant_t dst, purc_variant_t src, bool silently)
         goto end;
     }
 
-    if(!object_foreach(dst, remove_object_member, dst)) {
+    if (!variant_object_clear(dst, silently)) {
         goto end;
     }
 
@@ -326,7 +385,7 @@ array_displace(purc_variant_t dst, purc_variant_t src, bool silently)
         goto end;
     }
 
-    if (!array_foreach(dst, remove_array_member, dst)) {
+    if (!variant_array_clear(dst, silently)) {
         goto end;
     }
 
@@ -351,7 +410,7 @@ set_displace(purc_variant_t dst, purc_variant_t src, bool silently)
     enum purc_variant_type type = purc_variant_get_type(src);
     switch (type) {
         case PURC_VARIANT_TYPE_OBJECT:
-            if (!set_foreach(dst, remove_set_member, dst)) {
+            if (!variant_set_clear(dst, silently)) {
                 goto end;
             }
             if (!purc_variant_set_add(dst, src, false)) {
@@ -361,7 +420,7 @@ set_displace(purc_variant_t dst, purc_variant_t src, bool silently)
             break;
 
         case PURC_VARIANT_TYPE_ARRAY:
-            if (!set_foreach(dst, remove_set_member, dst)) {
+            if (!variant_set_clear(dst, silently)) {
                 goto end;
             }
             if (!array_foreach(src, add_set_member, dst)) {
@@ -371,7 +430,7 @@ set_displace(purc_variant_t dst, purc_variant_t src, bool silently)
             break;
 
         case PURC_VARIANT_TYPE_SET:
-            if (!set_foreach(dst, remove_set_member, dst)) {
+            if (!variant_set_clear(dst, silently)) {
                 goto end;
             }
             if (!set_foreach(src, add_set_member, dst)) {
