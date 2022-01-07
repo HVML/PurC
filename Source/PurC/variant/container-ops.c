@@ -241,7 +241,7 @@ variant_set_clear(purc_variant_t set, bool silently)
     struct rb_node *n;
     UNUSED_VARIABLE(n);
     foreach_value_in_variant_set_safe_x(set, v, n)
-        if (!purc_variant_set_remove(set, v)) {
+        if (!purc_variant_set_remove(set, v, false)) {
             goto end;
         }
     end_foreach;
@@ -377,7 +377,7 @@ remove_set_member(void* ctxt, purc_variant_t member,
 {
     UNUSED_PARAM(member_extra);
     UNUSED_PARAM(silently);
-    return purc_variant_set_remove((purc_variant_t)ctxt, member);
+    return purc_variant_set_remove((purc_variant_t)ctxt, member, true);
 }
 
 static bool
@@ -575,8 +575,7 @@ set_remove(purc_variant_t dst, purc_variant_t src, bool silently)
     enum purc_variant_type type = purc_variant_get_type(src);
     switch (type) {
         case PURC_VARIANT_TYPE_OBJECT:
-            // TODO: silent
-            if (!purc_variant_set_remove(dst, src)) {
+            if (!purc_variant_set_remove(dst, src, true)) {
                 goto end;
             }
             ret = true;

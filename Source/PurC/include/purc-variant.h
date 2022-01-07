@@ -1073,9 +1073,11 @@ purc_variant_set_add(purc_variant_t obj, purc_variant_t value, bool overwrite);
  *
  * @param set: the set to be operated
  * @param value: the value to be removed
+ * @param silently: True means ignore the following error:
+ *      - PCVARIANT_ERROR_NOT_FOUND (return True)
  *
  * Returns: @true on success, @false if:
- *      - no any matching member in the set.
+ *      - silently is False And no any matching member in the set.
  *
  * @note This function works if the set is not managed by unique keys, or
  *  there is only one unique key. If there are multiple unique keys,
@@ -1084,7 +1086,7 @@ purc_variant_set_add(purc_variant_t obj, purc_variant_t value, bool overwrite);
  * Since: 0.0.1
  */
 PCA_EXPORT bool
-purc_variant_set_remove(purc_variant_t obj, purc_variant_t value);
+purc_variant_set_remove(purc_variant_t obj, purc_variant_t value, bool silently);
 
 /**
  * Gets the member by the values of unique keys from a set.

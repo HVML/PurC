@@ -641,7 +641,8 @@ purc_variant_set_add (purc_variant_t set, purc_variant_t value, bool override)
 }
 
 bool
-purc_variant_set_remove (purc_variant_t set, purc_variant_t value)
+purc_variant_set_remove (purc_variant_t set, purc_variant_t value,
+        bool silently)
 {
     PCVARIANT_CHECK_FAIL_RET(set && set->type==PVT(_SET) && value,
         PURC_VARIANT_INVALID);
@@ -661,7 +662,7 @@ purc_variant_set_remove (purc_variant_t set, purc_variant_t value)
     }
     free(kvs);
 
-    return p ? true : false;
+    return p ? true : (silently ? true : false);
 }
 
 purc_variant_t
