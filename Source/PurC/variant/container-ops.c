@@ -184,7 +184,7 @@ variant_object_clear(purc_variant_t object, bool silently)
     purc_variant_t value;
     UNUSED_VARIABLE(value);
     foreach_in_variant_object_safe_x(object, key, value)
-        if (!purc_variant_object_remove(object, key, false)) {
+        if (!purc_variant_object_remove(object, key, silently)) {
             goto end;
         }
     end_foreach;
@@ -241,7 +241,7 @@ variant_set_clear(purc_variant_t set, bool silently)
     struct rb_node *n;
     UNUSED_VARIABLE(n);
     foreach_value_in_variant_set_safe_x(set, v, n)
-        if (!purc_variant_set_remove(set, v, false)) {
+        if (!purc_variant_set_remove(set, v, silently)) {
             goto end;
         }
     end_foreach;
@@ -367,8 +367,7 @@ add_set_member(void* ctxt, purc_variant_t member,
         purc_variant_t member_extra, bool silently)
 {
     UNUSED_PARAM(member_extra);
-    UNUSED_PARAM(silently);
-    return purc_variant_set_add((purc_variant_t)ctxt, member, false);
+    return purc_variant_set_add((purc_variant_t)ctxt, member, silently);
 }
 
 static bool
@@ -376,8 +375,7 @@ remove_set_member(void* ctxt, purc_variant_t member,
         purc_variant_t member_extra, bool silently)
 {
     UNUSED_PARAM(member_extra);
-    UNUSED_PARAM(silently);
-    return purc_variant_set_remove((purc_variant_t)ctxt, member, true);
+    return purc_variant_set_remove((purc_variant_t)ctxt, member, silently);
 }
 
 static bool
@@ -385,8 +383,7 @@ add_set_member_overwrite(void* ctxt, purc_variant_t member,
         purc_variant_t member_extra, bool silently)
 {
     UNUSED_PARAM(member_extra);
-    UNUSED_PARAM(silently);
-    return purc_variant_set_add((purc_variant_t)ctxt, member, true);
+    return purc_variant_set_add((purc_variant_t)ctxt, member, silently);
 }
 
 static bool
@@ -531,7 +528,7 @@ set_displace(purc_variant_t dst, purc_variant_t src, bool silently)
             if (!variant_set_clear(dst, silently)) {
                 goto end;
             }
-            if (!purc_variant_set_add(dst, src, false)) {
+            if (!purc_variant_set_add(dst, src, silently)) {
                 goto end;
             }
             ret = true;
@@ -575,7 +572,7 @@ set_remove(purc_variant_t dst, purc_variant_t src, bool silently)
     enum purc_variant_type type = purc_variant_get_type(src);
     switch (type) {
         case PURC_VARIANT_TYPE_OBJECT:
-            if (!purc_variant_set_remove(dst, src, true)) {
+            if (!purc_variant_set_remove(dst, src, silently)) {
                 goto end;
             }
             ret = true;
@@ -1060,7 +1057,7 @@ purc_variant_set_overwrite(purc_variant_t set,
     enum purc_variant_type type = purc_variant_get_type(src);
     switch (type) {
         case PURC_VARIANT_TYPE_OBJECT:
-            ret = purc_variant_set_add(set, src, true);
+            ret = purc_variant_set_add(set, src, silently);
             break;
 
         case PURC_VARIANT_TYPE_ARRAY:
