@@ -139,39 +139,6 @@ set_foreach(purc_variant_t set, foreach_callback_fn fn, void* ctxt)
 end:
     return ret;
 }
-
-static bool
-is_in_set(purc_variant_t set, purc_variant_t v)
-{
-    bool ret = false;
-    purc_variant_t val;
-    foreach_value_in_variant_set(set, val)
-        if (purc_variant_compare_ex(val, v, PCVARIANT_COMPARE_OPT_AUTO) == 0) {
-            ret = true;
-            goto end;
-        }
-    end_foreach;
-
-end:
-    return ret;
-}
-
-static bool
-is_in_array(purc_variant_t array, purc_variant_t v)
-{
-    bool ret = false;
-    purc_variant_t val;
-    foreach_value_in_variant_array(array, val)
-        if (purc_variant_compare_ex(val, v, PCVARIANT_COMPARE_OPT_AUTO) == 0) {
-            ret = true;
-            goto end;
-        }
-    end_foreach;
-
-end:
-    return ret;
-}
-
 static bool
 variant_object_clear(purc_variant_t object, bool silently)
 {
@@ -256,6 +223,39 @@ variant_set_clear(purc_variant_t set, bool silently)
 end:
     return ret;
 }
+
+static bool
+is_in_set(purc_variant_t set, purc_variant_t v)
+{
+    bool ret = false;
+    purc_variant_t val;
+    foreach_value_in_variant_set(set, val)
+        if (purc_variant_compare_ex(val, v, PCVARIANT_COMPARE_OPT_AUTO) == 0) {
+            ret = true;
+            goto end;
+        }
+    end_foreach;
+
+end:
+    return ret;
+}
+
+static bool
+is_in_array(purc_variant_t array, purc_variant_t v)
+{
+    bool ret = false;
+    purc_variant_t val;
+    foreach_value_in_variant_array(array, val)
+        if (purc_variant_compare_ex(val, v, PCVARIANT_COMPARE_OPT_AUTO) == 0) {
+            ret = true;
+            goto end;
+        }
+    end_foreach;
+
+end:
+    return ret;
+}
+
 
 static bool
 add_object_member(void* dst, purc_variant_t key,
