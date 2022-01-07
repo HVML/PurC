@@ -80,6 +80,7 @@
 #define PURC_EXCEPT_OS_FAILURE           "OSFailure"
 #define PURC_EXCEPT_NOT_IMPLEMENTED      "NotImplemented"
 #define PURC_EXCEPT_NOT_READY            "NotReady"
+#define PURC_EXCEPT_INVALID_OPERAND      "InvalidOperand"
 
 #define PURC_EXCEPT_FLAGS_NONE          0x0000
 #define PURC_EXCEPT_FLAGS_REQUIRED      0x0001
@@ -129,9 +130,10 @@ enum {
     PURC_ERROR_UNDERFLOW,
     PURC_ERROR_DIVBYZERO,
     PURC_ERROR_INVALID_FLOAT,
+    PURC_ERROR_INVALID_OPERAND,
 
     /* XXX: change this when you append a new error code */
-    PURC_ERROR_LAST = PURC_ERROR_INVALID_FLOAT,
+    PURC_ERROR_LAST = PURC_ERROR_INVALID_OPERAND,
 };
 
 #define PURC_ERROR_NR       (PURC_ERROR_LAST - PURC_ERROR_FIRST + 1)

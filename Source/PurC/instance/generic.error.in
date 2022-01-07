@@ -128,3 +128,8 @@ InvalidFloat
     flags: None
     msg: "Float point invalid"
 
+InvalidOperand
+    except: InvalidOperand
+    flags: None
+    msg: "Invalid operand"
+
