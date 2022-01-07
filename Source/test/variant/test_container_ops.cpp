@@ -90,7 +90,6 @@ TEST(displace, object_object)
     ASSERT_EQ (cleanup, true);
 }
 
-#if 0
 TEST(displace, array_array)
 {
     purc_instance_extra_info info = {};
@@ -104,40 +103,41 @@ TEST(displace, array_array)
     stat = purc_variant_usage_stat();
     ASSERT_NE(stat, nullptr);
 
-    size_t sz = 0;
+    char dst_str[] = "[{\"id\":1},{\"id\":2}]";
+    char src_str[] = "[{\"id\":3},{\"id\":4}]";
+    char cmp_str[] = "[{\"id\":3},{\"id\":4}]";
 
-    char json[] = "[{\"id\":1},{\"id\":2}]";
-    purc_variant_t array = purc_variant_make_from_json_string(json,
-            strlen(json));
-    ASSERT_NE(array, PURC_VARIANT_INVALID);
-    ASSERT_EQ(array->refc, 1);
-    sz = purc_variant_array_get_size(array);
-    ASSERT_EQ(sz, 2);
+    purc_variant_t dst = purc_variant_make_from_json_string(dst_str,
+            strlen(dst_str));
+    ASSERT_NE(dst, PURC_VARIANT_INVALID);
 
-
-    char json2[] = "[{\"id\":3},{\"id\":4}]";
-    purc_variant_t src = purc_variant_make_from_json_string(json2,
-            strlen(json2));
+    purc_variant_t src = purc_variant_make_from_json_string(src_str,
+            strlen(src_str));
     ASSERT_NE(src, PURC_VARIANT_INVALID);
-    ASSERT_EQ(src->refc, 1);
-    sz = purc_variant_array_get_size(array);
-    ASSERT_EQ(sz, 2);
 
-    bool result = purc_variant_container_displace(array, src, true);
+    purc_variant_t cmp = purc_variant_make_from_json_string(cmp_str,
+            strlen(cmp_str));
+    ASSERT_NE(cmp, PURC_VARIANT_INVALID);
+
+    bool result = purc_variant_container_displace(dst, src, true);
     ASSERT_EQ(result, true);
 
-    char* array_str = variant_to_string(array);
-    char* src_str = variant_to_string(src);
-    ASSERT_STREQ(array_str, src_str);
-    fprintf(stderr, "dst=%s\n", array_str);
-    fprintf(stderr, "src=%s\n", src_str);
+    char* dst_result = variant_to_string(dst);
+    char* cmp_result = variant_to_string(cmp);
+    PRINTF("dst=%s\n", dst_result);
+    PRINTF("cmp=%s\n", cmp_result);
+    ASSERT_STREQ(dst_result, cmp_result);
 
-    purc_variant_unref(array);
+    free(cmp_result);
+    free(dst_result);
+
+    purc_variant_unref(cmp);
+    purc_variant_unref(src);
+    purc_variant_unref(dst);
 
     cleanup = purc_cleanup ();
     ASSERT_EQ (cleanup, true);
 }
-#endif
 
 TEST(append, array_array)
 {
@@ -173,6 +173,8 @@ TEST(append, array_array)
 
     char* dst_result = variant_to_string(dst);
     char* cmp_result = variant_to_string(cmp);
+    PRINTF("dst=%s\n", dst_result);
+    PRINTF("cmp=%s\n", cmp_result);
     ASSERT_STREQ(dst_result, cmp_result);
 
     free(cmp_result);
