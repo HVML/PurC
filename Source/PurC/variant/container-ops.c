@@ -49,10 +49,10 @@ struct complex_ctxt {
 };
 
 // object member = key,   member_extra = value
-// array  member = value, member_extra = idx((int)(uintptr_t) member_extra)
-// set    member = value, member_extra = NULL
+// array  member = value, member_extra = PURC_VARIANT_INVALID
+// set    member = value, member_extra = PURC_VARIANT_INVALID
 typedef bool (*foreach_callback_fn)(void* ctxt, purc_variant_t member,
-        void* member_extra);
+        purc_variant_t member_extra);
 
 static bool
 object_foreach(purc_variant_t object, foreach_callback_fn fn, void* ctxt)
@@ -86,7 +86,7 @@ array_foreach(purc_variant_t array, foreach_callback_fn fn, void* ctxt)
 
     purc_variant_t val;
     foreach_value_in_variant_array(array, val)
-        if (!fn(ctxt, val, NULL)) {
+        if (!fn(ctxt, val, PURC_VARIANT_INVALID)) {
             goto end;
         }
     end_foreach;
@@ -130,7 +130,7 @@ set_foreach(purc_variant_t set, foreach_callback_fn fn, void* ctxt)
 
     purc_variant_t v;
     foreach_value_in_variant_set(set, v)
-        if (!fn(ctxt, v, NULL)) {
+        if (!fn(ctxt, v, PURC_VARIANT_INVALID)) {
             goto end;
         }
     end_foreach;
@@ -258,64 +258,71 @@ end:
 }
 
 static bool
-add_object_member(void* dst, purc_variant_t key, void* extra)
+add_object_member(void* dst, purc_variant_t key,
+        purc_variant_t value)
 {
-    return purc_variant_object_set((purc_variant_t)dst, key,
-            (purc_variant_t)extra);
+    return purc_variant_object_set((purc_variant_t)dst, key, value);
 }
 
 static bool
-append_array_member(void* ctxt, purc_variant_t value, void* extra)
+append_array_member(void* ctxt, purc_variant_t member,
+        purc_variant_t member_extra)
 {
-    UNUSED_PARAM(extra);
-    return purc_variant_array_append((purc_variant_t)ctxt, value);
+    UNUSED_PARAM(member_extra);
+    return purc_variant_array_append((purc_variant_t)ctxt, member);
 }
 
 static bool
-prepend_array_member(void* ctxt, purc_variant_t value, void* extra)
+prepend_array_member(void* ctxt, purc_variant_t member,
+        purc_variant_t member_extra)
 {
-    UNUSED_PARAM(extra);
-    return purc_variant_array_prepend((purc_variant_t)ctxt, value);
+    UNUSED_PARAM(member_extra);
+    return purc_variant_array_prepend((purc_variant_t)ctxt, member);
 }
 
 static bool
-insert_before_array_member(void* ctxt, purc_variant_t value, void* extra)
+insert_before_array_member(void* ctxt, purc_variant_t member,
+        purc_variant_t member_extra)
 {
-    UNUSED_PARAM(extra);
+    UNUSED_PARAM(member_extra);
     struct complex_ctxt* c_ctxt = (struct complex_ctxt*) ctxt;
     purc_variant_t array = (purc_variant_t) c_ctxt->ctxt;
     int idx = c_ctxt->extra;
-    return purc_variant_array_insert_before(array, idx, value);
+    return purc_variant_array_insert_before(array, idx, member);
 }
 
 static bool
-insert_after_array_member(void* ctxt, purc_variant_t value, void* extra)
+insert_after_array_member(void* ctxt, purc_variant_t member,
+        purc_variant_t member_extra)
 {
-    UNUSED_PARAM(extra);
+    UNUSED_PARAM(member_extra);
     struct complex_ctxt* c_ctxt = (struct complex_ctxt*) ctxt;
     purc_variant_t array = (purc_variant_t) c_ctxt->ctxt;
     int idx = c_ctxt->extra;
-    return purc_variant_array_insert_after(array, idx, value);
+    return purc_variant_array_insert_after(array, idx, member);
 }
 
 static bool
-add_set_member(void* ctxt, purc_variant_t value, void* extra)
+add_set_member(void* ctxt, purc_variant_t member,
+        purc_variant_t member_extra)
 {
-    UNUSED_PARAM(extra);
-    return purc_variant_set_add((purc_variant_t)ctxt, value, false);
+    UNUSED_PARAM(member_extra);
+    return purc_variant_set_add((purc_variant_t)ctxt, member, false);
 }
 
 static bool
-add_set_member_overwrite(void* ctxt, purc_variant_t value, void* extra)
+add_set_member_overwrite(void* ctxt, purc_variant_t member,
+        purc_variant_t member_extra)
 {
-    UNUSED_PARAM(extra);
-    return purc_variant_set_add((purc_variant_t)ctxt, value, true);
+    UNUSED_PARAM(member_extra);
+    return purc_variant_set_add((purc_variant_t)ctxt, member, true);
 }
 
 static bool
-subtract_set(void* ctxt, purc_variant_t value, void* extra)
+subtract_set(void* ctxt, purc_variant_t value,
+        purc_variant_t member_extra)
 {
-    UNUSED_PARAM(extra);
+    UNUSED_PARAM(member_extra);
     struct complex_ctxt* c_ctxt = (struct complex_ctxt*) ctxt;
     purc_variant_t set = (purc_variant_t) c_ctxt->ctxt;
     purc_variant_t result = (purc_variant_t) c_ctxt->extra;
@@ -325,9 +332,10 @@ subtract_set(void* ctxt, purc_variant_t value, void* extra)
 }
 
 static bool
-subtract_array(void* ctxt, purc_variant_t value, void* extra)
+subtract_array(void* ctxt, purc_variant_t value,
+        purc_variant_t member_extra)
 {
-    UNUSED_PARAM(extra);
+    UNUSED_PARAM(member_extra);
     struct complex_ctxt* c_ctxt = (struct complex_ctxt*) ctxt;
     purc_variant_t array = (purc_variant_t) c_ctxt->ctxt;
     purc_variant_t result = (purc_variant_t) c_ctxt->extra;
@@ -337,9 +345,10 @@ subtract_array(void* ctxt, purc_variant_t value, void* extra)
 }
 
 static bool
-intersect_set(void* ctxt, purc_variant_t value, void* extra)
+intersect_set(void* ctxt, purc_variant_t value,
+        purc_variant_t member_extra)
 {
-    UNUSED_PARAM(extra);
+    UNUSED_PARAM(member_extra);
     struct complex_ctxt* c_ctxt = (struct complex_ctxt*) ctxt;
     purc_variant_t set = (purc_variant_t) c_ctxt->ctxt;
     purc_variant_t result = (purc_variant_t) c_ctxt->extra;
