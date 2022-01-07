@@ -1017,6 +1017,117 @@ pcedom_processing_instruction_target(pcedom_processing_instruction_t *pi,
 }
 
 
+
+// ============================= for element-variant ==========================
+// .attr(<string: attributeName>)
+int
+pcedom_element_attr(pcedom_element_t *elem, const char *attr_name,
+        const unsigned char **val, size_t *len);
+
+// TODO:
+// .prop(<string: propertyName>)
+// int
+// pcedom_element_prop(pcedom_element_t *elem, const char *attr_name,
+//         struct pcedom_attr **attr);
+
+// .style(<string: styleName>)
+int
+pcedom_element_style(pcedom_element_t *elem, const char *style_name,
+        const unsigned char **style, size_t *len);
+
+// .content()
+int
+pcedom_element_content(pcedom_element_t *elem,
+        const unsigned char **content, size_t *len);
+
+// .textContent()
+int
+pcedom_element_text_content(pcedom_element_t *elem,
+        char **text, size_t *len);
+
+// TODO:
+// .jsonContent()
+// FIXME: json in serialized form?
+// static int
+// pcedom_element_json_content(pcedom_element_t *elem, char **json);
+
+// .val()
+// TODO: what type for val?
+// static int
+// pcedom_element_val(pcedom_element_t *elem, what_type **val);
+
+// .hasClass(<string: className>)
+int
+pcedom_element_has_class(pcedom_element_t *elem, const char *class_name,
+        bool *has);
+
+
+
+// .attr(! <string: attributeName>, <string: value>)
+int
+pcedom_element_set_attr(pcedom_element_t *elem, const char *attr_name,
+        const char *attr_val);
+
+// TODO:
+// .prop(! <string: propertyName>, <any: value>)
+// static int
+// pcedom_element_set_prop(pcedom_element_t *elem, ...);
+
+// .style(! <string: styleName>, <string: value>)
+int
+pcedom_element_set_style(pcedom_element_t *elem, const char *style_name,
+        const char *style);
+
+// FIXME: de-serialize and then replace?
+// .content(! <string: content>)
+int
+pcedom_element_set_content(pcedom_element_t *elem, const char *content);
+
+// .textContent(! <string: content>)
+int
+pcedom_element_set_text_content(pcedom_element_t *elem,
+        const char *text);
+
+// FIXME: json in serialized form?
+// .jsonContent(! <string: content>)
+int
+pcedom_element_set_json_content(pcedom_element_t *elem, const char *json);
+
+// .val(! <newValue>)
+// TODO: what type for val?
+// static int
+// pcedom_element_set_val(pcedom_element_t *elem, const what_type *val);
+
+// .addClass(! <string: className>)
+int
+pcedom_element_add_class(pcedom_element_t *elem, const char *class_name);
+
+// .removeAttr(! <string: attributeName>)
+int
+pcedom_element_remove_attr(pcedom_element_t *elem, const char *attr_name);
+
+// .removeClass(! <string: className>)
+int
+pcedom_element_remove_class_by_name(pcedom_element_t *elem,
+        const char *class_name);
+
+// .removeClass(! )
+static inline int
+pcedom_element_remove_class(pcedom_element_t *elem)
+{
+    return pcedom_element_remove_class_by_name(elem, NULL);
+}
+
+// ============================= for collection-variant =======================
+// .count()
+int
+pcedom_collection_count(pcedom_collection_t *col, size_t *count);
+
+// .at(<real: index>)
+int
+pcedom_collection_at(pcedom_collection_t *col, size_t idx,
+        struct pcedom_element **element);
+
 PCA_EXTERN_C_END
 
 #endif  /* PURC_PURC_EDOM_H */
