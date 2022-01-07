@@ -433,7 +433,7 @@ TEST(unite, set_array)
             strlen(src_str));
     ASSERT_NE(src, PURC_VARIANT_INVALID);
 
-    bool result = purc_variant_container_unite(dst, src, true);
+    bool result = purc_variant_set_unite(dst, src, true);
     ASSERT_EQ(result, true);
 
     char* dst_result = variant_to_string(dst);
@@ -501,7 +501,7 @@ TEST(intersect, set_array)
             strlen(src_str));
     ASSERT_NE(src, PURC_VARIANT_INVALID);
 
-    bool result = purc_variant_container_intersect(dst, src, true);
+    bool result = purc_variant_set_intersect(dst, src, true);
     ASSERT_EQ(result, true);
 
     char* dst_result = variant_to_string(dst);
@@ -570,7 +570,7 @@ TEST(subtract, set_array)
             strlen(src_str));
     ASSERT_NE(src, PURC_VARIANT_INVALID);
 
-    bool result = purc_variant_container_subtract(dst, src, true);
+    bool result = purc_variant_set_subtract(dst, src, true);
     ASSERT_EQ(result, true);
 
     char* dst_result = variant_to_string(dst);
@@ -642,7 +642,7 @@ TEST(xor, set_array)
             strlen(src_str));
     ASSERT_NE(src, PURC_VARIANT_INVALID);
 
-    bool result = purc_variant_container_xor(dst, src, true);
+    bool result = purc_variant_set_xor(dst, src, true);
     ASSERT_EQ(result, true);
 
     char* dst_result = variant_to_string(dst);
@@ -716,7 +716,7 @@ TEST(overwrite, set_array)
             strlen(src_str));
     ASSERT_NE(src, PURC_VARIANT_INVALID);
 
-    bool result = purc_variant_container_overwrite(dst, src, true);
+    bool result = purc_variant_set_overwrite(dst, src, true);
     ASSERT_EQ(result, true);
 
     char* dst_result = variant_to_string(dst);

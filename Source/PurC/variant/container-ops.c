@@ -397,7 +397,7 @@ purc_variant_container_displace(purc_variant_t dst,
     bool ret = false;
 
     if (dst == PURC_VARIANT_INVALID || src == PURC_VARIANT_INVALID) {
-        SET_SILENT_ERROR(PURC_ERROR_ARGUMENT_MISSED);
+        SET_SILENT_ERROR(PURC_ERROR_INVALID_VALUE);
         goto end;
     }
 
@@ -433,7 +433,7 @@ purc_variant_array_append_another(purc_variant_t dst,
     bool ret = false;
 
     if (dst == PURC_VARIANT_INVALID || another == PURC_VARIANT_INVALID) {
-        SET_SILENT_ERROR(PURC_ERROR_ARGUMENT_MISSED);
+        SET_SILENT_ERROR(PURC_ERROR_INVALID_VALUE);
         goto end;
     }
 
@@ -460,7 +460,7 @@ purc_variant_array_prepend_another(purc_variant_t dst,
     bool ret = false;
 
     if (dst == PURC_VARIANT_INVALID || another == PURC_VARIANT_INVALID) {
-        SET_SILENT_ERROR(PURC_ERROR_ARGUMENT_MISSED);
+        SET_SILENT_ERROR(PURC_ERROR_INVALID_VALUE);
         goto end;
     }
 
@@ -487,7 +487,7 @@ purc_variant_object_merge_another(purc_variant_t dst,
     bool ret = false;
 
     if (dst == PURC_VARIANT_INVALID || another == PURC_VARIANT_INVALID) {
-        SET_SILENT_ERROR(PURC_ERROR_ARGUMENT_MISSED);
+        SET_SILENT_ERROR(PURC_ERROR_INVALID_VALUE);
         goto end;
     }
 
@@ -512,7 +512,7 @@ purc_variant_array_insert_another_before(purc_variant_t dst, int idx,
     bool ret = false;
 
     if (dst == PURC_VARIANT_INVALID || another == PURC_VARIANT_INVALID) {
-        SET_SILENT_ERROR(PURC_ERROR_ARGUMENT_MISSED);
+        SET_SILENT_ERROR(PURC_ERROR_INVALID_VALUE);
         goto end;
     }
 
@@ -539,7 +539,7 @@ purc_variant_array_insert_another_after(purc_variant_t dst, int idx,
     bool ret = false;
 
     if (dst == PURC_VARIANT_INVALID || another == PURC_VARIANT_INVALID) {
-        SET_SILENT_ERROR(PURC_ERROR_ARGUMENT_MISSED);
+        SET_SILENT_ERROR(PURC_ERROR_INVALID_VALUE);
         goto end;
     }
 
@@ -558,7 +558,7 @@ end:
 }
 
 bool
-purc_variant_container_unite(purc_variant_t dst,
+purc_variant_set_unite(purc_variant_t dst,
         purc_variant_t src, bool silently)
 {
     UNUSED_PARAM(silently);
@@ -566,7 +566,7 @@ purc_variant_container_unite(purc_variant_t dst,
     bool ret = false;
 
     if (dst == PURC_VARIANT_INVALID || src == PURC_VARIANT_INVALID) {
-        SET_SILENT_ERROR(PURC_ERROR_ARGUMENT_MISSED);
+        SET_SILENT_ERROR(PURC_ERROR_INVALID_VALUE);
         goto end;
     }
 
@@ -591,7 +591,7 @@ end:
 }
 
 bool
-purc_variant_container_intersect(purc_variant_t dst,
+purc_variant_set_intersect(purc_variant_t dst,
         purc_variant_t src, bool silently)
 {
     UNUSED_PARAM(silently);
@@ -599,7 +599,7 @@ purc_variant_container_intersect(purc_variant_t dst,
     bool ret = false;
 
     if (dst == PURC_VARIANT_INVALID || src == PURC_VARIANT_INVALID) {
-        SET_SILENT_ERROR(PURC_ERROR_ARGUMENT_MISSED);
+        SET_SILENT_ERROR(PURC_ERROR_INVALID_VALUE);
         goto end;
     }
 
@@ -638,7 +638,7 @@ end:
 }
 
 bool
-purc_variant_container_subtract(purc_variant_t dst,
+purc_variant_set_subtract(purc_variant_t dst,
         purc_variant_t src, bool silently)
 {
     UNUSED_PARAM(silently);
@@ -646,7 +646,7 @@ purc_variant_container_subtract(purc_variant_t dst,
     bool ret = false;
 
     if (dst == PURC_VARIANT_INVALID || src == PURC_VARIANT_INVALID) {
-        SET_SILENT_ERROR(PURC_ERROR_ARGUMENT_MISSED);
+        SET_SILENT_ERROR(PURC_ERROR_INVALID_VALUE);
         goto end;
     }
 
@@ -685,7 +685,7 @@ end:
 }
 
 bool
-purc_variant_container_xor(purc_variant_t dst,
+purc_variant_set_xor(purc_variant_t dst,
         purc_variant_t src, bool silently)
 {
     UNUSED_PARAM(silently);
@@ -693,7 +693,7 @@ purc_variant_container_xor(purc_variant_t dst,
     bool ret = false;
 
     if (dst == PURC_VARIANT_INVALID || src == PURC_VARIANT_INVALID) {
-        SET_SILENT_ERROR(PURC_ERROR_ARGUMENT_MISSED);
+        SET_SILENT_ERROR(PURC_ERROR_INVALID_VALUE);
         goto end;
     }
 
@@ -749,7 +749,7 @@ end:
 }
 
 bool
-purc_variant_container_overwrite(purc_variant_t dst,
+purc_variant_set_overwrite(purc_variant_t dst,
         purc_variant_t src, bool silently)
 {
     UNUSED_PARAM(silently);
@@ -757,7 +757,7 @@ purc_variant_container_overwrite(purc_variant_t dst,
     bool ret = false;
 
     if (dst == PURC_VARIANT_INVALID || src == PURC_VARIANT_INVALID) {
-        SET_SILENT_ERROR(PURC_ERROR_ARGUMENT_MISSED);
+        SET_SILENT_ERROR(PURC_ERROR_INVALID_VALUE);
         goto end;
     }
 

@@ -1897,7 +1897,7 @@ purc_variant_revoke_listener(purc_variant_t v,
  * @param dst: the dst variant (object, array, set)
  * @param value: the variant to replace (object, array, set)
  * @param silently: True means ignore the following error:
- *      - PURC_ERROR_ARGUMENT_MISSED
+ *      - PURC_ERROR_INVALID_VALUE
  *      - PURC_ERROR_WRONG_DATA_TYPE
  *
  * Returns: True on success, otherwise False.
@@ -1914,7 +1914,7 @@ purc_variant_container_displace(purc_variant_t dst,
  * @param dst: the dst variant (array)
  * @param value: the value to be appended (array)
  * @param silently: True means ignore the following error:
- *      - PURC_ERROR_ARGUMENT_MISSED
+ *      - PURC_ERROR_INVALID_VALUE
  *      - PURC_ERROR_WRONG_DATA_TYPE
  *
  * Returns: True on success, otherwise False.
@@ -1931,7 +1931,7 @@ purc_variant_array_append_another(purc_variant_t dst,
  * @param dst: the dst variant (array)
  * @param value: the value to be insert (array)
  * @param silently: True means ignore the following error:
- *      - PURC_ERROR_ARGUMENT_MISSED
+ *      - PURC_ERROR_INVALID_VALUE
  *      - PURC_ERROR_WRONG_DATA_TYPE
  *
  * Returns: True on success, otherwise False.
@@ -1948,7 +1948,7 @@ purc_variant_array_prepend_another(purc_variant_t dst,
  * @param dst: the dst variant (object)
  * @param value: the value to be merge (object)
  * @param silently: True means ignore the following error:
- *      - PURC_ERROR_ARGUMENT_MISSED
+ *      - PURC_ERROR_INVALID_VALUE
  *      - PURC_ERROR_WRONG_DATA_TYPE
  *
  * Returns: True on success, otherwise False.
@@ -1966,7 +1966,7 @@ purc_variant_object_merge_another(purc_variant_t dst,
  * @param idx: the index of element before which the new value will be placed
  * @param value: the inserted value (array)
  * @param silently: True means ignore the following error:
- *      - PURC_ERROR_ARGUMENT_MISSED
+ *      - PURC_ERROR_INVALID_VALUE
  *      - PURC_ERROR_WRONG_DATA_TYPE
  *
  * Returns: True on success, otherwise False.
@@ -1984,7 +1984,7 @@ purc_variant_array_insert_another_before(purc_variant_t dst,
  * @param idx: the index of element after which the new value will be placed
  * @param value: the inserted value (array)
  * @param silently: True means ignore the following error:
- *      - PURC_ERROR_ARGUMENT_MISSED
+ *      - PURC_ERROR_INVALID_VALUE
  *      - PURC_ERROR_WRONG_DATA_TYPE
  *
  * Returns: True on success, otherwise False.
@@ -2001,7 +2001,7 @@ purc_variant_array_insert_another_after(purc_variant_t dst,
  * @param dst: the dst variant (set)
  * @param value: the value to be unite (array, set)
  * @param silently: True means ignore the following error:
- *      - PURC_ERROR_ARGUMENT_MISSED
+ *      - PURC_ERROR_INVALID_VALUE
  *      - PURC_ERROR_WRONG_DATA_TYPE
  *
  * Returns: True on success, otherwise False.
@@ -2009,7 +2009,7 @@ purc_variant_array_insert_another_after(purc_variant_t dst,
  * Since: 0.0.5
  */
 PCA_EXPORT bool
-purc_variant_container_unite(purc_variant_t dst,
+purc_variant_set_unite(purc_variant_t dst,
         purc_variant_t src, bool silently);
 
 /**
@@ -2018,7 +2018,7 @@ purc_variant_container_unite(purc_variant_t dst,
  * @param dst: the dst variant (set)
  * @param value: the value to intersect (array, set)
  * @param silently: True means ignore the following error:
- *      - PURC_ERROR_ARGUMENT_MISSED
+ *      - PURC_ERROR_INVALID_VALUE
  *      - PURC_ERROR_WRONG_DATA_TYPE
  *
  * Returns: True on success, otherwise False.
@@ -2026,7 +2026,7 @@ purc_variant_container_unite(purc_variant_t dst,
  * Since: 0.0.5
  */
 PCA_EXPORT bool
-purc_variant_container_intersect(purc_variant_t dst,
+purc_variant_set_intersect(purc_variant_t dst,
         purc_variant_t src, bool silently);
 
 /**
@@ -2035,7 +2035,7 @@ purc_variant_container_intersect(purc_variant_t dst,
  * @param dst: the dst variant (set)
  * @param value: the value to substract (array, set)
  * @param silently: True means ignore the following error:
- *      - PURC_ERROR_ARGUMENT_MISSED
+ *      - PURC_ERROR_INVALID_VALUE
  *      - PURC_ERROR_WRONG_DATA_TYPE
  *
  * Returns: True on success, otherwise False.
@@ -2043,7 +2043,7 @@ purc_variant_container_intersect(purc_variant_t dst,
  * Since: 0.0.5
  */
 PCA_EXPORT bool
-purc_variant_container_subtract(purc_variant_t dst,
+purc_variant_set_subtract(purc_variant_t dst,
         purc_variant_t src, bool silently);
 
 /**
@@ -2052,7 +2052,7 @@ purc_variant_container_subtract(purc_variant_t dst,
  * @param dst: the dst variant (set)
  * @param value: the value to xor (array, set)
  * @param silently: True means ignore the following error:
- *      - PURC_ERROR_ARGUMENT_MISSED
+ *      - PURC_ERROR_INVALID_VALUE
  *      - PURC_ERROR_WRONG_DATA_TYPE
  *
  * Returns: True on success, otherwise False.
@@ -2060,7 +2060,7 @@ purc_variant_container_subtract(purc_variant_t dst,
  * Since: 0.0.5
  */
 PCA_EXPORT bool
-purc_variant_container_xor(purc_variant_t dst,
+purc_variant_set_xor(purc_variant_t dst,
         purc_variant_t src, bool silently);
 
 /**
@@ -2069,7 +2069,7 @@ purc_variant_container_xor(purc_variant_t dst,
  * @param dst: the dst variant (set)
  * @param value: the value to overwrite (object, array, set)
  * @param silently: True means ignore the following error:
- *      - PURC_ERROR_ARGUMENT_MISSED
+ *      - PURC_ERROR_INVALID_VALUE
  *      - PURC_ERROR_WRONG_DATA_TYPE
  *
  * Returns: True on success, otherwise False.
@@ -2077,7 +2077,7 @@ purc_variant_container_xor(purc_variant_t dst,
  * Since: 0.0.5
  */
 PCA_EXPORT bool
-purc_variant_container_overwrite(purc_variant_t dst,
+purc_variant_set_overwrite(purc_variant_t dst,
         purc_variant_t src, bool silently);
 
 PCA_EXTERN_C_END
