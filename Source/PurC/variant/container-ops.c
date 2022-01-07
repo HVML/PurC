@@ -413,6 +413,20 @@ intersect_set(void* ctxt, purc_variant_t value,
 }
 
 static bool
+xor_set(void* ctxt, purc_variant_t value,
+        purc_variant_t member_extra, bool silently)
+{
+    UNUSED_PARAM(member_extra);
+
+    purc_variant_t set = (purc_variant_t) ctxt;
+
+    if (pcvariant_is_in_set(set, value)) {
+        return purc_variant_set_remove(set, value, silently);
+    }
+    return purc_variant_set_add(set, value, silently);
+}
+
+static bool
 object_displace(purc_variant_t dst, purc_variant_t src, bool silently)
 {
     bool ret = false;
@@ -971,47 +985,16 @@ purc_variant_set_xor(purc_variant_t set,
         goto end;
     }
 
-    purc_variant_t result = purc_variant_make_array(0, PURC_VARIANT_INVALID);
-    if (result == PURC_VARIANT_INVALID) {
-        goto end;
-    }
-
-    struct complex_ctxt c_ctxt;
     if (purc_variant_is_set(src)) {
-        c_ctxt.ctxt = (uintptr_t) src;
-        c_ctxt.extra = (uintptr_t) result;
-        if (!set_foreach(set, subtract_set, &c_ctxt, silently)) {
-            goto error;
-        }
-
-        c_ctxt.ctxt = (uintptr_t) set;
-        c_ctxt.extra = (uintptr_t) result;
-        if (!set_foreach(src, subtract_set, &c_ctxt, silently)) {
-            goto error;
-        }
-        ret = set_displace(set, result, silently);
+        ret = set_foreach(src, xor_set, set, silently);
     }
     else if (purc_variant_is_array(src)) {
-        c_ctxt.ctxt = (uintptr_t) src;
-        c_ctxt.extra = (uintptr_t) result;
-        if (!set_foreach(set, subtract_array, &c_ctxt, silently)) {
-            goto error;
-        }
-
-        c_ctxt.ctxt = (uintptr_t) set;
-        c_ctxt.extra = (uintptr_t) result;
-        if (!array_foreach(src, subtract_set, &c_ctxt, silently)) {
-            goto error;
-        }
-        ret = set_displace(set, result, silently);
+        ret = array_foreach(src, xor_set, set, silently);
     }
     else {
         SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
         ret = false;
     }
-
-error:
-    purc_variant_unref(result);
 
 end:
     return ret;
