@@ -594,6 +594,11 @@ purc_variant_container_displace(purc_variant_t dst,
         goto end;
     }
 
+    if (dst == src) {
+        SET_SILENT_ERROR(PURC_ERROR_INVALID_OPERAND);
+        goto end;
+    }
+
     enum purc_variant_type type = purc_variant_get_type(dst);
     switch (type) {
         case PURC_VARIANT_TYPE_OBJECT:
@@ -625,6 +630,11 @@ purc_variant_container_remove(purc_variant_t dst,
 
     if (dst == PURC_VARIANT_INVALID || src == PURC_VARIANT_INVALID) {
         SET_SILENT_ERROR(PURC_ERROR_INVALID_VALUE);
+        goto end;
+    }
+
+    if (dst == src) {
+        SET_SILENT_ERROR(PURC_ERROR_INVALID_OPERAND);
         goto end;
     }
 
@@ -664,6 +674,11 @@ purc_variant_array_append_another(purc_variant_t dst,
         goto end;
     }
 
+    if (dst == another) {
+        SET_SILENT_ERROR(PURC_ERROR_INVALID_OPERAND);
+        goto end;
+    }
+
     if (!purc_variant_is_array(dst) || !purc_variant_is_array(another)) {
         SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
         goto end;
@@ -688,6 +703,11 @@ purc_variant_array_prepend_another(purc_variant_t dst,
 
     if (dst == PURC_VARIANT_INVALID || another == PURC_VARIANT_INVALID) {
         SET_SILENT_ERROR(PURC_ERROR_INVALID_VALUE);
+        goto end;
+    }
+
+    if (dst == another) {
+        SET_SILENT_ERROR(PURC_ERROR_INVALID_OPERAND);
         goto end;
     }
 
@@ -718,6 +738,11 @@ purc_variant_object_merge_another(purc_variant_t dst,
         goto end;
     }
 
+    if (dst == another) {
+        SET_SILENT_ERROR(PURC_ERROR_INVALID_OPERAND);
+        goto end;
+    }
+
     if (!purc_variant_is_object(dst) || !purc_variant_is_object(another)) {
         SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
         goto end;
@@ -740,6 +765,11 @@ purc_variant_array_insert_another_before(purc_variant_t dst, int idx,
 
     if (dst == PURC_VARIANT_INVALID || another == PURC_VARIANT_INVALID) {
         SET_SILENT_ERROR(PURC_ERROR_INVALID_VALUE);
+        goto end;
+    }
+
+    if (dst == another) {
+        SET_SILENT_ERROR(PURC_ERROR_INVALID_OPERAND);
         goto end;
     }
 
@@ -770,6 +800,11 @@ purc_variant_array_insert_another_after(purc_variant_t dst, int idx,
         goto end;
     }
 
+    if (dst == another) {
+        SET_SILENT_ERROR(PURC_ERROR_INVALID_OPERAND);
+        goto end;
+    }
+
     if (!purc_variant_is_array(dst) || !purc_variant_is_array(another)) {
         SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
         goto end;
@@ -794,6 +829,11 @@ purc_variant_set_unite(purc_variant_t dst,
 
     if (dst == PURC_VARIANT_INVALID || src == PURC_VARIANT_INVALID) {
         SET_SILENT_ERROR(PURC_ERROR_INVALID_VALUE);
+        goto end;
+    }
+
+    if (dst == src) {
+        SET_SILENT_ERROR(PURC_ERROR_INVALID_OPERAND);
         goto end;
     }
 
@@ -827,6 +867,11 @@ purc_variant_set_intersect(purc_variant_t dst,
 
     if (dst == PURC_VARIANT_INVALID || src == PURC_VARIANT_INVALID) {
         SET_SILENT_ERROR(PURC_ERROR_INVALID_VALUE);
+        goto end;
+    }
+
+    if (dst == src) {
+        SET_SILENT_ERROR(PURC_ERROR_INVALID_OPERAND);
         goto end;
     }
 
@@ -877,6 +922,11 @@ purc_variant_set_subtract(purc_variant_t dst,
         goto end;
     }
 
+    if (dst == src) {
+        SET_SILENT_ERROR(PURC_ERROR_INVALID_OPERAND);
+        goto end;
+    }
+
     if (!purc_variant_is_set(dst)) {
         SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
         goto end;
@@ -921,6 +971,11 @@ purc_variant_set_xor(purc_variant_t dst,
 
     if (dst == PURC_VARIANT_INVALID || src == PURC_VARIANT_INVALID) {
         SET_SILENT_ERROR(PURC_ERROR_INVALID_VALUE);
+        goto end;
+    }
+
+    if (dst == src) {
+        SET_SILENT_ERROR(PURC_ERROR_INVALID_OPERAND);
         goto end;
     }
 
@@ -985,6 +1040,11 @@ purc_variant_set_overwrite(purc_variant_t dst,
 
     if (dst == PURC_VARIANT_INVALID || src == PURC_VARIANT_INVALID) {
         SET_SILENT_ERROR(PURC_ERROR_INVALID_VALUE);
+        goto end;
+    }
+
+    if (dst == src) {
+        SET_SILENT_ERROR(PURC_ERROR_INVALID_OPERAND);
         goto end;
     }
 
