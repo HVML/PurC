@@ -110,6 +110,11 @@ __attribute__ ((format (printf, 2, 3)))
 int
 pcutils_string_append(struct pcutils_string *string, const char *fmt, ...);
 
+int
+pcutils_string_length(struct pcutils_string *string, size_t *len);
+
+int
+pcutils_string_is_empty(struct pcutils_string *string, int *empty);
 
 typedef int (*pcutils_token_found_f)(const char *start, const char *end,
         void *ud);
