@@ -51,11 +51,12 @@ struct complex_ctxt {
 // object member = key,   member_extra = value
 // array  member = value, member_extra = PURC_VARIANT_INVALID
 // set    member = value, member_extra = PURC_VARIANT_INVALID
-typedef bool (*foreach_callback_fn)(void* ctxt, purc_variant_t member,
+typedef bool (*foreach_func)(void* ctxt, purc_variant_t member,
         purc_variant_t member_extra);
 
+// It is unsafe for func to remove the member
 static bool
-object_foreach(purc_variant_t object, foreach_callback_fn fn, void* ctxt)
+object_foreach(purc_variant_t object, foreach_func func, void* ctxt)
 {
     bool ret = false;
     size_t sz = purc_variant_object_get_size(object);
@@ -65,7 +66,7 @@ object_foreach(purc_variant_t object, foreach_callback_fn fn, void* ctxt)
 
     purc_variant_t k, v;
     foreach_key_value_in_variant_object(object, k, v)
-        if (!fn(ctxt, k, v)) {
+        if (!func(ctxt, k, v)) {
             goto end;
         }
     end_foreach;
@@ -75,8 +76,9 @@ end:
     return ret;
 }
 
+// It is unsafe for func to remove the member
 static bool
-array_foreach(purc_variant_t array, foreach_callback_fn fn, void* ctxt)
+array_foreach(purc_variant_t array, foreach_func func, void* ctxt)
 {
     bool ret = false;
     size_t sz = purc_variant_array_get_size(array);
@@ -86,7 +88,7 @@ array_foreach(purc_variant_t array, foreach_callback_fn fn, void* ctxt)
 
     purc_variant_t val;
     foreach_value_in_variant_array(array, val)
-        if (!fn(ctxt, val, PURC_VARIANT_INVALID)) {
+        if (!func(ctxt, val, PURC_VARIANT_INVALID)) {
             goto end;
         }
     end_foreach;
@@ -96,8 +98,9 @@ end:
     return ret;
 }
 
+// It is unsafe for func to remove the member
 bool
-array_reverse_foreach(purc_variant_t array, foreach_callback_fn fn, void* ctxt)
+array_reverse_foreach(purc_variant_t array, foreach_func func, void* ctxt)
 {
     bool ret = false;
     size_t sz = purc_variant_array_get_size(array);
@@ -109,7 +112,7 @@ array_reverse_foreach(purc_variant_t array, foreach_callback_fn fn, void* ctxt)
     struct pcutils_arrlist* al= (struct pcutils_arrlist*)array->sz_ptr[1];
     for (size_t i = al->length; i != 0; i--) {
         val = (purc_variant_t)al->array[i-1];
-        if (!fn(ctxt, val, (void*)(uintptr_t)(i - 1))) {
+        if (!func(ctxt, val, (void*)(uintptr_t)(i - 1))) {
             goto end;
         }
     }
@@ -119,8 +122,9 @@ end:
     return ret;
 }
 
+// It is unsafe for func to remove the member
 static bool
-set_foreach(purc_variant_t set, foreach_callback_fn fn, void* ctxt)
+set_foreach(purc_variant_t set, foreach_func func, void* ctxt)
 {
     bool ret = false;
     size_t sz = purc_variant_set_get_size(set);
@@ -130,7 +134,7 @@ set_foreach(purc_variant_t set, foreach_callback_fn fn, void* ctxt)
 
     purc_variant_t v;
     foreach_value_in_variant_set(set, v)
-        if (!fn(ctxt, v, PURC_VARIANT_INVALID)) {
+        if (!func(ctxt, v, PURC_VARIANT_INVALID)) {
             goto end;
         }
     end_foreach;
