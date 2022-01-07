@@ -375,27 +375,13 @@ subtract_set(void* ctxt, purc_variant_t value,
         purc_variant_t member_extra, bool silently)
 {
     UNUSED_PARAM(member_extra);
-    UNUSED_PARAM(silently);
-    struct complex_ctxt* c_ctxt = (struct complex_ctxt*) ctxt;
-    purc_variant_t set = (purc_variant_t) c_ctxt->ctxt;
-    purc_variant_t result = (purc_variant_t) c_ctxt->extra;
 
-    return pcvariant_is_in_set(set, value) ? true :
-        purc_variant_array_append(result, value);
-}
+    purc_variant_t set = (purc_variant_t) ctxt;
 
-static bool
-subtract_array(void* ctxt, purc_variant_t value,
-        purc_variant_t member_extra, bool silently)
-{
-    UNUSED_PARAM(member_extra);
-    UNUSED_PARAM(silently);
-    struct complex_ctxt* c_ctxt = (struct complex_ctxt*) ctxt;
-    purc_variant_t array = (purc_variant_t) c_ctxt->ctxt;
-    purc_variant_t result = (purc_variant_t) c_ctxt->extra;
-
-    return is_in_array(array, value, NULL) ? true :
-        purc_variant_array_append(result, value);
+    if (pcvariant_is_in_set(set, value)) {
+        return purc_variant_set_remove(set, value, silently);
+    }
+    return true;
 }
 
 static bool
@@ -935,31 +921,17 @@ purc_variant_set_subtract(purc_variant_t set,
         goto end;
     }
 
-    purc_variant_t result = purc_variant_make_array(0, PURC_VARIANT_INVALID);
-    if (result == PURC_VARIANT_INVALID) {
-        goto end;
-    }
-
-    struct complex_ctxt c_ctxt;
-    c_ctxt.ctxt = (uintptr_t) src;
-    c_ctxt.extra = (uintptr_t) result;
-
     if (purc_variant_is_set(src)) {
-        if (set_foreach(set, subtract_set, &c_ctxt, silently)) {
-            ret = set_displace(set, result, silently);
-        }
+        ret = set_foreach(src, subtract_set, set, silently);
     }
     else if (purc_variant_is_array(src)) {
-        if (set_foreach(set, subtract_array, &c_ctxt, silently)) {
-            ret = set_displace(set, result, silently);
-        }
+        ret = array_foreach(src, subtract_set, set, silently);
     }
     else {
         SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
         ret = false;
     }
 
-    purc_variant_unref(result);
 end:
     return ret;
 }
