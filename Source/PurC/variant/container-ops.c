@@ -184,7 +184,7 @@ variant_object_clear(purc_variant_t object, bool silently)
     purc_variant_t value;
     UNUSED_VARIABLE(value);
     foreach_in_variant_object_safe_x(object, key, value)
-        if (!purc_variant_object_remove(object, key)) {
+        if (!purc_variant_object_remove(object, key, false)) {
             goto end;
         }
     end_foreach;
@@ -303,8 +303,7 @@ remove_object_member(void* dst, purc_variant_t key, purc_variant_t value,
 {
     UNUSED_PARAM(value);
     UNUSED_PARAM(silently);
-    // TODO: silently
-    return purc_variant_object_remove((purc_variant_t)dst, key);
+    return purc_variant_object_remove((purc_variant_t)dst, key, silently);
 }
 
 static bool

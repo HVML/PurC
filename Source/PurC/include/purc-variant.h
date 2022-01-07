@@ -797,32 +797,38 @@ purc_variant_object_set_by_static_ckey(purc_variant_t obj, const char* key,
  *
  * @param obj: the variant value of obj type
  * @param key: the key of key-value pair
+ * @param silently: True means ignore the following error:
+ *      - PCVARIANT_ERROR_NOT_FOUND (return True)
  *
  * Returns: True on success, otherwise False.
  *
  * Since: 0.0.1
  */
 PCA_EXPORT bool
-purc_variant_object_remove(purc_variant_t obj, purc_variant_t key);
+purc_variant_object_remove(purc_variant_t obj, purc_variant_t key,
+        bool silently);
 
 /**
  * Remove a key-value pair from an object by key with key as c string
  *
  * @param obj: the variant value of obj type
  * @param key: the key of key-value pair
+ * @param silently: True means ignore the following error:
+ *      - PCVARIANT_ERROR_NOT_FOUND (return True)
  *
  * Returns: True on success, otherwise False.
  *
  * Since: 0.0.1
  */
 static inline bool
-purc_variant_object_remove_by_static_ckey(purc_variant_t obj, const char* key)
+purc_variant_object_remove_by_static_ckey(purc_variant_t obj, const char* key,
+        bool silently)
 {
     purc_variant_t k = purc_variant_make_string_static(key, true);
     if (k==PURC_VARIANT_INVALID) {
         return false;
     }
-    bool b = purc_variant_object_remove(obj, k);
+    bool b = purc_variant_object_remove(obj, k, silently);
     purc_variant_unref(k);
     return b;
 }
