@@ -25,6 +25,8 @@
 
 #include "internal.h"
 
+#include "purc-edom.h"
+
 static inline bool
 element_eraser(struct pcintr_element *element)
 {
@@ -34,40 +36,24 @@ element_eraser(struct pcintr_element *element)
 }
 
 static inline purc_variant_t
-element_attr_getter_by_type(struct pcintr_element *element,
-        purc_variant_t tn)
+element_attr_getter_by_name(pcedom_element_t *element,
+        purc_variant_t an)
 {
-    UNUSED_PARAM(element);
-    const char *name = purc_variant_get_string_const(tn);
-    if (strcmp(name, "class") == 0) {
-        const char *v_class = "attr.class:not_implemented_yet";
-        // TODO: fetch element's attribute value with `class` matched
-        // FIXME: static or else? who lives longer, element or v_class?
-        return purc_variant_make_string_static(v_class, true);
-    }
-    PC_ASSERT(0); // Not implemented yet
-    return PURC_VARIANT_INVALID;
-}
+    const char *name = purc_variant_get_string_const(an);
+    int r;
+    const char *val;
+    size_t len;
+    r = pcedom_element_attr(element, name,
+            (const unsigned char**)&val, &len);
 
-static inline purc_variant_t
-element_attr_getter(struct pcintr_element *element,
-        size_t nr_args, purc_variant_t* argv)
-{
-    if (nr_args == 1) {
-        if (argv == NULL || argv[0] == PURC_VARIANT_INVALID) {
-            pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
-            return PURC_VARIANT_INVALID;
-        }
-        purc_variant_t tn = argv[0]; // type name
-        if (!purc_variant_is_string(tn)) {
-            pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
-            return PURC_VARIANT_INVALID;
-        }
-        return element_attr_getter_by_type(element, tn);
+    if (r) {
+        return PURC_VARIANT_INVALID;
     }
 
-    pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
-    return PURC_VARIANT_INVALID;
+    PC_ASSERT(val && val[len]=='\0');
+
+    // FIXME: strdup???
+    return purc_variant_make_string_static(val, true);
 }
 
 static inline purc_variant_t
@@ -77,8 +63,23 @@ attr_getter(void* native_entity, size_t nr_args, purc_variant_t* argv)
 
     struct pcintr_element *element;
     element = (struct pcintr_element*)native_entity;
+    PC_ASSERT(element && element->elem);
 
-    return element_attr_getter(element, nr_args, argv);
+    if (nr_args == 1) {
+        if (argv == NULL || argv[0] == PURC_VARIANT_INVALID) {
+            pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+            return PURC_VARIANT_INVALID;
+        }
+        purc_variant_t an = argv[0]; // attribute name
+        if (!purc_variant_is_string(an)) {
+            pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+            return PURC_VARIANT_INVALID;
+        }
+        return element_attr_getter_by_name(element->elem, an);
+    }
+
+    pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+    return PURC_VARIANT_INVALID;
 }
 
 static struct native_property_cfg configs[] = {
@@ -204,3 +205,4 @@ pcintr_make_element_variant(struct pcedom_element *elem)
 
     return v;
 }
+
