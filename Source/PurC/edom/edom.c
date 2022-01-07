@@ -37,6 +37,8 @@
 #include "private/edom.h"
 #include "private/stringbuilder.h"
 
+#include <ctype.h>
+
 void pcedom_init_once(void)
 {
     // initialize others
@@ -212,6 +214,28 @@ pcedom_element_text_content(pcedom_element_t *elem,
 // static int
 // pcedom_element_val(pcedom_element_t *elem, what_type **val);
 
+struct class_token_arg {
+    const char          *class_name;
+    size_t               class_name_len;
+
+    bool                 has;
+};
+
+static int
+class_token_found(const char *token, const char *end, void *ud)
+{
+    struct class_token_arg *arg = (struct class_token_arg*)ud;
+
+    if ((size_t)(end-token) != arg->class_name_len)
+        return 0;
+
+    if (strncmp(token, arg->class_name, arg->class_name_len))
+        return 0;
+
+    arg->has = true;
+    return 1;
+}
+
 // .hasClass(<string: className>)
 int
 pcedom_element_has_class(pcedom_element_t *elem, const char *class_name,
@@ -223,15 +247,22 @@ pcedom_element_has_class(pcedom_element_t *elem, const char *class_name,
     const unsigned char *s;
     size_t len;
     s = pcedom_element_get_attribute(elem,
-            (const unsigned char*)class_name, strlen(class_name),
-            &len);
+            (const unsigned char*)"class", 5, &len);
 
-    if (s &&
-        strncmp((const char*)s, class_name, len) == 0 &&
-        class_name[len] == '\0')
-    {
-        *has = true;
-    }
+    if (!s)
+        return 0;
+
+    struct class_token_arg arg = {
+        .class_name     = class_name,
+        .class_name_len = strlen(class_name),
+        .has            = false,
+    };
+
+    pcutils_token_by_delim((const char*)s, (const char*)s + len, ' ',
+            &arg, class_token_found);
+
+    *has = arg.has;
+
     return 0;
 }
 
@@ -374,13 +405,75 @@ pcedom_element_set_json_content(pcedom_element_t *elem, const char *json)
 // static int
 // pcedom_element_set_val(pcedom_element_t *elem, const what_type *val);
 
+struct add_class_token_arg {
+    const char           *class_name;
+    size_t                class_name_len;
+
+    int                   found;
+};
+
+static int
+add_class_token_found(const char *token, const char *end, void *ud)
+{
+    struct add_class_token_arg *arg = (struct add_class_token_arg*)ud;
+    if ((size_t)(end-token) == arg->class_name_len &&
+        strncmp(token, arg->class_name, end-token) == 0)
+    {
+        arg->found = 1;
+        return 1;
+    }
+
+    return 0;
+}
+
 // .addClass(! <string: className>)
 int
 pcedom_element_add_class(pcedom_element_t *elem, const char *class_name)
 {
     PC_ASSERT(elem && class_name);
-    PC_ASSERT(0); // Not implemented yet
-    return -1;
+
+    int r;
+    const unsigned char *s;
+    size_t len;
+    r = pcedom_element_attr(elem, "class", &s, &len);
+    if (r)
+        return -1;
+
+    struct add_class_token_arg arg;
+    arg.class_name     = class_name,
+    arg.class_name_len = strlen(class_name);
+
+    pcutils_token_by_delim((const char*)s, (const char*)s + len, ' ',
+            &arg, add_class_token_found);
+
+    if (arg.found == true) {
+        return 0;
+    }
+
+    struct pcutils_string string;
+    pcutils_string_init(&string, 128);
+
+    if (len == 0) {
+        r = pcutils_string_append(&string, "%s", class_name);
+    }
+    else {
+        r = pcutils_string_append(&string,
+                "%.*s %s", (int)len, (const char*)s, class_name);
+    }
+
+    if (r == 0) {
+        pcedom_attr_t *attr;
+        attr = pcedom_element_set_attribute(elem,
+                (const unsigned char*)"class", 5,
+                (const unsigned char*)string.abuf,
+                string.end - string.abuf);
+        if (attr == 0)
+            r = -1;
+    }
+
+    pcutils_string_reset(&string);
+
+    return r ? -1 : 0;
 }
 
 // .removeAttr(! <string: attributeName>)
@@ -394,14 +487,84 @@ pcedom_element_remove_attr(pcedom_element_t *elem, const char *attr_name)
     return ui ? -1 : 0;
 }
 
+struct del_class_token_arg {
+    const char             *class_name;
+    size_t                  class_name_len;
+
+    struct pcutils_string   string;
+};
+
+static int
+del_class_token_found(const char *token, const char *end, void *ud)
+{
+    struct del_class_token_arg *arg = (struct del_class_token_arg*)ud;
+
+    do {
+        if ((size_t)(end-token) != arg->class_name_len)
+            break;
+
+        if (strncmp(token, arg->class_name, arg->class_name_len))
+            break;
+
+        return 0;
+    } while (0);
+
+    int r;
+    int empty;
+    r = pcutils_string_is_empty(&arg->string, &empty);
+    if (r)
+        return -1;
+
+    if (empty) {
+        r = pcutils_string_append(&arg->string,
+                "%.*s", (int)(end-token), token);
+    }
+    else {
+        r = pcutils_string_append(&arg->string,
+                " %.*s", (int)(end-token), token);
+    }
+
+    if (r)
+        return -1;
+
+    return 0;
+}
+
 // .removeClass(! <string: className>)
 int
 pcedom_element_remove_class_by_name(pcedom_element_t *elem,
         const char *class_name)
 {
     PC_ASSERT(elem && class_name);
-    PC_ASSERT(0); // Not implemented yet
-    return -1;
+
+    int r;
+    const unsigned char *s;
+    size_t len;
+    r = pcedom_element_attr(elem, "class", &s, &len);
+    if (r)
+        return -1;
+
+    struct del_class_token_arg arg;
+    arg.class_name     = class_name;
+    arg.class_name_len = strlen(class_name);
+    pcutils_string_init(&arg.string, 128);
+
+    r = pcutils_token_by_delim((const char*)s, (const char*)s + len, ' ',
+            &arg, del_class_token_found);
+
+    if (r == 0) {
+        pcedom_attr_t *attr;
+        attr = pcedom_element_set_attribute(elem,
+                (const unsigned char*)"class", 5,
+                (const unsigned char*)arg.string.abuf,
+                arg.string.end - arg.string.abuf);
+        if (attr == 0)
+            r = -1;
+    }
+
+    pcutils_string_reset(&arg.string);
+
+    return r ? -1 : 0;
 }
 
 // ============================= for collection-variant =======================

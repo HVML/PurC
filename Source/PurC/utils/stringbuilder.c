@@ -263,6 +263,26 @@ pcutils_string_append(struct pcutils_string *string, const char *fmt, ...)
 }
 
 int
+pcutils_string_length(struct pcutils_string *string, size_t *len)
+{
+    if (len) {
+        *len = string->curr - string->abuf;
+    }
+
+    return 0;
+}
+
+int
+pcutils_string_is_empty(struct pcutils_string *string, int *empty)
+{
+    if (empty) {
+        *empty = (string->curr == string->buf) ? true : false;
+    }
+
+    return 0;
+}
+
+int
 pcutils_token_by_delim(const char *start, const char *end, const char c,
         void *ud, pcutils_token_found_f cb)
 {
@@ -273,11 +293,11 @@ pcutils_token_by_delim(const char *start, const char *end, const char c,
             continue;
         r = cb(start, p, ud);
         if (r)
-            return -1;
+            return r;
         start = p + 1;
     }
 
     r = cb(start, end, ud);
-    return r ? -1 : 0;
+    return r;
 }
 
