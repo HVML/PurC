@@ -1909,6 +1909,23 @@ purc_variant_container_displace(purc_variant_t dst,
         purc_variant_t src, bool silently);
 
 /**
+ * Remove the values from the container.
+ *
+ * @param dst: the dst variant (object, array, set)
+ * @param value: the variant to remove from container (object, array, set)
+ * @param silently: True means ignore the following error:
+ *      - PURC_ERROR_INVALID_VALUE
+ *      - PURC_ERROR_WRONG_DATA_TYPE
+ *
+ * Returns: True on success, otherwise False.
+ *
+ * Since: 0.0.5
+ */
+PCA_EXPORT bool
+purc_variant_container_remove(purc_variant_t dst,
+        purc_variant_t src, bool silently);
+
+/**
  * Appends value to the tail of an container.
  *
  * @param dst: the dst variant (array)
