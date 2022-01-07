@@ -252,22 +252,6 @@ end:
 }
 
 static bool
-is_in_set(purc_variant_t set, purc_variant_t v)
-{
-    bool ret = false;
-    purc_variant_t val;
-    foreach_value_in_variant_set(set, val)
-        if (purc_variant_compare_ex(val, v, PCVARIANT_COMPARE_OPT_AUTO) == 0) {
-            ret = true;
-            goto end;
-        }
-    end_foreach;
-
-end:
-    return ret;
-}
-
-static bool
 is_in_array(purc_variant_t array, purc_variant_t v, int* idx)
 {
     bool ret = false;
@@ -396,7 +380,7 @@ subtract_set(void* ctxt, purc_variant_t value,
     purc_variant_t set = (purc_variant_t) c_ctxt->ctxt;
     purc_variant_t result = (purc_variant_t) c_ctxt->extra;
 
-    return is_in_set(set, value) ? true :
+    return pcvariant_is_in_set(set, value) ? true :
         purc_variant_array_append(result, value);
 }
 
@@ -424,8 +408,8 @@ intersect_set(void* ctxt, purc_variant_t value,
     purc_variant_t set = (purc_variant_t) c_ctxt->ctxt;
     purc_variant_t result = (purc_variant_t) c_ctxt->extra;
 
-    return is_in_set(set, value) ? purc_variant_array_append(result, value) :
-        true;
+    return pcvariant_is_in_set(set, value) ?
+        purc_variant_array_append(result, value) : true;
 }
 
 static bool

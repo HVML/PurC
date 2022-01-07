@@ -268,6 +268,8 @@ void pcvariant_on_post_fired(
                                 // (only for container).
         );
 
+bool pcvariant_is_in_set (purc_variant_t set, purc_variant_t value);
+
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */
