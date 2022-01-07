@@ -1926,9 +1926,9 @@ purc_variant_container_remove(purc_variant_t dst,
         purc_variant_t src, bool silently);
 
 /**
- * Appends value to the tail of an container.
+ * Appends all the members of the array to the tail of the target array.
  *
- * @param dst: the dst variant (array)
+ * @param array: the dst array variant
  * @param value: the value to be appended (array)
  * @param silently: True means ignore the following error:
  *      - PURC_ERROR_INVALID_VALUE
@@ -1939,13 +1939,13 @@ purc_variant_container_remove(purc_variant_t dst,
  * Since: 0.0.5
  */
 PCA_EXPORT bool
-purc_variant_array_append_another(purc_variant_t dst,
+purc_variant_array_append_another(purc_variant_t array,
         purc_variant_t another, bool silently);
 
 /**
- * Insert value to the head of an container.
+ * Insert all the members of the array to the head of the target array.
  *
- * @param dst: the dst variant (array)
+ * @param array: the dst array variant
  * @param value: the value to be insert (array)
  * @param silently: True means ignore the following error:
  *      - PURC_ERROR_INVALID_VALUE
@@ -1956,13 +1956,13 @@ purc_variant_array_append_another(purc_variant_t dst,
  * Since: 0.0.5
  */
 PCA_EXPORT bool
-purc_variant_array_prepend_another(purc_variant_t dst,
+purc_variant_array_prepend_another(purc_variant_t array,
         purc_variant_t another, bool silently);
 
 /**
- * Merge value to the container.
+ * Merge value to the object
  *
- * @param dst: the dst variant (object)
+ * @param object: the dst object variant
  * @param value: the value to be merge (object)
  * @param silently: True means ignore the following error:
  *      - PURC_ERROR_INVALID_VALUE
@@ -1973,13 +1973,14 @@ purc_variant_array_prepend_another(purc_variant_t dst,
  * Since: 0.0.5
  */
 PCA_EXPORT bool
-purc_variant_object_merge_another(purc_variant_t dst,
+purc_variant_object_merge_another(purc_variant_t object,
         purc_variant_t another, bool silently);
 
 /**
- * Inserts the value to an container, places it before an indicated element.
+ * Insert all the members of the array into the target array and place it
+ * after the indicated element.
  *
- * @param dst: the dst variant (array)
+ * @param array: the dst array variant
  * @param idx: the index of element before which the new value will be placed
  * @param value: the inserted value (array)
  * @param silently: True means ignore the following error:
@@ -1991,13 +1992,14 @@ purc_variant_object_merge_another(purc_variant_t dst,
  * Since: 0.0.5
  */
 PCA_EXPORT bool
-purc_variant_array_insert_another_before(purc_variant_t dst,
+purc_variant_array_insert_another_before(purc_variant_t array,
         int idx, purc_variant_t another, bool silently);
 
 /**
- * Inserts the  value to an container, places it after an indicated element.
+ * Insert all the members of the array into the target array and place it
+ * after the specified element
  *
- * @param dst: the dst variant (array)
+ * @param array: the dst array variant
  * @param idx: the index of element after which the new value will be placed
  * @param value: the inserted value (array)
  * @param silently: True means ignore the following error:
@@ -2009,13 +2011,13 @@ purc_variant_array_insert_another_before(purc_variant_t dst,
  * Since: 0.0.5
  */
 PCA_EXPORT bool
-purc_variant_array_insert_another_after(purc_variant_t dst,
+purc_variant_array_insert_another_after(purc_variant_t array,
         int idx, purc_variant_t another, bool silently);
 
 /**
- * Unite the value to the container
+ * Unite operation on the set
  *
- * @param dst: the dst variant (set)
+ * @param set: the dst set variant
  * @param value: the value to be unite (array, set)
  * @param silently: True means ignore the following error:
  *      - PURC_ERROR_INVALID_VALUE
@@ -2026,13 +2028,13 @@ purc_variant_array_insert_another_after(purc_variant_t dst,
  * Since: 0.0.5
  */
 PCA_EXPORT bool
-purc_variant_set_unite(purc_variant_t dst,
+purc_variant_set_unite(purc_variant_t set,
         purc_variant_t src, bool silently);
 
 /**
- * Intersection operation on the collection
+ * Intersection operation on the set
  *
- * @param dst: the dst variant (set)
+ * @param set: the dst set variant
  * @param value: the value to intersect (array, set)
  * @param silently: True means ignore the following error:
  *      - PURC_ERROR_INVALID_VALUE
@@ -2043,13 +2045,13 @@ purc_variant_set_unite(purc_variant_t dst,
  * Since: 0.0.5
  */
 PCA_EXPORT bool
-purc_variant_set_intersect(purc_variant_t dst,
+purc_variant_set_intersect(purc_variant_t set,
         purc_variant_t src, bool silently);
 
 /**
- * Subtraction operation on the collection
+ * Subtraction operation on the set
  *
- * @param dst: the dst variant (set)
+ * @param set: the dst set variant
  * @param value: the value to substract (array, set)
  * @param silently: True means ignore the following error:
  *      - PURC_ERROR_INVALID_VALUE
@@ -2060,13 +2062,13 @@ purc_variant_set_intersect(purc_variant_t dst,
  * Since: 0.0.5
  */
 PCA_EXPORT bool
-purc_variant_set_subtract(purc_variant_t dst,
+purc_variant_set_subtract(purc_variant_t set,
         purc_variant_t src, bool silently);
 
 /**
- * Xor operation on the collection
+ * Xor operation on the set
  *
- * @param dst: the dst variant (set)
+ * @param set: the dst set variant
  * @param value: the value to xor (array, set)
  * @param silently: True means ignore the following error:
  *      - PURC_ERROR_INVALID_VALUE
@@ -2077,13 +2079,13 @@ purc_variant_set_subtract(purc_variant_t dst,
  * Since: 0.0.5
  */
 PCA_EXPORT bool
-purc_variant_set_xor(purc_variant_t dst,
+purc_variant_set_xor(purc_variant_t set,
         purc_variant_t src, bool silently);
 
 /**
- * Overwrite operation on the collection
+ * Overwrite operation on the set
  *
- * @param dst: the dst variant (set)
+ * @param set: the dst set variant
  * @param value: the value to overwrite (object, array, set)
  * @param silently: True means ignore the following error:
  *      - PURC_ERROR_INVALID_VALUE
@@ -2094,7 +2096,7 @@ purc_variant_set_xor(purc_variant_t dst,
  * Since: 0.0.5
  */
 PCA_EXPORT bool
-purc_variant_set_overwrite(purc_variant_t dst,
+purc_variant_set_overwrite(purc_variant_t set,
         purc_variant_t src, bool silently);
 
 PCA_EXTERN_C_END
