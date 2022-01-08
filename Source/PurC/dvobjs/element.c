@@ -35,10 +35,64 @@ element_eraser(struct pcintr_element *element)
     return true;
 }
 
-static inline purc_variant_t
-element_attr_getter_by_name(pcedom_element_t *element,
-        purc_variant_t an)
+purc_variant_t
+pcintr_element_prop_getter(pcedom_element_t *element,
+        size_t nr_args, purc_variant_t *argv)
 {
+    UNUSED_PARAM(element);
+
+    if (nr_args < 1) {
+        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        return PURC_VARIANT_INVALID;
+    }
+
+    if (argv == NULL || argv[0] == PURC_VARIANT_INVALID) {
+        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        return PURC_VARIANT_INVALID;
+    }
+
+    purc_variant_t pn = argv[0]; // property name
+    if (!purc_variant_is_string(pn)) {
+        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        return PURC_VARIANT_INVALID;
+    }
+
+    PC_ASSERT(0); // Not implemented yet
+    return PURC_VARIANT_INVALID;
+}
+
+static inline purc_variant_t
+prop_getter(void* native_entity, size_t nr_args, purc_variant_t* argv)
+{
+    PC_ASSERT(native_entity);
+
+    struct pcintr_element *element;
+    element = (struct pcintr_element*)native_entity;
+    PC_ASSERT(element && element->elem);
+
+    return pcintr_element_prop_getter(element->elem, nr_args, argv);
+}
+
+purc_variant_t
+pcintr_element_attr_getter(pcedom_element_t *element,
+        size_t nr_args, purc_variant_t *argv)
+{
+    if (nr_args < 1) {
+        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        return PURC_VARIANT_INVALID;
+    }
+
+    if (argv == NULL || argv[0] == PURC_VARIANT_INVALID) {
+        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        return PURC_VARIANT_INVALID;
+    }
+
+    purc_variant_t an = argv[0]; // attribute name
+    if (!purc_variant_is_string(an)) {
+        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        return PURC_VARIANT_INVALID;
+    }
+
     const char *name = purc_variant_get_string_const(an);
     int r;
     const char *val;
@@ -65,25 +119,216 @@ attr_getter(void* native_entity, size_t nr_args, purc_variant_t* argv)
     element = (struct pcintr_element*)native_entity;
     PC_ASSERT(element && element->elem);
 
-    if (nr_args == 1) {
-        if (argv == NULL || argv[0] == PURC_VARIANT_INVALID) {
-            pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
-            return PURC_VARIANT_INVALID;
-        }
-        purc_variant_t an = argv[0]; // attribute name
-        if (!purc_variant_is_string(an)) {
-            pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
-            return PURC_VARIANT_INVALID;
-        }
-        return element_attr_getter_by_name(element->elem, an);
+    return pcintr_element_attr_getter(element->elem, nr_args, argv);
+}
+
+purc_variant_t
+pcintr_element_style_getter(pcedom_element_t *element,
+        size_t nr_args, purc_variant_t* argv)
+{
+    if (nr_args < 1) {
+        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        return PURC_VARIANT_INVALID;
     }
 
-    pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+    if (argv == NULL || argv[0] == PURC_VARIANT_INVALID) {
+        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        return PURC_VARIANT_INVALID;
+    }
+
+    purc_variant_t sn = argv[0]; // style name
+    if (!purc_variant_is_string(sn)) {
+        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        return PURC_VARIANT_INVALID;
+    }
+
+    const char *name = purc_variant_get_string_const(sn);
+    int r;
+    const char *style;
+    size_t len;
+    r = pcedom_element_style(element, name,
+            (const unsigned char**)&style, &len);
+
+    if (r) {
+        return PURC_VARIANT_INVALID;
+    }
+
+    PC_ASSERT(style && style[len]=='\0');
+
+    // FIXME: strdup???
+    return purc_variant_make_string_static(style, true);
+}
+
+static inline purc_variant_t
+style_getter(void* native_entity, size_t nr_args, purc_variant_t* argv)
+{
+    PC_ASSERT(native_entity);
+
+    struct pcintr_element *element;
+    element = (struct pcintr_element*)native_entity;
+    PC_ASSERT(element && element->elem);
+
+    return pcintr_element_style_getter(element->elem, nr_args, argv);
+}
+
+purc_variant_t
+pcintr_element_content_getter(pcedom_element_t *element,
+        size_t nr_args, purc_variant_t* argv)
+{
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+
+    int r;
+    const char *content;
+    size_t len;
+    r = pcedom_element_content(element,
+            (const unsigned char**)&content, &len);
+
+    if (r)
+        return PURC_VARIANT_INVALID;
+
+    // FIXME: strdup???
+    return purc_variant_make_string_static(content, true);
+}
+
+static inline purc_variant_t
+content_getter(void* native_entity, size_t nr_args, purc_variant_t* argv)
+{
+    PC_ASSERT(native_entity);
+
+    struct pcintr_element *element;
+    element = (struct pcintr_element*)native_entity;
+    PC_ASSERT(element && element->elem);
+
+    return pcintr_element_content_getter(element->elem, nr_args, argv);
+}
+
+purc_variant_t
+pcintr_element_json_content_getter(pcedom_element_t *element,
+        size_t nr_args, purc_variant_t* argv)
+{
+    UNUSED_PARAM(element);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    PC_ASSERT(0); // Not implemented yet
     return PURC_VARIANT_INVALID;
+}
+
+static inline purc_variant_t
+json_content_getter(void* native_entity, size_t nr_args, purc_variant_t* argv)
+{
+    PC_ASSERT(native_entity);
+
+    struct pcintr_element *element;
+    element = (struct pcintr_element*)native_entity;
+    PC_ASSERT(element && element->elem);
+
+    return pcintr_element_json_content_getter(element->elem, nr_args, argv);
+}
+
+purc_variant_t
+pcintr_element_text_content_getter(pcedom_element_t *element,
+        size_t nr_args, purc_variant_t* argv)
+{
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+
+    int r;
+    char *text;
+    size_t len;
+    r = pcedom_element_text_content(element, &text, &len);
+
+    if (r)
+        return PURC_VARIANT_INVALID;
+
+    return purc_variant_make_string_reuse_buff(text, len, true);
+}
+
+static inline purc_variant_t
+text_content_getter(void* native_entity, size_t nr_args, purc_variant_t* argv)
+{
+    PC_ASSERT(native_entity);
+
+    struct pcintr_element *element;
+    element = (struct pcintr_element*)native_entity;
+    PC_ASSERT(element && element->elem);
+
+    return pcintr_element_text_content_getter(element->elem, nr_args, argv);
+}
+
+purc_variant_t
+pcintr_element_val_getter(pcedom_element_t *element,
+        size_t nr_args, purc_variant_t* argv)
+{
+    UNUSED_PARAM(element);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    PC_ASSERT(0); // Not implemented yet
+    return PURC_VARIANT_INVALID;
+}
+
+static inline purc_variant_t
+val_getter(void* native_entity, size_t nr_args, purc_variant_t* argv)
+{
+    PC_ASSERT(native_entity);
+
+    struct pcintr_element *element;
+    element = (struct pcintr_element*)native_entity;
+    PC_ASSERT(element && element->elem);
+
+    return pcintr_element_val_getter(element->elem, nr_args, argv);
+}
+
+purc_variant_t
+pcintr_element_has_class_getter(pcedom_element_t *element,
+        size_t nr_args, purc_variant_t* argv)
+{
+    if (nr_args < 1) {
+        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        return PURC_VARIANT_INVALID;
+    }
+
+    if (argv == NULL || argv[0] == PURC_VARIANT_INVALID) {
+        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        return PURC_VARIANT_INVALID;
+    }
+    purc_variant_t cn = argv[0]; // class name
+    if (!purc_variant_is_string(cn)) {
+        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        return PURC_VARIANT_INVALID;
+    }
+
+    const char *name = purc_variant_get_string_const(cn);
+    int r;
+    bool has;
+    r = pcedom_element_has_class(element, name, &has);
+    if (r)
+        return PURC_VARIANT_INVALID;
+
+    return purc_variant_make_boolean(has);
+}
+
+static inline purc_variant_t
+has_class_getter(void* native_entity, size_t nr_args, purc_variant_t* argv)
+{
+    PC_ASSERT(native_entity);
+
+    struct pcintr_element *element;
+    element = (struct pcintr_element*)native_entity;
+    PC_ASSERT(element && element->elem);
+
+    return pcintr_element_has_class_getter(element->elem, nr_args, argv);
 }
 
 static struct native_property_cfg configs[] = {
     {"attr", attr_getter, NULL, NULL, NULL},
+    {"prop", prop_getter, NULL, NULL, NULL},
+    {"style", style_getter, NULL, NULL, NULL},
+    {"content", content_getter, NULL, NULL, NULL},
+    {"text_content", text_content_getter, NULL, NULL, NULL},
+    {"json_content", json_content_getter, NULL, NULL, NULL},
+    {"val", val_getter, NULL, NULL, NULL},
+    {"has_class", has_class_getter, NULL, NULL, NULL},
 };
 
 static struct native_property_cfg*

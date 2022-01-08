@@ -112,9 +112,190 @@ at_getter(void *entity,
     return pcintr_make_element_variant(elem);
 }
 
+static inline purc_variant_t
+attr_getter(void* native_entity, size_t nr_args, purc_variant_t* argv)
+{
+    PC_ASSERT(native_entity);
+
+    struct pcintr_elements *elements;
+    elements = (struct pcintr_elements*)native_entity;
+    PC_ASSERT(elements && elements->elements);
+
+    size_t nr = pcutils_array_length(elements->elements);
+    if (nr == 0)
+        return PURC_VARIANT_INVALID;
+
+    struct pcintr_element *element;
+    element = (struct pcintr_element*)pcutils_array_get(elements->elements, 0);
+    PC_ASSERT(element && element->elem);
+
+    return pcintr_element_attr_getter(element->elem, nr_args, argv);
+}
+
+static inline purc_variant_t
+prop_getter(void* native_entity, size_t nr_args, purc_variant_t* argv)
+{
+    PC_ASSERT(native_entity);
+
+    struct pcintr_elements *elements;
+    elements = (struct pcintr_elements*)native_entity;
+    PC_ASSERT(elements && elements->elements);
+
+    size_t nr = pcutils_array_length(elements->elements);
+    if (nr == 0)
+        return PURC_VARIANT_INVALID;
+
+    struct pcintr_element *element;
+    element = (struct pcintr_element*)pcutils_array_get(elements->elements, 0);
+    PC_ASSERT(element && element->elem);
+
+    return pcintr_element_prop_getter(element->elem, nr_args, argv);
+}
+
+static inline purc_variant_t
+style_getter(void* native_entity, size_t nr_args, purc_variant_t* argv)
+{
+    PC_ASSERT(native_entity);
+
+    struct pcintr_elements *elements;
+    elements = (struct pcintr_elements*)native_entity;
+    PC_ASSERT(elements && elements->elements);
+
+    size_t nr = pcutils_array_length(elements->elements);
+    if (nr == 0)
+        return PURC_VARIANT_INVALID;
+
+    struct pcintr_element *element;
+    element = (struct pcintr_element*)pcutils_array_get(elements->elements, 0);
+    PC_ASSERT(element && element->elem);
+
+    return pcintr_element_style_getter(element->elem, nr_args, argv);
+}
+
+static inline purc_variant_t
+content_getter(void* native_entity, size_t nr_args, purc_variant_t* argv)
+{
+    PC_ASSERT(native_entity);
+
+    struct pcintr_elements *elements;
+    elements = (struct pcintr_elements*)native_entity;
+    PC_ASSERT(elements && elements->elements);
+
+    size_t nr = pcutils_array_length(elements->elements);
+    if (nr == 0)
+        return PURC_VARIANT_INVALID;
+
+    struct pcintr_element *element;
+    element = (struct pcintr_element*)pcutils_array_get(elements->elements, 0);
+    PC_ASSERT(element && element->elem);
+
+    return pcintr_element_content_getter(element->elem, nr_args, argv);
+}
+
+static inline purc_variant_t
+text_content_getter(void* native_entity, size_t nr_args, purc_variant_t* argv)
+{
+    PC_ASSERT(native_entity);
+
+    struct pcintr_elements *elements;
+    elements = (struct pcintr_elements*)native_entity;
+    PC_ASSERT(elements && elements->elements);
+
+    size_t nr = pcutils_array_length(elements->elements);
+    if (nr == 0)
+        return PURC_VARIANT_INVALID;
+
+    struct pcintr_element *element;
+    element = (struct pcintr_element*)pcutils_array_get(elements->elements, 0);
+    PC_ASSERT(element && element->elem);
+
+    return pcintr_element_text_content_getter(element->elem, nr_args, argv);
+}
+
+static inline purc_variant_t
+json_content_getter(void* native_entity, size_t nr_args, purc_variant_t* argv)
+{
+    PC_ASSERT(native_entity);
+
+    struct pcintr_elements *elements;
+    elements = (struct pcintr_elements*)native_entity;
+    PC_ASSERT(elements && elements->elements);
+
+    size_t nr = pcutils_array_length(elements->elements);
+    if (nr == 0)
+        return PURC_VARIANT_INVALID;
+
+    struct pcintr_element *element;
+    element = (struct pcintr_element*)pcutils_array_get(elements->elements, 0);
+    PC_ASSERT(element && element->elem);
+
+    return pcintr_element_json_content_getter(element->elem, nr_args, argv);
+}
+
+static inline purc_variant_t
+val_getter(void* native_entity, size_t nr_args, purc_variant_t* argv)
+{
+    PC_ASSERT(native_entity);
+
+    struct pcintr_elements *elements;
+    elements = (struct pcintr_elements*)native_entity;
+    PC_ASSERT(elements && elements->elements);
+
+    size_t nr = pcutils_array_length(elements->elements);
+    if (nr == 0)
+        return PURC_VARIANT_INVALID;
+
+    struct pcintr_element *element;
+    element = (struct pcintr_element*)pcutils_array_get(elements->elements, 0);
+    PC_ASSERT(element && element->elem);
+
+    return pcintr_element_val_getter(element->elem, nr_args, argv);
+}
+
+static inline purc_variant_t
+has_class_getter(void* native_entity, size_t nr_args, purc_variant_t* argv)
+{
+    PC_ASSERT(native_entity);
+
+    struct pcintr_elements *elements;
+    elements = (struct pcintr_elements*)native_entity;
+    PC_ASSERT(elements && elements->elements);
+
+    size_t nr = pcutils_array_length(elements->elements);
+    if (nr == 0)
+        return purc_variant_make_boolean(false);
+
+    for (size_t i=0; i<nr; ++i) {
+        struct pcintr_element *element;
+        element = (struct pcintr_element*)pcutils_array_get(
+                elements->elements, i);
+        PC_ASSERT(element && element->elem);
+
+        purc_variant_t v = pcintr_element_has_class_getter(element->elem,
+                nr_args, argv);
+        if (v == PURC_VARIANT_INVALID)
+            continue;
+        PC_ASSERT(purc_variant_is_boolean(v));
+        bool has = purc_variant_booleanize(v);
+        if (has)
+            return v;
+        purc_variant_unref(v);
+    }
+
+    return purc_variant_make_boolean(false);
+}
+
 static struct native_property_cfg configs[] = {
     {"count", count_getter, NULL, NULL, NULL},
     {"at", at_getter, NULL, NULL, NULL},
+    {"attr", attr_getter, NULL, NULL, NULL},
+    {"prop", prop_getter, NULL, NULL, NULL},
+    {"style", style_getter, NULL, NULL, NULL},
+    {"content", content_getter, NULL, NULL, NULL},
+    {"text_content", text_content_getter, NULL, NULL, NULL},
+    {"json_content", json_content_getter, NULL, NULL, NULL},
+    {"val", val_getter, NULL, NULL, NULL},
+    {"has_class", has_class_getter, NULL, NULL, NULL},
 };
 
 static struct native_property_cfg*
@@ -325,7 +506,7 @@ traverse_elements(struct pcedom_element *root, traverse_cb cb, void *ud)
             continue;
         struct pcedom_element *element;
         element = container_of(child, struct pcedom_element, node);
-        r = cb(element, ud);
+        r = traverse_elements(element, cb, ud);
         if (r)
             return -1;
     }

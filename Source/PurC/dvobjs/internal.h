@@ -57,6 +57,39 @@ purc_variant_t
 pcintr_query_elements(struct pcedom_element *root,
     const char *css) WTF_INTERNAL;
 
+
+purc_variant_t
+pcintr_element_attr_getter(pcedom_element_t *element,
+        size_t nr_args, purc_variant_t *argv);
+
+purc_variant_t
+pcintr_element_prop_getter(pcedom_element_t *element,
+        size_t nr_args, purc_variant_t *argv);
+
+purc_variant_t
+pcintr_element_style_getter(pcedom_element_t *element,
+        size_t nr_args, purc_variant_t* argv);
+
+purc_variant_t
+pcintr_element_content_getter(pcedom_element_t *element,
+        size_t nr_args, purc_variant_t* argv);
+
+purc_variant_t
+pcintr_element_text_content_getter(pcedom_element_t *element,
+        size_t nr_args, purc_variant_t* argv);
+
+purc_variant_t
+pcintr_element_json_content_getter(pcedom_element_t *element,
+        size_t nr_args, purc_variant_t* argv);
+
+purc_variant_t
+pcintr_element_val_getter(pcedom_element_t *element,
+        size_t nr_args, purc_variant_t* argv);
+
+purc_variant_t
+pcintr_element_has_class_getter(pcedom_element_t *element,
+        size_t nr_args, purc_variant_t* argv);
+
 PCA_EXTERN_C_END
 
 #endif  /* PURC_DVOBJS_ELEMENT_H */
