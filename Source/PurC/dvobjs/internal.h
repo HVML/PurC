@@ -33,13 +33,13 @@
 #include "private/errors.h"
 #include "private/edom.h"
 
-struct pcintr_element
+struct pcdvobjs_element
 {
     struct pcedom_element          *elem;       // NOTE: no ownership
 };
 
-struct pcintr_elements {
-    pcutils_array_t          *elements; // struct pcintr_element *
+struct pcdvobjs_elements {
+    pcutils_array_t          *elements; // struct pcdvobjs_element *
 };
 
 struct native_property_cfg {
@@ -54,40 +54,40 @@ struct native_property_cfg {
 PCA_EXTERN_C_BEGIN
 
 purc_variant_t
-pcintr_query_elements(struct pcedom_element *root,
+pcdvobjs_query_elements(struct pcedom_element *root,
     const char *css) WTF_INTERNAL;
 
 
 purc_variant_t
-pcintr_element_attr_getter(pcedom_element_t *element,
+pcdvobjs_element_attr_getter(pcedom_element_t *element,
         size_t nr_args, purc_variant_t *argv);
 
 purc_variant_t
-pcintr_element_prop_getter(pcedom_element_t *element,
+pcdvobjs_element_prop_getter(pcedom_element_t *element,
         size_t nr_args, purc_variant_t *argv);
 
 purc_variant_t
-pcintr_element_style_getter(pcedom_element_t *element,
+pcdvobjs_element_style_getter(pcedom_element_t *element,
         size_t nr_args, purc_variant_t* argv);
 
 purc_variant_t
-pcintr_element_content_getter(pcedom_element_t *element,
+pcdvobjs_element_content_getter(pcedom_element_t *element,
         size_t nr_args, purc_variant_t* argv);
 
 purc_variant_t
-pcintr_element_text_content_getter(pcedom_element_t *element,
+pcdvobjs_element_text_content_getter(pcedom_element_t *element,
         size_t nr_args, purc_variant_t* argv);
 
 purc_variant_t
-pcintr_element_json_content_getter(pcedom_element_t *element,
+pcdvobjs_element_json_content_getter(pcedom_element_t *element,
         size_t nr_args, purc_variant_t* argv);
 
 purc_variant_t
-pcintr_element_val_getter(pcedom_element_t *element,
+pcdvobjs_element_val_getter(pcedom_element_t *element,
         size_t nr_args, purc_variant_t* argv);
 
 purc_variant_t
-pcintr_element_has_class_getter(pcedom_element_t *element,
+pcdvobjs_element_has_class_getter(pcedom_element_t *element,
         size_t nr_args, purc_variant_t* argv);
 
 PCA_EXTERN_C_END

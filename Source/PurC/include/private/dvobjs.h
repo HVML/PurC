@@ -133,7 +133,10 @@ struct wildcard_list {
 };
 
 purc_variant_t
-pcintr_make_element_variant(struct pcedom_element *element);
+pcdvobjs_make_doc_variant(struct pcedom_document *doc);
+
+purc_variant_t
+pcdvobjs_make_element_variant(struct pcedom_element *element);
 
 #ifdef __cplusplus
 }

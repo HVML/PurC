@@ -28,7 +28,7 @@
 #include "purc-edom.h"
 
 static inline bool
-element_eraser(struct pcintr_element *element)
+element_eraser(struct pcdvobjs_element *element)
 {
     element->elem = NULL;
     free(element);
@@ -36,7 +36,7 @@ element_eraser(struct pcintr_element *element)
 }
 
 purc_variant_t
-pcintr_element_prop_getter(pcedom_element_t *element,
+pcdvobjs_element_prop_getter(pcedom_element_t *element,
         size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(element);
@@ -66,15 +66,15 @@ prop_getter(void* native_entity, size_t nr_args, purc_variant_t* argv)
 {
     PC_ASSERT(native_entity);
 
-    struct pcintr_element *element;
-    element = (struct pcintr_element*)native_entity;
+    struct pcdvobjs_element *element;
+    element = (struct pcdvobjs_element*)native_entity;
     PC_ASSERT(element && element->elem);
 
-    return pcintr_element_prop_getter(element->elem, nr_args, argv);
+    return pcdvobjs_element_prop_getter(element->elem, nr_args, argv);
 }
 
 purc_variant_t
-pcintr_element_attr_getter(pcedom_element_t *element,
+pcdvobjs_element_attr_getter(pcedom_element_t *element,
         size_t nr_args, purc_variant_t *argv)
 {
     if (nr_args < 1) {
@@ -115,15 +115,15 @@ attr_getter(void* native_entity, size_t nr_args, purc_variant_t* argv)
 {
     PC_ASSERT(native_entity);
 
-    struct pcintr_element *element;
-    element = (struct pcintr_element*)native_entity;
+    struct pcdvobjs_element *element;
+    element = (struct pcdvobjs_element*)native_entity;
     PC_ASSERT(element && element->elem);
 
-    return pcintr_element_attr_getter(element->elem, nr_args, argv);
+    return pcdvobjs_element_attr_getter(element->elem, nr_args, argv);
 }
 
 purc_variant_t
-pcintr_element_style_getter(pcedom_element_t *element,
+pcdvobjs_element_style_getter(pcedom_element_t *element,
         size_t nr_args, purc_variant_t* argv)
 {
     if (nr_args < 1) {
@@ -164,15 +164,15 @@ style_getter(void* native_entity, size_t nr_args, purc_variant_t* argv)
 {
     PC_ASSERT(native_entity);
 
-    struct pcintr_element *element;
-    element = (struct pcintr_element*)native_entity;
+    struct pcdvobjs_element *element;
+    element = (struct pcdvobjs_element*)native_entity;
     PC_ASSERT(element && element->elem);
 
-    return pcintr_element_style_getter(element->elem, nr_args, argv);
+    return pcdvobjs_element_style_getter(element->elem, nr_args, argv);
 }
 
 purc_variant_t
-pcintr_element_content_getter(pcedom_element_t *element,
+pcdvobjs_element_content_getter(pcedom_element_t *element,
         size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(nr_args);
@@ -196,15 +196,15 @@ content_getter(void* native_entity, size_t nr_args, purc_variant_t* argv)
 {
     PC_ASSERT(native_entity);
 
-    struct pcintr_element *element;
-    element = (struct pcintr_element*)native_entity;
+    struct pcdvobjs_element *element;
+    element = (struct pcdvobjs_element*)native_entity;
     PC_ASSERT(element && element->elem);
 
-    return pcintr_element_content_getter(element->elem, nr_args, argv);
+    return pcdvobjs_element_content_getter(element->elem, nr_args, argv);
 }
 
 purc_variant_t
-pcintr_element_json_content_getter(pcedom_element_t *element,
+pcdvobjs_element_json_content_getter(pcedom_element_t *element,
         size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(element);
@@ -219,15 +219,15 @@ json_content_getter(void* native_entity, size_t nr_args, purc_variant_t* argv)
 {
     PC_ASSERT(native_entity);
 
-    struct pcintr_element *element;
-    element = (struct pcintr_element*)native_entity;
+    struct pcdvobjs_element *element;
+    element = (struct pcdvobjs_element*)native_entity;
     PC_ASSERT(element && element->elem);
 
-    return pcintr_element_json_content_getter(element->elem, nr_args, argv);
+    return pcdvobjs_element_json_content_getter(element->elem, nr_args, argv);
 }
 
 purc_variant_t
-pcintr_element_text_content_getter(pcedom_element_t *element,
+pcdvobjs_element_text_content_getter(pcedom_element_t *element,
         size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(nr_args);
@@ -249,15 +249,15 @@ text_content_getter(void* native_entity, size_t nr_args, purc_variant_t* argv)
 {
     PC_ASSERT(native_entity);
 
-    struct pcintr_element *element;
-    element = (struct pcintr_element*)native_entity;
+    struct pcdvobjs_element *element;
+    element = (struct pcdvobjs_element*)native_entity;
     PC_ASSERT(element && element->elem);
 
-    return pcintr_element_text_content_getter(element->elem, nr_args, argv);
+    return pcdvobjs_element_text_content_getter(element->elem, nr_args, argv);
 }
 
 purc_variant_t
-pcintr_element_val_getter(pcedom_element_t *element,
+pcdvobjs_element_val_getter(pcedom_element_t *element,
         size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(element);
@@ -272,15 +272,15 @@ val_getter(void* native_entity, size_t nr_args, purc_variant_t* argv)
 {
     PC_ASSERT(native_entity);
 
-    struct pcintr_element *element;
-    element = (struct pcintr_element*)native_entity;
+    struct pcdvobjs_element *element;
+    element = (struct pcdvobjs_element*)native_entity;
     PC_ASSERT(element && element->elem);
 
-    return pcintr_element_val_getter(element->elem, nr_args, argv);
+    return pcdvobjs_element_val_getter(element->elem, nr_args, argv);
 }
 
 purc_variant_t
-pcintr_element_has_class_getter(pcedom_element_t *element,
+pcdvobjs_element_has_class_getter(pcedom_element_t *element,
         size_t nr_args, purc_variant_t* argv)
 {
     if (nr_args < 1) {
@@ -313,11 +313,11 @@ has_class_getter(void* native_entity, size_t nr_args, purc_variant_t* argv)
 {
     PC_ASSERT(native_entity);
 
-    struct pcintr_element *element;
-    element = (struct pcintr_element*)native_entity;
+    struct pcdvobjs_element *element;
+    element = (struct pcdvobjs_element*)native_entity;
     PC_ASSERT(element && element->elem);
 
-    return pcintr_element_has_class_getter(element->elem, nr_args, argv);
+    return pcdvobjs_element_has_class_getter(element->elem, nr_args, argv);
 }
 
 static struct native_property_cfg configs[] = {
@@ -404,8 +404,8 @@ eraser(void* native_entity)
 {
     PC_ASSERT(native_entity);
 
-    struct pcintr_element *element;
-    element = (struct pcintr_element*)native_entity;
+    struct pcdvobjs_element *element;
+    element = (struct pcdvobjs_element*)native_entity;
 
     return element_eraser(element);
 }
@@ -420,7 +420,7 @@ observe(void* native_entity, ...)
 }
 
 purc_variant_t
-pcintr_make_element_variant(struct pcedom_element *elem)
+pcdvobjs_make_element_variant(struct pcedom_element *elem)
 {
     static struct purc_native_ops ops = {
         .property_getter            = property_getter,
@@ -433,8 +433,8 @@ pcintr_make_element_variant(struct pcedom_element *elem)
         .observe                    = observe,
     };
 
-    struct pcintr_element *element;
-    element = (struct pcintr_element*)calloc(1, sizeof(*element));
+    struct pcdvobjs_element *element;
+    element = (struct pcdvobjs_element*)calloc(1, sizeof(*element));
     if (!element) {
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return PURC_VARIANT_INVALID;

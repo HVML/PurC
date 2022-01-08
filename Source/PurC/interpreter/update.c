@@ -266,7 +266,7 @@ process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
             node = pcedom_collection_node(collection, i);
             PC_ASSERT(node);
             pcedom_element_t *elem = (pcedom_element_t*)node;
-            purc_variant_t o = pcintr_make_element_variant(elem);
+            purc_variant_t o = pcdvobjs_make_element_variant(elem);
             PC_ASSERT(o != PURC_VARIANT_INVALID);
             const char *content = purc_variant_get_string_const(src);
             pcintr_printf_to_fragment(co->stack, o, at, "%s", content);

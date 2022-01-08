@@ -178,7 +178,7 @@ query(struct pcedom_document *doc, const char *css)
     root = doc->element;
     PC_ASSERT(root);
 
-    return pcintr_query_elements(root, css);
+    return pcdvobjs_query_elements(root, css);
 }
 
 static inline purc_variant_t
@@ -298,7 +298,7 @@ observe(void* native_entity, ...)
 }
 
 purc_variant_t
-pcintr_make_doc_variant(struct pcedom_document *doc)
+pcdvobjs_make_doc_variant(struct pcedom_document *doc)
 {
     static struct purc_native_ops ops = {
         .property_getter            = property_getter,

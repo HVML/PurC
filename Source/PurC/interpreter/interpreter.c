@@ -1337,7 +1337,7 @@ pcintr_set_symbol_var_at_sign(void)
     PC_ASSERT(frame);
     PC_ASSERT(frame->scope);
 
-    purc_variant_t at = pcintr_make_element_variant(frame->edom_element);
+    purc_variant_t at = pcdvobjs_make_element_variant(frame->edom_element);
     if (at == PURC_VARIANT_INVALID)
         return -1;
     PURC_VARIANT_SAFE_CLEAR(frame->symbol_vars[PURC_SYMBOL_VAR_AT_SIGN]);
