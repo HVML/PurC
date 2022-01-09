@@ -758,7 +758,8 @@ purc_variant_array_insert_another_before(purc_variant_t array, int idx,
 {
     bool ret = false;
 
-    if (array == PURC_VARIANT_INVALID || another == PURC_VARIANT_INVALID) {
+    if (array == PURC_VARIANT_INVALID || another == PURC_VARIANT_INVALID
+            || idx < 0) {
         SET_SILENT_ERROR(PURC_ERROR_INVALID_VALUE);
         goto end;
     }
@@ -778,7 +779,6 @@ purc_variant_array_insert_another_before(purc_variant_t array, int idx,
     c_ctxt.extra = idx;
     ret = array_reverse_foreach(another, insert_before_array_member, &c_ctxt,
             silently);
-
 end:
     return ret;
 }
@@ -789,7 +789,8 @@ purc_variant_array_insert_another_after(purc_variant_t array, int idx,
 {
     bool ret = false;
 
-    if (array == PURC_VARIANT_INVALID || another == PURC_VARIANT_INVALID) {
+    if (array == PURC_VARIANT_INVALID || another == PURC_VARIANT_INVALID
+            || idx < 0) {
         SET_SILENT_ERROR(PURC_ERROR_INVALID_VALUE);
         goto end;
     }
