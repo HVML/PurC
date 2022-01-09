@@ -5,5 +5,19 @@
         "dst_type" : "object",
         "src_type" : "object",
         "error" : 0
+    },
+    {
+        "name" : "002_displace_array_array",
+        "ops" : "displace",
+        "dst_type" : "array",
+        "src_type" : "array",
+        "error" : 0
+    },
+    {
+        "name" : "003_displace_array_set",
+        "ops" : "displace",
+        "dst_type" : "array",
+        "src_type" : "set",
+        "error" : 0
     }
 ]
