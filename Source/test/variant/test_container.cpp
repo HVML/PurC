@@ -491,6 +491,9 @@ std::vector<container_ops_test_data> read_container_ops_test_data()
                 trim(cmp),
                 error
                 );
+        free(src);
+        free(dst);
+        free(cmp);
     }
 
 end:
