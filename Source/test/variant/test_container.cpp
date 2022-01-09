@@ -68,19 +68,35 @@ enum container_ops_type {
 
 struct container_ops_test_data {
     char* name;
-    enum container_ops_type ops_type;
+    char* ops_type;
 
     char* dst;
-    purc_variant_type dst_type;
+    char* dst_type;
     char* dst_unique_key;  // only unique set 
 
     char* src;
-    purc_variant_type src_type;
+    char* src_type;
     char* src_unique_key;  // only unique set 
 
     char* comp;
     int error;
 };
+
+void print_data(const struct container_ops_test_data& data)
+{
+    PRINTF("##########################\n");
+    PRINTF("name=%s\n", data.name);
+    PRINTF("ops=%s\n", data.ops_type);
+    PRINTF("dst=%s\n", data.dst);
+    PRINTF("dst_type=%s\n", data.dst_type);
+    PRINTF("dst_unique_key=%s\n", data.dst_unique_key);
+    PRINTF("src=%s\n", data.src);
+    PRINTF("src_type=%s\n", data.src_type);
+    PRINTF("src_unique_key=%s\n", data.src_unique_key);
+    PRINTF("comp=%s\n", data.comp);
+    PRINTF("error=%d\n", data.error);
+    PRINTF("##########################\n");
+}
 
 #define TO_TYPE(type_name, type_enum)                       \
     if (strcmp (type, #type_name) == 0) {                   \
@@ -116,12 +132,12 @@ purc_variant_type to_variant_type(const char* type)
 static inline void
 push_back(std::vector<container_ops_test_data> &vec,
         const char* name,
-        enum container_ops_type ops_type,
+        const char* ops_type,
         const char* dst,
-        purc_variant_type dst_type,
+        const char* dst_type,
         const char* dst_unique_key,
         const char* src,
-        purc_variant_type src_type,
+        const char* src_type,
         const char* src_unique_key,
         const char* comp,
         int error)
@@ -130,15 +146,15 @@ push_back(std::vector<container_ops_test_data> &vec,
     memset(&data, 0, sizeof(data));
 
     data.name = MemCollector::strdup(name);
-    data.ops_type = ops_type;
+    data.ops_type = MemCollector::strdup(ops_type);
 
     data.dst = MemCollector::strdup(dst);
-    data.dst_type = dst_type;
+    data.dst_type = MemCollector::strdup(dst_type);
     data.dst_unique_key = dst_unique_key ? MemCollector::strdup(dst_unique_key)
         : NULL;
 
     data.src = MemCollector::strdup(src);
-    data.src_type = src_type;
+    data.src_type = MemCollector::strdup(src_type);
     data.src_unique_key = src_unique_key ? MemCollector::strdup(src_unique_key)
         : NULL;
 
@@ -191,6 +207,8 @@ protected:
 
 TEST_P(Variant_container_data, container_ops)
 {
+    const struct container_ops_test_data data = get_data();
+    print_data(data);
 }
 
 char* read_file (const char* file)
@@ -337,12 +355,12 @@ std::vector<container_ops_test_data> read_container_ops_test_data()
 
         push_back(vec,
                 name,
-                to_ops_type(ops),
+                ops,
                 dst,
-                to_variant_type(dst_type),
+                dst_type,
                 dst_unique_key,
                 src,
-                to_variant_type(src_type),
+                src_type,
                 src_unique_key,
                 trim(cmp),
                 error
@@ -357,12 +375,12 @@ end:
     if (vec.empty()) {
         push_back(vec,
                 "000_inner_test",
-                CONTAINER_OPS_TYPE_DISPLACE,
+                "displace",
                 "{\"key\",100}",
-                PURC_VARIANT_TYPE_OBJECT,
+                "object",
                 NULL,
                 "{\"key\",999}",
-                PURC_VARIANT_TYPE_OBJECT,
+                "object",
                 NULL,
                 "{\"key\",999}",
                  0
