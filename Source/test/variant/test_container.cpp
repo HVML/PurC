@@ -206,13 +206,59 @@ protected:
     }
 };
 
+purc_variant_t build_set(const char* json, const char* unique_key)
+{
+    purc_variant_t set = PURC_VARIANT_INVALID;
+    purc_variant_t var = purc_variant_make_from_json_string(json, strlen(json));
+    if (var == PURC_VARIANT_INVALID) {
+        goto end;
+    }
+
+    if (unique_key && strlen(unique_key)) {
+        set = purc_variant_make_set_by_ckey(3, unique_key,
+                PURC_VARIANT_INVALID);
+    }
+    else {
+        set = purc_variant_make_set(0, PURC_VARIANT_INVALID,
+                PURC_VARIANT_INVALID);
+    }
+    if (var == PURC_VARIANT_INVALID) {
+        goto end;
+    }
+
+    if (purc_variant_is_object(var)) {
+        purc_variant_set_add(set, var, false);
+    }
+    else if (purc_variant_is_array(var)) {
+        size_t sz = purc_variant_array_get_size(var);
+        for (size_t i = 0; i < sz; i++) {
+            purc_variant_t v = purc_variant_array_get(var, i);
+            purc_variant_set_add(set, v, false);
+        }
+    }
+
+end:
+    if (var != PURC_VARIANT_INVALID) {
+        purc_variant_unref(var);
+    }
+    return set;
+}
+
 purc_variant_t build_dst(const struct container_ops_test_data* data)
 {
+    enum purc_variant_type type = to_variant_type(data->dst_type);
+    if (type == PURC_VARIANT_TYPE_SET) {
+        return build_set(data->dst, data->dst_unique_key);
+    }
     return purc_variant_make_from_json_string(data->dst, strlen(data->dst));
 }
 
 purc_variant_t build_src(const struct container_ops_test_data* data)
 {
+    enum purc_variant_type type = to_variant_type(data->src_type);
+    if (type == PURC_VARIANT_TYPE_SET) {
+        return build_set(data->src, data->src_unique_key);
+    }
     return purc_variant_make_from_json_string(data->src, strlen(data->src));
 }
 
