@@ -169,6 +169,10 @@ TEST(displace, array_set)
     purc_variant_unref(src);
     purc_variant_unref(dst);
 
+    purc_variant_unref(obj_1);
+    purc_variant_unref(obj_2);
+    purc_variant_unref(obj_3);
+
     cleanup = purc_cleanup ();
     ASSERT_EQ (cleanup, true);
 }

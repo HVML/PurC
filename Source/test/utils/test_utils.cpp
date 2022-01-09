@@ -1,4 +1,5 @@
 #include "purc.h"
+#include "private/array_list.h"
 #include "private/list.h"
 #include "private/avl.h"
 #include "private/hashtable.h"
@@ -821,5 +822,300 @@ TEST(utils, map)
     r = pcutils_map_traverse(map, NULL, map_visit);
     pcutils_map_destroy(map);
     ASSERT_EQ(r, 0);
+}
+
+struct array_list_sample_node {
+    struct pcutils_array_list_node          node;
+    int                                     val;
+};
+
+TEST(utils, array_list_append)
+{
+    const int samples[] = {
+        1,2,3,4,5,6,7,8,9
+    };
+    int r;
+    struct pcutils_array_list arrlist;
+
+    r = pcutils_array_list_init(&arrlist);
+    ASSERT_EQ(r, 0);
+
+    for (size_t i=0; i<PCA_TABLESIZE(samples); ++i) {
+        int sample = samples[i];
+        struct array_list_sample_node *node;
+        node = (struct array_list_sample_node*)calloc(1, sizeof(*node));
+        ASSERT_NE(node, nullptr);
+        node->val = sample;
+        r = pcutils_array_list_append(&arrlist, &node->node);
+        ASSERT_EQ(r, 0);
+    }
+
+    const int checks[] = {1,2,3,4,5,6,7,8,9};
+    r = 0;
+    struct pcutils_array_list_node *p;
+    array_list_for_each(&arrlist, p) {
+        struct array_list_sample_node *node;
+        node = (struct array_list_sample_node*)container_of(p,
+                struct array_list_sample_node, node);
+
+        ASSERT_EQ(node->val, checks[r++]);
+    }
+
+    struct pcutils_array_list_node *n;
+    array_list_for_each_safe(&arrlist, p, n) {
+        struct array_list_sample_node *node;
+        node = (struct array_list_sample_node*)container_of(p,
+                struct array_list_sample_node, node);
+
+        struct pcutils_array_list_node *old;
+        r = pcutils_array_list_remove(&arrlist, node->node.idx, &old);
+        ASSERT_EQ(r, 0);
+        ASSERT_EQ(old, &node->node);
+
+        free(node);
+    }
+
+    ASSERT_EQ(pcutils_array_list_length(&arrlist), 0);
+
+    pcutils_array_list_reset(&arrlist);
+}
+
+TEST(utils, array_list_prepend)
+{
+    const int samples[] = {
+        1,2,3,4,5,6,7,8,9
+    };
+    int r;
+    struct pcutils_array_list arrlist;
+
+    r = pcutils_array_list_init(&arrlist);
+    ASSERT_EQ(r, 0);
+
+    for (size_t i=0; i<PCA_TABLESIZE(samples); ++i) {
+        int sample = samples[i];
+        struct array_list_sample_node *node;
+        node = (struct array_list_sample_node*)calloc(1, sizeof(*node));
+        ASSERT_NE(node, nullptr);
+        node->val = sample;
+        r = pcutils_array_list_prepend(&arrlist, &node->node);
+        ASSERT_EQ(r, 0);
+    }
+
+    const int checks[] = {9,8,7,6,5,4,3,2,1};
+    r = 0;
+    struct pcutils_array_list_node *p;
+    array_list_for_each(&arrlist, p) {
+        struct array_list_sample_node *node;
+        node = (struct array_list_sample_node*)container_of(p,
+                struct array_list_sample_node, node);
+
+        ASSERT_EQ(node->val, checks[r++]);
+    }
+
+    struct pcutils_array_list_node *n;
+    array_list_for_each_safe(&arrlist, p, n) {
+        struct array_list_sample_node *node;
+        node = (struct array_list_sample_node*)container_of(p,
+                struct array_list_sample_node, node);
+
+        struct pcutils_array_list_node *old;
+        r = pcutils_array_list_remove(&arrlist, node->node.idx, &old);
+        ASSERT_EQ(r, 0);
+        ASSERT_EQ(old, &node->node);
+
+        free(node);
+    }
+
+    ASSERT_EQ(pcutils_array_list_length(&arrlist), 0);
+
+    pcutils_array_list_reset(&arrlist);
+}
+
+TEST(utils, array_list_set)
+{
+    const int samples[] = {
+        1,2,3,4,5,6,7,8,9
+    };
+    int r;
+    struct pcutils_array_list arrlist;
+
+    r = pcutils_array_list_init(&arrlist);
+    ASSERT_EQ(r, 0);
+
+    for (size_t i=0; i<PCA_TABLESIZE(samples); ++i) {
+        int sample = samples[i];
+        struct array_list_sample_node *node;
+        node = (struct array_list_sample_node*)calloc(1, sizeof(*node));
+        ASSERT_NE(node, nullptr);
+        node->val = sample;
+        r = pcutils_array_list_insert_before(&arrlist, 5, &node->node);
+        ASSERT_EQ(r, 0);
+    }
+
+    const int checks[] = {1,2,3,4,5,9,8,7,6};
+    r = 0;
+    struct pcutils_array_list_node *p;
+    array_list_for_each(&arrlist, p) {
+        struct array_list_sample_node *node;
+        node = (struct array_list_sample_node*)container_of(p,
+                struct array_list_sample_node, node);
+
+        ASSERT_EQ(node->val, checks[r++]);
+    }
+
+    struct pcutils_array_list_node *n;
+    array_list_for_each_safe(&arrlist, p, n) {
+        struct array_list_sample_node *node;
+        node = (struct array_list_sample_node*)container_of(p,
+                struct array_list_sample_node, node);
+
+        struct pcutils_array_list_node *old;
+        r = pcutils_array_list_remove(&arrlist, node->node.idx, &old);
+        ASSERT_EQ(r, 0);
+        ASSERT_EQ(old, &node->node);
+
+        free(node);
+    }
+
+    ASSERT_EQ(pcutils_array_list_length(&arrlist), 0);
+
+    pcutils_array_list_reset(&arrlist);
+}
+
+TEST(utils, array_list_append_reverse)
+{
+    const int samples[] = {
+        1,2,3,4,5,6,7,8,9
+    };
+    int r;
+    struct pcutils_array_list arrlist;
+
+    r = pcutils_array_list_init(&arrlist);
+    ASSERT_EQ(r, 0);
+
+    for (size_t i=0; i<PCA_TABLESIZE(samples); ++i) {
+        int sample = samples[i];
+        struct array_list_sample_node *node;
+        node = (struct array_list_sample_node*)calloc(1, sizeof(*node));
+        ASSERT_NE(node, nullptr);
+        node->val = sample;
+        r = pcutils_array_list_append(&arrlist, &node->node);
+        ASSERT_EQ(r, 0);
+    }
+
+    const int checks[] = {9,8,7,6,5,4,3,2,1};
+    r = 0;
+    struct pcutils_array_list_node *p;
+    array_list_for_each_reverse(&arrlist, p) {
+        struct array_list_sample_node *node;
+        node = (struct array_list_sample_node*)container_of(p,
+                struct array_list_sample_node, node);
+
+        ASSERT_EQ(node->val, checks[r++]);
+    }
+
+    struct pcutils_array_list_node *n;
+    array_list_for_each_reverse_safe(&arrlist, p, n) {
+        struct array_list_sample_node *node;
+        node = (struct array_list_sample_node*)container_of(p,
+                struct array_list_sample_node, node);
+
+        struct pcutils_array_list_node *old;
+        r = pcutils_array_list_remove(&arrlist, node->node.idx, &old);
+        ASSERT_EQ(r, 0);
+        ASSERT_EQ(old, &node->node);
+
+        free(node);
+    }
+
+    ASSERT_EQ(pcutils_array_list_length(&arrlist), 0);
+
+    pcutils_array_list_reset(&arrlist);
+}
+
+TEST(utils, array_list_append_entry)
+{
+    const int samples[] = {
+        1,2,3,4,5,6,7,8,9
+    };
+    int r;
+    struct pcutils_array_list arrlist;
+
+    r = pcutils_array_list_init(&arrlist);
+    ASSERT_EQ(r, 0);
+
+    for (size_t i=0; i<PCA_TABLESIZE(samples); ++i) {
+        int sample = samples[i];
+        struct array_list_sample_node *node;
+        node = (struct array_list_sample_node*)calloc(1, sizeof(*node));
+        ASSERT_NE(node, nullptr);
+        node->val = sample;
+        r = pcutils_array_list_append(&arrlist, &node->node);
+        ASSERT_EQ(r, 0);
+    }
+
+    const int checks[] = {1,2,3,4,5,6,7,8,9};
+    r = 0;
+    struct array_list_sample_node *p;
+    array_list_for_each_entry(&arrlist, p, node) {
+        ASSERT_EQ(p->val, checks[r++]);
+    }
+
+    struct array_list_sample_node *n;
+    array_list_for_each_entry_safe(&arrlist, p, n, node) {
+        struct pcutils_array_list_node *old;
+        r = pcutils_array_list_remove(&arrlist, p->node.idx, &old);
+        ASSERT_EQ(r, 0);
+        ASSERT_EQ(old, &p->node);
+
+        free(p);
+    }
+
+    ASSERT_EQ(pcutils_array_list_length(&arrlist), 0);
+
+    pcutils_array_list_reset(&arrlist);
+}
+
+TEST(utils, array_list_append_entry_reverse)
+{
+    const int samples[] = {
+        1,2,3,4,5,6,7,8,9
+    };
+    int r;
+    struct pcutils_array_list arrlist;
+
+    r = pcutils_array_list_init(&arrlist);
+    ASSERT_EQ(r, 0);
+
+    for (size_t i=0; i<PCA_TABLESIZE(samples); ++i) {
+        int sample = samples[i];
+        struct array_list_sample_node *node;
+        node = (struct array_list_sample_node*)calloc(1, sizeof(*node));
+        ASSERT_NE(node, nullptr);
+        node->val = sample;
+        r = pcutils_array_list_append(&arrlist, &node->node);
+        ASSERT_EQ(r, 0);
+    }
+
+    const int checks[] = {9,8,7,6,5,4,3,2,1};
+    r = 0;
+    struct array_list_sample_node *p;
+    array_list_for_each_entry_reverse(&arrlist, p, node) {
+        ASSERT_EQ(p->val, checks[r++]);
+    }
+
+    struct array_list_sample_node *n;
+    array_list_for_each_entry_reverse_safe(&arrlist, p, n, node) {
+        struct pcutils_array_list_node *old;
+        r = pcutils_array_list_remove(&arrlist, p->node.idx, &old);
+        ASSERT_EQ(r, 0);
+        ASSERT_EQ(old, &p->node);
+
+        free(p);
+    }
+
+    ASSERT_EQ(pcutils_array_list_length(&arrlist), 0);
+
+    pcutils_array_list_reset(&arrlist);
 }
 
