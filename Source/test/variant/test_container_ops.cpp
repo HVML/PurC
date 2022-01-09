@@ -41,50 +41,37 @@ TEST(displace, object_object)
     stat = purc_variant_usage_stat();
     ASSERT_NE(stat, nullptr);
 
-    size_t sz = 0;
-    const char     *k1 = "hello";
-    purc_variant_t  v1 = purc_variant_make_string("world", false);
-    const char     *k2 = "foo";
-    purc_variant_t  v2 = purc_variant_make_string("bar", true);
-    const char     *k3 = "damn";
-    purc_variant_t  v3 = purc_variant_make_string("good", true);
+    char dst_str[] = "{\"id\":1,\"name\":\"name dst\"}";
+    char src_str[] = "{\"id\":2,\"name\":\"name src\",\"title\":\"title src\"}";
+    char cmp_str[] = "{\"id\":2,\"name\":\"name src\",\"title\":\"title src\"}";
 
-    purc_variant_t obj;
-    obj = purc_variant_make_object_by_static_ckey(3, k1, v1, k2, v2, k3, v3);
-    ASSERT_NE(obj, PURC_VARIANT_INVALID);
-    ASSERT_EQ(obj->refc, 1);
-    sz = purc_variant_object_get_size(obj);
-    ASSERT_EQ(sz, 3);
+    purc_variant_t dst = purc_variant_make_from_json_string(dst_str,
+            strlen(dst_str));
+    ASSERT_NE(dst, PURC_VARIANT_INVALID);
 
-
-    purc_variant_t src;
-    src = purc_variant_make_object_by_static_ckey(2, k2, v2, k3, v3);
+    purc_variant_t src = purc_variant_make_from_json_string(src_str,
+            strlen(src_str));
     ASSERT_NE(src, PURC_VARIANT_INVALID);
-    ASSERT_EQ(src->refc, 1);
-    sz = purc_variant_object_get_size(src);
-    ASSERT_EQ(sz, 2);
 
-    bool result = purc_variant_container_displace(obj, src, true);
+    purc_variant_t cmp = purc_variant_make_from_json_string(cmp_str,
+            strlen(cmp_str));
+    ASSERT_NE(cmp, PURC_VARIANT_INVALID);
+
+    bool result = purc_variant_container_displace(dst, src, true);
     ASSERT_EQ(result, true);
 
-    sz = purc_variant_object_get_size(obj);
-    ASSERT_EQ(sz, 2);
+    char* dst_result = variant_to_string(dst);
+    char* cmp_result = variant_to_string(cmp);
+    PRINTF("dst=%s\n", dst_result);
+    PRINTF("cmp=%s\n", cmp_result);
+    ASSERT_STREQ(dst_result, cmp_result);
 
-    purc_variant_t v = purc_variant_object_get_by_ckey(obj, k1, false);
-    ASSERT_EQ(v, PURC_VARIANT_INVALID);
+    free(cmp_result);
+    free(dst_result);
 
-    v = purc_variant_object_get_by_ckey(obj, k2, false);
-    ASSERT_EQ(v, v2);
-
-    v = purc_variant_object_get_by_ckey(obj, k3, false);
-    ASSERT_EQ(v, v3);
-
+    purc_variant_unref(cmp);
     purc_variant_unref(src);
-    purc_variant_unref(obj);
-
-    purc_variant_unref(v1);
-    purc_variant_unref(v2);
-    purc_variant_unref(v3);
+    purc_variant_unref(dst);
 
     cleanup = purc_cleanup ();
     ASSERT_EQ (cleanup, true);
