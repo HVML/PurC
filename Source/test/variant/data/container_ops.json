@@ -1,0 +1,9 @@
+[
+    {
+        "name" : "001_displace_object_object",
+        "ops" : "displace",
+        "dst_type" : "object",
+        "src_type" : "object",
+        "error" : 0
+    }
+]

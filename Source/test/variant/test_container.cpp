@@ -190,7 +190,6 @@ char* trim(char *str)
     return str;
 }
 
-
 class Variant_container_data : public testing::TestWithParam<container_ops_test_data>
 {
 protected:
@@ -200,7 +199,6 @@ protected:
     void TearDown() {
         purc_cleanup ();
     }
-
     const container_ops_test_data get_data() {
         return GetParam();
     }
@@ -265,7 +263,8 @@ purc_variant_t build_src(const struct container_ops_test_data* data)
 TEST_P(Variant_container_data, container_ops)
 {
     const struct container_ops_test_data data = get_data();
-    print_data(data);
+    //print_data(data);
+    PRINTF("name=%s\n", data.name);
 
     //  build dst variant
     purc_variant_t dst = build_dst(&data);
@@ -371,10 +370,6 @@ std::vector<container_ops_test_data> read_container_ops_test_data()
     char data_path[PATH_MAX+1] =  {0};
     getpath_from_env_or_rel(data_path, sizeof(data_path), env, "data");
 
-    if (strlen(data_path)) {
-        goto end;
-    }
-
     strcpy (input_data_file_path, data_path);
     strcat (input_data_file_path, "/container_ops.json");
 
@@ -383,6 +378,7 @@ std::vector<container_ops_test_data> read_container_ops_test_data()
         goto end;
     }
 
+    purc_init ("cn.fmsoft.hybridos.test", "purc_variant", NULL);
     input_variant = purc_variant_make_from_json_string(input_buf,
             strlen(input_buf));
     if (input_variant == PURC_VARIANT_INVALID) {
@@ -519,6 +515,7 @@ end:
     if (input_variant != PURC_VARIANT_INVALID) {
         purc_variant_unref(input_variant);
     }
+    purc_cleanup ();
     return vec;
 }
 
