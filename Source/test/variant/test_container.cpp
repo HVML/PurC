@@ -89,7 +89,7 @@ struct container_ops_test_data {
 
 enum container_ops_type to_ops_type(const char* type)
 {
-    TO_TYPE("displace", CONTAINER_OPS_DISPLACE);
+    TO_TYPE("displace", CONTAINER_OPS_TYPE_DISPLACE);
     TO_TYPE("append", CONTAINER_OPS_TYPE_APPEND);
     TO_TYPE("prepend", CONTAINER_OPS_TYPE_PREPEND);
     TO_TYPE("merge", CONTAINER_OPS_TYPE_MERGE);
@@ -102,7 +102,7 @@ enum container_ops_type to_ops_type(const char* type)
     TO_TYPE("xor", CONTAINER_OPS_TYPE_XOR);
     TO_TYPE("overwrite", CONTAINER_OPS_TYPE_OVERWRITE);
 
-    return CONTAINER_OPS_DISPLACE;
+    return CONTAINER_OPS_TYPE_DISPLACE;
 }
 
 purc_variant_type to_variant_type(const char* type)
@@ -123,7 +123,7 @@ push_back(std::vector<container_ops_test_data> &vec,
         const char* src,
         purc_variant_type src_type,
         const char* src_unique_key,
-        const char* comp
+        const char* comp,
         int error)
 {
     container_ops_test_data data;
@@ -134,12 +134,12 @@ push_back(std::vector<container_ops_test_data> &vec,
 
     data.dst = MemCollector::strdup(dst);
     data.dst_type = dst_type;
-    data.dst_unique_key = dst_unique_key ? MemCollector.strdup(dst_unique_key)
+    data.dst_unique_key = dst_unique_key ? MemCollector::strdup(dst_unique_key)
         : NULL;
 
     data.src = MemCollector::strdup(src);
     data.src_type = src_type;
-    data.src_unique_key = src_unique_key ? MemCollector.strdup(src_unique_key)
+    data.src_unique_key = src_unique_key ? MemCollector::strdup(src_unique_key)
         : NULL;
 
     data.comp = MemCollector::strdup(comp);
@@ -184,93 +184,13 @@ protected:
         purc_cleanup ();
     }
 
-    const char* get_name() {
-        return GetParam().name;
-    }
-
-    const char* get_dst() {
-        return GetParam().dst;
-    }
-
-    purc_variant_type get_dst_type() {
-        return GetParam().dst;
-    }
-
-    const char* get_dst_unique_key() {
-        return GetParam().dst_unique_key;
-    }
-
-    const char* get_src() {
-        return GetParam().src;
-    }
-
-    purc_variant_type get_src_type() {
-        return GetParam().src;
-    }
-
-    const char* get_src_unique_key() {
-        return GetParam().src_unique_key;
-    }
-
-    const char* get_comp() {
-        return GetParam().comp;
-    }
-    int get_error() {
-        return GetParam().error;
+    const container_ops_test_data get_data() {
+        return GetParam();
     }
 };
 
 TEST_P(Variant_container_data, container_ops)
 {
-    const char* hvml = get_hvml();
-    const char* comp = get_comp();
-    int error_code = get_error();
-    PRINTF("test case : %s\n", get_name());
-
-    struct pchvml_parser* parser = pchvml_create(0, 32);
-    //fprintf(stderr, "hvml=%s|len=%ld\n", hvml, strlen(hvml));
-    //fprintf(stderr, "comp=%s\n", comp);
-    size_t sz = strlen (hvml);
-    purc_rwstream_t rws = purc_rwstream_new_from_mem((void*)hvml, sz);
-
-    struct pchvml_buffer* buffer = pchvml_buffer_new();
-
-    struct pcpurc_variant* token = NULL;
-    while((token = pchvml_next_token(parser, rws)) != NULL) {
-        struct pchvml_buffer* token_buff = pcpurc_variant_to_string(token);
-        if (token_buff) {
-            pchvml_buffer_append_temp_buffer(buffer, token_buff);
-            pchvml_buffer_destroy(token_buff);
-        }
-        enum pcpurc_variant_type type = pcpurc_variant_get_type(token);
-        pcpurc_variant_destroy(token);
-        token = NULL;
-        if (type == PCHVML_TOKEN_EOF) {
-            break;
-        }
-//        PRINTF("serial : %s|code=%d\n", pchvml_buffer_get_buffer(buffer)
-//                , purc_get_last_error());
-    }
-    int error = purc_get_last_error();
-    ASSERT_EQ (error, error_code) << "Test Case : "<< get_name();
-
-    if (error_code != PCHVML_SUCCESS)
-    {
-        purc_rwstream_destroy(rws);
-        pchvml_buffer_destroy(buffer);
-        pchvml_destroy(parser);
-        return;
-    }
-
-    const char* serial = pchvml_buffer_get_buffer(buffer);
-    char* result = strdup(serial);
-//    PRINTF("serial : %s", serial);
-    ASSERT_STREQ(trim(result), comp) << "Test Case : "<< get_name();
-    free(result);
-
-    purc_rwstream_destroy(rws);
-    pchvml_buffer_destroy(buffer);
-    pchvml_destroy(parser);
 }
 
 char* read_file (const char* file)
@@ -291,7 +211,10 @@ char* read_file (const char* file)
 
 std::vector<container_ops_test_data> read_container_ops_test_data()
 {
+    size_t sz = 0;
     char* input_buf = NULL;
+    char file[PATH_MAX + 16] = {0};
+    char input_data_file_path[1024] = {0};
     purc_variant_t input_variant = PURC_VARIANT_INVALID;
 
     std::vector<container_ops_test_data> vec;
@@ -301,10 +224,9 @@ std::vector<container_ops_test_data> read_container_ops_test_data()
     getpath_from_env_or_rel(data_path, sizeof(data_path), env, "data");
 
     if (strlen(data_path)) {
-        goto end:
+        goto end;
     }
 
-    char input_data_file_path[1024] = {0};
     strcpy (input_data_file_path, data_path);
     strcat (input_data_file_path, "/container_ops.json");
 
@@ -323,8 +245,7 @@ std::vector<container_ops_test_data> read_container_ops_test_data()
         goto end;
     }
 
-    char file[PATH_MAX + 16] = {0};
-    size_t sz = purc_variant_array_get_size(input_variant);
+    sz = purc_variant_array_get_size(input_variant);
     for (size_t i = 0; i < sz; i++) {
         purc_variant_t test_data_var = purc_variant_array_get(input_variant, i);
         if (!purc_variant_is_object(test_data_var)) {
@@ -352,6 +273,13 @@ std::vector<container_ops_test_data> read_container_ops_test_data()
             dst_unique_key = purc_variant_get_string_const(dst_unique_key_var);
         }
 
+        const char* dst_type = NULL;
+        purc_variant_t dst_type_var = purc_variant_object_get_by_ckey(test_data_var,
+                "dst_type", false);
+        if (dst_type_var != PURC_VARIANT_INVALID) {
+            dst_type = purc_variant_get_string_const(dst_type_var);
+        }
+
         const char* src_unique_key = NULL;
         purc_variant_t src_unique_key_var = purc_variant_object_get_by_ckey(test_data_var,
                 "src_unique_key", false);
@@ -359,11 +287,18 @@ std::vector<container_ops_test_data> read_container_ops_test_data()
             src_unique_key = purc_variant_get_string_const(src_unique_key_var);
         }
 
+        const char* src_type = NULL;
+        purc_variant_t src_type_var = purc_variant_object_get_by_ckey(test_data_var,
+                "src_type", false);
+        if (src_type_var != PURC_VARIANT_INVALID) {
+            src_type = purc_variant_get_string_const(src_type_var);
+        }
+
         int64_t error = 0;
         purc_variant_t error_var = purc_variant_object_get_by_ckey(test_data_var,
                 "error", false);
         if (error_var != PURC_VARIANT_INVALID) {
-            purc_variant_get_string_const(error_var, &error, false);
+            purc_variant_cast_to_longint(error_var, &error, false);
         }
 
         int n;
