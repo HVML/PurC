@@ -37,19 +37,20 @@ using namespace std;
 
 #endif // OS(LINUX) || OS(UNIX)
 
-#define PRINT_VARIANT(v)                                                    \
-    do {                                                                    \
-        purc_rwstream_t rws = purc_rwstream_new_buffer(MIN_BUFFER,          \
-                MAX_BUFFER);                                                \
-        size_t len_expected = 0;                                            \
-        purc_variant_serialize(v, rws,                                      \
-                0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);           \
-        char* buf = (char*)purc_rwstream_get_mem_buffer_ex(rws, NULL, NULL, \
-                true);                                                      \
-        PRINTF(stderr, "variant=%s\n", buf);                               \
-        free(buf);                                                          \
-        purc_rwstream_destroy(rws);                                         \
-    } while (0)
+#define MIN_BUFFER     512
+#define MAX_BUFFER     1024 * 1024 * 1024
+
+char* variant_to_string(purc_variant_t v)
+{
+    purc_rwstream_t my_rws = purc_rwstream_new_buffer(MIN_BUFFER, MAX_BUFFER);
+    size_t len_expected = 0;
+    purc_variant_serialize(v, my_rws,
+            0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);
+    char* buf = (char*)purc_rwstream_get_mem_buffer_ex(my_rws, NULL, NULL, true);
+    purc_rwstream_destroy(my_rws);
+    return buf;
+}
+
 
 enum container_ops_type {
     CONTAINER_OPS_TYPE_DISPLACE,
@@ -68,19 +69,35 @@ enum container_ops_type {
 
 struct container_ops_test_data {
     char* name;
-    enum container_ops_type ops_type;
+    char* ops_type;
 
     char* dst;
-    purc_variant_type dst_type;
+    char* dst_type;
     char* dst_unique_key;  // only unique set 
 
     char* src;
-    purc_variant_type src_type;
+    char* src_type;
     char* src_unique_key;  // only unique set 
 
     char* comp;
     int error;
 };
+
+void print_data(const struct container_ops_test_data& data)
+{
+    PRINTF("##########################\n");
+    PRINTF("name=%s\n", data.name);
+    PRINTF("ops=%s\n", data.ops_type);
+    PRINTF("dst=%s\n", data.dst);
+    PRINTF("dst_type=%s\n", data.dst_type);
+    PRINTF("dst_unique_key=%s\n", data.dst_unique_key);
+    PRINTF("src=%s\n", data.src);
+    PRINTF("src_type=%s\n", data.src_type);
+    PRINTF("src_unique_key=%s\n", data.src_unique_key);
+    PRINTF("comp=%s\n", data.comp);
+    PRINTF("error=%d\n", data.error);
+    PRINTF("##########################\n");
+}
 
 #define TO_TYPE(type_name, type_enum)                       \
     if (strcmp (type, #type_name) == 0) {                   \
@@ -116,12 +133,12 @@ purc_variant_type to_variant_type(const char* type)
 static inline void
 push_back(std::vector<container_ops_test_data> &vec,
         const char* name,
-        enum container_ops_type ops_type,
+        const char* ops_type,
         const char* dst,
-        purc_variant_type dst_type,
+        const char* dst_type,
         const char* dst_unique_key,
         const char* src,
-        purc_variant_type src_type,
+        const char* src_type,
         const char* src_unique_key,
         const char* comp,
         int error)
@@ -130,15 +147,15 @@ push_back(std::vector<container_ops_test_data> &vec,
     memset(&data, 0, sizeof(data));
 
     data.name = MemCollector::strdup(name);
-    data.ops_type = ops_type;
+    data.ops_type = MemCollector::strdup(ops_type);
 
     data.dst = MemCollector::strdup(dst);
-    data.dst_type = dst_type;
+    data.dst_type = MemCollector::strdup(dst_type);
     data.dst_unique_key = dst_unique_key ? MemCollector::strdup(dst_unique_key)
         : NULL;
 
     data.src = MemCollector::strdup(src);
-    data.src_type = src_type;
+    data.src_type = MemCollector::strdup(src_type);
     data.src_unique_key = src_unique_key ? MemCollector::strdup(src_unique_key)
         : NULL;
 
@@ -189,8 +206,93 @@ protected:
     }
 };
 
+purc_variant_t build_dst(const struct container_ops_test_data* data)
+{
+    return purc_variant_make_from_json_string(data->dst, strlen(data->dst));
+}
+
+purc_variant_t build_src(const struct container_ops_test_data* data)
+{
+    return purc_variant_make_from_json_string(data->src, strlen(data->src));
+}
+
 TEST_P(Variant_container_data, container_ops)
 {
+    const struct container_ops_test_data data = get_data();
+    print_data(data);
+
+    //  build dst variant
+    purc_variant_t dst = build_dst(&data);
+    ASSERT_NE(dst, PURC_VARIANT_INVALID);
+
+    //  build src variant
+    purc_variant_t src = build_src(&data);
+    ASSERT_NE(src, PURC_VARIANT_INVALID);
+
+    //  do container ops
+    enum container_ops_type ops_type = to_ops_type(data.ops_type);
+    bool result = false;
+    switch (ops_type) {
+        case CONTAINER_OPS_TYPE_DISPLACE:
+            result = purc_variant_container_displace(dst, src, true);
+            break;
+
+        case CONTAINER_OPS_TYPE_APPEND:
+            result = purc_variant_array_append_another(dst, src, true);
+            break;
+
+        case CONTAINER_OPS_TYPE_PREPEND:
+            result = purc_variant_array_prepend_another(dst, src, true);
+            break;
+
+        case CONTAINER_OPS_TYPE_MERGE:
+            result = purc_variant_object_merge_another(dst, src, true);
+            break;
+
+        case CONTAINER_OPS_TYPE_REMOVE:
+            result = purc_variant_container_remove(dst, src, true);
+            break;
+
+        case CONTAINER_OPS_TYPE_INSERT_BEFORE:
+            result = purc_variant_array_insert_another_before(dst, 1, src, true);
+            break;
+
+        case CONTAINER_OPS_TYPE_INSERT_AFTER:
+            result = purc_variant_array_insert_another_after(dst, 1, src, true);
+            break;
+
+        case CONTAINER_OPS_TYPE_UNITE:
+            result = purc_variant_set_unite(dst, src, true);
+            break;
+
+        case CONTAINER_OPS_TYPE_INTERSECT:
+            result = purc_variant_set_intersect(dst, src, true);
+            break;
+
+        case CONTAINER_OPS_TYPE_SUBTRACT:
+            result = purc_variant_set_subtract(dst, src, true);
+            break;
+
+        case CONTAINER_OPS_TYPE_XOR:
+            result = purc_variant_set_xor(dst, src, true);
+            break;
+
+        case CONTAINER_OPS_TYPE_OVERWRITE:
+            result = purc_variant_set_overwrite(dst, src, true);
+            break;
+    }
+    ASSERT_EQ(result, true);
+
+    //  compare with cmp
+    char* dst_result = variant_to_string(dst);
+    PRINTF("dst=%s\n", dst_result);
+    PRINTF("cmp=%s\n", data.comp);
+    ASSERT_STREQ(dst_result, data.comp);
+
+    // clear
+    free(dst_result);
+    purc_variant_unref(src);
+    purc_variant_unref(dst);
 }
 
 char* read_file (const char* file)
@@ -337,12 +439,12 @@ std::vector<container_ops_test_data> read_container_ops_test_data()
 
         push_back(vec,
                 name,
-                to_ops_type(ops),
+                ops,
                 dst,
-                to_variant_type(dst_type),
+                dst_type,
                 dst_unique_key,
                 src,
-                to_variant_type(src_type),
+                src_type,
                 src_unique_key,
                 trim(cmp),
                 error
@@ -357,14 +459,14 @@ end:
     if (vec.empty()) {
         push_back(vec,
                 "000_inner_test",
-                CONTAINER_OPS_TYPE_DISPLACE,
-                "{\"key\",100}",
-                PURC_VARIANT_TYPE_OBJECT,
+                "displace",
+                "{\"key\":100}",
+                "object",
                 NULL,
-                "{\"key\",999}",
-                PURC_VARIANT_TYPE_OBJECT,
+                "{\"key\":999}",
+                "object",
                 NULL,
-                "{\"key\",999}",
+                "{\"key\":999}",
                  0
                  );
     }
