@@ -43,7 +43,7 @@ TEST(displace, object_object)
 
     char dst_str[] = "{\"id\":1,\"name\":\"name dst\"}";
     char src_str[] = "{\"id\":2,\"name\":\"name src\",\"title\":\"title src\"}";
-    char cmp_str[] = "{\"id\":2,\"name\":\"name src\",\"title\":\"title src\"}";
+    char cmp_result[] = "{\"id\":2,\"name\":\"name src\",\"title\":\"title src\"}";
 
     purc_variant_t dst = purc_variant_make_from_json_string(dst_str,
             strlen(dst_str));
@@ -53,23 +53,16 @@ TEST(displace, object_object)
             strlen(src_str));
     ASSERT_NE(src, PURC_VARIANT_INVALID);
 
-    purc_variant_t cmp = purc_variant_make_from_json_string(cmp_str,
-            strlen(cmp_str));
-    ASSERT_NE(cmp, PURC_VARIANT_INVALID);
-
     bool result = purc_variant_container_displace(dst, src, true);
     ASSERT_EQ(result, true);
 
     char* dst_result = variant_to_string(dst);
-    char* cmp_result = variant_to_string(cmp);
     PRINTF("dst=%s\n", dst_result);
     PRINTF("cmp=%s\n", cmp_result);
     ASSERT_STREQ(dst_result, cmp_result);
 
-    free(cmp_result);
     free(dst_result);
 
-    purc_variant_unref(cmp);
     purc_variant_unref(src);
     purc_variant_unref(dst);
 
@@ -92,7 +85,7 @@ TEST(displace, array_array)
 
     char dst_str[] = "[{\"id\":1},{\"id\":2}]";
     char src_str[] = "[{\"id\":3},{\"id\":4}]";
-    char cmp_str[] = "[{\"id\":3},{\"id\":4}]";
+    char cmp_result[] = "[{\"id\":3},{\"id\":4}]";
 
     purc_variant_t dst = purc_variant_make_from_json_string(dst_str,
             strlen(dst_str));
@@ -102,23 +95,16 @@ TEST(displace, array_array)
             strlen(src_str));
     ASSERT_NE(src, PURC_VARIANT_INVALID);
 
-    purc_variant_t cmp = purc_variant_make_from_json_string(cmp_str,
-            strlen(cmp_str));
-    ASSERT_NE(cmp, PURC_VARIANT_INVALID);
-
     bool result = purc_variant_container_displace(dst, src, true);
     ASSERT_EQ(result, true);
 
     char* dst_result = variant_to_string(dst);
-    char* cmp_result = variant_to_string(cmp);
     PRINTF("dst=%s\n", dst_result);
     PRINTF("cmp=%s\n", cmp_result);
     ASSERT_STREQ(dst_result, cmp_result);
 
-    free(cmp_result);
     free(dst_result);
 
-    purc_variant_unref(cmp);
     purc_variant_unref(src);
     purc_variant_unref(dst);
 
@@ -202,7 +188,7 @@ TEST(append, array_array)
 
     char dst_str[] = "[{\"id\":1},{\"id\":2}]";
     char src_str[] = "[{\"id\":3},{\"id\":4}]";
-    char cmp_str[] = "[{\"id\":1},{\"id\":2},{\"id\":3},{\"id\":4}]";
+    char cmp_result[] = "[{\"id\":1},{\"id\":2},{\"id\":3},{\"id\":4}]";
 
     purc_variant_t dst = purc_variant_make_from_json_string(dst_str,
             strlen(dst_str));
@@ -212,23 +198,16 @@ TEST(append, array_array)
             strlen(src_str));
     ASSERT_NE(src, PURC_VARIANT_INVALID);
 
-    purc_variant_t cmp = purc_variant_make_from_json_string(cmp_str,
-            strlen(cmp_str));
-    ASSERT_NE(cmp, PURC_VARIANT_INVALID);
-
     bool result = purc_variant_array_append_another(dst, src, true);
     ASSERT_EQ(result, true);
 
     char* dst_result = variant_to_string(dst);
-    char* cmp_result = variant_to_string(cmp);
     PRINTF("dst=%s\n", dst_result);
     PRINTF("cmp=%s\n", cmp_result);
     ASSERT_STREQ(dst_result, cmp_result);
 
-    free(cmp_result);
     free(dst_result);
 
-    purc_variant_unref(cmp);
     purc_variant_unref(src);
     purc_variant_unref(dst);
 
@@ -251,7 +230,7 @@ TEST(prepend, array_array)
 
     char dst_str[] = "[{\"id\":1},{\"id\":2}]";
     char src_str[] = "[{\"id\":3},{\"id\":4}]";
-    char cmp_str[] = "[{\"id\":3},{\"id\":4},{\"id\":1},{\"id\":2}]";
+    char cmp_result[] = "[{\"id\":3},{\"id\":4},{\"id\":1},{\"id\":2}]";
 
     purc_variant_t dst = purc_variant_make_from_json_string(dst_str,
             strlen(dst_str));
@@ -261,23 +240,16 @@ TEST(prepend, array_array)
             strlen(src_str));
     ASSERT_NE(src, PURC_VARIANT_INVALID);
 
-    purc_variant_t cmp = purc_variant_make_from_json_string(cmp_str,
-            strlen(cmp_str));
-    ASSERT_NE(cmp, PURC_VARIANT_INVALID);
-
     bool result = purc_variant_array_prepend_another(dst, src, true);
     ASSERT_EQ(result, true);
 
     char* dst_result = variant_to_string(dst);
-    char* cmp_result = variant_to_string(cmp);
     PRINTF("dst=%s\n", dst_result);
     PRINTF("cmp=%s\n", cmp_result);
     ASSERT_STREQ(dst_result, cmp_result);
 
-    free(cmp_result);
     free(dst_result);
 
-    purc_variant_unref(cmp);
     purc_variant_unref(src);
     purc_variant_unref(dst);
 
@@ -300,8 +272,8 @@ TEST(merge, object_object)
 
     char dst_str[] = "{\"id\":1,\"name\":\"C Language\"}";
     char src_str[] = "{\"page\":325,\"size\":1024}";
-    char cmp_str[] = "{\"id\":1,\"name\":\"C Language\",\
-         \"page\":325,\"size\":1024}";
+    char cmp_result[] = "{\"id\":1,\"name\":\"C Language\","\
+         "\"page\":325,\"size\":1024}";
 
     purc_variant_t dst = purc_variant_make_from_json_string(dst_str,
             strlen(dst_str));
@@ -311,23 +283,16 @@ TEST(merge, object_object)
             strlen(src_str));
     ASSERT_NE(src, PURC_VARIANT_INVALID);
 
-    purc_variant_t cmp = purc_variant_make_from_json_string(cmp_str,
-            strlen(cmp_str));
-    ASSERT_NE(cmp, PURC_VARIANT_INVALID);
-
     bool result = purc_variant_object_merge_another(dst, src, true);
     ASSERT_EQ(result, true);
 
     char* dst_result = variant_to_string(dst);
-    char* cmp_result = variant_to_string(cmp);
     PRINTF("dst=%s\n", dst_result);
     PRINTF("cmp=%s\n", cmp_result);
     ASSERT_STREQ(dst_result, cmp_result);
 
-    free(cmp_result);
     free(dst_result);
 
-    purc_variant_unref(cmp);
     purc_variant_unref(src);
     purc_variant_unref(dst);
 
@@ -350,7 +315,7 @@ TEST(insertBefore, array_array)
 
     char dst_str[] = "[{\"id\":1},{\"id\":2}]";
     char src_str[] = "[{\"id\":3},{\"id\":4}]";
-    char cmp_str[] = "[{\"id\":1},{\"id\":3},{\"id\":4},{\"id\":2}]";
+    char cmp_result[] = "[{\"id\":1},{\"id\":3},{\"id\":4},{\"id\":2}]";
 
     purc_variant_t dst = purc_variant_make_from_json_string(dst_str,
             strlen(dst_str));
@@ -360,23 +325,16 @@ TEST(insertBefore, array_array)
             strlen(src_str));
     ASSERT_NE(src, PURC_VARIANT_INVALID);
 
-    purc_variant_t cmp = purc_variant_make_from_json_string(cmp_str,
-            strlen(cmp_str));
-    ASSERT_NE(cmp, PURC_VARIANT_INVALID);
-
     bool result = purc_variant_array_insert_another_before(dst, 1, src, true);
     ASSERT_EQ(result, true);
 
     char* dst_result = variant_to_string(dst);
-    char* cmp_result = variant_to_string(cmp);
     PRINTF("dst=%s\n", dst_result);
     PRINTF("cmp=%s\n", cmp_result);
     ASSERT_STREQ(dst_result, cmp_result);
 
-    free(cmp_result);
     free(dst_result);
 
-    purc_variant_unref(cmp);
     purc_variant_unref(src);
     purc_variant_unref(dst);
 
@@ -399,7 +357,7 @@ TEST(insertAfter, array_array)
 
     char dst_str[] = "[{\"id\":1},{\"id\":2}]";
     char src_str[] = "[{\"id\":3},{\"id\":4}]";
-    char cmp_str[] = "[{\"id\":1},{\"id\":3},{\"id\":4},{\"id\":2}]";
+    char cmp_result[] = "[{\"id\":1},{\"id\":3},{\"id\":4},{\"id\":2}]";
 
     purc_variant_t dst = purc_variant_make_from_json_string(dst_str,
             strlen(dst_str));
@@ -409,23 +367,16 @@ TEST(insertAfter, array_array)
             strlen(src_str));
     ASSERT_NE(src, PURC_VARIANT_INVALID);
 
-    purc_variant_t cmp = purc_variant_make_from_json_string(cmp_str,
-            strlen(cmp_str));
-    ASSERT_NE(cmp, PURC_VARIANT_INVALID);
-
     bool result = purc_variant_array_insert_another_after(dst, 0, src, true);
     ASSERT_EQ(result, true);
 
     char* dst_result = variant_to_string(dst);
-    char* cmp_result = variant_to_string(cmp);
     PRINTF("dst=%s\n", dst_result);
     PRINTF("cmp=%s\n", cmp_result);
     ASSERT_STREQ(dst_result, cmp_result);
 
-    free(cmp_result);
     free(dst_result);
 
-    purc_variant_unref(cmp);
     purc_variant_unref(src);
     purc_variant_unref(dst);
 
@@ -456,7 +407,7 @@ TEST(unite, set_array)
                       "{\"id\":6,\"name\":\"6_name\"}"\
                       "]";
 
-    char cmp_str[] = "{"\
+    char cmp_result[] = "{"\
                       "{\"id\":1,\"name\":\"1_name\"},"\
                       "{\"id\":2,\"name\":\"2_name\"},"\
                       "{\"id\":3,\"name\":\"3_name\"},"\
@@ -487,7 +438,6 @@ TEST(unite, set_array)
     ASSERT_EQ(result, true);
 
     char* dst_result = variant_to_string(dst);
-    char* cmp_result = cmp_str;
     PRINTF("dst=%s\n", dst_result);
     PRINTF("cmp=%s\n", cmp_result);
     ASSERT_STREQ(dst_result, cmp_result);
@@ -528,7 +478,7 @@ TEST(intersect, set_array)
                       "{\"id\":6,\"name\":\"6_name\"}"\
                       "]";
 
-    char cmp_str[] = "{"\
+    char cmp_result[] = "{"\
                       "{\"id\":3,\"name\":\"3_name\"}"\
                       "]";
 
@@ -555,7 +505,6 @@ TEST(intersect, set_array)
     ASSERT_EQ(result, true);
 
     char* dst_result = variant_to_string(dst);
-    char* cmp_result = cmp_str;
     PRINTF("dst=%s\n", dst_result);
     PRINTF("cmp=%s\n", cmp_result);
     ASSERT_STREQ(dst_result, cmp_result);
@@ -596,7 +545,7 @@ TEST(subtract, set_array)
                       "{\"id\":6,\"name\":\"6_name\"}"\
                       "]";
 
-    char cmp_str[] = "{"\
+    char cmp_result[] = "{"\
                       "{\"id\":1,\"name\":\"1_name\"},"\
                       "{\"id\":2,\"name\":\"2_name\"}"\
                       "]";
@@ -624,7 +573,6 @@ TEST(subtract, set_array)
     ASSERT_EQ(result, true);
 
     char* dst_result = variant_to_string(dst);
-    char* cmp_result = cmp_str;
     PRINTF("dst=%s\n", dst_result);
     PRINTF("cmp=%s\n", cmp_result);
     ASSERT_STREQ(dst_result, cmp_result);
@@ -665,7 +613,7 @@ TEST(xor, set_array)
                       "{\"id\":6,\"name\":\"6_name\"}"\
                       "]";
 
-    char cmp_str[] = "{"\
+    char cmp_result[] = "{"\
                       "{\"id\":1,\"name\":\"1_name\"},"\
                       "{\"id\":2,\"name\":\"2_name\"},"\
                       "{\"id\":4,\"name\":\"4_name\"},"\
@@ -696,7 +644,6 @@ TEST(xor, set_array)
     ASSERT_EQ(result, true);
 
     char* dst_result = variant_to_string(dst);
-    char* cmp_result = cmp_str;
     PRINTF("dst=%s\n", dst_result);
     PRINTF("cmp=%s\n", cmp_result);
     ASSERT_STREQ(dst_result, cmp_result);
@@ -738,7 +685,7 @@ TEST(xor, set_array_2)
                       "{\"id\":6,\"name\":\"6_name\"}"\
                       "]";
 
-    char cmp_str[] = "{"\
+    char cmp_result[] = "{"\
                       "{\"id\":1,\"name\":\"1_name\"},"\
                       "{\"id\":2,\"name\":\"2_name\"},"\
                       "{\"id\":3,\"name\":\"3_name\"},"\
@@ -772,7 +719,6 @@ TEST(xor, set_array_2)
     ASSERT_EQ(result, true);
 
     char* dst_result = variant_to_string(dst);
-    char* cmp_result = cmp_str;
     PRINTF("dst=%s\n", dst_result);
     PRINTF("cmp=%s\n", cmp_result);
     ASSERT_STREQ(dst_result, cmp_result);
@@ -814,7 +760,7 @@ TEST(xor, unique_key_set_array)
                       "{\"id\":6,\"name\":\"6_name\"}"\
                       "]";
 
-    char cmp_str[] = "{"\
+    char cmp_result[] = "{"\
                       "{\"id\":1,\"name\":\"1_name\"},"\
                       "{\"id\":4,\"name\":\"4_name\"},"\
                       "{\"id\":5,\"name\":\"5_name\"},"\
@@ -844,7 +790,6 @@ TEST(xor, unique_key_set_array)
     ASSERT_EQ(result, true);
 
     char* dst_result = variant_to_string(dst);
-    char* cmp_result = cmp_str;
     PRINTF("dst=%s\n", dst_result);
     PRINTF("cmp=%s\n", cmp_result);
     ASSERT_STREQ(dst_result, cmp_result);
@@ -886,7 +831,7 @@ TEST(overwrite, set_array)
                       "{\"id\":6,\"name\":\"6_name\"}"\
                       "]";
 
-    char cmp_str[] = "{"\
+    char cmp_result[] = "{"\
                       "{\"id\":1,\"name\":\"1_name\"},"\
                       "{\"id\":2,\"name\":\"2_name_update\"},"\
                       "{\"id\":3,\"name\":\"3_name_update\"},"\
@@ -918,7 +863,6 @@ TEST(overwrite, set_array)
     ASSERT_EQ(result, true);
 
     char* dst_result = variant_to_string(dst);
-    char* cmp_result = cmp_str;
     PRINTF("dst=%s\n", dst_result);
     PRINTF("cmp=%s\n", cmp_result);
     ASSERT_STREQ(dst_result, cmp_result);
@@ -957,7 +901,7 @@ TEST(unite, set_set)
     char obj_5_str[] = "{\"id\":5,\"name\":\"5_name\"}";
     char obj_6_str[] = "{\"id\":6,\"name\":\"6_name\"}";
 
-    char cmp_str[] = "{"\
+    char cmp_result[] = "{"\
                       "{\"id\":1,\"name\":\"1_name\"},"\
                       "{\"id\":2,\"name\":\"2_name\"},"\
                       "{\"id\":3,\"name\":\"3_name\"},"\
@@ -1002,7 +946,6 @@ TEST(unite, set_set)
     ASSERT_EQ(result, true);
 
     char* dst_result = variant_to_string(dst);
-    char* cmp_result = cmp_str;
     PRINTF("dst=%s\n", dst_result);
     PRINTF("cmp=%s\n", cmp_result);
     ASSERT_STREQ(dst_result, cmp_result);
@@ -1043,7 +986,7 @@ TEST(intersect, set_set)
     char obj_5_str[] = "{\"id\":5,\"name\":\"5_name\"}";
     char obj_6_str[] = "{\"id\":6,\"name\":\"6_name\"}";
 
-    char cmp_str[] = "{"\
+    char cmp_result[] = "{"\
                       "{\"id\":3,\"name\":\"3_name\"}"\
                       "]";
 
@@ -1084,7 +1027,6 @@ TEST(intersect, set_set)
     ASSERT_EQ(result, true);
 
     char* dst_result = variant_to_string(dst);
-    char* cmp_result = cmp_str;
     PRINTF("dst=%s\n", dst_result);
     PRINTF("cmp=%s\n", cmp_result);
     ASSERT_STREQ(dst_result, cmp_result);
@@ -1125,7 +1067,7 @@ TEST(subtract, set_set)
     char obj_5_str[] = "{\"id\":5,\"name\":\"5_name\"}";
     char obj_6_str[] = "{\"id\":6,\"name\":\"6_name\"}";
 
-    char cmp_str[] = "{"\
+    char cmp_result[] = "{"\
                       "{\"id\":1,\"name\":\"1_name\"},"\
                       "{\"id\":2,\"name\":\"2_name\"}"\
                       "]";
@@ -1168,7 +1110,6 @@ TEST(subtract, set_set)
     ASSERT_EQ(result, true);
 
     char* dst_result = variant_to_string(dst);
-    char* cmp_result = cmp_str;
     PRINTF("dst=%s\n", dst_result);
     PRINTF("cmp=%s\n", cmp_result);
     ASSERT_STREQ(dst_result, cmp_result);
@@ -1209,7 +1150,7 @@ TEST(xor, set_set)
     char obj_5_str[] = "{\"id\":5,\"name\":\"5_name\"}";
     char obj_6_str[] = "{\"id\":6,\"name\":\"6_name\"}";
 
-    char cmp_str[] = "{"\
+    char cmp_result[] = "{"\
                       "{\"id\":1,\"name\":\"1_name\"},"\
                       "{\"id\":2,\"name\":\"2_name\"},"\
                       "{\"id\":4,\"name\":\"4_name\"},"\
@@ -1255,7 +1196,6 @@ TEST(xor, set_set)
     ASSERT_EQ(result, true);
 
     char* dst_result = variant_to_string(dst);
-    char* cmp_result = cmp_str;
     PRINTF("dst=%s\n", dst_result);
     PRINTF("cmp=%s\n", cmp_result);
     ASSERT_STREQ(dst_result, cmp_result);
@@ -1298,7 +1238,7 @@ TEST(xor, set_set_2)
     char obj_2a_str[] = "{\"id\":2,\"name\":\"2_name_update\"}";
     char obj_3a_str[] = "{\"id\":3,\"name\":\"3_name_update\"}";
 
-    char cmp_str[] = "{"\
+    char cmp_result[] = "{"\
                       "{\"id\":1,\"name\":\"1_name\"},"\
                       "{\"id\":2,\"name\":\"2_name\"},"\
                       "{\"id\":3,\"name\":\"3_name\"},"\
@@ -1355,7 +1295,6 @@ TEST(xor, set_set_2)
     ASSERT_EQ(result, true);
 
     char* dst_result = variant_to_string(dst);
-    char* cmp_result = cmp_str;
     PRINTF("dst=%s\n", dst_result);
     PRINTF("cmp=%s\n", cmp_result);
     ASSERT_STREQ(dst_result, cmp_result);
@@ -1400,7 +1339,7 @@ TEST(xor, unique_key_set_set)
     char obj_2a_str[] = "{\"id\":2,\"name\":\"2_name_update\"}";
     char obj_3a_str[] = "{\"id\":3,\"name\":\"3_name_update\"}";
 
-    char cmp_str[] = "{"\
+    char cmp_result[] = "{"\
                       "{\"id\":1,\"name\":\"1_name\"},"\
                       "{\"id\":4,\"name\":\"4_name\"},"\
                       "{\"id\":5,\"name\":\"5_name\"},"\
@@ -1453,7 +1392,6 @@ TEST(xor, unique_key_set_set)
     ASSERT_EQ(result, true);
 
     char* dst_result = variant_to_string(dst);
-    char* cmp_result = cmp_str;
     PRINTF("dst=%s\n", dst_result);
     PRINTF("cmp=%s\n", cmp_result);
     ASSERT_STREQ(dst_result, cmp_result);
@@ -1498,7 +1436,7 @@ TEST(overwrite, set_set)
     char obj_2a_str[] = "{\"id\":2,\"name\":\"2_name_update\"}";
     char obj_3a_str[] = "{\"id\":3,\"name\":\"3_name_update\"}";
 
-    char cmp_str[] = "{"\
+    char cmp_result[] = "{"\
                       "{\"id\":1,\"name\":\"1_name\"},"\
                       "{\"id\":2,\"name\":\"2_name_update\"},"\
                       "{\"id\":3,\"name\":\"3_name_update\"},"\
@@ -1553,7 +1491,6 @@ TEST(overwrite, set_set)
     ASSERT_EQ(result, true);
 
     char* dst_result = variant_to_string(dst);
-    char* cmp_result = cmp_str;
     PRINTF("dst=%s\n", dst_result);
     PRINTF("cmp=%s\n", cmp_result);
     ASSERT_STREQ(dst_result, cmp_result);
