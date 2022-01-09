@@ -19,5 +19,12 @@
         "dst_type" : "array",
         "src_type" : "set",
         "error" : 0
+    },
+    {
+        "name" : "100_append_array_array",
+        "ops" : "append",
+        "dst_type" : "array",
+        "src_type" : "array",
+        "error" : 0
     }
 ]

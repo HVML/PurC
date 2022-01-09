@@ -100,7 +100,7 @@ void print_data(const struct container_ops_test_data& data)
 }
 
 #define TO_TYPE(type_name, type_enum)                       \
-    if (strcmp (type, #type_name) == 0) {                   \
+    if (strcmp (type, type_name) == 0) {                    \
         return type_enum;                                   \
     }
 
