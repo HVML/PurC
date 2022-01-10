@@ -543,8 +543,9 @@ static int compare_arrays(purc_variant_t v1, purc_variant_t v2)
         return (int)(sz1 - sz2);
 
     idx = 0;
-    foreach_value_in_variant_array(v1, m1)
-
+    size_t curr;
+    foreach_value_in_variant_array(v1, m1, curr)
+        (void)curr;
         m2 = purc_variant_array_get(v2, idx);
         diff = purc_variant_compare_st(m1, m2);
         if (diff != 0)

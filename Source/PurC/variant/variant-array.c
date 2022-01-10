@@ -85,10 +85,10 @@ variant_arr_insert_before(purc_variant_t array, size_t idx, purc_variant_t val)
     node->val = val;
     purc_variant_ref(val);
 
-    variant_arr_t arr = (variant_arr_t)array->sz_ptr[1];
+    variant_arr_t data = (variant_arr_t)array->sz_ptr[1];
 
-    struct pcutils_array_list *al = &arr->al;
-    int r = pcutils_array_list_insert_before(al, idx, &node->al_node);
+    struct pcutils_array_list *al = &data->al;
+    int r = pcutils_array_list_insert_before(al, idx, &node->node);
     if (r) {
         arr_node_destroy(node);
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
@@ -102,8 +102,8 @@ variant_arr_insert_before(purc_variant_t array, size_t idx, purc_variant_t val)
 static int
 variant_arr_append(purc_variant_t array, purc_variant_t val)
 {
-    variant_arr_t arr = (variant_arr_t)array->sz_ptr[1];
-    struct pcutils_array_list *al = &arr->al;
+    variant_arr_t data = (variant_arr_t)array->sz_ptr[1];
+    struct pcutils_array_list *al = &data->al;
     size_t nr = pcutils_array_list_length(al);
     return variant_arr_insert_before(array, nr, val);
 }
@@ -115,13 +115,13 @@ variant_arr_prepend(purc_variant_t array, purc_variant_t val)
 }
 
 static purc_variant_t
-variant_arr_get(variant_arr_t arr, size_t idx)
+variant_arr_get(variant_arr_t data, size_t idx)
 {
-    struct pcutils_array_list *al = &arr->al;
+    struct pcutils_array_list *al = &data->al;
     struct pcutils_array_list_node *p;
     p = pcutils_array_list_get(al, idx);
     struct arr_node *node;
-    node = (struct arr_node*)container_of(p, struct arr_node, al_node);
+    node = (struct arr_node*)container_of(p, struct arr_node, node);
     return node->val;
 }
 
@@ -148,7 +148,7 @@ variant_arr_set(purc_variant_t array, size_t idx, purc_variant_t val)
     purc_variant_ref(val);
 
     struct pcutils_array_list_node *old;
-    int r = pcutils_array_list_set(al, idx, &node->al_node, &old);
+    int r = pcutils_array_list_set(al, idx, &node->node, &old);
     if (r) {
         arr_node_destroy(node);
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
@@ -156,7 +156,7 @@ variant_arr_set(purc_variant_t array, size_t idx, purc_variant_t val)
     }
     PC_ASSERT(p == old);
 
-    node = (struct arr_node*)container_of(old, struct arr_node, al_node);
+    node = (struct arr_node*)container_of(old, struct arr_node, node);
     PC_ASSERT(node->val);
 
     change(array, node->val, val);
@@ -182,7 +182,7 @@ variant_arr_remove(purc_variant_t array, size_t idx)
     PC_ASSERT(p);
 
     struct arr_node *node;
-    node = (struct arr_node*)container_of(p, struct arr_node, al_node);
+    node = (struct arr_node*)container_of(p, struct arr_node, node);
     PC_ASSERT(node->val);
 
     shrunk(array, node->val);
@@ -193,9 +193,9 @@ variant_arr_remove(purc_variant_t array, size_t idx)
 }
 
 static size_t
-variant_arr_length(variant_arr_t arr)
+variant_arr_length(variant_arr_t data)
 {
-    struct pcutils_array_list *al = &arr->al;
+    struct pcutils_array_list *al = &data->al;
     return pcutils_array_list_length(al);
 }
 
@@ -208,10 +208,10 @@ array_release (purc_variant_t value)
 
     struct pcutils_array_list *al = &data->al;
     struct arr_node *p, *n;
-    array_list_for_each_entry_reverse_safe(al, p, n, al_node) {
+    array_list_for_each_entry_reverse_safe(al, p, n, node) {
         struct pcutils_array_list_node *node;
-        int r = pcutils_array_list_remove(al, p->al_node.idx, &node);
-        PC_ASSERT(r==0 && node && node == &p->al_node);
+        int r = pcutils_array_list_remove(al, p->node.idx, &node);
+        PC_ASSERT(r==0 && node && node == &p->node);
         arr_node_destroy(p);
     };
 
@@ -226,10 +226,10 @@ static void
 refresh_extra(purc_variant_t array)
 {
     size_t extra = 0;
-    variant_arr_t arr = (variant_arr_t)array->sz_ptr[1];
-    if (arr) {
-        extra += sizeof(*arr);
-        struct pcutils_array_list *al = &arr->al;
+    variant_arr_t data = (variant_arr_t)array->sz_ptr[1];
+    if (data) {
+        extra += sizeof(*data);
+        struct pcutils_array_list *al = &data->al;
         extra += al->sz * sizeof(*al->nodes);
         extra += al->nr * sizeof(struct arr_node);
     }
@@ -524,8 +524,8 @@ sort_cmp(struct pcutils_array_list_node *l, struct pcutils_array_list_node *r,
         void *ud)
 {
     struct arr_node *l_n, *r_n;
-    l_n = container_of(l, struct arr_node, al_node);
-    r_n = container_of(r, struct arr_node, al_node);
+    l_n = container_of(l, struct arr_node, node);
+    r_n = container_of(r, struct arr_node, node);
 
     struct arr_user_data *d = (struct arr_user_data*)ud;
     return d->cmp(l_n->val, r_n->val, d->ud);

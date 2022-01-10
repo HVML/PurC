@@ -98,7 +98,9 @@ post_process_array(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         return -1;
 
     purc_variant_t val;
-    foreach_value_in_variant_array(frame->ctnt_var, val)
+    size_t idx;
+    foreach_value_in_variant_array(frame->ctnt_var, val, idx)
+        (void)idx;
         bool ok = purc_variant_is_type(val, PURC_VARIANT_TYPE_OBJECT);
         if (ok) {
             ok = purc_variant_set_add(set, val, true);

@@ -108,7 +108,9 @@ array_foreach(purc_variant_t array, foreach_func func, void* ctxt,
     }
 
     purc_variant_t val;
-    foreach_value_in_variant_array(array, val)
+    size_t idx;
+    foreach_value_in_variant_array(array, val, idx)
+        (void)idx;
         if (!func(ctxt, val, PURC_VARIANT_INVALID, silently)) {
             goto end;
         }

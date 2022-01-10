@@ -196,7 +196,9 @@ TEST(variant_array, add_n_str)
 
     purc_variant_t val;
     int j = 0;
-    foreach_value_in_variant_array(arr, val)
+    size_t idx;
+    foreach_value_in_variant_array(arr, val, idx)
+        (void)idx;
         ASSERT_EQ(val->type, PVT(_STRING));
         char buf[64];
         snprintf(buf, sizeof(buf), "%d", j++);
@@ -265,7 +267,9 @@ TEST(variant_array, add_n_str_and_remove)
         ASSERT_TRUE(ok);
     end_foreach;
 
-    foreach_value_in_variant_array(arr, val)
+    size_t idx;
+    foreach_value_in_variant_array(arr, val, idx)
+        (void)idx;
         ASSERT_EQ(0, 1); // shall not reach here
     end_foreach;
 
