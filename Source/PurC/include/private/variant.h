@@ -293,48 +293,69 @@ bool pcvariant_is_in_set (purc_variant_t set, purc_variant_t value);
  * 2. Implement the _safe version for easy change, e.g. removing an item,
  *  in an interation.
  */
-#define foreach_value_in_variant_array(_arr, _val, _idx)                 \
-    do {                                                                 \
-        variant_arr_t _data = (variant_arr_t)_arr->sz_ptr[1];            \
-        struct pcutils_array_list *_al = &_data->al;                     \
-        struct arr_node *_p_al;                                          \
-        array_list_for_each_entry(_al, _p_al, node) {                    \
-            _val = _p_al->val;                                           \
-            _idx = _p_al->node.idx;                                      \
-     /* } */                                                             \
+
+// purc_variant_t _arr;
+#define variant_array_get_data(_arr)        \
+    &(((variant_arr_t)_arr->sz_ptr[1])->al)
+
+// purc_variant_t _arr;
+// struct arr_node *_p;
+#define foreach_in_variant_array(_arr, _p)                               \
+    array_list_for_each_entry(variant_array_get_data(_arr),              \
+            _p, node)
+
+// purc_variant_t _arr;
+// struct arr_node *_p, *_n;
+#define foreach_in_variant_array_safe(_arr, _p, _n)                      \
+    array_list_for_each_entry_safe(variant_array_get_data(_arr),         \
+            _p, _n, node)
+
+// purc_variant_t _arr;
+// struct arr_node *_p;
+#define foreach_in_variant_array_reverse(_arr, _p)                       \
+    array_list_for_each_entry_reverse(variant_array_get_data(_arr),      \
+            _p, node)
+
+// purc_variant_t _arr;
+// struct arr_node *_p, *_n;
+#define foreach_in_variant_array_reverse_safe(_arr, _p, _n)              \
+    array_list_for_each_entry_reverse_safe(variant_array_get_data(_arr), \
+            _p, _n, node)
+
+#define foreach_value_in_variant_array(_arr, _val, _idx)              \
+    do {                                                              \
+        struct arr_node *_p;                                          \
+        foreach_in_variant_array(_arr, _p) {                          \
+            _val = _p->val;                                           \
+            _idx = _p->node.idx;                                      \
+     /* } */                                                          \
  /* } while (0) */
 
-#define foreach_value_in_variant_array_safe(_arr, _val, _idx)            \
-    do {                                                                 \
-        variant_arr_t _data = (variant_arr_t)_arr->sz_ptr[1];            \
-        struct pcutils_array_list *_al = &_data->al;                     \
-        struct arr_node *_p_al, *_n_al;                                  \
-        array_list_for_each_entry_safe(_al, _p_al, _n_al, node) {        \
-            _val = _p_al->val;                                           \
-            _idx = _p_al->node.idx;                                      \
-     /* } */                                                             \
+#define foreach_value_in_variant_array_safe(_arr, _val, _idx)      \
+    do {                                                           \
+        struct arr_node *_p, *_n;                                  \
+        foreach_in_variant_array_safe(_arr, _p, _n) {              \
+            _val = _p->val;                                        \
+            _idx = _p->node.idx;                                   \
+     /* } */                                                       \
  /* } while (0) */
 
-#define foreach_value_in_variant_array_reverse(_arr, _val, _idx)         \
-    do {                                                                 \
-        variant_arr_t _data = (variant_arr_t)_arr->sz_ptr[1];            \
-        struct pcutils_array_list *_al = &_data->al;                     \
-        struct arr_node *_p_al;                                          \
-        array_list_for_each_entry_reverse(_al, _p_al, node) {            \
-            _val = _p_al->val;                                           \
-            _idx = _p_al->node.idx;                                      \
-     /* } */                                                             \
+#define foreach_value_in_variant_array_reverse(_arr, _val, _idx)      \
+    do {                                                              \
+        struct arr_node *_p;                                          \
+        foreach_in_variant_array_reverse(_arr, _p) {                  \
+            _val = _p->val;                                           \
+            _idx = _p->node.idx;                                      \
+     /* } */                                                          \
  /* } while (0) */
 
-#define foreach_value_in_variant_array_reverse_safe(_arr, _val, _idx)         \
-    do {                                                                      \
-        variant_arr_t _data = (variant_arr_t)_arr->sz_ptr[1];                 \
-        struct pcutils_array_list *_al = &_data->al;                          \
-        struct arr_node *_p_al, *_n_al;                                       \
-        array_list_for_each_entry_reverse_safe(_al, _p_al, _n_al, node) {     \
-            _val = _p_al->val;                                                \
-            _idx = _p_al->node.idx;                                           \
-     /* } */                                                                  \
+#define foreach_value_in_variant_array_reverse_safe(_arr, _val, _idx)   \
+    do {                                                                \
+        struct arr_node *_p, *_n;                                       \
+        foreach_in_variant_array_reverse_safe(_arr, _p, _n) {           \
+            _val = _p->val;                                             \
+            _idx = _p->node.idx;                                        \
+     /* } */                                                            \
  /* } while (0) */
 
 #define foreach_value_in_variant_object(_obj, _val)                 \
