@@ -411,7 +411,7 @@ TEST(unite, set_array)
                       "{\"id\":6,\"name\":\"6_name\"}"\
                       "]";
 
-    char cmp_result[] = "{"\
+    char cmp_result[] = "["\
                       "{\"id\":1,\"name\":\"1_name\"},"\
                       "{\"id\":2,\"name\":\"2_name\"},"\
                       "{\"id\":3,\"name\":\"3_name\"},"\
@@ -482,7 +482,7 @@ TEST(intersect, set_array)
                       "{\"id\":6,\"name\":\"6_name\"}"\
                       "]";
 
-    char cmp_result[] = "{"\
+    char cmp_result[] = "["\
                       "{\"id\":3,\"name\":\"3_name\"}"\
                       "]";
 
@@ -549,7 +549,7 @@ TEST(subtract, set_array)
                       "{\"id\":6,\"name\":\"6_name\"}"\
                       "]";
 
-    char cmp_result[] = "{"\
+    char cmp_result[] = "["\
                       "{\"id\":1,\"name\":\"1_name\"},"\
                       "{\"id\":2,\"name\":\"2_name\"}"\
                       "]";
@@ -617,7 +617,7 @@ TEST(xor, set_array)
                       "{\"id\":6,\"name\":\"6_name\"}"\
                       "]";
 
-    char cmp_result[] = "{"\
+    char cmp_result[] = "["\
                       "{\"id\":1,\"name\":\"1_name\"},"\
                       "{\"id\":2,\"name\":\"2_name\"},"\
                       "{\"id\":4,\"name\":\"4_name\"},"\
@@ -689,7 +689,7 @@ TEST(xor, set_array_2)
                       "{\"id\":6,\"name\":\"6_name\"}"\
                       "]";
 
-    char cmp_result[] = "{"\
+    char cmp_result[] = "["\
                       "{\"id\":1,\"name\":\"1_name\"},"\
                       "{\"id\":2,\"name\":\"2_name\"},"\
                       "{\"id\":3,\"name\":\"3_name\"},"\
@@ -764,7 +764,7 @@ TEST(xor, unique_key_set_array)
                       "{\"id\":6,\"name\":\"6_name\"}"\
                       "]";
 
-    char cmp_result[] = "{"\
+    char cmp_result[] = "["\
                       "{\"id\":1,\"name\":\"1_name\"},"\
                       "{\"id\":4,\"name\":\"4_name\"},"\
                       "{\"id\":5,\"name\":\"5_name\"},"\
@@ -835,7 +835,7 @@ TEST(overwrite, set_array)
                       "{\"id\":6,\"name\":\"6_name\"}"\
                       "]";
 
-    char cmp_result[] = "{"\
+    char cmp_result[] = "["\
                       "{\"id\":1,\"name\":\"1_name\"},"\
                       "{\"id\":2,\"name\":\"2_name_update\"},"\
                       "{\"id\":3,\"name\":\"3_name_update\"},"\
@@ -905,7 +905,7 @@ TEST(unite, set_set)
     char obj_5_str[] = "{\"id\":5,\"name\":\"5_name\"}";
     char obj_6_str[] = "{\"id\":6,\"name\":\"6_name\"}";
 
-    char cmp_result[] = "{"\
+    char cmp_result[] = "["\
                       "{\"id\":1,\"name\":\"1_name\"},"\
                       "{\"id\":2,\"name\":\"2_name\"},"\
                       "{\"id\":3,\"name\":\"3_name\"},"\
@@ -990,7 +990,7 @@ TEST(intersect, set_set)
     char obj_5_str[] = "{\"id\":5,\"name\":\"5_name\"}";
     char obj_6_str[] = "{\"id\":6,\"name\":\"6_name\"}";
 
-    char cmp_result[] = "{"\
+    char cmp_result[] = "["\
                       "{\"id\":3,\"name\":\"3_name\"}"\
                       "]";
 
@@ -1071,7 +1071,7 @@ TEST(subtract, set_set)
     char obj_5_str[] = "{\"id\":5,\"name\":\"5_name\"}";
     char obj_6_str[] = "{\"id\":6,\"name\":\"6_name\"}";
 
-    char cmp_result[] = "{"\
+    char cmp_result[] = "["\
                       "{\"id\":1,\"name\":\"1_name\"},"\
                       "{\"id\":2,\"name\":\"2_name\"}"\
                       "]";
@@ -1154,7 +1154,7 @@ TEST(xor, set_set)
     char obj_5_str[] = "{\"id\":5,\"name\":\"5_name\"}";
     char obj_6_str[] = "{\"id\":6,\"name\":\"6_name\"}";
 
-    char cmp_result[] = "{"\
+    char cmp_result[] = "["\
                       "{\"id\":1,\"name\":\"1_name\"},"\
                       "{\"id\":2,\"name\":\"2_name\"},"\
                       "{\"id\":4,\"name\":\"4_name\"},"\
@@ -1242,7 +1242,7 @@ TEST(xor, set_set_2)
     char obj_2a_str[] = "{\"id\":2,\"name\":\"2_name_update\"}";
     char obj_3a_str[] = "{\"id\":3,\"name\":\"3_name_update\"}";
 
-    char cmp_result[] = "{"\
+    char cmp_result[] = "["\
                       "{\"id\":1,\"name\":\"1_name\"},"\
                       "{\"id\":2,\"name\":\"2_name\"},"\
                       "{\"id\":3,\"name\":\"3_name\"},"\
@@ -1343,7 +1343,7 @@ TEST(xor, unique_key_set_set)
     char obj_2a_str[] = "{\"id\":2,\"name\":\"2_name_update\"}";
     char obj_3a_str[] = "{\"id\":3,\"name\":\"3_name_update\"}";
 
-    char cmp_result[] = "{"\
+    char cmp_result[] = "["\
                       "{\"id\":1,\"name\":\"1_name\"},"\
                       "{\"id\":4,\"name\":\"4_name\"},"\
                       "{\"id\":5,\"name\":\"5_name\"},"\
@@ -1440,7 +1440,7 @@ TEST(overwrite, set_set)
     char obj_2a_str[] = "{\"id\":2,\"name\":\"2_name_update\"}";
     char obj_3a_str[] = "{\"id\":3,\"name\":\"3_name_update\"}";
 
-    char cmp_result[] = "{"\
+    char cmp_result[] = "["\
                       "{\"id\":1,\"name\":\"1_name\"},"\
                       "{\"id\":2,\"name\":\"2_name_update\"},"\
                       "{\"id\":3,\"name\":\"3_name_update\"},"\
