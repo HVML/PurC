@@ -39,153 +39,150 @@ align(size_t n)
 }
 
 int
-pcutils_array_list_init(struct pcutils_array_list *arrlist)
+pcutils_array_list_init(struct pcutils_array_list *al)
 {
-    memset(arrlist, 0, sizeof(*arrlist));
-    INIT_LIST_HEAD(&arrlist->list);
+    memset(al, 0, sizeof(*al));
+    INIT_LIST_HEAD(&al->list);
 
     return 0;
 }
 
 void
-pcutils_array_list_reset(struct pcutils_array_list *arrlist)
+pcutils_array_list_reset(struct pcutils_array_list *al)
 {
-    if (arrlist->nodes) {
-        free(arrlist->nodes);
-        arrlist->nodes = NULL;
-        arrlist->sz = 0;
-        arrlist->nr = 0;
+    if (al->nodes) {
+        free(al->nodes);
+        al->nodes = NULL;
+        al->sz = 0;
+        al->nr = 0;
     }
 }
 
 int
-pcutils_array_list_expand(struct pcutils_array_list *arrlist, size_t capacity)
+pcutils_array_list_expand(struct pcutils_array_list *al, size_t capacity)
 {
     if (capacity == 0)
         capacity = 1;
 
     size_t n = align(capacity);
     PC_ASSERT(n >= capacity);
-    if (arrlist->sz < n) {
+    if (al->sz < n) {
         struct pcutils_array_list_node **nodes;
-        nodes = (struct pcutils_array_list_node**)realloc(arrlist->nodes,
+        nodes = (struct pcutils_array_list_node**)realloc(al->nodes,
                 n * sizeof(*nodes));
 
         if (!nodes)
             return -1;
 
-        arrlist->nodes = nodes;
-        arrlist->sz    = n;
+        al->nodes = nodes;
+        al->sz    = n;
     }
 
     return 0;
 }
 
 int
-pcutils_array_list_set(struct pcutils_array_list *arrlist,
+pcutils_array_list_set(struct pcutils_array_list *al,
         size_t idx,
         struct pcutils_array_list_node *node,
         struct pcutils_array_list_node **old)
 {
-    int r;
-    if (idx >= arrlist->sz) {
-        r = pcutils_array_list_expand(arrlist, idx+1);
-        if (r)
-            return -1;
-    }
+    if (idx >= al->nr)
+        return -1;
 
-    PC_ASSERT(arrlist->nodes);
-    *old = arrlist->nodes[idx];
-    arrlist->nodes[idx] = node;
+    PC_ASSERT(al->nodes);
+    *old = al->nodes[idx];
+    al->nodes[idx] = node;
 
     return 0;
 }
 
 int
-pcutils_array_list_insert_before(struct pcutils_array_list *arrlist,
+pcutils_array_list_insert_before(struct pcutils_array_list *al,
         size_t idx,
         struct pcutils_array_list_node *node)
 {
     int r;
 
-    if (arrlist->nr == arrlist->sz) {
-        r = pcutils_array_list_expand(arrlist, arrlist->sz + 1);
+    if (al->nr == al->sz) {
+        r = pcutils_array_list_expand(al, al->sz + 1);
         if (r)
             return -1;
     }
 
-    if (idx >= arrlist->nr)
-        idx = arrlist->nr;
+    if (idx >= al->nr)
+        idx = al->nr;
 
-    if (arrlist->nr > 0) {
-        for (size_t i=arrlist->nr-1; i>=idx; --i) {
-            arrlist->nodes[i+1] = arrlist->nodes[i];
-            arrlist->nodes[i+1]->idx = i+1;
+    if (al->nr > 0) {
+        for (size_t i=al->nr-1; i>=idx; --i) {
+            al->nodes[i+1] = al->nodes[i];
+            al->nodes[i+1]->idx = i+1;
             if (i==0)
                 break;
         }
     }
-    arrlist->nodes[idx] = node;
-    arrlist->nodes[idx]->idx = idx;
+    al->nodes[idx] = node;
+    al->nodes[idx]->idx = idx;
 
-    list_add_tail(&node->node, &arrlist->list);
+    list_add_tail(&node->node, &al->list);
 
-    arrlist->nr += 1;
+    al->nr += 1;
 
     return 0;
 }
 
 int
-pcutils_array_list_remove(struct pcutils_array_list *arrlist,
+pcutils_array_list_remove(struct pcutils_array_list *al,
         size_t idx,
         struct pcutils_array_list_node **old)
 {
-    PC_ASSERT(idx < arrlist->nr);
+    if (idx >= al->nr)
+        return -1;
 
-    struct pcutils_array_list_node *node = arrlist->nodes[idx];
+    struct pcutils_array_list_node *node = al->nodes[idx];
 
-    for (size_t i=node->idx; i+1<arrlist->nr; ++i) {
-        arrlist->nodes[i] = arrlist->nodes[i+1];
-        arrlist->nodes[i]->idx = i;
+    for (size_t i=node->idx; i+1<al->nr; ++i) {
+        al->nodes[i] = al->nodes[i+1];
+        al->nodes[i]->idx = i;
     }
-    arrlist->nodes[arrlist->nr-1] = NULL;
+    al->nodes[al->nr-1] = NULL;
 
     list_del(&node->node);
     node->idx = -1;
 
     *old = node;
 
-    arrlist->nr -= 1;
+    al->nr -= 1;
 
     return 0;
 }
 
 struct pcutils_array_list_node*
-pcutils_array_list_get(struct pcutils_array_list *arrlist,
+pcutils_array_list_get(struct pcutils_array_list *al,
         size_t idx)
 {
-    if (idx < arrlist->nr)
-        return arrlist->nodes[idx];
+    if (idx < al->nr)
+        return al->nodes[idx];
 
     return NULL;
 }
 
 int
-pcutils_array_list_swap(struct pcutils_array_list *arrlist,
+pcutils_array_list_swap(struct pcutils_array_list *al,
         size_t i, size_t j)
 {
-    if (i >= arrlist->nr || j >= arrlist->nr)
+    if (i >= al->nr || j >= al->nr)
         return -1;
 
     if (i == j)
         return 0;
 
-    struct pcutils_array_list_node *l = arrlist->nodes[i];
-    struct pcutils_array_list_node *r = arrlist->nodes[j];
+    struct pcutils_array_list_node *l = al->nodes[i];
+    struct pcutils_array_list_node *r = al->nodes[j];
 
-    arrlist->nodes[i] = r;
+    al->nodes[i] = r;
     r->idx = i;
-    arrlist->nodes[j] = l;
+    al->nodes[j] = l;
     l->idx = j;
 
     return 0;
@@ -222,12 +219,12 @@ static int cmp_variant(void *ud, const void *l, const void *r)
 #endif
 
 int
-pcutils_array_list_sort(struct pcutils_array_list *arrlist,
+pcutils_array_list_sort(struct pcutils_array_list *al,
         void *ud, int (*cmp)(struct pcutils_array_list_node *l,
                 struct pcutils_array_list_node *r, void *ud))
 {
-    struct pcutils_array_list_node **nodes = arrlist->nodes;
-    size_t nr = arrlist->nr;
+    struct pcutils_array_list_node **nodes = al->nodes;
+    size_t nr = al->nr;
 
     struct arr_user_data d = {
         .cmp = cmp,
@@ -242,8 +239,8 @@ pcutils_array_list_sort(struct pcutils_array_list *arrlist,
     qsort_s(nodes, nr, sizeof(*nodes), cmp_variant, &d);
 #endif
 
-    for (size_t i=0; i<arrlist->nr; ++i) {
-        struct pcutils_array_list_node *l = arrlist->nodes[i];
+    for (size_t i=0; i<al->nr; ++i) {
+        struct pcutils_array_list_node *l = al->nodes[i];
         l->idx = i;
     }
 

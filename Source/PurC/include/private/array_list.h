@@ -115,87 +115,87 @@ struct pcutils_array_list {
 PCA_EXTERN_C_BEGIN
 
 int
-pcutils_array_list_init(struct pcutils_array_list *arrlist);
+pcutils_array_list_init(struct pcutils_array_list *al);
 
 void
-pcutils_array_list_reset(struct pcutils_array_list *arrlist);
+pcutils_array_list_reset(struct pcutils_array_list *al);
 
 static inline size_t
-pcutils_array_list_length(struct pcutils_array_list *arrlist)
+pcutils_array_list_length(struct pcutils_array_list *al)
 {
-    return arrlist->nr;
+    return al->nr;
 }
 
 static inline size_t
-pcutils_array_list_capacity(struct pcutils_array_list *arrlist)
+pcutils_array_list_capacity(struct pcutils_array_list *al)
 {
-    return arrlist->sz;
+    return al->sz;
 }
 
 int
-pcutils_array_list_expand(struct pcutils_array_list *arrlist, size_t capacity);
+pcutils_array_list_expand(struct pcutils_array_list *al, size_t capacity);
 
 int
-pcutils_array_list_set(struct pcutils_array_list *arrlist,
+pcutils_array_list_set(struct pcutils_array_list *al,
         size_t idx,
         struct pcutils_array_list_node *node,
         struct pcutils_array_list_node **old);
 
 int
-pcutils_array_list_insert_before(struct pcutils_array_list *arrlist,
+pcutils_array_list_insert_before(struct pcutils_array_list *al,
         size_t idx,
         struct pcutils_array_list_node *node);
 
 static inline int
-pcutils_array_list_insert_after(struct pcutils_array_list *arrlist,
+pcutils_array_list_insert_after(struct pcutils_array_list *al,
         size_t idx,
         struct pcutils_array_list_node *node)
 {
-    return pcutils_array_list_insert_before(arrlist, idx+1, node);
+    return pcutils_array_list_insert_before(al, idx+1, node);
 }
 
 static inline int
-pcutils_array_list_append(struct pcutils_array_list *arrlist,
+pcutils_array_list_append(struct pcutils_array_list *al,
         struct pcutils_array_list_node *node)
 {
-    return pcutils_array_list_insert_before(arrlist, arrlist->nr, node);
+    return pcutils_array_list_insert_before(al, al->nr, node);
 }
 
 static inline int
-pcutils_array_list_prepend(struct pcutils_array_list *arrlist,
+pcutils_array_list_prepend(struct pcutils_array_list *al,
         struct pcutils_array_list_node *node)
 {
-    return pcutils_array_list_insert_before(arrlist, 0, node);
+    return pcutils_array_list_insert_before(al, 0, node);
 }
 
 int
-pcutils_array_list_remove(struct pcutils_array_list *arrlist,
+pcutils_array_list_remove(struct pcutils_array_list *al,
         size_t idx,
         struct pcutils_array_list_node **old);
 
 struct pcutils_array_list_node*
-pcutils_array_list_get(struct pcutils_array_list *arrlist,
+pcutils_array_list_get(struct pcutils_array_list *al,
         size_t idx);
 
 static inline struct pcutils_array_list_node*
-pcutils_array_list_get_first(struct pcutils_array_list *arrlist)
+pcutils_array_list_get_first(struct pcutils_array_list *al)
 {
-    return pcutils_array_list_get(arrlist, 0);
+    return pcutils_array_list_get(al, 0);
 }
 
 static inline struct pcutils_array_list_node*
-pcutils_array_list_get_last(struct pcutils_array_list *arrlist)
+pcutils_array_list_get_last(struct pcutils_array_list *al)
 {
-    // NOTE: let pcutils_array_list_get to take care arrlist->nr - 1
-    return pcutils_array_list_get(arrlist, arrlist->nr - 1);
+    // NOTE: let pcutils_array_list_get to take care al->nr - 1
+    return pcutils_array_list_get(al, al->nr - 1);
 }
 
 int
-pcutils_array_list_swap(struct pcutils_array_list *arrlist,
+pcutils_array_list_swap(struct pcutils_array_list *al,
         size_t i, size_t j);
 
 int
-pcutils_array_list_sort(struct pcutils_array_list *arrlist,
+pcutils_array_list_sort(struct pcutils_array_list *al,
         void *ud, int (*cmp)(struct pcutils_array_list_node *l,
                 struct pcutils_array_list_node *r, void *ud));
 
