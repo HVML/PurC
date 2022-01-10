@@ -75,5 +75,20 @@
         "dst_type" : "set",
         "src_type" : "array",
         "error" : 0
+    },
+    {
+        "name" : "901_xor_set_array",
+        "ops" : "xor",
+        "dst_type" : "set",
+        "src_type" : "array",
+        "error" : 0
+    },
+    {
+        "name" : "902_xor_unique_key_set_array",
+        "ops" : "xor",
+        "dst_type" : "set",
+        "dst_unique_key" : "id",
+        "src_type" : "array",
+        "error" : 0
     }
 ]

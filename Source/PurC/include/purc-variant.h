@@ -717,7 +717,7 @@ purc_variant_make_object(size_t nr_kv_pairs,
  *
  * @param obj: the variant value of obj type
  * @param key: the key of key-value pair
- * @param silently: True means ignore the following error:
+ * @param silently: True means ignoring the following errors:
  *      - PCVARIANT_ERROR_NOT_FOUND
  *
  * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
@@ -732,7 +732,7 @@ purc_variant_object_get(purc_variant_t obj, purc_variant_t key, bool silently);
  *
  * @param obj: the variant value of obj type
  * @param key: the key of key-value pair
- * @param silently: True means ignore the following error:
+ * @param silently: True means ignoring the following errors:
  *      - PCVARIANT_ERROR_NOT_FOUND
  *
  * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
@@ -797,7 +797,7 @@ purc_variant_object_set_by_static_ckey(purc_variant_t obj, const char* key,
  *
  * @param obj: the variant value of obj type
  * @param key: the key of key-value pair
- * @param silently: True means ignore the following error:
+ * @param silently: True means ignoring the following errors:
  *      - PCVARIANT_ERROR_NOT_FOUND (return True)
  *
  * Returns: True on success, otherwise False.
@@ -813,7 +813,7 @@ purc_variant_object_remove(purc_variant_t obj, purc_variant_t key,
  *
  * @param obj: the variant value of obj type
  * @param key: the key of key-value pair
- * @param silently: True means ignore the following error:
+ * @param silently: True means ignoring the following errors:
  *      - PCVARIANT_ERROR_NOT_FOUND (return True)
  *
  * Returns: True on success, otherwise False.
@@ -1073,7 +1073,7 @@ purc_variant_set_add(purc_variant_t obj, purc_variant_t value, bool overwrite);
  *
  * @param set: the set to be operated
  * @param value: the value to be removed
- * @param silently: True means ignore the following error:
+ * @param silently: True means ignoring the following errors:
  *      - PCVARIANT_ERROR_NOT_FOUND (return True)
  *
  * Returns: @true on success, @false if:
@@ -1909,7 +1909,7 @@ purc_variant_revoke_listener(purc_variant_t v,
  *
  * @param dst: the dst variant (object, array, set)
  * @param value: the variant to replace (object, array, set)
- * @param silently: True means ignore the following error:
+ * @param silently: True means ignoring the following errors:
  *      - PURC_ERROR_INVALID_VALUE
  *      - PURC_ERROR_WRONG_DATA_TYPE
  *
@@ -1926,9 +1926,10 @@ purc_variant_container_displace(purc_variant_t dst,
  *
  * @param dst: the dst variant (object, array, set)
  * @param value: the variant to remove from container (object, array, set)
- * @param silently: True means ignore the following error:
+ * @param silently: True means ignoring the following errors:
  *      - PURC_ERROR_INVALID_VALUE
  *      - PURC_ERROR_WRONG_DATA_TYPE
+ *      - PCVARIANT_ERROR_NOT_FOUND
  *
  * Returns: True on success, otherwise False.
  *
@@ -1943,7 +1944,7 @@ purc_variant_container_remove(purc_variant_t dst,
  *
  * @param array: the dst array variant
  * @param value: the value to be appended (array)
- * @param silently: True means ignore the following error:
+ * @param silently: True means ignoring the following errors:
  *      - PURC_ERROR_INVALID_VALUE
  *      - PURC_ERROR_WRONG_DATA_TYPE
  *
@@ -1960,7 +1961,7 @@ purc_variant_array_append_another(purc_variant_t array,
  *
  * @param array: the dst array variant
  * @param value: the value to be insert (array)
- * @param silently: True means ignore the following error:
+ * @param silently: True means ignoring the following errors:
  *      - PURC_ERROR_INVALID_VALUE
  *      - PURC_ERROR_WRONG_DATA_TYPE
  *
@@ -1977,7 +1978,7 @@ purc_variant_array_prepend_another(purc_variant_t array,
  *
  * @param object: the dst object variant
  * @param value: the value to be merge (object)
- * @param silently: True means ignore the following error:
+ * @param silently: True means ignoring the following errors:
  *      - PURC_ERROR_INVALID_VALUE
  *      - PURC_ERROR_WRONG_DATA_TYPE
  *
@@ -1996,7 +1997,7 @@ purc_variant_object_merge_another(purc_variant_t object,
  * @param array: the dst array variant
  * @param idx: the index of element before which the new value will be placed
  * @param value: the inserted value (array)
- * @param silently: True means ignore the following error:
+ * @param silently: True means ignoring the following errors:
  *      - PURC_ERROR_INVALID_VALUE
  *      - PURC_ERROR_WRONG_DATA_TYPE
  *
@@ -2015,7 +2016,7 @@ purc_variant_array_insert_another_before(purc_variant_t array,
  * @param array: the dst array variant
  * @param idx: the index of element after which the new value will be placed
  * @param value: the inserted value (array)
- * @param silently: True means ignore the following error:
+ * @param silently: True means ignoring the following errors:
  *      - PURC_ERROR_INVALID_VALUE
  *      - PURC_ERROR_WRONG_DATA_TYPE
  *
@@ -2032,7 +2033,7 @@ purc_variant_array_insert_another_after(purc_variant_t array,
  *
  * @param set: the dst set variant
  * @param value: the value to be unite (array, set)
- * @param silently: True means ignore the following error:
+ * @param silently: True means ignoring the following errors:
  *      - PURC_ERROR_INVALID_VALUE
  *      - PURC_ERROR_WRONG_DATA_TYPE
  *
@@ -2049,7 +2050,7 @@ purc_variant_set_unite(purc_variant_t set,
  *
  * @param set: the dst set variant
  * @param value: the value to intersect (array, set)
- * @param silently: True means ignore the following error:
+ * @param silently: True means ignoring the following errors:
  *      - PURC_ERROR_INVALID_VALUE
  *      - PURC_ERROR_WRONG_DATA_TYPE
  *
@@ -2066,7 +2067,7 @@ purc_variant_set_intersect(purc_variant_t set,
  *
  * @param set: the dst set variant
  * @param value: the value to substract (array, set)
- * @param silently: True means ignore the following error:
+ * @param silently: True means ignoring the following errors:
  *      - PURC_ERROR_INVALID_VALUE
  *      - PURC_ERROR_WRONG_DATA_TYPE
  *
@@ -2083,7 +2084,7 @@ purc_variant_set_subtract(purc_variant_t set,
  *
  * @param set: the dst set variant
  * @param value: the value to xor (array, set)
- * @param silently: True means ignore the following error:
+ * @param silently: True means ignoring the following errors:
  *      - PURC_ERROR_INVALID_VALUE
  *      - PURC_ERROR_WRONG_DATA_TYPE
  *
@@ -2100,9 +2101,10 @@ purc_variant_set_xor(purc_variant_t set,
  *
  * @param set: the dst set variant
  * @param value: the value to overwrite (object, array, set)
- * @param silently: True means ignore the following error:
+ * @param silently: True means ignoring the following errors:
  *      - PURC_ERROR_INVALID_VALUE
  *      - PURC_ERROR_WRONG_DATA_TYPE
+ *      - PCVARIANT_ERROR_NOT_FOUND
  *
  * Returns: True on success, otherwise False.
  *
