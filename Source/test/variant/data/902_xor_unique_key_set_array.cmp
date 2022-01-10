@@ -1,1 +1,14 @@
-[{"id":1,"name":"1_name"},{"id":4,"name":"4_name"},{"id":5,"name":"5_name"},{"id":6,"name":"6_name"}]
+[
+    {
+        "id":1,"name":"1_name"
+    },
+    {
+        "id":4,"name":"4_name"
+    },
+    {
+        "id":5,"name":"5_name"
+    },
+    {
+        "id":6,"name":"6_name"
+    }
+]

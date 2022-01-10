@@ -13,6 +13,9 @@
 #include <libgen.h>
 #include <gtest/gtest.h>
 
+#include <dirent.h>
+#include <glob.h>
+
 using namespace std;
 
 #define PRINTF(...)                                                       \
@@ -65,6 +68,11 @@ enum container_ops_type {
     CONTAINER_OPS_TYPE_SUBTRACT,
     CONTAINER_OPS_TYPE_XOR,
     CONTAINER_OPS_TYPE_OVERWRITE
+};
+
+struct test_case {
+    char* filename;
+    char* data;
 };
 
 struct container_ops_test_data {
@@ -329,13 +337,19 @@ TEST_P(Variant_container_data, container_ops)
     ASSERT_EQ(result, true);
 
     //  compare with cmp
+    purc_variant_t cmp = purc_variant_make_from_json_string(data.comp,
+            strlen(data.comp));
+    ASSERT_NE(cmp, PURC_VARIANT_INVALID);
+
     char* dst_result = variant_to_string(dst);
+    char* cmp_result = variant_to_string(cmp);
     PRINTF("dst=%s\n", dst_result);
-    PRINTF("cmp=%s\n", data.comp);
-    ASSERT_STREQ(dst_result, data.comp);
+    PRINTF("cmp=%s\n", cmp_result);
+    ASSERT_STREQ(dst_result, cmp_result);
 
     // clear
     free(dst_result);
+    free(cmp_result);
     purc_variant_unref(src);
     purc_variant_unref(dst);
 }
@@ -354,6 +368,39 @@ char* read_file (const char* file)
     fclose (fp);
     buf[sz] = 0;
     return buf;
+}
+
+std::vector<test_case> load_test_case()
+{
+    int r = 0;
+    std::vector<test_case> test_cases;
+    glob_t globbuf;
+    memset(&globbuf, 0, sizeof(globbuf));
+
+
+    char path[PATH_MAX+1];
+    const char* env = "VARIANT_TEST_CONTAINER_OPS_PATH";
+    getpath_from_env_or_rel(path, sizeof(path), env, "/data/*.src");
+
+    if (!path[0])
+        goto end;
+
+    globbuf.gl_offs = 0;
+    r = glob(path, GLOB_DOOFFS | GLOB_APPEND, NULL, &globbuf);
+
+    if (r == 0) {
+        for (size_t i = 0; i < globbuf.gl_pathc; ++i) {
+            struct test_case test;
+            test.filename = MemCollector::strdup(
+                    basename((char *)globbuf.gl_pathv[i]));
+            test.data = read_file(globbuf.gl_pathv[i]);
+            test_cases.push_back(test);
+        }
+    }
+    globfree(&globbuf);
+
+end:
+    return test_cases;
 }
 
 std::vector<container_ops_test_data> read_container_ops_test_data()
@@ -519,8 +566,11 @@ end:
         purc_variant_unref(input_variant);
     }
     purc_cleanup ();
+
+    load_test_case();
     return vec;
 }
+
 
 INSTANTIATE_TEST_SUITE_P(purc_variant, Variant_container_data,
         testing::ValuesIn(read_container_ops_test_data()));
