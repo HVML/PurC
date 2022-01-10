@@ -19,7 +19,7 @@ PURC_EXECUTABLE(test_dvobjs)
 
 set(test_dvobjs_SOURCES
     test_dvobjs.cpp
-    test_helper.cpp
+    helper.cpp
 )
 
 set(test_dvobjs_LIBRARIES
@@ -34,10 +34,10 @@ PURC_FRAMEWORK(test_dvobjs)
 GTEST_DISCOVER_TESTS(test_dvobjs DISCOVERY_TIMEOUT 10)
 
 
-# test_math
-PURC_EXECUTABLE_DECLARE(test_math)
+# test_dvobjs_math
+PURC_EXECUTABLE_DECLARE(test_dvobjs_math)
 
-list(APPEND test_math_PRIVATE_INCLUDE_DIRECTORIES
+list(APPEND test_dvobjs_math_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR}/include
     ${PurC_DERIVED_SOURCES_DIR}
     ${PURC_DIR}
@@ -45,29 +45,29 @@ list(APPEND test_math_PRIVATE_INCLUDE_DIRECTORIES
     ${WTF_DIR}
 )
 
-PURC_EXECUTABLE(test_math)
+PURC_EXECUTABLE(test_dvobjs_math)
 
-set(test_math_SOURCES
-    test_math.cpp
-    test_helper.cpp
+set(test_dvobjs_math_SOURCES
+    test_dvobjs_math.cpp
+    helper.cpp
 )
 
-set(test_math_LIBRARIES
+set(test_dvobjs_math_LIBRARIES
     PurC::PurC
     gtest_main
     gtest
     pthread
 )
 
-PURC_COMPUTE_SOURCES(test_math)
-PURC_FRAMEWORK(test_math)
-GTEST_DISCOVER_TESTS(test_math DISCOVERY_TIMEOUT 10)
+PURC_COMPUTE_SOURCES(test_dvobjs_math)
+PURC_FRAMEWORK(test_dvobjs_math)
+GTEST_DISCOVER_TESTS(test_dvobjs_math DISCOVERY_TIMEOUT 10)
 
 
-# test_logical
-PURC_EXECUTABLE_DECLARE(test_logical)
+# test_dvobjs_logical
+PURC_EXECUTABLE_DECLARE(test_dvobjs_logical)
 
-list(APPEND test_logical_PRIVATE_INCLUDE_DIRECTORIES
+list(APPEND test_dvobjs_logical_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR}/include
     ${PurC_DERIVED_SOURCES_DIR}
     ${PURC_DIR}
@@ -75,29 +75,29 @@ list(APPEND test_logical_PRIVATE_INCLUDE_DIRECTORIES
     ${WTF_DIR}
 )
 
-PURC_EXECUTABLE(test_logical)
+PURC_EXECUTABLE(test_dvobjs_logical)
 
-set(test_logical_SOURCES
-    test_logical.cpp
-    test_helper.cpp
+set(test_dvobjs_logical_SOURCES
+    test_dvobjs_logical.cpp
+    helper.cpp
 )
 
-set(test_logical_LIBRARIES
+set(test_dvobjs_logical_LIBRARIES
     PurC::PurC
     gtest_main
     gtest
     pthread
 )
 
-PURC_COMPUTE_SOURCES(test_logical)
-PURC_FRAMEWORK(test_logical)
-GTEST_DISCOVER_TESTS(test_logical DISCOVERY_TIMEOUT 10)
+PURC_COMPUTE_SOURCES(test_dvobjs_logical)
+PURC_FRAMEWORK(test_dvobjs_logical)
+GTEST_DISCOVER_TESTS(test_dvobjs_logical DISCOVERY_TIMEOUT 10)
 
 
-# test_string
-PURC_EXECUTABLE_DECLARE(test_string)
+# test_dvobjs_string
+PURC_EXECUTABLE_DECLARE(test_dvobjs_string)
 
-list(APPEND test_string_PRIVATE_INCLUDE_DIRECTORIES
+list(APPEND test_dvobjs_string_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR}/include
     ${PurC_DERIVED_SOURCES_DIR}
     ${PURC_DIR}
@@ -105,29 +105,29 @@ list(APPEND test_string_PRIVATE_INCLUDE_DIRECTORIES
     ${WTF_DIR}
 )
 
-PURC_EXECUTABLE(test_string)
+PURC_EXECUTABLE(test_dvobjs_string)
 
-set(test_string_SOURCES
-    test_string.cpp
-    test_helper.cpp
+set(test_dvobjs_string_SOURCES
+    test_dvobjs_string.cpp
+    helper.cpp
 )
 
-set(test_string_LIBRARIES
+set(test_dvobjs_string_LIBRARIES
     PurC::PurC
     gtest_main
     gtest
     pthread
 )
 
-PURC_COMPUTE_SOURCES(test_string)
-PURC_FRAMEWORK(test_string)
-GTEST_DISCOVER_TESTS(test_string DISCOVERY_TIMEOUT 10)
+PURC_COMPUTE_SOURCES(test_dvobjs_string)
+PURC_FRAMEWORK(test_dvobjs_string)
+GTEST_DISCOVER_TESTS(test_dvobjs_string DISCOVERY_TIMEOUT 10)
 
 
-# test_fs
-PURC_EXECUTABLE_DECLARE(test_fs)
+# test_dvobjs_fs
+PURC_EXECUTABLE_DECLARE(test_dvobjs_fs)
 
-list(APPEND test_fs_PRIVATE_INCLUDE_DIRECTORIES
+list(APPEND test_dvobjs_fs_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR}/include
     ${PurC_DERIVED_SOURCES_DIR}
     ${PURC_DIR}
@@ -135,29 +135,29 @@ list(APPEND test_fs_PRIVATE_INCLUDE_DIRECTORIES
     ${WTF_DIR}
 )
 
-PURC_EXECUTABLE(test_fs)
+PURC_EXECUTABLE(test_dvobjs_fs)
 
-set(test_fs_SOURCES
-    test_fs.cpp
-    test_helper.cpp
+set(test_dvobjs_fs_SOURCES
+    test_dvobjs_fs.cpp
+    helper.cpp
 )
 
-set(test_fs_LIBRARIES
+set(test_dvobjs_fs_LIBRARIES
     PurC::PurC
     gtest_main
     gtest
     pthread
 )
 
-PURC_COMPUTE_SOURCES(test_fs)
-PURC_FRAMEWORK(test_fs)
-GTEST_DISCOVER_TESTS(test_fs DISCOVERY_TIMEOUT 10)
+PURC_COMPUTE_SOURCES(test_dvobjs_fs)
+PURC_FRAMEWORK(test_dvobjs_fs)
+GTEST_DISCOVER_TESTS(test_dvobjs_fs DISCOVERY_TIMEOUT 10)
 
 
-# test_file
-PURC_EXECUTABLE_DECLARE(test_file)
+# test_dvobjs_file
+PURC_EXECUTABLE_DECLARE(test_dvobjs_file)
 
-list(APPEND test_file_PRIVATE_INCLUDE_DIRECTORIES
+list(APPEND test_dvobjs_file_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR}/include
     ${PurC_DERIVED_SOURCES_DIR}
     ${PURC_DIR}
@@ -165,30 +165,30 @@ list(APPEND test_file_PRIVATE_INCLUDE_DIRECTORIES
     ${WTF_DIR}
 )
 
-PURC_EXECUTABLE(test_file)
+PURC_EXECUTABLE(test_dvobjs_file)
 
-set(test_file_SOURCES
-    test_file.cpp
-    test_helper.cpp
+set(test_dvobjs_file_SOURCES
+    test_dvobjs_file.cpp
+    helper.cpp
 )
 
-set(test_file_LIBRARIES
+set(test_dvobjs_file_LIBRARIES
     PurC::PurC
     gtest_main
     gtest
     pthread
 )
 
-PURC_COMPUTE_SOURCES(test_file)
-PURC_FRAMEWORK(test_file)
-GTEST_DISCOVER_TESTS(test_file DISCOVERY_TIMEOUT 10)
+PURC_COMPUTE_SOURCES(test_dvobjs_file)
+PURC_FRAMEWORK(test_dvobjs_file)
+GTEST_DISCOVER_TESTS(test_dvobjs_file DISCOVERY_TIMEOUT 10)
 
 
 
 # test_ejson
-PURC_EXECUTABLE_DECLARE(test_dvobjejson)
+PURC_EXECUTABLE_DECLARE(test_dvobjs_ejson)
 
-list(APPEND test_dvobjejson_PRIVATE_INCLUDE_DIRECTORIES
+list(APPEND test_dvobjs_ejson_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR}/include
     ${PurC_DERIVED_SOURCES_DIR}
     ${PURC_DIR}
@@ -198,29 +198,29 @@ list(APPEND test_dvobjejson_PRIVATE_INCLUDE_DIRECTORIES
     ${GLIBCONFIG_INCLUDE_DIR}
 )
 
-PURC_EXECUTABLE(test_dvobjejson)
+PURC_EXECUTABLE(test_dvobjs_ejson)
 
-set(test_dvobjejson_SOURCES
-    test_ejson.cpp
-    test_helper.cpp
+set(test_dvobjs_ejson_SOURCES
+    test_dvobjs_ejson.cpp
+    helper.cpp
 )
 
-set(test_dvobjejson_LIBRARIES
+set(test_dvobjs_ejson_LIBRARIES
     PurC::PurC
     gtest_main
     gtest
     pthread
 )
 
-PURC_COMPUTE_SOURCES(test_dvobjejson)
-PURC_FRAMEWORK(test_dvobjejson)
-GTEST_DISCOVER_TESTS(test_dvobjejson DISCOVERY_TIMEOUT 10)
+PURC_COMPUTE_SOURCES(test_dvobjs_ejson)
+PURC_FRAMEWORK(test_dvobjs_ejson)
+GTEST_DISCOVER_TESTS(test_dvobjs_ejson DISCOVERY_TIMEOUT 10)
 
 
-# test_dvobjhvml
-PURC_EXECUTABLE_DECLARE(test_dvobjhvml)
+# test_dvobjs_hvml
+PURC_EXECUTABLE_DECLARE(test_dvobjs_hvml)
 
-list(APPEND test_dvobjhvml_PRIVATE_INCLUDE_DIRECTORIES
+list(APPEND test_dvobjs_hvml_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR}/include
     ${PurC_DERIVED_SOURCES_DIR}
     ${PURC_DIR}
@@ -228,28 +228,28 @@ list(APPEND test_dvobjhvml_PRIVATE_INCLUDE_DIRECTORIES
     ${WTF_DIR}
 )
 
-PURC_EXECUTABLE(test_dvobjhvml)
+PURC_EXECUTABLE(test_dvobjs_hvml)
 
-set(test_dvobjhvml_SOURCES
-    test_hvml.cpp
-    test_helper.cpp
+set(test_dvobjs_hvml_SOURCES
+    test_dvobjs_hvml.cpp
+    helper.cpp
 )
 
-set(test_dvobjhvml_LIBRARIES
+set(test_dvobjs_hvml_LIBRARIES
     PurC::PurC
     gtest_main
     gtest
     pthread
 )
 
-PURC_COMPUTE_SOURCES(test_dvobjhvml)
-PURC_FRAMEWORK(test_dvobjhvml)
-GTEST_DISCOVER_TESTS(test_dvobjhvml DISCOVERY_TIMEOUT 10)
+PURC_COMPUTE_SOURCES(test_dvobjs_hvml)
+PURC_FRAMEWORK(test_dvobjs_hvml)
+GTEST_DISCOVER_TESTS(test_dvobjs_hvml DISCOVERY_TIMEOUT 10)
 
-# test_dvobjt
-PURC_EXECUTABLE_DECLARE(test_dvobjt)
+# test_dvobjs_t
+PURC_EXECUTABLE_DECLARE(test_dvobjs_t)
 
-list(APPEND test_dvobjt_PRIVATE_INCLUDE_DIRECTORIES
+list(APPEND test_dvobjs_t_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR}/include
     ${PurC_DERIVED_SOURCES_DIR}
     ${PURC_DIR}
@@ -257,20 +257,20 @@ list(APPEND test_dvobjt_PRIVATE_INCLUDE_DIRECTORIES
     ${WTF_DIR}
 )
 
-PURC_EXECUTABLE(test_dvobjt)
+PURC_EXECUTABLE(test_dvobjs_t)
 
-set(test_dvobjt_SOURCES
-    test_t.cpp
-    test_helper.cpp
+set(test_dvobjs_t_SOURCES
+    test_dvobjs_t.cpp
+    helper.cpp
 )
 
-set(test_dvobjt_LIBRARIES
+set(test_dvobjs_t_LIBRARIES
     PurC::PurC
     gtest_main
     gtest
     pthread
 )
 
-PURC_COMPUTE_SOURCES(test_dvobjt)
-PURC_FRAMEWORK(test_dvobjt)
-GTEST_DISCOVER_TESTS(test_dvobjt DISCOVERY_TIMEOUT 10)
+PURC_COMPUTE_SOURCES(test_dvobjs_t)
+PURC_FRAMEWORK(test_dvobjs_t)
+GTEST_DISCOVER_TESTS(test_dvobjs_t DISCOVERY_TIMEOUT 10)
