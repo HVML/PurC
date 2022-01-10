@@ -407,9 +407,6 @@ purc_variant_t to_variant_set(const char* unique_key, purc_variant_t var)
     }
 
 end:
-    if (var != PURC_VARIANT_INVALID) {
-        purc_variant_unref(var);
-    }
     return set;
 }
 
