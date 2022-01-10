@@ -1008,31 +1008,6 @@ int pcvariant_set_compare (purc_variant_t lv, purc_variant_t rv)
 }
 */
 
-int pcvariant_set_swap(purc_variant_t value, int i, int j)
-{
-    if (!value || value->type != PURC_VARIANT_TYPE_SET)
-        return -1;
-
-    variant_set_t set = (variant_set_t)value->sz_ptr[1];
-    if (!set)
-        return -1;
-
-    struct pcutils_arrlist *al = set->arr;
-    if (i<0 || (size_t)i>=al->length)
-        return -1;
-    if (j<0 || (size_t)j>=al->length)
-        return -1;
-
-    struct elem_node *l = (struct elem_node*)al->array[i];
-    struct elem_node *r = (struct elem_node*)al->array[j];
-    l->idx = j;
-    r->idx = i;
-    al->array[i] = r;
-    al->array[j] = l;
-
-    return 0;
-}
-
 struct set_user_data {
     int (*cmp)(size_t nr_keynames,
             purc_variant_t l[], purc_variant_t r[], void *ud);

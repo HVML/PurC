@@ -1540,7 +1540,7 @@ numberify_set(purc_variant_t value)
     double d = 0.0;
 
     purc_variant_t v;
-    foreach_value_in_variant_array(value, v)
+    foreach_value_in_variant_set(value, v)
         d += purc_variant_numberify(v);
     end_foreach;
 

@@ -256,17 +256,13 @@ TEST(variant_array, add_n_str_and_remove)
     purc_variant_t val;
     int j = 0;
     size_t curr;
-    struct pcutils_arrlist *al;
-    al = (struct pcutils_arrlist*)arr->sz_ptr[1];
     foreach_value_in_variant_array_safe(arr, val, curr)
         ASSERT_EQ(val->type, PVT(_STRING));
         char buf[64];
         snprintf(buf, sizeof(buf), "%d", j++);
         ASSERT_EQ(strcmp(buf, purc_variant_get_string_const(val)), 0);
-        int t = pcutils_arrlist_del_idx(al, curr, 1);
-        ASSERT_EQ(t, 0);
-        purc_variant_unref(val);
-        --curr;
+        bool ok = purc_variant_array_remove(arr, curr);
+        ASSERT_TRUE(ok);
     end_foreach;
 
     foreach_value_in_variant_array(arr, val)

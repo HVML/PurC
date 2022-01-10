@@ -183,7 +183,7 @@ pcutils_array_list_get_first(struct pcutils_array_list *arrlist)
     return pcutils_array_list_get(arrlist, 0);
 }
 
-struct pcutils_array_list_node*
+static inline struct pcutils_array_list_node*
 pcutils_array_list_get_last(struct pcutils_array_list *arrlist)
 {
     // NOTE: let pcutils_array_list_get to take care arrlist->nr - 1

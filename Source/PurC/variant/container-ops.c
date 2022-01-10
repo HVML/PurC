@@ -131,13 +131,12 @@ array_reverse_foreach(purc_variant_t array, foreach_func func, void* ctxt,
     }
 
     purc_variant_t val;
-    struct pcutils_arrlist* al= (struct pcutils_arrlist*)array->sz_ptr[1];
-    for (size_t i = al->length; i != 0; i--) {
-        val = (purc_variant_t)al->array[i-1];
-        if (!func(ctxt, val, (void*)(uintptr_t)(i - 1), silently)) {
+    size_t curr;
+    foreach_value_in_variant_array_reverse_safe(array, val, curr)
+        if (!func(ctxt, val, (void*)(uintptr_t)(curr), silently)) {
             goto end;
         }
-    }
+    end_foreach;
     ret = true;
 
 end:

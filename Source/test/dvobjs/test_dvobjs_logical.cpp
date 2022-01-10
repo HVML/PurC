@@ -70,6 +70,7 @@ TEST(dvobjs, dvobjs_logical)
         strcat (file_path, function[i]);
         strcat (file_path, ".test");
 
+        fprintf(stderr, "file_path: %s\n", file_path);
         FILE *fp = fopen(file_path, "r");   // open test_list
         ASSERT_NE(fp, nullptr) << "Failed to open file: ["
                                << file_path
@@ -92,7 +93,8 @@ TEST(dvobjs, dvobjs_logical)
             line_number ++;
 
             if (strncasecmp (line, "test_begin", 10) == 0) {
-                printf ("\ttest case on line %ld\n", line_number);
+                printf ("\ttest case on line %ld [%s] (_L.%s)\n",
+                        line_number, file_path, function[i]);
 
                 // get parameters
                 read = getline(&line, &sz, fp);

@@ -370,7 +370,7 @@ param_begin
 object:2:"key1";boolean:false;"key2";number:1;
 set:2:object:2:"key1";boolean:false;"key2";boolean:false;object:2:"key1";boolean:true;"key2";boolean:false;
 param_end
-boolean:true;
+boolean:false;
 test_end
 
 test_begin
