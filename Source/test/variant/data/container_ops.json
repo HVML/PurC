@@ -26,5 +26,54 @@
         "dst_type" : "array",
         "src_type" : "array",
         "error" : 0
+    },
+    {
+        "name" : "200_prepend_array_array",
+        "ops" : "prepend",
+        "dst_type" : "array",
+        "src_type" : "array",
+        "error" : 0
+    },
+    {
+        "name" : "300_merge_object_object",
+        "ops" : "merge",
+        "dst_type" : "object",
+        "src_type" : "object",
+        "error" : 0
+    },
+    {
+        "name" : "400_insert_before_array_array",
+        "ops" : "insertBefore",
+        "dst_type" : "array",
+        "src_type" : "array",
+        "error" : 0
+    },
+    {
+        "name" : "600_unite_set_array",
+        "ops" : "unite",
+        "dst_type" : "set",
+        "src_type" : "array",
+        "error" : 0
+    },
+    {
+        "name" : "700_intersect_set_array",
+        "ops" : "intersect",
+        "dst_type" : "set",
+        "src_type" : "array",
+        "error" : 0
+    },
+    {
+        "name" : "800_subtract_set_array",
+        "ops" : "subtract",
+        "dst_type" : "set",
+        "src_type" : "array",
+        "error" : 0
+    },
+    {
+        "name" : "900_xor_set_array",
+        "ops" : "xor",
+        "dst_type" : "set",
+        "src_type" : "array",
+        "error" : 0
     }
 ]
