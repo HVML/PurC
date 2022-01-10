@@ -44,74 +44,72 @@ struct pcutils_array_list {
     struct list_head                          list;
 };
 
-#define array_list_first(__arrlist) \
-    container_of((__arrlist)->list.next, struct pcutils_array_list_node, node)
-#define array_list_last(__arrlist) \
-    container_of((__arrlist)->list.prev, struct pcutils_array_list_node, node)
+#define safe_container_of(_ptr, _type, _member)                 \
+    ({                                                          \
+        const __typeof__(*_ptr) *_tmp = (_ptr);                 \
+        _tmp ? container_of(_tmp, _type, _member) : NULL;       \
+    })
 
-#define array_list_next(__ptr) \
-    container_of((__ptr)->node.next, struct pcutils_array_list_node, node)
-#define array_list_prev(__ptr) \
-    container_of((__ptr)->node.prev, struct pcutils_array_list_node, node)
-
-// struct pcutils_array_list *_arrlist;
+// struct pcutils_array_list *_al;
 // struct pcutils_array_list_node *_p;
-#define array_list_for_each(_arrlist, _p)                       \
-    for(_p = array_list_first(_arrlist);                        \
-        &(_p)->node != &(_arrlist)->list;                       \
-        _p = array_list_next(_p))
+#define array_list_for_each(_al, _p)                       \
+    for(_p = pcutils_array_list_get_first(_al);            \
+        _p;                                                \
+        _p = pcutils_array_list_get(_al, _p->idx+1))
 
-// struct pcutils_array_list *_arrlist;
+// struct pcutils_array_list *_al;
 // struct pcutils_array_list_node *_p, *_n;
-#define array_list_for_each_safe(_arrlist, _p, _n)              \
-    for(_p = array_list_first(_arrlist);                        \
-        ({_n = _p ? array_list_next(_p) : NULL;                 \
-          &(_p)->node != &(_arrlist)->list;});                  \
+#define array_list_for_each_safe(_al, _p, _n)              \
+    for(_p = pcutils_array_list_get_first(_al);            \
+        ({_n = _p ? pcutils_array_list_get(_al, _p->idx+1) \
+                  : NULL; _p; });                          \
         _p = _n)
 
-// struct pcutils_array_list *_arrlist;
+// struct pcutils_array_list *_al;
 // struct pcutils_array_list_node *_p;
-#define array_list_for_each_reverse(_arrlist, _p)               \
-    for(_p = array_list_last(_arrlist);                         \
-        &(_p)->node != &(_arrlist)->list;                       \
-        _p = array_list_prev(_p))
+#define array_list_for_each_reverse(_al, _p)               \
+    for(_p = pcutils_array_list_get_last(_al);             \
+        _p;                                                \
+        _p = pcutils_array_list_get(_al, _p->idx-1))
 
-// struct pcutils_array_list *_arrlist;
+// struct pcutils_array_list *_al;
 // struct pcutils_array_list_node *_p, *_n;
-#define array_list_for_each_reverse_safe(_arrlist, _p, _n)      \
-    for(_p = array_list_last(_arrlist);                         \
-        ({_n = _p ? array_list_prev(_p) : NULL;                 \
-          &(_p)->node != &(_arrlist)->list;});                  \
+#define array_list_for_each_reverse_safe(_al, _p, _n)      \
+    for(_p = pcutils_array_list_get_last(_al);             \
+        ({_n = _p ? pcutils_array_list_get(_al, _p->idx-1) \
+                  : NULL; _p; });                          \
         _p = _n)
 
-#define array_list_for_each_entry(_arrlist, _p, field)          \
-    for(_p = container_of(array_list_first(_arrlist),           \
-            __typeof__(*_p), field);                            \
-        &(_p)->field.node != &(_arrlist)->list;                 \
-        _p = container_of(array_list_next(&(_p)->field),        \
-            __typeof__(*_p), field))
+#define array_list_for_each_entry(_al, _p, field)                   \
+    for(_p = safe_container_of(pcutils_array_list_get_first(_al),   \
+                    __typeof__(*_p), field);                        \
+        _p;                                                         \
+        _p = safe_container_of(pcutils_array_list_get(_al,          \
+                                   _p->field.idx+1),                \
+                    __typeof__(*_p), field))
 
-#define array_list_for_each_entry_safe(_arrlist, _p, _n, field) \
-    for(_p = container_of(array_list_first(_arrlist),           \
-            __typeof__(*_p), field);                            \
-        ({_n = _p ? container_of(array_list_next(&(_p)->field), \
-                    __typeof__(*_p), field) : NULL;             \
-          &(_p)->field.node != &(_arrlist)->list;});            \
+#define array_list_for_each_entry_safe(_al, _p, _n, field)          \
+    for(_p = safe_container_of(pcutils_array_list_get_first(_al),   \
+                    __typeof__(*_p), field);                        \
+        ({ _n = _p ? safe_container_of(pcutils_array_list_get(_al,  \
+                                   _p->field.idx+1),                \
+                    __typeof__(*_p), field) : NULL; _p; });         \
         _p = _n)
 
-#define array_list_for_each_entry_reverse(_arrlist, _p, field)  \
-    for(_p = container_of(array_list_last(_arrlist),            \
-            __typeof__(*_p), field);                            \
-        &(_p)->field.node != &(_arrlist)->list;                 \
-        _p = container_of(array_list_prev(&(_p)->field),        \
-            __typeof__(*_p), field))
+#define array_list_for_each_entry_reverse(_al, _p, field)           \
+    for(_p = safe_container_of(pcutils_array_list_get_last(_al),    \
+                    __typeof__(*_p), field);                        \
+        _p;                                                         \
+        _p = safe_container_of(pcutils_array_list_get(_al,          \
+                                   _p->field.idx-1),                \
+                    __typeof__(*_p), field))
 
-#define array_list_for_each_entry_reverse_safe(_arrlist, _p, _n, field) \
-    for(_p = container_of(array_list_last(_arrlist),                    \
-            __typeof__(*_p), field);                                    \
-        ({_n = _p ? container_of(array_list_prev(&(_p)->field),         \
-                    __typeof__(*_p), field) : NULL;                     \
-          &(_p)->field.node != &(_arrlist)->list;});                    \
+#define array_list_for_each_entry_reverse_safe(_al, _p, _n, field)  \
+    for(_p = safe_container_of(pcutils_array_list_get_last(_al),    \
+                    __typeof__(*_p), field);                        \
+        ({ _n = _p ? safe_container_of(pcutils_array_list_get(_al,  \
+                                   _p->field.idx-1),                \
+                    __typeof__(*_p), field) : NULL; _p; });         \
         _p = _n)
 
 PCA_EXTERN_C_BEGIN
@@ -175,10 +173,22 @@ pcutils_array_list_remove(struct pcutils_array_list *arrlist,
         size_t idx,
         struct pcutils_array_list_node **old);
 
-int
+struct pcutils_array_list_node*
 pcutils_array_list_get(struct pcutils_array_list *arrlist,
-        size_t idx,
-        struct pcutils_array_list_node **old);
+        size_t idx);
+
+static inline struct pcutils_array_list_node*
+pcutils_array_list_get_first(struct pcutils_array_list *arrlist)
+{
+    return pcutils_array_list_get(arrlist, 0);
+}
+
+struct pcutils_array_list_node*
+pcutils_array_list_get_last(struct pcutils_array_list *arrlist)
+{
+    // NOTE: let pcutils_array_list_get to take care arrlist->nr - 1
+    return pcutils_array_list_get(arrlist, arrlist->nr - 1);
+}
 
 int
 pcutils_array_list_swap(struct pcutils_array_list *arrlist,

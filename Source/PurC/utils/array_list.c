@@ -128,18 +128,7 @@ pcutils_array_list_insert_before(struct pcutils_array_list *arrlist,
     arrlist->nodes[idx] = node;
     arrlist->nodes[idx]->idx = idx;
 
-    struct list_head *prev, *next;
-    if (idx == 0)
-        prev = &arrlist->list;
-    else
-        prev = &arrlist->nodes[idx-1]->node;
-
-    if (idx == arrlist->nr)
-        next = &arrlist->list;
-    else
-        next = &arrlist->nodes[idx+1]->node;
-
-    _list_add(&node->node, prev, next);
+    list_add_tail(&node->node, &arrlist->list);
 
     arrlist->nr += 1;
 
@@ -171,15 +160,14 @@ pcutils_array_list_remove(struct pcutils_array_list *arrlist,
     return 0;
 }
 
-int
+struct pcutils_array_list_node*
 pcutils_array_list_get(struct pcutils_array_list *arrlist,
-        size_t idx,
-        struct pcutils_array_list_node **old)
+        size_t idx)
 {
-    PC_ASSERT(idx < arrlist->nr);
-    *old = arrlist->nodes[idx];
+    if (idx < arrlist->nr)
+        return arrlist->nodes[idx];
 
-    return 0;
+    return NULL;
 }
 
 int
@@ -195,24 +183,10 @@ pcutils_array_list_swap(struct pcutils_array_list *arrlist,
     struct pcutils_array_list_node *l = arrlist->nodes[i];
     struct pcutils_array_list_node *r = arrlist->nodes[j];
 
-    if (0) {
-        list_swap(&l->node, &r->node);
-        arrlist->nodes[i] = r;
-        r->idx = i;
-        arrlist->nodes[j] = l;
-        l->idx = j;
-    }
-    else {
-        arrlist->nodes[i] = r;
-        arrlist->nodes[j] = l;
-
-        INIT_LIST_HEAD(&arrlist->list);
-        for (size_t i=0; i<arrlist->nr; ++i) {
-            l = arrlist->nodes[i];
-            list_add_tail(&l->node, &arrlist->list);
-            l->idx = i;
-        }
-    }
+    arrlist->nodes[i] = r;
+    r->idx = i;
+    arrlist->nodes[j] = l;
+    l->idx = j;
 
     return 0;
 }
@@ -268,10 +242,8 @@ pcutils_array_list_sort(struct pcutils_array_list *arrlist,
     qsort_s(nodes, nr, sizeof(*nodes), cmp_variant, &d);
 #endif
 
-    INIT_LIST_HEAD(&arrlist->list);
     for (size_t i=0; i<arrlist->nr; ++i) {
         struct pcutils_array_list_node *l = arrlist->nodes[i];
-        list_add_tail(&l->node, &arrlist->list);
         l->idx = i;
     }
 
