@@ -355,31 +355,72 @@ bool pcvariant_is_in_set (purc_variant_t set, purc_variant_t value);
         struct pcutils_arrlist *_arr;                                   \
         _data = (variant_set_t)_set->sz_ptr[1];                         \
         _arr  = _data->arr;                                             \
-        size_t _i;                                                      \
-        for (_i=0; _i<_arr->length; ++_i) {                             \
-            struct elem_node *_p;                                       \
-            _p = (struct elem_node*)pcutils_arrlist_get_idx(_arr, _i);  \
+        struct elem_node *_p, *_n;                                      \
+        for (_p = (struct elem_node*) pcutils_arrlist_get_first(_arr);  \
+             ({ _n = _p ? (struct elem_node*)pcutils_arrlist_get_idx(   \
+                                                _arr,  _p->idx+1)       \
+                        : NULL;                                         \
+              _p; });                                                   \
+             _p = _n)                                                   \
+        {                                                               \
             _val = _p->elem;                                            \
      /* } */                                                            \
   /* } while (0) */
 
-#define foreach_value_in_variant_set_safe_x(_set, _val, _next)               \
-    do {                                                                     \
-        PC_ASSERT(purc_variant_is_type(_set, PURC_VARIANT_TYPE_SET));        \
-        variant_set_t _data;                                                 \
-        struct rb_root *_root;                                               \
-        struct rb_node *_node;                                               \
-        _data = (variant_set_t)_set->sz_ptr[1];                              \
-        _root = &_data->elems;                                               \
-        UNUSED_VARIABLE(_next);                                              \
-        for (_node = pcutils_rbtree_first(_root);                            \
-             ({_next = _node ? pcutils_rbtree_next(_node) : NULL; _node; }); \
-             _node = _next)                                                  \
-        {                                                                    \
-            struct elem_node *_p;                                            \
-            _p = container_of(_node, struct elem_node, node);                \
-            _val = _p->elem;                                                 \
-     /* } */                                                                 \
+#define foreach_value_in_variant_set_reverse(_set, _val)                \
+    do {                                                                \
+        variant_set_t _data;                                            \
+        struct pcutils_arrlist *_arr;                                   \
+        _data = (variant_set_t)_set->sz_ptr[1];                         \
+        _arr  = _data->arr;                                             \
+        struct elem_node *_p, *_n;                                      \
+        for (_p = (struct elem_node*) pcutils_arrlist_get_last(_arr);   \
+             ({ _n = (_p && _p->idx > 0)                                \
+                        ? (struct elem_node*)pcutils_arrlist_get_idx(   \
+                                                _arr,  _p->idx-1)       \
+                        : NULL;                                         \
+              _p; });                                                   \
+             _p = _n)                                                   \
+        {                                                               \
+            _val = _p->elem;                                            \
+     /* } */                                                            \
+  /* } while (0) */
+
+#define foreach_value_in_variant_set_safe(_set, _val)                   \
+    do {                                                                \
+        variant_set_t _data;                                            \
+        struct pcutils_arrlist *_arr;                                   \
+        _data = (variant_set_t)_set->sz_ptr[1];                         \
+        _arr  = _data->arr;                                             \
+        struct elem_node *_p, *_n;                                      \
+        for (_p = (struct elem_node*) pcutils_arrlist_get_first(_arr);  \
+             ({ _n = _p ? (struct elem_node*)pcutils_arrlist_get_idx(   \
+                                                _arr,  _p->idx+1)       \
+                        : NULL;                                         \
+              _p; });                                                   \
+             _p = _n)                                                   \
+        {                                                               \
+            _val = _p->elem;                                            \
+     /* } */                                                            \
+  /* } while (0) */
+
+#define foreach_value_in_variant_set_reverse_safe(_set, _val)           \
+    do {                                                                \
+        variant_set_t _data;                                            \
+        struct pcutils_arrlist *_arr;                                   \
+        _data = (variant_set_t)_set->sz_ptr[1];                         \
+        _arr  = _data->arr;                                             \
+        struct elem_node *_p, *_n;                                      \
+        for (_p = (struct elem_node*) pcutils_arrlist_get_first(_arr);  \
+             ({ _n = (_p && _p->idx > 0)                                \
+                        ? (struct elem_node*)pcutils_arrlist_get_idx(   \
+                                                _arr,  _p->idx-1)       \
+                        : NULL;                                         \
+              _p; });                                                   \
+             _p = _n)                                                   \
+        {                                                               \
+            _val = _p->elem;                                            \
+     /* } */                                                            \
   /* } while (0) */
 
 #define end_foreach                                                     \

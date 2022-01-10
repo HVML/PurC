@@ -238,9 +238,7 @@ variant_set_clear(purc_variant_t set, bool silently)
     }
 
     purc_variant_t v;
-    struct rb_node *n;
-    UNUSED_VARIABLE(n);
-    foreach_value_in_variant_set_safe_x(set, v, n)
+    foreach_value_in_variant_set_safe(set, v)
         if (!purc_variant_set_remove(set, v, silently)) {
             goto end;
         }
