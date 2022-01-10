@@ -352,6 +352,7 @@ TEST_P(Variant_container_data, container_ops)
     free(cmp_result);
     purc_variant_unref(src);
     purc_variant_unref(dst);
+    purc_variant_unref(cmp);
 }
 
 char* read_file (const char* file)
@@ -393,7 +394,9 @@ std::vector<test_case> load_test_case()
             struct test_case test;
             test.filename = MemCollector::strdup(
                     basename((char *)globbuf.gl_pathv[i]));
-            test.data = read_file(globbuf.gl_pathv[i]);
+            char *s = read_file(globbuf.gl_pathv[i]);
+            test.data = MemCollector::strdup(s);
+            free(s);
             test_cases.push_back(test);
         }
     }
