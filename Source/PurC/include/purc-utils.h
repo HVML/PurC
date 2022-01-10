@@ -428,6 +428,12 @@ int pcutils_arrlist_del_idx(struct pcutils_arrlist *arr, size_t idx, size_t coun
  */
 int pcutils_arrlist_shrink(struct pcutils_arrlist *arr, size_t empty_slots);
 
+void*
+pcutils_arrlist_get_first(struct pcutils_arrlist *arr);
+
+void*
+pcutils_arrlist_get_last(struct pcutils_arrlist *arr);
+
 
 PCA_EXTERN_C_END
 
