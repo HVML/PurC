@@ -213,7 +213,7 @@ purc_variant_t build_set(const char* json, const char* unique_key)
     }
 
     if (unique_key && strlen(unique_key)) {
-        set = purc_variant_make_set_by_ckey(3, unique_key,
+        set = purc_variant_make_set_by_ckey(0, unique_key,
                 PURC_VARIANT_INVALID);
     }
     else {

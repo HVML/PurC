@@ -1929,6 +1929,7 @@ purc_variant_container_displace(purc_variant_t dst,
  * @param silently: True means ignore the following error:
  *      - PURC_ERROR_INVALID_VALUE
  *      - PURC_ERROR_WRONG_DATA_TYPE
+ *      - PCVARIANT_ERROR_NOT_FOUND
  *
  * Returns: True on success, otherwise False.
  *
@@ -2103,6 +2104,7 @@ purc_variant_set_xor(purc_variant_t set,
  * @param silently: True means ignore the following error:
  *      - PURC_ERROR_INVALID_VALUE
  *      - PURC_ERROR_WRONG_DATA_TYPE
+ *      - PCVARIANT_ERROR_NOT_FOUND
  *
  * Returns: True on success, otherwise False.
  *
