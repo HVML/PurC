@@ -56,6 +56,13 @@
         "error" : 0
     },
     {
+        "name" : "601_unite_set_set",
+        "ops" : "unite",
+        "dst_type" : "set",
+        "src_type" : "array",
+        "error" : 0
+    },
+    {
         "name" : "700_intersect_set_array",
         "ops" : "intersect",
         "dst_type" : "set",
@@ -63,10 +70,24 @@
         "error" : 0
     },
     {
+        "name" : "701_intersect_set_set",
+        "ops" : "intersect",
+        "dst_type" : "set",
+        "src_type" : "set",
+        "error" : 0
+    },
+    {
         "name" : "800_subtract_set_array",
         "ops" : "subtract",
         "dst_type" : "set",
         "src_type" : "array",
+        "error" : 0
+    },
+    {
+        "name" : "801_subtract_set_set",
+        "ops" : "subtract",
+        "dst_type" : "set",
+        "src_type" : "set",
         "error" : 0
     },
     {
@@ -89,6 +110,44 @@
         "dst_type" : "set",
         "dst_unique_key" : "id",
         "src_type" : "array",
+        "error" : 0
+    },
+    {
+        "name" : "903_xor_set_set",
+        "ops" : "xor",
+        "dst_type" : "set",
+        "src_type" : "set",
+        "error" : 0
+    },
+    {
+        "name" : "904_xor_set_set",
+        "ops" : "xor",
+        "dst_type" : "set",
+        "src_type" : "set",
+        "error" : 0
+    },
+    {
+        "name" : "905_xor_unique_key_set_set",
+        "ops" : "xor",
+        "dst_type" : "set",
+        "dst_unique_key" : "id",
+        "src_type" : "set",
+        "error" : 0
+    },
+    {
+        "name" : "1000_overwrite_set_array",
+        "ops" : "overwrite",
+        "dst_type" : "set",
+        "dst_unique_key" : "id",
+        "src_type" : "array",
+        "error" : 0
+    },
+    {
+        "name" : "1001_overwrite_set_set",
+        "ops" : "overwrite",
+        "dst_type" : "set",
+        "dst_unique_key" : "id",
+        "src_type" : "set",
         "error" : 0
     }
 ]
