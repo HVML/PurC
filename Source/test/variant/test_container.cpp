@@ -484,7 +484,7 @@ TEST_P(TestCaseData, container_ops)
 
     purc_variant_t ignore_var = purc_variant_object_get_by_ckey(test_case_variant,
                 "ignore", true);
-    if (ignore_var != PURC_VARIANT_INVALID 
+    if (ignore_var != PURC_VARIANT_INVALID
             && purc_variant_booleanize(ignore_var)) {
         return;
     }
@@ -611,13 +611,16 @@ char inner_test_data[] = "" \
     "    \"ignore\": false," \
     "    \"error\": 0," \
     "    \"ops\": \"displace\"," \
+    "    \"idx\": 0," \
     "    \"src_type\": \"object\"," \
+    "    \"src_unique_key\": null," \
     "    \"src\": {" \
     "        \"id\": 2," \
     "        \"name\": \"name src\"," \
     "        \"title\": \"title src\"" \
     "    }," \
     "    \"dst_type\": \"object\"," \
+    "    \"dst_unique_key\": null," \
     "    \"dst\": {" \
     "        \"id\": 1," \
     "        \"name\": \"name dst\"" \
