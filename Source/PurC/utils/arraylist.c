@@ -212,3 +212,20 @@ int pcutils_arrlist_del_idx(struct pcutils_arrlist *arr, size_t idx, size_t coun
     arr->length -= count;
     return 0;
 }
+
+void*
+pcutils_arrlist_get_first(struct pcutils_arrlist *arr)
+{
+    if (arr->length == 0)
+        return NULL;
+    return arr->array[0];
+}
+
+void*
+pcutils_arrlist_get_last(struct pcutils_arrlist *arr)
+{
+    if (arr->length == 0)
+        return NULL;
+    return arr->array[arr->length-1];
+}
+
