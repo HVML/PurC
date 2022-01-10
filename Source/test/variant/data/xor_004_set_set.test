@@ -1,0 +1,14 @@
+{
+    "name" : "xor_004_set_set",
+    "ignore" : true,
+    "error" : 0,
+    "ops" : "xor",
+    "dst_type" : "set",
+    "dst_unique_key" : null,
+    "dst" : null,
+    "src_type" : "set",
+    "src_unique_key" : null,
+    "src" : null,
+    "cmp" : null
+}
+

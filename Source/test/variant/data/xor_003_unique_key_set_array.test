@@ -1,0 +1,15 @@
+{
+    "name" : "xor_003_unique_key_set_array",
+    "ignore" : true,
+    "error" : 0,
+    "ops" : "xor",
+    "dst_type" : "set",
+    "dst_unique_key" : null,
+    "dst" : null,
+    "dst_unique_key" : "id",
+    "src_type" : "array",
+    "src_unique_key" : null,
+    "src" : null,
+    "cmp" : null
+}
+

@@ -1,0 +1,14 @@
+{
+    "name" : "intersect_001_set_array",
+    "ignore" : true,
+    "error" : 0,
+    "ops" : "intersect",
+    "dst_type" : "set",
+    "dst_unique_key" : null,
+    "dst" : null,
+    "src_type" : "array",
+    "src_unique_key" : null,
+    "src" : null,
+    "cmp" : null
+}
+
