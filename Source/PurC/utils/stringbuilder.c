@@ -84,8 +84,9 @@ pcutils_stringbuilder_keep(struct pcutils_stringbuilder *sb, size_t sz)
     return 0;
 }
 
-int pcutils_stringbuilder_vsnprintf(struct pcutils_stringbuilder *sb,
-        const char *fmt, va_list ap)
+int
+pcutils_stringbuilder_snprintf(struct pcutils_stringbuilder *sb,
+        const char *fmt, ...)
 {
     const size_t chunk = sb->chunk;
     char *p;
@@ -94,64 +95,58 @@ int pcutils_stringbuilder_vsnprintf(struct pcutils_stringbuilder *sb,
     int n;
     struct pcutils_buf *buf;
 
-    if (sb->oom)
-        goto oom;
-
-    if (pcutils_stringbuilder_keep(sb, chunk)) {
-        sb->oom = 1;
-        goto oom;
-    }
-
-    va_list cp;
+    va_list ap, cp;
+    va_start(ap, fmt);
     va_copy(cp, ap);
 
-    buf = sb->curr;
-    p   = buf->buf + buf->curr;
-    len = buf->sz - buf->curr;
-    n = vsnprintf(p, len, fmt, cp);
-    if (n < 0) {
-        sb->oom = 1;
+    do {
+        if (sb->oom)
+            break;
+
+        if (pcutils_stringbuilder_keep(sb, chunk)) {
+            sb->oom = 1;
+            break;
+        }
+
+        buf = sb->curr;
+        p   = buf->buf + buf->curr;
+        len = buf->sz - buf->curr;
+        n = vsnprintf(p, len, fmt, ap);
+        if (n < 0) {
+            sb->oom = 1; // FIXME: actually `fmt` is bad-format
+            break;
+        }
+        if ((size_t)n < len)
+            break;
+
+        *p = '\0';
+
+        sb->curr = NULL;
+        sz = n + 1;
+        // sz = pcutils_get_next_fibonacci_number(sz);
+        if (sz < chunk)
+            sz = chunk;
+        if (pcutils_stringbuilder_keep(sb, sz)) {
+            sb->curr -= 1;
+            sb->oom = 1;
+            break;
+        }
+
+        buf = sb->curr;
+        p   = buf->buf + buf->curr;
+        len = buf->sz - buf->curr;
+        n = vsnprintf(p, len, fmt, cp);
+        if (n < 0) {
+            sb->oom = 1; // FIXME: actually `fmt` is bad-format
+            break;
+        }
+    } while (0);
+
+    if (sb->oom)
         return -1;
-    }
-    if ((size_t)n < len)
-        goto ok;
 
-    *p = '\0';
-
-    sb->curr = NULL;
-    sz = n + 1;
-    // sz = pcutils_get_next_fibonacci_number(sz);
-    if (sz < chunk)
-        sz = chunk;
-    if (pcutils_stringbuilder_keep(sb, sz)) {
-        sb->curr -= 1;
-        sb->oom = 1;
-        goto oom;
-    }
-
-    buf = sb->curr;
-    p   = buf->buf + buf->curr;
-    len = buf->sz - buf->curr;
-    n = vsnprintf(p, len, fmt, ap);
-    if (n < 0) {
-        sb->oom = 1;
-        return -1;
-    }
-
-    goto ok;
-
-oom:
-    n = vsnprintf(NULL, 0, fmt, ap);
-    if (n > 0) {
-        sb->total += n;
-    }
-    goto end;
-
-ok:
     buf->curr += n;
     sb->total += n;
-
-end:
     return n;
 }
 

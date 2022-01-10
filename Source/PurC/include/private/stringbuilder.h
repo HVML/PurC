@@ -76,25 +76,11 @@ int
 pcutils_stringbuilder_keep(struct pcutils_stringbuilder *sb, size_t sz);
 
 # if COMPILER(GCC)
-__attribute__ ((format (gnu_printf, 2, 0)))
-# endif
-int pcutils_stringbuilder_vsnprintf(struct pcutils_stringbuilder *sb,
-        const char *fmt, va_list ap);
-
-# if COMPILER(GCC)
 __attribute__ ((format (gnu_printf, 2, 3)))
 # endif
-static inline int
+int
 pcutils_stringbuilder_snprintf(struct pcutils_stringbuilder *sb,
-    const char *fmt, ...)
-{
-    va_list ap;
-    va_start(ap, fmt);
-    int n = pcutils_stringbuilder_vsnprintf(sb, fmt, ap);
-    va_end(ap);
-
-    return n;
-}
+    const char *fmt, ...);
 
 char*
 pcutils_stringbuilder_build(struct pcutils_stringbuilder *sb);
