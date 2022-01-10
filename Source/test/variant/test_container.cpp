@@ -608,7 +608,7 @@ char* read_file (const char* file)
 
 char inner_test_data[] = "" \
     "{" \
-    "    \"name\": \"001_displace_object_object\"," \
+    "    \"ignore\": false," \
     "    \"error\": 0," \
     "    \"ops\": \"displace\"," \
     "    \"src_type\": \"object\"," \
