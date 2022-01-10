@@ -887,7 +887,7 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
             n = print_indent(rws, level, flags, len_expected);
             MY_CHECK(n);
 
-            MY_WRITE(rws, "{", 1);
+            MY_WRITE(rws, "[", 1);
             n = print_newline(rws, flags, len_expected);
             MY_CHECK(n);
 
