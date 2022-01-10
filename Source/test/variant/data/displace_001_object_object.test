@@ -1,0 +1,24 @@
+{
+    "ignore" : true,
+    "error" : 0,
+    "ops" : "displace",
+    "dst_type" : "object",
+    "dst" : {
+        "id":1,
+        "name":"name dst"
+    },
+    "src_type" : "object",
+    "src" :
+    {
+        "id":2,
+        "name":"name src",
+        "title":"title src"
+    },
+    "cmp" :
+    {
+        "id":2,
+        "name":"name src",
+        "title":"title src"
+    }
+}
+
