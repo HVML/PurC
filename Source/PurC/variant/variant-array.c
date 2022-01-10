@@ -74,7 +74,7 @@ arr_node_destroy(struct arr_node *node)
 }
 
 static int
-variant_arr_insert_before(variant_arr_t arr, size_t idx, purc_variant_t val)
+variant_arr_insert_before(purc_variant_t array, size_t idx, purc_variant_t val)
 {
     struct arr_node *node;
     node = (struct arr_node*)calloc(1, sizeof(*node));
@@ -85,6 +85,8 @@ variant_arr_insert_before(variant_arr_t arr, size_t idx, purc_variant_t val)
     node->val = val;
     purc_variant_ref(val);
 
+    variant_arr_t arr = (variant_arr_t)array->sz_ptr[1];
+
     struct pcutils_array_list *al = &arr->al;
     int r = pcutils_array_list_insert_before(al, idx, &node->al_node);
     if (r) {
@@ -93,21 +95,23 @@ variant_arr_insert_before(variant_arr_t arr, size_t idx, purc_variant_t val)
         return -1;
     }
 
+    grown(array, val);
     return 0;
 }
 
 static int
-variant_arr_append(variant_arr_t arr, purc_variant_t val)
+variant_arr_append(purc_variant_t array, purc_variant_t val)
 {
+    variant_arr_t arr = (variant_arr_t)array->sz_ptr[1];
     struct pcutils_array_list *al = &arr->al;
     size_t nr = pcutils_array_list_length(al);
-    return variant_arr_insert_before(arr, nr, val);
+    return variant_arr_insert_before(array, nr, val);
 }
 
 static int
-variant_arr_prepend(variant_arr_t arr, purc_variant_t val)
+variant_arr_prepend(purc_variant_t array, purc_variant_t val)
 {
-    return variant_arr_insert_before(arr, 0, val);
+    return variant_arr_insert_before(array, 0, val);
 }
 
 static purc_variant_t
@@ -122,9 +126,11 @@ variant_arr_get(variant_arr_t arr, size_t idx)
 }
 
 static int
-variant_arr_set(variant_arr_t arr, size_t idx, purc_variant_t val)
+variant_arr_set(purc_variant_t array, size_t idx, purc_variant_t val)
 {
-    struct pcutils_array_list *al = &arr->al;
+    variant_arr_t data = (variant_arr_t)array->sz_ptr[1];
+
+    struct pcutils_array_list *al = &data->al;
     struct pcutils_array_list_node *p;
     p = pcutils_array_list_get(al, idx);
     if (p == NULL) {
@@ -149,19 +155,23 @@ variant_arr_set(variant_arr_t arr, size_t idx, purc_variant_t val)
         return -1;
     }
     PC_ASSERT(p == old);
-    if (old) {
-        struct arr_node *node;
-        node = (struct arr_node*)container_of(old, struct arr_node, al_node);
-        arr_node_destroy(node);
-    }
+
+    node = (struct arr_node*)container_of(old, struct arr_node, al_node);
+    PC_ASSERT(node->val);
+
+    change(array, node->val, val);
+
+    arr_node_destroy(node);
 
     return 0;
 }
 
 static int
-variant_arr_remove(variant_arr_t arr, size_t idx)
+variant_arr_remove(purc_variant_t array, size_t idx)
 {
-    struct pcutils_array_list *al = &arr->al;
+    variant_arr_t data = (variant_arr_t)array->sz_ptr[1];
+
+    struct pcutils_array_list *al = &data->al;
 
     struct pcutils_array_list_node *p;
     int r = pcutils_array_list_remove(al, idx, &p);
@@ -169,11 +179,15 @@ variant_arr_remove(variant_arr_t arr, size_t idx)
         pcinst_set_error(PURC_ERROR_OVERFLOW);
         return -1;
     }
-    if (p) {
-        struct arr_node *node;
-        node = (struct arr_node*)container_of(p, struct arr_node, al_node);
-        arr_node_destroy(node);
-    }
+    PC_ASSERT(p);
+
+    struct arr_node *node;
+    node = (struct arr_node*)container_of(p, struct arr_node, al_node);
+    PC_ASSERT(node->val);
+
+    shrunk(array, node->val);
+
+    arr_node_destroy(node);
 
     return 0;
 }
@@ -264,7 +278,7 @@ pv_make_array_n (size_t sz, purc_variant_t value0, va_list ap)
         if (sz > 0) {
             purc_variant_t v = value0;
             // question: shall we track mem for al->array?
-            if (variant_arr_append(data, v)) {
+            if (variant_arr_append(var, v)) {
                 pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
                 break;
             }
@@ -277,7 +291,7 @@ pv_make_array_n (size_t sz, purc_variant_t value0, va_list ap)
                     break;
                 }
 
-                if (variant_arr_append(data, v)) {
+                if (variant_arr_append(var, v)) {
                     pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
                     break;
                 }
@@ -344,8 +358,7 @@ bool purc_variant_array_append (purc_variant_t array, purc_variant_t value)
     PCVARIANT_CHECK_FAIL_RET(array && array->type==PVT(_ARRAY) && value,
         PURC_VARIANT_INVALID);
 
-    variant_arr_t data = (variant_arr_t)array->sz_ptr[1];
-    int r = variant_arr_append(data, value);
+    int r = variant_arr_append(array, value);
     refresh_extra(array);
     return r ? false : true;
 }
@@ -355,8 +368,7 @@ bool purc_variant_array_prepend (purc_variant_t array, purc_variant_t value)
     PCVARIANT_CHECK_FAIL_RET(array && array->type==PVT(_ARRAY) && value,
         PURC_VARIANT_INVALID);
 
-    variant_arr_t data = (variant_arr_t)array->sz_ptr[1];
-    int r = variant_arr_prepend(data, value);
+    int r = variant_arr_prepend(array, value);
     refresh_extra(array);
     return r ? false : true;
 }
@@ -389,8 +401,7 @@ bool purc_variant_array_set (purc_variant_t array, int idx,
         idx>=0 && value && array != value,
         PURC_VARIANT_INVALID);
 
-    variant_arr_t data = (variant_arr_t)array->sz_ptr[1];
-    int r = variant_arr_set(data, idx, value);
+    int r = variant_arr_set(array, idx, value);
     refresh_extra(array);
     return r ? false : true;
     // size_t             nr = pcutils_arrlist_length(al);
@@ -431,8 +442,7 @@ bool purc_variant_array_remove (purc_variant_t array, int idx)
     PCVARIANT_CHECK_FAIL_RET(array && array->type==PVT(_ARRAY) && idx>=0,
         PURC_VARIANT_INVALID);
 
-    variant_arr_t data = (variant_arr_t)array->sz_ptr[1];
-    int r = variant_arr_remove(data, idx);
+    int r = variant_arr_remove(array, idx);
     refresh_extra(array);
     return r ? false : true;
     // size_t             nr = pcutils_arrlist_length(al);
@@ -463,8 +473,7 @@ bool purc_variant_array_insert_before (purc_variant_t array, int idx,
         idx>=0 && value && array != value,
         PURC_VARIANT_INVALID);
 
-    variant_arr_t data = (variant_arr_t)array->sz_ptr[1];
-    int r = variant_arr_insert_before(data, idx, value);
+    int r = variant_arr_insert_before(array, idx, value);
     refresh_extra(array);
     return r ? false : true;
     // struct pcutils_arrlist *al = (struct pcutils_arrlist*)array->sz_ptr[1];
