@@ -1,14 +1,28 @@
 {
     "name" : "merge_001_object_object",
-    "ignore" : true,
+    "ignore" : false,
     "error" : 0,
     "ops" : "merge",
     "dst_type" : "object",
     "dst_unique_key" : null,
-    "dst" : null,
+    "dst" :
+    {
+        "id":1,
+        "name":"C Language"
+    },
     "src_type" : "object",
     "src_unique_key" : null,
-    "src" : null,
-    "cmp" : null
+    "src" :
+    {
+        "page":325,
+        "size":1024
+    },
+    "cmp" :
+    {
+        "id":1,
+        "name":"C Language",
+        "page":325,
+        "size":1024
+    }
 }
 

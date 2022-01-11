@@ -1,5 +1,5 @@
 {
-    "name" : "intersect_002_set_set",
+    "name" : "intersect_001_set_array",
     "ignore" : false,
     "error" : 0,
     "ops" : "intersect",
@@ -17,7 +17,7 @@
             "id":3,"name":"3_name"
         }
     ],
-    "src_type" : "set",
+    "src_type" : "array",
     "src_unique_key" : null,
     "src" :
     [

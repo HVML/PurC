@@ -1,14 +1,44 @@
 {
-    "name" : "insert_before_001_array_array",
-    "ignore" : true,
+    "ignore" : false,
     "error" : 0,
     "ops" : "insertBefore",
+    "idx" : 1,
     "dst_type" : "array",
     "dst_unique_key" : null,
-    "dst" : null,
+    "dst" :
+    [
+        {
+            "id":1
+        },
+        {
+            "id":2
+        }
+    ],
     "src_type" : "array",
     "src_unique_key" : null,
-    "src" : null,
-    "cmp" : null
+    "src" :
+    [
+        {
+            "id":3
+        },
+        {
+            "id":4
+        }
+    ],
+    "cmp" :
+    [
+        {
+            "id":1
+        },
+        {
+            "id":3
+        },
+        {
+            "id":4
+        },
+        {
+            "id":2
+        }
+    ]
 }
 

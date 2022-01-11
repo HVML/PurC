@@ -1,8 +1,9 @@
 {
-    "name" : "prepend_001_array_array",
+    "name" : "insert_after_001_array_array",
     "ignore" : false,
     "error" : 0,
-    "ops" : "prepend",
+    "ops" : "insertAfter",
+    "idx" : 0,
     "dst_type" : "array",
     "dst_unique_key" : null,
     "dst" :
@@ -28,13 +29,13 @@
     "cmp" :
     [
         {
+            "id":1
+        },
+        {
             "id":3
         },
         {
             "id":4
-        },
-        {
-            "id":1
         },
         {
             "id":2
