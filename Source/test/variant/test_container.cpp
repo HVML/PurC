@@ -415,7 +415,7 @@ std::vector<test_case> load_test_case()
 
     char path[PATH_MAX+1];
     const char* env = "VARIANT_TEST_CONTAINER_OPS_PATH";
-    getpath_from_env_or_rel(path, sizeof(path), env, "/data/*.test");
+    getpath_from_env_or_rel(path, sizeof(path), env, "/data/*.json");
 
     if (!path[0])
         goto end;
