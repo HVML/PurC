@@ -96,7 +96,7 @@
 #define PURC_ERROR_FIRST_XML            1500
 
 #define PURC_ERROR_FIRST_VDOM           2100
-#define PURC_ERROR_FIRST_EDOM           2200
+#define PURC_ERROR_FIRST_DOM           2200
 #define PURC_ERROR_FIRST_VCM            2300
 
 #define PURC_ERROR_FIRST_EXECUTOR       2400

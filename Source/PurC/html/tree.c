@@ -34,7 +34,7 @@
 #include "config.h"
 #include "private/instance.h"
 #include "private/errors.h"
-#include "private/edom.h"
+#include "private/dom.h"
 
 #include "html/tree.h"
 #include "html/tree_res.h"
@@ -50,12 +50,12 @@
 #include "html/tokenizer/state_rcdata.h"
 
 
-pcedom_attr_data_t *
-pcedom_attr_local_name_append(pcutils_hash_t *hash,
+pcdom_attr_data_t *
+pcdom_attr_local_name_append(pcutils_hash_t *hash,
                                const unsigned char *name, size_t length);
 
-pcedom_attr_data_t *
-pcedom_attr_qualified_name_append(pcutils_hash_t *hash, const unsigned char *name,
+pcdom_attr_data_t *
+pcdom_attr_qualified_name_append(pcutils_hash_t *hash, const unsigned char *name,
                                    size_t length);
 
 const pchtml_tag_data_t *
@@ -273,7 +273,7 @@ bool
 pchtml_html_tree_construction_dispatcher(pchtml_html_tree_t *tree,
                                       pchtml_html_token_t *token)
 {
-    pcedom_node_t *adjusted;
+    pcdom_node_t *adjusted;
 
     adjusted = pchtml_html_tree_adjusted_current_node(tree);
 
@@ -329,12 +329,12 @@ pchtml_html_tree_insertion_mode(pchtml_html_tree_t *tree, pchtml_html_token_t *t
 /*
  * Action
  */
-pcedom_node_t *
+pcdom_node_t *
 pchtml_html_tree_appropriate_place_inserting_node(pchtml_html_tree_t *tree,
-                                       pcedom_node_t *override_target,
+                                       pcdom_node_t *override_target,
                                        pchtml_html_tree_insertion_position_t *ipos)
 {
-    pcedom_node_t *target, *adjusted_location = NULL;
+    pcdom_node_t *target, *adjusted_location = NULL;
 
     *ipos = PCHTML_HTML_TREE_INSERTION_POSITION_CHILD;
 
@@ -352,7 +352,7 @@ pchtml_html_tree_appropriate_place_inserting_node(pchtml_html_tree_t *tree,
             || target->local_name == PCHTML_TAG_THEAD
             || target->local_name == PCHTML_TAG_TR))
     {
-        pcedom_node_t *last_temp, *last_table;
+        pcdom_node_t *last_temp, *last_table;
         size_t last_temp_idx, last_table_idx;
 
         last_temp = pchtml_html_tree_open_elements_find_reverse(tree,
@@ -368,11 +368,11 @@ pchtml_html_tree_appropriate_place_inserting_node(pchtml_html_tree_t *tree,
         if(last_temp != NULL && (last_table == NULL
                          || last_temp_idx > last_table_idx))
         {
-            pcedom_document_fragment_t *doc_fragment;
+            pcdom_document_fragment_t *doc_fragment;
 
             doc_fragment = pchtml_html_interface_template(last_temp)->content;
 
-            return pcedom_interface_node(doc_fragment);
+            return pcdom_interface_node(doc_fragment);
         }
         else if (last_table == NULL) {
             adjusted_location = pchtml_html_tree_open_elements_first(tree);
@@ -408,10 +408,10 @@ pchtml_html_tree_appropriate_place_inserting_node(pchtml_html_tree_t *tree,
      * after its last child (if any).
      */
     if (pchtml_html_tree_node_is(adjusted_location, PCHTML_TAG_TEMPLATE)) {
-        pcedom_document_fragment_t *df;
+        pcdom_document_fragment_t *df;
 
         df = pchtml_html_interface_template(adjusted_location)->content;
-        adjusted_location = pcedom_interface_node(df);
+        adjusted_location = pcdom_interface_node(df);
     }
 
     return adjusted_location;
@@ -422,7 +422,7 @@ pchtml_html_tree_insert_foreign_element(pchtml_html_tree_t *tree,
                                      pchtml_html_token_t *token, pchtml_ns_id_t ns)
 {
     unsigned int status;
-    pcedom_node_t *pos;
+    pcdom_node_t *pos;
     pchtml_html_element_t *element;
     pchtml_html_tree_insertion_position_t ipos;
 
@@ -441,11 +441,11 @@ pchtml_html_tree_insert_foreign_element(pchtml_html_tree_t *tree,
     }
 
     if (pos != NULL) {
-        pchtml_html_tree_insert_node(pos, pcedom_interface_node(element), ipos);
+        pchtml_html_tree_insert_node(pos, pcdom_interface_node(element), ipos);
     }
 
     status = pchtml_html_tree_open_elements_push(tree,
-                                              pcedom_interface_node(element));
+                                              pcdom_interface_node(element));
     if (status != PCHTML_STATUS_OK) {
         return pchtml_html_interface_destroy(element);
     }
@@ -456,17 +456,17 @@ pchtml_html_tree_insert_foreign_element(pchtml_html_tree_t *tree,
 pchtml_html_element_t *
 pchtml_html_tree_create_element_for_token(pchtml_html_tree_t *tree,
                                        pchtml_html_token_t *token, pchtml_ns_id_t ns,
-                                       pcedom_node_t *parent)
+                                       pcdom_node_t *parent)
 {
     UNUSED_PARAM(parent);
 
-    pcedom_node_t *node = pchtml_html_tree_create_node(tree, token->tag_id, ns);
+    pcdom_node_t *node = pchtml_html_tree_create_node(tree, token->tag_id, ns);
     if (node == NULL) {
         return NULL;
     }
 
     unsigned int status;
-    pcedom_element_t *element = pcedom_interface_element(node);
+    pcdom_element_t *element = pcdom_interface_element(node);
 
     if (token->base_element == NULL) {
         status = pchtml_html_tree_append_attributes(tree, element, token, ns);
@@ -485,11 +485,11 @@ pchtml_html_tree_create_element_for_token(pchtml_html_tree_t *tree,
 
 unsigned int
 pchtml_html_tree_append_attributes(pchtml_html_tree_t *tree,
-                                pcedom_element_t *element,
+                                pcdom_element_t *element,
                                 pchtml_html_token_t *token, pchtml_ns_id_t ns)
 {
     unsigned int status;
-    pcedom_attr_t *attr;
+    pcdom_attr_t *attr;
     pcutils_str_t local_name;
     pchtml_html_token_attr_t *token_attr = token->attr_first;
     pcutils_mraw_t *mraw = element->node.owner_document->text;
@@ -497,21 +497,21 @@ pchtml_html_tree_append_attributes(pchtml_html_tree_t *tree,
     local_name.data = NULL;
 
     while (token_attr != NULL) {
-        attr = pcedom_element_attr_by_local_name_data(element,
+        attr = pcdom_element_attr_by_local_name_data(element,
                                                        token_attr->name);
         if (attr != NULL) {
             token_attr = token_attr->next;
             continue;
         }
 
-        attr = pcedom_attr_interface_create(element->node.owner_document);
+        attr = pcdom_attr_interface_create(element->node.owner_document);
         if (attr == NULL) {
             pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
             return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         }
 
         if (token_attr->value_begin != NULL) {
-            status = pcedom_attr_set_value_wo_copy(attr, token_attr->value,
+            status = pcdom_attr_set_value_wo_copy(attr, token_attr->value,
                                                     token_attr->value_size);
             if (status != PCHTML_STATUS_OK) {
                 return status;
@@ -529,7 +529,7 @@ pchtml_html_tree_append_attributes(pchtml_html_tree_t *tree,
             }
         }
 
-        pcedom_element_attr_append(element, attr);
+        pcdom_element_attr_append(element, attr);
 
         token_attr = token_attr->next;
     }
@@ -543,24 +543,24 @@ pchtml_html_tree_append_attributes(pchtml_html_tree_t *tree,
 
 unsigned int
 pchtml_html_tree_append_attributes_from_element(pchtml_html_tree_t *tree,
-                                             pcedom_element_t *element,
-                                             pcedom_element_t *from,
+                                             pcdom_element_t *element,
+                                             pcdom_element_t *from,
                                              pchtml_ns_id_t ns)
 {
     UNUSED_PARAM(ns);
 
     unsigned int status;
-    pcedom_attr_t *attr = from->first_attr;
-    pcedom_attr_t *new_attr;
+    pcdom_attr_t *attr = from->first_attr;
+    pcdom_attr_t *new_attr;
 
     while (attr != NULL) {
-        new_attr = pcedom_attr_interface_create(element->node.owner_document);
+        new_attr = pcdom_attr_interface_create(element->node.owner_document);
         if (new_attr == NULL) {
             pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
             return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         }
 
-        status = pcedom_attr_clone_name_value(attr, new_attr);
+        status = pcdom_attr_clone_name_value(attr, new_attr);
         if (status != PCHTML_STATUS_OK) {
             return status;
         }
@@ -575,7 +575,7 @@ pchtml_html_tree_append_attributes_from_element(pchtml_html_tree_t *tree,
             }
         }
 
-        pcedom_element_attr_append(element, attr);
+        pcdom_element_attr_append(element, attr);
 
         attr = attr->next;
     }
@@ -585,22 +585,22 @@ pchtml_html_tree_append_attributes_from_element(pchtml_html_tree_t *tree,
 
 unsigned int
 pchtml_html_tree_adjust_mathml_attributes(pchtml_html_tree_t *tree,
-                                       pcedom_attr_t *attr, void *ctx)
+                                       pcdom_attr_t *attr, void *ctx)
 {
     UNUSED_PARAM(tree);
     UNUSED_PARAM(ctx);
 
     pcutils_hash_t *attrs;
-    const pcedom_attr_data_t *data;
+    const pcdom_attr_data_t *data;
 
     attrs = attr->node.owner_document->attrs;
-    data = pcedom_attr_data_by_id(attrs, attr->node.local_name);
+    data = pcdom_attr_data_by_id(attrs, attr->node.local_name);
 
     if (data->entry.length == 13
         && pcutils_str_data_cmp(pcutils_hash_entry_str(&data->entry),
                                (const unsigned char *) "definitionurl"))
     {
-        data = pcedom_attr_qualified_name_append(attrs,
+        data = pcdom_attr_qualified_name_append(attrs,
                                       (const unsigned char *) "definitionURL", 13);
         if (data == NULL) {
             pcinst_set_error (PURC_ERROR_HTML);
@@ -615,13 +615,13 @@ pchtml_html_tree_adjust_mathml_attributes(pchtml_html_tree_t *tree,
 
 unsigned int
 pchtml_html_tree_adjust_svg_attributes(pchtml_html_tree_t *tree,
-                                    pcedom_attr_t *attr, void *ctx)
+                                    pcdom_attr_t *attr, void *ctx)
 {
     UNUSED_PARAM(tree);
     UNUSED_PARAM(ctx);
 
     pcutils_hash_t *attrs;
-    const pcedom_attr_data_t *data;
+    const pcdom_attr_data_t *data;
     const pchtml_html_tree_res_attr_adjust_t *adjust;
 
     size_t len = sizeof(pchtml_html_tree_res_attr_adjust_svg_map)
@@ -629,7 +629,7 @@ pchtml_html_tree_adjust_svg_attributes(pchtml_html_tree_t *tree,
 
     attrs = attr->node.owner_document->attrs;
 
-    data = pcedom_attr_data_by_id(attrs, attr->node.local_name);
+    data = pcdom_attr_data_by_id(attrs, attr->node.local_name);
 
     for (size_t i = 0; i < len; i++) {
         adjust = &pchtml_html_tree_res_attr_adjust_svg_map[i];
@@ -638,7 +638,7 @@ pchtml_html_tree_adjust_svg_attributes(pchtml_html_tree_t *tree,
             && pcutils_str_data_cmp(pcutils_hash_entry_str(&data->entry),
                                    (const unsigned char *) adjust->from))
         {
-            data = pcedom_attr_qualified_name_append(attrs,
+            data = pcdom_attr_qualified_name_append(attrs,
                                 (const unsigned char *) adjust->to, adjust->len);
             if (data == NULL) {
                 pcinst_set_error (PURC_ERROR_HTML);
@@ -656,7 +656,7 @@ pchtml_html_tree_adjust_svg_attributes(pchtml_html_tree_t *tree,
 
 unsigned int
 pchtml_html_tree_adjust_foreign_attributes(pchtml_html_tree_t *tree,
-                                        pcedom_attr_t *attr, void *ctx)
+                                        pcdom_attr_t *attr, void *ctx)
 {
     UNUSED_PARAM(tree);
     UNUSED_PARAM(ctx);
@@ -665,7 +665,7 @@ pchtml_html_tree_adjust_foreign_attributes(pchtml_html_tree_t *tree,
     pcutils_hash_t *tags, *attrs, *prefix;
     const pchtml_tag_data_t *tag_data;
     const pchtml_ns_prefix_data_t *prefix_data;
-    const pcedom_attr_data_t *data;
+    const pcdom_attr_data_t *data;
     const pchtml_html_tree_res_attr_adjust_foreign_t *adjust;
 
     size_t len = sizeof(pchtml_html_tree_res_attr_adjust_foreign_map)
@@ -675,7 +675,7 @@ pchtml_html_tree_adjust_foreign_attributes(pchtml_html_tree_t *tree,
     attrs = attr->node.owner_document->attrs;
     prefix = attr->node.owner_document->prefix;
 
-    data = pcedom_attr_data_by_id(attrs, attr->node.local_name);
+    data = pcdom_attr_data_by_id(attrs, attr->node.local_name);
 
     for (size_t i = 0; i < len; i++) {
         adjust = &pchtml_html_tree_res_attr_adjust_foreign_map[i];
@@ -685,7 +685,7 @@ pchtml_html_tree_adjust_foreign_attributes(pchtml_html_tree_t *tree,
                                    (const unsigned char *) adjust->name))
         {
             if (adjust->prefix_len != 0) {
-                data = pcedom_attr_qualified_name_append(attrs,
+                data = pcdom_attr_qualified_name_append(attrs,
                            (const unsigned char *) adjust->name, adjust->name_len);
                 if (data == NULL) {
                     pcinst_set_error (PURC_ERROR_HTML);
@@ -726,7 +726,7 @@ pchtml_html_tree_adjust_foreign_attributes(pchtml_html_tree_t *tree,
 
 unsigned int
 pchtml_html_tree_insert_character(pchtml_html_tree_t *tree, pchtml_html_token_t *token,
-                               pcedom_node_t **ret_node)
+                               pcdom_node_t **ret_node)
 {
     size_t size;
     unsigned int status;
@@ -756,11 +756,11 @@ pchtml_html_tree_insert_character(pchtml_html_tree_t *tree, pchtml_html_token_t 
 unsigned int
 pchtml_html_tree_insert_character_for_data(pchtml_html_tree_t *tree,
                                         pcutils_str_t *str,
-                                        pcedom_node_t **ret_node)
+                                        pcdom_node_t **ret_node)
 {
     const unsigned char *data;
-    pcedom_node_t *pos;
-    pcedom_character_data_t *chrs = NULL;
+    pcdom_node_t *pos;
+    pcdom_character_data_t *chrs = NULL;
     pchtml_html_tree_insertion_position_t ipos;
 
     if (ret_node != NULL) {
@@ -780,7 +780,7 @@ pchtml_html_tree_insert_character_for_data(pchtml_html_tree_t *tree,
     if (ipos == PCHTML_HTML_TREE_INSERTION_POSITION_BEFORE) {
         /* No need check namespace */
         if (pos->prev != NULL && pos->prev->local_name == PCHTML_TAG__TEXT) {
-            chrs = pcedom_interface_character_data(pos->prev);
+            chrs = pcdom_interface_character_data(pos->prev);
 
             if (ret_node != NULL) {
                 *ret_node = pos->prev;
@@ -792,7 +792,7 @@ pchtml_html_tree_insert_character_for_data(pchtml_html_tree_t *tree,
         if (pos->last_child != NULL
             && pos->last_child->local_name == PCHTML_TAG__TEXT)
         {
-            chrs = pcedom_interface_character_data(pos->last_child);
+            chrs = pcdom_interface_character_data(pos->last_child);
 
             if (ret_node != NULL) {
                 *ret_node = pos->last_child;
@@ -821,14 +821,14 @@ pchtml_html_tree_insert_character_for_data(pchtml_html_tree_t *tree,
         goto destroy_str;
     }
 
-    pcedom_node_t *text = pchtml_html_tree_create_node(tree, PCHTML_TAG__TEXT,
+    pcdom_node_t *text = pchtml_html_tree_create_node(tree, PCHTML_TAG__TEXT,
                                                      PCHTML_NS_HTML);
     if (text == NULL) {
         pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
-    pcedom_interface_text(text)->char_data.data = *str;
+    pcdom_interface_text(text)->char_data.data = *str;
 
     if (ret_node != NULL) {
         *ret_node = text;
@@ -845,12 +845,12 @@ destroy_str:
     return PCHTML_STATUS_OK;
 }
 
-pcedom_comment_t *
+pcdom_comment_t *
 pchtml_html_tree_insert_comment(pchtml_html_tree_t *tree,
-                             pchtml_html_token_t *token, pcedom_node_t *pos)
+                             pchtml_html_token_t *token, pcdom_node_t *pos)
 {
-    pcedom_node_t *node;
-    pcedom_comment_t *comment;
+    pcdom_node_t *node;
+    pcdom_comment_t *comment;
     pchtml_html_tree_insertion_position_t ipos;
 
     if (pos == NULL) {
@@ -863,7 +863,7 @@ pchtml_html_tree_insert_comment(pchtml_html_tree_t *tree,
     pchtml_assert(pos != NULL);
 
     node = pchtml_html_tree_create_node(tree, token->tag_id, pos->ns);
-    comment = pcedom_interface_comment(node);
+    comment = pcdom_interface_comment(node);
 
     if (comment == NULL) {
         return NULL;
@@ -880,13 +880,13 @@ pchtml_html_tree_insert_comment(pchtml_html_tree_t *tree,
     return comment;
 }
 
-pcedom_document_type_t *
+pcdom_document_type_t *
 pchtml_html_tree_create_document_type_from_token(pchtml_html_tree_t *tree,
                                               pchtml_html_token_t *token)
 {
     unsigned int status;
-    pcedom_node_t *doctype_node;
-    pcedom_document_type_t *doc_type;
+    pcdom_node_t *doctype_node;
+    pcdom_document_type_t *doc_type;
 
     /* Create */
     doctype_node = pchtml_html_tree_create_node(tree, token->tag_id, PCHTML_NS_HTML);
@@ -894,12 +894,12 @@ pchtml_html_tree_create_document_type_from_token(pchtml_html_tree_t *tree,
         return NULL;
     }
 
-    doc_type = pcedom_interface_document_type(doctype_node);
+    doc_type = pcdom_interface_document_type(doctype_node);
 
     /* Parse */
     status = pchtml_html_token_doctype_parse(token, doc_type);
     if (status != PCHTML_STATUS_OK) {
-        return pcedom_document_type_interface_destroy(doc_type);
+        return pcdom_document_type_interface_destroy(doc_type);
     }
 
     return doc_type;
@@ -910,11 +910,11 @@ pchtml_html_tree_create_document_type_from_token(pchtml_html_tree_t *tree,
  * Not implemented until the end. It is necessary to finish it.
  */
 void
-pchtml_html_tree_node_delete_deep(pchtml_html_tree_t *tree, pcedom_node_t *node)
+pchtml_html_tree_node_delete_deep(pchtml_html_tree_t *tree, pcdom_node_t *node)
 {
     UNUSED_PARAM(tree);
 
-    pcedom_node_remove(node);
+    pcdom_node_remove(node);
 }
 
 pchtml_html_element_t *
@@ -972,7 +972,7 @@ void
 pchtml_html_tree_generate_implied_end_tags(pchtml_html_tree_t *tree,
                                         pchtml_tag_id_t ex_tag, pchtml_ns_id_t ex_ns)
 {
-    pcedom_node_t *node;
+    pcdom_node_t *node;
 
     pchtml_assert(tree->open_elements != 0);
 
@@ -1011,7 +1011,7 @@ pchtml_html_tree_generate_all_implied_end_tags_thoroughly(pchtml_html_tree_t *tr
                                                        pchtml_tag_id_t ex_tag,
                                                        pchtml_ns_id_t ex_ns)
 {
-    pcedom_node_t *node;
+    pcdom_node_t *node;
 
     pchtml_assert(tree->open_elements != 0);
 
@@ -1056,7 +1056,7 @@ pchtml_html_tree_generate_all_implied_end_tags_thoroughly(pchtml_html_tree_t *tr
 void
 pchtml_html_tree_reset_insertion_mode_appropriately(pchtml_html_tree_t *tree)
 {
-    pcedom_node_t *node;
+    pcdom_node_t *node;
     size_t idx = tree->open_elements->length;
 
     /* Step 1 */
@@ -1113,7 +1113,7 @@ pchtml_html_tree_reset_insertion_mode_appropriately(pchtml_html_tree_t *tree)
                 ancestor--;
 
                 /* Step 4.5 */
-                pcedom_node_t *ancestor_node = list[ancestor];
+                pcdom_node_t *ancestor_node = list[ancestor];
 
                 if(pchtml_html_tree_node_is(ancestor_node, PCHTML_TAG_TEMPLATE)) {
                     tree->mode = pchtml_html_tree_insertion_mode_in_select;
@@ -1206,11 +1206,11 @@ pchtml_html_tree_reset_insertion_mode_appropriately(pchtml_html_tree_t *tree)
     }
 }
 
-pcedom_node_t *
+pcdom_node_t *
 pchtml_html_tree_element_in_scope(pchtml_html_tree_t *tree, pchtml_tag_id_t tag_id,
                                pchtml_ns_id_t ns, pchtml_html_tag_category_t ct)
 {
-    pcedom_node_t *node;
+    pcdom_node_t *node;
 
     size_t idx = tree->open_elements->length;
     void **list = tree->open_elements->list;
@@ -1231,12 +1231,12 @@ pchtml_html_tree_element_in_scope(pchtml_html_tree_t *tree, pchtml_tag_id_t tag_
     return NULL;
 }
 
-pcedom_node_t *
+pcdom_node_t *
 pchtml_html_tree_element_in_scope_by_node(pchtml_html_tree_t *tree,
-                                       pcedom_node_t *by_node,
+                                       pcdom_node_t *by_node,
                                        pchtml_html_tag_category_t ct)
 {
-    pcedom_node_t *node;
+    pcdom_node_t *node;
 
     size_t idx = tree->open_elements->length;
     void **list = tree->open_elements->list;
@@ -1257,10 +1257,10 @@ pchtml_html_tree_element_in_scope_by_node(pchtml_html_tree_t *tree,
     return NULL;
 }
 
-pcedom_node_t *
+pcdom_node_t *
 pchtml_html_tree_element_in_scope_h123456(pchtml_html_tree_t *tree)
 {
-    pcedom_node_t *node;
+    pcdom_node_t *node;
 
     size_t idx = tree->open_elements->length;
     void **list = tree->open_elements->list;
@@ -1296,10 +1296,10 @@ pchtml_html_tree_element_in_scope_h123456(pchtml_html_tree_t *tree)
     return NULL;
 }
 
-pcedom_node_t *
+pcdom_node_t *
 pchtml_html_tree_element_in_scope_tbody_thead_tfoot(pchtml_html_tree_t *tree)
 {
-    pcedom_node_t *node;
+    pcdom_node_t *node;
 
     size_t idx = tree->open_elements->length;
     void **list = tree->open_elements->list;
@@ -1332,10 +1332,10 @@ pchtml_html_tree_element_in_scope_tbody_thead_tfoot(pchtml_html_tree_t *tree)
     return NULL;
 }
 
-pcedom_node_t *
+pcdom_node_t *
 pchtml_html_tree_element_in_scope_td_th(pchtml_html_tree_t *tree)
 {
-    pcedom_node_t *node;
+    pcdom_node_t *node;
 
     size_t idx = tree->open_elements->length;
     void **list = tree->open_elements->list;
@@ -1370,7 +1370,7 @@ pchtml_html_tree_element_in_scope_td_th(pchtml_html_tree_t *tree)
 bool
 pchtml_html_tree_check_scope_element(pchtml_html_tree_t *tree)
 {
-    pcedom_node_t *node;
+    pcdom_node_t *node;
 
     for (size_t i = 0; i < tree->open_elements->length; i++) {
         node = tree->open_elements->list[i];
@@ -1409,7 +1409,7 @@ pchtml_html_tree_close_p_element(pchtml_html_tree_t *tree, pchtml_html_token_t *
 {
     pchtml_html_tree_generate_implied_end_tags(tree, PCHTML_TAG_P, PCHTML_NS_HTML);
 
-    pcedom_node_t *node = pchtml_html_tree_current_node(tree);
+    pcdom_node_t *node = pchtml_html_tree_current_node(tree);
 
     if (pchtml_html_tree_node_is(node, PCHTML_TAG_P) == false) {
         pchtml_html_tree_parse_error(tree, token,
@@ -1433,13 +1433,13 @@ pchtml_html_tree_adoption_agency_algorithm(pchtml_html_tree_t *tree,
     bool is;
     short outer_loop;
     pchtml_html_element_t *element;
-    pcedom_node_t *node, *marker, **oel_list, **afe_list;
+    pcdom_node_t *node, *marker, **oel_list, **afe_list;
 
     pchtml_tag_id_t subject = token->tag_id;
 
-    oel_list = (pcedom_node_t **) tree->open_elements->list;
-    afe_list = (pcedom_node_t **) tree->active_formatting->list;
-    marker = (pcedom_node_t *) pchtml_html_tree_active_formatting_marker();
+    oel_list = (pcdom_node_t **) tree->open_elements->list;
+    afe_list = (pcdom_node_t **) tree->active_formatting->list;
+    marker = (pcdom_node_t *) pchtml_html_tree_active_formatting_marker();
 
     *status = PCHTML_STATUS_OK;
 
@@ -1468,7 +1468,7 @@ pchtml_html_tree_adoption_agency_algorithm(pchtml_html_tree_t *tree,
         /* State 6 */
         size_t formatting_index = 0;
         size_t idx = tree->active_formatting->length;
-        pcedom_node_t *formatting_element = NULL;
+        pcdom_node_t *formatting_element = NULL;
 
         while (idx) {
             idx--;
@@ -1521,7 +1521,7 @@ pchtml_html_tree_adoption_agency_algorithm(pchtml_html_tree_t *tree,
         }
 
         /* State 10 */
-        pcedom_node_t *furthest_block = NULL;
+        pcdom_node_t *furthest_block = NULL;
         size_t furthest_block_idx = 0;
         size_t oel_idx = tree->open_elements->length;
 
@@ -1553,14 +1553,14 @@ pchtml_html_tree_adoption_agency_algorithm(pchtml_html_tree_t *tree,
         pchtml_assert(oel_formatting_idx != 0);
 
         /* State 12 */
-        pcedom_node_t *common_ancestor = oel_list[oel_formatting_idx - 1];
+        pcdom_node_t *common_ancestor = oel_list[oel_formatting_idx - 1];
 
         /* State 13 */
         size_t bookmark = formatting_index;
 
         /* State 14 */
-        pcedom_node_t *node;
-        pcedom_node_t *last = furthest_block;
+        pcdom_node_t *node;
+        pcdom_node_t *last = furthest_block;
         size_t node_idx = furthest_block_idx;
 
         /* State 14.1 */
@@ -1620,7 +1620,7 @@ pchtml_html_tree_adoption_agency_algorithm(pchtml_html_tree_t *tree,
                 return false;
             }
 
-            node = pcedom_interface_node(element);
+            node = pcdom_interface_node(element);
 
             afe_list[afe_node_idx] = node;
             oel_list[node_idx] = node;
@@ -1634,21 +1634,21 @@ pchtml_html_tree_adoption_agency_algorithm(pchtml_html_tree_t *tree,
 
             /* State 14.9 */
             if (last->parent != NULL) {
-                pcedom_node_remove(last);
+                pcdom_node_remove(last);
             }
 
-            pcedom_node_insert_child(node, last);
+            pcdom_node_insert_child(node, last);
 
             /* State 14.10 */
             last = node;
         }
 
         if (last->parent != NULL) {
-            pcedom_node_remove(last);
+            pcdom_node_remove(last);
         }
 
         /* State 15 */
-        pcedom_node_t *pos;
+        pcdom_node_t *pos;
         pchtml_html_tree_insertion_position_t ipos;
 
         pos = pchtml_html_tree_appropriate_place_inserting_node(tree,
@@ -1677,22 +1677,22 @@ pchtml_html_tree_adoption_agency_algorithm(pchtml_html_tree_t *tree,
         }
 
         /* State 17 */
-        pcedom_node_t *next;
+        pcdom_node_t *next;
         node = furthest_block->first_child;
 
         while (node != NULL) {
             next = node->next;
 
-            pcedom_node_remove(node);
-            pcedom_node_insert_child(pcedom_interface_node(element), node);
+            pcdom_node_remove(node);
+            pcdom_node_insert_child(pcdom_interface_node(element), node);
 
             node = next;
         }
 
-        node = pcedom_interface_node(element);
+        node = pcdom_interface_node(element);
 
         /* State 18 */
-        pcedom_node_insert_child(furthest_block, node);
+        pcdom_node_insert_child(furthest_block, node);
 
         /* State 19 */
         pchtml_html_tree_active_formatting_remove(tree, formatting_index);
@@ -1723,13 +1723,13 @@ pchtml_html_tree_adoption_agency_algorithm(pchtml_html_tree_t *tree,
 }
 
 bool
-pchtml_html_tree_html_integration_point(pcedom_node_t *node)
+pchtml_html_tree_html_integration_point(pcdom_node_t *node)
 {
     if (node->ns == PCHTML_NS_MATH
         && node->local_name == PCHTML_TAG_ANNOTATION_XML)
     {
-        pcedom_attr_t *attr;
-        attr = pcedom_element_attr_is_exist(pcedom_interface_element(node),
+        pcdom_attr_t *attr;
+        attr = pcdom_element_attr_is_exist(pcdom_interface_element(node),
                                              (const unsigned char *) "encoding",
                                              8);
         if (attr == NULL || attr->value == NULL) {
@@ -1766,7 +1766,7 @@ pchtml_html_tree_html_integration_point(pcedom_node_t *node)
 
 unsigned int
 pchtml_html_tree_adjust_attributes_mathml(pchtml_html_tree_t *tree,
-                                       pcedom_attr_t *attr, void *ctx)
+                                       pcdom_attr_t *attr, void *ctx)
 {
     unsigned int status;
 
@@ -1780,7 +1780,7 @@ pchtml_html_tree_adjust_attributes_mathml(pchtml_html_tree_t *tree,
 
 unsigned int
 pchtml_html_tree_adjust_attributes_svg(pchtml_html_tree_t *tree,
-                                    pcedom_attr_t *attr, void *ctx)
+                                    pcdom_attr_t *attr, void *ctx)
 {
     unsigned int status;
 

@@ -1,13 +1,13 @@
 /**
- * @file shadow_root.h
- * @author 
+ * @file shadow_root.c
+ * @author
  * @date 2021/07/02
- * @brief The hearder file for shadow root.
+ * @brief The complementation of shadow root.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -31,41 +31,32 @@
  */
 
 
-#ifndef PCEDOM_PRIVATE_SHADOW_ROOT_H
-#define PCEDOM_PRIVATE_SHADOW_ROOT_H
+#include "private/dom.h"
+#include "dom/shadow_root.h"
 
-#include "config.h"
-#include "private/edom.h"
+pcdom_shadow_root_t *
+pcdom_shadow_root_interface_create(pcdom_document_t *document)
+{
+    pcdom_shadow_root_t *element;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+    element = pcutils_mraw_calloc(document->mraw,
+                                 sizeof(pcdom_shadow_root_t));
+    if (element == NULL) {
+        return NULL;
+    }
 
-typedef enum {
-    PCEDOM_SHADOW_ROOT_MODE_OPEN   = 0x00,
-    PCEDOM_SHADOW_ROOT_MODE_CLOSED = 0x01
+    pcdom_node_t *node = pcdom_interface_node(element);
+
+    node->owner_document = document;
+    node->type = PCDOM_NODE_TYPE_UNDEF;
+
+    return element;
 }
-pcedom_shadow_root_mode_t;
 
-struct pcedom_shadow_root {
-    pcedom_document_fragment_t document_fragment;
-
-    pcedom_shadow_root_mode_t  mode;
-    pcedom_element_t           *host;
-};
-
-
-pcedom_shadow_root_t *
-pcedom_shadow_root_interface_create(
-                pcedom_document_t *document) WTF_INTERNAL;
-
-pcedom_shadow_root_t *
-pcedom_shadow_root_interface_destroy(
-                pcedom_shadow_root_t *shadow_root) WTF_INTERNAL;
-
-
-#ifdef __cplusplus
-}       /* __cplusplus */
-#endif
-
-#endif  /* PCEDOM_PRIVATE_SHADOW_ROOT_H */
+pcdom_shadow_root_t *
+pcdom_shadow_root_interface_destroy(pcdom_shadow_root_t *shadow_root)
+{
+    return pcutils_mraw_free(
+        pcdom_interface_node(shadow_root)->owner_document->mraw,
+        shadow_root);
+}

@@ -31,16 +31,16 @@
 
 #include "private/debug.h"
 #include "private/errors.h"
-#include "private/edom.h"
+#include "private/dom.h"
 
 PCA_EXTERN_C_BEGIN
 
 purc_variant_t
 pcintr_make_elements(size_t nr_elems,
-        struct pcedom_element **elems) WTF_INTERNAL;
+        struct pcdom_element **elems) WTF_INTERNAL;
 
 purc_variant_t
-pcintr_query_elements(struct pcedom_element *root,
+pcintr_query_elements(struct pcdom_element *root,
     const char *css) WTF_INTERNAL;
 
 PCA_EXTERN_C_END

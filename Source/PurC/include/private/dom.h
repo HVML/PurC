@@ -1,8 +1,8 @@
 /**
- * @file edom.h
+ * @file dom.h
  * @author
  * @date 2021/07/02
- * @brief The internal interfaces for edom.
+ * @brief The internal interfaces for dom.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -30,15 +30,15 @@
  * Author: Alexander Borisov <borisov@lexbor.com>
  */
 
-#ifndef PURC_PRIVATE_EDOM_H
-#define PURC_PRIVATE_EDOM_H
+#ifndef PURC_PRIVATE_DOM_H
+#define PURC_PRIVATE_DOM_H
 
 #include "config.h"
 
 #include "private/str.h"
 #include "private/hash.h"
 
-#include "purc-edom.h"
+#include "purc-dom.h"
 #include "purc-html.h"
 #include "purc-errors.h"
 
@@ -52,7 +52,7 @@
 extern "C" {
 #endif  /* __cplusplus */
 
-#define PURC_ERROR_EDOM PURC_ERROR_FIRST_EDOM
+#define PURC_ERROR_DOM PURC_ERROR_FIRST_DOM
 
 // ============================= for ns ================================
 typedef struct {
@@ -176,21 +176,21 @@ pchtml_tag_mraw(pcutils_hash_t *hash)
 }
 
 
-// initialize edom module (once)
-void pcedom_init_once(void) WTF_INTERNAL;
+// initialize dom module (once)
+void pcdom_init_once(void) WTF_INTERNAL;
 
 
 /* VW NOTE: eDOM module should work without instance
 struct pcinst;
-// initialize the edom module for a PurC instance.
-void pcedom_init_instance(struct pcinst* inst) WTF_INTERNAL;
-// clean up the edom module for a PurC instance.
-void pcedom_cleanup_instance(struct pcinst* inst) WTF_INTERNAL;
+// initialize the dom module for a PurC instance.
+void pcdom_init_instance(struct pcinst* inst) WTF_INTERNAL;
+// clean up the dom module for a PurC instance.
+void pcdom_cleanup_instance(struct pcinst* inst) WTF_INTERNAL;
 */
 
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */
 
-#endif  /* PURC_PRIVATE_EDOM_H */
+#endif  /* PURC_PRIVATE_DOM_H */
 

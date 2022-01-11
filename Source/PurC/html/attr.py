@@ -43,9 +43,9 @@ attributes_name.insert(0, "_undef")
 WITHOUT_PRINT = 0
 
 class Attr:
-    prefix = "PCEDOM_ATTR_"
-    shs_name = "pcedom_attr_res_shs_data"
-    data_name = "pcedom_attr_res_data_default"
+    prefix = "PCDOM_ATTR_"
+    shs_name = "pcdom_attr_res_shs_data"
+    data_name = "pcdom_attr_res_data_default"
 
     def __init__(self):
         pass
@@ -55,7 +55,7 @@ class Attr:
         return "{}{}".format(self.prefix, name.upper())
 
     def data_create(self):
-        res = LXB.Res("pcedom_attr_data_t", self.data_name, False, self.make_enum_name("_LAST_ENTRY"))
+        res = LXB.Res("pcdom_attr_data_t", self.data_name, False, self.make_enum_name("_LAST_ENTRY"))
 
         for name in attributes_name:
             variable = ".u.short_str = \"{}\"".format(name)

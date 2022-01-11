@@ -54,7 +54,7 @@ pchtml_html_tree_insertion_mode_before_html_anything_else(pchtml_html_tree_t *tr
 
 static inline unsigned int
 pchtml_html_tree_insertion_mode_before_html_html(pchtml_html_tree_t *tree,
-                                              pcedom_node_t *node_html);
+                                              pcdom_node_t *node_html);
 
 
 bool
@@ -79,10 +79,10 @@ pchtml_html_tree_insertion_mode_before_html_open(pchtml_html_tree_t *tree,
             break;
 
         case PCHTML_TAG__EM_COMMENT: {
-            pcedom_comment_t *comment;
+            pcdom_comment_t *comment;
 
             comment = pchtml_html_tree_insert_comment(tree, token,
-                                        pcedom_interface_node(tree->document));
+                                        pcdom_interface_node(tree->document));
             if (comment == NULL) {
                 return pchtml_html_tree_process_abort(tree);
             }
@@ -91,7 +91,7 @@ pchtml_html_tree_insertion_mode_before_html_open(pchtml_html_tree_t *tree,
         }
 
         case PCHTML_TAG_HTML: {
-            pcedom_node_t *node_html;
+            pcdom_node_t *node_html;
             pchtml_html_element_t *element;
 
             element = pchtml_html_tree_create_element_for_token(tree, token,
@@ -104,7 +104,7 @@ pchtml_html_tree_insertion_mode_before_html_open(pchtml_html_tree_t *tree,
                 return pchtml_html_tree_process_abort(tree);
             }
 
-            node_html = pcedom_interface_node(element);
+            node_html = pcdom_interface_node(element);
 
             tree->status = pchtml_html_tree_insertion_mode_before_html_html(tree,
                                                                      node_html);
@@ -158,7 +158,7 @@ pchtml_html_tree_insertion_mode_before_html_closed(pchtml_html_tree_t *tree,
 static inline bool
 pchtml_html_tree_insertion_mode_before_html_anything_else(pchtml_html_tree_t *tree)
 {
-    pcedom_node_t *node_html;
+    pcdom_node_t *node_html;
 
     node_html = pchtml_html_tree_create_node(tree, PCHTML_TAG_HTML, PCHTML_NS_HTML);
     if (node_html == NULL) {
@@ -180,7 +180,7 @@ pchtml_html_tree_insertion_mode_before_html_anything_else(pchtml_html_tree_t *tr
 
 static inline unsigned int
 pchtml_html_tree_insertion_mode_before_html_html(pchtml_html_tree_t *tree,
-                                              pcedom_node_t *node_html)
+                                              pcdom_node_t *node_html)
 {
     unsigned int status;
 
@@ -189,12 +189,12 @@ pchtml_html_tree_insertion_mode_before_html_html(pchtml_html_tree_t *tree,
         return status;
     }
 
-    pchtml_html_tree_insert_node(pcedom_interface_node(tree->document),
+    pchtml_html_tree_insert_node(pcdom_interface_node(tree->document),
                               node_html,
                               PCHTML_HTML_TREE_INSERTION_POSITION_CHILD);
 
-    pcedom_document_attach_element(&tree->document->dom_document,
-                                    pcedom_interface_element(node_html));
+    pcdom_document_attach_element(&tree->document->dom_document,
+                                    pcdom_interface_element(node_html));
 
     return PCHTML_STATUS_OK;
 }

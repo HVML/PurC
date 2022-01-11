@@ -1,8 +1,8 @@
 /**
- * @file comment.c
+ * @file document_fragment.c
  * @author
  * @date 2021/07/02
- * @brief The complementation of comment.
+ * @brief The complementation of document fragment.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -31,31 +31,32 @@
  */
 
 
-#include "private/edom.h"
+#include "private/dom.h"
 
-pcedom_comment_t *
-pcedom_comment_interface_create(pcedom_document_t *document)
+
+pcdom_document_fragment_t *
+pcdom_document_fragment_interface_create(pcdom_document_t *document)
 {
-    pcedom_comment_t *element;
+    pcdom_document_fragment_t *element;
 
     element = pcutils_mraw_calloc(document->mraw,
-                                 sizeof(pcedom_comment_t));
+                                 sizeof(pcdom_document_fragment_t));
     if (element == NULL) {
         return NULL;
     }
 
-    pcedom_node_t *node = pcedom_interface_node(element);
+    pcdom_node_t *node = pcdom_interface_node(element);
 
     node->owner_document = document;
-    node->type = PCEDOM_NODE_TYPE_COMMENT;
+    node->type = PCDOM_NODE_TYPE_DOCUMENT_FRAGMENT;
 
     return element;
 }
 
-pcedom_comment_t *
-pcedom_comment_interface_destroy(pcedom_comment_t *comment)
+pcdom_document_fragment_t *
+pcdom_document_fragment_interface_destroy(pcdom_document_fragment_t *document_fragment)
 {
     return pcutils_mraw_free(
-        pcedom_interface_node(comment)->owner_document->mraw,
-        comment);
+        pcdom_interface_node(document_fragment)->owner_document->mraw,
+        document_fragment);
 }

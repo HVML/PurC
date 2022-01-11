@@ -49,8 +49,8 @@ class Tags:
     ns_res_prefix_data = "pchtml_ns_prefix_res_data"
     cat_prefix = "pchtml_html_tag_category"
     cat_empty = "PCHTML_HTML_TAG_CATEGORY__UNDEF"
-    creation_interface = "pcedom_interface_constructor_f"
-    deletion_interface = "pcedom_interface_destructor_f"
+    creation_interface = "pcdom_interface_constructor_f"
+    deletion_interface = "pcdom_interface_destructor_f"
 
     def __init__(self, json_tags, json_interfaces):
         self.interfaces = interfaces.Interfaces(json_interfaces)
@@ -189,8 +189,8 @@ class Tags:
     def tag_data_create_html(self):
         result = []
         cats = LXB.Res("pchtml_html_tag_category_t", "pchtml_html_tag_res_cats", True, [self.tag_last_entry_name, self.ns_last_entry_name])
-        constructor = LXB.Res("pcedom_interface_constructor_f", "pchtml_html_interface_res_constructors", True, [self.tag_last_entry_name, self.ns_last_entry_name])
-        destructor = LXB.Res("pcedom_interface_destructor_f", "pchtml_html_interface_res_destructor", True, [self.tag_last_entry_name, self.ns_last_entry_name])
+        constructor = LXB.Res("pcdom_interface_constructor_f", "pchtml_html_interface_res_constructors", True, [self.tag_last_entry_name, self.ns_last_entry_name])
+        destructor = LXB.Res("pcdom_interface_destructor_f", "pchtml_html_interface_res_destructor", True, [self.tag_last_entry_name, self.ns_last_entry_name])
         svg_fixname = LXB.Res("pchtml_html_tag_fixname_t", "pchtml_html_tag_res_fixname_svg", True, [self.tag_last_entry_name])
 
         fixname = []

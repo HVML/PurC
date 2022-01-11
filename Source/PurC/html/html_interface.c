@@ -31,7 +31,7 @@
  */
 
 
-#include "private/edom.h"
+#include "private/dom.h"
 
 #include "private/mraw.h"
 #include "html/html_interface.h"
@@ -43,31 +43,31 @@
 #include "html_interface_res.h"
 
 
-pcedom_interface_t *
+pcdom_interface_t *
 pchtml_html_interface_create(pchtml_html_document_t *document, pchtml_tag_id_t tag_id,
                           pchtml_ns_id_t ns)
 {
-    pcedom_node_t *node;
+    pcdom_node_t *node;
 
     if (tag_id >= PCHTML_TAG__LAST_ENTRY) {
         if (ns == PCHTML_NS_HTML) {
             pchtml_html_unknown_element_t *unel;
 
             unel = pchtml_html_unknown_element_interface_create(document);
-            node = pcedom_interface_node(unel);
+            node = pcdom_interface_node(unel);
         }
         else if (ns == PCHTML_NS_SVG) {
             /* TODO: For this need implement SVGElement */
-            pcedom_element_t *domel;
+            pcdom_element_t *domel;
 
-            domel = pcedom_element_interface_create(&document->dom_document);
-            node = pcedom_interface_node(domel);
+            domel = pcdom_element_interface_create(&document->dom_document);
+            node = pcdom_interface_node(domel);
         }
         else {
-            pcedom_element_t *domel;
+            pcdom_element_t *domel;
 
-            domel = pcedom_element_interface_create(&document->dom_document);
-            node = pcedom_interface_node(domel);
+            domel = pcdom_element_interface_create(&document->dom_document);
+            node = pcdom_interface_node(domel);
         }
     }
     else {
@@ -84,48 +84,48 @@ pchtml_html_interface_create(pchtml_html_document_t *document, pchtml_tag_id_t t
     return node;
 }
 
-pcedom_interface_t *
-pchtml_html_interface_destroy(pcedom_interface_t *intrfc)
+pcdom_interface_t *
+pchtml_html_interface_destroy(pcdom_interface_t *intrfc)
 {
     if (intrfc == NULL) {
         return NULL;
     }
 
-    pcedom_node_t *node = intrfc;
+    pcdom_node_t *node = intrfc;
 
     switch (node->type) {
-        case PCEDOM_NODE_TYPE_TEXT:
-        case PCEDOM_NODE_TYPE_COMMENT:
-        case PCEDOM_NODE_TYPE_ELEMENT:
-        case PCEDOM_NODE_TYPE_DOCUMENT:
-        case PCEDOM_NODE_TYPE_DOCUMENT_TYPE:
+        case PCDOM_NODE_TYPE_TEXT:
+        case PCDOM_NODE_TYPE_COMMENT:
+        case PCDOM_NODE_TYPE_ELEMENT:
+        case PCDOM_NODE_TYPE_DOCUMENT:
+        case PCDOM_NODE_TYPE_DOCUMENT_TYPE:
             if (node->local_name >= PCHTML_TAG__LAST_ENTRY) {
                 if (node->ns == PCHTML_NS_HTML) {
                     return pchtml_html_unknown_element_interface_destroy(intrfc);
                 }
                 else if (node->ns == PCHTML_NS_SVG) {
                     /* TODO: For this need implement SVGElement */
-                    return pcedom_element_interface_destroy(intrfc);
+                    return pcdom_element_interface_destroy(intrfc);
                 }
                 else {
-                    return pcedom_element_interface_destroy(intrfc);
+                    return pcdom_element_interface_destroy(intrfc);
                 }
             }
             else {
                 return pchtml_html_interface_res_destructor[node->local_name][node->ns](intrfc);
             }
 
-        case PCEDOM_NODE_TYPE_ATTRIBUTE:
-            return pcedom_attr_interface_destroy(intrfc);
+        case PCDOM_NODE_TYPE_ATTRIBUTE:
+            return pcdom_attr_interface_destroy(intrfc);
 
-        case PCEDOM_NODE_TYPE_CDATA_SECTION:
-            return pcedom_cdata_section_interface_destroy(intrfc);
+        case PCDOM_NODE_TYPE_CDATA_SECTION:
+            return pcdom_cdata_section_interface_destroy(intrfc);
 
-        case PCEDOM_NODE_TYPE_DOCUMENT_FRAGMENT:
-            return pcedom_document_fragment_interface_destroy(intrfc);
+        case PCDOM_NODE_TYPE_DOCUMENT_FRAGMENT:
+            return pcdom_document_fragment_interface_destroy(intrfc);
 
-        case PCEDOM_NODE_TYPE_PROCESSING_INSTRUCTION:
-            return pcedom_processing_instruction_interface_destroy(intrfc);
+        case PCDOM_NODE_TYPE_PROCESSING_INSTRUCTION:
+            return pcdom_processing_instruction_interface_destroy(intrfc);
 
         default:
             return NULL;

@@ -34,7 +34,7 @@
 #include "private/ejson.h"
 #include "private/html.h"
 #include "private/vdom.h"
-#include "private/edom.h"
+#include "private/dom.h"
 #include "private/dvobjs.h"
 #include "private/executor.h"
 
@@ -69,8 +69,8 @@ static void init_modules_once(void)
 
     pcrwstream_init_once();
 
-    if (_modules & PURC_HAVE_EDOM) {
-        pcedom_init_once();
+    if (_modules & PURC_HAVE_DOM) {
+        pcdom_init_once();
     }
 
     if (_modules & PURC_HAVE_HTML) {
@@ -200,7 +200,7 @@ int purc_init_ex(unsigned int modules,
     // TODO: init other fields
 
     /* VW NOTE: eDOM and HTML modules should work without instance
-    pcedom_init_instance(curr_inst);
+    pcdom_init_instance(curr_inst);
     pchtml_init_instance(curr_inst); */
 
     // TODO: init XML modules here
@@ -239,7 +239,7 @@ bool purc_cleanup(void)
         pcvariant_cleanup_instance(curr_inst);
         /* VW NOTE: eDOM and HTML modules should work without instance
         pchtml_cleanup_instance(curr_inst);
-        pcedom_cleanup_instance(curr_inst); */
+        pcdom_cleanup_instance(curr_inst); */
 
         cleanup_instance(curr_inst);
     }

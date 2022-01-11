@@ -1,8 +1,8 @@
 /**
- * @file processing_instruction.c 
+ * @file event_target.c
  * @author
  * @date 2021/07/02
- * @brief The complementation of processing instruction.
+ * @brief The complementation of event target.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -30,32 +30,27 @@
  * Author: Alexander Borisov <borisov@lexbor.com>
  */
 
+#include "private/dom.h"
 
-#include "private/edom.h"
-
-pcedom_processing_instruction_t *
-pcedom_processing_instruction_interface_create(pcedom_document_t *document)
+pcdom_event_target_t *
+pcdom_event_target_create(pcdom_document_t *document)
 {
-    pcedom_processing_instruction_t *element;
+    pcdom_event_target_t *element;
 
     element = pcutils_mraw_calloc(document->mraw,
-                                 sizeof(pcedom_processing_instruction_t));
+                                 sizeof(pcdom_event_target_t));
     if (element == NULL) {
         return NULL;
     }
 
-    pcedom_node_t *node = pcedom_interface_node(element);
-
-    node->owner_document = document;
-    node->type = PCEDOM_NODE_TYPE_PROCESSING_INSTRUCTION;
+    pcdom_interface_node(element)->type = PCDOM_NODE_TYPE_UNDEF;
 
     return element;
 }
 
-pcedom_processing_instruction_t *
-pcedom_processing_instruction_interface_destroy(pcedom_processing_instruction_t *processing_instruction)
+pcdom_event_target_t *
+pcdom_event_target_destroy(pcdom_event_target_t *event_target,
+                             pcdom_document_t *document)
 {
-    return pcutils_mraw_free(
-        pcedom_interface_node(processing_instruction)->owner_document->mraw,
-        processing_instruction);
+    return pcutils_mraw_free(document->mraw, event_target);
 }

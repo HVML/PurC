@@ -31,8 +31,8 @@
  */
 
 
-#ifndef PCEDOM_EXCEPTION_H
-#define PCEDOM_EXCEPTION_H
+#ifndef PCDOM_EXCEPTION_H
+#define PCDOM_EXCEPTION_H
 
 #include "config.h"
 
@@ -41,41 +41,41 @@ extern "C" {
 #endif
 
 typedef enum {
-    PCEDOM_INDEX_SIZE_ERR = 0x00,
-    PCEDOM_DOMSTRING_SIZE_ERR,
-    PCEDOM_HIERARCHY_REQUEST_ERR,
-    PCEDOM_WRONG_DOCUMENT_ERR,
-    PCEDOM_INVALID_CHARACTER_ERR,
-    PCEDOM_NO_DATA_ALLOWED_ERR,
-    PCEDOM_NO_MODIFICATION_ALLOWED_ERR,
-    PCEDOM_NOT_FOUND_ERR,
-    PCEDOM_NOT_SUPPORTED_ERR,
-    PCEDOM_INUSE_ATTRIBUTE_ERR,
-    PCEDOM_INVALID_STATE_ERR,
-    PCEDOM_SYNTAX_ERR,
-    PCEDOM_INVALID_MODIFICATION_ERR,
-    PCEDOM_NAMESPACE_ERR,
-    PCEDOM_INVALID_ACCESS_ERR,
-    PCEDOM_VALIDATION_ERR,
-    PCEDOM_TYPE_MISMATCH_ERR,
-    PCEDOM_SECURITY_ERR,
-    PCEDOM_NETWORK_ERR,
-    PCEDOM_ABORT_ERR,
-    PCEDOM_URL_MISMATCH_ERR,
-    PCEDOM_QUOTA_EXCEEDED_ERR,
-    PCEDOM_TIMEOUT_ERR,
-    PCEDOM_INVALID_NODE_TYPE_ERR,
-    PCEDOM_DATA_CLONE_ERR
+    PCDOM_INDEX_SIZE_ERR = 0x00,
+    PCDOM_DOMSTRING_SIZE_ERR,
+    PCDOM_HIERARCHY_REQUEST_ERR,
+    PCDOM_WRONG_DOCUMENT_ERR,
+    PCDOM_INVALID_CHARACTER_ERR,
+    PCDOM_NO_DATA_ALLOWED_ERR,
+    PCDOM_NO_MODIFICATION_ALLOWED_ERR,
+    PCDOM_NOT_FOUND_ERR,
+    PCDOM_NOT_SUPPORTED_ERR,
+    PCDOM_INUSE_ATTRIBUTE_ERR,
+    PCDOM_INVALID_STATE_ERR,
+    PCDOM_SYNTAX_ERR,
+    PCDOM_INVALID_MODIFICATION_ERR,
+    PCDOM_NAMESPACE_ERR,
+    PCDOM_INVALID_ACCESS_ERR,
+    PCDOM_VALIDATION_ERR,
+    PCDOM_TYPE_MISMATCH_ERR,
+    PCDOM_SECURITY_ERR,
+    PCDOM_NETWORK_ERR,
+    PCDOM_ABORT_ERR,
+    PCDOM_URL_MISMATCH_ERR,
+    PCDOM_QUOTA_EXCEEDED_ERR,
+    PCDOM_TIMEOUT_ERR,
+    PCDOM_INVALID_NODE_TYPE_ERR,
+    PCDOM_DATA_CLONE_ERR
 }
-pcedom_exception_code_t;
+pcdom_exception_code_t;
 
 
 /*
  * Inline functions
  */
 static inline void *
-pcedom_exception_code_ref_set(pcedom_exception_code_t *var,
-                               pcedom_exception_code_t code)
+pcdom_exception_code_ref_set(pcdom_exception_code_t *var,
+                               pcdom_exception_code_t code)
 {
     if (var != NULL) {
         *var = code;
@@ -89,4 +89,4 @@ pcedom_exception_code_ref_set(pcedom_exception_code_t *var,
 }       /* __cplusplus */
 #endif
 
-#endif  /* PCEDOM_EXCEPTION_H */
+#endif  /* PCDOM_EXCEPTION_H */

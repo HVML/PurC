@@ -31,31 +31,31 @@
  */
 
 
-#include "private/edom.h"
+#include "private/dom.h"
 
-pcedom_cdata_section_t *
-pcedom_cdata_section_interface_create(pcedom_document_t *document)
+pcdom_cdata_section_t *
+pcdom_cdata_section_interface_create(pcdom_document_t *document)
 {
-    pcedom_cdata_section_t *element;
+    pcdom_cdata_section_t *element;
 
     element = pcutils_mraw_calloc(document->mraw,
-                                 sizeof(pcedom_cdata_section_t));
+                                 sizeof(pcdom_cdata_section_t));
     if (element == NULL) {
         return NULL;
     }
 
-    pcedom_node_t *node = pcedom_interface_node(element);
+    pcdom_node_t *node = pcdom_interface_node(element);
 
     node->owner_document = document;
-    node->type = PCEDOM_NODE_TYPE_CDATA_SECTION;
+    node->type = PCDOM_NODE_TYPE_CDATA_SECTION;
 
     return element;
 }
 
-pcedom_cdata_section_t *
-pcedom_cdata_section_interface_destroy(pcedom_cdata_section_t *cdata_section)
+pcdom_cdata_section_t *
+pcdom_cdata_section_interface_destroy(pcdom_cdata_section_t *cdata_section)
 {
     return pcutils_mraw_free(
-        pcedom_interface_node(cdata_section)->owner_document->mraw,
+        pcdom_interface_node(cdata_section)->owner_document->mraw,
         cdata_section);
 }

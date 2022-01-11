@@ -44,8 +44,8 @@
 
 
 
-pcedom_attr_data_t *
-pcedom_attr_local_name_append(pcutils_hash_t *hash,
+pcdom_attr_data_t *
+pcdom_attr_local_name_append(pcutils_hash_t *hash,
                                const unsigned char *name, size_t length);
 
 
@@ -407,7 +407,7 @@ pchtml_html_tokenizer_state_doctype_after_name(pchtml_html_tokenizer_t *tkz,
                                             const unsigned char *end)
 {
     pchtml_html_token_attr_t *attr;
-    const pcedom_attr_data_t *attr_data;
+    const pcdom_attr_data_t *attr_data;
 
     while (data != end) {
         switch (*data) {
@@ -485,8 +485,8 @@ pchtml_html_tokenizer_state_doctype_after_name(pchtml_html_tokenizer_t *tkz,
                     pchtml_html_tokenizer_state_token_attr_set_name_end(tkz,
                                                                     (data + 6));
 
-                    attr_data = pcedom_attr_data_by_id(tkz->attrs,
-                                                        PCEDOM_ATTR_PUBLIC);
+                    attr_data = pcdom_attr_data_by_id(tkz->attrs,
+                                                        PCDOM_ATTR_PUBLIC);
                     if (attr_data == NULL) {
                         pcinst_set_error (PURC_ERROR_HTML);
                         tkz->status = PCHTML_STATUS_ERROR;
@@ -506,8 +506,8 @@ pchtml_html_tokenizer_state_doctype_after_name(pchtml_html_tokenizer_t *tkz,
                     pchtml_html_tokenizer_state_token_attr_set_name_end(tkz,
                                                                     (data + 6));
 
-                    attr_data = pcedom_attr_data_by_id(tkz->attrs,
-                                                        PCEDOM_ATTR_SYSTEM);
+                    attr_data = pcdom_attr_data_by_id(tkz->attrs,
+                                                        PCDOM_ATTR_SYSTEM);
                     if (attr_data == NULL) {
                         pcinst_set_error (PURC_ERROR_HTML);
                         tkz->status = PCHTML_STATUS_ERROR;
@@ -550,7 +550,7 @@ pchtml_html_tokenizer_state_doctype_after_name_public(pchtml_html_tokenizer_t *t
                                                    const unsigned char *end)
 {
     const unsigned char *pos;
-    const pcedom_attr_data_t *attr_data;
+    const pcdom_attr_data_t *attr_data;
 
     pos = pcutils_str_data_ncasecmp_first(tkz->markup, data, (end - data));
 
@@ -571,8 +571,8 @@ pchtml_html_tokenizer_state_doctype_after_name_public(pchtml_html_tokenizer_t *t
 
         pchtml_html_tokenizer_state_token_attr_set_name_end(tkz, pos);
 
-        attr_data = pcedom_attr_data_by_id(tkz->attrs,
-                                            PCEDOM_ATTR_PUBLIC);
+        attr_data = pcdom_attr_data_by_id(tkz->attrs,
+                                            PCDOM_ATTR_PUBLIC);
         if (attr_data == NULL) {
             pcinst_set_error (PURC_ERROR_HTML);
             tkz->status = PCHTML_STATUS_ERROR;
@@ -601,7 +601,7 @@ pchtml_html_tokenizer_state_doctype_after_name_system(pchtml_html_tokenizer_t *t
                                                    const unsigned char *end)
 {
     const unsigned char *pos;
-    const pcedom_attr_data_t *attr_data;
+    const pcdom_attr_data_t *attr_data;
 
     pos = pcutils_str_data_ncasecmp_first(tkz->markup, data, (end - data));
 
@@ -622,8 +622,8 @@ pchtml_html_tokenizer_state_doctype_after_name_system(pchtml_html_tokenizer_t *t
 
         pchtml_html_tokenizer_state_token_attr_set_name_end(tkz, pos);
 
-        attr_data = pcedom_attr_data_by_id(tkz->attrs,
-                                            PCEDOM_ATTR_SYSTEM);
+        attr_data = pcdom_attr_data_by_id(tkz->attrs,
+                                            PCDOM_ATTR_SYSTEM);
         if (attr_data == NULL) {
             pcinst_set_error (PURC_ERROR_HTML);
             tkz->status = PCHTML_STATUS_ERROR;

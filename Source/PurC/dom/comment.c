@@ -1,8 +1,8 @@
 /**
- * @file collection.c
+ * @file comment.c
  * @author
  * @date 2021/07/02
- * @brief The complementation of collection container.
+ * @brief The complementation of comment.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -31,59 +31,31 @@
  */
 
 
-#include "purc.h"
-#include "config.h"
-#include "private/edom.h"
+#include "private/dom.h"
 
-pcedom_collection_t *
-pcedom_collection_create(pcedom_document_t *document)
+pcdom_comment_t *
+pcdom_comment_interface_create(pcdom_document_t *document)
 {
-    pcedom_collection_t *col;
+    pcdom_comment_t *element;
 
-    col = pcutils_mraw_calloc(document->mraw, sizeof(pcedom_collection_t));
-    if (col == NULL) {
+    element = pcutils_mraw_calloc(document->mraw,
+                                 sizeof(pcdom_comment_t));
+    if (element == NULL) {
         return NULL;
     }
 
-    col->document = document;
+    pcdom_node_t *node = pcdom_interface_node(element);
 
-    return col;
+    node->owner_document = document;
+    node->type = PCDOM_NODE_TYPE_COMMENT;
+
+    return element;
 }
 
-unsigned int
-pcedom_collection_init(pcedom_collection_t *col, size_t start_list_size)
+pcdom_comment_t *
+pcdom_comment_interface_destroy(pcdom_comment_t *comment)
 {
-    if (col == NULL) {
-        return PURC_ERROR_INVALID_VALUE;
-    }
-
-    if (col->document == NULL) {
-        return PURC_ERROR_INCOMPLETE_OBJECT;
-    }
-
-    return pcutils_array_init(&col->array, start_list_size);
-}
-
-pcedom_collection_t *
-pcedom_collection_destroy(pcedom_collection_t *col, bool self_destroy)
-{
-    if (col == NULL) {
-        return NULL;
-    }
-
-    if (col->array.list != NULL) {
-        pcutils_array_destroy(&col->array, false);
-
-        col->array.list = NULL;
-    }
-
-    if (self_destroy) {
-        if (col->document != NULL) {
-            return pcutils_mraw_free(col->document->mraw, col);
-        }
-
-        return NULL;
-    }
-
-    return col;
+    return pcutils_mraw_free(
+        pcdom_interface_node(comment)->owner_document->mraw,
+        comment);
 }

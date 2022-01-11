@@ -1,8 +1,8 @@
 /**
- * @file document_fragment.c
+ * @file document_type.c
  * @author
  * @date 2021/07/02
- * @brief The complementation of document fragment.
+ * @brief The complementation of document type.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -31,32 +31,31 @@
  */
 
 
-#include "private/edom.h"
+#include "private/dom.h"
 
-
-pcedom_document_fragment_t *
-pcedom_document_fragment_interface_create(pcedom_document_t *document)
+pcdom_document_type_t *
+pcdom_document_type_interface_create(pcdom_document_t *document)
 {
-    pcedom_document_fragment_t *element;
+    pcdom_document_type_t *element;
 
     element = pcutils_mraw_calloc(document->mraw,
-                                 sizeof(pcedom_document_fragment_t));
+                                 sizeof(pcdom_document_type_t));
     if (element == NULL) {
         return NULL;
     }
 
-    pcedom_node_t *node = pcedom_interface_node(element);
+    pcdom_node_t *node = pcdom_interface_node(element);
 
     node->owner_document = document;
-    node->type = PCEDOM_NODE_TYPE_DOCUMENT_FRAGMENT;
+    node->type = PCDOM_NODE_TYPE_DOCUMENT_TYPE;
 
     return element;
 }
 
-pcedom_document_fragment_t *
-pcedom_document_fragment_interface_destroy(pcedom_document_fragment_t *document_fragment)
+pcdom_document_type_t *
+pcdom_document_type_interface_destroy(pcdom_document_type_t *document_type)
 {
     return pcutils_mraw_free(
-        pcedom_interface_node(document_fragment)->owner_document->mraw,
-        document_fragment);
+        pcdom_interface_node(document_type)->owner_document->mraw,
+        document_type);
 }

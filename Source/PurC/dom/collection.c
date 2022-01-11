@@ -1,8 +1,8 @@
 /**
- * @file shadow_root.c
+ * @file collection.c
  * @author
  * @date 2021/07/02
- * @brief The complementation of shadow root.
+ * @brief The complementation of collection container.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -31,32 +31,59 @@
  */
 
 
-#include "private/edom.h"
-#include "edom/shadow_root.h"
+#include "purc.h"
+#include "config.h"
+#include "private/dom.h"
 
-pcedom_shadow_root_t *
-pcedom_shadow_root_interface_create(pcedom_document_t *document)
+pcdom_collection_t *
+pcdom_collection_create(pcdom_document_t *document)
 {
-    pcedom_shadow_root_t *element;
+    pcdom_collection_t *col;
 
-    element = pcutils_mraw_calloc(document->mraw,
-                                 sizeof(pcedom_shadow_root_t));
-    if (element == NULL) {
+    col = pcutils_mraw_calloc(document->mraw, sizeof(pcdom_collection_t));
+    if (col == NULL) {
         return NULL;
     }
 
-    pcedom_node_t *node = pcedom_interface_node(element);
+    col->document = document;
 
-    node->owner_document = document;
-    node->type = PCEDOM_NODE_TYPE_UNDEF;
-
-    return element;
+    return col;
 }
 
-pcedom_shadow_root_t *
-pcedom_shadow_root_interface_destroy(pcedom_shadow_root_t *shadow_root)
+unsigned int
+pcdom_collection_init(pcdom_collection_t *col, size_t start_list_size)
 {
-    return pcutils_mraw_free(
-        pcedom_interface_node(shadow_root)->owner_document->mraw,
-        shadow_root);
+    if (col == NULL) {
+        return PURC_ERROR_INVALID_VALUE;
+    }
+
+    if (col->document == NULL) {
+        return PURC_ERROR_INCOMPLETE_OBJECT;
+    }
+
+    return pcutils_array_init(&col->array, start_list_size);
+}
+
+pcdom_collection_t *
+pcdom_collection_destroy(pcdom_collection_t *col, bool self_destroy)
+{
+    if (col == NULL) {
+        return NULL;
+    }
+
+    if (col->array.list != NULL) {
+        pcutils_array_destroy(&col->array, false);
+
+        col->array.list = NULL;
+    }
+
+    if (self_destroy) {
+        if (col->document != NULL) {
+            return pcutils_mraw_free(col->document->mraw, col);
+        }
+
+        return NULL;
+    }
+
+    return col;
 }

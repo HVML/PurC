@@ -32,43 +32,43 @@
 
 #include "purc.h"
 #include "config.h"
-#include "private/edom.h"
+#include "private/dom.h"
 
 
-pcedom_character_data_t *
-pcedom_character_data_interface_create(pcedom_document_t *document)
+pcdom_character_data_t *
+pcdom_character_data_interface_create(pcdom_document_t *document)
 {
-    pcedom_character_data_t *element;
+    pcdom_character_data_t *element;
 
     element = pcutils_mraw_calloc(document->mraw,
-                                 sizeof(pcedom_character_data_t));
+                                 sizeof(pcdom_character_data_t));
     if (element == NULL) {
         return NULL;
     }
 
-    pcedom_node_t *node = pcedom_interface_node(element);
+    pcdom_node_t *node = pcdom_interface_node(element);
 
     node->owner_document = document;
-    node->type = PCEDOM_NODE_TYPE_UNDEF;
+    node->type = PCDOM_NODE_TYPE_UNDEF;
 
     return element;
 }
 
-pcedom_character_data_t *
-pcedom_character_data_interface_destroy(pcedom_character_data_t *character_data)
+pcdom_character_data_t *
+pcdom_character_data_interface_destroy(pcdom_character_data_t *character_data)
 {
     pcutils_str_destroy(&character_data->data,
-                       pcedom_interface_node(character_data)->owner_document->text,
+                       pcdom_interface_node(character_data)->owner_document->text,
                        false);
 
     return pcutils_mraw_free(
-        pcedom_interface_node(character_data)->owner_document->mraw,
+        pcdom_interface_node(character_data)->owner_document->mraw,
         character_data);
 }
 
 /* TODO: oh, need to... https://dom.spec.whatwg.org/#concept-cd-replace */
 unsigned int
-pcedom_character_data_replace(pcedom_character_data_t *ch_data,
+pcdom_character_data_replace(pcdom_character_data_t *ch_data,
                                const unsigned char *data, size_t len,
                                size_t offset, size_t count)
 {

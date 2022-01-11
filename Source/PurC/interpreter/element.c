@@ -29,7 +29,7 @@
 
 struct pcintr_element
 {
-    struct pcedom_element          *elem;       // NOTE: no ownership
+    struct pcdom_element          *elem;       // NOTE: no ownership
 };
 
 static inline bool
@@ -111,7 +111,7 @@ property_getter(const char* key_name)
 }
 
 static inline purc_variant_t
-make_element(struct pcedom_element *elem)
+make_element(struct pcdom_element *elem)
 {
     struct pcintr_element *element;
     element = (struct pcintr_element*)calloc(1, sizeof(*element));
@@ -143,7 +143,7 @@ make_element(struct pcedom_element *elem)
 }
 
 static inline bool
-set_add_element(purc_variant_t set, struct pcedom_element *elem)
+set_add_element(purc_variant_t set, struct pcdom_element *elem)
 {
     purc_variant_t v;
     v = make_element(elem);
@@ -162,10 +162,10 @@ set_add_element(purc_variant_t set, struct pcedom_element *elem)
 
 static inline bool
 set_make_elements(purc_variant_t set,
-        size_t nr_elems, struct pcedom_element **elems)
+        size_t nr_elems, struct pcdom_element **elems)
 {
     for (size_t i=0; i<nr_elems; ++i) {
-        struct pcedom_element *elem;
+        struct pcdom_element *elem;
         elem = elems[i];
         if (!set_add_element(set, elem))
             return false;
@@ -174,7 +174,7 @@ set_make_elements(purc_variant_t set,
 }
 
 purc_variant_t
-pcintr_make_elements(size_t nr_elems, struct pcedom_element **elems)
+pcintr_make_elements(size_t nr_elems, struct pcdom_element **elems)
 {
     purc_variant_t v;
     v = purc_variant_make_set_by_ckey(0, NULL, PURC_VARIANT_INVALID);
@@ -190,7 +190,7 @@ pcintr_make_elements(size_t nr_elems, struct pcedom_element **elems)
     return v;
 }
 
-typedef void (*traverse_cb)(struct pcedom_element *element, void *ud);
+typedef void (*traverse_cb)(struct pcdom_element *element, void *ud);
 
 struct visit_args {
     purc_variant_t            elements;
@@ -198,11 +198,11 @@ struct visit_args {
 };
 
 static inline int
-match_by_class(struct pcedom_element *element, struct visit_args *args)
+match_by_class(struct pcdom_element *element, struct visit_args *args)
 {
     const unsigned char *s;
     size_t len;
-    s = pcedom_element_class(element, &len);
+    s = pcdom_element_class(element, &len);
 
     if (s && s[len]=='\0' && strcmp((const char*)s, args->css+1)==0)
         return 0;
@@ -211,11 +211,11 @@ match_by_class(struct pcedom_element *element, struct visit_args *args)
 }
 
 static inline int
-match_by_id(struct pcedom_element *element, struct visit_args *args)
+match_by_id(struct pcdom_element *element, struct visit_args *args)
 {
     const unsigned char *s;
     size_t len;
-    s = pcedom_element_id(element, &len);
+    s = pcdom_element_id(element, &len);
 
     if (s && s[len]=='\0' && strcmp((const char*)s, args->css+1)==0)
         return 0;
@@ -223,7 +223,7 @@ match_by_id(struct pcedom_element *element, struct visit_args *args)
     return -1;
 }
 
-static void visit_element(struct pcedom_element *element, void *ud)
+static void visit_element(struct pcdom_element *element, void *ud)
 {
     struct visit_args *args = (struct visit_args*)ud;
 
@@ -240,25 +240,25 @@ static void visit_element(struct pcedom_element *element, void *ud)
 }
 
 static inline void
-traverse_elements(struct pcedom_element *root, traverse_cb cb, void *ud)
+traverse_elements(struct pcdom_element *root, traverse_cb cb, void *ud)
 {
     if (!root)
         return;
 
     cb(root, ud);
 
-    pcedom_node_t *node = &root->node;
+    pcdom_node_t *node = &root->node;
 
-    pcedom_node_t *child = node->first_child;
+    pcdom_node_t *child = node->first_child;
     for (; child; child = child->next) {
-        struct pcedom_element *element;
-        element = container_of(child, struct pcedom_element, node);
+        struct pcdom_element *element;
+        element = container_of(child, struct pcdom_element, node);
         cb(element, ud);
     }
 }
 
 purc_variant_t
-pcintr_query_elements(struct pcedom_element *root, const char *css)
+pcintr_query_elements(struct pcdom_element *root, const char *css)
 {
     if (strcmp(css, "*") != 0) {
         if (css[0] != '.' && css[0] != '#') {

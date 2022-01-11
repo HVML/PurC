@@ -1,8 +1,8 @@
 /**
- * @file document_type.c
+ * @file processing_instruction.c 
  * @author
  * @date 2021/07/02
- * @brief The complementation of document type.
+ * @brief The complementation of processing instruction.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -31,31 +31,31 @@
  */
 
 
-#include "private/edom.h"
+#include "private/dom.h"
 
-pcedom_document_type_t *
-pcedom_document_type_interface_create(pcedom_document_t *document)
+pcdom_processing_instruction_t *
+pcdom_processing_instruction_interface_create(pcdom_document_t *document)
 {
-    pcedom_document_type_t *element;
+    pcdom_processing_instruction_t *element;
 
     element = pcutils_mraw_calloc(document->mraw,
-                                 sizeof(pcedom_document_type_t));
+                                 sizeof(pcdom_processing_instruction_t));
     if (element == NULL) {
         return NULL;
     }
 
-    pcedom_node_t *node = pcedom_interface_node(element);
+    pcdom_node_t *node = pcdom_interface_node(element);
 
     node->owner_document = document;
-    node->type = PCEDOM_NODE_TYPE_DOCUMENT_TYPE;
+    node->type = PCDOM_NODE_TYPE_PROCESSING_INSTRUCTION;
 
     return element;
 }
 
-pcedom_document_type_t *
-pcedom_document_type_interface_destroy(pcedom_document_type_t *document_type)
+pcdom_processing_instruction_t *
+pcdom_processing_instruction_interface_destroy(pcdom_processing_instruction_t *processing_instruction)
 {
     return pcutils_mraw_free(
-        pcedom_interface_node(document_type)->owner_document->mraw,
-        document_type);
+        pcdom_interface_node(processing_instruction)->owner_document->mraw,
+        processing_instruction);
 }

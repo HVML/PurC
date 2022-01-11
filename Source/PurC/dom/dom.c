@@ -1,8 +1,8 @@
 /*
- * @file edom.c
+ * @file dom.c
  * @author Geng Yue
  * @date 2021/07/02
- * @brief The implementation of public part for edom.
+ * @brief The implementation of public part for dom.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -34,25 +34,25 @@
 #include "private/errors.h"
 #include "private/debug.h"
 #include "private/utils.h"
-#include "private/edom.h"
+#include "private/dom.h"
 #include "private/stringbuilder.h"
 
 #include <ctype.h>
 
-void pcedom_init_once(void)
+void pcdom_init_once(void)
 {
     // initialize others
 }
 
 /* VW NOTE: eDOM module should work without instance
-void pcedom_init_instance(struct pcinst* inst)
+void pcdom_init_instance(struct pcinst* inst)
 {
     UNUSED_PARAM(inst);
 
     // initialize others
 }
 
-void pcedom_cleanup_instance(struct pcinst* inst)
+void pcdom_cleanup_instance(struct pcinst* inst)
 {
     UNUSED_PARAM(inst);
 }
@@ -62,11 +62,11 @@ void pcedom_cleanup_instance(struct pcinst* inst)
 // ============================= for element-variant ==========================
 // .attr(<string: attributeName>)
 int
-pcedom_element_attr(pcedom_element_t *elem, const char *attr_name,
+pcdom_element_attr(pcdom_element_t *elem, const char *attr_name,
         const unsigned char **val, size_t *len)
 {
     PC_ASSERT(elem && attr_name && val && len);
-    *val = pcedom_element_get_attribute(elem,
+    *val = pcdom_element_get_attribute(elem,
             (const unsigned char*)attr_name, strlen(attr_name),
             len);
     return 0;
@@ -75,8 +75,8 @@ pcedom_element_attr(pcedom_element_t *elem, const char *attr_name,
 // TODO:
 // .prop(<string: propertyName>)
 // int
-// pcedom_element_prop(pcedom_element_t *elem, const char *attr_name,
-//         struct pcedom_attr **attr);
+// pcdom_element_prop(pcdom_element_t *elem, const char *attr_name,
+//         struct pcdom_attr **attr);
 
 static const char*
 find_char(const char *start, size_t len, const char c)
@@ -91,7 +91,7 @@ find_char(const char *start, size_t len, const char c)
 
 // .style(<string: styleName>)
 int
-pcedom_element_style(pcedom_element_t *elem, const char *style_name,
+pcdom_element_style(pcdom_element_t *elem, const char *style_name,
         const unsigned char **style, size_t *len)
 {
     PC_ASSERT(elem && style_name && style && len);
@@ -100,7 +100,7 @@ pcedom_element_style(pcedom_element_t *elem, const char *style_name,
 
     const unsigned char *s;
     size_t n;
-    s = pcedom_element_get_attribute(elem,
+    s = pcdom_element_get_attribute(elem,
                 (const unsigned char*)"style", 5,
                 &n);
     if (!s)
@@ -145,7 +145,7 @@ pcedom_element_style(pcedom_element_t *elem, const char *style_name,
 
 // .content()
 int
-pcedom_element_content(pcedom_element_t *elem,
+pcdom_element_content(pcdom_element_t *elem,
         const unsigned char **content, size_t *len)
 {
     PC_ASSERT(elem && content && len);
@@ -158,7 +158,7 @@ pcedom_element_content(pcedom_element_t *elem,
 
 // .textContent()
 int
-pcedom_element_text_content(pcedom_element_t *elem,
+pcdom_element_text_content(pcdom_element_t *elem,
         char **text, size_t *len)
 {
     PC_ASSERT(elem && text && len);
@@ -169,14 +169,14 @@ pcedom_element_text_content(pcedom_element_t *elem,
     pcutils_string_init(&str, 128);
 
     int r = 0;
-    pcedom_node_t *node = elem->node.first_child;
+    pcdom_node_t *node = elem->node.first_child;
     for (; node; node = node->next) {
-        if (node->type!=PCEDOM_NODE_TYPE_TEXT)
+        if (node->type!=PCDOM_NODE_TYPE_TEXT)
             continue;
 
         const unsigned char *s;
         size_t n;
-        s = pcedom_node_text_content(node, &n);
+        s = pcdom_node_text_content(node, &n);
 
         r = pcutils_string_append(&str, "%.*s", (int)n, (const char*)s);
         if (r)
@@ -207,12 +207,12 @@ pcedom_element_text_content(pcedom_element_t *elem,
 // .jsonContent()
 // FIXME: json in serialized form?
 // static int
-// pcedom_element_json_content(pcedom_element_t *elem, char **json);
+// pcdom_element_json_content(pcdom_element_t *elem, char **json);
 
 // .val()
 // TODO: what type for val?
 // static int
-// pcedom_element_val(pcedom_element_t *elem, what_type **val);
+// pcdom_element_val(pcdom_element_t *elem, what_type **val);
 
 struct class_token_arg {
     const char          *class_name;
@@ -238,7 +238,7 @@ class_token_found(const char *token, const char *end, void *ud)
 
 // .hasClass(<string: className>)
 int
-pcedom_element_has_class(pcedom_element_t *elem, const char *class_name,
+pcdom_element_has_class(pcdom_element_t *elem, const char *class_name,
         bool *has)
 {
     PC_ASSERT(elem && class_name && has);
@@ -246,7 +246,7 @@ pcedom_element_has_class(pcedom_element_t *elem, const char *class_name,
 
     const unsigned char *s;
     size_t len;
-    s = pcedom_element_get_attribute(elem,
+    s = pcdom_element_get_attribute(elem,
             (const unsigned char*)"class", 5, &len);
 
     if (!s)
@@ -271,12 +271,12 @@ pcedom_element_has_class(pcedom_element_t *elem, const char *class_name,
 
 // .attr(! <string: attributeName>, <string: value>)
 int
-pcedom_element_set_attr(pcedom_element_t *elem, const char *attr_name,
+pcdom_element_set_attr(pcdom_element_t *elem, const char *attr_name,
         const char *attr_val)
 {
     PC_ASSERT(elem && attr_name && attr_val);
-    pcedom_attr_t *attr;
-    attr = pcedom_element_set_attribute(elem,
+    pcdom_attr_t *attr;
+    attr = pcdom_element_set_attribute(elem,
                 (const unsigned char*)attr_name, strlen(attr_name),
                 (const unsigned char*)attr_val, strlen(attr_val));
 
@@ -286,7 +286,7 @@ pcedom_element_set_attr(pcedom_element_t *elem, const char *attr_name,
 // TODO:
 // .prop(! <string: propertyName>, <any: value>)
 // static int
-// pcedom_element_set_prop(pcedom_element_t *elem, ...);
+// pcdom_element_set_prop(pcdom_element_t *elem, ...);
 
 struct style_token_arg {
     const char              *style_name;
@@ -321,7 +321,7 @@ set_style_token_found(const char *token, const char *end, void *ud)
 
 // .style(! <string: styleName>, <string: value>)
 int
-pcedom_element_set_style(pcedom_element_t *elem, const char *style_name,
+pcdom_element_set_style(pcdom_element_t *elem, const char *style_name,
         const char *style)
 {
     PC_ASSERT(elem && style_name && style);
@@ -329,7 +329,7 @@ pcedom_element_set_style(pcedom_element_t *elem, const char *style_name,
     int r;
     const unsigned char *s;
     size_t len;
-    r = pcedom_element_attr(elem, "style", &s, &len);
+    r = pcdom_element_attr(elem, "style", &s, &len);
     if (r)
         return -1;
 
@@ -343,8 +343,8 @@ pcedom_element_set_style(pcedom_element_t *elem, const char *style_name,
             &arg, set_style_token_found);
 
     if (r == 0) {
-        pcedom_attr_t *attr;
-        attr = pcedom_element_set_attribute(elem,
+        pcdom_attr_t *attr;
+        attr = pcdom_element_set_attribute(elem,
                 (const unsigned char*)"style", 5,
                 (const unsigned char*)arg.string.abuf,
                 arg.string.end - arg.string.abuf);
@@ -360,7 +360,7 @@ pcedom_element_set_style(pcedom_element_t *elem, const char *style_name,
 // FIXME: de-serialize and then replace?
 // .content(! <string: content>)
 int
-pcedom_element_set_content(pcedom_element_t *elem, const char *content)
+pcdom_element_set_content(pcdom_element_t *elem, const char *content)
 {
     PC_ASSERT(elem && content);
     PC_ASSERT(0); // Not implemented yet
@@ -369,21 +369,21 @@ pcedom_element_set_content(pcedom_element_t *elem, const char *content)
 
 // .textContent(! <string: content>)
 int
-pcedom_element_set_text_content(pcedom_element_t *elem,
+pcdom_element_set_text_content(pcdom_element_t *elem,
         const char *text)
 {
     PC_ASSERT(elem && text);
 
-    pcedom_node_t *node = elem->node.first_child;
-    pcedom_node_t *next;
+    pcdom_node_t *node = elem->node.first_child;
+    pcdom_node_t *next;
     for (; node; node = next) {
         next = node ? node->next : NULL;
-        if (node->type!=PCEDOM_NODE_TYPE_TEXT)
+        if (node->type!=PCDOM_NODE_TYPE_TEXT)
             continue;
 
         // FIXME: remove or destroy dilemma
         //        leakage or access-violation-problem
-        pcedom_node_destroy_deep(node);
+        pcdom_node_destroy_deep(node);
     }
 
     PC_ASSERT(0); // Not implemented yet
@@ -393,7 +393,7 @@ pcedom_element_set_text_content(pcedom_element_t *elem,
 // FIXME: json in serialized form?
 // .jsonContent(! <string: content>)
 int
-pcedom_element_set_json_content(pcedom_element_t *elem, const char *json)
+pcdom_element_set_json_content(pcdom_element_t *elem, const char *json)
 {
     PC_ASSERT(elem && json);
     PC_ASSERT(0); // Not implemented yet
@@ -403,7 +403,7 @@ pcedom_element_set_json_content(pcedom_element_t *elem, const char *json)
 // .val(! <newValue>)
 // TODO: what type for val?
 // static int
-// pcedom_element_set_val(pcedom_element_t *elem, const what_type *val);
+// pcdom_element_set_val(pcdom_element_t *elem, const what_type *val);
 
 struct add_class_token_arg {
     const char           *class_name;
@@ -428,14 +428,14 @@ add_class_token_found(const char *token, const char *end, void *ud)
 
 // .addClass(! <string: className>)
 int
-pcedom_element_add_class(pcedom_element_t *elem, const char *class_name)
+pcdom_element_add_class(pcdom_element_t *elem, const char *class_name)
 {
     PC_ASSERT(elem && class_name);
 
     int r;
     const unsigned char *s;
     size_t len;
-    r = pcedom_element_attr(elem, "class", &s, &len);
+    r = pcdom_element_attr(elem, "class", &s, &len);
     if (r)
         return -1;
 
@@ -462,8 +462,8 @@ pcedom_element_add_class(pcedom_element_t *elem, const char *class_name)
     }
 
     if (r == 0) {
-        pcedom_attr_t *attr;
-        attr = pcedom_element_set_attribute(elem,
+        pcdom_attr_t *attr;
+        attr = pcdom_element_set_attribute(elem,
                 (const unsigned char*)"class", 5,
                 (const unsigned char*)string.abuf,
                 string.end - string.abuf);
@@ -478,11 +478,11 @@ pcedom_element_add_class(pcedom_element_t *elem, const char *class_name)
 
 // .removeAttr(! <string: attributeName>)
 int
-pcedom_element_remove_attr(pcedom_element_t *elem, const char *attr_name)
+pcdom_element_remove_attr(pcdom_element_t *elem, const char *attr_name)
 {
     PC_ASSERT(elem && attr_name);
     unsigned int ui;
-    ui = pcedom_element_remove_attribute(elem,
+    ui = pcdom_element_remove_attribute(elem,
             (const unsigned char*)attr_name, strlen(attr_name));
     return ui ? -1 : 0;
 }
@@ -532,7 +532,7 @@ del_class_token_found(const char *token, const char *end, void *ud)
 
 // .removeClass(! <string: className>)
 int
-pcedom_element_remove_class_by_name(pcedom_element_t *elem,
+pcdom_element_remove_class_by_name(pcdom_element_t *elem,
         const char *class_name)
 {
     PC_ASSERT(elem && class_name);
@@ -540,7 +540,7 @@ pcedom_element_remove_class_by_name(pcedom_element_t *elem,
     int r;
     const unsigned char *s;
     size_t len;
-    r = pcedom_element_attr(elem, "class", &s, &len);
+    r = pcdom_element_attr(elem, "class", &s, &len);
     if (r)
         return -1;
 
@@ -553,8 +553,8 @@ pcedom_element_remove_class_by_name(pcedom_element_t *elem,
             &arg, del_class_token_found);
 
     if (r == 0) {
-        pcedom_attr_t *attr;
-        attr = pcedom_element_set_attribute(elem,
+        pcdom_attr_t *attr;
+        attr = pcdom_element_set_attribute(elem,
                 (const unsigned char*)"class", 5,
                 (const unsigned char*)arg.string.abuf,
                 arg.string.end - arg.string.abuf);
@@ -570,21 +570,21 @@ pcedom_element_remove_class_by_name(pcedom_element_t *elem,
 // ============================= for collection-variant =======================
 // .count()
 int
-pcedom_collection_count(pcedom_collection_t *col, size_t *count)
+pcdom_collection_count(pcdom_collection_t *col, size_t *count)
 {
     PC_ASSERT(col && count);
-    *count = pcedom_collection_length(col);
+    *count = pcdom_collection_length(col);
     return 0;
 }
 
 // .at(<real: index>)
 int
-pcedom_collection_at(pcedom_collection_t *col, size_t idx,
-        struct pcedom_element **element)
+pcdom_collection_at(pcdom_collection_t *col, size_t idx,
+        struct pcdom_element **element)
 {
     PC_ASSERT(col && element);
 
-    *element = pcedom_collection_element(col, idx);
+    *element = pcdom_collection_element(col, idx);
     return 0;
 }
 

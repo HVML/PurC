@@ -32,50 +32,50 @@
 
 #include "purc.h"
 #include "config.h"
-#include "private/edom.h"
+#include "private/dom.h"
 
-pcedom_document_t *
-pcedom_document_interface_create(pcedom_document_t *document)
+pcdom_document_t *
+pcdom_document_interface_create(pcdom_document_t *document)
 {
-    pcedom_document_t *doc;
+    pcdom_document_t *doc;
 
-    doc = pcutils_mraw_calloc(document->mraw, sizeof(pcedom_document_t));
+    doc = pcutils_mraw_calloc(document->mraw, sizeof(pcdom_document_t));
     if (doc == NULL) {
         return NULL;
     }
 
-    (void) pcedom_document_init(doc, document, pcedom_interface_create,
-                    pcedom_interface_destroy, PCEDOM_DOCUMENT_DTYPE_UNDEF, 0);
+    (void) pcdom_document_init(doc, document, pcdom_interface_create,
+                    pcdom_interface_destroy, PCDOM_DOCUMENT_DTYPE_UNDEF, 0);
 
     return doc;
 }
 
-pcedom_document_t *
-pcedom_document_interface_destroy(pcedom_document_t *document)
+pcdom_document_t *
+pcdom_document_interface_destroy(pcdom_document_t *document)
 {
     return pcutils_mraw_free(
-        pcedom_interface_node(document)->owner_document->mraw,
+        pcdom_interface_node(document)->owner_document->mraw,
         document);
 }
 
-pcedom_document_t *
-pcedom_document_create(pcedom_document_t *owner)
+pcdom_document_t *
+pcdom_document_create(pcdom_document_t *owner)
 {
     if (owner != NULL) {
-        return pcutils_mraw_calloc(owner->mraw, sizeof(pcedom_document_t));
+        return pcutils_mraw_calloc(owner->mraw, sizeof(pcdom_document_t));
     }
 
-    return pcutils_calloc(1, sizeof(pcedom_document_t));
+    return pcutils_calloc(1, sizeof(pcdom_document_t));
 }
 
 unsigned int
-pcedom_document_init(pcedom_document_t *document, pcedom_document_t *owner,
-                      pcedom_interface_create_f create_interface,
-                      pcedom_interface_destroy_f destroy_interface,
-                      pcedom_document_dtype_t type, unsigned int ns)
+pcdom_document_init(pcdom_document_t *document, pcdom_document_t *owner,
+                      pcdom_interface_create_f create_interface,
+                      pcdom_interface_destroy_f destroy_interface,
+                      pcdom_document_dtype_t type, unsigned int ns)
 {
     unsigned int status;
-    pcedom_node_t *node;
+    pcdom_node_t *node;
 
     if (document == NULL) {
         return PURC_ERROR_NULL_OBJECT;
@@ -85,9 +85,9 @@ pcedom_document_init(pcedom_document_t *document, pcedom_document_t *owner,
     document->create_interface = create_interface;
     document->destroy_interface = destroy_interface;
 
-    node = pcedom_interface_node(document);
+    node = pcdom_interface_node(document);
 
-    node->type = PCEDOM_NODE_TYPE_DOCUMENT;
+    node->type = PCDOM_NODE_TYPE_DOCUMENT;
     node->local_name = PCHTML_TAG__DOCUMENT;
     node->ns = ns;
 
@@ -141,14 +141,14 @@ pcedom_document_init(pcedom_document_t *document, pcedom_document_t *owner,
 
     document->prefix = pcutils_hash_create();
     status = pcutils_hash_init(document->prefix, 128,
-                              sizeof(pcedom_attr_data_t));
+                              sizeof(pcdom_attr_data_t));
     if (status != PURC_ERROR_OK) {
         goto failed;
     }
 
     document->attrs = pcutils_hash_create();
     status = pcutils_hash_init(document->attrs, 128,
-                              sizeof(pcedom_attr_data_t));
+                              sizeof(pcdom_attr_data_t));
     if (status != PURC_ERROR_OK) {
         goto failed;
     }
@@ -170,9 +170,9 @@ failed:
 }
 
 unsigned int
-pcedom_document_clean(pcedom_document_t *document)
+pcdom_document_clean(pcdom_document_t *document)
 {
-    if (pcedom_interface_node(document)->owner_document == document) {
+    if (pcdom_interface_node(document)->owner_document == document) {
         pcutils_mraw_clean(document->mraw);
         pcutils_mraw_clean(document->text);
         pcutils_hash_clean(document->tags);
@@ -189,17 +189,17 @@ pcedom_document_clean(pcedom_document_t *document)
     return PURC_ERROR_OK;
 }
 
-pcedom_document_t *
-pcedom_document_destroy(pcedom_document_t *document)
+pcdom_document_t *
+pcdom_document_destroy(pcdom_document_t *document)
 {
     if (document == NULL) {
         return NULL;
     }
 
-    if (pcedom_interface_node(document)->owner_document != document) {
-        pcedom_document_t *owner;
+    if (pcdom_interface_node(document)->owner_document != document) {
+        pcdom_document_t *owner;
 
-        owner = pcedom_interface_node(document)->owner_document;
+        owner = pcdom_interface_node(document)->owner_document;
 
         return pcutils_mraw_free(owner->mraw, document);
     }
@@ -215,21 +215,21 @@ pcedom_document_destroy(pcedom_document_t *document)
 }
 
 void
-pcedom_document_attach_doctype(pcedom_document_t *document,
-                                pcedom_document_type_t *doctype)
+pcdom_document_attach_doctype(pcdom_document_t *document,
+                                pcdom_document_type_t *doctype)
 {
     document->doctype = doctype;
 }
 
 void
-pcedom_document_attach_element(pcedom_document_t *document,
-                                pcedom_element_t *element)
+pcdom_document_attach_element(pcdom_document_t *document,
+                                pcdom_element_t *element)
 {
     document->element = element;
 }
 
-pcedom_element_t *
-pcedom_document_create_element(pcedom_document_t *document,
+pcdom_element_t *
+pcdom_document_create_element(pcdom_document_t *document,
                                 const unsigned char *local_name, size_t lname_len,
                                 void *reserved_for_opt)
 {
@@ -239,7 +239,7 @@ pcedom_document_create_element(pcedom_document_t *document,
     const unsigned char *ns_link;
     size_t ns_len;
 
-    if (document->type == PCEDOM_DOCUMENT_DTYPE_HTML) {
+    if (document->type == PCDOM_DOCUMENT_DTYPE_HTML) {
         ns_link = (const unsigned char *) "http://www.w3.org/1999/xhtml";
 
         /* FIXME: he will get len at the compilation stage?!? */
@@ -250,29 +250,29 @@ pcedom_document_create_element(pcedom_document_t *document,
         ns_len = 0;
     }
 
-    return pcedom_element_create(document, local_name, lname_len,
+    return pcdom_element_create(document, local_name, lname_len,
                                   ns_link, ns_len, NULL, 0, NULL, 0, true);
 }
 
-pcedom_element_t *
-pcedom_document_destroy_element(pcedom_element_t *element)
+pcdom_element_t *
+pcdom_document_destroy_element(pcdom_element_t *element)
 {
-    return pcedom_element_destroy(element);
+    return pcdom_element_destroy(element);
 }
 
-pcedom_document_fragment_t *
-pcedom_document_create_document_fragment(pcedom_document_t *document)
+pcdom_document_fragment_t *
+pcdom_document_create_document_fragment(pcdom_document_t *document)
 {
-    return pcedom_document_fragment_interface_create(document);
+    return pcdom_document_fragment_interface_create(document);
 }
 
-pcedom_text_t *
-pcedom_document_create_text_node(pcedom_document_t *document,
+pcdom_text_t *
+pcdom_document_create_text_node(pcdom_document_t *document,
                                   const unsigned char *data, size_t len)
 {
-    pcedom_text_t *text;
+    pcdom_text_t *text;
 
-    text = pcedom_document_create_interface(document,
+    text = pcdom_document_create_interface(document,
                                              PCHTML_TAG__TEXT, PCHTML_NS_HTML);
     if (text == NULL) {
         return NULL;
@@ -280,7 +280,7 @@ pcedom_document_create_text_node(pcedom_document_t *document,
 
     pcutils_str_init(&text->char_data.data, document->text, len);
     if (text->char_data.data.data == NULL) {
-        return pcedom_document_destroy_interface(text);
+        return pcdom_document_destroy_interface(text);
     }
 
     pcutils_str_append(&text->char_data.data, document->text, data, len);
@@ -288,11 +288,11 @@ pcedom_document_create_text_node(pcedom_document_t *document,
     return text;
 }
 
-pcedom_cdata_section_t *
-pcedom_document_create_cdata_section(pcedom_document_t *document,
+pcdom_cdata_section_t *
+pcdom_document_create_cdata_section(pcdom_document_t *document,
                                       const unsigned char *data, size_t len)
 {
-    if (document->type != PCEDOM_DOCUMENT_DTYPE_HTML) {
+    if (document->type != PCDOM_DOCUMENT_DTYPE_HTML) {
         return NULL;
     }
 
@@ -312,16 +312,16 @@ pcedom_document_create_cdata_section(pcedom_document_t *document,
         ch = memchr(ch, ']', sizeof(unsigned char) * (end - ch));
     }
 
-    pcedom_cdata_section_t *cdata;
+    pcdom_cdata_section_t *cdata;
 
-    cdata = pcedom_cdata_section_interface_create(document);
+    cdata = pcdom_cdata_section_interface_create(document);
     if (cdata == NULL) {
         return NULL;
     }
 
     pcutils_str_init(&cdata->text.char_data.data, document->text, len);
     if (cdata->text.char_data.data.data == NULL) {
-        return pcedom_cdata_section_interface_destroy(cdata);
+        return pcdom_cdata_section_interface_destroy(cdata);
     }
 
     pcutils_str_append(&cdata->text.char_data.data, document->text, data, len);
@@ -329,8 +329,8 @@ pcedom_document_create_cdata_section(pcedom_document_t *document,
     return cdata;
 }
 
-pcedom_processing_instruction_t *
-pcedom_document_create_processing_instruction(pcedom_document_t *document,
+pcdom_processing_instruction_t *
+pcdom_document_create_processing_instruction(pcdom_document_t *document,
                                                const unsigned char *target, size_t target_len,
                                                const unsigned char *data, size_t data_len)
 {
@@ -355,23 +355,23 @@ pcedom_document_create_processing_instruction(pcedom_document_t *document,
         ch = memchr(ch, '?', sizeof(unsigned char) * (end - ch));
     }
 
-    pcedom_processing_instruction_t *pi;
+    pcdom_processing_instruction_t *pi;
 
-    pi = pcedom_processing_instruction_interface_create(document);
+    pi = pcdom_processing_instruction_interface_create(document);
     if (pi == NULL) {
         return NULL;
     }
 
     pcutils_str_init(&pi->char_data.data, document->text, data_len);
     if (pi->char_data.data.data == NULL) {
-        return pcedom_processing_instruction_interface_destroy(pi);
+        return pcdom_processing_instruction_interface_destroy(pi);
     }
 
     pcutils_str_init(&pi->target, document->text, target_len);
     if (pi->target.data == NULL) {
         pcutils_str_destroy(&pi->char_data.data, document->text, false);
 
-        return pcedom_processing_instruction_interface_destroy(pi);
+        return pcdom_processing_instruction_interface_destroy(pi);
     }
 
     pcutils_str_append(&pi->char_data.data, document->text, data, data_len);
@@ -381,13 +381,13 @@ pcedom_document_create_processing_instruction(pcedom_document_t *document,
 }
 
 
-pcedom_comment_t *
-pcedom_document_create_comment(pcedom_document_t *document,
+pcdom_comment_t *
+pcdom_document_create_comment(pcdom_document_t *document,
                                 const unsigned char *data, size_t len)
 {
-    pcedom_comment_t *comment;
+    pcdom_comment_t *comment;
 
-    comment = pcedom_document_create_interface(document, PCHTML_TAG__EM_COMMENT,
+    comment = pcdom_document_create_interface(document, PCHTML_TAG__EM_COMMENT,
                                                 PCHTML_NS_HTML);
     if (comment == NULL) {
         return NULL;
@@ -395,7 +395,7 @@ pcedom_document_create_comment(pcedom_document_t *document,
 
     pcutils_str_init(&comment->char_data.data, document->text, len);
     if (comment->char_data.data.data == NULL) {
-        return pcedom_document_destroy_interface(comment);
+        return pcdom_document_destroy_interface(comment);
     }
 
     pcutils_str_append(&comment->char_data.data, document->text, data, len);
@@ -404,15 +404,15 @@ pcedom_document_create_comment(pcedom_document_t *document,
 }
 
 const unsigned char *
-pcedom_document_type_name(pcedom_document_type_t *doc_type, size_t *len)
+pcdom_document_type_name(pcdom_document_type_t *doc_type, size_t *len)
 {
-    const pcedom_attr_data_t *data;
+    const pcdom_attr_data_t *data;
 
     static const unsigned char pchtml_empty[] = "";
 
-    data = pcedom_attr_data_by_id(doc_type->node.owner_document->attrs,
+    data = pcdom_attr_data_by_id(doc_type->node.owner_document->attrs,
                                    doc_type->name);
-    if (data == NULL || doc_type->name == PCEDOM_ATTR__UNDEF) {
+    if (data == NULL || doc_type->name == PCDOM_ATTR__UNDEF) {
         if (len != NULL) {
             *len = 0;
         }

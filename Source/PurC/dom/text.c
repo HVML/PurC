@@ -1,8 +1,8 @@
 /**
- * @file event_target.c
+ * @file text.c
  * @author
  * @date 2021/07/02
- * @brief The complementation of event target.
+ * @brief The complementation of text content.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -30,27 +30,36 @@
  * Author: Alexander Borisov <borisov@lexbor.com>
  */
 
-#include "private/edom.h"
 
-pcedom_event_target_t *
-pcedom_event_target_create(pcedom_document_t *document)
+
+#include "private/dom.h"
+
+pcdom_text_t *
+pcdom_text_interface_create(pcdom_document_t *document)
 {
-    pcedom_event_target_t *element;
+    pcdom_text_t *element;
 
     element = pcutils_mraw_calloc(document->mraw,
-                                 sizeof(pcedom_event_target_t));
+                                 sizeof(pcdom_text_t));
     if (element == NULL) {
         return NULL;
     }
 
-    pcedom_interface_node(element)->type = PCEDOM_NODE_TYPE_UNDEF;
+    pcdom_node_t *node = pcdom_interface_node(element);
+
+    node->owner_document = document;
+    node->type = PCDOM_NODE_TYPE_TEXT;
 
     return element;
 }
 
-pcedom_event_target_t *
-pcedom_event_target_destroy(pcedom_event_target_t *event_target,
-                             pcedom_document_t *document)
+pcdom_text_t *
+pcdom_text_interface_destroy(pcdom_text_t *text)
 {
-    return pcutils_mraw_free(document->mraw, event_target);
+    pcutils_str_destroy(&text->char_data.data,
+                       pcdom_interface_node(text)->owner_document->text, false);
+
+    return pcutils_mraw_free(
+        pcdom_interface_node(text)->owner_document->mraw,
+        text);
 }

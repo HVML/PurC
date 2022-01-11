@@ -35,7 +35,7 @@
 #define PCHTML_HTML_TEMPLATE_ELEMENT_H
 
 #include "config.h"
-#include "private/edom.h"
+#include "private/dom.h"
 
 #include "html/html_interface.h"
 #include "html/interfaces/element.h"
@@ -48,7 +48,7 @@ extern "C" {
 struct pchtml_html_template_element {
     pchtml_html_element_t          element;
 
-    pcedom_document_fragment_t *content;
+    pcdom_document_fragment_t *content;
 };
 
 

@@ -36,7 +36,7 @@
 
 #include "config.h"
 #include "html/tag.h"
-#include "private/edom.h"
+#include "private/dom.h"
 
 
 #ifdef __cplusplus
@@ -47,7 +47,7 @@ extern "C" {
  * Inline functions
  */
 static inline bool
-pchtml_html_node_is_void(pcedom_node_t *node)
+pchtml_html_node_is_void(pcdom_node_t *node)
 {
     if (node->ns != PCHTML_NS_HTML) {
         return false;

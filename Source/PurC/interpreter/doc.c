@@ -28,7 +28,7 @@
 
 #include "private/debug.h"
 #include "private/errors.h"
-#include "private/edom.h"
+#include "private/dom.h"
 #include "private/avl.h"
 
 #include "purc-variant.h"
@@ -77,16 +77,16 @@ make_object(size_t nr_args, struct dynamic_args *args)
 }
 
 static inline purc_variant_t
-doctype_default(struct pcedom_document *doc)
+doctype_default(struct pcdom_document *doc)
 {
     const char *s = "html";
 
-    pcedom_document_type_t *doc_type;
+    pcdom_document_type_t *doc_type;
     doc_type = doc->doctype;
     if (doc_type) {
         const unsigned char *doctype;
         size_t len;
-        doctype = pcedom_document_type_name(doc_type, &len);
+        doctype = pcdom_document_type_name(doc_type, &len);
         PC_ASSERT(doctype);
         PC_ASSERT(doctype[len]=='\0');
         s = (const char*)doctype;
@@ -97,16 +97,16 @@ doctype_default(struct pcedom_document *doc)
 }
 
 static inline purc_variant_t
-doctype_system(struct pcedom_document *doc)
+doctype_system(struct pcdom_document *doc)
 {
     const char *s = "";
 
-    pcedom_document_type_t *doc_type;
+    pcdom_document_type_t *doc_type;
     doc_type = doc->doctype;
     if (doc_type) {
         const unsigned char *s_system;
         size_t len;
-        s_system = pcedom_document_type_system_id(doc_type, &len);
+        s_system = pcdom_document_type_system_id(doc_type, &len);
         PC_ASSERT(s_system);
         PC_ASSERT(s_system[len]=='\0');
         s = (const char*)s_system;
@@ -117,16 +117,16 @@ doctype_system(struct pcedom_document *doc)
 }
 
 static inline purc_variant_t
-doctype_public(struct pcedom_document *doc)
+doctype_public(struct pcdom_document *doc)
 {
     const char *s = "";
 
-    pcedom_document_type_t *doc_type;
+    pcdom_document_type_t *doc_type;
     doc_type = doc->doctype;
     if (doc_type) {
         const unsigned char *s_public;
         size_t len;
-        s_public = pcedom_document_type_public_id(doc_type, &len);
+        s_public = pcdom_document_type_public_id(doc_type, &len);
         PC_ASSERT(s_public);
         PC_ASSERT(s_public[len]=='\0');
         s = (const char*)s_public;
@@ -141,16 +141,16 @@ doctype_getter(purc_variant_t root, size_t nr_args, purc_variant_t * argv)
 {
     PC_ASSERT(root != PURC_VARIANT_INVALID);
 
-    purc_variant_t edom;
-    edom = purc_variant_object_get_by_ckey(root, "__edom");
-    PC_ASSERT(edom != PURC_VARIANT_INVALID);
-    PC_ASSERT(!purc_variant_is_ulongint(edom));
+    purc_variant_t dom;
+    dom = purc_variant_object_get_by_ckey(root, "__dom");
+    PC_ASSERT(dom != PURC_VARIANT_INVALID);
+    PC_ASSERT(!purc_variant_is_ulongint(dom));
     uint64_t u64;
     bool ok;
-    ok = purc_variant_cast_to_ulongint(edom, &u64, false);
+    ok = purc_variant_cast_to_ulongint(dom, &u64, false);
     PC_ASSERT(ok && u64);
-    struct pcedom_document *doc;
-    doc = (struct pcedom_document*)u64;
+    struct pcdom_document *doc;
+    doc = (struct pcdom_document*)u64;
 
     if (nr_args == 0) {
         if (argv != NULL) {
@@ -186,12 +186,12 @@ doctype_getter(purc_variant_t root, size_t nr_args, purc_variant_t * argv)
 }
 
 static inline purc_variant_t
-query(struct pcedom_document *doc, const char *css)
+query(struct pcdom_document *doc, const char *css)
 {
     PC_ASSERT(doc);
     PC_ASSERT(css);
 
-    pcedom_element_t *root;
+    pcdom_element_t *root;
     root = doc->element;
     PC_ASSERT(root);
 
@@ -203,16 +203,16 @@ query_getter(purc_variant_t root, size_t nr_args, purc_variant_t * argv)
 {
     PC_ASSERT(root != PURC_VARIANT_INVALID);
 
-    purc_variant_t edom;
-    edom = purc_variant_object_get_by_ckey(root, "__edom");
-    PC_ASSERT(edom != PURC_VARIANT_INVALID);
-    PC_ASSERT(!purc_variant_is_ulongint(edom));
+    purc_variant_t dom;
+    dom = purc_variant_object_get_by_ckey(root, "__dom");
+    PC_ASSERT(dom != PURC_VARIANT_INVALID);
+    PC_ASSERT(!purc_variant_is_ulongint(dom));
     uint64_t u64;
     bool ok;
-    ok = purc_variant_cast_to_ulongint(edom, &u64, false);
+    ok = purc_variant_cast_to_ulongint(dom, &u64, false);
     PC_ASSERT(ok && u64);
-    struct pcedom_document *doc;
-    doc = (struct pcedom_document*)u64;
+    struct pcdom_document *doc;
+    doc = (struct pcdom_document*)u64;
 
     if (nr_args == 1) {
         if (argv == NULL || argv[0] == PURC_VARIANT_INVALID) {
@@ -233,15 +233,15 @@ query_getter(purc_variant_t root, size_t nr_args, purc_variant_t * argv)
 }
 
 static inline bool
-add_edom_doc(purc_variant_t doc, struct pcedom_document *edom_doc)
+add_dom_doc(purc_variant_t doc, struct pcdom_document *dom_doc)
 {
-    uint64_t u64 = (uint64_t)edom_doc;
+    uint64_t u64 = (uint64_t)dom_doc;
     purc_variant_t v;
     v = purc_variant_make_ulongint(u64);
     if (v == PURC_VARIANT_INVALID)
         return PURC_VARIANT_INVALID;
 
-    bool ok = purc_variant_object_set_by_static_ckey(doc, "__edom", v);
+    bool ok = purc_variant_object_set_by_static_ckey(doc, "__dom", v);
     if (!ok) {
         purc_variant_unref(v);
         return false;
@@ -251,7 +251,7 @@ add_edom_doc(purc_variant_t doc, struct pcedom_document *edom_doc)
 }
 
 purc_variant_t
-pcintr_make_doc_variant(struct pcedom_document *edom_doc)
+pcintr_make_doc_variant(struct pcdom_document *dom_doc)
 {
     struct dynamic_args args[] = {
         {"doctype", doctype_getter, NULL},
@@ -262,7 +262,7 @@ pcintr_make_doc_variant(struct pcedom_document *edom_doc)
     if (v == PURC_VARIANT_INVALID)
         return PURC_VARIANT_INVALID;
 
-    bool ok = add_edom_doc(v, edom_doc);
+    bool ok = add_dom_doc(v, dom_doc);
     if (!ok) {
         purc_variant_unref(v);
         return PURC_VARIANT_INVALID;

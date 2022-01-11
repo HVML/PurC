@@ -1,13 +1,13 @@
 /**
- * @file text.c
- * @author
+ * @file shadow_root.h
+ * @author 
  * @date 2021/07/02
- * @brief The complementation of text content.
+ * @brief The hearder file for shadow root.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
- *
+ * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -31,35 +31,41 @@
  */
 
 
+#ifndef PCDOM_PRIVATE_SHADOW_ROOT_H
+#define PCDOM_PRIVATE_SHADOW_ROOT_H
 
-#include "private/edom.h"
+#include "config.h"
+#include "private/dom.h"
 
-pcedom_text_t *
-pcedom_text_interface_create(pcedom_document_t *document)
-{
-    pcedom_text_t *element;
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-    element = pcutils_mraw_calloc(document->mraw,
-                                 sizeof(pcedom_text_t));
-    if (element == NULL) {
-        return NULL;
-    }
-
-    pcedom_node_t *node = pcedom_interface_node(element);
-
-    node->owner_document = document;
-    node->type = PCEDOM_NODE_TYPE_TEXT;
-
-    return element;
+typedef enum {
+    PCDOM_SHADOW_ROOT_MODE_OPEN   = 0x00,
+    PCDOM_SHADOW_ROOT_MODE_CLOSED = 0x01
 }
+pcdom_shadow_root_mode_t;
 
-pcedom_text_t *
-pcedom_text_interface_destroy(pcedom_text_t *text)
-{
-    pcutils_str_destroy(&text->char_data.data,
-                       pcedom_interface_node(text)->owner_document->text, false);
+struct pcdom_shadow_root {
+    pcdom_document_fragment_t document_fragment;
 
-    return pcutils_mraw_free(
-        pcedom_interface_node(text)->owner_document->mraw,
-        text);
-}
+    pcdom_shadow_root_mode_t  mode;
+    pcdom_element_t           *host;
+};
+
+
+pcdom_shadow_root_t *
+pcdom_shadow_root_interface_create(
+                pcdom_document_t *document) WTF_INTERNAL;
+
+pcdom_shadow_root_t *
+pcdom_shadow_root_interface_destroy(
+                pcdom_shadow_root_t *shadow_root) WTF_INTERNAL;
+
+
+#ifdef __cplusplus
+}       /* __cplusplus */
+#endif
+
+#endif  /* PCDOM_PRIVATE_SHADOW_ROOT_H */

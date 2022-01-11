@@ -33,23 +33,23 @@
 
 #include "purc.h"
 #include "config.h"
-#include "private/edom.h"
+#include "private/dom.h"
 #include "private/mem.h"
 #include "private/utils.h"
 
-typedef struct pcedom_element_cb_ctx pcedom_element_cb_ctx_t;
+typedef struct pcdom_element_cb_ctx pcdom_element_cb_ctx_t;
 
 typedef bool
-(*pcedom_element_attr_cmp_f)(pcedom_element_cb_ctx_t *ctx,
-                              pcedom_attr_t *attr);
+(*pcdom_element_attr_cmp_f)(pcdom_element_cb_ctx_t *ctx,
+                              pcdom_attr_t *attr);
 
 
-struct pcedom_element_cb_ctx {
-    pcedom_collection_t       *col;
+struct pcdom_element_cb_ctx {
+    pcdom_collection_t       *col;
     unsigned int               status;
-    pcedom_element_attr_cmp_f cmp_func;
+    pcdom_element_attr_cmp_f cmp_func;
 
-    pcedom_attr_id_t          name_id;
+    pcdom_attr_id_t          name_id;
     pchtml_ns_prefix_id_t         prefix_id;
 
     const unsigned char           *value;
@@ -58,51 +58,51 @@ struct pcedom_element_cb_ctx {
 
 
 static pchtml_action_t
-pcedom_elements_by_tag_name_cb(pcedom_node_t *node, void *ctx);
+pcdom_elements_by_tag_name_cb(pcdom_node_t *node, void *ctx);
 
 static pchtml_action_t
-pcedom_elements_by_tag_name_cb_all(pcedom_node_t *node, void *ctx);
+pcdom_elements_by_tag_name_cb_all(pcdom_node_t *node, void *ctx);
 
 static pchtml_action_t
-pcedom_elements_by_class_name_cb(pcedom_node_t *node, void *ctx);
+pcdom_elements_by_class_name_cb(pcdom_node_t *node, void *ctx);
 
 static pchtml_action_t
-pcedom_elements_by_attr_cb(pcedom_node_t *node, void *ctx);
+pcdom_elements_by_attr_cb(pcdom_node_t *node, void *ctx);
 
 static bool
-pcedom_elements_by_attr_cmp_full(pcedom_element_cb_ctx_t *ctx,
-                                  pcedom_attr_t *attr);
+pcdom_elements_by_attr_cmp_full(pcdom_element_cb_ctx_t *ctx,
+                                  pcdom_attr_t *attr);
 
 static bool
-pcedom_elements_by_attr_cmp_full_case(pcedom_element_cb_ctx_t *ctx,
-                                       pcedom_attr_t *attr);
+pcdom_elements_by_attr_cmp_full_case(pcdom_element_cb_ctx_t *ctx,
+                                       pcdom_attr_t *attr);
 
 static bool
-pcedom_elements_by_attr_cmp_begin(pcedom_element_cb_ctx_t *ctx,
-                                   pcedom_attr_t *attr);
+pcdom_elements_by_attr_cmp_begin(pcdom_element_cb_ctx_t *ctx,
+                                   pcdom_attr_t *attr);
 
 static bool
-pcedom_elements_by_attr_cmp_begin_case(pcedom_element_cb_ctx_t *ctx,
-                                        pcedom_attr_t *attr);
+pcdom_elements_by_attr_cmp_begin_case(pcdom_element_cb_ctx_t *ctx,
+                                        pcdom_attr_t *attr);
 
 static bool
-pcedom_elements_by_attr_cmp_end(pcedom_element_cb_ctx_t *ctx,
-                                 pcedom_attr_t *attr);
+pcdom_elements_by_attr_cmp_end(pcdom_element_cb_ctx_t *ctx,
+                                 pcdom_attr_t *attr);
 
 static bool
-pcedom_elements_by_attr_cmp_end_case(pcedom_element_cb_ctx_t *ctx,
-                                      pcedom_attr_t *attr);
+pcdom_elements_by_attr_cmp_end_case(pcdom_element_cb_ctx_t *ctx,
+                                      pcdom_attr_t *attr);
 
 static bool
-pcedom_elements_by_attr_cmp_contain(pcedom_element_cb_ctx_t *ctx,
-                                     pcedom_attr_t *attr);
+pcdom_elements_by_attr_cmp_contain(pcdom_element_cb_ctx_t *ctx,
+                                     pcdom_attr_t *attr);
 
 static bool
-pcedom_elements_by_attr_cmp_contain_case(pcedom_element_cb_ctx_t *ctx,
-                                          pcedom_attr_t *attr);
+pcdom_elements_by_attr_cmp_contain_case(pcdom_element_cb_ctx_t *ctx,
+                                          pcdom_attr_t *attr);
 
 static const unsigned char *
-pcedom_element_upper_update(pcedom_element_t *element, size_t *len);
+pcdom_element_upper_update(pcdom_element_t *element, size_t *len);
 
 const pchtml_tag_data_t *
 pchtml_tag_append(pcutils_hash_t *hash, pchtml_tag_id_t tag_id,
@@ -116,46 +116,46 @@ const pchtml_ns_data_t *
 pchtml_ns_append(pcutils_hash_t *hash, const unsigned char *link, size_t length);
 
 
-pcedom_element_t *
-pcedom_element_interface_create(pcedom_document_t *document)
+pcdom_element_t *
+pcdom_element_interface_create(pcdom_document_t *document)
 {
-    pcedom_element_t *element;
+    pcdom_element_t *element;
 
     element = pcutils_mraw_calloc(document->mraw,
-                                 sizeof(pcedom_element_t));
+                                 sizeof(pcdom_element_t));
     if (element == NULL) {
         return NULL;
     }
 
-    pcedom_node_t *node = pcedom_interface_node(element);
+    pcdom_node_t *node = pcdom_interface_node(element);
 
     node->owner_document = document;
-    node->type = PCEDOM_NODE_TYPE_ELEMENT;
+    node->type = PCDOM_NODE_TYPE_ELEMENT;
 
     return element;
 }
 
-pcedom_element_t *
-pcedom_element_interface_destroy(pcedom_element_t *element)
+pcdom_element_t *
+pcdom_element_interface_destroy(pcdom_element_t *element)
 {
-    pcedom_attr_t *attr_next;
-    pcedom_attr_t *attr = element->first_attr;
+    pcdom_attr_t *attr_next;
+    pcdom_attr_t *attr = element->first_attr;
 
     while (attr != NULL) {
         attr_next = attr->next;
 
-        pcedom_attr_interface_destroy(attr);
+        pcdom_attr_interface_destroy(attr);
 
         attr = attr_next;
     }
 
     return pcutils_mraw_free(
-        pcedom_interface_node(element)->owner_document->mraw,
+        pcdom_interface_node(element)->owner_document->mraw,
         element);
 }
 
 unsigned int
-pcedom_element_qualified_name_set(pcedom_element_t *element,
+pcdom_element_qualified_name_set(pcdom_element_t *element,
                                    const unsigned char *prefix, size_t prefix_len,
                                    const unsigned char *lname, size_t lname_len)
 {
@@ -188,8 +188,8 @@ pcedom_element_qualified_name_set(pcedom_element_t *element,
     return PURC_ERROR_OK;
 }
 
-pcedom_element_t *
-pcedom_element_create(pcedom_document_t *document,
+pcdom_element_t *
+pcdom_element_create(pcdom_document_t *document,
                        const unsigned char *local_name, size_t lname_len,
                        const unsigned char *ns_link, size_t ns_len,
                        const unsigned char *prefix, size_t prefix_len,
@@ -202,7 +202,7 @@ pcedom_element_create(pcedom_document_t *document,
     const pchtml_ns_data_t *ns_data;
     const pchtml_tag_data_t *tag_data;
     const pchtml_ns_prefix_data_t *ns_prefix;
-    pcedom_element_t *element;
+    pcdom_element_t *element;
 
     /* TODO: Must implement custom elements */
 
@@ -228,7 +228,7 @@ pcedom_element_create(pcedom_document_t *document,
         return NULL;
     }
 
-    element = pcedom_document_create_interface(document, tag_data->tag_id,
+    element = pcdom_document_create_interface(document, tag_data->tag_id,
                                                 ns_data->ns_id);
     if (element == NULL) {
         return NULL;
@@ -237,22 +237,22 @@ pcedom_element_create(pcedom_document_t *document,
     if (prefix != NULL) {
         ns_prefix = pchtml_ns_prefix_append(document->prefix, prefix, prefix_len);
         if (ns_prefix == NULL) {
-            return pcedom_document_destroy_interface(element);
+            return pcdom_document_destroy_interface(element);
         }
 
         element->node.prefix = ns_prefix->prefix_id;
 
-        status = pcedom_element_qualified_name_set(element, prefix, prefix_len,
+        status = pcdom_element_qualified_name_set(element, prefix, prefix_len,
                                                     local_name, lname_len);
         if (status != PURC_ERROR_OK) {
-            return pcedom_document_destroy_interface(element);
+            return pcdom_document_destroy_interface(element);
         }
     }
 
     if (is_len != 0) {
-        status = pcedom_element_is_set(element, is, is_len);
+        status = pcdom_element_is_set(element, is, is_len);
         if (status != PURC_ERROR_OK) {
-            return pcedom_document_destroy_interface(element);
+            return pcdom_document_destroy_interface(element);
         }
     }
 
@@ -260,79 +260,79 @@ pcedom_element_create(pcedom_document_t *document,
     element->node.ns = ns_data->ns_id;
 
     if (ns_data->ns_id == PCHTML_NS_HTML && is_len != 0) {
-        element->custom_state = PCEDOM_ELEMENT_CUSTOM_STATE_UNDEFINED;
+        element->custom_state = PCDOM_ELEMENT_CUSTOM_STATE_UNDEFINED;
     }
     else {
-        element->custom_state = PCEDOM_ELEMENT_CUSTOM_STATE_UNCUSTOMIZED;
+        element->custom_state = PCDOM_ELEMENT_CUSTOM_STATE_UNCUSTOMIZED;
     }
 
     return element;
 }
 
-pcedom_element_t *
-pcedom_element_destroy(pcedom_element_t *element)
+pcdom_element_t *
+pcdom_element_destroy(pcdom_element_t *element)
 {
-    return pcedom_document_destroy_interface(element);
+    return pcdom_document_destroy_interface(element);
 }
 
 bool
-pcedom_element_has_attributes(pcedom_element_t *element)
+pcdom_element_has_attributes(pcdom_element_t *element)
 {
     return element->first_attr != NULL;
 }
 
-pcedom_attr_t *
-pcedom_element_set_attribute(pcedom_element_t *element,
+pcdom_attr_t *
+pcdom_element_set_attribute(pcdom_element_t *element,
                               const unsigned char *qualified_name, size_t qn_len,
                               const unsigned char *value, size_t value_len)
 {
     unsigned int status;
-    pcedom_attr_t *attr;
+    pcdom_attr_t *attr;
 
-    attr = pcedom_element_attr_is_exist(element, qualified_name, qn_len);
+    attr = pcdom_element_attr_is_exist(element, qualified_name, qn_len);
 
     if (attr != NULL) {
         goto update;
     }
 
-    attr = pcedom_attr_interface_create(element->node.owner_document);
+    attr = pcdom_attr_interface_create(element->node.owner_document);
     if (attr == NULL) {
         return NULL;
     }
 
     if (element->node.ns == PCHTML_NS_HTML
-        && element->node.owner_document->type == PCEDOM_DOCUMENT_DTYPE_HTML)
+        && element->node.owner_document->type == PCDOM_DOCUMENT_DTYPE_HTML)
     {
-        status = pcedom_attr_set_name(attr, qualified_name, qn_len, true);
+        status = pcdom_attr_set_name(attr, qualified_name, qn_len, true);
     }
     else {
-        status = pcedom_attr_set_name(attr, qualified_name, qn_len, false);
+        status = pcdom_attr_set_name(attr, qualified_name, qn_len, false);
     }
 
     if (status != PURC_ERROR_OK) {
-        return pcedom_attr_interface_destroy(attr);
+        return pcdom_attr_interface_destroy(attr);
     }
 
 update:
 
-    status = pcedom_attr_set_value(attr, value, value_len);
+    status = pcdom_attr_set_value(attr, value, value_len);
     if (status != PURC_ERROR_OK) {
-        return pcedom_attr_interface_destroy(attr);
+        return pcdom_attr_interface_destroy(attr);
     }
 
-    pcedom_element_attr_append(element, attr);
+    pcdom_element_attr_append(element, attr);
 
     return attr;
 }
 
 const unsigned char *
-pcedom_element_get_attribute(pcedom_element_t *element,
+pcdom_element_get_attribute(pcdom_element_t *element,
                               const unsigned char *qualified_name, size_t qn_len,
                               size_t *value_len)
 {
-    pcedom_attr_t *attr;
+    pcdom_attr_t *attr;
 
-    attr = pcedom_element_attr_by_name(element, qualified_name, qn_len);
+    attr = pcdom_element_attr_by_name(element, qualified_name, qn_len);
     if (attr == NULL) {
         if (value_len != NULL) {
             *value_len = 0;
@@ -341,53 +341,53 @@ pcedom_element_get_attribute(pcedom_element_t *element,
         return NULL;
     }
 
-    return pcedom_attr_value(attr, value_len);
+    return pcdom_attr_value(attr, value_len);
 }
 
 unsigned int
-pcedom_element_remove_attribute(pcedom_element_t *element,
+pcdom_element_remove_attribute(pcdom_element_t *element,
                                  const unsigned char *qualified_name, size_t qn_len)
 {
     unsigned int status;
-    pcedom_attr_t *attr;
+    pcdom_attr_t *attr;
 
-    attr = pcedom_element_attr_by_name(element, qualified_name, qn_len);
+    attr = pcdom_element_attr_by_name(element, qualified_name, qn_len);
     if (attr == NULL) {
         return PURC_ERROR_OK;
     }
 
-    status = pcedom_element_attr_remove(element, attr);
+    status = pcdom_element_attr_remove(element, attr);
     if (status != PURC_ERROR_OK) {
         return status;
     }
 
-    pcedom_attr_interface_destroy(attr);
+    pcdom_attr_interface_destroy(attr);
 
     return PURC_ERROR_OK;
 }
 
 bool
-pcedom_element_has_attribute(pcedom_element_t *element,
+pcdom_element_has_attribute(pcdom_element_t *element,
                               const unsigned char *qualified_name, size_t qn_len)
 {
-    return pcedom_element_attr_by_name(element, qualified_name, qn_len) != NULL;
+    return pcdom_element_attr_by_name(element, qualified_name, qn_len) != NULL;
 }
 
 unsigned int
-pcedom_element_attr_append(pcedom_element_t *element, pcedom_attr_t *attr)
+pcdom_element_attr_append(pcdom_element_t *element, pcdom_attr_t *attr)
 {
-    if (attr->node.local_name == PCEDOM_ATTR_ID) {
+    if (attr->node.local_name == PCDOM_ATTR_ID) {
         if (element->attr_id != NULL) {
-            pcedom_element_attr_remove(element, element->attr_id);
-            pcedom_attr_interface_destroy(element->attr_id);
+            pcdom_element_attr_remove(element, element->attr_id);
+            pcdom_attr_interface_destroy(element->attr_id);
         }
 
         element->attr_id = attr;
     }
-    else if (attr->node.local_name == PCEDOM_ATTR_CLASS) {
+    else if (attr->node.local_name == PCDOM_ATTR_CLASS) {
         if (element->attr_class != NULL) {
-            pcedom_element_attr_remove(element, element->attr_class);
-            pcedom_attr_interface_destroy(element->attr_class);
+            pcdom_element_attr_remove(element, element->attr_class);
+            pcdom_attr_interface_destroy(element->attr_class);
         }
 
         element->attr_class = attr;
@@ -409,7 +409,7 @@ pcedom_element_attr_append(pcedom_element_t *element, pcedom_attr_t *attr)
 }
 
 unsigned int
-pcedom_element_attr_remove(pcedom_element_t *element, pcedom_attr_t *attr)
+pcdom_element_attr_remove(pcdom_element_t *element, pcdom_attr_t *attr)
 {
     if (element->attr_id == attr) {
         element->attr_id = NULL;
@@ -438,21 +438,21 @@ pcedom_element_attr_remove(pcedom_element_t *element, pcedom_attr_t *attr)
     return PURC_ERROR_OK;
 }
 
-pcedom_attr_t *
-pcedom_element_attr_by_name(pcedom_element_t *element,
+pcdom_attr_t *
+pcdom_element_attr_by_name(pcdom_element_t *element,
                              const unsigned char *qualified_name, size_t length)
 {
-    const pcedom_attr_data_t *data;
+    const pcdom_attr_data_t *data;
     pcutils_hash_t *attrs = element->node.owner_document->attrs;
-    pcedom_attr_t *attr = element->first_attr;
+    pcdom_attr_t *attr = element->first_attr;
 
     if (element->node.ns == PCHTML_NS_HTML
-        && element->node.owner_document->type == PCEDOM_DOCUMENT_DTYPE_HTML)
+        && element->node.owner_document->type == PCDOM_DOCUMENT_DTYPE_HTML)
     {
-        data = pcedom_attr_data_by_local_name(attrs, qualified_name, length);
+        data = pcdom_attr_data_by_local_name(attrs, qualified_name, length);
     }
     else {
-        data = pcedom_attr_data_by_qualified_name(attrs, qualified_name,
+        data = pcdom_attr_data_by_qualified_name(attrs, qualified_name,
                                                    length);
     }
 
@@ -473,11 +473,11 @@ pcedom_element_attr_by_name(pcedom_element_t *element,
     return NULL;
 }
 
-pcedom_attr_t *
-pcedom_element_attr_by_local_name_data(pcedom_element_t *element,
-                                        const pcedom_attr_data_t *data)
+pcdom_attr_t *
+pcdom_element_attr_by_local_name_data(pcdom_element_t *element,
+                                        const pcdom_attr_data_t *data)
 {
-    pcedom_attr_t *attr = element->first_attr;
+    pcdom_attr_t *attr = element->first_attr;
 
     while (attr != NULL) {
         if (attr->node.local_name == data->attr_id) {
@@ -490,11 +490,11 @@ pcedom_element_attr_by_local_name_data(pcedom_element_t *element,
     return NULL;
 }
 
-pcedom_attr_t *
-pcedom_element_attr_by_id(pcedom_element_t *element,
-                           pcedom_attr_id_t attr_id)
+pcdom_attr_t *
+pcdom_element_attr_by_id(pcdom_element_t *element,
+                           pcdom_attr_id_t attr_id)
 {
-    pcedom_attr_t *attr = element->first_attr;
+    pcdom_attr_t *attr = element->first_attr;
 
     while (attr != NULL) {
         if (attr->node.local_name == attr_id) {
@@ -508,10 +508,10 @@ pcedom_element_attr_by_id(pcedom_element_t *element,
 }
 
 bool
-pcedom_element_compare(pcedom_element_t *first, pcedom_element_t *second)
+pcdom_element_compare(pcdom_element_t *first, pcdom_element_t *second)
 {
-    pcedom_attr_t *f_attr = first->first_attr;
-    pcedom_attr_t *s_attr = second->first_attr;
+    pcdom_attr_t *f_attr = first->first_attr;
+    pcdom_attr_t *s_attr = second->first_attr;
 
     if (first->node.local_name != second->node.local_name
         || first->node.ns != second->node.ns
@@ -537,7 +537,7 @@ pcedom_element_compare(pcedom_element_t *first, pcedom_element_t *second)
         s_attr = second->first_attr;
 
         while (s_attr != NULL) {
-            if (pcedom_attr_compare(f_attr, s_attr)) {
+            if (pcdom_attr_compare(f_attr, s_attr)) {
                 break;
             }
 
@@ -554,14 +554,14 @@ pcedom_element_compare(pcedom_element_t *first, pcedom_element_t *second)
     return true;
 }
 
-pcedom_attr_t *
-pcedom_element_attr_is_exist(pcedom_element_t *element,
+pcdom_attr_t *
+pcdom_element_attr_is_exist(pcdom_element_t *element,
                               const unsigned char *qualified_name, size_t length)
 {
-    const pcedom_attr_data_t *data;
-    pcedom_attr_t *attr = element->first_attr;
+    const pcdom_attr_data_t *data;
+    pcdom_attr_t *attr = element->first_attr;
 
-    data = pcedom_attr_data_by_local_name(element->node.owner_document->attrs,
+    data = pcdom_attr_data_by_local_name(element->node.owner_document->attrs,
                                            qualified_name, length);
     if (data == NULL) {
         return NULL;
@@ -581,7 +581,7 @@ pcedom_element_attr_is_exist(pcedom_element_t *element,
 }
 
 unsigned int
-pcedom_element_is_set(pcedom_element_t *element,
+pcdom_element_is_set(pcdom_element_t *element,
                        const unsigned char *is, size_t is_len)
 {
     if (element->is_value == NULL) {
@@ -616,13 +616,13 @@ pcedom_element_is_set(pcedom_element_t *element,
 }
 
 static inline unsigned int
-pcedom_element_prepare_by_attr(pcedom_document_t *document,
-                                pcedom_element_cb_ctx_t *cb_ctx,
+pcdom_element_prepare_by_attr(pcdom_document_t *document,
+                                pcdom_element_cb_ctx_t *cb_ctx,
                                 const unsigned char *qname, size_t qlen)
 {
     size_t length;
     const unsigned char *prefix_end;
-    const pcedom_attr_data_t *attr_data;
+    const pcdom_attr_data_t *attr_data;
     const pchtml_ns_prefix_data_t *prefix_data;
 
     cb_ctx->prefix_id = PCHTML_NS__UNDEF;
@@ -653,7 +653,7 @@ pcedom_element_prepare_by_attr(pcedom_document_t *document,
         qlen -= length;
     }
 
-    attr_data = pcedom_attr_data_by_local_name(document->attrs, qname, qlen);
+    attr_data = pcdom_attr_data_by_local_name(document->attrs, qname, qlen);
     if (attr_data == NULL) {
         return PCHTML_STATUS_STOP;
     }
@@ -664,8 +664,8 @@ pcedom_element_prepare_by_attr(pcedom_document_t *document,
 }
 
 static inline unsigned int
-pcedom_element_prepare_by(pcedom_document_t *document,
-                           pcedom_element_cb_ctx_t *cb_ctx,
+pcdom_element_prepare_by(pcdom_document_t *document,
+                           pcdom_element_cb_ctx_t *cb_ctx,
                            const unsigned char *qname, size_t qlen)
 {
     size_t length;
@@ -712,24 +712,24 @@ pcedom_element_prepare_by(pcedom_document_t *document,
 }
 
 unsigned int
-pcedom_elements_by_tag_name(pcedom_element_t *root,
-                             pcedom_collection_t *collection,
+pcdom_elements_by_tag_name(pcdom_element_t *root,
+                             pcdom_collection_t *collection,
                              const unsigned char *qualified_name, size_t len)
 {
     unsigned int status;
-    pcedom_element_cb_ctx_t cb_ctx = {0};
+    pcdom_element_cb_ctx_t cb_ctx = {0};
 
     cb_ctx.col = collection;
 
     /* "*" (U+002A) */
     if (len == 1 && *qualified_name == 0x2A) {
-        pcedom_node_simple_walk(pcedom_interface_node(root),
-                                 pcedom_elements_by_tag_name_cb_all, &cb_ctx);
+        pcdom_node_simple_walk(pcdom_interface_node(root),
+                                 pcdom_elements_by_tag_name_cb_all, &cb_ctx);
 
         return cb_ctx.status;
     }
 
-    status = pcedom_element_prepare_by(root->node.owner_document,
+    status = pcdom_element_prepare_by(root->node.owner_document,
                                         &cb_ctx, qualified_name, len);
     if (status != PURC_ERROR_OK) {
         if (status == PCHTML_STATUS_STOP) {
@@ -739,22 +739,22 @@ pcedom_elements_by_tag_name(pcedom_element_t *root,
         return status;
     }
 
-    pcedom_node_simple_walk(pcedom_interface_node(root),
-                             pcedom_elements_by_tag_name_cb, &cb_ctx);
+    pcdom_node_simple_walk(pcdom_interface_node(root),
+                             pcdom_elements_by_tag_name_cb, &cb_ctx);
 
     return cb_ctx.status;
 }
 
 static pchtml_action_t
-pcedom_elements_by_tag_name_cb_all(pcedom_node_t *node, void *ctx)
+pcdom_elements_by_tag_name_cb_all(pcdom_node_t *node, void *ctx)
 {
-    if (node->type != PCEDOM_NODE_TYPE_ELEMENT) {
+    if (node->type != PCDOM_NODE_TYPE_ELEMENT) {
         return PCHTML_ACTION_OK;
     }
 
-    pcedom_element_cb_ctx_t *cb_ctx = ctx;
+    pcdom_element_cb_ctx_t *cb_ctx = ctx;
 
-    cb_ctx->status = pcedom_collection_append(cb_ctx->col, node);
+    cb_ctx->status = pcdom_collection_append(cb_ctx->col, node);
     if (cb_ctx->status != PURC_ERROR_OK) {
         return PCHTML_ACTION_STOP;
     }
@@ -763,18 +763,18 @@ pcedom_elements_by_tag_name_cb_all(pcedom_node_t *node, void *ctx)
 }
 
 static pchtml_action_t
-pcedom_elements_by_tag_name_cb(pcedom_node_t *node, void *ctx)
+pcdom_elements_by_tag_name_cb(pcdom_node_t *node, void *ctx)
 {
-    if (node->type != PCEDOM_NODE_TYPE_ELEMENT) {
+    if (node->type != PCDOM_NODE_TYPE_ELEMENT) {
         return PCHTML_ACTION_OK;
     }
 
-    pcedom_element_cb_ctx_t *cb_ctx = ctx;
+    pcdom_element_cb_ctx_t *cb_ctx = ctx;
 
     if (node->local_name == cb_ctx->name_id
         && node->prefix == cb_ctx->prefix_id)
     {
-        cb_ctx->status = pcedom_collection_append(cb_ctx->col, node);
+        cb_ctx->status = pcdom_collection_append(cb_ctx->col, node);
         if (cb_ctx->status != PURC_ERROR_OK) {
             return PCHTML_ACTION_STOP;
         }
@@ -784,35 +784,35 @@ pcedom_elements_by_tag_name_cb(pcedom_node_t *node, void *ctx)
 }
 
 unsigned int
-pcedom_elements_by_class_name(pcedom_element_t *root,
-                               pcedom_collection_t *collection,
+pcdom_elements_by_class_name(pcdom_element_t *root,
+                               pcdom_collection_t *collection,
                                const unsigned char *class_name, size_t len)
 {
     if (class_name == NULL || len == 0) {
         return PURC_ERROR_OK;
     }
 
-    pcedom_element_cb_ctx_t cb_ctx = {0};
+    pcdom_element_cb_ctx_t cb_ctx = {0};
 
     cb_ctx.col = collection;
     cb_ctx.value = class_name;
     cb_ctx.value_length = len;
 
-    pcedom_node_simple_walk(pcedom_interface_node(root),
-                             pcedom_elements_by_class_name_cb, &cb_ctx);
+    pcdom_node_simple_walk(pcdom_interface_node(root),
+                             pcdom_elements_by_class_name_cb, &cb_ctx);
 
     return cb_ctx.status;
 }
 
 static pchtml_action_t
-pcedom_elements_by_class_name_cb(pcedom_node_t *node, void *ctx)
+pcdom_elements_by_class_name_cb(pcdom_node_t *node, void *ctx)
 {
-    if (node->type != PCEDOM_NODE_TYPE_ELEMENT) {
+    if (node->type != PCDOM_NODE_TYPE_ELEMENT) {
         return PCHTML_ACTION_OK;
     }
 
-    pcedom_element_cb_ctx_t *cb_ctx = ctx;
-    pcedom_element_t *el = pcedom_interface_element(node);
+    pcdom_element_cb_ctx_t *cb_ctx = ctx;
+    pcdom_element_t *el = pcdom_interface_element(node);
 
     if (el->attr_class == NULL
         || el->attr_class->value->length < cb_ctx->value_length)
@@ -827,13 +827,13 @@ pcedom_elements_by_class_name_cb(pcedom_node_t *node, void *ctx)
     const unsigned char *pos = data;
     const unsigned char *end = data + length;
 
-    pcedom_document_t *doc = el->node.owner_document;
+    pcdom_document_t *doc = el->node.owner_document;
 
     for (; data < end; data++) {
         if (pcutils_html_whitespace(*data, ==, ||)) {
 
             if (pos != data && (data - pos) == (int)cb_ctx->value_length) {
-                if (doc->compat_mode == PCEDOM_DOCUMENT_CMODE_QUIRKS) {
+                if (doc->compat_mode == PCDOM_DOCUMENT_CMODE_QUIRKS) {
                     is_it = pcutils_str_data_ncasecmp(pos, cb_ctx->value,
                                                      cb_ctx->value_length);
                 }
@@ -843,7 +843,7 @@ pcedom_elements_by_class_name_cb(pcedom_node_t *node, void *ctx)
                 }
 
                 if (is_it) {
-                    cb_ctx->status = pcedom_collection_append(cb_ctx->col,
+                    cb_ctx->status = pcdom_collection_append(cb_ctx->col,
                                                                node);
                     if (cb_ctx->status != PURC_ERROR_OK) {
                         return PCHTML_ACTION_STOP;
@@ -862,7 +862,7 @@ pcedom_elements_by_class_name_cb(pcedom_node_t *node, void *ctx)
     }
 
     if ((end - pos) == (int)cb_ctx->value_length) {
-        if (doc->compat_mode == PCEDOM_DOCUMENT_CMODE_QUIRKS) {
+        if (doc->compat_mode == PCDOM_DOCUMENT_CMODE_QUIRKS) {
             is_it = pcutils_str_data_ncasecmp(pos, cb_ctx->value,
                                              cb_ctx->value_length);
         }
@@ -872,7 +872,7 @@ pcedom_elements_by_class_name_cb(pcedom_node_t *node, void *ctx)
         }
 
         if (is_it) {
-            cb_ctx->status = pcedom_collection_append(cb_ctx->col, node);
+            cb_ctx->status = pcdom_collection_append(cb_ctx->col, node);
             if (cb_ctx->status != PURC_ERROR_OK) {
                 return PCHTML_ACTION_STOP;
             }
@@ -883,20 +883,20 @@ pcedom_elements_by_class_name_cb(pcedom_node_t *node, void *ctx)
 }
 
 unsigned int
-pcedom_elements_by_attr(pcedom_element_t *root,
-                         pcedom_collection_t *collection,
+pcdom_elements_by_attr(pcdom_element_t *root,
+                         pcdom_collection_t *collection,
                          const unsigned char *qualified_name, size_t qname_len,
                          const unsigned char *value, size_t value_len,
                          bool case_insensitive)
 {
     unsigned int status;
-    pcedom_element_cb_ctx_t cb_ctx = {0};
+    pcdom_element_cb_ctx_t cb_ctx = {0};
 
     cb_ctx.col = collection;
     cb_ctx.value = value;
     cb_ctx.value_length = value_len;
 
-    status = pcedom_element_prepare_by_attr(root->node.owner_document,
+    status = pcdom_element_prepare_by_attr(root->node.owner_document,
                                              &cb_ctx, qualified_name, qname_len);
     if (status != PURC_ERROR_OK) {
         if (status == PCHTML_STATUS_STOP) {
@@ -907,33 +907,33 @@ pcedom_elements_by_attr(pcedom_element_t *root,
     }
 
     if (case_insensitive) {
-        cb_ctx.cmp_func = pcedom_elements_by_attr_cmp_full_case;
+        cb_ctx.cmp_func = pcdom_elements_by_attr_cmp_full_case;
     }
     else {
-        cb_ctx.cmp_func = pcedom_elements_by_attr_cmp_full;
+        cb_ctx.cmp_func = pcdom_elements_by_attr_cmp_full;
     }
 
-    pcedom_node_simple_walk(pcedom_interface_node(root),
-                             pcedom_elements_by_attr_cb, &cb_ctx);
+    pcdom_node_simple_walk(pcdom_interface_node(root),
+                             pcdom_elements_by_attr_cb, &cb_ctx);
 
     return cb_ctx.status;
 }
 
 unsigned int
-pcedom_elements_by_attr_begin(pcedom_element_t *root,
-                               pcedom_collection_t *collection,
+pcdom_elements_by_attr_begin(pcdom_element_t *root,
+                               pcdom_collection_t *collection,
                                const unsigned char *qualified_name, size_t qname_len,
                                const unsigned char *value, size_t value_len,
                                bool case_insensitive)
 {
     unsigned int status;
-    pcedom_element_cb_ctx_t cb_ctx = {0};
+    pcdom_element_cb_ctx_t cb_ctx = {0};
 
     cb_ctx.col = collection;
     cb_ctx.value = value;
     cb_ctx.value_length = value_len;
 
-    status = pcedom_element_prepare_by_attr(root->node.owner_document,
+    status = pcdom_element_prepare_by_attr(root->node.owner_document,
                                              &cb_ctx, qualified_name, qname_len);
     if (status != PURC_ERROR_OK) {
         if (status == PCHTML_STATUS_STOP) {
@@ -944,33 +944,33 @@ pcedom_elements_by_attr_begin(pcedom_element_t *root,
     }
 
     if (case_insensitive) {
-        cb_ctx.cmp_func = pcedom_elements_by_attr_cmp_begin_case;
+        cb_ctx.cmp_func = pcdom_elements_by_attr_cmp_begin_case;
     }
     else {
-        cb_ctx.cmp_func = pcedom_elements_by_attr_cmp_begin;
+        cb_ctx.cmp_func = pcdom_elements_by_attr_cmp_begin;
     }
 
-    pcedom_node_simple_walk(pcedom_interface_node(root),
-                             pcedom_elements_by_attr_cb, &cb_ctx);
+    pcdom_node_simple_walk(pcdom_interface_node(root),
+                             pcdom_elements_by_attr_cb, &cb_ctx);
 
     return cb_ctx.status;
 }
 
 unsigned int
-pcedom_elements_by_attr_end(pcedom_element_t *root,
-                             pcedom_collection_t *collection,
+pcdom_elements_by_attr_end(pcdom_element_t *root,
+                             pcdom_collection_t *collection,
                              const unsigned char *qualified_name, size_t qname_len,
                              const unsigned char *value, size_t value_len,
                              bool case_insensitive)
 {
     unsigned int status;
-    pcedom_element_cb_ctx_t cb_ctx = {0};
+    pcdom_element_cb_ctx_t cb_ctx = {0};
 
     cb_ctx.col = collection;
     cb_ctx.value = value;
     cb_ctx.value_length = value_len;
 
-    status = pcedom_element_prepare_by_attr(root->node.owner_document,
+    status = pcdom_element_prepare_by_attr(root->node.owner_document,
                                              &cb_ctx, qualified_name, qname_len);
     if (status != PURC_ERROR_OK) {
         if (status == PCHTML_STATUS_STOP) {
@@ -981,33 +981,33 @@ pcedom_elements_by_attr_end(pcedom_element_t *root,
     }
 
     if (case_insensitive) {
-        cb_ctx.cmp_func = pcedom_elements_by_attr_cmp_end_case;
+        cb_ctx.cmp_func = pcdom_elements_by_attr_cmp_end_case;
     }
     else {
-        cb_ctx.cmp_func = pcedom_elements_by_attr_cmp_end;
+        cb_ctx.cmp_func = pcdom_elements_by_attr_cmp_end;
     }
 
-    pcedom_node_simple_walk(pcedom_interface_node(root),
-                             pcedom_elements_by_attr_cb, &cb_ctx);
+    pcdom_node_simple_walk(pcdom_interface_node(root),
+                             pcdom_elements_by_attr_cb, &cb_ctx);
 
     return cb_ctx.status;
 }
 
 unsigned int
-pcedom_elements_by_attr_contain(pcedom_element_t *root,
-                                 pcedom_collection_t *collection,
+pcdom_elements_by_attr_contain(pcdom_element_t *root,
+                                 pcdom_collection_t *collection,
                                  const unsigned char *qualified_name, size_t qname_len,
                                  const unsigned char *value, size_t value_len,
                                  bool case_insensitive)
 {
     unsigned int status;
-    pcedom_element_cb_ctx_t cb_ctx = {0};
+    pcdom_element_cb_ctx_t cb_ctx = {0};
 
     cb_ctx.col = collection;
     cb_ctx.value = value;
     cb_ctx.value_length = value_len;
 
-    status = pcedom_element_prepare_by_attr(root->node.owner_document,
+    status = pcdom_element_prepare_by_attr(root->node.owner_document,
                                              &cb_ctx, qualified_name, qname_len);
     if (status != PURC_ERROR_OK) {
         if (status == PCHTML_STATUS_STOP) {
@@ -1018,30 +1018,30 @@ pcedom_elements_by_attr_contain(pcedom_element_t *root,
     }
 
     if (case_insensitive) {
-        cb_ctx.cmp_func = pcedom_elements_by_attr_cmp_contain_case;
+        cb_ctx.cmp_func = pcdom_elements_by_attr_cmp_contain_case;
     }
     else {
-        cb_ctx.cmp_func = pcedom_elements_by_attr_cmp_contain;
+        cb_ctx.cmp_func = pcdom_elements_by_attr_cmp_contain;
     }
 
-    pcedom_node_simple_walk(pcedom_interface_node(root),
-                             pcedom_elements_by_attr_cb, &cb_ctx);
+    pcdom_node_simple_walk(pcdom_interface_node(root),
+                             pcdom_elements_by_attr_cb, &cb_ctx);
 
     return cb_ctx.status;
 }
 
 static pchtml_action_t
-pcedom_elements_by_attr_cb(pcedom_node_t *node, void *ctx)
+pcdom_elements_by_attr_cb(pcdom_node_t *node, void *ctx)
 {
-    if (node->type != PCEDOM_NODE_TYPE_ELEMENT) {
+    if (node->type != PCDOM_NODE_TYPE_ELEMENT) {
         return PCHTML_ACTION_OK;
     }
 
-    pcedom_attr_t *attr;
-    pcedom_element_cb_ctx_t *cb_ctx = ctx;
-    pcedom_element_t *el = pcedom_interface_element(node);
+    pcdom_attr_t *attr;
+    pcdom_element_cb_ctx_t *cb_ctx = ctx;
+    pcdom_element_t *el = pcdom_interface_element(node);
 
-    attr = pcedom_element_attr_by_id(el, cb_ctx->name_id);
+    attr = pcdom_element_attr_by_id(el, cb_ctx->name_id);
     if (attr == NULL) {
         return PCHTML_ACTION_OK;
     }
@@ -1049,7 +1049,7 @@ pcedom_elements_by_attr_cb(pcedom_node_t *node, void *ctx)
     if ((cb_ctx->value_length == 0 && attr->value->length == 0)
         || cb_ctx->cmp_func(cb_ctx, attr))
     {
-        cb_ctx->status = pcedom_collection_append(cb_ctx->col, node);
+        cb_ctx->status = pcdom_collection_append(cb_ctx->col, node);
 
         if (cb_ctx->status != PURC_ERROR_OK) {
             return PCHTML_ACTION_STOP;
@@ -1060,8 +1060,8 @@ pcedom_elements_by_attr_cb(pcedom_node_t *node, void *ctx)
 }
 
 static bool
-pcedom_elements_by_attr_cmp_full(pcedom_element_cb_ctx_t *ctx,
-                                  pcedom_attr_t *attr)
+pcdom_elements_by_attr_cmp_full(pcdom_element_cb_ctx_t *ctx,
+                                  pcdom_attr_t *attr)
 {
     if (ctx->value_length == attr->value->length
         && pcutils_str_data_ncmp(attr->value->data, ctx->value,
@@ -1074,8 +1074,8 @@ pcedom_elements_by_attr_cmp_full(pcedom_element_cb_ctx_t *ctx,
 }
 
 static bool
-pcedom_elements_by_attr_cmp_full_case(pcedom_element_cb_ctx_t *ctx,
-                                       pcedom_attr_t *attr)
+pcdom_elements_by_attr_cmp_full_case(pcdom_element_cb_ctx_t *ctx,
+                                       pcdom_attr_t *attr)
 {
     if (ctx->value_length == attr->value->length
         && pcutils_str_data_ncasecmp(attr->value->data, ctx->value,
@@ -1088,8 +1088,8 @@ pcedom_elements_by_attr_cmp_full_case(pcedom_element_cb_ctx_t *ctx,
 }
 
 static bool
-pcedom_elements_by_attr_cmp_begin(pcedom_element_cb_ctx_t *ctx,
-                                   pcedom_attr_t *attr)
+pcdom_elements_by_attr_cmp_begin(pcdom_element_cb_ctx_t *ctx,
+                                   pcdom_attr_t *attr)
 {
     if (ctx->value_length <= attr->value->length
         && pcutils_str_data_ncmp(attr->value->data, ctx->value,
@@ -1102,8 +1102,8 @@ pcedom_elements_by_attr_cmp_begin(pcedom_element_cb_ctx_t *ctx,
 }
 
 static bool
-pcedom_elements_by_attr_cmp_begin_case(pcedom_element_cb_ctx_t *ctx,
-                                        pcedom_attr_t *attr)
+pcdom_elements_by_attr_cmp_begin_case(pcdom_element_cb_ctx_t *ctx,
+                                        pcdom_attr_t *attr)
 {
     if (ctx->value_length <= attr->value->length
         && pcutils_str_data_ncasecmp(attr->value->data,
@@ -1116,8 +1116,8 @@ pcedom_elements_by_attr_cmp_begin_case(pcedom_element_cb_ctx_t *ctx,
 }
 
 static bool
-pcedom_elements_by_attr_cmp_end(pcedom_element_cb_ctx_t *ctx,
-                                 pcedom_attr_t *attr)
+pcdom_elements_by_attr_cmp_end(pcdom_element_cb_ctx_t *ctx,
+                                 pcdom_attr_t *attr)
 {
     if (ctx->value_length <= attr->value->length) {
         size_t dif = attr->value->length - ctx->value_length;
@@ -1133,8 +1133,8 @@ pcedom_elements_by_attr_cmp_end(pcedom_element_cb_ctx_t *ctx,
 }
 
 static bool
-pcedom_elements_by_attr_cmp_end_case(pcedom_element_cb_ctx_t *ctx,
-                                      pcedom_attr_t *attr)
+pcdom_elements_by_attr_cmp_end_case(pcdom_element_cb_ctx_t *ctx,
+                                      pcdom_attr_t *attr)
 {
     if (ctx->value_length <= attr->value->length) {
         size_t dif = attr->value->length - ctx->value_length;
@@ -1150,8 +1150,8 @@ pcedom_elements_by_attr_cmp_end_case(pcedom_element_cb_ctx_t *ctx,
 }
 
 static bool
-pcedom_elements_by_attr_cmp_contain(pcedom_element_cb_ctx_t *ctx,
-                                     pcedom_attr_t *attr)
+pcdom_elements_by_attr_cmp_contain(pcdom_element_cb_ctx_t *ctx,
+                                     pcdom_attr_t *attr)
 {
     if (ctx->value_length <= attr->value->length
         && pcutils_str_data_ncmp_contain(attr->value->data, attr->value->length,
@@ -1164,8 +1164,8 @@ pcedom_elements_by_attr_cmp_contain(pcedom_element_cb_ctx_t *ctx,
 }
 
 static bool
-pcedom_elements_by_attr_cmp_contain_case(pcedom_element_cb_ctx_t *ctx,
-                                          pcedom_attr_t *attr)
+pcdom_elements_by_attr_cmp_contain_case(pcdom_element_cb_ctx_t *ctx,
+                                          pcdom_attr_t *attr)
 {
     if (ctx->value_length <= attr->value->length
         && pcutils_str_data_ncasecmp_contain(attr->value->data, attr->value->length,
@@ -1178,7 +1178,7 @@ pcedom_elements_by_attr_cmp_contain_case(pcedom_element_cb_ctx_t *ctx,
 }
 
 const unsigned char *
-pcedom_element_qualified_name(pcedom_element_t *element, size_t *len)
+pcdom_element_qualified_name(pcdom_element_t *element, size_t *len)
 {
     const pchtml_tag_data_t *data;
 
@@ -1199,12 +1199,12 @@ pcedom_element_qualified_name(pcedom_element_t *element, size_t *len)
 }
 
 const unsigned char *
-pcedom_element_qualified_name_upper(pcedom_element_t *element, size_t *len)
+pcdom_element_qualified_name_upper(pcdom_element_t *element, size_t *len)
 {
     pchtml_tag_data_t *data;
 
     if (element->upper_name == PCHTML_TAG__UNDEF) {
-        return pcedom_element_upper_update(element, len);
+        return pcdom_element_upper_update(element, len);
     }
 
     data = (pchtml_tag_data_t *) element->upper_name;
@@ -1217,7 +1217,7 @@ pcedom_element_qualified_name_upper(pcedom_element_t *element, size_t *len)
 }
 
 static const unsigned char *
-pcedom_element_upper_update(pcedom_element_t *element, size_t *len)
+pcdom_element_upper_update(pcdom_element_t *element, size_t *len)
 {
     size_t length;
     pchtml_tag_data_t *data;
@@ -1228,7 +1228,7 @@ pcedom_element_upper_update(pcedom_element_t *element, size_t *len)
         /* data = (pchtml_tag_data_t *) element->upper_name; */
     }
 
-    name = pcedom_element_qualified_name(element, &length);
+    name = pcdom_element_qualified_name(element, &length);
     if (name == NULL) {
         return NULL;
     }
@@ -1251,7 +1251,7 @@ pcedom_element_upper_update(pcedom_element_t *element, size_t *len)
 }
 
 const unsigned char *
-pcedom_element_local_name(pcedom_element_t *element, size_t *len)
+pcdom_element_local_name(pcdom_element_t *element, size_t *len)
 {
     const pchtml_tag_data_t *data;
 
@@ -1273,7 +1273,7 @@ pcedom_element_local_name(pcedom_element_t *element, size_t *len)
 }
 
 const unsigned char *
-pcedom_element_prefix(pcedom_element_t *element, size_t *len)
+pcdom_element_prefix(pcdom_element_t *element, size_t *len)
 {
     const pchtml_ns_prefix_data_t *data;
 
@@ -1299,15 +1299,15 @@ empty:
 }
 
 const unsigned char *
-pcedom_element_tag_name(pcedom_element_t *element, size_t *len)
+pcdom_element_tag_name(pcdom_element_t *element, size_t *len)
 {
-    pcedom_document_t *doc = pcedom_interface_node(element)->owner_document;
+    pcdom_document_t *doc = pcdom_interface_node(element)->owner_document;
 
     if (element->node.ns != PCHTML_NS_HTML
-        || doc->type != PCEDOM_DOCUMENT_DTYPE_HTML)
+        || doc->type != PCDOM_DOCUMENT_DTYPE_HTML)
     {
-        return pcedom_element_qualified_name(element, len);
+        return pcdom_element_qualified_name(element, len);
     }
 
-    return pcedom_element_qualified_name_upper(element, len);
+    return pcdom_element_qualified_name_upper(element, len);
 }
