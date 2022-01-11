@@ -41,53 +41,19 @@
 static inline void
 grown(purc_variant_t obj, purc_variant_t key, purc_variant_t val)
 {
-    if (!list_empty(&obj->listeners))
-        return;
-    purc_atom_t msg_type = pcvariant_atom_grown;
-    PC_ASSERT(msg_type);
+    purc_variant_t vals[] = { key, val };
 
-    struct list_head *p;
-    list_for_each(p, &obj->listeners) {
-        struct pcvar_listener *l;
-        l = container_of(p, struct pcvar_listener, list_node);
-        PC_ASSERT(l->handler);
-        if (l->name != msg_type)
-            continue;
-
-        purc_variant_t args[] = {
-            key,
-            val,
-        };
-        bool ok = l->handler(obj, msg_type, l->ctxt,
-            PCA_TABLESIZE(args), args);
-        PC_ASSERT(ok);
-    }
+    pcvariant_on_post_fired(obj, pcvariant_atom_grow,
+            PCA_TABLESIZE(vals), vals);
 }
 
 static inline void
 shrunk(purc_variant_t obj, purc_variant_t key, purc_variant_t val)
 {
-    if (!list_empty(&obj->listeners))
-        return;
-    purc_atom_t msg_type = pcvariant_atom_shrunk;
-    PC_ASSERT(msg_type);
+    purc_variant_t vals[] = { key, val };
 
-    struct list_head *p;
-    list_for_each(p, &obj->listeners) {
-        struct pcvar_listener *l;
-        l = container_of(p, struct pcvar_listener, list_node);
-        PC_ASSERT(l->handler);
-        if (l->name != msg_type)
-            continue;
-
-        purc_variant_t args[] = {
-            key,
-            val,
-        };
-        bool ok = l->handler(obj, msg_type, l->ctxt,
-            PCA_TABLESIZE(args), args);
-        PC_ASSERT(ok);
-    }
+    pcvariant_on_post_fired(obj, pcvariant_atom_shrink,
+            PCA_TABLESIZE(vals), vals);
 }
 
 static inline void
@@ -95,29 +61,10 @@ change(purc_variant_t obj,
         purc_variant_t ko, purc_variant_t vo,
         purc_variant_t kn, purc_variant_t vn)
 {
-    if (!list_empty(&obj->listeners))
-        return;
-    purc_atom_t msg_type = pcvariant_atom_change;
-    PC_ASSERT(msg_type);
+    purc_variant_t vals[] = { ko, vo, kn, vn };
 
-    struct list_head *p;
-    list_for_each(p, &obj->listeners) {
-        struct pcvar_listener *l;
-        l = container_of(p, struct pcvar_listener, list_node);
-        PC_ASSERT(l->handler);
-        if (l->name != msg_type)
-            continue;
-
-        purc_variant_t args[] = {
-            kn,
-            vn,
-            ko,
-            vo,
-        };
-        bool ok = l->handler(obj, msg_type, l->ctxt,
-            PCA_TABLESIZE(args), args);
-        PC_ASSERT(ok);
-    }
+    pcvariant_on_post_fired(obj, pcvariant_atom_change,
+            PCA_TABLESIZE(vals), vals);
 }
 
 static inline variant_obj_t
@@ -257,7 +204,7 @@ v_object_set_kvs_n(purc_variant_t obj, size_t nr_kv_pairs,
 }
 
 static int
-v_object_remove(purc_variant_t obj, purc_variant_t key)
+v_object_remove(purc_variant_t obj, purc_variant_t key, bool silently)
 {
     variant_obj_t data = object_get_data(obj);
     struct rb_root *root = &data->kvs;
@@ -283,6 +230,9 @@ v_object_remove(purc_variant_t obj, purc_variant_t key)
     }
 
     if (!entry) {
+        if (silently) {
+            return 0;
+        }
         pcinst_set_error(PCVARIANT_ERROR_NOT_FOUND);
         return -1;
     }
@@ -461,7 +411,8 @@ int pcvariant_object_compare (purc_variant_t lv, purc_variant_t rv)
 }
 */
 
-purc_variant_t purc_variant_object_get(purc_variant_t obj, purc_variant_t key)
+purc_variant_t purc_variant_object_get(purc_variant_t obj, purc_variant_t key,
+        bool silently)
 {
     PCVARIANT_CHECK_FAIL_RET((obj && obj->type==PVT(_OBJECT) &&
         obj->sz_ptr[1] && key),
@@ -492,7 +443,9 @@ purc_variant_t purc_variant_object_get(purc_variant_t obj, purc_variant_t key)
     }
 
     if (!entry) {
-        pcinst_set_error(PCVARIANT_ERROR_NOT_FOUND);
+        if (!silently) {
+            pcinst_set_error(PCVARIANT_ERROR_NOT_FOUND);
+        }
         return PURC_VARIANT_INVALID;
     }
 
@@ -513,13 +466,14 @@ bool purc_variant_object_set (purc_variant_t obj,
     return r ? false : true;
 }
 
-bool purc_variant_object_remove(purc_variant_t obj, purc_variant_t key)
+bool purc_variant_object_remove(purc_variant_t obj, purc_variant_t key,
+        bool silently)
 {
     PCVARIANT_CHECK_FAIL_RET(obj && obj->type==PVT(_OBJECT) &&
         obj->sz_ptr[1] && key,
         false);
 
-    if (v_object_remove(obj, key))
+    if (v_object_remove(obj, key, silently))
         return false;
 
     return true;

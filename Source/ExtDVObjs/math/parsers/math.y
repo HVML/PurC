@@ -147,7 +147,8 @@
     #define SET_BY_VAR(_r, _a) do {                                      \
         if (param->variables) {                                          \
             purc_variant_t _v;                                           \
-            _v = purc_variant_object_get_by_ckey(param->variables, _a);  \
+            _v = purc_variant_object_get_by_ckey(param->variables, _a,   \
+                false);                                                  \
             if (_v) {                                                    \
                 bool ok = CAST_TO_NUMBER(_v, &_r.d, false);              \
                 if (ok)                                                  \
@@ -158,7 +159,7 @@
         if (!param->param || !purc_variant_is_object(param->param))      \
             YYABORT;                                                     \
                                                                          \
-        _v = purc_variant_object_get_by_ckey(param->param, _a);          \
+        _v = purc_variant_object_get_by_ckey(param->param, _a, false);   \
         if (!_v)                                                         \
             YYABORT;                                                     \
                                                                          \

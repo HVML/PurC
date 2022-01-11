@@ -41,78 +41,29 @@
 static inline void
 grown(purc_variant_t set, purc_variant_t value)
 {
-    if (!list_empty(&set->listeners))
-        return;
-    purc_atom_t msg_type = pcvariant_atom_grown;
-    PC_ASSERT(msg_type);
+    purc_variant_t vals[] = { value };
 
-    struct list_head *p;
-    list_for_each(p, &set->listeners) {
-        struct pcvar_listener *l;
-        l = container_of(p, struct pcvar_listener, list_node);
-        PC_ASSERT(l->handler);
-        if (l->name != msg_type)
-            continue;
-
-        purc_variant_t args[] = {
-            value,
-        };
-        bool ok = l->handler(set, msg_type, l->ctxt,
-            PCA_TABLESIZE(args), args);
-        PC_ASSERT(ok);
-    }
+    pcvariant_on_post_fired(set, pcvariant_atom_grow,
+            PCA_TABLESIZE(vals), vals);
 }
 
 static inline void
 shrunk(purc_variant_t set, purc_variant_t value)
 {
-    if (!list_empty(&set->listeners))
-        return;
-    purc_atom_t msg_type = pcvariant_atom_shrunk;
-    PC_ASSERT(msg_type);
+    purc_variant_t vals[] = { value };
 
-    struct list_head *p;
-    list_for_each(p, &set->listeners) {
-        struct pcvar_listener *l;
-        l = container_of(p, struct pcvar_listener, list_node);
-        PC_ASSERT(l->handler);
-        if (l->name != msg_type)
-            continue;
-
-        purc_variant_t args[] = {
-            value,
-        };
-        bool ok = l->handler(set, msg_type, l->ctxt,
-            PCA_TABLESIZE(args), args);
-        PC_ASSERT(ok);
-    }
+    pcvariant_on_post_fired(set, pcvariant_atom_shrink,
+            PCA_TABLESIZE(vals), vals);
 }
 
 static inline void
 change(purc_variant_t set,
         purc_variant_t o, purc_variant_t n)
 {
-    if (!list_empty(&set->listeners))
-        return;
-    purc_atom_t msg_type = pcvariant_atom_change;
-    PC_ASSERT(msg_type);
+    purc_variant_t vals[] = { o, n };
 
-    struct list_head *p;
-    list_for_each(p, &set->listeners) {
-        struct pcvar_listener *l;
-        l = container_of(p, struct pcvar_listener, list_node);
-        PC_ASSERT(l->handler);
-        if (l->name != msg_type)
-            continue;
-
-        purc_variant_t args[] = {
-            n,
-            o,
-        };
-        bool ok = l->handler(set, msg_type, l->ctxt,
-            PCA_TABLESIZE(args), args);
-        PC_ASSERT(ok);
-    }
+    pcvariant_on_post_fired(set, pcvariant_atom_change,
+            PCA_TABLESIZE(vals), vals);
 }
 
 static inline variant_set_t
@@ -233,7 +184,7 @@ variant_set_cache_obj_keyval(variant_set_t set,
     if (set->unique_key) {
         for (size_t i=0; i<set->nr_keynames; ++i) {
             purc_variant_t v;
-            v = purc_variant_object_get_by_ckey(value, set->keynames[i]);
+            v = purc_variant_object_get_by_ckey(value, set->keynames[i], false);
             if (v == PURC_VARIANT_INVALID) {
                 v = purc_variant_make_undefined();
             }
@@ -690,7 +641,8 @@ purc_variant_set_add (purc_variant_t set, purc_variant_t value, bool override)
 }
 
 bool
-purc_variant_set_remove (purc_variant_t set, purc_variant_t value)
+purc_variant_set_remove (purc_variant_t set, purc_variant_t value,
+        bool silently)
 {
     PCVARIANT_CHECK_FAIL_RET(set && set->type==PVT(_SET) && value,
         PURC_VARIANT_INVALID);
@@ -710,7 +662,7 @@ purc_variant_set_remove (purc_variant_t set, purc_variant_t value)
     }
     free(kvs);
 
-    return p ? true : false;
+    return p ? true : (silently ? true : false);
 }
 
 purc_variant_t
@@ -1056,31 +1008,6 @@ int pcvariant_set_compare (purc_variant_t lv, purc_variant_t rv)
 }
 */
 
-int pcvariant_set_swap(purc_variant_t value, int i, int j)
-{
-    if (!value || value->type != PURC_VARIANT_TYPE_SET)
-        return -1;
-
-    variant_set_t set = (variant_set_t)value->sz_ptr[1];
-    if (!set)
-        return -1;
-
-    struct pcutils_arrlist *al = set->arr;
-    if (i<0 || (size_t)i>=al->length)
-        return -1;
-    if (j<0 || (size_t)j>=al->length)
-        return -1;
-
-    struct elem_node *l = (struct elem_node*)al->array[i];
-    struct elem_node *r = (struct elem_node*)al->array[j];
-    l->idx = j;
-    r->idx = i;
-    al->array[i] = r;
-    al->array[j] = l;
-
-    return 0;
-}
-
 struct set_user_data {
     int (*cmp)(size_t nr_keynames,
             purc_variant_t l[], purc_variant_t r[], void *ud);
@@ -1142,5 +1069,26 @@ int pcvariant_set_sort(purc_variant_t value, void *ud,
     refresh_arr(al, 0);
 
     return 0;
+}
+
+bool
+pcvariant_is_in_set (purc_variant_t set, purc_variant_t value)
+{
+    PCVARIANT_CHECK_FAIL_RET(set && set->type==PVT(_SET) && value,
+        PURC_VARIANT_INVALID);
+
+    variant_set_t data = pcv_set_get_data(set);
+    PC_ASSERT(data);
+    PC_ASSERT(data->nr_keynames);
+
+    purc_variant_t *kvs = variant_set_create_kvs(data, value);
+    if (!kvs)
+        return false;
+
+    struct elem_node *p;
+    p = find_element(data, kvs);
+    free(kvs);
+
+    return p ? true : false;
 }
 

@@ -122,14 +122,11 @@ static inline void free_variant(purc_variant *v) {
 }
 #endif
 
-purc_atom_t pcvariant_atom_grown;
-purc_atom_t pcvariant_atom_shrunk;
+purc_atom_t pcvariant_atom_grow;
+purc_atom_t pcvariant_atom_shrink;
 purc_atom_t pcvariant_atom_change;
-purc_atom_t pcvariant_atom_referenced;
-purc_atom_t pcvariant_atom_unreferenced;
-purc_atom_t pcvariant_atom_destroyed;
-purc_atom_t pcvariant_atom_timers;
-purc_atom_t pcvariant_atom_timer;
+purc_atom_t pcvariant_atom_reference;
+purc_atom_t pcvariant_atom_unreference;
 
 void pcvariant_init_once(void)
 {
@@ -137,14 +134,11 @@ void pcvariant_init_once(void)
     pcinst_register_error_message_segment(&_variant_err_msgs_seg);
 
     // initialize others
-    pcvariant_atom_grown = purc_atom_from_static_string("grown");
-    pcvariant_atom_shrunk = purc_atom_from_static_string("shrunk");
+    pcvariant_atom_grow = purc_atom_from_static_string("grow");
+    pcvariant_atom_shrink = purc_atom_from_static_string("shrink");
     pcvariant_atom_change = purc_atom_from_static_string("change");
-    pcvariant_atom_referenced = purc_atom_from_static_string("referenced");
-    pcvariant_atom_unreferenced = purc_atom_from_static_string("unreferenced");
-    pcvariant_atom_destroyed = purc_atom_from_static_string("destroyed");
-    pcvariant_atom_timers = purc_atom_from_static_string("timers");
-    pcvariant_atom_timer = purc_atom_from_static_string("timer");
+    pcvariant_atom_reference = purc_atom_from_static_string("reference");
+    pcvariant_atom_unreference = purc_atom_from_static_string("unreference");
 }
 
 void pcvariant_init_instance(struct pcinst *inst)
@@ -153,20 +147,28 @@ void pcvariant_init_instance(struct pcinst *inst)
     inst->variant_heap.v_undefined.type = PURC_VARIANT_TYPE_UNDEFINED;
     inst->variant_heap.v_undefined.refc = 0;
     inst->variant_heap.v_undefined.flags = PCVARIANT_FLAG_NOFREE;
+    INIT_LIST_HEAD(&inst->variant_heap.v_undefined.pre_listeners);
+    INIT_LIST_HEAD(&inst->variant_heap.v_undefined.post_listeners);
 
     inst->variant_heap.v_null.type = PURC_VARIANT_TYPE_NULL;
     inst->variant_heap.v_null.refc = 0;
     inst->variant_heap.v_null.flags = PCVARIANT_FLAG_NOFREE;
+    INIT_LIST_HEAD(&inst->variant_heap.v_null.pre_listeners);
+    INIT_LIST_HEAD(&inst->variant_heap.v_null.post_listeners);
 
     inst->variant_heap.v_false.type = PURC_VARIANT_TYPE_BOOLEAN;
     inst->variant_heap.v_false.refc = 0;
     inst->variant_heap.v_false.flags = PCVARIANT_FLAG_NOFREE;
     inst->variant_heap.v_false.b = false;
+    INIT_LIST_HEAD(&inst->variant_heap.v_false.pre_listeners);
+    INIT_LIST_HEAD(&inst->variant_heap.v_false.post_listeners);
 
     inst->variant_heap.v_true.type = PURC_VARIANT_TYPE_BOOLEAN;
     inst->variant_heap.v_true.refc = 0;
     inst->variant_heap.v_true.flags = PCVARIANT_FLAG_NOFREE;
     inst->variant_heap.v_true.b = true;
+    INIT_LIST_HEAD(&inst->variant_heap.v_true.pre_listeners);
+    INIT_LIST_HEAD(&inst->variant_heap.v_true.post_listeners);
 
     inst->variant_heap.gc = NULL;
 
@@ -323,43 +325,13 @@ enum purc_variant_type purc_variant_get_type(purc_variant_t value)
 static inline void
 referenced(purc_variant_t value)
 {
-    if (!list_empty(&value->listeners))
-        return;
-    purc_atom_t msg_type = pcvariant_atom_referenced;
-    PC_ASSERT(msg_type);
-
-    struct list_head *p;
-    list_for_each(p, &value->listeners) {
-        struct pcvar_listener *l;
-        l = container_of(p, struct pcvar_listener, list_node);
-        PC_ASSERT(l->handler);
-        if (l->name != msg_type)
-            continue;
-
-        bool ok = l->handler(value, msg_type, l->ctxt, 0, NULL);
-        PC_ASSERT(ok);
-    }
+    pcvariant_on_post_fired(value, pcvariant_atom_reference, 0, NULL);
 }
 
 static inline void
 unreferenced(purc_variant_t value)
 {
-    if (!list_empty(&value->listeners))
-        return;
-    purc_atom_t msg_type = pcvariant_atom_unreferenced;
-    PC_ASSERT(msg_type);
-
-    struct list_head *p;
-    list_for_each(p, &value->listeners) {
-        struct pcvar_listener *l;
-        l = container_of(p, struct pcvar_listener, list_node);
-        PC_ASSERT(l->handler);
-        if (l->name != msg_type)
-            continue;
-
-        bool ok = l->handler(value, msg_type, l->ctxt, 0, NULL);
-        PC_ASSERT(ok);
-    }
+    pcvariant_on_post_fired(value, pcvariant_atom_unreference, 0, NULL);
 }
 
 unsigned int purc_variant_ref (purc_variant_t value)
@@ -379,28 +351,6 @@ unsigned int purc_variant_ref (purc_variant_t value)
     return value->refc;
 }
 
-static inline void
-destroyed(purc_variant_t value)
-{
-    if (!list_empty(&value->listeners))
-        return;
-    purc_atom_t msg_type = pcvariant_atom_destroyed;
-    PC_ASSERT(msg_type);
-
-    struct list_head *p, *n;
-    list_for_each_safe(p, n, &value->listeners) {
-        struct pcvar_listener *l;
-        l = container_of(p, struct pcvar_listener, list_node);
-        PC_ASSERT(l->handler);
-        if (l->name == msg_type) {
-            bool ok = l->handler(value, msg_type, l->ctxt, 0, NULL);
-            PC_ASSERT(ok);
-        }
-        list_del(p);
-        free(p);
-    }
-}
-
 unsigned int purc_variant_unref(purc_variant_t value)
 {
     PC_ASSERT(value);
@@ -411,9 +361,10 @@ unsigned int purc_variant_unref(purc_variant_t value)
         return 0;
     }
 
+    // FIXME: pre or post?
+    unreferenced(value);
+
     value->refc--;
-    if (value->refc == 0)
-        destroyed(value);
 
     // VWNOTE: only non-constant values has a releaser
     if (value->refc == 0 && !(value->flags & PCVARIANT_FLAG_NOFREE)) {
@@ -427,7 +378,6 @@ unsigned int purc_variant_unref(purc_variant_t value)
         return 0;
     }
 
-    unreferenced(value);
     return value->refc;
 }
 
@@ -446,9 +396,9 @@ struct purc_variant_stat * purc_variant_usage_stat(void)
     value = &(inst->variant_heap.v_null);
     inst->variant_heap.stat.nr_values[PURC_VARIANT_TYPE_NULL] = value->refc;
 
-
     value = &(inst->variant_heap.v_true);
     inst->variant_heap.stat.nr_values[PURC_VARIANT_TYPE_BOOLEAN] = value->refc;
+
     value = &(inst->variant_heap.v_false);
     inst->variant_heap.stat.nr_values[PURC_VARIANT_TYPE_BOOLEAN] += value->refc;
 
@@ -511,7 +461,8 @@ purc_variant_t pcvariant_get(enum purc_variant_type type)
     stat->nr_total_values++;
 
     // init listeners
-    INIT_LIST_HEAD(&value->listeners);
+    INIT_LIST_HEAD(&value->pre_listeners);
+    INIT_LIST_HEAD(&value->post_listeners);
 
     return value;
 }
@@ -523,7 +474,8 @@ void pcvariant_put(purc_variant_t value)
     struct purc_variant_stat *stat = &(heap->stat);
 
     PC_ASSERT(value);
-    PC_ASSERT(list_empty(&value->listeners));
+    PC_ASSERT(list_empty(&value->pre_listeners));
+    PC_ASSERT(list_empty(&value->post_listeners));
 
     // set stat information
     stat->nr_values[value->type]--;
@@ -570,7 +522,7 @@ static int compare_objects(purc_variant_t v1, purc_variant_t v2)
         return (int)(sz1 - sz2);
 
     foreach_key_value_in_variant_object(v1, key, m1)
-        m2 = purc_variant_object_get(v2, key);
+        m2 = purc_variant_object_get(v2, key, false);
         diff = purc_variant_compare_st(m1, m2);
         if (diff != 0)
             return diff;
@@ -591,8 +543,9 @@ static int compare_arrays(purc_variant_t v1, purc_variant_t v2)
         return (int)(sz1 - sz2);
 
     idx = 0;
-    foreach_value_in_variant_array(v1, m1)
-
+    size_t curr;
+    foreach_value_in_variant_array(v1, m1, curr)
+        (void)curr;
         m2 = purc_variant_array_get(v2, idx);
         diff = purc_variant_compare_st(m1, m2);
         if (diff != 0)
@@ -1442,7 +1395,7 @@ bool purc_variant_unload_dvobj (purc_variant_t dvobj)
 
     uint64_t u64 = 0;
     purc_variant_t val = purc_variant_object_get_by_ckey (dvobj,
-            EXOBJ_LOAD_HANDLE_KEY);
+            EXOBJ_LOAD_HANDLE_KEY, false);
     if (val == PURC_VARIANT_INVALID) {
         pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return false;
@@ -1588,7 +1541,7 @@ numberify_set(purc_variant_t value)
     double d = 0.0;
 
     purc_variant_t v;
-    foreach_value_in_variant_array(value, v)
+    foreach_value_in_variant_set(value, v)
         d += purc_variant_numberify(v);
     end_foreach;
 
@@ -2067,7 +2020,7 @@ void pcvariant_gc_mov(purc_variant_t val)
     purc_variant_unref(val);
 }
 
-int pcvariant_serialize(char *buf, size_t sz, purc_variant_t val)
+ssize_t pcvariant_serialize(char *buf, size_t sz, purc_variant_t val)
 {
     PC_ASSERT(val != PURC_VARIANT_INVALID);
     purc_rwstream_t out = purc_rwstream_new_from_mem(buf, sz);

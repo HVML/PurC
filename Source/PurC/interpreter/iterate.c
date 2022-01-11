@@ -82,7 +82,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     PC_ASSERT(ctxt);
 
     purc_variant_t on;
-    on = purc_variant_object_get_by_ckey(frame->attr_vars, "on");
+    on = purc_variant_object_get_by_ckey(frame->attr_vars, "on", false);
     if (on == PURC_VARIANT_INVALID)
         return -1;
     PURC_VARIANT_SAFE_CLEAR(ctxt->on);
@@ -90,7 +90,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     purc_variant_ref(on);
 
     purc_variant_t by;
-    by = purc_variant_object_get_by_ckey(frame->attr_vars, "by");
+    by = purc_variant_object_get_by_ckey(frame->attr_vars, "by", false);
     if (by == PURC_VARIANT_INVALID) {
         by = purc_variant_make_string_static("RANGE: FROM 0", false);
         if (by == PURC_VARIANT_INVALID)

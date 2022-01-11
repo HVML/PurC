@@ -214,4 +214,31 @@ list_splice_tail_init(struct list_head *list, struct list_head *head)
     INIT_LIST_HEAD(list);
 }
 
+static inline int
+list_swap(struct list_head *l, struct list_head *r)
+{
+    if (l == r)
+        return 0;
+
+    struct list_head *l_prev = l->prev;
+    struct list_head *l_next = l->next;
+    struct list_head *r_prev = r->prev;
+    struct list_head *r_next = r->next;
+    if (l_prev == r) {
+        list_del(r);
+        _list_add(r, l, l_next);
+        return 0;
+    }
+    if (l_next == r) {
+        list_del(l);
+        _list_add(l, r, r_next);
+        return 0;
+    }
+    list_del(l);
+    _list_add(l, r_prev, r);
+    list_del(r);
+    _list_add(r, l_prev, l_next);
+    return 0;
+}
+
 #endif /* PURC_PRIVATE_LIST_H */

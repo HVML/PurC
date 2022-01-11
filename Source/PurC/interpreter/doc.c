@@ -142,9 +142,10 @@ doctype_getter(purc_variant_t root, size_t nr_args, purc_variant_t * argv)
     PC_ASSERT(root != PURC_VARIANT_INVALID);
 
     purc_variant_t dom;
-    dom = purc_variant_object_get_by_ckey(root, "__dom");
+    dom = purc_variant_object_get_by_ckey(root, "__dom", false);
     PC_ASSERT(dom != PURC_VARIANT_INVALID);
     PC_ASSERT(!purc_variant_is_ulongint(dom));
+
     uint64_t u64;
     bool ok;
     ok = purc_variant_cast_to_ulongint(dom, &u64, false);
@@ -204,9 +205,10 @@ query_getter(purc_variant_t root, size_t nr_args, purc_variant_t * argv)
     PC_ASSERT(root != PURC_VARIANT_INVALID);
 
     purc_variant_t dom;
-    dom = purc_variant_object_get_by_ckey(root, "__dom");
+    dom = purc_variant_object_get_by_ckey(root, "__dom", false);
     PC_ASSERT(dom != PURC_VARIANT_INVALID);
     PC_ASSERT(!purc_variant_is_ulongint(dom));
+
     uint64_t u64;
     bool ok;
     ok = purc_variant_cast_to_ulongint(dom, &u64, false);

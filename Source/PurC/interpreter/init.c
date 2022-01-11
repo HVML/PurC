@@ -90,7 +90,7 @@ post_process_array(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         purc_variant_t name)
 {
     purc_variant_t via;
-    via = purc_variant_object_get_by_ckey(frame->attr_vars, "via");
+    via = purc_variant_object_get_by_ckey(frame->attr_vars, "via", false);
     purc_clr_error();
     purc_variant_t set;
     set = purc_variant_make_set(0, via, PURC_VARIANT_INVALID);
@@ -98,7 +98,9 @@ post_process_array(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         return -1;
 
     purc_variant_t val;
-    foreach_value_in_variant_array(frame->ctnt_var, val)
+    size_t idx;
+    foreach_value_in_variant_array(frame->ctnt_var, val, idx)
+        (void)idx;
         bool ok = purc_variant_is_type(val, PURC_VARIANT_TYPE_OBJECT);
         if (ok) {
             ok = purc_variant_set_add(set, val, true);
@@ -126,7 +128,7 @@ static int
 post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
     purc_variant_t name;
-    name = purc_variant_object_get_by_ckey(frame->attr_vars, "as");
+    name = purc_variant_object_get_by_ckey(frame->attr_vars, "as", false);
     if (name == PURC_VARIANT_INVALID)
         return -1;
 
