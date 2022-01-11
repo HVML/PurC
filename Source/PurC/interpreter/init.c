@@ -97,6 +97,13 @@ post_process_array(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     if (set == PURC_VARIANT_INVALID)
         return -1;
 
+    // TODO
+#if 1
+    if (!purc_variant_container_displace(set, frame->ctnt_var, true)) {
+        purc_variant_unref(set);
+        return -1;
+    }
+#else
     purc_variant_t val;
     size_t idx;
     foreach_value_in_variant_array(frame->ctnt_var, val, idx)
@@ -110,6 +117,7 @@ post_process_array(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
             return -1;
         }
     end_foreach;
+#endif
 
     return post_process_bind_scope_var(co, frame, name, set);
 }
