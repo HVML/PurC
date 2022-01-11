@@ -36,7 +36,7 @@
 
 #include "config.h"
 #include "html/html_interface.h"
-#include "private/edom.h"
+#include "private/dom.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -44,7 +44,7 @@ extern "C" {
 
 
 struct pchtml_html_window {
-    pcedom_event_target_t event_target;
+    pcdom_event_target_t event_target;
 };
 
 

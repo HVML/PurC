@@ -204,7 +204,7 @@ v_object_set_kvs_n(purc_variant_t obj, size_t nr_kv_pairs,
 }
 
 static int
-v_object_remove(purc_variant_t obj, purc_variant_t key)
+v_object_remove(purc_variant_t obj, purc_variant_t key, bool silently)
 {
     variant_obj_t data = object_get_data(obj);
     struct rb_root *root = &data->kvs;
@@ -230,6 +230,9 @@ v_object_remove(purc_variant_t obj, purc_variant_t key)
     }
 
     if (!entry) {
+        if (silently) {
+            return 0;
+        }
         pcinst_set_error(PCVARIANT_ERROR_NOT_FOUND);
         return -1;
     }
@@ -408,7 +411,8 @@ int pcvariant_object_compare (purc_variant_t lv, purc_variant_t rv)
 }
 */
 
-purc_variant_t purc_variant_object_get(purc_variant_t obj, purc_variant_t key)
+purc_variant_t purc_variant_object_get(purc_variant_t obj, purc_variant_t key,
+        bool silently)
 {
     PCVARIANT_CHECK_FAIL_RET((obj && obj->type==PVT(_OBJECT) &&
         obj->sz_ptr[1] && key),
@@ -439,7 +443,9 @@ purc_variant_t purc_variant_object_get(purc_variant_t obj, purc_variant_t key)
     }
 
     if (!entry) {
-        pcinst_set_error(PCVARIANT_ERROR_NOT_FOUND);
+        if (!silently) {
+            pcinst_set_error(PCVARIANT_ERROR_NOT_FOUND);
+        }
         return PURC_VARIANT_INVALID;
     }
 
@@ -460,13 +466,14 @@ bool purc_variant_object_set (purc_variant_t obj,
     return r ? false : true;
 }
 
-bool purc_variant_object_remove(purc_variant_t obj, purc_variant_t key)
+bool purc_variant_object_remove(purc_variant_t obj, purc_variant_t key,
+        bool silently)
 {
     PCVARIANT_CHECK_FAIL_RET(obj && obj->type==PVT(_OBJECT) &&
         obj->sz_ptr[1] && key,
         false);
 
-    if (v_object_remove(obj, key))
+    if (v_object_remove(obj, key, silently))
         return false;
 
     return true;

@@ -1,0 +1,43 @@
+{
+    "ignore" : false,
+    "error" : 0,
+    "ops" : "displace",
+    "dst_type" : "array",
+    "dst_unique_key" : null,
+    "dst" :
+    [
+        {
+            "id":1
+        },
+        {
+            "id":2
+        }
+    ],
+    "src_type" : "set",
+    "src_unique_key" : null,
+    "src" :
+    [
+        {
+            "id":1,"name":"1_name"
+        },
+        {
+            "id":2,"name":"2_name"
+        },
+        {
+            "id":3,"name":"3_name"
+        }
+    ],
+    "cmp" :
+    [
+        {
+            "id":1,"name":"1_name"
+        },
+        {
+            "id":2,"name":"2_name"
+        },
+        {
+            "id":3,"name":"3_name"
+        }
+    ]
+}
+

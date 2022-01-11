@@ -31,11 +31,11 @@
 
 #include "private/debug.h"
 #include "private/errors.h"
-#include "private/edom.h"
+#include "private/dom.h"
 
 struct pcdvobjs_element
 {
-    struct pcedom_element          *elem;       // NOTE: no ownership
+    struct pcdom_element          *elem;       // NOTE: no ownership
 };
 
 struct pcdvobjs_elements {
@@ -54,40 +54,40 @@ struct native_property_cfg {
 PCA_EXTERN_C_BEGIN
 
 purc_variant_t
-pcdvobjs_query_elements(struct pcedom_element *root,
+pcdvobjs_query_elements(struct pcdom_element *root,
     const char *css) WTF_INTERNAL;
 
 
 purc_variant_t
-pcdvobjs_element_attr_getter(pcedom_element_t *element,
+pcdvobjs_element_attr_getter(pcdom_element_t *element,
         size_t nr_args, purc_variant_t *argv);
 
 purc_variant_t
-pcdvobjs_element_prop_getter(pcedom_element_t *element,
+pcdvobjs_element_prop_getter(pcdom_element_t *element,
         size_t nr_args, purc_variant_t *argv);
 
 purc_variant_t
-pcdvobjs_element_style_getter(pcedom_element_t *element,
+pcdvobjs_element_style_getter(pcdom_element_t *element,
         size_t nr_args, purc_variant_t* argv);
 
 purc_variant_t
-pcdvobjs_element_content_getter(pcedom_element_t *element,
+pcdvobjs_element_content_getter(pcdom_element_t *element,
         size_t nr_args, purc_variant_t* argv);
 
 purc_variant_t
-pcdvobjs_element_text_content_getter(pcedom_element_t *element,
+pcdvobjs_element_text_content_getter(pcdom_element_t *element,
         size_t nr_args, purc_variant_t* argv);
 
 purc_variant_t
-pcdvobjs_element_json_content_getter(pcedom_element_t *element,
+pcdvobjs_element_json_content_getter(pcdom_element_t *element,
         size_t nr_args, purc_variant_t* argv);
 
 purc_variant_t
-pcdvobjs_element_val_getter(pcedom_element_t *element,
+pcdvobjs_element_val_getter(pcdom_element_t *element,
         size_t nr_args, purc_variant_t* argv);
 
 purc_variant_t
-pcdvobjs_element_has_class_getter(pcedom_element_t *element,
+pcdvobjs_element_has_class_getter(pcdom_element_t *element,
         size_t nr_args, purc_variant_t* argv);
 
 PCA_EXTERN_C_END

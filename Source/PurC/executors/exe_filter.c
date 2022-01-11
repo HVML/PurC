@@ -91,7 +91,9 @@ init_result_set_with_array(struct pcexec_exe_filter_inst *exe_filter_inst,
 
     bool ok = true;
     purc_variant_t v;
-    foreach_value_in_variant_array(input, v)
+    size_t idx;
+    foreach_value_in_variant_array(input, v, idx)
+        (void)idx;
         if (!purc_variant_array_append(result_set, v)) {
             ok = false;
             break;

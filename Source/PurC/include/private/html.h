@@ -26,7 +26,7 @@
 #define PURC_PRIVATE_HTML_H
 
 #include "config.h"
-#include "private/edom.h"
+#include "private/dom.h"
 #include "private/html.h"
 
 #include "purc-rwstream.h"

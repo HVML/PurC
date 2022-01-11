@@ -30,7 +30,7 @@
  * Author: Alexander Borisov <borisov@lexbor.com>
  */
 
-#include "private/edom.h"
+#include "private/dom.h"
 #include "html/interfaces/element.h"
 #include "html/interfaces/document.h"
 
@@ -46,10 +46,10 @@ pchtml_html_element_interface_create(pchtml_html_document_t *document)
         return NULL;
     }
 
-    pcedom_node_t *node = pcedom_interface_node(element);
+    pcdom_node_t *node = pcdom_interface_node(element);
 
     node->owner_document = pchtml_html_document_original_ref(document);
-    node->type = PCEDOM_NODE_TYPE_ELEMENT;
+    node->type = PCDOM_NODE_TYPE_ELEMENT;
 
     return element;
 }
@@ -58,15 +58,15 @@ pchtml_html_element_t *
 pchtml_html_element_interface_destroy(pchtml_html_element_t *element)
 {
     return pcutils_mraw_free(
-                pcedom_interface_node(element)->owner_document->mraw, element);
+                pcdom_interface_node(element)->owner_document->mraw, element);
 }
 
 pchtml_html_element_t *
 pchtml_html_element_inner_html_set(pchtml_html_element_t *element,
                                 const purc_rwstream_t html)
 {
-    pcedom_node_t *node, *child;
-    pcedom_node_t *root = pcedom_interface_node(element);
+    pcdom_node_t *node, *child;
+    pcdom_node_t *root = pcdom_interface_node(element);
     pchtml_html_document_t *doc = pchtml_html_interface_document(root->owner_document);
 
     node = pchtml_html_document_parse_fragment(doc, &element->element, html);
@@ -75,17 +75,17 @@ pchtml_html_element_inner_html_set(pchtml_html_element_t *element,
     }
 
     while (root->first_child != NULL) {
-        pcedom_node_destroy_deep(root->first_child);
+        pcdom_node_destroy_deep(root->first_child);
     }
 
     while (node->first_child != NULL) {
         child = node->first_child;
 
-        pcedom_node_remove(child);
-        pcedom_node_insert_child(root, child);
+        pcdom_node_remove(child);
+        pcdom_node_insert_child(root, child);
     }
 
-    pcedom_node_destroy(node);
+    pcdom_node_destroy(node);
 
     return pchtml_html_interface_element(root);
 }

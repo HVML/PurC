@@ -37,8 +37,8 @@
 #ifndef PCHTML_ATTR_CONST_H
 #define PCHTML_ATTR_CONST_H
 
-/* VW: move to purc-edom.h
-typedef uintptr_t pcedom_attr_id_t; */
+/* VW: move to purc-dom.h
+typedef uintptr_t pcdom_attr_id_t; */
 
 %%BODY%%
 

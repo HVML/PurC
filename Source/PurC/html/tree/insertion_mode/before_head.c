@@ -71,7 +71,7 @@ pchtml_html_tree_insertion_mode_before_head_open(pchtml_html_tree_t *tree,
 {
     switch (token->tag_id) {
         case PCHTML_TAG__EM_COMMENT: {
-            pcedom_comment_t *comment;
+            pcdom_comment_t *comment;
 
             comment = pchtml_html_tree_insert_comment(tree, token, NULL);
             if (comment == NULL) {

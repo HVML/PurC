@@ -45,7 +45,7 @@
 
 
 unsigned int
-pcedom_element_qualified_name_set(pcedom_element_t *element,
+pcdom_element_qualified_name_set(pcdom_element_t *element,
                                    const unsigned char *prefix, size_t prefix_len,
                                    const unsigned char *lname, size_t lname_len);
 
@@ -58,7 +58,7 @@ pchtml_html_tree_insertion_mode_foreign_content_anything_else_closed(pchtml_html
         return tree->mode(tree, token);
     }
 
-    pcedom_node_t **list = (pcedom_node_t **) tree->open_elements->list;
+    pcdom_node_t **list = (pcdom_node_t **) tree->open_elements->list;
 
     size_t idx = tree->open_elements->length - 1;
 
@@ -91,7 +91,7 @@ static inline bool
 pchtml_html_tree_insertion_mode_foreign_content_script_closed(pchtml_html_tree_t *tree,
                                                            pchtml_html_token_t *token)
 {
-    pcedom_node_t *node = pchtml_html_tree_current_node(tree);
+    pcdom_node_t *node = pchtml_html_tree_current_node(tree);
 
     if (node->local_name != PCHTML_TAG_SCRIPT || node->ns != PCHTML_NS_SVG) {
         return pchtml_html_tree_insertion_mode_foreign_content_anything_else_closed(tree,
@@ -109,7 +109,7 @@ pchtml_html_tree_insertion_mode_foreign_content_anything_else(pchtml_html_tree_t
 {
     pchtml_html_element_t *element;
     const pchtml_html_tag_fixname_t *fixname_svg;
-    pcedom_node_t *node = pchtml_html_tree_adjusted_current_node(tree);
+    pcdom_node_t *node = pchtml_html_tree_adjusted_current_node(tree);
 
     if (node->ns == PCHTML_NS_MATH) {
         tree->before_append_attr = pchtml_html_tree_adjust_attributes_mathml;
@@ -130,7 +130,7 @@ pchtml_html_tree_insertion_mode_foreign_content_anything_else(pchtml_html_tree_t
     if (node->ns == PCHTML_NS_SVG) {
         fixname_svg = pchtml_html_tag_fixname_svg(element->element.node.local_name);
         if (fixname_svg != NULL && fixname_svg->name != NULL) {
-            pcedom_element_qualified_name_set(&element->element, NULL, 0,
+            pcdom_element_qualified_name_set(&element->element, NULL, 0,
                                                fixname_svg->name,
                                                (size_t) fixname_svg->len);
         }
@@ -235,7 +235,7 @@ static inline bool
 pchtml_html_tree_insertion_mode_foreign_content_comment(pchtml_html_tree_t *tree,
                                                      pchtml_html_token_t *token)
 {
-    pcedom_comment_t *comment;
+    pcdom_comment_t *comment;
 
     comment = pchtml_html_tree_insert_comment(tree, token, NULL);
     if (comment == NULL) {
@@ -269,16 +269,16 @@ static inline bool
 pchtml_html_tree_insertion_mode_foreign_content_all(pchtml_html_tree_t *tree,
                                                  pchtml_html_token_t *token)
 {
-    pcedom_node_t *node;
+    pcdom_node_t *node;
 
     if (token->tag_id == PCHTML_TAG_FONT) {
         pchtml_html_token_attr_t *attr = token->attr_first;
 
         while (attr != NULL) {
             if (attr->name != NULL
-                && (attr->name->attr_id == PCEDOM_ATTR_COLOR
-                || attr->name->attr_id == PCEDOM_ATTR_FACE
-                || attr->name->attr_id == PCEDOM_ATTR_SIZE))
+                && (attr->name->attr_id == PCDOM_ATTR_COLOR
+                || attr->name->attr_id == PCDOM_ATTR_FACE
+                || attr->name->attr_id == PCDOM_ATTR_SIZE))
             {
                 goto go_next;
             }

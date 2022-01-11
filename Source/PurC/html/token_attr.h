@@ -36,7 +36,7 @@
 
 #include "config.h"
 
-#include "private/edom.h"
+#include "private/dom.h"
 
 #include "html/in.h"
 #include "private/str.h"
@@ -60,7 +60,7 @@ struct pchtml_html_token_attr {
     const unsigned char           *value_begin;
     const unsigned char           *value_end;
 
-    const pcedom_attr_data_t  *name;
+    const pcdom_attr_data_t  *name;
     unsigned char                 *value;
     size_t                     value_size;
 

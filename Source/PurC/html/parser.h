@@ -59,8 +59,8 @@ struct pchtml_html_parser {
     pchtml_html_tree_t         *tree;
     pchtml_html_tree_t         *original_tree;
 
-    pcedom_node_t          *root;
-    pcedom_node_t          *form;
+    pcdom_node_t          *root;
+    pcdom_node_t          *form;
 
     pchtml_html_parser_state_t state;
     unsigned int            status;

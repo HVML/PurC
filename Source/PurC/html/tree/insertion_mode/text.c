@@ -50,7 +50,7 @@ pchtml_html_tree_insertion_mode_text(pchtml_html_tree_t *tree,
         }
 
         case PCHTML_TAG__END_OF_FILE: {
-            pcedom_node_t *node;
+            pcdom_node_t *node;
 
             pchtml_html_tree_parse_error(tree, token,
                                       PCHTML_HTML_RULES_ERROR_UNENOFFI);

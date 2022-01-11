@@ -80,12 +80,12 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         return NULL;
 
     purc_variant_t on;
-    on = purc_variant_object_get_by_ckey(frame->attr_vars, "on");
+    on = purc_variant_object_get_by_ckey(frame->attr_vars, "on", false);
     if (on == PURC_VARIANT_INVALID)
         return NULL;
 
     purc_variant_t for_var;
-    for_var = purc_variant_object_get_by_ckey(frame->attr_vars, "for");
+    for_var = purc_variant_object_get_by_ckey(frame->attr_vars, "for", false);
     if (for_var == PURC_VARIANT_INVALID)
         return NULL;
 

@@ -522,7 +522,7 @@ static int compare_objects(purc_variant_t v1, purc_variant_t v2)
         return (int)(sz1 - sz2);
 
     foreach_key_value_in_variant_object(v1, key, m1)
-        m2 = purc_variant_object_get(v2, key);
+        m2 = purc_variant_object_get(v2, key, false);
         diff = purc_variant_compare_st(m1, m2);
         if (diff != 0)
             return diff;
@@ -543,8 +543,9 @@ static int compare_arrays(purc_variant_t v1, purc_variant_t v2)
         return (int)(sz1 - sz2);
 
     idx = 0;
-    foreach_value_in_variant_array(v1, m1)
-
+    size_t curr;
+    foreach_value_in_variant_array(v1, m1, curr)
+        (void)curr;
         m2 = purc_variant_array_get(v2, idx);
         diff = purc_variant_compare_st(m1, m2);
         if (diff != 0)
@@ -1394,7 +1395,7 @@ bool purc_variant_unload_dvobj (purc_variant_t dvobj)
 
     uint64_t u64 = 0;
     purc_variant_t val = purc_variant_object_get_by_ckey (dvobj,
-            EXOBJ_LOAD_HANDLE_KEY);
+            EXOBJ_LOAD_HANDLE_KEY, false);
     if (val == PURC_VARIANT_INVALID) {
         pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return false;
@@ -1540,7 +1541,7 @@ numberify_set(purc_variant_t value)
     double d = 0.0;
 
     purc_variant_t v;
-    foreach_value_in_variant_array(value, v)
+    foreach_value_in_variant_set(value, v)
         d += purc_variant_numberify(v);
     end_foreach;
 

@@ -145,7 +145,7 @@ The source tree of PurC contains the following modules:
 - `Source/PurC/vcm/`: The operations of variant creation model tree.
 - `Source/PurC/dvobjs/`: The dynamic variant objects.
 - `Source/PurC/ejson/`: The eJSON parser. The eJSON parser reads an eJSON and constructs a variant creation model tree.
-- `Source/PurC/edom/`: The operations of the effective DOM tree.
+- `Source/PurC/dom/`: The operations of the DOM tree.
 - `Source/PurC/vdom/`: The operations of the virtual DOM tree.
 - `Source/PurC/html/`: The HTML parser. The HTML parser reads an HTML document or document fragements and constructs an eDOM tree.
 - `Source/PurC/hvml/`: The HVML parser. The HTML parser reads an HVML document and constructs a vDOM tree.

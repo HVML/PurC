@@ -1,0 +1,57 @@
+{
+    "name" : "xor_003_unique_key_set_array",
+    "ignore" : false,
+    "error" : 0,
+    "ops" : "xor",
+    "dst_type" : "set",
+    "dst_unique_key" : null,
+    "dst" :
+    [
+        {
+            "id":1,"name":"1_name"
+        },
+        {
+            "id":2,"name":"2_name"
+        },
+        {
+            "id":3,"name":"3_name"
+        }
+    ],
+    "dst_unique_key" : "id",
+    "src_type" : "array",
+    "src_unique_key" : null,
+    "src" :
+    [
+        {
+            "id":2,"name":"2_name_update"
+        },
+        {
+            "id":3,"name":"3_name_update"
+        },
+        {
+            "id":4,"name":"4_name"
+        },
+        {
+            "id":5,"name":"5_name"
+        },
+        {
+            "id":6,"name":"6_name"
+        }
+    ],
+    "cmp" :
+    [
+        {
+            "id":1,"name":"1_name"
+        },
+        {
+            "id":4,"name":"4_name"
+        },
+        {
+            "id":5,"name":"5_name"
+        },
+        {
+            "id":6,"name":"6_name"
+        }
+    ]
+}
+

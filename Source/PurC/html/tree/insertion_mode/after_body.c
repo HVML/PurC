@@ -41,8 +41,8 @@ pchtml_html_tree_insertion_mode_after_body(pchtml_html_tree_t *tree,
 {
     switch (token->tag_id) {
         case PCHTML_TAG__EM_COMMENT: {
-            pcedom_comment_t *comment;
-            pcedom_node_t *html_node;
+            pcdom_comment_t *comment;
+            pcdom_node_t *html_node;
 
             html_node = pchtml_html_tree_open_elements_first(tree);
 

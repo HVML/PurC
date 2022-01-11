@@ -89,7 +89,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     // base tag, set base uri
     if (strcmp(element->tag_name, "base") == 0) {
         purc_variant_t href;
-        href = purc_variant_object_get_by_ckey(frame->attr_vars, "href");
+        href = purc_variant_object_get_by_ckey(frame->attr_vars, "href", false);
         if (href != PURC_VARIANT_INVALID && purc_variant_is_string(href)) {
             const char* base_url = purc_variant_get_string_const(href);
             fprintf(stderr, "base_url: [%s]\n", base_url);

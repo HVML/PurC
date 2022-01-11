@@ -37,7 +37,7 @@
 #ifndef PCHTML_NS_RES_H
 #define PCHTML_NS_RES_H
 
-#include "private/edom.h"
+#include "private/dom.h"
 
 %%CHECK_NS_VERSION%%
 

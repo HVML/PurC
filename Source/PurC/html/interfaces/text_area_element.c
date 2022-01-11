@@ -31,7 +31,7 @@
  */
 
 
-#include "private/edom.h"
+#include "private/dom.h"
 #include "html/interfaces/text_area_element.h"
 #include "html/interfaces/document.h"
 
@@ -47,10 +47,10 @@ pchtml_html_text_area_element_interface_create(pchtml_html_document_t *document)
         return NULL;
     }
 
-    pcedom_node_t *node = pcedom_interface_node(element);
+    pcdom_node_t *node = pcdom_interface_node(element);
 
     node->owner_document = pchtml_html_document_original_ref(document);
-    node->type = PCEDOM_NODE_TYPE_ELEMENT;
+    node->type = PCDOM_NODE_TYPE_ELEMENT;
 
     return element;
 }
@@ -59,6 +59,6 @@ pchtml_html_text_area_element_t *
 pchtml_html_text_area_element_interface_destroy(pchtml_html_text_area_element_t *text_area_element)
 {
     return pcutils_mraw_free(
-        pcedom_interface_node(text_area_element)->owner_document->mraw,
+        pcdom_interface_node(text_area_element)->owner_document->mraw,
         text_area_element);
 }

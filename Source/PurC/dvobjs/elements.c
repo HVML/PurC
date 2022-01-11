@@ -106,7 +106,7 @@ at_getter(void *entity,
     element = (struct pcdvobjs_element*)pcutils_array_get(arr, uidx);
     PC_ASSERT(element);
 
-    struct pcedom_element *elem = element->elem;
+    struct pcdom_element *elem = element->elem;
     PC_ASSERT(elem);
 
     return pcdvobjs_make_element_variant(elem);
@@ -420,7 +420,7 @@ make_elements(void)
 }
 
 static inline bool
-add_element(struct pcdvobjs_elements *elements, struct pcedom_element *elem)
+add_element(struct pcdvobjs_elements *elements, struct pcdom_element *elem)
 {
     PC_ASSERT(elements);
     PC_ASSERT(elements->elements);
@@ -436,7 +436,7 @@ add_element(struct pcdvobjs_elements *elements, struct pcedom_element *elem)
     return true;
 }
 
-typedef int (*traverse_cb)(struct pcedom_element *element, void *ud);
+typedef int (*traverse_cb)(struct pcdom_element *element, void *ud);
 
 struct visit_args {
     struct pcdvobjs_elements   *elements;
@@ -444,11 +444,11 @@ struct visit_args {
 };
 
 static inline int
-match_by_class(struct pcedom_element *element, struct visit_args *args)
+match_by_class(struct pcdom_element *element, struct visit_args *args)
 {
     const unsigned char *s;
     size_t len;
-    s = pcedom_element_class(element, &len);
+    s = pcdom_element_class(element, &len);
 
     if (s && s[len]=='\0' && strcmp((const char*)s, args->css+1)==0)
         return 0;
@@ -457,11 +457,11 @@ match_by_class(struct pcedom_element *element, struct visit_args *args)
 }
 
 static inline int
-match_by_id(struct pcedom_element *element, struct visit_args *args)
+match_by_id(struct pcdom_element *element, struct visit_args *args)
 {
     const unsigned char *s;
     size_t len;
-    s = pcedom_element_id(element, &len);
+    s = pcdom_element_id(element, &len);
 
     if (s && s[len]=='\0' && strcmp((const char*)s, args->css+1)==0)
         return 0;
@@ -470,7 +470,7 @@ match_by_id(struct pcedom_element *element, struct visit_args *args)
 }
 
 static int
-visit_element(struct pcedom_element *element, void *ud)
+visit_element(struct pcdom_element *element, void *ud)
 {
     struct visit_args *args = (struct visit_args*)ud;
 
@@ -490,7 +490,7 @@ visit_element(struct pcedom_element *element, void *ud)
 }
 
 static inline int
-traverse_elements(struct pcedom_element *root, traverse_cb cb, void *ud)
+traverse_elements(struct pcdom_element *root, traverse_cb cb, void *ud)
 {
     PC_ASSERT(root);
 
@@ -498,14 +498,14 @@ traverse_elements(struct pcedom_element *root, traverse_cb cb, void *ud)
     if (r)
         return -1;
 
-    pcedom_node_t *node = &root->node;
+    pcdom_node_t *node = &root->node;
 
-    pcedom_node_t *child = node->first_child;
+    pcdom_node_t *child = node->first_child;
     for (; child; child = child->next) {
-        if (child->type != PCEDOM_NODE_TYPE_ELEMENT)
+        if (child->type != PCDOM_NODE_TYPE_ELEMENT)
             continue;
-        struct pcedom_element *element;
-        element = container_of(child, struct pcedom_element, node);
+        struct pcdom_element *element;
+        element = container_of(child, struct pcdom_element, node);
         r = traverse_elements(element, cb, ud);
         if (r)
             return -1;
@@ -515,7 +515,7 @@ traverse_elements(struct pcedom_element *root, traverse_cb cb, void *ud)
 }
 
 purc_variant_t
-pcdvobjs_query_elements(struct pcedom_element *root, const char *css)
+pcdvobjs_query_elements(struct pcdom_element *root, const char *css)
 {
     PC_ASSERT(root);
 

@@ -108,7 +108,7 @@ user_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     }
 
     purc_variant_t user = purc_variant_object_get_by_ckey(root,
-            DVOBJ_SESSION_DATA_NAME);
+            DVOBJ_SESSION_DATA_NAME, false);
 
     if (nr_args < 1) {
         purc_variant_ref(user);
@@ -120,7 +120,7 @@ user_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         return PURC_VARIANT_INVALID;
     }
 
-    purc_variant_t var = purc_variant_object_get(user, argv[0]);
+    purc_variant_t var = purc_variant_object_get(user, argv[0], false);
     if (var != PURC_VARIANT_INVALID) {
         purc_variant_ref(var);
         return var;
@@ -146,7 +146,7 @@ user_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     }
 
     purc_variant_t user = purc_variant_object_get_by_ckey(root,
-            DVOBJ_SESSION_DATA_NAME);
+            DVOBJ_SESSION_DATA_NAME, false);
     if (user == PURC_VARIANT_INVALID) {
         pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;

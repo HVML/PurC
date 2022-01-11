@@ -240,7 +240,8 @@ remove_timer(struct pcintr_timers* timers, const char* id)
 static pcintr_timer_t
 get_inner_timer(pcintr_stack_t stack, purc_variant_t timer_var)
 {
-    purc_variant_t id = purc_variant_object_get_by_ckey(timer_var, TIMERS_STR_ID);
+    purc_variant_t id;
+    id = purc_variant_object_get_by_ckey(timer_var, TIMERS_STR_ID, false);
     if (!id) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         return NULL;
@@ -275,7 +276,8 @@ get_inner_timer(pcintr_stack_t stack, purc_variant_t timer_var)
 static void
 destroy_inner_timer(pcintr_stack_t stack, purc_variant_t timer_var)
 {
-    purc_variant_t id = purc_variant_object_get_by_ckey(timer_var, TIMERS_STR_ID);
+    purc_variant_t id;
+    id = purc_variant_object_get_by_ckey(timer_var, TIMERS_STR_ID, false);
     if (!id) {
         return;
     }
@@ -330,9 +332,9 @@ timers_listener_handler(purc_variant_t source, purc_atom_t msg_type,
     pcintr_stack_t stack = (pcintr_stack_t) ctxt;
     if (msg_type == pcvariant_atom_grow) {
         purc_variant_t interval = purc_variant_object_get_by_ckey(argv[0],
-                TIMERS_STR_INTERVAL);
+                TIMERS_STR_INTERVAL, false);
         purc_variant_t active = purc_variant_object_get_by_ckey(argv[0],
-                TIMERS_STR_ACTIVE);
+                TIMERS_STR_ACTIVE, false);
         pcintr_timer_t timer = get_inner_timer(stack, argv[0]);
         if (!timer) {
             return false;

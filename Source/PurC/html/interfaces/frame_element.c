@@ -30,7 +30,7 @@
  * Author: Alexander Borisov <borisov@lexbor.com>
  */
 
-#include "private/edom.h"
+#include "private/dom.h"
 #include "html/interfaces/frame_element.h"
 #include "html/interfaces/document.h"
 
@@ -46,10 +46,10 @@ pchtml_html_frame_element_interface_create(pchtml_html_document_t *document)
         return NULL;
     }
 
-    pcedom_node_t *node = pcedom_interface_node(element);
+    pcdom_node_t *node = pcdom_interface_node(element);
 
     node->owner_document = pchtml_html_document_original_ref(document);
-    node->type = PCEDOM_NODE_TYPE_ELEMENT;
+    node->type = PCDOM_NODE_TYPE_ELEMENT;
 
     return element;
 }
@@ -58,6 +58,6 @@ pchtml_html_frame_element_t *
 pchtml_html_frame_element_interface_destroy(pchtml_html_frame_element_t *frame_element)
 {
     return pcutils_mraw_free(
-        pcedom_interface_node(frame_element)->owner_document->mraw,
+        pcdom_interface_node(frame_element)->owner_document->mraw,
         frame_element);
 }

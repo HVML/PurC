@@ -656,6 +656,7 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
     purc_variant_t key;
     char* format_double = NULL;
     char* format_long_double = NULL;
+    size_t idx;
 
     purc_get_local_data("format-double",
             (uintptr_t *)&format_double, NULL);
@@ -846,7 +847,8 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
             MY_CHECK(n);
 
             i = 0;
-            foreach_value_in_variant_array(value, member)
+            foreach_value_in_variant_array(value, member, idx)
+                (void)idx;
                 if (i > 0) {
                     MY_WRITE(rws, ",", 1);
                     n = print_newline(rws, flags, len_expected);

@@ -1,0 +1,34 @@
+{
+    "ignore" : false,
+    "error" : 0,
+    "ops" : "remove",
+    "dst_type" : "array",
+    "dst_unique_key" : null,
+    "dst" :
+    [
+        {
+            "id":1
+        },
+        {
+            "id":2
+        }
+    ],
+    "src_type" : "array",
+    "src_unique_key" : null,
+    "src" :
+    [
+        {
+            "id":1
+        },
+        {
+            "id":4
+        }
+    ],
+    "cmp" :
+    [
+        {
+            "id":2
+        }
+    ]
+}
+

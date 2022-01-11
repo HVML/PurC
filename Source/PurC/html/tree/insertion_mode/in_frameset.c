@@ -45,7 +45,7 @@ pchtml_html_tree_insertion_mode_in_frameset(pchtml_html_tree_t *tree,
     if (token->type & PCHTML_HTML_TOKEN_TYPE_CLOSE) {
         if (token->tag_id == PCHTML_TAG_FRAMESET)
         {
-            pcedom_node_t *node;
+            pcdom_node_t *node;
             node = pchtml_html_tree_current_node(tree);
 
             if (node == pchtml_html_tree_open_elements_first(tree)) {
@@ -74,7 +74,7 @@ pchtml_html_tree_insertion_mode_in_frameset(pchtml_html_tree_t *tree,
 
     switch (token->tag_id) {
         case PCHTML_TAG__EM_COMMENT: {
-            pcedom_comment_t *comment;
+            pcdom_comment_t *comment;
 
             comment = pchtml_html_tree_insert_comment(tree, token, NULL);
             if (comment == NULL) {
@@ -127,7 +127,7 @@ pchtml_html_tree_insertion_mode_in_frameset(pchtml_html_tree_t *tree,
             return pchtml_html_tree_insertion_mode_in_head(tree, token);
 
         case PCHTML_TAG__END_OF_FILE: {
-            pcedom_node_t *node = pchtml_html_tree_current_node(tree);
+            pcdom_node_t *node = pchtml_html_tree_current_node(tree);
 
             if (node != pchtml_html_tree_open_elements_first(tree)) {
                 pchtml_html_tree_parse_error(tree, token,

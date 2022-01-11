@@ -34,7 +34,7 @@
 #include "config.h"
 #include "private/instance.h"
 #include "private/errors.h"
-#include "private/edom.h"
+#include "private/dom.h"
 #include "html/tree/insertion_mode.h"
 
 
@@ -140,24 +140,24 @@ pchtml_html_tree_insertion_mode_initial_doctype(pchtml_html_tree_t *tree,
 
 static void
 pchtml_html_tree_insertion_mode_initial_doctype_ckeck(pchtml_html_tree_t *tree,
-                                         pcedom_document_type_t *doc_type,
+                                         pcdom_document_type_t *doc_type,
                                          pchtml_html_token_t *token, bool is_html);
 
 static bool
 pchtml_html_tree_insertion_mode_initial_doctype_ckeck_public(
-                                             pcedom_document_type_t *doc_type);
+                                             pcdom_document_type_t *doc_type);
 
 static bool
 pchtml_html_tree_insertion_mode_initial_doctype_ckeck_system(
-                                             pcedom_document_type_t *doc_type);
+                                             pcdom_document_type_t *doc_type);
 
 static bool
 pchtml_html_tree_insertion_mode_initial_doctype_ckeck_pubsys(
-                                             pcedom_document_type_t *doc_type);
+                                             pcdom_document_type_t *doc_type);
 
 static bool
 pchtml_html_tree_insertion_mode_initial_doctype_check_limq(
-                                             pcedom_document_type_t *doc_type);
+                                             pcdom_document_type_t *doc_type);
 
 
 bool
@@ -166,10 +166,10 @@ pchtml_html_tree_insertion_mode_initial(pchtml_html_tree_t *tree,
 {
     switch (token->tag_id) {
         case PCHTML_TAG__EM_COMMENT: {
-            pcedom_comment_t *comment;
+            pcdom_comment_t *comment;
 
             comment = pchtml_html_tree_insert_comment(tree, token,
-                                        pcedom_interface_node(tree->document));
+                                        pcdom_interface_node(tree->document));
             if (comment == NULL) {
                 return pchtml_html_tree_process_abort(tree);
             }
@@ -194,13 +194,13 @@ pchtml_html_tree_insertion_mode_initial(pchtml_html_tree_t *tree,
             /* fall through */
 
         default: {
-            pcedom_document_t *document = &tree->document->dom_document;
+            pcdom_document_t *document = &tree->document->dom_document;
 
             if (tree->document->iframe_srcdoc == NULL) {
                 pchtml_html_tree_parse_error(tree, token,
                                           PCHTML_HTML_RULES_ERROR_UNTOININMO);
 
-                document->compat_mode = PCEDOM_DOCUMENT_CMODE_QUIRKS;
+                document->compat_mode = PCDOM_DOCUMENT_CMODE_QUIRKS;
             }
 
             tree->mode = pchtml_html_tree_insertion_mode_before_html;
@@ -216,7 +216,7 @@ static bool
 pchtml_html_tree_insertion_mode_initial_doctype(pchtml_html_tree_t *tree,
                                              pchtml_html_token_t *token)
 {
-    pcedom_document_type_t *doc_type;
+    pcdom_document_type_t *doc_type;
 
     /* Create */
     doc_type = pchtml_html_tree_create_document_type_from_token(tree, token);
@@ -228,7 +228,7 @@ pchtml_html_tree_insertion_mode_initial_doctype(pchtml_html_tree_t *tree,
     }
 
     /* Check */
-    bool is_html = (doc_type->name == PCEDOM_ATTR_HTML);
+    bool is_html = (doc_type->name == PCDOM_ATTR_HTML);
 
     if (is_html == false
         || doc_type->public_id.length != 0
@@ -244,17 +244,17 @@ pchtml_html_tree_insertion_mode_initial_doctype(pchtml_html_tree_t *tree,
     pchtml_html_tree_insertion_mode_initial_doctype_ckeck(tree, doc_type,
                                                        token, is_html);
 
-    pcedom_node_insert_child(&tree->document->dom_document.node,
-                              pcedom_interface_node(doc_type));
+    pcdom_node_insert_child(&tree->document->dom_document.node,
+                              pcdom_interface_node(doc_type));
 
-    pcedom_document_attach_doctype(&tree->document->dom_document, doc_type);
+    pcdom_document_attach_doctype(&tree->document->dom_document, doc_type);
 
     return true;
 }
 
 static void
 pchtml_html_tree_insertion_mode_initial_doctype_ckeck(pchtml_html_tree_t *tree,
-                                          pcedom_document_type_t *doc_type,
+                                          pcdom_document_type_t *doc_type,
                                           pchtml_html_token_t *token, bool is_html)
 {
     if (tree->document->iframe_srcdoc != NULL) {
@@ -262,7 +262,7 @@ pchtml_html_tree_insertion_mode_initial_doctype_ckeck(pchtml_html_tree_t *tree,
     }
 
     bool quirks;
-    pcedom_document_t *document = &tree->document->dom_document;
+    pcdom_document_t *document = &tree->document->dom_document;
 
     if (token->type & PCHTML_HTML_TOKEN_TYPE_FORCE_QUIRKS) {
         goto set_quirks;
@@ -304,7 +304,7 @@ pchtml_html_tree_insertion_mode_initial_doctype_ckeck(pchtml_html_tree_t *tree,
             pchtml_html_tree_insertion_mode_initial_doctype_check_limq(doc_type);
 
         if (quirks) {
-            document->compat_mode = PCEDOM_DOCUMENT_CMODE_LIMITED_QUIRKS;
+            document->compat_mode = PCDOM_DOCUMENT_CMODE_LIMITED_QUIRKS;
             return;
         }
     }
@@ -313,12 +313,12 @@ pchtml_html_tree_insertion_mode_initial_doctype_ckeck(pchtml_html_tree_t *tree,
 
 set_quirks:
 
-    document->compat_mode = PCEDOM_DOCUMENT_CMODE_QUIRKS;
+    document->compat_mode = PCDOM_DOCUMENT_CMODE_QUIRKS;
 }
 
 static bool
 pchtml_html_tree_insertion_mode_initial_doctype_ckeck_public(
-                                              pcedom_document_type_t *doc_type)
+                                              pcdom_document_type_t *doc_type)
 {
     size_t size, i;
     pchtml_html_tree_insertion_mode_initial_str_t *str;
@@ -358,7 +358,7 @@ pchtml_html_tree_insertion_mode_initial_doctype_ckeck_public(
 
 static bool
 pchtml_html_tree_insertion_mode_initial_doctype_ckeck_system(
-                                              pcedom_document_type_t *doc_type)
+                                              pcdom_document_type_t *doc_type)
 {
     size_t size;
     pchtml_html_tree_insertion_mode_initial_str_t *str;
@@ -383,7 +383,7 @@ pchtml_html_tree_insertion_mode_initial_doctype_ckeck_system(
 
 static bool
 pchtml_html_tree_insertion_mode_initial_doctype_ckeck_pubsys(
-                                              pcedom_document_type_t *doc_type)
+                                              pcdom_document_type_t *doc_type)
 {
     size_t size;
     pchtml_html_tree_insertion_mode_initial_str_t *str;
@@ -408,7 +408,7 @@ pchtml_html_tree_insertion_mode_initial_doctype_ckeck_pubsys(
 
 static bool
 pchtml_html_tree_insertion_mode_initial_doctype_check_limq(
-                                              pcedom_document_type_t *doc_type)
+                                              pcdom_document_type_t *doc_type)
 {
     bool quirks;
     size_t size;

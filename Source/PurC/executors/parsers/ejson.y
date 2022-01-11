@@ -479,7 +479,9 @@
             purc_variant_unref(_k);                                       \
         bool ok = true;                                                   \
         purc_variant_t _v;                                                \
-        foreach_value_in_variant_array(_a, _v)                            \
+        size_t _idx;                                                      \
+        foreach_value_in_variant_array(_a, _v, _idx)                      \
+            (void)_idx;                                                   \
             ok = purc_variant_set_add(_r, _v, true);                      \
             if (!ok)                                                      \
                 break;                                                    \

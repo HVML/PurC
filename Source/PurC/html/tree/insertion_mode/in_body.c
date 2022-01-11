@@ -179,7 +179,7 @@ static inline bool
 pchtml_html_tree_insertion_mode_in_body_comment(pchtml_html_tree_t *tree,
                                              pchtml_html_token_t *token)
 {
-    pcedom_comment_t *comment;
+    pcdom_comment_t *comment;
 
     comment = pchtml_html_tree_insert_comment(tree, token, NULL);
     if (comment == NULL) {
@@ -205,8 +205,8 @@ static inline bool
 pchtml_html_tree_insertion_mode_in_body_html(pchtml_html_tree_t *tree,
                                           pchtml_html_token_t *token)
 {
-    pcedom_node_t *temp_node;
-    pcedom_element_t *html;
+    pcdom_node_t *temp_node;
+    pcdom_element_t *html;
 
     pchtml_html_tree_parse_error(tree, token, PCHTML_HTML_RULES_ERROR_UNTO);
 
@@ -216,7 +216,7 @@ pchtml_html_tree_insertion_mode_in_body_html(pchtml_html_tree_t *tree,
         return true;
     }
 
-    html = pcedom_interface_element(pchtml_html_tree_open_elements_first(tree));
+    html = pcdom_interface_element(pchtml_html_tree_open_elements_first(tree));
 
     tree->status = pchtml_html_tree_append_attributes(tree, html, token,
                                                    html->node.ns);
@@ -245,8 +245,8 @@ static inline bool
 pchtml_html_tree_insertion_mode_in_body_body(pchtml_html_tree_t *tree,
                                           pchtml_html_token_t *token)
 {
-    pcedom_node_t *node, *temp;
-    pcedom_element_t *body;
+    pcdom_node_t *node, *temp;
+    pcdom_element_t *body;
 
     pchtml_html_tree_parse_error(tree, token, PCHTML_HTML_RULES_ERROR_UNTO);
 
@@ -263,7 +263,7 @@ pchtml_html_tree_insertion_mode_in_body_body(pchtml_html_tree_t *tree,
 
     tree->frameset_ok = false;
 
-    body = pcedom_interface_element(node);
+    body = pcdom_interface_element(node);
 
     tree->status = pchtml_html_tree_append_attributes(tree, body, token, node->ns);
     if (tree->status != PCHTML_STATUS_OK) {
@@ -277,7 +277,7 @@ static inline bool
 pchtml_html_tree_insertion_mode_in_body_frameset(pchtml_html_tree_t *tree,
                                               pchtml_html_token_t *token)
 {
-    pcedom_node_t *node;
+    pcdom_node_t *node;
     pchtml_html_element_t *element;
 
     pchtml_html_tree_parse_error(tree, token, PCHTML_HTML_RULES_ERROR_UNTO);
@@ -336,7 +336,7 @@ static inline bool
 pchtml_html_tree_insertion_mode_in_body_body_closed(pchtml_html_tree_t *tree,
                                                  pchtml_html_token_t *token)
 {
-    pcedom_node_t *body_node;
+    pcdom_node_t *body_node;
 
     body_node = pchtml_html_tree_element_in_scope(tree, PCHTML_TAG_BODY, PCHTML_NS_HTML,
                                                PCHTML_HTML_TAG_CATEGORY_SCOPE);
@@ -360,7 +360,7 @@ static inline bool
 pchtml_html_tree_insertion_mode_in_body_html_closed(pchtml_html_tree_t *tree,
                                                  pchtml_html_token_t *token)
 {
-    pcedom_node_t *body_node;
+    pcdom_node_t *body_node;
 
     body_node = pchtml_html_tree_element_in_scope(tree, PCHTML_TAG_BODY, PCHTML_NS_HTML,
                                                PCHTML_HTML_TAG_CATEGORY_SCOPE);
@@ -389,7 +389,7 @@ static inline bool
 pchtml_html_tree_insertion_mode_in_body_abcdfhmnopsu(pchtml_html_tree_t *tree,
                                                   pchtml_html_token_t *token)
 {
-    pcedom_node_t *body_node;
+    pcdom_node_t *body_node;
     pchtml_html_element_t *element;
 
     body_node = pchtml_html_tree_element_in_scope(tree, PCHTML_TAG_P, PCHTML_NS_HTML,
@@ -416,7 +416,7 @@ static inline bool
 pchtml_html_tree_insertion_mode_in_body_h123456(pchtml_html_tree_t *tree,
                                              pchtml_html_token_t *token)
 {
-    pcedom_node_t *node;
+    pcdom_node_t *node;
     pchtml_html_element_t *element;
 
     node = pchtml_html_tree_element_in_scope(tree, PCHTML_TAG_P, PCHTML_NS_HTML,
@@ -462,7 +462,7 @@ static inline bool
 pchtml_html_tree_insertion_mode_in_body_pre_listing(pchtml_html_tree_t *tree,
                                                  pchtml_html_token_t *token)
 {
-    pcedom_node_t *node;
+    pcdom_node_t *node;
     pchtml_html_element_t *element;
 
     node = pchtml_html_tree_element_in_scope(tree, PCHTML_TAG_P, PCHTML_NS_HTML,
@@ -490,7 +490,7 @@ static inline bool
 pchtml_html_tree_insertion_mode_in_body_form(pchtml_html_tree_t *tree,
                                           pchtml_html_token_t *token)
 {
-    pcedom_node_t *node, *temp;
+    pcdom_node_t *node, *temp;
     pchtml_html_element_t *element;
 
     temp = pchtml_html_tree_open_elements_find_reverse(tree, PCHTML_TAG_TEMPLATE,
@@ -528,7 +528,7 @@ pchtml_html_tree_insertion_mode_in_body_li(pchtml_html_tree_t *tree,
                                         pchtml_html_token_t *token)
 {
     bool is_special;
-    pcedom_node_t *node;
+    pcdom_node_t *node;
     pchtml_html_element_t *element;
 
     void **list = tree->open_elements->list;
@@ -593,7 +593,7 @@ pchtml_html_tree_insertion_mode_in_body_dd_dt(pchtml_html_tree_t *tree,
                                            pchtml_html_token_t *token)
 {
     bool is_special;
-    pcedom_node_t *node;
+    pcdom_node_t *node;
     pchtml_html_element_t *element;
 
     void **list = tree->open_elements->list;
@@ -670,7 +670,7 @@ static inline bool
 pchtml_html_tree_insertion_mode_in_body_plaintext(pchtml_html_tree_t *tree,
                                                pchtml_html_token_t *token)
 {
-    pcedom_node_t *node;
+    pcdom_node_t *node;
     pchtml_html_element_t *element;
 
     node = pchtml_html_tree_element_in_scope(tree, PCHTML_TAG_P, PCHTML_NS_HTML,
@@ -697,7 +697,7 @@ static inline bool
 pchtml_html_tree_insertion_mode_in_body_button(pchtml_html_tree_t *tree,
                                             pchtml_html_token_t *token)
 {
-    pcedom_node_t *node;
+    pcdom_node_t *node;
     pchtml_html_element_t *element;
 
     node = pchtml_html_tree_element_in_scope(tree, PCHTML_TAG_BUTTON, PCHTML_NS_HTML,
@@ -740,7 +740,7 @@ static inline bool
 pchtml_html_tree_insertion_mode_in_body_abcdfhlmnopsu_closed(pchtml_html_tree_t *tree,
                                                           pchtml_html_token_t *token)
 {
-    pcedom_node_t *node;
+    pcdom_node_t *node;
 
     node = pchtml_html_tree_element_in_scope(tree, token->tag_id,
                                           PCHTML_NS_HTML, PCHTML_HTML_TAG_CATEGORY_SCOPE);
@@ -770,12 +770,12 @@ static inline bool
 pchtml_html_tree_insertion_mode_in_body_form_closed(pchtml_html_tree_t *tree,
                                                  pchtml_html_token_t *token)
 {
-    pcedom_node_t *node, *current;
+    pcdom_node_t *node, *current;
 
     node = pchtml_html_tree_open_elements_find_reverse(tree, PCHTML_TAG_TEMPLATE,
                                                     PCHTML_NS_HTML, NULL);
     if (node == NULL) {
-        node = pcedom_interface_node(tree->form);
+        node = pcdom_interface_node(tree->form);
 
         tree->form = NULL;
 
@@ -836,7 +836,7 @@ static inline bool
 pchtml_html_tree_insertion_mode_in_body_p_closed(pchtml_html_tree_t *tree,
                                               pchtml_html_token_t *token)
 {
-    pcedom_node_t *node;
+    pcdom_node_t *node;
 
     node = pchtml_html_tree_element_in_scope(tree, PCHTML_TAG_P, PCHTML_NS_HTML,
                                           PCHTML_HTML_TAG_CATEGORY_SCOPE_BUTTON);
@@ -867,7 +867,7 @@ static inline bool
 pchtml_html_tree_insertion_mode_in_body_li_closed(pchtml_html_tree_t *tree,
                                                pchtml_html_token_t *token)
 {
-    pcedom_node_t *node;
+    pcdom_node_t *node;
 
     node = pchtml_html_tree_element_in_scope(tree, PCHTML_TAG_LI, PCHTML_NS_HTML,
                                           PCHTML_HTML_TAG_CATEGORY_SCOPE_LIST_ITEM);
@@ -899,7 +899,7 @@ static inline bool
 pchtml_html_tree_insertion_mode_in_body_dd_dt_closed(pchtml_html_tree_t *tree,
                                                   pchtml_html_token_t *token)
 {
-    pcedom_node_t *node;
+    pcdom_node_t *node;
 
     node = pchtml_html_tree_element_in_scope(tree, token->tag_id, PCHTML_NS_HTML,
                                           PCHTML_HTML_TAG_CATEGORY_SCOPE);
@@ -931,7 +931,7 @@ static inline bool
 pchtml_html_tree_insertion_mode_in_body_h123456_closed(pchtml_html_tree_t *tree,
                                                     pchtml_html_token_t *token)
 {
-    pcedom_node_t *node;
+    pcdom_node_t *node;
 
     node = pchtml_html_tree_element_in_scope_h123456(tree);
     if (node == NULL) {
@@ -959,7 +959,7 @@ static inline bool
 pchtml_html_tree_insertion_mode_in_body_a(pchtml_html_tree_t *tree,
                                        pchtml_html_token_t *token)
 {
-    pcedom_node_t *node;
+    pcdom_node_t *node;
     pchtml_html_element_t *element;
 
     node = pchtml_html_tree_active_formatting_between_last_marker(tree,
@@ -1001,7 +1001,7 @@ pchtml_html_tree_insertion_mode_in_body_a(pchtml_html_tree_t *tree,
         return pchtml_html_tree_process_abort(tree);
     }
 
-    node = pcedom_interface_node(element);
+    node = pcdom_interface_node(element);
 
     pchtml_html_tree_active_formatting_push_with_check_dupl(tree, node);
 
@@ -1016,7 +1016,7 @@ static inline bool
 pchtml_html_tree_insertion_mode_in_body_bcefistu(pchtml_html_tree_t *tree,
                                               pchtml_html_token_t *token)
 {
-    pcedom_node_t *node;
+    pcdom_node_t *node;
     pchtml_html_element_t *element;
 
     tree->status = pchtml_html_tree_active_formatting_reconstruct_elements(tree);
@@ -1032,7 +1032,7 @@ pchtml_html_tree_insertion_mode_in_body_bcefistu(pchtml_html_tree_t *tree,
         return pchtml_html_tree_process_abort(tree);
     }
 
-    node = pcedom_interface_node(element);
+    node = pcdom_interface_node(element);
 
     pchtml_html_tree_active_formatting_push_with_check_dupl(tree, node);
 
@@ -1043,7 +1043,7 @@ static inline bool
 pchtml_html_tree_insertion_mode_in_body_nobr(pchtml_html_tree_t *tree,
                                           pchtml_html_token_t *token)
 {
-    pcedom_node_t *node;
+    pcdom_node_t *node;
     pchtml_html_element_t *element;
 
     tree->status = pchtml_html_tree_active_formatting_reconstruct_elements(tree);
@@ -1083,7 +1083,7 @@ pchtml_html_tree_insertion_mode_in_body_nobr(pchtml_html_tree_t *tree,
         return pchtml_html_tree_process_abort(tree);
     }
 
-    node = pcedom_interface_node(element);
+    node = pcdom_interface_node(element);
 
     pchtml_html_tree_active_formatting_push_with_check_dupl(tree, node);
 
@@ -1154,7 +1154,7 @@ static inline bool
 pchtml_html_tree_insertion_mode_in_body_amo_closed(pchtml_html_tree_t *tree,
                                                 pchtml_html_token_t *token)
 {
-    pcedom_node_t *node;
+    pcdom_node_t *node;
 
     node = pchtml_html_tree_element_in_scope(tree, token->tag_id, PCHTML_NS_HTML,
                                           PCHTML_HTML_TAG_CATEGORY_SCOPE);
@@ -1186,11 +1186,11 @@ static inline bool
 pchtml_html_tree_insertion_mode_in_body_table(pchtml_html_tree_t *tree,
                                            pchtml_html_token_t *token)
 {
-    pcedom_node_t *node;
+    pcdom_node_t *node;
     pchtml_html_element_t *element;
 
-    if (pcedom_interface_document(tree->document)->compat_mode
-        != PCEDOM_DOCUMENT_CMODE_QUIRKS)
+    if (pcdom_interface_document(tree->document)->compat_mode
+        != PCDOM_DOCUMENT_CMODE_QUIRKS)
     {
         node = pchtml_html_tree_element_in_scope(tree, PCHTML_TAG_P, PCHTML_NS_HTML,
                                               PCHTML_HTML_TAG_CATEGORY_SCOPE_BUTTON);
@@ -1258,7 +1258,7 @@ static inline bool
 pchtml_html_tree_insertion_mode_in_body_input(pchtml_html_tree_t *tree,
                                            pchtml_html_token_t *token)
 {
-    pcedom_attr_t *attr;
+    pcdom_attr_t *attr;
     pchtml_html_element_t *element;
 
     tree->status = pchtml_html_tree_active_formatting_reconstruct_elements(tree);
@@ -1277,7 +1277,7 @@ pchtml_html_tree_insertion_mode_in_body_input(pchtml_html_tree_t *tree,
     pchtml_html_tree_open_elements_pop(tree);
     pchtml_html_tree_acknowledge_token_self_closing(tree, token);
 
-    attr = pcedom_element_attr_is_exist(pcedom_interface_element(element),
+    attr = pcdom_element_attr_is_exist(pcdom_interface_element(element),
                                          (unsigned char *) "type", 4);
     if (attr != NULL) {
         if (attr->value == NULL || attr->value->length != 6
@@ -1320,7 +1320,7 @@ static inline bool
 pchtml_html_tree_insertion_mode_in_body_hr(pchtml_html_tree_t *tree,
                                         pchtml_html_token_t *token)
 {
-    pcedom_node_t *node;
+    pcdom_node_t *node;
     pchtml_html_element_t *element;
 
     node = pchtml_html_tree_element_in_scope(tree, PCHTML_TAG_P, PCHTML_NS_HTML,
@@ -1388,7 +1388,7 @@ static inline bool
 pchtml_html_tree_insertion_mode_in_body_xmp(pchtml_html_tree_t *tree,
                                          pchtml_html_token_t *token)
 {
-    pcedom_node_t *node;
+    pcdom_node_t *node;
     pchtml_html_element_t *element;
 
     node = pchtml_html_tree_element_in_scope(tree, PCHTML_TAG_P, PCHTML_NS_HTML,
@@ -1494,7 +1494,7 @@ static inline bool
 pchtml_html_tree_insertion_mode_in_body_optopt(pchtml_html_tree_t *tree,
                                             pchtml_html_token_t *token)
 {
-    pcedom_node_t *node;
+    pcdom_node_t *node;
     pchtml_html_element_t *element;
 
     node = pchtml_html_tree_current_node(tree);
@@ -1525,7 +1525,7 @@ static inline bool
 pchtml_html_tree_insertion_mode_in_body_rbrtc(pchtml_html_tree_t *tree,
                                            pchtml_html_token_t *token)
 {
-    pcedom_node_t *node;
+    pcdom_node_t *node;
     pchtml_html_element_t *element;
 
     node = pchtml_html_tree_element_in_scope(tree, PCHTML_TAG_RUBY, PCHTML_NS_HTML,
@@ -1559,7 +1559,7 @@ static inline bool
 pchtml_html_tree_insertion_mode_in_body_rprt(pchtml_html_tree_t *tree,
                                           pchtml_html_token_t *token)
 {
-    pcedom_node_t *node;
+    pcdom_node_t *node;
     pchtml_html_element_t *element;
 
     node = pchtml_html_tree_element_in_scope(tree, PCHTML_TAG_RUBY, PCHTML_NS_HTML,
@@ -1715,7 +1715,7 @@ pchtml_html_tree_insertion_mode_in_body_anything_else_closed(pchtml_html_tree_t 
                                                           pchtml_html_token_t *token)
 {
     bool is;
-    pcedom_node_t **list = (pcedom_node_t **) tree->open_elements->list;
+    pcdom_node_t **list = (pcdom_node_t **) tree->open_elements->list;
     size_t len = tree->open_elements->length;
 
     while (len != 0) {

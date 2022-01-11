@@ -186,7 +186,7 @@ struct pcintr_stack_frame {
     // the current scope.
     pcvdom_element_t scope;
     // the current edom element;
-    pcedom_element_t *edom_element;
+    pcdom_element_t *edom_element;
 
     // the current execution position.
     pcvdom_element_t pos;
@@ -234,7 +234,7 @@ struct pcintr_observer {
     char* sub_type;
 
     pcvdom_element_t scope;
-    pcedom_element_t *edom_element;
+    pcdom_element_t *edom_element;
 
     // the `observe` element who creates this observer.
     pcvdom_element_t pos;
@@ -284,7 +284,7 @@ int
 pcintr_printf_vcm_content_to_edom(pcintr_stack_t stack,
         purc_variant_t vcm);
 
-pcedom_element_t*
+pcdom_element_t*
 pcintr_stack_get_edom_open_element(pcintr_stack_t stack);
 
 purc_variant_t
@@ -349,7 +349,7 @@ pcintr_timers_destroy(struct pcintr_timers* timers);
 struct pcintr_observer*
 pcintr_register_observer(purc_variant_t observed,
         purc_variant_t for_value, pcvdom_element_t scope,
-        pcedom_element_t *edom_element,
+        pcdom_element_t *edom_element,
         pcvdom_element_t pos);
 
 bool

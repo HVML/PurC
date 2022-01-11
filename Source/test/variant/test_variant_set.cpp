@@ -387,7 +387,7 @@ TEST(variant_set, add_n_str)
         ASSERT_EQ(v->type, PVT(_OBJECT));
         ASSERT_EQ(v->refc, 1);
         if (1) {
-            bool ok = purc_variant_set_remove(var, v);
+            bool ok = purc_variant_set_remove(var, v, false);
             ASSERT_EQ(ok, true);
 
             ASSERT_TRUE(sanity_check(var));

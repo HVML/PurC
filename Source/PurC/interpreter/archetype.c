@@ -84,7 +84,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         return NULL;
 
     purc_variant_t name;
-    name = purc_variant_object_get_by_ckey(frame->attr_vars, "name");
+    name = purc_variant_object_get_by_ckey(frame->attr_vars, "name", false);
     if (name == PURC_VARIANT_INVALID)
         return NULL;
 

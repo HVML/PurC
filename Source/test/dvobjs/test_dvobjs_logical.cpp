@@ -56,7 +56,7 @@ TEST(dvobjs, dvobjs_logical)
         printf ("test _L.%s:\n", function[i]);
 
         purc_variant_t dynamic = purc_variant_object_get_by_ckey (logical,
-                function[i]);
+                function[i], false);
         ASSERT_NE(dynamic, nullptr);
         ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -70,6 +70,7 @@ TEST(dvobjs, dvobjs_logical)
         strcat (file_path, function[i]);
         strcat (file_path, ".test");
 
+        fprintf(stderr, "file_path: %s\n", file_path);
         FILE *fp = fopen(file_path, "r");   // open test_list
         ASSERT_NE(fp, nullptr) << "Failed to open file: ["
                                << file_path
@@ -92,7 +93,8 @@ TEST(dvobjs, dvobjs_logical)
             line_number ++;
 
             if (strncasecmp (line, "test_begin", 10) == 0) {
-                printf ("\ttest case on line %ld\n", line_number);
+                printf ("\ttest case on line %ld [%s] (_L.%s)\n",
+                        line_number, file_path, function[i]);
 
                 // get parameters
                 read = getline(&line, &sz, fp);
@@ -214,7 +216,7 @@ TEST(dvobjs, dvobjs_logical_eval)
     ASSERT_NE(logical, nullptr);
     ASSERT_EQ(purc_variant_is_object (logical), true);
 
-    purc_variant_t dynamic = purc_variant_object_get_by_ckey (logical, "eval");
+    purc_variant_t dynamic = purc_variant_object_get_by_ckey (logical, "eval", false);
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -367,7 +369,7 @@ TEST(dvobjs, dvobjs_logical_bc)
     ASSERT_NE(logical, nullptr);
     ASSERT_EQ(purc_variant_is_object (logical), true);
 
-    purc_variant_t dynamic = purc_variant_object_get_by_ckey (logical, "eval");
+    purc_variant_t dynamic = purc_variant_object_get_by_ckey (logical, "eval", false);
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 

@@ -31,7 +31,7 @@
  */
 
 
-#include "private/edom.h"
+#include "private/dom.h"
 #include "html/interfaces/template_element.h"
 #include "html/interfaces/document.h"
 
@@ -47,18 +47,18 @@ pchtml_html_template_element_interface_create(pchtml_html_document_t *document)
         return NULL;
     }
 
-    pcedom_node_t *node = pcedom_interface_node(element);
+    pcdom_node_t *node = pcdom_interface_node(element);
 
     node->owner_document = pchtml_html_document_original_ref(document);
-    node->type = PCEDOM_NODE_TYPE_ELEMENT;
+    node->type = PCDOM_NODE_TYPE_ELEMENT;
 
-    element->content = pcedom_document_fragment_interface_create(node->owner_document);
+    element->content = pcdom_document_fragment_interface_create(node->owner_document);
     if (element->content == NULL) {
         return pchtml_html_template_element_interface_destroy(element);
     }
 
     element->content->node.ns = PCHTML_NS_HTML;
-    element->content->host = pcedom_interface_element(element);
+    element->content->host = pcdom_interface_element(element);
 
     return element;
 }
@@ -66,9 +66,9 @@ pchtml_html_template_element_interface_create(pchtml_html_document_t *document)
 pchtml_html_template_element_t *
 pchtml_html_template_element_interface_destroy(pchtml_html_template_element_t *template_element)
 {
-    pcedom_document_fragment_interface_destroy(template_element->content);
+    pcdom_document_fragment_interface_destroy(template_element->content);
 
     return pcutils_mraw_free(
-        pcedom_interface_node(template_element)->owner_document->mraw,
+        pcdom_interface_node(template_element)->owner_document->mraw,
         template_element);
 }

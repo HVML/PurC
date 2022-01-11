@@ -717,32 +717,37 @@ purc_variant_make_object(size_t nr_kv_pairs,
  *
  * @param obj: the variant value of obj type
  * @param key: the key of key-value pair
+ * @param silently: True means ignoring the following errors:
+ *      - PCVARIANT_ERROR_NOT_FOUND
  *
  * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.0.1
  */
 PCA_EXPORT purc_variant_t
-purc_variant_object_get(purc_variant_t obj, purc_variant_t key);
+purc_variant_object_get(purc_variant_t obj, purc_variant_t key, bool silently);
 
 /**
  * Gets the value by key from an object with key as c string
  *
  * @param obj: the variant value of obj type
  * @param key: the key of key-value pair
+ * @param silently: True means ignoring the following errors:
+ *      - PCVARIANT_ERROR_NOT_FOUND
  *
  * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.0.1
  */
 static inline purc_variant_t
-purc_variant_object_get_by_ckey(purc_variant_t obj, const char* key)
+purc_variant_object_get_by_ckey(purc_variant_t obj, const char* key,
+        bool silently)
 {
     purc_variant_t k = purc_variant_make_string_static(key, true);
     if (k==PURC_VARIANT_INVALID) {
         return PURC_VARIANT_INVALID;
     }
-    purc_variant_t v = purc_variant_object_get(obj, k);
+    purc_variant_t v = purc_variant_object_get(obj, k, silently);
     purc_variant_unref(k);
     return v;
 }
@@ -792,32 +797,38 @@ purc_variant_object_set_by_static_ckey(purc_variant_t obj, const char* key,
  *
  * @param obj: the variant value of obj type
  * @param key: the key of key-value pair
+ * @param silently: True means ignoring the following errors:
+ *      - PCVARIANT_ERROR_NOT_FOUND (return True)
  *
  * Returns: True on success, otherwise False.
  *
  * Since: 0.0.1
  */
 PCA_EXPORT bool
-purc_variant_object_remove(purc_variant_t obj, purc_variant_t key);
+purc_variant_object_remove(purc_variant_t obj, purc_variant_t key,
+        bool silently);
 
 /**
  * Remove a key-value pair from an object by key with key as c string
  *
  * @param obj: the variant value of obj type
  * @param key: the key of key-value pair
+ * @param silently: True means ignoring the following errors:
+ *      - PCVARIANT_ERROR_NOT_FOUND (return True)
  *
  * Returns: True on success, otherwise False.
  *
  * Since: 0.0.1
  */
 static inline bool
-purc_variant_object_remove_by_static_ckey(purc_variant_t obj, const char* key)
+purc_variant_object_remove_by_static_ckey(purc_variant_t obj, const char* key,
+        bool silently)
 {
     purc_variant_t k = purc_variant_make_string_static(key, true);
     if (k==PURC_VARIANT_INVALID) {
         return false;
     }
-    bool b = purc_variant_object_remove(obj, k);
+    bool b = purc_variant_object_remove(obj, k, silently);
     purc_variant_unref(k);
     return b;
 }
@@ -1062,9 +1073,11 @@ purc_variant_set_add(purc_variant_t obj, purc_variant_t value, bool overwrite);
  *
  * @param set: the set to be operated
  * @param value: the value to be removed
+ * @param silently: True means ignoring the following errors:
+ *      - PCVARIANT_ERROR_NOT_FOUND (return True)
  *
  * Returns: @true on success, @false if:
- *      - no any matching member in the set.
+ *      - silently is False And no any matching member in the set.
  *
  * @note This function works if the set is not managed by unique keys, or
  *  there is only one unique key. If there are multiple unique keys,
@@ -1073,7 +1086,7 @@ purc_variant_set_add(purc_variant_t obj, purc_variant_t value, bool overwrite);
  * Since: 0.0.1
  */
 PCA_EXPORT bool
-purc_variant_set_remove(purc_variant_t obj, purc_variant_t value);
+purc_variant_set_remove(purc_variant_t obj, purc_variant_t value, bool silently);
 
 /**
  * Gets the member by the values of unique keys from a set.
@@ -1890,6 +1903,216 @@ purc_variant_register_post_listener(purc_variant_t v,
 PCA_EXPORT bool
 purc_variant_revoke_listener(purc_variant_t v,
         struct pcvar_listener *listener);
+
+/**
+ * Displace the values of the container.
+ *
+ * @param dst: the dst variant (object, array, set)
+ * @param value: the variant to replace (object, array, set)
+ * @param silently: True means ignoring the following errors:
+ *      - PURC_ERROR_INVALID_VALUE
+ *      - PURC_ERROR_WRONG_DATA_TYPE
+ *
+ * Returns: True on success, otherwise False.
+ *
+ * Since: 0.0.5
+ */
+PCA_EXPORT bool
+purc_variant_container_displace(purc_variant_t dst,
+        purc_variant_t src, bool silently);
+
+/**
+ * Remove the values from the container.
+ *
+ * @param dst: the dst variant (object, array, set)
+ * @param value: the variant to remove from container (object, array, set)
+ * @param silently: True means ignoring the following errors:
+ *      - PURC_ERROR_INVALID_VALUE
+ *      - PURC_ERROR_WRONG_DATA_TYPE
+ *      - PCVARIANT_ERROR_NOT_FOUND
+ *
+ * Returns: True on success, otherwise False.
+ *
+ * Since: 0.0.5
+ */
+PCA_EXPORT bool
+purc_variant_container_remove(purc_variant_t dst,
+        purc_variant_t src, bool silently);
+
+/**
+ * Appends all the members of the array to the tail of the target array.
+ *
+ * @param array: the dst array variant
+ * @param value: the value to be appended (array)
+ * @param silently: True means ignoring the following errors:
+ *      - PURC_ERROR_INVALID_VALUE
+ *      - PURC_ERROR_WRONG_DATA_TYPE
+ *
+ * Returns: True on success, otherwise False.
+ *
+ * Since: 0.0.5
+ */
+PCA_EXPORT bool
+purc_variant_array_append_another(purc_variant_t array,
+        purc_variant_t another, bool silently);
+
+/**
+ * Insert all the members of the array to the head of the target array.
+ *
+ * @param array: the dst array variant
+ * @param value: the value to be insert (array)
+ * @param silently: True means ignoring the following errors:
+ *      - PURC_ERROR_INVALID_VALUE
+ *      - PURC_ERROR_WRONG_DATA_TYPE
+ *
+ * Returns: True on success, otherwise False.
+ *
+ * Since: 0.0.5
+ */
+PCA_EXPORT bool
+purc_variant_array_prepend_another(purc_variant_t array,
+        purc_variant_t another, bool silently);
+
+/**
+ * Merge value to the object
+ *
+ * @param object: the dst object variant
+ * @param value: the value to be merge (object)
+ * @param silently: True means ignoring the following errors:
+ *      - PURC_ERROR_INVALID_VALUE
+ *      - PURC_ERROR_WRONG_DATA_TYPE
+ *
+ * Returns: True on success, otherwise False.
+ *
+ * Since: 0.0.5
+ */
+PCA_EXPORT bool
+purc_variant_object_merge_another(purc_variant_t object,
+        purc_variant_t another, bool silently);
+
+/**
+ * Insert all the members of the array into the target array and place it
+ * after the indicated element.
+ *
+ * @param array: the dst array variant
+ * @param idx: the index of element before which the new value will be placed
+ * @param value: the inserted value (array)
+ * @param silently: True means ignoring the following errors:
+ *      - PURC_ERROR_INVALID_VALUE
+ *      - PURC_ERROR_WRONG_DATA_TYPE
+ *
+ * Returns: True on success, otherwise False.
+ *
+ * Since: 0.0.5
+ */
+PCA_EXPORT bool
+purc_variant_array_insert_another_before(purc_variant_t array,
+        int idx, purc_variant_t another, bool silently);
+
+/**
+ * Insert all the members of the array into the target array and place it
+ * after the specified element
+ *
+ * @param array: the dst array variant
+ * @param idx: the index of element after which the new value will be placed
+ * @param value: the inserted value (array)
+ * @param silently: True means ignoring the following errors:
+ *      - PURC_ERROR_INVALID_VALUE
+ *      - PURC_ERROR_WRONG_DATA_TYPE
+ *
+ * Returns: True on success, otherwise False.
+ *
+ * Since: 0.0.5
+ */
+PCA_EXPORT bool
+purc_variant_array_insert_another_after(purc_variant_t array,
+        int idx, purc_variant_t another, bool silently);
+
+/**
+ * Unite operation on the set
+ *
+ * @param set: the dst set variant
+ * @param value: the value to be unite (array, set)
+ * @param silently: True means ignoring the following errors:
+ *      - PURC_ERROR_INVALID_VALUE
+ *      - PURC_ERROR_WRONG_DATA_TYPE
+ *
+ * Returns: True on success, otherwise False.
+ *
+ * Since: 0.0.5
+ */
+PCA_EXPORT bool
+purc_variant_set_unite(purc_variant_t set,
+        purc_variant_t src, bool silently);
+
+/**
+ * Intersection operation on the set
+ *
+ * @param set: the dst set variant
+ * @param value: the value to intersect (array, set)
+ * @param silently: True means ignoring the following errors:
+ *      - PURC_ERROR_INVALID_VALUE
+ *      - PURC_ERROR_WRONG_DATA_TYPE
+ *
+ * Returns: True on success, otherwise False.
+ *
+ * Since: 0.0.5
+ */
+PCA_EXPORT bool
+purc_variant_set_intersect(purc_variant_t set,
+        purc_variant_t src, bool silently);
+
+/**
+ * Subtraction operation on the set
+ *
+ * @param set: the dst set variant
+ * @param value: the value to substract (array, set)
+ * @param silently: True means ignoring the following errors:
+ *      - PURC_ERROR_INVALID_VALUE
+ *      - PURC_ERROR_WRONG_DATA_TYPE
+ *
+ * Returns: True on success, otherwise False.
+ *
+ * Since: 0.0.5
+ */
+PCA_EXPORT bool
+purc_variant_set_subtract(purc_variant_t set,
+        purc_variant_t src, bool silently);
+
+/**
+ * Xor operation on the set
+ *
+ * @param set: the dst set variant
+ * @param value: the value to xor (array, set)
+ * @param silently: True means ignoring the following errors:
+ *      - PURC_ERROR_INVALID_VALUE
+ *      - PURC_ERROR_WRONG_DATA_TYPE
+ *
+ * Returns: True on success, otherwise False.
+ *
+ * Since: 0.0.5
+ */
+PCA_EXPORT bool
+purc_variant_set_xor(purc_variant_t set,
+        purc_variant_t src, bool silently);
+
+/**
+ * Overwrite operation on the set
+ *
+ * @param set: the dst set variant
+ * @param value: the value to overwrite (object, array, set)
+ * @param silently: True means ignoring the following errors:
+ *      - PURC_ERROR_INVALID_VALUE
+ *      - PURC_ERROR_WRONG_DATA_TYPE
+ *      - PCVARIANT_ERROR_NOT_FOUND
+ *
+ * Returns: True on success, otherwise False.
+ *
+ * Since: 0.0.5
+ */
+PCA_EXPORT bool
+purc_variant_set_overwrite(purc_variant_t set,
+        purc_variant_t src, bool silently);
 
 PCA_EXTERN_C_END
 

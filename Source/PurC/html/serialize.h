@@ -36,7 +36,7 @@
 
 #include "config.h"
 #include "private/html.h"
-#include "private/edom.h"
+#include "private/dom.h"
 
 #include "private/str.h"
 #include "html/base.h"
@@ -60,58 +60,58 @@ extern "C" {
 #endif
 
 unsigned int
-pchtml_html_serialize_cb(pcedom_node_t *node,
+pchtml_html_serialize_cb(pcdom_node_t *node,
                 pchtml_html_serialize_cb_f cb, void *ctx) WTF_INTERNAL;
 
 unsigned int
-pchtml_html_serialize_str(pcedom_node_t *node, 
+pchtml_html_serialize_str(pcdom_node_t *node, 
                 pcutils_str_t *str) WTF_INTERNAL;
 
 unsigned int
-pchtml_html_serialize_tree_cb(pcedom_node_t *node,
+pchtml_html_serialize_tree_cb(pcdom_node_t *node,
                 pchtml_html_serialize_cb_f cb, void *ctx) WTF_INTERNAL;
 
 unsigned int
-pchtml_html_serialize_tree_str(pcedom_node_t *node, 
+pchtml_html_serialize_tree_str(pcdom_node_t *node, 
                 pcutils_str_t *str) WTF_INTERNAL;
 
 unsigned int
-pchtml_html_serialize_deep_cb(pcedom_node_t *node,
+pchtml_html_serialize_deep_cb(pcdom_node_t *node,
                 pchtml_html_serialize_cb_f cb, void *ctx) WTF_INTERNAL;
 
 unsigned int
-pchtml_html_serialize_deep_str(pcedom_node_t *node, 
+pchtml_html_serialize_deep_str(pcdom_node_t *node, 
                 pcutils_str_t *str) WTF_INTERNAL;
 
 unsigned int
-pchtml_html_serialize_pretty_cb(pcedom_node_t *node,
+pchtml_html_serialize_pretty_cb(pcdom_node_t *node,
                 pchtml_html_serialize_opt_t opt, size_t indent,
                 pchtml_html_serialize_cb_f cb, void *ctx) WTF_INTERNAL;
 
 unsigned int
-pchtml_html_serialize_pretty_str(pcedom_node_t *node,
+pchtml_html_serialize_pretty_str(pcdom_node_t *node,
                 pchtml_html_serialize_opt_t opt, size_t indent,
                 pcutils_str_t *str) WTF_INTERNAL;
 
 #if 0   //gengyue
 unsigned int
-pchtml_html_serialize_pretty_tree_cb(pcedom_node_t *node,
+pchtml_html_serialize_pretty_tree_cb(pcdom_node_t *node,
                 pchtml_html_serialize_opt_t opt, size_t indent,
                 pchtml_html_serialize_cb_f cb, void *ctx) WTF_INTERNAL;
 #endif
 
 unsigned int
-pchtml_html_serialize_pretty_tree_str(pcedom_node_t *node,
+pchtml_html_serialize_pretty_tree_str(pcdom_node_t *node,
                 pchtml_html_serialize_opt_t opt, size_t indent,
                 pcutils_str_t *str) WTF_INTERNAL;
 
 unsigned int
-pchtml_html_serialize_pretty_deep_cb(pcedom_node_t *node,
+pchtml_html_serialize_pretty_deep_cb(pcdom_node_t *node,
                 pchtml_html_serialize_opt_t opt, size_t indent,
                 pchtml_html_serialize_cb_f cb, void *ctx) WTF_INTERNAL;
 
 unsigned int
-pchtml_html_serialize_pretty_deep_str(pcedom_node_t *node,
+pchtml_html_serialize_pretty_deep_str(pcdom_node_t *node,
                 pchtml_html_serialize_opt_t opt, size_t indent,
                 pcutils_str_t *str) WTF_INTERNAL;
 

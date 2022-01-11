@@ -27,7 +27,7 @@
 #include "private/errors.h"
 #include "private/debug.h"
 #include "private/utils.h"
-#include "private/edom.h"
+#include "private/dom.h"
 #include "private/hvml.h"
 
 #include "hvml-buffer.h"

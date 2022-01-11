@@ -1,7 +1,7 @@
 #include "purc.h"
 #include "private/html.h"
 #include "private/variant.h"
-#include "private/edom.h"
+#include "private/dom.h"
 
 #include <limits.h>
 #include <stdio.h>
@@ -328,9 +328,9 @@ void test_parser_attribution(char * data_path, char * file_name)
     pchtml_html_parser_t * parser = NULL;
     pchtml_html_document_t * document = NULL;
     pchtml_html_body_element_t * body = NULL;
-    pcedom_collection_t * collection = NULL;
-    pcedom_element_t * element = NULL;
-    pcedom_attr_t * attr = NULL;
+    pcdom_collection_t * collection = NULL;
+    pcdom_element_t * element = NULL;
+    pcdom_attr_t * attr = NULL;
     off_t off;
     const char * serialization = NULL;
     struct stat file_stat;
@@ -405,22 +405,22 @@ void test_parser_attribution(char * data_path, char * file_name)
 
     // add new attribute my_name = "oh God" for div node
     // Create Collection for elements
-    collection = pcedom_collection_make(&document->dom_document, 16);
+    collection = pcdom_collection_make(&document->dom_document, 16);
     ASSERT_NE(collection, nullptr);
 
     // Get BODY elemenet (root for search)
     body = pchtml_html_document_body_element(document);
-    element = pcedom_interface_element(body);
+    element = pcdom_interface_element(body);
 
     // Find all DIV eleemnt, and put it in collection
-    ret = pcedom_elements_by_tag_name(element, collection,
+    ret = pcdom_elements_by_tag_name(element, collection,
                                           (const unsigned char *)"div", 3);
     ASSERT_EQ (ret, PURC_ERROR_OK);
-    ASSERT_NE (pcedom_collection_length(collection), 0);
+    ASSERT_NE (pcdom_collection_length(collection), 0);
 
     // Append new attrtitube, get the first div node
-    element = pcedom_collection_element(collection, 0);
-    attr = pcedom_element_set_attribute(element, name, name_size,
+    element = pcdom_collection_element(collection, 0);
+    attr = pcdom_element_set_attribute(element, name, name_size,
                                          (const unsigned char *) "oh God", 6);
     ASSERT_NE(attr, nullptr);
 
@@ -450,23 +450,23 @@ void test_parser_attribution(char * data_path, char * file_name)
     purc_rwstream_destroy (rwstream);
 
     // Check whether new attribution exist
-    is_exist = pcedom_element_has_attribute(element, name, name_size);
+    is_exist = pcdom_element_has_attribute(element, name, name_size);
     ASSERT_EQ (is_exist, true);
 
     // Get value by qualified name
-    value = (const char *)pcedom_element_get_attribute(element, name, name_size, &value_len);
+    value = (const char *)pcdom_element_get_attribute(element, name, name_size, &value_len);
     ASSERT_NE(value, nullptr);
     ASSERT_STREQ(value, "oh God");
 
     // change value
-    ret = pcedom_attr_set_value(attr, (const unsigned char *) "new value", 9);
+    ret = pcdom_attr_set_value(attr, (const unsigned char *) "new value", 9);
     ASSERT_EQ(ret, 0);
-    value = (const char *)pcedom_element_get_attribute(element, name, name_size, &value_len);
+    value = (const char *)pcdom_element_get_attribute(element, name, name_size, &value_len);
     ASSERT_NE(value, nullptr);
     ASSERT_STREQ(value, "new value");
 
     // Remove new attrtitube by name
-    pcedom_element_remove_attribute(element, name, name_size);
+    pcdom_element_remove_attribute(element, name, name_size);
 
     // serialize document
     memset(test_file, 0, sizeof(test_file));
@@ -581,8 +581,8 @@ TEST(html, html_parser_attribution)
 
 
 
-// an example for how to replace a node with a new edom tree.
-static pcedom_node_t * get_node (pcedom_node_t *node, unsigned int tag, int *index)
+// an example for how to replace a node with a new dom tree.
+static pcdom_node_t * get_node (pcdom_node_t *node, unsigned int tag, int *index)
 {
     if (node && node->local_name == tag) {
         (*index)--;
@@ -591,7 +591,7 @@ static pcedom_node_t * get_node (pcedom_node_t *node, unsigned int tag, int *ind
     }
 
     node = node->first_child;
-    pcedom_node_t *return_node = NULL;
+    pcdom_node_t *return_node = NULL;
 
     while (node != NULL) {
         return_node = get_node (node, tag, index);
@@ -685,7 +685,7 @@ TEST(html, html_parser_fragment_insert)
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    // parse html file, get original edom tree
+    // parse html file, get original dom tree
     // create document
     doc = pchtml_html_document_create();
     if (doc == NULL)
@@ -700,7 +700,7 @@ TEST(html, html_parser_fragment_insert)
 
     /* Serialization html*/
     printf("The original HTML Document:\n");
-    status = pchtml_html_serialize_pretty_tree_cb(pcedom_interface_node(doc),
+    status = pchtml_html_serialize_pretty_tree_cb(pcdom_interface_node(doc),
                                                PCHTML_HTML_SERIALIZE_OPT_UNDEF,
                                                0, serializer_callback, NULL);
     if (status != PCHTML_STATUS_OK) {
@@ -739,23 +739,23 @@ TEST(html, html_parser_fragment_insert)
 */
 
     index = 0;
-    pcedom_node_t *div = get_node (&(doc->dom_document.node), PCHTML_TAG_DIV, &index);
+    pcdom_node_t *div = get_node (&(doc->dom_document.node), PCHTML_TAG_DIV, &index);
     if (div) {
         purc_rwstream_t rwstream = NULL;
         rwstream = purc_rwstream_new_from_mem((void*)fragment2,
                 strlen((const char *) fragment2));
 
         // get the fragment root
-        pcedom_node_t *fragment_root = pchtml_html_document_parse_fragment (
-                doc, pcedom_interface_element (div), rwstream);
+        pcdom_node_t *fragment_root = pchtml_html_document_parse_fragment (
+                doc, pcdom_interface_element (div), rwstream);
 
-        pcedom_merge_fragment_prepend (div, fragment_root);
+        pcdom_merge_fragment_prepend (div, fragment_root);
 
         purc_rwstream_destroy (rwstream);
     }
     // print the result
     printf("\n\nAfter prepending the fragment in the first div:\n");
-    status = pchtml_html_serialize_pretty_tree_cb(pcedom_interface_node(doc),
+    status = pchtml_html_serialize_pretty_tree_cb(pcdom_interface_node(doc),
                                                PCHTML_HTML_SERIALIZE_OPT_UNDEF,
                                                0, serializer_callback, NULL);
     if (status != PCHTML_STATUS_OK) {
@@ -806,17 +806,17 @@ TEST(html, html_parser_fragment_insert)
                 strlen((const char *) fragment2));
 
         // get the fragment root
-        pcedom_node_t *fragment_root = pchtml_html_document_parse_fragment (
-                doc, pcedom_interface_element (div), rwstream);
+        pcdom_node_t *fragment_root = pchtml_html_document_parse_fragment (
+                doc, pcdom_interface_element (div), rwstream);
 
         // set the fragment to the node. append: is the sub tree.
-        pcedom_merge_fragment_append (div, fragment_root);
+        pcdom_merge_fragment_append (div, fragment_root);
 
         purc_rwstream_destroy (rwstream);
     }
     // print the result
     printf("\n\nAfter appending fragment in the first div:\n");
-    status = pchtml_html_serialize_pretty_tree_cb(pcedom_interface_node(doc),
+    status = pchtml_html_serialize_pretty_tree_cb(pcdom_interface_node(doc),
                                                PCHTML_HTML_SERIALIZE_OPT_UNDEF,
                                                0, serializer_callback, NULL);
     if (status != PCHTML_STATUS_OK) {
@@ -871,17 +871,17 @@ TEST(html, html_parser_fragment_insert)
                 strlen((const char *) fragment2));
 
         // get the fragment root
-        pcedom_node_t *fragment_root = pchtml_html_document_parse_fragment (
-                doc, pcedom_interface_element (div), rwstream);
+        pcdom_node_t *fragment_root = pchtml_html_document_parse_fragment (
+                doc, pcdom_interface_element (div), rwstream);
 
         // set the fragment to the node. insertBefore: before the node
-        pcedom_merge_fragment_insert_before (div, fragment_root);
+        pcdom_merge_fragment_insert_before (div, fragment_root);
 
         purc_rwstream_destroy (rwstream);
     }
     // print the result
     printf("\n\nAfter inserting before the first div:\n");
-    status = pchtml_html_serialize_pretty_tree_cb(pcedom_interface_node(doc),
+    status = pchtml_html_serialize_pretty_tree_cb(pcdom_interface_node(doc),
                                                PCHTML_HTML_SERIALIZE_OPT_UNDEF,
                                                0, serializer_callback, NULL);
     if (status != PCHTML_STATUS_OK) {
@@ -940,17 +940,17 @@ TEST(html, html_parser_fragment_insert)
                 strlen((const char *) fragment2));
 
         // get the fragment root
-        pcedom_node_t *fragment_root = pchtml_html_document_parse_fragment (
-                doc, pcedom_interface_element (div), rwstream);
+        pcdom_node_t *fragment_root = pchtml_html_document_parse_fragment (
+                doc, pcdom_interface_element (div), rwstream);
 
         // set the fragment to the node. insertBefore: before the node
-        pcedom_merge_fragment_insert_after (div, fragment_root);
+        pcdom_merge_fragment_insert_after (div, fragment_root);
 
         purc_rwstream_destroy (rwstream);
     }
     // print the result
     printf("\n\nAfter inserting after the second div:\n");
-    status = pchtml_html_serialize_pretty_tree_cb(pcedom_interface_node(doc),
+    status = pchtml_html_serialize_pretty_tree_cb(pcdom_interface_node(doc),
                                                PCHTML_HTML_SERIALIZE_OPT_UNDEF,
                                                0, serializer_callback, NULL);
     if (status != PCHTML_STATUS_OK) {
@@ -1000,7 +1000,7 @@ TEST(html, html_parser_specialchars)
     /* Serialization html*/
     printf("HTML Document:\n");
 
-    status = pchtml_html_serialize_pretty_tree_cb(pcedom_interface_node(doc),
+    status = pchtml_html_serialize_pretty_tree_cb(pcdom_interface_node(doc),
                                                PCHTML_HTML_SERIALIZE_OPT_UNDEF,
                                                0, serializer_callback, NULL);
     if (status != PCHTML_STATUS_OK) {
@@ -1027,7 +1027,7 @@ TEST(html, html_parser_specialchars)
     printf("\n\nHTML Document:\n");
 
 #if 0
-    status = pchtml_html_serialize_pretty_tree_cb(pcedom_interface_node(doc),
+    status = pchtml_html_serialize_pretty_tree_cb(pcdom_interface_node(doc),
                                                PCHTML_HTML_SERIALIZE_OPT_UNDEF,
                                                0, serializer_callback, NULL);
     if (status != PCHTML_STATUS_OK) {

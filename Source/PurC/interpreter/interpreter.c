@@ -207,13 +207,13 @@ edom_gen_write(struct pcintr_edom_gen *edom_gen, const char *buf, int sz)
     // if (open_elements->length < 1)
     //     return 0;
 
-    // pcedom_element_t *element = open_elements->list[open_elements->length-1];
+    // pcdom_element_t *element = open_elements->list[open_elements->length-1];
     // if (!element)
     //     return 0;
 
     // const unsigned char *tag_name;
     // size_t len;
-    // tag_name = pcedom_element_tag_name(element, &len);
+    // tag_name = pcdom_element_tag_name(element, &len);
     // PC_ASSERT(tag_name);
     // PC_ASSERT(tag_name[len] == 0);
     // fprintf(stderr, "==[%s]==tag_name:[%s]==\n", buf, tag_name);
@@ -240,7 +240,7 @@ edom_gen_finish(struct pcintr_edom_gen *edom_gen)
     purc_rwstream_destroy(ws);
 }
 
-pcedom_element_t*
+pcdom_element_t*
 pcintr_stack_get_edom_open_element(pcintr_stack_t stack)
 {
     PC_ASSERT(stack);
@@ -257,13 +257,13 @@ pcintr_stack_get_edom_open_element(pcintr_stack_t stack)
     if (open_elements->length < 1)
         return NULL;
 
-    pcedom_element_t *element = open_elements->list[open_elements->length-1];
+    pcdom_element_t *element = open_elements->list[open_elements->length-1];
     if (!element)
         return NULL;
 
     const unsigned char *tag_name;
     size_t len;
-    tag_name = pcedom_element_tag_name(element, &len);
+    tag_name = pcdom_element_tag_name(element, &len);
     PC_ASSERT(tag_name);
     PC_ASSERT(tag_name[len] == 0);
     // fprintf(stderr, "==[%s]==tag_name:[%s]==\n", buf, tag_name);
@@ -323,8 +323,8 @@ edom_fragment_post_process(pcintr_stack_t stack,
     purc_variant_t on = fragment->on;
     PC_ASSERT(on != PURC_VARIANT_INVALID);
     PC_ASSERT(purc_variant_is_type(on, PURC_VARIANT_TYPE_NATIVE));
-    struct pcedom_element *target;
-    target = (struct pcedom_element*)purc_variant_native_get_entity(on);
+    struct pcdom_element *target;
+    target = (struct pcdom_element*)purc_variant_native_get_entity(on);
     PC_ASSERT(target);
 
     purc_variant_t to = fragment->to;
@@ -338,33 +338,33 @@ edom_fragment_post_process(pcintr_stack_t stack,
     if (!in)
         return;
 
-    pcedom_node_t *node = pchtml_html_document_parse_fragment(doc, target,
+    pcdom_node_t *node = pchtml_html_document_parse_fragment(doc, target,
             in);
     purc_rwstream_destroy(in);
     PC_ASSERT(node);
-    PC_ASSERT(node->type == PCEDOM_NODE_TYPE_ELEMENT);
+    PC_ASSERT(node->type == PCDOM_NODE_TYPE_ELEMENT);
 
     const char *op = purc_variant_get_string_const(fragment->to);
     if (strcmp(op, "append") == 0) {
-        pcedom_merge_fragment_append(&target->node, node);
+        pcdom_merge_fragment_append(&target->node, node);
     }
     else if (strcmp(op, "prepend") == 0) {
-        pcedom_merge_fragment_prepend(&target->node, node);
+        pcdom_merge_fragment_prepend(&target->node, node);
     }
     else if (strcmp(op, "insertAfter") == 0) {
-        pcedom_merge_fragment_insert_after(&target->node, node);
+        pcdom_merge_fragment_insert_after(&target->node, node);
     }
     else if (strcmp(op, "insertBefore") == 0) {
-        pcedom_merge_fragment_insert_before(&target->node, node);
+        pcdom_merge_fragment_insert_before(&target->node, node);
     }
     else if (strcmp(op, "textContent") == 0) {
-        pcedom_node_t *child = target->node.first_child;
+        pcdom_node_t *child = target->node.first_child;
         while (child) {
-            pcedom_node_remove(child);
-            pcedom_node_destroy(child);
+            pcdom_node_remove(child);
+            pcdom_node_destroy(child);
             child = target->node.first_child;
         }
-        pcedom_merge_fragment_append(&target->node, node);
+        pcdom_merge_fragment_append(&target->node, node);
     }
     else {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
@@ -1422,7 +1422,7 @@ void observer_free_func(void *data)
 struct pcintr_observer*
 pcintr_register_observer(purc_variant_t observed,
         purc_variant_t for_value, pcvdom_element_t scope,
-        pcedom_element_t *edom_element,
+        pcdom_element_t *edom_element,
         pcvdom_element_t pos)
 {
     UNUSED_PARAM(for_value);

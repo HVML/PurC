@@ -26,7 +26,7 @@
 #define PURC_PRIVATE_DVOBJS_H
 
 #include "config.h"
-#include "purc-edom.h"
+#include "purc-dom.h"
 #include "purc-rwstream.h"
 #include "purc-variant.h"
 
@@ -133,10 +133,10 @@ struct wildcard_list {
 };
 
 purc_variant_t
-pcdvobjs_make_doc_variant(struct pcedom_document *doc);
+pcdvobjs_make_doc_variant(struct pcdom_document *doc);
 
 purc_variant_t
-pcdvobjs_make_element_variant(struct pcedom_element *element);
+pcdvobjs_make_element_variant(struct pcdom_element *element);
 
 #ifdef __cplusplus
 }

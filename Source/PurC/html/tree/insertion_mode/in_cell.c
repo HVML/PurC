@@ -38,7 +38,7 @@
 static void
 pchtml_html_tree_close_cell(pchtml_html_tree_t *tree, pchtml_html_token_t *token)
 {
-    pcedom_node_t *node;
+    pcdom_node_t *node;
 
     pchtml_html_tree_generate_implied_end_tags(tree, PCHTML_TAG__UNDEF,
                                             PCHTML_NS__UNDEF);
@@ -65,7 +65,7 @@ static inline bool
 pchtml_html_tree_insertion_mode_in_cell_tdth_closed(pchtml_html_tree_t *tree,
                                                  pchtml_html_token_t *token)
 {
-    pcedom_node_t *node;
+    pcdom_node_t *node;
 
     node = pchtml_html_tree_element_in_scope(tree, token->tag_id, PCHTML_NS_HTML,
                                           PCHTML_HTML_TAG_CATEGORY_SCOPE_TABLE);
@@ -102,7 +102,7 @@ static inline bool
 pchtml_html_tree_insertion_mode_in_cell_ct(pchtml_html_tree_t *tree,
                                         pchtml_html_token_t *token)
 {
-    pcedom_node_t *node;
+    pcdom_node_t *node;
 
     node = pchtml_html_tree_element_in_scope_td_th(tree);
     if (node == NULL) {
@@ -135,7 +135,7 @@ static inline bool
 pchtml_html_tree_insertion_mode_in_cell_t_closed(pchtml_html_tree_t *tree,
                                               pchtml_html_token_t *token)
 {
-    pcedom_node_t *node;
+    pcdom_node_t *node;
 
     node = pchtml_html_tree_element_in_scope(tree, token->tag_id, PCHTML_NS_HTML,
                                           PCHTML_HTML_TAG_CATEGORY_SCOPE_TABLE);

@@ -25,7 +25,7 @@
 #ifndef PURC_PURC_HTML_H
 #define PURC_PURC_HTML_H
 
-#include "purc-edom.h"
+#include "purc-dom.h"
 #include "purc-rwstream.h"
 
 typedef enum {
@@ -89,12 +89,12 @@ pchtml_html_parse_chunk_process(pchtml_html_parser_t *parser,
 unsigned int
 pchtml_html_parse_chunk_end(pchtml_html_parser_t *parser);
 
-pcedom_node_t *
+pcdom_node_t *
 pchtml_html_parse_fragment(pchtml_html_parser_t *parser,
                         pchtml_html_element_t *element,
                         const purc_rwstream_t html);
 
-pcedom_node_t *
+pcdom_node_t *
 pchtml_html_parse_fragment_by_tag_id(pchtml_html_parser_t *parser,
                 pchtml_html_document_t *document,
                 pchtml_tag_id_t tag_id, pchtml_ns_id_t ns,
@@ -110,7 +110,7 @@ unsigned int
 pchtml_html_parse_fragment_chunk_process(pchtml_html_parser_t *parser,
                 const unsigned char *data, size_t sz);
 
-pcedom_node_t *
+pcdom_node_t *
 pchtml_html_parse_fragment_chunk_end(pchtml_html_parser_t *parser);
 
 // API for document
@@ -142,21 +142,21 @@ pchtml_html_document_parse_chunk_end(
                 pchtml_html_document_t *document) ;
 
 // API for parsing fragment 
-pcedom_node_t *
+pcdom_node_t *
 pchtml_html_document_parse_fragment(pchtml_html_document_t *document,
-                pcedom_element_t *element,
+                pcdom_element_t *element,
                 const purc_rwstream_t html) ;
 
 unsigned int
 pchtml_html_document_parse_fragment_chunk_begin(
                 pchtml_html_document_t *document,
-                pcedom_element_t *element) ;
+                pcdom_element_t *element) ;
 
 unsigned int
 pchtml_html_document_parse_fragment_chunk(pchtml_html_document_t *document,
                 const unsigned char *data, size_t sz);
 
-pcedom_node_t *
+pcdom_node_t *
 pchtml_html_document_parse_fragment_chunk_end(
                 pchtml_html_document_t *document) ;
 
@@ -169,14 +169,14 @@ typedef unsigned int
 (*pchtml_html_serialize_cb_f)(const unsigned char *data, size_t len, void *ctx);
 
 unsigned int
-pchtml_html_serialize_pretty_tree_cb(pcedom_node_t *node,
+pchtml_html_serialize_pretty_tree_cb(pcdom_node_t *node,
                 int opt, size_t indent,
                 pchtml_html_serialize_cb_f cb, void *ctx) ;
 
 int
 pchtml_doc_write_to_stream(pchtml_html_document_t *doc, purc_rwstream_t out);
 
-struct pcedom_document*
+struct pcdom_document*
 pchtml_doc_get_document(pchtml_html_document_t *doc);
 
 PCA_EXTERN_C_END

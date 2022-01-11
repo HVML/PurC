@@ -139,7 +139,7 @@ class Interfaces:
 
         # hacking:
         if type.lower() == "dom":
-            return "pcedom_{}_interface_create".format(inter_obj["c_name"])
+            return "pcdom_{}_interface_create".format(inter_obj["c_name"])
         else:
             return "{}_{}_{}_interface_create".format(self.prefix, type.lower(), inter_obj["c_name"])
 
@@ -149,7 +149,7 @@ class Interfaces:
 
         # hacking:
         if type.lower() == "dom":
-            return "pcedom_{}_interface_destroy".format(inter_obj["c_name"])
+            return "pcdom_{}_interface_destroy".format(inter_obj["c_name"])
         else:
             return "{}_{}_{}_interface_destroy".format(self.prefix, type.lower(), inter_obj["c_name"])
 
@@ -184,7 +184,7 @@ class Interfaces:
         interfaces = self.interfaces
 
         # hacking
-        includes.append("#include \"private/edom.h\"")
+        includes.append("#include \"private/dom.h\"")
 
         for type in interfaces:
             interface = interfaces[type]

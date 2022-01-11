@@ -133,3 +133,8 @@ NotDesiredEntity
     flags: None
     msg: "Not desired entity"
 
+InvalidOperand
+    except: InvalidOperand
+    flags: None
+    msg: "Invalid operand"
+

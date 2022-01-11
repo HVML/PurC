@@ -39,7 +39,8 @@ TEST(dvobjs, dvobjs_sys_uname)
     ASSERT_NE(sys, nullptr);
     ASSERT_EQ(purc_variant_is_object (sys), true);
 
-    purc_variant_t dynamic = purc_variant_object_get_by_ckey (sys, "uname");
+    purc_variant_t dynamic = purc_variant_object_get_by_ckey (sys, "uname",
+            false);
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -107,7 +108,8 @@ TEST(dvobjs, dvobjs_sys_uname_prt)
     ASSERT_NE(sys, nullptr);
     ASSERT_EQ(purc_variant_is_object (sys), true);
 
-    purc_variant_t dynamic = purc_variant_object_get_by_ckey (sys, "uname_prt");
+    purc_variant_t dynamic = purc_variant_object_get_by_ckey (sys, "uname_prt",
+            false);
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -215,7 +217,7 @@ TEST(dvobjs, dvobjs_sys_get_locale)
     ASSERT_NE(sys, nullptr);
     ASSERT_EQ(purc_variant_is_object (sys), true);
 
-    purc_variant_t dynamic = purc_variant_object_get_by_ckey (sys, "locale");
+    purc_variant_t dynamic = purc_variant_object_get_by_ckey (sys, "locale", false);
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -404,7 +406,7 @@ TEST(dvobjs, dvobjs_sys_set_locale)
     ASSERT_NE(sys, nullptr);
     ASSERT_EQ(purc_variant_is_object (sys), true);
 
-    purc_variant_t dynamic = purc_variant_object_get_by_ckey (sys, "locale");
+    purc_variant_t dynamic = purc_variant_object_get_by_ckey (sys, "locale", false);
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -638,7 +640,7 @@ TEST(dvobjs, dvobjs_sys_get_random)
     ASSERT_NE(sys, nullptr);
     ASSERT_EQ(purc_variant_is_object (sys), true);
 
-    purc_variant_t dynamic = purc_variant_object_get_by_ckey (sys, "random");
+    purc_variant_t dynamic = purc_variant_object_get_by_ckey (sys, "random", false);
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -705,7 +707,7 @@ TEST(dvobjs, dvobjs_sys_gettime)
     ASSERT_NE(sys, nullptr);
     ASSERT_EQ(purc_variant_is_object (sys), true);
 
-    purc_variant_t dynamic = purc_variant_object_get_by_ckey (sys, "time");
+    purc_variant_t dynamic = purc_variant_object_get_by_ckey (sys, "time", false);
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 

@@ -124,7 +124,7 @@ static const char *calculator_2 =
 
 TEST(interpreter, basic)
 {
-    if (1)
+    if (0)
         return;
 
     (void)calculator_1;
@@ -138,8 +138,8 @@ TEST(interpreter, basic)
         // "<hvml><body><archetype name=\"$?.button\"><li class=\"class\">letters</li></archetype></body></hvml>",
         // "<hvml><body><archetype name=\"button\"><li class=\"class\">letters</li></archetype></body></hvml>",
         // "<hvml><body><a><b><c></c></b></a></body></hvml>",
-        // calculator_1,
-        calculator_2,
+        calculator_1,
+        // calculator_2,
     };
 
     purc_instance_extra_info info = {};

@@ -111,12 +111,12 @@ static purc_variant_t
 get_source(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
     purc_variant_t with;
-    with = purc_variant_object_get_by_ckey(frame->attr_vars, "with");
+    with = purc_variant_object_get_by_ckey(frame->attr_vars, "with", false);
     if (with != PURC_VARIANT_INVALID)
         return get_source_by_with(co, frame, with);
 
     purc_variant_t from;
-    from = purc_variant_object_get_by_ckey(frame->attr_vars, "from");
+    from = purc_variant_object_get_by_ckey(frame->attr_vars, "from", false);
     if (from != PURC_VARIANT_INVALID)
         return get_source_by_from(co, frame, from);
 
@@ -191,12 +191,14 @@ process_set(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
             return -1;
         }
         purc_variant_t v;
-        struct rb_node *n;
-        foreach_value_in_variant_set_safe_x(on, v, n)
-            bool ok = purc_variant_set_remove(on, v);
+        foreach_value_in_variant_set_safe(on, v)
+            bool ok = purc_variant_set_remove(on, v, false);
             PC_ASSERT(ok); // FIXME: debug-only-now
         end_foreach;
-        foreach_value_in_variant_array(src, v)
+
+        size_t curr;
+        foreach_value_in_variant_array(src, v, curr)
+            (void)curr;
             char buf[1024];
             pcvariant_serialize(buf, sizeof(buf), v);
             D("v: %s", buf);
@@ -248,30 +250,30 @@ process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         PC_ASSERT(s);
         PC_ASSERT(s[0] == '#'); // TODO:
         pchtml_html_document_t *doc = co->stack->edom_gen.doc;
-        pcedom_element_t *body = (pcedom_element_t*)doc->body;
-        pcedom_document_t *document = (pcedom_document_t*)doc;
-        pcedom_collection_t *collection;
-        collection = pcedom_collection_create(document);
+        pcdom_element_t *body = (pcdom_element_t*)doc->body;
+        pcdom_document_t *document = (pcdom_document_t*)doc;
+        pcdom_collection_t *collection;
+        collection = pcdom_collection_create(document);
         PC_ASSERT(collection);
         unsigned int ui;
-        ui = pcedom_collection_init(collection, 10);
+        ui = pcdom_collection_init(collection, 10);
         PC_ASSERT(ui == 0);
-        ui = pcedom_elements_by_attr(body, collection,
+        ui = pcdom_elements_by_attr(body, collection,
                 (const unsigned char*)"id", 2,
                 (const unsigned char*)s+1, strlen(s+1),
                 false);
         PC_ASSERT(ui == 0);
-        for (unsigned int i=0; i<pcedom_collection_length(collection); ++i) {
-            pcedom_node_t *node;
-            node = pcedom_collection_node(collection, i);
+        for (unsigned int i=0; i<pcdom_collection_length(collection); ++i) {
+            pcdom_node_t *node;
+            node = pcdom_collection_node(collection, i);
             PC_ASSERT(node);
-            pcedom_element_t *elem = (pcedom_element_t*)node;
+            pcdom_element_t *elem = (pcdom_element_t*)node;
             purc_variant_t o = pcdvobjs_make_element_variant(elem);
             PC_ASSERT(o != PURC_VARIANT_INVALID);
             const char *content = purc_variant_get_string_const(src);
             pcintr_printf_to_fragment(co->stack, o, at, "%s", content);
         }
-        pcedom_collection_destroy(collection, true);
+        pcdom_collection_destroy(collection, true);
         return 0;
     }
     PC_ASSERT(0); // Not implemented yet
@@ -287,7 +289,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 
     // TODO: '$@'
     purc_variant_t on;
-    on = purc_variant_object_get_by_ckey(frame->attr_vars, "on");
+    on = purc_variant_object_get_by_ckey(frame->attr_vars, "on", false);
     if (on == PURC_VARIANT_INVALID)
         return -1;
     PURC_VARIANT_SAFE_CLEAR(ctxt->on);
@@ -295,7 +297,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     purc_variant_ref(on);
 
     purc_variant_t to;
-    to = purc_variant_object_get_by_ckey(frame->attr_vars, "to");
+    to = purc_variant_object_get_by_ckey(frame->attr_vars, "to", false);
     if (to != PURC_VARIANT_INVALID) {
         PURC_VARIANT_SAFE_CLEAR(ctxt->to);
         ctxt->to = to;
@@ -303,7 +305,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     }
 
     purc_variant_t at;
-    at = purc_variant_object_get_by_ckey(frame->attr_vars, "at");
+    at = purc_variant_object_get_by_ckey(frame->attr_vars, "at", false);
     if (at != PURC_VARIANT_INVALID) {
         PURC_VARIANT_SAFE_CLEAR(ctxt->at);
         ctxt->at = at;

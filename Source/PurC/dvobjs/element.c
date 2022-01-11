@@ -25,7 +25,7 @@
 
 #include "internal.h"
 
-#include "purc-edom.h"
+#include "purc-dom.h"
 
 static inline bool
 element_eraser(struct pcdvobjs_element *element)
@@ -36,7 +36,7 @@ element_eraser(struct pcdvobjs_element *element)
 }
 
 purc_variant_t
-pcdvobjs_element_prop_getter(pcedom_element_t *element,
+pcdvobjs_element_prop_getter(pcdom_element_t *element,
         size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(element);
@@ -74,7 +74,7 @@ prop_getter(void* native_entity, size_t nr_args, purc_variant_t* argv)
 }
 
 purc_variant_t
-pcdvobjs_element_attr_getter(pcedom_element_t *element,
+pcdvobjs_element_attr_getter(pcdom_element_t *element,
         size_t nr_args, purc_variant_t *argv)
 {
     if (nr_args < 1) {
@@ -97,7 +97,7 @@ pcdvobjs_element_attr_getter(pcedom_element_t *element,
     int r;
     const char *val;
     size_t len;
-    r = pcedom_element_attr(element, name,
+    r = pcdom_element_attr(element, name,
             (const unsigned char**)&val, &len);
 
     if (r) {
@@ -123,7 +123,7 @@ attr_getter(void* native_entity, size_t nr_args, purc_variant_t* argv)
 }
 
 purc_variant_t
-pcdvobjs_element_style_getter(pcedom_element_t *element,
+pcdvobjs_element_style_getter(pcdom_element_t *element,
         size_t nr_args, purc_variant_t* argv)
 {
     if (nr_args < 1) {
@@ -146,7 +146,7 @@ pcdvobjs_element_style_getter(pcedom_element_t *element,
     int r;
     const char *style;
     size_t len;
-    r = pcedom_element_style(element, name,
+    r = pcdom_element_style(element, name,
             (const unsigned char**)&style, &len);
 
     if (r) {
@@ -172,7 +172,7 @@ style_getter(void* native_entity, size_t nr_args, purc_variant_t* argv)
 }
 
 purc_variant_t
-pcdvobjs_element_content_getter(pcedom_element_t *element,
+pcdvobjs_element_content_getter(pcdom_element_t *element,
         size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(nr_args);
@@ -181,7 +181,7 @@ pcdvobjs_element_content_getter(pcedom_element_t *element,
     int r;
     const char *content;
     size_t len;
-    r = pcedom_element_content(element,
+    r = pcdom_element_content(element,
             (const unsigned char**)&content, &len);
 
     if (r)
@@ -204,7 +204,7 @@ content_getter(void* native_entity, size_t nr_args, purc_variant_t* argv)
 }
 
 purc_variant_t
-pcdvobjs_element_json_content_getter(pcedom_element_t *element,
+pcdvobjs_element_json_content_getter(pcdom_element_t *element,
         size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(element);
@@ -227,7 +227,7 @@ json_content_getter(void* native_entity, size_t nr_args, purc_variant_t* argv)
 }
 
 purc_variant_t
-pcdvobjs_element_text_content_getter(pcedom_element_t *element,
+pcdvobjs_element_text_content_getter(pcdom_element_t *element,
         size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(nr_args);
@@ -236,7 +236,7 @@ pcdvobjs_element_text_content_getter(pcedom_element_t *element,
     int r;
     char *text;
     size_t len;
-    r = pcedom_element_text_content(element, &text, &len);
+    r = pcdom_element_text_content(element, &text, &len);
 
     if (r)
         return PURC_VARIANT_INVALID;
@@ -257,7 +257,7 @@ text_content_getter(void* native_entity, size_t nr_args, purc_variant_t* argv)
 }
 
 purc_variant_t
-pcdvobjs_element_val_getter(pcedom_element_t *element,
+pcdvobjs_element_val_getter(pcdom_element_t *element,
         size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(element);
@@ -280,7 +280,7 @@ val_getter(void* native_entity, size_t nr_args, purc_variant_t* argv)
 }
 
 purc_variant_t
-pcdvobjs_element_has_class_getter(pcedom_element_t *element,
+pcdvobjs_element_has_class_getter(pcdom_element_t *element,
         size_t nr_args, purc_variant_t* argv)
 {
     if (nr_args < 1) {
@@ -301,7 +301,7 @@ pcdvobjs_element_has_class_getter(pcedom_element_t *element,
     const char *name = purc_variant_get_string_const(cn);
     int r;
     bool has;
-    r = pcedom_element_has_class(element, name, &has);
+    r = pcdom_element_has_class(element, name, &has);
     if (r)
         return PURC_VARIANT_INVALID;
 
@@ -420,7 +420,7 @@ observe(void* native_entity, ...)
 }
 
 purc_variant_t
-pcdvobjs_make_element_variant(struct pcedom_element *elem)
+pcdvobjs_make_element_variant(struct pcdom_element *elem)
 {
     static struct purc_native_ops ops = {
         .property_getter            = property_getter,

@@ -146,7 +146,8 @@ purc_variant_t pcvarmgr_list_get(pcvarmgr_list_t mgr, const char* name)
         return PURC_VARIANT_INVALID;
     }
 
-    purc_variant_t v =  purc_variant_object_get_by_ckey(mgr->object, name);
+    purc_variant_t v;
+    v = purc_variant_object_get_by_ckey(mgr->object, name, false);
     if (v) {
         return v;
     }
@@ -158,7 +159,8 @@ purc_variant_t pcvarmgr_list_get(pcvarmgr_list_t mgr, const char* name)
 bool pcvarmgr_list_remove(pcvarmgr_list_t mgr, const char* name)
 {
     if (name) {
-        return purc_variant_object_remove_by_static_ckey(mgr->object, name);
+        return purc_variant_object_remove_by_static_ckey(mgr->object,
+                name, false);
     }
     return false;
 }
