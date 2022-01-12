@@ -146,6 +146,13 @@ process_object(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     const char *op = purc_variant_get_string_const(to);
     PC_ASSERT(op);
     if (strcmp(op, "merge")==0) {
+    // TODO
+#if 1
+        if (!purc_variant_object_merge_another(on, src, true)) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            return -1;
+        }
+#else
         if (!purc_variant_is_type(src, PURC_VARIANT_TYPE_OBJECT)) {
             purc_set_error(PURC_ERROR_INVALID_VALUE);
             return -1;
@@ -159,6 +166,7 @@ process_object(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
             bool ok = purc_variant_object_set(on, k, v);
             PC_ASSERT(ok); // TODO: debug-only-now
         end_foreach;
+#endif
         return 0;
     }
     PC_ASSERT(0); // Not implemented yet
@@ -190,6 +198,13 @@ process_set(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
             purc_set_error(PURC_ERROR_INVALID_VALUE);
             return -1;
         }
+
+    // TODO
+#if 1
+        if (!purc_variant_container_displace(on, src, true)) {
+            return -1;
+        }
+#else
         purc_variant_t v;
         foreach_value_in_variant_set_safe(on, v)
             bool ok = purc_variant_set_remove(on, v, false);
@@ -206,6 +221,7 @@ process_set(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
             if (!ok)
                 return -1;
         end_foreach;
+#endif
         return 0;
     }
     PC_ASSERT(0); // Not implemented yet
