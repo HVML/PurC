@@ -161,6 +161,10 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     if (in != PURC_VARIANT_INVALID) {
         PURC_VARIANT_SAFE_CLEAR(ctxt->in);
         ctxt->in = in;
+        // TODO : get element variant
+        // purc_variant_t element_variant = xxx;
+        // PURC_VARIANT_SAFE_CLEAR(frame->symbol_vars[PURC_SYMBOL_VAR_AT_SIGN]);
+        // frame->symbol_vars[PURC_SYMBOL_VAR_AT_SIGN] = element_variant;
         purc_variant_ref(in);
     }
 
