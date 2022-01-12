@@ -1061,6 +1061,7 @@ end:
 #define BUILDIN_VAR_SYSTEM      "SYSTEM"
 #define BUILDIN_VAR_T           "T"
 #define BUILDIN_VAR_SESSION     "SESSION"
+#define BUILDIN_VAR_EJSON       "EJSON"
 
 static bool
 bind_doc_named_variable(pcintr_stack_t stack, const char* name,
@@ -1105,11 +1106,20 @@ init_buidin_doc_variable(pcintr_stack_t stack)
         return false;
     }
 
+    // TODO : bind by  purc_bind_variable
+    // begin
     // $SESSION
     if(!bind_doc_named_variable(stack, BUILDIN_VAR_SESSION,
                 pcdvobjs_get_session())) {
         return false;
     }
+
+    // $EJSON
+    if(!bind_doc_named_variable(stack, BUILDIN_VAR_EJSON,
+                pcdvobjs_get_ejson())) {
+        return false;
+    }
+    // end
 
     return true;
 }
