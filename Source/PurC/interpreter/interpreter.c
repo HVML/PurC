@@ -324,7 +324,7 @@ edom_fragment_post_process(pcintr_stack_t stack,
     PC_ASSERT(on != PURC_VARIANT_INVALID);
     PC_ASSERT(purc_variant_is_type(on, PURC_VARIANT_TYPE_NATIVE));
     struct pcdom_element *target;
-    target = (struct pcdom_element*)purc_variant_native_get_entity(on);
+    target = pcdvobjs_get_element_from_variant(on);
     PC_ASSERT(target);
 
     purc_variant_t to = fragment->to;

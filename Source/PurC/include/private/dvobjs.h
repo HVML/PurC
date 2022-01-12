@@ -138,6 +138,9 @@ pcdvobjs_make_doc_variant(struct pcdom_document *doc);
 purc_variant_t
 pcdvobjs_make_element_variant(struct pcdom_element *element);
 
+struct pcdom_element*
+pcdvobjs_get_element_from_variant(purc_variant_t val);
+
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */

@@ -124,7 +124,7 @@ static const char *calculator_2 =
 
 TEST(interpreter, basic)
 {
-    if (1)
+    if (0)
         return;
 
     (void)calculator_1;

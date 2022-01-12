@@ -451,3 +451,14 @@ pcdvobjs_make_element_variant(struct pcdom_element *elem)
     return v;
 }
 
+struct pcdom_element*
+pcdvobjs_get_element_from_variant(purc_variant_t val)
+{
+    PC_ASSERT(val && purc_variant_is_native(val));
+    struct pcdvobjs_element *element;
+    element = (struct pcdvobjs_element*)purc_variant_native_get_entity(val);
+    PC_ASSERT(element);
+    PC_ASSERT(element->elem);
+    return element->elem;
+}
+
