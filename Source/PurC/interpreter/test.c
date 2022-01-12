@@ -94,6 +94,8 @@ post_process_dest_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     purc_variant_t by;
     by = purc_variant_object_get_by_ckey(frame->attr_vars, "by", false);
     if (by == PURC_VARIANT_INVALID) {
+        // TODO : on as value
+        // FIXME
         by = purc_variant_make_string_static("RANGE: FROM 0", false);
         if (by == PURC_VARIANT_INVALID)
             return -1;
