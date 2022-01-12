@@ -32,6 +32,8 @@
 
 #include "ops.h"
 
+#include "purc-executor.h"
+
 #include <pthread.h>
 #include <unistd.h>
 #include <libgen.h>
@@ -39,16 +41,29 @@
 #define TO_DEBUG 0
 
 struct ctxt_for_test {
-    struct pcvdom_node           *curr;
+    struct pcvdom_node *curr;
     purc_variant_t on;
+    purc_variant_t by;
     purc_variant_t in;
-    purc_variant_t for_var;
+
+    struct purc_exec_ops          ops;
+    purc_exec_inst_t              exec_inst;
+    purc_exec_iter_t              it;
 };
 
 static void
 ctxt_for_test_destroy(struct ctxt_for_test *ctxt)
 {
     if (ctxt) {
+        if (ctxt->exec_inst) {
+            bool ok = ctxt->ops.destroy(ctxt->exec_inst);
+            PC_ASSERT(ok);
+            ctxt->exec_inst = NULL;
+        }
+        PURC_VARIANT_SAFE_CLEAR(ctxt->by);
+        PURC_VARIANT_SAFE_CLEAR(ctxt->on);
+        PURC_VARIANT_SAFE_CLEAR(ctxt->in);
+
         free(ctxt);
     }
 }
@@ -60,7 +75,7 @@ ctxt_destroy(void *ctxt)
 }
 
 static int
-post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
+post_process_dest_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
     UNUSED_PARAM(co);
 
@@ -69,13 +84,77 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     PC_ASSERT(ctxt);
 
     purc_variant_t on;
-    on = purc_variant_object_get_by_ckey(frame->attr_vars, "on", true);
-    if (on == PURC_VARIANT_INVALID) {
+    on = purc_variant_object_get_by_ckey(frame->attr_vars, "on", false);
+    if (on == PURC_VARIANT_INVALID)
         return -1;
-    }
     PURC_VARIANT_SAFE_CLEAR(ctxt->on);
     ctxt->on = on;
     purc_variant_ref(on);
+
+    purc_variant_t by;
+    by = purc_variant_object_get_by_ckey(frame->attr_vars, "by", false);
+    if (by == PURC_VARIANT_INVALID) {
+        by = purc_variant_make_string_static("RANGE: FROM 0", false);
+        if (by == PURC_VARIANT_INVALID)
+            return -1;
+    }
+    else {
+        purc_variant_ref(by);
+    }
+    purc_clr_error();
+    PURC_VARIANT_SAFE_CLEAR(ctxt->by);
+    ctxt->by = by;
+
+    const char *rule = purc_variant_get_string_const(by);
+    PC_ASSERT(rule);
+    bool ok = purc_get_executor(rule, &ctxt->ops);
+    if (!ok)
+        return -1;
+
+    PC_ASSERT(ctxt->ops.create);
+    PC_ASSERT(ctxt->ops.it_begin);
+    PC_ASSERT(ctxt->ops.it_next);
+    PC_ASSERT(ctxt->ops.it_value);
+    PC_ASSERT(ctxt->ops.destroy);
+
+    purc_exec_inst_t exec_inst;
+    exec_inst = ctxt->ops.create(PURC_EXEC_TYPE_ITERATE, on, false);
+    if (!exec_inst)
+        return -1;
+
+    ctxt->exec_inst = exec_inst;
+
+    purc_exec_iter_t it;
+    it = ctxt->ops.it_begin(exec_inst, rule);
+    if (!it)
+        return -1;
+
+    ctxt->it = it;
+
+    purc_variant_t value;
+    value = ctxt->ops.it_value(exec_inst, it);
+    if (value == PURC_VARIANT_INVALID)
+        return -1;
+
+    PURC_VARIANT_SAFE_CLEAR(frame->symbol_vars[PURC_SYMBOL_VAR_QUESTION_MARK]);
+    frame->symbol_vars[PURC_SYMBOL_VAR_QUESTION_MARK] = value;
+    purc_variant_ref(value);
+
+    return 0;
+}
+
+static int
+post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
+{
+    UNUSED_PARAM(co);
+
+    struct ctxt_for_test *ctxt;
+    ctxt = (struct ctxt_for_test*)frame->ctxt;
+    PC_ASSERT(ctxt);
+
+    int r = post_process_dest_data(co, frame);
+    if (r)
+        return r;
 
     purc_variant_t in;
     in = purc_variant_object_get_by_ckey(frame->attr_vars, "in", true);
@@ -83,14 +162,6 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         PURC_VARIANT_SAFE_CLEAR(ctxt->in);
         ctxt->in = in;
         purc_variant_ref(in);
-    }
-
-    purc_variant_t for_var;
-    for_var = purc_variant_object_get_by_ckey(frame->attr_vars, "for", true);
-    if (for_var != PURC_VARIANT_INVALID) {
-        PURC_VARIANT_SAFE_CLEAR(ctxt->for_var);
-        ctxt->for_var = for_var;
-        purc_variant_ref(for_var);
     }
 
     return 0;
