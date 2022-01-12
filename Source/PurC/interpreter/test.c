@@ -59,6 +59,43 @@ ctxt_destroy(void *ctxt)
     ctxt_for_test_destroy((struct ctxt_for_test*)ctxt);
 }
 
+static int
+post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
+{
+    UNUSED_PARAM(co);
+
+    struct ctxt_for_test *ctxt;
+    ctxt = (struct ctxt_for_test*)frame->ctxt;
+    PC_ASSERT(ctxt);
+
+    purc_variant_t on;
+    on = purc_variant_object_get_by_ckey(frame->attr_vars, "on", true);
+    if (on == PURC_VARIANT_INVALID) {
+        return -1;
+    }
+    PURC_VARIANT_SAFE_CLEAR(ctxt->on);
+    ctxt->on = on;
+    purc_variant_ref(on);
+
+    purc_variant_t in;
+    in = purc_variant_object_get_by_ckey(frame->attr_vars, "in", true);
+    if (in != PURC_VARIANT_INVALID) {
+        PURC_VARIANT_SAFE_CLEAR(ctxt->in);
+        ctxt->in = in;
+        purc_variant_ref(in);
+    }
+
+    purc_variant_t for_var;
+    for_var = purc_variant_object_get_by_ckey(frame->attr_vars, "for", true);
+    if (for_var != PURC_VARIANT_INVALID) {
+        PURC_VARIANT_SAFE_CLEAR(ctxt->for_var);
+        ctxt->for_var = for_var;
+        purc_variant_ref(for_var);
+    }
+
+    return 0;
+}
+
 static void*
 after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 {
@@ -83,12 +120,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (r)
         return NULL;
 
-    purc_variant_t on;
-    on = purc_variant_object_get_by_ckey(frame->attr_vars, "on", true);
-    if (on == PURC_VARIANT_INVALID) {
-        return NULL;
-    }
-
     struct ctxt_for_test *ctxt;
     ctxt = (struct ctxt_for_test*)calloc(1, sizeof(*ctxt));
     if (!ctxt) {
@@ -98,28 +129,11 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     frame->ctxt = ctxt;
     frame->ctxt_destroy = ctxt_destroy;
-
-    PURC_VARIANT_SAFE_CLEAR(ctxt->on);
-    ctxt->on = on;
-    purc_variant_ref(on);
-
-    purc_variant_t in;
-    in = purc_variant_object_get_by_ckey(frame->attr_vars, "in", true);
-    if (in != PURC_VARIANT_INVALID) {
-        PURC_VARIANT_SAFE_CLEAR(ctxt->in);
-        ctxt->in = in;
-        purc_variant_ref(in);
-    }
-
-    purc_variant_t for_var;
-    for_var = purc_variant_object_get_by_ckey(frame->attr_vars, "for", true);
-    if (for_var != PURC_VARIANT_INVALID) {
-        PURC_VARIANT_SAFE_CLEAR(ctxt->for_var);
-        ctxt->for_var = for_var;
-        purc_variant_ref(for_var);
-    }
-
     purc_clr_error();
+
+    r = post_process(&stack->co, frame);
+    if (r)
+        return NULL;
 
     return ctxt;
 }
