@@ -148,24 +148,21 @@ struct pcdom_node {
     pcdom_event_target_t event_target;
 
     /* For example: <LalAla:DiV Fix:Me="value"> */
-    uintptr_t              local_name; /* , lowercase, without prefix: div */
-    uintptr_t              prefix;     /* lowercase: lalala */
-    uintptr_t              ns;         /* namespace */
+    uintptr_t           local_name; /* , lowercase, without prefix: div */
+    uintptr_t           prefix;     /* lowercase: lalala */
+    uintptr_t           ns;         /* namespace */
 
-    pcdom_document_t     *owner_document;
+    pcdom_document_t    *owner_document;
 
-    pcdom_node_t         *next;
-    pcdom_node_t         *prev;
-    pcdom_node_t         *parent;
-    pcdom_node_t         *first_child;
-    pcdom_node_t         *last_child;
-    void                  *user;
+    pcdom_node_t        *next;
+    pcdom_node_t        *prev;
+    pcdom_node_t        *parent;
+    pcdom_node_t        *first_child;
+    pcdom_node_t        *last_child;
 
-    pcdom_node_type_t    type;
-
-#ifdef PCDOM_NODE_USER_VARIABLES
-    PCDOM_NODE_USER_VARIABLES
-#endif /* PCDOM_NODE_USER_VARIABLES */
+    pcdom_node_type_t   type;
+    unsigned int        flags;      /* user-defined flags */
+    void                *user;
 };
 
 typedef enum {
@@ -514,7 +511,7 @@ pcdom_document_fragment_interface_destroy(
 // ============================= for attribute ================================
 typedef struct {
     pcutils_hash_entry_t entry;
-    pcdom_attr_id_t     attr_id;
+    pcdom_attr_id_t      attr_id;
     size_t               ref_count;
     bool                 read_only;
 } pcdom_attr_data_t;
@@ -528,7 +525,7 @@ struct pcdom_attr {
     pcdom_attr_id_t  upper_name;     /* uppercase, with prefix: FIX:ME */
     pcdom_attr_id_t  qualified_name; /* original, with prefix: Fix:Me */
 
-    pcutils_str_t     *value;
+    pcutils_str_t    *value;
     pcdom_element_t  *owner;
 
     pcdom_attr_t     *next;
@@ -747,7 +744,7 @@ struct pcdom_element {
     /* original, with prefix: LalAla:DiV */
     pcdom_attr_id_t              qualified_name;
 
-    pcutils_str_t                 *is_value;
+    pcutils_str_t                *is_value;
 
     pcdom_attr_t                 *first_attr;
     pcdom_attr_t                 *last_attr;
