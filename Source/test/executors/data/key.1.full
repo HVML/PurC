@@ -76,7 +76,7 @@ O: # output value to compare, can be predefined-error-code or json
 R: # rule to use
 KEY: ALL FOR KV;
 O: # output value to compare, can be predefined-error-code or json
-[{'hello':'world'}];
+[{'k':'hello', 'v':'world'}];
 
 I:
 { 'hello': 'world',

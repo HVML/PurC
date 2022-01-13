@@ -269,7 +269,8 @@ check_item_with_object(struct pcexec_exe_filter_inst *exe_filter_inst,
             purc_variant_ref(val);
             break;
         case FOR_CLAUSE_KV:
-            val = purc_variant_make_object(1, k, v);
+            val = purc_variant_make_object_by_static_ckey(2,
+                    "k", k, "v", v);
             break;
     }
 
