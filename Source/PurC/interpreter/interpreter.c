@@ -1703,6 +1703,8 @@ pcintr_load_from_uri(const char* uri)
         // FIXME:
         purc_clr_error();
         ret = purc_variant_make_from_json_string(buf, sz_content);
+        purc_rwstream_destroy(resp);
+        free(buf);
     }
 
     if (resp_header.mime_type) {

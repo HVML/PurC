@@ -37,6 +37,18 @@
 
 using namespace PurCFetcher;
 
+purc_rwstream_t build_response_rwstream(purc_rwstream_t rws)
+{
+    if (rws == NULL) {
+        return NULL;
+    }
+    size_t sz_content = 0;
+    size_t sz_buffer = 0;
+    void* buf = purc_rwstream_get_mem_buffer_ex(rws, &sz_content,
+            &sz_buffer, true);
+    return purc_rwstream_new_from_mem (buf, sz_content);
+}
+
 PcFetcherSession::PcFetcherSession(uint64_t sessionId,
         IPC::Connection::Identifier identifier)
     : m_sessionId(sessionId)
@@ -56,12 +68,9 @@ PcFetcherSession::~PcFetcherSession()
     if (m_resp_header.mime_type) {
         free(m_resp_header.mime_type);
     }
-// TODO
-#if 0
     if (m_resp_rwstream) {
         purc_rwstream_destroy(m_resp_rwstream);
     }
-#endif
 }
 
 void PcFetcherSession::close()
@@ -183,7 +192,7 @@ purc_rwstream_t PcFetcherSession::requestSync(
         resp_header->sz_resp = m_resp_header.sz_resp;
     }
 
-    return m_resp_rwstream;
+    return build_response_rwstream(m_resp_rwstream);
 }
 
 void PcFetcherSession::wait(uint32_t timeout)
@@ -287,7 +296,8 @@ void PcFetcherSession::didFinishResourceLoad(
                 purc_rwstream_seek(m_resp_rwstream, 0, SEEK_SET);
             }
             m_req_handler(m_req_vid, m_req_ctxt,
-                    &m_resp_header, m_resp_rwstream);
+                    &m_resp_header,
+                   build_response_rwstream(m_resp_rwstream));
         }
     }
     else {
