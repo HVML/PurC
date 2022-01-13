@@ -23,6 +23,8 @@ TEST(observe, basic)
     "        <div id=\"calculator\">"
     "            <div id=\"c_text\">"
     "                <test on=\"$buttons[$SYSTEM.random($EJSON.count($buttons))]\" by=\"KEY: ALL FOR KV\">"
+    "                    <match for=\"AS 'C'\" exclusively>"
+    "                    </match>"
     "                </test>"
     "            </div>"
     "        </div>"
