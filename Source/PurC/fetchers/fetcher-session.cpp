@@ -56,9 +56,12 @@ PcFetcherSession::~PcFetcherSession()
     if (m_resp_header.mime_type) {
         free(m_resp_header.mime_type);
     }
+// TODO
+#if 0
     if (m_resp_rwstream) {
         purc_rwstream_destroy(m_resp_rwstream);
     }
+#endif
 }
 
 void PcFetcherSession::close()
