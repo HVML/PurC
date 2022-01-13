@@ -1687,21 +1687,26 @@ pcintr_load_from_uri(const char* uri)
         return PURC_VARIANT_INVALID;
     }
 
-    struct pcfetcher_resp_header resp_header;
+    purc_variant_t ret = PURC_VARIANT_INVALID;
+    struct pcfetcher_resp_header resp_header = {0};
     purc_rwstream_t resp = pcfetcher_request_sync(
             uri,
             PCFETCHER_REQUEST_METHOD_GET,
             NULL,
             10,
             &resp_header);
-    if (resp_header.ret_code != 200) {
-        return PURC_VARIANT_INVALID;
+    if (resp_header.ret_code == 200) {
+        size_t sz_content = 0;
+        size_t sz_buffer = 0;
+        char* buf = (char*)purc_rwstream_get_mem_buffer_ex(resp, &sz_content,
+                &sz_buffer, false);
+        // FIXME:
+        purc_clr_error();
+        ret = purc_variant_make_from_json_string(buf, sz_content);
     }
-    size_t sz_content = 0;
-    size_t sz_buffer = 0;
-    char* buf = (char*)purc_rwstream_get_mem_buffer_ex(resp, &sz_content,
-            &sz_buffer, false);
-    // FIXME:
-    purc_clr_error();
-    return purc_variant_make_from_json_string(buf, sz_content);
+
+    if (resp_header.mime_type) {
+        free(resp_header.mime_type);
+    }
+    return ret;
 }

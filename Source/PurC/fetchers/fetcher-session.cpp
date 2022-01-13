@@ -168,6 +168,9 @@ purc_rwstream_t PcFetcherSession::requestSync(
         if (m_resp_header.mime_type) {
             resp_header->mime_type = strdup(m_resp_header.mime_type);
         }
+        else {
+            resp_header->mime_type = NULL;
+        }
         resp_header->sz_resp = m_resp_header.sz_resp;
     }
 
