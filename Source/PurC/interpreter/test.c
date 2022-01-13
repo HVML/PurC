@@ -91,14 +91,6 @@ post_process_dest_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     ctxt->on = on;
     purc_variant_ref(on);
 
-// TODO:
-#if 0
-    PURC_VARIANT_SAFE_CLEAR(
-            frame->symbol_vars[PURC_SYMBOL_VAR_QUESTION_MARK]);
-    frame->symbol_vars[PURC_SYMBOL_VAR_QUESTION_MARK] = on;
-    purc_variant_ref(on);
-    return 0;
-#else
     purc_variant_t by;
     by = purc_variant_object_get_by_ckey(frame->attr_vars, "by", true);
     if (by == PURC_VARIANT_INVALID) {
@@ -149,10 +141,6 @@ post_process_dest_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     PURC_VARIANT_SAFE_CLEAR(frame->symbol_vars[PURC_SYMBOL_VAR_QUESTION_MARK]);
     frame->symbol_vars[PURC_SYMBOL_VAR_QUESTION_MARK] = value;
     purc_variant_ref(value);
-    fprintf(stderr, "########################################\n");
-    PRINT_VARIANT(value);
-    fprintf(stderr, "########################################\n");
-#endif
 
     return 0;
 }
@@ -175,11 +163,11 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     if (in != PURC_VARIANT_INVALID) {
         PURC_VARIANT_SAFE_CLEAR(ctxt->in);
         ctxt->in = in;
+        purc_variant_ref(in);
         // TODO : get element variant
         // purc_variant_t element_variant = xxx;
         // PURC_VARIANT_SAFE_CLEAR(frame->symbol_vars[PURC_SYMBOL_VAR_AT_SIGN]);
         // frame->symbol_vars[PURC_SYMBOL_VAR_AT_SIGN] = element_variant;
-        purc_variant_ref(in);
     }
 
     return 0;
