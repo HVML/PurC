@@ -65,6 +65,7 @@ PcFetcherSession::PcFetcherSession(uint64_t sessionId,
 
 PcFetcherSession::~PcFetcherSession()
 {
+    close();
     if (m_resp_header.mime_type) {
         free(m_resp_header.mime_type);
     }
