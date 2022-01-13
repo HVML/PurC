@@ -725,12 +725,10 @@ random_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     }
 
     if ((argv[0] == PURC_VARIANT_INVALID) ||
-            (!purc_variant_is_number (argv[0]))) {
+            (!purc_variant_cast_to_number (argv[0], &number, false))) {
         pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
-
-    purc_variant_cast_to_number (argv[0], &number, false);
 
     if (fabs (number) < 1.0E-10) {
         pcinst_set_error (PURC_ERROR_INVALID_VALUE);

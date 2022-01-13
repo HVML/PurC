@@ -35,23 +35,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define MIN_BUFFER     512
-#define MAX_BUFFER     1024 * 1024 * 1024
-
-#define PRINT_VARIANT(v)                                                    \
-    do {                                                                    \
-        purc_rwstream_t rws = purc_rwstream_new_buffer(MIN_BUFFER,          \
-                MAX_BUFFER);                                                \
-        size_t len_expected = 0;                                            \
-        purc_variant_serialize(v, rws,                                      \
-                0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);           \
-        char* buf = (char*)purc_rwstream_get_mem_buffer_ex(rws, NULL, NULL, \
-                true);                                                      \
-        fprintf(stderr, "variant=%s\n", buf);                               \
-        free(buf);                                                          \
-        purc_rwstream_destroy(rws);                                         \
-    } while (0)
-
 #define SET_SILENT_ERROR(error)                                     \
     do {                                                            \
         if (!silently)                                              \

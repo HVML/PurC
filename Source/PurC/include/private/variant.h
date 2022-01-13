@@ -61,6 +61,23 @@ extern "C" {
     }
 #endif // D
 
+#define PRINT_MIN_BUFFER     512
+#define PRINT_MAX_BUFFER     1024 * 1024 * 1024
+
+#define PRINT_VARIANT(v)                                                    \
+    do {                                                                    \
+        purc_rwstream_t rws = purc_rwstream_new_buffer(PRINT_MIN_BUFFER,    \
+                PRINT_MAX_BUFFER);                                          \
+        size_t len_expected = 0;                                            \
+        purc_variant_serialize(v, rws,                                      \
+                0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);           \
+        char* buf = (char*)purc_rwstream_get_mem_buffer_ex(rws, NULL, NULL, \
+                true);                                                      \
+        fprintf(stderr, "variant=%s\n", buf);                               \
+        free(buf);                                                          \
+        purc_rwstream_destroy(rws);                                         \
+    } while (0)
+
 
 // mutually exclusive
 #define PCVAR_LISTENER_PRE_OR_POST      (0x01)

@@ -84,27 +84,37 @@ post_process_dest_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     PC_ASSERT(ctxt);
 
     purc_variant_t on;
-    on = purc_variant_object_get_by_ckey(frame->attr_vars, "on", false);
+    on = purc_variant_object_get_by_ckey(frame->attr_vars, "on", true);
     if (on == PURC_VARIANT_INVALID)
         return -1;
     PURC_VARIANT_SAFE_CLEAR(ctxt->on);
     ctxt->on = on;
     purc_variant_ref(on);
 
+// TODO:
+#if 1
+    PURC_VARIANT_SAFE_CLEAR(
+            frame->symbol_vars[PURC_SYMBOL_VAR_QUESTION_MARK]);
+    frame->symbol_vars[PURC_SYMBOL_VAR_QUESTION_MARK] = on;
+    purc_variant_ref(on);
+    PRINT_VARIANT(on);
+    return 0;
+#else
     purc_variant_t by;
-    by = purc_variant_object_get_by_ckey(frame->attr_vars, "by", false);
+    by = purc_variant_object_get_by_ckey(frame->attr_vars, "by", true);
     if (by == PURC_VARIANT_INVALID) {
         PURC_VARIANT_SAFE_CLEAR(
                 frame->symbol_vars[PURC_SYMBOL_VAR_QUESTION_MARK]);
         frame->symbol_vars[PURC_SYMBOL_VAR_QUESTION_MARK] = on;
         purc_variant_ref(on);
+        PRINT_VARIANT(on);
         return 0;
     }
 
-    purc_variant_ref(by);
     purc_clr_error();
     PURC_VARIANT_SAFE_CLEAR(ctxt->by);
     ctxt->by = by;
+    purc_variant_ref(by);
 
     const char *rule = purc_variant_get_string_const(by);
     PC_ASSERT(rule);
@@ -140,6 +150,7 @@ post_process_dest_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     PURC_VARIANT_SAFE_CLEAR(frame->symbol_vars[PURC_SYMBOL_VAR_QUESTION_MARK]);
     frame->symbol_vars[PURC_SYMBOL_VAR_QUESTION_MARK] = value;
     purc_variant_ref(value);
+#endif
 
     return 0;
 }

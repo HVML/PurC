@@ -201,3 +201,31 @@ set(test_from_attr_LIBRARIES
 PURC_COMPUTE_SOURCES(test_from_attr)
 PURC_FRAMEWORK(test_from_attr)
 GTEST_DISCOVER_TESTS(test_from_attr DISCOVERY_TIMEOUT 10)
+
+# test_test
+PURC_EXECUTABLE_DECLARE(test_test)
+
+list(APPEND test_test_PRIVATE_INCLUDE_DIRECTORIES
+    ${PURC_DIR}/include
+    ${PurC_DERIVED_SOURCES_DIR}
+    ${PURC_DIR}
+    ${CMAKE_BINARY_DIR}
+    ${WTF_DIR}
+)
+
+PURC_EXECUTABLE(test_test)
+
+set(test_test_SOURCES
+    test_test.cpp
+)
+
+set(test_test_LIBRARIES
+    PurC::PurC
+    gtest_main
+    gtest
+    pthread
+)
+
+PURC_COMPUTE_SOURCES(test_test)
+PURC_FRAMEWORK(test_test)
+GTEST_DISCOVER_TESTS(test_test DISCOVERY_TIMEOUT 10)
