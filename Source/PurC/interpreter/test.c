@@ -97,7 +97,6 @@ post_process_dest_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
             frame->symbol_vars[PURC_SYMBOL_VAR_QUESTION_MARK]);
     frame->symbol_vars[PURC_SYMBOL_VAR_QUESTION_MARK] = on;
     purc_variant_ref(on);
-    PRINT_VARIANT(on);
     return 0;
 #else
     purc_variant_t by;

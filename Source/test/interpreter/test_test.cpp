@@ -22,7 +22,7 @@ TEST(observe, basic)
     "    <body>"
     "        <div id=\"calculator\">"
     "            <div id=\"c_text\">"
-    "                <test on=\"$buttons[$SYSTEM.random($EJSON.count($buttons))].letters\">"
+    "                <test on=\"$buttons[$SYSTEM.random($EJSON.count($buttons))]\" by=\"KEY: ALL\">"
     "                </test>"
     "            </div>"
     "        </div>"
