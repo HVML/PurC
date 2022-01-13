@@ -92,7 +92,7 @@ post_process_dest_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     purc_variant_ref(on);
 
 // TODO:
-#if 1
+#if 0
     PURC_VARIANT_SAFE_CLEAR(
             frame->symbol_vars[PURC_SYMBOL_VAR_QUESTION_MARK]);
     frame->symbol_vars[PURC_SYMBOL_VAR_QUESTION_MARK] = on;
@@ -149,6 +149,9 @@ post_process_dest_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     PURC_VARIANT_SAFE_CLEAR(frame->symbol_vars[PURC_SYMBOL_VAR_QUESTION_MARK]);
     frame->symbol_vars[PURC_SYMBOL_VAR_QUESTION_MARK] = value;
     purc_variant_ref(value);
+    fprintf(stderr, "########################################\n");
+    PRINT_VARIANT(value);
+    fprintf(stderr, "########################################\n");
 #endif
 
     return 0;
