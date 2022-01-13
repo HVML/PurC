@@ -174,7 +174,6 @@ destroy(struct pcexec_exe_div_inst *exe_div_inst)
     reset(exe_div_inst);
 
     PCEXE_CLR_VAR(inst->input);
-    PCEXE_CLR_VAR(inst->cache);
     PCEXE_CLR_VAR(inst->value);
 
     free(exe_div_inst);
@@ -286,7 +285,6 @@ exe_div_it_next(purc_exec_inst_t inst, purc_exec_iter_t it, const char* rule)
 
     PC_ASSERT(&inst->it == it);
     PC_ASSERT(inst->input != PURC_VARIANT_INVALID);
-    PC_ASSERT(inst->cache != PURC_VARIANT_INVALID);
 
     struct pcexec_exe_div_inst *exe_div_inst;
     exe_div_inst = (struct pcexec_exe_div_inst*)inst;

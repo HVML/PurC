@@ -238,7 +238,6 @@ destroy(struct pcexec_exe_objformula_inst *exe_objformula_inst)
     reset(exe_objformula_inst);
 
     PCEXE_CLR_VAR(inst->input);
-    PCEXE_CLR_VAR(inst->cache);
     PCEXE_CLR_VAR(inst->value);
 
     free(exe_objformula_inst);
@@ -358,7 +357,6 @@ exe_objformula_it_next(purc_exec_inst_t inst, purc_exec_iter_t it, const char* r
 
     PC_ASSERT(&inst->it == it);
     PC_ASSERT(inst->input != PURC_VARIANT_INVALID);
-    PC_ASSERT(inst->cache != PURC_VARIANT_INVALID);
 
     struct pcexec_exe_objformula_inst *exe_objformula_inst;
     exe_objformula_inst = (struct pcexec_exe_objformula_inst*)inst;
