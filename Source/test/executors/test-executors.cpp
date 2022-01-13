@@ -609,6 +609,8 @@ process_sample_file(struct config *cfg, FILE *file, const char *fn)
                         ++cfg->stat.nr_success;
                     } else {
                         ++cfg->stat.nr_failure;
+                        std::cerr << "@" << fn << "[" << lineno << "]"
+                                  << std::endl;
                     }
 
                     parser_ctx_clear_rule(&ctx);
