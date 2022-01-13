@@ -53,6 +53,12 @@ PcFetcherSession::PcFetcherSession(uint64_t sessionId,
 
 PcFetcherSession::~PcFetcherSession()
 {
+    if (m_resp_header.mime_type) {
+        free(m_resp_header.mime_type);
+    }
+    if (m_resp_rwstream) {
+        purc_rwstream_destroy(m_resp_rwstream);
+    }
 }
 
 void PcFetcherSession::close()
