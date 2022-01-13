@@ -113,6 +113,10 @@ pchtml_html_parse_fragment_chunk_process(pchtml_html_parser_t *parser,
 pcdom_node_t *
 pchtml_html_parse_fragment_chunk_end(pchtml_html_parser_t *parser);
 
+// API for node
+bool
+pchtml_html_node_is_void(pcdom_node_t *node);
+
 // API for document
 pchtml_html_document_t *
 pchtml_html_document_create(void);
