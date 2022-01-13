@@ -3,7 +3,7 @@
  * @file match_for.y
  * @author
  * @date
- * @brief The implementation of public part for key.
+ * @brief The implementation of public part for match_for.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -94,7 +94,7 @@
 %union { struct string_pattern_list *patterns; }
 %union { struct string_matching_condition mexp; }
 %union { struct string_matching_logical_expression *logic; }
-%union { struct key_rule rule; }
+%union { struct match_for_rule rule; }
 %union { enum for_clause_type for_clause; }
 
 %destructor { pcexe_strlist_reset(&$$); } <slist>
@@ -135,17 +135,17 @@
 %nterm <mexp> string_matching_condition;
 %nterm <logic> string_matching_logical_expression;
 %nterm <logic> subrule;
-%nterm <rule>  key_rule;
+%nterm <rule>  match_for_rule;
 %nterm <for_clause>  for_clause;
 
 
 %% /* The grammar follows. */
 
 input:
-  key_rule     { SET_RULE($1); }
+  match_for_rule     { SET_RULE($1); }
 ;
 
-key_rule:
+match_for_rule:
   KEY ':' subrule for_clause   { $$.smle = $3; $$.for_clause = $4; }
 ;
 

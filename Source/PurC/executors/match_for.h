@@ -34,7 +34,7 @@
 
 #include "pcexe-helper.h"
 
-struct key_rule
+struct match_for_rule
 {
     struct string_matching_logical_expression  *smle;
     enum for_clause_type                        for_clause;
@@ -45,7 +45,7 @@ struct match_for_param {
     int debug_flex;
     int debug_bison;
 
-    struct key_rule       rule;
+    struct match_for_rule       rule;
     unsigned int          rule_valid:1;
 };
 
@@ -57,7 +57,7 @@ int match_for_parse(const char *input, size_t len,
         struct match_for_param *param);
 
 static inline void
-key_rule_release(struct key_rule *rule)
+match_for_rule_release(struct match_for_rule *rule)
 {
     if (rule->smle) {
         string_matching_logical_expression_destroy(rule->smle);
@@ -76,7 +76,7 @@ match_for_param_reset(struct match_for_param *param)
         param->err_msg = NULL;
     }
 
-    key_rule_release(&param->rule);
+    match_for_rule_release(&param->rule);
 }
 
 PCA_EXTERN_C_END
