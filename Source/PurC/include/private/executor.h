@@ -60,7 +60,6 @@ struct purc_exec_inst {
 
     char                       *err_msg;
 
-    purc_variant_t              cache;
     purc_variant_t              value;
 };
 
