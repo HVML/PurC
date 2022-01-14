@@ -1,8 +1,8 @@
 %code top {
 /*
  * @file match_for.y
- * @author
- * @date
+ * @author Xu Xiaohong
+ * @date 2022/01/14
  * @brief The implementation of public part for match_for.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
@@ -60,7 +60,7 @@
         if (param) {                                        \
             param->rule = _rule;                            \
         } else {                                            \
-            string_matching_logical_expression_destroy(_rule.smle);         \
+            match_for_rule_release(&_rule);                    \
         }                                                   \
     } while (0)
 }
@@ -89,12 +89,16 @@
 %union { struct matching_suffix msfx; }
 %union { long int max_matching_length; }
 %union { struct string_pattern_expression spexp; }
-%union { struct literal_expression smle; }
+%union { struct literal_expression lexp; }
 %union { struct string_literal_list *literals; }
 %union { struct string_pattern_list *patterns; }
 %union { struct string_matching_condition mexp; }
-%union { struct string_matching_logical_expression *logic; }
+%union { struct number_comparing_logical_expression *ncle; }
+%union { struct string_matching_logical_expression *smle; }
 %union { struct match_for_rule rule; }
+%union { enum for_clause_type for_clause; }
+%union { double nexp; }
+%union { struct number_comparing_condition ncc; }
 
 %destructor { pcexe_strlist_reset(&$$); } <slist>
 %destructor { free($$); } <str>
@@ -102,11 +106,12 @@
 %destructor { string_literal_list_destroy($$); } <literals>
 %destructor { string_pattern_list_destroy($$); } <patterns>
 %destructor { string_matching_condition_reset(&$$); } <mexp>
-%destructor { string_matching_logical_expression_destroy($$); } <logic>
-%destructor { string_matching_logical_expression_destroy($$.smle); } <rule>
+%destructor { match_for_rule_release(&$$); } <rule>
+%destructor { number_comparing_logical_expression_destroy($$); } <ncle>
+%destructor { string_matching_logical_expression_destroy($$); } <smle>
 
-%token ANY LIKE AS
-%token NOT
+%token FILTER ALL LIKE KV KEY VALUE FOR AS
+%token LT GT LE GE NE EQ NOT
 %token <c>     MATCHING_FLAG REGEXP_FLAG
 %token <c>     CHR
 %token <token> MATCHING_LENGTH
@@ -128,28 +133,37 @@
 %nterm <msfx>             matching_suffix;
 %nterm <max_matching_length> max_matching_length;
 %nterm <spexp>  string_pattern_expression;
-%nterm <smle>   string_literal_expression;
+%nterm <lexp>   string_literal_expression;
 %nterm <literals> string_literal_list;
 %nterm <patterns> string_pattern_list;
 %nterm <mexp> string_matching_condition;
-%nterm <logic> string_matching_logical_expression;
-%nterm <logic> subrule;
 %nterm <rule>  match_for_rule;
+%nterm <for_clause>  for_clause;
+%nterm <nexp> exp
+%nterm <ncc> number_comparing_condition
+%nterm <ncle> number_comparing_logical_expression
+%nterm <smle> string_matching_logical_expression
 
 
 %% /* The grammar follows. */
 
 input:
-  match_for_rule     { SET_RULE($1); }
+  match_for_rule  { SET_RULE($1); }
 ;
 
 match_for_rule:
-  subrule { $$.smle = $1; }
+  FILTER ':' ALL for_clause { $$.ncle = NULL; $$.smle = NULL; $$.for_clause = $4; }
+| FILTER ':' number_comparing_logical_expression for_clause { $$.ncle = $3; $$.smle = NULL; $$.for_clause = $4; }
+| FILTER ':' string_matching_logical_expression for_clause { $$.ncle = NULL; $$.smle =  $3; $$.for_clause = $4; }
 ;
 
-subrule:
-  ANY                      { $$ = NULL; }
-| string_matching_logical_expression       { $$ = $1; }
+number_comparing_logical_expression:
+  number_comparing_condition   { NCLE_INIT($$, $1); }
+| number_comparing_logical_expression AND number_comparing_logical_expression { NCLE_AND($$, $1, $3); }
+| number_comparing_logical_expression OR number_comparing_logical_expression  { NCLE_OR($$, $1, $3); }
+| number_comparing_logical_expression XOR number_comparing_logical_expression { NCLE_XOR($$, $1, $3); }
+| NOT number_comparing_logical_expression %prec NEG  { NCLE_NOT($$, $2); }
+| '(' number_comparing_logical_expression ')'   { $$ = $2; }
 ;
 
 string_matching_logical_expression:
@@ -159,6 +173,22 @@ string_matching_logical_expression:
 | string_matching_logical_expression XOR string_matching_logical_expression { SMLE_XOR($$, $1, $3); }
 | NOT string_matching_logical_expression %prec NEG  { SMLE_NOT($$, $2); }
 | '(' string_matching_logical_expression ')'   { $$ = $2; }
+;
+
+for_clause:
+  %empty           { $$ = FOR_CLAUSE_VALUE; }
+| FOR KV           { $$ = FOR_CLAUSE_KV; }
+| FOR KEY          { $$ = FOR_CLAUSE_KEY; }
+| FOR VALUE        { $$ = FOR_CLAUSE_VALUE; }
+;
+
+number_comparing_condition:
+  LT exp           { $$.op_type = NUMBER_COMPARING_LT; $$.nexp = $2; }
+| GT exp           { $$.op_type = NUMBER_COMPARING_GT; $$.nexp = $2; }
+| LE exp           { $$.op_type = NUMBER_COMPARING_LE; $$.nexp = $2; }
+| GE exp           { $$.op_type = NUMBER_COMPARING_GE; $$.nexp = $2; }
+| NE exp           { $$.op_type = NUMBER_COMPARING_NE; $$.nexp = $2; }
+| EQ exp           { $$.op_type = NUMBER_COMPARING_EQ; $$.nexp = $2; }
 ;
 
 literal_char_sequence:
@@ -175,6 +205,7 @@ string_matching_condition:
 | AS string_literal_list    { $$.type = STRING_MATCHING_LITERAL; $$.literals = $2; }
 ;
 
+
 string_literal_list:
   string_literal_expression { STR_LITERAL_LIST_INIT($$, $1); }
 | string_literal_list ',' string_literal_expression { STR_LITERAL_LIST_APPEND($1, $3); $$ = $1; }
@@ -189,10 +220,12 @@ string_pattern_list:
 | string_pattern_list ',' string_pattern_expression { STR_PATTERN_LIST_APPEND($1, $3); $$ = $1; }
 ;
 
+
 string_pattern_expression:
   '"' wildcard_expression '"' matching_suffix   { STR_PATTERN_SET_WILDCARD($$, $2, $4); }
 | '/' regular_expression '/' regexp_suffix      { STR_PATTERN_SET_REGEXP($$, $2, $4); }
 ;
+
 
 wildcard_expression:
   literal_char_sequence  { STRLIST_TO_STR($$, $1); }
@@ -204,6 +237,7 @@ regular_expression:
 | regular_expression STR    { STRLIST_APPEND_STR($1, $2); $$ = $1; }
 | regular_expression CHR    { STRLIST_APPEND_CHR($1, $2); $$ = $1; }
 ;
+
 
 matching_suffix:
   %empty { $$.matching_flags = '\0'; $$.max_matching_length = 0; }
@@ -231,8 +265,18 @@ max_matching_length:
   MATCHING_LENGTH    { STRTOL($$, $1); }
 ;
 
-%%
+exp:
+  INTEGER               { NUMERIC_EXP_INIT_I64($$, $1); }
+| NUMBER                { NUMERIC_EXP_INIT_LD($$, $1); }
+| exp '+' exp           { NUMERIC_EXP_ADD($$, $1, $3); }
+| exp '-' exp           { NUMERIC_EXP_SUB($$, $1, $3); }
+| exp '*' exp           { NUMERIC_EXP_MUL($$, $1, $3); }
+| exp '/' exp           { NUMERIC_EXP_DIV($$, $1, $3); }
+| '-' exp %prec UMINUS  { NUMERIC_EXP_UMINUS($$, $2); }
+| '(' exp ')'           { $$ = $2; }
+;
 
+%%
 
 /* Called by yyparse on error. */
 static void
@@ -276,6 +320,8 @@ int match_for_parse(const char *input, size_t len,
         } else {
             purc_set_error(PCEXECUTOR_ERROR_BAD_SYNTAX);
         }
+    } else {
+        param->rule_valid = 1;
     }
     return ret ? -1 : 0;
 }

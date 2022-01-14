@@ -79,7 +79,7 @@ do {                                              \
 %option perf-report
 %option 8bit
 
-%x IN_STR IN_REGEXP IN_LIKE
+%x IN_SQ IN_DQ IN_REGEXP IN_LIKE
 %x KW
 %x AFTER_STR AFTER_NUM AFTER_REGEXP
 
@@ -94,14 +94,26 @@ NUMBER   ([.][0-9]+(e[-+][0-9]+)?)|([0-9]+[.][0-9]*(e[-+][0-9]+)?)
           if (state != INITIAL) return -1;
           yyterminate(); }
 
+FILTER/[ \t]*:    { R(); C(); return MKT(FILTER); }
+LT        { R(); PUSH(KW); C(); return MKT(LT); }
+GT        { R(); PUSH(KW); C(); return MKT(GT); }
+LE        { R(); PUSH(KW); C(); return MKT(LE); }
+GE        { R(); PUSH(KW); C(); return MKT(GE); }
+NE        { R(); PUSH(KW); C(); return MKT(NE); }
+EQ        { R(); PUSH(KW); C(); return MKT(EQ); }
 AND       { R(); PUSH(KW); C(); return MKT(AND); }
 OR        { R(); PUSH(KW); C(); return MKT(OR); }
 XOR       { R(); PUSH(KW); C(); return MKT(XOR); }
 NOT       { R(); PUSH(KW); C(); return MKT(NOT); }
 LIKE      { R(); PUSH(IN_LIKE); PUSH(KW); C(); return MKT(LIKE); }
-ANY       { R(); PUSH(KW); C(); return MKT(ANY); }
+ALL       { R(); PUSH(KW); C(); return MKT(ALL); }
+FOR       { R(); PUSH(KW); C(); return MKT(FOR); }
+KEY       { R(); PUSH(KW); C(); return MKT(KEY); }
+VALUE     { R(); PUSH(KW); C(); return MKT(VALUE); }
+KV        { R(); PUSH(KW); C(); return MKT(KV); }
 AS        { R(); PUSH(KW); C(); return MKT(AS); }
-[']       { R(); PUSH(IN_STR); C(); return '"'; }
+[']       { R(); PUSH(IN_SQ); C(); return '"'; }
+["]       { R(); PUSH(IN_DQ); C(); return '"'; }
 {INTEGER} { R(); PUSH(AFTER_NUM); SET_STR(); C(); return MKT(INTEGER); }
 {NUMBER}  { R(); PUSH(AFTER_NUM); SET_STR(); C(); return MKT(NUMBER); }
 {SP}      { R(); C(); } /* eat */
@@ -109,7 +121,8 @@ AS        { R(); PUSH(KW); C(); return MKT(AS); }
 .         { R(); C(); return *yytext; } /* let bison to handle */
 
 <IN_LIKE>{
-[']       { R(); PUSH(IN_STR); C(); return '"'; }
+[']       { R(); PUSH(IN_SQ); C(); return '"'; }
+["]       { R(); PUSH(IN_DQ); C(); return '"'; }
 [/]       { R(); PUSH(IN_REGEXP); C(); return *yytext; }
 [,]       { R(); C(); return *yytext; }
 {SP}      { R(); C(); } /* eat */
@@ -124,10 +137,19 @@ AS        { R(); PUSH(KW); C(); return MKT(AS); }
 .         { R(); C(); return *yytext; } /* let bison to handle */
 }
 
-<IN_STR>{
+<IN_SQ>{
 [']                { R(); CHG(AFTER_STR); C(); return '"'; }
 [^'\\\f\r\n]+      { R(); SET_STR(); C(); return MKT(STR); }
 \\['\\]            { R(); SET_CHR(yytext[1]); C(); return MKT(CHR); }
+}
+
+<IN_DQ>{
+["]                { R(); CHG(AFTER_STR); C(); return '"'; }
+[^"\\\f\r\n]+      { R(); SET_STR(); C(); return MKT(STR); }
+\\["\\]            { R(); SET_CHR(yytext[1]); C(); return MKT(CHR); }
+}
+
+<IN_SQ,IN_DQ>{
 \\f                { R(); SET_CHR('\f'); C(); return MKT(CHR); }
 \\r                { R(); SET_CHR('\r'); C(); return MKT(CHR); }
 \\n                { R(); SET_CHR('\n'); C(); return MKT(CHR); }
@@ -172,7 +194,6 @@ AS        { R(); PUSH(KW); C(); return MKT(AS); }
 {LN}      { R(); POP(); L(); } /* eat */
 .         { R(); POP(); C(); yyless(0); } /* let `upper` level to handle */
 }
-
 
 
 %%

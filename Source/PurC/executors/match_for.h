@@ -1,8 +1,8 @@
 /*
  * @file match_for.h
  * @author Xu Xiaohong
- * @date 2022/01/13
- * @brief The implementation of public part for MATCH FOR executor.
+ * @date 2022/01/14
+ * @brief The implementation of public part for MATCH FOR.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -36,7 +36,9 @@
 
 struct match_for_rule
 {
+    struct number_comparing_logical_expression *ncle;
     struct string_matching_logical_expression  *smle;
+    enum for_clause_type             for_clause;
 };
 
 struct match_for_param {
@@ -44,26 +46,29 @@ struct match_for_param {
     int debug_flex;
     int debug_bison;
 
-    struct match_for_rule       rule;
-    unsigned int          rule_valid:1;
+    struct match_for_rule        rule;
+    unsigned int              rule_valid:1;
 };
 
 PCA_EXTERN_C_BEGIN
 
-int match_for_rule_apply(struct match_for_rule *rule, purc_variant_t val,
-        bool *matched);
-
-int match_for_parse(const char *input, size_t len,
-        struct match_for_param *param);
+int pcexec_match_for_register(void);
 
 static inline void
 match_for_rule_release(struct match_for_rule *rule)
 {
+    if (rule->ncle) {
+        number_comparing_logical_expression_destroy(rule->ncle);
+        rule->ncle = NULL;
+    }
     if (rule->smle) {
         string_matching_logical_expression_destroy(rule->smle);
         rule->smle = NULL;
     }
 }
+
+int match_for_parse(const char *input, size_t len,
+        struct match_for_param *param);
 
 static inline void
 match_for_param_reset(struct match_for_param *param)
@@ -78,6 +83,7 @@ match_for_param_reset(struct match_for_param *param)
 
     match_for_rule_release(&param->rule);
 }
+
 
 PCA_EXTERN_C_END
 
