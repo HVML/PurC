@@ -1,8 +1,8 @@
 /*
  * @file match_for_tab.c
  * @author Xu Xiaohong
- * @date 2022/01/13
- * @brief The implementation of public part for MATCH FOR parser.
+ * @date 2022/01/14
+ * @brief The implementation of public part for FILTER parser.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
