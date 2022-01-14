@@ -1,8 +1,8 @@
-/**
- * @file node.h
- * @author
- * @date 2021/07/02
- * @brief The hearder file for html node.
+/*
+ * @file match_for.c
+ * @author Xu Xiaohong
+ * @date 2021/10/10
+ * @brief The implementation of public part for match_for.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -20,27 +20,31 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- *
- * This implementation of HTML parser is derived from Lexbor
- * <https://github.com/lexbor/lexbor>, which is licensed under the Apache
- * License, Version 2.0:
- *
- * Copyright (C) 2018-2020 Alexander Borisov
- *
- * Author: Alexander Borisov <borisov@lexbor.com>
  */
 
-#ifndef PCHTML_HTML_NODE_H
-#define PCHTML_HTML_NODE_H
+#include "match_for.h"
 
-#include "purc-html.h"
+#include "pcexe-helper.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "private/executor.h"
+#include "private/variant.h"
 
-#ifdef __cplusplus
-}       /* __cplusplus */
-#endif
+#include "private/debug.h"
+#include "private/errors.h"
 
-#endif  /* PCHTML_HTML_NODE_H */
+#include <math.h>
+
+int
+match_for_rule_apply(struct match_for_rule *rule, purc_variant_t val,
+        bool *matched)
+{
+    struct string_matching_logical_expression *smle = rule->smle;
+    *matched = false;
+    if (!smle) {
+        *matched = true;
+        return 0;
+    }
+
+    return string_matching_logical_expression_match(smle, val, matched);
+}
+

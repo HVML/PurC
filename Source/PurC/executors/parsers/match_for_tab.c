@@ -1,8 +1,8 @@
-/**
- * @file node.h
- * @author
- * @date 2021/07/02
- * @brief The hearder file for html node.
+/*
+ * @file match_for_tab.c
+ * @author Xu Xiaohong
+ * @date 2022/01/13
+ * @brief The implementation of public part for MATCH FOR parser.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -20,27 +20,24 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- *
- * This implementation of HTML parser is derived from Lexbor
- * <https://github.com/lexbor/lexbor>, which is licensed under the Apache
- * License, Version 2.0:
- *
- * Copyright (C) 2018-2020 Alexander Borisov
- *
- * Author: Alexander Borisov <borisov@lexbor.com>
  */
 
-#ifndef PCHTML_HTML_NODE_H
-#define PCHTML_HTML_NODE_H
+#define _GNU_SOURCE
+#include <stddef.h>
+#include <stdio.h>
+#include <string.h>
 
-#include "purc-html.h"
+#include "purc-errors.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "../pcexe-helper.h"
+#include "../match_for.h"
+#include "../tab.h"
 
-#ifdef __cplusplus
-}       /* __cplusplus */
-#endif
+#include "match_for.tab.h"
+#include "match_for.lex.c"
 
-#endif  /* PCHTML_HTML_NODE_H */
+#include "match_for.lex.h"
+#undef yylloc
+#undef yylval
+#include "match_for.tab.c"
+
