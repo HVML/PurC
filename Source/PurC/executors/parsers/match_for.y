@@ -96,7 +96,6 @@
 %union { struct number_comparing_logical_expression *ncle; }
 %union { struct string_matching_logical_expression *smle; }
 %union { struct match_for_rule rule; }
-%union { enum for_clause_type for_clause; }
 %union { double nexp; }
 %union { struct number_comparing_condition ncc; }
 
@@ -110,7 +109,7 @@
 %destructor { number_comparing_logical_expression_destroy($$); } <ncle>
 %destructor { string_matching_logical_expression_destroy($$); } <smle>
 
-%token FILTER ALL LIKE KV KEY VALUE FOR AS
+%token ANY LIKE AS
 %token LT GT LE GE NE EQ NOT
 %token <c>     MATCHING_FLAG REGEXP_FLAG
 %token <c>     CHR
@@ -138,7 +137,6 @@
 %nterm <patterns> string_pattern_list;
 %nterm <mexp> string_matching_condition;
 %nterm <rule>  match_for_rule;
-%nterm <for_clause>  for_clause;
 %nterm <nexp> exp
 %nterm <ncc> number_comparing_condition
 %nterm <ncle> number_comparing_logical_expression
@@ -152,9 +150,9 @@ input:
 ;
 
 match_for_rule:
-  FILTER ':' ALL for_clause { $$.ncle = NULL; $$.smle = NULL; $$.for_clause = $4; }
-| FILTER ':' number_comparing_logical_expression for_clause { $$.ncle = $3; $$.smle = NULL; $$.for_clause = $4; }
-| FILTER ':' string_matching_logical_expression for_clause { $$.ncle = NULL; $$.smle =  $3; $$.for_clause = $4; }
+  ANY { $$.ncle = NULL; $$.smle = NULL; }
+| number_comparing_logical_expression { $$.ncle = $1; $$.smle = NULL; }
+| string_matching_logical_expression { $$.ncle = NULL; $$.smle =  $1; }
 ;
 
 number_comparing_logical_expression:
@@ -173,13 +171,6 @@ string_matching_logical_expression:
 | string_matching_logical_expression XOR string_matching_logical_expression { SMLE_XOR($$, $1, $3); }
 | NOT string_matching_logical_expression %prec NEG  { SMLE_NOT($$, $2); }
 | '(' string_matching_logical_expression ')'   { $$ = $2; }
-;
-
-for_clause:
-  %empty           { $$ = FOR_CLAUSE_VALUE; }
-| FOR KV           { $$ = FOR_CLAUSE_KV; }
-| FOR KEY          { $$ = FOR_CLAUSE_KEY; }
-| FOR VALUE        { $$ = FOR_CLAUSE_VALUE; }
 ;
 
 number_comparing_condition:

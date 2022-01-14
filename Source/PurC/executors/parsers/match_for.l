@@ -94,7 +94,6 @@ NUMBER   ([.][0-9]+(e[-+][0-9]+)?)|([0-9]+[.][0-9]*(e[-+][0-9]+)?)
           if (state != INITIAL) return -1;
           yyterminate(); }
 
-FILTER/[ \t]*:    { R(); C(); return MKT(FILTER); }
 LT        { R(); PUSH(KW); C(); return MKT(LT); }
 GT        { R(); PUSH(KW); C(); return MKT(GT); }
 LE        { R(); PUSH(KW); C(); return MKT(LE); }
@@ -106,11 +105,7 @@ OR        { R(); PUSH(KW); C(); return MKT(OR); }
 XOR       { R(); PUSH(KW); C(); return MKT(XOR); }
 NOT       { R(); PUSH(KW); C(); return MKT(NOT); }
 LIKE      { R(); PUSH(IN_LIKE); PUSH(KW); C(); return MKT(LIKE); }
-ALL       { R(); PUSH(KW); C(); return MKT(ALL); }
-FOR       { R(); PUSH(KW); C(); return MKT(FOR); }
-KEY       { R(); PUSH(KW); C(); return MKT(KEY); }
-VALUE     { R(); PUSH(KW); C(); return MKT(VALUE); }
-KV        { R(); PUSH(KW); C(); return MKT(KV); }
+ANY       { R(); PUSH(KW); C(); return MKT(ANY); }
 AS        { R(); PUSH(KW); C(); return MKT(AS); }
 [']       { R(); PUSH(IN_SQ); C(); return '"'; }
 ["]       { R(); PUSH(IN_DQ); C(); return '"'; }

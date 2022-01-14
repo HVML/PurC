@@ -38,7 +38,6 @@ struct match_for_rule
 {
     struct number_comparing_logical_expression *ncle;
     struct string_matching_logical_expression  *smle;
-    enum for_clause_type             for_clause;
 };
 
 struct match_for_param {
@@ -51,8 +50,6 @@ struct match_for_param {
 };
 
 PCA_EXTERN_C_BEGIN
-
-int pcexec_match_for_register(void);
 
 static inline void
 match_for_rule_release(struct match_for_rule *rule)
@@ -69,6 +66,9 @@ match_for_rule_release(struct match_for_rule *rule)
 
 int match_for_parse(const char *input, size_t len,
         struct match_for_param *param);
+
+int match_for_rule_eval(struct match_for_rule *rule, purc_variant_t val,
+        bool *result);
 
 static inline void
 match_for_param_reset(struct match_for_param *param)
