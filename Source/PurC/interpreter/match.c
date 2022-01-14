@@ -43,7 +43,7 @@
 struct ctxt_for_match {
     struct pcvdom_node *curr;
     purc_variant_t for_var;
-    purc_variant_t exclusively;
+    bool is_exclusively;
 };
 
 static void
@@ -51,7 +51,6 @@ ctxt_for_match_destroy(struct ctxt_for_match *ctxt)
 {
     if (ctxt) {
         PURC_VARIANT_SAFE_CLEAR(ctxt->for_var);
-        PURC_VARIANT_SAFE_CLEAR(ctxt->exclusively);
 
         free(ctxt);
     }
@@ -85,9 +84,15 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     purc_variant_t exclusively = purc_variant_object_get_by_ckey(
             frame->attr_vars, "exclusively", true);
     if (exclusively != PURC_VARIANT_INVALID) {
-        PURC_VARIANT_SAFE_CLEAR(ctxt->exclusively);
-        ctxt->exclusively = exclusively;
-        purc_variant_ref(exclusively);
+        ctxt->is_exclusively = true;
+    }
+
+    if (!ctxt->is_exclusively) {
+        exclusively = purc_variant_object_get_by_ckey(
+                frame->attr_vars, "excl", true);
+        if (exclusively != PURC_VARIANT_INVALID) {
+            ctxt->is_exclusively = true;
+        }
     }
 
     return 0;
