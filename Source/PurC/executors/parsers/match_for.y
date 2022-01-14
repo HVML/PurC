@@ -95,7 +95,6 @@
 %union { struct string_matching_condition mexp; }
 %union { struct string_matching_logical_expression *logic; }
 %union { struct match_for_rule rule; }
-%union { enum for_clause_type for_clause; }
 
 %destructor { pcexe_strlist_reset(&$$); } <slist>
 %destructor { free($$); } <str>
@@ -106,7 +105,7 @@
 %destructor { string_matching_logical_expression_destroy($$); } <logic>
 %destructor { string_matching_logical_expression_destroy($$.smle); } <rule>
 
-%token KEY ALL LIKE KV VALUE FOR AS
+%token ANY LIKE AS
 %token NOT
 %token <c>     MATCHING_FLAG REGEXP_FLAG
 %token <c>     CHR
@@ -136,7 +135,6 @@
 %nterm <logic> string_matching_logical_expression;
 %nterm <logic> subrule;
 %nterm <rule>  match_for_rule;
-%nterm <for_clause>  for_clause;
 
 
 %% /* The grammar follows. */
@@ -146,11 +144,11 @@ input:
 ;
 
 match_for_rule:
-  KEY ':' subrule for_clause   { $$.smle = $3; $$.for_clause = $4; }
+  subrule { $$.smle = $1; }
 ;
 
 subrule:
-  ALL                      { $$ = NULL; }
+  ANY                      { $$ = NULL; }
 | string_matching_logical_expression       { $$ = $1; }
 ;
 
@@ -161,13 +159,6 @@ string_matching_logical_expression:
 | string_matching_logical_expression XOR string_matching_logical_expression { SMLE_XOR($$, $1, $3); }
 | NOT string_matching_logical_expression %prec NEG  { SMLE_NOT($$, $2); }
 | '(' string_matching_logical_expression ')'   { $$ = $2; }
-;
-
-for_clause:
-  %empty           { $$ = FOR_CLAUSE_VALUE; }
-| FOR KV           { $$ = FOR_CLAUSE_KV; }
-| FOR KEY          { $$ = FOR_CLAUSE_KEY; }
-| FOR VALUE        { $$ = FOR_CLAUSE_VALUE; }
 ;
 
 literal_char_sequence:

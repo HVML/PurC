@@ -37,7 +37,6 @@
 struct match_for_rule
 {
     struct string_matching_logical_expression  *smle;
-    enum for_clause_type                        for_clause;
 };
 
 struct match_for_param {
