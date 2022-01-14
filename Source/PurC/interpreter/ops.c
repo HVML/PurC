@@ -51,6 +51,7 @@ const struct tag_id_ops maps[] = {
     {PCHVML_TAG_OBSERVE,           pcintr_get_observe_ops},
     {PCHVML_TAG_TEST,              pcintr_get_test_ops},
     {PCHVML_TAG_MATCH,             pcintr_get_match_ops},
+    {PCHVML_TAG_CHOOSE,            pcintr_get_choose_ops},
 };
 
 void init_ops(void)

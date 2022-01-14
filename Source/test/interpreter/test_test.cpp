@@ -30,6 +30,8 @@ TEST(observe, basic)
     "                    <match for=\"AS 'C'\">"
     "                    </match>"
     "                </test>"
+    "                <choose on=\"$buttons[$SYSTEM.random($EJSON.count($buttons))]\" by=\"KEY: ALL FOR KV\">"
+    "                </choose>"
     "            </div>"
     "        </div>"
     "    </body>"
