@@ -51,7 +51,8 @@ struct match_for_param {
 
 PCA_EXTERN_C_BEGIN
 
-int pcexec_match_for_register(void);
+int match_for_rule_apply(struct match_for_rule *rule, purc_variant_t val,
+        bool *matched);
 
 int match_for_parse(const char *input, size_t len,
         struct match_for_param *param);
