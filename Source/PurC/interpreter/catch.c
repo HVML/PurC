@@ -71,24 +71,27 @@ post_process_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     ctxt = (struct ctxt_for_catch*)frame->ctxt;
     PC_ASSERT(ctxt);
 
-    purc_variant_t for_var = purc_variant_object_get_by_ckey(frame->attr_vars,
-            "for", true);
-    if (for_var == PURC_VARIANT_INVALID || !purc_variant_is_string(for_var)) {
-        return -1;
-    }
-
-    PURC_VARIANT_SAFE_CLEAR(ctxt->for_var);
-    ctxt->for_var = for_var;
-    purc_variant_ref(for_var);
-
     pcintr_stack_t stack = co->stack;
     if (!stack->except) {
         ctxt->match = false;
         return 0;
     }
 
-    const char *msg = purc_variant_get_string_const(for_var);
-    if (strcmp(msg, "*") == 0) {
+    const char *msg = NULL;
+    purc_variant_t for_var = purc_variant_object_get_by_ckey(frame->attr_vars,
+            "for", true);
+    if (for_var != PURC_VARIANT_INVALID) {
+        if (!purc_variant_is_string(for_var)) {
+            return -1;
+        }
+
+        PURC_VARIANT_SAFE_CLEAR(ctxt->for_var);
+        ctxt->for_var = for_var;
+        purc_variant_ref(for_var);
+        msg = purc_variant_get_string_const(for_var);
+    }
+
+    if (msg == NULL || strcmp(msg, "*") == 0) {
         ctxt->match = true;
         return 0;
     }
