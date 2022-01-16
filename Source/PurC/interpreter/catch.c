@@ -96,12 +96,25 @@ post_process_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         return 0;
     }
 
-    purc_atom_t t = purc_atom_try_string(msg);
-    if (t == stack->error_except) {
-        ctxt->match = true;
-        return 0;
+    char* except_msg = strdup(msg);
+    if (!except_msg) {
+        ctxt->match = false;
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return -1;
     }
 
+    char* ctx = except_msg;
+    char* tok = strtok_r(ctx, " ", &ctx);
+    while (tok) {
+        purc_atom_t t = purc_atom_try_string(msg);
+        if (t == stack->error_except) {
+            ctxt->match = true;
+            break;
+        }
+        tok = strtok_r(ctx, " ", &ctx);
+    }
+
+    free(except_msg);
     return 0;
 }
 
