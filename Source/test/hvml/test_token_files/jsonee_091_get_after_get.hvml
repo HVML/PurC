@@ -1,0 +1,5 @@
+<hvml>
+    <div>
+        $DOC.query("#c_query").count()"
+    </div>
+</hvml>

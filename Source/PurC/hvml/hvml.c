@@ -2400,6 +2400,7 @@ next_state:
                 && parser->vcm_node != NULL
                 && character != '('
                 && character != '['
+                && character != '.'
                 ) {
             RECONSUME_IN(PCHVML_EJSON_FINISHED_STATE);
         }
