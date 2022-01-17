@@ -1108,7 +1108,7 @@ init_buidin_doc_variable(pcintr_stack_t stack)
     }
 
     // $DOC
-#if 0
+#if 1
     pchtml_html_document_t *doc = stack->edom_gen.doc;
     pcdom_document_t *document = (pcdom_document_t*)doc;
     if(!bind_doc_named_variable(stack, BUILDIN_VAR_DOC,

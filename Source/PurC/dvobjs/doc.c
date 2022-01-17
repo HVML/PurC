@@ -284,8 +284,7 @@ static bool
 eraser(void* native_entity)
 {
     UNUSED_PARAM(native_entity);
-    PC_ASSERT(0); // Not implemented yet
-    return false;
+    return true;
 }
 
 // the callback when the variant was observed (nullable).
