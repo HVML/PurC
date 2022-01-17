@@ -161,13 +161,24 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     purc_variant_t in;
     in = purc_variant_object_get_by_ckey(frame->attr_vars, "in", true);
     if (in != PURC_VARIANT_INVALID) {
+        if (!purc_variant_is_string(in)) {
+            purc_set_error(PURC_EXCEPT_INVALID_VALUE);
+            return -1;
+        }
+
+        purc_variant_t elements = pcintr_doc_query(co->stack->vdom,
+                purc_variant_get_string_const(in));
+        if (elements == PURC_VARIANT_INVALID) {
+            purc_set_error(PURC_EXCEPT_INVALID_VALUE);
+            return -1;
+        }
+
         PURC_VARIANT_SAFE_CLEAR(ctxt->in);
         ctxt->in = in;
         purc_variant_ref(in);
-        // TODO : get element variant
-        // purc_variant_t element_variant = xxx;
-        // PURC_VARIANT_SAFE_CLEAR(frame->symbol_vars[PURC_SYMBOL_VAR_AT_SIGN]);
-        // frame->symbol_vars[PURC_SYMBOL_VAR_AT_SIGN] = element_variant;
+
+        PURC_VARIANT_SAFE_CLEAR(frame->symbol_vars[PURC_SYMBOL_VAR_AT_SIGN]);
+        frame->symbol_vars[PURC_SYMBOL_VAR_AT_SIGN] = elements;
     }
 
     return 0;
