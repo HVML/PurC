@@ -1060,6 +1060,7 @@ end:
 #define BUILDIN_VAR_HVML        "HVML"
 #define BUILDIN_VAR_SYSTEM      "SYSTEM"
 #define BUILDIN_VAR_T           "T"
+#define BUILDIN_VAR_DOC         "DOC"
 #define BUILDIN_VAR_SESSION     "SESSION"
 #define BUILDIN_VAR_EJSON       "EJSON"
 
@@ -1105,6 +1106,16 @@ init_buidin_doc_variable(pcintr_stack_t stack)
                 pcdvobjs_get_t())) {
         return false;
     }
+
+    // $DOC
+#if 0
+    pchtml_html_document_t *doc = stack->edom_gen.doc;
+    pcdom_document_t *document = (pcdom_document_t*)doc;
+    if(!bind_doc_named_variable(stack, BUILDIN_VAR_DOC,
+                pcdvobjs_make_doc_variant(document))) {
+        return false;
+    }
+#endif
 
     // TODO : bind by  purc_bind_variable
     // begin
