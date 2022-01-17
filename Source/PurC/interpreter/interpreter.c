@@ -1108,14 +1108,12 @@ init_buidin_doc_variable(pcintr_stack_t stack)
     }
 
     // $DOC
-#if 1
     pchtml_html_document_t *doc = stack->edom_gen.doc;
     pcdom_document_t *document = (pcdom_document_t*)doc;
     if(!bind_doc_named_variable(stack, BUILDIN_VAR_DOC,
                 pcdvobjs_make_doc_variant(document))) {
         return false;
     }
-#endif
 
     // TODO : bind by  purc_bind_variable
     // begin
@@ -1721,5 +1719,45 @@ pcintr_load_from_uri(const char* uri)
     if (resp_header.mime_type) {
         free(resp_header.mime_type);
     }
+    return ret;
+}
+
+#define DOC_QUERY         "query"
+
+purc_variant_t
+pcintr_doc_query(purc_vdom_t vdom, const char* css)
+{
+    purc_variant_t ret = PURC_VARIANT_INVALID;
+    if (vdom == NULL || css == NULL) {
+        goto end;
+    }
+
+    purc_variant_t doc = pcvdom_document_get_variable(vdom, BUILDIN_VAR_DOC);
+    if (doc == PURC_VARIANT_INVALID) {
+        PC_ASSERT(0);
+        goto end;
+    }
+
+    struct purc_native_ops *ops = purc_variant_native_get_ops (doc);
+    if (ops == NULL) {
+        PC_ASSERT(0);
+        goto end;
+    }
+
+    purc_nvariant_method native_func = ops->property_getter(DOC_QUERY);
+    if (!native_func) {
+        PC_ASSERT(0);
+        goto end;
+    }
+
+    purc_variant_t arg = purc_variant_make_string(css, false);
+    if (arg == PURC_VARIANT_INVALID) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto end;
+    }
+
+    ret = native_func (purc_variant_native_get_entity(doc), 1, &arg);
+    purc_variant_unref(arg);
+end:
     return ret;
 }

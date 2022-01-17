@@ -161,6 +161,11 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     purc_variant_t in;
     in = purc_variant_object_get_by_ckey(frame->attr_vars, "in", true);
     if (in != PURC_VARIANT_INVALID) {
+        if (!purc_variant_is_string(in)) {
+            purc_set_error(PURC_EXCEPT_INVALID_VALUE);
+            return -1;
+        }
+
         PURC_VARIANT_SAFE_CLEAR(ctxt->in);
         ctxt->in = in;
         purc_variant_ref(in);
