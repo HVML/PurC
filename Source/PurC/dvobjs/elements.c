@@ -370,8 +370,13 @@ static bool
 eraser(void* native_entity)
 {
     UNUSED_PARAM(native_entity);
-    PC_ASSERT(0); // Not implemented yet
-    return false;
+
+    PC_ASSERT(native_entity);
+    struct pcdvobjs_elements *elements;
+    elements = (struct pcdvobjs_elements*)native_entity;
+    elements_destroy(elements);
+
+    return true;
 }
 
 // the callback when the variant was observed (nullable).
