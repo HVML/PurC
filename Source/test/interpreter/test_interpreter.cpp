@@ -145,7 +145,6 @@ static const char *calculator_3 =
     "    </head>"
     ""
     "    <body>"
-    "<!--"
     "        <div id=\"calculator\">"
     ""
     "            <div id=\"c_title\">"
@@ -160,7 +159,7 @@ static const char *calculator_3 =
     "            <div id=\"c_text\">"
     "                <input type=\"text\" id=\"expression\" value=\"0\" readonly=\"readonly\" />"
     "                <observe on=\"$TIMERS\" for=\"expired:input\">"
-    "                    <test on=\"$buttons[$SYSTEM.random($EJSON.count($buttons)].letters\">"
+    "                    <test on=\"$buttons[$SYSTEM.random($EJSON.count($buttons))].letters\">"
     ""
     "                        <match for=\"AS '='\" exclusively>"
     "                            <choose on=\"$MATH.eval($DOC.query('#expression').attr('value'))\">"
@@ -206,7 +205,6 @@ static const char *calculator_3 =
     "                </ul>"
     "            </div>"
     "        </div>"
-    "-->"
     "    </body>"
     ""
     "</hvml>";
@@ -279,8 +277,8 @@ TEST(interpreter, basic)
         // "<hvml><body><a><b><c></c></b></a></body></hvml>",
         // calculator_1,
         // calculator_2,
-        // calculator_3,
-        sample1,
+        calculator_3,
+        // sample1,
     };
 
     purc_instance_extra_info info = {};

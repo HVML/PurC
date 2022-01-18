@@ -30,13 +30,16 @@
 #include "private/debug.h"
 #include "private/runloop.h"
 
+#include "private/stringbuilder.h"
+
 #include "ops.h"
 
 #include <pthread.h>
 #include <unistd.h>
 #include <libgen.h>
+#include <limits.h>
 
-#define TO_DEBUG 0
+#define TO_DEBUG 1
 
 struct ctxt_for_document {
     struct pcvdom_node           *curr;
@@ -56,6 +59,28 @@ ctxt_destroy(void *ctxt)
     ctxt_for_document_destroy((struct ctxt_for_document*)ctxt);
 }
 
+static int
+token_found(const char *start, const char *end, void *ud)
+{
+    pcintr_stack_t stack = (pcintr_stack_t)ud;
+    (void)stack;
+
+    if (start == end)
+        return 0;
+
+    char so[PATH_MAX+1];
+    snprintf(so, sizeof(so), "libpurc-dvobj-%.*s.so", (int)(end-start), start);
+    char name[PATH_MAX+1];
+    snprintf(name, sizeof(name), "%.*s", (int)(end-start), start);
+    purc_variant_t v = purc_variant_load_dvobj_from_so(so, name);
+    if (v == PURC_VARIANT_INVALID)
+        return -1;
+
+    // TODO: save somewhere in doc and stack
+    purc_variant_unload_dvobj(v);
+    return 0;
+}
+
 static void*
 after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 {
@@ -63,6 +88,27 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     PC_ASSERT(stack);
     PC_ASSERT(stack == purc_get_stack());
+
+    int r;
+
+    struct pcvdom_document *document;
+    document = stack->vdom->document;
+    PC_ASSERT(document);
+    struct pcvdom_doctype  *doctype = &document->doctype;
+    const char *system_info = doctype->system_info;
+    if (system_info) {
+        D("system_info: %s", system_info);
+
+        const char *p = strchr(system_info, ':');
+        if (p) {
+            ++p;
+            r = pcutils_token_by_delim(p, p + strlen(p),
+                    ' ', stack, token_found);
+            if (r) {
+                return NULL;
+            }
+        }
+    }
 
     pcintr_printf_to_edom(stack, "<!DOCTYPE html>");
 

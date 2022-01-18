@@ -309,12 +309,15 @@ select_child(pcintr_stack_t stack, void* ud)
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(ud == frame->ctxt);
+    PC_ASSERT(ud);
 
     if (frame->result_from_child)
         return NULL;
 
     struct ctxt_for_test *ctxt;
     ctxt = (struct ctxt_for_test*)frame->ctxt;
+    if (!ctxt)
+        return NULL;
 
     struct pcvdom_node *curr;
 

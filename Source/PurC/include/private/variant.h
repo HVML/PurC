@@ -483,7 +483,7 @@ bool pcvariant_is_in_set (purc_variant_t set, purc_variant_t value);
         _data = (variant_set_t)_set->sz_ptr[1];                         \
         _arr  = _data->arr;                                             \
         struct elem_node *_p, *_n;                                      \
-        for (_p = (struct elem_node*) pcutils_arrlist_get_first(_arr);  \
+        for (_p = (struct elem_node*) pcutils_arrlist_get_last(_arr);   \
              ({ _n = (_p && _p->idx > 0)                                \
                         ? (struct elem_node*)pcutils_arrlist_get_idx(   \
                                                 _arr,  _p->idx-1)       \

@@ -238,16 +238,19 @@ pcintr_find_named_var(pcintr_stack_t stack, const char* name)
 
     purc_variant_t v = _find_named_scope_var(frame->pos, name);
     if (v) {
+        purc_clr_error();
         return v;
     }
 
     v = _find_doc_buildin_var(stack->vdom, name);
     if (v) {
+        purc_clr_error();
         return v;
     }
 
     v = _find_inst_var(name);
     if (v) {
+        purc_clr_error();
         return v;
     }
 
@@ -284,6 +287,7 @@ pcintr_get_symbolized_var (pcintr_stack_t stack, unsigned int number,
 {
     enum purc_symbol_var symbol_var = _to_symbol(symbol);
     if (symbol_var == PURC_SYMBOL_VAR_MAX) {
+        PC_ASSERT(0);
         return PURC_VARIANT_INVALID;
     }
 
@@ -301,6 +305,7 @@ pcintr_get_symbolized_var (pcintr_stack_t stack, unsigned int number,
 
     purc_variant_t v = frame->symbol_vars[symbol_var];
     if (v != PURC_VARIANT_INVALID) {
+        purc_clr_error();
         return v;
     }
     purc_set_error_with_info(PCVARIANT_ERROR_NOT_FOUND, "symbol:%c", symbol);
@@ -321,6 +326,7 @@ pcintr_get_numbered_var (pcintr_stack_t stack, unsigned int number)
 
     purc_variant_t v = frame->symbol_vars[PURC_SYMBOL_VAR_QUESTION_MARK];
     if (v != PURC_VARIANT_INVALID) {
+        purc_clr_error();
         return v;
     }
     purc_set_error_with_info(PCVARIANT_ERROR_NOT_FOUND, "number:%d", number);

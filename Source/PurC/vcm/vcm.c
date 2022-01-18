@@ -38,6 +38,7 @@
 #include "private/interpreter.h"
 #include "private/utils.h"
 
+#define TO_DEBUG 1
 
 #define TREE_NODE(node)              ((struct pctree_node*)(node))
 #define VCM_NODE(node)               ((struct pcvcm_node*)(node))
