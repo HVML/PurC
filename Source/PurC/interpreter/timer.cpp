@@ -64,8 +64,14 @@ class PurcTimer : public WTF::RunLoop::TimerBase {
         void setInterval(uint32_t interval) { m_interval = interval; }
         uint32_t getInterval() { return m_interval; }
 
-        void setAttach(void* attach) { m_attach = attach; }
-        void* getAttach(void) { return m_attach; }
+        void setListener(struct pcvar_listener* listener)
+        {
+            m_listener = listener;
+        }
+        struct pcvar_listener* getListener(void) { return m_listener; }
+
+        void setTimerVariant(purc_variant_t timer) { m_timer_var = timer; }
+        purc_variant_t getTimerVariant(void) { return m_timer_var; }
     private:
         void fired() final { m_func(m_id, m_ctxt); }
 
@@ -75,7 +81,8 @@ class PurcTimer : public WTF::RunLoop::TimerBase {
         pcintr_timer_fire_func m_func;
 
         uint32_t m_interval;
-        void* m_attach;
+        struct pcvar_listener* m_listener;
+        purc_variant_t m_timer_var;
 };
 
 pcintr_timer_t
@@ -144,20 +151,37 @@ pcintr_timer_destroy(pcintr_timer_t timer)
 }
 
 void
-pcintr_timer_set_attach(pcintr_timer_t timer, void* attach)
+pcintr_timer_set_listener(pcintr_timer_t timer, struct pcvar_listener* listener)
 {
     if (timer) {
-        return ((PurcTimer*)timer)-> setAttach(attach);
+        return ((PurcTimer*)timer)-> setListener(listener);
     }
 }
 
-void*
-pcintr_timer_get_attach(pcintr_timer_t timer)
+struct pcvar_listener*
+pcintr_timer_get_listener(pcintr_timer_t timer)
 {
     if (timer) {
-        return ((PurcTimer*)timer)-> getAttach();
+        return ((PurcTimer*)timer)-> getListener();
     }
     return NULL;
+}
+
+void
+pcintr_timer_set_timer_variant(pcintr_timer_t timer, purc_variant_t timer_var)
+{
+    if (timer) {
+        return ((PurcTimer*)timer)-> setTimerVariant(timer_var);
+    }
+}
+
+purc_variant_t
+pcintr_timer_get_timer_variant(pcintr_timer_t timer)
+{
+    if (timer) {
+        return ((PurcTimer*)timer)-> getTimerVariant();
+    }
+    return PURC_VARIANT_INVALID;
 }
 
 //  $TIMERS begin
@@ -184,7 +208,11 @@ static void* map_copy_val(const void* val)
 static void map_free_val(void* val)
 {
     if (val) {
-        pcintr_timer_destroy((pcintr_timer_t)val);
+        pcintr_timer_t tm = (pcintr_timer_t)val;
+        struct pcvar_listener* listener = pcintr_timer_get_listener(tm);
+        purc_variant_t timer = pcintr_timer_get_timer_variant(tm);
+        purc_variant_revoke_listener(timer, listener);
+        pcintr_timer_destroy(tm);
     }
 }
 
@@ -269,7 +297,8 @@ get_inner_timer(pcintr_stack_t stack, purc_variant_t timer_var)
         remove_timer(stack->vdom->timers, idstr);
         return NULL;
     }
-    pcintr_timer_set_attach(timer, listener);
+    pcintr_timer_set_listener(timer, listener);
+    pcintr_timer_set_timer_variant(timer, timer_var);
     return timer;
 }
 
@@ -285,8 +314,7 @@ destroy_inner_timer(pcintr_stack_t stack, purc_variant_t timer_var)
     const char* idstr = purc_variant_get_string_const(id);
     pcintr_timer_t timer = find_timer(stack->vdom->timers, idstr);
     if (timer) {
-        struct pcvar_listener* listener =
-            (struct pcvar_listener*)pcintr_timer_get_attach(timer);
+        struct pcvar_listener* listener = pcintr_timer_get_listener(timer);
         purc_variant_revoke_listener(timer_var, listener);
         remove_timer(stack->vdom->timers, idstr);
     }
