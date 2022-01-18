@@ -60,6 +60,16 @@
 #define    PCHVML_FREE(p)     free(p)
 #endif
 
+#define ejson_stack_is_empty()  pcutils_stack_is_empty(parser->ejson_stack)
+#define ejson_stack_top()  pcutils_stack_top(parser->ejson_stack)
+#define ejson_stack_pop()  pcutils_stack_pop(parser->ejson_stack)
+#define ejson_stack_push(c) pcutils_stack_push(parser->ejson_stack, c)
+
+#define vcm_stack_is_empty() pcvcm_stack_is_empty(parser->vcm_stack)
+#define vcm_stack_push(c) pcvcm_stack_push(parser->vcm_stack, c)
+#define vcm_stack_pop() pcvcm_stack_pop(parser->vcm_stack)
+
+
 #ifdef HVML_DEBUG_PRINT
 #define PRINT_STATE(state_name)                                             \
     fprintf(stderr, "in %s|wc=%c|hex=0x%X\n",                               \
@@ -353,15 +363,6 @@
         APPEND_CHILD(parent, child);                                        \
         UPDATE_VCM_NODE(parent);                                            \
     } while (false)
-
-#define ejson_stack_is_empty()  pcutils_stack_is_empty(parser->ejson_stack)
-#define ejson_stack_top()  pcutils_stack_top(parser->ejson_stack)
-#define ejson_stack_pop()  pcutils_stack_pop(parser->ejson_stack)
-#define ejson_stack_push(c) pcutils_stack_push(parser->ejson_stack, c)
-
-#define vcm_stack_is_empty() pcvcm_stack_is_empty(parser->vcm_stack)
-#define vcm_stack_push(c) pcvcm_stack_push(parser->vcm_stack, c)
-#define vcm_stack_pop() pcvcm_stack_pop(parser->vcm_stack)
 
 /* Make sure the number of error messages matches the number of error codes */
 #define _COMPILE_TIME_ASSERT(name, x)               \
