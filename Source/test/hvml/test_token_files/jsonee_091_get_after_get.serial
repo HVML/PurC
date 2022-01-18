@@ -2,4 +2,12 @@
     <div>
         call_getter(get_element(call_getter(get_element(get_variable("DOC"),"query"),"#c_query"),"count"))
     </div>
+    <bhoose on=concat_string(call_getter(get_element(call_getter(get_element(get_variable("DOC"),"query"),"#c_query"),"count")))>
+    </bhoose>
+    <choose on=call_getter(get_element(call_getter(get_element(get_variable("DOC"),"query"),"#c_query"),"count"))>
+    </choose>
+    <choose on=get_element(get_element(call_getter(get_element(get_variable("DOC"),"query"),"#c_query"),"attr"),"value")>
+    </choose>
+    <choose on=call_getter(get_element(get_variable("MATH"),"eval"),call_getter(get_element(call_getter(get_element(get_variable("DOC"),"query"),"#expression"),"attr"),"value"))>
+    </choose>
 </hvml>

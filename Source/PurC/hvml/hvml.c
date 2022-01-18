@@ -69,11 +69,13 @@
 #define vcm_stack_push(c) pcvcm_stack_push(parser->vcm_stack, c)
 #define vcm_stack_pop() pcvcm_stack_pop(parser->vcm_stack)
 
-
 #ifdef HVML_DEBUG_PRINT
 #define PRINT_STATE(state_name)                                             \
-    fprintf(stderr, "in %s|wc=%c|hex=0x%X\n",                               \
-            pchvml_pchvml_state_desc(state_name), character, character);
+    fprintf(stderr, \
+            "in %s|uc=%c|hex=0x%X|stack_is_empty=%d|stack_top=%c|vcm_node->type=%d\n",                              \
+            pchvml_pchvml_state_desc(state_name), character, character,     \
+            ejson_stack_is_empty(), (char)ejson_stack_top(),                \
+            (parser->vcm_node != NULL ? (int)parser->vcm_node->type : -1));
 #define SET_ERR(err)    do {                                                \
     fprintf(stderr, "error %s:%d %s\n", __FILE__, __LINE__,                 \
             pchvml_error_desc(err));                                        \
@@ -2514,6 +2516,11 @@ next_state:
                 ADVANCE_TO(PCHVML_EJSON_BEFORE_NAME_STATE);
             }
             if (uc == '[' || uc == '(' || uc == '<') {
+                if (parser->vcm_node && (
+                    parser->vcm_node->type == PCVCM_NODE_TYPE_FUNC_CALL_GETTER ||
+                    parser->vcm_node->type == PCVCM_NODE_TYPE_FUNC_CALL_SETTER)) {
+                    POP_AS_VCM_PARENT_AND_UPDATE_VCM();
+                }
                 ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
             }
             if (uc == ':') {
@@ -2788,9 +2795,6 @@ next_state:
             uint32_t uc = ejson_stack_top();
             if (uc == '(' || uc == '<') {
                 ejson_stack_pop();
-                if (!vcm_stack_is_empty()) {
-                    POP_AS_VCM_PARENT_AND_UPDATE_VCM();
-                }
                 ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
             }
             if (ejson_stack_is_empty()) {
