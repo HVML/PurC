@@ -91,6 +91,11 @@ post_process_dest_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     ctxt->on = on;
     purc_variant_ref(on);
 
+    PURC_VARIANT_SAFE_CLEAR(frame->result_var);
+    frame->result_var = on;
+    purc_variant_ref(on);
+
+#if 0 
     purc_variant_t by;
     by = purc_variant_object_get_by_ckey(frame->attr_vars, "by", true);
     if (by == PURC_VARIANT_INVALID) {
@@ -141,6 +146,7 @@ post_process_dest_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     PURC_VARIANT_SAFE_CLEAR(frame->symbol_vars[PURC_SYMBOL_VAR_QUESTION_MARK]);
     frame->symbol_vars[PURC_SYMBOL_VAR_QUESTION_MARK] = value;
     purc_variant_ref(value);
+#endif
 
     return 0;
 }
@@ -207,6 +213,16 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     r = pcintr_element_eval_attrs(frame, element);
     if (r)
         return NULL;
+
+    if (stack->fragment == NULL) {
+        stack->fragment = purc_rwstream_new_buffer(1024, 1024*1024*16);
+        if (!stack->fragment)
+            return NULL;
+    }
+    else {
+        off_t n = purc_rwstream_seek(stack->fragment, 0, SEEK_SET);
+        PC_ASSERT(n == 0);
+    }
 
     struct ctxt_for_test *ctxt;
     ctxt = (struct ctxt_for_test*)calloc(1, sizeof(*ctxt));
@@ -293,6 +309,9 @@ select_child(pcintr_stack_t stack, void* ud)
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(ud == frame->ctxt);
+
+    if (frame->result_from_child)
+        return NULL;
 
     struct ctxt_for_test *ctxt;
     ctxt = (struct ctxt_for_test*)frame->ctxt;

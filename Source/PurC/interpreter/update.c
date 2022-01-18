@@ -72,8 +72,10 @@ static purc_variant_t
 get_source_by_with(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     purc_variant_t with)
 {
+    D("");
     UNUSED_PARAM(frame);
     if (purc_variant_is_type(with, PURC_VARIANT_TYPE_ULONGINT)) {
+        D("");
         bool ok;
         uint64_t u64;
         ok = purc_variant_cast_to_ulongint(with, &u64, false);
@@ -88,6 +90,7 @@ get_source_by_with(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         return pcvcm_eval(vcm_content, stack);
     }
     else if (purc_variant_is_type(with, PURC_VARIANT_TYPE_STRING)) {
+        D("");
         purc_variant_ref(with);
         return with;
     }
@@ -262,6 +265,8 @@ process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         const char *s = purc_variant_get_string_const(src);
         // fprintf(stderr, "[%s]\n", s);
         // pcintr_printf_to_edom(stack, "%s", s);
+        D("[%s]", s);
+        PC_ASSERT(to != PURC_VARIANT_INVALID);
         pcintr_printf_to_fragment(co->stack, on, to, "%s", s);
         return 0;
     }
@@ -345,6 +350,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     purc_variant_t src = get_source(co, frame);
     if (src == PURC_VARIANT_INVALID)
         return -1;
+        D("");
     PURC_VARIANT_SAFE_CLEAR(ctxt->src);
     ctxt->src = src;
 

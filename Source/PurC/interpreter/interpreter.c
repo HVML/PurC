@@ -84,6 +84,8 @@ stack_frame_release(struct pcintr_stack_frame *frame)
 
     PURC_VARIANT_SAFE_CLEAR(frame->attr_vars);
     PURC_VARIANT_SAFE_CLEAR(frame->ctnt_var);
+    PURC_VARIANT_SAFE_CLEAR(frame->result_var);
+    PURC_VARIANT_SAFE_CLEAR(frame->result_from_child);
     PURC_VARIANT_SAFE_CLEAR(frame->mid_vars);
 }
 
@@ -529,6 +531,13 @@ pcintr_push_stack_frame(pcintr_stack_t stack)
 
     list_add_tail(&frame->node, &stack->frames);
     ++stack->nr_frames;
+
+    struct pcintr_stack_frame *parent;
+    parent = pcintr_stack_frame_get_parent(frame);
+    if (parent && parent->result_var) {
+        frame->symbol_vars[PURC_SYMBOL_VAR_QUESTION_MARK] = parent->result_var;
+        purc_variant_ref(parent->result_var);
+    }
 
     return frame;
 }

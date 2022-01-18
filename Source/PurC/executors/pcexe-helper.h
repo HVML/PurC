@@ -60,7 +60,7 @@
     purc_variant_serialize(_v, ows, 0, 0, &len);                           \
     buf[len] = '\0';                                                       \
     purc_rwstream_destroy(ows);                                            \
-    fprintf(stderr, "V:[%s]\n", buf);                                      \
+    fprintf(stderr, "%s:[%s]\n", #_v, buf);                                \
 } while (0)
 
 PCA_EXTERN_C_BEGIN

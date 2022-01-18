@@ -223,7 +223,7 @@ static const char *sample1 =
     "        </init>"
     ""
     "        <archetype name=\"footer_cn\">"
-    "            <p><a href=\"http://www.baidu.com\">Baidu</a></p>"
+    "            <p><a href=\"http://www.baidu.com\">百度</a></p>"
     "        </archetype>"
     ""
     "        <archetype name=\"footer_tw\">"
@@ -237,13 +237,13 @@ static const char *sample1 =
     "        <footer id=\"the-footer\">"
     "            <test on=\"$global.locale\" in='#the-footer'>"
     "                <match for=\"AS 'zh_CN'\" exclusively>"
-    "                    <update on=\"$@\" to=\"displace\" with=\"$footer_cn\" />"
+    "                    <update on=\"$@\" to=\"append\" with=\"$footer_cn\" />"
     "                </match>"
     "                <match for=\"AS 'zh_TW'\" exclusively>"
-    "                    <update on=\"$@\" to=\"displace\" with=\"$footer_tw\" />"
+    "                    <update on=\"$@\" to=\"append\" with=\"$footer_tw\" />"
     "                </match>"
     "                <match for=\"ANY\" to=\"displace\" with=\"$footer_def\">"
-    "                    <update on=\"$@\" with=\"$footer_def\" />"
+    "                    <update on=\"$@\" to=\"append\" with=\"$footer_def\" />"
     "                </match>"
     "                <except type=\"NoData\" raw>"
     "                    <p>You forget to define the $global variable!</p>"
@@ -267,6 +267,7 @@ TEST(interpreter, basic)
     (void)calculator_1;
     (void)calculator_2;
     (void)calculator_3;
+    (void)sample1;
 
     const char *hvmls[] = {
         // "<hvml><head x=\"y\">hello<xinit a=\"b\">world<!--yes-->solid</xinit></head><body><timeout1/><timeout3/></body></hvml>",

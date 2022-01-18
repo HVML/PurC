@@ -34,16 +34,21 @@
 
 #include "purc-executor.h"
 
+// FIXME:
+#include "../executors/match_for.h"
+
 #include <pthread.h>
 #include <unistd.h>
 #include <libgen.h>
 
-#define TO_DEBUG 0
+#define TO_DEBUG 1
 
 struct ctxt_for_match {
     struct pcvdom_node *curr;
     purc_variant_t for_var;
+    struct match_for_param param;
     bool is_exclusively;
+    bool matched;
 };
 
 static void
@@ -52,6 +57,7 @@ ctxt_for_match_destroy(struct ctxt_for_match *ctxt)
     if (ctxt) {
         PURC_VARIANT_SAFE_CLEAR(ctxt->for_var);
 
+        match_for_param_reset(&ctxt->param);
         free(ctxt);
     }
 }
@@ -66,6 +72,7 @@ static int
 post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
     UNUSED_PARAM(co);
+    int r;
 
     struct ctxt_for_match *ctxt;
     ctxt = (struct ctxt_for_match*)frame->ctxt;
@@ -80,6 +87,23 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     PURC_VARIANT_SAFE_CLEAR(ctxt->for_var);
     ctxt->for_var = for_var;
     purc_variant_ref(for_var);
+    PRINT_VAR(for_var);
+
+    const char *for_value = purc_variant_get_string_const(for_var);
+    r = match_for_parse(for_value, strlen(for_value), &ctxt->param);
+    PC_ASSERT(r == 0);
+
+    purc_variant_t parent_result;
+    parent_result = frame->symbol_vars[PURC_SYMBOL_VAR_QUESTION_MARK];
+    PC_ASSERT(parent_result != PURC_VARIANT_INVALID);
+    PRINT_VAR(parent_result);
+
+    bool matched;
+    r = match_for_rule_eval(&ctxt->param.rule, parent_result, &matched);
+    PC_ASSERT(r == 0);
+
+    ctxt->matched = matched;
+    D("matched: %s", matched ? "true" : "false");
 
     purc_variant_t exclusively = purc_variant_object_get_by_ckey(
             frame->attr_vars, "exclusively", true);
@@ -157,6 +181,15 @@ on_popping(pcintr_stack_t stack, void* ud)
     struct ctxt_for_match *ctxt;
     ctxt = (struct ctxt_for_match*)frame->ctxt;
     if (ctxt) {
+        if (ctxt->is_exclusively && ctxt->matched) {
+            // FIXME: what if target element in between test/match???
+            struct pcintr_stack_frame *parent;
+            parent = pcintr_stack_frame_get_parent(frame);
+            PC_ASSERT(parent);
+            PURC_VARIANT_SAFE_CLEAR(parent->result_from_child);
+            parent->result_from_child = purc_variant_make_boolean(true);
+            PC_ASSERT(parent->result_from_child != PURC_VARIANT_INVALID);
+        }
         ctxt_for_match_destroy(ctxt);
         frame->ctxt = NULL;
     }
@@ -212,6 +245,9 @@ select_child(pcintr_stack_t stack, void* ud)
     ctxt = (struct ctxt_for_match*)frame->ctxt;
 
     struct pcvdom_node *curr;
+
+    if (!ctxt->matched)
+        return NULL;
 
 again:
     curr = ctxt->curr;

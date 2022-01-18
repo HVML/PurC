@@ -200,6 +200,13 @@ struct pcintr_stack_frame {
     // the evaluated content variant
     purc_variant_t ctnt_var;
 
+    // the evaluated variant which is to be used as child-element's $?
+    purc_variant_t result_var;
+
+    // the evaluated variant which is to be used by parent element
+    // eg.: test/match, reclusive
+    purc_variant_t result_from_child;
+
     // all intermediate variants are managed by an array.
     purc_variant_t mid_vars;
 
