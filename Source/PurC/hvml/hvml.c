@@ -2404,7 +2404,7 @@ next_state:
                 ) {
             RECONSUME_IN(PCHVML_EJSON_FINISHED_STATE);
         }
-        uint32_t uc = pcutils_stack_top (parser->ejson_stack);
+        uint32_t uc = ejson_stack_top();
         if (is_whitespace(character)) {
             if (uc == 'U' || uc == '"' || uc == '\'') {
                 RECONSUME_IN(PCHVML_EJSON_AFTER_JSONEE_STRING_STATE);
@@ -2566,7 +2566,7 @@ next_state:
         if (character == '$') {
             RECONSUME_IN(PCHVML_EJSON_DOLLAR_STATE);
         }
-        uint32_t uc = pcutils_stack_top (parser->ejson_stack);
+        uint32_t uc = ejson_stack_top();
         if (uc == 'P') {
             ejson_stack_pop();
             ejson_stack_push('{');
@@ -2586,7 +2586,7 @@ next_state:
             SET_ERR(PCHVML_ERROR_EOF_IN_TAG);
             RETURN_NEW_EOF_TOKEN();
         }
-        uint32_t uc = pcutils_stack_top (parser->ejson_stack);
+        uint32_t uc = ejson_stack_top();
         if (character == '}') {
             if (uc == ':') {
                 ejson_stack_pop();
@@ -2678,7 +2678,7 @@ next_state:
                 UPDATE_VCM_NODE(node);
                 ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
             }
-            uint32_t uc = pcutils_stack_top (parser->ejson_stack);
+            uint32_t uc = ejson_stack_top();
             if (uc == '(' || uc == '<' || uc == '[' || uc == ':' || uc == 0) {
                 ejson_stack_push('[');
                 if (parser->vcm_node) {
@@ -3847,11 +3847,11 @@ next_state:
             parser->vcm_node = pcvcm_node_new_string(
                        pchvml_buffer_get_buffer(parser->temp_buffer));
             RESET_TEMP_BUFFER();
-            uint32_t uc = pcutils_stack_top (parser->ejson_stack);
+            uint32_t uc = ejson_stack_top();
             while (uc == '$') {
                 ejson_stack_pop();
                 POP_AS_VCM_PARENT_AND_UPDATE_VCM();
-                uc = pcutils_stack_top (parser->ejson_stack);
+                uc = ejson_stack_top();
             }
             if (uc == '(' || uc == '<' || uc == '.' || uc == '"') {
                 POP_AS_VCM_PARENT_AND_UPDATE_VCM();
@@ -3890,11 +3890,11 @@ next_state:
             parser->vcm_node = pcvcm_node_new_string(
                        pchvml_buffer_get_buffer(parser->temp_buffer));
             RESET_TEMP_BUFFER();
-            uint32_t uc = pcutils_stack_top (parser->ejson_stack);
+            uint32_t uc = ejson_stack_top();
             while (uc == '$') {
                 ejson_stack_pop();
                 POP_AS_VCM_PARENT_AND_UPDATE_VCM();
-                uc = pcutils_stack_top (parser->ejson_stack);
+                uc = ejson_stack_top();
             }
             if (uc == '(' || uc == '<' || uc == '.' || uc == '"' ||
                     uc == 'T') {
@@ -3913,11 +3913,11 @@ next_state:
             parser->vcm_node = pcvcm_node_new_string(
                        pchvml_buffer_get_buffer(parser->temp_buffer));
             RESET_TEMP_BUFFER();
-            uint32_t uc = pcutils_stack_top (parser->ejson_stack);
+            uint32_t uc = ejson_stack_top();
             while (uc == '$') {
                 ejson_stack_pop();
                 POP_AS_VCM_PARENT_AND_UPDATE_VCM();
-                uc = pcutils_stack_top (parser->ejson_stack);
+                uc = ejson_stack_top();
             }
             if (uc == '(' || uc == '<') {
                 POP_AS_VCM_PARENT_AND_UPDATE_VCM();
@@ -3935,7 +3935,7 @@ next_state:
             parser->vcm_node = pcvcm_node_new_string(
                        pchvml_buffer_get_buffer(parser->temp_buffer));
             RESET_TEMP_BUFFER();
-            uint32_t uc = pcutils_stack_top (parser->ejson_stack);
+            uint32_t uc = ejson_stack_top();
             while (uc == '$') {
                 ejson_stack_pop();
                 POP_AS_VCM_PARENT_AND_UPDATE_VCM();
@@ -3968,7 +3968,7 @@ next_state:
             parser->vcm_node = pcvcm_node_new_string(
                        pchvml_buffer_get_buffer(parser->temp_buffer));
             RESET_TEMP_BUFFER();
-            uint32_t uc = pcutils_stack_top (parser->ejson_stack);
+            uint32_t uc = ejson_stack_top();
             if (uc == '$') {
                 ejson_stack_pop();
                 POP_AS_VCM_PARENT_AND_UPDATE_VCM();
@@ -3986,7 +3986,7 @@ next_state:
             parser->vcm_node = pcvcm_node_new_string(
                        pchvml_buffer_get_buffer(parser->temp_buffer));
             RESET_TEMP_BUFFER();
-            uint32_t uc = pcutils_stack_top (parser->ejson_stack);
+            uint32_t uc = ejson_stack_top();
             if (uc == '$') {
                 ejson_stack_pop();
                 POP_AS_VCM_PARENT_AND_UPDATE_VCM();
@@ -4004,7 +4004,7 @@ next_state:
             parser->vcm_node = pcvcm_node_new_string(
                        pchvml_buffer_get_buffer(parser->temp_buffer));
             RESET_TEMP_BUFFER();
-            uint32_t uc = pcutils_stack_top (parser->ejson_stack);
+            uint32_t uc = ejson_stack_top();
             if (uc == '$') {
                 ejson_stack_pop();
                 POP_AS_VCM_PARENT_AND_UPDATE_VCM();
@@ -4088,7 +4088,7 @@ next_state:
             RESET_TEMP_BUFFER();
             ejson_stack_pop();
             POP_AS_VCM_PARENT_AND_UPDATE_VCM();
-            uint32_t uc = pcutils_stack_top (parser->ejson_stack);
+            uint32_t uc = ejson_stack_top();
             if (uc == '(' || uc == '<') {
                 POP_AS_VCM_PARENT_AND_UPDATE_VCM();
             }
@@ -4114,7 +4114,7 @@ next_state:
     END_STATE()
 
     BEGIN_STATE(PCHVML_EJSON_JSONEE_STRING_STATE)
-        uint32_t uc = pcutils_stack_top (parser->ejson_stack);
+        uint32_t uc = ejson_stack_top();
         if (is_whitespace(character)) {
             if (uc == 'U') {
                 RECONSUME_IN(PCHVML_EJSON_AFTER_JSONEE_STRING_STATE);
@@ -4169,7 +4169,7 @@ next_state:
     END_STATE()
 
     BEGIN_STATE(PCHVML_EJSON_AFTER_JSONEE_STRING_STATE)
-        uint32_t uc = pcutils_stack_top (parser->ejson_stack);
+        uint32_t uc = ejson_stack_top();
         if (is_whitespace(character)) {
             POP_AS_VCM_PARENT_AND_UPDATE_VCM();
             if (uc == 'U') {
