@@ -215,6 +215,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
             ctxt->under_head = 1;
         }
     }
+    purc_clr_error();
 
     r = post_process(&stack->co, frame);
     if (r)

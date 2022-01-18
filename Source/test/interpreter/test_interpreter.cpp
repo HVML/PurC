@@ -211,6 +211,54 @@ static const char *calculator_3 =
     ""
     "</hvml>";
 
+static const char *sample1 =
+    "<!DOCTYPE hvml>"
+    "<hvml target=\"html\">"
+    "    <head>"
+    "    </head>"
+    ""
+    "    <body>"
+    "        <init as=\"global\">"
+    "            { \"locale\" : \"zh_CN\" }"
+    "        </init>"
+    ""
+    "        <archetype name=\"footer_cn\">"
+    "            <p><a href=\"http://www.baidu.com\">Baidu</a></p>"
+    "        </archetype>"
+    ""
+    "        <archetype name=\"footer_tw\">"
+    "            <p><a href=\"http://www.bing.com\">Bing</a></p>"
+    "        </archetype>"
+    ""
+    "        <archetype name=\"footer_def\">"
+    "            <p><a href=\"http://www.google.com\">Google</a></p>"
+    "        </archetype>"
+    ""
+    "        <footer id=\"the-footer\">"
+    "            <test on=\"$global.locale\" in='#the-footer'>"
+    "                <match for=\"AS 'zh_CN'\" exclusively>"
+    "                    <update on=\"$@\" to=\"displace\" with=\"$footer_cn\" />"
+    "                </match>"
+    "                <match for=\"AS 'zh_TW'\" exclusively>"
+    "                    <update on=\"$@\" to=\"displace\" with=\"$footer_tw\" />"
+    "                </match>"
+    "                <match for=\"ANY\" to=\"displace\" with=\"$footer_def\">"
+    "                    <update on=\"$@\" with=\"$footer_def\" />"
+    "                </match>"
+    "                <except type=\"NoData\" raw>"
+    "                    <p>You forget to define the $global variable!</p>"
+    "                </except>"
+    "                <except type=\"NoSuchKey\">"
+    "                    <p>Bad global data!</p>"
+    "                </except>"
+    "                <except type=\"IdentifierError\">"
+    "                    <p>Bad archetype data!</p>"
+    "                </except>"
+    "            </test>"
+    "        </footer>"
+    "    </body>"
+    "</hvml>";
+
 TEST(interpreter, basic)
 {
     if (0)
@@ -230,7 +278,8 @@ TEST(interpreter, basic)
         // "<hvml><body><a><b><c></c></b></a></body></hvml>",
         // calculator_1,
         // calculator_2,
-        calculator_3,
+        // calculator_3,
+        sample1,
     };
 
     purc_instance_extra_info info = {};
