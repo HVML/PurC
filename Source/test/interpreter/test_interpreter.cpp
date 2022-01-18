@@ -122,13 +122,103 @@ static const char *calculator_2 =
     ""
     "</hvml>";
 
+static const char *calculator_3 =
+    "<!DOCTYPE hvml SYSTEM 'v: MATH'>"
+    "<hvml target=\"html\" lang=\"en\">"
+    "    <head>"
+    "        <base href=\"$HVML.base(! 'https://gitlab.fmsoft.cn/hvml/hvml-docs/raw/master/samples/calculator/' )\" />"
+    ""
+    "        <update on=\"$T.map\" from=\"assets/{$SYSTEM.locale}.json\" to=\"merge\" />"
+    ""
+    "        <init as=\"buttons\" from=\"assets/buttons.json\" />"
+    ""
+    "        <title>$T.get('HVML Calculator')</title>"
+    ""
+    "        <update on=\"$TIMERS\" to=\"unite\">"
+    "            ["
+    "                { \"id\" : \"clock\", \"interval\" : 1000, \"active\" : \"yes\" },"
+    "                { \"id\" : \"input\", \"interval\" : 1500, \"active\" : \"yes\" },"
+    "            ]"
+    "        </update>"
+    ""
+    "        <link rel=\"stylesheet\" type=\"text/css\" href=\"assets/calculator.css\" />"
+    "    </head>"
+    ""
+    "    <body>"
+    "<!--"
+    "        <div id=\"calculator\">"
+    ""
+    "            <div id=\"c_title\">"
+    "                <h2 id=\"c_title\">$T.get('HVML Calculator')"
+    "                    <small>$T.get('Current Time: ')<span id=\"clock\">$SYSTEM.time('%H:%M:%S')</span></small>"
+    "                </h2>"
+    "                <observe on=\"$TIMERS\" for=\"expired:clock\">"
+    "                    <update on=\"#clock\" at=\"textContent\" with=\"$SYSTEM.time('%H:%M:%S')\" />"
+    "                </observe>"
+    "            </div>"
+    ""
+    "            <div id=\"c_text\">"
+    "                <input type=\"text\" id=\"expression\" value=\"0\" readonly=\"readonly\" />"
+    "                <observe on=\"$TIMERS\" for=\"expired:input\">"
+    "                    <test on=\"$buttons[$SYSTEM.random($EJSON.count($buttons)].letters\">"
+    ""
+    "                        <match for=\"AS '='\" exclusively>"
+    "                            <choose on=\"$MATH.eval($DOC.query('#expression').attr('value'))\">"
+    "                                <update on=\"#expression\" at=\"attr.value\" with=\"$?\" />"
+    "                                <update on=\"$TIMERS\" to=\"overwrite\">"
+    "                                    { \"id\" : \"input\", \"active\" : \"no\" }"
+    "                                </update>"
+    "                                <catch for='*'>"
+    "                                    <update on=\"#expression\" at=\"attr.value\" with=\"ERR\" />"
+    "                                </catch>"
+    "                            </choose>"
+    "                        </match>"
+    ""
+    "                        <match for=\"AS 'C'\" exclusively>"
+    "                            <update on=\"#expression\" at=\"attr.value\" with=\"\" />"
+    "                        </match>"
+    ""
+    "                        <match for=\"AS '←'\" exclusively>"
+    "                            <choose on=\"$DOC.query('#expression').attr.value\">"
+    "                                <update on=\"#expression\" at=\"attr.value\" with=\"$STR.substr($?, 0, -1)\" />"
+    "                            </choose>"
+    "                        </match>"
+    ""
+    "                        <match>"
+    "                            <update on=\"#expression\" at=\"attr.value\" with $= \"$?\" />"
+    "                        </match>"
+    "                    </test>"
+    "                </observe>"
+    "            </div>"
+    ""
+    "            <div id=\"c_value\">"
+    "                <archetype name=\"button\">"
+    "                    <li class=\"$?.class\">$?.letters</li>"
+    "                </archetype>"
+    ""
+    "                <ul>"
+    "                    <iterate on=\"$buttons\">"
+    "                        <update on=\"$@\" to=\"append\" with=\"$button\" />"
+    "                        <except type=\"NoData\" raw>"
+    "                            <p>Bad data!</p>"
+    "                        </except>"
+    "                    </iterate>"
+    "                </ul>"
+    "            </div>"
+    "        </div>"
+    "-->"
+    "    </body>"
+    ""
+    "</hvml>";
+
 TEST(interpreter, basic)
 {
-    if (1)
+    if (0)
         return;
 
     (void)calculator_1;
     (void)calculator_2;
+    (void)calculator_3;
 
     const char *hvmls[] = {
         // "<hvml><head x=\"y\">hello<xinit a=\"b\">world<!--yes-->solid</xinit></head><body><timeout1/><timeout3/></body></hvml>",
@@ -138,8 +228,9 @@ TEST(interpreter, basic)
         // "<hvml><body><archetype name=\"$?.button\"><li class=\"class\">letters</li></archetype></body></hvml>",
         // "<hvml><body><archetype name=\"button\"><li class=\"class\">letters</li></archetype></body></hvml>",
         // "<hvml><body><a><b><c></c></b></a></body></hvml>",
-        calculator_1,
+        // calculator_1,
         // calculator_2,
+        calculator_3,
     };
 
     purc_instance_extra_info info = {};

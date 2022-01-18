@@ -224,6 +224,20 @@ process_set(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 #endif
         return 0;
     }
+    if (strcmp(op, "unite")==0) {
+        if (!purc_variant_is_type(on, PURC_VARIANT_TYPE_SET)) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            return -1;
+        }
+
+    // TODO
+#if 1
+        if (!purc_variant_set_unite(on, src, true)) {
+            return -1;
+        }
+#endif
+        return 0;
+    }
     PC_ASSERT(0); // Not implemented yet
     return -1;
 }
