@@ -131,6 +131,7 @@ jsonee_088_dot_after_right_brace
 jsonee_089_string_attr
 jsonee_090_content
 jsonee_091_get_after_get
+jsonee_092_complex
 ejson_001_i_number_double_huge_neg_exp
 ejson_002_i_number_huge_exp
 ejson_003_i_number_neg_int_huge_exp

@@ -2460,7 +2460,7 @@ next_state:
             if (uc == '"' || uc == '\'' || uc == 'U') {
                 RECONSUME_IN(PCHVML_EJSON_AFTER_JSONEE_STRING_STATE);
             }
-            RECONSUME_IN(PCHVML_EJSON_RIGHT_PARENTHESIS_STATE);
+            ADVANCE_TO(PCHVML_EJSON_RIGHT_PARENTHESIS_STATE);
         }
         if (character == '$') {
             RECONSUME_IN(PCHVML_EJSON_DOLLAR_STATE);
@@ -2516,11 +2516,6 @@ next_state:
                 ADVANCE_TO(PCHVML_EJSON_BEFORE_NAME_STATE);
             }
             if (uc == '[' || uc == '(' || uc == '<') {
-                if (parser->vcm_node && (
-                    parser->vcm_node->type == PCVCM_NODE_TYPE_FUNC_CALL_GETTER ||
-                    parser->vcm_node->type == PCVCM_NODE_TYPE_FUNC_CALL_SETTER)) {
-                    POP_AS_VCM_PARENT_AND_UPDATE_VCM();
-                }
                 ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
             }
             if (uc == ':') {
@@ -2791,17 +2786,31 @@ next_state:
     END_STATE()
 
     BEGIN_STATE(PCHVML_EJSON_RIGHT_PARENTHESIS_STATE)
-        if (character == ')') {
-            uint32_t uc = ejson_stack_top();
+        uint32_t uc = ejson_stack_top();
+        if (character == '.') {
             if (uc == '(' || uc == '<') {
                 ejson_stack_pop();
-                ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
+                RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
             }
             if (ejson_stack_is_empty()) {
                 SET_ERR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
                 RETURN_AND_STOP_PARSE();
             }
-            ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
+            RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
+        }
+        else {
+            if (uc == '(' || uc == '<') {
+                ejson_stack_pop();
+                if (!vcm_stack_is_empty()) {
+                    POP_AS_VCM_PARENT_AND_UPDATE_VCM();
+                }
+                RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
+            }
+            if (ejson_stack_is_empty()) {
+                SET_ERR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
+                RETURN_AND_STOP_PARSE();
+            }
+            RECONSUME_IN(PCHVML_EJSON_CONTROL_STATE);
         }
     END_STATE()
 
@@ -2866,7 +2875,7 @@ next_state:
             RECONSUME_IN(PCHVML_EJSON_RIGHT_BRACKET_STATE);
         }
         if (character == ')') {
-            RECONSUME_IN(PCHVML_EJSON_RIGHT_PARENTHESIS_STATE);
+            ADVANCE_TO(PCHVML_EJSON_RIGHT_PARENTHESIS_STATE);
         }
         if (character == ',') {
             if (uc == '{') {
