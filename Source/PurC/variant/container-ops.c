@@ -349,6 +349,7 @@ add_set_member_overwrite(void* ctxt, purc_variant_t member,
         purc_variant_t member_extra, bool silently)
 {
     UNUSED_PARAM(member_extra);
+    UNUSED_PARAM(silently);
     return purc_variant_set_add((purc_variant_t)ctxt, member, true);
 }
 

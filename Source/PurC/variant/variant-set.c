@@ -1071,8 +1071,8 @@ int pcvariant_set_sort(purc_variant_t value, void *ud,
     return 0;
 }
 
-bool
-pcvariant_is_in_set (purc_variant_t set, purc_variant_t value)
+purc_variant_t
+pcvariant_set_find (purc_variant_t set, purc_variant_t value)
 {
     PCVARIANT_CHECK_FAIL_RET(set && set->type==PVT(_SET) && value,
         PURC_VARIANT_INVALID);
@@ -1089,6 +1089,6 @@ pcvariant_is_in_set (purc_variant_t set, purc_variant_t value)
     p = find_element(data, kvs);
     free(kvs);
 
-    return p ? true : false;
+    return p ? p->elem : PURC_VARIANT_INVALID;
 }
 

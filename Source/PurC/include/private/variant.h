@@ -296,7 +296,13 @@ void pcvariant_on_post_fired(
                                 // (only for container).
         );
 
-bool pcvariant_is_in_set (purc_variant_t set, purc_variant_t value);
+purc_variant_t pcvariant_set_find (purc_variant_t set, purc_variant_t value);
+
+static inline bool
+pcvariant_is_in_set (purc_variant_t set, purc_variant_t value)
+{
+    return (PURC_VARIANT_INVALID != pcvariant_set_find(set, value));
+}
 
 #ifdef __cplusplus
 }
