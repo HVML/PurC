@@ -266,9 +266,6 @@ static const char *sample1 =
 
 TEST(interpreter, basic)
 {
-    if (1)
-        return;
-
     (void)calculator_1;
     (void)calculator_2;
     (void)calculator_3;
