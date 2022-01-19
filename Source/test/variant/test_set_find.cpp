@@ -62,30 +62,26 @@ TEST(set, unique_key_find)
     purc_variant_t set = purc_variant_make_set_by_ckey(2, "id", obj_1, obj_2);
     ASSERT_NE(set, PURC_VARIANT_INVALID);
 
+    purc_variant_t v = pcvariant_set_find(set, obj_3);
+    ASSERT_NE(v, PURC_VARIANT_INVALID);
+    ASSERT_EQ(obj_2, v);
+
+
+    purc_variant_t value = PURC_VARIANT_INVALID;
+
 #if 0
-    if (0) {
-        purc_variant_t v = pcvariant_set_find(set, obj_3);
-        ASSERT_NE(v, PURC_VARIANT_INVALID);
-        ASSERT_EQ(obj_2, v);
+    // overwrite object
+    value = purc_variant_object_get_by_ckey(obj_3, "id", false);
+    purc_variant_object_set_by_static_ckey(v, "id", value);
+#endif
+
+    value = purc_variant_object_get_by_ckey(obj_3, "active", false);
+    purc_variant_object_set_by_static_ckey(v, "active", value);
 
 
-        purc_variant_t value = PURC_VARIANT_INVALID;
-
-        PRINT_VARIANT(set);
-        // overwrite object
-        value = purc_variant_object_get_by_ckey(obj_3, "id", false);
-        purc_variant_object_set_by_static_ckey(v, "id", value);
-        PRINT_VARIANT(set);
-
-        value = purc_variant_object_get_by_ckey(obj_3, "active", false);
-        purc_variant_object_set_by_static_ckey(v, "active", value);
-        PRINT_VARIANT(set);
-
-        v = pcvariant_set_find(set, obj_3);
-        ASSERT_NE(v, PURC_VARIANT_INVALID);
-        ASSERT_EQ(obj_2, v);
-    }
-#endif // 0
+    v = pcvariant_set_find(set, obj_3);
+    ASSERT_NE(v, PURC_VARIANT_INVALID);
+    ASSERT_EQ(obj_2, v);
 
     if (1) {
         bool ok = purc_variant_set_add(set, obj_3, true);
