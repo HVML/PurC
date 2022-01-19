@@ -66,9 +66,11 @@ TEST(set, unique_key_find)
 
     purc_variant_t value = PURC_VARIANT_INVALID;
 
+#if 0
     // overwrite object
     value = purc_variant_object_get_by_ckey(obj_3, "id", false);
     purc_variant_object_set_by_static_ckey(v, "id", value);
+#endif
 
     value = purc_variant_object_get_by_ckey(obj_3, "active", false);
     purc_variant_object_set_by_static_ckey(v, "active", value);
