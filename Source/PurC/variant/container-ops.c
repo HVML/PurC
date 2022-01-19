@@ -349,7 +349,7 @@ add_set_member_overwrite(void* ctxt, purc_variant_t member,
         purc_variant_t member_extra, bool silently)
 {
     UNUSED_PARAM(member_extra);
-    return purc_variant_set_add((purc_variant_t)ctxt, member, silently);
+    return purc_variant_set_add((purc_variant_t)ctxt, member, true);
 }
 
 static bool
@@ -979,7 +979,7 @@ purc_variant_set_overwrite(purc_variant_t set,
     enum purc_variant_type type = purc_variant_get_type(src);
     switch (type) {
         case PURC_VARIANT_TYPE_OBJECT:
-            ret = purc_variant_set_add(set, src, silently);
+            ret = add_set_member_overwrite(set, src, PURC_VARIANT_INVALID, silently);
             break;
 
         case PURC_VARIANT_TYPE_ARRAY:
