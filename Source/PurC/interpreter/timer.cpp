@@ -334,14 +334,14 @@ timer_listener_handler(purc_variant_t source, purc_atom_t msg_type,
         return false;
     }
 
-    // argv key-new, value-new, key-old, value-old
-    if (is_euqal(argv[0], TIMERS_STR_INTERVAL)) {
+    // argv key-old, value-old, key-new, value-new
+    if (is_euqal(argv[2], TIMERS_STR_INTERVAL)) {
         uint64_t ret = 0;
-        purc_variant_cast_to_ulongint(argv[0], &ret, false);
+        purc_variant_cast_to_ulongint(argv[3], &ret, false);
         pcintr_timer_set_interval(timer, ret);
     }
-    else if (is_euqal(argv[0], TIMERS_STR_ACTIVE)) {
-        if (is_euqal(argv[1], TIMERS_STR_YES)) {
+    else if (is_euqal(argv[2], TIMERS_STR_ACTIVE)) {
+        if (is_euqal(argv[3], TIMERS_STR_YES)) {
             pcintr_timer_start(timer);
         }
         else {
