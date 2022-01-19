@@ -78,6 +78,12 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     ctxt = (struct ctxt_for_match*)frame->ctxt;
     PC_ASSERT(ctxt);
 
+    // FIXME: no attrs
+    if (frame->attr_vars == PURC_VARIANT_INVALID) {
+        ctxt->matched = true;
+        return 0;
+    }
+
     purc_variant_t for_var = purc_variant_object_get_by_ckey(frame->attr_vars,
             "for", true);
     if (for_var == PURC_VARIANT_INVALID) {
