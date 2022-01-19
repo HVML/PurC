@@ -78,35 +78,30 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     ctxt = (struct ctxt_for_match*)frame->ctxt;
     PC_ASSERT(ctxt);
 
-    // FIXME: no attrs
-    if (frame->attr_vars == PURC_VARIANT_INVALID) {
-        ctxt->matched = true;
-        return 0;
-    }
-
     purc_variant_t for_var = purc_variant_object_get_by_ckey(frame->attr_vars,
             "for", true);
+    bool matched = false;
     if (for_var == PURC_VARIANT_INVALID) {
-        return -1;
+        matched = true;
     }
+    else {
+        PURC_VARIANT_SAFE_CLEAR(ctxt->for_var);
+        ctxt->for_var = for_var;
+        purc_variant_ref(for_var);
+        PRINT_VAR(for_var);
 
-    PURC_VARIANT_SAFE_CLEAR(ctxt->for_var);
-    ctxt->for_var = for_var;
-    purc_variant_ref(for_var);
-    PRINT_VAR(for_var);
+        const char *for_value = purc_variant_get_string_const(for_var);
+        r = match_for_parse(for_value, strlen(for_value), &ctxt->param);
+        PC_ASSERT(r == 0);
 
-    const char *for_value = purc_variant_get_string_const(for_var);
-    r = match_for_parse(for_value, strlen(for_value), &ctxt->param);
-    PC_ASSERT(r == 0);
+        purc_variant_t parent_result;
+        parent_result = frame->symbol_vars[PURC_SYMBOL_VAR_QUESTION_MARK];
+        PC_ASSERT(parent_result != PURC_VARIANT_INVALID);
+        PRINT_VAR(parent_result);
 
-    purc_variant_t parent_result;
-    parent_result = frame->symbol_vars[PURC_SYMBOL_VAR_QUESTION_MARK];
-    PC_ASSERT(parent_result != PURC_VARIANT_INVALID);
-    PRINT_VAR(parent_result);
-
-    bool matched;
-    r = match_for_rule_eval(&ctxt->param.rule, parent_result, &matched);
-    PC_ASSERT(r == 0);
+        r = match_for_rule_eval(&ctxt->param.rule, parent_result, &matched);
+        PC_ASSERT(r == 0);
+    }
 
     ctxt->matched = matched;
     D("matched: %s", matched ? "true" : "false");
@@ -116,12 +111,18 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     if (exclusively != PURC_VARIANT_INVALID) {
         ctxt->is_exclusively = true;
     }
+    else {
+        purc_clr_error();
+    }
 
     if (!ctxt->is_exclusively) {
         exclusively = purc_variant_object_get_by_ckey(
                 frame->attr_vars, "excl", true);
         if (exclusively != PURC_VARIANT_INVALID) {
             ctxt->is_exclusively = true;
+        }
+        else {
+            purc_clr_error();
         }
     }
 
@@ -150,6 +151,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     int r;
     r = pcintr_element_eval_attrs(frame, element);
     if (r)
+        PC_ASSERT(0);
+    if (r)
         return NULL;
 
     struct ctxt_for_match *ctxt;
@@ -164,6 +167,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     purc_clr_error();
 
     r = post_process(&stack->co, frame);
+    if (r)
+        PC_ASSERT(0);
     if (r)
         return NULL;
 

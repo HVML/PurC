@@ -84,6 +84,13 @@ struct pcintr_edom_gen {
     unsigned int                finished:1;
 };
 
+struct pcintr_loaded_var {
+    struct rb_node              node;
+    char                       *name;
+    char                       *so_path;
+    purc_variant_t              val;
+};
+
 struct pcintr_stack {
     struct list_head frames;
 
@@ -141,6 +148,9 @@ struct pcintr_stack {
     purc_rwstream_t            fragment;
 
     struct list_head           edom_fragments; // struct edom_fragment
+
+    // for loaded dynamic variants
+    struct rb_root             loaded_vars;  // struct pcintr_loaded_var*
 };
 
 enum purc_symbol_var {
@@ -372,6 +382,10 @@ pcintr_is_observer_empty(pcintr_stack_t stack);
 void
 pcintr_dispatch_message(pcintr_stack_t stack, purc_variant_t source,
         purc_variant_t type, purc_variant_t sub_type, purc_variant_t extra);
+
+bool
+pcintr_load_dynamic_variant(pcintr_stack_t stack,
+    const char *name, size_t len);
 
 PCA_EXTERN_C_END
 

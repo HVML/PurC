@@ -68,17 +68,10 @@ token_found(const char *start, const char *end, void *ud)
     if (start == end)
         return 0;
 
-    char so[PATH_MAX+1];
-    snprintf(so, sizeof(so), "libpurc-dvobj-%.*s.so", (int)(end-start), start);
-    char name[PATH_MAX+1];
-    snprintf(name, sizeof(name), "%.*s", (int)(end-start), start);
-    purc_variant_t v = purc_variant_load_dvobj_from_so(so, name);
-    if (v == PURC_VARIANT_INVALID)
-        return -1;
+    bool ok;
+    ok = pcintr_load_dynamic_variant(stack, start, end-start);
 
-    // TODO: save somewhere in doc and stack
-    purc_variant_unload_dvobj(v);
-    return 0;
+    return ok ? 0 : -1;
 }
 
 static void*
