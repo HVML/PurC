@@ -345,12 +345,26 @@ remove_set_member(void* ctxt, purc_variant_t member,
 }
 
 static bool
-add_set_member_overwrite(void* ctxt, purc_variant_t member,
+add_set_member_override(void* ctxt, purc_variant_t member,
         purc_variant_t member_extra, bool silently)
 {
     UNUSED_PARAM(member_extra);
     UNUSED_PARAM(silently);
     return purc_variant_set_add((purc_variant_t)ctxt, member, true);
+}
+
+static bool
+set_member_overwrite(void* ctxt, purc_variant_t value,
+        purc_variant_t member_extra, bool silently)
+{
+    UNUSED_PARAM(member_extra);
+    UNUSED_PARAM(silently);
+    purc_variant_t set = (purc_variant_t) ctxt;
+    purc_variant_t dst = pcvariant_set_find(set, value);
+    if (dst != PURC_VARIANT_INVALID) {
+        return object_foreach(value, add_object_member, dst, silently);
+    }
+    return purc_variant_set_add(set, value, silently);
 }
 
 static bool
@@ -820,10 +834,10 @@ purc_variant_set_unite(purc_variant_t set,
     }
 
     if (purc_variant_is_set(src)) {
-        ret = set_foreach(src, add_set_member_overwrite, set, silently);
+        ret = set_foreach(src, add_set_member_override, set, silently);
     }
     else if (purc_variant_is_array(src)) {
-        ret = array_foreach(src, add_set_member_overwrite, set, silently);
+        ret = array_foreach(src, add_set_member_override, set, silently);
     }
     else {
         SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
@@ -980,15 +994,15 @@ purc_variant_set_overwrite(purc_variant_t set,
     enum purc_variant_type type = purc_variant_get_type(src);
     switch (type) {
         case PURC_VARIANT_TYPE_OBJECT:
-            ret = add_set_member_overwrite(set, src, PURC_VARIANT_INVALID, silently);
+            ret = set_member_overwrite(set, src, PURC_VARIANT_INVALID, silently);
             break;
 
         case PURC_VARIANT_TYPE_ARRAY:
-            ret = array_foreach(src, add_set_member_overwrite, set, silently);
+            ret = array_foreach(src, set_member_overwrite, set, silently);
             break;
 
         case PURC_VARIANT_TYPE_SET:
-            ret = set_foreach(src, add_set_member_overwrite, set, silently);
+            ret = set_foreach(src, set_member_overwrite, set, silently);
             break;
 
         default:
