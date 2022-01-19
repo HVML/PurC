@@ -95,8 +95,9 @@ get_source_by_with(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         return with;
     }
     else {
-        PC_ASSERT(0); // Not implemented yet
-        return PURC_VARIANT_INVALID;
+        D("");
+        purc_variant_ref(with);
+        return with;
     }
 }
 
@@ -241,6 +242,21 @@ process_set(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 #endif
         return 0;
     }
+    if (strcmp(op, "overwrite")==0) {
+        if (!purc_variant_is_type(on, PURC_VARIANT_TYPE_SET)) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            return -1;
+        }
+
+    // TODO
+#if 1
+        if (!purc_variant_set_overwrite(on, src, true)) {
+            return -1;
+        }
+#endif
+        return 0;
+    }
+    D("op: %s", op);
     PC_ASSERT(0); // Not implemented yet
     return -1;
 }
@@ -305,8 +321,20 @@ process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
             pcdom_element_t *elem = (pcdom_element_t*)node;
             purc_variant_t o = pcdvobjs_make_element_variant(elem);
             PC_ASSERT(o != PURC_VARIANT_INVALID);
-            const char *content = purc_variant_get_string_const(src);
-            pcintr_printf_to_fragment(co->stack, o, at, "%s", content);
+            if (purc_variant_is_string(src)) {
+                const char *content = purc_variant_get_string_const(src);
+                pcintr_printf_to_fragment(co->stack, o, at, "%s", content);
+            }
+            else if (purc_variant_is_number(src)) {
+                double d;
+                bool ok;
+                ok = purc_variant_cast_to_number(src, &d, false);
+                PC_ASSERT(ok);
+                pcintr_printf_to_fragment(co->stack, o, at, "%g", d);
+            }
+            else {
+                PC_ASSERT(0); // Not implemented yet
+            }
         }
         pcdom_collection_destroy(collection, true);
         return 0;

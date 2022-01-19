@@ -296,6 +296,8 @@ select_child(pcintr_stack_t stack, void* ud)
 
     struct ctxt_for_choose *ctxt;
     ctxt = (struct ctxt_for_choose*)frame->ctxt;
+    if (!ctxt)
+        return NULL;
 
     struct pcvdom_node *curr;
 

@@ -466,10 +466,12 @@ rbtree_traverse(struct rb_node *node, void *ud,
         int (*cb)(struct rb_node *node, void *ud))
 {
     while (node) {
+        struct rb_node *next;
+        next = pcutils_rbtree_next(node);
         int r = cb(node, ud);
         if (r)
             return r;
-        node = pcutils_rbtree_next(node);
+        node = next;
     }
     return 0;
 }
