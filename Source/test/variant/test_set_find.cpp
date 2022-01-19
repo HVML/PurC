@@ -30,6 +30,9 @@ char* variant_to_string(purc_variant_t v)
 
 TEST(set, unique_key_find)
 {
+    if (0)
+        return;
+
     purc_instance_extra_info info = {};
     int ret = 0;
     bool cleanup = false;
@@ -66,13 +69,15 @@ TEST(set, unique_key_find)
 
     purc_variant_t value = PURC_VARIANT_INVALID;
 
+    PRINT_VARIANT(set);
     // overwrite object
     value = purc_variant_object_get_by_ckey(obj_3, "id", false);
     purc_variant_object_set_by_static_ckey(v, "id", value);
+    PRINT_VARIANT(set);
 
     value = purc_variant_object_get_by_ckey(obj_3, "active", false);
     purc_variant_object_set_by_static_ckey(v, "active", value);
-
+    PRINT_VARIANT(set);
 
     v = pcvariant_set_find(set, obj_3);
     ASSERT_NE(v, PURC_VARIANT_INVALID);
