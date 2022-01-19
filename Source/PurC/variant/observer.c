@@ -29,6 +29,8 @@
 
 #include <stdlib.h>
 
+#define TO_DEBUG 1
+
 static pcvar_listener*
 register_listener(purc_variant_t v, unsigned int flags,
         purc_atom_t op, pcvar_op_handler handler, void *ctxt)
@@ -107,6 +109,9 @@ struct pcvar_listener*
 purc_variant_register_post_listener(purc_variant_t v,
         purc_atom_t op, pcvar_op_handler handler, void *ctxt)
 {
+    D("=====================op[%s] registered for variant[%p]", purc_atom_to_string(op), v);
+    PRINT_VARIANT(v);
+
     if (v == PURC_VARIANT_INVALID || !op || !handler) {
         pcinst_set_error(PCVARIANT_ERROR_WRONG_ARGS);
         return NULL;
@@ -119,6 +124,9 @@ bool
 purc_variant_revoke_listener(purc_variant_t v,
         struct pcvar_listener *listener)
 {
+    D("=====================op[%s] deregistered for variant[%p]", purc_atom_to_string(listener->op), v);
+    PRINT_VARIANT(v);
+
     if (v == PURC_VARIANT_INVALID || !listener) {
         pcinst_set_error(PCVARIANT_ERROR_WRONG_ARGS);
         return false;
