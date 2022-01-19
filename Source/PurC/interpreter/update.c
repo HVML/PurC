@@ -378,7 +378,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     purc_variant_t src = get_source(co, frame);
     if (src == PURC_VARIANT_INVALID)
         return -1;
-        D("");
+    D("");
     PURC_VARIANT_SAFE_CLEAR(ctxt->src);
     ctxt->src = src;
 
