@@ -50,6 +50,8 @@ TEST(variant, serialize_boolean)
 
     purc_rwstream_destroy(my_rws);
 
+    purc_variant_unref(my_boolean);
+
     purc_cleanup ();
 }
 
@@ -86,6 +88,8 @@ TEST(variant, serialize_null)
 
     purc_rwstream_destroy(my_rws);
 
+    purc_variant_unref(my_null);
+
     purc_cleanup ();
 }
 
@@ -118,6 +122,8 @@ TEST(variant, serialize_undefined)
     ASSERT_EQ(n, -1);
 
     purc_rwstream_destroy(my_rws);
+
+    purc_variant_unref(my_undefined);
 
     purc_cleanup ();
 }

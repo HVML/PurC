@@ -582,6 +582,7 @@ pcintr_push_stack_frame(pcintr_stack_t stack)
         frame->symbol_vars[i] = undefined;
         purc_variant_ref(undefined);
     }
+    purc_variant_unref(undefined);
 
     list_add_tail(&frame->node, &stack->frames);
     ++stack->nr_frames;
@@ -589,6 +590,8 @@ pcintr_push_stack_frame(pcintr_stack_t stack)
     struct pcintr_stack_frame *parent;
     parent = pcintr_stack_frame_get_parent(frame);
     if (parent && parent->result_var) {
+        PURC_VARIANT_SAFE_CLEAR(
+                frame->symbol_vars[PURC_SYMBOL_VAR_QUESTION_MARK]);
         frame->symbol_vars[PURC_SYMBOL_VAR_QUESTION_MARK] = parent->result_var;
         purc_variant_ref(parent->result_var);
     }

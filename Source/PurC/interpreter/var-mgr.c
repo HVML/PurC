@@ -255,7 +255,7 @@ pcintr_find_named_var(pcintr_stack_t stack, const char* name)
     }
 
     purc_set_error_with_info(PCVARIANT_ERROR_NOT_FOUND, "name:%s", name);
-    return purc_variant_make_undefined();
+    return PURC_VARIANT_INVALID;
 }
 
 enum purc_symbol_var _to_symbol(char symbol)
@@ -300,7 +300,7 @@ pcintr_get_symbolized_var (pcintr_stack_t stack, unsigned int number,
     }
 
     if (!frame) {
-        return purc_variant_make_undefined();
+        return PURC_VARIANT_INVALID;
     }
 
     purc_variant_t v = frame->symbol_vars[symbol_var];
@@ -309,7 +309,7 @@ pcintr_get_symbolized_var (pcintr_stack_t stack, unsigned int number,
         return v;
     }
     purc_set_error_with_info(PCVARIANT_ERROR_NOT_FOUND, "symbol:%c", symbol);
-    return purc_variant_make_undefined();
+    return PURC_VARIANT_INVALID;
 }
 
 purc_variant_t
@@ -321,7 +321,7 @@ pcintr_get_numbered_var (pcintr_stack_t stack, unsigned int number)
     }
 
     if (!frame) {
-        return purc_variant_make_undefined();
+        return PURC_VARIANT_INVALID;
     }
 
     purc_variant_t v = frame->symbol_vars[PURC_SYMBOL_VAR_QUESTION_MARK];
@@ -330,5 +330,5 @@ pcintr_get_numbered_var (pcintr_stack_t stack, unsigned int number)
         return v;
     }
     purc_set_error_with_info(PCVARIANT_ERROR_NOT_FOUND, "number:%d", number);
-    return purc_variant_make_undefined();
+    return PURC_VARIANT_INVALID;
 }

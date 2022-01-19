@@ -107,8 +107,12 @@ variant_set_keyvals_cmp (const void *k1, const void *k2, void *ptr)
     for (size_t i=0; i<set->nr_keynames; ++i) {
         purc_variant_t kv1 = kvs1[i];
         purc_variant_t kv2 = kvs2[i];
-        PC_ASSERT(kv1 != PURC_VARIANT_INVALID);
-        PC_ASSERT(kv2 != PURC_VARIANT_INVALID);
+        if (kv1 == kv2)
+            continue;
+        if (kv1 == PURC_VARIANT_INVALID)
+            return -1;
+        if (kv2 == PURC_VARIANT_INVALID)
+            return 1;
 
         diff = purc_variant_compare_ex(kv1, kv2, PCVARIANT_COMPARE_OPT_AUTO);
         if (diff)
@@ -185,12 +189,6 @@ variant_set_cache_obj_keyval(variant_set_t set,
         for (size_t i=0; i<set->nr_keynames; ++i) {
             purc_variant_t v;
             v = purc_variant_object_get_by_ckey(value, set->keynames[i], false);
-            if (v == PURC_VARIANT_INVALID) {
-                v = purc_variant_make_undefined();
-            }
-            if (v == PURC_VARIANT_INVALID) {
-                return -1;
-            }
             kvs[i] = v;
         }
     } else {

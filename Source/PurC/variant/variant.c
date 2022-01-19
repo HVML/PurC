@@ -310,6 +310,11 @@ void pcvariant_cleanup_instance(struct pcinst *inst)
         gc_destroy(heap->gc);
         heap->gc = NULL;
     }
+
+    PC_ASSERT(heap->v_undefined.refc == 0);
+    PC_ASSERT(heap->v_null.refc == 0);
+    PC_ASSERT(heap->v_true.refc == 0);
+    PC_ASSERT(heap->v_false.refc == 0);
 }
 
 bool purc_variant_is_type(purc_variant_t value, enum purc_variant_type type)
