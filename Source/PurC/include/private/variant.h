@@ -71,6 +71,7 @@ extern "C" {
         size_t len_expected = 0;                                            \
         purc_variant_serialize(v, rws,                                      \
                 0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);           \
+        purc_rwstream_write(rws, "", 1);                                    \
         char* buf = (char*)purc_rwstream_get_mem_buffer_ex(rws, NULL, NULL, \
                 true);                                                      \
         fprintf(stderr, "%s[%d]:%s(): %s=%s\n",                             \
