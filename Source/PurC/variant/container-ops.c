@@ -355,16 +355,12 @@ add_set_member_override(void* ctxt, purc_variant_t member,
 
 static bool
 set_member_overwrite(void* ctxt, purc_variant_t value,
-        purc_variant_t member_extra, bool silently)
+        purc_variant_t value_extra, bool silently)
 {
-    UNUSED_PARAM(member_extra);
-    // UNUSED_PARAM(silently);
+    UNUSED_PARAM(value_extra);
+    UNUSED_PARAM(silently);
     purc_variant_t set = (purc_variant_t) ctxt;
-    // purc_variant_t dst = pcvariant_set_find(set, value);
-    // if (dst != PURC_VARIANT_INVALID) {
-    //     return object_foreach(value, add_object_member, dst, silently);
-    // }
-    return purc_variant_set_add(set, value, silently);
+    return purc_variant_set_add(set, value, true);
 }
 
 static bool
