@@ -1558,14 +1558,14 @@ pcintr_register_observer(purc_variant_t observed,
     char* msg_type = strtok_r(p, ":", &p);
     if (!msg_type) {
         //TODO : purc_set_error();
-        free(p);
+        free(value);
         return NULL;
     }
 
     char* sub_type = strtok_r(p, ":", &p);
     if (!sub_type) {
         //TODO : purc_set_error();
-        free(p);
+        free(value);
         return NULL;
     }
 
@@ -1573,7 +1573,7 @@ pcintr_register_observer(purc_variant_t observed,
             sizeof(struct pcintr_observer));
     if (!observer) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        free(p);
+        free(value);
         return NULL;
     }
     observer->observed = observed;

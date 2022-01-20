@@ -63,6 +63,14 @@ bool common_variant_msg_listener(purc_variant_t source, purc_atom_t msg_type,
     UNUSED_PARAM(ctxt);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
+
+    purc_variant_t type = purc_variant_make_string(
+            purc_atom_to_string(msg_type), false);
+
+    pcintr_dispatch_message((pcintr_stack_t)ctxt,
+            source, type, PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+
+    purc_variant_unref(type);
     return true;
 }
 
