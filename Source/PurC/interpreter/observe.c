@@ -70,22 +70,9 @@ bool common_variant_msg_listener(purc_variant_t source, purc_atom_t msg_type,
 #define TIMERS_ACTIVATED_PREFIX              "activated:"
 #define TIMERS_DEACTIVATED_PREFIX            "deactivated:"
 
-bool regist_inner_data(pcintr_stack_t stack, purc_variant_t observed,
+bool regist_container_inner_data(pcintr_stack_t stack, purc_variant_t observed,
         purc_variant_t event, struct pcvar_listener** listener)
 {
-    UNUSED_PARAM(listener);
-
-    enum purc_variant_type type = purc_variant_get_type(observed);
-    if (!(type == PURC_VARIANT_TYPE_OBJECT || type == PURC_VARIANT_TYPE_ARRAY
-            || type == PURC_VARIANT_TYPE_SET)) {
-        return true;
-    }
-
-    if (!purc_variant_is_string(event)) {
-        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        return false;
-    }
-
     const char* msg = purc_variant_get_string_const(event);
     purc_atom_t t = purc_atom_try_string(msg);
     if (t == pcvariant_atom_grow ||
@@ -113,6 +100,64 @@ bool regist_inner_data(pcintr_stack_t stack, purc_variant_t observed,
         }
     }
 
+    return false;
+}
+
+bool regist_immutable_data(pcintr_stack_t stack, purc_variant_t observed,
+        purc_variant_t event, struct pcvar_listener** listener)
+{
+    const char* msg = purc_variant_get_string_const(event);
+    purc_atom_t t = purc_atom_try_string(msg);
+    if (t == pcvariant_atom_reference ||
+            t == pcvariant_atom_unreference) {
+        *listener = purc_variant_register_post_listener(observed,
+                t, common_variant_msg_listener, stack);
+        if (*listener != NULL) {
+            return true;
+        }
+    }
+    purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+    return false;
+}
+
+bool regist_inner_data(pcintr_stack_t stack, purc_variant_t observed,
+        purc_variant_t event, struct pcvar_listener** listener)
+{
+    UNUSED_PARAM(listener);
+
+    if (!purc_variant_is_string(event)) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        return false;
+    }
+
+    switch (purc_variant_get_type(observed)) {
+        case PURC_VARIANT_TYPE_NULL:
+        case PURC_VARIANT_TYPE_BOOLEAN:
+        case PURC_VARIANT_TYPE_NUMBER:
+        case PURC_VARIANT_TYPE_LONGINT:
+        case PURC_VARIANT_TYPE_ULONGINT:
+        case PURC_VARIANT_TYPE_LONGDOUBLE:
+        case PURC_VARIANT_TYPE_ATOMSTRING:
+        case PURC_VARIANT_TYPE_STRING:
+        case PURC_VARIANT_TYPE_BSEQUENCE:
+        case PURC_VARIANT_TYPE_DYNAMIC:
+            return regist_immutable_data(stack, observed, event,
+                    listener);
+
+        case PURC_VARIANT_TYPE_NATIVE:
+            //TODO
+            break;
+
+        case PURC_VARIANT_TYPE_OBJECT:
+        case PURC_VARIANT_TYPE_ARRAY:
+        case PURC_VARIANT_TYPE_SET:
+            return regist_container_inner_data(stack, observed, event,
+                    listener);
+        default:
+            break;
+    }
+
+    purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
     return false;
 }
 
