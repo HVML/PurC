@@ -1090,3 +1090,20 @@ pcvariant_set_find (purc_variant_t set, purc_variant_t value)
     return p ? p->elem : PURC_VARIANT_INVALID;
 }
 
+int pcvariant_set_get_uniqkeys(purc_variant_t set, size_t *nr_keynames,
+        const char ***keynames)
+{
+    PCVARIANT_CHECK_FAIL_RET(set && set->type==PVT(_SET) &&
+            nr_keynames && keynames, -1);
+
+    variant_set_t data = pcv_set_get_data(set);
+    PC_ASSERT(data);
+    PC_ASSERT(data->nr_keynames);
+
+    *nr_keynames = data->nr_keynames;
+    *keynames = data->keynames;
+
+    return 0;
+}
+
+

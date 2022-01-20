@@ -262,6 +262,14 @@ pcvariant_typename(purc_variant_t v)
     return pcvariant_get_typename(type);
 }
 
+// return -1 if not valid set
+// on return:
+// if *keynames == NULL, this is a generic-set
+// otherwise, (*keynames)[0] ~ (*keynames)[*nr_keynames-1] designates uniqkey
+// of the set
+int pcvariant_set_get_uniqkeys(purc_variant_t set, size_t *nr_keynames,
+        const char ***keynames);
+
 ssize_t pcvariant_serialize(char *buf, size_t sz, purc_variant_t val);
 char* pcvariant_serialize_alloc(char *buf, size_t sz, purc_variant_t val);
 
