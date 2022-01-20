@@ -66,22 +66,11 @@ TEST(set, unique_key_find)
     ASSERT_NE(v, PURC_VARIANT_INVALID);
     ASSERT_EQ(obj_2, v);
 
-
-    purc_variant_t value = PURC_VARIANT_INVALID;
-
-#if 0
-    // overwrite object
-    value = purc_variant_object_get_by_ckey(obj_3, "id", false);
-    purc_variant_object_set_by_static_ckey(v, "id", value);
-#endif
-
-    value = purc_variant_object_get_by_ckey(obj_3, "active", false);
-    purc_variant_object_set_by_static_ckey(v, "active", value);
-
+    bool overwrite = purc_variant_set_overwrite(set, obj_3, true);
+    ASSERT_EQ(overwrite, true);
 
     v = pcvariant_set_find(set, obj_3);
     ASSERT_NE(v, PURC_VARIANT_INVALID);
-    ASSERT_EQ(obj_2, v);
 
     if (1) {
         bool ok = purc_variant_set_add(set, obj_3, true);
