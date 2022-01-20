@@ -366,6 +366,9 @@ pcintr_timers_init(pcintr_stack_t stack);
 void
 pcintr_timers_destroy(struct pcintr_timers* timers);
 
+bool
+pcintr_is_timers(pcintr_stack_t stack, purc_variant_t v);
+
 struct pcintr_observer*
 pcintr_register_observer(purc_variant_t observed,
         purc_variant_t for_value, pcvdom_element_t scope,

@@ -425,3 +425,12 @@ pcintr_timers_destroy(struct pcintr_timers* timers)
         free(timers);
     }
 }
+
+bool
+pcintr_is_timers(pcintr_stack_t stack, purc_variant_t v)
+{
+    if (!stack) {
+        return false;
+    }
+    return (v == stack->vdom->timers->timers_var);
+}

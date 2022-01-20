@@ -55,6 +55,66 @@ ctxt_destroy(void *ctxt)
 {
     ctxt_for_observe_destroy((struct ctxt_for_observe*)ctxt);
 }
+bool common_variant_msg_listener(purc_variant_t source, purc_atom_t msg_type,
+        void* ctxt, size_t nr_args, purc_variant_t* argv)
+{
+    UNUSED_PARAM(source);
+    UNUSED_PARAM(msg_type);
+    UNUSED_PARAM(ctxt);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    return true;
+}
+
+#define TIMERS_EXPIRED_PREFIX                "expired:"
+#define TIMERS_ACTIVATED_PREFIX              "activated:"
+#define TIMERS_DEACTIVATED_PREFIX            "deactivated:"
+
+bool regist_inner_data(pcintr_stack_t stack, purc_variant_t observed,
+        purc_variant_t event, struct pcvar_listener** listener)
+{
+    UNUSED_PARAM(listener);
+
+    enum purc_variant_type type = purc_variant_get_type(observed);
+    if (!(type == PURC_VARIANT_TYPE_OBJECT || type == PURC_VARIANT_TYPE_ARRAY
+            || type == PURC_VARIANT_TYPE_SET)) {
+        return true;
+    }
+
+    if (!purc_variant_is_string(event)) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        return false;
+    }
+
+    const char* msg = purc_variant_get_string_const(event);
+    purc_atom_t t = purc_atom_try_string(msg);
+    if (t == pcvariant_atom_grow ||
+            t == pcvariant_atom_shrink ||
+            t == pcvariant_atom_change ||
+            t == pcvariant_atom_reference ||
+            t == pcvariant_atom_unreference) {
+        *listener = purc_variant_register_post_listener(observed,
+                t, common_variant_msg_listener, stack);
+        if (*listener != NULL) {
+            return true;
+        }
+    }
+    else {
+        // $TIMERS
+        if (pcintr_is_timers(stack, observed)) {
+            if ((strncmp(msg, TIMERS_EXPIRED_PREFIX,
+                        strlen(TIMERS_EXPIRED_PREFIX)) == 0)
+                || (strncmp(msg, TIMERS_ACTIVATED_PREFIX,
+                        strlen(TIMERS_ACTIVATED_PREFIX)) == 0)
+                || (strncmp(msg, TIMERS_DEACTIVATED_PREFIX,
+                        strlen(TIMERS_DEACTIVATED_PREFIX)) == 0)) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
 
 static void*
 after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
@@ -104,9 +164,14 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         return ctxt;
     }
 
+    struct pcvar_listener* listener = NULL;
+    if (!regist_inner_data(stack, on, for_var, &listener)) {
+        return NULL;
+    }
+
     struct pcintr_observer* observer;
     observer = pcintr_register_observer(on, for_var, frame->scope,
-            frame->edom_element, pos, NULL);
+            frame->edom_element, pos, listener);
     if (observer == NULL) {
         return NULL;
     }
