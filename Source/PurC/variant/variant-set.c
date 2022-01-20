@@ -449,14 +449,67 @@ insert_or_replace(purc_variant_t set,
     }
 
     PC_ASSERT(curr->elem != node->elem);
+    if (data->keynames == NULL) {
+        // totally equal, nothing changed
+        set_release(node);
+        free(node);
+        return 0;
+    }
 
-    change(set, curr->elem, node->elem);
+    purc_variant_t tmp = purc_variant_make_object(0,
+        PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+    if (tmp == PURC_VARIANT_INVALID) {
+        return -1;
+    }
 
-    set_release(curr);
-    curr->kvs = node->kvs;
-    node->kvs = NULL;
-    curr->elem = node->elem;
-    node->elem = PURC_VARIANT_INVALID;
+    // TODO: performance, performance, performance!!!
+    bool ok = true;
+    // step1: copy current into tmp
+    purc_variant_t k, v;
+    foreach_key_value_in_variant_object(curr->elem, k, v)
+        ok = purc_variant_object_set(tmp, k, v);
+        if (!ok)
+            break;
+    end_foreach;
+    if (!ok) {
+        purc_variant_unref(tmp);
+        return -1;
+    }
+    // step2: update tmp with src
+    foreach_key_value_in_variant_object(node->elem, k, v)
+        const char *sk = purc_variant_get_string_const(k);
+        // bypass key-fields
+        bool is_key = false;
+        for (size_t i=0; i<data->nr_keynames; ++i) {
+            if (strcmp(data->keynames[i], sk)==0) {
+                is_key = true;
+                break;
+            }
+        }
+        if (is_key)
+            continue;
+        if (purc_variant_is_type(v, PURC_VARIANT_TYPE_UNDEFINED)) {
+            // remove the specified key-field
+            purc_variant_object_remove(tmp, k, true);
+        }
+        else {
+            // add kv pair
+            ok = purc_variant_object_set(tmp, k, v);
+            if (!ok)
+                break;
+        }
+    end_foreach;
+    if (!ok) {
+        purc_variant_unref(tmp);
+        return -1;
+    }
+
+    change(set, curr->elem, tmp);
+
+    // replace with tmp
+    PURC_VARIANT_SAFE_CLEAR(curr->elem);
+    curr->elem = tmp;
+
     set_release(node);
     free(node);
 
