@@ -1498,6 +1498,10 @@ void observer_free_func(void *data)
 {
     if (data) {
         struct pcintr_observer* observer = (struct pcintr_observer*)data;
+        if (observer->listener) {
+            purc_variant_revoke_listener(observer->observed,
+                    observer->listener);
+        }
         free(observer->msg_type);
         free(observer->sub_type);
         free(observer);
@@ -1508,7 +1512,9 @@ struct pcintr_observer*
 pcintr_register_observer(purc_variant_t observed,
         purc_variant_t for_value, pcvdom_element_t scope,
         pcdom_element_t *edom_element,
-        pcvdom_element_t pos)
+        pcvdom_element_t pos,
+        struct pcvar_listener* listener
+        )
 {
     UNUSED_PARAM(for_value);
 
@@ -1576,6 +1582,7 @@ pcintr_register_observer(purc_variant_t observed,
     observer->pos = pos;
     observer->msg_type = strdup(msg_type);
     observer->sub_type = strdup(sub_type);
+    observer->listener = listener;
     add_observer_into_list(list, observer);
 
     free(value);
