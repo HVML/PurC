@@ -301,9 +301,9 @@ timers_listener_handler(purc_variant_t source, purc_atom_t msg_type,
             return false;
         }
         purc_variant_t interval = purc_variant_object_get_by_ckey(nv,
-                TIMERS_STR_INTERVAL, false);
+                TIMERS_STR_INTERVAL, true);
         purc_variant_t active = purc_variant_object_get_by_ckey(nv,
-                TIMERS_STR_ACTIVE, false);
+                TIMERS_STR_ACTIVE, true);
         if (interval != PURC_VARIANT_INVALID) {
             uint64_t ret = 0;
             purc_variant_cast_to_ulongint(interval, &ret, false);

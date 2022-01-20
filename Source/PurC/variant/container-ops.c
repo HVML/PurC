@@ -359,8 +359,42 @@ set_member_overwrite(void* ctxt, purc_variant_t value,
 {
     UNUSED_PARAM(value_extra);
     UNUSED_PARAM(silently);
+
     purc_variant_t set = (purc_variant_t) ctxt;
-    return purc_variant_set_add(set, value, true);
+    const char** keys = NULL;
+    size_t nr_keys = 0;
+    pcvariant_set_get_uniqkeys(set, &nr_keys, &keys);
+
+    purc_variant_t dst = pcvariant_set_find(set, value);
+    if (dst == PURC_VARIANT_INVALID) {
+        return purc_variant_set_add(set, value, true);
+    }
+
+    // FIXME:
+    purc_variant_t tmp_object = purc_variant_make_object(0,
+            PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+    if (tmp_object == PURC_VARIANT_INVALID) {
+        return false;
+    }
+
+    if (!object_foreach(dst, add_object_member, tmp_object, silently)) {
+        purc_variant_unref(tmp_object);
+        return false;
+    }
+
+    purc_variant_t k, v;
+    foreach_key_value_in_variant_object(value, k, v)
+        const char* key = purc_variant_get_string_const(k);
+        if (strcmp(key, keys[0]) != 0) {
+            if(!purc_variant_object_set(tmp_object, k, v)) {
+                return false;
+            }
+        }
+    end_foreach;
+
+    bool ret = purc_variant_set_add(set, tmp_object, true);
+    purc_variant_unref(tmp_object);
+    return ret;
 }
 
 static bool
@@ -983,6 +1017,14 @@ purc_variant_set_overwrite(purc_variant_t set,
     }
 
     if (!purc_variant_is_set(set)) {
+        SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
+        goto end;
+    }
+
+    const char** keys = NULL;
+    size_t nr_keys = 0;
+    pcvariant_set_get_uniqkeys(set, &nr_keys, &keys);
+    if (nr_keys > 1) {
         SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
         goto end;
     }
