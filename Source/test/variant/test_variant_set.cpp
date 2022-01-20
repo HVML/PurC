@@ -496,7 +496,6 @@ TEST(variant_set, dup)
         ASSERT_NE(v, nullptr);
         bool ok;
         ok = purc_variant_set_add(set, v, true);
-        purc_variant_unref(v);
         ASSERT_TRUE(ok);
         ok = purc_variant_set_add(set, v, true);
         purc_variant_unref(v);

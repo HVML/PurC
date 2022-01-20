@@ -443,8 +443,6 @@ insert_or_replace(purc_variant_t set,
     PC_ASSERT(curr->kvs != node->kvs);
 
     if (curr->elem == node->elem) {
-        purc_variant_t v = (purc_variant_t)curr->elem;
-        purc_variant_ref(v);
         set_release(node);
         free(node);
         return 0;
@@ -488,6 +486,7 @@ variant_set_add_val(purc_variant_t set,
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         return -1;
     }
+
     struct elem_node *_new;
     _new = variant_set_create_elem_node(data, val);
 
