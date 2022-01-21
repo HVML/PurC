@@ -38,6 +38,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define TO_DEBUG 1
+
 static inline void
 grown(purc_variant_t set, purc_variant_t value)
 {
@@ -506,9 +508,32 @@ insert_or_replace(purc_variant_t set,
 
     change(set, curr->elem, tmp);
 
-    // replace with tmp
-    PURC_VARIANT_SAFE_CLEAR(curr->elem);
-    curr->elem = tmp;
+    // replace with tmp, performance, performance, performance!!!
+    foreach_key_value_in_variant_object(tmp, k, v)
+        const char *sk = purc_variant_get_string_const(k);
+        // bypass key-fields
+        bool is_key = false;
+        for (size_t i=0; i<data->nr_keynames; ++i) {
+            if (strcmp(data->keynames[i], sk)==0) {
+                is_key = true;
+                break;
+            }
+        }
+        if (is_key)
+            continue;
+        if (purc_variant_is_type(v, PURC_VARIANT_TYPE_UNDEFINED)) {
+            // remove the specified key-field
+            purc_variant_object_remove(curr->elem, k, true);
+        }
+        else {
+            // add kv pair
+            ok = purc_variant_object_set(curr->elem, k, v);
+            PC_ASSERT(ok); // TODO: rollback???
+            if (!ok)
+                break;
+        }
+    end_foreach;
+    PURC_VARIANT_SAFE_CLEAR(tmp);
 
     set_release(node);
     free(node);

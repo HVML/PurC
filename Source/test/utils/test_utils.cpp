@@ -460,6 +460,72 @@ TEST(utils, list_head)
     }
 }
 
+TEST(utils, list_head_swap)
+{
+    struct list_head l,r;
+    INIT_LIST_HEAD(&l);
+    INIT_LIST_HEAD(&r);
+
+    struct node n1, n2, n3, n4;
+    n1.v = 1;
+    n2.v = 2;
+    n3.v = 3;
+    n4.v = 4;
+
+    if (1) {
+        list_swap_list(&l, &r);
+        ASSERT_TRUE(list_empty(&l));
+        ASSERT_TRUE(list_empty(&r));
+    }
+
+    if (1) {
+        list_add_tail(&n1.node, &l);
+        ASSERT_FALSE(list_empty(&l));
+
+        list_swap_list(&l, &r);
+        ASSERT_TRUE(list_empty(&l));
+        ASSERT_FALSE(list_empty(&r));
+
+        struct list_head *p, *n;
+        list_for_each_safe(p, n, &r) {
+            struct node *node;
+            node = container_of(p, struct node, node);
+            list_del(p);
+            ASSERT_EQ(node->v, 1);
+        }
+        ASSERT_TRUE(list_empty(&r));
+    }
+
+    if (1) {
+        list_add_tail(&n1.node, &l);
+        list_add_tail(&n2.node, &l);
+        list_add_tail(&n3.node, &l);
+        list_add_tail(&n4.node, &l);
+
+        int v = 1;
+        struct list_head *p;
+        list_for_each(p, &l) {
+            struct node *node;
+            node = container_of(p, struct node, node);
+            ASSERT_EQ(node->v, v++);
+        }
+
+        list_swap_list(&l, &r);
+        ASSERT_TRUE(list_empty(&l));
+        ASSERT_FALSE(list_empty(&r));
+
+        v = 1;
+        struct list_head *n;
+        list_for_each_safe(p, n, &r) {
+            struct node *node;
+            node = container_of(p, struct node, node);
+            list_del(p);
+            ASSERT_EQ(node->v, v++);
+        }
+        ASSERT_TRUE(list_empty(&r));
+    }
+}
+
 struct _avl_node {
     struct avl_node          node;
     size_t                   key;

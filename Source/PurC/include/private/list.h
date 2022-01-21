@@ -241,4 +241,38 @@ list_swap(struct list_head *l, struct list_head *r)
     return 0;
 }
 
+static inline int
+list_swap_list(struct list_head *lh, struct list_head *rh)
+{
+    if (lh == rh)
+        return 0;
+
+    if (!list_empty(lh)) {
+        struct list_head *l_head = lh->next;
+        struct list_head *l_tail = lh->prev;
+        INIT_LIST_HEAD(lh);
+        if (!list_empty(rh)) {
+            struct list_head *r_head = rh->next;
+            struct list_head *r_tail = rh->prev;
+            INIT_LIST_HEAD(rh);
+
+            _list_add(rh, l_tail, l_head);
+            _list_add(lh, r_tail, r_head);
+        }
+        else {
+            _list_add(rh, l_tail, l_head);
+        }
+    }
+    else {
+        if (!list_empty(rh)) {
+            struct list_head *r_head = rh->next;
+            struct list_head *r_tail = rh->prev;
+            list_del_init(rh);
+            _list_add(lh, r_head, r_tail);
+        }
+    }
+
+    return 0;
+}
+
 #endif /* PURC_PRIVATE_LIST_H */

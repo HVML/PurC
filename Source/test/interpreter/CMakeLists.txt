@@ -146,33 +146,33 @@ GTEST_DISCOVER_TESTS(test_idle DISCOVERY_TIMEOUT 10)
 #PURC_FRAMEWORK(test_observe)
 #GTEST_DISCOVER_TESTS(test_observe DISCOVERY_TIMEOUT 10)
 
-## test_observe_named
-#PURC_EXECUTABLE_DECLARE(test_observe_named)
-#
-#list(APPEND test_observe_named_PRIVATE_INCLUDE_DIRECTORIES
-#    ${PURC_DIR}/include
-#    ${PurC_DERIVED_SOURCES_DIR}
-#    ${PURC_DIR}
-#    ${CMAKE_BINARY_DIR}
-#    ${WTF_DIR}
-#)
-#
-#PURC_EXECUTABLE(test_observe_named)
-#
-#set(test_observe_named_SOURCES
-#    test_observe_named.cpp
-#)
-#
-#set(test_observe_named_LIBRARIES
-#    PurC::PurC
-#    gtest_main
-#    gtest
-#    pthread
-#)
-#
-#PURC_COMPUTE_SOURCES(test_observe_named)
-#PURC_FRAMEWORK(test_observe_named)
-#GTEST_DISCOVER_TESTS(test_observe_named DISCOVERY_TIMEOUT 10)
+# test_observe_named
+PURC_EXECUTABLE_DECLARE(test_observe_named)
+
+list(APPEND test_observe_named_PRIVATE_INCLUDE_DIRECTORIES
+    ${PURC_DIR}/include
+    ${PurC_DERIVED_SOURCES_DIR}
+    ${PURC_DIR}
+    ${CMAKE_BINARY_DIR}
+    ${WTF_DIR}
+)
+
+PURC_EXECUTABLE(test_observe_named)
+
+set(test_observe_named_SOURCES
+    test_observe_named.cpp
+)
+
+set(test_observe_named_LIBRARIES
+    PurC::PurC
+    gtest_main
+    gtest
+    pthread
+)
+
+PURC_COMPUTE_SOURCES(test_observe_named)
+PURC_FRAMEWORK(test_observe_named)
+GTEST_DISCOVER_TESTS(test_observe_named DISCOVERY_TIMEOUT 10)
 
 # test_doc_var
 PURC_EXECUTABLE_DECLARE(test_doc_var)
