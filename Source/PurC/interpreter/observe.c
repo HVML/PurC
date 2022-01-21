@@ -55,7 +55,7 @@ ctxt_destroy(void *ctxt)
 {
     ctxt_for_observe_destroy((struct ctxt_for_observe*)ctxt);
 }
-bool common_variant_msg_listener(purc_variant_t source, purc_atom_t msg_type,
+bool base_variant_msg_listener(purc_variant_t source, purc_atom_t msg_type,
         void* ctxt, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(source);
@@ -78,57 +78,66 @@ bool common_variant_msg_listener(purc_variant_t source, purc_atom_t msg_type,
 #define TIMERS_ACTIVATED_PREFIX              "activated:"
 #define TIMERS_DEACTIVATED_PREFIX            "deactivated:"
 
-bool regist_container_inner_data(pcintr_stack_t stack, purc_variant_t observed,
-        purc_variant_t event, struct pcvar_listener** listener)
-{
-    const char* msg = purc_variant_get_string_const(event);
-    purc_atom_t t = purc_atom_try_string(msg);
-    if (t == pcvariant_atom_grow ||
-            t == pcvariant_atom_shrink ||
-            t == pcvariant_atom_change ||
-            t == pcvariant_atom_reference ||
-            t == pcvariant_atom_unreference) {
-        *listener = purc_variant_register_post_listener(observed,
-                t, common_variant_msg_listener, stack);
-        if (*listener != NULL) {
-            return true;
-        }
-    }
-    else {
-        // $TIMERS
-        if (pcintr_is_timers(stack, observed)) {
-            if ((strncmp(msg, TIMERS_EXPIRED_PREFIX,
-                        strlen(TIMERS_EXPIRED_PREFIX)) == 0)
-                || (strncmp(msg, TIMERS_ACTIVATED_PREFIX,
-                        strlen(TIMERS_ACTIVATED_PREFIX)) == 0)
-                || (strncmp(msg, TIMERS_DEACTIVATED_PREFIX,
-                        strlen(TIMERS_DEACTIVATED_PREFIX)) == 0)) {
-                return true;
-            }
-        }
-    }
 
+static inline bool
+is_base_variant_msg(purc_atom_t msg)
+{
+    if (msg == pcvariant_atom_grow ||
+            msg == pcvariant_atom_shrink ||
+            msg == pcvariant_atom_change ||
+            msg == pcvariant_atom_reference ||
+            msg == pcvariant_atom_unreference) {
+        return true;
+    }
     return false;
 }
 
-bool regist_immutable_data(pcintr_stack_t stack, purc_variant_t observed,
-        purc_variant_t event, struct pcvar_listener** listener)
+static inline bool
+is_mmutable_variant_msg(purc_atom_t msg)
 {
-    const char* msg = purc_variant_get_string_const(event);
-    purc_atom_t t = purc_atom_try_string(msg);
-    if (t == pcvariant_atom_reference ||
-            t == pcvariant_atom_unreference) {
-        *listener = purc_variant_register_post_listener(observed,
-                t, common_variant_msg_listener, stack);
-        if (*listener != NULL) {
-            return true;
-        }
+    return is_base_variant_msg(msg);
+}
+
+static inline bool
+is_immutable_variant_msg(purc_atom_t msg)
+{
+    if (msg == pcvariant_atom_reference ||
+            msg == pcvariant_atom_unreference) {
+        return true;
     }
-    purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
     return false;
 }
 
-bool regist_inner_data(pcintr_stack_t stack, purc_variant_t observed,
+
+#define NAMED_VARIANT_ATTACHED          "attached"
+#define NAMED_VARIANT_DETACHED          "detached"
+#define NAMED_VARIANT_EXCEPT            "except"
+
+static inline bool
+is_named_variant_observe(const char* msg)
+{
+    if ((strcmp(msg, NAMED_VARIANT_ATTACHED) == 0) ||
+            (strcmp(msg, NAMED_VARIANT_DETACHED) == 0) ||
+            (strcmp(msg, NAMED_VARIANT_EXCEPT) == 0)) {
+        return true;
+    }
+    return false;
+}
+
+static bool
+regist_variant_listener(pcintr_stack_t stack, purc_variant_t observed,
+        purc_atom_t op, struct pcvar_listener** listener)
+{
+    *listener = purc_variant_register_post_listener(observed,
+            op, base_variant_msg_listener, stack);
+    if (*listener != NULL) {
+        return true;
+    }
+    return false;
+}
+
+static bool
+regist_inner_data(pcintr_stack_t stack, purc_variant_t observed,
         purc_variant_t event, struct pcvar_listener** listener)
 {
     UNUSED_PARAM(listener);
@@ -137,6 +146,9 @@ bool regist_inner_data(pcintr_stack_t stack, purc_variant_t observed,
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
         return false;
     }
+
+    const char* msg = purc_variant_get_string_const(event);
+    purc_atom_t t = purc_atom_try_string(msg);
 
     switch (purc_variant_get_type(observed)) {
         case PURC_VARIANT_TYPE_NULL:
@@ -148,19 +160,63 @@ bool regist_inner_data(pcintr_stack_t stack, purc_variant_t observed,
         case PURC_VARIANT_TYPE_ATOMSTRING:
         case PURC_VARIANT_TYPE_STRING:
         case PURC_VARIANT_TYPE_BSEQUENCE:
+            if (is_immutable_variant_msg(t)) {
+                return regist_variant_listener(stack, observed, t, listener);
+            }
+            else if (is_named_variant_observe(msg)) {
+                return true;
+            }
+            break;
+
         case PURC_VARIANT_TYPE_DYNAMIC:
-            return regist_immutable_data(stack, observed, event,
-                    listener);
+            if (is_immutable_variant_msg(t)) {
+                return regist_variant_listener(stack, observed, t, listener);
+            }
+            else if (is_named_variant_observe(msg)) {
+                return true;
+            }
+            break;
 
         case PURC_VARIANT_TYPE_NATIVE:
-            //TODO
+            if (is_immutable_variant_msg(t)) {
+                return regist_variant_listener(stack, observed, t, listener);
+            }
+            struct purc_native_ops* ops = purc_variant_native_get_ops(observed);
+            if (ops && ops->observe) {
+                //TODO
+                return false;
+            }
             break;
 
         case PURC_VARIANT_TYPE_OBJECT:
         case PURC_VARIANT_TYPE_ARRAY:
+            if (is_mmutable_variant_msg(t)) {
+                return regist_variant_listener(stack, observed, t, listener);
+            }
+            else if (is_named_variant_observe(msg)) {
+                return true;
+            }
+            break;
+
         case PURC_VARIANT_TYPE_SET:
-            return regist_container_inner_data(stack, observed, event,
-                    listener);
+            if (is_mmutable_variant_msg(t)) {
+                return regist_variant_listener(stack, observed, t, listener);
+            }
+            else if (is_named_variant_observe(msg)) {
+                return true;
+            }
+            else if (pcintr_is_timers(stack, observed)) {
+                if ((strncmp(msg, TIMERS_EXPIRED_PREFIX,
+                                strlen(TIMERS_EXPIRED_PREFIX)) == 0)
+                        || (strncmp(msg, TIMERS_ACTIVATED_PREFIX,
+                                strlen(TIMERS_ACTIVATED_PREFIX)) == 0)
+                        || (strncmp(msg, TIMERS_DEACTIVATED_PREFIX,
+                                strlen(TIMERS_DEACTIVATED_PREFIX)) == 0)) {
+                    return true;
+                }
+            }
+            break;
+
         default:
             break;
     }
