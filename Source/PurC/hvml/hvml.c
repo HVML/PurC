@@ -2342,7 +2342,7 @@ next_state:
 
     BEGIN_STATE(PCHVML_EJSON_FINISHED_STATE)
         if (is_whitespace(character) || character == '}' || character == ')'
-                || character == '"' || character == '>') {
+                || character == '"' || character == '>' || character == '/') {
             while (!vcm_stack_is_empty()) {
                 ejson_stack_pop();
                 POP_AS_VCM_PARENT_AND_UPDATE_VCM();
@@ -2682,7 +2682,8 @@ next_state:
                 ADVANCE_TO(PCHVML_EJSON_CONTROL_STATE);
             }
             uint32_t uc = ejson_stack_top();
-            if (uc == '(' || uc == '<' || uc == '[' || uc == ':' || uc == 0) {
+            if (uc == '(' || uc == '<' || uc == '[' || uc == ':' || uc == 0
+                    || uc == '"') {
                 ejson_stack_push('[');
                 if (parser->vcm_node) {
                     vcm_stack_push(parser->vcm_node);
