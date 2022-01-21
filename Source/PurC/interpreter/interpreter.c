@@ -1976,7 +1976,7 @@ pcintr_load_dynamic_variant(pcintr_stack_t stack,
 
     purc_variant_t v = purc_variant_load_dvobj_from_so(so, NAME);
     if (v == PURC_VARIANT_INVALID)
-        return -1;
+        return false;
 
     p = (struct pcintr_loaded_var*)calloc(1, sizeof(*p));
     if (!p) {
