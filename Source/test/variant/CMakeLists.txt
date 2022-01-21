@@ -228,34 +228,6 @@ PURC_COMPUTE_SOURCES(test_numberify_booleanize_stringify)
 PURC_FRAMEWORK(test_numberify_booleanize_stringify)
 GTEST_DISCOVER_TESTS(test_numberify_booleanize_stringify DISCOVERY_TIMEOUT 10)
 
-# test_container_ops
-PURC_EXECUTABLE_DECLARE(test_container_ops)
-
-list(APPEND test_container_ops_PRIVATE_INCLUDE_DIRECTORIES
-    ${PURC_DIR}/include
-    ${PurC_DERIVED_SOURCES_DIR}
-    ${PURC_DIR}
-    ${CMAKE_BINARY_DIR}
-    ${WTF_DIR}
-)
-
-PURC_EXECUTABLE(test_container_ops)
-
-set(test_container_ops_SOURCES
-    test_container_ops.cpp
-)
-
-set(test_container_ops_LIBRARIES
-    PurC::PurC
-    gtest_main
-    gtest
-    pthread
-)
-
-PURC_COMPUTE_SOURCES(test_container_ops)
-PURC_FRAMEWORK(test_container_ops)
-GTEST_DISCOVER_TESTS(test_container_ops DISCOVERY_TIMEOUT 10)
-
 # test_container
 PURC_EXECUTABLE_DECLARE(test_container)
 
