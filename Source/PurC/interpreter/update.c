@@ -283,7 +283,7 @@ process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         // pcintr_printf_to_edom(stack, "%s", s);
         D("[%s]", s);
         PC_ASSERT(to != PURC_VARIANT_INVALID);
-        pcintr_printf_to_fragment(co->stack, on, to, "%s", s);
+        pcintr_printf_to_fragment(co->stack, on, to, at, "%s", s);
         return 0;
     }
     if (type == PURC_VARIANT_TYPE_OBJECT) {
@@ -319,18 +319,18 @@ process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
             node = pcdom_collection_node(collection, i);
             PC_ASSERT(node);
             pcdom_element_t *elem = (pcdom_element_t*)node;
-            purc_variant_t o = pcdvobjs_make_element_variant(elem);
+            purc_variant_t o = pcdvobjs_make_elements(elem);
             PC_ASSERT(o != PURC_VARIANT_INVALID);
             if (purc_variant_is_string(src)) {
                 const char *content = purc_variant_get_string_const(src);
-                pcintr_printf_to_fragment(co->stack, o, at, "%s", content);
+                pcintr_printf_to_fragment(co->stack, o, to, at, "%s", content);
             }
             else if (purc_variant_is_number(src)) {
                 double d;
                 bool ok;
                 ok = purc_variant_cast_to_number(src, &d, false);
                 PC_ASSERT(ok);
-                pcintr_printf_to_fragment(co->stack, o, at, "%g", d);
+                pcintr_printf_to_fragment(co->stack, o, to, at, "%g", d);
             }
             else {
                 PC_ASSERT(0); // Not implemented yet
