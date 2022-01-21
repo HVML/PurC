@@ -1,6 +1,8 @@
 #!/bin/sh
 
-SAMPLE_PROGS=`find Source/Samples/ -perm -0111 -type f`
+USE_VALGRIND=${USE_VALGRIND:-0}
+SAMPLE_PROGS=`find ${1:-Source/Samples} -perm -0111 -type f`
+VALGRIND="valgrind --leak-check=full --num-callers=30 --exit-on-first-error=yes --error-exitcode=1 --suppressions=/usr/share/glib-2.0/valgrind/glib.supp --suppressions=Source/valgrind/valgrind.supp"
 
 total_passed=0
 total_failed=0
@@ -8,9 +10,14 @@ total_crashed=0
 
 sample_failed=""
 sample_crashed=""
+
 for x in $SAMPLE_PROGS; do
     echo ">> Start of $x"
-    ./$x 2> /dev/null
+    if test $USE_VALGRIND -eq 0; then
+        ./$x 2> /dev/null
+    else
+        ${VALGRIND} ./$x || exit
+    fi
     if test "$?" -eq 0; then
         total_passed=$((total_passed + 1))
     elif test "$?" -gt 128; then
@@ -48,3 +55,4 @@ if test $total_crashed -ne 0; then
 fi
 
 exit 0
+

@@ -32,6 +32,9 @@
 
 int main(int argc, char** argv)
 {
+    if (1)
+        return 0;
+
     (void)argc;
     (void)argv;
 
@@ -65,6 +68,7 @@ int main(int argc, char** argv)
     if (resp) {
         size_t sz_content = 0;
         size_t sz_buffer = 0;
+        purc_rwstream_write(resp, "", 1);
         char* buf = (char*)purc_rwstream_get_mem_buffer_ex(resp, &sz_content,
                 &sz_buffer, false);
         fprintf(stderr, "buffer size=%ld\n", sz_buffer);

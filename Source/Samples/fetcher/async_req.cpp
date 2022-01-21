@@ -67,6 +67,9 @@ void async_response_handler(
 
 int main(int argc, char** argv)
 {
+    if (1)
+        return 0;
+
     (void)argc;
     (void)argv;
 
