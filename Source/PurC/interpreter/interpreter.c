@@ -379,10 +379,56 @@ edom_fragment_post_process_target_attr(pcintr_stack_t stack,
         struct edom_fragment *fragment, struct pcdom_element *target,
         const char *attr_name)
 {
-    UNUSED_PARAM(stack);
     UNUSED_PARAM(fragment);
-    UNUSED_PARAM(target);
-    UNUSED_PARAM(attr_name);
+
+    struct pcintr_edom_gen *edom_gen = &stack->edom_gen;
+    PC_ASSERT(edom_gen->finished);
+    pchtml_html_document_t *doc = edom_gen->doc;
+    PC_ASSERT(doc);
+    pchtml_html_parser_t *parser = edom_gen->parser;
+    PC_ASSERT(parser);
+
+    PC_ASSERT(attr_name);
+
+    pcdom_attr_t *attr;
+    attr = pcdom_element_attr_by_name(target,
+            (const unsigned char*)attr_name, strlen(attr_name));
+    PC_ASSERT(attr);
+
+    const unsigned char *attr_val;
+    size_t len;
+    attr_val = pcdom_attr_value(attr, &len);
+    D("name:value: %s:%.*s", attr_name, (int)len, attr_val);
+
+    const char *content = fragment->content;
+    D("content: %s", content);
+
+    const char *op = "displace";
+    purc_variant_t to = fragment->to;
+    if (to != PURC_VARIANT_INVALID) {
+        PC_ASSERT(purc_variant_is_type(to, PURC_VARIANT_TYPE_STRING));
+        op = purc_variant_get_string_const(fragment->to);
+    }
+
+    if (strcmp(op, "append") == 0) {
+        PC_ASSERT(0); // Not implemented yet
+    }
+    else if (strcmp(op, "prepend") == 0) {
+        PC_ASSERT(0); // Not implemented yet
+    }
+    else if (strcmp(op, "insertAfter") == 0) {
+        PC_ASSERT(0); // Not implemented yet
+    }
+    else if (strcmp(op, "insertBefore") == 0) {
+        PC_ASSERT(0); // Not implemented yet
+    }
+    else if (strcmp(op, "displace") == 0) {
+        pcdom_attr_set_value(attr,
+                (const unsigned char *)content, strlen(content));
+    }
+    else {
+        PC_ASSERT(0);
+    }
 }
 
 static void
