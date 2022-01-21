@@ -135,11 +135,19 @@ struct wildcard_list {
 purc_variant_t
 pcdvobjs_make_doc_variant(struct pcdom_document *doc);
 
+#if 0          /* { */
 purc_variant_t
 pcdvobjs_make_element_variant(struct pcdom_element *element);
 
 struct pcdom_element*
 pcdvobjs_get_element_from_variant(purc_variant_t val);
+#endif         /* } */
+
+purc_variant_t
+pcdvobjs_make_elements(struct pcdom_element *element);
+
+struct pcdom_element*
+pcdvobjs_get_element_from_elements(purc_variant_t elems, size_t idx);
 
 #ifdef __cplusplus
 }

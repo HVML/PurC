@@ -47,6 +47,7 @@ struct edom_fragment {
     struct list_head           node;
     purc_variant_t             on;
     purc_variant_t             to;
+    purc_variant_t             at;
     char                      *content;
 };
 
@@ -296,6 +297,7 @@ edom_fragment_release(struct edom_fragment *fragment)
 
     PURC_VARIANT_SAFE_CLEAR(fragment->on);
     PURC_VARIANT_SAFE_CLEAR(fragment->to);
+    PURC_VARIANT_SAFE_CLEAR(fragment->at);
     if (fragment->content) {
         free(fragment->content);
         fragment->content = NULL;
@@ -312,8 +314,8 @@ edom_fragment_destroy(struct edom_fragment *fragment)
 }
 
 static void
-edom_fragment_post_process(pcintr_stack_t stack,
-        struct edom_fragment *fragment)
+edom_fragment_post_process_target_content(pcintr_stack_t stack,
+        struct edom_fragment *fragment, struct pcdom_element *target)
 {
     struct pcintr_edom_gen *edom_gen = &stack->edom_gen;
     PC_ASSERT(edom_gen->finished);
@@ -322,16 +324,12 @@ edom_fragment_post_process(pcintr_stack_t stack,
     pchtml_html_parser_t *parser = edom_gen->parser;
     PC_ASSERT(parser);
 
-    purc_variant_t on = fragment->on;
-    PC_ASSERT(on != PURC_VARIANT_INVALID);
-    PC_ASSERT(purc_variant_is_type(on, PURC_VARIANT_TYPE_NATIVE));
-    struct pcdom_element *target;
-    target = pcdvobjs_get_element_from_variant(on);
-    PC_ASSERT(target);
-
+    const char *op = "displace";
     purc_variant_t to = fragment->to;
-    PC_ASSERT(to != PURC_VARIANT_INVALID);
-    PC_ASSERT(purc_variant_is_type(to, PURC_VARIANT_TYPE_STRING));
+    if (to != PURC_VARIANT_INVALID) {
+        PC_ASSERT(purc_variant_is_type(to, PURC_VARIANT_TYPE_STRING));
+        op = purc_variant_get_string_const(fragment->to);
+    }
 
     const char *content = fragment->content;
 
@@ -346,20 +344,22 @@ edom_fragment_post_process(pcintr_stack_t stack,
     PC_ASSERT(node);
     PC_ASSERT(node->type == PCDOM_NODE_TYPE_ELEMENT);
 
-    const char *op = purc_variant_get_string_const(fragment->to);
     if (strcmp(op, "append") == 0) {
         pcdom_merge_fragment_append(&target->node, node);
     }
     else if (strcmp(op, "prepend") == 0) {
+        PC_ASSERT(0);
         pcdom_merge_fragment_prepend(&target->node, node);
     }
     else if (strcmp(op, "insertAfter") == 0) {
+        PC_ASSERT(0);
         pcdom_merge_fragment_insert_after(&target->node, node);
     }
     else if (strcmp(op, "insertBefore") == 0) {
+        PC_ASSERT(0);
         pcdom_merge_fragment_insert_before(&target->node, node);
     }
-    else if (strcmp(op, "textContent") == 0) {
+    else if (strcmp(op, "displace") == 0) {
         pcdom_node_t *child = target->node.first_child;
         while (child) {
             pcdom_node_remove(child);
@@ -369,7 +369,58 @@ edom_fragment_post_process(pcintr_stack_t stack,
         pcdom_merge_fragment_append(&target->node, node);
     }
     else {
-        pcdom_merge_fragment_append(&target->node, node);
+        // pcdom_merge_fragment_append(&target->node, node);
+        PC_ASSERT(0);
+    }
+}
+
+static void
+edom_fragment_post_process_target_attr(pcintr_stack_t stack,
+        struct edom_fragment *fragment, struct pcdom_element *target,
+        const char *attr_name)
+{
+    UNUSED_PARAM(stack);
+    UNUSED_PARAM(fragment);
+    UNUSED_PARAM(target);
+    UNUSED_PARAM(attr_name);
+}
+
+static void
+edom_fragment_post_process_target(pcintr_stack_t stack,
+        struct edom_fragment *fragment, struct pcdom_element *target)
+{
+    purc_variant_t at = fragment->at;
+    if (at != PURC_VARIANT_INVALID) {
+        PC_ASSERT(purc_variant_is_type(at, PURC_VARIANT_TYPE_STRING));
+        const char *s_at = purc_variant_get_string_const(at);
+        PC_ASSERT(s_at);
+        if (strcmp(s_at, "textContent") == 0) {
+            edom_fragment_post_process_target_content(stack, fragment, target);
+        }
+        else if (strncmp(s_at, "attr.", 5) == 0) {
+            edom_fragment_post_process_target_attr(stack, fragment, target,
+                s_at + 5);
+        }
+        else {
+            PC_ASSERT(0); // Not implemented yet
+        }
+    }
+}
+
+static void
+edom_fragment_post_process(pcintr_stack_t stack,
+        struct edom_fragment *fragment)
+{
+    purc_variant_t on = fragment->on;
+    PC_ASSERT(on != PURC_VARIANT_INVALID);
+    PC_ASSERT(purc_variant_is_type(on, PURC_VARIANT_TYPE_NATIVE));
+    size_t idx = 0;
+    while (1) {
+        struct pcdom_element *target;
+        target = pcdvobjs_get_element_from_elements(on, idx++);
+        if (!target)
+            break;
+        edom_fragment_post_process_target(stack, fragment, target);
     }
 }
 
@@ -1293,7 +1344,8 @@ pcintr_printf_to_edom(pcintr_stack_t stack, const char *fmt, ...)
 
 int
 pcintr_printf_to_fragment(pcintr_stack_t stack,
-        purc_variant_t on, purc_variant_t to, const char *fmt, ...)
+        purc_variant_t on, purc_variant_t to, purc_variant_t at,
+        const char *fmt, ...)
 {
     PC_ASSERT(stack->fragment);
 
@@ -1302,7 +1354,11 @@ pcintr_printf_to_fragment(pcintr_stack_t stack,
     fragment->on = on;
     purc_variant_ref(on);
     fragment->to = to;
-    purc_variant_ref(to);
+    if (to != PURC_VARIANT_INVALID)
+        purc_variant_ref(to);
+    fragment->at = at;
+    if (at != PURC_VARIANT_INVALID)
+        purc_variant_ref(at);
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
@@ -1422,7 +1478,8 @@ pcintr_set_symbol_var_at_sign(void)
     PC_ASSERT(frame);
     PC_ASSERT(frame->scope);
 
-    purc_variant_t at = pcdvobjs_make_element_variant(frame->edom_element);
+    // purc_variant_t at = pcdvobjs_make_element_variant(frame->edom_element);
+    purc_variant_t at = pcdvobjs_make_elements(frame->edom_element);
     if (at == PURC_VARIANT_INVALID)
         return -1;
     PURC_VARIANT_SAFE_CLEAR(frame->symbol_vars[PURC_SYMBOL_VAR_AT_SIGN]);
