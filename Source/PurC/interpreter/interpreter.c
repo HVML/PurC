@@ -1563,11 +1563,6 @@ pcintr_register_observer(purc_variant_t observed,
     }
 
     char* sub_type = strtok_r(p, ":", &p);
-    if (!sub_type) {
-        //TODO : purc_set_error();
-        free(value);
-        return NULL;
-    }
 
     struct pcintr_observer* observer =  (struct pcintr_observer*)calloc(1,
             sizeof(struct pcintr_observer));
@@ -1581,7 +1576,7 @@ pcintr_register_observer(purc_variant_t observed,
     observer->edom_element = edom_element;
     observer->pos = pos;
     observer->msg_type = strdup(msg_type);
-    observer->sub_type = strdup(sub_type);
+    observer->sub_type = sub_type ? strdup(sub_type) : NULL;
     observer->listener = listener;
     add_observer_into_list(list, observer);
 
@@ -1633,7 +1628,10 @@ pcintr_find_observer(pcintr_stack_t stack, purc_variant_t observed,
         struct pcintr_observer* observer = pcutils_arrlist_get_idx(list, i);
         if (observer->observed == observed &&
                 (strcmp(observer->msg_type, msg) == 0) &&
-                (strcmp(observer->sub_type, sub) == 0)
+                (
+                 (observer->sub_type && strcmp(observer->sub_type, sub) == 0) ||
+                 (observer->sub_type == sub)
+                 )
                 ) {
             return observer;
         }
