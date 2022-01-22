@@ -299,6 +299,7 @@ void PcFetcherSession::didFinishResourceLoad(
             m_req_handler(m_req_vid, m_req_ctxt,
                     &m_resp_header,
                    build_response_rwstream(m_resp_rwstream));
+            delete this;
         }
     }
     else {
@@ -325,7 +326,9 @@ void PcFetcherSession::didFailResourceLoad(const ResourceError& error)
                 purc_rwstream_seek(m_resp_rwstream, 0, SEEK_SET);
             }
             m_req_handler(m_req_vid, m_req_ctxt,
-                    &m_resp_header, m_resp_rwstream);
+                    &m_resp_header,
+                   build_response_rwstream(m_resp_rwstream));
+            delete this;
         }
     }
     else {

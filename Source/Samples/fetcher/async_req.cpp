@@ -58,16 +58,19 @@ void async_response_handler(
         fprintf(stderr, "body size=%ld|buflen=%ld\n", sz_content,
                 buf ? strlen(buf) : 0);
         fprintf(stderr, "%s\n", buf ? buf : NULL);
+        free(buf);
+        purc_rwstream_destroy(resp);
     }
     fprintf(stderr, ".................body end\n");
     fprintf(stderr, "....................................\n");
+    purc_variant_unref(request_id);
     RunLoop::main().stop();
 }
 
 
 int main(int argc, char** argv)
 {
-    if (1)
+    if (0)
         return 0;
 
     (void)argc;

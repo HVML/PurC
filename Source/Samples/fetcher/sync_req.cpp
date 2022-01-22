@@ -32,7 +32,7 @@
 
 int main(int argc, char** argv)
 {
-    if (1)
+    if (0)
         return 0;
 
     (void)argc;
@@ -70,11 +70,17 @@ int main(int argc, char** argv)
         size_t sz_buffer = 0;
         purc_rwstream_write(resp, "", 1);
         char* buf = (char*)purc_rwstream_get_mem_buffer_ex(resp, &sz_content,
-                &sz_buffer, false);
+                &sz_buffer, true);
         fprintf(stderr, "buffer size=%ld\n", sz_buffer);
         fprintf(stderr, "body size=%ld|buflen=%ld\n", sz_content,
                 buf ? strlen(buf) : 0);
         fprintf(stderr, "%s\n", buf ? buf : NULL);
+        free(buf);
+        purc_rwstream_destroy(resp);
+    }
+
+    if (resp_header.mime_type) {
+        free(resp_header.mime_type);
     }
     fprintf(stderr, ".................body end\n");
     fprintf(stderr, "....................................\n");
