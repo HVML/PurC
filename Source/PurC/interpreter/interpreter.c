@@ -797,6 +797,105 @@ pcintr_element_eval_attrs(struct pcintr_stack_frame *frame,
     return 0;
 }
 
+struct pcintr_walk_attrs_ud {
+    struct pcintr_stack_frame       *frame;
+    struct pcvdom_element           *element;
+    void                            *ud;
+    pcintr_attr_f                    cb;
+};
+
+static int
+walk_attr(void *key, void *val, void *ud)
+{
+    PC_ASSERT(key);
+    PC_ASSERT(val);
+    PC_ASSERT(ud);
+
+    struct pcintr_walk_attrs_ud *data = (struct pcintr_walk_attrs_ud*)ud;
+
+    struct pcintr_stack_frame *frame = data->frame;
+    PC_ASSERT(frame);
+
+    struct pcvdom_attr *attr = (struct pcvdom_attr*)val;
+    PC_ASSERT(attr->key);
+    PC_ASSERT(attr->key == key);
+
+    struct pcvdom_element *element = data->element;
+    PC_ASSERT(element);
+
+    purc_atom_t atom = pchvml_keyword_try_string(attr->key);
+    if (!atom) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "unknown vdom attribute '%s' for element <%s>",
+                attr->key, element->tag_name);
+        return -1;
+    }
+
+    const struct pchvml_attr_entry *pre_defined = attr->pre_defined;
+    if (!pre_defined) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "unknown vdom attribute '%s' for element <%s>",
+                attr->key, element->tag_name);
+        return -1;
+    }
+
+    struct pcvcm_node *vcm = attr->val;
+
+    purc_variant_t value = PURC_VARIANT_INVALID;
+    if (!vcm) {
+        value = purc_variant_make_undefined();
+        PC_ASSERT(value != PURC_VARIANT_INVALID);
+    }
+    else {
+        pcintr_stack_t stack = purc_get_stack();
+        PC_ASSERT(stack);
+        value = pcvcm_eval(vcm, stack);
+        if (value == PURC_VARIANT_INVALID) {
+            return -1;
+        }
+    }
+
+    purc_variant_t k = purc_variant_make_string(attr->key, true);
+    if (k == PURC_VARIANT_INVALID) {
+        purc_variant_unref(value);
+        return -1;
+    }
+
+    bool ok;
+    ok = purc_variant_object_set(frame->attr_vars, k, value);
+    purc_variant_unref(value);
+    purc_variant_unref(k);
+
+    if (!ok)
+        return -1;
+
+    return data->cb(frame, element, atom, value, data->ud);
+}
+
+int
+pcintr_vdom_walk_attrs(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element, void *ud, pcintr_attr_f cb)
+{
+    struct pcutils_map *attrs = element->attrs;
+    if (!attrs)
+        return 0;
+
+    PC_ASSERT(frame->pos == element);
+
+    struct pcintr_walk_attrs_ud data = {
+        .frame        = frame,
+        .element      = element,
+        .ud           = ud,
+        .cb           = cb,
+    };
+
+    int r = pcutils_map_traverse(attrs, &data, walk_attr);
+    if (r)
+        return r;
+
+    return 0;
+}
+
 int
 pcintr_element_eval_vcm_content(struct pcintr_stack_frame *frame,
         struct pcvdom_element *element)

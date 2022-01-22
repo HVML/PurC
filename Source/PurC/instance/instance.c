@@ -144,10 +144,14 @@ void pcexcept_init_once(void)
 
 static unsigned int _modules;
 
+// FIXME: where to put declaration
+void pchvml_keywords_init(void);
+
 static void init_modules_once(void)
 {
     // TODO: init modules working without instance here.
     pcutils_atom_init_once();
+    pchvml_keywords_init();
     pcexcept_init_once();
 
     pcinst_register_error_message_segment(&_generic_err_msgs_seg);

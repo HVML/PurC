@@ -30,9 +30,18 @@
 
 #include "private/interpreter.h"
 
+#include "keywords.h"
+
 #include <libgen.h>
 
 PCA_EXTERN_C_BEGIN
+
+typedef int (*pcintr_attr_f)(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element,
+        purc_atom_t name, purc_variant_t val, void *ud);
+int
+pcintr_vdom_walk_attrs(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element, void *ud, pcintr_attr_f cb);
 
 int
 pcintr_element_eval_attrs(struct pcintr_stack_frame *frame,

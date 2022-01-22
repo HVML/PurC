@@ -111,28 +111,6 @@ get_source_by_from(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     return pcintr_load_from_uri(uri);
 }
 
-static purc_variant_t
-get_source(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
-{
-    purc_variant_t with;
-    with = purc_variant_object_get_by_ckey(frame->attr_vars, "with", false);
-    if (with != PURC_VARIANT_INVALID)
-        return get_source_by_with(co, frame, with);
-
-    purc_variant_t from;
-    from = purc_variant_object_get_by_ckey(frame->attr_vars, "from", false);
-    if (from != PURC_VARIANT_INVALID)
-        return get_source_by_from(co, frame, from);
-
-    if (frame->ctnt_var != PURC_VARIANT_INVALID)
-        purc_variant_ref(frame->ctnt_var);
-
-    if (frame->ctnt_var)
-        purc_clr_error();
-
-    return frame->ctnt_var;
-}
-
 static int
 process_object(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
@@ -344,46 +322,168 @@ process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 }
 
 static int
-post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
+process_attr_on(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element,
+        purc_atom_t name, purc_variant_t val)
 {
     struct ctxt_for_update *ctxt;
     ctxt = (struct ctxt_for_update*)frame->ctxt;
-    PC_ASSERT(ctxt);
-
-    // TODO: '$@'
-    purc_variant_t on;
-    on = purc_variant_object_get_by_ckey(frame->attr_vars, "on", false);
-    if (on == PURC_VARIANT_INVALID)
+    if (ctxt->on != PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_DUPLICATED,
+                "vdom attribute '%s' for element <%s>",
+                purc_atom_to_string(name), element->tag_name);
         return -1;
-    PURC_VARIANT_SAFE_CLEAR(ctxt->on);
-    ctxt->on = on;
-    purc_variant_ref(on);
+    }
+    if (val == PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "vdom attribute '%s' for element <%s> undefined",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    ctxt->on = val;
+    purc_variant_ref(val);
 
-    purc_variant_t to;
-    to = purc_variant_object_get_by_ckey(frame->attr_vars, "to", false);
-    if (to != PURC_VARIANT_INVALID) {
-        PURC_VARIANT_SAFE_CLEAR(ctxt->to);
-        ctxt->to = to;
-        purc_variant_ref(to);
+    return 0;
+}
+
+static int
+process_attr_to(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element,
+        purc_atom_t name, purc_variant_t val)
+{
+    struct ctxt_for_update *ctxt;
+    ctxt = (struct ctxt_for_update*)frame->ctxt;
+    if (ctxt->to != PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_DUPLICATED,
+                "vdom attribute '%s' for element <%s>",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    if (val == PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "vdom attribute '%s' for element <%s> undefined",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    ctxt->to = val;
+    purc_variant_ref(val);
+
+    return 0;
+}
+
+static int
+process_attr_with(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element,
+        purc_atom_t name, purc_variant_t val)
+{
+    struct ctxt_for_update *ctxt;
+    ctxt = (struct ctxt_for_update*)frame->ctxt;
+    if (ctxt->src != PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_DUPLICATED,
+                "vdom attribute '%s' for element <%s>",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    if (val == PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "vdom attribute '%s' for element <%s> undefined",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
     }
 
-    purc_variant_t at;
-    at = purc_variant_object_get_by_ckey(frame->attr_vars, "at", false);
-    if (at != PURC_VARIANT_INVALID) {
-        PURC_VARIANT_SAFE_CLEAR(ctxt->at);
-        ctxt->at = at;
-        purc_variant_ref(at);
+    pcintr_stack_t stack = purc_get_stack();
+    pcintr_coroutine_t co = &stack->co;
+
+    ctxt->src = get_source_by_with(co, frame, val);
+    PC_ASSERT(ctxt->src != PURC_VARIANT_INVALID);
+
+    return 0;
+}
+
+static int
+process_attr_from(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element,
+        purc_atom_t name, purc_variant_t val)
+{
+    struct ctxt_for_update *ctxt;
+    ctxt = (struct ctxt_for_update*)frame->ctxt;
+    if (ctxt->src != PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_DUPLICATED,
+                "vdom attribute '%s' for element <%s>",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    if (val == PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "vdom attribute '%s' for element <%s> undefined",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
     }
 
-    purc_variant_t src = get_source(co, frame);
-    if (src == PURC_VARIANT_INVALID)
-        return -1;
-    D("");
-    PURC_VARIANT_SAFE_CLEAR(ctxt->src);
-    ctxt->src = src;
+    pcintr_stack_t stack = purc_get_stack();
+    pcintr_coroutine_t co = &stack->co;
 
-    purc_clr_error();
-    return process(co, frame);
+    ctxt->src = get_source_by_from(co, frame, val);
+    PC_ASSERT(ctxt->src != PURC_VARIANT_INVALID);
+
+    return 0;
+}
+
+static int
+process_attr_at(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element,
+        purc_atom_t name, purc_variant_t val)
+{
+    struct ctxt_for_update *ctxt;
+    ctxt = (struct ctxt_for_update*)frame->ctxt;
+    if (ctxt->at != PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_DUPLICATED,
+                "vdom attribute '%s' for element <%s>",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    if (val == PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "vdom attribute '%s' for element <%s> undefined",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    ctxt->at = val;
+    purc_variant_ref(val);
+
+    return 0;
+}
+
+static int
+attr_found(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element,
+        purc_atom_t name, purc_variant_t val, void *ud)
+{
+    UNUSED_PARAM(ud);
+
+    PC_ASSERT(name);
+
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(ON)) == name) {
+        return process_attr_on(frame, element, name, val);
+    }
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(TO)) == name) {
+        return process_attr_to(frame, element, name, val);
+    }
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(WITH)) == name) {
+        return process_attr_with(frame, element, name, val);
+    }
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(FROM)) == name) {
+        return process_attr_from(frame, element, name, val);
+    }
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(AT)) == name) {
+        return process_attr_at(frame, element, name, val);
+    }
+
+    purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
+            "vdom attribute '%s' for element <%s>",
+            purc_atom_to_string(name), element->tag_name);
+
+    return -1;
 }
 
 static void*
@@ -400,12 +500,27 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (pcintr_set_symbol_var_at_sign())
         return NULL;
 
+    frame->attr_vars = purc_variant_make_object(0,
+            PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+    if (frame->attr_vars == PURC_VARIANT_INVALID)
+        return NULL;
+
     struct pcvdom_element *element = frame->pos;
     PC_ASSERT(element);
     D("<%s>", element->tag_name);
 
+    struct ctxt_for_update *ctxt;
+    ctxt = (struct ctxt_for_update*)calloc(1, sizeof(*ctxt));
+    if (!ctxt) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return NULL;
+    }
+
+    frame->ctxt = ctxt;
+    frame->ctxt_destroy = ctxt_destroy;
+
     int r;
-    r = pcintr_element_eval_attrs(frame, element);
+    r = pcintr_vdom_walk_attrs(frame, element, NULL, attr_found);
     if (r)
         return NULL;
 
@@ -419,18 +534,25 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         frame->ctnt_var = v;
     }
 
-    struct ctxt_for_update *ctxt;
-    ctxt = (struct ctxt_for_update*)calloc(1, sizeof(*ctxt));
-    if (!ctxt) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+    if (ctxt->on == PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
+                "lack of vdom attribute 'on' for element <%s>",
+                element->tag_name);
         return NULL;
     }
 
-    frame->ctxt = ctxt;
-    frame->ctxt_destroy = ctxt_destroy;
-    purc_clr_error();
+    if (ctxt->src == PURC_VARIANT_INVALID) {
+        if (frame->ctnt_var == PURC_VARIANT_INVALID) {
+            purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
+                    "lack of vdom attribute 'with'/'from' for element <%s>",
+                    element->tag_name);
+            return NULL;
+        }
+        ctxt->src = frame->ctnt_var;
+        purc_variant_ref(frame->ctnt_var);
+    }
 
-    r = post_process(&stack->co, frame);
+    r = process(&stack->co, frame);
     if (r)
         return NULL;
 

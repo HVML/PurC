@@ -153,6 +153,44 @@ add_custom_command(
     VERBATIM)
 list(APPEND PurC_SOURCES ${PurC_DERIVED_SOURCES_DIR}/html_bar.c)
 
+# Generate keywords table for hvml language
+set(_kw_h           "${PurC_DERIVED_SOURCES_DIR}/keywords.h")
+set(_kw_inc         "${PurC_DERIVED_SOURCES_DIR}/keywords.inc")
+set(_kw_foo         "${PurC_DERIVED_SOURCES_DIR}/keywords-foo.c")
+set(_kw_py          "${PURC_DIR}/instance/make-keywords-table.py")
+set(_kw_txt         "${PURC_DIR}/instance/data/keywords.txt")
+set(_kw_h_in        "${PURC_DIR}/instance/data/keywords.h.in")
+set(_kw_inc_in      "${PURC_DIR}/instance/data/keywords.inc.in")
+add_custom_command(
+    OUTPUT "${_kw_foo}"
+           "${_kw_h}"
+           "${_kw_inc}"
+    MAIN_DEPENDENCY "${_kw_py}"
+    DEPENDS "${_kw_txt}"
+            "${_kw_h_in}"
+            "${_kw_inc_in}"
+    COMMAND "${Python3_EXECUTABLE}" "${_kw_py}"
+            "--dest" "${PurC_DERIVED_SOURCES_DIR}"
+            "--kw_h"        "${_kw_h}"
+            "--kw_inc"      "${_kw_inc}"
+            "--kw_foo"      "${_kw_foo}"
+            "--kw_txt"      "${_kw_txt}"
+            "--kw_h_in"     "${_kw_h_in}"
+            "--kw_inc_in"   "${_kw_inc_in}"
+            "--without-print"
+    COMMAND touch "${_kw_foo}"
+    COMMENT "Generating keywords.h/keywords.inc by using ${Python3_EXECUTABLE}"
+    WORKING_DIRECTORY "${PURC_DIR}/instance/"
+    VERBATIM)
+list(APPEND PurC_SOURCES ${_kw_foo})
+unset(_kw_h)
+unset(_kw_inc)
+unset(_kw_foo)
+unset(_kw_py)
+unset(_kw_txt)
+unset(_kw_h_in)
+unset(_kw_inc_in)
+
 # Generate attrs table for hvml parser
 add_custom_command(
     OUTPUT "${PurC_DERIVED_SOURCES_DIR}/hvml-attr-foo.c"
