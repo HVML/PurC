@@ -32,7 +32,7 @@
 
 int main(int argc, char** argv)
 {
-    if (1)
+    if (0)
         return 0;
 
     (void)argc;
@@ -75,6 +75,11 @@ int main(int argc, char** argv)
         fprintf(stderr, "body size=%ld|buflen=%ld\n", sz_content,
                 buf ? strlen(buf) : 0);
         fprintf(stderr, "%s\n", buf ? buf : NULL);
+        purc_rwstream_destroy(resp);
+    }
+
+    if (resp_header.mime_type) {
+        free(resp_header.mime_type);
     }
     fprintf(stderr, ".................body end\n");
     fprintf(stderr, "....................................\n");

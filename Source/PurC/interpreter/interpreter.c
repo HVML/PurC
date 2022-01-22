@@ -1979,14 +1979,11 @@ pcintr_load_from_uri(const char* uri)
             &resp_header);
     if (resp_header.ret_code == 200) {
         size_t sz_content = 0;
-        size_t sz_buffer = 0;
-        char* buf = (char*)purc_rwstream_get_mem_buffer_ex(resp, &sz_content,
-                &sz_buffer, false);
+        char* buf = (char*)purc_rwstream_get_mem_buffer(resp, &sz_content);
         // FIXME:
         purc_clr_error();
         ret = purc_variant_make_from_json_string(buf, sz_content);
         purc_rwstream_destroy(resp);
-        free(buf);
     }
 
     if (resp_header.mime_type) {

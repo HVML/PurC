@@ -260,7 +260,6 @@ purc_variant_t PcFetcherProcess::requestAsync(
     PcFetcherSession* session = createSession();
     purc_variant_t ret = session->requestAsync(base_uri, url, method,
             params, timeout, handler, ctxt);
-    delete session;
     return ret;
 }
 

@@ -58,23 +58,24 @@ void async_response_handler(
         fprintf(stderr, "body size=%ld|buflen=%ld\n", sz_content,
                 buf ? strlen(buf) : 0);
         fprintf(stderr, "%s\n", buf ? buf : NULL);
+        purc_rwstream_destroy(resp);
     }
     fprintf(stderr, ".................body end\n");
-    fprintf(stderr, "....................................\n");
+    fprintf(stderr, "....................................request_id=%p\n", request_id);
+    purc_variant_unref(request_id);
     RunLoop::main().stop();
 }
 
 
 int main(int argc, char** argv)
 {
-    if (1)
+    if (0)
         return 0;
 
     (void)argc;
     (void)argv;
 
-    purc_instance_extra_info info = {};
-    purc_init ("cn.fmsoft.hybridos.sample", "pcfetcher", &info);
+    purc_init ("cn.fmsoft.hybridos.sample", "pcfetcher", NULL);
 
     RunLoop::initializeMain();
     AtomString::init();

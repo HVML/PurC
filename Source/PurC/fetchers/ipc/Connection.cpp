@@ -396,7 +396,8 @@ void Connection::setDidCloseOnConnectionWorkQueueCallback(DidCloseOnConnectionWo
 
 void Connection::invalidate()
 {
-    ASSERT(RunLoop::isMain());
+    // FIXME: fetcher delete session
+    //ASSERT(RunLoop::isMain());
 
     if (!isValid()) {
         // Someone already called invalidate().
