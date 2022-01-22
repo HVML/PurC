@@ -23,6 +23,7 @@
  */
 
 #include "private/rbtree.h"
+#include "private/debug.h"
 
 #include <stdio.h>
 
@@ -482,5 +483,43 @@ int pcutils_rbtree_traverse(struct rb_root *root, void *ud,
     struct rb_node *node = pcutils_rbtree_first(root);
 
     return rbtree_traverse(node, ud, cb);
+}
+
+int pcutils_rbtree_insert(struct rb_root *root, void *ud,
+        int (*cmp)(struct rb_root *root, struct rb_node *node, void *ud),
+        struct rb_node* (*new_entry)(struct rb_root *root, void *ud))
+{
+    PC_ASSERT(root);
+
+    struct rb_node **pentry;
+    struct rb_node *parent;
+
+    pentry = &root->rb_node;
+    parent = NULL;
+    while (*pentry) {
+        int ret;
+
+        ret = cmp(root, (*pentry), ud);
+
+        parent = *pentry;
+        if (ret < 0)
+            pentry = &((*pentry)->rb_left);
+        else if (ret > 0)
+            pentry = &((*pentry)->rb_right);
+        else {
+            return -1;
+        }
+    }
+
+    PC_ASSERT(*pentry == NULL);
+
+    struct rb_node *entry = new_entry(root, ud);
+    if (!entry)
+        return -1;
+
+    pcutils_rbtree_link_node(entry, parent, pentry);
+    pcutils_rbtree_insert_color(entry, root);
+
+    return 0;
 }
 

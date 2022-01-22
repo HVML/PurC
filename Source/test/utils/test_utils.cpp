@@ -745,52 +745,36 @@ struct str_node {
     const char     *str;
 };
 
-int cmp(const void *key, struct rb_node *node)
+static int
+cmp(struct rb_root *root, struct rb_node *node, void *ud)
 {
+    (void)root;
     struct str_node *p = container_of(node, struct str_node, node);
-    const char *k = (const char*)key;
+    const char *k = (const char*)ud;
     return strcmp(k, p->str);
+}
+
+static struct rb_node*
+new_entry(struct rb_root *root, void *ud)
+{
+    (void)root;
+    struct str_node *node;
+    node = (struct str_node*)calloc(1, sizeof(*node));
+    if (!node)
+        return NULL;
+
+    const char *str = (const char*)ud;
+    node->str = str;
+
+    return &node->node;
 }
 
 static inline void
 do_insert(struct rb_root *root, const char *str, bool *ok)
 {
-    struct rb_node **pnode = &root->rb_node;
-    struct rb_node *parent = NULL;
-    struct rb_node *entry = NULL;
-    while (*pnode) {
-        int ret = cmp(str, *pnode);
-
-        parent = *pnode;
-
-        if (ret < 0)
-            pnode = &parent->rb_left;
-        else if (ret > 0)
-            pnode = &parent->rb_right;
-        else{
-            entry = *pnode;
-            break;
-        }
-    }
-
-    if (!entry) { //new the entry
-        struct str_node *snode = (struct str_node*)calloc(1, sizeof(*snode));
-        if (!snode) {
-            *ok = false;
-            return;
-        }
-        snode->str = str;
-        entry = &snode->node;
-
-        pcutils_rbtree_link_node(entry, parent, pnode);
-        pcutils_rbtree_insert_color(entry, root);
-        *ok = true;
-        return;
-    }
-
-    struct str_node *p = container_of(entry, struct str_node, node);
-    p->str = str;
-    *ok = true;
+    int r;
+    r = pcutils_rbtree_insert(root, (void*)str, cmp, new_entry);
+    *ok = r == 0 ? true : false;
 }
 
 TEST(utils, rbtree)
@@ -802,6 +786,14 @@ TEST(utils, rbtree)
         "bar",
         "great",
         "wall",
+    };
+    const char *results[] = {
+        "bar",
+        "foo",
+        "great",
+        "hello",
+        "wall",
+        "world",
     };
 
     bool ok = true;
@@ -826,9 +818,11 @@ TEST(utils, rbtree)
 
     node = pcutils_rbtree_first(&root);
     struct rb_node *next;
+    const char **pp = results;
     for (; ({node && (next = pcutils_rbtree_next(node)); node;}); node=next) {
         struct str_node *p = container_of(node, struct str_node, node);
         pcutils_rbtree_erase(node, &root);
+        ASSERT_STREQ(p->str, *pp++);
         free(p);
     }
 
