@@ -486,8 +486,8 @@ int pcutils_rbtree_traverse(struct rb_root *root, void *ud,
 }
 
 int pcutils_rbtree_insert(struct rb_root *root, void *ud,
-        int (*cmp)(struct rb_root *root, struct rb_node *node, void *ud),
-        struct rb_node* (*new_entry)(struct rb_root *root, void *ud))
+        int (*cmp)(struct rb_node *node, void *ud),
+        struct rb_node* (*new_entry)(void *ud))
 {
     PC_ASSERT(root);
 
@@ -499,7 +499,7 @@ int pcutils_rbtree_insert(struct rb_root *root, void *ud,
     while (*pentry) {
         int ret;
 
-        ret = cmp(root, (*pentry), ud);
+        ret = cmp((*pentry), ud);
 
         parent = *pentry;
         if (ret < 0)
@@ -513,7 +513,7 @@ int pcutils_rbtree_insert(struct rb_root *root, void *ud,
 
     PC_ASSERT(*pentry == NULL);
 
-    struct rb_node *entry = new_entry(root, ud);
+    struct rb_node *entry = new_entry(ud);
     if (!entry)
         return -1;
 

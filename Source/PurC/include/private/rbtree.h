@@ -113,8 +113,8 @@ int pcutils_rbtree_traverse(struct rb_root *root, void *ud,
         int (*cb)(struct rb_node *node, void *ud));
 
 int pcutils_rbtree_insert(struct rb_root *root, void *ud,
-        int (*cmp)(struct rb_root *root, struct rb_node *node, void *ud),
-        struct rb_node* (*new_entry)(struct rb_root *root, void *ud));
+        int (*cmp)(struct rb_node *node, void *ud),
+        struct rb_node* (*new_entry)(void *ud));
 
 #ifdef __cplusplus
 }

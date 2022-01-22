@@ -746,18 +746,16 @@ struct str_node {
 };
 
 static int
-cmp(struct rb_root *root, struct rb_node *node, void *ud)
+cmp(struct rb_node *node, void *ud)
 {
-    (void)root;
     struct str_node *p = container_of(node, struct str_node, node);
     const char *k = (const char*)ud;
     return strcmp(k, p->str);
 }
 
 static struct rb_node*
-new_entry(struct rb_root *root, void *ud)
+new_entry(void *ud)
 {
-    (void)root;
     struct str_node *node;
     node = (struct str_node*)calloc(1, sizeof(*node));
     if (!node)
