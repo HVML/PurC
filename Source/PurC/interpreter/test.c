@@ -188,6 +188,31 @@ process_attr_in(struct pcintr_stack_frame *frame,
 }
 
 static int
+process_attr_by(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element,
+        purc_atom_t name, purc_variant_t val)
+{
+    struct ctxt_for_test *ctxt;
+    ctxt = (struct ctxt_for_test*)frame->ctxt;
+    if (ctxt->by != PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_DUPLICATED,
+                "vdom attribute '%s' for element <%s>",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    if (val == PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "vdom attribute '%s' for element <%s> undefined",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    ctxt->by = val;
+    purc_variant_ref(val);
+
+    return 0;
+}
+
+static int
 attr_found(struct pcintr_stack_frame *frame,
         struct pcvdom_element *element,
         purc_atom_t name, purc_variant_t val, void *ud)
@@ -202,9 +227,9 @@ attr_found(struct pcintr_stack_frame *frame,
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(IN)) == name) {
         return process_attr_in(frame, element, name, val);
     }
-    // if (pchvml_keyword(PCHVML_KEYWORD_ENUM(WITH)) == name) {
-    //     return process_attr_with(frame, element, name, val);
-    // }
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(BY)) == name && 0) {
+        return process_attr_by(frame, element, name, val);
+    }
     // if (pchvml_keyword(PCHVML_KEYWORD_ENUM(FROM)) == name) {
     //     return process_attr_from(frame, element, name, val);
     // }
@@ -216,7 +241,6 @@ attr_found(struct pcintr_stack_frame *frame,
             "vdom attribute '%s' for element <%s>",
             purc_atom_to_string(name), element->tag_name);
 
-    PC_ASSERT(0); // Not implemented yet
     return -1;
 }
 
