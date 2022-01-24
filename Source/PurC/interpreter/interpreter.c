@@ -1009,11 +1009,7 @@ static void
 after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
     if (frame->ops.after_pushed) {
-        void *ctxt = frame->ops.after_pushed(co->stack, frame->pos);
-        if (!ctxt) {
-            dump_stack(co->stack);
-            dump_c_stack();
-        }
+        frame->ops.after_pushed(co->stack, frame->pos);
     }
 
     frame->next_step = NEXT_STEP_SELECT_CHILD;
