@@ -93,7 +93,6 @@ post_process_bind_scope_var(pcintr_coroutine_t co,
         if (ok)
             D("[%s] bound at scope[%s]", s_name, element->tag_name);
     }
-    purc_variant_unref(val);
 
     return ok ? 0 : -1;
 }
@@ -107,7 +106,6 @@ post_process_array(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     via = ctxt->via;
 
     if (via == PURC_VARIANT_INVALID) {
-        purc_variant_ref(frame->ctnt_var);
         return post_process_bind_scope_var(co, frame, name, frame->ctnt_var);
     }
     purc_variant_t set;
@@ -137,7 +135,9 @@ post_process_array(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     end_foreach;
 #endif
 
-    return post_process_bind_scope_var(co, frame, name, set);
+    int r = post_process_bind_scope_var(co, frame, name, set);
+    purc_variant_unref(set);
+    return r ? -1 : 0;
 }
 
 static int
@@ -146,7 +146,6 @@ post_process_object(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 {
     purc_variant_t val = frame->ctnt_var;
 
-    purc_variant_ref(val);
     return post_process_bind_scope_var(co, frame, name, val);
 }
 
