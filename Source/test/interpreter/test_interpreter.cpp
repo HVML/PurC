@@ -383,10 +383,10 @@ TEST(interpreter, basic)
         // "<hvml><body><archetype name=\"$?.button\"><li class=\"class\">letters</li></archetype></body></hvml>",
         // "<hvml><body><archetype name=\"button\"><li class=\"class\">letters</li></archetype></body></hvml>",
         // "<hvml><body><a><b><c></c></b></a></body></hvml>",
-        // calculator_1,
+        calculator_1,
         // calculator_2,
         // calculator_3,
-        calculator_4,
+        // calculator_4,
         // sample1,
     };
 
