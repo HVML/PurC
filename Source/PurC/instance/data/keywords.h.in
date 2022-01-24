@@ -39,5 +39,15 @@ enum pchvml_keyword_enum {
 purc_atom_t pchvml_keyword(enum pchvml_keyword_enum keyword);
 purc_atom_t pchvml_keyword_try_string(const char *keyword);
 
+// NOTE: if no keyword is found, returns empty string ""
+static inline const char*
+pchvml_keyword_str(enum pchvml_keyword_enum keyword)
+{
+    purc_atom_t atom = pchvml_keyword(keyword);
+    if (!atom)
+        return "";
+    return purc_atom_to_string(atom);
+}
+
 #endif // PCHVML_KEYWORD_H        /* } */
 

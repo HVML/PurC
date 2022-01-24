@@ -38,8 +38,6 @@
 #include "private/interpreter.h"
 #include "private/utils.h"
 
-#define TO_DEBUG 1
-
 #define TREE_NODE(node)              ((struct pctree_node*)(node))
 #define VCM_NODE(node)               ((struct pcvcm_node*)(node))
 #define FIRST_CHILD(node)            \
@@ -707,8 +705,13 @@ purc_variant_t pcvcm_node_concat_string_to_variant (struct pcvcm_node* node,
     if ((rw_size == 0) || (rw_string == NULL))
         ret_var = PURC_VARIANT_INVALID;
     else {
+        PC_ASSERT(content_size <= rw_size);
+        size_t len = strnlen(rw_string, rw_size);
+        PC_ASSERT(len <= content_size);
+        PC_ASSERT(len+1 == content_size);
+        PC_ASSERT(rw_string[len] == '\0');
         ret_var = purc_variant_make_string_reuse_buff (rw_string,
-                rw_size, false);
+                content_size, false);
         if(ret_var == PURC_VARIANT_INVALID) {
             pcinst_set_error (PURC_ERROR_INVALID_VALUE);
             ret_var = PURC_VARIANT_INVALID;

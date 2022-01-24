@@ -75,7 +75,7 @@ extern "C" {
         char* buf = (char*)purc_rwstream_get_mem_buffer_ex(rws, NULL, NULL, \
                 true);                                                      \
         fprintf(stderr, "%s[%d]:%s(): %s=%s\n",                             \
-                __FILE__, __LINE__, __func__, #v, buf);                     \
+                basename((char*)__FILE__), __LINE__, __func__, #v, buf);    \
         free(buf);                                                          \
         purc_rwstream_destroy(rws);                                         \
     } while (0)

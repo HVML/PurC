@@ -851,6 +851,7 @@ walk_attr(void *key, void *val, void *ud)
         PC_ASSERT(stack);
         value = pcvcm_eval(vcm, stack);
         if (value == PURC_VARIANT_INVALID) {
+            PRINT_VCM_NODE(vcm);
             return -1;
         }
     }
@@ -922,10 +923,93 @@ pcintr_element_eval_vcm_content(struct pcintr_stack_frame *frame,
 }
 
 static void
+dump_stack_frame(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
+        size_t level)
+{
+    UNUSED_PARAM(stack);
+
+    if (level == 0) {
+        fprintf(stderr, "document\n");
+        return;
+    }
+    pcvdom_element_t scope = frame->scope;
+    PC_ASSERT(scope);
+    pcvdom_element_t pos = frame->pos;
+    for (size_t i=0; i<level; ++i) {
+        fprintf(stderr, "  ");
+    }
+    fprintf(stderr, "scope:<%s>; pos:<%s>\n",
+        scope->tag_name, pos ? pos->tag_name : NULL);
+}
+
+static void
+dump_err_except_info(purc_variant_t err_except_info)
+{
+    if (purc_variant_is_type(err_except_info, PURC_VARIANT_TYPE_STRING)) {
+        fprintf(stderr, "err_except_info: %s\n",
+                purc_variant_get_string_const(err_except_info));
+    }
+    else {
+        char buf[1024];
+        buf[0] = '\0';
+        int r = pcvariant_serialize(buf, sizeof(buf), err_except_info);
+        PC_ASSERT(r >= 0);
+        if ((size_t)r>=sizeof(buf)) {
+            buf[sizeof(buf)-1] = '\0';
+            buf[sizeof(buf)-2] = '.';
+            buf[sizeof(buf)-3] = '.';
+            buf[sizeof(buf)-4] = '.';
+        }
+        fprintf(stderr, "err_except_info: %s\n", buf);
+    }
+}
+
+static void
+dump_stack(pcintr_stack_t stack)
+{
+    fprintf(stderr, "dumping stacks of corroutine [%p] ......\n", &stack->co);
+    PC_ASSERT(stack);
+    fprintf(stderr, "error_except: generated @%s[%d]:%s()\n",
+            basename((char*)stack->file), stack->lineno, stack->func);
+    purc_atom_t     error_except = stack->error_except;
+    purc_variant_t  err_except_info = stack->err_except_info;
+    if (error_except) {
+        fprintf(stderr, "error_except: %s\n",
+                purc_atom_to_string(error_except));
+    }
+    if (err_except_info) {
+        dump_err_except_info(err_except_info);
+    }
+    fprintf(stderr, "nr_frames: %zd\n", stack->nr_frames);
+    struct list_head *frames = &stack->frames;
+    size_t level = 0;
+    if (!list_empty(frames)) {
+        struct list_head *p;
+        list_for_each(p, frames) {
+            struct pcintr_stack_frame *frame;
+            frame = container_of(p, struct pcintr_stack_frame, node);
+            dump_stack_frame(stack, frame, level++);
+        }
+    }
+}
+
+static void
+dump_c_stack(void)
+{
+    struct pcinst *inst = pcinst_current();
+    fprintf(stderr, "dumping stacks of purc instance [%p]......\n", inst);
+    pcinst_dump_stack();
+}
+
+static void
 after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
     if (frame->ops.after_pushed) {
-        frame->ops.after_pushed(co->stack, frame->pos);
+        void *ctxt = frame->ops.after_pushed(co->stack, frame->pos);
+        if (!ctxt) {
+            dump_stack(co->stack);
+            dump_c_stack();
+        }
     }
 
     frame->next_step = NEXT_STEP_SELECT_CHILD;
@@ -937,7 +1021,6 @@ on_popping(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     bool ok = true;
     if (frame->ops.on_popping) {
         ok = frame->ops.on_popping(co->stack, frame->ctxt);
-        D("ok: %s", ok ? "true" : "false");
     }
 
     if (ok) {
@@ -1057,85 +1140,6 @@ execute_one_step(pcintr_coroutine_t co)
         }
         // continue coroutine even if it's in wait state
     }
-}
-
-static void
-dump_stack_frame(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
-        size_t level)
-{
-    UNUSED_PARAM(stack);
-
-    if (level == 0) {
-        fprintf(stderr, "document\n");
-        return;
-    }
-    pcvdom_element_t scope = frame->scope;
-    PC_ASSERT(scope);
-    pcvdom_element_t pos = frame->pos;
-    for (size_t i=0; i<level; ++i) {
-        fprintf(stderr, "  ");
-    }
-    fprintf(stderr, "scope:<%s>; pos:<%s>\n",
-        scope->tag_name, pos ? pos->tag_name : NULL);
-}
-
-static void
-dump_err_except_info(purc_variant_t err_except_info)
-{
-    if (purc_variant_is_type(err_except_info, PURC_VARIANT_TYPE_STRING)) {
-        fprintf(stderr, "err_except_info: %s\n",
-                purc_variant_get_string_const(err_except_info));
-    }
-    else {
-        char buf[1024];
-        buf[0] = '\0';
-        int r = pcvariant_serialize(buf, sizeof(buf), err_except_info);
-        PC_ASSERT(r >= 0);
-        if ((size_t)r>=sizeof(buf)) {
-            buf[sizeof(buf)-1] = '\0';
-            buf[sizeof(buf)-2] = '.';
-            buf[sizeof(buf)-3] = '.';
-            buf[sizeof(buf)-4] = '.';
-        }
-        fprintf(stderr, "err_except_info: %s\n", buf);
-    }
-}
-
-static void
-dump_stack(pcintr_stack_t stack)
-{
-    fprintf(stderr, "dumping stacks of corroutine [%p] ......\n", &stack->co);
-    PC_ASSERT(stack);
-    fprintf(stderr, "error_except: generated @%s[%d]:%s()\n",
-            basename((char*)stack->file), stack->lineno, stack->func);
-    purc_atom_t     error_except = stack->error_except;
-    purc_variant_t  err_except_info = stack->err_except_info;
-    if (error_except) {
-        fprintf(stderr, "error_except: %s\n",
-                purc_atom_to_string(error_except));
-    }
-    if (err_except_info) {
-        dump_err_except_info(err_except_info);
-    }
-    fprintf(stderr, "nr_frames: %zd\n", stack->nr_frames);
-    struct list_head *frames = &stack->frames;
-    size_t level = 0;
-    if (!list_empty(frames)) {
-        struct list_head *p;
-        list_for_each(p, frames) {
-            struct pcintr_stack_frame *frame;
-            frame = container_of(p, struct pcintr_stack_frame, node);
-            dump_stack_frame(stack, frame, level++);
-        }
-    }
-}
-
-static void
-dump_c_stack(void)
-{
-    struct pcinst *inst = pcinst_current();
-    fprintf(stderr, "dumping stacks of purc instance [%p]......\n", inst);
-    pcinst_dump_stack();
 }
 
 static int run_coroutines(void *ctxt)

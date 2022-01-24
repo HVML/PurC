@@ -72,10 +72,8 @@ static purc_variant_t
 get_source_by_with(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     purc_variant_t with)
 {
-    D("");
     UNUSED_PARAM(frame);
     if (purc_variant_is_type(with, PURC_VARIANT_TYPE_ULONGINT)) {
-        D("");
         bool ok;
         uint64_t u64;
         ok = purc_variant_cast_to_ulongint(with, &u64, false);
@@ -90,12 +88,10 @@ get_source_by_with(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         return pcvcm_eval(vcm_content, stack);
     }
     else if (purc_variant_is_type(with, PURC_VARIANT_TYPE_STRING)) {
-        D("");
         purc_variant_ref(with);
         return with;
     }
     else {
-        D("");
         purc_variant_ref(with);
         return with;
     }
@@ -151,7 +147,44 @@ process_object(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 #endif
         return 0;
     }
+    if (strcmp(op, "displace")==0) {
+        purc_variant_t at = ctxt->at;
+        bool ok = purc_variant_object_set(on, at, src);
+        return ok ? 0 : -1;
+    }
     PC_ASSERT(0); // Not implemented yet
+    return -1;
+}
+
+static int
+process_array(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
+{
+    UNUSED_PARAM(co);
+    struct ctxt_for_update *ctxt;
+    ctxt = (struct ctxt_for_update*)frame->ctxt;
+    PC_ASSERT(ctxt);
+    purc_variant_t on  = ctxt->on;
+    purc_variant_t to  = ctxt->to;
+    purc_variant_t src = ctxt->src;
+    PC_ASSERT(on != PURC_VARIANT_INVALID);
+    PC_ASSERT(to != PURC_VARIANT_INVALID);
+    PC_ASSERT(src != PURC_VARIANT_INVALID);
+
+    const char *op = purc_variant_get_string_const(to);
+    PC_ASSERT(op);
+
+    if (strcmp(op, "append") == 0) {
+        bool ok = purc_variant_array_append(on, src);
+        return ok ? 0 : -1;
+    }
+
+    struct pcvdom_element *element = frame->pos;
+    PC_ASSERT(element);
+
+    purc_set_error_with_info(PURC_ERROR_NOT_SUPPORTED,
+            "vdom attribute '%s'='%s' for element <%s>",
+            pchvml_keyword_str(PCHVML_KEYWORD_ENUM(TO)),
+            op, element->tag_name);
     return -1;
 }
 
@@ -268,8 +301,7 @@ process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         return process_object(co, frame);
     }
     if (type == PURC_VARIANT_TYPE_ARRAY) {
-        PC_ASSERT(0); // Not implemented yet
-        return -1;
+        return process_array(co, frame);
     }
     if (type == PURC_VARIANT_TYPE_SET) {
         return process_set(co, frame);
@@ -310,7 +342,12 @@ process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
                 PC_ASSERT(ok);
                 pcintr_printf_to_fragment(co->stack, o, to, at, "%g", d);
             }
+            else if (purc_variant_is_undefined(src)) {
+                pcintr_printf_to_fragment(co->stack, o, to, at, "%s", "");
+            }
             else {
+                PRINT_VARIANT(on);
+                PRINT_VARIANT(src);
                 PC_ASSERT(0); // Not implemented yet
             }
         }
@@ -425,6 +462,7 @@ process_attr_from(struct pcintr_stack_frame *frame,
 
     ctxt->src = get_source_by_from(co, frame, val);
     PC_ASSERT(ctxt->src != PURC_VARIANT_INVALID);
+    PRINT_VARIANT(ctxt->src);
 
     return 0;
 }
@@ -657,18 +695,15 @@ again:
             break;
         case PCVDOM_NODE_ELEMENT:
             {
-                D("");
                 pcvdom_element_t element = PCVDOM_ELEMENT_FROM_NODE(curr);
                 on_element(co, frame, element);
                 PC_ASSERT(stack->except == 0);
                 return element;
             }
         case PCVDOM_NODE_CONTENT:
-            D("");
             on_content(co, frame, PCVDOM_CONTENT_FROM_NODE(curr));
             goto again;
         case PCVDOM_NODE_COMMENT:
-            D("");
             on_comment(co, frame, PCVDOM_COMMENT_FROM_NODE(curr));
             goto again;
         default:

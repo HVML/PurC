@@ -198,6 +198,7 @@ purc_variant_make_string_ex(const char* str_utf8, size_t len,
     PCVARIANT_CHECK_FAIL_RET(str_utf8, PURC_VARIANT_INVALID);
 
     const size_t str_size = strnlen (str_utf8, len);
+    PC_ASSERT(str_size <= len);
     const size_t real_size = MAX (sizeof(long double), sizeof(void*) * 2);
     purc_variant_t value = NULL;
 
@@ -254,6 +255,7 @@ purc_variant_make_string_ex(const char* str_utf8, size_t len,
 purc_variant_t purc_variant_make_string_reuse_buff(char* str_utf8,
         size_t sz_buff, bool check_encoding)
 {
+    // FIXME: what is "hello\0world"???
     PCVARIANT_CHECK_FAIL_RET(str_utf8, PURC_VARIANT_INVALID);
 
     purc_variant_t value = NULL;
@@ -282,6 +284,7 @@ purc_variant_t purc_variant_make_string_reuse_buff(char* str_utf8,
     pcvariant_stat_set_extra_size (value, sz_buff + 1);
 
     str_utf8[sz_buff] = '\0'; // FIXME: if str_utf8 is comming from rwstream!!!
+    str_utf8[strnlen(str_utf8, sz_buff)] = '\0'; // see above!!!
 
     return value;
 }

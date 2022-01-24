@@ -1690,6 +1690,11 @@ PCA_EXPORT enum purc_variant_type purc_variant_get_type(purc_variant_t value);
  *
  * Since: 0.0.1
  */
+static inline bool purc_variant_is_undefined(purc_variant_t v)
+{
+    return purc_variant_is_type(v, PURC_VARIANT_TYPE_UNDEFINED);
+}
+
 static inline bool purc_variant_is_boolean(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_BOOLEAN);
