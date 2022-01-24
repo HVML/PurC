@@ -281,10 +281,11 @@ purc_variant_t purc_variant_make_string_reuse_buff(char* str_utf8,
     value->sz_ptr[1] = (uintptr_t)(str_utf8);
     // FIXME: shall we +1 here?
     //        what if str_utf8[sz_buff] is uninitialized or non-null?
-    pcvariant_stat_set_extra_size (value, sz_buff + 1);
+    size_t len = strnlen(str_utf8, sz_buff);
+    pcvariant_stat_set_extra_size (value, len + 1);
 
     str_utf8[sz_buff] = '\0'; // FIXME: if str_utf8 is comming from rwstream!!!
-    str_utf8[strnlen(str_utf8, sz_buff)] = '\0'; // see above!!!
+    str_utf8[len] = '\0'; // see above!!!
 
     return value;
 }

@@ -451,6 +451,9 @@ edom_fragment_post_process_target(pcintr_stack_t stack,
             PC_ASSERT(0); // Not implemented yet
         }
     }
+    else {
+        edom_fragment_post_process_target_content(stack, fragment, target);
+    }
 }
 
 static void
