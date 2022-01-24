@@ -59,7 +59,7 @@ shrunk(purc_variant_t set, purc_variant_t value)
 }
 
 static inline void
-change(purc_variant_t set,
+changed(purc_variant_t set,
         purc_variant_t o, purc_variant_t n)
 {
     purc_variant_t vals[] = { o, n };
@@ -506,7 +506,7 @@ insert_or_replace(purc_variant_t set,
         return -1;
     }
 
-    change(set, curr->elem, tmp);
+    changed(set, curr->elem, tmp);
 
     // replace with tmp, performance, performance, performance!!!
     foreach_key_value_in_variant_object(tmp, k, v)

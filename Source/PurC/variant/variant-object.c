@@ -57,7 +57,7 @@ shrunk(purc_variant_t obj, purc_variant_t key, purc_variant_t val)
 }
 
 static inline void
-change(purc_variant_t obj,
+changed(purc_variant_t obj,
         purc_variant_t ko, purc_variant_t vo,
         purc_variant_t kn, purc_variant_t vn)
 {
@@ -158,7 +158,7 @@ v_object_set(purc_variant_t obj, purc_variant_t k, purc_variant_t val)
     struct obj_node *node;
     node = container_of(entry, struct obj_node, node);
 
-    change(obj, node->key, node->val, k, val);
+    changed(obj, node->key, node->val, k, val);
 
     purc_variant_ref(k);
     purc_variant_unref(node->key);

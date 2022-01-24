@@ -55,7 +55,7 @@ shrunk(purc_variant_t array, purc_variant_t value)
 }
 
 static inline void
-change(purc_variant_t array,
+changed(purc_variant_t array,
         purc_variant_t o, purc_variant_t n)
 {
     purc_variant_t vals[] = { o, n };
@@ -159,7 +159,7 @@ variant_arr_set(purc_variant_t array, size_t idx, purc_variant_t val)
     node = (struct arr_node*)container_of(old, struct arr_node, node);
     PC_ASSERT(node->val);
 
-    change(array, node->val, val);
+    changed(array, node->val, val);
 
     arr_node_destroy(node);
 
@@ -404,37 +404,6 @@ bool purc_variant_array_set (purc_variant_t array, int idx,
     int r = variant_arr_set(array, idx, value);
     refresh_extra(array);
     return r ? false : true;
-    // size_t             nr = pcutils_arrlist_length(al);
-    // if ((size_t)idx>=nr) {
-    //     int t = pcutils_arrlist_put_idx(al, idx, value);
-
-    //     if (t) {
-    //         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
-    //         return false;
-    //     }
-    //     // fill empty slot with undefined value
-    //     _fill_empty_with_undefined(al);
-    //     // above two steps might be combined into one for better performance
-
-    //     // since value is put into array
-    //     purc_variant_ref(value);
-
-    //     grown(array, value);
-
-    //     size_t extra = sizeof(*al) + al->size * sizeof(*al->array);
-    //     pcvariant_stat_set_extra_size(array, extra);
-
-    //     return true;
-    // } else {
-    //     purc_variant_t v = (purc_variant_t)al->array[idx];
-    //     if (v!=value) {
-    //         change(array, v, value);
-    //         purc_variant_unref(v);
-    //         al->array[idx] = value;
-    //     }
-    //     purc_variant_ref(value);
-    //     return true;
-    // }
 }
 
 bool purc_variant_array_remove (purc_variant_t array, int idx)
