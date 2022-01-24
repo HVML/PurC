@@ -694,6 +694,7 @@ pcintr_push_stack_frame(pcintr_stack_t stack)
                 frame->symbol_vars[PURC_SYMBOL_VAR_QUESTION_MARK]);
         frame->symbol_vars[PURC_SYMBOL_VAR_QUESTION_MARK] = parent->result_var;
         purc_variant_ref(parent->result_var);
+        PRINT_VARIANT(parent->result_var);
     }
 
     return frame;

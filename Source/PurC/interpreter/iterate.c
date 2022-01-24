@@ -134,8 +134,8 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     if (value == PURC_VARIANT_INVALID)
         return -1;
 
-    PURC_VARIANT_SAFE_CLEAR(frame->symbol_vars[PURC_SYMBOL_VAR_QUESTION_MARK]);
-    frame->symbol_vars[PURC_SYMBOL_VAR_QUESTION_MARK] = value;
+    PURC_VARIANT_SAFE_CLEAR(frame->result_var);
+    frame->result_var = value;
     purc_variant_ref(value);
 
     return 0;
@@ -259,8 +259,8 @@ rerun(pcintr_stack_t stack, void* ud)
     if (value == PURC_VARIANT_INVALID)
         return true;
 
-    PURC_VARIANT_SAFE_CLEAR(frame->symbol_vars[PURC_SYMBOL_VAR_QUESTION_MARK]);
-    frame->symbol_vars[PURC_SYMBOL_VAR_QUESTION_MARK] = value;
+    PURC_VARIANT_SAFE_CLEAR(frame->result_var);
+    frame->result_var = value;
     purc_variant_ref(value);
 
     return true;

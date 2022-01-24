@@ -85,6 +85,7 @@ get_source_by_with(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         pcintr_stack_t stack = co->stack;
         PC_ASSERT(stack);
 
+        PRINT_VCM_NODE(vcm_content);
         return pcvcm_eval(vcm_content, stack);
     }
     else if (purc_variant_is_type(with, PURC_VARIANT_TYPE_STRING)) {
@@ -462,7 +463,6 @@ process_attr_from(struct pcintr_stack_frame *frame,
 
     ctxt->src = get_source_by_from(co, frame, val);
     PC_ASSERT(ctxt->src != PURC_VARIANT_INVALID);
-    PRINT_VARIANT(ctxt->src);
 
     return 0;
 }
