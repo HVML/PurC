@@ -342,6 +342,7 @@ attr_found(struct pcintr_stack_frame *frame,
             "vdom attribute '%s' for element <%s>",
             purc_atom_to_string(name), element->tag_name);
 
+    PC_ASSERT(0); // Not implemented yet
     return -1;
 }
 
