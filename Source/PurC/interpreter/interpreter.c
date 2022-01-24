@@ -1287,6 +1287,9 @@ again:
 
     token = pchvml_next_token(parser, in);
     if (!token)
+        PC_ASSERT(0);
+
+    if (!token)
         goto error;
 
     if (pcvdom_gen_push_token(gen, parser, token))
