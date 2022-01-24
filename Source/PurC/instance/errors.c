@@ -120,6 +120,7 @@ purc_set_error_with_info_debug(int err_code,
     va_end(ap);
 
     purc_variant_t v;
+    // FIXME: set-error-recursive
     v = purc_variant_make_string(buf, true);
     PC_ASSERT(v != PURC_VARIANT_INVALID);
 

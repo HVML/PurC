@@ -24,45 +24,21 @@
 
 #include "keywords.h"
 #include "private/debug.h"
-#include "private/rbtree.h"
 
 struct pchvml_keyword_cfg {
-    struct rb_node              node;
     const char                 *keyword;
     purc_atom_t                 atom;
 };
 
 #include "keywords.inc"
 
-static struct rb_root       root;
-
-static int
-cfg_cmp(struct rb_node *node, void *ud)
-{
-    struct pchvml_keyword_cfg *cfg = (struct pchvml_keyword_cfg*)ud;
-    struct pchvml_keyword_cfg *curr;
-    curr = container_of(node, struct pchvml_keyword_cfg, node);
-    return strcmp(curr->keyword, cfg->keyword);
-}
-
-struct rb_node*
-new_entry(void *ud)
-{
-    struct pchvml_keyword_cfg *cfg = (struct pchvml_keyword_cfg*)ud;
-    cfg->atom = purc_atom_from_string(cfg->keyword);
-
-    return &cfg->node;
-}
-
 void pchvml_keywords_init(void)
 {
-    root = RB_ROOT;
     size_t nr = PCA_TABLESIZE(keywords);
     for (size_t i=0; i<nr; ++i) {
         struct pchvml_keyword_cfg *cfg = keywords + i;
-        int r;
-        r = pcutils_rbtree_insert(&root, cfg, cfg_cmp, new_entry);
-        PC_ASSERT(r == 0);
+        cfg->atom = purc_atom_from_string(cfg->keyword);
+        PC_ASSERT(cfg->atom);
     }
 }
 
@@ -76,34 +52,8 @@ purc_atom_t pchvml_keyword(enum pchvml_keyword_enum keyword)
     return cfg->atom;
 }
 
-struct find_data {
-    const char             *keyword;
-    purc_atom_t             found;
-};
-
-static int
-walk(struct rb_node *node, void *ud)
-{
-    struct find_data *data = (struct find_data*)ud;
-    struct pchvml_keyword_cfg *curr;
-    curr = container_of(node, struct pchvml_keyword_cfg, node);
-    if (strcmp(curr->keyword, data->keyword))
-        return 0;
-
-    data->found = curr->atom;
-
-    return -1;
-}
-
 purc_atom_t pchvml_keyword_try_string(const char *keyword)
 {
-    struct find_data data = {
-        .keyword       = keyword,
-        .found         = 0,
-    };
-
-    pcutils_rbtree_traverse(&root, &data, walk);
-
-    return data.found;
+    return purc_atom_try_string(keyword);
 }
 

@@ -54,7 +54,7 @@ def gen_PURC_KEYWORD(kw):
     return "    PCHVML_KEYWORD_%s" % kw.upper()
 
 def gen_pchvml_keyword(kw):
-    return "    { {}, \"%s\", 0 }" % kw
+    return "    { \"%s\", 0 }" % kw
 
 def process_header_fn(fout, fin, kws):
     line_no = 1
