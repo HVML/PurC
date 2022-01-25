@@ -112,7 +112,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         return r;
 
     purc_variant_t in;
-    in = purc_variant_object_get_by_ckey(frame->attr_vars, "in", true);
+    in = ctxt->in;
     if (in != PURC_VARIANT_INVALID) {
         if (!purc_variant_is_string(in)) {
             purc_set_error(PURC_EXCEPT_INVALID_VALUE);
@@ -227,7 +227,7 @@ attr_found(struct pcintr_stack_frame *frame,
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, IN)) == name) {
         return process_attr_in(frame, element, name, val);
     }
-    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, BY)) == name && 0) {
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, BY)) == name) {
         return process_attr_by(frame, element, name, val);
     }
     // if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, FROM)) == name) {
