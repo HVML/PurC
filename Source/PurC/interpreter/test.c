@@ -230,12 +230,6 @@ attr_found(struct pcintr_stack_frame *frame,
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, BY)) == name) {
         return process_attr_by(frame, element, name, val);
     }
-    // if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, FROM)) == name) {
-    //     return process_attr_from(frame, element, name, val);
-    // }
-    // if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, AT)) == name) {
-    //     return process_attr_at(frame, element, name, val);
-    // }
 
     purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
             "vdom attribute '%s' for element <%s>",

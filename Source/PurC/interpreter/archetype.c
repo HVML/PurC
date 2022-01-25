@@ -40,12 +40,14 @@
 
 struct ctxt_for_archetype {
     struct pcvdom_node           *curr;
+    purc_variant_t                name;
 };
 
 static void
 ctxt_for_archetype_destroy(struct ctxt_for_archetype *ctxt)
 {
     if (ctxt) {
+        PURC_VARIANT_SAFE_CLEAR(ctxt->name);
         free(ctxt);
     }
 }
@@ -54,6 +56,51 @@ static void
 ctxt_destroy(void *ctxt)
 {
     ctxt_for_archetype_destroy((struct ctxt_for_archetype*)ctxt);
+}
+
+static int
+process_attr_name(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element,
+        purc_atom_t name, purc_variant_t val)
+{
+    struct ctxt_for_archetype *ctxt;
+    ctxt = (struct ctxt_for_archetype*)frame->ctxt;
+    if (ctxt->name != PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_DUPLICATED,
+                "vdom attribute '%s' for element <%s>",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    if (val == PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "vdom attribute '%s' for element <%s> undefined",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    ctxt->name = val;
+    purc_variant_ref(val);
+
+    return 0;
+}
+
+static int
+attr_found(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element,
+        purc_atom_t name, purc_variant_t val, void *ud)
+{
+    UNUSED_PARAM(ud);
+
+    PC_ASSERT(name);
+
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, NAME)) == name) {
+        return process_attr_name(frame, element, name, val);
+    }
+
+    purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
+            "vdom attribute '%s' for element <%s>",
+            purc_atom_to_string(name), element->tag_name);
+
+    return -1;
 }
 
 static void*
@@ -70,12 +117,27 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (pcintr_set_symbol_var_at_sign())
         return NULL;
 
+    frame->attr_vars = purc_variant_make_object(0,
+            PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+    if (frame->attr_vars == PURC_VARIANT_INVALID)
+        return NULL;
+
     struct pcvdom_element *element = frame->pos;
     PC_ASSERT(element);
     D("<%s>", element->tag_name);
 
+    struct ctxt_for_archetype *ctxt;
+    ctxt = (struct ctxt_for_archetype*)calloc(1, sizeof(*ctxt));
+    if (!ctxt) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return NULL;
+    }
+
+    frame->ctxt = ctxt;
+    frame->ctxt_destroy = ctxt_destroy;
+
     int r;
-    r = pcintr_element_eval_attrs(frame, element);
+    r = pcintr_vdom_walk_attrs(frame, element, NULL, attr_found);
     if (r)
         return NULL;
 
@@ -84,7 +146,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         return NULL;
 
     purc_variant_t name;
-    name = purc_variant_object_get_by_ckey(frame->attr_vars, "name", false);
+    name = ctxt->name;
     if (name == PURC_VARIANT_INVALID)
         return NULL;
 
@@ -100,15 +162,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (!ok)
         return NULL;
 
-    struct ctxt_for_archetype *ctxt;
-    ctxt = (struct ctxt_for_archetype*)calloc(1, sizeof(*ctxt));
-    if (!ctxt) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return NULL;
-    }
-
-    frame->ctxt = ctxt;
-    frame->ctxt_destroy = ctxt_destroy;
     purc_clr_error();
 
     return ctxt;

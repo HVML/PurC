@@ -19,4 +19,9 @@ hvml by
 hvml as
 hvml uniquely
 hvml via
+hvml name
+hvml for
+hvml exclusively
+hvml excl
+hvml href
 

@@ -46,6 +46,8 @@
 struct ctxt_for_match {
     struct pcvdom_node *curr;
     purc_variant_t for_var;
+    purc_variant_t exclusively;
+
     struct match_for_param param;
     bool is_exclusively;
     bool matched;
@@ -56,6 +58,7 @@ ctxt_for_match_destroy(struct ctxt_for_match *ctxt)
 {
     if (ctxt) {
         PURC_VARIANT_SAFE_CLEAR(ctxt->for_var);
+        PURC_VARIANT_SAFE_CLEAR(ctxt->exclusively);
 
         match_for_param_reset(&ctxt->param);
         free(ctxt);
@@ -78,18 +81,12 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     ctxt = (struct ctxt_for_match*)frame->ctxt;
     PC_ASSERT(ctxt);
 
-    purc_variant_t for_var = purc_variant_object_get_by_ckey(frame->attr_vars,
-            "for", true);
+    purc_variant_t for_var = ctxt->for_var;
     bool matched = false;
     if (for_var == PURC_VARIANT_INVALID) {
         matched = true;
     }
     else {
-        PURC_VARIANT_SAFE_CLEAR(ctxt->for_var);
-        ctxt->for_var = for_var;
-        purc_variant_ref(for_var);
-        PRINT_VAR(for_var);
-
         const char *for_value = purc_variant_get_string_const(for_var);
         r = match_for_parse(for_value, strlen(for_value), &ctxt->param);
         PC_ASSERT(r == 0);
@@ -106,27 +103,90 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     ctxt->matched = matched;
     D("matched: %s", matched ? "true" : "false");
 
-    purc_variant_t exclusively = purc_variant_object_get_by_ckey(
-            frame->attr_vars, "exclusively", true);
+    purc_variant_t exclusively = ctxt->exclusively;
     if (exclusively != PURC_VARIANT_INVALID) {
         ctxt->is_exclusively = true;
     }
-    else {
-        purc_clr_error();
-    }
-
-    if (!ctxt->is_exclusively) {
-        exclusively = purc_variant_object_get_by_ckey(
-                frame->attr_vars, "excl", true);
-        if (exclusively != PURC_VARIANT_INVALID) {
-            ctxt->is_exclusively = true;
-        }
-        else {
-            purc_clr_error();
-        }
-    }
 
     return 0;
+}
+
+static int
+process_attr_for(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element,
+        purc_atom_t name, purc_variant_t val)
+{
+    struct ctxt_for_match *ctxt;
+    ctxt = (struct ctxt_for_match*)frame->ctxt;
+    if (ctxt->for_var != PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_DUPLICATED,
+                "vdom attribute '%s' for element <%s>",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    if (val == PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "vdom attribute '%s' for element <%s> undefined",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    ctxt->for_var = val;
+    purc_variant_ref(val);
+
+    return 0;
+}
+
+static int
+process_attr_exclusively(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element,
+        purc_atom_t name, purc_variant_t val)
+{
+    struct ctxt_for_match *ctxt;
+    ctxt = (struct ctxt_for_match*)frame->ctxt;
+    if (ctxt->exclusively != PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_DUPLICATED,
+                "vdom attribute '%s' for element <%s>",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    if (val == PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "vdom attribute '%s' for element <%s> undefined",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    ctxt->exclusively = val;
+    purc_variant_ref(val);
+
+    return 0;
+}
+
+static int
+attr_found(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element,
+        purc_atom_t name, purc_variant_t val, void *ud)
+{
+    UNUSED_PARAM(ud);
+    UNUSED_PARAM(frame);
+    UNUSED_PARAM(val);
+
+    PC_ASSERT(name);
+
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, FOR)) == name) {
+        return process_attr_for(frame, element, name, val);
+    }
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, EXCLUSIVELY)) == name) {
+        return process_attr_exclusively(frame, element, name, val);
+    }
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, EXCL)) == name) {
+        return process_attr_exclusively(frame, element, name, val);
+    }
+
+    purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
+            "vdom attribute '%s' for element <%s>",
+            purc_atom_to_string(name), element->tag_name);
+
+    return -1;
 }
 
 static void*
@@ -144,17 +204,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (pcintr_set_symbol_var_at_sign())
         return NULL;
 
-    struct pcvdom_element *element = frame->pos;
-    PC_ASSERT(element);
-    D("<%s>", element->tag_name);
-
-    int r;
-    r = pcintr_element_eval_attrs(frame, element);
-    if (r)
-        PC_ASSERT(0);
-    if (r)
-        return NULL;
-
     struct ctxt_for_match *ctxt;
     ctxt = (struct ctxt_for_match*)calloc(1, sizeof(*ctxt));
     if (!ctxt) {
@@ -164,6 +213,16 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     frame->ctxt = ctxt;
     frame->ctxt_destroy = ctxt_destroy;
+
+    struct pcvdom_element *element = frame->pos;
+    PC_ASSERT(element);
+    D("<%s>", element->tag_name);
+
+    int r;
+    r = pcintr_vdom_walk_attrs(frame, element, NULL, attr_found);
+    if (r)
+        return NULL;
+
     purc_clr_error();
 
     r = post_process(&stack->co, frame);

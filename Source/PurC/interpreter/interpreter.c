@@ -827,22 +827,6 @@ walk_attr(void *key, void *val, void *ud)
     struct pcvdom_element *element = data->element;
     PC_ASSERT(element);
 
-    purc_atom_t atom = PCHVML_KEYWORD_ATOM(HVML, attr->key);
-    if (!atom) {
-        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
-                "unknown vdom attribute '%s' for element <%s>",
-                attr->key, element->tag_name);
-        return -1;
-    }
-
-    const struct pchvml_attr_entry *pre_defined = attr->pre_defined;
-    if (!pre_defined) {
-        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
-                "unknown vdom attribute '%s' for element <%s>",
-                attr->key, element->tag_name);
-        return -1;
-    }
-
     struct pcvcm_node *vcm = attr->val;
 
     purc_variant_t value = PURC_VARIANT_INVALID;
@@ -874,7 +858,13 @@ walk_attr(void *key, void *val, void *ud)
     if (!ok)
         return -1;
 
-    return data->cb(frame, element, atom, value, data->ud);
+    purc_atom_t atom = PCHVML_KEYWORD_ATOM(HVML, attr->key);
+    if (atom) {
+        // NOTE: we only dispatch those keyworded-attr to caller
+        return data->cb(frame, element, atom, value, data->ud);
+    }
+
+    return 0;
 }
 
 int
@@ -886,6 +876,13 @@ pcintr_vdom_walk_attrs(struct pcintr_stack_frame *frame,
         return 0;
 
     PC_ASSERT(frame->pos == element);
+
+    if (frame->attr_vars == PURC_VARIANT_INVALID) {
+        frame->attr_vars = purc_variant_make_object(0,
+                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+        if (frame->attr_vars == PURC_VARIANT_INVALID)
+            return -1;
+    }
 
     struct pcintr_walk_attrs_ud data = {
         .frame        = frame,
