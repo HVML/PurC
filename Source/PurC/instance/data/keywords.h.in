@@ -27,19 +27,30 @@
 #define PCHVML_KEYWORD_H
 
 #include "purc.h"
+#include "private/atom-buckets.h"
 
-#define PCHVML_KEYWORD_ENUM(kw)        PCHVML_KEYWORD_##kw
+#define PCHVML_KEYWORD_BUCKET(prefix)   ATOM_BUCKET_##prefix
+
+
+// NOTE: actually, idx in configs array
+#define PCHVML_KEYWORD_ENUM(prefix, kw) PCHVML_KEYWORD_##prefix##_##kw
+
+#define PCHVML_KEYWORD_ATOM(prefix, str) \
+    pchvml_keyword_try_string(PCHVML_KEYWORD_BUCKET(prefix), str)
 
 enum pchvml_keyword_enum {
 %%keywords%%
 };
 
 
-// keyword: PCHVML_KEYWORD(kw)
+// keyword: PCHVML_KEYWORD_ENUM(prefix, kw)
 purc_atom_t pchvml_keyword(enum pchvml_keyword_enum keyword);
-purc_atom_t pchvml_keyword_try_string(const char *keyword);
+// bucket: PCHVML_KEYWORD_BUCKET(prefix)
+purc_atom_t pchvml_keyword_try_string(enum pcatom_bucket bucket,
+        const char *keyword);
 
 // NOTE: if no keyword is found, returns empty string ""
+// keyword: PCHVML_KEYWORD_ENUM(prefix, kw)
 static inline const char*
 pchvml_keyword_str(enum pchvml_keyword_enum keyword)
 {

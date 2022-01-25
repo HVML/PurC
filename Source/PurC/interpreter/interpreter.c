@@ -827,7 +827,7 @@ walk_attr(void *key, void *val, void *ud)
     struct pcvdom_element *element = data->element;
     PC_ASSERT(element);
 
-    purc_atom_t atom = pchvml_keyword_try_string(attr->key);
+    purc_atom_t atom = PCHVML_KEYWORD_ATOM(HVML, attr->key);
     if (!atom) {
         purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
                 "unknown vdom attribute '%s' for element <%s>",

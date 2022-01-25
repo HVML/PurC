@@ -241,7 +241,7 @@ process_attr_from(struct pcintr_stack_frame *frame,
         purc_set_error_with_info(PURC_ERROR_NOT_SUPPORTED,
                 "vdom attribute '%s' for element <%s> conflicts with '%s'",
                 purc_atom_to_string(name), element->tag_name,
-                pchvml_keyword_str(PCHVML_KEYWORD_ENUM(FROM)));
+                pchvml_keyword_str(PCHVML_KEYWORD_ENUM(HVML, FROM)));
         return -1;
     }
     if (val == PURC_VARIANT_INVALID) {
@@ -273,7 +273,7 @@ process_attr_with(struct pcintr_stack_frame *frame,
         purc_set_error_with_info(PURC_ERROR_NOT_SUPPORTED,
                 "vdom attribute '%s' for element <%s> conflicts with '%s'",
                 purc_atom_to_string(name), element->tag_name,
-                pchvml_keyword_str(PCHVML_KEYWORD_ENUM(WITH)));
+                pchvml_keyword_str(PCHVML_KEYWORD_ENUM(HVML, WITH)));
         return -1;
     }
     if (val == PURC_VARIANT_INVALID) {
@@ -322,19 +322,19 @@ attr_found(struct pcintr_stack_frame *frame,
 
     PC_ASSERT(name);
 
-    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(AS)) == name) {
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, AS)) == name) {
         return process_attr_as(frame, element, name, val);
     }
-    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(UNIQUELY)) == name) {
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, UNIQUELY)) == name) {
         return process_attr_uniquely(frame, element, name, val);
     }
-    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(FROM)) == name) {
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, FROM)) == name) {
         return process_attr_from(frame, element, name, val);
     }
-    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(WITH)) == name) {
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, WITH)) == name) {
         return process_attr_with(frame, element, name, val);
     }
-    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(VIA)) == name) {
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, VIA)) == name) {
         return process_attr_via(frame, element, name, val);
     }
 

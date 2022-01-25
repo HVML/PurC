@@ -28,8 +28,8 @@ Make HVML keywords table:
 
 import argparse
 
-def read_kws_fin(fin):
-    kws = {}
+def read_cfgs_fin(fin):
+    cfgs = []
     line_no = 1
     line = fin.readline()
     while line:
@@ -39,62 +39,69 @@ def read_kws_fin(fin):
             line = fin.readline()
             continue
 
-        kws[s] = 1
+        cfg = s.split()
+        cfgs.append({'prefix':cfg[0], 'kw':cfg[1]})
         line = fin.readline()
 
-    return kws
+    return cfgs
 
-def read_kws(fn):
+def read_cfgs(fn):
     fin = open(fn, "r")
-    kws = read_kws_fin(fin)
+    cfgs = read_cfgs_fin(fin)
     fin.close()
-    return kws
+    return cfgs
 
-def gen_PURC_KEYWORD(kw):
-    return "    PCHVML_KEYWORD_%s" % kw.upper()
+def gen_PURC_KEYWORD(cfg):
+    # generate enums: PCHVML_KEYWORD_<PREFIX>_<KEYWORD>
+    prefix = cfg['prefix'].upper()
+    kw = cfg['kw'].upper()
+    return "    PCHVML_KEYWORD_%s_%s" % (prefix, kw)
 
-def gen_pchvml_keyword(kw):
-    return "    { \"%s\", 0 }" % kw
+def gen_pchvml_keyword(cfg):
+    #generate cfgs: { ATOM_BUCKET_<PREFIX>, "<KEYWORD>", 0 }
+    prefix = cfg['prefix'].upper()
+    kw = cfg['kw']
+    return "    { ATOM_BUCKET_%s, \"%s\", 0 }" % (prefix, kw)
 
-def process_header_fn(fout, fin, kws):
+def process_header_fn(fout, fin, cfgs):
     line_no = 1
     line = fin.readline()
     while line:
         s = line.strip()
         if s == "%%keywords%%":
-            for kw in kws:
-                s = gen_PURC_KEYWORD(kw)
+            for cfg in cfgs:
+                s = gen_PURC_KEYWORD(cfg)
                 fout.write("%s,\n" % s)
         else:
             fout.write(line)
         line_no = line_no + 1
         line = fin.readline()
 
-def process_header(dst, src, kws):
+def process_header(dst, src, cfgs):
     fout = open(dst, "w")
     fin = open(src, "r")
-    process_header_fn(fout, fin, kws)
+    process_header_fn(fout, fin, cfgs)
     fout.close()
     fin.close()
 
-def process_source_fn(fout, fin, kws):
+def process_source_fn(fout, fin, cfgs):
     line_no = 1
     line = fin.readline()
     while line:
         s = line.strip()
         if s == "%%keywords%%":
-            for kw in kws:
-                s = gen_pchvml_keyword(kw)
+            for cfg in cfgs:
+                s = gen_pchvml_keyword(cfg)
                 fout.write("%s,\n" % s)
         else:
             fout.write(line)
         line_no = line_no + 1
         line = fin.readline()
 
-def process_source(dst, src, kws):
+def process_source(dst, src, cfgs):
     fout = open(dst, "w")
     fin = open(src, "r")
-    process_source_fn(fout, fin, kws)
+    process_source_fn(fout, fin, cfgs)
     fout.close()
     fin.close()
 
@@ -112,7 +119,7 @@ if __name__ == "__main__":
     # parser.print_help()
     # print(args)
 
-    kws = read_kws(args.kw_txt)
-    process_header(args.kw_h, args.kw_h_in, kws)
-    process_source(args.kw_inc, args.kw_inc_in, kws)
+    cfgs = read_cfgs(args.kw_txt)
+    process_header(args.kw_h, args.kw_h_in, cfgs)
+    process_source(args.kw_inc, args.kw_inc_in, cfgs)
 

@@ -29,7 +29,7 @@
 
 #include <assert.h>
 
-enum {
+enum pcatom_bucket {
     ATOM_BUCKET_FIRST = 0,
 
     ATOM_BUCKET_DEF = ATOM_BUCKET_FIRST,

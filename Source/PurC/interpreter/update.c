@@ -184,7 +184,7 @@ process_array(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 
     purc_set_error_with_info(PURC_ERROR_NOT_SUPPORTED,
             "vdom attribute '%s'='%s' for element <%s>",
-            pchvml_keyword_str(PCHVML_KEYWORD_ENUM(TO)),
+            pchvml_keyword_str(PCHVML_KEYWORD_ENUM(HVML, TO)),
             op, element->tag_name);
     return -1;
 }
@@ -501,19 +501,19 @@ attr_found(struct pcintr_stack_frame *frame,
 
     PC_ASSERT(name);
 
-    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(ON)) == name) {
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, ON)) == name) {
         return process_attr_on(frame, element, name, val);
     }
-    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(TO)) == name) {
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, TO)) == name) {
         return process_attr_to(frame, element, name, val);
     }
-    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(WITH)) == name) {
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, WITH)) == name) {
         return process_attr_with(frame, element, name, val);
     }
-    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(FROM)) == name) {
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, FROM)) == name) {
         return process_attr_from(frame, element, name, val);
     }
-    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(AT)) == name) {
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, AT)) == name) {
         return process_attr_at(frame, element, name, val);
     }
 

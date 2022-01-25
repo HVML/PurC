@@ -151,8 +151,8 @@ static void init_modules_once(void)
 {
     // TODO: init modules working without instance here.
     pcutils_atom_init_once();
-    pchvml_keywords_init();
     pcexcept_init_once();
+    pchvml_keywords_init();
 
     pcinst_register_error_message_segment(&_generic_err_msgs_seg);
 

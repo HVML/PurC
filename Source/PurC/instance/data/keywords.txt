@@ -1,12 +1,22 @@
-# attributes
-on
-to
-with
-from
-at
-in
-by
-as
-uniquely
-via
+# ref: Source/PurC/include/private/atom-buckets.h
+# note: case insensitive in C macro!!!
+# syntax: prefix keyword
+#    generate enums: PCHVML_KEYWORD_<PREFIX>_<KEYWORD>
+#    generate cfgs: { ATOM_BUCKET_<PREFIX>, "<KEYWORD>", 0 }
+# eg: hvml on
+#     PURC_ATOM_HVML_ON
+#     { ATOM_BUCKET_HVML, "on", 0 }
+#
+
+# hvml tags and attributes
+hvml on
+hvml to
+hvml with
+hvml from
+hvml at
+hvml in
+hvml by
+hvml as
+hvml uniquely
+hvml via
 

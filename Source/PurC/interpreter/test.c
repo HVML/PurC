@@ -221,19 +221,19 @@ attr_found(struct pcintr_stack_frame *frame,
 
     PC_ASSERT(name);
 
-    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(ON)) == name) {
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, ON)) == name) {
         return process_attr_on(frame, element, name, val);
     }
-    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(IN)) == name) {
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, IN)) == name) {
         return process_attr_in(frame, element, name, val);
     }
-    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(BY)) == name && 0) {
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, BY)) == name && 0) {
         return process_attr_by(frame, element, name, val);
     }
-    // if (pchvml_keyword(PCHVML_KEYWORD_ENUM(FROM)) == name) {
+    // if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, FROM)) == name) {
     //     return process_attr_from(frame, element, name, val);
     // }
-    // if (pchvml_keyword(PCHVML_KEYWORD_ENUM(AT)) == name) {
+    // if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, AT)) == name) {
     //     return process_attr_at(frame, element, name, val);
     // }
 
