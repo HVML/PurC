@@ -56,6 +56,8 @@ def read_cfgs_fin(fin):
 def read_cfgs(fn):
     fin = open(fn, "r")
     cfgs = read_cfgs_fin(fin)
+    for cfg in cfgs:
+        cfgs[cfg] = sorted(cfgs[cfg])
     fin.close()
     return cfgs
 
