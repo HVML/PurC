@@ -327,6 +327,18 @@ enum purc_variant_type purc_variant_get_type(purc_variant_t value)
     return value->type;
 }
 
+bool pcvariant_is_mutable(purc_variant_t val)
+{
+    switch (val->type) {
+        case PURC_VARIANT_TYPE_ARRAY:
+        case PURC_VARIANT_TYPE_OBJECT:
+        case PURC_VARIANT_TYPE_SET:
+            return true;
+        default:
+            return false;
+    }
+}
+
 static inline void
 referenced(purc_variant_t value)
 {

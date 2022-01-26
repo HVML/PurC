@@ -219,6 +219,13 @@ variant_set_cache_obj_keyval(variant_set_t set,
         for (size_t i=0; i<set->nr_keynames; ++i) {
             purc_variant_t v;
             v = purc_variant_object_get_by_ckey(value, set->keynames[i], false);
+            if (v!=PURC_VARIANT_INVALID && pcvariant_is_mutable(v)) {
+                // FIXME: PURC_ERROR_INVALID_VALUE?
+                purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                    "mutable variant can NOT be used as value of "
+                    "set's uniqkey");
+                return -1;
+            }
             kvs[i] = v;
         }
     } else {
@@ -340,7 +347,6 @@ variant_set_create_kvs (variant_set_t set, purc_variant_t val)
 
     if (variant_set_cache_obj_keyval(set, val, kvs)) {
         free(kvs);
-        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
     }
 
@@ -614,10 +620,8 @@ variant_set_add_val(purc_variant_t set,
     struct elem_node *_new;
     _new = variant_set_create_elem_node(data, val);
 
-    if (!_new) {
-        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+    if (!_new)
         return -1;
-    }
 
     if (insert_or_replace(set, data, _new, override)) {
         set_release(_new);

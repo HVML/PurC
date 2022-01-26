@@ -286,6 +286,8 @@ extern purc_atom_t pcvariant_atom_change;
 extern purc_atom_t pcvariant_atom_reference;
 extern purc_atom_t pcvariant_atom_unreference;
 
+bool pcvariant_is_mutable(purc_variant_t val);
+
 bool pcvariant_on_pre_fired(
         purc_variant_t source,  // the source variant
         purc_atom_t op,  // the atom of the operation,
