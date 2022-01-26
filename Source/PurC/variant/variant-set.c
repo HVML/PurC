@@ -751,7 +751,8 @@ purc_variant_make_set (size_t sz, purc_variant_t unique_key,
 bool
 purc_variant_set_add (purc_variant_t set, purc_variant_t value, bool override)
 {
-    PCVARIANT_CHECK_FAIL_RET(set && set->type==PVT(_SET) && value,
+    PCVARIANT_CHECK_FAIL_RET(set && set->type==PVT(_SET) &&
+        value && value->type==PVT(_OBJECT),
         PURC_VARIANT_INVALID);
 
     variant_set_t data = pcv_set_get_data(set);

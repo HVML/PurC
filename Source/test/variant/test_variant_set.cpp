@@ -99,34 +99,9 @@ TEST(variant_set, non_object)
         "great",
         "wall",
     };
-    const char *expects[] = {
-        "hello",
-        "world",
-        "foo",
-        "bar",
-        "great",
-        "wall",
-    };
-
-    const size_t ids[] = {
-        3,
-        3,
-        3,
-        2,
-        1,
-        0,
-    };
 
     const size_t idx_to_set = 3;
     const char *s_to_set = "foobar";
-    const char *expects2[] = {
-        "hello",
-        "world",
-        "foo",
-        "great",
-        "wall",
-        "foobar",
-    };
 
     purc_variant_t set;
     set = purc_variant_make_set_by_ckey(0, NULL, PURC_VARIANT_INVALID);
@@ -139,94 +114,17 @@ TEST(variant_set, non_object)
             s = purc_variant_make_string_static(elem, false);
             ASSERT_NE(s, PURC_VARIANT_INVALID);
             bool ok = purc_variant_set_add(set, s, false);
-            ASSERT_TRUE(ok);
-            purc_variant_unref(s);
-        }
-
-        // test override
-        for (size_t i=0; i<PCA_TABLESIZE(elems); ++i) {
-            const char *elem = elems[i];
-            purc_variant_t s;
-            s = purc_variant_make_string_static(elem, false);
-            ASSERT_NE(s, PURC_VARIANT_INVALID);
-            bool ok = purc_variant_set_add(set, s, false);
             ASSERT_FALSE(ok);
             purc_variant_unref(s);
         }
 
         purc_variant_t v;
-        size_t i = 0;
-        foreach_value_in_variant_set(set, v)
-            const char *s = purc_variant_get_string_const(v);
-            const char *expect = expects[i++];
-            ASSERT_STREQ(s, expect);
-        end_foreach;
-
-        v = purc_variant_set_remove_by_index(set, -1);
-        ASSERT_EQ(v, PURC_VARIANT_INVALID);
-
-        size_t sz;
-        bool ok = purc_variant_set_size(set, &sz);
-        ASSERT_TRUE(ok);
-        ASSERT_EQ(sz, PCA_TABLESIZE(elems));
-        v = purc_variant_set_remove_by_index(set, sz);
-        ASSERT_EQ(v, PURC_VARIANT_INVALID);
-
-        for (size_t i=0; i<PCA_TABLESIZE(ids); ++i) {
-            size_t id = ids[i];
-            purc_variant_t v = purc_variant_set_remove_by_index(set, id);
-            ASSERT_NE(v, PURC_VARIANT_INVALID);
-            purc_variant_unref(v);
-        }
-
-        ok = purc_variant_set_size(set, &sz);
-        ASSERT_TRUE(ok);
-        ASSERT_EQ(sz, 0);
-    }
-
-    if (1) {
-        for (size_t i=0; i<PCA_TABLESIZE(elems); ++i) {
-            const char *elem = elems[i];
-            purc_variant_t s;
-            s = purc_variant_make_string_static(elem, false);
-            ASSERT_NE(s, PURC_VARIANT_INVALID);
-            bool ok = purc_variant_set_add(set, s, false);
-            ASSERT_TRUE(ok);
-            purc_variant_unref(s);
-        }
-
-        // test override
-        for (size_t i=0; i<PCA_TABLESIZE(elems); ++i) {
-            const char *elem = elems[i];
-            purc_variant_t s;
-            s = purc_variant_make_string_static(elem, false);
-            ASSERT_NE(s, PURC_VARIANT_INVALID);
-            bool ok = purc_variant_set_add(set, s, false);
-            ASSERT_FALSE(ok);
-            purc_variant_unref(s);
-        }
-
-        purc_variant_t v;
-        size_t i = 0;
-        foreach_value_in_variant_set(set, v)
-            const char *s = purc_variant_get_string_const(v);
-            const char *expect = expects[i++];
-            ASSERT_STREQ(s, expect);
-        end_foreach;
-
         v = purc_variant_make_string_static(s_to_set, false);
         ASSERT_NE(v, PURC_VARIANT_INVALID);
         bool ok = purc_variant_set_set_by_index(set, idx_to_set, v);
-        ASSERT_TRUE(ok);
+        ASSERT_FALSE(ok);
         purc_variant_unref(v);
-        i = 0;
-        foreach_value_in_variant_set(set, v)
-            const char *s = purc_variant_get_string_const(v);
-            const char *expect = expects2[i++];
-            ASSERT_STREQ(s, expect);
-        end_foreach;
     }
-
 
     purc_variant_unref(set);
     cleanup = purc_cleanup ();
