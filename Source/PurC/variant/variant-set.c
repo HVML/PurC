@@ -40,6 +40,34 @@
 
 #define TO_DEBUG 1
 
+static inline bool
+grow(purc_variant_t set, purc_variant_t value)
+{
+    purc_variant_t vals[] = { value };
+
+    return pcvariant_on_pre_fired(set, pcvariant_atom_grow,
+            PCA_TABLESIZE(vals), vals);
+}
+
+static inline bool
+shrink(purc_variant_t set, purc_variant_t value)
+{
+    purc_variant_t vals[] = { value };
+
+    return pcvariant_on_pre_fired(set, pcvariant_atom_shrink,
+            PCA_TABLESIZE(vals), vals);
+}
+
+static inline bool
+change(purc_variant_t set,
+        purc_variant_t o, purc_variant_t n)
+{
+    purc_variant_t vals[] = { o, n };
+
+    return pcvariant_on_pre_fired(set, pcvariant_atom_change,
+            PCA_TABLESIZE(vals), vals);
+}
+
 static inline void
 grown(purc_variant_t set, purc_variant_t value)
 {
@@ -423,6 +451,13 @@ insert_or_replace(purc_variant_t set,
         if (r)
             return -1;
         size_t count = pcutils_arrlist_length(data->arr);
+
+        if (!grow(set, node->elem)) {
+            bool ok = pcutils_arrlist_del_idx(data->arr, count-1, 1);
+            PC_ASSERT(ok);
+            return -1;
+        }
+
         node->idx = count - 1;
 
         entry = &node->node;
@@ -506,6 +541,11 @@ insert_or_replace(purc_variant_t set,
         return -1;
     }
 
+    if (!change(set, curr->elem, tmp)) {
+        purc_variant_unref(tmp);
+        return -1;
+    }
+
     changed(set, curr->elem, tmp);
 
     // replace with tmp, performance, performance, performance!!!
@@ -541,9 +581,13 @@ insert_or_replace(purc_variant_t set,
     return 0;
 }
 
-static inline void
+static inline int
 set_remove(purc_variant_t set, variant_set_t data, struct elem_node *node)
 {
+    if (!shrink(set, node->elem)) {
+        return -1;
+    }
+
     pcutils_rbtree_erase(&node->node, &data->elems);
     int r = pcutils_arrlist_del_idx(data->arr, node->idx, 1);
     PC_ASSERT(r==0);
@@ -554,6 +598,8 @@ set_remove(purc_variant_t set, variant_set_t data, struct elem_node *node)
     node->idx = -1;
     set_release(node);
     free(node);
+
+    return 0;
 }
 
 static int
@@ -730,12 +776,16 @@ purc_variant_set_remove (purc_variant_t set, purc_variant_t value,
     if (!kvs)
         return false;
 
+    int r = 0;
     struct elem_node *p;
     p = find_element(data, kvs);
     if (p) {
-        set_remove(set, data, p);
+        r = set_remove(set, data, p);
     }
     free(kvs);
+
+    if (r)
+        return false;
 
     return p ? true : (silently ? true : false);
 }
@@ -798,7 +848,11 @@ purc_variant_set_remove_member_by_key_values(purc_variant_t set,
     purc_variant_t v = p->elem;
     purc_variant_ref(v);
 
-    set_remove(set, data, p);
+    int r = set_remove(set, data, p);
+    if (r) {
+        purc_variant_unref(v);
+        return PURC_VARIANT_INVALID;
+    }
 
     size_t extra = variant_set_get_extra_size(data);
     pcvariant_stat_set_extra_size(set, extra);
@@ -863,7 +917,14 @@ purc_variant_set_remove_by_index(purc_variant_t set, int idx)
     purc_variant_t v = elem->elem;
     purc_variant_ref(v);
 
-    set_remove(set, data, elem);
+    int r = set_remove(set, data, elem);
+    if (r) {
+        purc_variant_unref(v);
+        return PURC_VARIANT_INVALID;
+    }
+
+    size_t extra = variant_set_get_extra_size(data);
+    pcvariant_stat_set_extra_size(set, extra);
 
     return v;
 }

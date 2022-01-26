@@ -38,6 +38,35 @@
 #define OBJ_EXTRA_SIZE(data) (sizeof(*data) + \
         (data->size) * sizeof(struct obj_node))
 
+static inline bool
+grow(purc_variant_t obj, purc_variant_t key, purc_variant_t val)
+{
+    purc_variant_t vals[] = { key, val };
+
+    return pcvariant_on_pre_fired(obj, pcvariant_atom_grow,
+            PCA_TABLESIZE(vals), vals);
+}
+
+static inline bool
+shrink(purc_variant_t obj, purc_variant_t key, purc_variant_t val)
+{
+    purc_variant_t vals[] = { key, val };
+
+    return pcvariant_on_pre_fired(obj, pcvariant_atom_shrink,
+            PCA_TABLESIZE(vals), vals);
+}
+
+static inline bool
+change(purc_variant_t obj,
+        purc_variant_t ko, purc_variant_t vo,
+        purc_variant_t kn, purc_variant_t vn)
+{
+    purc_variant_t vals[] = { ko, vo, kn, vn };
+
+    return pcvariant_on_pre_fired(obj, pcvariant_atom_change,
+            PCA_TABLESIZE(vals), vals);
+}
+
 static inline void
 grown(purc_variant_t obj, purc_variant_t key, purc_variant_t val)
 {
@@ -140,6 +169,12 @@ v_object_set(purc_variant_t obj, purc_variant_t k, purc_variant_t val)
             pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
             return -1;
         }
+
+        if (!grow(obj, k, val)) {
+            free(node);
+            return -1;
+        }
+
         node->key = k;
         node->val = val;
         purc_variant_ref(k);
@@ -157,6 +192,10 @@ v_object_set(purc_variant_t obj, purc_variant_t k, purc_variant_t val)
 
     struct obj_node *node;
     node = container_of(entry, struct obj_node, node);
+
+    if (!change(obj, node->key, node->val, k, val)) {
+        return -1;
+    }
 
     changed(obj, node->key, node->val, k, val);
 
@@ -237,13 +276,17 @@ v_object_remove(purc_variant_t obj, purc_variant_t key, bool silently)
         return -1;
     }
 
-    pcutils_rbtree_erase(entry, root);
-    --data->size;
-
     struct obj_node *node;
     node = container_of(entry, struct obj_node, node);
     purc_variant_t k = node->key;
     purc_variant_t v = node->val;
+
+    if (!shrink(obj, k, v)) {
+        return -1;
+    }
+
+    pcutils_rbtree_erase(entry, root);
+    --data->size;
 
     shrunk(obj, k, v);
     purc_variant_unref(k);
