@@ -1,11 +1,14 @@
 # ref: Source/PurC/include/private/atom-buckets.h
 # note: case insensitive in C macro!!!
 # syntax: prefix keyword
-#    generate enums: PCHVML_KEYWORD_<PREFIX>_<KEYWORD>
-#    generate cfgs: { ATOM_BUCKET_<PREFIX>, "<KEYWORD>", 0 }
+#    generate enums:    PCHVML_KEYWORD_<PREFIX>_<KEYWORD>
+#    generate cfgs:     { 0, "<KEYWORD>" }
+#    generate func_calls:
+#       keywords_bucket_init(keywords, start, end, ATOM_BUCKET_<PREFIX>)
 # eg: hvml on
 #     PURC_ATOM_HVML_ON
-#     { ATOM_BUCKET_HVML, "on", 0 }
+#     { 0, "on" }
+#     keywords_bucket_init(keywords, <??>, <??>, ATOM_BUCKET_<PREFIX>)
 #
 
 # hvml tags and attributes

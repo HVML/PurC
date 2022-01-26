@@ -28,3 +28,8 @@ static struct pchvml_keyword_cfg keywords[] = {
 %%keywords%%
 };
 
+void pchvml_keywords_init(void)
+{
+%%keywords_bucket_init%%
+}
+

@@ -29,7 +29,7 @@ Make HVML keywords table:
 import argparse
 
 def read_cfgs_fin(fin):
-    cfgs = []
+    cfgs = {}
     line_no = 1
     line = fin.readline()
     while line:
@@ -40,7 +40,15 @@ def read_cfgs_fin(fin):
             continue
 
         cfg = s.split()
-        cfgs.append({'prefix':cfg[0], 'kw':cfg[1]})
+
+        prefix = cfg[0]
+        kw = cfg[1]
+
+        if not prefix in cfgs:
+            cfgs[prefix] = []
+
+        cfgs[prefix].append(kw)
+
         line = fin.readline()
 
     return cfgs
@@ -51,17 +59,26 @@ def read_cfgs(fn):
     fin.close()
     return cfgs
 
-def gen_PURC_KEYWORD(cfg):
-    # generate enums: PCHVML_KEYWORD_<PREFIX>_<KEYWORD>
-    prefix = cfg['prefix'].upper()
-    kw = cfg['kw'].upper()
-    return "    PCHVML_KEYWORD_%s_%s" % (prefix, kw)
+def gen_PURC_KEYWORD(idx, nr, first, prefix, kw):
+    # generate enums:    PCHVML_KEYWORD_<PREFIX>_<KEYWORD>
+    if idx == first:
+        s = "/*=*/"
+    else:
+        s = "     "
+    return "    /* %*d */ %s PCHVML_KEYWORD_%s_%s" % (len(str(nr)), idx, s, prefix.upper(), kw.upper())
 
-def gen_pchvml_keyword(cfg):
-    #generate cfgs: { ATOM_BUCKET_<PREFIX>, "<KEYWORD>", 0 }
-    prefix = cfg['prefix'].upper()
-    kw = cfg['kw']
-    return "    { ATOM_BUCKET_%s, \"%s\", 0 }" % (prefix, kw)
+def gen_pchvml_keyword(idx, nr, first, prefix, sz, kw):
+    # generate cfgs:     { 0, "<KEYWORD>" }
+    if idx == first:
+        s = "/*=*/"
+    else:
+        s = "     "
+    return "    /* ATOM_BUCKET_%-*s */ %s { 0, \"%s\" }" % (len(str(sz)), prefix.upper(), s, kw)
+
+def gen_keywords_bucket_init(prefix, start, end):
+    # generate func_calls:
+    #   keywords_bucket_init(keywords, start, end, ATOM_BUCKET_<PREFIX>)
+    return "    keywords_bucket_init(keywords, %s, %s, ATOM_BUCKET_%s)" % (start, end, prefix.upper())
 
 def process_header_fn(fout, fin, cfgs):
     line_no = 1
@@ -69,9 +86,19 @@ def process_header_fn(fout, fin, cfgs):
     while line:
         s = line.strip()
         if s == "%%keywords%%":
-            for cfg in cfgs:
-                s = gen_PURC_KEYWORD(cfg)
-                fout.write("%s,\n" % s)
+            idx = 0
+            nr = 0
+            for prefix in cfgs:
+                kws = cfgs[prefix]
+                nr += len(kws)
+
+            for prefix in cfgs:
+                kws = cfgs[prefix]
+                first = idx
+                for kw in kws:
+                    s = gen_PURC_KEYWORD(idx, nr, first, prefix, kw)
+                    fout.write("%s,\n" % s)
+                    idx += 1
         else:
             fout.write(line)
         line_no = line_no + 1
@@ -90,9 +117,33 @@ def process_source_fn(fout, fin, cfgs):
     while line:
         s = line.strip()
         if s == "%%keywords%%":
-            for cfg in cfgs:
-                s = gen_pchvml_keyword(cfg)
-                fout.write("%s,\n" % s)
+            sz = 0;
+            for prefix in cfgs:
+                if sz < len(prefix):
+                    sz = len(prefix)
+
+            idx = 0
+            nr = 0
+            for prefix in cfgs:
+                kws = cfgs[prefix]
+                nr += len(kws)
+
+            for prefix in cfgs:
+                kws = cfgs[prefix]
+                first = idx
+                for kw in kws:
+                    s = gen_pchvml_keyword(idx, nr, first, prefix, sz, kw)
+                    fout.write("%s,\n" % s)
+                    idx += 1
+        elif s == "%%keywords_bucket_init%%":
+            start = 0
+            for prefix in cfgs:
+                kws = cfgs[prefix]
+                nr = len(kws)
+                end = start + nr;
+                s = gen_keywords_bucket_init(prefix, start, end)
+                fout.write("%s;\n" % s)
+                start = end
         else:
             fout.write(line)
         line_no = line_no + 1

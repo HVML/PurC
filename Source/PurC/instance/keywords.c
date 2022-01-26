@@ -26,22 +26,23 @@
 #include "private/debug.h"
 
 struct pchvml_keyword_cfg {
-    enum pcatom_bucket          bucket;
-    const char                 *keyword;
     purc_atom_t                 atom;
+    const char                 *keyword;
 };
 
-#include "keywords.inc"
-
-void pchvml_keywords_init(void)
+static void
+keywords_bucket_init(struct pchvml_keyword_cfg *cfgs,
+        size_t start, size_t end, enum pcatom_bucket bucket)
 {
-    size_t nr = PCA_TABLESIZE(keywords);
-    for (size_t i=0; i<nr; ++i) {
-        struct pchvml_keyword_cfg *cfg = keywords + i;
-        cfg->atom = purc_atom_from_string_ex(cfg->bucket, cfg->keyword);
+    struct pchvml_keyword_cfg *cfg = cfgs + start;
+    for (size_t i=start; i<end; ++i) {
+        cfg->atom = purc_atom_from_string_ex(bucket, cfg->keyword);
         PC_ASSERT(cfg->atom);
+        ++cfg;
     }
 }
+
+#include "keywords.inc"
 
 purc_atom_t pchvml_keyword(enum pchvml_keyword_enum keyword)
 {
