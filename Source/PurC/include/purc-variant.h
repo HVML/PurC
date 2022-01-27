@@ -43,19 +43,6 @@ typedef struct purc_variant* purc_variant_t;
 
 PCA_EXTERN_C_BEGIN
 
-typedef bool (*pcvar_op_handler) (
-        purc_variant_t source,  // the source variant.
-        purc_atom_t op,         // the atom of the operation string,
-                                // such as `grown`,  `shrunk`, or `change`.
-        void *ctxt,             // the context stored when registering
-                                // the handler.
-        size_t nr_args,         // the number of the relevant child variants
-                                // (only for container).
-        purc_variant_t *argv    // the array of all relevant child variants
-                                // (only for container).
-        );
-
-
 /**
  * Adds ref for a variant value
  *
