@@ -37,22 +37,6 @@ struct dynamic_args {
     purc_dvariant_method     setter;
 };
 
-static inline bool
-set_object_by(purc_variant_t obj, struct dynamic_args *arg)
-{
-    purc_variant_t dynamic;
-    dynamic = purc_variant_make_dynamic(arg->getter, arg->setter);
-    if (dynamic == PURC_VARIANT_INVALID)
-        return false;
-
-    bool ok = purc_variant_object_set_by_static_ckey(obj, arg->name, dynamic);
-    if (ok)
-        return true;
-
-    purc_variant_unref(dynamic);
-    return false;
-}
-
 static inline purc_variant_t
 doctype_system(struct pcdom_document *doc)
 {
