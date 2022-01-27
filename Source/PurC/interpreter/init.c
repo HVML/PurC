@@ -398,7 +398,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     from = ctxt->from;
     if (from != PURC_VARIANT_INVALID && purc_variant_is_string(from)) {
         const char* uri = purc_variant_get_string_const(from);
-        purc_variant_t v = pcintr_load_from_uri(uri);
+        purc_variant_t v = pcintr_load_from_uri(stack, uri);
         if (v == PURC_VARIANT_INVALID)
             return NULL;
         PURC_VARIANT_SAFE_CLEAR(frame->ctnt_var);

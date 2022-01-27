@@ -55,10 +55,10 @@ pcintr_element_eval_vcm_content(struct pcintr_stack_frame *frame,
 void pcintr_coroutine_ready(void);
 
 void
-pcintr_set_base_uri(const char* base_uri);
+pcintr_set_base_uri(pcintr_stack_t stack, const char* base_uri);
 
 purc_variant_t
-pcintr_load_from_uri(const char* uri);
+pcintr_load_from_uri(pcintr_stack_t stack, const char* uri);
 
 int
 pcintr_set_symbol_var_at_sign(void);

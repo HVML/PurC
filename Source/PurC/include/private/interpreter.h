@@ -151,6 +151,9 @@ struct pcintr_stack {
 
     // for loaded dynamic variants
     struct rb_root             loaded_vars;  // struct pcintr_loaded_var*
+
+    // base uri
+    char* base_uri;
 };
 
 enum purc_symbol_var {

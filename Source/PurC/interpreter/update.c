@@ -105,7 +105,7 @@ get_source_by_from(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     UNUSED_PARAM(co);
     UNUSED_PARAM(frame);
     const char* uri = purc_variant_get_string_const(from);
-    return pcintr_load_from_uri(uri);
+    return pcintr_load_from_uri(co->stack, uri);
 }
 
 static int

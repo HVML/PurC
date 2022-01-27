@@ -601,6 +601,10 @@ stack_release(pcintr_stack_t stack)
     }
 
     loaded_vars_release(stack);
+
+    if (stack->base_uri) {
+        free(stack->base_uri);
+    }
 }
 
 static void
@@ -1466,9 +1470,9 @@ purc_run(purc_variant_t request, purc_event_handler handler)
     UNUSED_PARAM(request);
     UNUSED_PARAM(handler);
 
-    pcfetcher_init(10, 1024);
+//    pcfetcher_init(10, 1024);
     pcrunloop_run();
-    pcfetcher_term();
+//    pcfetcher_term();
 
     return true;
 }
@@ -1961,18 +1965,25 @@ pcintr_dispatch_message(pcintr_stack_t stack, purc_variant_t source,
 }
 
 void
-pcintr_set_base_uri(const char* base_uri)
+pcintr_set_base_uri(pcintr_stack_t stack, const char* base_uri)
 {
-    pcfetcher_set_base_url(base_uri);
+    if (stack->base_uri) {
+        free(stack->base_uri);
+    }
+    stack->base_uri = strdup(base_uri);
 }
 
 purc_variant_t
-pcintr_load_from_uri(const char* uri)
+pcintr_load_from_uri(pcintr_stack_t stack, const char* uri)
 {
     if (uri == NULL) {
         return PURC_VARIANT_INVALID;
     }
 
+    pcfetcher_init(10, 1024);
+    if (stack->base_uri) {
+        pcfetcher_set_base_url(stack->base_uri);
+    }
     purc_variant_t ret = PURC_VARIANT_INVALID;
     struct pcfetcher_resp_header resp_header = {0};
     purc_rwstream_t resp = pcfetcher_request_sync(
@@ -1993,6 +2004,7 @@ pcintr_load_from_uri(const char* uri)
     if (resp_header.mime_type) {
         free(resp_header.mime_type);
     }
+    pcfetcher_term();
     return ret;
 }
 
