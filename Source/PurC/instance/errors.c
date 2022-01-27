@@ -31,8 +31,6 @@
 
 #include "private/interpreter.h" // FIXME:
 
-#include <dlfcn.h>
-#include <elf.h>
 #include <execinfo.h>
 #include <link.h>
 #include <regex.h>
