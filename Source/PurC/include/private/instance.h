@@ -40,11 +40,14 @@ struct pcinst {
     const char *file;
     int lineno;
     const char *func;
+
+#if OS(LINUX)                      /* { */
     void *c_stacks[64];
     int   nr_stacks;
     char  so[1024];
     char  addr1[256];
     char  addr2[64];
+#endif                             /* } */
 
     char* app_name;
     char* runner_name;

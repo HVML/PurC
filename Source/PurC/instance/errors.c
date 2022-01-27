@@ -31,11 +31,12 @@
 
 #include "private/interpreter.h" // FIXME:
 
+#include <stdarg.h>
+
 #if OS(LINUX)                      /* { */
 #include <execinfo.h>
 #include <link.h>
 #include <regex.h>
-#include <stdarg.h>
 #endif                             /* } */
 
 static const struct err_msg_info* get_error_info(int errcode);
@@ -78,7 +79,9 @@ int purc_set_error_exinfo_with_debug(int errcode, purc_variant_t exinfo,
     inst->lineno     = lineno;
     inst->func       = func;
 
+#if OS(LINUX)                      /* { */
     inst->nr_stacks = backtrace(inst->c_stacks, PCA_TABLESIZE(inst->c_stacks));
+#endif                             /* } */
 
     // set the exception info into stack
     pcintr_stack_t stack = purc_get_stack();
