@@ -31,10 +31,12 @@
 
 #include "private/interpreter.h" // FIXME:
 
+#if OS(LINUX)                      /* { */
 #include <execinfo.h>
 #include <link.h>
 #include <regex.h>
 #include <stdarg.h>
+#endif                             /* } */
 
 static const struct err_msg_info* get_error_info(int errcode);
 
@@ -174,6 +176,7 @@ void pcinst_register_error_message_segment(struct err_msg_seg* seg)
     }
 }
 
+#if OS(LINUX)                      /* { */
 static void
 dump_stack_by_cmd(int *level, const char *cmd)
 {
@@ -304,9 +307,11 @@ dump_stacks_ex(char **stacks, regex_t *regex)
     if (added)
         dump_stack_by_cmd(&level, cmd);
 }
+#endif                             /* } */
 
 void pcinst_dump_stack(void)
 {
+#if OS(LINUX)                      /* { */
     struct pcinst* inst = pcinst_current();
     PC_ASSERT(inst);
 
@@ -332,5 +337,6 @@ void pcinst_dump_stack(void)
     regfree(&regex);
 
     free(stacks);
+#endif                             /* } */
 }
 
