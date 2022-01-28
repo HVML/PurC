@@ -39,7 +39,7 @@
 #include <libgen.h>
 #include <limits.h>
 
-#define TO_DEBUG 1
+#define TO_DEBUG 0
 
 struct ctxt_for_document {
     struct pcvdom_node           *curr;
@@ -77,8 +77,6 @@ token_found(const char *start, const char *end, void *ud)
 static void*
 after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 {
-    D("");
-
     PC_ASSERT(stack);
     PC_ASSERT(stack == purc_get_stack());
 
@@ -90,8 +88,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     struct pcvdom_doctype  *doctype = &document->doctype;
     const char *system_info = doctype->system_info;
     if (system_info) {
-        D("system_info: %s", system_info);
-
         const char *p = strchr(system_info, ':');
         if (p) {
             ++p;
@@ -144,7 +140,6 @@ on_popping(pcintr_stack_t stack, void* ud)
         frame->ctxt = NULL;
     }
 
-    D("");
     return true;
 }
 
@@ -164,8 +159,6 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     UNUSED_PARAM(co);
     UNUSED_PARAM(frame);
     PC_ASSERT(content);
-    char *text = content->text;
-    D("content: [%s]", text);
 }
 
 static void
@@ -175,15 +168,11 @@ on_comment(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     UNUSED_PARAM(co);
     UNUSED_PARAM(frame);
     PC_ASSERT(comment);
-    char *text = comment->text;
-    D("comment: [%s]", text);
 }
 
 static pcvdom_element_t
 select_child(pcintr_stack_t stack, void* ud)
 {
-    D("");
-
     PC_ASSERT(stack);
     PC_ASSERT(stack == purc_get_stack());
 

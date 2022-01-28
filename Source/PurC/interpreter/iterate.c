@@ -200,15 +200,6 @@ attr_found(struct pcintr_stack_frame *frame,
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, BY)) == name) {
         return process_attr_by(frame, element, name, val);
     }
-    // if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, IN)) == name) {
-    //     return process_attr_in(frame, element, name, val);
-    // }
-    // if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, FROM)) == name) {
-    //     return process_attr_from(frame, element, name, val);
-    // }
-    // if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, AT)) == name) {
-    //     return process_attr_at(frame, element, name, val);
-    // }
 
     purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
             "vdom attribute '%s' for element <%s>",
@@ -238,7 +229,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     struct pcvdom_element *element = frame->pos;
     PC_ASSERT(element);
-    D("<%s>", element->tag_name);
 
     struct ctxt_for_iterate *ctxt;
     ctxt = (struct ctxt_for_iterate*)calloc(1, sizeof(*ctxt));
@@ -332,6 +322,8 @@ rerun(pcintr_stack_t stack, void* ud)
     purc_exec_inst_t exec_inst;
     exec_inst = ctxt->exec_inst;
     PC_ASSERT(exec_inst);
+
+    frame->idx += 1;
 
     purc_exec_iter_t it = ctxt->it;
     PC_ASSERT(it);

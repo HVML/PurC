@@ -84,14 +84,10 @@ post_process_bind_scope_var(pcintr_coroutine_t co,
     struct ctxt_for_init *ctxt = (struct ctxt_for_init*)frame->ctxt;
     if (ctxt->under_head) {
         ok = purc_bind_document_variable(co->stack->vdom, s_name, val);
-        if (ok)
-            D("[%s] bound at doc[%p]", s_name, co->stack->vdom);
     } else {
         element = pcvdom_element_parent(element);
         PC_ASSERT(element);
         ok = pcintr_bind_scope_variable(element, s_name, val);
-        if (ok)
-            D("[%s] bound at scope[%s]", s_name, element->tag_name);
     }
 
     return ok ? 0 : -1;
@@ -367,7 +363,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     struct pcvdom_element *element = frame->pos;
     PC_ASSERT(element);
-    D("<%s>", element->tag_name);
 
     struct ctxt_for_init *ctxt;
     ctxt = (struct ctxt_for_init*)calloc(1, sizeof(*ctxt));
@@ -450,7 +445,6 @@ on_popping(pcintr_stack_t stack, void* ud)
         frame->ctxt = NULL;
     }
 
-    D("</%s>", element->tag_name);
     return true;
 }
 

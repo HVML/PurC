@@ -76,7 +76,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     struct pcvdom_element *element = frame->pos;
     PC_ASSERT(element);
-    D("<%s>", element->tag_name);
 
     int r;
     r = pcintr_element_eval_attrs(frame, element);
@@ -124,7 +123,6 @@ on_popping(pcintr_stack_t stack, void* ud)
         frame->ctxt = NULL;
     }
 
-    D("</%s>", element->tag_name);
     return true;
 }
 
@@ -144,8 +142,6 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     UNUSED_PARAM(co);
     UNUSED_PARAM(frame);
     PC_ASSERT(content);
-    char *text = content->text;
-    D("content: [%s]", text);
 }
 
 static void
@@ -155,8 +151,6 @@ on_comment(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     UNUSED_PARAM(co);
     UNUSED_PARAM(frame);
     UNUSED_PARAM(comment);
-    char *text = comment->text;
-    D("comment: [%s]", text);
 }
 
 static pcvdom_element_t

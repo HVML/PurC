@@ -124,7 +124,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     struct pcvdom_element *element = frame->pos;
     PC_ASSERT(element);
-    D("<%s>", element->tag_name);
 
     struct ctxt_for_archetype *ctxt;
     ctxt = (struct ctxt_for_archetype*)calloc(1, sizeof(*ctxt));
@@ -188,7 +187,6 @@ on_popping(pcintr_stack_t stack, void* ud)
         frame->ctxt = NULL;
     }
 
-    D("</%s>", element->tag_name);
     return true;
 }
 

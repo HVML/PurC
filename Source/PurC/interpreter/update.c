@@ -85,8 +85,10 @@ get_source_by_with(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         pcintr_stack_t stack = co->stack;
         PC_ASSERT(stack);
 
-        PRINT_VCM_NODE(vcm_content);
-        return pcvcm_eval(vcm_content, stack);
+        purc_variant_t v = pcvcm_eval(vcm_content, stack);
+        if (v == PURC_VARIANT_INVALID)
+            PRINT_VCM_NODE(vcm_content);
+        return v;
     }
     else if (purc_variant_is_type(with, PURC_VARIANT_TYPE_STRING)) {
         purc_variant_ref(with);
@@ -122,33 +124,31 @@ process_object(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     PC_ASSERT(to != PURC_VARIANT_INVALID);
     PC_ASSERT(src != PURC_VARIANT_INVALID);
 
+    purc_variant_t target = on;
+    purc_variant_t at  = ctxt->at;
+    if (at != PURC_VARIANT_INVALID) {
+        PC_ASSERT(purc_variant_is_string(at));
+        const char *s_at = purc_variant_get_string_const(at);
+        PC_ASSERT(s_at && s_at[0]=='.');
+        s_at += 1;
+        purc_variant_t v = purc_variant_object_get_by_ckey(on, s_at, false);
+        PC_ASSERT(v != PURC_VARIANT_INVALID);
+        target = v;
+        return -1;
+    }
+
     const char *op = purc_variant_get_string_const(to);
     PC_ASSERT(op);
     if (strcmp(op, "merge")==0) {
     // TODO
-#if 1
-        if (!purc_variant_object_merge_another(on, src, true)) {
+        if (!purc_variant_object_merge_another(target, src, true)) {
             purc_set_error(PURC_ERROR_INVALID_VALUE);
             return -1;
         }
-#else
-        if (!purc_variant_is_type(src, PURC_VARIANT_TYPE_OBJECT)) {
-            purc_set_error(PURC_ERROR_INVALID_VALUE);
-            return -1;
-        }
-        if (!purc_variant_is_type(on, PURC_VARIANT_TYPE_OBJECT)) {
-            purc_set_error(PURC_ERROR_INVALID_VALUE);
-            return -1;
-        }
-        purc_variant_t k, v;
-        foreach_key_value_in_variant_object(src, k, v)
-            bool ok = purc_variant_object_set(on, k, v);
-            PC_ASSERT(ok); // TODO: debug-only-now
-        end_foreach;
-#endif
         return 0;
     }
     if (strcmp(op, "displace")==0) {
+        PC_ASSERT(0); // Not implemented yet
         purc_variant_t at = ctxt->at;
         bool ok = purc_variant_object_set(on, at, src);
         return ok ? 0 : -1;
@@ -171,11 +171,24 @@ process_array(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     PC_ASSERT(to != PURC_VARIANT_INVALID);
     PC_ASSERT(src != PURC_VARIANT_INVALID);
 
+    purc_variant_t target = on;
+    purc_variant_t at  = ctxt->at;
+    if (at != PURC_VARIANT_INVALID) {
+        double d = purc_variant_numberify(at);
+        size_t idx = d;
+        purc_variant_t v = purc_variant_array_get(on, idx);
+        PC_ASSERT(v != PURC_VARIANT_INVALID);
+        if (v == PURC_VARIANT_INVALID)
+            return -1;
+        PC_ASSERT(v != PURC_VARIANT_INVALID); // Not implemented yet
+        target = v;
+    }
+
     const char *op = purc_variant_get_string_const(to);
     PC_ASSERT(op);
 
     if (strcmp(op, "append") == 0) {
-        bool ok = purc_variant_array_append(on, src);
+        bool ok = purc_variant_array_append(target, src);
         return ok ? 0 : -1;
     }
 
@@ -202,6 +215,12 @@ process_set(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     PC_ASSERT(on != PURC_VARIANT_INVALID);
     PC_ASSERT(to != PURC_VARIANT_INVALID);
     PC_ASSERT(src != PURC_VARIANT_INVALID);
+
+    purc_variant_t at  = ctxt->at;
+    if (at != PURC_VARIANT_INVALID) {
+        PC_ASSERT(0); // Not implemented yet
+        return -1;
+    }
 
     const char *op = purc_variant_get_string_const(to);
     PC_ASSERT(op);
@@ -293,7 +312,6 @@ process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         const char *s = purc_variant_get_string_const(src);
         // fprintf(stderr, "[%s]\n", s);
         // pcintr_printf_to_edom(stack, "%s", s);
-        D("[%s]", s);
         PC_ASSERT(to != PURC_VARIANT_INVALID);
         pcintr_printf_to_fragment(co->stack, on, to, at, "%s", s);
         return 0;
@@ -546,7 +564,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     struct pcvdom_element *element = frame->pos;
     PC_ASSERT(element);
-    D("<%s>", element->tag_name);
 
     struct ctxt_for_update *ctxt;
     ctxt = (struct ctxt_for_update*)calloc(1, sizeof(*ctxt));
@@ -619,7 +636,6 @@ on_popping(pcintr_stack_t stack, void* ud)
         frame->ctxt = NULL;
     }
 
-    D("</%s>", element->tag_name);
     return true;
 }
 
@@ -639,8 +655,6 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     UNUSED_PARAM(co);
     UNUSED_PARAM(frame);
     PC_ASSERT(content);
-    char *text = content->text;
-    D("content: [%s]", text);
 }
 
 static void
@@ -650,8 +664,6 @@ on_comment(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     UNUSED_PARAM(co);
     UNUSED_PARAM(frame);
     PC_ASSERT(comment);
-    char *text = comment->text;
-    D("comment: [%s]", text);
 }
 
 static pcvdom_element_t

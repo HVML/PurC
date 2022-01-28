@@ -1352,7 +1352,8 @@ purc_variant_t purc_variant_load_dvobj_from_so (const char *so_name,
 
     library_handle = dlopen(so_name, RTLD_LAZY);
     if(!library_handle) {
-        pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+        purc_set_error_with_info(PURC_ERROR_BAD_SYSTEM_CALL,
+                "Not found: %s", so_name);
         return PURC_VARIANT_INVALID;
     }
 
