@@ -29,6 +29,12 @@
 
 #include "fetcher-internal.h"
 
+#include <wtf/URL.h>
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
 #include <stdlib.h>
 
 struct pcfetcher_local {
@@ -149,9 +155,31 @@ purc_variant_t pcfetcher_local_request_async(
     UNUSED_PARAM(timeout);
     UNUSED_PARAM(handler);
     UNUSED_PARAM(ctxt);
+
+    if (!fetcher || !url || !handler) {
+        return PURC_VARIANT_INVALID;
+    }
+
+    struct pcfetcher_resp_header header;
+    purc_rwstream_t rws = pcfetcher_local_request_sync(fetcher, url, method,
+            params, timeout, &header);
+
+    purc_variant_t req_id = purc_variant_make_string(url, false);
+    if (rws) {
+        handler(req_id, ctxt, &header, rws);
+        return req_id;
+    }
+
+    purc_variant_unref(req_id);
     return PURC_VARIANT_INVALID;
 }
 
+off_t filesize(const char* filename)
+{
+    struct stat statbuf;
+    stat(filename,&statbuf);
+    return statbuf.st_size;
+}
 
 purc_rwstream_t pcfetcher_local_request_sync(
         struct pcfetcher* fetcher,
@@ -167,6 +195,33 @@ purc_rwstream_t pcfetcher_local_request_sync(
     UNUSED_PARAM(params);
     UNUSED_PARAM(timeout);
     UNUSED_PARAM(resp_header);
+
+    if (!fetcher || !url) {
+        return NULL;
+    }
+    struct pcfetcher_local* local = (struct pcfetcher_local*)fetcher;
+    String uri;
+    if (local->base_uri) {
+        uri.append(local->base_uri);
+    }
+    uri.append(url);
+    WTF::URL wurl(URL(), uri);
+    if (!wurl.isLocalFile()) {
+        return NULL;
+    }
+
+    const StringView path = wurl.path();
+    const CString& cpath = path.utf8();
+
+    const char* file = cpath.data();
+
+    purc_rwstream_t rws = purc_rwstream_new_from_file(file, "r");
+    if (rws && resp_header) {
+        resp_header->ret_code = 200;
+        resp_header->sz_resp = filesize(file);
+        return rws;
+    }
+
     return NULL;
 }
 
