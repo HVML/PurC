@@ -42,6 +42,7 @@
 
 typedef struct purc_instance_extra_info {
     const char *renderer_uri;
+    bool enable_remote_fetcher;
 } purc_instance_extra_info;
 
 PCA_EXTERN_C_BEGIN

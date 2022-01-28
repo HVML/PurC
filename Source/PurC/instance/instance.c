@@ -38,6 +38,7 @@
 #include "private/dvobjs.h"
 #include "private/executor.h"
 #include "private/atom-buckets.h"
+#include "fetcher.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -303,6 +304,9 @@ int purc_init_ex(unsigned int modules,
 
     /* TODO: connnect to renderer */
     UNUSED_PARAM(extra_info);
+    // default disable remote fetcher
+    pcfetcher_init(10, 1024,
+            (extra_info && extra_info->enable_remote_fetcher));
     return PURC_ERROR_OK;
 
 failed:
@@ -330,6 +334,7 @@ bool purc_cleanup(void)
         pchtml_cleanup_instance(curr_inst);
         pcdom_cleanup_instance(curr_inst); */
 
+        pcfetcher_term();
         cleanup_instance(curr_inst);
     }
 

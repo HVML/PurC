@@ -391,6 +391,8 @@ TEST(interpreter, basic)
     };
 
     purc_instance_extra_info info = {};
+    // enable for calculator_2/3/4
+    //info.enable_remote_fetcher = true;
     int ret = 0;
     bool cleanup = false;
 

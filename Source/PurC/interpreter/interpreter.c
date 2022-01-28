@@ -1470,9 +1470,7 @@ purc_run(purc_variant_t request, purc_event_handler handler)
     UNUSED_PARAM(request);
     UNUSED_PARAM(handler);
 
-//    pcfetcher_init(10, 1024);
     pcrunloop_run();
-//    pcfetcher_term();
 
     return true;
 }
@@ -1980,7 +1978,6 @@ pcintr_load_from_uri(pcintr_stack_t stack, const char* uri)
         return PURC_VARIANT_INVALID;
     }
 
-    pcfetcher_init(10, 1024, true);
     if (stack->base_uri) {
         pcfetcher_set_base_url(stack->base_uri);
     }
@@ -2004,7 +2001,6 @@ pcintr_load_from_uri(pcintr_stack_t stack, const char* uri)
     if (resp_header.mime_type) {
         free(resp_header.mime_type);
     }
-    pcfetcher_term();
     return ret;
 }
 
