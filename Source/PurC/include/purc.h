@@ -47,7 +47,7 @@ typedef struct purc_instance_extra_info {
 PCA_EXTERN_C_BEGIN
 
 #define PURC_HAVE_UTILS         0x0001
-#define PURC_HAVE_DOM          0x0002
+#define PURC_HAVE_DOM           0x0002
 #define PURC_HAVE_HTML          0x0004
 #define PURC_HAVE_XML           0x0008
 #define PURC_HAVE_VARIANT       0x0010
@@ -56,9 +56,9 @@ PCA_EXTERN_C_BEGIN
 #define PURC_HAVE_HVML          0x0080
 
 #define PURC_MODULE_UTILS      (PURC_HAVE_UTILS)
-#define PURC_MODULE_DOM       (PURC_MODULE_UTILS    | PURC_HAVE_DOM)
-#define PURC_MODULE_HTML       (PURC_MODULE_DOM     | PURC_HAVE_HTML)
-#define PURC_MODULE_XML        (PURC_MODULE_DOM     | PURC_HAVE_XML)
+#define PURC_MODULE_DOM        (PURC_MODULE_UTILS    | PURC_HAVE_DOM)
+#define PURC_MODULE_HTML       (PURC_MODULE_DOM      | PURC_HAVE_HTML)
+#define PURC_MODULE_XML        (PURC_MODULE_DOM      | PURC_HAVE_XML)
 #define PURC_MODULE_VARIANT    (PURC_MODULE_UTILS    | PURC_HAVE_VARIANT)
 #define PURC_MODULE_EJSON      (PURC_MODULE_VARIANT  | PURC_HAVE_EJSON)
 #define PURC_MODULE_XGML       (PURC_MODULE_EJSON    | PURC_HAVE_XGML)
@@ -71,7 +71,7 @@ PCA_EXTERN_C_BEGIN
  * @modules: The modules will be initialized, can be OR'd with one or more
  *      the following values:
  *  - @PURC_MODULE_UTILS: Helpers and utilities.
- *  - @PURC_MODULE_DOM: eDOM construction.
+ *  - @PURC_MODULE_DOM: DOM construction.
  *  - @PURC_MODULE_HTML: HTML Parser.
  *  - @PURC_MODULE_XML: XML Parser.
  *  - @PURC_MODULE_VARIANT: Variant.
@@ -98,7 +98,7 @@ PCA_EXTERN_C_BEGIN
  * directly. Because if it fails, there is no any space to store
  * the error code.
  *
- * Since 0.0.1
+ * Since 0.0.2
  */
 PCA_EXPORT int
 purc_init_ex(unsigned int modules,
