@@ -395,13 +395,7 @@ edom_fragment_post_process_target_attr(pcintr_stack_t stack,
             (const unsigned char*)attr_name, strlen(attr_name));
     PC_ASSERT(attr);
 
-    const unsigned char *attr_val;
-    size_t len;
-    attr_val = pcdom_attr_value(attr, &len);
-    D("name:value: %s:%.*s", attr_name, (int)len, attr_val);
-
     const char *content = fragment->content;
-    D("content: %s", content);
 
     const char *op = "displace";
     purc_variant_t to = fragment->to;
@@ -674,12 +668,17 @@ pcintr_push_stack_frame(pcintr_stack_t stack)
     PC_ASSERT(stack);
     struct pcintr_stack_frame *frame;
     frame = (struct pcintr_stack_frame*)calloc(1, sizeof(*frame));
-    if (!frame)
+    if (!frame) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
+    }
+
+    list_add_tail(&frame->node, &stack->frames);
+    ++stack->nr_frames;
 
     purc_variant_t undefined = purc_variant_make_undefined();
     if (undefined == PURC_VARIANT_INVALID) {
-        free(frame);
+        pcintr_pop_stack_frame(stack);
         return NULL;
     }
     for (size_t i=0; i<PCA_TABLESIZE(frame->symbol_vars); ++i) {
@@ -688,17 +687,24 @@ pcintr_push_stack_frame(pcintr_stack_t stack)
     }
     purc_variant_unref(undefined);
 
-    list_add_tail(&frame->node, &stack->frames);
-    ++stack->nr_frames;
-
     struct pcintr_stack_frame *parent;
     parent = pcintr_stack_frame_get_parent(frame);
     if (parent && parent->result_var) {
+        if (parent->result_var) {
+            PURC_VARIANT_SAFE_CLEAR(
+                    frame->symbol_vars[PURC_SYMBOL_VAR_QUESTION_MARK]);
+            frame->symbol_vars[PURC_SYMBOL_VAR_QUESTION_MARK] = parent->result_var;
+            purc_variant_ref(parent->result_var);
+        }
+        purc_variant_t idx_var;
+        idx_var = purc_variant_make_ulongint(parent->idx);
+        if (idx_var == PURC_VARIANT_INVALID) {
+            pcintr_pop_stack_frame(stack);
+            return NULL;
+        }
         PURC_VARIANT_SAFE_CLEAR(
-                frame->symbol_vars[PURC_SYMBOL_VAR_QUESTION_MARK]);
-        frame->symbol_vars[PURC_SYMBOL_VAR_QUESTION_MARK] = parent->result_var;
-        purc_variant_ref(parent->result_var);
-        PRINT_VARIANT(parent->result_var);
+                frame->symbol_vars[PURC_SYMBOL_VAR_PERCENT_SIGN]);
+        frame->symbol_vars[PURC_SYMBOL_VAR_PERCENT_SIGN] = idx_var;
     }
 
     return frame;
@@ -740,8 +746,6 @@ visit_attr(void *key, void *val, void *ud)
     struct pcvcm_node *vcm = attr->val;
     purc_variant_t value;
     if (!vcm) {
-        struct pcvdom_element *element = frame->pos;
-        D("<%s>attr: [%s:]", element->tag_name, attr->key);
         value = purc_variant_make_undefined();
         if (value == PURC_VARIANT_INVALID) {
             return -1;
@@ -753,10 +757,7 @@ visit_attr(void *key, void *val, void *ud)
 
         struct pcvdom_element *element = frame->pos;
         PC_ASSERT(element);
-        char *s = pcvcm_node_to_string(vcm, NULL);
-        D("<%s>attr: [%s:%s]", element->tag_name, attr->key, s);
-        free(s);
-        purc_clr_error();
+        PC_ASSERT(purc_get_last_error() == PURC_ERROR_OK);
 
         pcintr_stack_t stack = purc_get_stack();
         PC_ASSERT(stack);
@@ -910,10 +911,7 @@ pcintr_element_eval_vcm_content(struct pcintr_stack_frame *frame,
     if (vcm_content == NULL)
         return 0;
 
-    char *s = pcvcm_node_to_string(vcm_content, NULL);
-    D("<%s>vcm_content: [%s]", element->tag_name, s);
-    free(s);
-    purc_clr_error();
+    PC_ASSERT(purc_get_last_error() == PURC_ERROR_OK);
 
     purc_variant_t v; /* = pcvcm_eval(vcm_content, stack) */
     // NOTE: element is still the owner of vcm_content
@@ -1063,11 +1061,8 @@ on_select_child(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         pcintr_stack_t stack = co->stack;
         struct pcintr_stack_frame *child_frame;
         child_frame = pcintr_push_stack_frame(stack);
-        if (!child_frame) {
-            pcintr_pop_stack_frame(stack);
-            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        if (!child_frame)
             return;
-        }
 
         child_frame->ops = pcintr_get_ops_by_element(element);
         child_frame->pos = element;
@@ -1447,7 +1442,6 @@ purc_load_hvml_from_rwstream(purc_rwstream_t stream)
     frame = pcintr_push_stack_frame(stack);
     if (!frame) {
         stack_destroy(stack);
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
     }
     // frame->next_step = on_vdom_start;
@@ -1935,11 +1929,8 @@ pcintr_handle_message(void *ctxt)
     pcintr_stack_t stack = msg->stack;
     struct pcintr_stack_frame *frame;
     frame = pcintr_push_stack_frame(stack);
-    if (!frame) {
-        pcintr_pop_stack_frame(stack);
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+    if (!frame)
         return -1;
-    }
 
     frame->ops = pcintr_get_ops_by_element(observer->pos);
     frame->scope = observer->scope;

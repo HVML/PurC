@@ -72,7 +72,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     struct pcvdom_element *element = frame->pos;
     PC_ASSERT(element);
-    D("<%s>", element->tag_name);
 
     int r;
     r = pcintr_element_eval_attrs(frame, element);
@@ -118,7 +117,6 @@ on_popping(pcintr_stack_t stack, void* ud)
         frame->ctxt = NULL;
     }
 
-    D("</%s>", element->tag_name);
     return true;
 }
 
@@ -138,8 +136,6 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     UNUSED_PARAM(co);
     UNUSED_PARAM(frame);
     PC_ASSERT(content);
-    char *text = content->text;
-    D("content: [%s]", text);
 }
 
 static void
@@ -149,8 +145,6 @@ on_comment(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     UNUSED_PARAM(co);
     UNUSED_PARAM(frame);
     PC_ASSERT(comment);
-    char *text = comment->text;
-    D("comment: [%s]", text);
 }
 
 static pcvdom_element_t
@@ -195,18 +189,15 @@ again:
             break;
         case PCVDOM_NODE_ELEMENT:
             {
-            D("");
                 pcvdom_element_t element = PCVDOM_ELEMENT_FROM_NODE(curr);
                 on_element(co, frame, element);
                 PC_ASSERT(stack->except == 0);
                 return element;
             }
         case PCVDOM_NODE_CONTENT:
-            D("");
             on_content(co, frame, PCVDOM_CONTENT_FROM_NODE(curr));
             goto again;
         case PCVDOM_NODE_COMMENT:
-            D("");
             on_comment(co, frame, PCVDOM_COMMENT_FROM_NODE(curr));
             goto again;
         default:
