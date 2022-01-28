@@ -216,9 +216,12 @@ purc_rwstream_t pcfetcher_local_request_sync(
     const char* file = cpath.data();
 
     purc_rwstream_t rws = purc_rwstream_new_from_file(file, "r");
+    fprintf(stderr, "#############################rws=%p\n", rws);
     if (rws && resp_header) {
         resp_header->ret_code = 200;
         resp_header->sz_resp = filesize(file);
+        // TODO
+        resp_header->mime_type = NULL;
         return rws;
     }
 
