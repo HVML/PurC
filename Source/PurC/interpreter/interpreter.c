@@ -31,13 +31,13 @@
 #include "private/instance.h"
 #include "private/runloop.h"
 #include "private/dvobjs.h"
+#include "private/fetcher.h"
 
 #include "ops.h"
 #include "../hvml/hvml-gen.h"
 #include "../html/parser.h"
 
 #include "hvml-attr.h"
-#include "fetcher.h"
 
 #include <stdarg.h>
 

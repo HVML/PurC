@@ -38,7 +38,7 @@
 #include "private/dvobjs.h"
 #include "private/executor.h"
 #include "private/atom-buckets.h"
-#include "fetcher.h"
+#include "private/fetcher.h"
 
 #include <stdlib.h>
 #include <string.h>

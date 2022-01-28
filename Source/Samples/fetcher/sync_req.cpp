@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "fetcher.h"
+#include "private/fetcher.h"
 
 #include <wtf/RunLoop.h>
 

@@ -25,7 +25,7 @@
 #ifndef PURC_FETCHER_INTERNAL_H
 #define PURC_FETCHER_INTERNAL_H
 
-#include "fetcher.h"
+#include "private/fetcher.h"
 
 #ifdef __cplusplus
 extern "C" {

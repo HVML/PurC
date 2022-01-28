@@ -24,7 +24,7 @@
 
 #include "config.h"
 
-#include "fetcher.h"
+#include "private/fetcher.h"
 #include "fetcher-internal.h"
 
 static struct pcfetcher* s_remote_fetcher = NULL;
