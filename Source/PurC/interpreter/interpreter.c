@@ -1328,6 +1328,7 @@ end:
 #define BUILDIN_VAR_DOC         "DOC"
 #define BUILDIN_VAR_SESSION     "SESSION"
 #define BUILDIN_VAR_EJSON       "EJSON"
+#define BUILDIN_VAR_STR         "STR"
 
 static bool
 bind_doc_named_variable(pcintr_stack_t stack, const char* name,
@@ -1371,6 +1372,14 @@ init_buidin_doc_variable(pcintr_stack_t stack)
                 pcdvobjs_get_t())) {
         return false;
     }
+
+    // FIXME: document-wide-variant???
+    // $STR
+    if(!bind_doc_named_variable(stack, BUILDIN_VAR_STR,
+                pcdvobjs_get_string())) {
+        return false;
+    }
+
 
     // $DOC
     pchtml_html_document_t *doc = stack->edom_gen.doc;

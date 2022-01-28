@@ -152,6 +152,9 @@ variant_arr_get(variant_arr_t data, size_t idx)
     struct pcutils_array_list *al = &data->al;
     struct pcutils_array_list_node *p;
     p = pcutils_array_list_get(al, idx);
+    if (p == NULL)
+        return PURC_VARIANT_INVALID;
+
     struct arr_node *node;
     node = (struct arr_node*)container_of(p, struct arr_node, node);
     return node->val;

@@ -323,6 +323,8 @@ rerun(pcintr_stack_t stack, void* ud)
     exec_inst = ctxt->exec_inst;
     PC_ASSERT(exec_inst);
 
+    frame->idx += 1;
+
     purc_exec_iter_t it = ctxt->it;
     PC_ASSERT(it);
 
@@ -389,11 +391,9 @@ again:
         struct pcvdom_node *node = &element->node;
         node = pcvdom_node_first_child(node);
         curr = node;
-        frame->idx = 0;
     }
     else {
         curr = pcvdom_node_next_sibling(curr);
-        frame->idx += 1;
     }
 
     ctxt->curr = curr;
