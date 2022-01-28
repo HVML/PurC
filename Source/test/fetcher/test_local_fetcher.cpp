@@ -91,3 +91,69 @@ TEST(local_fetcher, sync)
     purc_cleanup();
 }
 
+void async_response_handler(
+        purc_variant_t request_id, void* ctxt,
+        const struct pcfetcher_resp_header *resp_header,
+        purc_rwstream_t resp)
+{
+    UNUSED_PARAM(request_id);
+    UNUSED_PARAM(ctxt);
+    UNUSED_PARAM(resp);
+    fprintf(stderr, "....................................\n");
+    fprintf(stderr, ".................head begin\n");
+    fprintf(stderr, "ret_code=%d\n", resp_header->ret_code);
+    fprintf(stderr, "mime_type=%s\n", resp_header->mime_type);
+    fprintf(stderr, "sz_resp=%ld\n", resp_header->sz_resp);
+    fprintf(stderr, ".................head end\n");
+    fprintf(stderr, ".................body begin\n");
+    if (resp) {
+        purc_rwstream_t rws_out = purc_rwstream_new_buffer(1024, 1024*1024);
+
+        size_t sz = 0;
+        sz = purc_rwstream_dump_to_another (resp, rws_out, resp_header->sz_resp);
+        ASSERT_EQ(sz, resp_header->sz_resp);
+
+        char* mem_buffer = (char*)purc_rwstream_get_mem_buffer (rws_out, &sz);
+        ASSERT_EQ(sz, resp_header->sz_resp);
+        fprintf(stderr, "content=%s\n", mem_buffer);
+
+        purc_rwstream_destroy(rws_out);
+        purc_rwstream_destroy(resp);
+    }
+    fprintf(stderr, ".................body end\n");
+    fprintf(stderr, "....................................request_id=%p\n", request_id);
+    purc_variant_unref(request_id);
+    RunLoop::main().stop();
+}
+
+TEST(local_fetcher, async)
+{
+    purc_instance_extra_info info = {};
+    info.enable_remote_fetcher = false;
+    purc_init ("cn.fmsoft.hybridos.sample", "pcfetcher", &info);
+
+    RunLoop::initializeMain();
+    AtomString::init();
+    WTF::RefCountedBase::enableThreadingChecksGlobally();
+
+    const char* env = "HVML_TEST_LOCAL_FETCHER";
+    char base_uri[PATH_MAX+1] =  {0};
+    getpath_from_env_or_rel(base_uri, sizeof(base_uri), env, "data");
+
+    const char* url = "buttons.json";
+
+    pcfetcher_init(10, 1024, true);
+    pcfetcher_set_base_url(base_uri);
+    pcfetcher_request_async(
+                url,
+                PCFETCHER_REQUEST_METHOD_GET,
+                NULL,
+                0,
+                async_response_handler,
+                NULL);
+
+    fprintf(stderr, "....................................\n");
+
+    pcfetcher_term();
+    purc_cleanup();
+}
