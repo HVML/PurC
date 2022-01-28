@@ -45,6 +45,9 @@
 
 #include "generic_err_msgs.inc"
 
+#define FETCHER_MAX_CONNS        100
+#define FETCHER_CACHE_QUOTA      10240
+
 static struct const_str_atom _except_names[] = {
     { "BadEncoding", 0 },
     { "BadHVMLTag", 0 },
@@ -305,7 +308,7 @@ int purc_init_ex(unsigned int modules,
     /* TODO: connnect to renderer */
     UNUSED_PARAM(extra_info);
     // default disable remote fetcher
-    pcfetcher_init(10, 1024,
+    pcfetcher_init(FETCHER_MAX_CONNS, FETCHER_CACHE_QUOTA,
             (extra_info && extra_info->enable_remote_fetcher));
     return PURC_ERROR_OK;
 
