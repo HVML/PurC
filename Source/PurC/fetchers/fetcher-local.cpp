@@ -42,6 +42,30 @@ struct pcfetcher_local {
     char* base_uri;
 };
 
+struct mime_type {
+    const char* ext;
+    const char* mime;
+};
+
+struct mime_type  mime_types[] = {
+    { "",       "unknown" },
+    { ".hvml",   "text/hvml" },
+    { ".html",   "text/html" },
+    { ".json",   "application/json" },
+};
+
+static const char* get_mime(const char* name)
+{
+    const char* ext = strrchr(name, '.');
+    size_t sz = sizeof(mime_types) / sizeof(struct mime_type);
+    for (size_t i = 1; i < sz; i++) {
+        if (strcmp(ext, mime_types[i].ext) == 0) {
+            return mime_types[i].mime;
+        }
+    }
+    return mime_types[0].mime;
+}
+
 struct pcfetcher* pcfetcher_local_init(size_t max_conns, size_t cache_quota)
 {
     struct pcfetcher_local* local = (struct pcfetcher_local*)malloc(
@@ -167,6 +191,9 @@ purc_variant_t pcfetcher_local_request_async(
     purc_variant_t req_id = purc_variant_make_string(url, false);
     if (rws) {
         handler(req_id, ctxt, &header, rws);
+        if (header.mime_type) {
+            free(header.mime_type);
+        }
         return req_id;
     }
 
@@ -216,12 +243,10 @@ purc_rwstream_t pcfetcher_local_request_sync(
     const char* file = cpath.data();
 
     purc_rwstream_t rws = purc_rwstream_new_from_file(file, "r");
-    fprintf(stderr, "#############################rws=%p\n", rws);
     if (rws && resp_header) {
         resp_header->ret_code = 200;
         resp_header->sz_resp = filesize(file);
-        // TODO
-        resp_header->mime_type = NULL;
+        resp_header->mime_type = strdup(get_mime(file));
         return rws;
     }
 
