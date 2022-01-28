@@ -83,7 +83,7 @@ int main(int argc, char** argv)
 
     url = argv[1] ? argv[1] : def_url;
 
-    pcfetcher_init(10, 1024);
+    pcfetcher_init(10, 1024, true);
     pcfetcher_request_async(
                 url,
                 PCFETCHER_REQUEST_METHOD_GET,

@@ -1980,7 +1980,7 @@ pcintr_load_from_uri(pcintr_stack_t stack, const char* uri)
         return PURC_VARIANT_INVALID;
     }
 
-    pcfetcher_init(10, 1024);
+    pcfetcher_init(10, 1024, true);
     if (stack->base_uri) {
         pcfetcher_set_base_url(stack->base_uri);
     }

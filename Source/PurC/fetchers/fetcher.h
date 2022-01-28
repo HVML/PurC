@@ -56,7 +56,8 @@ typedef void (*response_handler)(
 extern "C" {
 #endif  /* __cplusplus */
 
-int pcfetcher_init(size_t max_conns, size_t cache_quota);
+int pcfetcher_init(size_t max_conns, size_t cache_quota,
+        bool enable_remote_fetcher);
 
 int pcfetcher_term(void);
 

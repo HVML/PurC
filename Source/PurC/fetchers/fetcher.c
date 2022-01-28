@@ -27,18 +27,28 @@
 #include "fetcher.h"
 #include "fetcher-internal.h"
 
-static struct pcfetcher* s_fetcher;
+static struct pcfetcher* s_remote_fetcher = NULL;
+static struct pcfetcher* s_local_fetcher = NULL;
 
-int pcfetcher_init(size_t max_conns, size_t cache_quota)
+static struct pcfetcher* get_fetcher()
 {
-    if (s_fetcher) {
+    return s_remote_fetcher ? s_remote_fetcher : s_local_fetcher;
+}
+
+int pcfetcher_init(size_t max_conns, size_t cache_quota,
+        bool enable_remote_fetcher)
+{
+    struct pcfetcher* fetcher = get_fetcher();
+    if (fetcher) {
         return 0;
     }
 
+    s_local_fetcher = pcfetcher_local_init(max_conns, cache_quota);
+
 #if ENABLE(REMOTE_FETCHER)
-    s_fetcher = pcfetcher_remote_init(max_conns, cache_quota);
-#else
-    s_fetcher = pcfetcher_local_init(max_conns, cache_quota);
+    if (enable_remote_fetcher) {
+        s_remote_fetcher = pcfetcher_remote_init(max_conns, cache_quota);
+    }
 #endif
 
     return 0;
@@ -46,26 +56,32 @@ int pcfetcher_init(size_t max_conns, size_t cache_quota)
 
 int pcfetcher_term(void)
 {
-    if (!s_fetcher) {
-        return 0;
+    if (s_remote_fetcher) {
+        s_remote_fetcher->term(s_remote_fetcher);
+        s_remote_fetcher = NULL;
     }
 
-    int ret = s_fetcher->term(s_fetcher);
-    s_fetcher = NULL;
-    return ret;
+    if (s_local_fetcher) {
+        s_local_fetcher->term(s_local_fetcher);
+        s_local_fetcher = NULL;
+    }
+
+    return 0;
 }
 
 const char* pcfetcher_set_base_url(const char* base_url)
 {
-    return s_fetcher ? s_fetcher->set_base_url(s_fetcher, base_url) : NULL;
+    struct pcfetcher* fetcher = get_fetcher();
+    return fetcher ? fetcher->set_base_url(fetcher, base_url) : NULL;
 }
 
 void pcfetcher_cookie_set(const char* domain,
         const char* path, const char* name, const char* content,
         time_t expire_time, bool secure)
 {
-    if (s_fetcher) {
-        s_fetcher->cookie_set(s_fetcher, domain, path, name, content,
+    struct pcfetcher* fetcher = get_fetcher();
+    if (fetcher) {
+        fetcher->cookie_set(fetcher, domain, path, name, content,
                 expire_time, secure);
     }
 }
@@ -73,15 +89,17 @@ void pcfetcher_cookie_set(const char* domain,
 const char* pcfetcher_cookie_get(const char* domain,
         const char* path, const char* name, time_t *expire, bool *secure)
 {
-    return s_fetcher ? s_fetcher->cookie_get(s_fetcher, domain, path,
+    struct pcfetcher* fetcher = get_fetcher();
+    return fetcher ? fetcher->cookie_get(fetcher, domain, path,
             name, expire, secure) : NULL;
 }
 
 const char* pcfetcher_cookie_remove(const char* domain,
         const char* path, const char* name)
 {
-    if (s_fetcher) {
-        return s_fetcher->cookie_remove(s_fetcher, domain, path, name);
+    struct pcfetcher* fetcher = get_fetcher();
+    if (fetcher) {
+        return fetcher->cookie_remove(fetcher, domain, path, name);
     }
     return NULL;
 }
@@ -94,7 +112,8 @@ purc_variant_t pcfetcher_request_async(
         response_handler handler,
         void* ctxt)
 {
-    return s_fetcher ? s_fetcher->request_async(s_fetcher, url, method,
+    struct pcfetcher* fetcher = get_fetcher();
+    return fetcher ? fetcher->request_async(fetcher, url, method,
             params, timeout, handler, ctxt) : PURC_VARIANT_INVALID;
 }
 
@@ -105,16 +124,17 @@ purc_rwstream_t pcfetcher_request_sync(
         uint32_t timeout,
         struct pcfetcher_resp_header *resp_header)
 {
-    return s_fetcher ? s_fetcher->request_sync(s_fetcher, url, method,
+    struct pcfetcher* fetcher = get_fetcher();
+    return fetcher ? fetcher->request_sync(fetcher, url, method,
             params, timeout, resp_header) : NULL;
 }
 
 
 int pcfetcher_check_response(uint32_t timeout_ms)
 {
-    return s_fetcher ? s_fetcher->check_response(s_fetcher,
+    struct pcfetcher* fetcher = get_fetcher();
+    return fetcher ? fetcher->check_response(fetcher,
             timeout_ms) : 0;
 }
-
 
 

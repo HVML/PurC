@@ -31,8 +31,6 @@
 
 #include <stdlib.h>
 
-#if !ENABLE(REMOTE_FETCHER)
-
 struct pcfetcher* pcfetcher_local_init(size_t max_conns, size_t cache_quota)
 {
     struct pcfetcher* fetcher = (struct pcfetcher*)malloc(
@@ -149,5 +147,4 @@ int pcfetcher_local_check_response(struct pcfetcher* fetcher,
     return 0;
 }
 
-#endif // !ENABLE(REMOTE_FETCHER)
 
