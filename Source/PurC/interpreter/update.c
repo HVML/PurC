@@ -85,8 +85,10 @@ get_source_by_with(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         pcintr_stack_t stack = co->stack;
         PC_ASSERT(stack);
 
-        PRINT_VCM_NODE(vcm_content);
-        return pcvcm_eval(vcm_content, stack);
+        purc_variant_t v = pcvcm_eval(vcm_content, stack);
+        if (v == PURC_VARIANT_INVALID)
+            PRINT_VCM_NODE(vcm_content);
+        return v;
     }
     else if (purc_variant_is_type(with, PURC_VARIANT_TYPE_STRING)) {
         purc_variant_ref(with);
@@ -293,7 +295,6 @@ process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         const char *s = purc_variant_get_string_const(src);
         // fprintf(stderr, "[%s]\n", s);
         // pcintr_printf_to_edom(stack, "%s", s);
-        D("[%s]", s);
         PC_ASSERT(to != PURC_VARIANT_INVALID);
         pcintr_printf_to_fragment(co->stack, on, to, at, "%s", s);
         return 0;
@@ -546,7 +547,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     struct pcvdom_element *element = frame->pos;
     PC_ASSERT(element);
-    D("<%s>", element->tag_name);
 
     struct ctxt_for_update *ctxt;
     ctxt = (struct ctxt_for_update*)calloc(1, sizeof(*ctxt));
@@ -619,7 +619,6 @@ on_popping(pcintr_stack_t stack, void* ud)
         frame->ctxt = NULL;
     }
 
-    D("</%s>", element->tag_name);
     return true;
 }
 
@@ -639,8 +638,6 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     UNUSED_PARAM(co);
     UNUSED_PARAM(frame);
     PC_ASSERT(content);
-    char *text = content->text;
-    D("content: [%s]", text);
 }
 
 static void
@@ -650,8 +647,6 @@ on_comment(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     UNUSED_PARAM(co);
     UNUSED_PARAM(frame);
     PC_ASSERT(comment);
-    char *text = comment->text;
-    D("comment: [%s]", text);
 }
 
 static pcvdom_element_t
