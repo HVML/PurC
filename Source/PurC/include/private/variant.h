@@ -210,6 +210,12 @@ struct elem_node {
     purc_variant_t   elem;  // actual variant-element
     purc_variant_t  *kvs;
     size_t           idx;
+
+    // managed by variant_set
+    purc_variant_t   set; // owner
+    struct pcvar_listener      *grow;
+    struct pcvar_listener      *change;
+    struct pcvar_listener      *shrink;
 };
 
 struct variant_set {
@@ -315,6 +321,9 @@ pcvariant_is_in_set (purc_variant_t set, purc_variant_t value)
 {
     return (PURC_VARIANT_INVALID != pcvariant_set_find(set, value));
 }
+
+purc_variant_t
+pcvariant_object_shallow_copy(purc_variant_t obj);
 
 #ifdef __cplusplus
 }

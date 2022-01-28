@@ -2151,3 +2151,28 @@ purc_variant_t pcvariant_make_with_printf(const char *fmt, ...)
     return purc_variant_make_string(buf, true);
 }
 
+purc_variant_t
+pcvariant_object_shallow_copy(purc_variant_t obj)
+{
+    PC_ASSERT(obj);
+    PC_ASSERT(purc_variant_is_object(obj));
+
+    purc_variant_t o;
+    o = purc_variant_make_object(0, PURC_VARIANT_INVALID,
+            PURC_VARIANT_INVALID);
+
+    if (o == PURC_VARIANT_INVALID)
+        return PURC_VARIANT_INVALID;
+
+    purc_variant_t k, v;
+    foreach_key_value_in_variant_object(obj, k, v)
+        bool ok = purc_variant_object_set(o, k, v);
+        if (!ok) {
+            purc_variant_unref(o);
+            return PURC_VARIANT_INVALID;
+        }
+    end_foreach;
+
+    return o;
+}
+

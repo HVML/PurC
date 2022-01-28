@@ -2,6 +2,7 @@
 #include "private/hashtable.h"
 #include "purc-variant.h"
 #include "private/variant.h"
+#include "private/ejson-parser.h"
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -600,5 +601,109 @@ TEST(variant_set, generic)
     ASSERT_EQ (cleanup, true);
 
     ASSERT_STREQ(inbuf, outbuf);
+}
+
+TEST(variant_set, constraint_non_mutable_keyval)
+{
+    purc_instance_extra_info info = {};
+    int ret = 0;
+    bool cleanup = false;
+    struct purc_variant_stat *stat;
+
+    ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ASSERT_EQ(ret, PURC_ERROR_OK);
+
+    stat = purc_variant_usage_stat();
+    ASSERT_NE(stat, nullptr);
+
+    const char *s;
+    purc_variant_t set;
+    s = "{!name, {name:'foo', count:3}}";
+    set = pcejson_parser_parse_string(s, 1, 1);
+    ASSERT_NE(set, nullptr);
+    purc_variant_unref(set);
+
+    s = "{!name, {name:[], count:3}}";
+    set = pcejson_parser_parse_string(s, 1, 1);
+    ASSERT_EQ(set, nullptr);
+
+    s = "{!name, {name:{}, count:3}}";
+    set = pcejson_parser_parse_string(s, 1, 1);
+    ASSERT_EQ(set, nullptr);
+
+    s = "{!, {name:{}, count:3}}";
+    set = pcejson_parser_parse_string(s, 1, 1);
+    ASSERT_EQ(set, nullptr);
+
+    cleanup = purc_cleanup ();
+    ASSERT_EQ (cleanup, true);
+}
+
+TEST(variant_set, constraint_non_valid_set)
+{
+    purc_instance_extra_info info = {};
+    int ret = 0;
+    bool cleanup = false;
+    struct purc_variant_stat *stat;
+
+    ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ASSERT_EQ(ret, PURC_ERROR_OK);
+
+    stat = purc_variant_usage_stat();
+    ASSERT_NE(stat, nullptr);
+
+    const char *s;
+    purc_variant_t set, v;
+    s = "{!name, {name:'foo', count:3}}";
+    set = pcejson_parser_parse_string(s, 1, 1);
+    ASSERT_NE(set, nullptr);
+    purc_variant_unref(set);
+
+    s = "{!attr, {name:'foo', count:3}, {name:'bar', count:4}}";
+    set = pcejson_parser_parse_string(s, 1, 1);
+    ASSERT_NE(set, nullptr);
+    ASSERT_EQ(1, purc_variant_set_get_size(set));
+    purc_variant_unref(set);
+
+    s = "{!'name attr', {name:'foo', count:3}, {name:'bar', count:4}}";
+    set = pcejson_parser_parse_string(s, 1, 1);
+    ASSERT_NE(set, nullptr);
+    ASSERT_EQ(2, purc_variant_set_get_size(set));
+    purc_variant_unref(set);
+
+    s = "{!'name attr', {name:'foo', count:3}, {name:'foo', count:4}}";
+    set = pcejson_parser_parse_string(s, 1, 1);
+    ASSERT_NE(set, nullptr);
+    ASSERT_EQ(1, purc_variant_set_get_size(set));
+    purc_variant_unref(set);
+
+    s = "{!'name count', {name:'foo', count:3}, {name:'foo', count:4}}";
+    set = pcejson_parser_parse_string(s, 1, 1);
+    ASSERT_NE(set, nullptr);
+    ASSERT_EQ(2, purc_variant_set_get_size(set));
+    purc_variant_unref(set);
+
+    s = "{!'name', {name:'foo', count:3}, {name:'bar', count:4}}";
+    set = pcejson_parser_parse_string(s, 1, 1);
+    ASSERT_NE(set, nullptr);
+    ASSERT_EQ(2, purc_variant_set_get_size(set));
+    foreach_value_in_variant_set(set, v)
+        ASSERT_TRUE(purc_variant_is_object(v));
+        v = purc_variant_object_get_by_ckey(v, "name", false);
+        ASSERT_NE(v, nullptr);
+        ASSERT_TRUE(purc_variant_is_string(v));
+        const char *s = purc_variant_get_string_const(v);
+        if (strcmp(s, "foo")==0) {
+            purc_variant_t x = purc_variant_make_string_static("bar", false);
+            ASSERT_NE(x, nullptr);
+            ASSERT_FALSE(purc_variant_object_set_by_static_ckey(v, "name", x));
+            purc_variant_unref(x);
+        }
+    end_foreach;
+    ASSERT_EQ(2, purc_variant_set_get_size(set));
+    purc_variant_unref(set);
+
+    cleanup = purc_cleanup ();
+    ASSERT_EQ (cleanup, true);
 }
 
