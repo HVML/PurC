@@ -31,11 +31,20 @@
 
 #include <stdlib.h>
 
+struct pcfetcher_local {
+    struct pcfetcher base;
+    char* base_uri;
+};
+
 struct pcfetcher* pcfetcher_local_init(size_t max_conns, size_t cache_quota)
 {
-    struct pcfetcher* fetcher = (struct pcfetcher*)malloc(
-            sizeof(struct pcfetcher));
+    struct pcfetcher_local* local = (struct pcfetcher_local*)malloc(
+            sizeof(struct pcfetcher_local));
+    if (local == NULL) {
+        return NULL;
+    }
 
+    struct pcfetcher* fetcher = (struct pcfetcher*) local;
     fetcher->max_conns = max_conns;
     fetcher->cache_quota = cache_quota;
     fetcher->init = pcfetcher_local_init;
@@ -48,21 +57,44 @@ struct pcfetcher* pcfetcher_local_init(size_t max_conns, size_t cache_quota)
     fetcher->request_sync = pcfetcher_local_request_sync;
     fetcher->check_response = pcfetcher_local_check_response;
 
+    local->base_uri = NULL;
+
     return fetcher;
 }
 
 int pcfetcher_local_term(struct pcfetcher* fetcher)
 {
-    free(fetcher);
+    if (!fetcher) {
+        return 0;
+    }
+
+    struct pcfetcher_local* local = (struct pcfetcher_local*)fetcher;
+    if (local->base_uri) {
+        free(local->base_uri);
+    }
+    free(local);
     return 0;
 }
 
 const char* pcfetcher_local_set_base_url(struct pcfetcher* fetcher,
         const char* base_url)
 {
-    UNUSED_PARAM(fetcher);
-    UNUSED_PARAM(base_url);
-    return NULL;
+    if (!fetcher) {
+        return NULL;
+    }
+
+    struct pcfetcher_local* local = (struct pcfetcher_local*)fetcher;
+    if (local->base_uri) {
+        free(local->base_uri);
+    }
+
+    if (base_url == NULL) {
+        local->base_uri = NULL;
+        return NULL;
+    }
+
+    local->base_uri = strdup(base_url);
+    return local->base_uri;
 }
 
 void pcfetcher_cookie_local_set(struct pcfetcher* fetcher,
