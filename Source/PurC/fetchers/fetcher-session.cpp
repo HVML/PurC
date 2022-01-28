@@ -24,6 +24,8 @@
 
 #include "config.h"
 
+#if ENABLE(REMOTE_FETCHER)
+
 #include "fetcher-session.h"
 #include "fetcher-messages.h"
 
@@ -345,3 +347,6 @@ void PcFetcherSession::willSendRequest(ResourceRequest&& proposedRequest,
             Messages::NetworkResourceLoader::ContinueWillSendRequest(
                 proposedRequest, true), m_req_id);
 }
+
+#endif // ENABLE(REMOTE_FETCHER)
+

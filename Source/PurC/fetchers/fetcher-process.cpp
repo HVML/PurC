@@ -22,7 +22,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+
 #include "config.h"
+
+#if ENABLE(REMOTE_FETCHER)
 
 #include "fetcher-process.h"
 #include "fetcher-messages.h"
@@ -293,4 +296,5 @@ void PcFetcherProcess::didReceiveInvalidMessage(IPC::Connection&,
 {
 }
 
+#endif // ENABLE(REMOTE_FETCHER)
 
