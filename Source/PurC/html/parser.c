@@ -561,3 +561,25 @@ pchtml_doc_get_document(pchtml_html_document_t *doc)
     return &doc->dom_document;
 }
 
+struct pcdom_element*
+pchtml_doc_get_head(pchtml_html_document_t *doc)
+{
+    pchtml_html_head_element_t *head = doc->head;
+    return (pcdom_element_t*)head;
+}
+
+struct pcdom_element*
+pchtml_doc_get_body(pchtml_html_document_t *doc)
+{
+    pchtml_html_body_element_t *body = doc->body;
+    return (pcdom_element_t*)body;
+}
+
+pchtml_html_parser_t*
+pchtml_doc_get_parser(pchtml_html_document_t *doc)
+{
+    pcdom_document_t *dom_doc;
+    dom_doc = pcdom_interface_document(doc);
+    return dom_doc->parser;
+}
+

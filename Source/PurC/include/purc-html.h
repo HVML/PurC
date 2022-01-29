@@ -204,6 +204,15 @@ pchtml_doc_write_to_stream(pchtml_html_document_t *doc, purc_rwstream_t out)
 struct pcdom_document*
 pchtml_doc_get_document(pchtml_html_document_t *doc);
 
+struct pcdom_element*
+pchtml_doc_get_head(pchtml_html_document_t *doc);
+
+struct pcdom_element*
+pchtml_doc_get_body(pchtml_html_document_t *doc);
+
+pchtml_html_parser_t*
+pchtml_doc_get_parser(pchtml_html_document_t *doc);
+
 PCA_EXTERN_C_END
 
 #endif  /* PURC_PURC_HTML_H */

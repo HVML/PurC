@@ -172,7 +172,7 @@ TEST(html, edom_element)
     purc_cleanup ();
 }
 
-static pcdom_element_t*
+static inline pcdom_element_t*
 element_insert_child(pcdom_element_t* parent, const char *tag)
 {
     pcdom_document_t *dom_doc = pcdom_interface_node(parent)->owner_document;
@@ -201,7 +201,82 @@ TEST(html, edom_gen)
     pcdom_document_t *dom_doc;
     dom_doc = pcdom_interface_document(doc);
     ASSERT_NE(dom_doc, nullptr);
+    ASSERT_EQ(dom_doc->parser, nullptr);
 
+    unsigned int r;
+    r = pchtml_html_document_parse_chunk_begin(doc);
+    ASSERT_EQ(r, 0);
+
+    r = pchtml_html_document_parse_chunk_end(doc);
+    ASSERT_EQ(r, 0);
+
+    ASSERT_NE(dom_doc->parser, nullptr);
+    pchtml_html_parser_t* parser;
+    parser = pchtml_doc_get_parser(doc);
+    ASSERT_NE(parser, nullptr);
+
+    pcdom_element_t *html;
+    html = dom_doc->element;
+    ASSERT_NE(html, nullptr);
+
+    pcdom_attr_t *key;
+    key = pcdom_element_set_attribute(html,
+                (const unsigned char*)"hello", 5,
+                (const unsigned char*)"world", 5);
+    ASSERT_NE(key, nullptr);
+
+    pcdom_element_t *head;
+    head = pchtml_doc_get_head(doc);
+    ASSERT_NE(head, nullptr);
+    void *p;
+    p = head->node.parent;
+    if (p != &html->node) {
+        ASSERT_TRUE(false);
+    }
+    key = pcdom_element_set_attribute(head,
+                (const unsigned char*)"foo", 5,
+                (const unsigned char*)"bar", 5);
+    ASSERT_NE(key, nullptr);
+
+    pcdom_element_t *body;
+    body = pchtml_doc_get_body(doc);
+    ASSERT_NE(body, nullptr);
+    p = body->node.parent;
+    if (p != &html->node) {
+        ASSERT_TRUE(false);
+    }
+    key = pcdom_element_set_attribute(body,
+                (const unsigned char*)"great", 5,
+                (const unsigned char*)"wall", 5);
+    ASSERT_NE(key, nullptr);
+
+    if (1) {
+        const char *content = "<div name='a'/>";
+        purc_rwstream_t in;
+        in = purc_rwstream_new_from_mem((void*)content, strlen(content));
+        if (in) {
+            pcdom_node_t *node;
+            node = pchtml_html_document_parse_fragment(doc, body, in);
+            ASSERT_NE(node, nullptr);
+            purc_rwstream_destroy(in);
+            pcdom_merge_fragment_append(&body->node, node);
+        }
+    }
+    if (1) {
+        const char *content = "<div name='b'/>";
+        purc_rwstream_t in;
+        in = purc_rwstream_new_from_mem((void*)content, strlen(content));
+        if (in) {
+            pcdom_node_t *node;
+            node = pchtml_html_document_parse_fragment(doc, head, in);
+            ASSERT_NE(node, nullptr);
+            purc_rwstream_destroy(in);
+            pcdom_merge_fragment_append(&head->node, node);
+        }
+    }
+
+
+#if 0
     pcdom_element_t *html;
     html = pcdom_document_create_element(dom_doc,
             (const unsigned char*)"html", 4, NULL);
@@ -221,7 +296,10 @@ TEST(html, edom_gen)
     pcdom_element_t *div;
     div = element_insert_child(body, "div");
     ASSERT_NE(div, nullptr);
+#endif
 
+
+#if 0
     pcdom_element_t *foo;
     foo = element_insert_child(body, "foo");
     ASSERT_NE(foo, nullptr);
@@ -229,8 +307,9 @@ TEST(html, edom_gen)
     pcdom_attr_t *key;
     key = pcdom_element_set_attribute(div,
                 (const unsigned char*)"hello", 5,
-                (const unsigned char*)"wo\"l'd", 6);
+                (const unsigned char*)"world", 5);
     ASSERT_NE(key, nullptr);
+#endif
 
     char buf[8192];
     purc_rwstream_t ws = purc_rwstream_new_from_mem(buf, sizeof(buf));
@@ -250,7 +329,7 @@ TEST(html, edom_gen)
 
     purc_rwstream_destroy(ws);
 
-    ASSERT_STREQ(buf, "<html><head></head><body><div hello=\"wo&quot;l&#039;d\"></div><foo></foo></body></html>");
+    ASSERT_STREQ(buf, "<html hello=\"world\"><head foo=\"bar\"><div name=\"b\"></div></head><body great=\"wall\"><div name=\"a\"></div></body></html>");
 
     pchtml_html_document_destroy(doc);
 
