@@ -39,6 +39,8 @@
 #include <math.h>
 #include <float.h>
 
+#define TO_DEBUG 1
+
 #if OS(LINUX) || OS(UNIX)
     #include <dlfcn.h>
 #endif
@@ -1342,6 +1344,8 @@ purc_variant_t purc_variant_dynamic_value_load_from_so(const char* so_name,
 purc_variant_t purc_variant_load_dvobj_from_so (const char *so_name,
         const char *var_name)
 {
+    PC_ASSERT(so_name || var_name);
+
     purc_variant_t value = PURC_VARIANT_INVALID;
 
 #if OS(LINUX) || OS(UNIX)
@@ -1350,12 +1354,58 @@ purc_variant_t purc_variant_load_dvobj_from_so (const char *so_name,
 
     void *library_handle = NULL;
 
-    library_handle = dlopen(so_name, RTLD_LAZY);
+    char so[PATH_MAX+1];
+    int n;
+    do {
+        if (so_name && (strchr(so_name, '/') || strchr(so_name, '.'))) {
+            n = snprintf(so, sizeof(so), "%s", so_name);
+            PC_ASSERT(n>0 && (size_t)n<sizeof(so));
+            library_handle = dlopen(so, RTLD_LAZY);
+            break;
+        }
+        // TODO: check validity of name!!!!
+        n = snprintf(so, sizeof(so), "libpurc-dvobj-%s.so",
+                so_name ? so_name : var_name);
+        PC_ASSERT(n>0 && (size_t)n<sizeof(so));
+        library_handle = dlopen(so, RTLD_LAZY);
+        if (library_handle)
+            break;
+
+        // FIXME: PURC_VERSION_STRING or PURC_API_VERSION_STRING ????
+        const char *ver = PURC_API_VERSION_STRING;
+
+        n = snprintf(so, sizeof(so),
+                "/usr/local/lib/purc-%s/libpurc-dvobj-%s.so",
+                ver, so_name ? so_name : var_name);
+        PC_ASSERT(n>0 && (size_t)n<sizeof(so));
+        library_handle = dlopen(so, RTLD_LAZY);
+        if (library_handle)
+            break;
+
+        n = snprintf(so, sizeof(so),
+                "/lib/purc-%s/libpurc-dvobj-%s.so",
+                ver, so_name ? so_name : var_name);
+        PC_ASSERT(n>0 && (size_t)n<sizeof(so));
+        library_handle = dlopen(so, RTLD_LAZY);
+        if (library_handle)
+            break;
+
+        n = snprintf(so, sizeof(so),
+                "/usr/lib/purc-%s/libpurc-dvobj-%s.so",
+                ver, so_name ? so_name : var_name);
+        PC_ASSERT(n>0 && (size_t)n<sizeof(so));
+        library_handle = dlopen(so, RTLD_LAZY);
+        if (library_handle)
+            break;
+    } while (0);
+
     if(!library_handle) {
         purc_set_error_with_info(PURC_ERROR_BAD_SYSTEM_CALL,
-                "Not found: %s", so_name);
+                "failed to load: %s", so);
+        D("failed to load: %s", so);
         return PURC_VARIANT_INVALID;
     }
+    D("loaded: %s", so);
 
     purc_variant_t (* purcex_load_dynamic_variant)(const char *, int *);
 
@@ -1392,6 +1442,7 @@ purc_variant_t purc_variant_load_dvobj_from_so (const char *so_name,
 
     // TODO: Add codes for other OS.
     pcinst_set_error (PURC_ERROR_NOT_SUPPORTED);
+    PC_ASSERT(0); // Not implemented yet
 #endif
 
     return value;
