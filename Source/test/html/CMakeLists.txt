@@ -60,3 +60,31 @@ PURC_COMPUTE_SOURCES(test_html_parser)
 PURC_FRAMEWORK(test_html_parser)
 GTEST_DISCOVER_TESTS(test_html_parser DISCOVERY_TIMEOUT 10)
 
+# test_html_edom
+PURC_EXECUTABLE_DECLARE(test_html_edom)
+
+list(APPEND test_html_edom_PRIVATE_INCLUDE_DIRECTORIES
+    ${PURC_DIR}/include
+    ${PurC_DERIVED_SOURCES_DIR}
+    ${PURC_DIR}
+    ${CMAKE_BINARY_DIR}
+    ${WTF_DIR}
+)
+
+PURC_EXECUTABLE(test_html_edom)
+
+set(test_html_edom_SOURCES
+    test_html_edom.cpp
+)
+
+set(test_html_edom_LIBRARIES
+    PurC::PurC
+    gtest_main
+    gtest
+    pthread
+)
+
+PURC_COMPUTE_SOURCES(test_html_edom)
+PURC_FRAMEWORK(test_html_edom)
+GTEST_DISCOVER_TESTS(test_html_edom DISCOVERY_TIMEOUT 10)
+

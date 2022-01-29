@@ -1,0 +1,259 @@
+#include "purc.h"
+#include "private/list.h"
+#include "private/html.h"
+#include "private/dom.h"
+#include "purc-html.h"
+
+#include <gtest/gtest.h>
+
+#include <stdarg.h>
+
+TEST(html, edom_basic)
+{
+    if (1)
+        return;
+    purc_instance_extra_info info = {};
+    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    pchtml_html_document_t *doc;
+    doc = pchtml_html_document_create();
+    ASSERT_NE(doc, nullptr);
+
+    char buf[8192];
+    purc_rwstream_t ws = purc_rwstream_new_from_mem(buf, sizeof(buf));
+    ASSERT_NE(ws, nullptr);
+
+    int n;
+    n = pchtml_doc_write_to_stream(doc, ws);
+    ASSERT_EQ(n, 0);
+    purc_rwstream_write(ws, "", 1);
+
+    purc_rwstream_destroy(ws);
+
+    // ASSERT_STREQ(buf, "");
+
+    pchtml_html_document_destroy(doc);
+
+    purc_cleanup ();
+}
+
+
+__attribute__ ((format (printf, 2, 3)))
+static int
+document_printf(pchtml_html_document_t *doc, const char *fmt, ...)
+{
+    char buf[8192];
+    buf[0] = '\0';
+    size_t nr = 0;
+
+    va_list ap, dp;
+    va_start(ap, fmt);
+    va_copy(dp, ap);
+
+    char *p = NULL;
+    int n = vsnprintf(buf, sizeof(buf), fmt, ap);
+    va_end(ap);
+    do {
+        if (n<0)
+            break;
+
+        p = buf;
+        if ((size_t)n < sizeof(buf)) {
+            nr = n;
+            break;
+        }
+
+        size_t sz = n+1;
+        p = (char*)malloc(sz);
+        if (!p)
+            break;
+
+        *p = '\0';
+        n = vsnprintf(p, sz, fmt, dp);
+        va_end(dp);
+
+        if (n<0 || (size_t)n >= sizeof(buf)) {
+            free(p);
+            p = NULL;
+            break;
+        }
+        nr = n;
+    } while (0);
+
+    if (!p)
+        return -1;
+
+    unsigned int r;
+    r = pchtml_html_document_parse_chunk_begin(doc);
+    if (r==0) {
+        r = pchtml_html_document_parse_chunk(doc,
+                (const unsigned char*)p, nr);
+        unsigned int rr = pchtml_html_document_parse_chunk_end(doc);
+        if (rr)
+            abort();
+    }
+
+    if (p!=buf)
+        free(p);
+
+    return r ? -1 : 0;
+}
+
+TEST(html, edom_parse)
+{
+    if (1)
+        return;
+    purc_instance_extra_info info = {};
+    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    pchtml_html_document_t *doc;
+    doc = pchtml_html_document_create();
+    ASSERT_NE(doc, nullptr);
+
+    const char *html = "<html/>";
+    purc_rwstream_t rs;
+    rs = purc_rwstream_new_from_mem((void*)html, strlen(html));
+
+    unsigned int r;
+    r = pchtml_html_document_parse(doc, rs);
+    ASSERT_EQ(r, 0);
+
+    purc_rwstream_destroy(rs);
+
+    char buf[8192];
+    purc_rwstream_t ws = purc_rwstream_new_from_mem(buf, sizeof(buf));
+    ASSERT_NE(ws, nullptr);
+
+    int n;
+    n = pchtml_doc_write_to_stream(doc, ws);
+    ASSERT_EQ(n, 0);
+    purc_rwstream_write(ws, "", 1);
+
+    purc_rwstream_destroy(ws);
+
+    pchtml_html_document_destroy(doc);
+
+    purc_cleanup ();
+}
+
+TEST(html, edom_element)
+{
+    if (1)
+        return;
+    purc_instance_extra_info info = {};
+    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    pchtml_html_document_t *doc;
+    doc = pchtml_html_document_create();
+    ASSERT_NE(doc, nullptr);
+
+    int r;
+    r = document_printf(doc, "%s", "<html><head/><body>hello</body></html>");
+    ASSERT_EQ(r, 0);
+
+    char buf[8192];
+    purc_rwstream_t ws = purc_rwstream_new_from_mem(buf, sizeof(buf));
+    ASSERT_NE(ws, nullptr);
+
+    int n;
+    n = pchtml_doc_write_to_stream(doc, ws);
+    ASSERT_EQ(n, 0);
+    purc_rwstream_write(ws, "", 1);
+
+    purc_rwstream_destroy(ws);
+
+    // ASSERT_STREQ(buf, "");
+
+    pchtml_html_document_destroy(doc);
+
+    purc_cleanup ();
+}
+
+static pcdom_element_t*
+element_insert_child(pcdom_element_t* parent, const char *tag)
+{
+    pcdom_document_t *dom_doc = pcdom_interface_node(parent)->owner_document;
+    pcdom_element_t *elem;
+    elem = pcdom_document_create_element(dom_doc,
+            (const unsigned char*)tag, strlen(tag), NULL);
+    if (!elem)
+        return NULL;
+
+    pcdom_node_insert_child(pcdom_interface_node(parent),
+                pcdom_interface_node(elem));
+
+    return elem;
+}
+
+TEST(html, edom_gen)
+{
+    purc_instance_extra_info info = {};
+    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    pchtml_html_document_t *doc;
+    doc = pchtml_html_document_create();
+    ASSERT_NE(doc, nullptr);
+
+    pcdom_document_t *dom_doc;
+    dom_doc = pcdom_interface_document(doc);
+    ASSERT_NE(dom_doc, nullptr);
+
+    pcdom_element_t *html;
+    html = pcdom_document_create_element(dom_doc,
+            (const unsigned char*)"html", 4, NULL);
+    ASSERT_NE(html, nullptr);
+
+    pcdom_document_attach_element(dom_doc, html);
+    pcdom_node_insert_child(pcdom_interface_node(dom_doc),
+                pcdom_interface_node(html));
+
+    pcdom_element_t *head;
+    head = element_insert_child(html, "head");
+    ASSERT_NE(head, nullptr);
+    pcdom_element_t *body;
+    body = element_insert_child(html, "body");
+    ASSERT_NE(body, nullptr);
+
+    pcdom_element_t *div;
+    div = element_insert_child(body, "div");
+    ASSERT_NE(div, nullptr);
+
+    pcdom_element_t *foo;
+    foo = element_insert_child(body, "foo");
+    ASSERT_NE(foo, nullptr);
+
+    pcdom_attr_t *key;
+    key = pcdom_element_set_attribute(div,
+                (const unsigned char*)"hello", 5,
+                (const unsigned char*)"wo\"l'd", 6);
+    ASSERT_NE(key, nullptr);
+
+    char buf[8192];
+    purc_rwstream_t ws = purc_rwstream_new_from_mem(buf, sizeof(buf));
+    ASSERT_NE(ws, nullptr);
+
+    enum pchtml_html_serialize_opt opt;
+    opt = (enum pchtml_html_serialize_opt)(
+          PCHTML_HTML_SERIALIZE_OPT_UNDEF |
+          PCHTML_HTML_SERIALIZE_OPT_SKIP_WS_NODES |
+          PCHTML_HTML_SERIALIZE_OPT_WITHOUT_TEXT_INDENT |
+          PCHTML_HTML_SERIALIZE_OPT_FULL_DOCTYPE);
+
+    int n;
+    n = pchtml_doc_write_to_stream_ex(doc, opt, ws);
+    ASSERT_EQ(n, 0);
+    purc_rwstream_write(ws, "", 1);
+
+    purc_rwstream_destroy(ws);
+
+    ASSERT_STREQ(buf, "<html><head></head><body><div hello=\"wo&quot;l&#039;d\"></div><foo></foo></body></html>");
+
+    pchtml_html_document_destroy(doc);
+
+    purc_cleanup ();
+}
+
