@@ -318,6 +318,15 @@ TEST(html, edom_gen)
                 (const unsigned char*)"helloX", 6);
     ASSERT_NE(key, nullptr);
 
+    pcdom_text_t *text;
+    text = pcdom_text_interface_create(dom_doc);
+    ASSERT_NE(text, nullptr);
+    r = pcdom_character_data_replace(&text->char_data,
+            (const unsigned char*)"yes", 3, 0, 0);
+    ASSERT_EQ(r, 0);
+    pcdom_node_insert_child(pcdom_interface_node(foo),
+                pcdom_interface_node(text));
+
     char buf[8192];
     purc_rwstream_t ws = purc_rwstream_new_from_mem(buf, sizeof(buf));
     ASSERT_NE(ws, nullptr);
@@ -337,7 +346,7 @@ TEST(html, edom_gen)
     purc_rwstream_destroy(ws);
 
     ASSERT_STREQ(buf, "<html hello=\"world\"><head foo=\"bar\"><div name=\"b\"></div></head>"
-                      "<body great=\"wall\"><div name=\"a\"></div><div hellox=\"worldX\"></div><foo worldx=\"helloX\"></foo></body></html>");
+                      "<body great=\"wall\"><div name=\"a\"></div><div hellox=\"worldX\"></div><foo worldx=\"helloX\">yes</foo></body></html>");
 
     pchtml_html_document_destroy(doc);
 
