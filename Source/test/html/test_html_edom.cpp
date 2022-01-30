@@ -10,8 +10,6 @@
 
 TEST(html, edom_basic)
 {
-    if (1)
-        return;
     purc_instance_extra_info info = {};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
@@ -102,8 +100,6 @@ document_printf(pchtml_html_document_t *doc, const char *fmt, ...)
 
 TEST(html, edom_parse)
 {
-    if (1)
-        return;
     purc_instance_extra_info info = {};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
@@ -112,7 +108,7 @@ TEST(html, edom_parse)
     doc = pchtml_html_document_create();
     ASSERT_NE(doc, nullptr);
 
-    const char *html = "<html/>";
+    const char *html = "<html>hello</html>";
     purc_rwstream_t rs;
     rs = purc_rwstream_new_from_mem((void*)html, strlen(html));
 
@@ -126,8 +122,17 @@ TEST(html, edom_parse)
     purc_rwstream_t ws = purc_rwstream_new_from_mem(buf, sizeof(buf));
     ASSERT_NE(ws, nullptr);
 
+    enum pchtml_html_serialize_opt opt;
+    opt = (enum pchtml_html_serialize_opt)(
+          PCHTML_HTML_SERIALIZE_OPT_UNDEF |
+          PCHTML_HTML_SERIALIZE_OPT_SKIP_WS_NODES |
+          PCHTML_HTML_SERIALIZE_OPT_WITHOUT_TEXT_INDENT |
+          PCHTML_HTML_SERIALIZE_OPT_FULL_DOCTYPE);
+
+    // opt = PCHTML_HTML_SERIALIZE_OPT_SKIP_WS_NODES;
+
     int n;
-    n = pchtml_doc_write_to_stream(doc, ws);
+    n = pchtml_doc_write_to_stream_ex(doc, opt, ws);
     ASSERT_EQ(n, 0);
     purc_rwstream_write(ws, "", 1);
 
@@ -135,13 +140,13 @@ TEST(html, edom_parse)
 
     pchtml_html_document_destroy(doc);
 
+    ASSERT_STREQ(buf, "<html><head></head><body>hello</body></html>");
+
     purc_cleanup ();
 }
 
 TEST(html, edom_element)
 {
-    if (1)
-        return;
     purc_instance_extra_info info = {};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);

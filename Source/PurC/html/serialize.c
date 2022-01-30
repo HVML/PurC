@@ -1231,7 +1231,8 @@ pchtml_html_serialize_pretty_text_cb(pcdom_text_t *text,
             pos++;
         }
 
-        return PCHTML_STATUS_OK;
+        if (pos == end)
+            return PCHTML_STATUS_OK;
     }
 
     switch (node->parent->local_name) {
@@ -1284,7 +1285,9 @@ end:
         return status;
     }
 
-    pchtml_html_serialize_send("\n", 1, ctx);
+    if ((opt & PCHTML_HTML_SERIALIZE_OPT_SKIP_WS_NODES)==0) {
+        pchtml_html_serialize_send("\n", 1, ctx);
+    }
 
     return PCHTML_STATUS_OK;
 }
