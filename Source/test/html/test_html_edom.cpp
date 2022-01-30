@@ -292,24 +292,26 @@ TEST(html, edom_gen)
     pcdom_element_t *body;
     body = element_insert_child(html, "body");
     ASSERT_NE(body, nullptr);
+#endif
 
     pcdom_element_t *div;
     div = element_insert_child(body, "div");
     ASSERT_NE(div, nullptr);
-#endif
 
 
-#if 0
     pcdom_element_t *foo;
     foo = element_insert_child(body, "foo");
     ASSERT_NE(foo, nullptr);
 
-    pcdom_attr_t *key;
     key = pcdom_element_set_attribute(div,
-                (const unsigned char*)"hello", 5,
-                (const unsigned char*)"world", 5);
+                (const unsigned char*)"helloX", 6, // tolower internally
+                (const unsigned char*)"worldX", 6);
     ASSERT_NE(key, nullptr);
-#endif
+
+    key = pcdom_element_set_attribute(foo,
+                (const unsigned char*)"worldX", 6, // tolower internally
+                (const unsigned char*)"helloX", 6);
+    ASSERT_NE(key, nullptr);
 
     char buf[8192];
     purc_rwstream_t ws = purc_rwstream_new_from_mem(buf, sizeof(buf));
@@ -329,7 +331,8 @@ TEST(html, edom_gen)
 
     purc_rwstream_destroy(ws);
 
-    ASSERT_STREQ(buf, "<html hello=\"world\"><head foo=\"bar\"><div name=\"b\"></div></head><body great=\"wall\"><div name=\"a\"></div></body></html>");
+    ASSERT_STREQ(buf, "<html hello=\"world\"><head foo=\"bar\"><div name=\"b\"></div></head>"
+                      "<body great=\"wall\"><div name=\"a\"></div><div hellox=\"worldX\"></div><foo worldx=\"helloX\"></foo></body></html>");
 
     pchtml_html_document_destroy(doc);
 
