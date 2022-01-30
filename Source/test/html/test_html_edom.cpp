@@ -279,6 +279,31 @@ TEST(html, edom_gen)
             pcdom_merge_fragment_append(&head->node, node);
         }
     }
+    if (1) {
+        const char *content = "contentA";
+        purc_rwstream_t in;
+        in = purc_rwstream_new_from_mem((void*)content, strlen(content));
+        if (in) {
+            pcdom_node_t *node;
+            node = pchtml_html_document_parse_fragment(doc, head, in);
+            ASSERT_NE(node, nullptr);
+            purc_rwstream_destroy(in);
+            pcdom_merge_fragment_append(&head->node, node);
+        }
+    }
+    if (1) {
+        const char *content = "contentB";
+        purc_rwstream_t in;
+        in = purc_rwstream_new_from_mem((void*)content, strlen(content));
+        if (in) {
+            pcdom_node_t *node;
+            node = pchtml_html_document_parse_fragment(doc, head, in);
+            ASSERT_NE(node, nullptr);
+            purc_rwstream_destroy(in);
+            pcdom_merge_fragment_append(&head->node, node);
+        }
+    }
+
 
 
 #if 0
@@ -345,7 +370,7 @@ TEST(html, edom_gen)
 
     purc_rwstream_destroy(ws);
 
-    ASSERT_STREQ(buf, "<html hello=\"world\"><head foo=\"bar\"><div name=\"b\"></div></head>"
+    ASSERT_STREQ(buf, "<html hello=\"world\"><head foo=\"bar\"><div name=\"b\"></div>contentAcontentB</head>"
                       "<body great=\"wall\"><div name=\"a\"></div><div hellox=\"worldX\"></div><foo worldx=\"helloX\">yes</foo></body></html>");
 
     pchtml_html_document_destroy(doc);
