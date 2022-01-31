@@ -177,11 +177,41 @@ pchtml_html_serialize_pretty_tree_cb(pcdom_node_t *node,
                 int opt, size_t indent,
                 pchtml_html_serialize_cb_f cb, void *ctx) ;
 
+typedef int pchtml_html_serialize_opt_t;
+
+enum pchtml_html_serialize_opt {
+    PCHTML_HTML_SERIALIZE_OPT_UNDEF               = 0x00,
+    PCHTML_HTML_SERIALIZE_OPT_SKIP_WS_NODES       = 0x01,
+    PCHTML_HTML_SERIALIZE_OPT_SKIP_COMMENT        = 0x02,
+    PCHTML_HTML_SERIALIZE_OPT_RAW                 = 0x04,
+    PCHTML_HTML_SERIALIZE_OPT_WITHOUT_CLOSING     = 0x08,
+    PCHTML_HTML_SERIALIZE_OPT_TAG_WITH_NS         = 0x10,
+    PCHTML_HTML_SERIALIZE_OPT_WITHOUT_TEXT_INDENT = 0x20,
+    PCHTML_HTML_SERIALIZE_OPT_FULL_DOCTYPE        = 0x40
+};
+
 int
-pchtml_doc_write_to_stream(pchtml_html_document_t *doc, purc_rwstream_t out);
+pchtml_doc_write_to_stream_ex(pchtml_html_document_t *doc,
+    enum pchtml_html_serialize_opt opt, purc_rwstream_t out);
+
+static inline int
+pchtml_doc_write_to_stream(pchtml_html_document_t *doc, purc_rwstream_t out)
+{
+    return pchtml_doc_write_to_stream_ex(doc,
+            PCHTML_HTML_SERIALIZE_OPT_UNDEF, out);
+}
 
 struct pcdom_document*
 pchtml_doc_get_document(pchtml_html_document_t *doc);
+
+struct pcdom_element*
+pchtml_doc_get_head(pchtml_html_document_t *doc);
+
+struct pcdom_element*
+pchtml_doc_get_body(pchtml_html_document_t *doc);
+
+pchtml_html_parser_t*
+pchtml_doc_get_parser(pchtml_html_document_t *doc);
 
 PCA_EXTERN_C_END
 
