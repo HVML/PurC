@@ -492,9 +492,7 @@ static inline unsigned int
 serializer_callback(const unsigned char  *data, size_t len, void *ctx)
 {
     purc_rwstream_t out = (purc_rwstream_t)ctx;
-    char buf[1024];
-    buf[0] = '\0';
-    size_t nr = 0;
+    static __thread char buf[1024*1024]; // big enough?
     int n = snprintf(buf, sizeof(buf), "%.*s", (int)len, (const char *)data);
     if (n<0) {
         // which err-code to set?
@@ -502,35 +500,14 @@ serializer_callback(const unsigned char  *data, size_t len, void *ctx)
         // which specific status-code to return?
         return PCHTML_STATUS_ERROR;
     }
-    char *p = buf;
     if ((size_t)n>=sizeof(buf)) {
-        size_t sz = n + 1;
-        p = malloc(sz);
-        if (!p) {
-            pcinst_set_error(PURC_ERROR_TOO_SMALL_BUFF);
-            return PCHTML_STATUS_ERROR_TOO_SMALL_SIZE;
-        }
-        n = snprintf(p, sz, "%.*s", (int)len, (const char *)data);
-        if (n<0) {
-            free(p);
-            pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
-            // which specific status-code to return?
-            return PCHTML_STATUS_ERROR;
-        }
-        if ((size_t)n>=sz) {
-            free(p);
-            pcinst_set_error(PURC_ERROR_TOO_SMALL_BUFF);
-            return PCHTML_STATUS_ERROR_TOO_SMALL_SIZE;
-        }
+        pcinst_set_error(PURC_ERROR_TOO_SMALL_BUFF);
+        return PCHTML_STATUS_ERROR_TOO_SMALL_SIZE;
     }
-    nr = n;
 
     ssize_t sz;
-    sz = purc_rwstream_write(out, (const void*)p, nr);
-    if (p != buf)
-        free(p);
-
-    if (sz<0 || (size_t)sz!=nr) {
+    sz = purc_rwstream_write(out, (const void*)buf, n);
+    if (sz!=n) {
         // which specific status-code to return?
         return PCHTML_STATUS_ERROR;
     }
@@ -539,8 +516,7 @@ serializer_callback(const unsigned char  *data, size_t len, void *ctx)
 }
 
 int
-pchtml_doc_write_to_stream_ex(pchtml_html_document_t *doc,
-    enum pchtml_html_serialize_opt opt, purc_rwstream_t out)
+pchtml_doc_write_to_stream(pchtml_html_document_t *doc, purc_rwstream_t out)
 {
     if (!doc || !out) {
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
@@ -548,7 +524,7 @@ pchtml_doc_write_to_stream_ex(pchtml_html_document_t *doc,
     }
     unsigned int status;
     status = pchtml_html_serialize_pretty_tree_cb((pcdom_node_t *)doc,
-                                          opt, 0, serializer_callback, out);
+                                          0x00, 0, serializer_callback, out);
     if (status!=PCHTML_STATUS_OK) {
         return -1;
     }
@@ -559,27 +535,5 @@ struct pcdom_document*
 pchtml_doc_get_document(pchtml_html_document_t *doc)
 {
     return &doc->dom_document;
-}
-
-struct pcdom_element*
-pchtml_doc_get_head(pchtml_html_document_t *doc)
-{
-    pchtml_html_head_element_t *head = doc->head;
-    return (pcdom_element_t*)head;
-}
-
-struct pcdom_element*
-pchtml_doc_get_body(pchtml_html_document_t *doc)
-{
-    pchtml_html_body_element_t *body = doc->body;
-    return (pcdom_element_t*)body;
-}
-
-pchtml_html_parser_t*
-pchtml_doc_get_parser(pchtml_html_document_t *doc)
-{
-    pcdom_document_t *dom_doc;
-    dom_doc = pcdom_interface_document(doc);
-    return dom_doc->parser;
 }
 

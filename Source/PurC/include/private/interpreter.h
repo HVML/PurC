@@ -79,6 +79,9 @@ enum pcintr_stack_stage {
 
 struct pcintr_edom_gen {
     pchtml_html_document_t     *doc;
+    pchtml_html_parser_t       *parser;
+    purc_rwstream_t             cache;
+    unsigned int                finished:1;
 };
 
 struct pcintr_loaded_var {
@@ -132,6 +135,19 @@ struct pcintr_stack {
 
     // streamlizing to generate edom in one pass
     struct pcintr_edom_gen     edom_gen;
+
+    // collect fragments chunk by chunk by `update` during `iterate`
+    // temporary, temporary, temporary
+    // iterate[after_pushed]: make fragment or reset fragment
+    // update: write content into fragment, CURRENT implementation
+    //         concerning prepend operation, better use string-buffers instead
+    // iterate[on_popping(true)]: write fragment into `edom_gen`
+    // TODO: this is temporary implementation!!!!
+    // ultimate: recording action as well as content, and `replay` to the
+    //           right position in edom when done!
+    purc_rwstream_t            fragment;
+
+    struct list_head           edom_fragments; // struct edom_fragment
 
     // for loaded dynamic variants
     struct rb_root             loaded_vars;  // struct pcintr_loaded_var*
@@ -270,17 +286,9 @@ void
 pcintr_pop_stack_frame(pcintr_stack_t stack);
 struct pcintr_stack_frame*
 pcintr_push_stack_frame(pcintr_stack_t stack);
+
 void
-pcintr_dump_edom_document(pcintr_stack_t stack);
-
-pcdom_element_t*
-pcintr_get_html(pcintr_stack_t stack);
-
-pcdom_element_t*
-pcintr_get_head(pcintr_stack_t stack);
-
-pcdom_element_t*
-pcintr_get_body(pcintr_stack_t stack);
+pcintr_stack_write_fragment(pcintr_stack_t stack);
 
 __attribute__ ((format (printf, 5, 6)))
 int
@@ -292,13 +300,11 @@ __attribute__ ((format (printf, 2, 3)))
 int
 pcintr_printf_to_edom(pcintr_stack_t stack, const char *fmt, ...);
 
-__attribute__ ((format (printf, 3, 4)))
 int
-pcintr_printf_to_edom_content(pcintr_stack_t stack,
-        struct pcdom_element *edom_element, const char *fmt, ...);
+pcintr_printf_start_element_to_edom(pcintr_stack_t stack);
 
-int pcintr_gen_edom_from_vdom(pcintr_stack_t stack,
-        struct pcvdom_element *element);
+int
+pcintr_printf_end_element_to_edom(pcintr_stack_t stack);
 
 int
 pcintr_printf_vcm_content_to_edom(pcintr_stack_t stack,

@@ -41,6 +41,20 @@
 #include "private/str.h"
 #include "html/base.h"
 
+typedef int pchtml_html_serialize_opt_t;
+
+enum pchtml_html_serialize_opt {
+    PCHTML_HTML_SERIALIZE_OPT_UNDEF               = 0x00,
+    PCHTML_HTML_SERIALIZE_OPT_SKIP_WS_NODES       = 0x01,
+    PCHTML_HTML_SERIALIZE_OPT_SKIP_COMMENT        = 0x02,
+    PCHTML_HTML_SERIALIZE_OPT_RAW                 = 0x04,
+    PCHTML_HTML_SERIALIZE_OPT_WITHOUT_CLOSING     = 0x08,
+    PCHTML_HTML_SERIALIZE_OPT_TAG_WITH_NS         = 0x10,
+    PCHTML_HTML_SERIALIZE_OPT_WITHOUT_TEXT_INDENT = 0x20,
+    PCHTML_HTML_SERIALIZE_OPT_FULL_DOCTYPE        = 0x40
+};
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -28,7 +28,6 @@
 #include <stddef.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <stdarg.h>
 
 #include "purc-macros.h"
 
@@ -435,16 +434,6 @@ pcutils_arrlist_get_first(struct pcutils_arrlist *arr);
 void*
 pcutils_arrlist_get_last(struct pcutils_arrlist *arr);
 
-__attribute__ ((format (printf, 3, 4)))
-char*
-pcutils_snprintf(char *buf, size_t *sz_io, const char *fmt, ...);
-
-char*
-pcutils_vsnprintf(char *buf, size_t *sz_io, const char *fmt, va_list ap);
-
-// trim leading/trailling blanks(spaces/tabs)
-const char*
-pcutils_trim_blanks(const char *str, size_t *sz_io);
 
 PCA_EXTERN_C_END
 

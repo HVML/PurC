@@ -43,7 +43,6 @@
 #define PCHTML_TOKENIZER_CHARS_MAP
 #include "str_res.h"
 
-#define TO_DEBUG 1
 
 #define pchtml_html_serialize_send(data, len, ctx)                                \
     do {                                                                       \
@@ -141,9 +140,8 @@ pchtml_html_serialize_pretty_text_cb(pcdom_text_t *text,
 
 static unsigned int
 pchtml_html_serialize_pretty_comment_cb(pcdom_comment_t *comment,
-        pchtml_html_serialize_opt_t opt,
-        size_t indent, bool with_indent,
-        pchtml_html_serialize_cb_f cb, void *ctx);
+                                     size_t indent, bool with_indent,
+                                     pchtml_html_serialize_cb_f cb, void *ctx);
 
 static unsigned int
 pchtml_html_serialize_pretty_document_cb(pcdom_document_t *document,
@@ -151,9 +149,8 @@ pchtml_html_serialize_pretty_document_cb(pcdom_document_t *document,
 
 static unsigned int
 pchtml_html_serialize_pretty_send_escaping_string(const unsigned char *data, size_t len,
-        pchtml_html_serialize_opt_t opt,
-        size_t indent, bool with_indent,
-        pchtml_html_serialize_cb_f cb, void *ctx);
+                                               size_t indent, bool with_indent,
+                                               pchtml_html_serialize_cb_f cb, void *ctx);
 
 static unsigned int
 pchtml_html_serialize_pretty_send_string(const unsigned char *data, size_t len,
@@ -870,9 +867,7 @@ pchtml_html_serialize_pretty_cb(pcdom_node_t *node,
 
     switch (node->type) {
         case PCDOM_NODE_TYPE_ELEMENT:
-            if ((opt & PCHTML_HTML_SERIALIZE_OPT_WITHOUT_TEXT_INDENT)==0) {
-                pchtml_html_serialize_send_indent(indent, ctx);
-            }
+            pchtml_html_serialize_send_indent(indent, ctx);
 
             status = pchtml_html_serialize_pretty_element_cb(pcdom_interface_element(node),
                                                           opt, indent, cb, ctx);
@@ -893,7 +888,7 @@ pchtml_html_serialize_pretty_cb(pcdom_node_t *node,
             with_indent = (opt & PCHTML_HTML_SERIALIZE_OPT_WITHOUT_TEXT_INDENT) == 0;
 
             status = pchtml_html_serialize_pretty_comment_cb(pcdom_interface_comment(node),
-                    opt, indent, with_indent, cb, ctx);
+                                                          indent, with_indent, cb, ctx);
 
             break;
         }
@@ -937,9 +932,7 @@ pchtml_html_serialize_pretty_cb(pcdom_node_t *node,
         return status;
     }
 
-    if ((opt & PCHTML_HTML_SERIALIZE_OPT_SKIP_WS_NODES)==0) {
-        pchtml_html_serialize_send("\n", 1, ctx);
-    }
+    pchtml_html_serialize_send("\n", 1, ctx);
 
     return PCHTML_STATUS_OK;
 }
@@ -1037,9 +1030,7 @@ pchtml_html_serialize_pretty_node_cb(pcdom_node_t *node,
                 {
                     pchtml_html_serialize_send_indent((deep + 1), ctx);
                     pchtml_html_serialize_send("#document-fragment", 18, ctx);
-                    if ((opt & PCHTML_HTML_SERIALIZE_OPT_SKIP_WS_NODES)==0) {
-                        pchtml_html_serialize_send("\n", 1, ctx);
-                    }
+                    pchtml_html_serialize_send("\n", 1, ctx);
 
                     status = pchtml_html_serialize_pretty_deep_cb(&temp->content->node,
                                                                opt, (deep + 2),
@@ -1065,9 +1056,7 @@ pchtml_html_serialize_pretty_node_cb(pcdom_node_t *node,
                     && pchtml_html_node_is_void(node) == false)
                 {
                     if ((opt & PCHTML_HTML_SERIALIZE_OPT_WITHOUT_CLOSING) == 0) {
-                        if ((opt & PCHTML_HTML_SERIALIZE_OPT_WITHOUT_TEXT_INDENT)==0) {
-                            pchtml_html_serialize_send_indent(deep, ctx);
-                        }
+                        pchtml_html_serialize_send_indent(deep, ctx);
 
                         status = pchtml_html_serialize_element_closed_cb(pcdom_interface_element(node),
                                                                       cb, ctx);
@@ -1075,9 +1064,7 @@ pchtml_html_serialize_pretty_node_cb(pcdom_node_t *node,
                             return status;
                         }
 
-                        if ((opt & PCHTML_HTML_SERIALIZE_OPT_SKIP_WS_NODES)==0) {
-                            pchtml_html_serialize_send("\n", 1, ctx);
-                        }
+                        pchtml_html_serialize_send("\n", 1, ctx);
                     }
                 }
 
@@ -1090,9 +1077,7 @@ pchtml_html_serialize_pretty_node_cb(pcdom_node_t *node,
                 && pchtml_html_node_is_void(node) == false)
             {
                 if ((opt & PCHTML_HTML_SERIALIZE_OPT_WITHOUT_CLOSING) == 0) {
-                    if ((opt & PCHTML_HTML_SERIALIZE_OPT_WITHOUT_TEXT_INDENT)==0) {
-                        pchtml_html_serialize_send_indent(deep, ctx);
-                    }
+                    pchtml_html_serialize_send_indent(deep, ctx);
 
                     status = pchtml_html_serialize_element_closed_cb(pcdom_interface_element(node),
                                                                   cb, ctx);
@@ -1100,9 +1085,7 @@ pchtml_html_serialize_pretty_node_cb(pcdom_node_t *node,
                         return status;
                     }
 
-                    if ((opt & PCHTML_HTML_SERIALIZE_OPT_SKIP_WS_NODES)==0) {
-                        pchtml_html_serialize_send("\n", 1, ctx);
-                    }
+                    pchtml_html_serialize_send("\n", 1, ctx);
                 }
             }
 
@@ -1231,8 +1214,7 @@ pchtml_html_serialize_pretty_text_cb(pcdom_text_t *text,
             pos++;
         }
 
-        if (pos == end)
-            return PCHTML_STATUS_OK;
+        return PCHTML_STATUS_OK;
     }
 
     switch (node->parent->local_name) {
@@ -1272,11 +1254,10 @@ pchtml_html_serialize_pretty_text_cb(pcdom_text_t *text,
     }
     else {
         status = pchtml_html_serialize_pretty_send_escaping_string(data->data,
-                data->length,
-                opt,
-                indent,
-                with_indent,
-                cb, ctx);
+                                                                data->length,
+                                                                indent,
+                                                                with_indent,
+                                                                cb, ctx);
     }
 
 end:
@@ -1285,24 +1266,19 @@ end:
         return status;
     }
 
-    if ((opt & PCHTML_HTML_SERIALIZE_OPT_SKIP_WS_NODES)==0) {
-        pchtml_html_serialize_send("\n", 1, ctx);
-    }
+    pchtml_html_serialize_send("\n", 1, ctx);
 
     return PCHTML_STATUS_OK;
 }
 
 static unsigned int
 pchtml_html_serialize_pretty_comment_cb(pcdom_comment_t *comment,
-        pchtml_html_serialize_opt_t opt,
-        size_t indent, bool with_indent,
-        pchtml_html_serialize_cb_f cb, void *ctx)
+                                     size_t indent, bool with_indent,
+                                     pchtml_html_serialize_cb_f cb, void *ctx)
 {
     unsigned int status;
 
-    if ((opt & PCHTML_HTML_SERIALIZE_OPT_WITHOUT_TEXT_INDENT)==0) {
-        pchtml_html_serialize_send_indent(indent, ctx);
-    }
+    pchtml_html_serialize_send_indent(indent, ctx);
     pchtml_html_serialize_send("<!-- ", 5, ctx);
 
     if (with_indent) {
@@ -1321,9 +1297,7 @@ pchtml_html_serialize_pretty_comment_cb(pcdom_comment_t *comment,
                 }
 
                 pchtml_html_serialize_send(data, 1, ctx);
-                if ((opt & PCHTML_HTML_SERIALIZE_OPT_WITHOUT_TEXT_INDENT)==0) {
-                    pchtml_html_serialize_send_indent(indent, ctx);
-                }
+                pchtml_html_serialize_send_indent(indent, ctx);
 
                 data++;
                 pos = data;
@@ -1454,17 +1428,14 @@ pchtml_html_serialize_pretty_tree_str(pcdom_node_t *node,
 
 static unsigned int
 pchtml_html_serialize_pretty_send_escaping_string(const unsigned char *data, size_t len,
-        pchtml_html_serialize_opt_t opt,
-        size_t indent, bool with_indent,
-        pchtml_html_serialize_cb_f cb, void *ctx)
+                                               size_t indent, bool with_indent,
+                                               pchtml_html_serialize_cb_f cb, void *ctx)
 {
     unsigned int status;
     const unsigned char *pos = data;
     const unsigned char *end = data + len;
 
-    if ((opt & PCHTML_HTML_SERIALIZE_OPT_WITHOUT_TEXT_INDENT)==0) {
-        pchtml_html_serialize_send_indent(indent, ctx);
-    }
+    pchtml_html_serialize_send_indent(indent, ctx);
 //    pchtml_html_serialize_send("\"", 1, ctx);
 
     while (data != end) {

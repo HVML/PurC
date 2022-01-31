@@ -245,6 +245,16 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (r)
         return NULL;
 
+    if (stack->fragment == NULL) {
+        stack->fragment = purc_rwstream_new_buffer(1024, 1024*1024*16);
+        if (!stack->fragment)
+            return NULL;
+    }
+    else {
+        off_t n = purc_rwstream_seek(stack->fragment, 0, SEEK_SET);
+        PC_ASSERT(n == 0);
+    }
+
     purc_clr_error();
 
     r = post_process(&stack->co, frame);
@@ -270,12 +280,16 @@ on_popping(pcintr_stack_t stack, void* ud)
 
     purc_exec_inst_t exec_inst;
     exec_inst = ctxt->exec_inst;
-    if (!exec_inst)
+    if (!exec_inst) {
+        pcintr_stack_write_fragment(stack);
         return true;
+    }
 
     purc_exec_iter_t it = ctxt->it;
-    if (!it)
+    if (!it) {
+        pcintr_stack_write_fragment(stack);
         return true;
+    }
 
     it = ctxt->ops.it_next(exec_inst, it, NULL); // TODO: re-eval rule????
     ctxt->it = it;
@@ -284,6 +298,7 @@ on_popping(pcintr_stack_t stack, void* ud)
         if (err == PURC_ERROR_NOT_EXISTS) {
             purc_clr_error();
         }
+        pcintr_stack_write_fragment(stack);
         return true;
     }
 

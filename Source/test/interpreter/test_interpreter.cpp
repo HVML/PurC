@@ -72,44 +72,10 @@ static const char *calculator_2 =
     "    <head>"
     "        <base href=\"$HVML.base(! 'https://gitlab.fmsoft.cn/hvml/hvml-docs/raw/master/samples/calculator/' )\" />"
     ""
-    "<!--"
     "        <update on=\"$T.map\" from=\"assets/{$SYSTEM.locale}.json\" to=\"merge\" />"
-    "-->"
     ""
-    "        <update on=\"$T.map\">"
-    "           {"
-    "               \"HVML Calculator\": \"HVML 计算器\","
-    "               \"Current Time: \": \"当前时间：\""
-    "           }"
-    "        </update>"
-    "<!--"
     "        <init as=\"buttons\" from=\"assets/buttons.json\" />"
-    "-->"
     ""
-    "        <init as=\"buttons\" uniquely>"
-    "            ["
-    "                { \"letters\": \"7\", \"class\": \"number\" },"
-    "                { \"letters\": \"8\", \"class\": \"number\" },"
-    "                { \"letters\": \"9\", \"class\": \"number\" },"
-    "                { \"letters\": \"←\", \"class\": \"c_blue backspace\" },"
-    "                { \"letters\": \"C\", \"class\": \"c_blue clear\" },"
-    "                { \"letters\": \"4\", \"class\": \"number\" },"
-    "                { \"letters\": \"5\", \"class\": \"number\" },"
-    "                { \"letters\": \"6\", \"class\": \"number\" },"
-    "                { \"letters\": \"×\", \"class\": \"c_blue multiplication\" },"
-    "                { \"letters\": \"÷\", \"class\": \"c_blue division\" },"
-    "                { \"letters\": \"1\", \"class\": \"number\" },"
-    "                { \"letters\": \"2\", \"class\": \"number\" },"
-    "                { \"letters\": \"3\", \"class\": \"number\" },"
-    "                { \"letters\": \"+\", \"class\": \"c_blue plus\" },"
-    "                { \"letters\": \"-\", \"class\": \"c_blue subtraction\" },"
-    "                { \"letters\": \"0\", \"class\": \"number\" },"
-    "                { \"letters\": \"00\", \"class\": \"number\" },"
-    "                { \"letters\": \".\", \"class\": \"number\" },"
-    "                { \"letters\": \"%\", \"class\": \"c_blue percent\" },"
-    "                { \"letters\": \"=\", \"class\": \"c_yellow equal\" },"
-    "            ]"
-    "        </init>"
     "        <title>$T.get('HVML Calculator')</title>"
     ""
     "        <update on=\"$TIMERS\" to=\"displace\">"
@@ -145,7 +111,7 @@ static const char *calculator_2 =
 
     "            <div id=\"c_title\">"
     "                <h2 id=\"c_title\">$T.get('HVML Calculator')"
-    "                    <small>xxx$T.get('Current Time: ')<span id=\"clock\">yyy$SYSTEM.time('%H:%M:%S')</span></small>"
+    "                    <small>$T.get('Current Time: ')<span id=\"clock\">$SYSTEM.time('%H:%M:%S')</span></small>"
     "                </h2>"
     "                <observe on=\"$TIMERS\" for=\"expired:clock\">"
     "                    <update on=\"#clock\" at=\"textContent\" with=\"$SYSTEM.time('%H:%M:%S')\" />"
@@ -417,8 +383,8 @@ TEST(interpreter, basic)
         // "<hvml><body><archetype name=\"$?.button\"><li class=\"class\">letters</li></archetype></body></hvml>",
         // "<hvml><body><archetype name=\"button\"><li class=\"class\">letters</li></archetype></body></hvml>",
         // "<hvml><body><a><b><c></c></b></a></body></hvml>",
-        // calculator_1,
-        calculator_2,
+        calculator_1,
+        // calculator_2,
         // calculator_3,
         // calculator_4,
         // sample1,
@@ -441,7 +407,6 @@ TEST(interpreter, basic)
 
     for (size_t i=0; i<PCA_TABLESIZE(hvmls); ++i) {
         const char *hvml = hvmls[i];
-        fprintf(stderr, "input hvml: %s\n", hvml);
         purc_vdom_t vdom = purc_load_hvml_from_string(hvml);
         ASSERT_NE(vdom, nullptr);
     }
