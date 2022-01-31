@@ -32,11 +32,13 @@
 
 #include "ops.h"
 
+#include <ctype.h>
 #include <pthread.h>
 #include <unistd.h>
 #include <libgen.h>
+#include <limits.h>
 
-#define TO_DEBUG 0
+#define TO_DEBUG 1
 
 struct ctxt_for_undefined {
     struct pcvdom_node           *curr;
@@ -110,11 +112,9 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame);
+    PC_ASSERT(frame->edom_element);
 
     frame->pos = pos; // ATTENTION!!
-
-    if (pcintr_set_symbol_var_at_sign())
-        return NULL;
 
     struct ctxt_for_undefined *ctxt;
     ctxt = (struct ctxt_for_undefined*)calloc(1, sizeof(*ctxt));
@@ -126,6 +126,9 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     frame->ctxt = ctxt;
     frame->ctxt_destroy = ctxt_destroy;
 
+    if (pcintr_set_symbol_var_at_sign())
+        return NULL;
+
     struct pcvdom_element *element = frame->pos;
     PC_ASSERT(element);
 
@@ -134,7 +137,16 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (r)
         return NULL;
 
+    r = pcintr_element_eval_vcm_content(frame, element);
+    if (r)
+        return NULL;
+
     r = pcintr_vdom_walk_attrs(frame, element, NULL, attr_found);
+    if (r)
+        return NULL;
+
+    r = pcintr_gen_edom_from_vdom(stack, element);
+    PC_ASSERT(frame->edom_element != NULL);
     if (r)
         return NULL;
 
@@ -152,16 +164,37 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     }
 #endif
 
-    pcintr_printf_start_element_to_edom(stack);
-    frame->edom_element = pcintr_stack_get_edom_open_element(stack);
-
     purc_variant_t with = frame->ctnt_var;
     if (with != PURC_VARIANT_INVALID) {
-        if (pcintr_printf_vcm_content_to_edom(stack, with))
-            return NULL;
-    }
+        PRINT_VARIANT(with);
+        PC_ASSERT(purc_variant_is_ulongint(with));
 
-    purc_clr_error();
+        bool ok;
+        uint64_t u64;
+        ok = purc_variant_cast_to_ulongint(with, &u64, false);
+        PC_ASSERT(ok);
+
+        struct pcvcm_node *vcm_content;
+        vcm_content = (struct pcvcm_node*)u64;
+        PC_ASSERT(vcm_content);
+
+        purc_variant_t v = pcvcm_eval(vcm_content, stack);
+        PC_ASSERT(v != PURC_VARIANT_INVALID);
+
+        PC_ASSERT(purc_variant_is_string(v));
+        const char *text = purc_variant_get_string_const(v);
+
+        size_t nr = strlen(text);
+        const char *start = pcutils_trim_blanks(text, &nr);
+        PC_ASSERT(start);
+        PC_ASSERT(nr <= INT_MAX);
+
+        D("=========%.*s========", (int)nr, start);
+        // FIXME: escape!!!!
+        int r = pcintr_printf_to_edom_content(stack, frame->edom_element,
+                "%.*s", (int)nr, start);
+        PC_ASSERT(r == 0);
+    }
 
     return ctxt;
 }
@@ -171,8 +204,6 @@ on_popping(pcintr_stack_t stack, void* ud)
 {
     PC_ASSERT(stack);
     PC_ASSERT(stack == purc_get_stack());
-
-    pcintr_printf_end_element_to_edom(stack);
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
@@ -208,9 +239,19 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     UNUSED_PARAM(co);
     UNUSED_PARAM(frame);
     PC_ASSERT(content);
+    struct pcvdom_element *element = frame->pos;
+    PC_ASSERT(element);
     char *text = content->text;
+    PC_ASSERT(text);
+
+    size_t nr = strlen(text);
+    const char *start = pcutils_trim_blanks(text, &nr);
+    PC_ASSERT(start);
+    PC_ASSERT(nr <= INT_MAX);
+
     // FIXME: escape!!!!
-    int r = pcintr_printf_to_edom(co->stack, "%s", text);
+    int r = pcintr_printf_to_edom_content(co->stack, frame->edom_element,
+            "%.*s", (int)nr, start);
     PC_ASSERT(r == 0);
 }
 

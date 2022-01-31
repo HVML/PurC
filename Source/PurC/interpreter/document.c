@@ -99,8 +99,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         }
     }
 
-    pcintr_printf_to_edom(stack, "<!DOCTYPE html>");
-
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame);
