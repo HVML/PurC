@@ -555,6 +555,24 @@ pchtml_doc_write_to_stream_ex(pchtml_html_document_t *doc,
     return 0;
 }
 
+int
+pcdom_node_write_to_stream_ex(pcdom_node_t *node,
+    enum pchtml_html_serialize_opt opt, purc_rwstream_t out)
+{
+    if (!node || !out) {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        return -1;
+    }
+    unsigned int status;
+    status = pchtml_html_serialize_pretty_tree_cb(node,
+                                          opt, 0, serializer_callback, out);
+    if (status!=PCHTML_STATUS_OK) {
+        return -1;
+    }
+    return 0;
+}
+
+
 struct pcdom_document*
 pchtml_doc_get_document(pchtml_html_document_t *doc)
 {

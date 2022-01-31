@@ -201,6 +201,17 @@ pchtml_doc_write_to_stream(pchtml_html_document_t *doc, purc_rwstream_t out)
             PCHTML_HTML_SERIALIZE_OPT_UNDEF, out);
 }
 
+int
+pcdom_node_write_to_stream_ex(pcdom_node_t *node,
+    enum pchtml_html_serialize_opt opt, purc_rwstream_t out);
+
+static inline int
+pcdom_node_write_to_stream(pcdom_node_t *node, purc_rwstream_t out)
+{
+    return pcdom_node_write_to_stream_ex(node,
+            PCHTML_HTML_SERIALIZE_OPT_UNDEF, out);
+}
+
 struct pcdom_document*
 pchtml_doc_get_document(pchtml_html_document_t *doc);
 
