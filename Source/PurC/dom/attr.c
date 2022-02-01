@@ -96,7 +96,7 @@ pcdom_attr_set_name(pcdom_attr_t *attr, const unsigned char *name,
         return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
-    attr->node.local_name = (pcdom_attr_id_t) data;
+    attr->node.local_name = data->attr_id;
 
     if (to_lowercase == false) {
         data = pcdom_attr_qualified_name_append(doc->attrs, name, length);
@@ -105,7 +105,7 @@ pcdom_attr_set_name(pcdom_attr_t *attr, const unsigned char *name,
             return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         }
 
-        attr->qualified_name = (pcdom_attr_id_t) data;
+        attr->qualified_name = data->attr_id;
     }
 
     return PCHTML_STATUS_OK;
@@ -147,7 +147,7 @@ pcdom_attr_set_name_ns(pcdom_attr_t *attr, const unsigned char *link,
         return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
     }
 
-    attr->node.local_name = (pcdom_attr_id_t) data;
+    attr->node.local_name = data->attr_id;
 
     /* qualified name */
     data = pcdom_attr_qualified_name_append(doc->attrs, name, name_length);
@@ -156,7 +156,7 @@ pcdom_attr_set_name_ns(pcdom_attr_t *attr, const unsigned char *link,
         return PCHTML_STATUS_ERROR;
     }
 
-    attr->qualified_name = (pcdom_attr_id_t) data;
+    attr->qualified_name = data->attr_id;
 
     /* prefix */
     attr->node.prefix = (pchtml_ns_prefix_id_t) pchtml_ns_prefix_append(doc->ns, name,
@@ -294,8 +294,8 @@ pcdom_attr_local_name_append(pcutils_hash_t *hash,
     }
 
     data = pcutils_hash_insert(hash, pcutils_hash_insert_lower, name, length);
-    if ((pcdom_attr_id_t) data <= PCDOM_ATTR__LAST_ENTRY) {
-        return NULL;
+    if (data->attr_id < PCDOM_ATTR__LAST_ENTRY && data->attr_id > PCDOM_ATTR__UNDEF) {
+        return data;
     }
 
     data->attr_id = (uintptr_t) data;
@@ -314,7 +314,7 @@ pcdom_attr_qualified_name_append(pcutils_hash_t *hash, const unsigned char *name
     }
 
     data = pcutils_hash_insert(hash, pcutils_hash_insert_raw, name, length);
-    if ((pcdom_attr_id_t) data <= PCDOM_ATTR__LAST_ENTRY) {
+    if (data->attr_id < PCDOM_ATTR__LAST_ENTRY && data->attr_id > PCDOM_ATTR__UNDEF) {
         return NULL;
     }
 
