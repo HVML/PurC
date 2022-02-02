@@ -563,3 +563,67 @@ TEST(html, edom_gen_attr)
     purc_cleanup ();
 }
 
+TEST(html, edom_gen_chunk)
+{
+    char buf[8192];
+
+    purc_instance_extra_info info = {};
+    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    pchtml_html_document_t *doc;
+    doc = pchtml_html_document_create();
+    ASSERT_NE(doc, nullptr);
+
+    const char *html = "<html/>";
+    unsigned int r;
+    r = pchtml_html_document_parse_with_buf(doc,
+            (const unsigned char*)html, strlen(html));
+    ASSERT_EQ(r, 0);
+
+    for (size_t i=0; i<10; ++i) {
+        pcdom_element_t *body;
+        body = pcdom_interface_element(doc->body);
+
+        if (0) {
+            write_edom_node(buf, sizeof(buf), pcdom_interface_node(doc));
+            ASSERT_STREQ(buf, "<html><head></head><body></body></html>");
+        }
+
+        const char *chunk = "<foo></foo><bar></bar>";
+
+        pcdom_node_t *node;
+        node = pchtml_html_document_parse_fragment_with_buf(doc, body,
+                (const unsigned char*)chunk, strlen(chunk));
+        ASSERT_NE(node, nullptr);
+
+        while (pcdom_interface_node(body)->first_child) {
+            pcdom_node_destroy_deep(pcdom_interface_node(body)->first_child);
+        }
+        write_edom_node(buf, sizeof(buf), pcdom_interface_node(body));
+        ASSERT_STREQ(buf, "<body></body>");
+        write_edom_node(buf, sizeof(buf), node);
+        ASSERT_STREQ(buf, "<html><foo></foo><bar></bar></html>");
+
+        while (pcdom_interface_node(node)->first_child) {
+            pcdom_node_t *p = pcdom_interface_node(node)->first_child;
+            pcdom_node_remove(p);
+            pcdom_node_insert_child(pcdom_interface_node(body), p);
+        }
+        write_edom_node(buf, sizeof(buf), pcdom_interface_node(body));
+        ASSERT_STREQ(buf, "<body><foo></foo><bar></bar></body>");
+        write_edom_node(buf, sizeof(buf), node);
+        ASSERT_STREQ(buf, "<html></html>");
+
+        ASSERT_EQ(node->owner_document, pcdom_interface_node(body)->owner_document);
+        pcdom_node_destroy_deep(node);
+    }
+
+    write_edom_node(buf, sizeof(buf), pcdom_interface_node(doc));
+    ASSERT_STREQ(buf, "<html><head></head><body><foo></foo><bar></bar></body></html>");
+
+    pchtml_html_document_destroy(doc);
+
+    purc_cleanup ();
+}
+

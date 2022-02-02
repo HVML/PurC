@@ -79,6 +79,22 @@ pchtml_html_parser_destroy(pchtml_html_parser_t *parser);
 pchtml_html_document_t *
 pchtml_html_parse(pchtml_html_parser_t *parser, const purc_rwstream_t html);
 
+static inline pchtml_html_document_t *
+pchtml_html_parse_with_buf(pchtml_html_parser_t *parser,
+        const unsigned char *data, size_t sz)
+{
+    purc_rwstream_t rs = purc_rwstream_new_from_mem((void*)data, sz);
+    if (rs == NULL)
+        return NULL;
+
+    pchtml_html_document_t *doc;
+    doc = pchtml_html_parse(parser, rs);
+
+    purc_rwstream_destroy(rs);
+
+    return doc;
+}
+
 pchtml_html_document_t *
 pchtml_html_parse_chunk_begin(pchtml_html_parser_t *parser);
 
@@ -94,11 +110,47 @@ pchtml_html_parse_fragment(pchtml_html_parser_t *parser,
                         pchtml_html_element_t *element,
                         const purc_rwstream_t html);
 
+static inline pcdom_node_t *
+pchtml_html_parse_fragment_with_buf(pchtml_html_parser_t *parser,
+        pchtml_html_element_t *element,
+        const unsigned char *data, size_t sz)
+{
+    purc_rwstream_t rs = purc_rwstream_new_from_mem((void*)data, sz);
+    if (rs == NULL)
+        return NULL;
+
+    pcdom_node_t *node;
+    node = pchtml_html_parse_fragment(parser, element, rs);
+
+    purc_rwstream_destroy(rs);
+
+    return node;
+}
+
 pcdom_node_t *
 pchtml_html_parse_fragment_by_tag_id(pchtml_html_parser_t *parser,
                 pchtml_html_document_t *document,
                 pchtml_tag_id_t tag_id, pchtml_ns_id_t ns,
                 const purc_rwstream_t html);
+
+static inline pcdom_node_t *
+pchtml_html_parse_fragment_by_tag_id_with_buf(pchtml_html_parser_t *parser,
+        pchtml_html_document_t *document,
+        pchtml_tag_id_t tag_id, pchtml_ns_id_t ns,
+        const unsigned char *data, size_t sz)
+{
+    purc_rwstream_t rs = purc_rwstream_new_from_mem((void*)data, sz);
+    if (rs == NULL)
+        return NULL;
+
+    pcdom_node_t *node;
+    node = pchtml_html_parse_fragment_by_tag_id(parser,
+        document, tag_id, ns, rs);
+
+    purc_rwstream_destroy(rs);
+
+    return node;
+}
 
 
 unsigned int
@@ -133,6 +185,22 @@ unsigned int
 pchtml_html_document_parse(pchtml_html_document_t *document,
                 const purc_rwstream_t html) ;
 
+static inline unsigned int
+pchtml_html_document_parse_with_buf(pchtml_html_document_t *document,
+        const unsigned char *data, size_t sz)
+{
+    purc_rwstream_t rs = purc_rwstream_new_from_mem((void*)data, sz);
+    if (rs == NULL)
+        return -1;
+
+    unsigned int r;
+    r = pchtml_html_document_parse(document, rs);
+
+    purc_rwstream_destroy(rs);
+
+    return r;
+}
+
 unsigned int
 pchtml_html_document_parse_chunk_begin(
                 pchtml_html_document_t *document) ;
@@ -151,6 +219,24 @@ pchtml_html_document_parse_fragment(pchtml_html_document_t *document,
                 pcdom_element_t *element,
                 const purc_rwstream_t html) ;
 
+static inline pcdom_node_t *
+pchtml_html_document_parse_fragment_with_buf(pchtml_html_document_t *document,
+        pcdom_element_t *element,
+        const unsigned char *data, size_t sz)
+{
+    purc_rwstream_t rs = purc_rwstream_new_from_mem((void*)data, sz);
+    if (rs == NULL)
+        return NULL;
+
+    pcdom_node_t *node;
+    node = pchtml_html_document_parse_fragment(document, element, rs);
+
+    purc_rwstream_destroy(rs);
+
+    return node;
+}
+
+
 unsigned int
 pchtml_html_document_parse_fragment_chunk_begin(
                 pchtml_html_document_t *document,
@@ -167,6 +253,23 @@ pchtml_html_document_parse_fragment_chunk_end(
 pchtml_html_element_t *
 pchtml_html_element_inner_html_set(pchtml_html_element_t *element,
                 const purc_rwstream_t html);
+
+static inline pchtml_html_element_t *
+pchtml_html_element_inner_html_set_with_buf(pchtml_html_element_t *element,
+        const unsigned char *data, size_t sz)
+{
+    purc_rwstream_t rs = purc_rwstream_new_from_mem((void*)data, sz);
+    if (rs == NULL)
+        return NULL;
+
+    pchtml_html_element_t *elem;
+    elem = pchtml_html_element_inner_html_set(element, rs);
+
+    purc_rwstream_destroy(rs);
+
+    return elem;
+}
+
 
 // for serialize
 typedef unsigned int
