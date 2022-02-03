@@ -350,6 +350,31 @@ pchtml_html_parse_fragment_chunk_process(pchtml_html_parser_t *parser,
     return parser->status;
 }
 
+unsigned int
+pchtml_html_parse_fragment_chunk_process_with_format(
+        pchtml_html_parser_t *parser, const char *fmt, ...)
+{
+    char buf[1024];
+    size_t nr = sizeof(buf);
+    char *p = NULL;
+
+    va_list ap;
+    va_start(ap, fmt);
+    p = pcutils_vsnprintf(buf, &nr, fmt, ap);
+    va_end(ap);
+
+    if (!p)
+        return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
+
+    unsigned int r;
+    r = pchtml_html_parse_fragment_chunk_process(parser,
+            (const unsigned char*)p, nr);
+    if (p != buf)
+        free(p);
+
+    return r;
+}
+
 pcdom_node_t *
 pchtml_html_parse_fragment_chunk_end(pchtml_html_parser_t *parser)
 {

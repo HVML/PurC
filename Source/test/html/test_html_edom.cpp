@@ -749,8 +749,8 @@ document_parse_fragment_with_buf(pchtml_html_document_t *doc,
     }
 
     for (size_t i=0; i<len; ++i) {
-        r = pchtml_html_parse_fragment_chunk_process(parser,
-                (const unsigned char*)chunk+i, 1);
+        r = pchtml_html_parse_fragment_chunk_process_with_format(parser,
+                "%c", chunk[i]);
         if (r)
             break;
     }

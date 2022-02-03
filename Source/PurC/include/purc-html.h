@@ -162,6 +162,11 @@ unsigned int
 pchtml_html_parse_fragment_chunk_process(pchtml_html_parser_t *parser,
                 const unsigned char *data, size_t sz);
 
+__attribute__ ((format (printf, 2, 3)))
+unsigned int
+pchtml_html_parse_fragment_chunk_process_with_format(
+        pchtml_html_parser_t *parser, const char *fmt, ...);
+
 pcdom_node_t *
 pchtml_html_parse_fragment_chunk_end(pchtml_html_parser_t *parser);
 
