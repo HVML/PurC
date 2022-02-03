@@ -110,20 +110,38 @@ vdom_destroy(purc_vdom_t vdom)
     free(vdom);
 }
 
-static void
-dump_document(pchtml_html_document_t *doc)
+void
+pcintr_dump_document(pcintr_stack_t stack)
 {
-    purc_rwstream_t out = purc_rwstream_new_buffer(1024, 1024*1024*16);
-    if (!out) {
-        purc_clr_error();
-        return;
-    }
+    struct pcintr_edom_gen *edom_gen = &stack->edom_gen;
+    PC_ASSERT(edom_gen->finished);
+    pchtml_html_document_t *doc = edom_gen->doc;
+    PC_ASSERT(doc);
 
-    pchtml_doc_write_to_stream(doc, out);
-    purc_rwstream_write(out, "", 1);
-    const char *buf = purc_rwstream_get_mem_buffer(out, NULL);
-    fprintf(stderr, "html:\n%s\n", buf);
-    purc_rwstream_destroy(out);
+    char buf[1024];
+    size_t nr = sizeof(buf);
+    char *p = pchtml_doc_snprintf(doc, "hvml:\n", buf, &nr);
+    if (p) {
+        fprintf(stderr, "==========%s\n", p);
+        if (p != buf)
+            free(p);
+    }
+}
+
+void
+pcintr_dump_edom_node(pcintr_stack_t stack, pcdom_node_t *node)
+{
+    UNUSED_PARAM(stack);
+    PC_ASSERT(node);
+
+    char buf[1024];
+    size_t nr = sizeof(buf);
+    char *p = pcdom_node_snprintf(node, "node:\n", buf, &nr);
+    if (p) {
+        fprintf(stderr, "==========%s\n", p);
+        if (p != buf)
+            free(p);
+    }
 }
 
 static void
@@ -143,8 +161,6 @@ edom_gen_release(struct pcintr_edom_gen *edom_gen)
         edom_gen->cache = NULL;
     }
     if (edom_gen->doc) {
-        if (0)
-            dump_document(edom_gen->doc);
         pchtml_html_document_destroy(edom_gen->doc);
         edom_gen->doc = NULL;
     }
@@ -482,11 +498,7 @@ edom_fragments_post_process(pcintr_stack_t stack)
         }
     }
 
-    struct pcintr_edom_gen *edom_gen = &stack->edom_gen;
-    PC_ASSERT(edom_gen->finished);
-    pchtml_html_document_t *doc = edom_gen->doc;
-    PC_ASSERT(doc);
-    dump_document(doc);
+    pcintr_dump_document(stack);
 }
 
 static void

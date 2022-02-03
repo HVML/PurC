@@ -610,7 +610,7 @@ buffer_writer(const char *data, size_t nr, int oom, void *ctxt)
 }
 
 char*
-pchtml_doc_snprintf(pchtml_html_document_t *doc,
+pchtml_doc_snprintf_ex(pchtml_html_document_t *doc,
         enum pchtml_html_serialize_opt opt,
         const char *prefix, char *buf, size_t *io_sz)
 {
@@ -670,7 +670,7 @@ pcdom_node_write_to_stream_ex(pcdom_node_t *node,
 }
 
 char*
-pcdom_node_snprintf(pcdom_node_t *node,
+pcdom_node_snprintf_ex(pcdom_node_t *node,
         enum pchtml_html_serialize_opt opt,
         const char *prefix, char *buf, size_t *io_sz)
 {

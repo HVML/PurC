@@ -298,7 +298,7 @@ pchtml_doc_write_to_stream_ex(pchtml_html_document_t *doc,
     enum pchtml_html_serialize_opt opt, purc_rwstream_t out);
 
 char*
-pchtml_doc_snprintf(pchtml_html_document_t *doc,
+pchtml_doc_snprintf_ex(pchtml_html_document_t *doc,
         enum pchtml_html_serialize_opt opt,
         const char *prefix, char *buf, size_t *io_sz);
 
@@ -309,12 +309,20 @@ pchtml_doc_write_to_stream(pchtml_html_document_t *doc, purc_rwstream_t out)
             PCHTML_HTML_SERIALIZE_OPT_UNDEF, out);
 }
 
+static inline char*
+pchtml_doc_snprintf(pchtml_html_document_t *doc,
+        const char *prefix, char *buf, size_t *io_sz)
+{
+    return pchtml_doc_snprintf_ex(doc, PCHTML_HTML_SERIALIZE_OPT_UNDEF,
+            prefix, buf, io_sz);
+}
+
 int
 pcdom_node_write_to_stream_ex(pcdom_node_t *node,
     enum pchtml_html_serialize_opt opt, purc_rwstream_t out);
 
 char*
-pcdom_node_snprintf(pcdom_node_t *node,
+pcdom_node_snprintf_ex(pcdom_node_t *node,
         enum pchtml_html_serialize_opt opt,
         const char *prefix, char *buf, size_t *io_sz);
 
@@ -323,6 +331,14 @@ pcdom_node_write_to_stream(pcdom_node_t *node, purc_rwstream_t out)
 {
     return pcdom_node_write_to_stream_ex(node,
             PCHTML_HTML_SERIALIZE_OPT_UNDEF, out);
+}
+
+static inline char*
+pcdom_node_snprintf(pcdom_node_t *node,
+        const char *prefix, char *buf, size_t *io_sz)
+{
+    return pcdom_node_snprintf_ex(node, PCHTML_HTML_SERIALIZE_OPT_UNDEF,
+            prefix, buf, io_sz);
 }
 
 struct pcdom_document*

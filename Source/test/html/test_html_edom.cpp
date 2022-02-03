@@ -157,7 +157,7 @@ TEST(html, edom_parse_simple)
     char buf[8192];
     size_t nr = sizeof(buf);
     char *p;
-    p = pchtml_doc_snprintf(doc, opt, "", buf, &nr);
+    p = pchtml_doc_snprintf_ex(doc, opt, "", buf, &nr);
     ASSERT_NE(p, nullptr);
     ASSERT_STREQ(p, "<html><head></head><body></body></html>");
     if (p != buf)

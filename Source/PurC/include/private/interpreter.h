@@ -400,6 +400,13 @@ bool
 pcintr_load_dynamic_variant(pcintr_stack_t stack,
     const char *name, size_t len);
 
+// utilities
+void
+pcintr_dump_document(pcintr_stack_t stack);
+
+void
+pcintr_dump_edom_node(pcintr_stack_t stack, pcdom_node_t *node);
+
 PCA_EXTERN_C_END
 
 #endif  /* PURC_PRIVATE_INTERPRETER_H */
