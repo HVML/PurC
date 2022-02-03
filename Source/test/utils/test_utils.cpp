@@ -1177,3 +1177,21 @@ TEST(utils, array_list_append_entry_reverse)
     pcutils_array_list_reset(&arrlist);
 }
 
+TEST(utils, snprintf)
+{
+    char buf[16];
+    size_t nr = sizeof(buf);
+    char *p = pcutils_snprintf(buf, &nr, "%s", "hello");
+    ASSERT_EQ(p, buf);
+    ASSERT_EQ(nr, 5);
+
+#define FMT "this is a very very long string"
+    nr = sizeof(buf);
+    p = pcutils_snprintf(buf, &nr, FMT);
+    ASSERT_NE(p, nullptr);
+    ASSERT_NE(p, buf);
+    ASSERT_STREQ(p, FMT);
+    free(p);
+#undef FMT
+}
+

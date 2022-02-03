@@ -223,7 +223,9 @@ pcutils_vsnprintf(char *buf, size_t *sz_io, const char *fmt, va_list ap)
     size_t sz = nr;
 
     char *p = NULL;
-    int n = vsnprintf(buf, sz, fmt, ap);
+    int n = vsnprintf(buf, sz, fmt, dp);
+    va_end(dp);
+
     do {
         nr = n;
 
@@ -241,7 +243,6 @@ pcutils_vsnprintf(char *buf, size_t *sz_io, const char *fmt, va_list ap)
 
         *p = '\0';
         n = vsnprintf(p, sz, fmt, dp);
-        va_end(dp);
 
         nr = n;
         if (n<0 || (size_t)n >= sz) {
@@ -262,7 +263,10 @@ pcutils_snprintf(char *buf, size_t *sz_io, const char *fmt, ...)
     va_list ap;
     va_start(ap, fmt);
 
-    char *p = pcutils_snprintf(buf, sz_io, fmt, ap);
+    char *p = pcutils_vsnprintf(buf, sz_io, fmt, ap);
+
+    va_end(ap);
+
     return p;
 }
 
