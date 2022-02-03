@@ -147,10 +147,21 @@ TEST(html, edom_parse_simple)
 
     purc_rwstream_destroy(rs);
 
-    char buf[8192];
-    write_edom_node(buf, sizeof(buf), pcdom_interface_node(doc));
+    enum pchtml_html_serialize_opt opt;
+    opt = (enum pchtml_html_serialize_opt)(
+          PCHTML_HTML_SERIALIZE_OPT_UNDEF |
+          PCHTML_HTML_SERIALIZE_OPT_SKIP_WS_NODES |
+          PCHTML_HTML_SERIALIZE_OPT_WITHOUT_TEXT_INDENT |
+          PCHTML_HTML_SERIALIZE_OPT_FULL_DOCTYPE);
 
-    ASSERT_STREQ(buf, "<html><head></head><body></body></html>");
+    char buf[8192];
+    size_t nr = sizeof(buf);
+    char *p;
+    p = pchtml_doc_snprintf(doc, opt, "", buf, &nr);
+    ASSERT_NE(p, nullptr);
+    ASSERT_STREQ(p, "<html><head></head><body></body></html>");
+    if (p != buf)
+        free(p);
 
     ASSERT_NE(doc->head, nullptr);
     write_edom_node(buf, sizeof(buf), pcdom_interface_node(doc->head));

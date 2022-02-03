@@ -297,6 +297,11 @@ int
 pchtml_doc_write_to_stream_ex(pchtml_html_document_t *doc,
     enum pchtml_html_serialize_opt opt, purc_rwstream_t out);
 
+char*
+pchtml_doc_snprintf(pchtml_html_document_t *doc,
+        enum pchtml_html_serialize_opt opt,
+        const char *prefix, char *buf, size_t *io_sz);
+
 static inline int
 pchtml_doc_write_to_stream(pchtml_html_document_t *doc, purc_rwstream_t out)
 {
@@ -307,6 +312,11 @@ pchtml_doc_write_to_stream(pchtml_html_document_t *doc, purc_rwstream_t out)
 int
 pcdom_node_write_to_stream_ex(pcdom_node_t *node,
     enum pchtml_html_serialize_opt opt, purc_rwstream_t out);
+
+char*
+pcdom_node_snprintf(pcdom_node_t *node,
+        enum pchtml_html_serialize_opt opt,
+        const char *prefix, char *buf, size_t *io_sz);
 
 static inline int
 pcdom_node_write_to_stream(pcdom_node_t *node, purc_rwstream_t out)

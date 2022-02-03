@@ -22,6 +22,7 @@
 #include "purc-errors.h"
 #include "private/utils.h"
 #include "private/errors.h"
+#include "private/debug.h"
 
 #include <stdarg.h>
 #include <stdlib.h>
@@ -229,8 +230,7 @@ pcutils_vsnprintf(char *buf, size_t *sz_io, const char *fmt, va_list ap)
     do {
         nr = n;
 
-        if (n<0)
-            break;
+        PC_ASSERT(n>=0);
 
         p = buf;
         if ((size_t)n < sz)
@@ -248,6 +248,7 @@ pcutils_vsnprintf(char *buf, size_t *sz_io, const char *fmt, va_list ap)
         if (n<0 || (size_t)n >= sz) {
             free(p);
             p = NULL;
+            PC_ASSERT(0);
             break;
         }
     } while (0);
