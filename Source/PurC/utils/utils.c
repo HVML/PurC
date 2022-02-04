@@ -257,7 +257,6 @@ pcutils_vsnprintf(char *buf, size_t *sz_io, const char *fmt, va_list ap)
     return p;
 }
 
-__attribute__ ((format (printf, 3, 4)))
 char*
 pcutils_snprintf(char *buf, size_t *sz_io, const char *fmt, ...)
 {
