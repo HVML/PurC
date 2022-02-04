@@ -85,6 +85,7 @@ post_process_dest_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 
     purc_variant_t on;
     on = ctxt->on;
+    PC_ASSERT(on != PURC_VARIANT_INVALID);
     if (on == PURC_VARIANT_INVALID)
         return -1;
     PURC_VARIANT_SAFE_CLEAR(ctxt->on);
@@ -215,11 +216,14 @@ process_attr_by(struct pcintr_stack_frame *frame,
 static int
 attr_found(struct pcintr_stack_frame *frame,
         struct pcvdom_element *element,
-        purc_atom_t name, purc_variant_t val, void *ud)
+        purc_atom_t name, purc_variant_t val,
+        struct pcvdom_attr *attr,
+        void *ud)
 {
     UNUSED_PARAM(ud);
 
     PC_ASSERT(name);
+    PC_ASSERT(attr->op == PCHVML_ATTRIBUTE_ASSIGNMENT);
 
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, ON)) == name) {
         return process_attr_on(frame, element, name, val);
@@ -275,16 +279,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     r = pcintr_vdom_walk_attrs(frame, element, NULL, attr_found);
     if (r)
         return NULL;
-
-    if (stack->fragment == NULL) {
-        stack->fragment = purc_rwstream_new_buffer(1024, 1024*1024*16);
-        if (!stack->fragment)
-            return NULL;
-    }
-    else {
-        off_t n = purc_rwstream_seek(stack->fragment, 0, SEEK_SET);
-        PC_ASSERT(n == 0);
-    }
 
     purc_clr_error();
 

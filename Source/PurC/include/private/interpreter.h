@@ -77,13 +77,6 @@ enum pcintr_stack_stage {
     STACK_STAGE_TERMINATING,
 };
 
-struct pcintr_edom_gen {
-    pchtml_html_document_t     *doc;
-    pchtml_html_parser_t       *parser;
-    purc_rwstream_t             cache;
-    unsigned int                finished:1;
-};
-
 struct pcintr_loaded_var {
     struct rb_node              node;
     char                       *name;
@@ -133,21 +126,7 @@ struct pcintr_stack {
     struct pcutils_arrlist* dynamic_variant_observer_list;
     struct pcutils_arrlist* native_variant_observer_list;
 
-    // streamlizing to generate edom in one pass
-    struct pcintr_edom_gen     edom_gen;
-
-    // collect fragments chunk by chunk by `update` during `iterate`
-    // temporary, temporary, temporary
-    // iterate[after_pushed]: make fragment or reset fragment
-    // update: write content into fragment, CURRENT implementation
-    //         concerning prepend operation, better use string-buffers instead
-    // iterate[on_popping(true)]: write fragment into `edom_gen`
-    // TODO: this is temporary implementation!!!!
-    // ultimate: recording action as well as content, and `replay` to the
-    //           right position in edom when done!
-    purc_rwstream_t            fragment;
-
-    struct list_head           edom_fragments; // struct edom_fragment
+    pchtml_html_document_t     *doc;
 
     // for loaded dynamic variants
     struct rb_root             loaded_vars;  // struct pcintr_loaded_var*
@@ -287,8 +266,9 @@ pcintr_pop_stack_frame(pcintr_stack_t stack);
 struct pcintr_stack_frame*
 pcintr_push_stack_frame(pcintr_stack_t stack);
 
-void
-pcintr_stack_write_fragment(pcintr_stack_t stack);
+pcdom_node_t*
+pcintr_parse_fragment(pcintr_stack_t stack,
+        const char *fragment_chunk, size_t sz);
 
 __attribute__ ((format (printf, 5, 6)))
 int
@@ -302,6 +282,9 @@ pcintr_printf_to_edom(pcintr_stack_t stack, const char *fmt, ...);
 
 int
 pcintr_printf_start_element_to_edom(pcintr_stack_t stack);
+
+int
+pcintr_printf_content_to_edom(pcintr_stack_t stack, const char *fmt, ...);
 
 int
 pcintr_printf_end_element_to_edom(pcintr_stack_t stack);
@@ -406,6 +389,9 @@ pcintr_dump_document(pcintr_stack_t stack);
 
 void
 pcintr_dump_edom_node(pcintr_stack_t stack, pcdom_node_t *node);
+
+void
+pcintr_dump_frame_edom_node(pcintr_stack_t stack);
 
 PCA_EXTERN_C_END
 

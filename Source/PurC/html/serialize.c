@@ -929,11 +929,14 @@ pchtml_html_serialize_pretty_cb(pcdom_node_t *node,
             break;
 
         default:
+            D("type: 0x%x", node->type);
             pcinst_set_error (PURC_ERROR_HTML);
+            PC_ASSERT(0);
             return PCHTML_STATUS_ERROR;
     }
 
     if (status != PCHTML_STATUS_OK) {
+        PC_ASSERT(0);
         return status;
     }
 
@@ -1024,6 +1027,7 @@ pchtml_html_serialize_pretty_node_cb(pcdom_node_t *node,
     while (node != NULL) {
         status = pchtml_html_serialize_pretty_cb(node, opt, deep, cb, ctx);
         if (status != PCHTML_STATUS_OK) {
+            PC_ASSERT(0);
             return status;
         }
 
@@ -1045,6 +1049,7 @@ pchtml_html_serialize_pretty_node_cb(pcdom_node_t *node,
                                                                opt, (deep + 2),
                                                                cb, ctx);
                     if (status != PCHTML_STATUS_OK) {
+                        PC_ASSERT(0);
                         return status;
                     }
                 }
@@ -1072,6 +1077,7 @@ pchtml_html_serialize_pretty_node_cb(pcdom_node_t *node,
                         status = pchtml_html_serialize_element_closed_cb(pcdom_interface_element(node),
                                                                       cb, ctx);
                         if (status != PCHTML_STATUS_OK) {
+                            PC_ASSERT(0);
                             return status;
                         }
 
@@ -1097,6 +1103,7 @@ pchtml_html_serialize_pretty_node_cb(pcdom_node_t *node,
                     status = pchtml_html_serialize_element_closed_cb(pcdom_interface_element(node),
                                                                   cb, ctx);
                     if (status != PCHTML_STATUS_OK) {
+                        PC_ASSERT(0);
                         return status;
                     }
 
@@ -1416,6 +1423,7 @@ pchtml_html_serialize_pretty_tree_cb(pcdom_node_t *node,
             unsigned int status = pchtml_html_serialize_pretty_node_cb(node, opt,
                                                                indent, cb, ctx);
             if (status != PCHTML_STATUS_OK) {
+                PC_ASSERT(0);
                 return status;
             }
 

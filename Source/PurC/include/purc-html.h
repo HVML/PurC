@@ -300,12 +300,12 @@ enum pchtml_html_serialize_opt {
 
 int
 pchtml_doc_write_to_stream_ex(pchtml_html_document_t *doc,
-    enum pchtml_html_serialize_opt opt, purc_rwstream_t out);
+        enum pchtml_html_serialize_opt opt, purc_rwstream_t out);
 
 char*
 pchtml_doc_snprintf_ex(pchtml_html_document_t *doc,
-        enum pchtml_html_serialize_opt opt,
-        const char *prefix, char *buf, size_t *io_sz);
+        enum pchtml_html_serialize_opt opt, char *buf, size_t *io_sz,
+        const char *prefix);
 
 static inline int
 pchtml_doc_write_to_stream(pchtml_html_document_t *doc, purc_rwstream_t out)
@@ -314,22 +314,18 @@ pchtml_doc_write_to_stream(pchtml_html_document_t *doc, purc_rwstream_t out)
             PCHTML_HTML_SERIALIZE_OPT_UNDEF, out);
 }
 
-static inline char*
-pchtml_doc_snprintf(pchtml_html_document_t *doc,
-        const char *prefix, char *buf, size_t *io_sz)
-{
-    return pchtml_doc_snprintf_ex(doc, PCHTML_HTML_SERIALIZE_OPT_UNDEF,
-            prefix, buf, io_sz);
-}
+#define pchtml_doc_snprintf(_doc, _buf, _pio_sz, _prefix, ...)          \
+    pchtml_doc_snprintf_ex(_doc, PCHTML_HTML_SERIALIZE_OPT_UNDEF,       \
+            _buf, _pio_sz, _prefix)
 
 int
 pcdom_node_write_to_stream_ex(pcdom_node_t *node,
-    enum pchtml_html_serialize_opt opt, purc_rwstream_t out);
+        enum pchtml_html_serialize_opt opt, purc_rwstream_t out);
 
 char*
 pcdom_node_snprintf_ex(pcdom_node_t *node,
-        enum pchtml_html_serialize_opt opt,
-        const char *prefix, char *buf, size_t *io_sz);
+        enum pchtml_html_serialize_opt opt, char *buf, size_t *io_sz,
+        const char *prefix);
 
 static inline int
 pcdom_node_write_to_stream(pcdom_node_t *node, purc_rwstream_t out)
@@ -338,13 +334,9 @@ pcdom_node_write_to_stream(pcdom_node_t *node, purc_rwstream_t out)
             PCHTML_HTML_SERIALIZE_OPT_UNDEF, out);
 }
 
-static inline char*
-pcdom_node_snprintf(pcdom_node_t *node,
-        const char *prefix, char *buf, size_t *io_sz)
-{
-    return pcdom_node_snprintf_ex(node, PCHTML_HTML_SERIALIZE_OPT_UNDEF,
-            prefix, buf, io_sz);
-}
+#define pcdom_node_snprintf(_node, _buf, _pio_sz, _prefix, ...)           \
+    pcdom_node_snprintf_ex(_node, PCHTML_HTML_SERIALIZE_OPT_UNDEF,        \
+            _buf, _pio_sz, _prefix)
 
 struct pcdom_document*
 pchtml_doc_get_document(pchtml_html_document_t *doc);

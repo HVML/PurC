@@ -445,30 +445,30 @@ struct visit_args {
     const char               *css;
 };
 
-static inline int
+static inline bool
 match_by_class(struct pcdom_element *element, struct visit_args *args)
 {
     const unsigned char *s;
     size_t len;
     s = pcdom_element_class(element, &len);
 
-    if (s && s[len]=='\0' && strcmp((const char*)s, args->css+1)==0)
-        return 0;
+    if (s && s[len]=='\0' && strncmp((const char*)s, args->css+1, len)==0)
+        return true;
 
-    return -1;
+    return false;
 }
 
-static inline int
+static inline bool
 match_by_id(struct pcdom_element *element, struct visit_args *args)
 {
     const unsigned char *s;
     size_t len;
     s = pcdom_element_id(element, &len);
 
-    if (s && s[len]=='\0' && strcmp((const char*)s, args->css+1)==0)
-        return 0;
+    if (s && s[len]=='\0' && strncmp((const char*)s, args->css+1, len)==0)
+        return true;
 
-    return -1;
+    return false;
 }
 
 static int
@@ -477,11 +477,11 @@ visit_element(struct pcdom_element *element, void *ud)
     struct visit_args *args = (struct visit_args*)ud;
 
     if (args->css[0] == '.') {
-        if (match_by_class(element, args))
+        if (!match_by_class(element, args))
             return 0;
     }
     else if (args->css[0] == '#') {
-        if (match_by_id(element, args))
+        if (!match_by_id(element, args))
             return 0;
     }
 
@@ -541,7 +541,7 @@ pcdvobjs_query_elements(struct pcdom_element *root, const char *css)
     PC_ASSERT(entity);
 
     struct visit_args args;
-    args.elements = entity;
+    args.elements = (struct pcdvobjs_elements*)entity;
     args.css      = css;
 
     int r = traverse_elements(root, visit_element, &args);

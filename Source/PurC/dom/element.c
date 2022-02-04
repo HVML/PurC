@@ -288,10 +288,12 @@ pcdom_element_set_attribute(pcdom_element_t *element,
 {
     unsigned int status;
     pcdom_attr_t *attr;
+    int exists = 0;
 
     attr = pcdom_element_attr_is_exist(element, qualified_name, qn_len);
 
     if (attr != NULL) {
+        exists = 1;
         goto update;
     }
 
@@ -320,7 +322,8 @@ update:
         return pcdom_attr_interface_destroy(attr);
     }
 
-    pcdom_element_attr_append(element, attr);
+    if (!exists)
+        pcdom_element_attr_append(element, attr);
 
     return attr;
 }

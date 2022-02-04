@@ -215,6 +215,10 @@ pcdom_node_simple_walk(pcdom_node_t *root,
                 void *ctx);
 
 void
+pcdom_displace_fragment(pcdom_node_t *parent,
+        pcdom_node_t *fragment);
+
+void
 pcdom_merge_fragment_prepend(pcdom_node_t *parent,
         pcdom_node_t *fragment);
 

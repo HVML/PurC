@@ -457,6 +457,16 @@ pcdom_node_text_content_set(pcdom_node_t *node,
 }
 
 void
+pcdom_displace_fragment(pcdom_node_t *parent,
+        pcdom_node_t *fragment)
+{
+    while (parent->first_child)
+        pcdom_node_destroy_deep(parent->first_child);
+
+    pcdom_merge_fragment_append(parent, fragment);
+}
+
+void
 pcdom_merge_fragment_prepend(pcdom_node_t *parent,
         pcdom_node_t *fragment)
 {

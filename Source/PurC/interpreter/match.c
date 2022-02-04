@@ -94,7 +94,6 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         purc_variant_t parent_result;
         parent_result = frame->symbol_vars[PURC_SYMBOL_VAR_QUESTION_MARK];
         PC_ASSERT(parent_result != PURC_VARIANT_INVALID);
-        PRINT_VAR(parent_result);
 
         r = match_for_rule_eval(&ctxt->param.rule, parent_result, &matched);
         PC_ASSERT(r == 0);
@@ -105,6 +104,15 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     purc_variant_t exclusively = ctxt->exclusively;
     if (exclusively != PURC_VARIANT_INVALID) {
         ctxt->is_exclusively = true;
+    }
+
+    if (matched) {
+        purc_variant_t parent_result;
+        parent_result = frame->symbol_vars[PURC_SYMBOL_VAR_QUESTION_MARK];
+        PC_ASSERT(parent_result != PURC_VARIANT_INVALID);
+        PURC_VARIANT_SAFE_CLEAR(frame->result_var);
+        frame->result_var = parent_result;
+        purc_variant_ref(parent_result);
     }
 
     return 0;
@@ -163,13 +171,14 @@ process_attr_exclusively(struct pcintr_stack_frame *frame,
 static int
 attr_found(struct pcintr_stack_frame *frame,
         struct pcvdom_element *element,
-        purc_atom_t name, purc_variant_t val, void *ud)
+        purc_atom_t name, purc_variant_t val,
+        struct pcvdom_attr *attr,
+        void *ud)
 {
     UNUSED_PARAM(ud);
-    UNUSED_PARAM(frame);
-    UNUSED_PARAM(val);
 
     PC_ASSERT(name);
+    PC_ASSERT(attr->op == PCHVML_ATTRIBUTE_ASSIGNMENT);
 
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, FOR)) == name) {
         return process_attr_for(frame, element, name, val);

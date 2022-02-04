@@ -37,6 +37,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define TO_DEBUG 1
+
 #define TYPE_STR_ATTACHED  "attached"
 #define TYPE_STR_DETACHED  "detached"
 
@@ -301,6 +303,7 @@ pcintr_get_symbolized_var (pcintr_stack_t stack, unsigned int number,
     }
 
     purc_variant_t v = frame->symbol_vars[symbol_var];
+    PC_ASSERT(v != PURC_VARIANT_INVALID);
     if (v != PURC_VARIANT_INVALID) {
         purc_clr_error();
         return v;

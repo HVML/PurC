@@ -38,7 +38,7 @@
 #include <unistd.h>
 #include <libgen.h>
 
-#define TO_DEBUG 0
+#define TO_DEBUG 1
 
 struct ctxt_for_choose {
     struct pcvdom_node *curr;
@@ -113,6 +113,8 @@ post_process_dest_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     purc_exec_inst_t exec_inst;
     exec_inst = ctxt->ops.create(PURC_EXEC_TYPE_ITERATE, on, false);
     if (!exec_inst)
+        PRINT_VARIANT(on);
+    if (!exec_inst)
         return -1;
 
     ctxt->exec_inst = exec_inst;
@@ -129,6 +131,7 @@ post_process_dest_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     if (value == PURC_VARIANT_INVALID)
         return -1;
 
+    PC_ASSERT(0);
     PURC_VARIANT_SAFE_CLEAR(frame->result_var);
     frame->result_var = value;
     purc_variant_ref(value);
@@ -250,15 +253,17 @@ process_attr_by(struct pcintr_stack_frame *frame,
 static int
 attr_found(struct pcintr_stack_frame *frame,
         struct pcvdom_element *element,
-        purc_atom_t name, purc_variant_t val, void *ud)
+        purc_atom_t name, purc_variant_t val,
+        struct pcvdom_attr *attr,
+        void *ud)
 {
     UNUSED_PARAM(ud);
-    UNUSED_PARAM(frame);
-    UNUSED_PARAM(val);
 
     PC_ASSERT(name);
+    PC_ASSERT(attr->op == PCHVML_ATTRIBUTE_ASSIGNMENT);
 
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, ON)) == name) {
+        PRINT_VARIANT(val);
         return process_attr_on(frame, element, name, val);
     }
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, IN)) == name) {
@@ -311,9 +316,11 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     purc_clr_error();
 
     r = post_process(&stack->co, frame);
+
     if (r)
         return NULL;
 
+    PRINT_VARIANT(frame->result_var);
     return ctxt;
 }
 

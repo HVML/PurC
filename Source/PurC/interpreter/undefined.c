@@ -86,13 +86,14 @@ process_attr_href(struct pcintr_stack_frame *frame,
 static int
 attr_found(struct pcintr_stack_frame *frame,
         struct pcvdom_element *element,
-        purc_atom_t name, purc_variant_t val, void *ud)
+        purc_atom_t name, purc_variant_t val,
+        struct pcvdom_attr *attr,
+        void *ud)
 {
     UNUSED_PARAM(ud);
-    UNUSED_PARAM(frame);
-    UNUSED_PARAM(val);
 
     PC_ASSERT(name);
+    PC_ASSERT(attr->op == PCHVML_ATTRIBUTE_ASSIGNMENT);
 
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, HREF)) == name) {
         return process_attr_href(frame, element, name, val);
@@ -138,6 +139,12 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (r)
         return NULL;
 
+    r = pcintr_printf_start_element_to_edom(stack);
+    if (r)
+        return NULL;
+
+    PC_ASSERT(frame->edom_element);
+
 #if 1
     // FIXME
     // base tag, set base uri
@@ -151,9 +158,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         }
     }
 #endif
-
-    pcintr_printf_start_element_to_edom(stack);
-    frame->edom_element = pcintr_stack_get_edom_open_element(stack);
 
     purc_variant_t with = frame->ctnt_var;
     if (with != PURC_VARIANT_INVALID) {
@@ -171,8 +175,6 @@ on_popping(pcintr_stack_t stack, void* ud)
 {
     PC_ASSERT(stack);
     PC_ASSERT(stack == purc_get_stack());
-
-    pcintr_printf_end_element_to_edom(stack);
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
@@ -210,7 +212,7 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     PC_ASSERT(content);
     char *text = content->text;
     // FIXME: escape!!!!
-    int r = pcintr_printf_to_edom(co->stack, "%s", text);
+    int r = pcintr_printf_content_to_edom(co->stack, "%s", text);
     PC_ASSERT(r == 0);
 }
 

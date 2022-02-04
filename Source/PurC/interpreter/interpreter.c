@@ -43,14 +43,6 @@
 
 #define TO_DEBUG 1
 
-struct edom_fragment {
-    struct list_head           node;
-    purc_variant_t             on;
-    purc_variant_t             to;
-    purc_variant_t             at;
-    char                      *content;
-};
-
 void pcintr_stack_init_once(void)
 {
     pcrunloop_init_main();
@@ -113,14 +105,12 @@ vdom_destroy(purc_vdom_t vdom)
 void
 pcintr_dump_document(pcintr_stack_t stack)
 {
-    struct pcintr_edom_gen *edom_gen = &stack->edom_gen;
-    PC_ASSERT(edom_gen->finished);
-    pchtml_html_document_t *doc = edom_gen->doc;
+    pchtml_html_document_t *doc = stack->doc;
     PC_ASSERT(doc);
 
     char buf[1024];
     size_t nr = sizeof(buf);
-    char *p = pchtml_doc_snprintf(doc, "hvml:\n", buf, &nr);
+    char *p = pchtml_doc_snprintf(doc, buf, &nr, "");
     if (p) {
         fprintf(stderr, "==========%s\n", p);
         if (p != buf)
@@ -136,7 +126,7 @@ pcintr_dump_edom_node(pcintr_stack_t stack, pcdom_node_t *node)
 
     char buf[1024];
     size_t nr = sizeof(buf);
-    char *p = pcdom_node_snprintf(node, "node:\n", buf, &nr);
+    char *p = pcdom_node_snprintf(node, buf, &nr, "");
     if (p) {
         fprintf(stderr, "==========%s\n", p);
         if (p != buf)
@@ -144,210 +134,63 @@ pcintr_dump_edom_node(pcintr_stack_t stack, pcdom_node_t *node)
     }
 }
 
-static void
-edom_gen_release(struct pcintr_edom_gen *edom_gen)
+void
+pcintr_dump_frame_edom_node(pcintr_stack_t stack)
 {
-    if (edom_gen->parser) {
-        pchtml_html_parser_destroy(edom_gen->parser);
-        edom_gen->parser = NULL;
-    }
-    if (edom_gen->cache) {
-        purc_rwstream_write(edom_gen->cache, "", 1); // null-terminator
-        const char *s;
-        s = (const char*)purc_rwstream_get_mem_buffer(edom_gen->cache, NULL);
-        if (0)
-            fprintf(stderr, "generated html:\n%s\n", s);
-        purc_rwstream_destroy(edom_gen->cache);
-        edom_gen->cache = NULL;
-    }
-    if (edom_gen->doc) {
-        pchtml_html_document_destroy(edom_gen->doc);
-        edom_gen->doc = NULL;
-    }
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_stack_get_bottom_frame(stack);
+    PC_ASSERT(frame);
+    PC_ASSERT(frame->edom_element);
+    pcintr_dump_edom_node(stack, pcdom_interface_node(frame->edom_element));
 }
 
 static int
-edom_gen_init(struct pcintr_edom_gen *edom_gen)
+doc_init(pcintr_stack_t stack)
 {
-    edom_gen->parser = pchtml_html_parser_create();
-    if (!edom_gen->parser) {
+    pchtml_html_document_t *doc;
+    doc = pchtml_html_document_create();
+    if (!doc) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return -1;
     }
 
-    unsigned int ui = pchtml_html_parser_init(edom_gen->parser);
-    if (ui) {
-        // FIXME: out of memory????
+    const char *html = "<html/>";
+    unsigned int r;
+    r = pchtml_html_document_parse_with_buf(doc,
+            (const unsigned char*)html, strlen(html));
+    if (r) {
+        pchtml_html_document_destroy(doc);
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return -1;
     }
 
-    edom_gen->doc = pchtml_html_parse_chunk_begin(edom_gen->parser);
-    if (!edom_gen->doc) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return -1;
-    }
-
-    edom_gen->cache = purc_rwstream_new_buffer(1024, 1024*1024*16);
-    if (!edom_gen->cache) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return -1;
-    }
+    stack->doc = doc;
 
     return 0;
-}
-
-static int
-edom_gen_write(struct pcintr_edom_gen *edom_gen, const char *buf, int sz)
-{
-    PC_ASSERT(edom_gen->parser);
-    PC_ASSERT(edom_gen->doc);
-    PC_ASSERT(edom_gen->cache);
-    ssize_t n = purc_rwstream_write(edom_gen->cache, buf, sz);
-    if (n != sz)
-        return -1;
-
-    unsigned int ui;
-    ui = pchtml_html_parse_chunk_process(edom_gen->parser,
-            (unsigned char*)buf, sz);
-    if (ui) {
-        // FIXME: out of memory????
-        return -1;
-    }
-
-    // pchtml_html_tree_t *tree = edom_gen->parser->tree;
-    // if (!tree)
-    //     return 0;
-
-    // pcutils_array_t *open_elements = tree->open_elements;
-    // if (!open_elements)
-    //     return 0;
-
-    // if (open_elements->length < 1)
-    //     return 0;
-
-    // pcdom_element_t *element = open_elements->list[open_elements->length-1];
-    // if (!element)
-    //     return 0;
-
-    // const unsigned char *tag_name;
-    // size_t len;
-    // tag_name = pcdom_element_tag_name(element, &len);
-    // PC_ASSERT(tag_name);
-    // PC_ASSERT(tag_name[len] == 0);
-    // fprintf(stderr, "==[%s]==tag_name:[%s]==\n", buf, tag_name);
-
-    return 0;
-}
-
-static void
-edom_gen_finish(struct pcintr_edom_gen *edom_gen)
-{
-    if (edom_gen->finished)
-        return;
-    edom_gen->finished = 1;
-
-    unsigned int ui;
-    char buf[] = "";
-    PC_ASSERT(sizeof(buf) == 1);
-    purc_rwstream_t ws = purc_rwstream_new_from_mem(buf, sizeof(buf));
-    if (!ws)
-        return;
-
-    ui = pchtml_html_parse_chunk_end(edom_gen->parser);
-    PC_ASSERT(ui == 0);
-    purc_rwstream_destroy(ws);
 }
 
 pcdom_element_t*
 pcintr_stack_get_edom_open_element(pcintr_stack_t stack)
 {
-    PC_ASSERT(stack);
-    struct pcintr_edom_gen *edom_gen = &stack->edom_gen;
-
-    pchtml_html_tree_t *tree = edom_gen->parser->tree;
-    if (!tree)
-        return NULL;
-
-    pcutils_array_t *open_elements = tree->open_elements;
-    if (!open_elements)
-        return NULL;
-
-    if (open_elements->length < 1)
-        return NULL;
-
-    pcdom_element_t *element = open_elements->list[open_elements->length-1];
-    if (!element)
-        return NULL;
-
-    const unsigned char *tag_name;
-    size_t len;
-    tag_name = pcdom_element_tag_name(element, &len);
-    PC_ASSERT(tag_name);
-    PC_ASSERT(tag_name[len] == 0);
-    // fprintf(stderr, "==[%s]==tag_name:[%s]==\n", buf, tag_name);
-    return element;
-}
-
-void
-pcintr_stack_write_fragment(pcintr_stack_t stack)
-{
-    if (!stack->fragment)
-        return;
-    ssize_t n = purc_rwstream_write(stack->fragment, "", 1);
-    PC_ASSERT(n == 1);
-
-    const char *s;
-    s = (const char*)purc_rwstream_get_mem_buffer(stack->fragment, NULL);
-    PC_ASSERT(s);
-
-    int r = edom_gen_write(&stack->edom_gen, s, strlen(s));
-    PC_ASSERT(r == 0);
-}
-
-static void
-edom_fragment_release(struct edom_fragment *fragment)
-{
-    if (!fragment)
-        return;
-
-    PURC_VARIANT_SAFE_CLEAR(fragment->on);
-    PURC_VARIANT_SAFE_CLEAR(fragment->to);
-    PURC_VARIANT_SAFE_CLEAR(fragment->at);
-    if (fragment->content) {
-        free(fragment->content);
-        fragment->content = NULL;
-    }
-}
-
-static void
-edom_fragment_destroy(struct edom_fragment *fragment)
-{
-    if (fragment) {
-        edom_fragment_release(fragment);
-        free(fragment);
-    }
+    UNUSED_PARAM(stack);
+    PC_ASSERT(0);
+    return NULL;
 }
 
 static void
 edom_fragment_post_process_target_content(pcintr_stack_t stack,
-        struct edom_fragment *fragment, struct pcdom_element *target)
+        struct pcdom_element *target,
+        purc_variant_t to, const char *content)
 {
-    struct pcintr_edom_gen *edom_gen = &stack->edom_gen;
-    PC_ASSERT(edom_gen->finished);
-    pchtml_html_document_t *doc = edom_gen->doc;
+    PC_ASSERT(0);
+    pchtml_html_document_t *doc = stack->doc;
     PC_ASSERT(doc);
-    pchtml_html_parser_t *parser = edom_gen->parser;
-    PC_ASSERT(parser);
 
     const char *op = "displace";
-    purc_variant_t to = fragment->to;
     if (to != PURC_VARIANT_INVALID) {
         PC_ASSERT(purc_variant_is_type(to, PURC_VARIANT_TYPE_STRING));
-        op = purc_variant_get_string_const(fragment->to);
+        op = purc_variant_get_string_const(to);
     }
-
-    const char *content = fragment->content;
 
     purc_rwstream_t in;
     in = purc_rwstream_new_from_mem((void*)content, strlen(content));
@@ -392,17 +235,14 @@ edom_fragment_post_process_target_content(pcintr_stack_t stack,
 
 static void
 edom_fragment_post_process_target_attr(pcintr_stack_t stack,
-        struct edom_fragment *fragment, struct pcdom_element *target,
-        const char *attr_name)
+        struct pcdom_element *target,
+        const char *attr_name, purc_variant_t to,
+        const char *content)
 {
-    UNUSED_PARAM(fragment);
+    PC_ASSERT(0);
 
-    struct pcintr_edom_gen *edom_gen = &stack->edom_gen;
-    PC_ASSERT(edom_gen->finished);
-    pchtml_html_document_t *doc = edom_gen->doc;
+    pchtml_html_document_t *doc = stack->doc;
     PC_ASSERT(doc);
-    pchtml_html_parser_t *parser = edom_gen->parser;
-    PC_ASSERT(parser);
 
     PC_ASSERT(attr_name);
 
@@ -411,13 +251,10 @@ edom_fragment_post_process_target_attr(pcintr_stack_t stack,
             (const unsigned char*)attr_name, strlen(attr_name));
     PC_ASSERT(attr);
 
-    const char *content = fragment->content;
-
     const char *op = "displace";
-    purc_variant_t to = fragment->to;
     if (to != PURC_VARIANT_INVALID) {
         PC_ASSERT(purc_variant_is_type(to, PURC_VARIANT_TYPE_STRING));
-        op = purc_variant_get_string_const(fragment->to);
+        op = purc_variant_get_string_const(to);
     }
 
     if (strcmp(op, "append") == 0) {
@@ -443,34 +280,38 @@ edom_fragment_post_process_target_attr(pcintr_stack_t stack,
 
 static void
 edom_fragment_post_process_target(pcintr_stack_t stack,
-        struct edom_fragment *fragment, struct pcdom_element *target)
+        struct pcdom_element *target,
+        purc_variant_t at, purc_variant_t to, const char *content)
 {
-    purc_variant_t at = fragment->at;
+    PC_ASSERT(0);
     if (at != PURC_VARIANT_INVALID) {
         PC_ASSERT(purc_variant_is_type(at, PURC_VARIANT_TYPE_STRING));
         const char *s_at = purc_variant_get_string_const(at);
         PC_ASSERT(s_at);
         if (strcmp(s_at, "textContent") == 0) {
-            edom_fragment_post_process_target_content(stack, fragment, target);
+            edom_fragment_post_process_target_content(stack, target,
+                    to, content);
         }
         else if (strncmp(s_at, "attr.", 5) == 0) {
-            edom_fragment_post_process_target_attr(stack, fragment, target,
-                s_at + 5);
+            edom_fragment_post_process_target_attr(stack, target,
+                s_at + 5, to, content);
         }
         else {
             PC_ASSERT(0); // Not implemented yet
         }
     }
     else {
-        edom_fragment_post_process_target_content(stack, fragment, target);
+        edom_fragment_post_process_target_content(stack, target,
+                to, content);
     }
 }
 
 static void
 edom_fragment_post_process(pcintr_stack_t stack,
-        struct edom_fragment *fragment)
+        purc_variant_t on, purc_variant_t at, purc_variant_t to,
+        const char *content)
 {
-    purc_variant_t on = fragment->on;
+    PC_ASSERT(0);
     PC_ASSERT(on != PURC_VARIANT_INVALID);
     PC_ASSERT(purc_variant_is_type(on, PURC_VARIANT_TYPE_NATIVE));
     size_t idx = 0;
@@ -479,26 +320,8 @@ edom_fragment_post_process(pcintr_stack_t stack,
         target = pcdvobjs_get_element_from_elements(on, idx++);
         if (!target)
             break;
-        edom_fragment_post_process_target(stack, fragment, target);
+        edom_fragment_post_process_target(stack, target, at, to, content);
     }
-}
-
-static void
-edom_fragments_post_process(pcintr_stack_t stack)
-{
-    struct list_head *edom_fragments = &stack->edom_fragments;
-    if (!list_empty(edom_fragments)) {
-        struct list_head *p, *n;
-        list_for_each_safe(p, n, edom_fragments) {
-            struct edom_fragment *curr;
-            curr = container_of(p, struct edom_fragment, node);
-            list_del(p);
-            edom_fragment_post_process(stack, curr);
-            edom_fragment_destroy(curr);
-        }
-    }
-
-    pcintr_dump_document(stack);
 }
 
 static void
@@ -556,15 +379,6 @@ loaded_vars_release(pcintr_stack_t stack)
 static void
 stack_release(pcintr_stack_t stack)
 {
-    struct list_head *edom_fragments = &stack->edom_fragments;
-    if (!list_empty(edom_fragments)) {
-        struct edom_fragment *p, *n;
-        list_for_each_entry_reverse_safe(p, n, edom_fragments, node) {
-            list_del(&p->node);
-            edom_fragment_destroy(p);
-        }
-    }
-
     struct list_head *frames = &stack->frames;
     if (!list_empty(frames)) {
         struct pcintr_stack_frame *p, *n;
@@ -600,10 +414,9 @@ stack_release(pcintr_stack_t stack)
         stack->native_variant_observer_list = NULL;
     }
 
-    edom_gen_release(&stack->edom_gen);
-    if (stack->fragment) {
-        purc_rwstream_destroy(stack->fragment);
-        stack->fragment = NULL;
+    if (stack->doc) {
+        pchtml_html_document_destroy(stack->doc);
+        stack->doc = NULL;
     }
 
     loaded_vars_release(stack);
@@ -627,7 +440,6 @@ stack_init(pcintr_stack_t stack)
 {
     INIT_LIST_HEAD(&stack->frames);
     stack->stage = STACK_STAGE_FIRST_ROUND;
-    INIT_LIST_HEAD(&stack->edom_fragments);
     stack->loaded_vars = RB_ROOT;
 }
 
@@ -855,7 +667,9 @@ walk_attr(void *key, void *val, void *ud)
         pcintr_stack_t stack = purc_get_stack();
         PC_ASSERT(stack);
         value = pcvcm_eval(vcm, stack);
-        if (value == PURC_VARIANT_INVALID) {
+        if (value == PURC_VARIANT_INVALID ||
+            purc_variant_is_undefined(value))
+        {
             PRINT_VCM_NODE(vcm);
             return -1;
         }
@@ -878,7 +692,7 @@ walk_attr(void *key, void *val, void *ud)
     purc_atom_t atom = PCHVML_KEYWORD_ATOM(HVML, attr->key);
     if (atom) {
         // NOTE: we only dispatch those keyworded-attr to caller
-        return data->cb(frame, element, atom, value, data->ud);
+        return data->cb(frame, element, atom, value, attr, data->ud);
     }
 
     return 0;
@@ -1129,9 +943,6 @@ execute_one_step(pcintr_coroutine_t co)
     co->state = CO_STATE_READY;
     bool no_frames = list_empty(&co->stack->frames);
     if (no_frames) {
-        if (co->stack->stage == STACK_STAGE_FIRST_ROUND)
-            edom_gen_finish(&stack->edom_gen);
-        edom_fragments_post_process(stack);
         co->stack->stage = STACK_STAGE_EVENT_LOOP;
         // do not run execute_one_step until event's fired if co->waits > 0
         if (co->waits) { // FIXME:
@@ -1394,7 +1205,7 @@ init_buidin_doc_variable(pcintr_stack_t stack)
 
 
     // $DOC
-    pchtml_html_document_t *doc = stack->edom_gen.doc;
+    pchtml_html_document_t *doc = stack->doc;
     pcdom_document_t *document = (pcdom_document_t*)doc;
     if(!bind_doc_named_variable(stack, BUILDIN_VAR_DOC,
                 pcdvobjs_make_doc_variant(document))) {
@@ -1448,7 +1259,7 @@ purc_load_hvml_from_rwstream(purc_rwstream_t stream)
     stack->co.stack = stack;
     stack->co.state = CO_STATE_READY;
 
-    if (edom_gen_init(&stack->edom_gen)) {
+    if (doc_init(stack)) {
         stack_destroy(stack);
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
@@ -1493,6 +1304,9 @@ purc_run(purc_variant_t request, purc_event_handler handler)
 int
 pcintr_printf_to_edom(pcintr_stack_t stack, const char *fmt, ...)
 {
+    PC_ASSERT(0);
+    UNUSED_PARAM(stack);
+
     // TODO: 1. alloc?; 2. two-scans?
     char buf[1024];
 
@@ -1502,9 +1316,6 @@ pcintr_printf_to_edom(pcintr_stack_t stack, const char *fmt, ...)
     PC_ASSERT(r >= 0 && (size_t)r < sizeof(buf));
     va_end(ap);
 
-    ssize_t sz;
-    sz = edom_gen_write(&stack->edom_gen, buf, r);
-    PC_ASSERT(sz == 0);
     return 0;
 }
 
@@ -1513,18 +1324,7 @@ pcintr_printf_to_fragment(pcintr_stack_t stack,
         purc_variant_t on, purc_variant_t to, purc_variant_t at,
         const char *fmt, ...)
 {
-    PC_ASSERT(stack->fragment);
-
-    struct edom_fragment *fragment;
-    fragment = (struct edom_fragment*)calloc(1, sizeof(*fragment));
-    fragment->on = on;
-    purc_variant_ref(on);
-    fragment->to = to;
-    if (to != PURC_VARIANT_INVALID)
-        purc_variant_ref(to);
-    fragment->at = at;
-    if (at != PURC_VARIANT_INVALID)
-        purc_variant_ref(at);
+    PC_ASSERT(0);
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
@@ -1546,9 +1346,110 @@ pcintr_printf_to_fragment(pcintr_stack_t stack,
     r = vsnprintf(buf, r+1, fmt, ap_dup);
     PC_ASSERT(r >= 0);
 
-    fragment->content = buf;
+    edom_fragment_post_process(stack, on, at, to, buf);
+    return 0;
+}
 
-    list_add_tail(&fragment->node, &stack->edom_fragments);
+pcdom_node_t*
+pcintr_parse_fragment(pcintr_stack_t stack,
+        const char *fragment_chunk, size_t sz)
+{
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_stack_get_bottom_frame(stack);
+    PC_ASSERT(frame);
+
+    pchtml_html_document_t *doc = stack->doc;
+
+    struct pcdom_element *body;
+    body = pchtml_doc_get_body(doc);
+    PC_ASSERT(body);
+
+    pchtml_html_parser_t *parser;
+    parser = pchtml_html_parser_create();
+    if (!parser) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return NULL;
+    }
+
+    unsigned int r;
+    r = pchtml_html_parser_init(parser);
+    if (r) {
+        pchtml_html_parser_destroy(parser);
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return NULL;
+    }
+
+    r = pchtml_html_parse_fragment_chunk_begin(parser, doc,
+            body->node.local_name,
+            body->node.ns);
+    if (r) {
+        pchtml_html_parser_destroy(parser);
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return NULL;
+    }
+
+    r = pchtml_html_parse_fragment_chunk_process(parser,
+            (const unsigned char*)fragment_chunk, sz);
+
+    pcdom_node_t *node;
+    node = pchtml_html_parse_fragment_chunk_end(parser);
+    pchtml_html_parser_destroy(parser);
+    PC_ASSERT(node);
+
+    if (r) {
+        pcdom_node_destroy_deep(node);
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return NULL;
+    }
+
+    if (!node) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return NULL;
+    }
+
+    return node;
+}
+
+int
+pcintr_printf_content_to_edom(pcintr_stack_t stack, const char *fmt, ...)
+{
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_stack_get_bottom_frame(stack);
+    PC_ASSERT(frame);
+    pcdom_element_t *edom_element = frame->edom_element;
+    PC_ASSERT(edom_element);
+
+    char buf[1024];
+    size_t nr = sizeof(buf);
+    char *p;
+
+    va_list ap;
+    va_start(ap, fmt);
+    p = pcutils_vsnprintf(buf, &nr, fmt, ap);
+    va_end(ap);
+
+    if (!p) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return -1;
+    }
+
+    pcdom_node_t *fragment;
+    fragment = pcintr_parse_fragment(stack, p, nr);
+    if (p != buf)
+        free(p);
+
+    if (!fragment)
+        return -1;
+
+    pcdom_node_t *first_child = fragment->first_child;
+    if (first_child) {
+        pcdom_merge_fragment_append(pcdom_interface_node(edom_element),
+                fragment);
+    }
+    else {
+        pcdom_node_destroy_deep(fragment);
+    }
+
     return 0;
 }
 
@@ -1562,36 +1463,110 @@ pcintr_printf_start_element_to_edom(pcintr_stack_t stack)
     struct pcvdom_element *element = frame->scope;
     PC_ASSERT(element);
 
-    int r = pcintr_printf_to_edom(stack, "<%s", element->tag_name);
-    PC_ASSERT(r == 0);
+    pchtml_html_document_t *doc = stack->doc;
 
-    if (frame->attr_vars) {
-        purc_variant_t k, v;
-        foreach_key_value_in_variant_object(frame->attr_vars, k, v)
-            // fprintf(stderr, "=========[%s]=======\n", pcvariant_typename(k));
-            const char *key = purc_variant_get_string_const(k);
-            PC_ASSERT(key);
-            pcintr_printf_to_edom(stack, " %s", key);
+    struct pcdom_element *body;
+    body = pchtml_doc_get_body(doc);
+    PC_ASSERT(body);
 
-            const char *val = purc_variant_get_string_const(v);
-            if (val) {
-                // FIXME: escape???
-                pcintr_printf_to_edom(stack, "='%s'", val);
-            }
-        end_foreach;
+    pchtml_html_parser_t *parser;
+    parser = pchtml_html_parser_create();
+    if (!parser) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return -1;
     }
 
-    if (element->self_closing) {
-        return pcintr_printf_to_edom(stack, "/>");
+    unsigned int r;
+    r = pchtml_html_parser_init(parser);
+    if (r) {
+        pchtml_html_parser_destroy(parser);
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return -1;
     }
-    else {
-        return pcintr_printf_to_edom(stack, ">");
+
+    r = pchtml_html_parse_fragment_chunk_begin(parser, doc,
+            body->node.local_name,
+            body->node.ns);
+    if (r) {
+        pchtml_html_parser_destroy(parser);
+        return -1;
     }
+
+    do {
+        D("element: %s", element->tag_name);
+        r = pchtml_html_parse_fragment_chunk_process_with_format(parser,
+                "<%s ", element->tag_name);
+        if (r)
+            break;
+
+        if (frame->attr_vars) {
+            purc_variant_t k, v;
+            int first = 1;
+            foreach_key_value_in_variant_object(frame->attr_vars, k, v)
+                const char *key = purc_variant_get_string_const(k);
+                PC_ASSERT(key);
+                if (first) {
+                    r = pchtml_html_parse_fragment_chunk_process_with_format(
+                            parser, "%s", key);
+                }
+                else {
+                    r = pchtml_html_parse_fragment_chunk_process_with_format(
+                            parser, " %s", key);
+                }
+                if (r)
+                    break;
+
+                const char *val = purc_variant_get_string_const(v);
+                if (val) {
+                    // FIXME: escape???
+                    r = pchtml_html_parse_fragment_chunk_process_with_format(
+                            parser, "='%s'", val);
+                    if (r)
+                        break;
+                }
+                first = 0;
+            end_foreach;
+        }
+        if (r)
+            break;
+        r = pchtml_html_parse_fragment_chunk_process_with_format(parser,
+                ">");
+    } while (0);
+
+    pcdom_node_t *node;
+    node = pchtml_html_parse_fragment_chunk_end(parser);
+    pchtml_html_parser_destroy(parser);
+    PC_ASSERT(node);
+
+    if (r) {
+        pcdom_node_destroy_deep(node);
+        return -1;
+    }
+
+    pcdom_node_t *first_child = node->first_child;
+    PC_ASSERT(first_child);
+    PC_ASSERT(first_child->type == PCDOM_NODE_TYPE_ELEMENT);
+    PC_ASSERT(first_child->next == NULL);
+
+    pcdom_element_t *child = pcdom_interface_element(first_child);
+
+    struct pcintr_stack_frame *parent;
+    parent = pcintr_stack_frame_get_parent(frame);
+    PC_ASSERT(parent);
+    pcdom_element_t *parent_element = parent->edom_element;
+    PC_ASSERT(parent_element);
+
+    pcdom_merge_fragment_append(pcdom_interface_node(parent_element), node);
+    frame->edom_element = child;
+
+    return 0;
 }
 
 int
 pcintr_printf_end_element_to_edom(pcintr_stack_t stack)
 {
+    PC_ASSERT(0);
+
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame);

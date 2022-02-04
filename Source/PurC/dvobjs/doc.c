@@ -29,8 +29,6 @@
 #include "private/dom.h"
 #include "private/avl.h"
 
-#include "purc-variant.h"
-
 struct dynamic_args {
     const char              *name;
     purc_dvariant_method     getter;

@@ -569,9 +569,6 @@ int
 pchtml_doc_write_to_stream_ex(pchtml_html_document_t *doc,
     enum pchtml_html_serialize_opt opt, purc_rwstream_t out)
 {
-    PC_ASSERT(doc);
-    PC_ASSERT(out);
-
     struct serializer_data ud = {
         .nr             = 0,
         .ctxt           = out,
@@ -636,14 +633,9 @@ buffer_writer(const char *data, size_t nr, int oom, void *ctxt)
 
 char*
 pchtml_doc_snprintf_ex(pchtml_html_document_t *doc,
-        enum pchtml_html_serialize_opt opt,
-        const char *prefix, char *buf, size_t *io_sz)
+        enum pchtml_html_serialize_opt opt, char *buf, size_t *io_sz,
+        const char *prefix)
 {
-    PC_ASSERT(doc);
-    PC_ASSERT(prefix);
-    PC_ASSERT(buf);
-    PC_ASSERT(io_sz);
-
     struct buffer_data bd = {
         .orig_buf       = buf,
         .orig_sz        = *io_sz,
@@ -676,9 +668,6 @@ int
 pcdom_node_write_to_stream_ex(pcdom_node_t *node,
     enum pchtml_html_serialize_opt opt, purc_rwstream_t out)
 {
-    PC_ASSERT(node);
-    PC_ASSERT(out);
-
     struct serializer_data ud = {
         .nr             = 0,
         .ctxt           = out,
@@ -696,14 +685,9 @@ pcdom_node_write_to_stream_ex(pcdom_node_t *node,
 
 char*
 pcdom_node_snprintf_ex(pcdom_node_t *node,
-        enum pchtml_html_serialize_opt opt,
-        const char *prefix, char *buf, size_t *io_sz)
+        enum pchtml_html_serialize_opt opt, char *buf, size_t *io_sz,
+        const char *prefix)
 {
-    PC_ASSERT(node);
-    PC_ASSERT(prefix);
-    PC_ASSERT(buf);
-    PC_ASSERT(io_sz);
-
     struct buffer_data bd = {
         .orig_buf       = buf,
         .orig_sz        = *io_sz,
