@@ -256,15 +256,12 @@ PCA_EXTERN_C_BEGIN
 void pcintr_stack_init_once(void) WTF_INTERNAL;
 void pcintr_stack_init_instance(struct pcinst* inst) WTF_INTERNAL;
 void pcintr_stack_cleanup_instance(struct pcinst* inst) WTF_INTERNAL;
+
 pcintr_stack_t purc_get_stack (void);
 struct pcintr_stack_frame*
 pcintr_stack_get_bottom_frame(pcintr_stack_t stack);
 struct pcintr_stack_frame*
 pcintr_stack_frame_get_parent(struct pcintr_stack_frame *frame);
-void
-pcintr_pop_stack_frame(pcintr_stack_t stack);
-struct pcintr_stack_frame*
-pcintr_push_stack_frame(pcintr_stack_t stack);
 
 pcdom_node_t*
 pcintr_parse_fragment(pcintr_stack_t stack,
@@ -276,18 +273,11 @@ pcintr_printf_to_fragment(pcintr_stack_t stack,
         purc_variant_t on, purc_variant_t to, purc_variant_t at,
         const char *fmt, ...);
 
-__attribute__ ((format (printf, 2, 3)))
 int
-pcintr_printf_to_edom(pcintr_stack_t stack, const char *fmt, ...);
-
-int
-pcintr_printf_start_element_to_edom(pcintr_stack_t stack);
+pcintr_edom_from_skeleton_vdom(pcintr_stack_t stack);
 
 int
 pcintr_printf_content_to_edom(pcintr_stack_t stack, const char *fmt, ...);
-
-int
-pcintr_printf_end_element_to_edom(pcintr_stack_t stack);
 
 int
 pcintr_printf_vcm_content_to_edom(pcintr_stack_t stack,

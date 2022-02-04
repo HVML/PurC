@@ -36,7 +36,7 @@
 #include <unistd.h>
 #include <libgen.h>
 
-#define TO_DEBUG 0
+#define TO_DEBUG 1
 
 struct ctxt_for_undefined {
     struct pcvdom_node           *curr;
@@ -139,11 +139,15 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (r)
         return NULL;
 
-    r = pcintr_printf_start_element_to_edom(stack);
+    r = pcintr_edom_from_skeleton_vdom(stack);
     if (r)
         return NULL;
 
     PC_ASSERT(frame->edom_element);
+
+    r = pcintr_element_eval_vcm_content(frame, element);
+    if (r)
+        return NULL;
 
 #if 1
     // FIXME

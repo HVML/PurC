@@ -37,6 +37,8 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#define TO_DEBUG 1
+
 #define DVOBJ_SESSION_DATA_NAME        "__handle_dvobj_session"
 
 static purc_variant_t

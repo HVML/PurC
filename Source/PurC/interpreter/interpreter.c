@@ -486,8 +486,28 @@ pcintr_stack_t purc_get_stack(void)
     return co->stack;
 }
 
-struct pcintr_stack_frame*
-pcintr_push_stack_frame(pcintr_stack_t stack)
+static void
+pop_stack_frame(pcintr_stack_t stack)
+{
+    PC_ASSERT(stack);
+    PC_ASSERT(stack->nr_frames > 0);
+
+    struct list_head *tail = stack->frames.prev;
+    PC_ASSERT(tail != NULL);
+    PC_ASSERT(tail != &stack->frames);
+
+    list_del(tail);
+
+    struct pcintr_stack_frame *frame;
+    frame = container_of(tail, struct pcintr_stack_frame, node);
+
+    stack_frame_release(frame);
+    free(frame);
+    --stack->nr_frames;
+}
+
+static struct pcintr_stack_frame*
+push_stack_frame(pcintr_stack_t stack)
 {
     PC_ASSERT(stack);
     struct pcintr_stack_frame *frame;
@@ -502,7 +522,7 @@ pcintr_push_stack_frame(pcintr_stack_t stack)
 
     purc_variant_t undefined = purc_variant_make_undefined();
     if (undefined == PURC_VARIANT_INVALID) {
-        pcintr_pop_stack_frame(stack);
+        pop_stack_frame(stack);
         return NULL;
     }
     for (size_t i=0; i<PCA_TABLESIZE(frame->symbol_vars); ++i) {
@@ -523,7 +543,7 @@ pcintr_push_stack_frame(pcintr_stack_t stack)
         purc_variant_t idx_var;
         idx_var = purc_variant_make_ulongint(parent->idx);
         if (idx_var == PURC_VARIANT_INVALID) {
-            pcintr_pop_stack_frame(stack);
+            pop_stack_frame(stack);
             return NULL;
         }
         PURC_VARIANT_SAFE_CLEAR(
@@ -532,26 +552,6 @@ pcintr_push_stack_frame(pcintr_stack_t stack)
     }
 
     return frame;
-}
-
-void
-pcintr_pop_stack_frame(pcintr_stack_t stack)
-{
-    PC_ASSERT(stack);
-    PC_ASSERT(stack->nr_frames > 0);
-
-    struct list_head *tail = stack->frames.prev;
-    PC_ASSERT(tail != NULL);
-    PC_ASSERT(tail != &stack->frames);
-
-    list_del(tail);
-
-    struct pcintr_stack_frame *frame;
-    frame = container_of(tail, struct pcintr_stack_frame, node);
-
-    stack_frame_release(frame);
-    free(frame);
-    --stack->nr_frames;
 }
 
 static int
@@ -850,7 +850,7 @@ on_popping(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 
     if (ok) {
         pcintr_stack_t stack = co->stack;
-        pcintr_pop_stack_frame(stack);
+        pop_stack_frame(stack);
     } else {
         frame->next_step = NEXT_STEP_RERUN;
     }
@@ -886,7 +886,7 @@ on_select_child(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         // push child frame
         pcintr_stack_t stack = co->stack;
         struct pcintr_stack_frame *child_frame;
-        child_frame = pcintr_push_stack_frame(stack);
+        child_frame = push_stack_frame(stack);
         if (!child_frame)
             return;
 
@@ -1271,7 +1271,7 @@ purc_load_hvml_from_rwstream(purc_rwstream_t stream)
     }
 
     struct pcintr_stack_frame *frame;
-    frame = pcintr_push_stack_frame(stack);
+    frame = push_stack_frame(stack);
     if (!frame) {
         stack_destroy(stack);
         return NULL;
@@ -1301,8 +1301,9 @@ purc_run(purc_variant_t request, purc_event_handler handler)
     return true;
 }
 
+__attribute__ ((format (printf, 2, 3)))
 int
-pcintr_printf_to_edom(pcintr_stack_t stack, const char *fmt, ...)
+printf_to_edom(pcintr_stack_t stack, const char *fmt, ...)
 {
     PC_ASSERT(0);
     UNUSED_PARAM(stack);
@@ -1454,7 +1455,7 @@ pcintr_printf_content_to_edom(pcintr_stack_t stack, const char *fmt, ...)
 }
 
 int
-pcintr_printf_start_element_to_edom(pcintr_stack_t stack)
+pcintr_edom_from_skeleton_vdom(pcintr_stack_t stack)
 {
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
@@ -1562,26 +1563,6 @@ pcintr_printf_start_element_to_edom(pcintr_stack_t stack)
 }
 
 int
-pcintr_printf_end_element_to_edom(pcintr_stack_t stack)
-{
-    PC_ASSERT(0);
-
-    struct pcintr_stack_frame *frame;
-    frame = pcintr_stack_get_bottom_frame(stack);
-    PC_ASSERT(frame);
-
-    struct pcvdom_element *element = frame->scope;
-    PC_ASSERT(element);
-
-    if (element->self_closing) {
-        return 0;
-    }
-    else {
-        return pcintr_printf_to_edom(stack, "</%s>", element->tag_name);
-    }
-}
-
-int
 pcintr_printf_vcm_content_to_edom(pcintr_stack_t stack, purc_variant_t vcm)
 {
     PC_ASSERT(purc_variant_is_type(vcm, PURC_VARIANT_TYPE_ULONGINT));
@@ -1599,7 +1580,14 @@ pcintr_printf_vcm_content_to_edom(pcintr_stack_t stack, purc_variant_t vcm)
         return -1;
 
     const char *s = purc_variant_get_string_const(v);
-    int r = pcintr_printf_to_edom(stack, "%s", s);
+    int r;
+    if (0) {
+        r = printf_to_edom(stack, "%s", s);
+    }
+    else {
+        r = pcintr_printf_content_to_edom(stack, "%s", s);
+    }
+
     purc_variant_unref(v);
     if (r)
         return -1;
@@ -1921,7 +1909,7 @@ pcintr_handle_message(void *ctxt)
     // push stack frame
     pcintr_stack_t stack = msg->stack;
     struct pcintr_stack_frame *frame;
-    frame = pcintr_push_stack_frame(stack);
+    frame = push_stack_frame(stack);
     if (!frame)
         return -1;
 
