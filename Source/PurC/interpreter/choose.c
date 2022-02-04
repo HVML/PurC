@@ -85,57 +85,58 @@ post_process_dest_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 
     purc_variant_t on;
     on = ctxt->on;
-    if (on == PURC_VARIANT_INVALID)
-        return -1;
+    PC_ASSERT(on != PURC_VARIANT_INVALID);
 
     purc_variant_t by;
     by = ctxt->by;
-    if (by == PURC_VARIANT_INVALID) {
-        by = purc_variant_make_string_static("RANGE: FROM 0", false);
-        if (by == PURC_VARIANT_INVALID)
+    PC_ASSERT(by == PURC_VARIANT_INVALID);
+
+    if (by != PURC_VARIANT_INVALID) {
+        const char *rule = purc_variant_get_string_const(by);
+        PC_ASSERT(rule);
+        bool ok = purc_get_executor(rule, &ctxt->ops);
+        if (!ok)
             return -1;
-        PURC_VARIANT_SAFE_CLEAR(ctxt->by);
-        ctxt->by = by;
+
+        PC_ASSERT(ctxt->ops.create);
+        PC_ASSERT(ctxt->ops.it_begin);
+        PC_ASSERT(ctxt->ops.it_next);
+        PC_ASSERT(ctxt->ops.it_value);
+        PC_ASSERT(ctxt->ops.destroy);
+
+        purc_exec_inst_t exec_inst;
+        exec_inst = ctxt->ops.create(PURC_EXEC_TYPE_ITERATE, on, false);
+        if (!exec_inst)
+            PRINT_VARIANT(on);
+        if (!exec_inst)
+            return -1;
+
+        ctxt->exec_inst = exec_inst;
+
+        purc_exec_iter_t it;
+        it = ctxt->ops.it_begin(exec_inst, rule);
+        if (!it)
+            return -1;
+
+        ctxt->it = it;
+
+        purc_variant_t value;
+        value = ctxt->ops.it_value(exec_inst, it);
+        if (value == PURC_VARIANT_INVALID)
+            return -1;
+
+        PC_ASSERT(0);
+        PURC_VARIANT_SAFE_CLEAR(frame->result_var);
+        frame->result_var = value;
+        purc_variant_ref(value);
+        PRINT_VARIANT(frame->result_var);
+        return 0;
     }
 
-    const char *rule = purc_variant_get_string_const(by);
-    PC_ASSERT(rule);
-    bool ok = purc_get_executor(rule, &ctxt->ops);
-    if (!ok)
-        return -1;
-
-    PC_ASSERT(ctxt->ops.create);
-    PC_ASSERT(ctxt->ops.it_begin);
-    PC_ASSERT(ctxt->ops.it_next);
-    PC_ASSERT(ctxt->ops.it_value);
-    PC_ASSERT(ctxt->ops.destroy);
-
-    purc_exec_inst_t exec_inst;
-    exec_inst = ctxt->ops.create(PURC_EXEC_TYPE_ITERATE, on, false);
-    if (!exec_inst)
-        PRINT_VARIANT(on);
-    if (!exec_inst)
-        return -1;
-
-    ctxt->exec_inst = exec_inst;
-
-    purc_exec_iter_t it;
-    it = ctxt->ops.it_begin(exec_inst, rule);
-    if (!it)
-        return -1;
-
-    ctxt->it = it;
-
-    purc_variant_t value;
-    value = ctxt->ops.it_value(exec_inst, it);
-    if (value == PURC_VARIANT_INVALID)
-        return -1;
-
-    PC_ASSERT(0);
+    PC_ASSERT(on != PURC_VARIANT_INVALID);
     PURC_VARIANT_SAFE_CLEAR(frame->result_var);
-    frame->result_var = value;
-    purc_variant_ref(value);
-    PRINT_VARIANT(frame->result_var);
+    frame->result_var = on;
+    purc_variant_ref(on);
 
     return 0;
 }

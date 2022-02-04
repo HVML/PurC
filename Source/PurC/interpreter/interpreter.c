@@ -112,7 +112,7 @@ pcintr_dump_document(pcintr_stack_t stack)
     size_t nr = sizeof(buf);
     char *p = pchtml_doc_snprintf(doc, buf, &nr, "");
     if (p) {
-        fprintf(stderr, "==========%s\n", p);
+        D("%s", p);
         if (p != buf)
             free(p);
     }
@@ -128,7 +128,7 @@ pcintr_dump_edom_node(pcintr_stack_t stack, pcdom_node_t *node)
     size_t nr = sizeof(buf);
     char *p = pcdom_node_snprintf(node, buf, &nr, "");
     if (p) {
-        fprintf(stderr, "==========%s\n", p);
+        D("%s", p);
         if (p != buf)
             free(p);
     }
@@ -1493,7 +1493,6 @@ pcintr_printf_start_element_to_edom(pcintr_stack_t stack)
     }
 
     do {
-        D("element: %s", element->tag_name);
         r = pchtml_html_parse_fragment_chunk_process_with_format(parser,
                 "<%s ", element->tag_name);
         if (r)

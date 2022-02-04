@@ -415,6 +415,7 @@ update_element_content(pcintr_stack_t stack,
 
     if (strcmp(to, "displace")==0) {
         pcdom_displace_fragment(pcdom_interface_node(target), fragment);
+        pcintr_dump_edom_node(stack, pcdom_interface_node(target));
         return 0;
     }
 
@@ -611,12 +612,13 @@ process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
                     break;
             }
             else if (purc_variant_is_number(src)) {
-                PC_ASSERT(0);
                 double d;
                 bool ok;
                 ok = purc_variant_cast_to_number(src, &d, false);
                 PC_ASSERT(ok);
-                pcintr_printf_to_fragment(co->stack, o, to, at, "%g", d);
+                r = update_element(co->stack, o, at, to, "%g", d);
+                if (r)
+                    break;
             }
             else if (purc_variant_is_undefined(src)) {
                 PC_ASSERT(0);
