@@ -390,11 +390,14 @@ static const char *calculator_4 =
     ""
     "                        <match for=\"AS '='\" exclusively>"
     "                            <choose on=\"$MATH.eval($DOC.query('#expression').attr('value'))\">"
-    "                            <!--choose on=\"$DOC.query('#expression').attr('value')\"-->"
     "                                <update on=\"#expression\" at=\"attr.value\" with=\"$?\" />"
     "                                <update on=\"$TIMERS\" to=\"overwrite\">"
     "                                    { \"id\" : \"input\", \"active\" : \"no\" }"
     "                                </update>"
+    "                                <update on=\"$TIMERS\" to=\"overwrite\">"
+    "                                    { \"id\" : \"clock\", \"active\" : \"no\" }"
+    "                                </update>"
+    "<choose on=\"foo\" by=\"this is to throw exception intentionally\" />"
     "                                <catch for='*'>"
     "                                    <update on=\"#expression\" at=\"attr.value\" with=\"ERR\" />"
     "                                </catch>"
@@ -501,11 +504,11 @@ TEST(interpreter, basic)
         "<hvml><body><archetype name=\"$?.button\"><li class=\"class\">letters</li></archetype></body></hvml>",
         "<hvml><body><archetype name=\"button\"><li class=\"class\">letters</li></archetype></body></hvml>",
         "<hvml><body><a><b><c></c></b></a></body></hvml>",
-        calculator_2,
+        // calculator_1,
         // calculator_2,
         // calculator_3,
-        // calculator_4,
-        // sample1,
+        calculator_4,
+        sample1,
     };
 
     purc_instance_extra_info info = {};
