@@ -255,7 +255,6 @@ update_object(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 static int
 update_array(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
-    PC_ASSERT(0);
     UNUSED_PARAM(co);
     struct ctxt_for_update *ctxt;
     ctxt = (struct ctxt_for_update*)frame->ctxt;
