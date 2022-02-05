@@ -364,9 +364,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         return NULL;
     }
 
-    // TODO:
-    stack->co.waits++;
-
     purc_clr_error();
 
     return ctxt;

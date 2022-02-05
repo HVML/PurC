@@ -1657,14 +1657,25 @@ pcintr_make_object_of_dynamic_variants(size_t nr_args,
     return obj;
 }
 
-int add_observer_into_list(struct pcutils_arrlist* list,
+static int
+add_observer_into_list(struct pcutils_arrlist* list,
         struct pcintr_observer* observer)
 {
     observer->list = list;
-    return pcutils_arrlist_add(list, observer);
+    int r = pcutils_arrlist_add(list, observer);
+    PC_ASSERT(r == 0);
+
+    // TODO:
+    pcintr_stack_t stack = purc_get_stack();
+    PC_ASSERT(stack);
+    PC_ASSERT(stack->co.waits >= 0);
+    stack->co.waits++;
+
+    return r;
 }
 
-void del_observer_from_list(struct pcutils_arrlist* list,
+static void
+del_observer_from_list(struct pcutils_arrlist* list,
         struct pcintr_observer* observer)
 {
     size_t n = pcutils_arrlist_length(list);
@@ -1678,6 +1689,12 @@ void del_observer_from_list(struct pcutils_arrlist* list,
 
     if (pos > -1) {
         pcutils_arrlist_del_idx(list, pos, 1);
+
+        // TODO:
+        pcintr_stack_t stack = purc_get_stack();
+        PC_ASSERT(stack);
+        PC_ASSERT(stack->co.waits >= 1);
+        stack->co.waits++;
     }
 }
 
@@ -1768,6 +1785,7 @@ pcintr_register_observer(purc_variant_t observed,
     add_observer_into_list(list, observer);
 
     free(value);
+
     return observer;
 }
 
