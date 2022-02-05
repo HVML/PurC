@@ -151,6 +151,7 @@ static const char *calculator_2 =
     "                </h2>"
     "                <observe on=\"$TIMERS\" for=\"expired:clock\">"
     "                    <update on=\"#clock\" at=\"textContent\" with=\"$SYSTEM.time('%H:%M:%S')\" />"
+    "<choose on=\"foo\" by=\"this is to throw exception intentionally\" />"
     "                </observe>"
     "            </div>"
     "        </div>"
@@ -493,14 +494,14 @@ TEST(interpreter, basic)
     (void)sample1;
 
     const char *hvmls[] = {
-        // "<hvml><head x=\"y\">hello<xinit a=\"b\">world<!--yes-->solid</xinit></head><body><timeout1/><timeout3/></body></hvml>",
-        // "<hvml><head x=\"y\">hello<xinit a=\"b\">w<timeout3/>orld<!--yes-->solid</xinit></head><body><timeout1/></body></hvml>",
-        // "<hvml><body><timeout1/><timeout9/><timeout2/></body></hvml>",
-        // "<hvml><body><test a='b'>hello<!--yes--></test></body></hvml>",
-        // "<hvml><body><archetype name=\"$?.button\"><li class=\"class\">letters</li></archetype></body></hvml>",
-        // "<hvml><body><archetype name=\"button\"><li class=\"class\">letters</li></archetype></body></hvml>",
-        // "<hvml><body><a><b><c></c></b></a></body></hvml>",
-        calculator_1,
+        "<hvml><head x=\"y\">hello<xinit a=\"b\">world<!--yes-->solid</xinit></head><body><timeout1/><timeout3/></body></hvml>",
+        "<hvml><head x=\"y\">hello<xinit a=\"b\">w<timeout3/>orld<!--yes-->solid</xinit></head><body><timeout1/></body></hvml>",
+        "<hvml><body><timeout1/><timeout9/><timeout2/></body></hvml>",
+        "<hvml><body><xtest a='b'>hello<!--yes--></xtest></body></hvml>",
+        "<hvml><body><archetype name=\"$?.button\"><li class=\"class\">letters</li></archetype></body></hvml>",
+        "<hvml><body><archetype name=\"button\"><li class=\"class\">letters</li></archetype></body></hvml>",
+        "<hvml><body><a><b><c></c></b></a></body></hvml>",
+        calculator_2,
         // calculator_2,
         // calculator_3,
         // calculator_4,
