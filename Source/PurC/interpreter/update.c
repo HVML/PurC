@@ -110,7 +110,7 @@ static purc_variant_t
 get_source_by_from(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     purc_variant_t from, purc_variant_t with)
 {
-    UNUSED_PARAM(co);
+    PC_ASSERT(0);
     UNUSED_PARAM(frame);
     PC_ASSERT(with == PURC_VARIANT_INVALID);
 
@@ -255,6 +255,7 @@ update_object(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 static int
 update_array(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
+    PC_ASSERT(0);
     UNUSED_PARAM(co);
     struct ctxt_for_update *ctxt;
     ctxt = (struct ctxt_for_update*)frame->ctxt;
@@ -629,6 +630,7 @@ process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
                 PRINT_VARIANT(src);
                 PC_ASSERT(0); // Not implemented yet
             }
+            purc_variant_unref(o);
         }
         pcdom_collection_destroy(collection, true);
         return r ? -1 : 0;

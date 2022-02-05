@@ -2,7 +2,7 @@
 
 USE_VALGRIND=${USE_VALGRIND:-0}
 TEST_PROGS=`find ${1:-Source/test} -name test_* -perm -0111 -type f`
-VALGRIND="valgrind --leak-check=full --num-callers=30 --exit-on-first-error=yes --error-exitcode=1 --suppressions=/usr/share/glib-2.0/valgrind/glib.supp --suppressions=Source/valgrind/valgrind.supp"
+VALGRIND="valgrind --leak-check=full --num-callers=100 --exit-on-first-error=yes --error-exitcode=1 --suppressions=/usr/share/glib-2.0/valgrind/glib.supp --suppressions=Source/valgrind/valgrind.supp"
 
 total_passed=0
 total_failed=0

@@ -56,6 +56,23 @@ ctxt_destroy(void *ctxt)
     ctxt_for_hvml_destroy((struct ctxt_for_hvml*)ctxt);
 }
 
+static int
+attr_found(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element,
+        purc_atom_t name, purc_variant_t val,
+        struct pcvdom_attr *attr,
+        void *ud)
+{
+    UNUSED_PARAM(frame);
+    UNUSED_PARAM(element);
+    UNUSED_PARAM(name);
+    UNUSED_PARAM(val);
+    UNUSED_PARAM(attr);
+    UNUSED_PARAM(ud);
+
+    return 0;
+}
+
 static void*
 after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 {
@@ -70,21 +87,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     frame->pos = pos; // ATTENTION!!
 
-    if (pcintr_set_symbol_var_at_sign())
-        return NULL;
-
-    struct pcvdom_element *element = frame->pos;
-    PC_ASSERT(element);
-
-    int r;
-    r = pcintr_element_eval_attrs(frame, element);
-    if (r)
-        return NULL;
-
-    r = pcintr_element_eval_vcm_content(frame, element);
-    if (r)
-        return NULL;
-
     struct ctxt_for_hvml *ctxt;
     ctxt = (struct ctxt_for_hvml*)calloc(1, sizeof(*ctxt));
     if (!ctxt) {
@@ -94,6 +96,22 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     frame->ctxt = ctxt;
     frame->ctxt_destroy = ctxt_destroy;
+
+    if (pcintr_set_symbol_var_at_sign())
+        return NULL;
+
+    struct pcvdom_element *element = frame->pos;
+    PC_ASSERT(element);
+
+    int r;
+    r = pcintr_vdom_walk_attrs(frame, element, NULL, attr_found);
+    if (r)
+        return NULL;
+
+    r = pcintr_element_eval_vcm_content(frame, element);
+    if (r)
+        return NULL;
+
     purc_clr_error();
 
     return ctxt;

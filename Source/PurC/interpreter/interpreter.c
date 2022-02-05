@@ -671,6 +671,8 @@ walk_attr(void *key, void *val, void *ud)
             purc_variant_is_undefined(value))
         {
             PRINT_VCM_NODE(vcm);
+            if (value != PURC_VARIANT_INVALID)
+                purc_variant_unref(value);
             return -1;
         }
     }
@@ -1886,10 +1888,10 @@ void
 pcintr_message_destroy(struct pcintr_message* msg)
 {
     if (msg) {
-        purc_variant_unref(msg->source);
-        purc_variant_unref(msg->type);
-        purc_variant_unref(msg->sub_type);
-        purc_variant_unref(msg->extra);
+        PURC_VARIANT_SAFE_CLEAR(msg->source);
+        PURC_VARIANT_SAFE_CLEAR(msg->type);
+        PURC_VARIANT_SAFE_CLEAR(msg->sub_type);
+        PURC_VARIANT_SAFE_CLEAR(msg->extra);
         free(msg);
     }
 }
@@ -1897,17 +1899,24 @@ pcintr_message_destroy(struct pcintr_message* msg)
 static int
 pcintr_handle_message(void *ctxt)
 {
-    struct pcintr_message* msg = (struct pcintr_message*) ctxt;
+    pcintr_stack_t stack = NULL;
+    struct pcintr_observer* observer = NULL; {
+        struct pcintr_message* msg = (struct pcintr_message*) ctxt;
+        PC_ASSERT(msg);
 
-    struct pcintr_observer* observer = pcintr_find_observer(msg->stack,
-            msg->source, msg->type, msg->sub_type);
-    if (observer == NULL) {
-        return 0;
+        stack = msg->stack;
+        PC_ASSERT(stack);
+
+        observer = pcintr_find_observer(msg->stack,
+                msg->source, msg->type, msg->sub_type);
+        pcintr_message_destroy(msg);
+        if (observer == NULL) {
+            return 0;
+        }
     }
 
     // FIXME:
     // push stack frame
-    pcintr_stack_t stack = msg->stack;
     struct pcintr_stack_frame *frame;
     frame = push_stack_frame(stack);
     if (!frame)
@@ -1921,6 +1930,7 @@ pcintr_handle_message(void *ctxt)
 
     stack->co.state = CO_STATE_READY;
     pcintr_coroutine_ready();
+
     return 0;
 }
 
