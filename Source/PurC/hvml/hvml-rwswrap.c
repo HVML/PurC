@@ -100,16 +100,16 @@ pchvml_rwswrap_read_from_rwstream (struct pchvml_rwswrap* wrap)
         uc = PCHVML_INVALID_CHARACTER;
     }
     wrap->curr_uc.character = uc;
+
+    wrap->column++;
+    wrap->consumed++;
+    wrap->curr_uc.line = wrap->line;
+    wrap->curr_uc.column = wrap->column;
+    wrap->curr_uc.position = wrap->consumed;
     if (uc == '\n') {
         wrap->line++;
         wrap->column = 0;
     }
-    wrap->column++;
-    wrap->consumed++;
-
-    wrap->curr_uc.line = wrap->line;
-    wrap->curr_uc.column = wrap->column;
-    wrap->curr_uc.position = wrap->consumed;
     return &wrap->curr_uc;
 }
 
