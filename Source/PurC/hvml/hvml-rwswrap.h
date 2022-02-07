@@ -59,12 +59,6 @@ uint32_t pchvml_rwswrap_next_char (struct pchvml_rwswrap* wrap);
 bool pchvml_rwswrap_buffer_chars (struct pchvml_rwswrap* wrap,
         uint32_t* ucs, size_t nr_ucs);
 
-/*
- * ucs is array list of unicode character (uint32_t)
- */
-bool pchvml_rwswrap_buffer_arrlist (struct pchvml_rwswrap* wrap,
-        struct pcutils_arrlist* ucs);
-
 void pchvml_rwswrap_destroy (struct pchvml_rwswrap* wrap);
 
 struct pchvml_uc pchvml_rwswrap_next_advance (struct pchvml_rwswrap* wrap);

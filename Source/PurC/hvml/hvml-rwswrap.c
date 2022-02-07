@@ -49,9 +49,13 @@
 
 struct pchvml_rwswrap {
     purc_rwstream_t rws;
-    struct list_head uc_list;
-    struct list_head char_consumed;
-    size_t nr_char_consumed;
+    struct list_head reconsume_list;
+    struct list_head consumed_list;
+    size_t nr_consumed_list;
+
+    int line;
+    int column;
+    int consumed;
 };
 
 struct pchvml_uc* pchvml_uc_new (void)
@@ -72,7 +76,7 @@ struct pchvml_rwswrap* pchvml_rwswrap_new (void)
     if (!wrap) {
         return NULL;
     }
-    INIT_LIST_HEAD(&wrap->uc_list);
+    INIT_LIST_HEAD(&wrap->reconsume_list);
     return wrap;
 }
 
@@ -93,9 +97,9 @@ static uint32_t pchvml_rwswrap_read_from_rwstream (struct pchvml_rwswrap* wrap)
     return uc;
 }
 
-static uint32_t pchvml_rwswrap_read_from_uc_list (struct pchvml_rwswrap* wrap)
+static uint32_t pchvml_rwswrap_read_from_reconsume_list (struct pchvml_rwswrap* wrap)
 {
-    struct pchvml_uc* puc = list_entry(wrap->uc_list.next,
+    struct pchvml_uc* puc = list_entry(wrap->reconsume_list.next,
             struct pchvml_uc, list);
     uint32_t uc = puc->uc;
     list_del_init(&puc->list);
@@ -105,10 +109,10 @@ static uint32_t pchvml_rwswrap_read_from_uc_list (struct pchvml_rwswrap* wrap)
 
 uint32_t pchvml_rwswrap_next_char (struct pchvml_rwswrap* wrap)
 {
-    if (list_empty (&wrap->uc_list)) {
+    if (list_empty (&wrap->reconsume_list)) {
         return pchvml_rwswrap_read_from_rwstream (wrap);
     }
-    return pchvml_rwswrap_read_from_uc_list (wrap);
+    return pchvml_rwswrap_read_from_reconsume_list (wrap);
 }
 
 bool pchvml_rwswrap_buffer_chars (struct pchvml_rwswrap* wrap,
@@ -121,24 +125,7 @@ bool pchvml_rwswrap_buffer_chars (struct pchvml_rwswrap* wrap,
             return false;
         }
         puc->uc = ucs[i];
-        list_add(&puc->list, &wrap->uc_list);
-    }
-    return true;
-}
-
-bool pchvml_rwswrap_buffer_arrlist (struct pchvml_rwswrap* wrap,
-        struct pcutils_arrlist* ucs)
-{
-    size_t length = pcutils_arrlist_length(ucs);
-    for (int i = length - 1; i >= 0; i--) {
-        uint32_t uc = (uint32_t)(uintptr_t) pcutils_arrlist_get_idx (ucs, i);
-        struct pchvml_uc* puc = pchvml_uc_new ();
-        if (!puc) {
-            pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
-            return false;
-        }
-        puc->uc = uc;
-        list_add(&puc->list, &wrap->uc_list);
+        list_add(&puc->list, &wrap->reconsume_list);
     }
     return true;
 }
@@ -147,7 +134,7 @@ void pchvml_rwswrap_destroy (struct pchvml_rwswrap* wrap)
 {
     if (wrap) {
         struct list_head *p, *n;
-        list_for_each_safe(p, n, &wrap->uc_list) {
+        list_for_each_safe(p, n, &wrap->reconsume_list) {
             struct pchvml_uc* puc = list_entry(p, struct pchvml_uc, list);
             list_del_init(&puc->list);
             pchvml_uc_destroy(puc);
