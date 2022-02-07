@@ -891,13 +891,15 @@ bool pchvml_parser_is_in_attribute (struct pchvml_parser* parser)
 struct pchvml_token* pchvml_next_token (struct pchvml_parser* parser,
                                           purc_rwstream_t rws)
 {
+    struct pchvml_uc* hvml_uc = NULL;
     uint32_t character = 0;
     RETURN_CACHED_TOKEN();
 
     pchvml_rwswrap_set_rwstream (parser->rwswrap, rws);
 
 next_input:
-    character = pchvml_rwswrap_next_char (parser->rwswrap);
+    hvml_uc = pchvml_rwswrap_next_char (parser->rwswrap);
+    character = hvml_uc->character;
     if (character == PCHVML_INVALID_CHARACTER) {
         SET_ERR(PCHVML_ERROR_INVALID_UTF8_CHARACTER);
         RETURN_AND_STOP_PARSE();

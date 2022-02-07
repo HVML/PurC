@@ -53,6 +53,7 @@ struct pchvml_rwswrap {
     struct list_head consumed_list;
     size_t nr_consumed_list;
 
+    struct pchvml_uc curr_uc;
     int line;
     int column;
     int consumed;
@@ -86,7 +87,8 @@ void pchvml_rwswrap_set_rwstream (struct pchvml_rwswrap* wrap,
     wrap->rws = rws;
 }
 
-static uint32_t pchvml_rwswrap_read_from_rwstream (struct pchvml_rwswrap* wrap)
+static struct pchvml_uc*
+pchvml_rwswrap_read_from_rwstream (struct pchvml_rwswrap* wrap)
 {
     char c[8] = {0};
     uint32_t uc = 0;
@@ -94,20 +96,22 @@ static uint32_t pchvml_rwswrap_read_from_rwstream (struct pchvml_rwswrap* wrap)
     if (nr_c < 0) {
         uc = PCHVML_INVALID_CHARACTER;
     }
-    return uc;
+    wrap->curr_uc.character = uc;
+    return &wrap->curr_uc;
 }
 
-static uint32_t pchvml_rwswrap_read_from_reconsume_list (struct pchvml_rwswrap* wrap)
+static struct pchvml_uc*
+pchvml_rwswrap_read_from_reconsume_list (struct pchvml_rwswrap* wrap)
 {
     struct pchvml_uc* puc = list_entry(wrap->reconsume_list.next,
             struct pchvml_uc, list);
-    uint32_t uc = puc->uc;
+    wrap->curr_uc = *puc;
     list_del_init(&puc->list);
     pchvml_uc_destroy(puc);
-    return uc;
+    return &wrap->curr_uc;
 }
 
-uint32_t pchvml_rwswrap_next_char (struct pchvml_rwswrap* wrap)
+struct pchvml_uc* pchvml_rwswrap_next_char (struct pchvml_rwswrap* wrap)
 {
     if (list_empty (&wrap->reconsume_list)) {
         return pchvml_rwswrap_read_from_rwstream (wrap);
@@ -124,7 +128,7 @@ bool pchvml_rwswrap_buffer_chars (struct pchvml_rwswrap* wrap,
             pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
             return false;
         }
-        puc->uc = ucs[i];
+        puc->character = ucs[i];
         list_add(&puc->list, &wrap->reconsume_list);
     }
     return true;

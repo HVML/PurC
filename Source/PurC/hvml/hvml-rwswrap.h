@@ -39,7 +39,7 @@ struct pchvml_rwswrap;
 
 struct pchvml_uc {
     struct list_head list;
-    uint32_t uc;
+    uint32_t character;
     int line;
     int column;
     int position;
@@ -54,14 +54,13 @@ struct pchvml_rwswrap* pchvml_rwswrap_new (void);
 void pchvml_rwswrap_set_rwstream (struct pchvml_rwswrap* wrap,
         purc_rwstream_t rws);
 
-uint32_t pchvml_rwswrap_next_char (struct pchvml_rwswrap* wrap);
+struct pchvml_uc* pchvml_rwswrap_next_char (struct pchvml_rwswrap* wrap);
 
 bool pchvml_rwswrap_buffer_chars (struct pchvml_rwswrap* wrap,
         uint32_t* ucs, size_t nr_ucs);
 
 void pchvml_rwswrap_destroy (struct pchvml_rwswrap* wrap);
 
-struct pchvml_uc pchvml_rwswrap_next_advance (struct pchvml_rwswrap* wrap);
 
 #ifdef __cplusplus
 }
