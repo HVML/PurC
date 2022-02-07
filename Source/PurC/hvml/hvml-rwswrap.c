@@ -39,6 +39,8 @@
 #include <stdlib.h>
 #endif
 
+#define NR_CONSUMED_LIST_LIMIT   10
+
 #if HAVE(GLIB)
 #define    PCHVML_ALLOC(sz)   g_slice_alloc0(sz)
 #define    PCHVML_FREE(p)     g_slice_free1(sizeof(*p), (gpointer)p)
@@ -125,7 +127,19 @@ pchvml_rwswrap_read_from_reconsume_list (struct pchvml_rwswrap* wrap)
     return &wrap->curr_uc;
 }
 
-bool
+static void
+pchvml_rwswrap_print_consumed (struct pchvml_rwswrap* wrap)
+{
+    fprintf(stderr, "------------begin print consumed list----------\n");
+    struct list_head *p, *n;
+    list_for_each_safe(p, n, &wrap->consumed_list) {
+        struct pchvml_uc* puc = list_entry(p, struct pchvml_uc, list);
+        fprintf(stderr, "%c", puc->character);
+    }
+    fprintf(stderr, "\n-------------end print consumed list-----------\n");
+}
+
+static bool
 pchvml_rwswrap_add_consumed (struct pchvml_rwswrap* wrap, struct pchvml_uc* uc)
 {
     struct pchvml_uc* p = pchvml_uc_new ();
@@ -135,8 +149,17 @@ pchvml_rwswrap_add_consumed (struct pchvml_rwswrap* wrap, struct pchvml_uc* uc)
     }
 
     *p = *uc;
-    list_add(&p->list, &wrap->consumed_list);
+    list_add_tail(&p->list, &wrap->consumed_list);
     wrap->nr_consumed_list++;
+
+    if (wrap->nr_consumed_list > NR_CONSUMED_LIST_LIMIT) {
+        struct pchvml_uc* first = list_first_entry(
+                &wrap->consumed_list, struct pchvml_uc, list);
+        list_del_init(&first->list);
+        pchvml_uc_destroy(first);
+        wrap->nr_consumed_list--;
+    }
+    //pchvml_rwswrap_print_consumed(wrap);
     return true;
 }
 
