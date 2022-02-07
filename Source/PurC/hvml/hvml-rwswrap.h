@@ -35,9 +35,14 @@
 
 #define PCHVML_INVALID_CHARACTER    0xFFFFFFFF
 
-struct pchvml_rwswrap {
-    purc_rwstream_t rws;
-    struct list_head uc_list;
+struct pchvml_rwswrap;
+
+struct pchvml_uc {
+    struct list_head list;
+    uint32_t uc;
+    int line;
+    int column;
+    int position;
 };
 
 #ifdef __cplusplus
@@ -61,6 +66,8 @@ bool pchvml_rwswrap_buffer_arrlist (struct pchvml_rwswrap* wrap,
         struct pcutils_arrlist* ucs);
 
 void pchvml_rwswrap_destroy (struct pchvml_rwswrap* wrap);
+
+struct pchvml_uc pchvml_rwswrap_next_advance (struct pchvml_rwswrap* wrap);
 
 #ifdef __cplusplus
 }

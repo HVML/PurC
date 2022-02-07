@@ -47,9 +47,11 @@
 #define    PCHVML_FREE(p)     free(p)
 #endif
 
-struct pchvml_uc {
-    struct list_head list;
-    uint32_t uc;
+struct pchvml_rwswrap {
+    purc_rwstream_t rws;
+    struct list_head uc_list;
+    struct list_head char_consumed;
+    size_t nr_char_consumed;
 };
 
 struct pchvml_uc* pchvml_uc_new (void)
