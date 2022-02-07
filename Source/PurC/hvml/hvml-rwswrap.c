@@ -78,6 +78,7 @@ struct pchvml_rwswrap* pchvml_rwswrap_new (void)
         return NULL;
     }
     INIT_LIST_HEAD(&wrap->reconsume_list);
+    INIT_LIST_HEAD(&wrap->consumed_list);
     wrap->line = 1;
     wrap->column = 0;
     wrap->consumed = 0;
@@ -99,10 +100,10 @@ pchvml_rwswrap_read_from_rwstream (struct pchvml_rwswrap* wrap)
     if (nr_c < 0) {
         uc = PCHVML_INVALID_CHARACTER;
     }
-    wrap->curr_uc.character = uc;
-
     wrap->column++;
     wrap->consumed++;
+
+    wrap->curr_uc.character = uc;
     wrap->curr_uc.line = wrap->line;
     wrap->curr_uc.column = wrap->column;
     wrap->curr_uc.position = wrap->consumed;
@@ -124,12 +125,35 @@ pchvml_rwswrap_read_from_reconsume_list (struct pchvml_rwswrap* wrap)
     return &wrap->curr_uc;
 }
 
+bool
+pchvml_rwswrap_add_consumed (struct pchvml_rwswrap* wrap, struct pchvml_uc* uc)
+{
+    struct pchvml_uc* p = pchvml_uc_new ();
+    if (!p) {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return false;
+    }
+
+    *p = *uc;
+    list_add(&p->list, &wrap->consumed_list);
+    wrap->nr_consumed_list++;
+    return true;
+}
+
 struct pchvml_uc* pchvml_rwswrap_next_char (struct pchvml_rwswrap* wrap)
 {
+    struct pchvml_uc* ret = NULL;
     if (list_empty (&wrap->reconsume_list)) {
-        return pchvml_rwswrap_read_from_rwstream (wrap);
+        ret = pchvml_rwswrap_read_from_rwstream (wrap);
     }
-    return pchvml_rwswrap_read_from_reconsume_list (wrap);
+    else {
+        ret = pchvml_rwswrap_read_from_reconsume_list (wrap);
+    }
+
+    if (pchvml_rwswrap_add_consumed(wrap, ret)) {
+        return ret;
+    }
+    return NULL;
 }
 
 bool pchvml_rwswrap_buffer_chars (struct pchvml_rwswrap* wrap,
@@ -152,6 +176,11 @@ void pchvml_rwswrap_destroy (struct pchvml_rwswrap* wrap)
     if (wrap) {
         struct list_head *p, *n;
         list_for_each_safe(p, n, &wrap->reconsume_list) {
+            struct pchvml_uc* puc = list_entry(p, struct pchvml_uc, list);
+            list_del_init(&puc->list);
+            pchvml_uc_destroy(puc);
+        }
+        list_for_each_safe(p, n, &wrap->consumed_list) {
             struct pchvml_uc* puc = list_entry(p, struct pchvml_uc, list);
             list_del_init(&puc->list);
             pchvml_uc_destroy(puc);

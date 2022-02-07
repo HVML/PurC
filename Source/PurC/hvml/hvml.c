@@ -899,6 +899,10 @@ struct pchvml_token* pchvml_next_token (struct pchvml_parser* parser,
 
 next_input:
     hvml_uc = pchvml_rwswrap_next_char (parser->rwswrap);
+    if (!hvml_uc) {
+        RETURN_AND_STOP_PARSE();
+    }
+
     character = hvml_uc->character;
     if (character == PCHVML_INVALID_CHARACTER) {
         SET_ERR(PCHVML_ERROR_INVALID_UTF8_CHARACTER);
