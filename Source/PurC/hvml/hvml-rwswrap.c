@@ -78,6 +78,9 @@ struct pchvml_rwswrap* pchvml_rwswrap_new (void)
         return NULL;
     }
     INIT_LIST_HEAD(&wrap->reconsume_list);
+    wrap->line = 1;
+    wrap->column = 0;
+    wrap->consumed = 0;
     return wrap;
 }
 
@@ -97,6 +100,16 @@ pchvml_rwswrap_read_from_rwstream (struct pchvml_rwswrap* wrap)
         uc = PCHVML_INVALID_CHARACTER;
     }
     wrap->curr_uc.character = uc;
+    if (uc == '\n') {
+        wrap->line++;
+        wrap->column = 0;
+    }
+    wrap->column++;
+    wrap->consumed++;
+
+    wrap->curr_uc.line = wrap->line;
+    wrap->curr_uc.column = wrap->column;
+    wrap->curr_uc.position = wrap->consumed;
     return &wrap->curr_uc;
 }
 
