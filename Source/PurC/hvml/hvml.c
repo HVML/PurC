@@ -68,22 +68,6 @@
 #define vcm_stack_push(c) pcvcm_stack_push(parser->vcm_stack, c)
 #define vcm_stack_pop() pcvcm_stack_pop(parser->vcm_stack)
 
-#ifdef HVML_DEBUG_PRINT
-#define PRINT_STATE(state_name)                                             \
-    fprintf(stderr, \
-            "in %s|uc=%c|hex=0x%X|stack_is_empty=%d|stack_top=%c|vcm_node->type=%d\n",                              \
-            pchvml_get_state_name(state_name), character, character,     \
-            ejson_stack_is_empty(), (char)ejson_stack_top(),                \
-            (parser->vcm_node != NULL ? (int)parser->vcm_node->type : -1));
-#define SET_ERR(err)    do {                                                \
-    fprintf(stderr, "error %s:%d %s\n", __FILE__, __LINE__,                 \
-            pchvml_get_error_name(err));                                    \
-    pcinst_set_error (err);                                                 \
-} while (0)
-#else
-#define PRINT_STATE(state_name)
-#define SET_ERR(err)    pcinst_set_error(err)
-#endif
 
 #define BEGIN_STATE(state_name)                                             \
     case state_name:                                                        \

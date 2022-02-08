@@ -23,12 +23,55 @@
  *
  */
 
+#ifndef PURC_HVML_TOKENIZER_H
+#define PURC_HVML_TOKENIZER_H
+
 #include "config.h"
 
 #include "private/instance.h"
 #include "private/errors.h"
 #include "private/debug.h"
 #include "private/utils.h"
+
+#ifdef HVML_DEBUG_PRINT
+#define PRINT_STATE(state_name)                                             \
+    fprintf(stderr, \
+            "in %s|uc=%c|hex=0x%X|stack_is_empty=%d|stack_top=%c|vcm_node->type=%d\n",                              \
+            pchvml_get_state_name(state_name), character, character,     \
+            ejson_stack_is_empty(), (char)ejson_stack_top(),                \
+            (parser->vcm_node != NULL ? (int)parser->vcm_node->type : -1));
+#define SET_ERR(err)    do {                                                \
+    fprintf(stderr, "error %s:%d %s\n", __FILE__, __LINE__,                 \
+            pchvml_get_error_name(err));                                    \
+    pcinst_set_error (err);                                                 \
+} while (0)
+#else
+#define PRINT_STATE(state_name)
+#define SET_ERR(err)    pcinst_set_error(err)
+#endif
+
+#define BEGIN_STATE(state_name)                                             \
+    case state_name:                                                        \
+    {                                                                       \
+        enum pchvml_state curr_state = state_name;                          \
+        UNUSED_PARAM(curr_state);                                           \
+        PRINT_STATE(curr_state);
+
+#define END_STATE()                                                         \
+        break;                                                              \
+    }
+
+#define ADVANCE_TO(new_state)                                               \
+    do {                                                                    \
+        parser->state = new_state;                                          \
+        goto next_input;                                                    \
+    } while (false)
+
+#define RECONSUME_IN(new_state)                                             \
+    do {                                                                    \
+        parser->state = new_state;                                          \
+        goto next_state;                                                    \
+    } while (false)
 
 PCA_INLINE UNUSED_FUNCTION bool is_whitespace (uint32_t uc)
 {
@@ -127,3 +170,56 @@ PCA_INLINE UNUSED_FUNCTION bool is_separator(uint32_t c)
     return false;
 }
 
+#define PCHVML_NEXT_TOKEN_BEGIN                                         \
+struct pchvml_token* pchvml_next_token(struct pchvml_parser* parser,    \
+                                          purc_rwstream_t rws)          \
+{                                                                       \
+    struct pchvml_uc* hvml_uc = NULL;                                   \
+    uint32_t character = 0;                                             \
+    if (parser->token) {                                                \
+        struct pchvml_token* token = parser->token;                     \
+        parser->token = NULL;                                           \
+        return token;                                                   \
+    }                                                                   \
+                                                                        \
+    pchvml_rwswrap_set_rwstream (parser->rwswrap, rws);                 \
+                                                                        \
+next_input:                                                             \
+    hvml_uc = pchvml_rwswrap_next_char (parser->rwswrap);               \
+    if (!hvml_uc) {                                                     \
+        return NULL;                                                    \
+    }                                                                   \
+                                                                        \
+    character = hvml_uc->character;                                     \
+    if (character == PCHVML_INVALID_CHARACTER) {                        \
+        SET_ERR(PCHVML_ERROR_INVALID_UTF8_CHARACTER);                   \
+        return NULL;                                                    \
+    }                                                                   \
+                                                                        \
+    if (is_separator(character)) {                                      \
+        if (parser->prev_separator == ',' && character == ',') {        \
+            SET_ERR(PCHVML_ERROR_UNEXPECTED_COMMA);                     \
+            return NULL;                                                \
+        }                                                               \
+        parser->prev_separator = character;                             \
+    }                                                                   \
+    else if (!is_whitespace(character)) {                               \
+        parser->prev_separator = 0;                                     \
+    }                                                                   \
+                                                                        \
+next_state:                                                             \
+    switch (parser->state) {
+
+
+#define PCHVML_NEXT_TOKEN_END                                           \
+    default:                                                            \
+        break;                                                          \
+    }                                                                   \
+    return NULL;                                                        \
+}
+
+#ifdef __cplusplus
+}
+#endif  /* __cplusplus */
+
+#endif /* PURC_HVML_TOKENIZER_H */
