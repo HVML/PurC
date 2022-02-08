@@ -297,7 +297,7 @@
 
 #define APPEND_BUFFER_TO_TEMP_BUFFER(buffer)                                \
     do {                                                                    \
-        pchvml_buffer_append_temp_buffer(parser->temp_buffer, buffer);      \
+        pchvml_buffer_append_another(parser->temp_buffer, buffer);          \
     } while (false)
 
 #define RESET_STRING_BUFFER()                                               \
