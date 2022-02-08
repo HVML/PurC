@@ -56,8 +56,7 @@ void pchvml_rwswrap_set_rwstream (struct pchvml_rwswrap* wrap,
 
 struct pchvml_uc* pchvml_rwswrap_next_char (struct pchvml_rwswrap* wrap);
 
-bool pchvml_rwswrap_buffer_chars (struct pchvml_rwswrap* wrap,
-        uint32_t* ucs, size_t nr_ucs);
+bool pchvml_rwswrap_reconsume_last_char (struct pchvml_rwswrap* wrap);
 
 void pchvml_rwswrap_destroy (struct pchvml_rwswrap* wrap);
 

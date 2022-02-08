@@ -111,7 +111,7 @@
 #define RECONSUME_IN_NEXT(new_state)                                        \
     do {                                                                    \
         parser->state = new_state;                                          \
-        pchvml_rwswrap_buffer_chars(parser->rwswrap, &character, 1);        \
+        pchvml_rwswrap_reconsume_last_char(parser->rwswrap);                \
     } while (false)
 
 #define ADVANCE_TO(new_state)                                               \
@@ -946,7 +946,7 @@ next_state:
         else if ((character == '{' || character == '[')
                 && parser->tag_is_operation) {
             if (parser->token) {
-                pchvml_rwswrap_buffer_chars(parser->rwswrap, &character, 1);
+                pchvml_rwswrap_reconsume_last_char(parser->rwswrap);
                 RETURN_AND_SWITCH_TO(PCHVML_EJSON_DATA_STATE);
             }
             else {
@@ -954,18 +954,18 @@ next_state:
             }
         }
         else if (character == '$') {
-            pchvml_rwswrap_buffer_chars(parser->rwswrap, &character, 1);
+            pchvml_rwswrap_reconsume_last_char(parser->rwswrap);
 
             // {$SYSTEM.time}  {{$SYSTEM.time}}
             uint32_t c = pchvml_token__get_last_char_of_text(parser->token);
             if (c == '{') {
-                pchvml_rwswrap_buffer_chars(parser->rwswrap, &c, 1);
+                pchvml_rwswrap_reconsume_last_char(parser->rwswrap);
                 pchvml_token_delete_tail_chars_of_text(parser->token, 1);
             }
 
             c = pchvml_token__get_last_char_of_text(parser->token);
             if (c == '{') {
-                pchvml_rwswrap_buffer_chars(parser->rwswrap, &c, 1);
+                pchvml_rwswrap_reconsume_last_char(parser->rwswrap);
                 pchvml_token_delete_tail_chars_of_text(parser->token, 1);
             }
 
@@ -2311,9 +2311,8 @@ next_state:
             ADVANCE_TO(PCHVML_BEFORE_ATTRIBUTE_VALUE_STATE);
         }
         if (pchvml_buffer_equal_to(parser->temp_buffer, "$", 1)) {
-            pchvml_rwswrap_buffer_chars(parser->rwswrap, &character, 1);
-            uint32_t c = '$';
-            pchvml_rwswrap_buffer_chars(parser->rwswrap, &c, 1);
+            pchvml_rwswrap_reconsume_last_char(parser->rwswrap);
+            pchvml_rwswrap_reconsume_last_char(parser->rwswrap);
             ADVANCE_TO(PCHVML_BEFORE_ATTRIBUTE_VALUE_STATE);
         }
         if (character == '>'
@@ -2371,7 +2370,7 @@ next_state:
             RESET_VCM_NODE();
             // FIXME: keep \n
             if (is_whitespace(character)) {
-                pchvml_rwswrap_buffer_chars(parser->rwswrap, &character, 1);
+                pchvml_rwswrap_reconsume_last_char(parser->rwswrap);
             }
             RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
         }
@@ -2393,7 +2392,7 @@ next_state:
             parser->token = pchvml_token_new_vcm(parser->vcm_node);
             parser->vcm_node = NULL;
             RESET_VCM_NODE();
-            pchvml_rwswrap_buffer_chars(parser->rwswrap, &character, 1);
+            pchvml_rwswrap_reconsume_last_char(parser->rwswrap);
             RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
         }
         if (is_eof(character)) {

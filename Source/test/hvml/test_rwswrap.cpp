@@ -60,42 +60,6 @@ TEST(rwswrap, next_char)
     pchvml_rwswrap_destroy(wrap);
 }
 
-TEST(rwswrap, buffer_char)
-{
-    char buf[] = "This测试";
-    struct pchvml_rwswrap* wrap = pchvml_rwswrap_new ();
-    ASSERT_NE(wrap, nullptr);
-
-    purc_rwstream_t rws = purc_rwstream_new_from_mem (buf, strlen(buf));
-
-    pchvml_rwswrap_set_rwstream (wrap, rws);
-
-    struct pchvml_uc* uc = pchvml_rwswrap_next_char (wrap);
-    ASSERT_EQ(uc->character, 'T');
-    uc = pchvml_rwswrap_next_char (wrap);
-    ASSERT_EQ(uc->character, 'h');
-    uc = pchvml_rwswrap_next_char (wrap);
-    ASSERT_EQ(uc->character, 'i');
-    uc = pchvml_rwswrap_next_char (wrap);
-    ASSERT_EQ(uc->character, 's');
-
-    uint32_t buff[] = {'T', 'h', 'i', 's'};
-    pchvml_rwswrap_buffer_chars (wrap, buff, 4);
-    uc = pchvml_rwswrap_next_char (wrap);
-    ASSERT_EQ(uc->character, 'T');
-    uc = pchvml_rwswrap_next_char (wrap);
-    ASSERT_EQ(uc->character, 'h');
-    uc = pchvml_rwswrap_next_char (wrap);
-    ASSERT_EQ(uc->character, 'i');
-    uc = pchvml_rwswrap_next_char (wrap);
-    ASSERT_EQ(uc->character, 's');
-    uc = pchvml_rwswrap_next_char (wrap);
-    ASSERT_EQ(uc->character, 0x6D4B);
-
-    purc_rwstream_destroy (rws);
-    pchvml_rwswrap_destroy(wrap);
-}
-
 TEST(rwswrap, buffer_arrlist)
 {
     char buf[] = "This测试";

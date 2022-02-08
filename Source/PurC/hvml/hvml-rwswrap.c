@@ -127,17 +127,22 @@ pchvml_rwswrap_read_from_reconsume_list (struct pchvml_rwswrap* wrap)
     return &wrap->curr_uc;
 }
 
-static void
-pchvml_rwswrap_print_consumed (struct pchvml_rwswrap* wrap)
-{
-    fprintf(stderr, "------------begin print consumed list----------\n");
-    struct list_head *p, *n;
-    list_for_each_safe(p, n, &wrap->consumed_list) {
-        struct pchvml_uc* puc = list_entry(p, struct pchvml_uc, list);
-        fprintf(stderr, "%c", puc->character);
-    }
-    fprintf(stderr, "\n-------------end print consumed list-----------\n");
-}
+#define print_uc_list(uc_list, tag)                                         \
+    do {                                                                    \
+        fprintf(stderr, "begin print %s list\n|", tag);                     \
+        struct list_head *p, *n;                                            \
+        list_for_each_safe(p, n, uc_list) {                                 \
+            struct pchvml_uc* puc = list_entry(p, struct pchvml_uc, list);  \
+            fprintf(stderr, "%c", puc->character);                          \
+        }                                                                   \
+        fprintf(stderr, "|\nend print %s list\n", tag);                     \
+    } while(0)
+
+#define PRINT_CONSUMED_LIST(wrap)    \
+        print_uc_list(&wrap->consumed_list, "consumed")
+
+#define PRINT_RECONSUM_LIST(wrap)    \
+        print_uc_list(&wrap->reconsume_list, "reconsume")
 
 static bool
 pchvml_rwswrap_add_consumed (struct pchvml_rwswrap* wrap, struct pchvml_uc* uc)
@@ -159,7 +164,22 @@ pchvml_rwswrap_add_consumed (struct pchvml_rwswrap* wrap, struct pchvml_uc* uc)
         pchvml_uc_destroy(first);
         wrap->nr_consumed_list--;
     }
-    //pchvml_rwswrap_print_consumed(wrap);
+    return true;
+}
+
+bool pchvml_rwswrap_reconsume_last_char (struct pchvml_rwswrap* wrap)
+{
+    if (!wrap->nr_consumed_list) {
+        return true;
+    }
+
+    struct pchvml_uc* last = list_last_entry(
+            &wrap->consumed_list, struct pchvml_uc, list);
+    list_del_init(&last->list);
+    wrap->nr_consumed_list--;
+
+    list_add(&last->list, &wrap->reconsume_list);
+    PRINT_CONSUMED_LIST(wrap);
     return true;
 }
 
@@ -177,21 +197,6 @@ struct pchvml_uc* pchvml_rwswrap_next_char (struct pchvml_rwswrap* wrap)
         return ret;
     }
     return NULL;
-}
-
-bool pchvml_rwswrap_buffer_chars (struct pchvml_rwswrap* wrap,
-        uint32_t* ucs, size_t nr_ucs)
-{
-    for (int i = nr_ucs - 1; i >= 0; i--) {
-        struct pchvml_uc* puc = pchvml_uc_new ();
-        if (!puc) {
-            pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
-            return false;
-        }
-        puc->character = ucs[i];
-        list_add(&puc->list, &wrap->reconsume_list);
-    }
-    return true;
 }
 
 void pchvml_rwswrap_destroy (struct pchvml_rwswrap* wrap)
