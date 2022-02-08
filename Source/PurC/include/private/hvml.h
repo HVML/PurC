@@ -192,6 +192,7 @@ struct pchvml_token* pchvml_next_token (struct pchvml_parser* hvml,
                                           purc_rwstream_t rws);
 
 const char* pchvml_get_state_name(enum pchvml_state state);
+const char* pchvml_get_error_name(int err);
 
 #ifdef __cplusplus
 }
