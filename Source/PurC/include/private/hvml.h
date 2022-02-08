@@ -30,7 +30,9 @@
 #include "private/vcm.h"
 
 enum pchvml_state {
-    PCHVML_DATA_STATE,
+    PCHVML_FIRST_STATE = 0,
+
+    PCHVML_DATA_STATE = PCHVML_FIRST_STATE,
     PCHVML_RCDATA_STATE,
     PCHVML_RAWTEXT_STATE,
     PCHVML_PLAINTEXT_STATE,
@@ -142,9 +144,13 @@ enum pchvml_state {
     PCHVML_EJSON_TEMPLATE_DATA_LESS_THAN_SIGN_STATE,
     PCHVML_EJSON_TEMPLATE_DATA_END_TAG_OPEN_STATE,
     PCHVML_EJSON_TEMPLATE_DATA_END_TAG_NAME_STATE,
-    PCHVML_EJSON_TEMPLATE_FINISHED_STATE
+    PCHVML_EJSON_TEMPLATE_FINISHED_STATE,
 
+    PCHVML_LAST_STATE = PCHVML_EJSON_TEMPLATE_FINISHED_STATE,
 };
+
+#define PCHVML_STATE_NR \
+        (PCHVML_LAST_STATE - PCHVML_FIRST_STATE + 1)
 
 struct pchvml_buffer;
 struct pchvml_token;
@@ -184,6 +190,8 @@ void pchvml_destroy(struct pchvml_parser* parser);
 
 struct pchvml_token* pchvml_next_token (struct pchvml_parser* hvml,
                                           purc_rwstream_t rws);
+
+const char* pchvml_get_state_name(enum pchvml_state state);
 
 #ifdef __cplusplus
 }
