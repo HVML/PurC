@@ -263,7 +263,7 @@ exe_add_it_value(purc_exec_inst_t inst, purc_exec_iter_t it)
     }
 
     PC_ASSERT(&inst->it == it);
-    PC_ASSERT(inst->selected_keys != PURC_VARIANT_INVALID);
+    // PC_ASSERT(inst->selected_keys != PURC_VARIANT_INVALID);
     PC_ASSERT(inst->input != PURC_VARIANT_INVALID);
 
     struct pcexec_exe_add_inst *exe_add_inst;

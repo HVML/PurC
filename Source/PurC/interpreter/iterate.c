@@ -45,6 +45,7 @@ struct ctxt_for_iterate {
 
     purc_variant_t                on;
     purc_variant_t                by;
+    struct pcvcm_node            *by_vcm;
 
     struct purc_exec_ops          ops;
     purc_exec_inst_t              exec_inst;
@@ -154,6 +155,7 @@ process_attr_on(struct pcintr_stack_frame *frame,
     }
     ctxt->on = val;
     purc_variant_ref(val);
+    PRINT_VARIANT(ctxt->on);
 
     return 0;
 }
@@ -161,7 +163,7 @@ process_attr_on(struct pcintr_stack_frame *frame,
 static int
 process_attr_by(struct pcintr_stack_frame *frame,
         struct pcvdom_element *element,
-        purc_atom_t name, purc_variant_t val)
+        purc_atom_t name, purc_variant_t val, struct pcvdom_attr *attr)
 {
     struct ctxt_for_iterate *ctxt;
     ctxt = (struct ctxt_for_iterate*)frame->ctxt;
@@ -179,6 +181,7 @@ process_attr_by(struct pcintr_stack_frame *frame,
     }
     ctxt->by = val;
     purc_variant_ref(val);
+    ctxt->by_vcm = attr->val;
 
     return 0;
 }
@@ -199,7 +202,7 @@ attr_found(struct pcintr_stack_frame *frame,
         return process_attr_on(frame, element, name, val);
     }
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, BY)) == name) {
-        return process_attr_by(frame, element, name, val);
+        return process_attr_by(frame, element, name, val, attr);
     }
 
     purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
@@ -278,7 +281,21 @@ on_popping(pcintr_stack_t stack, void* ud)
     if (!it)
         return true;
 
-    it = ctxt->ops.it_next(exec_inst, it, NULL); // TODO: re-eval rule????
+    if (ctxt->by_vcm == NULL) {
+        return true;
+    }
+
+    struct pcvcm_node *vcm = ctxt->by_vcm;
+
+    purc_variant_t by = pcvcm_eval(vcm, stack);
+    PC_ASSERT(by != PURC_VARIANT_INVALID);
+
+    const char *rule = purc_variant_get_string_const(by);
+    PC_ASSERT(rule);
+
+    it = ctxt->ops.it_next(exec_inst, it, rule);
+    purc_variant_unref(by);
+
     ctxt->it = it;
     if (!it) {
         int err = purc_get_last_error();

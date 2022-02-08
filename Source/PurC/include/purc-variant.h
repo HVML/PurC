@@ -28,10 +28,20 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <libgen.h>
 
 #include "purc-macros.h"
 #include "purc-rwstream.h"
 #include "purc-utils.h"
+
+#ifndef D
+#define D(fmt, ...)                                           \
+    if (TO_DEBUG) {                                           \
+        fprintf(stderr, "%s[%d]:%s(): " fmt "\n",             \
+            basename((char*)__FILE__), __LINE__, __func__,    \
+            ##__VA_ARGS__);                                   \
+    }
+#endif // D
 
 struct purc_variant;
 typedef struct purc_variant purc_variant;

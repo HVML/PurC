@@ -488,6 +488,42 @@ static const char *sample1 =
     "    </body>"
     "</hvml>";
 
+static const char *fibonacci_1 =
+    "<!DOCTYPE hvml SYSTEM 'v: MATH'>"
+    "<hvml target=\"html\" lang=\"en\">"
+    "    <head>"
+    "        <title>Fibonacci Numbers</title>"
+    "    </head>"
+    ""
+    "    <body>"
+    "        <header>"
+    "            <h1>Fibonacci Numbers less than 2000</h1>"
+    "            <!--p hvml:raw>Using named array variable ($fibonacci), $MATH, and $EJSON</p-->"
+    "        </header>"
+    ""
+    "        <init as=\"fibonacci\">"
+    "            [0, 1, ]"
+    "        </init>"
+    ""
+    "        <iterate on 1 by=\"ADD: LT 2000 BY $fibonacci[$MATH.sub($EJSON.count($fibonacci), 2)]\">"
+    "            <update on=\"$fibonacci\" to=\"append\" with=\"$?\" />"
+    "        </iterate>"
+    ""
+    "        <section>"
+    "            <ol>"
+    "                <iterate on=\"$fibonacci\">"
+    "                    <li>$?</li>"
+    "                </iterate>"
+    "            </ol>"
+    "        </section>"
+    ""
+    "        <footer>"
+    "            <p>Totally $EJSON.count($fibonacci) numbers.</p>"
+    "        </footer>"
+    "    </body>"
+    ""
+    "</hvml>";
+
 TEST(interpreter, basic)
 {
     (void)calculator_1;
@@ -495,6 +531,7 @@ TEST(interpreter, basic)
     (void)calculator_3;
     (void)calculator_4;
     (void)sample1;
+    (void)fibonacci_1;
 
     const char *hvmls[] = {
         "<hvml><head x=\"y\">hello<xinit a=\"b\">world<!--yes-->solid</xinit></head><body><timeout1/><timeout3/></body></hvml>",
@@ -504,11 +541,12 @@ TEST(interpreter, basic)
         "<hvml><body><archetype name=\"$?.button\"><li class=\"class\">letters</li></archetype></body></hvml>",
         "<hvml><body><archetype name=\"button\"><li class=\"class\">letters</li></archetype></body></hvml>",
         "<hvml><body><a><b><c></c></b></a></body></hvml>",
-        // calculator_1,
-        // calculator_2,
+        calculator_1,
+        calculator_2,
         // calculator_3,
         calculator_4,
         sample1,
+        fibonacci_1,
     };
 
     purc_instance_extra_info info = {};
