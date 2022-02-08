@@ -123,6 +123,11 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 
     ctxt->it = it;
 
+    PURC_VARIANT_SAFE_CLEAR(frame->caret_var);
+    frame->caret_var = on;
+    purc_variant_ref(on);
+    PRINT_VARIANT(frame->caret_var);
+
     purc_variant_t value;
     value = ctxt->ops.it_value(exec_inst, it);
     if (value == PURC_VARIANT_INVALID)
@@ -134,6 +139,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 
     return 0;
 }
+
 static int
 process_attr_on(struct pcintr_stack_frame *frame,
         struct pcvdom_element *element,
@@ -291,6 +297,12 @@ on_popping(pcintr_stack_t stack, void* ud)
 
     const char *rule = purc_variant_get_string_const(by);
     PC_ASSERT(rule);
+
+    PURC_VARIANT_SAFE_CLEAR(frame->caret_var);
+    frame->caret_var = frame->result_var;
+    if (frame->caret_var)
+        purc_variant_ref(frame->caret_var);
+    PRINT_VARIANT(frame->caret_var);
 
     it = ctxt->ops.it_next(exec_inst, it, rule);
     purc_variant_unref(by);

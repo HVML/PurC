@@ -137,11 +137,12 @@ struct pcintr_stack {
 
 enum purc_symbol_var {
     PURC_SYMBOL_VAR_QUESTION_MARK = 0,  // ?
-    PURC_SYMBOL_VAR_AT_SIGN,            // @
-    PURC_SYMBOL_VAR_NUMBER_SIGN,        // #
-    PURC_SYMBOL_VAR_ASTERISK,           // *
-    PURC_SYMBOL_VAR_COLON,              // :
+    PURC_SYMBOL_VAR_CARET,              // ^
     PURC_SYMBOL_VAR_AMPERSAND,          // &
+    PURC_SYMBOL_VAR_AT_SIGN,            // @
+    PURC_SYMBOL_VAR_EXCLAMATION,        // !
+    PURC_SYMBOL_VAR_COLON,              // :
+    PURC_SYMBOL_VAR_EQUAL,              // =
     PURC_SYMBOL_VAR_PERCENT_SIGN,       // %
 
     PURC_SYMBOL_VAR_MAX
@@ -194,6 +195,8 @@ struct pcintr_stack_frame {
 
     // the evaluated variant which is to be used as child-element's $?
     purc_variant_t result_var;
+    // the evaluated variant which is to be used as child-element's $^
+    purc_variant_t caret_var;
     // the idx of current iteration which is meaningful for child-element
     size_t idx;
 

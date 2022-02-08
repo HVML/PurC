@@ -78,6 +78,7 @@ stack_frame_release(struct pcintr_stack_frame *frame)
     PURC_VARIANT_SAFE_CLEAR(frame->attr_vars);
     PURC_VARIANT_SAFE_CLEAR(frame->ctnt_var);
     PURC_VARIANT_SAFE_CLEAR(frame->result_var);
+    PURC_VARIANT_SAFE_CLEAR(frame->caret_var);
     PURC_VARIANT_SAFE_CLEAR(frame->result_from_child);
     PURC_VARIANT_SAFE_CLEAR(frame->mid_vars);
 }
@@ -506,6 +507,68 @@ pop_stack_frame(pcintr_stack_t stack)
     --stack->nr_frames;
 }
 
+static int
+set_caret_var(struct pcintr_stack_frame *frame,
+    struct pcintr_stack_frame *parent)
+{
+    if (parent->caret_var) {
+        PURC_VARIANT_SAFE_CLEAR(
+                frame->symbol_vars[PURC_SYMBOL_VAR_CARET]);
+        frame->symbol_vars[PURC_SYMBOL_VAR_CARET] = parent->caret_var;
+        purc_variant_ref(parent->caret_var);
+    }
+
+    return 0;
+}
+
+static int
+set_idx_var(struct pcintr_stack_frame *frame,
+    struct pcintr_stack_frame *parent)
+{
+    purc_variant_t idx_var;
+    idx_var = purc_variant_make_ulongint(parent->idx);
+    if (idx_var == PURC_VARIANT_INVALID) {
+        return -1;
+    }
+    PURC_VARIANT_SAFE_CLEAR(
+            frame->symbol_vars[PURC_SYMBOL_VAR_PERCENT_SIGN]);
+    frame->symbol_vars[PURC_SYMBOL_VAR_PERCENT_SIGN] = idx_var;
+
+    return 0;
+}
+
+static int
+set_result_var(struct pcintr_stack_frame *frame,
+    struct pcintr_stack_frame *parent)
+{
+    if (parent->result_var) {
+        PURC_VARIANT_SAFE_CLEAR(
+                frame->symbol_vars[PURC_SYMBOL_VAR_QUESTION_MARK]);
+        frame->symbol_vars[PURC_SYMBOL_VAR_QUESTION_MARK] = parent->result_var;
+        purc_variant_ref(parent->result_var);
+    }
+
+    return 0;
+}
+
+static int
+set_symbol_vars(struct pcintr_stack_frame *frame)
+{
+    struct pcintr_stack_frame *parent;
+    parent = pcintr_stack_frame_get_parent(frame);
+    if (!parent)
+        return 0;
+
+    if (set_caret_var(frame, parent))
+        return -1;
+    if (set_idx_var(frame, parent))
+        return -1;
+    if (set_result_var(frame, parent))
+        return -1;
+
+    return 0;
+}
+
 static struct pcintr_stack_frame*
 push_stack_frame(pcintr_stack_t stack)
 {
@@ -531,24 +594,9 @@ push_stack_frame(pcintr_stack_t stack)
     }
     purc_variant_unref(undefined);
 
-    struct pcintr_stack_frame *parent;
-    parent = pcintr_stack_frame_get_parent(frame);
-    if (parent && parent->result_var) {
-        if (parent->result_var) {
-            PURC_VARIANT_SAFE_CLEAR(
-                    frame->symbol_vars[PURC_SYMBOL_VAR_QUESTION_MARK]);
-            frame->symbol_vars[PURC_SYMBOL_VAR_QUESTION_MARK] = parent->result_var;
-            purc_variant_ref(parent->result_var);
-        }
-        purc_variant_t idx_var;
-        idx_var = purc_variant_make_ulongint(parent->idx);
-        if (idx_var == PURC_VARIANT_INVALID) {
-            pop_stack_frame(stack);
-            return NULL;
-        }
-        PURC_VARIANT_SAFE_CLEAR(
-                frame->symbol_vars[PURC_SYMBOL_VAR_PERCENT_SIGN]);
-        frame->symbol_vars[PURC_SYMBOL_VAR_PERCENT_SIGN] = idx_var;
+    if (set_symbol_vars(frame)) {
+        pop_stack_frame(stack);
+        return NULL;
     }
 
     return frame;
