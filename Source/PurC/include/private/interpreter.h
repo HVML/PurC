@@ -80,7 +80,6 @@ enum pcintr_stack_stage {
 struct pcintr_loaded_var {
     struct rb_node              node;
     char                       *name;
-    char                       *so_path;
     purc_variant_t              val;
 };
 

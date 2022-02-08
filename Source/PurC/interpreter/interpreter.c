@@ -337,10 +337,6 @@ release_loaded_var(struct pcintr_loaded_var *p)
             free(p->name);
             p->name = NULL;
         }
-        if (p->so_path) {
-            free(p->so_path);
-            p->name = NULL;
-        }
     }
 }
 
@@ -2124,16 +2120,9 @@ pcintr_load_dynamic_variant(pcintr_stack_t stack,
         }
     }
 
-    char so[PATH_MAX+1];
-    int n = snprintf(so, sizeof(so), "libpurc-dvobj-%.*s.so", (int)len, name);
-    if (n<0 || (size_t)n >= sizeof(so)) {
-        purc_set_error(PURC_ERROR_OVERFLOW);
-        return false;
-    }
-
     struct pcintr_loaded_var *p = NULL;
 
-    purc_variant_t v = purc_variant_load_dvobj_from_so(so, NAME);
+    purc_variant_t v = purc_variant_load_dvobj_from_so(NULL, NAME);
     if (v == PURC_VARIANT_INVALID)
         return false;
 
@@ -2146,8 +2135,7 @@ pcintr_load_dynamic_variant(pcintr_stack_t stack,
     p->val = v;
 
     p->name = strdup(NAME);
-    p->so_path = strdup(so);
-    if (!p->name || !p->so_path) {
+    if (!p->name) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto error;
     }
