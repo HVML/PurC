@@ -61,19 +61,19 @@ struct pchvml_rwswrap {
     int consumed;
 };
 
-struct pchvml_uc* pchvml_uc_new (void)
+struct pchvml_uc* pchvml_uc_new(void)
 {
     return PCHVML_ALLOC(sizeof(struct pchvml_uc));
 }
 
-void pchvml_uc_destroy (struct pchvml_uc* uc)
+void pchvml_uc_destroy(struct pchvml_uc* uc)
 {
     if (uc) {
         PCHVML_FREE(uc);
     }
 }
 
-struct pchvml_rwswrap* pchvml_rwswrap_new (void)
+struct pchvml_rwswrap* pchvml_rwswrap_new(void)
 {
     struct pchvml_rwswrap* wrap = PCHVML_ALLOC(sizeof(struct pchvml_rwswrap));
     if (!wrap) {
@@ -87,18 +87,18 @@ struct pchvml_rwswrap* pchvml_rwswrap_new (void)
     return wrap;
 }
 
-void pchvml_rwswrap_set_rwstream (struct pchvml_rwswrap* wrap,
+void pchvml_rwswrap_set_rwstream(struct pchvml_rwswrap* wrap,
         purc_rwstream_t rws)
 {
     wrap->rws = rws;
 }
 
 static struct pchvml_uc*
-pchvml_rwswrap_read_from_rwstream (struct pchvml_rwswrap* wrap)
+pchvml_rwswrap_read_from_rwstream(struct pchvml_rwswrap* wrap)
 {
     char c[8] = {0};
     uint32_t uc = 0;
-    int nr_c = purc_rwstream_read_utf8_char (wrap->rws, c, &uc);
+    int nr_c = purc_rwstream_read_utf8_char(wrap->rws, c, &uc);
     if (nr_c < 0) {
         uc = PCHVML_INVALID_CHARACTER;
     }
@@ -117,7 +117,7 @@ pchvml_rwswrap_read_from_rwstream (struct pchvml_rwswrap* wrap)
 }
 
 static struct pchvml_uc*
-pchvml_rwswrap_read_from_reconsume_list (struct pchvml_rwswrap* wrap)
+pchvml_rwswrap_read_from_reconsume_list(struct pchvml_rwswrap* wrap)
 {
     struct pchvml_uc* puc = list_entry(wrap->reconsume_list.next,
             struct pchvml_uc, list);
@@ -145,9 +145,9 @@ pchvml_rwswrap_read_from_reconsume_list (struct pchvml_rwswrap* wrap)
         print_uc_list(&wrap->reconsume_list, "reconsume")
 
 static bool
-pchvml_rwswrap_add_consumed (struct pchvml_rwswrap* wrap, struct pchvml_uc* uc)
+pchvml_rwswrap_add_consumed(struct pchvml_rwswrap* wrap, struct pchvml_uc* uc)
 {
-    struct pchvml_uc* p = pchvml_uc_new ();
+    struct pchvml_uc* p = pchvml_uc_new();
     if (!p) {
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return false;
@@ -167,7 +167,7 @@ pchvml_rwswrap_add_consumed (struct pchvml_rwswrap* wrap, struct pchvml_uc* uc)
     return true;
 }
 
-bool pchvml_rwswrap_reconsume_last_char (struct pchvml_rwswrap* wrap)
+bool pchvml_rwswrap_reconsume_last_char(struct pchvml_rwswrap* wrap)
 {
     if (!wrap->nr_consumed_list) {
         return true;
@@ -183,14 +183,14 @@ bool pchvml_rwswrap_reconsume_last_char (struct pchvml_rwswrap* wrap)
     return true;
 }
 
-struct pchvml_uc* pchvml_rwswrap_next_char (struct pchvml_rwswrap* wrap)
+struct pchvml_uc* pchvml_rwswrap_next_char(struct pchvml_rwswrap* wrap)
 {
     struct pchvml_uc* ret = NULL;
-    if (list_empty (&wrap->reconsume_list)) {
-        ret = pchvml_rwswrap_read_from_rwstream (wrap);
+    if (list_empty(&wrap->reconsume_list)) {
+        ret = pchvml_rwswrap_read_from_rwstream(wrap);
     }
     else {
-        ret = pchvml_rwswrap_read_from_reconsume_list (wrap);
+        ret = pchvml_rwswrap_read_from_reconsume_list(wrap);
     }
 
     if (pchvml_rwswrap_add_consumed(wrap, ret)) {
@@ -199,7 +199,7 @@ struct pchvml_uc* pchvml_rwswrap_next_char (struct pchvml_rwswrap* wrap)
     return NULL;
 }
 
-void pchvml_rwswrap_destroy (struct pchvml_rwswrap* wrap)
+void pchvml_rwswrap_destroy(struct pchvml_rwswrap* wrap)
 {
     if (wrap) {
         struct list_head *p, *n;
