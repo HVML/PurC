@@ -46,8 +46,6 @@
 #include <stdlib.h>
 #endif
 
-#include "hvml_err_msgs.inc"
-
 //#define HVML_DEBUG_PRINT
 
 #define PCHVML_END_OF_FILE       0
@@ -366,22 +364,6 @@
         UPDATE_VCM_NODE(parent);                                            \
     } while (false)
 
-/* Make sure the number of error messages matches the number of error codes */
-#define _COMPILE_TIME_ASSERT(name, x)               \
-       typedef int _dummy_ ## name[(x) * 2 - 1]
-
-_COMPILE_TIME_ASSERT(msgs,
-        PCA_TABLESIZE(hvml_err_msgs) == PCHVML_ERROR_NR);
-
-#undef _COMPILE_TIME_ASSERT
-
-static struct err_msg_seg _hvml_err_msgs_seg = {
-    { NULL, NULL },
-    PURC_ERROR_FIRST_HVML,
-    PURC_ERROR_FIRST_HVML + PCA_TABLESIZE(hvml_err_msgs) - 1,
-    hvml_err_msgs
-};
-
 static const uint32_t numeric_char_ref_extension_array[32] = {
     0x20AC, 0x0081, 0x201A, 0x0192, 0x201E, 0x2026, 0x2020, 0x2021, // 80-87
     0x02C6, 0x2030, 0x0160, 0x2039, 0x0152, 0x008D, 0x017D, 0x008F, // 88-8F
@@ -483,90 +465,6 @@ PCA_INLINE UNUSED_FUNCTION bool is_separator(uint32_t c)
             return true;
     }
     return false;
-}
-
-void pchvml_init_once(void)
-{
-    pcinst_register_error_message_segment(&_hvml_err_msgs_seg);
-}
-
-struct pchvml_parser* pchvml_create(uint32_t flags, size_t queue_size)
-{
-    UNUSED_PARAM(flags);
-    UNUSED_PARAM(queue_size);
-
-    struct pchvml_parser* parser = (struct pchvml_parser*) PCHVML_ALLOC(
-            sizeof(struct pchvml_parser));
-    parser->state = PCHVML_DATA_STATE;
-    parser->rwswrap = pchvml_rwswrap_new ();
-    parser->temp_buffer = pchvml_buffer_new ();
-    parser->tag_name = pchvml_buffer_new ();
-    parser->string_buffer = pchvml_buffer_new ();
-    parser->quoted_buffer = pchvml_buffer_new ();
-    parser->vcm_stack = pcvcm_stack_new();
-    parser->ejson_stack = pcutils_stack_new(0);
-    parser->tag_is_operation = false;
-    return parser;
-}
-
-void pchvml_reset(struct pchvml_parser* parser, uint32_t flags,
-        size_t queue_size)
-{
-    UNUSED_PARAM(flags);
-    UNUSED_PARAM(queue_size);
-
-    parser->state = PCHVML_DATA_STATE;
-    pchvml_rwswrap_destroy (parser->rwswrap);
-    parser->rwswrap = pchvml_rwswrap_new ();
-    pchvml_buffer_reset (parser->temp_buffer);
-    pchvml_buffer_reset (parser->tag_name);
-    pchvml_buffer_reset (parser->string_buffer);
-    pchvml_buffer_reset (parser->quoted_buffer);
-
-    struct pcvcm_node* n = parser->vcm_node;
-    parser->vcm_node = NULL;
-    while (!pcvcm_stack_is_empty(parser->vcm_stack)) {
-        struct pcvcm_node* node = pcvcm_stack_pop(parser->vcm_stack);
-        APPEND_CHILD(node, n);
-        n = node;
-    }
-    pcvcm_node_destroy(n);
-    pcvcm_stack_destroy(parser->vcm_stack);
-    parser->vcm_stack = pcvcm_stack_new();
-    pcutils_stack_destroy(parser->ejson_stack);
-    parser->ejson_stack = pcutils_stack_new(0);
-    if (parser->token) {
-        pchvml_token_destroy(parser->token);
-        parser->token = NULL;
-    }
-}
-
-void pchvml_destroy(struct pchvml_parser* parser)
-{
-    if (parser) {
-        pchvml_rwswrap_destroy (parser->rwswrap);
-        pchvml_buffer_destroy (parser->temp_buffer);
-        pchvml_buffer_destroy (parser->tag_name);
-        pchvml_buffer_destroy (parser->string_buffer);
-        pchvml_buffer_destroy (parser->quoted_buffer);
-        if (parser->sbst) {
-            pchvml_sbst_destroy(parser->sbst);
-        }
-        struct pcvcm_node* n = parser->vcm_node;
-        parser->vcm_node = NULL;
-        while (!pcvcm_stack_is_empty(parser->vcm_stack)) {
-            struct pcvcm_node* node = pcvcm_stack_pop(parser->vcm_stack);
-            APPEND_CHILD(node, n);
-            n = node;
-        }
-        pcvcm_node_destroy(n);
-        pcvcm_stack_destroy(parser->vcm_stack);
-        pcutils_stack_destroy(parser->ejson_stack);
-        if (parser->token) {
-            pchvml_token_destroy(parser->token);
-        }
-        PCHVML_FREE(parser);
-    }
 }
 
 const char* pchvml_error_desc (int err)
