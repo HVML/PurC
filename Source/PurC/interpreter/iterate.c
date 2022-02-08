@@ -155,7 +155,6 @@ process_attr_on(struct pcintr_stack_frame *frame,
     }
     ctxt->on = val;
     purc_variant_ref(val);
-    PRINT_VARIANT(ctxt->on);
 
     return 0;
 }

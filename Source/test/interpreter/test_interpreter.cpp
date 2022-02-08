@@ -337,7 +337,7 @@ static const char *calculator_4 =
     ""
     "        <init as=\"expressions\">"
     "           ["
-    "               \"7 * 3 = \","
+    "               \"7*3=\","
     "           ]"
     "        </init>"
     ""
