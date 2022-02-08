@@ -23,6 +23,10 @@
  *
  */
 
+#include "config.h"
+
+#include "tokenizer.h"
+
 #include "private/instance.h"
 #include "private/errors.h"
 #include "private/debug.h"
@@ -36,7 +40,6 @@
 #include "hvml-sbst.h"
 #include "hvml-attr.h"
 #include "hvml-tag.h"
-#include "config.h"
 
 #include <math.h>
 

@@ -23,6 +23,8 @@
  *
  */
 
+#include "config.h"
+
 #include "private/instance.h"
 #include "private/errors.h"
 #include "private/debug.h"
@@ -30,13 +32,14 @@
 #include "private/dom.h"
 #include "private/hvml.h"
 
+#include "tokenizer.h"
+
 #include "hvml-buffer.h"
 #include "hvml-rwswrap.h"
 #include "hvml-token.h"
 #include "hvml-sbst.h"
 #include "hvml-attr.h"
 #include "hvml-tag.h"
-#include "config.h"
 
 #include <math.h>
 
@@ -47,8 +50,6 @@
 #endif
 
 //#define HVML_DEBUG_PRINT
-
-#define PCHVML_END_OF_FILE       0
 
 #if HAVE(GLIB)
 #define    PCHVML_ALLOC(sz)   g_slice_alloc0(sz)
@@ -370,102 +371,6 @@ static const uint32_t numeric_char_ref_extension_array[32] = {
     0x0090, 0x2018, 0x2019, 0x201C, 0x201D, 0x2022, 0x2013, 0x2014, // 90-97
     0x02DC, 0x2122, 0x0161, 0x203A, 0x0153, 0x009D, 0x017E, 0x0178, // 98-9F
 };
-
-PCA_INLINE UNUSED_FUNCTION bool is_whitespace (uint32_t uc)
-{
-    return uc == ' ' || uc == '\x0A' || uc == '\x09' || uc == '\x0C';
-}
-
-PCA_INLINE UNUSED_FUNCTION uint32_t to_ascii_lower_unchecked (uint32_t uc)
-{
-    return uc | 0x20;
-}
-
-PCA_INLINE UNUSED_FUNCTION bool is_ascii (uint32_t uc)
-{
-    return !(uc & ~0x7F);
-}
-
-PCA_INLINE UNUSED_FUNCTION bool is_ascii_lower (uint32_t uc)
-{
-    return uc >= 'a' && uc <= 'z';
-}
-
-PCA_INLINE UNUSED_FUNCTION bool is_ascii_upper (uint32_t uc)
-{
-     return uc >= 'A' && uc <= 'Z';
-}
-
-PCA_INLINE UNUSED_FUNCTION bool is_ascii_space (uint32_t uc)
-{
-    return uc <= ' ' && (uc == ' ' || (uc <= 0xD && uc >= 0x9));
-}
-
-PCA_INLINE UNUSED_FUNCTION bool is_ascii_digit (uint32_t uc)
-{
-    return uc >= '0' && uc <= '9';
-}
-
-PCA_INLINE UNUSED_FUNCTION bool is_ascii_binary_digit (uint32_t uc)
-{
-     return uc == '0' || uc == '1';
-}
-
-PCA_INLINE UNUSED_FUNCTION bool is_ascii_hex_digit (uint32_t uc)
-{
-     return is_ascii_digit(uc) || (
-             to_ascii_lower_unchecked(uc) >= 'a' &&
-             to_ascii_lower_unchecked(uc) <= 'f'
-             );
-}
-
-PCA_INLINE UNUSED_FUNCTION bool is_ascii_upper_hex_digit (uint32_t uc)
-{
-     return is_ascii_digit(uc) || (uc >= 'A' && uc <= 'F');
-}
-
-PCA_INLINE UNUSED_FUNCTION bool is_ascii_lower_hex_digit (uint32_t uc)
-{
-     return is_ascii_digit(uc) || (uc >= 'a' && uc <= 'f');
-}
-
-PCA_INLINE UNUSED_FUNCTION bool is_ascii_octal_digit (uint32_t uc)
-{
-     return uc >= '0' && uc <= '7';
-}
-
-PCA_INLINE UNUSED_FUNCTION bool is_ascii_alpha (uint32_t uc)
-{
-    return is_ascii_lower(to_ascii_lower_unchecked(uc));
-}
-
-PCA_INLINE UNUSED_FUNCTION bool is_ascii_alpha_numeric (uint32_t uc)
-{
-    return is_ascii_digit(uc) || is_ascii_alpha(uc);
-}
-
-PCA_INLINE UNUSED_FUNCTION bool is_eof (uint32_t uc)
-{
-    return uc == PCHVML_END_OF_FILE;
-}
-
-PCA_INLINE UNUSED_FUNCTION bool is_separator(uint32_t c)
-{
-    switch (c) {
-        case '{':
-        case '}':
-        case '[':
-        case ']':
-        case '<':
-        case '>':
-        case '(':
-        case ')':
-        case ',':
-        case ':':
-            return true;
-    }
-    return false;
-}
 
 const char* pchvml_error_desc (int err)
 {
