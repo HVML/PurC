@@ -70,7 +70,7 @@ struct pchvml_sbst* pchvml_sbst_new(const pchtml_sbst_entry_static_t* strt)
     return sbst;
 }
 
-void pchvml_sbst_destroy (struct pchvml_sbst* sbst)
+void pchvml_sbst_destroy(struct pchvml_sbst* sbst)
 {
     if (sbst) {
         pcutils_arrlist_free(sbst->ucs);
@@ -78,10 +78,10 @@ void pchvml_sbst_destroy (struct pchvml_sbst* sbst)
     }
 }
 
-bool pchvml_sbst_advance_ex (struct pchvml_sbst* sbst,
+bool pchvml_sbst_advance_ex(struct pchvml_sbst* sbst,
         uint32_t uc, bool case_insensitive)
 {
-    pcutils_arrlist_add (sbst->ucs, (void*)(uintptr_t)uc);
+    pcutils_arrlist_add(sbst->ucs, (void*)(uintptr_t)uc);
     if (uc > 0x7F) {
         return false;
     }
@@ -103,7 +103,7 @@ bool pchvml_sbst_advance_ex (struct pchvml_sbst* sbst,
     return false;
 }
 
-const char* pchvml_sbst_get_match (struct pchvml_sbst* sbst)
+const char* pchvml_sbst_get_match(struct pchvml_sbst* sbst)
 {
     if (sbst->match) {
         return (char*)sbst->match->value;
@@ -111,7 +111,7 @@ const char* pchvml_sbst_get_match (struct pchvml_sbst* sbst)
     return NULL;
 }
 
-struct pcutils_arrlist* pchvml_sbst_get_buffered_ucs (
+struct pcutils_arrlist* pchvml_sbst_get_buffered_ucs(
         struct pchvml_sbst* sbst)
 {
     return sbst->ucs;

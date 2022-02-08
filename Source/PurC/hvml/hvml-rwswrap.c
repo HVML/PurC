@@ -179,7 +179,6 @@ bool pchvml_rwswrap_reconsume_last_char(struct pchvml_rwswrap* wrap)
     wrap->nr_consumed_list--;
 
     list_add(&last->list, &wrap->reconsume_list);
-    PRINT_CONSUMED_LIST(wrap);
     return true;
 }
 
