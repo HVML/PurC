@@ -100,12 +100,6 @@ next_state:                                                             \
 #define TEMP_BUFFER_TO_VCM_NODE()                                       \
         pchvml_buffer_to_vcm_node(parser->temp_buffer)
 
-#define IS_CHAR(c)                      (character == c)
-#define IS_EOF()                        is_eof(character)
-#define IS_ASCII_ALPHA()                is_ascii_alpha(character)
-#define IS_WHITESPACE()                 is_whitespace(character)
-
-
 static UNUSED_FUNCTION
 bool pchvml_parser_is_json_content_tag(const char* name)
 {
@@ -252,17 +246,17 @@ PCHVML_NEXT_TOKEN_BEGIN
 
 
 BEGIN_STATE(PCHVML_DATA_STATE)
-    if (IS_CHAR('&')) {
+    if (character == '&') {
         SET_RETURN_STATE(PCHVML_DATA_STATE);
         ADVANCE_TO(PCHVML_CHARACTER_REFERENCE_STATE);
     }
-    if (IS_CHAR('<')) {
+    if (character == '<') {
         if (parser->token) {
             RETURN_AND_SWITCH_TO(PCHVML_TAG_OPEN_STATE);
         }
         ADVANCE_TO(PCHVML_TAG_OPEN_STATE);
     }
-    if (IS_EOF()) {
+    if (is_eof(character)) {
         RETURN_NEW_EOF_TOKEN();
     }
     RESET_TEMP_BUFFER();
@@ -270,21 +264,21 @@ BEGIN_STATE(PCHVML_DATA_STATE)
 END_STATE()
 
 BEGIN_STATE(PCHVML_TAG_OPEN_STATE)
-    if (IS_CHAR('!')) {
+    if (character == '!') {
         ADVANCE_TO(PCHVML_MARKUP_DECLARATION_OPEN_STATE);
     }
-    if (IS_CHAR('/')) {
+    if (character == '/') {
         ADVANCE_TO(PCHVML_END_TAG_OPEN_STATE);
     }
-    if (IS_ASCII_ALPHA()) {
+    if (is_ascii_alpha(character)) {
         parser->token = pchvml_token_new_start_tag ();
         RECONSUME_IN(PCHVML_TAG_NAME_STATE);
     }
-    if (IS_CHAR('?')) {
+    if (character == '?') {
         SET_ERR(PCHVML_ERROR_UNEXPECTED_QUESTION_MARK_INSTEAD_OF_TAG_NAME);
         RETURN_AND_STOP_PARSE();
     }
-    if (IS_EOF()) {
+    if (is_eof(character)) {
         SET_ERR(PCHVML_ERROR_EOF_BEFORE_TAG_NAME);
         RETURN_AND_STOP_PARSE();
     }
@@ -293,15 +287,15 @@ BEGIN_STATE(PCHVML_TAG_OPEN_STATE)
 END_STATE()
 
 BEGIN_STATE(PCHVML_END_TAG_OPEN_STATE)
-    if (IS_ASCII_ALPHA()) {
+    if (is_ascii_alpha(character)) {
         parser->token = pchvml_token_new_end_tag();
         RECONSUME_IN(PCHVML_TAG_NAME_STATE);
     }
-    if (IS_CHAR('>')) {
+    if (character == '>') {
         SET_ERR(PCHVML_ERROR_MISSING_END_TAG_NAME);
         RETURN_AND_STOP_PARSE();
     }
-    if (IS_EOF()) {
+    if (is_eof(character)) {
         SET_ERR(PCHVML_ERROR_EOF_BEFORE_TAG_NAME);
         RETURN_AND_STOP_PARSE();
     }
@@ -310,11 +304,11 @@ BEGIN_STATE(PCHVML_END_TAG_OPEN_STATE)
 END_STATE()
 
 BEGIN_STATE(PCHVML_TAG_CONTENT_STATE)
-    if (IS_EOF()) {
+    if (is_eof(character)) {
         SET_ERR(PCHVML_ERROR_EOF_BEFORE_TAG_NAME);
         RETURN_AND_STOP_PARSE();
     }
-    if (IS_WHITESPACE()) {
+    if (is_whitespace(character)) {
         APPEND_TO_TEMP_BUFFER(character);
         ADVANCE_TO(PCHVML_TAG_CONTENT_STATE);
     }
@@ -334,16 +328,16 @@ BEGIN_STATE(PCHVML_TAG_CONTENT_STATE)
 END_STATE()
 
 BEGIN_STATE(PCHVML_TAG_NAME_STATE)
-    if (IS_WHITESPACE()) {
+    if (is_whitespace(character)) {
         ADVANCE_TO(PCHVML_BEFORE_ATTRIBUTE_NAME_STATE);
     }
-    if (IS_CHAR('/')) {
+    if (character == '/') {
         ADVANCE_TO(PCHVML_SELF_CLOSING_START_TAG_STATE);
     }
-    if (IS_CHAR('>')) {
+    if (character == '>') {
         RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
     }
-    if (IS_EOF()) {
+    if (is_eof(character)) {
         SET_ERR(PCHVML_ERROR_EOF_IN_TAG);
         RETURN_AND_STOP_PARSE();
     }
@@ -352,17 +346,17 @@ BEGIN_STATE(PCHVML_TAG_NAME_STATE)
 END_STATE()
 
 BEGIN_STATE(PCHVML_BEFORE_ATTRIBUTE_NAME_STATE)
-    if (IS_WHITESPACE()) {
+    if (is_whitespace(character)) {
         ADVANCE_TO(PCHVML_BEFORE_ATTRIBUTE_NAME_STATE);
     }
-    if (IS_CHAR('/') || IS_CHAR('>')) {
+    if (character == '/' || character == '>') {
         RECONSUME_IN(PCHVML_AFTER_ATTRIBUTE_NAME_STATE);
     }
-    if (IS_EOF()) {
+    if (is_eof(character)) {
         SET_ERR(PCHVML_ERROR_EOF_IN_TAG);
         RETURN_AND_STOP_PARSE();
     }
-    if (IS_CHAR('=')) {
+    if (character == '=') {
         SET_ERR(PCHVML_ERROR_UNEXPECTED_EQUALS_SIGN_BEFORE_ATTRIBUTE_NAME);
         RETURN_AND_STOP_PARSE();
     }
@@ -374,7 +368,7 @@ BEGIN_STATE(PCHVML_ATTRIBUTE_NAME_STATE)
     if (is_whitespace(character) || character == '>') {
         RECONSUME_IN(PCHVML_AFTER_ATTRIBUTE_NAME_STATE);
     }
-    if (IS_EOF()) {
+    if (is_eof(character)) {
         SET_ERR(PCHVML_ERROR_EOF_IN_TAG);
         RETURN_AND_STOP_PARSE();
     }
