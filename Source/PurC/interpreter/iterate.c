@@ -286,17 +286,19 @@ on_popping(pcintr_stack_t stack, void* ud)
     if (!it)
         return true;
 
-    if (ctxt->by_vcm == NULL) {
-        return true;
+    purc_variant_t by = ctxt->by;
+    purc_variant_ref(by);
+    const char *rule = NULL;
+
+    if (ctxt->by_vcm != NULL) {
+        struct pcvcm_node *vcm = ctxt->by_vcm;
+
+        purc_variant_unref(by);
+        by = pcvcm_eval(vcm, stack);
+        PC_ASSERT(by != PURC_VARIANT_INVALID);
+        rule = purc_variant_get_string_const(by);
+        PC_ASSERT(rule);
     }
-
-    struct pcvcm_node *vcm = ctxt->by_vcm;
-
-    purc_variant_t by = pcvcm_eval(vcm, stack);
-    PC_ASSERT(by != PURC_VARIANT_INVALID);
-
-    const char *rule = purc_variant_get_string_const(by);
-    PC_ASSERT(rule);
 
     PURC_VARIANT_SAFE_CLEAR(frame->caret_var);
     frame->caret_var = frame->result_var;
