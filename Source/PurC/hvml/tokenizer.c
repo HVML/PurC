@@ -590,6 +590,19 @@ BEGIN_STATE(TOKENIZER_AFTER_ATTRIBUTE_VALUE_STATE)
     RETURN_AND_STOP_PARSE();
 END_STATE()
 
+BEGIN_STATE(TOKENIZER_SELF_CLOSING_START_TAG_STATE)
+    if (character == '>') {
+        pchvml_token_set_self_closing(parser->token, true);
+        RETURN_AND_SWITCH_TO(TOKENIZER_DATA_STATE);
+    }
+    if (is_eof(character)) {
+        SET_ERR(PCHVML_ERROR_EOF_IN_TAG);
+        RETURN_NEW_EOF_TOKEN();
+    }
+    SET_ERR(PCHVML_ERROR_UNEXPECTED_SOLIDUS_IN_TAG);
+    RETURN_AND_STOP_PARSE();
+END_STATE()
+
 PCHVML_NEXT_TOKEN_END
 
 #endif
