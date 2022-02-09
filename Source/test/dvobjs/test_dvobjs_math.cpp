@@ -90,25 +90,10 @@ TEST(dvobjs, dvobjs_math_pi_e)
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
             &nr_reserved_before);
 
-    char so_path[PATH_MAX+1];
     const char *env;
     env = "DVOBJS_SO_PATH";
-    test_getpath_from_env_or_rel(so_path, sizeof(so_path),
-        env, "../../../build/Source/ExtDVObjs");
-    std::cerr << "env: " << env << "=" << so_path << std::endl;
-
-#ifndef __APPLE__
-    strncat(so_path, "/math/libpurc-dvobj-MATH.so", sizeof(so_path)-1);
-    so_path[sizeof(so_path)-1] = '\0';
-#else
-    strncat(so_path, "/math/purc-dvobj-MATH.framework/purc-dvobj-MATH", sizeof(so_path)-1);
-    so_path[sizeof(so_path)-1] = '\0';
-#endif
-    purc_variant_t math = purc_variant_load_dvobj_from_so (
-        so_path, "MATH");
-    ASSERT_EQ(purc_variant_is_object (math), true);
-    ASSERT_NE(math, nullptr) << "Failed to load_from_so: ["
-            << so_path << "]" << std::endl;
+    purc_variant_t math = purc_variant_load_dvobj_from_so (NULL, "MATH");
+    ASSERT_NE(math, nullptr);
     ASSERT_EQ(purc_variant_is_object (math), true);
 
     for (i = 0; i < size; i++) {
@@ -314,25 +299,10 @@ TEST(dvobjs, dvobjs_math_const)
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
             &nr_reserved_before);
 
-    char so_path[PATH_MAX+1];
     const char *env;
     env = "DVOBJS_SO_PATH";
-    test_getpath_from_env_or_rel(so_path, sizeof(so_path),
-        env, "../../../build/Source/ExtDVObjs");
-    std::cerr << "env: " << env << "=" << so_path << std::endl;
-
-#ifndef __APPLE__
-    strncat(so_path, "/math/libpurc-dvobj-MATH.so", sizeof(so_path)-1);
-    so_path[sizeof(so_path)-1] = '\0';
-#else
-    strncat(so_path, "/math/purc-dvobj-MATH.framework/purc-dvobj-MATH", sizeof(so_path)-1);
-    so_path[sizeof(so_path)-1] = '\0';
-#endif
-    purc_variant_t math = purc_variant_load_dvobj_from_so (
-        so_path, "MATH");
-    ASSERT_EQ(purc_variant_is_object (math), true);
-    ASSERT_NE(math, nullptr) << "Failed to load_from_so: ["
-            << so_path << "]" << std::endl;
+    purc_variant_t math = purc_variant_load_dvobj_from_so (NULL, "MATH");
+    ASSERT_NE(math, nullptr);
     ASSERT_EQ(purc_variant_is_object (math), true);
 
     purc_variant_t dynamic = purc_variant_object_get_by_ckey (math, "const", false);
@@ -669,25 +639,10 @@ TEST(dvobjs, dvobjs_math_func)
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
             &nr_reserved_before);
 
-    char so_path[PATH_MAX+1];
     const char *env;
     env = "DVOBJS_SO_PATH";
-    test_getpath_from_env_or_rel(so_path, sizeof(so_path),
-        env, "../../../build/Source/ExtDVObjs");
-    std::cerr << "env: " << env << "=" << so_path << std::endl;
-
-#ifndef __APPLE__
-    strncat(so_path, "/math/libpurc-dvobj-MATH.so", sizeof(so_path)-1);
-    so_path[sizeof(so_path)-1] = '\0';
-#else
-    strncat(so_path, "/math/purc-dvobj-MATH.framework/purc-dvobj-MATH", sizeof(so_path)-1);
-    so_path[sizeof(so_path)-1] = '\0';
-#endif
-    purc_variant_t math = purc_variant_load_dvobj_from_so (
-        so_path, "MATH");
-    ASSERT_EQ(purc_variant_is_object (math), true);
-    ASSERT_NE(math, nullptr) << "Failed to load_from_so: ["
-            << so_path << "]" << std::endl;
+    purc_variant_t math = purc_variant_load_dvobj_from_so (NULL, "MATH");
+    ASSERT_NE(math, nullptr);
     ASSERT_EQ(purc_variant_is_object (math), true);
 
 
@@ -763,25 +718,10 @@ TEST(dvobjs, dvobjs_math_eval)
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
             &nr_reserved_before);
 
-    char so_path[PATH_MAX+1];
     const char *env;
     env = "DVOBJS_SO_PATH";
-    test_getpath_from_env_or_rel(so_path, sizeof(so_path),
-        env, "../../../build/Source/ExtDVObjs");
-    std::cerr << "env: " << env << "=" << so_path << std::endl;
-
-#ifndef __APPLE__
-    strncat(so_path, "/math/libpurc-dvobj-MATH.so", sizeof(so_path)-1);
-    so_path[sizeof(so_path)-1] = '\0';
-#else
-    strncat(so_path, "/math/purc-dvobj-MATH.framework/purc-dvobj-MATH", sizeof(so_path)-1);
-    so_path[sizeof(so_path)-1] = '\0';
-#endif
-    purc_variant_t math = purc_variant_load_dvobj_from_so (
-        so_path, "MATH");
-    ASSERT_EQ(purc_variant_is_object (math), true);
-    ASSERT_NE(math, nullptr) << "Failed to load_from_so: ["
-            << so_path << "]" << std::endl;
+    purc_variant_t math = purc_variant_load_dvobj_from_so (NULL, "MATH");
+    ASSERT_NE(math, nullptr);
     ASSERT_EQ(purc_variant_is_object (math), true);
 
     purc_variant_t dynamic = purc_variant_object_get_by_ckey (math, "eval", false);
@@ -910,25 +850,10 @@ TEST(dvobjs, dvobjs_math_assignment)
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
             &nr_reserved_before);
 
-    char so_path[PATH_MAX+1];
     const char *env;
     env = "DVOBJS_SO_PATH";
-    test_getpath_from_env_or_rel(so_path, sizeof(so_path),
-        env, "../../../build/Source/ExtDVObjs");
-    std::cerr << "env: " << env << "=" << so_path << std::endl;
-
-#ifndef __APPLE__
-    strncat(so_path, "/math/libpurc-dvobj-MATH.so", sizeof(so_path)-1);
-    so_path[sizeof(so_path)-1] = '\0';
-#else
-    strncat(so_path, "/math/purc-dvobj-MATH.framework/purc-dvobj-MATH", sizeof(so_path)-1);
-    so_path[sizeof(so_path)-1] = '\0';
-#endif
-    purc_variant_t math = purc_variant_load_dvobj_from_so (
-        so_path, "MATH");
-    ASSERT_EQ(purc_variant_is_object (math), true);
-    ASSERT_NE(math, nullptr) << "Failed to load_from_so: ["
-            << so_path << "]" << std::endl;
+    purc_variant_t math = purc_variant_load_dvobj_from_so (NULL, "MATH");
+    ASSERT_NE(math, nullptr);
     ASSERT_EQ(purc_variant_is_object (math), true);
 
     purc_variant_t dynamic = purc_variant_object_get_by_ckey (math, "eval", false);
@@ -997,25 +922,10 @@ TEST(dvobjs, dvobjs_math_samples)
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
             &nr_reserved_before);
 
-    char so_path[PATH_MAX+1];
     const char *env;
     env = "DVOBJS_SO_PATH";
-    test_getpath_from_env_or_rel(so_path, sizeof(so_path),
-        env, "../../../build/Source/ExtDVObjs");
-    std::cerr << "env: " << env << "=" << so_path << std::endl;
-
-#ifndef __APPLE__
-    strncat(so_path, "/math/libpurc-dvobj-MATH.so", sizeof(so_path)-1);
-    so_path[sizeof(so_path)-1] = '\0';
-#else
-    strncat(so_path, "/math/purc-dvobj-MATH.framework/purc-dvobj-MATH", sizeof(so_path)-1);
-    so_path[sizeof(so_path)-1] = '\0';
-#endif
-    purc_variant_t math = purc_variant_load_dvobj_from_so (
-        so_path, "MATH");
-    ASSERT_EQ(purc_variant_is_object (math), true);
-    ASSERT_NE(math, nullptr) << "Failed to load_from_so: ["
-            << so_path << "]" << std::endl;
+    purc_variant_t math = purc_variant_load_dvobj_from_so (NULL, "MATH");
+    ASSERT_NE(math, nullptr);
     ASSERT_EQ(purc_variant_is_object (math), true);
 
     purc_variant_t dynamic = purc_variant_object_get_by_ckey (math, "eval", false);
@@ -1186,25 +1096,10 @@ TEST(dvobjs, dvobjs_math_bc)
     if (r)
         return;
 
-    char so_path[PATH_MAX+1];
     const char *env;
     env = "DVOBJS_SO_PATH";
-    test_getpath_from_env_or_rel(so_path, sizeof(so_path),
-        env, "../../../build/Source/ExtDVObjs");
-    std::cerr << "env: " << env << "=" << so_path << std::endl;
-
-#ifndef __APPLE__
-    strncat(so_path, "/math/libpurc-dvobj-MATH.so", sizeof(so_path)-1);
-    so_path[sizeof(so_path)-1] = '\0';
-#else
-    strncat(so_path, "/math/purc-dvobj-MATH.framework/purc-dvobj-MATH", sizeof(so_path)-1);
-    so_path[sizeof(so_path)-1] = '\0';
-#endif
-    purc_variant_t math = purc_variant_load_dvobj_from_so (
-        so_path, "MATH");
-    ASSERT_EQ(purc_variant_is_object (math), true);
-    ASSERT_NE(math, nullptr) << "Failed to load_from_so: ["
-            << so_path << "]" << std::endl;
+    purc_variant_t math = purc_variant_load_dvobj_from_so (NULL, "MATH");
+    ASSERT_NE(math, nullptr);
     ASSERT_EQ(purc_variant_is_object (math), true);
 
     purc_variant_t dynamic = purc_variant_object_get_by_ckey (math, "eval", false);
