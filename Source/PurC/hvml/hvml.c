@@ -345,7 +345,7 @@
         UPDATE_VCM_NODE(parent);                                            \
     } while (false)
 
-#if 0
+#ifndef USE_NEW_TOKENIZER
 static const uint32_t numeric_char_ref_extension_array[32] = {
     0x20AC, 0x0081, 0x201A, 0x0192, 0x201E, 0x2026, 0x2020, 0x2021, // 80-87
     0x02C6, 0x2030, 0x0160, 0x2039, 0x0152, 0x008D, 0x017D, 0x008F, // 88-8F
@@ -480,7 +480,7 @@ bool pchvml_parser_is_in_attribute (struct pchvml_parser* parser)
     return parser->token && pchvml_token_is_in_attr(parser->token);
 }
 
-#if 0
+#ifndef USE_NEW_TOKENIZER
 struct pchvml_token* pchvml_next_token (struct pchvml_parser* parser,
                                           purc_rwstream_t rws)
 {
@@ -574,40 +574,6 @@ next_state:
         ADVANCE_TO(PCHVML_DATA_STATE);
     END_STATE()
 
-    BEGIN_STATE(PCHVML_RCDATA_STATE)
-        if (character == '&') {
-            SET_RETURN_STATE(PCHVML_RCDATA_STATE);
-            ADVANCE_TO(PCHVML_CHARACTER_REFERENCE_STATE);
-        }
-        if (character == '<') {
-            ADVANCE_TO(PCHVML_RCDATA_LESS_THAN_SIGN_STATE);
-        }
-        if (is_eof(character)) {
-            RECONSUME_IN(PCHVML_DATA_STATE);
-        }
-        APPEND_TO_TOKEN_TEXT(character);
-        ADVANCE_TO(PCHVML_RCDATA_STATE);
-    END_STATE()
-
-    BEGIN_STATE(PCHVML_RAWTEXT_STATE)
-        if (character == '<') {
-            ADVANCE_TO(PCHVML_RAWTEXT_LESS_THAN_SIGN_STATE);
-        }
-        if (is_eof(character)) {
-            RETURN_NEW_EOF_TOKEN();
-        }
-        APPEND_TO_TOKEN_TEXT(character);
-        ADVANCE_TO(PCHVML_RAWTEXT_STATE);
-    END_STATE()
-
-    BEGIN_STATE(PCHVML_PLAINTEXT_STATE)
-        if (is_eof(character)) {
-            RETURN_NEW_EOF_TOKEN();
-        }
-        APPEND_TO_TOKEN_TEXT(character);
-        ADVANCE_TO(PCHVML_PLAINTEXT_STATE);
-    END_STATE()
-
     BEGIN_STATE(PCHVML_TAG_OPEN_STATE)
         if (character == '!') {
             ADVANCE_TO(PCHVML_MARKUP_DECLARATION_OPEN_STATE);
@@ -667,98 +633,6 @@ next_state:
         }
         APPEND_TO_TOKEN_NAME(character);
         ADVANCE_TO(PCHVML_TAG_NAME_STATE);
-    END_STATE()
-
-    BEGIN_STATE(PCHVML_RCDATA_LESS_THAN_SIGN_STATE)
-        if (character == '/') {
-            RESET_TEMP_BUFFER();
-            ADVANCE_TO(PCHVML_RCDATA_END_TAG_OPEN_STATE);
-        }
-        APPEND_TO_TOKEN_TEXT('<');
-        RECONSUME_IN(PCHVML_RCDATA_STATE);
-    END_STATE()
-
-    BEGIN_STATE(PCHVML_RCDATA_END_TAG_OPEN_STATE)
-        if (is_ascii_alpha(character)) {
-            parser->token = pchvml_token_new_end_tag();
-            RECONSUME_IN(PCHVML_RCDATA_END_TAG_NAME_STATE);
-        }
-        APPEND_TO_TOKEN_TEXT('<');
-        APPEND_TO_TOKEN_TEXT('/');
-        RECONSUME_IN(PCHVML_RCDATA_STATE);
-    END_STATE()
-
-    BEGIN_STATE(PCHVML_RCDATA_END_TAG_NAME_STATE)
-        if (is_whitespace(character)) {
-            if (pchvml_parser_is_appropriate_end_tag(parser)) {
-                ADVANCE_TO(PCHVML_BEFORE_ATTRIBUTE_NAME_STATE);
-            }
-        }
-        if (character == '/') {
-            if (pchvml_parser_is_appropriate_end_tag(parser)) {
-                ADVANCE_TO(PCHVML_SELF_CLOSING_START_TAG_STATE);
-            }
-        }
-        if (character == '>') {
-            if (pchvml_parser_is_appropriate_end_tag(parser)) {
-                RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
-            }
-        }
-        if (is_ascii_alpha(character)) {
-            APPEND_TO_TOKEN_NAME(character);
-            APPEND_TO_TEMP_BUFFER(character);
-            ADVANCE_TO(PCHVML_RCDATA_END_TAG_NAME_STATE);
-        }
-        APPEND_TO_TOKEN_TEXT('<');
-        APPEND_TO_TOKEN_TEXT('/');
-        APPEND_TEMP_BUFFER_TO_TOKEN_TEXT();
-        RECONSUME_IN(PCHVML_RCDATA_STATE);
-    END_STATE()
-
-    BEGIN_STATE(PCHVML_RAWTEXT_LESS_THAN_SIGN_STATE)
-        if (character == '/') {
-            RESET_TEMP_BUFFER();
-            ADVANCE_TO(PCHVML_RAWTEXT_END_TAG_OPEN_STATE);
-        }
-        APPEND_TO_TOKEN_TEXT('<');
-        RECONSUME_IN(PCHVML_RAWTEXT_STATE);
-    END_STATE()
-
-    BEGIN_STATE(PCHVML_RAWTEXT_END_TAG_OPEN_STATE)
-        if (is_ascii_alpha(character)) {
-            parser->token = pchvml_token_new_end_tag();
-            RECONSUME_IN(PCHVML_RAWTEXT_END_TAG_NAME_STATE);
-        }
-        APPEND_TO_TOKEN_TEXT('<');
-        APPEND_TO_TOKEN_TEXT('/');
-        RECONSUME_IN(PCHVML_RAWTEXT_STATE);
-    END_STATE()
-
-    BEGIN_STATE(PCHVML_RAWTEXT_END_TAG_NAME_STATE)
-        if (is_whitespace(character)) {
-            if (pchvml_parser_is_appropriate_end_tag(parser)) {
-                ADVANCE_TO(PCHVML_BEFORE_ATTRIBUTE_NAME_STATE);
-            }
-        }
-        if (character == '/') {
-            if (pchvml_parser_is_appropriate_end_tag(parser)) {
-                ADVANCE_TO(PCHVML_SELF_CLOSING_START_TAG_STATE);
-            }
-        }
-        if (character == '>') {
-            if (pchvml_parser_is_appropriate_end_tag(parser)) {
-                RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
-            }
-        }
-        if (is_ascii_alpha(character)) {
-            APPEND_TO_TOKEN_NAME(character);
-            APPEND_TO_TEMP_BUFFER(character);
-            ADVANCE_TO(PCHVML_RAWTEXT_END_TAG_NAME_STATE);
-        }
-        APPEND_TO_TOKEN_TEXT('<');
-        APPEND_TO_TOKEN_TEXT('/');
-        APPEND_TEMP_BUFFER_TO_TOKEN_TEXT();
-        RECONSUME_IN(PCHVML_RAWTEXT_STATE);
     END_STATE()
 
     BEGIN_STATE(PCHVML_BEFORE_ATTRIBUTE_NAME_STATE)
