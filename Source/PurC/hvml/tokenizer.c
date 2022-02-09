@@ -371,6 +371,32 @@ BEGIN_STATE(PCHVML_BEFORE_ATTRIBUTE_NAME_STATE)
 END_STATE()
 
 BEGIN_STATE(PCHVML_ATTRIBUTE_NAME_STATE)
+    if (is_whitespace(character) || character == '>') {
+        RECONSUME_IN(PCHVML_AFTER_ATTRIBUTE_NAME_STATE);
+    }
+    if (IS_EOF()) {
+        SET_ERR(PCHVML_ERROR_EOF_IN_TAG);
+        RETURN_AND_STOP_PARSE();
+    }
+    if (character == '=') {
+        ADVANCE_TO(PCHVML_BEFORE_ATTRIBUTE_VALUE_STATE);
+    }
+    if (character == '"' || character == '\'' || character == '<') {
+        SET_ERR(PCHVML_ERROR_UNEXPECTED_CHARACTER_IN_ATTRIBUTE_NAME);
+        RETURN_AND_STOP_PARSE();
+    }
+    if (is_attribute_value_operator(character)
+            && pchvml_parser_is_operation_tag_token(parser->token)) {
+        RESET_TEMP_BUFFER();
+        APPEND_TO_TEMP_BUFFER(character);
+        ADVANCE_TO(
+        PCHVML_SPECIAL_ATTRIBUTE_OPERATOR_IN_ATTRIBUTE_NAME_STATE);
+    }
+    if (character == '/') {
+        RECONSUME_IN(PCHVML_AFTER_ATTRIBUTE_NAME_STATE);
+    }
+    APPEND_TO_TOKEN_ATTR_NAME(character);
+    ADVANCE_TO(PCHVML_ATTRIBUTE_NAME_STATE);
 END_STATE()
 
 BEGIN_STATE(PCHVML_AFTER_ATTRIBUTE_NAME_STATE)

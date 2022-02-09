@@ -149,6 +149,11 @@
         pchvml_token_end_attr(parser->token);                               \
     } while (false)
 
+#define APPEND_TO_TOKEN_ATTR_NAME(c)                                        \
+    do {                                                                    \
+        pchvml_token_append_to_attr_name(parser->token, c);                 \
+    } while (false)
+
 PCA_EXTERN_C_BEGIN
 
 PCA_INLINE bool is_whitespace(uint32_t uc)
@@ -243,6 +248,22 @@ PCA_INLINE bool is_separator(uint32_t c)
         case ')':
         case ',':
         case ':':
+            return true;
+    }
+    return false;
+}
+
+PCA_INLINE bool is_attribute_value_operator(uint32_t c)
+{
+    switch (c) {
+        case '+':
+        case '-':
+        case '*':
+        case '/':
+        case '%':
+        case '~':
+        case '^':
+        case '$':
             return true;
     }
     return false;
