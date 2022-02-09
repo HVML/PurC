@@ -98,6 +98,21 @@
         return token;                                                       \
     } while (false)
 
+#define RETURN_NEW_EOF_TOKEN()                                              \
+    do {                                                                    \
+        if (parser->token) {                                                \
+            struct pchvml_token* token = parser->token;                     \
+            parser->token = pchvml_token_new_eof();                         \
+            return token;                                                   \
+        }                                                                   \
+        return pchvml_token_new_eof();                                      \
+    } while (false)
+
+#define RESET_TEMP_BUFFER()                                                 \
+    do {                                                                    \
+        pchvml_buffer_reset(parser->temp_buffer);                           \
+    } while (false)
+
 PCA_EXTERN_C_BEGIN
 
 PCA_INLINE bool is_whitespace(uint32_t uc)
