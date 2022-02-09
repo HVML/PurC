@@ -134,6 +134,11 @@
 #define IS_TEMP_BUFFER_EMPTY()                                              \
         pchvml_buffer_is_empty(parser->temp_buffer)
 
+#define APPEND_TO_TOKEN_NAME(uc)                                            \
+    do {                                                                    \
+        pchvml_token_append_to_name(parser->token, uc);                     \
+    } while (false)
+
 PCA_EXTERN_C_BEGIN
 
 PCA_INLINE bool is_whitespace(uint32_t uc)
