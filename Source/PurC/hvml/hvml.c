@@ -345,12 +345,14 @@
         UPDATE_VCM_NODE(parent);                                            \
     } while (false)
 
+#if 0
 static const uint32_t numeric_char_ref_extension_array[32] = {
     0x20AC, 0x0081, 0x201A, 0x0192, 0x201E, 0x2026, 0x2020, 0x2021, // 80-87
     0x02C6, 0x2030, 0x0160, 0x2039, 0x0152, 0x008D, 0x017D, 0x008F, // 88-8F
     0x0090, 0x2018, 0x2019, 0x201C, 0x201D, 0x2022, 0x2013, 0x2014, // 90-97
     0x02DC, 0x2122, 0x0161, 0x203A, 0x0153, 0x009D, 0x017E, 0x0178, // 98-9F
 };
+#endif
 
 bool pchvml_parser_is_operation_tag(const char* name)
 {
@@ -478,6 +480,7 @@ bool pchvml_parser_is_in_attribute (struct pchvml_parser* parser)
     return parser->token && pchvml_token_is_in_attr(parser->token);
 }
 
+#if 0
 struct pchvml_token* pchvml_next_token (struct pchvml_parser* parser,
                                           purc_rwstream_t rws)
 {
@@ -3906,3 +3909,4 @@ next_state:
     return NULL;
 }
 
+#endif

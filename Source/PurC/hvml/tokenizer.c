@@ -49,11 +49,182 @@
 #include <stdlib.h>
 #endif
 
-#if 0
+#define PCHVML_NEXT_TOKEN_BEGIN                                         \
+struct pchvml_token* pchvml_next_token(struct pchvml_parser* parser,    \
+                                          purc_rwstream_t rws)          \
+{                                                                       \
+    struct pchvml_uc* hvml_uc = NULL;                                   \
+    uint32_t character = 0;                                             \
+    if (parser->token) {                                                \
+        struct pchvml_token* token = parser->token;                     \
+        parser->token = NULL;                                           \
+        return token;                                                   \
+    }                                                                   \
+                                                                        \
+    pchvml_rwswrap_set_rwstream (parser->rwswrap, rws);                 \
+                                                                        \
+next_input:                                                             \
+    hvml_uc = pchvml_rwswrap_next_char (parser->rwswrap);               \
+    if (!hvml_uc) {                                                     \
+        return NULL;                                                    \
+    }                                                                   \
+                                                                        \
+    character = hvml_uc->character;                                     \
+    if (character == PCHVML_INVALID_CHARACTER) {                        \
+        SET_ERR(PCHVML_ERROR_INVALID_UTF8_CHARACTER);                   \
+        return NULL;                                                    \
+    }                                                                   \
+                                                                        \
+    if (is_separator(character)) {                                      \
+        if (parser->prev_separator == ',' && character == ',') {        \
+            SET_ERR(PCHVML_ERROR_UNEXPECTED_COMMA);                     \
+            return NULL;                                                \
+        }                                                               \
+        parser->prev_separator = character;                             \
+    }                                                                   \
+    else if (!is_whitespace(character)) {                               \
+        parser->prev_separator = 0;                                     \
+    }                                                                   \
+                                                                        \
+next_state:                                                             \
+    switch (parser->state) {
+
+
+#define PCHVML_NEXT_TOKEN_END                                           \
+    default:                                                            \
+        break;                                                          \
+    }                                                                   \
+    return NULL;                                                        \
+}
+
+
+static UNUSED_FUNCTION
+bool pchvml_parser_is_operation_tag(const char* name)
+{
+    if (!name) {
+        return NULL;
+    }
+    const struct pchvml_tag_entry* entry = pchvml_tag_static_search(name,
+            strlen(name));
+    return (entry &&
+            (entry->cats & (PCHVML_TAGCAT_TEMPLATE | PCHVML_TAGCAT_VERB)));
+}
+
+static UNUSED_FUNCTION
+void pchvml_parser_save_tag_name(struct pchvml_parser* parser)
+{
+    if (pchvml_token_is_type (parser->token, PCHVML_TOKEN_START_TAG)) {
+        const char* name = pchvml_token_get_name(parser->token);
+        parser->tag_is_operation = pchvml_parser_is_operation_tag(name);
+        pchvml_buffer_reset(parser->tag_name);
+        pchvml_buffer_append_bytes(parser->tag_name,
+                name, strlen(name));
+    }
+    else {
+        pchvml_buffer_reset(parser->tag_name);
+        parser->tag_is_operation = false;
+    }
+}
+
+static UNUSED_FUNCTION
+bool pchvml_parser_is_appropriate_end_tag(struct pchvml_parser* parser)
+{
+    const char* name = pchvml_token_get_name(parser->token);
+    return pchvml_buffer_equal_to (parser->tag_name, name,
+            strlen(name));
+}
+
+static UNUSED_FUNCTION
+bool pchvml_parser_is_appropriate_tag_name(struct pchvml_parser* parser,
+        const char* name)
+{
+    return pchvml_buffer_equal_to (parser->tag_name, name,
+            strlen(name));
+}
+
+static UNUSED_FUNCTION
+bool pchvml_parser_is_operation_tag_token (struct pchvml_token* token)
+{
+    const char* name = pchvml_token_get_name(token);
+    return pchvml_parser_is_operation_tag(name);
+}
+
+static UNUSED_FUNCTION
+bool pchvml_parser_is_ordinary_attribute (struct pchvml_token_attr* attr)
+{
+    const char* name = pchvml_token_attr_get_name(attr);
+    const struct pchvml_attr_entry* entry =pchvml_attr_static_search(name,
+            strlen(name));
+    return (entry && entry->type == PCHVML_ATTR_TYPE_ORDINARY);
+}
+
+static UNUSED_FUNCTION
+bool pchvml_parser_is_preposition_attribute (
+        struct pchvml_token_attr* attr)
+{
+    const char* name = pchvml_token_attr_get_name(attr);
+    const struct pchvml_attr_entry* entry =pchvml_attr_static_search(name,
+            strlen(name));
+    return (entry && entry->type == PCHVML_ATTR_TYPE_PREP);
+}
+
+static UNUSED_FUNCTION
+bool pchvml_parser_is_template_tag (const char* name)
+{
+    const struct pchvml_tag_entry* entry = pchvml_tag_static_search(name,
+            strlen(name));
+    bool ret = (entry && (entry->id == PCHVML_TAG_ARCHETYPE
+                || entry->id == PCHVML_TAG_ERROR
+                || entry->id == PCHVML_TAG_EXCEPT));
+    return ret;
+}
+
+static UNUSED_FUNCTION
+bool pchvml_parser_is_in_template (struct pchvml_parser* parser)
+{
+    const char* name = pchvml_buffer_get_buffer(parser->tag_name);
+    return pchvml_parser_is_template_tag(name);
+}
+
+static UNUSED_FUNCTION
+bool pchvml_parser_is_handle_as_jsonee(struct pchvml_token* token, uint32_t uc)
+{
+    if (!(uc == '[' || uc == '{' || uc == '$')) {
+        return false;
+    }
+
+    struct pchvml_token_attr* attr = pchvml_token_get_curr_attr(token);
+    const char* name = pchvml_token_attr_get_name(attr);
+    if (pchvml_parser_is_operation_tag_token(token)
+            && (strcmp(name, "on") == 0 || strcmp(name, "with") == 0)) {
+        return true;
+    }
+    const char* token_name = pchvml_token_get_name(token);
+    if (strcmp(name, "via") == 0 && (
+                strcmp(token_name, "choose") == 0 ||
+                strcmp(token_name, "iterate") == 0 ||
+                strcmp(token_name, "reduce") == 0 ||
+                strcmp(token_name, "update") == 0)) {
+        return true;
+    }
+    return false;
+}
+
+#if 1
 PCHVML_NEXT_TOKEN_BEGIN
 
 
 BEGIN_STATE(PCHVML_DATA_STATE)
+    if (is_ampersand(character)) {
+        SET_RETURN_STATE(PCHVML_DATA_STATE);
+        ADVANCE_TO(PCHVML_CHARACTER_REFERENCE_STATE);
+    }
+    if (is_less_then_sign(character)) {
+        if (parser->token) {
+            RETURN_AND_SWITCH_TO(PCHVML_TAG_OPEN_STATE);
+        }
+        ADVANCE_TO(PCHVML_TAG_OPEN_STATE);
+    }
     ADVANCE_TO(PCHVML_DATA_STATE);
     RECONSUME_IN(PCHVML_DATA_STATE);
 END_STATE()
