@@ -165,6 +165,16 @@ next_state:                                                             \
         return token;                                                       \
     } while (false)
 
+#define RETURN_AND_RECONSUME_IN(next_state)                                 \
+    do {                                                                    \
+        parser->state = next_state;                                         \
+        pchvml_parser_save_tag_name(parser);                                \
+        pchvml_token_done(parser->token);                                   \
+        struct pchvml_token* token = parser->token;                         \
+        parser->token = NULL;                                               \
+        return token;                                                       \
+    } while (false)
+
 #define RETURN_CURRENT_TOKEN()                                              \
     do {                                                                    \
         pchvml_token_done(parser->token);                                   \
@@ -204,6 +214,19 @@ next_state:                                                             \
 #define APPEND_TO_TOKEN_NAME(uc)                                            \
     do {                                                                    \
         pchvml_token_append_to_name(parser->token, uc);                     \
+    } while (false)
+
+#define APPEND_TO_TOKEN_TEXT(uc)                                            \
+    do {                                                                    \
+        if (parser->token == NULL) {                                        \
+            parser->token = pchvml_token_new (PCHVML_TOKEN_CHARACTER);      \
+        }                                                                   \
+        pchvml_token_append_to_text(parser->token, uc);                     \
+    } while (false)
+
+#define APPEND_BYTES_TO_TOKEN_TEXT(c, nr_c)                                 \
+    do {                                                                    \
+        pchvml_token_append_bytes_to_text(parser->token, c, nr_c);          \
     } while (false)
 
 #define BEGIN_TOKEN_ATTR()                                                  \
@@ -640,6 +663,140 @@ BEGIN_STATE(HVML_MARKUP_DECLARATION_OPEN_STATE)
     pchvml_sbst_destroy(parser->sbst);
     parser->sbst = NULL;
     RETURN_AND_STOP_PARSE();
+END_STATE()
+
+BEGIN_STATE(HVML_COMMENT_START_STATE)
+    if (character == '-') {
+        ADVANCE_TO(HVML_COMMENT_START_DASH_STATE);
+    }
+    if (character == '>') {
+        SET_ERR(PCHVML_ERROR_ABRUPT_CLOSING_OF_EMPTY_COMMENT);
+        RETURN_AND_STOP_PARSE();
+    }
+    RECONSUME_IN(HVML_COMMENT_STATE);
+END_STATE()
+
+BEGIN_STATE(HVML_COMMENT_START_DASH_STATE)
+    if (character == '-') {
+        ADVANCE_TO(HVML_COMMENT_END_STATE);
+    }
+    if (character == '>') {
+        SET_ERR(PCHVML_ERROR_ABRUPT_CLOSING_OF_EMPTY_COMMENT);
+        RETURN_AND_STOP_PARSE();
+    }
+    if (is_eof(character)) {
+        SET_ERR(PCHVML_ERROR_EOF_IN_COMMENT);
+        RETURN_NEW_EOF_TOKEN();
+    }
+    APPEND_TO_TOKEN_TEXT('-');
+    RECONSUME_IN(HVML_COMMENT_STATE);
+END_STATE()
+
+BEGIN_STATE(HVML_COMMENT_STATE)
+    if (character == '<') {
+        APPEND_TO_TOKEN_TEXT(character);
+        ADVANCE_TO(HVML_COMMENT_LESS_THAN_SIGN_STATE);
+    }
+    if (character == '-') {
+        ADVANCE_TO(HVML_COMMENT_END_DASH_STATE);
+    }
+    if (is_eof(character)) {
+        SET_ERR(PCHVML_ERROR_EOF_IN_COMMENT);
+        RETURN_NEW_EOF_TOKEN();
+    }
+    APPEND_TO_TOKEN_TEXT(character);
+    ADVANCE_TO(HVML_COMMENT_STATE);
+END_STATE()
+
+BEGIN_STATE(HVML_COMMENT_LESS_THAN_SIGN_STATE)
+    if (character == '!') {
+        APPEND_TO_TOKEN_TEXT(character);
+        ADVANCE_TO(HVML_COMMENT_LESS_THAN_SIGN_BANG_STATE);
+    }
+    if (character == '<') {
+        APPEND_TO_TOKEN_TEXT(character);
+        ADVANCE_TO(HVML_COMMENT_LESS_THAN_SIGN_STATE);
+    }
+    RECONSUME_IN(HVML_COMMENT_STATE);
+END_STATE()
+
+BEGIN_STATE(HVML_COMMENT_LESS_THAN_SIGN_BANG_STATE)
+    if (character == '-') {
+        ADVANCE_TO(HVML_COMMENT_LESS_THAN_SIGN_BANG_DASH_STATE);
+    }
+    RECONSUME_IN(HVML_COMMENT_STATE);
+END_STATE()
+
+BEGIN_STATE(HVML_COMMENT_LESS_THAN_SIGN_BANG_DASH_STATE)
+    if (character == '-') {
+        ADVANCE_TO(HVML_COMMENT_LESS_THAN_SIGN_BANG_DASH_DASH_STATE);
+    }
+    RECONSUME_IN(HVML_COMMENT_END_DASH_STATE);
+END_STATE()
+
+BEGIN_STATE(HVML_COMMENT_LESS_THAN_SIGN_BANG_DASH_DASH_STATE)
+    if (character == '>' || is_eof(character)) {
+        RECONSUME_IN(HVML_COMMENT_END_STATE);
+    }
+    SET_ERR(PCHVML_ERROR_NESTED_COMMENT);
+    RECONSUME_IN(HVML_COMMENT_END_STATE);
+END_STATE()
+
+BEGIN_STATE(HVML_COMMENT_END_DASH_STATE)
+    if (character == '-') {
+        ADVANCE_TO(HVML_COMMENT_END_STATE);
+    }
+    if (is_eof(character)) {
+        SET_ERR(PCHVML_ERROR_EOF_IN_COMMENT);
+        RETURN_NEW_EOF_TOKEN();
+    }
+    APPEND_TO_TOKEN_TEXT('-');
+    RECONSUME_IN(HVML_COMMENT_STATE);
+END_STATE()
+
+BEGIN_STATE(HVML_COMMENT_END_STATE)
+    if (character == '>') {
+        const char* text = pchvml_token_get_text(parser->token);
+        if (!text) {
+            APPEND_BYTES_TO_TOKEN_TEXT(NULL, 0);
+        }
+        RETURN_AND_RECONSUME_IN(HVML_DATA_STATE);
+    }
+    if (character == '!') {
+        ADVANCE_TO(HVML_COMMENT_END_BANG_STATE);
+    }
+    if (character == '-') {
+        APPEND_TO_TOKEN_TEXT('-');
+        ADVANCE_TO(HVML_COMMENT_END_STATE);
+    }
+    if (is_eof(character)) {
+        SET_ERR(PCHVML_ERROR_EOF_IN_COMMENT);
+        RETURN_NEW_EOF_TOKEN();
+    }
+    APPEND_TO_TOKEN_TEXT('-');
+    APPEND_TO_TOKEN_TEXT('-');
+    RECONSUME_IN(HVML_COMMENT_STATE);
+END_STATE()
+
+BEGIN_STATE(HVML_COMMENT_END_BANG_STATE)
+    if (character == '-') {
+        APPEND_TO_TOKEN_TEXT('-');
+        APPEND_TO_TOKEN_TEXT('-');
+        APPEND_TO_TOKEN_TEXT('!');
+        ADVANCE_TO(HVML_COMMENT_END_DASH_STATE);
+    }
+    if (character == '>') {
+        SET_ERR(PCHVML_ERROR_INCORRECTLY_CLOSED_COMMENT);
+        RETURN_AND_STOP_PARSE();
+    }
+    if (is_eof(character)) {
+        SET_ERR(PCHVML_ERROR_EOF_IN_COMMENT);
+        RETURN_AND_RECONSUME_IN(HVML_DATA_STATE);
+    }
+    APPEND_TO_TOKEN_TEXT('-');
+    APPEND_TO_TOKEN_TEXT('-');
+    APPEND_TO_TOKEN_TEXT('!');
+    RECONSUME_IN(HVML_COMMENT_STATE);
 END_STATE()
 
 PCHVML_NEXT_TOKEN_END
