@@ -394,6 +394,40 @@ BEGIN_STATE(PCHVML_ATTRIBUTE_NAME_STATE)
 END_STATE()
 
 BEGIN_STATE(PCHVML_AFTER_ATTRIBUTE_NAME_STATE)
+    if (is_whitespace(character)) {
+        ADVANCE_TO(PCHVML_AFTER_ATTRIBUTE_NAME_STATE);
+    }
+    if (character == '=') {
+        ADVANCE_TO(PCHVML_BEFORE_ATTRIBUTE_VALUE_STATE);
+    }
+    if (character == '>') {
+        END_TOKEN_ATTR();
+        RETURN_AND_SWITCH_TO(PCHVML_DATA_STATE);
+    }
+    if (is_eof(character)) {
+        SET_ERR(PCHVML_ERROR_EOF_IN_TAG);
+        RETURN_NEW_EOF_TOKEN();
+    }
+    if (is_attribute_value_operator(character)
+            && pchvml_parser_is_operation_tag_token(parser->token)) {
+        RESET_TEMP_BUFFER();
+        APPEND_TO_TEMP_BUFFER(character);
+        ADVANCE_TO(
+        PCHVML_SPECIAL_ATTRIBUTE_OPERATOR_AFTER_ATTRIBUTE_NAME_STATE
+        );
+    }
+    if (pchvml_parser_is_operation_tag_token(parser->token)
+        && pchvml_parser_is_preposition_attribute(
+                pchvml_token_get_curr_attr(parser->token))) {
+        RECONSUME_IN(PCHVML_BEFORE_ATTRIBUTE_VALUE_STATE);
+    }
+    if (character == '/') {
+        END_TOKEN_ATTR();
+        ADVANCE_TO(PCHVML_SELF_CLOSING_START_TAG_STATE);
+    }
+    END_TOKEN_ATTR();
+    BEGIN_TOKEN_ATTR();
+    RECONSUME_IN(PCHVML_ATTRIBUTE_NAME_STATE);
 END_STATE()
 
 BEGIN_STATE(PCHVML_BEFORE_ATTRIBUTE_VALUE_STATE)
