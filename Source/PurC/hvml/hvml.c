@@ -39,6 +39,8 @@
 #include "hvml-attr.h"
 #include "hvml-tag.h"
 
+#include "tokenizer.h"
+
 #include <math.h>
 
 #if HAVE(GLIB)
@@ -48,6 +50,22 @@
 #endif
 
 //#define HVML_DEBUG_PRINT
+#ifdef HVML_DEBUG_PRINT
+#define PRINT_STATE(state_name)                                             \
+    fprintf(stderr, \
+            "in %s|uc=%c|hex=0x%X|stack_is_empty=%d|stack_top=%c|vcm_node->type=%d\n",                              \
+            pchvml_get_state_name(state_name), character, character,     \
+            ejson_stack_is_empty(), (char)ejson_stack_top(),                \
+            (parser->vcm_node != NULL ? (int)parser->vcm_node->type : -1));
+#define SET_ERR(err)    do {                                                \
+    fprintf(stderr, "error %s:%d %s\n", __FILE__, __LINE__,                 \
+            pchvml_get_error_name(err));                                    \
+    pcinst_set_error (err);                                                 \
+} while (0)
+#else
+#define PRINT_STATE(state_name)
+#define SET_ERR(err)    pcinst_set_error(err)
+#endif
 
 #if HAVE(GLIB)
 #define    PCHVML_ALLOC(sz)   g_slice_alloc0(sz)

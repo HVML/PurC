@@ -33,126 +33,125 @@
 #include "private/debug.h"
 #include "private/utils.h"
 
-#ifdef HVML_DEBUG_PRINT
-#define PRINT_STATE(state_name)                                             \
-    fprintf(stderr, \
-            "in %s|uc=%c|hex=0x%X|stack_is_empty=%d|stack_top=%c|vcm_node->type=%d\n",                              \
-            pchvml_get_state_name(state_name), character, character,     \
-            ejson_stack_is_empty(), (char)ejson_stack_top(),                \
-            (parser->vcm_node != NULL ? (int)parser->vcm_node->type : -1));
-#define SET_ERR(err)    do {                                                \
-    fprintf(stderr, "error %s:%d %s\n", __FILE__, __LINE__,                 \
-            pchvml_get_error_name(err));                                    \
-    pcinst_set_error (err);                                                 \
-} while (0)
-#else
-#define PRINT_STATE(state_name)
-#define SET_ERR(err)    pcinst_set_error(err)
-#endif
+enum tokenizer_state {
+    TOKENIZER_FIRST_STATE = 0,
 
-#define BEGIN_STATE(state_name)                                             \
-    case state_name:                                                        \
-    {                                                                       \
-        enum pchvml_state curr_state = state_name;                          \
-        UNUSED_PARAM(curr_state);                                           \
-        PRINT_STATE(curr_state);
+    TOKENIZER_DATA_STATE = TOKENIZER_FIRST_STATE,
+    TOKENIZER_TAG_OPEN_STATE,
+    TOKENIZER_END_TAG_OPEN_STATE,
+    TOKENIZER_TAG_CONTENT_STATE,
+    TOKENIZER_TAG_NAME_STATE,
+    TOKENIZER_BEFORE_ATTRIBUTE_NAME_STATE,
+    TOKENIZER_ATTRIBUTE_NAME_STATE,
+    TOKENIZER_AFTER_ATTRIBUTE_NAME_STATE,
+    TOKENIZER_BEFORE_ATTRIBUTE_VALUE_STATE,
+    TOKENIZER_ATTRIBUTE_VALUE_DOUBLE_QUOTED_STATE,
+    TOKENIZER_ATTRIBUTE_VALUE_SINGLE_QUOTED_STATE,
+    TOKENIZER_ATTRIBUTE_VALUE_UNQUOTED_STATE,
+    TOKENIZER_AFTER_ATTRIBUTE_VALUE_QUOTED_STATE,
+    TOKENIZER_SELF_CLOSING_START_TAG_STATE,
+    TOKENIZER_BOGUS_COMMENT_STATE,
+    TOKENIZER_MARKUP_DECLARATION_OPEN_STATE,
+    TOKENIZER_COMMENT_START_STATE,
+    TOKENIZER_COMMENT_START_DASH_STATE,
+    TOKENIZER_COMMENT_STATE,
+    TOKENIZER_COMMENT_LESS_THAN_SIGN_STATE,
+    TOKENIZER_COMMENT_LESS_THAN_SIGN_BANG_STATE,
+    TOKENIZER_COMMENT_LESS_THAN_SIGN_BANG_DASH_STATE,
+    TOKENIZER_COMMENT_LESS_THAN_SIGN_BANG_DASH_DASH_STATE,
+    TOKENIZER_COMMENT_END_DASH_STATE,
+    TOKENIZER_COMMENT_END_STATE,
+    TOKENIZER_COMMENT_END_BANG_STATE,
+    TOKENIZER_DOCTYPE_STATE,
+    TOKENIZER_BEFORE_DOCTYPE_NAME_STATE,
+    TOKENIZER_DOCTYPE_NAME_STATE,
+    TOKENIZER_AFTER_DOCTYPE_NAME_STATE,
+    TOKENIZER_AFTER_DOCTYPE_PUBLIC_KEYWORD_STATE,
+    TOKENIZER_BEFORE_DOCTYPE_PUBLIC_ID_STATE,
+    TOKENIZER_DOCTYPE_PUBLIC_ID_DOUBLE_QUOTED_STATE,
+    TOKENIZER_DOCTYPE_PUBLIC_ID_SINGLE_QUOTED_STATE,
+    TOKENIZER_AFTER_DOCTYPE_PUBLIC_ID_STATE,
+    TOKENIZER_BETWEEN_DOCTYPE_PUBLIC_ID_AND_SYSTEM_INFO_STATE,
+    TOKENIZER_AFTER_DOCTYPE_SYSTEM_KEYWORD_STATE,
+    TOKENIZER_BEFORE_DOCTYPE_SYSTEM_STATE,
+    TOKENIZER_DOCTYPE_SYSTEM_DOUBLE_QUOTED_STATE,
+    TOKENIZER_DOCTYPE_SYSTEM_SINGLE_QUOTED_STATE,
+    TOKENIZER_AFTER_DOCTYPE_SYSTEM_STATE,
+    TOKENIZER_BOGUS_DOCTYPE_STATE,
+    TOKENIZER_CDATA_SECTION_STATE,
+    TOKENIZER_CDATA_SECTION_BRACKET_STATE,
+    TOKENIZER_CDATA_SECTION_END_STATE,
+    TOKENIZER_CHARACTER_REFERENCE_STATE,
+    TOKENIZER_NAMED_CHARACTER_REFERENCE_STATE,
+    TOKENIZER_AMBIGUOUS_AMPERSAND_STATE,
+    TOKENIZER_NUMERIC_CHARACTER_REFERENCE_STATE,
+    TOKENIZER_HEXADECIMAL_CHARACTER_REFERENCE_START_STATE,
+    TOKENIZER_DECIMAL_CHARACTER_REFERENCE_START_STATE,
+    TOKENIZER_HEXADECIMAL_CHARACTER_REFERENCE_STATE,
+    TOKENIZER_DECIMAL_CHARACTER_REFERENCE_STATE,
+    TOKENIZER_NUMERIC_CHARACTER_REFERENCE_END_STATE,
+    TOKENIZER_SPECIAL_ATTRIBUTE_OPERATOR_IN_ATTRIBUTE_NAME_STATE,
+    TOKENIZER_SPECIAL_ATTRIBUTE_OPERATOR_AFTER_ATTRIBUTE_NAME_STATE,
+    TOKENIZER_TEXT_CONTENT_STATE,
+    TOKENIZER_JSONTEXT_CONTENT_STATE,
+    TOKENIZER_JSONEE_ATTRIBUTE_VALUE_DOUBLE_QUOTED_STATE,
+    TOKENIZER_JSONEE_ATTRIBUTE_VALUE_SINGLE_QUOTED_STATE,
+    TOKENIZER_JSONEE_ATTRIBUTE_VALUE_UNQUOTED_STATE,
+    TOKENIZER_EJSON_DATA_STATE,
+    TOKENIZER_EJSON_FINISHED_STATE,
+    TOKENIZER_EJSON_CONTROL_STATE,
+    TOKENIZER_EJSON_LEFT_BRACE_STATE,
+    TOKENIZER_EJSON_RIGHT_BRACE_STATE,
+    TOKENIZER_EJSON_LEFT_BRACKET_STATE,
+    TOKENIZER_EJSON_RIGHT_BRACKET_STATE,
+    TOKENIZER_EJSON_LEFT_PARENTHESIS_STATE,
+    TOKENIZER_EJSON_RIGHT_PARENTHESIS_STATE,
+    TOKENIZER_EJSON_DOLLAR_STATE,
+    TOKENIZER_EJSON_AFTER_VALUE_STATE,
+    TOKENIZER_EJSON_BEFORE_NAME_STATE,
+    TOKENIZER_EJSON_AFTER_NAME_STATE,
+    TOKENIZER_EJSON_NAME_UNQUOTED_STATE,
+    TOKENIZER_EJSON_NAME_SINGLE_QUOTED_STATE,
+    TOKENIZER_EJSON_NAME_DOUBLE_QUOTED_STATE,
+    TOKENIZER_EJSON_VALUE_SINGLE_QUOTED_STATE,
+    TOKENIZER_EJSON_VALUE_DOUBLE_QUOTED_STATE,
+    TOKENIZER_EJSON_AFTER_VALUE_DOUBLE_QUOTED_STATE,
+    TOKENIZER_EJSON_VALUE_TWO_DOUBLE_QUOTED_STATE,
+    TOKENIZER_EJSON_VALUE_THREE_DOUBLE_QUOTED_STATE,
+    TOKENIZER_EJSON_KEYWORD_STATE,
+    TOKENIZER_EJSON_AFTER_KEYWORD_STATE,
+    TOKENIZER_EJSON_BYTE_SEQUENCE_STATE,
+    TOKENIZER_EJSON_AFTER_BYTE_SEQUENCE_STATE,
+    TOKENIZER_EJSON_HEX_BYTE_SEQUENCE_STATE,
+    TOKENIZER_EJSON_BINARY_BYTE_SEQUENCE_STATE,
+    TOKENIZER_EJSON_BASE64_BYTE_SEQUENCE_STATE,
+    TOKENIZER_EJSON_VALUE_NUMBER_STATE,
+    TOKENIZER_EJSON_AFTER_VALUE_NUMBER_STATE,
+    TOKENIZER_EJSON_VALUE_NUMBER_INTEGER_STATE,
+    TOKENIZER_EJSON_VALUE_NUMBER_FRACTION_STATE,
+    TOKENIZER_EJSON_VALUE_NUMBER_EXPONENT_STATE,
+    TOKENIZER_EJSON_VALUE_NUMBER_EXPONENT_INTEGER_STATE,
+    TOKENIZER_EJSON_VALUE_NUMBER_SUFFIX_INTEGER_STATE,
+    TOKENIZER_EJSON_VALUE_NUMBER_INFINITY_STATE,
+    TOKENIZER_EJSON_VALUE_NAN_STATE,
+    TOKENIZER_EJSON_STRING_ESCAPE_STATE,
+    TOKENIZER_EJSON_STRING_ESCAPE_FOUR_HEXADECIMAL_DIGITS_STATE,
+    TOKENIZER_EJSON_JSONEE_VARIABLE_STATE,
+    TOKENIZER_EJSON_JSONEE_FULL_STOP_SIGN_STATE,
+    TOKENIZER_EJSON_JSONEE_KEYWORD_STATE,
+    TOKENIZER_EJSON_JSONEE_STRING_STATE,
+    TOKENIZER_EJSON_AFTER_JSONEE_STRING_STATE,
+    TOKENIZER_EJSON_TEMPLATE_DATA_STATE,
+    TOKENIZER_EJSON_TEMPLATE_DATA_LESS_THAN_SIGN_STATE,
+    TOKENIZER_EJSON_TEMPLATE_DATA_END_TAG_OPEN_STATE,
+    TOKENIZER_EJSON_TEMPLATE_DATA_END_TAG_NAME_STATE,
+    TOKENIZER_EJSON_TEMPLATE_FINISHED_STATE,
 
-#define END_STATE()                                                         \
-        break;                                                              \
-    }
+    TOKENIZER_LAST_STATE = TOKENIZER_EJSON_TEMPLATE_FINISHED_STATE,
+};
 
-#define ADVANCE_TO(new_state)                                               \
-    do {                                                                    \
-        parser->state = new_state;                                          \
-        goto next_input;                                                    \
-    } while (false)
-
-#define RECONSUME_IN(new_state)                                             \
-    do {                                                                    \
-        parser->state = new_state;                                          \
-        goto next_state;                                                    \
-    } while (false)
-
-#define SET_RETURN_STATE(new_state)                                         \
-    do {                                                                    \
-        parser->return_state = new_state;                                   \
-    } while (false)
-
-#define CHECK_TEMPLATE_TAG_AND_SWITCH_STATE(token)                          \
-    do {                                                                    \
-        const char* name = pchvml_token_get_name(token);                    \
-        if (pchvml_token_is_type(token, PCHVML_TOKEN_START_TAG) &&          \
-                pchvml_parser_is_template_tag(name)) {                      \
-            parser->state = PCHVML_EJSON_DATA_STATE;                        \
-        }                                                                   \
-    } while (false)
-
-#define RETURN_AND_SWITCH_TO(next_state)                                    \
-    do {                                                                    \
-        parser->state = next_state;                                         \
-        pchvml_parser_save_tag_name(parser);                                \
-        pchvml_token_done(parser->token);                                   \
-        struct pchvml_token* token = parser->token;                         \
-        parser->token = NULL;                                               \
-        CHECK_TEMPLATE_TAG_AND_SWITCH_STATE(token);                         \
-        return token;                                                       \
-    } while (false)
-
-#define RETURN_CURRENT_TOKEN()                                              \
-    do {                                                                    \
-        pchvml_token_done(parser->token);                                   \
-        struct pchvml_token* token = parser->token;                         \
-        parser->token = NULL;                                               \
-        return token;                                                       \
-    } while (false)
-
-#define RETURN_NEW_EOF_TOKEN()                                              \
-    do {                                                                    \
-        if (parser->token) {                                                \
-            struct pchvml_token* token = parser->token;                     \
-            parser->token = pchvml_token_new_eof();                         \
-            return token;                                                   \
-        }                                                                   \
-        return pchvml_token_new_eof();                                      \
-    } while (false)
-
-#define RETURN_AND_STOP_PARSE()                                             \
-    do {                                                                    \
-        return NULL;                                                        \
-    } while (false)
-
-#define RESET_TEMP_BUFFER()                                                 \
-    do {                                                                    \
-        pchvml_buffer_reset(parser->temp_buffer);                           \
-    } while (false)
-
-#define APPEND_TO_TEMP_BUFFER(c)                                            \
-    do {                                                                    \
-        pchvml_buffer_append(parser->temp_buffer, c);                       \
-    } while (false)
-
-#define IS_TEMP_BUFFER_EMPTY()                                              \
-        pchvml_buffer_is_empty(parser->temp_buffer)
-
-#define APPEND_TO_TOKEN_NAME(uc)                                            \
-    do {                                                                    \
-        pchvml_token_append_to_name(parser->token, uc);                     \
-    } while (false)
-
-#define BEGIN_TOKEN_ATTR()                                                  \
-    do {                                                                    \
-        pchvml_token_begin_attr(parser->token);                             \
-    } while (false)
-
-#define END_TOKEN_ATTR()                                                    \
-    do {                                                                    \
-        pchvml_token_end_attr(parser->token);                               \
-    } while (false)
-
-#define APPEND_TO_TOKEN_ATTR_NAME(c)                                        \
-    do {                                                                    \
-        pchvml_token_append_to_attr_name(parser->token, c);                 \
-    } while (false)
+#define TOKENIZER_STATE_NR \
+        (TOKENIZER_LAST_STATE - TOKENIZER_FIRST_STATE + 1)
 
 PCA_EXTERN_C_BEGIN
 
