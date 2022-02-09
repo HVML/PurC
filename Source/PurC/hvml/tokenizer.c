@@ -233,6 +233,26 @@ BEGIN_STATE(PCHVML_DATA_STATE)
 END_STATE()
 
 BEGIN_STATE(PCHVML_TAG_OPEN_STATE)
+    if (is_exclamation_mark(character)) {
+        ADVANCE_TO(PCHVML_MARKUP_DECLARATION_OPEN_STATE);
+    }
+    if (character == '/') {
+        ADVANCE_TO(PCHVML_END_TAG_OPEN_STATE);
+    }
+    if (is_ascii_alpha(character)) {
+        parser->token = pchvml_token_new_start_tag ();
+        RECONSUME_IN(PCHVML_TAG_NAME_STATE);
+    }
+    if (character == '?') {
+        SET_ERR(PCHVML_ERROR_UNEXPECTED_QUESTION_MARK_INSTEAD_OF_TAG_NAME);
+        RETURN_AND_STOP_PARSE();
+    }
+    if (is_eof(character)) {
+        SET_ERR(PCHVML_ERROR_EOF_BEFORE_TAG_NAME);
+        RETURN_AND_STOP_PARSE();
+    }
+    SET_ERR(PCHVML_ERROR_INVALID_FIRST_CHARACTER_OF_TAG_NAME);
+    RETURN_AND_STOP_PARSE();
 END_STATE()
 
 BEGIN_STATE(PCHVML_END_TAG_OPEN_STATE)

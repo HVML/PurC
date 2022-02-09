@@ -108,6 +108,11 @@
         return pchvml_token_new_eof();                                      \
     } while (false)
 
+#define RETURN_AND_STOP_PARSE()                                             \
+    do {                                                                    \
+        return NULL;                                                        \
+    } while (false)
+
 #define RESET_TEMP_BUFFER()                                                 \
     do {                                                                    \
         pchvml_buffer_reset(parser->temp_buffer);                           \
@@ -220,6 +225,11 @@ PCA_INLINE bool is_ampersand(uint32_t c)
 PCA_INLINE bool is_less_then_sign(uint32_t c)
 {
     return c == '<';
+}
+
+PCA_INLINE bool is_exclamation_mark(uint32_t c)
+{
+    return c == '!';
 }
 
 PCA_EXTERN_C_END
