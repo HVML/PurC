@@ -603,6 +603,45 @@ BEGIN_STATE(HVML_SELF_CLOSING_START_TAG_STATE)
     RETURN_AND_STOP_PARSE();
 END_STATE()
 
+BEGIN_STATE(HVML_MARKUP_DECLARATION_OPEN_STATE)
+    if (parser->sbst == NULL) {
+        parser->sbst = pchvml_sbst_new_markup_declaration_open_state();
+    }
+    bool ret = pchvml_sbst_advance_ex(parser->sbst, character, false);
+    if (!ret) {
+        SET_ERR(PCHVML_ERROR_INCORRECTLY_OPENED_COMMENT);
+        pchvml_sbst_destroy(parser->sbst);
+        parser->sbst = NULL;
+        RETURN_AND_STOP_PARSE();
+    }
+
+    const char* value = pchvml_sbst_get_match(parser->sbst);
+    if (value == NULL) {
+        ADVANCE_TO(HVML_MARKUP_DECLARATION_OPEN_STATE);
+    }
+
+    if (strcmp(value, "--") == 0) {
+        parser->token = pchvml_token_new_comment();
+        pchvml_sbst_destroy(parser->sbst);
+        parser->sbst = NULL;
+        ADVANCE_TO(HVML_COMMENT_START_STATE);
+    }
+    if (strcmp(value, "DOCTYPE") == 0) {
+        pchvml_sbst_destroy(parser->sbst);
+        parser->sbst = NULL;
+        ADVANCE_TO(HVML_DOCTYPE_STATE);
+    }
+    if (strcmp(value, "[CDATA[") == 0) {
+        pchvml_sbst_destroy(parser->sbst);
+        parser->sbst = NULL;
+        ADVANCE_TO(HVML_CDATA_SECTION_STATE);
+    }
+    SET_ERR(PCHVML_ERROR_INCORRECTLY_OPENED_COMMENT);
+    pchvml_sbst_destroy(parser->sbst);
+    parser->sbst = NULL;
+    RETURN_AND_STOP_PARSE();
+END_STATE()
+
 PCHVML_NEXT_TOKEN_END
 
 #endif
