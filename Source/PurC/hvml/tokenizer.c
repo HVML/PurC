@@ -271,10 +271,23 @@ next_state:                                                             \
         pchvml_token_end_attr(parser->token);                               \
     } while (false)
 
+// TODO
+#define APPEND_TO_TOKEN_ATTR_VALUE(uc)                                      \
+    do {                                                                    \
+        pchvml_token_append_to_attr_value(parser->token, uc);               \
+    } while (false)
+
 #define APPEND_TO_TOKEN_ATTR_NAME(c)                                        \
     do {                                                                    \
         pchvml_token_append_to_attr_name(parser->token, c);                 \
     } while (false)
+
+static const uint32_t numeric_char_ref_extension_array[32] = {
+    0x20AC, 0x0081, 0x201A, 0x0192, 0x201E, 0x2026, 0x2020, 0x2021, // 80-87
+    0x02C6, 0x2030, 0x0160, 0x2039, 0x0152, 0x008D, 0x017D, 0x008F, // 88-8F
+    0x0090, 0x2018, 0x2019, 0x201C, 0x201D, 0x2022, 0x2013, 0x2014, // 90-97
+    0x02DC, 0x2122, 0x0161, 0x203A, 0x0153, 0x009D, 0x017E, 0x0178, // 98-9F
+};
 
 static UNUSED_FUNCTION
 bool pchvml_parser_is_json_content_tag(const char* name)
@@ -416,6 +429,12 @@ struct pcvcm_node* pchvml_buffer_to_vcm_node(struct pchvml_buffer* buffer)
     return buffer ? pcvcm_node_new_string(
                     pchvml_buffer_get_buffer(buffer)) : NULL;
 }
+
+static bool pchvml_parser_is_in_attribute (struct pchvml_parser* parser)
+{
+    return parser->token && pchvml_token_is_in_attr(parser->token);
+}
+
 
 #ifdef USE_NEW_TOKENIZER
 PCHVML_NEXT_TOKEN_BEGIN
@@ -1257,6 +1276,123 @@ BEGIN_STATE(HVML_NAMED_CHARACTER_REFERENCE_STATE)
     pchvml_sbst_destroy(parser->sbst);
     parser->sbst = NULL;
     ADVANCE_TO(parser->return_state);
+END_STATE()
+
+BEGIN_STATE(HVML_AMBIGUOUS_AMPERSAND_STATE)
+    if (is_ascii_alpha_numeric(character)) {
+        if (pchvml_parser_is_in_attribute(parser)) {
+            APPEND_TO_TOKEN_ATTR_VALUE(character);
+            ADVANCE_TO(HVML_AMBIGUOUS_AMPERSAND_STATE);
+        }
+        else {
+            RECONSUME_IN(parser->return_state);
+        }
+    }
+    if (character == ';') {
+        SET_ERR(PCHVML_ERROR_UNKNOWN_NAMED_CHARACTER_REFERENCE);
+        RETURN_AND_STOP_PARSE();
+    }
+    RECONSUME_IN(parser->return_state);
+END_STATE()
+
+BEGIN_STATE(HVML_NUMERIC_CHARACTER_REFERENCE_STATE)
+    parser->char_ref_code = 0;
+    if (character == 'x' || character == 'X') {
+        APPEND_TO_TEMP_BUFFER(character);
+        ADVANCE_TO(HVML_HEXADECIMAL_CHARACTER_REFERENCE_START_STATE);
+    }
+    RECONSUME_IN(HVML_DECIMAL_CHARACTER_REFERENCE_START_STATE);
+END_STATE()
+
+BEGIN_STATE(HVML_HEXADECIMAL_CHARACTER_REFERENCE_START_STATE)
+    if (is_ascii_hex_digit(character)) {
+        RECONSUME_IN(HVML_HEXADECIMAL_CHARACTER_REFERENCE_STATE);
+    }
+    SET_ERR(
+        PCHVML_ERROR_ABSENCE_OF_DIGITS_IN_NUMERIC_CHARACTER_REFERENCE);
+    RETURN_AND_STOP_PARSE();
+END_STATE()
+
+BEGIN_STATE(HVML_DECIMAL_CHARACTER_REFERENCE_START_STATE)
+    if (is_ascii_digit(character)) {
+        RECONSUME_IN(HVML_DECIMAL_CHARACTER_REFERENCE_STATE);
+    }
+    SET_ERR(
+        PCHVML_ERROR_ABSENCE_OF_DIGITS_IN_NUMERIC_CHARACTER_REFERENCE);
+    RETURN_AND_STOP_PARSE();
+END_STATE()
+
+BEGIN_STATE(HVML_HEXADECIMAL_CHARACTER_REFERENCE_STATE)
+    if (is_ascii_digit(character)) {
+        parser->char_ref_code *= 16;
+        parser->char_ref_code += character - 0x30;
+    }
+    if (is_ascii_upper_hex_digit(character)) {
+        parser->char_ref_code *= 16;
+        parser->char_ref_code += character - 0x37;
+    }
+    if (is_ascii_lower_hex_digit(character)) {
+        parser->char_ref_code *= 16;
+        parser->char_ref_code += character - 0x57;
+    }
+    if (character == ';') {
+        ADVANCE_TO(HVML_NUMERIC_CHARACTER_REFERENCE_END_STATE);
+    }
+    SET_ERR(PCHVML_ERROR_MISSING_SEMICOLON_AFTER_CHARACTER_REFERENCE);
+    RETURN_AND_STOP_PARSE();
+END_STATE()
+
+BEGIN_STATE(HVML_DECIMAL_CHARACTER_REFERENCE_STATE)
+    if (is_ascii_digit(character)) {
+        parser->char_ref_code *= 10;
+        parser->char_ref_code += character - 0x30;
+        ADVANCE_TO(HVML_DECIMAL_CHARACTER_REFERENCE_STATE);
+    }
+    if (character == ';') {
+        ADVANCE_TO(HVML_NUMERIC_CHARACTER_REFERENCE_END_STATE);
+    }
+    SET_ERR(PCHVML_ERROR_MISSING_SEMICOLON_AFTER_CHARACTER_REFERENCE);
+    RETURN_AND_STOP_PARSE();
+END_STATE()
+
+BEGIN_STATE(HVML_NUMERIC_CHARACTER_REFERENCE_END_STATE)
+    uint32_t uc = parser->char_ref_code;
+    if (uc == 0x00) {
+        SET_ERR(PCHVML_ERROR_NULL_CHARACTER_REFERENCE);
+        parser->char_ref_code = 0xFFFD;
+        RETURN_AND_STOP_PARSE();
+    }
+    if (uc > 0x10FFFF) {
+        SET_ERR(PCHVML_ERROR_CHARACTER_REFERENCE_OUTSIDE_UNICODE_RANGE);
+        parser->char_ref_code = 0xFFFD;
+        RETURN_AND_STOP_PARSE();
+    }
+    if ((uc & 0xFFFFF800) == 0xD800) {
+        SET_ERR(PCHVML_ERROR_SURROGATE_CHARACTER_REFERENCE);
+        RETURN_AND_STOP_PARSE();
+    }
+    if (uc >= 0xFDD0 && (uc <= 0xFDEF || (uc&0xFFFE) == 0xFFFE) &&
+            uc <= 0x10FFFF) {
+        SET_ERR(PCHVML_ERROR_NONCHARACTER_CHARACTER_REFERENCE);
+        RETURN_AND_STOP_PARSE();
+    }
+    if (uc <= 0x1F &&
+            !(uc == 0x09 || uc == 0x0A || uc == 0x0C)){
+        SET_ERR(PCHVML_ERROR_CONTROL_CHARACTER_REFERENCE);
+        RETURN_AND_STOP_PARSE();
+    }
+    if (uc >= 0x7F && uc <= 0x9F) {
+        SET_ERR(PCHVML_ERROR_CONTROL_CHARACTER_REFERENCE);
+        if (uc >= 0x80) {
+            parser->char_ref_code =
+                numeric_char_ref_extension_array[uc - 0x80];
+        }
+        RETURN_AND_STOP_PARSE();
+    }
+    RESET_TEMP_BUFFER();
+    uc = parser->char_ref_code;
+    APPEND_TO_TOKEN_TEXT(uc);
+    RECONSUME_IN(parser->return_state);
 END_STATE()
 
 PCHVML_NEXT_TOKEN_END
