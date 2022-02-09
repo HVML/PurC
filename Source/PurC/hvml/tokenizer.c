@@ -97,17 +97,29 @@ next_state:                                                             \
     return NULL;                                                        \
 }
 
+#define TEMP_BUFFER_TO_VCM_NODE()                                       \
+        pchvml_buffer_to_vcm_node(parser->temp_buffer)
 
 #define IS_CHAR(c)                      (character == c)
 #define IS_EOF()                        is_eof(character)
 #define IS_ASCII_ALPHA()                is_ascii_alpha(character)
+#define IS_WHITESPACE()                 is_whitespace(character)
 
+
+static UNUSED_FUNCTION
+bool pchvml_parser_is_json_content_tag(const char* name)
+{
+    if (!name) {
+        return false;
+    }
+    return (strcmp(name, "init") == 0 || strcmp(name, "archedata") == 0);
+}
 
 static UNUSED_FUNCTION
 bool pchvml_parser_is_operation_tag(const char* name)
 {
     if (!name) {
-        return NULL;
+        return false;
     }
     const struct pchvml_tag_entry* entry = pchvml_tag_static_search(name,
             strlen(name));
@@ -155,6 +167,13 @@ bool pchvml_parser_is_operation_tag_token (struct pchvml_token* token)
 }
 
 static UNUSED_FUNCTION
+bool pchvml_parser_is_json_content_tag_token (struct pchvml_token* token)
+{
+    const char* name = pchvml_token_get_name(token);
+    return pchvml_parser_is_json_content_tag(name);
+}
+
+static UNUSED_FUNCTION
 bool pchvml_parser_is_ordinary_attribute (struct pchvml_token_attr* attr)
 {
     const char* name = pchvml_token_attr_get_name(attr);
@@ -192,6 +211,13 @@ bool pchvml_parser_is_in_template (struct pchvml_parser* parser)
 }
 
 static UNUSED_FUNCTION
+bool pchvml_parser_is_in_json_content_tag (struct pchvml_parser* parser)
+{
+    const char* name = pchvml_buffer_get_buffer(parser->tag_name);
+    return pchvml_parser_is_json_content_tag(name);
+}
+
+static UNUSED_FUNCTION
 bool pchvml_parser_is_handle_as_jsonee(struct pchvml_token* token, uint32_t uc)
 {
     if (!(uc == '[' || uc == '{' || uc == '$')) {
@@ -213,6 +239,12 @@ bool pchvml_parser_is_handle_as_jsonee(struct pchvml_token* token, uint32_t uc)
         return true;
     }
     return false;
+}
+
+struct pcvcm_node* pchvml_buffer_to_vcm_node(struct pchvml_buffer* buffer)
+{
+    return buffer ? pcvcm_node_new_string(
+                    pchvml_buffer_get_buffer(buffer)) : NULL;
 }
 
 #ifdef USE_NEW_TOKENIZER
@@ -275,6 +307,30 @@ BEGIN_STATE(PCHVML_END_TAG_OPEN_STATE)
     }
     SET_ERR(PCHVML_ERROR_INVALID_FIRST_CHARACTER_OF_TAG_NAME);
     RETURN_AND_STOP_PARSE();
+END_STATE()
+
+BEGIN_STATE(PCHVML_TAG_CONTENT_STATE)
+    if (IS_EOF()) {
+        SET_ERR(PCHVML_ERROR_EOF_BEFORE_TAG_NAME);
+        RETURN_AND_STOP_PARSE();
+    }
+    if (IS_WHITESPACE()) {
+        APPEND_TO_TEMP_BUFFER(character);
+        ADVANCE_TO(PCHVML_TAG_CONTENT_STATE);
+    }
+    if (!IS_TEMP_BUFFER_EMPTY()) {
+        struct pcvcm_node* node = TEMP_BUFFER_TO_VCM_NODE();
+        if (!node) {
+            RETURN_AND_STOP_PARSE();
+        }
+        RESET_TEMP_BUFFER();
+        parser->token = pchvml_token_new_vcm(parser->vcm_node);
+        RETURN_CURRENT_TOKEN();
+    }
+    if (pchvml_parser_is_in_json_content_tag(parser)) {
+        RECONSUME_IN(PCHVML_JSONTEXT_CONTENT_STATE);
+    }
+    RECONSUME_IN(PCHVML_TEXT_CONTENT_STATE);
 END_STATE()
 
 BEGIN_STATE(PCHVML_TAG_NAME_STATE)

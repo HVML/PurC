@@ -98,6 +98,14 @@
         return token;                                                       \
     } while (false)
 
+#define RETURN_CURRENT_TOKEN()                                              \
+    do {                                                                    \
+        pchvml_token_done(parser->token);                                   \
+        struct pchvml_token* token = parser->token;                         \
+        parser->token = NULL;                                               \
+        return token;                                                       \
+    } while (false)
+
 #define RETURN_NEW_EOF_TOKEN()                                              \
     do {                                                                    \
         if (parser->token) {                                                \
@@ -117,6 +125,14 @@
     do {                                                                    \
         pchvml_buffer_reset(parser->temp_buffer);                           \
     } while (false)
+
+#define APPEND_TO_TEMP_BUFFER(c)                                            \
+    do {                                                                    \
+        pchvml_buffer_append(parser->temp_buffer, c);                       \
+    } while (false)
+
+#define IS_TEMP_BUFFER_EMPTY()                                              \
+        pchvml_buffer_is_empty(parser->temp_buffer)
 
 PCA_EXTERN_C_BEGIN
 

@@ -32,8 +32,6 @@
 #include "private/dom.h"
 #include "private/hvml.h"
 
-#include "tokenizer.h"
-
 #include "hvml-buffer.h"
 #include "hvml-rwswrap.h"
 #include "hvml-token.h"
