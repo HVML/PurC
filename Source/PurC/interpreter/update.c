@@ -49,9 +49,9 @@ struct ctxt_for_update {
     purc_variant_t                at;
     purc_variant_t                from;
     purc_variant_t                with;
-    enum pchvml_attr_assignment   with_op;
+    enum pchvml_attr_operator   with_op;
     purc_variant_t                src;
-    enum pchvml_attr_assignment   src_op;
+    enum pchvml_attr_operator   src_op;
 };
 
 static void
@@ -406,7 +406,7 @@ update_element_content(pcintr_stack_t stack,
     struct ctxt_for_update *ctxt;
     ctxt = (struct ctxt_for_update*)frame->ctxt;
 
-    PC_ASSERT(ctxt->src_op == PCHVML_ATTRIBUTE_ASSIGNMENT);
+    PC_ASSERT(ctxt->src_op == PCHVML_ATTRIBUTE_OPERATOR);
 
     pcdom_node_t *fragment;
     fragment = pcintr_parse_fragment(stack, fragment_chunk, nr);
@@ -447,12 +447,12 @@ update_element_attr(pcintr_stack_t stack,
 
     if (strcmp(to, "displace") == 0) {
         PC_ASSERT(fragment_chunk[nr] == '\0');
-        if (ctxt->src_op == PCHVML_ATTRIBUTE_ASSIGNMENT) {
+        if (ctxt->src_op == PCHVML_ATTRIBUTE_OPERATOR) {
             int r = pcdom_element_set_attr(target, attr_name, fragment_chunk);
             pcintr_dump_edom_node(stack, pcdom_interface_node(target));
             return r ? -1 : 0;
         }
-        if (ctxt->src_op == PCHVML_ATTRIBUTE_TAIL_ASSIGNMENT) {
+        if (ctxt->src_op == PCHVML_ATTRIBUTE_TAIL_OPERATOR) {
             const unsigned char *s;
             size_t len;
             s = pcdom_element_get_attribute(target,
@@ -783,7 +783,7 @@ attr_found(struct pcintr_stack_frame *frame,
         return process_attr_with(frame, element, name, val, attr);
     }
 
-    PC_ASSERT(attr->op == PCHVML_ATTRIBUTE_ASSIGNMENT);
+    PC_ASSERT(attr->op == PCHVML_ATTRIBUTE_OPERATOR);
 
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, ON)) == name) {
         return process_attr_on(frame, element, name, val);
@@ -861,10 +861,10 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     }
 
     purc_variant_t src = PURC_VARIANT_INVALID;
-    ctxt->src_op = PCHVML_ATTRIBUTE_ASSIGNMENT;
+    ctxt->src_op = PCHVML_ATTRIBUTE_OPERATOR;
     if (ctxt->from != PURC_VARIANT_INVALID) {
         if (ctxt->with != PURC_VARIANT_INVALID) {
-            PC_ASSERT(ctxt->with_op == PCHVML_ATTRIBUTE_ASSIGNMENT);
+            PC_ASSERT(ctxt->with_op == PCHVML_ATTRIBUTE_OPERATOR);
         }
         src = get_source_by_from(&stack->co, frame, ctxt->from, ctxt->with);
         PC_ASSERT(src != PURC_VARIANT_INVALID);

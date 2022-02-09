@@ -254,10 +254,10 @@ create_element(struct pcvdom_gen *gen, struct pchvml_token *token)
         struct pchvml_token_attr *attr;
         attr = pchvml_token_get_attr(token, i);
         const char *name;
-        enum pchvml_attr_assignment op;
+        enum pchvml_attr_operator op;
         struct pcvcm_node *vcm;
         name = pchvml_token_attr_get_name(attr);
-        op = pchvml_token_attr_get_assignment(attr);
+        op = pchvml_token_attr_get_operator(attr);
         vcm = (struct pcvcm_node*)pchvml_token_attr_get_value_ex(attr, true);
 
         struct pcvdom_attr *vattr;

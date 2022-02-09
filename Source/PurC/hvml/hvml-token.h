@@ -157,7 +157,7 @@ void pchvml_token_append_vcm_to_attr(struct pchvml_token* token,
         struct pcvcm_node* vcm);
 
 void pchvml_token_set_assignment_to_attr(struct pchvml_token* token,
-        enum pchvml_attr_assignment assignment);
+        enum pchvml_attr_operator assignment);
 
 bool pchvml_token_is_in_attr(struct pchvml_token* token);
 
@@ -181,7 +181,7 @@ const struct pcvcm_node* pchvml_token_attr_get_value(
 {
     return pchvml_token_attr_get_value_ex(attr, false);
 }
-enum pchvml_attr_assignment pchvml_token_attr_get_assignment(
+enum pchvml_attr_operator pchvml_token_attr_get_operator(
         struct pchvml_token_attr* attr);
 
 struct pchvml_buffer* pchvml_token_attr_to_string(

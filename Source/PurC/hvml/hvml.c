@@ -1679,7 +1679,7 @@ next_state:
             if (pchvml_buffer_is_empty(parser->temp_buffer)) {
                 pchvml_token_set_assignment_to_attr(
                         parser->token,
-                        PCHVML_ATTRIBUTE_ASSIGNMENT);
+                        PCHVML_ATTRIBUTE_OPERATOR);
             }
             else {
                 uint32_t op = pchvml_buffer_get_last_char(
@@ -1688,42 +1688,42 @@ next_state:
                     case '+':
                         pchvml_token_set_assignment_to_attr(
                                 parser->token,
-                                PCHVML_ATTRIBUTE_ADDITION_ASSIGNMENT);
+                                PCHVML_ATTRIBUTE_ADDITION_OPERATOR);
                         break;
                     case '-':
                         pchvml_token_set_assignment_to_attr(
                                 parser->token,
-                                PCHVML_ATTRIBUTE_SUBTRACTION_ASSIGNMENT);
+                                PCHVML_ATTRIBUTE_SUBTRACTION_OPERATOR);
                         break;
                     case '%':
                         pchvml_token_set_assignment_to_attr(
                                 parser->token,
-                                PCHVML_ATTRIBUTE_REMAINDER_ASSIGNMENT);
+                                PCHVML_ATTRIBUTE_REMAINDER_OPERATOR);
                         break;
                     case '~':
                         pchvml_token_set_assignment_to_attr(
                                 parser->token,
-                                PCHVML_ATTRIBUTE_REPLACE_ASSIGNMENT);
+                                PCHVML_ATTRIBUTE_REPLACE_OPERATOR);
                         break;
                     case '^':
                         pchvml_token_set_assignment_to_attr(
                                 parser->token,
-                                PCHVML_ATTRIBUTE_HEAD_ASSIGNMENT);
+                                PCHVML_ATTRIBUTE_HEAD_OPERATOR);
                         break;
                     case '$':
                         pchvml_token_set_assignment_to_attr(
                                 parser->token,
-                                PCHVML_ATTRIBUTE_TAIL_ASSIGNMENT);
+                                PCHVML_ATTRIBUTE_TAIL_OPERATOR);
                         break;
                     case '/':
                         pchvml_token_set_assignment_to_attr(
                                 parser->token,
-                                PCHVML_ATTRIBUTE_REGEX_ASSIGNMENT);
+                                PCHVML_ATTRIBUTE_REGEX_OPERATOR);
                         break;
                     default:
                         pchvml_token_set_assignment_to_attr(
                                 parser->token,
-                                PCHVML_ATTRIBUTE_ASSIGNMENT);
+                                PCHVML_ATTRIBUTE_OPERATOR);
                         break;
                 }
             }
@@ -1743,7 +1743,7 @@ next_state:
             if (pchvml_buffer_is_empty(parser->temp_buffer)) {
                 pchvml_token_set_assignment_to_attr(
                         parser->token,
-                        PCHVML_ATTRIBUTE_ASSIGNMENT);
+                        PCHVML_ATTRIBUTE_OPERATOR);
             }
             else {
                 uint32_t op = pchvml_buffer_get_last_char(
@@ -1752,42 +1752,42 @@ next_state:
                     case '+':
                         pchvml_token_set_assignment_to_attr(
                                 parser->token,
-                                PCHVML_ATTRIBUTE_ADDITION_ASSIGNMENT);
+                                PCHVML_ATTRIBUTE_ADDITION_OPERATOR);
                         break;
                     case '-':
                         pchvml_token_set_assignment_to_attr(
                                 parser->token,
-                                PCHVML_ATTRIBUTE_SUBTRACTION_ASSIGNMENT);
+                                PCHVML_ATTRIBUTE_SUBTRACTION_OPERATOR);
                         break;
                     case '%':
                         pchvml_token_set_assignment_to_attr(
                                 parser->token,
-                                PCHVML_ATTRIBUTE_REMAINDER_ASSIGNMENT);
+                                PCHVML_ATTRIBUTE_REMAINDER_OPERATOR);
                         break;
                     case '~':
                         pchvml_token_set_assignment_to_attr(
                                 parser->token,
-                                PCHVML_ATTRIBUTE_REPLACE_ASSIGNMENT);
+                                PCHVML_ATTRIBUTE_REPLACE_OPERATOR);
                         break;
                     case '^':
                         pchvml_token_set_assignment_to_attr(
                                 parser->token,
-                                PCHVML_ATTRIBUTE_HEAD_ASSIGNMENT);
+                                PCHVML_ATTRIBUTE_HEAD_OPERATOR);
                         break;
                     case '$':
                         pchvml_token_set_assignment_to_attr(
                                 parser->token,
-                                PCHVML_ATTRIBUTE_TAIL_ASSIGNMENT);
+                                PCHVML_ATTRIBUTE_TAIL_OPERATOR);
                         break;
                     case '/':
                         pchvml_token_set_assignment_to_attr(
                                 parser->token,
-                                PCHVML_ATTRIBUTE_REGEX_ASSIGNMENT);
+                                PCHVML_ATTRIBUTE_REGEX_OPERATOR);
                         break;
                     default:
                         pchvml_token_set_assignment_to_attr(
                                 parser->token,
-                                PCHVML_ATTRIBUTE_ASSIGNMENT);
+                                PCHVML_ATTRIBUTE_OPERATOR);
                         break;
                 }
             }

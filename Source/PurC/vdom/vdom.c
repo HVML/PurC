@@ -207,14 +207,14 @@ pcvdom_comment_create(const char *text)
 
 // for modification operators, such as +=|-=|%=|~=|^=|$=
 struct pcvdom_attr*
-pcvdom_attr_create(const char *key, enum pchvml_attr_assignment op,
+pcvdom_attr_create(const char *key, enum pchvml_attr_operator op,
     struct pcvcm_node *vcm)
 {
     if (!key) {
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         return NULL;
     }
-    if (op<PAO(ASSIGNMENT) || op>=PAO(MAX)) {
+    if (op<PAO(OPERATOR) || op>=PAO(MAX)) {
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         return NULL;
     }
@@ -1155,7 +1155,7 @@ pcvdom_element_eval_attr_val(pcvdom_element_t element, const char *key)
     if (!attr)
         return purc_variant_make_undefined();
 
-    enum pchvml_attr_assignment  op  = attr->op;
+    enum pchvml_attr_operator  op  = attr->op;
     struct pcvcm_node           *val = attr->val;
 
     pcintr_stack_t stack;

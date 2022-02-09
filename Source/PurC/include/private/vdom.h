@@ -50,16 +50,16 @@ enum pcvdom_nodetype {
     PCVDOM_NODE_COMMENT,
 };
 
-enum pchvml_attr_assignment {
-    PCHVML_ATTRIBUTE_ASSIGNMENT,                //  =
-    PCHVML_ATTRIBUTE_ADDITION_ASSIGNMENT,       // +=
-    PCHVML_ATTRIBUTE_SUBTRACTION_ASSIGNMENT,    // -=
-    PCHVML_ATTRIBUTE_ASTERISK_ASSIGNMENT,       // *=
-    PCHVML_ATTRIBUTE_REGEX_ASSIGNMENT,          // /=
-    PCHVML_ATTRIBUTE_REMAINDER_ASSIGNMENT,      // %=
-    PCHVML_ATTRIBUTE_REPLACE_ASSIGNMENT,        // ~=
-    PCHVML_ATTRIBUTE_HEAD_ASSIGNMENT,           // ^=
-    PCHVML_ATTRIBUTE_TAIL_ASSIGNMENT,           // $=
+enum pchvml_attr_operator {
+    PCHVML_ATTRIBUTE_OPERATOR,                //  =
+    PCHVML_ATTRIBUTE_ADDITION_OPERATOR,       // +=
+    PCHVML_ATTRIBUTE_SUBTRACTION_OPERATOR,    // -=
+    PCHVML_ATTRIBUTE_ASTERISK_OPERATOR,       // *=
+    PCHVML_ATTRIBUTE_REGEX_OPERATOR,          // /=
+    PCHVML_ATTRIBUTE_REMAINDER_OPERATOR,      // %=
+    PCHVML_ATTRIBUTE_REPLACE_OPERATOR,        // ~=
+    PCHVML_ATTRIBUTE_HEAD_OPERATOR,           // ^=
+    PCHVML_ATTRIBUTE_TAIL_OPERATOR,           // $=
     PCHVML_ATTRIBUTE_MAX,
 };
 
@@ -134,7 +134,7 @@ struct pcvdom_attr {
     char                     *key;
 
     // operator
-    enum pchvml_attr_assignment       op;
+    enum pchvml_attr_operator       op;
 
     // text/jsonnee/no-value
     struct pcvcm_node        *val;
@@ -200,7 +200,7 @@ pcvdom_comment_create(const char *text);
 
 // for modification operators, such as +=|-=|%=|~=|^=|$=
 struct pcvdom_attr*
-pcvdom_attr_create(const char *key, enum pchvml_attr_assignment op,
+pcvdom_attr_create(const char *key, enum pchvml_attr_operator op,
     struct pcvcm_node *vcm);
 
 // key = vcm
@@ -209,7 +209,7 @@ pcvdom_attr_create(const char *key, enum pchvml_attr_assignment op,
 static inline struct pcvdom_attr*
 pcvdom_attr_create_simple(const char *key, struct pcvcm_node *vcm)
 {
-    return pcvdom_attr_create(key, PCHVML_ATTRIBUTE_ASSIGNMENT, vcm);
+    return pcvdom_attr_create(key, PCHVML_ATTRIBUTE_OPERATOR, vcm);
 }
 
 void

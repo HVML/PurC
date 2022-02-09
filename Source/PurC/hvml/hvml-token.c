@@ -52,7 +52,7 @@
 #endif
 
 struct pchvml_token_attr {
-    enum pchvml_attr_assignment assignment;
+    enum pchvml_attr_operator assignment;
     struct pchvml_buffer* name;
     struct pchvml_buffer* value;
     struct pcvcm_node* vcm;
@@ -210,7 +210,7 @@ void pchvml_token_append_vcm_to_attr(struct pchvml_token* token,
 }
 
 void pchvml_token_set_assignment_to_attr(struct pchvml_token* token,
-        enum pchvml_attr_assignment assignment)
+        enum pchvml_attr_operator assignment)
 {
     if (token->curr_attr) {
         token->curr_attr->assignment = assignment;
@@ -422,7 +422,7 @@ struct pcvcm_node* pchvml_token_attr_get_value_ex(
     return attr->vcm;
 }
 
-enum pchvml_attr_assignment pchvml_token_attr_get_assignment(
+enum pchvml_attr_operator pchvml_token_attr_get_operator(
         struct pchvml_token_attr* attr)
 {
     return attr->assignment;
@@ -444,35 +444,35 @@ struct pchvml_buffer* pchvml_token_attr_to_string(
 
     // assignment
     switch (attr->assignment) {
-    case PCHVML_ATTRIBUTE_ASSIGNMENT:
+    case PCHVML_ATTRIBUTE_OPERATOR:
         pchvml_buffer_append_bytes(buffer, "=", 1);
         break;
 
-    case PCHVML_ATTRIBUTE_ADDITION_ASSIGNMENT:
+    case PCHVML_ATTRIBUTE_ADDITION_OPERATOR:
         pchvml_buffer_append_bytes(buffer, "+=", 2);
         break;
 
-    case PCHVML_ATTRIBUTE_SUBTRACTION_ASSIGNMENT:
+    case PCHVML_ATTRIBUTE_SUBTRACTION_OPERATOR:
         pchvml_buffer_append_bytes(buffer, "-=", 2);
         break;
 
-    case PCHVML_ATTRIBUTE_REMAINDER_ASSIGNMENT:
+    case PCHVML_ATTRIBUTE_REMAINDER_OPERATOR:
         pchvml_buffer_append_bytes(buffer, "%=", 2);
         break;
 
-    case PCHVML_ATTRIBUTE_REPLACE_ASSIGNMENT:
+    case PCHVML_ATTRIBUTE_REPLACE_OPERATOR:
         pchvml_buffer_append_bytes(buffer, "~=", 2);
         break;
 
-    case PCHVML_ATTRIBUTE_HEAD_ASSIGNMENT:
+    case PCHVML_ATTRIBUTE_HEAD_OPERATOR:
         pchvml_buffer_append_bytes(buffer, "^=", 2);
         break;
 
-    case PCHVML_ATTRIBUTE_TAIL_ASSIGNMENT:
+    case PCHVML_ATTRIBUTE_TAIL_OPERATOR:
         pchvml_buffer_append_bytes(buffer, "$=", 2);
         break;
 
-    case PCHVML_ATTRIBUTE_REGEX_ASSIGNMENT:
+    case PCHVML_ATTRIBUTE_REGEX_OPERATOR:
         pchvml_buffer_append_bytes(buffer, "/=", 2);
         break;
 
