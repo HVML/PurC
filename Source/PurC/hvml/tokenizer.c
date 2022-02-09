@@ -150,7 +150,7 @@ next_state:                                                             \
         const char* name = pchvml_token_get_name(token);                    \
         if (pchvml_token_is_type(token, PCHVML_TOKEN_START_TAG) &&          \
                 pchvml_parser_is_template_tag(name)) {                      \
-            parser->state = PCHVML_EJSON_DATA_STATE;                        \
+            parser->state = HVML_EJSON_DATA_STATE;                        \
         }                                                                   \
     } while (false)
 
@@ -216,6 +216,7 @@ next_state:                                                             \
         pchvml_token_append_to_name(parser->token, uc);                     \
     } while (false)
 
+// TODO
 #define APPEND_TO_TOKEN_TEXT(uc)                                            \
     do {                                                                    \
         if (parser->token == NULL) {                                        \
@@ -224,9 +225,30 @@ next_state:                                                             \
         pchvml_token_append_to_text(parser->token, uc);                     \
     } while (false)
 
+// TODO
 #define APPEND_BYTES_TO_TOKEN_TEXT(c, nr_c)                                 \
     do {                                                                    \
         pchvml_token_append_bytes_to_text(parser->token, c, nr_c);          \
+    } while (false)
+
+#define APPEND_TO_TOKEN_PUBLIC_ID(uc)                                       \
+    do {                                                                    \
+        pchvml_token_append_to_public_identifier(parser->token, uc);        \
+    } while (false)
+
+#define RESET_TOKEN_PUBLIC_ID()                                             \
+    do {                                                                    \
+        pchvml_token_reset_public_identifier(parser->token);                \
+    } while (false)
+
+#define APPEND_TO_TOKEN_SYSTEM_INFO(uc)                                     \
+    do {                                                                    \
+        pchvml_token_append_to_system_information(parser->token, uc);       \
+    } while (false)
+
+#define RESET_TOKEN_SYSTEM_INFO()                                           \
+    do {                                                                    \
+        pchvml_token_reset_system_information(parser->token);               \
     } while (false)
 
 #define BEGIN_TOKEN_ATTR()                                                  \
@@ -797,6 +819,349 @@ BEGIN_STATE(HVML_COMMENT_END_BANG_STATE)
     APPEND_TO_TOKEN_TEXT('-');
     APPEND_TO_TOKEN_TEXT('!');
     RECONSUME_IN(HVML_COMMENT_STATE);
+END_STATE()
+
+BEGIN_STATE(HVML_DOCTYPE_STATE)
+    if (is_whitespace(character)) {
+        ADVANCE_TO(HVML_BEFORE_DOCTYPE_NAME_STATE);
+    }
+    if (character == '>') {
+        RECONSUME_IN(HVML_BEFORE_DOCTYPE_NAME_STATE);
+    }
+    if (is_eof(character)) {
+        SET_ERR(PCHVML_ERROR_EOF_IN_DOCTYPE);
+        parser->token = pchvml_token_new_doctype();
+        pchvml_token_set_force_quirks(parser->token, true);
+        RETURN_AND_RECONSUME_IN(HVML_DATA_STATE);
+    }
+    SET_ERR(PCHVML_ERROR_MISSING_WHITESPACE_BEFORE_DOCTYPE_NAME);
+    RETURN_AND_STOP_PARSE();
+END_STATE()
+
+BEGIN_STATE(HVML_BEFORE_DOCTYPE_NAME_STATE)
+    if (is_whitespace(character)) {
+        ADVANCE_TO(HVML_BEFORE_DOCTYPE_NAME_STATE);
+    }
+    if (character == '>') {
+        SET_ERR(PCHVML_ERROR_MISSING_DOCTYPE_NAME);
+        RETURN_AND_STOP_PARSE();
+    }
+    if (is_eof(character)) {
+        SET_ERR(PCHVML_ERROR_EOF_IN_DOCTYPE);
+        parser->token = pchvml_token_new_doctype();
+        pchvml_token_set_force_quirks(parser->token, true);
+        RETURN_AND_RECONSUME_IN(HVML_DATA_STATE);
+    }
+    parser->token = pchvml_token_new_doctype();
+    APPEND_TO_TOKEN_NAME(character);
+    ADVANCE_TO(HVML_DOCTYPE_NAME_STATE);
+END_STATE()
+
+BEGIN_STATE(HVML_DOCTYPE_NAME_STATE)
+    if (is_whitespace(character)) {
+        ADVANCE_TO(HVML_AFTER_DOCTYPE_NAME_STATE);
+    }
+    if (character == '>') {
+        RETURN_AND_SWITCH_TO(HVML_DATA_STATE);
+    }
+    if (is_eof(character)) {
+        SET_ERR(PCHVML_ERROR_EOF_IN_DOCTYPE);
+        RETURN_AND_RECONSUME_IN(HVML_DATA_STATE);
+    }
+    APPEND_TO_TOKEN_NAME(character);
+    ADVANCE_TO(HVML_DOCTYPE_NAME_STATE);
+END_STATE()
+
+BEGIN_STATE(HVML_AFTER_DOCTYPE_NAME_STATE)
+    if (is_whitespace(character)) {
+        ADVANCE_TO(HVML_AFTER_DOCTYPE_NAME_STATE);
+    }
+    if (character == '>') {
+        RETURN_AND_SWITCH_TO(HVML_DATA_STATE);
+    }
+    if (is_eof(character)) {
+        SET_ERR(PCHVML_ERROR_EOF_IN_DOCTYPE);
+        pchvml_token_set_force_quirks(parser->token, true);
+        RETURN_AND_RECONSUME_IN(HVML_DATA_STATE);
+    }
+    if (parser->sbst == NULL) {
+        parser->sbst = pchvml_sbst_new_after_doctype_name_state();
+    }
+    bool ret = pchvml_sbst_advance_ex(parser->sbst, character, true);
+    if (!ret) {
+        SET_ERR(PCHVML_ERROR_INVALID_CHARACTER_SEQUENCE_AFTER_DOCTYPE_NAME);
+        pchvml_sbst_destroy(parser->sbst);
+        parser->sbst = NULL;
+        RETURN_AND_STOP_PARSE();
+    }
+
+    const char* value = pchvml_sbst_get_match(parser->sbst);
+    if (value == NULL) {
+        ADVANCE_TO(HVML_AFTER_DOCTYPE_NAME_STATE);
+    }
+
+    if (strcmp(value, "PUBLIC") == 0) {
+        pchvml_sbst_destroy(parser->sbst);
+        parser->sbst = NULL;
+        ADVANCE_TO(HVML_AFTER_DOCTYPE_PUBLIC_KEYWORD_STATE);
+    }
+    if (strcmp(value, "SYSTEM") == 0) {
+        pchvml_sbst_destroy(parser->sbst);
+        parser->sbst = NULL;
+        ADVANCE_TO(HVML_AFTER_DOCTYPE_SYSTEM_KEYWORD_STATE);
+    }
+    SET_ERR(PCHVML_ERROR_INVALID_CHARACTER_SEQUENCE_AFTER_DOCTYPE_NAME);
+    pchvml_sbst_destroy(parser->sbst);
+    parser->sbst = NULL;
+    RETURN_AND_STOP_PARSE();
+END_STATE()
+
+BEGIN_STATE(HVML_AFTER_DOCTYPE_PUBLIC_KEYWORD_STATE)
+    if (is_whitespace(character)) {
+        ADVANCE_TO(HVML_BEFORE_DOCTYPE_PUBLIC_ID_STATE);
+    }
+    if (character == '"') {
+        SET_ERR(
+          PCHVML_ERROR_MISSING_WHITESPACE_AFTER_DOCTYPE_PUBLIC_KEYWORD);
+        RETURN_AND_STOP_PARSE();
+    }
+    if (character == '\'') {
+        SET_ERR(
+          PCHVML_ERROR_MISSING_WHITESPACE_AFTER_DOCTYPE_PUBLIC_KEYWORD);
+        RETURN_AND_STOP_PARSE();
+    }
+    if (character == '>') {
+        SET_ERR(PCHVML_ERROR_MISSING_DOCTYPE_PUBLIC_ID);
+        RETURN_AND_STOP_PARSE();
+    }
+    if (is_eof(character)) {
+        SET_ERR(PCHVML_ERROR_EOF_IN_DOCTYPE);
+        pchvml_token_set_force_quirks(parser->token, true);
+        RETURN_AND_RECONSUME_IN(HVML_DATA_STATE);
+    }
+    SET_ERR(PCHVML_ERROR_MISSING_QUOTE_BEFORE_DOCTYPE_PUBLIC_ID);
+    RETURN_AND_STOP_PARSE();
+END_STATE()
+
+BEGIN_STATE(HVML_BEFORE_DOCTYPE_PUBLIC_ID_STATE)
+    if (is_whitespace(character)) {
+        ADVANCE_TO(HVML_BEFORE_DOCTYPE_PUBLIC_ID_STATE);
+    }
+    if (character == '"') {
+        RESET_TOKEN_PUBLIC_ID();
+        ADVANCE_TO(HVML_DOCTYPE_PUBLIC_ID_DOUBLE_QUOTED_STATE);
+    }
+    if (character == '\'') {
+        RESET_TOKEN_PUBLIC_ID();
+        ADVANCE_TO(HVML_DOCTYPE_PUBLIC_ID_SINGLE_QUOTED_STATE);
+    }
+    if (character == '>') {
+        SET_ERR(PCHVML_ERROR_MISSING_DOCTYPE_PUBLIC_ID);
+        RETURN_AND_STOP_PARSE();
+    }
+    if (is_eof(character)) {
+        SET_ERR(PCHVML_ERROR_EOF_IN_DOCTYPE);
+        pchvml_token_set_force_quirks(parser->token, true);
+        RETURN_AND_RECONSUME_IN(HVML_DATA_STATE);
+    }
+    SET_ERR(PCHVML_ERROR_MISSING_QUOTE_BEFORE_DOCTYPE_PUBLIC_ID);
+    RETURN_AND_STOP_PARSE();
+END_STATE()
+
+BEGIN_STATE(HVML_DOCTYPE_PUBLIC_ID_DOUBLE_QUOTED_STATE)
+    if (character == '"') {
+        ADVANCE_TO(HVML_AFTER_DOCTYPE_PUBLIC_ID_STATE);
+    }
+    if (character == '>') {
+        SET_ERR(PCHVML_ERROR_ABRUPT_DOCTYPE_PUBLIC_ID);
+        RETURN_AND_STOP_PARSE();
+    }
+    if (is_eof(character)) {
+        SET_ERR(PCHVML_ERROR_EOF_IN_DOCTYPE);
+        pchvml_token_set_force_quirks(parser->token, true);
+        RETURN_AND_RECONSUME_IN(HVML_DATA_STATE);
+    }
+    APPEND_TO_TOKEN_PUBLIC_ID(character);
+    ADVANCE_TO(HVML_DOCTYPE_PUBLIC_ID_DOUBLE_QUOTED_STATE);
+END_STATE()
+
+BEGIN_STATE(HVML_DOCTYPE_PUBLIC_ID_SINGLE_QUOTED_STATE)
+    if (character == '\'') {
+        ADVANCE_TO(HVML_AFTER_DOCTYPE_PUBLIC_ID_STATE);
+    }
+    if (character == '>') {
+        SET_ERR(PCHVML_ERROR_ABRUPT_DOCTYPE_PUBLIC_ID);
+        RETURN_AND_STOP_PARSE();
+    }
+    if (is_eof(character)) {
+        SET_ERR(PCHVML_ERROR_EOF_IN_DOCTYPE);
+        pchvml_token_set_force_quirks(parser->token, true);
+        RETURN_AND_RECONSUME_IN(HVML_DATA_STATE);
+    }
+    APPEND_TO_TOKEN_PUBLIC_ID(character);
+    ADVANCE_TO(HVML_DOCTYPE_PUBLIC_ID_SINGLE_QUOTED_STATE);
+END_STATE()
+
+BEGIN_STATE(HVML_AFTER_DOCTYPE_PUBLIC_ID_STATE)
+    if (is_whitespace(character)) {
+        ADVANCE_TO(HVML_BETWEEN_DOCTYPE_PUBLIC_ID_AND_SYSTEM_INFO_STATE);
+    }
+    if (character == '>') {
+        RETURN_AND_SWITCH_TO(HVML_DATA_STATE);
+    }
+    if (character == '"') {
+        SET_ERR(
+          PCHVML_ERROR_MISSING_WHITESPACE_BETWEEN_DOCTYPE_PUB_AND_SYS);
+        RETURN_AND_STOP_PARSE();
+    }
+    if (character == '\'') {
+        SET_ERR(
+          PCHVML_ERROR_MISSING_WHITESPACE_BETWEEN_DOCTYPE_PUB_AND_SYS);
+        RETURN_AND_STOP_PARSE();
+    }
+    if (is_eof(character)) {
+        SET_ERR(PCHVML_ERROR_EOF_IN_DOCTYPE);
+        pchvml_token_set_force_quirks(parser->token, true);
+        RETURN_AND_RECONSUME_IN(HVML_DATA_STATE);
+    }
+    SET_ERR(PCHVML_ERROR_MISSING_QUOTE_BEFORE_DOCTYPE_SYSTEM);
+    RETURN_AND_STOP_PARSE();
+END_STATE()
+
+BEGIN_STATE(HVML_BETWEEN_DOCTYPE_PUBLIC_ID_AND_SYSTEM_INFO_STATE)
+    if (is_whitespace(character)) {
+        ADVANCE_TO(HVML_BETWEEN_DOCTYPE_PUBLIC_ID_AND_SYSTEM_INFO_STATE);
+    }
+    if (character == '>') {
+        RETURN_AND_SWITCH_TO(HVML_DATA_STATE);
+    }
+    if (character == '"') {
+        RESET_TOKEN_SYSTEM_INFO();
+        ADVANCE_TO(HVML_DOCTYPE_SYSTEM_DOUBLE_QUOTED_STATE);
+    }
+    if (character == '\'') {
+        RESET_TOKEN_SYSTEM_INFO();
+        ADVANCE_TO(HVML_DOCTYPE_SYSTEM_SINGLE_QUOTED_STATE);
+    }
+    if (is_eof(character)) {
+        SET_ERR(PCHVML_ERROR_EOF_IN_DOCTYPE);
+        pchvml_token_set_force_quirks(parser->token, true);
+        RETURN_AND_RECONSUME_IN(HVML_DATA_STATE);
+    }
+    RECONSUME_IN(HVML_AFTER_DOCTYPE_NAME_STATE);
+    //SET_ERR(PCHVML_ERROR_MISSING_QUOTE_BEFORE_DOCTYPE_SYSTEM);
+    //RETURN_AND_STOP_PARSE();
+END_STATE()
+
+BEGIN_STATE(HVML_AFTER_DOCTYPE_SYSTEM_KEYWORD_STATE)
+    if (is_whitespace(character)) {
+        ADVANCE_TO(HVML_BEFORE_DOCTYPE_SYSTEM_STATE);
+    }
+    if (character == '"') {
+        SET_ERR(
+          PCHVML_ERROR_MISSING_WHITESPACE_AFTER_DOCTYPE_SYSTEM_KEYWORD);
+        RETURN_AND_STOP_PARSE();
+    }
+    if (character == '\'') {
+        SET_ERR(
+            PCHVML_ERROR_MISSING_WHITESPACE_AFTER_DOCTYPE_SYSTEM_KEYWORD);
+        RETURN_AND_STOP_PARSE();
+    }
+    if (character == '>') {
+        SET_ERR(PCHVML_ERROR_MISSING_DOCTYPE_SYSTEM);
+        RETURN_AND_STOP_PARSE();
+    }
+    if (is_eof(character)) {
+        SET_ERR(PCHVML_ERROR_EOF_IN_DOCTYPE);
+        RETURN_AND_RECONSUME_IN(HVML_DATA_STATE);
+    }
+    SET_ERR(PCHVML_ERROR_MISSING_QUOTE_BEFORE_DOCTYPE_SYSTEM);
+    RETURN_AND_STOP_PARSE();
+END_STATE()
+
+BEGIN_STATE(HVML_BEFORE_DOCTYPE_SYSTEM_STATE)
+    if (is_whitespace(character)) {
+        ADVANCE_TO(HVML_BEFORE_DOCTYPE_SYSTEM_STATE);
+    }
+    if (character == '"') {
+        RESET_TOKEN_SYSTEM_INFO();
+        ADVANCE_TO(HVML_DOCTYPE_SYSTEM_DOUBLE_QUOTED_STATE);
+    }
+    if (character == '\'') {
+        RESET_TOKEN_SYSTEM_INFO();
+        ADVANCE_TO(HVML_DOCTYPE_SYSTEM_SINGLE_QUOTED_STATE);
+    }
+    if (character == '>') {
+        SET_ERR(PCHVML_ERROR_MISSING_DOCTYPE_SYSTEM);
+        RETURN_AND_STOP_PARSE();
+    }
+    if (is_eof(character)) {
+        SET_ERR(PCHVML_ERROR_EOF_IN_DOCTYPE);
+        pchvml_token_set_force_quirks(parser->token, true);
+        RETURN_AND_RECONSUME_IN(HVML_DATA_STATE);
+    }
+    SET_ERR(PCHVML_ERROR_MISSING_QUOTE_BEFORE_DOCTYPE_SYSTEM);
+    RETURN_AND_STOP_PARSE();
+END_STATE()
+
+BEGIN_STATE(HVML_DOCTYPE_SYSTEM_DOUBLE_QUOTED_STATE)
+    if (character == '"') {
+        ADVANCE_TO(HVML_AFTER_DOCTYPE_SYSTEM_STATE);
+    }
+    if (character == '>') {
+        SET_ERR(PCHVML_ERROR_ABRUPT_DOCTYPE_SYSTEM);
+        RETURN_AND_STOP_PARSE();
+    }
+    if (is_eof(character)) {
+        SET_ERR(PCHVML_ERROR_EOF_IN_DOCTYPE);
+        pchvml_token_set_force_quirks(parser->token, true);
+        RETURN_AND_RECONSUME_IN(HVML_DATA_STATE);
+    }
+    APPEND_TO_TOKEN_SYSTEM_INFO(character);
+    ADVANCE_TO(HVML_DOCTYPE_SYSTEM_DOUBLE_QUOTED_STATE);
+END_STATE()
+
+BEGIN_STATE(HVML_DOCTYPE_SYSTEM_SINGLE_QUOTED_STATE)
+    if (character == '\'') {
+        ADVANCE_TO(HVML_AFTER_DOCTYPE_SYSTEM_STATE);
+    }
+    if (character == '>') {
+        SET_ERR(PCHVML_ERROR_ABRUPT_DOCTYPE_SYSTEM);
+        RETURN_AND_STOP_PARSE();
+    }
+    if (is_eof(character)) {
+        SET_ERR(PCHVML_ERROR_EOF_IN_DOCTYPE);
+        pchvml_token_set_force_quirks(parser->token, true);
+        RETURN_AND_RECONSUME_IN(HVML_DATA_STATE);
+    }
+    APPEND_TO_TOKEN_SYSTEM_INFO(character);
+    ADVANCE_TO(HVML_DOCTYPE_SYSTEM_SINGLE_QUOTED_STATE);
+END_STATE()
+
+BEGIN_STATE(HVML_AFTER_DOCTYPE_SYSTEM_STATE)
+    if (is_whitespace(character)) {
+        ADVANCE_TO(HVML_AFTER_DOCTYPE_SYSTEM_STATE);
+    }
+    if (character == '>') {
+        RETURN_AND_SWITCH_TO(HVML_DATA_STATE);
+    }
+    if (is_eof(character)) {
+        SET_ERR(PCHVML_ERROR_EOF_IN_DOCTYPE);
+        pchvml_token_set_force_quirks(parser->token, true);
+        RETURN_AND_RECONSUME_IN(HVML_DATA_STATE);
+    }
+    SET_ERR(PCHVML_ERROR_UNEXPECTED_CHARACTER_AFTER_DOCTYPE_SYSTEM);
+    RETURN_AND_STOP_PARSE();
+END_STATE()
+
+BEGIN_STATE(HVML_BOGUS_DOCTYPE_STATE)
+    if (character == '>') {
+        RETURN_AND_SWITCH_TO(HVML_DATA_STATE);
+    }
+    if (is_eof(character)) {
+        RETURN_AND_RECONSUME_IN(HVML_DATA_STATE);
+    }
+    ADVANCE_TO(HVML_BOGUS_DOCTYPE_STATE);
 END_STATE()
 
 PCHVML_NEXT_TOKEN_END
