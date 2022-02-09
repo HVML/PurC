@@ -217,21 +217,6 @@ PCA_INLINE bool is_separator(uint32_t c)
     return false;
 }
 
-PCA_INLINE bool is_ampersand(uint32_t c)
-{
-    return c == '&';
-}
-
-PCA_INLINE bool is_less_then_sign(uint32_t c)
-{
-    return c == '<';
-}
-
-PCA_INLINE bool is_exclamation_mark(uint32_t c)
-{
-    return c == '!';
-}
-
 PCA_EXTERN_C_END
 
 #endif /* PURC_HVML_TOKENIZER_H */

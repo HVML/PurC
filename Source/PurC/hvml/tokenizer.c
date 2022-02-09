@@ -98,6 +98,11 @@ next_state:                                                             \
 }
 
 
+#define IS_CHAR(c)                      (character == c)
+#define IS_EOF()                        is_eof(character)
+#define IS_ASCII_ALPHA()                is_ascii_alpha(character)
+
+
 static UNUSED_FUNCTION
 bool pchvml_parser_is_operation_tag(const char* name)
 {
@@ -215,17 +220,17 @@ PCHVML_NEXT_TOKEN_BEGIN
 
 
 BEGIN_STATE(PCHVML_DATA_STATE)
-    if (is_ampersand(character)) {
+    if (IS_CHAR('&')) {
         SET_RETURN_STATE(PCHVML_DATA_STATE);
         ADVANCE_TO(PCHVML_CHARACTER_REFERENCE_STATE);
     }
-    if (is_less_then_sign(character)) {
+    if (IS_CHAR('<')) {
         if (parser->token) {
             RETURN_AND_SWITCH_TO(PCHVML_TAG_OPEN_STATE);
         }
         ADVANCE_TO(PCHVML_TAG_OPEN_STATE);
     }
-    if (is_eof(character)) {
+    if (IS_EOF()) {
         RETURN_NEW_EOF_TOKEN();
     }
     RESET_TEMP_BUFFER();
@@ -233,21 +238,21 @@ BEGIN_STATE(PCHVML_DATA_STATE)
 END_STATE()
 
 BEGIN_STATE(PCHVML_TAG_OPEN_STATE)
-    if (is_exclamation_mark(character)) {
+    if (IS_CHAR('!')) {
         ADVANCE_TO(PCHVML_MARKUP_DECLARATION_OPEN_STATE);
     }
-    if (character == '/') {
+    if (IS_CHAR('/')) {
         ADVANCE_TO(PCHVML_END_TAG_OPEN_STATE);
     }
-    if (is_ascii_alpha(character)) {
+    if (IS_ASCII_ALPHA()) {
         parser->token = pchvml_token_new_start_tag ();
         RECONSUME_IN(PCHVML_TAG_NAME_STATE);
     }
-    if (character == '?') {
+    if (IS_CHAR('?')) {
         SET_ERR(PCHVML_ERROR_UNEXPECTED_QUESTION_MARK_INSTEAD_OF_TAG_NAME);
         RETURN_AND_STOP_PARSE();
     }
-    if (is_eof(character)) {
+    if (IS_EOF()) {
         SET_ERR(PCHVML_ERROR_EOF_BEFORE_TAG_NAME);
         RETURN_AND_STOP_PARSE();
     }
