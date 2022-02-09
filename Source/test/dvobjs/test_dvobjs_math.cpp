@@ -90,8 +90,6 @@ TEST(dvobjs, dvobjs_math_pi_e)
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
             &nr_reserved_before);
 
-    const char *env;
-    env = "DVOBJS_SO_PATH";
     purc_variant_t math = purc_variant_load_dvobj_from_so (NULL, "MATH");
     ASSERT_NE(math, nullptr);
     ASSERT_EQ(purc_variant_is_object (math), true);
@@ -299,8 +297,6 @@ TEST(dvobjs, dvobjs_math_const)
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
             &nr_reserved_before);
 
-    const char *env;
-    env = "DVOBJS_SO_PATH";
     purc_variant_t math = purc_variant_load_dvobj_from_so (NULL, "MATH");
     ASSERT_NE(math, nullptr);
     ASSERT_EQ(purc_variant_is_object (math), true);
@@ -639,8 +635,6 @@ TEST(dvobjs, dvobjs_math_func)
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
             &nr_reserved_before);
 
-    const char *env;
-    env = "DVOBJS_SO_PATH";
     purc_variant_t math = purc_variant_load_dvobj_from_so (NULL, "MATH");
     ASSERT_NE(math, nullptr);
     ASSERT_EQ(purc_variant_is_object (math), true);
@@ -718,8 +712,6 @@ TEST(dvobjs, dvobjs_math_eval)
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
             &nr_reserved_before);
 
-    const char *env;
-    env = "DVOBJS_SO_PATH";
     purc_variant_t math = purc_variant_load_dvobj_from_so (NULL, "MATH");
     ASSERT_NE(math, nullptr);
     ASSERT_EQ(purc_variant_is_object (math), true);
@@ -850,8 +842,6 @@ TEST(dvobjs, dvobjs_math_assignment)
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
             &nr_reserved_before);
 
-    const char *env;
-    env = "DVOBJS_SO_PATH";
     purc_variant_t math = purc_variant_load_dvobj_from_so (NULL, "MATH");
     ASSERT_NE(math, nullptr);
     ASSERT_EQ(purc_variant_is_object (math), true);
@@ -922,8 +912,6 @@ TEST(dvobjs, dvobjs_math_samples)
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
             &nr_reserved_before);
 
-    const char *env;
-    env = "DVOBJS_SO_PATH";
     purc_variant_t math = purc_variant_load_dvobj_from_so (NULL, "MATH");
     ASSERT_NE(math, nullptr);
     ASSERT_EQ(purc_variant_is_object (math), true);

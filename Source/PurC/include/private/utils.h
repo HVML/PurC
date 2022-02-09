@@ -95,11 +95,8 @@ extern "C" {
 #endif
 
 #if !HAVE(VASPRINTF)
-int vasprintf(char **buf, const char *fmt, va_list ap)
-# if COMPILER(GCC)
-    __attribute__ ((format (gnu_printf, 2, 0)))
-# endif
-;
+__attribute__ ((format (printf, 2, 0)))
+int vasprintf(char **buf, const char *fmt, va_list ap);
 #endif
 
 void pcutils_atom_init_once(void) WTF_INTERNAL;

@@ -38,9 +38,6 @@ TEST(dvobjs, dvobjs_file_text_head)
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
             &nr_reserved_before);
 
-    const char *env;
-    env = "DVOBJS_SO_PATH";
-
     purc_variant_t file = purc_variant_load_dvobj_from_so ("FS", "FILE");
     ASSERT_NE(file, nullptr);
     ASSERT_EQ(purc_variant_is_object (file), true);
@@ -116,9 +113,6 @@ TEST(dvobjs, dvobjs_file_text_tail)
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
             &nr_reserved_before);
-
-    const char *env;
-    env = "DVOBJS_SO_PATH";
 
     purc_variant_t file = purc_variant_load_dvobj_from_so ("FS", "FILE");
     ASSERT_NE(file, nullptr);
@@ -196,8 +190,6 @@ TEST(dvobjs, dvobjs_file_bin_head)
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
             &nr_reserved_before);
 
-    const char *env;
-    env = "DVOBJS_SO_PATH";
     purc_variant_t file = purc_variant_load_dvobj_from_so ("FS", "FILE");
     ASSERT_NE(file, nullptr);
     ASSERT_EQ(purc_variant_is_object (file), true);
@@ -274,8 +266,6 @@ TEST(dvobjs, dvobjs_file_bin_tail)
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
             &nr_reserved_before);
 
-    const char *env;
-    env = "DVOBJS_SO_PATH";
     purc_variant_t file = purc_variant_load_dvobj_from_so ("FS", "FILE");
     ASSERT_NE(file, nullptr);
     ASSERT_EQ(purc_variant_is_object (file), true);

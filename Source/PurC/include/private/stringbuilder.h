@@ -75,9 +75,7 @@ pcutils_stringbuilder_reset(struct pcutils_stringbuilder *sb);
 int
 pcutils_stringbuilder_keep(struct pcutils_stringbuilder *sb, size_t sz);
 
-# if COMPILER(GCC)
-__attribute__ ((format (gnu_printf, 2, 3)))
-# endif
+__attribute__ ((format (printf, 2, 3)))
 int
 pcutils_stringbuilder_snprintf(struct pcutils_stringbuilder *sb,
     const char *fmt, ...);
