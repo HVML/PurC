@@ -231,6 +231,16 @@ next_state:                                                             \
         pchvml_token_append_bytes_to_text(parser->token, c, nr_c);          \
     } while (false)
 
+// TODO
+#define APPEND_TEMP_BUFFER_TO_TOKEN_TEXT()                                  \
+    do {                                                                    \
+        const char* c = pchvml_buffer_get_buffer(parser->temp_buffer);      \
+        size_t nr_c = pchvml_buffer_get_size_in_bytes(                      \
+                parser->temp_buffer);                                       \
+        pchvml_token_append_bytes_to_text(parser->token, c, nr_c);          \
+        pchvml_buffer_reset(parser->temp_buffer);                           \
+    } while (false)
+
 #define APPEND_TO_TOKEN_PUBLIC_ID(uc)                                       \
     do {                                                                    \
         pchvml_token_append_to_public_identifier(parser->token, uc);        \
@@ -1195,6 +1205,58 @@ BEGIN_STATE(HVML_CDATA_SECTION_END_STATE)
     APPEND_TO_TOKEN_TEXT(']');
     APPEND_TO_TOKEN_TEXT(']');
     RECONSUME_IN(HVML_CDATA_SECTION_STATE);
+END_STATE()
+
+BEGIN_STATE(HVML_CHARACTER_REFERENCE_STATE)
+    RESET_TEMP_BUFFER();
+    APPEND_TO_TEMP_BUFFER('&');
+    if (is_ascii_alpha_numeric(character)) {
+        RECONSUME_IN(HVML_NAMED_CHARACTER_REFERENCE_STATE);
+    }
+    if (character == '#') {
+        APPEND_TO_TEMP_BUFFER(character);
+        ADVANCE_TO(HVML_NUMERIC_CHARACTER_REFERENCE_STATE);
+    }
+    // FIXME: character reference in attribute value
+    APPEND_TEMP_BUFFER_TO_TOKEN_TEXT();
+    RESET_TEMP_BUFFER();
+    RECONSUME_IN(parser->return_state);
+END_STATE()
+
+BEGIN_STATE(HVML_NAMED_CHARACTER_REFERENCE_STATE)
+    if (parser->sbst == NULL) {
+        parser->sbst = pchvml_sbst_new_char_ref();
+    }
+    bool ret = pchvml_sbst_advance(parser->sbst, character);
+    if (!ret) {
+        struct pcutils_arrlist* ucs = pchvml_sbst_get_buffered_ucs(
+                parser->sbst);
+        size_t length = pcutils_arrlist_length(ucs);
+        for (size_t i = 0; i < length; i++) {
+            uint32_t uc = (uint32_t)(uintptr_t) pcutils_arrlist_get_idx(
+                    ucs, i);
+            APPEND_TO_TEMP_BUFFER(uc);
+        }
+        pchvml_sbst_destroy(parser->sbst);
+        parser->sbst = NULL;
+        APPEND_TEMP_BUFFER_TO_TOKEN_TEXT();
+        RESET_TEMP_BUFFER();
+        ADVANCE_TO(HVML_AMBIGUOUS_AMPERSAND_STATE);
+    }
+
+    const char* value = pchvml_sbst_get_match(parser->sbst);
+    if (value == NULL) {
+        ADVANCE_TO(HVML_NAMED_CHARACTER_REFERENCE_STATE);
+    }
+    if (character != ';') {
+        ADVANCE_TO(HVML_NAMED_CHARACTER_REFERENCE_STATE);
+    }
+    RESET_TEMP_BUFFER();
+    APPEND_BYTES_TO_TOKEN_TEXT(value, strlen(value));
+
+    pchvml_sbst_destroy(parser->sbst);
+    parser->sbst = NULL;
+    ADVANCE_TO(parser->return_state);
 END_STATE()
 
 PCHVML_NEXT_TOKEN_END
