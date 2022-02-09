@@ -139,6 +139,16 @@
         pchvml_token_append_to_name(parser->token, uc);                     \
     } while (false)
 
+#define BEGIN_TOKEN_ATTR()                                                  \
+    do {                                                                    \
+        pchvml_token_begin_attr(parser->token);                             \
+    } while (false)
+
+#define END_TOKEN_ATTR()                                                    \
+    do {                                                                    \
+        pchvml_token_end_attr(parser->token);                               \
+    } while (false)
+
 PCA_EXTERN_C_BEGIN
 
 PCA_INLINE bool is_whitespace(uint32_t uc)
