@@ -1845,7 +1845,7 @@ END_STATE()
 BEGIN_STATE(HVML_EJSON_DATA_STATE)
     if (is_eof(character)) {
         SET_ERR(PCHVML_ERROR_EOF_IN_TAG);
-        RETURN_NEW_EOF_TOKEN();
+        RETURN_AND_STOP_PARSE();
     }
     if (pchvml_parser_is_in_template(parser)) {
         struct pcvcm_node* snode = pcvcm_node_new_concat_string(0,
@@ -1988,7 +1988,7 @@ BEGIN_STATE(HVML_EJSON_CONTROL_STATE)
     }
     if (is_eof(character)) {
         SET_ERR(PCHVML_ERROR_EOF_IN_TAG);
-        RETURN_NEW_EOF_TOKEN();
+        RETURN_AND_STOP_PARSE();
     }
     if (character == ',') {
         if (uc == '{') {
@@ -2048,7 +2048,7 @@ BEGIN_STATE(HVML_EJSON_DOLLAR_STATE)
     }
     if (is_eof(character)) {
         SET_ERR(PCHVML_ERROR_EOF_IN_TAG);
-        RETURN_NEW_EOF_TOKEN();
+        RETURN_AND_STOP_PARSE();
     }
     if (character == '$') {
         if (parser->vcm_node) {
@@ -2116,7 +2116,7 @@ END_STATE()
 BEGIN_STATE(HVML_EJSON_RIGHT_BRACE_STATE)
     if (is_eof(character)) {
         SET_ERR(PCHVML_ERROR_EOF_IN_TAG);
-        RETURN_NEW_EOF_TOKEN();
+        RETURN_AND_STOP_PARSE();
     }
     uint32_t uc = ejson_stack_top();
     if (character == '}') {
@@ -2222,7 +2222,7 @@ BEGIN_STATE(HVML_EJSON_LEFT_BRACKET_STATE)
     }
     if (is_eof(character)) {
         SET_ERR(PCHVML_ERROR_EOF_IN_TAG);
-        RETURN_NEW_EOF_TOKEN();
+        RETURN_AND_STOP_PARSE();
     }
     SET_ERR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
     RETURN_AND_STOP_PARSE();
@@ -2554,7 +2554,7 @@ BEGIN_STATE(HVML_EJSON_NAME_DOUBLE_QUOTED_STATE)
     }
     if (is_eof(character)) {
         SET_ERR(PCHVML_ERROR_EOF_IN_TAG);
-        RETURN_NEW_EOF_TOKEN();
+        RETURN_AND_STOP_PARSE();
     }
     if (character == '$') {
         if (parser->vcm_node) {
@@ -2618,7 +2618,7 @@ BEGIN_STATE(HVML_EJSON_VALUE_DOUBLE_QUOTED_STATE)
     }
     if (is_eof(character)) {
         SET_ERR(PCHVML_ERROR_EOF_IN_TAG);
-        RETURN_NEW_EOF_TOKEN();
+        RETURN_AND_STOP_PARSE();
     }
     if (character == '$') {
         if (parser->vcm_node) {
@@ -2695,7 +2695,7 @@ BEGIN_STATE(HVML_EJSON_VALUE_THREE_DOUBLE_QUOTED_STATE)
     }
     if (is_eof(character)) {
         SET_ERR(PCHVML_ERROR_EOF_IN_TAG);
-        RETURN_NEW_EOF_TOKEN();
+        RETURN_AND_STOP_PARSE();
     }
     APPEND_TO_TEMP_BUFFER(character);
     APPEND_TO_QUOTED_BUFFER(character);
@@ -3644,7 +3644,7 @@ BEGIN_STATE(HVML_EJSON_JSONEE_STRING_STATE)
     }
     if (is_eof(character)) {
         SET_ERR(PCHVML_ERROR_EOF_IN_TAG);
-        RETURN_NEW_EOF_TOKEN();
+        RETURN_AND_STOP_PARSE();
     }
     if (character == ':' && uc == ':') {
         SET_ERR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
@@ -3706,7 +3706,7 @@ BEGIN_STATE(HVML_EJSON_TEMPLATE_DATA_STATE)
     }
     if (is_eof(character)) {
         SET_ERR(PCHVML_ERROR_EOF_IN_TAG);
-        RETURN_NEW_EOF_TOKEN();
+        RETURN_AND_STOP_PARSE();
     }
     if (character == '$') {
         if (!pchvml_buffer_is_empty(parser->temp_buffer)) {
