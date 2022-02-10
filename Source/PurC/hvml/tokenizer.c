@@ -147,6 +147,11 @@ next_state:                                                             \
         parser->return_state = new_state;                                   \
     } while (false)
 
+#define SET_TRANSIT_STATE(new_state)                                        \
+    do {                                                                    \
+        parser->transit_state = new_state;                                  \
+    } while (false)
+
 #define CHECK_TEMPLATE_TAG_AND_SWITCH_STATE(token)                          \
     do {                                                                    \
         const char* name = pchvml_token_get_name(token);                    \
@@ -291,6 +296,11 @@ next_state:                                                             \
                 parser->temp_buffer);                                       \
         pchvml_token_append_bytes_to_attr_name(parser->token, c, nr_c);     \
         pchvml_buffer_reset(parser->temp_buffer);                           \
+    } while (false)
+
+#define RESET_VCM_NODE()                                                    \
+    do {                                                                    \
+        parser->vcm_node = NULL;                                            \
     } while (false)
 
 static const uint32_t numeric_char_ref_extension_array[32] = {
@@ -1549,6 +1559,33 @@ BEGIN_STATE(HVML_SPECIAL_ATTRIBUTE_OPERATOR_AFTER_ATTRIBUTE_NAME_STATE)
     BEGIN_TOKEN_ATTR();
     APPEND_TEMP_BUFFER_TO_TOKEN_ATTR_NAME();
     RECONSUME_IN(HVML_ATTRIBUTE_NAME_STATE);
+END_STATE()
+
+BEGIN_STATE(HVML_TEXT_CONTENT_STATE)
+    if (is_eof(character)) {
+        SET_ERR(PCHVML_ERROR_EOF_IN_CDATA);
+        RECONSUME_IN(HVML_DATA_STATE);
+    }
+    if (character == '&') {
+        SET_RETURN_STATE(HVML_TEXT_CONTENT_STATE);
+        ADVANCE_TO(HVML_CHARACTER_REFERENCE_STATE);
+    }
+    if (character == '$') {
+        if (!IS_TEMP_BUFFER_EMPTY()) {
+            struct pcvcm_node* node = TEMP_BUFFER_TO_VCM_NODE();
+            if (!node) {
+                RETURN_AND_STOP_PARSE();
+            }
+            RESET_TEMP_BUFFER();
+            parser->token = pchvml_token_new_vcm(parser->vcm_node);
+            RETURN_CURRENT_TOKEN();
+        }
+        RESET_VCM_NODE();
+        SET_TRANSIT_STATE(HVML_TEXT_CONTENT_STATE);
+        RECONSUME_IN(HVML_EJSON_DATA_STATE);
+    }
+    APPEND_TO_TEMP_BUFFER(character);
+    ADVANCE_TO(HVML_TEXT_CONTENT_STATE);
 END_STATE()
 
 PCHVML_NEXT_TOKEN_END
