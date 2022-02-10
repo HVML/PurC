@@ -829,6 +829,11 @@ next_state:
     END_STATE()
 
     BEGIN_STATE(PCHVML_ATTRIBUTE_VALUE_SINGLE_QUOTED_STATE)
+        if (is_eof(character)) {
+            END_TOKEN_ATTR();
+            SET_ERR(PCHVML_ERROR_EOF_IN_TAG);
+            RETURN_NEW_EOF_TOKEN();
+        }
         if (character == '\'') {
             END_TOKEN_ATTR();
             ADVANCE_TO(PCHVML_AFTER_ATTRIBUTE_VALUE_QUOTED_STATE);
@@ -836,11 +841,6 @@ next_state:
         if (character == '&') {
             SET_RETURN_STATE(PCHVML_ATTRIBUTE_VALUE_SINGLE_QUOTED_STATE);
             ADVANCE_TO(PCHVML_CHARACTER_REFERENCE_STATE);
-        }
-        if (is_eof(character)) {
-            END_TOKEN_ATTR();
-            SET_ERR(PCHVML_ERROR_EOF_IN_TAG);
-            RETURN_NEW_EOF_TOKEN();
         }
         APPEND_TO_TOKEN_ATTR_VALUE(character);
         ADVANCE_TO(PCHVML_ATTRIBUTE_VALUE_SINGLE_QUOTED_STATE);
