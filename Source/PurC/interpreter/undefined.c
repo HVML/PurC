@@ -92,11 +92,18 @@ attr_found(struct pcintr_stack_frame *frame,
 {
     UNUSED_PARAM(ud);
 
-    PC_ASSERT(name);
     PC_ASSERT(attr->op == PCHVML_ATTRIBUTE_ASSIGNMENT);
 
-    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, HREF)) == name) {
-        return process_attr_href(frame, element, name, val);
+    if (name) {
+        if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, HREF)) == name) {
+            return process_attr_href(frame, element, name, val);
+        }
+        if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, TYPE)) == name) {
+            return 0;
+        }
+        D("name: %s", purc_atom_to_string(name));
+        PC_ASSERT(0);
+        return -1;
     }
 
     return 0;
@@ -131,10 +138,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     PC_ASSERT(element);
 
     int r;
-    r = pcintr_element_eval_attrs(frame, element);
-    if (r)
-        return NULL;
-
     r = pcintr_vdom_walk_attrs(frame, element, NULL, attr_found);
     if (r)
         return NULL;

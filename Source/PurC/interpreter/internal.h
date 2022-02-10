@@ -46,10 +46,6 @@ pcintr_vdom_walk_attrs(struct pcintr_stack_frame *frame,
         struct pcvdom_element *element, void *ud, pcintr_attr_f cb);
 
 int
-pcintr_element_eval_attrs(struct pcintr_stack_frame *frame,
-        struct pcvdom_element *element);
-
-int
 pcintr_element_eval_vcm_content(struct pcintr_stack_frame *frame,
         struct pcvdom_element *element);
 

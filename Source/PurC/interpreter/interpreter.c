@@ -598,82 +598,6 @@ push_stack_frame(pcintr_stack_t stack)
     return frame;
 }
 
-static int
-visit_attr(void *key, void *val, void *ud)
-{
-    struct pcintr_stack_frame *frame;
-    frame = (struct pcintr_stack_frame*)ud;
-    if (frame->attr_vars == PURC_VARIANT_INVALID) {
-        frame->attr_vars = purc_variant_make_object(0,
-                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
-        if (frame->attr_vars == PURC_VARIANT_INVALID)
-            return -1;
-    }
-
-    struct pcvdom_attr *attr = (struct pcvdom_attr*)val;
-    struct pcvcm_node *vcm = attr->val;
-    purc_variant_t value;
-    if (!vcm) {
-        value = purc_variant_make_undefined();
-        if (value == PURC_VARIANT_INVALID) {
-            return -1;
-        }
-    }
-    else {
-        PC_ASSERT(attr->key == key);
-        PC_ASSERT(vcm);
-
-        struct pcvdom_element *element = frame->pos;
-        PC_ASSERT(element);
-        PC_ASSERT(purc_get_last_error() == PURC_ERROR_OK);
-
-        pcintr_stack_t stack = purc_get_stack();
-        PC_ASSERT(stack);
-        value = pcvcm_eval(vcm, stack);
-        if (value == PURC_VARIANT_INVALID) {
-            return -1;
-        }
-    }
-
-    const struct pchvml_attr_entry *pre_defined = attr->pre_defined;
-    bool ok;
-    if (pre_defined) {
-        ok = purc_variant_object_set_by_static_ckey(frame->attr_vars,
-                pre_defined->name, value);
-        purc_variant_unref(value);
-    }
-    else {
-        PC_ASSERT(attr->key);
-        purc_variant_t k = purc_variant_make_string(attr->key, true);
-        if (k == PURC_VARIANT_INVALID) {
-            purc_variant_unref(value);
-            return -1;
-        }
-        ok = purc_variant_object_set(frame->attr_vars, k, value);
-        purc_variant_unref(value);
-        purc_variant_unref(k);
-    }
-
-    return ok ? 0 : -1;
-}
-
-int
-pcintr_element_eval_attrs(struct pcintr_stack_frame *frame,
-        struct pcvdom_element *element)
-{
-    struct pcutils_map *attrs = element->attrs;
-    if (!attrs)
-        return 0;
-
-    PC_ASSERT(frame->pos == element);
-
-    int r = pcutils_map_traverse(attrs, frame, visit_attr);
-    if (r)
-        return r;
-
-    return 0;
-}
-
 struct pcintr_walk_attrs_ud {
     struct pcintr_stack_frame       *frame;
     struct pcvdom_element           *element;
@@ -721,27 +645,19 @@ walk_attr(void *key, void *val, void *ud)
         }
     }
 
-    purc_variant_t k = purc_variant_make_string(attr->key, true);
-    if (k == PURC_VARIANT_INVALID) {
-        purc_variant_unref(value);
-        return -1;
-    }
 
     bool ok;
-    ok = purc_variant_object_set(frame->attr_vars, k, value);
+    // NOTE: no need to strdup attr->key
+    ok = purc_variant_object_set_by_static_ckey(frame->attr_vars,
+            attr->key, value);
     purc_variant_unref(value);
-    purc_variant_unref(k);
 
     if (!ok)
         return -1;
 
     purc_atom_t atom = PCHVML_KEYWORD_ATOM(HVML, attr->key);
-    if (atom) {
-        // NOTE: we only dispatch those keyworded-attr to caller
-        return data->cb(frame, element, atom, value, attr, data->ud);
-    }
-
-    return 0;
+    // NOTE: we only dispatch those keyworded-attr to caller
+    return data->cb(frame, element, atom, value, attr, data->ud);
 }
 
 int
