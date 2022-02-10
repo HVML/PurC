@@ -264,6 +264,22 @@ PCA_INLINE bool is_attribute_value_operator(uint32_t c)
     return false;
 }
 
+PCA_INLINE bool is_context_variable(uint32_t c)
+{
+    switch (c) {
+        case '?':
+        case '^':
+        case '&':
+        case '@':
+        case '!':
+        case ':':
+        case '=':
+        case '%':
+            return true;
+    }
+    return false;
+}
+
 PCA_EXTERN_C_END
 
 #endif /* PURC_HVML_TOKENIZER_H */
