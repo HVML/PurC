@@ -699,8 +699,6 @@ pcintr_element_eval_vcm_content(struct pcintr_stack_frame *frame,
     if (vcm_content == NULL)
         return 0;
 
-    PC_ASSERT(purc_get_last_error() == PURC_ERROR_OK);
-
     purc_variant_t v; /* = pcvcm_eval(vcm_content, stack) */
     // NOTE: element is still the owner of vcm_content
     v = purc_variant_make_ulongint((uint64_t)vcm_content);
@@ -903,6 +901,14 @@ execute_one_step(pcintr_coroutine_t co)
 
     PC_ASSERT(co->state == CO_STATE_RUN);
     co->state = CO_STATE_READY;
+    PC_ASSERT(co->stack);
+    if (co->stack->except) {
+        dump_stack(co->stack);
+        dump_c_stack();
+        co->state = CO_STATE_TERMINATED;
+        purc_clr_error();
+    }
+
     bool no_frames = list_empty(&co->stack->frames);
     if (no_frames) {
         pcintr_dump_document(stack);
@@ -944,6 +950,7 @@ static int run_coroutines(void *ctxt)
                     coroutine_set_current(co);
                     pcvariant_push_gc();
                     execute_one_step(co);
+                    PC_ASSERT(purc_get_last_error() == PURC_ERROR_OK);
                     pcvariant_pop_gc();
                     coroutine_set_current(NULL);
                     ++readies;
@@ -960,17 +967,10 @@ static int run_coroutines(void *ctxt)
                 default:
                     PC_ASSERT(0);
             }
-            pcintr_stack_t stack = co->stack;
-            PC_ASSERT(stack);
-            if (stack->except) {
-                dump_stack(stack);
-                dump_c_stack();
-                co->state = CO_STATE_TERMINATED;
-            }
             if (co->state == CO_STATE_TERMINATED) {
-                stack->stage = STACK_STAGE_TERMINATING;
+                co->stack->stage = STACK_STAGE_TERMINATING;
                 list_del(&co->node);
-                stack_destroy(stack);
+                stack_destroy(co->stack);
             }
         }
     }
@@ -1785,7 +1785,6 @@ pcintr_find_observer(pcintr_stack_t stack, purc_variant_t observed,
     }
 
     if (!list) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
     }
 
