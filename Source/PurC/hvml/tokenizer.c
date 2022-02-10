@@ -1814,6 +1814,27 @@ BEGIN_STATE(HVML_EJSON_DATA_STATE)
     RECONSUME_IN(HVML_EJSON_CONTROL_STATE);
 END_STATE()
 
+BEGIN_STATE(HVML_EJSON_FINISHED_STATE)
+    while (!vcm_stack_is_empty()) {
+        ejson_stack_pop();
+        POP_AS_VCM_PARENT_AND_UPDATE_VCM();
+    }
+    if (!ejson_stack_is_empty()) {
+        SET_ERR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
+        RETURN_AND_STOP_PARSE();
+    }
+    if (parser->transit_state == HVML_TEXT_CONTENT_STATE ||
+        parser->transit_state == HVML_JSONTEXT_CONTENT_STATE) {
+        parser->token = pchvml_token_new_vcm(parser->vcm_node);
+        parser->vcm_node = NULL;
+        RESET_VCM_NODE();
+        RETURN_AND_SWITCH_TO(HVML_DATA_STATE);
+    }
+    pchvml_token_append_vcm_to_attr(parser->token, parser->vcm_node);
+    END_TOKEN_ATTR();
+    RESET_VCM_NODE();
+    RECONSUME_IN(HVML_AFTER_ATTRIBUTE_VALUE_STATE);
+END_STATE()
 
 PCHVML_NEXT_TOKEN_END
 

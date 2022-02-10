@@ -155,9 +155,9 @@ struct pchvml_rwswrap;
 struct pchvml_sbst;
 
 struct pchvml_parser {
-    enum pchvml_state state;
-    enum pchvml_state return_state;
-    enum pchvml_state transit_state;
+    int state;
+    int return_state;
+    int transit_state;
     struct pchvml_rwswrap* rwswrap;
     struct pchvml_buffer* temp_buffer;
     struct pchvml_buffer* tag_name;
