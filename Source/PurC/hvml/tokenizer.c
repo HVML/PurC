@@ -2029,6 +2029,28 @@ BEGIN_STATE(HVML_EJSON_DOLLAR_STATE)
     RECONSUME_IN(HVML_EJSON_JSONEE_VARIABLE_STATE);
 END_STATE()
 
+BEGIN_STATE(HVML_EJSON_JSONEE_FULL_STOP_SIGN_STATE)
+    if (character == '.' &&
+        (parser->vcm_node->type ==
+                PCVCM_NODE_TYPE_FUNC_GET_VARIABLE ||
+                parser->vcm_node->type ==
+                PCVCM_NODE_TYPE_FUNC_GET_ELEMENT ||
+                parser->vcm_node->type ==
+                PCVCM_NODE_TYPE_FUNC_CALL_GETTER ||
+                parser->vcm_node->type ==
+                PCVCM_NODE_TYPE_FUNC_CALL_SETTER
+                )) {
+        ejson_stack_push('.');
+        struct pcvcm_node* node = pcvcm_node_new_get_element(NULL,
+                NULL);
+        APPEND_CHILD(node, parser->vcm_node);
+        UPDATE_VCM_NODE(node);
+        ADVANCE_TO(HVML_EJSON_JSONEE_KEYWORD_STATE);
+    }
+    SET_ERR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
+    RETURN_AND_STOP_PARSE();
+END_STATE()
+
 PCHVML_NEXT_TOKEN_END
 
 #endif
