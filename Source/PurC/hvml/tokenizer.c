@@ -224,6 +224,16 @@ next_state:                                                             \
         pchvml_buffer_append(parser->temp_buffer, c);                       \
     } while (false)
 
+#define APPEND_BYTES_TO_TEMP_BUFFER(bytes, nr_bytes)                        \
+    do {                                                                    \
+        pchvml_buffer_append_bytes(parser->temp_buffer, bytes, nr_bytes);   \
+    } while (false)
+
+#define APPEND_BUFFER_TO_TEMP_BUFFER(buffer)                                \
+    do {                                                                    \
+        pchvml_buffer_append_another(parser->temp_buffer, buffer);          \
+    } while (false)
+
 #define IS_TEMP_BUFFER_EMPTY()                                              \
         pchvml_buffer_is_empty(parser->temp_buffer)
 
@@ -3265,6 +3275,58 @@ BEGIN_STATE(HVML_EJSON_VALUE_NAN_STATE)
     }
 
     SET_ERR(PCHVML_ERROR_UNEXPECTED_JSON_NUMBER);
+    RETURN_AND_STOP_PARSE();
+END_STATE()
+
+BEGIN_STATE(HVML_EJSON_STRING_ESCAPE_STATE)
+    switch (character)
+    {
+        case 'b':
+        case 'f':
+        case 'n':
+        case 'r':
+        case 't':
+            APPEND_TO_TEMP_BUFFER('\\');
+            APPEND_TO_TEMP_BUFFER(character);
+            ADVANCE_TO(parser->return_state);
+            break;
+        case '$':
+        case '{':
+        case '}':
+        case '<':
+        case '>':
+        case '/':
+        case '\\':
+        case '"':
+            APPEND_TO_TEMP_BUFFER(character);
+            ADVANCE_TO(parser->return_state);
+            break;
+        case 'u':
+            RESET_STRING_BUFFER();
+            ADVANCE_TO(
+              HVML_EJSON_STRING_ESCAPE_FOUR_HEXADECIMAL_DIGITS_STATE);
+            break;
+        default:
+            SET_ERR(PCHVML_ERROR_BAD_JSON_STRING_ESCAPE_ENTITY);
+            RETURN_AND_STOP_PARSE();
+    }
+END_STATE()
+
+BEGIN_STATE(HVML_EJSON_STRING_ESCAPE_FOUR_HEXADECIMAL_DIGITS_STATE)
+    if (is_ascii_hex_digit(character)) {
+        APPEND_TO_STRING_BUFFER(character);
+        size_t nr_chars = pchvml_buffer_get_size_in_chars(
+                parser->string_buffer);
+        if (nr_chars == 4) {
+            APPEND_BYTES_TO_TEMP_BUFFER("\\u", 2);
+            APPEND_BUFFER_TO_TEMP_BUFFER(parser->string_buffer);
+            RESET_STRING_BUFFER();
+            ADVANCE_TO(parser->return_state);
+        }
+        ADVANCE_TO(
+            HVML_EJSON_STRING_ESCAPE_FOUR_HEXADECIMAL_DIGITS_STATE);
+    }
+    SET_ERR(PCHVML_ERROR_BAD_JSON_STRING_ESCAPE_ENTITY);
     RETURN_AND_STOP_PARSE();
 END_STATE()
 
