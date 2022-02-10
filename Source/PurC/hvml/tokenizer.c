@@ -2538,6 +2538,131 @@ BEGIN_STATE(HVML_EJSON_NAME_DOUBLE_QUOTED_STATE)
     ADVANCE_TO(HVML_EJSON_NAME_DOUBLE_QUOTED_STATE);
 END_STATE()
 
+BEGIN_STATE(HVML_EJSON_VALUE_SINGLE_QUOTED_STATE)
+    if (character == '\'') {
+        size_t nr_buf_chars = pchvml_buffer_get_size_in_chars(
+                parser->temp_buffer);
+        if (nr_buf_chars >= 1) {
+            RECONSUME_IN(HVML_EJSON_AFTER_VALUE_STATE);
+        }
+        else {
+            ADVANCE_TO(HVML_EJSON_VALUE_SINGLE_QUOTED_STATE);
+        }
+    }
+    if (character == '\\') {
+        SET_RETURN_STATE(curr_state);
+        ADVANCE_TO(HVML_EJSON_STRING_ESCAPE_STATE);
+    }
+    if (is_eof(character)) {
+        SET_ERR(PCHVML_ERROR_EOF_IN_TAG);
+        RETURN_AND_STOP_PARSE();
+    }
+    APPEND_TO_TEMP_BUFFER(character);
+    ADVANCE_TO(HVML_EJSON_VALUE_SINGLE_QUOTED_STATE);
+END_STATE()
+
+BEGIN_STATE(HVML_EJSON_VALUE_DOUBLE_QUOTED_STATE)
+    if (character == '"') {
+        if (pchvml_buffer_is_empty(parser->quoted_buffer)) {
+            APPEND_TO_QUOTED_BUFFER(character);
+            ADVANCE_TO(HVML_EJSON_VALUE_DOUBLE_QUOTED_STATE);
+        }
+        else if (pchvml_buffer_equal_to(parser->quoted_buffer, "\"",
+                    1)) {
+            RECONSUME_IN(HVML_EJSON_VALUE_TWO_DOUBLE_QUOTED_STATE);
+        }
+        RECONSUME_IN(HVML_EJSON_AFTER_VALUE_DOUBLE_QUOTED_STATE);
+    }
+    if (character == '\\') {
+        SET_RETURN_STATE(curr_state);
+        ADVANCE_TO(HVML_EJSON_STRING_ESCAPE_STATE);
+    }
+    if (is_eof(character)) {
+        SET_ERR(PCHVML_ERROR_EOF_IN_TAG);
+        RETURN_NEW_EOF_TOKEN();
+    }
+    if (character == '$') {
+        if (parser->vcm_node) {
+            vcm_stack_push(parser->vcm_node);
+        }
+        struct pcvcm_node* snode = pcvcm_node_new_concat_string(0,
+                NULL);
+        UPDATE_VCM_NODE(snode);
+        ejson_stack_push('"');
+        if (!pchvml_buffer_is_empty(parser->temp_buffer)) {
+            struct pcvcm_node* node = pcvcm_node_new_string(
+                    pchvml_buffer_get_buffer(parser->temp_buffer)
+                    );
+            APPEND_AS_VCM_CHILD(node);
+            RESET_TEMP_BUFFER();
+        }
+        RECONSUME_IN(HVML_EJSON_CONTROL_STATE);
+    }
+    APPEND_TO_TEMP_BUFFER(character);
+    ADVANCE_TO(HVML_EJSON_VALUE_DOUBLE_QUOTED_STATE);
+END_STATE()
+
+BEGIN_STATE(HVML_EJSON_AFTER_VALUE_DOUBLE_QUOTED_STATE)
+    if (character == '\"') {
+        RESET_QUOTED_BUFFER();
+        RECONSUME_IN(HVML_EJSON_AFTER_VALUE_STATE);
+    }
+    SET_ERR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
+    RETURN_AND_STOP_PARSE();
+END_STATE()
+
+BEGIN_STATE(HVML_EJSON_VALUE_TWO_DOUBLE_QUOTED_STATE)
+    if (character == '"') {
+        if (pchvml_buffer_equal_to(parser->quoted_buffer, "\"", 1)) {
+            APPEND_TO_QUOTED_BUFFER(character);
+            ADVANCE_TO(HVML_EJSON_VALUE_TWO_DOUBLE_QUOTED_STATE);
+        }
+        if (pchvml_buffer_equal_to(parser->quoted_buffer, "\"\"", 2)) {
+            RECONSUME_IN(HVML_EJSON_VALUE_THREE_DOUBLE_QUOTED_STATE);
+        }
+    }
+    RESTORE_VCM_NODE();
+    struct pcvcm_node* node = pcvcm_node_new_string(
+            pchvml_buffer_get_buffer(parser->temp_buffer)
+            );
+    APPEND_AS_VCM_CHILD(node);
+    RESET_TEMP_BUFFER();
+    RESET_QUOTED_BUFFER();
+    RECONSUME_IN(HVML_EJSON_AFTER_VALUE_STATE);
+END_STATE()
+
+BEGIN_STATE(HVML_EJSON_VALUE_THREE_DOUBLE_QUOTED_STATE)
+    if (character == '\"') {
+        APPEND_TO_QUOTED_BUFFER(character);
+        size_t buf_len = pchvml_buffer_get_size_in_chars(
+                parser->quoted_buffer);
+        if (buf_len > 3) {
+            APPEND_TO_TEMP_BUFFER(character);
+        }
+        if (buf_len >= 6
+                && pchvml_buffer_end_with(parser->quoted_buffer,
+                    "\"\"\"", 3)) {
+            RESTORE_VCM_NODE();
+            pchvml_buffer_delete_tail_chars(parser->temp_buffer, 3);
+            struct pcvcm_node* node = pcvcm_node_new_string(
+                    pchvml_buffer_get_buffer(parser->temp_buffer)
+                    );
+            APPEND_AS_VCM_CHILD(node);
+            RESET_TEMP_BUFFER();
+            RESET_QUOTED_BUFFER();
+            ADVANCE_TO(HVML_EJSON_AFTER_VALUE_STATE);
+        }
+        ADVANCE_TO(HVML_EJSON_VALUE_THREE_DOUBLE_QUOTED_STATE);
+    }
+    if (is_eof(character)) {
+        SET_ERR(PCHVML_ERROR_EOF_IN_TAG);
+        RETURN_NEW_EOF_TOKEN();
+    }
+    APPEND_TO_TEMP_BUFFER(character);
+    APPEND_TO_QUOTED_BUFFER(character);
+    ADVANCE_TO(HVML_EJSON_VALUE_THREE_DOUBLE_QUOTED_STATE);
+END_STATE()
+
 PCHVML_NEXT_TOKEN_END
 
 #endif
