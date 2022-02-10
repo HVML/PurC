@@ -2002,6 +2002,33 @@ BEGIN_STATE(HVML_EJSON_CONTROL_STATE)
     RECONSUME_IN(HVML_EJSON_JSONEE_STRING_STATE);
 END_STATE()
 
+BEGIN_STATE(HVML_EJSON_DOLLAR_STATE)
+    if (is_whitespace(character)) {
+        SET_ERR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
+        RETURN_AND_STOP_PARSE();
+    }
+    if (is_eof(character)) {
+        SET_ERR(PCHVML_ERROR_EOF_IN_TAG);
+        RETURN_NEW_EOF_TOKEN();
+    }
+    if (character == '$') {
+        if (parser->vcm_node) {
+            vcm_stack_push(parser->vcm_node);
+        }
+        ejson_stack_push('$');
+        struct pcvcm_node* snode = pcvcm_node_new_get_variable(NULL);
+        UPDATE_VCM_NODE(snode);
+        ADVANCE_TO(HVML_EJSON_DOLLAR_STATE);
+    }
+    if (character == '{') {
+        ejson_stack_push('P');
+        RESET_TEMP_BUFFER();
+        ADVANCE_TO(HVML_EJSON_JSONEE_VARIABLE_STATE);
+    }
+    RESET_TEMP_BUFFER();
+    RECONSUME_IN(HVML_EJSON_JSONEE_VARIABLE_STATE);
+END_STATE()
+
 PCHVML_NEXT_TOKEN_END
 
 #endif
