@@ -488,6 +488,32 @@ static const char *sample1 =
     "    </body>"
     "</hvml>";
 
+static const char *sample2 =
+    "<!DOCTYPE hvml>"
+    "<hvml target=\"html\" lang=\"en\">"
+    "    <head>"
+    "        <base href=\"$HVML.base(! 'https://gitlab.fmsoft.cn/hvml/hvml-docs/raw/master/samples/calculator/' )\" />"
+    ""
+    "        <update on=\"$T.map\" from=\"assets/{$SYSTEM.locale}.json\" to=\"merge\" />"
+    ""
+    "        <init as=\"buttons\" from=\"assets/buttons.json\" />"
+    ""
+    "        <title>$T.get('HVML Calculator')</title>"
+    ""
+    "        <update on=\"$TIMERS\" to=\"displace\">"
+    "            ["
+    "                { \"id\" : \"clock\", \"interval\" : 1000, \"active\" : \"yes\" },"
+    "            ]"
+    "        </update>"
+    ""
+    "        <link rel=\"stylesheet\" type=\"text/css\" href=\"assets/calculator.css\" />"
+    "    </head>"
+    ""
+    "    <body>"
+    "    </body>"
+    ""
+    "</hvml>";
+
 static const char *fibonacci_1 =
     "<!DOCTYPE hvml SYSTEM 'v: MATH'>"
     "<hvml target=\"html\" lang=\"en\">"
@@ -534,6 +560,7 @@ TEST(interpreter, basic)
     (void)calculator_3;
     (void)calculator_4;
     (void)sample1;
+    (void)sample2;
     (void)fibonacci_1;
 
     const char *hvmls[] = {
@@ -549,12 +576,13 @@ TEST(interpreter, basic)
         // calculator_3,
         calculator_4,
         sample1,
+        // sample2,
         fibonacci_1,
     };
 
     purc_instance_extra_info info = {};
     // enable for calculator_2/3/4
-    //info.enable_remote_fetcher = true;
+    // info.enable_remote_fetcher = true;
     int ret = 0;
     bool cleanup = false;
 

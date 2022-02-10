@@ -110,7 +110,6 @@ static purc_variant_t
 get_source_by_from(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     purc_variant_t from, purc_variant_t with)
 {
-    PC_ASSERT(0);
     UNUSED_PARAM(frame);
     PC_ASSERT(with == PURC_VARIANT_INVALID);
 
