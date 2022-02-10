@@ -111,12 +111,30 @@ pcintr_dump_document(pcintr_stack_t stack)
 
     char buf[1024];
     size_t nr = sizeof(buf);
-    char *p = pchtml_doc_snprintf(doc, buf, &nr, "");
-    if (p) {
-        D("%s", p);
+    int opt = 0;
+    opt |= PCHTML_HTML_SERIALIZE_OPT_UNDEF;
+    opt |= PCHTML_HTML_SERIALIZE_OPT_SKIP_WS_NODES;
+    opt |= PCHTML_HTML_SERIALIZE_OPT_WITHOUT_TEXT_INDENT;
+    opt |= PCHTML_HTML_SERIALIZE_OPT_FULL_DOCTYPE;
+    char *p = pchtml_doc_snprintf_ex(doc,
+            (enum pchtml_html_serialize_opt)opt, buf, &nr, "");
+    if (!p)
+        return;
+
+    doc = pchmtl_html_load_document_with_buf((const unsigned char*)p, nr);
+    if (doc) {
         if (p != buf)
             free(p);
+        nr = sizeof(buf);
+        p = pchtml_doc_snprintf(doc, buf, &nr, "");
+        pchtml_html_document_destroy(doc);
     }
+    if (!p)
+        return;
+
+    D("%s", p);
+    if (p != buf)
+        free(p);
 }
 
 void
@@ -127,7 +145,13 @@ pcintr_dump_edom_node(pcintr_stack_t stack, pcdom_node_t *node)
 
     char buf[1024];
     size_t nr = sizeof(buf);
-    char *p = pcdom_node_snprintf(node, buf, &nr, "");
+    int opt = 0;
+    opt |= PCHTML_HTML_SERIALIZE_OPT_UNDEF;
+    opt |= PCHTML_HTML_SERIALIZE_OPT_SKIP_WS_NODES;
+    opt |= PCHTML_HTML_SERIALIZE_OPT_WITHOUT_TEXT_INDENT;
+    opt |= PCHTML_HTML_SERIALIZE_OPT_FULL_DOCTYPE;
+    char *p = pcdom_node_snprintf_ex(node,
+            (enum pchtml_html_serialize_opt)opt, buf, &nr, "");
     if (p) {
         D("%s", p);
         if (p != buf)

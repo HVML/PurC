@@ -95,6 +95,28 @@ pchtml_html_parse_with_buf(pchtml_html_parser_t *parser,
     return doc;
 }
 
+static inline pchtml_html_document_t*
+pchmtl_html_load_document_with_buf(const unsigned char *data, size_t sz)
+{
+    pchtml_html_parser_t *parser;
+    parser = pchtml_html_parser_create();
+    if (!parser)
+        return NULL;
+
+    pchtml_html_document_t *doc = NULL;
+    int r = 0;
+    do {
+        r = pchtml_html_parser_init(parser);
+        if (r)
+            break;
+        doc = pchtml_html_parse_with_buf(parser, data, sz);
+    } while (0);
+
+    pchtml_html_parser_destroy(parser);
+
+    return doc;
+}
+
 pchtml_html_document_t *
 pchtml_html_parse_chunk_begin(pchtml_html_parser_t *parser);
 
