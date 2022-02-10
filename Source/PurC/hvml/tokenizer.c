@@ -2311,7 +2311,7 @@ BEGIN_STATE(HVML_EJSON_AFTER_VALUE_STATE)
     }
     if (is_eof(character)) {
         SET_ERR(PCHVML_ERROR_EOF_IN_TAG);
-        RETURN_NEW_EOF_TOKEN();
+        RETURN_AND_STOP_PARSE();
     }
     if (character == '"' || character == '\'') {
         if (!pchvml_buffer_is_empty(parser->temp_buffer)) {
@@ -2436,6 +2436,106 @@ BEGIN_STATE(HVML_EJSON_AFTER_NAME_STATE)
     }
     SET_ERR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
     RETURN_AND_STOP_PARSE();
+END_STATE()
+
+BEGIN_STATE(HVML_EJSON_NAME_UNQUOTED_STATE)
+    if (is_whitespace(character) || character == ':') {
+        RECONSUME_IN(HVML_EJSON_AFTER_NAME_STATE);
+    }
+    if (is_ascii_alpha(character) || is_ascii_digit(character)
+            || character == '-' || character == '_') {
+        APPEND_TO_TEMP_BUFFER(character);
+        ADVANCE_TO(HVML_EJSON_NAME_UNQUOTED_STATE);
+    }
+    if (character == '$') {
+        if (parser->vcm_node) {
+            vcm_stack_push(parser->vcm_node);
+        }
+        struct pcvcm_node* snode = pcvcm_node_new_concat_string(0,
+                NULL);
+        UPDATE_VCM_NODE(snode);
+        ejson_stack_push('U');
+        if (!pchvml_buffer_is_empty(parser->temp_buffer)) {
+            struct pcvcm_node* node = pcvcm_node_new_string(
+                    pchvml_buffer_get_buffer(parser->temp_buffer)
+                    );
+            APPEND_AS_VCM_CHILD(node);
+            RESET_TEMP_BUFFER();
+        }
+        RECONSUME_IN(HVML_EJSON_CONTROL_STATE);
+    }
+    SET_ERR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
+    RETURN_AND_STOP_PARSE();
+END_STATE()
+
+BEGIN_STATE(HVML_EJSON_NAME_SINGLE_QUOTED_STATE)
+    if (character == '\'') {
+        size_t nr_buf_chars = pchvml_buffer_get_size_in_chars(
+                parser->temp_buffer);
+        if (nr_buf_chars >= 1) {
+            ADVANCE_TO(HVML_EJSON_AFTER_NAME_STATE);
+        }
+        else {
+            ADVANCE_TO(HVML_EJSON_NAME_SINGLE_QUOTED_STATE);
+        }
+    }
+    if (character == '\\') {
+        SET_RETURN_STATE(HVML_EJSON_NAME_SINGLE_QUOTED_STATE);
+        ADVANCE_TO(HVML_EJSON_STRING_ESCAPE_STATE);
+    }
+    if (is_eof(character)) {
+        SET_ERR(PCHVML_ERROR_EOF_IN_TAG);
+        RETURN_AND_STOP_PARSE();
+    }
+    APPEND_TO_TEMP_BUFFER(character);
+    ADVANCE_TO(HVML_EJSON_NAME_SINGLE_QUOTED_STATE);
+END_STATE()
+
+BEGIN_STATE(HVML_EJSON_NAME_DOUBLE_QUOTED_STATE)
+    if (character == '"') {
+        size_t nr_buf_chars = pchvml_buffer_get_size_in_chars(
+                parser->temp_buffer);
+        if (nr_buf_chars > 1) {
+            pchvml_buffer_delete_head_chars (parser->temp_buffer, 1);
+            ADVANCE_TO(HVML_EJSON_AFTER_NAME_STATE);
+        }
+        else if (nr_buf_chars == 1) {
+            RESET_TEMP_BUFFER();
+            RESTORE_VCM_NODE();
+            struct pcvcm_node* node = pcvcm_node_new_string ("");
+            APPEND_AS_VCM_CHILD(node);
+            ADVANCE_TO(HVML_EJSON_AFTER_NAME_STATE);
+        }
+        APPEND_TO_TEMP_BUFFER(character);
+        ADVANCE_TO(HVML_EJSON_NAME_DOUBLE_QUOTED_STATE);
+    }
+    if (character == '\\') {
+        SET_RETURN_STATE(curr_state);
+        ADVANCE_TO(HVML_EJSON_STRING_ESCAPE_STATE);
+    }
+    if (is_eof(character)) {
+        SET_ERR(PCHVML_ERROR_EOF_IN_TAG);
+        RETURN_NEW_EOF_TOKEN();
+    }
+    if (character == '$') {
+        if (parser->vcm_node) {
+            vcm_stack_push(parser->vcm_node);
+        }
+        struct pcvcm_node* snode = pcvcm_node_new_concat_string(0,
+                NULL);
+        UPDATE_VCM_NODE(snode);
+        ejson_stack_push('"');
+        if (!pchvml_buffer_is_empty(parser->temp_buffer)) {
+            struct pcvcm_node* node = pcvcm_node_new_string(
+                    pchvml_buffer_get_buffer(parser->temp_buffer)
+                    );
+            APPEND_AS_VCM_CHILD(node);
+            RESET_TEMP_BUFFER();
+        }
+        RECONSUME_IN(HVML_EJSON_CONTROL_STATE);
+    }
+    APPEND_TO_TEMP_BUFFER(character);
+    ADVANCE_TO(HVML_EJSON_NAME_DOUBLE_QUOTED_STATE);
 END_STATE()
 
 PCHVML_NEXT_TOKEN_END
