@@ -227,6 +227,17 @@ next_state:                                                             \
 #define IS_TEMP_BUFFER_EMPTY()                                              \
         pchvml_buffer_is_empty(parser->temp_buffer)
 
+#define RESET_STRING_BUFFER()                                               \
+    do {                                                                    \
+        pchvml_buffer_reset(parser->string_buffer);                         \
+    } while (false)
+
+#define APPEND_TO_STRING_BUFFER(uc)                                         \
+    do {                                                                    \
+        pchvml_buffer_append(parser->string_buffer, uc);                    \
+    } while (false)
+
+
 #define APPEND_TO_TOKEN_NAME(uc)                                            \
     do {                                                                    \
         pchvml_token_append_to_name(parser->token, uc);                     \
@@ -291,6 +302,14 @@ next_state:                                                             \
 #define APPEND_TO_TOKEN_ATTR_VALUE(uc)                                      \
     do {                                                                    \
         pchvml_token_append_to_attr_value(parser->token, uc);               \
+    } while (false)
+
+// TODO:
+#define APPEND_BUFFER_TO_TOKEN_ATTR_VALUE(buffer)                           \
+    do {                                                                    \
+        const char* c = pchvml_buffer_get_buffer(buffer);                   \
+        size_t nr_c = pchvml_buffer_get_size_in_bytes(buffer);              \
+        pchvml_token_append_bytes_to_attr_value(parser->token, c, nr_c);    \
     } while (false)
 
 #define APPEND_TO_TOKEN_ATTR_NAME(c)                                        \
@@ -1708,6 +1727,72 @@ BEGIN_STATE(HVML_JSONEE_ATTRIBUTE_VALUE_SINGLE_QUOTED_STATE)
     ADVANCE_TO(HVML_JSONEE_ATTRIBUTE_VALUE_SINGLE_QUOTED_STATE);
 END_STATE()
 
+BEGIN_STATE(HVML_JSONEE_ATTRIBUTE_VALUE_UNQUOTED_STATE)
+    if (is_whitespace(character)) {
+        if (!pchvml_buffer_is_empty(parser->string_buffer)) {
+            APPEND_BUFFER_TO_TOKEN_ATTR_VALUE(parser->string_buffer);
+            RESET_STRING_BUFFER();
+        }
+        END_TOKEN_ATTR();
+        ADVANCE_TO(HVML_BEFORE_ATTRIBUTE_NAME_STATE);
+    }
+    if (character == '&') {
+        SET_RETURN_STATE(HVML_JSONEE_ATTRIBUTE_VALUE_UNQUOTED_STATE);
+        ADVANCE_TO(HVML_CHARACTER_REFERENCE_STATE);
+    }
+    if (character == '>') {
+        if (!pchvml_buffer_is_empty(parser->string_buffer)) {
+            APPEND_BUFFER_TO_TOKEN_ATTR_VALUE(parser->string_buffer);
+            RESET_STRING_BUFFER();
+        }
+        END_TOKEN_ATTR();
+        RETURN_AND_SWITCH_TO(HVML_DATA_STATE);
+    }
+    if (is_eof(character)) {
+        if (!pchvml_buffer_is_empty(parser->string_buffer)) {
+            APPEND_BUFFER_TO_TOKEN_ATTR_VALUE(parser->string_buffer);
+            RESET_STRING_BUFFER();
+        }
+        END_TOKEN_ATTR();
+        SET_ERR(PCHVML_ERROR_EOF_IN_TAG);
+        RECONSUME_IN(HVML_DATA_STATE);
+    }
+    if (character == '$' || character == '{' || character == '[') {
+        bool handle = pchvml_parser_is_handle_as_jsonee(parser->token,
+                character);
+        bool buffer_is_white = pchvml_buffer_is_whitespace(
+                parser->string_buffer);
+        if (handle && buffer_is_white) {
+            ejson_stack_push('U');
+            RESET_STRING_BUFFER();
+            RECONSUME_IN(HVML_EJSON_DATA_STATE);
+        }
+
+        ejson_stack_push('U');
+        if (!pchvml_buffer_is_empty(parser->string_buffer)) {
+            if (parser->vcm_node) {
+                vcm_stack_push(parser->vcm_node);
+            }
+            struct pcvcm_node* snode = pcvcm_node_new_concat_string(0,
+                    NULL);
+            UPDATE_VCM_NODE(snode);
+            struct pcvcm_node* node = pcvcm_node_new_string(
+                    pchvml_buffer_get_buffer(parser->string_buffer)
+                    );
+            APPEND_AS_VCM_CHILD(node);
+            RESET_STRING_BUFFER();
+        }
+        RECONSUME_IN(HVML_EJSON_DATA_STATE);
+    }
+    if (character == '"' || character == '\'' || character == '<'
+            || character == '=' || character == '`') {
+        SET_ERR(
+            PCHVML_ERROR_UNEXPECTED_CHARACTER_IN_UNQUOTED_ATTRIBUTE_VALUE);
+        RETURN_AND_STOP_PARSE();
+    }
+    APPEND_TO_STRING_BUFFER(character);
+    ADVANCE_TO(HVML_JSONEE_ATTRIBUTE_VALUE_UNQUOTED_STATE);
+END_STATE()
 
 
 
