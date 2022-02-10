@@ -2051,6 +2051,101 @@ BEGIN_STATE(HVML_EJSON_JSONEE_FULL_STOP_SIGN_STATE)
     RETURN_AND_STOP_PARSE();
 END_STATE()
 
+BEGIN_STATE(HVML_EJSON_LEFT_BRACE_STATE)
+    if (character == '{') {
+        ejson_stack_push('P');
+        ADVANCE_TO(HVML_EJSON_LEFT_BRACE_STATE);
+    }
+    if (character == '$') {
+        RECONSUME_IN(HVML_EJSON_DOLLAR_STATE);
+    }
+    uint32_t uc = ejson_stack_top();
+    if (uc == 'P') {
+        ejson_stack_pop();
+        ejson_stack_push('{');
+        if (parser->vcm_node) {
+            vcm_stack_push(parser->vcm_node);
+        }
+        struct pcvcm_node* node = pcvcm_node_new_object(0, NULL);
+        UPDATE_VCM_NODE(node);
+        RECONSUME_IN(HVML_EJSON_BEFORE_NAME_STATE);
+    }
+    SET_ERR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
+    RETURN_AND_STOP_PARSE();
+END_STATE()
+
+BEGIN_STATE(HVML_EJSON_RIGHT_BRACE_STATE)
+    if (is_eof(character)) {
+        SET_ERR(PCHVML_ERROR_EOF_IN_TAG);
+        RETURN_NEW_EOF_TOKEN();
+    }
+    uint32_t uc = ejson_stack_top();
+    if (character == '}') {
+        if (uc == ':') {
+            ejson_stack_pop();
+            uc = ejson_stack_top();
+        }
+        if (uc == '{') {
+            ejson_stack_pop();
+            POP_AS_VCM_PARENT_AND_UPDATE_VCM();
+            if (ejson_stack_is_empty()) {
+                ADVANCE_TO(HVML_EJSON_FINISHED_STATE);
+            }
+            ADVANCE_TO(HVML_EJSON_AFTER_VALUE_STATE);
+        }
+        else if (uc == 'P') {
+            ejson_stack_pop();
+            if (parser->vcm_node->extra & EXTRA_PROTECT_FLAG) {
+                parser->vcm_node->extra &= EXTRA_SUGAR_FLAG;
+            }
+            else {
+                parser->vcm_node->extra &= EXTRA_PROTECT_FLAG;
+            }
+            // FIXME : <update from="assets/{$SYSTEM.locale}.json" />
+            POP_AS_VCM_PARENT_AND_UPDATE_VCM();
+            if (ejson_stack_is_empty()) {
+                ADVANCE_TO(HVML_EJSON_FINISHED_STATE);
+            }
+            ADVANCE_TO(HVML_EJSON_RIGHT_BRACE_STATE);
+        }
+        else if (uc == '(' || uc == '<' || uc == '"') {
+            ADVANCE_TO(HVML_EJSON_CONTROL_STATE);
+        }
+        SET_ERR(PCHVML_ERROR_UNEXPECTED_RIGHT_BRACE);
+        RETURN_AND_STOP_PARSE();
+    }
+    if (uc == '"') {
+        RECONSUME_IN(HVML_EJSON_JSONEE_STRING_STATE);
+    }
+    if (is_whitespace(character)) {
+        ADVANCE_TO(HVML_EJSON_RIGHT_BRACE_STATE);
+    }
+    if (character == ':') {
+        if (uc == '{') {
+            POP_AS_VCM_PARENT_AND_UPDATE_VCM();
+            vcm_stack_push(parser->vcm_node);
+            RESET_VCM_NODE();
+            ADVANCE_TO(HVML_EJSON_CONTROL_STATE);
+        }
+        if (uc == 'P') {
+            ejson_stack_pop();
+            ejson_stack_push('{');
+            struct pcvcm_node* node = pcvcm_node_new_object(0, NULL);
+            APPEND_CHILD(node, parser->vcm_node);
+            vcm_stack_push(node);
+            RESET_VCM_NODE();
+            ADVANCE_TO(HVML_EJSON_CONTROL_STATE);
+        }
+        SET_ERR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
+        RETURN_AND_STOP_PARSE();
+    }
+    if (character == '.' && uc == '$') {
+        ejson_stack_pop();
+        POP_AS_VCM_PARENT_AND_UPDATE_VCM();
+    }
+    RECONSUME_IN(HVML_EJSON_CONTROL_STATE);
+END_STATE()
+
 PCHVML_NEXT_TOKEN_END
 
 #endif
