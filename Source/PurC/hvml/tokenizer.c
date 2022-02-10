@@ -1794,7 +1794,25 @@ BEGIN_STATE(HVML_JSONEE_ATTRIBUTE_VALUE_UNQUOTED_STATE)
     ADVANCE_TO(HVML_JSONEE_ATTRIBUTE_VALUE_UNQUOTED_STATE);
 END_STATE()
 
-
+BEGIN_STATE(HVML_EJSON_DATA_STATE)
+    if (is_eof(character)) {
+        SET_ERR(PCHVML_ERROR_EOF_IN_TAG);
+        RETURN_NEW_EOF_TOKEN();
+    }
+    if (pchvml_parser_is_in_template(parser)) {
+        struct pcvcm_node* snode = pcvcm_node_new_concat_string(0,
+                NULL);
+        UPDATE_VCM_NODE(snode);
+        ejson_stack_push('T');
+        RESET_TEMP_BUFFER();
+        RESET_STRING_BUFFER();
+        RECONSUME_IN(HVML_EJSON_TEMPLATE_DATA_STATE);
+    }
+    if (is_whitespace (character) || character == 0xFEFF) {
+        ADVANCE_TO(HVML_EJSON_DATA_STATE);
+    }
+    RECONSUME_IN(HVML_EJSON_CONTROL_STATE);
+END_STATE()
 
 
 PCHVML_NEXT_TOKEN_END
