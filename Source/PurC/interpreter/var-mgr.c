@@ -267,8 +267,6 @@ enum purc_symbol_var _to_symbol(char symbol)
         return PURC_SYMBOL_VAR_QUESTION_MARK;
     case '^':
         return PURC_SYMBOL_VAR_CARET;
-    case '&':
-        return PURC_SYMBOL_VAR_AMPERSAND;
     case '@':
         return PURC_SYMBOL_VAR_AT_SIGN;
     case '!':

@@ -137,7 +137,6 @@ struct pcintr_stack {
 enum purc_symbol_var {
     PURC_SYMBOL_VAR_QUESTION_MARK = 0,  // ?
     PURC_SYMBOL_VAR_CARET,              // ^
-    PURC_SYMBOL_VAR_AMPERSAND,          // &
     PURC_SYMBOL_VAR_AT_SIGN,            // @
     PURC_SYMBOL_VAR_EXCLAMATION,        // !
     PURC_SYMBOL_VAR_COLON,              // :
