@@ -211,6 +211,7 @@ TEST_P(hvml_parser_next_token, parse_and_serialize)
     while((token = pchvml_next_token(parser, rws)) != NULL) {
         struct pchvml_buffer* token_buff = pchvml_token_to_string(token);
         if (token_buff) {
+//            PRINTF("token=%s|%s|\n", pchvml_token_get_type_name(token), pchvml_buffer_get_buffer(token_buff));
             pchvml_buffer_append_another(buffer, token_buff);
             pchvml_buffer_destroy(token_buff);
         }

@@ -53,7 +53,7 @@
 
 #define ERROR_BUF_SIZE  100
 
-#define HVML_DEBUG_PRINT
+//#define HVML_DEBUG_PRINT
 
 #ifdef HVML_DEBUG_PRINT
 #define PRINT_STATE(state_name)                                             \
@@ -687,13 +687,22 @@ BEGIN_STATE(HVML_TAG_CONTENT_STATE)
             RETURN_AND_STOP_PARSE();
         }
         RESET_TEMP_BUFFER();
-        parser->token = pchvml_token_new_vcm(parser->vcm_node);
-        RETURN_CURRENT_TOKEN();
+        parser->token = pchvml_token_new_vcm(node);
+        if (!parser->token) {
+            RETURN_AND_STOP_PARSE();
+        }
+    }
+    int state = HVML_TEXT_CONTENT_STATE;
+    if (character == '<') {
+        state = HVML_DATA_STATE;
     }
     if (pchvml_parser_is_in_json_content_tag(parser)) {
-        RECONSUME_IN(HVML_JSONTEXT_CONTENT_STATE);
+        state = HVML_JSONTEXT_CONTENT_STATE;
     }
-    RECONSUME_IN(HVML_TEXT_CONTENT_STATE);
+    if (parser->token) {
+        RETURN_AND_RECONSUME_IN(state);
+    }
+    RECONSUME_IN(state);
 END_STATE()
 
 BEGIN_STATE(HVML_TAG_NAME_STATE)
@@ -1725,7 +1734,7 @@ BEGIN_STATE(HVML_TEXT_CONTENT_STATE)
                 RETURN_AND_STOP_PARSE();
             }
             RESET_TEMP_BUFFER();
-            parser->token = pchvml_token_new_vcm(parser->vcm_node);
+            parser->token = pchvml_token_new_vcm(node);
             RETURN_AND_RECONSUME_IN(HVML_DATA_STATE);
         }
         RECONSUME_IN(HVML_DATA_STATE);
@@ -1741,7 +1750,7 @@ BEGIN_STATE(HVML_TEXT_CONTENT_STATE)
                 RETURN_AND_STOP_PARSE();
             }
             RESET_TEMP_BUFFER();
-            parser->token = pchvml_token_new_vcm(parser->vcm_node);
+            parser->token = pchvml_token_new_vcm(node);
             RETURN_CURRENT_TOKEN();
         }
         RESET_VCM_NODE();

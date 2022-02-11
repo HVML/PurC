@@ -352,6 +352,27 @@ enum pchvml_token_type pchvml_token_get_type(struct pchvml_token* token)
     return token->type;
 }
 
+const char* pchvml_token_get_type_name(struct pchvml_token* token)
+{
+    switch (token->type) {
+    case PCHVML_TOKEN_DOCTYPE:
+        return "PCHVML_TOKEN_DOCTYPE";
+    case PCHVML_TOKEN_START_TAG:
+        return "PCHVML_TOKEN_START_TAG";
+    case PCHVML_TOKEN_END_TAG:
+        return "PCHVML_TOKEN_END_TAG";
+    case PCHVML_TOKEN_COMMENT:
+        return "PCHVML_TOKEN_COMMENT";
+    case PCHVML_TOKEN_CHARACTER:
+        return "PCHVML_TOKEN_CHARACTER";
+    case PCHVML_TOKEN_VCM_TREE:
+        return "PCHVML_TOKEN_VCM_TREE";
+    case PCHVML_TOKEN_EOF:
+        return "PCHVML_TOKEN_EOF";
+    }
+    return "INVALID TOKEN TYPE";
+}
+
 struct pcvcm_node* pchvml_token_get_vcm_content(struct pchvml_token* token)
 {
     return token->vcm_content;

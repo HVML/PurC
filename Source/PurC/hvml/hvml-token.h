@@ -125,6 +125,8 @@ bool pchvml_token_is_type(struct pchvml_token* token,
 
 enum pchvml_token_type pchvml_token_get_type(struct pchvml_token* token);
 
+const char* pchvml_token_get_type_name(struct pchvml_token* token);
+
 struct pcvcm_node*
 pchvml_token_get_vcm_content(struct pchvml_token* token);
 
