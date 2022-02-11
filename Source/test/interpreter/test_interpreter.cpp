@@ -564,6 +564,16 @@ TEST(interpreter, basic)
     (void)fibonacci_1;
 
     const char *hvmls[] = {
+        "<hvml>"
+        "  <head>"
+        "  </head>"
+        "  <body>"
+        "    <div>"
+        "      <archetype name=\"foo\"><hoo><bar></bar><foobar></foobar></hoo></archetype>"
+        "      <update on=\"$@\" to=\"append\" with=\"$foo\" />"
+        "    </div>"
+        "  </body>"
+        "</hvml>",
         "<hvml><head x=\"y\">hello<xinit a=\"b\">world<!--yes-->solid</xinit></head><body><timeout1/><timeout3/></body></hvml>",
         "<hvml><head x=\"y\">hello<xinit a=\"b\">w<timeout3/>orld<!--yes-->solid</xinit></head><body><timeout1/></body></hvml>",
         "<hvml><body><timeout1/><timeout9/><timeout2/></body></hvml>",
