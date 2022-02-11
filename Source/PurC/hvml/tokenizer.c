@@ -831,6 +831,7 @@ BEGIN_STATE(HVML_BEFORE_ATTRIBUTE_VALUE_STATE)
         RETURN_AND_STOP_PARSE();
     }
     if (character == '"') {
+        RESET_TEMP_BUFFER();
         ADVANCE_TO(HVML_JSONEE_ATTRIBUTE_VALUE_DOUBLE_QUOTED_STATE);
     }
     if (character == '\'') {
@@ -1785,6 +1786,10 @@ BEGIN_STATE(HVML_JSONEE_ATTRIBUTE_VALUE_DOUBLE_QUOTED_STATE)
         RETURN_AND_STOP_PARSE();
     }
     if (character == '"') {
+        if (!IS_TEMP_BUFFER_EMPTY()) {
+            APPEND_BUFFER_TO_TOKEN_ATTR_VALUE(parser->temp_buffer);
+            RESET_TEMP_BUFFER();
+        }
         END_TOKEN_ATTR();
         ADVANCE_TO(HVML_AFTER_ATTRIBUTE_VALUE_STATE);
     }
@@ -1796,7 +1801,7 @@ BEGIN_STATE(HVML_JSONEE_ATTRIBUTE_VALUE_DOUBLE_QUOTED_STATE)
         bool handle = pchvml_parser_is_handle_as_jsonee(parser->token,
                 character);
         bool buffer_is_white = pchvml_buffer_is_whitespace(
-                parser->string_buffer);
+                parser->temp_buffer);
         if (handle && buffer_is_white) {
             ejson_stack_push('"');
             RESET_TEMP_BUFFER();
@@ -1810,10 +1815,8 @@ BEGIN_STATE(HVML_JSONEE_ATTRIBUTE_VALUE_DOUBLE_QUOTED_STATE)
                 NULL);
         UPDATE_VCM_NODE(snode);
         ejson_stack_push('"');
-        if (!pchvml_buffer_is_empty(parser->string_buffer)) {
-            struct pcvcm_node* node = pcvcm_node_new_string(
-                    pchvml_buffer_get_buffer(parser->string_buffer)
-                    );
+        if (!IS_TEMP_BUFFER_EMPTY()) {
+            struct pcvcm_node* node = TEMP_BUFFER_TO_VCM_NODE();
             APPEND_AS_VCM_CHILD(node);
             RESET_TEMP_BUFFER();
         }
