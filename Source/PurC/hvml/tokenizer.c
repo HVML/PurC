@@ -53,7 +53,7 @@
 
 #define ERROR_BUF_SIZE  100
 
-//#define HVML_DEBUG_PRINT
+#define HVML_DEBUG_PRINT
 
 #ifdef HVML_DEBUG_PRINT
 #define PRINT_STATE(state_name)                                             \
@@ -296,6 +296,16 @@ next_state:                                                             \
 #define APPEND_TO_QUOTED_BUFFER(uc)                                         \
     do {                                                                    \
         pchvml_buffer_append(parser->quoted_buffer, uc);                    \
+    } while (false)
+
+#define RESET_CHARACTER_REFERENCE_BUFFER()                                  \
+    do {                                                                    \
+        pchvml_buffer_reset(parser->character_reference_buffer);            \
+    } while (false)
+
+#define APPEND_TO_CHARACTER_REFERENCE_BUFFER(uc)                            \
+    do {                                                                    \
+        pchvml_buffer_append(parser->character_reference_buffer, uc);       \
     } while (false)
 
 #define APPEND_TO_TOKEN_NAME(uc)                                            \
@@ -1410,8 +1420,8 @@ BEGIN_STATE(HVML_CDATA_SECTION_END_STATE)
 END_STATE()
 
 BEGIN_STATE(HVML_CHARACTER_REFERENCE_STATE)
-    RESET_TEMP_BUFFER();
-    APPEND_TO_TEMP_BUFFER('&');
+    RESET_CHARACTER_REFERENCE_BUFFER();
+    APPEND_TO_CHARACTER_REFERENCE_BUFFER('&');
     if (is_ascii_alpha_numeric(character)) {
         RECONSUME_IN(HVML_NAMED_CHARACTER_REFERENCE_STATE);
     }
@@ -1419,9 +1429,8 @@ BEGIN_STATE(HVML_CHARACTER_REFERENCE_STATE)
         APPEND_TO_TEMP_BUFFER(character);
         ADVANCE_TO(HVML_NUMERIC_CHARACTER_REFERENCE_STATE);
     }
-    // FIXME: character reference in attribute value
-    APPEND_TEMP_BUFFER_TO_TOKEN_TEXT();
-    RESET_TEMP_BUFFER();
+    APPEND_BUFFER_TO_TEMP_BUFFER(parser->character_reference_buffer);
+    RESET_CHARACTER_REFERENCE_BUFFER();
     RECONSUME_IN(parser->return_state);
 END_STATE()
 
@@ -1437,12 +1446,12 @@ BEGIN_STATE(HVML_NAMED_CHARACTER_REFERENCE_STATE)
         for (size_t i = 0; i < length; i++) {
             uint32_t uc = (uint32_t)(uintptr_t) pcutils_arrlist_get_idx(
                     ucs, i);
-            APPEND_TO_TEMP_BUFFER(uc);
+            APPEND_TO_CHARACTER_REFERENCE_BUFFER(uc);
         }
         pchvml_sbst_destroy(parser->sbst);
         parser->sbst = NULL;
-        APPEND_TEMP_BUFFER_TO_TOKEN_TEXT();
-        RESET_TEMP_BUFFER();
+        APPEND_BUFFER_TO_TEMP_BUFFER(parser->character_reference_buffer);
+        RESET_CHARACTER_REFERENCE_BUFFER();
         ADVANCE_TO(HVML_AMBIGUOUS_AMPERSAND_STATE);
     }
 
@@ -1453,8 +1462,8 @@ BEGIN_STATE(HVML_NAMED_CHARACTER_REFERENCE_STATE)
     if (character != ';') {
         ADVANCE_TO(HVML_NAMED_CHARACTER_REFERENCE_STATE);
     }
-    RESET_TEMP_BUFFER();
-    APPEND_BYTES_TO_TOKEN_TEXT(value, strlen(value));
+    APPEND_BYTES_TO_TEMP_BUFFER(value, strlen(value));
+    RESET_CHARACTER_REFERENCE_BUFFER();
 
     pchvml_sbst_destroy(parser->sbst);
     parser->sbst = NULL;
@@ -1481,7 +1490,7 @@ END_STATE()
 BEGIN_STATE(HVML_NUMERIC_CHARACTER_REFERENCE_STATE)
     parser->char_ref_code = 0;
     if (character == 'x' || character == 'X') {
-        APPEND_TO_TEMP_BUFFER(character);
+        APPEND_TO_CHARACTER_REFERENCE_BUFFER(character);
         ADVANCE_TO(HVML_HEXADECIMAL_CHARACTER_REFERENCE_START_STATE);
     }
     RECONSUME_IN(HVML_DECIMAL_CHARACTER_REFERENCE_START_STATE);
@@ -1572,9 +1581,9 @@ BEGIN_STATE(HVML_NUMERIC_CHARACTER_REFERENCE_END_STATE)
         }
         RETURN_AND_STOP_PARSE();
     }
-    RESET_TEMP_BUFFER();
     uc = parser->char_ref_code;
-    APPEND_TO_TOKEN_TEXT(uc);
+    APPEND_TO_TEMP_BUFFER(uc);
+    RESET_CHARACTER_REFERENCE_BUFFER();
     RECONSUME_IN(parser->return_state);
 END_STATE()
 

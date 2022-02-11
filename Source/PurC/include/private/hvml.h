@@ -45,6 +45,7 @@ struct pchvml_parser {
     struct pchvml_buffer* tag_name;
     struct pchvml_buffer* string_buffer;
     struct pchvml_buffer* quoted_buffer;
+    struct pchvml_buffer* character_reference_buffer;
     struct pchvml_token* token;
     struct pchvml_sbst* sbst;
     struct pcvcm_node* vcm_node;
