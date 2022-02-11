@@ -102,6 +102,8 @@ next_state:                                                             \
 #define TEMP_BUFFER_TO_VCM_NODE()                                       \
         pchvml_buffer_to_vcm_node(parser->temp_buffer)
 
+#define HVML_DEBUG_PRINT
+
 #ifdef HVML_DEBUG_PRINT
 #define PRINT_STATE(state_name)                                             \
     fprintf(stderr, \
@@ -639,8 +641,7 @@ END_STATE()
 
 BEGIN_STATE(HVML_TAG_CONTENT_STATE)
     if (is_eof(character)) {
-        SET_ERR(PCHVML_ERROR_EOF_BEFORE_TAG_NAME);
-        RETURN_AND_STOP_PARSE();
+        RETURN_NEW_EOF_TOKEN();
     }
     if (is_whitespace(character)) {
         APPEND_TO_TEMP_BUFFER(character);
