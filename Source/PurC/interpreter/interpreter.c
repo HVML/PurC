@@ -1575,12 +1575,7 @@ pcintr_edom_from_skeleton_vdom(pcintr_stack_t stack)
         if (r)
             break;
         r = pchtml_html_parse_fragment_chunk_process_with_format(parser,
-                ">");
-        if (r)
-            break;
-
-        r = pchtml_html_parse_fragment_chunk_process(parser,
-                (const unsigned char*)"", 1);
+                "/>");
     } while (0);
 
     pcdom_node_t *node;
