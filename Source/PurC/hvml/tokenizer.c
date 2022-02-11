@@ -53,7 +53,7 @@
 
 #define ERROR_BUF_SIZE  100
 
-#define HVML_DEBUG_PRINT
+//#define HVML_DEBUG_PRINT
 
 #ifdef HVML_DEBUG_PRINT
 #define PRINT_STATE(state_name)                                             \

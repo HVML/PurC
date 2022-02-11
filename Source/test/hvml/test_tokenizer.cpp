@@ -241,6 +241,11 @@ TEST_P(hvml_parser_next_token, parse_and_serialize)
     const char* serial = pchvml_buffer_get_buffer(buffer);
     char* result = strdup(serial);
 //    PRINTF("serial : %s", serial);
+#if 0
+    FILE* fp = fopen("pp", "w");
+    fprintf(fp, "%s", serial);
+    fclose(fp);
+#endif
     ASSERT_STREQ(trim(result), comp) << "Test Case : "<< get_name();
     free(result);
 
