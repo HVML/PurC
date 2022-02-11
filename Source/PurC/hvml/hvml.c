@@ -57,9 +57,9 @@
             curr_state_name, character, character,                          \
             ejson_stack_is_empty(), (char)ejson_stack_top(),                \
             (parser->vcm_node != NULL ? (int)parser->vcm_node->type : -1));
+
 #define SET_ERR(err)    do {                                                \
-    fprintf(stderr, "error %s:%d %s\n", __FILE__, __LINE__,                 \
-            pchvml_get_error_name(err));                                    \
+    fprintf(stderr, "%s:%d|%s\n", __FILE__, __LINE__, #err);                \
     pcinst_set_error (err);                                                 \
 } while (0)
 #else

@@ -73,8 +73,7 @@
                 parser->curr_uc->column,                                    \
                 parser->curr_uc->character);                                \
         exinfo = purc_variant_make_string(buf, false);                      \
-        fprintf(stderr, "error %s:%d|%s|%s\n", __FILE__, __LINE__,          \
-            pchvml_get_error_name(err), buf);                               \
+        fprintf(stderr, "%s:%d|%s|%s\n", __FILE__, __LINE__, #err, buf);    \
     }                                                                       \
     purc_set_error_exinfo(err, exinfo);                                     \
 } while (0)

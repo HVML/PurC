@@ -175,7 +175,7 @@ struct pchvml_parser {
     bool tag_is_operation;
 };
 
-//#define USE_NEW_TOKENIZER
+#define USE_NEW_TOKENIZER
 
 #ifdef __cplusplus
 extern "C" {
@@ -192,8 +192,6 @@ void pchvml_destroy(struct pchvml_parser* parser);
 
 struct pchvml_token* pchvml_next_token (struct pchvml_parser* hvml,
                                           purc_rwstream_t rws);
-
-const char* pchvml_get_error_name(int err);
 
 #ifdef __cplusplus
 }
