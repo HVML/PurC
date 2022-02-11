@@ -833,7 +833,7 @@ dump_c_stack(void)
 }
 
 int
-pcintr_check_normal_element(pcintr_stack_t stack)
+pcintr_check_insertion_mode_for_normal_element(pcintr_stack_t stack)
 {
     PC_ASSERT(stack);
 

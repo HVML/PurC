@@ -37,7 +37,7 @@
 PCA_EXTERN_C_BEGIN
 
 int
-pcintr_check_normal_element(pcintr_stack_t stack);
+pcintr_check_insertion_mode_for_normal_element(pcintr_stack_t stack);
 
 typedef int (*pcintr_attr_f)(struct pcintr_stack_frame *frame,
         struct pcvdom_element *element,
