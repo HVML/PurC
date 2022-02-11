@@ -83,6 +83,16 @@ struct pcintr_loaded_var {
     purc_variant_t              val;
 };
 
+enum pcintr_stack_vdom_insertion_mode {
+    STACK_VDOM_BEFORE_HVML,
+    STACK_VDOM_BEFORE_HEAD,
+    STACK_VDOM_IN_HEAD,
+    STACK_VDOM_AFTER_HEAD,
+    STACK_VDOM_IN_BODY,
+    STACK_VDOM_AFTER_BODY,
+    STACK_VDOM_AFTER_HVML,
+};
+
 struct pcintr_stack {
     struct list_head frames;
 
@@ -91,6 +101,8 @@ struct pcintr_stack {
 
     // the pointer to the vDOM tree.
     purc_vdom_t vdom;
+
+    enum pcintr_stack_vdom_insertion_mode        mode;
 
     // the returned variant
     purc_variant_t ret_var;

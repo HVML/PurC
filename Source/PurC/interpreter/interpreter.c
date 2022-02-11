@@ -462,6 +462,7 @@ stack_init(pcintr_stack_t stack)
     INIT_LIST_HEAD(&stack->frames);
     stack->stage = STACK_STAGE_FIRST_ROUND;
     stack->loaded_vars = RB_ROOT;
+    stack->mode = STACK_VDOM_BEFORE_HVML;
 }
 
 void pcintr_stack_cleanup_instance(struct pcinst* inst)
@@ -829,6 +830,42 @@ dump_c_stack(void)
     struct pcinst *inst = pcinst_current();
     fprintf(stderr, "dumping stacks of purc instance [%p]......\n", inst);
     pcinst_dump_stack();
+}
+
+int
+pcintr_check_normal_element(pcintr_stack_t stack)
+{
+    PC_ASSERT(stack);
+
+    if (stack->stage != STACK_STAGE_FIRST_ROUND)
+        return 0;
+
+    switch (stack->mode) {
+        case STACK_VDOM_BEFORE_HVML:
+            PC_ASSERT(0);
+            break;
+        case STACK_VDOM_BEFORE_HEAD:
+            stack->mode = STACK_VDOM_IN_BODY;
+            break;
+        case STACK_VDOM_IN_HEAD:
+            break;
+        case STACK_VDOM_AFTER_HEAD:
+            stack->mode = STACK_VDOM_IN_BODY;
+            break;
+        case STACK_VDOM_IN_BODY:
+            break;
+        case STACK_VDOM_AFTER_BODY:
+            PC_ASSERT(0);
+            break;
+        case STACK_VDOM_AFTER_HVML:
+            PC_ASSERT(0);
+            break;
+        default:
+            PC_ASSERT(0);
+            break;
+    }
+
+    return 0;
 }
 
 static void

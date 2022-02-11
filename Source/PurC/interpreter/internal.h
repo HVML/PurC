@@ -36,6 +36,9 @@
 
 PCA_EXTERN_C_BEGIN
 
+int
+pcintr_check_normal_element(pcintr_stack_t stack);
+
 typedef int (*pcintr_attr_f)(struct pcintr_stack_frame *frame,
         struct pcvdom_element *element,
         purc_atom_t name, purc_variant_t val,
