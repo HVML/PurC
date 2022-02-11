@@ -1,8 +1,8 @@
 #hvml_001_normal_tag
 #hvml_002_format_tag
 #hvml_003_character
-hvml_004_char_ref
-#hvml_005_char_ref_number
+#hvml_004_char_ref
+hvml_005_char_ref_number
 #hvml_006_multiple_char_ref
 #hvml_007_self_close
 #hvml_008_multiple_self_close
