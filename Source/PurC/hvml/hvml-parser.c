@@ -85,7 +85,7 @@ struct pchvml_parser* pchvml_create(uint32_t flags, size_t queue_size)
 
     struct pchvml_parser* parser = (struct pchvml_parser*) PCHVML_ALLOC(
             sizeof(struct pchvml_parser));
-    parser->state = PCHVML_DATA_STATE;
+    parser->state = 0;
     parser->rwswrap = pchvml_rwswrap_new ();
     parser->temp_buffer = pchvml_buffer_new ();
     parser->tag_name = pchvml_buffer_new ();
@@ -103,7 +103,7 @@ void pchvml_reset(struct pchvml_parser* parser, uint32_t flags,
     UNUSED_PARAM(flags);
     UNUSED_PARAM(queue_size);
 
-    parser->state = PCHVML_DATA_STATE;
+    parser->state = 0;
     pchvml_rwswrap_destroy (parser->rwswrap);
     parser->rwswrap = pchvml_rwswrap_new ();
     pchvml_buffer_reset (parser->temp_buffer);

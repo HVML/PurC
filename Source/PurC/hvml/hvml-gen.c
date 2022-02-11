@@ -230,7 +230,7 @@ set_parser_state_if_necessary(struct pcvdom_gen *gen)
 
     struct pcvdom_element *elem = top_element(gen);
     if (is_element_of_hvml_data_cat(elem)) {
-        gen->parser->state = PCHVML_EJSON_DATA_STATE;
+        pchvml_switch_to_ejson_state(gen->parser);
     }
 }
 
