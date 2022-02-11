@@ -1,0 +1,5 @@
+<hvml>
+    <archetype>
+        $VARABC <$TAG>abcdef</$TAG>
+    </archetype>
+</hvml>

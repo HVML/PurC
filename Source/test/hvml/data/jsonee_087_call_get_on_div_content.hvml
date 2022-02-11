@@ -1,0 +1,30 @@
+<hvml>
+    <init>
+        { "key": 1}
+    </init>
+    <div>
+        $SYSTEM.time
+    </div>
+    <div>
+        { $SYSTEM.time }
+    </div>
+    <div>
+        {$SYSTEM.time}
+    </div>
+    <div>
+        { "key": 1}
+    </div>
+    <div>
+        { "key": $SYSTEM.time.tm }
+    </div>
+    <div>
+        { "key": $SYSTEM.time("tm") }
+    </div>
+    <div>
+        { "key": $SYSTEM.time(!"tm") }
+    </div>
+    <div>
+        { "key": $SYSTEM.time({"a":1}, [1, 2,3]) }
+    </div>
+</hvml>
+

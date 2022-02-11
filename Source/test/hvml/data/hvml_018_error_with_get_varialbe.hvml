@@ -1,0 +1,5 @@
+<hvml>
+    <error>
+        $VARABC <tag>abcdef</tag>
+    </error>
+</hvml>
