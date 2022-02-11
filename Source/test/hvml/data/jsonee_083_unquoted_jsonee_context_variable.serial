@@ -1,1 +1,7 @@
- 
+<hvml>
+    <body>
+        <observe on=".avatar" for="clicked" to="load">
+            <load on="user.hvml" with=make_object("id",get_element(get_element(get_variable("@"),"attr"),"data-value")) as="_modal"/>
+        </observe>
+    </body>
+</hvml>

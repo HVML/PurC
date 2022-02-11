@@ -1,1 +1,66 @@
- 
+<hvml lang="en">
+    <head>
+        <connect at="tcp://foo.bar.com:1366" as="mqtt" for="MQTT"/>
+    </head>
+
+    <body>
+        <send on=concat_string(get_variable("mqtt")) to="subscribe" at="newUser" as="new_user"/>
+        <send on=concat_string(get_variable("mqtt")) to="subscribe" at="deleteUser" as="del_user"/>
+
+        <observe on=get_variable("mqtt") for=concat_string("event:",get_variable("new_user")) to="iterate">
+            <iterate on=get_variable("?") to="append" in="#the-user-list" with=get_variable("user_item") by="CLASS: IUser">
+                <error type="notready">concat_string("
+                    <img src="wait.gif" />
+                ")</error>
+                <except>concat_string("
+                    <p>Bad user data!","</p>
+                ")</except>
+            </iterate>
+        </observe>
+
+        <observe on=get_variable("mqtt") for=concat_string("event:",get_variable("del_user")) to="iterate">
+            <iterate on=get_variable("?") to="erase" in="#the-user-list" by="RANGE: 0">
+                <erase on=concat_string("#user-",get_element(get_variable("?"),"id"))/>
+            </iterate>
+        </observe>
+
+        <div id="the-user-statistics">
+            <h2>User regions (totally <span></span> users):</h2>
+            <dl>
+            </dl>
+        </div>
+
+        <archetype id="region-to-users">concat_string("
+            <div>
+                ","<dt>",get_variable(":"),"</dt>
+                ","<dd>",get_variable("="),"</dd>
+            ","</div>
+        ")</archetype>
+
+        <archedata name="item_user">
+            make_object("id",concat_string(get_element(get_element(get_variable("?"),"attr"),"data-value")),"avatar",concat_string(get_element(get_element(get_element(get_element(get_variable("?"),"content"),0),"attr"),"src")),"name",concat_string(get_element(get_element(get_element(get_variable("?"),"content"),1),"textContent")),"region",concat_string(get_element(get_element(get_variable("?"),"attr"),"data-region")))
+        </archedata>
+
+        <observe on="#the-user-list" for="change:content" to="iterate">
+
+            <init as="users">
+                make_array()
+            </init>
+
+            <iterate on=get_variable("@") to="append" in=concat_string(get_variable("users")) with=get_variable("item_user") by="TRAVEL: BREADTH">
+            </iterate>
+
+            <reduce on=get_variable("users") to="choose clear iterate" in="#the-user-statistics" by="CLASS: RUserRegionStats">
+                <choose on=get_variable("?") to="update" in="> h2 > span" by="KEY: 'count'">
+                    <update on=get_variable("@") textContent=concat_string(get_variable("?"))/>
+                </choose>
+                <clear in="#the-user-statistics > dl"/>
+                <iterate on=get_element(get_variable("?"),"regions") to="append" in="> dl" with="#region-to-users" by="KEY: ALL" ascendingly>
+                </iterate>
+            </reduce>
+
+        </observe>
+
+    </body>
+</hvml>
+

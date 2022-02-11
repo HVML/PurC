@@ -1,1 +1,1 @@
- 
+<hvml ejson=call_getter(get_variable("EJSON"),make_array("￿"))></hvml>

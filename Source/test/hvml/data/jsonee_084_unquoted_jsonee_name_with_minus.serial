@@ -1,1 +1,5 @@
- 
+<!DOCTYPE hvml>
+<hvml>
+    <iterate on=get_variable("users-item")>
+    </iterate>
+</hvml>

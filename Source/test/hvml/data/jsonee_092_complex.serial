@@ -1,1 +1,4 @@
- 
+<hvml>
+    <test on=get_element(get_element(get_variable("buttons"),call_getter(get_element(get_variable("SYSTEM"),"random"),call_getter(get_element(get_variable("EJSON"),"count"),get_variable("buttons")))),"letters")>
+    </test>
+</hvml>

@@ -1,1 +1,26 @@
- 
+<hvml>
+    <div>
+        this is syste.time get_element(get_variable("SYSTEM"),"time") and something. get_variable("abc")
+    </div>
+    <div>
+        this is syste.time call_getter(get_element(get_variable("SYSTEM"),"time"),"tm",get_variable("ABC"),make_object("key",123),make_array(1,2,3),make_array(call_getter(get_variable("A"),"xyz"),get_element(get_variable("B"),"b"),get_element(get_variable("C"),"a"))) this is after function call.
+    </div>
+    <div>
+        this is syste.time call_getter(get_element(get_variable("SYSTEM"),"time"),"tm",get_variable("ABC"),make_object("key",123),make_array(1,2,3),make_array(call_getter(get_variable("A"),"xyz"),get_element(get_variable("B"),"b"),get_element(get_variable("C"),"a"))) this is after function call.
+        <p>this is a p.</p>
+        this is after p get_element(get_variable("AAA"),"BB") after variant.
+    </div>
+    <div>
+        this is syste.time call_getter(get_element(get_variable("SYSTEM"),"time"),"tm",get_variable("ABC"),make_object("key",123),make_array(1,2,3),make_array(call_getter(get_variable("A"),"xyz"),get_element(get_variable("B"),"b"),get_element(get_variable("C"),"a"))) this is after function call.
+    </div>
+    <div>
+        this is syste.time get_element(get_variable("SYSTEM"),"time")and something. get_variable("abc")
+    </div>
+    <div>
+        this is syste.time {"key":123, "aaa":456, get_variable("AKEY"):123} and something.
+    </div>
+    <div>
+        get_element(get_variable("VAR"),1)
+    </div>
+    <div>get_element(get_variable("VAR"),1)</div>
+</hvml>

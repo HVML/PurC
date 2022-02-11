@@ -1,1 +1,29 @@
- 
+<hvml>
+    <init>
+        make_object("key",1)
+    </init>
+    <div>
+        get_element(get_variable("SYSTEM"),"time")
+    </div>
+    <div>
+        { get_element(get_variable("SYSTEM"),"time") }
+    </div>
+    <div>
+        get_element(get_variable("SYSTEM"),"time")
+    </div>
+    <div>
+        { "key": 1}
+    </div>
+    <div>
+        { "key": get_element(get_element(get_variable("SYSTEM"),"time"),"tm") }
+    </div>
+    <div>
+        { "key": call_getter(get_element(get_variable("SYSTEM"),"time"),"tm") }
+    </div>
+    <div>
+        { "key": call_setter(get_element(get_variable("SYSTEM"),"time"),"tm") }
+    </div>
+    <div>
+        { "key": call_getter(get_element(get_variable("SYSTEM"),"time"),make_object("a",1),make_array(1,2,3)) }
+    </div>
+</hvml>

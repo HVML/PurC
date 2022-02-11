@@ -1,1 +1,5 @@
- 
+<hvml>
+    <init as="expression">
+        "0"
+    </init>
+</hvml>

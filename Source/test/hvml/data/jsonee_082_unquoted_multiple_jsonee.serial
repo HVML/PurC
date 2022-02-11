@@ -1,1 +1,7 @@
- 
+<hvml>
+    <body>
+        <observe on=get_variable("_TIMERS") for="foo" to="update" in="#the-header">
+            <update on="> span.local-time" textContent=call_getter(get_element(get_variable("_SYSTEM"),"time"),"%H:%m")/>
+        </observe>
+    </body>
+</hvml>

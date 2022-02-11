@@ -1,1 +1,1 @@
- 
+<hvml name=concat_string("test string with jsonee ",get_element(get_variable("VAR"),"BBB"))></hvml>
