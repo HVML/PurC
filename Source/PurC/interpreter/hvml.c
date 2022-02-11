@@ -97,9 +97,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     frame->ctxt = ctxt;
     frame->ctxt_destroy = ctxt_destroy;
 
-    if (pcintr_set_symbol_var_at_sign())
-        return NULL;
-
     struct pcvdom_element *element = frame->pos;
     PC_ASSERT(element);
 

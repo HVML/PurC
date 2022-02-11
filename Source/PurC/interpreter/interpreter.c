@@ -572,6 +572,21 @@ set_result_var(struct pcintr_stack_frame *frame,
 }
 
 static int
+set_at_var(struct pcintr_stack_frame *frame,
+    struct pcintr_stack_frame *parent)
+{
+    if (parent->edom_element) {
+        purc_variant_t at = pcdvobjs_make_elements(parent->edom_element);
+        if (at == PURC_VARIANT_INVALID)
+            return -1;
+        PURC_VARIANT_SAFE_CLEAR(frame->symbol_vars[PURC_SYMBOL_VAR_AT_SIGN]);
+        frame->symbol_vars[PURC_SYMBOL_VAR_AT_SIGN] = at;
+    }
+
+    return 0;
+}
+
+static int
 set_symbol_vars(struct pcintr_stack_frame *frame)
 {
     struct pcintr_stack_frame *parent;
@@ -584,6 +599,8 @@ set_symbol_vars(struct pcintr_stack_frame *frame)
     if (set_idx_var(frame, parent))
         return -1;
     if (set_result_var(frame, parent))
+        return -1;
+    if (set_at_var(frame, parent))
         return -1;
 
     return 0;
@@ -1587,27 +1604,6 @@ pcintr_printf_vcm_content_to_edom(pcintr_stack_t stack, purc_variant_t vcm)
     purc_variant_unref(v);
     if (r)
         return -1;
-
-    return 0;
-}
-
-int
-pcintr_set_symbol_var_at_sign(void)
-{
-    pcintr_stack_t stack = purc_get_stack();
-    PC_ASSERT(stack);
-
-    struct pcintr_stack_frame *frame;
-    frame = pcintr_stack_get_bottom_frame(stack);
-    PC_ASSERT(frame);
-    PC_ASSERT(frame->scope);
-
-    // purc_variant_t at = pcdvobjs_make_element_variant(frame->edom_element);
-    purc_variant_t at = pcdvobjs_make_elements(frame->edom_element);
-    if (at == PURC_VARIANT_INVALID)
-        return -1;
-    PURC_VARIANT_SAFE_CLEAR(frame->symbol_vars[PURC_SYMBOL_VAR_AT_SIGN]);
-    frame->symbol_vars[PURC_SYMBOL_VAR_AT_SIGN] = at;
 
     return 0;
 }

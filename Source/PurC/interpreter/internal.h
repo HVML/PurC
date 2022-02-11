@@ -58,9 +58,6 @@ pcintr_set_base_uri(pcintr_stack_t stack, const char* base_uri);
 purc_variant_t
 pcintr_load_from_uri(pcintr_stack_t stack, const char* uri);
 
-int
-pcintr_set_symbol_var_at_sign(void);
-
 purc_variant_t
 pcintr_doc_query(purc_vdom_t vdom, const char* css);
 

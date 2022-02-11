@@ -209,9 +209,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     frame->pos = pos; // ATTENTION!!
 
-    if (pcintr_set_symbol_var_at_sign())
-        return NULL;
-
     struct ctxt_for_match *ctxt;
     ctxt = (struct ctxt_for_match*)calloc(1, sizeof(*ctxt));
     if (!ctxt) {
