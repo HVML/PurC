@@ -51,11 +51,58 @@
 #include <stdlib.h>
 #endif
 
+#define ERROR_BUF_SIZE  100
+
+//#define HVML_DEBUG_PRINT
+
+#ifdef HVML_DEBUG_PRINT
+#define PRINT_STATE(state_name)                                             \
+    fprintf(stderr, \
+            "in %s|uc=%c|hex=0x%X|stack_is_empty=%d|stack_top=%c|vcm_node->type=%d\n",                              \
+            pchvml_get_state_name(state_name), character, character,     \
+            ejson_stack_is_empty(), (char)ejson_stack_top(),                \
+            (parser->vcm_node != NULL ? (int)parser->vcm_node->type : -1));
+
+#define SET_ERR(err)    do {                                                \
+    purc_variant_t exinfo = PURC_VARIANT_INVALID;                           \
+    if (parser->curr_uc) {                                                  \
+        char buf[ERROR_BUF_SIZE+1];                                         \
+        snprintf(buf, ERROR_BUF_SIZE,                                       \
+                "line=%d, column=%d, character=%c",                         \
+                parser->curr_uc->line,                                      \
+                parser->curr_uc->column,                                    \
+                parser->curr_uc->character);                                \
+        exinfo = purc_variant_make_string(buf, false);                      \
+        fprintf(stderr, "error %s:%d|%s|%s\n", __FILE__, __LINE__,          \
+            pchvml_get_error_name(err), buf);                               \
+    }                                                                       \
+    purc_set_error_exinfo(err, exinfo);                                     \
+} while (0)
+
+#else /* HVML_DEBUG_PRINT */
+
+#define PRINT_STATE(state_name)
+
+#define SET_ERR(err)    do {                                                \
+    purc_variant_t exinfo = PURC_VARIANT_INVALID;                           \
+    if (parser->curr_uc) {                                                  \
+        char buf[ERROR_BUF_SIZE+1];                                         \
+        snprintf(buf, ERROR_BUF_SIZE,                                       \
+                "line:%d, column:%d, character=%c",                         \
+                parser->curr_uc->line,                                      \
+                parser->curr_uc->column,                                    \
+                parser->curr_uc->character);                                \
+        exinfo = purc_variant_make_string(buf, false);                      \
+    }                                                                       \
+    purc_set_error_exinfo(err, exinfo);                                     \
+} while (0)
+
+#endif  /* HVML_DEBUG_PRINT */
+
 #define PCHVML_NEXT_TOKEN_BEGIN                                         \
 struct pchvml_token* pchvml_next_token(struct pchvml_parser* parser,    \
                                           purc_rwstream_t rws)          \
 {                                                                       \
-    struct pchvml_uc* hvml_uc = NULL;                                   \
     uint32_t character = 0;                                             \
     if (parser->token) {                                                \
         struct pchvml_token* token = parser->token;                     \
@@ -66,12 +113,12 @@ struct pchvml_token* pchvml_next_token(struct pchvml_parser* parser,    \
     pchvml_rwswrap_set_rwstream (parser->rwswrap, rws);                 \
                                                                         \
 next_input:                                                             \
-    hvml_uc = pchvml_rwswrap_next_char (parser->rwswrap);               \
-    if (!hvml_uc) {                                                     \
+    parser->curr_uc = pchvml_rwswrap_next_char (parser->rwswrap);       \
+    if (!parser->curr_uc) {                                             \
         return NULL;                                                    \
     }                                                                   \
                                                                         \
-    character = hvml_uc->character;                                     \
+    character = parser->curr_uc->character;                             \
     if (character == PCHVML_INVALID_CHARACTER) {                        \
         SET_ERR(PCHVML_ERROR_INVALID_UTF8_CHARACTER);                   \
         return NULL;                                                    \
@@ -101,25 +148,6 @@ next_state:                                                             \
 
 #define TEMP_BUFFER_TO_VCM_NODE()                                       \
         pchvml_buffer_to_vcm_node(parser->temp_buffer)
-
-#define HVML_DEBUG_PRINT
-
-#ifdef HVML_DEBUG_PRINT
-#define PRINT_STATE(state_name)                                             \
-    fprintf(stderr, \
-            "in %s|uc=%c|hex=0x%X|stack_is_empty=%d|stack_top=%c|vcm_node->type=%d\n",                              \
-            pchvml_get_state_name(state_name), character, character,     \
-            ejson_stack_is_empty(), (char)ejson_stack_top(),                \
-            (parser->vcm_node != NULL ? (int)parser->vcm_node->type : -1));
-#define SET_ERR(err)    do {                                                \
-    fprintf(stderr, "error %s:%d %s\n", __FILE__, __LINE__,                 \
-            pchvml_get_error_name(err));                                    \
-    pcinst_set_error (err);                                                 \
-} while (0)
-#else
-#define PRINT_STATE(state_name)
-#define SET_ERR(err)    pcinst_set_error(err)
-#endif
 
 #define ejson_stack_is_empty()  pcutils_stack_is_empty(parser->ejson_stack)
 #define ejson_stack_top()  pcutils_stack_top(parser->ejson_stack)

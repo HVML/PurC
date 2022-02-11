@@ -149,6 +149,7 @@ enum pchvml_state {
 #define PCHVML_STATE_NR \
         (PCHVML_LAST_STATE - PCHVML_FIRST_STATE + 1)
 
+struct pchvml_uc;
 struct pchvml_buffer;
 struct pchvml_token;
 struct pchvml_rwswrap;
@@ -158,6 +159,7 @@ struct pchvml_parser {
     int state;
     int return_state;
     int transit_state;
+    struct pchvml_uc* curr_uc;
     struct pchvml_rwswrap* rwswrap;
     struct pchvml_buffer* temp_buffer;
     struct pchvml_buffer* tag_name;
