@@ -1431,10 +1431,14 @@ pcintr_parse_fragment(pcintr_stack_t stack,
     }
 
     r = pchtml_html_parse_fragment_chunk_process(parser,
-            (const unsigned char*)fragment_chunk, sz);
+            (const unsigned char*)"<foo>", 5);
     if (r == 0) {
         r = pchtml_html_parse_fragment_chunk_process(parser,
-                (const unsigned char*)"", 1);
+                (const unsigned char*)fragment_chunk, sz);
+    }
+    if (r == 0) {
+        r = pchtml_html_parse_fragment_chunk_process(parser,
+                (const unsigned char*)"</foo>", 6);
     }
 
     pcdom_node_t *node;
@@ -1453,7 +1457,15 @@ pcintr_parse_fragment(pcintr_stack_t stack,
         return NULL;
     }
 
-    return node;
+    pcdom_node_t *child = node->first_child;
+    PC_ASSERT(child);
+    pcdom_node_remove(child);
+    PC_ASSERT(node->first_child == NULL);
+    PC_ASSERT(node->last_child == NULL);
+    PC_ASSERT(child->parent == NULL);
+    pcdom_node_destroy_deep(node);
+
+    return child;
 }
 
 int
