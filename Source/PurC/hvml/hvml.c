@@ -53,8 +53,8 @@
 #ifdef HVML_DEBUG_PRINT
 #define PRINT_STATE(state_name)                                             \
     fprintf(stderr, \
-            "in %s|uc=%c|hex=0x%X|stack_is_empty=%d|stack_top=%c|vcm_node->type=%d\n",                              \
-            pchvml_get_state_name(state_name), character, character,     \
+            "in %s|uc=%c|hex=0x%X|stack_is_empty=%d|stack_top=%c|vcm_node->type=%d\n", \
+            curr_state_name, character, character,                          \
             ejson_stack_is_empty(), (char)ejson_stack_top(),                \
             (parser->vcm_node != NULL ? (int)parser->vcm_node->type : -1));
 #define SET_ERR(err)    do {                                                \
@@ -88,7 +88,9 @@
 #define BEGIN_STATE(state_name)                                             \
     case state_name:                                                        \
     {                                                                       \
+        const char* curr_state_name = ""#state_name;                        \
         enum pchvml_state curr_state = state_name;                          \
+        UNUSED_PARAM(curr_state_name);                                      \
         UNUSED_PARAM(curr_state);                                           \
         PRINT_STATE(curr_state);
 
