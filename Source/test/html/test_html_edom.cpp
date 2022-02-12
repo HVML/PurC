@@ -4,10 +4,13 @@
 #include "private/dom.h"
 #include "purc-html.h"
 #include "./html/interfaces/document.h"
+#include "private/interpreter.h"
 
 #include <gtest/gtest.h>
 
 #include <stdarg.h>
+
+#define TO_DEBUG 1
 
 static inline void write_edom_node(char *buf, size_t sz, pcdom_node_t *node)
 {
@@ -847,6 +850,210 @@ TEST(html, edom_gen_chunk_parser)
 
     write_edom_node(buf, sizeof(buf), pcdom_interface_node(doc));
     ASSERT_STREQ(buf, "<html><head></head><body><div><foo></foo><bar></bar></div></body></html>");
+
+    pchtml_html_document_destroy(doc);
+
+    purc_cleanup ();
+}
+
+static pcdom_element_t*
+parse_fragment_ex(pcdom_element_t *tmp, const char *fragment)
+{
+    pcdom_node_t *node = NULL;
+
+    pchtml_html_document_t *doc = pchtml_html_interface_document(tmp->node.owner_document);
+    if (!doc)
+        return NULL;
+
+    pchtml_html_parser_t *parser;
+    parser = pchtml_html_parser_create();
+    if (!parser)
+        return NULL;
+
+    unsigned int r = 0;
+    do {
+        r = pchtml_html_parser_init(parser);
+        if (r)
+            break;
+
+        r = pchtml_html_parse_fragment_chunk_begin(parser, doc,
+                tmp->node.local_name,
+                tmp->node.ns);
+        if (r)
+            break;
+
+        r = pchtml_html_parse_fragment_chunk_process_with_format(parser,
+                "%s", fragment);
+
+        node = pchtml_html_parse_fragment_chunk_end(parser);
+    } while (0);
+
+    pchtml_html_parser_destroy(parser);
+
+    if (!node)
+        return NULL;
+
+    if (r) {
+        pcdom_node_destroy_deep(node);
+        return NULL;
+    }
+
+    if (node->type != PCDOM_NODE_TYPE_ELEMENT) {
+        pcdom_node_destroy_deep(node);
+        return NULL;
+    }
+
+    return pcdom_interface_element(node);
+}
+
+#define parse_fragment(_parent, _fmt, ...)                           \
+({                                                                   \
+    char _buf[1024];                                                 \
+    size_t _nr = sizeof(_buf);                                       \
+    char *_p = pcutils_snprintf(_buf, &_nr, _fmt, ##__VA_ARGS__);    \
+    pcdom_element_t *_fragment = NULL;                               \
+    if (_p) {                                                        \
+        _fragment = parse_fragment_ex(_parent, _p);                  \
+        if (_p != _buf)                                              \
+            free(_p);                                                \
+    }                                                                \
+    _fragment;                                                       \
+})
+
+static pcdom_element_t*
+add_element(pcdom_element_t *parent, const char *tag)
+{
+    pcdom_element_t *fragment = parse_fragment(parent, "<%s></%s>", tag, tag);
+
+    if (!fragment)
+        return NULL;
+
+    do {
+        pcdom_node_t *first_child = fragment->node.first_child;
+        if (!first_child)
+            break;
+
+        if (first_child->type != PCDOM_NODE_TYPE_ELEMENT)
+            break;
+
+        if (first_child->next != NULL)
+            break;
+
+        pcdom_element_t *elem = NULL;
+        elem  = pcdom_interface_element(first_child);
+
+        pcdom_merge_fragment_append(pcdom_interface_node(parent), &fragment->node);
+        return elem;
+    } while (0);
+
+    pcdom_node_destroy_deep(pcdom_interface_node(fragment));
+
+    return NULL;
+}
+
+#define add_child(_parent, _fmt, ...)                                        \
+({                                                                           \
+    int _r = -1;                                                             \
+    pcdom_element_t *_fragment;                                              \
+    _fragment = parse_fragment(_parent, _fmt, ##__VA_ARGS__);                \
+    if (_fragment) {                                                         \
+        pcdom_merge_fragment_append(pcdom_interface_node(_parent),           \
+                &_fragment->node);                                           \
+        _r = 0;                                                              \
+    }                                                                        \
+    _r;                                                                      \
+})
+
+static pchtml_html_document_t*
+load_document(const char *html)
+{
+    pchtml_html_document_t *doc;
+    doc = pchtml_html_document_create();
+    if (!doc)
+        return NULL;
+
+    unsigned int r;
+    r = pchtml_html_document_parse_with_buf(doc,
+            (const unsigned char*)html, strlen(html));
+    if (r) {
+        pchtml_html_document_destroy(doc);
+        return NULL;
+    }
+
+    return doc;
+}
+
+#define ASSERT_DOC_DOC_EQ(_l, _r) do {                               \
+    char _lbuf[1024], _rbuf[1024];                                   \
+    size_t _lsz = sizeof(_lbuf), _rsz = sizeof(_rbuf);               \
+    char *_pl = pchtml_doc_snprintf_plain(_l, _lbuf, &_lsz, "");     \
+    char *_pr = pchtml_doc_snprintf_plain(_r, _rbuf, &_rsz, "");     \
+    ASSERT_NE(_pl, nullptr);                                         \
+    ASSERT_NE(_pr, nullptr);                                         \
+    ASSERT_STREQ(_pl, _pr);                                          \
+    if (_pl != _lbuf)                                                \
+        free(_pl);                                                   \
+    if (_pr != _rbuf)                                                \
+        free(_pr);                                                   \
+} while (0)
+
+#define ASSERT_DOC_HTML_EQ(_doc, _html) do {         \
+    pchtml_html_document_t *_tmp;                    \
+    _tmp = load_document(_html);                     \
+    ASSERT_NE(_tmp, nullptr);                        \
+    ASSERT_DOC_DOC_EQ(_doc, _tmp);                   \
+    pchtml_html_document_destroy(_tmp);              \
+} while (0)
+
+static int
+set_attribute(pcdom_element_t *elem, const char *key, const char *val)
+{
+    pcdom_attr_t *attr;
+    attr = pcdom_element_set_attribute(elem,
+            (const unsigned char*)key, strlen(key),
+            (const unsigned char*)val, strlen(val));
+    return attr ? 0 : -1;
+}
+
+TEST(html, edom)
+{
+    purc_instance_extra_info info = {};
+    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    pchtml_html_document_t *doc;
+    doc = load_document("<html/>");
+    ASSERT_NE(doc, nullptr);
+    ASSERT_DOC_HTML_EQ(doc, "<html><head></head><body></body></html>");
+
+    struct pcdom_element *body;
+    body = pchtml_doc_get_body(doc);
+    ASSERT_NE(body, nullptr);
+
+    ASSERT_EQ(doc, pchtml_html_interface_document(body->node.owner_document));
+
+    pcdom_element_t *elem;
+    elem = add_element(body, "div");
+    ASSERT_NE(elem, nullptr);
+
+    ASSERT_DOC_HTML_EQ(doc, "<html><head></head><body><div></div></body></html>");
+
+    ASSERT_EQ(0, add_child(body, "hello"));
+    ASSERT_DOC_HTML_EQ(doc, "<html><head></head><body><div></div>hello</body></html>");
+
+    elem = add_element(elem, "span");
+    ASSERT_NE(elem, nullptr);
+    ASSERT_DOC_HTML_EQ(doc, "<html><head></head><body><div><span></span></div>hello</body></html>");
+
+    D("dddddddddddddddddddddddddddddddddd");
+    int r = set_attribute(elem, "id", "clock");
+    D("eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
+    ASSERT_EQ(r, 0);
+    D("eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
+    pcintr_dump_edom_node(NULL, pcdom_interface_node(elem));
+
+    ASSERT_DOC_HTML_EQ(doc, "<html><head></head><body><div><span id=\"clock\"></span></div>hello</body></html>");
+    D("eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
 
     pchtml_html_document_destroy(doc);
 
