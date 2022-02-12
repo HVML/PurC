@@ -25,6 +25,14 @@
 1. `$URL`
 1. `$FS`
 
+### 跟踪 eDOM 的变化
+
+1. 跟踪 eDOM 的变化，使之可以动态更新已有的元素汇集。
+
+### 完整的 CSS 选择器实现
+
+1. 按照 CSS Selector Level 3 的规范要求实现选择器。
+
 ## 2021-12-10
 
 For `set` variant, it's more or less like a relational-table with primary keys.
