@@ -340,6 +340,17 @@ pchtml_doc_write_to_stream(pchtml_html_document_t *doc, purc_rwstream_t out)
     pchtml_doc_snprintf_ex(_doc, PCHTML_HTML_SERIALIZE_OPT_UNDEF,       \
             _buf, _pio_sz, _prefix)
 
+#define pchtml_doc_snprintf_plain(_doc, _buf, _pio_sz, _prefix, ...)    \
+({                                                                      \
+    int _opt = 0;                                                       \
+    _opt |= PCHTML_HTML_SERIALIZE_OPT_UNDEF;                            \
+    _opt |= PCHTML_HTML_SERIALIZE_OPT_SKIP_WS_NODES;                    \
+    _opt |= PCHTML_HTML_SERIALIZE_OPT_WITHOUT_TEXT_INDENT;              \
+    _opt |= PCHTML_HTML_SERIALIZE_OPT_FULL_DOCTYPE;                     \
+    pchtml_doc_snprintf_ex(_doc, (enum pchtml_html_serialize_opt)_opt,  \
+            _buf, _pio_sz, _prefix);                                    \
+})
+
 int
 pcdom_node_write_to_stream_ex(pcdom_node_t *node,
         enum pchtml_html_serialize_opt opt, purc_rwstream_t out);
@@ -359,6 +370,17 @@ pcdom_node_write_to_stream(pcdom_node_t *node, purc_rwstream_t out)
 #define pcdom_node_snprintf(_node, _buf, _pio_sz, _prefix, ...)           \
     pcdom_node_snprintf_ex(_node, PCHTML_HTML_SERIALIZE_OPT_UNDEF,        \
             _buf, _pio_sz, _prefix)
+
+#define pcdom_node_snprintf_plain(_node, _buf, _pio_sz, _prefix, ...)   \
+({                                                                      \
+    int _opt = 0;                                                       \
+    _opt |= PCHTML_HTML_SERIALIZE_OPT_UNDEF;                            \
+    _opt |= PCHTML_HTML_SERIALIZE_OPT_SKIP_WS_NODES;                    \
+    _opt |= PCHTML_HTML_SERIALIZE_OPT_WITHOUT_TEXT_INDENT;              \
+    _opt |= PCHTML_HTML_SERIALIZE_OPT_FULL_DOCTYPE;                     \
+    pcdom_node_snprintf_ex(_node, (enum pchtml_html_serialize_opt)_opt, \
+            _buf, _pio_sz, _prefix);                                    \
+})
 
 struct pcdom_document*
 pchtml_doc_get_document(pchtml_html_document_t *doc);
