@@ -1,13 +1,13 @@
 /**
  * @file variant.h
- * @author 
+ * @author Vincent Wei
  * @date 2021/07/02
  * @brief The internal interfaces for variant.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -98,9 +98,9 @@ struct purc_variant {
     /* variant type */
     unsigned int type:8;
 
-    /* real length for short string and byte sequence.
-       use the extra space (long string and byte sequence)
-       if the value of this field is 0. */
+    /* The length for short string (in characters) and byte sequence (in bytes).
+       When the extra space (long string and long byte sequence) is used,
+       the value of this field is 0. */
     unsigned int size:8;
 
     /* flags */
@@ -109,7 +109,7 @@ struct purc_variant {
     /* reference count */
     unsigned int refc;
 
-    /* observer listeners */
+    /* FIXME: listeners: use only one struct list_head field. */
     struct list_head        pre_listeners;
     struct list_head        post_listeners;
 
@@ -132,17 +132,25 @@ struct purc_variant {
 
         /* for dynamic and native variant (two pointers)
            for native variant,
-           ptr_ptr[0] stores the native entity of it's self, and
+           ptr_ptr[0] stores the pointer to the native entity, and
            ptr_ptr[1] stores the ops that's bound to the class of
            such entity. */
         void*       ptr_ptr[2];
 
-        /* for long string, long byte sequence, array, object,
-           and set (sz_ptr[0] for size, sz_ptr[1] for pointer).
-           for atom string, sz_ptr[0] stores the atom. */
-        /* for string_static, we also store strlen(sz_ptr[1]) into sz_ptr[0] */
+        /* For long byte sequence, array, object, and set,
+              - `sz_ptr[0]` stores the size in bytes;
+              - `sz_ptr[1]` stores the pointer.
 
+           For long string,
+              - `sz_ptr[0]` stores the length in characters;
+              - `sz_ptr[1]` stores the pointer.
+
+           For exception and atom string,
+             - `sz_ptr[0]` should always be 0.
+             - `sz_ptr[1]` stores the atom. */
         uintptr_t   sz_ptr[2];
+        /* FIXME: DONT do this:
+           for string_static, we store strlen(sz_ptr[1]) into sz_ptr[0] */
 
         /* for short string and byte sequence; the real space size of `bytes`
            is `max(sizeof(long double), sizeof(void*) * 2)` */

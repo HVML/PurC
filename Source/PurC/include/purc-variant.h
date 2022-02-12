@@ -1,6 +1,6 @@
 /**
  * @file purc-variant.h
- * @author 
+ * @author Vincent Wei
  * @date 2021/07/02
  * @brief The API for variant.
  *
@@ -28,12 +28,13 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <libgen.h>
+#include <libgen.h> /* FIXME: why use this header? */
 
 #include "purc-macros.h"
 #include "purc-rwstream.h"
 #include "purc-utils.h"
 
+/* FIXME: move the macro to private header */
 #ifndef D
 #define D(fmt, ...)                                           \
     if (TO_DEBUG) {                                           \
