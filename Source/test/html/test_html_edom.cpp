@@ -1045,15 +1045,11 @@ TEST(html, edom)
     ASSERT_NE(elem, nullptr);
     ASSERT_DOC_HTML_EQ(doc, "<html><head></head><body><div><span></span></div>hello</body></html>");
 
-    D("dddddddddddddddddddddddddddddddddd");
     int r = set_attribute(elem, "id", "clock");
-    D("eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
     ASSERT_EQ(r, 0);
-    D("eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
     pcintr_dump_edom_node(NULL, pcdom_interface_node(elem));
 
     ASSERT_DOC_HTML_EQ(doc, "<html><head></head><body><div><span id=\"clock\"></span></div>hello</body></html>");
-    D("eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
 
     pchtml_html_document_destroy(doc);
 
