@@ -51,13 +51,15 @@
 #include <stdlib.h>
 #endif
 
-//#define HVML_DEBUG_PRINT
+#define HVML_DEBUG_PRINT
 #ifdef HVML_DEBUG_PRINT
 #define PRINT_STATE(state_name)                                             \
     fprintf(stderr, \
-            "in %s|uc=%c|hex=0x%X|stack_is_empty=%d|stack_top=%c|vcm_node->type=%d\n", \
+            "in %s|uc=%c|hex=0x%X|stack_is_empty=%d"                        \
+            "|stack_top=%c|stack_size=%ld|vcm_node->type=%d\n",             \
             curr_state_name, character, character,                          \
             ejson_stack_is_empty(), (char)ejson_stack_top(),                \
+            ejson_stack_size(),                                             \
             (parser->vcm_node != NULL ? (int)parser->vcm_node->type : -1));
 
 #define SET_ERR(err)    do {                                                \
@@ -81,6 +83,7 @@
 #define ejson_stack_top()  pcutils_stack_top(parser->ejson_stack)
 #define ejson_stack_pop()  pcutils_stack_pop(parser->ejson_stack)
 #define ejson_stack_push(c) pcutils_stack_push(parser->ejson_stack, c)
+#define ejson_stack_size() pcutils_stack_size(parser->ejson_stack)
 
 #define vcm_stack_is_empty() pcvcm_stack_is_empty(parser->vcm_stack)
 #define vcm_stack_push(c) pcvcm_stack_push(parser->vcm_stack, c)

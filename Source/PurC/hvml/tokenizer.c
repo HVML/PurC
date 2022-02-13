@@ -58,9 +58,11 @@
 #ifdef HVML_DEBUG_PRINT
 #define PRINT_STATE(state_name)                                             \
     fprintf(stderr, \
-            "in %s|uc=%c|hex=0x%X|stack_is_empty=%d|stack_top=%c|vcm_node->type=%d\n",                              \
+            "in %s|uc=%c|hex=0x%X|stack_is_empty=%d"                        \
+            "|stack_top=%c|stack_size=%ld|vcm_node->type=%d\n",             \
             curr_state_name, character, character,                          \
             ejson_stack_is_empty(), (char)ejson_stack_top(),                \
+            ejson_stack_size(),                                             \
             (parser->vcm_node != NULL ? (int)parser->vcm_node->type : -1));
 
 #define SET_ERR(err)    do {                                                \
@@ -152,6 +154,8 @@ next_state:                                                             \
 #define ejson_stack_top()  pcutils_stack_top(parser->ejson_stack)
 #define ejson_stack_pop()  pcutils_stack_pop(parser->ejson_stack)
 #define ejson_stack_push(c) pcutils_stack_push(parser->ejson_stack, c)
+#define ejson_stack_size() pcutils_stack_size(parser->ejson_stack)
+#define ejson_stack_reset() pcutils_stack_clear(parser->ejson_stack)
 
 #define vcm_stack_is_empty() pcvcm_stack_is_empty(parser->vcm_stack)
 #define vcm_stack_push(c) pcvcm_stack_push(parser->vcm_stack, c)
@@ -1935,10 +1939,7 @@ BEGIN_STATE(HVML_EJSON_FINISHED_STATE)
         ejson_stack_pop();
         POP_AS_VCM_PARENT_AND_UPDATE_VCM();
     }
-    if (!ejson_stack_is_empty()) {
-        SET_ERR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
-        RETURN_AND_STOP_PARSE();
-    }
+    ejson_stack_reset();
     if (parser->transit_state == HVML_TEXT_CONTENT_STATE ||
         parser->transit_state == HVML_JSONTEXT_CONTENT_STATE) {
         parser->token = pchvml_token_new_vcm(parser->vcm_node);
@@ -3439,15 +3440,6 @@ BEGIN_STATE(HVML_EJSON_JSONEE_VARIABLE_STATE)
         }
         RECONSUME_IN(HVML_EJSON_CONTROL_STATE);
     }
-    if (is_context_variable(character)) {
-        if (pchvml_buffer_is_empty(parser->temp_buffer)
-            || pchvml_buffer_is_int(parser->temp_buffer)) {
-            APPEND_TO_TEMP_BUFFER(character);
-            ADVANCE_TO(HVML_EJSON_JSONEE_VARIABLE_STATE);
-        }
-        SET_ERR(PCHVML_ERROR_BAD_JSONEE_VARIABLE_NAME);
-        RETURN_AND_STOP_PARSE();
-    }
     if (character == '_' || is_ascii_digit(character)) {
         APPEND_TO_TEMP_BUFFER(character);
         ADVANCE_TO(HVML_EJSON_JSONEE_VARIABLE_STATE);
@@ -3502,6 +3494,11 @@ BEGIN_STATE(HVML_EJSON_JSONEE_VARIABLE_STATE)
         RECONSUME_IN(HVML_EJSON_AFTER_VALUE_STATE);
     }
     if (character == ':') {
+        if (pchvml_buffer_is_empty(parser->temp_buffer)
+            || pchvml_buffer_is_int(parser->temp_buffer)) {
+            APPEND_TO_TEMP_BUFFER(character);
+            ADVANCE_TO(HVML_EJSON_JSONEE_VARIABLE_STATE);
+        }
         if (pchvml_buffer_is_empty(parser->temp_buffer)) {
             APPEND_TO_TEMP_BUFFER(character);
             ADVANCE_TO(HVML_EJSON_JSONEE_VARIABLE_STATE);
@@ -3533,6 +3530,15 @@ BEGIN_STATE(HVML_EJSON_JSONEE_VARIABLE_STATE)
             RECONSUME_IN(HVML_EJSON_FINISHED_STATE);
         }
         ADVANCE_TO(HVML_EJSON_CONTROL_STATE);
+    }
+    if (is_context_variable(character)) {
+        if (pchvml_buffer_is_empty(parser->temp_buffer)
+            || pchvml_buffer_is_int(parser->temp_buffer)) {
+            APPEND_TO_TEMP_BUFFER(character);
+            ADVANCE_TO(HVML_EJSON_JSONEE_VARIABLE_STATE);
+        }
+        SET_ERR(PCHVML_ERROR_BAD_JSONEE_VARIABLE_NAME);
+        RETURN_AND_STOP_PARSE();
     }
     if (character == '[' || character == '(') {
         if (pchvml_buffer_is_empty(parser->temp_buffer)) {

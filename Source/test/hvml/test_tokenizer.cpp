@@ -212,6 +212,7 @@ TEST_P(hvml_parser_next_token, parse_and_serialize)
         struct pchvml_buffer* token_buff = pchvml_token_to_string(token);
         if (token_buff) {
             const char* type_name = pchvml_token_get_type_name(token);
+            PRINTF("%s:%s\n", type_name, pchvml_buffer_get_buffer(token_buff));
             pchvml_buffer_append_bytes(buffer, type_name, strlen(type_name));
             pchvml_buffer_append_bytes(buffer, "|", 1);
             pchvml_buffer_append_another(buffer, token_buff);
@@ -241,11 +242,9 @@ TEST_P(hvml_parser_next_token, parse_and_serialize)
     const char* serial = pchvml_buffer_get_buffer(buffer);
     char* result = strdup(serial);
 //    PRINTF("serial : %s", serial);
-#if 0
-    FILE* fp = fopen("pp", "w");
+    FILE* fp = fopen("/tmp/tokenizer", "w");
     fprintf(fp, "%s", serial);
     fclose(fp);
-#endif
     ASSERT_STREQ(trim(result), comp) << "Test Case : "<< get_name();
     free(result);
 
