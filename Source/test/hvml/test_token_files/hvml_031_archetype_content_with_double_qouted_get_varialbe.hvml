@@ -1,6 +1,0 @@
-<hvml>
-    <archetype>
-        <li class="user-item" id="user-$?.id" data-value="$?.id" data-region="$?.region">
-        </li>
-    </archetype>
-</hvml>

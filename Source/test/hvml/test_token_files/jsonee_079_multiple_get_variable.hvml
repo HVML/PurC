@@ -1,3 +1,0 @@
-<hvml>
-    <update on="$expression" value="$expression$@.textContent" />
-</hvml>

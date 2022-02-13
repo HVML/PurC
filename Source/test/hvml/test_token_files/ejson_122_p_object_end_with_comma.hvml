@@ -1,6 +1,0 @@
-<hvml ejson=$EJSON({
-    age: 10,
-    weight: 30,
-    height: 150,
-}
-)></hvml>

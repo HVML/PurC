@@ -1,5 +1,0 @@
-<hvml>
-    <except>
-        $VARABC.ELEM $ABC[0] $A.B.C.D.E.F <tag>abcdef</tag>
-    </except>
-</hvml>

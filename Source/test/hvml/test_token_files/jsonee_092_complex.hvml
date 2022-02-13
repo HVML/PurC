@@ -1,4 +1,0 @@
-<hvml>
-    <test on="$buttons[$SYSTEM.random($EJSON.count($buttons))].letters">
-    </test>
-</hvml>

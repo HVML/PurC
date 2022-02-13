@@ -1,2 +1,0 @@
-<hvml ejson=$EJSON([{"a":1, "b":1]
-)></hvml>

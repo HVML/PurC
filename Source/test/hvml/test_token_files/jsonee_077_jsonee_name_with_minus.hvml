@@ -1,5 +1,0 @@
-<!DOCTYPE hvml>
-<hvml>
-    <iterate on="$users-item">
-    </iterate>
-</hvml>
