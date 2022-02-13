@@ -1740,17 +1740,46 @@ BEGIN_STATE(HVML_TEXT_CONTENT_STATE)
     }
     if (character == '$') {
         if (!IS_TEMP_BUFFER_EMPTY()) {
+            if (pchvml_buffer_equal_to(parser->temp_buffer, "{", 1)) {
+                pchvml_rwswrap_reconsume_last_char(parser->rwswrap);
+                pchvml_rwswrap_reconsume_last_char(parser->rwswrap);
+                RESET_VCM_NODE();
+                SET_TRANSIT_STATE(HVML_TEXT_CONTENT_STATE);
+                ADVANCE_TO(HVML_EJSON_DATA_STATE);
+            }
+            if (pchvml_buffer_equal_to(parser->temp_buffer, "{{", 2)) {
+                pchvml_rwswrap_reconsume_last_char(parser->rwswrap);
+                pchvml_rwswrap_reconsume_last_char(parser->rwswrap);
+                pchvml_rwswrap_reconsume_last_char(parser->rwswrap);
+                RESET_VCM_NODE();
+                SET_TRANSIT_STATE(HVML_TEXT_CONTENT_STATE);
+                ADVANCE_TO(HVML_EJSON_DATA_STATE);
+            }
             struct pcvcm_node* node = TEMP_BUFFER_TO_VCM_NODE();
             if (!node) {
                 RETURN_AND_STOP_PARSE();
             }
             RESET_TEMP_BUFFER();
             parser->token = pchvml_token_new_vcm(node);
-            RETURN_CURRENT_TOKEN();
+            RETURN_AND_RECONSUME_IN(HVML_DATA_STATE);
         }
         RESET_VCM_NODE();
         SET_TRANSIT_STATE(HVML_TEXT_CONTENT_STATE);
         RECONSUME_IN(HVML_EJSON_DATA_STATE);
+    }
+    if (character == '{') {
+        if (!IS_TEMP_BUFFER_EMPTY() &&
+                !pchvml_buffer_end_with(parser->temp_buffer, "{", 1)) {
+            struct pcvcm_node* node = TEMP_BUFFER_TO_VCM_NODE();
+            if (!node) {
+                RETURN_AND_STOP_PARSE();
+            }
+            RESET_TEMP_BUFFER();
+            parser->token = pchvml_token_new_vcm(node);
+            RETURN_AND_RECONSUME_IN(HVML_DATA_STATE);
+        }
+        APPEND_TO_TEMP_BUFFER(character);
+        ADVANCE_TO(HVML_TEXT_CONTENT_STATE);
     }
     APPEND_TO_TEMP_BUFFER(character);
     ADVANCE_TO(HVML_TEXT_CONTENT_STATE);
@@ -1926,7 +1955,7 @@ BEGIN_STATE(HVML_EJSON_FINISHED_STATE)
         parser->token = pchvml_token_new_vcm(parser->vcm_node);
         parser->vcm_node = NULL;
         RESET_VCM_NODE();
-        RETURN_AND_SWITCH_TO(HVML_DATA_STATE);
+        RETURN_AND_RECONSUME_IN(HVML_DATA_STATE);
     }
     pchvml_token_append_vcm_to_attr(parser->token, parser->vcm_node);
     END_TOKEN_ATTR();
@@ -2393,7 +2422,7 @@ END_STATE()
 BEGIN_STATE(HVML_EJSON_AFTER_VALUE_STATE)
     uint32_t uc = ejson_stack_top();
     if (is_whitespace(character)) {
-        if (uc  == 'U' || uc == '"' || uc == 'T') {
+        if (ejson_stack_is_empty() || uc  == 'U' || uc == '"' || uc == 'T') {
             RECONSUME_IN(HVML_EJSON_CONTROL_STATE);
         }
         ADVANCE_TO(HVML_EJSON_AFTER_VALUE_STATE);

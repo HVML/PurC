@@ -1,6 +1,16 @@
-<hvml>
-    <body>
-        <choose on=get_element(get_variable("aaa"),"bbb") to="iterate" end=concat_string(get_element(get_variable("XXX"),"YYY"))>
-        </choose>
-    </body>
-</hvml>
+PCHVML_TOKEN_START_TAG|<hvml>
+PCHVML_TOKEN_VCM_TREE|"
+    "
+PCHVML_TOKEN_START_TAG|<body>
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_START_TAG|<choose on=get_element(get_variable("aaa"),"bbb") to="iterate" end=concat_string(get_element(get_variable("XXX"),"YYY"))>
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_END_TAG|</choose>
+PCHVML_TOKEN_VCM_TREE|"
+    "
+PCHVML_TOKEN_END_TAG|</body>
+PCHVML_TOKEN_VCM_TREE|"
+"
+PCHVML_TOKEN_END_TAG|</hvml>
