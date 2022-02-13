@@ -1,66 +1,163 @@
-<hvml lang="en">
-    <head>
-        <connect at="tcp://foo.bar.com:1366" as="mqtt" for="MQTT"/>
-    </head>
+PCHVML_TOKEN_START_TAG|<hvml lang="en">
+PCHVML_TOKEN_VCM_TREE|"
+    "
+PCHVML_TOKEN_START_TAG|<head>
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_START_TAG|<connect at="tcp://foo.bar.com:1366" as="mqtt" for="MQTT"/>
+PCHVML_TOKEN_VCM_TREE|"
+    "
+PCHVML_TOKEN_END_TAG|</head>
+PCHVML_TOKEN_VCM_TREE|"
 
-    <body>
-        <send on=concat_string(get_variable("mqtt")) to="subscribe" at="newUser" as="new_user"/>
-        <send on=concat_string(get_variable("mqtt")) to="subscribe" at="deleteUser" as="del_user"/>
+    "
+PCHVML_TOKEN_START_TAG|<body>
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_START_TAG|<send on=concat_string(get_variable("mqtt")) to="subscribe" at="newUser" as="new_user"/>
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_START_TAG|<send on=concat_string(get_variable("mqtt")) to="subscribe" at="deleteUser" as="del_user"/>
+PCHVML_TOKEN_VCM_TREE|"
 
-        <observe on=get_variable("mqtt") for=concat_string("event:",get_variable("new_user")) to="iterate">
-            <iterate on=get_variable("?") to="append" in="#the-user-list" with=get_variable("user_item") by="CLASS: IUser">
-                <error type="notready">concat_string("
+        "
+PCHVML_TOKEN_START_TAG|<observe on=get_variable("mqtt") for=concat_string("event:",get_variable("new_user")) to="iterate">
+PCHVML_TOKEN_VCM_TREE|"
+            "
+PCHVML_TOKEN_START_TAG|<iterate on=get_variable("?") to="append" in="#the-user-list" with=get_variable("user_item") by="CLASS: IUser">
+PCHVML_TOKEN_VCM_TREE|"
+                "
+PCHVML_TOKEN_START_TAG|<error type="notready">
+PCHVML_TOKEN_VCM_TREE|concat_string("
                     <img src="wait.gif" />
-                ")</error>
-                <except>concat_string("
+                ")
+PCHVML_TOKEN_END_TAG|</error>
+PCHVML_TOKEN_VCM_TREE|"
+                "
+PCHVML_TOKEN_START_TAG|<except>
+PCHVML_TOKEN_VCM_TREE|concat_string("
                     <p>Bad user data!","</p>
-                ")</except>
-            </iterate>
-        </observe>
+                ")
+PCHVML_TOKEN_END_TAG|</except>
+PCHVML_TOKEN_VCM_TREE|"
+            "
+PCHVML_TOKEN_END_TAG|</iterate>
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_END_TAG|</observe>
+PCHVML_TOKEN_VCM_TREE|"
 
-        <observe on=get_variable("mqtt") for=concat_string("event:",get_variable("del_user")) to="iterate">
-            <iterate on=get_variable("?") to="erase" in="#the-user-list" by="RANGE: 0">
-                <erase on=concat_string("#user-",get_element(get_variable("?"),"id"))/>
-            </iterate>
-        </observe>
+        "
+PCHVML_TOKEN_START_TAG|<observe on=get_variable("mqtt") for=concat_string("event:",get_variable("del_user")) to="iterate">
+PCHVML_TOKEN_VCM_TREE|"
+            "
+PCHVML_TOKEN_START_TAG|<iterate on=get_variable("?") to="erase" in="#the-user-list" by="RANGE: 0">
+PCHVML_TOKEN_VCM_TREE|"
+                "
+PCHVML_TOKEN_START_TAG|<erase on=concat_string("#user-",get_element(get_variable("?"),"id"))/>
+PCHVML_TOKEN_VCM_TREE|"
+            "
+PCHVML_TOKEN_END_TAG|</iterate>
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_END_TAG|</observe>
+PCHVML_TOKEN_VCM_TREE|"
 
-        <div id="the-user-statistics">
-            <h2>User regions (totally <span></span> users):</h2>
-            <dl>
-            </dl>
-        </div>
+        "
+PCHVML_TOKEN_START_TAG|<div id="the-user-statistics">
+PCHVML_TOKEN_VCM_TREE|"
+            "
+PCHVML_TOKEN_START_TAG|<h2>
+PCHVML_TOKEN_VCM_TREE|"User regions (totally "
+PCHVML_TOKEN_START_TAG|<span>
+PCHVML_TOKEN_END_TAG|</span>
+PCHVML_TOKEN_VCM_TREE|" "
+PCHVML_TOKEN_VCM_TREE|"users):"
+PCHVML_TOKEN_END_TAG|</h2>
+PCHVML_TOKEN_VCM_TREE|"
+            "
+PCHVML_TOKEN_START_TAG|<dl>
+PCHVML_TOKEN_VCM_TREE|"
+            "
+PCHVML_TOKEN_END_TAG|</dl>
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_END_TAG|</div>
+PCHVML_TOKEN_VCM_TREE|"
 
-        <archetype id="region-to-users">concat_string("
+        "
+PCHVML_TOKEN_START_TAG|<archetype id="region-to-users">
+PCHVML_TOKEN_VCM_TREE|concat_string("
             <div>
                 ","<dt>",get_variable(":"),"</dt>
                 ","<dd>",get_variable("="),"</dd>
             ","</div>
-        ")</archetype>
+        ")
+PCHVML_TOKEN_END_TAG|</archetype>
+PCHVML_TOKEN_VCM_TREE|"
 
-        <archedata name="item_user">
-            make_object("id",concat_string(get_element(get_element(get_variable("?"),"attr"),"data-value")),"avatar",concat_string(get_element(get_element(get_element(get_element(get_variable("?"),"content"),0),"attr"),"src")),"name",concat_string(get_element(get_element(get_element(get_variable("?"),"content"),1),"textContent")),"region",concat_string(get_element(get_element(get_variable("?"),"attr"),"data-region")))
-        </archedata>
+        "
+PCHVML_TOKEN_START_TAG|<archedata name="item_user">
+PCHVML_TOKEN_VCM_TREE|"
+            "
+PCHVML_TOKEN_VCM_TREE|make_object("id",concat_string(get_element(get_element(get_variable("?"),"attr"),"data-value")),"avatar",concat_string(get_element(get_element(get_element(get_element(get_variable("?"),"content"),0),"attr"),"src")),"name",concat_string(get_element(get_element(get_element(get_variable("?"),"content"),1),"textContent")),"region",concat_string(get_element(get_element(get_variable("?"),"attr"),"data-region")))
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_END_TAG|</archedata>
+PCHVML_TOKEN_VCM_TREE|"
 
-        <observe on="#the-user-list" for="change:content" to="iterate">
+        "
+PCHVML_TOKEN_START_TAG|<observe on="#the-user-list" for="change:content" to="iterate">
+PCHVML_TOKEN_VCM_TREE|"
 
-            <init as="users">
-                make_array()
-            </init>
+            "
+PCHVML_TOKEN_START_TAG|<init as="users">
+PCHVML_TOKEN_VCM_TREE|"
+                "
+PCHVML_TOKEN_VCM_TREE|make_array()
+PCHVML_TOKEN_VCM_TREE|"
+            "
+PCHVML_TOKEN_END_TAG|</init>
+PCHVML_TOKEN_VCM_TREE|"
 
-            <iterate on=get_variable("@") to="append" in=concat_string(get_variable("users")) with=get_variable("item_user") by="TRAVEL: BREADTH">
-            </iterate>
+            "
+PCHVML_TOKEN_START_TAG|<iterate on=get_variable("@") to="append" in=concat_string(get_variable("users")) with=get_variable("item_user") by="TRAVEL: BREADTH">
+PCHVML_TOKEN_VCM_TREE|"
+            "
+PCHVML_TOKEN_END_TAG|</iterate>
+PCHVML_TOKEN_VCM_TREE|"
 
-            <reduce on=get_variable("users") to="choose clear iterate" in="#the-user-statistics" by="CLASS: RUserRegionStats">
-                <choose on=get_variable("?") to="update" in="> h2 > span" by="KEY: 'count'">
-                    <update on=get_variable("@") textContent=concat_string(get_variable("?"))/>
-                </choose>
-                <clear in="#the-user-statistics > dl"/>
-                <iterate on=get_element(get_variable("?"),"regions") to="append" in="> dl" with="#region-to-users" by="KEY: ALL" ascendingly>
-                </iterate>
-            </reduce>
+            "
+PCHVML_TOKEN_START_TAG|<reduce on=get_variable("users") to="choose clear iterate" in="#the-user-statistics" by="CLASS: RUserRegionStats">
+PCHVML_TOKEN_VCM_TREE|"
+                "
+PCHVML_TOKEN_START_TAG|<choose on=get_variable("?") to="update" in="> h2 > span" by="KEY: 'count'">
+PCHVML_TOKEN_VCM_TREE|"
+                    "
+PCHVML_TOKEN_START_TAG|<update on=get_variable("@") textContent=concat_string(get_variable("?"))/>
+PCHVML_TOKEN_VCM_TREE|"
+                "
+PCHVML_TOKEN_END_TAG|</choose>
+PCHVML_TOKEN_VCM_TREE|"
+                "
+PCHVML_TOKEN_START_TAG|<clear in="#the-user-statistics > dl"/>
+PCHVML_TOKEN_VCM_TREE|"
+                "
+PCHVML_TOKEN_START_TAG|<iterate on=get_element(get_variable("?"),"regions") to="append" in="> dl" with="#region-to-users" by="KEY: ALL" ascendingly>
+PCHVML_TOKEN_VCM_TREE|"
+                "
+PCHVML_TOKEN_END_TAG|</iterate>
+PCHVML_TOKEN_VCM_TREE|"
+            "
+PCHVML_TOKEN_END_TAG|</reduce>
+PCHVML_TOKEN_VCM_TREE|"
 
-        </observe>
+        "
+PCHVML_TOKEN_END_TAG|</observe>
+PCHVML_TOKEN_VCM_TREE|"
 
-    </body>
-</hvml>
-
+    "
+PCHVML_TOKEN_END_TAG|</body>
+PCHVML_TOKEN_VCM_TREE|"
+"
+PCHVML_TOKEN_END_TAG|</hvml>

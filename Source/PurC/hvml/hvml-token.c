@@ -477,6 +477,14 @@ struct pchvml_buffer* pchvml_token_attr_to_string(
         pchvml_buffer_append_bytes(buffer, "-=", 2);
         break;
 
+    case PCHVML_ATTRIBUTE_ASTERISK_OPERATOR:
+        pchvml_buffer_append_bytes(buffer, "*=", 2);
+        break;
+
+    case PCHVML_ATTRIBUTE_REGEX_OPERATOR:
+        pchvml_buffer_append_bytes(buffer, "/=", 2);
+        break;
+
     case PCHVML_ATTRIBUTE_REMAINDER_OPERATOR:
         pchvml_buffer_append_bytes(buffer, "%=", 2);
         break;
@@ -491,10 +499,6 @@ struct pchvml_buffer* pchvml_token_attr_to_string(
 
     case PCHVML_ATTRIBUTE_TAIL_OPERATOR:
         pchvml_buffer_append_bytes(buffer, "$=", 2);
-        break;
-
-    case PCHVML_ATTRIBUTE_REGEX_OPERATOR:
-        pchvml_buffer_append_bytes(buffer, "/=", 2);
         break;
 
     default:

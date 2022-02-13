@@ -177,6 +177,11 @@ next_state:                                                             \
         parser->transit_state = new_state;                                  \
     } while (false)
 
+#define RESET_TRANSIT_STATE()                                               \
+    do {                                                                    \
+        parser->transit_state = HVML_DATA_STATE;                            \
+    } while (false)
+
 #define CHECK_TEMPLATE_TAG_AND_SWITCH_STATE(token)                          \
     do {                                                                    \
         const char* name = pchvml_token_get_name(token);                    \
@@ -359,6 +364,12 @@ next_state:                                                             \
         pchvml_token_append_to_attr_value(parser->token, uc);               \
     } while (false)
 
+// TODO
+#define APPEND_BYTES_TO_TOKEN_ATTR_VALUE(c, nr_c)                           \
+    do {                                                                    \
+        pchvml_token_append_bytes_to_attr_value(parser->token, c, nr_c);    \
+    } while (false)
+
 // TODO:
 #define APPEND_BUFFER_TO_TOKEN_ATTR_VALUE(buffer)                           \
     do {                                                                    \
@@ -440,7 +451,9 @@ bool pchvml_parser_is_json_content_tag(const char* name)
     if (!name) {
         return false;
     }
-    return (strcmp(name, "init") == 0 || strcmp(name, "archedata") == 0);
+    return (strcmp(name, "init") == 0
+            || strcmp(name, "archedata") == 0
+            || strcmp(name, "update") == 0);
 }
 
 static UNUSED_FUNCTION
@@ -691,7 +704,7 @@ BEGIN_STATE(HVML_TAG_CONTENT_STATE)
     if (character == '<') {
         state = HVML_DATA_STATE;
     }
-    if (pchvml_parser_is_in_json_content_tag(parser)) {
+    else if (pchvml_parser_is_in_json_content_tag(parser)) {
         state = HVML_JSONTEXT_CONTENT_STATE;
     }
     if (parser->token) {
@@ -990,7 +1003,7 @@ BEGIN_STATE(HVML_COMMENT_END_STATE)
         if (!text) {
             APPEND_BYTES_TO_TOKEN_TEXT(NULL, 0);
         }
-        RETURN_AND_RECONSUME_IN(HVML_DATA_STATE);
+        RETURN_AND_SWITCH_TO(HVML_DATA_STATE);
     }
     if (character == '!') {
         ADVANCE_TO(HVML_COMMENT_END_BANG_STATE);
@@ -1795,6 +1808,10 @@ BEGIN_STATE(HVML_JSONTEXT_CONTENT_STATE)
 END_STATE()
 
 BEGIN_STATE(HVML_JSONEE_ATTRIBUTE_VALUE_DOUBLE_QUOTED_STATE)
+    if (pchvml_buffer_end_with(parser->temp_buffer, "\\", 1)) {
+        APPEND_TO_TEMP_BUFFER(character);
+        ADVANCE_TO(HVML_JSONEE_ATTRIBUTE_VALUE_DOUBLE_QUOTED_STATE);
+    }
     if (is_eof(character)) {
         SET_ERR(PCHVML_ERROR_EOF_IN_CDATA);
         RETURN_AND_STOP_PARSE();
@@ -1804,12 +1821,20 @@ BEGIN_STATE(HVML_JSONEE_ATTRIBUTE_VALUE_DOUBLE_QUOTED_STATE)
             APPEND_BUFFER_TO_TOKEN_ATTR_VALUE(parser->temp_buffer);
             RESET_TEMP_BUFFER();
         }
+        else {
+            APPEND_BYTES_TO_TOKEN_ATTR_VALUE(NULL, 0);
+        }
         END_TOKEN_ATTR();
         ADVANCE_TO(HVML_AFTER_ATTRIBUTE_VALUE_STATE);
     }
     if (character == '&') {
         SET_RETURN_STATE(HVML_JSONEE_ATTRIBUTE_VALUE_DOUBLE_QUOTED_STATE);
         ADVANCE_TO(HVML_CHARACTER_REFERENCE_STATE);
+    }
+    if (character == '[' &&
+            pchvml_buffer_equal_to(parser->temp_buffer, "~", 1)) {
+        APPEND_TO_TEMP_BUFFER(character);
+        ADVANCE_TO(HVML_JSONEE_ATTRIBUTE_VALUE_DOUBLE_QUOTED_STATE);
     }
     if (character == '$' || character == '{' || character == '[') {
         bool handle = pchvml_parser_is_handle_as_jsonee(parser->token,
@@ -1954,11 +1979,13 @@ BEGIN_STATE(HVML_EJSON_FINISHED_STATE)
         parser->transit_state == HVML_JSONTEXT_CONTENT_STATE) {
         parser->token = pchvml_token_new_vcm(parser->vcm_node);
         parser->vcm_node = NULL;
+        RESET_TRANSIT_STATE();
         RESET_VCM_NODE();
         RETURN_AND_RECONSUME_IN(HVML_DATA_STATE);
     }
     pchvml_token_append_vcm_to_attr(parser->token, parser->vcm_node);
     END_TOKEN_ATTR();
+    RESET_TRANSIT_STATE();
     RESET_VCM_NODE();
     RECONSUME_IN(HVML_AFTER_ATTRIBUTE_VALUE_STATE);
 END_STATE()
@@ -3631,7 +3658,7 @@ BEGIN_STATE(HVML_EJSON_JSONEE_KEYWORD_STATE)
     if (is_whitespace(character) || character == '[' ||
             character == '(' || character == '<' || character == '}' ||
             character == '$' || character == '>' || character == ']'
-            || character == ')' || character == '"') {
+            || character == ')') {
         if (pchvml_buffer_is_empty(parser->temp_buffer)) {
             SET_ERR(PCHVML_ERROR_BAD_JSONEE_KEYWORD);
             RETURN_AND_STOP_PARSE();
@@ -3644,6 +3671,22 @@ BEGIN_STATE(HVML_EJSON_JSONEE_KEYWORD_STATE)
         RESET_TEMP_BUFFER();
         ejson_stack_pop();
         POP_AS_VCM_PARENT_AND_UPDATE_VCM();
+        RECONSUME_IN(HVML_EJSON_CONTROL_STATE);
+    }
+    if (character == '"') {
+        if (pchvml_buffer_is_empty(parser->temp_buffer)) {
+            SET_ERR(PCHVML_ERROR_BAD_JSONEE_KEYWORD);
+            RETURN_AND_STOP_PARSE();
+        }
+        if (parser->vcm_node) {
+            vcm_stack_push(parser->vcm_node);
+        }
+        parser->vcm_node = pcvcm_node_new_string(
+                   pchvml_buffer_get_buffer(parser->temp_buffer));
+        RESET_TEMP_BUFFER();
+        ejson_stack_pop();
+        POP_AS_VCM_PARENT_AND_UPDATE_VCM();
+        //ADVANCE_TO(HVML_EJSON_CONTROL_STATE);
         RECONSUME_IN(HVML_EJSON_CONTROL_STATE);
     }
     if (character == ',') {

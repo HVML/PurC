@@ -1,25 +1,65 @@
-<!DOCTYPE hvml>
-<hvml target="html">
-    <body>
-        <div id="the-user-statistics">
-            <h2>User regions (totally <span></span> users):</h2>
-            <dl>
-            </dl>
-        </div>
+PCHVML_TOKEN_DOCTYPE|<!DOCTYPE hvml>
+PCHVML_TOKEN_VCM_TREE|"
+"
+PCHVML_TOKEN_START_TAG|<hvml target="html">
+PCHVML_TOKEN_VCM_TREE|"
+    "
+PCHVML_TOKEN_START_TAG|<body>
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_START_TAG|<div id="the-user-statistics">
+PCHVML_TOKEN_VCM_TREE|"
+            "
+PCHVML_TOKEN_START_TAG|<h2>
+PCHVML_TOKEN_VCM_TREE|"User regions (totally "
+PCHVML_TOKEN_START_TAG|<span>
+PCHVML_TOKEN_END_TAG|</span>
+PCHVML_TOKEN_VCM_TREE|" "
+PCHVML_TOKEN_VCM_TREE|"users):"
+PCHVML_TOKEN_END_TAG|</h2>
+PCHVML_TOKEN_VCM_TREE|"
+            "
+PCHVML_TOKEN_START_TAG|<dl>
+PCHVML_TOKEN_VCM_TREE|"
+            "
+PCHVML_TOKEN_END_TAG|</dl>
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_END_TAG|</div>
+PCHVML_TOKEN_VCM_TREE|"
 
-        <archetype id="region-to-users">concat_string("
+        "
+PCHVML_TOKEN_START_TAG|<archetype id="region-to-users">
+PCHVML_TOKEN_VCM_TREE|concat_string("
             <div>
                 ","<dt>",get_variable(":"),"</dt>
                 ","<dd>",get_variable("="),"</dd>
             ","</div>
-        ")</archetype>
+        ")
+PCHVML_TOKEN_END_TAG|</archetype>
+PCHVML_TOKEN_VCM_TREE|"
 
-        <reduce on=get_variable("users") to="update emtpy iterate" in="#the-user-statistics" by="CLASS: RUserRegionStats">
-            <update on="> h2 > span" textContent=concat_string(get_element(get_variable("?"),"count"))/>
-            <clear on="> dl"/>
-            <iterate on=get_element(get_variable("?"),"regions") to="append" in="> dl" with="#region-to-users" by="KEY: ALL" descendingly>
-            </iterate>
-        </reduce>
+        "
+PCHVML_TOKEN_START_TAG|<reduce on=get_variable("users") to="update emtpy iterate" in="#the-user-statistics" by="CLASS: RUserRegionStats">
+PCHVML_TOKEN_VCM_TREE|"
+            "
+PCHVML_TOKEN_START_TAG|<update on="> h2 > span" textContent=concat_string(get_element(get_variable("?"),"count"))/>
+PCHVML_TOKEN_VCM_TREE|"
+            "
+PCHVML_TOKEN_START_TAG|<clear on="> dl"/>
+PCHVML_TOKEN_VCM_TREE|"
+            "
+PCHVML_TOKEN_START_TAG|<iterate on=get_element(get_variable("?"),"regions") to="append" in="> dl" with="#region-to-users" by="KEY: ALL" descendingly>
+PCHVML_TOKEN_VCM_TREE|"
+            "
+PCHVML_TOKEN_END_TAG|</iterate>
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_END_TAG|</reduce>
+PCHVML_TOKEN_VCM_TREE|"
 
-    </body>
-</hvml>
+    "
+PCHVML_TOKEN_END_TAG|</body>
+PCHVML_TOKEN_VCM_TREE|"
+"
+PCHVML_TOKEN_END_TAG|</hvml>
