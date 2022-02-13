@@ -1,7 +1,8 @@
-<hvml ejson=call_getter(get_variable("EJSON"),make_object("id",1234567890UL,"nickname","David","signature","
+PCHVML_TOKEN_START_TAG|<hvml ejson=call_getter(get_variable("EJSON"),make_object("id",1234567890UL,"nickname","David","signature","
 一个
 
     被'程序'耽误的
 
         "文艺"青年。
-"))></hvml>
+"))>
+PCHVML_TOKEN_END_TAG|</hvml>
