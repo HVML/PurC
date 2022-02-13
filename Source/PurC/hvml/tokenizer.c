@@ -53,17 +53,16 @@
 
 #define ERROR_BUF_SIZE  100
 
-//#define HVML_DEBUG_PRINT
-
-#ifdef HVML_DEBUG_PRINT
 #define PRINT_STATE(state_name)                                             \
-    fprintf(stderr, \
+    if (parser->enable_print_log) {                                         \
+        fprintf(stderr,                                                     \
             "in %s|uc=%c|hex=0x%X|stack_is_empty=%d"                        \
             "|stack_top=%c|stack_size=%ld|vcm_node->type=%d\n",             \
             curr_state_name, character, character,                          \
             ejson_stack_is_empty(), (char)ejson_stack_top(),                \
             ejson_stack_size(),                                             \
-            (parser->vcm_node != NULL ? (int)parser->vcm_node->type : -1));
+            (parser->vcm_node != NULL ? (int)parser->vcm_node->type : -1)); \
+    }
 
 #define SET_ERR(err)    do {                                                \
     purc_variant_t exinfo = PURC_VARIANT_INVALID;                           \
@@ -75,30 +74,12 @@
                 parser->curr_uc->column,                                    \
                 parser->curr_uc->character);                                \
         exinfo = purc_variant_make_string(buf, false);                      \
-        fprintf(stderr, "%s:%d|%s|%s\n", __FILE__, __LINE__, #err, buf);    \
+        if (parser->enable_print_log) {                                     \
+            fprintf(stderr, "%s:%d|%s|%s\n", __FILE__, __LINE__, #err, buf);\
+        }                                                                   \
     }                                                                       \
     purc_set_error_exinfo(err, exinfo);                                     \
 } while (0)
-
-#else /* HVML_DEBUG_PRINT */
-
-#define PRINT_STATE(state_name)
-
-#define SET_ERR(err)    do {                                                \
-    purc_variant_t exinfo = PURC_VARIANT_INVALID;                           \
-    if (parser->curr_uc) {                                                  \
-        char buf[ERROR_BUF_SIZE+1];                                         \
-        snprintf(buf, ERROR_BUF_SIZE,                                       \
-                "line:%d, column:%d, character=%c",                         \
-                parser->curr_uc->line,                                      \
-                parser->curr_uc->column,                                    \
-                parser->curr_uc->character);                                \
-        exinfo = purc_variant_make_string(buf, false);                      \
-    }                                                                       \
-    purc_set_error_exinfo(err, exinfo);                                     \
-} while (0)
-
-#endif  /* HVML_DEBUG_PRINT */
 
 #define PCHVML_NEXT_TOKEN_BEGIN                                         \
 struct pchvml_token* pchvml_next_token(struct pchvml_parser* parser,    \

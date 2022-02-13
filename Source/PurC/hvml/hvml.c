@@ -51,25 +51,23 @@
 #include <stdlib.h>
 #endif
 
-#define HVML_DEBUG_PRINT
-#ifdef HVML_DEBUG_PRINT
 #define PRINT_STATE(state_name)                                             \
-    fprintf(stderr, \
+    if (parser->enable_print_log) {                                         \
+        fprintf(stderr,                                                     \
             "in %s|uc=%c|hex=0x%X|stack_is_empty=%d"                        \
             "|stack_top=%c|stack_size=%ld|vcm_node->type=%d\n",             \
             curr_state_name, character, character,                          \
             ejson_stack_is_empty(), (char)ejson_stack_top(),                \
             ejson_stack_size(),                                             \
-            (parser->vcm_node != NULL ? (int)parser->vcm_node->type : -1));
+            (parser->vcm_node != NULL ? (int)parser->vcm_node->type : -1)); \
+    }
 
 #define SET_ERR(err)    do {                                                \
-    fprintf(stderr, "%s:%d|%s\n", __FILE__, __LINE__, #err);                \
+    if (parser->enable_print_log) {                                         \
+        fprintf(stderr, "%s:%d|%s\n", __FILE__, __LINE__, #err);            \
+    }                                                                       \
     pcinst_set_error (err);                                                 \
 } while (0)
-#else
-#define PRINT_STATE(state_name)
-#define SET_ERR(err)    pcinst_set_error(err)
-#endif
 
 #if HAVE(GLIB)
 #define    PCHVML_ALLOC(sz)   g_slice_alloc0(sz)

@@ -54,6 +54,7 @@ struct pchvml_parser {
     uint64_t char_ref_code;
     uint32_t prev_separator;
     bool tag_is_operation;
+    bool enable_print_log;
 };
 
 #define USE_NEW_TOKENIZER
