@@ -44,8 +44,7 @@ struct pchvml_parser {
     struct pchvml_buffer* temp_buffer;
     struct pchvml_buffer* tag_name;
     struct pchvml_buffer* string_buffer;
-    struct pchvml_buffer* quoted_buffer;
-    struct pchvml_buffer* character_reference_buffer;
+    struct pchvml_buffer* quoted_buffer;    /* remove */
     struct pchvml_token* token;
     struct pchvml_sbst* sbst;
     struct pcvcm_node* vcm_node;
@@ -53,6 +52,7 @@ struct pchvml_parser {
     struct pcutils_stack* ejson_stack;
     uint64_t char_ref_code;
     uint32_t prev_separator;
+    uint32_t nr_quoted;
     bool tag_is_operation;
     bool enable_print_log;
 };

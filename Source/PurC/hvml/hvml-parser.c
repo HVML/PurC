@@ -97,9 +97,11 @@ struct pchvml_parser* pchvml_create(uint32_t flags, size_t queue_size)
     parser->tag_name = pchvml_buffer_new ();
     parser->string_buffer = pchvml_buffer_new ();
     parser->quoted_buffer = pchvml_buffer_new ();
-    parser->character_reference_buffer = pchvml_buffer_new ();
     parser->vcm_stack = pcvcm_stack_new();
     parser->ejson_stack = pcutils_stack_new(0);
+    parser->char_ref_code = 0;
+    parser->prev_separator = 0;
+    parser->nr_quoted = 0;
     parser->tag_is_operation = false;
     struct stat st;
     parser->enable_print_log = (stat(PRINT_LOG_SWITCH_FILE, &st) == 0);
@@ -120,7 +122,6 @@ void pchvml_reset(struct pchvml_parser* parser, uint32_t flags,
     pchvml_buffer_reset (parser->tag_name);
     pchvml_buffer_reset (parser->string_buffer);
     pchvml_buffer_reset (parser->quoted_buffer);
-    pchvml_buffer_reset (parser->character_reference_buffer);
 
     struct pcvcm_node* n = parser->vcm_node;
     parser->vcm_node = NULL;
@@ -149,7 +150,6 @@ void pchvml_destroy(struct pchvml_parser* parser)
         pchvml_buffer_destroy (parser->tag_name);
         pchvml_buffer_destroy (parser->string_buffer);
         pchvml_buffer_destroy (parser->quoted_buffer);
-        pchvml_buffer_destroy (parser->character_reference_buffer);
         if (parser->sbst) {
             pchvml_sbst_destroy(parser->sbst);
         }
