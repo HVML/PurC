@@ -258,31 +258,6 @@ const char* pchvml_token_get_name(struct pchvml_token* token)
     return token->name ? pchvml_buffer_get_buffer(token->name) : NULL;
 }
 
-void pchvml_token_append_to_text(struct pchvml_token* token,
-        uint32_t uc)
-{
-    if (!token->text_content) {
-        token->text_content = pchvml_buffer_new();
-    }
-    pchvml_buffer_append(token->text_content, uc);
-}
-
-void pchvml_token_delete_tail_chars_of_text(
-        struct pchvml_token* token, size_t sz)
-{
-    if (token && token->text_content) {
-        pchvml_buffer_delete_tail_chars(token->text_content, sz);
-    }
-}
-
-uint32_t pchvml_token__get_last_char_of_text(struct pchvml_token* token)
-{
-    if (token && token->text_content) {
-        return pchvml_buffer_get_last_char(token->text_content);
-    }
-    return 0;
-}
-
 const char* pchvml_token_get_text(struct pchvml_token* token)
 {
     return token->text_content ?

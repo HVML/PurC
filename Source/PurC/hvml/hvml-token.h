@@ -50,12 +50,6 @@ extern "C" {
 struct pchvml_token* pchvml_token_new(enum pchvml_token_type type);
 
 PCA_INLINE
-struct pchvml_token* pchvml_token_new_character()
-{
-    return pchvml_token_new(PCHVML_TOKEN_CHARACTER);
-}
-
-PCA_INLINE
 struct pchvml_token* pchvml_token_new_start_tag()
 {
     return pchvml_token_new(PCHVML_TOKEN_START_TAG);
@@ -94,14 +88,6 @@ void pchvml_token_append_buffer_to_name(struct pchvml_token* token,
         struct pchvml_buffer* buffer);
 
 const char* pchvml_token_get_name(struct pchvml_token* token);
-
-void pchvml_token_append_to_text(struct pchvml_token* token,
-        uint32_t uc);
-
-void pchvml_token_delete_tail_chars_of_text(
-        struct pchvml_token* token, size_t sz);
-
-uint32_t pchvml_token__get_last_char_of_text(struct pchvml_token* token);
 
 void pchvml_token_append_bytes_to_text(struct pchvml_token* token,
         const char* bytes, size_t sz_bytes);
