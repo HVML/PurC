@@ -288,22 +288,6 @@ next_state:                                                             \
         pchvml_token_append_to_name(parser->token, uc);                     \
     } while (false)
 
-// TODO
-#define APPEND_TO_TOKEN_TEXT(uc)                                            \
-    do {                                                                    \
-        if (parser->token == NULL) {                                        \
-            parser->token = pchvml_token_new (PCHVML_TOKEN_CHARACTER);      \
-        }                                                                   \
-        pchvml_token_append_to_text(parser->token, uc);                     \
-    } while (false)
-
-// TODO
-#define APPEND_BYTES_TO_TOKEN_TEXT(c, nr_c)                                 \
-    do {                                                                    \
-        pchvml_token_append_bytes_to_text(parser->token, c, nr_c);          \
-    } while (false)
-
-// TODO
 #define APPEND_TEMP_BUFFER_TO_TOKEN_TEXT()                                  \
     do {                                                                    \
         const char* c = pchvml_buffer_get_buffer(parser->temp_buffer);      \
@@ -1378,7 +1362,7 @@ BEGIN_STATE(HVML_CDATA_SECTION_STATE)
         SET_ERR(PCHVML_ERROR_EOF_IN_CDATA);
         RECONSUME_IN(HVML_DATA_STATE);
     }
-    APPEND_TO_TOKEN_TEXT(character);
+    APPEND_TO_TEMP_BUFFER(character);
     ADVANCE_TO(HVML_CDATA_SECTION_STATE);
 END_STATE()
 
@@ -1386,20 +1370,26 @@ BEGIN_STATE(HVML_CDATA_SECTION_BRACKET_STATE)
     if (character == ']') {
         ADVANCE_TO(HVML_CDATA_SECTION_END_STATE);
     }
-    APPEND_TO_TOKEN_TEXT(']');
+    APPEND_TO_TEMP_BUFFER(']');
     RECONSUME_IN(HVML_CDATA_SECTION_STATE);
 END_STATE()
 
 BEGIN_STATE(HVML_CDATA_SECTION_END_STATE)
     if (character == ']') {
-        APPEND_TO_TOKEN_TEXT(']');
+        APPEND_TO_TEMP_BUFFER(character);
         ADVANCE_TO(HVML_CDATA_SECTION_END_STATE);
     }
     if (character == '>') {
-        ADVANCE_TO(HVML_DATA_STATE);
+        struct pcvcm_node* node = TEMP_BUFFER_TO_VCM_NODE();
+        if (!node) {
+            RETURN_AND_STOP_PARSE();
+        }
+        RESET_TEMP_BUFFER();
+        parser->token = pchvml_token_new_vcm(node);
+        RETURN_AND_SWITCH_TO(HVML_DATA_STATE);
     }
-    APPEND_TO_TOKEN_TEXT(']');
-    APPEND_TO_TOKEN_TEXT(']');
+    APPEND_TO_TEMP_BUFFER(']');
+    APPEND_TO_TEMP_BUFFER(']');
     RECONSUME_IN(HVML_CDATA_SECTION_STATE);
 END_STATE()
 
