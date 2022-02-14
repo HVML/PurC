@@ -41,8 +41,6 @@
 #include "hvml-attr.h"
 #include "hvml-tag.h"
 
-#ifdef USE_NEW_TOKENIZER
-
 #include <math.h>
 
 #if HAVE(GLIB)
@@ -3873,7 +3871,5 @@ BEGIN_STATE(HVML_EJSON_TEMPLATE_FINISHED_STATE)
 END_STATE()
 
 PCHVML_NEXT_TOKEN_END
-
-#endif
 
 

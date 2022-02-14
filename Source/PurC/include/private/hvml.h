@@ -44,7 +44,6 @@ struct pchvml_parser {
     struct pchvml_buffer* temp_buffer;
     struct pchvml_buffer* tag_name;
     struct pchvml_buffer* string_buffer;
-    struct pchvml_buffer* quoted_buffer;    /* remove */
     struct pchvml_token* token;
     struct pchvml_sbst* sbst;
     struct pcvcm_node* vcm_node;
@@ -56,8 +55,6 @@ struct pchvml_parser {
     bool tag_is_operation;
     bool enable_print_log;
 };
-
-#define USE_NEW_TOKENIZER
 
 #ifdef __cplusplus
 extern "C" {
