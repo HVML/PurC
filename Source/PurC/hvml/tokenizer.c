@@ -325,19 +325,16 @@ next_state:                                                             \
         pchvml_token_end_attr(parser->token);                               \
     } while (false)
 
-// TODO
 #define APPEND_TO_TOKEN_ATTR_VALUE(uc)                                      \
     do {                                                                    \
         pchvml_token_append_to_attr_value(parser->token, uc);               \
     } while (false)
 
-// TODO
 #define APPEND_BYTES_TO_TOKEN_ATTR_VALUE(c, nr_c)                           \
     do {                                                                    \
         pchvml_token_append_bytes_to_attr_value(parser->token, c, nr_c);    \
     } while (false)
 
-// TODO:
 #define APPEND_BUFFER_TO_TOKEN_ATTR_VALUE(buffer)                           \
     do {                                                                    \
         const char* c = pchvml_buffer_get_buffer(buffer);                   \
