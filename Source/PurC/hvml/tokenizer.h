@@ -268,8 +268,7 @@ PCA_INLINE bool is_context_variable(uint32_t c)
 {
     switch (c) {
         case '?':
-        case '^':
-        case '&':
+        case '<':
         case '@':
         case '!':
         case ':':

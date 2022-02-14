@@ -3574,8 +3574,6 @@ BEGIN_STATE(HVML_EJSON_JSONEE_VARIABLE_STATE)
             APPEND_TO_TEMP_BUFFER(character);
             ADVANCE_TO(HVML_EJSON_JSONEE_VARIABLE_STATE);
         }
-        SET_ERR(PCHVML_ERROR_BAD_JSONEE_VARIABLE_NAME);
-        RETURN_AND_STOP_PARSE();
     }
     if (character == '[' || character == '(') {
         if (pchvml_buffer_is_empty(parser->temp_buffer)) {
