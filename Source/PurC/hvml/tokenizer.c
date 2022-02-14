@@ -876,6 +876,7 @@ BEGIN_STATE(HVML_MARKUP_DECLARATION_OPEN_STATE)
         parser->token = pchvml_token_new_comment();
         pchvml_sbst_destroy(parser->sbst);
         parser->sbst = NULL;
+        RESET_TEMP_BUFFER();
         ADVANCE_TO(HVML_COMMENT_START_STATE);
     }
     if (strcmp(value, "DOCTYPE") == 0) {
@@ -886,6 +887,7 @@ BEGIN_STATE(HVML_MARKUP_DECLARATION_OPEN_STATE)
     if (strcmp(value, "[CDATA[") == 0) {
         pchvml_sbst_destroy(parser->sbst);
         parser->sbst = NULL;
+        RESET_TEMP_BUFFER();
         ADVANCE_TO(HVML_CDATA_SECTION_STATE);
     }
     SET_ERR(PCHVML_ERROR_INCORRECTLY_OPENED_COMMENT);
@@ -917,13 +919,13 @@ BEGIN_STATE(HVML_COMMENT_START_DASH_STATE)
         SET_ERR(PCHVML_ERROR_EOF_IN_COMMENT);
         RETURN_NEW_EOF_TOKEN();
     }
-    APPEND_TO_TOKEN_TEXT('-');
+    APPEND_TO_TEMP_BUFFER('-');
     RECONSUME_IN(HVML_COMMENT_STATE);
 END_STATE()
 
 BEGIN_STATE(HVML_COMMENT_STATE)
     if (character == '<') {
-        APPEND_TO_TOKEN_TEXT(character);
+        APPEND_TO_TEMP_BUFFER(character);
         ADVANCE_TO(HVML_COMMENT_LESS_THAN_SIGN_STATE);
     }
     if (character == '-') {
@@ -933,17 +935,17 @@ BEGIN_STATE(HVML_COMMENT_STATE)
         SET_ERR(PCHVML_ERROR_EOF_IN_COMMENT);
         RETURN_NEW_EOF_TOKEN();
     }
-    APPEND_TO_TOKEN_TEXT(character);
+    APPEND_TO_TEMP_BUFFER(character);
     ADVANCE_TO(HVML_COMMENT_STATE);
 END_STATE()
 
 BEGIN_STATE(HVML_COMMENT_LESS_THAN_SIGN_STATE)
     if (character == '!') {
-        APPEND_TO_TOKEN_TEXT(character);
+        APPEND_TO_TEMP_BUFFER(character);
         ADVANCE_TO(HVML_COMMENT_LESS_THAN_SIGN_BANG_STATE);
     }
     if (character == '<') {
-        APPEND_TO_TOKEN_TEXT(character);
+        APPEND_TO_TEMP_BUFFER(character);
         ADVANCE_TO(HVML_COMMENT_LESS_THAN_SIGN_STATE);
     }
     RECONSUME_IN(HVML_COMMENT_STATE);
@@ -979,39 +981,36 @@ BEGIN_STATE(HVML_COMMENT_END_DASH_STATE)
         SET_ERR(PCHVML_ERROR_EOF_IN_COMMENT);
         RETURN_NEW_EOF_TOKEN();
     }
-    APPEND_TO_TOKEN_TEXT('-');
+    APPEND_TO_TEMP_BUFFER('-');
     RECONSUME_IN(HVML_COMMENT_STATE);
 END_STATE()
 
 BEGIN_STATE(HVML_COMMENT_END_STATE)
     if (character == '>') {
-        const char* text = pchvml_token_get_text(parser->token);
-        if (!text) {
-            APPEND_BYTES_TO_TOKEN_TEXT(NULL, 0);
-        }
+        APPEND_TEMP_BUFFER_TO_TOKEN_TEXT();
         RETURN_AND_SWITCH_TO(HVML_DATA_STATE);
     }
     if (character == '!') {
         ADVANCE_TO(HVML_COMMENT_END_BANG_STATE);
     }
     if (character == '-') {
-        APPEND_TO_TOKEN_TEXT('-');
+        APPEND_TO_TEMP_BUFFER('-');
         ADVANCE_TO(HVML_COMMENT_END_STATE);
     }
     if (is_eof(character)) {
         SET_ERR(PCHVML_ERROR_EOF_IN_COMMENT);
         RETURN_NEW_EOF_TOKEN();
     }
-    APPEND_TO_TOKEN_TEXT('-');
-    APPEND_TO_TOKEN_TEXT('-');
+    APPEND_TO_TEMP_BUFFER('-');
+    APPEND_TO_TEMP_BUFFER('-');
     RECONSUME_IN(HVML_COMMENT_STATE);
 END_STATE()
 
 BEGIN_STATE(HVML_COMMENT_END_BANG_STATE)
     if (character == '-') {
-        APPEND_TO_TOKEN_TEXT('-');
-        APPEND_TO_TOKEN_TEXT('-');
-        APPEND_TO_TOKEN_TEXT('!');
+        APPEND_TO_TEMP_BUFFER('-');
+        APPEND_TO_TEMP_BUFFER('-');
+        APPEND_TO_TEMP_BUFFER('!');
         ADVANCE_TO(HVML_COMMENT_END_DASH_STATE);
     }
     if (character == '>') {
@@ -1022,9 +1021,9 @@ BEGIN_STATE(HVML_COMMENT_END_BANG_STATE)
         SET_ERR(PCHVML_ERROR_EOF_IN_COMMENT);
         RETURN_AND_RECONSUME_IN(HVML_DATA_STATE);
     }
-    APPEND_TO_TOKEN_TEXT('-');
-    APPEND_TO_TOKEN_TEXT('-');
-    APPEND_TO_TOKEN_TEXT('!');
+    APPEND_TO_TEMP_BUFFER('-');
+    APPEND_TO_TEMP_BUFFER('-');
+    APPEND_TO_TEMP_BUFFER('!');
     RECONSUME_IN(HVML_COMMENT_STATE);
 END_STATE()
 
