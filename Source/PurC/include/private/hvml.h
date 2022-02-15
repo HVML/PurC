@@ -53,6 +53,7 @@ struct pchvml_parser {
     uint64_t char_ref_code;
     uint32_t prev_separator;
     uint32_t nr_quoted;
+    uint32_t nr_whitespace;
     int last_token_type;
     bool tag_is_operation;
     bool enable_print_log;

@@ -282,6 +282,11 @@ next_state:                                                             \
         pchvml_buffer_append(parser->string_buffer, uc);                    \
     } while (false)
 
+#define APPEND_BYTES_TO_STRING_BUFFER(bytes, nr_bytes)                      \
+    do {                                                                    \
+        pchvml_buffer_append_bytes(parser->string_buffer, bytes, nr_bytes);  \
+    } while (false)
+
 #define RESET_QUOTED_COUNTER()                                              \
     do {                                                                    \
         parser->nr_quoted = 0;                                              \
@@ -608,6 +613,7 @@ BEGIN_STATE(HVML_DATA_STATE)
         RETURN_NEW_EOF_TOKEN();
     }
     RESET_TEMP_BUFFER();
+    parser->nr_whitespace = 0;
     RECONSUME_IN(HVML_TAG_CONTENT_STATE);
 END_STATE()
 
@@ -656,9 +662,11 @@ BEGIN_STATE(HVML_TAG_CONTENT_STATE)
         RETURN_NEW_EOF_TOKEN();
     }
     if (is_whitespace(character)) {
+        parser->nr_whitespace++;
         APPEND_TO_TEMP_BUFFER(character);
         ADVANCE_TO(HVML_TAG_CONTENT_STATE);
     }
+    parser->nr_whitespace = 0;
     if (character == '<') {
         if(!IS_TEMP_BUFFER_EMPTY()) {
             struct pcvcm_node* node = TEMP_BUFFER_TO_VCM_NODE();
@@ -1736,21 +1744,59 @@ BEGIN_STATE(HVML_TEXT_CONTENT_STATE)
     }
     if (character == '<') {
         if (!IS_TEMP_BUFFER_EMPTY()) {
-            struct pcvcm_node* node = TEMP_BUFFER_TO_VCM_NODE();
-            if (!node) {
-                RETURN_AND_STOP_PARSE();
+            size_t nr_chars = pchvml_buffer_get_size_in_chars(parser->temp_buffer);
+            if (parser->nr_whitespace > 0
+                    && nr_chars > parser->nr_whitespace) {
+                size_t nr_bytes = pchvml_buffer_get_size_in_bytes(
+                        parser->temp_buffer);
+                const char* bytes = pchvml_buffer_get_buffer(
+                        parser->temp_buffer);
+                RESET_STRING_BUFFER();
+                APPEND_BYTES_TO_STRING_BUFFER(bytes, nr_bytes - parser->nr_whitespace);
+                struct pcvcm_node* node = pcvcm_node_new_string(
+                    pchvml_buffer_get_buffer(parser->string_buffer)
+                    );
+                if (!node) {
+                    RETURN_AND_STOP_PARSE();
+                }
+                struct pchvml_token* token = pchvml_token_new_vcm(node);
+
+                RESET_STRING_BUFFER();
+                const char* pos = bytes + (nr_bytes - parser->nr_whitespace);
+                APPEND_BYTES_TO_STRING_BUFFER(pos, parser->nr_whitespace);
+                node = pcvcm_node_new_string(
+                    pchvml_buffer_get_buffer(parser->string_buffer)
+                    );
+                if (!node) {
+                    RETURN_AND_STOP_PARSE();
+                }
+                struct pchvml_token* next_token = pchvml_token_new_vcm(node);
+                parser->nr_whitespace = 0;
+                pchvml_rwswrap_reconsume_last_char(parser->rwswrap);
+                RETURN_MULTIPLE_AND_SWITCH_TO(
+                        token, next_token, HVML_DATA_STATE);
             }
-            RESET_TEMP_BUFFER();
-            parser->token = pchvml_token_new_vcm(node);
-            RETURN_AND_RECONSUME_IN(HVML_DATA_STATE);
+            else {
+                struct pcvcm_node* node = TEMP_BUFFER_TO_VCM_NODE();
+                if (!node) {
+                    RETURN_AND_STOP_PARSE();
+                }
+                RESET_TEMP_BUFFER();
+                parser->token = pchvml_token_new_vcm(node);
+                parser->nr_whitespace = 0;
+                RETURN_AND_RECONSUME_IN(HVML_DATA_STATE);
+            }
         }
+        parser->nr_whitespace = 0;
         RECONSUME_IN(HVML_DATA_STATE);
     }
     if (character == '&') {
+        parser->nr_whitespace = 0;
         SET_RETURN_STATE(HVML_TEXT_CONTENT_STATE);
         ADVANCE_TO(HVML_CHARACTER_REFERENCE_STATE);
     }
     if (character == '$') {
+        parser->nr_whitespace = 0;
         if (!IS_TEMP_BUFFER_EMPTY()) {
             if (pchvml_buffer_equal_to(parser->temp_buffer, "{", 1)) {
                 pchvml_rwswrap_reconsume_last_char(parser->rwswrap);
@@ -1780,6 +1826,7 @@ BEGIN_STATE(HVML_TEXT_CONTENT_STATE)
         RECONSUME_IN(HVML_EJSON_DATA_STATE);
     }
     if (character == '{') {
+        parser->nr_whitespace = 0;
         if (!IS_TEMP_BUFFER_EMPTY() &&
                 !pchvml_buffer_end_with(parser->temp_buffer, "{", 1)) {
             struct pcvcm_node* node = TEMP_BUFFER_TO_VCM_NODE();
@@ -1792,6 +1839,12 @@ BEGIN_STATE(HVML_TEXT_CONTENT_STATE)
         }
         APPEND_TO_TEMP_BUFFER(character);
         ADVANCE_TO(HVML_TEXT_CONTENT_STATE);
+    }
+    if (is_whitespace(character)) {
+        parser->nr_whitespace++;
+    }
+    else {
+        parser->nr_whitespace = 0;
     }
     APPEND_TO_TEMP_BUFFER(character);
     ADVANCE_TO(HVML_TEXT_CONTENT_STATE);
