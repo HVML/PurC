@@ -678,6 +678,7 @@ BEGIN_STATE(HVML_TAG_CONTENT_STATE)
             if (!parser->token) {
                 RETURN_AND_STOP_PARSE();
             }
+            pchvml_token_set_is_whitespace(parser->token, true);
             RETURN_AND_RECONSUME_IN(HVML_DATA_STATE);
         }
         RECONSUME_IN(HVML_DATA_STATE);
@@ -693,6 +694,7 @@ BEGIN_STATE(HVML_TAG_CONTENT_STATE)
             if (!parser->token) {
                 RETURN_AND_STOP_PARSE();
             }
+            pchvml_token_set_is_whitespace(parser->token, true);
             RETURN_AND_RECONSUME_IN(HVML_JSONTEXT_CONTENT_STATE);
         }
         RECONSUME_IN(HVML_JSONTEXT_CONTENT_STATE);
@@ -709,6 +711,7 @@ BEGIN_STATE(HVML_TAG_CONTENT_STATE)
         if (!parser->token) {
             RETURN_AND_STOP_PARSE();
         }
+        pchvml_token_set_is_whitespace(parser->token, true);
         RETURN_AND_RECONSUME_IN(HVML_TEXT_CONTENT_STATE);
     }
     RECONSUME_IN(HVML_TEXT_CONTENT_STATE);
@@ -1771,6 +1774,7 @@ BEGIN_STATE(HVML_TEXT_CONTENT_STATE)
                     RETURN_AND_STOP_PARSE();
                 }
                 struct pchvml_token* next_token = pchvml_token_new_vcm(node);
+                pchvml_token_set_is_whitespace(next_token, true);
                 parser->nr_whitespace = 0;
                 pchvml_rwswrap_reconsume_last_char(parser->rwswrap);
                 RETURN_MULTIPLE_AND_SWITCH_TO(

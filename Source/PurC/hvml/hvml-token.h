@@ -129,6 +129,10 @@ void pchvml_token_set_force_quirks(struct pchvml_token* token, bool b);
 
 bool pchvml_token_is_force_quirks(struct pchvml_token* token);
 
+void pchvml_token_set_is_whitespace(struct pchvml_token* token, bool b);
+
+bool pchvml_token_is_whitespace(struct pchvml_token* token);
+
 void pchvml_token_begin_attr(struct pchvml_token* token);
 
 void pchvml_token_append_to_attr_name(struct pchvml_token* token,

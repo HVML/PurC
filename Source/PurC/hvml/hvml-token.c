@@ -64,6 +64,7 @@ struct pchvml_token {
     enum pchvml_token_type type;
     bool self_closing;
     bool force_quirks;
+    bool whitespace;
 
     struct pchvml_buffer* name;
     struct pcutils_arrlist* attr_list;
@@ -383,6 +384,16 @@ void pchvml_token_set_force_quirks(struct pchvml_token* token, bool b)
 bool pchvml_token_is_force_quirks(struct pchvml_token* token)
 {
     return token->force_quirks;
+}
+
+void pchvml_token_set_is_whitespace(struct pchvml_token* token, bool b)
+{
+    token->whitespace = b;
+}
+
+bool pchvml_token_is_whitespace(struct pchvml_token* token)
+{
+    return token->whitespace;
 }
 
 struct pchvml_token_attr* pchvml_token_get_curr_attr(
