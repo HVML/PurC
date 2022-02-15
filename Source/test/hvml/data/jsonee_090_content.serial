@@ -6,8 +6,7 @@ PCHVML_TOKEN_VCM_TREE|"
         "
 PCHVML_TOKEN_VCM_TREE|"this is syste.time "
 PCHVML_TOKEN_VCM_TREE|get_element(get_variable("SYSTEM"),"time")
-PCHVML_TOKEN_VCM_TREE|" "
-PCHVML_TOKEN_VCM_TREE|"and something. "
+PCHVML_TOKEN_VCM_TREE|" and something. "
 PCHVML_TOKEN_VCM_TREE|get_variable("abc")
 PCHVML_TOKEN_VCM_TREE|"
     "
@@ -19,8 +18,7 @@ PCHVML_TOKEN_VCM_TREE|"
         "
 PCHVML_TOKEN_VCM_TREE|"this is syste.time "
 PCHVML_TOKEN_VCM_TREE|call_getter(get_element(get_variable("SYSTEM"),"time"),"tm",get_variable("ABC"),make_object("key",123),make_array(1,2,3),make_array(call_getter(get_variable("A"),"xyz"),get_element(get_variable("B"),"b"),get_element(get_variable("C"),"a")))
-PCHVML_TOKEN_VCM_TREE|" "
-PCHVML_TOKEN_VCM_TREE|"this is after function call.
+PCHVML_TOKEN_VCM_TREE|" this is after function call.
         "
 PCHVML_TOKEN_START_TAG|<p>
 PCHVML_TOKEN_VCM_TREE|"this is a p."
@@ -29,8 +27,7 @@ PCHVML_TOKEN_VCM_TREE|"
         "
 PCHVML_TOKEN_VCM_TREE|"this is after p "
 PCHVML_TOKEN_VCM_TREE|get_element(get_variable("AAA"),"BB")
-PCHVML_TOKEN_VCM_TREE|" "
-PCHVML_TOKEN_VCM_TREE|"after variant.
+PCHVML_TOKEN_VCM_TREE|" after variant.
     "
 PCHVML_TOKEN_END_TAG|</div>
 PCHVML_TOKEN_VCM_TREE|"
@@ -40,8 +37,7 @@ PCHVML_TOKEN_VCM_TREE|"
         "
 PCHVML_TOKEN_VCM_TREE|"this is syste.time "
 PCHVML_TOKEN_VCM_TREE|call_getter(get_element(get_variable("SYSTEM"),"time"),"tm",get_variable("ABC"),make_object("key",123),make_array(1,2,3),make_array(call_getter(get_variable("A"),"xyz"),get_element(get_variable("B"),"b"),get_element(get_variable("C"),"a")))
-PCHVML_TOKEN_VCM_TREE|" "
-PCHVML_TOKEN_VCM_TREE|"this is after function call.
+PCHVML_TOKEN_VCM_TREE|" this is after function call.
     "
 PCHVML_TOKEN_END_TAG|</div>
 PCHVML_TOKEN_VCM_TREE|"

@@ -49,9 +49,11 @@ struct pchvml_parser {
     struct pcvcm_node* vcm_node;
     struct pcvcm_stack* vcm_stack;
     struct pcutils_stack* ejson_stack;
+    struct pchvml_token* start_tag_token;
     uint64_t char_ref_code;
     uint32_t prev_separator;
     uint32_t nr_quoted;
+    int last_token_type;
     bool tag_is_operation;
     bool enable_print_log;
 };

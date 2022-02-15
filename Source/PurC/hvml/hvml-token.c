@@ -327,9 +327,9 @@ enum pchvml_token_type pchvml_token_get_type(struct pchvml_token* token)
     return token->type;
 }
 
-const char* pchvml_token_get_type_name(struct pchvml_token* token)
+const char* pchvml_token_type_name(enum pchvml_token_type type)
 {
-    switch (token->type) {
+    switch (type) {
     case PCHVML_TOKEN_DOCTYPE:
         return "PCHVML_TOKEN_DOCTYPE";
     case PCHVML_TOKEN_START_TAG:
@@ -346,6 +346,11 @@ const char* pchvml_token_get_type_name(struct pchvml_token* token)
         return "PCHVML_TOKEN_EOF";
     }
     return "INVALID TOKEN TYPE";
+}
+
+const char* pchvml_token_get_type_name(struct pchvml_token* token)
+{
+    return pchvml_token_type_name(token->type);
 }
 
 struct pcvcm_node* pchvml_token_get_vcm_content(struct pchvml_token* token)

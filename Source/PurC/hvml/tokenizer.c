@@ -87,6 +87,7 @@ struct pchvml_token* pchvml_next_token(struct pchvml_parser* parser,    \
     if (parser->token) {                                                \
         struct pchvml_token* token = parser->token;                     \
         parser->token = NULL;                                           \
+        parser->last_token_type = pchvml_token_get_type(token);         \
         return token;                                                   \
     }                                                                   \
                                                                         \
@@ -185,7 +186,7 @@ next_state:                                                             \
         const char* name = pchvml_token_get_name(token);                    \
         if (pchvml_token_is_type(token, PCHVML_TOKEN_START_TAG) &&          \
                 pchvml_parser_is_template_tag(name)) {                      \
-            parser->state = HVML_EJSON_DATA_STATE;                        \
+            parser->state = HVML_EJSON_DATA_STATE;                          \
         }                                                                   \
     } while (false)
 
@@ -197,6 +198,7 @@ next_state:                                                             \
         struct pchvml_token* token = parser->token;                         \
         parser->token = NULL;                                               \
         CHECK_TEMPLATE_TAG_AND_SWITCH_STATE(token);                         \
+        parser->last_token_type = pchvml_token_get_type(token);             \
         return token;                                                       \
     } while (false)
 
@@ -208,6 +210,7 @@ next_state:                                                             \
         struct pchvml_token* token = parser->token;                         \
         parser->token = NULL;                                               \
         pchvml_rwswrap_reconsume_last_char(parser->rwswrap);                \
+        parser->last_token_type = pchvml_token_get_type(token);             \
         return token;                                                       \
     } while (false)
 
@@ -216,6 +219,7 @@ next_state:                                                             \
         pchvml_token_done(parser->token);                                   \
         struct pchvml_token* token = parser->token;                         \
         parser->token = NULL;                                               \
+        parser->last_token_type = pchvml_token_get_type(token);             \
         return token;                                                       \
     } while (false)
 
@@ -224,6 +228,7 @@ next_state:                                                             \
         if (parser->token) {                                                \
             struct pchvml_token* token = parser->token;                     \
             parser->token = pchvml_token_new_eof();                         \
+            parser->last_token_type = pchvml_token_get_type(token);         \
             return token;                                                   \
         }                                                                   \
         return pchvml_token_new_eof();                                      \
@@ -235,6 +240,7 @@ next_state:                                                             \
         pchvml_token_done(token);                                           \
         pchvml_token_done(next_token);                                      \
         parser->token = next_token;                                         \
+        parser->last_token_type = pchvml_token_get_type(token);             \
         return token;                                                       \
     } while (false)
 
@@ -653,7 +659,39 @@ BEGIN_STATE(HVML_TAG_CONTENT_STATE)
         APPEND_TO_TEMP_BUFFER(character);
         ADVANCE_TO(HVML_TAG_CONTENT_STATE);
     }
-    if (!IS_TEMP_BUFFER_EMPTY()) {
+    if (character == '<') {
+        if(!IS_TEMP_BUFFER_EMPTY()) {
+            struct pcvcm_node* node = TEMP_BUFFER_TO_VCM_NODE();
+            if (!node) {
+                RETURN_AND_STOP_PARSE();
+            }
+            RESET_TEMP_BUFFER();
+            parser->token = pchvml_token_new_vcm(node);
+            if (!parser->token) {
+                RETURN_AND_STOP_PARSE();
+            }
+            RETURN_AND_RECONSUME_IN(HVML_DATA_STATE);
+        }
+        RECONSUME_IN(HVML_DATA_STATE);
+    }
+    if (pchvml_parser_is_in_json_content_tag(parser)) {
+        if(!IS_TEMP_BUFFER_EMPTY()) {
+            struct pcvcm_node* node = TEMP_BUFFER_TO_VCM_NODE();
+            if (!node) {
+                RETURN_AND_STOP_PARSE();
+            }
+            RESET_TEMP_BUFFER();
+            parser->token = pchvml_token_new_vcm(node);
+            if (!parser->token) {
+                RETURN_AND_STOP_PARSE();
+            }
+            RETURN_AND_RECONSUME_IN(HVML_JSONTEXT_CONTENT_STATE);
+        }
+        RECONSUME_IN(HVML_JSONTEXT_CONTENT_STATE);
+    }
+    if ((parser->last_token_type == PCHVML_TOKEN_START_TAG
+                || parser->last_token_type == PCHVML_TOKEN_END_TAG)
+            && !IS_TEMP_BUFFER_EMPTY()) {
         struct pcvcm_node* node = TEMP_BUFFER_TO_VCM_NODE();
         if (!node) {
             RETURN_AND_STOP_PARSE();
@@ -663,18 +701,9 @@ BEGIN_STATE(HVML_TAG_CONTENT_STATE)
         if (!parser->token) {
             RETURN_AND_STOP_PARSE();
         }
+        RETURN_AND_RECONSUME_IN(HVML_TEXT_CONTENT_STATE);
     }
-    int state = HVML_TEXT_CONTENT_STATE;
-    if (character == '<') {
-        state = HVML_DATA_STATE;
-    }
-    else if (pchvml_parser_is_in_json_content_tag(parser)) {
-        state = HVML_JSONTEXT_CONTENT_STATE;
-    }
-    if (parser->token) {
-        RETURN_AND_RECONSUME_IN(state);
-    }
-    RECONSUME_IN(state);
+    RECONSUME_IN(HVML_TEXT_CONTENT_STATE);
 END_STATE()
 
 BEGIN_STATE(HVML_TAG_NAME_STATE)
