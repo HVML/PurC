@@ -20,8 +20,8 @@ extern void get_variant_total_info (size_t *mem, size_t *value, size_t *resv);
 
 TEST(dvobjs, basic)
 {
-    char cwd[1024];
-    getcwd(cwd, sizeof(cwd));
+    char *cwd;
+    cwd = get_current_dir_name();
     purc_instance_extra_info info = {};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
@@ -52,6 +52,7 @@ TEST(dvobjs, basic)
     ASSERT_TRUE(ok);
 
     purc_cleanup ();
+    free(cwd);
 }
 
 TEST(dvobjs, dvobjs_sys_uname)
