@@ -1498,29 +1498,43 @@ static purc_variant_t pcdvobjs_create_math (void)
         {"2/sqrt(2)", {M_2_SQRTPI, M_2_SQRTPIl}},
         {"sqrt(2)",   {M_SQRT2,    M_SQRT2l}},
     };
-    const_map = pcutils_map_create (map_copy_key, map_free_key,
-            map_copy_val, map_free_val, map_comp_key, false);
 
-    if (const_map) {
+    if (const_map == NULL) {
+        const_map = pcutils_map_create (map_copy_key, map_free_key,
+                map_copy_val, map_free_val, map_comp_key, false);
+        if (!const_map)
+            return PURC_VARIANT_INVALID;
+
+        bool ok = true;
         for (i = 0; i < PCA_TABLESIZE(const_key_value); i++) {
+            ok = false;
             struct const_struct *p = const_key_value + i;
 
             char *k = strdup(p->key);
             if (!p)
-                continue;
+                break;
 
             struct const_value *v;
             v = (struct const_value*)malloc(sizeof(*v));
             if (!v) {
                 free(k);
-                continue;
+                break;
             }
             *v = const_key_value[i].value;
 
             if (pcutils_map_insert (const_map, k, v)) {
                 free(k);
                 free(v);
+                break;
             }
+
+            ok = true;
+        }
+
+        if (!ok) {
+            pcutils_map_destroy (const_map);
+            const_map = NULL;
+            return PURC_VARIANT_INVALID;
         }
     }
 

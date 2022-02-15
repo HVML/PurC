@@ -40,7 +40,6 @@ pchvml_tag_static_get_by_id(enum pchvml_tag_id id)
     if (id < PCHVML_TAG_FIRST_ENTRY ||
         id >= PCHVML_TAG_LAST_ENTRY)
     {
-        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         return NULL;
     }
     const struct pchvml_tag_entry *entry;

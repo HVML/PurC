@@ -36,7 +36,7 @@
 #include <unistd.h>
 #include <libgen.h>
 
-#define TO_DEBUG 0
+#define TO_DEBUG 1
 
 struct ctxt_for_except {
     struct pcvdom_node           *curr;
@@ -56,31 +56,49 @@ ctxt_destroy(void *ctxt)
     ctxt_for_except_destroy((struct ctxt_for_except*)ctxt);
 }
 
+static int
+attr_found(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element,
+        purc_atom_t name, purc_variant_t val,
+        struct pcvdom_attr *attr,
+        void *ud)
+{
+    UNUSED_PARAM(frame);
+    UNUSED_PARAM(element);
+    UNUSED_PARAM(val);
+    UNUSED_PARAM(ud);
+
+    PC_ASSERT(attr);
+
+    PC_ASSERT(attr->op == PCHVML_ATTRIBUTE_OPERATOR);
+
+    if (name) {
+        if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, RAW)) == name) {
+            return 0;
+        }
+        if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, TYPE)) == name) {
+            return 0;
+        }
+        D("name: %s", purc_atom_to_string(name));
+        PC_ASSERT(0);
+        return -1;
+    }
+
+    D("name: %s", attr->key);
+    PC_ASSERT(0);
+    return -1;
+}
+
 static void*
 after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 {
     PC_ASSERT(stack && pos);
     PC_ASSERT(stack == purc_get_stack());
+    if (pcintr_check_insertion_mode_for_normal_element(stack))
+        return NULL;
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
-
-    frame->pos = pos; // ATTENTION!!
-
-    if (pcintr_set_symbol_var_at_sign())
-        return NULL;
-
-    struct pcvdom_element *element = frame->pos;
-    PC_ASSERT(element);
-
-    int r;
-    r = pcintr_element_eval_attrs(frame, element);
-    if (r)
-        return NULL;
-
-    r = pcintr_element_eval_vcm_content(frame, element);
-    if (r)
-        return NULL;
 
     struct ctxt_for_except *ctxt;
     ctxt = (struct ctxt_for_except*)calloc(1, sizeof(*ctxt));
@@ -91,6 +109,21 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     frame->ctxt = ctxt;
     frame->ctxt_destroy = ctxt_destroy;
+
+    frame->pos = pos; // ATTENTION!!
+
+    struct pcvdom_element *element = frame->pos;
+    PC_ASSERT(element);
+
+    int r;
+    r = pcintr_vdom_walk_attrs(frame, element, NULL, attr_found);
+    if (r)
+        return NULL;
+
+    r = pcintr_element_eval_vcm_content(frame, element);
+    if (r)
+        return NULL;
+
     purc_clr_error();
 
     return ctxt;

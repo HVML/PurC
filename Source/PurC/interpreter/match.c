@@ -202,15 +202,12 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 {
     PC_ASSERT(stack && pos);
     PC_ASSERT(stack == purc_get_stack());
+    if (pcintr_check_insertion_mode_for_normal_element(stack))
+        return NULL;
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame);
-
-    frame->pos = pos; // ATTENTION!!
-
-    if (pcintr_set_symbol_var_at_sign())
-        return NULL;
 
     struct ctxt_for_match *ctxt;
     ctxt = (struct ctxt_for_match*)calloc(1, sizeof(*ctxt));
@@ -221,6 +218,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     frame->ctxt = ctxt;
     frame->ctxt_destroy = ctxt_destroy;
+
+    frame->pos = pos; // ATTENTION!!
 
     struct pcvdom_element *element = frame->pos;
     PC_ASSERT(element);

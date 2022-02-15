@@ -38,24 +38,8 @@ TEST(dvobjs, dvobjs_file_text_head)
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
             &nr_reserved_before);
 
-    char so_path[PATH_MAX+1];
-    const char *env;
-    env = "DVOBJS_SO_PATH";
-    test_getpath_from_env_or_rel(so_path, sizeof(so_path),
-        env, "../../../build/Source/ExtDVObjs");
-    std::cerr << "env: " << env << "=" << so_path << std::endl;
-
-#ifndef __APPLE__
-    strncat(so_path, "/fs/libpurc-dvobj-FS.so", sizeof(so_path)-1);
-    so_path[sizeof(so_path)-1] = '\0';
-#else
-    strncat(so_path, "/fs/purc-dvobj-FS.framework/purc-dvobj-FS", sizeof(so_path)-1);
-    so_path[sizeof(so_path)-1] = '\0';
-#endif
-    purc_variant_t file = purc_variant_load_dvobj_from_so (
-        so_path, "FILE");
-    ASSERT_NE(file, nullptr) << "Failed to load_from_so: ["
-            << so_path << "]" << std::endl;
+    purc_variant_t file = purc_variant_load_dvobj_from_so ("FS", "FILE");
+    ASSERT_NE(file, nullptr);
     ASSERT_EQ(purc_variant_is_object (file), true);
 
     purc_variant_t text = purc_variant_object_get_by_ckey(file, "text", false);
@@ -130,24 +114,8 @@ TEST(dvobjs, dvobjs_file_text_tail)
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
             &nr_reserved_before);
 
-    char so_path[PATH_MAX+1];
-    const char *env;
-    env = "DVOBJS_SO_PATH";
-    test_getpath_from_env_or_rel(so_path, sizeof(so_path),
-        env, "../../../build/Source/ExtDVObjs");
-    std::cerr << "env: " << env << "=" << so_path << std::endl;
-
-#ifndef __APPLE__
-    strncat(so_path, "/fs/libpurc-dvobj-FS.so", sizeof(so_path)-1);
-    so_path[sizeof(so_path)-1] = '\0';
-#else
-    strncat(so_path, "/fs/purc-dvobj-FS.framework/purc-dvobj-FS", sizeof(so_path)-1);
-    so_path[sizeof(so_path)-1] = '\0';
-#endif
-    purc_variant_t file = purc_variant_load_dvobj_from_so (
-        so_path, "FILE");
-    ASSERT_NE(file, nullptr) << "Failed to load_from_so: ["
-            << so_path << "]" << std::endl;
+    purc_variant_t file = purc_variant_load_dvobj_from_so ("FS", "FILE");
+    ASSERT_NE(file, nullptr);
     ASSERT_EQ(purc_variant_is_object (file), true);
 
     purc_variant_t text = purc_variant_object_get_by_ckey (file, "text", false);
@@ -222,24 +190,8 @@ TEST(dvobjs, dvobjs_file_bin_head)
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
             &nr_reserved_before);
 
-    char so_path[PATH_MAX+1];
-    const char *env;
-    env = "DVOBJS_SO_PATH";
-    test_getpath_from_env_or_rel(so_path, sizeof(so_path),
-        env, "../../../build/Source/ExtDVObjs");
-    std::cerr << "env: " << env << "=" << so_path << std::endl;
-
-#ifndef __APPLE__
-    strncat(so_path, "/fs/libpurc-dvobj-FS.so", sizeof(so_path)-1);
-    so_path[sizeof(so_path)-1] = '\0';
-#else
-    strncat(so_path, "/fs/purc-dvobj-FS.framework/purc-dvobj-FS", sizeof(so_path)-1);
-    so_path[sizeof(so_path)-1] = '\0';
-#endif
-    purc_variant_t file = purc_variant_load_dvobj_from_so (
-        so_path, "FILE");
-    ASSERT_NE(file, nullptr) << "Failed to load_from_so: ["
-            << so_path << "]" << std::endl;
+    purc_variant_t file = purc_variant_load_dvobj_from_so ("FS", "FILE");
+    ASSERT_NE(file, nullptr);
     ASSERT_EQ(purc_variant_is_object (file), true);
 
     purc_variant_t text = purc_variant_object_get_by_ckey(file, "bin", false);
@@ -314,24 +266,8 @@ TEST(dvobjs, dvobjs_file_bin_tail)
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
             &nr_reserved_before);
 
-    char so_path[PATH_MAX+1];
-    const char *env;
-    env = "DVOBJS_SO_PATH";
-    test_getpath_from_env_or_rel(so_path, sizeof(so_path),
-        env, "../../../build/Source/ExtDVObjs");
-    std::cerr << "env: " << env << "=" << so_path << std::endl;
-
-#ifndef __APPLE__
-    strncat(so_path, "/fs/libpurc-dvobj-FS.so", sizeof(so_path)-1);
-    so_path[sizeof(so_path)-1] = '\0';
-#else
-    strncat(so_path, "/fs/purc-dvobj-FS.framework/purc-dvobj-FS", sizeof(so_path)-1);
-    so_path[sizeof(so_path)-1] = '\0';
-#endif
-    purc_variant_t file = purc_variant_load_dvobj_from_so (
-        so_path, "FILE");
-    ASSERT_NE(file, nullptr) << "Failed to load_from_so: ["
-            << so_path << "]" << std::endl;
+    purc_variant_t file = purc_variant_load_dvobj_from_so ("FS", "FILE");
+    ASSERT_NE(file, nullptr);
     ASSERT_EQ(purc_variant_is_object (file), true);
 
     purc_variant_t text = purc_variant_object_get_by_ckey (file, "bin", false);
@@ -406,24 +342,10 @@ TEST(dvobjs, dvobjs_file_stream_open_seek_close)
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
             &nr_reserved_before);
 
-    char so_path[PATH_MAX+1];
     const char *env;
     env = "DVOBJS_SO_PATH";
-    test_getpath_from_env_or_rel(so_path, sizeof(so_path),
-        env, "../../../build/Source/ExtDVObjs");
-    std::cerr << "env: " << env << "=" << so_path << std::endl;
-
-#ifndef __APPLE__
-    strncat(so_path, "/fs/libpurc-dvobj-FS.so", sizeof(so_path)-1);
-    so_path[sizeof(so_path)-1] = '\0';
-#else
-    strncat(so_path, "/fs/purc-dvobj-FS.framework/purc-dvobj-FS", sizeof(so_path)-1);
-    so_path[sizeof(so_path)-1] = '\0';
-#endif
-    purc_variant_t file = purc_variant_load_dvobj_from_so (
-        so_path, "FILE");
-    ASSERT_NE(file, nullptr) << "Failed to load_from_so: ["
-            << so_path << "]" << std::endl;
+    purc_variant_t file = purc_variant_load_dvobj_from_so ("FS", "FILE");
+    ASSERT_NE(file, nullptr);
     ASSERT_EQ(purc_variant_is_object (file), true);
 
     purc_variant_t stream = purc_variant_object_get_by_ckey (file, "stream",
@@ -531,24 +453,10 @@ TEST(dvobjs, dvobjs_file_stream_readbytes)
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
             &nr_reserved_before);
 
-    char so_path[PATH_MAX+1];
     const char *env;
     env = "DVOBJS_SO_PATH";
-    test_getpath_from_env_or_rel(so_path, sizeof(so_path),
-        env, "../../../build/Source/ExtDVObjs");
-    std::cerr << "env: " << env << "=" << so_path << std::endl;
-
-#ifndef __APPLE__
-    strncat(so_path, "/fs/libpurc-dvobj-FS.so", sizeof(so_path)-1);
-    so_path[sizeof(so_path)-1] = '\0';
-#else
-    strncat(so_path, "/fs/purc-dvobj-FS.framework/purc-dvobj-FS", sizeof(so_path)-1);
-    so_path[sizeof(so_path)-1] = '\0';
-#endif
-    purc_variant_t file = purc_variant_load_dvobj_from_so (
-        so_path, "FILE");
-    ASSERT_NE(file, nullptr) << "Failed to load_from_so: ["
-            << so_path << "]" << std::endl;
+    purc_variant_t file = purc_variant_load_dvobj_from_so ("FS", "FILE");
+    ASSERT_NE(file, nullptr);
     ASSERT_EQ(purc_variant_is_object (file), true);
 
 
@@ -674,24 +582,10 @@ TEST(dvobjs, dvobjs_file_stream_readlines)
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
             &nr_reserved_before);
 
-    char so_path[PATH_MAX+1];
     const char *env;
     env = "DVOBJS_SO_PATH";
-    test_getpath_from_env_or_rel(so_path, sizeof(so_path),
-        env, "../../../build/Source/ExtDVObjs");
-    std::cerr << "env: " << env << "=" << so_path << std::endl;
-
-#ifndef __APPLE__
-    strncat(so_path, "/fs/libpurc-dvobj-FS.so", sizeof(so_path)-1);
-    so_path[sizeof(so_path)-1] = '\0';
-#else
-    strncat(so_path, "/fs/purc-dvobj-FS.framework/purc-dvobj-FS", sizeof(so_path)-1);
-    so_path[sizeof(so_path)-1] = '\0';
-#endif
-    purc_variant_t file = purc_variant_load_dvobj_from_so (
-        so_path, "FILE");
-    ASSERT_NE(file, nullptr) << "Failed to load_from_so: ["
-            << so_path << "]" << std::endl;
+    purc_variant_t file = purc_variant_load_dvobj_from_so ("FS", "FILE");
+    ASSERT_NE(file, nullptr);
     ASSERT_EQ(purc_variant_is_object (file), true);
 
     purc_variant_t stream = purc_variant_object_get_by_ckey (file, "stream",
@@ -826,24 +720,10 @@ TEST(dvobjs, dvobjs_file_stream_read_write_struct)
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
             &nr_reserved_before);
 
-    char so_path[PATH_MAX+1];
     const char *env;
     env = "DVOBJS_SO_PATH";
-    test_getpath_from_env_or_rel(so_path, sizeof(so_path),
-        env, "../../../build/Source/ExtDVObjs");
-    std::cerr << "env: " << env << "=" << so_path << std::endl;
-
-#ifndef __APPLE__
-    strncat(so_path, "/fs/libpurc-dvobj-FS.so", sizeof(so_path)-1);
-    so_path[sizeof(so_path)-1] = '\0';
-#else
-    strncat(so_path, "/fs/purc-dvobj-FS.framework/purc-dvobj-FS", sizeof(so_path)-1);
-    so_path[sizeof(so_path)-1] = '\0';
-#endif
-    purc_variant_t file = purc_variant_load_dvobj_from_so (
-        so_path, "FILE");
-    ASSERT_NE(file, nullptr) << "Failed to load_from_so: ["
-            << so_path << "]" << std::endl;
+    purc_variant_t file = purc_variant_load_dvobj_from_so ("FS", "FILE");
+    ASSERT_NE(file, nullptr);
     ASSERT_EQ(purc_variant_is_object (file), true);
 
     purc_variant_t stream = purc_variant_object_get_by_ckey (file, "stream", false);

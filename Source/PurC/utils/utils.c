@@ -213,7 +213,7 @@ int pcutils_parse_long_double(const char *buf, size_t len, long double *retval)
     return 1;
 }
 
-__attribute__ ((format (gnu_printf, 3, 0)))
+__attribute__ ((format (printf, 3, 0)))
 char*
 pcutils_vsnprintf(char *buf, size_t *sz_io, const char *fmt, va_list ap)
 {
@@ -242,7 +242,7 @@ pcutils_vsnprintf(char *buf, size_t *sz_io, const char *fmt, va_list ap)
             break;
 
         *p = '\0';
-        n = vsnprintf(p, sz, fmt, dp);
+        n = vsnprintf(p, sz, fmt, ap);
 
         nr = n;
         if (n<0 || (size_t)n >= sz) {

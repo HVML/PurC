@@ -27,6 +27,7 @@
 
 #include "config.h"
 #include "purc-dom.h"
+#include "purc-html.h"
 #include "purc-rwstream.h"
 #include "purc-variant.h"
 
@@ -145,6 +146,9 @@ pcdvobjs_get_element_from_variant(purc_variant_t val);
 
 purc_variant_t
 pcdvobjs_make_elements(struct pcdom_element *element);
+
+purc_variant_t
+pcdvobjs_elements_by_css(pchtml_html_document_t *doc, const char *css);
 
 struct pcdom_element*
 pcdvobjs_get_element_from_elements(purc_variant_t elems, size_t idx);

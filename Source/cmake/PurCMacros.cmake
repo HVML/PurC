@@ -284,7 +284,7 @@ macro(PURC_FRAMEWORK _target)
     endif ()
 
     if (APPLE AND NOT PORT STREQUAL "GTK" AND NOT ${${_target}_LIBRARY_TYPE} MATCHES STATIC)
-        set_target_properties(${_target} PROPERTIES FRAMEWORK TRUE)
+        # set_target_properties(${_target} PROPERTIES FRAMEWORK TRUE)
         install(TARGETS ${_target} FRAMEWORK DESTINATION ${LIB_INSTALL_DIR})
     endif ()
 endmacro()

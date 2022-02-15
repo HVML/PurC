@@ -80,8 +80,17 @@ enum pcintr_stack_stage {
 struct pcintr_loaded_var {
     struct rb_node              node;
     char                       *name;
-    char                       *so_path;
     purc_variant_t              val;
+};
+
+enum pcintr_stack_vdom_insertion_mode {
+    STACK_VDOM_BEFORE_HVML,
+    STACK_VDOM_BEFORE_HEAD,
+    STACK_VDOM_IN_HEAD,
+    STACK_VDOM_AFTER_HEAD,
+    STACK_VDOM_IN_BODY,
+    STACK_VDOM_AFTER_BODY,
+    STACK_VDOM_AFTER_HVML,
 };
 
 struct pcintr_stack {
@@ -92,6 +101,8 @@ struct pcintr_stack {
 
     // the pointer to the vDOM tree.
     purc_vdom_t vdom;
+
+    enum pcintr_stack_vdom_insertion_mode        mode;
 
     // the returned variant
     purc_variant_t ret_var;
@@ -137,11 +148,11 @@ struct pcintr_stack {
 
 enum purc_symbol_var {
     PURC_SYMBOL_VAR_QUESTION_MARK = 0,  // ?
+    PURC_SYMBOL_VAR_CARET,              // ^
     PURC_SYMBOL_VAR_AT_SIGN,            // @
-    PURC_SYMBOL_VAR_NUMBER_SIGN,        // #
-    PURC_SYMBOL_VAR_ASTERISK,           // *
+    PURC_SYMBOL_VAR_EXCLAMATION,        // !
     PURC_SYMBOL_VAR_COLON,              // :
-    PURC_SYMBOL_VAR_AMPERSAND,          // &
+    PURC_SYMBOL_VAR_EQUAL,              // =
     PURC_SYMBOL_VAR_PERCENT_SIGN,       // %
 
     PURC_SYMBOL_VAR_MAX
@@ -194,6 +205,8 @@ struct pcintr_stack_frame {
 
     // the evaluated variant which is to be used as child-element's $?
     purc_variant_t result_var;
+    // the evaluated variant which is to be used as child-element's $^
+    purc_variant_t caret_var;
     // the idx of current iteration which is meaningful for child-element
     size_t idx;
 
@@ -262,29 +275,6 @@ struct pcintr_stack_frame*
 pcintr_stack_get_bottom_frame(pcintr_stack_t stack);
 struct pcintr_stack_frame*
 pcintr_stack_frame_get_parent(struct pcintr_stack_frame *frame);
-
-pcdom_node_t*
-pcintr_parse_fragment(pcintr_stack_t stack,
-        const char *fragment_chunk, size_t sz);
-
-__attribute__ ((format (printf, 5, 6)))
-int
-pcintr_printf_to_fragment(pcintr_stack_t stack,
-        purc_variant_t on, purc_variant_t to, purc_variant_t at,
-        const char *fmt, ...);
-
-int
-pcintr_edom_from_skeleton_vdom(pcintr_stack_t stack);
-
-int
-pcintr_printf_content_to_edom(pcintr_stack_t stack, const char *fmt, ...);
-
-int
-pcintr_printf_vcm_content_to_edom(pcintr_stack_t stack,
-        purc_variant_t vcm);
-
-pcdom_element_t*
-pcintr_stack_get_edom_open_element(pcintr_stack_t stack);
 
 purc_variant_t
 pcintr_make_object_of_dynamic_variants(size_t nr_args,
@@ -375,13 +365,94 @@ pcintr_load_dynamic_variant(pcintr_stack_t stack,
 
 // utilities
 void
-pcintr_dump_document(pcintr_stack_t stack);
+pcintr_util_dump_document_ex(pchtml_html_document_t *doc,
+    const char *file, int line, const char *func);
 
 void
-pcintr_dump_edom_node(pcintr_stack_t stack, pcdom_node_t *node);
+pcintr_util_dump_edom_node_ex(pcdom_node_t *node,
+    const char *file, int line, const char *func);
+
+#define pcintr_util_dump_document(_doc)          \
+    pcintr_util_dump_document_ex(_doc, __FILE__, __LINE__, __func__)
+
+#define pcintr_util_dump_edom_node(_node)        \
+    pcintr_util_dump_edom_node_ex(_node, __FILE__, __LINE__, __func__)
+
+#define pcintr_dump_document(_stack)             \
+    pcintr_util_dump_document_ex(_stack->doc, __FILE__, __LINE__, __func__)
+
+#define pcintr_dump_edom_node(_stack, _node)      \
+    pcintr_util_dump_edom_node_ex(_node, __FILE__, __LINE__, __func__)
 
 void
 pcintr_dump_frame_edom_node(pcintr_stack_t stack);
+
+
+pcdom_element_t*
+pcintr_util_insert_element(pcdom_element_t* parent, const char *tag);
+
+pcdom_element_t*
+pcintr_util_parse_fragment_ex(pcdom_element_t *tmp, const char *fragment);
+
+#define pcintr_util_parse_fragment(_parent, _fmt, ...)               \
+({                                                                   \
+    char _buf[1024];                                                 \
+    size_t _nr = sizeof(_buf);                                       \
+    char *_p = pcutils_snprintf(_buf, &_nr, _fmt, ##__VA_ARGS__);    \
+    pcdom_element_t *_fragment = NULL;                               \
+    if (_p) {                                                        \
+        _fragment = pcintr_util_parse_fragment_ex(_parent, _p);      \
+        if (_p != _buf)                                              \
+            free(_p);                                                \
+    }                                                                \
+    _fragment;                                                       \
+})
+
+pcdom_element_t*
+pcintr_util_add_element(pcdom_element_t *parent, const char *tag);
+
+int
+pcintr_util_set_attribute(pcdom_element_t *elem,
+        const char *key, const char *val);
+
+#define pcintr_util_add_child(_parent, _fmt, ...)                            \
+({                                                                           \
+    int _r = -1;                                                             \
+    pcdom_element_t *_fragment;                                              \
+    _fragment = pcintr_util_parse_fragment(_parent, _fmt, ##__VA_ARGS__);    \
+    if (_fragment) {                                                         \
+        pcdom_merge_fragment_append(pcdom_interface_node(_parent),           \
+                pcdom_interface_node(_fragment));                            \
+        _r = 0;                                                              \
+    }                                                                        \
+    _r;                                                                      \
+})
+
+#define pcintr_util_set_child(_parent, _fmt, ...)                            \
+({                                                                           \
+    int _r = -1;                                                             \
+    pcdom_element_t *_fragment;                                              \
+    _fragment = pcintr_util_parse_fragment(_parent, _fmt, ##__VA_ARGS__);    \
+    if (_fragment) {                                                         \
+        pcdom_displace_fragment(pcdom_interface_node(_parent),               \
+                pcdom_interface_node(_fragment));                            \
+        _r = 0;                                                              \
+    }                                                                        \
+    _r;                                                                      \
+})
+
+pchtml_html_document_t*
+pcintr_util_load_document(const char *html);
+
+int
+pcintr_util_comp_docs(pchtml_html_document_t *docl,
+    pchtml_html_document_t *docr, int *diff);
+
+bool
+pcintr_util_is_ancestor(pcdom_node_t *ancestor, pcdom_node_t *descendant);
+
+
+
 
 PCA_EXTERN_C_END
 
