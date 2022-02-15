@@ -407,22 +407,15 @@ update_element_content(pcintr_stack_t stack,
 
     PC_ASSERT(ctxt->src_op == PCHVML_ATTRIBUTE_ASSIGNMENT);
 
-    pcdom_node_t *fragment;
-    fragment = pcintr_parse_fragment(stack, fragment_chunk, nr);
-    if (!fragment)
-        return -1;
-
     if (strcmp(to, "displace")==0) {
-        pcdom_displace_fragment(pcdom_interface_node(target), fragment);
-        pcintr_dump_edom_node(stack, pcdom_interface_node(target));
+        int r = pcintr_util_set_child(target, "%.*s", (int)nr, fragment_chunk);
+        PC_ASSERT(r == 0);
         return 0;
     }
 
     if (strcmp(to, "append")==0) {
-        pcintr_dump_edom_node(stack, pcdom_interface_node(target));
-        pcintr_dump_edom_node(stack, fragment);
-        pcdom_merge_fragment_append(pcdom_interface_node(target), fragment);
-        pcintr_dump_edom_node(stack, pcdom_interface_node(target));
+        int r = pcintr_util_add_child(target, "%.*s", (int)nr, fragment_chunk);
+        PC_ASSERT(r == 0);
         return 0;
     }
 
@@ -448,7 +441,6 @@ update_element_attr(pcintr_stack_t stack,
         PC_ASSERT(fragment_chunk[nr] == '\0');
         if (ctxt->src_op == PCHVML_ATTRIBUTE_ASSIGNMENT) {
             int r = pcdom_element_set_attr(target, attr_name, fragment_chunk);
-            pcintr_dump_edom_node(stack, pcdom_interface_node(target));
             return r ? -1 : 0;
         }
         if (ctxt->src_op == PCHVML_ATTRIBUTE_TAIL_ASSIGNMENT) {
@@ -467,7 +459,6 @@ update_element_attr(pcintr_stack_t stack,
             int r = pcdom_element_set_attr(target, attr_name, p);
             if (p != buf)
                 free(p);
-            pcintr_dump_edom_node(stack, pcdom_interface_node(target));
             return r ? -1 : 0;
         }
         D("op: 0x%x", ctxt->src_op);
@@ -501,6 +492,7 @@ update_element_with_fragment(pcintr_stack_t stack,
         return update_element_content(stack, target, s_to, fragment_chunk, nr);
     }
     if (strncmp(s_at, "attr.", 5) == 0) {
+        PC_ASSERT(0);
         s_at += 5;
         return update_element_attr(stack, target, s_at, s_to,
                 fragment_chunk, nr);
@@ -549,6 +541,102 @@ update_element(pcintr_stack_t stack,
 }
 
 static int
+update_target_content(pcintr_stack_t stack, pcdom_element_t *target,
+        const char *to, purc_variant_t src)
+{
+    UNUSED_PARAM(stack);
+    if (purc_variant_is_string(src)) {
+        const char *s = purc_variant_get_string_const(src);
+        if (strcmp(to, "append") == 0) {
+            return pcintr_util_add_child(target, "%s", s);
+        }
+        if (strcmp(to, "displace") == 0) {
+            return pcintr_util_set_child(target, "%s", s);
+        }
+        D("to: %s", to);
+        PC_ASSERT(0);
+        return -1;
+    }
+    PRINT_VARIANT(src);
+    PC_ASSERT(0);
+    return -1;
+}
+
+static int
+update_target_attr(pcintr_stack_t stack, pcdom_element_t *target,
+        const char *at, const char *to, purc_variant_t src)
+{
+    UNUSED_PARAM(stack);
+    if (purc_variant_is_string(src)) {
+        const char *s = purc_variant_get_string_const(src);
+        if (strcmp(to, "displace") == 0) {
+            return pcintr_util_set_attribute(target, at, s);
+        }
+        D("to: %s", to);
+        PC_ASSERT(0);
+        return -1;
+    }
+    char *sv;
+    int r;
+    r = purc_variant_stringify_alloc(&sv, src);
+    PC_ASSERT(r >= 0 && sv);
+    r = pcintr_util_set_attribute(target, at, sv);
+    PC_ASSERT(r == 0);
+    free(sv);
+
+    return 0;
+}
+
+static int
+update_target(pcintr_stack_t stack, pcdom_element_t *target,
+        purc_variant_t at, purc_variant_t to, purc_variant_t src)
+{
+    const char *s_to = "displace";
+    if (to != PURC_VARIANT_INVALID) {
+        PC_ASSERT(purc_variant_is_string(to));
+        s_to = purc_variant_get_string_const(to);
+    }
+
+    const char *s_at = "textContent";
+    if (at != PURC_VARIANT_INVALID) {
+        PC_ASSERT(purc_variant_is_string(at));
+        s_at = purc_variant_get_string_const(at);
+    }
+
+    if (strcmp(s_at, "textContent") == 0) {
+        return update_target_content(stack, target, s_to, src);
+    }
+    if (strncmp(s_at, "attr.", 5) == 0) {
+        s_at += 5;
+        return update_target_attr(stack, target, s_at, s_to, src);
+    }
+
+    PRINT_VARIANT(at);
+    PC_ASSERT(0);
+    return -1;
+}
+
+static int
+update_elements(pcintr_stack_t stack,
+        purc_variant_t elems, purc_variant_t at, purc_variant_t to,
+        purc_variant_t src)
+{
+    PC_ASSERT(purc_variant_is_native(elems));
+    size_t idx = 0;
+    while (1) {
+        struct pcdom_element *target;
+        target = pcdvobjs_get_element_from_elements(elems, idx++);
+        if (!target)
+            break;
+        int r = update_target(stack, target, at, to, src);
+        if (r)
+            return -1;
+    }
+
+    return 0;
+}
+
+static int
 process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
     UNUSED_PARAM(co);
@@ -565,9 +653,9 @@ process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     /* FIXME: what if array of elements? */
     enum purc_variant_type type = purc_variant_get_type(on);
     if (type == PURC_VARIANT_TYPE_NATIVE) {
-        const char *s = purc_variant_get_string_const(src);
-        PC_ASSERT(to != PURC_VARIANT_INVALID);
-        return update_element(co->stack, on, at, to, "%s", s);
+        // const char *s = purc_variant_get_string_const(src);
+        // PC_ASSERT(to != PURC_VARIANT_INVALID);
+        return update_elements(co->stack, on, at, to, src);
     }
     if (type == PURC_VARIANT_TYPE_OBJECT) {
         return update_object(co->stack, on, at, to, src);
@@ -580,11 +668,25 @@ process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     }
     if (type == PURC_VARIANT_TYPE_STRING) {
         const char *s = purc_variant_get_string_const(on);
+        if (1) {
+            pchtml_html_document_t *doc = co->stack->doc;
+            purc_variant_t elems = pcdvobjs_elements_by_css(doc, s);
+            PC_ASSERT(elems != PURC_VARIANT_INVALID);
+            struct pcdom_element *elem;
+            elem = pcdvobjs_get_element_from_elements(elems, 0);
+            PC_ASSERT(elem);
+            int r = update_elements(co->stack, elems, at, to, src);
+            purc_variant_unref(elems);
+            return r ? -1 : 0;
+        }
+        PC_ASSERT(0);
         PC_ASSERT(s);
         PC_ASSERT(s[0] == '#'); // TODO:
         pchtml_html_document_t *doc = co->stack->doc;
-        pcdom_element_t *body = (pcdom_element_t*)doc->body;
-        pcdom_document_t *document = (pcdom_document_t*)doc;
+        pcdom_element_t *body;
+        body = pchtml_doc_get_body(doc);
+        pcdom_document_t *document = pcdom_interface_document(doc);
+
         pcdom_collection_t *collection;
         collection = pcdom_collection_create(document);
         PC_ASSERT(collection);
@@ -598,6 +700,7 @@ process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         PC_ASSERT(ui == 0);
         int r = 0;
         for (unsigned int i=0; i<pcdom_collection_length(collection); ++i) {
+            PC_ASSERT(i == 0);
             pcdom_node_t *node;
             node = pcdom_collection_node(collection, i);
             PC_ASSERT(node);
@@ -606,11 +709,13 @@ process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
             PC_ASSERT(o != PURC_VARIANT_INVALID);
             if (purc_variant_is_string(src)) {
                 const char *content = purc_variant_get_string_const(src);
+                D("content: [%s]", content);
                 r = update_element(co->stack, o, at, to, "%s", content);
                 if (r)
                     break;
             }
             else if (purc_variant_is_number(src)) {
+                PC_ASSERT(0);
                 double d;
                 bool ok;
                 ok = purc_variant_cast_to_number(src, &d, false);
@@ -621,7 +726,6 @@ process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
             }
             else if (purc_variant_is_undefined(src)) {
                 PC_ASSERT(0);
-                pcintr_printf_to_fragment(co->stack, o, to, at, "%s", "");
             }
             else {
                 PRINT_VARIANT(on);
@@ -631,6 +735,7 @@ process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
             purc_variant_unref(o);
         }
         pcdom_collection_destroy(collection, true);
+
         return r ? -1 : 0;
     }
     PC_ASSERT(0); // Not implemented yet
@@ -816,16 +921,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
 
-    frame->pos = pos; // ATTENTION!!
-
-    frame->attr_vars = purc_variant_make_object(0,
-            PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
-    if (frame->attr_vars == PURC_VARIANT_INVALID)
-        return NULL;
-
-    struct pcvdom_element *element = frame->pos;
-    PC_ASSERT(element);
-
     struct ctxt_for_update *ctxt;
     ctxt = (struct ctxt_for_update*)calloc(1, sizeof(*ctxt));
     if (!ctxt) {
@@ -835,6 +930,16 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     frame->ctxt = ctxt;
     frame->ctxt_destroy = ctxt_destroy;
+
+    frame->pos = pos; // ATTENTION!!
+
+    frame->attr_vars = purc_variant_make_object(0,
+            PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+    if (frame->attr_vars == PURC_VARIANT_INVALID)
+        return NULL;
+
+    struct pcvdom_element *element = frame->pos;
+    PC_ASSERT(element);
 
     int r;
     r = pcintr_vdom_walk_attrs(frame, element, NULL, attr_found);
@@ -852,6 +957,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     }
 
     if (ctxt->on == PURC_VARIANT_INVALID) {
+        PC_ASSERT(0);
         purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
                 "lack of vdom attribute 'on' for element <%s>",
                 element->tag_name);
@@ -874,6 +980,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     }
     else {
         if (frame->ctnt_var == PURC_VARIANT_INVALID) {
+            PC_ASSERT(0);
             PC_ASSERT(frame->ctnt_var != PURC_VARIANT_INVALID);
             purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
                     "lack of vdom attribute 'with'/'from' for element <%s>",

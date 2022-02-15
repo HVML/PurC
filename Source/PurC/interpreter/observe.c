@@ -316,8 +316,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
 
-    frame->pos = pos; // ATTENTION!!
-
     struct ctxt_for_observe *ctxt;
     ctxt = (struct ctxt_for_observe*)calloc(1, sizeof(*ctxt));
     if (!ctxt) {
@@ -327,6 +325,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     frame->ctxt = ctxt;
     frame->ctxt_destroy = ctxt_destroy;
+
+    frame->pos = pos; // ATTENTION!!
 
     struct pcvdom_element *element = frame->pos;
     PC_ASSERT(element);

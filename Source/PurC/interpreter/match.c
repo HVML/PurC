@@ -209,8 +209,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame);
 
-    frame->pos = pos; // ATTENTION!!
-
     struct ctxt_for_match *ctxt;
     ctxt = (struct ctxt_for_match*)calloc(1, sizeof(*ctxt));
     if (!ctxt) {
@@ -220,6 +218,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     frame->ctxt = ctxt;
     frame->ctxt_destroy = ctxt_destroy;
+
+    frame->pos = pos; // ATTENTION!!
 
     struct pcvdom_element *element = frame->pos;
     PC_ASSERT(element);
