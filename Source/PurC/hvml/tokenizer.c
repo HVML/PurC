@@ -428,7 +428,8 @@ bool pchvml_parser_is_json_content_tag(const char* name)
     }
     return (strcmp(name, "init") == 0
             || strcmp(name, "archedata") == 0
-            || strcmp(name, "update") == 0);
+            || strcmp(name, "update") == 0
+            || strcmp(name, "bind") == 0);
 }
 
 static UNUSED_FUNCTION
@@ -2108,6 +2109,9 @@ BEGIN_STATE(HVML_EJSON_CONTROL_STATE)
         RECONSUME_IN(HVML_EJSON_DOLLAR_STATE);
     }
     if (character == '"') {
+        if (ejson_stack_is_empty() && parser->vcm_node) {
+            RECONSUME_IN(HVML_EJSON_FINISHED_STATE);
+        }
         if (uc == '"') {
             RECONSUME_IN(HVML_EJSON_AFTER_JSONEE_STRING_STATE);
         }
@@ -2790,11 +2794,38 @@ BEGIN_STATE(HVML_EJSON_VALUE_DOUBLE_QUOTED_STATE)
         UPDATE_VCM_NODE(snode);
         ejson_stack_push('"');
         if (!pchvml_buffer_is_empty(parser->temp_buffer)) {
-            struct pcvcm_node* node = pcvcm_node_new_string(
-                    pchvml_buffer_get_buffer(parser->temp_buffer)
-                    );
-            APPEND_AS_VCM_CHILD(node);
+            if (pchvml_buffer_end_with(parser->temp_buffer, "{", 1)) {
+                pchvml_rwswrap_reconsume_last_char(parser->rwswrap);
+                pchvml_rwswrap_reconsume_last_char(parser->rwswrap);
+                pchvml_buffer_delete_tail_chars(parser->temp_buffer, 1);
+                if (!pchvml_buffer_is_empty(parser->temp_buffer)) {
+                    struct pcvcm_node* node = pcvcm_node_new_string(
+                            pchvml_buffer_get_buffer(parser->temp_buffer)
+                            );
+                    APPEND_AS_VCM_CHILD(node);
+                }
+            }
+            else if (pchvml_buffer_end_with(parser->temp_buffer, "{{", 2)) {
+                pchvml_rwswrap_reconsume_last_char(parser->rwswrap);
+                pchvml_rwswrap_reconsume_last_char(parser->rwswrap);
+                pchvml_rwswrap_reconsume_last_char(parser->rwswrap);
+                pchvml_buffer_delete_tail_chars(parser->temp_buffer, 2);
+                if (!pchvml_buffer_is_empty(parser->temp_buffer)) {
+                    struct pcvcm_node* node = pcvcm_node_new_string(
+                            pchvml_buffer_get_buffer(parser->temp_buffer)
+                            );
+                    APPEND_AS_VCM_CHILD(node);
+                }
+            }
+            else {
+                pchvml_rwswrap_reconsume_last_char(parser->rwswrap);
+                struct pcvcm_node* node = pcvcm_node_new_string(
+                        pchvml_buffer_get_buffer(parser->temp_buffer)
+                        );
+                APPEND_AS_VCM_CHILD(node);
+            }
             RESET_TEMP_BUFFER();
+            ADVANCE_TO(HVML_EJSON_CONTROL_STATE);
         }
         RECONSUME_IN(HVML_EJSON_CONTROL_STATE);
     }
