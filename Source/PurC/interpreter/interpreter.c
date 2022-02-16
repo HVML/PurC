@@ -1059,6 +1059,9 @@ bind_doc_named_variable(pcintr_stack_t stack, const char* name,
 static bool
 init_buidin_doc_variable(pcintr_stack_t stack)
 {
+    // attach stack
+    pcvarmgr_list_set_attach_stack(stack->vdom->document->variables, stack);
+
     // $TIMERS
     stack->vdom->timers = pcintr_timers_init(stack);
     if (!stack->vdom->timers) {
