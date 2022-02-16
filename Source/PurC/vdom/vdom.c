@@ -924,8 +924,8 @@ element_create(void)
     }
 
     // FIXME:
-    if (purc_get_stack() == NULL)
-        return elem;
+    // if (purc_get_stack() == NULL)
+    //     return elem;
 
     elem->variables = pcvarmgr_list_create();
     if (!elem->variables) {
