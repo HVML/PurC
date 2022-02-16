@@ -80,6 +80,11 @@ purc_variant_t purc_variant_make_boolean (bool b)
 
 purc_variant_t purc_variant_make_exception(purc_atom_t except_atom)
 {
+    if (!purc_is_except_atom(except_atom)) {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+
     purc_variant_t value = pcvariant_get (PURC_VARIANT_TYPE_EXCEPTION);
 
     if (value == NULL) {

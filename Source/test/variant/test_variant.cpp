@@ -395,6 +395,12 @@ TEST(variant, pcvariant_exception)
     ASSERT_STREQ ("BadEncoding", purc_variant_get_exception_string_const (value));
     purc_variant_unref(value);
 
+    atom = purc_atom_from_string("TestString");
+    ASSERT_NE (atom, 0);
+    value = purc_variant_make_exception (atom);
+    ASSERT_EQ(value, PURC_VARIANT_INVALID);
+    ASSERT_EQ(purc_get_last_error(), PURC_ERROR_INVALID_VALUE);
+
 
     purc_cleanup ();
 }
