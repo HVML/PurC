@@ -46,6 +46,7 @@ struct pcvarmgr_list {
     purc_variant_t object;
     struct pcvar_listener* grow_listener;
     struct pcvar_listener* shrink_listener;
+    pcintr_stack_t stack;
 };
 
 bool mgr_listener_handler(purc_variant_t source, purc_atom_t msg_type,
@@ -54,6 +55,11 @@ bool mgr_listener_handler(purc_variant_t source, purc_atom_t msg_type,
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
     if (ctxt == NULL) {
+        return true;
+    }
+
+    pcvarmgr_list_t mgr = (pcvarmgr_list_t)ctxt;
+    if (mgr->stack == NULL) {
         return true;
     }
 
@@ -68,13 +74,24 @@ bool mgr_listener_handler(purc_variant_t source, purc_atom_t msg_type,
     purc_variant_t sub_type = argv[0];
     purc_variant_ref(sub_type);
 
-    pcintr_dispatch_message((pcintr_stack_t)ctxt,
+    pcintr_dispatch_message(mgr->stack,
             source, type, sub_type, PURC_VARIANT_INVALID);
 
     purc_variant_unref(type);
     purc_variant_unref(sub_type);
 
     return true;
+}
+
+void pcvarmgr_list_set_attach_stack(pcvarmgr_list_t mgr,
+        struct pcintr_stack* stack)
+{
+    mgr->stack = stack;
+}
+
+struct pcintr_stack*  pcvarmgr_list_get_attach_stack(pcvarmgr_list_t mgr)
+{
+    return mgr->stack;
 }
 
 pcvarmgr_list_t pcvarmgr_list_create(void)
@@ -92,9 +109,9 @@ pcvarmgr_list_t pcvarmgr_list_create(void)
         return NULL;
     }
 
-    pcintr_stack_t stack = purc_get_stack ();
+    mgr->stack = purc_get_stack ();
     mgr->grow_listener = purc_variant_register_post_listener(mgr->object,
-        pcvariant_atom_grow, mgr_listener_handler, stack);
+        pcvariant_atom_grow, mgr_listener_handler, mgr);
     if (!mgr->grow_listener) {
         purc_variant_unref(mgr->object);
         free(mgr);
@@ -102,7 +119,7 @@ pcvarmgr_list_t pcvarmgr_list_create(void)
     }
 
     mgr->shrink_listener = purc_variant_register_post_listener(mgr->object,
-        pcvariant_atom_shrink, mgr_listener_handler, stack);
+        pcvariant_atom_shrink, mgr_listener_handler, mgr);
     if (!mgr->shrink_listener) {
         purc_variant_revoke_listener(mgr->object, mgr->grow_listener);
         purc_variant_unref(mgr->object);
