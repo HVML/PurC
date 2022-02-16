@@ -651,8 +651,8 @@ int purc_variant_compare_st(purc_variant_t v1, purc_variant_t v2)
             return -1;
 
         case PURC_VARIANT_TYPE_ATOMSTRING:
-            str1 = purc_atom_to_string(v1->sz_ptr[1]);
-            str2 = purc_atom_to_string(v2->sz_ptr[1]);
+            str1 = purc_atom_to_string(v1->atom);
+            str2 = purc_atom_to_string(v2->atom);
             return strcmp(str1, str2);
 
         case PURC_VARIANT_TYPE_STRING:
@@ -816,7 +816,7 @@ purc_variant_cast_to_longint(purc_variant_t v, int64_t *i64, bool parse_str)
             if (!parse_str)
                 break;
 
-            bytes = purc_atom_to_string(v->sz_ptr[1]);
+            bytes = purc_atom_to_string(v->atom);
             sz = strlen(bytes);
             if (pcutils_parse_int64(bytes, sz, i64) != 0) {
                 *i64 = 0;
@@ -908,7 +908,7 @@ purc_variant_cast_to_ulongint(purc_variant_t v, uint64_t *u64, bool parse_str)
             if (!parse_str)
                 break;
 
-            bytes = purc_atom_to_string(v->sz_ptr[1]);
+            bytes = purc_atom_to_string(v->atom);
             sz = strlen(bytes);
             if (pcutils_parse_uint64(bytes, sz, u64) != 0) {
                 *u64 = 0;
@@ -980,7 +980,7 @@ bool purc_variant_cast_to_number(purc_variant_t v, double *d, bool parse_str)
             if (!parse_str)
                 break;
 
-            bytes = purc_atom_to_string(v->sz_ptr[1]);
+            bytes = purc_atom_to_string(v->atom);
             sz = strlen(bytes);
             if (pcutils_parse_double(bytes, sz, d) != 0) {
                 *d = 0;
@@ -1054,7 +1054,7 @@ purc_variant_cast_to_long_double(purc_variant_t v, long double *d,
             if (!parse_str)
                 break;
 
-            bytes = purc_atom_to_string(v->sz_ptr[1]);
+            bytes = purc_atom_to_string(v->atom);
             sz = strlen(bytes);
             if (pcutils_parse_long_double(bytes, sz, d) != 0) {
                 *d = 0;
@@ -1097,7 +1097,7 @@ bool purc_variant_cast_to_byte_sequence(purc_variant_t v,
 
     switch (v->type) {
         case PURC_VARIANT_TYPE_ATOMSTRING:
-            *bytes = purc_atom_to_string(v->sz_ptr[1]);
+            *bytes = purc_atom_to_string(v->atom);
             // NOTE: strlen()+1, in case when purc_variant_compare with string
             *sz = strlen(*bytes) + 1;
             return true;

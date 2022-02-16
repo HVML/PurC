@@ -406,7 +406,7 @@ purc_variant_make_atom_string (const char* str_utf8, bool check_encoding)
     value->size = 0;
     value->flags = 0;
     value->refc = 1;
-    value->sz_ptr[1] = atom;
+    value->atom = atom;
 
     return value;
 }
@@ -444,7 +444,7 @@ purc_variant_make_atom_string_static (const char* str_utf8,
     value->size = 0;
     value->flags = PCVARIANT_FLAG_STRING_STATIC;
     value->refc = 1;
-    value->sz_ptr[1] = atom;
+    value->atom = atom;
 
     return value;
 }
@@ -456,7 +456,7 @@ const char* purc_variant_get_atom_string_const (purc_variant_t atom_string)
     const char * str_str = NULL;
 
     if (IS_TYPE (atom_string, PURC_VARIANT_TYPE_ATOMSTRING))
-        str_str = purc_atom_to_string(atom_string->sz_ptr[1]);
+        str_str = purc_atom_to_string(atom_string->atom);
     else
         pcinst_set_error (PCVARIANT_ERROR_INVALID_TYPE);
 

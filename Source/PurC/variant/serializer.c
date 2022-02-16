@@ -729,7 +729,7 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
             break;
 
         case PURC_VARIANT_TYPE_ATOMSTRING:
-            content = purc_atom_to_string(value->sz_ptr[1]);
+            content = purc_atom_to_string(value->atom);
             sz_content = strlen(content);
             MY_WRITE(rws, "\"", 1);
             n = serialize_string(rws, content, sz_content,

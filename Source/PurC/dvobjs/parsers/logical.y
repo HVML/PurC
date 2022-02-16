@@ -140,7 +140,7 @@
                 } break;
             case PURC_VARIANT_TYPE_ATOMSTRING:
                 {
-                    return ((const char*)v->sz_ptr[1])[0] ? 1 : 0;
+                    return v->atom ? 1 : 0;
                 } break;
             case PURC_VARIANT_TYPE_STRING:
                 {
