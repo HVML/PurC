@@ -120,10 +120,10 @@ PURC_COMPUTE_SOURCES(test_rwswrap)
 PURC_FRAMEWORK(test_rwswrap)
 GTEST_DISCOVER_TESTS(test_rwswrap DISCOVERY_TIMEOUT 10)
 
-# test_token
-PURC_EXECUTABLE_DECLARE(test_token)
+# test_tokenizer
+PURC_EXECUTABLE_DECLARE(test_tokenizer)
 
-list(APPEND test_token_PRIVATE_INCLUDE_DIRECTORIES
+list(APPEND test_tokenizer_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR}/include
     ${PURC_DIR}/hvml
     ${PurC_DERIVED_SOURCES_DIR}
@@ -132,19 +132,20 @@ list(APPEND test_token_PRIVATE_INCLUDE_DIRECTORIES
     ${WTF_DIR}
 )
 
-PURC_EXECUTABLE(test_token)
+PURC_EXECUTABLE(test_tokenizer)
 
-set(test_token_SOURCES
-    test_token.cpp
+set(test_tokenizer_SOURCES
+    test_tokenizer.cpp
 )
 
-set(test_token_LIBRARIES
+set(test_tokenizer_LIBRARIES
     PurC::PurC
     gtest_main
     gtest
     pthread
 )
 
-PURC_COMPUTE_SOURCES(test_token)
-PURC_FRAMEWORK(test_token)
-GTEST_DISCOVER_TESTS(test_token DISCOVERY_TIMEOUT 10)
+PURC_COMPUTE_SOURCES(test_tokenizer)
+PURC_FRAMEWORK(test_tokenizer)
+GTEST_DISCOVER_TESTS(test_tokenizer DISCOVERY_TIMEOUT 10)
+

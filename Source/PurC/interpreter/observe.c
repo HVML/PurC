@@ -289,7 +289,7 @@ attr_found(struct pcintr_stack_frame *frame,
     UNUSED_PARAM(ud);
 
     PC_ASSERT(name);
-    PC_ASSERT(attr->op == PCHVML_ATTRIBUTE_ASSIGNMENT);
+    PC_ASSERT(attr->op == PCHVML_ATTRIBUTE_OPERATOR);
 
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, FOR)) == name) {
         return process_attr_for(frame, element, name, val);

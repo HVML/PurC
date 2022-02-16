@@ -1,1 +1,0 @@
-<hvml attr=call_setter(get_element(get_variable("ABC"),"b"),make_object("K1",get_variable("V1"),"K2",get_variable("V2")))></hvml>

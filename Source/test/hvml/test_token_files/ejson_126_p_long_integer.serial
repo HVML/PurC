@@ -1,1 +1,0 @@
-<hvml ejson=call_getter(get_variable("EJSON"),make_array(12345L,123456L,23456789L,1234567890L))></hvml>

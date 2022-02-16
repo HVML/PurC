@@ -31,11 +31,6 @@
 #include "config.h"
 #include "purc-utils.h"
 
-#define pchvml_buffer_append_temp_buffer(buffer, append)                \
-    pchvml_buffer_append_bytes(buffer,                                  \
-        pchvml_buffer_get_buffer(append),                               \
-        pchvml_buffer_get_size_in_bytes(append))                        \
-
 struct pchvml_buffer {
     uint8_t* base;
     uint8_t* here;
@@ -47,67 +42,76 @@ struct pchvml_buffer {
 extern "C" {
 #endif  /* __cplusplus */
 
-struct pchvml_buffer* pchvml_buffer_new (void);
+struct pchvml_buffer* pchvml_buffer_new(void);
 
 PCA_INLINE
-bool pchvml_buffer_is_empty (struct pchvml_buffer* buffer)
+bool pchvml_buffer_is_empty(struct pchvml_buffer* buffer)
 {
     return buffer->here == buffer->base;
 }
 
 PCA_INLINE
-size_t pchvml_buffer_get_size_in_bytes (struct pchvml_buffer* buffer)
+size_t pchvml_buffer_get_size_in_bytes(struct pchvml_buffer* buffer)
 {
     return buffer->here - buffer->base;
 }
 
 PCA_INLINE
-size_t pchvml_buffer_get_size_in_chars (struct pchvml_buffer* buffer)
+size_t pchvml_buffer_get_size_in_chars(struct pchvml_buffer* buffer)
 {
     return buffer->nr_chars;
 }
 
 PCA_INLINE
-const char* pchvml_buffer_get_buffer (
+const char* pchvml_buffer_get_buffer(
         struct pchvml_buffer* buffer)
 {
-    return (const char*)buffer->base;
+    return(const char*)buffer->base;
 }
 
-void pchvml_buffer_append_bytes (struct pchvml_buffer* buffer,
+void pchvml_buffer_append_bytes(struct pchvml_buffer* buffer,
         const char* bytes, size_t nr_bytes);
 
-void pchvml_buffer_append (struct pchvml_buffer* buffer,
+void pchvml_buffer_append(struct pchvml_buffer* buffer,
         uint32_t uc);
 
-void pchvml_buffer_append_chars (struct pchvml_buffer* buffer,
+void pchvml_buffer_append_chars(struct pchvml_buffer* buffer,
         const uint32_t* ucs, size_t nr_ucs);
+
+PCA_INLINE
+void pchvml_buffer_append_another(struct pchvml_buffer* buffer,
+        struct pchvml_buffer* another)
+{
+    pchvml_buffer_append_bytes(buffer,
+        pchvml_buffer_get_buffer(another),
+        pchvml_buffer_get_size_in_bytes(another));
+}
 
 /*
  * delete characters from head
  */
-void pchvml_buffer_delete_head_chars (
+void pchvml_buffer_delete_head_chars(
         struct pchvml_buffer* buffer, size_t sz);
 
 /*
  * delete characters from tail
  */
-void pchvml_buffer_delete_tail_chars (
+void pchvml_buffer_delete_tail_chars(
         struct pchvml_buffer* buffer, size_t sz);
 
-bool pchvml_buffer_end_with (struct pchvml_buffer* buffer,
+bool pchvml_buffer_end_with(struct pchvml_buffer* buffer,
         const char* bytes, size_t nr_bytes);
 
-bool pchvml_buffer_equal_to (struct pchvml_buffer* buffer,
+bool pchvml_buffer_equal_to(struct pchvml_buffer* buffer,
         const char* bytes, size_t nr_bytes);
 
-uint32_t pchvml_buffer_get_last_char (struct pchvml_buffer* buffer);
+uint32_t pchvml_buffer_get_last_char(struct pchvml_buffer* buffer);
 
-void pchvml_buffer_reset (struct pchvml_buffer* buffer);
+void pchvml_buffer_reset(struct pchvml_buffer* buffer);
 
-void pchvml_buffer_destroy (struct pchvml_buffer* buffer);
+void pchvml_buffer_destroy(struct pchvml_buffer* buffer);
 
-bool pchvml_buffer_is_int (struct pchvml_buffer* buffer);
+bool pchvml_buffer_is_int(struct pchvml_buffer* buffer);
 
 bool pchvml_buffer_is_number(struct pchvml_buffer* buffer);
 

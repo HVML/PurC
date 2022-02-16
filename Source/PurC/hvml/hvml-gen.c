@@ -230,7 +230,7 @@ set_parser_state_if_necessary(struct pcvdom_gen *gen)
 
     struct pcvdom_element *elem = top_element(gen);
     if (is_element_of_hvml_data_cat(elem)) {
-        gen->parser->state = PCHVML_EJSON_DATA_STATE;
+        pchvml_switch_to_ejson_state(gen->parser);
     }
 }
 
@@ -254,10 +254,10 @@ create_element(struct pcvdom_gen *gen, struct pchvml_token *token)
         struct pchvml_token_attr *attr;
         attr = pchvml_token_get_attr(token, i);
         const char *name;
-        enum pchvml_attr_assignment op;
+        enum pchvml_attr_operator op;
         struct pcvcm_node *vcm;
         name = pchvml_token_attr_get_name(attr);
-        op = pchvml_token_attr_get_assignment(attr);
+        op = pchvml_token_attr_get_operator(attr);
         vcm = (struct pcvcm_node*)pchvml_token_attr_get_value_ex(attr, true);
 
         struct pcvdom_attr *vattr;

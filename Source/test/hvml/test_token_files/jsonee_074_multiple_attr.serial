@@ -1,6 +1,0 @@
-<hvml>
-    <body>
-        <choose on=get_element(get_variable("aaa"),"bbb") to="iterate" end=concat_string(get_element(get_variable("XXX"),"YYY"))>
-        </choose>
-    </body>
-</hvml>

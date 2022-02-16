@@ -136,7 +136,7 @@ TEST(temp_buffer, append_temp_buffer)
     pchvml_buffer_append_bytes(buf2, "5", 1);
     ASSERT_STREQ("12345", pchvml_buffer_get_buffer(buf2));
 
-    pchvml_buffer_append_temp_buffer(buf2, buffer);
+    pchvml_buffer_append_another(buf2, buffer);
     ASSERT_STREQ("12345abcde", pchvml_buffer_get_buffer(buf2));
 
     pchvml_buffer_destroy(buffer);

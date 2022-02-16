@@ -1,3 +1,0 @@
-<hvml>
-    <update from=concat_string("assets/",get_element(get_element(get_variable("SYSTEM"),"time"),"tm"),"this is title")/>
-</hvml>

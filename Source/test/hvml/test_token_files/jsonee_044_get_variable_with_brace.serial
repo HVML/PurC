@@ -1,1 +1,0 @@
-<hvml attr=get_element(get_variable("ABC"),"DEF")></hvml>
