@@ -607,7 +607,6 @@ create_empty_hvml(struct pcvdom_gen *gen, struct pchvml_token *token)
 static int
 on_mode_initial(struct pcvdom_gen *gen, struct pchvml_token *token)
 {
-    D("");
     int r = 0;
     enum pchvml_token_type type = pchvml_token_get_type(token);
     if (type==VTT(_DOCTYPE)) {
@@ -662,7 +661,6 @@ static int
 on_mode_before_hvml(struct pcvdom_gen *gen, struct pchvml_token *token)
 {
     int r = 0;
-    D("");
     enum pchvml_token_type type = pchvml_token_get_type(token);
     if (type==VTT(_START_TAG)) {
         const char *tag = pchvml_token_get_name(token);
@@ -709,7 +707,6 @@ static int
 on_mode_before_head(struct pcvdom_gen *gen, struct pchvml_token *token)
 {
     int r = 0;
-    D("");
     enum pchvml_token_type type = pchvml_token_get_type(token);
     if (type==VTT(_START_TAG)) {
         const char *tag = pchvml_token_get_name(token);
@@ -781,7 +778,6 @@ static int
 on_mode_in_head(struct pcvdom_gen *gen, struct pchvml_token *token)
 {
     int r = 0;
-    D("");
     enum pchvml_token_type type = pchvml_token_get_type(token);
     if (type==VTT(_START_TAG)) {
         struct pcvdom_element *elem;
@@ -898,7 +894,6 @@ static int
 on_mode_after_head(struct pcvdom_gen *gen, struct pchvml_token *token)
 {
     int r = 0;
-    D("");
     enum pchvml_token_type type = pchvml_token_get_type(token);
     if (type==VTT(_DOCTYPE)) {
         FAIL_RET();
@@ -967,7 +962,6 @@ static int
 on_mode_in_body(struct pcvdom_gen *gen, struct pchvml_token *token)
 {
     int r = 0;
-    D("");
     enum pchvml_token_type type = pchvml_token_get_type(token);
     if (type==VTT(_DOCTYPE)) {
         FAIL_RET();
@@ -1108,7 +1102,6 @@ static int
 on_mode_after_body(struct pcvdom_gen *gen, struct pchvml_token *token)
 {
     int r = 0;
-    D("");
     enum pchvml_token_type type = pchvml_token_get_type(token);
     if (type==VTT(_DOCTYPE)) {
         FAIL_RET();
@@ -1165,8 +1158,6 @@ static int
 on_mode_after_after_body(struct pcvdom_gen *gen, struct pchvml_token *token)
 {
     int r = 0;
-
-    D("");
 
     enum pchvml_token_type type = pchvml_token_get_type(token);
 
