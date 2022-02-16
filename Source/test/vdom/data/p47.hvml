@@ -1,5 +1,6 @@
 <hvml>
     <head>
+    <!--
         <bind as="me">
             {
                 "id": "$currUser.id",
@@ -8,6 +9,7 @@
                 "region": "$currUser.locale"
             }
         </bind>
+    -->
 
     </head>
 </hvml>

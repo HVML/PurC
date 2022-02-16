@@ -923,6 +923,10 @@ element_create(void)
         return NULL;
     }
 
+    // FIXME:
+    if (purc_get_stack() == NULL)
+        return elem;
+
     elem->variables = pcvarmgr_list_create();
     if (!elem->variables) {
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
