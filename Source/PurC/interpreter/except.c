@@ -70,7 +70,7 @@ attr_found(struct pcintr_stack_frame *frame,
 
     PC_ASSERT(attr);
 
-    PC_ASSERT(attr->op == PCHVML_ATTRIBUTE_ASSIGNMENT);
+    PC_ASSERT(attr->op == PCHVML_ATTRIBUTE_OPERATOR);
 
     if (name) {
         if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, RAW)) == name) {

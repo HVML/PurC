@@ -67,7 +67,7 @@ attr_found(struct pcintr_stack_frame *frame,
     UNUSED_PARAM(name);
     UNUSED_PARAM(ud);
 
-    PC_ASSERT(attr->op == PCHVML_ATTRIBUTE_ASSIGNMENT);
+    PC_ASSERT(attr->op == PCHVML_ATTRIBUTE_OPERATOR);
     PC_ASSERT(attr->key);
     PC_ASSERT(purc_variant_is_string(val));
     const char *sv = purc_variant_get_string_const(val);

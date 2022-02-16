@@ -182,6 +182,13 @@ struct pchvml_buffer* pchvml_token_attr_to_string(
         struct pchvml_token_attr* attr);
 struct pchvml_buffer* pchvml_token_to_string(struct pchvml_token* token);
 
+void
+pchvml_util_dump_token(const struct pchvml_token *token,
+        const char *file, int line, const char *func);
+
+#define PRINT_TOKEN(_token)           \
+    pchvml_util_dump_token(_token, __FILE__, __LINE__, __func__)
+
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */

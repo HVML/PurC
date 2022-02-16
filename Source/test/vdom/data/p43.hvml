@@ -4,7 +4,7 @@
             <choose on="$?" to="iterate" by="CLASS: CDirEntries">
                 <iterate on="$?" to="append" with="#dir-entry" by="RANGE: 0">
                 </iterate>
-                <return with="$#" />
+                <return with="$?" />
             </choose>
         </define>
 
