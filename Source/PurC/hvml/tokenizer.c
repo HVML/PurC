@@ -2032,7 +2032,8 @@ BEGIN_STATE(HVML_EJSON_FINISHED_STATE)
         POP_AS_VCM_PARENT_AND_UPDATE_VCM();
     }
     ejson_stack_reset();
-    if (parser->transit_state == HVML_TEXT_CONTENT_STATE ||
+    if (parser->token == NULL ||
+        parser->transit_state == HVML_TEXT_CONTENT_STATE ||
         parser->transit_state == HVML_JSONTEXT_CONTENT_STATE) {
         parser->token = pchvml_token_new_vcm(parser->vcm_node);
         parser->vcm_node = NULL;
