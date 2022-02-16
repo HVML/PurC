@@ -157,6 +157,7 @@ regist_inner_data(pcintr_stack_t stack, purc_variant_t observed,
     switch (purc_variant_get_type(observed)) {
         case PURC_VARIANT_TYPE_NULL:
         case PURC_VARIANT_TYPE_BOOLEAN:
+        case PURC_VARIANT_TYPE_EXCEPTION:
         case PURC_VARIANT_TYPE_NUMBER:
         case PURC_VARIANT_TYPE_LONGINT:
         case PURC_VARIANT_TYPE_ULONGINT:

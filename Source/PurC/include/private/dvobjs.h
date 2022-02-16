@@ -36,6 +36,7 @@
 #define VARIANT_TYPE_NAME_UNDEFINED     "undefined"
 #define VARIANT_TYPE_NAME_NULL          "null"
 #define VARIANT_TYPE_NAME_BOOLEAN       "boolean"
+#define VARIANT_TYPE_NAME_EXCEPTION     "exception"
 #define VARIANT_TYPE_NAME_NUMBER        "number"
 #define VARIANT_TYPE_NAME_LONGINT       "longint"
 #define VARIANT_TYPE_NAME_ULONGINT      "ulongint"

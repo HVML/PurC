@@ -78,6 +78,38 @@ purc_variant_t purc_variant_make_boolean (bool b)
     return value;
 }
 
+purc_variant_t purc_variant_make_exception(purc_atom_t except_atom)
+{
+    purc_variant_t value = pcvariant_get (PURC_VARIANT_TYPE_EXCEPTION);
+
+    if (value == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
+        return PURC_VARIANT_INVALID;
+    }
+
+    value->type = PURC_VARIANT_TYPE_EXCEPTION;
+    value->size = 0;
+    value->flags = 0;
+    value->refc = 1;
+    value->atom = except_atom;
+
+    return value;
+}
+
+const char* purc_variant_get_exception_string_const (purc_variant_t v)
+{
+    PCVARIANT_CHECK_FAIL_RET(v, NULL);
+
+    const char * str_str = NULL;
+
+    if (IS_TYPE (v, PURC_VARIANT_TYPE_EXCEPTION))
+        str_str = purc_atom_to_string(v->atom);
+    else
+        pcinst_set_error (PCVARIANT_ERROR_INVALID_TYPE);
+
+    return str_str;
+}
+
 purc_variant_t purc_variant_make_number (double d)
 {
     purc_variant_t value = pcvariant_get (PURC_VARIANT_TYPE_NUMBER);

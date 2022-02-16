@@ -55,6 +55,7 @@ static pcvariant_release_fn variant_releasers[PURC_VARIANT_TYPE_NR] = {
     NULL,                           // PURC_VARIANT_TYPE_UNDEFINED
     NULL,                           // PURC_VARIANT_TYPE_NULL
     NULL,                           // PURC_VARIANT_TYPE_BOOLEAN
+    NULL,                           // PURC_VARIANT_TYPE_EXCEPTION
     NULL,                           // PURC_VARIANT_TYPE_NUMBER
     NULL,                           // PURC_VARIANT_TYPE_LONGINT
     NULL,                           // PURC_VARIANT_TYPE_ULONGINT
@@ -203,6 +204,7 @@ static const char *typenames[] = {
     VARIANT_TYPE_NAME_UNDEFINED,
     VARIANT_TYPE_NAME_NULL,
     VARIANT_TYPE_NAME_BOOLEAN,
+    VARIANT_TYPE_NAME_EXCEPTION,
     VARIANT_TYPE_NAME_NUMBER,
     VARIANT_TYPE_NAME_LONGINT,
     VARIANT_TYPE_NAME_ULONGINT,
@@ -626,6 +628,14 @@ int purc_variant_compare_st(purc_variant_t v1, purc_variant_t v2)
         case PURC_VARIANT_TYPE_BOOLEAN:
             return (int)v1->b - (int)v2->b;
 
+        case PURC_VARIANT_TYPE_EXCEPTION:
+            if (v1->atom == v2->atom) {
+                return 0;
+            }
+            str1 = purc_atom_to_string(v1->atom);
+            str2 = purc_atom_to_string(v2->atom);
+            return strcmp(str1, str2);
+
         case PURC_VARIANT_TYPE_NUMBER:
             if (equal_doubles(v1->d, v2->d))
                 return 0;
@@ -740,6 +750,7 @@ int purc_variant_compare_st(purc_variant_t v1, purc_variant_t v2)
             "undefined",        // PURC_VARIANT_TYPE_UNDEFINED
             "null",             // PURC_VARIANT_TYPE_NULL
             "boolean",          // PURC_VARIANT_TYPE_BOOLEAN
+            "0",                // PURC_VARIANT_TYPE_EXCEPTION
             "0",                // PURC_VARIANT_TYPE_NUMBER
             "0",                // PURC_VARIANT_TYPE_LONGINT
             "0",                // PURC_VARIANT_TYPE_ULONGINT
@@ -776,6 +787,9 @@ purc_variant_cast_to_longint(purc_variant_t v, int64_t *i64, bool parse_str)
         case PURC_VARIANT_TYPE_BOOLEAN:
             *i64 = (int64_t)v->b;
             return true;
+
+        case PURC_VARIANT_TYPE_EXCEPTION:
+            return false;
 
         case PURC_VARIANT_TYPE_NUMBER:
             if (v->d <= INT64_MIN) {
@@ -869,6 +883,9 @@ purc_variant_cast_to_ulongint(purc_variant_t v, uint64_t *u64, bool parse_str)
             *u64 = (uint64_t)v->b;
             return true;
 
+        case PURC_VARIANT_TYPE_EXCEPTION:
+            return false;
+
         case PURC_VARIANT_TYPE_NUMBER:
             if (v->d <= 0) {
                 *u64 = 0;
@@ -960,6 +977,9 @@ bool purc_variant_cast_to_number(purc_variant_t v, double *d, bool parse_str)
             *d = (double)v->b;
             return true;
 
+        case PURC_VARIANT_TYPE_EXCEPTION:
+            return false;
+
         case PURC_VARIANT_TYPE_NUMBER:
             *d = (double)v->d;
             return true;
@@ -1033,6 +1053,9 @@ purc_variant_cast_to_long_double(purc_variant_t v, long double *d,
         case PURC_VARIANT_TYPE_BOOLEAN:
             *d = (long double)v->b;
             return true;
+
+        case PURC_VARIANT_TYPE_EXCEPTION:
+            return false;
 
         case PURC_VARIANT_TYPE_NUMBER:
             *d = (long double)v->d;
@@ -1158,6 +1181,7 @@ compare_stringify (purc_variant_t v, char *stackbuffer, size_t size)
             }
             break;
 
+        case PURC_VARIANT_TYPE_EXCEPTION:
         case PURC_VARIANT_TYPE_ATOMSTRING:
         case PURC_VARIANT_TYPE_STRING:
         case PURC_VARIANT_TYPE_BSEQUENCE:
@@ -1169,8 +1193,13 @@ compare_stringify (purc_variant_t v, char *stackbuffer, size_t size)
                 length = purc_variant_sequence_length (v);
                 total = length * 2;
             }
-            else {
+            else if (v->type == PURC_VARIANT_TYPE_ATOMSTRING) {
                 length = strlen (purc_variant_get_atom_string_const (v));
+                total = length;
+            }
+            else {
+                length = strlen (
+                        purc_variant_get_exception_string_const (v));
                 total = length;
             }
 
@@ -1648,6 +1677,8 @@ purc_variant_numberify(purc_variant_t value)
             return 0.0;
         case PURC_VARIANT_TYPE_BOOLEAN:
             return value->b ? 1.0 : 0.0;
+        case PURC_VARIANT_TYPE_EXCEPTION:
+            return value->atom;
         case PURC_VARIANT_TYPE_NUMBER:
             return value->d;
         case PURC_VARIANT_TYPE_LONGINT:
@@ -1717,6 +1748,8 @@ purc_variant_booleanize(purc_variant_t value)
             return false;
         case PURC_VARIANT_TYPE_BOOLEAN:
             return value->b;
+        case PURC_VARIANT_TYPE_EXCEPTION:
+            return false;
         case PURC_VARIANT_TYPE_NUMBER:
             return value->d != 0.0 ? true : false;
         case PURC_VARIANT_TYPE_LONGINT:
@@ -1877,6 +1910,10 @@ variant_stringify(struct stringify_arg *arg, purc_variant_t value)
             } else {
                 arg->cb(arg->arg, "false");
             }
+            break;
+        case PURC_VARIANT_TYPE_EXCEPTION:
+            arg->cb(arg->arg,
+                    purc_variant_get_exception_string_const(value));
             break;
         case PURC_VARIANT_TYPE_NUMBER:
             snprintf(buf, sizeof(buf), "%g", value->d);

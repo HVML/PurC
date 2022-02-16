@@ -78,6 +78,28 @@ PCA_EXPORT purc_variant_t purc_variant_make_undefined(void);
 
 
 /**
+ * Creates a variant value of exception type.
+ *
+ * Returns: A purc_variant_t with exception type.
+ *
+ * Since: 0.0.2
+ */
+PCA_EXPORT purc_variant_t purc_variant_make_exception(purc_atom_t except_atom);
+
+/**
+ * Gets the pointer of string which is encapsulated in exception atom string type.
+ *
+ * @param value: the data of exception type
+ *
+ * Returns: The pointer of const char string,
+ *      or NULL if value is not string type.
+ *
+ * Since: 0.0.2
+ */
+PCA_EXPORT const char*
+purc_variant_get_exception_string_const(purc_variant_t value);
+
+/**
  * Creates a variant value of null type.
  *
  * Returns: A purc_variant_t with null type.
@@ -1623,6 +1645,7 @@ typedef enum purc_variant_type
     PURC_VARIANT_TYPE_UNDEFINED = PURC_VARIANT_TYPE_FIRST,
     PURC_VARIANT_TYPE_NULL,
     PURC_VARIANT_TYPE_BOOLEAN,
+    PURC_VARIANT_TYPE_EXCEPTION,
     PURC_VARIANT_TYPE_NUMBER,
     PURC_VARIANT_TYPE_LONGINT,
     PURC_VARIANT_TYPE_ULONGINT,
@@ -1685,6 +1708,11 @@ static inline bool purc_variant_is_undefined(purc_variant_t v)
 static inline bool purc_variant_is_boolean(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_BOOLEAN);
+}
+
+static inline bool purc_variant_is_exception(purc_variant_t v)
+{
+    return purc_variant_is_type(v, PURC_VARIANT_TYPE_EXCEPTION);
 }
 
 static inline bool purc_variant_is_number(purc_variant_t v)

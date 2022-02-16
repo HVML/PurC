@@ -59,6 +59,7 @@ count_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
         case PURC_VARIANT_TYPE_NULL:
         case PURC_VARIANT_TYPE_BOOLEAN:
+        case PURC_VARIANT_TYPE_EXCEPTION:
         case PURC_VARIANT_TYPE_NUMBER:
         case PURC_VARIANT_TYPE_LONGINT:
         case PURC_VARIANT_TYPE_ULONGINT:
@@ -92,6 +93,7 @@ static const char *type_names[] = {
     VARIANT_TYPE_NAME_UNDEFINED,
     VARIANT_TYPE_NAME_NULL,
     VARIANT_TYPE_NAME_BOOLEAN,
+    VARIANT_TYPE_NAME_EXCEPTION,
     VARIANT_TYPE_NAME_NUMBER,
     VARIANT_TYPE_NAME_LONGINT,
     VARIANT_TYPE_NAME_ULONGINT,
@@ -206,6 +208,7 @@ stringify_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
                 ret_var = purc_variant_make_string_reuse_buff (
                         buffer, total, false);
             break;
+        case PURC_VARIANT_TYPE_EXCEPTION:
         case PURC_VARIANT_TYPE_ATOMSTRING:
         case PURC_VARIANT_TYPE_STRING:
         case PURC_VARIANT_TYPE_BSEQUENCE:
@@ -217,8 +220,13 @@ stringify_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
                 total = purc_variant_sequence_length (argv[0]);
                 buffer = malloc (total * 2 + 1);
             }
-            else {
+            else if (type == PURC_VARIANT_TYPE_ATOMSTRING) {
                 total = strlen (purc_variant_get_atom_string_const (argv[0])) + 1;
+                buffer = malloc (total);
+            }
+            else {
+                total = strlen (
+                        purc_variant_get_exception_string_const (argv[0])) + 1;
                 buffer = malloc (total);
             }
 
