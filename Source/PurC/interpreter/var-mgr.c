@@ -56,7 +56,7 @@ struct var_observe {
     pcintr_stack_t stack;
 };
 
-struct pcvarmgr_list {
+struct pcvarmgr {
     purc_variant_t object;
     struct pcvar_listener* grow_listener;
     struct pcvar_listener* shrink_listener;
@@ -64,7 +64,7 @@ struct pcvarmgr_list {
     pcutils_array_t* var_observers;
 };
 
-int find_var_observe_idx(struct pcvarmgr_list* mgr, const char* name,
+int find_var_observe_idx(struct pcvarmgr* mgr, const char* name,
         enum var_event_type type, pcintr_stack_t stack)
 {
     size_t sz = pcutils_array_length(mgr->var_observers);
@@ -79,7 +79,7 @@ int find_var_observe_idx(struct pcvarmgr_list* mgr, const char* name,
     return -1;
 }
 
-struct var_observe* find_var_observe(struct pcvarmgr_list* mgr,
+struct var_observe* find_var_observe(struct pcvarmgr* mgr,
         const char* name, enum var_event_type type, pcintr_stack_t stack)
 {
     int idx = find_var_observe_idx(mgr, name, type, stack);
@@ -99,7 +99,7 @@ bool mgr_grow_handler(purc_variant_t source, purc_atom_t msg_type,
         return true;
     }
 
-    pcvarmgr_list_t mgr = (pcvarmgr_list_t)ctxt;
+    pcvarmgr_t mgr = (pcvarmgr_t)ctxt;
 
     purc_variant_t type = purc_variant_make_string(TYPE_STR_CHANGE, false);
     if (type == PURC_VARIANT_INVALID) {
@@ -141,7 +141,7 @@ bool mgr_shrink_handler(purc_variant_t source, purc_atom_t msg_type,
         return true;
     }
 
-    pcvarmgr_list_t mgr = (pcvarmgr_list_t)ctxt;
+    pcvarmgr_t mgr = (pcvarmgr_t)ctxt;
 
     purc_variant_t type = purc_variant_make_string(TYPE_STR_CHANGE, false);
     if (type == PURC_VARIANT_INVALID) {
@@ -183,7 +183,7 @@ bool mgr_change_handler(purc_variant_t source, purc_atom_t msg_type,
         return true;
     }
 
-    pcvarmgr_list_t mgr = (pcvarmgr_list_t)ctxt;
+    pcvarmgr_t mgr = (pcvarmgr_t)ctxt;
 
     purc_variant_t type = purc_variant_make_string(TYPE_STR_CHANGE, false);
     if (type == PURC_VARIANT_INVALID) {
@@ -216,10 +216,10 @@ bool mgr_change_handler(purc_variant_t source, purc_atom_t msg_type,
 }
 
 #define DEF_ARRAY_SIZE 10
-pcvarmgr_list_t pcvarmgr_list_create(void)
+pcvarmgr_t pcvarmgr_create(void)
 {
-    pcvarmgr_list_t mgr = (pcvarmgr_list_t)calloc(1,
-            sizeof(struct pcvarmgr_list));
+    pcvarmgr_t mgr = (pcvarmgr_t)calloc(1,
+            sizeof(struct pcvarmgr));
     if (!mgr) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto err_ret;
@@ -277,7 +277,7 @@ err_ret:
     return NULL;
 }
 
-int pcvarmgr_list_destroy(pcvarmgr_list_t mgr)
+int pcvarmgr_destroy(pcvarmgr_t mgr)
 {
     if (mgr) {
         size_t sz = pcutils_array_length(mgr->var_observers);
@@ -297,7 +297,7 @@ int pcvarmgr_list_destroy(pcvarmgr_list_t mgr)
     return 0;
 }
 
-bool pcvarmgr_list_add(pcvarmgr_list_t mgr, const char* name,
+bool pcvarmgr_add(pcvarmgr_t mgr, const char* name,
         purc_variant_t variant)
 {
     if (mgr == NULL || mgr->object == PURC_VARIANT_INVALID
@@ -315,7 +315,7 @@ bool pcvarmgr_list_add(pcvarmgr_list_t mgr, const char* name,
     return b;
 }
 
-purc_variant_t pcvarmgr_list_get(pcvarmgr_list_t mgr, const char* name)
+purc_variant_t pcvarmgr_get(pcvarmgr_t mgr, const char* name)
 {
     if (mgr == NULL || name == NULL) {
         PC_ASSERT(0); // FIXME: still recoverable???
@@ -332,7 +332,7 @@ purc_variant_t pcvarmgr_list_get(pcvarmgr_list_t mgr, const char* name)
     return PURC_VARIANT_INVALID;
 }
 
-bool pcvarmgr_list_remove(pcvarmgr_list_t mgr, const char* name)
+bool pcvarmgr_remove(pcvarmgr_t mgr, const char* name)
 {
     if (name) {
         return purc_variant_object_remove_by_static_ckey(mgr->object,
@@ -387,13 +387,13 @@ static purc_variant_t _find_inst_var(const char* name)
         return PURC_VARIANT_INVALID;
     }
 
-    pcvarmgr_list_t varmgr = pcinst_get_variables();
+    pcvarmgr_t varmgr = pcinst_get_variables();
     if (varmgr == NULL) {
         PC_ASSERT(0); // FIXME: still recoverable???
         return PURC_VARIANT_INVALID;
     }
 
-    purc_variant_t v = pcvarmgr_list_get(varmgr, name);
+    purc_variant_t v = pcvarmgr_get(varmgr, name);
     if (v) {
         return v;
     }
@@ -508,10 +508,10 @@ pcintr_get_numbered_var (pcintr_stack_t stack, unsigned int number)
     return PURC_VARIANT_INVALID;
 }
 
-bool pcvarmgr_list_add_observer(pcvarmgr_list_t list, const char* name,
+bool pcvarmgr_add_observer(pcvarmgr_t mgr, const char* name,
         const char* event)
 {
-    purc_variant_t var = pcvarmgr_list_get(list, name);
+    purc_variant_t var = pcvarmgr_get(mgr, name);
     if (var == PURC_VARIANT_INVALID) {
         return false;
     }
@@ -525,7 +525,7 @@ bool pcvarmgr_list_add_observer(pcvarmgr_list_t list, const char* name,
     }
 
     pcintr_stack_t stack = purc_get_stack();
-    struct var_observe* obs = find_var_observe(list, name, type, stack);
+    struct var_observe* obs = find_var_observe(mgr, name, type, stack);
     if (obs != NULL) {
         return true;
     }
@@ -539,7 +539,7 @@ bool pcvarmgr_list_add_observer(pcvarmgr_list_t list, const char* name,
     obs->name = strdup(name);
     obs->type = type;
     obs->stack = stack;
-    unsigned int ret = pcutils_array_push(list->var_observers, obs);
+    unsigned int ret = pcutils_array_push(mgr->var_observers, obs);
     if (ret == PURC_ERROR_OK) {
         return true;
     }
@@ -549,10 +549,10 @@ bool pcvarmgr_list_add_observer(pcvarmgr_list_t list, const char* name,
     return false;
 }
 
-bool pcvarmgr_list_remove_observer(pcvarmgr_list_t mgr, const char* name,
+bool pcvarmgr_remove_observer(pcvarmgr_t mgr, const char* name,
         const char* event)
 {
-    purc_variant_t var = pcvarmgr_list_get(mgr, name);
+    purc_variant_t var = pcvarmgr_get(mgr, name);
     if (var == PURC_VARIANT_INVALID) {
         return false;
     }

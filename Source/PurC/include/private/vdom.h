@@ -119,7 +119,7 @@ struct pcvdom_document {
 
     // document-variables
     // such as `$REQUEST`、`$TIMERS`、`$T` and etc.
-    pcvarmgr_list_t         variables;
+    pcvarmgr_t         variables;
 
     unsigned int            quirks:1;
 };
@@ -157,7 +157,7 @@ struct pcvdom_element {
 
     // FIXME: scoped-variables
     //  for those `defined` in `init`、`bind`、`connect`、`load`、`define`
-    pcvarmgr_list_t         variables;
+    pcvarmgr_t         variables;
 
     unsigned int            self_closing:1;
 };

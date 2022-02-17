@@ -411,10 +411,10 @@ purc_get_local_data(const char* data_name, uintptr_t *local_data,
 
 bool purc_bind_variable(const char* name, purc_variant_t variant)
 {
-    pcvarmgr_list_t varmgr = pcinst_get_variables();
+    pcvarmgr_t varmgr = pcinst_get_variables();
     PC_ASSERT(varmgr);
 
-    return pcvarmgr_list_add(varmgr, name, variant);
+    return pcvarmgr_add(varmgr, name, variant);
 }
 
 #if 0
@@ -424,18 +424,18 @@ bool purc_unbind_variable(const char* name)
     if (inst == NULL)
         return false;
 
-    return pcvarmgr_list_remove(inst->variables, name);
+    return pcvarmgr_remove(inst->variables, name);
 }
 #endif
 
-pcvarmgr_list_t pcinst_get_variables(void)
+pcvarmgr_t pcinst_get_variables(void)
 {
     struct pcinst* inst = pcinst_current();
     if (inst == NULL)
         return NULL;
 
     if (inst->variant_heap.variables == NULL) {
-        inst->variant_heap.variables = pcvarmgr_list_create();
+        inst->variant_heap.variables = pcvarmgr_create();
     }
 
     return inst->variant_heap.variables;
@@ -443,10 +443,10 @@ pcvarmgr_list_t pcinst_get_variables(void)
 
 purc_variant_t purc_get_variable(const char* name)
 {
-    pcvarmgr_list_t varmgr = pcinst_get_variables();
+    pcvarmgr_t varmgr = pcinst_get_variables();
     PC_ASSERT(varmgr);
 
-    return pcvarmgr_list_get(varmgr, name);
+    return pcvarmgr_get(varmgr, name);
 }
 
 bool

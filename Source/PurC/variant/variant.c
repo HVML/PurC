@@ -293,7 +293,7 @@ void pcvariant_cleanup_instance(struct pcinst *inst)
     int i = 0;
 
     if (heap->variables) {
-        pcvarmgr_list_destroy(heap->variables);
+        pcvarmgr_destroy(heap->variables);
         heap->variables = NULL;
     }
 
