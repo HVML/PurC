@@ -416,7 +416,7 @@ bool pcvarmgr_remove_observer(pcvarmgr_t mgr, const char* name,
 }
 
 static purc_variant_t
-_find_named_scope_var(pcvdom_element_t elem, const char* name)
+_find_named_scope_var(pcvdom_element_t elem, const char* name, pcvarmgr_t* mgr)
 {
     if (!elem || !name) {
         PC_ASSERT(name); // FIXME: still recoverable???
@@ -426,12 +426,15 @@ _find_named_scope_var(pcvdom_element_t elem, const char* name)
 
     purc_variant_t v = pcintr_get_scope_variable(elem, name);
     if (v) {
+        if (mgr) {
+            *mgr = pcvdom_element_get_variables(elem);
+        }
         return v;
     }
 
     pcvdom_element_t parent = pcvdom_element_parent(elem);
     if (parent) {
-        return _find_named_scope_var(parent, name);
+        return _find_named_scope_var(parent, name, mgr);
     }
     purc_set_error_with_info(PCVARIANT_ERROR_NOT_FOUND, "name:%s", name);
     return PURC_VARIANT_INVALID;
@@ -486,7 +489,7 @@ pcintr_find_named_var(pcintr_stack_t stack, const char* name)
     struct pcintr_stack_frame* frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame);
 
-    purc_variant_t v = _find_named_scope_var(frame->pos, name);
+    purc_variant_t v = _find_named_scope_var(frame->pos, name, NULL);
     if (v) {
         purc_clr_error();
         return v;
@@ -582,3 +585,40 @@ pcintr_get_numbered_var (pcintr_stack_t stack, unsigned int number)
     return PURC_VARIANT_INVALID;
 }
 
+bool
+pcintr_add_named_var_observer(pcintr_stack_t stack, const char* name,
+        const char* event)
+{
+    UNUSED_PARAM(event);
+    if (!stack || !name) {
+        PC_ASSERT(0); // FIXME: still recoverable???
+        return false;
+    }
+
+    struct pcintr_stack_frame* frame = pcintr_stack_get_bottom_frame(stack);
+    PC_ASSERT(frame);
+
+    pcvarmgr_t mgr = NULL;
+    purc_variant_t v = _find_named_scope_var(frame->pos, name, &mgr);
+    if (v) {
+        purc_clr_error();
+        return pcvarmgr_add_observer(mgr, name, event);
+    }
+
+    v = _find_doc_buildin_var(stack->vdom, name);
+    if (v) {
+        purc_clr_error();
+        mgr = pcvdom_document_get_variables(stack->vdom);
+        return pcvarmgr_add_observer(mgr, name, event);
+    }
+
+    v = _find_inst_var(name);
+    if (v) {
+        purc_clr_error();
+        mgr = pcinst_get_variables();
+        return pcvarmgr_add_observer(mgr, name, event);
+    }
+
+    purc_set_error_with_info(PCVARIANT_ERROR_NOT_FOUND, "name:%s", name);
+    return false;
+}
