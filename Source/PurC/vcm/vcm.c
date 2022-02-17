@@ -38,6 +38,8 @@
 #include "private/interpreter.h"
 #include "private/utils.h"
 
+#define TO_DEBUG 0
+
 #define TREE_NODE(node)              ((struct pctree_node*)(node))
 #define VCM_NODE(node)               ((struct pcvcm_node*)(node))
 #define FIRST_CHILD(node)            \
@@ -1040,9 +1042,14 @@ purc_variant_t pcvcm_node_to_variant (struct pcvcm_node* node,
 
         case PCVCM_NODE_TYPE_FUNC_GET_VARIABLE:
             ret = pcvcm_node_get_variable_to_variant(node, ops);
-            if (ret == PURC_VARIANT_INVALID || purc_variant_is_undefined(ret)) {
-                PRINT_VCM_NODE(node);
-                PRINT_VARIANT(ret);
+            if (TO_DEBUG) {
+                if (ret == PURC_VARIANT_INVALID ||
+                    purc_variant_is_undefined(ret))
+                {
+                    PRINT_VCM_NODE(node);
+                    if (ret != PURC_VARIANT_INVALID)
+                        PRINT_VARIANT(ret);
+                }
             }
             break;
 
@@ -1113,3 +1120,4 @@ purc_variant_t pcvcm_eval_ex (struct pcvcm_node* tree,
     }
     return pcvcm_node_to_variant (tree, &ops);
 }
+

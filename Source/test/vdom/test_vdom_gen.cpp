@@ -75,6 +75,9 @@ _process_file(const char *fn)
                 (unsigned char)pos.c, pos.c, pos.line, pos.col, pos.pos);
         std::cerr << buf << std::endl;
     }
+    else {
+        PRINT_VDOM_NODE(&doc->node);
+    }
     int r = 0;
     if (doc && neg) {
         r = -1;

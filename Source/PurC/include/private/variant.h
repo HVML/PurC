@@ -52,21 +52,22 @@ extern "C" {
 #define PRINT_MIN_BUFFER     512
 #define PRINT_MAX_BUFFER     1024 * 1024 * 1024
 
-#define PRINT_VARIANT(v)                                                    \
-    do {                                                                    \
-        purc_rwstream_t rws = purc_rwstream_new_buffer(PRINT_MIN_BUFFER,    \
-                PRINT_MAX_BUFFER);                                          \
-        size_t len_expected = 0;                                            \
-        purc_variant_serialize(v, rws,                                      \
-                0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);           \
-        purc_rwstream_write(rws, "", 1);                                    \
-        char* buf = (char*)purc_rwstream_get_mem_buffer_ex(rws, NULL, NULL, \
-                true);                                                      \
-        fprintf(stderr, "%s[%d]:%s(): %s=%s\n",                             \
-                basename((char*)__FILE__), __LINE__, __func__, #v, buf);    \
-        free(buf);                                                          \
-        purc_rwstream_destroy(rws);                                         \
-    } while (0)
+#define PRINT_VARIANT(_v) do {                                           \
+    if (_v == PURC_VARIANT_INVALID)                                      \
+        break;                                                           \
+    purc_rwstream_t _rws = purc_rwstream_new_buffer(PRINT_MIN_BUFFER,    \
+            PRINT_MAX_BUFFER);                                           \
+    size_t _len = 0;                                                     \
+    purc_variant_serialize(_v, _rws,                                     \
+            0, PCVARIANT_SERIALIZE_OPT_PLAIN, &_len);                    \
+    purc_rwstream_write(_rws, "", 1);                                    \
+    char* _buf = (char*)purc_rwstream_get_mem_buffer_ex(_rws,            \
+            NULL, NULL, true);                                           \
+    fprintf(stderr, "%s[%d]:%s(): %s=%s\n",                              \
+            basename((char*)__FILE__), __LINE__, __func__, #_v, _buf);   \
+    free(_buf);                                                          \
+    purc_rwstream_destroy(_rws);                                         \
+} while (0)
 
 
 // mutually exclusive

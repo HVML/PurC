@@ -177,10 +177,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (r)
         return NULL;
 
-    r = pcintr_element_eval_vcm_content(frame, element);
-    if (r)
-        return NULL;
-
 #if 1
     // FIXME
     // base tag, set base uri
@@ -271,10 +267,33 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     UNUSED_PARAM(co);
     UNUSED_PARAM(frame);
     PC_ASSERT(content);
-    char *text = content->text;
-    int r;
-    r = pcintr_util_add_child(frame->edom_element, "%s", text);
-    PC_ASSERT(r == 0);
+    // int r;
+    struct pcvcm_node *vcm = content->vcm;
+    if (!vcm)
+        return;
+
+    pcintr_stack_t stack = purc_get_stack();
+    purc_variant_t v = pcvcm_eval(vcm, stack);
+    PC_ASSERT(v != PURC_VARIANT_INVALID);
+    purc_clr_error();
+
+    if (purc_variant_is_string(v)) {
+        const char *text = purc_variant_get_string_const(v);
+        int r;
+        r = pcintr_util_add_child(frame->edom_element, "%s", text);
+        PC_ASSERT(r == 0);
+        purc_variant_unref(v);
+    }
+    else {
+        char *sv;
+        int r;
+        r = purc_variant_stringify_alloc(&sv, v);
+        PC_ASSERT(r >= 0 && sv);
+        r = pcintr_util_add_child(frame->edom_element, "%s", sv);
+        PC_ASSERT(r == 0);
+        free(sv);
+        purc_variant_unref(v);
+    }
 }
 
 static void
@@ -289,6 +308,7 @@ on_comment(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 static pcvdom_element_t
 select_child(pcintr_stack_t stack, void* ud)
 {
+                PC_ASSERT(stack->except == 0);
     PC_ASSERT(stack);
     PC_ASSERT(stack == purc_get_stack());
 
@@ -313,6 +333,7 @@ again:
     }
     else {
         curr = pcvdom_node_next_sibling(curr);
+        purc_clr_error();
     }
 
     ctxt->curr = curr;
@@ -335,9 +356,11 @@ again:
             }
         case PCVDOM_NODE_CONTENT:
             on_content(co, frame, PCVDOM_CONTENT_FROM_NODE(curr));
+                PC_ASSERT(stack->except == 0);
             goto again;
         case PCVDOM_NODE_COMMENT:
             on_comment(co, frame, PCVDOM_COMMENT_FROM_NODE(curr));
+                PC_ASSERT(stack->except == 0);
             goto again;
         default:
             PC_ASSERT(0); // Not implemented yet

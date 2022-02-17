@@ -31,6 +31,8 @@
 
 #include "hvml-attr.h"
 
+#define TO_DEBUG 1
+
 void pcvdom_init_once(void)
 {
     // initialize others
@@ -81,7 +83,7 @@ static void
 content_destroy(struct pcvdom_content *doc);
 
 static struct pcvdom_content*
-content_create(const char *text);
+content_create(struct pcvcm_node *vcm_content);
 
 static void
 vdom_node_remove(struct pcvdom_node *node);
@@ -183,14 +185,14 @@ pcvdom_element_create_c(const char *tag_name)
 }
 
 struct pcvdom_content*
-pcvdom_content_create(const char *text)
+pcvdom_content_create(struct pcvcm_node *vcm_content)
 {
-    if (!text) {
+    if (!vcm_content) {
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         return NULL;
     }
 
-    return content_create(text);
+    return content_create(vcm_content);
 }
 
 struct pcvdom_comment*
@@ -325,10 +327,12 @@ pcvdom_document_bind_variable(purc_vdom_t vdom, const char *name,
         purc_variant_t variant)
 {
     if (!vdom || !vdom->document || !name || !variant) {
+        PC_ASSERT(0);
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         return false;
     }
-    return pcvarmgr_add(vdom->document->variables, name, variant);
+    bool b = pcvarmgr_add(vdom->document->variables, name, variant);
+    return b;
 }
 
 bool
@@ -339,6 +343,7 @@ pcvdom_document_unbind_variable(purc_vdom_t vdom,
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         return false;
     }
+    PC_ASSERT(0);
     return pcvarmgr_remove(vdom->document->variables, name);
 }
 
@@ -347,6 +352,7 @@ pcvdom_document_get_variable(purc_vdom_t vdom,
         const char *name)
 {
     if (!vdom || !vdom->document || !name) {
+        PC_ASSERT(0);
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
     }
@@ -438,14 +444,14 @@ pcvdom_element_set_vcm_content(struct pcvdom_element *elem,
         return -1;
     }
 
-    if (elem->vcm_content == vcm_content)
-        return 0;
+    static struct pcvdom_content *content;
+    content = content_create(vcm_content);
+    if (!content)
+        return -1;
 
-    if (elem->vcm_content) {
-        pcvcm_node_destroy(elem->vcm_content);
-        elem->vcm_content = NULL;
-    }
-    elem->vcm_content = vcm_content;
+    bool b;
+    b = pctree_node_append_child(&elem->node.node, &content->node.node);
+    PC_ASSERT(b);
 
     return 0;
 }
@@ -740,6 +746,237 @@ pcvdom_element_traverse(struct pcvdom_element *elem, void *ctx,
     return arg.abortion;
 }
 
+struct serialize_data {
+    struct pcvdom_node                 *top;
+    int                                 is_doc;
+    enum pcvdom_util_node_serialize_opt opt;
+    size_t                              level;
+    pcvdom_util_node_serialize_cb       cb;
+};
+
+static void
+document_serialize(struct pcvdom_document *doc, int level, int push,
+        struct serialize_data *ud)
+{
+    UNUSED_PARAM(doc);
+    UNUSED_PARAM(ud);
+    if (ud->opt & PCVDOM_UTIL_NODE_SERIALIZE_INDENT) {
+        for (int i=0; i<level; ++i) {
+            ud->cb("  ", 2);
+        }
+    }
+    if (!push)
+        return;
+
+    ud->cb("<!DOCTYPE", 9);
+    struct pcvdom_doctype  *doctype = &doc->doctype;
+    const char *name = doctype->name;
+    const char *system_info = doctype->system_info;
+    if (!name)
+        name = "html";
+    if (!system_info)
+        system_info = "";
+
+    ud->cb(" ", 1);
+    ud->cb(name, strlen(name));
+    ud->cb(" ", 1);
+
+    ud->cb("SYSTEM \"", 8);
+    ud->cb(system_info, strlen(system_info));
+    ud->cb("\"", 1);
+
+    ud->cb(">", 1);
+}
+
+static int
+attr_serialize(void *key, void *val, void *ctxt)
+{
+    const char *sk = (const char*)key;
+    struct pcvdom_attr *attr = (struct pcvdom_attr*)val;
+    struct serialize_data *ud = (struct serialize_data*)ctxt;
+    PC_ASSERT(sk == attr->key);
+    enum pchvml_attr_operator  op  = attr->op;
+    struct pcvcm_node         *v = attr->val;
+
+    ud->cb(" ", 1);
+    ud->cb(sk, strlen(sk));
+    if (!v) {
+        PC_ASSERT(op == PCHVML_ATTRIBUTE_OPERATOR);
+        return 0;
+    }
+
+    switch (op) {
+        case PCHVML_ATTRIBUTE_OPERATOR:
+            ud->cb("=", 1);
+            break;
+        case PCHVML_ATTRIBUTE_ADDITION_OPERATOR:
+            ud->cb("+=", 2);
+            break;
+        case PCHVML_ATTRIBUTE_SUBTRACTION_OPERATOR:
+            ud->cb("-=", 2);
+            break;
+        case PCHVML_ATTRIBUTE_ASTERISK_OPERATOR:
+            ud->cb("*=", 2);
+            break;
+        case PCHVML_ATTRIBUTE_REGEX_OPERATOR:
+            ud->cb("/=", 2);
+            break;
+        case PCHVML_ATTRIBUTE_REMAINDER_OPERATOR:
+            ud->cb("%=", 2);
+            break;
+        case PCHVML_ATTRIBUTE_REPLACE_OPERATOR:
+            ud->cb("~=", 2);
+            break;
+        case PCHVML_ATTRIBUTE_HEAD_OPERATOR:
+            ud->cb("^=", 2);
+            break;
+        case PCHVML_ATTRIBUTE_TAIL_OPERATOR:
+            ud->cb("$=", 2);
+            break;
+        default:
+            PC_ASSERT(0);
+            break;
+    }
+
+    size_t len;
+    char *s = pcvcm_node_to_string(v, &len);
+    if (!s) {
+        ud->cb("{{OOM}}", 7);
+        return 0;
+    }
+
+    ud->cb(s, len);
+    free(s);
+
+    return 0;
+}
+
+static void
+element_serialize(struct pcvdom_element *element, int level, int push,
+        struct serialize_data *ud)
+{
+    UNUSED_PARAM(level);
+    UNUSED_PARAM(push);
+    UNUSED_PARAM(ud);
+
+    if (ud->opt & PCVDOM_UTIL_NODE_SERIALIZE_INDENT) {
+        ud->cb("\n", 1);
+
+        for (int i=0; i<level; ++i) {
+            ud->cb("  ", 2);
+        }
+    }
+
+    char *tag_name = element->tag_name;
+
+    if (push) {
+        // key: char *, the same as struct pcvdom_attr:key
+        // val: struct pcvdom_attr*
+        struct pcutils_map *attrs = element->attrs;
+
+        ud->cb("<", 1);
+        ud->cb(tag_name, strlen(tag_name));
+
+        pcutils_map_traverse(attrs, ud, attr_serialize);
+
+        ud->cb(">", 1);
+    }
+    else {
+        ud->cb("</", 2);
+        ud->cb(tag_name, strlen(tag_name));
+        ud->cb(">", 1);
+    }
+}
+
+static void
+content_serialize(struct pcvdom_content *content, int level, int push,
+        struct serialize_data *ud)
+{
+    UNUSED_PARAM(content);
+    UNUSED_PARAM(level);
+    UNUSED_PARAM(push);
+    UNUSED_PARAM(ud);
+}
+
+static void
+comment_serialize(struct pcvdom_comment *comment, int level, int push,
+        struct serialize_data *ud)
+{
+    UNUSED_PARAM(comment);
+    UNUSED_PARAM(level);
+    UNUSED_PARAM(push);
+    UNUSED_PARAM(ud);
+}
+
+static int
+vdom_node_serialize(struct pcvdom_node *node, int level,
+        int push, struct serialize_data *ud)
+{
+    switch (node->type)
+    {
+        case VDT(DOCUMENT):
+            {
+                struct pcvdom_document *doc;
+                doc = container_of(node, struct pcvdom_document, node);
+                document_serialize(doc, level, push, ud);
+            } break;
+        case VDT(ELEMENT):
+            {
+                struct pcvdom_element *elem;
+                elem = container_of(node, struct pcvdom_element, node);
+                element_serialize(elem, level, push, ud);
+            } break;
+        case VDT(CONTENT):
+            {
+                struct pcvdom_content *content;
+                content = container_of(node, struct pcvdom_content, node);
+                content_serialize(content, level, push, ud);
+            } break;
+        case VDT(COMMENT):
+            {
+                struct pcvdom_comment *comment;
+                comment = container_of(node, struct pcvdom_comment, node);
+                comment_serialize(comment, level, push, ud);
+            } break;
+        default:
+            {
+                PC_ASSERT(0);
+            } break;
+    }
+
+    return 0;
+}
+
+static int
+node_serialize(struct pctree_node *node, int level,
+        int push, void *ctxt)
+{
+    struct serialize_data *ud = (struct serialize_data*)ctxt;
+    if (ud->is_doc && node != &ud->top->node) {
+        --level;
+    }
+    struct pcvdom_node *vdom_node;
+    vdom_node = container_of(node, struct pcvdom_node, node);
+    return vdom_node_serialize(vdom_node, level, push, ud);
+}
+
+void
+pcvdom_util_node_serialize_ex(struct pcvdom_node *node,
+        enum pcvdom_util_node_serialize_opt opt,
+        pcvdom_util_node_serialize_cb cb)
+{
+    struct serialize_data ud = {
+        .top        = node,
+        .is_doc     = node->type == PCVDOM_NODE_DOCUMENT,
+        .opt        = opt,
+        .cb         = cb,
+    };
+
+    pctree_node_walk(&node->node, 0, node_serialize, &ud);
+
+    cb("\n", 1);
+}
+
 static inline void
 doctype_reset(struct pcvdom_doctype *doctype)
 {
@@ -864,11 +1101,6 @@ element_reset(struct pcvdom_element *elem)
         elem->attrs = NULL;
     }
 
-    if (elem->vcm_content) {
-        pcvcm_node_destroy(elem->vcm_content);
-        elem->vcm_content = NULL;
-    }
-
     if (elem->variables) {
         r = pcvarmgr_destroy(elem->variables);
         PC_ASSERT(r==0);
@@ -960,9 +1192,9 @@ element_create(void)
 static void
 content_reset(struct pcvdom_content *content)
 {
-    if (content->text) {
-        free(content->text);
-        content->text = NULL;
+    if (content->vcm) {
+        pcvcm_node_destroy(content->vcm);
+        content->vcm= NULL;
     }
 }
 
@@ -975,7 +1207,7 @@ content_destroy(struct pcvdom_content *content)
 }
 
 static struct pcvdom_content*
-content_create(const char *text)
+content_create(struct pcvcm_node *vcm_content)
 {
     struct pcvdom_content *content;
     content = (struct pcvdom_content*)calloc(1, sizeof(*content));
@@ -987,12 +1219,7 @@ content_create(const char *text)
     content->node.type = VDT(CONTENT);
     content->node.remove_child = NULL;
 
-    content->text = strdup(text);
-    if (!content->text) {
-        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        content_destroy(content);
-        return NULL;
-    }
+    content->vcm = vcm_content;
 
     return content;
 }

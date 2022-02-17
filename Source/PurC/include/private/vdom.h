@@ -152,9 +152,6 @@ struct pcvdom_element {
     // val: struct pcvdom_attr*
     struct pcutils_map     *attrs;
 
-    // for those wrapped in `archetype`
-    struct pcvcm_node      *vcm_content;
-
     // FIXME: scoped-variables
     //  for those `defined` in `init`、`bind`、`connect`、`load`、`define`
     pcvarmgr_t         variables;
@@ -165,7 +162,7 @@ struct pcvdom_element {
 struct pcvdom_content {
     struct pcvdom_node      node;
 
-    char                   *text;
+    struct pcvcm_node      *vcm;
 };
 
 struct pcvdom_comment {
@@ -193,7 +190,7 @@ struct pcvdom_element*
 pcvdom_element_create_c(const char *tag_name);
 
 struct pcvdom_content*
-pcvdom_content_create(const char *text);
+pcvdom_content_create(struct pcvcm_node *vcm_content);
 
 struct pcvdom_comment*
 pcvdom_comment_create(const char *text);
@@ -435,6 +432,37 @@ struct pcvdom_document*
 pcvdom_util_document_from_buf(const unsigned char *buf, size_t len,
         struct pcvdom_pos *pos);
 
+enum pcvdom_util_node_serialize_opt {
+    PCVDOM_UTIL_NODE_SERIALIZE__UNDEF,
+    PCVDOM_UTIL_NODE_SERIALIZE_INDENT,
+};
+
+typedef int
+(*pcvdom_util_node_serialize_cb)(const char *buf, size_t len);
+
+void
+pcvdom_util_node_serialize_ex(struct pcvdom_node *node,
+        enum pcvdom_util_node_serialize_opt opt,
+        pcvdom_util_node_serialize_cb cb);
+
+static inline void
+pcvdom_util_node_serialize(struct pcvdom_node *node,
+        pcvdom_util_node_serialize_cb cb)
+{
+    enum pcvdom_util_node_serialize_opt opt;
+    opt = PCVDOM_UTIL_NODE_SERIALIZE_INDENT;
+    pcvdom_util_node_serialize_ex(node, opt, cb);
+}
+
+static inline int
+pcvdom_util_fprintf(const char *buf, size_t len)
+{
+    fprintf(stderr, "%.*s", (int)len, buf);
+    return 0;
+}
+
+#define PRINT_VDOM_NODE(_node)      \
+    pcvdom_util_node_serialize(_node, pcvdom_util_fprintf)
 
 PCA_EXTERN_C_END
 

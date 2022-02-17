@@ -391,7 +391,6 @@ pcintr_util_dump_edom_node_ex(pcdom_node_t *node,
 void
 pcintr_dump_frame_edom_node(pcintr_stack_t stack);
 
-
 pcdom_element_t*
 pcintr_util_insert_element(pcdom_element_t* parent, const char *tag);
 

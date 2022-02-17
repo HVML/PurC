@@ -34,6 +34,15 @@
 
 #include <libgen.h>
 
+struct pcvdom_template_node {
+    struct list_head              node;
+    struct pcvcm_node            *vcm;
+};
+
+struct pcvdom_template {
+    struct list_head             list;
+};
+
 PCA_EXTERN_C_BEGIN
 
 int
@@ -48,11 +57,6 @@ int
 pcintr_vdom_walk_attrs(struct pcintr_stack_frame *frame,
         struct pcvdom_element *element, void *ud, pcintr_attr_f cb);
 
-int
-pcintr_element_eval_vcm_content(struct pcintr_stack_frame *frame,
-        struct pcvdom_element *element);
-
-
 void pcintr_coroutine_ready(void);
 
 void
@@ -63,6 +67,23 @@ pcintr_load_from_uri(pcintr_stack_t stack, const char* uri);
 
 purc_variant_t
 pcintr_doc_query(purc_vdom_t vdom, const char* css);
+
+
+
+purc_variant_t
+pcintr_template_make(void);
+
+int
+pcintr_template_append(purc_variant_t val, struct pcvcm_node *vcm);
+
+
+typedef int
+(*pcintr_template_walk_cb)(struct pcvcm_node *vcm, void *ctxt);
+
+void
+pcintr_template_walk(purc_variant_t val, void *ctxt,
+        pcintr_template_walk_cb cb);
+
 
 PCA_EXTERN_C_END
 

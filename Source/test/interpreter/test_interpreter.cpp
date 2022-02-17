@@ -521,7 +521,7 @@ static const char *buggy1 =
     "                    <small>$T.get('Current Time: ')<span id=\"clock\">$SYSTEM.time('%H:%M:%S')</span></small>"
     "                </h2>"
     "                <iterate on=\"[1,2,3]\">"
-    "                    <update on=\"#clock\" at=\"textContent\" to=\"displace\" with=\"time:$?\" />"
+    "                    <update on=\"#clock\" at=\"textContent\" to=\"displace\" with=\"iterator:$?\" />"
     "                </iterate>"
     "            </div>"
     ""
@@ -584,6 +584,9 @@ static const char *buggy1 =
 
 static const char *buggy2 =
     "<hvml><head><title>hello</title></head><body><span id=\"clock\">xyz</span><xinput xid=\"xexp\"></xinput><update on=\"#clock\" at=\"textContent\" to=\"displace\" with=\"abc\"/></body></hvml>";
+
+static const char *buggy3 =
+    "<hvml><body><span id=\"clock\">xyz</span><update on=\"#clock\" at=\"textContent\" to=\"displace\" with=\"$SYSTEM.time('%H:%M:%S')\" /></body></hvml>";
 
 static const char *sample1 =
     "<!DOCTYPE hvml>"
@@ -706,6 +709,7 @@ TEST(interpreter, basic)
     (void)calculator_4;
     (void)buggy1;
     (void)buggy2;
+    (void)buggy3;
     (void)sample1;
     (void)sample2;
     (void)fibonacci_1;
@@ -715,10 +719,14 @@ TEST(interpreter, basic)
         "  <head>"
         "  </head>"
         "  <body>"
+        "    hello"
         "    <div>"
+        "      foo"
         "      <archetype name=\"foo\"><hoo><bar></bar><foobar>ddddddddddddddddddddddddddd</foobar></hoo></archetype>"
+        "      bar"
         "      <update on=\"$@\" to=\"append\" with=\"$foo\" />"
         "    </div>"
+        "    world"
         "  </body>"
         "</hvml>",
         "<hvml><head x=\"y\">hello<xinit a=\"b\">world<!--yes-->solid</xinit></head><body><timeout1/><timeout3/></body></hvml>",
@@ -737,6 +745,7 @@ TEST(interpreter, basic)
         fibonacci_1,
         buggy1,
         buggy2,
+        buggy3,
     };
 
     purc_instance_extra_info info = {};

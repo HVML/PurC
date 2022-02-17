@@ -527,7 +527,10 @@ walk_attr(void *key, void *val, void *ud)
         if (value == PURC_VARIANT_INVALID ||
             purc_variant_is_undefined(value))
         {
-            PRINT_VCM_NODE(vcm);
+            if (0) {
+                D("attr name: %s", attr->key);
+                PRINT_VCM_NODE(vcm);
+            }
             if (value != PURC_VARIANT_INVALID)
                 purc_variant_unref(value);
             return -1;
@@ -576,26 +579,6 @@ pcintr_vdom_walk_attrs(struct pcintr_stack_frame *frame,
     int r = pcutils_map_traverse(attrs, &data, walk_attr);
     if (r)
         return r;
-
-    return 0;
-}
-
-int
-pcintr_element_eval_vcm_content(struct pcintr_stack_frame *frame,
-        struct pcvdom_element *element)
-{
-    struct pcvcm_node *vcm_content = element->vcm_content;
-    if (vcm_content == NULL)
-        return 0;
-
-    purc_variant_t v; /* = pcvcm_eval(vcm_content, stack) */
-    // NOTE: element is still the owner of vcm_content
-    v = purc_variant_make_ulongint((uint64_t)vcm_content);
-    if (v == PURC_VARIANT_INVALID)
-        return -1;
-
-    PURC_VARIANT_SAFE_CLEAR(frame->ctnt_var);
-    frame->ctnt_var = v;
 
     return 0;
 }
@@ -719,7 +702,11 @@ static void
 after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
     if (frame->ops.after_pushed) {
-        frame->ops.after_pushed(co->stack, frame->pos);
+        void *ctxt = frame->ops.after_pushed(co->stack, frame->pos);
+        if (!ctxt) {
+            frame->next_step = NEXT_STEP_ON_POPPING;
+            return;
+        }
     }
 
     frame->next_step = NEXT_STEP_SELECT_CHILD;
@@ -1882,5 +1869,177 @@ pcintr_util_is_ancestor(pcdom_node_t *ancestor, pcdom_node_t *descendant)
     } while (node);
 
     return false;
+}
+
+static struct pcvdom_template_node*
+template_node_create(struct pcvcm_node *vcm)
+{
+    PC_ASSERT(vcm);
+
+    struct pcvdom_template_node *node;
+    node = (struct pcvdom_template_node*)calloc(1, sizeof(*node));
+    if (!node) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return NULL;
+    }
+    node->vcm = vcm;
+    return node;
+}
+
+static void
+template_node_destroy(struct pcvdom_template_node *node)
+{
+    node->vcm = NULL;
+    free(node);
+}
+
+static struct pcvdom_template*
+template_create(void)
+{
+    struct pcvdom_template *tpl;
+    tpl = (struct pcvdom_template*)calloc(1, sizeof(*tpl));
+    if (!tpl) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return NULL;
+    }
+
+    INIT_LIST_HEAD(&tpl->list);
+
+    return tpl;
+}
+
+static void
+template_release(struct pcvdom_template *tpl)
+{
+    if (!tpl)
+        return;
+
+    struct pcvdom_template_node *p, *n;
+    list_for_each_entry_safe(p, n, &tpl->list, node) {
+        list_del(&p->node);
+
+        template_node_destroy(p);
+    }
+}
+
+static void
+template_destroy(struct pcvdom_template *tpl)
+{
+    if (!tpl)
+        return;
+
+    template_release(tpl);
+    free(tpl);
+}
+
+static int
+template_append(struct pcvdom_template *tpl, struct pcvcm_node *vcm)
+{
+    struct pcvdom_template_node *p;
+    list_for_each_entry(p, &tpl->list, node) {
+        if (p->vcm == vcm) {
+            purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "vcm alread in templates");
+            return -1;
+        }
+    }
+
+    p = template_node_create(vcm);
+    if (!p)
+        return -1;
+
+    p->vcm = vcm;
+    list_add_tail(&p->node, &tpl->list);
+    return 0;
+}
+
+// the cleaner to clear the content of the native entity.
+static bool
+cleaner(void* native_entity)
+{
+    struct pcvdom_template *tpl;
+    tpl = (struct pcvdom_template*)native_entity;
+    PC_ASSERT(tpl);
+    template_release(tpl);
+    return true;
+}
+
+// the eraser to erase the native entity.
+static bool
+eraser(void* native_entity)
+{
+    struct pcvdom_template *tpl;
+    tpl = (struct pcvdom_template*)native_entity;
+    PC_ASSERT(tpl);
+    template_destroy(tpl);
+    return true;
+}
+
+purc_variant_t
+pcintr_template_make(void)
+{
+    struct pcvdom_template *tpl;
+    tpl = template_create();
+    if (!tpl)
+        return PURC_VARIANT_INVALID;
+
+    static struct purc_native_ops ops = {
+        // .property_getter            = property_getter,
+        // .property_setter            = property_setter,
+        // .property_eraser            = property_eraser,
+        // .property_cleaner           = property_cleaner,
+
+        .cleaner                    = cleaner,
+        .eraser                     = eraser,
+        // .observe                    = observe,
+    };
+
+    purc_variant_t v = purc_variant_make_native(tpl, &ops);
+    if (!v) {
+        template_destroy(tpl);
+        return PURC_VARIANT_INVALID;
+    }
+
+    return v;
+}
+
+int
+pcintr_template_append(purc_variant_t val, struct pcvcm_node *vcm)
+{
+    PC_ASSERT(val);
+    PC_ASSERT(vcm);
+
+    void *native_entity = purc_variant_native_get_entity(val);
+    PC_ASSERT(native_entity);
+    struct pcvdom_template *tpl;
+    tpl = (struct pcvdom_template*)native_entity;
+
+    return template_append(tpl, vcm);
+}
+
+
+typedef int
+(*pcintr_template_walk_cb)(struct pcvcm_node *vcm, void *ctxt);
+
+void
+pcintr_template_walk(purc_variant_t val, void *ctxt,
+        pcintr_template_walk_cb cb)
+{
+    if (!val)
+        return;
+
+    PC_ASSERT(val);
+
+    void *native_entity = purc_variant_native_get_entity(val);
+    PC_ASSERT(native_entity);
+    struct pcvdom_template *tpl;
+    tpl = (struct pcvdom_template*)native_entity;
+
+    struct pcvdom_template_node *p;
+    list_for_each_entry(p, &tpl->list, node) {
+        PC_ASSERT(p->vcm);
+        if (cb(p->vcm, ctxt))
+            return;
+    }
 }
 
