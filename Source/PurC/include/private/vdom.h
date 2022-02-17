@@ -119,7 +119,7 @@ struct pcvdom_document {
 
     // document-variables
     // such as `$REQUEST`、`$TIMERS`、`$T` and etc.
-    pcvarmgr_list_t         variables;
+    pcvarmgr_t         variables;
 
     unsigned int            quirks:1;
 };
@@ -157,7 +157,7 @@ struct pcvdom_element {
 
     // FIXME: scoped-variables
     //  for those `defined` in `init`、`bind`、`connect`、`load`、`define`
-    pcvarmgr_list_t         variables;
+    pcvarmgr_t         variables;
 
     unsigned int            self_closing:1;
 };
@@ -243,6 +243,9 @@ pcvdom_document_unbind_variable(purc_vdom_t vdom, const char *name);
 purc_variant_t
 pcvdom_document_get_variable(purc_vdom_t vdom, const char *name);
 
+pcvarmgr_t
+pcvdom_document_get_variables(purc_vdom_t vdom);
+
 int
 pcvdom_element_append_attr(struct pcvdom_element *elem,
         struct pcvdom_attr *attr);
@@ -275,6 +278,8 @@ pcvdom_element_unbind_variable(struct pcvdom_element *elem,
 purc_variant_t
 pcvdom_element_get_variable(struct pcvdom_element *elem,
         const char *name);
+
+pcvarmgr_t pcvdom_element_get_variables(struct pcvdom_element *elem);
 
 // accessor api
 struct pcvdom_node*

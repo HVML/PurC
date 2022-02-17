@@ -328,6 +328,10 @@ pcintr_get_symbolized_var (pcintr_stack_t stack, unsigned int number,
 purc_variant_t
 pcintr_get_numbered_var (pcintr_stack_t stack, unsigned int number);
 
+bool
+pcintr_add_named_var_observer(pcintr_stack_t stack, const char* name,
+        const char* event);
+
 // $TIMERS
 struct pcintr_timers*
 pcintr_timers_init(pcintr_stack_t stack);

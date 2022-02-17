@@ -32,27 +32,29 @@
 #include "private/variant.h"
 #include "private/map.h"
 
-struct pcvarmgr_list;
-typedef struct pcvarmgr_list*  pcvarmgr_list_t;
+struct pcvarmgr;
+typedef struct pcvarmgr*  pcvarmgr_t;
 
 struct pcintr_stack;
 
 PCA_EXTERN_C_BEGIN
 
-pcvarmgr_list_t pcvarmgr_list_create(void);
+pcvarmgr_t pcvarmgr_create(void);
 
-int pcvarmgr_list_destroy(pcvarmgr_list_t list);
+int pcvarmgr_destroy(pcvarmgr_t mgr);
 
-void pcvarmgr_list_set_attach_stack(pcvarmgr_list_t mgr,
-        struct pcintr_stack* stack);
-struct pcintr_stack*  pcvarmgr_list_get_attach_stack(pcvarmgr_list_t mgr);
-
-bool pcvarmgr_list_add(pcvarmgr_list_t list, const char* name,
+bool pcvarmgr_add(pcvarmgr_t mgr, const char* name,
         purc_variant_t variant);
 
-purc_variant_t pcvarmgr_list_get(pcvarmgr_list_t list, const char* name);
+purc_variant_t pcvarmgr_get(pcvarmgr_t mgr, const char* name);
 
-bool pcvarmgr_list_remove(pcvarmgr_list_t list, const char* name);
+bool pcvarmgr_remove(pcvarmgr_t mgr, const char* name);
+
+bool pcvarmgr_add_observer(pcvarmgr_t mgr, const char* name,
+        const char* event);
+
+bool pcvarmgr_remove_observer(pcvarmgr_t mgr, const char* name,
+        const char* event);
 
 PCA_EXTERN_C_END
 

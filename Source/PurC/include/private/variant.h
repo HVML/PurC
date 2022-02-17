@@ -175,7 +175,7 @@ struct pcvariant_heap {
     int headpos;
     int tailpos;
 
-    struct pcvarmgr_list      *variables;
+    struct pcvarmgr      *variables;
 
 
     // experiment
