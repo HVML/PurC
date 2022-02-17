@@ -77,6 +77,9 @@ struct pchvml_token* pchvml_next_token(struct pchvml_parser* hvml,
 
 void pchvml_switch_to_ejson_state(struct pchvml_parser* parser);
 
+int pchvml_parser_get_curr_pos(struct pchvml_parser* parser,
+    uint32_t *character, int *line, int *column, int *position);
+
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */

@@ -415,6 +415,22 @@ int pcvdom_element_traverse(struct pcvdom_element *elem, void *ctx,
 purc_variant_t
 pcvdom_element_eval_attr_val(pcvdom_element_t element, const char *key);
 
+struct pcvdom_pos {
+    uint32_t        c;
+    int             line;
+    int             col;
+    int             pos;
+};
+
+struct pcvdom_document*
+pcvdom_util_document_from_stream(purc_rwstream_t in,
+        struct pcvdom_pos *pos);
+
+struct pcvdom_document*
+pcvdom_util_document_from_buf(const unsigned char *buf, size_t len,
+        struct pcvdom_pos *pos);
+
+
 PCA_EXTERN_C_END
 
 #endif  /* PURC_PRIVATE_VDOM_H */

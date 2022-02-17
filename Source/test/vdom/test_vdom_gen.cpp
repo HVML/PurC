@@ -33,10 +33,7 @@ _process_file(const char *fn)
 {
     FILE *fin = NULL;
     purc_rwstream_t rin = NULL;
-    struct pchvml_parser *parser = NULL;
-    struct pcvdom_gen *gen = NULL;
-    struct pcvdom_document *doc = NULL;
-    struct pchvml_token *token = NULL;
+
     bool neg = false;
 
     /* FIXME */
@@ -56,65 +53,35 @@ _process_file(const char *fn)
         int err = errno;
         EXPECT_NE(fin, nullptr) << "Failed to open ["
             << fn << "]: [" << err << "]" << strerror(err) << std::endl;
-        goto end;
+        return;
     }
 
     rin = purc_rwstream_new_from_unix_fd(dup(fileno(fin)), 1024);
     if (!rin) {
         EXPECT_NE(rin, nullptr);
-        goto end;
+        fclose(fin);
+        return;
     }
 
-    parser = pchvml_create(0, 0);
-    if (!parser)
-        goto end;
-
-    gen = pcvdom_gen_create();
-    if (!gen)
-        goto end;
-
-again:
-    if (token)
-        pchvml_token_destroy(token);
-
-    token = pchvml_next_token(parser, rin);
-
-    if (token && 0==pcvdom_gen_push_token(gen, parser, token)) {
-        if (pchvml_token_is_type(token, PCHVML_TOKEN_EOF)) {
-            doc = pcvdom_gen_end(gen);
-            if (neg) {
-                EXPECT_TRUE(false) << "Unexpected successful in parsing neg sample: [" << fn << "]" << std::endl;
-            } else {
-                std::cerr << "Succeeded in parsing: [" << fn << "]" << std::endl;
-            }
-            goto end;
-        }
-        goto again;
+    struct pcvdom_pos pos;
+    struct pcvdom_document *doc = NULL;
+    doc = pcvdom_util_document_from_stream(rin, &pos);
+    if (!doc) {
+        char buf[1024];
+        snprintf(buf, sizeof(buf),
+                "Parsing failed: [0x%02x]'%c' @line%d/col%d/pos%d",
+                (unsigned char)pos.c, pos.c, pos.line, pos.col, pos.pos);
+        std::cerr << buf << std::endl;
     }
-
-    if (!neg) {
-        EXPECT_NE(token, nullptr) << "unexpected NULL token: ["
-            << token << "]" << std::endl;
+    if (doc && neg) {
+        EXPECT_TRUE(false) << "Unexpected successful parsing for negative sample: [" << fn << "]" << std::endl;
     }
-
-    if (neg) {
-        std::cerr << "Succeeded in failure-parsing neg sample: [" << fn << "]" << std::endl;
-    } else {
-        EXPECT_TRUE(false) << "Failed parsing: [" << fn << "]" << std::endl;
+    else if (!doc && !neg) {
+        EXPECT_TRUE(false) << "Parsing failure for positive sample: [" << fn << "]" << std::endl;
     }
-
-end:
-    if (token)
-        pchvml_token_destroy(token);
 
     if (doc)
         pcvdom_document_destroy(doc);
-
-    if (gen)
-        pcvdom_gen_destroy(gen);
-
-    if (parser)
-        pchvml_destroy(parser);
 
     if (rin)
         purc_rwstream_destroy(rin);

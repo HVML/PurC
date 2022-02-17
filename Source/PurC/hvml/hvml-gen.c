@@ -26,6 +26,8 @@
 #include "private/errors.h"
 #include "private/debug.h"
 #include "private/utils.h"
+#include "private/vdom.h"
+#include "hvml/hvml-rwswrap.h"
 #include "hvml-gen.h"
 
 #include <libgen.h>
@@ -1262,5 +1264,99 @@ again:
         goto again;
 
     return r ? -1 : 0;
+}
+
+int pchvml_parser_get_curr_pos(struct pchvml_parser* parser,
+    uint32_t *character, int *line, int *column, int *position)
+{
+    if (!parser)
+        return -1;
+
+    struct pchvml_uc *uc = parser->curr_uc;
+    if (!uc)
+        return -1;
+
+    if (character)
+        *character = uc->character;
+
+    if (line)
+        *line = uc->line;
+
+    if (column)
+        *column = uc->column;
+
+    if (position)
+        *position = uc->position;
+
+    return 0;
+}
+
+struct pcvdom_document*
+pcvdom_util_document_from_stream(purc_rwstream_t in, struct pcvdom_pos *pos)
+{
+    struct pchvml_parser *parser = NULL;
+    struct pcvdom_gen *gen = NULL;
+    struct pcvdom_document *doc = NULL;
+    struct pchvml_token *token = NULL;
+
+    PC_ASSERT(in);
+
+    parser = pchvml_create(0, 0);
+    if (!parser)
+        goto end;
+
+    gen = pcvdom_gen_create();
+    if (!gen)
+        goto end;
+
+again:
+    if (token)
+        pchvml_token_destroy(token);
+
+    token = pchvml_next_token(parser, in);
+    if (token == NULL) {
+        if (pos) {
+            int r;
+            r = pchvml_parser_get_curr_pos(parser,
+                    &pos->c, &pos->line, &pos->col, &pos->pos);
+            PC_ASSERT(r == 0);
+        }
+    }
+
+    if (token && 0==pcvdom_gen_push_token(gen, parser, token)) {
+        if (pchvml_token_is_type(token, PCHVML_TOKEN_EOF)) {
+            doc = pcvdom_gen_end(gen);
+            goto end;
+        }
+        goto again;
+    }
+
+end:
+    if (token)
+        pchvml_token_destroy(token);
+
+    if (gen)
+        pcvdom_gen_destroy(gen);
+
+    if (parser)
+        pchvml_destroy(parser);
+
+    return doc;
+}
+
+struct pcvdom_document*
+pcvdom_util_document_from_buf(const unsigned char *buf, size_t len,
+        struct pcvdom_pos *pos)
+{
+    struct pcvdom_document *doc;
+    purc_rwstream_t in;
+    in = purc_rwstream_new_from_mem((void*)buf, len);
+    if (!in)
+        return NULL;
+
+    doc = pcvdom_util_document_from_stream(in, pos);
+    purc_rwstream_destroy(in);
+
+    return doc;
 }
 
