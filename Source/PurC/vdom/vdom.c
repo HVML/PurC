@@ -353,6 +353,16 @@ pcvdom_document_get_variable(purc_vdom_t vdom,
     return pcvarmgr_get(vdom->document->variables, name);
 }
 
+pcvarmgr_t
+pcvdom_document_get_variables(purc_vdom_t vdom)
+{
+    if (!vdom || !vdom->document) {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        return NULL;
+    }
+    return vdom->document->variables;
+}
+
 int
 pcvdom_element_append_attr(struct pcvdom_element *elem,
         struct pcvdom_attr *attr)
@@ -471,6 +481,16 @@ pcvdom_element_get_variable(struct pcvdom_element *elem,
         return PURC_VARIANT_INVALID;
     }
     return pcvarmgr_get(elem->variables, name);
+}
+
+pcvarmgr_t
+pcvdom_element_get_variables(struct pcvdom_element *elem)
+{
+    if (!elem) {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        return NULL;
+    }
+    return elem->variables;
 }
 
 // accessor api
