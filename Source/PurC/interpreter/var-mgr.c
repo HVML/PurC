@@ -341,6 +341,80 @@ bool pcvarmgr_remove(pcvarmgr_t mgr, const char* name)
     return false;
 }
 
+bool pcvarmgr_add_observer(pcvarmgr_t mgr, const char* name,
+        const char* event)
+{
+    purc_variant_t var = pcvarmgr_get(mgr, name);
+    if (var == PURC_VARIANT_INVALID) {
+        return false;
+    }
+
+    enum var_event_type type = VAR_EVENT_TYPE_ATTACHED;
+    if (strcmp(event, TYPE_STR_ATTACHED) == 0) {
+        type = VAR_EVENT_TYPE_ATTACHED;
+    }
+    else if (strcmp(event, TYPE_STR_DETACHED) == 0) {
+        type = VAR_EVENT_TYPE_DETACHED;
+    }
+
+    pcintr_stack_t stack = purc_get_stack();
+    struct var_observe* obs = find_var_observe(mgr, name, type, stack);
+    if (obs != NULL) {
+        return true;
+    }
+
+    obs = (struct var_observe*) malloc(sizeof(struct var_observe));
+    if (obs == NULL) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return false;
+    }
+
+    obs->name = strdup(name);
+    obs->type = type;
+    obs->stack = stack;
+    unsigned int ret = pcutils_array_push(mgr->var_observers, obs);
+    if (ret == PURC_ERROR_OK) {
+        return true;
+    }
+
+    free(obs->name);
+    free(obs);
+    return false;
+}
+
+bool pcvarmgr_remove_observer(pcvarmgr_t mgr, const char* name,
+        const char* event)
+{
+    purc_variant_t var = pcvarmgr_get(mgr, name);
+    if (var == PURC_VARIANT_INVALID) {
+        return false;
+    }
+
+    enum var_event_type type = VAR_EVENT_TYPE_ATTACHED;
+    if (strcmp(event, TYPE_STR_ATTACHED) == 0) {
+        type = VAR_EVENT_TYPE_ATTACHED;
+    }
+    else if (strcmp(event, TYPE_STR_DETACHED) == 0) {
+        type = VAR_EVENT_TYPE_DETACHED;
+    }
+    else if (strcmp(event, TYPE_STR_DISPLACED) == 0) {
+        type = VAR_EVENT_TYPE_DISPLACED;
+    }
+
+    pcintr_stack_t stack = purc_get_stack();
+    int idx = find_var_observe_idx(mgr, name, type, stack);
+
+    if (idx != -1) {
+        struct var_observe* obs = (struct var_observe*) pcutils_array_get(
+                mgr->var_observers, idx);
+        free(obs->name);
+        free(obs);
+        pcutils_array_delete(mgr->var_observers, idx, 1);
+    }
+
+    return true;
+}
+
 static purc_variant_t
 _find_named_scope_var(pcvdom_element_t elem, const char* name)
 {
@@ -508,76 +582,3 @@ pcintr_get_numbered_var (pcintr_stack_t stack, unsigned int number)
     return PURC_VARIANT_INVALID;
 }
 
-bool pcvarmgr_add_observer(pcvarmgr_t mgr, const char* name,
-        const char* event)
-{
-    purc_variant_t var = pcvarmgr_get(mgr, name);
-    if (var == PURC_VARIANT_INVALID) {
-        return false;
-    }
-
-    enum var_event_type type = VAR_EVENT_TYPE_ATTACHED;
-    if (strcmp(event, TYPE_STR_ATTACHED) == 0) {
-        type = VAR_EVENT_TYPE_ATTACHED;
-    }
-    else if (strcmp(event, TYPE_STR_DETACHED) == 0) {
-        type = VAR_EVENT_TYPE_DETACHED;
-    }
-
-    pcintr_stack_t stack = purc_get_stack();
-    struct var_observe* obs = find_var_observe(mgr, name, type, stack);
-    if (obs != NULL) {
-        return true;
-    }
-
-    obs = (struct var_observe*) malloc(sizeof(struct var_observe));
-    if (obs == NULL) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return false;
-    }
-
-    obs->name = strdup(name);
-    obs->type = type;
-    obs->stack = stack;
-    unsigned int ret = pcutils_array_push(mgr->var_observers, obs);
-    if (ret == PURC_ERROR_OK) {
-        return true;
-    }
-
-    free(obs->name);
-    free(obs);
-    return false;
-}
-
-bool pcvarmgr_remove_observer(pcvarmgr_t mgr, const char* name,
-        const char* event)
-{
-    purc_variant_t var = pcvarmgr_get(mgr, name);
-    if (var == PURC_VARIANT_INVALID) {
-        return false;
-    }
-
-    enum var_event_type type = VAR_EVENT_TYPE_ATTACHED;
-    if (strcmp(event, TYPE_STR_ATTACHED) == 0) {
-        type = VAR_EVENT_TYPE_ATTACHED;
-    }
-    else if (strcmp(event, TYPE_STR_DETACHED) == 0) {
-        type = VAR_EVENT_TYPE_DETACHED;
-    }
-    else if (strcmp(event, TYPE_STR_DISPLACED) == 0) {
-        type = VAR_EVENT_TYPE_DISPLACED;
-    }
-
-    pcintr_stack_t stack = purc_get_stack();
-    int idx = find_var_observe_idx(mgr, name, type, stack);
-
-    if (idx != -1) {
-        struct var_observe* obs = (struct var_observe*) pcutils_array_get(
-                mgr->var_observers, idx);
-        free(obs->name);
-        free(obs);
-        pcutils_array_delete(mgr->var_observers, idx, 1);
-    }
-
-    return true;
-}
