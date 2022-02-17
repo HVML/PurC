@@ -48,7 +48,7 @@ list(APPEND test_vdom_gen_PRIVATE_INCLUDE_DIRECTORIES
 PURC_EXECUTABLE(test_vdom_gen)
 
 set(test_vdom_gen_SOURCES
-    test-vdom-gen.cpp
+    test_vdom_gen.cpp
 )
 
 set(test_vdom_gen_LIBRARIES

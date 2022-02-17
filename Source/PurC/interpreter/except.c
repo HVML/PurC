@@ -70,7 +70,7 @@ attr_found(struct pcintr_stack_frame *frame,
 
     PC_ASSERT(attr);
 
-    PC_ASSERT(attr->op == PCHVML_ATTRIBUTE_ASSIGNMENT);
+    PC_ASSERT(attr->op == PCHVML_ATTRIBUTE_OPERATOR);
 
     if (name) {
         if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, RAW)) == name) {
@@ -100,6 +100,16 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
 
+    struct ctxt_for_except *ctxt;
+    ctxt = (struct ctxt_for_except*)calloc(1, sizeof(*ctxt));
+    if (!ctxt) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return NULL;
+    }
+
+    frame->ctxt = ctxt;
+    frame->ctxt_destroy = ctxt_destroy;
+
     frame->pos = pos; // ATTENTION!!
 
     struct pcvdom_element *element = frame->pos;
@@ -114,15 +124,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (r)
         return NULL;
 
-    struct ctxt_for_except *ctxt;
-    ctxt = (struct ctxt_for_except*)calloc(1, sizeof(*ctxt));
-    if (!ctxt) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return NULL;
-    }
-
-    frame->ctxt = ctxt;
-    frame->ctxt_destroy = ctxt_destroy;
     purc_clr_error();
 
     return ctxt;

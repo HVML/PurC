@@ -63,12 +63,18 @@ attr_found(struct pcintr_stack_frame *frame,
         struct pcvdom_attr *attr,
         void *ud)
 {
-    UNUSED_PARAM(frame);
     UNUSED_PARAM(element);
     UNUSED_PARAM(name);
-    UNUSED_PARAM(val);
-    UNUSED_PARAM(attr);
     UNUSED_PARAM(ud);
+
+    PC_ASSERT(attr->op == PCHVML_ATTRIBUTE_OPERATOR);
+    PC_ASSERT(attr->key);
+    PC_ASSERT(purc_variant_is_string(val));
+    const char *sv = purc_variant_get_string_const(val);
+    PC_ASSERT(sv);
+
+    int r = pcintr_util_set_attribute(frame->edom_element, attr->key, sv);
+    PC_ASSERT(r == 0);
 
     return 0;
 }
@@ -85,10 +91,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame);
 
-    frame->edom_element = pcdom_interface_element(stack->doc);
-
-    frame->pos = pos; // ATTENTION!!
-
     struct ctxt_for_hvml *ctxt;
     ctxt = (struct ctxt_for_hvml*)calloc(1, sizeof(*ctxt));
     if (!ctxt) {
@@ -98,6 +100,9 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     frame->ctxt = ctxt;
     frame->ctxt_destroy = ctxt_destroy;
+
+    frame->pos = pos; // ATTENTION!!
+    frame->edom_element = pcdom_interface_document(stack->doc)->element;
 
     struct pcvdom_element *element = frame->pos;
     PC_ASSERT(element);

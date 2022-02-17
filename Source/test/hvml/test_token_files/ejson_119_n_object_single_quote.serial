@@ -1,1 +1,0 @@
-<hvml ejson=call_getter(get_variable("EJSON"),make_object("a",0))></hvml>

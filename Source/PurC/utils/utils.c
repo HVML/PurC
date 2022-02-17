@@ -242,7 +242,7 @@ pcutils_vsnprintf(char *buf, size_t *sz_io, const char *fmt, va_list ap)
             break;
 
         *p = '\0';
-        n = vsnprintf(p, sz, fmt, dp);
+        n = vsnprintf(p, sz, fmt, ap);
 
         nr = n;
         if (n<0 || (size_t)n >= sz) {

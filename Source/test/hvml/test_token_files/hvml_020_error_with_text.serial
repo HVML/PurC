@@ -1,5 +1,0 @@
-<hvml>
-    <error>concat_string("
-        this is test text.
-    ")</error>
-</hvml>

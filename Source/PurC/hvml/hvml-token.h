@@ -47,121 +47,118 @@ struct pchvml_token;
 extern "C" {
 #endif  /* __cplusplus */
 
-struct pchvml_token* pchvml_token_new (enum pchvml_token_type type);
+struct pchvml_token* pchvml_token_new(enum pchvml_token_type type);
 
 PCA_INLINE
-struct pchvml_token* pchvml_token_new_character ()
+struct pchvml_token* pchvml_token_new_start_tag()
 {
-    return pchvml_token_new (PCHVML_TOKEN_CHARACTER);
+    return pchvml_token_new(PCHVML_TOKEN_START_TAG);
 }
 
 PCA_INLINE
-struct pchvml_token* pchvml_token_new_start_tag ()
+struct pchvml_token* pchvml_token_new_end_tag()
 {
-    return pchvml_token_new (PCHVML_TOKEN_START_TAG);
+    return pchvml_token_new(PCHVML_TOKEN_END_TAG);
 }
 
 PCA_INLINE
-struct pchvml_token* pchvml_token_new_end_tag ()
-{
-    return pchvml_token_new (PCHVML_TOKEN_END_TAG);
-}
-
-PCA_INLINE
-struct pchvml_token* pchvml_token_new_eof () {
+struct pchvml_token* pchvml_token_new_eof() {
     return pchvml_token_new(PCHVML_TOKEN_EOF);
 }
 
 PCA_INLINE
-struct pchvml_token* pchvml_token_new_comment () {
+struct pchvml_token* pchvml_token_new_comment() {
     return pchvml_token_new(PCHVML_TOKEN_COMMENT);
 }
 
 PCA_INLINE
-struct pchvml_token* pchvml_token_new_doctype () {
+struct pchvml_token* pchvml_token_new_doctype() {
     return pchvml_token_new(PCHVML_TOKEN_DOCTYPE);
 }
 
-struct pchvml_token* pchvml_token_new_vcm (struct pcvcm_node* vcm);
+struct pchvml_token* pchvml_token_new_vcm(struct pcvcm_node* vcm);
 
-void pchvml_token_done (struct pchvml_token* token);
+void pchvml_token_done(struct pchvml_token* token);
 
-void pchvml_token_destroy (struct pchvml_token* token);
+void pchvml_token_destroy(struct pchvml_token* token);
 
-void pchvml_token_append_to_name (struct pchvml_token* token, uint32_t uc);
+void pchvml_token_append_to_name(struct pchvml_token* token, uint32_t uc);
 
-void pchvml_token_append_buffer_to_name (struct pchvml_token* token,
+void pchvml_token_append_buffer_to_name(struct pchvml_token* token,
         struct pchvml_buffer* buffer);
 
-const char* pchvml_token_get_name (struct pchvml_token* token);
+const char* pchvml_token_get_name(struct pchvml_token* token);
 
-void pchvml_token_append_to_text (struct pchvml_token* token,
-        uint32_t uc);
-
-void pchvml_token_delete_tail_chars_of_text (
-        struct pchvml_token* token, size_t sz);
-
-uint32_t pchvml_token__get_last_char_of_text (struct pchvml_token* token);
-
-void pchvml_token_append_bytes_to_text (struct pchvml_token* token,
+void pchvml_token_append_bytes_to_text(struct pchvml_token* token,
         const char* bytes, size_t sz_bytes);
 
-const char* pchvml_token_get_text (struct pchvml_token* token);
+const char* pchvml_token_get_text(struct pchvml_token* token);
 
-void pchvml_token_append_to_public_identifier (struct pchvml_token* token,
+void pchvml_token_append_to_public_identifier(struct pchvml_token* token,
         uint32_t uc);
-const char* pchvml_token_get_public_identifier (struct pchvml_token* token);
+const char* pchvml_token_get_public_identifier(struct pchvml_token* token);
 
-void pchvml_token_reset_public_identifier (struct pchvml_token* token);
+void pchvml_token_reset_public_identifier(struct pchvml_token* token);
 
-void pchvml_token_append_to_system_information (struct pchvml_token* token,
+void pchvml_token_append_to_system_information(struct pchvml_token* token,
         uint32_t uc);
-const char* pchvml_token_get_system_information (struct pchvml_token* token);
+const char* pchvml_token_get_system_information(struct pchvml_token* token);
 
-void pchvml_token_reset_system_information (struct pchvml_token* token);
+void pchvml_token_reset_system_information(struct pchvml_token* token);
 
-bool pchvml_token_is_type (struct pchvml_token* token,
+bool pchvml_token_is_type(struct pchvml_token* token,
         enum pchvml_token_type type);
 
 enum pchvml_token_type pchvml_token_get_type(struct pchvml_token* token);
 
-struct pcvcm_node*
-pchvml_token_get_vcm_content (struct pchvml_token* token);
+const char* pchvml_token_type_name(enum pchvml_token_type type);
+
+const char* pchvml_token_get_type_name(struct pchvml_token* token);
 
 struct pcvcm_node*
-pchvml_token_detach_vcm_content (struct pchvml_token* token);
+pchvml_token_get_vcm_content(struct pchvml_token* token);
 
-void pchvml_token_set_self_closing (struct pchvml_token* token, bool b);
+struct pcvcm_node*
+pchvml_token_detach_vcm_content(struct pchvml_token* token);
 
-bool pchvml_token_is_self_closing (struct pchvml_token* token);
+void pchvml_token_set_self_closing(struct pchvml_token* token, bool b);
 
-void pchvml_token_set_force_quirks (struct pchvml_token* token, bool b);
+bool pchvml_token_is_self_closing(struct pchvml_token* token);
 
-bool pchvml_token_is_force_quirks (struct pchvml_token* token);
+void pchvml_token_set_force_quirks(struct pchvml_token* token, bool b);
 
-void pchvml_token_begin_attr (struct pchvml_token* token);
+bool pchvml_token_is_force_quirks(struct pchvml_token* token);
 
-void pchvml_token_append_to_attr_name (struct pchvml_token* token,
+void pchvml_token_set_is_whitespace(struct pchvml_token* token, bool b);
+
+bool pchvml_token_is_whitespace(struct pchvml_token* token);
+
+void pchvml_token_begin_attr(struct pchvml_token* token);
+
+void pchvml_token_append_to_attr_name(struct pchvml_token* token,
         uint32_t uc);
-void pchvml_token_append_bytes_to_attr_name (struct pchvml_token* token,
+
+void pchvml_token_append_bytes_to_attr_name(struct pchvml_token* token,
         const char* bytes, size_t sz_bytes);
 
-void pchvml_token_append_to_attr_value (struct pchvml_token* token,
+void pchvml_token_append_to_attr_value(struct pchvml_token* token,
         uint32_t);
-void pchvml_token_append_bytes_to_attr_value (struct pchvml_token* token,
+
+void pchvml_token_append_bytes_to_attr_value(struct pchvml_token* token,
         const char* bytes, size_t sz_bytes);
 
-void pchvml_token_append_vcm_to_attr (struct pchvml_token* token,
+void pchvml_token_append_vcm_to_attr(struct pchvml_token* token,
         struct pcvcm_node* vcm);
-void pchvml_token_set_assignment_to_attr (struct pchvml_token* token,
-        enum pchvml_attr_assignment assignment);
 
-bool pchvml_token_is_in_attr (struct pchvml_token* token);
+void pchvml_token_set_assignment_to_attr(struct pchvml_token* token,
+        enum pchvml_attr_operator assignment);
 
-struct pchvml_token_attr* pchvml_token_get_curr_attr (
+bool pchvml_token_is_in_attr(struct pchvml_token* token);
+
+struct pchvml_token_attr* pchvml_token_get_curr_attr(
         struct pchvml_token* token);
 
-void pchvml_token_end_attr (struct pchvml_token* token);
+void pchvml_token_end_attr(struct pchvml_token* token);
 
 size_t pchvml_token_get_attr_size(struct pchvml_token* token);
 
@@ -178,12 +175,19 @@ const struct pcvcm_node* pchvml_token_attr_get_value(
 {
     return pchvml_token_attr_get_value_ex(attr, false);
 }
-enum pchvml_attr_assignment pchvml_token_attr_get_assignment(
+enum pchvml_attr_operator pchvml_token_attr_get_operator(
         struct pchvml_token_attr* attr);
 
 struct pchvml_buffer* pchvml_token_attr_to_string(
         struct pchvml_token_attr* attr);
 struct pchvml_buffer* pchvml_token_to_string(struct pchvml_token* token);
+
+void
+pchvml_util_dump_token(const struct pchvml_token *token,
+        const char *file, int line, const char *func);
+
+#define PRINT_TOKEN(_token)           \
+    pchvml_util_dump_token(_token, __FILE__, __LINE__, __func__)
 
 #ifdef __cplusplus
 }

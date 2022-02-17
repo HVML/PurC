@@ -440,6 +440,151 @@ static const char *calculator_4 =
     ""
     "</hvml>";
 
+static const char *buggy1 =
+    "<!DOCTYPE hvml SYSTEM 'v: MATH'>"
+    "<hvml target=\"html\" lang=\"en\">"
+    "    <head>"
+    "        <base href=\"$HVML.base(! 'https://gitlab.fmsoft.cn/hvml/hvml-docs/raw/master/samples/calculator/' )\" />"
+    ""
+    "        <update on=\"$T.map\" to=\"merge\">"
+    "           {"
+    "               \"HVML Calculator\": \"HVML 计算器\","
+    "               \"Current Time: \": \"当前时间：\""
+    "           }"
+    "        </update>"
+    ""
+    "        <init as=\"buttons\" uniquely>"
+    "            ["
+    "                { \"letters\": \"7\", \"class\": \"number\" },"
+    "                { \"letters\": \"8\", \"class\": \"number\" },"
+    "                { \"letters\": \"9\", \"class\": \"number\" },"
+    "                { \"letters\": \"←\", \"class\": \"c_blue backspace\" },"
+    "                { \"letters\": \"C\", \"class\": \"c_blue clear\" },"
+    "                { \"letters\": \"4\", \"class\": \"number\" },"
+    "                { \"letters\": \"5\", \"class\": \"number\" },"
+    "                { \"letters\": \"6\", \"class\": \"number\" },"
+    "                { \"letters\": \"×\", \"class\": \"c_blue multiplication\" },"
+    "                { \"letters\": \"÷\", \"class\": \"c_blue division\" },"
+    "                { \"letters\": \"1\", \"class\": \"number\" },"
+    "                { \"letters\": \"2\", \"class\": \"number\" },"
+    "                { \"letters\": \"3\", \"class\": \"number\" },"
+    "                { \"letters\": \"+\", \"class\": \"c_blue plus\" },"
+    "                { \"letters\": \"-\", \"class\": \"c_blue subtraction\" },"
+    "                { \"letters\": \"0\", \"class\": \"number\" },"
+    "                { \"letters\": \"00\", \"class\": \"number\" },"
+    "                { \"letters\": \".\", \"class\": \"number\" },"
+    "                { \"letters\": \"%\", \"class\": \"c_blue percent\" },"
+    "                { \"letters\": \"=\", \"class\": \"c_yellow equal\" },"
+    "            ]"
+    "        </init>"
+    ""
+    "        <init as=\"expressions\">"
+    "           ["
+    "               \"7*6=\","
+    "           ]"
+    "        </init>"
+    ""
+    "        <title>$T.get('HVML Calculator')</title>"
+    ""
+    "        <update on=\"$TIMERS\" to=\"unite\">"
+    "            ["
+    "                { \"id\" : \"clock\", \"interval\" : 1000, \"active\" : \"yes\" },"
+    "                { \"id\" : \"input\", \"interval\" : 1500, \"active\" : \"yes\" },"
+    "            ]"
+    "        </update>"
+    ""
+    "        <link rel=\"stylesheet\" type=\"text/css\" href=\"assets/calculator.css\" />"
+    "    </head>"
+    ""
+    "    <body>"
+    "        <init as=\"exp_chars\" with=\"[]\" />"
+    ""
+    "        <iterate on=\"$expressions\" by=\"RANGE: FROM 0\" >"
+    "            <update on=\"$exp_chars\" to=\"append\" with=\"[]\" />"
+    ""
+    "            <iterate on=\"$?\" by=\"CHAR: FROM 0\" >"
+    "                <update on=\"$exp_chars\" at=\"$1%\" to=\"append\" with=\"$?\" />"
+    "            </iterate>"
+    "        </iterate>"
+    ""
+    "        <init as=\"info\">"
+    "            {"
+    "                \"chars\" : $exp_chars[$SYSTEM.random($EJSON.count($exp_chars))],"
+    "                \"index\" : 0,"
+    "            }"
+    "        </init>"
+    ""
+    "        <div id=\"calculator\">"
+    ""
+    "            <div id=\"c_title\">"
+    "                <h2 id=\"c_title\">$T.get('HVML Calculator')"
+    "                    <small>$T.get('Current Time: ')<span id=\"clock\">$SYSTEM.time('%H:%M:%S')</span></small>"
+    "                </h2>"
+    "                <iterate on=\"[1,2,3]\">"
+    "                    <update on=\"#clock\" at=\"textContent\" to=\"displace\" with=\"time:$?\" />"
+    "                </iterate>"
+    "            </div>"
+    ""
+    "            <div id=\"c_text\">"
+    "                <input type=\"text\" id=\"expression\" value=\"\" readonly=\"readonly\" />"
+    "                <iterate on=\"$info.chars\" >"
+    "                    <test on=\"$info.chars[$info.index]\">"
+    "                        <update on=\"$info\" at=\".index\" to=\"displace\" with=\"$MATH.add($info.index, 1)\" />"
+    ""
+    "                        <match for=\"AS '='\" exclusively>"
+    "                            <choose on=\"$MATH.eval($DOC.query('#expression').attr('value'))\">"
+    "                                <update on=\"#expression\" at=\"attr.value\" with=\"$?\" />"
+    "                                <update on=\"$TIMERS\" to=\"overwrite\">"
+    "                                    { \"id\" : \"input\", \"active\" : \"no\" }"
+    "                                </update>"
+    "                                <update on=\"$TIMERS\" to=\"overwrite\">"
+    "                                    { \"id\" : \"clock\", \"active\" : \"no\" }"
+    "                                </update>"
+    "                                <catch for='*'>"
+    "                                    <update on=\"#expression\" at=\"attr.value\" with=\"ERR\" />"
+    "                                </catch>"
+    "                            </choose>"
+    "                        </match>"
+    ""
+    "                        <match for=\"AS 'C'\" exclusively>"
+    "                            <update on=\"#expression\" at=\"attr.value\" with=\"\" />"
+    "                        </match>"
+    ""
+    "                        <match for=\"AS '←'\" exclusively>"
+    "                            <choose on=\"$DOC.query('#expression').attr.value\">"
+    "                                <update on=\"#expression\" at=\"attr.value\" with=\"$STR.substr($?, 0, -1)\" />"
+    "                            </choose>"
+    "                        </match>"
+    ""
+    "                        <match>"
+    "                            <update on=\"#expression\" at=\"attr.value\" with $= \"$?\" />"
+    "                        </match>"
+    "                    </test>"
+    "                </iterate>"
+    "            </div>"
+    ""
+    "            <div id=\"c_value\">"
+    "                <archetype name=\"button\">"
+    "                    <li class=\"$?.class\">$?.letters</li>"
+    "                </archetype>"
+    ""
+    "                <ul>"
+    "                    <iterate on=\"$buttons\">"
+    "                        <update on=\"$@\" to=\"append\" with=\"$button\" />"
+    "                        <except type=\"NoData\" raw>"
+    "                            <p>Bad data!</p>"
+    "                        </except>"
+    "                    </iterate>"
+    "                </ul>"
+    "            </div>"
+    "        </div>"
+    "    </body>"
+    ""
+    "</hvml>";
+
+static const char *buggy2 =
+    "<hvml><head><title>hello</title></head><body><span id=\"clock\">xyz</span><xinput xid=\"xexp\"></xinput><update on=\"#clock\" at=\"textContent\" to=\"displace\" with=\"abc\"/></body></hvml>";
+
 static const char *sample1 =
     "<!DOCTYPE hvml>"
     "<hvml target=\"html\">"
@@ -559,6 +704,8 @@ TEST(interpreter, basic)
     (void)calculator_2;
     (void)calculator_3;
     (void)calculator_4;
+    (void)buggy1;
+    (void)buggy2;
     (void)sample1;
     (void)sample2;
     (void)fibonacci_1;
@@ -569,7 +716,7 @@ TEST(interpreter, basic)
         "  </head>"
         "  <body>"
         "    <div>"
-        "      <archetype name=\"foo\"><hoo><bar></bar><foobar></foobar></hoo></archetype>"
+        "      <archetype name=\"foo\"><hoo><bar></bar><foobar>ddddddddddddddddddddddddddd</foobar></hoo></archetype>"
         "      <update on=\"$@\" to=\"append\" with=\"$foo\" />"
         "    </div>"
         "  </body>"
@@ -584,14 +731,16 @@ TEST(interpreter, basic)
         calculator_1,
         calculator_2,
         // calculator_3,
-        calculator_4,
+        // calculator_4,
         sample1,
         // sample2,
         fibonacci_1,
+        buggy1,
+        buggy2,
     };
 
     purc_instance_extra_info info = {};
-    // enable for calculator_2/3/4
+    // enable for calculator2/3/4
     // info.enable_remote_fetcher = true;
     int ret = 0;
     bool cleanup = false;
