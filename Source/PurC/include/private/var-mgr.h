@@ -50,7 +50,7 @@ purc_variant_t pcvarmgr_get(pcvarmgr_t mgr, const char* name);
 
 bool pcvarmgr_remove(pcvarmgr_t mgr, const char* name);
 
-bool pcvarmgr_add_observer(pcvarmgr_t mgr, const char* name,
+purc_variant_t pcvarmgr_add_observer(pcvarmgr_t mgr, const char* name,
         const char* event);
 
 bool pcvarmgr_remove_observer(pcvarmgr_t mgr, const char* name,

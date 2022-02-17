@@ -39,10 +39,14 @@
 
 #define TO_DEBUG 1
 
-#define TYPE_STR_CHANGE    "change"
-#define TYPE_STR_ATTACHED  "attached"
-#define TYPE_STR_DETACHED  "detached"
-#define TYPE_STR_DISPLACED  "displaced"
+#define MSG_TYPE_CHANGE         "change"
+#define SUB_TYPE_ATTACHED       "attached"
+#define SUB_TYPE_DETACHED       "detached"
+#define SUB_TYPE_DISPLACED      "displaced"
+
+#define EVENT_ATTACHED          "change:attached"
+#define EVENT_DETACHED          "change:detached"
+#define EVENT_DISPLACED         "change:displaced"
 
 enum var_event_type {
     VAR_EVENT_TYPE_ATTACHED,
@@ -101,12 +105,12 @@ bool mgr_grow_handler(purc_variant_t source, purc_atom_t msg_type,
 
     pcvarmgr_t mgr = (pcvarmgr_t)ctxt;
 
-    purc_variant_t type = purc_variant_make_string(TYPE_STR_CHANGE, false);
+    purc_variant_t type = purc_variant_make_string(MSG_TYPE_CHANGE, false);
     if (type == PURC_VARIANT_INVALID) {
         return false;
     }
 
-    purc_variant_t sub_type = purc_variant_make_string(TYPE_STR_ATTACHED,
+    purc_variant_t sub_type = purc_variant_make_string(SUB_TYPE_ATTACHED,
             false);
     if (sub_type == PURC_VARIANT_INVALID) {
         purc_variant_unref(type);
@@ -143,12 +147,12 @@ bool mgr_shrink_handler(purc_variant_t source, purc_atom_t msg_type,
 
     pcvarmgr_t mgr = (pcvarmgr_t)ctxt;
 
-    purc_variant_t type = purc_variant_make_string(TYPE_STR_CHANGE, false);
+    purc_variant_t type = purc_variant_make_string(MSG_TYPE_CHANGE, false);
     if (type == PURC_VARIANT_INVALID) {
         return false;
     }
 
-    purc_variant_t sub_type = purc_variant_make_string(TYPE_STR_DETACHED,
+    purc_variant_t sub_type = purc_variant_make_string(SUB_TYPE_DETACHED,
             false);
     if (sub_type == PURC_VARIANT_INVALID) {
         purc_variant_unref(type);
@@ -185,12 +189,12 @@ bool mgr_change_handler(purc_variant_t source, purc_atom_t msg_type,
 
     pcvarmgr_t mgr = (pcvarmgr_t)ctxt;
 
-    purc_variant_t type = purc_variant_make_string(TYPE_STR_CHANGE, false);
+    purc_variant_t type = purc_variant_make_string(MSG_TYPE_CHANGE, false);
     if (type == PURC_VARIANT_INVALID) {
         return false;
     }
 
-    purc_variant_t sub_type = purc_variant_make_string(TYPE_STR_DISPLACED,
+    purc_variant_t sub_type = purc_variant_make_string(SUB_TYPE_DISPLACED,
             false);
     if (sub_type == PURC_VARIANT_INVALID) {
         purc_variant_unref(type);
@@ -341,32 +345,35 @@ bool pcvarmgr_remove(pcvarmgr_t mgr, const char* name)
     return false;
 }
 
-bool pcvarmgr_add_observer(pcvarmgr_t mgr, const char* name,
+purc_variant_t pcvarmgr_add_observer(pcvarmgr_t mgr, const char* name,
         const char* event)
 {
     purc_variant_t var = pcvarmgr_get(mgr, name);
     if (var == PURC_VARIANT_INVALID) {
-        return false;
+        return PURC_VARIANT_INVALID;
     }
 
     enum var_event_type type = VAR_EVENT_TYPE_ATTACHED;
-    if (strcmp(event, TYPE_STR_ATTACHED) == 0) {
+    if (strcmp(event, EVENT_ATTACHED) == 0) {
         type = VAR_EVENT_TYPE_ATTACHED;
     }
-    else if (strcmp(event, TYPE_STR_DETACHED) == 0) {
+    else if (strcmp(event, EVENT_DETACHED) == 0) {
         type = VAR_EVENT_TYPE_DETACHED;
+    }
+    else if (strcmp(event, EVENT_DISPLACED) == 0) {
+        type = VAR_EVENT_TYPE_DISPLACED;
     }
 
     pcintr_stack_t stack = purc_get_stack();
     struct var_observe* obs = find_var_observe(mgr, name, type, stack);
     if (obs != NULL) {
-        return true;
+        return mgr->object;
     }
 
     obs = (struct var_observe*) malloc(sizeof(struct var_observe));
     if (obs == NULL) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return false;
+        return PURC_VARIANT_INVALID;
     }
 
     obs->name = strdup(name);
@@ -374,12 +381,12 @@ bool pcvarmgr_add_observer(pcvarmgr_t mgr, const char* name,
     obs->stack = stack;
     unsigned int ret = pcutils_array_push(mgr->var_observers, obs);
     if (ret == PURC_ERROR_OK) {
-        return true;
+        return mgr->object;
     }
 
     free(obs->name);
     free(obs);
-    return false;
+    return PURC_VARIANT_INVALID;
 }
 
 bool pcvarmgr_remove_observer(pcvarmgr_t mgr, const char* name,
@@ -391,13 +398,13 @@ bool pcvarmgr_remove_observer(pcvarmgr_t mgr, const char* name,
     }
 
     enum var_event_type type = VAR_EVENT_TYPE_ATTACHED;
-    if (strcmp(event, TYPE_STR_ATTACHED) == 0) {
+    if (strcmp(event, EVENT_ATTACHED) == 0) {
         type = VAR_EVENT_TYPE_ATTACHED;
     }
-    else if (strcmp(event, TYPE_STR_DETACHED) == 0) {
+    else if (strcmp(event, EVENT_DETACHED) == 0) {
         type = VAR_EVENT_TYPE_DETACHED;
     }
-    else if (strcmp(event, TYPE_STR_DISPLACED) == 0) {
+    else if (strcmp(event, EVENT_DISPLACED) == 0) {
         type = VAR_EVENT_TYPE_DISPLACED;
     }
 
@@ -585,14 +592,14 @@ pcintr_get_numbered_var (pcintr_stack_t stack, unsigned int number)
     return PURC_VARIANT_INVALID;
 }
 
-bool
+purc_variant_t
 pcintr_add_named_var_observer(pcintr_stack_t stack, const char* name,
         const char* event)
 {
     UNUSED_PARAM(event);
     if (!stack || !name) {
         PC_ASSERT(0); // FIXME: still recoverable???
-        return false;
+        return PURC_VARIANT_INVALID;
     }
 
     struct pcintr_stack_frame* frame = pcintr_stack_get_bottom_frame(stack);
@@ -620,5 +627,5 @@ pcintr_add_named_var_observer(pcintr_stack_t stack, const char* name,
     }
 
     purc_set_error_with_info(PCVARIANT_ERROR_NOT_FOUND, "name:%s", name);
-    return false;
+    return PURC_VARIANT_INVALID;
 }

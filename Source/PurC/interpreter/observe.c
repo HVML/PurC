@@ -42,6 +42,7 @@ struct ctxt_for_observe {
     struct pcvdom_node           *curr;
     purc_variant_t                on;
     purc_variant_t                for_var;
+    purc_variant_t                at;
 };
 
 static void
@@ -50,6 +51,7 @@ ctxt_for_observe_destroy(struct ctxt_for_observe *ctxt)
     if (ctxt) {
         PURC_VARIANT_SAFE_CLEAR(ctxt->on);
         PURC_VARIANT_SAFE_CLEAR(ctxt->for_var);
+        PURC_VARIANT_SAFE_CLEAR(ctxt->at);
         free(ctxt);
     }
 }
@@ -59,6 +61,7 @@ ctxt_destroy(void *ctxt)
 {
     ctxt_for_observe_destroy((struct ctxt_for_observe*)ctxt);
 }
+
 bool base_variant_msg_listener(purc_variant_t source, purc_atom_t msg_type,
         void* ctxt, size_t nr_args, purc_variant_t* argv)
 {
@@ -255,6 +258,31 @@ process_attr_on(struct pcintr_stack_frame *frame,
 }
 
 static int
+process_attr_at(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element,
+        purc_atom_t name, purc_variant_t val)
+{
+    struct ctxt_for_observe *ctxt;
+    ctxt = (struct ctxt_for_observe*)frame->ctxt;
+    if (ctxt->at != PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_DUPLICATED,
+                "vdom attribute '%s' for element <%s>",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    if (val == PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "vdom attribute '%s' for element <%s> undefined",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    ctxt->at = val;
+    purc_variant_ref(val);
+
+    return 0;
+}
+
+static int
 process_attr_for(struct pcintr_stack_frame *frame,
         struct pcvdom_element *element,
         purc_atom_t name, purc_variant_t val)
@@ -296,6 +324,9 @@ attr_found(struct pcintr_stack_frame *frame,
     }
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, ON)) == name) {
         return process_attr_on(frame, element, name, val);
+    }
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, AT)) == name) {
+        return process_attr_at(frame, element, name, val);
     }
 
     purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
@@ -352,12 +383,24 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     }
 
     struct pcvar_listener* listener = NULL;
-    if (!regist_inner_data(stack, on, for_var, &listener)) {
-        return NULL;
+    purc_variant_t observed = PURC_VARIANT_INVALID;
+    if (ctxt->at != PURC_VARIANT_INVALID) {
+        const char* name = purc_variant_get_string_const(ctxt->at);
+        const char* event = purc_variant_get_string_const(for_var);
+        observed = pcintr_add_named_var_observer(stack, name, event);
+        if (observed == PURC_VARIANT_INVALID) {
+            return NULL;
+        }
+    }
+    else {
+        observed = ctxt->on;
+        if (!regist_inner_data(stack, on, for_var, &listener)) {
+            return NULL;
+        }
     }
 
     struct pcintr_observer* observer;
-    observer = pcintr_register_observer(on, for_var, frame->scope,
+    observer = pcintr_register_observer(observed, for_var, frame->scope,
             frame->edom_element, pos, listener);
     if (observer == NULL) {
         return NULL;
