@@ -43,16 +43,18 @@ pcvarmgr_list_t pcvarmgr_list_create(void);
 
 int pcvarmgr_list_destroy(pcvarmgr_list_t list);
 
-void pcvarmgr_list_set_attach_stack(pcvarmgr_list_t mgr,
-        struct pcintr_stack* stack);
-struct pcintr_stack*  pcvarmgr_list_get_attach_stack(pcvarmgr_list_t mgr);
-
 bool pcvarmgr_list_add(pcvarmgr_list_t list, const char* name,
         purc_variant_t variant);
 
 purc_variant_t pcvarmgr_list_get(pcvarmgr_list_t list, const char* name);
 
 bool pcvarmgr_list_remove(pcvarmgr_list_t list, const char* name);
+
+bool pcvarmgr_list_add_observer(pcvarmgr_list_t list, const char* name,
+        const char* event);
+
+bool pcvarmgr_list_remove_observer(pcvarmgr_list_t list, const char* name,
+        const char* event);
 
 PCA_EXTERN_C_END
 
