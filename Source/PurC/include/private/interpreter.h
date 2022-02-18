@@ -356,6 +356,9 @@ pcintr_register_observer(purc_variant_t observed,
 bool
 pcintr_revoke_observer(struct pcintr_observer* observer);
 
+bool
+pcintr_revoke_observer_ex(purc_variant_t observed, purc_variant_t for_value);
+
 struct pcintr_observer*
 pcintr_find_observer(pcintr_stack_t stack, purc_variant_t observed,
         purc_variant_t msg_type, purc_variant_t sub_type);

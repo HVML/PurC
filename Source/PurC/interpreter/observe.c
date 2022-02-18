@@ -368,7 +368,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     else {
 // TODO : css selector
 #if 0
-        if (purc_variant_is_string(ctxt->at)) {
+        if (purc_variant_is_string(ctxt->on)) {
             const char* at_str = purc_variant_get_string_const(ctxt->on);
             if (at_str[0] == '#') {
             }

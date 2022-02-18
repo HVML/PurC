@@ -197,15 +197,33 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (r)
         return NULL;
 
-    purc_variant_t on;
-    on = ctxt->on;
-    if (on == PURC_VARIANT_INVALID)
-        return NULL;
 
-    purc_variant_t for_var;
-    for_var = ctxt->for_var;
+    purc_variant_t for_var = ctxt->for_var;
     if (for_var == PURC_VARIANT_INVALID)
         return NULL;
+
+    if (ctxt->on == PURC_VARIANT_INVALID &&
+            ctxt->at == PURC_VARIANT_INVALID) {
+        return NULL;
+    }
+
+    if (ctxt->at != PURC_VARIANT_INVALID && purc_variant_is_string(ctxt->at)) {
+        const char* name = purc_variant_get_string_const(ctxt->at);
+        const char* event = purc_variant_get_string_const(for_var);
+        pcintr_remove_named_var_observer(stack, name, event);
+    }
+    else {
+//        purc_variant_t on = ctxt->on;
+// TODO : css selector
+#if 0
+        if (purc_variant_is_string(ctxt->on)) {
+            const char* at_str = purc_variant_get_string_const(ctxt->on);
+            if (at_str[0] == '#') {
+            }
+        }
+        else
+#endif
+    }
 
     purc_clr_error();
 
