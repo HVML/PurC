@@ -595,7 +595,7 @@ struct buffer_data {
     size_t        nr;
 };
 
-static inline int
+static int
 buffer_writer(const char *data, size_t nr, int oom, void *ctxt)
 {
     struct buffer_data *bd = (struct buffer_data*)ctxt;

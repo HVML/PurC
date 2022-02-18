@@ -265,22 +265,23 @@ enum purc_symbol_var _to_symbol(char symbol)
     switch (symbol) {
     case '?':
         return PURC_SYMBOL_VAR_QUESTION_MARK;
+    case '^':
+        return PURC_SYMBOL_VAR_CARET;
     case '@':
         return PURC_SYMBOL_VAR_AT_SIGN;
-    case '#':
-        return PURC_SYMBOL_VAR_NUMBER_SIGN;
-    case '*':
-        return PURC_SYMBOL_VAR_ASTERISK;
+    case '!':
+        return PURC_SYMBOL_VAR_EXCLAMATION;
     case ':':
         return PURC_SYMBOL_VAR_COLON;
-    case '&':
-        return PURC_SYMBOL_VAR_AMPERSAND;
+    case '=':
+        return PURC_SYMBOL_VAR_EQUAL;
     case '%':
         return PURC_SYMBOL_VAR_PERCENT_SIGN;
+    default:
+        // FIXME: NotFound???
+        purc_set_error_with_info(PCVARIANT_ERROR_NOT_FOUND, "symbol:%c", symbol);
+        return PURC_SYMBOL_VAR_MAX;
     }
-    // FIXME: NotFound???
-    purc_set_error_with_info(PCVARIANT_ERROR_NOT_FOUND, "symbol:%c", symbol);
-    return PURC_SYMBOL_VAR_MAX;
 }
 
 purc_variant_t

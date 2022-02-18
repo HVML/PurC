@@ -1377,7 +1377,11 @@ purc_variant_t purc_variant_load_dvobj_from_so (const char *so_name,
 
     purc_variant_t value = PURC_VARIANT_INVALID;
 
-#if OS(LINUX) || OS(UNIX)
+#if OS(LINUX) || OS(UNIX) || OS(MAC_OS_X)
+    const char *ext = ".so";
+#if OS(MAC_OS_X)
+    ext = ".dylib";
+#endif
     purc_variant_t val = PURC_VARIANT_INVALID;
     int ver_code;
 
@@ -1401,8 +1405,9 @@ purc_variant_t purc_variant_load_dvobj_from_so (const char *so_name,
         else {
             // we build dynamic library filename
             // TODO: check validity of name!!!!
-            n = snprintf(so, sizeof(so), "libpurc-dvobj-%s.so",
-                    so_name ? so_name : var_name);
+            n = snprintf(so, sizeof(so), "libpurc-dvobj-%s%s",
+                    so_name ? so_name : var_name,
+                    ext);
             PC_ASSERT(n>0 && (size_t)n<sizeof(so));
         }
         // step1: let dlopen to handle path search
@@ -1415,8 +1420,9 @@ purc_variant_t purc_variant_load_dvobj_from_so (const char *so_name,
 
         // step2: search in /usr/local/lib/purc-<purc-api-version>
         n = snprintf(so, sizeof(so),
-                "/usr/local/lib/purc-%s/libpurc-dvobj-%s.so",
-                ver, so_name ? so_name : var_name);
+                "/usr/local/lib/purc-%s/libpurc-dvobj-%s%s",
+                ver, so_name ? so_name : var_name,
+                ext);
         PC_ASSERT(n>0 && (size_t)n<sizeof(so));
         library_handle = dlopen(so, RTLD_LAZY);
         if (library_handle)
@@ -1424,8 +1430,9 @@ purc_variant_t purc_variant_load_dvobj_from_so (const char *so_name,
 
         // step2: search in /lib/purc-<purc-api-version>
         n = snprintf(so, sizeof(so),
-                "/lib/purc-%s/libpurc-dvobj-%s.so",
-                ver, so_name ? so_name : var_name);
+                "/lib/purc-%s/libpurc-dvobj-%s%s",
+                ver, so_name ? so_name : var_name,
+                ext);
         PC_ASSERT(n>0 && (size_t)n<sizeof(so));
         library_handle = dlopen(so, RTLD_LAZY);
         if (library_handle)
@@ -1433,8 +1440,9 @@ purc_variant_t purc_variant_load_dvobj_from_so (const char *so_name,
 
         // step2: search in /usr/lib/purc-<purc-api-version>
         n = snprintf(so, sizeof(so),
-                "/usr/lib/purc-%s/libpurc-dvobj-%s.so",
-                ver, so_name ? so_name : var_name);
+                "/usr/lib/purc-%s/libpurc-dvobj-%s%s",
+                ver, so_name ? so_name : var_name,
+                ext);
         PC_ASSERT(n>0 && (size_t)n<sizeof(so));
         library_handle = dlopen(so, RTLD_LAZY);
         if (library_handle)

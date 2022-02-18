@@ -36,6 +36,9 @@
 
 PCA_EXTERN_C_BEGIN
 
+int
+pcintr_check_insertion_mode_for_normal_element(pcintr_stack_t stack);
+
 typedef int (*pcintr_attr_f)(struct pcintr_stack_frame *frame,
         struct pcvdom_element *element,
         purc_atom_t name, purc_variant_t val,
@@ -44,10 +47,6 @@ typedef int (*pcintr_attr_f)(struct pcintr_stack_frame *frame,
 int
 pcintr_vdom_walk_attrs(struct pcintr_stack_frame *frame,
         struct pcvdom_element *element, void *ud, pcintr_attr_f cb);
-
-int
-pcintr_element_eval_attrs(struct pcintr_stack_frame *frame,
-        struct pcvdom_element *element);
 
 int
 pcintr_element_eval_vcm_content(struct pcintr_stack_frame *frame,
@@ -61,9 +60,6 @@ pcintr_set_base_uri(pcintr_stack_t stack, const char* base_uri);
 
 purc_variant_t
 pcintr_load_from_uri(pcintr_stack_t stack, const char* uri);
-
-int
-pcintr_set_symbol_var_at_sign(void);
 
 purc_variant_t
 pcintr_doc_query(purc_vdom_t vdom, const char* css);

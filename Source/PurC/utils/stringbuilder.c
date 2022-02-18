@@ -195,7 +195,7 @@ pcutils_string_reset(struct pcutils_string *string)
 }
 
 int
-string_check_size(struct pcutils_string *string, size_t size)
+pcutils_string_check_size(struct pcutils_string *string, size_t size)
 {
     if (size < (size_t)(string->end - string->abuf))
         return 0;
@@ -223,17 +223,16 @@ string_check_size(struct pcutils_string *string, size_t size)
     return 0;
 }
 
-__attribute__ ((format (printf, 2, 3)))
 int
-pcutils_string_append(struct pcutils_string *string, const char *fmt, ...)
+pcutils_string_vappend(struct pcutils_string *string,
+        const char *fmt, va_list ap)
 {
     int n;
-    va_list ap, ap_dup;
-    va_start(ap, fmt);
-    va_copy(ap_dup, ap);
+    va_list dp;
+    va_copy(dp, ap);
     size_t len = string->end - string->curr;
-    n = vsnprintf(string->curr, len, fmt, ap);
-    va_end(ap);
+    n = vsnprintf(string->curr, len, fmt, dp);
+    va_end(dp);
 
     if (n<0)
         return -1;
@@ -241,12 +240,11 @@ pcutils_string_append(struct pcutils_string *string, const char *fmt, ...)
     if ((size_t)n < len)
         return 0;
 
-    int r = string_check_size(string, (string->end - string->abuf) + n);
+    int r = pcutils_string_check_size(string, (string->end - string->abuf) + n);
     if (r)
         return -1;
 
-    n = vsnprintf(string->curr, len, fmt, ap_dup);
-    va_end(ap_dup);
+    n = vsnprintf(string->curr, len, fmt, ap);
 
     if (n<0)
         return -1;
@@ -258,13 +256,13 @@ pcutils_string_append(struct pcutils_string *string, const char *fmt, ...)
 }
 
 int
-pcutils_string_length(struct pcutils_string *string, size_t *len)
+pcutils_string_append(struct pcutils_string *string, const char *fmt, ...)
 {
-    if (len) {
-        *len = string->curr - string->abuf;
-    }
-
-    return 0;
+    va_list ap;
+    va_start(ap, fmt);
+    int n = pcutils_string_vappend(string, fmt, ap);
+    va_end(ap);
+    return n;
 }
 
 int

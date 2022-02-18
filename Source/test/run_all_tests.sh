@@ -1,8 +1,9 @@
 #!/bin/sh
 
+SHOW_STDERR=${SHOW_STDERR:-0}
 USE_VALGRIND=${USE_VALGRIND:-0}
 TEST_PROGS=`find ${1:-Source/test} -name test_* -perm -0111 -type f`
-VALGRIND="valgrind --leak-check=full --num-callers=30 --exit-on-first-error=yes --error-exitcode=1 --suppressions=/usr/share/glib-2.0/valgrind/glib.supp --suppressions=Source/valgrind/valgrind.supp"
+VALGRIND="valgrind --leak-check=full --num-callers=100 --exit-on-first-error=yes --error-exitcode=1 --suppressions=/usr/share/glib-2.0/valgrind/glib.supp --suppressions=Source/valgrind/valgrind.supp"
 
 total_passed=0
 total_failed=0
@@ -14,7 +15,11 @@ test_crashed=""
 for x in $TEST_PROGS; do
     echo ">> Start of $x"
     if test $USE_VALGRIND -eq 0; then
-        ./$x 2> /dev/null
+        if test $SHOW_STDERR -eq 0; then
+            ./$x 2> /dev/null
+        else
+            ./$x
+        fi
     else
         ${VALGRIND} ./$x || exit
     fi

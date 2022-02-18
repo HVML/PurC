@@ -110,7 +110,6 @@ static purc_variant_t
 get_source_by_from(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     purc_variant_t from, purc_variant_t with)
 {
-    UNUSED_PARAM(co);
     UNUSED_PARAM(frame);
     PC_ASSERT(with == PURC_VARIANT_INVALID);
 
@@ -629,6 +628,7 @@ process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
                 PRINT_VARIANT(src);
                 PC_ASSERT(0); // Not implemented yet
             }
+            purc_variant_unref(o);
         }
         pcdom_collection_destroy(collection, true);
         return r ? -1 : 0;
@@ -810,14 +810,13 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 {
     PC_ASSERT(stack && pos);
     PC_ASSERT(stack == purc_get_stack());
+    if (pcintr_check_insertion_mode_for_normal_element(stack))
+        return NULL;
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
 
     frame->pos = pos; // ATTENTION!!
-
-    if (pcintr_set_symbol_var_at_sign())
-        return NULL;
 
     frame->attr_vars = purc_variant_make_object(0,
             PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);

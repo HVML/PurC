@@ -75,9 +75,7 @@ pcutils_stringbuilder_reset(struct pcutils_stringbuilder *sb);
 int
 pcutils_stringbuilder_keep(struct pcutils_stringbuilder *sb, size_t sz);
 
-# if COMPILER(GCC)
-__attribute__ ((format (gnu_printf, 2, 3)))
-# endif
+__attribute__ ((format (printf, 2, 3)))
 int
 pcutils_stringbuilder_snprintf(struct pcutils_stringbuilder *sb,
     const char *fmt, ...);
@@ -92,12 +90,24 @@ pcutils_string_init(struct pcutils_string *string, size_t chunk_size);
 void
 pcutils_string_reset(struct pcutils_string *string);
 
+int
+pcutils_string_check_size(struct pcutils_string *string, size_t size);
+
+__attribute__ ((format (printf, 2, 0)))
+int
+pcutils_string_vappend(struct pcutils_string *string,
+        const char *fmt, va_list ap);
+
 __attribute__ ((format (printf, 2, 3)))
 int
 pcutils_string_append(struct pcutils_string *string, const char *fmt, ...);
 
-int
-pcutils_string_length(struct pcutils_string *string, size_t *len);
+static inline size_t
+pcutils_string_length(struct pcutils_string *string)
+{
+    return string->curr - string->abuf;
+}
+
 
 int
 pcutils_string_is_empty(struct pcutils_string *string, int *empty);

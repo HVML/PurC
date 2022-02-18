@@ -27,4 +27,6 @@ hvml for
 hvml exclusively
 hvml excl
 hvml href
+hvml raw
+hvml type
 
