@@ -629,3 +629,57 @@ pcintr_add_named_var_observer(pcintr_stack_t stack, const char* name,
     purc_set_error_with_info(PCVARIANT_ERROR_NOT_FOUND, "name:%s", name);
     return PURC_VARIANT_INVALID;
 }
+
+void
+remove_named_scope_var_observer(pcvdom_element_t elem,
+        const char* name, const char* event)
+{
+    if (!elem || !name) {
+        PC_ASSERT(name); // FIXME: still recoverable???
+        return;
+    }
+
+    purc_variant_t v = pcintr_get_scope_variable(elem, name);
+    if (v) {
+        pcvarmgr_t mgr =  pcvdom_element_get_variables(elem);
+        pcvarmgr_remove_observer(mgr, name, event);
+    }
+
+    pcvdom_element_t parent = pcvdom_element_parent(elem);
+    if (parent) {
+        return remove_named_scope_var_observer(parent, name, event);
+    }
+}
+
+bool
+pcintr_remove_named_var_observer(pcintr_stack_t stack, const char* name,
+        const char* event)
+{
+    UNUSED_PARAM(event);
+    if (!stack || !name) {
+        PC_ASSERT(0); // FIXME: still recoverable???
+        return false;
+    }
+
+    struct pcintr_stack_frame* frame = pcintr_stack_get_bottom_frame(stack);
+    PC_ASSERT(frame);
+
+    pcvarmgr_t mgr = NULL;
+    remove_named_scope_var_observer(frame->pos, name, event);
+
+    purc_variant_t v = _find_doc_buildin_var(stack->vdom, name);
+    if (v) {
+        purc_clr_error();
+        mgr = pcvdom_document_get_variables(stack->vdom);
+        pcvarmgr_remove_observer(mgr, name, event);
+    }
+
+    v = _find_inst_var(name);
+    if (v) {
+        purc_clr_error();
+        mgr = pcinst_get_variables();
+        pcvarmgr_remove_observer(mgr, name, event);
+    }
+
+    return true;
+}
