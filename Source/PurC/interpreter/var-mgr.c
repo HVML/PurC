@@ -68,7 +68,7 @@ struct pcvarmgr {
     pcutils_array_t* var_observers;
 };
 
-int find_var_observe_idx(struct pcvarmgr* mgr, const char* name,
+static int find_var_observe_idx(struct pcvarmgr* mgr, const char* name,
         enum var_event_type type, pcintr_stack_t stack)
 {
     size_t sz = pcutils_array_length(mgr->var_observers);
@@ -83,7 +83,7 @@ int find_var_observe_idx(struct pcvarmgr* mgr, const char* name,
     return -1;
 }
 
-struct var_observe* find_var_observe(struct pcvarmgr* mgr,
+static struct var_observe* find_var_observe(struct pcvarmgr* mgr,
         const char* name, enum var_event_type type, pcintr_stack_t stack)
 {
     int idx = find_var_observe_idx(mgr, name, type, stack);
@@ -93,7 +93,7 @@ struct var_observe* find_var_observe(struct pcvarmgr* mgr,
     return pcutils_array_get(mgr->var_observers, idx);
 }
 
-bool mgr_grow_handler(purc_variant_t source, purc_atom_t msg_type,
+static bool mgr_grow_handler(purc_variant_t source, purc_atom_t msg_type,
         void* ctxt, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(msg_type);
@@ -135,7 +135,7 @@ bool mgr_grow_handler(purc_variant_t source, purc_atom_t msg_type,
     return true;
 }
 
-bool mgr_shrink_handler(purc_variant_t source, purc_atom_t msg_type,
+static bool mgr_shrink_handler(purc_variant_t source, purc_atom_t msg_type,
         void* ctxt, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(msg_type);
@@ -177,7 +177,7 @@ bool mgr_shrink_handler(purc_variant_t source, purc_atom_t msg_type,
     return true;
 }
 
-bool mgr_change_handler(purc_variant_t source, purc_atom_t msg_type,
+static bool mgr_change_handler(purc_variant_t source, purc_atom_t msg_type,
         void* ctxt, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(msg_type);
@@ -345,7 +345,7 @@ bool pcvarmgr_remove(pcvarmgr_t mgr, const char* name)
     return false;
 }
 
-purc_variant_t pcvarmgr_add_observer(pcvarmgr_t mgr, const char* name,
+static purc_variant_t pcvarmgr_add_observer(pcvarmgr_t mgr, const char* name,
         const char* event)
 {
     purc_variant_t var = pcvarmgr_get(mgr, name);
@@ -389,7 +389,7 @@ purc_variant_t pcvarmgr_add_observer(pcvarmgr_t mgr, const char* name,
     return PURC_VARIANT_INVALID;
 }
 
-bool pcvarmgr_remove_observer(pcvarmgr_t mgr, const char* name,
+static bool pcvarmgr_remove_observer(pcvarmgr_t mgr, const char* name,
         const char* event)
 {
     purc_variant_t var = pcvarmgr_get(mgr, name);
@@ -448,7 +448,7 @@ _find_named_scope_var(pcvdom_element_t elem, const char* name, pcvarmgr_t* mgr)
 }
 
 static purc_variant_t
-_find_doc_buildin_var(purc_vdom_t vdom, const char* name)
+find_doc_buildin_var(purc_vdom_t vdom, const char* name)
 {
     PC_ASSERT(name);
     if (!vdom) {
@@ -464,7 +464,7 @@ _find_doc_buildin_var(purc_vdom_t vdom, const char* name)
     return PURC_VARIANT_INVALID;
 }
 
-static purc_variant_t _find_inst_var(const char* name)
+static purc_variant_t find_inst_var(const char* name)
 {
     if (!name) {
         PC_ASSERT(0); // FIXME: still recoverable???
@@ -502,13 +502,13 @@ pcintr_find_named_var(pcintr_stack_t stack, const char* name)
         return v;
     }
 
-    v = _find_doc_buildin_var(stack->vdom, name);
+    v = find_doc_buildin_var(stack->vdom, name);
     if (v) {
         purc_clr_error();
         return v;
     }
 
-    v = _find_inst_var(name);
+    v = find_inst_var(name);
     if (v) {
         purc_clr_error();
         return v;
@@ -612,14 +612,14 @@ pcintr_add_named_var_observer(pcintr_stack_t stack, const char* name,
         return pcvarmgr_add_observer(mgr, name, event);
     }
 
-    v = _find_doc_buildin_var(stack->vdom, name);
+    v = find_doc_buildin_var(stack->vdom, name);
     if (v) {
         purc_clr_error();
         mgr = pcvdom_document_get_variables(stack->vdom);
         return pcvarmgr_add_observer(mgr, name, event);
     }
 
-    v = _find_inst_var(name);
+    v = find_inst_var(name);
     if (v) {
         purc_clr_error();
         mgr = pcinst_get_variables();
@@ -667,14 +667,14 @@ pcintr_remove_named_var_observer(pcintr_stack_t stack, const char* name,
     pcvarmgr_t mgr = NULL;
     remove_named_scope_var_observer(frame->pos, name, event);
 
-    purc_variant_t v = _find_doc_buildin_var(stack->vdom, name);
+    purc_variant_t v = find_doc_buildin_var(stack->vdom, name);
     if (v) {
         purc_clr_error();
         mgr = pcvdom_document_get_variables(stack->vdom);
         pcvarmgr_remove_observer(mgr, name, event);
     }
 
-    v = _find_inst_var(name);
+    v = find_inst_var(name);
     if (v) {
         purc_clr_error();
         mgr = pcinst_get_variables();
