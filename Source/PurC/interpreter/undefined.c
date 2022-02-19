@@ -167,7 +167,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     PC_ASSERT(frame->edom_element);
     pcdom_element_t *child;
-    child = pcintr_util_insert_element(frame->edom_element,
+    child = pcintr_util_append_element(frame->edom_element,
             frame->pos->tag_name);
     PC_ASSERT(child);
     frame->edom_element = child;
@@ -279,9 +279,9 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 
     if (purc_variant_is_string(v)) {
         const char *text = purc_variant_get_string_const(v);
-        int r;
-        r = pcintr_util_add_child(frame->edom_element, "%s", text);
-        PC_ASSERT(r == 0);
+        pcdom_text_t *content;
+        content = pcintr_util_append_content(frame->edom_element, text);
+        PC_ASSERT(content);
         purc_variant_unref(v);
     }
     else {

@@ -588,6 +588,19 @@ static const char *buggy2 =
 static const char *buggy3 =
     "<hvml><body><span id=\"clock\">xyz</span><update on=\"#clock\" at=\"textContent\" to=\"displace\" with=\"$SYSTEM.time('%H:%M:%S')\" /></body></hvml>";
 
+static const char *buggy4 =
+    "<hvml target=\"html\" lang=\"en\">"
+    "    <head>"
+    "    </head>"
+    "    <body>"
+    "        <span id=\"clock\">def</span>"
+    "        <div>"
+    "            <xinput xtype=\"xt\" xype=\"abd\" />"
+    "        </div>"
+    "        <update on=\"#clock\" at=\"textContent\" to=\"displace\" with=\"xyz\" />"
+    "    </body>"
+    "</hvml>";
+
 static const char *sample1 =
     "<!DOCTYPE hvml>"
     "<hvml target=\"html\">"
@@ -710,6 +723,7 @@ TEST(interpreter, basic)
     (void)buggy1;
     (void)buggy2;
     (void)buggy3;
+    (void)buggy4;
     (void)sample1;
     (void)sample2;
     (void)fibonacci_1;
@@ -719,7 +733,6 @@ TEST(interpreter, basic)
         "  <head>"
         "  </head>"
         "  <body>"
-        "    hello"
         "    <div>"
         "      foo"
         "      <archetype name=\"foo\"><hoo><bar></bar><foobar>ddddddddddddddddddddddddddd</foobar></hoo></archetype>"
@@ -729,7 +742,7 @@ TEST(interpreter, basic)
         "    world"
         "  </body>"
         "</hvml>",
-        "<hvml><head x=\"y\">hello<xinit a=\"b\">world<!--yes-->solid</xinit></head><body><timeout1/><timeout3/></body></hvml>",
+        "<hvml><head x=\"y\"><xinit a=\"b\">world<!--yes-->solid</xinit></head><body><timeout1/><timeout3/></body></hvml>",
         "<hvml><head x=\"y\">hello<xinit a=\"b\">w<timeout3/>orld<!--yes-->solid</xinit></head><body><timeout1/></body></hvml>",
         "<hvml><body><timeout1/><timeout9/><timeout2/></body></hvml>",
         "<hvml><body><xtest a='b'>hello<!--yes--></xtest></body></hvml>",
@@ -739,13 +752,14 @@ TEST(interpreter, basic)
         calculator_1,
         calculator_2,
         // calculator_3,
-        // calculator_4,
+        calculator_4,
         sample1,
         // sample2,
         fibonacci_1,
         buggy1,
         buggy2,
         buggy3,
+        buggy4,
     };
 
     purc_instance_extra_info info = {};

@@ -392,57 +392,22 @@ void
 pcintr_dump_frame_edom_node(pcintr_stack_t stack);
 
 pcdom_element_t*
-pcintr_util_insert_element(pcdom_element_t* parent, const char *tag);
+pcintr_util_append_element(pcdom_element_t* parent, const char *tag);
 
-pcdom_element_t*
-pcintr_util_parse_fragment_ex(pcdom_element_t *tmp, const char *fragment);
-
-#define pcintr_util_parse_fragment(_parent, _fmt, ...)               \
-({                                                                   \
-    char _buf[1024];                                                 \
-    size_t _nr = sizeof(_buf);                                       \
-    char *_p = pcutils_snprintf(_buf, &_nr, _fmt, ##__VA_ARGS__);    \
-    pcdom_element_t *_fragment = NULL;                               \
-    if (_p) {                                                        \
-        _fragment = pcintr_util_parse_fragment_ex(_parent, _p);      \
-        if (_p != _buf)                                              \
-            free(_p);                                                \
-    }                                                                \
-    _fragment;                                                       \
-})
-
-pcdom_element_t*
-pcintr_util_add_element(pcdom_element_t *parent, const char *tag);
+pcdom_text_t*
+pcintr_util_append_content(pcdom_element_t* parent, const char *txt);
 
 int
 pcintr_util_set_attribute(pcdom_element_t *elem,
         const char *key, const char *val);
 
-#define pcintr_util_add_child(_parent, _fmt, ...)                            \
-({                                                                           \
-    int _r = -1;                                                             \
-    pcdom_element_t *_fragment;                                              \
-    _fragment = pcintr_util_parse_fragment(_parent, _fmt, ##__VA_ARGS__);    \
-    if (_fragment) {                                                         \
-        pcdom_merge_fragment_append(pcdom_interface_node(_parent),           \
-                pcdom_interface_node(_fragment));                            \
-        _r = 0;                                                              \
-    }                                                                        \
-    _r;                                                                      \
-})
+__attribute__ ((format (printf, 2, 3)))
+int
+pcintr_util_add_child(pcdom_element_t *parent, const char *fmt, ...);
 
-#define pcintr_util_set_child(_parent, _fmt, ...)                            \
-({                                                                           \
-    int _r = -1;                                                             \
-    pcdom_element_t *_fragment;                                              \
-    _fragment = pcintr_util_parse_fragment(_parent, _fmt, ##__VA_ARGS__);    \
-    if (_fragment) {                                                         \
-        pcdom_displace_fragment(pcdom_interface_node(_parent),               \
-                pcdom_interface_node(_fragment));                            \
-        _r = 0;                                                              \
-    }                                                                        \
-    _r;                                                                      \
-})
+__attribute__ ((format (printf, 2, 3)))
+int
+pcintr_util_set_child(pcdom_element_t *parent, const char *fmt, ...);
 
 pchtml_html_document_t*
 pcintr_util_load_document(const char *html);
