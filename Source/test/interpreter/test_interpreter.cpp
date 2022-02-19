@@ -1,4 +1,6 @@
 #include "purc.h"
+#include "private/utils.h"
+#include "../helpers.h"
 
 #include <gtest/gtest.h>
 
@@ -762,16 +764,11 @@ TEST(interpreter, basic)
         buggy4,
     };
 
-    purc_instance_extra_info info = {};
     // enable for calculator2/3/4
     // info.enable_remote_fetcher = true;
-    int ret = 0;
-    bool cleanup = false;
+    PurCInstance purc;
 
-    // initial purc
-    ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
-
-    ASSERT_EQ (ret, PURC_ERROR_OK);
+    ASSERT_TRUE(purc);
 
     // get statitics information
     struct purc_variant_stat * stat = purc_variant_usage_stat ();
@@ -784,8 +781,5 @@ TEST(interpreter, basic)
     }
 
     purc_run(PURC_VARIANT_INVALID, NULL);
-
-    cleanup = purc_cleanup ();
-    ASSERT_EQ (cleanup, true);
 }
 
