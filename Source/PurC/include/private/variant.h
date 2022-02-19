@@ -119,6 +119,9 @@ struct purc_variant {
         /* for boolean */
         bool        b;
 
+        /* for exception and atom string */
+        purc_atom_t atom;
+
         /* for number */
         double      d;
 

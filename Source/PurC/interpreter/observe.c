@@ -115,22 +115,6 @@ is_immutable_variant_msg(purc_atom_t msg)
     return false;
 }
 
-
-#define NAMED_VARIANT_ATTACHED          "attached"
-#define NAMED_VARIANT_DETACHED          "detached"
-#define NAMED_VARIANT_EXCEPT            "except"
-
-static inline bool
-is_named_variant_observe(const char* msg)
-{
-    if ((strcmp(msg, NAMED_VARIANT_ATTACHED) == 0) ||
-            (strcmp(msg, NAMED_VARIANT_DETACHED) == 0) ||
-            (strcmp(msg, NAMED_VARIANT_EXCEPT) == 0)) {
-        return true;
-    }
-    return false;
-}
-
 static bool
 regist_variant_listener(pcintr_stack_t stack, purc_variant_t observed,
         purc_atom_t op, struct pcvar_listener** listener)
@@ -160,6 +144,7 @@ regist_inner_data(pcintr_stack_t stack, purc_variant_t observed,
     switch (purc_variant_get_type(observed)) {
         case PURC_VARIANT_TYPE_NULL:
         case PURC_VARIANT_TYPE_BOOLEAN:
+        case PURC_VARIANT_TYPE_EXCEPTION:
         case PURC_VARIANT_TYPE_NUMBER:
         case PURC_VARIANT_TYPE_LONGINT:
         case PURC_VARIANT_TYPE_ULONGINT:
@@ -170,17 +155,11 @@ regist_inner_data(pcintr_stack_t stack, purc_variant_t observed,
             if (is_immutable_variant_msg(t)) {
                 return regist_variant_listener(stack, observed, t, listener);
             }
-            else if (is_named_variant_observe(msg)) {
-                return true;
-            }
             break;
 
         case PURC_VARIANT_TYPE_DYNAMIC:
             if (is_immutable_variant_msg(t)) {
                 return regist_variant_listener(stack, observed, t, listener);
-            }
-            else if (is_named_variant_observe(msg)) {
-                return true;
             }
             break;
 
@@ -200,17 +179,11 @@ regist_inner_data(pcintr_stack_t stack, purc_variant_t observed,
             if (is_mmutable_variant_msg(t)) {
                 return regist_variant_listener(stack, observed, t, listener);
             }
-            else if (is_named_variant_observe(msg)) {
-                return true;
-            }
             break;
 
         case PURC_VARIANT_TYPE_SET:
             if (is_mmutable_variant_msg(t)) {
                 return regist_variant_listener(stack, observed, t, listener);
-            }
-            else if (is_named_variant_observe(msg)) {
-                return true;
             }
             else if (pcintr_is_timers(stack, observed)) {
                 if ((strncmp(msg, TIMERS_EXPIRED_PREFIX,
@@ -384,7 +357,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     struct pcvar_listener* listener = NULL;
     purc_variant_t observed = PURC_VARIANT_INVALID;
-    if (ctxt->at != PURC_VARIANT_INVALID) {
+    if (ctxt->at != PURC_VARIANT_INVALID && purc_variant_is_string(ctxt->at)) {
         const char* name = purc_variant_get_string_const(ctxt->at);
         const char* event = purc_variant_get_string_const(for_var);
         observed = pcintr_add_named_var_observer(stack, name, event);
@@ -393,9 +366,20 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         }
     }
     else {
-        observed = ctxt->on;
-        if (!regist_inner_data(stack, on, for_var, &listener)) {
-            return NULL;
+// TODO : css selector
+#if 0
+        if (purc_variant_is_string(ctxt->on)) {
+            const char* at_str = purc_variant_get_string_const(ctxt->on);
+            if (at_str[0] == '#') {
+            }
+        }
+        else
+#endif
+        {
+            observed = ctxt->on;
+            if (!regist_inner_data(stack, on, for_var, &listener)) {
+                return NULL;
+            }
         }
     }
 

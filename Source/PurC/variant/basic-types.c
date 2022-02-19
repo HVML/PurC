@@ -78,6 +78,43 @@ purc_variant_t purc_variant_make_boolean (bool b)
     return value;
 }
 
+purc_variant_t purc_variant_make_exception(purc_atom_t except_atom)
+{
+    if (!purc_is_except_atom(except_atom)) {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    purc_variant_t value = pcvariant_get (PURC_VARIANT_TYPE_EXCEPTION);
+
+    if (value == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
+        return PURC_VARIANT_INVALID;
+    }
+
+    value->type = PURC_VARIANT_TYPE_EXCEPTION;
+    value->size = 0;
+    value->flags = 0;
+    value->refc = 1;
+    value->atom = except_atom;
+
+    return value;
+}
+
+const char* purc_variant_get_exception_string_const (purc_variant_t v)
+{
+    PCVARIANT_CHECK_FAIL_RET(v, NULL);
+
+    const char * str_str = NULL;
+
+    if (IS_TYPE (v, PURC_VARIANT_TYPE_EXCEPTION))
+        str_str = purc_atom_to_string(v->atom);
+    else
+        pcinst_set_error (PCVARIANT_ERROR_INVALID_TYPE);
+
+    return str_str;
+}
+
 purc_variant_t purc_variant_make_number (double d)
 {
     purc_variant_t value = pcvariant_get (PURC_VARIANT_TYPE_NUMBER);
@@ -406,7 +443,7 @@ purc_variant_make_atom_string (const char* str_utf8, bool check_encoding)
     value->size = 0;
     value->flags = 0;
     value->refc = 1;
-    value->sz_ptr[1] = atom;
+    value->atom = atom;
 
     return value;
 }
@@ -444,7 +481,7 @@ purc_variant_make_atom_string_static (const char* str_utf8,
     value->size = 0;
     value->flags = PCVARIANT_FLAG_STRING_STATIC;
     value->refc = 1;
-    value->sz_ptr[1] = atom;
+    value->atom = atom;
 
     return value;
 }
@@ -456,7 +493,7 @@ const char* purc_variant_get_atom_string_const (purc_variant_t atom_string)
     const char * str_str = NULL;
 
     if (IS_TYPE (atom_string, PURC_VARIANT_TYPE_ATOMSTRING))
-        str_str = purc_atom_to_string(atom_string->sz_ptr[1]);
+        str_str = purc_atom_to_string(atom_string->atom);
     else
         pcinst_set_error (PCVARIANT_ERROR_INVALID_TYPE);
 

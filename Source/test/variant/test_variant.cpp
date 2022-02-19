@@ -380,6 +380,31 @@ TEST(variant, pcvariant_boolean)
 }
 
 
+TEST(variant, pcvariant_exception)
+{
+    purc_atom_t atom = 0;
+    purc_variant_t value = NULL;
+    purc_instance_extra_info info = {};
+
+    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    atom = purc_get_except_atom_by_id(PURC_EXCEPT_BAD_ENCODING);
+    value = purc_variant_make_exception (atom);
+    ASSERT_NE(value, PURC_VARIANT_INVALID);
+    ASSERT_STREQ ("BadEncoding", purc_variant_get_exception_string_const (value));
+    purc_variant_unref(value);
+
+    atom = purc_atom_from_string("TestString");
+    ASSERT_NE (atom, 0);
+    value = purc_variant_make_exception (atom);
+    ASSERT_EQ(value, PURC_VARIANT_INVALID);
+    ASSERT_EQ(purc_get_last_error(), PURC_ERROR_INVALID_VALUE);
+
+
+    purc_cleanup ();
+}
+
 // to test:
 // purc_variant_make_number ()
 // purc_variant_serialize ()

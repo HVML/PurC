@@ -50,12 +50,6 @@ purc_variant_t pcvarmgr_get(pcvarmgr_t mgr, const char* name);
 
 bool pcvarmgr_remove(pcvarmgr_t mgr, const char* name);
 
-purc_variant_t pcvarmgr_add_observer(pcvarmgr_t mgr, const char* name,
-        const char* event);
-
-bool pcvarmgr_remove_observer(pcvarmgr_t mgr, const char* name,
-        const char* event);
-
 PCA_EXTERN_C_END
 
 #endif /* not defined PURC_PRIVATE_VAR_MGR_H */

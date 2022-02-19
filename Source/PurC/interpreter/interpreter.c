@@ -1357,6 +1357,46 @@ pcintr_revoke_observer(struct pcintr_observer* observer)
     return true;
 }
 
+bool
+pcintr_revoke_observer_ex(purc_variant_t observed, purc_variant_t for_value)
+{
+    pcintr_stack_t stack = purc_get_stack();
+    const char* for_value_str = purc_variant_get_string_const(for_value);
+    char* value = strdup(for_value_str);
+    if (!value) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return false;
+    }
+
+    char* p = value;
+    char* msg_type = strtok_r(p, ":", &p);
+    if (!msg_type) {
+        //TODO : purc_set_error();
+        free(value);
+        return false;
+    }
+
+    char* sub_type = strtok_r(p, ":", &p);
+    purc_variant_t msg_type_var = purc_variant_make_string(msg_type, false);
+    purc_variant_t sub_type_var = PURC_VARIANT_INVALID;
+    if (sub_type) {
+        sub_type_var = purc_variant_make_string(sub_type, false);
+    }
+
+    struct pcintr_observer* observer = pcintr_find_observer(stack, observed,
+        msg_type_var, sub_type_var);
+    if (observer) {
+        pcintr_revoke_observer(observer);
+    }
+
+    purc_variant_unref(msg_type_var);
+    if (sub_type) {
+        purc_variant_unref(sub_type_var);
+    }
+    free(value);
+    return true;
+}
+
 struct pcintr_observer*
 pcintr_find_observer(pcintr_stack_t stack, purc_variant_t observed,
         purc_variant_t msg_type, purc_variant_t sub_type)

@@ -332,6 +332,10 @@ purc_variant_t
 pcintr_add_named_var_observer(pcintr_stack_t stack, const char* name,
         const char* event);
 
+bool
+pcintr_remove_named_var_observer(pcintr_stack_t stack, const char* name,
+        const char* event);
+
 // $TIMERS
 struct pcintr_timers*
 pcintr_timers_init(pcintr_stack_t stack);
@@ -351,6 +355,9 @@ pcintr_register_observer(purc_variant_t observed,
 
 bool
 pcintr_revoke_observer(struct pcintr_observer* observer);
+
+bool
+pcintr_revoke_observer_ex(purc_variant_t observed, purc_variant_t for_value);
 
 struct pcintr_observer*
 pcintr_find_observer(pcintr_stack_t stack, purc_variant_t observed,
