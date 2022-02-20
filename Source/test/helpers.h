@@ -78,7 +78,7 @@ public:
     }
 
     ~PurCInstance(void) {
-        if (init_ok) {
+        if (init_ok == 0) {
             purc_cleanup();
         }
     }

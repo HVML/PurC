@@ -247,13 +247,10 @@ loaded_vars_release(pcintr_stack_t stack)
 static void
 stack_release(pcintr_stack_t stack)
 {
-    if (stack->ops) {
-        if (stack->ops->on_cleanup) {
-            stack->ops->on_cleanup(stack, stack->ctxt);
-            stack->ops->on_cleanup = NULL;
-            stack->ops = NULL;
-            stack->ctxt = NULL;
-        }
+    if (stack->ops.on_cleanup) {
+        stack->ops.on_cleanup(stack, stack->ctxt);
+        stack->ops.on_cleanup = NULL;
+        stack->ctxt = NULL;
     }
 
     struct list_head *frames = &stack->frames;
@@ -872,17 +869,14 @@ static int run_coroutines(void *ctxt)
                     execute_one_step(co);
                     PC_ASSERT(purc_get_last_error() == PURC_ERROR_OK);
                     if (co->state == CO_STATE_TERMINATED) {
-                        if (co->stack->ops) {
-                            if (co->stack->ops->on_terminated) {
-                                co->stack->ops->on_terminated(co->stack, co->stack->ctxt);
-                                co->stack->ops->on_terminated = NULL;
-                            }
-                            if (co->stack->ops->on_cleanup) {
-                                co->stack->ops->on_cleanup(co->stack, co->stack->ctxt);
-                                co->stack->ops->on_cleanup = NULL;
-                                co->stack->ops = NULL;
-                                co->stack->ctxt = NULL;
-                            }
+                        if (co->stack->ops.on_terminated) {
+                            co->stack->ops.on_terminated(co->stack, co->stack->ctxt);
+                            co->stack->ops.on_terminated = NULL;
+                        }
+                        if (co->stack->ops.on_cleanup) {
+                            co->stack->ops.on_cleanup(co->stack, co->stack->ctxt);
+                            co->stack->ops.on_cleanup = NULL;
+                            co->stack->ctxt = NULL;
                         }
                     }
                     pcvariant_pop_gc();
@@ -1213,8 +1207,10 @@ purc_load_hvml_from_rwstream_ex(purc_rwstream_t stream,
 
     pcintr_coroutine_ready();
 
-    stack->ops  = ops;
-    stack->ctxt = ctxt;
+    if (ops) {
+        stack->ops  = *ops;
+        stack->ctxt = ctxt;
+    }
 
     // FIXME: double-free, potentially!!!
     return vdom;

@@ -93,6 +93,12 @@ enum pcintr_stack_vdom_insertion_mode {
     STACK_VDOM_AFTER_HVML,
 };
 
+// experimental: currently for test-case-only
+struct pcintr_supervisor_ops {
+    void (*on_terminated)(pcintr_stack_t stack, void *ctxt);
+    void (*on_cleanup)(pcintr_stack_t stack, void *ctxt);
+};
+
 struct pcintr_stack {
     struct list_head frames;
 
@@ -146,7 +152,7 @@ struct pcintr_stack {
     char* base_uri;
 
     // experimental: currently for test-case-only
-    struct pcintr_supervisor_ops        *ops;   // no-owner-ship!!!
+    struct pcintr_supervisor_ops        ops;
     void                                *ctxt;  // no-owner-ship!!!
 };
 
@@ -430,12 +436,6 @@ pcintr_util_comp_docs(pchtml_html_document_t *docl,
 bool
 pcintr_util_is_ancestor(pcdom_node_t *ancestor, pcdom_node_t *descendant);
 
-
-// experimental: currently for test-case-only
-struct pcintr_supervisor_ops {
-    void (*on_terminated)(pcintr_stack_t stack, void *ctxt);
-    void (*on_cleanup)(pcintr_stack_t stack, void *ctxt);
-};
 
 purc_vdom_t
 purc_load_hvml_from_string_ex(const char* string,
