@@ -247,6 +247,15 @@ loaded_vars_release(pcintr_stack_t stack)
 static void
 stack_release(pcintr_stack_t stack)
 {
+    if (stack->ops) {
+        if (stack->ops->on_cleanup) {
+            stack->ops->on_cleanup(stack, stack->ctxt);
+            stack->ops->on_cleanup = NULL;
+            stack->ops = NULL;
+            stack->ctxt = NULL;
+        }
+    }
+
     struct list_head *frames = &stack->frames;
     if (!list_empty(frames)) {
         struct pcintr_stack_frame *p, *n;
@@ -862,6 +871,20 @@ static int run_coroutines(void *ctxt)
                     pcvariant_push_gc();
                     execute_one_step(co);
                     PC_ASSERT(purc_get_last_error() == PURC_ERROR_OK);
+                    if (co->state == CO_STATE_TERMINATED) {
+                        if (co->stack->ops) {
+                            if (co->stack->ops->on_terminated) {
+                                co->stack->ops->on_terminated(co->stack, co->stack->ctxt);
+                                co->stack->ops->on_terminated = NULL;
+                            }
+                            if (co->stack->ops->on_cleanup) {
+                                co->stack->ops->on_cleanup(co->stack, co->stack->ctxt);
+                                co->stack->ops->on_cleanup = NULL;
+                                co->stack->ops = NULL;
+                                co->stack->ctxt = NULL;
+                            }
+                        }
+                    }
                     pcvariant_pop_gc();
                     coroutine_set_current(NULL);
                     ++readies;
@@ -934,11 +957,18 @@ pcintr_stack_frame_get_parent(struct pcintr_stack_frame *frame)
 purc_vdom_t
 purc_load_hvml_from_string(const char* string)
 {
+    return purc_load_hvml_from_string_ex(string, NULL, NULL);
+}
+
+purc_vdom_t
+purc_load_hvml_from_string_ex(const char* string,
+        struct pcintr_supervisor_ops *ops, void *ctxt)
+{
     purc_rwstream_t in;
     in = purc_rwstream_new_from_mem ((void*)string, strlen(string));
     if (!in)
         return NULL;
-    purc_vdom_t vdom = purc_load_hvml_from_rwstream(in);
+    purc_vdom_t vdom = purc_load_hvml_from_rwstream_ex(in, ops, ctxt);
     purc_rwstream_destroy(in);
     return vdom;
 }
@@ -946,19 +976,35 @@ purc_load_hvml_from_string(const char* string)
 purc_vdom_t
 purc_load_hvml_from_file(const char* file)
 {
+    return purc_load_hvml_from_file_ex(file, NULL, NULL);
+}
+
+purc_vdom_t
+purc_load_hvml_from_file_ex(const char* file,
+        struct pcintr_supervisor_ops *ops, void *ctxt)
+{
     purc_rwstream_t in;
     in = purc_rwstream_new_from_file(file, "r");
     if (!in)
         return NULL;
-    purc_vdom_t vdom = purc_load_hvml_from_rwstream(in);
+    purc_vdom_t vdom = purc_load_hvml_from_rwstream_ex(in, ops, ctxt);
     purc_rwstream_destroy(in);
     return vdom;
 }
 
-PCA_EXPORT purc_vdom_t
+purc_vdom_t
 purc_load_hvml_from_url(const char* url)
 {
+    return purc_load_hvml_from_url_ex(url, NULL, NULL);
+}
+
+purc_vdom_t
+purc_load_hvml_from_url_ex(const char* url,
+        struct pcintr_supervisor_ops *ops, void *ctxt)
+{
     UNUSED_PARAM(url);
+    UNUSED_PARAM(ops);
+    UNUSED_PARAM(ctxt);
     PC_ASSERT(0); // Not implemented yet
     return NULL;
 }
@@ -1107,6 +1153,13 @@ init_buidin_doc_variable(pcintr_stack_t stack)
 purc_vdom_t
 purc_load_hvml_from_rwstream(purc_rwstream_t stream)
 {
+    return purc_load_hvml_from_rwstream_ex(stream, NULL, NULL);
+}
+
+purc_vdom_t
+purc_load_hvml_from_rwstream_ex(purc_rwstream_t stream,
+        struct pcintr_supervisor_ops *ops, void *ctxt)
+{
     struct pcvdom_document *doc = NULL;
     doc = load_document(stream);
     if (!doc)
@@ -1159,6 +1212,9 @@ purc_load_hvml_from_rwstream(purc_rwstream_t stream)
     list_add_tail(&stack->co.node, coroutines);
 
     pcintr_coroutine_ready();
+
+    stack->ops  = ops;
+    stack->ctxt = ctxt;
 
     // FIXME: double-free, potentially!!!
     return vdom;

@@ -144,6 +144,10 @@ struct pcintr_stack {
 
     // base uri
     char* base_uri;
+
+    // experimental: currently for test-case-only
+    struct pcintr_supervisor_ops        *ops;   // no-owner-ship!!!
+    void                                *ctxt;  // no-owner-ship!!!
 };
 
 enum purc_symbol_var {
@@ -427,7 +431,27 @@ bool
 pcintr_util_is_ancestor(pcdom_node_t *ancestor, pcdom_node_t *descendant);
 
 
+// experimental: currently for test-case-only
+struct pcintr_supervisor_ops {
+    void (*on_terminated)(pcintr_stack_t stack, void *ctxt);
+    void (*on_cleanup)(pcintr_stack_t stack, void *ctxt);
+};
 
+purc_vdom_t
+purc_load_hvml_from_string_ex(const char* string,
+        struct pcintr_supervisor_ops *ops, void *ctxt);
+
+purc_vdom_t
+purc_load_hvml_from_file_ex(const char* file,
+        struct pcintr_supervisor_ops *ops, void *ctxt);
+
+purc_vdom_t
+purc_load_hvml_from_url_ex(const char* url,
+        struct pcintr_supervisor_ops *ops, void *ctxt);
+
+purc_vdom_t
+purc_load_hvml_from_rwstream_ex(purc_rwstream_t stream,
+        struct pcintr_supervisor_ops *ops, void *ctxt);
 
 PCA_EXTERN_C_END
 
