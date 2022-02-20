@@ -485,7 +485,7 @@ TEST(tree, pod)
         for (size_t j=0; j<2; ++j) {
             purc_rwstream_seek (rws, 0, SEEK_SET);
             memset(buf, 0, sizeof(buf));
-            pctree_for_each_pre_order(&nodes[i].node, node, next) {
+            pctree_for_each_pre_order(&nodes[i].node, node) {
                 char tmp[1000] = {0};
                 struct number_node *p = container_of(node, struct number_node, node);
                 snprintf(tmp, 1000, "%zd ", p->val);
@@ -520,8 +520,8 @@ _do_level_order(struct pctree_node *node, purc_rwstream_t rws)
 static void
 _do_pre_order_loop(struct pctree_node *node, purc_rwstream_t rws)
 {
-    struct pctree_node *n, *next;
-    pctree_for_each_pre_order(node, n, next) {
+    struct pctree_node *n;
+    pctree_for_each_pre_order(node, n) {
         char tmp[1000] = {0};
         struct number_node *p = container_of(n, struct number_node, node);
         snprintf(tmp, 1000, "%zd ", p->val);
@@ -771,7 +771,7 @@ TEST(tree, random)
     const char *sz;
 
     rws = purc_rwstream_new_buffer(1024, 1024*1024);
-    pctree_for_each_pre_order(&nodes->node, n, next) {
+    pctree_for_each_pre_order(&nodes->node, n) {
         char tmp[64] = {0};
         struct number_node *p = container_of(n, struct number_node, node);
         snprintf(tmp, sizeof(tmp), "%zd ", p->val);
