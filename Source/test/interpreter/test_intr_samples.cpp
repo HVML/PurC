@@ -161,6 +161,20 @@ TEST(samples, basic)
     purc_run(PURC_VARIANT_INVALID, NULL);
 }
 
+static void
+run_tests(struct sample_data *samples, size_t nr, int parallel)
+{
+    for (size_t i=0; i<nr; ++i) {
+        const struct sample_data *sample = samples + i;
+        add_sample(sample);
+        if (!parallel)
+            purc_run(PURC_VARIANT_INVALID, NULL);
+    }
+
+    if (parallel)
+        purc_run(PURC_VARIANT_INVALID, NULL);
+}
+
 TEST(samples, multiples)
 {
     PurCInstance purc;
@@ -411,13 +425,12 @@ TEST(samples, multiples)
             ""
             "</html>",
         },
+        {
+            "<hvml><body><div id='owner'></div><update on='#owner' at='textContent' to='append' with='hello' /><update on='#owner' at='textContent' to='displace' with='world' /></body></hvml>",
+            "<div id='owner'>world</div>",
+        },
     };
 
-    for (size_t i=0; i<PCA_TABLESIZE(samples); ++i) {
-        const struct sample_data *sample = samples + i;
-        add_sample(sample);
-    }
-
-    purc_run(PURC_VARIANT_INVALID, NULL);
+    run_tests(samples, PCA_TABLESIZE(samples), 0);
 }
 

@@ -32,7 +32,7 @@
 
 #include <libgen.h>
 
-#define TO_DEBUG 1
+#define TO_DEBUG 0
 
 #ifndef VTT
 #define VTT(x)         PCHVML_TOKEN##x
@@ -234,7 +234,7 @@ set_parser_state_if_necessary(struct pcvdom_gen *gen)
     struct pcvdom_element *elem = top_element(gen);
     if (is_element_of_hvml_data_cat(elem)) {
         // FIXME:
-        if (0)
+        if (TO_DEBUG)
             pchvml_switch_to_ejson_state(gen->parser);
     }
 }
@@ -1175,7 +1175,7 @@ pcvdom_gen_push_token(struct pcvdom_gen *gen,
 {
     int r = 0;
 
-    if (0)
+    if (TO_DEBUG)
         PRINT_TOKEN(token);
 
     if (gen->eof)
