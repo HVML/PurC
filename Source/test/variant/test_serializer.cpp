@@ -128,6 +128,40 @@ TEST(variant, serialize_undefined)
     purc_cleanup ();
 }
 
+// to test: serialize an exception
+TEST(variant, serialize_exception)
+{
+    purc_variant_t my_variant;
+    purc_rwstream_t my_rws;
+    size_t len_expected;
+    ssize_t n;
+    char buf[64];
+
+    int ret = purc_init ("cn.fmsoft.hybridos.test", "variant", NULL);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    my_rws = purc_rwstream_new_from_mem(buf, sizeof(buf) - 1);
+    ASSERT_NE(my_rws, nullptr);
+
+    purc_atom_t atom = purc_get_except_atom_by_id(PURC_EXCEPT_BAD_ENCODING);
+    my_variant = purc_variant_make_exception(atom);
+    ASSERT_NE(my_variant, PURC_VARIANT_INVALID);
+
+    purc_rwstream_seek(my_rws, 0, SEEK_SET);
+    len_expected = 0;
+    n = purc_variant_serialize(my_variant, my_rws,
+            0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);
+    ASSERT_GT(n, 0);
+
+    buf[n] = 0;
+    ASSERT_STREQ(buf, "\"BadEncoding\"");
+
+    purc_variant_unref(my_variant);
+
+    purc_rwstream_destroy(my_rws);
+    purc_cleanup ();
+}
+
 // to test: serialize a number
 TEST(variant, serialize_number)
 {

@@ -116,6 +116,29 @@ int pcutils_rbtree_insert(struct rb_root *root, void *ud,
         int (*cmp)(struct rb_node *node, void *ud),
         struct rb_node* (*new_entry)(void *ud));
 
+
+/* struct rb_node *_p */
+#define pcutils_rbtree_for_each(_rb_node, _p)                          \
+    for (_p = _rb_node;                                                \
+            _p; _p = pcutils_rbtree_next(_p))
+
+/* struct rb_node *_p */
+#define pcutils_rbtree_for_each_reverse(_rb_node, _p)                  \
+    for (_p = _rb_node;                                                \
+            _p; _p = pcutils_rbtree_prev(_p))
+
+/* struct rb_node *_p, *_n */
+#define pcutils_rbtree_for_each_safe(_rb_node, _p, _n)                 \
+    for (_p = _rb_node;                                                \
+            _n = _p ? pcutils_rbtree_next(_p) : NULL, _p;              \
+            _p = _n)
+
+/* struct rb_node *_p, *_n */
+#define pcutils_rbtree_for_each_reverse_safe(_rb_node, _p, _n)         \
+    for (_p = _rb_node;                                                \
+            _n = _p ? pcutils_rbtree_prev(_p) : NULL, _p;              \
+            _p = _n)
+
 #ifdef __cplusplus
 }
 #endif

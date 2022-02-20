@@ -55,6 +55,15 @@ static purc_variant_t _make_boolean(int lvl)
     return purc_variant_make_boolean(b);
 }
 
+static purc_variant_t _make_exception(int lvl)
+{
+    // what a compiler
+    if (0) _make_exception(0);
+
+    UNUSED_PARAM(lvl);
+    return purc_variant_make_exception(_get_random(PURC_EXCEPT_LAST));
+}
+
 static purc_variant_t _make_number(int lvl)
 {
     // what a compiler
@@ -395,6 +404,7 @@ static struct _map_s     _maps[] = {
     _MAP_REC(null),
     _MAP_REC(undefined),
     _MAP_REC(boolean),
+    _MAP_REC(exception),
     _MAP_REC(number),
     _MAP_REC(longint),
     _MAP_REC(ulongint),

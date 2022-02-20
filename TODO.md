@@ -1,5 +1,14 @@
 # TODO 清单
 
+## 2022-02-16
+
+### 完善数据获取器的实现
+
+1. 使用网络进程需要检测该进程是否存在(保活，重启)
+1. 网络进程缓存、Cookie功能(代码已移植，需要进一步调试验证)
+
+### eJSON 解析模块支持JSON 求值表达式(JSONEE)
+
 ## 2022-02-12
 
 ### 增强和调整变体的实现
@@ -52,49 +61,4 @@
 ### 完整的 CSS 选择器实现
 
 1. 按照 CSS Selector Level 3 的规范要求实现选择器。
-
-## 2021-12-10
-
-For `set` variant, it's more or less like a relational-table with primary keys.
-As result, `set` shall remain as a valid one when add/update/del operation
-occurs.
-```
-    set: {!"id", {id:1, name:'foo'}, {id:2, name:'bar'}}
-    when update_by_key(set, 1, 2), it shall report failure as update-conflict
-```
-
-## 2021-12-15
-
-need to be optimized
-```
-struct pcintr_element_ops*
-pcintr_get_element_ops(pcvdom_element_t element)
-{
-    PC_ASSERT(element);
-
-    switch (element->tag_id) {
-        case PCHVML_TAG_ITERATE:
-            return pcintr_iterate_get_ops();
-        default:
-            PC_ASSERT(0); // Not implemented yet
-            return NULL;
-    }
-}
-
-```
-
-## 2020-12-18
-
-concerning about variant loaded from external dynamic library:
-
-1. only object-variant can be loaded, which results in both dev-friendly problem
-   and running-performance
-2. isolation problem: internally-hidden-field in object to store the handle.
-3. performance problem: when refcount reaches 0, bunch of steps shall be take
-   to check if it's loaded-variant
-4. currently, `purc_variant_unload_dvobj` was introduced to tackle such issue,
-   which tastes bad and failed with life-time conflicts reported by `valgrind`
-
-we might solve this problem by introducing an internal type of variant, called
-PHANTOM...
 
