@@ -353,9 +353,13 @@ void pctree_node_remove(struct pctree_node* node);
 static inline struct pctree_node*
 pctree_first_post_order(struct pctree_node *node)
 {
-    while (node && node->first_child) {
+    if (!node)
+        return NULL;
+
+    while (node->first_child) {
         node = node->first_child;
     };
+
     return node;
 }
 
@@ -366,28 +370,28 @@ pctree_first_post_order(struct pctree_node *node)
 static inline struct pctree_node*
 pctree_next_post_order(struct pctree_node *node)
 {
-    if (node->next) {
-        node = pctree_first_post_order(node->next);
-    } else {
-        node = node->parent;
-    }
-    return node;
+    if (!node)
+        return NULL;
+
+    if (node->next)
+        return pctree_first_post_order(node->next);
+
+    return node->parent;
 }
 
 /*
  * Loop over a block of nodes of the tree/subtree in post_order,
  * used similar to a for() command.
  * @param _top: top node of tree/subtree
- * @param _node: current node that is looped in this iterate
- * @param _next: next node that is to be looped after this iterate,
- *               can be uninitialized before looping
+ * @param _p:   current node that is looped in this iterate
+ * @param _n:   next node that is to be looped after this iterate,
+ *              can be uninitialized before looping
  */
-#define pctree_for_each_post_order(_top, _node, _next)              \
-    for (_node = pctree_first_post_order(_top);                     \
-         _node && ({_next = (_node==_top) ?                         \
-                       NULL :                                       \
-                       pctree_next_post_order(_node), 1; });        \
-         _node = _next)
+#define pctree_for_each_post_order(_top, _p, _n)                 \
+    for (_p = pctree_first_post_order(_top);                     \
+         _n = (_p == _top) ? NULL : pctree_next_post_order(_p),  \
+         _p;                                                     \
+         _p = _n)
 
 
 /*

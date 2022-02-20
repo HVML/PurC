@@ -422,7 +422,8 @@ TEST(tree, pod)
     purc_rwstream_seek (rws, 0, SEEK_SET);
     memset(buf, 0, sizeof(buf));
     ASSERT_EQ(nodes[1].node.next, &nodes[2].node);
-    pctree_for_each_post_order(&nodes[0].node, node, next) {
+    struct pctree_node *top = &nodes[0].node;
+    pctree_for_each_post_order(top, node, next) {
         char tmp[1000] = {0};
         struct number_node *p = container_of(node, struct number_node, node);
         snprintf(tmp, 1000, "%zd ", p->val);
@@ -456,7 +457,8 @@ TEST(tree, pod)
         for (size_t j=0; j<2; ++j) {
             purc_rwstream_seek (rws, 0, SEEK_SET);
             memset(buf, 0, sizeof(buf));
-            pctree_for_each_post_order(&nodes[i].node, node, next) {
+            struct pctree_node *top = &nodes[i].node;
+            pctree_for_each_post_order(top, node, next) {
                 char tmp[1000] = {0};
                 struct number_node *p = container_of(node, struct number_node, node);
                 snprintf(tmp, 1000, "%zd ", p->val);
@@ -681,7 +683,8 @@ static void
 _random_destroy(struct number_node *nodes)
 {
     struct pctree_node *p, *next;
-    pctree_for_each_post_order(&nodes[0].node, p, next) {
+    struct pctree_node *top = &nodes[0].node;
+    pctree_for_each_post_order(top, p, next) {
         pctree_node_remove(p);
     }
     free(nodes);
@@ -780,7 +783,8 @@ TEST(tree, random)
     purc_rwstream_destroy(rws);
 
     rws = purc_rwstream_new_buffer(1024, 1024*1024);
-    pctree_for_each_post_order(&nodes->node, n, next) {
+    struct pctree_node *top = &nodes->node;
+    pctree_for_each_post_order(top, n, next) {
         char tmp[64] = {0};
         struct number_node *p = container_of(n, struct number_node, node);
         snprintf(tmp, sizeof(tmp), "%zd ", p->val);
