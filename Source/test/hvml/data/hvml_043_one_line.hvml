@@ -1,0 +1,1 @@
+<hvml><body><archetype name='test'><div>hello</div></archetype><div id='owner'></div><update on='#owner' at='textContent' to='append' with="$test"/></body></hvml>

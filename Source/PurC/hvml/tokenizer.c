@@ -2097,6 +2097,11 @@ BEGIN_STATE(HVML_EJSON_CONTROL_STATE)
         }
         RECONSUME_IN(HVML_EJSON_FINISHED_STATE);
     }
+    if (character == '/') {
+        if (ejson_stack_is_empty() && parser->vcm_node) {
+            RECONSUME_IN(HVML_EJSON_FINISHED_STATE);
+        }
+    }
     if (character == '(') {
         ADVANCE_TO(HVML_EJSON_LEFT_PARENTHESIS_STATE);
     }
