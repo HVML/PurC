@@ -41,6 +41,7 @@ struct pcinst {
     int lineno;
     const char *func;
 
+    /* FIXME: enable the fields only NDEBUG is undefined */
 #if OS(LINUX)                      /* { */
     void *c_stacks[64];
     int   nr_stacks;
@@ -55,8 +56,12 @@ struct pcinst {
     pcutils_map* local_data_map;
 
     struct pcvariant_heap variant_heap;
-    struct pcexecutor_heap executor_heap;
 
+    struct pcrdr_conn *conn_to_rdr;
+
+    /* FIXME: dynamically allocate the following heaps
+       when HVML moduel is enabled. */
+    struct pcexecutor_heap executor_heap;
     struct pcintr_heap    intr_heap;
 };
 

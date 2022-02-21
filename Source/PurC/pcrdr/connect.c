@@ -49,7 +49,7 @@
 #include <sys/un.h>
 #include <sys/time.h>
 
-struct _pcrdr_conn {
+struct pcrdr_conn {
     int type;
     int fd;
     int last_ret_code;

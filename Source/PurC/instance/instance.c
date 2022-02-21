@@ -254,6 +254,7 @@ int purc_init_ex(unsigned int modules,
         const purc_instance_extra_info* extra_info)
 {
     struct pcinst* curr_inst;
+    int ret;
 
     _modules = modules;
     init_once();
@@ -268,6 +269,7 @@ int purc_init_ex(unsigned int modules,
     if (curr_inst->app_name)
         return PURC_ERROR_DUPLICATED;
 
+    ret = PURC_ERROR_OK;
     curr_inst->errcode = PURC_ERROR_OK;
     if (app_name)
         curr_inst->app_name = strdup(app_name);
@@ -293,8 +295,10 @@ int purc_init_ex(unsigned int modules,
 
     if (curr_inst->app_name == NULL ||
             curr_inst->runner_name == NULL ||
-            curr_inst->local_data_map == NULL)
+            curr_inst->local_data_map == NULL) {
+        ret = PURC_ERROR_OUT_OF_MEMORY;
         goto failed;
+    }
 
     // TODO: init other fields
 
@@ -314,8 +318,14 @@ int purc_init_ex(unsigned int modules,
         pcintr_stack_init_instance(curr_inst);
     }
 
-    /* TODO: connnect to renderer */
-    UNUSED_PARAM(extra_info);
+    /* connnect to renderer */
+    curr_inst->conn_to_rdr = NULL;
+    if ((modules & PURC_HAVE_PCRDR) &&
+            extra_info && extra_info->renderer_uri) {
+        if ((ret = pcrdr_init_instance(curr_inst, extra_info))) {
+            goto failed;
+        }
+    }
 
     // default disable remote fetcher
     pcfetcher_init(FETCHER_MAX_CONNS, FETCHER_CACHE_QUOTA,
@@ -325,7 +335,7 @@ int purc_init_ex(unsigned int modules,
 failed:
     cleanup_instance(curr_inst);
 
-    return PURC_ERROR_OUT_OF_MEMORY;
+    return ret;
 }
 
 bool purc_cleanup(void)
@@ -336,6 +346,11 @@ bool purc_cleanup(void)
         curr_inst = PURC_GET_THREAD_LOCAL(inst);
         if (curr_inst == NULL || curr_inst->app_name == NULL)
             return false;
+
+        /* disconnnect from the renderer */
+        if (_modules & PURC_HAVE_PCRDR && curr_inst->conn_to_rdr) {
+            pcrdr_cleanup_instance(curr_inst);
+        }
 
         // TODO: clean up other fields in reverse order
         if (_modules & PURC_HAVE_HVML) {

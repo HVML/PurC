@@ -42,7 +42,21 @@
 #include "purc-pcrdr.h"
 
 typedef struct purc_instance_extra_info {
+    /*
+     * UNIX domain socket: unix:///var/tmp/xxx.sock
+     * WebSocket: ws://foo.bar.com:8877
+     * Secured WebSocket: wss://foo.bar.com:8877
+     *
+     * Note that only UNIX domain socket is supported so far.
+     */
     const char *renderer_uri;
+
+    /* the SSL certification if using Secured WebSocket */
+    const char *ssl_cert;
+
+    /* the SSL key if using Secured WebSocket */
+    const char *ssl_key;
+
     bool enable_remote_fetcher;
 } purc_instance_extra_info;
 

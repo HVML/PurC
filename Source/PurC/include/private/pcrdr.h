@@ -33,7 +33,12 @@
 extern "C" {
 #endif  /* __cplusplus */
 
-void pcrdr_init_once (void) WTF_INTERNAL;
+void pcrdr_init_once(void) WTF_INTERNAL;
+
+int pcrdr_init_instance(struct pcinst* inst,
+        const purc_instance_extra_info *extra_info) WTF_INTERNAL;
+
+void pcrdr_cleanup_instance(struct pcinst* inst) WTF_INTERNAL;
 
 #ifdef __cplusplus
 }

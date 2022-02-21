@@ -142,11 +142,11 @@ enum {
     PT_BINARY,
 };
 
-struct _pcrdr_msg;
-typedef struct _pcrdr_msg pcrdr_msg;
+struct pcrdr_msg;
+typedef struct pcrdr_msg pcrdr_msg;
 
-struct _pcrdr_conn;
-typedef struct _pcrdr_conn pcrdr_conn;
+struct pcrdr_conn;
+typedef struct pcrdr_conn pcrdr_conn;
 
 PCA_EXTERN_C_BEGIN
 
@@ -649,7 +649,7 @@ typedef enum {
     PCRDR_MSG_DATA_TYPE_TEXT,
 } pcrdr_msg_data_type;
 
-struct _pcrdr_msg {
+struct pcrdr_msg {
     pcrdr_msg_type          type;
     pcrdr_msg_target        target;
     pcrdr_msg_element_type  elementType;

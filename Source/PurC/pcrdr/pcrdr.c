@@ -56,3 +56,30 @@ void pcrdr_init_once(void)
     pcinst_register_error_message_segment(&_pcrdr_err_msgs_seg);
 }
 
+#define SCHEMA_UNIX_SOCKET  "unix://"
+
+int pcrdr_init_instance(struct pcinst* inst,
+        const purc_instance_extra_info *extra_info)
+{
+    // TODO: only UNIX domain socket supported so far */
+    if (strncasecmp (SCHEMA_UNIX_SOCKET, extra_info->renderer_uri,
+                sizeof(SCHEMA_UNIX_SOCKET) - 1)) {
+        return PURC_ERROR_NOT_SUPPORTED;
+    }
+
+    int cnnfd = pcrdr_connect_via_unix_socket(
+            extra_info->renderer_uri + sizeof(SCHEMA_UNIX_SOCKET) - 1,
+            inst->app_name, inst->runner_name, &inst->conn_to_rdr);
+
+    if (cnnfd < 0)
+        return purc_get_last_error();
+
+    return PURC_ERROR_OK;
+}
+
+void pcrdr_cleanup_instance(struct pcinst* inst)
+{
+    if (inst->conn_to_rdr)
+        pcrdr_disconnect (inst->conn_to_rdr);
+}
+
