@@ -35,6 +35,12 @@
 #include <time.h>
 #include <errno.h>
 #include <assert.h>
+
+#if OS(LINUX) || OS(UNIX)
+#else
+#error "Not supported OS"
+#endif
+
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -169,23 +175,6 @@ int pcrdr_connect_via_unix_socket (const char* path_to_socket,
 
     pcutils_kvlist_init (&(*conn)->call_list, NULL);
 
-#if 0
-    /* try to read challenge code */
-    if ((err_code = get_challenge_code (*conn, &ch_code)))
-        goto error;
-
-    if ((err_code = send_auth_info (*conn, ch_code))) {
-        goto error;
-    }
-
-    free (ch_code);
-    ch_code = NULL;
-
-    if ((err_code = check_auth_result (*conn))) {
-        goto error;
-    }
-#endif
-
     return fd;
 
 error:
@@ -202,7 +191,8 @@ error:
     free (*conn);
     *conn = NULL;
 
-    return err_code;
+    purc_set_error (err_code);
+    return -1;
 }
 
 int pcrdr_connect_via_web_socket (const char* host_name, int port,
@@ -214,7 +204,8 @@ int pcrdr_connect_via_web_socket (const char* host_name, int port,
     UNUSED_PARAM(runner_name);
     UNUSED_PARAM(conn);
 
-    return PCRDR_ERROR_NOT_IMPLEMENTED;
+    purc_set_error (PCRDR_ERROR_NOT_IMPLEMENTED);
+    return -1;
 }
 
 const char* pcrdr_conn_srv_host_name (pcrdr_conn* conn)
@@ -307,6 +298,11 @@ int pcrdr_disconnect (pcrdr_conn* conn)
     }
 
     pcrdr_free_connection (conn);
+
+    if (err_code) {
+        purc_set_error (err_code);
+        err_code = -1;
+    }
 
     return err_code;
 }
@@ -424,6 +420,11 @@ int pcrdr_read_packet (pcrdr_conn* conn, char* packet_buf, size_t *sz_packet)
     }
 
 done:
+    if (err_code) {
+        purc_set_error (err_code);
+        err_code = -1;
+    }
+
     return err_code;
 }
 
@@ -568,8 +569,10 @@ done:
     if (err_code) {
         if (packet_buf)
             free (packet_buf);
+
         *packet = NULL;
-        return err_code;
+        purc_set_error (err_code);
+        return -1;
     }
 
     *packet = packet_buf;
@@ -654,6 +657,11 @@ int pcrdr_ping_server (pcrdr_conn* conn)
         err_code = PCRDR_ERROR_INVALID_VALUE;
     }
 
+    if (err_code) {
+        purc_set_error (err_code);
+        err_code = -1;
+    }
+
     return err_code;
 }
 
@@ -702,6 +710,11 @@ done:
     if (msg)
         pcrdr_release_message (msg);
 
+    if (err_code) {
+        purc_set_error (err_code);
+        err_code = -1;
+    }
+
     return err_code;
 }
 
@@ -732,6 +745,11 @@ int pcrdr_wait_and_dispatch_packet (pcrdr_conn* conn, int timeout_ms)
     }
     else {
         err_code = PCRDR_ERROR_TIMEOUT;
+    }
+
+    if (err_code) {
+        purc_set_error (err_code);
+        err_code = -1;
     }
 
     return err_code;

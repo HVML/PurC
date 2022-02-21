@@ -205,20 +205,6 @@ PCA_EXPORT const char *
 pcrdr_get_ret_message(int ret_code);
 
 /**
- * Get the error message of an error code.
- *
- * @param err_code: the error code.
- *
- * Returns the pointer to the message string of the specific error code.
- *
- * Returns: a pointer to the message string.
- *
- * Since: 0.1.0
- */
-PCA_EXPORT const char *
-pcrdr_get_err_message(int err_code);
-
-/**
  * Convert an error code to a return code.
  *
  * @param err_code: the internal error code of PurCRDR.
@@ -230,7 +216,7 @@ pcrdr_get_err_message(int err_code);
  *
  * Since: 0.1.0
  */
-PCA_EXPORT int 
+PCA_EXPORT int
 pcrdr_errcode_to_retcode(int err_code);
 
 /**
@@ -347,7 +333,7 @@ pcrdr_get_elapsed_seconds(const struct timespec *ts1,
  *
  * Connects to a PurCRDR server via WebSocket.
  *
- * Returns: the error code; zero means everything is ok.
+ * Returns: -1 for error; zero means everything is ok.
  *
  * Since: 0.1.0
  */
@@ -366,7 +352,7 @@ pcrdr_connect_via_unix_socket(const char *path_to_socket,
  *
  * Connects to a PurCRDR server via WebSocket.
  *
- * Returns: the error code; zero means everything is ok.
+ * Returns: -1 for error; zero means everything is ok.
  *
  * Note that this function is not implemented so far.
  */
@@ -381,7 +367,7 @@ pcrdr_connect_via_web_socket(const char *srv_host_name, int port,
  *
  * Disconnects the purcrdr connection.
  *
- * Returns: the error code; zero means everything is ok.
+ * Returns: -1 for error; zero means everything is ok.
  *
  * Since: 0.1.0
  */
@@ -395,7 +381,7 @@ pcrdr_disconnect(pcrdr_conn* conn);
  *
  * Frees the space used by the connection, including the connection itself.
  *
- * Returns: the error code; zero means everything is ok.
+ * Returns: -1 for error; zero means everything is ok.
  *
  * Since: 0.1.0
  */
@@ -562,7 +548,7 @@ pcrdr_conn_socket_type(pcrdr_conn* conn);
  * Reads a packet and saves the contents of the packet and returns
  * the length of the packet.
  *
- * Returns: the error code; zero means everything is ok.
+ * Returns: -1 for error; zero means everything is ok.
  *
  * Note that use this function only if you know the length of
  * the next packet, and have a long enough buffer to save the
@@ -588,7 +574,7 @@ pcrdr_read_packet(pcrdr_conn* conn, char* packet_buf, size_t *sz_packet);
  * Reads a packet and allocates a buffer for the contents of the packet
  * and returns the contents and the length.
  *
- * Returns: the error code; zero means everything is ok.
+ * Returns: -1 for error; zero means everything is ok.
  *
  * Note that the caller is responsible for releasing the buffer.
  *
@@ -609,7 +595,7 @@ pcrdr_read_packet_alloc(pcrdr_conn* conn, void **packet, size_t *sz_packet);
  *
  * Sends a text packet to the PurCRDR server.
  *
- * Returns: the error code; zero means everything is ok.
+ * Returns: -1 for error; zero means everything is ok.
  *
  * Since: 0.1.0
  */
@@ -627,7 +613,7 @@ pcrdr_send_text_packet(pcrdr_conn* conn, const char *text, size_t txt_len);
  * a client died if there was no any data from the client
  * for 90 seconds.
  *
- * Returns: the error code; zero means everything is ok.
+ * Returns: -1 for error; zero means everything is ok.
  *
  * Since: 0.1.0
  */
@@ -758,7 +744,7 @@ pcrdr_make_event_message(
  * @param sz_packet: the size of the packet.
  * @param msg: The pointer to a pointer to return the parsed message object.
  *
- * Returns: the error code; zero means everything is ok.
+ * Returns: -1 for error; zero means everything is ok.
  *
  * Note that this function may change the content in \a packet.
  *
@@ -776,7 +762,7 @@ typedef ssize_t (*cb_write)(void *ctxt, const void *buf, size_t count);
  * @param fn: the callback to write characters.
  * @param ctxt: the context will be passed to fn.
  *
- * Returns: the error code; zero means everything is ok.
+ * Returns: -1 for error; zero means everything is ok.
  *
  * Since: 0.1.0
  */
@@ -854,7 +840,7 @@ typedef int (*pcrdr_result_handler)(pcrdr_conn* conn,
  * returns immediately. The result handler will be called
  * in subsequent calls of \a pcrdr_read_and_dispatch_packet().
  *
- * Returns: the error code; zero means everything is ok.
+ * Returns: -1 for error; zero means everything is ok.
  *
  * Since: 0.1.0
  */
@@ -872,7 +858,7 @@ pcrdr_send_request(pcrdr_conn* conn, pcrdr_msg *request_msg,
  *
  * This function send a request to the server and wait for the result.
  *
- * Returns: the error code; zero means everything is ok.
+ * Returns: -1 for error; zero means everything is ok.
  *
  * Since: 0.1.0
  */
@@ -888,7 +874,7 @@ pcrdr_send_request_and_wait(pcrdr_conn* conn, const pcrdr_msg *request_msg,
  * This function read a PurCRDR packet and dispatches the packet to
  * a event handler, method handler, or result handler.
  *
- * Returns: the error code; zero means everything is ok.
+ * Returns: -1 for error; zero means everything is ok.
  *
  * Since: 0.1.0
  */
@@ -905,7 +891,7 @@ pcrdr_read_and_dispatch_packet(pcrdr_conn* conn);
  * and dispatches the packet to event handlers, method handlers,
  * or result handlers.
  *
- * Returns: the error code; zero means everything is ok.
+ * Returns: -1 for error; zero means everything is ok.
  *
  * Note that if you need watching multiple file descriptors, you'd
  * better user \a pcrdr_read_and_dispatch_packet.
