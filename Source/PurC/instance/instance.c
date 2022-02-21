@@ -481,6 +481,16 @@ purc_bind_document_variable(purc_vdom_t vdom, const char* name,
     return pcvdom_document_bind_variable(vdom, name, variant);
 }
 
+struct pcrdr_conn *
+purc_get_conn_to_renderer(void)
+{
+    struct pcinst* inst = pcinst_current();
+    if (inst == NULL)
+        return NULL;
+
+    return inst->conn_to_rdr;
+}
+
 #if 0
 bool
 purc_unbind_document_variable(purc_vdom_t vdom, const char* name)

@@ -74,6 +74,8 @@ int pcrdr_init_instance(struct pcinst* inst,
     if (cnnfd < 0)
         return purc_get_last_error();
 
+    // TODO: send the initial request to the renderer
+
     return PURC_ERROR_OK;
 }
 

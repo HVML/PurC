@@ -344,6 +344,19 @@ typedef struct purc_window_info {
 } purc_window_info;
 
 /**
+ * purc_get_conn_to_renderer:
+ *
+ * Retrieve the connection to the renderer of the current PurC instance
+ * if the current instance was connected to the renderer via PCRDR protocol.
+ *
+ * Returns: the pointer to the connection structure.
+ *
+ * Since 0.1.0
+ */
+PCA_EXPORT struct pcrdr_conn *
+purc_get_conn_to_renderer(void);
+
+/**
  * purc_attach_vdom_to_renderer:
  *
  * @vdom: The vDOM entity returned by @purc_load_hvml_from_rwstream or
