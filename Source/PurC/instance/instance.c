@@ -39,6 +39,7 @@
 #include "private/executor.h"
 #include "private/atom-buckets.h"
 #include "private/fetcher.h"
+#include "private/pcrdr.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -176,10 +177,15 @@ static void init_modules_once(void)
         if (_modules & PURC_HAVE_EJSON) {
             pcejson_init_once();
         }
+
         if (_modules & PURC_HAVE_HVML) {
             pcdvobjs_init_once();
             pcexecutor_init_once();
             pcintr_stack_init_once();
+        }
+
+        if (_modules & PURC_HAVE_PCRDR) {
+            pcrdr_init_once();
         }
     }
 }
@@ -297,8 +303,11 @@ int purc_init_ex(unsigned int modules,
     pchtml_init_instance(curr_inst); */
 
     // TODO: init XML modules here
+
     pcvariant_init_instance(curr_inst);
+
     // TODO: init XGML modules here
+
     if (modules & PURC_HAVE_HVML) {
         pcdvobjs_init_instance(curr_inst);
         pcexecutor_init_instance(curr_inst);
@@ -307,6 +316,7 @@ int purc_init_ex(unsigned int modules,
 
     /* TODO: connnect to renderer */
     UNUSED_PARAM(extra_info);
+
     // default disable remote fetcher
     pcfetcher_init(FETCHER_MAX_CONNS, FETCHER_CACHE_QUOTA,
             (extra_info && extra_info->enable_remote_fetcher));

@@ -1,0 +1,64 @@
+OUTPUT_FILE=pcrdr_err_msgs.inc
+OUTPUT_VAR=pcrdr_err_msgs
+PREFIX=PCRDR_ERROR
+
+Io
+    except: IOFailure
+    flags: None
+    msg: "IO Error"
+
+PeerClosed
+    except: BrokenPipe
+    flags: None
+    msg: "Peer Closed"
+
+Protocol
+    except: NotDesiredEntity
+    flags: None
+    msg: "Bad Protocol"
+
+AuthFailed
+    except: AccessDenied
+    flags: None
+    msg: "Authentication Failed"
+
+ServerRefused
+    except: ConnectionRefused
+    flags: None
+    msg: "Server Refused"
+
+ServerError
+    except: ConnectionReset
+    flags: None
+    msg: "Server Error"
+
+UnknownRequest
+    except: NotDesiredEntity
+    flags: None
+    msg: "Unknown Request"
+
+UnknownEvent
+    except: NotDesiredEntity
+    flags: None
+    msg: "Unknown Event"
+
+BadMessage
+    except: NotDesiredEntity
+    flags: None
+    msg: "Bad Message"
+
+BadConnection
+    except: ConnectionAborted
+    flags: None
+    msg: "Bad Connection"
+
+Timeout
+    except: Timeout
+    flags: None
+    msg: "Timeout"
+
+Unexpected
+    except: NotDesiredEntity
+    flags: None
+    msg: "Unexpected"
+

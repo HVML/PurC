@@ -39,6 +39,7 @@
 #include "purc-variant.h"
 #include "purc-dom.h"
 #include "purc-html.h"
+#include "purc-pcrdr.h"
 
 typedef struct purc_instance_extra_info {
     const char *renderer_uri;
@@ -55,6 +56,7 @@ PCA_EXTERN_C_BEGIN
 #define PURC_HAVE_EJSON         0x0020
 #define PURC_HAVE_XGML          0x0040
 #define PURC_HAVE_HVML          0x0080
+#define PURC_HAVE_PCRDR         0x0100
 
 #define PURC_MODULE_UTILS      (PURC_HAVE_UTILS)
 #define PURC_MODULE_DOM        (PURC_MODULE_UTILS    | PURC_HAVE_DOM)
@@ -64,6 +66,7 @@ PCA_EXTERN_C_BEGIN
 #define PURC_MODULE_EJSON      (PURC_MODULE_VARIANT  | PURC_HAVE_EJSON)
 #define PURC_MODULE_XGML       (PURC_MODULE_EJSON    | PURC_HAVE_XGML)
 #define PURC_MODULE_HVML       (PURC_MODULE_EJSON    | PURC_HAVE_HVML)
+#define PURC_MODULE_PCRDR      (PURC_MODULE_EJSON    | PURC_HAVE_PCRDR)
 #define PURC_MODULE_ALL         0xFFFF
 
 /**
@@ -78,6 +81,7 @@ PCA_EXTERN_C_BEGIN
  *  - @PURC_MODULE_VARIANT: Variant.
  *  - @PURC_MODULE_EJSON: eJSON parser.
  *  - @PURC_MODULE_XGML: XGML Parser (not implemented).
+ *  - @PURC_MODULE_PCRDR: PCRDR protocol.
  *  - @PURC_MODULE_ALL: All modules including HVML parser and interpreter.
  * @app_name: a pointer to the string contains the app name.
  *      If this argument is null, the executable program name of the command
