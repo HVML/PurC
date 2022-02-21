@@ -153,7 +153,10 @@ static const char *calculator_2 =
     "                </h2>"
     "                <observe on=\"$TIMERS\" for=\"expired:clock\">"
     "                    <update on=\"#clock\" at=\"textContent\" with=\"$SYSTEM.time('%H:%M:%S')\" />"
-    "<choose on=\"foo\" by=\"this is to throw exception intentionally\" />"
+    "                    <update on=\"$TIMERS\" to=\"overwrite\">"
+    "                       { \"id\" : \"clock\", \"active\" : \"no\" }"
+    "                    </update>"
+    "                    <forget on=\"$TIMERS\" for=\"expired:clock\"/>"
     "                </observe>"
     "            </div>"
     "        </div>"
@@ -402,7 +405,14 @@ static const char *calculator_4 =
     "                                <catch for='*'>"
     "                                    <update on=\"#expression\" at=\"attr.value\" with=\"ERR\" />"
     "                                </catch>"
-    "<choose on=\"foo\" by=\"this is to throw exception intentionally\" />"
+    "                                <update on=\"$TIMERS\" to=\"overwrite\">"
+    "                                    { \"id\" : \"input\", \"active\" : \"no\" }"
+    "                                </update>"
+    "                                <update on=\"$TIMERS\" to=\"overwrite\">"
+    "                                    { \"id\" : \"clock\", \"active\" : \"no\" }"
+    "                                </update>"
+    "                                <forget on=\"$TIMERS\" for=\"expired:clock\"/>"
+    "                                <forget on=\"$TIMERS\" for=\"expired:input\"/>"
     "                            </choose>"
     "                        </match>"
     ""
@@ -731,37 +741,37 @@ TEST(interpreter, basic)
     (void)fibonacci_1;
 
     const char *hvmls[] = {
-        "<hvml>"
-        "  <head>"
-        "  </head>"
-        "  <body>"
-        "    <div>"
-        "      foo"
-        "      <archetype name=\"foo\"><hoo><bar></bar><foobar>ddddddddddddddddddddddddddd</foobar></hoo></archetype>"
-        "      bar"
-        "      <update on=\"$@\" to=\"append\" with=\"$foo\" />"
-        "    </div>"
-        "    world"
-        "  </body>"
-        "</hvml>",
-        "<hvml><head x=\"y\"><xinit a=\"b\">world<!--yes-->solid</xinit></head><body><timeout1/><timeout3/></body></hvml>",
-        "<hvml><head x=\"y\">hello<xinit a=\"b\">w<timeout3/>orld<!--yes-->solid</xinit></head><body><timeout1/></body></hvml>",
-        "<hvml><body><timeout1/><timeout9/><timeout2/></body></hvml>",
-        "<hvml><body><xtest a='b'>hello<!--yes--></xtest></body></hvml>",
-        "<hvml><body><archetype name=\"$?.button\"><li class=\"class\">letters</li></archetype></body></hvml>",
-        "<hvml><body><archetype name=\"button\"><li class=\"class\">letters</li></archetype></body></hvml>",
-        "<hvml><body><a><b><c></c></b></a></body></hvml>",
-        calculator_1,
-        calculator_2,
-        // calculator_3,
+        // "<hvml>"
+        // "  <head>"
+        // "  </head>"
+        // "  <body>"
+        // "    <div>"
+        // "      foo"
+        // "      <archetype name=\"foo\"><hoo><bar></bar><foobar>ddddddddddddddddddddddddddd</foobar></hoo></archetype>"
+        // "      bar"
+        // "      <update on=\"$@\" to=\"append\" with=\"$foo\" />"
+        // "    </div>"
+        // "    world"
+        // "  </body>"
+        // "</hvml>",
+        // "<hvml><head x=\"y\"><xinit a=\"b\">world<!--yes-->solid</xinit></head><body><timeout1/><timeout3/></body></hvml>",
+        // "<hvml><head x=\"y\">hello<xinit a=\"b\">w<timeout3/>orld<!--yes-->solid</xinit></head><body><timeout1/></body></hvml>",
+        // "<hvml><body><timeout1/><timeout9/><timeout2/></body></hvml>",
+        // "<hvml><body><xtest a='b'>hello<!--yes--></xtest></body></hvml>",
+        // "<hvml><body><archetype name=\"$?.button\"><li class=\"class\">letters</li></archetype></body></hvml>",
+        // "<hvml><body><archetype name=\"button\"><li class=\"class\">letters</li></archetype></body></hvml>",
+        // "<hvml><body><a><b><c></c></b></a></body></hvml>",
+        // calculator_1,
+        // calculator_2,
+        // // calculator_3,
         calculator_4,
-        sample1,
-        // sample2,
-        fibonacci_1,
-        buggy1,
-        buggy2,
-        buggy3,
-        buggy4,
+        // sample1,
+        // // sample2,
+        // fibonacci_1,
+        // buggy1,
+        // buggy2,
+        // buggy3,
+        // buggy4,
     };
 
     // enable for calculator2/3/4
