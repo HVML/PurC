@@ -1303,7 +1303,7 @@ del_observer_from_list(struct pcutils_arrlist* list,
         pcintr_stack_t stack = purc_get_stack();
         PC_ASSERT(stack);
         PC_ASSERT(stack->co.waits >= 1);
-        stack->co.waits++;
+        stack->co.waits--;
     }
 }
 
