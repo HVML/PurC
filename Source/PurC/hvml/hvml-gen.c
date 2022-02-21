@@ -106,7 +106,7 @@ vgim_to_string(struct pcvdom_gen *gen)
 #ifndef FAIL_RET
 #define FAIL_RET()                                                \
     do {                                                          \
-        D("%s[%s] @ %s: fail_ret",                                \
+        _D("%s[%s] @ %s: fail_ret",                                \
             vtt_to_string(token),                                 \
             pchvml_token_get_name(token),                         \
             vgim_to_string(gen));                                 \

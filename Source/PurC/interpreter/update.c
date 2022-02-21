@@ -208,7 +208,7 @@ merge_object(pcintr_stack_t stack,
         return 0;
     }
 
-    D("s_at: %s", s_at);
+    _D("s_at: %s", s_at);
     PC_ASSERT(0);
     return -1;
 }
@@ -241,7 +241,7 @@ displace_object(pcintr_stack_t stack,
         return 0;
     }
 
-    D("s_at: %s", s_at);
+    _D("s_at: %s", s_at);
     PC_ASSERT(0);
     return -1;
 }
@@ -265,7 +265,7 @@ update_object(pcintr_stack_t stack,
         return displace_object(stack, on, at, src);
     }
 
-    D("s_to: %s", s_to);
+    _D("s_to: %s", s_to);
     PC_ASSERT(0);
     return -1;
 }
@@ -428,7 +428,7 @@ update_set(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         }
         return 0;
     }
-    D("op: %s", op);
+    _D("op: %s", op);
     PC_ASSERT(0); // Not implemented yet
     return -1;
 }
@@ -446,7 +446,7 @@ update_target_content(pcintr_stack_t stack, pcdom_element_t *target,
         if (strcmp(to, "displace") == 0) {
             return pcintr_util_set_child(target, "%s", s);
         }
-        D("to: %s", to);
+        _D("to: %s", to);
         PC_ASSERT(0);
         return -1;
     }
@@ -468,7 +468,7 @@ update_target_attr(pcintr_stack_t stack, pcdom_element_t *target,
         if (strcmp(to, "displace") == 0) {
             return pcintr_util_set_attribute(target, at, s);
         }
-        D("to: %s", to);
+        _D("to: %s", to);
         PC_ASSERT(0);
         return -1;
     }

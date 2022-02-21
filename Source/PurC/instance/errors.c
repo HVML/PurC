@@ -69,7 +69,7 @@ int purc_set_error_exinfo_with_debug(int errcode, purc_variant_t exinfo,
         const char *file, int lineno, const char *func)
 {
     if (errcode) {
-        D("%s[%d]:%s(): %d", basename((char*)file), lineno, func, errcode);
+        _D("%s[%d]:%s(): %d", basename((char*)file), lineno, func, errcode);
         if (TO_DEBUG) {
             if (exinfo != PURC_VARIANT_INVALID)
                 PRINT_VARIANT(exinfo);
@@ -99,7 +99,7 @@ int purc_set_error_exinfo_with_debug(int errcode, purc_variant_t exinfo,
         const struct err_msg_info* info = get_error_info(errcode);
         if (info == NULL ||
                 ((info->flags & PURC_EXCEPT_FLAGS_REQUIRED) && !exinfo)) {
-            D("%s[%d]:%s(): %d", basename((char*)file), lineno, func, errcode);
+            _D("%s[%d]:%s(): %d", basename((char*)file), lineno, func, errcode);
             return PURC_ERROR_INVALID_VALUE;
         }
         stack->error_except = info->except_atom;

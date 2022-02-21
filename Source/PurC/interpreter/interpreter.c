@@ -534,7 +534,7 @@ walk_attr(void *key, void *val, void *ud)
             purc_variant_is_undefined(value))
         {
             if (0) {
-                D("attr name: %s", attr->key);
+                _D("attr name: %s", attr->key);
                 PRINT_VCM_NODE(vcm);
             }
             if (value != PURC_VARIANT_INVALID)
@@ -836,7 +836,7 @@ execute_one_step(pcintr_coroutine_t co)
             return;
         }
         co->state = CO_STATE_TERMINATED;
-        D("co terminating: %p", co);
+        _D("co terminating: %p", co);
     }
     else {
         frame = pcintr_stack_get_bottom_frame(stack);
@@ -1833,7 +1833,7 @@ pcintr_util_comp_docs(pchtml_html_document_t *docl,
     if (pl && pr) {
         *diff = strcmp(pl, pr);
         if (*diff) {
-            D("diff:\n%s\n%s", pl, pr);
+            _D("diff:\n%s\n%s", pl, pr);
         }
         err = 0;
     }
