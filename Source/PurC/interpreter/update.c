@@ -140,7 +140,7 @@ merge_object(pcintr_stack_t stack,
         return 0;
     }
 
-    D("s_at: %s", s_at);
+    _D("s_at: %s", s_at);
     PC_ASSERT(0);
     return -1;
 }
@@ -173,7 +173,7 @@ displace_object(pcintr_stack_t stack,
         return 0;
     }
 
-    D("s_at: %s", s_at);
+    _D("s_at: %s", s_at);
     PC_ASSERT(0);
     return -1;
 }
@@ -197,7 +197,7 @@ update_object(pcintr_stack_t stack,
         return displace_object(stack, on, at, src);
     }
 
-    D("s_to: %s", s_to);
+    _D("s_to: %s", s_to);
     PC_ASSERT(0);
     return -1;
 }
@@ -347,7 +347,7 @@ update_set(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
             (void)curr;
             char buf[1024];
             pcvariant_serialize(buf, sizeof(buf), v);
-            D("v: %s", buf);
+            _D("v: %s", buf);
             bool ok = purc_variant_set_add(on, v, true);
             if (!ok)
                 return -1;
@@ -383,7 +383,7 @@ update_set(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 #endif
         return 0;
     }
-    D("op: %s", op);
+    _D("op: %s", op);
     PC_ASSERT(0); // Not implemented yet
     return -1;
 }
@@ -426,7 +426,7 @@ update_element_content(pcintr_stack_t stack,
         return 0;
     }
 
-    D("to: %s", to);
+    _D("to: %s", to);
     PC_ASSERT(0);
     return -1;
 }
@@ -470,11 +470,11 @@ update_element_attr(pcintr_stack_t stack,
             pcintr_dump_edom_node(stack, pcdom_interface_node(target));
             return r ? -1 : 0;
         }
-        D("op: 0x%x", ctxt->src_op);
+        _D("op: 0x%x", ctxt->src_op);
         PC_ASSERT(0);
     }
 
-    D("to: %s", to);
+    _D("to: %s", to);
     PC_ASSERT(0);
     return -1;
 }

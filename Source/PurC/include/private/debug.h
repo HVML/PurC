@@ -31,6 +31,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <stdbool.h>
+#include <libgen.h> /* for `basename` */
 
 #ifdef __cplusplus
 extern "C" {
@@ -108,5 +109,15 @@ void pcutils_info(const char *msg, ...) WTF_INTERNAL
         pcutils_info(x, ##__VA_ARGS__)
 
 #endif /* defined NDEBUG */
+
+#ifndef _D            /* { */
+/* for test-case to use, because of WTF_INTERNAL for pcutils_info/error/... */
+#define _D(fmt, ...)                                           \
+    if (TO_DEBUG) {                                           \
+        fprintf(stderr, "%s[%d]:%s(): " fmt "\n",             \
+            basename((char*)__FILE__), __LINE__, __func__,    \
+            ##__VA_ARGS__);                                   \
+    }
+#endif                /* } */
 
 #endif /* PURC_PRIVATE_DEBUG_H */

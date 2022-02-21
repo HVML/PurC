@@ -91,7 +91,7 @@ int purc_set_error_exinfo_with_debug(int errcode, purc_variant_t exinfo,
         const struct err_msg_info* info = get_error_info(errcode);
         if (info == NULL ||
                 ((info->flags & PURC_EXCEPT_FLAGS_REQUIRED) && !exinfo)) {
-            D("%s[%d]:%s(): %d", basename((char*)file), lineno, func, errcode);
+            _D("%s[%d]:%s(): %d", basename((char*)file), lineno, func, errcode);
             return PURC_ERROR_INVALID_VALUE;
         }
         stack->error_except = info->except_atom;
@@ -106,7 +106,7 @@ int purc_set_error_exinfo_with_debug(int errcode, purc_variant_t exinfo,
         stack->except = errcode ? 1 : 0; // FIXME: when to set stack->error???
     }
 
-    D("%s[%d]:%s(): %d", basename((char*)file), lineno, func, errcode);
+    _D("%s[%d]:%s(): %d", basename((char*)file), lineno, func, errcode);
     return PURC_ERROR_OK;
 }
 

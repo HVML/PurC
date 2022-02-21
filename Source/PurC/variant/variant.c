@@ -1452,10 +1452,10 @@ purc_variant_t purc_variant_load_dvobj_from_so (const char *so_name,
     if(!library_handle) {
         purc_set_error_with_info(PURC_ERROR_BAD_SYSTEM_CALL,
                 "failed to load: %s", so);
-        D("failed to load: %s", so);
+        _D("failed to load: %s", so);
         return PURC_VARIANT_INVALID;
     }
-    D("loaded: %s", so);
+    _D("loaded: %s", so);
 
     purc_variant_t (* purcex_load_dynamic_variant)(const char *, int *);
 

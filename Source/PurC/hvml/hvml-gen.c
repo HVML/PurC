@@ -104,7 +104,7 @@ vgim_to_string(struct pcvdom_gen *gen)
 #ifndef FAIL_RET
 #define FAIL_RET()                                                \
     do {                                                          \
-        D("%s[%s] @ %s: fail_ret",                                \
+        _D("%s[%s] @ %s: fail_ret",                                \
             vtt_to_string(token),                                 \
             pchvml_token_get_name(token),                         \
             vgim_to_string(gen));                                 \
@@ -603,7 +603,7 @@ create_empty_hvml(struct pcvdom_gen *gen, struct pchvml_token *token)
 static int
 on_mode_initial(struct pcvdom_gen *gen, struct pchvml_token *token)
 {
-    D("");
+    _D("");
     int r = 0;
     enum pchvml_token_type type = pchvml_token_get_type(token);
     if (type==VTT(_DOCTYPE)) {
@@ -642,7 +642,7 @@ static int
 on_mode_before_hvml(struct pcvdom_gen *gen, struct pchvml_token *token)
 {
     int r = 0;
-    D("");
+    _D("");
     enum pchvml_token_type type = pchvml_token_get_type(token);
     if (type==VTT(_START_TAG)) {
         const char *tag = pchvml_token_get_name(token);
@@ -680,7 +680,7 @@ static int
 on_mode_before_head(struct pcvdom_gen *gen, struct pchvml_token *token)
 {
     int r = 0;
-    D("");
+    _D("");
     enum pchvml_token_type type = pchvml_token_get_type(token);
     if (type==VTT(_START_TAG)) {
         const char *tag = pchvml_token_get_name(token);
@@ -730,7 +730,7 @@ static int
 on_mode_in_head(struct pcvdom_gen *gen, struct pchvml_token *token)
 {
     int r = 0;
-    D("");
+    _D("");
     enum pchvml_token_type type = pchvml_token_get_type(token);
     if (type==VTT(_START_TAG)) {
         struct pcvdom_element *elem;
@@ -845,7 +845,7 @@ static int
 on_mode_after_head(struct pcvdom_gen *gen, struct pchvml_token *token)
 {
     int r = 0;
-    D("");
+    _D("");
     enum pchvml_token_type type = pchvml_token_get_type(token);
     if (type==VTT(_DOCTYPE)) {
         return 0; // just ignore
@@ -892,7 +892,7 @@ static int
 on_mode_in_body(struct pcvdom_gen *gen, struct pchvml_token *token)
 {
     int r = 0;
-    D("");
+    _D("");
     enum pchvml_token_type type = pchvml_token_get_type(token);
     if (type==VTT(_DOCTYPE)) {
         return 0; // just ignore
@@ -1029,7 +1029,7 @@ static int
 on_mode_after_body(struct pcvdom_gen *gen, struct pchvml_token *token)
 {
     int r = 0;
-    D("");
+    _D("");
     enum pchvml_token_type type = pchvml_token_get_type(token);
     if (type==VTT(_DOCTYPE)) {
         return 0; // just ignore
@@ -1070,7 +1070,7 @@ on_mode_after_after_body(struct pcvdom_gen *gen, struct pchvml_token *token)
 {
     int r = 0;
 
-    D("");
+    _D("");
 
     enum pchvml_token_type type = pchvml_token_get_type(token);
 

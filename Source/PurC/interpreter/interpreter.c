@@ -132,7 +132,7 @@ pcintr_dump_document(pcintr_stack_t stack)
     if (!p)
         return;
 
-    D("%s", p);
+    _D("%s", p);
     if (p != buf)
         free(p);
 }
@@ -153,7 +153,7 @@ pcintr_dump_edom_node(pcintr_stack_t stack, pcdom_node_t *node)
     char *p = pcdom_node_snprintf_ex(node,
             (enum pchtml_html_serialize_opt)opt, buf, &nr, "");
     if (p) {
-        D("%s", p);
+        _D("%s", p);
         if (p != buf)
             free(p);
     }
@@ -997,7 +997,7 @@ execute_one_step(pcintr_coroutine_t co)
             return;
         }
         co->state = CO_STATE_TERMINATED;
-        D("co terminating: %p", co);
+        _D("co terminating: %p", co);
     }
     else {
         frame = pcintr_stack_get_bottom_frame(stack);
