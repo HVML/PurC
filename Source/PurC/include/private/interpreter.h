@@ -93,6 +93,12 @@ enum pcintr_stack_vdom_insertion_mode {
     STACK_VDOM_AFTER_HVML,
 };
 
+// experimental: currently for test-case-only
+struct pcintr_supervisor_ops {
+    void (*on_terminated)(pcintr_stack_t stack, void *ctxt);
+    void (*on_cleanup)(pcintr_stack_t stack, void *ctxt);
+};
+
 struct pcintr_stack {
     struct list_head frames;
 
@@ -144,6 +150,10 @@ struct pcintr_stack {
 
     // base uri
     char* base_uri;
+
+    // experimental: currently for test-case-only
+    struct pcintr_supervisor_ops        ops;
+    void                                *ctxt;  // no-owner-ship!!!
 };
 
 enum purc_symbol_var {
@@ -328,6 +338,14 @@ pcintr_get_symbolized_var (pcintr_stack_t stack, unsigned int number,
 purc_variant_t
 pcintr_get_numbered_var (pcintr_stack_t stack, unsigned int number);
 
+purc_variant_t
+pcintr_add_named_var_observer(pcintr_stack_t stack, const char* name,
+        const char* event);
+
+bool
+pcintr_remove_named_var_observer(pcintr_stack_t stack, const char* name,
+        const char* event);
+
 // $TIMERS
 struct pcintr_timers*
 pcintr_timers_init(pcintr_stack_t stack);
@@ -347,6 +365,9 @@ pcintr_register_observer(purc_variant_t observed,
 
 bool
 pcintr_revoke_observer(struct pcintr_observer* observer);
+
+bool
+pcintr_revoke_observer_ex(purc_variant_t observed, purc_variant_t for_value);
 
 struct pcintr_observer*
 pcintr_find_observer(pcintr_stack_t stack, purc_variant_t observed,
@@ -387,59 +408,23 @@ pcintr_util_dump_edom_node_ex(pcdom_node_t *node,
 void
 pcintr_dump_frame_edom_node(pcintr_stack_t stack);
 
-
 pcdom_element_t*
-pcintr_util_insert_element(pcdom_element_t* parent, const char *tag);
+pcintr_util_append_element(pcdom_element_t* parent, const char *tag);
 
-pcdom_element_t*
-pcintr_util_parse_fragment_ex(pcdom_element_t *tmp, const char *fragment);
-
-#define pcintr_util_parse_fragment(_parent, _fmt, ...)               \
-({                                                                   \
-    char _buf[1024];                                                 \
-    size_t _nr = sizeof(_buf);                                       \
-    char *_p = pcutils_snprintf(_buf, &_nr, _fmt, ##__VA_ARGS__);    \
-    pcdom_element_t *_fragment = NULL;                               \
-    if (_p) {                                                        \
-        _fragment = pcintr_util_parse_fragment_ex(_parent, _p);      \
-        if (_p != _buf)                                              \
-            free(_p);                                                \
-    }                                                                \
-    _fragment;                                                       \
-})
-
-pcdom_element_t*
-pcintr_util_add_element(pcdom_element_t *parent, const char *tag);
+pcdom_text_t*
+pcintr_util_append_content(pcdom_element_t* parent, const char *txt);
 
 int
 pcintr_util_set_attribute(pcdom_element_t *elem,
         const char *key, const char *val);
 
-#define pcintr_util_add_child(_parent, _fmt, ...)                            \
-({                                                                           \
-    int _r = -1;                                                             \
-    pcdom_element_t *_fragment;                                              \
-    _fragment = pcintr_util_parse_fragment(_parent, _fmt, ##__VA_ARGS__);    \
-    if (_fragment) {                                                         \
-        pcdom_merge_fragment_append(pcdom_interface_node(_parent),           \
-                pcdom_interface_node(_fragment));                            \
-        _r = 0;                                                              \
-    }                                                                        \
-    _r;                                                                      \
-})
+__attribute__ ((format (printf, 2, 3)))
+int
+pcintr_util_add_child(pcdom_element_t *parent, const char *fmt, ...);
 
-#define pcintr_util_set_child(_parent, _fmt, ...)                            \
-({                                                                           \
-    int _r = -1;                                                             \
-    pcdom_element_t *_fragment;                                              \
-    _fragment = pcintr_util_parse_fragment(_parent, _fmt, ##__VA_ARGS__);    \
-    if (_fragment) {                                                         \
-        pcdom_displace_fragment(pcdom_interface_node(_parent),               \
-                pcdom_interface_node(_fragment));                            \
-        _r = 0;                                                              \
-    }                                                                        \
-    _r;                                                                      \
-})
+__attribute__ ((format (printf, 2, 3)))
+int
+pcintr_util_set_child(pcdom_element_t *parent, const char *fmt, ...);
 
 pchtml_html_document_t*
 pcintr_util_load_document(const char *html);
@@ -452,7 +437,21 @@ bool
 pcintr_util_is_ancestor(pcdom_node_t *ancestor, pcdom_node_t *descendant);
 
 
+purc_vdom_t
+purc_load_hvml_from_string_ex(const char* string,
+        struct pcintr_supervisor_ops *ops, void *ctxt);
 
+purc_vdom_t
+purc_load_hvml_from_file_ex(const char* file,
+        struct pcintr_supervisor_ops *ops, void *ctxt);
+
+purc_vdom_t
+purc_load_hvml_from_url_ex(const char* url,
+        struct pcintr_supervisor_ops *ops, void *ctxt);
+
+purc_vdom_t
+purc_load_hvml_from_rwstream_ex(purc_rwstream_t stream,
+        struct pcintr_supervisor_ops *ops, void *ctxt);
 
 PCA_EXTERN_C_END
 

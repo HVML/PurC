@@ -112,10 +112,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (r)
         return NULL;
 
-    r = pcintr_element_eval_vcm_content(frame, element);
-    if (r)
-        return NULL;
-
     purc_clr_error();
 
     return ctxt;

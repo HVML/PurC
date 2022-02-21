@@ -28,15 +28,12 @@ end:
         pcvdom_document_destroy(doc);
 }
 
-static void
+static int
 _process_file(const char *fn)
 {
     FILE *fin = NULL;
     purc_rwstream_t rin = NULL;
-    struct pchvml_parser *parser = NULL;
-    struct pcvdom_gen *gen = NULL;
-    struct pcvdom_document *doc = NULL;
-    struct pchvml_token *token = NULL;
+
     bool neg = false;
 
     /* FIXME */
@@ -54,73 +51,53 @@ _process_file(const char *fn)
     fin = fopen(fn, "r");
     if (!fin) {
         int err = errno;
-        EXPECT_NE(fin, nullptr) << "Failed to open ["
+        ADD_FAILURE() << "Failed to open ["
             << fn << "]: [" << err << "]" << strerror(err) << std::endl;
-        goto end;
+        return -1;
     }
 
     rin = purc_rwstream_new_from_unix_fd(dup(fileno(fin)), 1024);
     if (!rin) {
-        EXPECT_NE(rin, nullptr);
-        goto end;
+        int err = errno;
+        ADD_FAILURE() << "Failed to open stream for ["
+            << fn << "]: [" << err << "]" << strerror(err) << std::endl;
+        fclose(fin);
+        return -1;
     }
 
-    parser = pchvml_create(0, 0);
-    if (!parser)
-        goto end;
-
-    gen = pcvdom_gen_create();
-    if (!gen)
-        goto end;
-
-again:
-    if (token)
-        pchvml_token_destroy(token);
-
-    token = pchvml_next_token(parser, rin);
-
-    if (token && 0==pcvdom_gen_push_token(gen, parser, token)) {
-        if (pchvml_token_is_type(token, PCHVML_TOKEN_EOF)) {
-            doc = pcvdom_gen_end(gen);
-            if (neg) {
-                EXPECT_TRUE(false) << "Unexpected successful in parsing neg sample: [" << fn << "]" << std::endl;
-            } else {
-                std::cerr << "Succeeded in parsing: [" << fn << "]" << std::endl;
-            }
-            goto end;
-        }
-        goto again;
+    struct pcvdom_pos pos;
+    struct pcvdom_document *doc = NULL;
+    doc = pcvdom_util_document_from_stream(rin, &pos);
+    if (!doc) {
+        char buf[1024];
+        snprintf(buf, sizeof(buf),
+                "Parsing failed: [0x%02x]'%c' @line%d/col%d/pos%d",
+                (unsigned char)pos.c, pos.c, pos.line, pos.col, pos.pos);
+        std::cerr << buf << std::endl;
     }
-
-    if (!neg) {
-        EXPECT_NE(token, nullptr) << "unexpected NULL token: ["
-            << token << "]" << std::endl;
+    else {
+        PRINT_VDOM_NODE(&doc->node);
     }
-
-    if (neg) {
-        std::cerr << "Succeeded in failure-parsing neg sample: [" << fn << "]" << std::endl;
-    } else {
-        EXPECT_TRUE(false) << "Failed parsing: [" << fn << "]" << std::endl;
+    int r = 0;
+    if (doc && neg) {
+        r = -1;
+        ADD_FAILURE() << "Unexpected successful parsing for negative sample: [" << fn << "]" << std::endl;
     }
-
-end:
-    if (token)
-        pchvml_token_destroy(token);
+    else if (!doc && !neg) {
+        r = -1;
+        ADD_FAILURE() << "Parsing positive sample: [" << fn << "]" << std::endl;
+    }
 
     if (doc)
         pcvdom_document_destroy(doc);
-
-    if (gen)
-        pcvdom_gen_destroy(gen);
-
-    if (parser)
-        pchvml_destroy(parser);
 
     if (rin)
         purc_rwstream_destroy(rin);
 
     if (fin)
         fclose(fin);
+
+    return r ? -1 : 0;
 }
 
 TEST(vdom_gen, files)
@@ -154,7 +131,9 @@ TEST(vdom_gen, files)
 
     if (r == 0) {
         for (size_t i=0; i<globbuf.gl_pathc; ++i) {
-            _process_file(globbuf.gl_pathv[i]);
+            r = _process_file(globbuf.gl_pathv[i]);
+            if (r)
+                break;
         }
     }
     globfree(&globbuf);

@@ -2,6 +2,8 @@
 
 #include <vector>
 
+#include "purc.h"
+
 #if OS(LINUX) || OS(UNIX)
 
 // get path from env or __FILE__/../<rel> otherwise
@@ -62,5 +64,37 @@ private:
     }
 private:
     std::vector<char *>         allocates;
+};
+
+class PurCInstance
+{
+public:
+    PurCInstance(void) {
+        init_ok = -1;
+        info = {};
+        if (purc_init ("cn.fmsoft.hybridos.test", "test_init", &info))
+            return;
+        init_ok = 0;
+    }
+
+    ~PurCInstance(void) {
+        if (init_ok == 0) {
+            purc_cleanup();
+        }
+    }
+
+public:
+    operator bool(void) const {
+        return init_ok == 0;
+    }
+    struct purc_instance_extra_info* get_info(void) {
+        if (init_ok)
+            return &info;
+        return NULL;
+    }
+
+private:
+    int init_ok;
+    struct purc_instance_extra_info    info;
 };
 

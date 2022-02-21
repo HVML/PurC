@@ -26,11 +26,13 @@
 #include "private/errors.h"
 #include "private/debug.h"
 #include "private/utils.h"
+#include "private/vdom.h"
+#include "hvml/hvml-rwswrap.h"
 #include "hvml-gen.h"
 
 #include <libgen.h>
 
-#define TO_DEBUG 1
+#define TO_DEBUG 0
 
 #ifndef VTT
 #define VTT(x)         PCHVML_TOKEN##x
@@ -108,7 +110,6 @@ vgim_to_string(struct pcvdom_gen *gen)
             vtt_to_string(token),                                 \
             pchvml_token_get_name(token),                         \
             vgim_to_string(gen));                                 \
-        PC_ASSERT(0); \
         return -1;                                                \
     } while (0)
 #endif // FAIL_RET
@@ -233,7 +234,7 @@ set_parser_state_if_necessary(struct pcvdom_gen *gen)
     struct pcvdom_element *elem = top_element(gen);
     if (is_element_of_hvml_data_cat(elem)) {
         // FIXME:
-        if (0)
+        if (TO_DEBUG)
             pchvml_switch_to_ejson_state(gen->parser);
     }
 }
@@ -478,44 +479,13 @@ create_comment(struct pcvdom_gen *gen, struct pchvml_token *token)
 }
 
 static int
-append_content(struct pcvdom_gen *gen, struct pchvml_token *token)
-{
-    UNUSED_PARAM(gen);
-
-    const char *text;
-    text = pchvml_token_get_text(token);
-
-    struct pcvdom_content *content;
-    content = pcvdom_content_create(text);
-
-    if (!content)
-        return -1;
-
-    int r = 0;
-
-    struct pcvdom_node *node = top_node(gen);
-    PC_ASSERT(node);
-    if (PCVDOM_NODE_IS_DOCUMENT(node)) {
-        r = pcvdom_document_append_content(gen->doc, content);
-    }
-    else if (PCVDOM_NODE_IS_ELEMENT(node)) {
-        struct pcvdom_element *element = PCVDOM_ELEMENT_FROM_NODE(node);
-        r = pcvdom_element_append_content(element, content);
-    }
-
-
-    // TODO: check r
-
-    if (r)
-        FAIL_RET();
-
-    return 0;
-}
-
-static int
 set_vcm_tree(struct pcvdom_gen *gen, struct pchvml_token *token)
 {
     UNUSED_PARAM(gen);
+
+    // FIXME: filter whitespaces
+    if (pchvml_token_is_whitespace(token))
+        return 0;
 
     int r = 0;
 
@@ -737,7 +707,7 @@ on_mode_before_head(struct pcvdom_gen *gen, struct pchvml_token *token)
         return 0;
     }
     else if (type==VTT(_CHARACTER)) {
-        return append_content(gen, token);
+        FAIL_RET();
     }
     else if (type==VTT(_COMMENT)) {
         r = create_comment(gen, token);
@@ -868,7 +838,7 @@ on_mode_in_head(struct pcvdom_gen *gen, struct pchvml_token *token)
         return set_vcm_tree(gen, token);
     }
     else if (type==VTT(_CHARACTER)) {
-        return append_content(gen, token);
+        FAIL_RET();
     }
     else if (type==VTT(_COMMENT)) {
         r = create_comment(gen, token);
@@ -924,7 +894,7 @@ on_mode_after_head(struct pcvdom_gen *gen, struct pchvml_token *token)
         return 0;
     }
     else if (type==VTT(_CHARACTER)) {
-        return append_content(gen, token);
+        FAIL_RET();
     }
     else if (type==VTT(_COMMENT)) {
         r = create_comment(gen, token);
@@ -1083,7 +1053,7 @@ on_mode_in_body(struct pcvdom_gen *gen, struct pchvml_token *token)
         FAIL_RET();
     }
     else if (type==VTT(_CHARACTER)) {
-        return append_content(gen, token);
+        FAIL_RET();
     }
     else if (type==VTT(_COMMENT)) {
         r = create_comment(gen, token);
@@ -1125,7 +1095,7 @@ on_mode_after_body(struct pcvdom_gen *gen, struct pchvml_token *token)
         return 0;
     }
     else if (type==VTT(_CHARACTER)) {
-        return append_content(gen, token);
+        FAIL_RET();
     }
     else if (type==VTT(_COMMENT)) {
         r = create_comment(gen, token);
@@ -1205,7 +1175,8 @@ pcvdom_gen_push_token(struct pcvdom_gen *gen,
 {
     int r = 0;
 
-    PRINT_TOKEN(token);
+    if (TO_DEBUG)
+        PRINT_TOKEN(token);
 
     if (gen->eof)
         return 0; // ignore
@@ -1262,5 +1233,99 @@ again:
         goto again;
 
     return r ? -1 : 0;
+}
+
+int pchvml_parser_get_curr_pos(struct pchvml_parser* parser,
+    uint32_t *character, int *line, int *column, int *position)
+{
+    if (!parser)
+        return -1;
+
+    struct pchvml_uc *uc = parser->curr_uc;
+    if (!uc)
+        return -1;
+
+    if (character)
+        *character = uc->character;
+
+    if (line)
+        *line = uc->line;
+
+    if (column)
+        *column = uc->column;
+
+    if (position)
+        *position = uc->position;
+
+    return 0;
+}
+
+struct pcvdom_document*
+pcvdom_util_document_from_stream(purc_rwstream_t in, struct pcvdom_pos *pos)
+{
+    struct pchvml_parser *parser = NULL;
+    struct pcvdom_gen *gen = NULL;
+    struct pcvdom_document *doc = NULL;
+    struct pchvml_token *token = NULL;
+
+    PC_ASSERT(in);
+
+    parser = pchvml_create(0, 0);
+    if (!parser)
+        goto end;
+
+    gen = pcvdom_gen_create();
+    if (!gen)
+        goto end;
+
+again:
+    if (token)
+        pchvml_token_destroy(token);
+
+    token = pchvml_next_token(parser, in);
+    if (token == NULL) {
+        if (pos) {
+            int r;
+            r = pchvml_parser_get_curr_pos(parser,
+                    &pos->c, &pos->line, &pos->col, &pos->pos);
+            PC_ASSERT(r == 0);
+        }
+    }
+
+    if (token && 0==pcvdom_gen_push_token(gen, parser, token)) {
+        if (pchvml_token_is_type(token, PCHVML_TOKEN_EOF)) {
+            doc = pcvdom_gen_end(gen);
+            goto end;
+        }
+        goto again;
+    }
+
+end:
+    if (token)
+        pchvml_token_destroy(token);
+
+    if (gen)
+        pcvdom_gen_destroy(gen);
+
+    if (parser)
+        pchvml_destroy(parser);
+
+    return doc;
+}
+
+struct pcvdom_document*
+pcvdom_util_document_from_buf(const unsigned char *buf, size_t len,
+        struct pcvdom_pos *pos)
+{
+    struct pcvdom_document *doc;
+    purc_rwstream_t in;
+    in = purc_rwstream_new_from_mem((void*)buf, len);
+    if (!in)
+        return NULL;
+
+    doc = pcvdom_util_document_from_stream(in, pos);
+    purc_rwstream_destroy(in);
+
+    return doc;
 }
 

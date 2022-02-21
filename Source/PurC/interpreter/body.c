@@ -131,19 +131,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     struct pcvdom_element *element = frame->pos;
     PC_ASSERT(element);
 
-    PC_ASSERT(frame->edom_element);
-    pcdom_element_t *child;
-    child = pcintr_util_insert_element(frame->edom_element,
-            frame->pos->tag_name);
-    PC_ASSERT(child);
-    frame->edom_element = child;
-
     int r;
     r = pcintr_vdom_walk_attrs(frame, element, NULL, attr_found);
-    if (r)
-        return NULL;
-
-    r = pcintr_element_eval_vcm_content(frame, element);
     if (r)
         return NULL;
 
@@ -191,9 +180,33 @@ static void
 on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         struct pcvdom_content *content)
 {
-    UNUSED_PARAM(co);
-    UNUSED_PARAM(frame);
-    PC_ASSERT(content);
+    struct pcvcm_node *vcm = content->vcm;
+    if (!vcm)
+        return;
+
+    pcintr_stack_t stack = co->stack;
+    purc_variant_t v = pcvcm_eval(vcm, stack);
+    PC_ASSERT(v != PURC_VARIANT_INVALID);
+    purc_clr_error();
+
+    if (purc_variant_is_string(v)) {
+        const char *text = purc_variant_get_string_const(v);
+        pcdom_text_t *content;
+        content = pcintr_util_append_content(frame->edom_element, text);
+        PC_ASSERT(content);
+        purc_variant_unref(v);
+    }
+    else {
+        PC_ASSERT(0);
+        char *sv;
+        int r;
+        r = purc_variant_stringify_alloc(&sv, v);
+        PC_ASSERT(r >= 0 && sv);
+        r = pcintr_util_add_child(frame->edom_element, "%s", sv);
+        PC_ASSERT(r == 0);
+        free(sv);
+        purc_variant_unref(v);
+    }
 }
 
 static void

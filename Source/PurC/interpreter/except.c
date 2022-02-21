@@ -40,12 +40,15 @@
 
 struct ctxt_for_except {
     struct pcvdom_node           *curr;
+
+    purc_variant_t                contents;
 };
 
 static void
 ctxt_for_except_destroy(struct ctxt_for_except *ctxt)
 {
     if (ctxt) {
+        PURC_VARIANT_SAFE_CLEAR(ctxt->contents);
         free(ctxt);
     }
 }
@@ -112,15 +115,15 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     frame->pos = pos; // ATTENTION!!
 
+    ctxt->contents = pcintr_template_make();
+    if (!ctxt->contents)
+        return NULL;
+
     struct pcvdom_element *element = frame->pos;
     PC_ASSERT(element);
 
     int r;
     r = pcintr_vdom_walk_attrs(frame, element, NULL, attr_found);
-    if (r)
-        return NULL;
-
-    r = pcintr_element_eval_vcm_content(frame, element);
     if (r)
         return NULL;
 
@@ -153,31 +156,71 @@ on_popping(pcintr_stack_t stack, void* ud)
     return true;
 }
 
-static void
-on_element(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
-        struct pcvdom_element *element)
-{
-    UNUSED_PARAM(co);
-    UNUSED_PARAM(frame);
-    UNUSED_PARAM(element);
-}
-
-static void
+static int
 on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         struct pcvdom_content *content)
 {
     UNUSED_PARAM(co);
     UNUSED_PARAM(frame);
     PC_ASSERT(content);
+
+    struct pcvdom_element *element = frame->pos;
+    PC_ASSERT(element);
+
+    struct ctxt_for_except *ctxt;
+    ctxt = (struct ctxt_for_except*)frame->ctxt;
+    PC_ASSERT(ctxt);
+
+    struct pcvcm_node *vcm = content->vcm;
+    if (!vcm)
+        return 0;
+
+    // NOTE: element is still the owner of vcm_content
+    PC_ASSERT(ctxt->contents);
+    return pcintr_template_append(ctxt->contents, vcm);
 }
 
-static void
-on_comment(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
-        struct pcvdom_comment *comment)
+static int
+on_child_finished(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
-    UNUSED_PARAM(co);
-    UNUSED_PARAM(frame);
-    PC_ASSERT(comment);
+    pcintr_stack_t stack = co->stack;
+    PC_ASSERT(stack);
+
+    struct ctxt_for_except *ctxt;
+    ctxt = (struct ctxt_for_except*)frame->ctxt;
+
+    purc_variant_t contents = ctxt->contents;
+    if (!contents)
+        return -1;
+
+    return 0;
+
+#if 0
+    // TODO:
+    PURC_VARIANT_SAFE_CLEAR(frame->ctnt_var);
+    frame->ctnt_var = contents;
+    purc_variant_ref(contents);
+
+    purc_variant_t name;
+    name = ctxt->name;
+    if (name == PURC_VARIANT_INVALID)
+        return -1;
+
+    const char *s_name = purc_variant_get_string_const(name);
+    if (s_name == NULL)
+        return -1;
+
+    struct pcvdom_element *scope = frame->scope;
+    PC_ASSERT(scope);
+
+    bool ok;
+    ok = pcintr_bind_scope_variable(scope, s_name, frame->ctnt_var);
+    if (!ok)
+        return -1;
+
+    D("[%s] bounded", s_name);
+    return 0;
+#endif
 }
 
 static pcvdom_element_t
@@ -213,6 +256,7 @@ again:
 
     if (curr == NULL) {
         purc_clr_error();
+        PC_ASSERT(0 == on_child_finished(co, frame));
         return NULL;
     }
 
@@ -221,17 +265,14 @@ again:
             PC_ASSERT(0); // Not implemented yet
             break;
         case PCVDOM_NODE_ELEMENT:
-            {
-                pcvdom_element_t element = PCVDOM_ELEMENT_FROM_NODE(curr);
-                on_element(co, frame, element);
-                PC_ASSERT(stack->except == 0);
-                return element;
-            }
+            PC_ASSERT(0); // Not implemented yet
+            break;
         case PCVDOM_NODE_CONTENT:
-            on_content(co, frame, PCVDOM_CONTENT_FROM_NODE(curr));
+            if (on_content(co, frame, PCVDOM_CONTENT_FROM_NODE(curr)))
+                return NULL;
             goto again;
         case PCVDOM_NODE_COMMENT:
-            on_comment(co, frame, PCVDOM_COMMENT_FROM_NODE(curr));
+            PC_ASSERT(0); // Not implemented yet
             goto again;
         default:
             PC_ASSERT(0); // Not implemented yet
@@ -240,7 +281,6 @@ again:
     PC_ASSERT(0);
     return NULL; // NOTE: never reached here!!!
 }
-
 static struct pcintr_element_ops
 ops = {
     .after_pushed       = after_pushed,

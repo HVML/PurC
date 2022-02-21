@@ -286,3 +286,27 @@ void pctree_node_remove(struct pctree_node* node)
     parent->nr_children -= node->nr_children + 1;
 }
 
+static void
+node_walk(struct pctree_node *node, int level,
+        pctree_node_walk_cb cb, void *ctxt)
+{
+    cb(node, level, 1, ctxt);
+    struct pctree_node *child = node->first_child;
+    while (child) {
+        struct pctree_node* next = child->next;
+        node_walk(child, level+1, cb, ctxt);
+        child = next;
+    }
+    cb(node, level, 0, ctxt);
+}
+
+void
+pctree_node_walk(struct pctree_node *node, int level,
+        pctree_node_walk_cb cb, void *ctxt)
+{
+    if (!node)
+        return;
+
+    node_walk(node, level, cb, ctxt);
+}
+

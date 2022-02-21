@@ -39,7 +39,7 @@
 #include <regex.h>
 #endif                             /* } */
 
-#define TO_DEBUG 1
+#define TO_DEBUG 0
 
 static const struct err_msg_info* get_error_info(int errcode);
 
@@ -70,8 +70,10 @@ int purc_set_error_exinfo_with_debug(int errcode, purc_variant_t exinfo,
 {
     if (errcode) {
         D("%s[%d]:%s(): %d", basename((char*)file), lineno, func, errcode);
-        if (exinfo != PURC_VARIANT_INVALID)
-            PRINT_VARIANT(exinfo);
+        if (TO_DEBUG) {
+            if (exinfo != PURC_VARIANT_INVALID)
+                PRINT_VARIANT(exinfo);
+        }
     }
 
     struct pcinst* inst = pcinst_current();

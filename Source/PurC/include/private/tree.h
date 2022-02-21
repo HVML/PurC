@@ -552,6 +552,14 @@ pctree_levels(struct pctree_node *top)
     return lvls;
 }
 
+typedef int
+(*pctree_node_walk_cb)(struct pctree_node *node, int level,
+        int push, void *ctxt);
+
+void
+pctree_node_walk(struct pctree_node *node, int level,
+        pctree_node_walk_cb cb, void *ctxt);
+
 
 #ifdef __cplusplus
 }
