@@ -389,12 +389,12 @@ static purc_variant_t pcvarmgr_add_observer(pcvarmgr_t mgr, const char* name,
     return PURC_VARIANT_INVALID;
 }
 
-static bool pcvarmgr_remove_observer(pcvarmgr_t mgr, const char* name,
+static purc_variant_t pcvarmgr_remove_observer(pcvarmgr_t mgr, const char* name,
         const char* event)
 {
     purc_variant_t var = pcvarmgr_get(mgr, name);
     if (var == PURC_VARIANT_INVALID) {
-        return false;
+        return PURC_VARIANT_INVALID;
     }
 
     enum var_event_type type = VAR_EVENT_TYPE_ATTACHED;
@@ -417,9 +417,10 @@ static bool pcvarmgr_remove_observer(pcvarmgr_t mgr, const char* name,
         free(obs->name);
         free(obs);
         pcutils_array_delete(mgr->var_observers, idx, 1);
+        return mgr->object;
     }
 
-    return true;
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
@@ -602,17 +603,8 @@ pcintr_add_named_var_observer(pcintr_stack_t stack, const char* name,
         return PURC_VARIANT_INVALID;
     }
 
-    struct pcintr_stack_frame* frame = pcintr_stack_get_bottom_frame(stack);
-    PC_ASSERT(frame);
-
     pcvarmgr_t mgr = NULL;
-    purc_variant_t v = _find_named_scope_var(frame->pos, name, &mgr);
-    if (v) {
-        purc_clr_error();
-        return pcvarmgr_add_observer(mgr, name, event);
-    }
-
-    v = find_doc_buildin_var(stack->vdom, name);
+    purc_variant_t v = find_doc_buildin_var(stack->vdom, name);
     if (v) {
         purc_clr_error();
         mgr = pcvdom_document_get_variables(stack->vdom);
@@ -630,56 +622,36 @@ pcintr_add_named_var_observer(pcintr_stack_t stack, const char* name,
     return PURC_VARIANT_INVALID;
 }
 
-void
-remove_named_scope_var_observer(pcvdom_element_t elem,
-        const char* name, const char* event)
-{
-    if (!elem || !name) {
-        PC_ASSERT(name); // FIXME: still recoverable???
-        return;
-    }
-
-    purc_variant_t v = pcintr_get_scope_variable(elem, name);
-    if (v) {
-        pcvarmgr_t mgr =  pcvdom_element_get_variables(elem);
-        pcvarmgr_remove_observer(mgr, name, event);
-    }
-
-    pcvdom_element_t parent = pcvdom_element_parent(elem);
-    if (parent) {
-        return remove_named_scope_var_observer(parent, name, event);
-    }
-}
-
-bool
+purc_variant_t
 pcintr_remove_named_var_observer(pcintr_stack_t stack, const char* name,
         const char* event)
 {
     UNUSED_PARAM(event);
     if (!stack || !name) {
         PC_ASSERT(0); // FIXME: still recoverable???
-        return false;
+        return PURC_VARIANT_INVALID;
     }
 
-    struct pcintr_stack_frame* frame = pcintr_stack_get_bottom_frame(stack);
-    PC_ASSERT(frame);
-
     pcvarmgr_t mgr = NULL;
-    remove_named_scope_var_observer(frame->pos, name, event);
-
     purc_variant_t v = find_doc_buildin_var(stack->vdom, name);
     if (v) {
         purc_clr_error();
         mgr = pcvdom_document_get_variables(stack->vdom);
-        pcvarmgr_remove_observer(mgr, name, event);
+        purc_variant_t observed = pcvarmgr_remove_observer(mgr, name, event);
+        if (observed != PURC_VARIANT_INVALID) {
+            return observed;
+        }
     }
 
     v = find_inst_var(name);
     if (v) {
         purc_clr_error();
         mgr = pcinst_get_variables();
-        pcvarmgr_remove_observer(mgr, name, event);
+        purc_variant_t observed = pcvarmgr_remove_observer(mgr, name, event);
+        if (observed != PURC_VARIANT_INVALID) {
+            return observed;
+        }
     }
 
-    return true;
+    return PURC_VARIANT_INVALID;
 }
