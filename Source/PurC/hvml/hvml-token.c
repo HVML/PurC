@@ -66,6 +66,7 @@ struct pchvml_token {
     bool self_closing;
     bool force_quirks;
     bool whitespace;
+    bool has_raw_attr;
 
     struct pchvml_buffer* name;
     struct pcutils_arrlist* attr_list;
@@ -219,6 +220,9 @@ void pchvml_token_set_assignment_to_attr(struct pchvml_token* token,
     }
 }
 
+#define RAW_STRING          "raw"
+#define HVML_RAW_STRING     "hvml:raw"
+
 void pchvml_token_end_attr(struct pchvml_token* token)
 {
     if (!token->curr_attr) {
@@ -233,6 +237,11 @@ void pchvml_token_end_attr(struct pchvml_token* token)
     if (!token->attr_list) {
         token->attr_list = pcutils_arrlist_new(
                 pchvml_token_attr_list_free_fn);
+    }
+    const char* attr_name = pchvml_buffer_get_buffer(token->curr_attr->name);
+    if (strcmp(attr_name, RAW_STRING) == 0 ||
+            strcmp(attr_name, HVML_RAW_STRING) == 0) {
+        token->has_raw_attr = true;
     }
     pcutils_arrlist_add(token->attr_list, token->curr_attr);
     token->curr_attr = NULL;
@@ -411,6 +420,11 @@ bool pchvml_token_is_in_attr(struct pchvml_token* token)
 size_t pchvml_token_get_attr_size(struct pchvml_token* token)
 {
     return token->attr_list ? pcutils_arrlist_length(token->attr_list) : 0;
+}
+
+bool pchvml_token_has_raw_attr(struct pchvml_token* token)
+{
+    return token->has_raw_attr;
 }
 
 struct pchvml_token_attr* pchvml_token_get_attr(

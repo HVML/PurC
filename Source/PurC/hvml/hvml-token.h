@@ -162,6 +162,8 @@ void pchvml_token_end_attr(struct pchvml_token* token);
 
 size_t pchvml_token_get_attr_size(struct pchvml_token* token);
 
+bool pchvml_token_has_raw_attr(struct pchvml_token* token);
+
 struct pchvml_token_attr* pchvml_token_get_attr(
         struct pchvml_token* token, size_t i);
 
