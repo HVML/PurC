@@ -2106,6 +2106,9 @@ BEGIN_STATE(HVML_EJSON_CONTROL_STATE)
         ADVANCE_TO(HVML_EJSON_LEFT_PARENTHESIS_STATE);
     }
     if (character == ')') {
+        if (ejson_stack_is_empty() && parser->vcm_node) {
+            RECONSUME_IN(HVML_EJSON_FINISHED_STATE);
+        }
         if (uc == '"' || uc == '\'' || uc == 'U') {
             RECONSUME_IN(HVML_EJSON_AFTER_JSONEE_STRING_STATE);
         }
@@ -2135,6 +2138,13 @@ BEGIN_STATE(HVML_EJSON_CONTROL_STATE)
         }
     }
     if (character == '\'') {
+        if (uc == 'T') {
+            if (parser->vcm_node->type !=
+                    PCVCM_NODE_TYPE_FUNC_CONCAT_STRING) {
+                POP_AS_VCM_PARENT_AND_UPDATE_VCM();
+            }
+            RECONSUME_IN(HVML_EJSON_TEMPLATE_DATA_STATE);
+        }
         RESET_TEMP_BUFFER();
         RECONSUME_IN(HVML_EJSON_VALUE_SINGLE_QUOTED_STATE);
     }
@@ -2209,6 +2219,9 @@ BEGIN_STATE(HVML_EJSON_CONTROL_STATE)
         else {
             POP_AS_VCM_PARENT_AND_UPDATE_VCM();
         }
+    }
+    if (ejson_stack_is_empty() && parser->vcm_node) {
+        RECONSUME_IN(HVML_EJSON_FINISHED_STATE);
     }
     RECONSUME_IN(HVML_EJSON_JSONEE_STRING_STATE);
 END_STATE()
@@ -2582,6 +2595,11 @@ BEGIN_STATE(HVML_EJSON_AFTER_VALUE_STATE)
                 POP_AS_VCM_PARENT_AND_UPDATE_VCM();
             }
             ADVANCE_TO(HVML_EJSON_BEFORE_NAME_STATE);
+        }
+        // FIXME
+        if (ejson_stack_is_empty() && parser->vcm_node) {
+            parser->prev_separator = 0;
+            RECONSUME_IN(HVML_EJSON_FINISHED_STATE);
         }
         SET_ERR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
         RETURN_AND_STOP_PARSE();
@@ -3745,7 +3763,7 @@ BEGIN_STATE(HVML_EJSON_JSONEE_KEYWORD_STATE)
     if (is_whitespace(character) || character == '[' ||
             character == '(' || character == '<' || character == '}' ||
             character == '$' || character == '>' || character == ']'
-            || character == ')') {
+            || character == ')' || character == ':') {
         if (pchvml_buffer_is_empty(parser->temp_buffer)) {
             SET_ERR(PCHVML_ERROR_BAD_JSONEE_KEYWORD);
             RETURN_AND_STOP_PARSE();
