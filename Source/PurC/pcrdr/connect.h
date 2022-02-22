@@ -27,6 +27,11 @@
 #ifndef PURC_PCRDR_CONN_H
 #define PURC_PCRDR_CONN_H
 
+#include <time.h>
+
+#include "purc-pcrdr.h"
+#include "private/kvlist.h"
+
 struct pcrdr_conn {
     int prot;
     int type;
@@ -40,10 +45,22 @@ struct pcrdr_conn {
 
     struct kvlist call_list;
 
-    pcrdr_event_handler event_handler;
     void *user_data;
 
+    pcrdr_request_handler request_handler;
+
+    pcrdr_event_handler event_handler;
+
+    /* the current pending request identifier */
+    char *pending_request_id;
+    pcrdr_response_handler response_handler;
+    time_t time_expected;
+
     /* operations */
+    int (*wait_message) (pcrdr_conn* conn, int timeout_ms);
+    pcrdr_msg *(*read_message) (pcrdr_conn* conn);
+    int (*send_message) (pcrdr_conn* conn, const pcrdr_msg *msg);
+    int (*ping_peer) (pcrdr_conn* conn);
     int (*disconnect) (pcrdr_conn* conn);
 };
 

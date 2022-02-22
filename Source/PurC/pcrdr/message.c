@@ -35,6 +35,16 @@
 #include <errno.h>
 #include <assert.h>
 
+pcrdr_msg *pcrdr_make_void_message(void)
+{
+    pcrdr_msg *msg = calloc(1, sizeof(pcrdr_msg));
+    if (msg == NULL)
+        return NULL;
+
+    msg->type = PCRDR_MSG_ELEMENT_TYPE_VOID;
+    return msg;
+}
+
 pcrdr_msg *pcrdr_make_request_message(
         pcrdr_msg_target target, uintptr_t target_value,
         const char *operation,
@@ -521,6 +531,9 @@ static bool on_element(pcrdr_msg *msg, char *value)
     else if (strcasecmp(type, "handle") == 0) {
         msg->elementType = PCRDR_MSG_ELEMENT_TYPE_HANDLE;
     }
+    else if (strcasecmp(type, "handles") == 0) {
+        msg->elementType = PCRDR_MSG_ELEMENT_TYPE_HANDLES;
+    }
     else {
         return false;
     }
@@ -755,6 +768,7 @@ static const char *element_type_names [] = {
     "css",
     "xpath",
     "handle",
+    "handles",
 };
 
 static const char *data_type_names [] = {
@@ -799,7 +813,7 @@ int pcrdr_serialize_message(const pcrdr_msg *msg, cb_write fn, void *ctxt)
         fn(ctxt, STR_LINE_SEPARATOR, sizeof(STR_LINE_SEPARATOR) - 1);
 
         if (msg->elementType != PCRDR_MSG_ELEMENT_TYPE_VOID) {
-            /* element: <css | xpath | handle>/<element> */
+            /* element: <css | xpath | handle | handles>/<element> */
             fn(ctxt, STR_KEY_ELEMENT, sizeof(STR_KEY_ELEMENT) - 1);
             fn(ctxt, STR_PAIR_SEPARATOR, sizeof(STR_PAIR_SEPARATOR) - 1);
             fn(ctxt, element_type_names[msg->elementType],
@@ -930,7 +944,7 @@ int pcrdr_serialize_message(const pcrdr_msg *msg, cb_write fn, void *ctxt)
         fn(ctxt, STR_LINE_SEPARATOR, sizeof(STR_LINE_SEPARATOR) - 1);
 
         if (msg->elementType != PCRDR_MSG_ELEMENT_TYPE_VOID) {
-            /* element: <css | xpath | handle>/<element> */
+            /* element: <css | xpath | handle | handles>/<element> */
             fn(ctxt, STR_KEY_ELEMENT, sizeof(STR_KEY_ELEMENT) - 1);
             fn(ctxt, STR_PAIR_SEPARATOR, sizeof(STR_PAIR_SEPARATOR) - 1);
             fn(ctxt, element_type_names[msg->target],

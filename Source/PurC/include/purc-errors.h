@@ -346,6 +346,7 @@ enum pcrdr_error
     PCRDR_ERROR_BAD_MESSAGE,
     PCRDR_ERROR_BAD_CONNECTION,
     PCRDR_ERROR_TIMEOUT,
+    PCRDR_ERROR_PENDING_REQUEST,
     PCRDR_ERROR_UNEXPECTED,
 
     /* XXX: change this when you append a new error code */

@@ -358,6 +358,41 @@ PCA_EXPORT int
 pcrdr_free_connection(pcrdr_conn* conn);
 
 /**
+ * The prototype of a request handler.
+ *
+ * @param conn: the pointer to the renderer connection.
+ * @param msg: the request message object.
+ *
+ * Since: 0.1.0
+ */
+typedef void (*pcrdr_request_handler)(pcrdr_conn* conn, const pcrdr_msg *msg);
+
+/**
+ * pcrdr_conn_get_request_handler:
+ * @param conn: the pointer to the renderer connection.
+ *
+ * Returns the current request handler of the renderer connection.
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT pcrdr_request_handler
+pcrdr_conn_get_request_handler(pcrdr_conn* conn);
+
+/**
+ * Set the request handler of the connection.
+ *
+ * @param conn: the pointer to the renderer connection.
+ * @param request_handler: the new request handler.
+ *
+ * Sets the request handler of the renderer connection, and returns the old one.
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT pcrdr_request_handler
+pcrdr_conn_set_request_handler(pcrdr_conn* conn,
+        pcrdr_request_handler request_handler);
+
+/**
  * The prototype of an event handler.
  *
  * @param conn: the pointer to the renderer connection.
@@ -371,7 +406,7 @@ typedef void (*pcrdr_event_handler)(pcrdr_conn* conn, const pcrdr_msg *msg);
  * pcrdr_conn_get_event_handler:
  * @param conn: the pointer to the renderer connection.
  *
- * Returns the current error handler of the renderer connection.
+ * Returns the current event handler of the renderer connection.
  *
  * Since: 0.1.0
  */
@@ -379,12 +414,12 @@ PCA_EXPORT pcrdr_event_handler
 pcrdr_conn_get_event_handler(pcrdr_conn* conn);
 
 /**
- * Set the error handler of the connection.
+ * Set the event handler of the connection.
  *
  * @param conn: the pointer to the renderer connection.
- * @param event_handler: the new error handler.
+ * @param event_handler: the new event handler.
  *
- * Sets the error handler of the renderer connection, and returns the old one.
+ * Sets the event handler of the renderer connection, and returns the old one.
  *
  * Since: 0.1.0
  */
@@ -521,7 +556,8 @@ PCA_EXPORT purc_rdrprot_t
 pcrdr_conn_protocol(pcrdr_conn* conn);
 
 typedef enum {
-    PCRDR_MSG_TYPE_REQUEST = 0,
+    PCRDR_MSG_TYPE_VOID = 0,
+    PCRDR_MSG_TYPE_REQUEST,
     PCRDR_MSG_TYPE_RESPONSE,
     PCRDR_MSG_TYPE_EVENT,
 } pcrdr_msg_type;
@@ -538,6 +574,7 @@ typedef enum {
     PCRDR_MSG_ELEMENT_TYPE_CSS,
     PCRDR_MSG_ELEMENT_TYPE_XPATH,
     PCRDR_MSG_ELEMENT_TYPE_HANDLE,
+    PCRDR_MSG_ELEMENT_TYPE_HANDLES,
 } pcrdr_msg_element_type;
 
 PCA_EXPORT pcrdr_msg_type
@@ -569,6 +606,16 @@ struct pcrdr_msg {
     size_t          dataLen;
     char *          data;
 };
+
+/**
+ * Make a void message.
+ *
+ * Returns: The pointer to message object; NULL on error.
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT pcrdr_msg *
+pcrdr_make_void_message(void);
 
 /**
  * Make a request message.
@@ -723,22 +770,21 @@ pcrdr_release_message(pcrdr_msg *msg);
  * and the response message object will be released.
  * Since: 0.1.0
  */
-typedef int (*pcrdr_result_handler)(pcrdr_conn* conn,
-        const pcrdr_msg *request_msg,
-        const pcrdr_msg *response_msg);
+typedef int (*pcrdr_response_handler)(pcrdr_conn* conn,
+        const char *request_id, const pcrdr_msg *response_msg);
 
 /**
  * Send a request and handle the result in a callback.
  *
  * @param conn: the pointer to the renderer connection.
  * @param request_msg: the pointer to the request message.
- * @param time_expected: the expected return time in seconds.
+ * @param seconds_expected: the expected return time in seconds.
  * @param result_handler: the result handler.
  * @param request_id (nullable): the buffer to store the request identifier.
  *
  * This function emits a request to the renderer server and
  * returns immediately. The result handler will be called
- * in subsequent calls of \a pcrdr_read_and_dispatch_packet().
+ * in subsequent calls of \a pcrdr_read_and_dispatch_message().
  *
  * Returns: -1 for error; zero means everything is ok.
  *
@@ -746,14 +792,44 @@ typedef int (*pcrdr_result_handler)(pcrdr_conn* conn,
  */
 PCA_EXPORT int
 pcrdr_send_request(pcrdr_conn* conn, pcrdr_msg *request_msg,
-        int time_expected, pcrdr_result_handler result_handler);
+        int seconds_expected, pcrdr_response_handler response_handler);
 
 /**
- * Send a request and wait the response.
+ * Read and dispatch the message from the renderer connection.
+ *
+ * @param conn: the pointer to the renderer connection.
+ *
+ * This function read a packet and translate it to a message
+ * and dispatches the message to an event handler or a response handler.
+ *
+ * Returns: -1 for error; zero means everything is ok.
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT int
+pcrdr_read_and_dispatch_message(pcrdr_conn* conn);
+
+/**
+ * Wait and dispatch the message from the renderer connection.
+ *
+ * @param conn: the pointer to the renderer connection.
+ *
+ * This function wait for the new message within a timeout time,
+ * if there is a new message, it dispatches the message to the handlers.
+ *
+ * Returns: -1 for error or timeout; zero means everything is ok.
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT int
+pcrdr_wait_and_dispatch_message(pcrdr_conn* conn, int timeout_ms);
+
+/**
+ * Send a request to the renderer and wait the response.
  *
  * @param conn: the pointer to the renderer connection.
  * @param request_msg: the pointer to the request message.
- * @param time_expected: the expected return time in seconds.
+ * @param seconds_expected: the expected return time in seconds.
  * @param response_msg: the pointer to a pointer to return the response message.
  *
  * This function send a request to the renderer and wait for the result.
@@ -763,8 +839,26 @@ pcrdr_send_request(pcrdr_conn* conn, pcrdr_msg *request_msg,
  * Since: 0.1.0
  */
 PCA_EXPORT int
-pcrdr_send_request_and_wait(pcrdr_conn* conn, const pcrdr_msg *request_msg,
-        int time_expected, pcrdr_msg **response_msg);
+pcrdr_send_request_and_wait_response(pcrdr_conn* conn, const pcrdr_msg *request_msg,
+        int seconds_expected, pcrdr_msg **response_msg);
+
+/**
+ * Ping the renderer.
+ *
+ * @param conn: the pointer to the renderer connection.
+ *
+ * Pings the renderer. The client should ping the renderer
+ * about every 30 seconds to tell the renderer "I am alive".
+ * According to the PurCMC protocol, the server may consider
+ * a client died if there was no any data from the client
+ * for 90 seconds.
+ *
+ * Returns: -1 for error; zero means everything is ok.
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT int
+pcrdr_ping_renderer(pcrdr_conn* conn);
 
 /**
  * Connect to the PurCMC server via UNIX domain socket.
@@ -871,59 +965,6 @@ pcrdr_purcmc_read_packet_alloc(pcrdr_conn* conn,
 PCA_EXPORT int
 pcrdr_purcmc_send_text_packet(pcrdr_conn* conn,
         const char *text, size_t txt_len);
-
-/**
- * Ping the PurCMC server.
- *
- * @param conn: the pointer to the renderer connection.
- *
- * Pings the PurCMC server. The client should ping the PurCMC server
- * about every 30 seconds to tell the PurCMC server "I am alive".
- * According to the PurCMC protocol, the server may consider
- * a client died if there was no any data from the client
- * for 90 seconds.
- *
- * Returns: -1 for error; zero means everything is ok.
- *
- * Since: 0.1.0
- */
-PCA_EXPORT int
-pcrdr_purcmc_ping_server(pcrdr_conn* conn);
-
-/**
- * Read and dispatch the packet from the PurCMC server.
- *
- * @param conn: the pointer to the renderer connection.
- *
- * This function read a PurCMC packet and dispatches the packet to
- * a event handler, method handler, or result handler.
- *
- * Returns: -1 for error; zero means everything is ok.
- *
- * Since: 0.1.0
- */
-PCA_EXPORT int
-pcrdr_purcmc_read_and_dispatch_packet(pcrdr_conn* conn);
-
-/**
- * Wait and dispatch the packet from the PurCMC server.
- *
- * @param conn: the pointer to the renderer connection.
- * @param timeout_ms (not nullable): the timeout value in milliseconds.
- *
- * This function waits for a PurCMC packet by calling select()
- * and dispatches the packet to event handlers, method handlers,
- * or result handlers.
- *
- * Returns: -1 for error; zero means everything is ok.
- *
- * Note that if you need watching multiple file descriptors, you'd
- * better user \a pcrdr_purcmc_read_and_dispatch_packet.
- *
- * Since: 0.1.0
- */
-PCA_EXPORT int
-pcrdr_purcmc_wait_and_dispatch_packet(pcrdr_conn* conn, int timeout_ms);
 
 /**@}*/
 

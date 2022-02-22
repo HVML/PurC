@@ -48,7 +48,7 @@ BadMessage
     msg: "Bad Message"
 
 BadConnection
-    except: ConnectionAborted
+    except: LostRenderer
     flags: None
     msg: "Bad Connection"
 
@@ -57,8 +57,13 @@ Timeout
     flags: None
     msg: "Timeout"
 
+PendingRequest
+    except: NotDesiredEntity
+    flags: None
+    msg: "There is still a pending request"
+
 Unexpected
     except: NotDesiredEntity
     flags: None
-    msg: "Unexpected"
+    msg: "Unexpected message"
 
