@@ -161,6 +161,7 @@ int pcrdr_purcmc_connect_via_unix_socket (const char* path_to_socket,
         goto error;
     }
 
+    (*conn)->prot = PURC_RDRPROT_PURCMC;
     (*conn)->type = CT_UNIX_SOCKET;
     (*conn)->fd = fd;
     (*conn)->srv_host_name = NULL;

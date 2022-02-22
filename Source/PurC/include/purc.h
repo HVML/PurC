@@ -41,11 +41,6 @@
 #include "purc-html.h"
 #include "purc-pcrdr.h"
 
-typedef enum {
-    PURC_RDRPROT_PURCMC  = 0,
-    PURC_RDRPROT_HIBUS,
-} purc_rdrprot_t;
-
 /** The structure defining the extra information for a new PurC instance. */
 typedef struct purc_instance_extra_info {
     /**

@@ -111,6 +111,12 @@
 /* the maximal no responding time (90 seconds) */
 #define PCRDR_MAX_NO_RESPONDING_TIME    90
 
+/* Protocol types */
+typedef enum {
+    PURC_RDRPROT_PURCMC  = 0,
+    PURC_RDRPROT_HIBUS,
+} purc_rdrprot_t;
+
 /* Connection types */
 enum {
     CT_UNIX_SOCKET = 1,
@@ -482,7 +488,7 @@ pcrdr_conn_runner_name(pcrdr_conn* conn);
  *
  * Since: 0.1.0
  */
-PCA_EXPORT int 
+PCA_EXPORT int
 pcrdr_conn_socket_fd(pcrdr_conn* conn);
 
 /**
@@ -496,7 +502,7 @@ pcrdr_conn_socket_fd(pcrdr_conn* conn);
  *
  * Since: 0.1.0
  */
-PCA_EXPORT int 
+PCA_EXPORT int
 pcrdr_conn_socket_type(pcrdr_conn* conn);
 
 /**
@@ -504,14 +510,15 @@ pcrdr_conn_socket_type(pcrdr_conn* conn);
  *
  * @param conn: the pointer to the renderer connection.
  *
- * Returns the socket type of the renderer connection.
+ * Returns the protocol of the renderer connection.
  *
- * Returns: \a CT_UNIX_SOCKET for UnixSocket, and \a CT_WEB_SOCKET for WebSocket.
+ * Returns: \a PURC_RDRPROT_PURCMC for PurCMC,
+ *      and \a PURC_RDRPROT_HIBUS for hiBus.
  *
  * Since: 0.1.0
  */
-PCA_EXPORT int 
-pcrdr_conn_socket_type(pcrdr_conn* conn);
+PCA_EXPORT purc_rdrprot_t
+pcrdr_conn_protocol(pcrdr_conn* conn);
 
 typedef enum {
     PCRDR_MSG_TYPE_REQUEST = 0,

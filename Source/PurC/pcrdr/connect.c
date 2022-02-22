@@ -99,6 +99,11 @@ int pcrdr_conn_socket_type (pcrdr_conn* conn)
     return conn->type;
 }
 
+purc_rdrprot_t pcrdr_conn_protocol (pcrdr_conn* conn)
+{
+    return (purc_rdrprot_t)conn->prot;
+}
+
 int pcrdr_free_connection (pcrdr_conn* conn)
 {
     assert (conn);
