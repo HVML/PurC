@@ -751,6 +751,7 @@ failed:
 }
 
 static const char *type_names [] = {
+    "void",         /* PCRDR_MSG_TYPE_VOID */
     "request",      /* PCRDR_MSG_TYPE_REQUEST */
     "response",     /* PCRDR_MSG_TYPE_RESPONSE */
     "event",        /* PCRDR_MSG_TYPE_EVENT */
