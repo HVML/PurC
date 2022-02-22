@@ -1046,7 +1046,7 @@ struct renderer_capabilities *pcrdr_parse_renderer_capabilities(char *data,
     for (str1 = data; ; str1 = NULL) {
         line = strtok_r(str1, STR_LINE_SEPARATOR, &saveptr1);
         if (line == NULL) {
-            goto failed;
+            break;
         }
 
         if (line_no == 0) {
@@ -1075,7 +1075,7 @@ struct renderer_capabilities *pcrdr_parse_renderer_capabilities(char *data,
             for (str2 = line; ; str2 = NULL) {
                 value = strtok_r(str2, STR_VALUE_SEPARATOR, &saveptr2);
                 if (value == NULL) {
-                    goto failed;
+                    break;
                 }
 
                 char *markup, *version;
@@ -1108,14 +1108,14 @@ struct renderer_capabilities *pcrdr_parse_renderer_capabilities(char *data,
                 }
             }
         }
-        else if (line_no == 2) {    /* windowsing capabilities */
+        else if (line_no == 2) {    /* windowing capabilities */
             char *str2, *value;
             char *saveptr2;
 
             for (str2 = line; ; str2 = NULL) {
                 value = strtok_r(str2, STR_VALUE_SEPARATOR, &saveptr2);
                 if (value == NULL) {
-                    goto failed;
+                    break;
                 }
 
                 char *cap, *limit;

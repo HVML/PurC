@@ -77,7 +77,7 @@ int pcrdr_init_instance(struct pcinst* inst,
 
     /* read the initial response from the server */
     char buff[PCRDR_DEF_PACKET_BUFF_SIZE];
-    size_t len;
+    size_t len = sizeof(buff);
 
     if (pcrdr_purcmc_read_packet(inst->conn_to_rdr, buff, &len) < 0)
         goto failed;

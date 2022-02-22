@@ -40,7 +40,7 @@
 #include "purc-utils.h"
 
 /* Constants */
-#define PCRDR_PURCMC_PROTOCOL_NAME              "PURCRDR"
+#define PCRDR_PURCMC_PROTOCOL_NAME              "PURCMC"
 #define PCRDR_PURCMC_PROTOCOL_VERSION_STRING    "100"
 #define PCRDR_PURCMC_PROTOCOL_VERSION           100
 #define PCRDR_PURCMC_MINIMAL_PROTOCOL_VERSION   100
