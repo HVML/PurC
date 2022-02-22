@@ -726,6 +726,78 @@ static const char *fibonacci_1 =
     ""
     "</hvml>";
 
+static const char *fibonacci_2 =
+    "<!DOCTYPE hvml>"
+    "<hvml target=\"html\" lang=\"en\">"
+    "    <head>"
+    "        <title>Fibonacci Numbers</title>"
+    "    </head>"
+    ""
+    "    <body>"
+    "        <header>"
+    "            <h1>Fibonacci Numbers less than 2000</h1>"
+    "            <p hvml:raw>Using local array variable ($!) and negative index</p>"
+    "        </header>"
+    ""
+    "        <init as='fibonacci' locally>"
+    "            [0, 1, ]"
+    "        </init>"
+    ""
+    "        <iterate on 1 by=\"ADD: LT 2000 BY $!.fibonacci[-2]\">"
+    "            <update on=\"$1!.fibonacci\" to=\"append\" with=\"$?\" />"
+    "        </iterate>"
+    ""
+    "        <section>"
+    "            <ol>"
+    "                <iterate on=\"$2!.fibonacci\">"
+    "                    <li>$?</li>"
+    "                </iterate>"
+    "            </ol>"
+    "        </section>"
+    ""
+    "        <footer>"
+    "            <p>Totally $EJSON.count($1!.fibonacci) numbers.</p>"
+    "        </footer>"
+    "    </body>"
+    ""
+    "</hvml>";
+
+static const char *fibonacci_3 =
+    "<!DOCTYPE hvml>"
+    "<hvml target=\"html\" lang=\"en\">"
+    "    <head>"
+    "        <title>Fibonacci Numbers</title>"
+    "    </head>"
+    ""
+    "    <body>"
+    "        <header>"
+    "            <h1>Fibonacci Numbers less than 2000</h1>"
+    "            <p hvml:raw>Using non-array local variables</p>"
+    "        </header>"
+    ""
+    "        <init as=\"last_one\" with=0 locally />"
+    "        <init as=\"last_two\" with=1 locally />"
+    "        <init as=\"count\" with=2 locally />"
+    ""
+    "        <section>"
+    "            <dl>"
+    "                <iterate on 1 by=\"ADD: LT 2000 BY $2!.last_one\">"
+    "                    <update on=\"$3!\" at=\".last_one\" to=\"displace\" with=\"$3!.last_two\" />"
+    "                    <update on=\"$3!\" at=\".last_two\" to=\"displace\" with=\"$?\" />"
+    "                    <update on=\"$3!\" at=\".count\" to=\"displace\" with += 1 />"
+    "                    <dt>$%</dt>"
+    "                    <dd>$?</dd>"
+    "                </iterate>"
+    "            </dl>"
+    "        </section>"
+    ""
+    "        <footer>"
+    "            <p>Totally $1!.count numbers.</p>"
+    "        </footer>"
+    "    </body>"
+    ""
+    "</hvml>";
+
 TEST(interpreter, basic)
 {
     (void)calculator_1;
@@ -739,6 +811,8 @@ TEST(interpreter, basic)
     (void)sample1;
     (void)sample2;
     (void)fibonacci_1;
+    (void)fibonacci_2;
+    (void)fibonacci_3;
 
     const char *hvmls[] = {
         // "<hvml>"
@@ -767,7 +841,9 @@ TEST(interpreter, basic)
         calculator_4,
         // sample1,
         // // sample2,
-        // fibonacci_1,
+//         fibonacci_1,
+//         fibonacci_2,
+//         fibonacci_3,
         // buggy1,
         // buggy2,
         // buggy3,
