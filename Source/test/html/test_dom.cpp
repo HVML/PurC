@@ -1,3 +1,5 @@
+#undef NDEBUG
+
 #include "purc.h"
 #include "private/list.h"
 #include "private/html.h"
