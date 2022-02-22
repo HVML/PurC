@@ -40,14 +40,14 @@
 #include "purc-utils.h"
 
 /* Constants */
-#define PCRDR_PROTOCOL_NAME             "PURCRDR"
-#define PCRDR_PROTOCOL_VERSION_STRING   "100"
-#define PCRDR_PROTOCOL_VERSION          100
-#define PCRDR_MINIMAL_PROTOCOL_VERSION  100
+#define PCRDR_PURCMC_PROTOCOL_NAME              "PURCRDR"
+#define PCRDR_PURCMC_PROTOCOL_VERSION_STRING    "100"
+#define PCRDR_PURCMC_PROTOCOL_VERSION           100
+#define PCRDR_PURCMC_MINIMAL_PROTOCOL_VERSION   100
 
-#define PCRDR_US_PATH                   "/var/tmp/purcrdr.sock"
-#define PCRDR_WS_PORT                   "7702"
-#define PCRDR_WS_PORT_RESERVED          "7703"
+#define PCRDR_PURCMC_US_PATH                    "/var/tmp/purcmc.sock"
+#define PCRDR_PURCMC_WS_PORT                    "7702"
+#define PCRDR_PURCMC_WS_PORT_RESERVED           "7703"
 
 #define PCRDR_LOCALHOST                 "localhost"
 #define PCRDR_NOT_AVAILABLE             "<N/A>"
@@ -207,12 +207,12 @@ pcrdr_get_ret_message(int ret_code);
 /**
  * Convert an error code to a return code.
  *
- * @param err_code: the internal error code of PurCRDR.
+ * @param err_code: the internal error code.
  *
- * Returns the return code of the PurCRDR protocol according to
+ * Returns the return code of the PurCMC protocol according to
  * the internal error code.
  *
- * Returns: the return code of PurCRDR protocol.
+ * Returns: the return code of PurCMC protocol.
  *
  * Since: 0.1.0
  */
@@ -221,11 +221,11 @@ pcrdr_errcode_to_retcode(int err_code);
 
 /**
  * Check whether a string is a valid token.
- * 
+ *
  * @param token: the pointer to the token string.
  * @param max_len: The maximal possible length of the token string.
  *
- * Checks whether a token string is valid. According to PurCRDR protocal,
+ * Checks whether a token string is valid. According to PurCMC protocal,
  * the runner name, method name, bubble name should be a valid token.
  *
  * Note that a string with a length longer than \a max_len will
@@ -235,7 +235,7 @@ pcrdr_errcode_to_retcode(int err_code);
  *
  * Since: 0.1.0
  */
-PCA_EXPORT bool 
+PCA_EXPORT bool
 pcrdr_is_valid_token(const char *token, int max_len);
 
 /**
@@ -250,7 +250,7 @@ pcrdr_is_valid_token(const char *token, int max_len);
  *
  * Since: 0.1.0
  */
-PCA_EXPORT void 
+PCA_EXPORT void
 pcrdr_generate_unique_id(char *id_buff, const char *prefix);
 
 /**
@@ -266,7 +266,7 @@ pcrdr_generate_unique_id(char *id_buff, const char *prefix);
  *
  * Since: 0.1.0
  */
-PCA_EXPORT void 
+PCA_EXPORT void
 pcrdr_generate_md5_id(char *id_buff, const char *prefix);
 
 /**
@@ -280,7 +280,7 @@ pcrdr_generate_md5_id(char *id_buff, const char *prefix);
  *
  * Since: 0.1.0
  */
-PCA_EXPORT bool 
+PCA_EXPORT bool
 pcrdr_is_valid_unique_id(const char *id);
 
 /**
@@ -294,7 +294,7 @@ pcrdr_is_valid_unique_id(const char *id);
  *
  * Since: 0.1.0
  */
-PCA_EXPORT bool 
+PCA_EXPORT bool
 pcrdr_is_valid_md5_id(const char *id);
 
 /**
@@ -310,7 +310,7 @@ pcrdr_is_valid_md5_id(const char *id);
  *
  * Since: 0.1.0
  */
-PCA_EXPORT double 
+PCA_EXPORT double
 pcrdr_get_elapsed_seconds(const struct timespec *ts1,
         const struct timespec *ts2);
 
@@ -324,60 +324,23 @@ pcrdr_get_elapsed_seconds(const struct timespec *ts1,
  */
 
 /**
- * Connect to the server via UnixSocket.
+ * Disconnect from the renderer.
  *
- * @param path_to_socket: the path to the unix socket.
- * @param app_name: the app name.
- * @param runner_name: the runner name.
- * @param conn: the pointer to a pcrdr_conn* to return the purcrdr connection.
+ * @param conn: the pointer to the renderer connection.
  *
- * Connects to a PurCRDR server via WebSocket.
+ * Disconnects the renderer connection.
  *
  * Returns: -1 for error; zero means everything is ok.
  *
  * Since: 0.1.0
  */
-PCA_EXPORT int 
-pcrdr_connect_via_unix_socket(const char *path_to_socket,
-        const char *app_name, const char *runner_name, pcrdr_conn** conn);
-
-/**
- * Connect to the server via WebSocket.
- *
- * @param srv_host_name: the host name of the server.
- * @param port: the port.
- * @param app_name: the app name.
- * @param runner_name: the runner name.
- * @param conn: the pointer to a pcrdr_conn* to return the purcrdr connection.
- *
- * Connects to a PurCRDR server via WebSocket.
- *
- * Returns: -1 for error; zero means everything is ok.
- *
- * Note that this function is not implemented so far.
- */
-PCA_EXPORT int 
-pcrdr_connect_via_web_socket(const char *srv_host_name, int port,
-        const char *app_name, const char *runner_name, pcrdr_conn** conn);
-
-/**
- * Disconnect to the server.
- *
- * @param conn: the pointer to the purcrdr connection.
- *
- * Disconnects the purcrdr connection.
- *
- * Returns: -1 for error; zero means everything is ok.
- *
- * Since: 0.1.0
- */
-PCA_EXPORT int 
+PCA_EXPORT int
 pcrdr_disconnect(pcrdr_conn* conn);
 
 /**
  * Free a connection.
  *
- * @param conn: the pointer to the purcrdr connection.
+ * @param conn: the pointer to the renderer connection.
  *
  * Frees the space used by the connection, including the connection itself.
  *
@@ -385,13 +348,13 @@ pcrdr_disconnect(pcrdr_conn* conn);
  *
  * Since: 0.1.0
  */
-PCA_EXPORT int 
+PCA_EXPORT int
 pcrdr_free_connection(pcrdr_conn* conn);
 
 /**
  * The prototype of an event handler.
  *
- * @param conn: the pointer to the purcrdr connection.
+ * @param conn: the pointer to the renderer connection.
  * @param msg: the event message object.
  *
  * Since: 0.1.0
@@ -400,35 +363,35 @@ typedef void (*pcrdr_event_handler)(pcrdr_conn* conn, const pcrdr_msg *msg);
 
 /**
  * pcrdr_conn_get_event_handler:
- * @param conn: the pointer to the purcrdr connection.
+ * @param conn: the pointer to the renderer connection.
  *
- * Returns the current error handler of the purcrdr connection.
+ * Returns the current error handler of the renderer connection.
  *
  * Since: 0.1.0
  */
-PCA_EXPORT 
-pcrdr_event_handler pcrdr_conn_get_event_handler(pcrdr_conn* conn);
+PCA_EXPORT pcrdr_event_handler
+pcrdr_conn_get_event_handler(pcrdr_conn* conn);
 
 /**
  * Set the error handler of the connection.
  *
- * @param conn: the pointer to the purcrdr connection.
+ * @param conn: the pointer to the renderer connection.
  * @param event_handler: the new error handler.
  *
- * Sets the error handler of the purcrdr connection, and returns the old one.
+ * Sets the error handler of the renderer connection, and returns the old one.
  *
  * Since: 0.1.0
  */
-PCA_EXPORT 
-pcrdr_event_handler pcrdr_conn_set_event_handler(pcrdr_conn* conn,
+PCA_EXPORT pcrdr_event_handler
+pcrdr_conn_set_event_handler(pcrdr_conn* conn,
         pcrdr_event_handler event_handler);
 
 /**
  * Get the user data associated with the connection.
  *
- * @param conn: the pointer to the purcrdr connection.
+ * @param conn: the pointer to the renderer connection.
  *
- * Returns the current user data (a pointer) bound with the purcrdr connection.
+ * Returns the current user data (a pointer) bound with the renderer connection.
  *
  * Since: 0.1.0
  */
@@ -438,10 +401,10 @@ pcrdr_conn_get_user_data(pcrdr_conn* conn);
 /**
  * Set the user data associated with the connection.
  *
- * @param conn: the pointer to the purcrdr connection.
+ * @param conn: the pointer to the renderer connection.
  * @param user_data: the new user data (a pointer).
  *
- * Sets the user data of the purcrdr connection, and returns the old one.
+ * Sets the user data of the renderer connection, and returns the old one.
  *
  * Since: 0.1.0
  */
@@ -449,9 +412,9 @@ PCA_EXPORT void *
 pcrdr_conn_set_user_data(pcrdr_conn* conn, void* user_data);
 
 /**
- * Get the last return code from the server.
+ * Get the last return code from the renderer.
  *
- * @param conn: the pointer to the purcrdr connection.
+ * @param conn: the pointer to the renderer connection.
  *
  * Returns the last return code of PurCRDR result or error message.
  *
@@ -463,9 +426,9 @@ pcrdr_conn_get_last_ret_code(pcrdr_conn* conn);
 /**
  * Get the server host name of a connection.
  *
- * @param conn: the pointer to the purcrdr connection.
+ * @param conn: the pointer to the renderer connection.
  *
- * Returns the host name of the PurCRDR server.
+ * Returns the host name of the PurCMC server.
  *
  * Since: 0.1.0
  */
@@ -475,9 +438,9 @@ pcrdr_conn_srv_host_name(pcrdr_conn* conn);
 /**
  * Get the own host name of a connection.
  *
- * @param conn: the pointer to the purcrdr connection.
+ * @param conn: the pointer to the renderer connection.
  *
- * Returns the host name of the current PurCRDR client.
+ * Returns the host name of the current PurCMC client.
  *
  * Since: 0.1.0
  */
@@ -487,9 +450,9 @@ pcrdr_conn_own_host_name(pcrdr_conn* conn);
 /**
  * Get the app name of a connection.
  *
- * @param conn: the pointer to the purcrdr connection.
+ * @param conn: the pointer to the renderer connection.
  *
- * Returns the app name of the current PurCRDR client.
+ * Returns the app name of the current PurCMC client.
  *
  * Since: 0.1.0
  */
@@ -499,9 +462,9 @@ pcrdr_conn_app_name(pcrdr_conn* conn);
 /**
  * Get the runner name of a connection.
  *
- * @param conn: the pointer to the purcrdr connection.
+ * @param conn: the pointer to the renderer connection.
  *
- * Returns the runner name of the current PurCRDR client.
+ * Returns the runner name of the current PurCMC client.
  *
  * Since: 0.1.0
  */
@@ -511,9 +474,9 @@ pcrdr_conn_runner_name(pcrdr_conn* conn);
 /**
  * Get the file descriptor of the connection.
  *
- * @param conn: the pointer to the purcrdr connection.
+ * @param conn: the pointer to the renderer connection.
  *
- * Returns the file descriptor of the purcrdr connection socket.
+ * Returns the file descriptor of the renderer connection socket.
  *
  * Returns: the file descriptor.
  *
@@ -525,9 +488,9 @@ pcrdr_conn_socket_fd(pcrdr_conn* conn);
 /**
  * Get the connnection socket type.
  *
- * @param conn: the pointer to the purcrdr connection.
+ * @param conn: the pointer to the renderer connection.
  *
- * Returns the socket type of the purcrdr connection.
+ * Returns the socket type of the renderer connection.
  *
  * Returns: \a CT_UNIX_SOCKET for UnixSocket, and \a CT_WEB_SOCKET for WebSocket.
  *
@@ -537,88 +500,18 @@ PCA_EXPORT int
 pcrdr_conn_socket_type(pcrdr_conn* conn);
 
 /**
- * Read a packet (pre-allocation version).
+ * Get the connnection protocol.
  *
- * @param conn: the pointer to the purcrdr connection.
- * @param packet_buf: the pointer to a buffer for saving the contents
- *      of the packet.
- * @param sz_packet: the pointer to a unsigned integer for returning
- *      the length of the packet.
+ * @param conn: the pointer to the renderer connection.
  *
- * Reads a packet and saves the contents of the packet and returns
- * the length of the packet.
+ * Returns the socket type of the renderer connection.
  *
- * Returns: -1 for error; zero means everything is ok.
- *
- * Note that use this function only if you know the length of
- * the next packet, and have a long enough buffer to save the
- * contents of the packet.
- *
- * Also note that if the length of the packet is 0, there is no data in
- * the packet. You should ignore the packet in this case.
+ * Returns: \a CT_UNIX_SOCKET for UnixSocket, and \a CT_WEB_SOCKET for WebSocket.
  *
  * Since: 0.1.0
  */
 PCA_EXPORT int 
-pcrdr_read_packet(pcrdr_conn* conn, char* packet_buf, size_t *sz_packet);
-
-/**
- * Read a packet (allocation version).
- *
- * @param conn: the pointer to the purcrdr connection.
- * @param packet: the pointer to a pointer to a buffer for returning
- *      the contents of the packet.
- * @param sz_packet: the pointer to a unsigned integer for returning
- *      the length of the packet.
- *
- * Reads a packet and allocates a buffer for the contents of the packet
- * and returns the contents and the length.
- *
- * Returns: -1 for error; zero means everything is ok.
- *
- * Note that the caller is responsible for releasing the buffer.
- *
- * Also note that if the length of the packet is 0, there is no data in the packet.
- * You should ignore the packet in this case.
- *
- * Since: 0.1.0
- */
-PCA_EXPORT int 
-pcrdr_read_packet_alloc(pcrdr_conn* conn, void **packet, size_t *sz_packet);
-
-/**
- * Send a text packet to the server.
- *
- * @param conn: the pointer to the purcrdr connection.
- * @param text: the pointer to the text to send.
- * @param txt_len: the length to send.
- *
- * Sends a text packet to the PurCRDR server.
- *
- * Returns: -1 for error; zero means everything is ok.
- *
- * Since: 0.1.0
- */
-PCA_EXPORT int 
-pcrdr_send_text_packet(pcrdr_conn* conn, const char *text, size_t txt_len);
-
-/**
- * Ping the server.
- *
- * @param conn: the pointer to the purcrdr connection.
- *
- * Pings the PurCRDR server. The client should ping the server
- * about every 30 seconds to tell the server "I am alive".
- * According to the PurCRDR protocol, the server may consider
- * a client died if there was no any data from the client
- * for 90 seconds.
- *
- * Returns: -1 for error; zero means everything is ok.
- *
- * Since: 0.1.0
- */
-PCA_EXPORT int 
-pcrdr_ping_server(pcrdr_conn* conn);
+pcrdr_conn_socket_type(pcrdr_conn* conn);
 
 typedef enum {
     PCRDR_MSG_TYPE_REQUEST = 0,
@@ -813,7 +706,7 @@ pcrdr_release_message(pcrdr_msg *msg);
 /**
  * The prototype of a result handler.
  *
- * @param conn: the pointer to the purcrdr connection.
+ * @param conn: the pointer to the renderer connection.
  * @param request_msg: the original request message.
  * @param response_msg: the response message.
  *
@@ -830,13 +723,13 @@ typedef int (*pcrdr_result_handler)(pcrdr_conn* conn,
 /**
  * Send a request and handle the result in a callback.
  *
- * @param conn: the pointer to the purcrdr connection.
+ * @param conn: the pointer to the renderer connection.
  * @param request_msg: the pointer to the request message.
  * @param time_expected: the expected return time in seconds.
  * @param result_handler: the result handler.
  * @param request_id (nullable): the buffer to store the request identifier.
  *
- * This function emits a request to the purcrdr server and
+ * This function emits a request to the renderer server and
  * returns immediately. The result handler will be called
  * in subsequent calls of \a pcrdr_read_and_dispatch_packet().
  *
@@ -851,12 +744,12 @@ pcrdr_send_request(pcrdr_conn* conn, pcrdr_msg *request_msg,
 /**
  * Send a request and wait the response.
  *
- * @param conn: the pointer to the purcrdr connection.
+ * @param conn: the pointer to the renderer connection.
  * @param request_msg: the pointer to the request message.
  * @param time_expected: the expected return time in seconds.
  * @param response_msg: the pointer to a pointer to return the response message.
  *
- * This function send a request to the server and wait for the result.
+ * This function send a request to the renderer and wait for the result.
  *
  * Returns: -1 for error; zero means everything is ok.
  *
@@ -867,11 +760,132 @@ pcrdr_send_request_and_wait(pcrdr_conn* conn, const pcrdr_msg *request_msg,
         int time_expected, pcrdr_msg **response_msg);
 
 /**
- * Read and dispatch the packet from the server.
+ * Connect to the PurCMC server via UNIX domain socket.
  *
- * @param conn: the pointer to the purcrdr connection.
+ * @param path_to_socket: the path to the unix socket.
+ * @param app_name: the app name.
+ * @param runner_name: the runner name.
+ * @param conn: the pointer to a pcrdr_conn* to return the renderer connection.
  *
- * This function read a PurCRDR packet and dispatches the packet to
+ * Connects to a PurCMC server via UNIX domain socket.
+ *
+ * Returns: -1 for error; zero means everything is ok.
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT int 
+pcrdr_purcmc_connect_via_unix_socket(const char *path_to_socket,
+        const char *app_name, const char *runner_name, pcrdr_conn** conn);
+
+/**
+ * Connect to the PurCMC server via WebSocket.
+ *
+ * @param srv_host_name: the host name of the PurCMC server.
+ * @param port: the port.
+ * @param app_name: the app name.
+ * @param runner_name: the runner name.
+ * @param conn: the pointer to a pcrdr_conn* to return the renderer connection.
+ *
+ * Connects to a PurCMC server via WebSocket.
+ *
+ * Returns: -1 for error; zero means everything is ok.
+ *
+ * Note that this function is not implemented so far.
+ */
+PCA_EXPORT int 
+pcrdr_purcmc_connect_via_web_socket(const char *srv_host_name, int port,
+        const char *app_name, const char *runner_name, pcrdr_conn** conn);
+
+/**
+ * Read a packet (pre-allocation version).
+ *
+ * @param conn: the pointer to the renderer connection.
+ * @param packet_buf: the pointer to a buffer for saving the contents
+ *      of the packet.
+ * @param sz_packet: the pointer to a unsigned integer for returning
+ *      the length of the packet.
+ *
+ * Reads a packet and saves the contents of the packet and returns
+ * the length of the packet.
+ *
+ * Returns: -1 for error; zero means everything is ok.
+ *
+ * Note that use this function only if you know the length of
+ * the next packet, and have a long enough buffer to save the
+ * contents of the packet.
+ *
+ * Also note that if the length of the packet is 0, there is no data in
+ * the packet. You should ignore the packet in this case.
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT int 
+pcrdr_purcmc_read_packet(pcrdr_conn* conn, char* packet_buf, size_t *sz_packet);
+
+/**
+ * Read a packet (allocation version).
+ *
+ * @param conn: the pointer to the renderer connection.
+ * @param packet: the pointer to a pointer to a buffer for returning
+ *      the contents of the packet.
+ * @param sz_packet: the pointer to a unsigned integer for returning
+ *      the length of the packet.
+ *
+ * Reads a packet and allocates a buffer for the contents of the packet
+ * and returns the contents and the length.
+ *
+ * Returns: -1 for error; zero means everything is ok.
+ *
+ * Note that the caller is responsible for releasing the buffer.
+ *
+ * Also note that if the length of the packet is 0, there is no data in the packet.
+ * You should ignore the packet in this case.
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT int 
+pcrdr_purcmc_read_packet_alloc(pcrdr_conn* conn, void **packet, size_t *sz_packet);
+
+/**
+ * Send a text packet to the PurCMC server.
+ *
+ * @param conn: the pointer to the renderer connection.
+ * @param text: the pointer to the text to send.
+ * @param txt_len: the length to send.
+ *
+ * Sends a text packet to the PurCMC server.
+ *
+ * Returns: -1 for error; zero means everything is ok.
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT int 
+pcrdr_purcmc_send_text_packet(pcrdr_conn* conn, const char *text, size_t txt_len);
+
+/**
+ * Ping the PurCMC server.
+ *
+ * @param conn: the pointer to the renderer connection.
+ *
+ * Pings the PurCMC server. The client should ping the PurCMC server
+ * about every 30 seconds to tell the PurCMC server "I am alive".
+ * According to the PurCMC protocol, the server may consider
+ * a client died if there was no any data from the client
+ * for 90 seconds.
+ *
+ * Returns: -1 for error; zero means everything is ok.
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT int 
+pcrdr_purcmc_ping_server(pcrdr_conn* conn);
+
+/**
+ * Read and dispatch the packet from the PurCMC server.
+ *
+ * @param conn: the pointer to the renderer connection.
+ *
+ * This function read a PurCMC packet and dispatches the packet to
  * a event handler, method handler, or result handler.
  *
  * Returns: -1 for error; zero means everything is ok.
@@ -879,27 +893,27 @@ pcrdr_send_request_and_wait(pcrdr_conn* conn, const pcrdr_msg *request_msg,
  * Since: 0.1.0
  */
 PCA_EXPORT int
-pcrdr_read_and_dispatch_packet(pcrdr_conn* conn);
+pcrdr_purcmc_read_and_dispatch_packet(pcrdr_conn* conn);
 
 /**
- * Wait and dispatch the packet from the server.
+ * Wait and dispatch the packet from the PurCMC server.
  *
- * @param conn: the pointer to the purcrdr connection.
+ * @param conn: the pointer to the renderer connection.
  * @param timeout_ms (not nullable): the timeout value in milliseconds.
  *
- * This function waits for a PurCRDR packet by calling select()
+ * This function waits for a PurCMC packet by calling select()
  * and dispatches the packet to event handlers, method handlers,
  * or result handlers.
  *
  * Returns: -1 for error; zero means everything is ok.
  *
  * Note that if you need watching multiple file descriptors, you'd
- * better user \a pcrdr_read_and_dispatch_packet.
+ * better user \a pcrdr_purcmc_read_and_dispatch_packet.
  *
  * Since: 0.1.0
  */
 PCA_EXPORT int
-pcrdr_wait_and_dispatch_packet(pcrdr_conn* conn, int timeout_ms);
+pcrdr_purcmc_wait_and_dispatch_packet(pcrdr_conn* conn, int timeout_ms);
 
 /**@}*/
 

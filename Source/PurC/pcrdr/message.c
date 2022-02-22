@@ -1,6 +1,6 @@
 /*
  * message.c -- The implementation of API to make, parse, serialize,
- *      and release a PURCRDR message.
+ *      and release a PurCMC message.
  *
  * Copyright (c) 2021, 2022 FMSoft (http://www.fmsoft.cn)
  *

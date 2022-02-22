@@ -1,7 +1,7 @@
 /*
  * @file pcrdr.c
  * @date 2022/02/21
- * @brief The implementation of PURCRDR protocol.
+ * @brief The initializer of the PCRDR module.
  *
  * Copyright (C) 2022 FMSoft <https://www.fmsoft.cn>
  *
@@ -68,7 +68,7 @@ int pcrdr_init_instance(struct pcinst* inst,
         return PURC_ERROR_NOT_SUPPORTED;
     }
 
-    int cnnfd = pcrdr_connect_via_unix_socket(
+    int cnnfd = pcrdr_purcmc_connect_via_unix_socket(
             extra_info->renderer_uri + sizeof(SCHEMA_UNIX_SOCKET) - 1,
             inst->app_name, inst->runner_name, &inst->conn_to_rdr);
 

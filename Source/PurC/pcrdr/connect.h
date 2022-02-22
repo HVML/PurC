@@ -1,7 +1,7 @@
 /**
- * @file pcrdr.h
- * @date 2022/02/21
- * @brief The internal interfaces for PCRDR module.
+ * @file connect.h
+ * @date 2022/02/22
+ * @brief The internal interfaces to manage renderer connection.
  *
  * Copyright (C) 2022 FMSoft <https://www.fmsoft.cn>
  *
@@ -24,25 +24,28 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef PURC_PRIVATE_PCRDR_H
-#define PURC_PRIVATE_PCRDR_H
+#ifndef PURC_PCRDR_CONN_H
+#define PURC_PCRDR_CONN_H
 
-#include "config.h"
+struct pcrdr_conn {
+    int prot;
+    int type;
+    int fd;
+    int last_ret_code;
 
-#ifdef __cplusplus
-extern "C" {
-#endif  /* __cplusplus */
+    char* srv_host_name;
+    char* own_host_name;
+    char* app_name;
+    char* runner_name;
 
-void pcrdr_init_once(void) WTF_INTERNAL;
+    struct kvlist call_list;
 
-int pcrdr_init_instance(struct pcinst* inst,
-        const purc_instance_extra_info *extra_info) WTF_INTERNAL;
+    pcrdr_event_handler event_handler;
+    void *user_data;
 
-void pcrdr_cleanup_instance(struct pcinst* inst) WTF_INTERNAL;
+    /* operations */
+    int (*disconnect) (pcrdr_conn* conn);
+};
 
-#ifdef __cplusplus
-}
-#endif  /* __cplusplus */
-
-#endif  /* PURC_PRIVATE_PCRDR_H */
+#endif  /* PURC_PCRDR_CONN_H */
 

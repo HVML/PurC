@@ -1,5 +1,5 @@
 /*
- * helpers.c -- The helpers for PURCRDR protocol.
+ * helpers.c -- The helpers to manage renderer connections.
  *
  * Copyright (c) 2021, 2022 FMSoft (http://www.fmsoft.cn)
  *
