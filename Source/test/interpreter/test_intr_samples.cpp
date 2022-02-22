@@ -4,6 +4,7 @@
 
 #include "../helpers.h"
 
+#include <glob.h>
 #include <gtest/gtest.h>
 
 struct sample_data {
@@ -147,7 +148,11 @@ add_sample(const struct sample_data *sample)
 
 TEST(samples, basic)
 {
-    PurCInstance purc;
+    if (1)
+        return;
+
+    bool enable_remote_fetcher = true;
+    PurCInstance purc(enable_remote_fetcher);
 
     ASSERT_TRUE(purc);
 
@@ -175,8 +180,11 @@ run_tests(struct sample_data *samples, size_t nr, int parallel)
         purc_run(PURC_VARIANT_INVALID, NULL);
 }
 
-TEST(samples, multiples)
+TEST(samples, samples)
 {
+    if (1)
+        return;
+
     PurCInstance purc;
 
     ASSERT_TRUE(purc);
@@ -432,5 +440,72 @@ TEST(samples, multiples)
     };
 
     run_tests(samples, PCA_TABLESIZE(samples), 0);
+}
+
+static int
+process_file(const char *file)
+{
+    std::cout << file << std::endl;
+    return 0;
+}
+
+TEST(samples, files)
+{
+    if (1)
+        return;
+
+    bool enable_remote_fetcher = true;
+    PurCInstance purc(enable_remote_fetcher);
+
+    ASSERT_TRUE(purc);
+
+    int r = 0;
+    glob_t globbuf;
+    memset(&globbuf, 0, sizeof(globbuf));
+
+    char path[PATH_MAX+1];
+    const char *env = "SOURCE_FILES";
+    const char *rel = "data/*.hvml";
+    test_getpath_from_env_or_rel(path, sizeof(path),
+        env, rel);
+
+    if (!path[0]) {
+        ADD_FAILURE()
+            << "internal logic error" << std::endl;
+    }
+    else {
+        globbuf.gl_offs = 0;
+        r = glob(path, GLOB_DOOFFS | GLOB_APPEND, NULL, &globbuf);
+        do {
+            if (r) {
+                ADD_FAILURE()
+                    << "Failed to globbing @["
+                    << path << "]: [" << errno << "]" << strerror(errno)
+                    << std::endl;
+                break;
+            }
+            for (size_t i=0; i<globbuf.gl_pathc; ++i) {
+                r = process_file(globbuf.gl_pathv[i]);
+                if (r)
+                    break;
+            }
+        } while (0);
+        globfree(&globbuf);
+    }
+
+    std::cerr << "env: " << env << "=" << path << std::endl;
+}
+
+TEST(samples, foo)
+{
+#if 0
+    do {
+        struct purc_instance_extra_info info = {};
+        info.enable_remote_fetcher = true;
+        if (purc_init ("cn.fmsoft.hybridos.test", "test_init", &info))
+            break;
+        purc_cleanup();
+    } while (1);
+#endif
 }
 
