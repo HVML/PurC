@@ -27,7 +27,38 @@
 #ifndef PURC_PRIVATE_PCRDR_H
 #define PURC_PRIVATE_PCRDR_H
 
-#include "config.h"
+#include "instance.h"
+
+/* the capabilities of a renderer */
+struct renderer_capabilities {
+    /* the protocol name */
+    char       *prot_name;
+    /* the protocol version number */
+    long int    prot_version;
+
+    /* the HTML version if supported, else NULL */
+    char   *html_version;
+    /* the XGML version if supported, else NULL */
+    char   *xgml_version;
+    /* the XML version if supported, else NULL */
+    char   *xml_version;
+
+    /* the max number of workspaces;
+       0 for not supported, -1 for unlimited */
+    long int    workspace;
+    /* the max number of tabbed windows;
+       0 for not supported, -1 for unlimited */
+    long int    tabbedWindow;
+    /* the max number of tabbed pages in one tabbed window;
+       0 for not supported, -1 for unlimited */
+    long int    tabbedPage;
+    /* the max number of plain windows;
+       0 for not supported, -1 for unlimited */
+    long int    plainWindow;
+    /* the max number of window levels;
+       0 for not supported, -1 for unlimited */
+    long int    windowLevel;
+};
 
 #ifdef __cplusplus
 extern "C" {
@@ -39,6 +70,11 @@ int pcrdr_init_instance(struct pcinst* inst,
         const purc_instance_extra_info *extra_info) WTF_INTERNAL;
 
 void pcrdr_cleanup_instance(struct pcinst* inst) WTF_INTERNAL;
+
+struct renderer_capabilities *pcrdr_parse_renderer_capabilities(char *data,
+        size_t data_len) WTF_INTERNAL;
+void pcrdr_release_renderer_capabilities(
+        struct renderer_capabilities *rdr_caps) WTF_INTERNAL;
 
 #ifdef __cplusplus
 }

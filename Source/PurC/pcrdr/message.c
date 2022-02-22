@@ -24,8 +24,9 @@
  */
 
 #include "config.h"
-#include "purc-pcrdr.h"
+#include "purc.h"
 #include "private/debug.h"
+#include "private/pcrdr.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -676,7 +677,6 @@ int pcrdr_parse_packet(char *packet, size_t sz_packet, pcrdr_msg **msg_out)
         }
 
         if ((msg.data = is_blank_line(line))) {
-            printf ("Encounter the blank line\n");
             break;
         }
 
@@ -691,8 +691,6 @@ int pcrdr_parse_packet(char *packet, size_t sz_packet, pcrdr_msg **msg_out)
         if (value == NULL) {
             goto failed;
         }
-
-        printf ("key: %s; value: %s\n", key, value);
 
         key_op op = find_key_op(key);
         if (op == NULL) {
@@ -1024,5 +1022,163 @@ size_t pcrdr_serialize_message_to_buffer(const pcrdr_msg *msg,
     pcrdr_serialize_message(msg, write_to_buff, &buff_info);
 
     return buff_info.n;
+}
+
+struct renderer_capabilities *pcrdr_parse_renderer_capabilities(char *data,
+        size_t data_len)
+{
+    struct renderer_capabilities *rdr_caps;
+
+    char *str1;
+    char *line;
+    char *saveptr1;
+
+    int line_no = 0;
+
+    UNUSED_PARAM(data_len);
+
+    rdr_caps = calloc(1, sizeof(*rdr_caps));
+    if (rdr_caps == NULL) {
+        purc_set_error(PCRDR_ERROR_NOMEM);
+        return NULL;
+    }
+
+    for (str1 = data; ; str1 = NULL) {
+        line = strtok_r(str1, STR_LINE_SEPARATOR, &saveptr1);
+        if (line == NULL) {
+            goto failed;
+        }
+
+        if (line_no == 0) {
+            char *prot_name, *prot_version;
+            char *saveptr2;
+            prot_name = strtok_r(line, STR_PAIR_SEPARATOR, &saveptr2);
+            if (prot_name == NULL) {
+                goto failed;
+            }
+
+            prot_version = strtok_r(NULL, STR_PAIR_SEPARATOR, &saveptr2);
+            if (prot_version == NULL) {
+                goto failed;
+            }
+
+            rdr_caps->prot_name = strdup(prot_name);
+            if (rdr_caps->prot_name == NULL)
+                goto failed;
+
+            rdr_caps->prot_version = strtol(prot_name, NULL, 10);
+        }
+        else if (line_no == 1) {    /* markup versions */
+            char *str2, *value;
+            char *saveptr2;
+
+            for (str2 = line; ; str2 = NULL) {
+                value = strtok_r(str2, STR_VALUE_SEPARATOR, &saveptr2);
+                if (value == NULL) {
+                    goto failed;
+                }
+
+                char *markup, *version;
+                char *saveptr3;
+
+                markup = strtok_r(value, STR_PAIR_SEPARATOR, &saveptr3);
+                if (markup == NULL) {
+                    goto failed;
+                }
+
+                version = strtok_r(NULL, STR_PAIR_SEPARATOR, &saveptr3);
+                if (version == NULL) {
+                    goto failed;
+                }
+
+                if (strcasecmp(markup, "html") == 0) {
+                    rdr_caps->html_version = strdup(version);
+                    if (rdr_caps->html_version == NULL)
+                        goto failed;
+                }
+                else if (strcasecmp(markup, "xgml") == 0) {
+                    rdr_caps->xgml_version = strdup(version);
+                    if (rdr_caps->xgml_version == NULL)
+                        goto failed;
+                }
+                else if (strcasecmp(markup, "xml") == 0) {
+                    rdr_caps->xml_version = strdup(version);
+                    if (rdr_caps->xml_version == NULL)
+                        goto failed;
+                }
+            }
+        }
+        else if (line_no == 2) {    /* windowsing capabilities */
+            char *str2, *value;
+            char *saveptr2;
+
+            for (str2 = line; ; str2 = NULL) {
+                value = strtok_r(str2, STR_VALUE_SEPARATOR, &saveptr2);
+                if (value == NULL) {
+                    goto failed;
+                }
+
+                char *cap, *limit;
+                char *saveptr3;
+
+                cap = strtok_r(value, STR_PAIR_SEPARATOR, &saveptr3);
+                if (cap == NULL) {
+                    goto failed;
+                }
+
+                limit = strtok_r(NULL, STR_PAIR_SEPARATOR, &saveptr3);
+                if (limit == NULL) {
+                    goto failed;
+                }
+
+                if (strcasecmp(cap, "workspace") == 0) {
+                    rdr_caps->workspace = strtol(limit, NULL, 10);
+                }
+                else if (strcasecmp(cap, "tabbedWindow") == 0) {
+                    rdr_caps->tabbedWindow = strtol(limit, NULL, 10);
+                }
+                else if (strcasecmp(cap, "tabbedPage") == 0) {
+                    rdr_caps->tabbedPage = strtol(limit, NULL, 10);
+                }
+                else if (strcasecmp(cap, "plainWindow") == 0) {
+                    rdr_caps->plainWindow = strtol(limit, NULL, 10);
+                }
+                else if (strcasecmp(cap, "windowLevel") == 0) {
+                    rdr_caps->windowLevel = strtol(limit, NULL, 10);
+                }
+            }
+        }
+
+        line_no++;
+        if (line_no > 2)
+            break;
+    }
+
+    return rdr_caps;
+
+failed:
+    pcrdr_release_renderer_capabilities(rdr_caps);
+    purc_set_error(PCRDR_ERROR_BAD_MESSAGE);
+    return NULL;
+}
+
+void pcrdr_release_renderer_capabilities(
+        struct renderer_capabilities *rdr_caps)
+{
+    assert (rdr_caps != NULL);
+
+    if (rdr_caps->prot_name)
+        free(rdr_caps->prot_name);
+
+    if (rdr_caps->html_version)
+        free(rdr_caps->html_version);
+
+    if (rdr_caps->xgml_version)
+        free(rdr_caps->xgml_version);
+
+    if (rdr_caps->xml_version)
+        free(rdr_caps->xml_version);
+
+    free(rdr_caps);
 }
 

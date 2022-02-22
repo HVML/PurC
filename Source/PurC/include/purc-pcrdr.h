@@ -780,7 +780,7 @@ pcrdr_send_request_and_wait(pcrdr_conn* conn, const pcrdr_msg *request_msg,
  *
  * Since: 0.1.0
  */
-PCA_EXPORT int 
+PCA_EXPORT int
 pcrdr_purcmc_connect_via_unix_socket(const char *path_to_socket,
         const char *app_name, const char *runner_name, pcrdr_conn** conn);
 
@@ -799,7 +799,7 @@ pcrdr_purcmc_connect_via_unix_socket(const char *path_to_socket,
  *
  * Note that this function is not implemented so far.
  */
-PCA_EXPORT int 
+PCA_EXPORT int
 pcrdr_purcmc_connect_via_web_socket(const char *srv_host_name, int port,
         const char *app_name, const char *runner_name, pcrdr_conn** conn);
 
@@ -826,8 +826,9 @@ pcrdr_purcmc_connect_via_web_socket(const char *srv_host_name, int port,
  *
  * Since: 0.1.0
  */
-PCA_EXPORT int 
-pcrdr_purcmc_read_packet(pcrdr_conn* conn, char* packet_buf, size_t *sz_packet);
+PCA_EXPORT int
+pcrdr_purcmc_read_packet(pcrdr_conn* conn,
+        char* packet_buf, size_t *sz_packet);
 
 /**
  * Read a packet (allocation version).
@@ -850,8 +851,9 @@ pcrdr_purcmc_read_packet(pcrdr_conn* conn, char* packet_buf, size_t *sz_packet);
  *
  * Since: 0.1.0
  */
-PCA_EXPORT int 
-pcrdr_purcmc_read_packet_alloc(pcrdr_conn* conn, void **packet, size_t *sz_packet);
+PCA_EXPORT int
+pcrdr_purcmc_read_packet_alloc(pcrdr_conn* conn,
+        void **packet, size_t *sz_packet);
 
 /**
  * Send a text packet to the PurCMC server.
@@ -866,8 +868,9 @@ pcrdr_purcmc_read_packet_alloc(pcrdr_conn* conn, void **packet, size_t *sz_packe
  *
  * Since: 0.1.0
  */
-PCA_EXPORT int 
-pcrdr_purcmc_send_text_packet(pcrdr_conn* conn, const char *text, size_t txt_len);
+PCA_EXPORT int
+pcrdr_purcmc_send_text_packet(pcrdr_conn* conn,
+        const char *text, size_t txt_len);
 
 /**
  * Ping the PurCMC server.
@@ -884,7 +887,7 @@ pcrdr_purcmc_send_text_packet(pcrdr_conn* conn, const char *text, size_t txt_len
  *
  * Since: 0.1.0
  */
-PCA_EXPORT int 
+PCA_EXPORT int
 pcrdr_purcmc_ping_server(pcrdr_conn* conn);
 
 /**

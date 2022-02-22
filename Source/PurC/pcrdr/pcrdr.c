@@ -61,6 +61,8 @@ void pcrdr_init_once(void)
 int pcrdr_init_instance(struct pcinst* inst,
         const purc_instance_extra_info *extra_info)
 {
+    pcrdr_msg *msg = NULL;
+
     // TODO: only PurCMC protocol and UNIX domain socket supported so far */
     if (extra_info->renderer_prot != PURC_RDRPROT_PURCMC ||
             strncasecmp (SCHEMA_UNIX_SOCKET, extra_info->renderer_uri,
@@ -68,20 +70,49 @@ int pcrdr_init_instance(struct pcinst* inst,
         return PURC_ERROR_NOT_SUPPORTED;
     }
 
-    int cnnfd = pcrdr_purcmc_connect_via_unix_socket(
+    if (pcrdr_purcmc_connect_via_unix_socket(
             extra_info->renderer_uri + sizeof(SCHEMA_UNIX_SOCKET) - 1,
-            inst->app_name, inst->runner_name, &inst->conn_to_rdr);
+            inst->app_name, inst->runner_name, &inst->conn_to_rdr) < 0)
+        goto failed;
 
-    if (cnnfd < 0)
-        return purc_get_last_error();
+    /* read the initial response from the server */
+    char buff[PCRDR_DEF_PACKET_BUFF_SIZE];
+    size_t len;
 
-    // TODO: send the initial request to the renderer
+    if (pcrdr_purcmc_read_packet(inst->conn_to_rdr, buff, &len) < 0)
+        goto failed;
 
+    if (pcrdr_parse_packet(buff, len, &msg) < 0)
+        goto failed;
+
+    if (msg->type == PCRDR_MSG_TYPE_RESPONSE && msg->retCode == PCRDR_SC_OK) {
+        inst->rdr_caps =
+            pcrdr_parse_renderer_capabilities(msg->data, msg->dataLen);
+        if (inst->rdr_caps == NULL)
+            goto failed;
+    }
+
+    pcrdr_release_message(msg);
     return PURC_ERROR_OK;
+
+failed:
+    if (msg)
+        pcrdr_release_message(msg);
+
+    if (inst->conn_to_rdr) {
+        pcrdr_disconnect(inst->conn_to_rdr);
+        inst->conn_to_rdr = NULL;
+    }
+
+    return purc_get_last_error();
 }
 
 void pcrdr_cleanup_instance(struct pcinst* inst)
 {
+    if (inst->rdr_caps) {
+        pcrdr_release_renderer_capabilities(inst->rdr_caps);
+    }
+
     if (inst->conn_to_rdr)
         pcrdr_disconnect (inst->conn_to_rdr);
 }

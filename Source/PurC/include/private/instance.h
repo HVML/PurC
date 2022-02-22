@@ -58,6 +58,7 @@ struct pcinst {
     struct pcvariant_heap variant_heap;
 
     struct pcrdr_conn *conn_to_rdr;
+    struct renderer_capabilities *rdr_caps;
 
     /* FIXME: dynamically allocate the following heaps
        when HVML moduel is enabled. */
