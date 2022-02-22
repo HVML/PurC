@@ -253,10 +253,9 @@ attr_found(struct pcintr_stack_frame *frame,
     UNUSED_PARAM(ud);
 
     PC_ASSERT(name);
-    PC_ASSERT(attr->op == PCHVML_ATTRIBUTE_ASSIGNMENT);
+    PC_ASSERT(attr->op == PCHVML_ATTRIBUTE_OPERATOR);
 
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, ON)) == name) {
-        PRINT_VARIANT(val);
         return process_attr_on(frame, element, name, val);
     }
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, IN)) == name) {
@@ -285,8 +284,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame);
 
-    frame->pos = pos; // ATTENTION!!
-
     struct ctxt_for_choose *ctxt;
     ctxt = (struct ctxt_for_choose*)calloc(1, sizeof(*ctxt));
     if (!ctxt) {
@@ -296,6 +293,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     frame->ctxt = ctxt;
     frame->ctxt_destroy = ctxt_destroy;
+
+    frame->pos = pos; // ATTENTION!!
 
     struct pcvdom_element *element = frame->pos;
     PC_ASSERT(element);
@@ -312,7 +311,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (r)
         return NULL;
 
-    PRINT_VARIANT(frame->result_var);
     return ctxt;
 }
 

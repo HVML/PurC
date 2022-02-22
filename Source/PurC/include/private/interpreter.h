@@ -93,6 +93,12 @@ enum pcintr_stack_vdom_insertion_mode {
     STACK_VDOM_AFTER_HVML,
 };
 
+// experimental: currently for test-case-only
+struct pcintr_supervisor_ops {
+    void (*on_terminated)(pcintr_stack_t stack, void *ctxt);
+    void (*on_cleanup)(pcintr_stack_t stack, void *ctxt);
+};
+
 struct pcintr_stack {
     struct list_head frames;
 
@@ -144,6 +150,10 @@ struct pcintr_stack {
 
     // base uri
     char* base_uri;
+
+    // experimental: currently for test-case-only
+    struct pcintr_supervisor_ops        ops;
+    void                                *ctxt;  // no-owner-ship!!!
 };
 
 enum purc_symbol_var {
@@ -276,29 +286,6 @@ pcintr_stack_get_bottom_frame(pcintr_stack_t stack);
 struct pcintr_stack_frame*
 pcintr_stack_frame_get_parent(struct pcintr_stack_frame *frame);
 
-pcdom_node_t*
-pcintr_parse_fragment(pcintr_stack_t stack,
-        const char *fragment_chunk, size_t sz);
-
-__attribute__ ((format (printf, 5, 6)))
-int
-pcintr_printf_to_fragment(pcintr_stack_t stack,
-        purc_variant_t on, purc_variant_t to, purc_variant_t at,
-        const char *fmt, ...);
-
-int
-pcintr_edom_from_skeleton_vdom(pcintr_stack_t stack);
-
-int
-pcintr_printf_content_to_edom(pcintr_stack_t stack, const char *fmt, ...);
-
-int
-pcintr_printf_vcm_content_to_edom(pcintr_stack_t stack,
-        purc_variant_t vcm);
-
-pcdom_element_t*
-pcintr_stack_get_edom_open_element(pcintr_stack_t stack);
-
 purc_variant_t
 pcintr_make_object_of_dynamic_variants(size_t nr_args,
     struct pcintr_dynamic_args *args);
@@ -351,6 +338,16 @@ pcintr_get_symbolized_var (pcintr_stack_t stack, unsigned int number,
 purc_variant_t
 pcintr_get_numbered_var (pcintr_stack_t stack, unsigned int number);
 
+// return observed variant
+purc_variant_t
+pcintr_add_named_var_observer(pcintr_stack_t stack, const char* name,
+        const char* event);
+
+// return observed variant
+purc_variant_t
+pcintr_remove_named_var_observer(pcintr_stack_t stack, const char* name,
+        const char* event);
+
 // $TIMERS
 struct pcintr_timers*
 pcintr_timers_init(pcintr_stack_t stack);
@@ -371,6 +368,9 @@ pcintr_register_observer(purc_variant_t observed,
 bool
 pcintr_revoke_observer(struct pcintr_observer* observer);
 
+bool
+pcintr_revoke_observer_ex(purc_variant_t observed, purc_variant_t for_value);
+
 struct pcintr_observer*
 pcintr_find_observer(pcintr_stack_t stack, purc_variant_t observed,
         purc_variant_t msg_type, purc_variant_t sub_type);
@@ -388,13 +388,72 @@ pcintr_load_dynamic_variant(pcintr_stack_t stack,
 
 // utilities
 void
-pcintr_dump_document(pcintr_stack_t stack);
+pcintr_util_dump_document_ex(pchtml_html_document_t *doc,
+    const char *file, int line, const char *func);
 
 void
-pcintr_dump_edom_node(pcintr_stack_t stack, pcdom_node_t *node);
+pcintr_util_dump_edom_node_ex(pcdom_node_t *node,
+    const char *file, int line, const char *func);
+
+#define pcintr_util_dump_document(_doc)          \
+    pcintr_util_dump_document_ex(_doc, __FILE__, __LINE__, __func__)
+
+#define pcintr_util_dump_edom_node(_node)        \
+    pcintr_util_dump_edom_node_ex(_node, __FILE__, __LINE__, __func__)
+
+#define pcintr_dump_document(_stack)             \
+    pcintr_util_dump_document_ex(_stack->doc, __FILE__, __LINE__, __func__)
+
+#define pcintr_dump_edom_node(_stack, _node)      \
+    pcintr_util_dump_edom_node_ex(_node, __FILE__, __LINE__, __func__)
 
 void
 pcintr_dump_frame_edom_node(pcintr_stack_t stack);
+
+pcdom_element_t*
+pcintr_util_append_element(pcdom_element_t* parent, const char *tag);
+
+pcdom_text_t*
+pcintr_util_append_content(pcdom_element_t* parent, const char *txt);
+
+int
+pcintr_util_set_attribute(pcdom_element_t *elem,
+        const char *key, const char *val);
+
+__attribute__ ((format (printf, 2, 3)))
+int
+pcintr_util_add_child(pcdom_element_t *parent, const char *fmt, ...);
+
+__attribute__ ((format (printf, 2, 3)))
+int
+pcintr_util_set_child(pcdom_element_t *parent, const char *fmt, ...);
+
+pchtml_html_document_t*
+pcintr_util_load_document(const char *html);
+
+int
+pcintr_util_comp_docs(pchtml_html_document_t *docl,
+    pchtml_html_document_t *docr, int *diff);
+
+bool
+pcintr_util_is_ancestor(pcdom_node_t *ancestor, pcdom_node_t *descendant);
+
+
+purc_vdom_t
+purc_load_hvml_from_string_ex(const char* string,
+        struct pcintr_supervisor_ops *ops, void *ctxt);
+
+purc_vdom_t
+purc_load_hvml_from_file_ex(const char* file,
+        struct pcintr_supervisor_ops *ops, void *ctxt);
+
+purc_vdom_t
+purc_load_hvml_from_url_ex(const char* url,
+        struct pcintr_supervisor_ops *ops, void *ctxt);
+
+purc_vdom_t
+purc_load_hvml_from_rwstream_ex(purc_rwstream_t stream,
+        struct pcintr_supervisor_ops *ops, void *ctxt);
 
 PCA_EXTERN_C_END
 

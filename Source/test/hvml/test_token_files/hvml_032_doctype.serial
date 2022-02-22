@@ -1,7 +1,0 @@
-<!DOCTYPE hvml SYSTEM "v: MATH">
-<hvml>
-    <archetype>concat_string("
-        <li class="user-item" id="user-",get_element(get_variable("?"),"id"),"" data-value="",get_element(get_variable("?"),"id"),"" data-region="",get_element(get_variable("?"),"region"),"">
-        ","</li>
-    ")</archetype>
-</hvml>

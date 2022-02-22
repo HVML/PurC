@@ -68,7 +68,7 @@ struct pcinst {
 
 /* gets the current instance */
 struct pcinst* pcinst_current(void) WTF_INTERNAL;
-pcvarmgr_list_t pcinst_get_variables(void) WTF_INTERNAL;
+pcvarmgr_t pcinst_get_variables(void) WTF_INTERNAL;
 
 #endif /* not defined PURC_PRIVATE_INSTANCE_H */
 

@@ -68,6 +68,14 @@ purc_variant_t purc_get_last_error_ex(void)
 int purc_set_error_exinfo_with_debug(int errcode, purc_variant_t exinfo,
         const char *file, int lineno, const char *func)
 {
+    if (errcode) {
+        _D("%s[%d]:%s(): %d", basename((char*)file), lineno, func, errcode);
+        if (TO_DEBUG) {
+            if (exinfo != PURC_VARIANT_INVALID)
+                PRINT_VARIANT(exinfo);
+        }
+    }
+
     struct pcinst* inst = pcinst_current();
     if (inst == NULL) {
         _noinst_errcode = errcode;
@@ -106,7 +114,6 @@ int purc_set_error_exinfo_with_debug(int errcode, purc_variant_t exinfo,
         stack->except = errcode ? 1 : 0; // FIXME: when to set stack->error???
     }
 
-    _D("%s[%d]:%s(): %d", basename((char*)file), lineno, func, errcode);
     return PURC_ERROR_OK;
 }
 

@@ -51,6 +51,7 @@ struct pcintr_element_ops* pcintr_get_test_ops(void);
 struct pcintr_element_ops* pcintr_get_match_ops(void);
 struct pcintr_element_ops* pcintr_get_choose_ops(void);
 struct pcintr_element_ops* pcintr_get_catch_ops(void);
+struct pcintr_element_ops* pcintr_get_forget_ops(void);
 
 PCA_EXTERN_C_END
 

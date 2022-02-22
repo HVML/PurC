@@ -577,6 +577,13 @@ pcdvobjs_make_elements(struct pcdom_element *element)
     return elements;
 }
 
+purc_variant_t
+pcdvobjs_elements_by_css(pchtml_html_document_t *doc, const char *css)
+{
+    pcdom_element_t *root = pcdom_interface_document(doc)->element;
+    return pcdvobjs_query_elements(root, css);
+}
+
 struct pcdom_element*
 pcdvobjs_get_element_from_elements(purc_variant_t elems, size_t idx)
 {

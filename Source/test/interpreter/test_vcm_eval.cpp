@@ -281,8 +281,8 @@ TEST_P(test_vcm_eval, parse_and_serialize)
     size_t sz = strlen (hvml);
     purc_rwstream_t rws = purc_rwstream_new_from_mem((void*)hvml, sz);
 
+    pchvml_switch_to_ejson_state(parser);
 
-    parser->state = PCHVML_EJSON_DATA_STATE;
     struct pchvml_token* token = pchvml_next_token(parser, rws);
 
     int error = purc_get_last_error();

@@ -12,6 +12,29 @@
 
 #define TO_DEBUG 1
 
+#define ASSERT_DOC_DOC_EQ(_l, _r) do {                               \
+    int _diff = 0;                                                   \
+    ASSERT_EQ(pcintr_util_comp_docs(_l, _r, &_diff), 0);             \
+    ASSERT_EQ(_diff, 0);                                             \
+} while (0)
+
+#define ASSERT_DOC_HTML_EQ(_doc, _html) do {         \
+    pchtml_html_document_t *_tmp;                    \
+    _tmp = pcintr_util_load_document(_html);         \
+    ASSERT_NE(_tmp, nullptr);                        \
+    ASSERT_DOC_DOC_EQ(_doc, _tmp);                   \
+    pchtml_html_document_destroy(_tmp);              \
+} while (0)
+
+#define ASSERT_TAG_NAME_EQ(_elem, _tag_name) do {    \
+    const unsigned char *_t;                         \
+    size_t _len;                                     \
+    _t = pcdom_element_local_name(_elem, &_len);     \
+    ASSERT_NE(_t, nullptr);                          \
+    ASSERT_EQ(_t[_len], '\0');                       \
+    ASSERT_STREQ((const char*)_t, _tag_name);        \
+} while (0);
+
 static inline void write_edom_node(char *buf, size_t sz, pcdom_node_t *node)
 {
     purc_rwstream_t ws = purc_rwstream_new_from_mem(buf, sz);
@@ -31,43 +54,6 @@ static inline void write_edom_node(char *buf, size_t sz, pcdom_node_t *node)
 
     purc_rwstream_destroy(ws);
 }
-
-static inline pcdom_element_t*
-element_insert_child(pcdom_element_t* parent, const char *tag)
-{
-    pcdom_node_t *node = pcdom_interface_node(parent);
-    pcdom_document_t *dom_doc = node->owner_document;
-    pcdom_element_t *elem;
-    elem = pcdom_document_create_element(dom_doc,
-            (const unsigned char*)tag, strlen(tag), NULL);
-    if (!elem)
-        return NULL;
-
-    pcdom_node_insert_child(node, pcdom_interface_node(elem));
-
-    return elem;
-}
-
-TEST(html, edom_basic)
-{
-    purc_instance_extra_info info = {};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
-    ASSERT_EQ (ret, PURC_ERROR_OK);
-
-    pchtml_html_document_t *doc;
-    doc = pchtml_html_document_create();
-    ASSERT_NE(doc, nullptr);
-
-    char buf[8192];
-    write_edom_node(buf, sizeof(buf), pcdom_interface_node(doc));
-
-    ASSERT_STREQ(buf, "");
-
-    pchtml_html_document_destroy(doc);
-
-    purc_cleanup ();
-}
-
 
 __attribute__ ((format (printf, 2, 3)))
 static int
@@ -128,6 +114,23 @@ document_printf(pchtml_html_document_t *doc, const char *fmt, ...)
         free(p);
 
     return r ? -1 : 0;
+}
+
+static pchtml_html_document_t*
+load_document(const char *html)
+{
+    pchtml_html_document_t *doc;
+
+    doc = pchtml_html_document_create();
+    if (doc) {
+        int r = document_printf(doc, "%s", html);
+        if (r == 0)
+            return doc;
+
+        pchtml_html_document_destroy(doc);
+    }
+
+    return NULL;
 }
 
 TEST(html, edom_parse_simple)
@@ -209,6 +212,36 @@ TEST(html, edom_parse)
     purc_cleanup ();
 }
 
+TEST(html, edom_parse_bad_input_adjust)
+{
+    purc_instance_extra_info info = {};
+    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    pchtml_html_document_t *doc;
+    doc = pchtml_html_document_create();
+    ASSERT_NE(doc, nullptr);
+
+    const char *html = "<html><head><div>hello</div></head></html>";
+    purc_rwstream_t rs;
+    rs = purc_rwstream_new_from_mem((void*)html, strlen(html));
+
+    unsigned int r;
+    r = pchtml_html_document_parse(doc, rs);
+    ASSERT_EQ(r, 0);
+
+    purc_rwstream_destroy(rs);
+
+    char buf[8192];
+    write_edom_node(buf, sizeof(buf), pcdom_interface_node(doc));
+
+    pchtml_html_document_destroy(doc);
+
+    ASSERT_STREQ(buf, "<html><head></head><body><div>hello</div></body></html>");
+
+    purc_cleanup ();
+}
+
 TEST(html, edom_parse_id)
 {
     purc_instance_extra_info info = {};
@@ -274,7 +307,7 @@ TEST(html, edom_parse_and_add)
     ASSERT_STREQ(buf, "<body></body>");
 
     pcdom_element_t *div;
-    div = element_insert_child(pcdom_interface_element(body), "div");
+    div = pcintr_util_append_element(pcdom_interface_element(body), "div");
     write_edom_node(buf, sizeof(buf), pcdom_interface_node(div));
     ASSERT_STREQ(buf, "<div></div>");
     write_edom_node(buf, sizeof(buf), pcdom_interface_node(body));
@@ -348,26 +381,77 @@ TEST(html, edom_parse_and_add)
     purc_cleanup ();
 }
 
-TEST(html, edom_element)
+TEST(html, parser_validate)
 {
+    const char *inputs[100][100] = {
+        {
+            "<html/>",
+            "<html></html>",
+            "<html><head/><body></body></html>",
+            NULL,
+        },
+        {   // move content from head to body
+            "<html><head>hello</head><body></body></html>",
+            "<html><head></head><body>hello</body></html>",
+            "<html><head/><body>hello</body></html>",
+            "<html><body>hello</body></html>",
+            "<html>hello</html>",
+            "<html>hello",
+            "hello",
+            NULL,
+        },
+        {   // move content and element from head to body
+            "<html><head>hello<title>world</title></head><body></body></html>",
+            "<html><head></head><body>hello<title>world</title></body></html>",
+            NULL,
+        },
+        {   // move content outside of hvml to body
+            "hello<html/>world",
+            "<html><head></head><body>helloworld</body></html>",
+            NULL,
+        },
+    };
+
     purc_instance_extra_info info = {};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    pchtml_html_document_t *doc;
-    doc = pchtml_html_document_create();
-    ASSERT_NE(doc, nullptr);
 
-    int r;
-    r = document_printf(doc, "%s", "<html><head/><body>hello</body></html>");
-    ASSERT_EQ(r, 0);
+    for (size_t i=0; i<sizeof(inputs)/sizeof(inputs[0]); ++i) {
+        const char **htmls = inputs[i];
+        if (!htmls)
+            break;
 
-    char buf[8192];
-    write_edom_node(buf, sizeof(buf), pcdom_interface_node(doc));
+        const char *html = htmls[0];
+        if (!html)
+            continue;
 
-    ASSERT_STREQ(buf, "<html><head></head><body>hello</body></html>");
+        pchtml_html_document_t *doc;
+        doc = load_document(html);
+        ASSERT_NE(doc, nullptr);
 
-    pchtml_html_document_destroy(doc);
+        char buf[8192];
+        write_edom_node(buf, sizeof(buf), pcdom_interface_node(doc));
+
+        for (size_t j=1; htmls[j]; ++j) {
+            const char *p = htmls[j];
+            pchtml_html_document_t *d;
+            d = load_document(p);
+            ASSERT_NE(d, nullptr);
+
+            char b[8192];
+            write_edom_node(b, sizeof(b), pcdom_interface_node(d));
+
+            if (strcmp(buf, b)) {
+                fprintf(stderr, "for inputs:\n%s\n%s\n", html, p);
+                ASSERT_STREQ(buf, b);
+            }
+
+            pchtml_html_document_destroy(d);
+        }
+
+        pchtml_html_document_destroy(doc);
+    }
 
     purc_cleanup ();
 }
@@ -494,20 +578,20 @@ TEST(html, edom_gen)
                 pcdom_interface_node(html));
 
     pcdom_element_t *head;
-    head = element_insert_child(html, "head");
+    head = pcintr_util_append_element(html, "head");
     ASSERT_NE(head, nullptr);
     pcdom_element_t *body;
-    body = element_insert_child(html, "body");
+    body = pcintr_util_append_element(html, "body");
     ASSERT_NE(body, nullptr);
 #endif
 
     pcdom_element_t *div;
-    div = element_insert_child(body, "div");
+    div = pcintr_util_append_element(body, "div");
     ASSERT_NE(div, nullptr);
 
 
     pcdom_element_t *foo;
-    foo = element_insert_child(body, "foo");
+    foo = pcintr_util_append_element(body, "foo");
     ASSERT_NE(foo, nullptr);
 
     key = pcdom_element_set_attribute(div,
@@ -856,200 +940,64 @@ TEST(html, edom_gen_chunk_parser)
     purc_cleanup ();
 }
 
-static pcdom_element_t*
-parse_fragment_ex(pcdom_element_t *tmp, const char *fragment)
+TEST(html, buggy)
 {
-    pcdom_node_t *node = NULL;
-
-    pchtml_html_document_t *doc = pchtml_html_interface_document(tmp->node.owner_document);
-    if (!doc)
-        return NULL;
-
-    pchtml_html_parser_t *parser;
-    parser = pchtml_html_parser_create();
-    if (!parser)
-        return NULL;
-
-    unsigned int r = 0;
-    do {
-        r = pchtml_html_parser_init(parser);
-        if (r)
-            break;
-
-        r = pchtml_html_parse_fragment_chunk_begin(parser, doc,
-                tmp->node.local_name,
-                tmp->node.ns);
-        if (r)
-            break;
-
-        r = pchtml_html_parse_fragment_chunk_process_with_format(parser,
-                "%s", fragment);
-
-        node = pchtml_html_parse_fragment_chunk_end(parser);
-    } while (0);
-
-    pchtml_html_parser_destroy(parser);
-
-    if (!node)
-        return NULL;
-
-    if (r) {
-        pcdom_node_destroy_deep(node);
-        return NULL;
-    }
-
-    if (node->type != PCDOM_NODE_TYPE_ELEMENT) {
-        pcdom_node_destroy_deep(node);
-        return NULL;
-    }
-
-    return pcdom_interface_element(node);
-}
-
-#define parse_fragment(_parent, _fmt, ...)                           \
-({                                                                   \
-    char _buf[1024];                                                 \
-    size_t _nr = sizeof(_buf);                                       \
-    char *_p = pcutils_snprintf(_buf, &_nr, _fmt, ##__VA_ARGS__);    \
-    pcdom_element_t *_fragment = NULL;                               \
-    if (_p) {                                                        \
-        _fragment = parse_fragment_ex(_parent, _p);                  \
-        if (_p != _buf)                                              \
-            free(_p);                                                \
-    }                                                                \
-    _fragment;                                                       \
-})
-
-static pcdom_element_t*
-add_element(pcdom_element_t *parent, const char *tag)
-{
-    pcdom_element_t *fragment = parse_fragment(parent, "<%s></%s>", tag, tag);
-
-    if (!fragment)
-        return NULL;
-
-    do {
-        pcdom_node_t *first_child = fragment->node.first_child;
-        if (!first_child)
-            break;
-
-        if (first_child->type != PCDOM_NODE_TYPE_ELEMENT)
-            break;
-
-        if (first_child->next != NULL)
-            break;
-
-        pcdom_element_t *elem = NULL;
-        elem  = pcdom_interface_element(first_child);
-
-        pcdom_merge_fragment_append(pcdom_interface_node(parent), &fragment->node);
-        return elem;
-    } while (0);
-
-    pcdom_node_destroy_deep(pcdom_interface_node(fragment));
-
-    return NULL;
-}
-
-#define add_child(_parent, _fmt, ...)                                        \
-({                                                                           \
-    int _r = -1;                                                             \
-    pcdom_element_t *_fragment;                                              \
-    _fragment = parse_fragment(_parent, _fmt, ##__VA_ARGS__);                \
-    if (_fragment) {                                                         \
-        pcdom_merge_fragment_append(pcdom_interface_node(_parent),           \
-                &_fragment->node);                                           \
-        _r = 0;                                                              \
-    }                                                                        \
-    _r;                                                                      \
-})
-
-static pchtml_html_document_t*
-load_document(const char *html)
-{
-    pchtml_html_document_t *doc;
-    doc = pchtml_html_document_create();
-    if (!doc)
-        return NULL;
-
-    unsigned int r;
-    r = pchtml_html_document_parse_with_buf(doc,
-            (const unsigned char*)html, strlen(html));
-    if (r) {
-        pchtml_html_document_destroy(doc);
-        return NULL;
-    }
-
-    return doc;
-}
-
-#define ASSERT_DOC_DOC_EQ(_l, _r) do {                               \
-    char _lbuf[1024], _rbuf[1024];                                   \
-    size_t _lsz = sizeof(_lbuf), _rsz = sizeof(_rbuf);               \
-    char *_pl = pchtml_doc_snprintf_plain(_l, _lbuf, &_lsz, "");     \
-    char *_pr = pchtml_doc_snprintf_plain(_r, _rbuf, &_rsz, "");     \
-    ASSERT_NE(_pl, nullptr);                                         \
-    ASSERT_NE(_pr, nullptr);                                         \
-    ASSERT_STREQ(_pl, _pr);                                          \
-    if (_pl != _lbuf)                                                \
-        free(_pl);                                                   \
-    if (_pr != _rbuf)                                                \
-        free(_pr);                                                   \
-} while (0)
-
-#define ASSERT_DOC_HTML_EQ(_doc, _html) do {         \
-    pchtml_html_document_t *_tmp;                    \
-    _tmp = load_document(_html);                     \
-    ASSERT_NE(_tmp, nullptr);                        \
-    ASSERT_DOC_DOC_EQ(_doc, _tmp);                   \
-    pchtml_html_document_destroy(_tmp);              \
-} while (0)
-
-static int
-set_attribute(pcdom_element_t *elem, const char *key, const char *val)
-{
-    pcdom_attr_t *attr;
-    attr = pcdom_element_set_attribute(elem,
-            (const unsigned char*)key, strlen(key),
-            (const unsigned char*)val, strlen(val));
-    return attr ? 0 : -1;
-}
-
-TEST(html, edom)
-{
+    // "<hvml><body><span id=\"clock\">xyz</span><xinput xid=\"xexp\"></xinput><update on=\"#clock\" at=\"textContent\" to=\"displace\" with=\"abc\"/></body></hvml>";
     purc_instance_extra_info info = {};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     pchtml_html_document_t *doc;
-    doc = load_document("<html/>");
+    doc = pcintr_util_load_document("<html/>");
     ASSERT_NE(doc, nullptr);
     ASSERT_DOC_HTML_EQ(doc, "<html><head></head><body></body></html>");
+
+    struct pcdom_element *head;
+    head = pchtml_doc_get_head(doc);
+    ASSERT_NE(head, nullptr);
+    ASSERT_EQ(doc, pchtml_html_interface_document(head->node.owner_document));
 
     struct pcdom_element *body;
     body = pchtml_doc_get_body(doc);
     ASSERT_NE(body, nullptr);
-
     ASSERT_EQ(doc, pchtml_html_interface_document(body->node.owner_document));
 
-    pcdom_element_t *elem;
-    elem = add_element(body, "div");
-    ASSERT_NE(elem, nullptr);
+    pcdom_element_t *span;
+    span = pcintr_util_append_element(body, "span");
+    ASSERT_NE(span, nullptr);
+    ASSERT_DOC_HTML_EQ(doc, "<html><head></head><body><span></span></body></html>");
 
-    ASSERT_DOC_HTML_EQ(doc, "<html><head></head><body><div></div></body></html>");
+    ASSERT_EQ(0, pcintr_util_set_attribute(span, "id", "clock"));
+    ASSERT_DOC_HTML_EQ(doc, "<html><head></head><body><span id=\"clock\"></span></body></html>");
 
-    ASSERT_EQ(0, add_child(body, "hello"));
-    ASSERT_DOC_HTML_EQ(doc, "<html><head></head><body><div></div>hello</body></html>");
+    ASSERT_NE(nullptr, pcintr_util_append_content(span, "xyz"));
+    ASSERT_DOC_HTML_EQ(doc, "<html><head></head><body><span id=\"clock\">xyz</span></body></html>");
 
-    elem = add_element(elem, "span");
-    ASSERT_NE(elem, nullptr);
-    ASSERT_DOC_HTML_EQ(doc, "<html><head></head><body><div><span></span></div>hello</body></html>");
+    pcdom_element_t *xinput;
+    xinput = pcintr_util_append_element(body, "xinput");
+    ASSERT_NE(xinput, nullptr);
+    ASSERT_DOC_HTML_EQ(doc, "<html><head></head><body><span id=\"clock\">xyz</span><xinput></xinput></body></html>");
 
-    int r = set_attribute(elem, "id", "clock");
-    ASSERT_EQ(r, 0);
-    pcintr_dump_edom_node(NULL, pcdom_interface_node(elem));
+    ASSERT_EQ(0, pcintr_util_set_attribute(xinput, "xid", "xexp"));
+    ASSERT_DOC_HTML_EQ(doc, "<html><head></head><body><span id=\"clock\">xyz</span><xinput xid=\"xexp\"></xinput></body></html>");
 
-    ASSERT_DOC_HTML_EQ(doc, "<html><head></head><body><div><span id=\"clock\"></span></div>hello</body></html>");
+    pcdom_document_t *document = pcdom_interface_document(doc);
+    pcdom_collection_t *collection;
+    collection = pcdom_collection_create(document);
+    ASSERT_NE(collection, nullptr);
+    ASSERT_EQ(0, pcintr_util_set_child(span, "def"));
+    ASSERT_DOC_HTML_EQ(doc, "<html><head></head><body><span id=\"clock\">def</span><xinput xid=\"xexp\"></xinput></body></html>");
+    unsigned int ui;
+    ui = pcdom_collection_init(collection, 10);
+    ASSERT_EQ(ui, 0);
+    ui = pcdom_elements_by_attr(body, collection,
+            (const unsigned char*)"id", 2,
+            (const unsigned char*)"clock", 5,
+            false);
+    ASSERT_EQ(ui, 0);
+    size_t nr = pcdom_collection_length(collection);
+    ASSERT_EQ(nr, 1);
+    pcdom_collection_destroy(collection, true);
 
     pchtml_html_document_destroy(doc);
 

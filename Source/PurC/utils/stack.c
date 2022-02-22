@@ -104,6 +104,14 @@ uintptr_t pcutils_stack_top (struct pcutils_stack* stack)
     return stack->buf[stack->last];
 }
 
+void pcutils_stack_clear (struct pcutils_stack* stack)
+{
+    if (pcutils_stack_is_empty(stack)) {
+        return;
+    }
+    stack->last = -1;
+}
+
 void pcutils_stack_destroy (struct pcutils_stack* stack)
 {
     if (stack) {

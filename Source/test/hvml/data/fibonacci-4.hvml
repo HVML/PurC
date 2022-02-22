@@ -1,0 +1,36 @@
+<!DOCTYPE hvml>
+<hvml target="html" lang="en">
+    <head>
+        <title>Fibonacci Numbers</title>
+    </head>
+
+    <body>
+        <header>
+            <h1>Fibonacci Numbers less than 2000</h1>
+            <p hvml:raw>Using local variables in two levels</p>
+        </header>
+
+        <init as="count" with=2 locally />
+
+        <section>
+            <dl>
+                <init as="last_one" with=0 locally />
+                <init as="last_two" with=1 locally />
+
+                <iterate on 1 by="ADD: LT 2000 BY $!.last_one">
+                    <init at="last_one" with="$1!.last_two" locally />
+                    <init at="last_two" with="$?" locally />
+
+                    <update on="$3!" at=".count" to="displace" with += 1 />
+                    <dt>$%</dt>
+                    <dd>$?</dd>
+                </iterate>
+            </dl>
+        </section>
+
+        <footer>
+            <p>Totally $1!.count numbers.</p>
+        </footer>
+    </body>
+
+</hvml>

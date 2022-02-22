@@ -54,7 +54,7 @@ pcdom_node_interface_create(pcdom_document_t *document)
         return NULL;
     }
 
-    element->owner_document = document;
+    element->owner_document = pcdom_document_owner(document);
     element->type = PCDOM_NODE_TYPE_UNDEF;
 
     return element;

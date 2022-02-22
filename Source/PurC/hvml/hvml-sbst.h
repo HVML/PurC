@@ -42,26 +42,26 @@ struct pchvml_sbst* pchvml_sbst_new_char_ref(void);
 struct pchvml_sbst* pchvml_sbst_new_markup_declaration_open_state(void);
 struct pchvml_sbst* pchvml_sbst_new_after_doctype_name_state(void);
 
-void pchvml_sbst_destroy (struct pchvml_sbst* sbst);
+void pchvml_sbst_destroy(struct pchvml_sbst* sbst);
 
-bool pchvml_sbst_advance_ex (struct pchvml_sbst* sbst,
+bool pchvml_sbst_advance_ex(struct pchvml_sbst* sbst,
         uint32_t uc, bool case_insensitive);
 
 /*
  * case sensitive
  */
 PCA_INLINE
-bool pchvml_sbst_advance (struct pchvml_sbst* sbst, uint32_t uc)
+bool pchvml_sbst_advance(struct pchvml_sbst* sbst, uint32_t uc)
 {
     return pchvml_sbst_advance_ex(sbst, uc, false);
 }
 
-const char* pchvml_sbst_get_match (struct pchvml_sbst* sbst);
+const char* pchvml_sbst_get_match(struct pchvml_sbst* sbst);
 
 /*
  * return arraylist of unicode character (uint32_t)
  */
-struct pcutils_arrlist* pchvml_sbst_get_buffered_ucs (
+struct pcutils_arrlist* pchvml_sbst_get_buffered_ucs(
         struct pchvml_sbst* sbst);
 
 #ifdef __cplusplus
