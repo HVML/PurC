@@ -397,6 +397,18 @@ pcdom_document_interface_destroy(
 pcdom_document_t *
 pcdom_document_create(pcdom_document_t *owner);
 
+static inline pcdom_document_t *
+pcdom_document_owner(pcdom_document_t *document)
+{
+    return pcdom_interface_node(document)->owner_document;
+}
+
+static inline bool
+pcdom_document_is_original(pcdom_document_t *document)
+{
+    return pcdom_interface_node(document)->owner_document == document;
+}
+
 unsigned int
 pcdom_document_init(pcdom_document_t *document, pcdom_document_t *owner,
             pcdom_interface_create_f create_interface,

@@ -47,7 +47,7 @@ pcdom_text_interface_create(pcdom_document_t *document)
 
     pcdom_node_t *node = pcdom_interface_node(element);
 
-    node->owner_document = document;
+    node->owner_document = pcdom_document_owner(document);
     node->type = PCDOM_NODE_TYPE_TEXT;
 
     return element;
