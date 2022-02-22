@@ -424,7 +424,7 @@ size_t pchvml_token_get_attr_size(struct pchvml_token* token)
 
 bool pchvml_token_has_raw_attr(struct pchvml_token* token)
 {
-    return token->has_raw_attr;
+    return token && token->has_raw_attr;
 }
 
 struct pchvml_token_attr* pchvml_token_get_attr(

@@ -56,6 +56,7 @@ struct pchvml_parser {
     uint32_t nr_whitespace;
     int last_token_type;
     bool tag_is_operation;
+    bool tag_has_raw_attr;
     bool enable_print_log;
 };
 
