@@ -102,6 +102,7 @@ struct pchvml_parser* pchvml_create(uint32_t flags, size_t queue_size)
     parser->prev_separator = 0;
     parser->nr_quoted = 0;
     parser->tag_is_operation = false;
+    parser->tag_has_raw_attr = false;
     struct stat st;
     parser->enable_print_log = (stat(PRINT_LOG_SWITCH_FILE, &st) == 0);
 
@@ -138,6 +139,11 @@ void pchvml_reset(struct pchvml_parser* parser, uint32_t flags,
         pchvml_token_destroy(parser->token);
         parser->token = NULL;
     }
+    parser->char_ref_code = 0;
+    parser->prev_separator = 0;
+    parser->nr_quoted = 0;
+    parser->tag_is_operation = false;
+    parser->tag_has_raw_attr = false;
 }
 
 void pchvml_destroy(struct pchvml_parser* parser)
