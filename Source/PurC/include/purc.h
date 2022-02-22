@@ -41,23 +41,39 @@
 #include "purc-html.h"
 #include "purc-pcrdr.h"
 
+typedef enum {
+    PURC_RDRPROT_PURCMC  = 0,
+    PURC_RDRPROT_HIBUS,
+} purc_rdrprot_t;
+
+/** The structure defining the extra information for a new PurC instance. */
 typedef struct purc_instance_extra_info {
-    /*
+    /**
+     * The renderer protocol, one of the following values:
+     *  - PURC_RDRPROT_PURCMC:
+     *      The renderer runs as a server and uses PurCMC.
+     *  - PURC_RDRPROT_HIBUS:
+     *      The renderer runs as a hiBus endpoint and uses hiBus.
+     */
+    purc_rdrprot_t  renderer_prot;
+
+    /**
      * UNIX domain socket: unix:///var/tmp/xxx.sock
      * WebSocket: ws://foo.bar.com:8877
      * Secured WebSocket: wss://foo.bar.com:8877
      *
      * Note that only UNIX domain socket is supported so far.
      */
-    const char *renderer_uri;
+    const char      *renderer_uri;
 
-    /* the SSL certification if using Secured WebSocket */
-    const char *ssl_cert;
+    /** the SSL certification if using Secured WebSocket. */
+    const char      *ssl_cert;
 
-    /* the SSL key if using Secured WebSocket */
-    const char *ssl_key;
+    /** the SSL key if using Secured WebSocket. */
+    const char      *ssl_key;
 
-    bool enable_remote_fetcher;
+    /** Whether to initialize the remote fetcher. */
+    bool            enable_remote_fetcher;
 } purc_instance_extra_info;
 
 PCA_EXTERN_C_BEGIN
@@ -95,7 +111,7 @@ PCA_EXTERN_C_BEGIN
  *  - @PURC_MODULE_VARIANT: Variant.
  *  - @PURC_MODULE_EJSON: eJSON parser.
  *  - @PURC_MODULE_XGML: XGML Parser (not implemented).
- *  - @PURC_MODULE_PCRDR: PCRDR protocol.
+ *  - @PURC_MODULE_PCRDR: Communication with renderer.
  *  - @PURC_MODULE_ALL: All modules including HVML parser and interpreter.
  * @app_name: a pointer to the string contains the app name.
  *      If this argument is null, the executable program name of the command
@@ -346,8 +362,7 @@ typedef struct purc_window_info {
 /**
  * purc_get_conn_to_renderer:
  *
- * Retrieve the connection to the renderer of the current PurC instance
- * if the current instance was connected to the renderer via PCRDR protocol.
+ * Retrieve the connection to the renderer of the current PurC instance.
  *
  * Returns: the pointer to the connection structure.
  *

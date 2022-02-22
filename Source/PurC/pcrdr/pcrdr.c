@@ -61,8 +61,9 @@ void pcrdr_init_once(void)
 int pcrdr_init_instance(struct pcinst* inst,
         const purc_instance_extra_info *extra_info)
 {
-    // TODO: only UNIX domain socket supported so far */
-    if (strncasecmp (SCHEMA_UNIX_SOCKET, extra_info->renderer_uri,
+    // TODO: only PurCMC protocol and UNIX domain socket supported so far */
+    if (extra_info->renderer_prot != PURC_RDRPROT_PURCMC ||
+            strncasecmp (SCHEMA_UNIX_SOCKET, extra_info->renderer_uri,
                 sizeof(SCHEMA_UNIX_SOCKET) - 1)) {
         return PURC_ERROR_NOT_SUPPORTED;
     }
