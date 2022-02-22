@@ -51,6 +51,7 @@ struct ctxt_for_init {
     purc_variant_t                literal;
 
     unsigned int                  under_head:1;
+    unsigned int                  locally:1;
 };
 
 static void
@@ -330,6 +331,9 @@ attr_found(struct pcintr_stack_frame *frame,
     PC_ASSERT(name);
     PC_ASSERT(attr->op == PCHVML_ATTRIBUTE_OPERATOR);
 
+    struct ctxt_for_init *ctxt;
+    ctxt = (struct ctxt_for_init*)frame->ctxt;
+
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, AS)) == name) {
         return process_attr_as(frame, element, name, val);
     }
@@ -344,6 +348,10 @@ attr_found(struct pcintr_stack_frame *frame,
     }
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, VIA)) == name) {
         return process_attr_via(frame, element, name, val);
+    }
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, LOCALLY)) == name) {
+        PC_ASSERT(purc_variant_is_undefined(val));
+        ctxt->locally = 1;
     }
 
     purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
@@ -402,16 +410,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         PURC_VARIANT_SAFE_CLEAR(ctxt->from_result);
         ctxt->from_result = v;
     }
-
-    // struct pcvcm_node *vcm_content = element->vcm_content;
-    // if (vcm_content) {
-    //     purc_variant_t v = pcvcm_eval(vcm_content, stack);
-    //     if (v == PURC_VARIANT_INVALID)
-    //         return NULL;
-
-    //     PURC_VARIANT_SAFE_CLEAR(frame->ctnt_var);
-    //     frame->ctnt_var = v;
-    // }
 
     while ((element=pcvdom_element_parent(element))) {
         if (element->tag_id == PCHVML_TAG_HEAD) {

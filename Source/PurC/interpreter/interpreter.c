@@ -2048,34 +2048,51 @@ pcintr_util_add_child(pcdom_element_t *parent, const char *fmt, ...)
     }
 
     int r = -1;
-    pcdom_element_t *anchor = NULL;
+
+    pcdom_node_t *root = NULL;
     do {
-        anchor = pcintr_util_append_element(parent, "div");
-        if (!anchor)
+        pchtml_html_document_t *doc;
+        doc = pchtml_html_interface_document(
+                pcdom_interface_node(parent)->owner_document);
+        unsigned int ui;
+        ui = pchtml_html_document_parse_fragment_chunk_begin(doc, parent);
+        if (ui == 0) {
+            do {
+                ui = pchtml_html_document_parse_fragment_chunk(doc,
+                        (const unsigned char*)"<div>", 5);
+                if (ui)
+                    break;
+
+                ui = pchtml_html_document_parse_fragment_chunk(doc,
+                        (const unsigned char*)p, nr);
+                if (ui)
+                    break;
+
+                ui = pchtml_html_document_parse_fragment_chunk(doc,
+                        (const unsigned char*)"</div>", 6);
+            } while (0);
+        }
+        pcdom_node_t *div;
+        root = pchtml_html_document_parse_fragment_chunk_end(doc);
+        if (root) {
+            PC_ASSERT(root->first_child == root->last_child);
+            PC_ASSERT(root->first_child);
+            PC_ASSERT(root->first_child->type == PCDOM_NODE_TYPE_ELEMENT);
+            div = root->first_child;
+        }
+        if (ui)
             break;
 
-        pcdom_node_t *anchor_node = pcdom_interface_node(anchor);
-
-        pchtml_html_element_t *root;
-        root = pchtml_html_element_inner_html_set_with_buf(
-                pchtml_html_interface_element(anchor),
-                (const unsigned char*)p, strlen(p));
-        if (!root)
-            break;
-
-        PC_ASSERT(root == pchtml_html_interface_element(anchor));
-
-        while (anchor_node->first_child) {
-            pcdom_node_t *child = anchor_node->first_child;
+        while (div->first_child) {
+            pcdom_node_t *child = div->first_child;
             pcdom_node_remove(child);
             pcdom_node_insert_child(pcdom_interface_node(parent), child);
         }
-
         r = 0;
     } while (0);
 
-    if (anchor)
-        pcdom_node_destroy(pcdom_interface_node(anchor));
+    if (root)
+        pcdom_node_destroy(pcdom_interface_node(root));
 
     if (p != buf)
         free(p);
@@ -2100,47 +2117,51 @@ pcintr_util_set_child(pcdom_element_t *parent, const char *fmt, ...)
     }
 
     int r = -1;
-    pcdom_element_t *anchor;
+
+    pcdom_node_t *root = NULL;
     do {
-        anchor = pcintr_util_append_element(parent, "div");
-        if (!anchor)
-            break;
+        pchtml_html_document_t *doc;
+        doc = pchtml_html_interface_document(
+                pcdom_interface_node(parent)->owner_document);
+        unsigned int ui;
+        ui = pchtml_html_document_parse_fragment_chunk_begin(doc, parent);
+        if (ui == 0) {
+            do {
+                ui = pchtml_html_document_parse_fragment_chunk(doc,
+                        (const unsigned char*)"<div>", 5);
+                if (ui)
+                    break;
 
-        pcdom_node_t *anchor_node = pcdom_interface_node(anchor);
+                ui = pchtml_html_document_parse_fragment_chunk(doc,
+                        (const unsigned char*)p, nr);
+                if (ui)
+                    break;
 
-        pchtml_html_element_t *root;
-        root = pchtml_html_element_inner_html_set_with_buf(
-                pchtml_html_interface_element(anchor),
-                (const unsigned char*)p, strlen(p));
-        if (!root)
-            break;
-
-        PC_ASSERT(root == pchtml_html_interface_element(anchor));
-
-        pcdom_node_t *parent_node = pcdom_interface_node(parent);
-        pcdom_node_t *child = parent_node->first_child;
-        while (child) {
-            pcdom_node_t *next = child->next;
-            if (child != anchor_node) {
-                pcdom_node_destroy_deep(child);
-            }
-            else {
-                pcdom_node_remove(child);
-            }
-            child = next;
+                ui = pchtml_html_document_parse_fragment_chunk(doc,
+                        (const unsigned char*)"</div>", 6);
+            } while (0);
         }
+        pcdom_node_t *div;
+        root = pchtml_html_document_parse_fragment_chunk_end(doc);
+        if (root) {
+            PC_ASSERT(root->first_child == root->last_child);
+            PC_ASSERT(root->first_child);
+            PC_ASSERT(root->first_child->type == PCDOM_NODE_TYPE_ELEMENT);
+            div = root->first_child;
+        }
+        if (ui)
+            break;
 
-        while (anchor_node->first_child) {
-            pcdom_node_t *child = anchor_node->first_child;
+        while (div->first_child) {
+            pcdom_node_t *child = div->first_child;
             pcdom_node_remove(child);
             pcdom_node_insert_child(pcdom_interface_node(parent), child);
         }
-
         r = 0;
     } while (0);
 
-    if (anchor)
-        pcdom_node_destroy(pcdom_interface_node(anchor));
+    if (root)
+        pcdom_node_destroy(pcdom_interface_node(root));
 
     if (p != buf)
         free(p);

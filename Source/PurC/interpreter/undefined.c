@@ -94,9 +94,18 @@ attr_found(struct pcintr_stack_frame *frame,
 
     PC_ASSERT(attr->op == PCHVML_ATTRIBUTE_OPERATOR);
     PC_ASSERT(attr->key);
-    PC_ASSERT(purc_variant_is_string(val));
-    const char *sv = purc_variant_get_string_const(val);
-    PC_ASSERT(sv);
+    const char *sv = "";
+
+    if (purc_variant_is_string(val)) {
+        sv = purc_variant_get_string_const(val);
+        PC_ASSERT(sv);
+    }
+    else if (purc_variant_is_undefined(val)) {
+        /* no action to take */
+    }
+    else {
+        PC_ASSERT(0);
+    }
 
     int r = pcintr_util_set_attribute(frame->edom_element, attr->key, sv);
     PC_ASSERT(r == 0);
