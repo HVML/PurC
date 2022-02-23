@@ -1057,15 +1057,6 @@ purc_variant_t pcvcm_node_to_variant (struct pcvcm_node* node,
 
         case PCVCM_NODE_TYPE_FUNC_GET_VARIABLE:
             ret = pcvcm_node_get_variable_to_variant(node, ops);
-            if (TO_DEBUG) {
-                if (ret == PURC_VARIANT_INVALID ||
-                    purc_variant_is_undefined(ret))
-                {
-                    PRINT_VCM_NODE(node);
-                    if (ret != PURC_VARIANT_INVALID)
-                        PRINT_VARIANT(ret);
-                }
-            }
             break;
 
         case PCVCM_NODE_TYPE_FUNC_GET_ELEMENT:
@@ -1085,6 +1076,10 @@ purc_variant_t pcvcm_node_to_variant (struct pcvcm_node* node,
             break;
     }
     node->attach = (uintptr_t) ret;
+    if (TO_DEBUG) {
+        PRINT_VCM_NODE(node);
+        PRINT_VARIANT(ret);
+    }
     return ret;
 }
 

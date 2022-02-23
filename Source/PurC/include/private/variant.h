@@ -53,8 +53,11 @@ extern "C" {
 #define PRINT_MAX_BUFFER     1024 * 1024 * 1024
 
 #define PRINT_VARIANT(_v) do {                                           \
-    if (_v == PURC_VARIANT_INVALID)                                      \
+    if (_v == PURC_VARIANT_INVALID) {                                    \
+        fprintf(stderr, "%s[%d]:%s(): %s=PURC_VARIANT_INVALID\n",        \
+            basename((char*)__FILE__), __LINE__, __func__, #_v);         \
         break;                                                           \
+    }                                                                    \
     purc_rwstream_t _rws = purc_rwstream_new_buffer(PRINT_MIN_BUFFER,    \
             PRINT_MAX_BUFFER);                                           \
     size_t _len = 0;                                                     \
