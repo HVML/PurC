@@ -81,6 +81,7 @@ stack_frame_release(struct pcintr_stack_frame *frame)
     PURC_VARIANT_SAFE_CLEAR(frame->caret_var);
     PURC_VARIANT_SAFE_CLEAR(frame->result_from_child);
     PURC_VARIANT_SAFE_CLEAR(frame->mid_vars);
+    PURC_VARIANT_SAFE_CLEAR(frame->exclamation_var);
 }
 
 static void
@@ -441,6 +442,21 @@ set_at_var(struct pcintr_stack_frame *frame,
 }
 
 static int
+set_exclamation_var(struct pcintr_stack_frame *frame,
+    struct pcintr_stack_frame *parent)
+{
+    if (parent->exclamation_var) {
+        PURC_VARIANT_SAFE_CLEAR(frame->symbol_vars[
+                PURC_SYMBOL_VAR_EXCLAMATION]);
+        frame->symbol_vars[PURC_SYMBOL_VAR_EXCLAMATION] =
+            parent->exclamation_var;
+        purc_variant_ref(parent->exclamation_var);
+    }
+
+    return 0;
+}
+
+static int
 set_symbol_vars(struct pcintr_stack_frame *frame)
 {
     struct pcintr_stack_frame *parent;
@@ -456,6 +472,8 @@ set_symbol_vars(struct pcintr_stack_frame *frame)
         return -1;
     if (set_at_var(frame, parent))
         return -1;
+    if (set_exclamation_var(frame, parent))
+        return -1;
 
     return 0;
 }
@@ -470,9 +488,18 @@ push_stack_frame(pcintr_stack_t stack)
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
     }
+    PC_ASSERT(NULL == pcintr_stack_frame_get_parent(frame));
 
     list_add_tail(&frame->node, &stack->frames);
     ++stack->nr_frames;
+
+    frame->exclamation_var = purc_variant_make_object(0,
+            PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+
+    if (frame->exclamation_var == PURC_VARIANT_INVALID) {
+        pop_stack_frame(stack);
+        return NULL;
+    }
 
     purc_variant_t undefined = purc_variant_make_undefined();
     if (undefined == PURC_VARIANT_INVALID) {
@@ -483,6 +510,7 @@ push_stack_frame(pcintr_stack_t stack)
         frame->symbol_vars[i] = undefined;
         purc_variant_ref(undefined);
     }
+
     purc_variant_unref(undefined);
 
     if (set_symbol_vars(frame)) {
@@ -2151,6 +2179,10 @@ pcintr_util_set_child(pcdom_element_t *parent, const char *fmt, ...)
         }
         if (ui)
             break;
+
+        pcdom_node_remove(div);
+        while (pcdom_interface_node(parent)->first_child)
+            pcdom_node_destroy_deep(pcdom_interface_node(parent)->first_child);
 
         while (div->first_child) {
             pcdom_node_t *child = div->first_child;

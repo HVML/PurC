@@ -38,7 +38,7 @@
 #include "private/interpreter.h"
 #include "private/utils.h"
 
-#define TO_DEBUG 0
+#define TO_DEBUG 1
 
 #define TREE_NODE(node)              ((struct pctree_node*)(node))
 #define VCM_NODE(node)               ((struct pcvcm_node*)(node))
@@ -852,6 +852,10 @@ purc_variant_t pcvcm_node_get_element_to_variant (struct pcvcm_node* node,
         purc_variant_unref(val);
     }
     else if (purc_variant_is_array(caller_var)) {
+        if (index < 0) {
+            size_t len = purc_variant_array_get_size(caller_var);
+            index += len;
+        }
         if (index < 0) {
             goto clear_param_var;
         }

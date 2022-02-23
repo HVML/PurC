@@ -42,6 +42,7 @@ struct ctxt_for_init {
     struct pcvdom_node           *curr;
 
     purc_variant_t                as;
+    purc_variant_t                at;
     purc_variant_t                uniquely;
     purc_variant_t                from;
     purc_variant_t                from_result;
@@ -59,6 +60,7 @@ ctxt_for_init_destroy(struct ctxt_for_init *ctxt)
 {
     if (ctxt) {
         PURC_VARIANT_SAFE_CLEAR(ctxt->as);
+        PURC_VARIANT_SAFE_CLEAR(ctxt->at);
         PURC_VARIANT_SAFE_CLEAR(ctxt->uniquely);
         PURC_VARIANT_SAFE_CLEAR(ctxt->from);
         PURC_VARIANT_SAFE_CLEAR(ctxt->from_result);
@@ -100,57 +102,96 @@ post_process_bind_scope_var(pcintr_coroutine_t co,
 }
 
 static int
-post_process_array(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
-        purc_variant_t name)
+post_process_as_locally(pcintr_coroutine_t co,
+        struct pcintr_stack_frame *frame,
+        purc_variant_t name,
+        purc_variant_t src)
 {
-    struct ctxt_for_init *ctxt = (struct ctxt_for_init*)frame->ctxt;
-    purc_variant_t via;
-    via = ctxt->via;
+    UNUSED_PARAM(co);
 
-    if (via == PURC_VARIANT_INVALID) {
-        return post_process_bind_scope_var(co, frame, name, frame->ctnt_var);
+    PC_ASSERT(name != PURC_VARIANT_INVALID);
+    PC_ASSERT(purc_variant_is_string(name));
+
+    struct pcintr_stack_frame *parent = pcintr_stack_frame_get_parent(frame);
+    PC_ASSERT(parent);
+    PC_ASSERT(parent->exclamation_var);
+    if (purc_variant_is_object(parent->exclamation_var)) {
+        purc_variant_object_set(parent->exclamation_var, name, src);
+        return 0;
     }
-    purc_variant_t set;
-    set = purc_variant_make_set(0, via, PURC_VARIANT_INVALID);
-    if (set == PURC_VARIANT_INVALID)
-        return -1;
 
-    // TODO
-#if 1
-    if (!purc_variant_container_displace(set, frame->ctnt_var, true)) {
-            PC_ASSERT(0);
-        purc_variant_unref(set);
-        return -1;
-    }
-#else
-    purc_variant_t val;
-    size_t idx;
-    foreach_value_in_variant_array(frame->ctnt_var, val, idx)
-        (void)idx;
-        bool ok = purc_variant_is_type(val, PURC_VARIANT_TYPE_OBJECT);
-        if (ok) {
-            ok = purc_variant_set_add(set, val, true);
-        }
-        if (!ok) {
-            purc_variant_unref(set);
-            return -1;
-        }
-    end_foreach;
-#endif
-
-            PC_ASSERT(0);
-    int r = post_process_bind_scope_var(co, frame, name, set);
-    purc_variant_unref(set);
-    return r ? -1 : 0;
+    _D("name: %s", purc_variant_get_string_const(name));
+    PC_ASSERT(0);
+    return -1;
 }
 
 static int
-post_process_object(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
-        purc_variant_t name)
+post_process_at_locally(pcintr_coroutine_t co,
+        struct pcintr_stack_frame *frame,
+        purc_variant_t name,
+        purc_variant_t src)
 {
-    purc_variant_t val = frame->ctnt_var;
+    UNUSED_PARAM(co);
+    PC_ASSERT(0);
 
-    return post_process_bind_scope_var(co, frame, name, val);
+    PC_ASSERT(name != PURC_VARIANT_INVALID);
+    PC_ASSERT(purc_variant_is_string(name));
+
+    struct pcintr_stack_frame *parent = pcintr_stack_frame_get_parent(frame);
+    while (parent) {
+        PC_ASSERT(purc_variant_is_object(parent->exclamation_var));
+        purc_variant_t v;
+        v = purc_variant_object_get(parent->exclamation_var, name, true);
+        if (v != PURC_VARIANT_INVALID) {
+            purc_variant_object_set(parent->exclamation_var, name, src);
+            return 0;
+        }
+        parent = pcintr_stack_frame_get_parent(parent);
+    }
+
+    PC_ASSERT(0);
+    return -1;
+}
+
+static int
+post_process_locally(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
+        purc_variant_t src)
+{
+    struct ctxt_for_init *ctxt;
+    ctxt = (struct ctxt_for_init*)frame->ctxt;
+
+    if (ctxt->as) {
+        return post_process_as_locally(co, frame, ctxt->as, src);
+    }
+    if (ctxt->at) {
+        return post_process_at_locally(co, frame, ctxt->at, src);
+    }
+
+    PC_ASSERT(0);
+    return -1;
+}
+
+static int
+post_process_src(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
+        purc_variant_t src)
+{
+    struct ctxt_for_init *ctxt;
+    ctxt = (struct ctxt_for_init*)frame->ctxt;
+
+    if (ctxt->locally) {
+        return post_process_locally(co, frame, src);
+    }
+
+    purc_variant_t name;
+    name = ctxt->as;
+    PC_ASSERT(name != PURC_VARIANT_INVALID);
+
+    if (name == PURC_VARIANT_INVALID)
+        return -1;
+
+    PC_ASSERT(purc_variant_is_string(name));
+
+    return post_process_bind_scope_var(co, frame, name, src);
 }
 
 static int
@@ -159,25 +200,32 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     struct ctxt_for_init *ctxt;
     ctxt = (struct ctxt_for_init*)frame->ctxt;
 
-    purc_variant_t name;
-    name = ctxt->as;
-    if (name == PURC_VARIANT_INVALID)
-        return -1;
+    purc_variant_t src = frame->ctnt_var;
 
-    if (frame->ctnt_var != PURC_VARIANT_INVALID) {
-        if (purc_variant_is_type(frame->ctnt_var, PURC_VARIANT_TYPE_ARRAY)) {
-            return post_process_array(co, frame, name);
+    if (ctxt->via != PURC_VARIANT_INVALID) {
+        PC_ASSERT(purc_variant_is_string(ctxt->via));
+
+        purc_variant_t set;
+        set = purc_variant_make_set(0, ctxt->via, PURC_VARIANT_INVALID);
+        if (set == PURC_VARIANT_INVALID)
+            return -1;
+
+        // TODO
+        if (!purc_variant_container_displace(set, src, true)) {
+            purc_variant_unref(set);
+            return -1;
         }
-        if (purc_variant_is_type(frame->ctnt_var, PURC_VARIANT_TYPE_OBJECT)) {
-            return post_process_object(co, frame, name);
-        }
-        PC_ASSERT(0);
-        purc_set_error(PURC_ERROR_NOT_EXISTS);
-        return -1;
+
+        src = set;
+    }
+    else {
+        purc_variant_ref(src);
     }
 
-    PC_ASSERT(0);
-    return 0;
+    int r = post_process_src(co, frame, src);
+    purc_variant_unref(src);
+
+    return r ? -1 : 0;
 }
 
 static int
@@ -193,6 +241,12 @@ process_attr_as(struct pcintr_stack_frame *frame,
                 purc_atom_to_string(name), element->tag_name);
         return -1;
     }
+    if (ctxt->at != PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_DUPLICATED,
+                "vdom attributes '%s/%s' does not coexist for element <%s>",
+                purc_atom_to_string(name), "at", element->tag_name);
+        return -1;
+    }
     if (val == PURC_VARIANT_INVALID) {
         purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
                 "vdom attribute '%s' for element <%s> undefined",
@@ -200,6 +254,37 @@ process_attr_as(struct pcintr_stack_frame *frame,
         return -1;
     }
     ctxt->as = val;
+    purc_variant_ref(val);
+
+    return 0;
+}
+
+static int
+process_attr_at(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element,
+        purc_atom_t name, purc_variant_t val)
+{
+    struct ctxt_for_init *ctxt;
+    ctxt = (struct ctxt_for_init*)frame->ctxt;
+    if (ctxt->at != PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_DUPLICATED,
+                "vdom attribute '%s' for element <%s>",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    if (ctxt->as != PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_DUPLICATED,
+                "vdom attributes '%s/%s' does not coexist for element <%s>",
+                purc_atom_to_string(name), "as", element->tag_name);
+        return -1;
+    }
+    if (val == PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "vdom attribute '%s' for element <%s> undefined",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    ctxt->at = val;
     purc_variant_ref(val);
 
     return 0;
@@ -337,6 +422,9 @@ attr_found(struct pcintr_stack_frame *frame,
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, AS)) == name) {
         return process_attr_as(frame, element, name, val);
     }
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, AT)) == name) {
+        return process_attr_at(frame, element, name, val);
+    }
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, UNIQUELY)) == name) {
         return process_attr_uniquely(frame, element, name, val);
     }
@@ -352,6 +440,7 @@ attr_found(struct pcintr_stack_frame *frame,
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, LOCALLY)) == name) {
         PC_ASSERT(purc_variant_is_undefined(val));
         ctxt->locally = 1;
+        return 0;
     }
 
     purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
