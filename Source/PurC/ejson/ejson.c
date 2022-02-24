@@ -158,23 +158,6 @@ enum ejson_state {
     EJSON_STRING_ESCAPE_FOUR_HEXADECIMAL_DIGITS_STATE
 };
 
-struct pcejson {
-    enum ejson_state state;
-    enum ejson_state return_state;
-    uint32_t depth;
-    uint32_t max_depth;
-    uint32_t flags;
-    struct pcutils_stack* stack;
-    struct pcutils_stack* vcm_stack;
-    purc_rwstream_t tmp_buff;
-    purc_rwstream_t tmp_buff2;
-    char c[8];
-    int c_len;
-    uint32_t wc;
-    bool need_reconsume;
-};
-
-
 void pcejson_init_once (void)
 {
     pcinst_register_error_message_segment(&_ejson_err_msgs_seg);

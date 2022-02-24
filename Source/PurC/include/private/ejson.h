@@ -81,7 +81,23 @@ struct pcejson_token {
     };
 };
 
-struct pcejson;
+struct pcejson {
+    int state;
+    int return_state;
+    uint32_t depth;
+    uint32_t max_depth;
+    uint32_t flags;
+    struct pcutils_stack* stack;
+    struct pcutils_stack* vcm_stack;
+    purc_rwstream_t tmp_buff;
+    purc_rwstream_t tmp_buff2;
+    char c[8];
+    int c_len;
+    uint32_t wc;
+    bool need_reconsume;
+};
+
+
 
 #ifdef __cplusplus
 extern "C" {
