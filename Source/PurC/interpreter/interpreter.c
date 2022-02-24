@@ -2238,6 +2238,28 @@ attribute_assign(purc_variant_t left, purc_variant_t right)
 static purc_variant_t
 attribute_addition(purc_variant_t left, purc_variant_t right)
 {
+    // FIXME: add or replace token
+    if (purc_variant_is_string(left)) {
+        if (purc_variant_is_string(right)) {
+            return attribute_addition_string(
+                    purc_variant_get_string_const(left),
+                    purc_variant_get_string_const(right));
+        }
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    // FIXME: numberify?
+    double dl, dr;
+    dl = purc_variant_numberify(left);
+    dr = purc_variant_numberify(right);
+
+    return purc_variant_make_number(dl + dr);
+}
+
+static purc_variant_t
+attribute_tail_addition(purc_variant_t left, purc_variant_t right)
+{
     if (purc_variant_is_string(left)) {
         if (purc_variant_is_string(right)) {
             return attribute_addition_string(
@@ -2264,6 +2286,8 @@ pcintr_attribute_get_op(enum pchvml_attr_operator op)
             return attribute_assign;
         case PCHVML_ATTRIBUTE_ADDITION_OPERATOR:
             return attribute_addition;
+        case PCHVML_ATTRIBUTE_TAIL_OPERATOR:
+            return attribute_tail_addition;
         default:
             purc_set_error(PURC_ERROR_NOT_IMPLEMENTED);
             return NULL;
