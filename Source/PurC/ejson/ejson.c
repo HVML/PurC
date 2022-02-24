@@ -61,6 +61,30 @@
                 #state_name, ejson->wc, ejson->wc);
 #endif
 
+#define PCEJSON_NEXT_TOKEN_BEGIN                                            \
+struct pcejson_token* pcejson_next_token (struct pcejson* ejson,            \
+                                          purc_rwstream_t rws)              \
+{                                                                           \
+next_input:                                                                 \
+    if (!ejson->need_reconsume) {                                           \
+        ejson->c_len = purc_rwstream_read_utf8_char (rws,                   \
+                ejson->c, &ejson->wc);                                      \
+        if (ejson->c_len <= 0) {                                            \
+            return NULL;                                                    \
+        }                                                                   \
+    }                                                                       \
+    ejson->need_reconsume = false;                                          \
+                                                                            \
+next_state:                                                                 \
+    switch (ejson->state) {
+
+#define PCEJSON_NEXT_TOKEN_END                                              \
+        default:                                                            \
+            break;                                                          \
+    }                                                                       \
+    return NULL;                                                            \
+}
+
 #if HAVE(GLIB)
 #define    EJSON_ALLOC(sz)   g_slice_alloc0(sz)
 #define    EJSON_FREE(p)     g_slice_free1(sizeof(*p), (gpointer)p)
@@ -697,1119 +721,1101 @@ void pcejson_token_destroy (struct pcejson_token* token)
     }
 }
 
-struct pcejson_token* pcejson_next_token (struct pcejson* ejson,
-                                          purc_rwstream_t rws)
-{
-next_input:
-    if (!ejson->need_reconsume) {
-        ejson->c_len = purc_rwstream_read_utf8_char (rws,
-                ejson->c, &ejson->wc);
-        if (ejson->c_len <= 0) {
+PCEJSON_NEXT_TOKEN_BEGIN
+
+BEGIN_STATE(EJSON_INIT_STATE)
+    if (is_whitespace (ejson->wc)) {
+        ADVANCE_TO(EJSON_INIT_STATE);
+    }
+    else if (ejson->wc == '{') {
+        RECONSUME_IN(EJSON_OBJECT_STATE);
+    }
+    else if (ejson->wc == '[') {
+        RECONSUME_IN(EJSON_ARRAY_STATE);
+    }
+    else if (ejson->wc == EJSON_END_OF_FILE) {
+        EJSON_SET_ERROR(PCEJSON_ERROR_BAD_JSON);
+        return NULL;
+    }
+    else if (ejson->wc == 0xFEFF) {
+        // UTF-8 bom EF BB BF -> FEFF
+        ADVANCE_TO(EJSON_INIT_STATE);
+    }
+    else {
+        RECONSUME_IN(EJSON_BEFORE_VALUE_STATE);
+    }
+END_STATE()
+
+BEGIN_STATE(EJSON_FINISHED_STATE)
+    switch (ejson->wc) {
+        case ' ':
+        case '\x0A':
+        case '\x09':
+        case '\x0C':
+            ADVANCE_TO(EJSON_FINISHED_STATE);
+            break;
+        case EJSON_END_OF_FILE:
+            return pcejson_token_new (EJSON_TOKEN_EOF, NULL, 0);
+        default:
+            EJSON_SET_ERROR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
+            return NULL;
+    }
+END_STATE()
+
+BEGIN_STATE(EJSON_OBJECT_STATE)
+    switch (ejson->wc) {
+        case ' ':
+        case '\x0A':
+        case '\x09':
+        case '\x0C':
+            ADVANCE_TO(EJSON_BEFORE_NAME_STATE);
+            break;
+        case '{':
+            if (!pcejson_inc_depth (ejson)) {
+                EJSON_SET_ERROR(PCEJSON_ERROR_MAX_DEPTH_EXCEEDED);
+                return NULL;
+            }
+            pcutils_stack_push (ejson->stack, '{');
+            pcejson_tmp_buff_reset (ejson->tmp_buff);
+            SWITCH_TO(EJSON_BEFORE_NAME_STATE);
+            return pcejson_token_new (EJSON_TOKEN_START_OBJECT,
+                    NULL, 0);
+        default:
+            EJSON_SET_ERROR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
+            return NULL;
+    }
+END_STATE()
+
+BEGIN_STATE(EJSON_AFTER_OBJECT_STATE)
+    if (ejson->wc == '}') {
+        uint8_t c = pcutils_stack_top(ejson->stack);
+        if (c == '{') {
+            pcejson_dec_depth (ejson);
+            pcutils_stack_pop(ejson->stack);
+            if (pcutils_stack_is_empty(ejson->stack)) {
+                SWITCH_TO(EJSON_FINISHED_STATE);
+            }
+            else {
+                SWITCH_TO(EJSON_AFTER_VALUE_STATE);
+            }
+            return pcejson_token_new (EJSON_TOKEN_END_OBJECT,
+                    NULL, 0);
+        }
+        else {
+            EJSON_SET_ERROR(
+                    PCEJSON_ERROR_UNEXPECTED_RIGHT_BRACE);
             return NULL;
         }
     }
-    ejson->need_reconsume = false;
+    else {
+        EJSON_SET_ERROR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
+        return NULL;
+    }
+END_STATE()
 
-next_state:
-    switch (ejson->state) {
-
-        BEGIN_STATE(EJSON_INIT_STATE)
-            if (is_whitespace (ejson->wc)) {
-                ADVANCE_TO(EJSON_INIT_STATE);
-            }
-            else if (ejson->wc == '{') {
-                RECONSUME_IN(EJSON_OBJECT_STATE);
-            }
-            else if (ejson->wc == '[') {
-                RECONSUME_IN(EJSON_ARRAY_STATE);
-            }
-            else if (ejson->wc == EJSON_END_OF_FILE) {
-                EJSON_SET_ERROR(PCEJSON_ERROR_BAD_JSON);
+BEGIN_STATE(EJSON_ARRAY_STATE)
+    switch (ejson->wc) {
+        case ' ':
+        case '\x0A':
+        case '\x09':
+        case '\x0C':
+            ADVANCE_TO(EJSON_BEFORE_VALUE_STATE);
+            break;
+        case '[':
+            if (!pcejson_inc_depth (ejson)) {
+                EJSON_SET_ERROR(PCEJSON_ERROR_MAX_DEPTH_EXCEEDED);
                 return NULL;
             }
-            else if (ejson->wc == 0xFEFF) {
-                // UTF-8 bom EF BB BF -> FEFF
-                ADVANCE_TO(EJSON_INIT_STATE);
+            pcutils_stack_push (ejson->stack, '[');
+            pcejson_tmp_buff_reset (ejson->tmp_buff);
+            SWITCH_TO(EJSON_BEFORE_VALUE_STATE);
+            return pcejson_token_new (EJSON_TOKEN_START_ARRAY, NULL, 0);
+        default:
+            EJSON_SET_ERROR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
+            return NULL;
+    }
+END_STATE()
+
+BEGIN_STATE(EJSON_AFTER_ARRAY_STATE)
+    if (ejson->wc == ']') {
+        uint8_t c = pcutils_stack_top(ejson->stack);
+        if (c == '[') {
+            pcejson_dec_depth (ejson);
+            pcutils_stack_pop(ejson->stack);
+            if (pcutils_stack_is_empty(ejson->stack)) {
+                SWITCH_TO(EJSON_FINISHED_STATE);
             }
             else {
-                RECONSUME_IN(EJSON_BEFORE_VALUE_STATE);
+                SWITCH_TO(EJSON_AFTER_VALUE_STATE);
             }
-        END_STATE()
+            return pcejson_token_new (EJSON_TOKEN_END_ARRAY, NULL, 0);
+        }
+        else {
+            EJSON_SET_ERROR(
+                    PCEJSON_ERROR_UNEXPECTED_RIGHT_BRACKET);
+            return NULL;
+        }
+    }
+    else {
+        EJSON_SET_ERROR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
+        return NULL;
+    }
+END_STATE()
 
-        BEGIN_STATE(EJSON_FINISHED_STATE)
-            switch (ejson->wc) {
-                case ' ':
-                case '\x0A':
-                case '\x09':
-                case '\x0C':
-                    ADVANCE_TO(EJSON_FINISHED_STATE);
-                    break;
-                case EJSON_END_OF_FILE:
-                    return pcejson_token_new (EJSON_TOKEN_EOF, NULL, 0);
-                default:
-                    EJSON_SET_ERROR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
-                    return NULL;
-            }
-        END_STATE()
+BEGIN_STATE(EJSON_BEFORE_NAME_STATE)
+    if (is_whitespace(ejson->wc)) {
+        ADVANCE_TO(EJSON_BEFORE_NAME_STATE);
+    }
+    else if (ejson->wc == '"') {
+        pcejson_tmp_buff_reset (ejson->tmp_buff);
+        uint8_t c = pcutils_stack_top(ejson->stack);
+        if (c == '{') {
+            pcutils_stack_push (ejson->stack, ':');
+        }
+        RECONSUME_IN(EJSON_NAME_DOUBLE_QUOTED_STATE);
+    }
+    else if (ejson->wc == '\'') {
+        pcejson_tmp_buff_reset (ejson->tmp_buff);
+        uint8_t c = pcutils_stack_top(ejson->stack);
+        if (c == '{') {
+            pcutils_stack_push (ejson->stack, ':');
+        }
+        RECONSUME_IN(EJSON_NAME_SINGLE_QUOTED_STATE);
+    }
+    else if (is_ascii_alpha(ejson->wc)) {
+        pcejson_tmp_buff_reset (ejson->tmp_buff);
+        uint8_t c = pcutils_stack_top(ejson->stack);
+        if (c == '{') {
+            pcutils_stack_push (ejson->stack, ':');
+        }
+        RECONSUME_IN(EJSON_NAME_UNQUOTED_STATE);
+    }
+    else if (ejson->wc == '}') {
+        RECONSUME_IN(EJSON_AFTER_OBJECT_STATE);
+    }
+    else {
+        EJSON_SET_ERROR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
+        return NULL;
+    }
+END_STATE()
 
-        BEGIN_STATE(EJSON_OBJECT_STATE)
-            switch (ejson->wc) {
-                case ' ':
-                case '\x0A':
-                case '\x09':
-                case '\x0C':
-                    ADVANCE_TO(EJSON_BEFORE_NAME_STATE);
-                    break;
-                case '{':
-                    if (!pcejson_inc_depth (ejson)) {
-                        EJSON_SET_ERROR(PCEJSON_ERROR_MAX_DEPTH_EXCEEDED);
-                        return NULL;
-                    }
-                    pcutils_stack_push (ejson->stack, '{');
-                    pcejson_tmp_buff_reset (ejson->tmp_buff);
-                    SWITCH_TO(EJSON_BEFORE_NAME_STATE);
-                    return pcejson_token_new (EJSON_TOKEN_START_OBJECT,
-                            NULL, 0);
-                default:
-                    EJSON_SET_ERROR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
-                    return NULL;
-            }
-        END_STATE()
-
-        BEGIN_STATE(EJSON_AFTER_OBJECT_STATE)
-            if (ejson->wc == '}') {
-                uint8_t c = pcutils_stack_top(ejson->stack);
-                if (c == '{') {
-                    pcejson_dec_depth (ejson);
-                    pcutils_stack_pop(ejson->stack);
-                    if (pcutils_stack_is_empty(ejson->stack)) {
-                        SWITCH_TO(EJSON_FINISHED_STATE);
-                    }
-                    else {
-                        SWITCH_TO(EJSON_AFTER_VALUE_STATE);
-                    }
-                    return pcejson_token_new (EJSON_TOKEN_END_OBJECT,
-                            NULL, 0);
-                }
-                else {
-                    EJSON_SET_ERROR(
-                            PCEJSON_ERROR_UNEXPECTED_RIGHT_BRACE);
-                    return NULL;
-                }
-            }
-            else {
-                EJSON_SET_ERROR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
-                return NULL;
-            }
-        END_STATE()
-
-        BEGIN_STATE(EJSON_ARRAY_STATE)
-            switch (ejson->wc) {
-                case ' ':
-                case '\x0A':
-                case '\x09':
-                case '\x0C':
-                    ADVANCE_TO(EJSON_BEFORE_VALUE_STATE);
-                    break;
-                case '[':
-                    if (!pcejson_inc_depth (ejson)) {
-                        EJSON_SET_ERROR(PCEJSON_ERROR_MAX_DEPTH_EXCEEDED);
-                        return NULL;
-                    }
-                    pcutils_stack_push (ejson->stack, '[');
-                    pcejson_tmp_buff_reset (ejson->tmp_buff);
-                    SWITCH_TO(EJSON_BEFORE_VALUE_STATE);
-                    return pcejson_token_new (EJSON_TOKEN_START_ARRAY, NULL, 0);
-                default:
-                    EJSON_SET_ERROR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
-                    return NULL;
-            }
-        END_STATE()
-
-        BEGIN_STATE(EJSON_AFTER_ARRAY_STATE)
-            if (ejson->wc == ']') {
-                uint8_t c = pcutils_stack_top(ejson->stack);
-                if (c == '[') {
-                    pcejson_dec_depth (ejson);
-                    pcutils_stack_pop(ejson->stack);
-                    if (pcutils_stack_is_empty(ejson->stack)) {
-                        SWITCH_TO(EJSON_FINISHED_STATE);
-                    }
-                    else {
-                        SWITCH_TO(EJSON_AFTER_VALUE_STATE);
-                    }
-                    return pcejson_token_new (EJSON_TOKEN_END_ARRAY, NULL, 0);
-                }
-                else {
-                    EJSON_SET_ERROR(
-                            PCEJSON_ERROR_UNEXPECTED_RIGHT_BRACKET);
-                    return NULL;
-                }
-            }
-            else {
-                EJSON_SET_ERROR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
-                return NULL;
-            }
-        END_STATE()
-
-        BEGIN_STATE(EJSON_BEFORE_NAME_STATE)
-            if (is_whitespace(ejson->wc)) {
-                ADVANCE_TO(EJSON_BEFORE_NAME_STATE);
-            }
-            else if (ejson->wc == '"') {
-                pcejson_tmp_buff_reset (ejson->tmp_buff);
-                uint8_t c = pcutils_stack_top(ejson->stack);
-                if (c == '{') {
-                    pcutils_stack_push (ejson->stack, ':');
-                }
-                RECONSUME_IN(EJSON_NAME_DOUBLE_QUOTED_STATE);
-            }
-            else if (ejson->wc == '\'') {
-                pcejson_tmp_buff_reset (ejson->tmp_buff);
-                uint8_t c = pcutils_stack_top(ejson->stack);
-                if (c == '{') {
-                    pcutils_stack_push (ejson->stack, ':');
-                }
-                RECONSUME_IN(EJSON_NAME_SINGLE_QUOTED_STATE);
-            }
-            else if (is_ascii_alpha(ejson->wc)) {
-                pcejson_tmp_buff_reset (ejson->tmp_buff);
-                uint8_t c = pcutils_stack_top(ejson->stack);
-                if (c == '{') {
-                    pcutils_stack_push (ejson->stack, ':');
-                }
-                RECONSUME_IN(EJSON_NAME_UNQUOTED_STATE);
-            }
-            else if (ejson->wc == '}') {
-                RECONSUME_IN(EJSON_AFTER_OBJECT_STATE);
-            }
-            else {
-                EJSON_SET_ERROR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
-                return NULL;
-            }
-        END_STATE()
-
-        BEGIN_STATE(EJSON_AFTER_NAME_STATE)
-            switch (ejson->wc) {
-                case ' ':
-                case '\x0A':
-                case '\x09':
-                case '\x0C':
-                    ADVANCE_TO(EJSON_AFTER_NAME_STATE);
-                    break;
-                case ':':
-                    if (pcejson_tmp_buff_is_empty(ejson->tmp_buff)) {
-                        ADVANCE_TO(EJSON_BEFORE_VALUE_STATE);
-                    }
-                    else {
-                        SWITCH_TO(EJSON_BEFORE_VALUE_STATE);
-                        return pcejson_token_new_from_tmp_buf (EJSON_TOKEN_KEY,
-                                ejson->tmp_buff);
-                    }
-                default:
-                    EJSON_SET_ERROR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
-                    return NULL;
-            }
-        END_STATE()
-
-        BEGIN_STATE(EJSON_BEFORE_VALUE_STATE)
-            if (is_whitespace(ejson->wc)) {
+BEGIN_STATE(EJSON_AFTER_NAME_STATE)
+    switch (ejson->wc) {
+        case ' ':
+        case '\x0A':
+        case '\x09':
+        case '\x0C':
+            ADVANCE_TO(EJSON_AFTER_NAME_STATE);
+            break;
+        case ':':
+            if (pcejson_tmp_buff_is_empty(ejson->tmp_buff)) {
                 ADVANCE_TO(EJSON_BEFORE_VALUE_STATE);
             }
-            else if (ejson->wc == '"') {
-                pcejson_tmp_buff_reset (ejson->tmp_buff);
-                RECONSUME_IN(EJSON_VALUE_DOUBLE_QUOTED_STATE);
-            }
-            else if (ejson->wc == '\'') {
-                pcejson_tmp_buff_reset (ejson->tmp_buff);
-                RECONSUME_IN(EJSON_VALUE_SINGLE_QUOTED_STATE);
-            }
-            else if (ejson->wc == 'b') {
-                pcejson_tmp_buff_reset (ejson->tmp_buff);
-                RECONSUME_IN(EJSON_BYTE_SEQUENCE_STATE);
-            }
-            else if (ejson->wc == 't' || ejson->wc == 'f' || ejson->wc == 'n') {
-                pcejson_tmp_buff_reset (ejson->tmp_buff);
-                RECONSUME_IN(EJSON_KEYWORD_STATE);
-            }
-            else if (is_ascii_digit(ejson->wc) || ejson->wc == '-') {
-                pcejson_tmp_buff_reset (ejson->tmp_buff);
-                RECONSUME_IN(EJSON_VALUE_NUMBER_STATE);
-            }
-            else if (ejson->wc == '{') {
-                RECONSUME_IN(EJSON_OBJECT_STATE);
-            }
-            else if (ejson->wc == '[') {
-                RECONSUME_IN(EJSON_ARRAY_STATE);
-            }
-            else if (ejson->wc == ']') {
-                RECONSUME_IN(EJSON_AFTER_ARRAY_STATE);
-            }
-            else if (ejson->wc == 'I') {
-                pcejson_tmp_buff_reset (ejson->tmp_buff);
-                RECONSUME_IN(EJSON_VALUE_NUMBER_INFINITY_STATE);
-            }
-            else if (ejson->wc == 'N') {
-                pcejson_tmp_buff_reset (ejson->tmp_buff);
-                RECONSUME_IN(EJSON_VALUE_NAN_STATE);
-            }
             else {
-                EJSON_SET_ERROR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
-                return NULL;
-            }
-        END_STATE()
-
-        BEGIN_STATE(EJSON_AFTER_VALUE_STATE)
-            if (is_whitespace(ejson->wc)) {
-                ADVANCE_TO(EJSON_AFTER_VALUE_STATE);
-            }
-            else if (ejson->wc == '"' || ejson->wc == '\'') {
-                return pcejson_token_new_from_tmp_buf (EJSON_TOKEN_STRING,
+                SWITCH_TO(EJSON_BEFORE_VALUE_STATE);
+                return pcejson_token_new_from_tmp_buf (EJSON_TOKEN_KEY,
                         ejson->tmp_buff);
             }
-            else if (ejson->wc == '}') {
-                pcutils_stack_pop(ejson->stack);
-                RECONSUME_IN(EJSON_AFTER_OBJECT_STATE);
-            }
-            else if (ejson->wc == ']') {
-                RECONSUME_IN(EJSON_AFTER_ARRAY_STATE);
-            }
-            else if (ejson->wc == ',') {
-                uint8_t c = pcutils_stack_top(ejson->stack);
-                if (c == '{') {
-                    SWITCH_TO(EJSON_BEFORE_NAME_STATE);
-                    return pcejson_token_new (EJSON_TOKEN_COMMA, NULL, 0);
-                }
-                else if (c == '[') {
-                    SWITCH_TO(EJSON_BEFORE_VALUE_STATE);
-                    return pcejson_token_new (EJSON_TOKEN_COMMA, NULL, 0);
-                }
-                else if (c == ':') {
-                    pcutils_stack_pop(ejson->stack);
-                    SWITCH_TO(EJSON_BEFORE_NAME_STATE);
-                    return pcejson_token_new (EJSON_TOKEN_COMMA, NULL, 0);
-                }
-                else {
-                    EJSON_SET_ERROR(PCEJSON_ERROR_UNEXPECTED_COMMA);
-                    return NULL;
-                }
-            }
-            else if (ejson->wc == EJSON_END_OF_FILE) {
-                return pcejson_token_new (EJSON_TOKEN_EOF, NULL, 0);
-            }
-            else {
-                EJSON_SET_ERROR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
-                return NULL;
-            }
-        END_STATE()
+        default:
+            EJSON_SET_ERROR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
+            return NULL;
+    }
+END_STATE()
 
-        BEGIN_STATE(EJSON_NAME_UNQUOTED_STATE)
-            if (is_whitespace(ejson->wc) || ejson->wc == ':') {
-                RECONSUME_IN(EJSON_AFTER_NAME_STATE);
-            }
-            else if (is_ascii_alpha(ejson->wc) || is_ascii_digit(ejson->wc)
-                    || ejson->wc == '-' || ejson->wc == '_') {
-                pcejson_tmp_buff_append (ejson->tmp_buff, (uint8_t*)ejson->c,
-                        ejson->c_len);
-                ADVANCE_TO(EJSON_NAME_UNQUOTED_STATE);
-            }
-            else {
-                EJSON_SET_ERROR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
-                return NULL;
-            }
-        END_STATE()
+BEGIN_STATE(EJSON_BEFORE_VALUE_STATE)
+    if (is_whitespace(ejson->wc)) {
+        ADVANCE_TO(EJSON_BEFORE_VALUE_STATE);
+    }
+    else if (ejson->wc == '"') {
+        pcejson_tmp_buff_reset (ejson->tmp_buff);
+        RECONSUME_IN(EJSON_VALUE_DOUBLE_QUOTED_STATE);
+    }
+    else if (ejson->wc == '\'') {
+        pcejson_tmp_buff_reset (ejson->tmp_buff);
+        RECONSUME_IN(EJSON_VALUE_SINGLE_QUOTED_STATE);
+    }
+    else if (ejson->wc == 'b') {
+        pcejson_tmp_buff_reset (ejson->tmp_buff);
+        RECONSUME_IN(EJSON_BYTE_SEQUENCE_STATE);
+    }
+    else if (ejson->wc == 't' || ejson->wc == 'f' || ejson->wc == 'n') {
+        pcejson_tmp_buff_reset (ejson->tmp_buff);
+        RECONSUME_IN(EJSON_KEYWORD_STATE);
+    }
+    else if (is_ascii_digit(ejson->wc) || ejson->wc == '-') {
+        pcejson_tmp_buff_reset (ejson->tmp_buff);
+        RECONSUME_IN(EJSON_VALUE_NUMBER_STATE);
+    }
+    else if (ejson->wc == '{') {
+        RECONSUME_IN(EJSON_OBJECT_STATE);
+    }
+    else if (ejson->wc == '[') {
+        RECONSUME_IN(EJSON_ARRAY_STATE);
+    }
+    else if (ejson->wc == ']') {
+        RECONSUME_IN(EJSON_AFTER_ARRAY_STATE);
+    }
+    else if (ejson->wc == 'I') {
+        pcejson_tmp_buff_reset (ejson->tmp_buff);
+        RECONSUME_IN(EJSON_VALUE_NUMBER_INFINITY_STATE);
+    }
+    else if (ejson->wc == 'N') {
+        pcejson_tmp_buff_reset (ejson->tmp_buff);
+        RECONSUME_IN(EJSON_VALUE_NAN_STATE);
+    }
+    else {
+        EJSON_SET_ERROR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
+        return NULL;
+    }
+END_STATE()
 
-        BEGIN_STATE(EJSON_NAME_SINGLE_QUOTED_STATE)
-            if (ejson->wc == '\'') {
-                size_t tmp_buf_len = pcejson_tmp_buff_length (ejson->tmp_buff);
-                if (tmp_buf_len >= 1) {
-                    ADVANCE_TO(EJSON_AFTER_NAME_STATE);
-                }
-                else {
-                    ADVANCE_TO(EJSON_NAME_SINGLE_QUOTED_STATE);
-                }
-            }
-            else if (ejson->wc == '\\') {
-                ejson->return_state = ejson->state;
-                ADVANCE_TO(EJSON_STRING_ESCAPE_STATE);
-            }
-            else if (ejson->wc == EJSON_END_OF_FILE) {
-                EJSON_SET_ERROR(PCEJSON_ERROR_UNEXPECTED_EOF);
-                return pcejson_token_new (EJSON_TOKEN_EOF, NULL, 0);
-            }
-            else {
-                pcejson_tmp_buff_append (ejson->tmp_buff, (uint8_t*)ejson->c,
-                        ejson->c_len);
-                ADVANCE_TO(EJSON_NAME_SINGLE_QUOTED_STATE);
-            }
-        END_STATE()
+BEGIN_STATE(EJSON_AFTER_VALUE_STATE)
+    if (is_whitespace(ejson->wc)) {
+        ADVANCE_TO(EJSON_AFTER_VALUE_STATE);
+    }
+    else if (ejson->wc == '"' || ejson->wc == '\'') {
+        return pcejson_token_new_from_tmp_buf (EJSON_TOKEN_STRING,
+                ejson->tmp_buff);
+    }
+    else if (ejson->wc == '}') {
+        pcutils_stack_pop(ejson->stack);
+        RECONSUME_IN(EJSON_AFTER_OBJECT_STATE);
+    }
+    else if (ejson->wc == ']') {
+        RECONSUME_IN(EJSON_AFTER_ARRAY_STATE);
+    }
+    else if (ejson->wc == ',') {
+        uint8_t c = pcutils_stack_top(ejson->stack);
+        if (c == '{') {
+            SWITCH_TO(EJSON_BEFORE_NAME_STATE);
+            return pcejson_token_new (EJSON_TOKEN_COMMA, NULL, 0);
+        }
+        else if (c == '[') {
+            SWITCH_TO(EJSON_BEFORE_VALUE_STATE);
+            return pcejson_token_new (EJSON_TOKEN_COMMA, NULL, 0);
+        }
+        else if (c == ':') {
+            pcutils_stack_pop(ejson->stack);
+            SWITCH_TO(EJSON_BEFORE_NAME_STATE);
+            return pcejson_token_new (EJSON_TOKEN_COMMA, NULL, 0);
+        }
+        else {
+            EJSON_SET_ERROR(PCEJSON_ERROR_UNEXPECTED_COMMA);
+            return NULL;
+        }
+    }
+    else if (ejson->wc == EJSON_END_OF_FILE) {
+        return pcejson_token_new (EJSON_TOKEN_EOF, NULL, 0);
+    }
+    else {
+        EJSON_SET_ERROR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
+        return NULL;
+    }
+END_STATE()
 
-        BEGIN_STATE(EJSON_NAME_DOUBLE_QUOTED_STATE)
-            if (ejson->wc == '"') {
-                size_t tmp_buf_len = pcejson_tmp_buff_length (ejson->tmp_buff);
-                if (tmp_buf_len > 1) {
-                    pcejson_tmp_buff_remove_first_last (ejson->tmp_buff, 1, 0);
-                    ADVANCE_TO(EJSON_AFTER_NAME_STATE);
-                }
-                else if (tmp_buf_len == 1) {
-                    pcejson_tmp_buff_reset (ejson->tmp_buff);
-                    SWITCH_TO(EJSON_AFTER_NAME_STATE);
-                    return pcejson_token_new (EJSON_TOKEN_KEY, NULL, 0);
-                }
-                else {
-                    pcejson_tmp_buff_append (ejson->tmp_buff,
-                            (uint8_t*)ejson->c, ejson->c_len);
-                    ADVANCE_TO(EJSON_NAME_DOUBLE_QUOTED_STATE);
-                }
-            }
-            else if (ejson->wc == '\\') {
-                ejson->return_state = ejson->state;
-                ADVANCE_TO(EJSON_STRING_ESCAPE_STATE);
-            }
-            else if (ejson->wc == EJSON_END_OF_FILE) {
-                EJSON_SET_ERROR(PCEJSON_ERROR_UNEXPECTED_EOF);
-                return pcejson_token_new (EJSON_TOKEN_EOF, NULL, 0);
-            }
-            else {
-                pcejson_tmp_buff_append (ejson->tmp_buff, (uint8_t*)ejson->c,
-                        ejson->c_len);
-                ADVANCE_TO(EJSON_NAME_DOUBLE_QUOTED_STATE);
-            }
-        END_STATE()
+BEGIN_STATE(EJSON_NAME_UNQUOTED_STATE)
+    if (is_whitespace(ejson->wc) || ejson->wc == ':') {
+        RECONSUME_IN(EJSON_AFTER_NAME_STATE);
+    }
+    else if (is_ascii_alpha(ejson->wc) || is_ascii_digit(ejson->wc)
+            || ejson->wc == '-' || ejson->wc == '_') {
+        pcejson_tmp_buff_append (ejson->tmp_buff, (uint8_t*)ejson->c,
+                ejson->c_len);
+        ADVANCE_TO(EJSON_NAME_UNQUOTED_STATE);
+    }
+    else {
+        EJSON_SET_ERROR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
+        return NULL;
+    }
+END_STATE()
 
-        BEGIN_STATE(EJSON_VALUE_SINGLE_QUOTED_STATE)
-            if (ejson->wc == '\'') {
-                size_t tmp_buf_len = pcejson_tmp_buff_length (ejson->tmp_buff);
-                if (tmp_buf_len >= 1) {
-                    RECONSUME_IN(EJSON_AFTER_VALUE_STATE);
-                }
-                else {
-                    ADVANCE_TO(EJSON_VALUE_SINGLE_QUOTED_STATE);
-                }
-            }
-            else if (ejson->wc == '\\') {
-                ejson->return_state = ejson->state;
-                ADVANCE_TO(EJSON_STRING_ESCAPE_STATE);
-            }
-            else if (ejson->wc == EJSON_END_OF_FILE) {
-                EJSON_SET_ERROR(PCEJSON_ERROR_UNEXPECTED_EOF);
-                return pcejson_token_new (EJSON_TOKEN_EOF, NULL, 0);
-            }
-            else {
-                pcejson_tmp_buff_append (ejson->tmp_buff, (uint8_t*)ejson->c,
-                        ejson->c_len);
-                ADVANCE_TO(EJSON_VALUE_SINGLE_QUOTED_STATE);
-            }
-        END_STATE()
+BEGIN_STATE(EJSON_NAME_SINGLE_QUOTED_STATE)
+    if (ejson->wc == '\'') {
+        size_t tmp_buf_len = pcejson_tmp_buff_length (ejson->tmp_buff);
+        if (tmp_buf_len >= 1) {
+            ADVANCE_TO(EJSON_AFTER_NAME_STATE);
+        }
+        else {
+            ADVANCE_TO(EJSON_NAME_SINGLE_QUOTED_STATE);
+        }
+    }
+    else if (ejson->wc == '\\') {
+        ejson->return_state = ejson->state;
+        ADVANCE_TO(EJSON_STRING_ESCAPE_STATE);
+    }
+    else if (ejson->wc == EJSON_END_OF_FILE) {
+        EJSON_SET_ERROR(PCEJSON_ERROR_UNEXPECTED_EOF);
+        return pcejson_token_new (EJSON_TOKEN_EOF, NULL, 0);
+    }
+    else {
+        pcejson_tmp_buff_append (ejson->tmp_buff, (uint8_t*)ejson->c,
+                ejson->c_len);
+        ADVANCE_TO(EJSON_NAME_SINGLE_QUOTED_STATE);
+    }
+END_STATE()
 
-        BEGIN_STATE(EJSON_VALUE_DOUBLE_QUOTED_STATE)
-            if (ejson->wc == '"') {
-                if (pcejson_tmp_buff_is_empty(ejson->tmp_buff)) {
-                    pcejson_tmp_buff_append (ejson->tmp_buff,
-                            (uint8_t*)ejson->c, ejson->c_len);
-                    ADVANCE_TO(EJSON_VALUE_DOUBLE_QUOTED_STATE);
-                }
-                else if (pcejson_tmp_buff_equal(ejson->tmp_buff, "\"")) {
-                    RECONSUME_IN(EJSON_VALUE_TWO_DOUBLE_QUOTED_STATE);
-                }
-                else {
-                    RECONSUME_IN(EJSON_AFTER_VALUE_DOUBLE_QUOTED_STATE);
-                }
-            }
-            else if (ejson->wc == '\\') {
-                ejson->return_state = ejson->state;
-                ADVANCE_TO(EJSON_STRING_ESCAPE_STATE);
-            }
-            else if (ejson->wc == EJSON_END_OF_FILE) {
-                EJSON_SET_ERROR(PCEJSON_ERROR_UNEXPECTED_EOF);
-                return pcejson_token_new (EJSON_TOKEN_EOF, NULL, 0);
-            }
-            else {
-                pcejson_tmp_buff_append (ejson->tmp_buff,
-                        (uint8_t*)ejson->c, ejson->c_len);
-                ADVANCE_TO(EJSON_VALUE_DOUBLE_QUOTED_STATE);
-            }
-        END_STATE()
+BEGIN_STATE(EJSON_NAME_DOUBLE_QUOTED_STATE)
+    if (ejson->wc == '"') {
+        size_t tmp_buf_len = pcejson_tmp_buff_length (ejson->tmp_buff);
+        if (tmp_buf_len > 1) {
+            pcejson_tmp_buff_remove_first_last (ejson->tmp_buff, 1, 0);
+            ADVANCE_TO(EJSON_AFTER_NAME_STATE);
+        }
+        else if (tmp_buf_len == 1) {
+            pcejson_tmp_buff_reset (ejson->tmp_buff);
+            SWITCH_TO(EJSON_AFTER_NAME_STATE);
+            return pcejson_token_new (EJSON_TOKEN_KEY, NULL, 0);
+        }
+        else {
+            pcejson_tmp_buff_append (ejson->tmp_buff,
+                    (uint8_t*)ejson->c, ejson->c_len);
+            ADVANCE_TO(EJSON_NAME_DOUBLE_QUOTED_STATE);
+        }
+    }
+    else if (ejson->wc == '\\') {
+        ejson->return_state = ejson->state;
+        ADVANCE_TO(EJSON_STRING_ESCAPE_STATE);
+    }
+    else if (ejson->wc == EJSON_END_OF_FILE) {
+        EJSON_SET_ERROR(PCEJSON_ERROR_UNEXPECTED_EOF);
+        return pcejson_token_new (EJSON_TOKEN_EOF, NULL, 0);
+    }
+    else {
+        pcejson_tmp_buff_append (ejson->tmp_buff, (uint8_t*)ejson->c,
+                ejson->c_len);
+        ADVANCE_TO(EJSON_NAME_DOUBLE_QUOTED_STATE);
+    }
+END_STATE()
 
-        BEGIN_STATE(EJSON_AFTER_VALUE_DOUBLE_QUOTED_STATE)
-            if (ejson->wc == '\"') {
-                pcejson_tmp_buff_remove_first_last (ejson->tmp_buff, 1, 0);
-                RECONSUME_IN(EJSON_AFTER_VALUE_STATE);
-            }
-            else {
-                EJSON_SET_ERROR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
-                return NULL;
-            }
-        END_STATE()
+BEGIN_STATE(EJSON_VALUE_SINGLE_QUOTED_STATE)
+    if (ejson->wc == '\'') {
+        size_t tmp_buf_len = pcejson_tmp_buff_length (ejson->tmp_buff);
+        if (tmp_buf_len >= 1) {
+            RECONSUME_IN(EJSON_AFTER_VALUE_STATE);
+        }
+        else {
+            ADVANCE_TO(EJSON_VALUE_SINGLE_QUOTED_STATE);
+        }
+    }
+    else if (ejson->wc == '\\') {
+        ejson->return_state = ejson->state;
+        ADVANCE_TO(EJSON_STRING_ESCAPE_STATE);
+    }
+    else if (ejson->wc == EJSON_END_OF_FILE) {
+        EJSON_SET_ERROR(PCEJSON_ERROR_UNEXPECTED_EOF);
+        return pcejson_token_new (EJSON_TOKEN_EOF, NULL, 0);
+    }
+    else {
+        pcejson_tmp_buff_append (ejson->tmp_buff, (uint8_t*)ejson->c,
+                ejson->c_len);
+        ADVANCE_TO(EJSON_VALUE_SINGLE_QUOTED_STATE);
+    }
+END_STATE()
 
-        BEGIN_STATE(EJSON_VALUE_TWO_DOUBLE_QUOTED_STATE)
-            if (ejson->wc == '"') {
-                if (pcejson_tmp_buff_equal(ejson->tmp_buff, "\"")) {
-                    pcejson_tmp_buff_append (ejson->tmp_buff,
-                            (uint8_t*)ejson->c, ejson->c_len);
-                    ADVANCE_TO(EJSON_VALUE_TWO_DOUBLE_QUOTED_STATE);
-                }
-                else if (pcejson_tmp_buff_equal(ejson->tmp_buff, "\"\"")) {
-                    RECONSUME_IN(EJSON_VALUE_THREE_DOUBLE_QUOTED_STATE);
-                }
-            }
-            else {
-                pcejson_tmp_buff_remove_first_last (ejson->tmp_buff, 1, 1);
-                RECONSUME_IN_NEXT(EJSON_AFTER_VALUE_STATE);
-                return pcejson_token_new_from_tmp_buf (EJSON_TOKEN_STRING,
+BEGIN_STATE(EJSON_VALUE_DOUBLE_QUOTED_STATE)
+    if (ejson->wc == '"') {
+        if (pcejson_tmp_buff_is_empty(ejson->tmp_buff)) {
+            pcejson_tmp_buff_append (ejson->tmp_buff,
+                    (uint8_t*)ejson->c, ejson->c_len);
+            ADVANCE_TO(EJSON_VALUE_DOUBLE_QUOTED_STATE);
+        }
+        else if (pcejson_tmp_buff_equal(ejson->tmp_buff, "\"")) {
+            RECONSUME_IN(EJSON_VALUE_TWO_DOUBLE_QUOTED_STATE);
+        }
+        else {
+            RECONSUME_IN(EJSON_AFTER_VALUE_DOUBLE_QUOTED_STATE);
+        }
+    }
+    else if (ejson->wc == '\\') {
+        ejson->return_state = ejson->state;
+        ADVANCE_TO(EJSON_STRING_ESCAPE_STATE);
+    }
+    else if (ejson->wc == EJSON_END_OF_FILE) {
+        EJSON_SET_ERROR(PCEJSON_ERROR_UNEXPECTED_EOF);
+        return pcejson_token_new (EJSON_TOKEN_EOF, NULL, 0);
+    }
+    else {
+        pcejson_tmp_buff_append (ejson->tmp_buff,
+                (uint8_t*)ejson->c, ejson->c_len);
+        ADVANCE_TO(EJSON_VALUE_DOUBLE_QUOTED_STATE);
+    }
+END_STATE()
+
+BEGIN_STATE(EJSON_AFTER_VALUE_DOUBLE_QUOTED_STATE)
+    if (ejson->wc == '\"') {
+        pcejson_tmp_buff_remove_first_last (ejson->tmp_buff, 1, 0);
+        RECONSUME_IN(EJSON_AFTER_VALUE_STATE);
+    }
+    else {
+        EJSON_SET_ERROR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
+        return NULL;
+    }
+END_STATE()
+
+BEGIN_STATE(EJSON_VALUE_TWO_DOUBLE_QUOTED_STATE)
+    if (ejson->wc == '"') {
+        if (pcejson_tmp_buff_equal(ejson->tmp_buff, "\"")) {
+            pcejson_tmp_buff_append (ejson->tmp_buff,
+                    (uint8_t*)ejson->c, ejson->c_len);
+            ADVANCE_TO(EJSON_VALUE_TWO_DOUBLE_QUOTED_STATE);
+        }
+        else if (pcejson_tmp_buff_equal(ejson->tmp_buff, "\"\"")) {
+            RECONSUME_IN(EJSON_VALUE_THREE_DOUBLE_QUOTED_STATE);
+        }
+    }
+    else {
+        pcejson_tmp_buff_remove_first_last (ejson->tmp_buff, 1, 1);
+        RECONSUME_IN_NEXT(EJSON_AFTER_VALUE_STATE);
+        return pcejson_token_new_from_tmp_buf (EJSON_TOKEN_STRING,
+                ejson->tmp_buff);
+    }
+END_STATE()
+
+BEGIN_STATE(EJSON_VALUE_THREE_DOUBLE_QUOTED_STATE)
+    if (ejson->wc == '\"') {
+        pcejson_tmp_buff_append (ejson->tmp_buff,
+                (uint8_t*)ejson->c, ejson->c_len);
+        size_t buf_len = pcejson_tmp_buff_length (ejson->tmp_buff);
+        if (buf_len >= 6
+                && pcejson_tmp_buff_end_with (ejson->tmp_buff,
+                    "\"\"\"")) {
+            pcejson_tmp_buff_remove_first_last (ejson->tmp_buff, 3, 3);
+            SWITCH_TO(EJSON_AFTER_VALUE_STATE);
+            return pcejson_token_new_from_tmp_buf (EJSON_TOKEN_TEXT,
                         ejson->tmp_buff);
-            }
-        END_STATE()
+        }
+        else {
+            ADVANCE_TO(EJSON_VALUE_THREE_DOUBLE_QUOTED_STATE);
+        }
+    }
+    else if (ejson->wc == EJSON_END_OF_FILE) {
+        EJSON_SET_ERROR(PCEJSON_ERROR_UNEXPECTED_EOF);
+        return pcejson_token_new_from_tmp_buf (EJSON_TOKEN_EOF,
+                        ejson->tmp_buff);
+    }
+    else {
+        pcejson_tmp_buff_append (ejson->tmp_buff,
+                (uint8_t*)ejson->c, ejson->c_len);
+        ADVANCE_TO(EJSON_VALUE_THREE_DOUBLE_QUOTED_STATE);
+    }
+END_STATE()
 
-        BEGIN_STATE(EJSON_VALUE_THREE_DOUBLE_QUOTED_STATE)
-            if (ejson->wc == '\"') {
+BEGIN_STATE(EJSON_KEYWORD_STATE)
+    if (is_delimiter(ejson->wc)) {
+        RECONSUME_IN(EJSON_AFTER_KEYWORD_STATE);
+    }
+    switch (ejson->wc)
+    {
+        case 't':
+        case 'f':
+        case 'n':
+            if (pcejson_tmp_buff_is_empty(ejson->tmp_buff)) {
                 pcejson_tmp_buff_append (ejson->tmp_buff,
                         (uint8_t*)ejson->c, ejson->c_len);
-                size_t buf_len = pcejson_tmp_buff_length (ejson->tmp_buff);
-                if (buf_len >= 6
-                        && pcejson_tmp_buff_end_with (ejson->tmp_buff,
-                            "\"\"\"")) {
-                    pcejson_tmp_buff_remove_first_last (ejson->tmp_buff, 3, 3);
-                    SWITCH_TO(EJSON_AFTER_VALUE_STATE);
-                    return pcejson_token_new_from_tmp_buf (EJSON_TOKEN_TEXT,
-                                ejson->tmp_buff);
-                }
-                else {
-                    ADVANCE_TO(EJSON_VALUE_THREE_DOUBLE_QUOTED_STATE);
-                }
-            }
-            else if (ejson->wc == EJSON_END_OF_FILE) {
-                EJSON_SET_ERROR(PCEJSON_ERROR_UNEXPECTED_EOF);
-                return pcejson_token_new_from_tmp_buf (EJSON_TOKEN_EOF,
-                                ejson->tmp_buff);
+                ADVANCE_TO(EJSON_KEYWORD_STATE);
             }
             else {
+                EJSON_SET_ERROR(
+                        PCEJSON_ERROR_UNEXPECTED_JSON_KEYWORD);
+                return NULL;
+            }
+            break;
+
+        case 'r':
+            if (pcejson_tmp_buff_equal(ejson->tmp_buff, "t")) {
                 pcejson_tmp_buff_append (ejson->tmp_buff,
                         (uint8_t*)ejson->c, ejson->c_len);
-                ADVANCE_TO(EJSON_VALUE_THREE_DOUBLE_QUOTED_STATE);
+                ADVANCE_TO(EJSON_KEYWORD_STATE);
             }
-        END_STATE()
-
-        BEGIN_STATE(EJSON_KEYWORD_STATE)
-            if (is_delimiter(ejson->wc)) {
-                RECONSUME_IN(EJSON_AFTER_KEYWORD_STATE);
-            }
-            switch (ejson->wc)
-            {
-                case 't':
-                case 'f':
-                case 'n':
-                    if (pcejson_tmp_buff_is_empty(ejson->tmp_buff)) {
-                        pcejson_tmp_buff_append (ejson->tmp_buff,
-                                (uint8_t*)ejson->c, ejson->c_len);
-                        ADVANCE_TO(EJSON_KEYWORD_STATE);
-                    }
-                    else {
-                        EJSON_SET_ERROR(
-                                PCEJSON_ERROR_UNEXPECTED_JSON_KEYWORD);
-                        return NULL;
-                    }
-                    break;
-
-                case 'r':
-                    if (pcejson_tmp_buff_equal(ejson->tmp_buff, "t")) {
-                        pcejson_tmp_buff_append (ejson->tmp_buff,
-                                (uint8_t*)ejson->c, ejson->c_len);
-                        ADVANCE_TO(EJSON_KEYWORD_STATE);
-                    }
-                    else {
-                        EJSON_SET_ERROR(
-                                PCEJSON_ERROR_UNEXPECTED_JSON_KEYWORD);
-                        return NULL;
-                    }
-                    break;
-
-                case 'u':
-                    if (pcejson_tmp_buff_equal(ejson->tmp_buff, "tr")
-                        || pcejson_tmp_buff_equal (ejson->tmp_buff, "n")) {
-                        pcejson_tmp_buff_append (ejson->tmp_buff,
-                                (uint8_t*)ejson->c, ejson->c_len);
-                        ADVANCE_TO(EJSON_KEYWORD_STATE);
-                    }
-                    else {
-                        EJSON_SET_ERROR(
-                                PCEJSON_ERROR_UNEXPECTED_JSON_KEYWORD);
-                        return NULL;
-                    }
-                    break;
-
-                case 'e':
-                    if (pcejson_tmp_buff_equal(ejson->tmp_buff, "tru")
-                        || pcejson_tmp_buff_equal (ejson->tmp_buff, "fals")) {
-                        pcejson_tmp_buff_append (ejson->tmp_buff,
-                                (uint8_t*)ejson->c, ejson->c_len);
-                        ADVANCE_TO(EJSON_KEYWORD_STATE);
-                    }
-                    else {
-                        EJSON_SET_ERROR(
-                                PCEJSON_ERROR_UNEXPECTED_JSON_KEYWORD);
-                        return NULL;
-                    }
-                    break;
-
-                case 'a':
-                    if (pcejson_tmp_buff_equal(ejson->tmp_buff, "f")) {
-                        pcejson_tmp_buff_append (ejson->tmp_buff,
-                                (uint8_t*)ejson->c, ejson->c_len);
-                        ADVANCE_TO(EJSON_KEYWORD_STATE);
-                    }
-                    else {
-                        EJSON_SET_ERROR(
-                                PCEJSON_ERROR_UNEXPECTED_JSON_KEYWORD);
-                        return NULL;
-                    }
-                    break;
-
-                case 'l':
-                    if (pcejson_tmp_buff_equal(ejson->tmp_buff, "nu")
-                        || pcejson_tmp_buff_equal (ejson->tmp_buff, "nul")
-                        || pcejson_tmp_buff_equal (ejson->tmp_buff, "fa")) {
-                        pcejson_tmp_buff_append (ejson->tmp_buff,
-                                (uint8_t*)ejson->c, ejson->c_len);
-                        ADVANCE_TO(EJSON_KEYWORD_STATE);
-                    }
-                    else {
-                        EJSON_SET_ERROR(
-                                PCEJSON_ERROR_UNEXPECTED_JSON_KEYWORD);
-                        return NULL;
-                    }
-                    break;
-
-                case 's':
-                    if (pcejson_tmp_buff_equal(ejson->tmp_buff, "fal")) {
-                        pcejson_tmp_buff_append (ejson->tmp_buff,
-                                (uint8_t*)ejson->c, ejson->c_len);
-                        ADVANCE_TO(EJSON_KEYWORD_STATE);
-                    }
-                    else {
-                        EJSON_SET_ERROR(
-                                PCEJSON_ERROR_UNEXPECTED_JSON_KEYWORD);
-                        return NULL;
-                    }
-                    break;
-
-                default:
-                    EJSON_SET_ERROR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
-                    return NULL;
-            }
-        END_STATE()
-
-        BEGIN_STATE(EJSON_AFTER_KEYWORD_STATE)
-            if (is_delimiter(ejson->wc)) {
-                if (pcejson_tmp_buff_equal(ejson->tmp_buff, "true")
-                        || pcejson_tmp_buff_equal (ejson->tmp_buff, "false")) {
-                    RECONSUME_IN_NEXT(EJSON_AFTER_VALUE_STATE);
-                    return pcejson_token_new_from_tmp_buf (EJSON_TOKEN_BOOLEAN,
-                                ejson->tmp_buff);
-                }
-                else if (pcejson_tmp_buff_equal(ejson->tmp_buff, "null")) {
-                    RECONSUME_IN_NEXT(EJSON_AFTER_VALUE_STATE);
-                    return pcejson_token_new (EJSON_TOKEN_NULL, NULL, 0);
-                }
-            }
-            EJSON_SET_ERROR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
-            return NULL;
-        END_STATE()
-
-        BEGIN_STATE(EJSON_BYTE_SEQUENCE_STATE)
-            if (ejson->wc == 'b') {
-                if (pcejson_tmp_buff_is_empty(ejson->tmp_buff)) {
-                    pcejson_tmp_buff_append (ejson->tmp_buff,
-                            (uint8_t*)ejson->c, ejson->c_len);
-                    ADVANCE_TO(EJSON_BYTE_SEQUENCE_STATE);
-                }
-                pcejson_tmp_buff_append (ejson->tmp_buff, (uint8_t*)ejson->c,
-                        ejson->c_len);
-                ADVANCE_TO(EJSON_BINARY_BYTE_SEQUENCE_STATE);
-            }
-            else if (ejson->wc == 'x') {
-                pcejson_tmp_buff_append (ejson->tmp_buff, (uint8_t*)ejson->c,
-                        ejson->c_len);
-                ADVANCE_TO(EJSON_HEX_BYTE_SEQUENCE_STATE);
-            }
-            else if (ejson->wc == '6') {
-                pcejson_tmp_buff_append (ejson->tmp_buff, (uint8_t*)ejson->c,
-                        ejson->c_len);
-                ADVANCE_TO(EJSON_BASE64_BYTE_SEQUENCE_STATE);
-            }
-            EJSON_SET_ERROR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
-            return NULL;
-        END_STATE()
-
-        BEGIN_STATE(EJSON_AFTER_BYTE_SEQUENCE_STATE)
-            if (is_delimiter(ejson->wc)) {
-                RECONSUME_IN_NEXT(EJSON_AFTER_VALUE_STATE);
-                return pcejson_token_new_from_tmp_buf (EJSON_TOKEN_BYTE_SQUENCE,
-                                ejson->tmp_buff);
-            }
-            EJSON_SET_ERROR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
-            return NULL;
-        END_STATE()
-
-        BEGIN_STATE(EJSON_HEX_BYTE_SEQUENCE_STATE)
-            if (is_delimiter(ejson->wc)) {
-                RECONSUME_IN(EJSON_AFTER_BYTE_SEQUENCE_STATE);
-            }
-            else if (is_ascii_digit(ejson->wc)
-                    || is_ascii_hex_digit(ejson->wc)) {
-                pcejson_tmp_buff_append (ejson->tmp_buff, (uint8_t*)ejson->c,
-                        ejson->c_len);
-                ADVANCE_TO(EJSON_HEX_BYTE_SEQUENCE_STATE);
-            }
-            EJSON_SET_ERROR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
-            return NULL;
-        END_STATE()
-
-        BEGIN_STATE(EJSON_BINARY_BYTE_SEQUENCE_STATE)
-            if (is_delimiter(ejson->wc)) {
-                RECONSUME_IN(EJSON_AFTER_BYTE_SEQUENCE_STATE);
-            }
-            else if (is_ascii_binary_digit(ejson->wc)) {
-                pcejson_tmp_buff_append (ejson->tmp_buff, (uint8_t*)ejson->c,
-                        ejson->c_len);
-                ADVANCE_TO(EJSON_BINARY_BYTE_SEQUENCE_STATE);
-            }
-            else if (ejson->wc == '.') {
-                ADVANCE_TO(EJSON_BINARY_BYTE_SEQUENCE_STATE);
-            }
-            EJSON_SET_ERROR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
-            return NULL;
-        END_STATE()
-
-        BEGIN_STATE(EJSON_BASE64_BYTE_SEQUENCE_STATE)
-            if (is_delimiter(ejson->wc)) {
-                RECONSUME_IN(EJSON_AFTER_BYTE_SEQUENCE_STATE);
-            }
-            else if (ejson->wc == '=') {
-                pcejson_tmp_buff_append (ejson->tmp_buff, (uint8_t*)ejson->c,
-                        ejson->c_len);
-                ADVANCE_TO(EJSON_BASE64_BYTE_SEQUENCE_STATE);
-            }
-            else if (is_ascii_digit(ejson->wc) || is_ascii_alpha(ejson->wc)
-                    || ejson->wc == '+' || ejson->wc == '-') {
-                if (!pcejson_tmp_buff_end_with(ejson->tmp_buff, "=")) {
-                    pcejson_tmp_buff_append (ejson->tmp_buff,
-                            (uint8_t*)ejson->c, ejson->c_len);
-                    ADVANCE_TO(EJSON_BASE64_BYTE_SEQUENCE_STATE);
-                }
-                else {
-                    EJSON_SET_ERROR(PCEJSON_ERROR_UNEXPECTED_BASE64);
-                    return NULL;
-                }
-            }
-            EJSON_SET_ERROR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
-            return NULL;
-        END_STATE()
-
-        BEGIN_STATE(EJSON_VALUE_NUMBER_STATE)
-            if (is_delimiter(ejson->wc)) {
-                RECONSUME_IN(EJSON_AFTER_VALUE_NUMBER_STATE);
-            }
-            else if (is_ascii_digit(ejson->wc)) {
-                RECONSUME_IN(EJSON_VALUE_NUMBER_INTEGER_STATE);
-            }
-            else if (ejson->wc == '-') {
-                pcejson_tmp_buff_append(ejson->tmp_buff, (uint8_t*)ejson->c,
-                        ejson->c_len);
-                ADVANCE_TO(EJSON_VALUE_NUMBER_INTEGER_STATE);
-            }
-            EJSON_SET_ERROR(PCEJSON_ERROR_BAD_JSON_NUMBER);
-            return NULL;
-        END_STATE()
-
-        BEGIN_STATE(EJSON_AFTER_VALUE_NUMBER_STATE)
-            if (is_delimiter(ejson->wc)) {
-                if (pcejson_tmp_buff_end_with(ejson->tmp_buff, "-")
-                        || pcejson_tmp_buff_end_with (ejson->tmp_buff, "E")
-                        || pcejson_tmp_buff_end_with (ejson->tmp_buff, "e")) {
-                    EJSON_SET_ERROR(PCEJSON_ERROR_BAD_JSON_NUMBER);
-                    return NULL;
-                }
-                else {
-                    RECONSUME_IN_NEXT(EJSON_AFTER_VALUE_STATE);
-                    return pcejson_token_new_from_tmp_buf (EJSON_TOKEN_NUMBER,
-                                ejson->tmp_buff);
-                }
-            }
-        END_STATE()
-
-        BEGIN_STATE(EJSON_VALUE_NUMBER_INTEGER_STATE)
-            if (is_delimiter(ejson->wc)) {
-                RECONSUME_IN(EJSON_AFTER_VALUE_NUMBER_STATE);
-            }
-            else if (is_ascii_digit(ejson->wc)) {
-                pcejson_tmp_buff_append(ejson->tmp_buff,  (uint8_t*)ejson->c,
-                        ejson->c_len);
-                ADVANCE_TO(EJSON_VALUE_NUMBER_INTEGER_STATE);
-            }
-            else if (ejson->wc == 'E' || ejson->wc == 'e') {
-                pcejson_tmp_buff_append(ejson->tmp_buff,  (uint8_t*)"e", 1);
-                ADVANCE_TO(EJSON_VALUE_NUMBER_EXPONENT_STATE);
-            }
-            else if (ejson->wc == '.' || ejson->wc == 'F') {
-                pcejson_tmp_buff_append(ejson->tmp_buff, (uint8_t*)ejson->c,
-                        ejson->c_len);
-                ADVANCE_TO(EJSON_VALUE_NUMBER_FRACTION_STATE);
-            }
-            else if (ejson->wc == 'U' || ejson->wc == 'L') {
-                RECONSUME_IN(EJSON_VALUE_NUMBER_SUFFIX_INTEGER_STATE);
-            }
-            else if (ejson->wc == 'I' && (
-                        pcejson_tmp_buff_is_empty(ejson->tmp_buff) ||
-                        pcejson_tmp_buff_equal(ejson->tmp_buff, "-"))) {
-                RECONSUME_IN(EJSON_VALUE_NUMBER_INFINITY_STATE);
-            }
-            EJSON_SET_ERROR(
-                    PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER_INTEGER);
-            return NULL;
-        END_STATE()
-
-        BEGIN_STATE(EJSON_VALUE_NUMBER_FRACTION_STATE)
-            if (is_delimiter(ejson->wc)) {
-                RECONSUME_IN(EJSON_AFTER_VALUE_NUMBER_STATE);
-            }
-            else if (is_ascii_digit(ejson->wc)) {
-                if (pcejson_tmp_buff_end_with(ejson->tmp_buff, "F")) {
-                    EJSON_SET_ERROR(PCEJSON_ERROR_BAD_JSON_NUMBER);
-                    return NULL;
-                }
-                else {
-                    pcejson_tmp_buff_append(ejson->tmp_buff,
-                            (uint8_t*)ejson->c, ejson->c_len);
-                    ADVANCE_TO(EJSON_VALUE_NUMBER_FRACTION_STATE);
-                }
-            }
-            else if (ejson->wc == 'F') {
-                pcejson_tmp_buff_append(ejson->tmp_buff, (uint8_t*)ejson->c,
-                        ejson->c_len);
-                ADVANCE_TO(EJSON_VALUE_NUMBER_FRACTION_STATE);
-            }
-            else if (ejson->wc == 'L') {
-                if (pcejson_tmp_buff_end_with(ejson->tmp_buff, "F")) {
-                    pcejson_tmp_buff_append(ejson->tmp_buff,
-                            (uint8_t*)ejson->c, ejson->c_len);
-                    SWITCH_TO(EJSON_AFTER_VALUE_STATE);
-                    return pcejson_token_new_from_tmp_buf (
-                            EJSON_TOKEN_LONG_DOUBLE, ejson->tmp_buff);
-                }
-            }
-            else if (ejson->wc == 'E' || ejson->wc == 'e') {
-                if (pcejson_tmp_buff_end_with(ejson->tmp_buff, ".")) {
-                    EJSON_SET_ERROR(
-                        PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER_FRACTION);
-                    return NULL;
-                }
-                else {
-                    pcejson_tmp_buff_append(ejson->tmp_buff,  (uint8_t*)"e", 1);
-                    ADVANCE_TO(EJSON_VALUE_NUMBER_EXPONENT_STATE);
-                }
-            }
-            EJSON_SET_ERROR(
-                    PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER_FRACTION);
-            return NULL;
-        END_STATE()
-
-        BEGIN_STATE(EJSON_VALUE_NUMBER_EXPONENT_STATE)
-            if (is_delimiter(ejson->wc)) {
-                RECONSUME_IN(EJSON_AFTER_VALUE_NUMBER_STATE);
-            }
-            else if (is_ascii_digit(ejson->wc)) {
-                RECONSUME_IN(EJSON_VALUE_NUMBER_EXPONENT_INTEGER_STATE);
-            }
-            else if (ejson->wc == '+' || ejson->wc == '-') {
-                pcejson_tmp_buff_append(ejson->tmp_buff, (uint8_t*)ejson->c,
-                        ejson->c_len);
-                ADVANCE_TO(EJSON_VALUE_NUMBER_EXPONENT_INTEGER_STATE);
-            }
-            EJSON_SET_ERROR(
-                    PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER_EXPONENT);
-            return NULL;
-        END_STATE()
-
-        BEGIN_STATE(EJSON_VALUE_NUMBER_EXPONENT_INTEGER_STATE)
-            if (is_delimiter(ejson->wc)) {
-                RECONSUME_IN(EJSON_AFTER_VALUE_NUMBER_STATE);
-            }
-            else if (is_ascii_digit(ejson->wc)) {
-                if (pcejson_tmp_buff_end_with(ejson->tmp_buff, "F")) {
-                    EJSON_SET_ERROR(PCEJSON_ERROR_BAD_JSON_NUMBER);
-                    return NULL;
-                }
-                else {
-                    pcejson_tmp_buff_append(ejson->tmp_buff, (uint8_t*)ejson->c,
-                            ejson->c_len);
-                    ADVANCE_TO(EJSON_VALUE_NUMBER_EXPONENT_INTEGER_STATE);
-                }
-            }
-            else if (ejson->wc == 'F') {
-                pcejson_tmp_buff_append(ejson->tmp_buff, (uint8_t*)ejson->c,
-                        ejson->c_len);
-                ADVANCE_TO(EJSON_VALUE_NUMBER_EXPONENT_INTEGER_STATE);
-            }
-            else if (ejson->wc == 'L') {
-                if (pcejson_tmp_buff_end_with(ejson->tmp_buff, "F")) {
-                    pcejson_tmp_buff_append(ejson->tmp_buff, (uint8_t*)ejson->c,
-                            ejson->c_len);
-                    SWITCH_TO(EJSON_AFTER_VALUE_NUMBER_STATE);
-                    return pcejson_token_new_from_tmp_buf (
-                            EJSON_TOKEN_LONG_DOUBLE, ejson->tmp_buff);
-                }
-            }
-            EJSON_SET_ERROR(
-                    PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER_EXPONENT);
-            return NULL;
-        END_STATE()
-
-        BEGIN_STATE(EJSON_VALUE_NUMBER_SUFFIX_INTEGER_STATE)
-            char last_c = pcejson_tmp_buff_last_char (ejson->tmp_buff);
-            if (is_delimiter(ejson->wc)) {
-                RECONSUME_IN(EJSON_AFTER_VALUE_NUMBER_STATE);
-            }
-            else if (ejson->wc == 'U') {
-                if (is_ascii_digit(last_c)) {
-                    pcejson_tmp_buff_append(ejson->tmp_buff,
-                            (uint8_t*)ejson->c, ejson->c_len);
-                    ADVANCE_TO(EJSON_VALUE_NUMBER_SUFFIX_INTEGER_STATE);
-                }
-            }
-            else if (ejson->wc == 'L') {
-                if (is_ascii_digit(last_c) || last_c == 'U') {
-                    pcejson_tmp_buff_append(ejson->tmp_buff, (uint8_t*)ejson->c,
-                            ejson->c_len);
-                    if (pcejson_tmp_buff_end_with(ejson->tmp_buff, "UL")) {
-                        SWITCH_TO(EJSON_AFTER_VALUE_STATE);
-                        return pcejson_token_new_from_tmp_buf (
-                                EJSON_TOKEN_ULONG_INT,
-                                ejson->tmp_buff);
-                    }
-                    else if (pcejson_tmp_buff_end_with(ejson->tmp_buff, "L")) {
-                        SWITCH_TO(EJSON_AFTER_VALUE_STATE);
-                        return pcejson_token_new_from_tmp_buf (
-                                EJSON_TOKEN_LONG_INT, ejson->tmp_buff);
-                    }
-                }
-            }
-            EJSON_SET_ERROR(
-                    PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER_INTEGER);
-            return NULL;
-        END_STATE()
-
-        BEGIN_STATE(EJSON_STRING_ESCAPE_STATE)
-            switch (ejson->wc)
-            {
-                case 'b':
-                case 'f':
-                case 'n':
-                case 'r':
-                case 't':
-                    pcejson_tmp_buff_append(ejson->tmp_buff, (uint8_t*)"\\", 1);
-                    pcejson_tmp_buff_append(ejson->tmp_buff, (uint8_t*)ejson->c,
-                            ejson->c_len);
-                    ADVANCE_TO(ejson->return_state);
-                    break;
-                case '/':
-                case '\\':
-                case '"':
-                    pcejson_tmp_buff_append(ejson->tmp_buff, (uint8_t*)ejson->c,
-                            ejson->c_len);
-                    ADVANCE_TO(ejson->return_state);
-                    break;
-                case 'u':
-                    pcejson_tmp_buff_reset (ejson->tmp_buff2);
-                    ADVANCE_TO(
-                            EJSON_STRING_ESCAPE_FOUR_HEXADECIMAL_DIGITS_STATE);
-                    break;
-                default:
-                    EJSON_SET_ERROR(
-                         PCEJSON_ERROR_BAD_JSON_STRING_ESCAPE_ENTITY);
-                    return NULL;
-            }
-        END_STATE()
-
-        BEGIN_STATE(EJSON_STRING_ESCAPE_FOUR_HEXADECIMAL_DIGITS_STATE)
-            if (is_ascii_hex_digit(ejson->wc)) {
-                pcejson_tmp_buff_append(ejson->tmp_buff2, (uint8_t*)ejson->c,
-                        ejson->c_len);
-                size_t buf2_len = pcejson_tmp_buff_length (ejson->tmp_buff2);
-                if (buf2_len == 4) {
-                    pcejson_tmp_buff_append(ejson->tmp_buff, (uint8_t*)"\\u", 2);
-                    purc_rwstream_seek(ejson->tmp_buff2, 0, SEEK_SET);
-                    purc_rwstream_dump_to_another(ejson->tmp_buff2,
-                            ejson->tmp_buff, 4);
-                    ADVANCE_TO(ejson->return_state);
-                }
-                ADVANCE_TO(EJSON_STRING_ESCAPE_FOUR_HEXADECIMAL_DIGITS_STATE);
-            }
-            EJSON_SET_ERROR(
-                    PCEJSON_ERROR_BAD_JSON_STRING_ESCAPE_ENTITY);
-            return NULL;
-        END_STATE()
-
-        BEGIN_STATE(EJSON_VALUE_NUMBER_INFINITY_STATE)
-            if (is_delimiter(ejson->wc)) {
-                if (pcejson_tmp_buff_equal(ejson->tmp_buff, "-Infinity")
-                    || pcejson_tmp_buff_equal(ejson->tmp_buff, "Infinity")) {
-                    RECONSUME_IN_NEXT(EJSON_AFTER_VALUE_STATE);
-                    return pcejson_token_new_from_tmp_buf (
-                            EJSON_TOKEN_INFINITY, ejson->tmp_buff);
-                }
-                EJSON_SET_ERROR(PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER);
+            else {
+                EJSON_SET_ERROR(
+                        PCEJSON_ERROR_UNEXPECTED_JSON_KEYWORD);
                 return NULL;
             }
-            switch (ejson->wc)
-            {
-                case 'I':
-                    if (pcejson_tmp_buff_is_empty(ejson->tmp_buff)
-                        || pcejson_tmp_buff_equal(ejson->tmp_buff, "-")) {
-                        pcejson_tmp_buff_append (ejson->tmp_buff,
-                                (uint8_t*)ejson->c, ejson->c_len);
-                        ADVANCE_TO(EJSON_VALUE_NUMBER_INFINITY_STATE);
-                    }
-                    else {
-                        EJSON_SET_ERROR(
-                                PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER);
-                        return NULL;
-                    }
-                    break;
+            break;
 
-                case 'n':
-                    if (pcejson_tmp_buff_equal(ejson->tmp_buff, "I")
-                        || pcejson_tmp_buff_equal (ejson->tmp_buff, "-I")
-                        || pcejson_tmp_buff_equal (ejson->tmp_buff, "Infi")
-                        || pcejson_tmp_buff_equal (ejson->tmp_buff, "-Infi")
-                        ) {
-                        pcejson_tmp_buff_append (ejson->tmp_buff,
-                                (uint8_t*)ejson->c, ejson->c_len);
-                        ADVANCE_TO(EJSON_VALUE_NUMBER_INFINITY_STATE);
-                    }
-                    else {
-                        EJSON_SET_ERROR(
-                                PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER);
-                        return NULL;
-                    }
-                    break;
-
-                case 'f':
-                    if (pcejson_tmp_buff_equal(ejson->tmp_buff, "In")
-                        || pcejson_tmp_buff_equal (ejson->tmp_buff, "-In")
-                            ) {
-                        pcejson_tmp_buff_append (ejson->tmp_buff,
-                                (uint8_t*)ejson->c, ejson->c_len);
-                        ADVANCE_TO(EJSON_VALUE_NUMBER_INFINITY_STATE);
-                    }
-                    else {
-                        EJSON_SET_ERROR(
-                                PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER);
-                        return NULL;
-                    }
-                    break;
-
-                case 'i':
-                    if (pcejson_tmp_buff_equal(ejson->tmp_buff, "Inf")
-                        || pcejson_tmp_buff_equal (ejson->tmp_buff, "-Inf")
-                        || pcejson_tmp_buff_equal (ejson->tmp_buff, "Infin")
-                        || pcejson_tmp_buff_equal (ejson->tmp_buff, "-Infin")) {
-                        pcejson_tmp_buff_append (ejson->tmp_buff,
-                                (uint8_t*)ejson->c, ejson->c_len);
-                        ADVANCE_TO(EJSON_VALUE_NUMBER_INFINITY_STATE);
-                    }
-                    else {
-                        EJSON_SET_ERROR(
-                                PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER);
-                        return NULL;
-                    }
-                    break;
-
-                case 't':
-                    if (pcejson_tmp_buff_equal(ejson->tmp_buff, "Infini")
-                        || pcejson_tmp_buff_equal (ejson->tmp_buff, "-Infini")
-                            ) {
-                        pcejson_tmp_buff_append (ejson->tmp_buff,
-                                (uint8_t*)ejson->c, ejson->c_len);
-                        ADVANCE_TO(EJSON_VALUE_NUMBER_INFINITY_STATE);
-                    }
-                    else {
-                        EJSON_SET_ERROR(
-                                PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER);
-                        return NULL;
-                    }
-                    break;
-
-                case 'y':
-                    if (pcejson_tmp_buff_equal(ejson->tmp_buff, "Infinit")
-                        || pcejson_tmp_buff_equal (ejson->tmp_buff, "-Infinit")
-                            ) {
-                        pcejson_tmp_buff_append (ejson->tmp_buff,
-                                (uint8_t*)ejson->c, ejson->c_len);
-                        ADVANCE_TO(EJSON_VALUE_NUMBER_INFINITY_STATE);
-                    }
-                    else {
-                        EJSON_SET_ERROR(
-                                PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER);
-                        return NULL;
-                    }
-                    break;
-
-                default:
-                    EJSON_SET_ERROR(
-                            PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER);
-                    return NULL;
+        case 'u':
+            if (pcejson_tmp_buff_equal(ejson->tmp_buff, "tr")
+                || pcejson_tmp_buff_equal (ejson->tmp_buff, "n")) {
+                pcejson_tmp_buff_append (ejson->tmp_buff,
+                        (uint8_t*)ejson->c, ejson->c_len);
+                ADVANCE_TO(EJSON_KEYWORD_STATE);
             }
-        END_STATE()
-
-        BEGIN_STATE(EJSON_VALUE_NAN_STATE)
-            if (is_delimiter(ejson->wc)) {
-                if (pcejson_tmp_buff_equal(ejson->tmp_buff, "NaN")) {
-                    RECONSUME_IN_NEXT(EJSON_AFTER_VALUE_STATE);
-                    return pcejson_token_new (EJSON_TOKEN_NAN, NULL, 0);
-                }
-                EJSON_SET_ERROR(PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER);
+            else {
+                EJSON_SET_ERROR(
+                        PCEJSON_ERROR_UNEXPECTED_JSON_KEYWORD);
                 return NULL;
             }
-            switch (ejson->wc)
-            {
-                case 'N':
-                    if (pcejson_tmp_buff_is_empty(ejson->tmp_buff)
-                        || pcejson_tmp_buff_equal(ejson->tmp_buff, "Na")) {
-                        pcejson_tmp_buff_append (ejson->tmp_buff,
-                                (uint8_t*)ejson->c, ejson->c_len);
-                        ADVANCE_TO(EJSON_VALUE_NAN_STATE);
-                    }
-                    else {
-                        EJSON_SET_ERROR(
-                                PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER);
-                        return NULL;
-                    }
-                    break;
+            break;
 
-                case 'a':
-                    if (pcejson_tmp_buff_equal(ejson->tmp_buff, "N")) {
-                        pcejson_tmp_buff_append (ejson->tmp_buff,
-                                (uint8_t*)ejson->c, ejson->c_len);
-                        ADVANCE_TO(EJSON_VALUE_NAN_STATE);
-                    }
-                    else {
-                        EJSON_SET_ERROR(
-                                PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER);
-                        return NULL;
-                    }
-                    break;
-
-                default:
-                    EJSON_SET_ERROR(
-                            PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER);
-                    return NULL;
+        case 'e':
+            if (pcejson_tmp_buff_equal(ejson->tmp_buff, "tru")
+                || pcejson_tmp_buff_equal (ejson->tmp_buff, "fals")) {
+                pcejson_tmp_buff_append (ejson->tmp_buff,
+                        (uint8_t*)ejson->c, ejson->c_len);
+                ADVANCE_TO(EJSON_KEYWORD_STATE);
             }
-        END_STATE()
+            else {
+                EJSON_SET_ERROR(
+                        PCEJSON_ERROR_UNEXPECTED_JSON_KEYWORD);
+                return NULL;
+            }
+            break;
+
+        case 'a':
+            if (pcejson_tmp_buff_equal(ejson->tmp_buff, "f")) {
+                pcejson_tmp_buff_append (ejson->tmp_buff,
+                        (uint8_t*)ejson->c, ejson->c_len);
+                ADVANCE_TO(EJSON_KEYWORD_STATE);
+            }
+            else {
+                EJSON_SET_ERROR(
+                        PCEJSON_ERROR_UNEXPECTED_JSON_KEYWORD);
+                return NULL;
+            }
+            break;
+
+        case 'l':
+            if (pcejson_tmp_buff_equal(ejson->tmp_buff, "nu")
+                || pcejson_tmp_buff_equal (ejson->tmp_buff, "nul")
+                || pcejson_tmp_buff_equal (ejson->tmp_buff, "fa")) {
+                pcejson_tmp_buff_append (ejson->tmp_buff,
+                        (uint8_t*)ejson->c, ejson->c_len);
+                ADVANCE_TO(EJSON_KEYWORD_STATE);
+            }
+            else {
+                EJSON_SET_ERROR(
+                        PCEJSON_ERROR_UNEXPECTED_JSON_KEYWORD);
+                return NULL;
+            }
+            break;
+
+        case 's':
+            if (pcejson_tmp_buff_equal(ejson->tmp_buff, "fal")) {
+                pcejson_tmp_buff_append (ejson->tmp_buff,
+                        (uint8_t*)ejson->c, ejson->c_len);
+                ADVANCE_TO(EJSON_KEYWORD_STATE);
+            }
+            else {
+                EJSON_SET_ERROR(
+                        PCEJSON_ERROR_UNEXPECTED_JSON_KEYWORD);
+                return NULL;
+            }
+            break;
 
         default:
-            break;
+            EJSON_SET_ERROR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
+            return NULL;
     }
+END_STATE()
+
+BEGIN_STATE(EJSON_AFTER_KEYWORD_STATE)
+    if (is_delimiter(ejson->wc)) {
+        if (pcejson_tmp_buff_equal(ejson->tmp_buff, "true")
+                || pcejson_tmp_buff_equal (ejson->tmp_buff, "false")) {
+            RECONSUME_IN_NEXT(EJSON_AFTER_VALUE_STATE);
+            return pcejson_token_new_from_tmp_buf (EJSON_TOKEN_BOOLEAN,
+                        ejson->tmp_buff);
+        }
+        else if (pcejson_tmp_buff_equal(ejson->tmp_buff, "null")) {
+            RECONSUME_IN_NEXT(EJSON_AFTER_VALUE_STATE);
+            return pcejson_token_new (EJSON_TOKEN_NULL, NULL, 0);
+        }
+    }
+    EJSON_SET_ERROR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
     return NULL;
-}
+END_STATE()
+
+BEGIN_STATE(EJSON_BYTE_SEQUENCE_STATE)
+    if (ejson->wc == 'b') {
+        if (pcejson_tmp_buff_is_empty(ejson->tmp_buff)) {
+            pcejson_tmp_buff_append (ejson->tmp_buff,
+                    (uint8_t*)ejson->c, ejson->c_len);
+            ADVANCE_TO(EJSON_BYTE_SEQUENCE_STATE);
+        }
+        pcejson_tmp_buff_append (ejson->tmp_buff, (uint8_t*)ejson->c,
+                ejson->c_len);
+        ADVANCE_TO(EJSON_BINARY_BYTE_SEQUENCE_STATE);
+    }
+    else if (ejson->wc == 'x') {
+        pcejson_tmp_buff_append (ejson->tmp_buff, (uint8_t*)ejson->c,
+                ejson->c_len);
+        ADVANCE_TO(EJSON_HEX_BYTE_SEQUENCE_STATE);
+    }
+    else if (ejson->wc == '6') {
+        pcejson_tmp_buff_append (ejson->tmp_buff, (uint8_t*)ejson->c,
+                ejson->c_len);
+        ADVANCE_TO(EJSON_BASE64_BYTE_SEQUENCE_STATE);
+    }
+    EJSON_SET_ERROR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
+    return NULL;
+END_STATE()
+
+BEGIN_STATE(EJSON_AFTER_BYTE_SEQUENCE_STATE)
+    if (is_delimiter(ejson->wc)) {
+        RECONSUME_IN_NEXT(EJSON_AFTER_VALUE_STATE);
+        return pcejson_token_new_from_tmp_buf (EJSON_TOKEN_BYTE_SQUENCE,
+                        ejson->tmp_buff);
+    }
+    EJSON_SET_ERROR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
+    return NULL;
+END_STATE()
+
+BEGIN_STATE(EJSON_HEX_BYTE_SEQUENCE_STATE)
+    if (is_delimiter(ejson->wc)) {
+        RECONSUME_IN(EJSON_AFTER_BYTE_SEQUENCE_STATE);
+    }
+    else if (is_ascii_digit(ejson->wc)
+            || is_ascii_hex_digit(ejson->wc)) {
+        pcejson_tmp_buff_append (ejson->tmp_buff, (uint8_t*)ejson->c,
+                ejson->c_len);
+        ADVANCE_TO(EJSON_HEX_BYTE_SEQUENCE_STATE);
+    }
+    EJSON_SET_ERROR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
+    return NULL;
+END_STATE()
+
+BEGIN_STATE(EJSON_BINARY_BYTE_SEQUENCE_STATE)
+    if (is_delimiter(ejson->wc)) {
+        RECONSUME_IN(EJSON_AFTER_BYTE_SEQUENCE_STATE);
+    }
+    else if (is_ascii_binary_digit(ejson->wc)) {
+        pcejson_tmp_buff_append (ejson->tmp_buff, (uint8_t*)ejson->c,
+                ejson->c_len);
+        ADVANCE_TO(EJSON_BINARY_BYTE_SEQUENCE_STATE);
+    }
+    else if (ejson->wc == '.') {
+        ADVANCE_TO(EJSON_BINARY_BYTE_SEQUENCE_STATE);
+    }
+    EJSON_SET_ERROR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
+    return NULL;
+END_STATE()
+
+BEGIN_STATE(EJSON_BASE64_BYTE_SEQUENCE_STATE)
+    if (is_delimiter(ejson->wc)) {
+        RECONSUME_IN(EJSON_AFTER_BYTE_SEQUENCE_STATE);
+    }
+    else if (ejson->wc == '=') {
+        pcejson_tmp_buff_append (ejson->tmp_buff, (uint8_t*)ejson->c,
+                ejson->c_len);
+        ADVANCE_TO(EJSON_BASE64_BYTE_SEQUENCE_STATE);
+    }
+    else if (is_ascii_digit(ejson->wc) || is_ascii_alpha(ejson->wc)
+            || ejson->wc == '+' || ejson->wc == '-') {
+        if (!pcejson_tmp_buff_end_with(ejson->tmp_buff, "=")) {
+            pcejson_tmp_buff_append (ejson->tmp_buff,
+                    (uint8_t*)ejson->c, ejson->c_len);
+            ADVANCE_TO(EJSON_BASE64_BYTE_SEQUENCE_STATE);
+        }
+        else {
+            EJSON_SET_ERROR(PCEJSON_ERROR_UNEXPECTED_BASE64);
+            return NULL;
+        }
+    }
+    EJSON_SET_ERROR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
+    return NULL;
+END_STATE()
+
+BEGIN_STATE(EJSON_VALUE_NUMBER_STATE)
+    if (is_delimiter(ejson->wc)) {
+        RECONSUME_IN(EJSON_AFTER_VALUE_NUMBER_STATE);
+    }
+    else if (is_ascii_digit(ejson->wc)) {
+        RECONSUME_IN(EJSON_VALUE_NUMBER_INTEGER_STATE);
+    }
+    else if (ejson->wc == '-') {
+        pcejson_tmp_buff_append(ejson->tmp_buff, (uint8_t*)ejson->c,
+                ejson->c_len);
+        ADVANCE_TO(EJSON_VALUE_NUMBER_INTEGER_STATE);
+    }
+    EJSON_SET_ERROR(PCEJSON_ERROR_BAD_JSON_NUMBER);
+    return NULL;
+END_STATE()
+
+BEGIN_STATE(EJSON_AFTER_VALUE_NUMBER_STATE)
+    if (is_delimiter(ejson->wc)) {
+        if (pcejson_tmp_buff_end_with(ejson->tmp_buff, "-")
+                || pcejson_tmp_buff_end_with (ejson->tmp_buff, "E")
+                || pcejson_tmp_buff_end_with (ejson->tmp_buff, "e")) {
+            EJSON_SET_ERROR(PCEJSON_ERROR_BAD_JSON_NUMBER);
+            return NULL;
+        }
+        else {
+            RECONSUME_IN_NEXT(EJSON_AFTER_VALUE_STATE);
+            return pcejson_token_new_from_tmp_buf (EJSON_TOKEN_NUMBER,
+                        ejson->tmp_buff);
+        }
+    }
+END_STATE()
+
+BEGIN_STATE(EJSON_VALUE_NUMBER_INTEGER_STATE)
+    if (is_delimiter(ejson->wc)) {
+        RECONSUME_IN(EJSON_AFTER_VALUE_NUMBER_STATE);
+    }
+    else if (is_ascii_digit(ejson->wc)) {
+        pcejson_tmp_buff_append(ejson->tmp_buff,  (uint8_t*)ejson->c,
+                ejson->c_len);
+        ADVANCE_TO(EJSON_VALUE_NUMBER_INTEGER_STATE);
+    }
+    else if (ejson->wc == 'E' || ejson->wc == 'e') {
+        pcejson_tmp_buff_append(ejson->tmp_buff,  (uint8_t*)"e", 1);
+        ADVANCE_TO(EJSON_VALUE_NUMBER_EXPONENT_STATE);
+    }
+    else if (ejson->wc == '.' || ejson->wc == 'F') {
+        pcejson_tmp_buff_append(ejson->tmp_buff, (uint8_t*)ejson->c,
+                ejson->c_len);
+        ADVANCE_TO(EJSON_VALUE_NUMBER_FRACTION_STATE);
+    }
+    else if (ejson->wc == 'U' || ejson->wc == 'L') {
+        RECONSUME_IN(EJSON_VALUE_NUMBER_SUFFIX_INTEGER_STATE);
+    }
+    else if (ejson->wc == 'I' && (
+                pcejson_tmp_buff_is_empty(ejson->tmp_buff) ||
+                pcejson_tmp_buff_equal(ejson->tmp_buff, "-"))) {
+        RECONSUME_IN(EJSON_VALUE_NUMBER_INFINITY_STATE);
+    }
+    EJSON_SET_ERROR(
+            PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER_INTEGER);
+    return NULL;
+END_STATE()
+
+BEGIN_STATE(EJSON_VALUE_NUMBER_FRACTION_STATE)
+    if (is_delimiter(ejson->wc)) {
+        RECONSUME_IN(EJSON_AFTER_VALUE_NUMBER_STATE);
+    }
+    else if (is_ascii_digit(ejson->wc)) {
+        if (pcejson_tmp_buff_end_with(ejson->tmp_buff, "F")) {
+            EJSON_SET_ERROR(PCEJSON_ERROR_BAD_JSON_NUMBER);
+            return NULL;
+        }
+        else {
+            pcejson_tmp_buff_append(ejson->tmp_buff,
+                    (uint8_t*)ejson->c, ejson->c_len);
+            ADVANCE_TO(EJSON_VALUE_NUMBER_FRACTION_STATE);
+        }
+    }
+    else if (ejson->wc == 'F') {
+        pcejson_tmp_buff_append(ejson->tmp_buff, (uint8_t*)ejson->c,
+                ejson->c_len);
+        ADVANCE_TO(EJSON_VALUE_NUMBER_FRACTION_STATE);
+    }
+    else if (ejson->wc == 'L') {
+        if (pcejson_tmp_buff_end_with(ejson->tmp_buff, "F")) {
+            pcejson_tmp_buff_append(ejson->tmp_buff,
+                    (uint8_t*)ejson->c, ejson->c_len);
+            SWITCH_TO(EJSON_AFTER_VALUE_STATE);
+            return pcejson_token_new_from_tmp_buf (
+                    EJSON_TOKEN_LONG_DOUBLE, ejson->tmp_buff);
+        }
+    }
+    else if (ejson->wc == 'E' || ejson->wc == 'e') {
+        if (pcejson_tmp_buff_end_with(ejson->tmp_buff, ".")) {
+            EJSON_SET_ERROR(
+                PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER_FRACTION);
+            return NULL;
+        }
+        else {
+            pcejson_tmp_buff_append(ejson->tmp_buff,  (uint8_t*)"e", 1);
+            ADVANCE_TO(EJSON_VALUE_NUMBER_EXPONENT_STATE);
+        }
+    }
+    EJSON_SET_ERROR(
+            PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER_FRACTION);
+    return NULL;
+END_STATE()
+
+BEGIN_STATE(EJSON_VALUE_NUMBER_EXPONENT_STATE)
+    if (is_delimiter(ejson->wc)) {
+        RECONSUME_IN(EJSON_AFTER_VALUE_NUMBER_STATE);
+    }
+    else if (is_ascii_digit(ejson->wc)) {
+        RECONSUME_IN(EJSON_VALUE_NUMBER_EXPONENT_INTEGER_STATE);
+    }
+    else if (ejson->wc == '+' || ejson->wc == '-') {
+        pcejson_tmp_buff_append(ejson->tmp_buff, (uint8_t*)ejson->c,
+                ejson->c_len);
+        ADVANCE_TO(EJSON_VALUE_NUMBER_EXPONENT_INTEGER_STATE);
+    }
+    EJSON_SET_ERROR(
+            PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER_EXPONENT);
+    return NULL;
+END_STATE()
+
+BEGIN_STATE(EJSON_VALUE_NUMBER_EXPONENT_INTEGER_STATE)
+    if (is_delimiter(ejson->wc)) {
+        RECONSUME_IN(EJSON_AFTER_VALUE_NUMBER_STATE);
+    }
+    else if (is_ascii_digit(ejson->wc)) {
+        if (pcejson_tmp_buff_end_with(ejson->tmp_buff, "F")) {
+            EJSON_SET_ERROR(PCEJSON_ERROR_BAD_JSON_NUMBER);
+            return NULL;
+        }
+        else {
+            pcejson_tmp_buff_append(ejson->tmp_buff, (uint8_t*)ejson->c,
+                    ejson->c_len);
+            ADVANCE_TO(EJSON_VALUE_NUMBER_EXPONENT_INTEGER_STATE);
+        }
+    }
+    else if (ejson->wc == 'F') {
+        pcejson_tmp_buff_append(ejson->tmp_buff, (uint8_t*)ejson->c,
+                ejson->c_len);
+        ADVANCE_TO(EJSON_VALUE_NUMBER_EXPONENT_INTEGER_STATE);
+    }
+    else if (ejson->wc == 'L') {
+        if (pcejson_tmp_buff_end_with(ejson->tmp_buff, "F")) {
+            pcejson_tmp_buff_append(ejson->tmp_buff, (uint8_t*)ejson->c,
+                    ejson->c_len);
+            SWITCH_TO(EJSON_AFTER_VALUE_NUMBER_STATE);
+            return pcejson_token_new_from_tmp_buf (
+                    EJSON_TOKEN_LONG_DOUBLE, ejson->tmp_buff);
+        }
+    }
+    EJSON_SET_ERROR(
+            PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER_EXPONENT);
+    return NULL;
+END_STATE()
+
+BEGIN_STATE(EJSON_VALUE_NUMBER_SUFFIX_INTEGER_STATE)
+    char last_c = pcejson_tmp_buff_last_char (ejson->tmp_buff);
+    if (is_delimiter(ejson->wc)) {
+        RECONSUME_IN(EJSON_AFTER_VALUE_NUMBER_STATE);
+    }
+    else if (ejson->wc == 'U') {
+        if (is_ascii_digit(last_c)) {
+            pcejson_tmp_buff_append(ejson->tmp_buff,
+                    (uint8_t*)ejson->c, ejson->c_len);
+            ADVANCE_TO(EJSON_VALUE_NUMBER_SUFFIX_INTEGER_STATE);
+        }
+    }
+    else if (ejson->wc == 'L') {
+        if (is_ascii_digit(last_c) || last_c == 'U') {
+            pcejson_tmp_buff_append(ejson->tmp_buff, (uint8_t*)ejson->c,
+                    ejson->c_len);
+            if (pcejson_tmp_buff_end_with(ejson->tmp_buff, "UL")) {
+                SWITCH_TO(EJSON_AFTER_VALUE_STATE);
+                return pcejson_token_new_from_tmp_buf (
+                        EJSON_TOKEN_ULONG_INT,
+                        ejson->tmp_buff);
+            }
+            else if (pcejson_tmp_buff_end_with(ejson->tmp_buff, "L")) {
+                SWITCH_TO(EJSON_AFTER_VALUE_STATE);
+                return pcejson_token_new_from_tmp_buf (
+                        EJSON_TOKEN_LONG_INT, ejson->tmp_buff);
+            }
+        }
+    }
+    EJSON_SET_ERROR(
+            PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER_INTEGER);
+    return NULL;
+END_STATE()
+
+BEGIN_STATE(EJSON_STRING_ESCAPE_STATE)
+    switch (ejson->wc)
+    {
+        case 'b':
+        case 'f':
+        case 'n':
+        case 'r':
+        case 't':
+            pcejson_tmp_buff_append(ejson->tmp_buff, (uint8_t*)"\\", 1);
+            pcejson_tmp_buff_append(ejson->tmp_buff, (uint8_t*)ejson->c,
+                    ejson->c_len);
+            ADVANCE_TO(ejson->return_state);
+            break;
+        case '/':
+        case '\\':
+        case '"':
+            pcejson_tmp_buff_append(ejson->tmp_buff, (uint8_t*)ejson->c,
+                    ejson->c_len);
+            ADVANCE_TO(ejson->return_state);
+            break;
+        case 'u':
+            pcejson_tmp_buff_reset (ejson->tmp_buff2);
+            ADVANCE_TO(
+                    EJSON_STRING_ESCAPE_FOUR_HEXADECIMAL_DIGITS_STATE);
+            break;
+        default:
+            EJSON_SET_ERROR(
+                 PCEJSON_ERROR_BAD_JSON_STRING_ESCAPE_ENTITY);
+            return NULL;
+    }
+END_STATE()
+
+BEGIN_STATE(EJSON_STRING_ESCAPE_FOUR_HEXADECIMAL_DIGITS_STATE)
+    if (is_ascii_hex_digit(ejson->wc)) {
+        pcejson_tmp_buff_append(ejson->tmp_buff2, (uint8_t*)ejson->c,
+                ejson->c_len);
+        size_t buf2_len = pcejson_tmp_buff_length (ejson->tmp_buff2);
+        if (buf2_len == 4) {
+            pcejson_tmp_buff_append(ejson->tmp_buff, (uint8_t*)"\\u", 2);
+            purc_rwstream_seek(ejson->tmp_buff2, 0, SEEK_SET);
+            purc_rwstream_dump_to_another(ejson->tmp_buff2,
+                    ejson->tmp_buff, 4);
+            ADVANCE_TO(ejson->return_state);
+        }
+        ADVANCE_TO(EJSON_STRING_ESCAPE_FOUR_HEXADECIMAL_DIGITS_STATE);
+    }
+    EJSON_SET_ERROR(
+            PCEJSON_ERROR_BAD_JSON_STRING_ESCAPE_ENTITY);
+    return NULL;
+END_STATE()
+
+BEGIN_STATE(EJSON_VALUE_NUMBER_INFINITY_STATE)
+    if (is_delimiter(ejson->wc)) {
+        if (pcejson_tmp_buff_equal(ejson->tmp_buff, "-Infinity")
+            || pcejson_tmp_buff_equal(ejson->tmp_buff, "Infinity")) {
+            RECONSUME_IN_NEXT(EJSON_AFTER_VALUE_STATE);
+            return pcejson_token_new_from_tmp_buf (
+                    EJSON_TOKEN_INFINITY, ejson->tmp_buff);
+        }
+        EJSON_SET_ERROR(PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER);
+        return NULL;
+    }
+    switch (ejson->wc)
+    {
+        case 'I':
+            if (pcejson_tmp_buff_is_empty(ejson->tmp_buff)
+                || pcejson_tmp_buff_equal(ejson->tmp_buff, "-")) {
+                pcejson_tmp_buff_append (ejson->tmp_buff,
+                        (uint8_t*)ejson->c, ejson->c_len);
+                ADVANCE_TO(EJSON_VALUE_NUMBER_INFINITY_STATE);
+            }
+            else {
+                EJSON_SET_ERROR(
+                        PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER);
+                return NULL;
+            }
+            break;
+
+        case 'n':
+            if (pcejson_tmp_buff_equal(ejson->tmp_buff, "I")
+                || pcejson_tmp_buff_equal (ejson->tmp_buff, "-I")
+                || pcejson_tmp_buff_equal (ejson->tmp_buff, "Infi")
+                || pcejson_tmp_buff_equal (ejson->tmp_buff, "-Infi")
+                ) {
+                pcejson_tmp_buff_append (ejson->tmp_buff,
+                        (uint8_t*)ejson->c, ejson->c_len);
+                ADVANCE_TO(EJSON_VALUE_NUMBER_INFINITY_STATE);
+            }
+            else {
+                EJSON_SET_ERROR(
+                        PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER);
+                return NULL;
+            }
+            break;
+
+        case 'f':
+            if (pcejson_tmp_buff_equal(ejson->tmp_buff, "In")
+                || pcejson_tmp_buff_equal (ejson->tmp_buff, "-In")
+                    ) {
+                pcejson_tmp_buff_append (ejson->tmp_buff,
+                        (uint8_t*)ejson->c, ejson->c_len);
+                ADVANCE_TO(EJSON_VALUE_NUMBER_INFINITY_STATE);
+            }
+            else {
+                EJSON_SET_ERROR(
+                        PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER);
+                return NULL;
+            }
+            break;
+
+        case 'i':
+            if (pcejson_tmp_buff_equal(ejson->tmp_buff, "Inf")
+                || pcejson_tmp_buff_equal (ejson->tmp_buff, "-Inf")
+                || pcejson_tmp_buff_equal (ejson->tmp_buff, "Infin")
+                || pcejson_tmp_buff_equal (ejson->tmp_buff, "-Infin")) {
+                pcejson_tmp_buff_append (ejson->tmp_buff,
+                        (uint8_t*)ejson->c, ejson->c_len);
+                ADVANCE_TO(EJSON_VALUE_NUMBER_INFINITY_STATE);
+            }
+            else {
+                EJSON_SET_ERROR(
+                        PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER);
+                return NULL;
+            }
+            break;
+
+        case 't':
+            if (pcejson_tmp_buff_equal(ejson->tmp_buff, "Infini")
+                || pcejson_tmp_buff_equal (ejson->tmp_buff, "-Infini")
+                    ) {
+                pcejson_tmp_buff_append (ejson->tmp_buff,
+                        (uint8_t*)ejson->c, ejson->c_len);
+                ADVANCE_TO(EJSON_VALUE_NUMBER_INFINITY_STATE);
+            }
+            else {
+                EJSON_SET_ERROR(
+                        PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER);
+                return NULL;
+            }
+            break;
+
+        case 'y':
+            if (pcejson_tmp_buff_equal(ejson->tmp_buff, "Infinit")
+                || pcejson_tmp_buff_equal (ejson->tmp_buff, "-Infinit")
+                    ) {
+                pcejson_tmp_buff_append (ejson->tmp_buff,
+                        (uint8_t*)ejson->c, ejson->c_len);
+                ADVANCE_TO(EJSON_VALUE_NUMBER_INFINITY_STATE);
+            }
+            else {
+                EJSON_SET_ERROR(
+                        PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER);
+                return NULL;
+            }
+            break;
+
+        default:
+            EJSON_SET_ERROR(
+                    PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER);
+            return NULL;
+    }
+END_STATE()
+
+BEGIN_STATE(EJSON_VALUE_NAN_STATE)
+    if (is_delimiter(ejson->wc)) {
+        if (pcejson_tmp_buff_equal(ejson->tmp_buff, "NaN")) {
+            RECONSUME_IN_NEXT(EJSON_AFTER_VALUE_STATE);
+            return pcejson_token_new (EJSON_TOKEN_NAN, NULL, 0);
+        }
+        EJSON_SET_ERROR(PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER);
+        return NULL;
+    }
+    switch (ejson->wc)
+    {
+        case 'N':
+            if (pcejson_tmp_buff_is_empty(ejson->tmp_buff)
+                || pcejson_tmp_buff_equal(ejson->tmp_buff, "Na")) {
+                pcejson_tmp_buff_append (ejson->tmp_buff,
+                        (uint8_t*)ejson->c, ejson->c_len);
+                ADVANCE_TO(EJSON_VALUE_NAN_STATE);
+            }
+            else {
+                EJSON_SET_ERROR(
+                        PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER);
+                return NULL;
+            }
+            break;
+
+        case 'a':
+            if (pcejson_tmp_buff_equal(ejson->tmp_buff, "N")) {
+                pcejson_tmp_buff_append (ejson->tmp_buff,
+                        (uint8_t*)ejson->c, ejson->c_len);
+                ADVANCE_TO(EJSON_VALUE_NAN_STATE);
+            }
+            else {
+                EJSON_SET_ERROR(
+                        PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER);
+                return NULL;
+            }
+            break;
+
+        default:
+            EJSON_SET_ERROR(
+                    PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER);
+            return NULL;
+    }
+END_STATE()
+
+PCEJSON_NEXT_TOKEN_END
 
