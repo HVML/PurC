@@ -58,7 +58,7 @@
 #else
 #define PRINT_STATE(state_name)                                             \
     fprintf(stderr, "in %s|wc=%c|hex=%x\n",                                 \
-            pcejson_ejson_state_desc(state_name), ejson->wc, ejson->wc);
+                #state_name, ejson->wc, ejson->wc);
 #endif
 
 #if HAVE(GLIB)
@@ -74,7 +74,7 @@
     {                                                                       \
         enum ejson_state current_state = state_name;                        \
         UNUSED_PARAM(current_state);                                        \
-        PRINT_STATE(current_state);
+        PRINT_STATE(state_name);
 
 #define END_STATE()                                                         \
         break;                                                              \
@@ -102,10 +102,6 @@
     do {                                                                    \
         ejson->state = new_state;                                           \
     } while (false)
-
-#define STATE_DESC(state_name)                                              \
-    case state_name:                                                        \
-        return ""#state_name;                                               \
 
 /* Make sure the number of error messages matches the number of error codes */
 #define _COMPILE_TIME_ASSERT(name, x)               \
@@ -1834,45 +1830,3 @@ next_state:
     return NULL;
 }
 
-const char* pcejson_ejson_state_desc (enum ejson_state state)
-{
-    switch (state) {
-        STATE_DESC(EJSON_INIT_STATE)
-        STATE_DESC(EJSON_FINISHED_STATE)
-        STATE_DESC(EJSON_OBJECT_STATE)
-        STATE_DESC(EJSON_AFTER_OBJECT_STATE)
-        STATE_DESC(EJSON_ARRAY_STATE)
-        STATE_DESC(EJSON_AFTER_ARRAY_STATE)
-        STATE_DESC(EJSON_BEFORE_NAME_STATE)
-        STATE_DESC(EJSON_AFTER_NAME_STATE)
-        STATE_DESC(EJSON_BEFORE_VALUE_STATE)
-        STATE_DESC(EJSON_AFTER_VALUE_STATE)
-        STATE_DESC(EJSON_NAME_UNQUOTED_STATE)
-        STATE_DESC(EJSON_NAME_SINGLE_QUOTED_STATE)
-        STATE_DESC(EJSON_NAME_DOUBLE_QUOTED_STATE)
-        STATE_DESC(EJSON_VALUE_SINGLE_QUOTED_STATE)
-        STATE_DESC(EJSON_VALUE_DOUBLE_QUOTED_STATE)
-        STATE_DESC(EJSON_AFTER_VALUE_DOUBLE_QUOTED_STATE)
-        STATE_DESC(EJSON_VALUE_TWO_DOUBLE_QUOTED_STATE)
-        STATE_DESC(EJSON_VALUE_THREE_DOUBLE_QUOTED_STATE)
-        STATE_DESC(EJSON_KEYWORD_STATE)
-        STATE_DESC(EJSON_AFTER_KEYWORD_STATE)
-        STATE_DESC(EJSON_BYTE_SEQUENCE_STATE)
-        STATE_DESC(EJSON_AFTER_BYTE_SEQUENCE_STATE)
-        STATE_DESC(EJSON_HEX_BYTE_SEQUENCE_STATE)
-        STATE_DESC(EJSON_BINARY_BYTE_SEQUENCE_STATE)
-        STATE_DESC(EJSON_BASE64_BYTE_SEQUENCE_STATE)
-        STATE_DESC(EJSON_VALUE_NUMBER_STATE)
-        STATE_DESC(EJSON_AFTER_VALUE_NUMBER_STATE)
-        STATE_DESC(EJSON_VALUE_NUMBER_INTEGER_STATE)
-        STATE_DESC(EJSON_VALUE_NUMBER_FRACTION_STATE)
-        STATE_DESC(EJSON_VALUE_NUMBER_EXPONENT_STATE)
-        STATE_DESC(EJSON_VALUE_NUMBER_EXPONENT_INTEGER_STATE)
-        STATE_DESC(EJSON_VALUE_NUMBER_SUFFIX_INTEGER_STATE)
-        STATE_DESC(EJSON_VALUE_NUMBER_INFINITY_STATE)
-        STATE_DESC(EJSON_VALUE_NAN_STATE)
-        STATE_DESC(EJSON_STRING_ESCAPE_STATE)
-        STATE_DESC(EJSON_STRING_ESCAPE_FOUR_HEXADECIMAL_DIGITS_STATE)
-    }
-    return NULL;
-}
