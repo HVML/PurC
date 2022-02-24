@@ -56,9 +56,6 @@ enum ejson_token_type {
     EJSON_TOKEN_EOF,
 };
 
-
-struct pcejson;
-
 struct pcejson_token {
     enum ejson_token_type type;
     union {
@@ -82,8 +79,9 @@ struct pcejson_token {
          */
         uintptr_t   sz_ptr[2];
     };
-
 };
+
+struct pcejson;
 
 #ifdef __cplusplus
 extern "C" {
