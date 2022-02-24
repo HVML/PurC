@@ -15,6 +15,7 @@
 #include <math.h>
 
 
+#if 0
 TEST(ejson, create_reset_destroy)
 {
     struct pcejson* parser = pcejson_create(10, 1);
@@ -34,6 +35,7 @@ TEST(ejson, create_reset_destroy)
 
     pcejson_destroy(parser);
 }
+#endif
 
 TEST(ejson_token, create_destroy)
 {

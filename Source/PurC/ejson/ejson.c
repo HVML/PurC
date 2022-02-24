@@ -123,6 +123,62 @@ static struct err_msg_seg _ejson_err_msgs_seg = {
     ejson_err_msgs
 };
 
+enum ejson_state {
+    EJSON_INIT_STATE,
+    EJSON_FINISHED_STATE,
+    EJSON_OBJECT_STATE,
+    EJSON_AFTER_OBJECT_STATE,
+    EJSON_ARRAY_STATE,
+    EJSON_AFTER_ARRAY_STATE,
+    EJSON_BEFORE_NAME_STATE,
+    EJSON_AFTER_NAME_STATE,
+    EJSON_BEFORE_VALUE_STATE,
+    EJSON_AFTER_VALUE_STATE,
+    EJSON_NAME_UNQUOTED_STATE,
+    EJSON_NAME_SINGLE_QUOTED_STATE,
+    EJSON_NAME_DOUBLE_QUOTED_STATE,
+    EJSON_VALUE_SINGLE_QUOTED_STATE,
+    EJSON_VALUE_DOUBLE_QUOTED_STATE,
+    EJSON_AFTER_VALUE_DOUBLE_QUOTED_STATE,
+    EJSON_VALUE_TWO_DOUBLE_QUOTED_STATE,
+    EJSON_VALUE_THREE_DOUBLE_QUOTED_STATE,
+    EJSON_KEYWORD_STATE,
+    EJSON_AFTER_KEYWORD_STATE,
+    EJSON_BYTE_SEQUENCE_STATE,
+    EJSON_AFTER_BYTE_SEQUENCE_STATE,
+    EJSON_HEX_BYTE_SEQUENCE_STATE,
+    EJSON_BINARY_BYTE_SEQUENCE_STATE,
+    EJSON_BASE64_BYTE_SEQUENCE_STATE,
+    EJSON_VALUE_NUMBER_STATE,
+    EJSON_AFTER_VALUE_NUMBER_STATE,
+    EJSON_VALUE_NUMBER_INTEGER_STATE,
+    EJSON_VALUE_NUMBER_FRACTION_STATE,
+    EJSON_VALUE_NUMBER_EXPONENT_STATE,
+    EJSON_VALUE_NUMBER_EXPONENT_INTEGER_STATE,
+    EJSON_VALUE_NUMBER_SUFFIX_INTEGER_STATE,
+    EJSON_VALUE_NUMBER_INFINITY_STATE,
+    EJSON_VALUE_NAN_STATE,
+    EJSON_STRING_ESCAPE_STATE,
+    EJSON_STRING_ESCAPE_FOUR_HEXADECIMAL_DIGITS_STATE
+};
+
+struct pcejson {
+    enum ejson_state state;
+    enum ejson_state return_state;
+    uint32_t depth;
+    uint32_t max_depth;
+    uint32_t flags;
+    struct pcutils_stack* stack;
+    struct pcutils_stack* vcm_stack;
+    purc_rwstream_t tmp_buff;
+    purc_rwstream_t tmp_buff2;
+    char c[8];
+    int c_len;
+    uint32_t wc;
+    bool need_reconsume;
+};
+
+
 void pcejson_init_once (void)
 {
     pcinst_register_error_message_segment(&_ejson_err_msgs_seg);
