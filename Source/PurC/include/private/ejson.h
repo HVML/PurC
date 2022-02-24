@@ -35,52 +35,6 @@
 
 #define PCEJSON_DEFAULT_DEPTH 32
 
-enum ejson_token_type {
-    EJSON_TOKEN_START_OBJECT,
-    EJSON_TOKEN_END_OBJECT,
-    EJSON_TOKEN_START_ARRAY,
-    EJSON_TOKEN_END_ARRAY,
-    EJSON_TOKEN_KEY,
-    EJSON_TOKEN_STRING,
-    EJSON_TOKEN_NULL,
-    EJSON_TOKEN_BOOLEAN,
-    EJSON_TOKEN_NUMBER,
-    EJSON_TOKEN_LONG_INT,
-    EJSON_TOKEN_ULONG_INT,
-    EJSON_TOKEN_LONG_DOUBLE,
-    EJSON_TOKEN_COMMA,
-    EJSON_TOKEN_TEXT,
-    EJSON_TOKEN_BYTE_SQUENCE,
-    EJSON_TOKEN_INFINITY,
-    EJSON_TOKEN_NAN,
-    EJSON_TOKEN_EOF,
-};
-
-struct pcejson_token {
-    enum ejson_token_type type;
-    union {
-        /* for boolean */
-        bool        b;
-
-        /* for number */
-        double      d;
-
-        /* for long integer */
-        int64_t     i64;
-
-        /* for unsigned long integer */
-        uint64_t    u64;
-
-        /* for long double */
-        long double ld;
-
-        /* for long string, long byte sequence, array, object,
-         * and set (sz_ptr[0] for size, sz_ptr[1] for pointer).
-         */
-        uintptr_t   sz_ptr[2];
-    };
-};
-
 struct pcejson;
 
 #ifdef __cplusplus
