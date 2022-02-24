@@ -30,4 +30,6 @@ hvml href
 hvml raw
 hvml type
 hvml locally
+hvml onlyif
+hvml while
 

@@ -524,8 +524,8 @@ enum purc_symbol_var _to_symbol(char symbol)
     switch (symbol) {
     case '?':
         return PURC_SYMBOL_VAR_QUESTION_MARK;
-    case '^':
-        return PURC_SYMBOL_VAR_CARET;
+    case '<':
+        return PURC_SYMBOL_VAR_LESS_THAN;
     case '@':
         return PURC_SYMBOL_VAR_AT_SIGN;
     case '!':
