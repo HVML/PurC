@@ -113,23 +113,6 @@ void pcejson_reset (struct pcejson* parser, uint32_t depth, uint32_t flags);
 int pcejson_parse (struct pcvcm_node** vcm_tree, struct pcejson** parser,
                    purc_rwstream_t rwstream, uint32_t depth);
 
-/*
- * Create a new pcejson token.
- */
-struct pcejson_token* pcejson_token_new (enum ejson_token_type type,
-                                         const uint8_t* bytes, size_t nr_bytes);
-
-/*
- * Destory pcejson token.
- */
-void pcejson_token_destroy (struct pcejson_token* token);
-
-/*
- * Get one pcejson token from rwstream.
- */
-struct pcejson_token* pcejson_next_token (struct pcejson* ejson,
-                                          purc_rwstream_t rws);
-
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */

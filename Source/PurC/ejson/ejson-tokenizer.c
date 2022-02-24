@@ -250,6 +250,14 @@ static inline bool is_delimiter (uint32_t c)
         c == EJSON_END_OF_FILE;
 }
 
+struct pcejson_token* pcejson_token_new (enum ejson_token_type type,
+                                         const uint8_t* bytes, size_t nr_bytes);
+
+void pcejson_token_destroy (struct pcejson_token* token);
+
+struct pcejson_token* pcejson_next_token (struct pcejson* ejson,
+                                          purc_rwstream_t rws);
+
 struct pcejson* pcejson_create (uint32_t depth, uint32_t flags)
 {
     struct pcejson* parser = (struct pcejson*) EJSON_ALLOC(

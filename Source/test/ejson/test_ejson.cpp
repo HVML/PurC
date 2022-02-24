@@ -35,7 +35,6 @@ TEST(ejson, create_reset_destroy)
 
     pcejson_destroy(parser);
 }
-#endif
 
 TEST(ejson_token, create_destroy)
 {
@@ -64,6 +63,7 @@ TEST(ejson_token, next_token)
     pcejson_destroy(parser);
     purc_rwstream_destroy(rws);
 }
+#endif
 
 TEST(ejson_stack, new_destory)
 {
@@ -159,6 +159,7 @@ TEST(ejson_stack, push_pop)
     pcutils_stack_destroy(stack);
 }
 
+#if 0
 TEST(ejson_token, parse_unquoted_key_AND_single_quoted_value)
 {
     char json[] = "{ key : \'value\' }";
@@ -2202,4 +2203,5 @@ TEST(ejson_token, pcejson_parse_serial_empty_object)
     purc_cleanup ();
 
 }
+#endif
 
