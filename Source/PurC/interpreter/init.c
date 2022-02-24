@@ -132,7 +132,6 @@ post_process_at_locally(pcintr_coroutine_t co,
         purc_variant_t src)
 {
     UNUSED_PARAM(co);
-    PC_ASSERT(0);
 
     PC_ASSERT(name != PURC_VARIANT_INVALID);
     PC_ASSERT(purc_variant_is_string(name));

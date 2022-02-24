@@ -1090,6 +1090,7 @@ end:
 #define BUILDIN_VAR_HVML        "HVML"
 #define BUILDIN_VAR_SYSTEM      "SYSTEM"
 #define BUILDIN_VAR_T           "T"
+#define BUILDIN_VAR_L           "L"
 #define BUILDIN_VAR_DOC         "DOC"
 #define BUILDIN_VAR_SESSION     "SESSION"
 #define BUILDIN_VAR_EJSON       "EJSON"
@@ -1135,6 +1136,12 @@ init_buidin_doc_variable(pcintr_stack_t stack)
     // $T
     if(!bind_doc_named_variable(stack, BUILDIN_VAR_T,
                 pcdvobjs_get_t())) {
+        return false;
+    }
+
+    // $L
+    if(!bind_doc_named_variable(stack, BUILDIN_VAR_L,
+                pcdvobjs_get_logical())) {
         return false;
     }
 
@@ -2199,5 +2206,67 @@ pcintr_util_set_child(pcdom_element_t *parent, const char *fmt, ...)
         free(p);
 
     return r ? -1 : 0;
+}
+
+static purc_variant_t
+attribute_addition_string(const char *sl, const char *sr)
+{
+    size_t nl = strlen(sl);
+    size_t nr = strlen(sr);
+    char *buf = (char*)malloc(nl + nr + 1);
+    if (!buf) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return PURC_VARIANT_INVALID;
+    }
+    strcpy(buf, sl);
+    strcat(buf, sr);
+    _D("buf: [%s]", buf);
+    return purc_variant_make_string_reuse_buff(buf, nl+nr, true);
+}
+
+
+static purc_variant_t
+attribute_assign(purc_variant_t left, purc_variant_t right)
+{
+    UNUSED_PARAM(left);
+
+    purc_variant_ref(right);
+
+    return right;
+}
+
+static purc_variant_t
+attribute_addition(purc_variant_t left, purc_variant_t right)
+{
+    if (purc_variant_is_string(left)) {
+        if (purc_variant_is_string(right)) {
+            return attribute_addition_string(
+                    purc_variant_get_string_const(left),
+                    purc_variant_get_string_const(right));
+        }
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    // FIXME: numberify?
+    double dl, dr;
+    dl = purc_variant_numberify(left);
+    dr = purc_variant_numberify(right);
+
+    return purc_variant_make_number(dl + dr);
+}
+
+pcintr_attribute_op
+pcintr_attribute_get_op(enum pchvml_attr_operator op)
+{
+    switch (op) {
+        case PCHVML_ATTRIBUTE_OPERATOR:
+            return attribute_assign;
+        case PCHVML_ATTRIBUTE_ADDITION_OPERATOR:
+            return attribute_addition;
+        default:
+            purc_set_error(PURC_ERROR_NOT_IMPLEMENTED);
+            return NULL;
+    }
 }
 

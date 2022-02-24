@@ -549,6 +549,7 @@ pcintr_get_symbolized_var (pcintr_stack_t stack, unsigned int number,
 {
     enum purc_symbol_var symbol_var = _to_symbol(symbol);
     if (symbol_var == PURC_SYMBOL_VAR_MAX) {
+        _D("symbol: [%c]", symbol);
         PC_ASSERT(0);
         return PURC_VARIANT_INVALID;
     }
