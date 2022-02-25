@@ -44,13 +44,17 @@ struct ctxt_for_iterate {
     struct pcvdom_node           *curr;
 
     purc_variant_t                on;
-    purc_variant_t                by;
+
     purc_variant_t                onlyif;
-    struct pcvcm_node            *by_vcm;
+
+    struct pcvdom_attr           *rule_attr;
 
     struct purc_exec_ops          ops;
     purc_exec_inst_t              exec_inst;
     purc_exec_iter_t              it;
+
+    unsigned int                  by_set:1;
+    unsigned int                  with_set:1;
 };
 
 static void
@@ -62,7 +66,6 @@ ctxt_for_iterate_destroy(struct ctxt_for_iterate *ctxt)
             PC_ASSERT(ok);
             ctxt->exec_inst = NULL;
         }
-        PURC_VARIANT_SAFE_CLEAR(ctxt->by);
         PURC_VARIANT_SAFE_CLEAR(ctxt->onlyif);
         PURC_VARIANT_SAFE_CLEAR(ctxt->on);
 
@@ -89,21 +92,26 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     if (on == PURC_VARIANT_INVALID)
         return -1;
 
-    purc_variant_t by;
-    by = ctxt->by;
-    if (by == PURC_VARIANT_INVALID) {
-        by = purc_variant_make_string_static("RANGE: FROM 0", false);
-        if (by == PURC_VARIANT_INVALID)
+    purc_variant_t val = PURC_VARIANT_INVALID;
+
+    const char *rule = "RANGE: FROM 0";
+    if (ctxt->rule_attr) {
+        val = pcintr_eval_vdom_attr(purc_get_stack(), ctxt->rule_attr);
+        if (val == PURC_VARIANT_INVALID)
             return -1;
-        PURC_VARIANT_SAFE_CLEAR(ctxt->by);
-        ctxt->by = by;
+        rule = purc_variant_get_string_const(val);
+        if (!rule) {
+            purc_variant_unref(val);
+            return -1;
+        }
     }
 
-    const char *rule = purc_variant_get_string_const(by);
-    PC_ASSERT(rule);
     bool ok = purc_get_executor(rule, &ctxt->ops);
-    if (!ok)
+
+    if (!ok) {
+        PURC_VARIANT_SAFE_CLEAR(val);
         return -1;
+    }
 
     PC_ASSERT(ctxt->ops.create);
     PC_ASSERT(ctxt->ops.it_begin);
@@ -113,13 +121,16 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 
     purc_exec_inst_t exec_inst;
     exec_inst = ctxt->ops.create(PURC_EXEC_TYPE_ITERATE, on, false);
-    if (!exec_inst)
+    if (!exec_inst) {
+        PURC_VARIANT_SAFE_CLEAR(val);
         return -1;
+    }
 
     ctxt->exec_inst = exec_inst;
 
     purc_exec_iter_t it;
     it = ctxt->ops.it_begin(exec_inst, rule);
+    PURC_VARIANT_SAFE_CLEAR(val);
     if (!it)
         return -1;
 
@@ -171,7 +182,7 @@ process_attr_by(struct pcintr_stack_frame *frame,
 {
     struct ctxt_for_iterate *ctxt;
     ctxt = (struct ctxt_for_iterate*)frame->ctxt;
-    if (ctxt->by != PURC_VARIANT_INVALID) {
+    if (ctxt->rule_attr) {
         purc_set_error_with_info(PURC_ERROR_DUPLICATED,
                 "vdom attribute '%s' for element <%s>",
                 purc_atom_to_string(name), element->tag_name);
@@ -183,9 +194,7 @@ process_attr_by(struct pcintr_stack_frame *frame,
                 purc_atom_to_string(name), element->tag_name);
         return -1;
     }
-    ctxt->by = val;
-    purc_variant_ref(val);
-    ctxt->by_vcm = attr->val;
+    ctxt->rule_attr = attr;
 
     return 0;
 }
@@ -340,22 +349,21 @@ on_popping(pcintr_stack_t stack, void* ud)
     if (!it)
         return true;
 
-    purc_variant_t by = ctxt->by;
-    purc_variant_ref(by);
+    purc_variant_t val = PURC_VARIANT_INVALID;
     const char *rule = NULL;
-
-    if (ctxt->by_vcm != NULL) {
-        struct pcvcm_node *vcm = ctxt->by_vcm;
-
-        purc_variant_unref(by);
-        by = pcvcm_eval(vcm, stack);
-        PC_ASSERT(by != PURC_VARIANT_INVALID);
-        rule = purc_variant_get_string_const(by);
-        PC_ASSERT(rule);
+    if (ctxt->rule_attr) {
+        val = pcintr_eval_vdom_attr(purc_get_stack(), ctxt->rule_attr);
+        if (val == PURC_VARIANT_INVALID)
+            return -1;
+        rule = purc_variant_get_string_const(val);
+        if (!rule) {
+            purc_variant_unref(val);
+            return -1;
+        }
     }
 
     it = ctxt->ops.it_next(exec_inst, it, rule);
-    purc_variant_unref(by);
+    PURC_VARIANT_SAFE_CLEAR(val);
 
     ctxt->it = it;
     if (!it) {
