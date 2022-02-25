@@ -309,7 +309,7 @@ enum tokenizer_state {
     LAST_STATE = EJSON_AFTER_JSONEE_STRING_STATE,
 };
 
-struct ejson_uc {
+struct ucwrap {
     struct list_head list;
     uint32_t character;
     int line;
@@ -323,18 +323,18 @@ struct rwswrap {
     struct list_head consumed_list;
     size_t nr_consumed_list;
 
-    struct ejson_uc curr_uc;
+    struct ucwrap curr_uc;
     int line;
     int column;
     int consumed;
 };
 
-struct ejson_uc* ejson_uc_new(void)
+struct ucwrap* ucwrap_new(void)
 {
-    return PC_ALLOC(sizeof(struct ejson_uc));
+    return PC_ALLOC(sizeof(struct ucwrap));
 }
 
-void ejson_uc_destroy(struct ejson_uc* uc)
+void ucwrap_destroy(struct ucwrap* uc)
 {
     if (uc) {
         PC_FREE(uc);
@@ -361,7 +361,7 @@ void rwswrap_set_rwstream(struct rwswrap* wrap,
     wrap->rws = rws;
 }
 
-static struct ejson_uc*
+static struct ucwrap*
 rwswrap_read_from_rwstream(struct rwswrap* wrap)
 {
     char c[8] = {0};
@@ -384,14 +384,14 @@ rwswrap_read_from_rwstream(struct rwswrap* wrap)
     return &wrap->curr_uc;
 }
 
-static struct ejson_uc*
+static struct ucwrap*
 rwswrap_read_from_reconsume_list(struct rwswrap* wrap)
 {
-    struct ejson_uc* puc = list_entry(wrap->reconsume_list.next,
-            struct ejson_uc, list);
+    struct ucwrap* puc = list_entry(wrap->reconsume_list.next,
+            struct ucwrap, list);
     wrap->curr_uc = *puc;
     list_del_init(&puc->list);
-    ejson_uc_destroy(puc);
+    ucwrap_destroy(puc);
     return &wrap->curr_uc;
 }
 
@@ -400,7 +400,7 @@ rwswrap_read_from_reconsume_list(struct rwswrap* wrap)
         fprintf(stderr, "begin print %s list\n|", tag);                     \
         struct list_head *p, *n;                                            \
         list_for_each_safe(p, n, uc_list) {                                 \
-            struct ejson_uc* puc = list_entry(p, struct ejson_uc, list);  \
+            struct ucwrap* puc = list_entry(p, struct ucwrap, list);  \
             fprintf(stderr, "%c", puc->character);                          \
         }                                                                   \
         fprintf(stderr, "|\nend print %s list\n", tag);                     \
@@ -413,9 +413,9 @@ rwswrap_read_from_reconsume_list(struct rwswrap* wrap)
         print_uc_list(&wrap->reconsume_list, "reconsume")
 
 static bool
-rwswrap_add_consumed(struct rwswrap* wrap, struct ejson_uc* uc)
+rwswrap_add_consumed(struct rwswrap* wrap, struct ucwrap* uc)
 {
-    struct ejson_uc* p = ejson_uc_new();
+    struct ucwrap* p = ucwrap_new();
     if (!p) {
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return false;
@@ -426,10 +426,10 @@ rwswrap_add_consumed(struct rwswrap* wrap, struct ejson_uc* uc)
     wrap->nr_consumed_list++;
 
     if (wrap->nr_consumed_list > NR_CONSUMED_LIST_LIMIT) {
-        struct ejson_uc* first = list_first_entry(
-                &wrap->consumed_list, struct ejson_uc, list);
+        struct ucwrap* first = list_first_entry(
+                &wrap->consumed_list, struct ucwrap, list);
         list_del_init(&first->list);
-        ejson_uc_destroy(first);
+        ucwrap_destroy(first);
         wrap->nr_consumed_list--;
     }
     return true;
@@ -441,8 +441,8 @@ bool rwswrap_reconsume_last_char(struct rwswrap* wrap)
         return true;
     }
 
-    struct ejson_uc* last = list_last_entry(
-            &wrap->consumed_list, struct ejson_uc, list);
+    struct ucwrap* last = list_last_entry(
+            &wrap->consumed_list, struct ucwrap, list);
     list_del_init(&last->list);
     wrap->nr_consumed_list--;
 
@@ -450,9 +450,9 @@ bool rwswrap_reconsume_last_char(struct rwswrap* wrap)
     return true;
 }
 
-struct ejson_uc* rwswrap_next_char(struct rwswrap* wrap)
+struct ucwrap* rwswrap_next_char(struct rwswrap* wrap)
 {
-    struct ejson_uc* ret = NULL;
+    struct ucwrap* ret = NULL;
     if (list_empty(&wrap->reconsume_list)) {
         ret = rwswrap_read_from_rwstream(wrap);
     }
@@ -471,14 +471,14 @@ void rwswrap_destroy(struct rwswrap* wrap)
     if (wrap) {
         struct list_head *p, *n;
         list_for_each_safe(p, n, &wrap->reconsume_list) {
-            struct ejson_uc* puc = list_entry(p, struct ejson_uc, list);
+            struct ucwrap* puc = list_entry(p, struct ucwrap, list);
             list_del_init(&puc->list);
-            ejson_uc_destroy(puc);
+            ucwrap_destroy(puc);
         }
         list_for_each_safe(p, n, &wrap->consumed_list) {
-            struct ejson_uc* puc = list_entry(p, struct ejson_uc, list);
+            struct ucwrap* puc = list_entry(p, struct ucwrap, list);
             list_del_init(&puc->list);
-            ejson_uc_destroy(puc);
+            ucwrap_destroy(puc);
         }
         PC_FREE(wrap);
     }
