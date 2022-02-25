@@ -25,16 +25,11 @@
 
 #include "config.h"
 
-#if 0
+#if 1
 #include "private/instance.h"
 #include "private/errors.h"
 #include "private/debug.h"
 #include "private/utils.h"
-#include "private/dom.h"
-#include "private/hvml.h"
-
-#include "hvml-buffer.h"
-#include "hvml-rwswrap.h"
 
 #include <math.h>
 
@@ -45,6 +40,17 @@
 #endif
 
 #define ERROR_BUF_SIZE  100
+#define NR_CONSUMED_LIST_LIMIT   10
+
+#define INVALID_CHARACTER    0xFFFFFFFF
+
+#if HAVE(GLIB)
+#define    PC_ALLOC(sz)   g_slice_alloc0(sz)
+#define    PC_FREE(p)     g_slice_free1(sizeof(*p), (gpointer)p)
+#else
+#define    PC_ALLOC(sz)   calloc(1, sz)
+#define    PC_FREE(p)     free(p)
+#endif
 
 #define PRINT_STATE(state_name)                                             \
     if (parser->enable_print_log) {                                         \
@@ -74,9 +80,6 @@
     purc_set_error_exinfo(err, exinfo);                                     \
 } while (0)
 
-int pcejson_parse (struct pcvcm_node** vcm_tree, struct pcejson** parser,
-                   purc_rwstream_t rwstream, uint32_t depth);
-
 #define PCEJSON_PARSER_BEGIN                                            \
 struct pchvml_token* pcejson_parse_inner(struct pchvml_parser* parser,     \
                                           purc_rwstream_t rws)          \
@@ -89,16 +92,16 @@ struct pchvml_token* pcejson_parse_inner(struct pchvml_parser* parser,     \
         return token;                                                   \
     }                                                                   \
                                                                         \
-    pchvml_rwswrap_set_rwstream (parser->rwswrap, rws);                 \
+    rwswrap_set_rwstream (parser->rwswrap, rws);                 \
                                                                         \
 next_input:                                                             \
-    parser->curr_uc = pchvml_rwswrap_next_char (parser->rwswrap);       \
+    parser->curr_uc = rwswrap_next_char (parser->rwswrap);       \
     if (!parser->curr_uc) {                                             \
         return NULL;                                                    \
     }                                                                   \
                                                                         \
     character = parser->curr_uc->character;                             \
-    if (character == PCHVML_INVALID_CHARACTER) {                        \
+    if (character == INVALID_CHARACTER) {                        \
         SET_ERR(PCHVML_ERROR_INVALID_UTF8_CHARACTER);                   \
         return NULL;                                                    \
     }                                                                   \
@@ -306,6 +309,181 @@ enum tokenizer_state {
     LAST_STATE = EJSON_AFTER_JSONEE_STRING_STATE,
 };
 
+struct ejson_uc {
+    struct list_head list;
+    uint32_t character;
+    int line;
+    int column;
+    int position;
+};
+
+struct rwswrap {
+    purc_rwstream_t rws;
+    struct list_head reconsume_list;
+    struct list_head consumed_list;
+    size_t nr_consumed_list;
+
+    struct ejson_uc curr_uc;
+    int line;
+    int column;
+    int consumed;
+};
+
+struct ejson_uc* ejson_uc_new(void)
+{
+    return PC_ALLOC(sizeof(struct ejson_uc));
+}
+
+void ejson_uc_destroy(struct ejson_uc* uc)
+{
+    if (uc) {
+        PC_FREE(uc);
+    }
+}
+
+struct rwswrap* rwswrap_new(void)
+{
+    struct rwswrap* wrap = PC_ALLOC(sizeof(struct rwswrap));
+    if (!wrap) {
+        return NULL;
+    }
+    INIT_LIST_HEAD(&wrap->reconsume_list);
+    INIT_LIST_HEAD(&wrap->consumed_list);
+    wrap->line = 1;
+    wrap->column = 0;
+    wrap->consumed = 0;
+    return wrap;
+}
+
+void rwswrap_set_rwstream(struct rwswrap* wrap,
+        purc_rwstream_t rws)
+{
+    wrap->rws = rws;
+}
+
+static struct ejson_uc*
+rwswrap_read_from_rwstream(struct rwswrap* wrap)
+{
+    char c[8] = {0};
+    uint32_t uc = 0;
+    int nr_c = purc_rwstream_read_utf8_char(wrap->rws, c, &uc);
+    if (nr_c < 0) {
+        uc = INVALID_CHARACTER;
+    }
+    wrap->column++;
+    wrap->consumed++;
+
+    wrap->curr_uc.character = uc;
+    wrap->curr_uc.line = wrap->line;
+    wrap->curr_uc.column = wrap->column;
+    wrap->curr_uc.position = wrap->consumed;
+    if (uc == '\n') {
+        wrap->line++;
+        wrap->column = 0;
+    }
+    return &wrap->curr_uc;
+}
+
+static struct ejson_uc*
+rwswrap_read_from_reconsume_list(struct rwswrap* wrap)
+{
+    struct ejson_uc* puc = list_entry(wrap->reconsume_list.next,
+            struct ejson_uc, list);
+    wrap->curr_uc = *puc;
+    list_del_init(&puc->list);
+    ejson_uc_destroy(puc);
+    return &wrap->curr_uc;
+}
+
+#define print_uc_list(uc_list, tag)                                         \
+    do {                                                                    \
+        fprintf(stderr, "begin print %s list\n|", tag);                     \
+        struct list_head *p, *n;                                            \
+        list_for_each_safe(p, n, uc_list) {                                 \
+            struct ejson_uc* puc = list_entry(p, struct ejson_uc, list);  \
+            fprintf(stderr, "%c", puc->character);                          \
+        }                                                                   \
+        fprintf(stderr, "|\nend print %s list\n", tag);                     \
+    } while(0)
+
+#define PRINT_CONSUMED_LIST(wrap)    \
+        print_uc_list(&wrap->consumed_list, "consumed")
+
+#define PRINT_RECONSUM_LIST(wrap)    \
+        print_uc_list(&wrap->reconsume_list, "reconsume")
+
+static bool
+rwswrap_add_consumed(struct rwswrap* wrap, struct ejson_uc* uc)
+{
+    struct ejson_uc* p = ejson_uc_new();
+    if (!p) {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return false;
+    }
+
+    *p = *uc;
+    list_add_tail(&p->list, &wrap->consumed_list);
+    wrap->nr_consumed_list++;
+
+    if (wrap->nr_consumed_list > NR_CONSUMED_LIST_LIMIT) {
+        struct ejson_uc* first = list_first_entry(
+                &wrap->consumed_list, struct ejson_uc, list);
+        list_del_init(&first->list);
+        ejson_uc_destroy(first);
+        wrap->nr_consumed_list--;
+    }
+    return true;
+}
+
+bool rwswrap_reconsume_last_char(struct rwswrap* wrap)
+{
+    if (!wrap->nr_consumed_list) {
+        return true;
+    }
+
+    struct ejson_uc* last = list_last_entry(
+            &wrap->consumed_list, struct ejson_uc, list);
+    list_del_init(&last->list);
+    wrap->nr_consumed_list--;
+
+    list_add(&last->list, &wrap->reconsume_list);
+    return true;
+}
+
+struct ejson_uc* rwswrap_next_char(struct rwswrap* wrap)
+{
+    struct ejson_uc* ret = NULL;
+    if (list_empty(&wrap->reconsume_list)) {
+        ret = rwswrap_read_from_rwstream(wrap);
+    }
+    else {
+        ret = rwswrap_read_from_reconsume_list(wrap);
+    }
+
+    if (rwswrap_add_consumed(wrap, ret)) {
+        return ret;
+    }
+    return NULL;
+}
+
+void rwswrap_destroy(struct rwswrap* wrap)
+{
+    if (wrap) {
+        struct list_head *p, *n;
+        list_for_each_safe(p, n, &wrap->reconsume_list) {
+            struct ejson_uc* puc = list_entry(p, struct ejson_uc, list);
+            list_del_init(&puc->list);
+            ejson_uc_destroy(puc);
+        }
+        list_for_each_safe(p, n, &wrap->consumed_list) {
+            struct ejson_uc* puc = list_entry(p, struct ejson_uc, list);
+            list_del_init(&puc->list);
+            ejson_uc_destroy(puc);
+        }
+        PC_FREE(wrap);
+    }
+}
+
 static UNUSED_FUNCTION
 bool is_whitespace(uint32_t uc)
 {
@@ -393,6 +571,7 @@ bool is_ascii_alpha_numeric(uint32_t uc)
     return is_ascii_digit(uc) || is_ascii_alpha(uc);
 }
 
+#if 0
 static UNUSED_FUNCTION
 struct pcvcm_node* pchvml_parser_new_byte_sequence (struct pchvml_parser* hvml,
     struct pchvml_buffer* buffer)
@@ -1199,8 +1378,8 @@ BEGIN_STATE(EJSON_VALUE_DOUBLE_QUOTED_STATE)
         ejson_stack_push('"');
         if (!pchvml_buffer_is_empty(parser->temp_buffer)) {
             if (pchvml_buffer_end_with(parser->temp_buffer, "{", 1)) {
-                pchvml_rwswrap_reconsume_last_char(parser->rwswrap);
-                pchvml_rwswrap_reconsume_last_char(parser->rwswrap);
+                rwswrap_reconsume_last_char(parser->rwswrap);
+                rwswrap_reconsume_last_char(parser->rwswrap);
                 pchvml_buffer_delete_tail_chars(parser->temp_buffer, 1);
                 if (!pchvml_buffer_is_empty(parser->temp_buffer)) {
                     struct pcvcm_node* node = pcvcm_node_new_string(
@@ -1210,9 +1389,9 @@ BEGIN_STATE(EJSON_VALUE_DOUBLE_QUOTED_STATE)
                 }
             }
             else if (pchvml_buffer_end_with(parser->temp_buffer, "{{", 2)) {
-                pchvml_rwswrap_reconsume_last_char(parser->rwswrap);
-                pchvml_rwswrap_reconsume_last_char(parser->rwswrap);
-                pchvml_rwswrap_reconsume_last_char(parser->rwswrap);
+                rwswrap_reconsume_last_char(parser->rwswrap);
+                rwswrap_reconsume_last_char(parser->rwswrap);
+                rwswrap_reconsume_last_char(parser->rwswrap);
                 pchvml_buffer_delete_tail_chars(parser->temp_buffer, 2);
                 if (!pchvml_buffer_is_empty(parser->temp_buffer)) {
                     struct pcvcm_node* node = pcvcm_node_new_string(
@@ -1222,7 +1401,7 @@ BEGIN_STATE(EJSON_VALUE_DOUBLE_QUOTED_STATE)
                 }
             }
             else {
-                pchvml_rwswrap_reconsume_last_char(parser->rwswrap);
+                rwswrap_reconsume_last_char(parser->rwswrap);
                 struct pcvcm_node* node = pcvcm_node_new_string(
                         pchvml_buffer_get_buffer(parser->temp_buffer)
                         );
@@ -2305,5 +2484,6 @@ BEGIN_STATE(EJSON_AFTER_JSONEE_STRING_STATE)
 END_STATE()
 
 PCEJSON_PARSER_END
+#endif
 
 #endif
