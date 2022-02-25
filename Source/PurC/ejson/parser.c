@@ -84,53 +84,6 @@
     purc_set_error_exinfo(err, exinfo);                                     \
 } while (0)
 
-#define PCEJSON_PARSER_BEGIN                                            \
-struct pchvml_token *pcejson_parse_inner(struct pchvml_parser *parser,     \
-                                          purc_rwstream_t rws)          \
-{                                                                       \
-    uint32_t character = 0;                                             \
-    if (parser->token) {                                                \
-        struct pchvml_token *token = parser->token;                     \
-        parser->token = NULL;                                           \
-        return token;                                                   \
-    }                                                                   \
-                                                                        \
-    rwswrap_set_rwstream (parser->rwswrap, rws);                 \
-                                                                        \
-next_input:                                                             \
-    parser->curr_uc = rwswrap_next_char (parser->rwswrap);       \
-    if (!parser->curr_uc) {                                             \
-        return NULL;                                                    \
-    }                                                                   \
-                                                                        \
-    character = parser->curr_uc->character;                             \
-    if (character == INVALID_CHARACTER) {                        \
-        SET_ERR(PCHVML_ERROR_INVALID_UTF8_CHARACTER);                   \
-        return NULL;                                                    \
-    }                                                                   \
-                                                                        \
-    if (is_separator(character)) {                                      \
-        if (parser->prev_separator == ',' && character == ',') {        \
-            SET_ERR(PCHVML_ERROR_UNEXPECTED_COMMA);                     \
-            return NULL;                                                \
-        }                                                               \
-        parser->prev_separator = character;                             \
-    }                                                                   \
-    else if (!is_whitespace(character)) {                               \
-        parser->prev_separator = 0;                                     \
-    }                                                                   \
-                                                                        \
-next_state:                                                             \
-    switch (parser->state) {
-
-
-#define PCEJSON_PARSER_END                                              \
-    default:                                                            \
-        break;                                                          \
-    }                                                                   \
-    return NULL;                                                        \
-}
-
 #define ejson_stack_is_empty()  pcutils_stack_is_empty(parser->ejson_stack)
 #define ejson_stack_top()  pcutils_stack_top(parser->ejson_stack)
 #define ejson_stack_pop()  pcutils_stack_pop(parser->ejson_stack)
@@ -174,7 +127,7 @@ next_state:                                                             \
 
 #define RETURN_AND_STOP_PARSE()                                             \
     do {                                                                    \
-        return NULL;                                                        \
+        return -1;                                                          \
     } while (false)
 
 #define RESET_TEMP_BUFFER()                                                 \
@@ -795,6 +748,13 @@ bool uc_buffer_is_whitespace(struct uc_buffer *buffer)
 }
 
 // character
+#define END_OF_FILE       0
+static inline UNUSED_FUNCTION
+bool is_eof(uint32_t uc)
+{
+    return uc == END_OF_FILE;
+}
+
 static inline UNUSED_FUNCTION
 bool is_whitespace(uint32_t uc)
 {
@@ -882,7 +842,39 @@ bool is_ascii_alpha_numeric(uint32_t uc)
     return is_ascii_digit(uc) || is_ascii_alpha(uc);
 }
 
-// ejson parser
+static inline UNUSED_FUNCTION
+bool is_separator(uint32_t c)
+{
+    switch (c) {
+        case '{':
+        case '}':
+        case '[':
+        case ']':
+        case '(':
+        case ')':
+        case ',':
+        case ':':
+            return true;
+    }
+    return false;
+}
+
+static inline UNUSED_FUNCTION
+bool is_context_variable(uint32_t c)
+{
+    switch (c) {
+        case '?':
+        case '<':
+        case '@':
+        case '!':
+        case ':':
+        case '=':
+        case '%':
+            return true;
+    }
+    return false;
+}
+
 struct pcejson {
     int state;
     int return_state;
@@ -894,7 +886,6 @@ struct pcejson {
     struct rwswrap* rwswrap;
     struct uc_buffer* temp_buffer;
     struct uc_buffer* string_buffer;
-    struct pchvml_token* token;
     struct pcvcm_node* vcm_node;
     struct pcvcm_stack* vcm_stack;
     struct pcutils_stack* ejson_stack;
@@ -903,12 +894,20 @@ struct pcejson {
     bool enable_print_log;
 };
 
+#define EJSON_MAX_DEPTH         32
+#define EJSON_MIN_BUFFER_SIZE   128
+#define EJSON_MAX_BUFFER_SIZE   1024 * 1024 * 1024
+#define EJSON_END_OF_FILE       0
 #define PRINT_LOG_SWITCH_FILE "/tmp/purc_print_ejson_parser"
 
 struct pcejson *pcejson_create_ex(uint32_t depth, uint32_t flags)
 {
     struct pcejson* parser = (struct pcejson*) pc_alloc(
             sizeof(struct pcejson));
+    if (!parser) {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return NULL;
+    }
     parser->state = 0;
     parser->max_depth = depth;
     parser->depth = 0;
@@ -992,12 +991,9 @@ void pcejson_dec_depth (struct pcejson* parser)
     parser->depth--;
 }
 
-#if 0
 static UNUSED_FUNCTION
-struct pcvcm_node *pchvml_parser_new_byte_sequence (struct pchvml_parser *hvml,
-    struct uc_buffer *buffer)
+struct pcvcm_node *create_byte_sequenct(struct uc_buffer *buffer)
 {
-    UNUSED_PARAM(hvml);
     UNUSED_PARAM(buffer);
     size_t nr_bytes = uc_buffer_get_size_in_bytes(buffer);
     const char *bytes = uc_buffer_get_bytes(buffer);
@@ -1013,6 +1009,58 @@ struct pcvcm_node *pchvml_parser_new_byte_sequence (struct pchvml_parser *hvml,
     return NULL;
 }
 
+#define PCEJSON_PARSER_BEGIN                                                \
+int pcejson_parse_ex(struct pcvcm_node **vcm_tree,                          \
+        struct pcejson **parser_param,                                      \
+        purc_rwstream_t rws,                                                \
+        uint32_t depth)                                                     \
+{                                                                           \
+    if (*parser_param == NULL) {                                            \
+        *parser_param = pcejson_create_ex(                                  \
+                depth > 0 ? depth : EJSON_MAX_DEPTH, 1);                    \
+        if (*parser_param == NULL) {                                        \
+            return -1;                                                      \
+        }                                                                   \
+    }                                                                       \
+                                                                            \
+    uint32_t character = 0;                                                 \
+    struct pcejson* parser = *parser_param;                                 \
+    rwswrap_set_rwstream (parser->rwswrap, rws);                            \
+                                                                            \
+next_input:                                                                 \
+    parser->curr_uc = rwswrap_next_char (parser->rwswrap);                  \
+    if (!parser->curr_uc) {                                                 \
+        return -1;                                                          \
+    }                                                                       \
+                                                                            \
+    character = parser->curr_uc->character;                                 \
+    if (character == INVALID_CHARACTER) {                                   \
+        SET_ERR(PCHVML_ERROR_INVALID_UTF8_CHARACTER);                       \
+        return -1;                                                          \
+    }                                                                       \
+                                                                            \
+    if (is_separator(character)) {                                          \
+        if (parser->prev_separator == ',' && character == ',') {            \
+            SET_ERR(PCHVML_ERROR_UNEXPECTED_COMMA);                         \
+            return -1;                                                      \
+        }                                                                   \
+        parser->prev_separator = character;                                 \
+    }                                                                       \
+    else if (!is_whitespace(character)) {                                   \
+        parser->prev_separator = 0;                                         \
+    }                                                                       \
+                                                                            \
+next_state:                                                                 \
+    switch (parser->state) {
+
+#define PCEJSON_PARSER_END                                                  \
+    default:                                                                \
+        break;                                                              \
+    }                                                                       \
+    return -1;                                                              \
+}
+
+#if 1
 PCEJSON_PARSER_BEGIN
 
 BEGIN_STATE(EJSON_DATA_STATE)
@@ -1032,7 +1080,9 @@ BEGIN_STATE(EJSON_FINISHED_STATE)
         POP_AS_VCM_PARENT_AND_UPDATE_VCM();
     }
     ejson_stack_reset();
-    return parser->vcm_node;
+    *vcm_tree = parser->vcm_node;
+    parser->vcm_node = NULL;
+    return 0;
 END_STATE()
 
 BEGIN_STATE(EJSON_CONTROL_STATE)
@@ -1043,13 +1093,6 @@ BEGIN_STATE(EJSON_CONTROL_STATE)
         }
         if (uc == '"' || uc == '\'' || uc == 'U') {
             RECONSUME_IN(EJSON_AFTER_JSONEE_STRING_STATE);
-        }
-        if (uc == 'T') {
-            if (parser->vcm_node->type !=
-                    PCVCM_NODE_TYPE_FUNC_CONCAT_STRING) {
-                POP_AS_VCM_PARENT_AND_UPDATE_VCM();
-            }
-            RECONSUME_IN(EJSON_TEMPLATE_DATA_STATE);
         }
         ADVANCE_TO(EJSON_CONTROL_STATE);
     }
@@ -1104,13 +1147,6 @@ BEGIN_STATE(EJSON_CONTROL_STATE)
         if (uc == '"') {
             RECONSUME_IN(EJSON_AFTER_JSONEE_STRING_STATE);
         }
-        else if (uc == 'T') {
-            if (parser->vcm_node->type !=
-                    PCVCM_NODE_TYPE_FUNC_CONCAT_STRING) {
-                POP_AS_VCM_PARENT_AND_UPDATE_VCM();
-            }
-            RECONSUME_IN(EJSON_TEMPLATE_DATA_STATE);
-        }
         else {
             RESET_TEMP_BUFFER();
             RESET_QUOTED_COUNTER();
@@ -1118,13 +1154,6 @@ BEGIN_STATE(EJSON_CONTROL_STATE)
         }
     }
     if (character == '\'') {
-        if (uc == 'T') {
-            if (parser->vcm_node->type !=
-                    PCVCM_NODE_TYPE_FUNC_CONCAT_STRING) {
-                POP_AS_VCM_PARENT_AND_UPDATE_VCM();
-            }
-            RECONSUME_IN(EJSON_TEMPLATE_DATA_STATE);
-        }
         RESET_TEMP_BUFFER();
         RECONSUME_IN(EJSON_VALUE_SINGLE_QUOTED_STATE);
     }
@@ -2058,8 +2087,7 @@ END_STATE()
 BEGIN_STATE(EJSON_AFTER_BYTE_SEQUENCE_STATE)
     if (is_whitespace(character) || character == '}'
             || character == ']' || character == ',' || character == ')') {
-        struct pcvcm_node *node = pchvml_parser_new_byte_sequence(
-                parser, parser->temp_buffer);
+        struct pcvcm_node *node = create_byte_sequenct(parser->temp_buffer);
         if (node == NULL) {
             SET_ERR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
             RETURN_AND_STOP_PARSE();
