@@ -25,13 +25,17 @@
 
 #include "config.h"
 
-#if 1
 #include "private/instance.h"
 #include "private/errors.h"
 #include "private/debug.h"
 #include "private/utils.h"
+#include "private/stack.h"
 
 #include <math.h>
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #if HAVE(GLIB)
 #include <gmodule.h>
@@ -88,7 +92,6 @@ struct pchvml_token *pcejson_parse_inner(struct pchvml_parser *parser,     \
     if (parser->token) {                                                \
         struct pchvml_token *token = parser->token;                     \
         parser->token = NULL;                                           \
-        parser->last_token_type = pchvml_token_get_type(token);         \
         return token;                                                   \
     }                                                                   \
                                                                         \
@@ -877,6 +880,116 @@ static inline UNUSED_FUNCTION
 bool is_ascii_alpha_numeric(uint32_t uc)
 {
     return is_ascii_digit(uc) || is_ascii_alpha(uc);
+}
+
+// ejson parser
+struct pcejson {
+    int state;
+    int return_state;
+    uint32_t depth;
+    uint32_t max_depth;
+    uint32_t flags;
+
+    struct ucwrap* curr_uc;
+    struct rwswrap* rwswrap;
+    struct uc_buffer* temp_buffer;
+    struct uc_buffer* string_buffer;
+    struct pchvml_token* token;
+    struct pcvcm_node* vcm_node;
+    struct pcvcm_stack* vcm_stack;
+    struct pcutils_stack* ejson_stack;
+    uint32_t prev_separator;
+    uint32_t nr_quoted;
+    bool enable_print_log;
+};
+
+#define PRINT_LOG_SWITCH_FILE "/tmp/purc_print_ejson_parser"
+
+struct pcejson *pcejson_create_ex(uint32_t depth, uint32_t flags)
+{
+    struct pcejson* parser = (struct pcejson*) pc_alloc(
+            sizeof(struct pcejson));
+    parser->state = 0;
+    parser->max_depth = depth;
+    parser->depth = 0;
+    parser->flags = flags;
+
+    parser->curr_uc = NULL;
+    parser->rwswrap = rwswrap_new();
+    parser->temp_buffer = uc_buffer_new();
+    parser->string_buffer = uc_buffer_new();
+    parser->vcm_stack = pcvcm_stack_new();
+    parser->ejson_stack = pcutils_stack_new(0);
+    parser->prev_separator = 0;
+    parser->nr_quoted = 0;
+    struct stat st;
+    parser->enable_print_log = (stat(PRINT_LOG_SWITCH_FILE, &st) == 0);
+
+    return parser;
+}
+
+void pcejson_destroy_ex(struct pcejson *parser)
+{
+    if (parser) {
+        rwswrap_destroy(parser->rwswrap);
+        uc_buffer_destroy(parser->temp_buffer);
+        uc_buffer_destroy(parser->string_buffer);
+        struct pcvcm_node* n = parser->vcm_node;
+        parser->vcm_node = NULL;
+        while (!pcvcm_stack_is_empty(parser->vcm_stack)) {
+            struct pcvcm_node* node = pcvcm_stack_pop(parser->vcm_stack);
+            pctree_node_append_child(
+                    (struct pctree_node*)node, (struct pctree_node*)n);
+            n = node;
+        }
+        pcvcm_node_destroy(n);
+        pcvcm_stack_destroy(parser->vcm_stack);
+        pcutils_stack_destroy(parser->ejson_stack);
+        pc_free(parser);
+    }
+}
+
+void pcejson_reset_ex(struct pcejson *parser, uint32_t depth, uint32_t flags)
+{
+    parser->state = 0;
+    parser->max_depth = depth;
+    parser->depth = 0;
+    parser->flags = flags;
+
+    rwswrap_destroy(parser->rwswrap);
+    parser->rwswrap = rwswrap_new();
+
+    uc_buffer_reset(parser->temp_buffer);
+    uc_buffer_reset(parser->string_buffer);
+
+    struct pcvcm_node* n = parser->vcm_node;
+    parser->vcm_node = NULL;
+    while (!pcvcm_stack_is_empty(parser->vcm_stack)) {
+        struct pcvcm_node *node = pcvcm_stack_pop(parser->vcm_stack);
+        pctree_node_append_child(
+                (struct pctree_node *)node, (struct pctree_node *)n);
+        n = node;
+    }
+    pcvcm_node_destroy(n);
+    pcvcm_stack_destroy(parser->vcm_stack);
+    parser->vcm_stack = pcvcm_stack_new();
+    pcutils_stack_destroy(parser->ejson_stack);
+    parser->ejson_stack = pcutils_stack_new(0);
+    parser->prev_separator = 0;
+    parser->nr_quoted = 0;
+}
+
+static inline UNUSED_FUNCTION
+bool pcejson_inc_depth (struct pcejson* parser)
+{
+    parser->depth++;
+    return parser->depth <= parser->max_depth;
+}
+
+static inline UNUSED_FUNCTION
+void pcejson_dec_depth (struct pcejson* parser)
+{
+    parser->depth--;
 }
 
 #if 0
@@ -2794,4 +2907,3 @@ END_STATE()
 PCEJSON_PARSER_END
 #endif
 
-#endif
