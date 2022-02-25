@@ -310,29 +310,30 @@ static inline bool eraser(void* native_entity)
 {
     PC_ASSERT(native_entity);
 
-    struct purc_broken_down_url url = ((struct pcvdom_dvobj_hvml *)
-        native_entity)->url;
+    struct pcvdom_dvobj_hvml *hvml = (struct pcvdom_dvobj_hvml*)native_entity;
 
-    if (url.schema)
-        free (url.schema);
+    struct purc_broken_down_url *url = &hvml->url;
 
-    if (url.user)
-        free (url.user);
+    if (url->schema)
+        free (url->schema);
 
-    if (url.passwd)
-        free (url.passwd);
+    if (url->user)
+        free (url->user);
 
-    if (url.host)
-        free (url.host);
+    if (url->passwd)
+        free (url->passwd);
 
-    if (url.path)
-        free (url.path);
+    if (url->host)
+        free (url->host);
 
-    if (url.query)
-        free (url.query);
+    if (url->path)
+        free (url->path);
 
-    if (url.fragment)
-        free (url.fragment);
+    if (url->query)
+        free (url->query);
+
+    if (url->fragment)
+        free (url->fragment);
 
     free (native_entity);
 
