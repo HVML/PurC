@@ -22,6 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#if 0
 #include "private/ejson.h"
 #include "private/errors.h"
 #include "purc-utils.h"
@@ -1866,4 +1867,4 @@ BEGIN_STATE(EJSON_VALUE_NAN_STATE)
 END_STATE()
 
 PCEJSON_NEXT_TOKEN_END
-
+#endif

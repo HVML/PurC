@@ -480,6 +480,10 @@ int purc_rwstream_read_utf8_char (purc_rwstream_t rws, char* buf_utf8,
         while (c & (0x80 >> n))
             n++;
 
+        if (n < 2) {
+            RWSTREAM_SET_ERROR(PURC_ERROR_BAD_ENCODING);
+            return -1;
+        }
         ch_len = n;
     }
     else
@@ -505,7 +509,30 @@ int purc_rwstream_read_utf8_char (purc_rwstream_t rws, char* buf_utf8,
         read_len--;
     }
 
+    if (ch_len > 3) {
+        RWSTREAM_SET_ERROR(PURC_ERROR_BAD_ENCODING);
+        return -1;
+    }
+
     *buf_wc = utf8_to_uint32_t((const unsigned char*)buf_utf8, ch_len);
+    // verify
+    switch (ch_len) {
+    case 1:
+        ch_len =  (*buf_wc <= 0x7F) ? ch_len : -1;
+        break;
+
+    case 2:
+        ch_len = (*buf_wc >= 0x80 && *buf_wc <= 0x7FF) ? ch_len : -1;
+        break;
+
+    case 3:
+        ch_len = (*buf_wc >= 0x800 && *buf_wc <= 0xFFFF) ? ch_len : -1;
+        break;
+    }
+
+    if (ch_len < 0) {
+        RWSTREAM_SET_ERROR(PURC_ERROR_BAD_ENCODING);
+    }
     return ch_len;
 }
 

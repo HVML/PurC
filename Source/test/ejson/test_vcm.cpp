@@ -165,8 +165,8 @@ TEST_P(ejson_parser_vcm_eval, parse_and_serialize)
     ASSERT_GT(n, 0) << "Test Case : "<< get_name();
 
     buf[n] = 0;
-    //fprintf(stderr, "buf=%s\n", buf);
-    //fprintf(stderr, "com=%s\n", comp);
+    fprintf(stderr, "buf=%s\n", buf);
+    fprintf(stderr, "com=%s\n", comp);
     ASSERT_STREQ(buf, comp) << "Test Case : "<< get_name();
 
     purc_variant_unref(vt);
@@ -227,7 +227,7 @@ std::vector<ejson_test_data> read_ejson_test_data()
     char data_path[PATH_MAX+1] =  {0};
     getpath_from_env_or_rel(data_path, sizeof(data_path), env, "data");
 
-    if (0) {
+    if (1) {
     if (strlen(data_path)) {
         char file_path[1024] = {0};
         strcpy (file_path, data_path);
