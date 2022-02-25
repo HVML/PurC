@@ -81,12 +81,12 @@
 } while (0)
 
 #define PCEJSON_PARSER_BEGIN                                            \
-struct pchvml_token* pcejson_parse_inner(struct pchvml_parser* parser,     \
+struct pchvml_token *pcejson_parse_inner(struct pchvml_parser *parser,     \
                                           purc_rwstream_t rws)          \
 {                                                                       \
     uint32_t character = 0;                                             \
     if (parser->token) {                                                \
-        struct pchvml_token* token = parser->token;                     \
+        struct pchvml_token *token = parser->token;                     \
         parser->token = NULL;                                           \
         parser->last_token_type = pchvml_token_get_type(token);         \
         return token;                                                   \
@@ -142,7 +142,7 @@ next_state:                                                             \
 #define BEGIN_STATE(state_name)                                             \
     case state_name:                                                        \
     {                                                                       \
-        const char* curr_state_name = ""#state_name;                        \
+        const char *curr_state_name = ""#state_name;                        \
         int curr_state = state_name;                                        \
         UNUSED_PARAM(curr_state_name);                                      \
         UNUSED_PARAM(curr_state);                                           \
@@ -252,8 +252,8 @@ next_state:                                                             \
 
 #define POP_AS_VCM_PARENT_AND_UPDATE_VCM()                                  \
     do {                                                                    \
-        struct pcvcm_node* parent = pcvcm_stack_pop(parser->vcm_stack);     \
-        struct pcvcm_node* child = parser->vcm_node;                        \
+        struct pcvcm_node *parent = pcvcm_stack_pop(parser->vcm_stack);     \
+        struct pcvcm_node *child = parser->vcm_node;                        \
         APPEND_CHILD(parent, child);                                        \
         UPDATE_VCM_NODE(parent);                                            \
     } while (false)
@@ -329,21 +329,24 @@ struct rwswrap {
     int consumed;
 };
 
-struct ucwrap* ucwrap_new(void)
+static UNUSED_FUNCTION
+struct ucwrap *ucwrap_new(void)
 {
     return pc_alloc(sizeof(struct ucwrap));
 }
 
-void ucwrap_destroy(struct ucwrap* uc)
+static UNUSED_FUNCTION
+void ucwrap_destroy(struct ucwrap *uc)
 {
     if (uc) {
         pc_free(uc);
     }
 }
 
-struct rwswrap* rwswrap_new(void)
+static UNUSED_FUNCTION
+struct rwswrap *rwswrap_new(void)
 {
-    struct rwswrap* wrap = pc_alloc(sizeof(struct rwswrap));
+    struct rwswrap *wrap = pc_alloc(sizeof(struct rwswrap));
     if (!wrap) {
         return NULL;
     }
@@ -355,14 +358,14 @@ struct rwswrap* rwswrap_new(void)
     return wrap;
 }
 
-void rwswrap_set_rwstream(struct rwswrap* wrap,
-        purc_rwstream_t rws)
+static UNUSED_FUNCTION
+void rwswrap_set_rwstream(struct rwswrap *wrap, purc_rwstream_t rws)
 {
     wrap->rws = rws;
 }
 
-static struct ucwrap*
-rwswrap_read_from_rwstream(struct rwswrap* wrap)
+static UNUSED_FUNCTION
+struct ucwrap *rwswrap_read_from_rwstream(struct rwswrap *wrap)
 {
     char c[8] = {0};
     uint32_t uc = 0;
@@ -384,10 +387,10 @@ rwswrap_read_from_rwstream(struct rwswrap* wrap)
     return &wrap->curr_uc;
 }
 
-static struct ucwrap*
-rwswrap_read_from_reconsume_list(struct rwswrap* wrap)
+static UNUSED_FUNCTION
+struct ucwrap *rwswrap_read_from_reconsume_list(struct rwswrap *wrap)
 {
-    struct ucwrap* puc = list_entry(wrap->reconsume_list.next,
+    struct ucwrap *puc = list_entry(wrap->reconsume_list.next,
             struct ucwrap, list);
     wrap->curr_uc = *puc;
     list_del_init(&puc->list);
@@ -400,7 +403,7 @@ rwswrap_read_from_reconsume_list(struct rwswrap* wrap)
         fprintf(stderr, "begin print %s list\n|", tag);                     \
         struct list_head *p, *n;                                            \
         list_for_each_safe(p, n, uc_list) {                                 \
-            struct ucwrap* puc = list_entry(p, struct ucwrap, list);  \
+            struct ucwrap *puc = list_entry(p, struct ucwrap, list);        \
             fprintf(stderr, "%c", puc->character);                          \
         }                                                                   \
         fprintf(stderr, "|\nend print %s list\n", tag);                     \
@@ -412,10 +415,10 @@ rwswrap_read_from_reconsume_list(struct rwswrap* wrap)
 #define PRINT_RECONSUM_LIST(wrap)    \
         print_uc_list(&wrap->reconsume_list, "reconsume")
 
-static bool
-rwswrap_add_consumed(struct rwswrap* wrap, struct ucwrap* uc)
+static UNUSED_FUNCTION
+bool rwswrap_add_consumed(struct rwswrap *wrap, struct ucwrap *uc)
 {
-    struct ucwrap* p = ucwrap_new();
+    struct ucwrap *p = ucwrap_new();
     if (!p) {
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return false;
@@ -426,7 +429,7 @@ rwswrap_add_consumed(struct rwswrap* wrap, struct ucwrap* uc)
     wrap->nr_consumed_list++;
 
     if (wrap->nr_consumed_list > NR_CONSUMED_LIST_LIMIT) {
-        struct ucwrap* first = list_first_entry(
+        struct ucwrap *first = list_first_entry(
                 &wrap->consumed_list, struct ucwrap, list);
         list_del_init(&first->list);
         ucwrap_destroy(first);
@@ -435,13 +438,14 @@ rwswrap_add_consumed(struct rwswrap* wrap, struct ucwrap* uc)
     return true;
 }
 
-bool rwswrap_reconsume_last_char(struct rwswrap* wrap)
+static UNUSED_FUNCTION
+bool rwswrap_reconsume_last_char(struct rwswrap *wrap)
 {
     if (!wrap->nr_consumed_list) {
         return true;
     }
 
-    struct ucwrap* last = list_last_entry(
+    struct ucwrap *last = list_last_entry(
             &wrap->consumed_list, struct ucwrap, list);
     list_del_init(&last->list);
     wrap->nr_consumed_list--;
@@ -450,9 +454,10 @@ bool rwswrap_reconsume_last_char(struct rwswrap* wrap)
     return true;
 }
 
-struct ucwrap* rwswrap_next_char(struct rwswrap* wrap)
+static UNUSED_FUNCTION
+struct ucwrap *rwswrap_next_char(struct rwswrap *wrap)
 {
-    struct ucwrap* ret = NULL;
+    struct ucwrap *ret = NULL;
     if (list_empty(&wrap->reconsume_list)) {
         ret = rwswrap_read_from_rwstream(wrap);
     }
@@ -466,17 +471,18 @@ struct ucwrap* rwswrap_next_char(struct rwswrap* wrap)
     return NULL;
 }
 
-void rwswrap_destroy(struct rwswrap* wrap)
+static UNUSED_FUNCTION
+void rwswrap_destroy(struct rwswrap *wrap)
 {
     if (wrap) {
         struct list_head *p, *n;
         list_for_each_safe(p, n, &wrap->reconsume_list) {
-            struct ucwrap* puc = list_entry(p, struct ucwrap, list);
+            struct ucwrap *puc = list_entry(p, struct ucwrap, list);
             list_del_init(&puc->list);
             ucwrap_destroy(puc);
         }
         list_for_each_safe(p, n, &wrap->consumed_list) {
-            struct ucwrap* puc = list_entry(p, struct ucwrap, list);
+            struct ucwrap *puc = list_entry(p, struct ucwrap, list);
             list_del_init(&puc->list);
             ucwrap_destroy(puc);
         }
@@ -573,13 +579,13 @@ bool is_ascii_alpha_numeric(uint32_t uc)
 
 #if 0
 static UNUSED_FUNCTION
-struct pcvcm_node* pchvml_parser_new_byte_sequence (struct pchvml_parser* hvml,
-    struct pchvml_buffer* buffer)
+struct pcvcm_node *pchvml_parser_new_byte_sequence (struct pchvml_parser *hvml,
+    struct pchvml_buffer *buffer)
 {
     UNUSED_PARAM(hvml);
     UNUSED_PARAM(buffer);
     size_t nr_bytes = pchvml_buffer_get_size_in_bytes(buffer);
-    const char* bytes = pchvml_buffer_get_buffer(buffer);
+    const char *bytes = pchvml_buffer_get_buffer(buffer);
     if (bytes[1] == 'x') {
         return pcvcm_node_new_byte_sequence_from_bx(bytes + 2, nr_bytes - 2);
     }
@@ -742,7 +748,7 @@ BEGIN_STATE(EJSON_CONTROL_STATE)
         if (uc == ':') {
             ejson_stack_pop();
             if (!pchvml_buffer_is_empty(parser->temp_buffer)) {
-                struct pcvcm_node* node = pcvcm_node_new_string(
+                struct pcvcm_node *node = pcvcm_node_new_string(
                 pchvml_buffer_get_buffer(parser->temp_buffer));
                 APPEND_AS_VCM_CHILD(node);
                 RESET_TEMP_BUFFER();
@@ -799,7 +805,7 @@ BEGIN_STATE(EJSON_DOLLAR_STATE)
             vcm_stack_push(parser->vcm_node);
         }
         ejson_stack_push('$');
-        struct pcvcm_node* snode = pcvcm_node_new_get_variable(NULL);
+        struct pcvcm_node *snode = pcvcm_node_new_get_variable(NULL);
         UPDATE_VCM_NODE(snode);
         ADVANCE_TO(EJSON_DOLLAR_STATE);
     }
@@ -824,7 +830,7 @@ BEGIN_STATE(EJSON_JSONEE_FULL_STOP_SIGN_STATE)
                 PCVCM_NODE_TYPE_FUNC_CALL_SETTER
                 )) {
         ejson_stack_push('.');
-        struct pcvcm_node* node = pcvcm_node_new_get_element(NULL,
+        struct pcvcm_node *node = pcvcm_node_new_get_element(NULL,
                 NULL);
         APPEND_CHILD(node, parser->vcm_node);
         UPDATE_VCM_NODE(node);
@@ -849,7 +855,7 @@ BEGIN_STATE(EJSON_LEFT_BRACE_STATE)
         if (parser->vcm_node) {
             vcm_stack_push(parser->vcm_node);
         }
-        struct pcvcm_node* node = pcvcm_node_new_object(0, NULL);
+        struct pcvcm_node *node = pcvcm_node_new_object(0, NULL);
         UPDATE_VCM_NODE(node);
         RECONSUME_IN(EJSON_BEFORE_NAME_STATE);
     }
@@ -913,7 +919,7 @@ BEGIN_STATE(EJSON_RIGHT_BRACE_STATE)
         if (uc == 'P') {
             ejson_stack_pop();
             ejson_stack_push('{');
-            struct pcvcm_node* node = pcvcm_node_new_object(0, NULL);
+            struct pcvcm_node *node = pcvcm_node_new_object(0, NULL);
             APPEND_CHILD(node, parser->vcm_node);
             vcm_stack_push(node);
             RESET_VCM_NODE();
@@ -933,7 +939,7 @@ BEGIN_STATE(EJSON_LEFT_BRACKET_STATE)
     if (character == '[') {
         if (parser->vcm_node && ejson_stack_is_empty()) {
             ejson_stack_push('[');
-            struct pcvcm_node* node = pcvcm_node_new_get_element(NULL,
+            struct pcvcm_node *node = pcvcm_node_new_get_element(NULL,
                     NULL);
             APPEND_CHILD(node, parser->vcm_node);
             UPDATE_VCM_NODE(node);
@@ -944,7 +950,7 @@ BEGIN_STATE(EJSON_LEFT_BRACKET_STATE)
                 parser->vcm_node->type ==
                 PCVCM_NODE_TYPE_FUNC_GET_ELEMENT)) {
             ejson_stack_push('.');
-            struct pcvcm_node* node = pcvcm_node_new_get_element(NULL,
+            struct pcvcm_node *node = pcvcm_node_new_get_element(NULL,
                     NULL);
             APPEND_CHILD(node, parser->vcm_node);
             UPDATE_VCM_NODE(node);
@@ -957,7 +963,7 @@ BEGIN_STATE(EJSON_LEFT_BRACKET_STATE)
             if (parser->vcm_node) {
                 vcm_stack_push(parser->vcm_node);
             }
-            struct pcvcm_node* node = pcvcm_node_new_array(0, NULL);
+            struct pcvcm_node *node = pcvcm_node_new_array(0, NULL);
             UPDATE_VCM_NODE(node);
             ADVANCE_TO(EJSON_CONTROL_STATE);
         }
@@ -994,7 +1000,7 @@ BEGIN_STATE(EJSON_RIGHT_BRACKET_STATE)
         if (uc == '[') {
             ejson_stack_pop();
             POP_AS_VCM_PARENT_AND_UPDATE_VCM();
-            struct pcvcm_node* parent = (struct pcvcm_node*)
+            struct pcvcm_node *parent = (struct pcvcm_node*)
                 pctree_node_parent((struct pctree_node*)parser->vcm_node);
             if (parent) {
                 UPDATE_VCM_NODE(parent);
@@ -1027,7 +1033,7 @@ BEGIN_STATE(EJSON_LEFT_PARENTHESIS_STATE)
                 PCVCM_NODE_TYPE_FUNC_GET_VARIABLE ||
                 parser->vcm_node->type ==
                 PCVCM_NODE_TYPE_FUNC_GET_ELEMENT) {
-            struct pcvcm_node* node = pcvcm_node_new_call_setter(NULL,
+            struct pcvcm_node *node = pcvcm_node_new_call_setter(NULL,
                     0, NULL);
             APPEND_CHILD(node, parser->vcm_node);
             UPDATE_VCM_NODE(node);
@@ -1041,7 +1047,7 @@ BEGIN_STATE(EJSON_LEFT_PARENTHESIS_STATE)
             PCVCM_NODE_TYPE_FUNC_GET_VARIABLE ||
             parser->vcm_node->type ==
             PCVCM_NODE_TYPE_FUNC_GET_ELEMENT) {
-        struct pcvcm_node* node = pcvcm_node_new_call_getter(NULL,
+        struct pcvcm_node *node = pcvcm_node_new_call_getter(NULL,
                 0, NULL);
         APPEND_CHILD(node, parser->vcm_node);
         UPDATE_VCM_NODE(node);
@@ -1098,7 +1104,7 @@ BEGIN_STATE(EJSON_AFTER_VALUE_STATE)
     }
     if (character == '"' || character == '\'') {
         if (!pchvml_buffer_is_empty(parser->temp_buffer)) {
-            struct pcvcm_node* node = pcvcm_node_new_string(
+            struct pcvcm_node *node = pcvcm_node_new_string(
                     pchvml_buffer_get_buffer(parser->temp_buffer));
             APPEND_AS_VCM_CHILD(node);
             RESET_TEMP_BUFFER();
@@ -1127,7 +1133,7 @@ BEGIN_STATE(EJSON_AFTER_VALUE_STATE)
         }
         if (uc == '[') {
             if (!pchvml_buffer_is_empty(parser->temp_buffer)) {
-                struct pcvcm_node* node = pcvcm_node_new_string(
+                struct pcvcm_node *node = pcvcm_node_new_string(
                 pchvml_buffer_get_buffer(parser->temp_buffer));
                 APPEND_AS_VCM_CHILD(node);
                 RESET_TEMP_BUFFER();
@@ -1144,7 +1150,7 @@ BEGIN_STATE(EJSON_AFTER_VALUE_STATE)
         if (uc == ':') {
             ejson_stack_pop();
             if (!pchvml_buffer_is_empty(parser->temp_buffer)) {
-                struct pcvcm_node* node = pcvcm_node_new_string(
+                struct pcvcm_node *node = pcvcm_node_new_string(
                 pchvml_buffer_get_buffer(parser->temp_buffer));
                 APPEND_AS_VCM_CHILD(node);
                 RESET_TEMP_BUFFER();
@@ -1216,7 +1222,7 @@ BEGIN_STATE(EJSON_AFTER_NAME_STATE)
     }
     if (character == ':') {
         if (!pchvml_buffer_is_empty(parser->temp_buffer)) {
-            struct pcvcm_node* node = pcvcm_node_new_string(
+            struct pcvcm_node *node = pcvcm_node_new_string(
                 pchvml_buffer_get_buffer(parser->temp_buffer));
             APPEND_AS_VCM_CHILD(node);
         }
@@ -1239,12 +1245,12 @@ BEGIN_STATE(EJSON_NAME_UNQUOTED_STATE)
         if (parser->vcm_node) {
             vcm_stack_push(parser->vcm_node);
         }
-        struct pcvcm_node* snode = pcvcm_node_new_concat_string(0,
+        struct pcvcm_node *snode = pcvcm_node_new_concat_string(0,
                 NULL);
         UPDATE_VCM_NODE(snode);
         ejson_stack_push('U');
         if (!pchvml_buffer_is_empty(parser->temp_buffer)) {
-            struct pcvcm_node* node = pcvcm_node_new_string(
+            struct pcvcm_node *node = pcvcm_node_new_string(
                     pchvml_buffer_get_buffer(parser->temp_buffer)
                     );
             APPEND_AS_VCM_CHILD(node);
@@ -1290,7 +1296,7 @@ BEGIN_STATE(EJSON_NAME_DOUBLE_QUOTED_STATE)
         else if (nr_buf_chars == 1) {
             RESET_TEMP_BUFFER();
             RESTORE_VCM_NODE();
-            struct pcvcm_node* node = pcvcm_node_new_string ("");
+            struct pcvcm_node *node = pcvcm_node_new_string ("");
             APPEND_AS_VCM_CHILD(node);
             ADVANCE_TO(EJSON_AFTER_NAME_STATE);
         }
@@ -1309,12 +1315,12 @@ BEGIN_STATE(EJSON_NAME_DOUBLE_QUOTED_STATE)
         if (parser->vcm_node) {
             vcm_stack_push(parser->vcm_node);
         }
-        struct pcvcm_node* snode = pcvcm_node_new_concat_string(0,
+        struct pcvcm_node *snode = pcvcm_node_new_concat_string(0,
                 NULL);
         UPDATE_VCM_NODE(snode);
         ejson_stack_push('"');
         if (!pchvml_buffer_is_empty(parser->temp_buffer)) {
-            struct pcvcm_node* node = pcvcm_node_new_string(
+            struct pcvcm_node *node = pcvcm_node_new_string(
                     pchvml_buffer_get_buffer(parser->temp_buffer)
                     );
             APPEND_AS_VCM_CHILD(node);
@@ -1372,7 +1378,7 @@ BEGIN_STATE(EJSON_VALUE_DOUBLE_QUOTED_STATE)
         if (parser->vcm_node) {
             vcm_stack_push(parser->vcm_node);
         }
-        struct pcvcm_node* snode = pcvcm_node_new_concat_string(0,
+        struct pcvcm_node *snode = pcvcm_node_new_concat_string(0,
                 NULL);
         UPDATE_VCM_NODE(snode);
         ejson_stack_push('"');
@@ -1382,7 +1388,7 @@ BEGIN_STATE(EJSON_VALUE_DOUBLE_QUOTED_STATE)
                 rwswrap_reconsume_last_char(parser->rwswrap);
                 pchvml_buffer_delete_tail_chars(parser->temp_buffer, 1);
                 if (!pchvml_buffer_is_empty(parser->temp_buffer)) {
-                    struct pcvcm_node* node = pcvcm_node_new_string(
+                    struct pcvcm_node *node = pcvcm_node_new_string(
                             pchvml_buffer_get_buffer(parser->temp_buffer)
                             );
                     APPEND_AS_VCM_CHILD(node);
@@ -1394,7 +1400,7 @@ BEGIN_STATE(EJSON_VALUE_DOUBLE_QUOTED_STATE)
                 rwswrap_reconsume_last_char(parser->rwswrap);
                 pchvml_buffer_delete_tail_chars(parser->temp_buffer, 2);
                 if (!pchvml_buffer_is_empty(parser->temp_buffer)) {
-                    struct pcvcm_node* node = pcvcm_node_new_string(
+                    struct pcvcm_node *node = pcvcm_node_new_string(
                             pchvml_buffer_get_buffer(parser->temp_buffer)
                             );
                     APPEND_AS_VCM_CHILD(node);
@@ -1402,7 +1408,7 @@ BEGIN_STATE(EJSON_VALUE_DOUBLE_QUOTED_STATE)
             }
             else {
                 rwswrap_reconsume_last_char(parser->rwswrap);
-                struct pcvcm_node* node = pcvcm_node_new_string(
+                struct pcvcm_node *node = pcvcm_node_new_string(
                         pchvml_buffer_get_buffer(parser->temp_buffer)
                         );
                 APPEND_AS_VCM_CHILD(node);
@@ -1436,7 +1442,7 @@ BEGIN_STATE(EJSON_VALUE_TWO_DOUBLE_QUOTED_STATE)
         }
     }
     RESTORE_VCM_NODE();
-    struct pcvcm_node* node = pcvcm_node_new_string(
+    struct pcvcm_node *node = pcvcm_node_new_string(
             pchvml_buffer_get_buffer(parser->temp_buffer)
             );
     APPEND_AS_VCM_CHILD(node);
@@ -1456,7 +1462,7 @@ BEGIN_STATE(EJSON_VALUE_THREE_DOUBLE_QUOTED_STATE)
                     "\"\"\"", 3)) {
             RESTORE_VCM_NODE();
             pchvml_buffer_delete_tail_chars(parser->temp_buffer, 3);
-            struct pcvcm_node* node = pcvcm_node_new_string(
+            struct pcvcm_node *node = pcvcm_node_new_string(
                     pchvml_buffer_get_buffer(parser->temp_buffer)
                     );
             APPEND_AS_VCM_CHILD(node);
@@ -1484,12 +1490,12 @@ BEGIN_STATE(EJSON_KEYWORD_STATE)
         if (parser->vcm_node) {
             vcm_stack_push(parser->vcm_node);
         }
-        struct pcvcm_node* snode = pcvcm_node_new_concat_string(0,
+        struct pcvcm_node *snode = pcvcm_node_new_concat_string(0,
                 NULL);
         UPDATE_VCM_NODE(snode);
         ejson_stack_push('U');
         if (!pchvml_buffer_is_empty(parser->temp_buffer)) {
-            struct pcvcm_node* node = pcvcm_node_new_string(
+            struct pcvcm_node *node = pcvcm_node_new_string(
                     pchvml_buffer_get_buffer(parser->temp_buffer)
                     );
             APPEND_AS_VCM_CHILD(node);
@@ -1568,7 +1574,7 @@ BEGIN_STATE(EJSON_AFTER_KEYWORD_STATE)
             || character == ')') {
         if (pchvml_buffer_equal_to(parser->temp_buffer, "true", 4)) {
             RESTORE_VCM_NODE();
-            struct pcvcm_node* node = pcvcm_node_new_boolean(true);
+            struct pcvcm_node *node = pcvcm_node_new_boolean(true);
             APPEND_AS_VCM_CHILD(node);
             RESET_TEMP_BUFFER();
             RECONSUME_IN(EJSON_AFTER_VALUE_STATE);
@@ -1576,13 +1582,13 @@ BEGIN_STATE(EJSON_AFTER_KEYWORD_STATE)
         if (pchvml_buffer_equal_to(parser->temp_buffer, "false",
                     5)) {
             RESTORE_VCM_NODE();
-            struct pcvcm_node* node = pcvcm_node_new_boolean(false);
+            struct pcvcm_node *node = pcvcm_node_new_boolean(false);
             APPEND_AS_VCM_CHILD(node);
             RESET_TEMP_BUFFER();
             RECONSUME_IN(EJSON_AFTER_VALUE_STATE);
         }
         if (pchvml_buffer_equal_to(parser->temp_buffer, "null", 4)) {
-            struct pcvcm_node* node = pcvcm_node_new_null();
+            struct pcvcm_node *node = pcvcm_node_new_null();
             APPEND_AS_VCM_CHILD(node);
             RESET_TEMP_BUFFER();
             RECONSUME_IN(EJSON_AFTER_VALUE_STATE);
@@ -1617,12 +1623,12 @@ BEGIN_STATE(EJSON_BYTE_SEQUENCE_STATE)
         if (parser->vcm_node) {
             vcm_stack_push(parser->vcm_node);
         }
-        struct pcvcm_node* snode = pcvcm_node_new_concat_string(0,
+        struct pcvcm_node *snode = pcvcm_node_new_concat_string(0,
                 NULL);
         UPDATE_VCM_NODE(snode);
         ejson_stack_push('U');
         if (!pchvml_buffer_is_empty(parser->temp_buffer)) {
-            struct pcvcm_node* node = pcvcm_node_new_string(
+            struct pcvcm_node *node = pcvcm_node_new_string(
                     pchvml_buffer_get_buffer(parser->temp_buffer)
                     );
             APPEND_AS_VCM_CHILD(node);
@@ -1637,7 +1643,7 @@ END_STATE()
 BEGIN_STATE(EJSON_AFTER_BYTE_SEQUENCE_STATE)
     if (is_whitespace(character) || character == '}'
             || character == ']' || character == ',' || character == ')') {
-        struct pcvcm_node* node = pchvml_parser_new_byte_sequence(
+        struct pcvcm_node *node = pchvml_parser_new_byte_sequence(
                 parser, parser->temp_buffer);
         if (node == NULL) {
             SET_ERR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
@@ -1720,12 +1726,12 @@ BEGIN_STATE(EJSON_VALUE_NUMBER_STATE)
         if (parser->vcm_node) {
             vcm_stack_push(parser->vcm_node);
         }
-        struct pcvcm_node* snode = pcvcm_node_new_concat_string(0,
+        struct pcvcm_node *snode = pcvcm_node_new_concat_string(0,
                 NULL);
         UPDATE_VCM_NODE(snode);
         ejson_stack_push('U');
         if (!pchvml_buffer_is_empty(parser->temp_buffer)) {
-            struct pcvcm_node* node = pcvcm_node_new_string(
+            struct pcvcm_node *node = pcvcm_node_new_string(
                     pchvml_buffer_get_buffer(parser->temp_buffer)
                     );
             APPEND_AS_VCM_CHILD(node);
@@ -1749,7 +1755,7 @@ BEGIN_STATE(EJSON_AFTER_VALUE_NUMBER_STATE)
         double d = strtod(
                 pchvml_buffer_get_buffer(parser->temp_buffer), NULL);
         RESTORE_VCM_NODE();
-        struct pcvcm_node* node = pcvcm_node_new_number(d);
+        struct pcvcm_node *node = pcvcm_node_new_number(d);
         APPEND_AS_VCM_CHILD(node);
         RESET_TEMP_BUFFER();
         RECONSUME_IN(EJSON_AFTER_VALUE_STATE);
@@ -1812,7 +1818,7 @@ BEGIN_STATE(EJSON_VALUE_NUMBER_FRACTION_STATE)
             long double ld = strtold (
                     pchvml_buffer_get_buffer(parser->temp_buffer), NULL);
             RESTORE_VCM_NODE();
-            struct pcvcm_node* node = pcvcm_node_new_longdouble(ld);
+            struct pcvcm_node *node = pcvcm_node_new_longdouble(ld);
             APPEND_AS_VCM_CHILD(node);
             RESET_TEMP_BUFFER();
             ADVANCE_TO(EJSON_AFTER_VALUE_STATE);
@@ -1869,7 +1875,7 @@ BEGIN_STATE(EJSON_VALUE_NUMBER_EXPONENT_INTEGER_STATE)
             long double ld = strtold (
                     pchvml_buffer_get_buffer(parser->temp_buffer), NULL);
             RESTORE_VCM_NODE();
-            struct pcvcm_node* node = pcvcm_node_new_longdouble(ld);
+            struct pcvcm_node *node = pcvcm_node_new_longdouble(ld);
             APPEND_AS_VCM_CHILD(node);
             RESET_TEMP_BUFFER();
             ADVANCE_TO(EJSON_AFTER_VALUE_NUMBER_STATE);
@@ -1901,7 +1907,7 @@ BEGIN_STATE(EJSON_VALUE_NUMBER_SUFFIX_INTEGER_STATE)
                     pchvml_buffer_get_buffer(parser->temp_buffer),
                     NULL, 10);
                 RESTORE_VCM_NODE();
-                struct pcvcm_node* node = pcvcm_node_new_ulongint(u64);
+                struct pcvcm_node *node = pcvcm_node_new_ulongint(u64);
                 APPEND_AS_VCM_CHILD(node);
                 RESET_TEMP_BUFFER();
                 ADVANCE_TO(EJSON_AFTER_VALUE_STATE);
@@ -1912,7 +1918,7 @@ BEGIN_STATE(EJSON_VALUE_NUMBER_SUFFIX_INTEGER_STATE)
                     pchvml_buffer_get_buffer(parser->temp_buffer),
                     NULL, 10);
                 RESTORE_VCM_NODE();
-                struct pcvcm_node* node = pcvcm_node_new_longint(i64);
+                struct pcvcm_node *node = pcvcm_node_new_longint(i64);
                 APPEND_AS_VCM_CHILD(node);
                 RESET_TEMP_BUFFER();
                 ADVANCE_TO(EJSON_AFTER_VALUE_STATE);
@@ -1930,7 +1936,7 @@ BEGIN_STATE(EJSON_VALUE_NUMBER_INFINITY_STATE)
                     "-Infinity", 9)) {
             double d = -INFINITY;
             RESTORE_VCM_NODE();
-            struct pcvcm_node* node = pcvcm_node_new_number(d);
+            struct pcvcm_node *node = pcvcm_node_new_number(d);
             APPEND_AS_VCM_CHILD(node);
             RESET_TEMP_BUFFER();
             RECONSUME_IN(EJSON_AFTER_VALUE_STATE);
@@ -1939,7 +1945,7 @@ BEGIN_STATE(EJSON_VALUE_NUMBER_INFINITY_STATE)
                 "Infinity", 8)) {
             double d = INFINITY;
             RESTORE_VCM_NODE();
-            struct pcvcm_node* node = pcvcm_node_new_number(d);
+            struct pcvcm_node *node = pcvcm_node_new_number(d);
             APPEND_AS_VCM_CHILD(node);
             RESET_TEMP_BUFFER();
             RECONSUME_IN(EJSON_AFTER_VALUE_STATE);
@@ -2028,7 +2034,7 @@ BEGIN_STATE(EJSON_VALUE_NAN_STATE)
         if (pchvml_buffer_equal_to(parser->temp_buffer, "NaN", 3)) {
             double d = NAN;
             RESTORE_VCM_NODE();
-            struct pcvcm_node* node = pcvcm_node_new_number(d);
+            struct pcvcm_node *node = pcvcm_node_new_number(d);
             APPEND_AS_VCM_CHILD(node);
             RESET_TEMP_BUFFER();
             RECONSUME_IN(EJSON_AFTER_VALUE_STATE);
@@ -2225,7 +2231,7 @@ BEGIN_STATE(EJSON_JSONEE_VARIABLE_STATE)
             ejson_stack_pop();
             ejson_stack_push('{');
             ejson_stack_push(':');
-            struct pcvcm_node* node = pcvcm_node_new_object(0, NULL);
+            struct pcvcm_node *node = pcvcm_node_new_object(0, NULL);
             APPEND_CHILD(node, parser->vcm_node);
             UPDATE_VCM_NODE(node);
         }
@@ -2405,12 +2411,12 @@ BEGIN_STATE(EJSON_JSONEE_STRING_STATE)
             if (parser->vcm_node) {
                 vcm_stack_push(parser->vcm_node);
             }
-            struct pcvcm_node* snode = pcvcm_node_new_concat_string(0,
+            struct pcvcm_node *snode = pcvcm_node_new_concat_string(0,
                     NULL);
             UPDATE_VCM_NODE(snode);
             ejson_stack_push('"');
             if (!pchvml_buffer_is_empty(parser->temp_buffer)) {
-                struct pcvcm_node* node = pcvcm_node_new_string(
+                struct pcvcm_node *node = pcvcm_node_new_string(
                    pchvml_buffer_get_buffer(parser->temp_buffer));
                 APPEND_AS_VCM_CHILD(node);
                 RESET_TEMP_BUFFER();
