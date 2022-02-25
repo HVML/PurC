@@ -45,11 +45,11 @@
 #define INVALID_CHARACTER    0xFFFFFFFF
 
 #if HAVE(GLIB)
-#define    PC_ALLOC(sz)   g_slice_alloc0(sz)
-#define    PC_FREE(p)     g_slice_free1(sizeof(*p), (gpointer)p)
+#define    pc_alloc(sz)   g_slice_alloc0(sz)
+#define    pc_free(p)     g_slice_free1(sizeof(*p), (gpointer)p)
 #else
-#define    PC_ALLOC(sz)   calloc(1, sz)
-#define    PC_FREE(p)     free(p)
+#define    pc_alloc(sz)   calloc(1, sz)
+#define    pc_free(p)     free(p)
 #endif
 
 #define PRINT_STATE(state_name)                                             \
@@ -331,19 +331,19 @@ struct rwswrap {
 
 struct ucwrap* ucwrap_new(void)
 {
-    return PC_ALLOC(sizeof(struct ucwrap));
+    return pc_alloc(sizeof(struct ucwrap));
 }
 
 void ucwrap_destroy(struct ucwrap* uc)
 {
     if (uc) {
-        PC_FREE(uc);
+        pc_free(uc);
     }
 }
 
 struct rwswrap* rwswrap_new(void)
 {
-    struct rwswrap* wrap = PC_ALLOC(sizeof(struct rwswrap));
+    struct rwswrap* wrap = pc_alloc(sizeof(struct rwswrap));
     if (!wrap) {
         return NULL;
     }
@@ -480,7 +480,7 @@ void rwswrap_destroy(struct rwswrap* wrap)
             list_del_init(&puc->list);
             ucwrap_destroy(puc);
         }
-        PC_FREE(wrap);
+        pc_free(wrap);
     }
 }
 
