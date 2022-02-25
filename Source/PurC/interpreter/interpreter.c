@@ -534,6 +534,52 @@ pcintr_set_input_var(pcintr_stack_t stack, purc_variant_t val)
     set_input_var(frame, val);
 }
 
+purc_variant_t
+eval_vdom_attr(pcintr_stack_t stack, struct pcvdom_attr *attr)
+{
+    PC_ASSERT(attr);
+    PC_ASSERT(attr->key);
+    if (!attr->val)
+        return purc_variant_make_undefined();
+
+    return pcvcm_eval(attr->val, stack);
+}
+
+int
+pcintr_set_edom_attribute(pcintr_stack_t stack, struct pcvdom_attr *attr)
+{
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_stack_get_bottom_frame(stack);
+    PC_ASSERT(frame);
+    PC_ASSERT(frame->edom_element);
+
+    PC_ASSERT(attr);
+    PC_ASSERT(attr->key);
+    const char *sv = "";
+
+    purc_variant_t val = eval_vdom_attr(stack, attr);
+    if (val == PURC_VARIANT_INVALID)
+        return -1;
+
+    if (!purc_variant_is_undefined(val)) {
+        PC_ASSERT(purc_variant_is_string(val));
+        sv = purc_variant_get_string_const(val);
+        PC_ASSERT(sv);
+    }
+
+    int r = pcintr_util_set_attribute(frame->edom_element, attr->key, sv);
+    PC_ASSERT(r == 0);
+    PURC_VARIANT_SAFE_CLEAR(val);
+
+    return r ? -1 : 0;
+}
+
+purc_variant_t
+pcintr_eval_vdom_attr(pcintr_stack_t stack, struct pcvdom_attr *attr)
+{
+    return eval_vdom_attr(stack, attr);
+}
+
 struct pcintr_walk_attrs_ud {
     struct pcintr_stack_frame       *frame;
     struct pcvdom_element           *element;
@@ -560,43 +606,43 @@ walk_attr(void *key, void *val, void *ud)
     struct pcvdom_element *element = data->element;
     PC_ASSERT(element);
 
-    struct pcvcm_node *vcm = attr->val;
+    // struct pcvcm_node *vcm = attr->val;
 
-    purc_variant_t value = PURC_VARIANT_INVALID;
-    if (!vcm) {
-        value = purc_variant_make_undefined();
-        PC_ASSERT(value != PURC_VARIANT_INVALID);
-    }
-    else {
-        pcintr_stack_t stack = purc_get_stack();
-        PC_ASSERT(stack);
-        value = pcvcm_eval(vcm, stack);
-        if (value == PURC_VARIANT_INVALID ||
-            purc_variant_is_undefined(value))
-        {
-            if (0) {
-                _D("attr name: %s", attr->key);
-                PRINT_VCM_NODE(vcm);
-            }
-            if (value != PURC_VARIANT_INVALID)
-                purc_variant_unref(value);
-            return -1;
-        }
-    }
+    // purc_variant_t value = PURC_VARIANT_INVALID;
+    // if (!vcm) {
+    //     value = purc_variant_make_undefined();
+    //     PC_ASSERT(value != PURC_VARIANT_INVALID);
+    // }
+    // else {
+    //     pcintr_stack_t stack = purc_get_stack();
+    //     PC_ASSERT(stack);
+    //     value = pcvcm_eval(vcm, stack);
+    //     if (value == PURC_VARIANT_INVALID ||
+    //         purc_variant_is_undefined(value))
+    //     {
+    //         if (0) {
+    //             _D("attr name: %s", attr->key);
+    //             PRINT_VCM_NODE(vcm);
+    //         }
+    //         if (value != PURC_VARIANT_INVALID)
+    //             purc_variant_unref(value);
+    //         return -1;
+    //     }
+    // }
 
 
-    bool ok;
-    // NOTE: no need to strdup attr->key
-    ok = purc_variant_object_set_by_static_ckey(frame->attr_vars,
-            attr->key, value);
-    purc_variant_unref(value);
+    // bool ok;
+    // // NOTE: no need to strdup attr->key
+    // ok = purc_variant_object_set_by_static_ckey(frame->attr_vars,
+    //         attr->key, value);
+    // purc_variant_unref(value);
 
-    if (!ok)
-        return -1;
+    // if (!ok)
+    //     return -1;
 
     purc_atom_t atom = PCHVML_KEYWORD_ATOM(HVML, attr->key);
     // NOTE: we only dispatch those keyworded-attr to caller
-    return data->cb(frame, element, atom, value, attr, data->ud);
+    return data->cb(frame, element, atom, attr, data->ud);
 }
 
 int

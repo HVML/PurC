@@ -386,10 +386,6 @@ bool
 pcintr_load_dynamic_variant(pcintr_stack_t stack,
     const char *name, size_t len);
 
-// $<
-void
-pcintr_set_input_var(pcintr_stack_t stack, purc_variant_t val);
-
 // utilities
 void
 pcintr_util_dump_document_ex(pchtml_html_document_t *doc,
