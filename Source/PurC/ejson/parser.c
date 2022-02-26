@@ -1083,6 +1083,13 @@ BEGIN_STATE(EJSON_FINISHED_STATE)
         ejson_stack_pop();
         POP_AS_VCM_PARENT_AND_UPDATE_VCM();
     }
+    if (is_eof(character)  && !ejson_stack_is_empty()) {
+        uint32_t uc = ejson_stack_top();
+        if (uc == '{' || uc == '[' || uc == '(' || uc == ':') {
+            SET_ERR(PCEJSON_ERROR_UNEXPECTED_EOF);
+            return -1;
+        }
+    }
     ejson_stack_reset();
     *vcm_tree = parser->vcm_node;
     parser->vcm_node = NULL;
@@ -1183,6 +1190,9 @@ BEGIN_STATE(EJSON_CONTROL_STATE)
         RECONSUME_IN(EJSON_VALUE_NUMBER_STATE);
     }
     if (is_eof(character)) {
+        if (parser->vcm_node) {
+            RECONSUME_IN(EJSON_FINISHED_STATE);
+        }
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_EOF);
         RETURN_AND_STOP_PARSE();
     }
@@ -1314,6 +1324,9 @@ END_STATE()
 
 BEGIN_STATE(EJSON_RIGHT_BRACE_STATE)
     if (is_eof(character)) {
+        if (parser->vcm_node) {
+            RECONSUME_IN(EJSON_FINISHED_STATE);
+        }
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_EOF);
         RETURN_AND_STOP_PARSE();
     }
