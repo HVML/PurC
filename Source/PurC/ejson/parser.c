@@ -1159,6 +1159,7 @@ BEGIN_STATE(EJSON_CONTROL_STATE)
     }
     if (character == '\'') {
         RESET_TEMP_BUFFER();
+        RESET_QUOTED_COUNTER();
         RECONSUME_IN(EJSON_VALUE_SINGLE_QUOTED_STATE);
     }
     if (character == 'b') {
@@ -1781,9 +1782,11 @@ END_STATE()
 
 BEGIN_STATE(EJSON_VALUE_SINGLE_QUOTED_STATE)
     if (character == '\'') {
+        parser->nr_quoted++;
         size_t nr_buf_chars = uc_buffer_get_size_in_chars(
                 parser->temp_buffer);
-        if (nr_buf_chars >= 1) {
+        if (parser->nr_quoted > 1 || nr_buf_chars >= 1) {
+            RESET_QUOTED_COUNTER();
             RECONSUME_IN(EJSON_AFTER_VALUE_STATE);
         }
         else {
@@ -2580,6 +2583,7 @@ BEGIN_STATE(EJSON_JSONEE_VARIABLE_STATE)
     }
     if (character == '\'') {
         if (uc_buffer_is_empty(parser->temp_buffer)) {
+            RESET_QUOTED_COUNTER();
             RECONSUME_IN(EJSON_VALUE_SINGLE_QUOTED_STATE);
         }
     }
