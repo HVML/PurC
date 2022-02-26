@@ -2250,7 +2250,8 @@ END_STATE()
 
 BEGIN_STATE(EJSON_VALUE_NUMBER_FRACTION_STATE)
     if (is_whitespace(character) || character == '}'
-            || character == ']' || character == ',' || character == ')') {
+            || character == ']' || character == ',' || character == ')'
+            || is_eof(character)) {
         RECONSUME_IN(EJSON_AFTER_VALUE_NUMBER_STATE);
     }
 
