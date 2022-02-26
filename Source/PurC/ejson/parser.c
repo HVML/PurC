@@ -1146,6 +1146,7 @@ BEGIN_STATE(EJSON_CONTROL_STATE)
         if (uc == '"' || uc == '\'' || uc == 'U') {
             RECONSUME_IN(EJSON_AFTER_JSONEE_STRING_STATE);
         }
+        pcejson_dec_depth(parser);
         ADVANCE_TO(EJSON_RIGHT_PARENTHESIS_STATE);
     }
     if (character == '$') {
@@ -1311,6 +1312,10 @@ BEGIN_STATE(EJSON_LEFT_BRACE_STATE)
     if (uc == 'P') {
         ejson_stack_pop();
         ejson_stack_push('{');
+        if (!pcejson_inc_depth(parser)) {
+            SET_ERR(PCEJSON_ERROR_MAX_DEPTH_EXCEEDED);
+            return -1;
+        }
         if (parser->vcm_node) {
             vcm_stack_push(parser->vcm_node);
         }
@@ -1338,6 +1343,7 @@ BEGIN_STATE(EJSON_RIGHT_BRACE_STATE)
         }
         if (uc == '{') {
             ejson_stack_pop();
+            pcejson_dec_depth(parser);
             POP_AS_VCM_PARENT_AND_UPDATE_VCM();
             if (ejson_stack_is_empty()) {
                 ADVANCE_TO(EJSON_FINISHED_STATE);
@@ -1422,6 +1428,10 @@ BEGIN_STATE(EJSON_LEFT_BRACKET_STATE)
         if (uc == '(' || uc == '<' || uc == '[' || uc == ':' || uc == 0
                 || uc == '"') {
             ejson_stack_push('[');
+            if (!pcejson_inc_depth(parser)) {
+                SET_ERR(PCEJSON_ERROR_MAX_DEPTH_EXCEEDED);
+                return -1;
+            }
             if (parser->vcm_node) {
                 vcm_stack_push(parser->vcm_node);
             }
@@ -1461,6 +1471,7 @@ BEGIN_STATE(EJSON_RIGHT_BRACKET_STATE)
         }
         if (uc == '[') {
             ejson_stack_pop();
+            pcejson_dec_depth(parser);
             POP_AS_VCM_PARENT_AND_UPDATE_VCM();
             struct pcvcm_node *parent = (struct pcvcm_node*)
                 pctree_node_parent((struct pctree_node*)parser->vcm_node);
@@ -1509,6 +1520,10 @@ BEGIN_STATE(EJSON_LEFT_PARENTHESIS_STATE)
             PCVCM_NODE_TYPE_FUNC_GET_VARIABLE ||
             parser->vcm_node->type ==
             PCVCM_NODE_TYPE_FUNC_GET_ELEMENT) {
+        if (!pcejson_inc_depth(parser)) {
+            SET_ERR(PCEJSON_ERROR_MAX_DEPTH_EXCEEDED);
+            return -1;
+        }
         struct pcvcm_node *node = pcvcm_node_new_call_getter(NULL,
                 0, NULL);
         APPEND_CHILD(node, parser->vcm_node);
@@ -1585,6 +1600,7 @@ BEGIN_STATE(EJSON_AFTER_VALUE_STATE)
         RECONSUME_IN(EJSON_RIGHT_BRACKET_STATE);
     }
     if (character == ')') {
+        pcejson_dec_depth(parser);
         ADVANCE_TO(EJSON_RIGHT_PARENTHESIS_STATE);
     }
     if (character == ',') {
