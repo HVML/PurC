@@ -35,108 +35,7 @@
 
 #define PCEJSON_DEFAULT_DEPTH 32
 
-enum ejson_state {
-    EJSON_INIT_STATE,
-    EJSON_FINISHED_STATE,
-    EJSON_OBJECT_STATE,
-    EJSON_AFTER_OBJECT_STATE,
-    EJSON_ARRAY_STATE,
-    EJSON_AFTER_ARRAY_STATE,
-    EJSON_BEFORE_NAME_STATE,
-    EJSON_AFTER_NAME_STATE,
-    EJSON_BEFORE_VALUE_STATE,
-    EJSON_AFTER_VALUE_STATE,
-    EJSON_NAME_UNQUOTED_STATE,
-    EJSON_NAME_SINGLE_QUOTED_STATE,
-    EJSON_NAME_DOUBLE_QUOTED_STATE,
-    EJSON_VALUE_SINGLE_QUOTED_STATE,
-    EJSON_VALUE_DOUBLE_QUOTED_STATE,
-    EJSON_AFTER_VALUE_DOUBLE_QUOTED_STATE,
-    EJSON_VALUE_TWO_DOUBLE_QUOTED_STATE,
-    EJSON_VALUE_THREE_DOUBLE_QUOTED_STATE,
-    EJSON_KEYWORD_STATE,
-    EJSON_AFTER_KEYWORD_STATE,
-    EJSON_BYTE_SEQUENCE_STATE,
-    EJSON_AFTER_BYTE_SEQUENCE_STATE,
-    EJSON_HEX_BYTE_SEQUENCE_STATE,
-    EJSON_BINARY_BYTE_SEQUENCE_STATE,
-    EJSON_BASE64_BYTE_SEQUENCE_STATE,
-    EJSON_VALUE_NUMBER_STATE,
-    EJSON_AFTER_VALUE_NUMBER_STATE,
-    EJSON_VALUE_NUMBER_INTEGER_STATE,
-    EJSON_VALUE_NUMBER_FRACTION_STATE,
-    EJSON_VALUE_NUMBER_EXPONENT_STATE,
-    EJSON_VALUE_NUMBER_EXPONENT_INTEGER_STATE,
-    EJSON_VALUE_NUMBER_SUFFIX_INTEGER_STATE,
-    EJSON_VALUE_NUMBER_INFINITY_STATE,
-    EJSON_VALUE_NAN_STATE,
-    EJSON_STRING_ESCAPE_STATE,
-    EJSON_STRING_ESCAPE_FOUR_HEXADECIMAL_DIGITS_STATE
-};
-
-enum ejson_token_type {
-    EJSON_TOKEN_START_OBJECT,
-    EJSON_TOKEN_END_OBJECT,
-    EJSON_TOKEN_START_ARRAY,
-    EJSON_TOKEN_END_ARRAY,
-    EJSON_TOKEN_KEY,
-    EJSON_TOKEN_STRING,
-    EJSON_TOKEN_NULL,
-    EJSON_TOKEN_BOOLEAN,
-    EJSON_TOKEN_NUMBER,
-    EJSON_TOKEN_LONG_INT,
-    EJSON_TOKEN_ULONG_INT,
-    EJSON_TOKEN_LONG_DOUBLE,
-    EJSON_TOKEN_COMMA,
-    EJSON_TOKEN_TEXT,
-    EJSON_TOKEN_BYTE_SQUENCE,
-    EJSON_TOKEN_INFINITY,
-    EJSON_TOKEN_NAN,
-    EJSON_TOKEN_EOF,
-};
-
-
-struct pcejson {
-    enum ejson_state state;
-    enum ejson_state return_state;
-    uint32_t depth;
-    uint32_t max_depth;
-    uint32_t flags;
-    struct pcutils_stack* stack;
-    struct pcutils_stack* vcm_stack;
-    purc_rwstream_t tmp_buff;
-    purc_rwstream_t tmp_buff2;
-    char c[8];
-    int c_len;
-    uint32_t wc;
-    bool need_reconsume;
-};
-
-struct pcejson_token {
-    enum ejson_token_type type;
-    union {
-        /* for boolean */
-        bool        b;
-
-        /* for number */
-        double      d;
-
-        /* for long integer */
-        int64_t     i64;
-
-        /* for unsigned long integer */
-        uint64_t    u64;
-
-        /* for long double */
-        long double ld;
-
-        /* for long string, long byte sequence, array, object,
-         * and set (sz_ptr[0] for size, sz_ptr[1] for pointer).
-         */
-        uintptr_t   sz_ptr[2];
-    };
-
-};
+struct pcejson;
 
 #ifdef __cplusplus
 extern "C" {
@@ -167,23 +66,6 @@ void pcejson_reset (struct pcejson* parser, uint32_t depth, uint32_t flags);
  */
 int pcejson_parse (struct pcvcm_node** vcm_tree, struct pcejson** parser,
                    purc_rwstream_t rwstream, uint32_t depth);
-
-/*
- * Create a new pcejson token.
- */
-struct pcejson_token* pcejson_token_new (enum ejson_token_type type,
-                                         const uint8_t* bytes, size_t nr_bytes);
-
-/*
- * Destory pcejson token.
- */
-void pcejson_token_destroy (struct pcejson_token* token);
-
-/*
- * Get one pcejson token from rwstream.
- */
-struct pcejson_token* pcejson_next_token (struct pcejson* ejson,
-                                          purc_rwstream_t rws);
 
 #ifdef __cplusplus
 }
