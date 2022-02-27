@@ -131,10 +131,11 @@ int pcrdr_free_connection (pcrdr_conn* conn)
 
     struct pending_request *pr, *n;
     list_for_each_entry_safe (pr, n, &conn->pending_requests, list) {
-        pr->response_handler(conn, pr->request_id,
-                    PCRDR_RESPONSE_CANCELLED, pr->context, NULL);
+        pr->response_handler(conn,
+                purc_variant_get_string_const(pr->request_id),
+                PCRDR_RESPONSE_CANCELLED, pr->context, NULL);
         list_del(&pr->list);
-        free(pr->request_id);
+        purc_variant_unref(pr->request_id);
         free(pr);
     }
 
@@ -186,7 +187,7 @@ int pcrdr_send_request(pcrdr_conn* conn, pcrdr_msg *request_msg,
         return -1;
     }
 
-    pr->request_id = strdup(request_msg->requestId);
+    pr->request_id = purc_variant_ref(request_msg->requestId);
     pr->response_handler = response_handler;
     pr->context = context;
     if (seconds_expected <= 0 || seconds_expected > 3600)
@@ -196,6 +197,17 @@ int pcrdr_send_request(pcrdr_conn* conn, pcrdr_msg *request_msg,
     list_add_tail(&pr->list, &conn->pending_requests);
 
     return 0;
+}
+
+static inline int
+variant_strcmp(purc_variant_t a, purc_variant_t b)
+{
+    if (a == b)
+        return 0;
+
+    return strcmp(
+            purc_variant_get_string_const(a),
+            purc_variant_get_string_const(b));
 }
 
 static int
@@ -208,14 +220,15 @@ handle_response_message(pcrdr_conn* conn, const pcrdr_msg *msg)
         pr = list_first_entry(&conn->pending_requests,
                 struct pending_request, list);
 
-        if (strcmp(msg->requestId, pr->request_id) == 0) {
-            if (pr->response_handler(conn, msg->requestId,
+        if (variant_strcmp(msg->requestId, pr->request_id) == 0) {
+            if (pr->response_handler(conn,
+                        purc_variant_get_string_const(msg->requestId),
                         PCRDR_RESPONSE_RESULT, pr->context, msg) < 0) {
                 retval = -1;
             }
 
             list_del(&pr->list);
-            free(pr->request_id);
+            purc_variant_unref(pr->request_id);
             free(pr);
         }
         else {
@@ -239,10 +252,11 @@ check_timeout_requests(pcrdr_conn *conn)
 
     list_for_each_entry_safe (pr, n, &conn->pending_requests, list) {
         if (now >= pr->time_expected) {
-            pr->response_handler(conn, pr->request_id,
+            pr->response_handler(conn,
+                    purc_variant_get_string_const(pr->request_id),
                         PCRDR_RESPONSE_TIMEOUT, pr->context, NULL);
             list_del(&pr->list);
-            free(pr->request_id);
+            purc_variant_unref(pr->request_id);
             free(pr);
         }
     }
@@ -251,21 +265,22 @@ check_timeout_requests(pcrdr_conn *conn)
 }
 
 static int
-send_default_response_msg(pcrdr_conn *conn, const char* request_id)
+send_default_response_msg(pcrdr_conn *conn, purc_variant_t request_id)
 {
     int retval = 0;
-    pcrdr_msg *msg;
+    pcrdr_msg msg;
 
-    msg = pcrdr_make_response_message(
-        request_id,
-        PCRDR_SC_OK, 0,
-        PCRDR_MSG_DATA_TYPE_VOID, NULL, 0);
+    msg.type = PCRDR_MSG_TYPE_RESPONSE;
+    msg.requestId = request_id;
+    msg.retCode = PCRDR_SC_OK;
+    msg.resultValue = 0;
+    msg.dataType = PCRDR_MSG_DATA_TYPE_VOID;
+    msg.data = NULL;
 
-    if (conn->send_message(conn, msg) < 0) {
+    if (conn->send_message(conn, &msg) < 0) {
         retval = -1;
     }
 
-    pcrdr_release_message(msg);
     return retval;
 }
 
@@ -388,7 +403,7 @@ int pcrdr_send_request_and_wait_response(pcrdr_conn* conn,
         return -1;
     }
 
-    pr->request_id = strdup(request_msg->requestId);
+    pr->request_id = purc_variant_ref(request_msg->requestId);
     pr->response_handler = my_sync_response_handler;
     pr->context = response_msg;
     if (seconds_expected <= 0 || seconds_expected > 3600)

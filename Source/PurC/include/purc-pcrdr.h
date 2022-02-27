@@ -36,6 +36,7 @@
 
 #include "purc-macros.h"
 #include "purc-rwstream.h"
+#include "purc-variant.h"
 #include "purc-errors.h"
 #include "purc-utils.h"
 
@@ -594,17 +595,19 @@ struct pcrdr_msg {
     unsigned int            retCode;
 
     uintptr_t       targetValue;
-    char *          operation;
-    char *          element;
-    char *          property;
-    char *          event;
-
-    char *          requestId;
-
     uintptr_t       resultValue;
 
-    size_t          dataLen;
-    char *          data;
+    purc_variant_t  operation;
+    purc_variant_t  element;
+    purc_variant_t  property;
+    purc_variant_t  event;
+
+    purc_variant_t  requestId;
+
+    purc_variant_t  data;
+
+    /* internal use only */
+    size_t          _data_len;
 };
 
 /**
@@ -683,6 +686,18 @@ pcrdr_make_event_message(
         pcrdr_msg_element_type element_type, const char *element,
         const char *property,
         pcrdr_msg_data_type data_type, const char* data, size_t data_len);
+
+/**
+ * Clone a message.
+ *
+ * @param msg: The pointer to a message.
+ *
+ * Returns: The pointer to the cloned new message; NULL for error.
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT pcrdr_msg *
+pcrdr_clone_message(const pcrdr_msg* msg);
 
 /**
  * Parse a packet and make a corresponding message.

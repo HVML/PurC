@@ -71,8 +71,9 @@ int pcrdr_init_instance(struct pcinst* inst,
 
 void pcrdr_cleanup_instance(struct pcinst* inst) WTF_INTERNAL;
 
-struct renderer_capabilities *pcrdr_parse_renderer_capabilities(char *data,
-        size_t data_len) WTF_INTERNAL;
+struct renderer_capabilities *
+pcrdr_parse_renderer_capabilities(const char *data) WTF_INTERNAL;
+
 void pcrdr_release_renderer_capabilities(
         struct renderer_capabilities *rdr_caps) WTF_INTERNAL;
 

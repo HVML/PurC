@@ -87,7 +87,8 @@ int pcrdr_init_instance(struct pcinst* inst,
 
     if (msg->type == PCRDR_MSG_TYPE_RESPONSE && msg->retCode == PCRDR_SC_OK) {
         inst->rdr_caps =
-            pcrdr_parse_renderer_capabilities(msg->data, msg->dataLen);
+            pcrdr_parse_renderer_capabilities(
+                    purc_variant_get_string_const(msg->data));
         if (inst->rdr_caps == NULL)
             goto failed;
     }
