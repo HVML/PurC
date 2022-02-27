@@ -90,10 +90,10 @@ static pcrdr_msg *my_read_message (pcrdr_conn* conn)
     void* packet;
     size_t data_len;
     pcrdr_msg* msg = NULL;
-    int err_code, retval;
+    int err_code = 0, retval;
 
-    err_code = pcrdr_purcmc_read_packet_alloc (conn, &packet, &data_len);
-    if (err_code) {
+    retval = pcrdr_purcmc_read_packet_alloc (conn, &packet, &data_len);
+    if (retval) {
         PC_DEBUG ("Failed to read packet\n");
         goto done;
     }
@@ -113,7 +113,6 @@ static pcrdr_msg *my_read_message (pcrdr_conn* conn)
 done:
     if (err_code) {
         purc_set_error (err_code);
-        err_code = -1;
 
         if (msg) {
             pcrdr_release_message (msg);
