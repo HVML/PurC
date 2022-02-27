@@ -29,9 +29,6 @@
 
 #include "instance.h"
 
-#define PCRDR_OPERATION_START_SESSION   "startSession"
-#define PCRDR_OPERATION_END_SESSION     "endSession"
-
 #define PCRDR_TIME_DEF_EXPECTED         5
 
 /* the capabilities of a renderer */

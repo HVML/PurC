@@ -53,6 +53,24 @@
 #define PCRDR_LOCALHOST                 "localhost"
 #define PCRDR_NOT_AVAILABLE             "<N/A>"
 
+/* operations */
+#define PCRDR_OPERATION_STARTSESSION        "startSession"
+#define PCRDR_OPERATION_ENDSESSION          "endSession"
+#define PCRDR_OPERATION_CREATEWORKSPACE     "createWorkspace"
+#define PCRDR_OPERATION_DESTROYWORKSPACE    "destroyWorkspace"
+#define PCRDR_OPERATION_UPDATEWORKSPACE     "updateWorkspace"
+#define PCRDR_OPERATION_CREATEPLAINWINDOW   "createPlainWindow"
+#define PCRDR_OPERATION_UPDATEPLAINWINDOW   "updatePlainWindow"
+#define PCRDR_OPERATION_DESTROYPLAINWINDOW  "destroyPlainWindow"
+#define PCRDR_OPERATION_CREATETABBEDWINDOW  "createTabbedWindow"
+#define PCRDR_OPERATION_UPDATETABBEDWINDOW  "updateTabbedWindow"
+#define PCRDR_OPERATION_DESCTROYTABBEDWINDOW    "desctroyTabbedWindow"
+#define PCRDR_OPERATION_CREATETAB           "createTab"
+#define PCRDR_OPERATION_UPDATETAB           "updateTab"
+#define PCRDR_OPERATION_DESTROYTAB          "destroyTab"
+#define PCRDR_OPERATION_LOAD                "load"
+#define PCRDR_OPERATION_UPDATE              "update"
+
 /* Status Codes */
 #define PCRDR_SC_IOERR                  1
 #define PCRDR_SC_OK                     200

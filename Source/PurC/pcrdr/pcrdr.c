@@ -32,6 +32,7 @@
 #include "private/debug.h"
 #include "private/utils.h"
 #include "private/pcrdr.h"
+#include "connect.h"
 
 #include "pcrdr_err_msgs.inc"
 
@@ -97,7 +98,7 @@ int pcrdr_init_instance(struct pcinst* inst,
 
     /* send startSession request and wait for the response */
     msg = pcrdr_make_request_message(PCRDR_MSG_TARGET_SESSION, 0,
-            PCRDR_OPERATION_START_SESSION, NULL,
+            PCRDR_OPERATION_STARTSESSION, NULL,
             PCRDR_MSG_ELEMENT_TYPE_VOID, NULL, NULL,
             PCRDR_MSG_DATA_TYPE_VOID, NULL, 0);
     if (msg == NULL) {
@@ -105,10 +106,17 @@ int pcrdr_init_instance(struct pcinst* inst,
         goto failed;
     }
 
-    session_data = purc_variant_make_object(2,
-            purc_variant_make_string_static("app", false),
+    session_data = purc_variant_make_object(5,
+            purc_variant_make_string_static("protocolName", false),
+            purc_variant_make_string_static(PCRDR_PURCMC_PROTOCOL_NAME, false),
+            purc_variant_make_string_static("protocolVersion", false),
+            purc_variant_make_ulongint(PCRDR_PURCMC_PROTOCOL_VERSION),
+            purc_variant_make_string_static("hostName", false),
+            purc_variant_make_string_static(inst->conn_to_rdr->own_host_name,
+                false),
+            purc_variant_make_string_static("appName", false),
             purc_variant_make_string_static(inst->app_name, false),
-            purc_variant_make_string_static("runner", false),
+            purc_variant_make_string_static("runnerName", false),
             purc_variant_make_string_static(inst->runner_name, false));
     if (session_data == PURC_VARIANT_INVALID) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
