@@ -218,19 +218,26 @@ int pcrdr_purcmc_connect_via_unix_socket (const char* path_to_socket,
     int fd, len, err_code = PCRDR_ERROR_BAD_CONNECTION;
     struct sockaddr_un unix_addr;
     char peer_name [33];
-    char *ch_code = NULL;
+
+    if (!pcrdr_is_valid_app_name(app_name) ||
+            !pcrdr_is_valid_runner_name(runner_name)) {
+        purc_set_error(PURC_EXCEPT_INVALID_VALUE);
+        return -1;
+    }
 
     if ((*conn = calloc (1, sizeof (pcrdr_conn))) == NULL) {
         PC_DEBUG ("Failed to callocate space for connection: %s\n",
                 strerror (errno));
-        return PCRDR_ERROR_NOMEM;
+        purc_set_error(PCRDR_ERROR_NOMEM);
+        return -1;
     }
 
     /* create a Unix domain stream socket */
     if ((fd = socket (AF_UNIX, SOCK_STREAM, 0)) < 0) {
         PC_DEBUG ("Failed to call `socket` in pcrdr_purcmc_connect_via_unix_socket: %s\n",
                 strerror (errno));
-        return PCRDR_ERROR_IO;
+        purc_set_error(PCRDR_ERROR_IO);
+        return -1;
     }
 
     {
@@ -281,8 +288,8 @@ int pcrdr_purcmc_connect_via_unix_socket (const char* path_to_socket,
     (*conn)->fd = fd;
     (*conn)->srv_host_name = NULL;
     (*conn)->own_host_name = strdup (PCRDR_LOCALHOST);
-    (*conn)->app_name = strdup (app_name);
-    (*conn)->runner_name = strdup (runner_name);
+    (*conn)->app_name = app_name;
+    (*conn)->runner_name = runner_name;
 
     (*conn)->wait_message = my_wait_message;
     (*conn)->read_message = my_read_message;
@@ -297,18 +304,12 @@ int pcrdr_purcmc_connect_via_unix_socket (const char* path_to_socket,
 error:
     close (fd);
 
-    if (ch_code)
-        free (ch_code);
     if ((*conn)->own_host_name)
-       free ((*conn)->own_host_name);
-    if ((*conn)->app_name)
-       free ((*conn)->app_name);
-    if ((*conn)->runner_name)
-       free ((*conn)->runner_name);
-    free (*conn);
+       free((*conn)->own_host_name);
+    free(*conn);
     *conn = NULL;
 
-    purc_set_error (err_code);
+    purc_set_error(err_code);
     return -1;
 }
 
