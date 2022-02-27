@@ -355,21 +355,21 @@ unreferenced(purc_variant_t value)
     pcvariant_on_post_fired(value, pcvariant_atom_unreference, 0, NULL);
 }
 
-unsigned int purc_variant_ref (purc_variant_t value)
+purc_variant_t purc_variant_ref (purc_variant_t value)
 {
     PC_ASSERT(value);
 
     /* this should not occur */
     if (value->refc == 0) {
         PC_ASSERT(0);
-        return 0;
+        return PURC_VARIANT_INVALID;
     }
 
     value->refc++;
 
     referenced(value);
 
-    return value->refc;
+    return value;
 }
 
 unsigned int purc_variant_unref(purc_variant_t value)

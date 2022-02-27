@@ -52,7 +52,7 @@ PCA_EXTERN_C_BEGIN
  *
  * Since: 0.0.1
  */
-PCA_EXPORT unsigned int purc_variant_ref(purc_variant_t value);
+PCA_EXPORT purc_variant_t purc_variant_ref(purc_variant_t value);
 
 /**
  * substract ref for a variant value. When ref is zero, releases the resource
