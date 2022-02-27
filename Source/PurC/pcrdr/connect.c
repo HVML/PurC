@@ -341,8 +341,10 @@ int pcrdr_wait_and_dispatch_message (pcrdr_conn* conn, int timeout_ms)
     return retval;
 }
 
+#define MSG_POINTER_INVALID     ((pcrdr_msg *)(-1))
+
 static int
-my_response_handler(pcrdr_conn* conn,
+my_sync_response_handler(pcrdr_conn* conn,
         const char *request_id, int state,
         void *context, const pcrdr_msg *response_msg)
 {
@@ -352,7 +354,10 @@ my_response_handler(pcrdr_conn* conn,
     (void)state;
     (void)request_id;
 
-    *msg_buff = (pcrdr_msg *)response_msg;
+    if (state == PCRDR_RESPONSE_RESULT)
+        *msg_buff = (pcrdr_msg *)response_msg;
+    else
+        *msg_buff = MSG_POINTER_INVALID;
 
     return 0;
 }
@@ -384,7 +389,7 @@ int pcrdr_send_request_and_wait_response(pcrdr_conn* conn,
     }
 
     pr->request_id = strdup(request_msg->requestId);
-    pr->response_handler = my_response_handler;
+    pr->response_handler = my_sync_response_handler;
     pr->context = response_msg;
     if (seconds_expected <= 0 || seconds_expected > 3600)
         pr->time_expected = pcrdr_get_monotoic_time() + 3600;
@@ -451,6 +456,11 @@ int pcrdr_send_request_and_wait_response(pcrdr_conn* conn,
         }
 
         check_timeout_requests(conn);
+
+        if (*response_msg == MSG_POINTER_INVALID) {
+            purc_set_error(PCRDR_ERROR_TIMEOUT);
+            retval = -1;
+        }
 
         if (retval < 0)
             break;
