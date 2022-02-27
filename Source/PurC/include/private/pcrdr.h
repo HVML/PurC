@@ -29,12 +29,15 @@
 
 #include "instance.h"
 
+#define PCRDR_OPERATION_START_SESSION   "startSession"
+#define PCRDR_OPERATION_END_SESSION     "endSession"
+
+#define PCRDR_TIME_DEF_EXPECTED         5
+
 /* the capabilities of a renderer */
 struct renderer_capabilities {
     /* the protocol name */
     char       *prot_name;
-    /* the protocol version number */
-    long int    prot_version;
 
     /* the HTML version if supported, else NULL */
     char   *html_version;
@@ -42,6 +45,9 @@ struct renderer_capabilities {
     char   *xgml_version;
     /* the XML version if supported, else NULL */
     char   *xml_version;
+
+    /* the protocol version number */
+    long int    prot_version;
 
     /* the max number of workspaces;
        0 for not supported, -1 for unlimited */
@@ -58,6 +64,9 @@ struct renderer_capabilities {
     /* the max number of window levels;
        0 for not supported, -1 for unlimited */
     long int    windowLevel;
+
+    /* the session handle */
+    uintptr_t   session_handle;
 };
 
 #ifdef __cplusplus
