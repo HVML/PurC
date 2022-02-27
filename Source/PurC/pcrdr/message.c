@@ -638,7 +638,7 @@ typedef bool (*key_op)(pcrdr_msg *msg, char *value);
 #define STR_KEY_REQUEST_ID  "requestId"
 #define STR_KEY_RESULT      "result"
 #define STR_KEY_DATA_TYPE   "dataType"
-#define STR_KEY_DATA_LEN    "_data_len"
+#define STR_KEY_DATA_LEN    "dataLen"
 
 static struct key_op_pair {
     const char *key;
@@ -695,9 +695,12 @@ int pcrdr_parse_packet(char *packet, size_t sz_packet, pcrdr_msg **msg_out)
     char *data;
 
     UNUSED_PARAM(sz_packet);
+    printf("packet:\n%s\n", packet);
 
-    if ((msg = calloc(1, sizeof(pcrdr_msg))) == NULL)
-        return PURC_ERROR_OUT_OF_MEMORY;
+    if ((msg = calloc(1, sizeof(pcrdr_msg))) == NULL) {
+        purc_set_error(PCRDR_ERROR_NOMEM);
+        return -1;
+    }
 
     for (str1 = packet; ; str1 = NULL) {
         line = strtok_r(str1, STR_LINE_SEPARATOR, &saveptr1);
@@ -736,6 +739,7 @@ int pcrdr_parse_packet(char *packet, size_t sz_packet, pcrdr_msg **msg_out)
         msg->data = purc_variant_make_string_ex(data, msg->_data_len, true);
 
         if (msg->data == NULL) {
+            printf ("failed purc_variant_make_string_ex\n");
             goto failed;
         }
     }
@@ -744,6 +748,7 @@ int pcrdr_parse_packet(char *packet, size_t sz_packet, pcrdr_msg **msg_out)
         msg->data = purc_variant_make_from_json_string(data, msg->_data_len);
 
         if (msg->data == NULL) {
+            printf ("failed purc_variant_make_from_json_string\n");
             goto failed;
         }
     }
@@ -770,7 +775,8 @@ failed:
     if (msg->data)
         purc_variant_unref(msg->data);
 
-    return PCRDR_ERROR_BAD_MESSAGE;
+    purc_set_error(PCRDR_ERROR_BAD_MESSAGE);
+    return -1;
 }
 
 static const char *type_names [] = {
@@ -801,10 +807,12 @@ static const char *data_type_names [] = {
     "text",
 };
 
+#define LEN_BUFF_LONGLONGINT    128
+
 static int
 serialize_message_data(const pcrdr_msg *msg, cb_write fn, void *ctxt)
 {
-    char buff[128];
+    char buff[LEN_BUFF_LONGLONGINT];
     int n, errcode = 0;
     size_t text_len = 0;
     const char *text = NULL;
@@ -848,12 +856,12 @@ serialize_message_data(const pcrdr_msg *msg, cb_write fn, void *ctxt)
         goto done;
     }
     else if ((size_t)n >= sizeof (buff)) {
-        PC_DEBUG ("Too small buffer for serialize message.\n");
+        PC_DEBUG ("Too small buffer to serialize message.\n");
         errcode = PCRDR_ERROR_TOO_SMALL_BUFF;
         goto done;
     }
 
-    fn(ctxt, buff, text_len);
+    fn(ctxt, buff, n);
     fn(ctxt, STR_LINE_SEPARATOR, sizeof(STR_LINE_SEPARATOR) - 1);
 
     /* a blank line */
@@ -874,7 +882,7 @@ done:
 int pcrdr_serialize_message(const pcrdr_msg *msg, cb_write fn, void *ctxt)
 {
     int n = 0;
-    char buff[128];
+    char buff[LEN_BUFF_LONGLONGINT];
     const char *value;
 
     /* type: <request | response | event> */
@@ -895,7 +903,7 @@ int pcrdr_serialize_message(const pcrdr_msg *msg, cb_write fn, void *ctxt)
         if (n < 0)
             return PCRDR_ERROR_UNEXPECTED;
         else if ((size_t)n >= sizeof (buff)) {
-            PC_DEBUG ("Too small buffer for serialize message.\n");
+            PC_DEBUG ("Too small buffer to serialize message.\n");
             return PCRDR_ERROR_TOO_SMALL_BUFF;
         }
         fn(ctxt, buff, n);
@@ -953,7 +961,7 @@ int pcrdr_serialize_message(const pcrdr_msg *msg, cb_write fn, void *ctxt)
         if (n < 0)
             return PCRDR_ERROR_UNEXPECTED;
         else if ((size_t)n >= sizeof (buff)) {
-            PC_DEBUG ("Too small buffer for serialize message.\n");
+            PC_DEBUG ("Too small buffer to serialize message.\n");
             return PCRDR_ERROR_TOO_SMALL_BUFF;
         }
         fn(ctxt, buff, n);
@@ -963,7 +971,7 @@ int pcrdr_serialize_message(const pcrdr_msg *msg, cb_write fn, void *ctxt)
         if (n < 0)
             return PCRDR_ERROR_UNEXPECTED;
         else if ((size_t)n >= sizeof (buff)) {
-            PC_DEBUG ("Too small buffer for serialize message.\n");
+            PC_DEBUG ("Too small buffer to serialize message.\n");
             return PCRDR_ERROR_TOO_SMALL_BUFF;
         }
         fn(ctxt, buff, n);
@@ -983,7 +991,7 @@ int pcrdr_serialize_message(const pcrdr_msg *msg, cb_write fn, void *ctxt)
         if (n < 0)
             return PCRDR_ERROR_UNEXPECTED;
         else if ((size_t)n >= sizeof (buff)) {
-            PC_DEBUG ("Too small buffer for serialize message.\n");
+            PC_DEBUG ("Too small buffer to serialize message.\n");
             return PCRDR_ERROR_TOO_SMALL_BUFF;
         }
         fn(ctxt, buff, n);
