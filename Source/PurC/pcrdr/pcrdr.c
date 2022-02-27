@@ -61,7 +61,8 @@ void pcrdr_init_once(void)
 int pcrdr_init_instance(struct pcinst* inst,
         const purc_instance_extra_info *extra_info)
 {
-    pcrdr_msg *msg = NULL;
+    pcrdr_msg *msg = NULL, *response_msg = NULL;
+    purc_variant_t session_data;
 
     // TODO: only PurCMC protocol and UNIX domain socket supported so far */
     if (extra_info->renderer_prot != PURC_RDRPROT_PURCMC ||
@@ -92,8 +93,48 @@ int pcrdr_init_instance(struct pcinst* inst,
         if (inst->rdr_caps == NULL)
             goto failed;
     }
-
     pcrdr_release_message(msg);
+
+    /* send startSession request and wait for the response */
+    msg = pcrdr_make_request_message(PCRDR_MSG_TARGET_SESSION, 0,
+            PCRDR_OPERATION_START_SESSION, NULL,
+            PCRDR_MSG_ELEMENT_TYPE_VOID, NULL, NULL,
+            PCRDR_MSG_DATA_TYPE_VOID, NULL, 0);
+    if (msg == NULL) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto failed;
+    }
+
+    session_data = purc_variant_make_object(2,
+            purc_variant_make_string_static("app", false),
+            purc_variant_make_string_static(inst->app_name, false),
+            purc_variant_make_string_static("runner", false),
+            purc_variant_make_string_static(inst->runner_name, false));
+    if (session_data == PURC_VARIANT_INVALID) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto failed;
+    }
+
+    msg->dataType = PCRDR_MSG_DATA_TYPE_EJSON;
+    msg->data = session_data;
+
+    if (pcrdr_send_request_and_wait_response(inst->conn_to_rdr,
+            msg, PCRDR_TIME_DEF_EXPECTED, &response_msg) < 0) {
+        goto failed;
+    }
+
+    int ret_code = response_msg->retCode;
+    if (ret_code == PCRDR_SC_OK) {
+        inst->rdr_caps->session_handle = response_msg->resultValue;
+    }
+
+    pcrdr_release_message(response_msg);
+
+    if (ret_code != PCRDR_SC_OK) {
+        purc_set_error(PCRDR_ERROR_SERVER_REFUSED);
+        goto failed;
+    }
+
     return PURC_ERROR_OK;
 
 failed:
@@ -112,9 +153,12 @@ void pcrdr_cleanup_instance(struct pcinst* inst)
 {
     if (inst->rdr_caps) {
         pcrdr_release_renderer_capabilities(inst->rdr_caps);
+        inst->rdr_caps = NULL;
     }
 
-    if (inst->conn_to_rdr)
-        pcrdr_disconnect (inst->conn_to_rdr);
+    if (inst->conn_to_rdr) {
+        pcrdr_disconnect(inst->conn_to_rdr);
+        inst->conn_to_rdr = NULL;
+    }
 }
 
