@@ -657,7 +657,7 @@ TEST(variant, pcvariant_string)
     ASSERT_NE(value, PURC_VARIANT_INVALID);
     length = purc_variant_string_length (value);
     ASSERT_EQ (length, strlen(purc_variant_get_string_const (value)) + 1);
-    ASSERT_GT (length, real_size);
+    // ASSERT_GT (length, real_size);
     purc_variant_unref(value);
 
     // create long string variant with checking, input in utf8-encoding
@@ -666,13 +666,19 @@ TEST(variant, pcvariant_string)
     ASSERT_NE(value, PURC_VARIANT_INVALID);
     length = purc_variant_string_length (value);
     ASSERT_EQ (length, strlen(purc_variant_get_string_const (value)) + 1);
-    ASSERT_GT (length, real_size);
+    // ASSERT_GT (length, real_size);
     purc_variant_unref(value);
 
     // create long string variant with checking, input not in utf8-encoding
     // expected: get PURC_VARIANT_INVALID
     value = purc_variant_make_string (long_err, true);
     ASSERT_EQ(value, PURC_VARIANT_INVALID);
+
+    // create variant from a static string without checking
+    const char *static_str = "PURC";
+    value = purc_variant_make_string_static (static_str, false);
+    const char* tmp = purc_variant_get_string_const (value);
+    ASSERT_EQ (strcmp(tmp, static_str), 0);
 
     // create short string variant with null pointer
     value = purc_variant_make_string (NULL, true);
