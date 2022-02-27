@@ -618,7 +618,7 @@ static bool on_data_type(pcrdr_msg *msg, char *value)
 static bool on_data_len(pcrdr_msg *msg, char *value)
 {
     errno = 0;
-    msg->_data_len = strtoul(value, NULL, 16);
+    msg->_data_len = strtoul(value, NULL, 10);
 
     if (errno) {
         return false;

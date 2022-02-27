@@ -423,6 +423,7 @@ int pcrdr_send_request_and_wait_response(pcrdr_conn* conn,
         pr->time_expected = pcrdr_get_monotoic_time() + 3600;
     else
         pr->time_expected = pcrdr_get_monotoic_time() + seconds_expected;
+    list_add_tail(&pr->list, &conn->pending_requests);
 
     while (*response_msg == NULL) {
 

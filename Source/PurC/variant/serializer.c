@@ -756,7 +756,7 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
         case PURC_VARIANT_TYPE_BSEQUENCE:
             if (value->flags & PCVARIANT_FLAG_STRING_STATIC) {
                 content = (const char*)value->sz_ptr[1];
-                sz_content = strlen(content);
+                sz_content = strlen(content) + 1;
             }
             else if (value->flags & PCVARIANT_FLAG_EXTRA_SIZE) {
                 content = (const char*)value->sz_ptr[1];
