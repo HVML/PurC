@@ -820,15 +820,16 @@ purc_variant_t pcvcm_node_get_element_to_variant (struct pcvcm_node* node,
         goto clean_caller_var;
     }
 
+    bool has_index = true;
     int64_t index = -1;
     if (param_node->type == PCVCM_NODE_TYPE_STRING) {
         if (pcutils_parse_int64((const char*)param_node->sz_ptr[1], param_node->sz_ptr[0],
                     &index) != 0) {
-            index = -1;
+            has_index = false;
         }
     }
     else if (!purc_variant_cast_to_longint(param_var, &index, false)) {
-        index = -1;
+        has_index = false;
     }
 
     struct pcvcm_node* parent_node = PARENT_NODE(node);
@@ -852,6 +853,13 @@ purc_variant_t pcvcm_node_get_element_to_variant (struct pcvcm_node* node,
         purc_variant_unref(val);
     }
     else if (purc_variant_is_array(caller_var)) {
+        if (!has_index) {
+            goto clear_param_var;
+        }
+        if (index < 0) {
+            size_t len = purc_variant_array_get_size(caller_var);
+            index += len;
+        }
         if (index < 0) {
             goto clear_param_var;
         }
@@ -875,6 +883,13 @@ purc_variant_t pcvcm_node_get_element_to_variant (struct pcvcm_node* node,
         purc_variant_unref(val);
     }
     else if (purc_variant_is_set(caller_var)) {
+        if (!has_index) {
+            goto clear_param_var;
+        }
+        if (index < 0) {
+            size_t len = purc_variant_set_get_size(caller_var);
+            index += len;
+        }
         if (index < 0) {
             goto clear_param_var;
         }
@@ -1042,15 +1057,6 @@ purc_variant_t pcvcm_node_to_variant (struct pcvcm_node* node,
 
         case PCVCM_NODE_TYPE_FUNC_GET_VARIABLE:
             ret = pcvcm_node_get_variable_to_variant(node, ops);
-            if (TO_DEBUG) {
-                if (ret == PURC_VARIANT_INVALID ||
-                    purc_variant_is_undefined(ret))
-                {
-                    PRINT_VCM_NODE(node);
-                    if (ret != PURC_VARIANT_INVALID)
-                        PRINT_VARIANT(ret);
-                }
-            }
             break;
 
         case PCVCM_NODE_TYPE_FUNC_GET_ELEMENT:
@@ -1070,6 +1076,10 @@ purc_variant_t pcvcm_node_to_variant (struct pcvcm_node* node,
             break;
     }
     node->attach = (uintptr_t) ret;
+    if (TO_DEBUG) {
+        PRINT_VCM_NODE(node);
+        PRINT_VARIANT(ret);
+    }
     return ret;
 }
 

@@ -217,6 +217,8 @@ struct pcintr_stack_frame {
     purc_variant_t result_var;
     // the evaluated variant which is to be used as child-element's $^
     purc_variant_t caret_var;
+    // the object-variant which is to be used as child-element's $!
+    purc_variant_t exclamation_var;
     // the idx of current iteration which is meaningful for child-element
     size_t idx;
 

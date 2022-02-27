@@ -1946,8 +1946,25 @@ END_STATE()
 BEGIN_STATE(HVML_JSONEE_ATTRIBUTE_VALUE_UNQUOTED_STATE)
     if (is_whitespace(character)) {
         if (!pchvml_buffer_is_empty(parser->temp_buffer)) {
-            APPEND_BUFFER_TO_TOKEN_ATTR_VALUE(parser->temp_buffer);
+
+            if (pchvml_buffer_is_int(parser->temp_buffer)) {
+                int64_t i64 = strtoll (
+                    pchvml_buffer_get_buffer(parser->temp_buffer),
+                    NULL, 10);
+                struct pcvcm_node* node = pcvcm_node_new_longint(i64);
+                pchvml_token_append_vcm_to_attr(parser->token, node);
+            }
+            else if (pchvml_buffer_is_number(parser->temp_buffer)) {
+                double d = strtod(
+                    pchvml_buffer_get_buffer(parser->temp_buffer), NULL);
+                struct pcvcm_node* node = pcvcm_node_new_number(d);
+                pchvml_token_append_vcm_to_attr(parser->token, node);
+            }
+            else {
+                APPEND_BUFFER_TO_TOKEN_ATTR_VALUE(parser->temp_buffer);
+            }
             RESET_TEMP_BUFFER();
+
         }
         END_TOKEN_ATTR();
         ADVANCE_TO(HVML_BEFORE_ATTRIBUTE_NAME_STATE);

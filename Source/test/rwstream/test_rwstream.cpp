@@ -284,8 +284,7 @@ TEST(stdio_rwstream, seek_read)
 
     memset(read_buf, 0, sizeof(read_buf));
     read_len = purc_rwstream_read_utf8_char (rws, read_buf, &wc);
-    ASSERT_EQ(read_len, 1);
-    ASSERT_EQ(read_buf[0], buf[5]);
+    ASSERT_EQ(read_len, -1);
 
     purc_rwstream_seek (rws, 0, SEEK_END);
     memset(read_buf, 0, sizeof(read_buf));
@@ -540,8 +539,7 @@ TEST(mem_rwstream, seek_read)
 
     memset(read_buf, 0, sizeof(read_buf));
     read_len = purc_rwstream_read_utf8_char (rws, read_buf, &wc);
-    ASSERT_EQ(read_len, 1);
-    ASSERT_EQ(read_buf[0], buf[5]);
+    ASSERT_EQ(read_len, -1);
 
     int ret = purc_rwstream_destroy (rws);
     ASSERT_EQ(ret, 0);
@@ -861,8 +859,7 @@ TEST(buffer_rwstream, seek_read)
 
     memset(read_buf, 0, sizeof(read_buf));
     read_len = purc_rwstream_read_utf8_char (rws, read_buf, &wc);
-    ASSERT_EQ(read_len, 1);
-    ASSERT_EQ(read_buf[0], buf[5]);
+    ASSERT_EQ(read_len, -1);
 
     int ret = purc_rwstream_destroy (rws);
     ASSERT_EQ(ret, 0);
@@ -1148,8 +1145,7 @@ TEST(gio_rwstream, seek_read)
 
     memset(read_buf, 0, sizeof(read_buf));
     read_len = purc_rwstream_read_utf8_char (rws, read_buf, &wc);
-    ASSERT_EQ(read_len, 1);
-    ASSERT_EQ(read_buf[0], buf[5]);
+    ASSERT_EQ(read_len, -1);
 
     int ret = purc_rwstream_destroy (rws);
     ASSERT_EQ(ret, 0);

@@ -240,7 +240,7 @@ unsigned int
 pchtml_html_document_parse_chunk_end(
                 pchtml_html_document_t *document) ;
 
-// API for parsing fragment 
+// API for parsing fragment
 pcdom_node_t *
 pchtml_html_document_parse_fragment(pchtml_html_document_t *document,
                 pcdom_element_t *element,

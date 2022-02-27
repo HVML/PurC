@@ -85,6 +85,12 @@ pcintr_template_walk(purc_variant_t val, void *ctxt,
         pcintr_template_walk_cb cb);
 
 
+typedef purc_variant_t
+(*pcintr_attribute_op)(purc_variant_t left, purc_variant_t right);
+
+pcintr_attribute_op
+pcintr_attribute_get_op(enum pchvml_attr_operator op);
+
 PCA_EXTERN_C_END
 
 #endif  /* PURC_INTERPRETER_INTERNAL_H */

@@ -81,6 +81,7 @@ stack_frame_release(struct pcintr_stack_frame *frame)
     PURC_VARIANT_SAFE_CLEAR(frame->caret_var);
     PURC_VARIANT_SAFE_CLEAR(frame->result_from_child);
     PURC_VARIANT_SAFE_CLEAR(frame->mid_vars);
+    PURC_VARIANT_SAFE_CLEAR(frame->exclamation_var);
 }
 
 static void
@@ -441,6 +442,21 @@ set_at_var(struct pcintr_stack_frame *frame,
 }
 
 static int
+set_exclamation_var(struct pcintr_stack_frame *frame,
+    struct pcintr_stack_frame *parent)
+{
+    if (parent->exclamation_var) {
+        PURC_VARIANT_SAFE_CLEAR(frame->symbol_vars[
+                PURC_SYMBOL_VAR_EXCLAMATION]);
+        frame->symbol_vars[PURC_SYMBOL_VAR_EXCLAMATION] =
+            parent->exclamation_var;
+        purc_variant_ref(parent->exclamation_var);
+    }
+
+    return 0;
+}
+
+static int
 set_symbol_vars(struct pcintr_stack_frame *frame)
 {
     struct pcintr_stack_frame *parent;
@@ -456,6 +472,8 @@ set_symbol_vars(struct pcintr_stack_frame *frame)
         return -1;
     if (set_at_var(frame, parent))
         return -1;
+    if (set_exclamation_var(frame, parent))
+        return -1;
 
     return 0;
 }
@@ -470,9 +488,18 @@ push_stack_frame(pcintr_stack_t stack)
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
     }
+    PC_ASSERT(NULL == pcintr_stack_frame_get_parent(frame));
 
     list_add_tail(&frame->node, &stack->frames);
     ++stack->nr_frames;
+
+    frame->exclamation_var = purc_variant_make_object(0,
+            PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+
+    if (frame->exclamation_var == PURC_VARIANT_INVALID) {
+        pop_stack_frame(stack);
+        return NULL;
+    }
 
     purc_variant_t undefined = purc_variant_make_undefined();
     if (undefined == PURC_VARIANT_INVALID) {
@@ -483,6 +510,7 @@ push_stack_frame(pcintr_stack_t stack)
         frame->symbol_vars[i] = undefined;
         purc_variant_ref(undefined);
     }
+
     purc_variant_unref(undefined);
 
     if (set_symbol_vars(frame)) {
@@ -1062,6 +1090,7 @@ end:
 #define BUILDIN_VAR_HVML        "HVML"
 #define BUILDIN_VAR_SYSTEM      "SYSTEM"
 #define BUILDIN_VAR_T           "T"
+#define BUILDIN_VAR_L           "L"
 #define BUILDIN_VAR_DOC         "DOC"
 #define BUILDIN_VAR_SESSION     "SESSION"
 #define BUILDIN_VAR_EJSON       "EJSON"
@@ -1107,6 +1136,12 @@ init_buidin_doc_variable(pcintr_stack_t stack)
     // $T
     if(!bind_doc_named_variable(stack, BUILDIN_VAR_T,
                 pcdvobjs_get_t())) {
+        return false;
+    }
+
+    // $L
+    if(!bind_doc_named_variable(stack, BUILDIN_VAR_L,
+                pcdvobjs_get_logical())) {
         return false;
     }
 
@@ -2048,34 +2083,51 @@ pcintr_util_add_child(pcdom_element_t *parent, const char *fmt, ...)
     }
 
     int r = -1;
-    pcdom_element_t *anchor = NULL;
+
+    pcdom_node_t *root = NULL;
     do {
-        anchor = pcintr_util_append_element(parent, "div");
-        if (!anchor)
+        pchtml_html_document_t *doc;
+        doc = pchtml_html_interface_document(
+                pcdom_interface_node(parent)->owner_document);
+        unsigned int ui;
+        ui = pchtml_html_document_parse_fragment_chunk_begin(doc, parent);
+        if (ui == 0) {
+            do {
+                ui = pchtml_html_document_parse_fragment_chunk(doc,
+                        (const unsigned char*)"<div>", 5);
+                if (ui)
+                    break;
+
+                ui = pchtml_html_document_parse_fragment_chunk(doc,
+                        (const unsigned char*)p, nr);
+                if (ui)
+                    break;
+
+                ui = pchtml_html_document_parse_fragment_chunk(doc,
+                        (const unsigned char*)"</div>", 6);
+            } while (0);
+        }
+        pcdom_node_t *div;
+        root = pchtml_html_document_parse_fragment_chunk_end(doc);
+        if (root) {
+            PC_ASSERT(root->first_child == root->last_child);
+            PC_ASSERT(root->first_child);
+            PC_ASSERT(root->first_child->type == PCDOM_NODE_TYPE_ELEMENT);
+            div = root->first_child;
+        }
+        if (ui)
             break;
 
-        pcdom_node_t *anchor_node = pcdom_interface_node(anchor);
-
-        pchtml_html_element_t *root;
-        root = pchtml_html_element_inner_html_set_with_buf(
-                pchtml_html_interface_element(anchor),
-                (const unsigned char*)p, strlen(p));
-        if (!root)
-            break;
-
-        PC_ASSERT(root == pchtml_html_interface_element(anchor));
-
-        while (anchor_node->first_child) {
-            pcdom_node_t *child = anchor_node->first_child;
+        while (div->first_child) {
+            pcdom_node_t *child = div->first_child;
             pcdom_node_remove(child);
             pcdom_node_insert_child(pcdom_interface_node(parent), child);
         }
-
         r = 0;
     } while (0);
 
-    if (anchor)
-        pcdom_node_destroy(pcdom_interface_node(anchor));
+    if (root)
+        pcdom_node_destroy(pcdom_interface_node(root));
 
     if (p != buf)
         free(p);
@@ -2100,51 +2152,145 @@ pcintr_util_set_child(pcdom_element_t *parent, const char *fmt, ...)
     }
 
     int r = -1;
-    pcdom_element_t *anchor;
+
+    pcdom_node_t *root = NULL;
     do {
-        anchor = pcintr_util_append_element(parent, "div");
-        if (!anchor)
-            break;
+        pchtml_html_document_t *doc;
+        doc = pchtml_html_interface_document(
+                pcdom_interface_node(parent)->owner_document);
+        unsigned int ui;
+        ui = pchtml_html_document_parse_fragment_chunk_begin(doc, parent);
+        if (ui == 0) {
+            do {
+                ui = pchtml_html_document_parse_fragment_chunk(doc,
+                        (const unsigned char*)"<div>", 5);
+                if (ui)
+                    break;
 
-        pcdom_node_t *anchor_node = pcdom_interface_node(anchor);
+                ui = pchtml_html_document_parse_fragment_chunk(doc,
+                        (const unsigned char*)p, nr);
+                if (ui)
+                    break;
 
-        pchtml_html_element_t *root;
-        root = pchtml_html_element_inner_html_set_with_buf(
-                pchtml_html_interface_element(anchor),
-                (const unsigned char*)p, strlen(p));
-        if (!root)
-            break;
-
-        PC_ASSERT(root == pchtml_html_interface_element(anchor));
-
-        pcdom_node_t *parent_node = pcdom_interface_node(parent);
-        pcdom_node_t *child = parent_node->first_child;
-        while (child) {
-            pcdom_node_t *next = child->next;
-            if (child != anchor_node) {
-                pcdom_node_destroy_deep(child);
-            }
-            else {
-                pcdom_node_remove(child);
-            }
-            child = next;
+                ui = pchtml_html_document_parse_fragment_chunk(doc,
+                        (const unsigned char*)"</div>", 6);
+            } while (0);
         }
+        pcdom_node_t *div;
+        root = pchtml_html_document_parse_fragment_chunk_end(doc);
+        if (root) {
+            PC_ASSERT(root->first_child == root->last_child);
+            PC_ASSERT(root->first_child);
+            PC_ASSERT(root->first_child->type == PCDOM_NODE_TYPE_ELEMENT);
+            div = root->first_child;
+        }
+        if (ui)
+            break;
 
-        while (anchor_node->first_child) {
-            pcdom_node_t *child = anchor_node->first_child;
+        pcdom_node_remove(div);
+        while (pcdom_interface_node(parent)->first_child)
+            pcdom_node_destroy_deep(pcdom_interface_node(parent)->first_child);
+
+        while (div->first_child) {
+            pcdom_node_t *child = div->first_child;
             pcdom_node_remove(child);
             pcdom_node_insert_child(pcdom_interface_node(parent), child);
         }
-
         r = 0;
     } while (0);
 
-    if (anchor)
-        pcdom_node_destroy(pcdom_interface_node(anchor));
+    if (root)
+        pcdom_node_destroy(pcdom_interface_node(root));
 
     if (p != buf)
         free(p);
 
     return r ? -1 : 0;
+}
+
+static purc_variant_t
+attribute_addition_string(const char *sl, const char *sr)
+{
+    size_t nl = strlen(sl);
+    size_t nr = strlen(sr);
+    char *buf = (char*)malloc(nl + nr + 1);
+    if (!buf) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return PURC_VARIANT_INVALID;
+    }
+    strcpy(buf, sl);
+    strcat(buf, sr);
+    _D("buf: [%s]", buf);
+    return purc_variant_make_string_reuse_buff(buf, nl+nr, true);
+}
+
+
+static purc_variant_t
+attribute_assign(purc_variant_t left, purc_variant_t right)
+{
+    UNUSED_PARAM(left);
+
+    purc_variant_ref(right);
+
+    return right;
+}
+
+static purc_variant_t
+attribute_addition(purc_variant_t left, purc_variant_t right)
+{
+    // FIXME: add or replace token
+    if (purc_variant_is_string(left)) {
+        if (purc_variant_is_string(right)) {
+            return attribute_addition_string(
+                    purc_variant_get_string_const(left),
+                    purc_variant_get_string_const(right));
+        }
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    // FIXME: numberify?
+    double dl, dr;
+    dl = purc_variant_numberify(left);
+    dr = purc_variant_numberify(right);
+
+    return purc_variant_make_number(dl + dr);
+}
+
+static purc_variant_t
+attribute_tail_addition(purc_variant_t left, purc_variant_t right)
+{
+    if (purc_variant_is_string(left)) {
+        if (purc_variant_is_string(right)) {
+            return attribute_addition_string(
+                    purc_variant_get_string_const(left),
+                    purc_variant_get_string_const(right));
+        }
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    // FIXME: numberify?
+    double dl, dr;
+    dl = purc_variant_numberify(left);
+    dr = purc_variant_numberify(right);
+
+    return purc_variant_make_number(dl + dr);
+}
+
+pcintr_attribute_op
+pcintr_attribute_get_op(enum pchvml_attr_operator op)
+{
+    switch (op) {
+        case PCHVML_ATTRIBUTE_OPERATOR:
+            return attribute_assign;
+        case PCHVML_ATTRIBUTE_ADDITION_OPERATOR:
+            return attribute_addition;
+        case PCHVML_ATTRIBUTE_TAIL_OPERATOR:
+            return attribute_tail_addition;
+        default:
+            purc_set_error(PURC_ERROR_NOT_IMPLEMENTED);
+            return NULL;
+    }
 }
 

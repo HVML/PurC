@@ -88,3 +88,17 @@ MaxDepthExceeded
     flags: None
     msg: "pcejson max depth exceeded"
 
+BadJsoneeVariableName
+    except: BadExpression
+    flags: None
+    msg: "pchvml error bad jsonee variable name"
+
+BadJsoneeName
+    except: BadExpression
+    flags: None
+    msg: "pchvml error bad jsonee name"
+
+BadJsoneeKeyword
+    except: BadExpression
+    flags: None
+    msg: "pchvml error bad jsonee keyword"

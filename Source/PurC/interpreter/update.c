@@ -53,8 +53,7 @@ struct ctxt_for_update {
     purc_variant_t                from_result;
     purc_variant_t                with;
     enum pchvml_attr_operator     with_op;
-    purc_variant_t                src;
-    enum pchvml_attr_operator     src_op;
+    pcintr_attribute_op           with_eval;
 
     purc_variant_t                literal;
 };
@@ -69,7 +68,6 @@ ctxt_for_update_destroy(struct ctxt_for_update *ctxt)
         PURC_VARIANT_SAFE_CLEAR(ctxt->from);
         PURC_VARIANT_SAFE_CLEAR(ctxt->from_result);
         PURC_VARIANT_SAFE_CLEAR(ctxt->with);
-        PURC_VARIANT_SAFE_CLEAR(ctxt->src);
         PURC_VARIANT_SAFE_CLEAR(ctxt->literal);
         free(ctxt);
     }
@@ -216,7 +214,8 @@ merge_object(pcintr_stack_t stack,
 static int
 displace_object(pcintr_stack_t stack,
         purc_variant_t on, purc_variant_t at,
-        purc_variant_t src)
+        purc_variant_t src,
+        pcintr_attribute_op with_eval)
 {
     UNUSED_PARAM(stack);
 
@@ -231,8 +230,14 @@ displace_object(pcintr_stack_t stack,
         purc_variant_t k = purc_variant_make_string(s_at, true);
         if (k == PURC_VARIANT_INVALID)
             return -1;
+        purc_variant_t o = purc_variant_object_get(on, k, true);
+        PC_ASSERT(o != PURC_VARIANT_INVALID);
+        purc_variant_t v = with_eval(o, src);
+        PC_ASSERT(v != PURC_VARIANT_INVALID);
+
         bool ok;
-        ok = purc_variant_object_set(on, k, src);
+        ok = purc_variant_object_set(on, k, v);
+        purc_variant_unref(v);
         purc_variant_unref(k);
         if (!ok) {
             purc_set_error(PURC_ERROR_INVALID_VALUE);
@@ -249,7 +254,8 @@ displace_object(pcintr_stack_t stack,
 static int
 update_object(pcintr_stack_t stack,
         purc_variant_t on, purc_variant_t at, purc_variant_t to,
-        purc_variant_t src)
+        purc_variant_t src,
+        pcintr_attribute_op with_eval)
 {
     const char *s_to = "displace";
     if (to != PURC_VARIANT_INVALID) {
@@ -262,7 +268,7 @@ update_object(pcintr_stack_t stack,
     }
 
     if (strcmp(s_to, "displace") == 0) {
-        return displace_object(stack, on, at, src);
+        return displace_object(stack, on, at, src, with_eval);
     }
 
     _D("s_to: %s", s_to);
@@ -320,18 +326,19 @@ update_object(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 #endif
 
 static int
-update_array(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
+update_array(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
+        purc_variant_t src,
+        pcintr_attribute_op with_eval)
 {
+    UNUSED_PARAM(with_eval);
     UNUSED_PARAM(co);
     struct ctxt_for_update *ctxt;
     ctxt = (struct ctxt_for_update*)frame->ctxt;
     PC_ASSERT(ctxt);
     purc_variant_t on  = ctxt->on;
     purc_variant_t to  = ctxt->to;
-    purc_variant_t src = ctxt->src;
     PC_ASSERT(on != PURC_VARIANT_INVALID);
     PC_ASSERT(to != PURC_VARIANT_INVALID);
-    PC_ASSERT(src != PURC_VARIANT_INVALID);
 
     purc_variant_t target = on;
     purc_variant_t at  = ctxt->at;
@@ -367,18 +374,19 @@ update_array(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 }
 
 static int
-update_set(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
+update_set(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
+        purc_variant_t src,
+        pcintr_attribute_op with_eval)
 {
+    UNUSED_PARAM(with_eval);
     UNUSED_PARAM(co);
     struct ctxt_for_update *ctxt;
     ctxt = (struct ctxt_for_update*)frame->ctxt;
     PC_ASSERT(ctxt);
     purc_variant_t on  = ctxt->on;
     purc_variant_t to  = ctxt->to;
-    purc_variant_t src = ctxt->src;
     PC_ASSERT(on != PURC_VARIANT_INVALID);
     PC_ASSERT(to != PURC_VARIANT_INVALID);
-    PC_ASSERT(src != PURC_VARIANT_INVALID);
 
     purc_variant_t at  = ctxt->at;
     if (at != PURC_VARIANT_INVALID) {
@@ -435,23 +443,23 @@ update_set(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 
 static int
 update_target_content(pcintr_stack_t stack, pcdom_element_t *target,
-        const char *to, purc_variant_t src)
+        const char *to, purc_variant_t src,
+        pcintr_attribute_op with_eval)
 {
     UNUSED_PARAM(stack);
     if (purc_variant_is_string(src)) {
         const char *s = purc_variant_get_string_const(src);
         if (strcmp(to, "append") == 0) {
+            UNUSED_PARAM(with_eval);
             return pcintr_util_add_child(target, "%s", s);
         }
         if (strcmp(to, "displace") == 0) {
+            UNUSED_PARAM(with_eval);
             return pcintr_util_set_child(target, "%s", s);
         }
         _D("to: %s", to);
         PC_ASSERT(0);
         return -1;
-    }
-    if (purc_variant_is_ulongint(src)) {
-        // return update_target_content_with_archetype(stack, target, to, src);
     }
     PRINT_VARIANT(src);
     PC_ASSERT(0);
@@ -460,12 +468,14 @@ update_target_content(pcintr_stack_t stack, pcdom_element_t *target,
 
 static int
 update_target_attr(pcintr_stack_t stack, pcdom_element_t *target,
-        const char *at, const char *to, purc_variant_t src)
+        const char *at, const char *to, purc_variant_t src,
+        pcintr_attribute_op with_eval)
 {
     UNUSED_PARAM(stack);
     if (purc_variant_is_string(src)) {
         const char *s = purc_variant_get_string_const(src);
         if (strcmp(to, "displace") == 0) {
+            UNUSED_PARAM(with_eval);
             return pcintr_util_set_attribute(target, at, s);
         }
         _D("to: %s", to);
@@ -485,7 +495,8 @@ update_target_attr(pcintr_stack_t stack, pcdom_element_t *target,
 
 static int
 update_target(pcintr_stack_t stack, pcdom_element_t *target,
-        purc_variant_t at, purc_variant_t to, purc_variant_t src)
+        purc_variant_t at, purc_variant_t to, purc_variant_t src,
+        pcintr_attribute_op with_eval)
 {
     const char *s_to = "displace";
     if (to != PURC_VARIANT_INVALID) {
@@ -500,11 +511,11 @@ update_target(pcintr_stack_t stack, pcdom_element_t *target,
     }
 
     if (strcmp(s_at, "textContent") == 0) {
-        return update_target_content(stack, target, s_to, src);
+        return update_target_content(stack, target, s_to, src, with_eval);
     }
     if (strncmp(s_at, "attr.", 5) == 0) {
         s_at += 5;
-        return update_target_attr(stack, target, s_at, s_to, src);
+        return update_target_attr(stack, target, s_at, s_to, src, with_eval);
     }
 
     PRINT_VARIANT(at);
@@ -515,7 +526,8 @@ update_target(pcintr_stack_t stack, pcdom_element_t *target,
 static int
 update_elements(pcintr_stack_t stack,
         purc_variant_t elems, purc_variant_t at, purc_variant_t to,
-        purc_variant_t src)
+        purc_variant_t src,
+        pcintr_attribute_op with_eval)
 {
     PC_ASSERT(purc_variant_is_native(elems));
     size_t idx = 0;
@@ -524,7 +536,7 @@ update_elements(pcintr_stack_t stack,
         target = pcdvobjs_get_element_from_elements(elems, idx++);
         if (!target)
             break;
-        int r = update_target(stack, target, at, to, src);
+        int r = update_target(stack, target, at, to, src, with_eval);
         if (r)
             return -1;
     }
@@ -533,7 +545,9 @@ update_elements(pcintr_stack_t stack,
 }
 
 static int
-process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
+process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
+        purc_variant_t src,
+        pcintr_attribute_op with_eval)
 {
     UNUSED_PARAM(co);
     struct ctxt_for_update *ctxt;
@@ -542,25 +556,23 @@ process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     purc_variant_t on  = ctxt->on;
     purc_variant_t to  = ctxt->to;
     purc_variant_t at  = ctxt->at;
-    purc_variant_t src = ctxt->src;
     PC_ASSERT(on != PURC_VARIANT_INVALID);
-    PC_ASSERT(src != PURC_VARIANT_INVALID);
 
     /* FIXME: what if array of elements? */
     enum purc_variant_type type = purc_variant_get_type(on);
     if (type == PURC_VARIANT_TYPE_NATIVE) {
         // const char *s = purc_variant_get_string_const(src);
         // PC_ASSERT(to != PURC_VARIANT_INVALID);
-        return update_elements(co->stack, on, at, to, src);
+        return update_elements(co->stack, on, at, to, src, with_eval);
     }
     if (type == PURC_VARIANT_TYPE_OBJECT) {
-        return update_object(co->stack, on, at, to, src);
+        return update_object(co->stack, on, at, to, src, with_eval);
     }
     if (type == PURC_VARIANT_TYPE_ARRAY) {
-        return update_array(co, frame);
+        return update_array(co, frame, src, with_eval);
     }
     if (type == PURC_VARIANT_TYPE_SET) {
-        return update_set(co, frame);
+        return update_set(co, frame, src, with_eval);
     }
     if (type == PURC_VARIANT_TYPE_STRING) {
         const char *s = purc_variant_get_string_const(on);
@@ -571,7 +583,7 @@ process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         struct pcdom_element *elem;
         elem = pcdvobjs_get_element_from_elements(elems, 0);
         PC_ASSERT(elem);
-        int r = update_elements(co->stack, elems, at, to, src);
+        int r = update_elements(co->stack, elems, at, to, src, with_eval);
         purc_variant_unref(elems);
         return r ? -1 : 0;
     }
@@ -623,6 +635,18 @@ process_attr_to(struct pcintr_stack_frame *frame,
                 purc_atom_to_string(name), element->tag_name);
         return -1;
     }
+    if (!purc_variant_is_string(val)) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        return -1;
+    }
+    const char *s_to = purc_variant_get_string_const(val);
+    if (strcmp(s_to, "displace")) {
+        if (ctxt->with_op != PCHVML_ATTRIBUTE_OPERATOR) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            return -1;
+        }
+    }
+
     ctxt->to = val;
     purc_variant_ref(val);
 
@@ -643,12 +667,14 @@ process_attr_with(struct pcintr_stack_frame *frame,
                 purc_atom_to_string(name), element->tag_name);
         return -1;
     }
-    if (ctxt->from != PURC_VARIANT_INVALID) {
-        purc_set_error_with_info(PURC_ERROR_NOT_SUPPORTED,
-                "vdom attribute '%s' for element <%s> conflicts with '%s'",
-                purc_atom_to_string(name), element->tag_name,
-                pchvml_keyword_str(PCHVML_KEYWORD_ENUM(HVML, WITH)));
-        return -1;
+    if (attr->op != PCHVML_ATTRIBUTE_OPERATOR) {
+        if (ctxt->to != PURC_VARIANT_INVALID) {
+            const char *s_to = purc_variant_get_string_const(ctxt->to);
+            if (strcmp(s_to, "displace")) {
+                purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+                return -1;
+            }
+        }
     }
     if (val == PURC_VARIANT_INVALID) {
         purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
@@ -656,11 +682,24 @@ process_attr_with(struct pcintr_stack_frame *frame,
                 purc_atom_to_string(name), element->tag_name);
         return -1;
     }
-
-    ctxt->with_op = attr->op;
+    if (ctxt->from != PURC_VARIANT_INVALID) {
+        if (!purc_variant_is_string(val)) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            return -1;
+        }
+        if (attr->op != PCHVML_ATTRIBUTE_OPERATOR) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            return -1;
+        }
+    }
 
     ctxt->with = val;
     purc_variant_ref(val);
+
+    ctxt->with_op   = attr->op;
+    ctxt->with_eval = pcintr_attribute_get_op(attr->op);
+    if (!ctxt->with_eval)
+        return -1;
 
     return 0;
 }
@@ -691,6 +730,18 @@ process_attr_from(struct pcintr_stack_frame *frame,
                 purc_atom_to_string(name), element->tag_name);
         return -1;
     }
+
+    if (ctxt->with != PURC_VARIANT_INVALID) {
+        if (!purc_variant_is_string(ctxt->with)) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            return -1;
+        }
+        if (ctxt->with_op != PCHVML_ATTRIBUTE_OPERATOR) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            return -1;
+        }
+    }
+
     ctxt->from = val;
     purc_variant_ref(val);
 
@@ -777,6 +828,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
     }
+    ctxt->with_op = PCHVML_ATTRIBUTE_OPERATOR;
 
     frame->ctxt = ctxt;
     frame->ctxt_destroy = ctxt_destroy;
@@ -922,42 +974,36 @@ on_child_finished(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 
     if (ctxt->from) {
         if (ctxt->from_result != PURC_VARIANT_INVALID) {
-            PURC_VARIANT_SAFE_CLEAR(ctxt->src);
-            ctxt->src = ctxt->from_result;
-            purc_variant_ref(ctxt->from_result);
-
-            ctxt->src_op = PCHVML_ATTRIBUTE_OPERATOR;
-
             PURC_VARIANT_SAFE_CLEAR(frame->ctnt_var);
             frame->ctnt_var = ctxt->from_result;
             purc_variant_ref(ctxt->from_result);
 
-            return process(co, frame);
+            return process(co, frame, ctxt->from_result, ctxt->with_eval);
         }
     }
     if (!ctxt->from && ctxt->with) {
-        ctxt->src_op = ctxt->with_op;
         purc_variant_t src;
         src = get_source_by_with(co, frame, ctxt->with);
         PC_ASSERT(src != PURC_VARIANT_INVALID);
-
-        PURC_VARIANT_SAFE_CLEAR(ctxt->src);
-        ctxt->src = src;
 
         PURC_VARIANT_SAFE_CLEAR(frame->ctnt_var);
         frame->ctnt_var = src;
         purc_variant_ref(src);
 
-        return process(co, frame);
+        int r = process(co, frame, src, ctxt->with_eval);
+        purc_variant_unref(src);
+        return r ? -1 : 0;
     }
     if (ctxt->literal != PURC_VARIANT_INVALID) {
-        PURC_VARIANT_SAFE_CLEAR(ctxt->src);
-        ctxt->src = ctxt->literal;
-        purc_variant_ref(ctxt->literal);
-
+        pcintr_attribute_op with_eval;
+        with_eval = pcintr_attribute_get_op(PCHVML_ATTRIBUTE_OPERATOR);
+        if (!with_eval) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            return -1;
+        }
         frame->ctnt_var = ctxt->literal;
         purc_variant_ref(ctxt->literal);
-        return process(co, frame);
+        return process(co, frame, ctxt->literal, with_eval);
     }
 
     return -1;
