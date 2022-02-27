@@ -50,8 +50,8 @@ struct pcrdr_conn {
 
     char* srv_host_name;
     char* own_host_name;
-    char* app_name;
-    char* runner_name;
+    const char* app_name;
+    const char* runner_name;
 
     void *user_data;
 

@@ -23,8 +23,9 @@
  */
 
 #include "config.h"
-#include "purc/purc-rwstream.h"
+#include "purc-rwstream.h"
 #include "purc-pcrdr.h"
+#include "private/pcrdr.h"
 #include "private/kvlist.h"
 #include "private/debug.h"
 #include "private/utils.h"
@@ -126,14 +127,14 @@ int pcrdr_free_connection (pcrdr_conn* conn)
     if (conn->srv_host_name)
         free (conn->srv_host_name);
     free (conn->own_host_name);
-    free (conn->app_name);
-    free (conn->runner_name);
 
     struct pending_request *pr, *n;
     list_for_each_entry_safe (pr, n, &conn->pending_requests, list) {
-        pr->response_handler(conn,
-                purc_variant_get_string_const(pr->request_id),
-                PCRDR_RESPONSE_CANCELLED, pr->context, NULL);
+        if (pr->response_handler) {
+            pr->response_handler(conn,
+                    purc_variant_get_string_const(pr->request_id),
+                    PCRDR_RESPONSE_CANCELLED, pr->context, NULL);
+        }
         list_del(&pr->list);
         purc_variant_unref(pr->request_id);
         free(pr);
@@ -152,6 +153,15 @@ int pcrdr_ping_renderer (pcrdr_conn* conn)
 int pcrdr_disconnect (pcrdr_conn* conn)
 {
     int err_code = 0;
+
+    /* send endSession request to renderer */
+    pcrdr_msg *msg = pcrdr_make_request_message(PCRDR_MSG_TARGET_SESSION, 0,
+            PCRDR_OPERATION_END_SESSION, NULL,
+            PCRDR_MSG_ELEMENT_TYPE_VOID, NULL, NULL,
+            PCRDR_MSG_DATA_TYPE_VOID, NULL, 0);
+    if (msg) {
+        pcrdr_send_request(conn, msg, PCRDR_TIME_DEF_EXPECTED, NULL, NULL);
+    }
 
     err_code = conn->disconnect (conn);
     pcrdr_free_connection (conn);
@@ -221,7 +231,7 @@ handle_response_message(pcrdr_conn* conn, const pcrdr_msg *msg)
                 struct pending_request, list);
 
         if (variant_strcmp(msg->requestId, pr->request_id) == 0) {
-            if (pr->response_handler(conn,
+            if (pr->response_handler && pr->response_handler(conn,
                         purc_variant_get_string_const(msg->requestId),
                         PCRDR_RESPONSE_RESULT, pr->context, msg) < 0) {
                 retval = -1;
@@ -252,9 +262,12 @@ check_timeout_requests(pcrdr_conn *conn)
 
     list_for_each_entry_safe (pr, n, &conn->pending_requests, list) {
         if (now >= pr->time_expected) {
-            pr->response_handler(conn,
+            if (pr->response_handler) {
+                pr->response_handler(conn,
                     purc_variant_get_string_const(pr->request_id),
                         PCRDR_RESPONSE_TIMEOUT, pr->context, NULL);
+            }
+
             list_del(&pr->list);
             purc_variant_unref(pr->request_id);
             free(pr);
@@ -272,7 +285,7 @@ send_default_response_msg(pcrdr_conn *conn, purc_variant_t request_id)
 
     msg.type = PCRDR_MSG_TYPE_RESPONSE;
     msg.requestId = request_id;
-    msg.retCode = PCRDR_SC_OK;
+    msg.retCode = PCRDR_SC_SERVICE_UNAVAILABLE;
     msg.resultValue = 0;
     msg.dataType = PCRDR_MSG_DATA_TYPE_VOID;
     msg.data = NULL;
