@@ -695,7 +695,6 @@ int pcrdr_parse_packet(char *packet, size_t sz_packet, pcrdr_msg **msg_out)
     char *data;
 
     UNUSED_PARAM(sz_packet);
-    printf("packet:\n%s\n", packet);
 
     if ((msg = calloc(1, sizeof(pcrdr_msg))) == NULL) {
         purc_set_error(PCRDR_ERROR_NOMEM);
@@ -739,7 +738,6 @@ int pcrdr_parse_packet(char *packet, size_t sz_packet, pcrdr_msg **msg_out)
         msg->data = purc_variant_make_string_ex(data, msg->_data_len, true);
 
         if (msg->data == NULL) {
-            printf ("failed purc_variant_make_string_ex\n");
             goto failed;
         }
     }
@@ -748,7 +746,6 @@ int pcrdr_parse_packet(char *packet, size_t sz_packet, pcrdr_msg **msg_out)
         msg->data = purc_variant_make_from_json_string(data, msg->_data_len);
 
         if (msg->data == NULL) {
-            printf ("failed purc_variant_make_from_json_string\n");
             goto failed;
         }
     }
