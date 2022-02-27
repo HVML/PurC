@@ -457,7 +457,7 @@ pcrdr_conn_set_user_data(pcrdr_conn* conn, void* user_data);
  *
  * @param conn: the pointer to the renderer connection.
  *
- * Returns the last return code of PurCRDR result or error message.
+ * Returns the last return code.
  *
  * Since: 0.1.0
  */
@@ -757,33 +757,47 @@ pcrdr_compare_messages(const pcrdr_msg *msg_a, const pcrdr_msg *msg_b);
 PCA_EXPORT void
 pcrdr_release_message(pcrdr_msg *msg);
 
+enum {
+    PCRDR_RESPONSE_RESULT = 0,
+    PCRDR_RESPONSE_TIMEOUT,
+    PCRDR_RESPONSE_CANCELLED,
+};
+
 /**
- * The prototype of a result handler.
+ * The prototype of a response handler.
  *
  * @param conn: the pointer to the renderer connection.
- * @param request_msg: the original request message.
- * @param response_msg: the response message.
+ * @param request_id: the original request identifier.
+ * @param state: the state of the response, can be one of the following values:
+ *      - PCRDR_RESPONSE_RESULT: got a valid response message.
+ *      - PCRDR_RESPONSE_TIMEOUT: time out.
+ *      - PRCRD_RESPONSE_CANCELLED: the request is cancelled due to
+ *          the connection was losted.
+ * @param context: the context of the response handler.
+ * @param response_msg: the response message, may be NULL.
  *
- * Returns: 0 for finished the handle of the result; otherwise -1.
+ * Returns: 0 for finished the handle of the response; otherwise -1.
  *
- * Note that after calling the result handler, the request message object
- * and the response message object will be released.
+ * Note that after calling the response handler, the response message object
+ * will be released.
+ *
  * Since: 0.1.0
  */
 typedef int (*pcrdr_response_handler)(pcrdr_conn* conn,
-        const char *request_id, const pcrdr_msg *response_msg);
+        const char *request_id, int state,
+        void *context, const pcrdr_msg *response_msg);
 
 /**
- * Send a request and handle the result in a callback.
+ * Send a request and handle the response in a callback.
  *
  * @param conn: the pointer to the renderer connection.
  * @param request_msg: the pointer to the request message.
  * @param seconds_expected: the expected return time in seconds.
- * @param result_handler: the result handler.
- * @param request_id (nullable): the buffer to store the request identifier.
+ * @param context: the context will be passed to the response handler.
+ * @param response_handler: the response handler.
  *
- * This function emits a request to the renderer server and
- * returns immediately. The result handler will be called
+ * This function emits a request to the renderer and
+ * returns immediately. The response handler will be called
  * in subsequent calls of \a pcrdr_read_and_dispatch_message().
  *
  * Returns: -1 for error; zero means everything is ok.
@@ -792,7 +806,8 @@ typedef int (*pcrdr_response_handler)(pcrdr_conn* conn,
  */
 PCA_EXPORT int
 pcrdr_send_request(pcrdr_conn* conn, pcrdr_msg *request_msg,
-        int seconds_expected, pcrdr_response_handler response_handler);
+        int seconds_expected, void *context,
+        pcrdr_response_handler response_handler);
 
 /**
  * Read and dispatch the message from the renderer connection.
@@ -832,7 +847,7 @@ pcrdr_wait_and_dispatch_message(pcrdr_conn* conn, int timeout_ms);
  * @param seconds_expected: the expected return time in seconds.
  * @param response_msg: the pointer to a pointer to return the response message.
  *
- * This function send a request to the renderer and wait for the result.
+ * This function send a request to the renderer and wait for the response.
  *
  * Returns: -1 for error; zero means everything is ok.
  *

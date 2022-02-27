@@ -129,7 +129,14 @@ int pcrdr_free_connection (pcrdr_conn* conn)
     free (conn->app_name);
     free (conn->runner_name);
 
-    pcutils_kvlist_free (&conn->call_list);
+    struct pending_request *pr, *n;
+    list_for_each_entry_safe (pr, n, &conn->pending_requests, list) {
+        pr->response_handler(conn, pr->request_id,
+                    PCRDR_RESPONSE_CANCELLED, pr->context, NULL);
+        list_del(&pr->list);
+        free(pr->request_id);
+        free(pr);
+    }
 
     free (conn);
 
@@ -157,12 +164,10 @@ int pcrdr_disconnect (pcrdr_conn* conn)
 }
 
 int pcrdr_send_request(pcrdr_conn* conn, pcrdr_msg *request_msg,
-        int seconds_expected, pcrdr_response_handler response_handler)
+        int seconds_expected,
+        void *context, pcrdr_response_handler response_handler)
 {
-    if (conn->pending_request_id) {
-        purc_set_error(PCRDR_ERROR_PENDING_REQUEST);
-        return -1;
-    }
+    struct pending_request *pr;
 
     if (request_msg == NULL ||
             request_msg->type != PCRDR_MSG_TYPE_REQUEST ||
@@ -171,21 +176,100 @@ int pcrdr_send_request(pcrdr_conn* conn, pcrdr_msg *request_msg,
         return -1;
     }
 
-    if (conn->send_message(conn, request_msg) < 0) {
+    if ((pr = malloc(sizeof(*pr))) == NULL) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return -1;
     }
 
-    conn->pending_request_id = strdup(request_msg->requestId);
-    conn->response_handler = response_handler;
+    if (conn->send_message(conn, request_msg) < 0) {
+        free(pr);
+        return -1;
+    }
+
+    pr->request_id = strdup(request_msg->requestId);
+    pr->response_handler = response_handler;
+    pr->context = context;
     if (seconds_expected <= 0 || seconds_expected > 3600)
-        conn->time_expected = pcrdr_get_monotoic_time() + 3600;
+        pr->time_expected = pcrdr_get_monotoic_time() + 3600;
     else
-        conn->time_expected = pcrdr_get_monotoic_time() + seconds_expected;
+        pr->time_expected = pcrdr_get_monotoic_time() + seconds_expected;
+    list_add_tail(&pr->list, &conn->pending_requests);
 
     return 0;
 }
 
-int pcrdr_read_and_dispatch_message(pcrdr_conn* conn)
+static int
+handle_response_message(pcrdr_conn* conn, const pcrdr_msg *msg)
+{
+    int retval = 0;
+
+    if (!list_empty(&conn->pending_requests)) {
+        struct pending_request *pr;
+        pr = list_first_entry(&conn->pending_requests,
+                struct pending_request, list);
+
+        if (strcmp(msg->requestId, pr->request_id) == 0) {
+            if (pr->response_handler(conn, msg->requestId,
+                        PCRDR_RESPONSE_RESULT, pr->context, msg) < 0) {
+                retval = -1;
+            }
+
+            list_del(&pr->list);
+            free(pr->request_id);
+            free(pr);
+        }
+        else {
+            purc_set_error(PCRDR_ERROR_UNEXPECTED);
+            retval = -1;
+        }
+    }
+    else {
+        purc_set_error(PCRDR_ERROR_UNEXPECTED);
+        retval = -1;
+    }
+
+    return retval;
+}
+
+static int
+check_timeout_requests(pcrdr_conn *conn)
+{
+    struct pending_request *pr, *n;
+    time_t now = pcrdr_get_monotoic_time();
+
+    list_for_each_entry_safe (pr, n, &conn->pending_requests, list) {
+        if (now >= pr->time_expected) {
+            pr->response_handler(conn, pr->request_id,
+                        PCRDR_RESPONSE_TIMEOUT, pr->context, NULL);
+            list_del(&pr->list);
+            free(pr->request_id);
+            free(pr);
+        }
+    }
+
+    return 0;
+}
+
+static int
+send_default_response_msg(pcrdr_conn *conn, const char* request_id)
+{
+    int retval = 0;
+    pcrdr_msg *msg;
+
+    msg = pcrdr_make_response_message(
+        request_id,
+        PCRDR_SC_OK, 0,
+        PCRDR_MSG_DATA_TYPE_VOID, NULL, 0);
+
+    if (conn->send_message(conn, msg) < 0) {
+        retval = -1;
+    }
+
+    pcrdr_release_message(msg);
+    return retval;
+}
+
+int pcrdr_read_and_dispatch_message(pcrdr_conn *conn)
 {
     pcrdr_msg* msg;
     int retval = 0;
@@ -212,24 +296,12 @@ int pcrdr_read_and_dispatch_message(pcrdr_conn* conn)
             conn->request_handler (conn, msg);
         }
         else {
-            // TODO: send a fallback response message
+            retval = send_default_response_msg(conn, msg->requestId);
         }
         break;
 
     case PCRDR_MSG_TYPE_RESPONSE:
-        if (strcmp(msg->requestId, conn->pending_request_id) == 0) {
-            if (conn->response_handler (conn, msg->requestId, msg) < 0)
-                retval = -1;
-            free (conn->pending_request_id);
-            conn->pending_request_id = NULL;
-        }
-        else {
-            purc_set_error (PCRDR_ERROR_PENDING_REQUEST);
-            retval = -1;
-
-            free (conn->pending_request_id);
-            conn->pending_request_id = NULL;
-        }
+        retval = handle_response_message(conn, msg);
         break;
 
     default:
@@ -237,6 +309,8 @@ int pcrdr_read_and_dispatch_message(pcrdr_conn* conn)
         retval = -1;
         break;
     }
+
+    check_timeout_requests(conn);
 
 done:
     if (msg)
@@ -263,21 +337,34 @@ int pcrdr_wait_and_dispatch_message (pcrdr_conn* conn, int timeout_ms)
         purc_set_error(PCRDR_ERROR_TIMEOUT);
     }
 
+    check_timeout_requests(conn);
     return retval;
+}
+
+static int
+my_response_handler(pcrdr_conn* conn,
+        const char *request_id, int state,
+        void *context, const pcrdr_msg *response_msg)
+{
+    pcrdr_msg **msg_buff = context;
+
+    (void)conn;
+    (void)state;
+    (void)request_id;
+
+    *msg_buff = (pcrdr_msg *)response_msg;
+
+    return 0;
 }
 
 int pcrdr_send_request_and_wait_response(pcrdr_conn* conn,
         const pcrdr_msg *request_msg,
         int seconds_expected, pcrdr_msg **response_msg)
 {
+    struct pending_request *pr;
     int retval = 0;
 
     *response_msg = NULL;
-
-    if (conn->pending_request_id) {
-        purc_set_error(PCRDR_ERROR_PENDING_REQUEST);
-        return -1;
-    }
 
     if (request_msg == NULL ||
             request_msg->type != PCRDR_MSG_TYPE_REQUEST ||
@@ -286,20 +373,27 @@ int pcrdr_send_request_and_wait_response(pcrdr_conn* conn,
         return -1;
     }
 
-    if (conn->send_message(conn, request_msg) < 0) {
+    if ((pr = malloc(sizeof(*pr))) == NULL) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return -1;
     }
 
-    conn->pending_request_id = NULL;
-    conn->response_handler = NULL;
+    if (conn->send_message(conn, request_msg) < 0) {
+        free(pr);
+        return -1;
+    }
+
+    pr->request_id = strdup(request_msg->requestId);
+    pr->response_handler = my_response_handler;
+    pr->context = response_msg;
     if (seconds_expected <= 0 || seconds_expected > 3600)
-        conn->time_expected = pcrdr_get_monotoic_time() + 3600;
+        pr->time_expected = pcrdr_get_monotoic_time() + 3600;
     else
-        conn->time_expected = pcrdr_get_monotoic_time() + seconds_expected;
+        pr->time_expected = pcrdr_get_monotoic_time() + seconds_expected;
 
-    while (1 /* hibus_get_monotoic_time () < conn->time_expected */) {
+    while (*response_msg == NULL) {
 
-        int timeout_ms = conn->time_expected - pcrdr_get_monotoic_time ();
+        int timeout_ms = pr->time_expected - pcrdr_get_monotoic_time();
         timeout_ms *= 1000;
 
         retval = conn->wait_message(conn, timeout_ms);
@@ -333,20 +427,12 @@ int pcrdr_send_request_and_wait_response(pcrdr_conn* conn,
                     conn->request_handler (conn, msg);
                 }
                 else {
-                    // TODO: send a fallback response message
+                    retval = send_default_response_msg(conn, msg->requestId);
                 }
                 break;
 
             case PCRDR_MSG_TYPE_RESPONSE:
-                if (strcmp(msg->requestId, request_msg->requestId) == 0) {
-                    *response_msg = msg;
-                    goto done;
-                }
-                else {
-                    purc_set_error (PCRDR_ERROR_PENDING_REQUEST);
-                    retval = -1;
-                    goto done;
-                }
+                retval = handle_response_message(conn, msg);
                 break;
 
             default:
@@ -354,12 +440,20 @@ int pcrdr_send_request_and_wait_response(pcrdr_conn* conn,
                 retval = -1;
                 break;
             }
+
+            if (msg != *response_msg)
+                pcrdr_release_message(msg);
         }
         else {
-            purc_set_error (PCRDR_ERROR_TIMEOUT);
+            purc_set_error(PCRDR_ERROR_TIMEOUT);
             retval = -1;
             break;
         }
+
+        check_timeout_requests(conn);
+
+        if (retval < 0)
+            break;
     }
 
 done:

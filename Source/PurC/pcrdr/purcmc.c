@@ -24,7 +24,7 @@
 
 #include "config.h"
 #include "purc-pcrdr.h"
-#include "private/kvlist.h"
+#include "private/list.h"
 #include "private/debug.h"
 #include "private/utils.h"
 #include "connect.h"
@@ -290,7 +290,7 @@ int pcrdr_purcmc_connect_via_unix_socket (const char* path_to_socket,
     (*conn)->ping_peer = my_ping_peer;
     (*conn)->disconnect = my_disconnect;
 
-    pcutils_kvlist_init (&(*conn)->call_list, NULL);
+    list_head_init (&(*conn)->pending_requests);
 
     return fd;
 

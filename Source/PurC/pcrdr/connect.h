@@ -30,7 +30,17 @@
 #include <time.h>
 
 #include "purc-pcrdr.h"
-#include "private/kvlist.h"
+#include "private/list.h"
+
+struct pending_request {
+    struct list_head list;
+
+    char *request_id;
+    pcrdr_response_handler response_handler;
+    void *context;
+
+    time_t time_expected;
+};
 
 struct pcrdr_conn {
     int prot;
@@ -43,18 +53,14 @@ struct pcrdr_conn {
     char* app_name;
     char* runner_name;
 
-    struct kvlist call_list;
-
     void *user_data;
 
     pcrdr_request_handler request_handler;
 
     pcrdr_event_handler event_handler;
 
-    /* the current pending request identifier */
-    char *pending_request_id;
-    pcrdr_response_handler response_handler;
-    time_t time_expected;
+    /* the pending requests queue */
+    struct list_head pending_requests;
 
     /* operations */
     int (*wait_message) (pcrdr_conn* conn, int timeout_ms);
