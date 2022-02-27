@@ -233,7 +233,7 @@ pcrdr_errcode_to_retcode(int err_code);
  * @param max_len: The maximal possible length of the token string.
  *
  * Checks whether a token string is valid. According to PurCMC protocal,
- * the runner name, method name, bubble name should be a valid token.
+ * the runner name should be a valid token.
  *
  * Note that a string with a length longer than \a max_len will
  * be considered as an invalid token.
