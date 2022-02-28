@@ -192,7 +192,7 @@ bool pcrdr_is_valid_token (const char* token, int max_len)
         if (max_len > 0 && i > max_len)
             return false;
 
-        if (!isalnum (token [i]) && token [i] != '_')
+        if (!isalnum (token [i]) && token[i] != '_' && token[i] != '-')
             return false;
 
         i++;
@@ -352,8 +352,8 @@ int pcrdr_assemble_endpoint_name (const char* host_name, const char* app_name,
     return host_len + app_len + runner_len + 3;
 }
 
-char* pcrdr_assemble_endpoint_name_alloc (const char* host_name, const char* app_name,
-        const char* runner_name)
+char* pcrdr_assemble_endpoint_name_alloc (const char* host_name,
+        const char* app_name, const char* runner_name)
 {
     char* endpoint;
     int host_len, app_len, runner_len;
@@ -510,7 +510,8 @@ bool pcrdr_is_valid_md5_id (const char* id)
     return true;
 }
 
-double pcrdr_get_elapsed_seconds (const struct timespec *ts1, const struct timespec *ts2)
+double pcrdr_get_elapsed_seconds (const struct timespec *ts1,
+        const struct timespec *ts2)
 {
     struct timespec ts_curr;
     time_t ds;
@@ -526,76 +527,3 @@ double pcrdr_get_elapsed_seconds (const struct timespec *ts1, const struct times
     return ds + dns * 1.0E-9;
 }
 
-#if 0
-static const char *json_hex_chars = "0123456789abcdefABCDEF";
-
-char* pcrdr_escape_string_for_json (const char* str)
-{
-    struct printbuf my_buff, *pb = &my_buff;
-    size_t pos = 0, start_offset = 0;
-    unsigned char c;
-
-    if (printbuf_init (pb)) {
-        ULOG_ERR ("Failed to initialize buffer for escape string for JSON.\n");
-        return NULL;
-    }
-
-    while (str [pos]) {
-        const char* escaped;
-
-        c = str[pos];
-        switch (c) {
-        case '\b':
-            escaped = "\\b";
-            break;
-        case '\n':
-            escaped = "\\n";
-            break;
-        case '\r':
-            escaped = "\\n";
-            break;
-        case '\t':
-            escaped = "\\t";
-            break;
-        case '\f':
-            escaped = "\\f";
-            break;
-        case '"':
-            escaped = "\\\"";
-            break;
-        case '\\':
-            escaped = "\\\\";
-            break;
-        default:
-            escaped = NULL;
-            if (c < ' ') {
-                char sbuf[7];
-                if (pos - start_offset > 0)
-                    printbuf_memappend (pb,
-                            str + start_offset, pos - start_offset);
-                snprintf (sbuf, sizeof (sbuf), "\\u00%c%c",
-                        json_hex_chars[c >> 4], json_hex_chars[c & 0xf]);
-                printbuf_memappend_fast (pb, sbuf, (int)(sizeof(sbuf) - 1));
-                start_offset = ++pos;
-            }
-            else
-                pos++;
-            break;
-        }
-
-        if (escaped) {
-            if (pos - start_offset > 0)
-                printbuf_memappend (pb, str + start_offset, pos - start_offset);
-
-            printbuf_memappend (pb, escaped, strlen (escaped));
-            start_offset = ++pos;
-        }
-    }
-
-    if (pos - start_offset > 0)
-        printbuf_memappend (pb, str + start_offset, pos - start_offset);
-
-    return pb->buf;
-}
-
-#endif

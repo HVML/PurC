@@ -396,13 +396,15 @@ typedef struct pcutils_arrlist pcutils_arrlist;
  *
  * @see pcutils_arrlist_shrink
  */
-struct pcutils_arrlist *pcutils_arrlist_new_ex(array_list_free_fn *free_fn, int initial_size);
+struct pcutils_arrlist *
+pcutils_arrlist_new_ex(array_list_free_fn *free_fn, int initial_size);
 
 /**
  * Allocate an pcutils_arrlist of the default size (32).
  * @deprecated Use pcutils_arrlist_new_ex() instead.
  */
-static inline struct pcutils_arrlist *pcutils_arrlist_new(array_list_free_fn *free_fn) {
+static inline struct pcutils_arrlist *
+pcutils_arrlist_new(array_list_free_fn *free_fn) {
     return pcutils_arrlist_new_ex(free_fn, ARRAY_LIST_DEFAULT_SIZE);
 }
 
@@ -416,12 +418,15 @@ int pcutils_arrlist_add(struct pcutils_arrlist *al, void *data);
 
 size_t pcutils_arrlist_length(struct pcutils_arrlist *al);
 
-void pcutils_arrlist_sort(struct pcutils_arrlist *arr, int (*compar)(const void *, const void *));
+void pcutils_arrlist_sort(struct pcutils_arrlist *arr,
+        int (*compar)(const void *, const void *));
 
-void *pcutils_arrlist_bsearch(const void **key, struct pcutils_arrlist *arr,
-                                int (*compar)(const void *, const void *));
+void *pcutils_arrlist_bsearch(const void **key,
+        struct pcutils_arrlist *arr,
+        int (*compar)(const void *, const void *));
 
-int pcutils_arrlist_del_idx(struct pcutils_arrlist *arr, size_t idx, size_t count);
+int pcutils_arrlist_del_idx(struct pcutils_arrlist *arr,
+        size_t idx, size_t count);
 
 /**
  * Shrink the array list to just enough to fit the number of elements in it,
@@ -435,9 +440,9 @@ pcutils_arrlist_get_first(struct pcutils_arrlist *arr);
 void*
 pcutils_arrlist_get_last(struct pcutils_arrlist *arr);
 
-__attribute__ ((format (printf, 3, 4)))
 char*
-pcutils_snprintf(char *buf, size_t *sz_io, const char *fmt, ...);
+pcutils_snprintf(char *buf, size_t *sz_io, const char *fmt, ...)
+    __attribute__ ((format (printf, 3, 4)));
 
 char*
 pcutils_vsnprintf(char *buf, size_t *sz_io, const char *fmt, va_list ap);
@@ -445,6 +450,9 @@ pcutils_vsnprintf(char *buf, size_t *sz_io, const char *fmt, va_list ap);
 // trim leading/trailling blanks(spaces/tabs)
 const char*
 pcutils_trim_blanks(const char *str, size_t *sz_io);
+
+char*
+pcutils_escape_string_for_json(const char* str);
 
 PCA_EXTERN_C_END
 
