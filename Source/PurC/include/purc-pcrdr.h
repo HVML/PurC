@@ -64,12 +64,19 @@
 #define PCRDR_OPERATION_DESTROYPLAINWINDOW  "destroyPlainWindow"
 #define PCRDR_OPERATION_CREATETABBEDWINDOW  "createTabbedWindow"
 #define PCRDR_OPERATION_UPDATETABBEDWINDOW  "updateTabbedWindow"
-#define PCRDR_OPERATION_DESCTROYTABBEDWINDOW    "desctroyTabbedWindow"
-#define PCRDR_OPERATION_CREATETAB           "createTab"
-#define PCRDR_OPERATION_UPDATETAB           "updateTab"
-#define PCRDR_OPERATION_DESTROYTAB          "destroyTab"
+#define PCRDR_OPERATION_DESTROYTABBEDWINDOW "destroyTabbedWindow"
+#define PCRDR_OPERATION_CREATETABPAGE       "createTabpage"
+#define PCRDR_OPERATION_UPDATETABPAGE       "updateTabpage"
+#define PCRDR_OPERATION_DESTROYTABPAGE      "destroyTabpage"
 #define PCRDR_OPERATION_LOAD                "load"
+#define PCRDR_OPERATION_APPEND              "append"
+#define PCRDR_OPERATION_PREPEND             "prepend"
+#define PCRDR_OPERATION_INSERTBEFORE        "insertBefore"
+#define PCRDR_OPERATION_INSERTAFTER         "insertAfter"
+#define PCRDR_OPERATION_DISPLACE            "displace"
 #define PCRDR_OPERATION_UPDATE              "update"
+#define PCRDR_OPERATION_ERASE               "erase"
+#define PCRDR_OPERATION_CLEAR               "clear"
 
 /* Status Codes */
 #define PCRDR_SC_IOERR                  1
@@ -108,8 +115,7 @@
 #define PCRDR_LEN_HOST_NAME             127
 #define PCRDR_LEN_APP_NAME              127
 #define PCRDR_LEN_RUNNER_NAME           63
-#define PCRDR_LEN_METHOD_NAME           63
-#define PCRDR_LEN_BUBBLE_NAME           63
+#define PCRDR_LEN_IDENTIFIER            63
 #define PCRDR_LEN_ENDPOINT_NAME         \
     (PCRDR_LEN_HOST_NAME + PCRDR_LEN_APP_NAME + PCRDR_LEN_RUNNER_NAME + 3)
 #define PCRDR_LEN_UNIQUE_ID             63
@@ -583,8 +589,10 @@ typedef enum {
 
 typedef enum {
     PCRDR_MSG_TARGET_SESSION = 0,
-    PCRDR_MSG_TARGET_WINDOW,
-    PCRDR_MSG_TARGET_TAB,
+    PCRDR_MSG_TARGET_WORKSPACE,
+    PCRDR_MSG_TARGET_PLAINWINDOW,
+    PCRDR_MSG_TARGET_TABBEDWINDOW,
+    PCRDR_MSG_TARGET_TABPAGE,
     PCRDR_MSG_TARGET_DOM,
 } pcrdr_msg_target;
 
@@ -594,6 +602,7 @@ typedef enum {
     PCRDR_MSG_ELEMENT_TYPE_XPATH,
     PCRDR_MSG_ELEMENT_TYPE_HANDLE,
     PCRDR_MSG_ELEMENT_TYPE_HANDLES,
+    PCRDR_MSG_ELEMENT_TYPE_ID,
 } pcrdr_msg_element_type;
 
 PCA_EXPORT pcrdr_msg_type
@@ -1136,6 +1145,12 @@ static inline bool
 pcrdr_is_valid_runner_name(const char *runner_name)
 {
     return pcrdr_is_valid_token(runner_name, PCRDR_LEN_RUNNER_NAME);
+}
+
+static inline bool
+pcrdr_is_valid_identifier(const char *id)
+{
+    return pcrdr_is_valid_token(id, PCRDR_LEN_IDENTIFIER);
 }
 
 /**@}*/

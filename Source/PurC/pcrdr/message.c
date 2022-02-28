@@ -477,11 +477,17 @@ static bool on_target(pcrdr_msg *msg, char *value)
     if (strcasecmp(target, "session") == 0) {
         msg->target = PCRDR_MSG_TARGET_SESSION;
     }
-    else if (strcasecmp(target, "window") == 0) {
-        msg->target = PCRDR_MSG_TARGET_WINDOW;
+    else if (strcasecmp(target, "workspace") == 0) {
+        msg->target = PCRDR_MSG_TARGET_WORKSPACE;
     }
-    else if (strcasecmp(target, "tab") == 0) {
-        msg->target = PCRDR_MSG_TARGET_TAB;
+    else if (strcasecmp(target, "plainwindow") == 0) {
+        msg->target = PCRDR_MSG_TARGET_PLAINWINDOW;
+    }
+    else if (strcasecmp(target, "tabbedwindow") == 0) {
+        msg->target = PCRDR_MSG_TARGET_TABBEDWINDOW;
+    }
+    else if (strcasecmp(target, "tabpage") == 0) {
+        msg->target = PCRDR_MSG_TARGET_TABPAGE;
     }
     else if (strcasecmp(target, "dom") == 0) {
         msg->target = PCRDR_MSG_TARGET_DOM;
@@ -540,6 +546,9 @@ static bool on_element(pcrdr_msg *msg, char *value)
     }
     else if (strcasecmp(type, "handles") == 0) {
         msg->elementType = PCRDR_MSG_ELEMENT_TYPE_HANDLES;
+    }
+    else if (strcasecmp(type, "id") == 0) {
+        msg->elementType = PCRDR_MSG_ELEMENT_TYPE_ID;
     }
     else {
         return false;
@@ -785,8 +794,10 @@ static const char *type_names [] = {
 
 static const char *target_names [] = {
     "session",
-    "window",
-    "tab",
+    "workspace",
+    "plainwindow",
+    "tabbedwindow",
+    "tabpage",
     "dom",
 };
 
@@ -796,6 +807,7 @@ static const char *element_type_names [] = {
     "xpath",
     "handle",
     "handles",
+    "id",
 };
 
 static const char *data_type_names [] = {
