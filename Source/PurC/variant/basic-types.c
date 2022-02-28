@@ -260,7 +260,6 @@ purc_variant_make_string_ex(const char* str_utf8, size_t len,
 purc_variant_t purc_variant_make_string_reuse_buff(char* str_utf8,
         size_t sz_buff, bool check_encoding)
 {
-    // FIXME: what is "hello\0world"???
     PCVARIANT_CHECK_FAIL_RET(str_utf8, PURC_VARIANT_INVALID);
 
     purc_variant_t value = NULL;
