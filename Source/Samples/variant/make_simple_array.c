@@ -89,7 +89,7 @@ int main(void)
     if (fibonacci == PURC_VARIANT_INVALID)
         quit_on_error(1);
 
-    for (size_t i = 0; i < purc_variant_array_get_size(fibonacci); i++) {
+    for (ssize_t i = 0; i < purc_variant_array_get_size(fibonacci); i++) {
         purc_variant_t v;
         uint64_t u;
 

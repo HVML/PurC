@@ -62,8 +62,8 @@ object_foreach(purc_variant_t object, foreach_func func, void* ctxt,
         bool silently)
 {
     bool ret = false;
-    size_t sz = purc_variant_object_get_size(object);
-    if (sz == 0 || sz == PURC_VARIANT_BADSIZE) {
+    ssize_t sz = purc_variant_object_get_size(object);
+    if (sz <= 0) {
         goto end;
     }
 
@@ -85,8 +85,8 @@ array_foreach(purc_variant_t array, foreach_func func, void* ctxt,
         bool silently)
 {
     bool ret = false;
-    size_t sz = purc_variant_array_get_size(array);
-    if (sz == 0 || sz == PURC_VARIANT_BADSIZE) {
+    ssize_t sz = purc_variant_array_get_size(array);
+    if (sz <= 0) {
         goto end;
     }
 
@@ -110,8 +110,8 @@ array_reverse_foreach(purc_variant_t array, foreach_func func, void* ctxt,
         bool silently)
 {
     bool ret = false;
-    size_t sz = purc_variant_array_get_size(array);
-    if (sz == 0 || sz == PURC_VARIANT_BADSIZE) {
+    ssize_t sz = purc_variant_array_get_size(array);
+    if (sz <= 0) {
         goto end;
     }
 
@@ -133,8 +133,8 @@ static bool
 set_foreach(purc_variant_t set, foreach_func func, void* ctxt, bool silently)
 {
     bool ret = false;
-    size_t sz = purc_variant_set_get_size(set);
-    if (sz == 0 || sz == PURC_VARIANT_BADSIZE) {
+    ssize_t sz = purc_variant_set_get_size(set);
+    if (sz <= 0) {
         goto end;
     }
 

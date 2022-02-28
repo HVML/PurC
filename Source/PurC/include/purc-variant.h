@@ -39,7 +39,7 @@ typedef struct purc_variant* purc_variant_t;
 
 #define PURC_VARIANT_INVALID            ((purc_variant_t)(0))
 
-#define PURC_VARIANT_BADSIZE            ((size_t)(-1))
+#define PURC_VARIANT_BADSIZE            ((ssize_t)(-1))
 
 PCA_EXTERN_C_BEGIN
 
@@ -235,15 +235,16 @@ purc_variant_make_string_ex(const char* str_utf8, size_t len,
         bool check_encoding);
 
 /**
- * Gets the pointer of string which is encapsulated in string type.
+ * Gets the pointer of the string buffer which is encapsulated in string type.
  *
- * @param value: the data of string type
+ * @param value: the data in string, atomstring, or exception type.
  *
- * Returns: The pointer of char string, or NULL if value is not string type.
+ * Returns: The pointer of char string, or NULL if value is not a string type.
  *
  * Since: 0.0.1
  */
-PCA_EXPORT const char* purc_variant_get_string_const(purc_variant_t value);
+PCA_EXPORT const char*
+purc_variant_get_string_const(purc_variant_t value);
 
 /**
  * Get the length in bytes of a string variant value.
@@ -262,23 +263,34 @@ purc_variant_string_bytes(purc_variant_t value, size_t *length);
 /**
  * Get the length in bytes of a string variant value.
  *
- * @param value: the variant value of string type
+ * @param value: the variant value of string type.
  *
  * Returns: The length in bytes of the string variant;
  *  \PURC_VARIANT_BADSIZE (-1) if the variant is not a string.
  *
- * Note: This function is deprecated, use \purc_variant_string_bytes
- *  instead.
- *
  * Since: 0.0.1
  */
-static inline size_t purc_variant_string_length(purc_variant_t value)
+static inline ssize_t purc_variant_string_length(purc_variant_t value)
 {
     size_t len;
     if (!purc_variant_string_bytes(value, &len))
         return PURC_VARIANT_BADSIZE;
     return len;
 }
+
+/**
+ * Get the number of valid characters in a string variant value.
+ *
+ * @param value: the variant value in string, atomstring, or exception type.
+ * @param nr_chars: the buffer to receive the number of valid characters
+ *      in the string.
+ *
+ * Returns: @true on success, and @false when the value is not a string.
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT bool
+purc_variant_string_chars(purc_variant_t value, size_t *nr_chars);
 
 /**
  * Creates a variant value of atom string type.
@@ -291,9 +303,9 @@ static inline size_t purc_variant_string_length(purc_variant_t value)
  *
  * Since: 0.0.1
  */
-PCA_EXPORT purc_variant_t purc_variant_make_atom_string(const char* str_utf8,
+PCA_EXPORT purc_variant_t
+purc_variant_make_atom_string(const char* str_utf8,
         bool check_encoding);
-
 
 /**
  * Creates a variant value of atom string type.
@@ -404,12 +416,10 @@ purc_variant_sequence_bytes(purc_variant_t sequence, size_t *length);
  * Returns: The number of bytes in an sequence variant value;
  *  \PURC_VARIANT_BADSIZE (-1) if the variant is not a byte sequence.
  *
- * Note: This function is deprecated, use \purc_variant_sequence_bytes
- *  instead.
- *
  * Since: 0.0.1
  */
-static inline size_t purc_variant_sequence_length(purc_variant_t sequence)
+static inline ssize_t
+purc_variant_sequence_length(purc_variant_t sequence)
 {
     size_t len;
     if (!purc_variant_sequence_bytes(sequence, &len))
@@ -595,6 +605,7 @@ purc_variant_array_get(purc_variant_t array, int idx);
  *
  * Returns: True on success, otherwise False.
  *
+ * FIXME: returns -1?
  * Note: If idx is greater than max index of array, return -1.
  *       Whether free the replaced element, depends on its ref.
  *
@@ -612,6 +623,7 @@ purc_variant_array_set(purc_variant_t array, int idx, purc_variant_t value);
  *
  * Returns: True on success, otherwise False.
  *
+ * FIXME: returns -1?
  * Note: If idx is greater than max index of array, return -1.
  *       Whether free the removed element, depends on its ref.
  *
@@ -630,6 +642,7 @@ PCA_EXPORT bool purc_variant_array_remove(purc_variant_t array, int idx);
  *
  * Returns: True on success, otherwise False.
  *
+ * FIXME: returns -1?
  * Note: If idx is greater than max index of array, return -1.
  *
  * Since: 0.0.1
@@ -648,6 +661,7 @@ purc_variant_array_insert_before(purc_variant_t array,
  *
  * Returns: True on success, otherwise False.
  *
+ * FIXME: returns -1?
  * Note: If idx is greater than sum of one plus max index of array, return -1.
  *
  * Since: 0.0.1
@@ -681,7 +695,7 @@ purc_variant_array_size(purc_variant_t array, size_t *sz);
  *
  * Since: 0.0.1
  */
-static inline size_t purc_variant_array_get_size(purc_variant_t array)
+static inline ssize_t purc_variant_array_get_size(purc_variant_t array)
 {
     size_t sz;
     if (!purc_variant_array_size(array, &sz))
@@ -868,7 +882,7 @@ purc_variant_object_size(purc_variant_t obj, size_t *sz);
  *
  * Since: 0.0.1
  */
-static inline size_t purc_variant_object_get_size(purc_variant_t obj)
+static inline ssize_t purc_variant_object_get_size(purc_variant_t obj)
 {
     size_t sz;
     if (!purc_variant_object_size(obj, &sz))
@@ -1158,7 +1172,7 @@ PCA_EXPORT bool purc_variant_set_size(purc_variant_t set, size_t *sz);
  *
  * Since: 0.0.1
  */
-static inline size_t purc_variant_set_get_size(purc_variant_t set)
+static inline ssize_t purc_variant_set_get_size(purc_variant_t set)
 {
     size_t sz;
     if (!purc_variant_set_size(set, &sz))

@@ -288,15 +288,15 @@ shuffle_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         return PURC_VARIANT_INVALID;
     }
 
-    if (!purc_variant_is_string (argv[0])) {
+    size_t size;
+    if (!purc_variant_string_bytes(argv[0], &size)) {
         pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
 
-    size_t size = purc_variant_string_length (argv[0]);
-    if (size < 2 || size == PURC_VARIANT_BADSIZE) {
-        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+    if (size < 2) {
+        // just return the value itself, but reference it.
+        return purc_variant_ref(argv[0]);
     }
 
     char *src = malloc (size);
@@ -308,6 +308,7 @@ shuffle_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     strcpy (src, purc_variant_get_string_const (argv[0]));
     *(src + size - 1) = 0x00;
 
+    /* FIXME: shuffle the characeters not bytes */
     size_t i = 0;
     int random = 0;
     for(i =  0; i < size - 1; i++) {

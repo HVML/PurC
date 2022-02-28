@@ -325,7 +325,7 @@ TEST(variant_array, add_n_str_and_remove_pub)
     ASSERT_EQ(stat->nr_values[PVT(_ARRAY)], 1);
 
     purc_variant_t val;
-    size_t curr = 0;
+    ssize_t curr = 0;
     size_t j = 0;
     for (curr=0; curr<purc_variant_array_get_size(arr); ++curr) {
         val = purc_variant_array_get(arr, curr);
