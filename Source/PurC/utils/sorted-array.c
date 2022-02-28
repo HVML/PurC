@@ -1,5 +1,6 @@
 /*
  * @file sorted-array.c
+ * @author Vincent Wei
  * @date 2021/11/17
  * @brief The implementation of sorted array.
  *
@@ -19,7 +20,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
  */
 #include <stdlib.h>

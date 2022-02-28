@@ -22,15 +22,17 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "purc.h"
 #include "config.h"
-#include "private/instance.h"
-#include "private/errors.h"
-#include "private/tls.h"
 
 #include "purc-utils.h"
 #include "purc-variant.h"
+
+#include "private/instance.h"
+#include "private/errors.h"
+#include "private/tls.h"
 #include "private/variant.h"
+#include "private/utf8.h"
+
 #include "variant-internals.h"
 
 #include <stdlib.h>
@@ -187,204 +189,6 @@ purc_variant_t purc_variant_make_longdouble (long double lf)
     return value;
 }
 
-#define VALIDATE_BYTE(mask, expect)                         \
-do {                                                        \
-    if (UNLIKELY((*(uint8_t *)p & (mask)) != (expect)))     \
-    goto error;                                             \
-} while (0)
-
-/* see IETF RFC 3629 Section 4 */
-
-static const char *
-fast_validate(const char *str, size_t *nr_chars)
-{
-    size_t n = 0;
-    const char *p;
-
-    for (p = str; *p; p++) {
-        if (*(uint8_t *)p < 128) {
-            /* done */;
-        }
-        else {
-            const char *last;
-
-            last = p;
-            if (*(uint8_t *)p < 0xe0) /* 110xxxxx */
-            {
-                if (UNLIKELY (*(uint8_t *)p < 0xc2))
-                    goto error;
-            }
-            else {
-                if (*(uint8_t *)p < 0xf0) /* 1110xxxx */
-                {
-                    switch (*(uint8_t *)p++ & 0x0f) {
-                    case 0:
-                        VALIDATE_BYTE(0xe0, 0xa0); /* 0xa0 ... 0xbf */
-                        break;
-                    case 0x0d:
-                        VALIDATE_BYTE(0xe0, 0x80); /* 0x80 ... 0x9f */
-                        break;
-                    default:
-                        VALIDATE_BYTE(0xc0, 0x80); /* 10xxxxxx */
-                    }
-                }
-                else if (*(uint8_t *)p < 0xf5) /* 11110xxx excluding out-of-range */
-                {
-                    switch (*(uint8_t *)p++ & 0x07) {
-                    case 0:
-                        VALIDATE_BYTE(0xc0, 0x80); /* 10xxxxxx */
-                        if (UNLIKELY((*(uint8_t *)p & 0x30) == 0))
-                            goto error;
-                        break;
-                    case 4:
-                        VALIDATE_BYTE(0xf0, 0x80); /* 0x80 ... 0x8f */
-                        break;
-                    default:
-                        VALIDATE_BYTE(0xc0, 0x80); /* 10xxxxxx */
-                    }
-                    p++;
-                    VALIDATE_BYTE(0xc0, 0x80); /* 10xxxxxx */
-                }
-                else
-                    goto error;
-            }
-
-            p++;
-            VALIDATE_BYTE(0xc0, 0x80); /* 10xxxxxx */
-
-            n++;
-            continue;
-error:
-            if (nr_chars)
-                *nr_chars = n;
-            return last;
-        }
-    }
-
-    if (nr_chars)
-        *nr_chars = n;
-    return p;
-}
-
-static const char *
-fast_validate_len (const char *str, ssize_t max_len, size_t *nr_chars)
-{
-    size_t n = 0;
-    const char *p;
-
-    assert(max_len >= 0);
-
-    for (p = str; ((p - str) < max_len) && *p; p++) {
-        if (*(uint8_t *)p < 128)
-            /* done */;
-        else {
-            const char *last;
-
-            last = p;
-            if (*(uint8_t *)p < 0xe0) /* 110xxxxx */
-            {
-                if (UNLIKELY (max_len - (p - str) < 2))
-                    goto error;
-
-                if (UNLIKELY (*(uint8_t *)p < 0xc2))
-                    goto error;
-            }
-            else {
-                if (*(uint8_t *)p < 0xf0) /* 1110xxxx */
-                {
-                    if (UNLIKELY (max_len - (p - str) < 3))
-                        goto error;
-
-                    switch (*(uint8_t *)p++ & 0x0f) {
-                    case 0:
-                        VALIDATE_BYTE(0xe0, 0xa0); /* 0xa0 ... 0xbf */
-                        break;
-                    case 0x0d:
-                        VALIDATE_BYTE(0xe0, 0x80); /* 0x80 ... 0x9f */
-                        break;
-                    default:
-                        VALIDATE_BYTE(0xc0, 0x80); /* 10xxxxxx */
-                    }
-                }
-                else if (*(uint8_t *)p < 0xf5) /* 11110xxx excluding out-of-range */
-                {
-                    if (UNLIKELY (max_len - (p - str) < 4))
-                        goto error;
-
-                    switch (*(uint8_t *)p++ & 0x07) {
-                    case 0:
-                        VALIDATE_BYTE(0xc0, 0x80); /* 10xxxxxx */
-                        if (UNLIKELY((*(uint8_t *)p & 0x30) == 0))
-                            goto error;
-                        break;
-                    case 4:
-                        VALIDATE_BYTE(0xf0, 0x80); /* 0x80 ... 0x8f */
-                        break;
-                    default:
-                        VALIDATE_BYTE(0xc0, 0x80); /* 10xxxxxx */
-                    }
-                    p++;
-                    VALIDATE_BYTE(0xc0, 0x80); /* 10xxxxxx */
-                }
-                else
-                    goto error;
-            }
-
-            p++;
-            VALIDATE_BYTE(0xc0, 0x80); /* 10xxxxxx */
-
-            n++;
-            continue;
-
-error:
-            if (nr_chars)
-                *nr_chars = n;
-            return last;
-        }
-    }
-
-    if (nr_chars)
-        *nr_chars = n;
-    return p;
-}
-
-
-static bool string_check_utf8_len(const char* str, size_t max_len,
-        size_t *nr_chars, const char **end)
-{
-    const char *p;
-
-    p = fast_validate_len(str, max_len, nr_chars);
-
-    if (end)
-        *end = p;
-
-    if (p != str + max_len)
-        return false;
-    else
-        return true;
-}
-
-static bool string_check_utf8(const char *str, ssize_t max_len,
-        size_t *nr_chars, const char **end)
-
-{
-    const char *p;
-
-    if (max_len >= 0)
-        return string_check_utf8_len(str, max_len, nr_chars, end);
-
-    p = fast_validate(str, nr_chars);
-
-    if (end)
-        *end = p;
-
-    if (*p != '\0')
-        return false;
-    else
-        return true;
-}
-
 purc_variant_t
 purc_variant_make_string(const char* str_utf8, bool check_encoding)
 {
@@ -404,14 +208,14 @@ purc_variant_make_string_ex(const char* str_utf8, size_t len,
     size_t nr_chars;
 
     if (check_encoding) {
-        if (!string_check_utf8_len(str_utf8, len, &nr_chars, NULL)) {
+        if (!pcutils_string_check_utf8_len(str_utf8, len, &nr_chars, NULL)) {
             pcinst_set_error(PURC_ERROR_BAD_ENCODING);
             return PURC_VARIANT_INVALID;
         }
     }
     else {
         const char *end;
-        string_check_utf8_len(str_utf8, len, &nr_chars, &end);
+        pcutils_string_check_utf8_len(str_utf8, len, &nr_chars, &end);
         len = end - str_utf8;
     }
 
@@ -465,13 +269,13 @@ purc_variant_t purc_variant_make_string_reuse_buff(char* str_utf8,
     const char *end;
 
     if (check_encoding) {
-        if (!string_check_utf8_len(str_utf8, sz_buff, &nr_chars, &end)) {
+        if (!pcutils_string_check_utf8_len(str_utf8, sz_buff, &nr_chars, &end)) {
             pcinst_set_error (PURC_ERROR_BAD_ENCODING);
             return PURC_VARIANT_INVALID;
         }
     }
     else {
-        string_check_utf8_len(str_utf8, sz_buff, &nr_chars, &end);
+        pcutils_string_check_utf8_len(str_utf8, sz_buff, &nr_chars, &end);
     }
     len = end - str_utf8;
 
@@ -505,7 +309,7 @@ purc_variant_t purc_variant_make_string_static(const char* str_utf8,
     purc_variant_t value = NULL;
 
     if (check_encoding) {
-        if (!string_check_utf8(str_utf8, -1, &nr_chars, NULL)) {
+        if (!pcutils_string_check_utf8(str_utf8, -1, &nr_chars, NULL)) {
             pcinst_set_error (PURC_ERROR_BAD_ENCODING);
             return PURC_VARIANT_INVALID;
         }
@@ -595,7 +399,7 @@ purc_variant_make_atom_string (const char* str_utf8, bool check_encoding)
     size_t nr_chars;
 
     if (check_encoding) {
-        if (!string_check_utf8(str_utf8, -1, &nr_chars, NULL)) {
+        if (!pcutils_string_check_utf8(str_utf8, -1, &nr_chars, NULL)) {
             pcinst_set_error (PURC_ERROR_BAD_ENCODING);
             return PURC_VARIANT_INVALID;
         }
@@ -633,7 +437,7 @@ purc_variant_make_atom_string_static(const char* str_utf8,
     size_t nr_chars;
 
     if (check_encoding) {
-        if (!string_check_utf8(str_utf8, -1, &nr_chars, NULL)) {
+        if (!pcutils_string_check_utf8(str_utf8, -1, &nr_chars, NULL)) {
             pcinst_set_error (PURC_ERROR_BAD_ENCODING);
             return PURC_VARIANT_INVALID;
         }
