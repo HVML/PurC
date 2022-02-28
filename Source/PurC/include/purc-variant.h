@@ -44,15 +44,28 @@ typedef struct purc_variant* purc_variant_t;
 PCA_EXTERN_C_BEGIN
 
 /**
+ * Gets the reference count of a variant value
+ *
+ * @param value: the variant value
+ *
+ * Returns: 
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT unsigned int
+purc_variant_ref_count(purc_variant_t value);
+
+/**
  * Adds ref for a variant value
  *
  * @param value: variant value to be operated
  *
- * Returns: A purc_variant_t on success, NULL on failure.
+ * Returns: A purc_variant_t on success, PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.0.1
  */
-PCA_EXPORT purc_variant_t purc_variant_ref(purc_variant_t value);
+PCA_EXPORT purc_variant_t
+purc_variant_ref(purc_variant_t value);
 
 /**
  * substract ref for a variant value. When ref is zero, releases the resource
@@ -65,7 +78,8 @@ PCA_EXPORT purc_variant_t purc_variant_ref(purc_variant_t value);
  *
  * Since: 0.0.1
  */
-PCA_EXPORT unsigned int purc_variant_unref(purc_variant_t value);
+PCA_EXPORT unsigned int
+purc_variant_unref(purc_variant_t value);
 
 /**
  * Creates a variant value of undefined type.
