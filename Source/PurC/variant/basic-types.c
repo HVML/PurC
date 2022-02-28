@@ -375,6 +375,23 @@ bool purc_variant_string_bytes(purc_variant_t string, size_t *length)
     return false;
 }
 
+// TODO
+bool purc_variant_string_chars(purc_variant_t string, size_t *nr_chars)
+{
+    PC_ASSERT(string && nr_chars);
+
+    if (IS_TYPE(string, PURC_VARIANT_TYPE_STRING) ||
+        IS_TYPE(string, PURC_VARIANT_TYPE_ATOMSTRING) ||
+        IS_TYPE(string, PURC_VARIANT_TYPE_EXCEPTION)) {
+
+        nr_chars = 0;
+        return true;
+    }
+
+    pcinst_set_error (PCVARIANT_ERROR_INVALID_TYPE);
+    return false;
+}
+
 void pcvariant_string_release (purc_variant_t string)
 {
     PC_ASSERT(string);
