@@ -54,29 +54,63 @@
 #define PCRDR_NOT_AVAILABLE             "<N/A>"
 
 /* operations */
+enum {
+    PCRDR_K_OPERATION_FIRST = 0,
+    PCRDR_K_OPERATION_STARTSESSION = PCRDR_K_OPERATION_FIRST,
 #define PCRDR_OPERATION_STARTSESSION        "startSession"
+    PCRDR_K_OPERATION_ENDSESSION,
 #define PCRDR_OPERATION_ENDSESSION          "endSession"
+    PCRDR_K_OPERATION_CREATEWORKSPACE,
 #define PCRDR_OPERATION_CREATEWORKSPACE     "createWorkspace"
+    PCRDR_K_OPERATION_DESTROYWORKSPACE,
 #define PCRDR_OPERATION_DESTROYWORKSPACE    "destroyWorkspace"
+    PCRDR_K_OPERATION_UPDATEWORKSPACE,
 #define PCRDR_OPERATION_UPDATEWORKSPACE     "updateWorkspace"
+    PCRDR_K_OPERATION_CREATEPLAINWINDOW,
 #define PCRDR_OPERATION_CREATEPLAINWINDOW   "createPlainWindow"
+    PCRDR_K_OPERATION_UPDATEPLAINWINDOW,
 #define PCRDR_OPERATION_UPDATEPLAINWINDOW   "updatePlainWindow"
+    PCRDR_K_OPERATION_DESTROYPLAINWINDOW,
 #define PCRDR_OPERATION_DESTROYPLAINWINDOW  "destroyPlainWindow"
+    PCRDR_K_OPERATION_CREATETABBEDWINDOW,
 #define PCRDR_OPERATION_CREATETABBEDWINDOW  "createTabbedWindow"
+    PCRDR_K_OPERATION_UPDATETABBEDWINDOW,
 #define PCRDR_OPERATION_UPDATETABBEDWINDOW  "updateTabbedWindow"
+    PCRDR_K_OPERATION_DESTROYTABBEDWINDOW,
 #define PCRDR_OPERATION_DESTROYTABBEDWINDOW "destroyTabbedWindow"
+    PCRDR_K_OPERATION_CREATETABPAGE,
 #define PCRDR_OPERATION_CREATETABPAGE       "createTabpage"
+    PCRDR_K_OPERATION_UPDATETABPAGE,
 #define PCRDR_OPERATION_UPDATETABPAGE       "updateTabpage"
+    PCRDR_K_OPERATION_DESTROYTABPAGE,
 #define PCRDR_OPERATION_DESTROYTABPAGE      "destroyTabpage"
+    PCRDR_K_OPERATION_LOAD,
 #define PCRDR_OPERATION_LOAD                "load"
+    PCRDR_K_OPERATION_WRITE,
+#define PCRDR_OPERATION_WRITE               "write"
+    PCRDR_K_OPERATION_APPEND,
 #define PCRDR_OPERATION_APPEND              "append"
+    PCRDR_K_OPERATION_PREPEND,
 #define PCRDR_OPERATION_PREPEND             "prepend"
+    PCRDR_K_OPERATION_INSERTBEFORE,
 #define PCRDR_OPERATION_INSERTBEFORE        "insertBefore"
+    PCRDR_K_OPERATION_INSERTAFTER,
 #define PCRDR_OPERATION_INSERTAFTER         "insertAfter"
+    PCRDR_K_OPERATION_DISPLACE,
 #define PCRDR_OPERATION_DISPLACE            "displace"
+    PCRDR_K_OPERATION_UPDATE,
 #define PCRDR_OPERATION_UPDATE              "update"
+    PCRDR_K_OPERATION_ERASE,
 #define PCRDR_OPERATION_ERASE               "erase"
+    PCRDR_K_OPERATION_CLEAR,
 #define PCRDR_OPERATION_CLEAR               "clear"
+
+    /* XXX: change this when you append a new operation */
+    PCRDR_K_OPERATION_LAST = PCRDR_K_OPERATION_CLEAR,
+};
+
+#define PCRDR_NR_OPERATIONS \
+    (PCRDR_K_OPERATION_LAST - PCRDR_K_OPERATION_FIRST + 1)
 
 /* Status Codes */
 #define PCRDR_SC_IOERR                  1
@@ -486,7 +520,7 @@ pcrdr_conn_set_user_data(pcrdr_conn* conn, void* user_data);
  *
  * Since: 0.1.0
  */
-PCA_EXPORT int 
+PCA_EXPORT int
 pcrdr_conn_get_last_ret_code(pcrdr_conn* conn);
 
 /**
@@ -896,7 +930,8 @@ pcrdr_wait_and_dispatch_message(pcrdr_conn* conn, int timeout_ms);
  * Since: 0.1.0
  */
 PCA_EXPORT int
-pcrdr_send_request_and_wait_response(pcrdr_conn* conn, const pcrdr_msg *request_msg,
+pcrdr_send_request_and_wait_response(pcrdr_conn* conn,
+        const pcrdr_msg *request_msg,
         int seconds_expected, pcrdr_msg **response_msg);
 
 /**
@@ -997,8 +1032,9 @@ pcrdr_purcmc_read_packet(pcrdr_conn* conn,
  *
  * Note that the caller is responsible for releasing the buffer.
  *
- * Also note that if the length of the packet is 0, there is no data in the packet.
- * You should ignore the packet in this case.
+ * Also note that if the length of the packet is 0,
+ * there will be no data in the packet. You should ignore the packet
+ * in this case.
  *
  * Since: 0.1.0
  */
