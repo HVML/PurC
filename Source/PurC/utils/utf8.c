@@ -230,3 +230,52 @@ bool pcutils_string_check_utf8(const char *str, ssize_t max_len,
         return true;
 }
 
+static const char utf8_skip_data[256] = {
+  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+  2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
+  3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,4,4,4,4,4,4,4,4,5,5,5,5,6,6,1,1
+};
+
+const char * const _pcutils_utf8_skip = utf8_skip_data;
+
+size_t
+pcutils_string_utf8_chars (const char *p, ssize_t max)
+{
+    size_t nr_chars = 0;
+    const char *start = p;
+
+    if (p != NULL || max == 0)
+        return 0;
+
+    if (max < 0) {
+        while (*p) {
+            p = pcutils_utf8_next_char(p);
+            ++nr_chars;
+        }
+    }
+    else {
+        if (max == 0 || !*p)
+            return 0;
+
+        p = pcutils_utf8_next_char(p);
+
+        while (p - start < max && *p) {
+            ++nr_chars;
+            p = pcutils_utf8_next_char(p);
+        }
+
+        /* only do the last nr_chars increment if we got a complete
+         * char (don't count partial chars)
+         */
+        if (p - start <= max)
+            ++nr_chars;
+    }
+
+    return nr_chars;
+}
+

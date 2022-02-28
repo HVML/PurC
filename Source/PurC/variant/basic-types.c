@@ -313,6 +313,9 @@ purc_variant_t purc_variant_make_string_static(const char* str_utf8,
             return PURC_VARIANT_INVALID;
         }
     }
+    else {
+        nr_chars = pcutils_string_utf8_chars(str_utf8, -1);
+    }
 
     value = pcvariant_get(PURC_VARIANT_TYPE_STRING);
 
@@ -420,6 +423,9 @@ purc_variant_make_atom_string (const char* str_utf8, bool check_encoding)
             return PURC_VARIANT_INVALID;
         }
     }
+    else {
+        nr_chars = pcutils_string_utf8_chars(str_utf8, -1);
+    }
 
     purc_atom_t atom = purc_atom_from_string(str_utf8);
     if (atom == 0) {
@@ -457,6 +463,9 @@ purc_variant_make_atom_string_static(const char* str_utf8,
             pcinst_set_error (PURC_ERROR_BAD_ENCODING);
             return PURC_VARIANT_INVALID;
         }
+    }
+    else {
+        nr_chars = pcutils_string_utf8_chars(str_utf8, -1);
     }
 
     purc_atom_t atom = purc_atom_from_static_string(str_utf8);
