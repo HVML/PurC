@@ -789,7 +789,7 @@ purc_variant_t call_nvariant_method(purc_variant_t var,
             ops->property_setter(key_name);
         if (native_func) {
             return  native_func (purc_variant_native_get_entity (var),
-                    nr_args, argv);
+                    nr_args, argv, true);    // TODO: silently
         }
     }
     return PURC_VARIANT_INVALID;

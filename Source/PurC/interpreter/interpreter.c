@@ -1723,7 +1723,8 @@ pcintr_doc_query(purc_vdom_t vdom, const char* css)
         goto end;
     }
 
-    ret = native_func (purc_variant_native_get_entity(doc), 1, &arg);
+    // TODO: silenly
+    ret = native_func (purc_variant_native_get_entity(doc), 1, &arg, false);
     purc_variant_unref(arg);
 end:
     return ret;

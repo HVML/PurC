@@ -463,7 +463,7 @@ purc_variant_dynamic_get_setter(purc_variant_t dynamic);
 
 
 typedef purc_variant_t (*purc_nvariant_method) (void* native_entity,
-            size_t nr_args, purc_variant_t* argv);
+            size_t nr_args, purc_variant_t* argv, bool silently);
 
 struct purc_native_ops {
     // query the getter for a specific property.

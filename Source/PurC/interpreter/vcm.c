@@ -91,8 +91,9 @@ vcm_clean(struct pcintr_vcm *vcm)
 }
 
 static purc_variant_t
-eval(void* native_entity, size_t nr_args, purc_variant_t* argv)
+eval(void* native_entity, size_t nr_args, purc_variant_t* argv, bool silently)
 {
+    UNUSED_PARAM(silently);
     PC_ASSERT(native_entity);
 
     struct pcintr_vcm *vcm = (struct pcintr_vcm*)native_entity;
@@ -111,8 +112,10 @@ eval(void* native_entity, size_t nr_args, purc_variant_t* argv)
 }
 
 static purc_variant_t
-eval_const(void* native_entity, size_t nr_args, purc_variant_t* argv)
+eval_const(void* native_entity, size_t nr_args, purc_variant_t* argv,
+        bool silently)
 {
+    UNUSED_PARAM(silently);
     PC_ASSERT(native_entity);
 
     struct pcintr_vcm *vcm = (struct pcintr_vcm*)native_entity;

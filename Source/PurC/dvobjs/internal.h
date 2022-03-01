@@ -60,35 +60,35 @@ pcdvobjs_query_elements(struct pcdom_element *root,
 
 purc_variant_t
 pcdvobjs_element_attr_getter(pcdom_element_t *element,
-        size_t nr_args, purc_variant_t *argv);
+        size_t nr_args, purc_variant_t *argv, bool silently);
 
 purc_variant_t
 pcdvobjs_element_prop_getter(pcdom_element_t *element,
-        size_t nr_args, purc_variant_t *argv);
+        size_t nr_args, purc_variant_t *argv, bool silently);
 
 purc_variant_t
 pcdvobjs_element_style_getter(pcdom_element_t *element,
-        size_t nr_args, purc_variant_t* argv);
+        size_t nr_args, purc_variant_t* argv, bool silently);
 
 purc_variant_t
 pcdvobjs_element_content_getter(pcdom_element_t *element,
-        size_t nr_args, purc_variant_t* argv);
+        size_t nr_args, purc_variant_t* argv, bool silently);
 
 purc_variant_t
 pcdvobjs_element_text_content_getter(pcdom_element_t *element,
-        size_t nr_args, purc_variant_t* argv);
+        size_t nr_args, purc_variant_t* argv, bool silently);
 
 purc_variant_t
 pcdvobjs_element_json_content_getter(pcdom_element_t *element,
-        size_t nr_args, purc_variant_t* argv);
+        size_t nr_args, purc_variant_t* argv, bool silently);
 
 purc_variant_t
 pcdvobjs_element_val_getter(pcdom_element_t *element,
-        size_t nr_args, purc_variant_t* argv);
+        size_t nr_args, purc_variant_t* argv, bool silently);
 
 purc_variant_t
 pcdvobjs_element_has_class_getter(pcdom_element_t *element,
-        size_t nr_args, purc_variant_t* argv);
+        size_t nr_args, purc_variant_t* argv, bool silently);
 
 PCA_EXTERN_C_END
 
