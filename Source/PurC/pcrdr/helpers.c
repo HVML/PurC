@@ -192,6 +192,28 @@ bool pcrdr_is_valid_token (const char* token, int max_len)
         if (max_len > 0 && i > max_len)
             return false;
 
+        if (!isalnum (token [i]) && token[i] != '_')
+            return false;
+
+        i++;
+    }
+
+    return true;
+}
+
+bool pcrdr_is_valid_loose_token (const char* token, int max_len)
+{
+    int i;
+
+    if (!isalpha (token [0]))
+        return false;
+
+    i = 1;
+    while (token [i]) {
+
+        if (max_len > 0 && i > max_len)
+            return false;
+
         if (!isalnum (token [i]) && token[i] != '_' && token[i] != '-')
             return false;
 

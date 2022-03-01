@@ -86,8 +86,12 @@ enum {
 #define PCRDR_OPERATION_DESTROYTABPAGE      "destroyTabpage"
     PCRDR_K_OPERATION_LOAD,
 #define PCRDR_OPERATION_LOAD                "load"
-    PCRDR_K_OPERATION_WRITE,
-#define PCRDR_OPERATION_WRITE               "write"
+    PCRDR_K_OPERATION_WRITEBEGIN,
+#define PCRDR_OPERATION_WRITEBEGIN          "writeBegin"
+    PCRDR_K_OPERATION_WRITEMORE,
+#define PCRDR_OPERATION_WRITEMORE           "writeMore"
+    PCRDR_K_OPERATION_WRITEEND,
+#define PCRDR_OPERATION_WRITEEND            "writeEnd"
     PCRDR_K_OPERATION_APPEND,
 #define PCRDR_OPERATION_APPEND              "append"
     PCRDR_K_OPERATION_PREPEND,
@@ -302,6 +306,26 @@ pcrdr_errcode_to_retcode(int err_code);
  */
 PCA_EXPORT bool
 pcrdr_is_valid_token(const char *token, int max_len);
+
+/**
+ * Check whether a string is a valid loose token.
+ *
+ * @param token: the pointer to the token string.
+ * @param max_len: The maximal possible length of the token string.
+ *
+ * Checks whether a loose token string is valid. According to PurCMC protocal,
+ * the identifier should be a valid loose token. A loose token can contain
+ * one or more `-` ASCII characters.
+ *
+ * Note that a string with a length longer than \a max_len will
+ * be considered as an invalid loose token.
+ *
+ * Returns: true for a valid loose token, otherwise false.
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT bool
+pcrdr_is_valid_loose_token(const char *token, int max_len);
 
 /**
  * Generate an unique identifier.
@@ -1186,7 +1210,7 @@ pcrdr_is_valid_runner_name(const char *runner_name)
 static inline bool
 pcrdr_is_valid_identifier(const char *id)
 {
-    return pcrdr_is_valid_token(id, PCRDR_LEN_IDENTIFIER);
+    return pcrdr_is_valid_loose_token(id, PCRDR_LEN_IDENTIFIER);
 }
 
 /**@}*/
