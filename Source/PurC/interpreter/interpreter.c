@@ -557,7 +557,8 @@ walk_attr(void *key, void *val, void *ud)
     else {
         pcintr_stack_t stack = purc_get_stack();
         PC_ASSERT(stack);
-        value = pcvcm_eval(vcm, stack);
+        // TODO: silently
+        value = pcvcm_eval(vcm, stack, false);
         if (value == PURC_VARIANT_INVALID ||
             purc_variant_is_undefined(value))
         {

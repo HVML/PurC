@@ -1292,7 +1292,7 @@ purc_variant_t purc_variant_load_from_json_stream(purc_rwstream_t stream)
         goto ret;
     }
 
-    value = pcvcm_eval (root, NULL);
+    value = pcvcm_eval (root, NULL, false);
 
 ret:
     pcvcm_node_destroy (root);

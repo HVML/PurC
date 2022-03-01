@@ -580,7 +580,8 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     }
 
     // NOTE: element is still the owner of vcm_content
-    purc_variant_t v = pcvcm_eval(vcm, co->stack);
+    // TODO: silently
+    purc_variant_t v = pcvcm_eval(vcm, co->stack, false);
     if (v == PURC_VARIANT_INVALID)
         return -1;
 

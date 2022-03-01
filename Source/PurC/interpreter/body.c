@@ -185,7 +185,7 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         return;
 
     pcintr_stack_t stack = co->stack;
-    purc_variant_t v = pcvcm_eval(vcm, stack);
+    purc_variant_t v = pcvcm_eval(vcm, stack, false);  //TODO : silently
     PC_ASSERT(v != PURC_VARIANT_INVALID);
     purc_clr_error();
 

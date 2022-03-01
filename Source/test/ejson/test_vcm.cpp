@@ -151,7 +151,7 @@ TEST_P(ejson_parser_vcm_eval, parse_and_serialize)
     }
 
 
-    purc_variant_t vt = pcvcm_eval (root, NULL);
+    purc_variant_t vt = pcvcm_eval (root, NULL, false);
     ASSERT_NE(vt, PURC_VARIANT_INVALID) << "Test Case : "<< get_name();
 
     char buf[1024] = {0};

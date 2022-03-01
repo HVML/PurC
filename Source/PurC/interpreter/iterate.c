@@ -292,7 +292,7 @@ on_popping(pcintr_stack_t stack, void* ud)
         struct pcvcm_node *vcm = ctxt->by_vcm;
 
         purc_variant_unref(by);
-        by = pcvcm_eval(vcm, stack);
+        by = pcvcm_eval(vcm, stack, false);  // TODO: silently
         PC_ASSERT(by != PURC_VARIANT_INVALID);
         rule = purc_variant_get_string_const(by);
         PC_ASSERT(rule);
