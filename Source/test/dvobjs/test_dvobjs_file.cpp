@@ -60,7 +60,7 @@ TEST(dvobjs, dvobjs_file_text_head)
     printf ("TEST text_head: nr_args=2, param1=\"/etc/passwd\", param2=0:\n");
     param[0] = purc_variant_make_string ("/etc/passwd", false);
     param[1] = purc_variant_make_number (0);
-    ret_var = func (NULL, 2, param);
+    ret_var = func (NULL, 2, param, false);
     ASSERT_EQ(purc_variant_string_length (ret_var)-1, filestat.st_size);
     purc_variant_unref(param[0]);
     purc_variant_unref(param[1]);
@@ -69,7 +69,7 @@ TEST(dvobjs, dvobjs_file_text_head)
     printf ("TEST text_head: nr_args=2, param1=\"/etc/passwd\", param2=3:\n");
     param[0] = purc_variant_make_string ("/etc/passwd", false);
     param[1] = purc_variant_make_number (3);
-    ret_var = func (NULL, 2, param);
+    ret_var = func (NULL, 2, param, false);
     printf("\t\tReturn : %s\n", purc_variant_get_string_const (ret_var));
     purc_variant_unref(param[0]);
     purc_variant_unref(param[1]);
@@ -78,7 +78,7 @@ TEST(dvobjs, dvobjs_file_text_head)
     printf ("TEST text_head: nr_args=2, param1=\"/etc/passwd\", param2=-3:\n");
     param[0] = purc_variant_make_string ("/etc/passwd", false);
     param[1] = purc_variant_make_number (-3);
-    ret_var = func (NULL, 2, param);
+    ret_var = func (NULL, 2, param, false);
     printf("\t\tReturn : %s\n", purc_variant_get_string_const (ret_var));
     purc_variant_unref(param[0]);
     purc_variant_unref(param[1]);
@@ -136,7 +136,7 @@ TEST(dvobjs, dvobjs_file_text_tail)
     printf ("TEST text_tail: nr_args=2, param1=\"/etc/passwd\", param2=0:\n");
     param[0] = purc_variant_make_string ("/etc/passwd", false);
     param[1] = purc_variant_make_number (0);
-    ret_var = func (NULL, 2, param);
+    ret_var = func (NULL, 2, param, false);
     ASSERT_EQ(purc_variant_string_length (ret_var)-1, 0);
     purc_variant_unref(param[0]);
     purc_variant_unref(param[1]);
@@ -145,7 +145,7 @@ TEST(dvobjs, dvobjs_file_text_tail)
     printf ("TEST text_tail: nr_args=2, param1=\"/etc/passwd\", param2=3:\n");
     param[0] = purc_variant_make_string ("/etc/passwd", false);
     param[1] = purc_variant_make_number (3);
-    ret_var = func (NULL, 2, param);
+    ret_var = func (NULL, 2, param, false);
     printf("\t\tReturn : %s\n", purc_variant_get_string_const (ret_var));
     purc_variant_unref(param[0]);
     purc_variant_unref(param[1]);
@@ -154,7 +154,7 @@ TEST(dvobjs, dvobjs_file_text_tail)
     printf ("TEST text_tail: nr_args=2, param1=\"/etc/passwd\", param2=-3:\n");
     param[0] = purc_variant_make_string ("/etc/passwd", false);
     param[1] = purc_variant_make_number (-3);
-    ret_var = func (NULL, 2, param);
+    ret_var = func (NULL, 2, param, false);
     printf("\t\tReturn : %s\n", purc_variant_get_string_const (ret_var));
     purc_variant_unref(param[0]);
     purc_variant_unref(param[1]);
@@ -212,7 +212,7 @@ TEST(dvobjs, dvobjs_file_bin_head)
     printf ("TEST bin_head: nr_args=2, param1=\"/etc/passwd\", param2=0 :\n");
     param[0] = purc_variant_make_string ("/etc/passwd", false);
     param[1] = purc_variant_make_number (0);
-    ret_var = func (NULL, 2, param);
+    ret_var = func (NULL, 2, param, false);
     ASSERT_EQ(purc_variant_sequence_length(ret_var), filestat.st_size);
     purc_variant_unref(param[0]);
     purc_variant_unref(param[1]);
@@ -221,7 +221,7 @@ TEST(dvobjs, dvobjs_file_bin_head)
     printf ("TEST bin_head: nr_args=2, param1=\"/etc/passwd\", param2=3:\n");
     param[0] = purc_variant_make_string ("/etc/passwd", false);
     param[1] = purc_variant_make_number (3);
-    ret_var = func (NULL, 2, param);
+    ret_var = func (NULL, 2, param, false);
     ASSERT_EQ(purc_variant_sequence_length(ret_var), 3);
     purc_variant_unref(param[0]);
     purc_variant_unref(param[1]);
@@ -230,7 +230,7 @@ TEST(dvobjs, dvobjs_file_bin_head)
     printf ("TEST bin_head: nr_args=2, param1=\"/etc/passwd\", param2=-3:\n");
     param[0] = purc_variant_make_string ("/etc/passwd", false);
     param[1] = purc_variant_make_number (-3);
-    ret_var = func (NULL, 2, param);
+    ret_var = func (NULL, 2, param, false);
     ASSERT_EQ(purc_variant_sequence_length(ret_var), filestat.st_size - 3);
     purc_variant_unref(param[0]);
     purc_variant_unref(param[1]);
@@ -288,7 +288,7 @@ TEST(dvobjs, dvobjs_file_bin_tail)
     printf ("TEST bin_tail: nr_args=2, param1=\"/etc/passwd\", param2=0:\n");
     param[0] = purc_variant_make_string ("/etc/passwd", false);
     param[1] = purc_variant_make_number (0);
-    ret_var = func (NULL, 2, param);
+    ret_var = func (NULL, 2, param, false);
     ASSERT_EQ(purc_variant_sequence_length(ret_var), filestat.st_size);
     purc_variant_unref(param[0]);
     purc_variant_unref(param[1]);
@@ -297,7 +297,7 @@ TEST(dvobjs, dvobjs_file_bin_tail)
     printf ("TEST bin_tail: nr_args=2, param1=\"/etc/passwd\", param2=3:\n");
     param[0] = purc_variant_make_string ("/etc/passwd", false);
     param[1] = purc_variant_make_number (3);
-    ret_var = func (NULL, 2, param);
+    ret_var = func (NULL, 2, param, false);
     ASSERT_EQ(purc_variant_sequence_length(ret_var), 3);
     purc_variant_unref(param[0]);
     purc_variant_unref(param[1]);
@@ -306,7 +306,7 @@ TEST(dvobjs, dvobjs_file_bin_tail)
     printf ("TEST bin_tail: nr_args=2, param1=\"/etc/passwd\", param2=-3:\n");
     param[0] = purc_variant_make_string ("/etc/passwd", false);
     param[1] = purc_variant_make_number (-3);
-    ret_var = func (NULL, 2, param);
+    ret_var = func (NULL, 2, param, false);
     ASSERT_EQ(purc_variant_sequence_length(ret_var), filestat.st_size - 3);
     purc_variant_unref(param[0]);
     purc_variant_unref(param[1]);
@@ -376,7 +376,7 @@ TEST(dvobjs, dvobjs_file_stream_open_seek_close)
             param1=\"test_files/stream.test\":\n");
     param[0] = purc_variant_make_string (file_path, false);
     param[1] = purc_variant_make_string ("r+", false);
-    ret_var = func (NULL, 2, param);
+    ret_var = func (NULL, 2, param, false);
 
     ASSERT_EQ(purc_variant_is_type (ret_var,
                     PURC_VARIANT_TYPE_NATIVE), true);
@@ -394,7 +394,7 @@ TEST(dvobjs, dvobjs_file_stream_open_seek_close)
     param[0] = ret_var;
     param[1] = purc_variant_make_ulongint (17);
     param[2] = purc_variant_make_longint (SEEK_CUR);
-    val = func (NULL, 3, param);
+    val = func (NULL, 3, param, false);
 
     ASSERT_EQ(purc_variant_is_type (val,
                     PURC_VARIANT_TYPE_LONGINT), true);
@@ -414,7 +414,7 @@ TEST(dvobjs, dvobjs_file_stream_open_seek_close)
     ASSERT_NE(func, nullptr);
 
     param[0] = ret_var;
-    val = func (NULL, 1, param);
+    val = func (NULL, 1, param, false);
     ASSERT_NE(val, nullptr);
 
     ASSERT_EQ(purc_variant_is_type (val,
@@ -488,7 +488,7 @@ TEST(dvobjs, dvobjs_file_stream_readbytes)
             nr_args=2, param1=\"test_files/stream.test\":\n");
     param[0] = purc_variant_make_string (file_path, false);
     param[1] = purc_variant_make_string ("r+", false);
-    ret_var = func (NULL, 2, param);
+    ret_var = func (NULL, 2, param, false);
     ASSERT_EQ(purc_variant_is_type (ret_var,
                     PURC_VARIANT_TYPE_NATIVE), true);
     purc_variant_unref(param[0]);
@@ -506,7 +506,7 @@ TEST(dvobjs, dvobjs_file_stream_readbytes)
     param[0] = ret_var;
     param[1] = purc_variant_make_ulongint (10);
     param[2] = purc_variant_make_longint (SEEK_CUR);
-    val = func (NULL, 3, param);
+    val = func (NULL, 3, param, false);
 
     ASSERT_EQ(purc_variant_is_type (val,
                     PURC_VARIANT_TYPE_LONGINT), true);
@@ -527,7 +527,7 @@ TEST(dvobjs, dvobjs_file_stream_readbytes)
 
     param[0] = ret_var;
     param[1] = purc_variant_make_ulongint (20);
-    val = func (NULL, 2, param);
+    val = func (NULL, 2, param, false);
 
     ASSERT_EQ(purc_variant_is_type (val,
                     PURC_VARIANT_TYPE_BSEQUENCE), true);
@@ -544,7 +544,7 @@ TEST(dvobjs, dvobjs_file_stream_readbytes)
     ASSERT_NE(func, nullptr);
 
     param[0] = ret_var;
-    val = func (NULL, 1, param);
+    val = func (NULL, 1, param, false);
     ASSERT_NE(val, nullptr);
 
     ASSERT_EQ(purc_variant_is_type (val,
@@ -616,7 +616,7 @@ TEST(dvobjs, dvobjs_file_stream_readlines)
             param1=\"test_files/stream.test\":\n");
     param[0] = purc_variant_make_string (file_path, false);
     param[1] = purc_variant_make_string ("r+", false);
-    ret_var = func (NULL, 2, param);
+    ret_var = func (NULL, 2, param, false);
 
     ASSERT_EQ(purc_variant_is_type (ret_var,
                     PURC_VARIANT_TYPE_NATIVE), true);
@@ -635,7 +635,7 @@ TEST(dvobjs, dvobjs_file_stream_readlines)
     param[0] = ret_var;
     param[1] = purc_variant_make_ulongint (0);
     param[2] = purc_variant_make_longint (SEEK_CUR);
-    val = func (NULL, 3, param);
+    val = func (NULL, 3, param, false);
 
     ASSERT_EQ(purc_variant_is_type (val,
                     PURC_VARIANT_TYPE_LONGINT), true);
@@ -656,7 +656,7 @@ TEST(dvobjs, dvobjs_file_stream_readlines)
 
     param[0] = ret_var;
     param[1] = purc_variant_make_ulongint (1);
-    val = func (NULL, 2, param);
+    val = func (NULL, 2, param, false);
 
     ASSERT_EQ(purc_variant_is_type (val,
                     PURC_VARIANT_TYPE_STRING), true);
@@ -675,7 +675,7 @@ TEST(dvobjs, dvobjs_file_stream_readlines)
     ASSERT_NE(func, nullptr);
 
     param[0] = ret_var;
-    val = func (NULL, 1, param);
+    val = func (NULL, 1, param, false);
     ASSERT_NE(val, nullptr);
 
     ASSERT_EQ(purc_variant_is_type (val,
@@ -866,7 +866,7 @@ TEST(dvobjs, dvobjs_file_stream_read_write_struct)
                 // open
                 for_open[0] = purc_variant_make_string (temp_file, false);
                 for_open[1] = purc_variant_make_string ("r+", false);
-                test_file = open (NULL, 2, for_open);
+                test_file = open (NULL, 2, for_open, false);
                 ASSERT_EQ(purc_variant_is_type (test_file,
                             PURC_VARIANT_TYPE_NATIVE), true);
                 purc_variant_unref(for_open[0]);
@@ -881,7 +881,7 @@ TEST(dvobjs, dvobjs_file_stream_read_write_struct)
                     purc_variant_array_append (for_open[2], param[k]);
 
                 // write
-                ret_var = writestruct (NULL, 3, for_open);
+                ret_var = writestruct (NULL, 3, for_open, false);
                 ASSERT_EQ(purc_variant_is_type (ret_var,
                             PURC_VARIANT_TYPE_ULONGINT), true);
                 purc_variant_unref(for_open[2]);
@@ -891,7 +891,7 @@ TEST(dvobjs, dvobjs_file_stream_read_write_struct)
                 for_open[0] = test_file;
                 for_open[1] = purc_variant_make_ulongint (0);
                 for_open[2] = purc_variant_make_longint (SEEK_SET);
-                ret_var = seek (NULL, 3, for_open);
+                ret_var = seek (NULL, 3, for_open, false);
 
                 ASSERT_EQ(purc_variant_is_type (ret_var,
                     PURC_VARIANT_TYPE_LONGINT), true);
@@ -905,7 +905,7 @@ TEST(dvobjs, dvobjs_file_stream_read_write_struct)
                 // read
                 for_open[0] = test_file;
                 for_open[1] = ret_result;
-                ret_var = readstruct (NULL, 2, for_open);
+                ret_var = readstruct (NULL, 2, for_open, false);
 
                 ASSERT_EQ(purc_variant_is_type (ret_var,
                     PURC_VARIANT_TYPE_ARRAY), true);
@@ -972,7 +972,7 @@ TEST(dvobjs, dvobjs_file_stream_read_write_struct)
 
                 // close
                 for_open[0] = test_file;
-                ret_var = close (NULL, 1, for_open);
+                ret_var = close (NULL, 1, for_open, false);
                 purc_variant_unref(test_file);
 
                 if (ret_var != PURC_VARIANT_INVALID) {

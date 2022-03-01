@@ -773,7 +773,7 @@ purc_variant_t call_dvariant_method(purc_variant_t root, purc_variant_t var,
          purc_variant_dynamic_get_getter (var) :
          purc_variant_dynamic_get_setter (var);
     if (func) {
-        return func (root, nr_args, argv);
+        return func (root, nr_args, argv, true);  // TODO: silently
     }
     return PURC_VARIANT_INVALID;
 }

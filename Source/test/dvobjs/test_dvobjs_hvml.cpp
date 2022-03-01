@@ -140,7 +140,7 @@ TEST(dvobjs, dvobjs_hvml_setter)
                         }
                     }
 
-                    ret_var = setter (hvml, j, param);
+                    ret_var = setter (hvml, j, param, false);
 
                     if (ret_result == PURC_VARIANT_INVALID) {
                         ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
@@ -153,7 +153,7 @@ TEST(dvobjs, dvobjs_hvml_setter)
                                     purc_variant_get_string_const (ret_result));
 
                             purc_variant_t get = PURC_VARIANT_INVALID;
-                            get = getter (hvml, 0, NULL);
+                            get = getter (hvml, 0, NULL, false);
                             ASSERT_STREQ(purc_variant_get_string_const (get),
                                     purc_variant_get_string_const (ret_result));
                             purc_variant_unref(get);
@@ -167,7 +167,7 @@ TEST(dvobjs, dvobjs_hvml_setter)
                             ASSERT_EQ(u1, u2);
 
                             purc_variant_t get = PURC_VARIANT_INVALID;
-                            get = getter (hvml, 0, NULL);
+                            get = getter (hvml, 0, NULL, false);
                             purc_variant_cast_to_ulongint (get, &u1, false);
                             ASSERT_EQ(u1, u2);
                             purc_variant_unref(get);

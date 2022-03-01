@@ -1589,7 +1589,7 @@ numberify_dynamic(purc_variant_t value)
     if (!getter)
         return 0.0;
 
-    purc_variant_t v = getter(value, 0, NULL);
+    purc_variant_t v = getter(value, 0, NULL, true); // TODO: silently
     if (v == PURC_VARIANT_INVALID)
         return 0.0;
 

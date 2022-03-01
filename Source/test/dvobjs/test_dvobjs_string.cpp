@@ -127,7 +127,7 @@ TEST(dvobjs, dvobjs_string_contains)
                         }
                     }
 
-                    ret_var = func (NULL, j, param);
+                    ret_var = func (NULL, j, param, false);
 
                     if (ret_result == PURC_VARIANT_INVALID) {
                         ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
@@ -287,7 +287,7 @@ TEST(dvobjs, dvobjs_string_explode)
                         }
                     }
 
-                    ret_var = func (NULL, j, param);
+                    ret_var = func (NULL, j, param, false);
 
                     if (ret_result == PURC_VARIANT_INVALID) {
                         ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
@@ -461,7 +461,7 @@ TEST(dvobjs, dvobjs_string_shuffle)
                         }
                     }
 
-                    ret_var = func (NULL, j, param);
+                    ret_var = func (NULL, j, param, false);
 
                     if (ret_result == PURC_VARIANT_INVALID) {
                         ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
@@ -638,7 +638,7 @@ TEST(dvobjs, dvobjs_string_replace)
                         }
                     }
 
-                    ret_var = func (NULL, j, param);
+                    ret_var = func (NULL, j, param, false);
 
                     if (ret_result == PURC_VARIANT_INVALID) {
                         ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
@@ -803,7 +803,7 @@ TEST(dvobjs, dvobjs_string_format_c)
                         }
                     }
 
-                    ret_var = func (NULL, j, param);
+                    ret_var = func (NULL, j, param, false);
 
                     if (ret_result == PURC_VARIANT_INVALID) {
                         ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
@@ -967,7 +967,7 @@ TEST(dvobjs, dvobjs_string_format_p)
                         }
                     }
 
-                    ret_var = func (NULL, j, param);
+                    ret_var = func (NULL, j, param, false);
 
                     if (ret_result == PURC_VARIANT_INVALID) {
                         ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
@@ -1131,7 +1131,7 @@ TEST(dvobjs, dvobjs_string_strcat)
                         }
                     }
 
-                    ret_var = func (NULL, j, param);
+                    ret_var = func (NULL, j, param, false);
 
                     if (ret_result == PURC_VARIANT_INVALID) {
                         ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
@@ -1295,7 +1295,7 @@ TEST(dvobjs, dvobjs_string_lower)
                         }
                     }
 
-                    ret_var = func (NULL, j, param);
+                    ret_var = func (NULL, j, param, false);
 
                     if (ret_result == PURC_VARIANT_INVALID) {
                         ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
@@ -1459,7 +1459,7 @@ TEST(dvobjs, dvobjs_string_upper)
                         }
                     }
 
-                    ret_var = func (NULL, j, param);
+                    ret_var = func (NULL, j, param, false);
 
                     if (ret_result == PURC_VARIANT_INVALID) {
                         ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
@@ -1623,7 +1623,7 @@ TEST(dvobjs, dvobjs_string_strlen)
                         }
                     }
 
-                    ret_var = func (NULL, j, param);
+                    ret_var = func (NULL, j, param, false);
 
                     if (ret_result == PURC_VARIANT_INVALID) {
                         ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
@@ -1787,7 +1787,7 @@ TEST(dvobjs, dvobjs_string_implode)
                         }
                     }
 
-                    ret_var = func (NULL, j, param);
+                    ret_var = func (NULL, j, param, false);
 
                     if (ret_result == PURC_VARIANT_INVALID) {
                         ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
@@ -1950,7 +1950,7 @@ TEST(dvobjs, dvobjs_string_substr)
                         }
                     }
 
-                    ret_var = func (NULL, j, param);
+                    ret_var = func (NULL, j, param, false);
 
                     if (ret_result == PURC_VARIANT_INVALID) {
                         ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);

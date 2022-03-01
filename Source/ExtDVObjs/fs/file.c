@@ -253,9 +253,11 @@ static ssize_t find_line_stream (purc_rwstream_t stream, int line_num)
 }
 
 static purc_variant_t
-text_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+text_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     int64_t line_num = 0;
     const char *filename = NULL;
@@ -324,9 +326,11 @@ text_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 }
 
 static purc_variant_t
-text_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+text_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     int64_t line_num = 0;
     const char *filename = NULL;
@@ -405,9 +409,11 @@ text_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 }
 
 static purc_variant_t
-bin_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+bin_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     int64_t byte_num = 0;
     const char *filename = NULL;
@@ -484,9 +490,11 @@ bin_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
 
 static purc_variant_t
-bin_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+bin_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     int64_t byte_num = 0;
     const char *filename = NULL;
@@ -564,9 +572,11 @@ bin_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
 
 static purc_variant_t
-stream_open_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+stream_open_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     if (nr_args != 2) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
@@ -728,9 +738,10 @@ read_rwstream_float (purc_rwstream_t rwstream, int type, int bytes)
 
 static purc_variant_t
 stream_readstruct_getter (purc_variant_t root, size_t nr_args,
-        purc_variant_t *argv)
+        purc_variant_t *argv, bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_variant_t val = PURC_VARIANT_INVALID;
@@ -1056,9 +1067,10 @@ static inline void write_rwstream_uint (purc_rwstream_t rwstream,
 
 static purc_variant_t
 stream_writestruct_getter (purc_variant_t root, size_t nr_args,
-        purc_variant_t* argv)
+        purc_variant_t *argv, bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_variant_t val = PURC_VARIANT_INVALID;
@@ -1389,9 +1401,10 @@ stream_writestruct_getter (purc_variant_t root, size_t nr_args,
 
 static purc_variant_t
 stream_readlines_getter (purc_variant_t root, size_t nr_args,
-        purc_variant_t *argv)
+        purc_variant_t *argv, bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_rwstream_t rwstream = NULL;
@@ -1440,9 +1453,10 @@ stream_readlines_getter (purc_variant_t root, size_t nr_args,
 
 static purc_variant_t
 stream_readbytes_getter (purc_variant_t root, size_t nr_args,
-        purc_variant_t *argv)
+        purc_variant_t *argv, bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_rwstream_t rwstream = NULL;
@@ -1496,9 +1510,10 @@ stream_readbytes_getter (purc_variant_t root, size_t nr_args,
 
 static purc_variant_t
 stream_seek_getter (purc_variant_t root, size_t nr_args,
-        purc_variant_t *argv)
+        purc_variant_t *argv, bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_rwstream_t rwstream = NULL;
@@ -1538,9 +1553,10 @@ stream_seek_getter (purc_variant_t root, size_t nr_args,
 
 static purc_variant_t
 stream_close_getter (purc_variant_t root, size_t nr_args,
-        purc_variant_t *argv)
+        purc_variant_t *argv, bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_rwstream_t rwstream = NULL;

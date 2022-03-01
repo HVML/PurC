@@ -418,7 +418,7 @@ static inline size_t purc_variant_sequence_length(purc_variant_t sequence)
 }
 
 typedef purc_variant_t (*purc_dvariant_method) (purc_variant_t root,
-        size_t nr_args, purc_variant_t * argv);
+        size_t nr_args, purc_variant_t * argv, bool silently);
 
 /**
  * Creates dynamic value by setter and getter functions
