@@ -114,8 +114,7 @@ struct purc_variant {
     unsigned int refc;
 
     /* FIXME: listeners: use only one struct list_head field. */
-    struct list_head        pre_listeners;
-    struct list_head        post_listeners;
+    struct list_head        listeners;
 
     /* value */
     union {
