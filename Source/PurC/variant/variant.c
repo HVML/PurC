@@ -1292,7 +1292,7 @@ purc_variant_t purc_variant_load_from_json_stream(purc_rwstream_t stream)
         goto ret;
     }
 
-    value = pcvcm_eval (root, NULL);
+    value = pcvcm_eval (root, NULL, false);
 
 ret:
     pcvcm_node_destroy (root);
@@ -1589,7 +1589,7 @@ numberify_dynamic(purc_variant_t value)
     if (!getter)
         return 0.0;
 
-    purc_variant_t v = getter(value, 0, NULL);
+    purc_variant_t v = getter(value, 0, NULL, true); // TODO: silently
     if (v == PURC_VARIANT_INVALID)
         return 0.0;
 
@@ -1614,7 +1614,7 @@ numberify_native(purc_variant_t value)
     if (!getter)
         return 0.0;
 
-    purc_variant_t v = getter(native, 0, NULL);
+    purc_variant_t v = getter(native, 0, NULL, true);  // TODO: silently
     if (v == PURC_VARIANT_INVALID)
         return 0.0;
 

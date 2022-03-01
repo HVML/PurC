@@ -69,9 +69,11 @@ error:
 }
 
 static purc_variant_t
-not_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+not_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
@@ -89,9 +91,11 @@ not_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 }
 
 static purc_variant_t
-and_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+and_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     bool judge = true;
     size_t i = 0;
@@ -119,9 +123,11 @@ and_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 }
 
 static purc_variant_t
-or_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+or_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     bool judge = false;
     size_t i = 0;
@@ -149,9 +155,11 @@ or_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 }
 
 static purc_variant_t
-xor_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+xor_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     unsigned judge1 = 0x00;
@@ -183,9 +191,11 @@ xor_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 }
 
 static purc_variant_t
-eq_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+eq_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     double value1 = 0.0L;
@@ -213,9 +223,11 @@ eq_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 }
 
 static purc_variant_t
-ne_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+ne_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     double value1 = 0.0L;
@@ -243,9 +255,11 @@ ne_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 }
 
 static purc_variant_t
-gt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+gt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     double value1 = 0.0L;
@@ -273,9 +287,11 @@ gt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 }
 
 static purc_variant_t
-ge_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+ge_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     double value1 = 0.0L;
@@ -303,9 +319,11 @@ ge_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 }
 
 static purc_variant_t
-lt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+lt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     double value1 = 0.0L;
@@ -333,9 +351,11 @@ lt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 }
 
 static purc_variant_t
-le_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+le_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     double value1 = 0.0L;
@@ -363,9 +383,11 @@ le_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 }
 
 static purc_variant_t
-streq_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+streq_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
@@ -429,9 +451,11 @@ streq_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 }
 
 static purc_variant_t
-strne_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+strne_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
@@ -495,9 +519,11 @@ strne_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 }
 
 static purc_variant_t
-strgt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+strgt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
@@ -549,9 +575,11 @@ strgt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 }
 
 static purc_variant_t
-strge_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+strge_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
@@ -604,9 +632,11 @@ strge_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 }
 
 static purc_variant_t
-strlt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+strlt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
@@ -659,9 +689,11 @@ strlt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 }
 
 static purc_variant_t
-strle_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+strle_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
@@ -713,9 +745,11 @@ strle_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 }
 
 static purc_variant_t
-eval_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+eval_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 

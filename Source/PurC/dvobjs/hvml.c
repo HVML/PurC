@@ -54,10 +54,12 @@ static inline struct pcvdom_dvobj_hvml * get_dvobj_hvml_pointer (
 }
 
 static purc_variant_t
-base_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+base_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
+    UNUSED_PARAM(silently);
 
     if (root == PURC_VARIANT_INVALID) {
         pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
@@ -84,8 +86,11 @@ base_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 }
 
 static purc_variant_t
-base_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+base_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
+    UNUSED_PARAM(silently);
+
     if ((root == PURC_VARIANT_INVALID) || (argv == NULL) || (nr_args < 1)) {
         pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
@@ -125,10 +130,12 @@ base_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
 static purc_variant_t
 maxIterationCount_getter (
-        purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+        purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
+    UNUSED_PARAM(silently);
 
     if (root == PURC_VARIANT_INVALID) {
         pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
@@ -152,8 +159,11 @@ maxIterationCount_getter (
 
 static purc_variant_t
 maxIterationCount_setter (
-        purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+        purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
+    UNUSED_PARAM(silently);
+
     if ((root == PURC_VARIANT_INVALID) || (argv == NULL) || (nr_args < 1)) {
         pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
@@ -183,10 +193,12 @@ maxIterationCount_setter (
 
 static purc_variant_t
 maxRecursionDepth_getter (
-        purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+        purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
+    UNUSED_PARAM(silently);
 
     if (root == PURC_VARIANT_INVALID) {
         pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
@@ -209,8 +221,11 @@ maxRecursionDepth_getter (
 
 static purc_variant_t
 maxRecursionDepth_setter (
-        purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+        purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
+    UNUSED_PARAM(silently);
+
     if ((root == PURC_VARIANT_INVALID) || (argv == NULL) || (nr_args < 1)) {
         pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
@@ -240,10 +255,12 @@ maxRecursionDepth_setter (
 
 static purc_variant_t
 timeout_getter (
-        purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+        purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
+    UNUSED_PARAM(silently);
 
     if (root == PURC_VARIANT_INVALID) {
         pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
@@ -269,8 +286,11 @@ timeout_getter (
 
 static purc_variant_t
 timeout_setter (
-        purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+        purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
+    UNUSED_PARAM(silently);
+
     if ((root == PURC_VARIANT_INVALID) || (argv == NULL) || (nr_args < 1)) {
         pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;

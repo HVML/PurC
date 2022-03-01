@@ -542,7 +542,7 @@ eval_vdom_attr(pcintr_stack_t stack, struct pcvdom_attr *attr)
     if (!attr->val)
         return purc_variant_make_undefined();
 
-    return pcvcm_eval(attr->val, stack);
+    return pcvcm_eval(attr->val, stack, false);
 }
 
 int
@@ -1782,7 +1782,8 @@ pcintr_doc_query(purc_vdom_t vdom, const char* css)
         goto end;
     }
 
-    ret = native_func (purc_variant_native_get_entity(doc), 1, &arg);
+    // TODO: silenly
+    ret = native_func (purc_variant_native_get_entity(doc), 1, &arg, false);
     purc_variant_unref(arg);
 end:
     return ret;

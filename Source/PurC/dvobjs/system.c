@@ -38,11 +38,14 @@
 #define FORMAT_RFC822   2
 
 static purc_variant_t
-uname_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+uname_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
+    UNUSED_PARAM(silently);
 
     struct utsname name;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
@@ -132,9 +135,11 @@ error:
 
 
 static purc_variant_t
-uname_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+uname_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     struct utsname name;
     size_t length = 0;
@@ -369,9 +374,11 @@ uname_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
 
 static purc_variant_t
-locale_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+locale_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     char *locale = NULL;
     size_t length = 0;
@@ -524,9 +531,11 @@ bad_category:
 }
 
 static purc_variant_t
-locale_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+locale_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     size_t length = 0;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
@@ -712,9 +721,11 @@ locale_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
 
 static purc_variant_t
-random_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+random_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     double random = 0.0;
     double number = 0.0;
@@ -862,9 +873,11 @@ get_time_format (int type, double epoch, const char *timezone)
 
 
 static purc_variant_t
-time_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+time_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_variant_t val = PURC_VARIANT_INVALID;
@@ -1112,10 +1125,12 @@ time_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
 
 static purc_variant_t
-time_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+time_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(silently);
 
     struct timeval stime;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
@@ -1140,9 +1155,11 @@ time_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 }
 
 static purc_variant_t
-env_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+env_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
@@ -1168,9 +1185,11 @@ env_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
 
 static purc_variant_t
-env_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+env_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 

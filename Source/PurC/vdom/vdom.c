@@ -1413,7 +1413,7 @@ pcvdom_element_eval_attr_val(pcvdom_element_t element, const char *key)
     stack = purc_get_stack();
 
     purc_variant_t v;
-    v = pcvcm_eval(val, stack);
+    v = pcvcm_eval(val, stack, false);  // TODO : silently
     PC_ASSERT(v != PURC_VARIANT_INVALID);
 
     UNUSED_PARAM(op);

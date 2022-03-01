@@ -134,7 +134,7 @@ TEST(dvobjs, dvobjs_ejson_type)
                         }
                     }
 
-                    ret_var = func (NULL, j, param);
+                    ret_var = func (NULL, j, param, false);
 
                     if (ret_result == PURC_VARIANT_INVALID) {
                         ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
@@ -298,7 +298,7 @@ TEST(dvobjs, dvobjs_ejson_number)
                         }
                     }
 
-                    ret_var = func (NULL, j, param);
+                    ret_var = func (NULL, j, param, false);
 
                     if (ret_result == PURC_VARIANT_INVALID) {
                         ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
@@ -460,7 +460,7 @@ TEST(dvobjs, dvobjs_ejson_compare)
                         }
                     }
 
-                    ret_var = func (NULL, j, param);
+                    ret_var = func (NULL, j, param, false);
 
                     if (ret_result == PURC_VARIANT_INVALID) {
                         ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
@@ -625,7 +625,7 @@ TEST(dvobjs, dvobjs_ejson_sort)
                         }
                     }
 
-                    ret_var = func (NULL, j, param);
+                    ret_var = func (NULL, j, param, false);
 
                     if (ret_result == PURC_VARIANT_INVALID) {
                         ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);

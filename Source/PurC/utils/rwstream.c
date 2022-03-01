@@ -533,6 +533,10 @@ int purc_rwstream_read_utf8_char (purc_rwstream_t rws, char* buf_utf8,
     if (ch_len < 0) {
         RWSTREAM_SET_ERROR(PURC_ERROR_BAD_ENCODING);
     }
+    else if (*buf_wc >= 0xD800 && *buf_wc <= 0xDFFF) {  /* surrogate */
+        ch_len = -1;
+        RWSTREAM_SET_ERROR(PURC_ERROR_BAD_ENCODING);
+    }
     return ch_len;
 }
 

@@ -69,7 +69,7 @@ TEST(dvobjs, dvobjs_t_getter)
                 &nr_reserved_before);
 
     param[0] = purc_variant_make_string ("world", false);
-    ret_var = getter (t, 1, param);
+    ret_var = getter (t, 1, param, false);
     ASSERT_NE(ret_var, nullptr);
     s = purc_variant_get_string_const (ret_var);
     ASSERT_STREQ (s, "world");
@@ -77,7 +77,7 @@ TEST(dvobjs, dvobjs_t_getter)
     purc_variant_unref(param[0]);
 
     param[0] = purc_variant_make_string ("city", false);
-    ret_var = getter (t, 1, param);
+    ret_var = getter (t, 1, param, false);
     ASSERT_NE(ret_var, nullptr);
     s = purc_variant_get_string_const (ret_var);
     ASSERT_STREQ (s, "beijing");
@@ -85,7 +85,7 @@ TEST(dvobjs, dvobjs_t_getter)
     purc_variant_unref(param[0]);
 
     param[0] = purc_variant_make_string ("country", false);
-    ret_var = getter (t, 1, param);
+    ret_var = getter (t, 1, param, false);
     ASSERT_NE(ret_var, nullptr);
     s = purc_variant_get_string_const (ret_var);
     ASSERT_STREQ (s, "china");

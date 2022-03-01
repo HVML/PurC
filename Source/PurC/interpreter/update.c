@@ -96,7 +96,8 @@ template_walker(struct pcvcm_node *vcm, void *ctxt)
     pcintr_stack_t stack = ud->stack;
     PC_ASSERT(stack);
 
-    purc_variant_t v = pcvcm_eval(vcm, stack);
+    // TODO: silently
+    purc_variant_t v = pcvcm_eval(vcm, stack, false);
     PC_ASSERT(v != PURC_VARIANT_INVALID);
     PC_ASSERT(purc_variant_is_string(v));
     const char *s = purc_variant_get_string_const(v);
@@ -131,7 +132,8 @@ get_source_by_with(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         pcintr_stack_t stack = co->stack;
         PC_ASSERT(stack);
 
-        purc_variant_t v = pcvcm_eval(vcm_content, stack);
+        // TODO: silently
+        purc_variant_t v = pcvcm_eval(vcm_content, stack, false);
         if (v == PURC_VARIANT_INVALID)
             PRINT_VCM_NODE(vcm_content);
         return v;
@@ -964,7 +966,8 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     }
 
     // NOTE: element is still the owner of vcm_content
-    purc_variant_t v = pcvcm_eval(vcm, co->stack);
+    // TODO: silently
+    purc_variant_t v = pcvcm_eval(vcm, co->stack, false);
     if (v == PURC_VARIANT_INVALID)
         return -1;
 

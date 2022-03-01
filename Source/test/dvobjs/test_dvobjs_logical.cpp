@@ -135,7 +135,7 @@ TEST(dvobjs, dvobjs_logical)
                         }
                     }
 
-                    ret_var = func (NULL, j, param);
+                    ret_var = func (NULL, j, param, false);
 
                     if (ret_result == PURC_VARIANT_INVALID) {
                         ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
@@ -231,7 +231,7 @@ TEST(dvobjs, dvobjs_logical_eval)
         param[0] = purc_variant_make_string (samples[i].expr, false);
         param[1] = PURC_VARIANT_INVALID;
         std::cout << "parsing [" << samples[i].expr << "]" << std::endl;
-        ret_var = func (NULL, 2, param);
+        ret_var = func (NULL, 2, param, false);
         ASSERT_NE(ret_var, nullptr);
         ASSERT_EQ(purc_variant_is_type (ret_var,
                     PURC_VARIANT_TYPE_BOOLEAN), true);
@@ -273,7 +273,7 @@ _eval(purc_dvariant_method func, const char *expr,
     param[0] = purc_variant_make_string(expr, false);
     param[1] = PURC_VARIANT_INVALID;
 
-    purc_variant_t ret_var = func(NULL, 2, param);
+    purc_variant_t ret_var = func(NULL, 2, param, false);
     purc_variant_unref(param[0]);
     if (param[1])
         purc_variant_unref(param[1]);
