@@ -44,7 +44,7 @@ pcrdr_msg *pcrdr_make_void_message(void)
 }
 
 pcrdr_msg *pcrdr_make_request_message(
-        pcrdr_msg_target target, uintptr_t target_value,
+        pcrdr_msg_target target, uint64_t target_value,
         const char *operation,
         const char *request_id,
         pcrdr_msg_element_type element_type, const char *element,
@@ -121,7 +121,7 @@ failed:
 
 pcrdr_msg *pcrdr_make_response_message(
         const char *request_id,
-        unsigned int ret_code, uintptr_t result_value,
+        unsigned int ret_code, uint64_t result_value,
         pcrdr_msg_data_type data_type, const char* data, size_t data_len)
 {
     pcrdr_msg *msg = calloc(1, sizeof(pcrdr_msg));
@@ -163,7 +163,7 @@ failed:
 }
 
 pcrdr_msg *pcrdr_make_event_message(
-        pcrdr_msg_target target, uintptr_t target_value,
+        pcrdr_msg_target target, uint64_t target_value,
         const char *event,
         pcrdr_msg_element_type element_type, const char *element,
         const char *property,
@@ -497,12 +497,16 @@ static bool on_target(pcrdr_msg *msg, char *value)
     }
 
     errno = 0;
-    if (sizeof(uintptr_t) == sizeof(unsigned long int))
+#if 0
+    if (sizeof(uint64_t) == sizeof(unsigned long int))
         msg->targetValue = strtoul(target_value, NULL, 16);
-    else if (sizeof(uintptr_t) == sizeof(unsigned long long int))
+    else if (sizeof(uint64_t) == sizeof(unsigned long long int))
         msg->targetValue = strtoull(target_value, NULL, 16);
     else
         assert(0);
+#else
+    msg->targetValue = (uint64_t)strtoull(target_value, NULL, 16);
+#endif
 
     if (errno)
         return false;
@@ -599,7 +603,7 @@ static bool on_result(pcrdr_msg *msg, char *value)
         return false;
 
     errno = 0;
-    msg->resultValue = (uintptr_t)strtoull(subtoken, NULL, 16);
+    msg->resultValue = (uint64_t)strtoull(subtoken, NULL, 16);
     if (errno)
         return false;
 
@@ -628,10 +632,8 @@ static bool on_data_len(pcrdr_msg *msg, char *value)
 {
     errno = 0;
     msg->_data_len = strtoul(value, NULL, 10);
-
-    if (errno) {
+    if (errno)
         return false;
-    }
 
     return true;
 }

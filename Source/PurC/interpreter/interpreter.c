@@ -1804,7 +1804,7 @@ pcintr_util_append_element(pcdom_element_t* parent, const char *tag)
     if (!elem)
         return NULL;
 
-    pcdom_node_insert_child(node, pcdom_interface_node(elem));
+    pcdom_node_append_child(node, pcdom_interface_node(elem));
 
     return elem;
 }
@@ -1821,7 +1821,7 @@ pcintr_util_append_content(pcdom_element_t* parent, const char *txt)
     if (text_node == NULL)
         return NULL;
 
-    pcdom_node_insert_child(pcdom_interface_node(parent), pcdom_interface_node(text_node));
+    pcdom_node_append_child(pcdom_interface_node(parent), pcdom_interface_node(text_node));
 
     return text_node;
 }
@@ -2121,7 +2121,7 @@ pcintr_util_add_child(pcdom_element_t *parent, const char *fmt, ...)
         while (div->first_child) {
             pcdom_node_t *child = div->first_child;
             pcdom_node_remove(child);
-            pcdom_node_insert_child(pcdom_interface_node(parent), child);
+            pcdom_node_append_child(pcdom_interface_node(parent), child);
         }
         r = 0;
     } while (0);
@@ -2194,7 +2194,7 @@ pcintr_util_set_child(pcdom_element_t *parent, const char *fmt, ...)
         while (div->first_child) {
             pcdom_node_t *child = div->first_child;
             pcdom_node_remove(child);
-            pcdom_node_insert_child(pcdom_interface_node(parent), child);
+            pcdom_node_append_child(pcdom_interface_node(parent), child);
         }
         r = 0;
     } while (0);

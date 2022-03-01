@@ -574,7 +574,7 @@ TEST(html, edom_gen)
     ASSERT_NE(html, nullptr);
 
     pcdom_document_attach_element(dom_doc, html);
-    pcdom_node_insert_child(pcdom_interface_node(dom_doc),
+    pcdom_node_append_child(pcdom_interface_node(dom_doc),
                 pcdom_interface_node(html));
 
     pcdom_element_t *head;
@@ -610,7 +610,7 @@ TEST(html, edom_gen)
     r = pcdom_character_data_replace(&text->char_data,
             (const unsigned char*)"yes", 3, 0, 0);
     ASSERT_EQ(r, 0);
-    pcdom_node_insert_child(pcdom_interface_node(foo),
+    pcdom_node_append_child(pcdom_interface_node(foo),
                 pcdom_interface_node(text));
 
     char buf[8192];
@@ -706,7 +706,7 @@ TEST(html, edom_gen_chunk_body)
         while (pcdom_interface_node(node)->first_child) {
             pcdom_node_t *p = pcdom_interface_node(node)->first_child;
             pcdom_node_remove(p);
-            pcdom_node_insert_child(pcdom_interface_node(body), p);
+            pcdom_node_append_child(pcdom_interface_node(body), p);
         }
         write_edom_node(buf, sizeof(buf), pcdom_interface_node(body));
         ASSERT_STREQ(buf, "<body><foo></foo><bar></bar></body>");
@@ -792,7 +792,7 @@ TEST(html, edom_gen_chunk_other)
         while (pcdom_interface_node(node)->first_child) {
             pcdom_node_t *p = pcdom_interface_node(node)->first_child;
             pcdom_node_remove(p);
-            pcdom_node_insert_child(pcdom_interface_node(div), p);
+            pcdom_node_append_child(pcdom_interface_node(div), p);
         }
         write_edom_node(buf, sizeof(buf), pcdom_interface_node(div));
         ASSERT_STREQ(buf, "<div><foo></foo><bar></bar></div>");
@@ -921,7 +921,7 @@ TEST(html, edom_gen_chunk_parser)
         while (pcdom_interface_node(node)->first_child) {
             pcdom_node_t *p = pcdom_interface_node(node)->first_child;
             pcdom_node_remove(p);
-            pcdom_node_insert_child(pcdom_interface_node(div), p);
+            pcdom_node_append_child(pcdom_interface_node(div), p);
         }
         write_edom_node(buf, sizeof(buf), pcdom_interface_node(div));
         ASSERT_STREQ(buf, "<div><foo></foo><bar></bar></div>");

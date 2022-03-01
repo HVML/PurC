@@ -174,6 +174,9 @@ enum {
 /* the maximal no responding time (90 seconds) */
 #define PCRDR_MAX_NO_RESPONDING_TIME    90
 
+/* the maximal number of handles in a request message */
+#define PCRDR_MAX_HANDLES               128
+
 /* Protocol types */
 typedef enum {
     PURC_RDRPROT_PURCMC  = 0,
@@ -679,8 +682,8 @@ struct pcrdr_msg {
     pcrdr_msg_data_type     dataType;
     unsigned int            retCode;
 
-    uintptr_t       targetValue;
-    uintptr_t       resultValue;
+    uint64_t        targetValue;
+    uint64_t        resultValue;
 
     purc_variant_t  operation;
     purc_variant_t  element;
@@ -723,7 +726,7 @@ pcrdr_make_void_message(void);
  */
 PCA_EXPORT pcrdr_msg *
 pcrdr_make_request_message(
-        pcrdr_msg_target target, uintptr_t target_value,
+        pcrdr_msg_target target, uint64_t target_value,
         const char *operation,
         const char *request_id,
         pcrdr_msg_element_type element_type, const char *element,
@@ -745,7 +748,7 @@ pcrdr_make_request_message(
 PCA_EXPORT pcrdr_msg *
 pcrdr_make_response_message(
         const char *request_id,
-        unsigned int ret_code, uintptr_t result_value,
+        unsigned int ret_code, uint64_t result_value,
         pcrdr_msg_data_type data_type, const char* data, size_t data_len);
 
 /**
@@ -766,7 +769,7 @@ pcrdr_make_response_message(
  */
 PCA_EXPORT pcrdr_msg *
 pcrdr_make_event_message(
-        pcrdr_msg_target target, uintptr_t target_value,
+        pcrdr_msg_target target, uint64_t target_value,
         const char *event,
         pcrdr_msg_element_type element_type, const char *element,
         const char *property,

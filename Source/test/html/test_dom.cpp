@@ -91,7 +91,7 @@ append_element(pcdom_element_t *parent, const char *tag)
         return NULL;
     }
 
-    pcdom_node_insert_child(pcdom_interface_node(parent), pcdom_interface_node(element));
+    pcdom_node_append_child(pcdom_interface_node(parent), pcdom_interface_node(element));
 
     return element;
 }
@@ -108,7 +108,7 @@ append_content(pcdom_element_t *parent, const char *text)
     if (text_node == NULL)
         return NULL;
 
-    pcdom_node_insert_child(pcdom_interface_node(parent), pcdom_interface_node(text_node));
+    pcdom_node_append_child(pcdom_interface_node(parent), pcdom_interface_node(text_node));
 
     return text_node;
 }
@@ -151,7 +151,7 @@ merge_inner_html(pcdom_element_t *parent, const char *inner_html, enum merge_opt
         child = node->first_child;
 
         pcdom_node_remove(child);
-        pcdom_node_insert_child(root, child);
+        pcdom_node_append_child(root, child);
         fprintf(stderr, "%s[%d]:%s(): child[%p] added into parent[%p]\n",
                 __FILE__, __LINE__, __func__,
                 (void*)child, (void*)root);
@@ -230,12 +230,12 @@ void test1(void)
                 (const char *) content);
     }
 
-    pcdom_node_insert_child(pcdom_interface_node(element),
+    pcdom_node_append_child(pcdom_interface_node(element),
             pcdom_interface_node(text));
 
     serialize_node(pcdom_interface_node(element));
 
-    pcdom_node_insert_child(pcdom_interface_node(body),
+    pcdom_node_append_child(pcdom_interface_node(body),
             pcdom_interface_node(element));
 
     status = pchtml_html_serialize_pretty_tree_cb(pcdom_interface_node(doc),
@@ -343,7 +343,7 @@ void test1(void)
                 child = node->first_child;
 
                 pcdom_node_remove(child);
-                pcdom_node_insert_child(root, child);
+                pcdom_node_append_child(root, child);
             }
 
             pcdom_node_destroy(node);
@@ -450,7 +450,7 @@ append_child(pcdom_element_t *parent, const char *inner_html)
     while (anchor_node->first_child) {
         pcdom_node_t *child = anchor_node->first_child;
         pcdom_node_remove(child);
-        pcdom_node_insert_child(pcdom_interface_node(parent), child);
+        pcdom_node_append_child(pcdom_interface_node(parent), child);
     }
 
     pcdom_node_destroy(anchor_node);
@@ -501,7 +501,7 @@ set_child(pcdom_element_t *parent, const char *inner_html)
     while (anchor_node->first_child) {
         pcdom_node_t *child = anchor_node->first_child;
         pcdom_node_remove(child);
-        pcdom_node_insert_child(pcdom_interface_node(parent), child);
+        pcdom_node_append_child(pcdom_interface_node(parent), child);
     }
 
     pcdom_node_destroy(anchor_node);

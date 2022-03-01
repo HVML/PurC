@@ -191,7 +191,11 @@ pcdom_node_name(pcdom_node_t *node,
                 size_t *len);
 
 void
-pcdom_node_insert_child(pcdom_node_t *to,
+pcdom_node_append_child(pcdom_node_t *to,
+                pcdom_node_t *node);
+
+void
+pcdom_node_prepend_child(pcdom_node_t *to,
                 pcdom_node_t *node);
 
 void

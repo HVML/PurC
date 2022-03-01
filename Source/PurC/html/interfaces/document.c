@@ -361,7 +361,7 @@ pchtml_html_document_title_set(pchtml_html_document_t *document,
             return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         }
 
-        pcdom_node_insert_child(pcdom_interface_node(document->head),
+        pcdom_node_append_child(pcdom_interface_node(document->head),
                                   pcdom_interface_node(el_title));
     }
 
