@@ -252,13 +252,31 @@ purc_variant_make_string_ex(const char* str_utf8, size_t len,
  * Gets the pointer of the string buffer which is encapsulated in string type.
  *
  * @param value: the data in string, atomstring, or exception type.
+ * @param str_len: the pointer to a buffer to receive the length of the string
+ *  (not including the terminating null byte), nullable.
+ *
+ * Returns: The pointer of the string, or NULL if value is not a string type.
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT const char*
+purc_variant_get_string_const_ex(purc_variant_t value, size_t *str_len);
+
+
+/**
+ * Gets the pointer of the string buffer which is encapsulated in string type.
+ *
+ * @param value: the data in string, atomstring, or exception type.
  *
  * Returns: The pointer of char string, or NULL if value is not a string type.
  *
  * Since: 0.0.1
  */
-PCA_EXPORT const char*
-purc_variant_get_string_const(purc_variant_t value);
+static inline const char*
+purc_variant_get_string_const(purc_variant_t value)
+{
+    return purc_variant_get_string_const_ex(value, NULL);
+}
 
 /**
  * Get the length in bytes of a string variant value.

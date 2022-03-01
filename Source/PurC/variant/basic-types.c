@@ -247,7 +247,6 @@ purc_variant_make_string_ex(const char* str_utf8, size_t len,
         value->flags = PCVARIANT_FLAG_EXTRA_SIZE;
         // VWNOTE: sz_ptr[0] will be set in pcvariant_stat_set_extra_size
         value->sz_ptr[1] = (uintptr_t)new_buf;
-        // strcpy (new_buf, str_utf8);
         memcpy(new_buf, str_utf8, len);
         new_buf[len] = '\0';
         // VWNOTE: always store the size including the terminating null byte.
@@ -327,33 +326,43 @@ purc_variant_t purc_variant_make_string_static(const char* str_utf8,
     value->type = PURC_VARIANT_TYPE_STRING;
     value->flags = PCVARIANT_FLAG_STRING_STATIC;
     value->refc = 1;
-    value->sz_ptr[0] = (uintptr_t)strlen(str_utf8);
+    value->sz_ptr[0] = (uintptr_t)strlen(str_utf8) + 1;
     value->sz_ptr[1] = (uintptr_t)str_utf8;
 
     return value;
 }
 
-const char* purc_variant_get_string_const(purc_variant_t string)
+const char* purc_variant_get_string_const_ex(purc_variant_t string,
+        size_t *str_len)
 {
+    size_t len = 0;
+
     PCVARIANT_CHECK_FAIL_RET(string, NULL);
 
-    const char * str_str = NULL;
+    const char *str_str = NULL;
 
     if (IS_TYPE (string, PURC_VARIANT_TYPE_STRING)) {
         if ((string->flags & PCVARIANT_FLAG_EXTRA_SIZE) ||
-                (string->flags & PCVARIANT_FLAG_STRING_STATIC))
-            str_str = (char *)string->sz_ptr[1];
-        else
-            str_str = (char *)string->bytes;
+                (string->flags & PCVARIANT_FLAG_STRING_STATIC)) {
+            str_str = (const char *)string->sz_ptr[1];
+            len = (size_t)string->sz_ptr[0] - 1;
+        }
+        else {
+            str_str = (const char *)string->bytes;
+            len = string->size - 1;
+        }
     }
-    else if (IS_TYPE (string, PURC_VARIANT_TYPE_ATOMSTRING)) {
+    else if (IS_TYPE (string, PURC_VARIANT_TYPE_ATOMSTRING) ||
+            IS_TYPE (string, PURC_VARIANT_TYPE_EXCEPTION)) {
         str_str = purc_atom_to_string(string->atom);
-    }
-    else if (IS_TYPE (string, PURC_VARIANT_TYPE_EXCEPTION)) {
-        str_str = purc_atom_to_string(string->atom);
+        len = strlen(str_str);
     }
     else {
         pcinst_set_error (PCVARIANT_ERROR_INVALID_TYPE);
+    }
+
+    if (str_str && str_len) {
+        *str_len = len;
     }
 
     return str_str;

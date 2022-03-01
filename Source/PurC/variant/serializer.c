@@ -668,22 +668,22 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
     switch (value->type) {
         case PURC_VARIANT_TYPE_UNDEFINED:
             content = "undefined";
-            sz_content = 9;
+            // sz_content = 9;
             break;
 
         case PURC_VARIANT_TYPE_NULL:
             content = "null";
-            sz_content = 4;
+            // sz_content = 4;
             break;
 
         case PURC_VARIANT_TYPE_BOOLEAN:
             if (value->b) {
                 content = "true";
-                sz_content = 4;
+                // sz_content = 4;
             }
             else {
                 content = "false";
-                sz_content = 5;
+                // sz_content = 5;
             }
             break;
 
@@ -721,7 +721,7 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
                         (long long int)value->i64) < 0)
                 goto failed;
             content = buff;
-            sz_content = strlen(buff);
+            // sz_content = strlen(buff);
             break;
 
         case PURC_VARIANT_TYPE_ULONGINT:
@@ -729,7 +729,7 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
                         (long long unsigned)value->u64) < 0)
                 goto failed;
             content = buff;
-            sz_content = strlen(buff);
+            // sz_content = strlen(buff);
             break;
 
         case PURC_VARIANT_TYPE_LONGDOUBLE:
@@ -756,7 +756,7 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
         case PURC_VARIANT_TYPE_BSEQUENCE:
             if (value->flags & PCVARIANT_FLAG_STRING_STATIC) {
                 content = (const char*)value->sz_ptr[1];
-                sz_content = strlen(content) + 1;
+                sz_content = (size_t)value->sz_ptr[0];
             }
             else if (value->flags & PCVARIANT_FLAG_EXTRA_SIZE) {
                 content = (const char*)value->sz_ptr[1];
@@ -782,12 +782,12 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
 
         case PURC_VARIANT_TYPE_DYNAMIC:
             content = "<dynamic>";
-            sz_content = 9;
+            // sz_content = 9;
             break;
 
         case PURC_VARIANT_TYPE_NATIVE:
             content = "<native>";
-            sz_content = 8;
+            // sz_content = 8;
             break;
 
         case PURC_VARIANT_TYPE_OBJECT:
