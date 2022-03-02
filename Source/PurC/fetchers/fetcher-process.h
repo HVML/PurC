@@ -48,6 +48,8 @@ public:
 
     virtual ~PcFetcherProcess();
 
+    void reset(void);
+
     void connect();
     void terminate();
 
