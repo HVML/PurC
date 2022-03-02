@@ -444,7 +444,7 @@ update_set(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 }
 
 static int
-update_target_content(pcintr_stack_t stack, pcdom_element_t *target,
+update_target_child(pcintr_stack_t stack, pcdom_element_t *target,
         const char *to, purc_variant_t src,
         pcintr_attribute_op with_eval)
 {
@@ -458,6 +458,37 @@ update_target_content(pcintr_stack_t stack, pcdom_element_t *target,
         if (strcmp(to, "displace") == 0) {
             UNUSED_PARAM(with_eval);
             return pcintr_util_set_child(target, "%s", s);
+        }
+        _D("to: %s", to);
+        PC_ASSERT(0);
+        return -1;
+    }
+    PRINT_VARIANT(src);
+    PC_ASSERT(0);
+    return -1;
+}
+
+static int
+update_target_content(pcintr_stack_t stack, pcdom_element_t *target,
+        const char *to, purc_variant_t src,
+        pcintr_attribute_op with_eval)
+{
+    UNUSED_PARAM(stack);
+    if (purc_variant_is_string(src)) {
+        const char *s = purc_variant_get_string_const(src);
+        if (strcmp(to, "append") == 0) {
+            UNUSED_PARAM(with_eval);
+            pcdom_text_t *content;
+            content = pcintr_util_append_content(target, s);
+            PC_ASSERT(content);
+            return 0;
+        }
+        if (strcmp(to, "displace") == 0) {
+            UNUSED_PARAM(with_eval);
+            pcdom_text_t *content;
+            content = pcintr_util_displace_content(target, s);
+            PC_ASSERT(content);
+            return 0;
         }
         _D("to: %s", to);
         PC_ASSERT(0);
@@ -506,12 +537,16 @@ update_target(pcintr_stack_t stack, pcdom_element_t *target,
         s_to = purc_variant_get_string_const(to);
     }
 
-    const char *s_at = "textContent";
+    const char *s_at = NULL;
     if (at != PURC_VARIANT_INVALID) {
         PC_ASSERT(purc_variant_is_string(at));
         s_at = purc_variant_get_string_const(at);
+        PC_ASSERT(s_at);
     }
 
+    if (!s_at) {
+        return update_target_child(stack, target, s_to, src, with_eval);
+    }
     if (strcmp(s_at, "textContent") == 0) {
         return update_target_content(stack, target, s_to, src, with_eval);
     }

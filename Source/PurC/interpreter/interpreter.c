@@ -1886,6 +1886,16 @@ pcintr_util_append_content(pcdom_element_t* parent, const char *txt)
     return text_node;
 }
 
+pcdom_text_t*
+pcintr_util_displace_content(pcdom_element_t* parent, const char *txt)
+{
+    pcdom_node_t *parent_node = pcdom_interface_node(parent);
+    while (parent_node->first_child)
+        pcdom_node_destroy_deep(parent_node->first_child);
+
+    return pcintr_util_append_content(parent, txt);
+}
+
 int
 pcintr_util_set_attribute(pcdom_element_t *elem,
         const char *key, const char *val)

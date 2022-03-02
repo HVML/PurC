@@ -416,6 +416,9 @@ pcintr_util_append_element(pcdom_element_t* parent, const char *tag);
 pcdom_text_t*
 pcintr_util_append_content(pcdom_element_t* parent, const char *txt);
 
+pcdom_text_t*
+pcintr_util_displace_content(pcdom_element_t* parent, const char *txt);
+
 int
 pcintr_util_set_attribute(pcdom_element_t *elem,
         const char *key, const char *val);
