@@ -128,8 +128,8 @@ static inline void free_variant(purc_variant *v) {
 purc_atom_t pcvariant_atom_grow;
 purc_atom_t pcvariant_atom_shrink;
 purc_atom_t pcvariant_atom_change;
-purc_atom_t pcvariant_atom_reference;
-purc_atom_t pcvariant_atom_unreference;
+// purc_atom_t pcvariant_atom_reference;
+// purc_atom_t pcvariant_atom_unreference;
 
 void pcvariant_init_once(void)
 {
@@ -140,8 +140,8 @@ void pcvariant_init_once(void)
     pcvariant_atom_grow = purc_atom_from_static_string("grow");
     pcvariant_atom_shrink = purc_atom_from_static_string("shrink");
     pcvariant_atom_change = purc_atom_from_static_string("change");
-    pcvariant_atom_reference = purc_atom_from_static_string("reference");
-    pcvariant_atom_unreference = purc_atom_from_static_string("unreference");
+    // pcvariant_atom_reference = purc_atom_from_static_string("reference");
+    // pcvariant_atom_unreference = purc_atom_from_static_string("unreference");
 }
 
 void pcvariant_init_instance(struct pcinst *inst)
@@ -150,24 +150,24 @@ void pcvariant_init_instance(struct pcinst *inst)
     inst->variant_heap.v_undefined.type = PURC_VARIANT_TYPE_UNDEFINED;
     inst->variant_heap.v_undefined.refc = 0;
     inst->variant_heap.v_undefined.flags = PCVARIANT_FLAG_NOFREE;
-    INIT_LIST_HEAD(&inst->variant_heap.v_undefined.listeners);
+    // INIT_LIST_HEAD(&inst->variant_heap.v_undefined.listeners);
 
     inst->variant_heap.v_null.type = PURC_VARIANT_TYPE_NULL;
     inst->variant_heap.v_null.refc = 0;
     inst->variant_heap.v_null.flags = PCVARIANT_FLAG_NOFREE;
-    INIT_LIST_HEAD(&inst->variant_heap.v_null.listeners);
+    // INIT_LIST_HEAD(&inst->variant_heap.v_null.listeners);
 
     inst->variant_heap.v_false.type = PURC_VARIANT_TYPE_BOOLEAN;
     inst->variant_heap.v_false.refc = 0;
     inst->variant_heap.v_false.flags = PCVARIANT_FLAG_NOFREE;
     inst->variant_heap.v_false.b = false;
-    INIT_LIST_HEAD(&inst->variant_heap.v_false.listeners);
+    // INIT_LIST_HEAD(&inst->variant_heap.v_false.listeners);
 
     inst->variant_heap.v_true.type = PURC_VARIANT_TYPE_BOOLEAN;
     inst->variant_heap.v_true.refc = 0;
     inst->variant_heap.v_true.flags = PCVARIANT_FLAG_NOFREE;
     inst->variant_heap.v_true.b = true;
-    INIT_LIST_HEAD(&inst->variant_heap.v_true.listeners);
+    // INIT_LIST_HEAD(&inst->variant_heap.v_true.listeners);
 
     inst->variant_heap.gc = NULL;
 
@@ -342,13 +342,15 @@ bool pcvariant_is_mutable(purc_variant_t val)
 static inline void
 referenced(purc_variant_t value)
 {
-    pcvariant_on_post_fired(value, pcvariant_atom_reference, 0, NULL);
+    // pcvariant_on_post_fired(value, pcvariant_atom_reference, 0, NULL);
+    UNUSED_PARAM(value);
 }
 
 static inline void
 unreferenced(purc_variant_t value)
 {
-    pcvariant_on_post_fired(value, pcvariant_atom_unreference, 0, NULL);
+    // pcvariant_on_post_fired(value, pcvariant_atom_unreference, 0, NULL);
+    UNUSED_PARAM(value);
 }
 
 unsigned int
@@ -491,8 +493,10 @@ purc_variant_t pcvariant_get(enum purc_variant_type type)
     stat->nr_values[type]++;
     stat->nr_total_values++;
 
-    // init listeners
-    INIT_LIST_HEAD(&value->listeners);
+    if (IS_CONTAINER(type)) {
+        // init listeners
+        INIT_LIST_HEAD(&value->listeners);
+    }
 
     return value;
 }
@@ -504,7 +508,9 @@ void pcvariant_put(purc_variant_t value)
     struct purc_variant_stat *stat = &(heap->stat);
 
     PC_ASSERT(value);
-    PC_ASSERT(list_empty(&value->listeners));
+    if (IS_CONTAINER(value->type)) {
+        PC_ASSERT(list_empty(&value->listeners));
+    }
 
     // set stat information
     stat->nr_values[value->type]--;

@@ -228,6 +228,7 @@ purc_variant_make_string_ex(const char* str_utf8, size_t len,
     value->type = PURC_VARIANT_TYPE_STRING;
     value->flags = 0;
     value->refc = 1;
+    value->extra_uintptrs[0] = nr_chars;
 
     if (len < sz_bytes) {
         memcpy(value->bytes, str_utf8, len);
@@ -287,6 +288,7 @@ purc_variant_t purc_variant_make_string_reuse_buff(char* str_utf8,
     value->type = PURC_VARIANT_TYPE_STRING;
     value->flags = PCVARIANT_FLAG_EXTRA_SIZE;
     value->refc = 1;
+    value->extra_uintptrs[0] = nr_chars;
 
     value->sz_ptr[1] = (uintptr_t)(str_utf8);
     pcvariant_stat_set_extra_size(value, len + 1);
@@ -326,6 +328,7 @@ purc_variant_t purc_variant_make_string_static(const char* str_utf8,
     value->type = PURC_VARIANT_TYPE_STRING;
     value->flags = PCVARIANT_FLAG_STRING_STATIC;
     value->refc = 1;
+    value->extra_uintptrs[0] = nr_chars;
     value->sz_ptr[0] = (uintptr_t)strlen(str_utf8) + 1;
     value->sz_ptr[1] = (uintptr_t)str_utf8;
 
@@ -395,7 +398,7 @@ bool purc_variant_string_chars(purc_variant_t string, size_t *nr_chars)
         IS_TYPE(string, PURC_VARIANT_TYPE_ATOMSTRING) ||
         IS_TYPE(string, PURC_VARIANT_TYPE_EXCEPTION)) {
 
-        nr_chars = 0;
+        *nr_chars = string->extra_uintptrs[0];
         return true;
     }
 
@@ -521,8 +524,8 @@ purc_variant_t purc_variant_make_byte_sequence(const void* bytes,
     PCVARIANT_CHECK_FAIL_RET((bytes != NULL && nr_bytes > 0),
         PURC_VARIANT_INVALID);
 
-    size_t real_size = MAX (sizeof(long double), sizeof(void*) * 2);
-    purc_variant_t value = pcvariant_get (PURC_VARIANT_TYPE_BSEQUENCE);
+    static const size_t sz_bytes = MAX(sizeof(long double), sizeof(void*) * 2);
+    purc_variant_t value = pcvariant_get(PURC_VARIANT_TYPE_BSEQUENCE);
 
     if (value == NULL) {
         pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
@@ -533,7 +536,7 @@ purc_variant_t purc_variant_make_byte_sequence(const void* bytes,
     value->flags = 0;
     value->refc = 1;
 
-    if (nr_bytes <= real_size) {
+    if (nr_bytes <= sz_bytes) {
         value->size = nr_bytes;
         memcpy (value->bytes, bytes, nr_bytes);
     }

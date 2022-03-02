@@ -91,9 +91,9 @@ is_base_variant_msg(purc_atom_t msg)
 {
     if (msg == pcvariant_atom_grow ||
             msg == pcvariant_atom_shrink ||
-            msg == pcvariant_atom_change ||
+            msg == pcvariant_atom_change/* ||
             msg == pcvariant_atom_reference ||
-            msg == pcvariant_atom_unreference) {
+            msg == pcvariant_atom_unreference*/) {
         return true;
     }
     return false;
@@ -108,10 +108,14 @@ is_mmutable_variant_msg(purc_atom_t msg)
 static inline bool
 is_immutable_variant_msg(purc_atom_t msg)
 {
+#if 0
     if (msg == pcvariant_atom_reference ||
             msg == pcvariant_atom_unreference) {
         return true;
     }
+#else
+    UNUSED_PARAM(msg);
+#endif
     return false;
 }
 
