@@ -753,7 +753,7 @@ int pcrdr_parse_packet(char *packet, size_t sz_packet, pcrdr_msg **msg_out)
         }
     }
     else if (msg->dataType == PCRDR_MSG_DATA_TYPE_EJSON) {
-        assert(data != NULL && msg->data_len > 0);
+        assert(data != NULL && msg->_data_len > 0);
         msg->data = purc_variant_make_from_json_string(data, msg->_data_len);
 
         if (msg->data == NULL) {
