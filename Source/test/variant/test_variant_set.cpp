@@ -3,12 +3,15 @@
 #include "purc-variant.h"
 #include "private/variant.h"
 #include "private/ejson-parser.h"
+#include "private/debug.h"
 
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
 #include <gtest/gtest.h>
+
+#define TO_DEBUG 1
 
 static inline bool
 sanity_check(purc_variant_t set)
@@ -724,32 +727,41 @@ TEST(variant_set, constraint)
     ASSERT_NE(stat, nullptr);
 
     const char *s;
-    purc_variant_t set, o;
-    bool ok;
+    purc_variant_t set, k, v, arr, obj, first, last;
 
-    s = "{!'name count', {name:'foo', count:3}, {name:'bar', count:4}}";
-    set = pcejson_parser_parse_string(s, 1, 1);
+    s = "{!'name', {name:[{first:'xiaohong',last:'xu'}]}, {name:[{first:'shuming', last:'xue'}]}}";
+    set = pcejson_parser_parse_string(s, 0, 0);
     ASSERT_NE(set, nullptr);
     ASSERT_EQ(2, purc_variant_set_get_size(set));
+    PRINT_VARIANT(set);
 
-    o = pcejson_parser_parse_string("{name:'foo', count:3}", 1, 1);
-    ASSERT_NE(o, nullptr);
-    ok = purc_variant_set_add(set, o, true);
-    ASSERT_TRUE(ok);
-    purc_variant_unref(o);
+    k = pcejson_parser_parse_string("[{first:'xiaohong',last:'xu'}]", 0, 0);
+    ASSERT_NE(k, nullptr);
+    PRINT_VARIANT(k);
 
-    o = pcejson_parser_parse_string("{name:'foo', count:3}", 1, 1);
-    ASSERT_NE(o, nullptr);
-    ok = purc_variant_set_add(set, o, false);
-    ASSERT_FALSE(ok);
-    purc_variant_unref(o);
+    v = purc_variant_set_get_member_by_key_values(set, k);
+    ASSERT_NE(v, nullptr);
+    PRINT_VARIANT(v);
 
-    purc_variant_unref(set);
+    arr = purc_variant_object_get_by_ckey(v, "name", true);
+    ASSERT_NE(arr, nullptr);
+    PRINT_VARIANT(arr);
 
-    s = "{!'count', {name:[], count:4}}";
-    set = pcejson_parser_parse_string(s, 1, 1);
-    ASSERT_NE(set, nullptr);
-    ASSERT_EQ(1, purc_variant_set_get_size(set));
+    obj = purc_variant_array_get(arr, 0);
+    ASSERT_NE(obj, nullptr);
+    PRINT_VARIANT(obj);
+
+    first = purc_variant_make_string("shuming", true);
+    last = purc_variant_make_string("xue", true);
+    purc_variant_object_set_by_static_ckey(obj, "first", first);
+    purc_variant_object_set_by_static_ckey(obj, "last", last);
+    PRINT_VARIANT(obj);
+
+    PRINT_VARIANT(set);
+
+    purc_variant_unref(first);
+    purc_variant_unref(last);
+    purc_variant_unref(k);
     purc_variant_unref(set);
 
     cleanup = purc_cleanup ();
