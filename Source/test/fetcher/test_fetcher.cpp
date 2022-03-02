@@ -61,8 +61,8 @@ TEST(fetcher, leak1)
         ASSERT_NE(launcher, nullptr);
         GError *err = NULL;
         GSubprocess *process = g_subprocess_launcher_spawn(launcher, &err, "/usr/bin/true", NULL);
-        ASSERT_NE(process, nullptr);
-        g_object_unref(process);
+        ASSERT_EQ(process, nullptr);
+        ASSERT_NE(err, nullptr);
         g_object_unref(launcher);
     } while (0);
 }
