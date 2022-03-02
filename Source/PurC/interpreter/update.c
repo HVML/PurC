@@ -414,7 +414,6 @@ update_set(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         }
         return 0;
     }
-    /* FIXME: use else if */
     if (strcmp(op, "unite")==0) {
         if (!purc_variant_is_type(on, PURC_VARIANT_TYPE_SET)) {
             purc_set_error(PURC_ERROR_INVALID_VALUE);
@@ -427,7 +426,6 @@ update_set(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         }
         return 0;
     }
-    /* FIXME: use else if */
     if (strcmp(op, "overwrite")==0) {
         if (!purc_variant_is_type(on, PURC_VARIANT_TYPE_SET)) {
             purc_set_error(PURC_ERROR_INVALID_VALUE);
@@ -457,7 +455,6 @@ update_target_content(pcintr_stack_t stack, pcdom_element_t *target,
             UNUSED_PARAM(with_eval);
             return pcintr_util_add_child(target, "%s", s);
         }
-        /* FIXME: use else if */
         if (strcmp(to, "displace") == 0) {
             UNUSED_PARAM(with_eval);
             return pcintr_util_set_child(target, "%s", s);
@@ -518,7 +515,6 @@ update_target(pcintr_stack_t stack, pcdom_element_t *target,
     if (strcmp(s_at, "textContent") == 0) {
         return update_target_content(stack, target, s_to, src, with_eval);
     }
-    /* FIXME: use else if */
     if (strncmp(s_at, "attr.", 5) == 0) {
         s_at += 5;
         return update_target_attr(stack, target, s_at, s_to, src, with_eval);
