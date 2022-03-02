@@ -188,16 +188,20 @@ purc_variant_t pcfetcher_local_request_async(
     purc_rwstream_t rws = pcfetcher_local_request_sync(fetcher, url, method,
             params, timeout, &header);
 
-    purc_variant_t req_id = purc_variant_make_string(url, false);
     if (rws) {
+        purc_variant_t req_id = purc_variant_make_string(url, false);
         handler(req_id, ctxt, &header, rws);
         if (header.mime_type) {
             free(header.mime_type);
         }
         return req_id;
     }
+    else {
+        header.ret_code = 404;
+        handler(PURC_VARIANT_INVALID, ctxt, &header, NULL);
+        return PURC_VARIANT_INVALID;
+    }
 
-    purc_variant_unref(req_id);
     return PURC_VARIANT_INVALID;
 }
 
@@ -234,6 +238,9 @@ purc_rwstream_t pcfetcher_local_request_sync(
     uri.append(url);
     WTF::URL wurl(URL(), uri);
     if (!wurl.isLocalFile()) {
+        resp_header->ret_code = 404;
+        resp_header->sz_resp = 0;
+        resp_header->mime_type = NULL;
         return NULL;
     }
 
