@@ -609,4 +609,32 @@
    fun:purc_init
    fun:_ZN12PurCInstanceC1Eb
 }
+{
+   <g_subprocess_launcher_spawn>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:g_malloc
+   fun:g_slice_alloc
+   fun:g_slice_alloc0
+   fun:g_type_create_instance
+   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.6400.6
+   fun:g_object_new_valist
+   fun:g_object_new
+   fun:g_subprocess_launcher_spawnv
+   fun:g_subprocess_launcher_spawn
+}
+{
+   <g_object_new>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:g_malloc
+   fun:g_slice_alloc
+   fun:g_slice_alloc0
+   fun:g_type_create_instance
+   obj:/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.6400.6
+   fun:g_object_new_valist
+   fun:g_object_new
+}
 

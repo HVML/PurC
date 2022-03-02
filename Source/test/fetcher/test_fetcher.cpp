@@ -60,9 +60,9 @@ TEST(fetcher, leak1)
         GSubprocessLauncher *launcher = g_subprocess_launcher_new(G_SUBPROCESS_FLAGS_INHERIT_FDS);
         ASSERT_NE(launcher, nullptr);
         GError *err = NULL;
-        GSubprocess *process = g_subprocess_launcher_spawn(launcher, &err, "/usr/bin/true", NULL);
-        ASSERT_EQ(process, nullptr);
-        ASSERT_NE(err, nullptr);
+        GSubprocess *process = g_subprocess_launcher_spawn(launcher, &err, "/bin/true", NULL);
+        ASSERT_NE(process, nullptr);
+        ASSERT_EQ(err, nullptr);
         g_object_unref(launcher);
     } while (0);
 }
@@ -73,7 +73,7 @@ TEST(fetcher, leak2)
         GRefPtr<GSubprocessLauncher> launcher = adoptGRef(g_subprocess_launcher_new(G_SUBPROCESS_FLAGS_INHERIT_FDS));
         GUniqueOutPtr<GError> error;
         GRefPtr<GSubprocess> process;
-        process = adoptGRef(g_subprocess_launcher_spawn(launcher.get(), &error.outPtr(), "/usr/bin/true", NULL));
+        process = adoptGRef(g_subprocess_launcher_spawn(launcher.get(), &error.outPtr(), "/bin/true", NULL));
     } while (0);
 }
 
