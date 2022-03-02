@@ -2137,22 +2137,11 @@ pcintr_template_walk(purc_variant_t val, void *ctxt,
 }
 
 int
-pcintr_util_add_child(pcdom_element_t *parent, const char *fmt, ...)
+pcintr_util_add_child_chunk(pcdom_element_t *parent, const char *chunk)
 {
-    char buf[1024];
-    size_t nr = sizeof(buf);
-    char *p;
-    va_list ap;
-    va_start(ap, fmt);
-    p = pcutils_vsnprintf(buf, &nr, fmt, ap);
-    va_end(ap);
-
-    if (!p) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return -1;
-    }
-
     int r = -1;
+
+    size_t nr = strlen(chunk);
 
     pcdom_node_t *root = NULL;
     do {
@@ -2169,7 +2158,7 @@ pcintr_util_add_child(pcdom_element_t *parent, const char *fmt, ...)
                     break;
 
                 ui = pchtml_html_document_parse_fragment_chunk(doc,
-                        (const unsigned char*)p, nr);
+                        (const unsigned char*)chunk, nr);
                 if (ui)
                     break;
 
@@ -2199,14 +2188,11 @@ pcintr_util_add_child(pcdom_element_t *parent, const char *fmt, ...)
     if (root)
         pcdom_node_destroy(pcdom_interface_node(root));
 
-    if (p != buf)
-        free(p);
-
     return r ? -1 : 0;
 }
 
 int
-pcintr_util_set_child(pcdom_element_t *parent, const char *fmt, ...)
+pcintr_util_add_child(pcdom_element_t *parent, const char *fmt, ...)
 {
     char buf[1024];
     size_t nr = sizeof(buf);
@@ -2221,7 +2207,20 @@ pcintr_util_set_child(pcdom_element_t *parent, const char *fmt, ...)
         return -1;
     }
 
+    int r = pcintr_util_add_child_chunk(parent, p);
+
+    if (p != buf)
+        free(p);
+
+    return r ? -1 : 0;
+}
+
+int
+pcintr_util_set_child_chunk(pcdom_element_t *parent, const char *chunk)
+{
     int r = -1;
+
+    size_t nr = strlen(chunk);
 
     pcdom_node_t *root = NULL;
     do {
@@ -2238,7 +2237,7 @@ pcintr_util_set_child(pcdom_element_t *parent, const char *fmt, ...)
                     break;
 
                 ui = pchtml_html_document_parse_fragment_chunk(doc,
-                        (const unsigned char*)p, nr);
+                        (const unsigned char*)chunk, nr);
                 if (ui)
                     break;
 
@@ -2271,6 +2270,27 @@ pcintr_util_set_child(pcdom_element_t *parent, const char *fmt, ...)
 
     if (root)
         pcdom_node_destroy(pcdom_interface_node(root));
+
+    return r ? -1 : 0;
+}
+
+int
+pcintr_util_set_child(pcdom_element_t *parent, const char *fmt, ...)
+{
+    char buf[1024];
+    size_t nr = sizeof(buf);
+    char *p;
+    va_list ap;
+    va_start(ap, fmt);
+    p = pcutils_vsnprintf(buf, &nr, fmt, ap);
+    va_end(ap);
+
+    if (!p) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return -1;
+    }
+
+    int r = pcintr_util_set_child_chunk(parent, p);
 
     if (p != buf)
         free(p);

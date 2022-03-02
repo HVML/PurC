@@ -423,6 +423,12 @@ int
 pcintr_util_set_attribute(pcdom_element_t *elem,
         const char *key, const char *val);
 
+int
+pcintr_util_add_child_chunk(pcdom_element_t *parent, const char *chunk);
+
+int
+pcintr_util_set_child_chunk(pcdom_element_t *parent, const char *chunk);
+
 __attribute__ ((format (printf, 2, 3)))
 int
 pcintr_util_add_child(pcdom_element_t *parent, const char *fmt, ...);

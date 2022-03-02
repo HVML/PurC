@@ -236,7 +236,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         PC_ASSERT(v != PURC_VARIANT_INVALID);
         if (purc_variant_is_string(v)) {
             const char *sv = purc_variant_get_string_const(v);
-            int r = pcintr_util_set_child(frame->edom_element, "%s", sv);
+            int r = pcintr_util_set_child_chunk(frame->edom_element, sv);
             PC_ASSERT(r == 0);
         }
         else {
@@ -244,7 +244,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
             int r;
             r = purc_variant_stringify_alloc(&sv, v);
             PC_ASSERT(r >= 0 && sv);
-            r = pcintr_util_set_child(frame->edom_element, "%s", sv);
+            r = pcintr_util_set_child_chunk(frame->edom_element, sv);
             PC_ASSERT(r == 0);
             free(sv);
         }
@@ -319,7 +319,7 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         int r;
         r = purc_variant_stringify_alloc(&sv, v);
         PC_ASSERT(r >= 0 && sv);
-        r = pcintr_util_add_child(frame->edom_element, "%s", sv);
+        r = pcintr_util_add_child_chunk(frame->edom_element, sv);
         PC_ASSERT(r == 0);
         free(sv);
         purc_variant_unref(v);

@@ -453,11 +453,11 @@ update_target_child(pcintr_stack_t stack, pcdom_element_t *target,
         const char *s = purc_variant_get_string_const(src);
         if (strcmp(to, "append") == 0) {
             UNUSED_PARAM(with_eval);
-            return pcintr_util_add_child(target, "%s", s);
+            return pcintr_util_add_child_chunk(target, s);
         }
         if (strcmp(to, "displace") == 0) {
             UNUSED_PARAM(with_eval);
-            return pcintr_util_set_child(target, "%s", s);
+            return pcintr_util_set_child_chunk(target, s);
         }
         _D("to: %s", to);
         PC_ASSERT(0);

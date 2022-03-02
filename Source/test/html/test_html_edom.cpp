@@ -985,7 +985,7 @@ TEST(html, buggy)
     pcdom_collection_t *collection;
     collection = pcdom_collection_create(document);
     ASSERT_NE(collection, nullptr);
-    ASSERT_EQ(0, pcintr_util_set_child(span, "def"));
+    ASSERT_EQ(0, pcintr_util_set_child_chunk(span, "def"));
     ASSERT_DOC_HTML_EQ(doc, "<html><head></head><body><span id=\"clock\">def</span><xinput xid=\"xexp\"></xinput></body></html>");
     unsigned int ui;
     ui = pcdom_collection_init(collection, 10);

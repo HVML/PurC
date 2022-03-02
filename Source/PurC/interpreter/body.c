@@ -201,7 +201,7 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         int r;
         r = purc_variant_stringify_alloc(&sv, v);
         PC_ASSERT(r >= 0 && sv);
-        r = pcintr_util_add_child(frame->edom_element, "%s", sv);
+        r = pcintr_util_add_child_chunk(frame->edom_element, sv);
         PC_ASSERT(r == 0);
         free(sv);
         purc_variant_unref(v);
