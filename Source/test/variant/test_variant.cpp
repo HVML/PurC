@@ -601,11 +601,12 @@ TEST(variant, pcvariant_string)
     purc_instance_extra_info info = {};
 
     const char short_ok[] = "\x61\x62\xE5\x8C\x97\xE4\xBA\xAC\xE4\xB8\x8A\xE6\xB5\xB7\x00";   // ab北京上海
-    const char short_err[] = "\x61\x62\xE5\x02\x97\xE4\xBA\xAC\xE4\xB8\x8A\xE6\xB5\xB7\x00";   // ab北京上海
+    const char short_err[] = "\x61\x62\xE5\x02\x97\xE4\xBA\xAC\xE4\xB8\x8A\xE6\xB5\xB7\x00";   // ab
     const char long_ok[] = "\x61\x62\xE5\x8C\x97\xE4\xBA\xAC\xE4\xB8\x8A\xE6\xB5\xB7\xE5\x8C\x97\xE4\xBA\xAC\xE4\xB8\x8A\xE6\xB5\xB7\x00";   // ab北京上海北京上海
-    const char long_err[] = "\x61\x62\xE5\x02\x97\xE4\xBA\xAC\xE4\xB8\x8A\xE6\xB5\xB7\xE5\x8C\x97\xE4\xBA\xAC\xE4\xB8\x8A\xE6\xB5\xB7\x00";   // ab北京上海北京上海
+    const char long_err[] = "\x61\x62\xE5\x02\x97\xE4\xBA\xAC\xE4\xB8\x8A\xE6\xB5\xB7\xE5\x8C\x97\xE4\xBA\xAC\xE4\xB8\x8A\xE6\xB5\xB7\x00";   // ab
     size_t length = 0;
     size_t real_size = MAX (sizeof(long double), sizeof(void*) * 2);
+    size_t nr_chars = 0;
 
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
@@ -617,6 +618,9 @@ TEST(variant, pcvariant_string)
     length = purc_variant_string_size (value);
     ASSERT_EQ (length, strlen(purc_variant_get_string_const (value)) + 1);
     ASSERT_LT (length, real_size);
+
+    purc_variant_string_chars (value, &nr_chars);
+    ASSERT_EQ (nr_chars, 6);
     purc_variant_unref(value);
 
     // create short string variant without checking, input not in utf8-encoding
@@ -626,6 +630,9 @@ TEST(variant, pcvariant_string)
     length = purc_variant_string_size (value);
     ASSERT_EQ (length, strlen(purc_variant_get_string_const (value)) + 1);
     ASSERT_LT (length, real_size);
+
+    purc_variant_string_chars (value, &nr_chars);
+    ASSERT_EQ (nr_chars, 2);
     purc_variant_unref(value);
 
     // create short string variant with checking, input in utf8-encoding
@@ -635,6 +642,9 @@ TEST(variant, pcvariant_string)
     length = purc_variant_string_size (value);
     ASSERT_EQ (length, strlen(purc_variant_get_string_const (value)) + 1);
     ASSERT_LT (length, real_size);
+
+    purc_variant_string_chars (value, &nr_chars);
+    ASSERT_EQ (nr_chars, 6);
     purc_variant_unref(value);
 
     // create short string variant with checking, input is not in utf8-encoding
@@ -649,6 +659,9 @@ TEST(variant, pcvariant_string)
     length = purc_variant_string_size (value);
     ASSERT_EQ (length, strlen(purc_variant_get_string_const (value)) + 1);
     ASSERT_GT (length, real_size);
+
+    purc_variant_string_chars (value, &nr_chars);
+    ASSERT_EQ (nr_chars, 10);
     purc_variant_unref(value);
 
     // create long string variant without checking, input not in utf8-encoding
@@ -658,6 +671,9 @@ TEST(variant, pcvariant_string)
     length = purc_variant_string_size (value);
     ASSERT_EQ (length, strlen(purc_variant_get_string_const (value)) + 1);
     // ASSERT_GT (length, real_size);
+
+    purc_variant_string_chars (value, &nr_chars);
+    ASSERT_EQ (nr_chars, 2);
     purc_variant_unref(value);
 
     // create long string variant with checking, input in utf8-encoding
@@ -667,6 +683,9 @@ TEST(variant, pcvariant_string)
     length = purc_variant_string_size (value);
     ASSERT_EQ (length, strlen(purc_variant_get_string_const (value)) + 1);
     // ASSERT_GT (length, real_size);
+
+    purc_variant_string_chars (value, &nr_chars);
+    ASSERT_EQ (nr_chars, 10);
     purc_variant_unref(value);
 
     // create long string variant with checking, input not in utf8-encoding
@@ -679,6 +698,10 @@ TEST(variant, pcvariant_string)
     value = purc_variant_make_string_static (static_str, false);
     const char* tmp = purc_variant_get_string_const (value);
     ASSERT_EQ (strcmp(tmp, static_str), 0);
+
+    purc_variant_string_chars (value, &nr_chars);
+    ASSERT_EQ (nr_chars, 4);
+    purc_variant_unref(value);
 
     // create short string variant with null pointer
     value = purc_variant_make_string (NULL, true);

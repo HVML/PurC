@@ -35,22 +35,6 @@ static pcvar_listener*
 register_listener(purc_variant_t v, unsigned int flags,
         purc_atom_t op, pcvar_op_handler handler, void *ctxt)
 {
-    enum purc_variant_type type;
-    type = purc_variant_get_type(v);
-
-    switch (type)
-    {
-        case PURC_VARIANT_TYPE_OBJECT:
-            break;
-        case PURC_VARIANT_TYPE_ARRAY:
-            break;
-        case PURC_VARIANT_TYPE_SET:
-            break;
-        default:
-            pcinst_set_error(PCVARIANT_ERROR_NOT_SUPPORTED);
-            return NULL;
-    }
-
     struct list_head *listeners;
     listeners = &v->listeners;
 
@@ -101,6 +85,11 @@ purc_variant_register_pre_listener(purc_variant_t v,
         return NULL;
     }
 
+    if (!IS_CONTAINER(v->type)) {
+        pcinst_set_error(PCVARIANT_ERROR_NOT_SUPPORTED);
+        return NULL;
+    }
+
     return register_listener(v, PCVAR_LISTENER_PRE, op, handler, ctxt);
 }
 
@@ -110,6 +99,11 @@ purc_variant_register_post_listener(purc_variant_t v,
 {
     if (v == PURC_VARIANT_INVALID || !op || !handler) {
         pcinst_set_error(PCVARIANT_ERROR_WRONG_ARGS);
+        return NULL;
+    }
+
+    if (!IS_CONTAINER(v->type)) {
+        pcinst_set_error(PCVARIANT_ERROR_NOT_SUPPORTED);
         return NULL;
     }
 
@@ -125,20 +119,9 @@ purc_variant_revoke_listener(purc_variant_t v,
         return false;
     }
 
-    enum purc_variant_type type;
-    type = purc_variant_get_type(v);
-
-    switch (type)
-    {
-        case PURC_VARIANT_TYPE_OBJECT:
-            break;
-        case PURC_VARIANT_TYPE_ARRAY:
-            break;
-        case PURC_VARIANT_TYPE_SET:
-            break;
-        default:
-            pcinst_set_error(PCVARIANT_ERROR_NOT_SUPPORTED);
-            return false;
+    if (!IS_CONTAINER(v->type)) {
+        pcinst_set_error(PCVARIANT_ERROR_NOT_SUPPORTED);
+        return false;
     }
 
     struct list_head *listeners;

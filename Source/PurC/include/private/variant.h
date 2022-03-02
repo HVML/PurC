@@ -41,7 +41,10 @@ extern "C" {
 #define PCVARIANT_FLAG_EXTRA_SIZE      (0x01 << 1)  // when use extra space
 #define PCVARIANT_FLAG_STRING_STATIC   (0x01 << 2)  // make_string_static
 
-#define PVT(t) (PURC_VARIANT_TYPE##t)
+#define PVT(t)          (PURC_VARIANT_TYPE##t)
+#define IS_CONTAINER(t) (t == PURC_VARIANT_TYPE_OBJECT || \
+                        t == PURC_VARIANT_TYPE_ARRAY || \
+                        t == PURC_VARIANT_TYPE_SET)
 
 #define MAX_RESERVED_VARIANTS   32
 #define MAX_EMBEDDED_LEVELS     64
@@ -113,8 +116,15 @@ struct purc_variant {
     /* reference count */
     unsigned int refc;
 
-    /* FIXME: listeners: use only one struct list_head field. */
-    struct list_head        listeners;
+    union {
+        /* only for containers (object, array, and set). */
+        struct list_head    listeners;
+
+        /* union fields for non-containers (string, atomstring, and so on). */
+        void*               extra_ptrs[2];
+        uintptr_t           extra_uintptrs[2];
+        uint8_t             extra_bytes[0]; // sizeof(struct list_head)
+    };
 
     /* value */
     union {
@@ -291,8 +301,8 @@ purc_variant_t pcvariant_make_with_printf(const char *fmt, ...);
 extern purc_atom_t pcvariant_atom_grow;
 extern purc_atom_t pcvariant_atom_shrink;
 extern purc_atom_t pcvariant_atom_change;
-extern purc_atom_t pcvariant_atom_reference;
-extern purc_atom_t pcvariant_atom_unreference;
+// extern purc_atom_t pcvariant_atom_reference;
+// extern purc_atom_t pcvariant_atom_unreference;
 
 bool pcvariant_is_mutable(purc_variant_t val);
 

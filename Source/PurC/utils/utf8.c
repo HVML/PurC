@@ -50,7 +50,7 @@ fast_validate(const char *str, size_t *nr_chars)
 
     for (p = str; *p; p++) {
         if (*(uint8_t *)p < 128) {
-            /* done */;
+            n++;
         }
         else {
             const char *last;
@@ -122,8 +122,9 @@ fast_validate_len (const char *str, ssize_t max_len, size_t *nr_chars)
     assert(max_len >= 0);
 
     for (p = str; ((p - str) < max_len) && *p; p++) {
-        if (*(uint8_t *)p < 128)
-            /* done */;
+        if (*(uint8_t *)p < 128) {
+            n++;
+        }
         else {
             const char *last;
 
@@ -249,7 +250,7 @@ pcutils_string_utf8_chars (const char *p, ssize_t max)
     size_t nr_chars = 0;
     const char *start = p;
 
-    if (p != NULL || max == 0)
+    if (p == NULL || max == 0)
         return 0;
 
     if (max < 0) {
@@ -259,9 +260,6 @@ pcutils_string_utf8_chars (const char *p, ssize_t max)
         }
     }
     else {
-        if (max == 0 || !*p)
-            return 0;
-
         p = pcutils_utf8_next_char(p);
 
         while (p - start < max && *p) {
