@@ -593,7 +593,7 @@ TEST(variant, pcvariant_longdouble)
 // to test:
 // purc_variant_make_string ();
 // purc_variant_get_string_const ();
-// purc_variant_string_length ();
+// purc_variant_string_size ();
 // purc_variant_serialize ()
 TEST(variant, pcvariant_string)
 {
@@ -614,7 +614,7 @@ TEST(variant, pcvariant_string)
     // expected: get the variant with original string
     value = purc_variant_make_string (short_ok, false);
     ASSERT_NE(value, PURC_VARIANT_INVALID);
-    length = purc_variant_string_length (value);
+    length = purc_variant_string_size (value);
     ASSERT_EQ (length, strlen(purc_variant_get_string_const (value)) + 1);
     ASSERT_LT (length, real_size);
     purc_variant_unref(value);
@@ -623,7 +623,7 @@ TEST(variant, pcvariant_string)
     // expected: get the variant with original string
     value = purc_variant_make_string (short_err, false);
     ASSERT_NE(value, PURC_VARIANT_INVALID);
-    length = purc_variant_string_length (value);
+    length = purc_variant_string_size (value);
     ASSERT_EQ (length, strlen(purc_variant_get_string_const (value)) + 1);
     ASSERT_LT (length, real_size);
     purc_variant_unref(value);
@@ -632,7 +632,7 @@ TEST(variant, pcvariant_string)
     // expected: get the variant with original string
     value = purc_variant_make_string (short_ok, true);
     ASSERT_NE(value, PURC_VARIANT_INVALID);
-    length = purc_variant_string_length (value);
+    length = purc_variant_string_size (value);
     ASSERT_EQ (length, strlen(purc_variant_get_string_const (value)) + 1);
     ASSERT_LT (length, real_size);
     purc_variant_unref(value);
@@ -646,7 +646,7 @@ TEST(variant, pcvariant_string)
     // expected: get the variant with original string
     value = purc_variant_make_string (long_ok, false);
     ASSERT_NE(value, PURC_VARIANT_INVALID);
-    length = purc_variant_string_length (value);
+    length = purc_variant_string_size (value);
     ASSERT_EQ (length, strlen(purc_variant_get_string_const (value)) + 1);
     ASSERT_GT (length, real_size);
     purc_variant_unref(value);
@@ -655,7 +655,7 @@ TEST(variant, pcvariant_string)
     // expected: get the variant with original string
     value = purc_variant_make_string (long_err, false);
     ASSERT_NE(value, PURC_VARIANT_INVALID);
-    length = purc_variant_string_length (value);
+    length = purc_variant_string_size (value);
     ASSERT_EQ (length, strlen(purc_variant_get_string_const (value)) + 1);
     // ASSERT_GT (length, real_size);
     purc_variant_unref(value);
@@ -664,7 +664,7 @@ TEST(variant, pcvariant_string)
     // expected: get the variant with original string
     value = purc_variant_make_string (long_ok, true);
     ASSERT_NE(value, PURC_VARIANT_INVALID);
-    length = purc_variant_string_length (value);
+    length = purc_variant_string_size (value);
     ASSERT_EQ (length, strlen(purc_variant_get_string_const (value)) + 1);
     // ASSERT_GT (length, real_size);
     purc_variant_unref(value);
@@ -991,7 +991,7 @@ TEST(variant, pcvariant_loopbuffer_one)
         ASSERT_NE(stat, nullptr);
         new_size = stat->sz_total_mem;
 
-        ASSERT_EQ (new_size, old_size + block + purc_variant_string_length (value));
+        ASSERT_EQ (new_size, old_size + block + purc_variant_string_size (value));
 
         // unref
         purc_variant_unref (value);
@@ -1041,14 +1041,14 @@ TEST(variant, pcvariant_loopbuffer_all)
         stat = purc_variant_usage_stat ();
         ASSERT_NE(stat, nullptr);
         new_size = stat->sz_total_mem;
-        calc_size += block + purc_variant_string_length (value[i]);
+        calc_size += block + purc_variant_string_size (value[i]);
 
         ASSERT_EQ (new_size, old_size + calc_size);
     }
 
     // release all variant, the loop buufers are not released
     for (i = 0; i < MAX_RESERVED_VARIANTS - 1; i++) { 
-        calc_size -= purc_variant_string_length (value[i]);
+        calc_size -= purc_variant_string_size (value[i]);
         purc_variant_unref (value[i]);
 
         // get the total memory
@@ -1060,7 +1060,7 @@ TEST(variant, pcvariant_loopbuffer_all)
 
     }
 
-    calc_size -= purc_variant_string_length (value[MAX_RESERVED_VARIANTS - 1]);
+    calc_size -= purc_variant_string_size (value[MAX_RESERVED_VARIANTS - 1]);
     purc_variant_unref (value[MAX_RESERVED_VARIANTS - 1]);
     stat = purc_variant_usage_stat ();
     ASSERT_NE(stat, nullptr);
@@ -1078,7 +1078,7 @@ TEST(variant, pcvariant_loopbuffer_all)
         stat = purc_variant_usage_stat ();
         ASSERT_NE(stat, nullptr);
         new_size = stat->sz_total_mem;
-        calc_size += purc_variant_string_length (value[i]);
+        calc_size += purc_variant_string_size (value[i]);
 
         ASSERT_EQ (new_size, old_size + calc_size);
     }
@@ -1088,7 +1088,7 @@ TEST(variant, pcvariant_loopbuffer_all)
     stat = purc_variant_usage_stat ();
     ASSERT_NE(stat, nullptr);
     new_size = stat->sz_total_mem;
-    calc_size += purc_variant_string_length (value[i]);
+    calc_size += purc_variant_string_size (value[i]);
 
     ASSERT_EQ (new_size, old_size + calc_size + block);
 

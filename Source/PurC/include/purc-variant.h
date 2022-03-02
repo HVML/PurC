@@ -285,7 +285,7 @@ purc_variant_get_string_const(purc_variant_t value)
  * @param length: the buffer to receive the length (including the terminating
  *  null byte) of the string.
  *
- * Returns: True on success, otherwise False (the variant is not a string).
+ * Returns: @true on success, otherwise @false (the variant is not a string).
  *
  * Since: 0.0.1
  */
@@ -293,16 +293,16 @@ PCA_EXPORT bool
 purc_variant_string_bytes(purc_variant_t value, size_t *length);
 
 /**
- * Get the length in bytes of a string variant value.
+ * Get the size in bytes of the space used by a string variant value.
  *
  * @param value: the variant value of string type.
  *
- * Returns: The length in bytes of the string variant;
+ * Returns: The size in bytes of the space used by the string variant;
  *  \PURC_VARIANT_BADSIZE (-1) if the variant is not a string.
  *
  * Since: 0.0.1
  */
-static inline ssize_t purc_variant_string_length(purc_variant_t value)
+static inline ssize_t purc_variant_string_size(purc_variant_t value)
 {
     size_t len;
     if (!purc_variant_string_bytes(value, &len))
@@ -433,7 +433,7 @@ purc_variant_get_bytes_const(purc_variant_t value, size_t* nr_bytes);
  * @param length: the buffer receiving the length in bytes of the byte
  *  sequence.
  *
- * Returns: True on success, otherwise False.
+ * Returns: @true on success, otherwise @false.
  *
  * Since: 0.0.1
  */
@@ -592,7 +592,7 @@ purc_variant_make_array(size_t sz, purc_variant_t value0, ...);
  * @param array: the variant value of array type
  * @param value: the element to be appended
  *
- * Returns: True on success, otherwise False.
+ * Returns: @true on success, otherwise @false.
  *
  * Since: 0.0.1
  */
@@ -606,7 +606,7 @@ purc_variant_array_append(purc_variant_t array, purc_variant_t value);
  * @param array: the variant value of array type
  * @param value: the element to be insert
  *
- * Returns: True on success, otherwise False.
+ * Returns: @true on success, otherwise @false.
  *
  * Since: 0.0.1
  */
@@ -635,7 +635,7 @@ purc_variant_array_get(purc_variant_t array, int idx);
  * @param idx: the index of replaced element
  * @param value: the element to replace
  *
- * Returns: True on success, otherwise False.
+ * Returns: @true on success, otherwise @false.
  *
  * FIXME: returns -1?
  * Note: If idx is greater than max index of array, return -1.
@@ -653,7 +653,7 @@ purc_variant_array_set(purc_variant_t array, int idx, purc_variant_t value);
  * @param array: the variant value of array type
  * @param idx: the index of element to be removed
  *
- * Returns: True on success, otherwise False.
+ * Returns: @true on success, otherwise @false.
  *
  * FIXME: returns -1?
  * Note: If idx is greater than max index of array, return -1.
@@ -672,7 +672,7 @@ PCA_EXPORT bool purc_variant_array_remove(purc_variant_t array, int idx);
  *
  * @param value: the inserted element
  *
- * Returns: True on success, otherwise False.
+ * Returns: @true on success, otherwise @false.
  *
  * FIXME: returns -1?
  * Note: If idx is greater than max index of array, return -1.
@@ -691,7 +691,7 @@ purc_variant_array_insert_before(purc_variant_t array,
  * @param idx: the index of element after which the new element will be placed
  * @param value: the inserted element
  *
- * Returns: True on success, otherwise False.
+ * Returns: @true on success, otherwise @false.
  *
  * FIXME: returns -1?
  * Note: If idx is greater than sum of one plus max index of array, return -1.
@@ -708,7 +708,7 @@ purc_variant_array_insert_after(purc_variant_t array,
  * @param array: the variant value of array type
  * @param sz: the buffer receiving the number of elements of the array.
  *
- * Returns: True on success, otherwise False.
+ * Returns: @true on success, otherwise @false.
  *
  * Since: 0.0.1
  */
@@ -772,7 +772,7 @@ purc_variant_make_object(size_t nr_kv_pairs,
  *
  * @param obj: the variant value of obj type
  * @param key: the key of key-value pair
- * @param silently: True means ignoring the following errors:
+ * @param silently: @true means ignoring the following errors:
  *      - PCVARIANT_ERROR_NOT_FOUND
  *
  * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
@@ -787,7 +787,7 @@ purc_variant_object_get(purc_variant_t obj, purc_variant_t key, bool silently);
  *
  * @param obj: the variant value of obj type
  * @param key: the key of key-value pair
- * @param silently: True means ignoring the following errors:
+ * @param silently: @true means ignoring the following errors:
  *      - PCVARIANT_ERROR_NOT_FOUND
  *
  * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
@@ -815,7 +815,7 @@ purc_variant_object_get_by_ckey(purc_variant_t obj, const char* key,
  * @param key: the key of key-value pair
  * @param value: the value of key-value pair
  *
- * Returns: True on success, otherwise False.
+ * Returns: @true on success, otherwise @false.
  *
  * Since: 0.0.1
  */
@@ -830,7 +830,7 @@ purc_variant_object_set(purc_variant_t obj,
  * @param key: the key of key-value pair
  * @param value: the value of key-value pair
  *
- * Returns: True on success, otherwise False.
+ * Returns: @true on success, otherwise @false.
  *
  * Since: 0.0.1
  */
@@ -852,10 +852,10 @@ purc_variant_object_set_by_static_ckey(purc_variant_t obj, const char* key,
  *
  * @param obj: the variant value of obj type
  * @param key: the key of key-value pair
- * @param silently: True means ignoring the following errors:
- *      - PCVARIANT_ERROR_NOT_FOUND (return True)
+ * @param silently: @true means ignoring the following errors:
+ *      - PCVARIANT_ERROR_NOT_FOUND (return @true)
  *
- * Returns: True on success, otherwise False.
+ * Returns: @true on success, otherwise @false.
  *
  * Since: 0.0.1
  */
@@ -868,10 +868,10 @@ purc_variant_object_remove(purc_variant_t obj, purc_variant_t key,
  *
  * @param obj: the variant value of obj type
  * @param key: the key of key-value pair
- * @param silently: True means ignoring the following errors:
- *      - PCVARIANT_ERROR_NOT_FOUND (return True)
+ * @param silently: @true means ignoring the following errors:
+ *      - PCVARIANT_ERROR_NOT_FOUND (return @true)
  *
- * Returns: True on success, otherwise False.
+ * Returns: @true on success, otherwise @false.
  *
  * Since: 0.0.1
  */
@@ -895,7 +895,7 @@ purc_variant_object_remove_by_static_ckey(purc_variant_t obj, const char* key,
  * @param sz: the buffer receiving the number of the key-value pairs
  *  in the object
  *
- * Returns: True on success, otherwise False if the variant is not an object.
+ * Returns: @true on success, otherwise @false if the variant is not an object.
  *
  * Since: 0.0.1
  */
@@ -997,8 +997,8 @@ purc_variant_object_release_iterator(struct purc_variant_object_iterator* it);
  *
  * @param it: iterator of itself
  *
- * Returns: True if iterator `it` has no following key-val-pair,
- *          False otherwise
+ * Returns: @true if iterator `it` has no following key-val-pair,
+ *          @false otherwise
  *          dec original key-val-pair's ref
  *          inc current key-val-pair's ref
  *
@@ -1013,7 +1013,7 @@ purc_variant_object_iterator_next(struct purc_variant_object_iterator* it);
  *
  * @param it: iterator of itself
  *
- * Returns: True if iterator `it` has no leading key-val-pair, False otherwise
+ * Returns: @true if iterator `it` has no leading key-val-pair, @false otherwise
  *          dec original key-val-pair's ref
  *          inc current key-val-pair's ref
  *
@@ -1128,11 +1128,11 @@ purc_variant_set_add(purc_variant_t obj, purc_variant_t value, bool overwrite);
  *
  * @param set: the set to be operated
  * @param value: the value to be removed
- * @param silently: True means ignoring the following errors:
- *      - PCVARIANT_ERROR_NOT_FOUND (return True)
+ * @param silently: @true means ignoring the following errors:
+ *      - PCVARIANT_ERROR_NOT_FOUND (return @true)
  *
  * Returns: @true on success, @false if:
- *      - silently is False And no any matching member in the set.
+ *      - silently is @false And no any matching member in the set.
  *
  * @note This function works if the set is not managed by unique keys, or
  *  there is only one unique key. If there are multiple unique keys,
@@ -1186,7 +1186,7 @@ purc_variant_set_remove_member_by_key_values(purc_variant_t set,
  * @param set: the variant value of set type
  * @param sz: the variant value of set type
  *
- * Returns: True on success, otherwise False if the variant is not a set.
+ * Returns: @true on success, otherwise @false if the variant is not a set.
  *
  * Since: 0.0.1
  */
@@ -1325,7 +1325,7 @@ purc_variant_set_release_iterator(struct purc_variant_set_iterator* it);
  *
  * @param it: iterator of itself
  *
- * Returns: True if iterator `it` has no following element, False otherwise
+ * Returns: @true if iterator `it` has no following element, @false otherwise
  *          dec original element's ref
  *          inc current element's ref
  *
@@ -1340,7 +1340,7 @@ purc_variant_set_iterator_next(struct purc_variant_set_iterator* it);
  *
  * @param it: iterator of itself
  *
- * Returns: True if iterator `it` has no leading element, False otherwise
+ * Returns: @true if iterator `it` has no leading element, @false otherwise
  *          dec original element's ref
  *          inc current element's ref
  *
@@ -1677,7 +1677,7 @@ purc_variant_load_dvobj_from_so (const char *so_name,
  *
  * @value: dynamic object
  *
- * Returns: True for success, false on failure.
+ * Returns: @true for success, false on failure.
 .*
  * Since: 0.0.1
  */
@@ -1718,7 +1718,7 @@ typedef enum purc_variant_type
  * @param value: the variant value
  * @param type: wanted type
  *
- * Returns: True on success, otherwise False.
+ * Returns: @true on success, otherwise @false.
  *
  * Since: 0.0.1
  */
@@ -1742,7 +1742,7 @@ PCA_EXPORT enum purc_variant_type purc_variant_get_type(purc_variant_t value);
  *
  * @param v: the variant value
  *
- * Returns: True if Yes, otherwise False.
+ * Returns: @true if Yes, otherwise @false.
  *
  * Since: 0.0.1
  */
@@ -1975,11 +1975,11 @@ purc_variant_revoke_listener(purc_variant_t v,
  *
  * @param dst: the dst variant (object, array, set)
  * @param value: the variant to replace (object, array, set)
- * @param silently: True means ignoring the following errors:
+ * @param silently: @true means ignoring the following errors:
  *      - PURC_ERROR_INVALID_VALUE
  *      - PURC_ERROR_WRONG_DATA_TYPE
  *
- * Returns: True on success, otherwise False.
+ * Returns: @true on success, otherwise @false.
  *
  * Since: 0.0.5
  */
@@ -1992,12 +1992,12 @@ purc_variant_container_displace(purc_variant_t dst,
  *
  * @param dst: the dst variant (object, array, set)
  * @param value: the variant to remove from container (object, array, set)
- * @param silently: True means ignoring the following errors:
+ * @param silently: @true means ignoring the following errors:
  *      - PURC_ERROR_INVALID_VALUE
  *      - PURC_ERROR_WRONG_DATA_TYPE
  *      - PCVARIANT_ERROR_NOT_FOUND
  *
- * Returns: True on success, otherwise False.
+ * Returns: @true on success, otherwise @false.
  *
  * Since: 0.0.5
  */
@@ -2010,11 +2010,11 @@ purc_variant_container_remove(purc_variant_t dst,
  *
  * @param array: the dst array variant
  * @param value: the value to be appended (array)
- * @param silently: True means ignoring the following errors:
+ * @param silently: @true means ignoring the following errors:
  *      - PURC_ERROR_INVALID_VALUE
  *      - PURC_ERROR_WRONG_DATA_TYPE
  *
- * Returns: True on success, otherwise False.
+ * Returns: @true on success, otherwise @false.
  *
  * Since: 0.0.5
  */
@@ -2027,11 +2027,11 @@ purc_variant_array_append_another(purc_variant_t array,
  *
  * @param array: the dst array variant
  * @param value: the value to be insert (array)
- * @param silently: True means ignoring the following errors:
+ * @param silently: @true means ignoring the following errors:
  *      - PURC_ERROR_INVALID_VALUE
  *      - PURC_ERROR_WRONG_DATA_TYPE
  *
- * Returns: True on success, otherwise False.
+ * Returns: @true on success, otherwise @false.
  *
  * Since: 0.0.5
  */
@@ -2044,11 +2044,11 @@ purc_variant_array_prepend_another(purc_variant_t array,
  *
  * @param object: the dst object variant
  * @param value: the value to be merge (object)
- * @param silently: True means ignoring the following errors:
+ * @param silently: @true means ignoring the following errors:
  *      - PURC_ERROR_INVALID_VALUE
  *      - PURC_ERROR_WRONG_DATA_TYPE
  *
- * Returns: True on success, otherwise False.
+ * Returns: @true on success, otherwise @false.
  *
  * Since: 0.0.5
  */
@@ -2063,11 +2063,11 @@ purc_variant_object_merge_another(purc_variant_t object,
  * @param array: the dst array variant
  * @param idx: the index of element before which the new value will be placed
  * @param value: the inserted value (array)
- * @param silently: True means ignoring the following errors:
+ * @param silently: @true means ignoring the following errors:
  *      - PURC_ERROR_INVALID_VALUE
  *      - PURC_ERROR_WRONG_DATA_TYPE
  *
- * Returns: True on success, otherwise False.
+ * Returns: @true on success, otherwise @false.
  *
  * Since: 0.0.5
  */
@@ -2082,11 +2082,11 @@ purc_variant_array_insert_another_before(purc_variant_t array,
  * @param array: the dst array variant
  * @param idx: the index of element after which the new value will be placed
  * @param value: the inserted value (array)
- * @param silently: True means ignoring the following errors:
+ * @param silently: @true means ignoring the following errors:
  *      - PURC_ERROR_INVALID_VALUE
  *      - PURC_ERROR_WRONG_DATA_TYPE
  *
- * Returns: True on success, otherwise False.
+ * Returns: @true on success, otherwise @false.
  *
  * Since: 0.0.5
  */
@@ -2099,11 +2099,11 @@ purc_variant_array_insert_another_after(purc_variant_t array,
  *
  * @param set: the dst set variant
  * @param value: the value to be unite (array, set)
- * @param silently: True means ignoring the following errors:
+ * @param silently: @true means ignoring the following errors:
  *      - PURC_ERROR_INVALID_VALUE
  *      - PURC_ERROR_WRONG_DATA_TYPE
  *
- * Returns: True on success, otherwise False.
+ * Returns: @true on success, otherwise @false.
  *
  * Since: 0.0.5
  */
@@ -2116,11 +2116,11 @@ purc_variant_set_unite(purc_variant_t set,
  *
  * @param set: the dst set variant
  * @param value: the value to intersect (array, set)
- * @param silently: True means ignoring the following errors:
+ * @param silently: @true means ignoring the following errors:
  *      - PURC_ERROR_INVALID_VALUE
  *      - PURC_ERROR_WRONG_DATA_TYPE
  *
- * Returns: True on success, otherwise False.
+ * Returns: @true on success, otherwise @false.
  *
  * Since: 0.0.5
  */
@@ -2133,11 +2133,11 @@ purc_variant_set_intersect(purc_variant_t set,
  *
  * @param set: the dst set variant
  * @param value: the value to substract (array, set)
- * @param silently: True means ignoring the following errors:
+ * @param silently: @true means ignoring the following errors:
  *      - PURC_ERROR_INVALID_VALUE
  *      - PURC_ERROR_WRONG_DATA_TYPE
  *
- * Returns: True on success, otherwise False.
+ * Returns: @true on success, otherwise @false.
  *
  * Since: 0.0.5
  */
@@ -2150,11 +2150,11 @@ purc_variant_set_subtract(purc_variant_t set,
  *
  * @param set: the dst set variant
  * @param value: the value to xor (array, set)
- * @param silently: True means ignoring the following errors:
+ * @param silently: @true means ignoring the following errors:
  *      - PURC_ERROR_INVALID_VALUE
  *      - PURC_ERROR_WRONG_DATA_TYPE
  *
- * Returns: True on success, otherwise False.
+ * Returns: @true on success, otherwise @false.
  *
  * Since: 0.0.5
  */
@@ -2167,12 +2167,12 @@ purc_variant_set_xor(purc_variant_t set,
  *
  * @param set: the dst set variant
  * @param value: the value to overwrite (object, array, set)
- * @param silently: True means ignoring the following errors:
+ * @param silently: @true means ignoring the following errors:
  *      - PURC_ERROR_INVALID_VALUE
  *      - PURC_ERROR_WRONG_DATA_TYPE
  *      - PCVARIANT_ERROR_NOT_FOUND
  *
- * Returns: True on success, otherwise False.
+ * Returns: @true on success, otherwise @false.
  *
  * Since: 0.0.5
  */

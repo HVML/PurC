@@ -213,7 +213,7 @@ stringify_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         case PURC_VARIANT_TYPE_STRING:
         case PURC_VARIANT_TYPE_BSEQUENCE:
             if (type == PURC_VARIANT_TYPE_STRING) {
-                total = purc_variant_string_length (argv[0]);
+                total = purc_variant_string_size (argv[0]);
                 buffer = malloc (total);
             }
             else if (type == PURC_VARIANT_TYPE_BSEQUENCE) {

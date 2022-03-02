@@ -736,7 +736,7 @@ eval_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     }
 
 #if 0
-    size_t length = purc_variant_string_length (argv[0]);
+    size_t length = purc_variant_string_size (argv[0]);
     struct pcdvobjs_logical_param myparam = {0, argv[1]}; /* my instance data */
     yyscan_t lexer;                 /* flex instance data */
 

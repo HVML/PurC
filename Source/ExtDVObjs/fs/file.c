@@ -1369,7 +1369,7 @@ stream_writestruct_getter (purc_variant_t root, size_t nr_args,
                     *(buf + length - 1)= 0x00;
                     write_number = atoi((char *)buf);
                 } else {
-                    write_number = purc_variant_string_length (val);
+                    write_number = purc_variant_string_size (val);
                 }
 
                 if(write_number) {

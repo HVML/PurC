@@ -113,9 +113,9 @@ ends_with_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     }
 
     const char *source = purc_variant_get_string_const (argv[0]);
-    size_t len_source = purc_variant_string_length (argv[0]) - 1;
+    size_t len_source = purc_variant_string_size (argv[0]) - 1;
     const char *sub = purc_variant_get_string_const (argv[1]);
-    size_t len_sub = purc_variant_string_length (argv[1]) -1;
+    size_t len_sub = purc_variant_string_size (argv[1]) -1;
 
     if ((len_source == 0) || (len_sub == 0) || (len_source < len_sub)) {
         ret_var = purc_variant_make_boolean (false);
@@ -158,7 +158,7 @@ explode_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
     const char *source = purc_variant_get_string_const (argv[0]);
     const char *delim = purc_variant_get_string_const (argv[1]);
-    size_t len_delim = purc_variant_string_length (argv[1]) - 1;
+    size_t len_delim = purc_variant_string_size (argv[1]) - 1;
     size_t length = 0;
     const char *head = get_next_segment (source, delim, &length);
 
@@ -353,12 +353,12 @@ replace_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         return PURC_VARIANT_INVALID;
     }
 
-    size_t len_delim = purc_variant_string_length (argv[0]) - 1;
+    size_t len_delim = purc_variant_string_size (argv[0]) - 1;
     if (len_delim == 0) {
         pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
-    len_delim = purc_variant_string_length (argv[1]) - 1;
+    len_delim = purc_variant_string_size (argv[1]) - 1;
     if (len_delim == 0) {
         pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
@@ -369,7 +369,7 @@ replace_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     const char *replace = purc_variant_get_string_const (argv[2]);
     purc_rwstream_t rwstream = purc_rwstream_new_buffer (32, STREAM_SIZE);
 
-    size_t len_replace = purc_variant_string_length (argv[2]) - 1;
+    size_t len_replace = purc_variant_string_size (argv[2]) - 1;
     size_t length = 0;
     const char *head = get_next_segment (source, delim, &length);
 
@@ -582,7 +582,7 @@ format_p_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     }
     else {
         format = purc_variant_get_string_const (argv[0]);
-        format_size = purc_variant_string_length (argv[0]);
+        format_size = purc_variant_string_size (argv[0]);
     }
 
     if ((argv[1] != PURC_VARIANT_INVALID) &&
@@ -716,8 +716,8 @@ strcat_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         return PURC_VARIANT_INVALID;
     }
 
-    size_t len1 = purc_variant_string_length (argv[0]);
-    size_t len2 = purc_variant_string_length (argv[1]);
+    size_t len1 = purc_variant_string_size (argv[0]);
+    size_t len2 = purc_variant_string_size (argv[1]);
     size_t len = len1 + len2;
 
     char *dest = malloc (len + 1);
@@ -751,7 +751,7 @@ strlen_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         return PURC_VARIANT_INVALID;
     }
 
-    ret_var = purc_variant_make_ulongint (purc_variant_string_length (argv[0]));
+    ret_var = purc_variant_make_ulongint (purc_variant_string_size (argv[0]));
 
     return ret_var;
 }

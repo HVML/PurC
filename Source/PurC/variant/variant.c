@@ -1200,7 +1200,7 @@ compare_stringify (purc_variant_t v, char *stackbuffer, size_t size)
         case PURC_VARIANT_TYPE_STRING:
         case PURC_VARIANT_TYPE_BSEQUENCE:
             if (v->type == PURC_VARIANT_TYPE_STRING) {
-                length = purc_variant_string_length (v);
+                length = purc_variant_string_size (v);
                 total = length;
             }
             else if (v->type == PURC_VARIANT_TYPE_BSEQUENCE) {

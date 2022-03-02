@@ -287,7 +287,7 @@ const_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         return PURC_VARIANT_INVALID;
     }
     // empty string
-    if (purc_variant_string_length (argv[0]) < 2) {
+    if (purc_variant_string_size (argv[0]) < 2) {
         purc_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
     }
