@@ -77,8 +77,9 @@ doctype_public(struct pcdom_document *doc)
 
 static inline purc_variant_t
 doctype_getter(void *entity,
-        size_t nr_args, purc_variant_t * argv)
+        size_t nr_args, purc_variant_t *argv, bool silently)
 {
+    UNUSED_PARAM(silently);
     PC_ASSERT(entity);
     struct pcdom_document *doc = (struct pcdom_document*)entity;
 
@@ -124,8 +125,9 @@ query(struct pcdom_document *doc, const char *css)
 
 static inline purc_variant_t
 query_getter(void *entity,
-        size_t nr_args, purc_variant_t * argv)
+        size_t nr_args, purc_variant_t *argv, bool silently)
 {
+    UNUSED_PARAM(silently);
     PC_ASSERT(entity);
     struct pcdom_document *doc = (struct pcdom_document*)entity;
 

@@ -196,20 +196,24 @@ int to_error(const char* err)
 
 
 static inline purc_variant_t
-attr_getter(void* native_entity, size_t nr_args, purc_variant_t* argv)
+attr_getter(void* native_entity, size_t nr_args, purc_variant_t* argv,
+        bool silently)
 {
     UNUSED_PARAM(native_entity);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
+    UNUSED_PARAM(silently);
     return purc_variant_make_string("call get success!", false);
 }
 
 static inline purc_variant_t
-attr_setter(void* native_entity, size_t nr_args, purc_variant_t* argv)
+attr_setter(void* native_entity, size_t nr_args, purc_variant_t* argv,
+        bool silently)
 {
     UNUSED_PARAM(native_entity);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
+    UNUSED_PARAM(silently);
     return purc_variant_make_string("call setter success!", false);
 }
 
@@ -330,7 +334,7 @@ TEST_P(test_vcm_eval, parse_and_serialize)
 
     struct find_var_ctxt ctxt = { sys, nobj, array_var, set_var, obj_set_var};
 
-    purc_variant_t vt = pcvcm_eval_ex (root, find_var, &ctxt);
+    purc_variant_t vt = pcvcm_eval_ex (root, find_var, &ctxt, false);
     if (vt == PURC_VARIANT_INVALID) {
         PRINT_VCM_NODE(root);
     }

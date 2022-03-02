@@ -150,28 +150,24 @@ void pcvariant_init_instance(struct pcinst *inst)
     inst->variant_heap.v_undefined.type = PURC_VARIANT_TYPE_UNDEFINED;
     inst->variant_heap.v_undefined.refc = 0;
     inst->variant_heap.v_undefined.flags = PCVARIANT_FLAG_NOFREE;
-    INIT_LIST_HEAD(&inst->variant_heap.v_undefined.pre_listeners);
-    INIT_LIST_HEAD(&inst->variant_heap.v_undefined.post_listeners);
+    INIT_LIST_HEAD(&inst->variant_heap.v_undefined.listeners);
 
     inst->variant_heap.v_null.type = PURC_VARIANT_TYPE_NULL;
     inst->variant_heap.v_null.refc = 0;
     inst->variant_heap.v_null.flags = PCVARIANT_FLAG_NOFREE;
-    INIT_LIST_HEAD(&inst->variant_heap.v_null.pre_listeners);
-    INIT_LIST_HEAD(&inst->variant_heap.v_null.post_listeners);
+    INIT_LIST_HEAD(&inst->variant_heap.v_null.listeners);
 
     inst->variant_heap.v_false.type = PURC_VARIANT_TYPE_BOOLEAN;
     inst->variant_heap.v_false.refc = 0;
     inst->variant_heap.v_false.flags = PCVARIANT_FLAG_NOFREE;
     inst->variant_heap.v_false.b = false;
-    INIT_LIST_HEAD(&inst->variant_heap.v_false.pre_listeners);
-    INIT_LIST_HEAD(&inst->variant_heap.v_false.post_listeners);
+    INIT_LIST_HEAD(&inst->variant_heap.v_false.listeners);
 
     inst->variant_heap.v_true.type = PURC_VARIANT_TYPE_BOOLEAN;
     inst->variant_heap.v_true.refc = 0;
     inst->variant_heap.v_true.flags = PCVARIANT_FLAG_NOFREE;
     inst->variant_heap.v_true.b = true;
-    INIT_LIST_HEAD(&inst->variant_heap.v_true.pre_listeners);
-    INIT_LIST_HEAD(&inst->variant_heap.v_true.post_listeners);
+    INIT_LIST_HEAD(&inst->variant_heap.v_true.listeners);
 
     inst->variant_heap.gc = NULL;
 
@@ -496,8 +492,7 @@ purc_variant_t pcvariant_get(enum purc_variant_type type)
     stat->nr_total_values++;
 
     // init listeners
-    INIT_LIST_HEAD(&value->pre_listeners);
-    INIT_LIST_HEAD(&value->post_listeners);
+    INIT_LIST_HEAD(&value->listeners);
 
     return value;
 }
@@ -509,8 +504,7 @@ void pcvariant_put(purc_variant_t value)
     struct purc_variant_stat *stat = &(heap->stat);
 
     PC_ASSERT(value);
-    PC_ASSERT(list_empty(&value->pre_listeners));
-    PC_ASSERT(list_empty(&value->post_listeners));
+    PC_ASSERT(list_empty(&value->listeners));
 
     // set stat information
     stat->nr_values[value->type]--;
@@ -1306,7 +1300,7 @@ purc_variant_t purc_variant_load_from_json_stream(purc_rwstream_t stream)
         goto ret;
     }
 
-    value = pcvcm_eval (root, NULL);
+    value = pcvcm_eval (root, NULL, false);
 
 ret:
     pcvcm_node_destroy (root);
@@ -1603,7 +1597,7 @@ numberify_dynamic(purc_variant_t value)
     if (!getter)
         return 0.0;
 
-    purc_variant_t v = getter(value, 0, NULL);
+    purc_variant_t v = getter(value, 0, NULL, true); // TODO: silently
     if (v == PURC_VARIANT_INVALID)
         return 0.0;
 
@@ -1628,7 +1622,7 @@ numberify_native(purc_variant_t value)
     if (!getter)
         return 0.0;
 
-    purc_variant_t v = getter(native, 0, NULL);
+    purc_variant_t v = getter(native, 0, NULL, true);  // TODO: silently
     if (v == PURC_VARIANT_INVALID)
         return 0.0;
 

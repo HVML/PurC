@@ -50,12 +50,22 @@ pcintr_check_insertion_mode_for_normal_element(pcintr_stack_t stack);
 
 typedef int (*pcintr_attr_f)(struct pcintr_stack_frame *frame,
         struct pcvdom_element *element,
-        purc_atom_t name, purc_variant_t val,
+        purc_atom_t name,
         struct pcvdom_attr *attr,
         void *ud);
 int
 pcintr_vdom_walk_attrs(struct pcintr_stack_frame *frame,
         struct pcvdom_element *element, void *ud, pcintr_attr_f cb);
+
+// $<
+void
+pcintr_set_input_var(pcintr_stack_t stack, purc_variant_t val);
+
+int
+pcintr_set_edom_attribute(pcintr_stack_t stack, struct pcvdom_attr *attr);
+
+purc_variant_t
+pcintr_eval_vdom_attr(pcintr_stack_t stack, struct pcvdom_attr *attr);
 
 void pcintr_coroutine_ready(void);
 

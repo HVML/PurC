@@ -30,21 +30,25 @@
 #include <stdlib.h>
 
 static purc_variant_t
-foo_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+foo_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     (void)root;
     (void)nr_args;
     (void)argv;
+    (void)silently;
 
     return purc_variant_make_string_static("FOO", false);
 }
 
 static purc_variant_t
-bar_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+bar_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     (void)root;
     (void)nr_args;
     (void)argv;
+    (void)silently;
 
     return purc_variant_make_string_static("BAR", false);
 }
@@ -61,11 +65,13 @@ bar_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     } while (0)
 
 static purc_variant_t
-qux_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+qux_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     int sz_array = NR_MEMBERS;
 
     (void)root;
+    (void)silently;
 
     if (nr_args > 0) {
         uint64_t sz;
@@ -198,7 +204,7 @@ int main(void)
         quit_on_error(2);
 
     func = purc_variant_dynamic_get_getter(dynamic);
-    retv = func(foobar, 0, NULL);
+    retv = func(foobar, 0, NULL, false);
     printf ("getter returned %s for foo\n",
             purc_variant_get_string_const(retv));
     purc_variant_unref(retv);
@@ -208,7 +214,7 @@ int main(void)
         quit_on_error(2);
 
     func = purc_variant_dynamic_get_getter(dynamic);
-    retv = func(foobar, 0, NULL);
+    retv = func(foobar, 0, NULL, false);
     printf ("getter returned %s for bar\n",
             purc_variant_get_string_const(retv));
     purc_variant_unref(retv);
@@ -218,21 +224,21 @@ int main(void)
         quit_on_error(2);
 
     func = purc_variant_dynamic_get_getter(dynamic);
-    retv = func(foobar, 0, NULL);
+    retv = func(foobar, 0, NULL, false);
     printf ("getter returned a %d-long array for qux\n",
             (int)purc_variant_array_get_size(retv));
     purc_variant_unref(retv);
 
     v = purc_variant_make_number(10);
     MAKE_ANONY_VAR(args, v);
-    retv = func(foobar, 1, vars_args + nr_args - 1);
+    retv = func(foobar, 1, vars_args + nr_args - 1, false);
     printf ("getter returned a %d-long array for qux\n",
             (int)purc_variant_array_get_size(retv));
     purc_variant_unref(retv);
 
     v = purc_variant_make_number(50);
     MAKE_ANONY_VAR(args, v);
-    retv = func(foobar, 1, vars_args + nr_args - 1);
+    retv = func(foobar, 1, vars_args + nr_args - 1, false);
     printf ("getter returned a %d-long array for qux\n",
             (int)purc_variant_array_get_size(retv));
     purc_variant_unref(retv);

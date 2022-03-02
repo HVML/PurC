@@ -78,7 +78,6 @@ stack_frame_release(struct pcintr_stack_frame *frame)
     PURC_VARIANT_SAFE_CLEAR(frame->attr_vars);
     PURC_VARIANT_SAFE_CLEAR(frame->ctnt_var);
     PURC_VARIANT_SAFE_CLEAR(frame->result_var);
-    PURC_VARIANT_SAFE_CLEAR(frame->caret_var);
     PURC_VARIANT_SAFE_CLEAR(frame->result_from_child);
     PURC_VARIANT_SAFE_CLEAR(frame->mid_vars);
     PURC_VARIANT_SAFE_CLEAR(frame->exclamation_var);
@@ -383,14 +382,21 @@ pop_stack_frame(pcintr_stack_t stack)
 }
 
 static int
-set_caret_var(struct pcintr_stack_frame *frame,
-    struct pcintr_stack_frame *parent)
+set_input_var(struct pcintr_stack_frame *frame, purc_variant_t val)
 {
-    if (parent->caret_var) {
+    if (val != PURC_VARIANT_INVALID) {
         PURC_VARIANT_SAFE_CLEAR(
-                frame->symbol_vars[PURC_SYMBOL_VAR_CARET]);
-        frame->symbol_vars[PURC_SYMBOL_VAR_CARET] = parent->caret_var;
-        purc_variant_ref(parent->caret_var);
+                frame->symbol_vars[PURC_SYMBOL_VAR_LESS_THAN]);
+        frame->symbol_vars[PURC_SYMBOL_VAR_LESS_THAN] = val;
+        purc_variant_ref(val);
+    }
+    else {
+        purc_variant_t undefined = purc_variant_make_undefined();
+        if (undefined == PURC_VARIANT_INVALID)
+            return -1;
+        PURC_VARIANT_SAFE_CLEAR(
+                frame->symbol_vars[PURC_SYMBOL_VAR_LESS_THAN]);
+        frame->symbol_vars[PURC_SYMBOL_VAR_LESS_THAN] = undefined;
     }
 
     return 0;
@@ -464,8 +470,6 @@ set_symbol_vars(struct pcintr_stack_frame *frame)
     if (!parent)
         return 0;
 
-    if (set_caret_var(frame, parent))
-        return -1;
     if (set_idx_var(frame, parent))
         return -1;
     if (set_result_var(frame, parent))
@@ -521,6 +525,61 @@ push_stack_frame(pcintr_stack_t stack)
     return frame;
 }
 
+void
+pcintr_set_input_var(pcintr_stack_t stack, purc_variant_t val)
+{
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_stack_get_bottom_frame(stack);
+    PC_ASSERT(frame);
+    set_input_var(frame, val);
+}
+
+purc_variant_t
+eval_vdom_attr(pcintr_stack_t stack, struct pcvdom_attr *attr)
+{
+    PC_ASSERT(attr);
+    PC_ASSERT(attr->key);
+    if (!attr->val)
+        return purc_variant_make_undefined();
+
+    return pcvcm_eval(attr->val, stack, false);
+}
+
+int
+pcintr_set_edom_attribute(pcintr_stack_t stack, struct pcvdom_attr *attr)
+{
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_stack_get_bottom_frame(stack);
+    PC_ASSERT(frame);
+    PC_ASSERT(frame->edom_element);
+
+    PC_ASSERT(attr);
+    PC_ASSERT(attr->key);
+    const char *sv = "";
+
+    purc_variant_t val = eval_vdom_attr(stack, attr);
+    if (val == PURC_VARIANT_INVALID)
+        return -1;
+
+    if (!purc_variant_is_undefined(val)) {
+        PC_ASSERT(purc_variant_is_string(val));
+        sv = purc_variant_get_string_const(val);
+        PC_ASSERT(sv);
+    }
+
+    int r = pcintr_util_set_attribute(frame->edom_element, attr->key, sv);
+    PC_ASSERT(r == 0);
+    PURC_VARIANT_SAFE_CLEAR(val);
+
+    return r ? -1 : 0;
+}
+
+purc_variant_t
+pcintr_eval_vdom_attr(pcintr_stack_t stack, struct pcvdom_attr *attr)
+{
+    return eval_vdom_attr(stack, attr);
+}
+
 struct pcintr_walk_attrs_ud {
     struct pcintr_stack_frame       *frame;
     struct pcvdom_element           *element;
@@ -547,43 +606,43 @@ walk_attr(void *key, void *val, void *ud)
     struct pcvdom_element *element = data->element;
     PC_ASSERT(element);
 
-    struct pcvcm_node *vcm = attr->val;
+    // struct pcvcm_node *vcm = attr->val;
 
-    purc_variant_t value = PURC_VARIANT_INVALID;
-    if (!vcm) {
-        value = purc_variant_make_undefined();
-        PC_ASSERT(value != PURC_VARIANT_INVALID);
-    }
-    else {
-        pcintr_stack_t stack = purc_get_stack();
-        PC_ASSERT(stack);
-        value = pcvcm_eval(vcm, stack);
-        if (value == PURC_VARIANT_INVALID ||
-            purc_variant_is_undefined(value))
-        {
-            if (0) {
-                _D("attr name: %s", attr->key);
-                PRINT_VCM_NODE(vcm);
-            }
-            if (value != PURC_VARIANT_INVALID)
-                purc_variant_unref(value);
-            return -1;
-        }
-    }
+    // purc_variant_t value = PURC_VARIANT_INVALID;
+    // if (!vcm) {
+    //     value = purc_variant_make_undefined();
+    //     PC_ASSERT(value != PURC_VARIANT_INVALID);
+    // }
+    // else {
+    //     pcintr_stack_t stack = purc_get_stack();
+    //     PC_ASSERT(stack);
+    //     value = pcvcm_eval(vcm, stack);
+    //     if (value == PURC_VARIANT_INVALID ||
+    //         purc_variant_is_undefined(value))
+    //     {
+    //         if (0) {
+    //             _D("attr name: %s", attr->key);
+    //             PRINT_VCM_NODE(vcm);
+    //         }
+    //         if (value != PURC_VARIANT_INVALID)
+    //             purc_variant_unref(value);
+    //         return -1;
+    //     }
+    // }
 
 
-    bool ok;
-    // NOTE: no need to strdup attr->key
-    ok = purc_variant_object_set_by_static_ckey(frame->attr_vars,
-            attr->key, value);
-    purc_variant_unref(value);
+    // bool ok;
+    // // NOTE: no need to strdup attr->key
+    // ok = purc_variant_object_set_by_static_ckey(frame->attr_vars,
+    //         attr->key, value);
+    // purc_variant_unref(value);
 
-    if (!ok)
-        return -1;
+    // if (!ok)
+    //     return -1;
 
     purc_atom_t atom = PCHVML_KEYWORD_ATOM(HVML, attr->key);
     // NOTE: we only dispatch those keyworded-attr to caller
-    return data->cb(frame, element, atom, value, attr, data->ud);
+    return data->cb(frame, element, atom, attr, data->ud);
 }
 
 int
@@ -1723,7 +1782,8 @@ pcintr_doc_query(purc_vdom_t vdom, const char* css)
         goto end;
     }
 
-    ret = native_func (purc_variant_native_get_entity(doc), 1, &arg);
+    // TODO: silenly
+    ret = native_func (purc_variant_native_get_entity(doc), 1, &arg, false);
     purc_variant_unref(arg);
 end:
     return ret;

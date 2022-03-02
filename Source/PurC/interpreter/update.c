@@ -96,7 +96,8 @@ template_walker(struct pcvcm_node *vcm, void *ctxt)
     pcintr_stack_t stack = ud->stack;
     PC_ASSERT(stack);
 
-    purc_variant_t v = pcvcm_eval(vcm, stack);
+    // TODO: silently
+    purc_variant_t v = pcvcm_eval(vcm, stack, false);
     PC_ASSERT(v != PURC_VARIANT_INVALID);
     PC_ASSERT(purc_variant_is_string(v));
     const char *s = purc_variant_get_string_const(v);
@@ -131,7 +132,8 @@ get_source_by_with(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         pcintr_stack_t stack = co->stack;
         PC_ASSERT(stack);
 
-        purc_variant_t v = pcvcm_eval(vcm_content, stack);
+        // TODO: silently
+        purc_variant_t v = pcvcm_eval(vcm_content, stack, false);
         if (v == PURC_VARIANT_INVALID)
             PRINT_VCM_NODE(vcm_content);
         return v;
@@ -778,7 +780,7 @@ process_attr_at(struct pcintr_stack_frame *frame,
 }
 
 static int
-attr_found(struct pcintr_stack_frame *frame,
+attr_found_val(struct pcintr_stack_frame *frame,
         struct pcvdom_element *element,
         purc_atom_t name, purc_variant_t val,
         struct pcvdom_attr *attr,
@@ -813,6 +815,25 @@ attr_found(struct pcintr_stack_frame *frame,
 
     PC_ASSERT(0); // Not implemented yet
     return -1;
+}
+
+static int
+attr_found(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element,
+        purc_atom_t name,
+        struct pcvdom_attr *attr,
+        void *ud)
+{
+    PC_ASSERT(name);
+
+    purc_variant_t val = pcintr_eval_vdom_attr(purc_get_stack(), attr);
+    if (val == PURC_VARIANT_INVALID)
+        return -1;
+
+    int r = attr_found_val(frame, element, name, val, attr, ud);
+    purc_variant_unref(val);
+
+    return r ? -1 : 0;
 }
 
 static void*
@@ -949,7 +970,8 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     }
 
     // NOTE: element is still the owner of vcm_content
-    purc_variant_t v = pcvcm_eval(vcm, co->stack);
+    // TODO: silently
+    purc_variant_t v = pcvcm_eval(vcm, co->stack, false);
     if (v == PURC_VARIANT_INVALID)
         return -1;
 

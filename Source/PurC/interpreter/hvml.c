@@ -36,7 +36,7 @@
 #include <unistd.h>
 #include <libgen.h>
 
-#define TO_DEBUG 0
+#define TO_DEBUG 1
 
 struct ctxt_for_hvml {
     struct pcvdom_node           *curr;
@@ -57,7 +57,7 @@ ctxt_destroy(void *ctxt)
 }
 
 static int
-attr_found(struct pcintr_stack_frame *frame,
+attr_found_val(struct pcintr_stack_frame *frame,
         struct pcvdom_element *element,
         purc_atom_t name, purc_variant_t val,
         struct pcvdom_attr *attr,
@@ -77,6 +77,25 @@ attr_found(struct pcintr_stack_frame *frame,
     PC_ASSERT(r == 0);
 
     return 0;
+}
+
+static int
+attr_found(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element,
+        purc_atom_t name,
+        struct pcvdom_attr *attr,
+        void *ud)
+{
+    PC_ASSERT(attr->op == PCHVML_ATTRIBUTE_OPERATOR);
+
+    purc_variant_t val = pcintr_eval_vdom_attr(purc_get_stack(), attr);
+    if (val == PURC_VARIANT_INVALID)
+        return -1;
+
+    int r = attr_found_val(frame, element, name, val, attr, ud);
+    purc_variant_unref(val);
+
+    return r ? -1 : 0;
 }
 
 static void*

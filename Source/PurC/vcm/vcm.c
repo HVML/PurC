@@ -624,10 +624,10 @@ void pcvcm_stack_destroy (struct pcvcm_stack* stack)
 }
 
 purc_variant_t pcvcm_node_to_variant (struct pcvcm_node* node,
-        struct pcvcm_node_op* ops);
+        struct pcvcm_node_op* ops, bool silently);
 
 purc_variant_t pcvcm_node_object_to_variant (struct pcvcm_node* node,
-        struct pcvcm_node_op* ops)
+        struct pcvcm_node_op* ops, bool silently)
 {
     purc_variant_t object = purc_variant_make_object (0,
             PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
@@ -635,8 +635,8 @@ purc_variant_t pcvcm_node_object_to_variant (struct pcvcm_node* node,
     struct pcvcm_node* k_node = FIRST_CHILD(node);
     struct pcvcm_node* v_node = NEXT_CHILD(k_node);
     while (k_node && v_node) {
-        purc_variant_t key = pcvcm_node_to_variant (k_node, ops);
-        purc_variant_t value = pcvcm_node_to_variant(v_node, ops);
+        purc_variant_t key = pcvcm_node_to_variant (k_node, ops, silently);
+        purc_variant_t value = pcvcm_node_to_variant(v_node, ops, silently);
 
         purc_variant_object_set (object, key, value);
 
@@ -651,13 +651,13 @@ purc_variant_t pcvcm_node_object_to_variant (struct pcvcm_node* node,
 }
 
 purc_variant_t pcvcm_node_array_to_variant (struct pcvcm_node* node,
-       struct pcvcm_node_op* ops)
+       struct pcvcm_node_op* ops, bool silently)
 {
     purc_variant_t array = purc_variant_make_array (0, PURC_VARIANT_INVALID);
 
     struct pcvcm_node* array_node = FIRST_CHILD(node);
     while (array_node) {
-        purc_variant_t vt = pcvcm_node_to_variant (array_node, ops);
+        purc_variant_t vt = pcvcm_node_to_variant (array_node, ops, silently);
         purc_variant_array_append (array, vt);
         purc_variant_unref (vt);
 
@@ -667,7 +667,7 @@ purc_variant_t pcvcm_node_array_to_variant (struct pcvcm_node* node,
 }
 
 purc_variant_t pcvcm_node_concat_string_to_variant (struct pcvcm_node* node,
-       struct pcvcm_node_op* ops)
+       struct pcvcm_node_op* ops, bool silently)
 {
     UNUSED_PARAM(node);
     UNUSED_PARAM(ops);
@@ -680,7 +680,7 @@ purc_variant_t pcvcm_node_concat_string_to_variant (struct pcvcm_node* node,
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     struct pcvcm_node* child = FIRST_CHILD(node);
     while (child) {
-        purc_variant_t v = pcvcm_node_to_variant(child, ops);
+        purc_variant_t v = pcvcm_node_to_variant(child, ops, silently);
         if (v) {
             char* buf = NULL;
             int total = purc_variant_stringify_alloc(&buf, v);
@@ -726,8 +726,9 @@ err:
 }
 
 purc_variant_t pcvcm_node_get_variable_to_variant (struct pcvcm_node* node,
-       struct pcvcm_node_op* ops)
+       struct pcvcm_node_op* ops, bool silently)
 {
+    UNUSED_PARAM(silently);
     if (!ops) {
         return PURC_VARIANT_INVALID;
     }
@@ -773,7 +774,7 @@ purc_variant_t call_dvariant_method(purc_variant_t root, purc_variant_t var,
          purc_variant_dynamic_get_getter (var) :
          purc_variant_dynamic_get_setter (var);
     if (func) {
-        return func (root, nr_args, argv);
+        return func (root, nr_args, argv, true);  // TODO: silently
     }
     return PURC_VARIANT_INVALID;
 }
@@ -789,7 +790,7 @@ purc_variant_t call_nvariant_method(purc_variant_t var,
             ops->property_setter(key_name);
         if (native_func) {
             return  native_func (purc_variant_native_get_entity (var),
-                    nr_args, argv);
+                    nr_args, argv, true);    // TODO: silently
         }
     }
     return PURC_VARIANT_INVALID;
@@ -801,7 +802,7 @@ static purc_variant_t get_attach_variant(struct pcvcm_node* node)
 }
 
 purc_variant_t pcvcm_node_get_element_to_variant (struct pcvcm_node* node,
-       struct pcvcm_node_op* ops)
+       struct pcvcm_node_op* ops, bool silently)
 {
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     struct pcvcm_node* caller_node = FIRST_CHILD(node);
@@ -809,13 +810,13 @@ purc_variant_t pcvcm_node_get_element_to_variant (struct pcvcm_node* node,
         goto err;
     }
 
-    purc_variant_t caller_var = pcvcm_node_to_variant(caller_node, ops);
+    purc_variant_t caller_var = pcvcm_node_to_variant(caller_node, ops, silently);
     if (!caller_var) {
         goto err;
     }
 
     struct pcvcm_node* param_node  = NEXT_CHILD(caller_node);
-    purc_variant_t param_var = pcvcm_node_to_variant(param_node, ops);
+    purc_variant_t param_var = pcvcm_node_to_variant(param_node, ops, silently);
     if (!param_var) {
         goto clean_caller_var;
     }
@@ -937,7 +938,7 @@ err:
 }
 
 purc_variant_t pcvcm_node_call_method_to_variant (struct pcvcm_node* node,
-       struct pcvcm_node_op* ops, enum method_type type)
+       struct pcvcm_node_op* ops, enum method_type type, bool silently)
 {
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     struct pcvcm_node* caller_node = FIRST_CHILD(node);
@@ -945,7 +946,7 @@ purc_variant_t pcvcm_node_call_method_to_variant (struct pcvcm_node* node,
         goto err;
     }
 
-    purc_variant_t caller_var = pcvcm_node_to_variant(caller_node, ops);
+    purc_variant_t caller_var = pcvcm_node_to_variant(caller_node, ops, silently);
     if (!caller_var) {
         goto err;
     }
@@ -963,7 +964,7 @@ purc_variant_t pcvcm_node_call_method_to_variant (struct pcvcm_node* node,
         int i = 0;
         struct pcvcm_node* param_node = NEXT_CHILD(caller_node);
         while (param_node) {
-            purc_variant_t vt = pcvcm_node_to_variant (param_node, ops);
+            purc_variant_t vt = pcvcm_node_to_variant (param_node, ops, silently);
             if (!vt) {
                 goto clean_params;
             }
@@ -1006,17 +1007,17 @@ err:
 }
 
 purc_variant_t pcvcm_node_to_variant (struct pcvcm_node* node,
-        struct pcvcm_node_op* ops)
+        struct pcvcm_node_op* ops, bool silently)
 {
     purc_variant_t ret = PURC_VARIANT_INVALID;
     switch (node->type)
     {
         case PCVCM_NODE_TYPE_OBJECT:
-            ret = pcvcm_node_object_to_variant (node, ops);
+            ret = pcvcm_node_object_to_variant (node, ops, silently);
             break;
 
         case PCVCM_NODE_TYPE_ARRAY:
-            ret = pcvcm_node_array_to_variant (node, ops);
+            ret = pcvcm_node_array_to_variant (node, ops, silently);
             break;
 
         case PCVCM_NODE_TYPE_STRING:
@@ -1052,23 +1053,25 @@ purc_variant_t pcvcm_node_to_variant (struct pcvcm_node* node,
                     (void*)node->sz_ptr[1], node->sz_ptr[0]);
 
         case PCVCM_NODE_TYPE_FUNC_CONCAT_STRING:
-            ret = pcvcm_node_concat_string_to_variant(node, ops);
+            ret = pcvcm_node_concat_string_to_variant(node, ops, silently);
             break;
 
         case PCVCM_NODE_TYPE_FUNC_GET_VARIABLE:
-            ret = pcvcm_node_get_variable_to_variant(node, ops);
+            ret = pcvcm_node_get_variable_to_variant(node, ops, silently);
             break;
 
         case PCVCM_NODE_TYPE_FUNC_GET_ELEMENT:
-            ret = pcvcm_node_get_element_to_variant(node, ops);
+            ret = pcvcm_node_get_element_to_variant(node, ops, silently);
             break;
 
         case PCVCM_NODE_TYPE_FUNC_CALL_GETTER:
-            ret = pcvcm_node_call_method_to_variant(node, ops, GETTER_METHOD);
+            ret = pcvcm_node_call_method_to_variant(node, ops, GETTER_METHOD,
+                    silently);
             break;
 
         case PCVCM_NODE_TYPE_FUNC_CALL_SETTER:
-            ret = pcvcm_node_call_method_to_variant(node, ops, SETTER_METHOD);
+            ret = pcvcm_node_call_method_to_variant(node, ops, SETTER_METHOD,
+                    silently);
             break;
 
         default:
@@ -1109,16 +1112,17 @@ purc_variant_t find_stack_var (void* ctxt, const char* name)
     return pcintr_find_named_var(ctxt, name);
 }
 
-purc_variant_t pcvcm_eval (struct pcvcm_node* tree, struct pcintr_stack* stack)
+purc_variant_t pcvcm_eval (struct pcvcm_node* tree, struct pcintr_stack* stack,
+        bool silently)
 {
     if (stack) {
-        return pcvcm_eval_ex(tree, find_stack_var, stack);
+        return pcvcm_eval_ex(tree, find_stack_var, stack, silently);
     }
-    return pcvcm_eval_ex(tree, NULL, NULL);
+    return pcvcm_eval_ex(tree, NULL, NULL, silently);
 }
 
 purc_variant_t pcvcm_eval_ex (struct pcvcm_node* tree,
-        cb_find_var find_var, void* ctxt)
+        cb_find_var find_var, void* ctxt, bool silently)
 {
     struct pcvcm_node_op ops = {
         .find_var = find_var,
@@ -1128,6 +1132,6 @@ purc_variant_t pcvcm_eval_ex (struct pcvcm_node* tree,
     if (!tree) {
         return purc_variant_make_null();
     }
-    return pcvcm_node_to_variant (tree, &ops);
+    return pcvcm_node_to_variant (tree, &ops, silently);
 }
 

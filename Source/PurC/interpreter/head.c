@@ -59,24 +59,23 @@ ctxt_destroy(void *ctxt)
 static int
 attr_found(struct pcintr_stack_frame *frame,
         struct pcvdom_element *element,
-        purc_atom_t name, purc_variant_t val,
+        purc_atom_t name,
         struct pcvdom_attr *attr,
         void *ud)
 {
+    UNUSED_PARAM(frame);
     UNUSED_PARAM(element);
     UNUSED_PARAM(name);
     UNUSED_PARAM(ud);
 
     PC_ASSERT(attr->op == PCHVML_ATTRIBUTE_OPERATOR);
     PC_ASSERT(attr->key);
-    PC_ASSERT(purc_variant_is_string(val));
-    const char *sv = purc_variant_get_string_const(val);
-    PC_ASSERT(sv);
 
-    int r = pcintr_util_set_attribute(frame->edom_element, attr->key, sv);
-    PC_ASSERT(r == 0);
+    pcintr_stack_t stack = purc_get_stack();
+    PC_ASSERT(stack);
+    int r = pcintr_set_edom_attribute(stack, attr);
 
-    return 0;
+    return r ? -1 : 0;
 }
 
 static void*

@@ -243,9 +243,11 @@ static bool remove_dir (char *dir)
 }
 
 static purc_variant_t
-list_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+list_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     char dir_name[PATH_MAX];
     char filename[PATH_MAX];
@@ -506,9 +508,11 @@ error:
 }
 
 static purc_variant_t
-list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     enum display_order {
         DISPLAY_MODE = 1,
@@ -842,9 +846,11 @@ error:
 }
 
 static purc_variant_t
-mkdir_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+mkdir_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     const char *filename = NULL;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
@@ -872,9 +878,11 @@ mkdir_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
 
 static purc_variant_t
-rmdir_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+rmdir_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     const char *filename = NULL;
     DIR *dirp;
@@ -935,9 +943,11 @@ rmdir_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 }
 
 static purc_variant_t
-touch_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+touch_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     const char *filename = NULL;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
@@ -985,9 +995,11 @@ touch_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
 
 static purc_variant_t
-unlink_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+unlink_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     const char *filename = NULL;
     struct stat filestat;
@@ -1027,9 +1039,11 @@ unlink_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 }
 
 static purc_variant_t
-rm_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+rm_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     const char *filename = NULL;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;

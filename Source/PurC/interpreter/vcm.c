@@ -91,8 +91,9 @@ vcm_clean(struct pcintr_vcm *vcm)
 }
 
 static purc_variant_t
-eval(void* native_entity, size_t nr_args, purc_variant_t* argv)
+eval(void* native_entity, size_t nr_args, purc_variant_t* argv, bool silently)
 {
+    UNUSED_PARAM(silently);
     PC_ASSERT(native_entity);
 
     struct pcintr_vcm *vcm = (struct pcintr_vcm*)native_entity;
@@ -102,17 +103,19 @@ eval(void* native_entity, size_t nr_args, purc_variant_t* argv)
     PC_ASSERT(vcm->vcm);
 
     // purc_variant_t pcvcm_eval (struct pcvcm_node* tree,
-    //        struct pcintr_stack* stack);
+    //        struct pcintr_stack* stack, bool silently);
     struct pcvcm_node *tree = vcm->vcm;
     struct pcintr_stack *stack = NULL;
     // FIXME: struct pcintr_stack *stack = purc_get_stack();
 
-    return pcvcm_eval(tree, stack);
+    return pcvcm_eval(tree, stack, silently);
 }
 
 static purc_variant_t
-eval_const(void* native_entity, size_t nr_args, purc_variant_t* argv)
+eval_const(void* native_entity, size_t nr_args, purc_variant_t* argv,
+        bool silently)
 {
+    UNUSED_PARAM(silently);
     PC_ASSERT(native_entity);
 
     struct pcintr_vcm *vcm = (struct pcintr_vcm*)native_entity;
@@ -122,7 +125,7 @@ eval_const(void* native_entity, size_t nr_args, purc_variant_t* argv)
     PC_ASSERT(vcm->vcm);
 
     // purc_variant_t pcvcm_eval (struct pcvcm_node* tree,
-    //        struct pcintr_stack* stack);
+    //        struct pcintr_stack* stack, bool silently);
     struct pcvcm_node *tree = vcm->vcm;
     struct pcintr_stack *stack = NULL;
     // FIXME: struct pcintr_stack *stack = purc_get_stack();
@@ -131,7 +134,7 @@ eval_const(void* native_entity, size_t nr_args, purc_variant_t* argv)
     // step 2: if found, return found_evalued_constant->const_value
     // otherwise as follows:
 
-    purc_variant_t v = pcvcm_eval(tree, stack);
+    purc_variant_t v = pcvcm_eval(tree, stack, silently);
     if (v == PURC_VARIANT_INVALID)
         return PURC_VARIANT_INVALID;
 

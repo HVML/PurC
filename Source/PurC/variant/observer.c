@@ -52,12 +52,7 @@ register_listener(purc_variant_t v, unsigned int flags,
     }
 
     struct list_head *listeners;
-    if ((flags & PCVAR_LISTENER_PRE_OR_POST) == PCVAR_LISTENER_PRE) {
-        listeners = &v->pre_listeners;
-    }
-    else {
-        listeners = &v->post_listeners;
-    }
+    listeners = &v->listeners;
 
     struct list_head *p, *n;
     list_for_each_safe(p, n, listeners) {
@@ -88,7 +83,11 @@ register_listener(purc_variant_t v, unsigned int flags,
     listener->ctxt           = ctxt;
     listener->handler        = handler;
 
-    list_add_tail(&listener->list_node, listeners);
+    if ((flags & PCVAR_LISTENER_PRE_OR_POST) == PCVAR_LISTENER_PRE) {
+        list_add_tail(&listener->list_node, listeners);
+    } else {
+        list_add(&listener->list_node, listeners);
+    }
 
     return listener;
 }
@@ -143,12 +142,7 @@ purc_variant_revoke_listener(purc_variant_t v,
     }
 
     struct list_head *listeners;
-    if ((listener->flags & PCVAR_LISTENER_PRE_OR_POST) == PCVAR_LISTENER_PRE) {
-        listeners = &v->pre_listeners;
-    }
-    else {
-        listeners = &v->post_listeners;
-    }
+    listeners = &v->listeners;
 
     struct list_head *p, *n;
     list_for_each_safe(p, n, listeners) {
@@ -176,7 +170,7 @@ bool pcvariant_on_pre_fired(
         )
 {
     struct list_head *listeners;
-    listeners = &source->pre_listeners;
+    listeners = &source->listeners;
 
     struct list_head *p, *n;
     list_for_each_safe(p, n, listeners) {
@@ -184,6 +178,9 @@ bool pcvariant_on_pre_fired(
         curr = container_of(p, struct pcvar_listener, list_node);
         if (curr->op != op)
             continue;
+
+        if ((curr->flags & PCVAR_LISTENER_PRE_OR_POST) != PCVAR_LISTENER_PRE)
+            break;
 
         bool ok = curr->handler(source, op, curr->ctxt, nr_args, argv);
         if (!ok)
@@ -204,16 +201,18 @@ void pcvariant_on_post_fired(
         )
 {
     struct list_head *listeners;
-    listeners = &source->post_listeners;
+    listeners = &source->listeners;
 
-    struct list_head *p, *n;
-    list_for_each_safe(p, n, listeners) {
-        struct pcvar_listener *curr;
-        curr = container_of(p, struct pcvar_listener, list_node);
+    struct pcvar_listener *p, *n;
+    list_for_each_entry_reverse_safe(p, n, listeners, list_node) {
+        struct pcvar_listener *curr = p;
         PC_ASSERT(curr);
         PC_ASSERT(curr->op);
         if (curr->op != op)
             continue;
+
+        if ((curr->flags & PCVAR_LISTENER_PRE_OR_POST) == PCVAR_LISTENER_PRE)
+            break;
 
         bool ok = curr->handler(source, op, curr->ctxt, nr_args, argv);
         PC_ASSERT(ok);

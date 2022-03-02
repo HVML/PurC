@@ -38,9 +38,11 @@ typedef struct __dvobjs_ejson_arg {
 } dvobjs_ejson_arg;
 
 static purc_variant_t
-count_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+count_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     size_t number;
@@ -117,9 +119,11 @@ _COMPILE_TIME_ASSERT(types, PCA_TABLESIZE(type_names) == PURC_VARIANT_TYPE_NR);
 #undef _COMPILE_TIME_ASSERT
 
 static purc_variant_t
-type_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+type_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     if ((argv == NULL) || (nr_args == 0)) {
         pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
@@ -140,9 +144,11 @@ type_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 }
 
 static purc_variant_t
-numberify_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+numberify_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     double number = 0.0;
@@ -159,9 +165,11 @@ numberify_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 }
 
 static purc_variant_t
-booleanize_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+booleanize_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
@@ -179,9 +187,11 @@ booleanize_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 }
 
 static purc_variant_t
-stringify_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+stringify_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     char *buffer = NULL;
@@ -251,9 +261,11 @@ stringify_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 }
 
 static purc_variant_t
-serialize_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+serialize_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_rwstream_t serialize = NULL;
@@ -365,9 +377,11 @@ static void map_free_val(void *val)
 }
 
 static purc_variant_t
-sort_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+sort_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_variant_t val = PURC_VARIANT_INVALID;
@@ -453,9 +467,11 @@ sort_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 }
 
 static purc_variant_t
-compare_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+compare_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     const char *option = NULL;
