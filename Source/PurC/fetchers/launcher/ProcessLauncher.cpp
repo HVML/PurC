@@ -38,6 +38,9 @@
 #include <wtf/glib/GLibUtilities.h>
 #include <wtf/glib/GUniquePtr.h>
 
+
+#define FETCHER_NAME   "fetcher"
+
 namespace PurCFetcher {
 
 static void childSetupFunction(gpointer userData)
@@ -75,7 +78,7 @@ static String findPurCProcess(const char* processName)
 
 String executablePathOfFetcherProcess()
 {
-    return findPurCProcess("fetcher");
+    return findPurCProcess(FETCHER_NAME);
 }
 
 ProcessLauncher::ProcessLauncher(Client* client, LaunchOptions&& launchOptions)

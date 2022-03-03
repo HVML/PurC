@@ -40,6 +40,7 @@ int main(int argc, char** argv)
 
     const char* def_url = "https://hybridos.fmsoft.cn";
     purc_instance_extra_info info = {};
+    info.enable_remote_fetcher = true;
     purc_init ("cn.fmsoft.hybridos.sample", "pcfetcher", &info);
 
     RunLoop::initializeMain();
@@ -48,7 +49,6 @@ int main(int argc, char** argv)
 
     const char* url = argv[1] ? argv[1] : def_url;
 
-    pcfetcher_init(10, 1024, true);
     struct pcfetcher_resp_header resp_header;
     purc_rwstream_t resp = pcfetcher_request_sync(
         url,
@@ -86,7 +86,6 @@ int main(int argc, char** argv)
 
 //    RunLoop::run();
 
-    pcfetcher_term();
     purc_cleanup();
 
 

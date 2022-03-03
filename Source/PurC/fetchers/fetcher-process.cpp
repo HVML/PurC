@@ -29,6 +29,7 @@
 
 #include "fetcher-process.h"
 #include "fetcher-messages.h"
+#include "purc-rwstream.h"
 
 #include "NetworkProcessCreationParameters.h"
 
@@ -45,8 +46,15 @@ PcFetcherProcess::PcFetcherProcess(struct pcfetcher* fetcher,
 
 PcFetcherProcess::~PcFetcherProcess()
 {
-    if (m_connection)
+    reset();
+}
+
+void PcFetcherProcess::reset(void)
+{
+    if (m_connection) {
         m_connection->invalidate();
+        m_connection = nullptr;
+    }
 
     if (m_processLauncher) {
         m_processLauncher->invalidate();
@@ -289,6 +297,10 @@ int PcFetcherProcess::checkResponse(uint32_t timeout_ms)
 
 void PcFetcherProcess::didClose(IPC::Connection&)
 {
+    reset();
+    RunLoop::main().dispatch([process=this] {
+        process->connect();
+    });
 }
 
 void PcFetcherProcess::didReceiveInvalidMessage(IPC::Connection&,
