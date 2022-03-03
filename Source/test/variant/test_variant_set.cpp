@@ -621,22 +621,22 @@ TEST(variant_set, constraint_mutable_keyval)
 
     const char *s;
     purc_variant_t set;
-    s = "{!name, {name:'foo', count:3}}";
+    s = "[!name, {name:'foo', count:3}]";
     set = pcejson_parser_parse_string(s, 1, 1);
     ASSERT_NE(set, nullptr);
     purc_variant_unref(set);
 
-    s = "{!name, {name:[], count:345}}";
+    s = "[!name, {name:[], count:345}]";
     set = pcejson_parser_parse_string(s, 1, 1);
     ASSERT_NE(set, nullptr);
     purc_variant_unref(set);
 
-    s = "{!name, {name:{}, count:3}}";
+    s = "[!name, {name:{}, count:3}]";
     set = pcejson_parser_parse_string(s, 1, 1);
     ASSERT_NE(set, nullptr);
     purc_variant_unref(set);
 
-    s = "{!, {name:{}, count:3}}";
+    s = "[!, {name:{}, count:3}]";
     set = pcejson_parser_parse_string(s, 1, 1);
     ASSERT_NE(set, nullptr);
     purc_variant_unref(set);
@@ -660,36 +660,36 @@ TEST(variant_set, constraint_non_valid_set)
 
     const char *s;
     purc_variant_t set, v;
-    s = "{!name, {name:'foo', count:3}}";
+    s = "[!name, {name:'foo', count:3}]";
     set = pcejson_parser_parse_string(s, 1, 1);
     ASSERT_NE(set, nullptr);
     purc_variant_unref(set);
 
-    s = "{!attr, {name:'foo', count:3}, {name:'bar', count:4}}";
-    set = pcejson_parser_parse_string(s, 1, 1);
-    ASSERT_NE(set, nullptr);
-    ASSERT_EQ(1, purc_variant_set_get_size(set));
-    purc_variant_unref(set);
-
-    s = "{!'name attr', {name:'foo', count:3}, {name:'bar', count:4}}";
-    set = pcejson_parser_parse_string(s, 1, 1);
-    ASSERT_NE(set, nullptr);
-    ASSERT_EQ(2, purc_variant_set_get_size(set));
-    purc_variant_unref(set);
-
-    s = "{!'name attr', {name:'foo', count:3}, {name:'foo', count:4}}";
+    s = "[!attr, {name:'foo', count:3}, {name:'bar', count:4}]";
     set = pcejson_parser_parse_string(s, 1, 1);
     ASSERT_NE(set, nullptr);
     ASSERT_EQ(1, purc_variant_set_get_size(set));
     purc_variant_unref(set);
 
-    s = "{!'name count', {name:'foo', count:3}, {name:'foo', count:4}}";
+    s = "[!'name attr', {name:'foo', count:3}, {name:'bar', count:4}]";
     set = pcejson_parser_parse_string(s, 1, 1);
     ASSERT_NE(set, nullptr);
     ASSERT_EQ(2, purc_variant_set_get_size(set));
     purc_variant_unref(set);
 
-    s = "{!'name', {name:'foo', count:3}, {name:'bar', count:4}}";
+    s = "[!'name attr', {name:'foo', count:3}, {name:'foo', count:4}]";
+    set = pcejson_parser_parse_string(s, 1, 1);
+    ASSERT_NE(set, nullptr);
+    ASSERT_EQ(1, purc_variant_set_get_size(set));
+    purc_variant_unref(set);
+
+    s = "[!'name count', {name:'foo', count:3}, {name:'foo', count:4}]";
+    set = pcejson_parser_parse_string(s, 1, 1);
+    ASSERT_NE(set, nullptr);
+    ASSERT_EQ(2, purc_variant_set_get_size(set));
+    purc_variant_unref(set);
+
+    s = "[!'name', {name:'foo', count:3}, {name:'bar', count:4}]";
     set = pcejson_parser_parse_string(s, 1, 1);
     ASSERT_NE(set, nullptr);
     ASSERT_EQ(2, purc_variant_set_get_size(set));
@@ -729,7 +729,7 @@ TEST(variant_set, constraint)
     const char *s;
     purc_variant_t set, k, v, arr, obj, first, last;
 
-    s = "{!'name', {name:[{first:'xiaohong',last:'xu'}]}, {name:[{first:'shuming', last:'xue'}]}}";
+    s = "[!'name', {name:[{first:xiaohong,last:xu}]}, {name:[{first:shuming, last:xue}]}]";
     set = pcejson_parser_parse_string(s, 0, 0);
     ASSERT_NE(set, nullptr);
     ASSERT_EQ(2, purc_variant_set_get_size(set));

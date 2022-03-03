@@ -126,6 +126,12 @@
         return vv;
     }
 
+    static inline purc_variant_t
+    mk_by_id(const char *s, size_t len)
+    {
+        return purc_variant_make_string_ex(s, len, true);
+    }
+
     static inline void
     string_s_reset(struct string_s *ss)
     {
@@ -368,6 +374,12 @@
             YYABORT;                                \
     } while (0)
 
+    #define MK_BY_ID(_r, _s) do {                   \
+        _r = mk_by_id(_s.text, _s.leng);            \
+        if (_r == PURC_VARIANT_INVALID)             \
+            YYABORT;                                \
+    } while (0)
+
     #define MK_EMPTY_STR(_r) do {                         \
         _r = purc_variant_make_atom_string("", false);    \
         if (_r == PURC_VARIANT_INVALID)                   \
@@ -571,6 +583,7 @@ variant:
 | T_FALSE            { MK_FALSE($$); }
 | INTEGER            { MK_INTEGER($$, $1);}
 | NUMBER             { MK_NUMBER($$, $1); }
+| ID                 { MK_BY_ID($$, $1); }
 | str                { $$ = $1; }
 | obj                { $$ = $1; }
 | arr                { $$ = $1; }
@@ -623,9 +636,9 @@ variants:
 ;
 
 set:
-  '{' '!' '}'                   { MK_EMPTY_SET($$); }
-| '{' '!' ',' objs '}'          { MK_SET($$, PURC_VARIANT_INVALID, $4); }
-| '{' '!' set_key ',' objs '}'  { MK_SET($$, $3, $5); }
+  '[' '!' ']'                   { MK_EMPTY_SET($$); }
+| '[' '!' ',' objs ']'          { MK_SET($$, PURC_VARIANT_INVALID, $4); }
+| '[' '!' set_key ',' objs ']'  { MK_SET($$, $3, $5); }
 ;
 
 set_key:
