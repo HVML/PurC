@@ -270,13 +270,16 @@ set_revoke_constraints(struct elem_node *elem)
 static bool
 set_setup_constraints(purc_variant_t set, struct elem_node *elem)
 {
-    UNUSED_PARAM(set);
-    UNUSED_PARAM(elem);
+    PC_ASSERT(elem->set == PURC_VARIANT_INVALID);
+    elem->set = set;
+    purc_variant_t child = elem->elem;
+    PC_ASSERT(child != PURC_VARIANT_INVALID);
+    PC_ASSERT(purc_variant_is_object(child));
     return true;
 }
 
 static void
-set_release(struct elem_node *elem)
+elem_node_release(struct elem_node *elem)
 {
     if (elem->elem != PURC_VARIANT_INVALID) {
         set_revoke_constraints(elem);
@@ -319,7 +322,7 @@ variant_set_release_elems(variant_set_t set)
         // int r = pcutils_arrlist_del_idx(set->arr, p->idx, 1);
         // PC_ASSERT(r==0);
         // refresh_arr(set->arr, p->idx);
-        set_release(p);
+        elem_node_release(p);
         free(p);
     }
 
@@ -507,7 +510,7 @@ insert_or_replace(purc_variant_t set,
     PC_ASSERT(curr->kvs != node->kvs);
 
     if (curr->elem == node->elem) {
-        set_release(node);
+        elem_node_release(node);
         free(node);
         return 0;
     }
@@ -515,7 +518,7 @@ insert_or_replace(purc_variant_t set,
     PC_ASSERT(curr->elem != node->elem);
     if (data->keynames == NULL) {
         // totally equal, nothing changed
-        set_release(node);
+        elem_node_release(node);
         free(node);
         return 0;
     }
@@ -602,7 +605,7 @@ insert_or_replace(purc_variant_t set,
     end_foreach;
     PURC_VARIANT_SAFE_CLEAR(tmp);
 
-    set_release(node);
+    elem_node_release(node);
     free(node);
 
     return 0;
@@ -623,7 +626,7 @@ set_remove(purc_variant_t set, variant_set_t data, struct elem_node *node)
 
     refresh_arr(data->arr, node->idx);
     node->idx = -1;
-    set_release(node);
+    elem_node_release(node);
     free(node);
 
     return 0;
@@ -649,7 +652,7 @@ variant_set_add_val(purc_variant_t set,
         return -1;
 
     if (insert_or_replace(set, data, _new, override)) {
-        set_release(_new);
+        elem_node_release(_new);
         free(_new);
         return -1;
     }
