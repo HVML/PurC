@@ -30,16 +30,11 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "purc-utils.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif  /* __cplusplus */
-
-bool
-pcutils_string_check_utf8_len(const char* str, size_t max_len,
-        size_t *nr_chars, const char **end);
-bool
-pcutils_string_check_utf8(const char *str, ssize_t max_len,
-        size_t *nr_chars, const char **end);
 
 size_t
 pcutils_string_utf8_chars (const char *p, ssize_t max);

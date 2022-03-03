@@ -28,6 +28,7 @@
 #include <stddef.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <stdarg.h>
 
 #include "purc-macros.h"
@@ -453,6 +454,13 @@ pcutils_trim_blanks(const char *str, size_t *sz_io);
 
 char*
 pcutils_escape_string_for_json(const char* str);
+
+bool
+pcutils_string_check_utf8_len(const char* str, size_t max_len,
+        size_t *nr_chars, const char **end);
+bool
+pcutils_string_check_utf8(const char *str, ssize_t max_len,
+        size_t *nr_chars, const char **end);
 
 PCA_EXTERN_C_END
 
