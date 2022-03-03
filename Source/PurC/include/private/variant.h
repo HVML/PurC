@@ -99,6 +99,15 @@ struct pcvar_listener {
     struct list_head    list_node;
 };
 
+/* Make sure the size of `struct list_head` is two times of sizeof(void *) */
+#define _COMPILE_TIME_ASSERT(name, x)               \
+       typedef int _dummy_ ## name[(x) * 2 - 1]
+
+_COMPILE_TIME_ASSERT(list_head,
+        sizeof(struct list_head) == (sizeof(void *) * 2));
+
+#undef _COMPILE_TIME_ASSERT
+
 // structure for variant
 struct purc_variant {
 
@@ -123,7 +132,14 @@ struct purc_variant {
         /* union fields for non-containers (string, atomstring, and so on). */
         void*               extra_ptrs[2];
         uintptr_t           extra_uintptrs[2];
-        uint8_t             extra_bytes[0]; // sizeof(struct list_head)
+
+        /* other aliases */
+        /* the real length of `extra_bytes` is `sizeof(void*) * 2` */
+        uint8_t             extra_bytes[0];
+        /* the real length of `extra_words` is `sizeof(void*)` */
+        uint16_t            extra_words[0];
+        /* the real length of `extra_dwords` is `sizeof(void*) / 2` */
+        uint32_t            extra_dwords[0];
     };
 
     /* value */
