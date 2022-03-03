@@ -262,13 +262,13 @@ pcv_set_new(void)
 }
 
 static void
-set_revoke_constraints(struct elem_node *elem)
+elem_node_revoke_constraints(struct elem_node *elem)
 {
     elem->set = PURC_VARIANT_INVALID;
 }
 
 static bool
-set_setup_constraints(purc_variant_t set, struct elem_node *elem)
+elem_node_setup_constraints(purc_variant_t set, struct elem_node *elem)
 {
     PC_ASSERT(elem->set == PURC_VARIANT_INVALID);
     elem->set = set;
@@ -282,7 +282,7 @@ static void
 elem_node_release(struct elem_node *elem)
 {
     if (elem->elem != PURC_VARIANT_INVALID) {
-        set_revoke_constraints(elem);
+        elem_node_revoke_constraints(elem);
         purc_variant_unref(elem->elem);
         elem->elem = PURC_VARIANT_INVALID;
     }
@@ -482,7 +482,7 @@ insert_or_replace(purc_variant_t set,
             return -1;
         }
 
-        if (!set_setup_constraints(set, node)) {
+        if (!elem_node_setup_constraints(set, node)) {
             bool ok = pcutils_arrlist_del_idx(data->arr, count-1, 1);
             PC_ASSERT(ok);
             return -1;
