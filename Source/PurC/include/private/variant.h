@@ -241,9 +241,6 @@ struct elem_node {
 
     // managed by variant_set
     purc_variant_t   set; // owner
-    struct pcvar_listener      *grow;
-    struct pcvar_listener      *change;
-    struct pcvar_listener      *shrink;
 };
 
 struct variant_set {

@@ -264,22 +264,6 @@ pcv_set_new(void)
 static void
 set_revoke_listeners(struct elem_node *elem)
 {
-    bool ok;
-    if (elem->grow) {
-        ok = purc_variant_revoke_listener(elem->elem, elem->grow);
-        PC_ASSERT(ok);
-        elem->grow = NULL;
-    }
-    if (elem->change) {
-        ok = purc_variant_revoke_listener(elem->elem, elem->change);
-        PC_ASSERT(ok);
-        elem->change = NULL;
-    }
-    if (elem->shrink) {
-        ok = purc_variant_revoke_listener(elem->elem, elem->shrink);
-        PC_ASSERT(ok);
-        elem->shrink = NULL;
-    }
     elem->set = PURC_VARIANT_INVALID;
 }
 
