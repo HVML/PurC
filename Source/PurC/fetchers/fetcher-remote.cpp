@@ -66,7 +66,6 @@ struct pcfetcher* pcfetcher_remote_init(size_t max_conns, size_t cache_quota)
 int pcfetcher_remote_term(struct pcfetcher* fetcher)
 {
     struct pcfetcher_remote* remote = (struct pcfetcher_remote*)fetcher;
-    remote->process->terminate();
     delete remote->process;
 
     if (remote->base_uri) {
