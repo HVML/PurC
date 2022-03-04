@@ -275,6 +275,18 @@ elem_node_setup_constraints(purc_variant_t set, struct elem_node *elem)
     purc_variant_t child = elem->elem;
     PC_ASSERT(child != PURC_VARIANT_INVALID);
     PC_ASSERT(purc_variant_is_object(child));
+
+    variant_set_t data = pcv_set_get_data(set);
+
+    for (size_t i=0; data->keynames && i<data->nr_keynames; ++i) {
+        const char *sk = data->keynames[i];
+        purc_variant_t v;
+        const bool silently = true;
+        v = purc_variant_object_get_by_ckey(child, sk, silently);
+        if (v == PURC_VARIANT_INVALID)
+            continue;
+    }
+
     return true;
 }
 
