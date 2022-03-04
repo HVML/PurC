@@ -688,3 +688,37 @@ purc_variant_object_iterator_get_value(struct purc_variant_object_iterator* it)
     return v;
 }
 
+purc_variant_t
+pcvariant_object_clone(purc_variant_t obj, bool recursively)
+{
+    purc_variant_t var;
+    var = purc_variant_make_object(0,
+            PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+    if (var == PURC_VARIANT_INVALID)
+        return PURC_VARIANT_INVALID;
+
+    purc_variant_t k,v;
+    foreach_key_value_in_variant_object(obj, k, v) {
+        purc_variant_t val;
+        if (recursively) {
+            val = pcvariant_container_clone(v, recursively);
+        }
+        else {
+            val = purc_variant_ref(v);
+        }
+        if (val == PURC_VARIANT_INVALID) {
+            purc_variant_unref(var);
+            return PURC_VARIANT_INVALID;
+        }
+        bool ok;
+        ok = purc_variant_object_set(var, k, val);
+        purc_variant_unref(val);
+        if (!ok) {
+            purc_variant_unref(var);
+            return PURC_VARIANT_INVALID;
+        }
+    } end_foreach;
+
+    return var;
+}
+

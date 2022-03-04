@@ -2300,3 +2300,55 @@ pcvariant_object_shallow_copy(purc_variant_t obj)
     return o;
 }
 
+int
+purc_variant_is_mutable(purc_variant_t var, bool *is_mutable)
+{
+    if (var == PURC_VARIANT_INVALID) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        return -1;
+    }
+
+    if (is_mutable)
+        *is_mutable = IS_CONTAINER(var->type);
+
+    return 0;
+}
+
+purc_variant_t
+pcvariant_container_clone(purc_variant_t ctnr, bool recursively)
+{
+    enum purc_variant_type vt = ctnr->type;
+    switch (vt) {
+        case PURC_VARIANT_TYPE_ARRAY:
+            return pcvariant_array_clone(ctnr, recursively);
+        case PURC_VARIANT_TYPE_OBJECT:
+            return pcvariant_object_clone(ctnr, recursively);
+        case PURC_VARIANT_TYPE_SET:
+            return pcvariant_set_clone(ctnr, recursively);
+        default:
+            return purc_variant_ref(ctnr);
+    }
+}
+
+purc_variant_t
+purc_variant_container_clone(purc_variant_t ctnr)
+{
+    if (ctnr == PURC_VARIANT_INVALID) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    return pcvariant_container_clone(ctnr, false);
+}
+
+purc_variant_t
+purc_variant_container_clone_recursively(purc_variant_t ctnr)
+{
+    if (ctnr == PURC_VARIANT_INVALID) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    return pcvariant_container_clone(ctnr, true);
+}
+

@@ -93,6 +93,9 @@ pcutils_string_reset(struct pcutils_string *string);
 int
 pcutils_string_check_size(struct pcutils_string *string, size_t size);
 
+int
+pcutils_string_append_chunk(struct pcutils_string *string, const char *chunk);
+
 __attribute__ ((format (printf, 2, 0)))
 int
 pcutils_string_vappend(struct pcutils_string *string,

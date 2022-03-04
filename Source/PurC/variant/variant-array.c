@@ -543,3 +543,38 @@ int pcvariant_array_sort(purc_variant_t value, void *ud,
     return r ? -1 : 0;
 }
 
+purc_variant_t
+pcvariant_array_clone(purc_variant_t arr, bool recursively)
+{
+    purc_variant_t var;
+    var = purc_variant_make_array(0, PURC_VARIANT_INVALID);
+    if (var == PURC_VARIANT_INVALID)
+        return PURC_VARIANT_INVALID;
+
+    purc_variant_t v;
+    size_t idx;
+    foreach_value_in_variant_array(arr, v, idx) {
+        UNUSED_PARAM(idx);
+        purc_variant_t val;
+        if (recursively) {
+            val = pcvariant_container_clone(v, recursively);
+        }
+        else {
+            val = purc_variant_ref(v);
+        }
+        if (val == PURC_VARIANT_INVALID) {
+            purc_variant_unref(var);
+            return PURC_VARIANT_INVALID;
+        }
+        bool ok;
+        ok = purc_variant_array_append(var, val);
+        purc_variant_unref(val);
+        if (!ok) {
+            purc_variant_unref(var);
+            return PURC_VARIANT_INVALID;
+        }
+    } end_foreach;
+
+    return var;
+}
+

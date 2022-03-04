@@ -2185,6 +2185,46 @@ PCA_EXPORT bool
 purc_variant_set_overwrite(purc_variant_t set,
         purc_variant_t src, bool silently);
 
+
+/**
+ * Check if the variant is the mutable one, array/object/set
+ *
+ * @param var: the variant to check
+ * @param is_mutable: the pointer where the result is to store
+ *
+ * Return: denote if the function succeeds or not
+ *         0:  Success
+ *         -1: Failed
+ *
+ * Since: 0.1.1
+ */
+PCA_EXPORT int
+purc_variant_is_mutable(purc_variant_t var, bool *is_mutable);
+
+/**
+ * Clone a container
+ *
+ * @param ctnr: the source container variant
+ *
+ * Return: the cloned container variant
+ *
+ * Since: 0.1.1
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_container_clone(purc_variant_t ctnr);
+
+/**
+ * Recursively clone a container (deep clone).
+ *
+ * @param ctnr: the source container variant
+ *
+ * Return: the deep-cloned container variant
+ *
+ * Since: 0.1.1
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_container_clone_recursively(purc_variant_t ctnr);
+
 PCA_EXTERN_C_END
 
 #define PURC_VARIANT_SAFE_CLEAR(_v) do {          \

@@ -29,6 +29,7 @@
 #include "private/list.h"
 #include "private/hashtable.h"
 #include "private/errors.h"
+#include "private/stringbuilder.h"
 #include "purc-errors.h"
 #include "variant-internals.h"
 
@@ -1289,4 +1290,63 @@ int pcvariant_set_get_uniqkeys(purc_variant_t set, size_t *nr_keynames,
     return 0;
 }
 
+purc_variant_t
+pcvariant_set_clone(purc_variant_t set, bool recursively)
+{
+    int r;
+    struct pcutils_string str;
+    pcutils_string_init(&str, 32);
+    variant_set_t data = pcv_set_get_data(set);
+    if (data->keynames) {
+        r = 0;
+        for (size_t i=0; i<data->nr_keynames; ++i) {
+            if (i) {
+                r = pcutils_string_append_chunk(&str, " ");
+                if (r) {
+                    purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+                    break;
+                }
+            }
+            r = pcutils_string_append_chunk(&str, data->keynames[i]);
+            if (r) {
+                purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+                break;
+            }
+        }
+        if (r) {
+            pcutils_string_reset(&str);
+            return PURC_VARIANT_INVALID;
+        }
+    }
+
+    purc_variant_t var;
+    var = purc_variant_make_set_by_ckey(0, str.curr, PURC_VARIANT_INVALID);
+    pcutils_string_reset(&str);
+    if (var == PURC_VARIANT_INVALID)
+        return PURC_VARIANT_INVALID;
+
+    purc_variant_t v;
+    foreach_value_in_variant_set(set, v) {
+        purc_variant_t val;
+        if (recursively) {
+            val = pcvariant_container_clone(v, recursively);
+        }
+        else {
+            val = purc_variant_ref(v);
+        }
+        if (val == PURC_VARIANT_INVALID) {
+            purc_variant_unref(var);
+            return PURC_VARIANT_INVALID;
+        }
+        bool ok;
+        ok = purc_variant_set_add(var, val, false);
+        purc_variant_unref(val);
+        if (!ok) {
+            purc_variant_unref(var);
+            return PURC_VARIANT_INVALID;
+        }
+    } end_foreach;
+
+    return var;
+}
 
