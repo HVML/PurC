@@ -190,7 +190,7 @@ void timer_fire_func(const char* id, void* ctxt)
 }
 
 bool
-timer_listener_handler(purc_variant_t source, purc_atom_t msg_type,
+timer_listener_handler(purc_variant_t source, pcvar_op_t msg_type,
         void* ctxt, size_t nr_args, purc_variant_t* argv);
 
 static bool
@@ -269,13 +269,13 @@ destroy_inner_timer(pcintr_stack_t stack, purc_variant_t timer_var)
 }
 
 bool
-timers_listener_handler(purc_variant_t source, purc_atom_t msg_type,
+timers_listener_handler(purc_variant_t source, pcvar_op_t msg_type,
         void* ctxt, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(source);
     UNUSED_PARAM(nr_args);
     pcintr_stack_t stack = (pcintr_stack_t) ctxt;
-    if (msg_type == pcvariant_atom_grow) {
+    if (msg_type == PCVAR_OPERATION_GROW) {
         purc_variant_t interval = purc_variant_object_get_by_ckey(argv[0],
                 TIMERS_STR_INTERVAL, false);
         purc_variant_t active = purc_variant_object_get_by_ckey(argv[0],
@@ -291,10 +291,10 @@ timers_listener_handler(purc_variant_t source, purc_atom_t msg_type,
             pcintr_timer_start(timer);
         }
     }
-    else if (msg_type == pcvariant_atom_shrink) {
+    else if (msg_type == PCVAR_OPERATION_SHRINK) {
         destroy_inner_timer(stack, argv[0]);
     }
-    else if (msg_type == pcvariant_atom_change) {
+    else if (msg_type == PCVAR_OPERATION_CHANGE) {
         purc_variant_t nv = argv[1];
         pcintr_timer_t timer = get_inner_timer(stack, nv);
         if (!timer) {
@@ -364,19 +364,19 @@ pcintr_timers_init(pcintr_stack_t stack)
     }
 
     timers->grow_listener = purc_variant_register_post_listener(ret,
-        pcvariant_atom_grow, timers_listener_handler, stack);
+            PCVAR_OPERATION_GROW, timers_listener_handler, stack);
     if (!timers->grow_listener) {
         goto failure;
     }
 
     timers->shrink_listener = purc_variant_register_post_listener(ret,
-        pcvariant_atom_shrink, timers_listener_handler, stack);
+            PCVAR_OPERATION_SHRINK, timers_listener_handler, stack);
     if (!timers->shrink_listener) {
         goto failure;
     }
 
     timers->change_listener = purc_variant_register_post_listener(ret,
-        pcvariant_atom_change, timers_listener_handler, stack);
+            PCVAR_OPERATION_CHANGE, timers_listener_handler, stack);
     if (!timers->change_listener) {
         goto failure;
     }

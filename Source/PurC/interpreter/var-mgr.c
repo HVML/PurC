@@ -93,7 +93,7 @@ static struct var_observe* find_var_observe(struct pcvarmgr* mgr,
     return pcutils_array_get(mgr->var_observers, idx);
 }
 
-static bool mgr_grow_handler(purc_variant_t source, purc_atom_t msg_type,
+static bool mgr_grow_handler(purc_variant_t source, pcvar_op_t msg_type,
         void* ctxt, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(msg_type);
@@ -135,7 +135,7 @@ static bool mgr_grow_handler(purc_variant_t source, purc_atom_t msg_type,
     return true;
 }
 
-static bool mgr_shrink_handler(purc_variant_t source, purc_atom_t msg_type,
+static bool mgr_shrink_handler(purc_variant_t source, pcvar_op_t msg_type,
         void* ctxt, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(msg_type);
@@ -177,7 +177,7 @@ static bool mgr_shrink_handler(purc_variant_t source, purc_atom_t msg_type,
     return true;
 }
 
-static bool mgr_change_handler(purc_variant_t source, purc_atom_t msg_type,
+static bool mgr_change_handler(purc_variant_t source, pcvar_op_t msg_type,
         void* ctxt, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(msg_type);
@@ -236,19 +236,19 @@ pcvarmgr_t pcvarmgr_create(void)
     }
 
     mgr->grow_listener = purc_variant_register_post_listener(mgr->object,
-        pcvariant_atom_grow, mgr_grow_handler, mgr);
+        PCVAR_OPERATION_GROW, mgr_grow_handler, mgr);
     if (!mgr->grow_listener) {
         goto err_clear_object;
     }
 
     mgr->shrink_listener = purc_variant_register_post_listener(mgr->object,
-        pcvariant_atom_shrink, mgr_shrink_handler, mgr);
+        PCVAR_OPERATION_SHRINK, mgr_shrink_handler, mgr);
     if (!mgr->shrink_listener) {
         goto err_revoke_grow_listener;
     }
 
     mgr->change_listener = purc_variant_register_post_listener(mgr->object,
-        pcvariant_atom_change, mgr_change_handler, mgr);
+        PCVAR_OPERATION_CHANGE, mgr_change_handler, mgr);
     if (!mgr->change_listener) {
         goto err_revoke_shrink_listener;
     }

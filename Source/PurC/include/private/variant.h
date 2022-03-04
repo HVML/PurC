@@ -84,7 +84,7 @@ extern "C" {
 
 struct pcvar_listener {
     // the operation in which this listener is intersted.
-    purc_atom_t         op;
+    pcvar_op_t          opx;
 
     // the context for the listener
     void*               ctxt;
@@ -320,23 +320,17 @@ extern purc_atom_t pcvariant_atom_change;
 bool pcvariant_is_mutable(purc_variant_t val);
 
 bool pcvariant_on_pre_fired(
-        purc_variant_t source,  // the source variant
-        purc_atom_t op,  // the atom of the operation,
-                         // such as `grow`,  `shrink`, or `change`
-        size_t nr_args,  // the number of the relevant child variants
-                         // (only for container).
-        purc_variant_t *argv    // the array of all relevant child variants
-                                // (only for container).
+        purc_variant_t source,  // the source variant.
+        pcvar_op_t op,          // the operation identifier.
+        size_t nr_args,         // the number of the relevant child variants.
+        purc_variant_t *argv    // the array of all relevant child variants.
         );
 
 void pcvariant_on_post_fired(
-        purc_variant_t source,  // the source variant
-        purc_atom_t op,  // the atom of the operation,
-                         // such as `grow`,  `shrink`, or `change`
-        size_t nr_args,  // the number of the relevant child variants
-                         // (only for container).
-        purc_variant_t *argv    // the array of all relevant child variants
-                                // (only for container).
+        purc_variant_t source,  // the source variant.
+        pcvar_op_t op,          // the operation identifier.
+        size_t nr_args,         // the number of the relevant child variants.
+        purc_variant_t *argv    // the array of all relevant child variants.
         );
 
 purc_variant_t pcvariant_set_find (purc_variant_t set, purc_variant_t value);

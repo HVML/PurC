@@ -1905,15 +1905,20 @@ struct pcvar_listener;
 typedef struct pcvar_listener pcvar_listener;
 typedef struct pcvar_listener *pcvar_listener_t;
 
+typedef enum {
+    PCVAR_OPERATION_ANY = 0,    // any operation, for easy use.
+    PCVAR_OPERATION_GROW,
+    PCVAR_OPERATION_SHRINK,
+    PCVAR_OPERATION_CHANGE,
+    PCVAR_OPERATION_REFASCHILD,
+} pcvar_op_t;
+
 typedef bool (*pcvar_op_handler) (
-        purc_variant_t source,  // the source variant
-        purc_atom_t op,  // the atom of the operation,
-                         // such as `grow`,  `shrink`, or `change`
-        void *ctxt,      // the context stored when registering the handler.
-        size_t nr_args,  // the number of the relevant child variants
-                         // (only for container).
-        purc_variant_t *argv    // the array of all relevant child variants
-                                // (only for container).
+        purc_variant_t source,  // the source variant.
+        pcvar_op_t op,          // the operation identifier.
+        void *ctxt,             // the context stored when registering the handler.
+        size_t nr_args,         // the number of the relevant child variants.
+        purc_variant_t *argv    // the array of all relevant child variants.
         );
 
 
@@ -1934,7 +1939,7 @@ typedef bool (*pcvar_op_handler) (
  */
 PCA_EXPORT struct pcvar_listener*
 purc_variant_register_pre_listener(purc_variant_t v,
-        purc_atom_t op, pcvar_op_handler handler, void *ctxt);
+        pcvar_op_t op, pcvar_op_handler handler, void *ctxt);
 
 /**
  * Register a post-operation listener
@@ -1953,7 +1958,7 @@ purc_variant_register_pre_listener(purc_variant_t v,
  */
 PCA_EXPORT struct pcvar_listener*
 purc_variant_register_post_listener(purc_variant_t v,
-        purc_atom_t op, pcvar_op_handler handler, void *ctxt);
+        pcvar_op_t op, pcvar_op_handler handler, void *ctxt);
 
 /**
  * Revoke a variant listener

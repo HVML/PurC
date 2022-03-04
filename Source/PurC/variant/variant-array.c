@@ -48,7 +48,7 @@ grow(purc_variant_t array, purc_variant_t pos, purc_variant_t value)
 {
     purc_variant_t vals[] = { pos, value };
 
-    return pcvariant_on_pre_fired(array, pcvariant_atom_grow,
+    return pcvariant_on_pre_fired(array, PCVAR_OPERATION_GROW,
             PCA_TABLESIZE(vals), vals);
 }
 
@@ -57,7 +57,7 @@ shrink(purc_variant_t array, purc_variant_t pos, purc_variant_t value)
 {
     purc_variant_t vals[] = { pos, value };
 
-    return pcvariant_on_pre_fired(array, pcvariant_atom_shrink,
+    return pcvariant_on_pre_fired(array, PCVAR_OPERATION_SHRINK,
             PCA_TABLESIZE(vals), vals);
 }
 
@@ -67,7 +67,7 @@ change(purc_variant_t array, purc_variant_t pos,
 {
     purc_variant_t vals[] = { pos, o, n };
 
-    return pcvariant_on_pre_fired(array, pcvariant_atom_change,
+    return pcvariant_on_pre_fired(array, PCVAR_OPERATION_CHANGE,
             PCA_TABLESIZE(vals), vals);
 }
 
@@ -76,7 +76,7 @@ grown(purc_variant_t array, purc_variant_t pos, purc_variant_t value)
 {
     purc_variant_t vals[] = { pos, value };
 
-    pcvariant_on_post_fired(array, pcvariant_atom_grow,
+    pcvariant_on_post_fired(array, PCVAR_OPERATION_GROW,
             PCA_TABLESIZE(vals), vals);
 }
 
@@ -85,7 +85,7 @@ shrunk(purc_variant_t array, purc_variant_t pos, purc_variant_t value)
 {
     purc_variant_t vals[] = { pos, value };
 
-    pcvariant_on_post_fired(array, pcvariant_atom_shrink,
+    pcvariant_on_post_fired(array, PCVAR_OPERATION_SHRINK,
             PCA_TABLESIZE(vals), vals);
 }
 
@@ -95,7 +95,7 @@ changed(purc_variant_t array, purc_variant_t pos,
 {
     purc_variant_t vals[] = { pos, o, n };
 
-    pcvariant_on_post_fired(array, pcvariant_atom_change,
+    pcvariant_on_post_fired(array, PCVAR_OPERATION_CHANGE,
             PCA_TABLESIZE(vals), vals);
 }
 
