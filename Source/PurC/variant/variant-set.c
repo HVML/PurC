@@ -733,9 +733,6 @@ static purc_variant_t
 pv_make_set_by_ckey_n (size_t sz, const char* unique_key,
     purc_variant_t value0, va_list ap)
 {
-    PCVARIANT_CHECK_FAIL_RET((sz==0 && value0==NULL) || (sz>0 && value0),
-        PURC_VARIANT_INVALID);
-
     purc_variant_t v = make_set_c(sz, unique_key, value0, ap);
 
     return v;
@@ -745,6 +742,9 @@ purc_variant_t
 purc_variant_make_set_by_ckey (size_t sz, const char* unique_key,
     purc_variant_t value0, ...)
 {
+    PCVARIANT_CHECK_FAIL_RET((sz==0 && value0==NULL) || (sz>0 && value0),
+        PURC_VARIANT_INVALID);
+
     purc_variant_t v;
     va_list ap;
     va_start(ap, value0);
@@ -758,13 +758,6 @@ static purc_variant_t
 pv_make_set_n (size_t sz, purc_variant_t unique_key,
     purc_variant_t value0, va_list ap)
 {
-    PCVARIANT_CHECK_FAIL_RET((sz==0 && value0==NULL) ||
-        (sz>0 && value0),
-        PURC_VARIANT_INVALID);
-
-    PCVARIANT_CHECK_FAIL_RET(!unique_key || unique_key->type==PVT(_STRING),
-        PURC_VARIANT_INVALID);
-
     const char *uk = NULL;
     if (unique_key) {
         uk = purc_variant_get_string_const(unique_key);
@@ -780,6 +773,13 @@ purc_variant_t
 purc_variant_make_set (size_t sz, purc_variant_t unique_key,
     purc_variant_t value0, ...)
 {
+    PCVARIANT_CHECK_FAIL_RET((sz==0 && value0==NULL) ||
+        (sz>0 && value0),
+        PURC_VARIANT_INVALID);
+
+    PCVARIANT_CHECK_FAIL_RET(!unique_key || unique_key->type==PVT(_STRING),
+        PURC_VARIANT_INVALID);
+
     purc_variant_t v;
     va_list ap;
     va_start(ap, value0);
