@@ -124,7 +124,7 @@ done:
     return msg;
 }
 
-static int my_send_message (pcrdr_conn* conn, const pcrdr_msg *msg)
+static int my_send_message (pcrdr_conn* conn, pcrdr_msg *msg)
 {
     purc_rwstream_t buffer = NULL;
     buffer = purc_rwstream_new_buffer (PCRDR_MIN_PACKET_BUFF_SIZE,

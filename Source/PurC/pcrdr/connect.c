@@ -391,7 +391,7 @@ my_sync_response_handler(pcrdr_conn* conn,
 }
 
 int pcrdr_send_request_and_wait_response(pcrdr_conn* conn,
-        const pcrdr_msg *request_msg,
+        pcrdr_msg *request_msg,
         int seconds_expected, pcrdr_msg **response_msg)
 {
     struct pending_request *pr;

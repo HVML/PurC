@@ -65,7 +65,7 @@ struct pcrdr_conn {
     /* operations */
     int (*wait_message) (pcrdr_conn* conn, int timeout_ms);
     pcrdr_msg *(*read_message) (pcrdr_conn* conn);
-    int (*send_message) (pcrdr_conn* conn, const pcrdr_msg *msg);
+    int (*send_message) (pcrdr_conn* conn, pcrdr_msg *msg);
     int (*ping_peer) (pcrdr_conn* conn);
     int (*disconnect) (pcrdr_conn* conn);
 };
