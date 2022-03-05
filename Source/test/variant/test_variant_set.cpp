@@ -205,9 +205,9 @@ TEST(variant_set, add_1_str)
 
     ASSERT_TRUE(sanity_check(var));
 
+    ASSERT_EQ(obj->refc, 1);
     purc_variant_unref(obj);
     purc_variant_unref(s);
-    ASSERT_EQ(obj->refc, 1);
 
     ASSERT_EQ(stat->nr_values[PVT(_STRING)], 2);
     ASSERT_EQ(stat->nr_values[PVT(_OBJECT)], 1);
@@ -258,9 +258,9 @@ TEST(variant_set, add_n_str)
 
         ASSERT_TRUE(sanity_check(var));
 
+        ASSERT_EQ(obj->refc, 1);
         purc_variant_unref(obj);
         purc_variant_unref(s);
-        ASSERT_EQ(obj->refc, 1);
     }
     ASSERT_EQ(stat->nr_values[PVT(_STRING)], count*2);
     ASSERT_EQ(stat->nr_values[PVT(_OBJECT)], count);

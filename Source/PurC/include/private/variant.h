@@ -32,9 +32,7 @@
 #include "rbtree.h"
 #include "array_list.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif  /* __cplusplus */
+PCA_EXTERN_C_BEGIN
 
 #define PCVARIANT_FLAG_CONSTANT        (0x01 << 0)  // for null, true, ...
 #define PCVARIANT_FLAG_NOFREE          PCVARIANT_FLAG_CONSTANT
@@ -286,6 +284,9 @@ int pcvariant_set_sort(purc_variant_t value, void *ud,
 
 const char* pcvariant_get_typename(enum purc_variant_type type);
 
+int
+pcvariant_equal(purc_variant_t l, purc_variant_t r);
+
 static inline const char*
 pcvariant_typename(purc_variant_t v)
 {
@@ -344,9 +345,7 @@ pcvariant_is_in_set (purc_variant_t set, purc_variant_t value)
 purc_variant_t
 pcvariant_object_shallow_copy(purc_variant_t obj);
 
-#ifdef __cplusplus
-}
-#endif  /* __cplusplus */
+PCA_EXTERN_C_END
 
 /* VWNOTE (WARN)
  * 1. Make these macros as private interfaces. Please reimplement them

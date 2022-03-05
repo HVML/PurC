@@ -2352,3 +2352,12 @@ purc_variant_container_clone_recursively(purc_variant_t ctnr)
     return pcvariant_container_clone(ctnr, true);
 }
 
+int
+pcvariant_equal(purc_variant_t l, purc_variant_t r)
+{
+    PC_ASSERT(l != PURC_VARIANT_INVALID);
+    PC_ASSERT(r != PURC_VARIANT_INVALID);
+    int diff;
+    diff = purc_variant_compare_ex(l, r, PCVARIANT_COMPARE_OPT_AUTO);
+    return diff;
+}

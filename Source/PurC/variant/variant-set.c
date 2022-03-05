@@ -410,22 +410,79 @@ variant_set_create_kvs_n (variant_set_t set, purc_variant_t v1, va_list ap)
     return kvs;
 }
 
+static purc_variant_t
+variant_set_prepare_object(variant_set_t set, purc_variant_t val)
+{
+    variant_set_t data = set;
+    purc_variant_t cloned = purc_variant_make_object(0,
+            PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+    if (cloned == PURC_VARIANT_INVALID)
+        return PURC_VARIANT_INVALID;
+
+    purc_variant_t k,v;
+    foreach_key_value_in_variant_object(val, k, v) {
+        PC_ASSERT(purc_variant_is_string(k));
+
+        purc_variant_t v_cloned = purc_variant_ref(v);
+
+        int r;
+        bool is_mutable;
+        r = purc_variant_is_mutable(v, &is_mutable);
+        PC_ASSERT(r == 0);
+        if (is_mutable) {
+            // `v` is container
+            const char *sk = purc_variant_get_string_const(k);
+            PC_ASSERT(sk);
+            PC_ASSERT(*sk);
+
+            if (data->keynames) {
+                size_t i = 0;
+                for (i=0; i<data->nr_keynames; ++i) {
+                    const char *kn = data->keynames[i];
+                    if (0 == strcmp(sk, kn))
+                        break;
+                }
+                if (i < data->nr_keynames) {
+                    // uniq-key-field, and `v` is container
+                    bool recursively = true;
+                    purc_variant_unref(v_cloned);
+                    v_cloned = pcvariant_container_clone(v, recursively);
+                }
+            }
+        }
+        bool ok;
+        ok = purc_variant_object_set(cloned, k, v_cloned);
+        purc_variant_unref(v_cloned);
+        if (!ok) {
+            purc_variant_unref(cloned);
+            return PURC_VARIANT_INVALID;
+        }
+    } end_foreach;
+
+    return cloned;
+}
+
 static struct elem_node*
 variant_set_create_elem_node (variant_set_t set, purc_variant_t val)
 {
+    purc_variant_t cloned = variant_set_prepare_object(set, val);
+    if (cloned == PURC_VARIANT_INVALID)
+        return NULL;
+
     struct elem_node *_new = (struct elem_node*)calloc(1, sizeof(*_new));
     if (!_new) {
+        purc_variant_unref(cloned);
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
     }
-    _new->kvs = variant_set_create_kvs(set, val);
+    _new->kvs = variant_set_create_kvs(set, cloned);
     if (!_new->kvs) {
+        purc_variant_unref(cloned);
         free(_new);
         return NULL;
     }
 
-    _new->elem = val;
-    purc_variant_ref(val);
+    _new->elem = cloned;
 
     return _new;
 }
