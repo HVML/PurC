@@ -504,6 +504,11 @@ bool purc_variant_object_set (purc_variant_t obj,
         obj->sz_ptr[1] && key && value,
         false);
 
+    if (purc_variant_is_undefined(value)) {
+        bool silently = false;
+        return purc_variant_object_remove(obj, key, silently);
+    }
+
     int r = v_object_set(obj, key, value);
 
     return r ? false : true;

@@ -1,6 +1,8 @@
 #include "purc.h"
 #include "purc-variant.h"
 #include "private/variant.h"
+#include "private/ejson-parser.h"
+#include "../helpers.h"
 
 
 #include <stdarg.h>
@@ -407,5 +409,38 @@ TEST(object, unref)
 
     cleanup = purc_cleanup ();
     ASSERT_EQ (cleanup, true);
+}
+
+TEST(object, compare)
+{
+    PurCInstance purc;
+
+    int diff;
+    const char *s;
+    purc_variant_t obj1, obj2;
+
+    s = "{first:xiaohong,last:xu}";
+    obj1 = pcejson_parser_parse_string(s, 0, 0);
+    if (obj1 == PURC_VARIANT_INVALID) {
+        ADD_FAILURE() << "failed to parse: " << s << std::endl;
+        return;
+    }
+
+    s = "{last:xu,first:xiaohong}";
+    obj2 = pcejson_parser_parse_string(s, 0, 0);
+    if (obj2 == PURC_VARIANT_INVALID) {
+        purc_variant_unref(obj1);
+        ADD_FAILURE() << "failed to parse: " << s << std::endl;
+        return;
+    }
+
+    diff = purc_variant_compare_ex(obj1, obj2, PCVARIANT_COMPARE_OPT_AUTO);
+    if (diff) {
+        PRINT_VARIANT(obj1);
+        PRINT_VARIANT(obj2);
+        ADD_FAILURE() << "diff" << std::endl;
+    }
+    purc_variant_unref(obj1);
+    purc_variant_unref(obj2);
 }
 

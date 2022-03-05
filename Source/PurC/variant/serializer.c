@@ -54,6 +54,8 @@
 #include <float.h>
 #include <ctype.h>
 
+#define TO_DEBUG 1
+
 static const char *hex_chars = "0123456789abcdefABCDEF";
 
 #define MY_WRITE(rws, buff, count)                                      \
@@ -906,7 +908,7 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
             MY_CHECK(n);
 
             i = 0;
-            foreach_value_in_variant_set(value, member)
+            foreach_value_in_variant_set_order(value, member)
                 if (i > 0) {
                     MY_WRITE(rws, ",", 1);
                     n = print_newline(rws, flags, len_expected);

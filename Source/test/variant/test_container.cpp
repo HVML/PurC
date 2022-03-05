@@ -5,6 +5,7 @@
 #include "purc-rwstream.h"
 #include "hvml/hvml-token.h"
 #include "private/ejson-parser.h"
+#include "private/debug.h"
 
 #include "../helpers.h"
 
@@ -16,6 +17,8 @@
 
 #include <dirent.h>
 #include <glob.h>
+
+#define TO_DEBUG 1
 
 using namespace std;
 

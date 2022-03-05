@@ -542,6 +542,74 @@ PCA_EXTERN_C_END
      /* } */                                                            \
   /* } while (0) */
 
+#define foreach_value_in_variant_set_order(_set, _val)                  \
+    do {                                                                \
+        variant_set_t _data;                                            \
+        struct rb_node *_first;                                         \
+        _data = (variant_set_t)_set->sz_ptr[1];                         \
+        _first = pcutils_rbtree_first(&_data->elems);                   \
+        if (!_first)                                                    \
+            break;                                                      \
+        struct rb_node *_p;                                             \
+        pcutils_rbtree_for_each(_first, _p)                             \
+        {                                                               \
+            struct elem_node *_en;                                      \
+            _en = container_of(_p, struct elem_node, node);             \
+            _val = _en->elem;                                           \
+     /* } */                                                            \
+  /* } while (0) */
+
+#define foreach_value_in_variant_set_order_reverse(_set, _val)          \
+    do {                                                                \
+        variant_set_t _data;                                            \
+        struct rb_node *_first;                                         \
+        _data = (variant_set_t)_set->sz_ptr[1];                         \
+        _first = pcutils_rbtree_last(&_data->elems);                    \
+        if (!_first)                                                    \
+            break;                                                      \
+        struct rb_node *_p;                                             \
+        pcutils_rbtree_for_each_reverse(_first, _p)                     \
+        {                                                               \
+            struct elem_node *_en;                                      \
+            _en = container_of(_p, struct elem_node, node);             \
+            _val = _en->elem;                                           \
+     /* } */                                                            \
+  /* } while (0) */
+
+#define foreach_value_in_variant_set_order_safe(_set, _val)             \
+    do {                                                                \
+        variant_set_t _data;                                            \
+        struct rb_node *_first;                                         \
+        _data = (variant_set_t)_set->sz_ptr[1];                         \
+        _first = pcutils_rbtree_first(&_data->elems);                   \
+        if (!_first)                                                    \
+            break;                                                      \
+        struct rb_node *_p, *_n;                                        \
+        pcutils_rbtree_for_each_safe(_first, _p, _n)                    \
+        {                                                               \
+            struct elem_node *_en;                                      \
+            _en = container_of(_p, struct elem_node, node);             \
+            _val = _en->elem;                                           \
+     /* } */                                                            \
+  /* } while (0) */
+
+#define foreach_value_in_variant_set_order_reverse_safe(_set, _val)     \
+    do {                                                                \
+        variant_set_t _data;                                            \
+        struct rb_node *_first;                                         \
+        _data = (variant_set_t)_set->sz_ptr[1];                         \
+        _first = pcutils_rbtree_last(&_data->elems);                    \
+        if (!_first)                                                    \
+            break;                                                      \
+        struct rb_node *_p, *_n;                                        \
+        pcutils_rbtree_for_each_reverse_safe(_first, _p, _n)            \
+        {                                                               \
+            struct elem_node *_en;                                      \
+            _en = container_of(_p, struct elem_node, node);             \
+            _val = _en->elem;                                           \
+     /* } */                                                            \
+  /* } while (0) */
+
 #define end_foreach                                                     \
  /* do { */                                                             \
      /* for (...) { */                                                  \

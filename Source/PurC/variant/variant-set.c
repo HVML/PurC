@@ -1501,6 +1501,7 @@ pcvariant_set_clone(purc_variant_t set, bool recursively)
         return PURC_VARIANT_INVALID;
 
     purc_variant_t v;
+    // NOTE: keep document-order
     foreach_value_in_variant_set(set, v) {
         purc_variant_t val;
         if (recursively) {

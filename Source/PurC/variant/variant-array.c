@@ -121,6 +121,11 @@ variant_arr_make_pos(variant_arr_t data, size_t idx)
 static int
 variant_arr_insert_before(purc_variant_t array, size_t idx, purc_variant_t val)
 {
+    if (purc_variant_is_undefined(val)) {
+        // `undefined` not allowed in array
+        return 0;
+    }
+
     variant_arr_t data = (variant_arr_t)array->sz_ptr[1];
     purc_variant_t pos = variant_arr_make_pos(data, idx);
     if (pos == PURC_VARIANT_INVALID)
@@ -140,7 +145,6 @@ variant_arr_insert_before(purc_variant_t array, size_t idx, purc_variant_t val)
     }
     node->val = val;
     purc_variant_ref(val);
-
 
     struct pcutils_array_list *al = &data->al;
     int r = pcutils_array_list_insert_before(al, idx, &node->node);

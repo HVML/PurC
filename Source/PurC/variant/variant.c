@@ -604,7 +604,7 @@ static int compare_sets(purc_variant_t v1, purc_variant_t v2)
         return (int)(sz1 - sz2);
 
     it = purc_variant_set_make_iterator_begin(v2);
-    foreach_value_in_variant_set(v1, m1)
+    foreach_value_in_variant_set_order(v1, m1)
 
         m2 = purc_variant_set_iterator_get_value(it);
         diff = purc_variant_compare_st(m1, m2);
@@ -1674,7 +1674,7 @@ numberify_set(purc_variant_t value)
     double d = 0.0;
 
     purc_variant_t v;
-    foreach_value_in_variant_set(value, v)
+    foreach_value_in_variant_set_order(value, v)
         d += purc_variant_numberify(v);
     end_foreach;
 
@@ -1882,7 +1882,7 @@ static inline void
 stringify_set(struct stringify_arg *arg, purc_variant_t value)
 {
     purc_variant_t v;
-    foreach_value_in_variant_set(value, v)
+    foreach_value_in_variant_set_order(value, v)
         variant_stringify(arg, v);
         arg->cb(arg->arg, "\n");
     end_foreach;

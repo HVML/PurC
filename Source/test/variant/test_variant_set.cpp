@@ -5,6 +5,8 @@
 #include "private/ejson-parser.h"
 #include "private/debug.h"
 
+#include "../helpers.h"
+
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
@@ -715,16 +717,7 @@ TEST(variant_set, constraint_non_valid_set)
 
 TEST(variant_set, constraint)
 {
-    purc_instance_extra_info info = {};
-    int ret = 0;
-    bool cleanup = false;
-    struct purc_variant_stat *stat;
-
-    ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
-    ASSERT_EQ(ret, PURC_ERROR_OK);
-
-    stat = purc_variant_usage_stat();
-    ASSERT_NE(stat, nullptr);
+    PurCInstance purc;
 
     const char *s;
     purc_variant_t set, k, v, arr, obj, first, last;
@@ -763,8 +756,5 @@ TEST(variant_set, constraint)
     purc_variant_unref(last);
     purc_variant_unref(k);
     purc_variant_unref(set);
-
-    cleanup = purc_cleanup ();
-    ASSERT_EQ (cleanup, true);
 }
 
