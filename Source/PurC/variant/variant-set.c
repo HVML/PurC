@@ -490,6 +490,9 @@ variant_set_create_kvs_n (variant_set_t set, purc_variant_t v1, va_list ap)
 static purc_variant_t
 variant_set_prepare_object(variant_set_t set, purc_variant_t val)
 {
+    if (1)
+        return purc_variant_ref(val);
+
     variant_set_t data = set;
     purc_variant_t cloned = purc_variant_make_object(0,
             PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
