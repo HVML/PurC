@@ -265,7 +265,77 @@ pcv_set_new(void)
 static void
 elem_node_revoke_constraints(struct elem_node *elem)
 {
+    bool ok;
+
+    if (elem->grow) {
+        PC_ASSERT(elem->elem);
+        ok = purc_variant_revoke_listener(elem->elem, elem->grow);
+        PC_ASSERT(ok);
+        elem->grow = NULL;
+    }
+    if (elem->change) {
+        PC_ASSERT(elem->elem);
+        ok = purc_variant_revoke_listener(elem->elem, elem->change);
+        PC_ASSERT(ok);
+        elem->change = NULL;
+    }
+
     elem->set = PURC_VARIANT_INVALID;
+}
+
+static bool
+variant_set_constraint_grow_handler(
+        purc_variant_t source,  // the source variant.
+        pcvar_op_t op,          // the operation identifier.
+        void *ctxt,             // the context stored when registering the handler.
+        size_t nr_args,         // the number of the relevant child variants.
+        purc_variant_t *argv    // the array of all relevant child variants.
+        )
+{
+    PC_ASSERT(source);
+    PC_ASSERT(purc_variant_is_object(source));
+    PC_ASSERT(op == PCVAR_OPERATION_GROW);
+    purc_variant_t set = (purc_variant_t)ctxt;
+    PC_ASSERT(set);
+    PC_ASSERT(purc_variant_is_set(set));
+    PC_ASSERT(nr_args == 2);
+    purc_variant_t k = (purc_variant_t)argv[0];
+    PC_ASSERT(k);
+    PC_ASSERT(purc_variant_is_string(k));
+    purc_variant_t v = (purc_variant_t)argv[1];
+    PC_ASSERT(v);
+
+    return true;
+}
+
+static bool
+variant_set_constraint_change_handler(
+        purc_variant_t source,  // the source variant.
+        pcvar_op_t op,          // the operation identifier.
+        void *ctxt,             // the context stored when registering the handler.
+        size_t nr_args,         // the number of the relevant child variants.
+        purc_variant_t *argv    // the array of all relevant child variants.
+        )
+{
+    PC_ASSERT(source);
+    PC_ASSERT(purc_variant_is_object(source));
+    PC_ASSERT(op == PCVAR_OPERATION_CHANGE);
+    purc_variant_t set = (purc_variant_t)ctxt;
+    PC_ASSERT(set);
+    PC_ASSERT(purc_variant_is_set(set));
+    PC_ASSERT(nr_args == 4);
+    purc_variant_t ko = (purc_variant_t)argv[0];
+    PC_ASSERT(ko);
+    PC_ASSERT(purc_variant_is_string(ko));
+    purc_variant_t vo = (purc_variant_t)argv[1];
+    PC_ASSERT(vo);
+    purc_variant_t kn = (purc_variant_t)argv[2];
+    PC_ASSERT(kn);
+    PC_ASSERT(purc_variant_is_string(kn));
+    purc_variant_t vn = (purc_variant_t)argv[3];
+    PC_ASSERT(vn);
+
+    return true;
 }
 
 static bool
@@ -277,16 +347,23 @@ elem_node_setup_constraints(purc_variant_t set, struct elem_node *elem)
     PC_ASSERT(child != PURC_VARIANT_INVALID);
     PC_ASSERT(purc_variant_is_object(child));
 
-    variant_set_t data = pcv_set_get_data(set);
+    elem->grow = purc_variant_register_pre_listener(elem->elem,
+        PCVAR_OPERATION_GROW, variant_set_constraint_grow_handler, set);
+    elem->change = purc_variant_register_pre_listener(elem->elem,
+        PCVAR_OPERATION_CHANGE, variant_set_constraint_change_handler, set);
 
-    for (size_t i=0; data->keynames && i<data->nr_keynames; ++i) {
-        const char *sk = data->keynames[i];
-        purc_variant_t v;
-        const bool silently = true;
-        v = purc_variant_object_get_by_ckey(child, sk, silently);
-        if (v == PURC_VARIANT_INVALID)
-            continue;
-    }
+    if (!elem->grow || !elem->change)
+        return false;
+
+    // variant_set_t data = pcv_set_get_data(set);
+    // for (size_t i=0; data->keynames && i<data->nr_keynames; ++i) {
+    //     const char *sk = data->keynames[i];
+    //     purc_variant_t v;
+    //     const bool silently = true;
+    //     v = purc_variant_object_get_by_ckey(child, sk, silently);
+    //     if (v == PURC_VARIANT_INVALID)
+    //         continue;
+    // }
 
     return true;
 }

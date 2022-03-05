@@ -90,6 +90,9 @@ purc_variant_register_pre_listener(purc_variant_t v,
         return NULL;
     }
 
+    // FIXME:
+    PC_ASSERT(op != PCVAR_OPERATION_ANY);
+
     return register_listener(v, PCVAR_LISTENER_PRE, op, handler, ctxt);
 }
 
@@ -106,6 +109,9 @@ purc_variant_register_post_listener(purc_variant_t v,
         pcinst_set_error(PCVARIANT_ERROR_NOT_SUPPORTED);
         return NULL;
     }
+
+    // FIXME:
+    PC_ASSERT(op != PCVAR_OPERATION_ANY);
 
     return register_listener(v, PCVAR_LISTENER_POST, op, handler, ctxt);
 }
