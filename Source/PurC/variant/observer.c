@@ -42,7 +42,7 @@ register_listener(purc_variant_t v, unsigned int flags,
     list_for_each_safe(p, n, listeners) {
         struct pcvar_listener *curr;
         curr = container_of(p, struct pcvar_listener, list_node);
-        if (curr->opx != op)
+        if (curr->op != op)
             continue;
 
         if (curr->handler != handler)
@@ -63,7 +63,7 @@ register_listener(purc_variant_t v, unsigned int flags,
     }
 
     listener->flags          = flags;
-    listener->opx            = op;
+    listener->op             = op;
     listener->ctxt           = ctxt;
     listener->handler        = handler;
 
@@ -156,7 +156,7 @@ bool pcvariant_on_pre_fired(
     list_for_each_safe(p, n, listeners) {
         struct pcvar_listener *curr;
         curr = container_of(p, struct pcvar_listener, list_node);
-        if (curr->opx != op)
+        if (curr->op != op)
             continue;
 
         if ((curr->flags & PCVAR_LISTENER_PRE_OR_POST) != PCVAR_LISTENER_PRE)
@@ -184,8 +184,8 @@ void pcvariant_on_post_fired(
     list_for_each_entry_reverse_safe(p, n, listeners, list_node) {
         struct pcvar_listener *curr = p;
         PC_ASSERT(curr);
-        PC_ASSERT(curr->opx);
-        if (curr->opx != op)
+        PC_ASSERT(curr->op);
+        if (curr->op != op)
             continue;
 
         if ((curr->flags & PCVAR_LISTENER_PRE_OR_POST) == PCVAR_LISTENER_PRE)

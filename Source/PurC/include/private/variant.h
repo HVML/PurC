@@ -82,7 +82,7 @@ PCA_EXTERN_C_BEGIN
 
 struct pcvar_listener {
     // the operation in which this listener is intersted.
-    pcvar_op_t          opx;
+    pcvar_op_t          op;
 
     // the context for the listener
     void*               ctxt;
