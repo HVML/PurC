@@ -446,7 +446,9 @@ variant_set_prepare_object(variant_set_t set, purc_variant_t val)
                     // uniq-key-field, and `v` is container
                     bool recursively = true;
                     purc_variant_unref(v_cloned);
+                    PRINT_VARIANT(v);
                     v_cloned = pcvariant_container_clone(v, recursively);
+                    PC_ASSERT(v != v_cloned);
                 }
             }
         }
@@ -1404,6 +1406,7 @@ pcvariant_set_clone(purc_variant_t set, bool recursively)
         }
     } end_foreach;
 
+    PC_ASSERT(var != set);
     return var;
 }
 

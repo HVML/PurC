@@ -575,6 +575,7 @@ pcvariant_array_clone(purc_variant_t arr, bool recursively)
         }
     } end_foreach;
 
+    PC_ASSERT(var != arr);
     return var;
 }
 

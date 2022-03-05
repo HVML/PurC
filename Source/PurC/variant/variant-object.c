@@ -719,6 +719,7 @@ pcvariant_object_clone(purc_variant_t obj, bool recursively)
         }
     } end_foreach;
 
+    PC_ASSERT(var != obj);
     return var;
 }
 
