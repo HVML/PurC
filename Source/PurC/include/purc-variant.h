@@ -1906,11 +1906,11 @@ typedef struct pcvar_listener pcvar_listener;
 typedef struct pcvar_listener *pcvar_listener_t;
 
 typedef enum {
-    PCVAR_OPERATION_ANY = 0,    // any operation, for easy use.
-    PCVAR_OPERATION_GROW,
-    PCVAR_OPERATION_SHRINK,
-    PCVAR_OPERATION_CHANGE,
-    PCVAR_OPERATION_REFASCHILD,
+    PCVAR_OPERATION_GROW         = (0x01 << 0),
+    PCVAR_OPERATION_SHRINK       = (0x01 << 1),
+    PCVAR_OPERATION_CHANGE       = (0x01 << 2),
+    PCVAR_OPERATION_REFASCHILD   = (0x01 << 3),
+    PCVAR_OPERATION_ALL          = ((0x01 << 4) - 1),
 } pcvar_op_t;
 
 typedef bool (*pcvar_op_handler) (
@@ -1920,7 +1920,6 @@ typedef bool (*pcvar_op_handler) (
         size_t nr_args,         // the number of the relevant child variants.
         purc_variant_t *argv    // the array of all relevant child variants.
         );
-
 
 /**
  * Register a pre-operation listener
