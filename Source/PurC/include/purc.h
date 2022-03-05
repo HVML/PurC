@@ -45,6 +45,10 @@
 typedef struct purc_instance_extra_info {
     /**
      * The renderer protocol, one of the following values:
+     *  - PURC_RDRPROT_HEADLESS:
+     *      No renderer.
+     *  - PURC_RDRPROT_THREAD:
+     *      The renderer runs as a thread within the current process.
      *  - PURC_RDRPROT_PURCMC:
      *      The renderer runs as a server and uses PurCMC.
      *  - PURC_RDRPROT_HIBUS:
@@ -53,11 +57,19 @@ typedef struct purc_instance_extra_info {
     purc_rdrprot_t  renderer_prot;
 
     /**
-     * UNIX domain socket: unix:///var/tmp/xxx.sock
-     * WebSocket: ws://foo.bar.com:8877
-     * Secured WebSocket: wss://foo.bar.com:8877
+     * When using a HEADLESS renderer, you should specify a file
+     * or a named pipe, like `file:///var/tmp/purc-renderer-msgs.log`.
      *
-     * Note that only UNIX domain socket is supported so far.
+     * When using a THREAD renderer, you should specify a token
+     * of the renderer, like `rdr:screenlock`. The token can be used
+     * to distinguish multiple renderers and PurC instances.
+     *
+     * When using a PURCMC renderer, you can specify a UNIX domain socket
+     * or a URI of WebSocket:
+     *
+     *      - UNIX domain socket: `unix:///var/tmp/xxx.sock`
+     *      - WebSocket: `ws://foo.bar.com:8877`
+     *      - Secured WebSocket: `wss://foo.bar.com:8877`
      */
     const char      *renderer_uri;
 

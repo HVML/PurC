@@ -179,7 +179,9 @@ enum {
 
 /* Protocol types */
 typedef enum {
-    PURC_RDRPROT_PURCMC  = 0,
+    PURC_RDRPROT_HEADLESS  = 0,
+    PURC_RDRPROT_THREAD,
+    PURC_RDRPROT_PURCMC,
     PURC_RDRPROT_HIBUS,
 } purc_rdrprot_t;
 
@@ -223,7 +225,7 @@ typedef struct pcrdr_conn pcrdr_conn;
 PCA_EXTERN_C_BEGIN
 
 /**
- * @defgroup PCRDRHelpers PCRDR Helper functions
+ * @defgroup PCRDR_Helpers PCRDR helper functions
  * @{
  */
 
@@ -409,9 +411,9 @@ pcrdr_get_elapsed_seconds(const struct timespec *ts1,
 /**@}*/
 
 /**
- * @defgroup PCRDRConnection Connection functions
+ * @defgroup PCRDRConnection Renderer connection functions
  *
- * The connection functions are implemented in libhibus.c, only for clients.
+ * The functions to manage the connection with renderer.
  * @{
  */
 
@@ -681,6 +683,7 @@ struct pcrdr_msg {
     pcrdr_msg_element_type  elementType;
     pcrdr_msg_data_type     dataType;
     unsigned int            retCode;
+    unsigned int            _data_len;  // internal use only
 
     uint64_t        targetValue;
     uint64_t        resultValue;
@@ -691,11 +694,7 @@ struct pcrdr_msg {
     purc_variant_t  event;
 
     purc_variant_t  requestId;
-
     purc_variant_t  data;
-
-    /* internal use only */
-    size_t          _data_len;
 };
 
 /**
@@ -808,7 +807,7 @@ typedef ssize_t (*cb_write)(void *ctxt, const void *buf, size_t count);
 /**
  * Serialize a message.
  *
- * @param msg: the poiter to the message to serialize.
+ * @param msg: the pointer to the message to serialize.
  * @param fn: the callback to write characters.
  * @param ctxt: the context will be passed to fn.
  *
@@ -958,7 +957,7 @@ pcrdr_wait_and_dispatch_message(pcrdr_conn* conn, int timeout_ms);
  */
 PCA_EXPORT int
 pcrdr_send_request_and_wait_response(pcrdr_conn* conn,
-        const pcrdr_msg *request_msg,
+        pcrdr_msg *request_msg,
         int seconds_expected, pcrdr_msg **response_msg);
 
 /**
@@ -978,6 +977,15 @@ pcrdr_send_request_and_wait_response(pcrdr_conn* conn,
  */
 PCA_EXPORT int
 pcrdr_ping_renderer(pcrdr_conn* conn);
+
+/**@}*/
+
+/**
+ * @defgroup PCRDR_PURCMC PurCMC renderer functions
+ *
+ * The functions for PurCMC renderer.
+ * @{
+ */
 
 /**
  * Connect to the PurCMC server via UNIX domain socket.
@@ -1085,6 +1093,27 @@ pcrdr_purcmc_read_packet_alloc(pcrdr_conn* conn,
 PCA_EXPORT int
 pcrdr_purcmc_send_text_packet(pcrdr_conn* conn,
         const char *text, size_t txt_len);
+
+/**@}*/
+
+/**
+ * @defgroup PCRDR_THREAD Thread renderer functions
+ *
+ * The functions for thread renderer.
+ * @{
+ */
+
+PCA_EXPORT pcrdr_msg *
+pcrdr_thread_put_msg(const char *thread_token, pcrdr_msg *msg);
+
+PCA_EXPORT pcrdr_msg *
+pcrdr_thread_get_msg(const char *thread_token);
+
+PCA_EXPORT bool
+pcrdr_thread_create_transfer_buffer(const char *thread_token);
+
+PCA_EXPORT bool
+pcrdr_thread_destroy_transfer_buffer(const char *thread_token);
 
 /**@}*/
 
