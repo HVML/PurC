@@ -38,23 +38,6 @@ register_listener(purc_variant_t v, unsigned int flags,
     struct list_head *listeners;
     listeners = &v->listeners;
 
-    struct list_head *p, *n;
-    list_for_each_safe(p, n, listeners) {
-        struct pcvar_listener *curr;
-        curr = container_of(p, struct pcvar_listener, list_node);
-        if (curr->op != op)
-            continue;
-
-        if (curr->handler != handler)
-            continue;
-
-        if (curr->ctxt != ctxt)
-            continue;
-
-        pcinst_set_error(PCVARIANT_ERROR_DUPLICATED);
-        return NULL;
-    }
-
     struct pcvar_listener *listener;
     listener = (struct pcvar_listener*)calloc(1, sizeof(*listener));
     if (!listener) {
