@@ -201,22 +201,61 @@ PCA_EXPORT double
 purc_get_elapsed_seconds(const struct timespec *ts1,
         const struct timespec *ts2);
 
-PCA_EXPORT void
-purc_enable_debug(bool debug);
+#define LOG_FILE_PATH_FORMAT    "/var/tmp/purc-%s-%s.log"
 
-PCA_EXPORT void
-purc_enable_syslog(bool syslog);
+// TODO for Windows:
+// #define LOG_FILE_PATH_FORMAT    "C:\\tmp\\purc-%s\\%s.log"
 
+/**
+ * Enable or disable the log facility for the current PurC instance.
+ *
+ * @param enable: @true to enable, @false to disable.
+ * @param use_syslog: @true to use syslog, @false to use log file.
+ *
+ * Returns: @true for success, otherwise @false.
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT bool
+purc_enable_log(bool enable, bool use_syslog);
+
+/**
+ * Log a debugging message.
+ *
+ * @param msg: the message or the format string.
+ *
+ * Returns: none.
+ *
+ * Since: 0.1.0
+ */
 PCA_EXPORT void
-purc_print_debug(const char *msg, ...)
+purc_log_debug(const char *msg, ...)
     __attribute__ ((format (printf, 1, 2)));
 
+/**
+ * Log an error message.
+ *
+ * @param msg: the message or the format string.
+ *
+ * Returns: none.
+ *
+ * Since: 0.1.0
+ */
 PCA_EXPORT void
-purc_print_error(const char *msg, ...)
+purc_log_error(const char *msg, ...)
     __attribute__ ((format (printf, 1, 2)));
 
+/**
+ * Log an information message.
+ *
+ * @param msg: the message or the format string.
+ *
+ * Returns: none.
+ *
+ * Since: 0.1.0
+ */
 PCA_EXPORT void
-purc_print_info(const char *msg, ...)
+purc_log_info(const char *msg, ...)
     __attribute__ ((format (printf, 1, 2)));
 
 /**@}*/

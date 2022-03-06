@@ -34,24 +34,24 @@
 #include "private/executor.h"
 #include "private/interpreter.h"
 
+#include <stdio.h>
+
 struct pcinst {
     int errcode;
     purc_variant_t err_exinfo;
-    const char *file;
-    int lineno;
-    const char *func;
 
-    /* FIXME: enable the fields only NDEBUG is undefined */
-#if OS(LINUX)                      /* { */
-    void *c_stacks[64];
-    int   nr_stacks;
-    char  so[1024];
-    char  addr1[256];
-    char  addr2[64];
-#endif                             /* } */
+    /* FIXME: move the following fields to err_exinfo. */
+    const char *file;
+    const char *func;
+    int lineno;
 
     char* app_name;
     char* runner_name;
+    purc_atom_t endpoint_atom;
+
+#define LOG_FILE_SYSLOG     ((FILE *)-1)
+    /* the FILE object for logging (-1: use syslog; NULL: disabled) */
+    FILE*   fp_log;
 
     pcutils_map* local_data_map;
 
@@ -60,10 +60,20 @@ struct pcinst {
     struct pcrdr_conn *conn_to_rdr;
     struct renderer_capabilities *rdr_caps;
 
-    /* FIXME: dynamically allocate the following heaps
-       when HVML moduel is enabled. */
+    /* FIXME: dynamically allocate the following heaps ONLY when HVML moduel
+       is enabled. */
     struct pcexecutor_heap executor_heap;
     struct pcintr_heap    intr_heap;
+
+    /* FIXME: enable the fields ONLY when NDEBUG is undefined */
+#if OS(LINUX)                      /* { */
+    void *c_stacks[64];
+    int   nr_stacks;
+    char  so[1024];
+    char  addr1[256];
+    char  addr2[64];
+#endif                             /* } */
+
 };
 
 /* gets the current instance */
