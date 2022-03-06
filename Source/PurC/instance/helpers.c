@@ -23,8 +23,7 @@
  */
 
 #include "config.h"
-#include "purc-pcrdr.h"
-#include "private/list.h"
+#include "purc-helpers.h"
 #include "private/utils.h"
 #include "private/debug.h"
 
@@ -34,7 +33,6 @@
 #include <stdarg.h>
 #include <string.h>
 #include <time.h>
-#include <assert.h>
 
 bool purc_is_valid_token (const char* token, int max_len)
 {
