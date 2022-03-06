@@ -87,15 +87,11 @@ bool purc_enable_log(bool enable, bool use_syslog)
     return true;
 }
 
-void purc_log_info(const char *msg, ...)
+void purc_log_with_tag(const char *tag, const char *msg, va_list ap)
 {
-    va_list ap;
-
     struct pcinst* inst = pcinst_current();
     if (inst == NULL)
         return;
-
-    va_start(ap, msg);
 
     if (inst->fp_log) {
 #if HAVE(VSYSLOG)
@@ -108,14 +104,13 @@ void purc_log_info(const char *msg, ...)
             const char *ident = purc_atom_to_string(inst->endpoint_atom);
             assert(ident);
 
-            fprintf(inst->fp_log, "%s INFOR >> ", ident);
+            fprintf(inst->fp_log, "%s %s >> ", ident, tag);
             vfprintf(inst->fp_log, msg, ap);
         }
     }
-
-    va_end(ap);
 }
 
+#if 0
 void purc_log_debug(const char *msg, ...)
 {
     va_list ap;
@@ -174,4 +169,5 @@ void purc_log_error(const char *msg, ...)
 
     va_end(ap);
 }
+#endif
 
