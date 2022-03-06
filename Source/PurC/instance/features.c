@@ -48,6 +48,18 @@ purc_is_feature_enabled(enum purc_feature feature)
             if (PCA_ENABLE_REMOTE_FETCHER)
                 return true;
             break;
+        case PURC_FEATURE_RENDERER_THREAD:
+            if (PCA_ENABLE_RENDERER_THREAD)
+                return true;
+            break;
+        case PURC_FEATURE_RENDERER_PURCMC:
+            if (PCA_ENABLE_RENDERER_PURCMC)
+                return true;
+            break;
+        case PURC_FEATURE_RENDERER_HIBUS:
+            if (PCA_ENABLE_RENDERER_HIBUS)
+                return true;
+            break;
         case PURC_FEATURE_HIBUS:
             if (PCA_ENABLE_HIBUS)
                 return true;
