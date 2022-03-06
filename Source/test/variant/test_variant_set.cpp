@@ -758,3 +758,69 @@ TEST(variant_set, constraint)
     purc_variant_unref(set);
 }
 
+TEST(set, compare)
+{
+    PurCInstance purc;
+
+    int diff;
+    const char *s;
+    purc_variant_t set1, set2;
+
+    s = "[!'name', {name:[{first:xiaohong,last:xu}]}, {name:[{first:shuming, last:xue}]}]";
+    set1 = pcejson_parser_parse_string(s, 0, 0);
+    if (set1 == PURC_VARIANT_INVALID) {
+        ADD_FAILURE() << "failed to parse: " << s << std::endl;
+        return;
+    }
+
+    s = "[!'name', {name:[{first:shuming, last:xue}]}, {name:[{first:xiaohong,last:xu}]}]";
+    set2 = pcejson_parser_parse_string(s, 0, 0);
+    if (set2 == PURC_VARIANT_INVALID) {
+        purc_variant_unref(set1);
+        ADD_FAILURE() << "failed to parse: " << s << std::endl;
+        return;
+    }
+
+    diff = purc_variant_compare_ex(set1, set2, PCVARIANT_COMPARE_OPT_AUTO);
+    if (diff) {
+        PRINT_VARIANT(set1);
+        PRINT_VARIANT(set2);
+        ADD_FAILURE() << "diff" << std::endl;
+    }
+    purc_variant_unref(set1);
+    purc_variant_unref(set2);
+}
+
+TEST(set, undefined)
+{
+    PurCInstance purc;
+
+    int diff;
+    const char *s;
+    purc_variant_t set1, set2;
+
+    s = "[!'name', {name:[{first:xiaohong,last:xu}]}, {name:undefined}, {name:[{first:shuming, last:xue}]}, {name:undefined}]";
+    set1 = pcejson_parser_parse_string(s, 0, 0);
+    if (set1 == PURC_VARIANT_INVALID) {
+        ADD_FAILURE() << "failed to parse: " << s << std::endl;
+        return;
+    }
+
+    s = "[!'name', {name:foo, name:undefined}, {name:[{first:shuming, last:xue}]}, {name:[{first:xiaohong,last:xu}]}]";
+    set2 = pcejson_parser_parse_string(s, 0, 0);
+    if (set2 == PURC_VARIANT_INVALID) {
+        purc_variant_unref(set1);
+        ADD_FAILURE() << "failed to parse: " << s << std::endl;
+        return;
+    }
+
+    diff = purc_variant_compare_ex(set1, set2, PCVARIANT_COMPARE_OPT_AUTO);
+    if (diff) {
+        PRINT_VARIANT(set1);
+        PRINT_VARIANT(set2);
+        ADD_FAILURE() << "diff" << std::endl;
+    }
+    purc_variant_unref(set1);
+    purc_variant_unref(set2);
+}
+

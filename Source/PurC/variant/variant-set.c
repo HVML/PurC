@@ -828,6 +828,10 @@ variant_set_add_val(purc_variant_t set,
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         return -1;
     }
+
+    if (purc_variant_is_undefined(val))
+        return 0;
+
     if (purc_variant_is_object(val) == false) {
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         return -1;

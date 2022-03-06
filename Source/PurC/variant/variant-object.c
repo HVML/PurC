@@ -35,6 +35,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define TO_DEBUG 1
+
 #define OBJ_EXTRA_SIZE(data) (sizeof(*data) + \
         (data->size) * sizeof(struct obj_node))
 
@@ -132,12 +134,74 @@ static purc_variant_t v_object_new_with_capacity(void)
 }
 
 static int
+v_object_remove(purc_variant_t obj, purc_variant_t key, bool silently)
+{
+    variant_obj_t data = object_get_data(obj);
+    struct rb_root *root = &data->kvs;
+    struct rb_node **pnode = &root->rb_node;
+    struct rb_node *parent = NULL;
+    struct rb_node *entry = NULL;
+    while (*pnode) {
+        struct obj_node *node;
+        node = container_of(*pnode, struct obj_node, node);
+        int ret = purc_variant_compare_ex(key, node->key,
+                PCVARIANT_COMPARE_OPT_AUTO);
+
+        parent = *pnode;
+
+        if (ret < 0)
+            pnode = &parent->rb_left;
+        else if (ret > 0)
+            pnode = &parent->rb_right;
+        else{
+            entry = *pnode;
+            break;
+        }
+    }
+
+    if (!entry) {
+        if (silently) {
+            return 0;
+        }
+        pcinst_set_error(PCVARIANT_ERROR_NOT_FOUND);
+        return -1;
+    }
+
+    struct obj_node *node;
+    node = container_of(entry, struct obj_node, node);
+    purc_variant_t k = node->key;
+    purc_variant_t v = node->val;
+
+    if (!shrink(obj, k, v)) {
+        return -1;
+    }
+
+    pcutils_rbtree_erase(entry, root);
+    --data->size;
+
+    shrunk(obj, k, v);
+    purc_variant_unref(k);
+    purc_variant_unref(v);
+
+    free(node);
+
+    return 0;
+}
+
+static int
 v_object_set(purc_variant_t obj, purc_variant_t k, purc_variant_t val)
 {
     if (!k || !val) {
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         return -1;
     }
+
+    if (purc_variant_is_undefined(val)) {
+        bool silently = true;
+        v_object_remove(obj, k, silently);
+        return 0;
+    }
+
     variant_obj_t data = object_get_data(obj);
     PC_ASSERT(data);
 
@@ -240,61 +304,6 @@ v_object_set_kvs_n(purc_variant_t obj, size_t nr_kv_pairs,
         ++i;
     }
     return i<nr_kv_pairs ? -1 : 0;
-}
-
-static int
-v_object_remove(purc_variant_t obj, purc_variant_t key, bool silently)
-{
-    variant_obj_t data = object_get_data(obj);
-    struct rb_root *root = &data->kvs;
-    struct rb_node **pnode = &root->rb_node;
-    struct rb_node *parent = NULL;
-    struct rb_node *entry = NULL;
-    while (*pnode) {
-        struct obj_node *node;
-        node = container_of(*pnode, struct obj_node, node);
-        int ret = purc_variant_compare_ex(key, node->key,
-                PCVARIANT_COMPARE_OPT_AUTO);
-
-        parent = *pnode;
-
-        if (ret < 0)
-            pnode = &parent->rb_left;
-        else if (ret > 0)
-            pnode = &parent->rb_right;
-        else{
-            entry = *pnode;
-            break;
-        }
-    }
-
-    if (!entry) {
-        if (silently) {
-            return 0;
-        }
-        pcinst_set_error(PCVARIANT_ERROR_NOT_FOUND);
-        return -1;
-    }
-
-    struct obj_node *node;
-    node = container_of(entry, struct obj_node, node);
-    purc_variant_t k = node->key;
-    purc_variant_t v = node->val;
-
-    if (!shrink(obj, k, v)) {
-        return -1;
-    }
-
-    pcutils_rbtree_erase(entry, root);
-    --data->size;
-
-    shrunk(obj, k, v);
-    purc_variant_unref(k);
-    purc_variant_unref(v);
-
-    free(node);
-
-    return 0;
 }
 
 static purc_variant_t
@@ -503,11 +512,6 @@ bool purc_variant_object_set (purc_variant_t obj,
     PCVARIANT_CHECK_FAIL_RET(obj && obj->type==PVT(_OBJECT) &&
         obj->sz_ptr[1] && key && value,
         false);
-
-    if (purc_variant_is_undefined(value)) {
-        bool silently = false;
-        return purc_variant_object_remove(obj, key, silently);
-    }
 
     int r = v_object_set(obj, key, value);
 

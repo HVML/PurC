@@ -122,7 +122,7 @@ static int
 variant_arr_insert_before(purc_variant_t array, size_t idx, purc_variant_t val)
 {
     if (purc_variant_is_undefined(val)) {
-        // `undefined` not allowed in array
+        // FIXME: `undefined` not allowed in array???
         return 0;
     }
 
