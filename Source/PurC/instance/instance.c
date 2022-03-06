@@ -41,6 +41,7 @@
 #include "private/fetcher.h"
 #include "private/pcrdr.h"
 
+#include <stdio.h>  // fclose on inst->fp_log
 #include <stdlib.h>
 #include <string.h>
 
@@ -239,13 +240,18 @@ static void cleanup_instance(struct pcinst *curr_inst)
     }
 
     if (curr_inst->app_name) {
-        free (curr_inst->app_name);
+        free(curr_inst->app_name);
         curr_inst->app_name = NULL;
     }
 
     if (curr_inst->runner_name) {
-        free (curr_inst->runner_name);
+        free(curr_inst->runner_name);
         curr_inst->runner_name = NULL;
+    }
+
+    if (curr_inst->fp_log && curr_inst->fp_log != LOG_FILE_SYSLOG) {
+        fclose(curr_inst->fp_log);
+        curr_inst->fp_log = NULL;
     }
 }
 
@@ -276,7 +282,7 @@ int purc_init_ex(unsigned int modules,
     else {
         char cmdline[128];
         size_t len;
-        len = pcutils_get_cmdline_arg (0, cmdline, sizeof(cmdline));
+        len = pcutils_get_cmdline_arg(0, cmdline, sizeof(cmdline));
         if (len > 0)
             curr_inst->app_name = strdup(cmdline);
         else
@@ -288,14 +294,43 @@ int purc_init_ex(unsigned int modules,
     else
         curr_inst->runner_name = strdup("unknown");
 
+    // endpoint_atom
+    if (curr_inst->app_name && curr_inst->runner_name) {
+        char endpoint_name [PURC_LEN_ENDPOINT_NAME + 1];
+        purc_atom_t endpoint_atom;
+
+        if (purc_assemble_endpoint_name(PCRDR_LOCALHOST,
+                curr_inst->app_name, curr_inst->runner_name,
+                endpoint_name) == 0) {
+            ret = PURC_ERROR_INVALID_VALUE;
+            goto failed;
+        }
+
+        endpoint_atom = purc_atom_try_string_ex(PURC_ATOM_BUCKET_USER,
+                endpoint_name);
+        if (curr_inst->endpoint_atom == 0 && endpoint_atom) {
+            ret = PURC_ERROR_DUPLICATED;
+            goto failed;
+        }
+
+        /* TODO: app_name or runner_name changed
+        if (curr_inst->endpoint_atom &&
+                curr_inst->endpoint_atom != endpoint_atom) {
+            ret = PURC_ERROR_INVALID_VALUE;
+            goto failed;
+        } */
+
+        curr_inst->endpoint_atom =
+            purc_atom_from_string_ex(PURC_ATOM_BUCKET_USER, endpoint_name);
+        assert(curr_inst->endpoint_atom);
+    }
+
     // map for local data
     curr_inst->local_data_map =
         pcutils_map_create (copy_key_string,
                 free_key_string, NULL, NULL, comp_key_string, false);
 
-    if (curr_inst->app_name == NULL ||
-            curr_inst->runner_name == NULL ||
-            curr_inst->local_data_map == NULL) {
+    if (curr_inst->endpoint_atom == 0) {
         ret = PURC_ERROR_OUT_OF_MEMORY;
         goto failed;
     }
