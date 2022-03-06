@@ -184,7 +184,8 @@ unsigned int
 pchtml_html_parse_fragment_chunk_process(pchtml_html_parser_t *parser,
                 const unsigned char *data, size_t sz);
 
-__attribute__ ((format (printf, 2, 3)))
+// __attribute__ ((format (printf, 2, 3)))
+PCA_ATTRIBUTE_PRINTF(2, 3)
 unsigned int
 pchtml_html_parse_fragment_chunk_process_with_format(
         pchtml_html_parser_t *parser, const char *fmt, ...);

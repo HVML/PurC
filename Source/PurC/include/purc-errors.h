@@ -403,8 +403,9 @@ purc_set_error_exinfo_with_debug(int err_code, purc_variant_t exinfo,
  *
  * Returns: PURC_ERROR_OK or PURC_ERROR_NO_INSTANCE.
  */
+// __attribute__ ((format (printf, 5, 6)))
+PCA_ATTRIBUTE_PRINTF(5, 6)
 PCA_EXPORT int
-__attribute__ ((format (printf, 5, 6)))
 purc_set_error_with_info_debug(int err_code,
         const char *file, int lineno, const char *func,
         const char *fmt, ...);
