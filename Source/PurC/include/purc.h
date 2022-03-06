@@ -39,6 +39,7 @@
 #include "purc-variant.h"
 #include "purc-dom.h"
 #include "purc-html.h"
+#include "purc-helpers.h"
 #include "purc-pcrdr.h"
 
 /** The structure defining the extra information for a new PurC instance. */
@@ -58,11 +59,11 @@ typedef struct purc_instance_extra_info {
 
     /**
      * When using a HEADLESS renderer, you should specify a file
-     * or a named pipe, like `file:///var/tmp/purc-renderer-msgs.log`.
+     * or a named pipe, like `file:///var/tmp/purc-foo-bar-msgs.log`.
      *
-     * When using a THREAD renderer, you should specify a token
-     * of the renderer, like `rdr:screenlock`. The token can be used
-     * to distinguish multiple renderers and PurC instances.
+     * When using a THREAD renderer, you should specify the endpoint name
+     * of the renderer like `@<app_name>/<runner_name>`. The endpoint name
+     * will be used to distinguish renderers and interperter instances.
      *
      * When using a PURCMC renderer, you can specify a UNIX domain socket
      * or a URI of WebSocket:
@@ -361,11 +362,6 @@ PCA_EXPORT bool
 purc_bind_document_variable(purc_vdom_t vdom, const char* name,
         purc_variant_t variant);
 
-typedef struct purc_window_info {
-    const char *classes;
-    const char *box_styles;
-} purc_window_info;
-
 /**
  * purc_get_conn_to_renderer:
  *
@@ -378,27 +374,41 @@ typedef struct purc_window_info {
 PCA_EXPORT struct pcrdr_conn *
 purc_get_conn_to_renderer(void);
 
+/** The extra renderer information */
+typedef struct purc_renderer_extra_info {
+    /** the window classes if creating a new window */
+    const char *classes;
+    /** the window styles if creating a new window */
+    const char *styles;
+    /** the window title if creating a new window */
+    const char *title;
+} purc_renderer_extra_info;
+
 /**
  * purc_attach_vdom_to_renderer:
  *
  * @vdom: The vDOM entity returned by @purc_load_hvml_from_rwstream or
  *      its brother functions.
+ * @target_workspace: The identifier of the target workspace.
+ * @target_window: The identifier of the target plain window or tabbed window.
+ * @target_tabpage: The identifier of the target tabpage. If it is NULL,
+ *      @target_window means a plain window.
+ * @target_level: the identifier of the target window level.
  *
- * Attaches a vDOM tree to a plain window or a tabbed page in
+ * Attaches a vDOM tree to a plain window or a tabpage in a tabbed window in
  * the connected renderer.
  *
- * Returns: the error code:
- *  - @PURC_ERROR_OK: success
- *  - TODO
+ * Returns: @true on success; otherwise @false.
  *
- * Since 0.0.1
+ * Since 0.1.0
  */
 PCA_EXPORT bool
 purc_attach_vdom_to_renderer(purc_vdom_t vdom,
-        const char *target_workspace, const char* workspace_name,
-        const char *target_window, const char *window_name,
-        const char *target_page, const char *page_name,
-        purc_window_info *window_info);
+        const char *target_workspace,
+        const char *target_window,
+        const char *target_tabpage,
+        const char *target_level,
+        purc_renderer_extra_info *extra_info);
 
 typedef int (*purc_event_handler)(purc_vdom_t vdom, purc_variant_t event);
 

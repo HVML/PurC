@@ -82,8 +82,8 @@ pcrdr_msg *pcrdr_make_request_message(
     }
 
     if (request_id == NULL) {
-        char id_buf[PCRDR_LEN_UNIQUE_ID + 1];
-        pcrdr_generate_unique_id(id_buf, "REQ");
+        char id_buf[PURC_LEN_UNIQUE_ID + 1];
+        purc_generate_unique_id(id_buf, "REQ");
         msg->requestId = purc_variant_make_string(id_buf, false);
         if (msg->requestId == NULL)
             goto failed;

@@ -192,6 +192,12 @@ typedef unsigned int purc_atom_t;
 #define PURC_ATOM_BUCKET_BITS   4
 #define PURC_ATOM_BUCKETS_NR    (1 << PURC_ATOM_BUCKET_BITS)
 
+/** The atom bucket identifier for default */
+#define PURC_ATOM_BUCKET_DEF    0
+
+/** The atom bucket identifier reserved for user usage */
+#define PURC_ATOM_BUCKET_USER   (PURC_ATOM_BUCKETS_NR - 1)
+
 PCA_EXTERN_C_BEGIN
 
 /**

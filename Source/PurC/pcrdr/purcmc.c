@@ -218,8 +218,8 @@ int pcrdr_purcmc_connect_via_unix_socket (const char* path_to_socket,
     struct sockaddr_un unix_addr;
     char peer_name [33];
 
-    if (!pcrdr_is_valid_app_name(app_name) ||
-            !pcrdr_is_valid_runner_name(runner_name)) {
+    if (!purc_is_valid_app_name(app_name) ||
+            !purc_is_valid_runner_name(runner_name)) {
         purc_set_error(PURC_EXCEPT_INVALID_VALUE);
         return -1;
     }
