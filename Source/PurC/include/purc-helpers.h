@@ -31,6 +31,7 @@
 #include <stddef.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdarg.h>
 #include <ctype.h>
 #include <time.h>
 
@@ -220,8 +221,9 @@ PCA_EXPORT bool
 purc_enable_log(bool enable, bool use_syslog);
 
 /**
- * Log a debugging message.
+ * Log a message with tag.
  *
+ * @param tag: the tag of the message.
  * @param msg: the message or the format string.
  *
  * Returns: none.
@@ -229,21 +231,9 @@ purc_enable_log(bool enable, bool use_syslog);
  * Since: 0.1.0
  */
 PCA_EXPORT void
-purc_log_debug(const char *msg, ...)
-    __attribute__ ((format (printf, 1, 2)));
-
-/**
- * Log an error message.
- *
- * @param msg: the message or the format string.
- *
- * Returns: none.
- *
- * Since: 0.1.0
- */
-PCA_EXPORT void
-purc_log_error(const char *msg, ...)
-    __attribute__ ((format (printf, 1, 2)));
+purc_log_with_tag(const char* tag, const char *msg, va_list ap)
+    // __attribute__ ((format(printf, 2, 0)))
+    PCA_ATTRIBUTE_PRINTF(2, 0);
 
 /**
  * Log an information message.
@@ -254,9 +244,76 @@ purc_log_error(const char *msg, ...)
  *
  * Since: 0.1.0
  */
-PCA_EXPORT void
+// __attribute__ ((format(printf, 1, 2)))
+PCA_ATTRIBUTE_PRINTF(1, 2)
+static inline void
 purc_log_info(const char *msg, ...)
-    __attribute__ ((format (printf, 1, 2)));
+{
+    va_list ap;
+    va_start(ap, msg);
+    purc_log_with_tag("INFO", msg, ap);
+    va_end(ap);
+}
+
+/**
+ * Log a debugging message.
+ *
+ * @param msg: the message or the format string.
+ *
+ * Returns: none.
+ *
+ * Since: 0.1.0
+ */
+// __attribute__ ((format(printf, 1, 2)))
+PCA_ATTRIBUTE_PRINTF(1, 2)
+static inline void
+purc_log_debug(const char *msg, ...)
+{
+    va_list ap;
+    va_start(ap, msg);
+    purc_log_with_tag("DEBUG", msg, ap);
+    va_end(ap);
+}
+
+/**
+ * Log a warning message.
+ *
+ * @param msg: the message or the format string.
+ *
+ * Returns: none.
+ *
+ * Since: 0.1.0
+ */
+// __attribute__ ((format(printf, 1, 2)))
+PCA_ATTRIBUTE_PRINTF(1, 2)
+static inline void
+purc_log_warn(const char *msg, ...)
+{
+    va_list ap;
+    va_start(ap, msg);
+    purc_log_with_tag("WARN", msg, ap);
+    va_end(ap);
+}
+
+/**
+ * Log an error message.
+ *
+ * @param msg: the message or the format string.
+ *
+ * Returns: none.
+ *
+ * Since: 0.1.0
+ */
+// __attribute__ ((format(printf, 1, 2)))
+PCA_ATTRIBUTE_PRINTF(1, 2)
+static inline void
+purc_log_error(const char *msg, ...)
+{
+    va_list ap;
+    va_start(ap, msg);
+    purc_log_with_tag("ERROR", msg, ap);
+    va_end(ap);
+}
 
 /**@}*/
 

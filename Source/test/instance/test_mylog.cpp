@@ -34,8 +34,9 @@ TEST(instance, mylog)
 
     purc_enable_log(true, false);
 
-    purc_log_info("You will see this message in /var/tmp/purc-cn.fmsoft.hvml.purc-test.log marked INFOR\n");
+    purc_log_info("You will see this message in /var/tmp/purc-cn.fmsoft.hvml.purc-test.log marked INFO\n");
     purc_log_debug("You will see this message in /var/tmp/purc-cn.fmsoft.hvml.purc-test.log marked DEBUG\n");
+    purc_log_warn("You will see this message in /var/tmp/purc-cn.fmsoft.hvml.purc-test.log marked WARN\n");
     purc_log_error("You will see this message in /var/tmp/purc-cn.fmsoft.hvml.purc-test.log marked ERROR\n");
 
     purc_enable_log(false, false);

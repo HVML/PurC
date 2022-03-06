@@ -74,6 +74,12 @@
 #define PCA_UNAVAILABLE
 #endif
 
+#if __has_attribute(format)
+#define PCA_ATTRIBUTE_PRINTF(formatStringArgument, extraArguments) __attribute__((format(printf, formatStringArgument, extraArguments)))
+#else
+#define PCA_ATTRIBUTE_PRINTF
+#endif
+
 #ifdef __cplusplus
 #define PCA_EXTERN_C_BEGIN extern "C" {
 #define PCA_EXTERN_C_END }
