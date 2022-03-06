@@ -39,6 +39,7 @@
 #include "purc-variant.h"
 #include "purc-errors.h"
 #include "purc-utils.h"
+#include "purc-helpers.h"
 
 /* Constants */
 #define PCRDR_PURCMC_PROTOCOL_NAME              "PURCMC"
@@ -150,14 +151,6 @@ enum {
 #define PCRDR_SC_CALLEE_TIMEOUT         504
 #define PCRDR_SC_INSUFFICIENT_STORAGE   507
 
-#define PCRDR_LEN_HOST_NAME             127
-#define PCRDR_LEN_APP_NAME              127
-#define PCRDR_LEN_RUNNER_NAME           63
-#define PCRDR_LEN_IDENTIFIER            63
-#define PCRDR_LEN_ENDPOINT_NAME         \
-    (PCRDR_LEN_HOST_NAME + PCRDR_LEN_APP_NAME + PCRDR_LEN_RUNNER_NAME + 3)
-#define PCRDR_LEN_UNIQUE_ID             63
-
 #define PCRDR_MIN_PACKET_BUFF_SIZE      512
 #define PCRDR_DEF_PACKET_BUFF_SIZE      1024
 #define PCRDR_DEF_TIME_EXPECTED         5   /* 5 seconds */
@@ -179,7 +172,9 @@ enum {
 
 /* Protocol types */
 typedef enum {
-    PURC_RDRPROT_PURCMC  = 0,
+    PURC_RDRPROT_HEADLESS  = 0,
+    PURC_RDRPROT_THREAD,
+    PURC_RDRPROT_PURCMC,
     PURC_RDRPROT_HIBUS,
 } purc_rdrprot_t;
 
@@ -223,44 +218,11 @@ typedef struct pcrdr_conn pcrdr_conn;
 PCA_EXTERN_C_BEGIN
 
 /**
- * @defgroup PCRDRHelpers PCRDR Helper functions
+ * @defgroup PCRDRConnection Renderer connection functions
+ *
+ * The functions to manage the connection with renderer.
  * @{
  */
-
-PCA_EXPORT bool
-pcrdr_is_valid_host_name(const char *host_name);
-
-PCA_EXPORT bool
-pcrdr_is_valid_app_name(const char *app_name);
-
-PCA_EXPORT bool
-pcrdr_is_valid_endpoint_name(const char *endpoint_name);
-
-PCA_EXPORT int
-pcrdr_extract_host_name(const char *endpoint, char *buff);
-
-PCA_EXPORT int
-pcrdr_extract_app_name(const char *endpoint, char *buff);
-
-PCA_EXPORT int
-pcrdr_extract_runner_name(const char *endpoint, char *buff);
-
-PCA_EXPORT char *
-pcrdr_extract_host_name_alloc(const char *endpoint);
-
-PCA_EXPORT char *
-pcrdr_extract_app_name_alloc(const char *endpoint);
-
-PCA_EXPORT char *
-pcrdr_extract_runner_name_alloc(const char *endpoint);
-
-PCA_EXPORT int
-pcrdr_assemble_endpoint_name(const char *host_name, const char *app_name,
-        const char *runner_name, char *buff);
-
-PCA_EXPORT char *
-pcrdr_assemble_endpoint_name_alloc(const char *host_name,
-        const char *app_name, const char *runner_name);
 
 /**
  * Get the return message of a return code.
@@ -290,130 +252,6 @@ pcrdr_get_ret_message(int ret_code);
  */
 PCA_EXPORT int
 pcrdr_errcode_to_retcode(int err_code);
-
-/**
- * Check whether a string is a valid token.
- *
- * @param token: the pointer to the token string.
- * @param max_len: The maximal possible length of the token string.
- *
- * Checks whether a token string is valid. According to PurCMC protocal,
- * the runner name should be a valid token.
- *
- * Note that a string with a length longer than \a max_len will
- * be considered as an invalid token.
- *
- * Returns: true for a valid token, otherwise false.
- *
- * Since: 0.1.0
- */
-PCA_EXPORT bool
-pcrdr_is_valid_token(const char *token, int max_len);
-
-/**
- * Check whether a string is a valid loose token.
- *
- * @param token: the pointer to the token string.
- * @param max_len: The maximal possible length of the token string.
- *
- * Checks whether a loose token string is valid. According to PurCMC protocal,
- * the identifier should be a valid loose token. A loose token can contain
- * one or more `-` ASCII characters.
- *
- * Note that a string with a length longer than \a max_len will
- * be considered as an invalid loose token.
- *
- * Returns: true for a valid loose token, otherwise false.
- *
- * Since: 0.1.0
- */
-PCA_EXPORT bool
-pcrdr_is_valid_loose_token(const char *token, int max_len);
-
-/**
- * Generate an unique identifier.
- *
- * @param id_buff: the buffer to save the identifier.
- * @param prefix: the prefix used for the identifier.
- *
- * Generates a unique id; the size of \a id_buff should be at least 64 long.
- *
- * Returns: none.
- *
- * Since: 0.1.0
- */
-PCA_EXPORT void
-pcrdr_generate_unique_id(char *id_buff, const char *prefix);
-
-/**
- * Generate an unique MD5 identifier.
- *
- * @param id_buff: the buffer to save the identifier.
- * @param prefix: the prefix used for the identifier.
- *
- * Generates a unique id by using MD5 digest algorithm.
- * The size of \a id_buff should be at least 33 bytes long.
- *
- * Returns: none.
- *
- * Since: 0.1.0
- */
-PCA_EXPORT void
-pcrdr_generate_md5_id(char *id_buff, const char *prefix);
-
-/**
- * Check whether a string is a valid unique identifier.
- *
- * @param id: the unique identifier.
- *
- * Checks whether a unique id is valid.
- *
- * Returns: none.
- *
- * Since: 0.1.0
- */
-PCA_EXPORT bool
-pcrdr_is_valid_unique_id(const char *id);
-
-/**
- * Check whether a string is a valid MD5 identifier.
- *
- * @param id: the unique identifier.
- *
- * Checks whether a unique identifier is valid.
- *
- * Returns: none.
- *
- * Since: 0.1.0
- */
-PCA_EXPORT bool
-pcrdr_is_valid_md5_id(const char *id);
-
-/**
- * Get the elapsed seconds.
- *
- * @param ts1: the earlier time.
- * @param ts2 (nullable): the later time.
- *
- * Calculates the elapsed seconds between two times.
- * If \a ts2 is NULL, the function uses the current time.
- *
- * Returns: the elapsed time in seconds (a double).
- *
- * Since: 0.1.0
- */
-PCA_EXPORT double
-pcrdr_get_elapsed_seconds(const struct timespec *ts1,
-        const struct timespec *ts2);
-
-/**@}*/
-
-/**
- * @defgroup PCRDRConnection Connection functions
- *
- * The connection functions are implemented in libhibus.c, only for clients.
- * @{
- */
 
 /**
  * Disconnect from the renderer.
@@ -681,6 +519,7 @@ struct pcrdr_msg {
     pcrdr_msg_element_type  elementType;
     pcrdr_msg_data_type     dataType;
     unsigned int            retCode;
+    unsigned int            _data_len;  // internal use only
 
     uint64_t        targetValue;
     uint64_t        resultValue;
@@ -691,11 +530,7 @@ struct pcrdr_msg {
     purc_variant_t  event;
 
     purc_variant_t  requestId;
-
     purc_variant_t  data;
-
-    /* internal use only */
-    size_t          _data_len;
 };
 
 /**
@@ -808,7 +643,7 @@ typedef ssize_t (*cb_write)(void *ctxt, const void *buf, size_t count);
 /**
  * Serialize a message.
  *
- * @param msg: the poiter to the message to serialize.
+ * @param msg: the pointer to the message to serialize.
  * @param fn: the callback to write characters.
  * @param ctxt: the context will be passed to fn.
  *
@@ -958,7 +793,7 @@ pcrdr_wait_and_dispatch_message(pcrdr_conn* conn, int timeout_ms);
  */
 PCA_EXPORT int
 pcrdr_send_request_and_wait_response(pcrdr_conn* conn,
-        const pcrdr_msg *request_msg,
+        pcrdr_msg *request_msg,
         int seconds_expected, pcrdr_msg **response_msg);
 
 /**
@@ -978,6 +813,15 @@ pcrdr_send_request_and_wait_response(pcrdr_conn* conn,
  */
 PCA_EXPORT int
 pcrdr_ping_renderer(pcrdr_conn* conn);
+
+/**@}*/
+
+/**
+ * @defgroup PCRDR_PURCMC PurCMC renderer functions
+ *
+ * The functions for PurCMC renderer.
+ * @{
+ */
 
 /**
  * Connect to the PurCMC server via UNIX domain socket.
@@ -1088,135 +932,28 @@ pcrdr_purcmc_send_text_packet(pcrdr_conn* conn,
 
 /**@}*/
 
-PCA_EXTERN_C_END
-
 /**
- * @addtogroup Helpers
- *  @{
+ * @defgroup PCRDR_THREAD Thread renderer functions
+ *
+ * The functions for thread renderer.
+ * @{
  */
 
-/**
- * Convert a string to uppercases in place.
- *
- * @param name: the pointer to a name string (not nullable).
- *
- * Converts a name string uppercase in place.
- *
- * Returns: the length of the name string.
- *
- * Since: 0.1.0
- */
-static inline int
-pcrdr_name_toupper(char *name)
-{
-    int i = 0;
+PCA_EXPORT pcrdr_msg *
+pcrdr_thread_put_msg(const char *thread_token, pcrdr_msg *msg);
 
-    while (name [i]) {
-        name [i] = toupper(name[i]);
-        i++;
-    }
+PCA_EXPORT pcrdr_msg *
+pcrdr_thread_get_msg(const char *thread_token);
 
-    return i;
-}
+PCA_EXPORT bool
+pcrdr_thread_create_transfer_buffer(const char *thread_token);
 
-/**
- * Convert a string to lowercases and copy to another buffer.
- *
- * @param name: the pointer to a name string (not nullable).
- * @param buff: the buffer used to return the converted name string (not nullable).
- * @param max_len: The maximal length of the name string to convert.
- *
- * Converts a name string lowercase and copies the letters to
- * the specified buffer.
- *
- * Note that if \a max_len <= 0, the argument will be ignored.
- *
- * Returns: the total number of letters converted.
- *
- * Since: 0.1.0
- */
-static inline int
-pcrdr_name_tolower_copy(const char *name, char *buff, int max_len)
-{
-    int n = 0;
-
-    while (*name) {
-        buff [n] = tolower(*name);
-        name++;
-        n++;
-
-        if (max_len > 0 && n == max_len)
-            break;
-    }
-
-    buff [n] = '\0';
-    return n;
-}
-
-/**
- * Convert a string to uppercases and copy to another buffer.
- *
- * @param name: the pointer to a name string (not nullable).
- * @param buff: the buffer used to return the converted name string (not nullable).
- * @param max_len: The maximal length of the name string to convert.
- *
- * Converts a name string uppercase and copies the letters to
- * the specified buffer.
- *
- * Note that if \a max_len <= 0, the argument will be ignored.
- *
- * Returns: the total number of letters converted.
- *
- * Since: 0.1.0
- */
-static inline int
-pcrdr_name_toupper_copy(const char *name, char *buff, int max_len)
-{
-    int n = 0;
-
-    while (*name) {
-        buff [n] = toupper(*name);
-        name++;
-        n++;
-
-        if (max_len > 0 && n == max_len)
-            break;
-    }
-
-    buff [n] = '\0';
-    return n;
-}
-
-/**
- * Get monotonic time in seconds
- *
- * Gets the monotoic time in seconds.
- *
- * Returns: the the monotoic time in seconds.
- *
- * Since: 0.1.0
- */
-static inline time_t pcrdr_get_monotoic_time(void)
-{
-    struct timespec tp;
-
-    clock_gettime(CLOCK_MONOTONIC, &tp);
-    return tp.tv_sec;
-}
-
-static inline bool
-pcrdr_is_valid_runner_name(const char *runner_name)
-{
-    return pcrdr_is_valid_token(runner_name, PCRDR_LEN_RUNNER_NAME);
-}
-
-static inline bool
-pcrdr_is_valid_identifier(const char *id)
-{
-    return pcrdr_is_valid_loose_token(id, PCRDR_LEN_IDENTIFIER);
-}
+PCA_EXPORT bool
+pcrdr_thread_destroy_transfer_buffer(const char *thread_token);
 
 /**@}*/
+
+PCA_EXTERN_C_END
 
 #endif /* !PURC_PURC_PCRDR_H */
 
