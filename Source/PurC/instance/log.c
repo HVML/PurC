@@ -33,6 +33,7 @@
 #endif /* HAVE_SYSLOG_H */
 
 #include "private/instance.h"
+#include "private/ports.h"
 
 #include <limits.h>
 
@@ -50,8 +51,8 @@ bool purc_enable_log(bool enable, bool use_syslog)
 
             if (inst->fp_log && inst->fp_log != LOG_FILE_SYSLOG) {
                 fclose(inst->fp_log);
-                inst->fp_log = LOG_FILE_SYSLOG;
             }
+            inst->fp_log = LOG_FILE_SYSLOG;
 
             openlog(ident, LOG_PID, LOG_USER);
         }
@@ -107,7 +108,7 @@ void purc_log_info(const char *msg, ...)
             const char *ident = purc_atom_to_string(inst->endpoint_atom);
             assert(ident);
 
-            fprintf(inst->fp_log, "%s INFO >> ", ident);
+            fprintf(inst->fp_log, "%s INFOR >> ", ident);
             vfprintf(inst->fp_log, msg, ap);
         }
     }

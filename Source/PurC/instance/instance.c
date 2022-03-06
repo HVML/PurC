@@ -30,6 +30,7 @@
 #include "private/errors.h"
 #include "private/tls.h"
 #include "private/utils.h"
+#include "private/ports.h"
 #include "private/rwstream.h"
 #include "private/ejson.h"
 #include "private/html.h"
