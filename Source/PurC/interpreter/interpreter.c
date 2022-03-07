@@ -53,7 +53,15 @@ void pcintr_stack_init_once(void)
 
 void pcintr_stack_init_instance(struct pcinst* inst)
 {
-    struct pcintr_heap *heap = &inst->intr_heap;
+    struct pcintr_heap *heap = inst->intr_heap;
+    PC_ASSERT(heap == NULL);
+
+    heap = (struct pcintr_heap*)calloc(1, sizeof(*heap));
+    if (!heap)
+        return;
+
+    inst->intr_heap = heap;
+
     INIT_LIST_HEAD(&heap->coroutines);
     heap->running_coroutine = NULL;
 }
@@ -320,27 +328,31 @@ stack_init(pcintr_stack_t stack)
 
 void pcintr_stack_cleanup_instance(struct pcinst* inst)
 {
-    struct pcintr_heap *heap = &inst->intr_heap;
-    struct list_head *coroutines = &heap->coroutines;
-    if (list_empty(coroutines))
+    struct pcintr_heap *heap = inst->intr_heap;
+    if (!heap)
         return;
 
-    struct list_head *p, *n;
-    list_for_each_safe(p, n, coroutines) {
-        pcintr_coroutine_t co;
-        co = container_of(p, struct pcintr_coroutine, node);
-        list_del(p);
-        struct pcintr_stack *stack = co->stack;
-        stack_destroy(stack);
+    struct list_head *coroutines = &heap->coroutines;
+    if (!list_empty(coroutines)) {
+        struct list_head *p, *n;
+        list_for_each_safe(p, n, coroutines) {
+            pcintr_coroutine_t co;
+            co = container_of(p, struct pcintr_coroutine, node);
+            list_del(p);
+            struct pcintr_stack *stack = co->stack;
+            stack_destroy(stack);
+        }
     }
-}
 
+    free(heap);
+    inst->intr_heap = NULL;
+}
 
 static pcintr_coroutine_t
 coroutine_get_current(void)
 {
     struct pcinst *inst = pcinst_current();
-    struct pcintr_heap *heap = &inst->intr_heap;
+    struct pcintr_heap *heap = inst->intr_heap;
     return heap->running_coroutine;
 }
 
@@ -348,7 +360,7 @@ static void
 coroutine_set_current(struct pcintr_coroutine *co)
 {
     struct pcinst *inst = pcinst_current();
-    struct pcintr_heap *heap = &inst->intr_heap;
+    struct pcintr_heap *heap = inst->intr_heap;
     heap->running_coroutine = co;
 }
 
@@ -939,7 +951,7 @@ static int run_coroutines(void *ctxt)
     UNUSED_PARAM(ctxt);
 
     struct pcinst *inst = pcinst_current();
-    struct pcintr_heap *heap = &inst->intr_heap;
+    struct pcintr_heap *heap = inst->intr_heap;
     struct list_head *coroutines = &heap->coroutines;
     size_t readies = 0;
     size_t waits = 0;
@@ -1295,7 +1307,7 @@ purc_load_hvml_from_rwstream_ex(purc_rwstream_t stream,
     frame->ops = *pcintr_get_document_ops();
 
     struct pcinst *inst = pcinst_current();
-    struct pcintr_heap *heap = &inst->intr_heap;
+    struct pcintr_heap *heap = inst->intr_heap;
     struct list_head *coroutines = &heap->coroutines;
     list_add_tail(&stack->co.node, coroutines);
 

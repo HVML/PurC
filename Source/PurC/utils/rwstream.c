@@ -28,6 +28,7 @@
 #include "private/errors.h"
 #include "config.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
@@ -509,31 +510,20 @@ int purc_rwstream_read_utf8_char (purc_rwstream_t rws, char* buf_utf8,
         read_len--;
     }
 
+    // FIXME
     if (ch_len > 3) {
         RWSTREAM_SET_ERROR(PURC_ERROR_BAD_ENCODING);
         return -1;
     }
 
-    *buf_wc = utf8_to_uint32_t((const unsigned char*)buf_utf8, ch_len);
-    // verify
-    switch (ch_len) {
-    case 1:
-        ch_len =  (*buf_wc <= 0x7F) ? ch_len : -1;
-        break;
-
-    case 2:
-        ch_len = (*buf_wc >= 0x80 && *buf_wc <= 0x7FF) ? ch_len : -1;
-        break;
-
-    case 3:
-        ch_len = (*buf_wc >= 0x800 && *buf_wc <= 0xFFFF) ? ch_len : -1;
-        break;
+    size_t nr_chars;
+    if (buf_utf8[0] == 0) {
+        *buf_wc = 0;
     }
-
-    if (ch_len < 0) {
-        RWSTREAM_SET_ERROR(PURC_ERROR_BAD_ENCODING);
+    else if(pcutils_string_check_utf8_len(buf_utf8, ch_len, &nr_chars, NULL)) {
+        *buf_wc = utf8_to_uint32_t((const unsigned char*)buf_utf8, ch_len);
     }
-    else if (*buf_wc >= 0xD800 && *buf_wc <= 0xDFFF) {  /* surrogate */
+    else {
         ch_len = -1;
         RWSTREAM_SET_ERROR(PURC_ERROR_BAD_ENCODING);
     }
