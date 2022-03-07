@@ -54,7 +54,6 @@ TEST(dvobjs, basic)
     ASSERT_TRUE(ok);
 
     purc_cleanup ();
-    free(cwd);
 }
 
 TEST(dvobjs, dvobjs_sys_uname)
