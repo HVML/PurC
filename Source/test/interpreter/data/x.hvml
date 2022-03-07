@@ -1,0 +1,37 @@
+<!DOCTYPE hvml>
+<hvml target="html" lang="en">
+    <head>
+        <init as="persons_set" uniquely via="name">
+            [
+                { "name": [ "xiaohong", "xu" ], "location" : "js" },
+                { "name": [ "shuming", "xue" ], "location" : "bj" },
+            ]
+        </init>
+        <init as="persons_array">
+            [
+                { "name": [ "xiaohong", "xu" ], "location" : "js" },
+                { "name": [ "shuming", "xue" ], "location" : "bj" },
+            ]
+        </init>
+        <init as="result">
+            [
+            ]
+        </init>
+    </head>
+
+    <body>
+        <iterate on="$persons_array">
+            <iterate on="$?.name">
+                <update on="$result" to="append" with="$?"/>
+            </iterate>
+        </iterate>
+        <iterate on="$persons_set">
+            <iterate on="$?.name">
+                <!-- shall we clone and then place into $result -->
+                <!-- how to check it's coming from set -->
+                <update on="$result" to="append" with="$?"/>
+            </iterate>
+        </iterate>
+    </body>
+</hvml>
+
