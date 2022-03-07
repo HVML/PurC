@@ -35,6 +35,8 @@
 #ifndef PURC_PRIVATE_PRINTBUF_H
 #define PURC_PRIVATE_PRINTBUF_H
 
+#include "config.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -88,7 +90,7 @@ int pcutils_printbuf_memset(struct pcutils_printbuf *pb, int offset, int charval
 int pcutils_printbuf_shrink(struct pcutils_printbuf *pb, int len);
 
 int pcutils_sprintbuf(struct pcutils_printbuf *p, const char *msg, ...)
-    __attribute__ ((format (printf, 2, 3)));
+    WTF_ATTRIBUTE_PRINTF(2, 3);
 
 void pcutils_printbuf_reset(struct pcutils_printbuf *p);
 

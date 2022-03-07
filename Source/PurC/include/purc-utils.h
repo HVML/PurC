@@ -449,7 +449,6 @@ pcutils_arrlist_get_last(struct pcutils_arrlist *arr);
 
 char*
 pcutils_snprintf(char *buf, size_t *sz_io, const char *fmt, ...)
-    // __attribute__ ((format (printf, 3, 4)));
     PCA_ATTRIBUTE_PRINTF(3, 4);
 
 char*

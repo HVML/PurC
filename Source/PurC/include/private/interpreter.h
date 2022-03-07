@@ -26,7 +26,7 @@
 #ifndef PURC_PRIVATE_INTERPRETER_H
 #define PURC_PRIVATE_INTERPRETER_H
 
-#include "purc.h"
+#include "config.h"
 
 #include "purc-macros.h"
 #include "purc-variant.h"
@@ -429,11 +429,11 @@ pcintr_util_add_child_chunk(pcdom_element_t *parent, const char *chunk);
 int
 pcintr_util_set_child_chunk(pcdom_element_t *parent, const char *chunk);
 
-__attribute__ ((format (printf, 2, 3)))
+WTF_ATTRIBUTE_PRINTF(2, 3)
 int
 pcintr_util_add_child(pcdom_element_t *parent, const char *fmt, ...);
 
-__attribute__ ((format (printf, 2, 3)))
+WTF_ATTRIBUTE_PRINTF(2, 3)
 int
 pcintr_util_set_child(pcdom_element_t *parent, const char *fmt, ...);
 
