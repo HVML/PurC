@@ -52,56 +52,46 @@ extern "C" {
 #define PC_ASSERT(cond)                                 \
     do {                                                \
         if (!(cond)) {                                  \
-            purc_log_error("PurC assert failed.\n");     \
+            purc_log_error("PurC assertion failed.\n"); \
             abort();                                    \
         }                                               \
     } while (0)
 
 #else /* define NDEBUG */
 
-#define PC_ASSERT(cond)                                                                         \
-    do {                                                                                        \
-        if (!(cond)) {                                                                          \
-            purc_log_error("PurC assert failure %s:%d: condition \"" __STRING(cond) " failed\n", \
-                     __FILE__, __LINE__);                                                       \
-            assert(0);                                                                          \
-        }                                                                                       \
+#define PC_ASSERT(cond)                                                 \
+    do {                                                                \
+        if (!(cond)) {                                                  \
+            purc_log_error("PurC assertion failure %s:%d: condition \"" \
+                    __STRING(cond) " failed\n",                         \
+                    __FILE__, __LINE__);                                \
+            assert(0);                                                  \
+        }                                                               \
     } while (0)
 
 #endif /* not defined NDEBUG */
 
-#define PC_ERROR(x, ...) purc_log_error(x, ##__VA_ARGS__)
+#define PC_ENABLE_DEBUG(x)  purc_enable_log(x, true)
+#define PC_ENABLE_SYSLOG(x) purc_enable_log(x?true:false, x)
+#define PC_ERROR(x, ...)    purc_log_error(x, ##__VA_ARGS__)
+#define PC_WARN(x, ...)     purc_log_warn(x, ##__VA_ARGS__)
+#define PC_INFO(x, ...)     purc_log_info(x, ##__VA_ARGS__)
 
 #ifndef NDEBUG
 
-# define PC_ENABLE_DEBUG(x) purc_enable_log(x, true)
-# define PC_ENABLE_SYSLOG(x) purc_enable_log(x?true:false, x)
-# define PC_DEBUG(x, ...) purc_log_debug(x, ##__VA_ARGS__)
-# define PC_INFO(x, ...) purc_log_info(x, ##__VA_ARGS__)
+#define PC_DEBUG(x, ...)    purc_log_debug(x, ##__VA_ARGS__)
 
 #else /* not defined NDEBUG */
-
-# define PC_ENABLE_DEBUG(x)             \
-    if (0)                              \
-        purc_enable_log(x, true)
-
-# define PC_ENABLE_SYSLOG(x)            \
-    if (0)                              \
-        purc_enable_log(true, x)
 
 #define PC_DEBUG(x, ...)                \
     if (0)                              \
         purc_log_debug(x, ##__VA_ARGS__)
 
-#define PC_INFO(x, ...)                 \
-    if (0)                              \
-        purc_log_info(x, ##__VA_ARGS__)
-
 #endif /* defined NDEBUG */
 
 #ifndef _D            /* { */
 /* for test-case to use, because of WTF_INTERNAL for purc_log_info/error/... */
-#define _D(fmt, ...)                                           \
+#define _D(fmt, ...)                                          \
     if (TO_DEBUG) {                                           \
         fprintf(stderr, "%s[%d]:%s(): " fmt "\n",             \
             basename((char*)__FILE__), __LINE__, __func__,    \

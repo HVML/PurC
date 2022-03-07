@@ -364,7 +364,7 @@ static purc_variant_t pcvarmgr_add_observer(pcvarmgr_t mgr, const char* name,
         type = VAR_EVENT_TYPE_DISPLACED;
     }
 
-    pcintr_stack_t stack = purc_get_stack();
+    pcintr_stack_t stack = pcintr_get_stack();
     struct var_observe* obs = find_var_observe(mgr, name, type, stack);
     if (obs != NULL) {
         return mgr->object;
@@ -408,7 +408,7 @@ static purc_variant_t pcvarmgr_remove_observer(pcvarmgr_t mgr, const char* name,
         type = VAR_EVENT_TYPE_DISPLACED;
     }
 
-    pcintr_stack_t stack = purc_get_stack();
+    pcintr_stack_t stack = pcintr_get_stack();
     int idx = find_var_observe_idx(mgr, name, type, stack);
 
     if (idx != -1) {

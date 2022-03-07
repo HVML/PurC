@@ -32,14 +32,18 @@
  * Author: Michael Clark <michael@metaparadigm.com>
  */
 
+#define _GNU_SOURCE
 #include "private/printbuf.h"
 
-#define _GNU_SOURCE
 #include <stdio.h>
 #include <limits.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
+
+#if !HAVE(VASPRINTF)
+#include "private/ports.h"
+#endif
 
 static int printbuf_extend(struct pcutils_printbuf *p, int min_size);
 

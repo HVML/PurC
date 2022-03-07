@@ -310,7 +310,7 @@ char* pcvariant_serialize_alloc(char *buf, size_t sz, purc_variant_t val);
 
 purc_variant_t pcvariant_make_object(size_t nr_kvs, ...);
 
-__attribute__ ((format (printf, 1, 2)))
+WTF_ATTRIBUTE_PRINTF(1, 2)
 purc_variant_t pcvariant_make_with_printf(const char *fmt, ...);
 
 // TODO: better generate with tool

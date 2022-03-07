@@ -94,11 +94,6 @@ pcutils_hash_hash(const unsigned char *key, size_t key_size)
 extern "C" {
 #endif
 
-#if !HAVE(VASPRINTF)
-__attribute__ ((format (printf, 2, 0)))
-int vasprintf(char **buf, const char *fmt, va_list ap);
-#endif
-
 void pcutils_atom_init_once(void) WTF_INTERNAL;
 
 void *pcutils_calloc_a(size_t len, ...) WTF_INTERNAL;

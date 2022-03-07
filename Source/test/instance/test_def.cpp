@@ -22,6 +22,8 @@ TEST(instance, def)
     char runner_name[PURC_LEN_RUNNER_NAME + 1];
     purc_extract_runner_name(endpoint, runner_name);
 
+    printf("Endpoint: %s\n", endpoint);
+
     ASSERT_STREQ(host_name, "localhost");
     ASSERT_STREQ(runner_name, "unknown");
 

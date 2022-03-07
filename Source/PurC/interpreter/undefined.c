@@ -134,7 +134,7 @@ attr_found(struct pcintr_stack_frame *frame,
 {
     PC_ASSERT(attr->op == PCHVML_ATTRIBUTE_OPERATOR);
 
-    purc_variant_t val = pcintr_eval_vdom_attr(purc_get_stack(), attr);
+    purc_variant_t val = pcintr_eval_vdom_attr(pcintr_get_stack(), attr);
     if (val == PURC_VARIANT_INVALID)
         return -1;
 
@@ -148,7 +148,7 @@ static void*
 after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 {
     PC_ASSERT(stack && pos);
-    PC_ASSERT(stack == purc_get_stack());
+    PC_ASSERT(stack == pcintr_get_stack());
     switch (stack->mode) {
         case STACK_VDOM_BEFORE_HVML:
             PC_ASSERT(0);
@@ -260,7 +260,7 @@ static bool
 on_popping(pcintr_stack_t stack, void* ud)
 {
     PC_ASSERT(stack);
-    PC_ASSERT(stack == purc_get_stack());
+    PC_ASSERT(stack == pcintr_get_stack());
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
@@ -301,7 +301,7 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     if (!vcm)
         return;
 
-    pcintr_stack_t stack = purc_get_stack();
+    pcintr_stack_t stack = pcintr_get_stack();
     // TODO: silently
     purc_variant_t v = pcvcm_eval(vcm, stack, false);
     PC_ASSERT(v != PURC_VARIANT_INVALID);
@@ -340,7 +340,7 @@ select_child(pcintr_stack_t stack, void* ud)
 {
                 PC_ASSERT(stack->except == 0);
     PC_ASSERT(stack);
-    PC_ASSERT(stack == purc_get_stack());
+    PC_ASSERT(stack == pcintr_get_stack());
 
     pcintr_coroutine_t co = &stack->co;
     struct pcintr_stack_frame *frame;
