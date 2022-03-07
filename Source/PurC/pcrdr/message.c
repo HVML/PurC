@@ -39,7 +39,7 @@ pcrdr_msg *pcrdr_make_void_message(void)
     if (msg == NULL)
         return NULL;
 
-    msg->type = PCRDR_MSG_ELEMENT_TYPE_VOID;
+    msg->type = PCRDR_MSG_TYPE_VOID;
     return msg;
 }
 
