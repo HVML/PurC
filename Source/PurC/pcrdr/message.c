@@ -1204,69 +1204,58 @@ pcrdr_parse_renderer_capabilities(const char *data)
             }
         }
         else if (line_no >= 3) {
-            char *str2, *value;
+            char *cap, *value;
             char *saveptr2;
 
-            for (str2 = line; ; str2 = NULL) {
-                value = strtok_r(str2, STR_VALUE_SEPARATOR, &saveptr2);
-                if (value == NULL) {
+            cap = strtok_r(line, STR_PAIR_SEPARATOR, &saveptr2);
+            if (cap == NULL) {
+                break;
+            }
+
+            value = strtok_r(NULL, STR_PAIR_SEPARATOR, &saveptr2);
+            if (value == NULL) {
+                break;
+            }
+
+            if (strcasecmp(cap, "windowLevels") == 0) {
+                if (rdr_caps->windowLevel <= 0) {
+                    PC_WARN("Found windowLevels but windowLevel is <= 0");
                     break;
                 }
 
-                char *cap, *value;
+                rdr_caps->window_levels =
+                    calloc(rdr_caps->windowLevel, sizeof(char *));
+
+                char *str3, *member;
                 char *saveptr3;
-
-                cap = strtok_r(value, STR_PAIR_SEPARATOR, &saveptr3);
-                if (cap == NULL) {
-                    break;
-                }
-
-                value = strtok_r(NULL, STR_PAIR_SEPARATOR, &saveptr3);
-                if (value == NULL) {
-                    break;
-                }
-
-                if (strcasecmp(cap, "windowLevels") == 0) {
-                    if (rdr_caps->windowLevel <= 0) {
-                        PC_WARN("Found windowLevels but windowLevel is <= 0");
+                int n = 0;
+                for (str3 = value; ; str3 = NULL) {
+                    member = strtok_r(str3, STR_MEMBER_SEPARATOR, &saveptr3);
+                    if (member == NULL) {
                         break;
                     }
 
-                    rdr_caps->window_levels =
-                        calloc(rdr_caps->windowLevel, sizeof(char *));
-
-                    char *str3, *member;
-                    char *saveptr3;
-                    int n = 0;
-                    for (str3 = value; ; str3 = NULL) {
-                        member = strtok_r(str3, STR_MEMBER_SEPARATOR, &saveptr3);
-                        if (member == NULL) {
-                            break;
-                        }
-
-                        if (n < rdr_caps->windowLevel) {
-                            rdr_caps->window_levels[n] = strdup(member);
-                            n++;
-                        }
-                        else
-                            break;
+                    if (n < rdr_caps->windowLevel) {
+                        rdr_caps->window_levels[n] = strdup(member);
+                        n++;
                     }
-
-                    // adjust windowLevel
-                    rdr_caps->windowLevel = n;
-                }
-                else {
-                    PC_WARN("Unknown renderer capability: %s\n", cap);
-                    break;
+                    else
+                        break;
                 }
 
-                if (rdr_caps->windowLevel > 0 &&
-                        rdr_caps->window_levels == NULL) {
-                    PC_WARN("windowLevels does not match windowLevel\n");
-                    rdr_caps->windowLevel = 0;
-                }
+                // adjust windowLevel
+                rdr_caps->windowLevel = n;
+            }
+            else {
+                PC_WARN("Unknown renderer capability: %s\n", cap);
+                break;
             }
 
+            if (rdr_caps->windowLevel > 0 &&
+                    rdr_caps->window_levels == NULL) {
+                PC_WARN("windowLevels does not match windowLevel\n");
+                rdr_caps->windowLevel = 0;
+            }
         }
 
         line_no++;
