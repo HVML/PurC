@@ -57,24 +57,42 @@ void pcrdr_init_once(void)
     pcinst_register_error_message_segment(&_pcrdr_err_msgs_seg);
 }
 
+static const char *prot_names[] = {
+    PURC_RDRPROT_NAME_HEADLESS,
+    PURC_RDRPROT_NAME_PURCMC,
+    PURC_RDRPROT_NAME_THREAD,
+    PURC_RDRPROT_NAME_HIBUS,
+};
+
+static const int prot_vers[] = {
+    PURC_RDRPROT_VERSION_HEADLESS,
+    PURC_RDRPROT_VERSION_PURCMC,
+    PURC_RDRPROT_VERSION_THREAD,
+    PURC_RDRPROT_VERSION_HIBUS,
+};
+
 int pcrdr_init_instance(struct pcinst* inst,
         const purc_instance_extra_info *extra_info)
 {
     pcrdr_msg *msg = NULL, *response_msg = NULL;
     purc_variant_t session_data;
+    purc_rdrprot_t rdr_prot;
 
     if (extra_info == NULL ||
             extra_info->renderer_prot == PURC_RDRPROT_HEADLESS) {
+        rdr_prot = PURC_RDRPROT_HEADLESS;
         msg = pcrdr_headless_connect(
             extra_info ? extra_info->renderer_uri : NULL,
             inst->app_name, inst->runner_name, &inst->conn_to_rdr);
     }
     else if (extra_info->renderer_prot == PURC_RDRPROT_PURCMC) {
+        rdr_prot = PURC_RDRPROT_PURCMC;
         msg = pcrdr_purcmc_connect(extra_info->renderer_uri,
             inst->app_name, inst->runner_name, &inst->conn_to_rdr);
     }
     else {
         // TODO: other protocol
+        return PURC_ERROR_NOT_SUPPORTED;
     }
 
     if (msg == NULL) {
@@ -104,9 +122,10 @@ int pcrdr_init_instance(struct pcinst* inst,
 
     purc_variant_t vs[10] = { NULL };
     vs[0] = purc_variant_make_string_static("protocolName", false);
-    vs[1] = purc_variant_make_string_static(PCRDR_PURCMC_PROTOCOL_NAME, false);
+    vs[1] = purc_variant_make_string_static(
+            prot_names[rdr_prot], false);
     vs[2] = purc_variant_make_string_static("protocolVersion", false);
-    vs[3] = purc_variant_make_ulongint(PCRDR_PURCMC_PROTOCOL_VERSION);
+    vs[3] = purc_variant_make_ulongint(prot_vers[rdr_prot]);
     vs[4] = purc_variant_make_string_static("hostName", false);
     vs[5] = purc_variant_make_string_static(inst->conn_to_rdr->own_host_name, false);
     vs[6] = purc_variant_make_string_static("appName", false);
