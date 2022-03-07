@@ -30,6 +30,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <sys/types.h>  /* TODO: for ssize_t on MacOS */
 
 #include "purc-macros.h"
 
