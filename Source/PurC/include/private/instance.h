@@ -62,8 +62,8 @@ struct pcinst {
 
     /* FIXME: dynamically allocate the following heaps ONLY when HVML moduel
        is enabled. */
-    struct pcexecutor_heap executor_heap;
-    struct pcintr_heap    intr_heap;
+    struct pcexecutor_heap *executor_heap;
+    struct pcintr_heap     *intr_heap;
 
     /* FIXME: enable the fields ONLY when NDEBUG is undefined */
 #if OS(LINUX)                      /* { */
