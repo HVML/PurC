@@ -198,6 +198,8 @@ int pcrdr_send_request(pcrdr_conn* conn, pcrdr_msg *request_msg,
     }
 
     pr->request_id = purc_variant_ref(request_msg->requestId);
+    pr->request_target = request_msg->target;
+    pr->request_target_value = request_msg->targetValue;
     pr->response_handler = response_handler;
     pr->context = context;
     if (seconds_expected <= 0 || seconds_expected > 3600)

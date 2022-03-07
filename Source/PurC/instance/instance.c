@@ -364,8 +364,7 @@ int purc_init_ex(unsigned int modules,
 
     /* connnect to renderer */
     curr_inst->conn_to_rdr = NULL;
-    if ((modules & PURC_HAVE_PCRDR) &&
-            extra_info && extra_info->renderer_uri) {
+    if ((modules & PURC_HAVE_PCRDR)) {
         if ((ret = pcrdr_init_instance(curr_inst, extra_info))) {
             goto failed;
         }

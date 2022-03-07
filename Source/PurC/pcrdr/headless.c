@@ -1,7 +1,8 @@
 /*
  * purcmc.c -- The implementation of HEADLESS protocol.
+ *      Created on 7 Mar 2022
  *
- * Copyright (c) 2022 FMSoft (http://www.fmsoft.cn)
+ * Copyright (C) 2022 FMSoft (http://www.fmsoft.cn)
  *
  * Authors:
  *  Vincent Wei (https://github.com/VincentWei), 2022
@@ -93,17 +94,9 @@ struct workspace_info {
     void *domdocs[NR_PLAINWINDOWS];
 };
 
-enum {
-    PCRDR_HEADLESS_STATE_INITIAL = 0,
-    PCRDR_HEADLESS_STATE_STARTED,   // session started
-};
-
 struct pcrdr_prot_data {
     // FILE pointer to serialize the message.
     FILE *fp;
-
-    // current state
-    int state;
 
     // number of workspaces
     int nr_workspaces;
@@ -178,10 +171,15 @@ static int my_disconnect(pcrdr_conn* conn)
     return 0;
 }
 
+#define SCHEMA_LOCAL_FILE  "file://"
+
 /* returns 0 if all OK, -1 on error */
-int pcrdr_headless_connect(const char* app_name, const char* runner_name,
-        pcrdr_conn** conn)
+pcrdr_msg *pcrdr_headless_connect(const char* renderer_uri,
+        const char* app_name, const char* runner_name, pcrdr_conn** conn)
 {
+    char buff[PATH_MAX + 1];
+    const char *logfile;
+    pcrdr_msg *msg = NULL;
     int err_code = PCRDR_ERROR_NOMEM;
 
     *conn = NULL;
@@ -207,6 +205,39 @@ int pcrdr_headless_connect(const char* app_name, const char* runner_name,
     }
 
     // TODO: open log file here.
+    if (renderer_uri && strlen(renderer_uri) > sizeof(SCHEMA_LOCAL_FILE)) {
+        logfile = renderer_uri + sizeof(SCHEMA_LOCAL_FILE) - 1;
+    }
+    else {
+        int n = snprintf(buff, sizeof(buff),
+                PCRDR_HEADLESS_LOGFILE_PATH_FORMAT, app_name, runner_name);
+
+        if (n < 0) {
+            purc_set_error(PURC_ERROR_OUTPUT);
+            goto failed;
+        }
+        else if ((size_t)n >= sizeof(buff)) {
+            purc_set_error(PURC_ERROR_TOO_SMALL_BUFF);
+            goto failed;
+        }
+
+        logfile = buff;
+    }
+
+    (*conn)->prot_data->fp = fopen(logfile, "a");
+    if ((*conn)->prot_data->fp == NULL) {
+        purc_set_error(PURC_ERROR_BAD_STDC_CALL);
+        goto failed;
+    }
+
+    msg = pcrdr_make_response_message("0",
+            PCRDR_SC_OK, 0,
+            PCRDR_MSG_DATA_TYPE_TEXT, RENDERER_FEATURES,
+            sizeof (RENDERER_FEATURES) - 1);
+    if (msg == NULL) {
+        purc_set_error(PCRDR_ERROR_NOMEM);
+        goto failed;
+    }
 
     (*conn)->prot = PURC_RDRPROT_HEADLESS;
     (*conn)->type = CT_PLAIN_FILE;
@@ -223,12 +254,17 @@ int pcrdr_headless_connect(const char* app_name, const char* runner_name,
     (*conn)->disconnect = my_disconnect;
 
     list_head_init (&(*conn)->pending_requests);
-    return 0;
+    return msg;
 
 failed:
     if (*conn) {
-        if ((*conn)->prot_data)
+        if ((*conn)->prot_data) {
+            if ((*conn)->prot_data->fp) {
+               fclose((*conn)->prot_data->fp);
+            }
            free((*conn)->prot_data);
+        }
+
         if ((*conn)->own_host_name)
            free((*conn)->own_host_name);
         free(*conn);
@@ -236,6 +272,6 @@ failed:
     }
 
     purc_set_error(err_code);
-    return -1;
+    return NULL;
 }
 

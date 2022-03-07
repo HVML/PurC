@@ -211,7 +211,7 @@ static int my_disconnect (pcrdr_conn* conn)
 }
 
 /* returns fd if all OK, -1 on error */
-int pcrdr_purcmc_connect_via_unix_socket (const char* path_to_socket,
+static int purcmc_connect_via_unix_socket (const char* path_to_socket,
         const char* app_name, const char* runner_name, pcrdr_conn** conn)
 {
     int fd, len, err_code = PCRDR_ERROR_BAD_CONNECTION;
@@ -233,7 +233,7 @@ int pcrdr_purcmc_connect_via_unix_socket (const char* path_to_socket,
 
     /* create a Unix domain stream socket */
     if ((fd = socket (AF_UNIX, SOCK_STREAM, 0)) < 0) {
-        PC_DEBUG ("Failed to call `socket` in pcrdr_purcmc_connect_via_unix_socket: %s\n",
+        PC_DEBUG ("Failed to call `socket` in %s: %s\n", __func__,
                 strerror (errno));
         purc_set_error(PCRDR_ERROR_IO);
         return -1;
@@ -260,12 +260,12 @@ int pcrdr_purcmc_connect_via_unix_socket (const char* path_to_socket,
 
     unlink (unix_addr.sun_path);        /* in case it already exists */
     if (bind (fd, (struct sockaddr *) &unix_addr, len) < 0) {
-        PC_DEBUG ("Failed to call `bind` in pcrdr_purcmc_connect_via_unix_socket: %s\n",
+        PC_DEBUG ("Failed to call `bind` in %s: %s\n", __func__,
                 strerror (errno));
         goto error;
     }
     if (chmod (unix_addr.sun_path, CLI_PERM) < 0) {
-        PC_DEBUG ("Failed to call `chmod` in pcrdr_purcmc_connect_via_unix_socket: %s\n",
+        PC_DEBUG ("Failed to call `chmod` in %s: %s\n", __func__,
                 strerror (errno));
         goto error;
     }
@@ -277,7 +277,7 @@ int pcrdr_purcmc_connect_via_unix_socket (const char* path_to_socket,
     len = sizeof (unix_addr.sun_family) + strlen (unix_addr.sun_path);
 
     if (connect (fd, (struct sockaddr *) &unix_addr, len) < 0) {
-        PC_DEBUG ("Failed to call `connect` in pcrdr_purcmc_connect_via_unix_socket: %s\n",
+        PC_DEBUG ("Failed to call `connect` in %s: %s\n", __func__,
                 strerror (errno));
         goto error;
     }
@@ -646,32 +646,55 @@ int pcrdr_purcmc_send_text_packet (pcrdr_conn* conn, const char* text, size_t le
     return retv;
 }
 
-#else   /* for OS not Linux or Unix */
+#define SCHEMA_UNIX_SOCKET  "unix://"
 
-int pcrdr_purcmc_connect_via_unix_socket (const char* path_to_socket,
+pcrdr_msg *pcrdr_purcmc_connect(const char* renderer_uri,
         const char* app_name, const char* runner_name, pcrdr_conn** conn)
 {
-    UNUSED_PARAM(host_name);
-    UNUSED_PARAM(port);
-    UNUSED_PARAM(app_name);
-    UNUSED_PARAM(runner_name);
-    UNUSED_PARAM(conn);
+    pcrdr_msg *msg = NULL;
 
-    purc_set_error (PCRDR_ERROR_NOT_SUPPORTED);
-    return -1;
+    if (strncasecmp (SCHEMA_UNIX_SOCKET, renderer_uri,
+            sizeof(SCHEMA_UNIX_SOCKET) - 1)) {
+        purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+        return NULL;
+    }
+
+    if (purcmc_connect_via_unix_socket(
+            renderer_uri + sizeof(SCHEMA_UNIX_SOCKET) - 1,
+            app_name, runner_name, conn) < 0) {
+        return NULL;
+    }
+
+    /* read the initial response from the server */
+    char buff[PCRDR_DEF_PACKET_BUFF_SIZE];
+    size_t len = sizeof(buff);
+
+    if (pcrdr_purcmc_read_packet(*conn, buff, &len) < 0)
+        goto failed;
+
+    if (pcrdr_parse_packet(buff, len, &msg) < 0)
+        goto failed;
+
+    return msg;
+
+failed:
+    if (msg)
+        pcrdr_release_message(msg);
+
+    if (*conn) {
+        pcrdr_disconnect(*conn);
+    }
+
+    return NULL;
 }
 
-int pcrdr_purcmc_connect_via_web_socket (const char* host_name, int port,
+#else   /* for OS not Linux or Unix */
+
+pcrdr_msg *pcrdr_purcmc_connect(const char* renderer_uri,
         const char* app_name, const char* runner_name, pcrdr_conn** conn)
 {
-    UNUSED_PARAM(host_name);
-    UNUSED_PARAM(port);
-    UNUSED_PARAM(app_name);
-    UNUSED_PARAM(runner_name);
-    UNUSED_PARAM(conn);
-
-    purc_set_error (PCRDR_ERROR_NOT_IMPLEMENTED);
-    return -1;
+    purc_set_error(PCRDR_ERROR_NOT_IMPLEMENTED);
+    return NULL;
 }
 
 #endif
