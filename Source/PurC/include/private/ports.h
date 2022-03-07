@@ -1,13 +1,13 @@
-/**
- * @file config.h
+/*
+ * @file ports.h
  * @author Vincent Wei (https://github.com/VincentWei)
- * @date 2021/07/03
- * @brief The configuration header file of PurC.
+ * @date 2022/03/08
+ * @brief The internal portability interfaces.
  *
- * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ * Copyright (C) 2022 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -22,19 +22,25 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#if defined(HAVE_CONFIG_H) && HAVE_CONFIG_H && defined(BUILDING_WITH_CMAKE)
-#include "cmakeconfig.h"
+#ifndef PURC_PRIVATE_PORTS_H
+#define PURC_PRIVATE_PORTS_H
+
+#include "config.h"
+#include "purc-ports.h"
+
+#include <stddef.h>
+#include <stdlib.h>
+
+#ifdef __cplusplus
+extern "C" {
 #endif
 
-#include <wtf/Platform.h>
-#include <wtf/ExportMacros.h>
+size_t pcutils_get_cmdline_arg (int arg, char* buf, size_t sz_buf);
+int pcutils_mkdir(const char *pathname);
 
-#if !defined(PURC_EXPORT)
-
-#if defined(BUILDING_PURC) || defined(STATICALLY_LINKED_WITH_PURC)
-#define PURC_EXPORT WTF_EXPORT_DECLARATION
-#else
-#define PURC_EXPORT WTF_IMPORT_DECLARATION
+#ifdef __cplusplus
+}
 #endif
 
-#endif
+#endif /* not defined PURC_PRIVATE_PORTS_H */
+

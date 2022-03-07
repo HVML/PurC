@@ -201,9 +201,9 @@ int pcrdr_send_request(pcrdr_conn* conn, pcrdr_msg *request_msg,
     pr->response_handler = response_handler;
     pr->context = context;
     if (seconds_expected <= 0 || seconds_expected > 3600)
-        pr->time_expected = pcrdr_get_monotoic_time() + 3600;
+        pr->time_expected = purc_get_monotoic_time() + 3600;
     else
-        pr->time_expected = pcrdr_get_monotoic_time() + seconds_expected;
+        pr->time_expected = purc_get_monotoic_time() + seconds_expected;
     list_add_tail(&pr->list, &conn->pending_requests);
 
     return 0;
@@ -258,7 +258,7 @@ static int
 check_timeout_requests(pcrdr_conn *conn)
 {
     struct pending_request *pr, *n;
-    time_t now = pcrdr_get_monotoic_time();
+    time_t now = purc_get_monotoic_time();
 
     list_for_each_entry_safe (pr, n, &conn->pending_requests, list) {
         if (now >= pr->time_expected) {
@@ -391,7 +391,7 @@ my_sync_response_handler(pcrdr_conn* conn,
 }
 
 int pcrdr_send_request_and_wait_response(pcrdr_conn* conn,
-        const pcrdr_msg *request_msg,
+        pcrdr_msg *request_msg,
         int seconds_expected, pcrdr_msg **response_msg)
 {
     struct pending_request *pr;
@@ -420,14 +420,14 @@ int pcrdr_send_request_and_wait_response(pcrdr_conn* conn,
     pr->response_handler = my_sync_response_handler;
     pr->context = response_msg;
     if (seconds_expected <= 0 || seconds_expected > 3600)
-        pr->time_expected = pcrdr_get_monotoic_time() + 3600;
+        pr->time_expected = purc_get_monotoic_time() + 3600;
     else
-        pr->time_expected = pcrdr_get_monotoic_time() + seconds_expected;
+        pr->time_expected = purc_get_monotoic_time() + seconds_expected;
     list_add_tail(&pr->list, &conn->pending_requests);
 
     while (*response_msg == NULL) {
 
-        int timeout_ms = pr->time_expected - pcrdr_get_monotoic_time();
+        int timeout_ms = pr->time_expected - purc_get_monotoic_time();
         timeout_ms *= 1000;
 
         retval = conn->wait_message(conn, timeout_ms);

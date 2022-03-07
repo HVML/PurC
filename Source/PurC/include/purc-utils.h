@@ -192,6 +192,12 @@ typedef unsigned int purc_atom_t;
 #define PURC_ATOM_BUCKET_BITS   4
 #define PURC_ATOM_BUCKETS_NR    (1 << PURC_ATOM_BUCKET_BITS)
 
+/** The atom bucket identifier for default */
+#define PURC_ATOM_BUCKET_DEF    0
+
+/** The atom bucket identifier reserved for user usage */
+#define PURC_ATOM_BUCKET_USER   (PURC_ATOM_BUCKETS_NR - 1)
+
 PCA_EXTERN_C_BEGIN
 
 /**
@@ -443,7 +449,8 @@ pcutils_arrlist_get_last(struct pcutils_arrlist *arr);
 
 char*
 pcutils_snprintf(char *buf, size_t *sz_io, const char *fmt, ...)
-    __attribute__ ((format (printf, 3, 4)));
+    // __attribute__ ((format (printf, 3, 4)));
+    PCA_ATTRIBUTE_PRINTF(3, 4);
 
 char*
 pcutils_vsnprintf(char *buf, size_t *sz_io, const char *fmt, va_list ap);

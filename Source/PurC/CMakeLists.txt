@@ -28,6 +28,7 @@ set(PurC_INSTALLED_HEADERS
     "${PURC_DIR}/include/purc-html.h"
     "${PURC_DIR}/include/purc-ports.h"
     "${PURC_DIR}/include/purc-pcrdr.h"
+    "${PURC_DIR}/include/purc-helpers.h"
     "${PURC_DIR}/include/purc.h"
 )
 
