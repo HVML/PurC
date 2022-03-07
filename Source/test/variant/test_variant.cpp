@@ -804,7 +804,7 @@ TEST(variant, pcvariant_atom_string)
     const char * dup_str = purc_variant_get_atom_string_const (value);
     ASSERT_NE (string_ok, dup_str);             // string pointers are different
 
-    ASSERT_EQ(dup->sz_ptr[1], value->sz_ptr[1]);        // atoms are same
+    ASSERT_EQ(dup->atom, value->atom);        // atoms are same
     ASSERT_STREQ(value_str, dup_str);                   // strings are same
     purc_variant_unref(value);
 

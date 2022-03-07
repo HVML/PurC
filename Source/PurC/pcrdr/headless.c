@@ -129,7 +129,32 @@ static int my_wait_message(pcrdr_conn* conn, int timeout_ms)
 static pcrdr_msg *my_read_message(pcrdr_conn* conn)
 {
     pcrdr_msg* msg = NULL;
-    UNUSED_PARAM(conn);
+    int ret_code = PCRDR_SC_OK;
+    uint64_t result_value = 0;
+
+    if (list_empty(&conn->pending_requests)) {
+        purc_set_error(PCRDR_ERROR_UNEXPECTED);
+        return NULL;
+    }
+
+    struct pending_request *pr;
+    pr = list_first_entry(&conn->pending_requests,
+            struct pending_request, list);
+
+    if (pr->request_target == PCRDR_MSG_TARGET_SESSION &&
+            pr->request_target_value == 0) {
+        result_value = (uint64_t)conn->prot_data;
+    }
+    else {
+    }
+
+    msg = pcrdr_make_response_message(
+            purc_variant_get_string_const(pr->request_id),
+            ret_code, result_value,
+            PCRDR_MSG_DATA_TYPE_VOID, NULL, 0);
+    if (msg == NULL) {
+        purc_set_error(PCRDR_ERROR_NOMEM);
+    }
 
     return msg;
 }
@@ -151,7 +176,7 @@ static int my_send_message(pcrdr_conn* conn, pcrdr_msg *msg)
         goto failed;
     }
 
-    fputs("", conn->prot_data->fp);
+    fputs("\n", conn->prot_data->fp);
     return 0;
 
 failed:
