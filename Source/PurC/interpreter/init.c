@@ -209,8 +209,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         if (set == PURC_VARIANT_INVALID)
             return -1;
 
-        // TODO
-        if (!purc_variant_container_displace(set, src, true)) {
+        if (!purc_variant_container_displace(set, src, frame->silently)) {
             purc_variant_unref(set);
             return -1;
         }
@@ -600,8 +599,7 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     }
 
     // NOTE: element is still the owner of vcm_content
-    // TODO: silently
-    purc_variant_t v = pcvcm_eval(vcm, co->stack, false);
+    purc_variant_t v = pcvcm_eval(vcm, co->stack, frame->silently);
     if (v == PURC_VARIANT_INVALID)
         return -1;
 
