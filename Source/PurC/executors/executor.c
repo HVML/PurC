@@ -93,7 +93,14 @@ void pcexecutor_init_once(void)
 
 void pcexecutor_init_instance(struct pcinst *inst)
 {
-    struct pcexecutor_heap *heap = &inst->executor_heap;
+    struct pcexecutor_heap *heap = inst->executor_heap;
+    PC_ASSERT(heap == NULL);
+    heap = (struct pcexecutor_heap*)calloc(1, sizeof(*heap));
+    if (!heap)
+        return;
+
+    inst->executor_heap = heap;
+
     heap->debug_flex = 0;
     heap->debug_bison = 0;
 
@@ -114,18 +121,24 @@ void pcexecutor_init_instance(struct pcinst *inst)
 
 void pcexecutor_cleanup_instance(struct pcinst *inst)
 {
-    struct pcexecutor_heap *heap = &inst->executor_heap;
+    struct pcexecutor_heap *heap = inst->executor_heap;
+
+    if (!heap)
+        return;
 
     if (heap->executors) {
         pcutils_map_destroy(heap->executors);
         heap->executors = NULL;
     }
+
+    free(heap);
+    inst->executor_heap = NULL;
 }
 
 void pcexecutor_set_debug(int debug_flex, int debug_bison)
 {
     struct pcexecutor_heap *heap;
-    heap = &pcinst_current()->executor_heap;
+    heap = pcinst_current()->executor_heap;
 
     heap->debug_flex  = debug_flex;
     heap->debug_bison = debug_bison;
@@ -134,7 +147,7 @@ void pcexecutor_set_debug(int debug_flex, int debug_bison)
 void pcexecutor_get_debug(int *debug_flex, int *debug_bison)
 {
     struct pcexecutor_heap *heap;
-    heap = &pcinst_current()->executor_heap;
+    heap = pcinst_current()->executor_heap;
 
     if (debug_flex)
         *debug_flex  = heap->debug_flex;
@@ -154,7 +167,7 @@ bool purc_register_executor(const char* name, purc_exec_ops_t ops)
     int r = 0;
 
     struct pcexecutor_heap *heap;
-    heap = &pcinst_current()->executor_heap;
+    heap = pcinst_current()->executor_heap;
     if (!heap->executors) {
         heap->executors = pcutils_map_create(NULL, NULL,
             NULL, free_pcexec_val,
@@ -206,7 +219,7 @@ get_executor(const char* name, purc_exec_ops_t ops)
     pcutils_map_entry *entry = NULL;
 
     struct pcexecutor_heap *heap;
-    heap = &pcinst_current()->executor_heap;
+    heap = pcinst_current()->executor_heap;
     if (!heap) {
         pcinst_set_error(PCEXECUTOR_ERROR_NOT_EXISTS);
         return false;
