@@ -20,8 +20,10 @@ extern void get_variant_total_info (size_t *mem, size_t *value, size_t *resv);
 
 TEST(dvobjs, basic)
 {
+    char buff[PATH_MAX + 1];
     char *cwd;
-    cwd = get_current_dir_name();
+    cwd = getcwd(buff, sizeof(buff));
+
     purc_instance_extra_info info = {};
     int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
