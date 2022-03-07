@@ -480,38 +480,68 @@ PCA_EXPORT purc_rdrprot_t
 pcrdr_conn_protocol(pcrdr_conn* conn);
 
 typedef enum {
-    PCRDR_MSG_TYPE_VOID = 0,
+    PCRDR_MSG_TYPE_FIRST = 0,
+
+    PCRDR_MSG_TYPE_VOID = PCRDR_MSG_TYPE_FIRST,
     PCRDR_MSG_TYPE_REQUEST,
     PCRDR_MSG_TYPE_RESPONSE,
     PCRDR_MSG_TYPE_EVENT,
+
+    /* XXX: change this if you append a new enumerator */
+    PCRDR_MSG_TYPE_LAST = PCRDR_MSG_TYPE_EVENT,
 } pcrdr_msg_type;
 
+#define PCRDR_MSG_TYPE_NR   \
+    (PCRDR_MSG_TYPE_LAST - PCRDR_MSG_TYPE_FIRST + 1)
+
 typedef enum {
-    PCRDR_MSG_TARGET_SESSION = 0,
+    PCRDR_MSG_TARGET_FIRST = 0,
+
+    PCRDR_MSG_TARGET_SESSION = PCRDR_MSG_TARGET_FIRST,
     PCRDR_MSG_TARGET_WORKSPACE,
     PCRDR_MSG_TARGET_PLAINWINDOW,
     PCRDR_MSG_TARGET_TABBEDWINDOW,
     PCRDR_MSG_TARGET_TABPAGE,
     PCRDR_MSG_TARGET_DOM,
+    PCRDR_MSG_TARGET_THREAD,
+
+    /* XXX: change this if you append a new enumerator */
+    PCRDR_MSG_TARGET_LAST = PCRDR_MSG_TARGET_THREAD,
 } pcrdr_msg_target;
 
+#define PCRDR_MSG_TARGET_NR     \
+    (PCRDR_MSG_TARGET_LAST - PCRDR_MSG_TARGET_FIRST + 1)
+
 typedef enum {
-    PCRDR_MSG_ELEMENT_TYPE_VOID = 0,
+    PCRDR_MSG_ELEMENT_TYPE_FIRST = 0,
+
+    PCRDR_MSG_ELEMENT_TYPE_VOID = PCRDR_MSG_ELEMENT_TYPE_FIRST,
     PCRDR_MSG_ELEMENT_TYPE_CSS,
     PCRDR_MSG_ELEMENT_TYPE_XPATH,
     PCRDR_MSG_ELEMENT_TYPE_HANDLE,
     PCRDR_MSG_ELEMENT_TYPE_HANDLES,
     PCRDR_MSG_ELEMENT_TYPE_ID,
+
+    /* XXX: change this if you append a new enumerator */
+    PCRDR_MSG_ELEMENT_TYPE_LAST = PCRDR_MSG_ELEMENT_TYPE_ID,
 } pcrdr_msg_element_type;
 
-PCA_EXPORT pcrdr_msg_type
-pcrdr_message_get_type(const pcrdr_msg *msg);
+#define PCRDR_MSG_ELEMENT_TYPE_NR     \
+    (PCRDR_MSG_ELEMENT_TYPE_LAST - PCRDR_MSG_ELEMENT_TYPE_FIRST + 1)
 
 typedef enum {
-    PCRDR_MSG_DATA_TYPE_VOID = 0,
+    PCRDR_MSG_DATA_TYPE_FIRST = 0,
+
+    PCRDR_MSG_DATA_TYPE_VOID = PCRDR_MSG_DATA_TYPE_FIRST,
     PCRDR_MSG_DATA_TYPE_EJSON,
     PCRDR_MSG_DATA_TYPE_TEXT,
+
+    /* XXX: change this if you append a new enumerator */
+    PCRDR_MSG_DATA_TYPE_LAST = PCRDR_MSG_DATA_TYPE_TEXT,
 } pcrdr_msg_data_type;
+
+#define PCRDR_MSG_DATA_TYPE_NR     \
+    (PCRDR_MSG_DATA_TYPE_LAST - PCRDR_MSG_DATA_TYPE_FIRST + 1)
 
 struct pcrdr_msg {
     pcrdr_msg_type          type;
