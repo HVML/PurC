@@ -970,16 +970,16 @@ pcrdr_purcmc_send_text_packet(pcrdr_conn* conn,
  */
 
 PCA_EXPORT pcrdr_msg *
-pcrdr_thread_put_msg(const char *thread_token, pcrdr_msg *msg);
+pcrdr_thread_put_msg(purc_atom_t endpoint_atom, pcrdr_msg *msg);
 
 PCA_EXPORT pcrdr_msg *
-pcrdr_thread_get_msg(const char *thread_token);
+pcrdr_thread_get_msg(purc_atom_t endpoint_atom);
 
 PCA_EXPORT bool
-pcrdr_thread_create_transfer_buffer(const char *thread_token);
+pcrdr_thread_create_move_buffer(void);
 
 PCA_EXPORT bool
-pcrdr_thread_destroy_transfer_buffer(const char *thread_token);
+pcrdr_thread_destroy_move_buffer(void);
 
 /**@}*/
 
