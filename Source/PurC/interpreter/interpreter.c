@@ -534,6 +534,7 @@ push_stack_frame(pcintr_stack_t stack)
         return NULL;
     }
 
+    frame->silently = false;
     return frame;
 }
 
@@ -686,6 +687,12 @@ pcintr_vdom_walk_attrs(struct pcintr_stack_frame *frame,
         return r;
 
     return 0;
+}
+
+bool
+pcintr_is_element_silently(struct pcvdom_element *element)
+{
+    return element ? pcvdom_element_is_silently(element) : false;
 }
 
 static void
@@ -869,6 +876,7 @@ on_select_child(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 
         child_frame->ops = pcintr_get_ops_by_element(element);
         child_frame->pos = element;
+        child_frame->silently = pcintr_is_element_silently(child_frame->pos);
         child_frame->edom_element = frame->edom_element;
         if (pcvdom_element_is_hvml_native(element)) {
             child_frame->scope = frame->scope;
@@ -1697,6 +1705,7 @@ pcintr_handle_message(void *ctxt)
     frame->ops = pcintr_get_ops_by_element(observer->pos);
     frame->scope = observer->scope;
     frame->pos = observer->pos;
+    frame->silently = pcintr_is_element_silently(frame->pos);
     frame->edom_element = observer->edom_element;
     frame->next_step = NEXT_STEP_AFTER_PUSHED;
 

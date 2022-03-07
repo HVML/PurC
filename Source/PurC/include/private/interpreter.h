@@ -239,6 +239,8 @@ struct pcintr_stack_frame {
 
     // coordinated between element-implementer and coroutine-coordinator
     preemptor_f        preemptor;
+
+    bool silently;
 };
 
 struct pcintr_dynamic_args {
