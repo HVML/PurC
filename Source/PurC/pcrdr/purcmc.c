@@ -446,12 +446,6 @@ done:
     return err_code;
 }
 
-static inline void my_log (const char* str)
-{
-    ssize_t n = write (2, str, strlen (str));
-    n = n & n;
-}
-
 int pcrdr_purcmc_read_packet_alloc (pcrdr_conn* conn, void **packet, size_t *sz_packet)
 {
     char* packet_buf = NULL;
