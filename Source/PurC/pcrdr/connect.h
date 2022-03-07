@@ -36,9 +36,6 @@ struct pending_request {
     struct list_head list;
 
     purc_variant_t      request_id;
-    pcrdr_msg_target    request_target;
-    uint64_t            request_target_value;
-
     pcrdr_response_handler response_handler;
     void *context;
 

@@ -25,7 +25,7 @@
 
 #include "config.h"
 #include "purc-pcrdr.h"
-#include "private/list.h"
+#include "private/kvlist.h"
 #include "private/debug.h"
 #include "private/utils.h"
 #include "private/ports.h"
@@ -53,12 +53,12 @@
 #define RENDERER_FEATURES                           \
     "HEADLESS:100\n"                                \
     "HTML:5.3/XGML:1.0/XML:1.0\n"                   \
-    "workspace:" __STRING(NR_WORKSPACES)            \
-    "/tabbedWindow:" __STRING(NR_TABBEDWINDOWS)     \
-    "/tabbedPage:" __STRING(NR_TABBEDPAGES)         \
-    "/plainWindow:" __STRING(NR_PLAINWINDOWS)       \
-    "/windowLevel:" __STRING(NR_WINDOWLEVELS) "\n"  \
-    "windowLevels:" NAME_WINDOW_LEVEL_0 "," NAME_WINDOW_LEVEL_1
+    "workspace:" __STRING(8)            \
+    "/tabbedWindow:" __STRING(8)     \
+    "/tabbedPage:" __STRING(32)         \
+    "/plainWindow:" __STRING(256)       \
+    "/windowLevel:" __STRING(2) "\n"  \
+    "windowLevels:" "normal" "," "topmost"
 
 struct tabbed_window_info {
     // handle of this tabbedWindow; NULL for not used slot.
@@ -94,15 +94,28 @@ struct workspace_info {
     void *domdocs[NR_PLAINWINDOWS];
 };
 
-struct pcrdr_prot_data {
-    // FILE pointer to serialize the message.
-    FILE *fp;
-
+struct session_info {
     // number of workspaces
     int nr_workspaces;
 
     // workspaces
     struct workspace_info workspaces[NR_WORKSPACES];
+};
+
+struct result_info {
+    int         retCode;
+    uint64_t    resultValue;
+};
+
+struct pcrdr_prot_data {
+    // FILE pointer to serialize the message.
+    FILE                *fp;
+
+    // requestId -> results;
+    struct kvlist        results;
+
+    // FILE pointer to serialize the message.
+    struct session_info *session;
 };
 
 static int my_wait_message(pcrdr_conn* conn, int timeout_ms)
@@ -126,39 +139,6 @@ static int my_wait_message(pcrdr_conn* conn, int timeout_ms)
     return 1;
 }
 
-static pcrdr_msg *my_read_message(pcrdr_conn* conn)
-{
-    pcrdr_msg* msg = NULL;
-    int ret_code = PCRDR_SC_OK;
-    uint64_t result_value = 0;
-
-    if (list_empty(&conn->pending_requests)) {
-        purc_set_error(PCRDR_ERROR_UNEXPECTED);
-        return NULL;
-    }
-
-    struct pending_request *pr;
-    pr = list_first_entry(&conn->pending_requests,
-            struct pending_request, list);
-
-    if (pr->request_target == PCRDR_MSG_TARGET_SESSION &&
-            pr->request_target_value == 0) {
-        result_value = (uint64_t)conn->prot_data;
-    }
-    else {
-    }
-
-    msg = pcrdr_make_response_message(
-            purc_variant_get_string_const(pr->request_id),
-            ret_code, result_value,
-            PCRDR_MSG_DATA_TYPE_VOID, NULL, 0);
-    if (msg == NULL) {
-        purc_set_error(PCRDR_ERROR_NOMEM);
-    }
-
-    return msg;
-}
-
 static ssize_t write_to_log(void *ctxt, const void *buf, size_t count)
 {
     FILE *fp = (FILE *)ctxt;
@@ -169,14 +149,78 @@ static ssize_t write_to_log(void *ctxt, const void *buf, size_t count)
     return -1;
 }
 
+static pcrdr_msg *my_read_message(pcrdr_conn* conn)
+{
+    pcrdr_msg* msg = NULL;
+    struct result_info **data;
+
+    if (list_empty(&conn->pending_requests)) {
+        purc_set_error(PCRDR_ERROR_UNEXPECTED);
+        return NULL;
+    }
+
+    struct pending_request *pr;
+    pr = list_first_entry(&conn->pending_requests,
+            struct pending_request, list);
+
+    const char *request_id;
+    request_id = purc_variant_get_string_const(pr->request_id);
+
+    data = pcutils_kvlist_get(&conn->prot_data->results, request_id);
+    if (data) {
+        struct result_info *result = *data;
+        msg = pcrdr_make_response_message(
+                purc_variant_get_string_const(pr->request_id),
+                result->retCode, result->resultValue,
+                PCRDR_MSG_DATA_TYPE_VOID, NULL, 0);
+
+        pcutils_kvlist_delete(&conn->prot_data->results, request_id);
+        free(result);
+
+        if (msg == NULL) {
+            purc_set_error(PCRDR_ERROR_NOMEM);
+        }
+        else {
+            fputs("<<<\n", conn->prot_data->fp);
+            pcrdr_serialize_message(msg,
+                        (cb_write)write_to_log, conn->prot_data->fp);
+            fputs("\n\n", conn->prot_data->fp);
+        }
+    }
+    else {
+        purc_set_error(PCRDR_ERROR_UNEXPECTED);
+        return NULL;
+    }
+
+    return msg;
+}
+
+static int evaluate_result(struct pcrdr_prot_data *prot_data,
+        const pcrdr_msg *msg)
+{
+    struct result_info *result;
+
+    result = malloc(sizeof(*result));
+    result->retCode = PCRDR_SC_OK;
+    result->resultValue = 0;
+
+    pcutils_kvlist_set(&prot_data->results,
+            purc_variant_get_string_const(msg->requestId),
+            &result);
+
+    return 0;
+}
+
 static int my_send_message(pcrdr_conn* conn, pcrdr_msg *msg)
 {
+    fputs(">>>\n", conn->prot_data->fp);
     if (pcrdr_serialize_message(msg,
                 (cb_write)write_to_log, conn->prot_data->fp) < 0) {
         goto failed;
     }
+    fputs("\n\n", conn->prot_data->fp);
 
-    fputs("\n", conn->prot_data->fp);
+    evaluate_result(conn->prot_data, msg);
     return 0;
 
 failed:
@@ -191,6 +235,18 @@ static int my_ping_peer(pcrdr_conn* conn)
 
 static int my_disconnect(pcrdr_conn* conn)
 {
+    const char *name;
+    void *next, *data;
+    struct result_info *result;
+
+    kvlist_for_each_safe(&conn->prot_data->results, name, next, data) {
+        result = *(struct result_info **)data;
+
+        pcutils_kvlist_delete(&conn->prot_data->results, name);
+        free(result);
+    }
+
+    pcutils_kvlist_free(&conn->prot_data->results);
     fclose(conn->prot_data->fp);
     free(conn->prot_data);
     return 0;
@@ -255,6 +311,8 @@ pcrdr_msg *pcrdr_headless_connect(const char* renderer_uri,
         goto failed;
     }
 
+    pcutils_kvlist_init(&(*conn)->prot_data->results, NULL);
+
     msg = pcrdr_make_response_message("0",
             PCRDR_SC_OK, 0,
             PCRDR_MSG_DATA_TYPE_TEXT, RENDERER_FEATURES,
@@ -262,6 +320,12 @@ pcrdr_msg *pcrdr_headless_connect(const char* renderer_uri,
     if (msg == NULL) {
         purc_set_error(PCRDR_ERROR_NOMEM);
         goto failed;
+    }
+    else {
+        fputs("<<<\n", (*conn)->prot_data->fp);
+        pcrdr_serialize_message(msg,
+                    (cb_write)write_to_log, (*conn)->prot_data->fp);
+        fputs("\n\n", (*conn)->prot_data->fp);
     }
 
     (*conn)->prot = PURC_RDRPROT_HEADLESS;
