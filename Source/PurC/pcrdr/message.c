@@ -848,7 +848,7 @@ serialize_message_data(const pcrdr_msg *msg, cb_write fn, void *ctxt)
             strlen(data_type_names[msg->dataType]));
     fn(ctxt, STR_LINE_SEPARATOR, sizeof(STR_LINE_SEPARATOR) - 1);
 
-    /* _data_len: <data_length> */
+    /* dataLen: <data_length> */
     fn(ctxt, STR_KEY_DATA_LEN, sizeof(STR_KEY_DATA_LEN) - 1);
     fn(ctxt, STR_PAIR_SEPARATOR, sizeof(STR_PAIR_SEPARATOR) - 1);
     n = snprintf(buff, sizeof(buff), "%lu", (unsigned long int)text_len);
