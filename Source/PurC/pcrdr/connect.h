@@ -35,12 +35,17 @@
 struct pending_request {
     struct list_head list;
 
-    purc_variant_t request_id;
+    purc_variant_t      request_id;
+    pcrdr_msg_target    request_target;
+    uint64_t            request_target_value;
+
     pcrdr_response_handler response_handler;
     void *context;
 
     time_t time_expected;
 };
+
+struct pcrdr_prot_data;
 
 struct pcrdr_conn {
     int prot;
@@ -54,9 +59,9 @@ struct pcrdr_conn {
     const char* runner_name;
 
     void *user_data;
+    struct pcrdr_prot_data *prot_data;
 
     pcrdr_request_handler request_handler;
-
     pcrdr_event_handler event_handler;
 
     /* the pending requests queue */

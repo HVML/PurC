@@ -180,6 +180,7 @@ typedef enum {
 
 /* Connection types */
 enum {
+    CT_PLAIN_FILE = 0,
     CT_UNIX_SOCKET = 1,
     CT_WEB_SOCKET,
 };
