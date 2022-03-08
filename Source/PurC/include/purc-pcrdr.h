@@ -65,10 +65,10 @@ enum {
 #define PCRDR_OPERATION_ENDSESSION          "endSession"
     PCRDR_K_OPERATION_CREATEWORKSPACE,
 #define PCRDR_OPERATION_CREATEWORKSPACE     "createWorkspace"
-    PCRDR_K_OPERATION_DESTROYWORKSPACE,
-#define PCRDR_OPERATION_DESTROYWORKSPACE    "destroyWorkspace"
     PCRDR_K_OPERATION_UPDATEWORKSPACE,
 #define PCRDR_OPERATION_UPDATEWORKSPACE     "updateWorkspace"
+    PCRDR_K_OPERATION_DESTROYWORKSPACE,
+#define PCRDR_OPERATION_DESTROYWORKSPACE    "destroyWorkspace"
     PCRDR_K_OPERATION_CREATEPLAINWINDOW,
 #define PCRDR_OPERATION_CREATEPLAINWINDOW   "createPlainWindow"
     PCRDR_K_OPERATION_UPDATEPLAINWINDOW,
@@ -589,7 +589,7 @@ pcrdr_make_void_message(void);
  *
  * @param target: the target of the message.
  * @param target_value: the value of the target object
- * @param operation: the request operation.
+ * @param operation: the request operation, must be a static const string.
  * @param element_type: the element type of the request
  * @param element: the pointer to the element(s) (nullable).
  * @param property: the property (nullable).

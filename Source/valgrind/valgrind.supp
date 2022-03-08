@@ -253,7 +253,6 @@
    fun:init_buidin_doc_variable
    fun:purc_load_hvml_from_rwstream_ex
    fun:purc_load_hvml_from_string_ex
-   fun:purc_load_hvml_from_string
 }
 {
    <purc_init>

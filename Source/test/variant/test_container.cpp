@@ -149,7 +149,8 @@ class TestCaseData : public testing::TestWithParam<test_case>
 {
 protected:
     void SetUp() {
-        purc_init ("cn.fmsoft.hybridos.test", "purc_variant", NULL);
+        purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+                "purc_variant", NULL);
     }
     void TearDown() {
         purc_cleanup ();

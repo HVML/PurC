@@ -80,8 +80,6 @@ typedef struct purc_instance_extra_info {
     /** the SSL key if using Secured WebSocket. */
     const char      *ssl_key;
 
-    /** Whether to initialize the remote fetcher. */
-    bool            enable_remote_fetcher;
 } purc_instance_extra_info;
 
 PCA_EXTERN_C_BEGIN
@@ -95,6 +93,8 @@ PCA_EXTERN_C_BEGIN
 #define PURC_HAVE_XGML          0x0040
 #define PURC_HAVE_HVML          0x0080
 #define PURC_HAVE_PCRDR         0x0100
+#define PURC_HAVE_FETCHER       0x0200
+#define PURC_HAVE_FETCHER_R     0x0400
 
 #define PURC_MODULE_UTILS      (PURC_HAVE_UTILS)
 #define PURC_MODULE_DOM        (PURC_MODULE_UTILS    | PURC_HAVE_DOM)
@@ -103,7 +103,8 @@ PCA_EXTERN_C_BEGIN
 #define PURC_MODULE_VARIANT    (PURC_MODULE_UTILS    | PURC_HAVE_VARIANT)
 #define PURC_MODULE_EJSON      (PURC_MODULE_VARIANT  | PURC_HAVE_EJSON)
 #define PURC_MODULE_XGML       (PURC_MODULE_EJSON    | PURC_HAVE_XGML)
-#define PURC_MODULE_HVML       (PURC_MODULE_EJSON    | PURC_HAVE_HVML)
+#define PURC_MODULE_HVML       (PURC_MODULE_EJSON    | PURC_HAVE_HVML | \
+    PURC_HAVE_FETCHER)
 #define PURC_MODULE_PCRDR      (PURC_MODULE_EJSON    | PURC_HAVE_PCRDR)
 #define PURC_MODULE_ALL         0xFFFF
 

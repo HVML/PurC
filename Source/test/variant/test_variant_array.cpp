@@ -16,7 +16,8 @@ TEST(variant_array, init_with_1_str)
     bool cleanup = false;
     struct purc_variant_stat *stat;
 
-    ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ(ret, PURC_ERROR_OK);
 
     stat = purc_variant_usage_stat();
@@ -70,7 +71,8 @@ TEST(variant_array, init_0_elem)
     bool cleanup = false;
     struct purc_variant_stat *stat;
 
-    ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ(ret, PURC_ERROR_OK);
 
     stat = purc_variant_usage_stat();
@@ -108,7 +110,8 @@ TEST(variant_array, add_1_str)
     bool cleanup = false;
     struct purc_variant_stat *stat;
 
-    ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ(ret, PURC_ERROR_OK);
 
     stat = purc_variant_usage_stat();
@@ -169,7 +172,8 @@ TEST(variant_array, add_n_str)
     bool cleanup = false;
     struct purc_variant_stat *stat;
 
-    ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ(ret, PURC_ERROR_OK);
 
     stat = purc_variant_usage_stat();
@@ -230,7 +234,8 @@ TEST(variant_array, add_n_str_and_remove)
     bool cleanup = false;
     struct purc_variant_stat *stat;
 
-    ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ(ret, PURC_ERROR_OK);
 
     stat = purc_variant_usage_stat();
@@ -298,7 +303,8 @@ TEST(variant_array, add_n_str_and_remove_pub)
     bool cleanup = false;
     struct purc_variant_stat *stat;
 
-    ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ(ret, PURC_ERROR_OK);
 
     stat = purc_variant_usage_stat();
@@ -369,7 +375,8 @@ TEST(variant_array, make_ref_add_unref_unref)
     bool cleanup = false;
     struct purc_variant_stat *stat;
 
-    ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ(ret, PURC_ERROR_OK);
 
     stat = purc_variant_usage_stat();
@@ -464,7 +471,8 @@ TEST(variant_array, sort)
     bool cleanup = false;
     struct purc_variant_stat *stat;
 
-    ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ(ret, PURC_ERROR_OK);
 
     stat = purc_variant_usage_stat();

@@ -60,7 +60,7 @@ pcrdr_msg *pcrdr_make_request_message(
     msg->targetValue = target_value;
 
     assert(operation);
-    msg->operation = purc_variant_make_string(operation, true);
+    msg->operation = purc_variant_make_string_static(operation, true);
     if (msg->operation == NULL)
         goto failed;
 

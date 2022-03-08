@@ -38,7 +38,8 @@ TEST(set, unique_key_find)
     bool cleanup = false;
     struct purc_variant_stat *stat;
 
-    ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ(ret, PURC_ERROR_OK);
 
     stat = purc_variant_usage_stat();

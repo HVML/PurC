@@ -81,9 +81,11 @@ public:
         if (runner == NULL)
             runner = RUNNER_NAME;
 
-        info.enable_remote_fetcher = enable_remote_fetcher;
-        if (purc_init (app, runner, &info))
+        unsigned int modules = enable_remote_fetcher ? PURC_MODULE_HVML :
+            PURC_MODULE_HVML ^ PURC_HAVE_FETCHER;
+        if (purc_init_ex (modules, app, runner, &info))
             return;
+
         init_ok = 0;
     }
 
@@ -93,9 +95,11 @@ public:
         const char *app = APP_NAME;
         const char *runner = RUNNER_NAME;
 
-        info.enable_remote_fetcher = enable_remote_fetcher;
-        if (purc_init (app, runner, &info))
+        unsigned int modules = enable_remote_fetcher ? PURC_MODULE_HVML :
+            PURC_MODULE_HVML ^ PURC_HAVE_FETCHER;
+        if (purc_init_ex (modules, app, runner, &info))
             return;
+
         init_ok = 0;
     }
 

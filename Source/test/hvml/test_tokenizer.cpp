@@ -88,7 +88,8 @@ class hvml_parser_next_token : public testing::TestWithParam<hvml_token_test_dat
 {
 protected:
     void SetUp() {
-        purc_init ("cn.fmsoft.hybridos.test", "hvml_token", NULL);
+        purc_init_ex (PURC_MODULE_HVML, "cn.fmsoft.hybridos.test",
+                "hvml_token", NULL);
         name = GetParam().name;
         hvml = GetParam().hvml;
         comp = GetParam().comp;
