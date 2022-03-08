@@ -51,6 +51,8 @@
 #define PCRDR_PURCMC_WS_PORT                    "7702"
 #define PCRDR_PURCMC_WS_PORT_RESERVED           "7703"
 
+#define PCRDR_HEADLESS_LOGFILE_PATH_FORMAT      "/var/tmp/purc-%s-%s-msg.log"
+
 #define PCRDR_LOCALHOST                 "localhost"
 #define PCRDR_NOT_AVAILABLE             "<N/A>"
 
@@ -173,13 +175,22 @@ enum {
 /* Protocol types */
 typedef enum {
     PURC_RDRPROT_HEADLESS  = 0,
+#define PURC_RDRPROT_NAME_HEADLESS      "HEADLESS"
+#define PURC_RDRPROT_VERSION_HEADLESS   100
     PURC_RDRPROT_THREAD,
+#define PURC_RDRPROT_NAME_THREAD        "THREAD"
+#define PURC_RDRPROT_VERSION_THREAD     100
     PURC_RDRPROT_PURCMC,
+#define PURC_RDRPROT_NAME_PURCMC        PCRDR_PURCMC_PROTOCOL_NAME
+#define PURC_RDRPROT_VERSION_PURCMC     PCRDR_PURCMC_PROTOCOL_VERSION
     PURC_RDRPROT_HIBUS,
+#define PURC_RDRPROT_NAME_HIBUS         "HIBUS"
+#define PURC_RDRPROT_VERSION_HIBUS      100
 } purc_rdrprot_t;
 
 /* Connection types */
 enum {
+    CT_PLAIN_FILE = 0,
     CT_UNIX_SOCKET = 1,
     CT_WEB_SOCKET,
 };
@@ -844,6 +855,42 @@ pcrdr_send_request_and_wait_response(pcrdr_conn* conn,
 PCA_EXPORT int
 pcrdr_ping_renderer(pcrdr_conn* conn);
 
+/**
+ * Connect to a headless renderer.
+ *
+ * @param renderer_uri: the URI to the renderer.
+ * @param app_name: the app name.
+ * @param runner_name: the runner name.
+ * @param conn: the pointer to a pcrdr_conn* to return the renderer connection.
+ *
+ * Connects to a headless renderer.
+ *
+ * Returns: The initial response message.
+ *
+ * Since: 0.1.0
+ */
+pcrdr_msg *
+pcrdr_headless_connect(const char* renderer_uri,
+        const char* app_name, const char* runner_name, pcrdr_conn** conn);
+
+/**
+ * Connect to a PurCMC renderer.
+ *
+ * @param renderer_uri: the URI of the renderer.
+ * @param app_name: the app name.
+ * @param runner_name: the runner name.
+ * @param conn: the pointer to a pcrdr_conn* to return the renderer connection.
+ *
+ * Connects to a PurCMC renderer.
+ *
+ * Returns: The initial response message.
+ *
+ * Since: 0.1.0
+ */
+pcrdr_msg *
+pcrdr_purcmc_connect(const char* renderer_uri,
+        const char* app_name, const char* runner_name, pcrdr_conn** conn);
+
 /**@}*/
 
 /**
@@ -852,43 +899,6 @@ pcrdr_ping_renderer(pcrdr_conn* conn);
  * The functions for PurCMC renderer.
  * @{
  */
-
-/**
- * Connect to the PurCMC server via UNIX domain socket.
- *
- * @param path_to_socket: the path to the unix socket.
- * @param app_name: the app name.
- * @param runner_name: the runner name.
- * @param conn: the pointer to a pcrdr_conn* to return the renderer connection.
- *
- * Connects to a PurCMC server via UNIX domain socket.
- *
- * Returns: -1 for error; zero means everything is ok.
- *
- * Since: 0.1.0
- */
-PCA_EXPORT int
-pcrdr_purcmc_connect_via_unix_socket(const char *path_to_socket,
-        const char *app_name, const char *runner_name, pcrdr_conn** conn);
-
-/**
- * Connect to the PurCMC server via WebSocket.
- *
- * @param srv_host_name: the host name of the PurCMC server.
- * @param port: the port.
- * @param app_name: the app name.
- * @param runner_name: the runner name.
- * @param conn: the pointer to a pcrdr_conn* to return the renderer connection.
- *
- * Connects to a PurCMC server via WebSocket.
- *
- * Returns: -1 for error; zero means everything is ok.
- *
- * Note that this function is not implemented so far.
- */
-PCA_EXPORT int
-pcrdr_purcmc_connect_via_web_socket(const char *srv_host_name, int port,
-        const char *app_name, const char *runner_name, pcrdr_conn** conn);
 
 /**
  * Read a packet (pre-allocation version).

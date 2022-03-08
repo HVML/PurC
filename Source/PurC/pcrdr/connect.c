@@ -129,7 +129,7 @@ int pcrdr_free_connection (pcrdr_conn* conn)
     free (conn->own_host_name);
 
     struct pending_request *pr, *n;
-    list_for_each_entry_safe (pr, n, &conn->pending_requests, list) {
+    list_for_each_entry_safe(pr, n, &conn->pending_requests, list) {
         if (pr->response_handler) {
             pr->response_handler(conn,
                     purc_variant_get_string_const(pr->request_id),
@@ -161,6 +161,7 @@ int pcrdr_disconnect (pcrdr_conn* conn)
             PCRDR_MSG_DATA_TYPE_VOID, NULL, 0);
     if (msg) {
         pcrdr_send_request(conn, msg, PCRDR_TIME_DEF_EXPECTED, NULL, NULL);
+        pcrdr_release_message(msg);
     }
 
     err_code = conn->disconnect (conn);
@@ -260,7 +261,7 @@ check_timeout_requests(pcrdr_conn *conn)
     struct pending_request *pr, *n;
     time_t now = purc_get_monotoic_time();
 
-    list_for_each_entry_safe (pr, n, &conn->pending_requests, list) {
+    list_for_each_entry_safe(pr, n, &conn->pending_requests, list) {
         if (now >= pr->time_expected) {
             if (pr->response_handler) {
                 pr->response_handler(conn,
