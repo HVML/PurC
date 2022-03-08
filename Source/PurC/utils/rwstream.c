@@ -408,18 +408,29 @@ struct wo_rwstream
     purc_rwstream rwstream;
     void *ctxt;
     pcrws_cb_write cb_write;
+    off_t wrotten_bytes;
 };
+
+static ssize_t wo_tell (purc_rwstream_t rws)
+{
+    struct wo_rwstream *wo_rws = (struct wo_rwstream *)rws;
+
+    return wo_rws->wrotten_bytes;
+}
 
 static ssize_t wo_write (purc_rwstream_t rws, const void* buf, size_t count)
 {
     struct wo_rwstream *wo_rws = (struct wo_rwstream *)rws;
+    ssize_t bytes = wo_rws->cb_write (wo_rws->ctxt, buf, count);
 
-    return wo_rws->cb_write (wo_rws->ctxt, buf, count);
+    if (bytes > 0)
+        wo_rws->wrotten_bytes += bytes;
+    return bytes;
 }
 
 static rwstream_funcs wo_funcs = {
     NULL,
-    NULL,
+    wo_tell,
     NULL,
     wo_write,
     NULL,
@@ -441,6 +452,7 @@ purc_rwstream_new_for_serialization (void *ctxt, pcrws_cb_write fn)
     rws->rwstream.funcs = &wo_funcs;
     rws->ctxt = ctxt;
     rws->cb_write = fn;
+    rws->wrotten_bytes = 0;
     return (purc_rwstream_t)rws;
 }
 
