@@ -1,5 +1,5 @@
 /*
- * purcmc.c -- The implementation of HEADLESS protocol.
+ * headless.c -- The implementation of HEADLESS protocol.
  *      Created on 7 Mar 2022
  *
  * Copyright (C) 2022 FMSoft (http://www.fmsoft.cn)
@@ -1230,7 +1230,6 @@ static int my_disconnect(pcrdr_conn* conn)
 
 #define SCHEMA_LOCAL_FILE  "file://"
 
-/* returns 0 if all OK, -1 on error */
 pcrdr_msg *pcrdr_headless_connect(const char* renderer_uri,
         const char* app_name, const char* runner_name, pcrdr_conn** conn)
 {

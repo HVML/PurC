@@ -554,7 +554,12 @@ typedef enum {
 #define PCRDR_MSG_DATA_TYPE_NR     \
     (PCRDR_MSG_DATA_TYPE_LAST - PCRDR_MSG_DATA_TYPE_FIRST + 1)
 
-struct pcrdr_msg {
+/** the renderer message structure */
+struct pcrdr_msg
+{
+    /** the atom on behalf of the endpoint (thread) which owns this message. */
+    purc_atom_t             owner;
+
     pcrdr_msg_type          type;
     pcrdr_msg_target        target;
     pcrdr_msg_element_type  elementType;
@@ -865,12 +870,30 @@ pcrdr_ping_renderer(pcrdr_conn* conn);
  *
  * Connects to a headless renderer.
  *
- * Returns: The initial response message.
+ * Returns: The initial response message; NULL on error.
  *
  * Since: 0.1.0
  */
-pcrdr_msg *
+PCA_EXPORT pcrdr_msg *
 pcrdr_headless_connect(const char* renderer_uri,
+        const char* app_name, const char* runner_name, pcrdr_conn** conn);
+
+/**
+ * Connect to a thread renderer.
+ *
+ * @param renderer_uri: the endpoint name of the thread renderer.
+ * @param app_name: the app name.
+ * @param runner_name: the runner name.
+ * @param conn: the pointer to a pcrdr_conn* to return the renderer connection.
+ *
+ * Connects to a thread renderer.
+ *
+ * Returns: The initial response message; NULL on error.
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT pcrdr_msg *
+pcrdr_thread_connect(const char* renderer_uri,
         const char* app_name, const char* runner_name, pcrdr_conn** conn);
 
 /**
@@ -883,11 +906,11 @@ pcrdr_headless_connect(const char* renderer_uri,
  *
  * Connects to a PurCMC renderer.
  *
- * Returns: The initial response message.
+ * Returns: The initial response message; NULL on error.
  *
  * Since: 0.1.0
  */
-pcrdr_msg *
+PCA_EXPORT pcrdr_msg *
 pcrdr_purcmc_connect(const char* renderer_uri,
         const char* app_name, const char* runner_name, pcrdr_conn** conn);
 
@@ -979,16 +1002,96 @@ pcrdr_purcmc_send_text_packet(pcrdr_conn* conn,
  * @{
  */
 
+/**
+ * Move a message to the move buffer of the specified endpoint.
+ *
+ * @param endpoint_to: the atom on behalf of the endpoint who will take owner
+ *      of the message. If it is 0, means clone the message for
+ *      all endpoints which using the move buffers.
+ * @param msg: the pointer to a message structure.
+ *
+ * Returns: the number of messages moved (including the cloned ones);
+ *  0 on error.
+ *
+ * Note that the owner of the original message will change and the variants
+ * in the message will be moved as well. Hence, the subsequent call to
+ * `pcrdr_release_message()` in the current thread will do nothing.
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT size_t
+pcrdr_thread_move_msg(purc_atom_t endpoint_to, pcrdr_msg *msg);
+
+/**
+ * Get the number of messages in the move buffer of the current endpoint.
+ *
+ * Returns: the number of the messages waiting to move.
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT size_t
+pcrdr_thread_nr_moving_msgs(void);
+
+/**
+ * Retrieve a message in the move buffer of the current endpoint.
+ *
+ * @param index: the position of the message to retrieve.
+ *
+ * Returns: the read-only pointer to the message; NULL if there is no
+ *  any message in the move buffer or @index is out of valid range.
+ *
+ * Note that the message will be still kept in the move buffer, you cannot
+ * change anything in the message structure.
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT const pcrdr_msg *
+pcrdr_thread_retrieve_msg(size_t index);
+
+/**
+ * Take a message away from the move buffer of the current endpoint.
+ *
+ * @param index: the position of the message to take.
+ *
+ * Returns: the pointer to the message; @NULL if there is no any message
+ *  in the move buffer or @index is out of the valid range.
+ *
+ * Note that the variants in the message will be moved as well.
+ *
+ * Since: 0.1.0
+ */
 PCA_EXPORT pcrdr_msg *
-pcrdr_thread_put_msg(purc_atom_t endpoint_atom, pcrdr_msg *msg);
+pcrdr_thread_take_away_msg(size_t index);
 
-PCA_EXPORT pcrdr_msg *
-pcrdr_thread_get_msg(purc_atom_t endpoint_atom);
-
+/**
+ * Create the move buffer for the current thread.
+ *
+ * @param max_moving_msg: the maximal number of the messages waiting to move
+ *      in the new move buffer.
+ *
+ * Returns: @true for success, otherwise @false.
+ *
+ * Note that the thread must call `purc_init` to create a valid PurC instance
+ * before calling this function, that is, the module `variant`
+ * (PURC_MODULE_VARIANT) should be initialized.
+ *
+ * @see_also: purc_init_ex()
+ *
+ * Since: 0.1.0
+ */
 PCA_EXPORT bool
-pcrdr_thread_create_move_buffer(void);
+pcrdr_thread_create_move_buffer(size_t max_moving_msgs);
 
-PCA_EXPORT bool
+/**
+ * Destroy the move buffer for the current thread.
+ *
+ * Returns: The number of discarded messages waiting to move; -1 on error.
+ *
+ * @see_also: pcrdr_thread_create_move_buffer()
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT ssize_t
 pcrdr_thread_destroy_move_buffer(void);
 
 /**@}*/
