@@ -636,7 +636,7 @@ find_element(variant_set_t set, void *key)
 
 static int
 insert_or_replace(purc_variant_t set,
-        variant_set_t data, struct elem_node *node, bool override)
+        variant_set_t data, struct elem_node *node, bool overwrite)
 {
     struct rb_node **pnode = &data->elems.rb_node;
     struct rb_node *parent = NULL;
@@ -688,7 +688,7 @@ insert_or_replace(purc_variant_t set,
         return 0;
     }
 
-    if (!override) {
+    if (!overwrite) {
         return -1;
     }
 
@@ -822,7 +822,7 @@ set_remove(purc_variant_t set, variant_set_t data, struct elem_node *node)
 
 static int
 variant_set_add_val(purc_variant_t set,
-        variant_set_t data, purc_variant_t val, bool override)
+        variant_set_t data, purc_variant_t val, bool overwrite)
 {
     if (!val) {
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
@@ -843,7 +843,7 @@ variant_set_add_val(purc_variant_t set,
     if (!_new)
         return -1;
 
-    if (insert_or_replace(set, data, _new, override)) {
+    if (insert_or_replace(set, data, _new, overwrite)) {
         elem_node_release(_new);
         free(_new);
         return -1;
@@ -853,7 +853,7 @@ variant_set_add_val(purc_variant_t set,
 }
 
 static int
-variant_set_add_valsn(purc_variant_t set, variant_set_t data, bool override,
+variant_set_add_valsn(purc_variant_t set, variant_set_t data, bool overwrite,
     size_t sz, va_list ap)
 {
     size_t i = 0;
@@ -864,7 +864,7 @@ variant_set_add_valsn(purc_variant_t set, variant_set_t data, bool override,
             break;
         }
 
-        if (variant_set_add_val(set, data, v, override)) {
+        if (variant_set_add_val(set, data, v, overwrite)) {
             break;
         }
 
@@ -969,7 +969,7 @@ purc_variant_make_set (size_t sz, purc_variant_t unique_key,
 }
 
 bool
-purc_variant_set_add (purc_variant_t set, purc_variant_t value, bool override)
+purc_variant_set_add (purc_variant_t set, purc_variant_t value, bool overwrite)
 {
     PCVARIANT_CHECK_FAIL_RET(set && set->type==PVT(_SET) &&
         value && value->type==PVT(_OBJECT),
@@ -978,7 +978,7 @@ purc_variant_set_add (purc_variant_t set, purc_variant_t value, bool override)
     variant_set_t data = pcv_set_get_data(set);
     PC_ASSERT(data);
 
-    if (variant_set_add_val(set, data, value, override))
+    if (variant_set_add_val(set, data, value, overwrite))
         return false;
 
     size_t extra = variant_set_get_extra_size(data);
