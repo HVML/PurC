@@ -32,6 +32,7 @@
 #include "private/debug.h"
 #include "private/utils.h"
 #include "private/pcrdr.h"
+
 #include "connect.h"
 
 #include "pcrdr_err_msgs.inc"
@@ -52,9 +53,66 @@ static struct err_msg_seg _pcrdr_err_msgs_seg = {
     pcrdr_err_msgs
 };
 
+static struct pcrdr_opatom {
+    const char *op;
+    purc_atom_t atom;
+} pcrdr_opatoms[] = {
+    { PCRDR_OPERATION_STARTSESSION,         0 }, // "startSession"
+    { PCRDR_OPERATION_ENDSESSION,           0 }, // "endSession"
+    { PCRDR_OPERATION_CREATEWORKSPACE,      0 }, // "createWorkspace"
+    { PCRDR_OPERATION_UPDATEWORKSPACE,      0 }, // "updateWorkspace"
+    { PCRDR_OPERATION_DESTROYWORKSPACE,     0 }, // "destroyWorkspace"
+    { PCRDR_OPERATION_CREATEPLAINWINDOW,    0 }, // "createPlainWindow"
+    { PCRDR_OPERATION_UPDATEPLAINWINDOW,    0 }, // "updatePlainWindow"
+    { PCRDR_OPERATION_DESTROYPLAINWINDOW,   0 }, // "destroyPlainWindow"
+    { PCRDR_OPERATION_CREATETABBEDWINDOW,   0 }, // "createTabbedWindow"
+    { PCRDR_OPERATION_UPDATETABBEDWINDOW,   0 }, // "updateTabbedWindow"
+    { PCRDR_OPERATION_DESTROYTABBEDWINDOW,  0 }, // "destroyTabbedWindow"
+    { PCRDR_OPERATION_CREATETABPAGE,        0 }, // "createTabpage"
+    { PCRDR_OPERATION_UPDATETABPAGE,        0 }, // "updateTabpage"
+    { PCRDR_OPERATION_DESTROYTABPAGE,       0 }, // "destroyTabpage"
+    { PCRDR_OPERATION_LOAD,                 0 }, // "load"
+    { PCRDR_OPERATION_WRITEBEGIN,           0 }, // "writeBegin"
+    { PCRDR_OPERATION_WRITEMORE,            0 }, // "writeMore"
+    { PCRDR_OPERATION_WRITEEND,             0 }, // "writeEnd"
+    { PCRDR_OPERATION_APPEND,               0 }, // "append"
+    { PCRDR_OPERATION_PREPEND,              0 }, // "prepend"
+    { PCRDR_OPERATION_INSERTBEFORE,         0 }, // "insertBefore"
+    { PCRDR_OPERATION_INSERTAFTER,          0 }, // "insertAfter"
+    { PCRDR_OPERATION_DISPLACE,             0 }, // "displace"
+    { PCRDR_OPERATION_UPDATE,               0 }, // "update"
+    { PCRDR_OPERATION_ERASE,                0 }, // "erase"
+    { PCRDR_OPERATION_CLEAR,                0 }, // "clear"
+};
+
+/* make sure the number of operations matches the enumulators */
+#define _COMPILE_TIME_ASSERT(name, x)           \
+       typedef int _dummy_ ## name[(x) * 2 - 1]
+_COMPILE_TIME_ASSERT(ops,
+        PCA_TABLESIZE(pcrdr_opatoms) == PCRDR_NR_OPERATIONS);
+#undef _COMPILE_TIME_ASSERT
+
 void pcrdr_init_once(void)
 {
     pcinst_register_error_message_segment(&_pcrdr_err_msgs_seg);
+
+    // put the operations into ATOM_BUCKET_RDROP bucket
+    for (size_t i = 0; i < PCA_TABLESIZE(pcrdr_opatoms); i++) {
+        pcrdr_opatoms[i].atom =
+            purc_atom_from_static_string_ex(ATOM_BUCKET_RDROP,
+                    pcrdr_opatoms[i].op);
+    }
+}
+
+const char *pcrdr_operation_from_atom(purc_atom_t op_atom, unsigned int *id)
+{
+    if (op_atom >= pcrdr_opatoms[0].atom &&
+            op_atom <= pcrdr_opatoms[PCRDR_K_OPERATION_LAST].atom) {
+        *id = op_atom - pcrdr_opatoms[0].atom;
+        return pcrdr_opatoms[*id].op;
+    }
+
+    return NULL;
 }
 
 static const char *prot_names[] = {
