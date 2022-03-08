@@ -79,6 +79,7 @@ public:
 
     PurCInstance(bool enable_remote_fetcher) {
         init_ok = -1;
+        info = {};
         info.enable_remote_fetcher = enable_remote_fetcher;
         if (purc_init ("cn.fmsoft.hybridos.test", "test_init", &info))
             return;
