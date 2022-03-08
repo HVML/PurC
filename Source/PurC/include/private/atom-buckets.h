@@ -39,9 +39,10 @@ enum pcatom_bucket {
     ATOM_BUCKET_ACTION, /* the update actions: merge, displace, ... */
     ATOM_BUCKET_EXCEPT, /* the error and exception names such as NoData */
     ATOM_BUCKET_MSG,    /* the message types such as changed, attached, ... */
+    ATOM_BUCKET_RDROP,  /* the renderer operations: startSession, load, ... */
 
     /* XXX: change this if you add a new atom bucket. */
-    ATOM_BUCKET_LAST = ATOM_BUCKET_MSG,
+    ATOM_BUCKET_LAST = ATOM_BUCKET_RDROP,
 };
 
 /* Make sure ATOM_BUCKET_LAST is less than PURC_ATOM_BUCKETS_NR */
