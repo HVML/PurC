@@ -450,7 +450,8 @@ INSTANTIATE_TEST_SUITE_P(purc_variant, TestCaseData,
 
 TEST(variant, clone)
 {
-    PurCInstance purc;
+    PurCInstance purc("cn.fmsoft.hybridos.test", "purc_variant", false);
+
     const char *s;
     purc_variant_t set, cloned;
     int diff;

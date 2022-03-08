@@ -66,21 +66,35 @@ private:
     std::vector<char *>         allocates;
 };
 
+#define APP_NAME            "cn.fmsoft.hybridos.test"
+#define RUNNER_NAME         "test_init"
+
 class PurCInstance
 {
 public:
-    PurCInstance(void) {
+    PurCInstance(const char *app = NULL, const char *runner = NULL,
+            bool enable_remote_fetcher = true) {
         init_ok = -1;
         info = {};
-        if (purc_init ("cn.fmsoft.hybridos.test", "test_init", &info))
+        if (app == NULL)
+            app = APP_NAME;
+        if (runner == NULL)
+            runner = RUNNER_NAME;
+
+        info.enable_remote_fetcher = enable_remote_fetcher;
+        if (purc_init (app, runner, &info))
             return;
         init_ok = 0;
     }
 
     PurCInstance(bool enable_remote_fetcher) {
         init_ok = -1;
+        info = {};
+        const char *app = APP_NAME;
+        const char *runner = RUNNER_NAME;
+
         info.enable_remote_fetcher = enable_remote_fetcher;
-        if (purc_init ("cn.fmsoft.hybridos.test", "test_init", &info))
+        if (purc_init (app, runner, &info))
             return;
         init_ok = 0;
     }

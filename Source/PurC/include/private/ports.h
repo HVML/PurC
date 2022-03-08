@@ -36,12 +36,14 @@ extern "C" {
 #endif
 
 size_t pcutils_get_cmdline_arg(int arg, char* buf, size_t sz_buf);
-int pcutils_mkdir(const char *pathname);
 
 #if !HAVE(VASPRINTF)
 WTF_ATTRIBUTE_PRINTF(2, 0)
 int vasprintf(char **buf, const char *fmt, va_list ap);
 #endif
+
+unsigned int pcutils_sleep(unsigned int seconds);
+int pcutils_usleep(unsigned long long usec);
 
 #ifdef __cplusplus
 }

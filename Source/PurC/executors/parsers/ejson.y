@@ -279,7 +279,7 @@
     kvs_append(struct kvs_s *kvs, struct kv_s *kv)
     {
         if (kvs->nr == kvs->sz) {
-            size_t sz = kvs->sz + 1;
+            size_t sz = kvs->sz + 16;
             struct kv_s *kv;
             kv = (struct kv_s*)realloc(kvs->kvs, sz * sizeof(*kv));
             if (!kv)

@@ -41,6 +41,7 @@ set(PurC_PLATFORM_INDEPENDENT_DIRS
     "dom"
     "dvobjs"
     "dvobjs/parsers"
+    "vcm"
     "ejson"
     "hvml"
     "vdom"
@@ -59,7 +60,6 @@ APPEND_ALL_SOURCE_FILES_IN_DIRLIST(PurC_SOURCES "${PurC_PLATFORM_INDEPENDENT_DIR
 list(APPEND PurC_SOURCES
     "${PURC_DIR}/ports/vasprintf.c"
     "${PURC_DIR}/ports/misc.c"
-    "${PURC_DIR}/vcm/vcm.c"
 )
 
 # Put the CXX source files which can be unified in `Sources.txt`

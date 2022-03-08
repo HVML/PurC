@@ -18,6 +18,7 @@ list(APPEND PurC_UNIFIED_SOURCE_LIST_FILES
 list(APPEND PurC_SOURCES
     "${PURC_DIR}/ports/posix/rwlock.c"
     "${PURC_DIR}/ports/posix/mutex.c"
+    "${PURC_DIR}/ports/posix/sleep.c"
 )
 
 list(APPEND PurC_LIBRARIES
