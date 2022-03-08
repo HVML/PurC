@@ -352,8 +352,10 @@ static pcintr_coroutine_t
 coroutine_get_current(void)
 {
     struct pcinst *inst = pcinst_current();
-    struct pcintr_heap *heap = inst->intr_heap;
-    return heap->running_coroutine;
+    if (inst && inst->intr_heap)
+        return inst->intr_heap->running_coroutine;
+
+    return NULL;
 }
 
 static void
@@ -364,7 +366,7 @@ coroutine_set_current(struct pcintr_coroutine *co)
     heap->running_coroutine = co;
 }
 
-pcintr_stack_t purc_get_stack(void)
+pcintr_stack_t pcintr_get_stack(void)
 {
     struct pcintr_coroutine *co = coroutine_get_current();
     if (!co)
@@ -627,7 +629,7 @@ walk_attr(void *key, void *val, void *ud)
     //     PC_ASSERT(value != PURC_VARIANT_INVALID);
     // }
     // else {
-    //     pcintr_stack_t stack = purc_get_stack();
+    //     pcintr_stack_t stack = pcintr_get_stack();
     //     PC_ASSERT(stack);
     //     value = pcvcm_eval(vcm, stack);
     //     if (value == PURC_VARIANT_INVALID ||
@@ -1389,7 +1391,7 @@ add_observer_into_list(struct pcutils_arrlist* list,
     PC_ASSERT(r == 0);
 
     // TODO:
-    pcintr_stack_t stack = purc_get_stack();
+    pcintr_stack_t stack = pcintr_get_stack();
     PC_ASSERT(stack);
     PC_ASSERT(stack->co.waits >= 0);
     stack->co.waits++;
@@ -1414,7 +1416,7 @@ del_observer_from_list(struct pcutils_arrlist* list,
         pcutils_arrlist_del_idx(list, pos, 1);
 
         // TODO:
-        pcintr_stack_t stack = purc_get_stack();
+        pcintr_stack_t stack = pcintr_get_stack();
         PC_ASSERT(stack);
         PC_ASSERT(stack->co.waits >= 1);
         stack->co.waits--;
@@ -1445,7 +1447,7 @@ pcintr_register_observer(purc_variant_t observed,
 {
     UNUSED_PARAM(for_value);
 
-    pcintr_stack_t stack = purc_get_stack();
+    pcintr_stack_t stack = pcintr_get_stack();
     struct pcutils_arrlist* list = NULL;
     if (purc_variant_is_type(observed, PURC_VARIANT_TYPE_DYNAMIC)) {
         if (stack->dynamic_variant_observer_list == NULL) {
@@ -1526,7 +1528,7 @@ pcintr_revoke_observer(struct pcintr_observer* observer)
 bool
 pcintr_revoke_observer_ex(purc_variant_t observed, purc_variant_t for_value)
 {
-    pcintr_stack_t stack = purc_get_stack();
+    pcintr_stack_t stack = pcintr_get_stack();
     const char* for_value_str = purc_variant_get_string_const(for_value);
     char* value = strdup(for_value_str);
     if (!value) {

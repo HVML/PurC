@@ -26,7 +26,7 @@
 #ifndef PURC_PRIVATE_INTERPRETER_H
 #define PURC_PRIVATE_INTERPRETER_H
 
-#include "purc.h"
+#include "config.h"
 
 #include "purc-macros.h"
 #include "purc-variant.h"
@@ -282,7 +282,7 @@ void pcintr_stack_init_once(void) WTF_INTERNAL;
 void pcintr_stack_init_instance(struct pcinst* inst) WTF_INTERNAL;
 void pcintr_stack_cleanup_instance(struct pcinst* inst) WTF_INTERNAL;
 
-pcintr_stack_t purc_get_stack (void);
+pcintr_stack_t pcintr_get_stack(void);
 struct pcintr_stack_frame*
 pcintr_stack_get_bottom_frame(pcintr_stack_t stack);
 struct pcintr_stack_frame*
@@ -431,11 +431,11 @@ pcintr_util_add_child_chunk(pcdom_element_t *parent, const char *chunk);
 int
 pcintr_util_set_child_chunk(pcdom_element_t *parent, const char *chunk);
 
-__attribute__ ((format (printf, 2, 3)))
+WTF_ATTRIBUTE_PRINTF(2, 3)
 int
 pcintr_util_add_child(pcdom_element_t *parent, const char *fmt, ...);
 
-__attribute__ ((format (printf, 2, 3)))
+WTF_ATTRIBUTE_PRINTF(2, 3)
 int
 pcintr_util_set_child(pcdom_element_t *parent, const char *fmt, ...);
 

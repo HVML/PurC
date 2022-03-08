@@ -10,7 +10,7 @@
 
 TEST(instance, def)
 {
-    int ret = purc_init(NULL, NULL, NULL);
+    int ret = purc_init_ex(PURC_MODULE_VARIANT, NULL, NULL, NULL);
     ASSERT_EQ(ret, PURC_ERROR_OK);
 
     purc_atom_t endpoint_atom = BUCKET_BITS(PURC_ATOM_BUCKET_USER) | 1;
@@ -21,6 +21,8 @@ TEST(instance, def)
 
     char runner_name[PURC_LEN_RUNNER_NAME + 1];
     purc_extract_runner_name(endpoint, runner_name);
+
+    printf("Endpoint: %s\n", endpoint);
 
     ASSERT_STREQ(host_name, "localhost");
     ASSERT_STREQ(runner_name, "unknown");

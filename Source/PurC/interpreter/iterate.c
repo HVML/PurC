@@ -96,7 +96,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 
     const char *rule = "RANGE: FROM 0";
     if (ctxt->rule_attr) {
-        val = pcintr_eval_vdom_attr(purc_get_stack(), ctxt->rule_attr);
+        val = pcintr_eval_vdom_attr(pcintr_get_stack(), ctxt->rule_attr);
         if (val == PURC_VARIANT_INVALID)
             return -1;
         rule = purc_variant_get_string_const(val);
@@ -170,7 +170,7 @@ process_attr_on(struct pcintr_stack_frame *frame,
     ctxt->on = val;
     purc_variant_ref(val);
 
-    pcintr_set_input_var(purc_get_stack(), val);
+    pcintr_set_input_var(pcintr_get_stack(), val);
 
     return 0;
 }
@@ -266,7 +266,7 @@ attr_found(struct pcintr_stack_frame *frame,
     PC_ASSERT(name);
     PC_ASSERT(attr->op == PCHVML_ATTRIBUTE_OPERATOR);
 
-    purc_variant_t val = pcintr_eval_vdom_attr(purc_get_stack(), attr);
+    purc_variant_t val = pcintr_eval_vdom_attr(pcintr_get_stack(), attr);
     if (val == PURC_VARIANT_INVALID)
         return -1;
 
@@ -280,7 +280,7 @@ static void*
 after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 {
     PC_ASSERT(stack && pos);
-    PC_ASSERT(stack == purc_get_stack());
+    PC_ASSERT(stack == pcintr_get_stack());
     if (pcintr_check_insertion_mode_for_normal_element(stack))
         return NULL;
 
@@ -330,7 +330,7 @@ static bool
 on_popping(pcintr_stack_t stack, void* ud)
 {
     PC_ASSERT(stack);
-    PC_ASSERT(stack == purc_get_stack());
+    PC_ASSERT(stack == pcintr_get_stack());
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
@@ -352,7 +352,7 @@ on_popping(pcintr_stack_t stack, void* ud)
     purc_variant_t val = PURC_VARIANT_INVALID;
     const char *rule = NULL;
     if (ctxt->rule_attr) {
-        val = pcintr_eval_vdom_attr(purc_get_stack(), ctxt->rule_attr);
+        val = pcintr_eval_vdom_attr(pcintr_get_stack(), ctxt->rule_attr);
         if (val == PURC_VARIANT_INVALID)
             return -1;
         rule = purc_variant_get_string_const(val);
@@ -381,7 +381,7 @@ static bool
 rerun(pcintr_stack_t stack, void* ud)
 {
     PC_ASSERT(stack);
-    PC_ASSERT(stack == purc_get_stack());
+    PC_ASSERT(stack == pcintr_get_stack());
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
@@ -443,7 +443,7 @@ static pcvdom_element_t
 select_child(pcintr_stack_t stack, void* ud)
 {
     PC_ASSERT(stack);
-    PC_ASSERT(stack == purc_get_stack());
+    PC_ASSERT(stack == pcintr_get_stack());
 
     pcintr_coroutine_t co = &stack->co;
     struct pcintr_stack_frame *frame;

@@ -214,7 +214,7 @@ int pcutils_parse_long_double(const char *buf, size_t len, long double *retval)
     return 1;
 }
 
-__attribute__ ((format (printf, 3, 0)))
+WTF_ATTRIBUTE_PRINTF(3, 0)
 char*
 pcutils_vsnprintf(char *buf, size_t *sz_io, const char *fmt, va_list ap)
 {

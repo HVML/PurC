@@ -35,8 +35,8 @@
 TEST(local_fetcher, sync)
 {
     purc_instance_extra_info info = {};
-    info.enable_remote_fetcher = false;
-    purc_init ("cn.fmsoft.hybridos.sample", "pcfetcher", &info);
+    purc_init_ex (PURC_MODULE_HVML,"cn.fmsoft.hybridos.sample",
+            "pcfetcher", &info);
 
     RunLoop::initializeMain();
     AtomString::init();
@@ -129,8 +129,8 @@ void async_response_handler(
 TEST(local_fetcher, async)
 {
     purc_instance_extra_info info = {};
-    info.enable_remote_fetcher = false;
-    purc_init ("cn.fmsoft.hybridos.sample", "pcfetcher", &info);
+    purc_init_ex (PURC_MODULE_HVML,"cn.fmsoft.hybridos.sample",
+            "pcfetcher", &info);
 
     RunLoop::initializeMain();
     AtomString::init();

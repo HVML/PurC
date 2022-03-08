@@ -11,7 +11,8 @@
 TEST(instance, syslog)
 {
     // initial purc
-    int ret = purc_init("cn.fmsoft.hvml.purc", "test", NULL);
+    int ret = purc_init_ex(PURC_MODULE_VARIANT, "cn.fmsoft.hvml.purc", "test",
+            NULL);
     ASSERT_EQ(ret, PURC_ERROR_OK);
 
     purc_atom_t endpoint_atom = BUCKET_BITS(PURC_ATOM_BUCKET_USER) | 1;

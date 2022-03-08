@@ -1,8 +1,8 @@
 /*
- * @file fs.c
+ * @file sleep.c
  * @author Vincent Wei
- * @date 2022/03/08
- * @brief The portable implementation for filesystem operations.
+ * @date 2022/03/07
+ * @brief The portable implementation for POSIX sleep() and usleep().
  *
  * Copyright (C) 2022 FMSoft <https://www.fmsoft.cn>
  *
@@ -30,12 +30,14 @@
 #if OS(LINUX) || OS(UNIX)
 #include <unistd.h>
 
-#include <sys/stat.h>
-#include <sys/types.h>
-
-int pcutils_mkdir(const char *pathname)
+unsigned int pcutils_sleep(unsigned int seconds)
 {
-    return mkdir(pathname, 0644);
+    return sleep(seconds);
+}
+
+int pcutils_usleep(unsigned long long usec)
+{
+    return usleep(usec);
 }
 
 #else

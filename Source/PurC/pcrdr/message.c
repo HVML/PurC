@@ -39,7 +39,7 @@ pcrdr_msg *pcrdr_make_void_message(void)
     if (msg == NULL)
         return NULL;
 
-    msg->type = PCRDR_MSG_ELEMENT_TYPE_VOID;
+    msg->type = PCRDR_MSG_TYPE_VOID;
     return msg;
 }
 
@@ -440,26 +440,52 @@ static inline char *skip_left_spaces(char *str)
 #define STR_PAIR_SEPARATOR      ":"
 #define STR_LINE_SEPARATOR      "\n"
 #define STR_VALUE_SEPARATOR     "/"
+#define STR_MEMBER_SEPARATOR    ","
 
 #define STR_BLANK_LINE          " \n"
 
+static const char *type_names[] = {
+    "void",       // PCRDR_MSG_TYPE_VOID,
+    "request",    // PCRDR_MSG_TYPE_REQUEST,
+    "response",   // PCRDR_MSG_TYPE_RESPONSE,
+    "event",      // PCRDR_MSG_TYPE_EVENT,
+};
+
+/* make sure number of type_names matches the enums */
+#define _COMPILE_TIME_ASSERT(name, x)           \
+       typedef int _dummy_ ## name[(x) * 2 - 1]
+_COMPILE_TIME_ASSERT(types,
+        PCA_TABLESIZE(type_names) == PCRDR_MSG_TYPE_NR);
+#undef _COMPILE_TIME_ASSERT
+
 static bool on_type(pcrdr_msg *msg, char *value)
 {
-    if (strcasecmp(value, "request") == 0) {
-        msg->type = PCRDR_MSG_TYPE_REQUEST;
-    }
-    else if (strcasecmp(value, "response") == 0) {
-        msg->type = PCRDR_MSG_TYPE_RESPONSE;
-    }
-    else if (strcasecmp(value, "event") == 0) {
-        msg->type = PCRDR_MSG_TYPE_EVENT;
-    }
-    else {
-        return false;
+    for (size_t i = 0; i < PCA_TABLESIZE(type_names); i++) {
+        if (strcasecmp(value, type_names[i]) == 0) {
+            msg->type = PCRDR_MSG_TYPE_FIRST + i;
+            return true;
+        }
     }
 
-    return true;
+    return false;
 }
+
+static const char *target_names[] = {
+    "session",
+    "workspace",
+    "plainwindow",
+    "tabbedwindow",
+    "tabpage",
+    "dom",
+    "thread",
+};
+
+/* make sure number of target_names matches the enums */
+#define _COMPILE_TIME_ASSERT(name, x)           \
+       typedef int _dummy_ ## name[(x) * 2 - 1]
+_COMPILE_TIME_ASSERT(targets,
+        PCA_TABLESIZE(target_names) == PCRDR_MSG_TARGET_NR);
+#undef _COMPILE_TIME_ASSERT
 
 static bool on_target(pcrdr_msg *msg, char *value)
 {
@@ -474,39 +500,19 @@ static bool on_target(pcrdr_msg *msg, char *value)
     if (target_value == NULL)
         return false;
 
-    if (strcasecmp(target, "session") == 0) {
-        msg->target = PCRDR_MSG_TARGET_SESSION;
+    size_t i;
+    for (i = 0; i < PCA_TABLESIZE(target_names); i++) {
+        if (strcasecmp(value, target_names[i]) == 0) {
+            msg->target = PCRDR_MSG_TARGET_FIRST + i;
+            break;
+        }
     }
-    else if (strcasecmp(target, "workspace") == 0) {
-        msg->target = PCRDR_MSG_TARGET_WORKSPACE;
-    }
-    else if (strcasecmp(target, "plainwindow") == 0) {
-        msg->target = PCRDR_MSG_TARGET_PLAINWINDOW;
-    }
-    else if (strcasecmp(target, "tabbedwindow") == 0) {
-        msg->target = PCRDR_MSG_TARGET_TABBEDWINDOW;
-    }
-    else if (strcasecmp(target, "tabpage") == 0) {
-        msg->target = PCRDR_MSG_TARGET_TABPAGE;
-    }
-    else if (strcasecmp(target, "dom") == 0) {
-        msg->target = PCRDR_MSG_TARGET_DOM;
-    }
-    else {
+    if (i >= PCA_TABLESIZE(target_names)) {
         return false;
     }
 
     errno = 0;
-#if 0
-    if (sizeof(uint64_t) == sizeof(unsigned long int))
-        msg->targetValue = strtoul(target_value, NULL, 16);
-    else if (sizeof(uint64_t) == sizeof(unsigned long long int))
-        msg->targetValue = strtoull(target_value, NULL, 16);
-    else
-        assert(0);
-#else
     msg->targetValue = (uint64_t)strtoull(target_value, NULL, 16);
-#endif
 
     if (errno)
         return false;
@@ -530,6 +536,22 @@ static bool on_event(pcrdr_msg *msg, char *value)
     return false;
 }
 
+static const char *element_type_names[] = {
+    "void",
+    "css",
+    "xpath",
+    "handle",
+    "handles",
+    "id",
+};
+
+/* make sure number of element_type_names matches the enums */
+#define _COMPILE_TIME_ASSERT(name, x)           \
+       typedef int _dummy_ ## name[(x) * 2 - 1]
+_COMPILE_TIME_ASSERT(element_types,
+        PCA_TABLESIZE(element_type_names) == PCRDR_MSG_ELEMENT_TYPE_NR);
+#undef _COMPILE_TIME_ASSERT
+
 static bool on_element(pcrdr_msg *msg, char *value)
 {
     char *type;
@@ -539,22 +561,14 @@ static bool on_element(pcrdr_msg *msg, char *value)
     if (type == NULL)
         return false;
 
-    if (strcasecmp(type, "css") == 0) {
-        msg->elementType = PCRDR_MSG_ELEMENT_TYPE_CSS;
+    size_t i;
+    for (i = 0; i < PCA_TABLESIZE(element_type_names); i++) {
+        if (strcasecmp(value, element_type_names[i]) == 0) {
+            msg->elementType = PCRDR_MSG_ELEMENT_TYPE_FIRST + i;
+            break;
+        }
     }
-    else if (strcasecmp(type, "xpath") == 0) {
-        msg->elementType = PCRDR_MSG_ELEMENT_TYPE_XPATH;
-    }
-    else if (strcasecmp(type, "handle") == 0) {
-        msg->elementType = PCRDR_MSG_ELEMENT_TYPE_HANDLE;
-    }
-    else if (strcasecmp(type, "handles") == 0) {
-        msg->elementType = PCRDR_MSG_ELEMENT_TYPE_HANDLES;
-    }
-    else if (strcasecmp(type, "id") == 0) {
-        msg->elementType = PCRDR_MSG_ELEMENT_TYPE_ID;
-    }
-    else {
+    if (i >= PCA_TABLESIZE(element_type_names)) {
         return false;
     }
 
@@ -610,22 +624,29 @@ static bool on_result(pcrdr_msg *msg, char *value)
     return true;
 }
 
+static const char *data_type_names [] = {
+    "void",
+    "ejson",
+    "text",
+};
+
+/* make sure number of data_type_names matches the enums */
+#define _COMPILE_TIME_ASSERT(name, x)           \
+       typedef int _dummy_ ## name[(x) * 2 - 1]
+_COMPILE_TIME_ASSERT(data_types,
+        PCA_TABLESIZE(data_type_names) == PCRDR_MSG_DATA_TYPE_NR);
+#undef _COMPILE_TIME_ASSERT
+
 static bool on_data_type(pcrdr_msg *msg, char *value)
 {
-    if (strcasecmp(value, "void") == 0) {
-        msg->dataType = PCRDR_MSG_DATA_TYPE_VOID;
-    }
-    else if (strcasecmp(value, "ejson") == 0) {
-        msg->dataType = PCRDR_MSG_DATA_TYPE_EJSON;
-    }
-    else if (strcasecmp(value, "text") == 0) {
-        msg->dataType = PCRDR_MSG_DATA_TYPE_TEXT;
-    }
-    else {
-        return false;
+    for (size_t i = 0; i < PCA_TABLESIZE(data_type_names); i++) {
+        if (strcasecmp(value, data_type_names[i]) == 0) {
+            msg->dataType = PCRDR_MSG_DATA_TYPE_FIRST + i;
+            return true;
+        }
     }
 
-    return true;
+    return false;
 }
 
 static bool on_data_len(pcrdr_msg *msg, char *value)
@@ -787,37 +808,6 @@ failed:
     return -1;
 }
 
-static const char *type_names [] = {
-    "void",         /* PCRDR_MSG_TYPE_VOID */
-    "request",      /* PCRDR_MSG_TYPE_REQUEST */
-    "response",     /* PCRDR_MSG_TYPE_RESPONSE */
-    "event",        /* PCRDR_MSG_TYPE_EVENT */
-};
-
-static const char *target_names [] = {
-    "session",
-    "workspace",
-    "plainwindow",
-    "tabbedwindow",
-    "tabpage",
-    "dom",
-};
-
-static const char *element_type_names [] = {
-    "void",
-    "css",
-    "xpath",
-    "handle",
-    "handles",
-    "id",
-};
-
-static const char *data_type_names [] = {
-    "void",
-    "ejson",
-    "text",
-};
-
 #define LEN_BUFF_LONGLONGINT    128
 
 static int
@@ -858,7 +848,7 @@ serialize_message_data(const pcrdr_msg *msg, cb_write fn, void *ctxt)
             strlen(data_type_names[msg->dataType]));
     fn(ctxt, STR_LINE_SEPARATOR, sizeof(STR_LINE_SEPARATOR) - 1);
 
-    /* _data_len: <data_length> */
+    /* dataLen: <data_length> */
     fn(ctxt, STR_KEY_DATA_LEN, sizeof(STR_KEY_DATA_LEN) - 1);
     fn(ctxt, STR_PAIR_SEPARATOR, sizeof(STR_PAIR_SEPARATOR) - 1);
     n = snprintf(buff, sizeof(buff), "%lu", (unsigned long int)text_len);
@@ -1213,10 +1203,62 @@ pcrdr_parse_renderer_capabilities(const char *data)
                 }
             }
         }
+        else if (line_no >= 3) {
+            char *cap, *value;
+            char *saveptr2;
+
+            cap = strtok_r(line, STR_PAIR_SEPARATOR, &saveptr2);
+            if (cap == NULL) {
+                break;
+            }
+
+            value = strtok_r(NULL, STR_PAIR_SEPARATOR, &saveptr2);
+            if (value == NULL) {
+                break;
+            }
+
+            if (strcasecmp(cap, "windowLevels") == 0) {
+                if (rdr_caps->windowLevel <= 0) {
+                    PC_WARN("Found windowLevels but windowLevel is <= 0");
+                    break;
+                }
+
+                rdr_caps->window_levels =
+                    calloc(rdr_caps->windowLevel, sizeof(char *));
+
+                char *str3, *member;
+                char *saveptr3;
+                int n = 0;
+                for (str3 = value; ; str3 = NULL) {
+                    member = strtok_r(str3, STR_MEMBER_SEPARATOR, &saveptr3);
+                    if (member == NULL) {
+                        break;
+                    }
+
+                    if (n < rdr_caps->windowLevel) {
+                        rdr_caps->window_levels[n] = strdup(member);
+                        n++;
+                    }
+                    else
+                        break;
+                }
+
+                // adjust windowLevel
+                rdr_caps->windowLevel = n;
+            }
+            else {
+                PC_WARN("Unknown renderer capability: %s\n", cap);
+                break;
+            }
+
+            if (rdr_caps->windowLevel > 0 &&
+                    rdr_caps->window_levels == NULL) {
+                PC_WARN("windowLevels does not match windowLevel\n");
+                rdr_caps->windowLevel = 0;
+            }
+        }
 
         line_no++;
-        if (line_no > 2)
-            break;
     }
 
     free(lines);
@@ -1245,6 +1287,16 @@ void pcrdr_release_renderer_capabilities(
 
     if (rdr_caps->xml_version)
         free(rdr_caps->xml_version);
+
+    if (rdr_caps->windowLevel > 0) {
+        assert(rdr_caps->window_levels);
+
+        for (int i = 0; i < rdr_caps->windowLevel; i++) {
+            if (rdr_caps->window_levels[i])
+                free(rdr_caps->window_levels[i]);
+        }
+        free(rdr_caps->window_levels);
+    }
 
     free(rdr_caps);
 }

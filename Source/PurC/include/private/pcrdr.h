@@ -34,7 +34,7 @@
 /* the capabilities of a renderer */
 struct renderer_capabilities {
     /* the protocol name */
-    char       *prot_name;
+    char   *prot_name;
 
     /* the HTML version if supported, else NULL */
     char   *html_version;
@@ -58,9 +58,11 @@ struct renderer_capabilities {
     /* the max number of plain windows;
        0 for not supported, -1 for unlimited */
     long int    plainWindow;
-    /* the max number of window levels;
-       0 for not supported, -1 for unlimited */
+    /* the max number of window levels; 0 or <0 for not supported */
     long int    windowLevel;
+
+    /* the names of window levels */
+    char  **window_levels;
 
     /* the session handle */
     uintptr_t   session_handle;

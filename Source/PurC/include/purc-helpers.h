@@ -232,7 +232,6 @@ purc_enable_log(bool enable, bool use_syslog);
  */
 PCA_EXPORT void
 purc_log_with_tag(const char* tag, const char *msg, va_list ap)
-    // __attribute__ ((format(printf, 2, 0)))
     PCA_ATTRIBUTE_PRINTF(2, 0);
 
 /**
@@ -244,7 +243,6 @@ purc_log_with_tag(const char* tag, const char *msg, va_list ap)
  *
  * Since: 0.1.0
  */
-// __attribute__ ((format(printf, 1, 2)))
 PCA_ATTRIBUTE_PRINTF(1, 2)
 static inline void
 purc_log_info(const char *msg, ...)
@@ -264,7 +262,6 @@ purc_log_info(const char *msg, ...)
  *
  * Since: 0.1.0
  */
-// __attribute__ ((format(printf, 1, 2)))
 PCA_ATTRIBUTE_PRINTF(1, 2)
 static inline void
 purc_log_debug(const char *msg, ...)
@@ -284,7 +281,6 @@ purc_log_debug(const char *msg, ...)
  *
  * Since: 0.1.0
  */
-// __attribute__ ((format(printf, 1, 2)))
 PCA_ATTRIBUTE_PRINTF(1, 2)
 static inline void
 purc_log_warn(const char *msg, ...)
@@ -304,7 +300,6 @@ purc_log_warn(const char *msg, ...)
  *
  * Since: 0.1.0
  */
-// __attribute__ ((format(printf, 1, 2)))
 PCA_ATTRIBUTE_PRINTF(1, 2)
 static inline void
 purc_log_error(const char *msg, ...)

@@ -72,16 +72,22 @@ public:
     PurCInstance(void) {
         init_ok = -1;
         info = {};
-        if (purc_init ("cn.fmsoft.hybridos.test", "test_init", &info))
+        if (purc_init_ex (PURC_MODULE_HVML, "cn.fmsoft.hybridos.test",
+                    "test_init", &info)) {
             return;
+        }
         init_ok = 0;
     }
 
     PurCInstance(bool enable_remote_fetcher) {
         init_ok = -1;
-        info.enable_remote_fetcher = enable_remote_fetcher;
-        if (purc_init ("cn.fmsoft.hybridos.test", "test_init", &info))
+        info = {};
+        unsigned int modules = enable_remote_fetcher ? PURC_MODULE_HVML :
+            PURC_MODULE_HVML | PURC_HAVE_FETCHER;
+        if (purc_init_ex (modules, "cn.fmsoft.hybridos.test",
+            "test_init", &info)) {
             return;
+        }
         init_ok = 0;
     }
 

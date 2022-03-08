@@ -94,7 +94,7 @@ int purc_set_error_exinfo_with_debug(int errcode, purc_variant_t exinfo,
 #endif                             /* } */
 
     // set the exception info into stack
-    pcintr_stack_t stack = purc_get_stack();
+    pcintr_stack_t stack = pcintr_get_stack();
     if (stack) {
         const struct err_msg_info* info = get_error_info(errcode);
         if (info == NULL ||

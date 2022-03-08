@@ -694,8 +694,8 @@ TEST(samples, foo)
 #if 0
     do {
         struct purc_instance_extra_info info = {};
-        info.enable_remote_fetcher = true;
-        if (purc_init ("cn.fmsoft.hybridos.test", "test_init", &info))
+        if (purc_init_ex (PURC_MODULE_HVML, "cn.fmsoft.hybridos.test",
+                    "test_init", &info))
             break;
         purc_cleanup();
     } while (0);

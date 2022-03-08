@@ -1176,7 +1176,7 @@ element_create(void)
     }
 
     // FIXME:
-    // if (purc_get_stack() == NULL)
+    // if (pcintr_get_stack() == NULL)
     //     return elem;
 
     elem->variables = pcvarmgr_create();
@@ -1410,7 +1410,7 @@ pcvdom_element_eval_attr_val(pcvdom_element_t element, const char *key)
     struct pcvcm_node           *val = attr->val;
 
     pcintr_stack_t stack;
-    stack = purc_get_stack();
+    stack = pcintr_get_stack();
 
     purc_variant_t v;
     v = pcvcm_eval(val, stack, pcvdom_element_is_silently(element));

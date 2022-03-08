@@ -314,12 +314,12 @@ int purc_init_ex(unsigned int modules,
             goto failed;
         }
 
-        /* TODO: app_name or runner_name changed
+        /* check whether app_name or runner_name changed */
         if (curr_inst->endpoint_atom &&
                 curr_inst->endpoint_atom != endpoint_atom) {
             ret = PURC_ERROR_INVALID_VALUE;
             goto failed;
-        } */
+        }
 
         curr_inst->endpoint_atom =
             purc_atom_from_string_ex(PURC_ATOM_BUCKET_USER, endpoint_name);
@@ -328,7 +328,7 @@ int purc_init_ex(unsigned int modules,
 
     // map for local data
     curr_inst->local_data_map =
-        pcutils_map_create (copy_key_string,
+        pcutils_map_create(copy_key_string,
                 free_key_string, NULL, NULL, comp_key_string, false);
 
     if (curr_inst->endpoint_atom == 0) {
@@ -362,18 +362,20 @@ int purc_init_ex(unsigned int modules,
             goto failed;
     }
 
+    if (modules & PURC_HAVE_FETCHER) {
+        fprintf(stderr, "................................%d\n", modules & PURC_HAVE_FETCHER_R);
+        pcfetcher_init(FETCHER_MAX_CONNS, FETCHER_CACHE_QUOTA,
+            (modules & PURC_HAVE_FETCHER_R));
+    }
+
     /* connnect to renderer */
     curr_inst->conn_to_rdr = NULL;
-    if ((modules & PURC_HAVE_PCRDR) &&
-            extra_info && extra_info->renderer_uri) {
+    if ((modules & PURC_HAVE_PCRDR)) {
         if ((ret = pcrdr_init_instance(curr_inst, extra_info))) {
             goto failed;
         }
     }
 
-    // default disable remote fetcher
-    pcfetcher_init(FETCHER_MAX_CONNS, FETCHER_CACHE_QUOTA,
-            (extra_info && extra_info->enable_remote_fetcher));
     return PURC_ERROR_OK;
 
 failed:
@@ -407,7 +409,9 @@ bool purc_cleanup(void)
         pchtml_cleanup_instance(curr_inst);
         pcdom_cleanup_instance(curr_inst); */
 
-        pcfetcher_term();
+        if (_modules && PURC_HAVE_FETCHER) {
+            pcfetcher_term();
+        }
         cleanup_instance(curr_inst);
     }
 
