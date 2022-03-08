@@ -826,7 +826,7 @@ serialize_message_data(const pcrdr_msg *msg, pcrdr_cb_write fn, void *ctxt)
     }
     else if (msg->dataType == PCRDR_MSG_DATA_TYPE_EJSON) {
         purc_rwstream_t buffer = NULL;
-        buffer = purc_rwstream_new_buffer (PCRDR_MIN_PACKET_BUFF_SIZE,
+        buffer = purc_rwstream_new_buffer(PCRDR_MIN_PACKET_BUFF_SIZE,
                 PCRDR_MAX_INMEM_PAYLOAD_SIZE);
 
         if (purc_variant_serialize(msg->data, buffer, 0,
