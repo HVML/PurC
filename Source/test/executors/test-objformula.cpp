@@ -25,7 +25,7 @@ TEST(exe_objformula, basic)
     bool cleanup = false;
 
     // initial purc
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init("cn.fmsoft.hvml.test", "exe_objformula", &info);
     ASSERT_EQ(ret, PURC_ERROR_OK);
 
     bool ok;
@@ -68,8 +68,7 @@ TEST(exe_objformula, files)
     memset(&globbuf, 0, sizeof(globbuf));
 
     purc_instance_extra_info info = {};
-    r = purc_init("cn.fmsoft.hybridos.test",
-        "vdom_gen", &info);
+    r = purc_init("cn.fmsoft.hvml.test", "exe_objformula", &info);
     EXPECT_EQ(r, PURC_ERROR_OK);
     if (r)
         return;
