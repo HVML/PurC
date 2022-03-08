@@ -131,7 +131,7 @@ static int my_send_message (pcrdr_conn* conn, pcrdr_msg *msg)
             PCRDR_MAX_INMEM_PAYLOAD_SIZE);
 
     if (pcrdr_serialize_message (msg,
-                (cb_write)purc_rwstream_write, buffer) < 0) {
+                (pcrdr_cb_write)purc_rwstream_write, buffer) < 0) {
         goto failed;
     }
 

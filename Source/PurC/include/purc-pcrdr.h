@@ -684,7 +684,7 @@ pcrdr_clone_message(const pcrdr_msg* msg);
 PCA_EXPORT int
 pcrdr_parse_packet(char *packet, size_t sz_packet, pcrdr_msg **msg);
 
-typedef ssize_t (*cb_write)(void *ctxt, const void *buf, size_t count);
+typedef ssize_t (*pcrdr_cb_write)(void *ctxt, const void *buf, size_t count);
 
 /**
  * Serialize a message.
@@ -698,7 +698,7 @@ typedef ssize_t (*cb_write)(void *ctxt, const void *buf, size_t count);
  * Since: 0.1.0
  */
 PCA_EXPORT int
-pcrdr_serialize_message(const pcrdr_msg *msg, cb_write fn, void *ctxt);
+pcrdr_serialize_message(const pcrdr_msg *msg, pcrdr_cb_write fn, void *ctxt);
 
 /**
  * Serialize a message to buffer.

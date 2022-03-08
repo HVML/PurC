@@ -811,7 +811,7 @@ failed:
 #define LEN_BUFF_LONGLONGINT    128
 
 static int
-serialize_message_data(const pcrdr_msg *msg, cb_write fn, void *ctxt)
+serialize_message_data(const pcrdr_msg *msg, pcrdr_cb_write fn, void *ctxt)
 {
     char buff[LEN_BUFF_LONGLONGINT];
     int n, errcode = 0;
@@ -880,7 +880,7 @@ done:
     return errcode;
 }
 
-int pcrdr_serialize_message(const pcrdr_msg *msg, cb_write fn, void *ctxt)
+int pcrdr_serialize_message(const pcrdr_msg *msg, pcrdr_cb_write fn, void *ctxt)
 {
     int n = 0;
     char buff[LEN_BUFF_LONGLONGINT];

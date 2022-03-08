@@ -25,12 +25,55 @@
 
 #include "config.h"
 #include "purc-pcrdr.h"
+#include "private/list.h"
 #include "private/sorted-array.h"
 #include "private/debug.h"
 #include "private/utils.h"
 #include "private/ports.h"
 
 #include <assert.h>
+
+struct pcrdr_move_buffer {
+    struct purc_mutex   lock;
+    struct list_head    msgs;
+
+    size_t              max_nr_msgs;
+    size_t              nr_msgs;
+};
+
+static struct purc_mutex       mb_mutex;
+static struct sorted_array    *mb_atom2buff_map;
+
+bool
+pcrdr_thread_init_once(void)
+{
+    purc_mutex_init(&mb_mutex);
+    if (mb_mutex.native_impl == NULL)
+        return false;
+
+    mb_atom2buff_map = pcutils_sorted_array_create(SAFLAG_DEFAULT, 0,
+            NULL, NULL);
+    if (mb_atom2buff_map == NULL) {
+        purc_mutex_clear(&mb_mutex);
+        return false;
+    }
+
+    return true;
+}
+
+bool
+pcrdr_thread_cleanup_once(void)
+{
+    if (mb_mutex.native_impl) {
+        purc_mutex_clear(&mb_mutex);
+    }
+
+    if (mb_atom2buff_map) {
+        pcutils_sorted_array_destroy(mb_atom2buff_map);
+    }
+
+    return true;
+}
 
 size_t
 pcrdr_thread_move_msg(purc_atom_t endpoint_to, pcrdr_msg *msg)
