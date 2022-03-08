@@ -81,6 +81,7 @@ public:
 
     PurCInstance(bool enable_remote_fetcher) {
         init_ok = -1;
+        info = {};
         unsigned int modules = enable_remote_fetcher ? PURC_MODULE_HVML :
             PURC_MODULE_HVML | PURC_HAVE_FETCHER;
         if (purc_init_ex (modules, "cn.fmsoft.hybridos.test",
