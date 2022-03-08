@@ -517,7 +517,8 @@ TEST(random, make)
 
     purc_instance_extra_info info = {};
 
-    r = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    r = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ(r, PURC_ERROR_OK);
 
     for (size_t i=0; i<_nr_iteration; ++i) {

@@ -850,8 +850,6 @@ TEST(interpreter, basic)
         // buggy4,
     };
 
-    // enable for calculator2/3/4
-    // info.enable_remote_fetcher = true;
     PurCInstance purc;
 
     ASSERT_TRUE(purc);

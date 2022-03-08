@@ -107,7 +107,7 @@ TEST(vdom_gen, files)
     memset(&globbuf, 0, sizeof(globbuf));
 
     purc_instance_extra_info info = {};
-    r = purc_init("cn.fmsoft.hybridos.test",
+    r = purc_init_ex(PURC_MODULE_HVML, "cn.fmsoft.hybridos.test",
         "vdom_gen", &info);
     EXPECT_EQ(r, PURC_ERROR_OK);
     if (r)

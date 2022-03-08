@@ -68,7 +68,8 @@ static struct atom_info {
 // to test basic functions of atom
 TEST(utils, atom_basic)
 {
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "variant", NULL);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "variant", NULL);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     purc_atom_t atom;
@@ -100,7 +101,8 @@ TEST(utils, atom_basic)
 // to test extended functions of atom
 TEST(utils, atom_ex)
 {
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "variant", NULL);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "variant", NULL);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     purc_atom_t atom;
@@ -279,7 +281,8 @@ static purc_atom_t get_custom_atom_by_id(size_t id)
 
 TEST(utils, atom_buckets)
 {
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "variant", NULL);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "variant", NULL);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     purc_atom_t atom;

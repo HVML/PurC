@@ -26,7 +26,8 @@ TEST(exe_mul, basic)
     bool cleanup = false;
 
     // initial purc
-    int ret = purc_init ("cn.fmsoft.hvml.test", "exe_mul", &info);
+    int ret = purc_init_ex (PURC_MODULE_HVML, "cn.fmsoft.hvml.test",
+            "exe_mul", &info);
     ASSERT_EQ(ret, PURC_ERROR_OK);
 
     bool ok;
@@ -69,7 +70,7 @@ TEST(exe_mul, files)
     memset(&globbuf, 0, sizeof(globbuf));
 
     purc_instance_extra_info info = {};
-    r = purc_init("cn.fmsoft.hvml.test", "exe_mul", &info);
+    r = purc_init_ex(PURC_MODULE_HVML, "cn.fmsoft.hvml.test", "exe_mul", &info);
     EXPECT_EQ(r, PURC_ERROR_OK);
     if (r)
         return;

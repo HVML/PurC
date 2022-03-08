@@ -362,6 +362,12 @@ int purc_init_ex(unsigned int modules,
             goto failed;
     }
 
+    if (modules & PURC_HAVE_FETCHER) {
+        fprintf(stderr, "................................%d\n", modules & PURC_HAVE_FETCHER_R);
+        pcfetcher_init(FETCHER_MAX_CONNS, FETCHER_CACHE_QUOTA,
+            (modules & PURC_HAVE_FETCHER_R));
+    }
+
     /* connnect to renderer */
     curr_inst->conn_to_rdr = NULL;
     if ((modules & PURC_HAVE_PCRDR)) {
@@ -370,9 +376,6 @@ int purc_init_ex(unsigned int modules,
         }
     }
 
-    // default disable remote fetcher
-    pcfetcher_init(FETCHER_MAX_CONNS, FETCHER_CACHE_QUOTA,
-            (extra_info && extra_info->enable_remote_fetcher));
     return PURC_ERROR_OK;
 
 failed:
@@ -406,7 +409,9 @@ bool purc_cleanup(void)
         pchtml_cleanup_instance(curr_inst);
         pcdom_cleanup_instance(curr_inst); */
 
-        pcfetcher_term();
+        if (_modules && PURC_HAVE_FETCHER) {
+            pcfetcher_term();
+        }
         cleanup_instance(curr_inst);
     }
 
