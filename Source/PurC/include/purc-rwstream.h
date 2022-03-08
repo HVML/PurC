@@ -141,6 +141,24 @@ purc_rwstream_new_from_unix_fd (int fd, size_t sz_buf);
 PCA_EXPORT purc_rwstream_t
 purc_rwstream_new_from_win32_socket (int socket, size_t sz_buf);
 
+typedef ssize_t (*pcrws_cb_write)(void *ctxt, const void *buf, size_t count);
+
+/**
+ * Creates a new purc_rwstream_t which is dedicated to serilization,
+ * that is, the new purc_rwstream_t is write-only and not seekable.
+ *
+ * @param ctxt: the buffer
+ *
+ * @return A purc_rwstream_t on success, @NULL on failure and the error code
+ *         is set to indicate the error. The error code:
+ *  - @PURC_ERROR_INVALID_VALUE: Invalid value
+ *  - @PURC_ERROR_OUT_OF_MEMORY: Out of memory
+ *
+ * Since: 0.0.1
+ */
+PCA_EXPORT purc_rwstream_t
+purc_rwstream_new_for_serialization(void *ctxt, pcrws_cb_write fn);
+
 /**
  * Release the purc_rwstream_t
  *
@@ -175,7 +193,7 @@ PCA_EXPORT int purc_rwstream_destroy (purc_rwstream_t rws);
  *  - @PURC_ERROR_INVALID_VALUE: Invalid value
  *  - @PURC_ERROR_BAD_SYSTEM_CALL: Bad system call
  *  - @PURC_ERROR_NOT_IMPLEMENTED: Not implemented
- *  - @PCRWSTREAM_ERROR_FILE_TOO_BIG: File too large"
+ *  - @PCRWSTREAM_ERROR_FILE_TOO_BIG: File too large
  *  - @PCRWSTREAM_ERROR_IO: IO error
  *  - @PCRWSTREAM_ERROR_IS_DIR: File is a directory
  *  - @PCRWSTREAM_ERROR_NO_SPACE: No space left on device
