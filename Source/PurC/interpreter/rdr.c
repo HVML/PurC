@@ -34,7 +34,11 @@
 
 #include <string.h>
 
-#define TITLE_FAILED        "title"
+#define ID_KEY           "id"
+#define TITLE_KEY        "title"
+#define STYLE_KEY        "style"
+#define LEVEL_KEY        "level"
+#define CLASS_KEY        "class"
 
 uintptr_t create_target_workspace(
         struct pcrdr_conn *conn_to_rdr,
@@ -42,8 +46,6 @@ uintptr_t create_target_workspace(
         const char *target_workspace
         )
 {
-    UNUSED_PARAM(session_handle);
-    UNUSED_PARAM(target_workspace);
     pcrdr_msg *msg = NULL;
     pcrdr_msg *response_msg = NULL;
     purc_variant_t workspace_data;
@@ -67,7 +69,7 @@ uintptr_t create_target_workspace(
     }
 
     purc_variant_t vs[2] = { NULL };
-    vs[0] = purc_variant_make_string_static(TITLE_FAILED, false);
+    vs[0] = purc_variant_make_string_static(TITLE_KEY, false);
     vs[1] = purc_variant_make_string_static(target_workspace, false);
 
     workspace_data = purc_variant_make_object(0, NULL, NULL);
