@@ -328,6 +328,7 @@ void pcvariant_cleanup_instance(struct pcinst *inst)
 
     free(heap);
     inst->variant_heap = NULL;
+    inst->org_vrt_heap = NULL;
 }
 
 bool purc_variant_is_type(purc_variant_t value, enum purc_variant_type type)
