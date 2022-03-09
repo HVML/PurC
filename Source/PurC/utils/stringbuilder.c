@@ -233,8 +233,12 @@ pcutils_string_append_chunk(struct pcutils_string *string, const char *chunk)
     if (r)
         return -1;
 
+#if 0   /* NOTE: use `strcpy` is Ok, because you have checked the space. */
     strncpy(string->curr, chunk, len);
     string->curr[len] = '\0';
+#else
+    strcpy(string->curr, chunk);
+#endif
     string->curr += len;
 
     return 0;
