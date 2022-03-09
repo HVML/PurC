@@ -35,7 +35,7 @@
 #include "private/utils.h"
 
 #if PURC_ATOM_BUCKET_BITS > 16
-#error "Too more bits reserved for bucket"
+#error "Too many bits reserved for bucket"
 #endif
 
 static struct atom_bucket {

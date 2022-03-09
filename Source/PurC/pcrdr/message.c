@@ -811,7 +811,7 @@ failed:
 #define LEN_BUFF_LONGLONGINT    128
 
 static int
-serialize_message_data(const pcrdr_msg *msg, cb_write fn, void *ctxt)
+serialize_message_data(const pcrdr_msg *msg, pcrdr_cb_write fn, void *ctxt)
 {
     char buff[LEN_BUFF_LONGLONGINT];
     int n, errcode = 0;
@@ -826,7 +826,7 @@ serialize_message_data(const pcrdr_msg *msg, cb_write fn, void *ctxt)
     }
     else if (msg->dataType == PCRDR_MSG_DATA_TYPE_EJSON) {
         purc_rwstream_t buffer = NULL;
-        buffer = purc_rwstream_new_buffer (PCRDR_MIN_PACKET_BUFF_SIZE,
+        buffer = purc_rwstream_new_buffer(PCRDR_MIN_PACKET_BUFF_SIZE,
                 PCRDR_MAX_INMEM_PAYLOAD_SIZE);
 
         if (purc_variant_serialize(msg->data, buffer, 0,
@@ -880,7 +880,7 @@ done:
     return errcode;
 }
 
-int pcrdr_serialize_message(const pcrdr_msg *msg, cb_write fn, void *ctxt)
+int pcrdr_serialize_message(const pcrdr_msg *msg, pcrdr_cb_write fn, void *ctxt)
 {
     int n = 0;
     char buff[LEN_BUFF_LONGLONGINT];

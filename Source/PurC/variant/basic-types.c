@@ -228,7 +228,7 @@ purc_variant_make_string_ex(const char* str_utf8, size_t len,
     value->type = PURC_VARIANT_TYPE_STRING;
     value->flags = 0;
     value->refc = 1;
-    value->extra_uintptrs[0] = nr_chars;
+    value->extra_size = nr_chars;
 
     if (len < sz_bytes) {
         memcpy(value->bytes, str_utf8, len);
@@ -288,7 +288,7 @@ purc_variant_t purc_variant_make_string_reuse_buff(char* str_utf8,
     value->type = PURC_VARIANT_TYPE_STRING;
     value->flags = PCVARIANT_FLAG_EXTRA_SIZE;
     value->refc = 1;
-    value->extra_uintptrs[0] = nr_chars;
+    value->extra_size = nr_chars;
 
     value->sz_ptr[1] = (uintptr_t)(str_utf8);
     pcvariant_stat_set_extra_size(value, len + 1);
@@ -328,7 +328,7 @@ purc_variant_t purc_variant_make_string_static(const char* str_utf8,
     value->type = PURC_VARIANT_TYPE_STRING;
     value->flags = PCVARIANT_FLAG_STRING_STATIC;
     value->refc = 1;
-    value->extra_uintptrs[0] = nr_chars;
+    value->extra_size = nr_chars;
     value->sz_ptr[0] = (uintptr_t)strlen(str_utf8) + 1;
     value->sz_ptr[1] = (uintptr_t)str_utf8;
 
@@ -398,7 +398,7 @@ bool purc_variant_string_chars(purc_variant_t string, size_t *nr_chars)
         IS_TYPE(string, PURC_VARIANT_TYPE_ATOMSTRING) ||
         IS_TYPE(string, PURC_VARIANT_TYPE_EXCEPTION)) {
 
-        *nr_chars = string->extra_uintptrs[0];
+        *nr_chars = string->extra_size;
         return true;
     }
 

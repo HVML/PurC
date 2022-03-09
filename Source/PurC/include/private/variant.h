@@ -124,19 +124,26 @@ struct purc_variant {
     unsigned int refc;
 
     union {
-        /* only for containers (object, array, and set). */
+        /* only for containers (object, array, and set) so far. */
         struct list_head    listeners;
 
-        /* union fields for non-containers (string, atomstring, and so on). */
-        void*               extra_ptrs[2];
-        uintptr_t           extra_uintptrs[2];
+        /* use this field to chain all reserved variants. */
+        struct list_head    reserved;
+    };
+
+    union {
+        /* union fields for extra information of the variant. */
+        size_t              extra_size;
+        uintptr_t           extra_uintptr;
+        intptr_t            extra_intptr;
+        void*               extra_data;
 
         /* other aliases */
-        /* the real length of `extra_bytes` is `sizeof(void*) * 2` */
+        /* the real length of `extra_bytes` is `sizeof(void*)` */
         uint8_t             extra_bytes[0];
-        /* the real length of `extra_words` is `sizeof(void*)` */
+        /* the real length of `extra_words` is `sizeof(void*) / 2` */
         uint16_t            extra_words[0];
-        /* the real length of `extra_dwords` is `sizeof(void*) / 2` */
+        /* the real length of `extra_dwords` is `sizeof(void*) / 4` */
         uint32_t            extra_dwords[0];
     };
 
@@ -179,8 +186,6 @@ struct purc_variant {
              - `sz_ptr[0]` should always be 0.
              - `sz_ptr[1]` stores the atom. */
         uintptr_t   sz_ptr[2];
-        /* FIXME: DONT do this:
-           for string_static, we store strlen(sz_ptr[1]) into sz_ptr[0] */
 
         /* for short string and byte sequence; the real space size of `bytes`
            is `max(sizeof(long double), sizeof(void*) * 2)` */
