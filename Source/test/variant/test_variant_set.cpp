@@ -768,6 +768,45 @@ TEST(variant_set, constraint)
     purc_variant_unref(set);
 }
 
+TEST(variant_set, constraint_scalar)
+{
+    PurCInstance purc;
+
+    const char *s;
+    purc_variant_t set, k, v, obj, first, last;
+
+    s = "[!'name', {name:{first:xiaohong,last:xu}}, {name:{first:shuming, last:xue}}]";
+    set = pcejson_parser_parse_string(s, 0, 0);
+    ASSERT_NE(set, nullptr);
+    ASSERT_EQ(2, purc_variant_set_get_size(set));
+    PRINT_VARIANT(set);
+
+    k = pcejson_parser_parse_string("{first:'xiaohong',last:'xu'}", 0, 0);
+    ASSERT_NE(k, nullptr);
+    PRINT_VARIANT(k);
+
+    v = purc_variant_set_get_member_by_key_values(set, k);
+    ASSERT_NE(v, nullptr);
+    PRINT_VARIANT(v);
+
+    obj = purc_variant_object_get_by_ckey(v, "name", true);
+    ASSERT_NE(obj, nullptr);
+    PRINT_VARIANT(obj);
+
+    first = purc_variant_make_string("shuming", true);
+    last = purc_variant_make_string("xue", true);
+    purc_variant_object_set_by_static_ckey(obj, "first", first);
+    purc_variant_object_set_by_static_ckey(obj, "last", last);
+    PRINT_VARIANT(obj);
+
+    PRINT_VARIANT(set);
+
+    purc_variant_unref(first);
+    purc_variant_unref(last);
+    purc_variant_unref(k);
+    purc_variant_unref(set);
+}
+
 TEST(set, compare)
 {
     PurCInstance purc;
