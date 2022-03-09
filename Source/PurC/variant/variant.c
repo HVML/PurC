@@ -569,7 +569,7 @@ void pcvariant_put(purc_variant_t value)
         free_variant(value);
     }
     else {
-        list_add_tail(&heap->v_reserved, &value->reserved);
+        list_add_tail(&value->reserved, &heap->v_reserved);
 
         /* VWNOTE: do not forget to set nr_reserved. */
         stat->nr_reserved++;
