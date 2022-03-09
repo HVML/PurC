@@ -996,9 +996,9 @@ pcrdr_purcmc_send_text_packet(pcrdr_conn* conn,
 /**@}*/
 
 /**
- * @defgroup PCRDR_THREAD Thread renderer functions
+ * @defgroup move_buffer Functions for moving messages
  *
- * The functions for thread renderer.
+ * The functions for moving messages among PurC instances.
  * @{
  */
 

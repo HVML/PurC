@@ -179,8 +179,6 @@ struct purc_variant {
              - `sz_ptr[0]` should always be 0.
              - `sz_ptr[1]` stores the atom. */
         uintptr_t   sz_ptr[2];
-        /* FIXME: DONT do this:
-           for string_static, we store strlen(sz_ptr[1]) into sz_ptr[0] */
 
         /* for short string and byte sequence; the real space size of `bytes`
            is `max(sizeof(long double), sizeof(void*) * 2)` */
