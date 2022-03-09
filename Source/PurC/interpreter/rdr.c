@@ -123,12 +123,7 @@ uintptr_t create_tabbed_window(
         purc_renderer_extra_info *extra_info
         )
 {
-    UNUSED_PARAM(conn_to_rdr);
-    UNUSED_PARAM(workspace_handle);
-    UNUSED_PARAM(session_handle);
-    UNUSED_PARAM(target_window);
     UNUSED_PARAM(target_level);
-    UNUSED_PARAM(extra_info);
 
     pcrdr_msg *msg = NULL;
     pcrdr_msg *response_msg = NULL;
@@ -225,15 +220,78 @@ failed:
 
 uintptr_t create_tabpage(
         struct pcrdr_conn *conn_to_rdr,
-        uintptr_t session_handle,
+        uintptr_t window_handle,
         const char *target_tabpage,
         purc_renderer_extra_info *extra_info
         )
 {
-    UNUSED_PARAM(conn_to_rdr);
-    UNUSED_PARAM(session_handle);
-    UNUSED_PARAM(target_tabpage);
     UNUSED_PARAM(extra_info);
+
+    pcrdr_msg *msg = NULL;
+    pcrdr_msg *response_msg = NULL;
+    purc_variant_t req_data;
+    uintptr_t page_handle = 0;
+
+    pcrdr_msg_target target = PCRDR_MSG_TARGET_TABBEDWINDOW;
+    uint64_t target_value = window_handle;
+    msg = pcrdr_make_request_message(
+            target,                             /* target */
+            target_value,                       /* target_value */
+            PCRDR_OPERATION_CREATETABPAGE,      /* ooperation */
+            NULL,                               /* request_id */
+            PCRDR_MSG_ELEMENT_TYPE_VOID,        /* element_type */
+            NULL,                               /* element */
+            NULL,                               /* property */
+            PCRDR_MSG_DATA_TYPE_VOID,           /* data_tuype */
+            NULL,                               /* data */
+            0                                   /* data_len */
+            );
+    if (msg == NULL) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto failed;
+    }
+
+    req_data = purc_variant_make_object(0, NULL, NULL);
+    if (req_data == PURC_VARIANT_INVALID) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto failed;
+    }
+
+    purc_variant_t vs[2] = { NULL };
+    vs[0] = purc_variant_make_string_static(TITLE_KEY, false);
+    vs[1] = purc_variant_make_string_static(target_tabpage, false);
+    purc_variant_object_set(req_data, vs[0], vs[1]);
+    purc_variant_unref(vs[0]);
+    purc_variant_unref(vs[1]);
+
+    msg->dataType = PCRDR_MSG_DATA_TYPE_EJSON;
+    msg->data = req_data;
+
+    if (pcrdr_send_request_and_wait_response(conn_to_rdr,
+            msg, PCRDR_TIME_DEF_EXPECTED, &response_msg) < 0) {
+        goto failed;
+    }
+    pcrdr_release_message(msg);
+    msg = NULL;
+
+    int ret_code = response_msg->retCode;
+    if (ret_code == PCRDR_SC_OK) {
+        page_handle = response_msg->resultValue;
+    }
+
+    pcrdr_release_message(response_msg);
+
+    if (ret_code != PCRDR_SC_OK) {
+        purc_set_error(PCRDR_ERROR_SERVER_REFUSED);
+        goto failed;
+    }
+
+    return page_handle;
+
+failed:
+    if (msg)
+        pcrdr_release_message(msg);
+
     return 0;
 }
 
@@ -301,7 +359,7 @@ purc_attach_vdom_to_renderer(purc_vdom_t vdom,
             return false;
         }
 
-        tabpage = create_tabpage(conn_to_rdr, session_handle,
+        tabpage = create_tabpage(conn_to_rdr, window,
                 target_tabpage, extra_info);
         if (!tabpage) {
             purc_set_error(PCRDR_ERROR_SERVER_REFUSED);
