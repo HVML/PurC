@@ -229,7 +229,7 @@ typedef struct pcrdr_conn pcrdr_conn;
 PCA_EXTERN_C_BEGIN
 
 /**
- * @defgroup PCRDRConnection Renderer connection functions
+ * @defgroup pcrdr_conn Renderer connection functions
  *
  * The functions to manage the connection with renderer.
  * @{
@@ -559,6 +559,9 @@ struct pcrdr_msg
 {
     /** the atom on behalf of the endpoint (thread) which owns this message. */
     purc_atom_t             owner;
+
+    void                   *__padding1; // reserved for struct list_head
+    void                   *__padding2; // reserved for struct list_head
 
     pcrdr_msg_type          type;
     pcrdr_msg_target        target;
@@ -893,7 +896,7 @@ pcrdr_headless_connect(const char* renderer_uri,
  * Since: 0.1.0
  */
 PCA_EXPORT pcrdr_msg *
-pcrdr_thread_connect(const char* renderer_uri,
+purc_inst_connect(const char* renderer_uri,
         const char* app_name, const char* runner_name, pcrdr_conn** conn);
 
 /**
@@ -917,7 +920,7 @@ pcrdr_purcmc_connect(const char* renderer_uri,
 /**@}*/
 
 /**
- * @defgroup PCRDR_PURCMC PurCMC renderer functions
+ * @defgroup pcrdr_purcmc PurCMC renderer functions
  *
  * The functions for PurCMC renderer.
  * @{
@@ -1002,12 +1005,49 @@ pcrdr_purcmc_send_text_packet(pcrdr_conn* conn,
  * @{
  */
 
+#define PCINST_MOVE_BUFFER_FLAG_NONE        0x0000
+#define PCINST_MOVE_BUFFER_FLAG_EVENT       0x0001
+
+/**
+ * Create the move buffer for the current thread.
+ *
+ * @param flags: Flags for the move buffer, can be `PCINST_MOVE_BUFFER_FLAG_NONE`
+ *  or OR'd with one or more following values:
+ *      - PCINST_MOVE_BUFFER_NEED_EVENT
+ * @param max_moving_msg: the maximal number of the messages waiting to move
+ *      in the new move buffer.
+ *
+ * Returns: 0 for success, otherwise the error code.
+ *
+ * Note that the thread must call `purc_init` to create a valid PurC instance
+ * before calling this function, that is, the module `variant`
+ * (PURC_MODULE_VARIANT) should be initialized at least.
+ *
+ * @see_also: purc_init_ex()
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT int
+purc_inst_create_move_buffer(unsigned int flags, size_t max_moving_msgs);
+
+/**
+ * Destroy the move buffer for the current thread.
+ *
+ * Returns: The number of discarded messages waiting to move; -1 on error.
+ *
+ * @see_also: purc_inst_create_move_buffer()
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT ssize_t
+purc_inst_destroy_move_buffer(void);
+
 /**
  * Move a message to the move buffer of the specified endpoint.
  *
- * @param endpoint_to: the atom on behalf of the endpoint who will take owner
- *      of the message. If it is 0, means clone the message for
- *      all endpoints which using the move buffers.
+ * @param inst_to: the atom on behalf of the instance who will take owner
+ *      of the message. If it is 0, means clone the message if the message
+ *      type is event for all instances which are instersted in event messages.
  * @param msg: the pointer to a message structure.
  *
  * Returns: the number of messages moved (including the cloned ones);
@@ -1020,7 +1060,7 @@ pcrdr_purcmc_send_text_packet(pcrdr_conn* conn,
  * Since: 0.1.0
  */
 PCA_EXPORT size_t
-pcrdr_thread_move_msg(purc_atom_t endpoint_to, pcrdr_msg *msg);
+purc_inst_move_msg(purc_atom_t endpoint_to, pcrdr_msg *msg);
 
 /**
  * Get the number of messages in the move buffer of the current endpoint.
@@ -1030,7 +1070,7 @@ pcrdr_thread_move_msg(purc_atom_t endpoint_to, pcrdr_msg *msg);
  * Since: 0.1.0
  */
 PCA_EXPORT size_t
-pcrdr_thread_nr_moving_msgs(void);
+purc_inst_nr_moving_msgs(void);
 
 /**
  * Retrieve a message in the move buffer of the current endpoint.
@@ -1046,7 +1086,7 @@ pcrdr_thread_nr_moving_msgs(void);
  * Since: 0.1.0
  */
 PCA_EXPORT const pcrdr_msg *
-pcrdr_thread_retrieve_msg(size_t index);
+purc_inst_retrieve_msg(size_t index);
 
 /**
  * Take a message away from the move buffer of the current endpoint.
@@ -1061,38 +1101,7 @@ pcrdr_thread_retrieve_msg(size_t index);
  * Since: 0.1.0
  */
 PCA_EXPORT pcrdr_msg *
-pcrdr_thread_take_away_msg(size_t index);
-
-/**
- * Create the move buffer for the current thread.
- *
- * @param max_moving_msg: the maximal number of the messages waiting to move
- *      in the new move buffer.
- *
- * Returns: @true for success, otherwise @false.
- *
- * Note that the thread must call `purc_init` to create a valid PurC instance
- * before calling this function, that is, the module `variant`
- * (PURC_MODULE_VARIANT) should be initialized.
- *
- * @see_also: purc_init_ex()
- *
- * Since: 0.1.0
- */
-PCA_EXPORT bool
-pcrdr_thread_create_move_buffer(size_t max_moving_msgs);
-
-/**
- * Destroy the move buffer for the current thread.
- *
- * Returns: The number of discarded messages waiting to move; -1 on error.
- *
- * @see_also: pcrdr_thread_create_move_buffer()
- *
- * Since: 0.1.0
- */
-PCA_EXPORT ssize_t
-pcrdr_thread_destroy_move_buffer(void);
+purc_inst_take_away_msg(size_t index);
 
 /**@}*/
 

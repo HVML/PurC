@@ -82,5 +82,8 @@ struct pcinst {
 struct pcinst* pcinst_current(void) WTF_INTERNAL;
 pcvarmgr_t pcinst_get_variables(void) WTF_INTERNAL;
 
+void pcinst_move_buffer_init_once(void) WTF_INTERNAL;
+void pcinst_move_buffer_term_once(void) WTF_INTERNAL;
+
 #endif /* not defined PURC_PRIVATE_INSTANCE_H */
 
