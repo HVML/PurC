@@ -45,7 +45,8 @@ TEST(dvobjs, dvobjs_ejson_type)
 
     // get and function
     purc_instance_extra_info info = {};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     purc_variant_t ejson = pcdvobjs_get_ejson();
@@ -209,7 +210,8 @@ TEST(dvobjs, dvobjs_ejson_number)
 
     // get and function
     purc_instance_extra_info info = {};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     purc_variant_t ejson = pcdvobjs_get_ejson();
@@ -371,7 +373,8 @@ TEST(dvobjs, dvobjs_ejson_compare)
 
     // get and function
     purc_instance_extra_info info = {};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     purc_variant_t ejson = pcdvobjs_get_ejson();
@@ -536,7 +539,8 @@ TEST(dvobjs, dvobjs_ejson_sort)
 
     // get and function
     purc_instance_extra_info info = {};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     purc_variant_t ejson = pcdvobjs_get_ejson();

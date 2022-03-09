@@ -24,7 +24,8 @@ TEST(idle, idle)
     bool cleanup = false;
 
     // initial purc
-    ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ret = purc_init_ex (PURC_MODULE_HVML, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
 
     ASSERT_EQ (ret, PURC_ERROR_OK);
 

@@ -62,7 +62,7 @@ ctxt_destroy(void *ctxt)
     ctxt_for_observe_destroy((struct ctxt_for_observe*)ctxt);
 }
 
-bool base_variant_msg_listener(purc_variant_t source, purc_atom_t msg_type,
+bool base_variant_msg_listener(purc_variant_t source, pcvar_op_t msg_type,
         void* ctxt, size_t nr_args, purc_variant_t* argv)
 {
     UNUSED_PARAM(source);
@@ -71,8 +71,24 @@ bool base_variant_msg_listener(purc_variant_t source, purc_atom_t msg_type,
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
 
+    const char *smsg = NULL;
+    switch (msg_type) {
+        case PCVAR_OPERATION_GROW:
+            smsg = "grow";
+            break;
+        case PCVAR_OPERATION_SHRINK:
+            smsg = "shrink";
+            break;
+        case PCVAR_OPERATION_CHANGE:
+            smsg = "change";
+            break;
+        default:
+            PC_ASSERT(0);
+            break;
+    }
+
     purc_variant_t type = purc_variant_make_string(
-            purc_atom_to_string(msg_type), false);
+            smsg, false);
 
     pcintr_dispatch_message((pcintr_stack_t)ctxt,
             source, type, PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
@@ -123,8 +139,23 @@ static bool
 regist_variant_listener(pcintr_stack_t stack, purc_variant_t observed,
         purc_atom_t op, struct pcvar_listener** listener)
 {
-    *listener = purc_variant_register_post_listener(observed,
-            op, base_variant_msg_listener, stack);
+    if (op == pcvariant_atom_grow) {
+        *listener = purc_variant_register_post_listener(observed,
+                PCVAR_OPERATION_GROW, base_variant_msg_listener, stack);
+    }
+    else if (op == pcvariant_atom_shrink) {
+        *listener = purc_variant_register_post_listener(observed,
+                PCVAR_OPERATION_SHRINK, base_variant_msg_listener, stack);
+    }
+    else if (op == pcvariant_atom_change) {
+        *listener = purc_variant_register_post_listener(observed,
+                PCVAR_OPERATION_CHANGE, base_variant_msg_listener, stack);
+    }
+    else {
+        PC_ASSERT(0);
+        return false;
+    }
+
     if (*listener != NULL) {
         return true;
     }

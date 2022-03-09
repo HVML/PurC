@@ -90,7 +90,8 @@ class test_vcm_eval : public testing::TestWithParam<vcm_eval_test_data>
 {
 protected:
     void SetUp() {
-        purc_init ("cn.fmsoft.hybridos.test", "vcm_eval", NULL);
+        purc_init_ex (PURC_MODULE_HVML, "cn.fmsoft.hybridos.test",
+                "vcm_eval", NULL);
         name = GetParam().name;
         hvml = GetParam().hvml;
         comp = GetParam().comp;

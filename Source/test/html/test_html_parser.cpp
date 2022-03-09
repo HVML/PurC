@@ -16,7 +16,8 @@
 TEST(html, html_parser_html_file_x)
 {
     purc_instance_extra_info info = {};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_HTML, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     static const char html[][64] = {
@@ -87,7 +88,8 @@ TEST(html, html_parser_html_file_x)
 TEST(html, html_parser_chunk)
 {
     purc_instance_extra_info info = {};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_HTML, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     static const char html[][64] = {
@@ -144,7 +146,8 @@ TEST(html, html_parser_chunk)
 TEST(html, load_from_html)
 {
     purc_instance_extra_info info = {};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_HTML, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     char this_file[] = __FILE__;
@@ -252,7 +255,8 @@ process_html_document(purc_rwstream_t in, bool *ok)
 TEST(html, document)
 {
     purc_instance_extra_info info = {};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_HTML, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     const char *htmls[] = {
@@ -496,7 +500,8 @@ process_html_element(purc_rwstream_t in, bool *ok)
 TEST(html, element)
 {
     purc_instance_extra_info info = {};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_HTML, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     const char *htmls[] = {
@@ -578,7 +583,8 @@ process_html_collection(purc_rwstream_t in, bool *ok)
 TEST(html, collection)
 {
     purc_instance_extra_info info = {};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_HTML, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     const char *htmls[] = {

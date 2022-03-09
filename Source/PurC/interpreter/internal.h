@@ -57,6 +57,9 @@ int
 pcintr_vdom_walk_attrs(struct pcintr_stack_frame *frame,
         struct pcvdom_element *element, void *ud, pcintr_attr_f cb);
 
+bool
+pcintr_is_element_silently(struct pcvdom_element *element);
+
 // $<
 void
 pcintr_set_input_var(pcintr_stack_t stack, purc_variant_t val);

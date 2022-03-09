@@ -1905,17 +1905,21 @@ struct pcvar_listener;
 typedef struct pcvar_listener pcvar_listener;
 typedef struct pcvar_listener *pcvar_listener_t;
 
-typedef bool (*pcvar_op_handler) (
-        purc_variant_t source,  // the source variant
-        purc_atom_t op,  // the atom of the operation,
-                         // such as `grow`,  `shrink`, or `change`
-        void *ctxt,      // the context stored when registering the handler.
-        size_t nr_args,  // the number of the relevant child variants
-                         // (only for container).
-        purc_variant_t *argv    // the array of all relevant child variants
-                                // (only for container).
-        );
+typedef enum {
+    PCVAR_OPERATION_GROW         = (0x01 << 0),
+    PCVAR_OPERATION_SHRINK       = (0x01 << 1),
+    PCVAR_OPERATION_CHANGE       = (0x01 << 2),
+    PCVAR_OPERATION_REFASCHILD   = (0x01 << 3),
+    PCVAR_OPERATION_ALL          = ((0x01 << 4) - 1),
+} pcvar_op_t;
 
+typedef bool (*pcvar_op_handler) (
+        purc_variant_t source,  // the source variant.
+        pcvar_op_t op,          // the operation identifier.
+        void *ctxt,             // the context stored when registering the handler.
+        size_t nr_args,         // the number of the relevant child variants.
+        purc_variant_t *argv    // the array of all relevant child variants.
+        );
 
 /**
  * Register a pre-operation listener
@@ -1934,7 +1938,7 @@ typedef bool (*pcvar_op_handler) (
  */
 PCA_EXPORT struct pcvar_listener*
 purc_variant_register_pre_listener(purc_variant_t v,
-        purc_atom_t op, pcvar_op_handler handler, void *ctxt);
+        pcvar_op_t op, pcvar_op_handler handler, void *ctxt);
 
 /**
  * Register a post-operation listener
@@ -1953,7 +1957,7 @@ purc_variant_register_pre_listener(purc_variant_t v,
  */
 PCA_EXPORT struct pcvar_listener*
 purc_variant_register_post_listener(purc_variant_t v,
-        purc_atom_t op, pcvar_op_handler handler, void *ctxt);
+        pcvar_op_t op, pcvar_op_handler handler, void *ctxt);
 
 /**
  * Revoke a variant listener
@@ -2179,6 +2183,46 @@ purc_variant_set_xor(purc_variant_t set,
 PCA_EXPORT bool
 purc_variant_set_overwrite(purc_variant_t set,
         purc_variant_t src, bool silently);
+
+
+/**
+ * Check if the variant is the mutable one, array/object/set
+ *
+ * @param var: the variant to check
+ * @param is_mutable: the pointer where the result is to store
+ *
+ * Return: denote if the function succeeds or not
+ *         0:  Success
+ *         -1: Failed
+ *
+ * Since: 0.1.1
+ */
+PCA_EXPORT int
+purc_variant_is_mutable(purc_variant_t var, bool *is_mutable);
+
+/**
+ * Clone a container
+ *
+ * @param ctnr: the source container variant
+ *
+ * Return: the cloned container variant
+ *
+ * Since: 0.1.1
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_container_clone(purc_variant_t ctnr);
+
+/**
+ * Recursively clone a container (deep clone).
+ *
+ * @param ctnr: the source container variant
+ *
+ * Return: the deep-cloned container variant
+ *
+ * Since: 0.1.1
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_container_clone_recursively(purc_variant_t ctnr);
 
 PCA_EXTERN_C_END
 

@@ -132,8 +132,7 @@ get_source_by_with(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         pcintr_stack_t stack = co->stack;
         PC_ASSERT(stack);
 
-        // TODO: silently
-        purc_variant_t v = pcvcm_eval(vcm_content, stack, false);
+        purc_variant_t v = pcvcm_eval(vcm_content, stack, frame->silently);
         if (v == PURC_VARIANT_INVALID)
             PRINT_VCM_NODE(vcm_content);
         return v;
@@ -409,7 +408,7 @@ update_set(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         }
 
         // TODO
-        if (!purc_variant_container_displace(on, src, true)) {
+        if (!purc_variant_container_displace(on, src, frame->silently)) {
             return -1;
         }
         return 0;
@@ -421,7 +420,7 @@ update_set(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         }
 
         // TODO
-        if (!purc_variant_set_unite(on, src, true)) {
+        if (!purc_variant_set_unite(on, src, frame->silently)) {
             return -1;
         }
         return 0;
@@ -433,7 +432,7 @@ update_set(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         }
 
         // TODO
-        if (!purc_variant_set_overwrite(on, src, true)) {
+        if (!purc_variant_set_overwrite(on, src, frame->silently)) {
             return -1;
         }
         return 0;

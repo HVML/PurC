@@ -1413,7 +1413,7 @@ pcvdom_element_eval_attr_val(pcvdom_element_t element, const char *key)
     stack = pcintr_get_stack();
 
     purc_variant_t v;
-    v = pcvcm_eval(val, stack, false);  // TODO : silently
+    v = pcvcm_eval(val, stack, pcvdom_element_is_silently(element));
     PC_ASSERT(v != PURC_VARIANT_INVALID);
 
     UNUSED_PARAM(op);
@@ -1422,3 +1422,12 @@ pcvdom_element_eval_attr_val(pcvdom_element_t element, const char *key)
     return v;
 }
 
+#define SILENTLY_ATTR_NAME          "silently"
+#define SILENTLY_ATTR_FULL_NAME     "hvml:silently"
+
+bool
+pcvdom_element_is_silently(struct pcvdom_element *element)
+{
+    return pcvdom_element_find_attr(element, SILENTLY_ATTR_NAME) ||
+        pcvdom_element_find_attr(element, SILENTLY_ATTR_FULL_NAME);
+}

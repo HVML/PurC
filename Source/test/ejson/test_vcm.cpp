@@ -55,7 +55,7 @@ class ejson_parser_vcm_eval : public testing::TestWithParam<ejson_test_data>
 {
 protected:
     void SetUp() {
-        purc_init ("cn.fmsoft.hybridos.test", "ejson", NULL);
+        purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hybridos.test", "ejson", NULL);
         name = GetParam().name;
         json = GetParam().json;
         comp = GetParam().comp;

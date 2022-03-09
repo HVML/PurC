@@ -38,7 +38,8 @@ TEST(set, unique_key_find)
     bool cleanup = false;
     struct purc_variant_stat *stat;
 
-    ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ(ret, PURC_ERROR_OK);
 
     stat = purc_variant_usage_stat();
@@ -64,7 +65,8 @@ TEST(set, unique_key_find)
 
     purc_variant_t v = pcvariant_set_find(set, obj_3);
     ASSERT_NE(v, PURC_VARIANT_INVALID);
-    ASSERT_EQ(obj_2, v);
+    // ASSERT_EQ(obj_2, v);
+    ASSERT_EQ(0, pcvariant_equal(obj_2, v));
 
     bool overwrite = purc_variant_set_overwrite(set, obj_3, true);
     ASSERT_EQ(overwrite, true);

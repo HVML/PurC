@@ -30,6 +30,8 @@
 #include "purc-utils.h"
 #include "private/list.h"
 
+PCA_EXTERN_C_BEGIN
+
 struct err_msg_info {
     const char* msg;
     int except_id;
@@ -51,6 +53,8 @@ void pcinst_dump_stack(void) WTF_INTERNAL;
 /* sets the the last error code */
 #define pcinst_set_error(x)                 purc_set_error(x)
 #define pcinst_set_error_exinfo(x, exinfo)  purc_set_error_exinfo(x, exinfo)
+
+PCA_EXTERN_C_END
 
 #endif /* not defined PURC_PRIVATE_ERRORS_H */
 

@@ -139,7 +139,7 @@ set_foreach(purc_variant_t set, foreach_func func, void* ctxt, bool silently)
     }
 
     purc_variant_t v;
-    foreach_value_in_variant_set(set, v)
+    foreach_value_in_variant_set_order(set, v)
         if (!func(ctxt, v, PURC_VARIANT_INVALID, silently)) {
             goto end;
         }

@@ -32,9 +32,7 @@
 #include "rbtree.h"
 #include "array_list.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif  /* __cplusplus */
+PCA_EXTERN_C_BEGIN
 
 #define PCVARIANT_FLAG_CONSTANT        (0x01 << 0)  // for null, true, ...
 #define PCVARIANT_FLAG_NOFREE          PCVARIANT_FLAG_CONSTANT
@@ -84,7 +82,7 @@ extern "C" {
 
 struct pcvar_listener {
     // the operation in which this listener is intersted.
-    purc_atom_t         op;
+    pcvar_op_t          op;
 
     // the context for the listener
     void*               ctxt;
@@ -241,9 +239,8 @@ struct elem_node {
 
     // managed by variant_set
     purc_variant_t   set; // owner
-    struct pcvar_listener      *grow;
-    struct pcvar_listener      *change;
-    struct pcvar_listener      *shrink;
+
+    struct pcvar_listener           *constraints;
 };
 
 struct variant_set {
@@ -289,6 +286,9 @@ int pcvariant_set_sort(purc_variant_t value, void *ud,
 
 const char* pcvariant_get_typename(enum purc_variant_type type);
 
+int
+pcvariant_equal(purc_variant_t l, purc_variant_t r);
+
 static inline const char*
 pcvariant_typename(purc_variant_t v)
 {
@@ -323,23 +323,17 @@ extern purc_atom_t pcvariant_atom_change;
 bool pcvariant_is_mutable(purc_variant_t val);
 
 bool pcvariant_on_pre_fired(
-        purc_variant_t source,  // the source variant
-        purc_atom_t op,  // the atom of the operation,
-                         // such as `grow`,  `shrink`, or `change`
-        size_t nr_args,  // the number of the relevant child variants
-                         // (only for container).
-        purc_variant_t *argv    // the array of all relevant child variants
-                                // (only for container).
+        purc_variant_t source,  // the source variant.
+        pcvar_op_t op,          // the operation identifier.
+        size_t nr_args,         // the number of the relevant child variants.
+        purc_variant_t *argv    // the array of all relevant child variants.
         );
 
 void pcvariant_on_post_fired(
-        purc_variant_t source,  // the source variant
-        purc_atom_t op,  // the atom of the operation,
-                         // such as `grow`,  `shrink`, or `change`
-        size_t nr_args,  // the number of the relevant child variants
-                         // (only for container).
-        purc_variant_t *argv    // the array of all relevant child variants
-                                // (only for container).
+        purc_variant_t source,  // the source variant.
+        pcvar_op_t op,          // the operation identifier.
+        size_t nr_args,         // the number of the relevant child variants.
+        purc_variant_t *argv    // the array of all relevant child variants.
         );
 
 purc_variant_t pcvariant_set_find (purc_variant_t set, purc_variant_t value);
@@ -353,9 +347,7 @@ pcvariant_is_in_set (purc_variant_t set, purc_variant_t value)
 purc_variant_t
 pcvariant_object_shallow_copy(purc_variant_t obj);
 
-#ifdef __cplusplus
-}
-#endif  /* __cplusplus */
+PCA_EXTERN_C_END
 
 /* VWNOTE (WARN)
  * 1. Make these macros as private interfaces. Please reimplement them
@@ -547,6 +539,74 @@ pcvariant_object_shallow_copy(purc_variant_t obj);
              _p = _n)                                                   \
         {                                                               \
             _val = _p->elem;                                            \
+     /* } */                                                            \
+  /* } while (0) */
+
+#define foreach_value_in_variant_set_order(_set, _val)                  \
+    do {                                                                \
+        variant_set_t _data;                                            \
+        struct rb_node *_first;                                         \
+        _data = (variant_set_t)_set->sz_ptr[1];                         \
+        _first = pcutils_rbtree_first(&_data->elems);                   \
+        if (!_first)                                                    \
+            break;                                                      \
+        struct rb_node *_p;                                             \
+        pcutils_rbtree_for_each(_first, _p)                             \
+        {                                                               \
+            struct elem_node *_en;                                      \
+            _en = container_of(_p, struct elem_node, node);             \
+            _val = _en->elem;                                           \
+     /* } */                                                            \
+  /* } while (0) */
+
+#define foreach_value_in_variant_set_order_reverse(_set, _val)          \
+    do {                                                                \
+        variant_set_t _data;                                            \
+        struct rb_node *_first;                                         \
+        _data = (variant_set_t)_set->sz_ptr[1];                         \
+        _first = pcutils_rbtree_last(&_data->elems);                    \
+        if (!_first)                                                    \
+            break;                                                      \
+        struct rb_node *_p;                                             \
+        pcutils_rbtree_for_each_reverse(_first, _p)                     \
+        {                                                               \
+            struct elem_node *_en;                                      \
+            _en = container_of(_p, struct elem_node, node);             \
+            _val = _en->elem;                                           \
+     /* } */                                                            \
+  /* } while (0) */
+
+#define foreach_value_in_variant_set_order_safe(_set, _val)             \
+    do {                                                                \
+        variant_set_t _data;                                            \
+        struct rb_node *_first;                                         \
+        _data = (variant_set_t)_set->sz_ptr[1];                         \
+        _first = pcutils_rbtree_first(&_data->elems);                   \
+        if (!_first)                                                    \
+            break;                                                      \
+        struct rb_node *_p, *_n;                                        \
+        pcutils_rbtree_for_each_safe(_first, _p, _n)                    \
+        {                                                               \
+            struct elem_node *_en;                                      \
+            _en = container_of(_p, struct elem_node, node);             \
+            _val = _en->elem;                                           \
+     /* } */                                                            \
+  /* } while (0) */
+
+#define foreach_value_in_variant_set_order_reverse_safe(_set, _val)     \
+    do {                                                                \
+        variant_set_t _data;                                            \
+        struct rb_node *_first;                                         \
+        _data = (variant_set_t)_set->sz_ptr[1];                         \
+        _first = pcutils_rbtree_last(&_data->elems);                    \
+        if (!_first)                                                    \
+            break;                                                      \
+        struct rb_node *_p, *_n;                                        \
+        pcutils_rbtree_for_each_reverse_safe(_first, _p, _n)            \
+        {                                                               \
+            struct elem_node *_en;                                      \
+            _en = container_of(_p, struct elem_node, node);             \
+            _val = _en->elem;                                           \
      /* } */                                                            \
   /* } while (0) */
 

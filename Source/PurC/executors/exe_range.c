@@ -88,6 +88,7 @@ init_result_set_with_set(struct pcexec_exe_range_inst *exe_range_inst,
 
     bool ok = true;
     purc_variant_t v;
+    // FIXME: document-order or content-order?
     foreach_value_in_variant_set(input, v)
         if (!purc_variant_array_append(result_set, v)) {
             ok = false;

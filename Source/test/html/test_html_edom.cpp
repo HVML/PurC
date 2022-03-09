@@ -136,7 +136,8 @@ load_document(const char *html)
 TEST(html, edom_parse_simple)
 {
     purc_instance_extra_info info = {};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_HTML, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     pchtml_html_document_t *doc;
@@ -185,7 +186,8 @@ TEST(html, edom_parse_simple)
 TEST(html, edom_parse)
 {
     purc_instance_extra_info info = {};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_HTML, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     pchtml_html_document_t *doc;
@@ -215,7 +217,8 @@ TEST(html, edom_parse)
 TEST(html, edom_parse_bad_input_adjust)
 {
     purc_instance_extra_info info = {};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_HTML, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     pchtml_html_document_t *doc;
@@ -245,7 +248,8 @@ TEST(html, edom_parse_bad_input_adjust)
 TEST(html, edom_parse_id)
 {
     purc_instance_extra_info info = {};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_HTML, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     pchtml_html_document_t *doc;
@@ -275,7 +279,8 @@ TEST(html, edom_parse_id)
 TEST(html, edom_parse_and_add)
 {
     purc_instance_extra_info info = {};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_HTML, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     pchtml_html_document_t *doc;
@@ -413,7 +418,8 @@ TEST(html, parser_validate)
     };
 
     purc_instance_extra_info info = {};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_HTML, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
 
@@ -459,7 +465,8 @@ TEST(html, parser_validate)
 TEST(html, edom_gen)
 {
     purc_instance_extra_info info = {};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_HTML, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     pchtml_html_document_t *doc;
@@ -627,7 +634,8 @@ TEST(html, edom_gen)
 TEST(html, edom_gen_attr)
 {
     purc_instance_extra_info info = {};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_HTML, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     pchtml_html_document_t *doc;
@@ -666,7 +674,8 @@ TEST(html, edom_gen_chunk_body)
     char buf[8192];
 
     purc_instance_extra_info info = {};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_HTML, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     pchtml_html_document_t *doc;
@@ -730,7 +739,8 @@ TEST(html, edom_gen_chunk_other)
     char buf[8192];
 
     purc_instance_extra_info info = {};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_HTML, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     pchtml_html_document_t *doc;
@@ -859,7 +869,8 @@ TEST(html, edom_gen_chunk_parser)
     char buf[8192];
 
     purc_instance_extra_info info = {};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_HTML, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     pchtml_html_document_t *doc;
@@ -944,7 +955,8 @@ TEST(html, buggy)
 {
     // "<hvml><body><span id=\"clock\">xyz</span><xinput xid=\"xexp\"></xinput><update on=\"#clock\" at=\"textContent\" to=\"displace\" with=\"abc\"/></body></hvml>";
     purc_instance_extra_info info = {};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_HTML, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     pchtml_html_document_t *doc;

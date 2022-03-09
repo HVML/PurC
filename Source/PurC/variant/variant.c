@@ -604,7 +604,7 @@ static int compare_sets(purc_variant_t v1, purc_variant_t v2)
         return (int)(sz1 - sz2);
 
     it = purc_variant_set_make_iterator_begin(v2);
-    foreach_value_in_variant_set(v1, m1)
+    foreach_value_in_variant_set_order(v1, m1)
 
         m2 = purc_variant_set_iterator_get_value(it);
         diff = purc_variant_compare_st(m1, m2);
@@ -1674,7 +1674,7 @@ numberify_set(purc_variant_t value)
     double d = 0.0;
 
     purc_variant_t v;
-    foreach_value_in_variant_set(value, v)
+    foreach_value_in_variant_set_order(value, v)
         d += purc_variant_numberify(v);
     end_foreach;
 
@@ -1882,7 +1882,7 @@ static inline void
 stringify_set(struct stringify_arg *arg, purc_variant_t value)
 {
     purc_variant_t v;
-    foreach_value_in_variant_set(value, v)
+    foreach_value_in_variant_set_order(value, v)
         variant_stringify(arg, v);
         arg->cb(arg->arg, "\n");
     end_foreach;
@@ -2300,3 +2300,64 @@ pcvariant_object_shallow_copy(purc_variant_t obj)
     return o;
 }
 
+int
+purc_variant_is_mutable(purc_variant_t var, bool *is_mutable)
+{
+    if (var == PURC_VARIANT_INVALID) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        return -1;
+    }
+
+    if (is_mutable)
+        *is_mutable = IS_CONTAINER(var->type);
+
+    return 0;
+}
+
+purc_variant_t
+pcvariant_container_clone(purc_variant_t ctnr, bool recursively)
+{
+    enum purc_variant_type vt = ctnr->type;
+    switch (vt) {
+        case PURC_VARIANT_TYPE_ARRAY:
+            return pcvariant_array_clone(ctnr, recursively);
+        case PURC_VARIANT_TYPE_OBJECT:
+            return pcvariant_object_clone(ctnr, recursively);
+        case PURC_VARIANT_TYPE_SET:
+            return pcvariant_set_clone(ctnr, recursively);
+        default:
+            return purc_variant_ref(ctnr);
+    }
+}
+
+purc_variant_t
+purc_variant_container_clone(purc_variant_t ctnr)
+{
+    if (ctnr == PURC_VARIANT_INVALID) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    return pcvariant_container_clone(ctnr, false);
+}
+
+purc_variant_t
+purc_variant_container_clone_recursively(purc_variant_t ctnr)
+{
+    if (ctnr == PURC_VARIANT_INVALID) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    return pcvariant_container_clone(ctnr, true);
+}
+
+int
+pcvariant_equal(purc_variant_t l, purc_variant_t r)
+{
+    PC_ASSERT(l != PURC_VARIANT_INVALID);
+    PC_ASSERT(r != PURC_VARIANT_INVALID);
+    int diff;
+    diff = purc_variant_compare_ex(l, r, PCVARIANT_COMPARE_OPT_AUTO);
+    return diff;
+}

@@ -52,7 +52,8 @@ void test_html_file(char * data_path, char * file_name)
 
     // initialize the instance
     purc_instance_extra_info info = {};
-    ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ret = purc_init_ex (PURC_MODULE_HTML, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     // parse whole html file
@@ -141,7 +142,8 @@ void test_html_chunk(char * data_path, char * file_name)
 
     // initialize the instance
     purc_instance_extra_info info = {};
-    ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ret = purc_init_ex (PURC_MODULE_HTML, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     // parse the file, chunk by chunk
@@ -255,7 +257,8 @@ void test_parser_fragment(char * data_path, char * file_name)
 
     // initialize the instance
     purc_instance_extra_info info = {};
-    ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ret = purc_init_ex (PURC_MODULE_HTML, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     parser = pchtml_html_parser_create();
@@ -380,7 +383,8 @@ void test_parser_attribution(char * data_path, char * file_name)
 
     // initialize instance
     purc_instance_extra_info info = {};
-    ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ret = purc_init_ex (PURC_MODULE_HTML, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     // create parser
@@ -671,7 +675,8 @@ TEST(html, html_parser_fragment_insert)
 */
 
     purc_instance_extra_info info = {};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_HTML, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     // parse html file, get original dom tree
@@ -970,7 +975,8 @@ TEST(html, html_parser_specialchars)
     size_t html1_len = sizeof(html1) - 1;
 
     purc_instance_extra_info info = {};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_HTML, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     // parse html file without specail chars
