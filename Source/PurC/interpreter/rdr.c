@@ -51,10 +51,13 @@ uintptr_t create_target_workspace(
     purc_variant_t req_data;
     uintptr_t workspace_handle = 0;
 
+    const char *operation = PCRDR_OPERATION_CREATEWORKSPACE;
+    pcrdr_msg_target target = PCRDR_MSG_TARGET_SESSION;
+    uint64_t target_value = session_handle;
     msg = pcrdr_make_request_message(
-            PCRDR_MSG_TARGET_SESSION,           /* target */
-            session_handle,                     /* target_value */
-            PCRDR_OPERATION_CREATEWORKSPACE,    /* ooperation */
+            target,                             /* target */
+            target_value,                       /* target_value */
+            operation,                          /* operation */
             NULL,                               /* request_id */
             PCRDR_MSG_ELEMENT_TYPE_VOID,        /* element_type */
             NULL,                               /* element */
@@ -130,6 +133,7 @@ uintptr_t create_tabbed_window(
     purc_variant_t req_data;
     uintptr_t window_handle = 0;
 
+    const char *operation = PCRDR_OPERATION_CREATEPLAINWINDOW;
     pcrdr_msg_target target;
     uint64_t target_value;
     if (workspace_handle) {
@@ -144,7 +148,7 @@ uintptr_t create_tabbed_window(
     msg = pcrdr_make_request_message(
             target,                             /* target */
             target_value,                       /* target_value */
-            PCRDR_OPERATION_CREATEPLAINWINDOW,  /* ooperation */
+            operation,                          /* operation */
             NULL,                               /* request_id */
             PCRDR_MSG_ELEMENT_TYPE_VOID,        /* element_type */
             NULL,                               /* element */
@@ -232,12 +236,13 @@ uintptr_t create_tabpage(
     purc_variant_t req_data;
     uintptr_t page_handle = 0;
 
+    const char *operation = PCRDR_OPERATION_CREATETABPAGE;
     pcrdr_msg_target target = PCRDR_MSG_TARGET_TABBEDWINDOW;
     uint64_t target_value = window_handle;
     msg = pcrdr_make_request_message(
             target,                             /* target */
             target_value,                       /* target_value */
-            PCRDR_OPERATION_CREATETABPAGE,      /* ooperation */
+            operation,                          /* operation */
             NULL,                               /* request_id */
             PCRDR_MSG_ELEMENT_TYPE_VOID,        /* element_type */
             NULL,                               /* element */
@@ -311,6 +316,7 @@ uintptr_t create_plain_window(
     purc_variant_t req_data;
     uintptr_t window_handle = 0;
 
+    const char *operation = PCRDR_OPERATION_CREATETABBEDWINDOW;
     pcrdr_msg_target target;
     uint64_t target_value;
     if (workspace_handle) {
@@ -325,7 +331,7 @@ uintptr_t create_plain_window(
     msg = pcrdr_make_request_message(
             target,                             /* target */
             target_value,                       /* target_value */
-            PCRDR_OPERATION_CREATETABBEDWINDOW, /* ooperation */
+            operation,                          /* operation */
             NULL,                               /* request_id */
             PCRDR_MSG_ELEMENT_TYPE_VOID,        /* element_type */
             NULL,                               /* element */
