@@ -124,19 +124,26 @@ struct purc_variant {
     unsigned int refc;
 
     union {
-        /* only for containers (object, array, and set). */
+        /* only for containers (object, array, and set) so far. */
         struct list_head    listeners;
 
-        /* union fields for non-containers (string, atomstring, and so on). */
-        void*               extra_ptrs[2];
-        uintptr_t           extra_uintptrs[2];
+        /* use this field to chain all reserved variants. */
+        struct list_head    reserved;
+    };
+
+    union {
+        /* union fields for extra information of the variant. */
+        size_t              extra_size;
+        uintptr_t           extra_uintptr;
+        intptr_t            extra_intptr;
+        void*               extra_data;
 
         /* other aliases */
-        /* the real length of `extra_bytes` is `sizeof(void*) * 2` */
+        /* the real length of `extra_bytes` is `sizeof(void*)` */
         uint8_t             extra_bytes[0];
-        /* the real length of `extra_words` is `sizeof(void*)` */
+        /* the real length of `extra_words` is `sizeof(void*) / 2` */
         uint16_t            extra_words[0];
-        /* the real length of `extra_dwords` is `sizeof(void*) / 2` */
+        /* the real length of `extra_dwords` is `sizeof(void*) / 4` */
         uint32_t            extra_dwords[0];
     };
 
