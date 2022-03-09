@@ -363,7 +363,6 @@ int purc_init_ex(unsigned int modules,
     }
 
     if (modules & PURC_HAVE_FETCHER) {
-        fprintf(stderr, "................................%d\n", modules & PURC_HAVE_FETCHER_R);
         pcfetcher_init(FETCHER_MAX_CONNS, FETCHER_CACHE_QUOTA,
             (modules & PURC_HAVE_FETCHER_R));
     }
