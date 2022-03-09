@@ -184,7 +184,8 @@ struct purc_variant {
     };
 };
 
-#define MAX_RESERVED_VARIANTS   32
+#define MAX_RESERVED_VARIANTS           32
+#define USE_LOOP_BUFFER_FOR_RESERVED    0
 
 struct pcvariant_heap {
     // the constant values.
@@ -196,13 +197,17 @@ struct pcvariant_heap {
     // the statistics of memory usage of variant values
     struct purc_variant_stat stat;
 
+#if USE(LOOP_BUFFER_FOR_RESERVED)
     // the loop buffer for reserved values.
-    purc_variant_t v_reserved [MAX_RESERVED_VARIANTS];
-    int headpos;
-    int tailpos;
+    purc_variant_t      v_reserved[MAX_RESERVED_VARIANTS];
+    int                 headpos;
+    int                 tailpos;
+#else
+    struct list_head    v_reserved;
+#endif
 
     // experiment
-    struct pcvariant_gc       *gc;
+    struct pcvariant_gc *gc;
 };
 
 // initialize variant module (once)

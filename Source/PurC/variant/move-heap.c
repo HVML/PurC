@@ -41,6 +41,10 @@
 
 struct pcvariant_heap move_heap;
 
+// we only reserve 4 variants for move heap
+#undef  MAX_RESERVED_VARIANTS
+#define MAX_RESERVED_VARIANTS   8
+
 void pcvariant_move_heap_init_once(void)
 {
     move_heap.v_undefined.type = PURC_VARIANT_TYPE_UNDEFINED;
@@ -75,7 +79,7 @@ void pcvariant_move_heap_init_once(void)
     stat->sz_total_mem = 4 * sizeof(purc_variant);
 
     stat->nr_reserved = 0;
-    stat->nr_max_reserved = MAX_RESERVED_VARIANTS;
+    stat->nr_max_reserved = 4;
 }
 
 #if HAVE(GLIB)
