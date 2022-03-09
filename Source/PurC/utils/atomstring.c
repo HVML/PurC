@@ -115,6 +115,15 @@ pcutils_atom_init_once (void)
     atom_get_bucket(0);
 }
 
+void
+pcutils_atom_term_once (void)
+{
+    if (atom_rwlock.native_impl)
+        purc_rwlock_clear (&atom_rwlock);
+    if (atom_block)
+        free(atom_block);
+}
+
 purc_atom_t
 purc_atom_try_string_ex (int bucket, const char *string)
 {
