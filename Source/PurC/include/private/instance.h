@@ -85,5 +85,8 @@ pcvarmgr_t pcinst_get_variables(void) WTF_INTERNAL;
 void pcinst_move_buffer_init_once(void) WTF_INTERNAL;
 void pcinst_move_buffer_term_once(void) WTF_INTERNAL;
 
+struct pcrdr_msg *pcinst_get_message(void) WTF_INTERNAL;
+void pcinst_put_message(struct pcrdr_msg *msg) WTF_INTERNAL;
+
 #endif /* not defined PURC_PRIVATE_INSTANCE_H */
 

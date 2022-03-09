@@ -211,6 +211,11 @@ struct pcvariant_heap {
 // initialize variant module (once)
 void pcvariant_init_once(void) WTF_INTERNAL;
 
+// internal interfaces for moving variant.
+purc_variant_t pcvariant_move_from(purc_variant_t v) WTF_INTERNAL;
+purc_variant_t pcvariant_move_to(purc_variant_t v) WTF_INTERNAL;
+void pcvariant_grind(purc_variant_t v) WTF_INTERNAL;
+
 // experiment
 void pcvariant_push_gc(void);
 void pcvariant_pop_gc(void);

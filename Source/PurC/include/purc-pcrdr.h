@@ -557,9 +557,7 @@ typedef enum {
 /** the renderer message structure */
 struct pcrdr_msg
 {
-    /** the atom on behalf of the endpoint (thread) which owns this message. */
-    purc_atom_t             owner;
-
+    unsigned int           _ref_count;
     void                   *__padding1; // reserved for struct list_head
     void                   *__padding2; // reserved for struct list_head
 
@@ -1006,14 +1004,14 @@ pcrdr_purcmc_send_text_packet(pcrdr_conn* conn,
  */
 
 #define PCINST_MOVE_BUFFER_FLAG_NONE        0x0000
-#define PCINST_MOVE_BUFFER_FLAG_EVENT       0x0001
+#define PCINST_MOVE_BUFFER_BROADCAST       0x0001
 
 /**
  * Create the move buffer for the current thread.
  *
  * @param flags: Flags for the move buffer, can be `PCINST_MOVE_BUFFER_FLAG_NONE`
  *  or OR'd with one or more following values:
- *      - PCINST_MOVE_BUFFER_NEED_EVENT
+ *      - PCINST_MOVE_BUFFER_BROADCAST
  * @param max_moving_msg: the maximal number of the messages waiting to move
  *      in the new move buffer.
  *
@@ -1060,7 +1058,7 @@ purc_inst_destroy_move_buffer(void);
  * Since: 0.1.0
  */
 PCA_EXPORT size_t
-purc_inst_move_msg(purc_atom_t endpoint_to, pcrdr_msg *msg);
+purc_inst_move_message(purc_atom_t endpoint_to, pcrdr_msg *msg);
 
 /**
  * Get the number of messages in the move buffer of the current endpoint.
@@ -1069,8 +1067,8 @@ purc_inst_move_msg(purc_atom_t endpoint_to, pcrdr_msg *msg);
  *
  * Since: 0.1.0
  */
-PCA_EXPORT size_t
-purc_inst_nr_moving_msgs(void);
+PCA_EXPORT int
+purc_inst_moving_messages_count(size_t *count);
 
 /**
  * Retrieve a message in the move buffer of the current endpoint.
@@ -1086,7 +1084,7 @@ purc_inst_nr_moving_msgs(void);
  * Since: 0.1.0
  */
 PCA_EXPORT const pcrdr_msg *
-purc_inst_retrieve_msg(size_t index);
+purc_inst_retrieve_message(size_t index);
 
 /**
  * Take a message away from the move buffer of the current endpoint.
@@ -1101,7 +1099,7 @@ purc_inst_retrieve_msg(size_t index);
  * Since: 0.1.0
  */
 PCA_EXPORT pcrdr_msg *
-purc_inst_take_away_msg(size_t index);
+purc_inst_take_away_message(size_t index);
 
 /**@}*/
 

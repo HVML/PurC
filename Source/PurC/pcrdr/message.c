@@ -25,6 +25,7 @@
 
 #include "config.h"
 #include "private/pcrdr.h"
+#include "private/instance.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -35,7 +36,7 @@
 
 pcrdr_msg *pcrdr_make_void_message(void)
 {
-    pcrdr_msg *msg = calloc(1, sizeof(pcrdr_msg));
+    pcrdr_msg *msg = pcinst_get_message();
     if (msg == NULL)
         return NULL;
 
@@ -51,7 +52,7 @@ pcrdr_msg *pcrdr_make_request_message(
         const char *property,
         pcrdr_msg_data_type data_type, const char* data, size_t data_len)
 {
-    pcrdr_msg *msg = calloc(1, sizeof(pcrdr_msg));
+    pcrdr_msg *msg = pcinst_get_message();
     if (msg == NULL)
         return NULL;
 
@@ -124,7 +125,7 @@ pcrdr_msg *pcrdr_make_response_message(
         unsigned int ret_code, uint64_t result_value,
         pcrdr_msg_data_type data_type, const char* data, size_t data_len)
 {
-    pcrdr_msg *msg = calloc(1, sizeof(pcrdr_msg));
+    pcrdr_msg *msg = pcinst_get_message();
     if (msg == NULL)
         return NULL;
 
@@ -169,7 +170,7 @@ pcrdr_msg *pcrdr_make_event_message(
         const char *property,
         pcrdr_msg_data_type data_type, const char* data, size_t data_len)
 {
-    pcrdr_msg *msg = calloc(1, sizeof(pcrdr_msg));
+    pcrdr_msg *msg = pcinst_get_message();
     if (msg == NULL)
         return NULL;
 
@@ -344,7 +345,7 @@ int pcrdr_compare_messages(const pcrdr_msg *msg_a, const pcrdr_msg *msg_b)
 
 pcrdr_msg *pcrdr_clone_message(const pcrdr_msg *src)
 {
-    pcrdr_msg *msg = calloc(1, sizeof(pcrdr_msg));
+    pcrdr_msg *msg = pcinst_get_message();
     if (msg == NULL)
         return NULL;
 
@@ -391,25 +392,7 @@ pcrdr_msg *pcrdr_clone_message(const pcrdr_msg *src)
 
 void pcrdr_release_message(pcrdr_msg *msg)
 {
-    if (msg->operation)
-        purc_variant_unref(msg->operation);
-
-    if (msg->element)
-        purc_variant_unref(msg->element);
-
-    if (msg->property)
-        purc_variant_unref(msg->property);
-
-    if (msg->event)
-        purc_variant_unref(msg->event);
-
-    if (msg->requestId)
-        purc_variant_unref(msg->requestId);
-
-    if (msg->data)
-        purc_variant_unref(msg->data);
-
-    free(msg);
+    pcinst_put_message(msg);
 }
 
 static inline char *is_blank_line(char *line)
@@ -728,7 +711,7 @@ int pcrdr_parse_packet(char *packet, size_t sz_packet, pcrdr_msg **msg_out)
 
     UNUSED_PARAM(sz_packet);
 
-    if ((msg = calloc(1, sizeof(pcrdr_msg))) == NULL) {
+    if ((msg = pcinst_get_message()) == NULL) {
         purc_set_error(PCRDR_ERROR_NOMEM);
         return -1;
     }
