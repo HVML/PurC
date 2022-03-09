@@ -174,6 +174,9 @@ struct pcvdom_comment {
 struct purc_vdom {
     struct pcvdom_document          *document;
     struct pcintr_timers            *timers;
+    uintptr_t   target_workspace_handle;  /* rdr workspace */
+    uintptr_t   target_window_handle;
+    uintptr_t   target_tabpage_handle;
 };
 
 // creating and destroying api
@@ -242,6 +245,42 @@ pcvdom_document_get_variable(purc_vdom_t vdom, const char *name);
 
 pcvarmgr_t
 pcvdom_document_get_variables(purc_vdom_t vdom);
+
+PCA_INLINE void
+pcvdom_document_set_target_workspace(purc_vdom_t vdom, uintptr_t workspace)
+{
+    vdom->target_workspace_handle = workspace;
+}
+
+PCA_INLINE uintptr_t
+pcvdom_document_get_target_workspace(purc_vdom_t vdom)
+{
+    return vdom->target_workspace_handle;
+}
+
+PCA_INLINE void
+pcvdom_document_set_target_window(purc_vdom_t vdom, uintptr_t window)
+{
+    vdom->target_window_handle = window;
+}
+
+PCA_INLINE uintptr_t
+pcvdom_document_get_target_window(purc_vdom_t vdom)
+{
+    return vdom->target_window_handle;
+}
+
+PCA_INLINE void
+pcvdom_document_set_target_tabpage(purc_vdom_t vdom, uintptr_t tabpage)
+{
+    vdom->target_tabpage_handle = tabpage;
+}
+
+PCA_INLINE uintptr_t
+pcvdom_document_get_target_tabpage(purc_vdom_t vdom)
+{
+    return vdom->target_tabpage_handle;
+}
 
 int
 pcvdom_element_append_attr(struct pcvdom_element *elem,
