@@ -160,6 +160,41 @@ variant_set_keyvals_cmp (const void *k1, const void *k2, void *ptr)
 }
 
 static int
+variant_set_cmp_against_kvs(purc_variant_t set,
+        purc_variant_t l, purc_variant_t r)
+{
+    PC_ASSERT(l != PURC_VARIANT_INVALID);
+    PC_ASSERT(r != PURC_VARIANT_INVALID);
+    PC_ASSERT(purc_variant_is_object(l));
+    PC_ASSERT(purc_variant_is_object(r));
+
+    variant_set_t data = pcv_set_get_data(set);
+    if (data->keynames == NULL) {
+        return purc_variant_compare_ex(l, r, PCVARIANT_COMPARE_OPT_AUTO);
+    }
+
+    bool silently = true;
+    for (size_t i=0; i<data->nr_keynames; ++i) {
+        const char *sk = data->keynames[i];
+        purc_variant_t vl = purc_variant_object_get_by_ckey(l, sk, silently);
+        purc_variant_t vr = purc_variant_object_get_by_ckey(r, sk, silently);
+        if (vl == vr)
+            continue;
+        if (vl == PURC_VARIANT_INVALID) {
+            return -1;
+        }
+        if (vr == PURC_VARIANT_INVALID) {
+            return 1;
+        }
+        int diff = purc_variant_compare_ex(vl, vr, PCVARIANT_COMPARE_OPT_AUTO);
+        if (diff)
+            return diff;
+    }
+
+    return 0;
+}
+
+static int
 variant_set_init(variant_set_t set, const char *unique_key)
 {
     set->elems = RB_ROOT;
@@ -324,6 +359,23 @@ variant_set_constraint_shrink_handler(
 }
 
 static bool
+variant_set_check_existence(purc_variant_t set,
+        purc_variant_t old, purc_variant_t val)
+{
+    purc_variant_t v;
+    foreach_value_in_variant_set(set, v) {
+        if (v == old)
+            continue;
+        int diff;
+        diff = variant_set_cmp_against_kvs(set, v, val);
+        if (diff == 0)
+            return true;
+    } end_foreach;
+
+    return false;
+}
+
+static bool
 variant_set_constraint_change_handler(
         purc_variant_t source,  // the source variant.
         void *ctxt,             // the context stored when registering the handler.
@@ -348,7 +400,15 @@ variant_set_constraint_change_handler(
     purc_variant_t vn = (purc_variant_t)argv[3];
     PC_ASSERT(vn);
 
-    return true;
+    purc_variant_t tmp;
+    tmp = purc_variant_container_clone_recursively(source);
+    PC_ASSERT(tmp != PURC_VARIANT_INVALID);
+    bool ok;
+    ok = purc_variant_object_set(tmp, kn, vn);
+    PC_ASSERT(ok);
+    ok = variant_set_check_existence(set, source, tmp);
+    PURC_VARIANT_SAFE_CLEAR(tmp);
+    return ok ? false : true;
 }
 
 static bool
