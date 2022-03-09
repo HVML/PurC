@@ -342,15 +342,18 @@ int purc_init_ex(unsigned int modules,
         goto failed;
     }
 
-    // TODO: init other fields
-
     /* VW NOTE: eDOM and HTML modules should work without instance
     pcdom_init_instance(curr_inst);
     pchtml_init_instance(curr_inst); */
 
-    // TODO: init XML modules here
+    if (modules & PURC_HAVE_VARIANT)
+        pcvariant_init_instance(curr_inst);
+    if (curr_inst->variant_heap == NULL) {
+        ret = PURC_ERROR_OUT_OF_MEMORY;
+        goto failed;
+    }
 
-    pcvariant_init_instance(curr_inst);
+    // TODO: init XML modules here
 
     // TODO: init XGML modules here
 
@@ -369,7 +372,6 @@ int purc_init_ex(unsigned int modules,
     }
 
     if (modules & PURC_HAVE_FETCHER) {
-        fprintf(stderr, "................................%d\n", modules & PURC_HAVE_FETCHER_R);
         pcfetcher_init(FETCHER_MAX_CONNS, FETCHER_CACHE_QUOTA,
             (modules & PURC_HAVE_FETCHER_R));
     }
@@ -497,28 +499,17 @@ bool purc_bind_variable(const char* name, purc_variant_t variant)
     return pcvarmgr_add(varmgr, name, variant);
 }
 
-#if 0
-bool purc_unbind_variable(const char* name)
-{
-    struct pcinst* inst = pcinst_current();
-    if (inst == NULL)
-        return false;
-
-    return pcvarmgr_remove(inst->variables, name);
-}
-#endif
-
 pcvarmgr_t pcinst_get_variables(void)
 {
     struct pcinst* inst = pcinst_current();
-    if (inst == NULL)
+    if (UNLIKELY(inst == NULL))
         return NULL;
 
-    if (inst->variant_heap.variables == NULL) {
-        inst->variant_heap.variables = pcvarmgr_create();
+    if (UNLIKELY(inst->variables == NULL)) {
+        inst->variables = pcvarmgr_create();
     }
 
-    return inst->variant_heap.variables;
+    return inst->variables;
 }
 
 purc_variant_t purc_get_variable(const char* name)
@@ -547,6 +538,15 @@ purc_get_conn_to_renderer(void)
 }
 
 #if 0
+bool purc_unbind_variable(const char* name)
+{
+    struct pcinst* inst = pcinst_current();
+    if (inst == NULL)
+        return false;
+
+    return pcvarmgr_remove(inst->variables, name);
+}
+
 bool
 purc_unbind_document_variable(purc_vdom_t vdom, const char* name)
 {

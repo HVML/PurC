@@ -215,22 +215,22 @@ static void
 pcinst_grind_message(pcrdr_msg *msg)
 {
     if (msg->operation)
-        pcvariant_grind(msg->operation);
+        purc_variant_unref(msg->operation);
 
     if (msg->element)
-        pcvariant_grind(msg->element);
+        purc_variant_unref(msg->element);
 
     if (msg->property)
-        pcvariant_grind(msg->property);
+        purc_variant_unref(msg->property);
 
     if (msg->event)
-        pcvariant_grind(msg->event);
+        purc_variant_unref(msg->event);
 
     if (msg->requestId)
-        pcvariant_grind(msg->requestId);
+        purc_variant_unref(msg->requestId);
 
     if (msg->data)
-        pcvariant_grind(msg->data);
+        purc_variant_unref(msg->data);
 
 #if HAVE(GLIB)
     g_slice_free1(sizeof(pcrdr_msg), (gpointer)msg);
@@ -262,6 +262,7 @@ purc_inst_destroy_move_buffer(void)
 
     struct list_head *p, *n;
     purc_rwlock_writer_lock(&mb->lock);
+    pcvariant_use_move_heap();
     list_for_each_safe(p, n, &mb->msgs) {
 
         struct pcrdr_msg_hdr *hdr;
@@ -273,6 +274,7 @@ purc_inst_destroy_move_buffer(void)
         pcinst_grind_message((pcrdr_msg *)hdr);
         nr++;
     }
+    pcvariant_use_norm_heap();
     purc_rwlock_writer_unlock(&mb->lock);
 
     purc_rwlock_clear(&mb->lock);

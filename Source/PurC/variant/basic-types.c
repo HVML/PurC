@@ -48,7 +48,7 @@
 purc_variant_t purc_variant_make_undefined (void)
 {
     struct pcinst * instance = pcinst_current ();
-    purc_variant_t value = &(instance->variant_heap.v_undefined);
+    purc_variant_t value = &(instance->variant_heap->v_undefined);
 
     value->refc++;
 
@@ -58,7 +58,7 @@ purc_variant_t purc_variant_make_undefined (void)
 purc_variant_t purc_variant_make_null (void)
 {
     struct pcinst * instance = pcinst_current ();
-    purc_variant_t value = &(instance->variant_heap.v_null);
+    purc_variant_t value = &(instance->variant_heap->v_null);
 
     value->refc++;
 
@@ -71,9 +71,9 @@ purc_variant_t purc_variant_make_boolean (bool b)
     struct pcinst * instance = pcinst_current ();
 
     if (b)
-        value = &(instance->variant_heap.v_true);
+        value = &(instance->variant_heap->v_true);
     else
-        value = &(instance->variant_heap.v_false);
+        value = &(instance->variant_heap->v_false);
 
     value->refc++;
 

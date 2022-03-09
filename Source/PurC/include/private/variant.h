@@ -201,9 +201,6 @@ struct pcvariant_heap {
     int headpos;
     int tailpos;
 
-    struct pcvarmgr      *variables;
-
-
     // experiment
     struct pcvariant_gc       *gc;
 };
@@ -214,7 +211,10 @@ void pcvariant_init_once(void) WTF_INTERNAL;
 // internal interfaces for moving variant.
 purc_variant_t pcvariant_move_from(purc_variant_t v) WTF_INTERNAL;
 purc_variant_t pcvariant_move_to(purc_variant_t v) WTF_INTERNAL;
-void pcvariant_grind(purc_variant_t v) WTF_INTERNAL;
+void pcvariant_move_heap_init_once(void) WTF_INTERNAL;
+
+void pcvariant_use_move_heap(void) WTF_INTERNAL;
+void pcvariant_use_norm_heap(void) WTF_INTERNAL;
 
 // experiment
 void pcvariant_push_gc(void);
