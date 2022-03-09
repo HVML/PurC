@@ -282,6 +282,12 @@ pcvdom_document_get_target_tabpage(purc_vdom_t vdom)
     return vdom->target_tabpage_handle;
 }
 
+PCA_INLINE bool
+pcvdom_document_is_attached_rdr(purc_vdom_t vdom)
+{
+    return (vdom->target_tabpage_handle || vdom->target_window_handle);
+}
+
 int
 pcvdom_element_append_attr(struct pcvdom_element *elem,
         struct pcvdom_attr *attr);
