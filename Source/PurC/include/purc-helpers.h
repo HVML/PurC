@@ -202,7 +202,10 @@ PCA_EXPORT double
 purc_get_elapsed_seconds(const struct timespec *ts1,
         const struct timespec *ts2);
 
-#define LOG_FILE_PATH_FORMAT    "/var/tmp/purc-%s-%s.log"
+#define PURC_ENVV_LOG_ENABLE        "PURC_LOG_ENABLE"
+#define PURC_ENVV_LOG_SYSLOG        "PURC_LOG_SYSLOG"
+
+#define PURC_LOG_FILE_PATH_FORMAT   "/var/tmp/purc-%s-%s.log"
 
 // TODO for Windows:
 // #define LOG_FILE_PATH_FORMAT    "C:\\tmp\\purc-%s\\%s.log"

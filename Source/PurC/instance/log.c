@@ -61,7 +61,8 @@ bool purc_enable_log(bool enable, bool use_syslog)
         if (inst->fp_log == NULL) {
             char logfile_path[PATH_MAX + 1];
             int n = snprintf(logfile_path, sizeof(logfile_path),
-                    LOG_FILE_PATH_FORMAT, inst->app_name, inst->runner_name);
+                    PURC_LOG_FILE_PATH_FORMAT,
+                    inst->app_name, inst->runner_name);
 
             if (n < 0) {
                 purc_set_error(PURC_ERROR_OUTPUT);

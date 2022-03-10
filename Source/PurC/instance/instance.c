@@ -262,6 +262,28 @@ static void cleanup_instance(struct pcinst *curr_inst)
     }
 }
 
+static void enable_log_on_demand(void)
+{
+    const char *env_value;
+
+    env_value = getenv(PURC_ENVV_LOG_ENABLE);
+    if (env_value == NULL)
+        return;
+
+    bool enable = (*env_value == '1' ||
+            strcasecmp(env_value, "true") == 0);
+    if (!enable)
+        return;
+
+    bool use_syslog = false;
+    if ((env_value = getenv(PURC_ENVV_LOG_SYSLOG))) {
+        use_syslog = (*env_value == '1' ||
+                strcasecmp(env_value, "true") == 0);
+    }
+
+    purc_enable_log(true, use_syslog);
+}
+
 int purc_init_ex(unsigned int modules,
         const char* app_name, const char* runner_name,
         const purc_instance_extra_info* extra_info)
@@ -331,6 +353,8 @@ int purc_init_ex(unsigned int modules,
             purc_atom_from_string_ex(PURC_ATOM_BUCKET_USER, endpoint_name);
         assert(curr_inst->endpoint_atom);
     }
+
+    enable_log_on_demand();
 
     // map for local data
     curr_inst->local_data_map =
