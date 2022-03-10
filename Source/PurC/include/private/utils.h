@@ -38,6 +38,16 @@
 #include <libgen.h>
 #endif // OS(LINUX) || OS(UNIX)
 
+#if OS(WINDOWS)
+#   define PATH_SEP '\\'
+#   define PATH_SEP_STR "\\"
+#else
+#   define PATH_SEP '/'
+#   define PATH_SEP_STR "/"
+#endif
+
+#define IS_PATH_SEP(c) ((c) == PATH_SEP)
+
 #define pcutils_html_whitespace(onechar, action, logic)   \
     (onechar action ' '  logic                            \
      onechar action '\t' logic                            \

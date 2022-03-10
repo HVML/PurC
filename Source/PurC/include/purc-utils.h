@@ -357,7 +357,8 @@ purc_atom_to_string(purc_atom_t atom);
  *
  * Returns: the random seed.
  */
-int pcutils_get_random_seed(void);
+PCA_EXPORT int
+pcutils_get_random_seed(void);
 
 /**
  * pcutils_get_next_fibonacci_number:
@@ -368,7 +369,8 @@ int pcutils_get_random_seed(void);
  *
  * @return the next fibonacci sequence number.
  */
-size_t pcutils_get_next_fibonacci_number(size_t n);
+PCA_EXPORT size_t
+pcutils_get_next_fibonacci_number(size_t n);
 
 /**
  * SECTION: arraylist
@@ -404,7 +406,7 @@ typedef struct pcutils_arrlist pcutils_arrlist;
  *
  * @see pcutils_arrlist_shrink
  */
-struct pcutils_arrlist *
+PCA_EXPORT struct pcutils_arrlist *
 pcutils_arrlist_new_ex(array_list_free_fn *free_fn, size_t initial_size);
 
 /**
@@ -416,58 +418,64 @@ pcutils_arrlist_new(array_list_free_fn *free_fn) {
     return pcutils_arrlist_new_ex(free_fn, ARRAY_LIST_DEFAULT_SIZE);
 }
 
-void pcutils_arrlist_free(struct pcutils_arrlist *al);
+PCA_EXPORT void pcutils_arrlist_free(struct pcutils_arrlist *al);
 
-void *pcutils_arrlist_get_idx(struct pcutils_arrlist *al, size_t i);
+PCA_EXPORT void *pcutils_arrlist_get_idx(struct pcutils_arrlist *al, size_t i);
 
-int pcutils_arrlist_put_idx(struct pcutils_arrlist *al, size_t i, void *data);
+PCA_EXPORT int pcutils_arrlist_put_idx(struct pcutils_arrlist *al, size_t i, void *data);
 
-int pcutils_arrlist_add(struct pcutils_arrlist *al, void *data);
+PCA_EXPORT int pcutils_arrlist_add(struct pcutils_arrlist *al, void *data);
 
-size_t pcutils_arrlist_length(struct pcutils_arrlist *al);
+PCA_EXPORT size_t pcutils_arrlist_length(struct pcutils_arrlist *al);
 
-void pcutils_arrlist_sort(struct pcutils_arrlist *arr,
+PCA_EXPORT void pcutils_arrlist_sort(struct pcutils_arrlist *arr,
         int (*compar)(const void *, const void *));
 
-void *pcutils_arrlist_bsearch(const void **key,
+PCA_EXPORT void *pcutils_arrlist_bsearch(const void **key,
         struct pcutils_arrlist *arr,
         int (*compar)(const void *, const void *));
 
-int pcutils_arrlist_del_idx(struct pcutils_arrlist *arr,
+PCA_EXPORT int
+pcutils_arrlist_del_idx(struct pcutils_arrlist *arr,
         size_t idx, size_t count);
 
 /**
  * Shrink the array list to just enough to fit the number of elements in it,
  * plus empty_slots.
  */
-int pcutils_arrlist_shrink(struct pcutils_arrlist *arr, size_t empty_slots);
+PCA_EXPORT int
+pcutils_arrlist_shrink(struct pcutils_arrlist *arr, size_t empty_slots);
 
-void*
+PCA_EXPORT void*
 pcutils_arrlist_get_first(struct pcutils_arrlist *arr);
 
-void*
+PCA_EXPORT void*
 pcutils_arrlist_get_last(struct pcutils_arrlist *arr);
 
-char*
+PCA_EXPORT char*
 pcutils_snprintf(char *buf, size_t *sz_io, const char *fmt, ...)
     PCA_ATTRIBUTE_PRINTF(3, 4);
 
-char*
+PCA_EXPORT char*
 pcutils_vsnprintf(char *buf, size_t *sz_io, const char *fmt, va_list ap);
 
 // trim leading/trailling blanks(spaces/tabs)
-const char*
+PCA_EXPORT const char*
 pcutils_trim_blanks(const char *str, size_t *sz_io);
 
-char*
+PCA_EXPORT char*
 pcutils_escape_string_for_json(const char* str);
 
-bool
+PCA_EXPORT bool
 pcutils_string_check_utf8_len(const char* str, size_t max_len,
         size_t *nr_chars, const char **end);
-bool
+PCA_EXPORT bool
 pcutils_string_check_utf8(const char *str, ssize_t max_len,
         size_t *nr_chars, const char **end);
+
+/** Returns the basename of fname. The result is a pointer into fname. */
+PCA_EXPORT const char *
+pcutils_basename(const char* fname);
 
 PCA_EXTERN_C_END
 
