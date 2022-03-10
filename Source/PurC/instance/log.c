@@ -46,15 +46,10 @@ bool purc_enable_log(bool enable, bool use_syslog)
     if (enable) {
 #if HAVE(VSYSLOG)
         if (use_syslog) {
-            const char *ident = purc_atom_to_string(inst->endpoint_atom);
-            assert(ident);
-
             if (inst->fp_log && inst->fp_log != LOG_FILE_SYSLOG) {
                 fclose(inst->fp_log);
             }
             inst->fp_log = LOG_FILE_SYSLOG;
-
-            openlog(ident, LOG_PID, LOG_USER);
         }
         else
 #endif
@@ -97,6 +92,8 @@ void purc_log_with_tag(const char *tag, const char *msg, va_list ap)
     if (inst->fp_log) {
 #if HAVE(VSYSLOG)
         if (inst->fp_log == LOG_FILE_SYSLOG) {
+            const char *ident = purc_atom_to_string(inst->endpoint_atom);
+            openlog(ident, LOG_PID, LOG_USER);
             vsyslog(LOG_INFO, msg, ap);
         }
         else
@@ -110,65 +107,4 @@ void purc_log_with_tag(const char *tag, const char *msg, va_list ap)
         }
     }
 }
-
-#if 0
-void purc_log_debug(const char *msg, ...)
-{
-    va_list ap;
-
-    struct pcinst* inst = pcinst_current();
-    if (inst == NULL)
-        return;
-
-    va_start(ap, msg);
-
-    if (inst->fp_log) {
-#if HAVE(VSYSLOG)
-        if (inst->fp_log == LOG_FILE_SYSLOG) {
-            vsyslog(LOG_DEBUG, msg, ap);
-        }
-        else
-#endif
-        {
-            const char *ident = purc_atom_to_string(inst->endpoint_atom);
-            assert(ident);
-
-            fprintf(inst->fp_log, "%s DEBUG >> ", ident);
-            vfprintf(inst->fp_log, msg, ap);
-        }
-    }
-
-    va_end(ap);
-}
-
-
-void purc_log_error(const char *msg, ...)
-{
-    va_list ap;
-
-    struct pcinst* inst = pcinst_current();
-    if (inst == NULL)
-        return;
-
-    va_start(ap, msg);
-
-    if (inst->fp_log) {
-#if HAVE(VSYSLOG)
-        if (inst->fp_log == LOG_FILE_SYSLOG) {
-            vsyslog(LOG_ERR, msg, ap);
-        }
-        else
-#endif
-        {
-            const char *ident = purc_atom_to_string(inst->endpoint_atom);
-            assert(ident);
-
-            fprintf(inst->fp_log, "%s ERROR >> ", ident);
-            vfprintf(inst->fp_log, msg, ap);
-        }
-    }
-
-    va_end(ap);
-}
-#endif
 

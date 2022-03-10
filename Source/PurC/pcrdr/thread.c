@@ -50,7 +50,7 @@ static int my_wait_message(pcrdr_conn* conn, int timeout_ms)
     size_t count = 0;
     UNUSED_PARAM(conn);
 
-    if (purc_inst_moving_messages_count(&count))
+    if (purc_inst_holding_messages_count(&count))
         return -1;
 
     if (count == 0) {

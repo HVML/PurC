@@ -125,6 +125,7 @@ void pcvariant_init_once(void)
     pcinst_register_error_message_segment(&_variant_err_msgs_seg);
 
     pcvariant_move_heap_init_once();
+    atexit(pcvariant_move_heap_cleanup_once);
 
     // initialize others
     pcvariant_atom_grow = purc_atom_from_static_string("grow");

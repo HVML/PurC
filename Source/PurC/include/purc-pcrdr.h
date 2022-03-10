@@ -638,7 +638,7 @@ pcrdr_make_response_message(
  *
  * @param target: the target of the message.
  * @param target_value: the value of the target object
- * @param event: the event name.
+ * @param event: the event name, must be a static const string.
  * @param element_type: the element type.
  * @param element: the pointer to the element(s) (nullable).
  * @param property: the property (nullable)
@@ -1015,17 +1015,17 @@ pcrdr_purcmc_send_text_packet(pcrdr_conn* conn,
  * @param max_moving_msg: the maximal number of the messages waiting to move
  *      in the new move buffer.
  *
- * Returns: 0 for success, otherwise the error code.
+ * Returns: The atom on behalf of the instance for success, 0 on error.
  *
- * Note that the thread must call `purc_init` to create a valid PurC instance
- * before calling this function, that is, the module `variant`
+ * Note that the thread must call `purc_init_ex` to create a valid PurC
+ * instance before calling this function and the module `variant`
  * (PURC_MODULE_VARIANT) should be initialized at least.
  *
  * @see_also: purc_init_ex()
  *
  * Since: 0.1.0
  */
-PCA_EXPORT int
+PCA_EXPORT purc_atom_t
 purc_inst_create_move_buffer(unsigned int flags, size_t max_moving_msgs);
 
 /**
@@ -1041,7 +1041,7 @@ PCA_EXPORT ssize_t
 purc_inst_destroy_move_buffer(void);
 
 /**
- * Move a message to the move buffer of the specified endpoint.
+ * Move a message to the move buffer of the specified instance.
  *
  * @param inst_to: the atom on behalf of the instance who will take owner
  *      of the message. If it is 0, means clone the message if the message
@@ -1058,20 +1058,24 @@ purc_inst_destroy_move_buffer(void);
  * Since: 0.1.0
  */
 PCA_EXPORT size_t
-purc_inst_move_message(purc_atom_t endpoint_to, pcrdr_msg *msg);
+purc_inst_move_message(purc_atom_t inst_to, pcrdr_msg *msg);
 
 /**
- * Get the number of messages in the move buffer of the current endpoint.
+ * Get the number of messages holding in the move buffer of the current
+ * instance.
  *
- * Returns: the number of the messages waiting to move.
+ * @param count: the buffer to receive the number of the messages waiting
+ *  to take away.
+ *
+ * Returns: 0 for success, otherwise the error code.
  *
  * Since: 0.1.0
  */
 PCA_EXPORT int
-purc_inst_moving_messages_count(size_t *count);
+purc_inst_holding_messages_count(size_t *count);
 
 /**
- * Retrieve a message in the move buffer of the current endpoint.
+ * Retrieve a message in the move buffer of the current instance.
  *
  * @param index: the position of the message to retrieve.
  *
@@ -1087,7 +1091,7 @@ PCA_EXPORT const pcrdr_msg *
 purc_inst_retrieve_message(size_t index);
 
 /**
- * Take a message away from the move buffer of the current endpoint.
+ * Take a message away from the move buffer of the current instance.
  *
  * @param index: the position of the message to take.
  *

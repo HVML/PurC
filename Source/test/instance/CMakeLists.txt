@@ -88,3 +88,31 @@ PURC_COMPUTE_SOURCES(test_mylog)
 PURC_FRAMEWORK(test_mylog)
 GTEST_DISCOVER_TESTS(test_mylog DISCOVERY_TIMEOUT 10)
 
+# test_threads
+PURC_EXECUTABLE_DECLARE(test_threads)
+
+list(APPEND test_threads_PRIVATE_INCLUDE_DIRECTORIES
+    ${PURC_DIR}/include
+    ${PurC_DERIVED_SOURCES_DIR}
+    ${PURC_DIR}
+    ${CMAKE_BINARY_DIR}
+    ${WTF_DIR}
+)
+
+PURC_EXECUTABLE(test_threads)
+
+set(test_threads_SOURCES
+    test_threads.cpp
+)
+
+set(test_threads_LIBRARIES
+    PurC::PurC
+    gtest_main
+    gtest
+    pthread
+)
+
+PURC_COMPUTE_SOURCES(test_threads)
+PURC_FRAMEWORK(test_threads)
+GTEST_DISCOVER_TESTS(test_threads DISCOVERY_TIMEOUT 10)
+

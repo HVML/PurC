@@ -214,10 +214,11 @@ struct pcvariant_heap {
 void pcvariant_init_once(void) WTF_INTERNAL;
 
 // internal interfaces for moving variant.
+void pcvariant_move_heap_init_once(void) WTF_INTERNAL;
+void pcvariant_move_heap_cleanup_once(void) WTF_INTERNAL;
+
 purc_variant_t pcvariant_move_heap_in(purc_variant_t v) WTF_INTERNAL;
 purc_variant_t pcvariant_move_heap_out(purc_variant_t v) WTF_INTERNAL;
-void pcvariant_move_heap_init_once(void) WTF_INTERNAL;
-void pcvariant_move_heap_term_once(void) WTF_INTERNAL;
 
 void pcvariant_use_move_heap(void) WTF_INTERNAL;
 void pcvariant_use_norm_heap(void) WTF_INTERNAL;
