@@ -128,6 +128,7 @@ uintptr_t create_target_workspace(
 
     msg->dataType = PCRDR_MSG_DATA_TYPE_EJSON;
     msg->data = req_data;
+    req_data = NULL;
 
     if (pcrdr_send_request_and_wait_response(conn_to_rdr,
             msg, PCRDR_TIME_DEF_EXPECTED, &response_msg) < 0) {
@@ -225,6 +226,7 @@ uintptr_t create_tabbed_window(
 
     msg->dataType = PCRDR_MSG_DATA_TYPE_EJSON;
     msg->data = req_data;
+    req_data = NULL;
 
     if (pcrdr_send_request_and_wait_response(conn_to_rdr,
             msg, PCRDR_TIME_DEF_EXPECTED, &response_msg) < 0) {
@@ -299,6 +301,7 @@ uintptr_t create_tabpage(
 
     msg->dataType = PCRDR_MSG_DATA_TYPE_EJSON;
     msg->data = req_data;
+    req_data = NULL;
 
     if (pcrdr_send_request_and_wait_response(conn_to_rdr,
             msg, PCRDR_TIME_DEF_EXPECTED, &response_msg) < 0) {
@@ -349,7 +352,7 @@ uintptr_t create_plain_window(
     purc_variant_t req_data;
     uintptr_t window_handle = 0;
 
-    const char *operation = PCRDR_OPERATION_CREATETABBEDWINDOW;
+    const char *operation = PCRDR_OPERATION_CREATEPLAINWINDOW;
     pcrdr_msg_target target;
     uint64_t target_value;
     if (workspace_handle) {
@@ -394,6 +397,7 @@ uintptr_t create_plain_window(
 
     msg->dataType = PCRDR_MSG_DATA_TYPE_EJSON;
     msg->data = req_data;
+    req_data = NULL;
 
     if (pcrdr_send_request_and_wait_response(conn_to_rdr,
             msg, PCRDR_TIME_DEF_EXPECTED, &response_msg) < 0) {
@@ -561,6 +565,7 @@ pcintr_rdr_page_control_load(pcintr_stack_t stack)
 
     msg->dataType = PCRDR_MSG_DATA_TYPE_TEXT;
     msg->data = req_data;
+    req_data = NULL;
 
     struct pcinst *inst = pcinst_current();
     struct pcrdr_conn *conn_to_rdr = inst->conn_to_rdr;
@@ -578,6 +583,7 @@ pcintr_rdr_page_control_load(pcintr_stack_t stack)
 
     pcrdr_release_message(response_msg);
     purc_rwstream_destroy(out);
+    out = NULL;
 
     if (ret_code != PCRDR_SC_OK) {
         purc_set_error(PCRDR_ERROR_SERVER_REFUSED);

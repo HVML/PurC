@@ -1,5 +1,6 @@
 #include "purc.h"
 #include "private/utils.h"
+#include "private/debug.h"
 #include "../helpers.h"
 
 #include <gtest/gtest.h>
@@ -77,7 +78,8 @@ TEST(interpreter, basic)
         calculator_1,
     };
 
-    PurCInstance purc("cn.fmsoft.hybridos.test", "test_attach_rdr", false);
+    unsigned int modules = (PURC_MODULE_HVML | PURC_MODULE_PCRDR) & ~PURC_HAVE_FETCHER;
+    PurCInstance purc(modules, "cn.fmsoft.hybridos.test", "test_attach_rdr");
 
     ASSERT_TRUE(purc);
 
@@ -89,6 +91,15 @@ TEST(interpreter, basic)
         const char *hvml = hvmls[i];
         purc_vdom_t vdom = purc_load_hvml_from_string(hvml);
         ASSERT_NE(vdom, nullptr);
+
+        purc_renderer_extra_info extra_info = {};
+        bool ret = purc_attach_vdom_to_renderer(vdom,
+                "_blank",           /* target_workspace */
+                "_blank",           /* target_window */
+                NULL,               /* target_tabpage */
+                NULL,               /* target_level */
+                &extra_info);
+        ASSERT_EQ(ret, true);
     }
 
     purc_run(PURC_VARIANT_INVALID, NULL);
