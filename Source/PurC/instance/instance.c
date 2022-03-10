@@ -158,7 +158,7 @@ static void init_modules_once(void)
 {
     // TODO: init modules working without instance here.
     pcutils_atom_init_once();
-    atexit(pcutils_atom_term_once);
+    atexit(pcutils_atom_cleanup_once);
 
     pcexcept_init_once();
     pchvml_keywords_init();
@@ -180,7 +180,7 @@ static void init_modules_once(void)
         pcvariant_init_once();
 
         pcinst_move_buffer_init_once();
-        atexit(pcinst_move_buffer_term_once);
+        atexit(pcinst_move_buffer_cleanup_once);
 
         if (_modules & PURC_HAVE_EJSON) {
             pcejson_init_once();
@@ -353,6 +353,8 @@ int purc_init_ex(unsigned int modules,
             purc_atom_from_string_ex(PURC_ATOM_BUCKET_USER, endpoint_name);
         assert(curr_inst->endpoint_atom);
     }
+
+    curr_inst->max_embedded_levels = MAX_EMBEDDED_LEVELS;
 
     enable_log_on_demand();
 

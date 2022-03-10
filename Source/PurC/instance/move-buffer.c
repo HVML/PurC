@@ -25,11 +25,12 @@
 
 #include "config.h"
 
+#include "purc-pcrdr.h"
+#include "purc-errors.h"
+
 /* this feature needs C11 (stdatomic.h) or above */
 #if HAVE(STDATOMIC_H)
 
-#include "purc-pcrdr.h"
-#include "purc-errors.h"
 #include "private/instance.h"
 #include "private/list.h"
 #include "private/sorted-array.h"
@@ -85,7 +86,7 @@ void pcinst_move_buffer_init_once(void)
     }
 }
 
-void pcinst_move_buffer_term_once(void)
+void pcinst_move_buffer_cleanup_once(void)
 {
     if (mb_lock.native_impl) {
         purc_rwlock_clear(&mb_lock);
@@ -110,6 +111,7 @@ pcinst_get_message(void)
     if (msg) {
         struct pcrdr_msg_hdr *hdr = (struct pcrdr_msg_hdr *)msg;
         atomic_init(&hdr->refc, 1);
+        PC_INFO("New message in %s: %p\n", __func__, msg);
     }
 
     return msg;
@@ -119,11 +121,11 @@ void
 pcinst_put_message(pcrdr_msg *msg)
 {
     struct pcrdr_msg_hdr *hdr = (struct pcrdr_msg_hdr *)msg;
-    unsigned int old_refc = atomic_fetch_sub(&hdr->refc, 1);
+    unsigned int refc = atomic_load(&hdr->refc);
 
-    PC_INFO("The old refc of message: %d\n", old_refc);
-    if (old_refc <= 1) {
-        PC_INFO("Freeing message: %p\n", msg);
+    PC_INFO("The current refc of message in %s: %d\n", __func__, refc);
+    if (refc <= 1) {
+        PC_INFO("Freeing message in %s: %p\n", __func__, msg);
 
         if (msg->operation)
             purc_variant_unref(msg->operation);
@@ -151,12 +153,14 @@ pcinst_put_message(pcrdr_msg *msg)
     }
 }
 
-int
+purc_atom_t
 purc_inst_create_move_buffer(unsigned int flags, size_t max_msgs)
 {
     struct pcinst* inst = pcinst_current();
-    if (inst == NULL)
-        return PURC_ERROR_NO_INSTANCE;
+    if (inst == NULL) {
+        purc_set_error(PURC_ERROR_NO_INSTANCE);
+        return 0;
+    }
 
     purc_atom_t atom = inst->endpoint_atom;
     int errcode = 0;
@@ -183,12 +187,13 @@ purc_inst_create_move_buffer(unsigned int flags, size_t max_msgs)
     }
 
     if (pcutils_sorted_array_add(mb_atom2buff_map,
-                (void *)(uintptr_t)atom, &mb) < 0) {
+                (void *)(uintptr_t)atom, mb) < 0) {
         errcode = PURC_ERROR_OUT_OF_MEMORY;
         goto done;
     }
 
     mb->flags = flags;
+    mb->nr_msgs = 0;
     mb->max_nr_msgs = (max_msgs > 0) ? max_msgs : NR_DEF_MAX_MSGS;
     list_head_init(&mb->msgs);
 
@@ -205,10 +210,10 @@ done:
         }
 
         purc_set_error(errcode);
-        return false;
+        return 0;
     }
 
-    return errcode;
+    return atom;
 }
 
 static void
@@ -232,11 +237,18 @@ pcinst_grind_message(pcrdr_msg *msg)
     if (msg->data)
         purc_variant_unref(msg->data);
 
+    struct pcrdr_msg_hdr *hdr = (struct pcrdr_msg_hdr *)msg;
+    unsigned int refc = atomic_load(&hdr->refc);
+    PC_INFO("message refc in %s: %u\n", __func__, refc);
+
+    if (refc > 1) {
+        PC_INFO("Freeing message in %s: %p\n", __func__, msg);
 #if HAVE(GLIB)
-    g_slice_free1(sizeof(pcrdr_msg), (gpointer)msg);
+        g_slice_free1(sizeof(pcrdr_msg), (gpointer)msg);
 #else
-    free(msg);
+        free(msg);
 #endif
+    }
 }
 
 ssize_t
@@ -253,7 +265,7 @@ purc_inst_destroy_move_buffer(void)
 
     purc_rwlock_writer_lock(&mb_lock);
 
-    if (pcutils_sorted_array_find(mb_atom2buff_map,
+    if (!pcutils_sorted_array_find(mb_atom2buff_map,
                 (void *)(uintptr_t)atom, (void **)&mb)) {
         mb = NULL;
         errcode = PURC_ERROR_NOT_EXISTS;
@@ -270,6 +282,7 @@ purc_inst_destroy_move_buffer(void)
         hdr = list_entry(p, struct pcrdr_msg_hdr, ln);
 
         list_del(p);
+        mb->nr_msgs--;
 
         pcinst_grind_message((pcrdr_msg *)hdr);
         nr++;
@@ -277,6 +290,7 @@ purc_inst_destroy_move_buffer(void)
     pcvariant_use_norm_heap();
     purc_rwlock_writer_unlock(&mb->lock);
 
+    pcutils_sorted_array_remove(mb_atom2buff_map, (void *)(uintptr_t)atom);
     purc_rwlock_clear(&mb->lock);
     free(mb);
 
@@ -298,37 +312,37 @@ do_move_message(pcrdr_msg *msg)
     atomic_fetch_add(&hdr->refc, 1);
 
     if (msg->operation)
-        msg->operation = pcvariant_move_from(msg->operation);
+        msg->operation = pcvariant_move_heap_in(msg->operation);
     if (msg->element)
-        msg->element = pcvariant_move_from(msg->element);
+        msg->element = pcvariant_move_heap_in(msg->element);
     if (msg->property)
-        msg->property = pcvariant_move_from(msg->property);
+        msg->property = pcvariant_move_heap_in(msg->property);
     if (msg->event)
-        msg->event = pcvariant_move_from(msg->event);
+        msg->event = pcvariant_move_heap_in(msg->event);
     if (msg->requestId)
-        msg->requestId = pcvariant_move_from(msg->requestId);
+        msg->requestId = pcvariant_move_heap_in(msg->requestId);
     if (msg->data)
-        msg->data = pcvariant_move_from(msg->data);
+        msg->data = pcvariant_move_heap_in(msg->data);
 }
 
 static void
 do_take_message(pcrdr_msg *msg)
 {
     struct pcrdr_msg_hdr *hdr = (struct pcrdr_msg_hdr *)msg;
-    atomic_fetch_add(&hdr->refc, 1);
+    atomic_fetch_sub(&hdr->refc, 1);
 
     if (msg->operation)
-        msg->operation = pcvariant_move_to(msg->operation);
+        msg->operation = pcvariant_move_heap_out(msg->operation);
     if (msg->element)
-        msg->element = pcvariant_move_to(msg->element);
+        msg->element = pcvariant_move_heap_out(msg->element);
     if (msg->property)
-        msg->property = pcvariant_move_to(msg->property);
+        msg->property = pcvariant_move_heap_out(msg->property);
     if (msg->event)
-        msg->event = pcvariant_move_to(msg->event);
+        msg->event = pcvariant_move_heap_out(msg->event);
     if (msg->requestId)
-        msg->requestId = pcvariant_move_to(msg->requestId);
+        msg->requestId = pcvariant_move_heap_out(msg->requestId);
     if (msg->data)
-        msg->data = pcvariant_move_to(msg->data);
+        msg->data = pcvariant_move_heap_out(msg->data);
 }
 
 size_t
@@ -357,6 +371,7 @@ purc_inst_move_message(purc_atom_t inst_to, pcrdr_msg *msg)
         purc_rwlock_writer_lock(&mb->lock);
         struct pcrdr_msg_hdr *hdr = (struct pcrdr_msg_hdr *)msg;
         list_add_tail(&hdr->ln, &mb->msgs);
+        mb->nr_msgs++;
         purc_rwlock_writer_unlock(&mb->lock);
 
         nr++;
@@ -368,14 +383,28 @@ purc_inst_move_message(purc_atom_t inst_to, pcrdr_msg *msg)
             pcutils_sorted_array_get(mb_atom2buff_map, i, (void **)&mb);
             if (mb->flags & PCINST_MOVE_BUFFER_BROADCAST &&
                     mb->nr_msgs < mb->max_nr_msgs) {
-                do_move_message(msg);
+
+                if (i == count -1) {
+                    do_move_message(msg);
+                }
+                else {
+                    pcrdr_msg *cloned = pcrdr_clone_message(msg);
+                    if (cloned)
+                        do_move_message(cloned);
+                    else
+                        PC_ERROR("failed to clone message to broadcast: %p\n",
+                                msg);
+                }
+
                 purc_rwlock_writer_lock(&mb->lock);
                 struct pcrdr_msg_hdr *hdr = (struct pcrdr_msg_hdr *)msg;
                 list_add_tail(&hdr->ln, &mb->msgs);
+                mb->nr_msgs++;
                 purc_rwlock_writer_unlock(&mb->lock);
                 nr++;
             }
         }
+
     }
 
 done:
@@ -389,11 +418,13 @@ done:
 }
 
 int
-purc_inst_moving_messages_count(size_t *nr)
+purc_inst_holding_messages_count(size_t *nr)
 {
     struct pcinst* inst = pcinst_current();
-    if (inst == NULL)
+    if (inst == NULL) {
+        purc_set_error(PURC_ERROR_NO_INSTANCE);
         return PURC_ERROR_NO_INSTANCE;
+    }
 
     int errcode = 0;
     struct pcinst_move_buffer *mb;
@@ -496,6 +527,7 @@ purc_inst_take_away_message(size_t index)
             if (i == index) {
                 msg = (pcrdr_msg *)hdr;
                 list_del(p);
+                mb->nr_msgs--;
                 break;
             }
 
@@ -531,7 +563,7 @@ void pcinst_move_buffer_init_once(void)
     // do nothing.
 }
 
-void pcinst_move_buffer_term_once(void)
+void pcinst_move_buffer_cleanup_once(void)
 {
     // do nothing.
 }
@@ -569,6 +601,38 @@ pcinst_put_message(pcrdr_msg *msg)
 #else
     free(msg);
 #endif
+}
+
+size_t
+purc_inst_move_message(purc_atom_t inst_to, pcrdr_msg *msg)
+{
+    UNUSED_PARAM(inst_to);
+    UNUSED_PARAM(msg);
+    return 0;
+}
+
+int
+purc_inst_holding_messages_count(size_t *nr)
+{
+    UNUSED_PARAM(nr);
+    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+    return PURC_ERROR_NOT_SUPPORTED;
+}
+
+const pcrdr_msg *
+purc_inst_retrieve_messages(size_t index)
+{
+    UNUSED_PARAM(index);
+    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+    return NULL;
+}
+
+pcrdr_msg *
+purc_inst_take_away_message(size_t index)
+{
+    UNUSED_PARAM(index);
+    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+    return NULL;
 }
 
 #endif  /* !HAVE(STDATOMIC_H) */

@@ -116,7 +116,7 @@ pcutils_atom_init_once (void)
 }
 
 void
-pcutils_atom_term_once (void)
+pcutils_atom_cleanup_once (void)
 {
     if (atom_rwlock.native_impl)
         purc_rwlock_clear (&atom_rwlock);

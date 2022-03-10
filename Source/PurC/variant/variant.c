@@ -87,40 +87,28 @@ static struct err_msg_seg _variant_err_msgs_seg = {
     variant_err_msgs
 };
 
-/*
- * VWNOTE:
- * The author should change the condition mannually to
- *      #if 0
- * in order to compile the statements in other branch
- * to find the potential errors in advance.
- */
 #if HAVE(GLIB)
-static inline UNUSED_FUNCTION purc_variant *alloc_variant(void) {
+purc_variant *pcvariant_alloc(void) {
     return (purc_variant *)g_slice_alloc(sizeof(purc_variant));
 }
 
-static inline purc_variant *alloc_variant_0(void) {
+purc_variant *pcvariant_alloc_0(void) {
     return (purc_variant *)g_slice_alloc0(sizeof(purc_variant));
 }
 
-static inline void free_variant(purc_variant *v) {
+void pcvariant_free(purc_variant *v) {
     return g_slice_free1(sizeof(purc_variant), (gpointer)v);
 }
 #else
-/*
- * VWNOTE:
- *  - Use UNUSED_FUNCTION for unused inline functions to avoid warnings.
- *  - Use UNUSED_PARAM to avoid compilation warnings.
- */
-static inline UNUSED_FUNCTION purc_variant *alloc_variant(void) {
+purc_variant *pcvariant_alloc(void) {
     return (purc_variant *)malloc(sizeof(purc_variant));
 }
 
-static inline purc_variant *alloc_variant_0(void) {
+purc_variant *pcvariant_alloc_0(void) {
     return (purc_variant *)calloc(1, sizeof(purc_variant));
 }
 
-static inline void free_variant(purc_variant *v) {
+void pcvariant_free(purc_variant *v) {
     return free(v);
 }
 #endif
@@ -137,6 +125,7 @@ void pcvariant_init_once(void)
     pcinst_register_error_message_segment(&_variant_err_msgs_seg);
 
     pcvariant_move_heap_init_once();
+    atexit(pcvariant_move_heap_cleanup_once);
 
     // initialize others
     pcvariant_atom_grow = purc_atom_from_static_string("grow");
@@ -300,7 +289,7 @@ void pcvariant_cleanup_instance(struct pcinst *inst)
 #if USE(LOOP_BUFFER_FOR_RESERVED)
     for (int i = 0; i < MAX_RESERVED_VARIANTS; i++) {
         if (heap->v_reserved[i]) {
-            free_variant(heap->v_reserved[i]);
+            pcvariant_free(heap->v_reserved[i]);
             heap->v_reserved[i] = NULL;
         }
     }
@@ -312,7 +301,7 @@ void pcvariant_cleanup_instance(struct pcinst *inst)
         purc_variant_t v = list_entry(p, struct purc_variant, reserved);
 
         list_del(p);
-        free_variant(v);
+        pcvariant_free(v);
     }
 #endif
 
@@ -483,7 +472,7 @@ purc_variant_t pcvariant_get(enum purc_variant_type type)
 #if USE(LOOP_BUFFER_FOR_RESERVED)
     if (heap->headpos == heap->tailpos) {
         // no reserved, allocate one
-        value = alloc_variant_0();
+        value = pcvariant_alloc_0();
         if (value == NULL)
             return PURC_VARIANT_INVALID;
 
@@ -504,7 +493,7 @@ purc_variant_t pcvariant_get(enum purc_variant_type type)
 #else
     if (list_empty(&heap->v_reserved)) {
         // no reserved, allocate one
-        value = alloc_variant_0();
+        value = pcvariant_alloc_0();
         if (value == NULL)
             return PURC_VARIANT_INVALID;
 
@@ -552,7 +541,7 @@ void pcvariant_put(purc_variant_t value)
         stat->sz_mem[value->type] -= sizeof(purc_variant);
         stat->sz_total_mem -= sizeof(purc_variant);
 
-        free_variant(value);
+        pcvariant_free(value);
     }
     else {
         heap->v_reserved[heap->headpos] = value;
@@ -566,7 +555,7 @@ void pcvariant_put(purc_variant_t value)
         stat->sz_mem[value->type] -= sizeof(purc_variant);
         stat->sz_total_mem -= sizeof(purc_variant);
 
-        free_variant(value);
+        pcvariant_free(value);
     }
     else {
         list_add_tail(&value->reserved, &heap->v_reserved);

@@ -44,6 +44,8 @@ struct pcinst {
     char                   *runner_name;
     purc_atom_t             endpoint_atom;
 
+    unsigned int            max_embedded_levels;
+
 #define LOG_FILE_SYSLOG     ((FILE *)-1)
     /* the FILE object for logging (-1: use syslog; NULL: disabled) */
     FILE                   *fp_log;
@@ -82,7 +84,7 @@ struct pcinst* pcinst_current(void) WTF_INTERNAL;
 pcvarmgr_t pcinst_get_variables(void) WTF_INTERNAL;
 
 void pcinst_move_buffer_init_once(void) WTF_INTERNAL;
-void pcinst_move_buffer_term_once(void) WTF_INTERNAL;
+void pcinst_move_buffer_cleanup_once(void) WTF_INTERNAL;
 
 struct pcrdr_msg *pcinst_get_message(void) WTF_INTERNAL;
 void pcinst_put_message(struct pcrdr_msg *msg) WTF_INTERNAL;

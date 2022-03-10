@@ -179,7 +179,7 @@ pcrdr_msg *pcrdr_make_event_message(
     msg->targetValue = target_value;
 
     assert(event);
-    msg->event = purc_variant_make_string(event, true);
+    msg->event = purc_variant_make_string_static(event, true);
     if (msg->event == NULL)
         goto failed;
 

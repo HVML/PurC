@@ -405,7 +405,7 @@ typedef struct pcutils_arrlist pcutils_arrlist;
  * @see pcutils_arrlist_shrink
  */
 struct pcutils_arrlist *
-pcutils_arrlist_new_ex(array_list_free_fn *free_fn, int initial_size);
+pcutils_arrlist_new_ex(array_list_free_fn *free_fn, size_t initial_size);
 
 /**
  * Allocate an pcutils_arrlist of the default size (32).

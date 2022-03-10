@@ -1,7 +1,6 @@
 #include "purc.h"
 
 #include "private/ejson.h"
-#include "private/instance.h"
 #include "purc-rwstream.h"
 
 #include <gtest/gtest.h>

@@ -50,7 +50,7 @@ static int my_wait_message(pcrdr_conn* conn, int timeout_ms)
     size_t count = 0;
     UNUSED_PARAM(conn);
 
-    if (purc_inst_moving_messages_count(&count))
+    if (purc_inst_holding_messages_count(&count))
         return -1;
 
     if (count == 0) {
@@ -109,7 +109,7 @@ static int my_disconnect(pcrdr_conn* conn)
 
 #define SCHEMA_LOCAL_FILE  "file://"
 
-pcrdr_msg *purc_inst_connect(const char* renderer_uri,
+pcrdr_msg *pcrdr_thread_connect(const char* renderer_uri,
         const char* app_name, const char* runner_name, pcrdr_conn** conn)
 {
     pcrdr_msg *msg = NULL;

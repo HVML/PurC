@@ -103,7 +103,7 @@ struct purc_variant {
     /* variant type */
     unsigned int type:8;
 
-    /* The length for short string (in characters) and byte sequence (in bytes).
+    /* The length for short string and byte sequence (both in bytes).
        When the extra space (long string and long byte sequence) is used,
        the value of this field is 0. */
     unsigned int size:8;
@@ -115,10 +115,10 @@ struct purc_variant {
     unsigned int refc;
 
     union {
-        /* only for containers (object, array, and set) so far. */
+        /* the list head for listeners. */
         struct list_head    listeners;
 
-        /* use this field to chain all reserved variants. */
+        /* the list node for reserved variants. */
         struct list_head    reserved;
     };
 
@@ -214,12 +214,18 @@ struct pcvariant_heap {
 void pcvariant_init_once(void) WTF_INTERNAL;
 
 // internal interfaces for moving variant.
-purc_variant_t pcvariant_move_from(purc_variant_t v) WTF_INTERNAL;
-purc_variant_t pcvariant_move_to(purc_variant_t v) WTF_INTERNAL;
 void pcvariant_move_heap_init_once(void) WTF_INTERNAL;
+void pcvariant_move_heap_cleanup_once(void) WTF_INTERNAL;
+
+purc_variant_t pcvariant_move_heap_in(purc_variant_t v) WTF_INTERNAL;
+purc_variant_t pcvariant_move_heap_out(purc_variant_t v) WTF_INTERNAL;
 
 void pcvariant_use_move_heap(void) WTF_INTERNAL;
 void pcvariant_use_norm_heap(void) WTF_INTERNAL;
+
+purc_variant *pcvariant_alloc(void) WTF_INTERNAL;
+purc_variant *pcvariant_alloc_0(void) WTF_INTERNAL;
+void pcvariant_free(purc_variant *v) WTF_INTERNAL;
 
 // experiment
 void pcvariant_push_gc(void);

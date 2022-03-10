@@ -95,7 +95,7 @@ extern "C" {
 #endif
 
 void pcutils_atom_init_once(void) WTF_INTERNAL;
-void pcutils_atom_term_once(void) WTF_INTERNAL;
+void pcutils_atom_cleanup_once(void) WTF_INTERNAL;
 
 void *pcutils_calloc_a(size_t len, ...) WTF_INTERNAL;
 

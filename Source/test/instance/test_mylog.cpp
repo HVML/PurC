@@ -1,7 +1,5 @@
 #include "purc.h"
 
-#include "private/instance.h"
-
 #include <stdio.h>
 #include <errno.h>
 #include <gtest/gtest.h>
