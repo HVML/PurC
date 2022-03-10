@@ -95,6 +95,8 @@ void purc_log_with_tag(const char *tag, const char *msg, va_list ap)
     if (fp) {
         if (fp == LOG_FILE_SYSLOG) {
             const char *ident = purc_atom_to_string(inst->endpoint_atom);
+            // TODO: we may need a lock to make sure the following two calls
+            // can finish atomically.
             openlog(ident, LOG_PID, LOG_USER);
             vsyslog(LOG_INFO, msg, ap);
         }
