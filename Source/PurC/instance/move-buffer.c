@@ -111,7 +111,7 @@ pcinst_get_message(void)
     if (msg) {
         struct pcrdr_msg_hdr *hdr = (struct pcrdr_msg_hdr *)msg;
         atomic_init(&hdr->refc, 1);
-        PC_INFO("New message in %s: %p\n", __func__, msg);
+        PC_DEBUG("New message in %s: %p\n", __func__, msg);
     }
 
     return msg;
@@ -123,9 +123,9 @@ pcinst_put_message(pcrdr_msg *msg)
     struct pcrdr_msg_hdr *hdr = (struct pcrdr_msg_hdr *)msg;
     unsigned int refc = atomic_load(&hdr->refc);
 
-    PC_INFO("The current refc of message in %s: %d\n", __func__, refc);
+    PC_DEBUG("The current refc of message in %s: %d\n", __func__, refc);
     if (refc <= 1) {
-        PC_INFO("Freeing message in %s: %p\n", __func__, msg);
+        PC_DEBUG("Freeing message in %s: %p\n", __func__, msg);
 
         if (msg->operation)
             purc_variant_unref(msg->operation);
@@ -239,10 +239,10 @@ pcinst_grind_message(pcrdr_msg *msg)
 
     struct pcrdr_msg_hdr *hdr = (struct pcrdr_msg_hdr *)msg;
     unsigned int refc = atomic_load(&hdr->refc);
-    PC_INFO("message refc in %s: %u\n", __func__, refc);
+    PC_DEBUG("message refc in %s: %u\n", __func__, refc);
 
     if (refc > 1) {
-        PC_INFO("Freeing message in %s: %p\n", __func__, msg);
+        PC_DEBUG("Freeing message in %s: %p\n", __func__, msg);
 #if HAVE(GLIB)
         g_slice_free1(sizeof(pcrdr_msg), (gpointer)msg);
 #else
@@ -384,20 +384,27 @@ purc_inst_move_message(purc_atom_t inst_to, pcrdr_msg *msg)
             if (mb->flags & PCINST_MOVE_BUFFER_BROADCAST &&
                     mb->nr_msgs < mb->max_nr_msgs) {
 
-                if (i == count -1) {
+                pcrdr_msg *my_msg;
+
+                if (i == count - 1) {
+                    my_msg = msg;
                     do_move_message(msg);
                 }
                 else {
-                    pcrdr_msg *cloned = pcrdr_clone_message(msg);
-                    if (cloned)
-                        do_move_message(cloned);
-                    else
+                    my_msg = pcrdr_clone_message(msg);
+                    if (my_msg) {
+                        do_move_message(my_msg);
+                        pcrdr_release_message(my_msg);
+                    }
+                    else {
                         PC_ERROR("failed to clone message to broadcast: %p\n",
                                 msg);
+                        break;
+                    }
                 }
 
                 purc_rwlock_writer_lock(&mb->lock);
-                struct pcrdr_msg_hdr *hdr = (struct pcrdr_msg_hdr *)msg;
+                struct pcrdr_msg_hdr *hdr = (struct pcrdr_msg_hdr *)my_msg;
                 list_add_tail(&hdr->ln, &mb->msgs);
                 mb->nr_msgs++;
                 purc_rwlock_writer_unlock(&mb->lock);
