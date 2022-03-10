@@ -72,7 +72,7 @@ int purc_set_error_exinfo_with_debug(int errcode, purc_variant_t exinfo,
 {
 #ifndef NDEBUG                     /* { */
     if (errcode) {
-        _D("%s[%d]:%s(): %d", basename((char*)file), lineno, func, errcode);
+        PC_DEBUGX("%s[%d]:%s(): %d", basename((char*)file), lineno, func, errcode);
         if (TO_DEBUG) {
             if (exinfo != PURC_VARIANT_INVALID)
                 PRINT_VARIANT(exinfo);
@@ -106,7 +106,7 @@ int purc_set_error_exinfo_with_debug(int errcode, purc_variant_t exinfo,
         if (info == NULL ||
                 ((info->flags & PURC_EXCEPT_FLAGS_REQUIRED) && !exinfo)) {
 #ifndef NDEBUG                     /* { */
-            _D("%s[%d]:%s(): %d", basename((char*)file), lineno, func, errcode);
+            PC_DEBUGX("%s[%d]:%s(): %d", basename((char*)file), lineno, func, errcode);
 #endif                             /* } */
             return PURC_ERROR_INVALID_VALUE;
         }

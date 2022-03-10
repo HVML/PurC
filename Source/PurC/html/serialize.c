@@ -929,7 +929,7 @@ pchtml_html_serialize_pretty_cb(pcdom_node_t *node,
             break;
 
         default:
-            _D("type: 0x%x", node->type);
+            PC_DEBUGX("type: 0x%x", node->type);
             pcinst_set_error (PURC_ERROR_HTML);
             PC_ASSERT(0);
             return PCHTML_STATUS_ERROR;

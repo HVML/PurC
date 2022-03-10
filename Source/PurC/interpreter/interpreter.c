@@ -637,7 +637,7 @@ walk_attr(void *key, void *val, void *ud)
     //         purc_variant_is_undefined(value))
     //     {
     //         if (0) {
-    //             _D("attr name: %s", attr->key);
+    //             PC_DEBUGX("attr name: %s", attr->key);
     //             PRINT_VCM_NODE(vcm);
     //         }
     //         if (value != PURC_VARIANT_INVALID)
@@ -951,7 +951,7 @@ execute_one_step(pcintr_coroutine_t co)
             return;
         }
         co->state = CO_STATE_TERMINATED;
-        _D("co terminating: %p", co);
+        PC_DEBUGX("co terminating: %p", co);
     }
     else {
         frame = pcintr_stack_get_bottom_frame(stack);
@@ -1969,7 +1969,7 @@ pcintr_util_comp_docs(pchtml_html_document_t *docl,
     if (pl && pr) {
         *diff = strcmp(pl, pr);
         if (*diff) {
-            _D("diff:\n%s\n%s", pl, pr);
+            PC_DEBUGX("diff:\n%s\n%s", pl, pr);
         }
         err = 0;
     }
@@ -2341,7 +2341,7 @@ attribute_addition_string(const char *sl, const char *sr)
     }
     strcpy(buf, sl);
     strcat(buf, sr);
-    _D("buf: [%s]", buf);
+    PC_DEBUGX("buf: [%s]", buf);
     return purc_variant_make_string_reuse_buff(buf, nl+nr, true);
 }
 

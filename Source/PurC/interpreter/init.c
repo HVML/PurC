@@ -120,7 +120,7 @@ post_process_as_locally(pcintr_coroutine_t co,
         return 0;
     }
 
-    _D("name: %s", purc_variant_get_string_const(name));
+    PC_DEBUGX("name: %s", purc_variant_get_string_const(name));
     PC_ASSERT(0);
     return -1;
 }

@@ -4,6 +4,12 @@
 
 #include "purc.h"
 
+#ifndef _D            /* { */
+#define _D(fmt, ...)                                                        \
+    purc_log_debug("%s[%d]:%s(): " fmt "\n",                                \
+            pcutils_basename(__FILE__), __LINE__, __func__, ##__VA_ARGS__)
+#endif                /* } */
+
 #if OS(LINUX) || OS(UNIX)
 
 // get path from env or __FILE__/../<rel> otherwise

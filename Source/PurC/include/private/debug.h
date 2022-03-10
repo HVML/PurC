@@ -81,22 +81,21 @@ extern "C" {
 
 #define PC_DEBUG(x, ...)    purc_log_debug(x, ##__VA_ARGS__)
 
+#define PC_DEBUGX(x, ...)                                                  \
+    purc_log_debug("%s[%d]:%s(): " x "\n",                                 \
+            pcutils_basename(__FILE__), __LINE__, __func__, ##__VA_ARGS__)
+
 #else /* not defined NDEBUG */
 
 #define PC_DEBUG(x, ...)                \
     if (0)                              \
         purc_log_debug(x, ##__VA_ARGS__)
 
-#endif /* defined NDEBUG */
+#define PC_DEBUGX(x, ...)                                                      \
+    if (0)                                                                     \
+        purc_log_debug("%s[%d]:%s(): " x "\n",                                 \
+                pcutils_basename(__FILE__), __LINE__, __func__, ##__VA_ARGS__)
 
-#ifndef _D            /* { */
-/* for test-case to use, because of WTF_INTERNAL for purc_log_info/error/... */
-#define _D(fmt, ...)                                          \
-    if (TO_DEBUG) {                                           \
-        fprintf(stderr, "%s[%d]:%s(): " fmt "\n",             \
-            basename((char*)__FILE__), __LINE__, __func__,    \
-            ##__VA_ARGS__);                                   \
-    }
-#endif                /* } */
+#endif /* defined NDEBUG */
 
 #endif /* PURC_PRIVATE_DEBUG_H */
