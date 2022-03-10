@@ -501,6 +501,8 @@ purc_attach_vdom_to_renderer(purc_vdom_t vdom,
 }
 
 
+#define BUFF_MIN            1024
+#define BUFF_MAX            1024 * 4
 bool
 pcintr_rdr_page_control_load(pcintr_stack_t stack)
 {
@@ -508,11 +510,13 @@ pcintr_rdr_page_control_load(pcintr_stack_t stack)
         return true;
     }
     pcrdr_msg *msg = NULL;
-//    pcrdr_msg *response_msg = NULL;
+    pcrdr_msg *response_msg = NULL;
     purc_variant_t req_data;
 
     purc_vdom_t vdom = stack->vdom;
-//    pchtml_html_document_t *doc = stack->doc;
+    pchtml_html_document_t *doc = stack->doc;
+    int opt = 0;
+    purc_rwstream_t out = NULL;
 
 
     const char *operation = PCRDR_OPERATION_LOAD;
@@ -529,10 +533,64 @@ pcintr_rdr_page_control_load(pcintr_stack_t stack)
         goto failed;
     }
 
+    out = purc_rwstream_new_buffer(BUFF_MIN, BUFF_MAX);
+    if (out == NULL) {
+        goto failed;
+    }
+
+    opt |= PCHTML_HTML_SERIALIZE_OPT_UNDEF;
+    opt |= PCHTML_HTML_SERIALIZE_OPT_SKIP_WS_NODES;
+    opt |= PCHTML_HTML_SERIALIZE_OPT_WITHOUT_TEXT_INDENT;
+    opt |= PCHTML_HTML_SERIALIZE_OPT_FULL_DOCTYPE;
+    opt |= PCHTML_HTML_SERIALIZE_OPT_WITH_HVML_HANDLE;
+
+    if(0 != pchtml_doc_write_to_stream_ex(doc, opt, out)) {
+        goto failed;
+    }
+
+    size_t sz_content = 0;
+    size_t sz_buff = 0;
+    char* p = (char*)purc_rwstream_get_mem_buffer_ex(out, &sz_content,
+            &sz_buff,true);
+    req_data = purc_variant_make_string_reuse_buff(p, sz_content, false);
+    if (req_data == PURC_VARIANT_INVALID) {
+        free(p);
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto failed;
+    }
+
     msg->dataType = PCRDR_MSG_DATA_TYPE_TEXT;
     msg->data = req_data;
 
+    struct pcinst *inst = pcinst_current();
+    struct pcrdr_conn *conn_to_rdr = inst->conn_to_rdr;
+    if (pcrdr_send_request_and_wait_response(conn_to_rdr,
+            msg, PCRDR_TIME_DEF_EXPECTED, &response_msg) < 0) {
+        goto failed;
+    }
+    pcrdr_release_message(msg);
+    msg = NULL;
+
+    int ret_code = response_msg->retCode;
+    if (ret_code == PCRDR_SC_OK) {
+        pcvdom_document_set_target_dom(vdom, response_msg->resultValue);
+    }
+
+    pcrdr_release_message(response_msg);
+    purc_rwstream_destroy(out);
+
+    if (ret_code != PCRDR_SC_OK) {
+        purc_set_error(PCRDR_ERROR_SERVER_REFUSED);
+        goto failed;
+    }
+
+    return true;
+
 failed:
+    if (out) {
+        purc_rwstream_destroy(out);
+    }
+
     if (req_data != PURC_VARIANT_INVALID) {
         purc_variant_unref(req_data);
     }

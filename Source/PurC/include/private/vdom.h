@@ -177,6 +177,7 @@ struct purc_vdom {
     uintptr_t   target_workspace_handle;  /* rdr workspace */
     uintptr_t   target_window_handle;
     uintptr_t   target_tabpage_handle;
+    uintptr_t   target_dom_handle;
 };
 
 // creating and destroying api
@@ -280,6 +281,18 @@ PCA_INLINE uintptr_t
 pcvdom_document_get_target_tabpage(purc_vdom_t vdom)
 {
     return vdom->target_tabpage_handle;
+}
+
+PCA_INLINE void
+pcvdom_document_set_target_dom(purc_vdom_t vdom, uintptr_t dom)
+{
+    vdom->target_dom_handle = dom;
+}
+
+PCA_INLINE uintptr_t
+pcvdom_document_get_target_dom(purc_vdom_t vdom)
+{
+    return vdom->target_dom_handle;
 }
 
 PCA_INLINE bool
