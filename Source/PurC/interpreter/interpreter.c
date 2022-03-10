@@ -939,7 +939,10 @@ execute_one_step(pcintr_coroutine_t co)
     bool no_frames = list_empty(&co->stack->frames);
     if (no_frames) {
         /* send doc to rdr */
-//        pcintr_rdr_page_control_load(stack);
+        if (!pcintr_rdr_page_control_load(stack)) {
+            co->state = CO_STATE_TERMINATED;
+            return;
+        }
         pcintr_dump_document(stack);
         co->stack->stage = STACK_STAGE_EVENT_LOOP;
         // do not run execute_one_step until event's fired if co->waits > 0
@@ -979,7 +982,7 @@ static int run_coroutines(void *ctxt)
                     coroutine_set_current(co);
                     pcvariant_push_gc();
                     execute_one_step(co);
-                    PC_ASSERT(purc_get_last_error() == PURC_ERROR_OK);
+                    //PC_ASSERT(purc_get_last_error() == PURC_ERROR_OK);
                     if (co->state == CO_STATE_TERMINATED) {
                         if (co->stack->ops.on_terminated) {
                             co->stack->ops.on_terminated(co->stack, co->stack->ctxt);
