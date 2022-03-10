@@ -136,6 +136,8 @@ void pcvariant_init_once(void)
     // register error message
     pcinst_register_error_message_segment(&_variant_err_msgs_seg);
 
+    pcvariant_move_heap_init_once();
+
     // initialize others
     pcvariant_atom_grow = purc_atom_from_static_string("grow");
     pcvariant_atom_shrink = purc_atom_from_static_string("shrink");
@@ -146,35 +148,39 @@ void pcvariant_init_once(void)
 
 void pcvariant_init_instance(struct pcinst *inst)
 {
+    inst->variant_heap = calloc(1, sizeof(*inst->variant_heap));
+    if (inst->variant_heap == NULL)
+        return;
+
+    inst->org_vrt_heap = inst->variant_heap;
+
     // initialize const values in instance
-    inst->variant_heap.v_undefined.type = PURC_VARIANT_TYPE_UNDEFINED;
-    inst->variant_heap.v_undefined.refc = 0;
-    inst->variant_heap.v_undefined.flags = PCVARIANT_FLAG_NOFREE;
-    // INIT_LIST_HEAD(&inst->variant_heap.v_undefined.listeners);
+    inst->variant_heap->v_undefined.type = PURC_VARIANT_TYPE_UNDEFINED;
+    inst->variant_heap->v_undefined.refc = 0;
+    inst->variant_heap->v_undefined.flags = PCVARIANT_FLAG_NOFREE;
+    // INIT_LIST_HEAD(&inst->variant_heap->v_undefined.listeners);
 
-    inst->variant_heap.v_null.type = PURC_VARIANT_TYPE_NULL;
-    inst->variant_heap.v_null.refc = 0;
-    inst->variant_heap.v_null.flags = PCVARIANT_FLAG_NOFREE;
-    // INIT_LIST_HEAD(&inst->variant_heap.v_null.listeners);
+    inst->variant_heap->v_null.type = PURC_VARIANT_TYPE_NULL;
+    inst->variant_heap->v_null.refc = 0;
+    inst->variant_heap->v_null.flags = PCVARIANT_FLAG_NOFREE;
+    // INIT_LIST_HEAD(&inst->variant_heap->v_null.listeners);
 
-    inst->variant_heap.v_false.type = PURC_VARIANT_TYPE_BOOLEAN;
-    inst->variant_heap.v_false.refc = 0;
-    inst->variant_heap.v_false.flags = PCVARIANT_FLAG_NOFREE;
-    inst->variant_heap.v_false.b = false;
-    // INIT_LIST_HEAD(&inst->variant_heap.v_false.listeners);
+    inst->variant_heap->v_false.type = PURC_VARIANT_TYPE_BOOLEAN;
+    inst->variant_heap->v_false.refc = 0;
+    inst->variant_heap->v_false.flags = PCVARIANT_FLAG_NOFREE;
+    inst->variant_heap->v_false.b = false;
+    // INIT_LIST_HEAD(&inst->variant_heap->v_false.listeners);
 
-    inst->variant_heap.v_true.type = PURC_VARIANT_TYPE_BOOLEAN;
-    inst->variant_heap.v_true.refc = 0;
-    inst->variant_heap.v_true.flags = PCVARIANT_FLAG_NOFREE;
-    inst->variant_heap.v_true.b = true;
-    // INIT_LIST_HEAD(&inst->variant_heap.v_true.listeners);
+    inst->variant_heap->v_true.type = PURC_VARIANT_TYPE_BOOLEAN;
+    inst->variant_heap->v_true.refc = 0;
+    inst->variant_heap->v_true.flags = PCVARIANT_FLAG_NOFREE;
+    inst->variant_heap->v_true.b = true;
+    // INIT_LIST_HEAD(&inst->variant_heap->v_true.listeners);
 
-    inst->variant_heap.gc = NULL;
+    inst->variant_heap->gc = NULL;
 
-    inst->variant_heap.variables = NULL;
-
-    /* VWNOTE: there are two values of boolean.  */
-    struct purc_variant_stat *stat = &(inst->variant_heap.stat);
+    /* XXX: there are two values of boolean.  */
+    struct purc_variant_stat *stat = &(inst->variant_heap->stat);
     stat->nr_values[PURC_VARIANT_TYPE_UNDEFINED] = 0;
     stat->sz_mem[PURC_VARIANT_TYPE_UNDEFINED] = sizeof(purc_variant);
     stat->nr_values[PURC_VARIANT_TYPE_NULL] = 0;
@@ -187,13 +193,9 @@ void pcvariant_init_instance(struct pcinst *inst)
     stat->nr_reserved = 0;
     stat->nr_max_reserved = MAX_RESERVED_VARIANTS;
 
-    // VWNOTE: this is redundant
-    // memset(inst->variant_heap.v_reserved, 0,
-    //         sizeof(inst->variant_heap.v_reserved));
-    // inst->variant_heap.headpos = 0;
-    // inst->variant_heap.tailpos = 0;
-
-    // initialize others
+#if !USE(LOOP_BUFFER_FOR_RESERVED)
+    INIT_LIST_HEAD(&inst->variant_heap->v_reserved);
+#endif
 }
 
 static const char *typenames[] = {
@@ -287,24 +289,32 @@ gc_destroy(struct pcvariant_gc *gc)
 
 void pcvariant_cleanup_instance(struct pcinst *inst)
 {
-    struct pcvariant_heap *heap = &(inst->variant_heap);
-    int i = 0;
+    struct pcvariant_heap *heap = inst->variant_heap;
 
-    if (heap->variables) {
-        pcvarmgr_destroy(heap->variables);
-        heap->variables = NULL;
+    if (inst->variables) {
+        pcvarmgr_destroy(inst->variables);
+        inst->variables = NULL;
     }
 
     /* VWNOTE: do not try to release the extra memory here. */
-    for (i = 0; i < MAX_RESERVED_VARIANTS; i++) {
+#if USE(LOOP_BUFFER_FOR_RESERVED)
+    for (int i = 0; i < MAX_RESERVED_VARIANTS; i++) {
         if (heap->v_reserved[i]) {
             free_variant(heap->v_reserved[i]);
             heap->v_reserved[i] = NULL;
         }
     }
-
     heap->headpos = 0;
     heap->tailpos = 0;
+#else
+    struct list_head *p, *n;
+    list_for_each_safe(p, n, &heap->v_reserved) {
+        purc_variant_t v = list_entry(p, struct purc_variant, reserved);
+
+        list_del(p);
+        free_variant(v);
+    }
+#endif
 
     if (heap->gc) {
         gc_destroy(heap->gc);
@@ -315,6 +325,10 @@ void pcvariant_cleanup_instance(struct pcinst *inst)
     PC_ASSERT(heap->v_null.refc == 0);
     PC_ASSERT(heap->v_true.refc == 0);
     PC_ASSERT(heap->v_false.refc == 0);
+
+    free(heap);
+    inst->variant_heap = NULL;
+    inst->org_vrt_heap = NULL;
 }
 
 bool purc_variant_is_type(purc_variant_t value, enum purc_variant_type type)
@@ -423,19 +437,19 @@ struct purc_variant_stat * purc_variant_usage_stat(void)
         return NULL;
     }
 
-    purc_variant_t value = &(inst->variant_heap.v_undefined);
-    inst->variant_heap.stat.nr_values[PURC_VARIANT_TYPE_UNDEFINED] = value->refc;
+    purc_variant_t value = &(inst->variant_heap->v_undefined);
+    inst->variant_heap->stat.nr_values[PURC_VARIANT_TYPE_UNDEFINED] = value->refc;
 
-    value = &(inst->variant_heap.v_null);
-    inst->variant_heap.stat.nr_values[PURC_VARIANT_TYPE_NULL] = value->refc;
+    value = &(inst->variant_heap->v_null);
+    inst->variant_heap->stat.nr_values[PURC_VARIANT_TYPE_NULL] = value->refc;
 
-    value = &(inst->variant_heap.v_true);
-    inst->variant_heap.stat.nr_values[PURC_VARIANT_TYPE_BOOLEAN] = value->refc;
+    value = &(inst->variant_heap->v_true);
+    inst->variant_heap->stat.nr_values[PURC_VARIANT_TYPE_BOOLEAN] = value->refc;
 
-    value = &(inst->variant_heap.v_false);
-    inst->variant_heap.stat.nr_values[PURC_VARIANT_TYPE_BOOLEAN] += value->refc;
+    value = &(inst->variant_heap->v_false);
+    inst->variant_heap->stat.nr_values[PURC_VARIANT_TYPE_BOOLEAN] += value->refc;
 
-    return &inst->variant_heap.stat;
+    return &inst->variant_heap->stat;
 }
 
 void pcvariant_stat_set_extra_size(purc_variant_t value, size_t extra_size)
@@ -445,7 +459,7 @@ void pcvariant_stat_set_extra_size(purc_variant_t value, size_t extra_size)
     PC_ASSERT(value);
     PC_ASSERT(instance);
 
-    struct purc_variant_stat *stat = &(instance->variant_heap.stat);
+    struct purc_variant_stat *stat = &(instance->variant_heap->stat);
     int type = value->type;
 
     if (value->flags & PCVARIANT_FLAG_EXTRA_SIZE) {
@@ -463,9 +477,10 @@ purc_variant_t pcvariant_get(enum purc_variant_type type)
 {
     purc_variant_t value = NULL;
     struct pcinst *instance = pcinst_current();
-    struct pcvariant_heap *heap = &(instance->variant_heap);
+    struct pcvariant_heap *heap = instance->variant_heap;
     struct purc_variant_stat *stat = &(heap->stat);
 
+#if USE(LOOP_BUFFER_FOR_RESERVED)
     if (heap->headpos == heap->tailpos) {
         // no reserved, allocate one
         value = alloc_variant_0();
@@ -478,8 +493,6 @@ purc_variant_t pcvariant_get(enum purc_variant_type type)
     else {
         value = heap->v_reserved[heap->tailpos];
         value->sz_ptr[0] = 0;
-        // must have a value.
-        PC_ASSERT(value);
 
         // VWNOTE: set the slot as NULL
         heap->v_reserved[heap->tailpos] = NULL;
@@ -488,15 +501,33 @@ purc_variant_t pcvariant_get(enum purc_variant_type type)
         /* VWNOTE: do not forget to set nr_reserved. */
         stat->nr_reserved--;
     }
+#else
+    if (list_empty(&heap->v_reserved)) {
+        // no reserved, allocate one
+        value = alloc_variant_0();
+        if (value == NULL)
+            return PURC_VARIANT_INVALID;
+
+        stat->sz_mem[type] += sizeof(purc_variant);
+        stat->sz_total_mem += sizeof(purc_variant);
+    }
+    else {
+        value = list_first_entry(&heap->v_reserved, purc_variant, reserved);
+        value->sz_ptr[0] = 0;
+
+        list_del(&value->reserved);
+
+        /* VWNOTE: do not forget to set nr_reserved. */
+        stat->nr_reserved--;
+    }
+#endif
 
     // set stat information
     stat->nr_values[type]++;
     stat->nr_total_values++;
 
-    if (IS_CONTAINER(type)) {
-        // init listeners
-        INIT_LIST_HEAD(&value->listeners);
-    }
+    // init listeners
+    INIT_LIST_HEAD(&value->listeners);
 
     return value;
 }
@@ -504,7 +535,7 @@ purc_variant_t pcvariant_get(enum purc_variant_type type)
 void pcvariant_put(purc_variant_t value)
 {
     struct pcinst *instance = pcinst_current();
-    struct pcvariant_heap *heap = &(instance->variant_heap);
+    struct pcvariant_heap *heap = instance->variant_heap;
     struct purc_variant_stat *stat = &(heap->stat);
 
     PC_ASSERT(value);
@@ -516,6 +547,7 @@ void pcvariant_put(purc_variant_t value)
     stat->nr_values[value->type]--;
     stat->nr_total_values--;
 
+#if USE(LOOP_BUFFER_FOR_RESERVED)
     if ((heap->headpos + 1) % MAX_RESERVED_VARIANTS == heap->tailpos) {
         stat->sz_mem[value->type] -= sizeof(purc_variant);
         stat->sz_total_mem -= sizeof(purc_variant);
@@ -529,6 +561,20 @@ void pcvariant_put(purc_variant_t value)
         /* VWNOTE: do not forget to set nr_reserved. */
         stat->nr_reserved++;
     }
+#else
+    if (stat->nr_reserved >= stat->nr_max_reserved) {
+        stat->sz_mem[value->type] -= sizeof(purc_variant);
+        stat->sz_total_mem -= sizeof(purc_variant);
+
+        free_variant(value);
+    }
+    else {
+        list_add_tail(&value->reserved, &heap->v_reserved);
+
+        /* VWNOTE: do not forget to set nr_reserved. */
+        stat->nr_reserved++;
+    }
+#endif
 }
 
 /* securely comparison of floating-point variables */
@@ -2105,7 +2151,7 @@ gc_pop(struct pcvariant_gc *gc)
 void pcvariant_push_gc(void)
 {
     struct pcinst *instance = pcinst_current();
-    struct pcvariant_heap *heap = &(instance->variant_heap);
+    struct pcvariant_heap *heap = instance->variant_heap;
     if (heap->gc == NULL) {
         heap->gc = (struct pcvariant_gc*)calloc(1, sizeof(*heap->gc));
         PC_ASSERT(heap->gc);
@@ -2116,7 +2162,7 @@ void pcvariant_push_gc(void)
 void pcvariant_pop_gc(void)
 {
     struct pcinst *instance = pcinst_current();
-    struct pcvariant_heap *heap = &(instance->variant_heap);
+    struct pcvariant_heap *heap = instance->variant_heap;
     PC_ASSERT(heap->gc);
     gc_pop(heap->gc);
 }
@@ -2149,7 +2195,7 @@ void pcvariant_gc_add(purc_variant_t val)
 {
     PC_ASSERT(val != PURC_VARIANT_INVALID);
     struct pcinst *instance = pcinst_current();
-    struct pcvariant_heap *heap = &(instance->variant_heap);
+    struct pcvariant_heap *heap = instance->variant_heap;
     PC_ASSERT(heap->gc);
     gc_add_variant(heap->gc, val);
 }

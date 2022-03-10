@@ -13,6 +13,15 @@
                 { "name": [ "shuming", "xue" ], "location" : "bj" },
             ]
         </init>
+        <init as="cities" uniquely via="name">
+            [
+                { "name": [ "sz", { province : "js" } ] },
+                { "name": [ "bj", { province : "bj" } ] },
+            ]
+        </init>
+        <init as="province">
+            { name : "js" }
+        </init>
         <init as="result">
             [
             ]
@@ -31,6 +40,10 @@
                 <!-- how to check it's coming from set -->
                 <update on="$result" to="append" with="$?"/>
             </iterate>
+        </iterate>
+        <iterate on="$cities[0].name[1]">
+            <!-- how to check $?.province is coming from set -->
+            <update on="$?.province" to="displace" with="$province"/>
         </iterate>
     </body>
 </hvml>

@@ -211,7 +211,7 @@ TEST(variant_set, add_1_str)
 
     ASSERT_TRUE(sanity_check(var));
 
-    ASSERT_EQ(obj->refc, 2);
+    ASSERT_EQ(obj->refc, 1);
     purc_variant_unref(obj);
     purc_variant_unref(s);
 
@@ -265,7 +265,7 @@ TEST(variant_set, add_n_str)
 
         ASSERT_TRUE(sanity_check(var));
 
-        ASSERT_EQ(obj->refc, 2);
+        ASSERT_EQ(obj->refc, 1);
         purc_variant_unref(obj);
         purc_variant_unref(s);
     }
@@ -768,20 +768,18 @@ TEST(variant_set, constraint_scalar)
 
     bool ok;
     const char *s;
-    purc_variant_t set, k, v, obj, name;
+    purc_variant_t set, v, obj, name;
 
     s = "[!'name', {name:xiaohong}, {name:shuming}]";
     set = pcejson_parser_parse_string(s, 0, 0);
     ASSERT_NE(set, nullptr);
     ASSERT_EQ(2, purc_variant_set_get_size(set));
 
-    k = pcejson_parser_parse_string("xiaohong", 0, 0);
-    ASSERT_NE(k, nullptr);
-
-    v = purc_variant_set_get_member_by_key_values(set, k);
+    v = pcejson_parser_parse_string("xiaohong", 0, 0);
     ASSERT_NE(v, nullptr);
 
-    obj = v;
+    obj = purc_variant_set_get_member_by_key_values(set, v);
+    ASSERT_NE(obj, nullptr);
 
     PRINT_VARIANT(set);
     name = purc_variant_make_string("shuming", true);
@@ -790,7 +788,49 @@ TEST(variant_set, constraint_scalar)
     PRINT_VARIANT(set);
 
     purc_variant_unref(name);
-    purc_variant_unref(k);
+    purc_variant_unref(v);
+    purc_variant_unref(set);
+}
+
+TEST(variant_set, constraint_scalars)
+{
+    PurCInstance purc;
+
+    bool ok;
+    const char *s;
+    purc_variant_t set, v1, v2, obj, first, last;
+
+    s = "[!'first last', {first:xiaohong, last:xu}, {first:shuming, last:xue}]";
+    set = pcejson_parser_parse_string(s, 0, 0);
+    ASSERT_NE(set, nullptr);
+    ASSERT_EQ(2, purc_variant_set_get_size(set));
+
+    v1 = pcejson_parser_parse_string("xiaohong", 0, 0);
+    ASSERT_NE(v1, nullptr);
+
+    v2 = pcejson_parser_parse_string("xu", 0, 0);
+    ASSERT_NE(v2, nullptr);
+
+    obj = purc_variant_set_get_member_by_key_values(set, v1, v2);
+    ASSERT_NE(obj, nullptr);
+
+    first = purc_variant_make_string("shuming", true);
+    ASSERT_NE(first, nullptr);
+    last = purc_variant_make_string("xue", true);
+    ASSERT_NE(last, nullptr);
+
+    PRINT_VARIANT(set);
+    ok = purc_variant_object_set_by_static_ckey(obj, "first", first);
+    ASSERT_TRUE(ok);
+    PRINT_VARIANT(set);
+    ok = purc_variant_object_set_by_static_ckey(obj, "last", last);
+    ASSERT_FALSE(ok);
+    PRINT_VARIANT(set);
+
+    PURC_VARIANT_SAFE_CLEAR(first);
+    PURC_VARIANT_SAFE_CLEAR(last);
+    PURC_VARIANT_SAFE_CLEAR(v1);
+    PURC_VARIANT_SAFE_CLEAR(v2);
     purc_variant_unref(set);
 }
 

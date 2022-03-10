@@ -97,15 +97,6 @@ struct pcvar_listener {
     struct list_head    list_node;
 };
 
-/* Make sure the size of `struct list_head` is two times of sizeof(void *) */
-#define _COMPILE_TIME_ASSERT(name, x)               \
-       typedef int _dummy_ ## name[(x) * 2 - 1]
-
-_COMPILE_TIME_ASSERT(list_head,
-        sizeof(struct list_head) == (sizeof(void *) * 2));
-
-#undef _COMPILE_TIME_ASSERT
-
 // structure for variant
 struct purc_variant {
 
@@ -193,7 +184,8 @@ struct purc_variant {
     };
 };
 
-#define MAX_RESERVED_VARIANTS   32
+#define MAX_RESERVED_VARIANTS           32
+#define USE_LOOP_BUFFER_FOR_RESERVED    0
 
 struct pcvariant_heap {
     // the constant values.
@@ -205,20 +197,29 @@ struct pcvariant_heap {
     // the statistics of memory usage of variant values
     struct purc_variant_stat stat;
 
+#if USE(LOOP_BUFFER_FOR_RESERVED)
     // the loop buffer for reserved values.
-    purc_variant_t v_reserved [MAX_RESERVED_VARIANTS];
-    int headpos;
-    int tailpos;
-
-    struct pcvarmgr      *variables;
-
+    purc_variant_t      v_reserved[MAX_RESERVED_VARIANTS];
+    int                 headpos;
+    int                 tailpos;
+#else
+    struct list_head    v_reserved;
+#endif
 
     // experiment
-    struct pcvariant_gc       *gc;
+    struct pcvariant_gc *gc;
 };
 
 // initialize variant module (once)
 void pcvariant_init_once(void) WTF_INTERNAL;
+
+// internal interfaces for moving variant.
+purc_variant_t pcvariant_move_from(purc_variant_t v) WTF_INTERNAL;
+purc_variant_t pcvariant_move_to(purc_variant_t v) WTF_INTERNAL;
+void pcvariant_move_heap_init_once(void) WTF_INTERNAL;
+
+void pcvariant_use_move_heap(void) WTF_INTERNAL;
+void pcvariant_use_norm_heap(void) WTF_INTERNAL;
 
 // experiment
 void pcvariant_push_gc(void);

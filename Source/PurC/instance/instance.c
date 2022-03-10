@@ -158,6 +158,8 @@ static void init_modules_once(void)
 {
     // TODO: init modules working without instance here.
     pcutils_atom_init_once();
+    atexit(pcutils_atom_term_once);
+
     pcexcept_init_once();
     pchvml_keywords_init();
 
@@ -176,6 +178,10 @@ static void init_modules_once(void)
     // TODO: init modules working with instance here.
     if (_modules & PURC_HAVE_VARIANT) {
         pcvariant_init_once();
+
+        pcinst_move_buffer_init_once();
+        atexit(pcinst_move_buffer_term_once);
+
         if (_modules & PURC_HAVE_EJSON) {
             pcejson_init_once();
         }
@@ -256,6 +262,28 @@ static void cleanup_instance(struct pcinst *curr_inst)
     }
 }
 
+static void enable_log_on_demand(void)
+{
+    const char *env_value;
+
+    env_value = getenv(PURC_ENVV_LOG_ENABLE);
+    if (env_value == NULL)
+        return;
+
+    bool enable = (*env_value == '1' ||
+            strcasecmp(env_value, "true") == 0);
+    if (!enable)
+        return;
+
+    bool use_syslog = false;
+    if ((env_value = getenv(PURC_ENVV_LOG_SYSLOG))) {
+        use_syslog = (*env_value == '1' ||
+                strcasecmp(env_value, "true") == 0);
+    }
+
+    purc_enable_log(true, use_syslog);
+}
+
 int purc_init_ex(unsigned int modules,
         const char* app_name, const char* runner_name,
         const purc_instance_extra_info* extra_info)
@@ -326,6 +354,8 @@ int purc_init_ex(unsigned int modules,
         assert(curr_inst->endpoint_atom);
     }
 
+    enable_log_on_demand();
+
     // map for local data
     curr_inst->local_data_map =
         pcutils_map_create(copy_key_string,
@@ -336,15 +366,18 @@ int purc_init_ex(unsigned int modules,
         goto failed;
     }
 
-    // TODO: init other fields
-
     /* VW NOTE: eDOM and HTML modules should work without instance
     pcdom_init_instance(curr_inst);
     pchtml_init_instance(curr_inst); */
 
-    // TODO: init XML modules here
+    if (modules & PURC_HAVE_VARIANT)
+        pcvariant_init_instance(curr_inst);
+    if (curr_inst->variant_heap == NULL) {
+        ret = PURC_ERROR_OUT_OF_MEMORY;
+        goto failed;
+    }
 
-    pcvariant_init_instance(curr_inst);
+    // TODO: init XML modules here
 
     // TODO: init XGML modules here
 
@@ -490,28 +523,17 @@ bool purc_bind_variable(const char* name, purc_variant_t variant)
     return pcvarmgr_add(varmgr, name, variant);
 }
 
-#if 0
-bool purc_unbind_variable(const char* name)
-{
-    struct pcinst* inst = pcinst_current();
-    if (inst == NULL)
-        return false;
-
-    return pcvarmgr_remove(inst->variables, name);
-}
-#endif
-
 pcvarmgr_t pcinst_get_variables(void)
 {
     struct pcinst* inst = pcinst_current();
-    if (inst == NULL)
+    if (UNLIKELY(inst == NULL))
         return NULL;
 
-    if (inst->variant_heap.variables == NULL) {
-        inst->variant_heap.variables = pcvarmgr_create();
+    if (UNLIKELY(inst->variables == NULL)) {
+        inst->variables = pcvarmgr_create();
     }
 
-    return inst->variant_heap.variables;
+    return inst->variables;
 }
 
 purc_variant_t purc_get_variable(const char* name)
@@ -540,6 +562,15 @@ purc_get_conn_to_renderer(void)
 }
 
 #if 0
+bool purc_unbind_variable(const char* name)
+{
+    struct pcinst* inst = pcinst_current();
+    if (inst == NULL)
+        return false;
+
+    return pcvarmgr_remove(inst->variables, name);
+}
+
 bool
 purc_unbind_document_variable(purc_vdom_t vdom, const char* name)
 {

@@ -47,9 +47,13 @@ struct pcrdr_prot_data {
 
 static int my_wait_message(pcrdr_conn* conn, int timeout_ms)
 {
+    size_t count = 0;
     UNUSED_PARAM(conn);
 
-    if (pcrdr_thread_nr_moving_msgs() == 0) {
+    if (purc_inst_moving_messages_count(&count))
+        return -1;
+
+    if (count == 0) {
         if (timeout_ms > 1000) {
             pcutils_sleep(timeout_ms / 1000);
         }
@@ -74,7 +78,7 @@ static pcrdr_msg *my_read_message(pcrdr_conn* conn)
 
     UNUSED_PARAM(conn);
 
-    msg = pcrdr_thread_take_away_msg(0);
+    msg = purc_inst_take_away_message(0);
     if (msg == NULL) {
         purc_set_error(PCRDR_ERROR_UNEXPECTED);
         return NULL;
@@ -85,7 +89,7 @@ static pcrdr_msg *my_read_message(pcrdr_conn* conn)
 
 static int my_send_message(pcrdr_conn* conn, pcrdr_msg *msg)
 {
-    if (pcrdr_thread_move_msg(conn->prot_data->rdr_atom, msg) > 0)
+    if (purc_inst_move_message(conn->prot_data->rdr_atom, msg) > 0)
         return 0;
 
     return -1;
@@ -105,7 +109,7 @@ static int my_disconnect(pcrdr_conn* conn)
 
 #define SCHEMA_LOCAL_FILE  "file://"
 
-pcrdr_msg *pcrdr_thread_connect(const char* renderer_uri,
+pcrdr_msg *purc_inst_connect(const char* renderer_uri,
         const char* app_name, const char* runner_name, pcrdr_conn** conn)
 {
     pcrdr_msg *msg = NULL;
@@ -173,7 +177,7 @@ pcrdr_msg *pcrdr_thread_connect(const char* renderer_uri,
         goto failed;
     }
 
-    msg = pcrdr_thread_take_away_msg(0);
+    msg = purc_inst_take_away_message(0);
     if (msg == NULL) {
         err_code = PCRDR_ERROR_UNEXPECTED;
         goto failed;
