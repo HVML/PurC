@@ -85,7 +85,7 @@ bool purc_enable_log(bool enable, bool use_syslog)
 
 void purc_log_with_tag(const char *tag, const char *msg, va_list ap)
 {
-    FILE *fp = stderr;
+    FILE *fp = NULL;
     struct pcinst* inst = pcinst_current();
 
     if (inst)
@@ -107,6 +107,10 @@ void purc_log_with_tag(const char *tag, const char *msg, va_list ap)
             fprintf(fp, "%s %s >> ", ident, tag);
             vfprintf(fp, msg, ap);
         }
+    }
+    else {
+        fprintf(stderr, "%s >> ", tag);
+        vfprintf(stderr, msg, ap);
     }
 }
 

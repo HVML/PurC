@@ -85,6 +85,14 @@ void pcvariant_move_heap_cleanup_once(void)
         purc_mutex_clear(&mh_lock);
 
     struct purc_variant_stat *stat = &move_heap.stat;
+
+    PC_INFO("refc of v_undefined in move heap: %u\n", move_heap.v_undefined.refc);
+    PC_INFO("refc of v_null in move heap: %u\n", move_heap.v_null.refc);
+    PC_INFO("refc of v_true in move heap: %u\n", move_heap.v_true.refc);
+    PC_INFO("refc of v_false in move heap: %u\n", move_heap.v_false.refc);
+    PC_INFO("total values in move heap: %u\n", (unsigned int)stat->nr_total_values);
+    PC_INFO("total memory used by move heap: %u\n", (unsigned int)stat->sz_total_mem);
+
     PC_ASSERT(move_heap.v_undefined.refc == 0);
     PC_ASSERT(move_heap.v_null.refc == 0);
     PC_ASSERT(move_heap.v_true.refc == 0);
@@ -130,22 +138,33 @@ move_or_clone_immutable(struct pcinst *inst, purc_variant_t v)
 
     if (v == &inst->org_vrt_heap->v_undefined) {
         retv = &move_heap.v_undefined;
+        v->refc--;
+        retv->refc++;
     }
     else if (v == &inst->org_vrt_heap->v_null) {
         retv = &move_heap.v_null;
+        v->refc--;
+        retv->refc++;
     }
     else if (v == &inst->org_vrt_heap->v_false) {
         retv = &move_heap.v_false;
+        v->refc--;
+        retv->refc++;
     }
     else if (v == &inst->org_vrt_heap->v_true) {
         retv = &move_heap.v_true;
+        v->refc--;
+        retv->refc++;
     }
     else if (v->refc == 1) {
         retv = v;
         move_variant_in(inst, v);
     }
     else {
-        // clone the variant
+        // clone the immutable variant
+
+        PC_INFO("clone an immutable variant: %s\n",
+                purc_variant_get_string_const(v));
 
         retv = pcvariant_alloc();
         memcpy(retv, v, sizeof(*retv));
@@ -598,18 +617,22 @@ purc_variant_t pcvariant_move_heap_out(purc_variant_t v)
     pcvariant_use_move_heap();
     if (v == &move_heap.v_undefined) {
         retv = &inst->org_vrt_heap->v_undefined;
+        v->refc--;
         retv->refc++;
     }
     else if (v == &move_heap.v_null) {
         retv = &inst->org_vrt_heap->v_null;
+        v->refc--;
         retv->refc++;
     }
     else if (v == &move_heap.v_false) {
         retv = &inst->org_vrt_heap->v_false;
+        v->refc--;
         retv->refc++;
     }
     else if (v == &move_heap.v_true) {
         retv = &inst->org_vrt_heap->v_true;
+        v->refc--;
         retv->refc++;
     }
     else {

@@ -384,20 +384,23 @@ purc_inst_move_message(purc_atom_t inst_to, pcrdr_msg *msg)
             if (mb->flags & PCINST_MOVE_BUFFER_BROADCAST &&
                     mb->nr_msgs < mb->max_nr_msgs) {
 
-                if (i == count -1) {
+                pcrdr_msg *my_msg;
+
+                if (i == count - 1) {
+                    my_msg = msg;
                     do_move_message(msg);
                 }
                 else {
-                    pcrdr_msg *cloned = pcrdr_clone_message(msg);
-                    if (cloned)
-                        do_move_message(cloned);
+                    my_msg = pcrdr_clone_message(msg);
+                    if (my_msg)
+                        do_move_message(my_msg);
                     else
                         PC_ERROR("failed to clone message to broadcast: %p\n",
                                 msg);
                 }
 
                 purc_rwlock_writer_lock(&mb->lock);
-                struct pcrdr_msg_hdr *hdr = (struct pcrdr_msg_hdr *)msg;
+                struct pcrdr_msg_hdr *hdr = (struct pcrdr_msg_hdr *)my_msg;
                 list_add_tail(&hdr->ln, &mb->msgs);
                 mb->nr_msgs++;
                 purc_rwlock_writer_unlock(&mb->lock);

@@ -446,6 +446,7 @@ bool purc_cleanup(void)
         if (_modules && PURC_HAVE_FETCHER) {
             pcfetcher_term();
         }
+
         cleanup_instance(curr_inst);
     }
 
