@@ -86,11 +86,12 @@ int purc_set_error_exinfo_with_debug(int errcode, purc_variant_t exinfo,
     inst->errcode = errcode;
     PURC_VARIANT_SAFE_CLEAR(inst->err_exinfo);
     inst->err_exinfo = exinfo;
+
+#ifndef NDEBUG                     /* { */
     inst->file       = file;
     inst->lineno     = lineno;
     inst->func       = func;
 
-#ifndef NDEBUG                     /* { */
 #if OS(LINUX)                      /* { */
     inst->nr_stacks = backtrace(inst->c_stacks, PCA_TABLESIZE(inst->c_stacks));
 #endif                             /* } */

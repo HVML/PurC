@@ -66,15 +66,17 @@ struct pcinst {
     struct pcintr_heap     *intr_heap;
 
     /* FIXME: enable the fields ONLY when NDEBUG is undefined */
+#ifndef NDEBUG                     /* { */
+#if OS(LINUX)                      /* { */
     const char *file;
     const char *func;
     int lineno;
-#if OS(LINUX)                      /* { */
     void *c_stacks[64];
     int   nr_stacks;
     char  so[1024];
     char  addr1[256];
     char  addr2[64];
+#endif                             /* } */
 #endif                             /* } */
 
 };
