@@ -37,8 +37,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define TO_DEBUG 1
-
 #define MSG_TYPE_CHANGE         "change"
 #define SUB_TYPE_ATTACHED       "attached"
 #define SUB_TYPE_DETACHED       "detached"

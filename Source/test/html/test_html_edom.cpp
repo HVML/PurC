@@ -10,8 +10,6 @@
 
 #include <stdarg.h>
 
-#define TO_DEBUG 1
-
 #define ASSERT_DOC_DOC_EQ(_l, _r) do {                               \
     int _diff = 0;                                                   \
     ASSERT_EQ(pcintr_util_comp_docs(_l, _r, &_diff), 0);             \

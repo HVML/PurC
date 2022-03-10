@@ -35,7 +35,6 @@
 #if OS(LINUX) || OS(UNIX)
 #include <limits.h>
 #include <stdio.h>
-#include <libgen.h>
 #endif // OS(LINUX) || OS(UNIX)
 
 #if OS(WINDOWS)

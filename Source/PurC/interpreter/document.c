@@ -36,10 +36,7 @@
 
 #include <pthread.h>
 #include <unistd.h>
-#include <libgen.h>
 #include <limits.h>
-
-#define TO_DEBUG 0
 
 struct ctxt_for_document {
     struct pcvdom_node           *curr;

@@ -7,7 +7,6 @@
 
 #include <gtest/gtest.h>
 #include <glob.h>
-#include <libgen.h>
 #include <limits.h>
 
 
@@ -266,7 +265,7 @@ process_input_output(struct config *cfg, const char *fn, struct parser_ctx *ctx)
     r = purc_variant_compare_ex(ctx->v_input, ctx->v_output,
             PCVARIANT_COMPARE_OPT_AUTO);
     if (r) {
-        const char *src_file = basename((char*)__FILE__);
+        const char *src_file = pcutils_basename((char*)__FILE__);
         std::cerr << src_file << "[" << __LINE__ << "]:"
             << "Failed to compare output/input:" << std::endl
             << "[" << ctx->output.str << "]" << std::endl
@@ -282,7 +281,7 @@ process_rule_output_do_choose(struct config *cfg, const char *fn,
     (void)cfg;
     (void)fn;
 
-    const char *src_file = basename((char*)__FILE__);
+    const char *src_file = pcutils_basename((char*)__FILE__);
 
     purc_variant_t v = ops->choose(inst, ctx->rule.str);
     if (v == PURC_VARIANT_INVALID) {
@@ -321,7 +320,7 @@ static void
 process_rule_output_with_choose(struct config *cfg, const char *fn,
     struct parser_ctx *ctx, const char *name)
 {
-    const char *src_file = basename((char*)__FILE__);
+    const char *src_file = pcutils_basename((char*)__FILE__);
 
     purc_exec_ops ops;
     bool ok;
@@ -354,7 +353,7 @@ process_rule_output_with_choose(struct config *cfg, const char *fn,
 static void
 process_rule_output(struct config *cfg, const char *fn, struct parser_ctx *ctx)
 {
-    const char *src_file = basename((char*)__FILE__);
+    const char *src_file = pcutils_basename((char*)__FILE__);
 
     const char *end = ctx->rule.str + ctx->rule.len;
     const char *head = NULL;
@@ -423,7 +422,7 @@ process_sample_file(struct config *cfg, FILE *file, const char *fn)
     char    *linebuf = NULL;
     size_t   len  = 0;
 
-    const char *src_file = basename((char*)__FILE__);
+    const char *src_file = pcutils_basename((char*)__FILE__);
 
     (void)cfg;
 
@@ -643,7 +642,7 @@ process_sample_file(struct config *cfg, FILE *file, const char *fn)
 static void
 process(struct config *cfg)
 {
-    const char *src_file = basename((char*)__FILE__);
+    const char *src_file = pcutils_basename((char*)__FILE__);
 
     const char *pattern = cfg->sample_files;
     glob_t gbuf;
@@ -666,7 +665,7 @@ process(struct config *cfg)
                 << "Failed to open file: ["
                 << file << "]";
             if (f) {
-                const char *fn = basename((char*)file);
+                const char *fn = pcutils_basename((char*)file);
                 process_sample_file(cfg, f, fn);
             }
 

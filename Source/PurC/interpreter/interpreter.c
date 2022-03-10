@@ -41,8 +41,6 @@
 
 #include <stdarg.h>
 
-#define TO_DEBUG 1
-
 void pcintr_stack_init_once(void)
 {
     pcrunloop_init_main();
@@ -142,7 +140,7 @@ pcintr_util_dump_document_ex(pchtml_html_document_t *doc,
         return;
 
     fprintf(stderr, "%s[%d]:%s(): #document %p\n%s\n",
-            basename((char*)file), line, func, doc, p);
+            pcutils_basename((char*)file), line, func, doc, p);
     if (p != buf)
         free(p);
 }
@@ -164,7 +162,7 @@ pcintr_util_dump_edom_node_ex(pcdom_node_t *node,
             (enum pchtml_html_serialize_opt)opt, buf, &nr, "");
     if (p) {
         fprintf(stderr, "%s[%d]:%s():%p\n%s\n",
-                basename((char*)file), line, func, node, p);
+                pcutils_basename((char*)file), line, func, node, p);
         if (p != buf)
             free(p);
     }
@@ -746,7 +744,7 @@ dump_stack(pcintr_stack_t stack)
     fprintf(stderr, "dumping stacks of corroutine [%p] ......\n", &stack->co);
     PC_ASSERT(stack);
     fprintf(stderr, "error_except: generated @%s[%d]:%s()\n",
-            basename((char*)stack->file), stack->lineno, stack->func);
+            pcutils_basename((char*)stack->file), stack->lineno, stack->func);
     purc_atom_t     error_except = stack->error_except;
     purc_variant_t  err_except_info = stack->err_except_info;
     if (error_except) {

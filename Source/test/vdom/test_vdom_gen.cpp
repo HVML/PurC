@@ -7,7 +7,6 @@
 #include <gtest/gtest.h>
 #include <dirent.h>
 #include <glob.h>
-#include <libgen.h>
 
 #include "../helpers.h"
 
@@ -37,7 +36,7 @@ _process_file(const char *fn)
     bool neg = false;
 
     /* FIXME */
-    char *base = basename((char *)fn);
+    const char *base = pcutils_basename(fn);
     if (strstr(base, "neg.")==base) {
         neg = true;
     }

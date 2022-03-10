@@ -30,10 +30,6 @@
 #include "hvml/hvml-rwswrap.h"
 #include "hvml-gen.h"
 
-#include <libgen.h>
-
-#define TO_DEBUG 0
-
 #ifndef VTT
 #define VTT(x)         PCHVML_TOKEN##x
 #define VTT_S(x)       #x
@@ -234,7 +230,7 @@ set_parser_state_if_necessary(struct pcvdom_gen *gen)
     struct pcvdom_element *elem = top_element(gen);
     if (is_element_of_hvml_data_cat(elem)) {
         // FIXME:
-        if (TO_DEBUG)
+        if (0)
             pchvml_switch_to_ejson_state(gen->parser);
     }
 }
@@ -1174,9 +1170,6 @@ pcvdom_gen_push_token(struct pcvdom_gen *gen,
     struct pchvml_token *token)
 {
     int r = 0;
-
-    if (TO_DEBUG)
-        PRINT_TOKEN(token);
 
     if (gen->eof)
         return 0; // ignore

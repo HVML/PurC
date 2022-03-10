@@ -12,13 +12,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
-#include <libgen.h>
 #include <gtest/gtest.h>
 
 #include <dirent.h>
 #include <glob.h>
-
-#define TO_DEBUG 1
 
 using namespace std;
 

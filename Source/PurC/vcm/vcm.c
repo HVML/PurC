@@ -38,8 +38,6 @@
 #include "private/interpreter.h"
 #include "private/utils.h"
 
-#define TO_DEBUG 0
-
 #define TREE_NODE(node)              ((struct pctree_node*)(node))
 #define VCM_NODE(node)               ((struct pcvcm_node*)(node))
 #define FIRST_CHILD(node)            \
@@ -1089,10 +1087,6 @@ purc_variant_t pcvcm_node_to_variant (struct pcvcm_node* node,
             break;
     }
     node->attach = (uintptr_t) ret;
-    if (TO_DEBUG) {
-        PRINT_VCM_NODE(node);
-        PRINT_VARIANT(ret);
-    }
     return ret;
 }
 

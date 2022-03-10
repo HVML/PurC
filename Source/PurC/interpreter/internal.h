@@ -32,8 +32,6 @@
 
 #include "keywords.h"
 
-#include <libgen.h>
-
 struct pcvdom_template_node {
     struct list_head              node;
     struct pcvcm_node            *vcm;

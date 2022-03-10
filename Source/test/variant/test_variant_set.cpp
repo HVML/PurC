@@ -13,8 +13,6 @@
 #include <errno.h>
 #include <gtest/gtest.h>
 
-#define TO_DEBUG 1
-
 static inline bool
 sanity_check(purc_variant_t set)
 {

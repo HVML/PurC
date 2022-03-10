@@ -17,8 +17,6 @@
 
 #include <gio/gio.h>
 
-#define TO_DEBUG 1
-
 TEST(fetcher, cleanup)
 {
     do {

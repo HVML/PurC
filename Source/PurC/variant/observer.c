@@ -29,8 +29,6 @@
 
 #include <stdlib.h>
 
-#define TO_DEBUG 1
-
 static pcvar_listener*
 register_listener(purc_variant_t v, unsigned int flags,
         pcvar_op_t op, pcvar_op_handler handler, void *ctxt)

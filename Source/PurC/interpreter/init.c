@@ -34,9 +34,6 @@
 
 #include <pthread.h>
 #include <unistd.h>
-#include <libgen.h>
-
-#define TO_DEBUG 1
 
 struct ctxt_for_init {
     struct pcvdom_node           *curr;

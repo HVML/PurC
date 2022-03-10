@@ -5,9 +5,9 @@
 #include "private/fetcher.h"
 #include "config.h"
 
+#include <libgen.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <libgen.h>
 #include <errno.h>
 #include <gtest/gtest.h>
 #include <wtf/RunLoop.h>

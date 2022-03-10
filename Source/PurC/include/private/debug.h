@@ -33,7 +33,6 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <stdbool.h>
-#include <libgen.h> /* for `basename` */
 
 #ifdef __cplusplus
 extern "C" {

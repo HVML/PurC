@@ -54,8 +54,6 @@
 #include <float.h>
 #include <ctype.h>
 
-#define TO_DEBUG 1
-
 static const char *hex_chars = "0123456789abcdefABCDEF";
 
 #define MY_WRITE(rws, buff, count)                                      \

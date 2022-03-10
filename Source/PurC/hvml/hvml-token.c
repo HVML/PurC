@@ -26,7 +26,6 @@
 #include <stdint.h>
 #include <string.h>
 #include <errno.h>
-#include <libgen.h>
 
 #include "config.h"
 #include "purc-utils.h"
@@ -656,7 +655,7 @@ pchvml_util_dump_token(const struct pchvml_token *token,
     PC_ASSERT(token);
     if (token->type == PCHVML_TOKEN_EOF) {
         fprintf(stderr, "%s[%d]:%s(): EOF\n",
-                basename((char*)file), line, func);
+                pcutils_basename((char*)file), line, func);
         return;
     }
 
@@ -666,13 +665,13 @@ pchvml_util_dump_token(const struct pchvml_token *token,
         const char* type_name;
         type_name = pchvml_token_get_type_name((struct pchvml_token*)token);
         fprintf(stderr, "%s[%d]:%s(): %s:%s\n",
-                basename((char*)file), line, func,
+                pcutils_basename((char*)file), line, func,
                 type_name, pchvml_buffer_get_buffer(token_buff));
         pchvml_buffer_destroy(token_buff);
         return;
     }
 
     fprintf(stderr, "%s[%d]:%s(): OUT_OF_MEMORY\n",
-            basename((char*)file), line, func);
+            pcutils_basename((char*)file), line, func);
 }
 

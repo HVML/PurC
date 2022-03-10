@@ -6,7 +6,6 @@
 
 #include <gtest/gtest.h>
 #include <glob.h>
-#include <libgen.h>
 #include <limits.h>
 
 #include "../helpers.h"

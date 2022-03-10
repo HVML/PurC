@@ -41,8 +41,6 @@
 #endif                             /* } */
 #endif                             /* } */
 
-#define TO_DEBUG 0
-
 static const struct err_msg_info* get_error_info(int errcode);
 
 static int _noinst_errcode;
@@ -72,11 +70,10 @@ int purc_set_error_exinfo_with_debug(int errcode, purc_variant_t exinfo,
 {
 #ifndef NDEBUG                     /* { */
     if (errcode) {
-        PC_DEBUGX("%s[%d]:%s(): %d", basename((char*)file), lineno, func, errcode);
-        if (TO_DEBUG) {
-            if (exinfo != PURC_VARIANT_INVALID)
-                PRINT_VARIANT(exinfo);
-        }
+        PC_DEBUGX("%s[%d]:%s(): %d",
+                pcutils_basename((char*)file), lineno, func, errcode);
+        if (exinfo != PURC_VARIANT_INVALID)
+            PRINT_VARIANT(exinfo);
     }
 #endif                             /* } */
 
@@ -106,7 +103,8 @@ int purc_set_error_exinfo_with_debug(int errcode, purc_variant_t exinfo,
         if (info == NULL ||
                 ((info->flags & PURC_EXCEPT_FLAGS_REQUIRED) && !exinfo)) {
 #ifndef NDEBUG                     /* { */
-            PC_DEBUGX("%s[%d]:%s(): %d", basename((char*)file), lineno, func, errcode);
+            PC_DEBUGX("%s[%d]:%s(): %d",
+                    pcutils_basename((char*)file), lineno, func, errcode);
 #endif                             /* } */
             return PURC_ERROR_INVALID_VALUE;
         }

@@ -35,8 +35,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define TO_DEBUG 1
-
 #define OBJ_EXTRA_SIZE(data) (sizeof(*data) + \
         (data->size) * sizeof(struct obj_node))
 

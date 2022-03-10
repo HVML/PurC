@@ -31,8 +31,6 @@
 
 #include "hvml-attr.h"
 
-#define TO_DEBUG 1
-
 void pcvdom_init_once(void)
 {
     // initialize others

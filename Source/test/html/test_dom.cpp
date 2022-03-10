@@ -12,8 +12,6 @@
 
 #include <stdarg.h>
 
-#define TO_DEBUG 1
-
 #define lxb_status_t                               int
 #define LXB_STATUS_OK                              PCHTML_STATUS_OK
 #define lxb_char_t                                 unsigned char

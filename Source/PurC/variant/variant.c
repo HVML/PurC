@@ -39,8 +39,6 @@
 #include <math.h>
 #include <float.h>
 
-#define TO_DEBUG 1
-
 #if OS(LINUX) || OS(UNIX)
     #include <dlfcn.h>
 #endif

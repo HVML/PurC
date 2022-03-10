@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <libgen.h>
 
 #include "purc.h"
 

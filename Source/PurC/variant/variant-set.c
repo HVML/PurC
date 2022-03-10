@@ -39,8 +39,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define TO_DEBUG 1
-
 static bool
 grow(purc_variant_t set, purc_variant_t value)
 {

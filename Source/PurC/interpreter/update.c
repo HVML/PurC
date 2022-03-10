@@ -37,11 +37,8 @@
 #include "ops.h"
 
 #include <ctype.h>
-#include <libgen.h>
 #include <pthread.h>
 #include <unistd.h>
-
-#define TO_DEBUG 1
 
 struct ctxt_for_update {
     struct pcvdom_node           *curr;

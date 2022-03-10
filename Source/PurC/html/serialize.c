@@ -43,8 +43,6 @@
 #define PCHTML_TOKENIZER_CHARS_MAP
 #include "str_res.h"
 
-#define TO_DEBUG 1
-
 #define pchtml_html_serialize_send(data, len, ctx)                                \
     do {                                                                       \
         status = cb((const unsigned char *) data, len, ctx);                      \
