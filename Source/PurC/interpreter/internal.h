@@ -104,6 +104,9 @@ typedef purc_variant_t
 pcintr_attribute_op
 pcintr_attribute_get_op(enum pchvml_attr_operator op);
 
+bool
+pcintr_rdr_page_control_load(pcintr_stack_t stack);
+
 PCA_EXTERN_C_END
 
 #endif  /* PURC_INTERPRETER_INTERNAL_H */

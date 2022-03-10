@@ -850,7 +850,7 @@ TEST(interpreter, basic)
         // buggy4,
     };
 
-    PurCInstance purc;
+    PurCInstance purc("cn.fmsoft.hybridos.test", "interpreter", false);
 
     ASSERT_TRUE(purc);
 
