@@ -894,7 +894,7 @@ pcrdr_headless_connect(const char* renderer_uri,
  * Since: 0.1.0
  */
 PCA_EXPORT pcrdr_msg *
-purc_inst_connect(const char* renderer_uri,
+pcrdr_thread_connect(const char* renderer_uri,
         const char* app_name, const char* runner_name, pcrdr_conn** conn);
 
 /**
@@ -1004,7 +1004,7 @@ pcrdr_purcmc_send_text_packet(pcrdr_conn* conn,
  */
 
 #define PCINST_MOVE_BUFFER_FLAG_NONE        0x0000
-#define PCINST_MOVE_BUFFER_BROADCAST       0x0001
+#define PCINST_MOVE_BUFFER_BROADCAST        0x0001
 
 /**
  * Create the move buffer for the current thread.

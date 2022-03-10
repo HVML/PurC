@@ -109,7 +109,7 @@ static int my_disconnect(pcrdr_conn* conn)
 
 #define SCHEMA_LOCAL_FILE  "file://"
 
-pcrdr_msg *purc_inst_connect(const char* renderer_uri,
+pcrdr_msg *pcrdr_thread_connect(const char* renderer_uri,
         const char* app_name, const char* runner_name, pcrdr_conn** conn)
 {
     pcrdr_msg *msg = NULL;
