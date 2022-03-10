@@ -392,11 +392,15 @@ purc_inst_move_message(purc_atom_t inst_to, pcrdr_msg *msg)
                 }
                 else {
                     my_msg = pcrdr_clone_message(msg);
-                    if (my_msg)
+                    if (my_msg) {
                         do_move_message(my_msg);
-                    else
+                        pcrdr_release_message(my_msg);
+                    }
+                    else {
                         PC_ERROR("failed to clone message to broadcast: %p\n",
                                 msg);
+                        break;
+                    }
                 }
 
                 purc_rwlock_writer_lock(&mb->lock);
