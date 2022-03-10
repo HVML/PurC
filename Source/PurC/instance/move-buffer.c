@@ -298,17 +298,17 @@ do_move_message(pcrdr_msg *msg)
     atomic_fetch_add(&hdr->refc, 1);
 
     if (msg->operation)
-        msg->operation = pcvariant_move_from(msg->operation);
+        msg->operation = pcvariant_move_heap_in(msg->operation);
     if (msg->element)
-        msg->element = pcvariant_move_from(msg->element);
+        msg->element = pcvariant_move_heap_in(msg->element);
     if (msg->property)
-        msg->property = pcvariant_move_from(msg->property);
+        msg->property = pcvariant_move_heap_in(msg->property);
     if (msg->event)
-        msg->event = pcvariant_move_from(msg->event);
+        msg->event = pcvariant_move_heap_in(msg->event);
     if (msg->requestId)
-        msg->requestId = pcvariant_move_from(msg->requestId);
+        msg->requestId = pcvariant_move_heap_in(msg->requestId);
     if (msg->data)
-        msg->data = pcvariant_move_from(msg->data);
+        msg->data = pcvariant_move_heap_in(msg->data);
 }
 
 static void
@@ -318,17 +318,17 @@ do_take_message(pcrdr_msg *msg)
     atomic_fetch_add(&hdr->refc, 1);
 
     if (msg->operation)
-        msg->operation = pcvariant_move_to(msg->operation);
+        msg->operation = pcvariant_move_heap_out(msg->operation);
     if (msg->element)
-        msg->element = pcvariant_move_to(msg->element);
+        msg->element = pcvariant_move_heap_out(msg->element);
     if (msg->property)
-        msg->property = pcvariant_move_to(msg->property);
+        msg->property = pcvariant_move_heap_out(msg->property);
     if (msg->event)
-        msg->event = pcvariant_move_to(msg->event);
+        msg->event = pcvariant_move_heap_out(msg->event);
     if (msg->requestId)
-        msg->requestId = pcvariant_move_to(msg->requestId);
+        msg->requestId = pcvariant_move_heap_out(msg->requestId);
     if (msg->data)
-        msg->data = pcvariant_move_to(msg->data);
+        msg->data = pcvariant_move_heap_out(msg->data);
 }
 
 size_t
