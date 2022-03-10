@@ -507,8 +507,39 @@ pcintr_rdr_page_control_load(pcintr_stack_t stack)
     if (!pcvdom_document_is_attached_rdr(stack->vdom)) {
         return true;
     }
+    pcrdr_msg *msg = NULL;
+//    pcrdr_msg *response_msg = NULL;
+    purc_variant_t req_data;
 
-    //purc_vdom_t vdom = stack->vdom;
-    //pchtml_html_document_t *doc = stack->doc;
+    purc_vdom_t vdom = stack->vdom;
+//    pchtml_html_document_t *doc = stack->doc;
+
+
+    const char *operation = PCRDR_OPERATION_LOAD;
+    pcrdr_msg_target target = PCRDR_MSG_TARGET_TABPAGE;
+    uint64_t target_value = pcvdom_document_get_target_tabpage(vdom);
+    if (target_value == 0) {
+        target = PCRDR_MSG_TARGET_PLAINWINDOW;
+        target_value = pcvdom_document_get_target_window(vdom);
+    }
+
+    msg = make_request_msg(target, target_value, operation);
+    if (msg == NULL) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto failed;
+    }
+
+    msg->dataType = PCRDR_MSG_DATA_TYPE_TEXT;
+    msg->data = req_data;
+
+failed:
+    if (req_data != PURC_VARIANT_INVALID) {
+        purc_variant_unref(req_data);
+    }
+
+    if (msg) {
+        pcrdr_release_message(msg);
+    }
+
     return false;
 }
