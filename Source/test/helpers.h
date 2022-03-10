@@ -72,6 +72,21 @@ private:
 class PurCInstance
 {
 public:
+    PurCInstance(unsigned int modules, const char *app = NULL,
+            const char *runner = NULL) {
+        init_ok = -1;
+        info = {};
+        if (app == NULL)
+            app = APP_NAME;
+        if (runner == NULL)
+            runner = RUNNER_NAME;
+
+        if (purc_init_ex (modules, app, runner, &info))
+            return;
+
+        init_ok = 0;
+    }
+
     PurCInstance(const char *app = NULL, const char *runner = NULL,
             bool enable_remote_fetcher = true) {
         init_ok = -1;
