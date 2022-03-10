@@ -124,6 +124,7 @@ pcintr_util_dump_document_ex(pchtml_html_document_t *doc,
     opt |= PCHTML_HTML_SERIALIZE_OPT_SKIP_WS_NODES;
     opt |= PCHTML_HTML_SERIALIZE_OPT_WITHOUT_TEXT_INDENT;
     opt |= PCHTML_HTML_SERIALIZE_OPT_FULL_DOCTYPE;
+    opt |= PCHTML_HTML_SERIALIZE_OPT_WITH_HVML_HANDLE;
     char *p = pchtml_doc_snprintf_ex(doc,
             (enum pchtml_html_serialize_opt)opt, buf, &nr, "");
     if (!p)

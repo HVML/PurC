@@ -1124,6 +1124,8 @@ pchtml_html_serialize_pretty_node_cb(pcdom_node_t *node,
     return PCHTML_STATUS_OK;
 }
 
+#define LEN_BUFF_LONGLONGINT    128
+
 static unsigned int
 pchtml_html_serialize_pretty_element_cb(pcdom_element_t *element,
                                      pchtml_html_serialize_opt_t opt, size_t indent,
@@ -1205,6 +1207,21 @@ pchtml_html_serialize_pretty_element_cb(pcdom_element_t *element,
         }
 
         attr = attr->next;
+    }
+
+    if (opt & PCHTML_HTML_SERIALIZE_OPT_WITH_HVML_HANDLE) {
+        char buff[LEN_BUFF_LONGLONGINT];
+        int n = snprintf(buff, sizeof(buff),
+                "%llx", (unsigned long long int)(uintptr_t)element);
+        if (n < 0) {
+            return PCHTML_STATUS_ERROR;
+        }
+        else if ((size_t)n >= sizeof (buff)) {
+            PC_DEBUG ("Too small buffer to serialize message.\n");
+            return PCRDR_ERROR_TOO_SMALL_BUFF;
+        }
+        pchtml_html_serialize_send(" hvml:handle=", 13, ctx);
+        pchtml_html_serialize_send(buff, n, ctx);
     }
 
     pchtml_html_serialize_send(">", 1, ctx);
