@@ -928,7 +928,7 @@ static void **find_domdoc_ptr(struct pcrdr_prot_data *prot_data,
 
     void **domdocs;
 
-    if (msg->target != PCRDR_MSG_TARGET_PLAINWINDOW) {
+    if (msg->target == PCRDR_MSG_TARGET_PLAINWINDOW) {
         int i, j;
         struct workspace_info *workspaces = prot_data->session->workspaces;
         for (i = 0; i < NR_WORKSPACES; i++) {
@@ -950,7 +950,7 @@ found_pw:
 
         domdocs = &workspaces[i].domdocs[j];
     }
-    else if (msg->target != PCRDR_MSG_TARGET_TABPAGE) {
+    else if (msg->target == PCRDR_MSG_TARGET_TABPAGE) {
         int i, j, k;
         struct workspace_info *workspaces = prot_data->session->workspaces;
         for (i = 0; i < NR_WORKSPACES; i++) {
@@ -987,14 +987,14 @@ found_tp:
 static void on_load(struct pcrdr_prot_data *prot_data,
         const pcrdr_msg *msg, unsigned int op_id, struct result_info *result)
 {
-    void **domdocs;
+//    void **domdocs;
 
     UNUSED_PARAM(op_id);
     if (find_domdoc_ptr(prot_data, msg, result) == NULL) {
         return;
     }
 
-    *domdocs = domdocs;
+//    *domdocs = domdocs;
 
     result->retCode = PCRDR_SC_OK;
     result->resultValue = msg->targetValue;
