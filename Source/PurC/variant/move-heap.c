@@ -83,6 +83,14 @@ void pcvariant_move_heap_cleanup_once(void)
 {
     if (mh_lock.native_impl)
         purc_mutex_clear(&mh_lock);
+
+    struct purc_variant_stat *stat = &move_heap.stat;
+    PC_ASSERT(move_heap.v_undefined.refc == 0);
+    PC_ASSERT(move_heap.v_null.refc == 0);
+    PC_ASSERT(move_heap.v_true.refc == 0);
+    PC_ASSERT(move_heap.v_false.refc == 0);
+    PC_ASSERT(stat->nr_total_values == 4);
+    PC_ASSERT(stat->sz_total_mem == 4 * sizeof(purc_variant));
 }
 
 static void

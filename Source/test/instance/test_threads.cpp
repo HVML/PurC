@@ -98,6 +98,7 @@ TEST(instance, threads)
 
         if (purc_inst_move_message(other_inst, event) == 0) {
             purc_log_error("purc_inst_move_message: no recipient\n");
+            pcrdr_release_message(event);
             break;
         }
 
