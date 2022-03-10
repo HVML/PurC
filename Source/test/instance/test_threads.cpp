@@ -219,5 +219,6 @@ TEST(instance, threads)
     purc_log_info("move buffer destroyed, %d messages discarded\n", (int)n);
 
     purc_cleanup();
+    pthread_join(th, NULL);
 }
 
