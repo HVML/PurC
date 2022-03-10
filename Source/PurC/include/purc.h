@@ -377,12 +377,20 @@ purc_get_conn_to_renderer(void);
 
 /** The extra renderer information */
 typedef struct purc_renderer_extra_info {
+    /** the workspace classes if creating a new workspace */
+    const char *workspace_classes;
+    /** the workspace styles if creating a new workspace */
+    const char *workspace_styles;
+    /** the workspace title if creating a new workspace */
+    const char *workspace_title;
     /** the window classes if creating a new window */
     const char *classes;
     /** the window styles if creating a new window */
     const char *styles;
     /** the window title if creating a new window */
     const char *title;
+    /** the tabpage title if creating a new tabpage */
+    const char *tabpage_title;
 } purc_renderer_extra_info;
 
 /**

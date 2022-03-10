@@ -40,21 +40,11 @@
 #define LEVEL_KEY        "level"
 #define CLASS_KEY        "class"
 
-uintptr_t create_target_workspace(
-        struct pcrdr_conn *conn_to_rdr,
-        uintptr_t session_handle,
-        const char *target_workspace
-        )
+static inline
+pcrdr_msg *make_request_msg(pcrdr_msg_target target, uint64_t target_value,
+        const char *operation)
 {
-    pcrdr_msg *msg = NULL;
-    pcrdr_msg *response_msg = NULL;
-    purc_variant_t req_data;
-    uintptr_t workspace_handle = 0;
-
-    const char *operation = PCRDR_OPERATION_CREATEWORKSPACE;
-    pcrdr_msg_target target = PCRDR_MSG_TARGET_SESSION;
-    uint64_t target_value = session_handle;
-    msg = pcrdr_make_request_message(
+    return pcrdr_make_request_message(
             target,                             /* target */
             target_value,                       /* target_value */
             operation,                          /* operation */
@@ -66,14 +56,50 @@ uintptr_t create_target_workspace(
             NULL,                               /* data */
             0                                   /* data_len */
             );
+}
+
+static bool
+object_set(purc_variant_t object, const char* key, const char* value)
+{
+    purc_variant_t k = purc_variant_make_string_static(key, false);
+    if (k == PURC_VARIANT_INVALID) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return false;
+    }
+
+    purc_variant_t v = purc_variant_make_string_static(value, false);
+    if (k == PURC_VARIANT_INVALID) {
+        purc_variant_unref(k);
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return false;
+    }
+
+    purc_variant_object_set(object, k, v);
+    purc_variant_unref(k);
+    purc_variant_unref(v);
+    return true;
+}
+
+uintptr_t create_target_workspace(
+        struct pcrdr_conn *conn_to_rdr,
+        uintptr_t session_handle,
+        const char *target_workspace,
+        purc_renderer_extra_info *extra_info
+        )
+{
+    pcrdr_msg *msg = NULL;
+    pcrdr_msg *response_msg = NULL;
+    purc_variant_t req_data;
+    uintptr_t workspace_handle = 0;
+
+    const char *operation = PCRDR_OPERATION_CREATEWORKSPACE;
+    pcrdr_msg_target target = PCRDR_MSG_TARGET_SESSION;
+    uint64_t target_value = session_handle;
+    msg = make_request_msg(target, target_value, operation);
     if (msg == NULL) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto failed;
     }
-
-    purc_variant_t vs[2] = { NULL };
-    vs[0] = purc_variant_make_string_static(TITLE_KEY, false);
-    vs[1] = purc_variant_make_string_static(target_workspace, false);
 
     req_data = purc_variant_make_object(0, NULL, NULL);
     if (req_data == PURC_VARIANT_INVALID) {
@@ -81,9 +107,24 @@ uintptr_t create_target_workspace(
         goto failed;
     }
 
-    purc_variant_object_set(req_data, vs[0], vs[1]);
-    purc_variant_unref(vs[0]);
-    purc_variant_unref(vs[1]);
+    if (!object_set(req_data, ID_KEY, target_workspace)) {
+        goto failed;
+    }
+
+    if (extra_info->workspace_title
+            && !object_set(req_data, TITLE_KEY, extra_info->workspace_title)) {
+        goto failed;
+    }
+
+    if (extra_info->workspace_classes
+            && !object_set(req_data, CLASS_KEY, extra_info->workspace_classes)) {
+        goto failed;
+    }
+
+    if (extra_info->workspace_styles
+            && !object_set(req_data, CLASS_KEY, extra_info->workspace_styles)) {
+        goto failed;
+    }
 
     msg->dataType = PCRDR_MSG_DATA_TYPE_EJSON;
     msg->data = req_data;
@@ -110,8 +151,14 @@ uintptr_t create_target_workspace(
     return workspace_handle;
 
 failed:
-    if (msg)
+    if (req_data != PURC_VARIANT_INVALID) {
+        purc_variant_unref(req_data);
+    }
+
+    if (msg) {
         pcrdr_release_message(msg);
+    }
+
 
     return 0;
 }
@@ -145,18 +192,7 @@ uintptr_t create_tabbed_window(
         target_value = session_handle;
     }
 
-    msg = pcrdr_make_request_message(
-            target,                             /* target */
-            target_value,                       /* target_value */
-            operation,                          /* operation */
-            NULL,                               /* request_id */
-            PCRDR_MSG_ELEMENT_TYPE_VOID,        /* element_type */
-            NULL,                               /* element */
-            NULL,                               /* property */
-            PCRDR_MSG_DATA_TYPE_VOID,           /* data_tuype */
-            NULL,                               /* data */
-            0                                   /* data_len */
-            );
+    msg = make_request_msg(target, target_value, operation);
     if (msg == NULL) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto failed;
@@ -168,27 +204,23 @@ uintptr_t create_tabbed_window(
         goto failed;
     }
 
-    purc_variant_t vs[2] = { NULL };
-    vs[0] = purc_variant_make_string_static(TITLE_KEY, false);
-    vs[1] = purc_variant_make_string_static(target_window, false);
-    purc_variant_object_set(req_data, vs[0], vs[1]);
-    purc_variant_unref(vs[0]);
-    purc_variant_unref(vs[1]);
-
-    if (extra_info->classes) {
-        vs[0] = purc_variant_make_string_static(CLASS_KEY, false);
-        vs[1] = purc_variant_make_string_static(extra_info->classes, false);
-        purc_variant_object_set(req_data, vs[0], vs[1]);
-        purc_variant_unref(vs[0]);
-        purc_variant_unref(vs[1]);
+    if (!object_set(req_data, ID_KEY, target_window)) {
+        goto failed;
     }
 
-    if (extra_info->styles) {
-        vs[0] = purc_variant_make_string_static(STYLE_KEY, false);
-        vs[1] = purc_variant_make_string_static(extra_info->styles, false);
-        purc_variant_object_set(req_data, vs[0], vs[1]);
-        purc_variant_unref(vs[0]);
-        purc_variant_unref(vs[1]);
+    if (extra_info->title
+            && !object_set(req_data, TITLE_KEY, extra_info->title)) {
+        goto failed;
+    }
+
+    if (extra_info->classes
+            && !object_set(req_data, CLASS_KEY, extra_info->classes)) {
+        goto failed;
+    }
+
+    if (extra_info->styles
+            && !object_set(req_data, CLASS_KEY, extra_info->styles)) {
+        goto failed;
     }
 
     msg->dataType = PCRDR_MSG_DATA_TYPE_EJSON;
@@ -216,8 +248,13 @@ uintptr_t create_tabbed_window(
     return window_handle;
 
 failed:
-    if (msg)
+    if (req_data != PURC_VARIANT_INVALID) {
+        purc_variant_unref(req_data);
+    }
+
+    if (msg) {
         pcrdr_release_message(msg);
+    }
 
     return 0;
 }
@@ -239,18 +276,7 @@ uintptr_t create_tabpage(
     const char *operation = PCRDR_OPERATION_CREATETABPAGE;
     pcrdr_msg_target target = PCRDR_MSG_TARGET_TABBEDWINDOW;
     uint64_t target_value = window_handle;
-    msg = pcrdr_make_request_message(
-            target,                             /* target */
-            target_value,                       /* target_value */
-            operation,                          /* operation */
-            NULL,                               /* request_id */
-            PCRDR_MSG_ELEMENT_TYPE_VOID,        /* element_type */
-            NULL,                               /* element */
-            NULL,                               /* property */
-            PCRDR_MSG_DATA_TYPE_VOID,           /* data_tuype */
-            NULL,                               /* data */
-            0                                   /* data_len */
-            );
+    msg = make_request_msg(target, target_value, operation);
     if (msg == NULL) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto failed;
@@ -262,12 +288,14 @@ uintptr_t create_tabpage(
         goto failed;
     }
 
-    purc_variant_t vs[2] = { NULL };
-    vs[0] = purc_variant_make_string_static(TITLE_KEY, false);
-    vs[1] = purc_variant_make_string_static(target_tabpage, false);
-    purc_variant_object_set(req_data, vs[0], vs[1]);
-    purc_variant_unref(vs[0]);
-    purc_variant_unref(vs[1]);
+    if (!object_set(req_data, ID_KEY, target_tabpage)) {
+        goto failed;
+    }
+
+    if (extra_info->tabpage_title
+            && !object_set(req_data, TITLE_KEY, extra_info->tabpage_title)) {
+        goto failed;
+    }
 
     msg->dataType = PCRDR_MSG_DATA_TYPE_EJSON;
     msg->data = req_data;
@@ -294,8 +322,13 @@ uintptr_t create_tabpage(
     return page_handle;
 
 failed:
-    if (msg)
+    if (req_data != PURC_VARIANT_INVALID) {
+        purc_variant_unref(req_data);
+    }
+
+    if (msg) {
         pcrdr_release_message(msg);
+    }
 
     return 0;
 }
@@ -328,18 +361,7 @@ uintptr_t create_plain_window(
         target_value = session_handle;
     }
 
-    msg = pcrdr_make_request_message(
-            target,                             /* target */
-            target_value,                       /* target_value */
-            operation,                          /* operation */
-            NULL,                               /* request_id */
-            PCRDR_MSG_ELEMENT_TYPE_VOID,        /* element_type */
-            NULL,                               /* element */
-            NULL,                               /* property */
-            PCRDR_MSG_DATA_TYPE_VOID,           /* data_tuype */
-            NULL,                               /* data */
-            0                                   /* data_len */
-            );
+    msg = make_request_msg(target, target_value, operation);
     if (msg == NULL) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto failed;
@@ -351,27 +373,23 @@ uintptr_t create_plain_window(
         goto failed;
     }
 
-    purc_variant_t vs[2] = { NULL };
-    vs[0] = purc_variant_make_string_static(TITLE_KEY, false);
-    vs[1] = purc_variant_make_string_static(target_window, false);
-    purc_variant_object_set(req_data, vs[0], vs[1]);
-    purc_variant_unref(vs[0]);
-    purc_variant_unref(vs[1]);
-
-    if (extra_info->classes) {
-        vs[0] = purc_variant_make_string_static(CLASS_KEY, false);
-        vs[1] = purc_variant_make_string_static(extra_info->classes, false);
-        purc_variant_object_set(req_data, vs[0], vs[1]);
-        purc_variant_unref(vs[0]);
-        purc_variant_unref(vs[1]);
+    if (!object_set(req_data, ID_KEY, target_window)) {
+        goto failed;
     }
 
-    if (extra_info->styles) {
-        vs[0] = purc_variant_make_string_static(STYLE_KEY, false);
-        vs[1] = purc_variant_make_string_static(extra_info->styles, false);
-        purc_variant_object_set(req_data, vs[0], vs[1]);
-        purc_variant_unref(vs[0]);
-        purc_variant_unref(vs[1]);
+    if (extra_info->title
+            && !object_set(req_data, TITLE_KEY, extra_info->title)) {
+        goto failed;
+    }
+
+    if (extra_info->classes
+            && !object_set(req_data, CLASS_KEY, extra_info->classes)) {
+        goto failed;
+    }
+
+    if (extra_info->styles
+            && !object_set(req_data, CLASS_KEY, extra_info->styles)) {
+        goto failed;
     }
 
     msg->dataType = PCRDR_MSG_DATA_TYPE_EJSON;
@@ -399,8 +417,13 @@ uintptr_t create_plain_window(
     return window_handle;
 
 failed:
-    if (msg)
+    if (req_data != PURC_VARIANT_INVALID) {
+        purc_variant_unref(req_data);
+    }
+
+    if (msg) {
         pcrdr_release_message(msg);
+    }
 
     return 0;
 }
@@ -433,7 +456,8 @@ purc_attach_vdom_to_renderer(purc_vdom_t vdom,
         workspace = create_target_workspace(
                 conn_to_rdr,
                 session_handle,
-                target_workspace);
+                target_workspace,
+                extra_info);
         if (!workspace) {
             purc_set_error(PCRDR_ERROR_SERVER_REFUSED);
             return false;
