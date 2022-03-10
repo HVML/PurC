@@ -296,7 +296,7 @@ pcrdr_free_connection(pcrdr_conn* conn);
  * The prototype of a request handler.
  *
  * @param conn: the pointer to the renderer connection.
- * @param msg: the request message object.
+ * @param msg: the request message structure.
  *
  * Since: 0.1.0
  */
@@ -331,7 +331,7 @@ pcrdr_conn_set_request_handler(pcrdr_conn* conn,
  * The prototype of an event handler.
  *
  * @param conn: the pointer to the renderer connection.
- * @param msg: the event message object.
+ * @param msg: the event message structure.
  *
  * Since: 0.1.0
  */
@@ -583,7 +583,7 @@ struct pcrdr_msg
 /**
  * Make a void message.
  *
- * Returns: The pointer to message object; NULL on error.
+ * Returns: The pointer to message structure; NULL on error.
  *
  * Since: 0.1.0
  */
@@ -602,7 +602,7 @@ pcrdr_make_void_message(void);
  * @param data_type: the data type of the request.
  * @param data: the pointer to the data (nullable)
  *
- * Returns: The pointer to message object; NULL on error.
+ * Returns: The pointer to message structure; NULL on error.
  *
  * Since: 0.1.0
  */
@@ -623,7 +623,7 @@ pcrdr_make_request_message(
  * @param result_value: the result value.
  * @param extra_info: the extra information (nullable).
  *
- * Returns: The pointer to the response message object; NULL on error.
+ * Returns: The pointer to the response message structure; NULL on error.
  *
  * Since: 0.1.0
  */
@@ -645,7 +645,7 @@ pcrdr_make_response_message(
  * @param data_type: the data type of the event.
  * @param data: the pointer to the data (nullable)
  *
- * Returns: The pointer to the event message object; NULL on error.
+ * Returns: The pointer to the event message structure; NULL on error.
  *
  * Since: 0.1.0
  */
@@ -674,7 +674,7 @@ pcrdr_clone_message(const pcrdr_msg* msg);
  *
  * @param packet_text: the pointer to the packet text buffer.
  * @param sz_packet: the size of the packet.
- * @param msg: The pointer to a pointer to return the parsed message object.
+ * @param msg: The pointer to a pointer to return the parsed message structure.
  *
  * Returns: -1 for error; zero means everything is ok.
  *
@@ -763,7 +763,7 @@ enum {
  *
  * Returns: 0 for finished the handle of the response; otherwise -1.
  *
- * Note that after calling the response handler, the response message object
+ * Note that after calling the response handler, the response message structure
  * will be released.
  *
  * Since: 0.1.0
