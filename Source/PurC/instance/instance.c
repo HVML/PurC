@@ -447,7 +447,7 @@ bool purc_cleanup(void)
         pchtml_cleanup_instance(curr_inst);
         pcdom_cleanup_instance(curr_inst); */
 
-        if (_modules && PURC_HAVE_FETCHER) {
+        if (_modules & PURC_HAVE_FETCHER) {
             pcfetcher_term();
         }
 

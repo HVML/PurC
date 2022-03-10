@@ -93,7 +93,7 @@ uintptr_t create_target_workspace(
 {
     pcrdr_msg *msg = NULL;
     pcrdr_msg *response_msg = NULL;
-    purc_variant_t req_data;
+    purc_variant_t req_data = PURC_VARIANT_INVALID;
     uintptr_t workspace_handle = 0;
 
     const char *operation = PCRDR_OPERATION_CREATEWORKSPACE;
@@ -182,7 +182,7 @@ uintptr_t create_tabbed_window(
 
     pcrdr_msg *msg = NULL;
     pcrdr_msg *response_msg = NULL;
-    purc_variant_t req_data;
+    purc_variant_t req_data = PURC_VARIANT_INVALID;
     uintptr_t window_handle = 0;
 
     const char *operation = PCRDR_OPERATION_CREATEPLAINWINDOW;
@@ -276,7 +276,7 @@ uintptr_t create_tabpage(
 
     pcrdr_msg *msg = NULL;
     pcrdr_msg *response_msg = NULL;
-    purc_variant_t req_data;
+    purc_variant_t req_data = PURC_VARIANT_INVALID;
     uintptr_t page_handle = 0;
 
     const char *operation = PCRDR_OPERATION_CREATETABPAGE;
@@ -353,7 +353,7 @@ uintptr_t create_plain_window(
 
     pcrdr_msg *msg = NULL;
     pcrdr_msg *response_msg = NULL;
-    purc_variant_t req_data;
+    purc_variant_t req_data = PURC_VARIANT_INVALID;
     uintptr_t window_handle = 0;
 
     const char *operation = PCRDR_OPERATION_CREATEPLAINWINDOW;
@@ -521,7 +521,7 @@ pcintr_rdr_page_control_load(pcintr_stack_t stack)
 
     pcrdr_msg *msg = NULL;
     pcrdr_msg *response_msg = NULL;
-    purc_variant_t req_data;
+    purc_variant_t req_data = PURC_VARIANT_INVALID;
 
     purc_vdom_t vdom = stack->vdom;
     pchtml_html_document_t *doc = stack->doc;
@@ -623,8 +623,8 @@ pcintr_rdr_dom_displace_content(pcintr_stack_t stack,
     }
     pcrdr_msg *msg = NULL;
     pcrdr_msg *response_msg = NULL;
-    purc_variant_t req_data;
-    purc_variant_t element;
+    purc_variant_t req_data = PURC_VARIANT_INVALID;
+    purc_variant_t element = PURC_VARIANT_INVALID;
     purc_vdom_t vdom = stack->vdom;
 
     const char *operation = PCRDR_OPERATION_DISPLACE;
