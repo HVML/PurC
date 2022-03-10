@@ -411,7 +411,7 @@ struct wo_rwstream
     off_t wrotten_bytes;
 };
 
-static ssize_t wo_tell (purc_rwstream_t rws)
+static off_t wo_tell (purc_rwstream_t rws)
 {
     struct wo_rwstream *wo_rws = (struct wo_rwstream *)rws;
 
