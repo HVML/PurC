@@ -612,7 +612,7 @@ failed:
 
 bool
 pcintr_rdr_dom_displace_content(pcintr_stack_t stack,
-        pcdom_node_t *node, const char *content)
+        pcdom_element_t *node, const char *content)
 {
     if (!pcvdom_document_is_attached_rdr(stack->vdom)) {
         return true;

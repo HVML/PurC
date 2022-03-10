@@ -1922,6 +1922,8 @@ pcintr_util_displace_content(pcdom_element_t* parent, const char *txt)
     while (parent_node->first_child)
         pcdom_node_destroy_deep(parent_node->first_child);
 
+    // TODO:
+    pcintr_rdr_dom_displace_content(pcintr_get_stack(), parent, txt);
     return pcintr_util_append_content(parent, txt);
 }
 
