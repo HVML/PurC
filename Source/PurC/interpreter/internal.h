@@ -105,9 +105,30 @@ pcintr_attribute_get_op(enum pchvml_attr_operator op);
 bool
 pcintr_rdr_page_control_load(pcintr_stack_t stack);
 
+// append, prepend, insertBefore, insertAfter, displace
 bool
-pcintr_rdr_dom_displace_content(pcintr_stack_t stack,
-        pcdom_element_t *node, const char *content);
+pcintr_rdr_dom_control_content(pcintr_stack_t stack, pcdom_element_t *node,
+        const char *content, const char *operation);
+
+#define pcintr_rdr_dom_append_content(stack, node, content)                 \
+    pcintr_rdr_dom_control_content(stack, node, content,                    \
+            PCRDR_OPERATION_APPEND)
+
+#define pcintr_rdr_dom_prepend_content(stack, node, content)                \
+    pcintr_rdr_dom_control_content(stack, node, content,                    \
+            PCRDR_OPERATION_PREPEND)
+
+#define pcintr_rdr_dom_insert_before_content(stack, node, content)          \
+    pcintr_rdr_dom_control_content(stack, node, content,                    \
+            PCRDR_OPERATION_INSERTBEFORE)
+
+#define pcintr_rdr_dom_insert_after_content(stack, node, content)           \
+    pcintr_rdr_dom_control_content(stack, node, content,                    \
+            PCRDR_OPERATION_INSERTAFTER)
+
+#define pcintr_rdr_dom_displace_content(stack, node, content)               \
+    pcintr_rdr_dom_control_content(stack, node, content,                    \
+            PCRDR_OPERATION_DISPLACE)
 
 PCA_EXTERN_C_END
 
