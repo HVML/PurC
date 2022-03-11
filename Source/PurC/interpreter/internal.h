@@ -143,9 +143,9 @@ pcintr_rdr_send_dom_request_ex(pcintr_stack_t stack, const char *operation,
     pcintr_rdr_send_dom_request(stack, PCRDR_OPERATION_ERASE,               \
             element, NULL, PCRDR_MSG_DATA_TYPE_VOID, PURC_VARIANT_INVALID)
 
-bool
-pcintr_rdr_dom_erase_property(pcintr_stack_t stack, pcdom_element_t *node,
-        const char *prop);
+#define pcintr_rdr_dom_erase_element_property(stack, element, prop)         \
+    pcintr_rdr_send_dom_request(stack, PCRDR_OPERATION_ERASE,               \
+            element, prop, PCRDR_MSG_DATA_TYPE_VOID, PURC_VARIANT_INVALID)
 
 PCA_EXTERN_C_END
 
