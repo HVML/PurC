@@ -261,6 +261,10 @@ struct variant_set {
     size_t                  nr_keynames;
     struct rb_root          elems;  // multiple-variant-elements stored in set
     struct pcutils_arrlist *arr;    // also stored in arraylist
+
+    // struct pcvar_constraint_edge*
+    // key: set
+    struct rb_root          constraints;
 };
 
 // internal struct used by variant-obj object
@@ -289,6 +293,17 @@ struct variant_arr {
     struct pcutils_array_list     al;  // struct arr_node*
 };
 
+struct pcvar_constraint_edge {
+    struct rb_node                   node;
+
+    purc_variant_t                   set;
+    purc_variant_t                   parent;
+    union {
+        struct elem_node            *set_child;
+        struct obj_node             *obj_child;
+        struct arr_node             *arr_child;
+    };
+};
 
 int pcvariant_array_sort(purc_variant_t value, void *ud,
         int (*cmp)(purc_variant_t l, purc_variant_t r, void *ud));

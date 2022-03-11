@@ -44,8 +44,12 @@ variant_arr_length(variant_arr_t data)
 }
 
 static inline bool
-grow(purc_variant_t array, purc_variant_t pos, purc_variant_t value)
+grow(purc_variant_t array, purc_variant_t pos, purc_variant_t value,
+        bool check)
 {
+    if (!check)
+        return true;
+
     purc_variant_t vals[] = { pos, value };
 
     return pcvariant_on_pre_fired(array, PCVAR_OPERATION_GROW,
@@ -53,8 +57,12 @@ grow(purc_variant_t array, purc_variant_t pos, purc_variant_t value)
 }
 
 static inline bool
-shrink(purc_variant_t array, purc_variant_t pos, purc_variant_t value)
+shrink(purc_variant_t array, purc_variant_t pos, purc_variant_t value,
+        bool check)
 {
+    if (!check)
+        return true;
+
     purc_variant_t vals[] = { pos, value };
 
     return pcvariant_on_pre_fired(array, PCVAR_OPERATION_SHRINK,
@@ -63,8 +71,12 @@ shrink(purc_variant_t array, purc_variant_t pos, purc_variant_t value)
 
 static inline bool
 change(purc_variant_t array, purc_variant_t pos,
-        purc_variant_t o, purc_variant_t n)
+        purc_variant_t o, purc_variant_t n,
+        bool check)
 {
+    if (!check)
+        return true;
+
     purc_variant_t vals[] = { pos, o, n };
 
     return pcvariant_on_pre_fired(array, PCVAR_OPERATION_CHANGE,
@@ -72,8 +84,12 @@ change(purc_variant_t array, purc_variant_t pos,
 }
 
 static inline void
-grown(purc_variant_t array, purc_variant_t pos, purc_variant_t value)
+grown(purc_variant_t array, purc_variant_t pos, purc_variant_t value,
+        bool check)
 {
+    if (!check)
+        return;
+
     purc_variant_t vals[] = { pos, value };
 
     pcvariant_on_post_fired(array, PCVAR_OPERATION_GROW,
@@ -81,8 +97,12 @@ grown(purc_variant_t array, purc_variant_t pos, purc_variant_t value)
 }
 
 static inline void
-shrunk(purc_variant_t array, purc_variant_t pos, purc_variant_t value)
+shrunk(purc_variant_t array, purc_variant_t pos, purc_variant_t value,
+        bool check)
 {
+    if (!check)
+        return;
+
     purc_variant_t vals[] = { pos, value };
 
     pcvariant_on_post_fired(array, PCVAR_OPERATION_SHRINK,
@@ -91,8 +111,12 @@ shrunk(purc_variant_t array, purc_variant_t pos, purc_variant_t value)
 
 static inline void
 changed(purc_variant_t array, purc_variant_t pos,
-        purc_variant_t o, purc_variant_t n)
+        purc_variant_t o, purc_variant_t n,
+        bool check)
 {
+    if (!check)
+        return;
+
     purc_variant_t vals[] = { pos, o, n };
 
     pcvariant_on_post_fired(array, PCVAR_OPERATION_CHANGE,
@@ -119,7 +143,8 @@ variant_arr_make_pos(variant_arr_t data, size_t idx)
 }
 
 static int
-variant_arr_insert_before(purc_variant_t array, size_t idx, purc_variant_t val)
+variant_arr_insert_before(purc_variant_t array, size_t idx, purc_variant_t val,
+        bool check)
 {
     if (purc_variant_is_undefined(val)) {
         // FIXME: `undefined` not allowed in array???
@@ -131,7 +156,7 @@ variant_arr_insert_before(purc_variant_t array, size_t idx, purc_variant_t val)
     if (pos == PURC_VARIANT_INVALID)
         return -1;
 
-    if (!grow(array, pos, val)) {
+    if (!grow(array, pos, val, check)) {
         purc_variant_unref(pos);
         return -1;
     }
@@ -155,25 +180,27 @@ variant_arr_insert_before(purc_variant_t array, size_t idx, purc_variant_t val)
         return -1;
     }
 
-    grown(array, pos, val);
+    grown(array, pos, val, check);
     purc_variant_unref(pos);
 
     return 0;
 }
 
 static int
-variant_arr_append(purc_variant_t array, purc_variant_t val)
+variant_arr_append(purc_variant_t array, purc_variant_t val,
+        bool check)
 {
     variant_arr_t data = (variant_arr_t)array->sz_ptr[1];
     struct pcutils_array_list *al = &data->al;
     size_t nr = pcutils_array_list_length(al);
-    return variant_arr_insert_before(array, nr, val);
+    return variant_arr_insert_before(array, nr, val, check);
 }
 
 static int
-variant_arr_prepend(purc_variant_t array, purc_variant_t val)
+variant_arr_prepend(purc_variant_t array, purc_variant_t val,
+        bool check)
 {
-    return variant_arr_insert_before(array, 0, val);
+    return variant_arr_insert_before(array, 0, val, check);
 }
 
 static purc_variant_t
@@ -191,7 +218,8 @@ variant_arr_get(variant_arr_t data, size_t idx)
 }
 
 static int
-variant_arr_set(purc_variant_t array, size_t idx, purc_variant_t val)
+variant_arr_set(purc_variant_t array, size_t idx, purc_variant_t val,
+        bool check)
 {
     variant_arr_t data = (variant_arr_t)array->sz_ptr[1];
     purc_variant_t pos = variant_arr_make_pos(data, idx);
@@ -209,7 +237,7 @@ variant_arr_set(purc_variant_t array, size_t idx, purc_variant_t val)
     struct arr_node *old_node;
     old_node = (struct arr_node*)container_of(p, struct arr_node, node);
     PC_ASSERT(old_node->val != PURC_VARIANT_INVALID);
-    if (!change(array, pos, old_node->val, val)) {
+    if (!change(array, pos, old_node->val, val, check)) {
         purc_variant_unref(pos);
         return -1;
     }
@@ -229,7 +257,7 @@ variant_arr_set(purc_variant_t array, size_t idx, purc_variant_t val)
     PC_ASSERT(r == 0);
     PC_ASSERT(old == p);
 
-    changed(array, pos, old_node->val, val);
+    changed(array, pos, old_node->val, val, check);
     purc_variant_unref(pos);
 
     arr_node_destroy(old_node);
@@ -238,7 +266,8 @@ variant_arr_set(purc_variant_t array, size_t idx, purc_variant_t val)
 }
 
 static int
-variant_arr_remove(purc_variant_t array, size_t idx)
+variant_arr_remove(purc_variant_t array, size_t idx,
+        bool check)
 {
     variant_arr_t data = (variant_arr_t)array->sz_ptr[1];
     purc_variant_t pos = variant_arr_make_pos(data, idx);
@@ -259,7 +288,7 @@ variant_arr_remove(purc_variant_t array, size_t idx)
     node = (struct arr_node*)container_of(p, struct arr_node, node);
     PC_ASSERT(node->val);
 
-    if (!shrink(array, pos, node->val)) {
+    if (!shrink(array, pos, node->val, check)) {
         purc_variant_unref(pos);
         return -1;
     }
@@ -268,7 +297,7 @@ variant_arr_remove(purc_variant_t array, size_t idx)
     PC_ASSERT(r == 0);
     PC_ASSERT(n == p);
 
-    shrunk(array, pos, node->val);
+    shrunk(array, pos, node->val, check);
     purc_variant_unref(pos);
 
     arr_node_destroy(node);
@@ -314,7 +343,7 @@ refresh_extra(purc_variant_t array)
 }
 
 static purc_variant_t
-pv_make_array_n (size_t sz, purc_variant_t value0, va_list ap)
+pv_make_array_n (bool check, size_t sz, purc_variant_t value0, va_list ap)
 {
     PCVARIANT_CHECK_FAIL_RET((sz==0 && value0==NULL) || (sz > 0 && value0),
         PURC_VARIANT_INVALID);
@@ -355,7 +384,7 @@ pv_make_array_n (size_t sz, purc_variant_t value0, va_list ap)
         if (sz > 0) {
             purc_variant_t v = value0;
             // question: shall we track mem for al->array?
-            if (variant_arr_append(var, v)) {
+            if (variant_arr_append(var, v, check)) {
                 pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
                 break;
             }
@@ -368,7 +397,7 @@ pv_make_array_n (size_t sz, purc_variant_t value0, va_list ap)
                     break;
                 }
 
-                if (variant_arr_append(var, v)) {
+                if (variant_arr_append(var, v, check)) {
                     pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
                     break;
                 }
@@ -394,10 +423,11 @@ pv_make_array_n (size_t sz, purc_variant_t value0, va_list ap)
 
 purc_variant_t purc_variant_make_array (size_t sz, purc_variant_t value0, ...)
 {
+    bool check = true;
     purc_variant_t v;
     va_list ap;
     va_start(ap, value0);
-    v = pv_make_array_n(sz, value0, ap);
+    v = pv_make_array_n(check, sz, value0, ap);
     va_end(ap);
 
     return v;
@@ -435,7 +465,8 @@ bool purc_variant_array_append (purc_variant_t array, purc_variant_t value)
     PCVARIANT_CHECK_FAIL_RET(array && array->type==PVT(_ARRAY) && value,
         PURC_VARIANT_INVALID);
 
-    int r = variant_arr_append(array, value);
+    bool check = true;
+    int r = variant_arr_append(array, value, check);
     refresh_extra(array);
     return r ? false : true;
 }
@@ -445,7 +476,8 @@ bool purc_variant_array_prepend (purc_variant_t array, purc_variant_t value)
     PCVARIANT_CHECK_FAIL_RET(array && array->type==PVT(_ARRAY) && value,
         PURC_VARIANT_INVALID);
 
-    int r = variant_arr_prepend(array, value);
+    bool check = true;
+    int r = variant_arr_prepend(array, value, check);
     refresh_extra(array);
     return r ? false : true;
 }
@@ -478,7 +510,8 @@ bool purc_variant_array_set (purc_variant_t array, int idx,
         idx>=0 && value && array != value,
         PURC_VARIANT_INVALID);
 
-    int r = variant_arr_set(array, idx, value);
+    bool check = true;
+    int r = variant_arr_set(array, idx, value, check);
     refresh_extra(array);
     return r ? false : true;
 }
@@ -488,7 +521,8 @@ bool purc_variant_array_remove (purc_variant_t array, int idx)
     PCVARIANT_CHECK_FAIL_RET(array && array->type==PVT(_ARRAY) && idx>=0,
         PURC_VARIANT_INVALID);
 
-    int r = variant_arr_remove(array, idx);
+    bool check = true;
+    int r = variant_arr_remove(array, idx, check);
     refresh_extra(array);
     return r ? false : true;
 }
@@ -500,7 +534,8 @@ bool purc_variant_array_insert_before (purc_variant_t array, int idx,
         idx>=0 && value && array != value,
         PURC_VARIANT_INVALID);
 
-    int r = variant_arr_insert_before(array, idx, value);
+    bool check = true;
+    int r = variant_arr_insert_before(array, idx, value, check);
     refresh_extra(array);
     return r ? false : true;
 }

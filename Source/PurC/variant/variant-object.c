@@ -39,8 +39,12 @@
         (data->size) * sizeof(struct obj_node))
 
 static inline bool
-grow(purc_variant_t obj, purc_variant_t key, purc_variant_t val)
+grow(purc_variant_t obj, purc_variant_t key, purc_variant_t val,
+        bool check)
 {
+    if (!check)
+        return true;
+
     purc_variant_t vals[] = { key, val };
 
     return pcvariant_on_pre_fired(obj, PCVAR_OPERATION_GROW,
@@ -48,8 +52,12 @@ grow(purc_variant_t obj, purc_variant_t key, purc_variant_t val)
 }
 
 static inline bool
-shrink(purc_variant_t obj, purc_variant_t key, purc_variant_t val)
+shrink(purc_variant_t obj, purc_variant_t key, purc_variant_t val,
+        bool check)
 {
+    if (!check)
+        return true;
+
     purc_variant_t vals[] = { key, val };
 
     return pcvariant_on_pre_fired(obj, PCVAR_OPERATION_SHRINK,
@@ -59,8 +67,12 @@ shrink(purc_variant_t obj, purc_variant_t key, purc_variant_t val)
 static inline bool
 change(purc_variant_t obj,
         purc_variant_t ko, purc_variant_t vo,
-        purc_variant_t kn, purc_variant_t vn)
+        purc_variant_t kn, purc_variant_t vn,
+        bool check)
 {
+    if (!check)
+        return true;
+
     purc_variant_t vals[] = { ko, vo, kn, vn };
 
     return pcvariant_on_pre_fired(obj, PCVAR_OPERATION_CHANGE,
@@ -68,8 +80,12 @@ change(purc_variant_t obj,
 }
 
 static inline void
-grown(purc_variant_t obj, purc_variant_t key, purc_variant_t val)
+grown(purc_variant_t obj, purc_variant_t key, purc_variant_t val,
+        bool check)
 {
+    if (!check)
+        return;
+
     purc_variant_t vals[] = { key, val };
 
     pcvariant_on_post_fired(obj, PCVAR_OPERATION_GROW,
@@ -77,8 +93,12 @@ grown(purc_variant_t obj, purc_variant_t key, purc_variant_t val)
 }
 
 static inline void
-shrunk(purc_variant_t obj, purc_variant_t key, purc_variant_t val)
+shrunk(purc_variant_t obj, purc_variant_t key, purc_variant_t val,
+        bool check)
 {
+    if (!check)
+        return;
+
     purc_variant_t vals[] = { key, val };
 
     pcvariant_on_post_fired(obj, PCVAR_OPERATION_SHRINK,
@@ -88,8 +108,12 @@ shrunk(purc_variant_t obj, purc_variant_t key, purc_variant_t val)
 static inline void
 changed(purc_variant_t obj,
         purc_variant_t ko, purc_variant_t vo,
-        purc_variant_t kn, purc_variant_t vn)
+        purc_variant_t kn, purc_variant_t vn,
+        bool check)
 {
+    if (!check)
+        return;
+
     purc_variant_t vals[] = { ko, vo, kn, vn };
 
     pcvariant_on_post_fired(obj, PCVAR_OPERATION_CHANGE,
@@ -132,7 +156,8 @@ static purc_variant_t v_object_new_with_capacity(void)
 }
 
 static int
-v_object_remove(purc_variant_t obj, purc_variant_t key, bool silently)
+v_object_remove(purc_variant_t obj, purc_variant_t key, bool silently,
+        bool check)
 {
     variant_obj_t data = object_get_data(obj);
     struct rb_root *root = &data->kvs;
@@ -170,14 +195,14 @@ v_object_remove(purc_variant_t obj, purc_variant_t key, bool silently)
     purc_variant_t k = node->key;
     purc_variant_t v = node->val;
 
-    if (!shrink(obj, k, v)) {
+    if (!shrink(obj, k, v, check)) {
         return -1;
     }
 
     pcutils_rbtree_erase(entry, root);
     --data->size;
 
-    shrunk(obj, k, v);
+    shrunk(obj, k, v, check);
     purc_variant_unref(k);
     purc_variant_unref(v);
 
@@ -187,7 +212,8 @@ v_object_remove(purc_variant_t obj, purc_variant_t key, bool silently)
 }
 
 static int
-v_object_set(purc_variant_t obj, purc_variant_t k, purc_variant_t val)
+v_object_set(purc_variant_t obj, purc_variant_t k, purc_variant_t val,
+        bool check)
 {
     if (!k || !val) {
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
@@ -196,7 +222,7 @@ v_object_set(purc_variant_t obj, purc_variant_t k, purc_variant_t val)
 
     if (purc_variant_is_undefined(val)) {
         bool silently = true;
-        v_object_remove(obj, k, silently);
+        v_object_remove(obj, k, silently, check);
         return 0;
     }
 
@@ -232,7 +258,7 @@ v_object_set(purc_variant_t obj, purc_variant_t k, purc_variant_t val)
             return -1;
         }
 
-        if (!grow(obj, k, val)) {
+        if (!grow(obj, k, val, check)) {
             free(node);
             return -1;
         }
@@ -248,18 +274,18 @@ v_object_set(purc_variant_t obj, purc_variant_t k, purc_variant_t val)
 
         ++data->size;
 
-        grown(obj, k, val);
+        grown(obj, k, val, check);
         return 0;
     }
 
     struct obj_node *node;
     node = container_of(entry, struct obj_node, node);
 
-    if (!change(obj, node->key, node->val, k, val)) {
+    if (!change(obj, node->key, node->val, k, val, check)) {
         return -1;
     }
 
-    changed(obj, node->key, node->val, k, val);
+    changed(obj, node->key, node->val, k, val, check);
 
     purc_variant_ref(k);
     purc_variant_unref(node->key);
@@ -272,7 +298,7 @@ v_object_set(purc_variant_t obj, purc_variant_t k, purc_variant_t val)
 }
 
 static int
-v_object_set_kvs_n(purc_variant_t obj, size_t nr_kv_pairs,
+v_object_set_kvs_n(purc_variant_t obj, bool check, size_t nr_kv_pairs,
     int is_c, va_list ap)
 {
     purc_variant_t k, v;
@@ -293,7 +319,7 @@ v_object_set_kvs_n(purc_variant_t obj, size_t nr_kv_pairs,
         }
         v = va_arg(ap, purc_variant_t);
 
-        int r = v_object_set(obj, k, v);
+        int r = v_object_set(obj, k, v, check);
         if (is_c)
             purc_variant_unref(k);
 
@@ -305,7 +331,7 @@ v_object_set_kvs_n(purc_variant_t obj, size_t nr_kv_pairs,
 }
 
 static purc_variant_t
-pv_make_object_by_static_ckey_n (size_t nr_kv_pairs,
+pv_make_object_by_static_ckey_n (bool check, size_t nr_kv_pairs,
     const char* key0, purc_variant_t value0, va_list ap)
 {
     PCVARIANT_CHECK_FAIL_RET((nr_kv_pairs==0 && key0==NULL && value0==NULL) ||
@@ -324,14 +350,14 @@ pv_make_object_by_static_ckey_n (size_t nr_kv_pairs,
         if (nr_kv_pairs > 0) {
             purc_variant_t k = purc_variant_make_string(key0, true);
             purc_variant_t v = value0;
-            r = v_object_set(obj, k, v);
+            r = v_object_set(obj, k, v, check);
             purc_variant_unref(k);
             if (r)
                 break;
         }
 
         if (nr_kv_pairs > 1) {
-            r = v_object_set_kvs_n(obj, nr_kv_pairs-1, 1, ap);
+            r = v_object_set_kvs_n(obj, check, nr_kv_pairs-1, 1, ap);
             if (r)
                 break;
         }
@@ -352,17 +378,18 @@ purc_variant_t
 purc_variant_make_object_by_static_ckey (size_t nr_kv_pairs,
     const char* key0, purc_variant_t value0, ...)
 {
+    bool check = true;
     purc_variant_t v;
     va_list ap;
     va_start(ap, value0);
-    v = pv_make_object_by_static_ckey_n(nr_kv_pairs, key0, value0, ap);
+    v = pv_make_object_by_static_ckey_n(check, nr_kv_pairs, key0, value0, ap);
     va_end(ap);
 
     return v;
 }
 
 static purc_variant_t
-pv_make_object_n(size_t nr_kv_pairs,
+pv_make_object_n(bool check, size_t nr_kv_pairs,
     purc_variant_t key0, purc_variant_t value0, va_list ap)
 {
     PCVARIANT_CHECK_FAIL_RET((nr_kv_pairs==0 && key0==NULL && value0==NULL) ||
@@ -379,12 +406,12 @@ pv_make_object_n(size_t nr_kv_pairs,
     do {
         if (nr_kv_pairs > 0) {
             purc_variant_t v = value0;
-            if (v_object_set(obj, key0, v))
+            if (v_object_set(obj, key0, v, check))
                 break;
         }
 
         if (nr_kv_pairs > 1) {
-            int r = v_object_set_kvs_n(obj, nr_kv_pairs-1, 0, ap);
+            int r = v_object_set_kvs_n(obj, check, nr_kv_pairs-1, 0, ap);
             if (r)
                 break;
         }
@@ -406,10 +433,11 @@ purc_variant_t
 purc_variant_make_object (size_t nr_kv_pairs,
     purc_variant_t key0, purc_variant_t value0, ...)
 {
+    bool check = true;
     purc_variant_t v;
     va_list ap;
     va_start(ap, value0);
-    v = pv_make_object_n(nr_kv_pairs, key0, value0, ap);
+    v = pv_make_object_n(check, nr_kv_pairs, key0, value0, ap);
     va_end(ap);
 
     return v;
@@ -511,7 +539,8 @@ bool purc_variant_object_set (purc_variant_t obj,
         obj->sz_ptr[1] && key && value,
         false);
 
-    int r = v_object_set(obj, key, value);
+    bool check = true;
+    int r = v_object_set(obj, key, value, check);
 
     return r ? false : true;
 }
@@ -523,7 +552,8 @@ bool purc_variant_object_remove(purc_variant_t obj, purc_variant_t key,
         obj->sz_ptr[1] && key,
         false);
 
-    if (v_object_remove(obj, key, silently))
+    bool check = true;
+    if (v_object_remove(obj, key, silently, check))
         return false;
 
     return true;
