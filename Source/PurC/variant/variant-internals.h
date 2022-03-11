@@ -81,9 +81,6 @@ pcvariant_object_clone(purc_variant_t obj, bool recursively) WTF_INTERNAL;
 purc_variant_t
 pcvariant_set_clone(purc_variant_t set, bool recursively) WTF_INTERNAL;
 
-bool
-pcvar_is_descendant_container_of_set(purc_variant_t val);
-
 purc_variant_t
 pcvar_variant_from_rev_update_edge(struct pcvar_rev_update_edge *edge);
 

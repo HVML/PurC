@@ -180,6 +180,21 @@ variant_arr_insert_before(purc_variant_t array, size_t idx, purc_variant_t val,
         return -1;
     }
 
+    if (list_empty(&data->rev_update_chain) == false) {
+        // struct pcvar_rev_update_edge edge = {
+        //     .parent        = array,
+        //     .arr_me        = node,
+        // };
+        // r = pcvar_build_edge_to_parent_array(val, &edge);
+        // if (r) {
+        //     pcvar_break_edge_to_parent(node->val, &edge);
+        //     arr_node_destroy(node);
+        //     purc_variant_unref(pos);
+        //     pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        //     return -1;
+        // }
+    }
+
     grown(array, pos, val, check);
     purc_variant_unref(pos);
 

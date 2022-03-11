@@ -192,20 +192,6 @@ void pcvariant_on_post_fired(
     }
 }
 
-bool
-pcvar_is_descendant_container_of_set(purc_variant_t val)
-{
-    PC_ASSERT(val != PURC_VARIANT_INVALID);
-    switch (val->type) {
-        case PURC_VARIANT_TYPE_ARRAY:
-        case PURC_VARIANT_TYPE_OBJECT:
-        case PURC_VARIANT_TYPE_SET:
-            return true;
-        default:
-            return false;
-    }
-}
-
 void
 pcvar_break_rev_update_edges(purc_variant_t val)
 {
