@@ -684,8 +684,15 @@ variant_set_create_elem_node (variant_set_t set, purc_variant_t val)
     return _new;
 }
 
-static struct elem_node*
-find_element(variant_set_t set, void *key)
+struct element_rb_node {
+    struct rb_node     **pnode;
+    struct rb_node      *parent;
+    struct rb_node      *entry;
+};
+
+static void
+find_element_rb_node(struct element_rb_node *node,
+        variant_set_t set, void *key)
 {
     struct rb_node **pnode = &set->elems.rb_node;
     struct rb_node *parent = NULL;
@@ -707,10 +714,21 @@ find_element(variant_set_t set, void *key)
         }
     }
 
-    if (!entry)
+    node->pnode  = pnode;
+    node->parent = parent;
+    node->entry  = entry;
+}
+
+static struct elem_node*
+find_element(variant_set_t set, void *key)
+{
+    struct element_rb_node node;
+    find_element_rb_node(&node, set, key);
+
+    if (!node.entry)
         return NULL;
 
-    return container_of(entry, struct elem_node, node);
+    return container_of(node.entry, struct elem_node, node);
 }
 
 static int
@@ -718,27 +736,10 @@ insert_or_replace(purc_variant_t set,
         variant_set_t data, struct elem_node *node, bool overwrite,
         bool check)
 {
-    struct rb_node **pnode = &data->elems.rb_node;
-    struct rb_node *parent = NULL;
-    struct rb_node *entry = NULL;
-    while (*pnode) {
-        struct elem_node *on;
-        on = container_of(*pnode, struct elem_node, node);
-        int ret = variant_set_keyvals_cmp(node->kvs, on->kvs, data);
+    struct element_rb_node rbn;
+    find_element_rb_node(&rbn, data, node->kvs);
 
-        parent = *pnode;
-
-        if (ret < 0)
-            pnode = &parent->rb_left;
-        else if (ret > 0)
-            pnode = &parent->rb_right;
-        else{
-            entry = *pnode;
-            break;
-        }
-    }
-
-    if (!entry) {
+    if (!rbn.entry) {
         int r = pcutils_arrlist_add(data->arr, node);
         if (r)
             return -1;
@@ -758,9 +759,9 @@ insert_or_replace(purc_variant_t set,
 
         node->idx = count - 1;
 
-        entry = &node->node;
+        struct rb_node *entry = &node->node;
 
-        pcutils_rbtree_link_node(entry, parent, pnode);
+        pcutils_rbtree_link_node(entry, rbn.parent, rbn.pnode);
         pcutils_rbtree_insert_color(entry, &data->elems);
 
         grown(set, node->elem, check);
@@ -773,7 +774,7 @@ insert_or_replace(purc_variant_t set,
     }
 
     struct elem_node *curr;
-    curr = container_of(entry, struct elem_node, node);
+    curr = container_of(rbn.entry, struct elem_node, node);
     PC_ASSERT(curr != node);
     PC_ASSERT(curr->kvs != node->kvs);
 
