@@ -141,6 +141,10 @@ pcintr_rdr_dom_control_element(pcintr_stack_t stack, pcdom_element_t *node,
 #define pcintr_rdr_dom_erase_element(stack, node)                           \
     pcintr_rdr_dom_control_element(stack, node, PCRDR_OPERATION_ERASE)
 
+bool
+pcintr_rdr_dom_erase_property(pcintr_stack_t stack, pcdom_element_t *node,
+        const char *prop);
+
 PCA_EXTERN_C_END
 
 #endif  /* PURC_INTERPRETER_INTERNAL_H */
