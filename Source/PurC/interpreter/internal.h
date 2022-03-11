@@ -159,6 +159,13 @@ pcintr_rdr_send_dom_request_ex(pcintr_stack_t stack, const char *operation,
     pcintr_rdr_send_dom_request_ex(stack, PCRDR_OPERATION_UPDATE,             \
             element, prop, PCRDR_MSG_DATA_TYPE_TEXT, content)
 
+bool
+pcintr_rdr_dom_append_child(pcintr_stack_t stack, pcdom_element_t *element,
+        pcdom_node_t *child);
+
+bool
+pcintr_rdr_dom_displace_child(pcintr_stack_t stack, pcdom_element_t *element,
+        pcdom_node_t *child);
 
 PCA_EXTERN_C_END
 

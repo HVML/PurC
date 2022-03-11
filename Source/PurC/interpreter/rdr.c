@@ -747,3 +747,66 @@ failed:
     return false;
 }
 
+static purc_variant_t
+serialize_node(pcdom_node_t *node)
+{
+    purc_rwstream_t out = purc_rwstream_new_buffer(BUFF_MIN, BUFF_MAX);
+    if (out == NULL) {
+        goto failed;
+    }
+
+    int opt = 0;
+    opt |= PCHTML_HTML_SERIALIZE_OPT_UNDEF;
+    opt |= PCHTML_HTML_SERIALIZE_OPT_SKIP_WS_NODES;
+    opt |= PCHTML_HTML_SERIALIZE_OPT_WITHOUT_TEXT_INDENT;
+    opt |= PCHTML_HTML_SERIALIZE_OPT_FULL_DOCTYPE;
+    opt |= PCHTML_HTML_SERIALIZE_OPT_WITH_HVML_HANDLE;
+
+    if(0 != pcdom_node_write_to_stream_ex(node, opt, out)) {
+        goto failed;
+    }
+
+    size_t sz_content = 0;
+    size_t sz_buff = 0;
+    char* p = (char*)purc_rwstream_get_mem_buffer_ex(out, &sz_content,
+            &sz_buff,true);
+    purc_variant_t v = purc_variant_make_string_reuse_buff(p,
+            sz_content, false);
+    if (v == PURC_VARIANT_INVALID) {
+        free(p);
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto failed;
+    }
+
+    return v;
+
+failed:
+    return PURC_VARIANT_INVALID;
+}
+
+bool
+pcintr_rdr_dom_append_child(pcintr_stack_t stack, pcdom_element_t *element,
+        pcdom_node_t *child)
+{
+    purc_variant_t data = serialize_node(child);
+    if (data == PURC_VARIANT_INVALID) {
+        return false;
+    }
+
+    return pcintr_rdr_send_dom_request(stack, PCRDR_OPERATION_APPEND,
+            element, NULL, PCRDR_MSG_DATA_TYPE_TEXT, data);
+}
+
+bool
+pcintr_rdr_dom_displace_child(pcintr_stack_t stack, pcdom_element_t *element,
+        pcdom_node_t *child)
+{
+    purc_variant_t data = serialize_node(child);
+    if (data == PURC_VARIANT_INVALID) {
+        return false;
+    }
+
+    return pcintr_rdr_send_dom_request(stack, PCRDR_OPERATION_DISPLACE,
+            element, NULL, PCRDR_MSG_DATA_TYPE_TEXT, data);
+}
+
