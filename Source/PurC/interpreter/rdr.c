@@ -515,9 +515,6 @@ pcintr_rdr_page_control_load(pcintr_stack_t stack)
     if (!pcvdom_document_is_attached_rdr(stack->vdom)) {
         return true;
     }
-    if (pcvdom_document_get_target_dom(stack->vdom)) {
-        return true;
-    }
 
     pcrdr_msg *msg = NULL;
     pcrdr_msg *response_msg = NULL;

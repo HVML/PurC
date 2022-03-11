@@ -937,7 +937,8 @@ execute_one_step(pcintr_coroutine_t co)
     bool no_frames = list_empty(&co->stack->frames);
     if (no_frames) {
         /* send doc to rdr */
-        if (!pcintr_rdr_page_control_load(stack)) {
+        if (co->stack->stage == STACK_STAGE_FIRST_ROUND &&
+            !pcintr_rdr_page_control_load(stack)) {
             co->state = CO_STATE_TERMINATED;
             return;
         }
