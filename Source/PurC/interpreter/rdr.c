@@ -84,6 +84,50 @@ object_set(purc_variant_t object, const char* key, const char* value)
     return true;
 }
 
+pcrdr_msg *pcintr_rdr_send_request(struct pcrdr_conn *conn,
+        pcrdr_msg_target target, uint64_t target_value, const char *operation,
+        pcrdr_msg_element_type element_type, const char *element,
+        const char *property, pcrdr_msg_data_type data_type,
+        purc_variant_t data)
+{
+    pcrdr_msg *response_msg = NULL;
+    pcrdr_msg* msg = pcrdr_make_request_message(
+            target,                             /* target */
+            target_value,                       /* target_value */
+            operation,                          /* operation */
+            NULL,                               /* request_id */
+            element_type,                       /* element_type */
+            element,                            /* element */
+            property,                           /* property */
+            PCRDR_MSG_DATA_TYPE_VOID,           /* data_type */
+            NULL,                               /* data */
+            0                                   /* data_len */
+            );
+    if (msg == NULL) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto failed;
+    }
+
+    msg->dataType = data_type;
+    msg->data = data;
+
+    if (pcrdr_send_request_and_wait_response(conn,
+            msg, PCRDR_TIME_DEF_EXPECTED, &response_msg) < 0) {
+        goto failed;
+    }
+    pcrdr_release_message(msg);
+    msg = NULL;
+
+    return response_msg;
+
+failed:
+    if (msg) {
+        pcrdr_release_message(msg);
+    }
+
+    return NULL;
+}
+
 uintptr_t create_target_workspace(
         struct pcrdr_conn *conn_to_rdr,
         uintptr_t session_handle,
@@ -912,7 +956,7 @@ pcintr_rdr_dom_control(pcintr_stack_t stack, const char *operation,
     elem = PURC_VARIANT_INVALID;
 
     if (property) {
-        prop = purc_variant_make_string(prop, false);
+        prop = purc_variant_make_string(property, false);
         if (prop == PURC_VARIANT_INVALID) {
             purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
             goto failed;
