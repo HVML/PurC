@@ -2232,6 +2232,7 @@ pcintr_util_add_child_chunk(pcdom_element_t *parent, const char *chunk)
             pcdom_node_t *child = div->first_child;
             pcdom_node_remove(child);
             pcdom_node_append_child(pcdom_interface_node(parent), child);
+            pcintr_rdr_dom_append_child(pcintr_get_stack(), parent, child);
         }
         r = 0;
     } while (0);
@@ -2315,6 +2316,7 @@ pcintr_util_set_child_chunk(pcdom_element_t *parent, const char *chunk)
             pcdom_node_t *child = div->first_child;
             pcdom_node_remove(child);
             pcdom_node_append_child(pcdom_interface_node(parent), child);
+            pcintr_rdr_dom_displace_child(pcintr_get_stack(), parent, child);
         }
         r = 0;
     } while (0);

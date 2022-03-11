@@ -788,6 +788,10 @@ bool
 pcintr_rdr_dom_append_child(pcintr_stack_t stack, pcdom_element_t *element,
         pcdom_node_t *child)
 {
+    if (!stack || !pcvdom_document_is_attached_rdr(stack->vdom)
+            || stack->stage != STACK_STAGE_EVENT_LOOP) {
+        return true;
+    }
     purc_variant_t data = serialize_node(child);
     if (data == PURC_VARIANT_INVALID) {
         return false;
@@ -801,6 +805,11 @@ bool
 pcintr_rdr_dom_displace_child(pcintr_stack_t stack, pcdom_element_t *element,
         pcdom_node_t *child)
 {
+    if (!stack || !pcvdom_document_is_attached_rdr(stack->vdom)
+            || stack->stage != STACK_STAGE_EVENT_LOOP) {
+        return true;
+    }
+
     purc_variant_t data = serialize_node(child);
     if (data == PURC_VARIANT_INVALID) {
         return false;
