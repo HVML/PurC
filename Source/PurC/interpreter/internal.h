@@ -105,30 +105,35 @@ pcintr_attribute_get_op(enum pchvml_attr_operator op);
 bool
 pcintr_rdr_page_control_load(pcintr_stack_t stack);
 
-// append, prepend, insertBefore, insertAfter, displace
 bool
-pcintr_rdr_dom_control_content(pcintr_stack_t stack, pcdom_element_t *node,
-        const char *content, const char *operation);
+pcintr_rdr_send_dom_request(pcintr_stack_t stack, const char *operation,
+        pcdom_element_t *element, const char* property,
+        pcrdr_msg_data_type data_type, purc_variant_t data);
+bool
+pcintr_rdr_send_dom_request_ex(pcintr_stack_t stack, const char *operation,
+        pcdom_element_t *element, const char* property,
+        pcrdr_msg_data_type data_type, const char* data);
 
-#define pcintr_rdr_dom_append_content(stack, node, content)                 \
-    pcintr_rdr_dom_control_content(stack, node, content,                    \
-            PCRDR_OPERATION_APPEND)
 
-#define pcintr_rdr_dom_prepend_content(stack, node, content)                \
-    pcintr_rdr_dom_control_content(stack, node, content,                    \
-            PCRDR_OPERATION_PREPEND)
+#define pcintr_rdr_dom_append_content(stack, element, content)              \
+    pcintr_rdr_send_dom_request_ex(stack, PCRDR_OPERATION_APPEND,           \
+            element, NULL, PCRDR_MSG_DATA_TYPE_TEXT, content)
 
-#define pcintr_rdr_dom_insert_before_content(stack, node, content)          \
-    pcintr_rdr_dom_control_content(stack, node, content,                    \
-            PCRDR_OPERATION_INSERTBEFORE)
+#define pcintr_rdr_dom_prepend_content(stack, element, content)             \
+    pcintr_rdr_send_dom_request_ex(stack, PCRDR_OPERATION_PREPEND,          \
+            element, NULL, PCRDR_MSG_DATA_TYPE_TEXT, content)
 
-#define pcintr_rdr_dom_insert_after_content(stack, node, content)           \
-    pcintr_rdr_dom_control_content(stack, node, content,                    \
-            PCRDR_OPERATION_INSERTAFTER)
+#define pcintr_rdr_dom_insert_before_content(stack, element, content)       \
+    pcintr_rdr_send_dom_request_ex(stack, PCRDR_OPERATION_INSERTBEFORE,     \
+            element, NULL, PCRDR_MSG_DATA_TYPE_TEXT, content)
 
-#define pcintr_rdr_dom_displace_content(stack, node, content)               \
-    pcintr_rdr_dom_control_content(stack, node, content,                    \
-            PCRDR_OPERATION_DISPLACE)
+#define pcintr_rdr_dom_insert_after_content(stack, element, content)        \
+    pcintr_rdr_send_dom_request_ex(stack, PCRDR_OPERATION_INSERTAFTER,      \
+            element, NULL, PCRDR_MSG_DATA_TYPE_TEXT, content)
+
+#define pcintr_rdr_dom_displace_content(stack, element, content)            \
+    pcintr_rdr_send_dom_request_ex(stack, PCRDR_OPERATION_DISPLACE,         \
+            element, NULL, PCRDR_MSG_DATA_TYPE_TEXT, content)
 
 // clear element content, erase element
 bool
