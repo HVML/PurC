@@ -575,17 +575,28 @@ TEST(interpreter, basic)
     (void)fibonacci_3;
 
     const char *hvmls[] = {
-//        calculator_1,
+        calculator_1,
 //        calculator_2,
 //        calculator_3,
 //        calculator_4,
 //        fibonacci_1,
 //        fibonacci_2,
-        fibonacci_3,
+//        fibonacci_3,
     };
 
     unsigned int modules = (PURC_MODULE_HVML | PURC_MODULE_PCRDR) & ~PURC_HAVE_FETCHER;
-    PurCInstance purc(modules, "cn.fmsoft.hybridos.test", "test_attach_rdr");
+    purc_instance_extra_info info = {
+        .renderer_prot = PURC_RDRPROT_PURCMC,
+        .renderer_uri = "unix://" PCRDR_PURCMC_US_PATH,
+    };
+
+#if 0
+    PurCInstance purc(modules, "cn.fmsoft.hybridos.test", "test_attach_rdr",
+            &info);
+#else
+    PurCInstance purc(modules, "cn.fmsoft.hybridos.test", "test_attach_rdr",
+            NULL);
+#endif
 
     ASSERT_TRUE(purc);
 
@@ -600,8 +611,8 @@ TEST(interpreter, basic)
 
         purc_renderer_extra_info extra_info = {};
         bool ret = purc_attach_vdom_to_renderer(vdom,
-                "_blank",           /* target_workspace */
-                "_blank",           /* target_window */
+                "blank",           /* target_workspace */
+                "blank",           /* target_window */
                 NULL,               /* target_tabpage */
                 NULL,               /* target_level */
                 &extra_info);
