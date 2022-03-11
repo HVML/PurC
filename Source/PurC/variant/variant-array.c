@@ -384,7 +384,7 @@ pv_make_array_n (bool check, size_t sz, purc_variant_t value0, va_list ap)
             break;
         }
 
-        data->rev_update_chain = RB_ROOT;
+        INIT_LIST_HEAD(&data->rev_update_chain);
 
         struct pcutils_array_list *al;
         al = &data->al;

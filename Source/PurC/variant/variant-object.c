@@ -148,7 +148,7 @@ static purc_variant_t v_object_new_with_capacity(void)
     }
 
     data->kvs = RB_ROOT;
-    data->rev_update_chain = RB_ROOT;
+    INIT_LIST_HEAD(&data->rev_update_chain);
 
     var->sz_ptr[1]     = (uintptr_t)data;
     var->refc          = 1;

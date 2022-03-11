@@ -248,18 +248,15 @@ pcvar_break_edge_to_parent(purc_variant_t val,
 }
 
 void
-pcvar_break_edge(purc_variant_t val, struct rb_root *root,
+pcvar_break_edge(purc_variant_t val, struct list_head *chain,
         struct pcvar_rev_update_edge *edge)
 {
     PC_ASSERT(val != PURC_VARIANT_INVALID);
-    PC_ASSERT(root);
+    PC_ASSERT(chain);
     PC_ASSERT(edge);
-    if (RB_EMPTY_ROOT(root) == false)
-        return;
 
-    struct rb_node *root_node = root->rb_node;
-    struct rb_node *p, *n;
-    pcutils_rbtree_for_each_safe(root_node, p, n) {
+    struct list_head *p, *n;
+    list_for_each_safe(p, n, chain) {
         struct pcvar_rev_update_edge_node *node;
         node = container_of(p, struct pcvar_rev_update_edge_node, node);
         if (edge->parent != node->edge.parent)
@@ -270,7 +267,7 @@ pcvar_break_edge(purc_variant_t val, struct rb_root *root,
                 PC_ASSERT(edge->arr_me->val == val);
                 if (edge->arr_me != node->edge.arr_me)
                     continue;
-                pcutils_rbtree_erase(p, root);
+                list_del(p);
                 free(node);
                 break;
 
@@ -278,7 +275,7 @@ pcvar_break_edge(purc_variant_t val, struct rb_root *root,
                 PC_ASSERT(edge->obj_me->val == val);
                 if (edge->obj_me != node->edge.obj_me)
                     continue;
-                pcutils_rbtree_erase(p, root);
+                list_del(p);
                 free(node);
                 break;
 
@@ -286,7 +283,7 @@ pcvar_break_edge(purc_variant_t val, struct rb_root *root,
                 PC_ASSERT(edge->set_me->elem == val);
                 if (edge->set_me != node->edge.set_me)
                     continue;
-                pcutils_rbtree_erase(p, root);
+                list_del(p);
                 free(node);
                 break;
 
@@ -297,7 +294,7 @@ pcvar_break_edge(purc_variant_t val, struct rb_root *root,
         break;
     }
 
-    if (RB_EMPTY_ROOT(root) == false)
+    if (list_empty(chain) == false)
         return;
 
     pcvar_break_rev_update_edges(val);

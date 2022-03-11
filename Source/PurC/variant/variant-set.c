@@ -313,7 +313,7 @@ pcv_set_new(void)
         return PURC_VARIANT_INVALID;
     }
 
-    ptr->rev_update_chain = RB_ROOT;
+    INIT_LIST_HEAD(&ptr->rev_update_chain);
     set->refc          = 1;
 
     // a valid empty set

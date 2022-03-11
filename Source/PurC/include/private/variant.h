@@ -264,7 +264,7 @@ struct variant_set {
 
     // struct pcvar_rev_update_edge_node*
     // key: parent/val
-    struct rb_root          rev_update_chain;
+    struct list_head        rev_update_chain;
 };
 
 // internal struct used by variant-obj object
@@ -282,7 +282,7 @@ struct variant_obj {
 
     // struct pcvar_rev_update_edge_node*
     // key: parent/val
-    struct rb_root          rev_update_chain;
+    struct list_head        rev_update_chain;
 };
 
 // internal struct used by variant-arr
@@ -298,7 +298,7 @@ struct variant_arr {
 
     // struct pcvar_rev_update_edge_node*
     // key: struct pcvar_rev_update_edge
-    struct rb_root          rev_update_chain;
+    struct list_head        rev_update_chain;
 };
 
 struct pcvar_rev_update_edge {
@@ -312,7 +312,7 @@ struct pcvar_rev_update_edge {
 };
 
 struct pcvar_rev_update_edge_node {
-    struct rb_node                   node;
+    struct list_head                 node;
 
     struct pcvar_rev_update_edge     edge;
 };

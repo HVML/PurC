@@ -111,7 +111,7 @@ pcvar_set_break_edge_to_parent(purc_variant_t set,
         struct pcvar_rev_update_edge *edge);
 
 void
-pcvar_break_edge(purc_variant_t val, struct rb_root *root,
+pcvar_break_edge(purc_variant_t val, struct list_head *chain,
         struct pcvar_rev_update_edge *edge);
 
 #ifdef __cplusplus
