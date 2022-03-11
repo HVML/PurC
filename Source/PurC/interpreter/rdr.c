@@ -804,11 +804,12 @@ pcintr_rdr_send_dom_request_ex(pcintr_stack_t stack, const char *operation,
         pcdom_element_t *element, const char* property,
         pcrdr_msg_data_type data_type, const char* data)
 {
-    purc_variant_t req_data = PURC_VARIANT_INVALID;
-    if (!stack) {
-        return false;
+    if (!stack || !pcvdom_document_is_attached_rdr(stack->vdom)
+            || stack->stage != STACK_STAGE_EVENT_LOOP) {
+        return true;
     }
 
+    purc_variant_t req_data = PURC_VARIANT_INVALID;
     if (data_type == PCRDR_MSG_DATA_TYPE_TEXT) {
         req_data = purc_variant_make_string(data, false);
         if (req_data == PURC_VARIANT_INVALID) {
