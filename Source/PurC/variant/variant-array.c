@@ -44,8 +44,17 @@ variant_arr_length(variant_arr_t data)
 }
 
 static inline bool
+refaschild(purc_variant_t val)
+{
+    return pcvariant_on_pre_fired(val, PCVAR_OPERATION_REFASCHILD, 0, NULL);
+}
+
+static inline bool
 grow(purc_variant_t array, purc_variant_t pos, purc_variant_t value)
 {
+    if (!refaschild(value))
+        return false;
+
     purc_variant_t vals[] = { pos, value };
 
     return pcvariant_on_pre_fired(array, PCVAR_OPERATION_GROW,
@@ -65,6 +74,9 @@ static inline bool
 change(purc_variant_t array, purc_variant_t pos,
         purc_variant_t o, purc_variant_t n)
 {
+    if (!refaschild(n))
+        return false;
+
     purc_variant_t vals[] = { pos, o, n };
 
     return pcvariant_on_pre_fired(array, PCVAR_OPERATION_CHANGE,

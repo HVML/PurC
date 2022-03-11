@@ -410,6 +410,25 @@ variant_set_constraint_change_handler(
 }
 
 static bool
+variant_set_constraint_refaschild_handler(
+        purc_variant_t source,  // the source variant.
+        void *ctxt,             // the context stored when registering the handler.
+        size_t nr_args,         // the number of the relevant child variants.
+        purc_variant_t *argv    // the array of all relevant child variants.
+        )
+{
+    PC_ASSERT(source);
+    PC_ASSERT(purc_variant_is_object(source));
+    purc_variant_t set = (purc_variant_t)ctxt;
+    PC_ASSERT(set);
+    PC_ASSERT(purc_variant_is_set(set));
+    PC_ASSERT(nr_args == 0);
+    UNUSED_PARAM(argv);
+
+    return false;
+}
+
+static bool
 variant_set_constraints_handler(
         purc_variant_t source,  // the source variant.
         pcvar_op_t op,          // the operation identifier.
@@ -428,8 +447,10 @@ variant_set_constraints_handler(
         case PCVAR_OPERATION_CHANGE:
             return variant_set_constraint_change_handler(source, ctxt,
                     nr_args, argv);
+        case PCVAR_OPERATION_REFASCHILD:
+            return variant_set_constraint_refaschild_handler(source, ctxt,
+                    nr_args, argv);
         default:
-            PC_ASSERT(0);
             return false;
     }
 }
