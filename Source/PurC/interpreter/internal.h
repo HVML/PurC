@@ -130,6 +130,17 @@ pcintr_rdr_dom_control_content(pcintr_stack_t stack, pcdom_element_t *node,
     pcintr_rdr_dom_control_content(stack, node, content,                    \
             PCRDR_OPERATION_DISPLACE)
 
+// clear element content, erase element
+bool
+pcintr_rdr_dom_control_element(pcintr_stack_t stack, pcdom_element_t *node,
+        const char *operation);
+
+#define pcintr_rdr_dom_clear_content(stack, node)                           \
+    pcintr_rdr_dom_control_element(stack, node, PCRDR_OPERATION_CLEAR)
+
+#define pcintr_rdr_dom_erase_element(stack, node)                           \
+    pcintr_rdr_dom_control_element(stack, node, PCRDR_OPERATION_ERASE)
+
 PCA_EXTERN_C_END
 
 #endif  /* PURC_INTERPRETER_INTERNAL_H */
