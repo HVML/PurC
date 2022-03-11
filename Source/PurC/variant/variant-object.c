@@ -39,17 +39,8 @@
         (data->size) * sizeof(struct obj_node))
 
 static inline bool
-refaschild(purc_variant_t val)
-{
-    return pcvariant_on_pre_fired(val, PCVAR_OPERATION_REFASCHILD, 0, NULL);
-}
-
-static inline bool
 grow(purc_variant_t obj, purc_variant_t key, purc_variant_t val)
 {
-    if (!refaschild(val))
-        return false;
-
     purc_variant_t vals[] = { key, val };
 
     return pcvariant_on_pre_fired(obj, PCVAR_OPERATION_GROW,
@@ -70,9 +61,6 @@ change(purc_variant_t obj,
         purc_variant_t ko, purc_variant_t vo,
         purc_variant_t kn, purc_variant_t vn)
 {
-    if (!refaschild(vn))
-        return false;
-
     purc_variant_t vals[] = { ko, vo, kn, vn };
 
     return pcvariant_on_pre_fired(obj, PCVAR_OPERATION_CHANGE,

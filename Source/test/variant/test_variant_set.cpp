@@ -832,110 +832,6 @@ TEST(variant_set, constraint_scalars)
     purc_variant_unref(set);
 }
 
-TEST(variant_set, constraint_refaschild_array)
-{
-    PurCInstance purc;
-
-    bool ok;
-    const char *s;
-    purc_variant_t set, v1, v2, elem, arr;
-
-    s = "[!'first last', {first:xiaohong, last:xu}, {first:shuming, last:xue}]";
-    set = pcejson_parser_parse_string(s, 0, 0);
-    ASSERT_NE(set, nullptr);
-    ASSERT_EQ(2, purc_variant_set_get_size(set));
-
-    v1 = pcejson_parser_parse_string("xiaohong", 0, 0);
-    ASSERT_NE(v1, nullptr);
-
-    v2 = pcejson_parser_parse_string("xu", 0, 0);
-    ASSERT_NE(v2, nullptr);
-
-    elem = purc_variant_set_get_member_by_key_values(set, v1, v2);
-    ASSERT_NE(elem, nullptr);
-
-    arr = purc_variant_make_array(0, PURC_VARIANT_INVALID);
-    ASSERT_NE(arr, nullptr);
-
-    ok = purc_variant_array_append(arr, elem);
-    ASSERT_FALSE(ok);
-
-    PURC_VARIANT_SAFE_CLEAR(arr);
-    PURC_VARIANT_SAFE_CLEAR(v1);
-    PURC_VARIANT_SAFE_CLEAR(v2);
-    purc_variant_unref(set);
-}
-
-TEST(variant_set, constraint_refaschild_object)
-{
-    PurCInstance purc;
-
-    bool ok;
-    const char *s;
-    purc_variant_t set, v1, v2, elem, obj;
-
-    s = "[!'first last', {first:xiaohong, last:xu}, {first:shuming, last:xue}]";
-    set = pcejson_parser_parse_string(s, 0, 0);
-    ASSERT_NE(set, nullptr);
-    ASSERT_EQ(2, purc_variant_set_get_size(set));
-
-    v1 = pcejson_parser_parse_string("xiaohong", 0, 0);
-    ASSERT_NE(v1, nullptr);
-
-    v2 = pcejson_parser_parse_string("xu", 0, 0);
-    ASSERT_NE(v2, nullptr);
-
-    elem = purc_variant_set_get_member_by_key_values(set, v1, v2);
-    ASSERT_NE(elem, nullptr);
-
-    obj = purc_variant_make_object_by_static_ckey(0, NULL, PURC_VARIANT_INVALID);
-    ASSERT_NE(obj, nullptr);
-
-    ok = purc_variant_object_set_by_static_ckey(obj, "name", elem);
-    ASSERT_FALSE(ok);
-
-    PURC_VARIANT_SAFE_CLEAR(obj);
-    PURC_VARIANT_SAFE_CLEAR(v1);
-    PURC_VARIANT_SAFE_CLEAR(v2);
-    purc_variant_unref(set);
-}
-
-TEST(variant_set, constraint_refaschild_set)
-{
-    PurCInstance purc;
-
-    bool ok;
-    const char *s;
-    purc_variant_t set, v1, v2, elem, v;
-
-    s = "[!'first last', {first:xiaohong, last:xu}, {first:shuming, last:xue}]";
-    set = pcejson_parser_parse_string(s, 0, 0);
-    ASSERT_NE(set, nullptr);
-    ASSERT_EQ(2, purc_variant_set_get_size(set));
-
-    v1 = pcejson_parser_parse_string("xiaohong", 0, 0);
-    ASSERT_NE(v1, nullptr);
-
-    v2 = pcejson_parser_parse_string("xu", 0, 0);
-    ASSERT_NE(v2, nullptr);
-
-    elem = purc_variant_set_get_member_by_key_values(set, v1, v2);
-    ASSERT_NE(elem, nullptr);
-
-    s = "[!, {}]";
-    v = pcejson_parser_parse_string(s, 0, 0);
-    ASSERT_NE(v, nullptr);
-    ASSERT_TRUE(purc_variant_is_set(v));
-
-    ok = purc_variant_set_add(v, elem, true); // overwrite
-    ASSERT_TRUE(ok);
-
-    PURC_VARIANT_SAFE_CLEAR(v);
-    PURC_VARIANT_SAFE_CLEAR(v1);
-    PURC_VARIANT_SAFE_CLEAR(v2);
-    purc_variant_unref(set);
-}
-
 TEST(set, compare)
 {
     PurCInstance purc;
@@ -1001,5 +897,4 @@ TEST(set, undefined)
     purc_variant_unref(set1);
     purc_variant_unref(set2);
 }
-
 

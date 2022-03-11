@@ -143,18 +143,11 @@ bool pcvariant_on_pre_fired(
     op &= PCVAR_OPERATION_ALL;
     PC_ASSERT(op != PCVAR_OPERATION_ALL);
 
-    if (pcvariant_is_mutable(source) == false)
-        return true;
-
     struct list_head *listeners;
     listeners = &source->listeners;
 
-    if (list_empty(listeners))
-        return true;
-
     struct list_head *p, *n;
     list_for_each_safe(p, n, listeners) {
-        PC_DEBUGX("");
         struct pcvar_listener *curr;
         curr = container_of(p, struct pcvar_listener, list_node);
         if ((curr->op & op) == 0)
@@ -181,14 +174,8 @@ void pcvariant_on_post_fired(
     op &= PCVAR_OPERATION_ALL;
     PC_ASSERT(op != PCVAR_OPERATION_ALL);
 
-    if (pcvariant_is_mutable(source) == false)
-        return;
-
     struct list_head *listeners;
     listeners = &source->listeners;
-
-    if (list_empty(listeners))
-        return;
 
     struct pcvar_listener *p, *n;
     list_for_each_entry_reverse_safe(p, n, listeners, list_node) {
