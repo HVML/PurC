@@ -192,3 +192,63 @@ void pcvariant_on_post_fired(
     }
 }
 
+#if 0                      /* { */
+struct edge_node {
+    struct rb_node     **pnode;
+    struct rb_node      *parent;
+    struct rb_node      *entry;
+};
+
+static int
+edge_cmp(struct pcvar_constraint_edge *edge, purc_variant_t parent,
+        purc_variant_t child)
+{
+    PC_ASSERT(parent != PURC_VARIANT_INVALID);
+    PC_ASSERT(pcvariant_is_mutable(parent));
+
+    if (edge->parent != parent)
+        return edge->parent - parent;
+
+    switch (parent->type) {
+        case PURC_VARIANT_TYPE_ARRAY:
+            return (edge->arr_child - (struct arr_node*)child_node);
+        case PURC_VARIANT_TYPE_OBJECT:
+            return (edge->obj_child - (struct obj_node*)child_node);
+        case PURC_VARIANT_TYPE_SET:
+            return (edge->set_child - (struct elem_node*)child_node);
+        default:
+            PC_ASSERT(0);
+            return 0; // never reached here
+    }
+}
+
+static void
+find_edge_node(struct edge_node *node, struct rb_root *root,
+        purc_variant_t v_parent, purc_variant_t v_child)
+{
+    struct rb_node **pnode = &root->rb_node;
+    struct rb_node *parent = NULL;
+    struct rb_node *entry = NULL;
+    while (*pnode) {
+        struct pcvar_constraint_edge *on;
+        on = container_of(*pnode, struct pcvar_constraint_edge, node);
+        int ret = edge_cmp(on, v_parent, v_child);
+
+        parent = *pnode;
+
+        if (ret < 0)
+            pnode = &parent->rb_left;
+        else if (ret > 0)
+            pnode = &parent->rb_right;
+        else{
+            entry = *pnode;
+            break;
+        }
+    }
+
+    node->pnode  = pnode;
+    node->parent = parent;
+    node->entry  = entry;
+}
+#endif                     /* } */
+

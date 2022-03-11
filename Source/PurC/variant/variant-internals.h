@@ -81,6 +81,26 @@ pcvariant_object_clone(purc_variant_t obj, bool recursively) WTF_INTERNAL;
 purc_variant_t
 pcvariant_set_clone(purc_variant_t set, bool recursively) WTF_INTERNAL;
 
+int
+pcvar_register_constraint_array_edges(purc_variant_t set,
+        purc_variant_t parent, struct arr_node *node);
+int
+pcvar_register_constraint_object_edges(purc_variant_t set,
+        purc_variant_t parent, struct obj_node *node);
+int
+pcvar_register_constraint_set_edges(purc_variant_t set,
+        purc_variant_t parent, struct set_node *node);
+
+int
+pcvar_revoke_constraint_array_edges(purc_variant_t set,
+        purc_variant_t parent, struct arr_node *node);
+int
+pcvar_revoke_constraint_object_edges(purc_variant_t set,
+        purc_variant_t parent, struct obj_node *node);
+int
+pcvar_revoke_constraint_set_edges(purc_variant_t set,
+        purc_variant_t parent, struct set_node *node);
+
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */

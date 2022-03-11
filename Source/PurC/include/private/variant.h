@@ -243,7 +243,7 @@ void pcvariant_cleanup_instance(struct pcinst* inst) WTF_INTERNAL;
 // internal struct used by variant-set object
 typedef struct variant_set      *variant_set_t;
 
-struct elem_node {
+struct set_node {
     struct rb_node   node;
     purc_variant_t   elem;  // actual variant-element
     purc_variant_t  *kvs;
@@ -263,7 +263,7 @@ struct variant_set {
     struct pcutils_arrlist *arr;    // also stored in arraylist
 
     // struct pcvar_constraint_edge*
-    // key: set
+    // key: set/parent/val
     struct rb_root          constraints;
 };
 
@@ -299,7 +299,7 @@ struct pcvar_constraint_edge {
     purc_variant_t                   set;
     purc_variant_t                   parent;
     union {
-        struct elem_node            *set_child;
+        struct set_node             *set_child;
         struct obj_node             *obj_child;
         struct arr_node             *arr_child;
     };
@@ -501,9 +501,9 @@ PCA_EXTERN_C_END
         struct pcutils_arrlist *_arr;                                   \
         _data = (variant_set_t)_set->sz_ptr[1];                         \
         _arr  = _data->arr;                                             \
-        struct elem_node *_p, *_n;                                      \
-        for (_p = (struct elem_node*) pcutils_arrlist_get_first(_arr);  \
-             ({ _n = _p ? (struct elem_node*)pcutils_arrlist_get_idx(   \
+        struct set_node *_p, *_n;                                       \
+        for (_p = (struct set_node*) pcutils_arrlist_get_first(_arr);   \
+             ({ _n = _p ? (struct set_node*)pcutils_arrlist_get_idx(    \
                                                 _arr,  _p->idx+1)       \
                         : NULL;                                         \
               _p; });                                                   \
@@ -519,10 +519,10 @@ PCA_EXTERN_C_END
         struct pcutils_arrlist *_arr;                                   \
         _data = (variant_set_t)_set->sz_ptr[1];                         \
         _arr  = _data->arr;                                             \
-        struct elem_node *_p, *_n;                                      \
-        for (_p = (struct elem_node*) pcutils_arrlist_get_last(_arr);   \
+        struct set_node *_p, *_n;                                       \
+        for (_p = (struct set_node*) pcutils_arrlist_get_last(_arr);    \
              ({ _n = (_p && _p->idx > 0)                                \
-                        ? (struct elem_node*)pcutils_arrlist_get_idx(   \
+                        ? (struct set_node*)pcutils_arrlist_get_idx(    \
                                                 _arr,  _p->idx-1)       \
                         : NULL;                                         \
               _p; });                                                   \
@@ -538,9 +538,9 @@ PCA_EXTERN_C_END
         struct pcutils_arrlist *_arr;                                   \
         _data = (variant_set_t)_set->sz_ptr[1];                         \
         _arr  = _data->arr;                                             \
-        struct elem_node *_p, *_n;                                      \
-        for (_p = (struct elem_node*) pcutils_arrlist_get_first(_arr);  \
-             ({ _n = _p ? (struct elem_node*)pcutils_arrlist_get_idx(   \
+        struct set_node *_p, *_n;                                       \
+        for (_p = (struct set_node*) pcutils_arrlist_get_first(_arr);   \
+             ({ _n = _p ? (struct set_node*)pcutils_arrlist_get_idx(    \
                                                 _arr,  _p->idx+1)       \
                         : NULL;                                         \
               _p; });                                                   \
@@ -556,10 +556,10 @@ PCA_EXTERN_C_END
         struct pcutils_arrlist *_arr;                                   \
         _data = (variant_set_t)_set->sz_ptr[1];                         \
         _arr  = _data->arr;                                             \
-        struct elem_node *_p, *_n;                                      \
-        for (_p = (struct elem_node*) pcutils_arrlist_get_last(_arr);   \
+        struct set_node *_p, *_n;                                       \
+        for (_p = (struct set_node*) pcutils_arrlist_get_last(_arr);    \
              ({ _n = (_p && _p->idx > 0)                                \
-                        ? (struct elem_node*)pcutils_arrlist_get_idx(   \
+                        ? (struct set_node*)pcutils_arrlist_get_idx(    \
                                                 _arr,  _p->idx-1)       \
                         : NULL;                                         \
               _p; });                                                   \
@@ -580,8 +580,8 @@ PCA_EXTERN_C_END
         struct rb_node *_p;                                             \
         pcutils_rbtree_for_each(_first, _p)                             \
         {                                                               \
-            struct elem_node *_en;                                      \
-            _en = container_of(_p, struct elem_node, node);             \
+            struct set_node *_en;                                       \
+            _en = container_of(_p, struct set_node, node);              \
             _val = _en->elem;                                           \
      /* } */                                                            \
   /* } while (0) */
@@ -597,8 +597,8 @@ PCA_EXTERN_C_END
         struct rb_node *_p;                                             \
         pcutils_rbtree_for_each_reverse(_first, _p)                     \
         {                                                               \
-            struct elem_node *_en;                                      \
-            _en = container_of(_p, struct elem_node, node);             \
+            struct set_node *_en;                                       \
+            _en = container_of(_p, struct set_node, node);              \
             _val = _en->elem;                                           \
      /* } */                                                            \
   /* } while (0) */
@@ -614,8 +614,8 @@ PCA_EXTERN_C_END
         struct rb_node *_p, *_n;                                        \
         pcutils_rbtree_for_each_safe(_first, _p, _n)                    \
         {                                                               \
-            struct elem_node *_en;                                      \
-            _en = container_of(_p, struct elem_node, node);             \
+            struct set_node *_en;                                       \
+            _en = container_of(_p, struct set_node, node);              \
             _val = _en->elem;                                           \
      /* } */                                                            \
   /* } while (0) */
@@ -631,8 +631,8 @@ PCA_EXTERN_C_END
         struct rb_node *_p, *_n;                                        \
         pcutils_rbtree_for_each_reverse_safe(_first, _p, _n)            \
         {                                                               \
-            struct elem_node *_en;                                      \
-            _en = container_of(_p, struct elem_node, node);             \
+            struct set_node *_en;                                       \
+            _en = container_of(_p, struct set_node, node);              \
             _val = _en->elem;                                           \
      /* } */                                                            \
   /* } while (0) */
