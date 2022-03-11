@@ -655,81 +655,6 @@ failed:
     return false;
 }
 
-// clear, erase element
-bool
-pcintr_rdr_dom_control_element(pcintr_stack_t stack, pcdom_element_t *node,
-        const char *operation)
-{
-    if (!stack || !pcvdom_document_is_attached_rdr(stack->vdom)
-            || stack->stage != STACK_STAGE_EVENT_LOOP) {
-        return true;
-    }
-    pcrdr_msg *msg = NULL;
-    pcrdr_msg *response_msg = NULL;
-    purc_variant_t element = PURC_VARIANT_INVALID;
-    purc_vdom_t vdom = stack->vdom;
-
-    pcrdr_msg_target target = PCRDR_MSG_TARGET_DOM;
-    uint64_t target_value = pcvdom_document_get_target_dom(vdom);
-    msg = make_request_msg(target, target_value, operation);
-    if (msg == NULL) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        goto failed;
-    }
-
-    char buff[LEN_BUFF_LONGLONGINT];
-    int n = snprintf(buff, sizeof(buff),
-            "%llx", (unsigned long long int)(uintptr_t)node);
-    if (n < 0) {
-        purc_set_error(PURC_ERROR_BAD_STDC_CALL);
-        goto failed;
-    }
-    else if ((size_t)n >= sizeof (buff)) {
-        PC_DEBUG ("Too small buffer to serialize message.\n");
-        purc_set_error(PURC_ERROR_TOO_SMALL_BUFF);
-        goto failed;
-    }
-
-    element = purc_variant_make_string(buff, false);
-    if (element == PURC_VARIANT_INVALID) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        goto failed;
-    }
-
-    msg->elementType = PCRDR_MSG_ELEMENT_TYPE_HANDLE;
-    msg->element = element;
-    element = NULL;
-
-    struct pcinst *inst = pcinst_current();
-    struct pcrdr_conn *conn_to_rdr = inst->conn_to_rdr;
-    if (pcrdr_send_request_and_wait_response(conn_to_rdr,
-            msg, PCRDR_TIME_DEF_EXPECTED, &response_msg) < 0) {
-        goto failed;
-    }
-    pcrdr_release_message(msg);
-    msg = NULL;
-
-    int ret_code = response_msg->retCode;
-    if (ret_code != PCRDR_SC_OK) {
-        purc_set_error(PCRDR_ERROR_SERVER_REFUSED);
-        goto failed;
-    }
-
-    pcrdr_release_message(response_msg);
-    return true;
-
-failed:
-    if (element != PURC_VARIANT_INVALID) {
-        purc_variant_unref(element);
-    }
-
-    if (msg) {
-        pcrdr_release_message(msg);
-    }
-
-    return false;
-}
-
 bool
 pcintr_rdr_dom_erase_property(pcintr_stack_t stack, pcdom_element_t *node,
         const char *prop)
@@ -880,6 +805,9 @@ pcintr_rdr_send_dom_request_ex(pcintr_stack_t stack, const char *operation,
         pcrdr_msg_data_type data_type, const char* data)
 {
     purc_variant_t req_data = PURC_VARIANT_INVALID;
+    if (!stack) {
+        return false;
+    }
 
     if (data_type == PCRDR_MSG_DATA_TYPE_TEXT) {
         req_data = purc_variant_make_string(data, false);

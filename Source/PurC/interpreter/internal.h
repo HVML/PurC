@@ -135,16 +135,13 @@ pcintr_rdr_send_dom_request_ex(pcintr_stack_t stack, const char *operation,
     pcintr_rdr_send_dom_request_ex(stack, PCRDR_OPERATION_DISPLACE,         \
             element, NULL, PCRDR_MSG_DATA_TYPE_TEXT, content)
 
-// clear element content, erase element
-bool
-pcintr_rdr_dom_control_element(pcintr_stack_t stack, pcdom_element_t *node,
-        const char *operation);
+#define pcintr_rdr_dom_clear_content(stack, element)                        \
+    pcintr_rdr_send_dom_request(stack, PCRDR_OPERATION_CLEAR,               \
+            element, NULL, PCRDR_MSG_DATA_TYPE_VOID, PURC_VARIANT_INVALID)
 
-#define pcintr_rdr_dom_clear_content(stack, node)                           \
-    pcintr_rdr_dom_control_element(stack, node, PCRDR_OPERATION_CLEAR)
-
-#define pcintr_rdr_dom_erase_element(stack, node)                           \
-    pcintr_rdr_dom_control_element(stack, node, PCRDR_OPERATION_ERASE)
+#define pcintr_rdr_dom_erase_element(stack, element)                        \
+    pcintr_rdr_send_dom_request(stack, PCRDR_OPERATION_ERASE,               \
+            element, NULL, PCRDR_MSG_DATA_TYPE_VOID, PURC_VARIANT_INVALID)
 
 bool
 pcintr_rdr_dom_erase_property(pcintr_stack_t stack, pcdom_element_t *node,
