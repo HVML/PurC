@@ -1951,7 +1951,11 @@ pcintr_util_set_attribute(pcdom_element_t *elem,
     attr = pcdom_element_set_attribute(elem,
             (const unsigned char*)key, strlen(key),
             (const unsigned char*)val, strlen(val));
-    return attr ? 0 : -1;
+    if (!attr) {
+        return -1;
+    }
+    pcintr_rdr_dom_update_element_property(pcintr_get_stack(), elem, key, val);
+    return 0;
 }
 
 pchtml_html_document_t*
