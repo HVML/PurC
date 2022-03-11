@@ -25,7 +25,7 @@
 #include "purc-errors.h"
 #include "private/debug.h"
 #include "private/errors.h"
-#include "private/variant.h"
+#include "variant-internals.h"
 
 #include <stdlib.h>
 
@@ -192,6 +192,117 @@ void pcvariant_on_post_fired(
     }
 }
 
+bool
+pcvar_is_descendant_container_of_set(purc_variant_t val)
+{
+    PC_ASSERT(val != PURC_VARIANT_INVALID);
+    switch (val->type) {
+        case PURC_VARIANT_TYPE_ARRAY:
+        case PURC_VARIANT_TYPE_OBJECT:
+        case PURC_VARIANT_TYPE_SET:
+            return true;
+        default:
+            return false;
+    }
+}
+
+void
+pcvar_break_rev_update_edges(purc_variant_t val)
+{
+    PC_ASSERT(val != PURC_VARIANT_INVALID);
+    switch (val->type) {
+        case PURC_VARIANT_TYPE_ARRAY:
+            pcvar_array_break_rev_update_edges(val);
+            return;
+        case PURC_VARIANT_TYPE_OBJECT:
+            pcvar_object_break_rev_update_edges(val);
+            return;
+        case PURC_VARIANT_TYPE_SET:
+            return;
+        default:
+            PC_ASSERT(0);
+    }
+}
+
+void
+pcvar_break_edge_to_parent(purc_variant_t val,
+        struct pcvar_rev_update_edge *edge)
+{
+    PC_ASSERT(val != PURC_VARIANT_INVALID);
+    if (pcvariant_is_mutable(val) == false)
+        return;
+
+    switch (val->type) {
+        case PURC_VARIANT_TYPE_ARRAY:
+            pcvar_array_break_edge_to_parent(val, edge);
+            return;
+        case PURC_VARIANT_TYPE_OBJECT:
+            pcvar_object_break_edge_to_parent(val, edge);
+            return;
+        case PURC_VARIANT_TYPE_SET:
+            pcvar_set_break_edge_to_parent(val, edge);
+            return;
+        default:
+            PC_ASSERT(0);
+    }
+}
+
+void
+pcvar_break_edge(purc_variant_t val, struct rb_root *root,
+        struct pcvar_rev_update_edge *edge)
+{
+    PC_ASSERT(val != PURC_VARIANT_INVALID);
+    PC_ASSERT(root);
+    PC_ASSERT(edge);
+    if (RB_EMPTY_ROOT(root) == false)
+        return;
+
+    struct rb_node *root_node = root->rb_node;
+    struct rb_node *p, *n;
+    pcutils_rbtree_for_each_safe(root_node, p, n) {
+        struct pcvar_rev_update_edge_node *node;
+        node = container_of(p, struct pcvar_rev_update_edge_node, node);
+        if (edge->parent != node->edge.parent)
+            continue;
+
+        switch (edge->parent->type) {
+            case PURC_VARIANT_TYPE_ARRAY:
+                PC_ASSERT(edge->arr_me->val == val);
+                if (edge->arr_me != node->edge.arr_me)
+                    continue;
+                pcutils_rbtree_erase(p, root);
+                free(node);
+                break;
+
+            case PURC_VARIANT_TYPE_OBJECT:
+                PC_ASSERT(edge->obj_me->val == val);
+                if (edge->obj_me != node->edge.obj_me)
+                    continue;
+                pcutils_rbtree_erase(p, root);
+                free(node);
+                break;
+
+            case PURC_VARIANT_TYPE_SET:
+                PC_ASSERT(edge->set_me->elem == val);
+                if (edge->set_me != node->edge.set_me)
+                    continue;
+                pcutils_rbtree_erase(p, root);
+                free(node);
+                break;
+
+            default:
+                PC_ASSERT(0);
+        }
+
+        break;
+    }
+
+    if (RB_EMPTY_ROOT(root) == false)
+        return;
+
+    pcvar_break_rev_update_edges(val);
+}
+
 #if 0                      /* { */
 struct edge_node {
     struct rb_node     **pnode;
@@ -200,7 +311,7 @@ struct edge_node {
 };
 
 static int
-edge_cmp(struct pcvar_constraint_edge *edge, purc_variant_t parent,
+edge_cmp(struct pcvar_rev_update_edge *edge, purc_variant_t parent,
         purc_variant_t child)
 {
     PC_ASSERT(parent != PURC_VARIANT_INVALID);
@@ -230,8 +341,8 @@ find_edge_node(struct edge_node *node, struct rb_root *root,
     struct rb_node *parent = NULL;
     struct rb_node *entry = NULL;
     while (*pnode) {
-        struct pcvar_constraint_edge *on;
-        on = container_of(*pnode, struct pcvar_constraint_edge, node);
+        struct pcvar_rev_update_edge *on;
+        on = container_of(*pnode, struct pcvar_rev_update_edge, node);
         int ret = edge_cmp(on, v_parent, v_child);
 
         parent = *pnode;

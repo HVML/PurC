@@ -260,6 +260,11 @@ variant_arr_set(purc_variant_t array, size_t idx, purc_variant_t val,
     changed(array, pos, old_node->val, val, check);
     purc_variant_unref(pos);
 
+    struct pcvar_rev_update_edge edge = {
+        .parent        = array,
+        .arr_me        = old_node,
+    };
+    pcvar_break_edge_to_parent(old_node->val, &edge);
     arr_node_destroy(old_node);
 
     return 0;
@@ -300,6 +305,11 @@ variant_arr_remove(purc_variant_t array, size_t idx,
     shrunk(array, pos, node->val, check);
     purc_variant_unref(pos);
 
+    struct pcvar_rev_update_edge edge = {
+        .parent        = array,
+        .arr_me        = node,
+    };
+    pcvar_break_edge_to_parent(node->val, &edge);
     arr_node_destroy(node);
 
     return 0;
@@ -318,6 +328,11 @@ array_release (purc_variant_t value)
         struct pcutils_array_list_node *node;
         int r = pcutils_array_list_remove(al, p->node.idx, &node);
         PC_ASSERT(r==0 && node && node == &p->node);
+        struct pcvar_rev_update_edge edge = {
+            .parent        = value,
+            .arr_me        = p,
+        };
+        pcvar_break_edge_to_parent(p->val, &edge);
         arr_node_destroy(p);
     };
 
@@ -368,6 +383,8 @@ pv_make_array_n (bool check, size_t sz, purc_variant_t value0, va_list ap)
             pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
             break;
         }
+
+        data->rev_update_chain = RB_ROOT;
 
         struct pcutils_array_list *al;
         al = &data->al;
@@ -616,5 +633,36 @@ pcvariant_array_clone(purc_variant_t arr, bool recursively)
 
     PC_ASSERT(var != arr);
     return var;
+}
+
+void
+pcvar_array_break_rev_update_edges(purc_variant_t arr)
+{
+    PC_ASSERT(purc_variant_is_array(arr));
+
+    variant_arr_t data = (variant_arr_t)arr->sz_ptr[1];
+    if (!data)
+        return;
+
+    struct arr_node *p;
+    foreach_in_variant_array(arr, p) {
+        struct pcvar_rev_update_edge edge = {
+            .parent         = arr,
+            .arr_me         = p,
+        };
+        pcvar_break_edge_to_parent(p->val, &edge);
+    }
+}
+
+void
+pcvar_array_break_edge_to_parent(purc_variant_t arr,
+        struct pcvar_rev_update_edge *edge)
+{
+    PC_ASSERT(purc_variant_is_array(arr));
+    variant_arr_t data = (variant_arr_t)arr->sz_ptr[1];
+    if (!data)
+        return;
+
+    pcvar_break_edge(arr, &data->rev_update_chain, edge);
 }
 

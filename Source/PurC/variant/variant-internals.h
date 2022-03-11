@@ -28,7 +28,7 @@
 
 #include "config.h"
 #include "private/debug.h"
-#include "purc-variant.h"
+#include "private/variant.h"
 
 #define PCVARIANT_CHECK_FAIL_RET(cond, ret)                     \
     if (!(cond)) {                                              \
@@ -81,25 +81,38 @@ pcvariant_object_clone(purc_variant_t obj, bool recursively) WTF_INTERNAL;
 purc_variant_t
 pcvariant_set_clone(purc_variant_t set, bool recursively) WTF_INTERNAL;
 
-int
-pcvar_register_constraint_array_edges(purc_variant_t set,
-        purc_variant_t parent, struct arr_node *node);
-int
-pcvar_register_constraint_object_edges(purc_variant_t set,
-        purc_variant_t parent, struct obj_node *node);
-int
-pcvar_register_constraint_set_edges(purc_variant_t set,
-        purc_variant_t parent, struct set_node *node);
+bool
+pcvar_is_descendant_container_of_set(purc_variant_t val);
 
-int
-pcvar_revoke_constraint_array_edges(purc_variant_t set,
-        purc_variant_t parent, struct arr_node *node);
-int
-pcvar_revoke_constraint_object_edges(purc_variant_t set,
-        purc_variant_t parent, struct obj_node *node);
-int
-pcvar_revoke_constraint_set_edges(purc_variant_t set,
-        purc_variant_t parent, struct set_node *node);
+purc_variant_t
+pcvar_variant_from_rev_update_edge(struct pcvar_rev_update_edge *edge);
+
+// break children's reverse update edges recursively
+void
+pcvar_break_rev_update_edges(purc_variant_t val);
+void
+pcvar_array_break_rev_update_edges(purc_variant_t arr);
+void
+pcvar_object_break_rev_update_edges(purc_variant_t obj);
+
+// break edge belongs to `val` and it's children's edges
+// when `val` becomes dangling
+void
+pcvar_break_edge_to_parent(purc_variant_t val,
+        struct pcvar_rev_update_edge *edge);
+void
+pcvar_array_break_edge_to_parent(purc_variant_t arr,
+        struct pcvar_rev_update_edge *edge);
+void
+pcvar_object_break_edge_to_parent(purc_variant_t obj,
+        struct pcvar_rev_update_edge *edge);
+void
+pcvar_set_break_edge_to_parent(purc_variant_t set,
+        struct pcvar_rev_update_edge *edge);
+
+void
+pcvar_break_edge(purc_variant_t val, struct rb_root *root,
+        struct pcvar_rev_update_edge *edge);
 
 #ifdef __cplusplus
 }

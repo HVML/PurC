@@ -262,9 +262,9 @@ struct variant_set {
     struct rb_root          elems;  // multiple-variant-elements stored in set
     struct pcutils_arrlist *arr;    // also stored in arraylist
 
-    // struct pcvar_constraint_edge*
-    // key: set/parent/val
-    struct rb_root          constraints;
+    // struct pcvar_rev_update_edge_node*
+    // key: parent/val
+    struct rb_root          rev_update_chain;
 };
 
 // internal struct used by variant-obj object
@@ -279,6 +279,10 @@ struct obj_node {
 struct variant_obj {
     struct rb_root          kvs;  // struct obj_node*
     size_t                  size;
+
+    // struct pcvar_rev_update_edge_node*
+    // key: parent/val
+    struct rb_root          rev_update_chain;
 };
 
 // internal struct used by variant-arr
@@ -291,18 +295,26 @@ struct arr_node {
 
 struct variant_arr {
     struct pcutils_array_list     al;  // struct arr_node*
+
+    // struct pcvar_rev_update_edge_node*
+    // key: struct pcvar_rev_update_edge
+    struct rb_root          rev_update_chain;
 };
 
-struct pcvar_constraint_edge {
-    struct rb_node                   node;
-
-    purc_variant_t                   set;
+struct pcvar_rev_update_edge {
     purc_variant_t                   parent;
     union {
-        struct set_node             *set_child;
-        struct obj_node             *obj_child;
-        struct arr_node             *arr_child;
+        // where to locate in parent
+        struct set_node             *set_me;
+        struct obj_node             *obj_me;
+        struct arr_node             *arr_me;
     };
+};
+
+struct pcvar_rev_update_edge_node {
+    struct rb_node                   node;
+
+    struct pcvar_rev_update_edge     edge;
 };
 
 int pcvariant_array_sort(purc_variant_t value, void *ud,

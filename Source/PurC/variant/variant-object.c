@@ -148,6 +148,7 @@ static purc_variant_t v_object_new_with_capacity(void)
     }
 
     data->kvs = RB_ROOT;
+    data->rev_update_chain = RB_ROOT;
 
     var->sz_ptr[1]     = (uintptr_t)data;
     var->refc          = 1;
@@ -203,6 +204,13 @@ v_object_remove(purc_variant_t obj, purc_variant_t key, bool silently,
     --data->size;
 
     shrunk(obj, k, v, check);
+
+    struct pcvar_rev_update_edge edge = {
+        .parent        = obj,
+        .obj_me        = node,
+    };
+    pcvar_break_edge_to_parent(node->val, &edge);
+
     purc_variant_unref(k);
     purc_variant_unref(v);
 
@@ -455,6 +463,13 @@ void pcvariant_object_release (purc_variant_t value)
         pcutils_rbtree_erase(p, root);
         struct obj_node *node;
         node = container_of(p, struct obj_node, node);
+
+        struct pcvar_rev_update_edge edge = {
+            .parent        = value,
+            .obj_me        = node,
+        };
+        pcvar_break_edge_to_parent(node->val, &edge);
+
         purc_variant_unref(node->key);
         purc_variant_unref(node->val);
         free(node);
@@ -758,5 +773,38 @@ pcvariant_object_clone(purc_variant_t obj, bool recursively)
 
     PC_ASSERT(var != obj);
     return var;
+}
+
+void
+pcvar_object_break_rev_update_edges(purc_variant_t obj)
+{
+    PC_ASSERT(purc_variant_is_object(obj));
+    variant_obj_t data = (variant_obj_t)obj->sz_ptr[1];
+    if (!data)
+        return;
+
+    struct rb_root *root = &data->kvs;
+    struct rb_node *p = pcutils_rbtree_first(root);
+    for (; p; p = pcutils_rbtree_next(p)) {
+        struct obj_node *node;
+        node = container_of(p, struct obj_node, node);
+        struct pcvar_rev_update_edge edge = {
+            .parent         = obj,
+            .obj_me         = node,
+        };
+        pcvar_break_edge_to_parent(node->val, &edge);
+    }
+}
+
+void
+pcvar_object_break_edge_to_parent(purc_variant_t obj,
+        struct pcvar_rev_update_edge *edge)
+{
+    PC_ASSERT(purc_variant_is_object(obj));
+    variant_obj_t data = (variant_obj_t)obj->sz_ptr[1];
+    if (!data)
+        return;
+
+    pcvar_break_edge(obj, &data->rev_update_chain, edge);
 }
 
