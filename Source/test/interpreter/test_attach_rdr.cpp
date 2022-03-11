@@ -585,12 +585,12 @@ TEST(interpreter, basic)
     };
 
     unsigned int modules = (PURC_MODULE_HVML | PURC_MODULE_PCRDR) & ~PURC_HAVE_FETCHER;
+
+#if 0
     purc_instance_extra_info info = {
         .renderer_prot = PURC_RDRPROT_PURCMC,
         .renderer_uri = "unix://" PCRDR_PURCMC_US_PATH,
     };
-
-#if 0
     PurCInstance purc(modules, "cn.fmsoft.hybridos.test", "test_attach_rdr",
             &info);
 #else
