@@ -200,16 +200,16 @@ v_object_remove(purc_variant_t obj, purc_variant_t key, bool silently,
         return -1;
     }
 
-    pcutils_rbtree_erase(entry, root);
-    --data->size;
-
-    shrunk(obj, k, v, check);
-
     struct pcvar_rev_update_edge edge = {
         .parent        = obj,
         .obj_me        = node,
     };
     pcvar_break_edge_to_parent(node->val, &edge);
+
+    pcutils_rbtree_erase(entry, root);
+    --data->size;
+
+    shrunk(obj, k, v, check);
 
     purc_variant_unref(k);
     purc_variant_unref(v);
@@ -282,6 +282,14 @@ v_object_set(purc_variant_t obj, purc_variant_t k, purc_variant_t val,
 
         ++data->size;
 
+        struct pcvar_rev_update_edge edge = {
+            .parent        = obj,
+            .obj_me        = node,
+        };
+        int r = pcvar_build_edge_to_parent(val, &edge);
+        // TODO: recover
+        PC_ASSERT(r == 0);
+
         grown(obj, k, val, check);
         return 0;
     }
@@ -292,6 +300,18 @@ v_object_set(purc_variant_t obj, purc_variant_t k, purc_variant_t val,
     if (!change(obj, node->key, node->val, k, val, check)) {
         return -1;
     }
+
+    struct pcvar_rev_update_edge edge = {
+        .parent        = obj,
+        .obj_me        = node,
+    };
+    pcvar_break_edge_to_parent(node->val, &edge);
+
+    edge.parent = obj;
+    edge.obj_me = node;
+    int r = pcvar_build_edge_to_parent(node->val, &edge);
+    // FIXME: recoverable?
+    PC_ASSERT(r == 0);
 
     changed(obj, node->key, node->val, k, val, check);
 

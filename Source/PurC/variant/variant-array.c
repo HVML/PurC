@@ -180,19 +180,17 @@ variant_arr_insert_before(purc_variant_t array, size_t idx, purc_variant_t val,
         return -1;
     }
 
-    if (list_empty(&data->rev_update_chain) == false) {
-        // struct pcvar_rev_update_edge edge = {
-        //     .parent        = array,
-        //     .arr_me        = node,
-        // };
-        // r = pcvar_build_edge_to_parent_array(val, &edge);
-        // if (r) {
-        //     pcvar_break_edge_to_parent(node->val, &edge);
-        //     arr_node_destroy(node);
-        //     purc_variant_unref(pos);
-        //     pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        //     return -1;
-        // }
+    struct pcvar_rev_update_edge edge = {
+        .parent        = array,
+        .arr_me        = node,
+    };
+    r = pcvar_build_edge_to_parent(val, &edge);
+    if (r) {
+        pcvar_break_edge_to_parent(node->val, &edge);
+        arr_node_destroy(node);
+        purc_variant_unref(pos);
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return -1;
     }
 
     grown(array, pos, val, check);
@@ -272,14 +270,21 @@ variant_arr_set(purc_variant_t array, size_t idx, purc_variant_t val,
     PC_ASSERT(r == 0);
     PC_ASSERT(old == p);
 
-    changed(array, pos, old_node->val, val, check);
-    purc_variant_unref(pos);
-
     struct pcvar_rev_update_edge edge = {
         .parent        = array,
         .arr_me        = old_node,
     };
     pcvar_break_edge_to_parent(old_node->val, &edge);
+
+    edge.parent = array;
+    edge.arr_me = node;
+    r = pcvar_build_edge_to_parent(node->val, &edge);
+    // FIXME: recoverable?
+    PC_ASSERT(r == 0);
+
+    changed(array, pos, old_node->val, val, check);
+    purc_variant_unref(pos);
+
     arr_node_destroy(old_node);
 
     return 0;
@@ -317,14 +322,15 @@ variant_arr_remove(purc_variant_t array, size_t idx,
     PC_ASSERT(r == 0);
     PC_ASSERT(n == p);
 
-    shrunk(array, pos, node->val, check);
-    purc_variant_unref(pos);
-
     struct pcvar_rev_update_edge edge = {
         .parent        = array,
         .arr_me        = node,
     };
     pcvar_break_edge_to_parent(node->val, &edge);
+
+    shrunk(array, pos, node->val, check);
+    purc_variant_unref(pos);
+
     arr_node_destroy(node);
 
     return 0;
