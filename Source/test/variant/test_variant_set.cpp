@@ -213,8 +213,6 @@ TEST(variant_set, add_1_str)
     purc_variant_unref(obj);
     purc_variant_unref(s);
 
-    ASSERT_EQ(stat->nr_values[PVT(_STRING)], 2);
-    ASSERT_EQ(stat->nr_values[PVT(_OBJECT)], 1);
     ASSERT_EQ(stat->nr_values[PVT(_SET)], 1);
 
     ASSERT_EQ(var->refc, 1);
@@ -257,7 +255,6 @@ TEST(variant_set, add_n_str)
         purc_variant_t obj;
         obj = purc_variant_make_object_by_static_ckey(1, "hello", s);
         ASSERT_NE(obj, nullptr);
-        ASSERT_EQ(stat->nr_values[PVT(_OBJECT)], j+1);
         bool t = purc_variant_set_add(var, obj, false);
         ASSERT_EQ(t, true);
 
@@ -267,8 +264,6 @@ TEST(variant_set, add_n_str)
         purc_variant_unref(obj);
         purc_variant_unref(s);
     }
-    ASSERT_EQ(stat->nr_values[PVT(_STRING)], count*2);
-    ASSERT_EQ(stat->nr_values[PVT(_OBJECT)], count);
     ASSERT_EQ(stat->nr_values[PVT(_SET)], 1);
 
     int j = 0;
@@ -496,7 +491,7 @@ TEST(variant_set, sort)
         purc_variant_t set = make_set(ins, PCA_TABLESIZE(ins));
         ASSERT_NE(set, nullptr);
 
-        int r = pcvariant_set_sort(set, NULL, cmp);
+        int r = pcvariant_set_sort(set);
         ASSERT_EQ(r, 0);
 
         r = purc_variant_stringify(inbuf, sizeof(inbuf), set);

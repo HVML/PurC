@@ -246,7 +246,7 @@ typedef struct variant_set      *variant_set_t;
 struct set_node {
     struct rb_node   node;
     purc_variant_t   elem;  // actual variant-element
-    purc_variant_t  *kvs;
+    purc_variant_t   kvs;
     size_t           idx;
 
     // managed by variant_set
@@ -319,9 +319,7 @@ struct pcvar_rev_update_edge_node {
 
 int pcvariant_array_sort(purc_variant_t value, void *ud,
         int (*cmp)(purc_variant_t l, purc_variant_t r, void *ud));
-int pcvariant_set_sort(purc_variant_t value, void *ud,
-        int (*cmp)(size_t nr_keynames, purc_variant_t l[], purc_variant_t r[],
-            void *ud));
+int pcvariant_set_sort(purc_variant_t value);
 
 const char* pcvariant_get_typename(enum purc_variant_type type);
 

@@ -314,39 +314,6 @@ static int my_array_sort (purc_variant_t v1, purc_variant_t v2, void *ud)
     return ret;
 }
 
-static int my_set_sort (size_t nr_keynames,
-        purc_variant_t v1[], purc_variant_t v2[], void *ud)
-{
-    size_t i = 0;
-    int ret = 0;
-    char *p1 = NULL;
-    char *p2 = NULL;
-    pcutils_map_entry *entry = NULL;
-
-    dvobjs_ejson_arg *sort_arg = (dvobjs_ejson_arg *)ud;
-
-
-    for (i = 0; i < nr_keynames; ++i) {
-        entry = pcutils_map_find (sort_arg->map, v1[i]);
-        p1 = (char *)entry->val;
-        entry = pcutils_map_find (sort_arg->map, v2[i]);
-        p2 = (char *)entry->val;
-
-        if (sort_arg->caseless)
-            ret = strcasecmp (p1, p2);
-        else
-            ret = strcmp (p1, p2);
-
-        if (!sort_arg->asc)
-            ret = -1 * ret;
-
-        if (ret)
-            return ret;
-    }
-
-    return 0;
-}
-
 static void * map_copy_key(const void *key)
 {
     return (void *)key;
@@ -387,8 +354,6 @@ sort_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     purc_variant_t val = PURC_VARIANT_INVALID;
     size_t i = 0;
     size_t totalsize = 0;
-    struct purc_variant_set_iterator *it_set = NULL;
-    bool having = false;
     const char *option = NULL;
     const char *order = NULL;
     dvobjs_ejson_arg sort_arg;
@@ -441,22 +406,7 @@ sort_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         pcvariant_array_sort (argv[0], (void *)&sort_arg, my_array_sort);
     }
     else {    // it is the set
-        totalsize = purc_variant_set_get_size (argv[0]);
-
-        it_set = purc_variant_set_make_iterator_begin(argv[0]);
-        while (it_set) {
-            val = purc_variant_set_iterator_get_value(it_set);
-            purc_variant_stringify_alloc (&buf, val);
-            pcutils_map_insert (sort_arg.map, val, buf);
-
-            having = purc_variant_set_iterator_next(it_set);
-            if (!having)
-                break;
-        }
-        if (it_set)
-            purc_variant_set_release_iterator(it_set);
-
-        pcvariant_set_sort (argv[0], (void *)&sort_arg, my_set_sort);
+        pcvariant_set_sort (argv[0]);
     }
 
     pcutils_map_destroy (sort_arg.map);
