@@ -84,6 +84,50 @@ object_set(purc_variant_t object, const char* key, const char* value)
     return true;
 }
 
+pcrdr_msg *pcintr_rdr_send_request(struct pcrdr_conn *conn,
+        pcrdr_msg_target target, uint64_t target_value, const char *operation,
+        pcrdr_msg_element_type element_type, const char *element,
+        const char *property, pcrdr_msg_data_type data_type,
+        purc_variant_t data)
+{
+    pcrdr_msg *response_msg = NULL;
+    pcrdr_msg* msg = pcrdr_make_request_message(
+            target,                             /* target */
+            target_value,                       /* target_value */
+            operation,                          /* operation */
+            NULL,                               /* request_id */
+            element_type,                       /* element_type */
+            element,                            /* element */
+            property,                           /* property */
+            PCRDR_MSG_DATA_TYPE_VOID,           /* data_type */
+            NULL,                               /* data */
+            0                                   /* data_len */
+            );
+    if (msg == NULL) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto failed;
+    }
+
+    msg->dataType = data_type;
+    msg->data = data;
+
+    if (pcrdr_send_request_and_wait_response(conn,
+            msg, PCRDR_TIME_DEF_EXPECTED, &response_msg) < 0) {
+        goto failed;
+    }
+    pcrdr_release_message(msg);
+    msg = NULL;
+
+    return response_msg;
+
+failed:
+    if (msg) {
+        pcrdr_release_message(msg);
+    }
+
+    return NULL;
+}
+
 uintptr_t create_target_workspace(
         struct pcrdr_conn *conn_to_rdr,
         uintptr_t session_handle,
@@ -515,9 +559,6 @@ pcintr_rdr_page_control_load(pcintr_stack_t stack)
     if (!pcvdom_document_is_attached_rdr(stack->vdom)) {
         return true;
     }
-    if (pcvdom_document_get_target_dom(stack->vdom)) {
-        return true;
-    }
 
     pcrdr_msg *msg = NULL;
     pcrdr_msg *response_msg = NULL;
@@ -615,68 +656,43 @@ failed:
 }
 
 bool
-pcintr_rdr_dom_displace_content(pcintr_stack_t stack,
-        pcdom_element_t *node, const char *content)
+pcintr_rdr_send_dom_request(pcintr_stack_t stack, const char *operation,
+        pcdom_element_t *element, const char* property,
+        pcrdr_msg_data_type data_type, purc_variant_t data)
 {
-    if (!pcvdom_document_is_attached_rdr(stack->vdom)) {
+    if (!stack || !pcvdom_document_is_attached_rdr(stack->vdom)
+            || stack->stage != STACK_STAGE_EVENT_LOOP) {
         return true;
     }
-    pcrdr_msg *msg = NULL;
+
     pcrdr_msg *response_msg = NULL;
     purc_variant_t req_data = PURC_VARIANT_INVALID;
-    purc_variant_t element = PURC_VARIANT_INVALID;
-    purc_vdom_t vdom = stack->vdom;
 
-    const char *operation = PCRDR_OPERATION_DISPLACE;
     pcrdr_msg_target target = PCRDR_MSG_TARGET_DOM;
-    uint64_t target_value = pcvdom_document_get_target_dom(vdom);
-    msg = make_request_msg(target, target_value, operation);
-    if (msg == NULL) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        goto failed;
-    }
+    uint64_t target_value = pcvdom_document_get_target_dom(stack->vdom);
+    pcrdr_msg_element_type element_type = PCRDR_MSG_ELEMENT_TYPE_HANDLE;
 
-    char buff[LEN_BUFF_LONGLONGINT];
-    int n = snprintf(buff, sizeof(buff),
-            "%llx", (unsigned long long int)(uintptr_t)node);
+    char elem[LEN_BUFF_LONGLONGINT];
+    int n = snprintf(elem, sizeof(elem),
+            "%llx", (unsigned long long int)(uintptr_t)element);
     if (n < 0) {
         purc_set_error(PURC_ERROR_BAD_STDC_CALL);
         goto failed;
     }
-    else if ((size_t)n >= sizeof (buff)) {
-        PC_DEBUG ("Too small buffer to serialize message.\n");
+    else if ((size_t)n >= sizeof (elem)) {
+        PC_DEBUG ("Too small elemer to serialize message.\n");
         purc_set_error(PURC_ERROR_TOO_SMALL_BUFF);
         goto failed;
     }
 
-    element = purc_variant_make_string(buff, false);
-    if (element == PURC_VARIANT_INVALID) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        goto failed;
-    }
-
-    msg->elementType = PCRDR_MSG_ELEMENT_TYPE_HANDLE;
-    msg->element = element;
-    element = NULL;
-
-    req_data = purc_variant_make_string(content, false);
-    if (req_data == PURC_VARIANT_INVALID) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        goto failed;
-    }
-
-    msg->dataType = PCRDR_MSG_DATA_TYPE_TEXT;
-    msg->data = req_data;
-    req_data = NULL;
-
     struct pcinst *inst = pcinst_current();
-    struct pcrdr_conn *conn_to_rdr = inst->conn_to_rdr;
-    if (pcrdr_send_request_and_wait_response(conn_to_rdr,
-            msg, PCRDR_TIME_DEF_EXPECTED, &response_msg) < 0) {
+    response_msg = pcintr_rdr_send_request(inst->conn_to_rdr,
+        target, target_value, operation, element_type, elem,
+        property, data_type, data);
+
+    if (response_msg == NULL) {
         goto failed;
     }
-    pcrdr_release_message(msg);
-    msg = NULL;
 
     int ret_code = response_msg->retCode;
     if (ret_code != PCRDR_SC_OK) {
@@ -688,17 +704,118 @@ pcintr_rdr_dom_displace_content(pcintr_stack_t stack,
     return true;
 
 failed:
-    if (element != PURC_VARIANT_INVALID) {
-        purc_variant_unref(element);
-    }
-
     if (req_data != PURC_VARIANT_INVALID) {
         purc_variant_unref(req_data);
     }
 
-    if (msg) {
-        pcrdr_release_message(msg);
-    }
-
     return false;
 }
+
+bool
+pcintr_rdr_send_dom_request_ex(pcintr_stack_t stack, const char *operation,
+        pcdom_element_t *element, const char* property,
+        pcrdr_msg_data_type data_type, const char* data)
+{
+    if (!stack || !pcvdom_document_is_attached_rdr(stack->vdom)
+            || stack->stage != STACK_STAGE_EVENT_LOOP) {
+        return true;
+    }
+
+    purc_variant_t req_data = PURC_VARIANT_INVALID;
+    if (data_type == PCRDR_MSG_DATA_TYPE_TEXT) {
+        req_data = purc_variant_make_string(data, false);
+        if (req_data == PURC_VARIANT_INVALID) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            goto failed;
+        }
+    }
+    else if (data_type == PCRDR_MSG_DATA_TYPE_EJSON) {
+        req_data = purc_variant_make_from_json_string(data, strlen(data));
+        if (req_data == PURC_VARIANT_INVALID) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            goto failed;
+        }
+    }
+
+    return pcintr_rdr_send_dom_request(stack, operation, element,
+            property, data_type, req_data);
+
+failed:
+    if (req_data != PURC_VARIANT_INVALID) {
+        purc_variant_unref(req_data);
+    }
+    return false;
+}
+
+static purc_variant_t
+serialize_node(pcdom_node_t *node)
+{
+    purc_rwstream_t out = purc_rwstream_new_buffer(BUFF_MIN, BUFF_MAX);
+    if (out == NULL) {
+        goto failed;
+    }
+
+    int opt = 0;
+    opt |= PCHTML_HTML_SERIALIZE_OPT_UNDEF;
+    opt |= PCHTML_HTML_SERIALIZE_OPT_SKIP_WS_NODES;
+    opt |= PCHTML_HTML_SERIALIZE_OPT_WITHOUT_TEXT_INDENT;
+    opt |= PCHTML_HTML_SERIALIZE_OPT_FULL_DOCTYPE;
+    opt |= PCHTML_HTML_SERIALIZE_OPT_WITH_HVML_HANDLE;
+
+    if(0 != pcdom_node_write_to_stream_ex(node, opt, out)) {
+        goto failed;
+    }
+
+    size_t sz_content = 0;
+    size_t sz_buff = 0;
+    char* p = (char*)purc_rwstream_get_mem_buffer_ex(out, &sz_content,
+            &sz_buff,true);
+    purc_variant_t v = purc_variant_make_string_reuse_buff(p,
+            sz_content, false);
+    if (v == PURC_VARIANT_INVALID) {
+        free(p);
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto failed;
+    }
+
+    return v;
+
+failed:
+    return PURC_VARIANT_INVALID;
+}
+
+bool
+pcintr_rdr_dom_append_child(pcintr_stack_t stack, pcdom_element_t *element,
+        pcdom_node_t *child)
+{
+    if (!stack || !pcvdom_document_is_attached_rdr(stack->vdom)
+            || stack->stage != STACK_STAGE_EVENT_LOOP) {
+        return true;
+    }
+    purc_variant_t data = serialize_node(child);
+    if (data == PURC_VARIANT_INVALID) {
+        return false;
+    }
+
+    return pcintr_rdr_send_dom_request(stack, PCRDR_OPERATION_APPEND,
+            element, NULL, PCRDR_MSG_DATA_TYPE_TEXT, data);
+}
+
+bool
+pcintr_rdr_dom_displace_child(pcintr_stack_t stack, pcdom_element_t *element,
+        pcdom_node_t *child)
+{
+    if (!stack || !pcvdom_document_is_attached_rdr(stack->vdom)
+            || stack->stage != STACK_STAGE_EVENT_LOOP) {
+        return true;
+    }
+
+    purc_variant_t data = serialize_node(child);
+    if (data == PURC_VARIANT_INVALID) {
+        return false;
+    }
+
+    return pcintr_rdr_send_dom_request(stack, PCRDR_OPERATION_DISPLACE,
+            element, NULL, PCRDR_MSG_DATA_TYPE_TEXT, data);
+}
+

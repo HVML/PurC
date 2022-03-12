@@ -80,15 +80,19 @@ class PurCInstance
 {
 public:
     PurCInstance(unsigned int modules, const char *app = NULL,
-            const char *runner = NULL) {
+            const char *runner = NULL,
+            struct purc_instance_extra_info* info = NULL) {
         init_ok = -1;
-        info = {};
         if (app == NULL)
             app = APP_NAME;
         if (runner == NULL)
             runner = RUNNER_NAME;
+        if (info == NULL) {
+            this->info = {};
+            info = &this->info;
+        }
 
-        if (purc_init_ex (modules, app, runner, &info))
+        if (purc_init_ex (modules, app, runner, info))
             return;
 
         init_ok = 0;

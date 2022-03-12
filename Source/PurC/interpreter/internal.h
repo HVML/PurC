@@ -106,8 +106,66 @@ bool
 pcintr_rdr_page_control_load(pcintr_stack_t stack);
 
 bool
-pcintr_rdr_dom_displace_content(pcintr_stack_t stack,
-        pcdom_element_t *node, const char *content);
+pcintr_rdr_send_dom_request(pcintr_stack_t stack, const char *operation,
+        pcdom_element_t *element, const char* property,
+        pcrdr_msg_data_type data_type, purc_variant_t data);
+bool
+pcintr_rdr_send_dom_request_ex(pcintr_stack_t stack, const char *operation,
+        pcdom_element_t *element, const char* property,
+        pcrdr_msg_data_type data_type, const char* data);
+
+
+#define pcintr_rdr_dom_append_content(stack, element, content)                \
+    pcintr_rdr_send_dom_request_ex(stack, PCRDR_OPERATION_APPEND,             \
+            element, NULL, PCRDR_MSG_DATA_TYPE_TEXT, content)
+
+#define pcintr_rdr_dom_prepend_content(stack, element, content)               \
+    pcintr_rdr_send_dom_request_ex(stack, PCRDR_OPERATION_PREPEND,            \
+            element, NULL, PCRDR_MSG_DATA_TYPE_TEXT, content)
+
+#define pcintr_rdr_dom_insert_before_element(stack, element, content)         \
+    pcintr_rdr_send_dom_request_ex(stack, PCRDR_OPERATION_INSERTBEFORE,       \
+            element, NULL, PCRDR_MSG_DATA_TYPE_TEXT, content)
+
+#define pcintr_rdr_dom_insert_after_element(stack, element, content)          \
+    pcintr_rdr_send_dom_request_ex(stack, PCRDR_OPERATION_INSERTAFTER,        \
+            element, NULL, PCRDR_MSG_DATA_TYPE_TEXT, content)
+
+#define pcintr_rdr_dom_displace_content(stack, element, content)              \
+    pcintr_rdr_send_dom_request_ex(stack, PCRDR_OPERATION_DISPLACE,           \
+            element, NULL, PCRDR_MSG_DATA_TYPE_TEXT, content)
+
+#define pcintr_rdr_dom_clear_element_content(stack, element)                  \
+    pcintr_rdr_send_dom_request(stack, PCRDR_OPERATION_CLEAR,                 \
+            element, NULL, PCRDR_MSG_DATA_TYPE_VOID, PURC_VARIANT_INVALID)
+
+#define pcintr_rdr_dom_erase_element(stack, element)                          \
+    pcintr_rdr_send_dom_request(stack, PCRDR_OPERATION_ERASE,                 \
+            element, NULL, PCRDR_MSG_DATA_TYPE_VOID, PURC_VARIANT_INVALID)
+
+#define pcintr_rdr_dom_erase_element_property(stack, element, prop)           \
+    pcintr_rdr_send_dom_request(stack, PCRDR_OPERATION_ERASE,                 \
+            element, prop, PCRDR_MSG_DATA_TYPE_VOID, PURC_VARIANT_INVALID)
+
+#define pcintr_rdr_dom_update_element_content_text(stack, element, content)   \
+    pcintr_rdr_send_dom_request_ex(stack, PCRDR_OPERATION_UPDATE,             \
+            element, NULL, PCRDR_MSG_DATA_TYPE_TEXT, content)
+
+#define pcintr_rdr_dom_update_element_content_ejson(stack, element, data)     \
+    pcintr_rdr_send_dom_request(stack, PCRDR_OPERATION_UPDATE,                \
+            element, NULL, PCRDR_MSG_DATA_TYPE_EJSON, data)
+
+#define pcintr_rdr_dom_update_element_property(stack, element, prop, content) \
+    pcintr_rdr_send_dom_request_ex(stack, PCRDR_OPERATION_UPDATE,             \
+            element, prop, PCRDR_MSG_DATA_TYPE_TEXT, content)
+
+bool
+pcintr_rdr_dom_append_child(pcintr_stack_t stack, pcdom_element_t *element,
+        pcdom_node_t *child);
+
+bool
+pcintr_rdr_dom_displace_child(pcintr_stack_t stack, pcdom_element_t *element,
+        pcdom_node_t *child);
 
 PCA_EXTERN_C_END
 

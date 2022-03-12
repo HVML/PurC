@@ -937,7 +937,8 @@ execute_one_step(pcintr_coroutine_t co)
     bool no_frames = list_empty(&co->stack->frames);
     if (no_frames) {
         /* send doc to rdr */
-        if (!pcintr_rdr_page_control_load(stack)) {
+        if (co->stack->stage == STACK_STAGE_FIRST_ROUND &&
+            !pcintr_rdr_page_control_load(stack)) {
             co->state = CO_STATE_TERMINATED;
             return;
         }
@@ -1896,8 +1897,8 @@ pcintr_util_append_element(pcdom_element_t* parent, const char *tag)
     return elem;
 }
 
-pcdom_text_t*
-pcintr_util_append_content(pcdom_element_t* parent, const char *txt)
+static pcdom_text_t*
+pcintr_util_append_content_inner(pcdom_element_t* parent, const char *txt)
 {
     pcdom_document_t *doc = pcdom_interface_node(parent)->owner_document;
     const unsigned char *content = (const unsigned char*)txt;
@@ -1908,8 +1909,21 @@ pcintr_util_append_content(pcdom_element_t* parent, const char *txt)
     if (text_node == NULL)
         return NULL;
 
-    pcdom_node_append_child(pcdom_interface_node(parent), pcdom_interface_node(text_node));
+    pcdom_node_append_child(pcdom_interface_node(parent),
+            pcdom_interface_node(text_node));
 
+    return text_node;
+}
+
+pcdom_text_t*
+pcintr_util_append_content(pcdom_element_t* parent, const char *txt)
+{
+    pcdom_text_t* text_node = pcintr_util_append_content_inner(parent, txt);
+    if (text_node == NULL) {
+        return NULL;
+    }
+
+    pcintr_rdr_dom_append_content(pcintr_get_stack(), parent, txt);
     return text_node;
 }
 
@@ -1920,9 +1934,13 @@ pcintr_util_displace_content(pcdom_element_t* parent, const char *txt)
     while (parent_node->first_child)
         pcdom_node_destroy_deep(parent_node->first_child);
 
-    // TODO:
+    pcdom_text_t* text_node = pcintr_util_append_content_inner(parent, txt);
+    if (text_node == NULL) {
+        return NULL;
+    }
+
     pcintr_rdr_dom_displace_content(pcintr_get_stack(), parent, txt);
-    return pcintr_util_append_content(parent, txt);
+    return text_node;
 }
 
 int
@@ -1933,7 +1951,11 @@ pcintr_util_set_attribute(pcdom_element_t *elem,
     attr = pcdom_element_set_attribute(elem,
             (const unsigned char*)key, strlen(key),
             (const unsigned char*)val, strlen(val));
-    return attr ? 0 : -1;
+    if (!attr) {
+        return -1;
+    }
+    pcintr_rdr_dom_update_element_property(pcintr_get_stack(), elem, key, val);
+    return 0;
 }
 
 pchtml_html_document_t*
@@ -2210,6 +2232,7 @@ pcintr_util_add_child_chunk(pcdom_element_t *parent, const char *chunk)
             pcdom_node_t *child = div->first_child;
             pcdom_node_remove(child);
             pcdom_node_append_child(pcdom_interface_node(parent), child);
+            pcintr_rdr_dom_append_child(pcintr_get_stack(), parent, child);
         }
         r = 0;
     } while (0);
@@ -2293,6 +2316,7 @@ pcintr_util_set_child_chunk(pcdom_element_t *parent, const char *chunk)
             pcdom_node_t *child = div->first_child;
             pcdom_node_remove(child);
             pcdom_node_append_child(pcdom_interface_node(parent), child);
+            pcintr_rdr_dom_displace_child(pcintr_get_stack(), parent, child);
         }
         r = 0;
     } while (0);
