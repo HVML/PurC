@@ -34,9 +34,9 @@
 #include "private/instance.h"
 #include "private/list.h"
 #include "private/sorted-array.h"
-#include "private/debug.h"
 #include "private/utils.h"
 #include "private/ports.h"
+#include "private/debug.h"
 
 #include <stdatomic.h>
 #include <assert.h>
@@ -58,13 +58,15 @@ struct pcinst_move_buffer {
 
 /* the header of the struct pcrdr_msg */
 struct pcrdr_msg_hdr {
-    atomic_uint             refc;
+    atomic_uint             owner;
     struct list_head        ln;
 };
 
 /* Make sure the size of `struct list_head` is two times of sizeof(void *) */
 #define _COMPILE_TIME_ASSERT(name, x)               \
        typedef int _dummy_ ## name[(x) * 2 - 1]
+_COMPILE_TIME_ASSERT(onwer_atom,
+        sizeof(atomic_uint) == sizeof(purc_atom_t));
 _COMPILE_TIME_ASSERT(list_head,
         sizeof(struct list_head) == (sizeof(void *) * 2));
 #undef _COMPILE_TIME_ASSERT
@@ -100,7 +102,13 @@ void pcinst_move_buffer_cleanup_once(void)
 pcrdr_msg *
 pcinst_get_message(void)
 {
+    struct pcinst* inst = pcinst_current();
     pcrdr_msg *msg;
+
+    if (inst == NULL) {
+        purc_set_error(PURC_ERROR_NO_INSTANCE);
+        return NULL;
+    }
 
 #if HAVE(GLIB)
     msg = (pcrdr_msg *)g_slice_alloc0(sizeof(pcrdr_msg));
@@ -110,8 +118,11 @@ pcinst_get_message(void)
 
     if (msg) {
         struct pcrdr_msg_hdr *hdr = (struct pcrdr_msg_hdr *)msg;
-        atomic_init(&hdr->refc, 1);
+        atomic_init(&hdr->owner, inst->endpoint_atom);
         PC_DEBUG("New message in %s: %p\n", __func__, msg);
+    }
+    else {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
     }
 
     return msg;
@@ -120,11 +131,12 @@ pcinst_get_message(void)
 void
 pcinst_put_message(pcrdr_msg *msg)
 {
+    struct pcinst* inst = pcinst_current();
     struct pcrdr_msg_hdr *hdr = (struct pcrdr_msg_hdr *)msg;
-    unsigned int refc = atomic_load(&hdr->refc);
+    purc_atom_t owner = (purc_atom_t)atomic_load(&hdr->owner);
 
-    PC_DEBUG("The current refc of message in %s: %d\n", __func__, refc);
-    if (refc <= 1) {
+    PC_DEBUG("The current owner atom of message in %s: %x\n", __func__, owner);
+    if (owner == inst->endpoint_atom) {
         PC_DEBUG("Freeing message in %s: %p\n", __func__, msg);
 
         if (msg->operation)
@@ -219,35 +231,39 @@ done:
 static void
 pcinst_grind_message(pcrdr_msg *msg)
 {
-    if (msg->operation)
-        purc_variant_unref(msg->operation);
-
-    if (msg->element)
-        purc_variant_unref(msg->element);
-
-    if (msg->property)
-        purc_variant_unref(msg->property);
-
-    if (msg->event)
-        purc_variant_unref(msg->event);
-
-    if (msg->requestId)
-        purc_variant_unref(msg->requestId);
-
-    if (msg->data)
-        purc_variant_unref(msg->data);
-
     struct pcrdr_msg_hdr *hdr = (struct pcrdr_msg_hdr *)msg;
-    unsigned int refc = atomic_load(&hdr->refc);
-    PC_DEBUG("message refc in %s: %u\n", __func__, refc);
+    purc_atom_t owner = atomic_load(&hdr->owner);
+    PC_DEBUG("message owner in %s: %x\n", __func__, owner);
 
-    if (refc > 1) {
+    if (owner == 0) {
         PC_DEBUG("Freeing message in %s: %p\n", __func__, msg);
+
+        if (msg->operation)
+            purc_variant_unref(msg->operation);
+
+        if (msg->element)
+            purc_variant_unref(msg->element);
+
+        if (msg->property)
+            purc_variant_unref(msg->property);
+
+        if (msg->event)
+            purc_variant_unref(msg->event);
+
+        if (msg->requestId)
+            purc_variant_unref(msg->requestId);
+
+        if (msg->data)
+            purc_variant_unref(msg->data);
+
 #if HAVE(GLIB)
         g_slice_free1(sizeof(pcrdr_msg), (gpointer)msg);
 #else
         free(msg);
 #endif
+    }
+    else {
+        PC_ERROR("Freeing a message not owned by the move buffer: %p\n", msg);
     }
 }
 
@@ -306,43 +322,54 @@ done:
 }
 
 static void
-do_move_message(pcrdr_msg *msg)
+do_move_message(struct pcinst* inst, pcrdr_msg *msg)
 {
     struct pcrdr_msg_hdr *hdr = (struct pcrdr_msg_hdr *)msg;
-    atomic_fetch_add(&hdr->refc, 1);
 
-    if (msg->operation)
-        msg->operation = pcvariant_move_heap_in(msg->operation);
-    if (msg->element)
-        msg->element = pcvariant_move_heap_in(msg->element);
-    if (msg->property)
-        msg->property = pcvariant_move_heap_in(msg->property);
-    if (msg->event)
-        msg->event = pcvariant_move_heap_in(msg->event);
-    if (msg->requestId)
-        msg->requestId = pcvariant_move_heap_in(msg->requestId);
-    if (msg->data)
-        msg->data = pcvariant_move_heap_in(msg->data);
+    if (atomic_compare_exchange_strong(&hdr->owner, &inst->endpoint_atom, 0)) {
+
+        if (msg->operation)
+            msg->operation = pcvariant_move_heap_in(msg->operation);
+        if (msg->element)
+            msg->element = pcvariant_move_heap_in(msg->element);
+        if (msg->property)
+            msg->property = pcvariant_move_heap_in(msg->property);
+        if (msg->event)
+            msg->event = pcvariant_move_heap_in(msg->event);
+        if (msg->requestId)
+            msg->requestId = pcvariant_move_heap_in(msg->requestId);
+        if (msg->data)
+            msg->data = pcvariant_move_heap_in(msg->data);
+    }
+    else {
+        PC_ERROR("Moving a message not owned by the current inst: %p\n", msg);
+    }
 }
 
 static void
-do_take_message(pcrdr_msg *msg)
+do_take_message(struct pcinst* inst, pcrdr_msg *msg)
 {
+    static const unsigned int mb_owner = 0;
     struct pcrdr_msg_hdr *hdr = (struct pcrdr_msg_hdr *)msg;
-    atomic_fetch_sub(&hdr->refc, 1);
 
-    if (msg->operation)
-        msg->operation = pcvariant_move_heap_out(msg->operation);
-    if (msg->element)
-        msg->element = pcvariant_move_heap_out(msg->element);
-    if (msg->property)
-        msg->property = pcvariant_move_heap_out(msg->property);
-    if (msg->event)
-        msg->event = pcvariant_move_heap_out(msg->event);
-    if (msg->requestId)
-        msg->requestId = pcvariant_move_heap_out(msg->requestId);
-    if (msg->data)
-        msg->data = pcvariant_move_heap_out(msg->data);
+    if (atomic_compare_exchange_strong(&hdr->owner, &mb_owner,
+                inst->endpoint_atom)) {
+        if (msg->operation)
+            msg->operation = pcvariant_move_heap_out(msg->operation);
+        if (msg->element)
+            msg->element = pcvariant_move_heap_out(msg->element);
+        if (msg->property)
+            msg->property = pcvariant_move_heap_out(msg->property);
+        if (msg->event)
+            msg->event = pcvariant_move_heap_out(msg->event);
+        if (msg->requestId)
+            msg->requestId = pcvariant_move_heap_out(msg->requestId);
+        if (msg->data)
+            msg->data = pcvariant_move_heap_out(msg->data);
+    }
+    else {
+        PC_ERROR("Taking a message not owned by the move buffer: %p\n", msg);
+    }
 }
 
 size_t
@@ -351,6 +378,12 @@ purc_inst_move_message(purc_atom_t inst_to, pcrdr_msg *msg)
     int errcode = 0;
     size_t nr = 0;
     struct pcinst_move_buffer *mb;
+    struct pcinst* inst = pcinst_current();
+
+    if (inst == NULL) {
+        purc_set_error(PURC_ERROR_NO_INSTANCE);
+        return 0;
+    }
 
     purc_rwlock_reader_lock(&mb_lock);
 
@@ -366,7 +399,7 @@ purc_inst_move_message(purc_atom_t inst_to, pcrdr_msg *msg)
             goto done;
         }
 
-        do_move_message(msg);
+        do_move_message(inst, msg);
 
         purc_rwlock_writer_lock(&mb->lock);
         struct pcrdr_msg_hdr *hdr = (struct pcrdr_msg_hdr *)msg;
@@ -388,12 +421,12 @@ purc_inst_move_message(purc_atom_t inst_to, pcrdr_msg *msg)
 
                 if (i == count - 1) {
                     my_msg = msg;
-                    do_move_message(msg);
+                    do_move_message(inst, msg);
                 }
                 else {
                     my_msg = pcrdr_clone_message(msg);
                     if (my_msg) {
-                        do_move_message(my_msg);
+                        do_move_message(inst, my_msg);
                         pcrdr_release_message(my_msg);
                     }
                     else {
@@ -508,8 +541,10 @@ pcrdr_msg *
 purc_inst_take_away_message(size_t index)
 {
     struct pcinst* inst = pcinst_current();
-    if (inst == NULL)
+    if (inst == NULL) {
+        purc_set_error(PURC_ERROR_NO_INSTANCE);
         return NULL;
+    }
 
     int errcode = 0;
     pcrdr_msg *msg = NULL;
@@ -547,7 +582,7 @@ purc_inst_take_away_message(size_t index)
     purc_rwlock_writer_unlock(&mb->lock);
 
     if (msg)
-        do_take_message(msg);
+        do_take_message(inst, msg);
 
 done:
     purc_rwlock_reader_unlock(&mb_lock);

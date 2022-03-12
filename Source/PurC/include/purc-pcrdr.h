@@ -557,7 +557,7 @@ typedef enum {
 /** the renderer message structure */
 struct pcrdr_msg
 {
-    unsigned int           _ref_count;
+    purc_atom_t             __owner;
     void                   *__padding1; // reserved for struct list_head
     void                   *__padding2; // reserved for struct list_head
 
@@ -595,7 +595,7 @@ pcrdr_make_void_message(void);
  *
  * @param target: the target of the message.
  * @param target_value: the value of the target object
- * @param operation: the request operation, must be a static const string.
+ * @param operation: the request operation string.
  * @param element_type: the element type of the request
  * @param element: the pointer to the element(s) (nullable).
  * @param property: the property (nullable).
@@ -638,7 +638,7 @@ pcrdr_make_response_message(
  *
  * @param target: the target of the message.
  * @param target_value: the value of the target object
- * @param event: the event name, must be a static const string.
+ * @param event: the event name string.
  * @param element_type: the element type.
  * @param element: the pointer to the element(s) (nullable).
  * @param property: the property (nullable)
