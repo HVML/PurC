@@ -808,3 +808,40 @@ pcvar_object_break_edge_to_parent(purc_variant_t obj,
     pcvar_break_edge(obj, &data->rev_update_chain, edge);
 }
 
+int
+pcvar_object_build_rev_update_edges(purc_variant_t obj)
+{
+    PC_ASSERT(purc_variant_is_object(obj));
+    variant_obj_t data = (variant_obj_t)obj->sz_ptr[1];
+    if (!data)
+        return 0;
+
+    struct rb_root *root = &data->kvs;
+    struct rb_node *p = pcutils_rbtree_first(root);
+    for (; p; p = pcutils_rbtree_next(p)) {
+        struct obj_node *node;
+        node = container_of(p, struct obj_node, node);
+        struct pcvar_rev_update_edge edge = {
+            .parent         = obj,
+            .obj_me         = node,
+        };
+        int r = pcvar_build_edge_to_parent(node->val, &edge);
+        if (r)
+            return -1;
+    }
+
+    return 0;
+}
+
+int
+pcvar_object_build_edge_to_parent(purc_variant_t obj,
+        struct pcvar_rev_update_edge *edge)
+{
+    PC_ASSERT(purc_variant_is_object(obj));
+    variant_obj_t data = (variant_obj_t)obj->sz_ptr[1];
+    if (!data)
+        return 0;
+
+    return pcvar_build_edge(obj, &data->rev_update_chain, edge);
+}
+

@@ -106,10 +106,37 @@ pcvar_object_break_edge_to_parent(purc_variant_t obj,
 void
 pcvar_set_break_edge_to_parent(purc_variant_t set,
         struct pcvar_rev_update_edge *edge);
-
+// break edge utility
 void
 pcvar_break_edge(purc_variant_t val, struct list_head *chain,
         struct pcvar_rev_update_edge *edge);
+
+// build children's reverse update edges recursively
+int
+pcvar_build_rev_update_edges(purc_variant_t val);
+int
+pcvar_array_build_rev_update_edges(purc_variant_t arr);
+int
+pcvar_object_build_rev_update_edges(purc_variant_t obj);
+
+// build edge for `val` and it's children's edges
+int
+pcvar_build_edge_to_parent(purc_variant_t val,
+        struct pcvar_rev_update_edge *edge);
+int
+pcvar_array_build_edge_to_parent(purc_variant_t arr,
+        struct pcvar_rev_update_edge *edge);
+int
+pcvar_object_build_edge_to_parent(purc_variant_t obj,
+        struct pcvar_rev_update_edge *edge);
+int
+pcvar_set_build_edge_to_parent(purc_variant_t set,
+        struct pcvar_rev_update_edge *edge);
+// build edge utility
+int
+pcvar_build_edge(purc_variant_t val, struct list_head *chain,
+        struct pcvar_rev_update_edge *edge);
+
 
 #ifdef __cplusplus
 }

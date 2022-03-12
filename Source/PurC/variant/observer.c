@@ -286,63 +286,92 @@ pcvar_break_edge(purc_variant_t val, struct list_head *chain,
     pcvar_break_rev_update_edges(val);
 }
 
-#if 0                      /* { */
-struct edge_node {
-    struct rb_node     **pnode;
-    struct rb_node      *parent;
-    struct rb_node      *entry;
-};
-
-static int
-edge_cmp(struct pcvar_rev_update_edge *edge, purc_variant_t parent,
-        purc_variant_t child)
+int
+pcvar_build_rev_update_edges(purc_variant_t val)
 {
-    PC_ASSERT(parent != PURC_VARIANT_INVALID);
-    PC_ASSERT(pcvariant_is_mutable(parent));
-
-    if (edge->parent != parent)
-        return edge->parent - parent;
-
-    switch (parent->type) {
+    PC_ASSERT(val != PURC_VARIANT_INVALID);
+    switch (val->type) {
         case PURC_VARIANT_TYPE_ARRAY:
-            return (edge->arr_child - (struct arr_node*)child_node);
+            return pcvar_array_build_rev_update_edges(val);
         case PURC_VARIANT_TYPE_OBJECT:
-            return (edge->obj_child - (struct obj_node*)child_node);
+            return pcvar_object_build_rev_update_edges(val);
         case PURC_VARIANT_TYPE_SET:
-            return (edge->set_child - (struct elem_node*)child_node);
+            return 0;
         default:
             PC_ASSERT(0);
-            return 0; // never reached here
     }
 }
 
-static void
-find_edge_node(struct edge_node *node, struct rb_root *root,
-        purc_variant_t v_parent, purc_variant_t v_child)
+int
+pcvar_build_edge_to_parent(purc_variant_t val,
+        struct pcvar_rev_update_edge *edge)
 {
-    struct rb_node **pnode = &root->rb_node;
-    struct rb_node *parent = NULL;
-    struct rb_node *entry = NULL;
-    while (*pnode) {
-        struct pcvar_rev_update_edge *on;
-        on = container_of(*pnode, struct pcvar_rev_update_edge, node);
-        int ret = edge_cmp(on, v_parent, v_child);
+    PC_ASSERT(val != PURC_VARIANT_INVALID);
+    if (pcvariant_is_mutable(val) == false)
+        return 0;
 
-        parent = *pnode;
+    switch (val->type) {
+        case PURC_VARIANT_TYPE_ARRAY:
+            return pcvar_array_build_edge_to_parent(val, edge);
+        case PURC_VARIANT_TYPE_OBJECT:
+            return pcvar_object_build_edge_to_parent(val, edge);
+        case PURC_VARIANT_TYPE_SET:
+            return pcvar_set_build_edge_to_parent(val, edge);
+        default:
+            PC_ASSERT(0);
+    }
+}
 
-        if (ret < 0)
-            pnode = &parent->rb_left;
-        else if (ret > 0)
-            pnode = &parent->rb_right;
-        else{
-            entry = *pnode;
-            break;
+int
+pcvar_build_edge(purc_variant_t val, struct list_head *chain,
+        struct pcvar_rev_update_edge *edge)
+{
+    PC_ASSERT(val != PURC_VARIANT_INVALID);
+    PC_ASSERT(chain);
+    PC_ASSERT(edge);
+
+    struct list_head *p, *n;
+    list_for_each_safe(p, n, chain) {
+        struct pcvar_rev_update_edge_node *node;
+        node = container_of(p, struct pcvar_rev_update_edge_node, node);
+        if (edge->parent != node->edge.parent)
+            continue;
+
+        switch (edge->parent->type) {
+            case PURC_VARIANT_TYPE_ARRAY:
+                PC_ASSERT(edge->arr_me->val == val);
+                if (edge->arr_me != node->edge.arr_me)
+                    continue;
+                return 0;
+
+            case PURC_VARIANT_TYPE_OBJECT:
+                PC_ASSERT(edge->obj_me->val == val);
+                if (edge->obj_me != node->edge.obj_me)
+                    continue;
+                return 0;
+
+            case PURC_VARIANT_TYPE_SET:
+                PC_ASSERT(edge->set_me->elem == val);
+                if (edge->set_me != node->edge.set_me)
+                    continue;
+                return 0;
+
+            default:
+                PC_ASSERT(0);
         }
+
+        break;
     }
 
-    node->pnode  = pnode;
-    node->parent = parent;
-    node->entry  = entry;
+    struct pcvar_rev_update_edge_node *_new;
+    _new = (struct pcvar_rev_update_edge_node*)calloc(1, sizeof(*_new));
+    if (!_new) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return -1;
+    }
+    _new->edge = *edge;
+    list_add_tail(&_new->node, chain);
+
+    return pcvar_build_rev_update_edges(val);
 }
-#endif                     /* } */
 

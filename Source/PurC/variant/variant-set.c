@@ -1671,3 +1671,15 @@ pcvar_set_break_edge_to_parent(purc_variant_t set,
     pcvar_break_edge(set, &data->rev_update_chain, edge);
 }
 
+int
+pcvar_set_build_edge_to_parent(purc_variant_t set,
+        struct pcvar_rev_update_edge *edge)
+{
+    PC_ASSERT(purc_variant_is_set(set));
+    variant_set_t data = pcv_set_get_data(set);
+    if (!data)
+        return 0;
+
+    return pcvar_build_edge(set, &data->rev_update_chain, edge);
+}
+

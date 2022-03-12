@@ -681,3 +681,38 @@ pcvar_array_break_edge_to_parent(purc_variant_t arr,
     pcvar_break_edge(arr, &data->rev_update_chain, edge);
 }
 
+int
+pcvar_array_build_rev_update_edges(purc_variant_t arr)
+{
+    PC_ASSERT(purc_variant_is_array(arr));
+
+    variant_arr_t data = (variant_arr_t)arr->sz_ptr[1];
+    if (!data)
+        return 0;
+
+    struct arr_node *p;
+    foreach_in_variant_array(arr, p) {
+        struct pcvar_rev_update_edge edge = {
+            .parent         = arr,
+            .arr_me         = p,
+        };
+        int r = pcvar_build_edge_to_parent(p->val, &edge);
+        if (r)
+            return -1;
+    }
+
+    return 0;
+}
+
+int
+pcvar_array_build_edge_to_parent(purc_variant_t arr,
+        struct pcvar_rev_update_edge *edge)
+{
+    PC_ASSERT(purc_variant_is_array(arr));
+    variant_arr_t data = (variant_arr_t)arr->sz_ptr[1];
+    if (!data)
+        return 0;
+
+    return pcvar_build_edge(arr, &data->rev_update_chain, edge);
+}
+
