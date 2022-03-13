@@ -523,18 +523,35 @@ elem_node_break_rev_update_edges(purc_variant_t set, struct set_node *elem)
 }
 
 static void
-elem_node_release(struct set_node *elem)
+elem_node_release(struct set_node *node)
 {
-    if (elem->elem != PURC_VARIANT_INVALID) {
-        if (elem->set != PURC_VARIANT_INVALID) {
-            elem_node_break_rev_update_edges(elem->set, elem);
+    if (node->elem != PURC_VARIANT_INVALID) {
+        if (node->set != PURC_VARIANT_INVALID) {
+            elem_node_break_rev_update_edges(node->set, node);
         }
-        elem_node_revoke_constraints(elem);
-        purc_variant_unref(elem->elem);
-        elem->elem = PURC_VARIANT_INVALID;
+        elem_node_revoke_constraints(node);
+        purc_variant_unref(node->elem);
+        node->elem = PURC_VARIANT_INVALID;
     }
-    PURC_VARIANT_SAFE_CLEAR(elem->kvs);
-    elem->set = PURC_VARIANT_INVALID;
+
+    if (node->set != PURC_VARIANT_INVALID) {
+        purc_variant_t set = node->set;
+        variant_set_t data = pcv_set_get_data(set);
+        if (data) {
+            struct pcutils_arrlist *al = data->arr;
+            if (al) {
+                pcutils_rbtree_erase(&node->node, &data->elems);
+                if (node->idx != (size_t)-1) {
+                    int r;
+                    r = pcutils_arrlist_del_idx(al, node->idx, 1);
+                    PC_ASSERT(r == 0);
+                }
+            }
+        }
+    }
+
+    PURC_VARIANT_SAFE_CLEAR(node->kvs);
+    node->set = PURC_VARIANT_INVALID;
 }
 
 static int
@@ -579,26 +596,27 @@ refresh_arr(struct pcutils_arrlist *arr, size_t idx)
 }
 
 static void
-variant_set_release_elems(variant_set_t set)
+variant_set_release_elems(variant_set_t data)
 {
-    struct rb_node *node, *next;
-    for (node=pcutils_rbtree_first(&set->elems);
-         ({next = node ? pcutils_rbtree_next(node) : NULL; node;});
-         node = next)
-    {
-        struct set_node *p;
-        p = container_of(node, struct set_node, node);
-        pcutils_rbtree_erase(node, &set->elems);
-        // NOTE: for the sake of performance
-        // int r = pcutils_arrlist_del_idx(set->arr, p->idx, 1);
-        // PC_ASSERT(r==0);
-        // refresh_arr(set->arr, p->idx);
-        elem_node_release(p);
-        free(p);
+    if (!data->arr)
+        return;
+
+    struct pcutils_arrlist *al = data->arr;
+    size_t count = pcutils_arrlist_length(al);
+    if (count > 0) {
+        for (size_t i=count; i-->0; ) {
+            void *p = pcutils_arrlist_get_idx(al, i);
+            PC_ASSERT(p);
+            struct set_node *node;
+            node = (struct set_node*)p;
+
+            elem_node_release(node);
+            free(node);
+        }
     }
 
-    pcutils_arrlist_free(set->arr);
-    set->arr = NULL;
+    pcutils_arrlist_free(data->arr);
+    data->arr = NULL;
 }
 
 static void
@@ -691,7 +709,7 @@ set_remove(purc_variant_t set, variant_set_t data, struct set_node *node,
     shrunk(set, node->elem, check);
 
     refresh_arr(data->arr, node->idx);
-    node->idx = -1;
+    // node->idx = -1;
     elem_node_release(node);
     free(node);
 
