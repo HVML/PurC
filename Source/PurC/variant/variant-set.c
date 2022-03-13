@@ -275,9 +275,14 @@ pcv_set_new(void)
 static void
 elem_node_revoke_constraints(struct set_node *node)
 {
-    bool ok;
+    if (!node)
+        return;
 
-    PC_ASSERT(node->set != PURC_VARIANT_INVALID);
+    if (node->set == PURC_VARIANT_INVALID)
+        return;
+
+    if (node->elem == PURC_VARIANT_INVALID)
+        return;
 
     struct pcvar_rev_update_edge edge = {
         .parent        = node->set,
@@ -287,6 +292,7 @@ elem_node_revoke_constraints(struct set_node *node)
 
     if (node->constraints) {
         PC_ASSERT(node->elem);
+        bool ok;
         ok = purc_variant_revoke_listener(node->elem, node->constraints);
         PC_ASSERT(ok);
         node->constraints = NULL;
@@ -492,15 +498,6 @@ elem_node_setup_constraints(struct set_node *node)
 }
 
 static void
-elem_node_break_edge(struct set_node *node)
-{
-    if (node->elem == PURC_VARIANT_INVALID)
-        return;
-
-    elem_node_revoke_constraints(node);
-}
-
-static void
 refresh_arr(struct pcutils_arrlist *arr, size_t idx)
 {
     if (idx == (size_t)-1)
@@ -543,7 +540,7 @@ elem_node_remove(struct set_node *node)
 static void
 elem_node_release(struct set_node *node)
 {
-    elem_node_break_edge(node);
+    elem_node_revoke_constraints(node);
     elem_node_remove(node);
 
     PURC_VARIANT_SAFE_CLEAR(node->kvs);
@@ -686,7 +683,7 @@ set_remove(purc_variant_t set, variant_set_t data, struct set_node *node,
         return -1;
     }
 
-    elem_node_break_edge(node);
+    elem_node_revoke_constraints(node);
     elem_node_remove(node);
 
     shrunk(set, node->elem, check);
