@@ -255,7 +255,7 @@ pcvar_break_edge(purc_variant_t val, struct list_head *chain,
                     continue;
                 list_del(p);
                 free(node);
-                break;
+                return;
 
             case PURC_VARIANT_TYPE_OBJECT:
                 PC_ASSERT(edge->obj_me->val == val);
@@ -263,7 +263,7 @@ pcvar_break_edge(purc_variant_t val, struct list_head *chain,
                     continue;
                 list_del(p);
                 free(node);
-                break;
+                return;
 
             case PURC_VARIANT_TYPE_SET:
                 PC_ASSERT(edge->set_me->elem == val);
@@ -271,19 +271,12 @@ pcvar_break_edge(purc_variant_t val, struct list_head *chain,
                     continue;
                 list_del(p);
                 free(node);
-                break;
+                return;
 
             default:
                 PC_ASSERT(0);
         }
-
-        break;
     }
-
-    if (list_empty(chain) == false)
-        return;
-
-    pcvar_break_rue_downward(val);
 }
 
 int
@@ -372,6 +365,6 @@ pcvar_build_edge(purc_variant_t val, struct list_head *chain,
     _new->edge = *edge;
     list_add_tail(&_new->node, chain);
 
-    return pcvar_build_rue_downward(val);
+    return 0;
 }
 
