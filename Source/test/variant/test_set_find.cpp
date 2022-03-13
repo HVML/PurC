@@ -63,16 +63,18 @@ TEST(set, unique_key_find)
     purc_variant_t set = purc_variant_make_set_by_ckey(2, "id", obj_1, obj_2);
     ASSERT_NE(set, PURC_VARIANT_INVALID);
 
-    purc_variant_t v = pcvariant_set_find(set, obj_3);
-    ASSERT_NE(v, PURC_VARIANT_INVALID);
-    // ASSERT_EQ(obj_2, v);
-    ASSERT_EQ(0, pcvariant_equal(obj_2, v));
+    if (1) {
+        purc_variant_t v = pcvariant_set_find(set, obj_3);
+        ASSERT_NE(v, PURC_VARIANT_INVALID);
+        // ASSERT_EQ(obj_2, v);
+        ASSERT_EQ(0, pcvariant_equal(obj_2, v));
 
-    bool overwrite = purc_variant_set_overwrite(set, obj_3, true);
-    ASSERT_EQ(overwrite, true);
+        bool overwrite = purc_variant_set_overwrite(set, obj_3, true);
+        ASSERT_EQ(overwrite, true);
 
-    v = pcvariant_set_find(set, obj_3);
-    ASSERT_NE(v, PURC_VARIANT_INVALID);
+        v = pcvariant_set_find(set, obj_3);
+        ASSERT_NE(v, PURC_VARIANT_INVALID);
+    }
 
     if (1) {
         bool ok = purc_variant_set_add(set, obj_3, true);

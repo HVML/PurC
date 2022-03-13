@@ -447,10 +447,11 @@ variant_set_constraints_handler(
 }
 
 static bool
-elem_node_setup_constraints(purc_variant_t set, struct set_node *elem)
+elem_node_setup_constraints(struct set_node *elem)
 {
-    PC_ASSERT(elem->set == PURC_VARIANT_INVALID);
-    elem->set = set;
+    PC_ASSERT(elem->set != PURC_VARIANT_INVALID);
+    purc_variant_t set = elem->set;
+
     purc_variant_t child = elem->elem;
     PC_ASSERT(child != PURC_VARIANT_INVALID);
     PC_ASSERT(purc_variant_is_object(child));
@@ -522,6 +523,33 @@ elem_node_release(struct set_node *elem)
     }
     PURC_VARIANT_SAFE_CLEAR(elem->kvs);
     elem->set = PURC_VARIANT_INVALID;
+}
+
+static int
+elem_node_replace(struct set_node *node,
+        purc_variant_t val, purc_variant_t kvs)
+{
+    PC_ASSERT(node->set != PURC_VARIANT_INVALID);
+    PC_ASSERT(node->elem != PURC_VARIANT_INVALID);
+
+    purc_variant_t set = node->set;
+
+    purc_variant_ref(val);
+    purc_variant_ref(kvs);
+
+    elem_node_break_rev_update_edges(node->set, node);
+    elem_node_revoke_constraints(node);
+    PURC_VARIANT_SAFE_CLEAR(node->elem);
+    PURC_VARIANT_SAFE_CLEAR(node->kvs);
+
+    node->elem = val;
+    node->kvs  = kvs;
+    node->set  = set;
+
+    if (!elem_node_setup_constraints(node))
+        return -1;
+
+    return 0;
 }
 
 static void
@@ -672,9 +700,12 @@ variant_set_prepare_object(variant_set_t set, purc_variant_t val)
 }
 
 static struct set_node*
-variant_set_create_elem_node (variant_set_t set, purc_variant_t val)
+variant_set_create_elem_node (purc_variant_t set, purc_variant_t val)
 {
-    purc_variant_t cloned = variant_set_prepare_object(set, val);
+    variant_set_t data = pcv_set_get_data(set);
+    PC_ASSERT(data);
+
+    purc_variant_t cloned = variant_set_prepare_object(data, val);
     if (cloned == PURC_VARIANT_INVALID)
         return NULL;
 
@@ -684,7 +715,7 @@ variant_set_create_elem_node (variant_set_t set, purc_variant_t val)
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
     }
-    _new->kvs = variant_set_create_kvs(set, cloned);
+    _new->kvs = variant_set_create_kvs(data, cloned);
     if (!_new->kvs) {
         purc_variant_unref(cloned);
         free(_new);
@@ -692,6 +723,7 @@ variant_set_create_elem_node (variant_set_t set, purc_variant_t val)
     }
 
     _new->elem = cloned;
+    _new->set  = set;
 
     return _new;
 }
@@ -746,155 +778,6 @@ find_element(variant_set_t set, purc_variant_t kvs)
 }
 
 static int
-insert_or_replace(purc_variant_t set,
-        variant_set_t data, struct set_node *node, bool overwrite,
-        bool check)
-{
-    struct element_rb_node rbn;
-    find_element_rb_node(&rbn, data, node->kvs);
-
-    if (!rbn.entry) {
-        int r = pcutils_arrlist_add(data->arr, node);
-        if (r)
-            return -1;
-        size_t count = pcutils_arrlist_length(data->arr);
-
-        if (!grow(set, node->elem, check)) {
-            bool ok = pcutils_arrlist_del_idx(data->arr, count-1, 1);
-            PC_ASSERT(ok);
-            return -1;
-        }
-
-        if (!elem_node_setup_constraints(set, node)) {
-            bool ok = pcutils_arrlist_del_idx(data->arr, count-1, 1);
-            PC_ASSERT(ok);
-            return -1;
-        }
-
-        node->idx = count - 1;
-
-        struct rb_node *entry = &node->node;
-
-        pcutils_rbtree_link_node(entry, rbn.parent, rbn.pnode);
-        pcutils_rbtree_insert_color(entry, &data->elems);
-
-        grown(set, node->elem, check);
-
-        return 0;
-    }
-
-    if (!overwrite) {
-        return -1;
-    }
-
-    struct set_node *curr;
-    curr = container_of(rbn.entry, struct set_node, node);
-    PC_ASSERT(curr != node);
-    PC_ASSERT(curr->kvs != node->kvs);
-
-    if (curr->elem == node->elem) {
-        elem_node_release(node);
-        free(node);
-        return 0;
-    }
-
-    PC_ASSERT(curr->elem != node->elem);
-    if (data->keynames == NULL) {
-        // totally equal, nothing changed
-        elem_node_release(node);
-        free(node);
-        return 0;
-    }
-
-    purc_variant_t tmp = purc_variant_make_object(0,
-        PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
-    if (tmp == PURC_VARIANT_INVALID) {
-        return -1;
-    }
-
-    // TODO: performance, performance, performance!!!
-    bool ok = true;
-    // step1: copy current into tmp
-    purc_variant_t k, v;
-    foreach_key_value_in_variant_object(curr->elem, k, v)
-        ok = purc_variant_object_set(tmp, k, v);
-        if (!ok)
-            break;
-    end_foreach;
-    if (!ok) {
-        purc_variant_unref(tmp);
-        return -1;
-    }
-    // step2: update tmp with src
-    foreach_key_value_in_variant_object(node->elem, k, v)
-        const char *sk = purc_variant_get_string_const(k);
-        // bypass key-fields
-        bool is_key = false;
-        for (size_t i=0; i<data->nr_keynames; ++i) {
-            if (strcmp(data->keynames[i], sk)==0) {
-                is_key = true;
-                break;
-            }
-        }
-        if (is_key)
-            continue;
-        if (purc_variant_is_type(v, PURC_VARIANT_TYPE_UNDEFINED)) {
-            // remove the specified key-field
-            purc_variant_object_remove(tmp, k, true);
-        }
-        else {
-            // add kv pair
-            ok = purc_variant_object_set(tmp, k, v);
-            if (!ok)
-                break;
-        }
-    end_foreach;
-    if (!ok) {
-        purc_variant_unref(tmp);
-        return -1;
-    }
-
-    if (!change(set, curr->elem, tmp, check)) {
-        purc_variant_unref(tmp);
-        return -1;
-    }
-
-    changed(set, curr->elem, tmp, check);
-
-    // replace with tmp, performance, performance, performance!!!
-    foreach_key_value_in_variant_object(tmp, k, v)
-        const char *sk = purc_variant_get_string_const(k);
-        // bypass key-fields
-        bool is_key = false;
-        for (size_t i=0; i<data->nr_keynames; ++i) {
-            if (strcmp(data->keynames[i], sk)==0) {
-                is_key = true;
-                break;
-            }
-        }
-        if (is_key)
-            continue;
-        if (purc_variant_is_type(v, PURC_VARIANT_TYPE_UNDEFINED)) {
-            // remove the specified key-field
-            purc_variant_object_remove(curr->elem, k, true);
-        }
-        else {
-            // add kv pair
-            ok = purc_variant_object_set(curr->elem, k, v);
-            PC_ASSERT(ok); // TODO: rollback???
-            if (!ok)
-                break;
-        }
-    end_foreach;
-    PURC_VARIANT_SAFE_CLEAR(tmp);
-
-    elem_node_release(node);
-    free(node);
-
-    return 0;
-}
-
-static int
 set_remove(purc_variant_t set, variant_set_t data, struct set_node *node,
         bool check)
 {
@@ -917,6 +800,145 @@ set_remove(purc_variant_t set, variant_set_t data, struct set_node *node,
 }
 
 static int
+insert(purc_variant_t set, variant_set_t data,
+        purc_variant_t val, purc_variant_t kvs,
+        struct rb_node *parent, struct rb_node **pnode,
+        bool check)
+{
+    UNUSED_PARAM(kvs);
+
+    if (!grow(set, val, check))
+        return -1;
+
+    struct set_node *node;
+    node = variant_set_create_elem_node(set, val);
+    if (!node)
+        return -1;
+
+    int r = pcutils_arrlist_add(data->arr, node);
+    if (r) {
+        elem_node_release(node);
+        free(node);
+        return -1;
+    }
+
+    size_t count = pcutils_arrlist_length(data->arr);
+    node->idx = count - 1;
+
+    struct rb_node *entry = &node->node;
+
+    pcutils_rbtree_link_node(entry, parent, pnode);
+    pcutils_rbtree_insert_color(entry, &data->elems);
+
+    if (!elem_node_setup_constraints(node)) {
+        bool check = false;
+        r = set_remove(set, data, node, check);
+        PC_ASSERT(r == 0);
+        return -1;
+    }
+
+    grown(set, node->elem, check);
+
+    return 0;
+}
+
+static purc_variant_t
+variant_set_union(variant_set_t data, purc_variant_t old, purc_variant_t _new)
+{
+    UNUSED_PARAM(data);
+    // FIXME: performance, performance, performance!!!
+    purc_variant_t output;
+    output = purc_variant_make_object(0,
+            PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+    if (output == PURC_VARIANT_INVALID)
+        return PURC_VARIANT_INVALID;
+
+    purc_variant_t k, v;
+    foreach_key_value_in_variant_object(_new, k, v) {
+        PC_ASSERT(purc_variant_is_undefined(v) == false);
+        bool ok;
+        ok = purc_variant_object_set(output, k, v);
+        if (!ok) {
+            purc_variant_unref(output);
+            return PURC_VARIANT_INVALID;
+        }
+    } end_foreach;
+
+    foreach_key_value_in_variant_object(old, k, v) {
+        PC_ASSERT(purc_variant_is_undefined(v) == false);
+        bool silently = true;
+        purc_variant_t t = purc_variant_object_get(output, k, silently);
+        if (t != PURC_VARIANT_INVALID)
+            continue;
+
+        bool ok;
+        ok = purc_variant_object_set(output, k, v);
+        if (!ok) {
+            purc_variant_unref(output);
+            return PURC_VARIANT_INVALID;
+        }
+    } end_foreach;
+
+    return output;
+}
+
+static int
+insert_or_replace(purc_variant_t set,
+        variant_set_t data, purc_variant_t val, bool overwrite,
+        bool check)
+{
+    purc_variant_t kvs = variant_set_create_kvs(data, val);
+    if (kvs == PURC_VARIANT_INVALID)
+        return -1;
+
+    struct element_rb_node rbn;
+    find_element_rb_node(&rbn, data, kvs);
+
+    if (!rbn.entry) {
+        int r = insert(set, data, val, kvs, rbn.parent, rbn.pnode, check);
+        purc_variant_unref(kvs);
+        return r ? -1 : 0;
+    }
+
+    if (!overwrite) {
+        purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+        return -1;
+    }
+
+    struct set_node *curr;
+    curr = container_of(rbn.entry, struct set_node, node);
+
+    PC_ASSERT(curr->set != PURC_VARIANT_INVALID);
+
+    if (curr->elem == val)
+        return 0;
+
+    purc_variant_t tmp = variant_set_union(data, curr->elem, val);
+    do {
+        if (tmp == PURC_VARIANT_INVALID)
+            break;
+
+        if (!change(set, curr->elem, tmp, check))
+            break;
+
+        if (elem_node_replace(curr, tmp, kvs))
+            break;
+
+        changed(set, curr->elem, tmp, check);
+
+        PURC_VARIANT_SAFE_CLEAR(tmp);
+        PURC_VARIANT_SAFE_CLEAR(kvs);
+
+        return 0;
+    } while (0);
+
+    PURC_VARIANT_SAFE_CLEAR(tmp);
+    PURC_VARIANT_SAFE_CLEAR(kvs);
+
+    return -1;
+}
+
+static int
 variant_set_add_val(purc_variant_t set,
         variant_set_t data, purc_variant_t val, bool overwrite,
         bool check)
@@ -931,17 +953,8 @@ variant_set_add_val(purc_variant_t set,
         return -1;
     }
 
-    struct set_node *_new;
-    _new = variant_set_create_elem_node(data, val);
-
-    if (!_new)
+    if (insert_or_replace(set, data, val, overwrite, check))
         return -1;
-
-    if (insert_or_replace(set, data, _new, overwrite, check)) {
-        elem_node_release(_new);
-        free(_new);
-        return -1;
-    }
 
     return 0;
 }
