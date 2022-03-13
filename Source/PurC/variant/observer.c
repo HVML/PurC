@@ -289,8 +289,20 @@ pcvar_build_rue_downward(purc_variant_t val)
         case PURC_VARIANT_TYPE_OBJECT:
             return pcvar_object_build_rue_downward(val);
         case PURC_VARIANT_TYPE_SET:
+        case PURC_VARIANT_TYPE_NULL:
+        case PURC_VARIANT_TYPE_BOOLEAN:
+        case PURC_VARIANT_TYPE_EXCEPTION:
+        case PURC_VARIANT_TYPE_NUMBER:
+        case PURC_VARIANT_TYPE_LONGINT:
+        case PURC_VARIANT_TYPE_ULONGINT:
+        case PURC_VARIANT_TYPE_LONGDOUBLE:
+        case PURC_VARIANT_TYPE_ATOMSTRING:
+        case PURC_VARIANT_TYPE_STRING:
+        case PURC_VARIANT_TYPE_BSEQUENCE:
+        case PURC_VARIANT_TYPE_NATIVE:
             return 0;
         default:
+            PC_DEBUGX("%d", val->type);
             PC_ASSERT(0);
     }
 }
