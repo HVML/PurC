@@ -296,8 +296,13 @@ v_object_set(purc_variant_t obj, purc_variant_t k, purc_variant_t val,
 
     struct obj_node *node;
     node = container_of(entry, struct obj_node, node);
+    if (node->val == val)
+        return 0;
 
-    if (!change(obj, node->key, node->val, k, val, check)) {
+    purc_variant_t ko = node->key;
+    purc_variant_t vo = node->val;
+
+    if (!change(obj, ko, vo, k, val, check)) {
         return -1;
     }
 
@@ -307,20 +312,21 @@ v_object_set(purc_variant_t obj, purc_variant_t k, purc_variant_t val,
     };
     pcvar_break_edge_to_parent(node->val, &edge);
 
+    node->key = k;
+    node->val = val;
+    purc_variant_ref(k);
+    purc_variant_ref(val);
+
     edge.parent = obj;
     edge.obj_me = node;
     int r = pcvar_build_edge_to_parent(node->val, &edge);
     // FIXME: recoverable?
     PC_ASSERT(r == 0);
 
-    changed(obj, node->key, node->val, k, val, check);
+    changed(obj, ko, vo, k, val, check);
 
-    purc_variant_ref(k);
-    purc_variant_unref(node->key);
-    node->key = k;
-    purc_variant_ref(val);
-    purc_variant_unref(node->val);
-    node->val = val;
+    purc_variant_unref(ko);
+    purc_variant_unref(vo);
 
     return 0;
 }
