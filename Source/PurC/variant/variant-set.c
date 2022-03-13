@@ -277,6 +277,14 @@ elem_node_revoke_constraints(struct set_node *node)
 {
     bool ok;
 
+    PC_ASSERT(node->set != PURC_VARIANT_INVALID);
+
+    struct pcvar_rev_update_edge edge = {
+        .parent        = node->set,
+        .set_me        = node,
+    };
+    pcvar_break_edge_to_parent(node->elem, &edge);
+
     if (node->constraints) {
         PC_ASSERT(node->elem);
         ok = purc_variant_revoke_listener(node->elem, node->constraints);
@@ -472,42 +480,15 @@ elem_node_setup_constraints(struct set_node *node)
     if (!node->constraints)
         return false;
 
+    struct pcvar_rev_update_edge edge = {
+        .parent        = set,
+        .set_me        = node,
+    };
+    int r = pcvar_build_edge_to_parent(node->elem, &edge);
+    // FIXME: recoverable???
+    PC_ASSERT(r == 0);
+
     return true;
-}
-
-static void
-elem_node_break_rev_update_edges(purc_variant_t set, struct set_node *node)
-{
-    variant_set_t data = pcv_set_get_data(set);
-    PC_ASSERT(data);
-    PC_ASSERT(node);
-    PC_ASSERT(node->elem != PURC_VARIANT_INVALID);
-    PC_ASSERT(purc_variant_is_object(node->elem));
-
-    variant_obj_t obj_data;
-    obj_data = (variant_obj_t)node->elem->sz_ptr[1];
-    struct rb_root *root = &obj_data->kvs;
-    struct rb_node *p = pcutils_rbtree_first(root);
-    for (; p; p = pcutils_rbtree_next(p)) {
-        struct obj_node *on;
-        on = container_of(p, struct obj_node, node);
-        const char *sk = purc_variant_get_string_const(on->key);
-        if (data->keynames) {
-            size_t i=0;
-            for (i=0; i<data->nr_keynames; ++i) {
-                const char *k = data->keynames[i];
-                if (strcmp(sk, k) == 0)
-                    break;
-            }
-            if (i>=data->nr_keynames)
-                continue;
-        }
-        struct pcvar_rev_update_edge edge = {
-            .parent         = node->elem,
-            .obj_me         = on,
-        };
-        pcvar_break_edge_to_parent(on->val, &edge);
-    }
 }
 
 static void
@@ -516,9 +497,6 @@ elem_node_break_edge(struct set_node *node)
     if (node->elem == PURC_VARIANT_INVALID)
         return;
 
-    if (node->set != PURC_VARIANT_INVALID) {
-        elem_node_break_rev_update_edges(node->set, node);
-    }
     elem_node_revoke_constraints(node);
 }
 
@@ -585,7 +563,6 @@ elem_node_replace(struct set_node *node,
     purc_variant_ref(val);
     purc_variant_ref(kvs);
 
-    elem_node_break_rev_update_edges(node->set, node);
     elem_node_revoke_constraints(node);
     PURC_VARIANT_SAFE_CLEAR(node->elem);
     PURC_VARIANT_SAFE_CLEAR(node->kvs);
