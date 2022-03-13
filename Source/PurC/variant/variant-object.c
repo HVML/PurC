@@ -205,6 +205,7 @@ v_object_remove(purc_variant_t obj, purc_variant_t key, bool silently,
         .obj_me        = node,
     };
     pcvar_break_edge_to_parent(node->val, &edge);
+    pcvar_break_rue_downward(node->val);
 
     pcutils_rbtree_erase(entry, root);
     --data->size;
@@ -287,6 +288,9 @@ v_object_set(purc_variant_t obj, purc_variant_t k, purc_variant_t val,
             .obj_me        = node,
         };
         int r = pcvar_build_edge_to_parent(val, &edge);
+        if (r == 0) {
+            r = pcvar_build_rue_downward(val);
+        }
         // TODO: recover
         PC_ASSERT(r == 0);
 
@@ -311,6 +315,7 @@ v_object_set(purc_variant_t obj, purc_variant_t k, purc_variant_t val,
         .obj_me        = node,
     };
     pcvar_break_edge_to_parent(node->val, &edge);
+    pcvar_break_rue_downward(node->val);
 
     node->key = k;
     node->val = val;
@@ -320,6 +325,9 @@ v_object_set(purc_variant_t obj, purc_variant_t k, purc_variant_t val,
     edge.parent = obj;
     edge.obj_me = node;
     int r = pcvar_build_edge_to_parent(node->val, &edge);
+    if (r == 0) {
+        r = pcvar_build_rue_downward(node->val);
+    }
     // FIXME: recoverable?
     PC_ASSERT(r == 0);
 
@@ -495,6 +503,7 @@ void pcvariant_object_release (purc_variant_t value)
             .obj_me        = node,
         };
         pcvar_break_edge_to_parent(node->val, &edge);
+        pcvar_break_rue_downward(node->val);
 
         purc_variant_unref(node->key);
         purc_variant_unref(node->val);
@@ -819,6 +828,7 @@ pcvar_object_break_rue_downward(purc_variant_t obj)
             .obj_me         = node,
         };
         pcvar_break_edge_to_parent(node->val, &edge);
+        pcvar_break_rue_downward(node->val);
     }
 }
 
@@ -852,6 +862,9 @@ pcvar_object_build_rue_downward(purc_variant_t obj)
             .obj_me         = node,
         };
         int r = pcvar_build_edge_to_parent(node->val, &edge);
+        if (r)
+            return -1;
+        r = pcvar_build_rue_downward(node->val);
         if (r)
             return -1;
     }
