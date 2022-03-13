@@ -283,8 +283,6 @@ elem_node_revoke_constraints(struct set_node *elem)
         PC_ASSERT(ok);
         elem->constraints = NULL;
     }
-
-    elem->set = PURC_VARIANT_INVALID;
 }
 
 static bool
@@ -523,34 +521,65 @@ elem_node_break_rev_update_edges(purc_variant_t set, struct set_node *elem)
 }
 
 static void
-elem_node_release(struct set_node *node)
+elem_node_break_edge(struct set_node *node)
 {
-    if (node->elem != PURC_VARIANT_INVALID) {
-        if (node->set != PURC_VARIANT_INVALID) {
-            elem_node_break_rev_update_edges(node->set, node);
-        }
-        elem_node_revoke_constraints(node);
-        purc_variant_unref(node->elem);
-        node->elem = PURC_VARIANT_INVALID;
-    }
+    if (node->elem == PURC_VARIANT_INVALID)
+        return;
 
     if (node->set != PURC_VARIANT_INVALID) {
-        purc_variant_t set = node->set;
-        variant_set_t data = pcv_set_get_data(set);
-        if (data) {
-            struct pcutils_arrlist *al = data->arr;
-            if (al) {
-                pcutils_rbtree_erase(&node->node, &data->elems);
-                if (node->idx != (size_t)-1) {
-                    int r;
-                    r = pcutils_arrlist_del_idx(al, node->idx, 1);
-                    PC_ASSERT(r == 0);
-                }
-            }
-        }
+        elem_node_break_rev_update_edges(node->set, node);
     }
+    elem_node_revoke_constraints(node);
+}
+
+static void
+refresh_arr(struct pcutils_arrlist *arr, size_t idx)
+{
+    if (idx == (size_t)-1)
+        return;
+
+    size_t count = pcutils_arrlist_length(arr);
+    for (; idx < count; ++idx) {
+        struct set_node *p;
+        p = (struct set_node*)pcutils_arrlist_get_idx(arr, idx);
+        p->idx = idx;
+    }
+}
+
+static void
+elem_node_remove(struct set_node *node)
+{
+    if (node->set == PURC_VARIANT_INVALID)
+        return;
+
+    purc_variant_t set = node->set;
+    variant_set_t data = pcv_set_get_data(set);
+    if (!data)
+        return;
+
+    if (node->idx == (size_t)-1)
+        return;
+
+    struct pcutils_arrlist *al = data->arr;
+    PC_ASSERT(al);
+
+    pcutils_rbtree_erase(&node->node, &data->elems);
+
+    int r;
+    r = pcutils_arrlist_del_idx(al, node->idx, 1);
+    PC_ASSERT(r == 0);
+    refresh_arr(al, node->idx);
+    node->idx = -1;
+}
+
+static void
+elem_node_release(struct set_node *node)
+{
+    elem_node_break_edge(node);
+    elem_node_remove(node);
 
     PURC_VARIANT_SAFE_CLEAR(node->kvs);
+    PURC_VARIANT_SAFE_CLEAR(node->elem);
     node->set = PURC_VARIANT_INVALID;
 }
 
@@ -579,20 +608,6 @@ elem_node_replace(struct set_node *node,
         return -1;
 
     return 0;
-}
-
-static void
-refresh_arr(struct pcutils_arrlist *arr, size_t idx)
-{
-    if (idx == (size_t)-1)
-        return;
-
-    size_t count = pcutils_arrlist_length(arr);
-    for (; idx < count; ++idx) {
-        struct set_node *p;
-        p = (struct set_node*)pcutils_arrlist_get_idx(arr, idx);
-        p->idx = idx;
-    }
 }
 
 static void
@@ -698,18 +713,17 @@ static int
 set_remove(purc_variant_t set, variant_set_t data, struct set_node *node,
         bool check)
 {
+    UNUSED_PARAM(data);
+
     if (!shrink(set, node->elem, check)) {
         return -1;
     }
 
-    pcutils_rbtree_erase(&node->node, &data->elems);
-    int r = pcutils_arrlist_del_idx(data->arr, node->idx, 1);
-    PC_ASSERT(r==0);
+    elem_node_break_edge(node);
+    elem_node_remove(node);
 
     shrunk(set, node->elem, check);
 
-    refresh_arr(data->arr, node->idx);
-    // node->idx = -1;
     elem_node_release(node);
     free(node);
 
@@ -1036,6 +1050,7 @@ purc_variant_set_remove(purc_variant_t set, purc_variant_t value,
     struct set_node *p;
     p = find_element(data, kvs);
     if (p) {
+        PRINT_VARIANT(p->elem);
         r = set_remove(set, data, p, check);
     }
 
