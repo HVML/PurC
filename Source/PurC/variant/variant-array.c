@@ -657,7 +657,7 @@ pcvariant_array_clone(purc_variant_t arr, bool recursively)
 }
 
 void
-pcvar_array_break_rev_update_edges(purc_variant_t arr)
+pcvar_array_break_rue_downward(purc_variant_t arr)
 {
     PC_ASSERT(purc_variant_is_array(arr));
 
@@ -688,7 +688,7 @@ pcvar_array_break_edge_to_parent(purc_variant_t arr,
 }
 
 int
-pcvar_array_build_rev_update_edges(purc_variant_t arr)
+pcvar_array_build_rue_downward(purc_variant_t arr)
 {
     PC_ASSERT(purc_variant_is_array(arr));
 

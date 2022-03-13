@@ -796,7 +796,7 @@ pcvariant_object_clone(purc_variant_t obj, bool recursively)
 }
 
 void
-pcvar_object_break_rev_update_edges(purc_variant_t obj)
+pcvar_object_break_rue_downward(purc_variant_t obj)
 {
     PC_ASSERT(purc_variant_is_object(obj));
     variant_obj_t data = (variant_obj_t)obj->sz_ptr[1];
@@ -829,7 +829,7 @@ pcvar_object_break_edge_to_parent(purc_variant_t obj,
 }
 
 int
-pcvar_object_build_rev_update_edges(purc_variant_t obj)
+pcvar_object_build_rue_downward(purc_variant_t obj)
 {
     PC_ASSERT(purc_variant_is_object(obj));
     variant_obj_t data = (variant_obj_t)obj->sz_ptr[1];

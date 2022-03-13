@@ -86,11 +86,11 @@ pcvar_variant_from_rev_update_edge(struct pcvar_rev_update_edge *edge);
 
 // break children's reverse update edges recursively
 void
-pcvar_break_rev_update_edges(purc_variant_t val);
+pcvar_break_rue_downward(purc_variant_t val);
 void
-pcvar_array_break_rev_update_edges(purc_variant_t arr);
+pcvar_array_break_rue_downward(purc_variant_t arr);
 void
-pcvar_object_break_rev_update_edges(purc_variant_t obj);
+pcvar_object_break_rue_downward(purc_variant_t obj);
 
 // break edge belongs to `val` and it's children's edges
 // when `val` becomes dangling
@@ -113,11 +113,11 @@ pcvar_break_edge(purc_variant_t val, struct list_head *chain,
 
 // build children's reverse update edges recursively
 int
-pcvar_build_rev_update_edges(purc_variant_t val);
+pcvar_build_rue_downward(purc_variant_t val);
 int
-pcvar_array_build_rev_update_edges(purc_variant_t arr);
+pcvar_array_build_rue_downward(purc_variant_t arr);
 int
-pcvar_object_build_rev_update_edges(purc_variant_t obj);
+pcvar_object_build_rue_downward(purc_variant_t obj);
 
 // build edge for `val` and it's children's edges
 int

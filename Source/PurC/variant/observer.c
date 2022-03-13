@@ -193,15 +193,15 @@ void pcvariant_on_post_fired(
 }
 
 void
-pcvar_break_rev_update_edges(purc_variant_t val)
+pcvar_break_rue_downward(purc_variant_t val)
 {
     PC_ASSERT(val != PURC_VARIANT_INVALID);
     switch (val->type) {
         case PURC_VARIANT_TYPE_ARRAY:
-            pcvar_array_break_rev_update_edges(val);
+            pcvar_array_break_rue_downward(val);
             return;
         case PURC_VARIANT_TYPE_OBJECT:
-            pcvar_object_break_rev_update_edges(val);
+            pcvar_object_break_rue_downward(val);
             return;
         case PURC_VARIANT_TYPE_SET:
             return;
@@ -283,18 +283,18 @@ pcvar_break_edge(purc_variant_t val, struct list_head *chain,
     if (list_empty(chain) == false)
         return;
 
-    pcvar_break_rev_update_edges(val);
+    pcvar_break_rue_downward(val);
 }
 
 int
-pcvar_build_rev_update_edges(purc_variant_t val)
+pcvar_build_rue_downward(purc_variant_t val)
 {
     PC_ASSERT(val != PURC_VARIANT_INVALID);
     switch (val->type) {
         case PURC_VARIANT_TYPE_ARRAY:
-            return pcvar_array_build_rev_update_edges(val);
+            return pcvar_array_build_rue_downward(val);
         case PURC_VARIANT_TYPE_OBJECT:
-            return pcvar_object_build_rev_update_edges(val);
+            return pcvar_object_build_rue_downward(val);
         case PURC_VARIANT_TYPE_SET:
             return 0;
         default:
@@ -372,6 +372,6 @@ pcvar_build_edge(purc_variant_t val, struct list_head *chain,
     _new->edge = *edge;
     list_add_tail(&_new->node, chain);
 
-    return pcvar_build_rev_update_edges(val);
+    return pcvar_build_rue_downward(val);
 }
 
