@@ -329,6 +329,7 @@ variant_arr_remove(purc_variant_t array, size_t idx,
         .arr_me        = node,
     };
     pcvar_break_edge_to_parent(node->val, &edge);
+    pcvar_break_rue_downward(node->val);
 
     shrunk(array, pos, node->val, check);
     purc_variant_unref(pos);
@@ -356,6 +357,7 @@ array_release (purc_variant_t value)
             .arr_me        = p,
         };
         pcvar_break_edge_to_parent(p->val, &edge);
+        pcvar_break_rue_downward(p->val);
         arr_node_destroy(p);
     };
 
@@ -674,6 +676,7 @@ pcvar_array_break_rue_downward(purc_variant_t arr)
             .arr_me         = p,
         };
         pcvar_break_edge_to_parent(p->val, &edge);
+        pcvar_break_rue_downward(p->val);
     }
 }
 
