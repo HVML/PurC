@@ -623,18 +623,8 @@ bool purc_variant_object_size (purc_variant_t obj, size_t *sz)
 }
 
 struct purc_variant_object_iterator {
-    purc_variant_t           obj;
-
-    struct rb_node          *curr;
-    struct rb_node          *next, *prev;
+    struct obj_iterator it;
 };
-
-#define refresh_iterator(it) do {                           \
-    if (it->curr) {                                         \
-        it->next = pcutils_rbtree_next(it->curr);           \
-        it->prev = pcutils_rbtree_prev(it->curr);           \
-    }                                                       \
-} while (0)
 
 struct purc_variant_object_iterator*
 purc_variant_object_make_iterator_begin (purc_variant_t object)
@@ -656,11 +646,7 @@ purc_variant_object_make_iterator_begin (purc_variant_t object)
         return NULL;
     }
 
-    struct rb_root *root = &data->kvs;
-
-    it->obj = object;
-    it->curr = pcutils_rbtree_first(root);
-    refresh_iterator(it);
+    it->it = pcvar_obj_it_first(object);
 
     return it;
 }
@@ -684,11 +670,7 @@ purc_variant_object_make_iterator_end (purc_variant_t object) {
         return NULL;
     }
 
-    struct rb_root *root = &data->kvs;
-
-    it->obj = object;
-    it->curr = pcutils_rbtree_last(root);
-    refresh_iterator(it);
+    it->it = pcvar_obj_it_last(object);
 
     return it;
 }
@@ -698,12 +680,11 @@ purc_variant_object_release_iterator (struct purc_variant_object_iterator* it)
 {
     if (!it)
         return;
-    PC_ASSERT(it->obj);
 
-    it->obj = NULL;
-    it->curr = NULL;
-    it->next = NULL;
-    it->prev = NULL;
+    it->it.obj  = PURC_VARIANT_INVALID;
+    it->it.curr = NULL;
+    it->it.next = NULL;
+    it->it.prev = NULL;
 
     free(it);
 }
@@ -711,68 +692,49 @@ purc_variant_object_release_iterator (struct purc_variant_object_iterator* it)
 bool
 purc_variant_object_iterator_next (struct purc_variant_object_iterator* it)
 {
-    PCVARIANT_CHECK_FAIL_RET(it, false);
+    PC_ASSERT(it);
 
-    PC_ASSERT(it->obj);
+    pcvar_obj_it_next(&it->it);
 
-    if (it->curr) {
-        it->curr = it->next;
-    }
-    refresh_iterator(it);
-
-    if (it->curr)
+    if (it->it.curr)
         return true;
-    pcinst_set_error(PCVARIANT_ERROR_NOT_FOUND);
+
     return false;
 }
 
 bool
 purc_variant_object_iterator_prev (struct purc_variant_object_iterator* it)
 {
-    PCVARIANT_CHECK_FAIL_RET(it, false);
+    PC_ASSERT(it);
 
-    PC_ASSERT(it->obj);
+    pcvar_obj_it_prev(&it->it);
 
-    if (it->curr) {
-        it->curr = it->prev;
-    }
-    refresh_iterator(it);
-
-    if (it->curr)
+    if (it->it.curr)
         return true;
-    pcinst_set_error(PCVARIANT_ERROR_NOT_FOUND);
+
     return false;
 }
 
 purc_variant_t
 purc_variant_object_iterator_get_key (struct purc_variant_object_iterator* it)
 {
-    PCVARIANT_CHECK_FAIL_RET(it, NULL);
+    PC_ASSERT(it);
 
-    PC_ASSERT(it->obj);
-    PC_ASSERT(it->curr);
+    if (it->it.curr == NULL)
+        return PURC_VARIANT_INVALID;
 
-    struct obj_node *node;
-    node = container_of(it->curr, struct obj_node, node);
-
-    purc_variant_t k = node->key;
-    PC_ASSERT(purc_variant_is_string(k));
-    return k;
+    return it->it.curr->key;
 }
 
 purc_variant_t
 purc_variant_object_iterator_get_value(struct purc_variant_object_iterator* it)
 {
-    PCVARIANT_CHECK_FAIL_RET(it, NULL);
+    PC_ASSERT(it);
 
-    PC_ASSERT(it->obj);
-    PC_ASSERT(it->curr);
+    if (it->it.curr == NULL)
+        return PURC_VARIANT_INVALID;
 
-    struct obj_node *node;
-    node = container_of(it->curr, struct obj_node, node);
-
-    purc_variant_t  v = node->val;
-    return v;
+    return it->it.curr->val;
 }
 
 purc_variant_t
@@ -882,5 +844,113 @@ pcvar_object_build_edge_to_parent(purc_variant_t obj,
         return 0;
 
     return pcvar_build_edge(obj, &data->rev_update_chain, edge);
+}
+
+static void
+it_refresh(struct obj_iterator *it, struct rb_node *curr)
+{
+    struct rb_node *next  = NULL;
+    struct rb_node *prev  = NULL;
+    if (curr) {
+        next  = pcutils_rbtree_next(curr);
+        prev  = pcutils_rbtree_prev(curr);
+    }
+
+    if (curr) {
+        it->curr = container_of(curr, struct obj_node, node);
+    }
+    else {
+        it->curr = NULL;
+    }
+
+    if (next) {
+        it->next = container_of(next, struct obj_node, node);
+    }
+    else {
+        it->next = NULL;
+    }
+
+    if (prev) {
+        it->prev = container_of(prev, struct obj_node, node);
+    }
+    else {
+        it->prev = NULL;
+    }
+}
+
+struct obj_iterator
+pcvar_obj_it_first(purc_variant_t obj)
+{
+    struct obj_iterator it = {
+        .obj         = obj,
+    };
+    if (obj == PURC_VARIANT_INVALID)
+        return it;
+
+    variant_obj_t data = object_get_data(obj);
+    if (data->size==0)
+        return it;
+
+    struct rb_root *root = &data->kvs;
+
+    struct rb_node *first = pcutils_rbtree_first(root);
+    it_refresh(&it, first);
+
+    return it;
+}
+
+struct obj_iterator
+pcvar_obj_it_last(purc_variant_t obj)
+{
+    struct obj_iterator it = {
+        .obj         = obj,
+    };
+    if (obj == PURC_VARIANT_INVALID)
+        return it;
+
+    variant_obj_t data = object_get_data(obj);
+    if (data->size==0)
+        return it;
+
+    struct rb_root *root = &data->kvs;
+
+    struct rb_node *last = pcutils_rbtree_last(root);
+    it_refresh(&it, last);
+
+    return it;
+}
+
+void
+pcvar_obj_it_next(struct obj_iterator *it)
+{
+    if (it->curr == NULL)
+        return;
+
+    if (it->next) {
+        struct rb_node *next = &it->next->node;
+        it_refresh(it, next);
+    }
+    else {
+        it->curr = NULL;
+        it->next = NULL;
+        it->prev = NULL;
+    }
+}
+
+void
+pcvar_obj_it_prev(struct obj_iterator *it)
+{
+    if (it->curr == NULL)
+        return;
+
+    if (it->prev) {
+        struct rb_node *prev = &it->prev->node;
+        it_refresh(it, prev);
+    }
+    else {
+        it->curr = NULL;
+        it->next = NULL;
+        it->prev = NULL;
+    }
 }
 

@@ -137,6 +137,74 @@ int
 pcvar_build_edge(purc_variant_t val, struct list_head *chain,
         struct pcvar_rev_update_edge *edge);
 
+struct obj_iterator {
+    purc_variant_t                obj;
+
+    struct obj_node              *curr;
+    struct obj_node              *next;
+    struct obj_node              *prev;
+};
+
+struct obj_iterator
+pcvar_obj_it_first(purc_variant_t obj);
+struct obj_iterator
+pcvar_obj_it_last(purc_variant_t obj);
+void
+pcvar_obj_it_next(struct obj_iterator *it);
+void
+pcvar_obj_it_prev(struct obj_iterator *it);
+
+struct arr_iterator {
+    purc_variant_t                arr;
+
+    struct arr_node              *curr;
+    struct arr_node              *next;
+    struct arr_node              *prev;
+};
+
+struct arr_iterator
+pcvar_arr_it_first(purc_variant_t arr);
+struct arr_iterator
+pcvar_arr_it_last(purc_variant_t arr);
+void
+pcvar_arr_it_next(struct arr_iterator *it);
+void
+pcvar_arr_it_prev(struct arr_iterator *it);
+
+enum set_it_type {
+    SET_IT_ARRAY,
+    SET_IT_RBTREE,
+};
+
+struct set_iterator {
+    purc_variant_t                set;
+    enum set_it_type              it_type;
+
+    struct set_node              *curr;
+    struct set_node              *next;
+    struct set_node              *prev;
+};
+
+struct set_iterator
+pcvar_set_it_first(purc_variant_t set, enum set_it_type it_type);
+struct set_iterator
+pcvar_set_it_last(purc_variant_t set, enum set_it_type it_type);
+void
+pcvar_set_it_next(struct set_iterator *it);
+void
+pcvar_set_it_prev(struct set_iterator *it);
+
+struct kv_iterator {
+    purc_variant_t                set;
+
+    struct obj_iterator           it;
+    size_t                        accu;
+};
+
+struct kv_iterator
+pcvar_kv_it_first(purc_variant_t set, purc_variant_t obj);
+void
+pcvar_kv_it_next(struct kv_iterator *it);
 
 #ifdef __cplusplus
 }
