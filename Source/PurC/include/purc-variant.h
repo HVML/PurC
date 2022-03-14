@@ -1652,20 +1652,7 @@ purc_variant_serialize(purc_variant_t value, purc_rwstream_t stream,
         int indent_level, unsigned int flags, size_t *len_expected);
 
 
-/**
- * Loads a variant value from an indicated library
- *
- * @param so_name: the library name
- *
- * @param var_name: the variant value name
- *
- * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
-.*
- * Since: 0.0.1
- */
-PCA_EXPORT purc_variant_t
-purc_variant_dynamic_value_load_from_so(const char* so_name,
-        const char* var_name);
+#define PURC_ENVV_DVOBJS_PATH   "PURC_DVOBJS_PATH"
 
 /**
  * Loads a variant value from an indicated library
