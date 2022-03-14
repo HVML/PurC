@@ -112,8 +112,7 @@ failed:
 
 uintptr_t pcintr_rdr_create_workspace(struct pcrdr_conn *conn,
         uintptr_t session, const char *id, const char *title,
-        const char* classes, const char *style
-        )
+        const char* classes, const char *style)
 {
     uintptr_t workspace = 0;
     pcrdr_msg *response_msg = NULL;
@@ -175,6 +174,121 @@ failed:
     }
 
     return 0;
+}
+
+bool pcintr_rdr_destroy_workspace(struct pcrdr_conn *conn,
+        uintptr_t session, uintptr_t workspace)
+{
+    pcrdr_msg *response_msg = NULL;
+
+    const char *operation = PCRDR_OPERATION_DESTROYWORKSPACE;
+    pcrdr_msg_target target = PCRDR_MSG_TARGET_SESSION;
+    uint64_t target_value = session;
+    pcrdr_msg_element_type element_type = PCRDR_MSG_ELEMENT_TYPE_HANDLE;
+    pcrdr_msg_data_type data_type = PCRDR_MSG_DATA_TYPE_VOID;
+    purc_variant_t data = PURC_VARIANT_INVALID;
+
+    char element[LEN_BUFF_LONGLONGINT];
+    int n = snprintf(element, sizeof(element),
+            "%llx", (unsigned long long int)workspace);
+    if (n < 0) {
+        purc_set_error(PURC_ERROR_BAD_STDC_CALL);
+        goto failed;
+    }
+    else if ((size_t)n >= sizeof (element)) {
+        PC_DEBUG ("Too small elementer to serialize message.\n");
+        purc_set_error(PURC_ERROR_TOO_SMALL_BUFF);
+        goto failed;
+    }
+
+    response_msg = pcintr_rdr_send_request_and_wait_response(conn, target,
+            target_value, operation, element_type, element, NULL,
+            data_type, data);
+
+    if (response_msg == NULL) {
+        goto failed;
+    }
+
+    int ret_code = response_msg->retCode;
+    if (ret_code != PCRDR_SC_OK) {
+        purc_set_error(PCRDR_ERROR_SERVER_REFUSED);
+        goto failed;
+    }
+
+    pcrdr_release_message(response_msg);
+    return true;
+
+failed:
+    if (data != PURC_VARIANT_INVALID) {
+        purc_variant_unref(data);
+    }
+
+    if (response_msg != PURC_VARIANT_INVALID) {
+        pcrdr_release_message(response_msg);
+    }
+
+    return false;
+}
+
+bool pcintr_rdr_update_workspace(struct pcrdr_conn *conn,
+        uintptr_t session, uintptr_t workspace,
+        const char *property, const char *value)
+{
+    pcrdr_msg *response_msg = NULL;
+
+    const char *operation = PCRDR_OPERATION_UPDATEWORKSPACE;
+    pcrdr_msg_target target = PCRDR_MSG_TARGET_SESSION;
+    uint64_t target_value = session;
+    pcrdr_msg_element_type element_type = PCRDR_MSG_ELEMENT_TYPE_HANDLE;
+    pcrdr_msg_data_type data_type = PCRDR_MSG_DATA_TYPE_TEXT;
+    purc_variant_t data = PURC_VARIANT_INVALID;
+
+    data = purc_variant_make_string(value, false);
+    if (data == PURC_VARIANT_INVALID) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto failed;
+    }
+
+    char element[LEN_BUFF_LONGLONGINT];
+    int n = snprintf(element, sizeof(element),
+            "%llx", (unsigned long long int)workspace);
+    if (n < 0) {
+        purc_set_error(PURC_ERROR_BAD_STDC_CALL);
+        goto failed;
+    }
+    else if ((size_t)n >= sizeof (element)) {
+        PC_DEBUG ("Too small elementer to serialize message.\n");
+        purc_set_error(PURC_ERROR_TOO_SMALL_BUFF);
+        goto failed;
+    }
+
+    response_msg = pcintr_rdr_send_request_and_wait_response(conn, target,
+            target_value, operation, element_type, element, property,
+            data_type, data);
+
+    if (response_msg == NULL) {
+        goto failed;
+    }
+
+    int ret_code = response_msg->retCode;
+    if (ret_code != PCRDR_SC_OK) {
+        purc_set_error(PCRDR_ERROR_SERVER_REFUSED);
+        goto failed;
+    }
+
+    pcrdr_release_message(response_msg);
+    return true;
+
+failed:
+    if (data != PURC_VARIANT_INVALID) {
+        purc_variant_unref(data);
+    }
+
+    if (response_msg != PURC_VARIANT_INVALID) {
+        pcrdr_release_message(response_msg);
+    }
+
+    return false;
 }
 
 static
@@ -441,8 +555,7 @@ purc_attach_vdom_to_renderer(purc_vdom_t vdom,
             target_workspace,
             extra_info->workspace_title,
             extra_info->workspace_classes,
-            extra_info->workspace_styles
-            );
+            extra_info->workspace_styles);
         if (!workspace) {
             purc_set_error(PCRDR_ERROR_SERVER_REFUSED);
             return false;
@@ -623,6 +736,9 @@ pcintr_rdr_send_dom_request(pcintr_stack_t stack, const char *operation,
     return true;
 
 failed:
+    if (response_msg != PURC_VARIANT_INVALID) {
+        pcrdr_release_message(response_msg);
+    }
     return false;
 }
 

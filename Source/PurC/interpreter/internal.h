@@ -108,6 +108,18 @@ pcrdr_msg *pcintr_rdr_send_request_and_wait_response(struct pcrdr_conn *conn,
         const char *property, pcrdr_msg_data_type data_type,
         purc_variant_t data);
 
+uintptr_t pcintr_rdr_create_workspace(struct pcrdr_conn *conn,
+        uintptr_t session, const char *id, const char *title,
+        const char* classes, const char *style);
+
+bool pcintr_rdr_destroy_workspace(struct pcrdr_conn *conn,
+        uintptr_t session, uintptr_t workspace);
+
+// property: title, class, style
+bool pcintr_rdr_update_workspace(struct pcrdr_conn *conn,
+        uintptr_t session, uintptr_t workspace,
+        const char *property, const char *value);
+
 bool
 pcintr_rdr_page_control_load(pcintr_stack_t stack);
 
