@@ -805,12 +805,10 @@ set_remove(purc_variant_t set, variant_set_t data, struct set_node *node,
 
 static int
 insert(purc_variant_t set, variant_set_t data,
-        purc_variant_t val, purc_variant_t kvs,
+        purc_variant_t val,
         struct rb_node *parent, struct rb_node **pnode,
         bool check)
 {
-    UNUSED_PARAM(kvs);
-
     if (!grow(set, val, check))
         return -1;
 
@@ -886,6 +884,62 @@ variant_set_union(variant_set_t data, purc_variant_t old, purc_variant_t _new)
     return output;
 }
 
+static bool
+is_keyname(variant_set_t data, const char *s)
+{
+    int generic = data->keynames ? 0 : 1;
+    if (generic)
+        return true;
+
+    for (size_t i=0; i<data->nr_keynames; ++i) {
+        const char *sk = data->keynames[i];
+        if (strcmp(sk, s) == 0)
+            return true;
+    }
+
+    return false;
+}
+
+static purc_variant_t
+prepare_variant(variant_set_t data, purc_variant_t val)
+{
+    purc_variant_t obj;
+    obj = purc_variant_make_object(0,
+            PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+    if ( obj == PURC_VARIANT_INVALID)
+        return PURC_VARIANT_INVALID;
+
+    int generic = data->keynames ? 0 : 1;
+    size_t nr_cloned_kvs = 0;
+
+    purc_variant_t k, v;
+    foreach_key_value_in_variant_object(val, k, v) {
+        purc_variant_t cloned = purc_variant_ref(v);
+
+        if (!generic && nr_cloned_kvs < data->nr_keynames) {
+            const char *sk = purc_variant_get_string_const(k);
+            if (is_keyname(data, sk)) {
+                PURC_VARIANT_SAFE_CLEAR(cloned);
+                cloned = purc_variant_container_clone_recursively(v);
+                if (cloned == PURC_VARIANT_INVALID) {
+                    purc_variant_unref(obj);
+                    return PURC_VARIANT_INVALID;
+                }
+                ++nr_cloned_kvs;
+            }
+        }
+
+        bool ok = purc_variant_object_set(obj, k, cloned);;
+        purc_variant_unref(cloned);
+        if (!ok) {
+            purc_variant_unref(obj);
+            return PURC_VARIANT_INVALID;
+        }
+    } end_foreach;
+
+    return obj;
+}
+
 static int
 insert_or_replace(purc_variant_t set,
         variant_set_t data, purc_variant_t val, bool overwrite,
@@ -895,7 +949,7 @@ insert_or_replace(purc_variant_t set,
     find_element_rb_node(&rbn, set, val);
 
     if (!rbn.entry) {
-        int r = insert(set, data, val, val, rbn.parent, rbn.pnode, check);
+        int r = insert(set, data, val, rbn.parent, rbn.pnode, check);
         return r ? -1 : 0;
     }
 
@@ -912,7 +966,13 @@ insert_or_replace(purc_variant_t set,
     if (curr->elem == val)
         return 0;
 
+    purc_variant_t cloned = prepare_variant(data, val);
+    if (cloned == PURC_VARIANT_INVALID)
+        return -1;
+
     purc_variant_t tmp = variant_set_union(data, curr->elem, val);
+    PURC_VARIANT_SAFE_CLEAR(cloned);
+
     do {
         if (tmp == PURC_VARIANT_INVALID)
             break;
