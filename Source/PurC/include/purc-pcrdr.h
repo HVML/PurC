@@ -566,15 +566,15 @@ struct pcrdr_msg
     pcrdr_msg_element_type  elementType;
     pcrdr_msg_data_type     dataType;
     unsigned int            retCode;
-    unsigned int            _data_len;  // internal use only
+    unsigned int            __data_len;  // internal use only
 
     uint64_t        targetValue;
     uint64_t        resultValue;
 
     purc_variant_t  operation;
+    purc_variant_t  event;
     purc_variant_t  element;
     purc_variant_t  property;
-    purc_variant_t  event;
 
     purc_variant_t  requestId;
     purc_variant_t  data;
