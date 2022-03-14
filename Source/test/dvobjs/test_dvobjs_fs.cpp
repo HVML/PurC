@@ -43,6 +43,7 @@ TEST(dvobjs, dvobjs_fs_list)
 
     const char *env;
     env = "DVOBJS_SO_PATH";
+    setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     purc_variant_t fs = purc_variant_load_dvobj_from_so (NULL, "FS");
     ASSERT_NE(fs, nullptr);
     ASSERT_EQ(purc_variant_is_object (fs), true);
@@ -320,6 +321,7 @@ TEST(dvobjs, dvobjs_fs_list_prt)
 
     const char *env;
     env = "DVOBJS_SO_PATH";
+    setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     purc_variant_t fs = purc_variant_load_dvobj_from_so (NULL, "FS");
     ASSERT_NE(fs, nullptr);
     ASSERT_EQ(purc_variant_is_object (fs), true);
@@ -447,6 +449,7 @@ TEST(dvobjs, dvobjs_fs_mkdir)
 
     const char *env;
     env = "DVOBJS_SO_PATH";
+    setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     purc_variant_t fs = purc_variant_load_dvobj_from_so (NULL, "FS");
     ASSERT_NE(fs, nullptr);
     ASSERT_EQ(purc_variant_is_object (fs), true);
@@ -529,6 +532,7 @@ TEST(dvobjs, dvobjs_fs_rmdir)
 
     const char *env;
     env = "DVOBJS_SO_PATH";
+    setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     purc_variant_t fs = purc_variant_load_dvobj_from_so (NULL, "FS");
     ASSERT_NE(fs, nullptr);
     ASSERT_EQ(purc_variant_is_object (fs), true);
@@ -612,6 +616,7 @@ TEST(dvobjs, dvobjs_fs_rm)
 
     const char *env;
     env = "DVOBJS_SO_PATH";
+    setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     purc_variant_t fs = purc_variant_load_dvobj_from_so (NULL, "FS");
     ASSERT_NE(fs, nullptr);
     ASSERT_EQ(purc_variant_is_object (fs), true);
@@ -695,6 +700,7 @@ TEST(dvobjs, dvobjs_fs_unlink)
 
     const char *env;
     env = "DVOBJS_SO_PATH";
+    setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     purc_variant_t fs = purc_variant_load_dvobj_from_so (NULL, "FS");
     ASSERT_NE(fs, nullptr);
     ASSERT_EQ(purc_variant_is_object (fs), true);
@@ -775,6 +781,7 @@ TEST(dvobjs, dvobjs_fs_touch)
 
     const char *env;
     env = "DVOBJS_SO_PATH";
+    setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     purc_variant_t fs = purc_variant_load_dvobj_from_so (NULL, "FS");
     ASSERT_NE(fs, nullptr);
     ASSERT_EQ(purc_variant_is_object (fs), true);
