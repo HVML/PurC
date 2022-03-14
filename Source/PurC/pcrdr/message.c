@@ -749,7 +749,8 @@ int pcrdr_parse_packet(char *packet, size_t sz_packet, pcrdr_msg **msg_out)
     }
 
     if (msg->dataType == PCRDR_MSG_DATA_TYPE_TEXT) {
-        assert(data != NULL /*&& msg->_data_len > 0*/);
+        // FIXME: check _data_len ???
+        assert(data != NULL /* && msg->_data_len > 0 */);
         msg->data = purc_variant_make_string_ex(data, msg->_data_len, true);
 
         if (msg->data == NULL) {

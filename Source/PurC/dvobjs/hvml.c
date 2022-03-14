@@ -326,12 +326,12 @@ timeout_setter (
     return ret_var;
 }
 
-static inline bool eraser(void* native_entity)
+static void
+on_released(void* native_entity)
 {
     PC_ASSERT(native_entity);
 
     struct pcvdom_dvobj_hvml *hvml = (struct pcvdom_dvobj_hvml*)native_entity;
-
     struct purc_broken_down_url *url = &hvml->url;
 
     if (url->schema)
@@ -356,8 +356,6 @@ static inline bool eraser(void* native_entity)
         free (url->fragment);
 
     free (native_entity);
-
-    return true;
 }
 
 purc_variant_t pcdvobjs_get_hvml (void)
@@ -366,13 +364,17 @@ purc_variant_t pcdvobjs_get_hvml (void)
 
     struct pcvdom_dvobj_hvml *dvobj_hvml = NULL;
     static struct purc_native_ops ops = {
-        .property_getter          = NULL,
-        .property_setter          = NULL,
-        .property_eraser          = NULL,
-        .property_cleaner         = NULL,
-        .cleaner                  = NULL,
-        .eraser                   = eraser,
-        .observe                  = NULL,
+        .property_getter        = NULL,
+        .property_setter        = NULL,
+        .property_eraser        = NULL,
+        .property_cleaner       = NULL,
+
+        .updater                = NULL,
+        .cleaner                = NULL,
+        .eraser                 = NULL,
+
+        .on_observed            = NULL,
+        .on_released            = on_released,
     };
 
     static struct pcdvobjs_dvobjs method [] = {

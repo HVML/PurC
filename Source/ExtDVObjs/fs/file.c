@@ -622,6 +622,7 @@ stream_open_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         return PURC_VARIANT_INVALID;
     }
 
+    /* FIXME: must setup a callback for `on_release` to close the stream */
     static struct purc_native_ops ops;
     memset (&ops, 0, sizeof(ops));
     ret_var = purc_variant_make_native (rwstream, &ops);

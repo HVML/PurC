@@ -49,20 +49,23 @@ static purc_variant_t setter(
     return value;
 }
 
-static bool rws_releaser (void* entity)
+static void rws_releaser (void* entity)
 {
     UNUSED_PARAM(entity);
-    return true;
 }
 
 static struct purc_native_ops rws_ops = {
     .property_getter       = NULL,
     .property_setter       = NULL,
-    .property_eraser       = NULL,
     .property_cleaner      = NULL,
+    .property_eraser       = NULL,
+
+    .updater               = NULL,
     .cleaner               = NULL,
-    .eraser                = rws_releaser,
-    .observe               = NULL,
+    .eraser                = NULL,
+
+    .on_observed           = NULL,
+    .on_released           = rws_releaser,
 };
 
 static void replace_for_bsequence(char *buf, size_t *length_sub)
