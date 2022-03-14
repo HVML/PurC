@@ -66,8 +66,7 @@ object_set(purc_variant_t object, const char* key, const char* value)
     return true;
 }
 
-static
-pcrdr_msg *pcintr_rdr_send_request(struct pcrdr_conn *conn,
+pcrdr_msg *pcintr_rdr_send_request_and_wait_response(struct pcrdr_conn *conn,
         pcrdr_msg_target target, uint64_t target_value, const char *operation,
         pcrdr_msg_element_type element_type, const char *element,
         const char *property, pcrdr_msg_data_type data_type,
@@ -155,7 +154,7 @@ uintptr_t create_target_workspace(
         goto failed;
     }
 
-    response_msg = pcintr_rdr_send_request(conn_to_rdr,
+    response_msg = pcintr_rdr_send_request_and_wait_response(conn_to_rdr,
         target, target_value, operation, element_type, NULL,
         NULL, data_type, data);
 
@@ -242,7 +241,7 @@ uintptr_t create_tabbed_window(
         goto failed;
     }
 
-    response_msg = pcintr_rdr_send_request(conn_to_rdr,
+    response_msg = pcintr_rdr_send_request_and_wait_response(conn_to_rdr,
         target, target_value, operation, element_type, NULL,
         NULL, data_type, req_data);
 
@@ -305,7 +304,7 @@ uintptr_t create_tabpage(
         goto failed;
     }
 
-    response_msg = pcintr_rdr_send_request(conn_to_rdr,
+    response_msg = pcintr_rdr_send_request_and_wait_response(conn_to_rdr,
         target, target_value, operation, element_type, NULL,
         NULL, data_type, req_data);
 
@@ -391,7 +390,7 @@ uintptr_t create_plain_window(
         goto failed;
     }
 
-    response_msg = pcintr_rdr_send_request(conn_to_rdr,
+    response_msg = pcintr_rdr_send_request_and_wait_response(conn_to_rdr,
         target, target_value, operation, element_type, NULL,
         NULL, data_type, req_data);
 
@@ -547,7 +546,7 @@ pcintr_rdr_page_control_load(pcintr_stack_t stack)
     }
 
     struct pcinst *inst = pcinst_current();
-    response_msg = pcintr_rdr_send_request(inst->conn_to_rdr,
+    response_msg = pcintr_rdr_send_request_and_wait_response(inst->conn_to_rdr,
         target, target_value, operation, element_type, NULL,
         NULL, data_type, req_data);
 
@@ -613,7 +612,7 @@ pcintr_rdr_send_dom_request(pcintr_stack_t stack, const char *operation,
     }
 
     struct pcinst *inst = pcinst_current();
-    response_msg = pcintr_rdr_send_request(inst->conn_to_rdr,
+    response_msg = pcintr_rdr_send_request_and_wait_response(inst->conn_to_rdr,
         target, target_value, operation, element_type, elem,
         property, data_type, data);
 
