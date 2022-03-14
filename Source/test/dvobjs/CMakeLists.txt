@@ -45,6 +45,8 @@ list(APPEND test_dvobjs_math_PRIVATE_INCLUDE_DIRECTORIES
     ${WTF_DIR}
 )
 
+target_compile_definitions(test_dvobjs_math PRIVATE SOPATH="${CMAKE_BINARY_DIR}/Source/ExtDVObjs/math")
+
 PURC_EXECUTABLE(test_dvobjs_math)
 
 set(test_dvobjs_math_SOURCES
@@ -137,6 +139,8 @@ list(APPEND test_dvobjs_fs_PRIVATE_INCLUDE_DIRECTORIES
 
 PURC_EXECUTABLE(test_dvobjs_fs)
 
+target_compile_definitions(test_dvobjs_fs PRIVATE SOPATH="${CMAKE_BINARY_DIR}/Source/ExtDVObjs/fs")
+
 set(test_dvobjs_fs_SOURCES
     test_dvobjs_fs.cpp
     helper.cpp
@@ -166,6 +170,8 @@ list(APPEND test_dvobjs_file_PRIVATE_INCLUDE_DIRECTORIES
 )
 
 PURC_EXECUTABLE(test_dvobjs_file)
+
+target_compile_definitions(test_dvobjs_file PRIVATE SOPATH="${CMAKE_BINARY_DIR}/Source/ExtDVObjs/fs")
 
 set(test_dvobjs_file_SOURCES
     test_dvobjs_file.cpp

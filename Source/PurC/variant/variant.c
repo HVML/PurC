@@ -1373,50 +1373,6 @@ purc_variant_t purc_variant_load_from_json_file(const char* file)
     return value;
 }
 
-#if 0
-purc_variant_t purc_variant_dynamic_value_load_from_so(const char* so_name,
-                                                        const char* var_name)
-{
-    PCVARIANT_ALWAYS_ASSERT(so_name);
-    PCVARIANT_ALWAYS_ASSERT(var_name);
-
-    purc_variant_t value = PURC_VARIANT_INVALID;
-
-// temporarily disable to make sure test cases available
-#if OS(LINUX) || OS(UNIX)
-    void * library_handle = NULL;
-
-    library_handle = dlopen(so_name, RTLD_LAZY);
-    if(!library_handle)
-        return PURC_VARIANT_INVALID;
-
-    purc_variant_t (* get_variant_by_name)(const char *);
-
-    get_variant_by_name = (purc_variant_t (*) (const char *))dlsym(library_handle, "get_variant_by_name");
-    if(dlerror() != NULL)
-    {
-        dlclose(library_handle);
-        return PURC_VARIANT_INVALID;
-    }
-
-    value = get_variant_by_name(var_name);
-    if(value == NULL)
-    {
-        dlclose(library_handle);
-        return PURC_VARIANT_INVALID;
-    }
-
-    // ??? long string, sequence, atom string, dynamic, native..... can not dlclose....
-#else // 0
-    UNUSED_PARAM(so_name);
-    UNUSED_PARAM(var_name);
-#endif // !0
-    return value;
-
-}
-
-#endif
-
 purc_variant_t purc_variant_load_dvobj_from_so (const char *so_name,
         const char *var_name)
 {
@@ -1453,50 +1409,73 @@ purc_variant_t purc_variant_load_dvobj_from_so (const char *so_name,
             // we build dynamic library filename
             // TODO: check validity of name!!!!
             n = snprintf(so, sizeof(so), "libpurc-dvobj-%s%s",
-                    so_name ? so_name : var_name,
-                    ext);
+                    so_name ? so_name : var_name, ext);
             PC_ASSERT(n>0 && (size_t)n<sizeof(so));
         }
-        // step1: let dlopen to handle path search
-        library_handle = dlopen(so, RTLD_LAZY);
-        if (library_handle)
-            break;
 
-        // FIXME: PURC_VERSION_STRING or PURC_API_VERSION_STRING ????
-        const char *ver = PURC_API_VERSION_STRING;
+        /* XXX: the order of searching directories:
+         *
+         * 1. the valid directories contains in the environment variable:
+         *      PURC_DVOBJS_PATH
+         * 2. /usr/local/lib/purc-<purc-api-version>/
+         * 3. /usr/lib/purc-<purc-api-version>/
+         * 4. /lib/purc-<purc-api-version>/
+         */
 
-        // step2: search in /usr/local/lib/purc-<purc-api-version>
-        n = snprintf(so, sizeof(so),
-                "/usr/local/lib/purc-%s/libpurc-dvobj-%s%s",
-                ver, so_name ? so_name : var_name,
-                ext);
-        PC_ASSERT(n>0 && (size_t)n<sizeof(so));
-        library_handle = dlopen(so, RTLD_LAZY);
-        if (library_handle)
-            break;
+        // step1: search in directories defined by the env var
+        const char *env = getenv(PURC_ENVV_DVOBJS_PATH);
+        if (env) {
+            char *path = strdup(env);
+            char *str1;
+            char *saveptr1;
+            char *dir;
 
-        // step2: search in /lib/purc-<purc-api-version>
-        n = snprintf(so, sizeof(so),
-                "/lib/purc-%s/libpurc-dvobj-%s%s",
-                ver, so_name ? so_name : var_name,
-                ext);
-        PC_ASSERT(n>0 && (size_t)n<sizeof(so));
-        library_handle = dlopen(so, RTLD_LAZY);
-        if (library_handle)
-            break;
+            for (str1 = path; ; str1 = NULL) {
+                dir = strtok_r(str1, ":;", &saveptr1);
+                if (dir == NULL || dir[0] != '/') {
+                    break;
+                }
 
-        // step2: search in /usr/lib/purc-<purc-api-version>
-        n = snprintf(so, sizeof(so),
-                "/usr/lib/purc-%s/libpurc-dvobj-%s%s",
-                ver, so_name ? so_name : var_name,
-                ext);
-        PC_ASSERT(n>0 && (size_t)n<sizeof(so));
-        library_handle = dlopen(so, RTLD_LAZY);
-        if (library_handle)
-            break;
+                n = snprintf(so, sizeof(so),
+                        "%s/libpurc-dvobj-%s%s",
+                        dir, so_name ? so_name : var_name, ext);
+                PC_ASSERT(n>0 && (size_t)n<sizeof(so));
+                library_handle = dlopen(so, RTLD_LAZY);
+                if (library_handle) {
+                    PC_DEBUG("Loaded DVObj from %s\n", so);
+                    break;
+                }
+            }
+
+            free(path);
+
+            if (library_handle)
+                break;
+        }
+
+        static const char *ver = PURC_API_VERSION_STRING;
+
+        // try in system directories.
+        static const char *other_tries[] = {
+            "/usr/local/lib/purc-%s/libpurc-dvobj-%s%s",
+            "/usr/lib/purc-%s/libpurc-dvobj-%s%s",
+            "/lib/purc-%s/libpurc-dvobj-%s%s",
+        };
+
+        for (size_t i = 0; i < PCA_TABLESIZE(other_tries); i++) {
+            n = snprintf(so, sizeof(so), other_tries[i],
+                    ver, so_name ? so_name : var_name, ext);
+            PC_ASSERT(n>0 && (size_t)n<sizeof(so));
+            library_handle = dlopen(so, RTLD_LAZY);
+            if (library_handle) {
+                PC_DEBUG("Loaded DVObj from %s\n", so);
+                break;
+            }
+        }
+
     } while (0);
 
-    if(!library_handle) {
+    if (!library_handle) {
         purc_set_error_with_info(PURC_ERROR_BAD_SYSTEM_CALL,
                 "failed to load: %s", so);
         PC_DEBUGX("failed to load: %s", so);
