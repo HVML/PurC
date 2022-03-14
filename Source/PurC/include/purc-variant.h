@@ -507,27 +507,39 @@ purc_variant_dynamic_get_setter(purc_variant_t dynamic);
 typedef purc_variant_t (*purc_nvariant_method) (void* native_entity,
             size_t nr_args, purc_variant_t* argv, bool silently);
 
+/** the operation set for native entity */
 struct purc_native_ops {
-    // query the getter for a specific property.
-    purc_nvariant_method (*property_getter) (const char* key_name);
+    /** query the getter for a specific property. */
+    purc_nvariant_method (*property_getter)(const char* propert_name);
 
-    // query the setter for a specific property.
-    purc_nvariant_method (*property_setter) (const char* key_name);
+    /** query the setter for a specific property. */
+    purc_nvariant_method (*property_setter)(const char* property_name);
 
-    // query the eraser for a specific property.
-    purc_nvariant_method (*property_eraser) (const char* key_name);
+    /** query the cleaner for a specific property. */
+    purc_nvariant_method (*property_cleaner)(const char* property_name);
 
-    // query the cleaner for a specific property.
-    purc_nvariant_method (*property_cleaner) (const char* key_name);
+    /** query the eraser for a specific property. */
+    purc_nvariant_method (*property_eraser)(const char* property_name);
 
-    // the cleaner to clear the content of the native entity.
-    bool (*cleaner) (void* native_entity);
+    /** the updater to update the content represented by
+      * the native entity (nullable). */
+    purc_variant_t (*updater)(void* native_entity,
+            purc_variant_t new_value, bool silently);
 
-    // the eraser to erase the native entity.
-    bool (*eraser) (void* native_entity);
+    /** the cleaner to clear the content represented by
+      * the native entity (nullable). */
+    purc_variant_t (*cleaner)(void* native_entity, bool silently);
 
-    // the callback when the variant was observed (nullable).
-    bool (*observe) (void* native_entity, ...);
+    /** the eraser to erase the content represented by
+      * the native entity (nullable). */
+    purc_variant_t (*eraser)(void* native_entity, bool silently);
+
+    /** the callback when the variant was observed (nullable). */
+    bool (*on_observed) (void* native_entity,
+            const char *event_name, const char *event_subname);
+
+    /** the callback when the variant was released (nullable). */
+    void (*on_released) (void* native_entity);
 };
 
 /**

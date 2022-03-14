@@ -2053,7 +2053,7 @@ template_create(void)
 }
 
 static void
-template_release(struct pcvdom_template *tpl)
+template_cleaner(struct pcvdom_template *tpl)
 {
     if (!tpl)
         return;
@@ -2072,7 +2072,7 @@ template_destroy(struct pcvdom_template *tpl)
     if (!tpl)
         return;
 
-    template_release(tpl);
+    template_cleaner(tpl);
     free(tpl);
 }
 
@@ -2097,26 +2097,27 @@ template_append(struct pcvdom_template *tpl, struct pcvcm_node *vcm)
     return 0;
 }
 
-// the cleaner to clear the content of the native entity.
-static bool
-cleaner(void* native_entity)
+// the cleaner to clear the content represented by the native entity.
+static purc_variant_t
+cleaner(void* native_entity, bool silently)
 {
     struct pcvdom_template *tpl;
     tpl = (struct pcvdom_template*)native_entity;
     PC_ASSERT(tpl);
-    template_release(tpl);
-    return true;
+    template_cleaner(tpl);
+
+    UNUSED_PARAM(silently);
+    return purc_variant_make_boolean(true);
 }
 
-// the eraser to erase the native entity.
-static bool
-eraser(void* native_entity)
+// the callback to release the native entity.
+static void
+on_released(void* native_entity)
 {
     struct pcvdom_template *tpl;
     tpl = (struct pcvdom_template*)native_entity;
     PC_ASSERT(tpl);
     template_destroy(tpl);
-    return true;
 }
 
 purc_variant_t
@@ -2128,14 +2129,9 @@ pcintr_template_make(void)
         return PURC_VARIANT_INVALID;
 
     static struct purc_native_ops ops = {
-        // .property_getter            = property_getter,
-        // .property_setter            = property_setter,
-        // .property_eraser            = property_eraser,
-        // .property_cleaner           = property_cleaner,
+        .cleaner                       = cleaner,
 
-        .cleaner                    = cleaner,
-        .eraser                     = eraser,
-        // .observe                    = observe,
+        .on_released                   = on_released,
     };
 
     purc_variant_t v = purc_variant_make_native(tpl, &ops);

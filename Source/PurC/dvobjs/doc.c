@@ -213,31 +213,22 @@ property_cleaner(const char* key_name)
     return NULL;
 }
 
-// the cleaner to clear the content of the native entity.
-static bool
-cleaner(void* native_entity)
-{
-    UNUSED_PARAM(native_entity);
-    PC_ASSERT(0); // Not implemented yet
-    return false;
-}
+#if 0
+// the updater to update the content represented by the native entity.
+static purc_variant_t
+updater(void* native_entity,
+        size_t nr_args, purc_variant_t* argv, bool silently);
 
-// the eraser to erase the native entity.
-static bool
-eraser(void* native_entity)
-{
-    UNUSED_PARAM(native_entity);
-    return true;
-}
+// the cleaner to clear the content represented by the native entity.
+static purc_variant_t
+cleaner(void* native_entity,
+        size_t nr_args, purc_variant_t* argv, bool silently);
 
-// the callback when the variant was observed (nullable).
-static bool
-observe(void* native_entity, ...)
-{
-    UNUSED_PARAM(native_entity);
-    PC_ASSERT(0); // Not implemented yet
-    return false;
-}
+// the eraser to erase the content represented by the native entity.
+static purc_variant_t
+eraser(void* native_entity,
+        size_t nr_args, purc_variant_t* argv, bool silently);
+#endif
 
 purc_variant_t
 pcdvobjs_make_doc_variant(struct pcdom_document *doc)
@@ -248,9 +239,12 @@ pcdvobjs_make_doc_variant(struct pcdom_document *doc)
         .property_eraser            = property_eraser,
         .property_cleaner           = property_cleaner,
 
-        .cleaner                    = cleaner,
-        .eraser                     = eraser,
-        .observe                    = observe,
+        .updater                    = NULL,
+        .cleaner                    = NULL,
+        .eraser                     = NULL,
+
+        .on_observed                = NULL,
+        .on_released                = NULL,
     };
 
     PC_ASSERT(doc);

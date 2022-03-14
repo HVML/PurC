@@ -743,8 +743,8 @@ void pcvariant_native_release(purc_variant_t value)
     if (value->type == PURC_VARIANT_TYPE_NATIVE) {
         struct purc_native_ops *ops;
         ops = (struct purc_native_ops*)value->ptr_ptr[1];
-        if (ops && ops->eraser) {
-            ops->eraser(value->ptr_ptr[0]);
+        if (ops && ops->on_released) {
+            ops->on_released(value->ptr_ptr[0]);
         }
     }
 }

@@ -194,20 +194,23 @@ static purc_variant_t _make_dynamic(int lvl)
     return purc_variant_make_dynamic(_dummy, _dummy);
 }
 
-static bool _dummy_releaser (void* entity)
+static void _dummy_releaser (void* entity)
 {
     UNUSED_PARAM(entity);
-    return true;
 }
 
 static struct purc_native_ops _dummy_ops = {
     .property_getter       = NULL,
     .property_setter       = NULL,
-    .property_eraser       = NULL,
     .property_cleaner      = NULL,
+    .property_eraser       = NULL,
+
+    .updater               = NULL,
     .cleaner               = NULL,
-    .eraser                = _dummy_releaser,
-    .observe               = NULL,
+    .eraser                = NULL,
+
+    .on_observed           = NULL,
+    .on_released           = _dummy_releaser,
 };
 
 static purc_variant_t _make_native(int lvl)
