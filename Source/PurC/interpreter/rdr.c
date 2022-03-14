@@ -1108,7 +1108,7 @@ pcintr_rdr_send_dom_request(pcintr_stack_t stack, const char *operation,
     return true;
 
 failed:
-    if (response_msg != PURC_VARIANT_INVALID) {
+    if (response_msg != NULL) {
         pcrdr_release_message(response_msg);
     }
     return false;
