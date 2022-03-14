@@ -110,21 +110,17 @@ failed:
     return NULL;
 }
 
-static
-uintptr_t create_target_workspace(
-        struct pcrdr_conn *conn_to_rdr,
-        uintptr_t session_handle,
-        const char *target_workspace,
-        purc_renderer_extra_info *extra_info
+uintptr_t pcintr_rdr_create_workspace(struct pcrdr_conn *conn,
+        uintptr_t session, const char *id, const char *title,
+        const char* classes, const char *style
         )
 {
-    uintptr_t workspace_handle = 0;
-
+    uintptr_t workspace = 0;
     pcrdr_msg *response_msg = NULL;
 
     const char *operation = PCRDR_OPERATION_CREATEWORKSPACE;
     pcrdr_msg_target target = PCRDR_MSG_TARGET_SESSION;
-    uint64_t target_value = session_handle;
+    uint64_t target_value = session;
     pcrdr_msg_element_type element_type = PCRDR_MSG_ELEMENT_TYPE_VOID;
     pcrdr_msg_data_type data_type = PCRDR_MSG_DATA_TYPE_EJSON;
     purc_variant_t data = PURC_VARIANT_INVALID;
@@ -135,28 +131,25 @@ uintptr_t create_target_workspace(
         goto failed;
     }
 
-    if (!object_set(data, ID_KEY, target_workspace)) {
+    if (!object_set(data, ID_KEY, id)) {
         goto failed;
     }
 
-    if (extra_info->workspace_title
-            && !object_set(data, TITLE_KEY, extra_info->workspace_title)) {
+    if (title && !object_set(data, TITLE_KEY, title)) {
         goto failed;
     }
 
-    if (extra_info->workspace_classes
-            && !object_set(data, CLASS_KEY, extra_info->workspace_classes)) {
+    if (classes && !object_set(data, CLASS_KEY, classes)) {
         goto failed;
     }
 
-    if (extra_info->workspace_styles
-            && !object_set(data, CLASS_KEY, extra_info->workspace_styles)) {
+    if (style && !object_set(data, STYLE_KEY, style)) {
         goto failed;
     }
 
-    response_msg = pcintr_rdr_send_request_and_wait_response(conn_to_rdr,
-        target, target_value, operation, element_type, NULL,
-        NULL, data_type, data);
+    response_msg = pcintr_rdr_send_request_and_wait_response(conn, target,
+            target_value, operation, element_type, NULL, NULL, data_type,
+            data);
 
     if (response_msg == NULL) {
         goto failed;
@@ -164,7 +157,7 @@ uintptr_t create_target_workspace(
 
     int ret_code = response_msg->retCode;
     if (ret_code == PCRDR_SC_OK) {
-        workspace_handle = response_msg->resultValue;
+        workspace = response_msg->resultValue;
     }
 
     pcrdr_release_message(response_msg);
@@ -174,7 +167,7 @@ uintptr_t create_target_workspace(
         goto failed;
     }
 
-    return workspace_handle;
+    return workspace;
 
 failed:
     if (data != PURC_VARIANT_INVALID) {
@@ -183,7 +176,6 @@ failed:
 
     return 0;
 }
-
 
 static
 uintptr_t create_tabbed_window(
@@ -445,11 +437,12 @@ purc_attach_vdom_to_renderer(purc_vdom_t vdom,
 
     uintptr_t workspace = 0;
     if (target_workspace && rdr_caps->workspace != 0) {
-        workspace = create_target_workspace(
-                conn_to_rdr,
-                session_handle,
-                target_workspace,
-                extra_info);
+        workspace = pcintr_rdr_create_workspace(conn_to_rdr, session_handle,
+            target_workspace,
+            extra_info->workspace_title,
+            extra_info->workspace_classes,
+            extra_info->workspace_styles
+            );
         if (!workspace) {
             purc_set_error(PCRDR_ERROR_SERVER_REFUSED);
             return false;
