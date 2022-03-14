@@ -102,6 +102,66 @@ typedef purc_variant_t
 pcintr_attribute_op
 pcintr_attribute_get_op(enum pchvml_attr_operator op);
 
+pcrdr_msg *pcintr_rdr_send_request_and_wait_response(struct pcrdr_conn *conn,
+        pcrdr_msg_target target, uint64_t target_value, const char *operation,
+        pcrdr_msg_element_type element_type, const char *element,
+        const char *property, pcrdr_msg_data_type data_type,
+        purc_variant_t data);
+
+uintptr_t pcintr_rdr_create_workspace(struct pcrdr_conn *conn,
+        uintptr_t session, const char *id, const char *title,
+        const char* classes, const char *style);
+
+bool pcintr_rdr_destroy_workspace(struct pcrdr_conn *conn,
+        uintptr_t session, uintptr_t workspace);
+
+// property: title, class, style
+bool pcintr_rdr_update_workspace(struct pcrdr_conn *conn,
+        uintptr_t session, uintptr_t workspace,
+        const char *property, const char *value);
+
+
+
+uintptr_t pcintr_rdr_create_plain_window(struct pcrdr_conn *conn,
+        uintptr_t session, uintptr_t workspace, const char *id,
+        const char *title, const char* classes, const char *style,
+        const char* level);
+
+bool pcintr_rdr_destroy_plain_window(struct pcrdr_conn *conn,
+        uintptr_t session, uintptr_t workspace, uintptr_t plain_window);
+
+// property: title, class, style
+bool pcintr_rdr_update_plain_window(struct pcrdr_conn *conn,
+        uintptr_t session, uintptr_t workspace, uintptr_t plain_window,
+        const char *property, const char *value);
+
+
+
+uintptr_t pcintr_rdr_create_tabbed_window(struct pcrdr_conn *conn,
+        uintptr_t session, uintptr_t workspace, const char *id,
+        const char *title, const char* classes, const char *style,
+        const char* level);
+
+bool pcintr_rdr_destroy_tabbed_window(struct pcrdr_conn *conn,
+        uintptr_t session, uintptr_t workspace, uintptr_t tabbed_window);
+
+// property: title, class, style
+bool pcintr_rdr_update_tabbed_window(struct pcrdr_conn *conn,
+        uintptr_t session, uintptr_t workspace, uintptr_t tabbed_window,
+        const char *property, const char *value);
+
+
+uintptr_t pcintr_rdr_create_tab_page(struct pcrdr_conn *conn,
+        uintptr_t tabbed_window, const char *id, const char *title);
+
+bool pcintr_rdr_destroy_tab_page(struct pcrdr_conn *conn,
+        uintptr_t tabbed_window, uintptr_t tab_page);
+
+// property: title, class, style
+bool pcintr_rdr_update_tab_page(struct pcrdr_conn *conn,
+        uintptr_t tabbed_window, uintptr_t tab_page,
+        const char *property, const char *value);
+
 bool
 pcintr_rdr_page_control_load(pcintr_stack_t stack);
 
