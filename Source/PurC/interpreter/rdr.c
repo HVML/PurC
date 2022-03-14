@@ -44,24 +44,6 @@
 #define BUFF_MAX                1024 * 4
 #define LEN_BUFF_LONGLONGINT    128
 
-static inline
-pcrdr_msg *make_request_msg(pcrdr_msg_target target, uint64_t target_value,
-        const char *operation)
-{
-    return pcrdr_make_request_message(
-            target,                             /* target */
-            target_value,                       /* target_value */
-            operation,                          /* operation */
-            NULL,                               /* request_id */
-            PCRDR_MSG_ELEMENT_TYPE_VOID,        /* element_type */
-            NULL,                               /* element */
-            NULL,                               /* property */
-            PCRDR_MSG_DATA_TYPE_VOID,           /* data_tuype */
-            NULL,                               /* data */
-            0                                   /* data_len */
-            );
-}
-
 static bool
 object_set(purc_variant_t object, const char* key, const char* value)
 {
@@ -84,6 +66,7 @@ object_set(purc_variant_t object, const char* key, const char* value)
     return true;
 }
 
+static
 pcrdr_msg *pcintr_rdr_send_request(struct pcrdr_conn *conn,
         pcrdr_msg_target target, uint64_t target_value, const char *operation,
         pcrdr_msg_element_type element_type, const char *element,
@@ -128,6 +111,7 @@ failed:
     return NULL;
 }
 
+static
 uintptr_t create_target_workspace(
         struct pcrdr_conn *conn_to_rdr,
         uintptr_t session_handle,
@@ -135,55 +119,49 @@ uintptr_t create_target_workspace(
         purc_renderer_extra_info *extra_info
         )
 {
-    pcrdr_msg *msg = NULL;
-    pcrdr_msg *response_msg = NULL;
-    purc_variant_t req_data = PURC_VARIANT_INVALID;
     uintptr_t workspace_handle = 0;
+
+    pcrdr_msg *response_msg = NULL;
 
     const char *operation = PCRDR_OPERATION_CREATEWORKSPACE;
     pcrdr_msg_target target = PCRDR_MSG_TARGET_SESSION;
     uint64_t target_value = session_handle;
-    msg = make_request_msg(target, target_value, operation);
-    if (msg == NULL) {
+    pcrdr_msg_element_type element_type = PCRDR_MSG_ELEMENT_TYPE_VOID;
+    pcrdr_msg_data_type data_type = PCRDR_MSG_DATA_TYPE_EJSON;
+    purc_variant_t data = PURC_VARIANT_INVALID;
+
+    data = purc_variant_make_object(0, NULL, NULL);
+    if (data == PURC_VARIANT_INVALID) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto failed;
     }
 
-    req_data = purc_variant_make_object(0, NULL, NULL);
-    if (req_data == PURC_VARIANT_INVALID) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        goto failed;
-    }
-
-    if (!object_set(req_data, ID_KEY, target_workspace)) {
+    if (!object_set(data, ID_KEY, target_workspace)) {
         goto failed;
     }
 
     if (extra_info->workspace_title
-            && !object_set(req_data, TITLE_KEY, extra_info->workspace_title)) {
+            && !object_set(data, TITLE_KEY, extra_info->workspace_title)) {
         goto failed;
     }
 
     if (extra_info->workspace_classes
-            && !object_set(req_data, CLASS_KEY, extra_info->workspace_classes)) {
+            && !object_set(data, CLASS_KEY, extra_info->workspace_classes)) {
         goto failed;
     }
 
     if (extra_info->workspace_styles
-            && !object_set(req_data, CLASS_KEY, extra_info->workspace_styles)) {
+            && !object_set(data, CLASS_KEY, extra_info->workspace_styles)) {
         goto failed;
     }
 
-    msg->dataType = PCRDR_MSG_DATA_TYPE_EJSON;
-    msg->data = req_data;
-    req_data = NULL;
+    response_msg = pcintr_rdr_send_request(conn_to_rdr,
+        target, target_value, operation, element_type, NULL,
+        NULL, data_type, data);
 
-    if (pcrdr_send_request_and_wait_response(conn_to_rdr,
-            msg, PCRDR_TIME_DEF_EXPECTED, &response_msg) < 0) {
+    if (response_msg == NULL) {
         goto failed;
     }
-    pcrdr_release_message(msg);
-    msg = NULL;
 
     int ret_code = response_msg->retCode;
     if (ret_code == PCRDR_SC_OK) {
@@ -200,19 +178,15 @@ uintptr_t create_target_workspace(
     return workspace_handle;
 
 failed:
-    if (req_data != PURC_VARIANT_INVALID) {
-        purc_variant_unref(req_data);
+    if (data != PURC_VARIANT_INVALID) {
+        purc_variant_unref(data);
     }
-
-    if (msg) {
-        pcrdr_release_message(msg);
-    }
-
 
     return 0;
 }
 
 
+static
 uintptr_t create_tabbed_window(
         struct pcrdr_conn *conn_to_rdr,
         uintptr_t workspace_handle,
@@ -224,14 +198,16 @@ uintptr_t create_tabbed_window(
 {
     UNUSED_PARAM(target_level);
 
-    pcrdr_msg *msg = NULL;
-    pcrdr_msg *response_msg = NULL;
-    purc_variant_t req_data = PURC_VARIANT_INVALID;
     uintptr_t window_handle = 0;
+    pcrdr_msg *response_msg = NULL;
 
     const char *operation = PCRDR_OPERATION_CREATEPLAINWINDOW;
     pcrdr_msg_target target;
     uint64_t target_value;
+    pcrdr_msg_element_type element_type = PCRDR_MSG_ELEMENT_TYPE_VOID;
+    pcrdr_msg_data_type data_type = PCRDR_MSG_DATA_TYPE_EJSON;
+    purc_variant_t req_data = PURC_VARIANT_INVALID;
+
     if (workspace_handle) {
         target = PCRDR_MSG_TARGET_WORKSPACE;
         target_value = workspace_handle;
@@ -239,12 +215,6 @@ uintptr_t create_tabbed_window(
     else {
         target = PCRDR_MSG_TARGET_SESSION;
         target_value = session_handle;
-    }
-
-    msg = make_request_msg(target, target_value, operation);
-    if (msg == NULL) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        goto failed;
     }
 
     req_data = purc_variant_make_object(0, NULL, NULL);
@@ -272,16 +242,13 @@ uintptr_t create_tabbed_window(
         goto failed;
     }
 
-    msg->dataType = PCRDR_MSG_DATA_TYPE_EJSON;
-    msg->data = req_data;
-    req_data = NULL;
+    response_msg = pcintr_rdr_send_request(conn_to_rdr,
+        target, target_value, operation, element_type, NULL,
+        NULL, data_type, req_data);
 
-    if (pcrdr_send_request_and_wait_response(conn_to_rdr,
-            msg, PCRDR_TIME_DEF_EXPECTED, &response_msg) < 0) {
+    if (response_msg == NULL) {
         goto failed;
     }
-    pcrdr_release_message(msg);
-    msg = NULL;
 
     int ret_code = response_msg->retCode;
     if (ret_code == PCRDR_SC_OK) {
@@ -302,13 +269,10 @@ failed:
         purc_variant_unref(req_data);
     }
 
-    if (msg) {
-        pcrdr_release_message(msg);
-    }
-
     return 0;
 }
 
+static
 uintptr_t create_tabpage(
         struct pcrdr_conn *conn_to_rdr,
         uintptr_t window_handle,
@@ -316,21 +280,15 @@ uintptr_t create_tabpage(
         purc_renderer_extra_info *extra_info
         )
 {
-    UNUSED_PARAM(extra_info);
-
-    pcrdr_msg *msg = NULL;
-    pcrdr_msg *response_msg = NULL;
-    purc_variant_t req_data = PURC_VARIANT_INVALID;
     uintptr_t page_handle = 0;
+    pcrdr_msg *response_msg = NULL;
 
     const char *operation = PCRDR_OPERATION_CREATETABPAGE;
     pcrdr_msg_target target = PCRDR_MSG_TARGET_TABBEDWINDOW;
     uint64_t target_value = window_handle;
-    msg = make_request_msg(target, target_value, operation);
-    if (msg == NULL) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        goto failed;
-    }
+    pcrdr_msg_element_type element_type = PCRDR_MSG_ELEMENT_TYPE_VOID;
+    pcrdr_msg_data_type data_type = PCRDR_MSG_DATA_TYPE_EJSON;
+    purc_variant_t req_data = PURC_VARIANT_INVALID;
 
     req_data = purc_variant_make_object(0, NULL, NULL);
     if (req_data == PURC_VARIANT_INVALID) {
@@ -347,16 +305,13 @@ uintptr_t create_tabpage(
         goto failed;
     }
 
-    msg->dataType = PCRDR_MSG_DATA_TYPE_EJSON;
-    msg->data = req_data;
-    req_data = NULL;
+    response_msg = pcintr_rdr_send_request(conn_to_rdr,
+        target, target_value, operation, element_type, NULL,
+        NULL, data_type, req_data);
 
-    if (pcrdr_send_request_and_wait_response(conn_to_rdr,
-            msg, PCRDR_TIME_DEF_EXPECTED, &response_msg) < 0) {
+    if (response_msg == NULL) {
         goto failed;
     }
-    pcrdr_release_message(msg);
-    msg = NULL;
 
     int ret_code = response_msg->retCode;
     if (ret_code == PCRDR_SC_OK) {
@@ -377,13 +332,10 @@ failed:
         purc_variant_unref(req_data);
     }
 
-    if (msg) {
-        pcrdr_release_message(msg);
-    }
-
     return 0;
 }
 
+static
 uintptr_t create_plain_window(
         struct pcrdr_conn *conn_to_rdr,
         uintptr_t workspace_handle,
@@ -395,14 +347,16 @@ uintptr_t create_plain_window(
 {
     UNUSED_PARAM(target_level);
 
-    pcrdr_msg *msg = NULL;
-    pcrdr_msg *response_msg = NULL;
-    purc_variant_t req_data = PURC_VARIANT_INVALID;
     uintptr_t window_handle = 0;
+    pcrdr_msg *response_msg = NULL;
 
     const char *operation = PCRDR_OPERATION_CREATEPLAINWINDOW;
     pcrdr_msg_target target;
     uint64_t target_value;
+    pcrdr_msg_element_type element_type = PCRDR_MSG_ELEMENT_TYPE_VOID;
+    pcrdr_msg_data_type data_type = PCRDR_MSG_DATA_TYPE_EJSON;
+    purc_variant_t req_data = PURC_VARIANT_INVALID;
+
     if (workspace_handle) {
         target = PCRDR_MSG_TARGET_WORKSPACE;
         target_value = workspace_handle;
@@ -410,12 +364,6 @@ uintptr_t create_plain_window(
     else {
         target = PCRDR_MSG_TARGET_SESSION;
         target_value = session_handle;
-    }
-
-    msg = make_request_msg(target, target_value, operation);
-    if (msg == NULL) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        goto failed;
     }
 
     req_data = purc_variant_make_object(0, NULL, NULL);
@@ -443,16 +391,13 @@ uintptr_t create_plain_window(
         goto failed;
     }
 
-    msg->dataType = PCRDR_MSG_DATA_TYPE_EJSON;
-    msg->data = req_data;
-    req_data = NULL;
+    response_msg = pcintr_rdr_send_request(conn_to_rdr,
+        target, target_value, operation, element_type, NULL,
+        NULL, data_type, req_data);
 
-    if (pcrdr_send_request_and_wait_response(conn_to_rdr,
-            msg, PCRDR_TIME_DEF_EXPECTED, &response_msg) < 0) {
+    if (response_msg == NULL) {
         goto failed;
     }
-    pcrdr_release_message(msg);
-    msg = NULL;
 
     int ret_code = response_msg->retCode;
     if (ret_code == PCRDR_SC_OK) {
@@ -471,10 +416,6 @@ uintptr_t create_plain_window(
 failed:
     if (req_data != PURC_VARIANT_INVALID) {
         purc_variant_unref(req_data);
-    }
-
-    if (msg) {
-        pcrdr_release_message(msg);
     }
 
     return 0;
@@ -559,9 +500,13 @@ pcintr_rdr_page_control_load(pcintr_stack_t stack)
     if (!pcvdom_document_is_attached_rdr(stack->vdom)) {
         return true;
     }
-
-    pcrdr_msg *msg = NULL;
     pcrdr_msg *response_msg = NULL;
+
+    const char *operation = PCRDR_OPERATION_LOAD;
+    pcrdr_msg_target target = PCRDR_MSG_TARGET_TABPAGE;
+    uint64_t target_value;
+    pcrdr_msg_element_type element_type = PCRDR_MSG_ELEMENT_TYPE_VOID;
+    pcrdr_msg_data_type data_type = PCRDR_MSG_DATA_TYPE_TEXT;
     purc_variant_t req_data = PURC_VARIANT_INVALID;
 
     purc_vdom_t vdom = stack->vdom;
@@ -569,19 +514,10 @@ pcintr_rdr_page_control_load(pcintr_stack_t stack)
     int opt = 0;
     purc_rwstream_t out = NULL;
 
-
-    const char *operation = PCRDR_OPERATION_LOAD;
-    pcrdr_msg_target target = PCRDR_MSG_TARGET_TABPAGE;
-    uint64_t target_value = pcvdom_document_get_target_tabpage(vdom);
+    target_value = pcvdom_document_get_target_tabpage(vdom);
     if (target_value == 0) {
         target = PCRDR_MSG_TARGET_PLAINWINDOW;
         target_value = pcvdom_document_get_target_window(vdom);
-    }
-
-    msg = make_request_msg(target, target_value, operation);
-    if (msg == NULL) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        goto failed;
     }
 
     out = purc_rwstream_new_buffer(BUFF_MIN, BUFF_MAX);
@@ -610,18 +546,14 @@ pcintr_rdr_page_control_load(pcintr_stack_t stack)
         goto failed;
     }
 
-    msg->dataType = PCRDR_MSG_DATA_TYPE_TEXT;
-    msg->data = req_data;
-    req_data = NULL;
-
     struct pcinst *inst = pcinst_current();
-    struct pcrdr_conn *conn_to_rdr = inst->conn_to_rdr;
-    if (pcrdr_send_request_and_wait_response(conn_to_rdr,
-            msg, PCRDR_TIME_DEF_EXPECTED, &response_msg) < 0) {
+    response_msg = pcintr_rdr_send_request(inst->conn_to_rdr,
+        target, target_value, operation, element_type, NULL,
+        NULL, data_type, req_data);
+
+    if (response_msg == NULL) {
         goto failed;
     }
-    pcrdr_release_message(msg);
-    msg = NULL;
 
     int ret_code = response_msg->retCode;
     if (ret_code == PCRDR_SC_OK) {
@@ -648,10 +580,6 @@ failed:
         purc_variant_unref(req_data);
     }
 
-    if (msg) {
-        pcrdr_release_message(msg);
-    }
-
     return false;
 }
 
@@ -666,7 +594,6 @@ pcintr_rdr_send_dom_request(pcintr_stack_t stack, const char *operation,
     }
 
     pcrdr_msg *response_msg = NULL;
-    purc_variant_t req_data = PURC_VARIANT_INVALID;
 
     pcrdr_msg_target target = PCRDR_MSG_TARGET_DOM;
     uint64_t target_value = pcvdom_document_get_target_dom(stack->vdom);
@@ -704,10 +631,6 @@ pcintr_rdr_send_dom_request(pcintr_stack_t stack, const char *operation,
     return true;
 
 failed:
-    if (req_data != PURC_VARIANT_INVALID) {
-        purc_variant_unref(req_data);
-    }
-
     return false;
 }
 
