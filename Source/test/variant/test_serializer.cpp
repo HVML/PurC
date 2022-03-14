@@ -410,21 +410,24 @@ TEST(variant, serialize_dynamic)
     purc_cleanup ();
 }
 
-static bool _my_releaser (void* native_entity)
+static void _my_releaser (void* native_entity)
 {
     my_puts("my_releaser is called\n");
     free (native_entity);
-    return true;
 }
 
 static struct purc_native_ops _my_ops = {
     .property_getter       = NULL,
     .property_setter       = NULL,
-    .property_eraser       = NULL,
     .property_cleaner      = NULL,
+    .property_eraser       = NULL,
+
+    .updater               = NULL,
     .cleaner               = NULL,
-    .eraser                = _my_releaser,
-    .observe               = NULL,
+    .eraser                = NULL,
+
+    .on_observed           = NULL,
+    .on_released           = _my_releaser,
 };
 
 // to test: serialize a native entity

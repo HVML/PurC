@@ -370,18 +370,9 @@ property_cleaner(const char* key_name)
     return NULL;
 }
 
-// the cleaner to clear the content of the native entity.
-static bool
-cleaner(void* native_entity)
-{
-    UNUSED_PARAM(native_entity);
-    PC_ASSERT(0); // Not implemented yet
-    return false;
-}
-
-// the eraser to erase the native entity.
-static bool
-eraser(void* native_entity)
+// the callback to release the native entity.
+static void
+on_released(void* native_entity)
 {
     UNUSED_PARAM(native_entity);
 
@@ -389,17 +380,6 @@ eraser(void* native_entity)
     struct pcdvobjs_elements *elements;
     elements = (struct pcdvobjs_elements*)native_entity;
     elements_destroy(elements);
-
-    return true;
-}
-
-// the callback when the variant was observed (nullable).
-static bool
-observe(void* native_entity, ...)
-{
-    UNUSED_PARAM(native_entity);
-    PC_ASSERT(0); // Not implemented yet
-    return false;
 }
 
 static purc_variant_t
@@ -411,9 +391,12 @@ make_elements(void)
         .property_eraser            = property_eraser,
         .property_cleaner           = property_cleaner,
 
-        .cleaner                    = cleaner,
-        .eraser                     = eraser,
-        .observe                    = observe,
+        .updater                    = NULL,
+        .cleaner                    = NULL,
+        .eraser                     = NULL,
+
+        .on_observed                = NULL,
+        .on_released                = on_released,
     };
 
     struct pcdvobjs_elements *elements;

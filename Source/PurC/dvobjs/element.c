@@ -27,14 +27,6 @@
 
 #include "purc-dom.h"
 
-static inline bool
-element_eraser(struct pcdvobjs_element *element)
-{
-    element->elem = NULL;
-    free(element);
-    return true;
-}
-
 purc_variant_t
 pcdvobjs_element_prop_getter(pcdom_element_t *element,
         size_t nr_args, purc_variant_t *argv, bool silently)
@@ -419,34 +411,13 @@ property_cleaner(const char* key_name)
     return NULL;
 }
 
-// the cleaner to clear the content of the native entity.
-static bool
-cleaner(void* native_entity)
-{
-    UNUSED_PARAM(native_entity);
-    PC_ASSERT(0); // Not implemented yet
-    return false;
-}
-
-// the eraser to erase the native entity.
-static bool
-eraser(void* native_entity)
+// the callback to release the native entity.
+static void
+on_released(void* native_entity)
 {
     PC_ASSERT(native_entity);
 
-    struct pcdvobjs_element *element;
-    element = (struct pcdvobjs_element*)native_entity;
-
-    return element_eraser(element);
-}
-
-// the callback when the variant was observed (nullable).
-static bool
-observe(void* native_entity, ...)
-{
-    UNUSED_PARAM(native_entity);
-    PC_ASSERT(0); // Not implemented yet
-    return false;
+    free(native_entity);
 }
 
 purc_variant_t
@@ -458,9 +429,12 @@ pcdvobjs_make_element_variant(struct pcdom_element *elem)
         .property_eraser            = property_eraser,
         .property_cleaner           = property_cleaner,
 
-        .cleaner                    = cleaner,
-        .eraser                     = eraser,
-        .observe                    = observe,
+        .updater                    = NULL,
+        .cleaner                    = NULL,
+        .eraser                     = NULL,
+
+        .on_observed                = NULL,
+        .on_released                = on_released,
     };
 
     struct pcdvobjs_element *element;

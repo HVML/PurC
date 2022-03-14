@@ -937,20 +937,23 @@ TEST(variant, pcvariant_dynamic)
 // to test:
 // purc_variant_make_native ();
 // purc_variant_serialize ()
-static bool rws_releaser (void* entity)
+static void rws_releaser (void* entity)
 {
     UNUSED_PARAM(entity);
-    return true;
 }
 
 static struct purc_native_ops _rws_ops = {
     .property_getter       = NULL,
     .property_setter       = NULL,
-    .property_eraser       = NULL,
     .property_cleaner      = NULL,
+    .property_eraser       = NULL,
+
+    .updater               = NULL,
     .cleaner               = NULL,
-    .eraser                = rws_releaser,
-    .observe               = NULL,
+    .eraser                = NULL,
+
+    .on_observed           = NULL,
+    .on_released           = rws_releaser,
 };
 
 TEST(variant, pcvariant_native)
@@ -1136,23 +1139,26 @@ _getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     return PURC_VARIANT_INVALID;
 }
 
-static inline bool
+static void
 _nr_native_releaser(void* entity)
 {
     size_t nr = *(size_t*)entity;
     if (nr!=1)
         abort();
-    return true;
 }
 
 static struct purc_native_ops _nr_ops = {
     .property_getter       = NULL,
     .property_setter       = NULL,
-    .property_eraser       = NULL,
     .property_cleaner      = NULL,
+    .property_eraser       = NULL,
+
+    .updater               = NULL,
     .cleaner               = NULL,
-    .eraser                = _nr_native_releaser,
-    .observe               = NULL,
+    .eraser                = NULL,
+
+    .on_observed           = NULL,
+    .on_released           = _nr_native_releaser,
 };
 
 

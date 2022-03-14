@@ -238,11 +238,15 @@ static inline purc_nvariant_method property_setter(const char* key_name)
 struct purc_native_ops native_ops = {
     .property_getter             = property_getter,
     .property_setter             = property_setter,
-    .property_eraser             = NULL,
     .property_cleaner            = NULL,
+    .property_eraser             = NULL,
+
+    .updater                     = NULL,
     .cleaner                     = NULL,
     .eraser                      = NULL,
-    .observe                     = NULL,
+
+    .on_observed                 = NULL,
+    .on_released                 = NULL,
 };
 
 struct find_var_ctxt {
