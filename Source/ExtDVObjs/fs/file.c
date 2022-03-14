@@ -627,7 +627,7 @@ stream_open_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         return PURC_VARIANT_INVALID;
     }
 
-    /* FIXME: must setup a callback for `on_released` to destroy the stream */
+    // setup a callback for `on_released` to destroy the stream automatically
     static const struct purc_native_ops ops = {
         .on_released = release_rwstream,
     };
