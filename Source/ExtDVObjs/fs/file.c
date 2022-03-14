@@ -570,6 +570,11 @@ bin_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     return ret_var;
 }
 
+static void
+release_rwstream(void *native_entity)
+{
+    purc_rwstream_destroy((purc_rwstream_t)native_entity);
+}
 
 static purc_variant_t
 stream_open_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
@@ -622,9 +627,10 @@ stream_open_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         return PURC_VARIANT_INVALID;
     }
 
-    /* FIXME: must setup a callback for `on_release` to close the stream */
-    static struct purc_native_ops ops;
-    memset (&ops, 0, sizeof(ops));
+    /* FIXME: must setup a callback for `on_released` to destroy the stream */
+    static const struct purc_native_ops ops = {
+        .on_released = release_rwstream,
+    };
     ret_var = purc_variant_make_native (rwstream, &ops);
 
     return ret_var;
@@ -1552,6 +1558,8 @@ stream_seek_getter (purc_variant_t root, size_t nr_args,
     return ret_var;
 }
 
+#if 0   // we do not need close method, the rwstream will be destroyed
+        // when the variant is released.
 static purc_variant_t
 stream_close_getter (purc_variant_t root, size_t nr_args,
         purc_variant_t *argv, bool silently)
@@ -1588,6 +1596,7 @@ stream_close_getter (purc_variant_t root, size_t nr_args,
 
     return ret_var;
 }
+#endif
 
 purc_variant_t pcdvobjs_create_file (void)
 {
@@ -1611,7 +1620,8 @@ purc_variant_t pcdvobjs_create_file (void)
         {"readlines",   stream_readlines_getter,   NULL},
         {"readbytes",   stream_readbytes_getter,   NULL},
         {"seek",        stream_seek_getter,        NULL},
-        {"close",       stream_close_getter,       NULL} };
+        // {"close",       stream_close_getter,       NULL},
+    };
 
 
     file_text = pcdvobjs_make_dvobjs (text, PCA_TABLESIZE(text));

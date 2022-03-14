@@ -1442,7 +1442,7 @@ purc_variant_t purc_variant_load_dvobj_from_so (const char *so_name,
                 PC_ASSERT(n>0 && (size_t)n<sizeof(so));
                 library_handle = dlopen(so, RTLD_LAZY);
                 if (library_handle) {
-                    PC_DEBUG("Loaded DVObj from %s\n", so);
+                    PC_INFO("Loaded DVObj from %s\n", so);
                     break;
                 }
             }
@@ -1468,7 +1468,7 @@ purc_variant_t purc_variant_load_dvobj_from_so (const char *so_name,
             PC_ASSERT(n>0 && (size_t)n<sizeof(so));
             library_handle = dlopen(so, RTLD_LAZY);
             if (library_handle) {
-                PC_DEBUG("Loaded DVObj from %s\n", so);
+                PC_INFO("Loaded DVObj from %s\n", so);
                 break;
             }
         }

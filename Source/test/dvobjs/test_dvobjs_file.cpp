@@ -417,6 +417,7 @@ TEST(dvobjs, dvobjs_file_stream_open_seek_close)
 
     // close
     dynamic = purc_variant_object_get_by_ckey (stream, "close", false);
+#if 0 // no such method
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -430,6 +431,10 @@ TEST(dvobjs, dvobjs_file_stream_open_seek_close)
     ASSERT_EQ(purc_variant_is_type (val,
                     PURC_VARIANT_TYPE_BOOLEAN), true);
     purc_variant_unref(val);
+#else
+    ASSERT_EQ(dynamic, nullptr);
+#endif
+
     purc_variant_unref(ret_var);
 
     purc_variant_unload_dvobj (file);
@@ -549,6 +554,7 @@ TEST(dvobjs, dvobjs_file_stream_readbytes)
 
     // close
     dynamic = purc_variant_object_get_by_ckey (stream, "close", false);
+#if 0
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -561,8 +567,11 @@ TEST(dvobjs, dvobjs_file_stream_readbytes)
 
     ASSERT_EQ(purc_variant_is_type (val,
                     PURC_VARIANT_TYPE_BOOLEAN), true);
-    purc_variant_unref(ret_var);
     purc_variant_unref(val);
+#else
+    ASSERT_EQ(dynamic, nullptr);
+#endif
+    purc_variant_unref(ret_var);
 
     purc_variant_unload_dvobj (file);
 
@@ -682,6 +691,7 @@ TEST(dvobjs, dvobjs_file_stream_readlines)
     // close
     dynamic = purc_variant_object_get_by_ckey (stream, "close",
             false);
+#if 0
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -695,6 +705,9 @@ TEST(dvobjs, dvobjs_file_stream_readlines)
     ASSERT_EQ(purc_variant_is_type (val,
                     PURC_VARIANT_TYPE_BOOLEAN), true);
     purc_variant_unref(val);
+#else
+    ASSERT_EQ(dynamic, nullptr);
+#endif
     purc_variant_unref(ret_var);
 
     purc_variant_unload_dvobj (file);
@@ -784,12 +797,16 @@ TEST(dvobjs, dvobjs_file_stream_read_write_struct)
 
     // close
     dynamic = purc_variant_object_get_by_ckey (stream, "close", false);
+#if 0
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
     purc_dvariant_method close = NULL;
     close = purc_variant_dynamic_get_getter (dynamic);
     ASSERT_NE(close, nullptr);
+#else
+    ASSERT_EQ(dynamic, nullptr);
+#endif
 
     char data_path[PATH_MAX+1];
     env = "DVOBJS_TEST_PATH";
@@ -987,6 +1004,7 @@ TEST(dvobjs, dvobjs_file_stream_read_write_struct)
                 purc_variant_unref(ret_var);
 
                 // close
+#if 0
                 for_open[0] = test_file;
                 ret_var = close (NULL, 1, for_open, false);
                 purc_variant_unref(test_file);
@@ -995,6 +1013,9 @@ TEST(dvobjs, dvobjs_file_stream_read_write_struct)
                     purc_variant_unref(ret_var);
                     ret_var = PURC_VARIANT_INVALID;
                 }
+#else
+                purc_variant_unref(test_file);
+#endif
 
                 for (size_t i = 0; i < j; ++i) {
                     if (param[i] != PURC_VARIANT_INVALID) {
