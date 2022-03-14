@@ -136,6 +136,30 @@ bool pcintr_rdr_update_plain_window(struct pcrdr_conn *conn,
 
 
 
+uintptr_t pcintr_rdr_create_tabbed_window(struct pcrdr_conn *conn,
+        uintptr_t workspace, const char *id, const char *title,
+        const char* classes, const char *style, const char* level);
+
+bool pcintr_rdr_destroy_tabbed_window(struct pcrdr_conn *conn,
+        uintptr_t workspace, uintptr_t tabbed_window);
+
+// property: title, class, style
+bool pcintr_rdr_update_tabbed_window(struct pcrdr_conn *conn,
+        uintptr_t workspace, uintptr_t tabbed_window,
+        const char *property, const char *value);
+
+
+uintptr_t pcintr_rdr_create_tab_page(struct pcrdr_conn *conn,
+        uintptr_t tabbed_window, const char *id, const char *title);
+
+bool pcintr_rdr_destroy_tab_page(struct pcrdr_conn *conn,
+        uintptr_t tabbed_window, uintptr_t tab_page);
+
+// property: title, class, style
+bool pcintr_rdr_update_tab_page(struct pcrdr_conn *conn,
+        uintptr_t tabbed_window, uintptr_t tab_page,
+        const char *property, const char *value);
+
 bool
 pcintr_rdr_page_control_load(pcintr_stack_t stack);
 
