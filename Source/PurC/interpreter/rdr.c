@@ -292,18 +292,28 @@ failed:
 }
 
 uintptr_t pcintr_rdr_create_plain_window(struct pcrdr_conn *conn,
-        uintptr_t workspace, const char *id, const char *title,
-        const char* classes, const char *style, const char* level)
+        uintptr_t session, uintptr_t workspace, const char *id,
+        const char *title, const char* classes, const char *style,
+        const char* level)
 {
     uintptr_t plain_window = 0;
     pcrdr_msg *response_msg = NULL;
 
     const char *operation = PCRDR_OPERATION_CREATEPLAINWINDOW;
-    pcrdr_msg_target target = PCRDR_MSG_TARGET_WORKSPACE;
-    uint64_t target_value = workspace;
+    pcrdr_msg_target target;
+    uint64_t target_value;
     pcrdr_msg_element_type element_type = PCRDR_MSG_ELEMENT_TYPE_VOID;
     pcrdr_msg_data_type data_type = PCRDR_MSG_DATA_TYPE_EJSON;
     purc_variant_t data = PURC_VARIANT_INVALID;
+
+    if (workspace) {
+        target = PCRDR_MSG_TARGET_WORKSPACE;
+        target_value = workspace;
+    }
+    else {
+        target = PCRDR_MSG_TARGET_SESSION;
+        target_value = session;
+    }
 
     data = purc_variant_make_object(0, NULL, NULL);
     if (data == PURC_VARIANT_INVALID) {
@@ -362,16 +372,25 @@ failed:
 }
 
 bool pcintr_rdr_destroy_plain_window(struct pcrdr_conn *conn,
-        uintptr_t workspace, uintptr_t plain_window)
+        uintptr_t session, uintptr_t workspace, uintptr_t plain_window)
 {
     pcrdr_msg *response_msg = NULL;
 
     const char *operation = PCRDR_OPERATION_DESTROYPLAINWINDOW;
-    pcrdr_msg_target target = PCRDR_MSG_TARGET_WORKSPACE;
-    uint64_t target_value = workspace;
+    pcrdr_msg_target target;
+    uint64_t target_value;
     pcrdr_msg_element_type element_type = PCRDR_MSG_ELEMENT_TYPE_HANDLE;
     pcrdr_msg_data_type data_type = PCRDR_MSG_DATA_TYPE_VOID;
     purc_variant_t data = PURC_VARIANT_INVALID;
+
+    if (workspace) {
+        target = PCRDR_MSG_TARGET_WORKSPACE;
+        target_value = workspace;
+    }
+    else {
+        target = PCRDR_MSG_TARGET_SESSION;
+        target_value = session;
+    }
 
     char element[LEN_BUFF_LONGLONGINT];
     int n = snprintf(element, sizeof(element),
@@ -417,17 +436,26 @@ failed:
 
 // property: title, class, style
 bool pcintr_rdr_update_plain_window(struct pcrdr_conn *conn,
-        uintptr_t workspace, uintptr_t plain_window,
+        uintptr_t session, uintptr_t workspace, uintptr_t plain_window,
         const char *property, const char *value)
 {
     pcrdr_msg *response_msg = NULL;
 
     const char *operation = PCRDR_OPERATION_UPDATEPLAINWINDOW;
-    pcrdr_msg_target target = PCRDR_MSG_TARGET_WORKSPACE;
-    uint64_t target_value = workspace;
+    pcrdr_msg_target target;
+    uint64_t target_value;
     pcrdr_msg_element_type element_type = PCRDR_MSG_ELEMENT_TYPE_HANDLE;
     pcrdr_msg_data_type data_type = PCRDR_MSG_DATA_TYPE_TEXT;
     purc_variant_t data = PURC_VARIANT_INVALID;
+
+    if (workspace) {
+        target = PCRDR_MSG_TARGET_WORKSPACE;
+        target_value = workspace;
+    }
+    else {
+        target = PCRDR_MSG_TARGET_SESSION;
+        target_value = session;
+    }
 
     data = purc_variant_make_string(value, false);
     if (data == PURC_VARIANT_INVALID) {
@@ -478,18 +506,28 @@ failed:
 }
 
 uintptr_t pcintr_rdr_create_tabbed_window(struct pcrdr_conn *conn,
-        uintptr_t workspace, const char *id, const char *title,
-        const char* classes, const char *style, const char* level)
+        uintptr_t session, uintptr_t workspace, const char *id,
+        const char *title, const char* classes, const char *style,
+        const char* level)
 {
     uintptr_t tabbed_window = 0;
     pcrdr_msg *response_msg = NULL;
 
     const char *operation = PCRDR_OPERATION_CREATETABBEDWINDOW;
-    pcrdr_msg_target target = PCRDR_MSG_TARGET_WORKSPACE;
-    uint64_t target_value = workspace;
+    pcrdr_msg_target target;
+    uint64_t target_value;
     pcrdr_msg_element_type element_type = PCRDR_MSG_ELEMENT_TYPE_VOID;
     pcrdr_msg_data_type data_type = PCRDR_MSG_DATA_TYPE_EJSON;
     purc_variant_t data = PURC_VARIANT_INVALID;
+
+    if (workspace) {
+        target = PCRDR_MSG_TARGET_WORKSPACE;
+        target_value = workspace;
+    }
+    else {
+        target = PCRDR_MSG_TARGET_SESSION;
+        target_value = session;
+    }
 
     data = purc_variant_make_object(0, NULL, NULL);
     if (data == PURC_VARIANT_INVALID) {
@@ -548,16 +586,25 @@ failed:
 }
 
 bool pcintr_rdr_destroy_tabbed_window(struct pcrdr_conn *conn,
-        uintptr_t workspace, uintptr_t tabbed_window)
+        uintptr_t session, uintptr_t workspace, uintptr_t tabbed_window)
 {
     pcrdr_msg *response_msg = NULL;
 
     const char *operation = PCRDR_OPERATION_DESTROYTABBEDWINDOW;
-    pcrdr_msg_target target = PCRDR_MSG_TARGET_WORKSPACE;
-    uint64_t target_value = workspace;
+    pcrdr_msg_target target;
+    uint64_t target_value;
     pcrdr_msg_element_type element_type = PCRDR_MSG_ELEMENT_TYPE_HANDLE;
     pcrdr_msg_data_type data_type = PCRDR_MSG_DATA_TYPE_VOID;
     purc_variant_t data = PURC_VARIANT_INVALID;
+
+    if (workspace) {
+        target = PCRDR_MSG_TARGET_WORKSPACE;
+        target_value = workspace;
+    }
+    else {
+        target = PCRDR_MSG_TARGET_SESSION;
+        target_value = session;
+    }
 
     char element[LEN_BUFF_LONGLONGINT];
     int n = snprintf(element, sizeof(element),
@@ -603,17 +650,26 @@ failed:
 
 // property: title, class, style
 bool pcintr_rdr_update_tabbed_window(struct pcrdr_conn *conn,
-        uintptr_t workspace, uintptr_t tabbed_window,
+        uintptr_t session, uintptr_t workspace, uintptr_t tabbed_window,
         const char *property, const char *value)
 {
     pcrdr_msg *response_msg = NULL;
 
     const char *operation = PCRDR_OPERATION_UPDATETABBEDWINDOW;
-    pcrdr_msg_target target = PCRDR_MSG_TARGET_WORKSPACE;
-    uint64_t target_value = workspace;
+    pcrdr_msg_target target;
+    uint64_t target_value;
     pcrdr_msg_element_type element_type = PCRDR_MSG_ELEMENT_TYPE_HANDLE;
     pcrdr_msg_data_type data_type = PCRDR_MSG_DATA_TYPE_TEXT;
     purc_variant_t data = PURC_VARIANT_INVALID;
+
+    if (workspace) {
+        target = PCRDR_MSG_TARGET_WORKSPACE;
+        target_value = workspace;
+    }
+    else {
+        target = PCRDR_MSG_TARGET_SESSION;
+        target_value = session;
+    }
 
     data = purc_variant_make_string(value, false);
     if (data == PURC_VARIANT_INVALID) {

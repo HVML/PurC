@@ -123,29 +123,31 @@ bool pcintr_rdr_update_workspace(struct pcrdr_conn *conn,
 
 
 uintptr_t pcintr_rdr_create_plain_window(struct pcrdr_conn *conn,
-        uintptr_t workspace, const char *id, const char *title,
-        const char* classes, const char *style, const char* level);
+        uintptr_t session, uintptr_t workspace, const char *id,
+        const char *title, const char* classes, const char *style,
+        const char* level);
 
 bool pcintr_rdr_destroy_plain_window(struct pcrdr_conn *conn,
-        uintptr_t workspace, uintptr_t plain_window);
+        uintptr_t session, uintptr_t workspace, uintptr_t plain_window);
 
 // property: title, class, style
 bool pcintr_rdr_update_plain_window(struct pcrdr_conn *conn,
-        uintptr_t workspace, uintptr_t plain_window,
+        uintptr_t session, uintptr_t workspace, uintptr_t plain_window,
         const char *property, const char *value);
 
 
 
 uintptr_t pcintr_rdr_create_tabbed_window(struct pcrdr_conn *conn,
-        uintptr_t workspace, const char *id, const char *title,
-        const char* classes, const char *style, const char* level);
+        uintptr_t session, uintptr_t workspace, const char *id,
+        const char *title, const char* classes, const char *style,
+        const char* level);
 
 bool pcintr_rdr_destroy_tabbed_window(struct pcrdr_conn *conn,
-        uintptr_t workspace, uintptr_t tabbed_window);
+        uintptr_t session, uintptr_t workspace, uintptr_t tabbed_window);
 
 // property: title, class, style
 bool pcintr_rdr_update_tabbed_window(struct pcrdr_conn *conn,
-        uintptr_t workspace, uintptr_t tabbed_window,
+        uintptr_t session, uintptr_t workspace, uintptr_t tabbed_window,
         const char *property, const char *value);
 
 
