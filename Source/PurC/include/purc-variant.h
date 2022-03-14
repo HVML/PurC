@@ -1376,11 +1376,10 @@ purc_variant_set_iterator_get_value(struct purc_variant_set_iterator* it);
 
 
 /**
- * Creates a variant value from a string which contents Json data
+ * Creates a variant value from a string which contains JSON data.
  *
- * @param json: the pointer of string which contents json data
- *
- * @param sz: the size of string
+ * @param json: the pointer of string which contains JSON data.
+ * @param sz: the size of string.
  *
  * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
  *
@@ -1390,9 +1389,9 @@ PCA_EXPORT purc_variant_t
 purc_variant_make_from_json_string(const char* json, size_t sz);
 
 /**
- * Creates a variant value from Json file
+ * Creates a variant value from a file which contains JSON data
  *
- * @param file: the Json file name
+ * @param file: the file name
  *
  * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
  *
@@ -1403,7 +1402,7 @@ purc_variant_load_from_json_file(const char* file);
 
 
 /**
- * Creates a variant value from stream
+ * Creates a variant value from a stream which contains JSON data.
  *
  * @param stream: the stream of purc_rwstream_t type
  *
@@ -2223,13 +2222,80 @@ purc_variant_container_clone(purc_variant_t ctnr);
 PCA_EXPORT purc_variant_t
 purc_variant_container_clone_recursively(purc_variant_t ctnr);
 
+struct purc_ejson_parse_tree;
+
+/**
+ * Parse an EJSON in the string and return the EJSON parse tree.
+ *
+ * @param str: the pointer to the string
+ * @param sz: the size of the string in bytes.
+ *
+ * Return: the pointer to an EJSON parse tree on success, otherwise NULL.
+ *
+ * Since: 0.1.1
+ */
+PCA_EXPORT struct purc_ejson_parse_tree *
+purc_variant_ejson_parse_string(const char *ejson, size_t sz);
+
+/**
+ * Parse an EJSON in the file and return the EJSON parse tree.
+ *
+ * @param fname: the file name.
+ *
+ * Return: the pointer to an EJSON parse tree on success, otherwise NULL.
+ *
+ * Since: 0.1.1
+ */
+PCA_EXPORT struct purc_ejson_parse_tree *
+purc_variant_ejson_parse_file(const char *fname);
+
+/**
+ * Parse an EJSON stream and return the EJSON parse tree.
+ *
+ * @param rws: the stream of purc_rwstream_t type.
+ *
+ * Return: the pointer to an EJSON parse tree on success, otherwise NULL.
+ *
+ * Since: 0.1.1
+ */
+PCA_EXPORT struct purc_ejson_parse_tree *
+purc_variant_ejson_parse_stream(purc_rwstream_t rws);
+
+typedef purc_variant_t (*purc_cb_get_var)(void* ctxt, const char* name);
+
+/**
+ * Evaluate an EJSON parse tree with customized variables.
+ *
+ * @param parse_tree: the parse tree will be evaluated.
+ * @param fn_get_var: the callback function returns the variant
+ *      for a variable name.
+ * @param ctxt: the context will be passed to the callback when evaluting
+ *      a variable.
+ *
+ * Since: 0.1.1
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_ejson_parse_tree_evalute(struct purc_ejson_parse_tree *parse_tree,
+        purc_cb_get_var fn_get_var, void *ctxt);
+
+/**
+ * Destroy an EJSON parse tree.
+ *
+ * @param parse_tree: the parse tree will be destroyed.
+ *
+ * Since: 0.1.1
+ */
+PCA_EXPORT void
+purc_variant_ejson_parse_tree_destroy(struct purc_ejson_parse_tree *parse_tree);
+
 PCA_EXTERN_C_END
 
-#define PURC_VARIANT_SAFE_CLEAR(_v) do {          \
-    if (_v != PURC_VARIANT_INVALID) {             \
-        purc_variant_unref(_v);                   \
-        _v = PURC_VARIANT_INVALID;                \
-    }                                             \
+#define PURC_VARIANT_SAFE_CLEAR(_v)             \
+do {                                            \
+    if (_v != PURC_VARIANT_INVALID) {           \
+        purc_variant_unref(_v);                 \
+        _v = PURC_VARIANT_INVALID;              \
+    }                                           \
 } while (0)
 
 #endif /* not defined PURC_PURC_VARIANT_H */
