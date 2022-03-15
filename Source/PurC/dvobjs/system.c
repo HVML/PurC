@@ -1210,17 +1210,111 @@ env_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     return ret_var;
 }
 
-// only for test now.
-purc_variant_t pcdvobjs_get_system (void)
+enum {
+#define SYSTEM_KEYWORD_HVML_SPEC_VERSION    "HVML_SPEC_VERSION"
+    K_SYSTEM_KEYWORD_HVML_SPEC_VERSION,
+#define SYSTEM_KEYWORD_HVML_SPEC_RELEASE    "HVML_SPEC_RELEASE"
+    K_SYSTEM_KEYWORD_HVML_SPEC_RELEASE,
+#define SYSTEM_KEYWORD_HVML_INTRPR_NAME     "HVML_INTRPR_NAME"
+    K_SYSTEM_KEYWORD_HVML_INTRPR_NAME,
+#define SYSTEM_KEYWORD_HVML_INTRPR_VERSION  "HVML_INTRPR_VERSION"
+    K_SYSTEM_KEYWORD_HVML_INTRPR_VERSION,
+#define SYSTEM_KEYWORD_HVML_INTRPR_RELEASE  "HVML_INTRPR_RELEASE"
+    K_SYSTEM_KEYWORD_HVML_INTRPR_RELEASE,
+#define SYSTEM_KEYWORD_all                  "all"
+    K_SYSTEM_KEYWORD_all,
+#define SYSTEM_KEYWORD_default              "default"
+    K_SYSTEM_KEYWORD_default,
+#define SYSTEM_KEYWORD_kernel_name          "kernel-name"
+    K_SYSTEM_KEYWORD_kernel_name,
+#define SYSTEM_KEYWORD_kernel_release       "kernel-release"
+    K_SYSTEM_KEYWORD_kernel_release,
+#define SYSTEM_KEYWORD_kernel_version       "kernel-version"
+    K_SYSTEM_KEYWORD_kernel_version,
+#define SYSTEM_KEYWORD_nodename             "nodename"
+    K_SYSTEM_KEYWORD_nodename,
+#define SYSTEM_KEYWORD_machine              "machine"
+    K_SYSTEM_KEYWORD_machine,
+#define SYSTEM_KEYWORD_processor            "processor"
+    K_SYSTEM_KEYWORD_processor,
+#define SYSTEM_KEYWORD_hardware_platform    "hardware-platform"
+    K_SYSTEM_KEYWORD_hardware_platform,
+#define SYSTEM_KEYWORD_operating_system     "operating-system"
+    K_SYSTEM_KEYWORD_operating_system,
+#define SYSTEM_KEYWORD_ctype                "ctype"
+    K_SYSTEM_KEYWORD_ctype,
+#define SYSTEM_KEYWORD_numeric              "numeric"
+    K_SYSTEM_KEYWORD_numeric,
+#define SYSTEM_KEYWORD_time                 "time"
+    K_SYSTEM_KEYWORD_time,
+#define SYSTEM_KEYWORD_collate              "collate"
+    K_SYSTEM_KEYWORD_collate,
+#define SYSTEM_KEYWORD_monetary             "monetary"
+    K_SYSTEM_KEYWORD_monetary,
+#define SYSTEM_KEYWORD_messsages            "messsages"
+    K_SYSTEM_KEYWORD_messsages,
+#define SYSTEM_KEYWORD_paper                "paper"
+    K_SYSTEM_KEYWORD_paper,
+#define SYSTEM_KEYWORD_name                 "name"
+    K_SYSTEM_KEYWORD_name,
+#define SYSTEM_KEYWORD_address              "address"
+    K_SYSTEM_KEYWORD_address,
+#define SYSTEM_KEYWORD_telephone            "telephone"
+    K_SYSTEM_KEYWORD_telephone,
+#define SYSTEM_KEYWORD_measurement          "measurement"
+    K_SYSTEM_KEYWORD_measurement,
+#define SYSTEM_KEYWORD_identification       "identification"
+    K_SYSTEM_KEYWORD_identification,
+};
+
+static struct keyword_to_atom {
+    const char *keyword;
+    purc_atom_t atom;
+} keywords2atoms [] = {
+    { SYSTEM_KEYWORD_HVML_SPEC_VERSION, },      // "HVML_SPEC_VERSION"
+    { SYSTEM_KEYWORD_HVML_SPEC_RELEASE, },      // "HVML_SPEC_RELEASE"
+    { SYSTEM_KEYWORD_HVML_INTRPR_NAME, },       // "HVML_INTRPR_NAME"
+    { SYSTEM_KEYWORD_HVML_INTRPR_VERSION, },    // "HVML_INTRPR_VERSION"
+    { SYSTEM_KEYWORD_HVML_INTRPR_RELEASE, },    // "HVML_INTRPR_RELEASE"
+    { SYSTEM_KEYWORD_all, },                    // "all"
+    { SYSTEM_KEYWORD_default, },                // "default"
+    { SYSTEM_KEYWORD_kernel_name, },            // "kernel-name"
+    { SYSTEM_KEYWORD_kernel_release, },         // "kernel-release"
+    { SYSTEM_KEYWORD_kernel_version, },         // "kernel-version"
+    { SYSTEM_KEYWORD_nodename, },               // "nodename"
+    { SYSTEM_KEYWORD_machine, },                // "machine"
+    { SYSTEM_KEYWORD_processor, },              // "processor"
+    { SYSTEM_KEYWORD_hardware_platform, },      // "hardware-platform"
+    { SYSTEM_KEYWORD_operating_system, },       // "operating-system"
+    { SYSTEM_KEYWORD_ctype, },                  // "ctype"
+    { SYSTEM_KEYWORD_numeric, },                // "numeric"
+    { SYSTEM_KEYWORD_time, },                   // "time"
+    { SYSTEM_KEYWORD_collate, },                // "collate"
+    { SYSTEM_KEYWORD_monetary, },               // "monetary"
+    { SYSTEM_KEYWORD_messsages, },              // "messsages"
+    { SYSTEM_KEYWORD_paper, },                  // "paper"
+    { SYSTEM_KEYWORD_name, },                   // "name"
+    { SYSTEM_KEYWORD_address, },                // "address"
+    { SYSTEM_KEYWORD_telephone, },              // "telephone"
+    { SYSTEM_KEYWORD_measurement, },            // "measurement"
+    { SYSTEM_KEYWORD_identification, },         // "identification"
+};
+
+purc_variant_t pcdvobjs_get_system(void)
 {
-    static struct pcdvobjs_dvobjs method [] = {
-        {"uname",     uname_getter,     NULL},
-        {"uname_prt", uname_prt_getter, NULL},
-        {"locale",    locale_getter,    locale_setter},
-        {"random",    random_getter,    NULL},
-        {"time",      time_getter,      time_setter},
-        {"env",       env_getter,       env_setter}
+    static const struct pcdvobjs_dvobjs methods[] = {
+        { "const",      const_getter,     NULL },
+        { "uname",      uname_getter,     NULL },
+        { "uname_prt",  uname_prt_getter, NULL },
+        { "locale",     locale_getter,    locale_setter },
+        { "time",       time_getter,      time_setter },
+        { "time_us",    time_us_getter,   time_us_setter },
+        { "timezone",   timezone_getter,  timezone_setter },
+        { "cwd",        cwd_getter,       cwd_setter },
+        { "env",        env_getter,       env_setter }
+        { "random_sequence", random_sequence_getter, random_sequence_setter }
     };
 
-    return pcdvobjs_make_dvobjs (method, PCA_TABLESIZE(method));
+    return pcdvobjs_make_dvobjs(method, PCA_TABLESIZE(method));
 }
+
