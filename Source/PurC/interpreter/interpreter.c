@@ -2112,7 +2112,7 @@ cleaner(void* native_entity, bool silently)
 
 // the callback to release the native entity.
 static void
-on_released(void* native_entity)
+on_release(void* native_entity)
 {
     struct pcvdom_template *tpl;
     tpl = (struct pcvdom_template*)native_entity;
@@ -2131,7 +2131,7 @@ pcintr_template_make(void)
     static struct purc_native_ops ops = {
         .cleaner                       = cleaner,
 
-        .on_released                   = on_released,
+        .on_release                   = on_release,
     };
 
     purc_variant_t v = purc_variant_make_native(tpl, &ops);

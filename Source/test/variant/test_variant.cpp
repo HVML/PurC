@@ -952,8 +952,8 @@ static struct purc_native_ops _rws_ops = {
     .cleaner               = NULL,
     .eraser                = NULL,
 
-    .on_observed           = NULL,
-    .on_released           = rws_releaser,
+    .on_observe           = NULL,
+    .on_release           = rws_releaser,
 };
 
 TEST(variant, pcvariant_native)
@@ -1157,8 +1157,8 @@ static struct purc_native_ops _nr_ops = {
     .cleaner               = NULL,
     .eraser                = NULL,
 
-    .on_observed           = NULL,
-    .on_released           = _nr_native_releaser,
+    .on_observe           = NULL,
+    .on_release           = _nr_native_releaser,
 };
 
 

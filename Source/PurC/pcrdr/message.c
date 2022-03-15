@@ -635,7 +635,7 @@ static bool on_data_type(pcrdr_msg *msg, char *value)
 static bool on_data_len(pcrdr_msg *msg, char *value)
 {
     errno = 0;
-    msg->_data_len = strtoul(value, NULL, 10);
+    msg->__data_len = strtoul(value, NULL, 10);
     if (errno)
         return false;
 
@@ -749,17 +749,17 @@ int pcrdr_parse_packet(char *packet, size_t sz_packet, pcrdr_msg **msg_out)
     }
 
     if (msg->dataType == PCRDR_MSG_DATA_TYPE_TEXT) {
-        // FIXME: check _data_len ???
-        assert(data != NULL /* && msg->_data_len > 0 */);
-        msg->data = purc_variant_make_string_ex(data, msg->_data_len, true);
+        // FIXME: check __data_len ???
+        assert(data != NULL /* && msg->__data_len > 0 */);
+        msg->data = purc_variant_make_string_ex(data, msg->__data_len, true);
 
         if (msg->data == NULL) {
             goto failed;
         }
     }
     else if (msg->dataType == PCRDR_MSG_DATA_TYPE_EJSON) {
-        assert(data != NULL && msg->_data_len > 0);
-        msg->data = purc_variant_make_from_json_string(data, msg->_data_len);
+        assert(data != NULL && msg->__data_len > 0);
+        msg->data = purc_variant_make_from_json_string(data, msg->__data_len);
 
         if (msg->data == NULL) {
             goto failed;

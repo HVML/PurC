@@ -243,8 +243,8 @@ pcdvobjs_make_doc_variant(struct pcdom_document *doc)
         .cleaner                    = NULL,
         .eraser                     = NULL,
 
-        .on_observed                = NULL,
-        .on_released                = NULL,
+        .on_observe                = NULL,
+        .on_release                = NULL,
     };
 
     PC_ASSERT(doc);

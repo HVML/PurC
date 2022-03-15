@@ -200,7 +200,7 @@ regist_inner_data(pcintr_stack_t stack, purc_variant_t observed,
                 return regist_variant_listener(stack, observed, t, listener);
             }
             struct purc_native_ops* ops = purc_variant_native_get_ops(observed);
-            if (ops && ops->on_observed) {
+            if (ops && ops->on_observe) {
                 //TODO
                 return false;
             }

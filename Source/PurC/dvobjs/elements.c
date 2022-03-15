@@ -372,7 +372,7 @@ property_cleaner(const char* key_name)
 
 // the callback to release the native entity.
 static void
-on_released(void* native_entity)
+on_release(void* native_entity)
 {
     UNUSED_PARAM(native_entity);
 
@@ -395,8 +395,8 @@ make_elements(void)
         .cleaner                    = NULL,
         .eraser                     = NULL,
 
-        .on_observed                = NULL,
-        .on_released                = on_released,
+        .on_observe                = NULL,
+        .on_release                = on_release,
     };
 
     struct pcdvobjs_elements *elements;
