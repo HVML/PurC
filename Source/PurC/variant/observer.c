@@ -394,3 +394,37 @@ pcvar_build_edge(purc_variant_t val, struct list_head *chain,
     return 0;
 }
 
+bool
+pcvar_belongs_to_set(purc_variant_t val)
+{
+    PC_ASSERT(val != PURC_VARIANT_INVALID);
+    switch (val->type) {
+        case PURC_VARIANT_TYPE_ARRAY:
+            {
+                variant_arr_t data = pcvar_arr_get_data(val);
+                PC_ASSERT(data);
+                if (list_empty(&data->rev_update_chain) == false)
+                    return true;
+                return false;
+            }
+        case PURC_VARIANT_TYPE_OBJECT:
+            {
+                variant_obj_t data = pcvar_obj_get_data(val);
+                PC_ASSERT(data);
+                if (list_empty(&data->rev_update_chain) == false)
+                    return true;
+                return false;
+            }
+        case PURC_VARIANT_TYPE_SET:
+            {
+                variant_set_t data = pcvar_set_get_data(val);
+                PC_ASSERT(data);
+                if (list_empty(&data->rev_update_chain) == false)
+                    return true;
+                return false;
+            }
+        default:
+            PC_ASSERT(0);
+    }
+}
+
