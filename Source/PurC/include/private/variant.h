@@ -55,8 +55,8 @@ PCA_EXTERN_C_BEGIN
 
 #define PRINT_VARIANT(_v) do {                                                \
     if (_v == PURC_VARIANT_INVALID) {                                         \
-        fprintf(stderr, "%s[%d]:%s(): %s=PURC_VARIANT_INVALID\n",             \
-            pcutils_basename((char*)__FILE__), __LINE__, __func__, #_v);      \
+        fprintf(stderr, "%s[%d]:%s(): %s[%p]=PURC_VARIANT_INVALID\n",         \
+            pcutils_basename((char*)__FILE__), __LINE__, __func__, #_v, _v);  \
         break;                                                                \
     }                                                                         \
     purc_rwstream_t _rws = purc_rwstream_new_buffer(PRINT_MIN_BUFFER,         \
@@ -67,8 +67,9 @@ PCA_EXTERN_C_BEGIN
     purc_rwstream_write(_rws, "", 1);                                         \
     char* _buf = (char*)purc_rwstream_get_mem_buffer_ex(_rws,                 \
             NULL, NULL, true);                                                \
-    fprintf(stderr, "%s[%d]:%s(): %s=%s\n",                                   \
-            pcutils_basename((char*)__FILE__), __LINE__, __func__, #_v, _buf);\
+    fprintf(stderr, "%s[%d]:%s(): %s[%p]=%s\n",                               \
+            pcutils_basename((char*)__FILE__), __LINE__, __func__,            \
+            #_v, _v, _buf);                                                   \
     free(_buf);                                                               \
     purc_rwstream_destroy(_rws);                                              \
 } while (0)

@@ -4,7 +4,7 @@
     "error" : 0,
     "ops" : "overwrite",
     "dst_type" : "set",
-    "dst_unique_key" : null,
+    "dst_unique_key" : "id",
     "dst" :
     [
         {
@@ -17,7 +17,6 @@
             "id":3,"name":"3_name"
         }
     ],
-    "dst_unique_key" : "id",
     "src_type" : "array",
     "src_unique_key" : null,
     "src" :

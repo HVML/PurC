@@ -235,6 +235,10 @@ v_object_set(purc_variant_t obj, purc_variant_t k, purc_variant_t val,
         return 0;
     }
 
+    if (pcvar_container_belongs_to_set(val)) {
+        PC_ASSERT(0);
+    }
+
     variant_obj_t data = pcvar_obj_get_data(obj);
     PC_ASSERT(data);
 
@@ -283,16 +287,18 @@ v_object_set(purc_variant_t obj, purc_variant_t k, purc_variant_t val,
 
         ++data->size;
 
-        struct pcvar_rev_update_edge edge = {
-            .parent        = obj,
-            .obj_me        = node,
-        };
-        int r = pcvar_build_edge_to_parent(val, &edge);
-        if (r == 0) {
-            r = pcvar_build_rue_downward(val);
+        if (pcvar_container_belongs_to_set(obj)) {
+            struct pcvar_rev_update_edge edge = {
+                .parent        = obj,
+                .obj_me        = node,
+            };
+            int r = pcvar_build_edge_to_parent(val, &edge);
+            if (r == 0) {
+                r = pcvar_build_rue_downward(val);
+            }
+            // TODO: recover
+            PC_ASSERT(r == 0);
         }
-        // TODO: recover
-        PC_ASSERT(r == 0);
 
         grown(obj, k, val, check);
         return 0;
@@ -310,26 +316,34 @@ v_object_set(purc_variant_t obj, purc_variant_t k, purc_variant_t val,
         return -1;
     }
 
-    struct pcvar_rev_update_edge edge = {
-        .parent        = obj,
-        .obj_me        = node,
-    };
-    pcvar_break_edge_to_parent(node->val, &edge);
-    pcvar_break_rue_downward(node->val);
+    if (pcvar_container_belongs_to_set(obj)) {
+        struct pcvar_rev_update_edge edge = {
+            .parent        = obj,
+            .obj_me        = node,
+        };
+        pcvar_break_edge_to_parent(node->val, &edge);
+        pcvar_break_rue_downward(node->val);
 
-    node->key = k;
-    node->val = val;
-    purc_variant_ref(k);
-    purc_variant_ref(val);
+        node->key = k;
+        node->val = val;
+        purc_variant_ref(k);
+        purc_variant_ref(val);
 
-    edge.parent = obj;
-    edge.obj_me = node;
-    int r = pcvar_build_edge_to_parent(node->val, &edge);
-    if (r == 0) {
-        r = pcvar_build_rue_downward(node->val);
+        edge.parent = obj;
+        edge.obj_me = node;
+        int r = pcvar_build_edge_to_parent(node->val, &edge);
+        if (r == 0) {
+            r = pcvar_build_rue_downward(node->val);
+        }
+        // FIXME: recoverable?
+        PC_ASSERT(r == 0);
     }
-    // FIXME: recoverable?
-    PC_ASSERT(r == 0);
+    else {
+        node->key = k;
+        node->val = val;
+        purc_variant_ref(k);
+        purc_variant_ref(val);
+    }
 
     changed(obj, ko, vo, k, val, check);
 
@@ -505,8 +519,8 @@ void pcvariant_object_release (purc_variant_t value)
         pcvar_break_edge_to_parent(node->val, &edge);
         pcvar_break_rue_downward(node->val);
 
-        purc_variant_unref(node->key);
-        purc_variant_unref(node->val);
+        PURC_VARIANT_SAFE_CLEAR(node->key);
+        PURC_VARIANT_SAFE_CLEAR(node->val);
         free(node);
         p = next;
     }

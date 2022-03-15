@@ -949,7 +949,14 @@ insert_or_replace(purc_variant_t set,
     find_element_rb_node(&rbn, set, val);
 
     if (!rbn.entry) {
-        int r = insert(set, data, val, rbn.parent, rbn.pnode, check);
+        purc_variant_t cloned;
+        cloned = prepare_variant(data, val);
+        if (cloned == PURC_VARIANT_INVALID)
+            return -1;
+
+        int r = insert(set, data, cloned, rbn.parent, rbn.pnode, check);
+        purc_variant_unref(cloned);
+
         return r ? -1 : 0;
     }
 
@@ -1008,6 +1015,11 @@ variant_set_add_val(purc_variant_t set,
     if (purc_variant_is_object(val) == false) {
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         return -1;
+    }
+
+    PRINT_VARIANT(val);
+    if (pcvar_container_belongs_to_set(val)) {
+        PC_ASSERT(0);
     }
 
     if (insert_or_replace(set, data, val, overwrite, check))

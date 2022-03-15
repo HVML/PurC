@@ -157,6 +157,11 @@ variant_arr_insert_before(purc_variant_t array, size_t idx, purc_variant_t val,
         return 0;
     }
 
+    PRINT_VARIANT(val);
+    if (pcvar_container_belongs_to_set(val)) {
+        PC_ASSERT(0);
+    }
+
     variant_arr_t data = pcvar_arr_get_data(array);
     purc_variant_t pos = variant_arr_make_pos(data, idx);
     if (pos == PURC_VARIANT_INVALID)
@@ -186,21 +191,23 @@ variant_arr_insert_before(purc_variant_t array, size_t idx, purc_variant_t val,
         return -1;
     }
 
-    struct pcvar_rev_update_edge edge = {
-        .parent        = array,
-        .arr_me        = node,
-    };
-    r = pcvar_build_edge_to_parent(val, &edge);
-    if (r == 0) {
-        r = pcvar_build_rue_downward(val);
-    }
-    if (r) {
-        pcvar_break_edge_to_parent(node->val, &edge);
-        pcvar_break_rue_downward(node->val);
-        arr_node_destroy(node);
-        purc_variant_unref(pos);
-        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return -1;
+    if (pcvar_container_belongs_to_set(array)) {
+        struct pcvar_rev_update_edge edge = {
+            .parent        = array,
+            .arr_me        = node,
+        };
+        r = pcvar_build_edge_to_parent(val, &edge);
+        if (r == 0) {
+            r = pcvar_build_rue_downward(val);
+        }
+        if (r) {
+            pcvar_break_edge_to_parent(node->val, &edge);
+            pcvar_break_rue_downward(node->val);
+            arr_node_destroy(node);
+            purc_variant_unref(pos);
+            pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            return -1;
+        }
     }
 
     grown(array, pos, val, check);

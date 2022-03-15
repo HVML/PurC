@@ -395,7 +395,7 @@ pcvar_build_edge(purc_variant_t val, struct list_head *chain,
 }
 
 bool
-pcvar_belongs_to_set(purc_variant_t val)
+pcvar_container_belongs_to_set(purc_variant_t val)
 {
     PC_ASSERT(val != PURC_VARIANT_INVALID);
     switch (val->type) {
