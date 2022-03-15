@@ -168,7 +168,7 @@ user_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
 
 purc_variant_t
-pcdvobjs_get_session(void)
+purc_dvobj_session_new(void)
 {
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 

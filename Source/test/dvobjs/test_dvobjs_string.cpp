@@ -45,7 +45,7 @@ TEST(dvobjs, dvobjs_string_contains)
             "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t string = pcdvobjs_get_string();
+    purc_variant_t string = purc_dvobj_string_new();
     ASSERT_NE(string, nullptr);
     ASSERT_EQ(purc_variant_is_object (string), true);
 
@@ -206,7 +206,7 @@ TEST(dvobjs, dvobjs_string_explode)
             "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t string = pcdvobjs_get_string();
+    purc_variant_t string = purc_dvobj_string_new();
     ASSERT_NE(string, nullptr);
     ASSERT_EQ(purc_variant_is_object (string), true);
 
@@ -381,7 +381,7 @@ TEST(dvobjs, dvobjs_string_shuffle)
             "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t string = pcdvobjs_get_string();
+    purc_variant_t string = purc_dvobj_string_new();
     ASSERT_NE(string, nullptr);
     ASSERT_EQ(purc_variant_is_object (string), true);
 
@@ -559,7 +559,7 @@ TEST(dvobjs, dvobjs_string_replace)
             "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t string = pcdvobjs_get_string();
+    purc_variant_t string = purc_dvobj_string_new();
     ASSERT_NE(string, nullptr);
     ASSERT_EQ(purc_variant_is_object (string), true);
 
@@ -725,7 +725,7 @@ TEST(dvobjs, dvobjs_string_format_c)
             "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t string = pcdvobjs_get_string();
+    purc_variant_t string = purc_dvobj_string_new();
     ASSERT_NE(string, nullptr);
     ASSERT_EQ(purc_variant_is_object (string), true);
 
@@ -890,7 +890,7 @@ TEST(dvobjs, dvobjs_string_format_p)
             "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t string = pcdvobjs_get_string();
+    purc_variant_t string = purc_dvobj_string_new();
     ASSERT_NE(string, nullptr);
     ASSERT_EQ(purc_variant_is_object (string), true);
 
@@ -1055,7 +1055,7 @@ TEST(dvobjs, dvobjs_string_strcat)
             "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t string = pcdvobjs_get_string();
+    purc_variant_t string = purc_dvobj_string_new();
     ASSERT_NE(string, nullptr);
     ASSERT_EQ(purc_variant_is_object (string), true);
 
@@ -1220,7 +1220,7 @@ TEST(dvobjs, dvobjs_string_lower)
             "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t string = pcdvobjs_get_string();
+    purc_variant_t string = purc_dvobj_string_new();
     ASSERT_NE(string, nullptr);
     ASSERT_EQ(purc_variant_is_object (string), true);
 
@@ -1385,7 +1385,7 @@ TEST(dvobjs, dvobjs_string_upper)
             "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t string = pcdvobjs_get_string();
+    purc_variant_t string = purc_dvobj_string_new();
     ASSERT_NE(string, nullptr);
     ASSERT_EQ(purc_variant_is_object (string), true);
 
@@ -1550,7 +1550,7 @@ TEST(dvobjs, dvobjs_string_strlen)
             "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t string = pcdvobjs_get_string();
+    purc_variant_t string = purc_dvobj_string_new();
     ASSERT_NE(string, nullptr);
     ASSERT_EQ(purc_variant_is_object (string), true);
 
@@ -1715,7 +1715,7 @@ TEST(dvobjs, dvobjs_string_implode)
             "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t string = pcdvobjs_get_string();
+    purc_variant_t string = purc_dvobj_string_new();
     ASSERT_NE(string, nullptr);
     ASSERT_EQ(purc_variant_is_object (string), true);
 
@@ -1879,7 +1879,7 @@ TEST(dvobjs, dvobjs_string_substr)
             "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t string = pcdvobjs_get_string();
+    purc_variant_t string = purc_dvobj_string_new();
     ASSERT_NE(string, nullptr);
     ASSERT_EQ(purc_variant_is_object (string), true);
 

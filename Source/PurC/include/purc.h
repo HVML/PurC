@@ -41,6 +41,7 @@
 #include "purc-html.h"
 #include "purc-helpers.h"
 #include "purc-pcrdr.h"
+#include "purc-dvobjs.h"
 
 /** The structure defining the extra information for a new PurC instance. */
 typedef struct purc_instance_extra_info {

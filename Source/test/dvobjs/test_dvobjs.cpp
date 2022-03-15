@@ -75,7 +75,7 @@ TEST(dvobjs, dvobjs_sys_uname)
             "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t sys = pcdvobjs_get_system();
+    purc_variant_t sys = purc_dvobj_system_new();
     ASSERT_NE(sys, nullptr);
     ASSERT_EQ(purc_variant_is_object (sys), true);
 
@@ -145,7 +145,7 @@ TEST(dvobjs, dvobjs_sys_uname_prt)
             "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t sys = pcdvobjs_get_system();
+    purc_variant_t sys = purc_dvobj_system_new();
     ASSERT_NE(sys, nullptr);
     ASSERT_EQ(purc_variant_is_object (sys), true);
 
@@ -255,7 +255,7 @@ TEST(dvobjs, dvobjs_sys_get_locale)
             "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t sys = pcdvobjs_get_system();
+    purc_variant_t sys = purc_dvobj_system_new();
     ASSERT_NE(sys, nullptr);
     ASSERT_EQ(purc_variant_is_object (sys), true);
 
@@ -445,7 +445,7 @@ TEST(dvobjs, dvobjs_sys_set_locale)
             "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t sys = pcdvobjs_get_system();
+    purc_variant_t sys = purc_dvobj_system_new();
     ASSERT_NE(sys, nullptr);
     ASSERT_EQ(purc_variant_is_object (sys), true);
 
@@ -680,7 +680,7 @@ TEST(dvobjs, dvobjs_sys_get_random)
             "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t sys = pcdvobjs_get_system();
+    purc_variant_t sys = purc_dvobj_system_new();
     ASSERT_NE(sys, nullptr);
     ASSERT_EQ(purc_variant_is_object (sys), true);
 
@@ -748,7 +748,7 @@ TEST(dvobjs, dvobjs_sys_gettime)
             "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t sys = pcdvobjs_get_system();
+    purc_variant_t sys = purc_dvobj_system_new();
     ASSERT_NE(sys, nullptr);
     ASSERT_EQ(purc_variant_is_object (sys), true);
 

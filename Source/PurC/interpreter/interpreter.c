@@ -1209,32 +1209,32 @@ init_buidin_doc_variable(pcintr_stack_t stack)
     }
 
     // $HVML
-    if(!bind_doc_named_variable(stack, BUILDIN_VAR_HVML, pcdvobjs_get_hvml())) {
+    if(!bind_doc_named_variable(stack, BUILDIN_VAR_HVML, purc_dvobj_hvml_new())) {
         return false;
     }
 
     // $SYSTEM
     if(!bind_doc_named_variable(stack, BUILDIN_VAR_SYSTEM,
-                pcdvobjs_get_system())) {
+                purc_dvobj_system_new())) {
         return false;
     }
 
     // $T
     if(!bind_doc_named_variable(stack, BUILDIN_VAR_T,
-                pcdvobjs_get_t())) {
+                purc_dvobj_text_new())) {
         return false;
     }
 
     // $L
     if(!bind_doc_named_variable(stack, BUILDIN_VAR_L,
-                pcdvobjs_get_logical())) {
+                purc_dvobj_logical_new())) {
         return false;
     }
 
     // FIXME: document-wide-variant???
     // $STR
     if(!bind_doc_named_variable(stack, BUILDIN_VAR_STR,
-                pcdvobjs_get_string())) {
+                purc_dvobj_string_new())) {
         return false;
     }
 
@@ -1243,7 +1243,7 @@ init_buidin_doc_variable(pcintr_stack_t stack)
     pchtml_html_document_t *doc = stack->doc;
     pcdom_document_t *document = (pcdom_document_t*)doc;
     if(!bind_doc_named_variable(stack, BUILDIN_VAR_DOC,
-                pcdvobjs_make_doc_variant(document))) {
+                purc_dvobj_doc_new(document))) {
         return false;
     }
 
@@ -1251,13 +1251,13 @@ init_buidin_doc_variable(pcintr_stack_t stack)
     // begin
     // $SESSION
     if(!bind_doc_named_variable(stack, BUILDIN_VAR_SESSION,
-                pcdvobjs_get_session())) {
+                purc_dvobj_session_new())) {
         return false;
     }
 
     // $EJSON
     if(!bind_doc_named_variable(stack, BUILDIN_VAR_EJSON,
-                pcdvobjs_get_ejson())) {
+                purc_dvobj_ejson_new())) {
         return false;
     }
     // end

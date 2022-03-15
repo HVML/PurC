@@ -802,7 +802,7 @@ eval_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 }
 
 // only for test now.
-purc_variant_t pcdvobjs_get_logical (void)
+purc_variant_t purc_dvobj_logical_new (void)
 {
     static struct pcdvobjs_dvobjs method [] = {
         {"not",   not_getter,   NULL},
