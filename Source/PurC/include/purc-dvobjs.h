@@ -51,16 +51,17 @@ struct purc_broken_down_url {
 };
 
 struct purc_hvml_ctrl_props {
-    struct purc_broken_down_url url;
+    struct purc_broken_down_url base_url;
 
     uint64_t            max_iteration_count;
-    uint64_t            max_recursion_depth;
+    unsigned short      max_recursion_depth;
+    unsigned short      max_embedded_levels;
 
     struct timespec     timeout;
 };
 
 struct purc_dvobj_method {
-    const char * name;
+    const char          *name;
     purc_dvariant_method getter;
     purc_dvariant_method setter;
 };
@@ -86,7 +87,7 @@ PCA_EXPORT purc_variant_t
 purc_dvobj_datetime_new(void);
 
 PCA_EXPORT purc_variant_t
-purc_dvobj_hvml_new(void);
+purc_dvobj_hvml_new(struct purc_hvml_ctrl_props **ctrl_props);
 
 PCA_EXPORT purc_variant_t
 purc_dvobj_doc_new(struct pcdom_document *doc);

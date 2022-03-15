@@ -1209,7 +1209,10 @@ init_buidin_doc_variable(pcintr_stack_t stack)
     }
 
     // $HVML
-    if(!bind_doc_named_variable(stack, BUILDIN_VAR_HVML, purc_dvobj_hvml_new())) {
+    // FIXME: store the pointer to (struct purc_hvml_ctrl_props *)
+    //  created by the function.
+    if(!bind_doc_named_variable(stack,
+                BUILDIN_VAR_HVML, purc_dvobj_hvml_new(NULL))) {
         return false;
     }
 

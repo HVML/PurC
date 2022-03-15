@@ -34,23 +34,21 @@
 
 #define DEFAULT_HVML_BASE           ""
 #define DEFAULT_HVML_TIMEOUT        10.0
-#define DVOBJ_HVML_DATA_NAME        "__handle_dvobj_hvml"
+#define DVOBJ_HVML_DATA_NAME        "__handle_ctrl_props"
 
 #define DEFAULT_HVML_TIMEOUT_SEC    (time_t)DEFAULT_HVML_TIMEOUT
 #define DEFAULT_HVML_TIMEOUT_NSEC   (long)((DEFAULT_HVML_TIMEOUT -  \
             DEFAULT_HVML_TIMEOUT_SEC) * 1000000000)
 
-static inline struct purc_hvml_ctrl_props * get_dvobj_hvml_pointer (
-        purc_variant_t root, const char *name)
+static inline struct purc_hvml_ctrl_props *
+hvml_ctrl_props(purc_variant_t root)
 {
-    struct purc_hvml_ctrl_props *ret = NULL;
-    purc_variant_t var = purc_variant_object_get_by_ckey (root, name, false);
-    if (var) {
-        if (purc_variant_is_native (var))
-            ret = (struct purc_hvml_ctrl_props *)
-                purc_variant_native_get_entity (var);
-    }
-    return ret;
+    purc_variant_t var;
+
+    var = purc_variant_object_get_by_ckey(root, DVOBJ_HVML_DATA_NAME, false);
+    assert(var && purc_variant_is_native(var));
+
+    return (struct purc_hvml_ctrl_props *)purc_variant_native_get_entity(var);
 }
 
 static purc_variant_t
@@ -70,19 +68,18 @@ base_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         return PURC_VARIANT_INVALID;
     }
 
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    purc_variant_t retv = PURC_VARIANT_INVALID;
 
-    struct purc_hvml_ctrl_props *dvobj_hvml =
-        get_dvobj_hvml_pointer(root, DVOBJ_HVML_DATA_NAME);
+    struct purc_hvml_ctrl_props *ctrl_props = hvml_ctrl_props(root);
 
-    if (dvobj_hvml) {
-        char *url = pcdvobjs_get_url (&(dvobj_hvml->url));
+    if (ctrl_props) {
+        char *url = pcdvobjs_get_url (&(ctrl_props->base_url));
         if (url)
-            ret_var = purc_variant_make_string_reuse_buff (
+            retv = purc_variant_make_string_reuse_buff (
                     url, strlen (url), false);
     }
 
-    return ret_var;
+    return retv;
 }
 
 static purc_variant_t
@@ -104,28 +101,27 @@ base_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         return PURC_VARIANT_INVALID;
     }
 
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    purc_variant_t retv = PURC_VARIANT_INVALID;
 
     const char *url = purc_variant_get_string_const (argv[0]);
 
-    struct purc_hvml_ctrl_props *dvobj_hvml =
-        get_dvobj_hvml_pointer(root, DVOBJ_HVML_DATA_NAME);
-    if (dvobj_hvml) {
-        /* If the url is invlid, dvobj_hvml->url will not be changed.
+    struct purc_hvml_ctrl_props *ctrl_props = hvml_ctrl_props(root);
+    if (ctrl_props) {
+        /* If the url is invlid, ctrl_props->base_url will not be changed.
          If the url is valid, perhaps the string which pcdvobjs_get_url() returned
          is not identical to input string. For example:
          input string to pcdvobjs_set_url is:  http://www.minigui.org
          output string of pcdvobjs_get_url is: http://www.minigui.org/
          */
-        pcdvobjs_set_url (&(dvobj_hvml->url), url);
+        pcdvobjs_set_url (&(ctrl_props->base_url), url);
 
-        char *url = pcdvobjs_get_url (&(dvobj_hvml->url));
+        char *url = pcdvobjs_get_url (&(ctrl_props->base_url));
         if (url) {
-            ret_var = purc_variant_make_string_reuse_buff (
+            retv = purc_variant_make_string_reuse_buff (
                     url, strlen (url), false);
         }
     }
-    return ret_var;
+    return retv;
 }
 
 static purc_variant_t
@@ -146,15 +142,14 @@ max_iteration_count_getter (
         return PURC_VARIANT_INVALID;
     }
 
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    purc_variant_t retv = PURC_VARIANT_INVALID;
 
-    struct purc_hvml_ctrl_props *dvobj_hvml =
-        get_dvobj_hvml_pointer(root, DVOBJ_HVML_DATA_NAME);
-    if (dvobj_hvml) {
-        ret_var = purc_variant_make_ulongint (dvobj_hvml->max_iteration_count);
+    struct purc_hvml_ctrl_props *ctrl_props = hvml_ctrl_props(root);
+    if (ctrl_props) {
+        retv = purc_variant_make_ulongint (ctrl_props->max_iteration_count);
     }
 
-    return ret_var;
+    return retv;
 }
 
 static purc_variant_t
@@ -177,18 +172,17 @@ max_iteration_count_setter (
         return PURC_VARIANT_INVALID;
     }
 
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    purc_variant_t retv = PURC_VARIANT_INVALID;
     uint64_t u64;
     purc_variant_cast_to_ulongint (argv[0], &u64, false);
 
-    struct purc_hvml_ctrl_props *dvobj_hvml =
-        get_dvobj_hvml_pointer(root, DVOBJ_HVML_DATA_NAME);
-    if (dvobj_hvml) {
-        dvobj_hvml->max_iteration_count = u64;
-        ret_var = purc_variant_make_ulongint (u64);
+    struct purc_hvml_ctrl_props *ctrl_props = hvml_ctrl_props(root);
+    if (ctrl_props) {
+        ctrl_props->max_iteration_count = u64;
+        retv = purc_variant_make_ulongint (u64);
     }
 
-    return ret_var;
+    return retv;
 }
 
 static purc_variant_t
@@ -209,14 +203,13 @@ max_recursion_depth_getter (
         return PURC_VARIANT_INVALID;
     }
 
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
-    struct purc_hvml_ctrl_props *dvobj_hvml =
-        get_dvobj_hvml_pointer(root, DVOBJ_HVML_DATA_NAME);
-    if (dvobj_hvml) {
-        ret_var = purc_variant_make_ulongint (dvobj_hvml->max_recursion_depth);
+    purc_variant_t retv = PURC_VARIANT_INVALID;
+    struct purc_hvml_ctrl_props *ctrl_props = hvml_ctrl_props(root);
+    if (ctrl_props) {
+        retv = purc_variant_make_ulongint (ctrl_props->max_recursion_depth);
     }
 
-    return ret_var;
+    return retv;
 }
 
 static purc_variant_t
@@ -239,18 +232,17 @@ max_recursion_depth_setter (
         return PURC_VARIANT_INVALID;
     }
 
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    purc_variant_t retv = PURC_VARIANT_INVALID;
     uint64_t u64;
     purc_variant_cast_to_ulongint (argv[0], &u64, false);
 
-    struct purc_hvml_ctrl_props *dvobj_hvml =
-        get_dvobj_hvml_pointer(root, DVOBJ_HVML_DATA_NAME);
-    if (dvobj_hvml) {
-        dvobj_hvml->max_recursion_depth = u64;
-        ret_var = purc_variant_make_ulongint (u64);
+    struct purc_hvml_ctrl_props *ctrl_props = hvml_ctrl_props(root);
+    if (ctrl_props) {
+        ctrl_props->max_recursion_depth = u64;
+        retv = purc_variant_make_ulongint (u64);
     }
 
-    return ret_var;
+    return retv;
 }
 
 static purc_variant_t
@@ -271,17 +263,16 @@ timeout_getter (
         return PURC_VARIANT_INVALID;
     }
 
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    purc_variant_t retv = PURC_VARIANT_INVALID;
 
-    struct purc_hvml_ctrl_props *dvobj_hvml =
-        get_dvobj_hvml_pointer(root, DVOBJ_HVML_DATA_NAME);
-    if (dvobj_hvml) {
-        double number = (double)dvobj_hvml->timeout.tv_sec +
-                (double)dvobj_hvml->timeout.tv_nsec / 1000000000.0;
-        ret_var = purc_variant_make_number (number);
+    struct purc_hvml_ctrl_props *ctrl_props = hvml_ctrl_props(root);
+    if (ctrl_props) {
+        double number = (double)ctrl_props->timeout.tv_sec +
+                (double)ctrl_props->timeout.tv_nsec / 1000000000.0;
+        retv = purc_variant_make_number (number);
     }
 
-    return ret_var;
+    return retv;
 }
 
 static purc_variant_t
@@ -304,26 +295,25 @@ timeout_setter (
         return PURC_VARIANT_INVALID;
     }
 
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    purc_variant_t retv = PURC_VARIANT_INVALID;
     double number = 0.0;
     purc_variant_cast_to_number (argv[0], &number, false);
 
-    struct purc_hvml_ctrl_props *dvobj_hvml =
-        get_dvobj_hvml_pointer(root, DVOBJ_HVML_DATA_NAME);
-    if (dvobj_hvml) {
+    struct purc_hvml_ctrl_props *ctrl_props = hvml_ctrl_props(root);
+    if (ctrl_props) {
         if (number > 0) {
-            dvobj_hvml->timeout.tv_sec = (long) number;
-            dvobj_hvml->timeout.tv_nsec = (long)
-                ((number - dvobj_hvml->timeout.tv_sec) * 1000000000);
+            ctrl_props->timeout.tv_sec = (long) number;
+            ctrl_props->timeout.tv_nsec = (long)
+                ((number - ctrl_props->timeout.tv_sec) * 1000000000);
         }
         else
-            number = (double)dvobj_hvml->timeout.tv_sec +
-                (double)dvobj_hvml->timeout.tv_nsec / 1000000000;
+            number = (double)ctrl_props->timeout.tv_sec +
+                (double)ctrl_props->timeout.tv_nsec / 1000000000;
 
-        ret_var = purc_variant_make_number (number);
+        retv = purc_variant_make_number (number);
     }
 
-    return ret_var;
+    return retv;
 }
 
 static void
@@ -332,7 +322,7 @@ on_release(void* native_entity)
     PC_ASSERT(native_entity);
 
     struct purc_hvml_ctrl_props *hvml = (struct purc_hvml_ctrl_props*)native_entity;
-    struct purc_broken_down_url *url = &hvml->url;
+    struct purc_broken_down_url *url = &hvml->base_url;
 
     if (url->schema)
         free (url->schema);
@@ -358,11 +348,12 @@ on_release(void* native_entity)
     free (native_entity);
 }
 
-purc_variant_t purc_dvobj_hvml_new (void)
+purc_variant_t
+purc_dvobj_hvml_new(struct purc_hvml_ctrl_props **ctrl_props)
 {
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    purc_variant_t retv = PURC_VARIANT_INVALID;
 
-    struct purc_hvml_ctrl_props *dvobj_hvml = NULL;
+    struct purc_hvml_ctrl_props *my_props = NULL;
     static struct purc_native_ops ops = {
         .property_getter        = NULL,
         .property_setter        = NULL,
@@ -378,40 +369,44 @@ purc_variant_t purc_dvobj_hvml_new (void)
     };
 
     static struct purc_dvobj_method method [] = {
-        {"base",               base_getter,              base_setter},
-        {"max_iteration_count",  max_iteration_count_getter, max_iteration_count_setter},
-        {"max_recursion_depth",  max_recursion_depth_getter, max_recursion_depth_setter},
-        {"timeout",            timeout_getter,           timeout_setter},
+        { "base", base_getter, base_setter },
+        { "max_iteration_count",
+            max_iteration_count_getter, max_iteration_count_setter },
+        { "max_recursion_depth",
+            max_recursion_depth_getter, max_recursion_depth_setter },
+        { "timeout", timeout_getter, timeout_setter },
     };
 
-    ret_var = purc_dvobj_make_from_methods (method, PCA_TABLESIZE(method));
-    if (ret_var == PURC_VARIANT_INVALID)
+    retv = purc_dvobj_make_from_methods(method, PCA_TABLESIZE(method));
+    if (retv == PURC_VARIANT_INVALID)
         return PURC_VARIANT_INVALID;
 
     // initialize purc_hvml_ctrl_props
-    dvobj_hvml = malloc (sizeof(struct purc_hvml_ctrl_props));
-    if (dvobj_hvml == NULL) {
-        purc_variant_unref (ret_var);
+    my_props = calloc(1, sizeof(struct purc_hvml_ctrl_props));
+    if (my_props == NULL) {
+        purc_variant_unref (retv);
         pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return PURC_VARIANT_INVALID;
     }
 
-    memset (&(dvobj_hvml->url), 0, sizeof(struct purc_broken_down_url));
-    pcdvobjs_set_url (&(dvobj_hvml->url), DEFAULT_HVML_BASE);
+    pcdvobjs_set_url (&(my_props->base_url), DEFAULT_HVML_BASE);
 
-    dvobj_hvml->max_iteration_count = ULONG_MAX;
-    dvobj_hvml->max_recursion_depth = USHRT_MAX;
-    dvobj_hvml->timeout.tv_sec = DEFAULT_HVML_TIMEOUT_SEC;
-    dvobj_hvml->timeout.tv_nsec = DEFAULT_HVML_TIMEOUT_NSEC;
+    my_props->max_iteration_count = ULONG_MAX;
+    my_props->max_recursion_depth = USHRT_MAX;
+    my_props->max_embedded_levels = MAX_EMBEDDED_LEVELS;
+    my_props->timeout.tv_sec = DEFAULT_HVML_TIMEOUT_SEC;
+    my_props->timeout.tv_nsec = DEFAULT_HVML_TIMEOUT_NSEC;
 
-    purc_variant_t val = purc_variant_make_native ((void *)dvobj_hvml, &ops);
+    purc_variant_t val = purc_variant_make_native((void *)my_props, &ops);
     if (val == PURC_VARIANT_INVALID) {
         purc_variant_unref (val);
         return PURC_VARIANT_INVALID;
     }
 
-    purc_variant_object_set_by_static_ckey (ret_var, DVOBJ_HVML_DATA_NAME, val);
-    purc_variant_unref (val);
+    purc_variant_object_set_by_static_ckey(retv, DVOBJ_HVML_DATA_NAME, val);
+    purc_variant_unref(val);
 
-    return ret_var;
+    if (ctrl_props)
+        *ctrl_props = my_props;
+    return retv;
 }
