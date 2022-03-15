@@ -14,9 +14,9 @@ TEST(constraint, set_add)
     const char *s;
     purc_variant_t set, xu, xue;
     purc_variant_t first, last;
-    purc_variant_t val, elem;
+    purc_variant_t val, elem, arr, name;
     bool silently = true;
-    int diff = 0;
+    bool ok;
 
     s = "{name:[{first:xiaohong,last:xu}], extra:foo}";
     xu = pcejson_parser_parse_string(s, 0, 0);
@@ -40,13 +40,26 @@ TEST(constraint, set_add)
     val = purc_variant_object_get_by_ckey(xu, "name", silently);
     ASSERT_NE(val, nullptr);
 
-    PRINT_VARIANT(set);
-    PRINT_VARIANT(val);
     elem = purc_variant_set_get_member_by_key_values(set, val, silently);
     ASSERT_NE(elem, nullptr);
-    ASSERT_NE(elem, xu);
-    diff = pcvariant_equal(elem, xu);
-    ASSERT_EQ(diff, 0);
+
+    arr = purc_variant_object_get_by_ckey(elem, "name", silently);
+    ASSERT_NE(arr, nullptr);
+
+    name = purc_variant_array_get(arr, 0);
+    ASSERT_NE(name, nullptr);
+
+    PRINT_VARIANT(set);
+    PRINT_VARIANT(name);
+    ok = purc_variant_object_set_by_static_ckey(name, "first", first);
+    PRINT_VARIANT(name);
+    PRINT_VARIANT(set);
+    ASSERT_TRUE(ok);
+
+    ok = purc_variant_object_set_by_static_ckey(name, "last", last);
+    PRINT_VARIANT(name);
+    PRINT_VARIANT(set);
+    ASSERT_TRUE(ok);
 
     PURC_VARIANT_SAFE_CLEAR(last);
     PURC_VARIANT_SAFE_CLEAR(first);
