@@ -1575,6 +1575,12 @@ purc_variant_compare_st(purc_variant_t v1, purc_variant_t v2);
 
 /**
  * A flag for the purc_variant_serialize() function which causes
+ * the output to print uniqkeys for set
+ */
+#define PCVARIANT_SERIALIZE_OPT_UNIQKEYS        0x0008
+
+/**
+ * A flag for the purc_variant_serialize() function which causes
  * the output to be formatted.
  *
  * Instead of a "Two Space Tab" this gives a single tab character.

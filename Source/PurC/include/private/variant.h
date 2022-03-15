@@ -63,7 +63,9 @@ PCA_EXTERN_C_BEGIN
             PRINT_MAX_BUFFER);                                                \
     size_t _len = 0;                                                          \
     purc_variant_serialize(_v, _rws,                                          \
-            0, PCVARIANT_SERIALIZE_OPT_PLAIN, &_len);                         \
+            0,                                                                \
+            PCVARIANT_SERIALIZE_OPT_PLAIN | PCVARIANT_SERIALIZE_OPT_UNIQKEYS, \
+            &_len);                                                           \
     purc_rwstream_write(_rws, "", 1);                                         \
     char* _buf = (char*)purc_rwstream_get_mem_buffer_ex(_rws,                 \
             NULL, NULL, true);                                                \
