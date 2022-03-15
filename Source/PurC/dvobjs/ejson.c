@@ -510,7 +510,7 @@ compare_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 // only for test now.
 purc_variant_t purc_dvobj_ejson_new (void)
 {
-    static struct pcdvobjs_dvobjs method [] = {
+    static struct purc_dvobj_method method [] = {
         {"type",        type_getter, NULL},
         {"count",       count_getter, NULL},
         {"numberify",   numberify_getter, NULL},
@@ -521,5 +521,5 @@ purc_variant_t purc_dvobj_ejson_new (void)
         {"compare",     compare_getter, NULL}
     };
 
-    return pcdvobjs_make_dvobjs (method, PCA_TABLESIZE(method));
+    return purc_dvobj_make_from_methods (method, PCA_TABLESIZE(method));
 }

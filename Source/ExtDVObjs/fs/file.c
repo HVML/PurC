@@ -36,16 +36,6 @@
 #define ENDIAN_LITTLE       1
 #define ENDIAN_BIG          2
 
-// dynamic variant in dynamic object
-struct pcdvobjs_dvobjs {
-    const char *name;
-    purc_dvariant_method getter;
-    purc_dvariant_method setter;
-};
-
-extern purc_variant_t pcdvobjs_make_dvobjs (
-        const struct pcdvobjs_dvobjs *method, size_t size);
-
 static const char * pcdvobjs_get_next_option (const char *data,
         const char *delims, size_t *length)
 {
@@ -1605,15 +1595,15 @@ purc_variant_t pcdvobjs_create_file (void)
     purc_variant_t file_stream = PURC_VARIANT_INVALID;
     purc_variant_t file = PURC_VARIANT_INVALID;
 
-    static struct pcdvobjs_dvobjs text [] = {
+    static struct purc_dvobj_method text [] = {
         {"head",     text_head_getter, NULL},
         {"tail",     text_tail_getter, NULL} };
 
-    static struct pcdvobjs_dvobjs  bin[] = {
+    static struct purc_dvobj_method  bin[] = {
         {"head",     bin_head_getter, NULL},
         {"tail",     bin_tail_getter, NULL} };
 
-    static struct pcdvobjs_dvobjs  stream[] = {
+    static struct purc_dvobj_method  stream[] = {
         {"open",        stream_open_getter,        NULL},
         {"readstruct",  stream_readstruct_getter,  NULL},
         {"writestruct", stream_writestruct_getter, NULL},
@@ -1624,16 +1614,16 @@ purc_variant_t pcdvobjs_create_file (void)
     };
 
 
-    file_text = pcdvobjs_make_dvobjs (text, PCA_TABLESIZE(text));
+    file_text = purc_dvobj_make_from_methods (text, PCA_TABLESIZE(text));
     if (file_text == PURC_VARIANT_INVALID)
         goto error_text;
 
 
-    file_bin = pcdvobjs_make_dvobjs (bin, PCA_TABLESIZE(bin));
+    file_bin = purc_dvobj_make_from_methods (bin, PCA_TABLESIZE(bin));
     if (file_bin == PURC_VARIANT_INVALID)
         goto error_bin;
 
-    file_stream = pcdvobjs_make_dvobjs (stream, PCA_TABLESIZE(stream));
+    file_stream = purc_dvobj_make_from_methods (stream, PCA_TABLESIZE(stream));
     if (file_stream == PURC_VARIANT_INVALID)
         goto error_stream;
 

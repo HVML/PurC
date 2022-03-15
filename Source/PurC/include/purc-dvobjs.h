@@ -36,6 +36,8 @@
 #include <time.h>
 
 #include "purc-macros.h"
+#include "purc-variant.h"
+#include "purc-dom.h"
 
 struct purc_broken_down_url {
     char *schema;
@@ -57,12 +59,22 @@ struct purc_hvml_ctrl_props {
     struct timespec     timeout;
 };
 
+struct purc_dvobj_method {
+    const char * name;
+    purc_dvariant_method getter;
+    purc_dvariant_method setter;
+};
+
 PCA_EXTERN_C_BEGIN
 
 /**
  * @defgroup DVObjs Functions for Dynamic Variant Objects
  * @{
  */
+
+PCA_EXPORT purc_variant_t
+purc_dvobj_make_from_methods(const struct purc_dvobj_method *method,
+        size_t size);
 
 PCA_EXPORT purc_variant_t
 purc_dvobj_system_new(void);

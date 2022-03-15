@@ -180,7 +180,7 @@ bool pcdvobjs_wildcard_cmp (const char *str1, const char *pattern)
 }
 #endif
 
-purc_variant_t pcdvobjs_make_dvobjs (const struct pcdvobjs_dvobjs *method,
+purc_variant_t purc_dvobj_make_from_methods (const struct purc_dvobj_method *method,
                                     size_t size)
 {
     size_t i = 0;

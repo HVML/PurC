@@ -377,14 +377,14 @@ purc_variant_t purc_dvobj_hvml_new (void)
         .on_release            = on_release,
     };
 
-    static struct pcdvobjs_dvobjs method [] = {
+    static struct purc_dvobj_method method [] = {
         {"base",               base_getter,              base_setter},
         {"max_iteration_count",  max_iteration_count_getter, max_iteration_count_setter},
         {"max_recursion_depth",  max_recursion_depth_getter, max_recursion_depth_setter},
         {"timeout",            timeout_getter,           timeout_setter},
     };
 
-    ret_var = pcdvobjs_make_dvobjs (method, PCA_TABLESIZE(method));
+    ret_var = purc_dvobj_make_from_methods (method, PCA_TABLESIZE(method));
     if (ret_var == PURC_VARIANT_INVALID)
         return PURC_VARIANT_INVALID;
 

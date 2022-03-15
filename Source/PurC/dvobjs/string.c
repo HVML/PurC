@@ -943,7 +943,7 @@ substr_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 // only for test now.
 purc_variant_t purc_dvobj_string_new (void)
 {
-    static struct pcdvobjs_dvobjs method [] = {
+    static struct purc_dvobj_method method [] = {
         {"contains",  contains_getter,  NULL},
         {"ends_with", ends_with_getter, NULL},
         {"explode",   explode_getter,   NULL},
@@ -959,5 +959,5 @@ purc_variant_t purc_dvobj_string_new (void)
         {"substr",    substr_getter,    NULL},
     };
 
-    return pcdvobjs_make_dvobjs (method, PCA_TABLESIZE(method));
+    return purc_dvobj_make_from_methods (method, PCA_TABLESIZE(method));
 }

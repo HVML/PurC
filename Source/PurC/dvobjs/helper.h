@@ -33,14 +33,7 @@
 extern "C" {
 #endif  /* __cplusplus */
 
-
 #define STREAM_SIZE 1024
-
-struct pcdvobjs_dvobjs {
-    const char * name;
-    purc_dvariant_method getter;
-    purc_dvariant_method setter;
-};
 
 struct pcdvobjs_logical_param {
     int result;
@@ -52,7 +45,7 @@ struct pcdvobjs_logical_param {
 bool pcdvobjs_wildcard_cmp (const char *str1,
         const char *pattern) WTF_INTERNAL;
 
-const char *pcdvobjs_remove_space (char * buffer);
+const char *pcdvobjs_remove_space (char * buffer) WTF_INTERNAL;
 
 const char *pcdvobjs_get_next_option (const char* data,
         const char* delims, size_t* length) WTF_INTERNAL;
@@ -60,10 +53,7 @@ const char *pcdvobjs_get_next_option (const char* data,
 const char *pcdvobjs_get_prev_option (const char* data,
         size_t str_len, const char* delims, size_t* length) WTF_INTERNAL;
 
-purc_variant_t pcdvobjs_make_dvobjs (
-        const struct pcdvobjs_dvobjs *method, size_t size);
-
-extern int pcdvobjs_logical_parse(const char *input,
+int pcdvobjs_logical_parse(const char *input,
         struct pcdvobjs_logical_param *param) WTF_INTERNAL;
 
 #ifdef __cplusplus
