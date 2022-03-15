@@ -119,7 +119,6 @@ void async_response_handler(
     fprintf(stderr, ".................body end\n");
     fprintf(stderr, "....................................request_id=%p\n", request_id);
     purc_variant_unref(request_id);
-    RunLoop::main().stop();
 }
 
 TEST(local_fetcher, async)
@@ -144,7 +143,7 @@ TEST(local_fetcher, async)
                 async_response_handler,
                 NULL);
 
-    fprintf(stderr, "....................................\n");
+    fprintf(stderr, "....................................async\n");
 
     pcfetcher_term();
     purc_cleanup();

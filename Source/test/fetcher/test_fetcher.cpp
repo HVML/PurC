@@ -137,8 +137,7 @@ TEST(fetcher, runloop_stop)
 {
     do {
         pcrunloop_init_main();
-        pcrunloop_t main_loop = pcrunloop_get_main();
-        pcrunloop_stop(main_loop);
+        pcrunloop_stop_main();
     } while (0);
 }
 

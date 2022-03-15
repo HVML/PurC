@@ -72,11 +72,6 @@ bool pcrunloop_is_main_initialized(void)
     return RunLoop::isMainInitizlized();
 }
 
-pcrunloop_t pcrunloop_get_main(void)
-{
-    return (pcrunloop_t)&RunLoop::main();
-}
-
 pcrunloop_t pcrunloop_get_current(void)
 {
     return (pcrunloop_t)&RunLoop::current();
