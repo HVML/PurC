@@ -426,8 +426,8 @@ static struct purc_native_ops _my_ops = {
     .cleaner               = NULL,
     .eraser                = NULL,
 
-    .on_observed           = NULL,
-    .on_released           = _my_releaser,
+    .on_observe           = NULL,
+    .on_release           = _my_releaser,
 };
 
 // to test: serialize a native entity

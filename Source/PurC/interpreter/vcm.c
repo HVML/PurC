@@ -193,7 +193,7 @@ cleaner(void* native_entity, bool silently)
 
 // the callback to release the native entity.
 static void
-on_released(void* native_entity)
+on_release(void* native_entity)
 {
     PC_ASSERT(native_entity);
 
@@ -231,8 +231,8 @@ pcintr_create_vcm_variant(struct pcvcm_node *vcm_node)
         .cleaner                = cleaner,
         .eraser                 = NULL,
 
-        .on_observed            = NULL,
-        .on_released            = on_released,
+        .on_observe            = NULL,
+        .on_release            = on_release,
     };
 
     struct pcintr_vcm *vcm;

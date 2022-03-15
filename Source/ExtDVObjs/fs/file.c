@@ -627,9 +627,9 @@ stream_open_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         return PURC_VARIANT_INVALID;
     }
 
-    // setup a callback for `on_released` to destroy the stream automatically
+    // setup a callback for `on_release` to destroy the stream automatically
     static const struct purc_native_ops ops = {
-        .on_released = release_rwstream,
+        .on_release = release_rwstream,
     };
     ret_var = purc_variant_make_native (rwstream, &ops);
 

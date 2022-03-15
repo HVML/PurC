@@ -64,8 +64,8 @@ static struct purc_native_ops rws_ops = {
     .cleaner               = NULL,
     .eraser                = NULL,
 
-    .on_observed           = NULL,
-    .on_released           = rws_releaser,
+    .on_observe           = NULL,
+    .on_release           = rws_releaser,
 };
 
 static void replace_for_bsequence(char *buf, size_t *length_sub)

@@ -535,11 +535,11 @@ struct purc_native_ops {
     purc_variant_t (*eraser)(void* native_entity, bool silently);
 
     /** the callback when the variant was observed (nullable). */
-    bool (*on_observed) (void* native_entity,
+    bool (*on_observe) (void* native_entity,
             const char *event_name, const char *event_subname);
 
     /** the callback when the variant was released (nullable). */
-    void (*on_released) (void* native_entity);
+    void (*on_release) (void* native_entity);
 };
 
 /**

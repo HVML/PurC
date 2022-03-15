@@ -245,8 +245,8 @@ struct purc_native_ops native_ops = {
     .cleaner                     = NULL,
     .eraser                      = NULL,
 
-    .on_observed                 = NULL,
-    .on_released                 = NULL,
+    .on_observe                 = NULL,
+    .on_release                 = NULL,
 };
 
 struct find_var_ctxt {

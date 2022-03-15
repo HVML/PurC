@@ -327,7 +327,7 @@ timeout_setter (
 }
 
 static void
-on_released(void* native_entity)
+on_release(void* native_entity)
 {
     PC_ASSERT(native_entity);
 
@@ -373,8 +373,8 @@ purc_variant_t pcdvobjs_get_hvml (void)
         .cleaner                = NULL,
         .eraser                 = NULL,
 
-        .on_observed            = NULL,
-        .on_released            = on_released,
+        .on_observe            = NULL,
+        .on_release            = on_release,
     };
 
     static struct pcdvobjs_dvobjs method [] = {
