@@ -38,10 +38,6 @@ TEST(local_fetcher, sync)
     purc_init_ex (PURC_MODULE_HVML,"cn.fmsoft.hybridos.sample",
             "pcfetcher", &info);
 
-    RunLoop::initializeMain();
-    AtomString::init();
-    WTF::RefCountedBase::enableThreadingChecksGlobally();
-
     const char* env = "HVML_TEST_LOCAL_FETCHER";
     char base_uri[PATH_MAX+1] =  {0};
     getpath_from_env_or_rel(base_uri, sizeof(base_uri), env, "data");
@@ -131,10 +127,6 @@ TEST(local_fetcher, async)
     purc_instance_extra_info info = {};
     purc_init_ex (PURC_MODULE_HVML,"cn.fmsoft.hybridos.sample",
             "pcfetcher", &info);
-
-    RunLoop::initializeMain();
-    AtomString::init();
-    WTF::RefCountedBase::enableThreadingChecksGlobally();
 
     const char* env = "HVML_TEST_LOCAL_FETCHER";
     char base_uri[PATH_MAX+1] =  {0};

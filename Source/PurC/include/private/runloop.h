@@ -36,8 +36,11 @@ typedef void* pcrunloop_t;
 
 PCA_EXTERN_C_BEGIN
 
-// Must be called from the main thread
 void pcrunloop_init_main(void);
+
+void pcrunloop_stop_main(void);
+
+bool pcrunloop_is_main_initialized(void);
 
 // the RunLoop of main thread
 pcrunloop_t pcrunloop_get_main(void);

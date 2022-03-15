@@ -29,14 +29,47 @@
 #include "private/runloop.h"
 #include "private/errors.h"
 
+#include <wtf/Threading.h>
 #include <wtf/RunLoop.h>
+#include <wtf/threads/BinarySemaphore.h>
 
 #include <stdlib.h>
 #include <string.h>
 
+
+#define MAIN_RUNLOOP_THREAD_NAME    "__purc_main_runloop_thread"
+
 void pcrunloop_init_main(void)
 {
-    RunLoop::initializeMain();
+    if (pcrunloop_is_main_initialized()) {
+        return;
+    }
+    BinarySemaphore semaphore;
+    Thread::create(MAIN_RUNLOOP_THREAD_NAME, [&] {
+        RunLoop::initializeMain();
+        RunLoop& runloop = RunLoop::main();
+        semaphore.signal();
+        runloop.run();
+    })->detach();
+    semaphore.wait();
+}
+
+void pcrunloop_stop_main(void)
+{
+    BinarySemaphore semaphore;
+    if (pcrunloop_is_main_initialized()) {
+        RunLoop& runloop = RunLoop::main();
+        runloop.dispatch([&] {
+            RunLoop::stopMain();
+            semaphore.signal();
+        });
+    }
+    semaphore.wait();
+}
+
+bool pcrunloop_is_main_initialized(void)
+{
+    return RunLoop::isMainInitizlized();
 }
 
 pcrunloop_t pcrunloop_get_main(void)
