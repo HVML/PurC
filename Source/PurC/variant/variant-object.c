@@ -148,7 +148,6 @@ static purc_variant_t v_object_new_with_capacity(void)
     }
 
     data->kvs = RB_ROOT;
-    INIT_LIST_HEAD(&data->rev_update_chain);
 
     var->sz_ptr[1]     = (uintptr_t)data;
     var->refc          = 1;
@@ -508,7 +507,6 @@ void pcvariant_object_release (purc_variant_t value)
     struct rb_node *p = pcutils_rbtree_first(root);
     while (p) {
         struct rb_node *next = pcutils_rbtree_next(p);
-        pcutils_rbtree_erase(p, root);
         struct obj_node *node;
         node = container_of(p, struct obj_node, node);
 
@@ -519,6 +517,7 @@ void pcvariant_object_release (purc_variant_t value)
         pcvar_break_edge_to_parent(node->val, &edge);
         pcvar_break_rue_downward(node->val);
 
+        pcutils_rbtree_erase(p, root);
         PURC_VARIANT_SAFE_CLEAR(node->key);
         PURC_VARIANT_SAFE_CLEAR(node->val);
         free(node);

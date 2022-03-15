@@ -157,7 +157,6 @@ variant_arr_insert_before(purc_variant_t array, size_t idx, purc_variant_t val,
         return 0;
     }
 
-    PRINT_VARIANT(val);
     if (pcvar_container_belongs_to_set(val)) {
         PC_ASSERT(0);
     }
@@ -421,8 +420,6 @@ pv_make_array_n (bool check, size_t sz, purc_variant_t value0, va_list ap)
             pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
             break;
         }
-
-        INIT_LIST_HEAD(&data->rev_update_chain);
 
         struct pcutils_array_list *al;
         al = &data->al;

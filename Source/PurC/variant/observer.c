@@ -247,48 +247,43 @@ pcvar_break_edge_to_parent(purc_variant_t val,
 }
 
 void
-pcvar_break_edge(purc_variant_t val, struct list_head *chain,
+pcvar_break_edge(purc_variant_t val,
+        struct pcvar_rev_update_edge *edge_in_val,
         struct pcvar_rev_update_edge *edge)
 {
     PC_ASSERT(val != PURC_VARIANT_INVALID);
-    PC_ASSERT(chain);
+    PC_ASSERT(edge_in_val);
     PC_ASSERT(edge);
 
-    struct list_head *p, *n;
-    list_for_each_safe(p, n, chain) {
-        struct pcvar_rev_update_edge_node *node;
-        node = container_of(p, struct pcvar_rev_update_edge_node, node);
-        if (edge->parent != node->edge.parent)
-            continue;
+    if (edge_in_val->parent == PURC_VARIANT_INVALID)
+        return;
 
-        switch (edge->parent->type) {
-            case PURC_VARIANT_TYPE_ARRAY:
-                PC_ASSERT(edge->arr_me->val == val);
-                if (edge->arr_me != node->edge.arr_me)
-                    continue;
-                list_del(p);
-                free(node);
-                return;
+    PC_ASSERT(edge->parent == edge_in_val->parent);
 
-            case PURC_VARIANT_TYPE_OBJECT:
-                PC_ASSERT(edge->obj_me->val == val);
-                if (edge->obj_me != node->edge.obj_me)
-                    continue;
-                list_del(p);
-                free(node);
-                return;
+    switch (edge->parent->type) {
+        case PURC_VARIANT_TYPE_ARRAY:
+            PC_ASSERT(edge->arr_me->val == val);
+            PC_ASSERT(edge->arr_me == edge_in_val->arr_me);
+            edge_in_val->parent = PURC_VARIANT_INVALID;
+            edge_in_val->arr_me = NULL;
+            return;
 
-            case PURC_VARIANT_TYPE_SET:
-                PC_ASSERT(edge->set_me->elem == val);
-                if (edge->set_me != node->edge.set_me)
-                    continue;
-                list_del(p);
-                free(node);
-                return;
+        case PURC_VARIANT_TYPE_OBJECT:
+            PC_ASSERT(edge->obj_me->val == val);
+            PC_ASSERT(edge->obj_me == edge_in_val->obj_me);
+            edge_in_val->parent = PURC_VARIANT_INVALID;
+            edge_in_val->obj_me = NULL;
+            return;
 
-            default:
-                PC_ASSERT(0);
-        }
+        case PURC_VARIANT_TYPE_SET:
+            PC_ASSERT(edge->set_me->elem == val);
+            PC_ASSERT(edge->set_me == edge_in_val->set_me);
+            edge_in_val->parent = PURC_VARIANT_INVALID;
+            edge_in_val->set_me = NULL;
+            return;
+
+        default:
+            PC_ASSERT(0);
     }
 }
 
@@ -342,66 +337,25 @@ pcvar_build_edge_to_parent(purc_variant_t val,
 }
 
 int
-pcvar_build_edge(purc_variant_t val, struct list_head *chain,
+pcvar_build_edge(purc_variant_t val,
+        struct pcvar_rev_update_edge *edge_in_val,
         struct pcvar_rev_update_edge *edge)
 {
     PC_ASSERT(val != PURC_VARIANT_INVALID);
-    PC_ASSERT(chain);
+    PC_ASSERT(edge_in_val);
     PC_ASSERT(edge);
 
     bool parent_is_set = purc_variant_is_set(edge->parent);
-    PRINT_VARIANT(edge->parent);
-    PRINT_VARIANT(val);
     if (!parent_is_set &&
             pcvar_container_belongs_to_set(edge->parent) == false)
     {
         PC_ASSERT(0);
     }
 
-    if (list_empty(chain) == false)
+    if (edge_in_val->parent != PURC_VARIANT_INVALID)
         PC_ASSERT(0);
 
-    struct list_head *p, *n;
-    list_for_each_safe(p, n, chain) {
-        struct pcvar_rev_update_edge_node *node;
-        node = container_of(p, struct pcvar_rev_update_edge_node, node);
-        if (edge->parent != node->edge.parent)
-            continue;
-
-        switch (edge->parent->type) {
-            case PURC_VARIANT_TYPE_ARRAY:
-                PC_ASSERT(edge->arr_me->val == val);
-                if (edge->arr_me != node->edge.arr_me)
-                    continue;
-                return 0;
-
-            case PURC_VARIANT_TYPE_OBJECT:
-                PC_ASSERT(edge->obj_me->val == val);
-                if (edge->obj_me != node->edge.obj_me)
-                    continue;
-                return 0;
-
-            case PURC_VARIANT_TYPE_SET:
-                PC_ASSERT(edge->set_me->elem == val);
-                if (edge->set_me != node->edge.set_me)
-                    continue;
-                return 0;
-
-            default:
-                PC_ASSERT(0);
-        }
-
-        break;
-    }
-
-    struct pcvar_rev_update_edge_node *_new;
-    _new = (struct pcvar_rev_update_edge_node*)calloc(1, sizeof(*_new));
-    if (!_new) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return -1;
-    }
-    _new->edge = *edge;
-    list_add_tail(&_new->node, chain);
+    *edge_in_val = *edge;
 
     return 0;
 }
@@ -415,7 +369,7 @@ pcvar_container_belongs_to_set(purc_variant_t val)
             {
                 variant_arr_t data = pcvar_arr_get_data(val);
                 PC_ASSERT(data);
-                if (list_empty(&data->rev_update_chain) == false)
+                if (data->rev_update_chain.parent != PURC_VARIANT_INVALID)
                     return true;
                 return false;
             }
@@ -423,7 +377,7 @@ pcvar_container_belongs_to_set(purc_variant_t val)
             {
                 variant_obj_t data = pcvar_obj_get_data(val);
                 PC_ASSERT(data);
-                if (list_empty(&data->rev_update_chain) == false)
+                if (data->rev_update_chain.parent != PURC_VARIANT_INVALID)
                     return true;
                 return false;
             }
@@ -431,12 +385,51 @@ pcvar_container_belongs_to_set(purc_variant_t val)
             {
                 variant_set_t data = pcvar_set_get_data(val);
                 PC_ASSERT(data);
-                if (list_empty(&data->rev_update_chain) == false)
+                if (data->rev_update_chain.parent != PURC_VARIANT_INVALID)
                     return true;
                 return false;
             }
         default:
             return false;
     }
+}
+
+purc_variant_t
+pcvar_top_in_rev_update_chain(purc_variant_t val)
+{
+    PC_ASSERT(val != PURC_VARIANT_INVALID);
+again:
+    switch (val->type) {
+        case PURC_VARIANT_TYPE_ARRAY:
+            {
+                variant_arr_t data = pcvar_arr_get_data(val);
+                PC_ASSERT(data);
+                if (data->rev_update_chain.parent == PURC_VARIANT_INVALID)
+                    return val;
+                val = data->rev_update_chain.parent;
+                break;
+            }
+        case PURC_VARIANT_TYPE_OBJECT:
+            {
+                variant_obj_t data = pcvar_obj_get_data(val);
+                PC_ASSERT(data);
+                if (data->rev_update_chain.parent == PURC_VARIANT_INVALID)
+                    return val;
+                val = data->rev_update_chain.parent;
+                break;
+            }
+        case PURC_VARIANT_TYPE_SET:
+            {
+                variant_set_t data = pcvar_set_get_data(val);
+                PC_ASSERT(data);
+                if (data->rev_update_chain.parent == PURC_VARIANT_INVALID)
+                    return val;
+                val = data->rev_update_chain.parent;
+                break;
+            }
+        default:
+            PC_ASSERT(0);
+    }
+    goto again;
 }
 

@@ -229,6 +229,8 @@ variant_set_init(variant_set_t set, const char *unique_key)
     if (!unique_key || !*unique_key) {
         // empty key
         set->nr_keynames = 1;
+        PC_ASSERT(set->keynames == NULL);
+        PC_ASSERT(set->unique_key == NULL);
         return 0;
     }
 
@@ -330,7 +332,6 @@ pcv_set_new(void)
         return PURC_VARIANT_INVALID;
     }
 
-    INIT_LIST_HEAD(&ptr->rev_update_chain);
     set->refc          = 1;
 
     // a valid empty set
@@ -746,6 +747,10 @@ variant_set_create_kvs_n(variant_set_t set, purc_variant_t v1, va_list ap)
         if (purc_variant_is_undefined(v))
             continue;
 
+        if (pcvar_container_belongs_to_set(v)) {
+            PC_ASSERT(0);
+        }
+
         const char *sk = set->keynames[i];
         bool ok;
         ok = purc_variant_object_set_by_static_ckey(kvs, sk, v);
@@ -887,10 +892,6 @@ variant_set_union(variant_set_t data, purc_variant_t old, purc_variant_t _new)
 static bool
 is_keyname(variant_set_t data, const char *s)
 {
-    int generic = data->keynames ? 0 : 1;
-    if (generic)
-        return true;
-
     for (size_t i=0; i<data->nr_keynames; ++i) {
         const char *sk = data->keynames[i];
         if (strcmp(sk, s) == 0)
@@ -916,7 +917,15 @@ prepare_variant(variant_set_t data, purc_variant_t val)
     foreach_key_value_in_variant_object(val, k, v) {
         purc_variant_t cloned = purc_variant_ref(v);
 
-        if (!generic && nr_cloned_kvs < data->nr_keynames) {
+        if (generic) {
+            PURC_VARIANT_SAFE_CLEAR(cloned);
+            cloned = purc_variant_container_clone_recursively(v);
+            if (cloned == PURC_VARIANT_INVALID) {
+                purc_variant_unref(obj);
+                return PURC_VARIANT_INVALID;
+            }
+        }
+        else if (nr_cloned_kvs < data->nr_keynames) {
             const char *sk = purc_variant_get_string_const(k);
             if (is_keyname(data, sk)) {
                 PURC_VARIANT_SAFE_CLEAR(cloned);
@@ -926,6 +935,22 @@ prepare_variant(variant_set_t data, purc_variant_t val)
                     return PURC_VARIANT_INVALID;
                 }
                 ++nr_cloned_kvs;
+            }
+            else {
+                PURC_VARIANT_SAFE_CLEAR(cloned);
+                cloned = purc_variant_container_clone_recursively(v);
+                if (cloned == PURC_VARIANT_INVALID) {
+                    purc_variant_unref(obj);
+                    return PURC_VARIANT_INVALID;
+                }
+            }
+        }
+        else {
+            PURC_VARIANT_SAFE_CLEAR(cloned);
+            cloned = purc_variant_container_clone_recursively(v);
+            if (cloned == PURC_VARIANT_INVALID) {
+                purc_variant_unref(obj);
+                return PURC_VARIANT_INVALID;
             }
         }
 
@@ -1017,7 +1042,6 @@ variant_set_add_val(purc_variant_t set,
         return -1;
     }
 
-    PRINT_VARIANT(val);
     if (pcvar_container_belongs_to_set(val)) {
         PC_ASSERT(0);
     }
@@ -1664,7 +1688,7 @@ pcvariant_set_clone(purc_variant_t set, bool recursively)
     }
 
     purc_variant_t var;
-    var = purc_variant_make_set_by_ckey(0, str.curr, PURC_VARIANT_INVALID);
+    var = purc_variant_make_set_by_ckey(0, str.abuf, PURC_VARIANT_INVALID);
     pcutils_string_reset(&str);
     if (var == PURC_VARIANT_INVALID)
         return PURC_VARIANT_INVALID;
@@ -1673,8 +1697,10 @@ pcvariant_set_clone(purc_variant_t set, bool recursively)
     // NOTE: keep document-order
     foreach_value_in_variant_set(set, v) {
         purc_variant_t val;
+        PC_ASSERT(pcvar_container_belongs_to_set(v));
         if (recursively) {
             val = pcvariant_container_clone(v, recursively);
+            PC_ASSERT(pcvar_container_belongs_to_set(val) == false);
         }
         else {
             val = purc_variant_ref(v);
@@ -1683,6 +1709,7 @@ pcvariant_set_clone(purc_variant_t set, bool recursively)
             purc_variant_unref(var);
             return PURC_VARIANT_INVALID;
         }
+
         bool ok;
         ok = purc_variant_set_add(var, val, false);
         purc_variant_unref(val);

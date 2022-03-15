@@ -243,6 +243,16 @@ void pcvariant_init_instance(struct pcinst* inst) WTF_INTERNAL;
 // clean up the variant module for a PurC instance.
 void pcvariant_cleanup_instance(struct pcinst* inst) WTF_INTERNAL;
 
+struct pcvar_rev_update_edge {
+    purc_variant_t                   parent;
+    union {
+        // where to locate in parent
+        struct set_node             *set_me;
+        struct obj_node             *obj_me;
+        struct arr_node             *arr_me;
+    };
+};
+
 // internal struct used by variant-set object
 typedef struct variant_set      *variant_set_t;
 
@@ -265,9 +275,7 @@ struct variant_set {
     struct rb_root          elems;  // multiple-variant-elements stored in set
     struct pcutils_arrlist *arr;    // also stored in arraylist
 
-    // struct pcvar_rev_update_edge_node*
-    // key: parent/val
-    struct list_head        rev_update_chain;
+    struct pcvar_rev_update_edge     rev_update_chain;
 };
 
 // internal struct used by variant-obj object
@@ -283,9 +291,7 @@ struct variant_obj {
     struct rb_root          kvs;  // struct obj_node*
     size_t                  size;
 
-    // struct pcvar_rev_update_edge_node*
-    // key: parent/val
-    struct list_head        rev_update_chain;
+    struct pcvar_rev_update_edge     rev_update_chain;
 };
 
 // internal struct used by variant-arr
@@ -299,25 +305,7 @@ struct arr_node {
 struct variant_arr {
     struct pcutils_array_list     al;  // struct arr_node*
 
-    // struct pcvar_rev_update_edge_node*
-    // key: struct pcvar_rev_update_edge
-    struct list_head        rev_update_chain;
-};
-
-struct pcvar_rev_update_edge {
-    purc_variant_t                   parent;
-    union {
-        // where to locate in parent
-        struct set_node             *set_me;
-        struct obj_node             *obj_me;
-        struct arr_node             *arr_me;
-    };
-};
-
-struct pcvar_rev_update_edge_node {
-    struct list_head                 node;
-
-    struct pcvar_rev_update_edge     edge;
+    struct pcvar_rev_update_edge     rev_update_chain;
 };
 
 int pcvariant_array_sort(purc_variant_t value, void *ud,
