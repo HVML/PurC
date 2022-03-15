@@ -79,7 +79,7 @@ variant_set_t
 pcvar_set_get_data(purc_variant_t set) WTF_INTERNAL;
 
 bool
-pcvar_belongs_to_set(purc_variant_t val) WTF_INTERNAL;
+pcvar_container_belongs_to_set(purc_variant_t val) WTF_INTERNAL;
 
 purc_variant_t
 pcvariant_container_clone(purc_variant_t cntr, bool recursively) WTF_INTERNAL;
