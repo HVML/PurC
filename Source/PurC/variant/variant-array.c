@@ -123,8 +123,8 @@ changed(purc_variant_t array, purc_variant_t pos,
             PCA_TABLESIZE(vals), vals);
 }
 
-static variant_arr_t
-array_get_data(purc_variant_t arr)
+variant_arr_t
+pcvar_arr_get_data(purc_variant_t arr)
 {
     return (variant_arr_t)arr->sz_ptr[1];
 }
@@ -157,7 +157,7 @@ variant_arr_insert_before(purc_variant_t array, size_t idx, purc_variant_t val,
         return 0;
     }
 
-    variant_arr_t data = array_get_data(array);
+    variant_arr_t data = pcvar_arr_get_data(array);
     purc_variant_t pos = variant_arr_make_pos(data, idx);
     if (pos == PURC_VARIANT_INVALID)
         return -1;
@@ -213,7 +213,7 @@ static int
 variant_arr_append(purc_variant_t array, purc_variant_t val,
         bool check)
 {
-    variant_arr_t data = array_get_data(array);
+    variant_arr_t data = pcvar_arr_get_data(array);
     struct pcutils_array_list *al = &data->al;
     size_t nr = pcutils_array_list_length(al);
     return variant_arr_insert_before(array, nr, val, check);
@@ -244,7 +244,7 @@ static int
 variant_arr_set(purc_variant_t array, size_t idx, purc_variant_t val,
         bool check)
 {
-    variant_arr_t data = array_get_data(array);
+    variant_arr_t data = pcvar_arr_get_data(array);
     struct pcutils_array_list *al = &data->al;
     struct pcutils_array_list_node *p;
     p = pcutils_array_list_get(al, idx);
@@ -302,7 +302,7 @@ static int
 variant_arr_remove(purc_variant_t array, size_t idx,
         bool check)
 {
-    variant_arr_t data = array_get_data(array);
+    variant_arr_t data = pcvar_arr_get_data(array);
     purc_variant_t pos = variant_arr_make_pos(data, idx);
     if (pos == PURC_VARIANT_INVALID)
         return -1;
@@ -348,7 +348,7 @@ variant_arr_remove(purc_variant_t array, size_t idx,
 static inline void
 array_release (purc_variant_t array)
 {
-    variant_arr_t data = array_get_data(array);
+    variant_arr_t data = pcvar_arr_get_data(array);
     if (!data)
         return;
 
@@ -378,7 +378,7 @@ static void
 refresh_extra(purc_variant_t array)
 {
     size_t extra = 0;
-    variant_arr_t data = array_get_data(array);
+    variant_arr_t data = pcvar_arr_get_data(array);
     if (data) {
         extra += sizeof(*data);
         struct pcutils_array_list *al = &data->al;
@@ -535,7 +535,7 @@ purc_variant_t purc_variant_array_get (purc_variant_t array, int idx)
     PCVARIANT_CHECK_FAIL_RET(array && array->type==PVT(_ARRAY) && idx>=0,
         PURC_VARIANT_INVALID);
 
-    variant_arr_t data = array_get_data(array);
+    variant_arr_t data = pcvar_arr_get_data(array);
 
     return variant_arr_get(data, idx);
 }
@@ -546,7 +546,7 @@ bool purc_variant_array_size(purc_variant_t array, size_t *sz)
 
     PCVARIANT_CHECK_FAIL_RET(array->type==PVT(_ARRAY), false);
 
-    variant_arr_t data = array_get_data(array);
+    variant_arr_t data = pcvar_arr_get_data(array);
     *sz = variant_arr_length(data);
     return true;
 }
@@ -617,7 +617,7 @@ int pcvariant_array_sort(purc_variant_t array, void *ud,
     if (!array || array->type != PURC_VARIANT_TYPE_ARRAY)
         return -1;
 
-    variant_arr_t data = array_get_data(array);
+    variant_arr_t data = pcvar_arr_get_data(array);
 
     struct arr_user_data d = {
         .cmp = cmp,
@@ -671,7 +671,7 @@ pcvar_array_break_rue_downward(purc_variant_t arr)
 {
     PC_ASSERT(purc_variant_is_array(arr));
 
-    variant_arr_t data = array_get_data(arr);
+    variant_arr_t data = pcvar_arr_get_data(arr);
     if (!data)
         return;
 
@@ -691,7 +691,7 @@ pcvar_array_break_edge_to_parent(purc_variant_t arr,
         struct pcvar_rev_update_edge *edge)
 {
     PC_ASSERT(purc_variant_is_array(arr));
-    variant_arr_t data = array_get_data(arr);
+    variant_arr_t data = pcvar_arr_get_data(arr);
     if (!data)
         return;
 
@@ -703,7 +703,7 @@ pcvar_array_build_rue_downward(purc_variant_t arr)
 {
     PC_ASSERT(purc_variant_is_array(arr));
 
-    variant_arr_t data = array_get_data(arr);
+    variant_arr_t data = pcvar_arr_get_data(arr);
     if (!data)
         return 0;
 
@@ -729,7 +729,7 @@ pcvar_array_build_edge_to_parent(purc_variant_t arr,
         struct pcvar_rev_update_edge *edge)
 {
     PC_ASSERT(purc_variant_is_array(arr));
-    variant_arr_t data = array_get_data(arr);
+    variant_arr_t data = pcvar_arr_get_data(arr);
     if (!data)
         return 0;
 
@@ -808,7 +808,7 @@ pcvar_arr_it_first(purc_variant_t arr)
     if (arr == PURC_VARIANT_INVALID)
         return it;
 
-    variant_arr_t data = array_get_data(arr);
+    variant_arr_t data = pcvar_arr_get_data(arr);
     size_t count = variant_arr_length(data);
     if (count == 0)
         return it;
@@ -832,7 +832,7 @@ pcvar_arr_it_last(purc_variant_t arr)
     if (arr == PURC_VARIANT_INVALID)
         return it;
 
-    variant_arr_t data = array_get_data(arr);
+    variant_arr_t data = pcvar_arr_get_data(arr);
     size_t count = variant_arr_length(data);
     if (count == 0)
         return it;
@@ -854,7 +854,7 @@ pcvar_arr_it_next(struct arr_iterator *it)
         return;
 
     if (it->next) {
-        variant_arr_t data = array_get_data(it->arr);
+        variant_arr_t data = pcvar_arr_get_data(it->arr);
         struct pcutils_array_list *al = &data->al;
 
         struct pcutils_array_list_node *next;
@@ -876,7 +876,7 @@ pcvar_arr_it_prev(struct arr_iterator *it)
         return;
 
     if (it->prev) {
-        variant_arr_t data = array_get_data(it->arr);
+        variant_arr_t data = pcvar_arr_get_data(it->arr);
         struct pcutils_array_list *al = &data->al;
 
         struct pcutils_array_list_node *prev;

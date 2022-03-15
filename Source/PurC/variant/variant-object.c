@@ -120,8 +120,8 @@ changed(purc_variant_t obj,
             PCA_TABLESIZE(vals), vals);
 }
 
-static inline variant_obj_t
-object_get_data(purc_variant_t obj)
+variant_obj_t
+pcvar_obj_get_data(purc_variant_t obj)
 {
     variant_obj_t data = (variant_obj_t)obj->sz_ptr[1];
     return data;
@@ -160,7 +160,7 @@ static int
 v_object_remove(purc_variant_t obj, purc_variant_t key, bool silently,
         bool check)
 {
-    variant_obj_t data = object_get_data(obj);
+    variant_obj_t data = pcvar_obj_get_data(obj);
     struct rb_root *root = &data->kvs;
     struct rb_node **pnode = &root->rb_node;
     struct rb_node *parent = NULL;
@@ -235,7 +235,7 @@ v_object_set(purc_variant_t obj, purc_variant_t k, purc_variant_t val,
         return 0;
     }
 
-    variant_obj_t data = object_get_data(obj);
+    variant_obj_t data = pcvar_obj_get_data(obj);
     PC_ASSERT(data);
 
     struct rb_root *root = &data->kvs;
@@ -384,7 +384,7 @@ pv_make_object_by_static_ckey_n (bool check, size_t nr_kv_pairs,
     if (!obj)
         return PURC_VARIANT_INVALID;
 
-    variant_obj_t data = object_get_data(obj);
+    variant_obj_t data = pcvar_obj_get_data(obj);
     PC_ASSERT(data);
 
     do {
@@ -442,7 +442,7 @@ pv_make_object_n(bool check, size_t nr_kv_pairs,
     if (!obj)
         return PURC_VARIANT_INVALID;
 
-    variant_obj_t data = object_get_data(obj);
+    variant_obj_t data = pcvar_obj_get_data(obj);
     PC_ASSERT(data);
 
     do {
@@ -458,7 +458,7 @@ pv_make_object_n(bool check, size_t nr_kv_pairs,
                 break;
         }
 
-        variant_obj_t data = object_get_data(obj);
+        variant_obj_t data = pcvar_obj_get_data(obj);
         size_t extra = OBJ_EXTRA_SIZE(data);
         pcvariant_stat_set_extra_size(obj, extra);
 
@@ -487,7 +487,7 @@ purc_variant_make_object (size_t nr_kv_pairs,
 
 void pcvariant_object_release (purc_variant_t value)
 {
-    variant_obj_t data = object_get_data(value);
+    variant_obj_t data = pcvar_obj_get_data(value);
 
     struct rb_root *root = &data->kvs;
 
@@ -521,8 +521,8 @@ void pcvariant_object_release (purc_variant_t value)
 int pcvariant_object_compare (purc_variant_t lv, purc_variant_t rv)
 {
     // only called via purc_variant_compare
-    struct pchash_table *lht = object_get_data(lv);
-    struct pchash_table *rht = object_get_data(rv);
+    struct pchash_table *lht = pcvar_obj_get_data(lv);
+    struct pchash_table *rht = pcvar_obj_get_data(rv);
 
     struct pchash_entry *lcurr = lht->head;
     struct pchash_entry *rcurr = rht->head;
@@ -546,7 +546,7 @@ purc_variant_t purc_variant_object_get(purc_variant_t obj, purc_variant_t key,
         obj->sz_ptr[1] && key),
         PURC_VARIANT_INVALID);
 
-    variant_obj_t data = object_get_data(obj);
+    variant_obj_t data = pcvar_obj_get_data(obj);
     struct rb_root *root = &data->kvs;
 
     struct rb_node **pnode = &root->rb_node;
@@ -616,7 +616,7 @@ bool purc_variant_object_size (purc_variant_t obj, size_t *sz)
     PCVARIANT_CHECK_FAIL_RET(obj->type == PVT(_OBJECT) && obj->sz_ptr[1],
         false);
 
-    variant_obj_t data = object_get_data(obj);
+    variant_obj_t data = pcvar_obj_get_data(obj);
     *sz = (size_t)data->size;
 
     return true;
@@ -633,7 +633,7 @@ purc_variant_object_make_iterator_begin (purc_variant_t object)
         object->sz_ptr[1]),
         NULL);
 
-    variant_obj_t data = object_get_data(object);
+    variant_obj_t data = pcvar_obj_get_data(object);
     if (data->size==0) {
         pcinst_set_error(PCVARIANT_ERROR_NOT_FOUND);
         return NULL;
@@ -657,7 +657,7 @@ purc_variant_object_make_iterator_end (purc_variant_t object) {
         object->sz_ptr[1]),
         NULL);
 
-    variant_obj_t data = object_get_data(object);
+    variant_obj_t data = pcvar_obj_get_data(object);
     if (data->size==0) {
         pcinst_set_error(PCVARIANT_ERROR_NOT_FOUND);
         return NULL;
@@ -887,7 +887,7 @@ pcvar_obj_it_first(purc_variant_t obj)
     if (obj == PURC_VARIANT_INVALID)
         return it;
 
-    variant_obj_t data = object_get_data(obj);
+    variant_obj_t data = pcvar_obj_get_data(obj);
     if (data->size==0)
         return it;
 
@@ -908,7 +908,7 @@ pcvar_obj_it_last(purc_variant_t obj)
     if (obj == PURC_VARIANT_INVALID)
         return it;
 
-    variant_obj_t data = object_get_data(obj);
+    variant_obj_t data = pcvar_obj_get_data(obj);
     if (data->size==0)
         return it;
 

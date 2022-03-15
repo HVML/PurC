@@ -71,6 +71,13 @@ void pcvariant_object_release  (purc_variant_t value)    WTF_INTERNAL;
 void pcvariant_array_release   (purc_variant_t value)    WTF_INTERNAL;
 void pcvariant_set_release     (purc_variant_t value)    WTF_INTERNAL;
 
+variant_arr_t
+pcvar_arr_get_data(purc_variant_t arr) WTF_INTERNAL;
+variant_obj_t
+pcvar_obj_get_data(purc_variant_t obj) WTF_INTERNAL;
+variant_set_t
+pcvar_set_get_data(purc_variant_t set) WTF_INTERNAL;
+
 purc_variant_t
 pcvariant_container_clone(purc_variant_t cntr, bool recursively) WTF_INTERNAL;
 
