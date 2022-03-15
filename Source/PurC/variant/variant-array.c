@@ -158,7 +158,9 @@ variant_arr_insert_before(purc_variant_t array, size_t idx, purc_variant_t val,
     }
 
     if (pcvar_container_belongs_to_set(val)) {
-        PC_ASSERT(0);
+        purc_set_error_with_info(PURC_ERROR_NOT_SUPPORTED,
+                "add subchildren of set's uniqkey-val to other container");
+        return -1;
     }
 
     variant_arr_t data = pcvar_arr_get_data(array);

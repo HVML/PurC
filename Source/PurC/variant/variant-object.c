@@ -235,7 +235,9 @@ v_object_set(purc_variant_t obj, purc_variant_t k, purc_variant_t val,
     }
 
     if (pcvar_container_belongs_to_set(val)) {
-        PC_ASSERT(0);
+        purc_set_error_with_info(PURC_ERROR_NOT_SUPPORTED,
+                "add subchildren of set's uniqkey-val to other container");
+        return -1;
     }
 
     variant_obj_t data = pcvar_obj_get_data(obj);
