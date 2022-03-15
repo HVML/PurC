@@ -45,10 +45,11 @@ TEST(dvobjs, dvobjs_logical)
 
     // get and function
     purc_instance_extra_info info = {};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t logical = pcdvobjs_get_logical();
+    purc_variant_t logical = purc_dvobj_logical_new();
     ASSERT_NE(logical, nullptr);
     ASSERT_EQ(purc_variant_is_object (logical), true);
 
@@ -135,7 +136,7 @@ TEST(dvobjs, dvobjs_logical)
                         }
                     }
 
-                    ret_var = func (NULL, j, param);
+                    ret_var = func (NULL, j, param, false);
 
                     if (ret_result == PURC_VARIANT_INVALID) {
                         ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
@@ -209,10 +210,11 @@ TEST(dvobjs, dvobjs_logical_eval)
     purc_variant_t ret_var = NULL;
 
     purc_instance_extra_info info = {};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t logical = pcdvobjs_get_logical();
+    purc_variant_t logical = purc_dvobj_logical_new();
     ASSERT_NE(logical, nullptr);
     ASSERT_EQ(purc_variant_is_object (logical), true);
 
@@ -231,7 +233,7 @@ TEST(dvobjs, dvobjs_logical_eval)
         param[0] = purc_variant_make_string (samples[i].expr, false);
         param[1] = PURC_VARIANT_INVALID;
         std::cout << "parsing [" << samples[i].expr << "]" << std::endl;
-        ret_var = func (NULL, 2, param);
+        ret_var = func (NULL, 2, param, false);
         ASSERT_NE(ret_var, nullptr);
         ASSERT_EQ(purc_variant_is_type (ret_var,
                     PURC_VARIANT_TYPE_BOOLEAN), true);
@@ -273,7 +275,7 @@ _eval(purc_dvariant_method func, const char *expr,
     param[0] = purc_variant_make_string(expr, false);
     param[1] = PURC_VARIANT_INVALID;
 
-    purc_variant_t ret_var = func(NULL, 2, param);
+    purc_variant_t ret_var = func(NULL, 2, param, false);
     purc_variant_unref(param[0]);
     if (param[1])
         purc_variant_unref(param[1]);
@@ -359,13 +361,13 @@ TEST(dvobjs, dvobjs_logical_bc)
     char path[1024] = {0};
 
     purc_instance_extra_info info = {};
-    r = purc_init("cn.fmsoft.hybridos.test",
+    r = purc_init_ex(PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
         "test_init", &info);
     EXPECT_EQ(r, PURC_ERROR_OK);
     if (r)
         return;
 
-    purc_variant_t logical = pcdvobjs_get_logical();
+    purc_variant_t logical = purc_dvobj_logical_new();
     ASSERT_NE(logical, nullptr);
     ASSERT_EQ(purc_variant_is_object (logical), true);
 

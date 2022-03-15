@@ -68,7 +68,8 @@ static struct atom_info {
 // to test basic functions of atom
 TEST(utils, atom_basic)
 {
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "variant", NULL);
+    int ret = purc_init_ex(PURC_MODULE_UTILS, "cn.fmsoft.hybridos.test",
+            "utils", NULL);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     purc_atom_t atom;
@@ -100,7 +101,8 @@ TEST(utils, atom_basic)
 // to test extended functions of atom
 TEST(utils, atom_ex)
 {
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "variant", NULL);
+    int ret = purc_init_ex(PURC_MODULE_UTILS, "cn.fmsoft.hybridos.test",
+            "utils", NULL);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     purc_atom_t atom;
@@ -279,7 +281,8 @@ static purc_atom_t get_custom_atom_by_id(size_t id)
 
 TEST(utils, atom_buckets)
 {
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "variant", NULL);
+    int ret = purc_init_ex(PURC_MODULE_UTILS, "cn.fmsoft.hybridos.test",
+            "utils", NULL);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     purc_atom_t atom;
@@ -822,6 +825,62 @@ TEST(utils, rbtree)
         pcutils_rbtree_erase(node, &root);
         ASSERT_STREQ(p->str, *pp++);
         free(p);
+    }
+
+    ASSERT_TRUE(ok);
+}
+
+TEST(utils, rbtree_iterate)
+{
+    const char *samples[] = {
+        "hello",
+        "world",
+        "foo",
+        "bar",
+        "great",
+        "wall",
+    };
+    const char *results[] = {
+        "bar",
+        "foo",
+        "great",
+        "hello",
+        "wall",
+        "world",
+    };
+
+    bool ok = true;
+
+    struct rb_root root = RB_ROOT;
+    struct rb_node *node;
+    node = pcutils_rbtree_first(&root);
+    ASSERT_EQ(node, nullptr);
+
+    for (size_t i=0; i<PCA_TABLESIZE(samples); ++i) {
+        const char *sample = samples[i];
+        do_insert(&root, sample, &ok);
+        if (!ok)
+            break;
+    }
+
+    struct rb_node *p;
+    size_t idx = 0;
+    pcutils_rbtree_for_each(pcutils_rbtree_first(&root), p) {
+        struct str_node *s = container_of(p, struct str_node, node);
+        ASSERT_STREQ(s->str, results[idx++]);
+    }
+
+    idx = sizeof(results)/sizeof(results[0]);
+    pcutils_rbtree_for_each_reverse(pcutils_rbtree_last(&root), p) {
+        struct str_node *s = container_of(p, struct str_node, node);
+        ASSERT_STREQ(s->str, results[--idx]);
+    }
+
+    struct rb_node *n;
+    pcutils_rbtree_for_each_safe(pcutils_rbtree_first(&root), p, n) {
+        struct str_node *s = container_of(p, struct str_node, node);
+        pcutils_rbtree_erase(p, &root);
+        free(s);
     }
 
     ASSERT_TRUE(ok);

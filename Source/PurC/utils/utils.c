@@ -22,6 +22,7 @@
 #include "purc-errors.h"
 #include "private/utils.h"
 #include "private/errors.h"
+#include "private/printbuf.h"
 #include "private/debug.h"
 
 #include <stdarg.h>
@@ -213,7 +214,7 @@ int pcutils_parse_long_double(const char *buf, size_t len, long double *retval)
     return 1;
 }
 
-__attribute__ ((format (printf, 3, 0)))
+WTF_ATTRIBUTE_PRINTF(3, 0)
 char*
 pcutils_vsnprintf(char *buf, size_t *sz_io, const char *fmt, va_list ap)
 {
@@ -242,7 +243,7 @@ pcutils_vsnprintf(char *buf, size_t *sz_io, const char *fmt, va_list ap)
             break;
 
         *p = '\0';
-        n = vsnprintf(p, sz, fmt, dp);
+        n = vsnprintf(p, sz, fmt, ap);
 
         nr = n;
         if (n<0 || (size_t)n >= sz) {
@@ -290,3 +291,75 @@ pcutils_trim_blanks(const char *str, size_t *sz_io)
     return start;
 }
 
+static const char *json_hex_chars = "0123456789abcdefABCDEF";
+
+char* pcutils_escape_string_for_json (const char* str)
+{
+    struct pcutils_printbuf my_buff, *pb = &my_buff;
+    size_t pos = 0, start_offset = 0;
+    unsigned char c;
+
+    if (pcutils_printbuf_init (pb)) {
+        PC_ERROR ("Failed to initialize buffer for escape string for JSON.\n");
+        return NULL;
+    }
+
+    while (str [pos]) {
+        const char* escaped;
+
+        c = str[pos];
+        switch (c) {
+        case '\b':
+            escaped = "\\b";
+            break;
+        case '\n':
+            escaped = "\\n";
+            break;
+        case '\r':
+            escaped = "\\n";
+            break;
+        case '\t':
+            escaped = "\\t";
+            break;
+        case '\f':
+            escaped = "\\f";
+            break;
+        case '"':
+            escaped = "\\\"";
+            break;
+        case '\\':
+            escaped = "\\\\";
+            break;
+        default:
+            escaped = NULL;
+            if (c < ' ') {
+                char sbuf[7];
+                if (pos - start_offset > 0)
+                    pcutils_printbuf_memappend (pb,
+                            str + start_offset, pos - start_offset);
+                snprintf (sbuf, sizeof (sbuf), "\\u00%c%c",
+                        json_hex_chars[c >> 4], json_hex_chars[c & 0xf]);
+                pcutils_printbuf_memappend_fast (pb, sbuf,
+                        (int)(sizeof(sbuf) - 1));
+                start_offset = ++pos;
+            }
+            else
+                pos++;
+            break;
+        }
+
+        if (escaped) {
+            if (pos - start_offset > 0)
+                pcutils_printbuf_memappend (pb, str + start_offset,
+                        pos - start_offset);
+
+            pcutils_printbuf_memappend (pb, escaped, strlen (escaped));
+            start_offset = ++pos;
+        }
+    }
+
+    if (pos - start_offset > 0)
+        pcutils_printbuf_memappend (pb, str + start_offset, pos - start_offset);
+
+    return pb->buf;
+}

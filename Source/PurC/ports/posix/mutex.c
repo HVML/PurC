@@ -62,7 +62,7 @@ bool purc_mutex_trylock (purc_mutex *mutex)
     return false;
 }
 
-void purc_mutex_writer_unlock (purc_mutex *mutex)
+void purc_mutex_unlock (purc_mutex *mutex)
 {
     pthread_mutex_unlock (mutex->native_impl);
 }

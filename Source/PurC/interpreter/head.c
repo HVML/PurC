@@ -34,9 +34,6 @@
 
 #include <pthread.h>
 #include <unistd.h>
-#include <libgen.h>
-
-#define TO_DEBUG 0
 
 struct ctxt_for_head {
     struct pcvdom_node           *curr;
@@ -56,34 +53,39 @@ ctxt_destroy(void *ctxt)
     ctxt_for_head_destroy((struct ctxt_for_head*)ctxt);
 }
 
+static int
+attr_found(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element,
+        purc_atom_t name,
+        struct pcvdom_attr *attr,
+        void *ud)
+{
+    UNUSED_PARAM(frame);
+    UNUSED_PARAM(element);
+    UNUSED_PARAM(name);
+    UNUSED_PARAM(ud);
+
+    PC_ASSERT(attr->op == PCHVML_ATTRIBUTE_OPERATOR);
+    PC_ASSERT(attr->key);
+
+    pcintr_stack_t stack = pcintr_get_stack();
+    PC_ASSERT(stack);
+    int r = pcintr_set_edom_attribute(stack, attr);
+
+    return r ? -1 : 0;
+}
+
 static void*
 after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 {
     PC_ASSERT(stack && pos);
-    PC_ASSERT(stack == purc_get_stack());
+    PC_ASSERT(stack == pcintr_get_stack());
+    PC_ASSERT(stack->mode == STACK_VDOM_BEFORE_HEAD);
+    stack->mode = STACK_VDOM_IN_HEAD;
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame);
-
-    frame->edom_element = pchtml_doc_get_head(stack->doc);
-
-    frame->pos = pos; // ATTENTION!!
-
-    if (pcintr_set_symbol_var_at_sign())
-        return NULL;
-
-    struct pcvdom_element *element = frame->pos;
-    PC_ASSERT(element);
-
-    int r;
-    r = pcintr_element_eval_attrs(frame, element);
-    if (r)
-        return NULL;
-
-    r = pcintr_element_eval_vcm_content(frame, element);
-    if (r)
-        return NULL;
 
     struct ctxt_for_head *ctxt;
     ctxt = (struct ctxt_for_head*)calloc(1, sizeof(*ctxt));
@@ -94,6 +96,18 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     frame->ctxt = ctxt;
     frame->ctxt_destroy = ctxt_destroy;
+
+    frame->pos = pos; // ATTENTION!!
+    frame->edom_element = pchtml_doc_get_head(stack->doc);
+
+    struct pcvdom_element *element = frame->pos;
+    PC_ASSERT(element);
+
+    int r;
+    r = pcintr_vdom_walk_attrs(frame, element, NULL, attr_found);
+    if (r)
+        return NULL;
+
     purc_clr_error();
 
     return ctxt;
@@ -103,7 +117,9 @@ static bool
 on_popping(pcintr_stack_t stack, void* ud)
 {
     PC_ASSERT(stack);
-    PC_ASSERT(stack == purc_get_stack());
+    PC_ASSERT(stack == pcintr_get_stack());
+    PC_ASSERT(stack->mode == STACK_VDOM_IN_HEAD);
+    stack->mode = STACK_VDOM_AFTER_HEAD;
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
@@ -154,7 +170,7 @@ static pcvdom_element_t
 select_child(pcintr_stack_t stack, void* ud)
 {
     PC_ASSERT(stack);
-    PC_ASSERT(stack == purc_get_stack());
+    PC_ASSERT(stack == pcintr_get_stack());
 
     pcintr_coroutine_t co = &stack->co;
     struct pcintr_stack_frame *frame;

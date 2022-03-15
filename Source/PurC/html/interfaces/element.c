@@ -82,7 +82,7 @@ pchtml_html_element_inner_html_set(pchtml_html_element_t *element,
         child = node->first_child;
 
         pcdom_node_remove(child);
-        pcdom_node_insert_child(root, child);
+        pcdom_node_append_child(root, child);
     }
 
     pcdom_node_destroy(node);

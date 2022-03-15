@@ -1,7 +1,6 @@
 #include "purc.h"
 
 #include "private/ejson.h"
-#include "private/instance.h"
 #include "purc-rwstream.h"
 
 #include <gtest/gtest.h>
@@ -9,7 +8,7 @@
 TEST(ejson, ref_manual_good)
 {
     // add child bottom-up
-    purc_init("cn.fmsoft.hybridos.test", "ejson", NULL);
+    purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hybridos.test", "ejson", NULL);
 
     purc_variant_t root = purc_variant_make_array(0, NULL);
     purc_variant_t arr1 = purc_variant_make_array(0, NULL);
@@ -29,7 +28,7 @@ TEST(ejson, ref_manual_good)
 TEST(ejson, ref_manual_bad)
 {
     // add child top-down
-    purc_init("cn.fmsoft.hybridos.test", "ejson", NULL);
+    purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hybridos.test", "ejson", NULL);
 
     purc_variant_t root = purc_variant_make_array(0, NULL);
     purc_variant_t arr1 = purc_variant_make_array(0, NULL);

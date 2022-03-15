@@ -15,6 +15,7 @@
 #include <math.h>
 
 
+#if 0
 TEST(ejson, create_reset_destroy)
 {
     struct pcejson* parser = pcejson_create(10, 1);
@@ -62,6 +63,7 @@ TEST(ejson_token, next_token)
     pcejson_destroy(parser);
     purc_rwstream_destroy(rws);
 }
+#endif
 
 TEST(ejson_stack, new_destory)
 {
@@ -157,6 +159,7 @@ TEST(ejson_stack, push_pop)
     pcutils_stack_destroy(stack);
 }
 
+#if 0
 TEST(ejson_token, parse_unquoted_key_AND_single_quoted_value)
 {
     char json[] = "{ key : \'value\' }";
@@ -1581,7 +1584,8 @@ TEST(ejson_token, parse_unquoted_key)
 
 TEST(ejson_token, parse_escape)
 {
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "ejson", NULL);
+    int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hybridos.test",
+            "ejson", NULL);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     char json[1024] = "{key:'abc\"'}";
@@ -1730,7 +1734,8 @@ TEST(ejson_token, parse_escape)
 
 TEST(ejson_token, pcejson_parse)
 {
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "ejson", NULL);
+    int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hybridos.test",
+            "ejson", NULL);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     char json[] = "{key:[{\"a\":\"b\"},{key2:'v2'}]}";
@@ -1767,7 +1772,8 @@ TEST(ejson_token, pcejson_parse)
 
 TEST(ejson_token, string_variant)
 {
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "ejson", NULL);
+    int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hybridos.test",
+            "ejson", NULL);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     char key[] = "name";
@@ -1802,7 +1808,8 @@ TEST(ejson_token, string_variant)
 
 TEST(ejson_token, pcejson_parse_longstring)
 {
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "ejson", NULL);
+    int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hybridos.test",
+            "ejson", NULL);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     char json[] = "{key:[{\"a\":\"b\"},{key2:'abcdefghijklmnopq'}]}";
@@ -1854,7 +1861,8 @@ purc_variant_t make_object(const char* key, const char* value)
 
 TEST(ejson_token, string_func_variant)
 {
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "ejson", NULL);
+    int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hybridos.test",
+            "ejson", NULL);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     purc_variant_t object = purc_variant_make_object (0,
@@ -1895,7 +1903,8 @@ TEST(ejson_token, string_func_variant)
 
 TEST(ejson_token, pcejson_parse_segment)
 {
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "ejson", NULL);
+    int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hybridos.test",
+            "ejson", NULL);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     char json[] = "{key:[{\"a\":\"b\"}";
@@ -1938,7 +1947,8 @@ TEST(ejson_token, pcejson_parse_segment)
 
 TEST(ejson_token, pcejson_infinity)
 {
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "ejson", NULL);
+    int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hybridos.test",
+            "ejson", NULL);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     char json[1024] = "{key:Infinity}";
@@ -2005,7 +2015,8 @@ TEST(ejson_token, pcejson_infinity)
 
 TEST(ejson_token, pcejson_nan)
 {
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "ejson", NULL);
+    int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hybridos.test",
+            "ejson", NULL);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     char json[1024] = "{key:NaN}";
@@ -2064,7 +2075,8 @@ TEST(ejson_token, pcejson_nan)
 
 TEST(ejson_token, pcejson_parse_infinity_nan)
 {
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "ejson", NULL);
+    int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hybridos.test",
+            "ejson", NULL);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     char json[] = "{key:[{\"a\":NaN},{key2:Infinity},{key3:-Infinity}]}";
@@ -2102,7 +2114,8 @@ TEST(ejson_token, pcejson_parse_infinity_nan)
 
 TEST(ejson_token, pcejson_parse_array)
 {
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "ejson", NULL);
+    int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hybridos.test",
+            "ejson", NULL);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     char json[] = "[123.456e-789]";
@@ -2139,7 +2152,8 @@ TEST(ejson_token, pcejson_parse_array)
 
 TEST(ejson_token, pcejson_parse_empty_object)
 {
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "ejson", NULL);
+    int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hybridos.test",
+            "ejson", NULL);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     char json[1024] = "{}";
@@ -2165,7 +2179,8 @@ TEST(ejson_token, pcejson_parse_empty_object)
 
 TEST(ejson_token, pcejson_parse_serial_empty_object)
 {
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "ejson", NULL);
+    int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hybridos.test",
+            "ejson", NULL);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     char json[] = "{}";
@@ -2200,4 +2215,5 @@ TEST(ejson_token, pcejson_parse_serial_empty_object)
     purc_cleanup ();
 
 }
+#endif
 

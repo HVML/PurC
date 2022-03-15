@@ -28,7 +28,6 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <libgen.h>
 
 #include "purc-variant.h"
 #include "private/tree.h"
@@ -145,16 +144,17 @@ void pcvcm_stack_destroy (struct pcvcm_stack* stack);
 typedef purc_variant_t (*cb_find_var) (void* ctxt, const char* name);
 
 purc_variant_t pcvcm_eval_ex (struct pcvcm_node* tree, cb_find_var find_var,
-        void* ctxt);
+        void* ctxt, bool silently);
 
 struct pcintr_stack;
-purc_variant_t pcvcm_eval (struct pcvcm_node* tree, struct pcintr_stack* stack);
+purc_variant_t pcvcm_eval (struct pcvcm_node* tree, struct pcintr_stack* stack,
+        bool silently);
 
 #define PRINT_VCM_NODE(_node) do {                                        \
     size_t len;                                                           \
     char *s = pcvcm_node_to_string(_node, &len);                          \
     fprintf(stderr, "%s[%d]:%s(): %s=%.*s\n",                             \
-            basename((char*)__FILE__), __LINE__, __func__,                \
+            pcutils_basename((char*)__FILE__), __LINE__, __func__,        \
             #_node, (int)len, s);                                         \
     free(s);                                                              \
 } while (0)

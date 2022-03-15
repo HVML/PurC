@@ -1,6 +1,8 @@
 add_subdirectory(utils)
 add_subdirectory(rwstream)
 add_subdirectory(variant)
+add_subdirectory(instance)
+add_subdirectory(misc)
 add_subdirectory(tree)
 add_subdirectory(ejson)
 add_subdirectory(html)

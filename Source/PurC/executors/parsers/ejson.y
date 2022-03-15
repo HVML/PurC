@@ -50,6 +50,17 @@
         size_t            sz;
     };
 
+    struct kv_s {
+        purc_variant_t    k;
+        purc_variant_t    v;
+    };
+
+    struct kvs_s {
+        struct kv_s      *kvs;
+        size_t            nr;
+        size_t            sz;
+    };
+
     #define YYSTYPE       EJSON_YYSTYPE
     #define YYLTYPE       EJSON_YYLTYPE
     #ifndef YY_TYPEDEF_YY_SCANNER_T
@@ -124,6 +135,12 @@
         }
         free(ss);
         return vv;
+    }
+
+    static inline purc_variant_t
+    mk_by_id(const char *s, size_t len)
+    {
+        return purc_variant_make_string_ex(s, len, true);
     }
 
     static inline void
@@ -221,95 +238,157 @@
         return string_s_append_uni(ss, s, len);
     }
 
-    static inline purc_variant_t
-    collect_kvs(purc_variant_t vals)
+    static inline void
+    init_kv_s(struct kv_s *kv)
     {
-        size_t sz;
-        if (!purc_variant_array_size(vals, &sz)) {
-            purc_variant_unref(vals);
-            return PURC_VARIANT_INVALID;
+        kv->k = PURC_VARIANT_INVALID;
+        kv->v = PURC_VARIANT_INVALID;
+    }
+
+    static inline void
+    release_kv_s(struct kv_s *kv)
+    {
+        PURC_VARIANT_SAFE_CLEAR(kv->k);
+        PURC_VARIANT_SAFE_CLEAR(kv->v);
+    }
+
+    static inline struct kvs_s*
+    kvs_create(void)
+    {
+        struct kvs_s *kvs = (struct kvs_s*)calloc(1, sizeof(*kvs));
+        if (!kvs)
+            return NULL;
+
+        return kvs;
+    }
+
+    static inline void
+    kvs_release(struct kvs_s *kvs)
+    {
+        if (kvs) {
+            for (size_t i=0; i<kvs->nr; ++i) {
+                struct kv_s *kv = kvs->kvs + i;
+                release_kv_s(kv);
+            }
+            free(kvs->kvs);
+            kvs->kvs = NULL;
         }
+    }
 
-        purc_variant_t k, v;
-        k = v = PURC_VARIANT_INVALID;
-        purc_variant_t obj = purc_variant_make_object(0, k, v);
+    static inline int
+    kvs_append(struct kvs_s *kvs, struct kv_s *kv)
+    {
+        if (kvs->nr == kvs->sz) {
+            size_t sz = kvs->sz + 16;
+            struct kv_s *kv;
+            kv = (struct kv_s*)realloc(kvs->kvs, sz * sizeof(*kv));
+            if (!kv)
+                return -1;
+            kvs->kvs = kv;
+            kvs->sz = sz;
+        }
+        kvs->kvs[kvs->nr++] = *kv;
+        return 0;
+    }
+
+    static inline void
+    kvs_destroy(struct kvs_s *kvs)
+    {
+        if (kvs) {
+            kvs_release(kvs);
+            free(kvs);
+        }
+    }
+
+    static inline purc_variant_t
+    collect_kvs(struct kvs_s *kvs)
+    {
+        purc_variant_t obj = purc_variant_make_object(0,
+                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+        bool ok = true;
         if (obj != PURC_VARIANT_INVALID) {
-            for (size_t i=0; i<sz;) {
-                purc_variant_t k = purc_variant_array_get(vals, i++);
-                purc_variant_t v = purc_variant_array_get(vals, i++);
-
-                bool ok = purc_variant_object_set(obj, k, v);
-                if (!ok) {
-                    purc_variant_unref(obj);
-                    obj = PURC_VARIANT_INVALID;
+            for (size_t i=0; i<kvs->nr; ++i) {
+                struct kv_s *kv = kvs->kvs + i;
+                if (!purc_variant_object_set(obj, kv->k, kv->v)) {
+                    ok = false;
                     break;
                 }
             }
         }
 
-        purc_variant_unref(vals);
+        kvs_destroy(kvs);
+
+        if (!ok) {
+            PURC_VARIANT_SAFE_CLEAR(obj);
+        }
 
         return obj;
     }
 
-    static inline purc_variant_t
-    append_kv(purc_variant_t vals, purc_variant_t kv)
+    static inline struct kvs_s*
+    mk_kvs(struct kv_s *kv)
     {
-        purc_variant_t k = purc_variant_array_get(kv, 0);
-        purc_variant_t v = purc_variant_array_get(kv, 1);
-
-        bool ok = purc_variant_array_append(vals, k) &&
-                  purc_variant_array_append(vals, v);
-        purc_variant_unref(kv);
-
-        if (!ok) {
-            purc_variant_unref(vals);
-            return PURC_VARIANT_INVALID;
+        struct kvs_s *kvs = kvs_create();
+        if (!kvs) {
+            release_kv_s(kv);
+            return NULL;
         }
-
-        return vals;
+        if (kvs_append(kvs, kv)) {
+            release_kv_s(kv);
+            kvs_destroy(kvs);
+            return NULL;
+        }
+        return kvs;
     }
 
-    static inline purc_variant_t
-    init_kv_kv(purc_variant_t k, purc_variant_t v)
+    static inline struct kvs_s*
+    append_kv(struct kvs_s *kvs, struct kv_s *kv)
     {
-        purc_variant_t kv = purc_variant_make_array(2, k, v);
-
-        purc_variant_unref(k);
-        purc_variant_unref(v);
-
-        return kv;
+        if (kvs_append(kvs, kv)) {
+            release_kv_s(kv);
+            return NULL;
+        }
+        return kvs;
     }
 
-    static inline purc_variant_t
-    init_kv_id(const char *s, size_t len, purc_variant_t v)
+    static inline int
+    init_kv_id(struct kv_s *kv, const char *s, size_t len, purc_variant_t v)
     {
+        init_kv_s(kv);
         char *ss = strndup(s, len);
         if (!ss) {
-            purc_variant_unref(v);
-            return PURC_VARIANT_INVALID;
+            release_kv_s(kv);
+            return -1;
         }
 
         purc_variant_t k = purc_variant_make_string_reuse_buff(ss, len, true);
         if (k == PURC_VARIANT_INVALID) {
             free(ss);
-            purc_variant_unref(v);
-            return PURC_VARIANT_INVALID;
+            release_kv_s(kv);
+            return -1;
         }
 
-        return init_kv_kv(k, v);
+        kv->k = k;
+        kv->v = v;
+
+        return 0;
     }
 
-    static inline purc_variant_t
-    init_kv_str(struct string_s *ss, purc_variant_t v)
+    static inline int
+    init_kv_str(struct kv_s *kv, struct string_s *ss, purc_variant_t v)
     {
+        init_kv_s(kv);
         purc_variant_t k = collect_str(ss);
         if (k == PURC_VARIANT_INVALID) {
+            init_kv_s(kv);
             purc_variant_unref(v);
-            return PURC_VARIANT_INVALID;
+            return -1;
         }
 
-        return init_kv_kv(k, v);
+        kv->k = k;
+        kv->v = v;
+
+        return 0;
     }
 
     static inline purc_variant_t
@@ -364,6 +443,12 @@
 
     #define MK_NUMBER(_r, _s) do {                  \
         _r = mk_number(_s.text, _s.leng);           \
+        if (_r == PURC_VARIANT_INVALID)             \
+            YYABORT;                                \
+    } while (0)
+
+    #define MK_BY_ID(_r, _s) do {                   \
+        _r = mk_by_id(_s.text, _s.leng);            \
         if (_r == PURC_VARIANT_INVALID)             \
             YYABORT;                                \
     } while (0)
@@ -427,21 +512,24 @@
             YYABORT;                                      \
     } while (0)
 
+    #define MK_KVS(_r, _s) do {                           \
+        _r = mk_kvs(_s);                                  \
+        if (_r == NULL)                                   \
+            YYABORT;                                      \
+    } while (0)
     #define APPEND_KV(_r, _l, _s) do {                    \
         _r = append_kv(_l, _s);                           \
-        if (_r == PURC_VARIANT_INVALID)                   \
+        if (_r == NULL)                                   \
             YYABORT;                                      \
     } while (0)
 
     #define INIT_KV_ID(_r, _l, _s) do {                   \
-        _r = init_kv_id(_l.text, _l.leng, _s);            \
-        if (_r == PURC_VARIANT_INVALID)                   \
+        if (init_kv_id(_r, _l.text, _l.leng, _s))         \
             YYABORT;                                      \
     } while (0)
 
     #define INIT_KV_STR(_r, _l, _s) do {                  \
-        _r = init_kv_str(&_l, _s);                        \
-        if (_r == PURC_VARIANT_INVALID)                   \
+        if (init_kv_str(_r, &_l, _s))                     \
             YYABORT;                                      \
     } while (0)
 
@@ -543,18 +631,24 @@
 %union { char *str; }
 %union { purc_variant_t v; }
 %union { struct string_s ss; }
+%union { struct kvs_s *kvs; }
+%union { struct kv_s kv; }
 
 %destructor { purc_variant_unref($$); } <v>
+%destructor { kvs_destroy($$); } <kvs>
+%destructor { release_kv_s(&$$); } <kv>
 
 %token TQ T_UNDEFINED T_NULL T_TRUE T_FALSE
 %token <sval>  STR UNI INTEGER NUMBER ID
 %token <c>     CHR
 
-%nterm <v> variant str
-%nterm <v> obj kvs kv
-%nterm <v> arr variants
-%nterm <v> set set_key objs
-%nterm <ss> string
+%nterm <v>   variant str
+%nterm <v>   obj
+%nterm <kvs> kvs
+%nterm <kv>  kv
+%nterm <v>   arr variants
+%nterm <v>   set set_key objs
+%nterm <ss>  string
 
 
 %% /* The grammar follows. */
@@ -571,6 +665,7 @@ variant:
 | T_FALSE            { MK_FALSE($$); }
 | INTEGER            { MK_INTEGER($$, $1);}
 | NUMBER             { MK_NUMBER($$, $1); }
+| ID                 { MK_BY_ID($$, $1); }
 | str                { $$ = $1; }
 | obj                { $$ = $1; }
 | arr                { $$ = $1; }
@@ -602,13 +697,13 @@ obj:
 ;
 
 kvs:
-  kv                { $$ = $1; }
-| kvs ',' kv        { APPEND_KV($$, $1, $3); }
+  kv                { MK_KVS($$, &$1); }
+| kvs ',' kv        { APPEND_KV($$, $1, &$3); }
 ;
 
 kv:
-  ID ':' variant                   { INIT_KV_ID($$, $1, $3); }
-| '"' string '"' ':' variant       { INIT_KV_STR($$, $2, $5); }
+  ID ':' variant                   { INIT_KV_ID(&$$, $1, $3); }
+| '"' string '"' ':' variant       { INIT_KV_STR(&$$, $2, $5); }
 ;
 
 arr:
@@ -623,9 +718,9 @@ variants:
 ;
 
 set:
-  '{' '!' '}'                   { MK_EMPTY_SET($$); }
-| '{' '!' ',' objs '}'          { MK_SET($$, PURC_VARIANT_INVALID, $4); }
-| '{' '!' set_key ',' objs '}'  { MK_SET($$, $3, $5); }
+  '[' '!' ']'                   { MK_EMPTY_SET($$); }
+| '[' '!' ',' objs ']'          { MK_SET($$, PURC_VARIANT_INVALID, $4); }
+| '[' '!' set_key ',' objs ']'  { MK_SET($$, $3, $5); }
 ;
 
 set_key:

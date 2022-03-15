@@ -36,9 +36,6 @@
 
 #include <pthread.h>
 #include <unistd.h>
-#include <libgen.h>
-
-#define TO_DEBUG 0
 
 struct ctxt_for_test {
     struct pcvdom_node *curr;
@@ -127,10 +124,6 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
             return -1;
         }
 
-        PURC_VARIANT_SAFE_CLEAR(ctxt->in);
-        ctxt->in = in;
-        purc_variant_ref(in);
-
         PURC_VARIANT_SAFE_CLEAR(frame->symbol_vars[PURC_SYMBOL_VAR_AT_SIGN]);
         frame->symbol_vars[PURC_SYMBOL_VAR_AT_SIGN] = elements;
     }
@@ -214,7 +207,7 @@ process_attr_by(struct pcintr_stack_frame *frame,
 }
 
 static int
-attr_found(struct pcintr_stack_frame *frame,
+attr_found_val(struct pcintr_stack_frame *frame,
         struct pcvdom_element *element,
         purc_atom_t name, purc_variant_t val,
         struct pcvdom_attr *attr,
@@ -223,7 +216,7 @@ attr_found(struct pcintr_stack_frame *frame,
     UNUSED_PARAM(ud);
 
     PC_ASSERT(name);
-    PC_ASSERT(attr->op == PCHVML_ATTRIBUTE_ASSIGNMENT);
+    PC_ASSERT(attr->op == PCHVML_ATTRIBUTE_OPERATOR);
 
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, ON)) == name) {
         return process_attr_on(frame, element, name, val);
@@ -242,28 +235,37 @@ attr_found(struct pcintr_stack_frame *frame,
     return -1;
 }
 
+static int
+attr_found(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element,
+        purc_atom_t name,
+        struct pcvdom_attr *attr,
+        void *ud)
+{
+    PC_ASSERT(name);
+    PC_ASSERT(attr->op == PCHVML_ATTRIBUTE_OPERATOR);
+
+    purc_variant_t val = pcintr_eval_vdom_attr(pcintr_get_stack(), attr);
+    if (val == PURC_VARIANT_INVALID)
+        return -1;
+
+    int r = attr_found_val(frame, element, name, val, attr, ud);
+    purc_variant_unref(val);
+
+    return r ? -1 : 0;
+}
+
 static void*
 after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 {
     PC_ASSERT(stack && pos);
-    PC_ASSERT(stack == purc_get_stack());
+    PC_ASSERT(stack == pcintr_get_stack());
+    if (pcintr_check_insertion_mode_for_normal_element(stack))
+        return NULL;
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame);
-
-    frame->pos = pos; // ATTENTION!!
-
-    if (pcintr_set_symbol_var_at_sign())
-        return NULL;
-
-    frame->attr_vars = purc_variant_make_object(0,
-            PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
-    if (frame->attr_vars == PURC_VARIANT_INVALID)
-        return NULL;
-
-    struct pcvdom_element *element = frame->pos;
-    PC_ASSERT(element);
 
     struct ctxt_for_test *ctxt;
     ctxt = (struct ctxt_for_test*)calloc(1, sizeof(*ctxt));
@@ -274,6 +276,16 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     frame->ctxt = ctxt;
     frame->ctxt_destroy = ctxt_destroy;
+
+    frame->pos = pos; // ATTENTION!!
+
+    frame->attr_vars = purc_variant_make_object(0,
+            PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+    if (frame->attr_vars == PURC_VARIANT_INVALID)
+        return NULL;
+
+    struct pcvdom_element *element = frame->pos;
+    PC_ASSERT(element);
 
     int r;
     r = pcintr_vdom_walk_attrs(frame, element, NULL, attr_found);
@@ -293,7 +305,7 @@ static bool
 on_popping(pcintr_stack_t stack, void* ud)
 {
     PC_ASSERT(stack);
-    PC_ASSERT(stack == purc_get_stack());
+    PC_ASSERT(stack == pcintr_get_stack());
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
@@ -345,7 +357,7 @@ static pcvdom_element_t
 select_child(pcintr_stack_t stack, void* ud)
 {
     PC_ASSERT(stack);
-    PC_ASSERT(stack == purc_get_stack());
+    PC_ASSERT(stack == pcintr_get_stack());
 
     pcintr_coroutine_t co = &stack->co;
     struct pcintr_stack_frame *frame;

@@ -20,7 +20,7 @@ TEST(variant, pcvariant_init_once)
     bool cleanup = false;
 
     // initial purc
-    ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test", "test_init", &info);
 
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
@@ -63,7 +63,7 @@ TEST(variant, pcvariant_init_10_times)
 
     for (times = 0; times < 10; times ++) {
         // initial purc
-        ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+        ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test", "test_init", &info);
 
         ASSERT_EQ (ret, PURC_ERROR_OK);
 
@@ -112,7 +112,7 @@ TEST(variant, pcvariant_null)
     for (module_times = 0; module_times < 10; module_times++) {
 
         purc_instance_extra_info info = {};
-        int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+        int ret = purc_init_ex ("cn.fmsoft.hybridos.test", "test_init", &info);
         ASSERT_EQ (ret, PURC_ERROR_OK);
 
         // get initial statitics information
@@ -196,7 +196,7 @@ TEST(variant, pcvariant_undefined)
     for (module_times = 0; module_times < 10; module_times++) {
 
         purc_instance_extra_info info = {};
-        int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+        int ret = purc_init_ex ("cn.fmsoft.hybridos.test", "test_init", &info);
         ASSERT_EQ (ret, PURC_ERROR_OK);
 
         // get initial statitics information
@@ -282,7 +282,7 @@ TEST(variant, pcvariant_boolean)
     for (module_times = 0; module_times < 10; module_times++) {
 
         purc_instance_extra_info info = {};
-        int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+        int ret = purc_init_ex ("cn.fmsoft.hybridos.test", "test_init", &info);
         ASSERT_EQ (ret, PURC_ERROR_OK);
 
         // get initial statitics information
@@ -380,6 +380,31 @@ TEST(variant, pcvariant_boolean)
 }
 
 
+TEST(variant, pcvariant_exception)
+{
+    purc_atom_t atom = 0;
+    purc_variant_t value = NULL;
+    purc_instance_extra_info info = {};
+
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test", "test_init", &info);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    atom = purc_get_except_atom_by_id(PURC_EXCEPT_BAD_ENCODING);
+    value = purc_variant_make_exception (atom);
+    ASSERT_NE(value, PURC_VARIANT_INVALID);
+    ASSERT_STREQ ("BadEncoding", purc_variant_get_exception_string_const (value));
+    purc_variant_unref(value);
+
+    atom = purc_atom_from_string("TestString");
+    ASSERT_NE (atom, 0);
+    value = purc_variant_make_exception (atom);
+    ASSERT_EQ(value, PURC_VARIANT_INVALID);
+    ASSERT_EQ(purc_get_last_error(), PURC_ERROR_INVALID_VALUE);
+
+
+    purc_cleanup ();
+}
+
 // to test:
 // purc_variant_make_number ()
 // purc_variant_serialize ()
@@ -387,7 +412,7 @@ TEST(variant, pcvariant_number)
 {
     purc_variant_t value = NULL;
     purc_instance_extra_info info = {};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     // create with double
@@ -423,7 +448,7 @@ TEST(variant, pcvariant_ulongint)
     purc_variant_t value = NULL;
     purc_instance_extra_info info = {};
 
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     // create longuint variant with valild value, and serialize
@@ -479,7 +504,7 @@ TEST(variant, pcvariant_longint)
     purc_variant_t value = NULL;
     purc_instance_extra_info info = {};
 
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     // create longint variant with valild value, and serialize
@@ -537,7 +562,7 @@ TEST(variant, pcvariant_longdouble)
     purc_variant_t value = NULL;
     purc_instance_extra_info info = {};
 
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     // create longdouble variant with valild value, and serialize
@@ -568,7 +593,7 @@ TEST(variant, pcvariant_longdouble)
 // to test:
 // purc_variant_make_string ();
 // purc_variant_get_string_const ();
-// purc_variant_string_length ();
+// purc_variant_string_size ();
 // purc_variant_serialize ()
 TEST(variant, pcvariant_string)
 {
@@ -576,40 +601,50 @@ TEST(variant, pcvariant_string)
     purc_instance_extra_info info = {};
 
     const char short_ok[] = "\x61\x62\xE5\x8C\x97\xE4\xBA\xAC\xE4\xB8\x8A\xE6\xB5\xB7\x00";   // ab北京上海
-    const char short_err[] = "\x61\x62\xE5\x02\x97\xE4\xBA\xAC\xE4\xB8\x8A\xE6\xB5\xB7\x00";   // ab北京上海
+    const char short_err[] = "\x61\x62\xE5\x02\x97\xE4\xBA\xAC\xE4\xB8\x8A\xE6\xB5\xB7\x00";   // ab
     const char long_ok[] = "\x61\x62\xE5\x8C\x97\xE4\xBA\xAC\xE4\xB8\x8A\xE6\xB5\xB7\xE5\x8C\x97\xE4\xBA\xAC\xE4\xB8\x8A\xE6\xB5\xB7\x00";   // ab北京上海北京上海
-    const char long_err[] = "\x61\x62\xE5\x02\x97\xE4\xBA\xAC\xE4\xB8\x8A\xE6\xB5\xB7\xE5\x8C\x97\xE4\xBA\xAC\xE4\xB8\x8A\xE6\xB5\xB7\x00";   // ab北京上海北京上海
+    const char long_err[] = "\x61\x62\xE5\x02\x97\xE4\xBA\xAC\xE4\xB8\x8A\xE6\xB5\xB7\xE5\x8C\x97\xE4\xBA\xAC\xE4\xB8\x8A\xE6\xB5\xB7\x00";   // ab
     size_t length = 0;
     size_t real_size = MAX (sizeof(long double), sizeof(void*) * 2);
+    size_t nr_chars = 0;
 
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     // create short string variant without checking, input in utf8-encoding
     // expected: get the variant with original string
     value = purc_variant_make_string (short_ok, false);
     ASSERT_NE(value, PURC_VARIANT_INVALID);
-    length = purc_variant_string_length (value);
+    length = purc_variant_string_size (value);
     ASSERT_EQ (length, strlen(purc_variant_get_string_const (value)) + 1);
     ASSERT_LT (length, real_size);
+
+    purc_variant_string_chars (value, &nr_chars);
+    ASSERT_EQ (nr_chars, 6);
     purc_variant_unref(value);
 
     // create short string variant without checking, input not in utf8-encoding
     // expected: get the variant with original string
     value = purc_variant_make_string (short_err, false);
     ASSERT_NE(value, PURC_VARIANT_INVALID);
-    length = purc_variant_string_length (value);
+    length = purc_variant_string_size (value);
     ASSERT_EQ (length, strlen(purc_variant_get_string_const (value)) + 1);
     ASSERT_LT (length, real_size);
+
+    purc_variant_string_chars (value, &nr_chars);
+    ASSERT_EQ (nr_chars, 2);
     purc_variant_unref(value);
 
     // create short string variant with checking, input in utf8-encoding
     // expected: get the variant with original string
     value = purc_variant_make_string (short_ok, true);
     ASSERT_NE(value, PURC_VARIANT_INVALID);
-    length = purc_variant_string_length (value);
+    length = purc_variant_string_size (value);
     ASSERT_EQ (length, strlen(purc_variant_get_string_const (value)) + 1);
     ASSERT_LT (length, real_size);
+
+    purc_variant_string_chars (value, &nr_chars);
+    ASSERT_EQ (nr_chars, 6);
     purc_variant_unref(value);
 
     // create short string variant with checking, input is not in utf8-encoding
@@ -621,33 +656,52 @@ TEST(variant, pcvariant_string)
     // expected: get the variant with original string
     value = purc_variant_make_string (long_ok, false);
     ASSERT_NE(value, PURC_VARIANT_INVALID);
-    length = purc_variant_string_length (value);
+    length = purc_variant_string_size (value);
     ASSERT_EQ (length, strlen(purc_variant_get_string_const (value)) + 1);
     ASSERT_GT (length, real_size);
+
+    purc_variant_string_chars (value, &nr_chars);
+    ASSERT_EQ (nr_chars, 10);
     purc_variant_unref(value);
 
     // create long string variant without checking, input not in utf8-encoding
     // expected: get the variant with original string
     value = purc_variant_make_string (long_err, false);
     ASSERT_NE(value, PURC_VARIANT_INVALID);
-    length = purc_variant_string_length (value);
+    length = purc_variant_string_size (value);
     ASSERT_EQ (length, strlen(purc_variant_get_string_const (value)) + 1);
-    ASSERT_GT (length, real_size);
+    // ASSERT_GT (length, real_size);
+
+    purc_variant_string_chars (value, &nr_chars);
+    ASSERT_EQ (nr_chars, 2);
     purc_variant_unref(value);
 
     // create long string variant with checking, input in utf8-encoding
     // expected: get the variant with original string
     value = purc_variant_make_string (long_ok, true);
     ASSERT_NE(value, PURC_VARIANT_INVALID);
-    length = purc_variant_string_length (value);
+    length = purc_variant_string_size (value);
     ASSERT_EQ (length, strlen(purc_variant_get_string_const (value)) + 1);
-    ASSERT_GT (length, real_size);
+    // ASSERT_GT (length, real_size);
+
+    purc_variant_string_chars (value, &nr_chars);
+    ASSERT_EQ (nr_chars, 10);
     purc_variant_unref(value);
 
     // create long string variant with checking, input not in utf8-encoding
     // expected: get PURC_VARIANT_INVALID
     value = purc_variant_make_string (long_err, true);
     ASSERT_EQ(value, PURC_VARIANT_INVALID);
+
+    // create variant from a static string without checking
+    const char *static_str = "PURC";
+    value = purc_variant_make_string_static (static_str, false);
+    const char* tmp = purc_variant_get_string_const (value);
+    ASSERT_EQ (strcmp(tmp, static_str), 0);
+
+    purc_variant_string_chars (value, &nr_chars);
+    ASSERT_EQ (nr_chars, 4);
+    purc_variant_unref(value);
 
     // create short string variant with null pointer
     value = purc_variant_make_string (NULL, true);
@@ -672,7 +726,7 @@ TEST(variant, pcvariant_atom_string)
     const char string_err[] = "\x61\x62\xE5\x02\x97\xE4\xBA\xAC\xE4\xB8\x8A\xE6\xB5\xB7\xE5\x8C\x97\xE4\xBA\xAC\xE4\xB8\x8A\xE6\xB5\xB7\x00";   // ab北京上海北京上海
     const char string_test[] = "\xE5\x8C\x97\xE4\xBA\xAC\xE4\xB8\x8A\xE6\xB5\xB7\xE5\x8C\x97\xE4\xBA\xAC\xE4\xB8\x8A\xE6\xB5\xB7\x00";   // ab北京上海北京上海
 
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
 
@@ -750,7 +804,7 @@ TEST(variant, pcvariant_atom_string)
     const char * dup_str = purc_variant_get_atom_string_const (value);
     ASSERT_NE (string_ok, dup_str);             // string pointers are different
 
-    ASSERT_EQ(dup->sz_ptr[1], value->sz_ptr[1]);        // atoms are same
+    ASSERT_EQ(dup->atom, value->atom);        // atoms are same
     ASSERT_STREQ(value_str, dup_str);                   // strings are same
     purc_variant_unref(value);
 
@@ -786,7 +840,7 @@ TEST(variant, pcvariant_sequence)
     size_t length = 0;
     size_t real_size = MAX (sizeof(long double), sizeof(void*) * 2);
 
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     const unsigned char short_bytes[] = "\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0A\x0B\x0C\x0D\x0E\x0F";
@@ -830,20 +884,24 @@ TEST(variant, pcvariant_sequence)
 // to test:
 // purc_variant_make_dynamic_value ();
 // purc_variant_serialize ()
-purc_variant_t getter(purc_variant_t root, size_t nr_args, purc_variant_t * argv)
+purc_variant_t getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
+    UNUSED_PARAM(silently);
     purc_variant_t value = purc_variant_make_number (3.1415926);
     return value;
 }
 
-purc_variant_t setter(purc_variant_t root, size_t nr_args, purc_variant_t * argv)
+purc_variant_t setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
+    UNUSED_PARAM(silently);
     purc_variant_t value = purc_variant_make_number (2.71828828);
     return value;
 }
@@ -853,7 +911,7 @@ TEST(variant, pcvariant_dynamic)
     purc_variant_t value = NULL;
     purc_instance_extra_info info = {};
 
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     // create dynamic variant with valid pointer
@@ -879,20 +937,23 @@ TEST(variant, pcvariant_dynamic)
 // to test:
 // purc_variant_make_native ();
 // purc_variant_serialize ()
-static bool rws_releaser (void* entity)
+static void rws_releaser (void* entity)
 {
     UNUSED_PARAM(entity);
-    return true;
 }
 
 static struct purc_native_ops _rws_ops = {
     .property_getter       = NULL,
     .property_setter       = NULL,
-    .property_eraser       = NULL,
     .property_cleaner      = NULL,
+    .property_eraser       = NULL,
+
+    .updater               = NULL,
     .cleaner               = NULL,
-    .eraser                = rws_releaser,
-    .observe               = NULL,
+    .eraser                = NULL,
+
+    .on_observe           = NULL,
+    .on_release           = rws_releaser,
 };
 
 TEST(variant, pcvariant_native)
@@ -900,7 +961,7 @@ TEST(variant, pcvariant_native)
     purc_variant_t value = NULL;
     purc_instance_extra_info info = {};
 
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     // create native variant with valid pointer
@@ -940,7 +1001,7 @@ TEST(variant, pcvariant_loopbuffer_one)
     size_t new_size = 0;
     size_t block = sizeof(purc_variant);
 
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     // get statitics information
@@ -960,7 +1021,7 @@ TEST(variant, pcvariant_loopbuffer_one)
         ASSERT_NE(stat, nullptr);
         new_size = stat->sz_total_mem;
 
-        ASSERT_EQ (new_size, old_size + block + purc_variant_string_length (value));
+        ASSERT_EQ (new_size, old_size + block + purc_variant_string_size (value));
 
         // unref
         purc_variant_unref (value);
@@ -991,7 +1052,7 @@ TEST(variant, pcvariant_loopbuffer_all)
     size_t new_size = 0;
     size_t block = sizeof(purc_variant);
 
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     // get statitics information
@@ -1010,14 +1071,14 @@ TEST(variant, pcvariant_loopbuffer_all)
         stat = purc_variant_usage_stat ();
         ASSERT_NE(stat, nullptr);
         new_size = stat->sz_total_mem;
-        calc_size += block + purc_variant_string_length (value[i]);
+        calc_size += block + purc_variant_string_size (value[i]);
 
         ASSERT_EQ (new_size, old_size + calc_size);
     }
 
     // release all variant, the loop buufers are not released
     for (i = 0; i < MAX_RESERVED_VARIANTS - 1; i++) { 
-        calc_size -= purc_variant_string_length (value[i]);
+        calc_size -= purc_variant_string_size (value[i]);
         purc_variant_unref (value[i]);
 
         // get the total memory
@@ -1029,7 +1090,7 @@ TEST(variant, pcvariant_loopbuffer_all)
 
     }
 
-    calc_size -= purc_variant_string_length (value[MAX_RESERVED_VARIANTS - 1]);
+    calc_size -= purc_variant_string_size (value[MAX_RESERVED_VARIANTS - 1]);
     purc_variant_unref (value[MAX_RESERVED_VARIANTS - 1]);
     stat = purc_variant_usage_stat ();
     ASSERT_NE(stat, nullptr);
@@ -1047,7 +1108,7 @@ TEST(variant, pcvariant_loopbuffer_all)
         stat = purc_variant_usage_stat ();
         ASSERT_NE(stat, nullptr);
         new_size = stat->sz_total_mem;
-        calc_size += purc_variant_string_length (value[i]);
+        calc_size += purc_variant_string_size (value[i]);
 
         ASSERT_EQ (new_size, old_size + calc_size);
     }
@@ -1057,7 +1118,7 @@ TEST(variant, pcvariant_loopbuffer_all)
     stat = purc_variant_usage_stat ();
     ASSERT_NE(stat, nullptr);
     new_size = stat->sz_total_mem;
-    calc_size += purc_variant_string_length (value[i]);
+    calc_size += purc_variant_string_size (value[i]);
 
     ASSERT_EQ (new_size, old_size + calc_size + block);
 
@@ -1067,39 +1128,44 @@ TEST(variant, pcvariant_loopbuffer_all)
 }
 
 static inline purc_variant_t
-_getter(purc_variant_t root, size_t nr_args, purc_variant_t * argv)
+_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
+    UNUSED_PARAM(silently);
     abort();
     return PURC_VARIANT_INVALID;
 }
 
-static inline bool
+static void
 _nr_native_releaser(void* entity)
 {
     size_t nr = *(size_t*)entity;
     if (nr!=1)
         abort();
-    return true;
 }
 
 static struct purc_native_ops _nr_ops = {
     .property_getter       = NULL,
     .property_setter       = NULL,
-    .property_eraser       = NULL,
     .property_cleaner      = NULL,
+    .property_eraser       = NULL,
+
+    .updater               = NULL,
     .cleaner               = NULL,
-    .eraser                = _nr_native_releaser,
-    .observe               = NULL,
+    .eraser                = NULL,
+
+    .on_observe           = NULL,
+    .on_release           = _nr_native_releaser,
 };
 
 
 TEST(variant, api_edge_case_bad_arg)
 {
     purc_instance_extra_info info = {};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     char utf8[] = "我们";
@@ -1214,7 +1280,7 @@ TEST(variant, four_constants)
 {
     if (1) return;
     purc_instance_extra_info info = {};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     struct purc_variant_stat * stat = purc_variant_usage_stat ();
@@ -1335,7 +1401,7 @@ TEST(variant, load_from_so)
     purc_variant_t value = NULL;
     purc_instance_extra_info info = {};
 
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     value = purc_variant_load_dvobj_from_so ("/usr/local/lib/purc-0.0/libpurc-dvobj-FS.so", "FS");
@@ -1374,7 +1440,7 @@ TEST(variant, empty_object)
     purc_variant_t value = NULL;
     purc_instance_extra_info info = {};
 
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
@@ -1406,7 +1472,7 @@ TEST(variant, variant_compare)
     int compare= 0;
     purc_instance_extra_info info = {};
 
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test", "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     value1 = purc_variant_make_object (0, PURC_VARIANT_INVALID,

@@ -1637,7 +1637,7 @@ pchtml_html_tree_adoption_agency_algorithm(pchtml_html_tree_t *tree,
                 pcdom_node_remove(last);
             }
 
-            pcdom_node_insert_child(node, last);
+            pcdom_node_append_child(node, last);
 
             /* State 14.10 */
             last = node;
@@ -1684,7 +1684,7 @@ pchtml_html_tree_adoption_agency_algorithm(pchtml_html_tree_t *tree,
             next = node->next;
 
             pcdom_node_remove(node);
-            pcdom_node_insert_child(pcdom_interface_node(element), node);
+            pcdom_node_append_child(pcdom_interface_node(element), node);
 
             node = next;
         }
@@ -1692,7 +1692,7 @@ pchtml_html_tree_adoption_agency_algorithm(pchtml_html_tree_t *tree,
         node = pcdom_interface_node(element);
 
         /* State 18 */
-        pcdom_node_insert_child(furthest_block, node);
+        pcdom_node_append_child(furthest_block, node);
 
         /* State 19 */
         pchtml_html_tree_active_formatting_remove(tree, formatting_index);

@@ -33,7 +33,6 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <fnmatch.h>
-#include <libgen.h>
 #include <stdio.h>
 #include <sys/stat.h>
 #include <sys/statvfs.h>

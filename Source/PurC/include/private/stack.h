@@ -74,6 +74,11 @@ uintptr_t pcutils_stack_bottom (struct pcutils_stack* stack);
 uintptr_t pcutils_stack_top (struct pcutils_stack* stack);
 
 /*
+ * Clear the stack.
+ */
+void pcutils_stack_clear (struct pcutils_stack* stack);
+
+/*
  * Destory stack.
  */
 void pcutils_stack_destroy (struct pcutils_stack* stack);

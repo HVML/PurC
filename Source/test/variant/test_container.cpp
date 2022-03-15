@@ -4,13 +4,14 @@
 #include "private/utils.h"
 #include "purc-rwstream.h"
 #include "hvml/hvml-token.h"
+#include "private/ejson-parser.h"
+#include "private/debug.h"
 
 #include "../helpers.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
-#include <libgen.h>
 #include <gtest/gtest.h>
 
 #include <dirent.h>
@@ -145,7 +146,8 @@ class TestCaseData : public testing::TestWithParam<test_case>
 {
 protected:
     void SetUp() {
-        purc_init ("cn.fmsoft.hybridos.test", "purc_variant", NULL);
+        purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+                "purc_variant", NULL);
     }
     void TearDown() {
         purc_cleanup ();
@@ -443,3 +445,38 @@ end:
 
 INSTANTIATE_TEST_SUITE_P(purc_variant, TestCaseData,
         testing::ValuesIn(load_test_case()));
+
+TEST(variant, clone)
+{
+    PurCInstance purc("cn.fmsoft.hybridos.test", "purc_variant", false);
+
+    const char *s;
+    purc_variant_t set, cloned;
+    int diff;
+
+    s = "[!'name', {name:[{first:xiaohong,last:xu}]}, {name:[{first:shuming, last:xue}]}]";
+    set = pcejson_parser_parse_string(s, 0, 0);
+    ASSERT_NE(set, nullptr);
+    ASSERT_EQ(2, purc_variant_set_get_size(set));
+
+    do {
+        cloned = purc_variant_container_clone_recursively(set);
+        if (cloned == PURC_VARIANT_INVALID) {
+            PRINT_VARIANT(set);
+            ADD_FAILURE() << "clone failed" << std::endl;
+            break;
+        }
+
+        diff = purc_variant_compare_ex(set, cloned, PCVARIANT_COMPARE_OPT_AUTO);
+        if (diff) {
+            PRINT_VARIANT(set);
+            PRINT_VARIANT(cloned);
+            ADD_FAILURE() << "internal logic error for clone" << std::endl;
+            break;
+        }
+    } while (0);
+
+    PURC_VARIANT_SAFE_CLEAR(cloned);
+    PURC_VARIANT_SAFE_CLEAR(set);
+}
+

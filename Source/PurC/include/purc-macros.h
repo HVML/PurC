@@ -7,7 +7,7 @@
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -72,6 +72,12 @@
 #define PCA_UNAVAILABLE __attribute__((unavailable))
 #else
 #define PCA_UNAVAILABLE
+#endif
+
+#if __has_attribute(format)
+#define PCA_ATTRIBUTE_PRINTF(formatStringArgument, extraArguments) __attribute__((format(printf, formatStringArgument, extraArguments)))
+#else
+#define PCA_ATTRIBUTE_PRINTF
 #endif
 
 #ifdef __cplusplus

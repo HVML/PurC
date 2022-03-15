@@ -45,10 +45,11 @@ TEST(dvobjs, dvobjs_ejson_type)
 
     // get and function
     purc_instance_extra_info info = {};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t ejson = pcdvobjs_get_ejson();
+    purc_variant_t ejson = purc_dvobj_ejson_new();
     ASSERT_NE(ejson, nullptr);
     ASSERT_EQ(purc_variant_is_object (ejson), true);
 
@@ -134,7 +135,7 @@ TEST(dvobjs, dvobjs_ejson_type)
                         }
                     }
 
-                    ret_var = func (NULL, j, param);
+                    ret_var = func (NULL, j, param, false);
 
                     if (ret_result == PURC_VARIANT_INVALID) {
                         ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
@@ -209,10 +210,11 @@ TEST(dvobjs, dvobjs_ejson_number)
 
     // get and function
     purc_instance_extra_info info = {};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t ejson = pcdvobjs_get_ejson();
+    purc_variant_t ejson = purc_dvobj_ejson_new();
     ASSERT_NE(ejson, nullptr);
     ASSERT_EQ(purc_variant_is_object (ejson), true);
 
@@ -298,7 +300,7 @@ TEST(dvobjs, dvobjs_ejson_number)
                         }
                     }
 
-                    ret_var = func (NULL, j, param);
+                    ret_var = func (NULL, j, param, false);
 
                     if (ret_result == PURC_VARIANT_INVALID) {
                         ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
@@ -371,10 +373,11 @@ TEST(dvobjs, dvobjs_ejson_compare)
 
     // get and function
     purc_instance_extra_info info = {};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t ejson = pcdvobjs_get_ejson();
+    purc_variant_t ejson = purc_dvobj_ejson_new();
     ASSERT_NE(ejson, nullptr);
     ASSERT_EQ(purc_variant_is_object (ejson), true);
 
@@ -460,7 +463,7 @@ TEST(dvobjs, dvobjs_ejson_compare)
                         }
                     }
 
-                    ret_var = func (NULL, j, param);
+                    ret_var = func (NULL, j, param, false);
 
                     if (ret_result == PURC_VARIANT_INVALID) {
                         ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
@@ -536,10 +539,11 @@ TEST(dvobjs, dvobjs_ejson_sort)
 
     // get and function
     purc_instance_extra_info info = {};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t ejson = pcdvobjs_get_ejson();
+    purc_variant_t ejson = purc_dvobj_ejson_new();
     ASSERT_NE(ejson, nullptr);
     ASSERT_EQ(purc_variant_is_object (ejson), true);
 
@@ -625,7 +629,7 @@ TEST(dvobjs, dvobjs_ejson_sort)
                         }
                     }
 
-                    ret_var = func (NULL, j, param);
+                    ret_var = func (NULL, j, param, false);
 
                     if (ret_result == PURC_VARIANT_INVALID) {
                         ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);

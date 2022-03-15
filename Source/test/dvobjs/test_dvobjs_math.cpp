@@ -1,3 +1,10 @@
+#ifndef __USE_GNU
+#define __USE_GNU                       /* for M_PIl when using glibc */
+#endif
+#ifndef __MATH_LONG_DOUBLE_CONSTANTS
+#define __MATH_LONG_DOUBLE_CONSTANTS    /* for M_PIl when using MacOSX SDK */
+#endif
+
 #include "purc.h"
 #include "private/avl.h"
 #include "private/hashtable.h"
@@ -13,12 +20,6 @@
 #include <dirent.h>
 #include <errno.h>
 
-#ifndef __USE_GNU
-#define __USE_GNU                       /* for M_PIl when using glibc */
-#endif
-#ifndef __MATH_LONG_DOUBLE_CONSTANTS
-#define __MATH_LONG_DOUBLE_CONSTANTS    /* for M_PIl when using MacOSX SDK */
-#endif
 #include <math.h>
 #include <sstream>
 #include <gtest/gtest.h>
@@ -84,12 +85,14 @@ TEST(dvobjs, dvobjs_math_pi_e)
     size_t nr_reserved_after = 0;
 
     purc_instance_extra_info info = {};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex(PURC_MODULE_VARIANT, "cn.fmsoft.hvml.test",
+            "dvobjs", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
             &nr_reserved_before);
 
+    setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     purc_variant_t math = purc_variant_load_dvobj_from_so (NULL, "MATH");
     ASSERT_NE(math, nullptr);
     ASSERT_EQ(purc_variant_is_object (math), true);
@@ -105,7 +108,7 @@ TEST(dvobjs, dvobjs_math_pi_e)
         func = purc_variant_dynamic_get_getter (dynamic);
         ASSERT_NE(func, nullptr);
 
-        ret_var = func (NULL, 0, param);
+        ret_var = func (NULL, 0, param, false);
         ASSERT_NE(ret_var, nullptr);
 
         ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_NUMBER),
@@ -123,7 +126,7 @@ TEST(dvobjs, dvobjs_math_pi_e)
         func = purc_variant_dynamic_get_getter (dynamic);
         ASSERT_NE(func, nullptr);
 
-        ret_var = func (NULL, 0, param);
+        ret_var = func (NULL, 0, param, false);
         ASSERT_NE(ret_var, nullptr);
 
         ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_LONGDOUBLE),
@@ -291,12 +294,14 @@ TEST(dvobjs, dvobjs_math_const)
 
 
     purc_instance_extra_info info = {};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hvml.test",
+            "dvobjs", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
             &nr_reserved_before);
 
+    setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     purc_variant_t math = purc_variant_load_dvobj_from_so (NULL, "MATH");
     ASSERT_NE(math, nullptr);
     ASSERT_EQ(purc_variant_is_object (math), true);
@@ -315,7 +320,7 @@ TEST(dvobjs, dvobjs_math_const)
 
     for (i = 0; i < size; i++) {
         param[0] = purc_variant_make_string (math_d[i].func, true);
-        ret_var = getter (NULL, 1, param);
+        ret_var = getter (NULL, 1, param, false);
         ASSERT_NE(ret_var, nullptr);
         ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_NUMBER),
                 true);
@@ -328,7 +333,7 @@ TEST(dvobjs, dvobjs_math_const)
     // test setter to replace
     param[0] = purc_variant_make_string ("e", true);
     param[1] = purc_variant_make_number(123);
-    ret_var = setter (NULL, 2, param);
+    ret_var = setter (NULL, 2, param, false);
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN),
                 true);
@@ -337,7 +342,7 @@ TEST(dvobjs, dvobjs_math_const)
     purc_variant_unref(param[1]);
 
     param[0] = purc_variant_make_string ("e", true);
-    ret_var = getter (NULL, 1, param);
+    ret_var = getter (NULL, 1, param, false);
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_NUMBER),
                 true);
@@ -350,7 +355,7 @@ TEST(dvobjs, dvobjs_math_const)
     param[0] = purc_variant_make_string ("e", true);
     param[1] = purc_variant_make_number(M_E);
     param[2] = purc_variant_make_longdouble(M_El);
-    ret_var = setter (NULL, 3, param);
+    ret_var = setter (NULL, 3, param, false);
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN),
                 true);
@@ -361,7 +366,7 @@ TEST(dvobjs, dvobjs_math_const)
     // test setter to create
     param[0] = purc_variant_make_string ("newone", true);
     param[1] = purc_variant_make_number(123);
-    ret_var = setter (NULL, 2, param);
+    ret_var = setter (NULL, 2, param, false);
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN),
                 true);
@@ -370,7 +375,7 @@ TEST(dvobjs, dvobjs_math_const)
     purc_variant_unref(param[1]);
 
     param[0] = purc_variant_make_string ("newone", true);
-    ret_var = getter (NULL, 1, param);
+    ret_var = getter (NULL, 1, param, false);
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_NUMBER),
                 true);
@@ -389,7 +394,7 @@ TEST(dvobjs, dvobjs_math_const)
 
     for (i = 0; i < size; i++) {
         param[0] = purc_variant_make_string (math_ld[i].func, true);
-        ret_var = getter (NULL, 1, param);
+        ret_var = getter (NULL, 1, param, false);
         ASSERT_NE(ret_var, nullptr);
         ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_LONGDOUBLE),
                 true);
@@ -400,7 +405,7 @@ TEST(dvobjs, dvobjs_math_const)
     }
 
     param[0] = purc_variant_make_string ("abcd", true);
-    ret_var = getter (NULL, 1, param);
+    ret_var = getter (NULL, 1, param, false);
     ASSERT_EQ(ret_var, nullptr);
     purc_variant_unref(param[0]);
 
@@ -629,12 +634,14 @@ TEST(dvobjs, dvobjs_math_func)
     size_t nr_reserved_after = 0;
 
     purc_instance_extra_info info = {};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hvml.test",
+            "dvobjs", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
             &nr_reserved_before);
 
+    setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     purc_variant_t math = purc_variant_load_dvobj_from_so (NULL, "MATH");
     ASSERT_NE(math, nullptr);
     ASSERT_EQ(purc_variant_is_object (math), true);
@@ -651,7 +658,7 @@ TEST(dvobjs, dvobjs_math_func)
         ASSERT_NE(func, nullptr);
 
         param[0] = purc_variant_make_number (math_d[i].param);
-        ret_var = func (NULL, 1, param);
+        ret_var = func (NULL, 1, param, false);
         ASSERT_NE(ret_var, nullptr);
         ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_NUMBER),
                 true);
@@ -670,7 +677,7 @@ TEST(dvobjs, dvobjs_math_func)
         ASSERT_NE(func, nullptr);
 
         param[0] = purc_variant_make_longdouble (math_ld[i].param);
-        ret_var = func (NULL, 1, param);
+        ret_var = func (NULL, 1, param, false);
         ASSERT_NE(ret_var, nullptr);
         ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_LONGDOUBLE),
                 true);
@@ -706,12 +713,14 @@ TEST(dvobjs, dvobjs_math_eval)
     size_t nr_reserved_after = 0;
 
     purc_instance_extra_info info = {};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hvml.test",
+            "dvobjs", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
             &nr_reserved_before);
 
+    setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     purc_variant_t math = purc_variant_load_dvobj_from_so (NULL, "MATH");
     ASSERT_NE(math, nullptr);
     ASSERT_EQ(purc_variant_is_object (math), true);
@@ -726,7 +735,7 @@ TEST(dvobjs, dvobjs_math_eval)
 
     const char *exp = "(3 + 7) * (2 + 3 * 4)";
     param[0] = purc_variant_make_string (exp, false);
-    ret_var = func (NULL, 1, param);
+    ret_var = func (NULL, 1, param, false);
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_NUMBER), true);
     purc_variant_cast_to_number (ret_var, &number, false);
@@ -736,7 +745,7 @@ TEST(dvobjs, dvobjs_math_eval)
 
     exp = "(3 + 7) / (2 - 2)";
     param[0] = purc_variant_make_string (exp, false);
-    ret_var = func (NULL, 1, param);
+    ret_var = func (NULL, 1, param, false);
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_NUMBER), true);
     purc_variant_cast_to_number (ret_var, &number, false);
@@ -753,7 +762,7 @@ TEST(dvobjs, dvobjs_math_eval)
     purc_variant_object_set_by_static_ckey (param[1], "r", one);
     purc_variant_unref(one);
     purc_variant_unref(pi);
-    ret_var = func (NULL, 2, param);
+    ret_var = func (NULL, 2, param, false);
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_NUMBER), true);
     purc_variant_cast_to_number (ret_var, &number, false);
@@ -772,7 +781,7 @@ TEST(dvobjs, dvobjs_math_eval)
 
     exp = "(3 + 7) * (2 + 3)";
     param[0] = purc_variant_make_string (exp, false);
-    ret_var = func (NULL, 1, param);
+    ret_var = func (NULL, 1, param, false);
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_LONGDOUBLE),
             true);
@@ -783,7 +792,7 @@ TEST(dvobjs, dvobjs_math_eval)
 
     exp = "(3 + 7) / (2 - 2)";
     param[0] = purc_variant_make_string (exp, false);
-    ret_var = func (NULL, 1, param);
+    ret_var = func (NULL, 1, param, false);
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_LONGDOUBLE),
             true);
@@ -801,7 +810,7 @@ TEST(dvobjs, dvobjs_math_eval)
     purc_variant_object_set_by_static_ckey (param[1], "r", one);
     purc_variant_unref(one);
     purc_variant_unref(pi);
-    ret_var = func (NULL, 2, param);
+    ret_var = func (NULL, 2, param, false);
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_LONGDOUBLE),
             true);
@@ -836,12 +845,14 @@ TEST(dvobjs, dvobjs_math_assignment)
     size_t nr_reserved_after = 0;
 
     purc_instance_extra_info info = {};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hvml.test",
+            "dvobjs", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
             &nr_reserved_before);
 
+    setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     purc_variant_t math = purc_variant_load_dvobj_from_so (NULL, "MATH");
     ASSERT_NE(math, nullptr);
     ASSERT_EQ(purc_variant_is_object (math), true);
@@ -856,7 +867,7 @@ TEST(dvobjs, dvobjs_math_assignment)
 
     const char *exp = "x = (3 + 7) * (2 + 3 * 4)\nx*3";
     param[0] = purc_variant_make_string (exp, false);
-    ret_var = func (NULL, 1, param);
+    ret_var = func (NULL, 1, param, false);
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_NUMBER), true);
     purc_variant_cast_to_number (ret_var, &number, false);
@@ -906,12 +917,14 @@ TEST(dvobjs, dvobjs_math_samples)
     size_t nr_reserved_after = 0;
 
     purc_instance_extra_info info = {};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hvml.test",
+            "dvobjs", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
             &nr_reserved_before);
 
+    setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     purc_variant_t math = purc_variant_load_dvobj_from_so (NULL, "MATH");
     ASSERT_NE(math, nullptr);
     ASSERT_EQ(purc_variant_is_object (math), true);
@@ -933,7 +946,7 @@ TEST(dvobjs, dvobjs_math_samples)
 
         const char *expr= samples[i].expr;
         param[0] = purc_variant_make_string(expr, false);
-        purc_variant_t ret_var = func(NULL, 1, param);
+        purc_variant_t ret_var = func(NULL, 1, param, false);
         purc_variant_unref(param[0]);
 
         if (!ret_var) {
@@ -982,7 +995,7 @@ _eval(purc_dvariant_method func, const char *expr, long double *v,
     purc_variant_t param[3];
     param[0] = purc_variant_make_string(expr, false);
 
-    purc_variant_t ret_var = func(NULL, 1, param);
+    purc_variant_t ret_var = func(NULL, 1, param, false);
     purc_variant_unref(param[0]);
 
     if (!ret_var) {
@@ -1078,14 +1091,15 @@ TEST(dvobjs, dvobjs_math_bc)
     char path[1024] = {0};
 
     purc_instance_extra_info info = {};
-    r = purc_init("cn.fmsoft.hybridos.test",
-        "dvobjs_math_bc", &info);
+    r = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hvml.test",
+            "dvobjs", &info);
     EXPECT_EQ(r, PURC_ERROR_OK);
     if (r)
         return;
 
     const char *env;
     env = "DVOBJS_SO_PATH";
+    setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     purc_variant_t math = purc_variant_load_dvobj_from_so (NULL, "MATH");
     ASSERT_NE(math, nullptr);
     ASSERT_EQ(purc_variant_is_object (math), true);

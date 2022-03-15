@@ -20,16 +20,30 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ * Note that the original code come from json-c, which is licensed under
+ * MIT License (<http://www.opensource.org/licenses/mit-license.php>).
+ *
+ * The copying annoucements are as follow:
+ *
+ * Copyright (c) 2008-2009 Yahoo! Inc.  All rights reserved.
+ *
+ * Copyright (c) 2004, 2005 Metaparadigm Pte. Ltd.
+ * Author: Michael Clark <michael@metaparadigm.com>
  */
 
+#define _GNU_SOURCE
 #include "private/printbuf.h"
 
-#define _GNU_SOURCE
 #include <stdio.h>
 #include <limits.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
+
+#if !HAVE(VASPRINTF)
+#include "private/ports.h"
+#endif
 
 static int printbuf_extend(struct pcutils_printbuf *p, int min_size);
 
@@ -106,7 +120,8 @@ struct pcutils_printbuf * pcutils_printbuf_new(void)
     return p;
 }
 
-int pcutils_printbuf_memappend(struct pcutils_printbuf *p, const char *buf, int size)
+int pcutils_printbuf_memappend(struct pcutils_printbuf *p,
+        const char *buf, int size)
 {
     if(!p->buf)
         return -1;
@@ -130,7 +145,8 @@ int pcutils_printbuf_memappend(struct pcutils_printbuf *p, const char *buf, int 
     return size;
 }
 
-int pcutils_printbuf_memset(struct pcutils_printbuf *pb, int offset, int charvalue, int len)
+int pcutils_printbuf_memset(struct pcutils_printbuf *pb, int offset,
+        int charvalue, int len)
 {
     int size_needed;
 
@@ -229,3 +245,4 @@ void pcutils_printbuf_free(struct pcutils_printbuf *p)
         free(p);
     }
 }
+

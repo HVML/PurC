@@ -267,7 +267,7 @@ process_sample_files(const char *pattern,
             EXPECT_NE(f, nullptr) << "Failed to open file: ["
                 << file << "]" << std::endl;
             if (f) {
-                const char *fn = basename((char*)file);
+                const char *fn = pcutils_basename((char*)file);
                 process_file(f, fn, on_rule);
             }
 

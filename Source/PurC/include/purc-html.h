@@ -95,6 +95,28 @@ pchtml_html_parse_with_buf(pchtml_html_parser_t *parser,
     return doc;
 }
 
+static inline pchtml_html_document_t*
+pchmtl_html_load_document_with_buf(const unsigned char *data, size_t sz)
+{
+    pchtml_html_parser_t *parser;
+    parser = pchtml_html_parser_create();
+    if (!parser)
+        return NULL;
+
+    pchtml_html_document_t *doc = NULL;
+    int r = 0;
+    do {
+        r = pchtml_html_parser_init(parser);
+        if (r)
+            break;
+        doc = pchtml_html_parse_with_buf(parser, data, sz);
+    } while (0);
+
+    pchtml_html_parser_destroy(parser);
+
+    return doc;
+}
+
 pchtml_html_document_t *
 pchtml_html_parse_chunk_begin(pchtml_html_parser_t *parser);
 
@@ -162,7 +184,7 @@ unsigned int
 pchtml_html_parse_fragment_chunk_process(pchtml_html_parser_t *parser,
                 const unsigned char *data, size_t sz);
 
-__attribute__ ((format (printf, 2, 3)))
+PCA_ATTRIBUTE_PRINTF(2, 3)
 unsigned int
 pchtml_html_parse_fragment_chunk_process_with_format(
         pchtml_html_parser_t *parser, const char *fmt, ...);
@@ -218,7 +240,7 @@ unsigned int
 pchtml_html_document_parse_chunk_end(
                 pchtml_html_document_t *document) ;
 
-// API for parsing fragment 
+// API for parsing fragment
 pcdom_node_t *
 pchtml_html_document_parse_fragment(pchtml_html_document_t *document,
                 pcdom_element_t *element,
@@ -295,7 +317,8 @@ enum pchtml_html_serialize_opt {
     PCHTML_HTML_SERIALIZE_OPT_WITHOUT_CLOSING     = 0x08,
     PCHTML_HTML_SERIALIZE_OPT_TAG_WITH_NS         = 0x10,
     PCHTML_HTML_SERIALIZE_OPT_WITHOUT_TEXT_INDENT = 0x20,
-    PCHTML_HTML_SERIALIZE_OPT_FULL_DOCTYPE        = 0x40
+    PCHTML_HTML_SERIALIZE_OPT_FULL_DOCTYPE        = 0x40,
+    PCHTML_HTML_SERIALIZE_OPT_WITH_HVML_HANDLE    = 0x80
 };
 
 int
@@ -318,6 +341,17 @@ pchtml_doc_write_to_stream(pchtml_html_document_t *doc, purc_rwstream_t out)
     pchtml_doc_snprintf_ex(_doc, PCHTML_HTML_SERIALIZE_OPT_UNDEF,       \
             _buf, _pio_sz, _prefix)
 
+#define pchtml_doc_snprintf_plain(_doc, _buf, _pio_sz, _prefix, ...)    \
+({                                                                      \
+    int _opt = 0;                                                       \
+    _opt |= PCHTML_HTML_SERIALIZE_OPT_UNDEF;                            \
+    _opt |= PCHTML_HTML_SERIALIZE_OPT_SKIP_WS_NODES;                    \
+    _opt |= PCHTML_HTML_SERIALIZE_OPT_WITHOUT_TEXT_INDENT;              \
+    _opt |= PCHTML_HTML_SERIALIZE_OPT_FULL_DOCTYPE;                     \
+    pchtml_doc_snprintf_ex(_doc, (enum pchtml_html_serialize_opt)_opt,  \
+            _buf, _pio_sz, _prefix);                                    \
+})
+
 int
 pcdom_node_write_to_stream_ex(pcdom_node_t *node,
         enum pchtml_html_serialize_opt opt, purc_rwstream_t out);
@@ -337,6 +371,17 @@ pcdom_node_write_to_stream(pcdom_node_t *node, purc_rwstream_t out)
 #define pcdom_node_snprintf(_node, _buf, _pio_sz, _prefix, ...)           \
     pcdom_node_snprintf_ex(_node, PCHTML_HTML_SERIALIZE_OPT_UNDEF,        \
             _buf, _pio_sz, _prefix)
+
+#define pcdom_node_snprintf_plain(_node, _buf, _pio_sz, _prefix, ...)   \
+({                                                                      \
+    int _opt = 0;                                                       \
+    _opt |= PCHTML_HTML_SERIALIZE_OPT_UNDEF;                            \
+    _opt |= PCHTML_HTML_SERIALIZE_OPT_SKIP_WS_NODES;                    \
+    _opt |= PCHTML_HTML_SERIALIZE_OPT_WITHOUT_TEXT_INDENT;              \
+    _opt |= PCHTML_HTML_SERIALIZE_OPT_FULL_DOCTYPE;                     \
+    pcdom_node_snprintf_ex(_node, (enum pchtml_html_serialize_opt)_opt, \
+            _buf, _pio_sz, _prefix);                                    \
+})
 
 struct pcdom_document*
 pchtml_doc_get_document(pchtml_html_document_t *doc);

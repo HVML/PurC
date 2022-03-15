@@ -12,7 +12,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
-#include <libgen.h>
 #include <gtest/gtest.h>
 
 using namespace std;
@@ -90,7 +89,8 @@ class test_vcm_eval : public testing::TestWithParam<vcm_eval_test_data>
 {
 protected:
     void SetUp() {
-        purc_init ("cn.fmsoft.hybridos.test", "vcm_eval", NULL);
+        purc_init_ex (PURC_MODULE_HVML, "cn.fmsoft.hybridos.test",
+                "vcm_eval", NULL);
         name = GetParam().name;
         hvml = GetParam().hvml;
         comp = GetParam().comp;
@@ -196,20 +196,24 @@ int to_error(const char* err)
 
 
 static inline purc_variant_t
-attr_getter(void* native_entity, size_t nr_args, purc_variant_t* argv)
+attr_getter(void* native_entity, size_t nr_args, purc_variant_t* argv,
+        bool silently)
 {
     UNUSED_PARAM(native_entity);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
+    UNUSED_PARAM(silently);
     return purc_variant_make_string("call get success!", false);
 }
 
 static inline purc_variant_t
-attr_setter(void* native_entity, size_t nr_args, purc_variant_t* argv)
+attr_setter(void* native_entity, size_t nr_args, purc_variant_t* argv,
+        bool silently)
 {
     UNUSED_PARAM(native_entity);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
+    UNUSED_PARAM(silently);
     return purc_variant_make_string("call setter success!", false);
 }
 
@@ -234,11 +238,15 @@ static inline purc_nvariant_method property_setter(const char* key_name)
 struct purc_native_ops native_ops = {
     .property_getter             = property_getter,
     .property_setter             = property_setter,
-    .property_eraser             = NULL,
     .property_cleaner            = NULL,
+    .property_eraser             = NULL,
+
+    .updater                     = NULL,
     .cleaner                     = NULL,
     .eraser                      = NULL,
-    .observe                     = NULL,
+
+    .on_observe                 = NULL,
+    .on_release                 = NULL,
 };
 
 struct find_var_ctxt {
@@ -281,8 +289,8 @@ TEST_P(test_vcm_eval, parse_and_serialize)
     size_t sz = strlen (hvml);
     purc_rwstream_t rws = purc_rwstream_new_from_mem((void*)hvml, sz);
 
+    pchvml_switch_to_ejson_state(parser);
 
-    parser->state = PCHVML_EJSON_DATA_STATE;
     struct pchvml_token* token = pchvml_next_token(parser, rws);
 
     int error = purc_get_last_error();
@@ -296,7 +304,7 @@ TEST_P(test_vcm_eval, parse_and_serialize)
         return;
     }
 
-    purc_variant_t sys = pcdvobjs_get_system();
+    purc_variant_t sys = purc_dvobj_system_new();
 
     purc_variant_t nobj = purc_variant_make_native((void*)1, &native_ops);
 
@@ -330,7 +338,7 @@ TEST_P(test_vcm_eval, parse_and_serialize)
 
     struct find_var_ctxt ctxt = { sys, nobj, array_var, set_var, obj_set_var};
 
-    purc_variant_t vt = pcvcm_eval_ex (root, find_var, &ctxt);
+    purc_variant_t vt = pcvcm_eval_ex (root, find_var, &ctxt, false);
     if (vt == PURC_VARIANT_INVALID) {
         PRINT_VCM_NODE(root);
     }

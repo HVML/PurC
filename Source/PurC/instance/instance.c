@@ -30,6 +30,7 @@
 #include "private/errors.h"
 #include "private/tls.h"
 #include "private/utils.h"
+#include "private/ports.h"
 #include "private/rwstream.h"
 #include "private/ejson.h"
 #include "private/html.h"
@@ -39,7 +40,10 @@
 #include "private/executor.h"
 #include "private/atom-buckets.h"
 #include "private/fetcher.h"
+#include "private/pcrdr.h"
+#include "private/runloop.h"
 
+#include <stdio.h>  // fclose on inst->fp_log
 #include <stdlib.h>
 #include <string.h>
 
@@ -155,6 +159,8 @@ static void init_modules_once(void)
 {
     // TODO: init modules working without instance here.
     pcutils_atom_init_once();
+    atexit(pcutils_atom_cleanup_once);
+
     pcexcept_init_once();
     pchvml_keywords_init();
 
@@ -173,13 +179,22 @@ static void init_modules_once(void)
     // TODO: init modules working with instance here.
     if (_modules & PURC_HAVE_VARIANT) {
         pcvariant_init_once();
+
+        pcinst_move_buffer_init_once();
+        atexit(pcinst_move_buffer_cleanup_once);
+
         if (_modules & PURC_HAVE_EJSON) {
             pcejson_init_once();
         }
+
         if (_modules & PURC_HAVE_HVML) {
             pcdvobjs_init_once();
             pcexecutor_init_once();
             pcintr_stack_init_once();
+        }
+
+        if (_modules & PURC_HAVE_PCRDR) {
+            pcrdr_init_once();
         }
     }
 }
@@ -233,14 +248,41 @@ static void cleanup_instance(struct pcinst *curr_inst)
     }
 
     if (curr_inst->app_name) {
-        free (curr_inst->app_name);
+        free(curr_inst->app_name);
         curr_inst->app_name = NULL;
     }
 
     if (curr_inst->runner_name) {
-        free (curr_inst->runner_name);
+        free(curr_inst->runner_name);
         curr_inst->runner_name = NULL;
     }
+
+    if (curr_inst->fp_log && curr_inst->fp_log != LOG_FILE_SYSLOG) {
+        fclose(curr_inst->fp_log);
+        curr_inst->fp_log = NULL;
+    }
+}
+
+static void enable_log_on_demand(void)
+{
+    const char *env_value;
+
+    env_value = getenv(PURC_ENVV_LOG_ENABLE);
+    if (env_value == NULL)
+        return;
+
+    bool enable = (*env_value == '1' ||
+            strcasecmp(env_value, "true") == 0);
+    if (!enable)
+        return;
+
+    bool use_syslog = false;
+    if ((env_value = getenv(PURC_ENVV_LOG_SYSLOG))) {
+        use_syslog = (*env_value == '1' ||
+                strcasecmp(env_value, "true") == 0);
+    }
+
+    purc_enable_log(true, use_syslog);
 }
 
 int purc_init_ex(unsigned int modules,
@@ -248,6 +290,10 @@ int purc_init_ex(unsigned int modules,
         const purc_instance_extra_info* extra_info)
 {
     struct pcinst* curr_inst;
+    int ret;
+
+    // FIXME:
+    pcrunloop_init_main();
 
     _modules = modules;
     init_once();
@@ -262,13 +308,14 @@ int purc_init_ex(unsigned int modules,
     if (curr_inst->app_name)
         return PURC_ERROR_DUPLICATED;
 
+    ret = PURC_ERROR_OK;
     curr_inst->errcode = PURC_ERROR_OK;
     if (app_name)
         curr_inst->app_name = strdup(app_name);
     else {
         char cmdline[128];
         size_t len;
-        len = pcutils_get_cmdline_arg (0, cmdline, sizeof(cmdline));
+        len = pcutils_get_cmdline_arg(0, cmdline, sizeof(cmdline));
         if (len > 0)
             curr_inst->app_name = strdup(cmdline);
         else
@@ -280,42 +327,99 @@ int purc_init_ex(unsigned int modules,
     else
         curr_inst->runner_name = strdup("unknown");
 
+    // endpoint_atom
+    if (curr_inst->app_name && curr_inst->runner_name) {
+        char endpoint_name [PURC_LEN_ENDPOINT_NAME + 1];
+        purc_atom_t endpoint_atom;
+
+        if (purc_assemble_endpoint_name(PCRDR_LOCALHOST,
+                curr_inst->app_name, curr_inst->runner_name,
+                endpoint_name) == 0) {
+            ret = PURC_ERROR_INVALID_VALUE;
+            goto failed;
+        }
+
+        endpoint_atom = purc_atom_try_string_ex(PURC_ATOM_BUCKET_USER,
+                endpoint_name);
+        if (curr_inst->endpoint_atom == 0 && endpoint_atom) {
+            ret = PURC_ERROR_DUPLICATED;
+            goto failed;
+        }
+
+        /* check whether app_name or runner_name changed */
+        if (curr_inst->endpoint_atom &&
+                curr_inst->endpoint_atom != endpoint_atom) {
+            ret = PURC_ERROR_INVALID_VALUE;
+            goto failed;
+        }
+
+        curr_inst->endpoint_atom =
+            purc_atom_from_string_ex(PURC_ATOM_BUCKET_USER, endpoint_name);
+        assert(curr_inst->endpoint_atom);
+    }
+
+    curr_inst->max_embedded_levels = MAX_EMBEDDED_LEVELS;
+
+    enable_log_on_demand();
+
     // map for local data
     curr_inst->local_data_map =
-        pcutils_map_create (copy_key_string,
+        pcutils_map_create(copy_key_string,
                 free_key_string, NULL, NULL, comp_key_string, false);
 
-    if (curr_inst->app_name == NULL ||
-            curr_inst->runner_name == NULL ||
-            curr_inst->local_data_map == NULL)
+    if (curr_inst->endpoint_atom == 0) {
+        ret = PURC_ERROR_OUT_OF_MEMORY;
         goto failed;
-
-    // TODO: init other fields
+    }
 
     /* VW NOTE: eDOM and HTML modules should work without instance
     pcdom_init_instance(curr_inst);
     pchtml_init_instance(curr_inst); */
 
-    // TODO: init XML modules here
-    pcvariant_init_instance(curr_inst);
-    // TODO: init XGML modules here
-    if (modules & PURC_HAVE_HVML) {
-        pcdvobjs_init_instance(curr_inst);
-        pcexecutor_init_instance(curr_inst);
-        pcintr_stack_init_instance(curr_inst);
+    if (modules & PURC_HAVE_VARIANT)
+        pcvariant_init_instance(curr_inst);
+    if (curr_inst->variant_heap == NULL) {
+        ret = PURC_ERROR_OUT_OF_MEMORY;
+        goto failed;
     }
 
-    /* TODO: connnect to renderer */
-    UNUSED_PARAM(extra_info);
-    // default disable remote fetcher
-    pcfetcher_init(FETCHER_MAX_CONNS, FETCHER_CACHE_QUOTA,
-            (extra_info && extra_info->enable_remote_fetcher));
+    // TODO: init XML modules here
+
+    // TODO: init XGML modules here
+
+    if (modules & PURC_HAVE_HVML) {
+        pcdvobjs_init_instance(curr_inst);
+
+        curr_inst->executor_heap = NULL;
+        pcexecutor_init_instance(curr_inst);
+        if (curr_inst->executor_heap == NULL)
+            goto failed;
+
+        curr_inst->intr_heap = NULL;
+        pcintr_stack_init_instance(curr_inst);
+        if (curr_inst->intr_heap == NULL)
+            goto failed;
+    }
+
+    if (modules & PURC_HAVE_FETCHER) {
+        pcfetcher_init(FETCHER_MAX_CONNS, FETCHER_CACHE_QUOTA,
+            (modules & PURC_HAVE_FETCHER_R));
+    }
+
+    /* connnect to renderer */
+    curr_inst->conn_to_rdr = NULL;
+    if ((modules & PURC_HAVE_PCRDR)) {
+        if ((ret = pcrdr_init_instance(curr_inst, extra_info))) {
+            goto failed;
+        }
+    }
+
     return PURC_ERROR_OK;
 
 failed:
-    cleanup_instance(curr_inst);
+    purc_cleanup();
 
-    return PURC_ERROR_OUT_OF_MEMORY;
+    return ret;
 }
 
 bool purc_cleanup(void)
@@ -327,8 +431,14 @@ bool purc_cleanup(void)
         if (curr_inst == NULL || curr_inst->app_name == NULL)
             return false;
 
+        /* disconnnect from the renderer */
+        if (_modules & PURC_HAVE_PCRDR && curr_inst->conn_to_rdr) {
+            pcrdr_cleanup_instance(curr_inst);
+        }
+
         // TODO: clean up other fields in reverse order
         if (_modules & PURC_HAVE_HVML) {
+            pcintr_stack_cleanup_instance(curr_inst);
             pcexecutor_cleanup_instance(curr_inst);
             pcdvobjs_cleanup_instance(curr_inst);
         }
@@ -337,7 +447,10 @@ bool purc_cleanup(void)
         pchtml_cleanup_instance(curr_inst);
         pcdom_cleanup_instance(curr_inst); */
 
-        pcfetcher_term();
+        if (_modules & PURC_HAVE_FETCHER) {
+            pcfetcher_term();
+        }
+
         cleanup_instance(curr_inst);
     }
 
@@ -411,42 +524,31 @@ purc_get_local_data(const char* data_name, uintptr_t *local_data,
 
 bool purc_bind_variable(const char* name, purc_variant_t variant)
 {
-    pcvarmgr_list_t varmgr = pcinst_get_variables();
+    pcvarmgr_t varmgr = pcinst_get_variables();
     PC_ASSERT(varmgr);
 
-    return pcvarmgr_list_add(varmgr, name, variant);
+    return pcvarmgr_add(varmgr, name, variant);
 }
 
-#if 0
-bool purc_unbind_variable(const char* name)
+pcvarmgr_t pcinst_get_variables(void)
 {
     struct pcinst* inst = pcinst_current();
-    if (inst == NULL)
-        return false;
-
-    return pcvarmgr_list_remove(inst->variables, name);
-}
-#endif
-
-pcvarmgr_list_t pcinst_get_variables(void)
-{
-    struct pcinst* inst = pcinst_current();
-    if (inst == NULL)
+    if (UNLIKELY(inst == NULL))
         return NULL;
 
-    if (inst->variant_heap.variables == NULL) {
-        inst->variant_heap.variables = pcvarmgr_list_create();
+    if (UNLIKELY(inst->variables == NULL)) {
+        inst->variables = pcvarmgr_create();
     }
 
-    return inst->variant_heap.variables;
+    return inst->variables;
 }
 
 purc_variant_t purc_get_variable(const char* name)
 {
-    pcvarmgr_list_t varmgr = pcinst_get_variables();
+    pcvarmgr_t varmgr = pcinst_get_variables();
     PC_ASSERT(varmgr);
 
-    return pcvarmgr_list_get(varmgr, name);
+    return pcvarmgr_get(varmgr, name);
 }
 
 bool
@@ -456,7 +558,26 @@ purc_bind_document_variable(purc_vdom_t vdom, const char* name,
     return pcvdom_document_bind_variable(vdom, name, variant);
 }
 
+struct pcrdr_conn *
+purc_get_conn_to_renderer(void)
+{
+    struct pcinst* inst = pcinst_current();
+    if (inst == NULL)
+        return NULL;
+
+    return inst->conn_to_rdr;
+}
+
 #if 0
+bool purc_unbind_variable(const char* name)
+{
+    struct pcinst* inst = pcinst_current();
+    if (inst == NULL)
+        return false;
+
+    return pcvarmgr_remove(inst->variables, name);
+}
+
 bool
 purc_unbind_document_variable(purc_vdom_t vdom, const char* name)
 {

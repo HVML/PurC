@@ -37,15 +37,15 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#define TO_DEBUG 1
-
 #define DVOBJ_SESSION_DATA_NAME        "__handle_dvobj_session"
 
 static purc_variant_t
-cwd_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+cwd_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
+    UNUSED_PARAM(silently);
 
     if (root == PURC_VARIANT_INVALID) {
         pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
@@ -60,11 +60,13 @@ cwd_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 }
 
 static purc_variant_t
-cwd_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+cwd_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
+    UNUSED_PARAM(silently);
 
     if ((root == PURC_VARIANT_INVALID) || (nr_args < 1)) {
         pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
@@ -97,8 +99,11 @@ cwd_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 }
 
 static purc_variant_t
-user_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+user_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
+    UNUSED_PARAM(silently);
+
     if ((root == PURC_VARIANT_INVALID)) {
         pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
@@ -132,8 +137,11 @@ user_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 }
 
 static purc_variant_t
-user_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+user_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
+    UNUSED_PARAM(silently);
+
     if ((root == PURC_VARIANT_INVALID) || (argv == NULL) || (nr_args < 2)) {
         pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
@@ -160,7 +168,7 @@ user_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
 
 purc_variant_t
-pcdvobjs_get_session(void)
+purc_dvobj_session_new(void)
 {
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 

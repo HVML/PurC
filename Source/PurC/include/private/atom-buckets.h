@@ -39,20 +39,21 @@ enum pcatom_bucket {
     ATOM_BUCKET_ACTION, /* the update actions: merge, displace, ... */
     ATOM_BUCKET_EXCEPT, /* the error and exception names such as NoData */
     ATOM_BUCKET_MSG,    /* the message types such as changed, attached, ... */
+    ATOM_BUCKET_RDROP,  /* the renderer operations: startSession, load, ... */
 
-    /* XXX: add a new bucket before this. */
-    ATOM_BUCKET_CUSTOM,
-
-    ATOM_BUCKET_LAST = ATOM_BUCKET_CUSTOM,
+    /* XXX: change this if you add a new atom bucket. */
+    ATOM_BUCKET_LAST = ATOM_BUCKET_RDROP,
 };
 
 /* Make sure ATOM_BUCKET_LAST is less than PURC_ATOM_BUCKETS_NR */
 #define _COMPILE_TIME_ASSERT(name, x)               \
        typedef int _dummy_ ## name[(x) * 2 - 1]
 
-_COMPILE_TIME_ASSERT(buckets, ATOM_BUCKET_LAST < PURC_ATOM_BUCKETS_NR);
+_COMPILE_TIME_ASSERT(buckets, ATOM_BUCKET_LAST < PURC_ATOM_BUCKET_USER);
 
 #undef _COMPILE_TIME_ASSERT
+
+#define  ATOM_BUCKET_CUSTOM PURC_ATOM_BUCKET_USER
 
 struct const_str_atom {
     const char *str;

@@ -19,7 +19,8 @@ static inline int my_puts(const char* str)
 // to test: serialize a boolean
 TEST(variant, serialize_boolean)
 {
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "variant", NULL);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "variant", NULL);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     purc_variant_t my_boolean = purc_variant_make_boolean(true);
@@ -58,7 +59,8 @@ TEST(variant, serialize_boolean)
 // to test: serialize a null
 TEST(variant, serialize_null)
 {
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "variant", NULL);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "variant", NULL);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     purc_variant_t my_null = purc_variant_make_null();
@@ -96,7 +98,8 @@ TEST(variant, serialize_null)
 // to test: serialize an undefined
 TEST(variant, serialize_undefined)
 {
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "variant", NULL);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "variant", NULL);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     purc_variant_t my_undefined = purc_variant_make_undefined();
@@ -128,10 +131,46 @@ TEST(variant, serialize_undefined)
     purc_cleanup ();
 }
 
+// to test: serialize an exception
+TEST(variant, serialize_exception)
+{
+    purc_variant_t my_variant;
+    purc_rwstream_t my_rws;
+    size_t len_expected;
+    ssize_t n;
+    char buf[64];
+
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "variant", NULL);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    my_rws = purc_rwstream_new_from_mem(buf, sizeof(buf) - 1);
+    ASSERT_NE(my_rws, nullptr);
+
+    purc_atom_t atom = purc_get_except_atom_by_id(PURC_EXCEPT_BAD_ENCODING);
+    my_variant = purc_variant_make_exception(atom);
+    ASSERT_NE(my_variant, PURC_VARIANT_INVALID);
+
+    purc_rwstream_seek(my_rws, 0, SEEK_SET);
+    len_expected = 0;
+    n = purc_variant_serialize(my_variant, my_rws,
+            0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);
+    ASSERT_GT(n, 0);
+
+    buf[n] = 0;
+    ASSERT_STREQ(buf, "\"BadEncoding\"");
+
+    purc_variant_unref(my_variant);
+
+    purc_rwstream_destroy(my_rws);
+    purc_cleanup ();
+}
+
 // to test: serialize a number
 TEST(variant, serialize_number)
 {
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "variant", NULL);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "variant", NULL);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     /* case 1: no decimal */
@@ -209,7 +248,8 @@ TEST(variant, serialize_longint)
     ssize_t n;
     char buf[64];
 
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "variant", NULL);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "variant", NULL);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     my_rws = purc_rwstream_new_from_mem(buf, sizeof(buf) - 1);
@@ -258,7 +298,8 @@ TEST(variant, serialize_longdouble)
     ssize_t n;
     char buf[128];
 
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "variant", NULL);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "variant", NULL);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     my_rws = purc_rwstream_new_from_mem(buf, sizeof(buf) - 1);
@@ -313,9 +354,10 @@ TEST(variant, serialize_longdouble)
 }
 
 static purc_variant_t my_getter(purc_variant_t root,
-        size_t nr_args, purc_variant_t * argv)
+        size_t nr_args, purc_variant_t *argv, bool silently)
 {
     (void)root;
+    (void)silently;
 
     if (nr_args > 0)
         return * argv;
@@ -324,11 +366,12 @@ static purc_variant_t my_getter(purc_variant_t root,
 }
 
 static purc_variant_t my_setter(purc_variant_t root,
-        size_t nr_args, purc_variant_t * argv)
+        size_t nr_args, purc_variant_t *argv, bool silently)
 {
     (void)(root);
     (void)(nr_args);
     (void)(argv);
+    (void)silently;
 
     return purc_variant_make_boolean(false);
 }
@@ -342,7 +385,8 @@ TEST(variant, serialize_dynamic)
     ssize_t n;
     char buf[128];
 
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "variant", NULL);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "variant", NULL);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     my_rws = purc_rwstream_new_from_mem(buf, sizeof(buf) - 1);
@@ -366,21 +410,24 @@ TEST(variant, serialize_dynamic)
     purc_cleanup ();
 }
 
-static bool _my_releaser (void* native_entity)
+static void _my_releaser (void* native_entity)
 {
     my_puts("my_releaser is called\n");
     free (native_entity);
-    return true;
 }
 
 static struct purc_native_ops _my_ops = {
     .property_getter       = NULL,
     .property_setter       = NULL,
-    .property_eraser       = NULL,
     .property_cleaner      = NULL,
+    .property_eraser       = NULL,
+
+    .updater               = NULL,
     .cleaner               = NULL,
-    .eraser                = _my_releaser,
-    .observe               = NULL,
+    .eraser                = NULL,
+
+    .on_observe           = NULL,
+    .on_release           = _my_releaser,
 };
 
 // to test: serialize a native entity
@@ -392,7 +439,8 @@ TEST(variant, serialize_native)
     ssize_t n;
     char buf[128];
 
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "variant", NULL);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "variant", NULL);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     my_rws = purc_rwstream_new_from_mem(buf, sizeof(buf) - 1);
@@ -425,7 +473,8 @@ TEST(variant, serialize_atomstring)
     ssize_t n;
     char buf[64];
 
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "variant", NULL);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "variant", NULL);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     my_rws = purc_rwstream_new_from_mem(buf, sizeof(buf) - 1);
@@ -468,7 +517,8 @@ TEST(variant, serialize_atomstring)
 // to test: serialize a string
 TEST(variant, serialize_string)
 {
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "variant", NULL);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "variant", NULL);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     purc_variant_t my_variant =
@@ -518,7 +568,8 @@ TEST(variant, serialize_string)
 // to test: serialize a byte sequence
 TEST(variant, serialize_bsequence)
 {
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "variant", NULL);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "variant", NULL);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     purc_variant_t my_variant =
@@ -614,7 +665,8 @@ TEST(variant, serialize_bsequence)
 // to test: serialize an array
 TEST(variant, serialize_array)
 {
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "variant", NULL);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "variant", NULL);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     purc_variant_t v1 = purc_variant_make_number(123.0);
@@ -699,7 +751,8 @@ TEST(variant, serialize_array)
 // to test: serialize an object
 TEST(variant, serialize_object)
 {
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "variant", NULL);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "variant", NULL);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     purc_variant_t v1 = purc_variant_make_number(123.0);
@@ -785,7 +838,8 @@ TEST(variant, serialize_object)
 // to test: serialize an object with empty key str
 TEST(variant, serialize_object_with_empty_key)
 {
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "variant", NULL);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "variant", NULL);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     purc_variant_t v1 = purc_variant_make_number(123);
@@ -825,7 +879,8 @@ TEST(variant, serialize_object_with_empty_key)
 // to test: serialize an object with empty key str
 TEST(variant, serialize_object_with_empty_key2)
 {
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "variant", NULL);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "variant", NULL);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     purc_variant_t v1 = purc_variant_make_number(123);

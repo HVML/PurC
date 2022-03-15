@@ -1,4 +1,6 @@
 #include "purc.h"
+#include "private/utils.h"
+#include "../helpers.h"
 
 #include <gtest/gtest.h>
 
@@ -151,7 +153,10 @@ static const char *calculator_2 =
     "                </h2>"
     "                <observe on=\"$TIMERS\" for=\"expired:clock\">"
     "                    <update on=\"#clock\" at=\"textContent\" with=\"$SYSTEM.time('%H:%M:%S')\" />"
-    "<choose on=\"foo\" by=\"this is to throw exception intentionally\" />"
+    "                    <update on=\"$TIMERS\" to=\"overwrite\">"
+    "                       { \"id\" : \"clock\", \"active\" : \"no\" }"
+    "                    </update>"
+    "                    <forget on=\"$TIMERS\" for=\"expired:clock\"/>"
     "                </observe>"
     "            </div>"
     "        </div>"
@@ -397,10 +402,17 @@ static const char *calculator_4 =
     "                                <update on=\"$TIMERS\" to=\"overwrite\">"
     "                                    { \"id\" : \"clock\", \"active\" : \"no\" }"
     "                                </update>"
-    "<choose on=\"foo\" by=\"this is to throw exception intentionally\" />"
     "                                <catch for='*'>"
     "                                    <update on=\"#expression\" at=\"attr.value\" with=\"ERR\" />"
     "                                </catch>"
+    "                                <update on=\"$TIMERS\" to=\"overwrite\">"
+    "                                    { \"id\" : \"input\", \"active\" : \"no\" }"
+    "                                </update>"
+    "                                <update on=\"$TIMERS\" to=\"overwrite\">"
+    "                                    { \"id\" : \"clock\", \"active\" : \"no\" }"
+    "                                </update>"
+    "                                <forget on=\"$TIMERS\" for=\"expired:clock\"/>"
+    "                                <forget on=\"$TIMERS\" for=\"expired:input\"/>"
     "                            </choose>"
     "                        </match>"
     ""
@@ -438,6 +450,167 @@ static const char *calculator_4 =
     "        </div>"
     "    </body>"
     ""
+    "</hvml>";
+
+static const char *buggy1 =
+    "<!DOCTYPE hvml SYSTEM 'v: MATH'>"
+    "<hvml target=\"html\" lang=\"en\">"
+    "    <head>"
+    "        <base href=\"$HVML.base(! 'https://gitlab.fmsoft.cn/hvml/hvml-docs/raw/master/samples/calculator/' )\" />"
+    ""
+    "        <update on=\"$T.map\" to=\"merge\">"
+    "           {"
+    "               \"HVML Calculator\": \"HVML 计算器\","
+    "               \"Current Time: \": \"当前时间：\""
+    "           }"
+    "        </update>"
+    ""
+    "        <init as=\"buttons\" uniquely>"
+    "            ["
+    "                { \"letters\": \"7\", \"class\": \"number\" },"
+    "                { \"letters\": \"8\", \"class\": \"number\" },"
+    "                { \"letters\": \"9\", \"class\": \"number\" },"
+    "                { \"letters\": \"←\", \"class\": \"c_blue backspace\" },"
+    "                { \"letters\": \"C\", \"class\": \"c_blue clear\" },"
+    "                { \"letters\": \"4\", \"class\": \"number\" },"
+    "                { \"letters\": \"5\", \"class\": \"number\" },"
+    "                { \"letters\": \"6\", \"class\": \"number\" },"
+    "                { \"letters\": \"×\", \"class\": \"c_blue multiplication\" },"
+    "                { \"letters\": \"÷\", \"class\": \"c_blue division\" },"
+    "                { \"letters\": \"1\", \"class\": \"number\" },"
+    "                { \"letters\": \"2\", \"class\": \"number\" },"
+    "                { \"letters\": \"3\", \"class\": \"number\" },"
+    "                { \"letters\": \"+\", \"class\": \"c_blue plus\" },"
+    "                { \"letters\": \"-\", \"class\": \"c_blue subtraction\" },"
+    "                { \"letters\": \"0\", \"class\": \"number\" },"
+    "                { \"letters\": \"00\", \"class\": \"number\" },"
+    "                { \"letters\": \".\", \"class\": \"number\" },"
+    "                { \"letters\": \"%\", \"class\": \"c_blue percent\" },"
+    "                { \"letters\": \"=\", \"class\": \"c_yellow equal\" },"
+    "            ]"
+    "        </init>"
+    ""
+    "        <init as=\"expressions\">"
+    "           ["
+    "               \"7*6=\","
+    "           ]"
+    "        </init>"
+    ""
+    "        <title>$T.get('HVML Calculator')</title>"
+    ""
+    "        <update on=\"$TIMERS\" to=\"unite\">"
+    "            ["
+    "                { \"id\" : \"clock\", \"interval\" : 1000, \"active\" : \"yes\" },"
+    "                { \"id\" : \"input\", \"interval\" : 1500, \"active\" : \"yes\" },"
+    "            ]"
+    "        </update>"
+    ""
+    "        <link rel=\"stylesheet\" type=\"text/css\" href=\"assets/calculator.css\" />"
+    "    </head>"
+    ""
+    "    <body>"
+    "        <init as=\"exp_chars\" with=\"[]\" />"
+    ""
+    "        <iterate on=\"$expressions\" by=\"RANGE: FROM 0\" >"
+    "            <update on=\"$exp_chars\" to=\"append\" with=\"[]\" />"
+    ""
+    "            <iterate on=\"$?\" by=\"CHAR: FROM 0\" >"
+    "                <update on=\"$exp_chars\" at=\"$1%\" to=\"append\" with=\"$?\" />"
+    "            </iterate>"
+    "        </iterate>"
+    ""
+    "        <init as=\"info\">"
+    "            {"
+    "                \"chars\" : $exp_chars[$SYSTEM.random($EJSON.count($exp_chars))],"
+    "                \"index\" : 0,"
+    "            }"
+    "        </init>"
+    ""
+    "        <div id=\"calculator\">"
+    ""
+    "            <div id=\"c_title\">"
+    "                <h2 id=\"c_title\">$T.get('HVML Calculator')"
+    "                    <small>$T.get('Current Time: ')<span id=\"clock\">$SYSTEM.time('%H:%M:%S')</span></small>"
+    "                </h2>"
+    "                <iterate on=\"[1,2,3]\">"
+    "                    <update on=\"#clock\" at=\"textContent\" to=\"displace\" with=\"iterator:$?\" />"
+    "                </iterate>"
+    "            </div>"
+    ""
+    "            <div id=\"c_text\">"
+    "                <input type=\"text\" id=\"expression\" value=\"\" readonly=\"readonly\" />"
+    "                <iterate on=\"$info.chars\" >"
+    "                    <test on=\"$info.chars[$info.index]\">"
+    "                        <update on=\"$info\" at=\".index\" to=\"displace\" with=\"$MATH.add($info.index, 1)\" />"
+    ""
+    "                        <match for=\"AS '='\" exclusively>"
+    "                            <choose on=\"$MATH.eval($DOC.query('#expression').attr('value'))\">"
+    "                                <update on=\"#expression\" at=\"attr.value\" with=\"$?\" />"
+    "                                <update on=\"$TIMERS\" to=\"overwrite\">"
+    "                                    { \"id\" : \"input\", \"active\" : \"no\" }"
+    "                                </update>"
+    "                                <update on=\"$TIMERS\" to=\"overwrite\">"
+    "                                    { \"id\" : \"clock\", \"active\" : \"no\" }"
+    "                                </update>"
+    "                                <catch for='*'>"
+    "                                    <update on=\"#expression\" at=\"attr.value\" with=\"ERR\" />"
+    "                                </catch>"
+    "                            </choose>"
+    "                        </match>"
+    ""
+    "                        <match for=\"AS 'C'\" exclusively>"
+    "                            <update on=\"#expression\" at=\"attr.value\" with=\"\" />"
+    "                        </match>"
+    ""
+    "                        <match for=\"AS '←'\" exclusively>"
+    "                            <choose on=\"$DOC.query('#expression').attr.value\">"
+    "                                <update on=\"#expression\" at=\"attr.value\" with=\"$STR.substr($?, 0, -1)\" />"
+    "                            </choose>"
+    "                        </match>"
+    ""
+    "                        <match>"
+    "                            <update on=\"#expression\" at=\"attr.value\" with $= \"$?\" />"
+    "                        </match>"
+    "                    </test>"
+    "                </iterate>"
+    "            </div>"
+    ""
+    "            <div id=\"c_value\">"
+    "                <archetype name=\"button\">"
+    "                    <li class=\"$?.class\">$?.letters</li>"
+    "                </archetype>"
+    ""
+    "                <ul>"
+    "                    <iterate on=\"$buttons\">"
+    "                        <update on=\"$@\" to=\"append\" with=\"$button\" />"
+    "                        <except type=\"NoData\" raw>"
+    "                            <p>Bad data!</p>"
+    "                        </except>"
+    "                    </iterate>"
+    "                </ul>"
+    "            </div>"
+    "        </div>"
+    "    </body>"
+    ""
+    "</hvml>";
+
+static const char *buggy2 =
+    "<hvml><head><title>hello</title></head><body><span id=\"clock\">xyz</span><xinput xid=\"xexp\"></xinput><update on=\"#clock\" at=\"textContent\" to=\"displace\" with=\"abc\"/></body></hvml>";
+
+static const char *buggy3 =
+    "<hvml><body><span id=\"clock\">xyz</span><update on=\"#clock\" at=\"textContent\" to=\"displace\" with=\"$SYSTEM.time('%H:%M:%S')\" /></body></hvml>";
+
+static const char *buggy4 =
+    "<hvml target=\"html\" lang=\"en\">"
+    "    <head>"
+    "    </head>"
+    "    <body>"
+    "        <span id=\"clock\">def</span>"
+    "        <div>"
+    "            <xinput xtype=\"xt\" xype=\"abd\" />"
+    "        </div>"
+    "        <update on=\"#clock\" at=\"textContent\" to=\"displace\" with=\"xyz\" />"
+    "    </body>"
     "</hvml>";
 
 static const char *sample1 =
@@ -488,6 +661,32 @@ static const char *sample1 =
     "    </body>"
     "</hvml>";
 
+static const char *sample2 =
+    "<!DOCTYPE hvml>"
+    "<hvml target=\"html\" lang=\"en\">"
+    "    <head>"
+    "        <base href=\"$HVML.base(! 'https://gitlab.fmsoft.cn/hvml/hvml-docs/raw/master/samples/calculator/' )\" />"
+    ""
+    "        <update on=\"$T.map\" from=\"assets/{$SYSTEM.locale}.json\" to=\"merge\" />"
+    ""
+    "        <init as=\"buttons\" from=\"assets/buttons.json\" />"
+    ""
+    "        <title>$T.get('HVML Calculator')</title>"
+    ""
+    "        <update on=\"$TIMERS\" to=\"displace\">"
+    "            ["
+    "                { \"id\" : \"clock\", \"interval\" : 1000, \"active\" : \"yes\" },"
+    "            ]"
+    "        </update>"
+    ""
+    "        <link rel=\"stylesheet\" type=\"text/css\" href=\"assets/calculator.css\" />"
+    "    </head>"
+    ""
+    "    <body>"
+    "    </body>"
+    ""
+    "</hvml>";
+
 static const char *fibonacci_1 =
     "<!DOCTYPE hvml SYSTEM 'v: MATH'>"
     "<hvml target=\"html\" lang=\"en\">"
@@ -527,41 +726,133 @@ static const char *fibonacci_1 =
     ""
     "</hvml>";
 
+static const char *fibonacci_2 =
+    "<!DOCTYPE hvml>"
+    "<hvml target=\"html\" lang=\"en\">"
+    "    <head>"
+    "        <title>Fibonacci Numbers</title>"
+    "    </head>"
+    ""
+    "    <body>"
+    "        <header>"
+    "            <h1>Fibonacci Numbers less than 2000</h1>"
+    "            <p hvml:raw>Using local array variable ($!) and negative index</p>"
+    "        </header>"
+    ""
+    "        <init as='fibonacci' locally>"
+    "            [0, 1, ]"
+    "        </init>"
+    ""
+    "        <iterate on 1 by=\"ADD: LT 2000 BY $!.fibonacci[-2]\">"
+    "            <update on=\"$1!.fibonacci\" to=\"append\" with=\"$?\" />"
+    "        </iterate>"
+    ""
+    "        <section>"
+    "            <ol>"
+    "                <iterate on=\"$2!.fibonacci\">"
+    "                    <li>$?</li>"
+    "                </iterate>"
+    "            </ol>"
+    "        </section>"
+    ""
+    "        <footer>"
+    "            <p>Totally $EJSON.count($1!.fibonacci) numbers.</p>"
+    "        </footer>"
+    "    </body>"
+    ""
+    "</hvml>";
+
+static const char *fibonacci_3 =
+    "<!DOCTYPE hvml>"
+    "<hvml target=\"html\" lang=\"en\">"
+    "    <head>"
+    "        <title>Fibonacci Numbers</title>"
+    "    </head>"
+    ""
+    "    <body>"
+    "        <header>"
+    "            <h1>Fibonacci Numbers less than 2000</h1>"
+    "            <p hvml:raw>Using non-array local variables</p>"
+    "        </header>"
+    ""
+    "        <init as=\"last_one\" with=0 locally />"
+    "        <init as=\"last_two\" with=1 locally />"
+    "        <init as=\"count\" with=2 locally />"
+    ""
+    "        <section>"
+    "            <dl>"
+    "                <iterate on 1 by=\"ADD: LT 2000 BY $2!.last_one\">"
+    "                    <update on=\"$3!\" at=\".last_one\" to=\"displace\" with=\"$3!.last_two\" />"
+    "                    <update on=\"$3!\" at=\".last_two\" to=\"displace\" with=\"$?\" />"
+    "                    <update on=\"$3!\" at=\".count\" to=\"displace\" with += 1 />"
+    "                    <dt>$%</dt>"
+    "                    <dd>$?</dd>"
+    "                </iterate>"
+    "            </dl>"
+    "        </section>"
+    ""
+    "        <footer>"
+    "            <p>Totally $1!.count numbers.</p>"
+    "        </footer>"
+    "    </body>"
+    ""
+    "</hvml>";
+
 TEST(interpreter, basic)
 {
     (void)calculator_1;
     (void)calculator_2;
     (void)calculator_3;
     (void)calculator_4;
+    (void)buggy1;
+    (void)buggy2;
+    (void)buggy3;
+    (void)buggy4;
     (void)sample1;
+    (void)sample2;
     (void)fibonacci_1;
+    (void)fibonacci_2;
+    (void)fibonacci_3;
 
     const char *hvmls[] = {
-        "<hvml><head x=\"y\">hello<xinit a=\"b\">world<!--yes-->solid</xinit></head><body><timeout1/><timeout3/></body></hvml>",
-        "<hvml><head x=\"y\">hello<xinit a=\"b\">w<timeout3/>orld<!--yes-->solid</xinit></head><body><timeout1/></body></hvml>",
-        "<hvml><body><timeout1/><timeout9/><timeout2/></body></hvml>",
-        "<hvml><body><xtest a='b'>hello<!--yes--></xtest></body></hvml>",
-        "<hvml><body><archetype name=\"$?.button\"><li class=\"class\">letters</li></archetype></body></hvml>",
-        "<hvml><body><archetype name=\"button\"><li class=\"class\">letters</li></archetype></body></hvml>",
-        "<hvml><body><a><b><c></c></b></a></body></hvml>",
-        calculator_1,
-        calculator_2,
-        // calculator_3,
+        // "<hvml>"
+        // "  <head>"
+        // "  </head>"
+        // "  <body>"
+        // "    <div>"
+        // "      foo"
+        // "      <archetype name=\"foo\"><hoo><bar></bar><foobar>ddddddddddddddddddddddddddd</foobar></hoo></archetype>"
+        // "      bar"
+        // "      <update on=\"$@\" to=\"append\" with=\"$foo\" />"
+        // "    </div>"
+        // "    world"
+        // "  </body>"
+        // "</hvml>",
+        // "<hvml><head x=\"y\"><xinit a=\"b\">world<!--yes-->solid</xinit></head><body><timeout1/><timeout3/></body></hvml>",
+        // "<hvml><head x=\"y\">hello<xinit a=\"b\">w<timeout3/>orld<!--yes-->solid</xinit></head><body><timeout1/></body></hvml>",
+        // "<hvml><body><timeout1/><timeout9/><timeout2/></body></hvml>",
+        // "<hvml><body><xtest a='b'>hello<!--yes--></xtest></body></hvml>",
+        // "<hvml><body><archetype name=\"$?.button\"><li class=\"class\">letters</li></archetype></body></hvml>",
+        // "<hvml><body><archetype name=\"button\"><li class=\"class\">letters</li></archetype></body></hvml>",
+        // "<hvml><body><a><b><c></c></b></a></body></hvml>",
+        // calculator_1,
+        // calculator_2,
+        // // calculator_3,
         calculator_4,
-        sample1,
-        fibonacci_1,
+        // sample1,
+        // // sample2,
+//         fibonacci_1,
+//         fibonacci_2,
+//         fibonacci_3,
+        // buggy1,
+        // buggy2,
+        // buggy3,
+        // buggy4,
     };
 
-    purc_instance_extra_info info = {};
-    // enable for calculator_2/3/4
-    //info.enable_remote_fetcher = true;
-    int ret = 0;
-    bool cleanup = false;
+    PurCInstance purc("cn.fmsoft.hybridos.test", "interpreter", false);
 
-    // initial purc
-    ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
-
-    ASSERT_EQ (ret, PURC_ERROR_OK);
+    ASSERT_TRUE(purc);
 
     // get statitics information
     struct purc_variant_stat * stat = purc_variant_usage_stat ();
@@ -574,8 +865,5 @@ TEST(interpreter, basic)
     }
 
     purc_run(PURC_VARIANT_INVALID, NULL);
-
-    cleanup = purc_cleanup ();
-    ASSERT_EQ (cleanup, true);
 }
 

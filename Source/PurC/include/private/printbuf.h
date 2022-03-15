@@ -1,6 +1,6 @@
 /*
  * @file printbuf.h
- * @author gengyue 
+ * @author gengyue
  * @date 2021/07/02
  * @brief The implementation of print buffer.
  *
@@ -20,10 +20,22 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ * Note that the original code come from json-c, which is licensed under
+ * MIT License (<http://www.opensource.org/licenses/mit-license.php>).
+ *
+ * The copying annoucements are as follow:
+ *
+ * Copyright (c) 2008-2009 Yahoo! Inc.  All rights reserved.
+ *
+ * Copyright (c) 2004, 2005 Metaparadigm Pte. Ltd.
+ * Author: Michael Clark <michael@metaparadigm.com>
  */
 
-#ifndef PURC_PRIVATE_PRINTBUF_H 
+#ifndef PURC_PRIVATE_PRINTBUF_H
 #define PURC_PRIVATE_PRINTBUF_H
+
+#include "config.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -51,7 +63,7 @@ struct pcutils_printbuf * pcutils_printbuf_new(void);
  */
 int pcutils_printbuf_memappend(struct pcutils_printbuf *p, const char *buf, int size);
 
-#define pcutils_printbuf_memappend_fast(p, bufptr, bufsize)         \
+#define pcutils_printbuf_memappend_fast(p, bufptr, bufsize)      \
     do                                                           \
     {                                                            \
         if ((p->size - p->bpos) > bufsize)                       \
@@ -62,7 +74,7 @@ int pcutils_printbuf_memappend(struct pcutils_printbuf *p, const char *buf, int 
         }                                                        \
         else                                                     \
         {                                                        \
-            pcutils_printbuf_memappend(p, (bufptr), bufsize);       \
+            pcutils_printbuf_memappend(p, (bufptr), bufsize);    \
         }                                                        \
     } while (0)
 
@@ -78,7 +90,7 @@ int pcutils_printbuf_memset(struct pcutils_printbuf *pb, int offset, int charval
 int pcutils_printbuf_shrink(struct pcutils_printbuf *pb, int len);
 
 int pcutils_sprintbuf(struct pcutils_printbuf *p, const char *msg, ...)
-    __attribute__ ((format (printf, 2, 3)));
+    WTF_ATTRIBUTE_PRINTF(2, 3);
 
 void pcutils_printbuf_reset(struct pcutils_printbuf *p);
 

@@ -1,5 +1,6 @@
 /*
  * @file sorted-array.c
+ * @author Vincent Wei
  * @date 2021/11/17
  * @brief The implementation of sorted array.
  *
@@ -19,7 +20,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
  */
 #include <stdlib.h>
@@ -56,6 +56,20 @@ struct sorted_array {
 
 #define SASZ_DEFAULT            4
 
+static int
+def_cmp(const void *sortv1, const void *sortv2)
+{
+    uintptr_t v1 = (uintptr_t)sortv1;
+    uintptr_t v2 = (uintptr_t)sortv2;
+
+    if (v1 > v2)
+        return 1;
+    else if (v1 < v2)
+        return -1;
+
+    return 0;
+}
+
 struct sorted_array *
 pcutils_sorted_array_create(unsigned int flags, size_t sz_init,
         sacb_free free_fn, sacb_compare cmp_fn)
@@ -71,7 +85,7 @@ pcutils_sorted_array_create(unsigned int flags, size_t sz_init,
     sa->nr_members = 0;
     sa->members = calloc(sa->sz_array, sizeof(struct sorted_array_member));
     sa->free_fn = free_fn;
-    sa->cmp_fn = cmp_fn;
+    sa->cmp_fn = (cmp_fn == NULL) ? def_cmp : cmp_fn;
 
     if (sa->members == NULL) {
         free(sa);

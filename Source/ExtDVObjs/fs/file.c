@@ -253,9 +253,11 @@ static ssize_t find_line_stream (purc_rwstream_t stream, int line_num)
 }
 
 static purc_variant_t
-text_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+text_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     int64_t line_num = 0;
     const char *filename = NULL;
@@ -324,9 +326,11 @@ text_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 }
 
 static purc_variant_t
-text_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+text_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     int64_t line_num = 0;
     const char *filename = NULL;
@@ -405,9 +409,11 @@ text_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 }
 
 static purc_variant_t
-bin_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+bin_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     int64_t byte_num = 0;
     const char *filename = NULL;
@@ -484,9 +490,11 @@ bin_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
 
 
 static purc_variant_t
-bin_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+bin_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     int64_t byte_num = 0;
     const char *filename = NULL;
@@ -562,11 +570,18 @@ bin_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     return ret_var;
 }
 
+static void
+release_rwstream(void *native_entity)
+{
+    purc_rwstream_destroy((purc_rwstream_t)native_entity);
+}
 
 static purc_variant_t
-stream_open_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+stream_open_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     if (nr_args != 2) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
@@ -612,8 +627,10 @@ stream_open_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
         return PURC_VARIANT_INVALID;
     }
 
-    static struct purc_native_ops ops;
-    memset (&ops, 0, sizeof(ops));
+    // setup a callback for `on_release` to destroy the stream automatically
+    static const struct purc_native_ops ops = {
+        .on_release = release_rwstream,
+    };
     ret_var = purc_variant_make_native (rwstream, &ops);
 
     return ret_var;
@@ -728,9 +745,10 @@ read_rwstream_float (purc_rwstream_t rwstream, int type, int bytes)
 
 static purc_variant_t
 stream_readstruct_getter (purc_variant_t root, size_t nr_args,
-        purc_variant_t *argv)
+        purc_variant_t *argv, bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_variant_t val = PURC_VARIANT_INVALID;
@@ -1056,9 +1074,10 @@ static inline void write_rwstream_uint (purc_rwstream_t rwstream,
 
 static purc_variant_t
 stream_writestruct_getter (purc_variant_t root, size_t nr_args,
-        purc_variant_t* argv)
+        purc_variant_t *argv, bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_variant_t val = PURC_VARIANT_INVALID;
@@ -1369,7 +1388,7 @@ stream_writestruct_getter (purc_variant_t root, size_t nr_args,
                     *(buf + length - 1)= 0x00;
                     write_number = atoi((char *)buf);
                 } else {
-                    write_number = purc_variant_string_length (val);
+                    write_number = purc_variant_string_size (val);
                 }
 
                 if(write_number) {
@@ -1389,9 +1408,10 @@ stream_writestruct_getter (purc_variant_t root, size_t nr_args,
 
 static purc_variant_t
 stream_readlines_getter (purc_variant_t root, size_t nr_args,
-        purc_variant_t *argv)
+        purc_variant_t *argv, bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_rwstream_t rwstream = NULL;
@@ -1440,9 +1460,10 @@ stream_readlines_getter (purc_variant_t root, size_t nr_args,
 
 static purc_variant_t
 stream_readbytes_getter (purc_variant_t root, size_t nr_args,
-        purc_variant_t *argv)
+        purc_variant_t *argv, bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_rwstream_t rwstream = NULL;
@@ -1496,9 +1517,10 @@ stream_readbytes_getter (purc_variant_t root, size_t nr_args,
 
 static purc_variant_t
 stream_seek_getter (purc_variant_t root, size_t nr_args,
-        purc_variant_t *argv)
+        purc_variant_t *argv, bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_rwstream_t rwstream = NULL;
@@ -1536,11 +1558,14 @@ stream_seek_getter (purc_variant_t root, size_t nr_args,
     return ret_var;
 }
 
+#if 0   // we do not need close method, the rwstream will be destroyed
+        // when the variant is released.
 static purc_variant_t
 stream_close_getter (purc_variant_t root, size_t nr_args,
-        purc_variant_t *argv)
+        purc_variant_t *argv, bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_rwstream_t rwstream = NULL;
@@ -1571,6 +1596,7 @@ stream_close_getter (purc_variant_t root, size_t nr_args,
 
     return ret_var;
 }
+#endif
 
 purc_variant_t pcdvobjs_create_file (void)
 {
@@ -1594,7 +1620,8 @@ purc_variant_t pcdvobjs_create_file (void)
         {"readlines",   stream_readlines_getter,   NULL},
         {"readbytes",   stream_readbytes_getter,   NULL},
         {"seek",        stream_seek_getter,        NULL},
-        {"close",       stream_close_getter,       NULL} };
+        // {"close",       stream_close_getter,       NULL},
+    };
 
 
     file_text = pcdvobjs_make_dvobjs (text, PCA_TABLESIZE(text));

@@ -349,7 +349,7 @@ pchtml_html_tree_insert_node(pcdom_node_t *to, pcdom_node_t *node,
         return;
     }
 
-    pcdom_node_insert_child(to, node);
+    pcdom_node_append_child(to, node);
 }
 
 /* TODO: if we not need to save parse errors?! */

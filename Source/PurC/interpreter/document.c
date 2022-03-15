@@ -36,10 +36,7 @@
 
 #include <pthread.h>
 #include <unistd.h>
-#include <libgen.h>
 #include <limits.h>
-
-#define TO_DEBUG 0
 
 struct ctxt_for_document {
     struct pcvdom_node           *curr;
@@ -78,9 +75,27 @@ static void*
 after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 {
     PC_ASSERT(stack);
-    PC_ASSERT(stack == purc_get_stack());
+    PC_ASSERT(stack == pcintr_get_stack());
+    PC_ASSERT(stack->mode == STACK_VDOM_BEFORE_HVML);
 
     int r;
+
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_stack_get_bottom_frame(stack);
+    PC_ASSERT(frame);
+
+    struct ctxt_for_document *ctxt;
+    ctxt = (struct ctxt_for_document*)calloc(1, sizeof(*ctxt));
+    if (!ctxt) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return NULL;
+    }
+
+    frame->ctxt = ctxt;
+    frame->ctxt_destroy = ctxt_destroy;
+
+    frame->pos = pos; // ATTENTION!!
+    frame->edom_element = NULL;
 
     struct pcvdom_document *document;
     document = stack->vdom->document;
@@ -99,23 +114,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         }
     }
 
-    struct pcintr_stack_frame *frame;
-    frame = pcintr_stack_get_bottom_frame(stack);
-    PC_ASSERT(frame);
-
-    frame->edom_element = NULL;
-
-    frame->pos = pos; // ATTENTION!!
-
-    struct ctxt_for_document *ctxt;
-    ctxt = (struct ctxt_for_document*)calloc(1, sizeof(*ctxt));
-    if (!ctxt) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return NULL;
-    }
-
-    frame->ctxt = ctxt;
-    frame->ctxt_destroy = ctxt_destroy;
     purc_clr_error();
 
     return ctxt;
@@ -125,7 +123,32 @@ static bool
 on_popping(pcintr_stack_t stack, void* ud)
 {
     PC_ASSERT(stack);
-    PC_ASSERT(stack == purc_get_stack());
+    PC_ASSERT(stack == pcintr_get_stack());
+    switch (stack->mode) {
+        case STACK_VDOM_BEFORE_HVML:
+            stack->mode = STACK_VDOM_AFTER_HVML;
+            break;
+        case STACK_VDOM_BEFORE_HEAD:
+            stack->mode = STACK_VDOM_AFTER_HVML;
+            break;
+        case STACK_VDOM_IN_HEAD:
+            PC_ASSERT(0);
+            break;
+        case STACK_VDOM_AFTER_HEAD:
+            stack->mode = STACK_VDOM_AFTER_HVML;
+            break;
+        case STACK_VDOM_IN_BODY:
+            PC_ASSERT(0);
+            break;
+        case STACK_VDOM_AFTER_BODY:
+            stack->mode = STACK_VDOM_AFTER_HVML;
+            break;
+        case STACK_VDOM_AFTER_HVML:
+            break;
+        default:
+            PC_ASSERT(0);
+            break;
+    }
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
@@ -172,7 +195,7 @@ static pcvdom_element_t
 select_child(pcintr_stack_t stack, void* ud)
 {
     PC_ASSERT(stack);
-    PC_ASSERT(stack == purc_get_stack());
+    PC_ASSERT(stack == pcintr_get_stack());
 
     pcintr_coroutine_t co = &stack->co;
     struct pcintr_stack_frame *frame;

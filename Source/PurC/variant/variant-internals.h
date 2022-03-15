@@ -71,6 +71,16 @@ void pcvariant_object_release  (purc_variant_t value)    WTF_INTERNAL;
 void pcvariant_array_release   (purc_variant_t value)    WTF_INTERNAL;
 void pcvariant_set_release     (purc_variant_t value)    WTF_INTERNAL;
 
+purc_variant_t
+pcvariant_container_clone(purc_variant_t cntr, bool recursively) WTF_INTERNAL;
+
+purc_variant_t
+pcvariant_array_clone(purc_variant_t arr, bool recursively) WTF_INTERNAL;
+purc_variant_t
+pcvariant_object_clone(purc_variant_t obj, bool recursively) WTF_INTERNAL;
+purc_variant_t
+pcvariant_set_clone(purc_variant_t set, bool recursively) WTF_INTERNAL;
+
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */

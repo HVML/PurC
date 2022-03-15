@@ -35,7 +35,7 @@
 #include "private/utils.h"
 
 #if PURC_ATOM_BUCKET_BITS > 16
-#error "Too more bits reserved for bucket"
+#error "Too many bits reserved for bucket"
 #endif
 
 static struct atom_bucket {
@@ -113,6 +113,15 @@ pcutils_atom_init_once (void)
 
     /* init the default bucket only */
     atom_get_bucket(0);
+}
+
+void
+pcutils_atom_cleanup_once (void)
+{
+    if (atom_rwlock.native_impl)
+        purc_rwlock_clear (&atom_rwlock);
+    if (atom_block)
+        free(atom_block);
 }
 
 purc_atom_t

@@ -262,7 +262,7 @@ pchtml_html_parse_fragment_chunk_begin(pchtml_html_parser_t *parser,
         goto done;
     }
 
-    pcdom_node_insert_child(pcdom_interface_node(new_doc), parser->root);
+    pcdom_node_append_child(pcdom_interface_node(new_doc), parser->root);
     pcdom_document_attach_element(doc, pcdom_interface_element(parser->root));
 
     parser->tree->fragment = pchtml_html_interface_create(new_doc, tag_id, ns);
@@ -595,7 +595,7 @@ struct buffer_data {
     size_t        nr;
 };
 
-static inline int
+static int
 buffer_writer(const char *data, size_t nr, int oom, void *ctxt)
 {
     struct buffer_data *bd = (struct buffer_data*)ctxt;

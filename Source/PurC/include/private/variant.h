@@ -1,13 +1,13 @@
 /**
  * @file variant.h
- * @author 
+ * @author Vincent Wei
  * @date 2021/07/02
  * @brief The internal interfaces for variant.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -32,16 +32,17 @@
 #include "rbtree.h"
 #include "array_list.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif  /* __cplusplus */
+PCA_EXTERN_C_BEGIN
 
 #define PCVARIANT_FLAG_CONSTANT        (0x01 << 0)  // for null, true, ...
 #define PCVARIANT_FLAG_NOFREE          PCVARIANT_FLAG_CONSTANT
 #define PCVARIANT_FLAG_EXTRA_SIZE      (0x01 << 1)  // when use extra space
 #define PCVARIANT_FLAG_STRING_STATIC   (0x01 << 2)  // make_string_static
 
-#define PVT(t) (PURC_VARIANT_TYPE##t)
+#define PVT(t)          (PURC_VARIANT_TYPE##t)
+#define IS_CONTAINER(t) (t == PURC_VARIANT_TYPE_OBJECT || \
+                        t == PURC_VARIANT_TYPE_ARRAY || \
+                        t == PURC_VARIANT_TYPE_SET)
 
 #define MAX_RESERVED_VARIANTS   32
 #define MAX_EMBEDDED_LEVELS     64
@@ -52,21 +53,25 @@ extern "C" {
 #define PRINT_MIN_BUFFER     512
 #define PRINT_MAX_BUFFER     1024 * 1024 * 1024
 
-#define PRINT_VARIANT(v)                                                    \
-    do {                                                                    \
-        purc_rwstream_t rws = purc_rwstream_new_buffer(PRINT_MIN_BUFFER,    \
-                PRINT_MAX_BUFFER);                                          \
-        size_t len_expected = 0;                                            \
-        purc_variant_serialize(v, rws,                                      \
-                0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);           \
-        purc_rwstream_write(rws, "", 1);                                    \
-        char* buf = (char*)purc_rwstream_get_mem_buffer_ex(rws, NULL, NULL, \
-                true);                                                      \
-        fprintf(stderr, "%s[%d]:%s(): %s=%s\n",                             \
-                basename((char*)__FILE__), __LINE__, __func__, #v, buf);    \
-        free(buf);                                                          \
-        purc_rwstream_destroy(rws);                                         \
-    } while (0)
+#define PRINT_VARIANT(_v) do {                                                \
+    if (_v == PURC_VARIANT_INVALID) {                                         \
+        fprintf(stderr, "%s[%d]:%s(): %s=PURC_VARIANT_INVALID\n",             \
+            pcutils_basename((char*)__FILE__), __LINE__, __func__, #_v);      \
+        break;                                                                \
+    }                                                                         \
+    purc_rwstream_t _rws = purc_rwstream_new_buffer(PRINT_MIN_BUFFER,         \
+            PRINT_MAX_BUFFER);                                                \
+    size_t _len = 0;                                                          \
+    purc_variant_serialize(_v, _rws,                                          \
+            0, PCVARIANT_SERIALIZE_OPT_PLAIN, &_len);                         \
+    purc_rwstream_write(_rws, "", 1);                                         \
+    char* _buf = (char*)purc_rwstream_get_mem_buffer_ex(_rws,                 \
+            NULL, NULL, true);                                                \
+    fprintf(stderr, "%s[%d]:%s(): %s=%s\n",                                   \
+            pcutils_basename((char*)__FILE__), __LINE__, __func__, #_v, _buf);\
+    free(_buf);                                                               \
+    purc_rwstream_destroy(_rws);                                              \
+} while (0)
 
 
 // mutually exclusive
@@ -77,7 +82,7 @@ extern "C" {
 
 struct pcvar_listener {
     // the operation in which this listener is intersted.
-    purc_atom_t         op;
+    pcvar_op_t          op;
 
     // the context for the listener
     void*               ctxt;
@@ -98,9 +103,9 @@ struct purc_variant {
     /* variant type */
     unsigned int type:8;
 
-    /* real length for short string and byte sequence.
-       use the extra space (long string and byte sequence)
-       if the value of this field is 0. */
+    /* The length for short string and byte sequence (both in bytes).
+       When the extra space (long string and long byte sequence) is used,
+       the value of this field is 0. */
     unsigned int size:8;
 
     /* flags */
@@ -109,14 +114,37 @@ struct purc_variant {
     /* reference count */
     unsigned int refc;
 
-    /* observer listeners */
-    struct list_head        pre_listeners;
-    struct list_head        post_listeners;
+    union {
+        /* the list head for listeners. */
+        struct list_head    listeners;
+
+        /* the list node for reserved variants. */
+        struct list_head    reserved;
+    };
+
+    union {
+        /* union fields for extra information of the variant. */
+        size_t              extra_size;
+        uintptr_t           extra_uintptr;
+        intptr_t            extra_intptr;
+        void*               extra_data;
+
+        /* other aliases */
+        /* the real length of `extra_bytes` is `sizeof(void*)` */
+        uint8_t             extra_bytes[0];
+        /* the real length of `extra_words` is `sizeof(void*) / 2` */
+        uint16_t            extra_words[0];
+        /* the real length of `extra_dwords` is `sizeof(void*) / 4` */
+        uint32_t            extra_dwords[0];
+    };
 
     /* value */
     union {
         /* for boolean */
         bool        b;
+
+        /* for exception and atom string */
+        purc_atom_t atom;
 
         /* for number */
         double      d;
@@ -132,16 +160,22 @@ struct purc_variant {
 
         /* for dynamic and native variant (two pointers)
            for native variant,
-           ptr_ptr[0] stores the native entity of it's self, and
+           ptr_ptr[0] stores the pointer to the native entity, and
            ptr_ptr[1] stores the ops that's bound to the class of
            such entity. */
         void*       ptr_ptr[2];
 
-        /* for long string, long byte sequence, array, object,
-           and set (sz_ptr[0] for size, sz_ptr[1] for pointer).
-           for atom string, sz_ptr[0] stores the atom. */
-        /* for string_static, we also store strlen(sz_ptr[1]) into sz_ptr[0] */
+        /* For long byte sequence, array, object, and set,
+              - `sz_ptr[0]` stores the size in bytes;
+              - `sz_ptr[1]` stores the pointer.
 
+           For long string,
+              - `sz_ptr[0]` stores the length in characters;
+              - `sz_ptr[1]` stores the pointer.
+
+           For exception and atom string,
+             - `sz_ptr[0]` should always be 0.
+             - `sz_ptr[1]` stores the atom. */
         uintptr_t   sz_ptr[2];
 
         /* for short string and byte sequence; the real space size of `bytes`
@@ -150,7 +184,8 @@ struct purc_variant {
     };
 };
 
-#define MAX_RESERVED_VARIANTS   32
+#define MAX_RESERVED_VARIANTS           32
+#define USE_LOOP_BUFFER_FOR_RESERVED    0
 
 struct pcvariant_heap {
     // the constant values.
@@ -162,20 +197,35 @@ struct pcvariant_heap {
     // the statistics of memory usage of variant values
     struct purc_variant_stat stat;
 
+#if USE(LOOP_BUFFER_FOR_RESERVED)
     // the loop buffer for reserved values.
-    purc_variant_t v_reserved [MAX_RESERVED_VARIANTS];
-    int headpos;
-    int tailpos;
-
-    struct pcvarmgr_list      *variables;
-
+    purc_variant_t      v_reserved[MAX_RESERVED_VARIANTS];
+    int                 headpos;
+    int                 tailpos;
+#else
+    struct list_head    v_reserved;
+#endif
 
     // experiment
-    struct pcvariant_gc       *gc;
+    struct pcvariant_gc *gc;
 };
 
 // initialize variant module (once)
 void pcvariant_init_once(void) WTF_INTERNAL;
+
+// internal interfaces for moving variant.
+void pcvariant_move_heap_init_once(void) WTF_INTERNAL;
+void pcvariant_move_heap_cleanup_once(void) WTF_INTERNAL;
+
+purc_variant_t pcvariant_move_heap_in(purc_variant_t v) WTF_INTERNAL;
+purc_variant_t pcvariant_move_heap_out(purc_variant_t v) WTF_INTERNAL;
+
+void pcvariant_use_move_heap(void) WTF_INTERNAL;
+void pcvariant_use_norm_heap(void) WTF_INTERNAL;
+
+purc_variant *pcvariant_alloc(void) WTF_INTERNAL;
+purc_variant *pcvariant_alloc_0(void) WTF_INTERNAL;
+void pcvariant_free(purc_variant *v) WTF_INTERNAL;
 
 // experiment
 void pcvariant_push_gc(void);
@@ -201,9 +251,8 @@ struct elem_node {
 
     // managed by variant_set
     purc_variant_t   set; // owner
-    struct pcvar_listener      *grow;
-    struct pcvar_listener      *change;
-    struct pcvar_listener      *shrink;
+
+    struct pcvar_listener           *constraints;
 };
 
 struct variant_set {
@@ -249,6 +298,9 @@ int pcvariant_set_sort(purc_variant_t value, void *ud,
 
 const char* pcvariant_get_typename(enum purc_variant_type type);
 
+int
+pcvariant_equal(purc_variant_t l, purc_variant_t r);
+
 static inline const char*
 pcvariant_typename(purc_variant_t v)
 {
@@ -270,36 +322,30 @@ char* pcvariant_serialize_alloc(char *buf, size_t sz, purc_variant_t val);
 
 purc_variant_t pcvariant_make_object(size_t nr_kvs, ...);
 
-__attribute__ ((format (printf, 1, 2)))
+WTF_ATTRIBUTE_PRINTF(1, 2)
 purc_variant_t pcvariant_make_with_printf(const char *fmt, ...);
 
 // TODO: better generate with tool
 extern purc_atom_t pcvariant_atom_grow;
 extern purc_atom_t pcvariant_atom_shrink;
 extern purc_atom_t pcvariant_atom_change;
-extern purc_atom_t pcvariant_atom_reference;
-extern purc_atom_t pcvariant_atom_unreference;
+// extern purc_atom_t pcvariant_atom_reference;
+// extern purc_atom_t pcvariant_atom_unreference;
 
 bool pcvariant_is_mutable(purc_variant_t val);
 
 bool pcvariant_on_pre_fired(
-        purc_variant_t source,  // the source variant
-        purc_atom_t op,  // the atom of the operation,
-                         // such as `grow`,  `shrink`, or `change`
-        size_t nr_args,  // the number of the relevant child variants
-                         // (only for container).
-        purc_variant_t *argv    // the array of all relevant child variants
-                                // (only for container).
+        purc_variant_t source,  // the source variant.
+        pcvar_op_t op,          // the operation identifier.
+        size_t nr_args,         // the number of the relevant child variants.
+        purc_variant_t *argv    // the array of all relevant child variants.
         );
 
 void pcvariant_on_post_fired(
-        purc_variant_t source,  // the source variant
-        purc_atom_t op,  // the atom of the operation,
-                         // such as `grow`,  `shrink`, or `change`
-        size_t nr_args,  // the number of the relevant child variants
-                         // (only for container).
-        purc_variant_t *argv    // the array of all relevant child variants
-                                // (only for container).
+        purc_variant_t source,  // the source variant.
+        pcvar_op_t op,          // the operation identifier.
+        size_t nr_args,         // the number of the relevant child variants.
+        purc_variant_t *argv    // the array of all relevant child variants.
         );
 
 purc_variant_t pcvariant_set_find (purc_variant_t set, purc_variant_t value);
@@ -313,9 +359,7 @@ pcvariant_is_in_set (purc_variant_t set, purc_variant_t value)
 purc_variant_t
 pcvariant_object_shallow_copy(purc_variant_t obj);
 
-#ifdef __cplusplus
-}
-#endif  /* __cplusplus */
+PCA_EXTERN_C_END
 
 /* VWNOTE (WARN)
  * 1. Make these macros as private interfaces. Please reimplement them
@@ -507,6 +551,74 @@ pcvariant_object_shallow_copy(purc_variant_t obj);
              _p = _n)                                                   \
         {                                                               \
             _val = _p->elem;                                            \
+     /* } */                                                            \
+  /* } while (0) */
+
+#define foreach_value_in_variant_set_order(_set, _val)                  \
+    do {                                                                \
+        variant_set_t _data;                                            \
+        struct rb_node *_first;                                         \
+        _data = (variant_set_t)_set->sz_ptr[1];                         \
+        _first = pcutils_rbtree_first(&_data->elems);                   \
+        if (!_first)                                                    \
+            break;                                                      \
+        struct rb_node *_p;                                             \
+        pcutils_rbtree_for_each(_first, _p)                             \
+        {                                                               \
+            struct elem_node *_en;                                      \
+            _en = container_of(_p, struct elem_node, node);             \
+            _val = _en->elem;                                           \
+     /* } */                                                            \
+  /* } while (0) */
+
+#define foreach_value_in_variant_set_order_reverse(_set, _val)          \
+    do {                                                                \
+        variant_set_t _data;                                            \
+        struct rb_node *_first;                                         \
+        _data = (variant_set_t)_set->sz_ptr[1];                         \
+        _first = pcutils_rbtree_last(&_data->elems);                    \
+        if (!_first)                                                    \
+            break;                                                      \
+        struct rb_node *_p;                                             \
+        pcutils_rbtree_for_each_reverse(_first, _p)                     \
+        {                                                               \
+            struct elem_node *_en;                                      \
+            _en = container_of(_p, struct elem_node, node);             \
+            _val = _en->elem;                                           \
+     /* } */                                                            \
+  /* } while (0) */
+
+#define foreach_value_in_variant_set_order_safe(_set, _val)             \
+    do {                                                                \
+        variant_set_t _data;                                            \
+        struct rb_node *_first;                                         \
+        _data = (variant_set_t)_set->sz_ptr[1];                         \
+        _first = pcutils_rbtree_first(&_data->elems);                   \
+        if (!_first)                                                    \
+            break;                                                      \
+        struct rb_node *_p, *_n;                                        \
+        pcutils_rbtree_for_each_safe(_first, _p, _n)                    \
+        {                                                               \
+            struct elem_node *_en;                                      \
+            _en = container_of(_p, struct elem_node, node);             \
+            _val = _en->elem;                                           \
+     /* } */                                                            \
+  /* } while (0) */
+
+#define foreach_value_in_variant_set_order_reverse_safe(_set, _val)     \
+    do {                                                                \
+        variant_set_t _data;                                            \
+        struct rb_node *_first;                                         \
+        _data = (variant_set_t)_set->sz_ptr[1];                         \
+        _first = pcutils_rbtree_last(&_data->elems);                    \
+        if (!_first)                                                    \
+            break;                                                      \
+        struct rb_node *_p, *_n;                                        \
+        pcutils_rbtree_for_each_reverse_safe(_first, _p, _n)            \
+        {                                                               \
+            struct elem_node *_en;                                      \
+            _en = container_of(_p, struct elem_node, node);             \
+            _val = _en->elem;                                           \
      /* } */                                                            \
   /* } while (0) */
 

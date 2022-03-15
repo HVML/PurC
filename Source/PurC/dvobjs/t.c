@@ -31,9 +31,11 @@
 #define T_MAP_NAME          "map"
 
 static purc_variant_t
-get_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+get_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
 
     if ((root == PURC_VARIANT_INVALID) || (argv == NULL) || (nr_args < 1)) {
         pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
@@ -66,7 +68,7 @@ get_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv)
     return ret_var;
 }
 
-purc_variant_t pcdvobjs_get_t (void)
+purc_variant_t purc_dvobj_text_new (void)
 {
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 

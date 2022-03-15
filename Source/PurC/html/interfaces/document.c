@@ -272,12 +272,13 @@ pchtml_html_document_parse_fragment_chunk_begin(pchtml_html_document_t *document
                                              pcdom_element_t *element)
 {
     unsigned int status;
-    pchtml_html_parser_t *parser = document->dom_document.parser;
 
     status = pchtml_html_document_parser_prepare(document);
     if (status != PCHTML_STATUS_OK) {
         return status;
     }
+
+    pchtml_html_parser_t *parser = document->dom_document.parser;
 
     return pchtml_html_parse_fragment_chunk_begin(parser, document,
                                                element->node.local_name,
@@ -361,7 +362,7 @@ pchtml_html_document_title_set(pchtml_html_document_t *document,
             return PCHTML_STATUS_ERROR_MEMORY_ALLOCATION;
         }
 
-        pcdom_node_insert_child(pcdom_interface_node(document->head),
+        pcdom_node_append_child(pcdom_interface_node(document->head),
                                   pcdom_interface_node(el_title));
     }
 

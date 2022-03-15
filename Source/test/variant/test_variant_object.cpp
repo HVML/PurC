@@ -1,6 +1,8 @@
 #include "purc.h"
 #include "purc-variant.h"
 #include "private/variant.h"
+#include "private/ejson-parser.h"
+#include "../helpers.h"
 
 
 #include <stdarg.h>
@@ -53,7 +55,8 @@ TEST(object, make_object_c)
     bool cleanup = false;
     struct purc_variant_stat *stat;
 
-    ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ(ret, PURC_ERROR_OK);
 
     stat = purc_variant_usage_stat();
@@ -260,7 +263,8 @@ TEST(object, make_object)
     bool cleanup = false;
     struct purc_variant_stat *stat;
 
-    ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ(ret, PURC_ERROR_OK);
 
     stat = purc_variant_usage_stat();
@@ -357,7 +361,8 @@ TEST(object, unref)
     bool cleanup = false;
     struct purc_variant_stat *stat;
 
-    ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ(ret, PURC_ERROR_OK);
 
     stat = purc_variant_usage_stat();
@@ -407,5 +412,38 @@ TEST(object, unref)
 
     cleanup = purc_cleanup ();
     ASSERT_EQ (cleanup, true);
+}
+
+TEST(object, compare)
+{
+    PurCInstance purc;
+
+    int diff;
+    const char *s;
+    purc_variant_t obj1, obj2;
+
+    s = "{first:xiaohong,last:xu}";
+    obj1 = pcejson_parser_parse_string(s, 0, 0);
+    if (obj1 == PURC_VARIANT_INVALID) {
+        ADD_FAILURE() << "failed to parse: " << s << std::endl;
+        return;
+    }
+
+    s = "{last:xu,first:xiaohong}";
+    obj2 = pcejson_parser_parse_string(s, 0, 0);
+    if (obj2 == PURC_VARIANT_INVALID) {
+        purc_variant_unref(obj1);
+        ADD_FAILURE() << "failed to parse: " << s << std::endl;
+        return;
+    }
+
+    diff = purc_variant_compare_ex(obj1, obj2, PCVARIANT_COMPARE_OPT_AUTO);
+    if (diff) {
+        PRINT_VARIANT(obj1);
+        PRINT_VARIANT(obj2);
+        ADD_FAILURE() << "diff" << std::endl;
+    }
+    purc_variant_unref(obj1);
+    purc_variant_unref(obj2);
 }
 

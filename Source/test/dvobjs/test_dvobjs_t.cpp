@@ -35,10 +35,11 @@ TEST(dvobjs, dvobjs_t_getter)
 
     // get and function
     purc_instance_extra_info info = {};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t t = pcdvobjs_get_t();
+    purc_variant_t t = purc_dvobj_text_new();
     ASSERT_NE(t, nullptr);
     ASSERT_EQ(purc_variant_is_object (t), true);
 
@@ -69,7 +70,7 @@ TEST(dvobjs, dvobjs_t_getter)
                 &nr_reserved_before);
 
     param[0] = purc_variant_make_string ("world", false);
-    ret_var = getter (t, 1, param);
+    ret_var = getter (t, 1, param, false);
     ASSERT_NE(ret_var, nullptr);
     s = purc_variant_get_string_const (ret_var);
     ASSERT_STREQ (s, "world");
@@ -77,7 +78,7 @@ TEST(dvobjs, dvobjs_t_getter)
     purc_variant_unref(param[0]);
 
     param[0] = purc_variant_make_string ("city", false);
-    ret_var = getter (t, 1, param);
+    ret_var = getter (t, 1, param, false);
     ASSERT_NE(ret_var, nullptr);
     s = purc_variant_get_string_const (ret_var);
     ASSERT_STREQ (s, "beijing");
@@ -85,7 +86,7 @@ TEST(dvobjs, dvobjs_t_getter)
     purc_variant_unref(param[0]);
 
     param[0] = purc_variant_make_string ("country", false);
-    ret_var = getter (t, 1, param);
+    ret_var = getter (t, 1, param, false);
     ASSERT_NE(ret_var, nullptr);
     s = purc_variant_get_string_const (ret_var);
     ASSERT_STREQ (s, "china");

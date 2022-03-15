@@ -26,39 +26,46 @@ void get_variant_total_info (size_t *mem, size_t *value, size_t *resv)
 }
 
 static purc_variant_t getter(
-        purc_variant_t root, size_t nr_args, purc_variant_t * argv)
+        purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
+    UNUSED_PARAM(silently);
     purc_variant_t value = purc_variant_make_number (3.1415926);
     return value;
 }
 
 static purc_variant_t setter(
-        purc_variant_t root, size_t nr_args, purc_variant_t * argv)
+        purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
+    UNUSED_PARAM(silently);
     purc_variant_t value = purc_variant_make_number (2.71828828);
     return value;
 }
 
-static bool rws_releaser (void* entity)
+static void rws_releaser (void* entity)
 {
     UNUSED_PARAM(entity);
-    return true;
 }
 
 static struct purc_native_ops rws_ops = {
     .property_getter       = NULL,
     .property_setter       = NULL,
-    .property_eraser       = NULL,
     .property_cleaner      = NULL,
+    .property_eraser       = NULL,
+
+    .updater               = NULL,
     .cleaner               = NULL,
-    .eraser                = rws_releaser,
-    .observe               = NULL,
+    .eraser                = NULL,
+
+    .on_observe           = NULL,
+    .on_release           = rws_releaser,
 };
 
 static void replace_for_bsequence(char *buf, size_t *length_sub)

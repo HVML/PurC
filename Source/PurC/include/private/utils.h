@@ -35,8 +35,17 @@
 #if OS(LINUX) || OS(UNIX)
 #include <limits.h>
 #include <stdio.h>
-#include <libgen.h>
 #endif // OS(LINUX) || OS(UNIX)
+
+#if OS(WINDOWS)
+#   define PATH_SEP '\\'
+#   define PATH_SEP_STR "\\"
+#else
+#   define PATH_SEP '/'
+#   define PATH_SEP_STR "/"
+#endif
+
+#define IS_PATH_SEP(c) ((c) == PATH_SEP)
 
 #define pcutils_html_whitespace(onechar, action, logic)   \
     (onechar action ' '  logic                            \
@@ -94,14 +103,51 @@ pcutils_hash_hash(const unsigned char *key, size_t key_size)
 extern "C" {
 #endif
 
-#if !HAVE(VASPRINTF)
-__attribute__ ((format (printf, 2, 0)))
-int vasprintf(char **buf, const char *fmt, va_list ap);
-#endif
-
 void pcutils_atom_init_once(void) WTF_INTERNAL;
+void pcutils_atom_cleanup_once(void) WTF_INTERNAL;
 
 void *pcutils_calloc_a(size_t len, ...) WTF_INTERNAL;
+
+/*
+ * This is an OpenSSL-compatible implementation of the RSA Data Security, Inc.
+ * MD5 Message-Digest Algorithm (RFC 1321).
+ *
+ * Homepage:
+ * http://openwall.info/wiki/people/solar/software/public-domain-source-code/md5
+ *
+ * Author:
+ * Alexander Peslyak, better known as Solar Designer <solar at openwall.com>
+ *
+ * This software was written by Alexander Peslyak in 2001.  No copyright is
+ * claimed, and the software is hereby placed in the public domain.
+ * In case this attempt to disclaim copyright and place the software in the
+ * public domain is deemed null and void, then the software is
+ * Copyright (c) 2001 Alexander Peslyak and it is hereby released to the
+ * general public under the following terms:
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted.
+ *
+ * There's ABSOLUTELY NO WARRANTY, express or implied.
+ *
+ * See md5.c for more information.
+ */
+
+#define MD5_DIGEST_SIZE          (16)
+
+typedef struct pcutils_md5_ctx {
+    uint32_t lo, hi;
+    uint32_t a, b, c, d;
+    unsigned char buffer[64];
+} pcutils_md5_ctx_t;
+
+void pcutils_md5_begin (pcutils_md5_ctx_t *ctx);
+void pcutils_md5_hash (const void *data, size_t length, pcutils_md5_ctx_t *ctx);
+void pcutils_md5_end (unsigned char *resbuf, pcutils_md5_ctx_t *ctx);
+
+/* \a digest should be long enough (at least 16) to store the returned digest */
+void pcutils_md5digest (const char *string, unsigned char *digest);
+int pcutils_md5sum (const char *file, unsigned char *md5_buf);
 
 /* hex must be long enough to hold the heximal characters */
 void pcutils_bin2hex (const unsigned char *bin, int len, char *hex);
@@ -109,8 +155,6 @@ void pcutils_bin2hex (const unsigned char *bin, int len, char *hex);
 /* bin must be long enough to hold the bytes.
    return the number of bytes converted, <= 0 for error */
 int pcutils_hex2bin (const char *hex, unsigned char *bin);
-
-size_t pcutils_get_cmdline_arg (int arg, char* buf, size_t sz_buf);
 
 int pcutils_parse_int64(const char *buf, size_t len, int64_t *retval);
 int pcutils_parse_uint64(const char *buf, size_t len, uint64_t *retval);

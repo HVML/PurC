@@ -1,9 +1,0 @@
-<!DOCTYPE hvml>
-<hvml target="html">
-    <body>
-        <iterate on=get_variable("users") to="update" in="#the-user-list" by=concat_string("RANGE: FROM 0 TO ",call_getter(get_element(get_variable("EJSON"),"number"),get_variable("users")),"  ADVANCE 2")>
-            <update on=concat_string("~[id=user-",get_element(get_variable("?"),"id"),"] span") attr.class *="text-* text-info"/>
-        </iterate>
-    </body>
-</hvml>
-

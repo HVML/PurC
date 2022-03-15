@@ -16,7 +16,8 @@ TEST(hvml, basic)
     bool cleanup = false;
 
     // initial purc
-    ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ret = purc_init_ex (PURC_MODULE_HVML, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
 
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
@@ -30,7 +31,7 @@ TEST(hvml, basic)
     while((token = pchvml_next_token(parser, rws)) != NULL) {
         struct pchvml_buffer* token_buff = pchvml_token_to_string(token);
         if (token_buff) {
-            pchvml_buffer_append_temp_buffer(buffer, token_buff);
+            pchvml_buffer_append_another(buffer, token_buff);
             pchvml_buffer_destroy(token_buff);
         }
         enum pchvml_token_type type = pchvml_token_get_type(token);

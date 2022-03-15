@@ -1,0 +1,13 @@
+<hvml>
+    <head>
+        <bind as="me">
+            {
+                "id": "$currUser.id",
+                "avatar": "/img/avatars/{$currUser.id}.png",
+                "name": "$currUser.name",
+                "region": "$currUser.locale"
+            }
+        </bind>
+
+    </head>
+</hvml>

@@ -1,6 +1,15 @@
 #pragma once
 
 #include <vector>
+#include <libgen.h>
+
+#include "purc.h"
+
+#ifndef _D            /* { */
+#define _D(fmt, ...)                                                        \
+    purc_log_debug("%s[%d]:%s(): " fmt "\n",                                \
+            pcutils_basename(__FILE__), __LINE__, __func__, ##__VA_ARGS__)
+#endif                /* } */
 
 #if OS(LINUX) || OS(UNIX)
 
@@ -62,5 +71,82 @@ private:
     }
 private:
     std::vector<char *>         allocates;
+};
+
+#define APP_NAME            "cn.fmsoft.hybridos.test"
+#define RUNNER_NAME         "test_init"
+
+class PurCInstance
+{
+public:
+    PurCInstance(unsigned int modules, const char *app = NULL,
+            const char *runner = NULL,
+            struct purc_instance_extra_info* info = NULL) {
+        init_ok = -1;
+        if (app == NULL)
+            app = APP_NAME;
+        if (runner == NULL)
+            runner = RUNNER_NAME;
+        if (info == NULL) {
+            this->info = {};
+            info = &this->info;
+        }
+
+        if (purc_init_ex (modules, app, runner, info))
+            return;
+
+        init_ok = 0;
+    }
+
+    PurCInstance(const char *app = NULL, const char *runner = NULL,
+            bool enable_remote_fetcher = true) {
+        init_ok = -1;
+        info = {};
+        if (app == NULL)
+            app = APP_NAME;
+        if (runner == NULL)
+            runner = RUNNER_NAME;
+
+        unsigned int modules = enable_remote_fetcher ? PURC_MODULE_HVML :
+            PURC_MODULE_HVML ^ PURC_HAVE_FETCHER;
+        if (purc_init_ex (modules, app, runner, &info))
+            return;
+
+        init_ok = 0;
+    }
+
+    PurCInstance(bool enable_remote_fetcher) {
+        init_ok = -1;
+        info = {};
+        const char *app = APP_NAME;
+        const char *runner = RUNNER_NAME;
+
+        unsigned int modules = enable_remote_fetcher ? PURC_MODULE_HVML :
+            PURC_MODULE_HVML ^ PURC_HAVE_FETCHER;
+        if (purc_init_ex (modules, app, runner, &info))
+            return;
+
+        init_ok = 0;
+    }
+
+    ~PurCInstance(void) {
+        if (init_ok == 0) {
+            purc_cleanup();
+        }
+    }
+
+public:
+    operator bool(void) const {
+        return init_ok == 0;
+    }
+    struct purc_instance_extra_info* get_info(void) {
+        if (init_ok)
+            return &info;
+        return NULL;
+    }
+
+private:
+    int init_ok;
+    struct purc_instance_extra_info    info;
 };
 

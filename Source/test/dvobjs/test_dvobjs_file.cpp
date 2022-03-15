@@ -32,12 +32,14 @@ TEST(dvobjs, dvobjs_file_text_head)
     size_t nr_reserved_after = 0;
 
     purc_instance_extra_info info = {};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
             &nr_reserved_before);
 
+    setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     purc_variant_t file = purc_variant_load_dvobj_from_so ("FS", "FILE");
     ASSERT_NE(file, nullptr);
     ASSERT_EQ(purc_variant_is_object (file), true);
@@ -60,8 +62,8 @@ TEST(dvobjs, dvobjs_file_text_head)
     printf ("TEST text_head: nr_args=2, param1=\"/etc/passwd\", param2=0:\n");
     param[0] = purc_variant_make_string ("/etc/passwd", false);
     param[1] = purc_variant_make_number (0);
-    ret_var = func (NULL, 2, param);
-    ASSERT_EQ(purc_variant_string_length (ret_var)-1, filestat.st_size);
+    ret_var = func (NULL, 2, param, false);
+    ASSERT_EQ(purc_variant_string_size (ret_var)-1, filestat.st_size);
     purc_variant_unref(param[0]);
     purc_variant_unref(param[1]);
     purc_variant_unref(ret_var);
@@ -69,7 +71,7 @@ TEST(dvobjs, dvobjs_file_text_head)
     printf ("TEST text_head: nr_args=2, param1=\"/etc/passwd\", param2=3:\n");
     param[0] = purc_variant_make_string ("/etc/passwd", false);
     param[1] = purc_variant_make_number (3);
-    ret_var = func (NULL, 2, param);
+    ret_var = func (NULL, 2, param, false);
     printf("\t\tReturn : %s\n", purc_variant_get_string_const (ret_var));
     purc_variant_unref(param[0]);
     purc_variant_unref(param[1]);
@@ -78,7 +80,7 @@ TEST(dvobjs, dvobjs_file_text_head)
     printf ("TEST text_head: nr_args=2, param1=\"/etc/passwd\", param2=-3:\n");
     param[0] = purc_variant_make_string ("/etc/passwd", false);
     param[1] = purc_variant_make_number (-3);
-    ret_var = func (NULL, 2, param);
+    ret_var = func (NULL, 2, param, false);
     printf("\t\tReturn : %s\n", purc_variant_get_string_const (ret_var));
     purc_variant_unref(param[0]);
     purc_variant_unref(param[1]);
@@ -108,12 +110,14 @@ TEST(dvobjs, dvobjs_file_text_tail)
     size_t nr_reserved_after = 0;
 
     purc_instance_extra_info info = {};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
             &nr_reserved_before);
 
+    setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     purc_variant_t file = purc_variant_load_dvobj_from_so ("FS", "FILE");
     ASSERT_NE(file, nullptr);
     ASSERT_EQ(purc_variant_is_object (file), true);
@@ -136,8 +140,8 @@ TEST(dvobjs, dvobjs_file_text_tail)
     printf ("TEST text_tail: nr_args=2, param1=\"/etc/passwd\", param2=0:\n");
     param[0] = purc_variant_make_string ("/etc/passwd", false);
     param[1] = purc_variant_make_number (0);
-    ret_var = func (NULL, 2, param);
-    ASSERT_EQ(purc_variant_string_length (ret_var)-1, 0);
+    ret_var = func (NULL, 2, param, false);
+    ASSERT_EQ(purc_variant_string_size (ret_var)-1, 0);
     purc_variant_unref(param[0]);
     purc_variant_unref(param[1]);
     purc_variant_unref(ret_var);
@@ -145,7 +149,7 @@ TEST(dvobjs, dvobjs_file_text_tail)
     printf ("TEST text_tail: nr_args=2, param1=\"/etc/passwd\", param2=3:\n");
     param[0] = purc_variant_make_string ("/etc/passwd", false);
     param[1] = purc_variant_make_number (3);
-    ret_var = func (NULL, 2, param);
+    ret_var = func (NULL, 2, param, false);
     printf("\t\tReturn : %s\n", purc_variant_get_string_const (ret_var));
     purc_variant_unref(param[0]);
     purc_variant_unref(param[1]);
@@ -154,7 +158,7 @@ TEST(dvobjs, dvobjs_file_text_tail)
     printf ("TEST text_tail: nr_args=2, param1=\"/etc/passwd\", param2=-3:\n");
     param[0] = purc_variant_make_string ("/etc/passwd", false);
     param[1] = purc_variant_make_number (-3);
-    ret_var = func (NULL, 2, param);
+    ret_var = func (NULL, 2, param, false);
     printf("\t\tReturn : %s\n", purc_variant_get_string_const (ret_var));
     purc_variant_unref(param[0]);
     purc_variant_unref(param[1]);
@@ -184,12 +188,14 @@ TEST(dvobjs, dvobjs_file_bin_head)
     size_t nr_reserved_after = 0;
 
     purc_instance_extra_info info = {};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
             &nr_reserved_before);
 
+    setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     purc_variant_t file = purc_variant_load_dvobj_from_so ("FS", "FILE");
     ASSERT_NE(file, nullptr);
     ASSERT_EQ(purc_variant_is_object (file), true);
@@ -212,7 +218,7 @@ TEST(dvobjs, dvobjs_file_bin_head)
     printf ("TEST bin_head: nr_args=2, param1=\"/etc/passwd\", param2=0 :\n");
     param[0] = purc_variant_make_string ("/etc/passwd", false);
     param[1] = purc_variant_make_number (0);
-    ret_var = func (NULL, 2, param);
+    ret_var = func (NULL, 2, param, false);
     ASSERT_EQ(purc_variant_sequence_length(ret_var), filestat.st_size);
     purc_variant_unref(param[0]);
     purc_variant_unref(param[1]);
@@ -221,7 +227,7 @@ TEST(dvobjs, dvobjs_file_bin_head)
     printf ("TEST bin_head: nr_args=2, param1=\"/etc/passwd\", param2=3:\n");
     param[0] = purc_variant_make_string ("/etc/passwd", false);
     param[1] = purc_variant_make_number (3);
-    ret_var = func (NULL, 2, param);
+    ret_var = func (NULL, 2, param, false);
     ASSERT_EQ(purc_variant_sequence_length(ret_var), 3);
     purc_variant_unref(param[0]);
     purc_variant_unref(param[1]);
@@ -230,7 +236,7 @@ TEST(dvobjs, dvobjs_file_bin_head)
     printf ("TEST bin_head: nr_args=2, param1=\"/etc/passwd\", param2=-3:\n");
     param[0] = purc_variant_make_string ("/etc/passwd", false);
     param[1] = purc_variant_make_number (-3);
-    ret_var = func (NULL, 2, param);
+    ret_var = func (NULL, 2, param, false);
     ASSERT_EQ(purc_variant_sequence_length(ret_var), filestat.st_size - 3);
     purc_variant_unref(param[0]);
     purc_variant_unref(param[1]);
@@ -260,12 +266,14 @@ TEST(dvobjs, dvobjs_file_bin_tail)
     size_t nr_reserved_after = 0;
 
     purc_instance_extra_info info = {};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
             &nr_reserved_before);
 
+    setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     purc_variant_t file = purc_variant_load_dvobj_from_so ("FS", "FILE");
     ASSERT_NE(file, nullptr);
     ASSERT_EQ(purc_variant_is_object (file), true);
@@ -288,7 +296,7 @@ TEST(dvobjs, dvobjs_file_bin_tail)
     printf ("TEST bin_tail: nr_args=2, param1=\"/etc/passwd\", param2=0:\n");
     param[0] = purc_variant_make_string ("/etc/passwd", false);
     param[1] = purc_variant_make_number (0);
-    ret_var = func (NULL, 2, param);
+    ret_var = func (NULL, 2, param, false);
     ASSERT_EQ(purc_variant_sequence_length(ret_var), filestat.st_size);
     purc_variant_unref(param[0]);
     purc_variant_unref(param[1]);
@@ -297,7 +305,7 @@ TEST(dvobjs, dvobjs_file_bin_tail)
     printf ("TEST bin_tail: nr_args=2, param1=\"/etc/passwd\", param2=3:\n");
     param[0] = purc_variant_make_string ("/etc/passwd", false);
     param[1] = purc_variant_make_number (3);
-    ret_var = func (NULL, 2, param);
+    ret_var = func (NULL, 2, param, false);
     ASSERT_EQ(purc_variant_sequence_length(ret_var), 3);
     purc_variant_unref(param[0]);
     purc_variant_unref(param[1]);
@@ -306,7 +314,7 @@ TEST(dvobjs, dvobjs_file_bin_tail)
     printf ("TEST bin_tail: nr_args=2, param1=\"/etc/passwd\", param2=-3:\n");
     param[0] = purc_variant_make_string ("/etc/passwd", false);
     param[1] = purc_variant_make_number (-3);
-    ret_var = func (NULL, 2, param);
+    ret_var = func (NULL, 2, param, false);
     ASSERT_EQ(purc_variant_sequence_length(ret_var), filestat.st_size - 3);
     purc_variant_unref(param[0]);
     purc_variant_unref(param[1]);
@@ -336,7 +344,8 @@ TEST(dvobjs, dvobjs_file_stream_open_seek_close)
     size_t nr_reserved_after = 0;
 
     purc_instance_extra_info info = {};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
@@ -344,6 +353,7 @@ TEST(dvobjs, dvobjs_file_stream_open_seek_close)
 
     const char *env;
     env = "DVOBJS_SO_PATH";
+    setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     purc_variant_t file = purc_variant_load_dvobj_from_so ("FS", "FILE");
     ASSERT_NE(file, nullptr);
     ASSERT_EQ(purc_variant_is_object (file), true);
@@ -376,7 +386,7 @@ TEST(dvobjs, dvobjs_file_stream_open_seek_close)
             param1=\"test_files/stream.test\":\n");
     param[0] = purc_variant_make_string (file_path, false);
     param[1] = purc_variant_make_string ("r+", false);
-    ret_var = func (NULL, 2, param);
+    ret_var = func (NULL, 2, param, false);
 
     ASSERT_EQ(purc_variant_is_type (ret_var,
                     PURC_VARIANT_TYPE_NATIVE), true);
@@ -394,7 +404,7 @@ TEST(dvobjs, dvobjs_file_stream_open_seek_close)
     param[0] = ret_var;
     param[1] = purc_variant_make_ulongint (17);
     param[2] = purc_variant_make_longint (SEEK_CUR);
-    val = func (NULL, 3, param);
+    val = func (NULL, 3, param, false);
 
     ASSERT_EQ(purc_variant_is_type (val,
                     PURC_VARIANT_TYPE_LONGINT), true);
@@ -407,6 +417,7 @@ TEST(dvobjs, dvobjs_file_stream_open_seek_close)
 
     // close
     dynamic = purc_variant_object_get_by_ckey (stream, "close", false);
+#if 0 // no such method
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -414,12 +425,16 @@ TEST(dvobjs, dvobjs_file_stream_open_seek_close)
     ASSERT_NE(func, nullptr);
 
     param[0] = ret_var;
-    val = func (NULL, 1, param);
+    val = func (NULL, 1, param, false);
     ASSERT_NE(val, nullptr);
 
     ASSERT_EQ(purc_variant_is_type (val,
                     PURC_VARIANT_TYPE_BOOLEAN), true);
     purc_variant_unref(val);
+#else
+    ASSERT_EQ(dynamic, nullptr);
+#endif
+
     purc_variant_unref(ret_var);
 
     purc_variant_unload_dvobj (file);
@@ -447,7 +462,8 @@ TEST(dvobjs, dvobjs_file_stream_readbytes)
     size_t nr_reserved_after = 0;
 
     purc_instance_extra_info info = {};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
@@ -455,6 +471,7 @@ TEST(dvobjs, dvobjs_file_stream_readbytes)
 
     const char *env;
     env = "DVOBJS_SO_PATH";
+    setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     purc_variant_t file = purc_variant_load_dvobj_from_so ("FS", "FILE");
     ASSERT_NE(file, nullptr);
     ASSERT_EQ(purc_variant_is_object (file), true);
@@ -488,7 +505,7 @@ TEST(dvobjs, dvobjs_file_stream_readbytes)
             nr_args=2, param1=\"test_files/stream.test\":\n");
     param[0] = purc_variant_make_string (file_path, false);
     param[1] = purc_variant_make_string ("r+", false);
-    ret_var = func (NULL, 2, param);
+    ret_var = func (NULL, 2, param, false);
     ASSERT_EQ(purc_variant_is_type (ret_var,
                     PURC_VARIANT_TYPE_NATIVE), true);
     purc_variant_unref(param[0]);
@@ -506,7 +523,7 @@ TEST(dvobjs, dvobjs_file_stream_readbytes)
     param[0] = ret_var;
     param[1] = purc_variant_make_ulongint (10);
     param[2] = purc_variant_make_longint (SEEK_CUR);
-    val = func (NULL, 3, param);
+    val = func (NULL, 3, param, false);
 
     ASSERT_EQ(purc_variant_is_type (val,
                     PURC_VARIANT_TYPE_LONGINT), true);
@@ -527,7 +544,7 @@ TEST(dvobjs, dvobjs_file_stream_readbytes)
 
     param[0] = ret_var;
     param[1] = purc_variant_make_ulongint (20);
-    val = func (NULL, 2, param);
+    val = func (NULL, 2, param, false);
 
     ASSERT_EQ(purc_variant_is_type (val,
                     PURC_VARIANT_TYPE_BSEQUENCE), true);
@@ -537,6 +554,7 @@ TEST(dvobjs, dvobjs_file_stream_readbytes)
 
     // close
     dynamic = purc_variant_object_get_by_ckey (stream, "close", false);
+#if 0
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -544,13 +562,16 @@ TEST(dvobjs, dvobjs_file_stream_readbytes)
     ASSERT_NE(func, nullptr);
 
     param[0] = ret_var;
-    val = func (NULL, 1, param);
+    val = func (NULL, 1, param, false);
     ASSERT_NE(val, nullptr);
 
     ASSERT_EQ(purc_variant_is_type (val,
                     PURC_VARIANT_TYPE_BOOLEAN), true);
-    purc_variant_unref(ret_var);
     purc_variant_unref(val);
+#else
+    ASSERT_EQ(dynamic, nullptr);
+#endif
+    purc_variant_unref(ret_var);
 
     purc_variant_unload_dvobj (file);
 
@@ -576,7 +597,8 @@ TEST(dvobjs, dvobjs_file_stream_readlines)
     size_t nr_reserved_after = 0;
 
     purc_instance_extra_info info = {};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
@@ -584,6 +606,7 @@ TEST(dvobjs, dvobjs_file_stream_readlines)
 
     const char *env;
     env = "DVOBJS_SO_PATH";
+    setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     purc_variant_t file = purc_variant_load_dvobj_from_so ("FS", "FILE");
     ASSERT_NE(file, nullptr);
     ASSERT_EQ(purc_variant_is_object (file), true);
@@ -616,7 +639,7 @@ TEST(dvobjs, dvobjs_file_stream_readlines)
             param1=\"test_files/stream.test\":\n");
     param[0] = purc_variant_make_string (file_path, false);
     param[1] = purc_variant_make_string ("r+", false);
-    ret_var = func (NULL, 2, param);
+    ret_var = func (NULL, 2, param, false);
 
     ASSERT_EQ(purc_variant_is_type (ret_var,
                     PURC_VARIANT_TYPE_NATIVE), true);
@@ -635,7 +658,7 @@ TEST(dvobjs, dvobjs_file_stream_readlines)
     param[0] = ret_var;
     param[1] = purc_variant_make_ulongint (0);
     param[2] = purc_variant_make_longint (SEEK_CUR);
-    val = func (NULL, 3, param);
+    val = func (NULL, 3, param, false);
 
     ASSERT_EQ(purc_variant_is_type (val,
                     PURC_VARIANT_TYPE_LONGINT), true);
@@ -656,7 +679,7 @@ TEST(dvobjs, dvobjs_file_stream_readlines)
 
     param[0] = ret_var;
     param[1] = purc_variant_make_ulongint (1);
-    val = func (NULL, 2, param);
+    val = func (NULL, 2, param, false);
 
     ASSERT_EQ(purc_variant_is_type (val,
                     PURC_VARIANT_TYPE_STRING), true);
@@ -668,6 +691,7 @@ TEST(dvobjs, dvobjs_file_stream_readlines)
     // close
     dynamic = purc_variant_object_get_by_ckey (stream, "close",
             false);
+#if 0
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -675,12 +699,15 @@ TEST(dvobjs, dvobjs_file_stream_readlines)
     ASSERT_NE(func, nullptr);
 
     param[0] = ret_var;
-    val = func (NULL, 1, param);
+    val = func (NULL, 1, param, false);
     ASSERT_NE(val, nullptr);
 
     ASSERT_EQ(purc_variant_is_type (val,
                     PURC_VARIANT_TYPE_BOOLEAN), true);
     purc_variant_unref(val);
+#else
+    ASSERT_EQ(dynamic, nullptr);
+#endif
     purc_variant_unref(ret_var);
 
     purc_variant_unload_dvobj (file);
@@ -714,7 +741,8 @@ TEST(dvobjs, dvobjs_file_stream_read_write_struct)
     size_t nr_reserved_after = 0;
 
     purc_instance_extra_info info = {};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
@@ -722,6 +750,7 @@ TEST(dvobjs, dvobjs_file_stream_read_write_struct)
 
     const char *env;
     env = "DVOBJS_SO_PATH";
+    setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     purc_variant_t file = purc_variant_load_dvobj_from_so ("FS", "FILE");
     ASSERT_NE(file, nullptr);
     ASSERT_EQ(purc_variant_is_object (file), true);
@@ -768,12 +797,16 @@ TEST(dvobjs, dvobjs_file_stream_read_write_struct)
 
     // close
     dynamic = purc_variant_object_get_by_ckey (stream, "close", false);
+#if 0
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
     purc_dvariant_method close = NULL;
     close = purc_variant_dynamic_get_getter (dynamic);
     ASSERT_NE(close, nullptr);
+#else
+    ASSERT_EQ(dynamic, nullptr);
+#endif
 
     char data_path[PATH_MAX+1];
     env = "DVOBJS_TEST_PATH";
@@ -866,7 +899,7 @@ TEST(dvobjs, dvobjs_file_stream_read_write_struct)
                 // open
                 for_open[0] = purc_variant_make_string (temp_file, false);
                 for_open[1] = purc_variant_make_string ("r+", false);
-                test_file = open (NULL, 2, for_open);
+                test_file = open (NULL, 2, for_open, false);
                 ASSERT_EQ(purc_variant_is_type (test_file,
                             PURC_VARIANT_TYPE_NATIVE), true);
                 purc_variant_unref(for_open[0]);
@@ -881,7 +914,7 @@ TEST(dvobjs, dvobjs_file_stream_read_write_struct)
                     purc_variant_array_append (for_open[2], param[k]);
 
                 // write
-                ret_var = writestruct (NULL, 3, for_open);
+                ret_var = writestruct (NULL, 3, for_open, false);
                 ASSERT_EQ(purc_variant_is_type (ret_var,
                             PURC_VARIANT_TYPE_ULONGINT), true);
                 purc_variant_unref(for_open[2]);
@@ -891,7 +924,7 @@ TEST(dvobjs, dvobjs_file_stream_read_write_struct)
                 for_open[0] = test_file;
                 for_open[1] = purc_variant_make_ulongint (0);
                 for_open[2] = purc_variant_make_longint (SEEK_SET);
-                ret_var = seek (NULL, 3, for_open);
+                ret_var = seek (NULL, 3, for_open, false);
 
                 ASSERT_EQ(purc_variant_is_type (ret_var,
                     PURC_VARIANT_TYPE_LONGINT), true);
@@ -905,7 +938,7 @@ TEST(dvobjs, dvobjs_file_stream_read_write_struct)
                 // read
                 for_open[0] = test_file;
                 for_open[1] = ret_result;
-                ret_var = readstruct (NULL, 2, for_open);
+                ret_var = readstruct (NULL, 2, for_open, false);
 
                 ASSERT_EQ(purc_variant_is_type (ret_var,
                     PURC_VARIANT_TYPE_ARRAY), true);
@@ -971,14 +1004,18 @@ TEST(dvobjs, dvobjs_file_stream_read_write_struct)
                 purc_variant_unref(ret_var);
 
                 // close
+#if 0
                 for_open[0] = test_file;
-                ret_var = close (NULL, 1, for_open);
+                ret_var = close (NULL, 1, for_open, false);
                 purc_variant_unref(test_file);
 
                 if (ret_var != PURC_VARIANT_INVALID) {
                     purc_variant_unref(ret_var);
                     ret_var = PURC_VARIANT_INVALID;
                 }
+#else
+                purc_variant_unref(test_file);
+#endif
 
                 for (size_t i = 0; i < j; ++i) {
                     if (param[i] != PURC_VARIANT_INVALID) {

@@ -27,4 +27,9 @@ hvml for
 hvml exclusively
 hvml excl
 hvml href
+hvml raw
+hvml type
+hvml locally
+hvml onlyif
+hvml while
 

@@ -140,7 +140,7 @@
                 } break;
             case PURC_VARIANT_TYPE_ATOMSTRING:
                 {
-                    return ((const char*)v->sz_ptr[1])[0] ? 1 : 0;
+                    return v->atom ? 1 : 0;
                 } break;
             case PURC_VARIANT_TYPE_STRING:
                 {
@@ -226,7 +226,7 @@
 
     #define EVAL_APPLY_1(_f, _r, _a) do {                            \
         purc_variant_t vars[1] = {_a};                               \
-        _r = _f(PURC_VARIANT_INVALID, PCA_TABLESIZE(vars), vars);    \
+        _r = _f(PURC_VARIANT_INVALID, PCA_TABLESIZE(vars), vars, false);    \
         purc_variant_unref(_a);                                      \
         if (_r == PURC_VARIANT_INVALID)                              \
             YYABORT;                                                 \
@@ -234,7 +234,7 @@
 
     #define EVAL_APPLY_2(_f, _r, _a, _b) do {                        \
         purc_variant_t vars[2] = {_a, _b};                           \
-        _r = _f(PURC_VARIANT_INVALID, PCA_TABLESIZE(vars), vars);    \
+        _r = _f(PURC_VARIANT_INVALID, PCA_TABLESIZE(vars), vars, false);    \
         purc_variant_unref(_a);                                      \
         purc_variant_unref(_b);                                      \
         if (_r == PURC_VARIANT_INVALID)                              \
@@ -409,7 +409,7 @@ int pcdvobjs_logical_parse(const char *input,
 {
     int r;
     yyscan_t arg = {0};
-    purc_variant_t logical = pcdvobjs_get_logical();
+    purc_variant_t logical = purc_dvobj_logical_new();
     if (logical == PURC_VARIANT_INVALID)
         return 1;
 

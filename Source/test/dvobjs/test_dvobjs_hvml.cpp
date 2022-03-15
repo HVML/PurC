@@ -23,7 +23,7 @@ extern void get_variant_total_info (size_t *mem, size_t *value, size_t *resv);
 
 TEST(dvobjs, dvobjs_hvml_setter)
 {
-    const char *function[] = {"base", "maxIterationCount", "maxRecursionDepth",
+    const char *function[] = {"base", "max_iteration_count", "max_recursion_depth",
                               "timeout"};
     purc_variant_t param[MAX_PARAM_NR] = {0};
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
@@ -47,10 +47,11 @@ TEST(dvobjs, dvobjs_hvml_setter)
 
     // get and function
     purc_instance_extra_info info = {};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t hvml = pcdvobjs_get_hvml();
+    purc_variant_t hvml = purc_dvobj_hvml_new();
     ASSERT_NE(hvml, nullptr);
     ASSERT_EQ(purc_variant_is_object (hvml), true);
 
@@ -140,7 +141,7 @@ TEST(dvobjs, dvobjs_hvml_setter)
                         }
                     }
 
-                    ret_var = setter (hvml, j, param);
+                    ret_var = setter (hvml, j, param, false);
 
                     if (ret_result == PURC_VARIANT_INVALID) {
                         ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
@@ -153,7 +154,7 @@ TEST(dvobjs, dvobjs_hvml_setter)
                                     purc_variant_get_string_const (ret_result));
 
                             purc_variant_t get = PURC_VARIANT_INVALID;
-                            get = getter (hvml, 0, NULL);
+                            get = getter (hvml, 0, NULL, false);
                             ASSERT_STREQ(purc_variant_get_string_const (get),
                                     purc_variant_get_string_const (ret_result));
                             purc_variant_unref(get);
@@ -167,7 +168,7 @@ TEST(dvobjs, dvobjs_hvml_setter)
                             ASSERT_EQ(u1, u2);
 
                             purc_variant_t get = PURC_VARIANT_INVALID;
-                            get = getter (hvml, 0, NULL);
+                            get = getter (hvml, 0, NULL, false);
                             purc_variant_cast_to_ulongint (get, &u1, false);
                             ASSERT_EQ(u1, u2);
                             purc_variant_unref(get);

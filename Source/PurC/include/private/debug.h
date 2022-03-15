@@ -4,7 +4,7 @@
  * @date 2021/07/07
  * @brief The internal interfaces for debug.
  *
- * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ * Copyright (C) 2021, 2022 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
  *
@@ -28,6 +28,8 @@
 
 #include "config.h"
 
+#include "purc-helpers.h"
+
 #include <stdlib.h>
 #include <assert.h>
 #include <stdbool.h>
@@ -35,19 +37,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-void pcutils_enable_debug(bool debug) WTF_INTERNAL;
-void pcutils_enable_syslog(bool syslog) WTF_INTERNAL;
-
-void pcutils_debug(const char *msg, ...) WTF_INTERNAL
-    __attribute__ ((format (printf, 1, 2)));
-
-void pcutils_error(const char *msg, ...)
-    __attribute__ ((format (printf, 1, 2)));
-
-void pcutils_info(const char *msg, ...) WTF_INTERNAL
-    __attribute__ ((format (printf, 1, 2)));
-
 
 #ifdef __cplusplus
 }
@@ -62,50 +51,49 @@ void pcutils_info(const char *msg, ...) WTF_INTERNAL
 #define PC_ASSERT(cond)                                 \
     do {                                                \
         if (!(cond)) {                                  \
-            pcutils_error("PurC assert failed.\n");     \
+            purc_log_error("PurC assertion failed.\n"); \
             abort();                                    \
         }                                               \
     } while (0)
 
 #else /* define NDEBUG */
 
-#define PC_ASSERT(cond)                                                                         \
-    do {                                                                                        \
-        if (!(cond)) {                                                                          \
-            pcutils_error("PurC assert failure %s:%d: condition \"" __STRING(cond) " failed\n", \
-                     __FILE__, __LINE__);                                                       \
-            assert(0);                                                                          \
-        }                                                                                       \
+#define PC_ASSERT(cond)                                                 \
+    do {                                                                \
+        if (!(cond)) {                                                  \
+            purc_log_error("PurC assertion failure %s:%d: condition \"" \
+                    __STRING(cond) " failed\n",                         \
+                    __FILE__, __LINE__);                                \
+            assert(0);                                                  \
+        }                                                               \
     } while (0)
 
 #endif /* not defined NDEBUG */
 
-#define PC_ERROR(x, ...) pcutils_error(x, ##__VA_ARGS__)
+#define PC_ENABLE_DEBUG(x)  purc_enable_log(x, true)
+#define PC_ENABLE_SYSLOG(x) purc_enable_log(x?true:false, x)
+#define PC_ERROR(x, ...)    purc_log_error(x, ##__VA_ARGS__)
+#define PC_WARN(x, ...)     purc_log_warn(x, ##__VA_ARGS__)
+#define PC_INFO(x, ...)     purc_log_info(x, ##__VA_ARGS__)
 
 #ifndef NDEBUG
 
-# define PC_ENABLE_DEBUG(x) pcutils_enable_debug(x)
-# define PC_ENABLE_SYSLOG(x) pcutils_enable_syslog(x)
-# define PC_DEBUG(x, ...) pcutils_debug(x, ##__VA_ARGS__)
-# define PC_INFO(x, ...) pcutils_info(x, ##__VA_ARGS__)
+#define PC_DEBUG(x, ...)    purc_log_debug(x, ##__VA_ARGS__)
+
+#define PC_DEBUGX(x, ...)                                                  \
+    purc_log_debug("%s[%d]:%s(): " x "\n",                                 \
+            pcutils_basename(__FILE__), __LINE__, __func__, ##__VA_ARGS__)
 
 #else /* not defined NDEBUG */
 
-# define PC_ENABLE_DEBUG(x)             \
-    if (0)                              \
-        pcutils_enable_debug(x)
-
-# define PC_ENABLE_SYSLOG(x)            \
-    if (0)                              \
-        pcutils_set_syslog(x)
-
 #define PC_DEBUG(x, ...)                \
     if (0)                              \
-        pcutils_debug(x, ##__VA_ARGS__)
+        purc_log_debug(x, ##__VA_ARGS__)
 
-#define PC_INFO(x, ...)                 \
-    if (0)                              \
-        pcutils_info(x, ##__VA_ARGS__)
+#define PC_DEBUGX(x, ...)                                                      \
+    if (0)                                                                     \
+        purc_log_debug("%s[%d]:%s(): " x "\n",                                 \
+                pcutils_basename(__FILE__), __LINE__, __func__, ##__VA_ARGS__)
 
 #endif /* defined NDEBUG */
 

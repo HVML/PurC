@@ -55,6 +55,15 @@ static purc_variant_t _make_boolean(int lvl)
     return purc_variant_make_boolean(b);
 }
 
+static purc_variant_t _make_exception(int lvl)
+{
+    // what a compiler
+    if (0) _make_exception(0);
+
+    UNUSED_PARAM(lvl);
+    return purc_variant_make_exception(_get_random(PURC_EXCEPT_LAST));
+}
+
 static purc_variant_t _make_number(int lvl)
 {
     // what a compiler
@@ -167,11 +176,12 @@ static purc_variant_t _make_bsequence(int lvl)
 }
 
 static purc_variant_t _dummy(purc_variant_t root,
-            size_t nr_args, purc_variant_t * argv)
+            size_t nr_args, purc_variant_t *argv, bool silently)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
+    UNUSED_PARAM(silently);
     return PURC_VARIANT_INVALID;
 }
 
@@ -184,20 +194,23 @@ static purc_variant_t _make_dynamic(int lvl)
     return purc_variant_make_dynamic(_dummy, _dummy);
 }
 
-static bool _dummy_releaser (void* entity)
+static void _dummy_releaser (void* entity)
 {
     UNUSED_PARAM(entity);
-    return true;
 }
 
 static struct purc_native_ops _dummy_ops = {
     .property_getter       = NULL,
     .property_setter       = NULL,
-    .property_eraser       = NULL,
     .property_cleaner      = NULL,
+    .property_eraser       = NULL,
+
+    .updater               = NULL,
     .cleaner               = NULL,
-    .eraser                = _dummy_releaser,
-    .observe               = NULL,
+    .eraser                = NULL,
+
+    .on_observe           = NULL,
+    .on_release           = _dummy_releaser,
 };
 
 static purc_variant_t _make_native(int lvl)
@@ -395,6 +408,7 @@ static struct _map_s     _maps[] = {
     _MAP_REC(null),
     _MAP_REC(undefined),
     _MAP_REC(boolean),
+    _MAP_REC(exception),
     _MAP_REC(number),
     _MAP_REC(longint),
     _MAP_REC(ulongint),
@@ -506,7 +520,8 @@ TEST(random, make)
 
     purc_instance_extra_info info = {};
 
-    r = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    r = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ(r, PURC_ERROR_OK);
 
     for (size_t i=0; i<_nr_iteration; ++i) {

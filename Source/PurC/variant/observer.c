@@ -29,52 +29,12 @@
 
 #include <stdlib.h>
 
-#define TO_DEBUG 1
-
 static pcvar_listener*
 register_listener(purc_variant_t v, unsigned int flags,
-        purc_atom_t op, pcvar_op_handler handler, void *ctxt)
+        pcvar_op_t op, pcvar_op_handler handler, void *ctxt)
 {
-    enum purc_variant_type type;
-    type = purc_variant_get_type(v);
-
-    switch (type)
-    {
-        case PURC_VARIANT_TYPE_OBJECT:
-            break;
-        case PURC_VARIANT_TYPE_ARRAY:
-            break;
-        case PURC_VARIANT_TYPE_SET:
-            break;
-        default:
-            pcinst_set_error(PCVARIANT_ERROR_NOT_SUPPORTED);
-            return NULL;
-    }
-
     struct list_head *listeners;
-    if ((flags & PCVAR_LISTENER_PRE_OR_POST) == PCVAR_LISTENER_PRE) {
-        listeners = &v->pre_listeners;
-    }
-    else {
-        listeners = &v->post_listeners;
-    }
-
-    struct list_head *p, *n;
-    list_for_each_safe(p, n, listeners) {
-        struct pcvar_listener *curr;
-        curr = container_of(p, struct pcvar_listener, list_node);
-        if (curr->op != op)
-            continue;
-
-        if (curr->handler != handler)
-            continue;
-
-        if (curr->ctxt != ctxt)
-            continue;
-
-        pcinst_set_error(PCVARIANT_ERROR_DUPLICATED);
-        return NULL;
-    }
+    listeners = &v->listeners;
 
     struct pcvar_listener *listener;
     listener = (struct pcvar_listener*)calloc(1, sizeof(*listener));
@@ -88,17 +48,31 @@ register_listener(purc_variant_t v, unsigned int flags,
     listener->ctxt           = ctxt;
     listener->handler        = handler;
 
-    list_add_tail(&listener->list_node, listeners);
+    if ((flags & PCVAR_LISTENER_PRE_OR_POST) == PCVAR_LISTENER_PRE) {
+        list_add_tail(&listener->list_node, listeners);
+    } else {
+        list_add(&listener->list_node, listeners);
+    }
 
     return listener;
 }
 
 struct pcvar_listener*
 purc_variant_register_pre_listener(purc_variant_t v,
-        purc_atom_t op, pcvar_op_handler handler, void *ctxt)
+        pcvar_op_t op, pcvar_op_handler handler, void *ctxt)
 {
+    if ((op & PCVAR_OPERATION_ALL) != op) {
+        pcinst_set_error(PCVARIANT_ERROR_WRONG_ARGS);
+        return NULL;
+    }
+
     if (v == PURC_VARIANT_INVALID || !op || !handler) {
         pcinst_set_error(PCVARIANT_ERROR_WRONG_ARGS);
+        return NULL;
+    }
+
+    if (!IS_CONTAINER(v->type)) {
+        pcinst_set_error(PCVARIANT_ERROR_NOT_SUPPORTED);
         return NULL;
     }
 
@@ -107,10 +81,20 @@ purc_variant_register_pre_listener(purc_variant_t v,
 
 struct pcvar_listener*
 purc_variant_register_post_listener(purc_variant_t v,
-        purc_atom_t op, pcvar_op_handler handler, void *ctxt)
+        pcvar_op_t op, pcvar_op_handler handler, void *ctxt)
 {
+    if ((op & PCVAR_OPERATION_ALL) != op) {
+        pcinst_set_error(PCVARIANT_ERROR_WRONG_ARGS);
+        return NULL;
+    }
+
     if (v == PURC_VARIANT_INVALID || !op || !handler) {
         pcinst_set_error(PCVARIANT_ERROR_WRONG_ARGS);
+        return NULL;
+    }
+
+    if (!IS_CONTAINER(v->type)) {
+        pcinst_set_error(PCVARIANT_ERROR_NOT_SUPPORTED);
         return NULL;
     }
 
@@ -126,29 +110,13 @@ purc_variant_revoke_listener(purc_variant_t v,
         return false;
     }
 
-    enum purc_variant_type type;
-    type = purc_variant_get_type(v);
-
-    switch (type)
-    {
-        case PURC_VARIANT_TYPE_OBJECT:
-            break;
-        case PURC_VARIANT_TYPE_ARRAY:
-            break;
-        case PURC_VARIANT_TYPE_SET:
-            break;
-        default:
-            pcinst_set_error(PCVARIANT_ERROR_NOT_SUPPORTED);
-            return false;
+    if (!IS_CONTAINER(v->type)) {
+        pcinst_set_error(PCVARIANT_ERROR_NOT_SUPPORTED);
+        return false;
     }
 
     struct list_head *listeners;
-    if ((listener->flags & PCVAR_LISTENER_PRE_OR_POST) == PCVAR_LISTENER_PRE) {
-        listeners = &v->pre_listeners;
-    }
-    else {
-        listeners = &v->post_listeners;
-    }
+    listeners = &v->listeners;
 
     struct list_head *p, *n;
     list_for_each_safe(p, n, listeners) {
@@ -166,24 +134,27 @@ purc_variant_revoke_listener(purc_variant_t v,
 }
 
 bool pcvariant_on_pre_fired(
-        purc_variant_t source,  // the source variant
-        purc_atom_t op,  // the atom of the operation,
-                         // such as `grow`,  `shrink`, or `change`
-        size_t nr_args,  // the number of the relevant child variants
-                         // (only for container).
-        purc_variant_t *argv    // the array of all relevant child variants
-                                // (only for container).
+        purc_variant_t source,  // the source variant.
+        pcvar_op_t op,          // the operation identifier.
+        size_t nr_args,         // the number of the relevant child variants.
+        purc_variant_t *argv    // the array of all relevant child variants.
         )
 {
+    op &= PCVAR_OPERATION_ALL;
+    PC_ASSERT(op != PCVAR_OPERATION_ALL);
+
     struct list_head *listeners;
-    listeners = &source->pre_listeners;
+    listeners = &source->listeners;
 
     struct list_head *p, *n;
     list_for_each_safe(p, n, listeners) {
         struct pcvar_listener *curr;
         curr = container_of(p, struct pcvar_listener, list_node);
-        if (curr->op != op)
+        if ((curr->op & op) == 0)
             continue;
+
+        if ((curr->flags & PCVAR_LISTENER_PRE_OR_POST) != PCVAR_LISTENER_PRE)
+            break;
 
         bool ok = curr->handler(source, op, curr->ctxt, nr_args, argv);
         if (!ok)
@@ -194,26 +165,27 @@ bool pcvariant_on_pre_fired(
 }
 
 void pcvariant_on_post_fired(
-        purc_variant_t source,  // the source variant
-        purc_atom_t op,  // the atom of the operation,
-                         // such as `grow`,  `shrink`, or `change`
-        size_t nr_args,  // the number of the relevant child variants
-                         // (only for container).
-        purc_variant_t *argv    // the array of all relevant child variants
-                                // (only for container).
+        purc_variant_t source,  // the source variant.
+        pcvar_op_t op,          // the operation identifier.
+        size_t nr_args,         // the number of the relevant child variants.
+        purc_variant_t *argv    // the array of all relevant child variants.
         )
 {
-    struct list_head *listeners;
-    listeners = &source->post_listeners;
+    op &= PCVAR_OPERATION_ALL;
+    PC_ASSERT(op != PCVAR_OPERATION_ALL);
 
-    struct list_head *p, *n;
-    list_for_each_safe(p, n, listeners) {
-        struct pcvar_listener *curr;
-        curr = container_of(p, struct pcvar_listener, list_node);
+    struct list_head *listeners;
+    listeners = &source->listeners;
+
+    struct pcvar_listener *p, *n;
+    list_for_each_entry_reverse_safe(p, n, listeners, list_node) {
+        struct pcvar_listener *curr = p;
         PC_ASSERT(curr);
-        PC_ASSERT(curr->op);
-        if (curr->op != op)
+        if ((curr->op & op) == 0)
             continue;
+
+        if ((curr->flags & PCVAR_LISTENER_PRE_OR_POST) == PCVAR_LISTENER_PRE)
+            break;
 
         bool ok = curr->handler(source, op, curr->ctxt, nr_args, argv);
         PC_ASSERT(ok);

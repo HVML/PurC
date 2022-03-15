@@ -183,6 +183,10 @@ purc_rwstream_t PcFetcherSession::requestSync(
         resp_header->sz_resp = m_resp_header.sz_resp;
     }
 
+    if (m_resp_rwstream) {
+        purc_rwstream_seek(m_resp_rwstream, 0, SEEK_SET);
+    }
+
     purc_rwstream_t rws = m_resp_rwstream;
     m_resp_rwstream = NULL;
     return rws;

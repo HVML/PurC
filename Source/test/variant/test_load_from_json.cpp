@@ -36,7 +36,8 @@ class variant_load_from_json : public testing::TestWithParam<ejson_test_data>
 {
 protected:
     void SetUp() {
-        purc_init ("cn.fmsoft.hybridos.test", "variant", NULL);
+        purc_init_ex (PURC_MODULE_HVML, "cn.fmsoft.hybridos.test", "variant",
+                NULL);
         name = GetParam().name;
         json = GetParam().json;
         comp = GetParam().comp;

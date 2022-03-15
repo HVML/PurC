@@ -37,93 +37,269 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define TO_DEBUG 1
+#define MSG_TYPE_CHANGE         "change"
+#define SUB_TYPE_ATTACHED       "attached"
+#define SUB_TYPE_DETACHED       "detached"
+#define SUB_TYPE_DISPLACED      "displaced"
 
-#define TYPE_STR_ATTACHED  "attached"
-#define TYPE_STR_DETACHED  "detached"
+#define EVENT_ATTACHED          "change:attached"
+#define EVENT_DETACHED          "change:detached"
+#define EVENT_DISPLACED         "change:displaced"
 
-struct pcvarmgr_list {
+enum var_event_type {
+    VAR_EVENT_TYPE_ATTACHED,
+    VAR_EVENT_TYPE_DETACHED,
+    VAR_EVENT_TYPE_DISPLACED,
+};
+
+struct var_observe {
+    char* name;
+    enum var_event_type type;
+    pcintr_stack_t stack;
+};
+
+struct pcvarmgr {
     purc_variant_t object;
     struct pcvar_listener* grow_listener;
     struct pcvar_listener* shrink_listener;
+    struct pcvar_listener* change_listener;
+    pcutils_array_t* var_observers;
 };
 
-bool mgr_listener_handler(purc_variant_t source, purc_atom_t msg_type,
+static int find_var_observe_idx(struct pcvarmgr* mgr, const char* name,
+        enum var_event_type type, pcintr_stack_t stack)
+{
+    size_t sz = pcutils_array_length(mgr->var_observers);
+    for (size_t i = 0; i < sz; i++) {
+        struct var_observe* obs = (struct var_observe*) pcutils_array_get(
+                mgr->var_observers, i);
+        if (strcmp(name, obs->name) == 0
+                && obs->type == type && obs->stack == stack) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+static struct var_observe* find_var_observe(struct pcvarmgr* mgr,
+        const char* name, enum var_event_type type, pcintr_stack_t stack)
+{
+    int idx = find_var_observe_idx(mgr, name, type, stack);
+    if (idx == -1) {
+        return NULL;
+    }
+    return pcutils_array_get(mgr->var_observers, idx);
+}
+
+static bool mgr_grow_handler(purc_variant_t source, pcvar_op_t msg_type,
         void* ctxt, size_t nr_args, purc_variant_t* argv)
 {
+    UNUSED_PARAM(msg_type);
     UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(argv);
+
     if (ctxt == NULL) {
         return true;
     }
 
-    purc_variant_t type = PURC_VARIANT_INVALID;
-    if (msg_type == pcvariant_atom_grow) {
-        type = purc_variant_make_string(TYPE_STR_ATTACHED, false);
+    pcvarmgr_t mgr = (pcvarmgr_t)ctxt;
+
+    purc_variant_t type = purc_variant_make_string(MSG_TYPE_CHANGE, false);
+    if (type == PURC_VARIANT_INVALID) {
+        return false;
     }
-    else if (msg_type == pcvariant_atom_shrink) {
-        type = purc_variant_make_string(TYPE_STR_DETACHED, false);
+
+    purc_variant_t sub_type = purc_variant_make_string(SUB_TYPE_ATTACHED,
+            false);
+    if (sub_type == PURC_VARIANT_INVALID) {
+        purc_variant_unref(type);
+        return false;
     }
 
-    purc_variant_t sub_type = argv[0];
-    purc_variant_ref(sub_type);
+    const char* name = purc_variant_get_string_const(argv[0]);
 
-    pcintr_dispatch_message((pcintr_stack_t)ctxt,
-            source, type, sub_type, PURC_VARIANT_INVALID);
+    size_t sz = pcutils_array_length(mgr->var_observers);
+    for (size_t i = 0; i < sz; i++) {
+        struct var_observe* obs = (struct var_observe*) pcutils_array_get(
+                mgr->var_observers, i);
+        if (strcmp(name, obs->name) == 0
+                && obs->type == VAR_EVENT_TYPE_ATTACHED) {
+            pcintr_dispatch_message(obs->stack, source, type, sub_type,
+                    PURC_VARIANT_INVALID);
+        }
+    }
 
-    purc_variant_unref(type);
     purc_variant_unref(sub_type);
-
+    purc_variant_unref(type);
     return true;
 }
 
-pcvarmgr_list_t pcvarmgr_list_create(void)
+static bool mgr_shrink_handler(purc_variant_t source, pcvar_op_t msg_type,
+        void* ctxt, size_t nr_args, purc_variant_t* argv)
 {
-    pcvarmgr_list_t mgr = (pcvarmgr_list_t)calloc(1,
-            sizeof(struct pcvarmgr_list));
+    UNUSED_PARAM(msg_type);
+    UNUSED_PARAM(nr_args);
+
+    if (ctxt == NULL) {
+        return true;
+    }
+
+    pcvarmgr_t mgr = (pcvarmgr_t)ctxt;
+
+    purc_variant_t type = purc_variant_make_string(MSG_TYPE_CHANGE, false);
+    if (type == PURC_VARIANT_INVALID) {
+        return false;
+    }
+
+    purc_variant_t sub_type = purc_variant_make_string(SUB_TYPE_DETACHED,
+            false);
+    if (sub_type == PURC_VARIANT_INVALID) {
+        purc_variant_unref(type);
+        return false;
+    }
+
+    const char* name = purc_variant_get_string_const(argv[0]);
+
+    size_t sz = pcutils_array_length(mgr->var_observers);
+    for (size_t i = 0; i < sz; i++) {
+        struct var_observe* obs = (struct var_observe*) pcutils_array_get(
+                mgr->var_observers, i);
+        if (strcmp(name, obs->name) == 0
+                && obs->type == VAR_EVENT_TYPE_DETACHED) {
+            pcintr_dispatch_message(obs->stack, source, type, sub_type,
+                    PURC_VARIANT_INVALID);
+        }
+    }
+
+    purc_variant_unref(sub_type);
+    purc_variant_unref(type);
+    return true;
+}
+
+static bool mgr_change_handler(purc_variant_t source, pcvar_op_t msg_type,
+        void* ctxt, size_t nr_args, purc_variant_t* argv)
+{
+    UNUSED_PARAM(msg_type);
+    UNUSED_PARAM(nr_args);
+
+    if (ctxt == NULL) {
+        return true;
+    }
+
+    pcvarmgr_t mgr = (pcvarmgr_t)ctxt;
+
+    purc_variant_t type = purc_variant_make_string(MSG_TYPE_CHANGE, false);
+    if (type == PURC_VARIANT_INVALID) {
+        return false;
+    }
+
+    purc_variant_t sub_type = purc_variant_make_string(SUB_TYPE_DISPLACED,
+            false);
+    if (sub_type == PURC_VARIANT_INVALID) {
+        purc_variant_unref(type);
+        return false;
+    }
+
+    const char* name = purc_variant_get_string_const(argv[0]);
+
+    size_t sz = pcutils_array_length(mgr->var_observers);
+    for (size_t i = 0; i < sz; i++) {
+        struct var_observe* obs = (struct var_observe*) pcutils_array_get(
+                mgr->var_observers, i);
+        if (strcmp(name, obs->name) == 0
+                && obs->type == VAR_EVENT_TYPE_DISPLACED) {
+            pcintr_dispatch_message(obs->stack, source, type, sub_type,
+                    PURC_VARIANT_INVALID);
+        }
+    }
+
+    purc_variant_unref(sub_type);
+    purc_variant_unref(type);
+    return true;
+}
+
+#define DEF_ARRAY_SIZE 10
+pcvarmgr_t pcvarmgr_create(void)
+{
+    pcvarmgr_t mgr = (pcvarmgr_t)calloc(1,
+            sizeof(struct pcvarmgr));
     if (!mgr) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return NULL;
+        goto err_ret;
     }
+
     mgr->object = purc_variant_make_object(0, PURC_VARIANT_INVALID,
             PURC_VARIANT_INVALID);
     if (mgr->object == PURC_VARIANT_INVALID) {
-        free(mgr);
-        return NULL;
+        goto err_free_mgr;
     }
 
-    pcintr_stack_t stack = purc_get_stack ();
     mgr->grow_listener = purc_variant_register_post_listener(mgr->object,
-        pcvariant_atom_grow, mgr_listener_handler, stack);
+        PCVAR_OPERATION_GROW, mgr_grow_handler, mgr);
     if (!mgr->grow_listener) {
-        purc_variant_unref(mgr->object);
-        free(mgr);
-        return NULL;
+        goto err_clear_object;
     }
 
     mgr->shrink_listener = purc_variant_register_post_listener(mgr->object,
-        pcvariant_atom_shrink, mgr_listener_handler, stack);
+        PCVAR_OPERATION_SHRINK, mgr_shrink_handler, mgr);
     if (!mgr->shrink_listener) {
-        purc_variant_revoke_listener(mgr->object, mgr->grow_listener);
-        purc_variant_unref(mgr->object);
-        free(mgr);
-        return NULL;
+        goto err_revoke_grow_listener;
     }
+
+    mgr->change_listener = purc_variant_register_post_listener(mgr->object,
+        PCVAR_OPERATION_CHANGE, mgr_change_handler, mgr);
+    if (!mgr->change_listener) {
+        goto err_revoke_shrink_listener;
+    }
+
+    mgr->var_observers = pcutils_array_create();
+    unsigned int ret = pcutils_array_init(mgr->var_observers, DEF_ARRAY_SIZE);
+    if (PURC_ERROR_OK != ret) {
+        purc_set_error(ret);
+        goto err_revoke_change_listener;
+    }
+
     return mgr;
+
+err_revoke_change_listener:
+    purc_variant_revoke_listener(mgr->object, mgr->change_listener);
+
+err_revoke_shrink_listener:
+    purc_variant_revoke_listener(mgr->object, mgr->shrink_listener);
+
+err_revoke_grow_listener:
+    purc_variant_revoke_listener(mgr->object, mgr->grow_listener);
+
+err_clear_object:
+    purc_variant_unref(mgr->object);
+
+err_free_mgr:
+    free(mgr);
+
+err_ret:
+    return NULL;
 }
 
-int pcvarmgr_list_destroy(pcvarmgr_list_t mgr)
+int pcvarmgr_destroy(pcvarmgr_t mgr)
 {
     if (mgr) {
+        size_t sz = pcutils_array_length(mgr->var_observers);
+        for (size_t i = 0; i < sz; i++) {
+            struct var_observe* obs = (struct var_observe*) pcutils_array_get(
+                    mgr->var_observers, i);
+            free(obs->name);
+            free(obs);
+        }
+        pcutils_array_destroy(mgr->var_observers, true);
         purc_variant_revoke_listener(mgr->object, mgr->grow_listener);
         purc_variant_revoke_listener(mgr->object, mgr->shrink_listener);
+        purc_variant_revoke_listener(mgr->object, mgr->change_listener);
         purc_variant_unref(mgr->object);
         free(mgr);
     }
     return 0;
 }
 
-bool pcvarmgr_list_add(pcvarmgr_list_t mgr, const char* name,
+bool pcvarmgr_add(pcvarmgr_t mgr, const char* name,
         purc_variant_t variant)
 {
     if (mgr == NULL || mgr->object == PURC_VARIANT_INVALID
@@ -141,7 +317,7 @@ bool pcvarmgr_list_add(pcvarmgr_list_t mgr, const char* name,
     return b;
 }
 
-purc_variant_t pcvarmgr_list_get(pcvarmgr_list_t mgr, const char* name)
+purc_variant_t pcvarmgr_get(pcvarmgr_t mgr, const char* name)
 {
     if (mgr == NULL || name == NULL) {
         PC_ASSERT(0); // FIXME: still recoverable???
@@ -158,7 +334,7 @@ purc_variant_t pcvarmgr_list_get(pcvarmgr_list_t mgr, const char* name)
     return PURC_VARIANT_INVALID;
 }
 
-bool pcvarmgr_list_remove(pcvarmgr_list_t mgr, const char* name)
+bool pcvarmgr_remove(pcvarmgr_t mgr, const char* name)
 {
     if (name) {
         return purc_variant_object_remove_by_static_ckey(mgr->object,
@@ -167,8 +343,86 @@ bool pcvarmgr_list_remove(pcvarmgr_list_t mgr, const char* name)
     return false;
 }
 
+static purc_variant_t pcvarmgr_add_observer(pcvarmgr_t mgr, const char* name,
+        const char* event)
+{
+    purc_variant_t var = pcvarmgr_get(mgr, name);
+    if (var == PURC_VARIANT_INVALID) {
+        return PURC_VARIANT_INVALID;
+    }
+
+    enum var_event_type type = VAR_EVENT_TYPE_ATTACHED;
+    if (strcmp(event, EVENT_ATTACHED) == 0) {
+        type = VAR_EVENT_TYPE_ATTACHED;
+    }
+    else if (strcmp(event, EVENT_DETACHED) == 0) {
+        type = VAR_EVENT_TYPE_DETACHED;
+    }
+    else if (strcmp(event, EVENT_DISPLACED) == 0) {
+        type = VAR_EVENT_TYPE_DISPLACED;
+    }
+
+    pcintr_stack_t stack = pcintr_get_stack();
+    struct var_observe* obs = find_var_observe(mgr, name, type, stack);
+    if (obs != NULL) {
+        return mgr->object;
+    }
+
+    obs = (struct var_observe*) malloc(sizeof(struct var_observe));
+    if (obs == NULL) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return PURC_VARIANT_INVALID;
+    }
+
+    obs->name = strdup(name);
+    obs->type = type;
+    obs->stack = stack;
+    unsigned int ret = pcutils_array_push(mgr->var_observers, obs);
+    if (ret == PURC_ERROR_OK) {
+        return mgr->object;
+    }
+
+    free(obs->name);
+    free(obs);
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t pcvarmgr_remove_observer(pcvarmgr_t mgr, const char* name,
+        const char* event)
+{
+    purc_variant_t var = pcvarmgr_get(mgr, name);
+    if (var == PURC_VARIANT_INVALID) {
+        return PURC_VARIANT_INVALID;
+    }
+
+    enum var_event_type type = VAR_EVENT_TYPE_ATTACHED;
+    if (strcmp(event, EVENT_ATTACHED) == 0) {
+        type = VAR_EVENT_TYPE_ATTACHED;
+    }
+    else if (strcmp(event, EVENT_DETACHED) == 0) {
+        type = VAR_EVENT_TYPE_DETACHED;
+    }
+    else if (strcmp(event, EVENT_DISPLACED) == 0) {
+        type = VAR_EVENT_TYPE_DISPLACED;
+    }
+
+    pcintr_stack_t stack = pcintr_get_stack();
+    int idx = find_var_observe_idx(mgr, name, type, stack);
+
+    if (idx != -1) {
+        struct var_observe* obs = (struct var_observe*) pcutils_array_get(
+                mgr->var_observers, idx);
+        free(obs->name);
+        free(obs);
+        pcutils_array_delete(mgr->var_observers, idx, 1);
+        return mgr->object;
+    }
+
+    return PURC_VARIANT_INVALID;
+}
+
 static purc_variant_t
-_find_named_scope_var(pcvdom_element_t elem, const char* name)
+_find_named_scope_var(pcvdom_element_t elem, const char* name, pcvarmgr_t* mgr)
 {
     if (!elem || !name) {
         PC_ASSERT(name); // FIXME: still recoverable???
@@ -178,19 +432,22 @@ _find_named_scope_var(pcvdom_element_t elem, const char* name)
 
     purc_variant_t v = pcintr_get_scope_variable(elem, name);
     if (v) {
+        if (mgr) {
+            *mgr = pcvdom_element_get_variables(elem);
+        }
         return v;
     }
 
     pcvdom_element_t parent = pcvdom_element_parent(elem);
     if (parent) {
-        return _find_named_scope_var(parent, name);
+        return _find_named_scope_var(parent, name, mgr);
     }
     purc_set_error_with_info(PCVARIANT_ERROR_NOT_FOUND, "name:%s", name);
     return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
-_find_doc_buildin_var(purc_vdom_t vdom, const char* name)
+find_doc_buildin_var(purc_vdom_t vdom, const char* name)
 {
     PC_ASSERT(name);
     if (!vdom) {
@@ -206,20 +463,20 @@ _find_doc_buildin_var(purc_vdom_t vdom, const char* name)
     return PURC_VARIANT_INVALID;
 }
 
-static purc_variant_t _find_inst_var(const char* name)
+static purc_variant_t find_inst_var(const char* name)
 {
     if (!name) {
         PC_ASSERT(0); // FIXME: still recoverable???
         return PURC_VARIANT_INVALID;
     }
 
-    pcvarmgr_list_t varmgr = pcinst_get_variables();
+    pcvarmgr_t varmgr = pcinst_get_variables();
     if (varmgr == NULL) {
         PC_ASSERT(0); // FIXME: still recoverable???
         return PURC_VARIANT_INVALID;
     }
 
-    purc_variant_t v = pcvarmgr_list_get(varmgr, name);
+    purc_variant_t v = pcvarmgr_get(varmgr, name);
     if (v) {
         return v;
     }
@@ -238,19 +495,19 @@ pcintr_find_named_var(pcintr_stack_t stack, const char* name)
     struct pcintr_stack_frame* frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame);
 
-    purc_variant_t v = _find_named_scope_var(frame->pos, name);
+    purc_variant_t v = _find_named_scope_var(frame->pos, name, NULL);
     if (v) {
         purc_clr_error();
         return v;
     }
 
-    v = _find_doc_buildin_var(stack->vdom, name);
+    v = find_doc_buildin_var(stack->vdom, name);
     if (v) {
         purc_clr_error();
         return v;
     }
 
-    v = _find_inst_var(name);
+    v = find_inst_var(name);
     if (v) {
         purc_clr_error();
         return v;
@@ -265,10 +522,8 @@ enum purc_symbol_var _to_symbol(char symbol)
     switch (symbol) {
     case '?':
         return PURC_SYMBOL_VAR_QUESTION_MARK;
-    case '^':
-        return PURC_SYMBOL_VAR_CARET;
-    case '&':
-        return PURC_SYMBOL_VAR_AMPERSAND;
+    case '<':
+        return PURC_SYMBOL_VAR_LESS_THAN;
     case '@':
         return PURC_SYMBOL_VAR_AT_SIGN;
     case '!':
@@ -292,6 +547,7 @@ pcintr_get_symbolized_var (pcintr_stack_t stack, unsigned int number,
 {
     enum purc_symbol_var symbol_var = _to_symbol(symbol);
     if (symbol_var == PURC_SYMBOL_VAR_MAX) {
+        PC_DEBUGX("symbol: [%c]", symbol);
         PC_ASSERT(0);
         return PURC_VARIANT_INVALID;
     }
@@ -333,5 +589,68 @@ pcintr_get_numbered_var (pcintr_stack_t stack, unsigned int number)
         return v;
     }
     purc_set_error_with_info(PCVARIANT_ERROR_NOT_FOUND, "number:%d", number);
+    return PURC_VARIANT_INVALID;
+}
+
+purc_variant_t
+pcintr_add_named_var_observer(pcintr_stack_t stack, const char* name,
+        const char* event)
+{
+    UNUSED_PARAM(event);
+    if (!stack || !name) {
+        PC_ASSERT(0); // FIXME: still recoverable???
+        return PURC_VARIANT_INVALID;
+    }
+
+    pcvarmgr_t mgr = NULL;
+    purc_variant_t v = find_doc_buildin_var(stack->vdom, name);
+    if (v) {
+        purc_clr_error();
+        mgr = pcvdom_document_get_variables(stack->vdom);
+        return pcvarmgr_add_observer(mgr, name, event);
+    }
+
+    v = find_inst_var(name);
+    if (v) {
+        purc_clr_error();
+        mgr = pcinst_get_variables();
+        return pcvarmgr_add_observer(mgr, name, event);
+    }
+
+    purc_set_error_with_info(PCVARIANT_ERROR_NOT_FOUND, "name:%s", name);
+    return PURC_VARIANT_INVALID;
+}
+
+purc_variant_t
+pcintr_remove_named_var_observer(pcintr_stack_t stack, const char* name,
+        const char* event)
+{
+    UNUSED_PARAM(event);
+    if (!stack || !name) {
+        PC_ASSERT(0); // FIXME: still recoverable???
+        return PURC_VARIANT_INVALID;
+    }
+
+    pcvarmgr_t mgr = NULL;
+    purc_variant_t v = find_doc_buildin_var(stack->vdom, name);
+    if (v) {
+        purc_clr_error();
+        mgr = pcvdom_document_get_variables(stack->vdom);
+        purc_variant_t observed = pcvarmgr_remove_observer(mgr, name, event);
+        if (observed != PURC_VARIANT_INVALID) {
+            return observed;
+        }
+    }
+
+    v = find_inst_var(name);
+    if (v) {
+        purc_clr_error();
+        mgr = pcinst_get_variables();
+        purc_variant_t observed = pcvarmgr_remove_observer(mgr, name, event);
+        if (observed != PURC_VARIANT_INVALID) {
+            return observed;
+        }
+    }
+
     return PURC_VARIANT_INVALID;
 }

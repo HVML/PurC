@@ -9,6 +9,12 @@ TEST(observe, basic)
     "<hvml target=\"html\" lang=\"en\">"
     "    <head>"
     "        <link rel=\"stylesheet\" type=\"text/css\" href=\"calculator.css\" />"
+    ""
+    "        <update on=\"$TIMERS\" to=\"displace\">"
+    "            ["
+    "                { \"id\" : \"clock\", \"interval\" : 1000, \"active\" : \"yes\" },"
+    "            ]"
+    "        </update>"
     "    </head>"
     ""
     "    <body>"
@@ -19,7 +25,11 @@ TEST(observe, basic)
     "                    <span id=\"clock\">00:00</span>"
     "                </h2>"
     "                <observe on=\"$TIMERS\" for=\"expired:clock\">"
-    "                    <update on=\"#clock\" at=\"textContent\" with=\"12:30\" />"
+    "                    <update on=\"#clock\" at=\"textContent\" with=\"$SYSTEM.time('%H:%M:%S')\" />"
+    "                    <update on=\"$TIMERS\" to=\"overwrite\">"
+    "                       { \"id\" : \"clock\", \"active\" : \"no\" }"
+    "                    </update>"
+    "                    <forget on=\"$TIMERS\" for=\"expired:clock\"/>"
     "                </observe>"
     "                <p>this is after observe</p>"
     "            </div>"
@@ -39,7 +49,8 @@ TEST(observe, basic)
     bool cleanup = false;
 
     // initial purc
-    ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ret = purc_init_ex (PURC_MODULE_HVML, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
 
     ASSERT_EQ (ret, PURC_ERROR_OK);
 

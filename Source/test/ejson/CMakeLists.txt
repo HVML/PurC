@@ -113,3 +113,29 @@ PURC_COMPUTE_SOURCES(test_ref)
 PURC_FRAMEWORK(test_ref)
 GTEST_DISCOVER_TESTS(test_ref DISCOVERY_TIMEOUT 10)
 
+# test_jsonee
+PURC_EXECUTABLE_DECLARE(test_jsonee)
+
+list(APPEND test_jsonee_PRIVATE_INCLUDE_DIRECTORIES
+        ${PURC_DIR}/include
+        ${PurC_DERIVED_SOURCES_DIR}
+        ${PURC_DIR}
+        ${CMAKE_BINARY_DIR}
+        ${WTF_DIR})
+
+PURC_EXECUTABLE(test_jsonee)
+
+set(test_jsonee_SOURCES
+    test_jsonee.cpp
+)
+
+set(test_jsonee_LIBRARIES
+    PurC::PurC
+    gtest_main
+    gtest
+    pthread
+)
+
+PURC_COMPUTE_SOURCES(test_jsonee)
+PURC_FRAMEWORK(test_jsonee)
+GTEST_DISCOVER_TESTS(test_jsonee DISCOVERY_TIMEOUT 10)

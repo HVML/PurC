@@ -50,15 +50,16 @@ enum pcvdom_nodetype {
     PCVDOM_NODE_COMMENT,
 };
 
-enum pchvml_attr_assignment {
-    PCHVML_ATTRIBUTE_ASSIGNMENT,             //  =
-    PCHVML_ATTRIBUTE_ADDITION_ASSIGNMENT,    // +=
-    PCHVML_ATTRIBUTE_SUBTRACTION_ASSIGNMENT, // -=
-    PCHVML_ATTRIBUTE_REMAINDER_ASSIGNMENT,   // %=
-    PCHVML_ATTRIBUTE_REPLACE_ASSIGNMENT,     // ~=
-    PCHVML_ATTRIBUTE_HEAD_ASSIGNMENT,        // ^=
-    PCHVML_ATTRIBUTE_TAIL_ASSIGNMENT,        // $=
-    PCHVML_ATTRIBUTE_REGEX_ASSIGNMENT,        // /=
+enum pchvml_attr_operator {
+    PCHVML_ATTRIBUTE_OPERATOR,                //  =
+    PCHVML_ATTRIBUTE_ADDITION_OPERATOR,       // +=
+    PCHVML_ATTRIBUTE_SUBTRACTION_OPERATOR,    // -=
+    PCHVML_ATTRIBUTE_ASTERISK_OPERATOR,       // *=
+    PCHVML_ATTRIBUTE_REGEX_OPERATOR,          // /=
+    PCHVML_ATTRIBUTE_REMAINDER_OPERATOR,      // %=
+    PCHVML_ATTRIBUTE_REPLACE_OPERATOR,        // ~=
+    PCHVML_ATTRIBUTE_HEAD_OPERATOR,           // ^=
+    PCHVML_ATTRIBUTE_TAIL_OPERATOR,           // $=
     PCHVML_ATTRIBUTE_MAX,
 };
 
@@ -118,7 +119,7 @@ struct pcvdom_document {
 
     // document-variables
     // such as `$REQUEST`、`$TIMERS`、`$T` and etc.
-    pcvarmgr_list_t         variables;
+    pcvarmgr_t         variables;
 
     unsigned int            quirks:1;
 };
@@ -133,7 +134,7 @@ struct pcvdom_attr {
     char                     *key;
 
     // operator
-    enum pchvml_attr_assignment       op;
+    enum pchvml_attr_operator       op;
 
     // text/jsonnee/no-value
     struct pcvcm_node        *val;
@@ -151,12 +152,9 @@ struct pcvdom_element {
     // val: struct pcvdom_attr*
     struct pcutils_map     *attrs;
 
-    // for those wrapped in `archetype`
-    struct pcvcm_node      *vcm_content;
-
     // FIXME: scoped-variables
     //  for those `defined` in `init`、`bind`、`connect`、`load`、`define`
-    pcvarmgr_list_t         variables;
+    pcvarmgr_t         variables;
 
     unsigned int            self_closing:1;
 };
@@ -164,7 +162,7 @@ struct pcvdom_element {
 struct pcvdom_content {
     struct pcvdom_node      node;
 
-    char                   *text;
+    struct pcvcm_node      *vcm;
 };
 
 struct pcvdom_comment {
@@ -176,6 +174,10 @@ struct pcvdom_comment {
 struct purc_vdom {
     struct pcvdom_document          *document;
     struct pcintr_timers            *timers;
+    uintptr_t   target_workspace_handle;  /* rdr workspace */
+    uintptr_t   target_window_handle;
+    uintptr_t   target_tabpage_handle;
+    uintptr_t   target_dom_handle;
 };
 
 // creating and destroying api
@@ -192,14 +194,14 @@ struct pcvdom_element*
 pcvdom_element_create_c(const char *tag_name);
 
 struct pcvdom_content*
-pcvdom_content_create(const char *text);
+pcvdom_content_create(struct pcvcm_node *vcm_content);
 
 struct pcvdom_comment*
 pcvdom_comment_create(const char *text);
 
 // for modification operators, such as +=|-=|%=|~=|^=|$=
 struct pcvdom_attr*
-pcvdom_attr_create(const char *key, enum pchvml_attr_assignment op,
+pcvdom_attr_create(const char *key, enum pchvml_attr_operator op,
     struct pcvcm_node *vcm);
 
 // key = vcm
@@ -208,7 +210,7 @@ pcvdom_attr_create(const char *key, enum pchvml_attr_assignment op,
 static inline struct pcvdom_attr*
 pcvdom_attr_create_simple(const char *key, struct pcvcm_node *vcm)
 {
-    return pcvdom_attr_create(key, PCHVML_ATTRIBUTE_ASSIGNMENT, vcm);
+    return pcvdom_attr_create(key, PCHVML_ATTRIBUTE_OPERATOR, vcm);
 }
 
 void
@@ -242,6 +244,63 @@ pcvdom_document_unbind_variable(purc_vdom_t vdom, const char *name);
 purc_variant_t
 pcvdom_document_get_variable(purc_vdom_t vdom, const char *name);
 
+pcvarmgr_t
+pcvdom_document_get_variables(purc_vdom_t vdom);
+
+PCA_INLINE void
+pcvdom_document_set_target_workspace(purc_vdom_t vdom, uintptr_t workspace)
+{
+    vdom->target_workspace_handle = workspace;
+}
+
+PCA_INLINE uintptr_t
+pcvdom_document_get_target_workspace(purc_vdom_t vdom)
+{
+    return vdom->target_workspace_handle;
+}
+
+PCA_INLINE void
+pcvdom_document_set_target_window(purc_vdom_t vdom, uintptr_t window)
+{
+    vdom->target_window_handle = window;
+}
+
+PCA_INLINE uintptr_t
+pcvdom_document_get_target_window(purc_vdom_t vdom)
+{
+    return vdom->target_window_handle;
+}
+
+PCA_INLINE void
+pcvdom_document_set_target_tabpage(purc_vdom_t vdom, uintptr_t tabpage)
+{
+    vdom->target_tabpage_handle = tabpage;
+}
+
+PCA_INLINE uintptr_t
+pcvdom_document_get_target_tabpage(purc_vdom_t vdom)
+{
+    return vdom->target_tabpage_handle;
+}
+
+PCA_INLINE void
+pcvdom_document_set_target_dom(purc_vdom_t vdom, uintptr_t dom)
+{
+    vdom->target_dom_handle = dom;
+}
+
+PCA_INLINE uintptr_t
+pcvdom_document_get_target_dom(purc_vdom_t vdom)
+{
+    return vdom->target_dom_handle;
+}
+
+PCA_INLINE bool
+pcvdom_document_is_attached_rdr(purc_vdom_t vdom)
+{
+    return (vdom->target_tabpage_handle || vdom->target_window_handle);
+}
+
 int
 pcvdom_element_append_attr(struct pcvdom_element *elem,
         struct pcvdom_attr *attr);
@@ -274,6 +333,8 @@ pcvdom_element_unbind_variable(struct pcvdom_element *elem,
 purc_variant_t
 pcvdom_element_get_variable(struct pcvdom_element *elem,
         const char *name);
+
+pcvarmgr_t pcvdom_element_get_variables(struct pcvdom_element *elem);
 
 // accessor api
 struct pcvdom_node*
@@ -371,6 +432,9 @@ pcvdom_element_is_hvml_native(struct pcvdom_element *element);
 struct pcvdom_attr*
 pcvdom_element_find_attr(struct pcvdom_element *element, const char *key);
 
+bool
+pcvdom_element_is_silently(struct pcvdom_element *element);
+
 struct pcvdom_element*
 pcvdom_content_parent(struct pcvdom_content *content);
 
@@ -413,6 +477,53 @@ int pcvdom_element_traverse(struct pcvdom_element *elem, void *ctx,
 
 purc_variant_t
 pcvdom_element_eval_attr_val(pcvdom_element_t element, const char *key);
+
+struct pcvdom_pos {
+    uint32_t        c;
+    int             line;
+    int             col;
+    int             pos;
+};
+
+struct pcvdom_document*
+pcvdom_util_document_from_stream(purc_rwstream_t in,
+        struct pcvdom_pos *pos);
+
+struct pcvdom_document*
+pcvdom_util_document_from_buf(const unsigned char *buf, size_t len,
+        struct pcvdom_pos *pos);
+
+enum pcvdom_util_node_serialize_opt {
+    PCVDOM_UTIL_NODE_SERIALIZE__UNDEF,
+    PCVDOM_UTIL_NODE_SERIALIZE_INDENT,
+};
+
+typedef int
+(*pcvdom_util_node_serialize_cb)(const char *buf, size_t len);
+
+void
+pcvdom_util_node_serialize_ex(struct pcvdom_node *node,
+        enum pcvdom_util_node_serialize_opt opt,
+        pcvdom_util_node_serialize_cb cb);
+
+static inline void
+pcvdom_util_node_serialize(struct pcvdom_node *node,
+        pcvdom_util_node_serialize_cb cb)
+{
+    enum pcvdom_util_node_serialize_opt opt;
+    opt = PCVDOM_UTIL_NODE_SERIALIZE_INDENT;
+    pcvdom_util_node_serialize_ex(node, opt, cb);
+}
+
+static inline int
+pcvdom_util_fprintf(const char *buf, size_t len)
+{
+    fprintf(stderr, "%.*s", (int)len, buf);
+    return 0;
+}
+
+#define PRINT_VDOM_NODE(_node)      \
+    pcvdom_util_node_serialize(_node, pcvdom_util_fprintf)
 
 PCA_EXTERN_C_END
 

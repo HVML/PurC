@@ -30,21 +30,25 @@
 #include <stdlib.h>
 
 static purc_variant_t
-foo_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+foo_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     (void)root;
     (void)nr_args;
     (void)argv;
+    (void)silently;
 
     return purc_variant_make_string_static("FOO", false);
 }
 
 static purc_variant_t
-bar_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv)
+bar_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
 {
     (void)root;
     (void)nr_args;
     (void)argv;
+    (void)silently;
 
     return purc_variant_make_string_static("BAR", false);
 }
@@ -114,7 +118,7 @@ int main(void)
         quit_on_error(2);
 
     func = purc_variant_dynamic_get_getter(dynamic);
-    retv = func(foobar, 0, NULL);
+    retv = func(foobar, 0, NULL, false);
     printf ("getter returned %s for foo\n",
             purc_variant_get_string_const(retv));
     purc_variant_unref(retv);
@@ -124,7 +128,7 @@ int main(void)
         quit_on_error(2);
 
     func = purc_variant_dynamic_get_getter(dynamic);
-    retv = func(foobar, 0, NULL);
+    retv = func(foobar, 0, NULL, false);
     printf ("getter returned %s for bar\n",
             purc_variant_get_string_const(retv));
     purc_variant_unref(retv);

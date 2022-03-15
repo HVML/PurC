@@ -34,7 +34,8 @@ TEST(dvobjs, dvobjs_fs_list)
     size_t nr_reserved_after = 0;
 
     purc_instance_extra_info info = {};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
@@ -42,6 +43,7 @@ TEST(dvobjs, dvobjs_fs_list)
 
     const char *env;
     env = "DVOBJS_SO_PATH";
+    setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     purc_variant_t fs = purc_variant_load_dvobj_from_so (NULL, "FS");
     ASSERT_NE(fs, nullptr);
     ASSERT_EQ(purc_variant_is_object (fs), true);
@@ -65,27 +67,27 @@ TEST(dvobjs, dvobjs_fs_list)
     strcat (file_path, "/fs");
 
     printf ("TEST list: nr_args = 0, param = NULL:\n");
-    ret_var = func (NULL, 0, param);
+    ret_var = func (NULL, 0, param, false);
     ASSERT_EQ(ret_var, nullptr);
     printf("\t\tReturn PURC_VARIANT_INVALID\n");
 
     printf ("TEST list: nr_args = 1, param[0] = NUMBER:\n");
     param[0] = purc_variant_make_number (1);
-    ret_var = func (NULL, 1, param);
+    ret_var = func (NULL, 1, param, false);
     ASSERT_EQ(ret_var, nullptr);
     printf("\t\tReturn PURC_VARIANT_INVALID\n");
     purc_variant_unref(param[0]);
 
     printf ("TEST list: nr_args = 1, param[0] = wrong path:\n");
     param[0] = purc_variant_make_string ("/abcdefg/123", true);
-    ret_var = func (NULL, 1, param);
+    ret_var = func (NULL, 1, param, false);
     ASSERT_EQ(ret_var, nullptr);
     printf("\t\tReturn PURC_VARIANT_INVALID\n");
     purc_variant_unref(param[0]);
 
     printf ("TEST list: nr_args = 1, param[0] = path:\n");
     param[0] = purc_variant_make_string (file_path, true);
-    ret_var = func (NULL, 1, param);
+    ret_var = func (NULL, 1, param, false);
     ASSERT_NE(ret_var, nullptr);
 
     ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_ARRAY), true);
@@ -134,7 +136,7 @@ TEST(dvobjs, dvobjs_fs_list)
     printf ("TEST list: nr_args = 1, param[0] = path, param[1] = *.md:\n");
     param[0] = purc_variant_make_string (file_path, true);
     param[1] = purc_variant_make_string ("*.md", true);
-    ret_var = func (NULL, 2, param);
+    ret_var = func (NULL, 2, param, false);
     ASSERT_NE(ret_var, nullptr);
 
     ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_ARRAY), true);
@@ -185,7 +187,7 @@ TEST(dvobjs, dvobjs_fs_list)
     printf ("TEST list: nr_args = 1, param[0] = path, param[1] = *.test:\n");
     param[0] = purc_variant_make_string (file_path, true);
     param[1] = purc_variant_make_string ("*.test", true);
-    ret_var = func (NULL, 2, param);
+    ret_var = func (NULL, 2, param, false);
     ASSERT_NE(ret_var, nullptr);
 
     ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_ARRAY), true);
@@ -236,7 +238,7 @@ TEST(dvobjs, dvobjs_fs_list)
             param[0] = path, param[1] = *.test;*.md:\n");
     param[0] = purc_variant_make_string (file_path, true);
     param[1] = purc_variant_make_string ("*.md;*.test", true);
-    ret_var = func (NULL, 2, param);
+    ret_var = func (NULL, 2, param, false);
     ASSERT_NE(ret_var, nullptr);
 
     ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_ARRAY), true);
@@ -310,7 +312,8 @@ TEST(dvobjs, dvobjs_fs_list_prt)
     size_t nr_reserved_after = 0;
 
     purc_instance_extra_info info = {};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
@@ -318,6 +321,7 @@ TEST(dvobjs, dvobjs_fs_list_prt)
 
     const char *env;
     env = "DVOBJS_SO_PATH";
+    setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     purc_variant_t fs = purc_variant_load_dvobj_from_so (NULL, "FS");
     ASSERT_NE(fs, nullptr);
     ASSERT_EQ(purc_variant_is_object (fs), true);
@@ -343,27 +347,27 @@ TEST(dvobjs, dvobjs_fs_list_prt)
     strcat (file_path, "/fs");
 
     printf ("TEST list_prt: nr_args = 0, param = NULL:\n");
-    ret_var = func (NULL, 0, param);
+    ret_var = func (NULL, 0, param, false);
     ASSERT_EQ(ret_var, nullptr);
     printf("\t\tReturn PURC_VARIANT_INVALID\n");
 
     printf ("TEST list_prt: nr_args = 1, param[0] = NUMBER:\n");
     param[0] = purc_variant_make_number (1);
-    ret_var = func (NULL, 1, param);
+    ret_var = func (NULL, 1, param, false);
     ASSERT_EQ(ret_var, nullptr);
     printf("\t\tReturn PURC_VARIANT_INVALID\n");
     purc_variant_unref(param[0]);
 
     printf ("TEST list_prt: nr_args = 1, param[0] = wrong path:\n");
     param[0] = purc_variant_make_string ("/abcdefg/123", true);
-    ret_var = func (NULL, 1, param);
+    ret_var = func (NULL, 1, param, false);
     ASSERT_EQ(ret_var, nullptr);
     printf("\t\tReturn PURC_VARIANT_INVALID\n");
     purc_variant_unref(param[0]);
 
     printf ("TEST list: nr_args = 1, param[0] = path:\n");
     param[0] = purc_variant_make_string (file_path, true);
-    ret_var = func (NULL, 1, param);
+    ret_var = func (NULL, 1, param, false);
     ASSERT_NE(ret_var, nullptr);
 
     ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_ARRAY), true);
@@ -380,7 +384,7 @@ TEST(dvobjs, dvobjs_fs_list_prt)
     param[0] = purc_variant_make_string (file_path, true);
     param[1] = NULL;
     param[2] = purc_variant_make_string ("name size", true);
-    ret_var = func (NULL, 3, param);
+    ret_var = func (NULL, 3, param, false);
     ASSERT_NE(ret_var, nullptr);
 
     ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_ARRAY), true);
@@ -398,7 +402,7 @@ TEST(dvobjs, dvobjs_fs_list_prt)
     param[0] = purc_variant_make_string (file_path, true);
     param[1] = purc_variant_make_string ("*.md", true);
     param[2] = purc_variant_make_string ("name size mode", true);
-    ret_var = func (NULL, 3, param);
+    ret_var = func (NULL, 3, param, false);
     ASSERT_NE(ret_var, nullptr);
 
     ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_ARRAY), true);
@@ -436,7 +440,8 @@ TEST(dvobjs, dvobjs_fs_mkdir)
     size_t nr_reserved_after = 0;
 
     purc_instance_extra_info info = {};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
@@ -444,6 +449,7 @@ TEST(dvobjs, dvobjs_fs_mkdir)
 
     const char *env;
     env = "DVOBJS_SO_PATH";
+    setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     purc_variant_t fs = purc_variant_load_dvobj_from_so (NULL, "FS");
     ASSERT_NE(fs, nullptr);
     ASSERT_EQ(purc_variant_is_object (fs), true);
@@ -468,20 +474,20 @@ TEST(dvobjs, dvobjs_fs_mkdir)
     strcat (file_path, "/fs/test");
 
     printf ("TEST list_prt: nr_args = 0, param = NULL:\n");
-    ret_var = func (NULL, 0, param);
+    ret_var = func (NULL, 0, param, false);
     ASSERT_EQ(ret_var, nullptr);
     printf("\t\tReturn PURC_VARIANT_INVALID\n");
 
     printf ("TEST list_prt: nr_args = 1, param[0] = NUMBER:\n");
     param[0] = purc_variant_make_number (1);
-    ret_var = func (NULL, 1, param);
+    ret_var = func (NULL, 1, param, false);
     ASSERT_EQ(ret_var, nullptr);
     printf("\t\tReturn PURC_VARIANT_INVALID\n");
     purc_variant_unref(param[0]);
 
     printf ("TEST list: nr_args = 1, param[0] = path:\n");
     param[0] = purc_variant_make_string (file_path, true);
-    ret_var = func (NULL, 1, param);
+    ret_var = func (NULL, 1, param, false);
     ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN), true);
     purc_variant_unref(param[0]);
     purc_variant_unref(ret_var);
@@ -517,7 +523,8 @@ TEST(dvobjs, dvobjs_fs_rmdir)
     size_t nr_reserved_after = 0;
 
     purc_instance_extra_info info = {};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
@@ -525,6 +532,7 @@ TEST(dvobjs, dvobjs_fs_rmdir)
 
     const char *env;
     env = "DVOBJS_SO_PATH";
+    setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     purc_variant_t fs = purc_variant_load_dvobj_from_so (NULL, "FS");
     ASSERT_NE(fs, nullptr);
     ASSERT_EQ(purc_variant_is_object (fs), true);
@@ -548,13 +556,13 @@ TEST(dvobjs, dvobjs_fs_rmdir)
     strcat (file_path, "/fs/test");
 
     printf ("TEST list_prt: nr_args = 0, param = NULL:\n");
-    ret_var = func (NULL, 0, param);
+    ret_var = func (NULL, 0, param, false);
     ASSERT_EQ(ret_var, nullptr);
     printf("\t\tReturn PURC_VARIANT_INVALID\n");
 
     printf ("TEST list_prt: nr_args = 1, param[0] = NUMBER:\n");
     param[0] = purc_variant_make_number (1);
-    ret_var = func (NULL, 1, param);
+    ret_var = func (NULL, 1, param, false);
     ASSERT_EQ(ret_var, nullptr);
     printf("\t\tReturn PURC_VARIANT_INVALID\n");
     purc_variant_unref(param[0]);
@@ -563,7 +571,7 @@ TEST(dvobjs, dvobjs_fs_rmdir)
 
     printf ("TEST list: nr_args = 1, param[0] = path:\n");
     param[0] = purc_variant_make_string (file_path, true);
-    ret_var = func (NULL, 1, param);
+    ret_var = func (NULL, 1, param, false);
     ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN), true);
     purc_variant_unref(param[0]);
     purc_variant_unref(ret_var);
@@ -599,7 +607,8 @@ TEST(dvobjs, dvobjs_fs_rm)
     size_t nr_reserved_after = 0;
 
     purc_instance_extra_info info = {};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
@@ -607,6 +616,7 @@ TEST(dvobjs, dvobjs_fs_rm)
 
     const char *env;
     env = "DVOBJS_SO_PATH";
+    setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     purc_variant_t fs = purc_variant_load_dvobj_from_so (NULL, "FS");
     ASSERT_NE(fs, nullptr);
     ASSERT_EQ(purc_variant_is_object (fs), true);
@@ -630,13 +640,13 @@ TEST(dvobjs, dvobjs_fs_rm)
     strcat (file_path, "/fs/test");
 
     printf ("TEST list_prt: nr_args = 0, param = NULL:\n");
-    ret_var = func (NULL, 0, param);
+    ret_var = func (NULL, 0, param, false);
     ASSERT_EQ(ret_var, nullptr);
     printf("\t\tReturn PURC_VARIANT_INVALID\n");
 
     printf ("TEST list_prt: nr_args = 1, param[0] = NUMBER:\n");
     param[0] = purc_variant_make_number (1);
-    ret_var = func (NULL, 1, param);
+    ret_var = func (NULL, 1, param, false);
     ASSERT_EQ(ret_var, nullptr);
     printf("\t\tReturn PURC_VARIANT_INVALID\n");
     purc_variant_unref(param[0]);
@@ -645,7 +655,7 @@ TEST(dvobjs, dvobjs_fs_rm)
 
     printf ("TEST list: nr_args = 1, param[0] = path:\n");
     param[0] = purc_variant_make_string (file_path, true);
-    ret_var = func (NULL, 1, param);
+    ret_var = func (NULL, 1, param, false);
     ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN), true);
     purc_variant_unref(param[0]);
     purc_variant_unref(ret_var);
@@ -681,7 +691,8 @@ TEST(dvobjs, dvobjs_fs_unlink)
     size_t nr_reserved_after = 0;
 
     purc_instance_extra_info info = {};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
@@ -689,6 +700,7 @@ TEST(dvobjs, dvobjs_fs_unlink)
 
     const char *env;
     env = "DVOBJS_SO_PATH";
+    setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     purc_variant_t fs = purc_variant_load_dvobj_from_so (NULL, "FS");
     ASSERT_NE(fs, nullptr);
     ASSERT_EQ(purc_variant_is_object (fs), true);
@@ -712,13 +724,13 @@ TEST(dvobjs, dvobjs_fs_unlink)
     strcat (file_path, "/fs/streq.test");
 
     printf ("TEST list_prt: nr_args = 0, param = NULL:\n");
-    ret_var = func (NULL, 0, param);
+    ret_var = func (NULL, 0, param, false);
     ASSERT_EQ(ret_var, nullptr);
     printf("\t\tReturn PURC_VARIANT_INVALID\n");
 
     printf ("TEST list_prt: nr_args = 1, param[0] = NUMBER:\n");
     param[0] = purc_variant_make_number (1);
-    ret_var = func (NULL, 1, param);
+    ret_var = func (NULL, 1, param, false);
     ASSERT_EQ(ret_var, nullptr);
     printf("\t\tReturn PURC_VARIANT_INVALID\n");
     purc_variant_unref(param[0]);
@@ -726,7 +738,7 @@ TEST(dvobjs, dvobjs_fs_unlink)
 
     printf ("TEST list: nr_args = 1, param[0] = path:\n");
     param[0] = purc_variant_make_string (file_path, true);
-    ret_var = func (NULL, 1, param);
+    ret_var = func (NULL, 1, param, false);
     ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN), true);
     purc_variant_unref(param[0]);
     purc_variant_unref(ret_var);
@@ -760,7 +772,8 @@ TEST(dvobjs, dvobjs_fs_touch)
     size_t nr_reserved_after = 0;
 
     purc_instance_extra_info info = {};
-    int ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
@@ -768,6 +781,7 @@ TEST(dvobjs, dvobjs_fs_touch)
 
     const char *env;
     env = "DVOBJS_SO_PATH";
+    setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     purc_variant_t fs = purc_variant_load_dvobj_from_so (NULL, "FS");
     ASSERT_NE(fs, nullptr);
     ASSERT_EQ(purc_variant_is_object (fs), true);
@@ -791,13 +805,13 @@ TEST(dvobjs, dvobjs_fs_touch)
     strcat (file_path, "/fs/temp.and.test");
 
     printf ("TEST list_prt: nr_args = 0, param = NULL:\n");
-    ret_var = func (NULL, 0, param);
+    ret_var = func (NULL, 0, param, false);
     ASSERT_EQ(ret_var, nullptr);
     printf("\t\tReturn PURC_VARIANT_INVALID\n");
 
     printf ("TEST list_prt: nr_args = 1, param[0] = NUMBER:\n");
     param[0] = purc_variant_make_number (1);
-    ret_var = func (NULL, 1, param);
+    ret_var = func (NULL, 1, param, false);
     ASSERT_EQ(ret_var, nullptr);
     printf("\t\tReturn PURC_VARIANT_INVALID\n");
     purc_variant_unref(param[0]);
@@ -808,7 +822,7 @@ TEST(dvobjs, dvobjs_fs_touch)
     sprintf (old, "%s", ctime(&file_stat.st_atime));
     printf ("TEST list: nr_args = 1, param[0] = path:\n");
     param[0] = purc_variant_make_string (file_path, true);
-    ret_var = func (NULL, 1, param);
+    ret_var = func (NULL, 1, param, false);
     ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN), true);
     purc_variant_unref(param[0]);
     purc_variant_unref(ret_var);

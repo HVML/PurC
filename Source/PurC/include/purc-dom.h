@@ -191,7 +191,11 @@ pcdom_node_name(pcdom_node_t *node,
                 size_t *len);
 
 void
-pcdom_node_insert_child(pcdom_node_t *to,
+pcdom_node_append_child(pcdom_node_t *to,
+                pcdom_node_t *node);
+
+void
+pcdom_node_prepend_child(pcdom_node_t *to,
                 pcdom_node_t *node);
 
 void
@@ -396,6 +400,18 @@ pcdom_document_interface_destroy(
 
 pcdom_document_t *
 pcdom_document_create(pcdom_document_t *owner);
+
+static inline pcdom_document_t *
+pcdom_document_owner(pcdom_document_t *document)
+{
+    return pcdom_interface_node(document)->owner_document;
+}
+
+static inline bool
+pcdom_document_is_original(pcdom_document_t *document)
+{
+    return pcdom_interface_node(document)->owner_document == document;
+}
 
 unsigned int
 pcdom_document_init(pcdom_document_t *document, pcdom_document_t *owner,

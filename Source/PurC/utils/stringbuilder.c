@@ -224,6 +224,27 @@ pcutils_string_check_size(struct pcutils_string *string, size_t size)
 }
 
 int
+pcutils_string_append_chunk(struct pcutils_string *string, const char *chunk)
+{
+    size_t len = strlen(chunk);
+
+    int r;
+    r = pcutils_string_check_size(string, len + 1);
+    if (r)
+        return -1;
+
+#if 0   /* NOTE: use `strcpy` is Ok, because you have checked the space. */
+    strncpy(string->curr, chunk, len);
+    string->curr[len] = '\0';
+#else
+    strcpy(string->curr, chunk);
+#endif
+    string->curr += len;
+
+    return 0;
+}
+
+int
 pcutils_string_vappend(struct pcutils_string *string,
         const char *fmt, va_list ap)
 {
@@ -240,7 +261,8 @@ pcutils_string_vappend(struct pcutils_string *string,
     if ((size_t)n < len)
         return 0;
 
-    int r = pcutils_string_check_size(string, (string->end - string->abuf) + n);
+    int r;
+    r = pcutils_string_check_size(string, (string->end - string->abuf) + n);
     if (r)
         return -1;
 

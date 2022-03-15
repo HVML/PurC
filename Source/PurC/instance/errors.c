@@ -33,10 +33,12 @@
 
 #include <stdarg.h>
 
+#ifndef NDEBUG                     /* { */
 #if OS(LINUX)                      /* { */
 #include <execinfo.h>
 #include <link.h>
 #include <regex.h>
+#endif                             /* } */
 #endif                             /* } */
 
 static const struct err_msg_info* get_error_info(int errcode);
@@ -66,6 +68,15 @@ purc_variant_t purc_get_last_error_ex(void)
 int purc_set_error_exinfo_with_debug(int errcode, purc_variant_t exinfo,
         const char *file, int lineno, const char *func)
 {
+#ifndef NDEBUG                     /* { */
+    if (errcode) {
+        PC_DEBUGX("%s[%d]:%s(): %d",
+                pcutils_basename((char*)file), lineno, func, errcode);
+        if (exinfo != PURC_VARIANT_INVALID)
+            PRINT_VARIANT(exinfo);
+    }
+#endif                             /* } */
+
     struct pcinst* inst = pcinst_current();
     if (inst == NULL) {
         _noinst_errcode = errcode;
@@ -75,6 +86,8 @@ int purc_set_error_exinfo_with_debug(int errcode, purc_variant_t exinfo,
     inst->errcode = errcode;
     PURC_VARIANT_SAFE_CLEAR(inst->err_exinfo);
     inst->err_exinfo = exinfo;
+
+#ifndef NDEBUG                     /* { */
     inst->file       = file;
     inst->lineno     = lineno;
     inst->func       = func;
@@ -82,13 +95,18 @@ int purc_set_error_exinfo_with_debug(int errcode, purc_variant_t exinfo,
 #if OS(LINUX)                      /* { */
     inst->nr_stacks = backtrace(inst->c_stacks, PCA_TABLESIZE(inst->c_stacks));
 #endif                             /* } */
+#endif                             /* } */
 
     // set the exception info into stack
-    pcintr_stack_t stack = purc_get_stack();
+    pcintr_stack_t stack = pcintr_get_stack();
     if (stack) {
         const struct err_msg_info* info = get_error_info(errcode);
         if (info == NULL ||
                 ((info->flags & PURC_EXCEPT_FLAGS_REQUIRED) && !exinfo)) {
+#ifndef NDEBUG                     /* { */
+            PC_DEBUGX("%s[%d]:%s(): %d",
+                    pcutils_basename((char*)file), lineno, func, errcode);
+#endif                             /* } */
             return PURC_ERROR_INVALID_VALUE;
         }
         stack->error_except = info->except_atom;
@@ -179,6 +197,7 @@ void pcinst_register_error_message_segment(struct err_msg_seg* seg)
     }
 }
 
+#ifndef NDEBUG                     /* { */
 #if OS(LINUX)                      /* { */
 static void
 dump_stack_by_cmd(int *level, const char *cmd)
@@ -311,9 +330,11 @@ dump_stacks_ex(char **stacks, regex_t *regex)
         dump_stack_by_cmd(&level, cmd);
 }
 #endif                             /* } */
+#endif                             /* } */
 
 void pcinst_dump_stack(void)
 {
+#ifndef NDEBUG                     /* { */
 #if OS(LINUX)                      /* { */
     struct pcinst* inst = pcinst_current();
     PC_ASSERT(inst);
@@ -340,6 +361,7 @@ void pcinst_dump_stack(void)
     regfree(&regex);
 
     free(stacks);
+#endif                             /* } */
 #endif                             /* } */
 }
 

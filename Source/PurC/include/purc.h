@@ -39,10 +39,48 @@
 #include "purc-variant.h"
 #include "purc-dom.h"
 #include "purc-html.h"
+#include "purc-helpers.h"
+#include "purc-pcrdr.h"
+#include "purc-dvobjs.h"
 
+/** The structure defining the extra information for a new PurC instance. */
 typedef struct purc_instance_extra_info {
-    const char *renderer_uri;
-    bool enable_remote_fetcher;
+    /**
+     * The renderer protocol, one of the following values:
+     *  - PURC_RDRPROT_HEADLESS:
+     *      No renderer.
+     *  - PURC_RDRPROT_THREAD:
+     *      The renderer runs as a thread within the current process.
+     *  - PURC_RDRPROT_PURCMC:
+     *      The renderer runs as a server and uses PurCMC.
+     *  - PURC_RDRPROT_HIBUS:
+     *      The renderer runs as a hiBus endpoint and uses hiBus.
+     */
+    purc_rdrprot_t  renderer_prot;
+
+    /**
+     * When using a HEADLESS renderer, you should specify a file
+     * or a named pipe, like `file:///var/tmp/purc-foo-bar-msgs.log`.
+     *
+     * When using a THREAD renderer, you should specify the endpoint name
+     * of the renderer like `@<app_name>/<runner_name>`. The endpoint name
+     * will be used to distinguish renderers and interperter instances.
+     *
+     * When using a PURCMC renderer, you can specify a UNIX domain socket
+     * or a URI of WebSocket:
+     *
+     *      - UNIX domain socket: `unix:///var/tmp/xxx.sock`
+     *      - WebSocket: `ws://foo.bar.com:8877`
+     *      - Secured WebSocket: `wss://foo.bar.com:8877`
+     */
+    const char      *renderer_uri;
+
+    /** the SSL certification if using Secured WebSocket. */
+    const char      *ssl_cert;
+
+    /** the SSL key if using Secured WebSocket. */
+    const char      *ssl_key;
+
 } purc_instance_extra_info;
 
 PCA_EXTERN_C_BEGIN
@@ -55,6 +93,9 @@ PCA_EXTERN_C_BEGIN
 #define PURC_HAVE_EJSON         0x0020
 #define PURC_HAVE_XGML          0x0040
 #define PURC_HAVE_HVML          0x0080
+#define PURC_HAVE_PCRDR         0x0100
+#define PURC_HAVE_FETCHER       0x0200
+#define PURC_HAVE_FETCHER_R     0x0400
 
 #define PURC_MODULE_UTILS      (PURC_HAVE_UTILS)
 #define PURC_MODULE_DOM        (PURC_MODULE_UTILS    | PURC_HAVE_DOM)
@@ -63,7 +104,9 @@ PCA_EXTERN_C_BEGIN
 #define PURC_MODULE_VARIANT    (PURC_MODULE_UTILS    | PURC_HAVE_VARIANT)
 #define PURC_MODULE_EJSON      (PURC_MODULE_VARIANT  | PURC_HAVE_EJSON)
 #define PURC_MODULE_XGML       (PURC_MODULE_EJSON    | PURC_HAVE_XGML)
-#define PURC_MODULE_HVML       (PURC_MODULE_EJSON    | PURC_HAVE_HVML)
+#define PURC_MODULE_HVML       (PURC_MODULE_EJSON    | PURC_HAVE_HVML | \
+    PURC_HAVE_FETCHER)
+#define PURC_MODULE_PCRDR      (PURC_MODULE_EJSON    | PURC_HAVE_PCRDR)
 #define PURC_MODULE_ALL         0xFFFF
 
 /**
@@ -78,6 +121,7 @@ PCA_EXTERN_C_BEGIN
  *  - @PURC_MODULE_VARIANT: Variant.
  *  - @PURC_MODULE_EJSON: eJSON parser.
  *  - @PURC_MODULE_XGML: XGML Parser (not implemented).
+ *  - @PURC_MODULE_PCRDR: Communication with renderer.
  *  - @PURC_MODULE_ALL: All modules including HVML parser and interpreter.
  * @app_name: a pointer to the string contains the app name.
  *      If this argument is null, the executable program name of the command
@@ -320,32 +364,61 @@ PCA_EXPORT bool
 purc_bind_document_variable(purc_vdom_t vdom, const char* name,
         purc_variant_t variant);
 
-typedef struct purc_window_info {
+/**
+ * purc_get_conn_to_renderer:
+ *
+ * Retrieve the connection to the renderer of the current PurC instance.
+ *
+ * Returns: the pointer to the connection structure.
+ *
+ * Since 0.1.0
+ */
+PCA_EXPORT struct pcrdr_conn *
+purc_get_conn_to_renderer(void);
+
+/** The extra renderer information */
+typedef struct purc_renderer_extra_info {
+    /** the workspace classes if creating a new workspace */
+    const char *workspace_classes;
+    /** the workspace styles if creating a new workspace */
+    const char *workspace_styles;
+    /** the workspace title if creating a new workspace */
+    const char *workspace_title;
+    /** the window classes if creating a new window */
     const char *classes;
-    const char *box_styles;
-} purc_window_info;
+    /** the window styles if creating a new window */
+    const char *styles;
+    /** the window title if creating a new window */
+    const char *title;
+    /** the tabpage title if creating a new tabpage */
+    const char *tabpage_title;
+} purc_renderer_extra_info;
 
 /**
  * purc_attach_vdom_to_renderer:
  *
  * @vdom: The vDOM entity returned by @purc_load_hvml_from_rwstream or
  *      its brother functions.
+ * @target_workspace: The identifier of the target workspace.
+ * @target_window: The identifier of the target plain window or tabbed window.
+ * @target_tabpage: The identifier of the target tabpage. If it is NULL,
+ *      @target_window means a plain window.
+ * @target_level: the identifier of the target window level.
  *
- * Attaches a vDOM tree to a plain window or a tabbed page in
+ * Attaches a vDOM tree to a plain window or a tabpage in a tabbed window in
  * the connected renderer.
  *
- * Returns: the error code:
- *  - @PURC_ERROR_OK: success
- *  - TODO
+ * Returns: @true on success; otherwise @false.
  *
- * Since 0.0.1
+ * Since 0.1.0
  */
 PCA_EXPORT bool
 purc_attach_vdom_to_renderer(purc_vdom_t vdom,
-        const char *target_workspace, const char* workspace_name,
-        const char *target_window, const char *window_name,
-        const char *target_page, const char *page_name,
-        purc_window_info *window_info);
+        const char *target_workspace,
+        const char *target_window,
+        const char *target_tabpage,
+        const char *target_level,
+        purc_renderer_extra_info *extra_info);
 
 typedef int (*purc_event_handler)(purc_vdom_t vdom, purc_variant_t event);
 

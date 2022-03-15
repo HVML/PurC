@@ -3,6 +3,9 @@
 #include "purc-variant.h"
 #include "private/variant.h"
 #include "private/ejson-parser.h"
+#include "private/debug.h"
+
+#include "../helpers.h"
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -35,7 +38,8 @@ TEST(variant_set, init_with_1_str)
     bool cleanup = false;
     struct purc_variant_stat *stat;
 
-    ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ(ret, PURC_ERROR_OK);
 
     stat = purc_variant_usage_stat();
@@ -89,7 +93,8 @@ TEST(variant_set, non_object)
     int ret = 0;
     bool cleanup = false;
 
-    ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ(ret, PURC_ERROR_OK);
 
     const char *elems[] = {
@@ -139,7 +144,8 @@ TEST(variant_set, init_0_elem)
     bool cleanup = false;
     struct purc_variant_stat *stat;
 
-    ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ(ret, PURC_ERROR_OK);
 
     stat = purc_variant_usage_stat();
@@ -178,7 +184,8 @@ TEST(variant_set, add_1_str)
     bool cleanup = false;
     struct purc_variant_stat *stat;
 
-    ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ(ret, PURC_ERROR_OK);
 
     stat = purc_variant_usage_stat();
@@ -202,9 +209,9 @@ TEST(variant_set, add_1_str)
 
     ASSERT_TRUE(sanity_check(var));
 
+    ASSERT_EQ(obj->refc, 1);
     purc_variant_unref(obj);
     purc_variant_unref(s);
-    ASSERT_EQ(obj->refc, 1);
 
     ASSERT_EQ(stat->nr_values[PVT(_STRING)], 2);
     ASSERT_EQ(stat->nr_values[PVT(_OBJECT)], 1);
@@ -227,7 +234,8 @@ TEST(variant_set, add_n_str)
     bool cleanup = false;
     struct purc_variant_stat *stat;
 
-    ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ(ret, PURC_ERROR_OK);
 
     stat = purc_variant_usage_stat();
@@ -255,9 +263,9 @@ TEST(variant_set, add_n_str)
 
         ASSERT_TRUE(sanity_check(var));
 
+        ASSERT_EQ(obj->refc, 1);
         purc_variant_unref(obj);
         purc_variant_unref(s);
-        ASSERT_EQ(obj->refc, 1);
     }
     ASSERT_EQ(stat->nr_values[PVT(_STRING)], count*2);
     ASSERT_EQ(stat->nr_values[PVT(_OBJECT)], count);
@@ -358,7 +366,8 @@ TEST(variant_set, dup)
     int ret = 0;
     bool cleanup = false;
 
-    ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ(ret, PURC_ERROR_OK);
 
     purc_variant_t set = purc_variant_make_set_by_ckey(0, "hello",
@@ -469,7 +478,8 @@ TEST(variant_set, sort)
     bool cleanup = false;
     struct purc_variant_stat *stat;
 
-    ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ(ret, PURC_ERROR_OK);
 
     stat = purc_variant_usage_stat();
@@ -571,7 +581,8 @@ TEST(variant_set, generic)
     bool cleanup = false;
     struct purc_variant_stat *stat;
 
-    ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ(ret, PURC_ERROR_OK);
 
     stat = purc_variant_usage_stat();
@@ -603,14 +614,15 @@ TEST(variant_set, generic)
     ASSERT_STREQ(inbuf, outbuf);
 }
 
-TEST(variant_set, constraint_non_mutable_keyval)
+TEST(variant_set, constraint_mutable_keyval)
 {
     purc_instance_extra_info info = {};
     int ret = 0;
     bool cleanup = false;
     struct purc_variant_stat *stat;
 
-    ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ(ret, PURC_ERROR_OK);
 
     stat = purc_variant_usage_stat();
@@ -618,22 +630,25 @@ TEST(variant_set, constraint_non_mutable_keyval)
 
     const char *s;
     purc_variant_t set;
-    s = "{!name, {name:'foo', count:3}}";
+    s = "[!name, {name:'foo', count:3}]";
     set = pcejson_parser_parse_string(s, 1, 1);
     ASSERT_NE(set, nullptr);
     purc_variant_unref(set);
 
-    s = "{!name, {name:[], count:3}}";
+    s = "[!name, {name:[], count:345}]";
     set = pcejson_parser_parse_string(s, 1, 1);
-    ASSERT_EQ(set, nullptr);
+    ASSERT_NE(set, nullptr);
+    purc_variant_unref(set);
 
-    s = "{!name, {name:{}, count:3}}";
+    s = "[!name, {name:{}, count:3}]";
     set = pcejson_parser_parse_string(s, 1, 1);
-    ASSERT_EQ(set, nullptr);
+    ASSERT_NE(set, nullptr);
+    purc_variant_unref(set);
 
-    s = "{!, {name:{}, count:3}}";
+    s = "[!, {name:{}, count:3}]";
     set = pcejson_parser_parse_string(s, 1, 1);
-    ASSERT_EQ(set, nullptr);
+    ASSERT_NE(set, nullptr);
+    purc_variant_unref(set);
 
     cleanup = purc_cleanup ();
     ASSERT_EQ (cleanup, true);
@@ -646,7 +661,8 @@ TEST(variant_set, constraint_non_valid_set)
     bool cleanup = false;
     struct purc_variant_stat *stat;
 
-    ret = purc_init ("cn.fmsoft.hybridos.test", "test_init", &info);
+    ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
     ASSERT_EQ(ret, PURC_ERROR_OK);
 
     stat = purc_variant_usage_stat();
@@ -654,36 +670,36 @@ TEST(variant_set, constraint_non_valid_set)
 
     const char *s;
     purc_variant_t set, v;
-    s = "{!name, {name:'foo', count:3}}";
+    s = "[!name, {name:'foo', count:3}]";
     set = pcejson_parser_parse_string(s, 1, 1);
     ASSERT_NE(set, nullptr);
     purc_variant_unref(set);
 
-    s = "{!attr, {name:'foo', count:3}, {name:'bar', count:4}}";
-    set = pcejson_parser_parse_string(s, 1, 1);
-    ASSERT_NE(set, nullptr);
-    ASSERT_EQ(1, purc_variant_set_get_size(set));
-    purc_variant_unref(set);
-
-    s = "{!'name attr', {name:'foo', count:3}, {name:'bar', count:4}}";
-    set = pcejson_parser_parse_string(s, 1, 1);
-    ASSERT_NE(set, nullptr);
-    ASSERT_EQ(2, purc_variant_set_get_size(set));
-    purc_variant_unref(set);
-
-    s = "{!'name attr', {name:'foo', count:3}, {name:'foo', count:4}}";
+    s = "[!attr, {name:'foo', count:3}, {name:'bar', count:4}]";
     set = pcejson_parser_parse_string(s, 1, 1);
     ASSERT_NE(set, nullptr);
     ASSERT_EQ(1, purc_variant_set_get_size(set));
     purc_variant_unref(set);
 
-    s = "{!'name count', {name:'foo', count:3}, {name:'foo', count:4}}";
+    s = "[!'name attr', {name:'foo', count:3}, {name:'bar', count:4}]";
     set = pcejson_parser_parse_string(s, 1, 1);
     ASSERT_NE(set, nullptr);
     ASSERT_EQ(2, purc_variant_set_get_size(set));
     purc_variant_unref(set);
 
-    s = "{!'name', {name:'foo', count:3}, {name:'bar', count:4}}";
+    s = "[!'name attr', {name:'foo', count:3}, {name:'foo', count:4}]";
+    set = pcejson_parser_parse_string(s, 1, 1);
+    ASSERT_NE(set, nullptr);
+    ASSERT_EQ(1, purc_variant_set_get_size(set));
+    purc_variant_unref(set);
+
+    s = "[!'name count', {name:'foo', count:3}, {name:'foo', count:4}]";
+    set = pcejson_parser_parse_string(s, 1, 1);
+    ASSERT_NE(set, nullptr);
+    ASSERT_EQ(2, purc_variant_set_get_size(set));
+    purc_variant_unref(set);
+
+    s = "[!'name', {name:'foo', count:3}, {name:'bar', count:4}]";
     set = pcejson_parser_parse_string(s, 1, 1);
     ASSERT_NE(set, nullptr);
     ASSERT_EQ(2, purc_variant_set_get_size(set));
@@ -705,5 +721,180 @@ TEST(variant_set, constraint_non_valid_set)
 
     cleanup = purc_cleanup ();
     ASSERT_EQ (cleanup, true);
+}
+
+TEST(variant_set, constraint)
+{
+    // PurCInstance purc;
+
+    // const char *s;
+    // purc_variant_t set, k, v, arr, obj, first, last;
+
+    // s = "[!'name', {name:[{first:xiaohong,last:xu}]}, {name:[{first:shuming, last:xue}]}]";
+    // set = pcejson_parser_parse_string(s, 0, 0);
+    // ASSERT_NE(set, nullptr);
+    // ASSERT_EQ(2, purc_variant_set_get_size(set));
+
+    // k = pcejson_parser_parse_string("[{first:'xiaohong',last:'xu'}]", 0, 0);
+    // ASSERT_NE(k, nullptr);
+
+    // v = purc_variant_set_get_member_by_key_values(set, k);
+    // ASSERT_NE(v, nullptr);
+
+    // arr = purc_variant_object_get_by_ckey(v, "name", true);
+    // ASSERT_NE(arr, nullptr);
+
+    // obj = purc_variant_array_get(arr, 0);
+    // ASSERT_NE(obj, nullptr);
+
+    // PRINT_VARIANT(set);
+    // first = purc_variant_make_string("shuming", true);
+    // last = purc_variant_make_string("xue", true);
+    // purc_variant_object_set_by_static_ckey(obj, "first", first);
+    // purc_variant_object_set_by_static_ckey(obj, "last", last);
+    // PRINT_VARIANT(set);
+
+    // purc_variant_unref(first);
+    // purc_variant_unref(last);
+    // purc_variant_unref(k);
+    // purc_variant_unref(set);
+}
+
+TEST(variant_set, constraint_scalar)
+{
+    PurCInstance purc;
+
+    bool ok;
+    const char *s;
+    purc_variant_t set, v, obj, name;
+
+    s = "[!'name', {name:xiaohong}, {name:shuming}]";
+    set = pcejson_parser_parse_string(s, 0, 0);
+    ASSERT_NE(set, nullptr);
+    ASSERT_EQ(2, purc_variant_set_get_size(set));
+
+    v = pcejson_parser_parse_string("xiaohong", 0, 0);
+    ASSERT_NE(v, nullptr);
+
+    obj = purc_variant_set_get_member_by_key_values(set, v);
+    ASSERT_NE(obj, nullptr);
+
+    PRINT_VARIANT(set);
+    name = purc_variant_make_string("shuming", true);
+    ok = purc_variant_object_set_by_static_ckey(obj, "name", name);
+    ASSERT_FALSE(ok);
+    PRINT_VARIANT(set);
+
+    purc_variant_unref(name);
+    purc_variant_unref(v);
+    purc_variant_unref(set);
+}
+
+TEST(variant_set, constraint_scalars)
+{
+    PurCInstance purc;
+
+    bool ok;
+    const char *s;
+    purc_variant_t set, v1, v2, obj, first, last;
+
+    s = "[!'first last', {first:xiaohong, last:xu}, {first:shuming, last:xue}]";
+    set = pcejson_parser_parse_string(s, 0, 0);
+    ASSERT_NE(set, nullptr);
+    ASSERT_EQ(2, purc_variant_set_get_size(set));
+
+    v1 = pcejson_parser_parse_string("xiaohong", 0, 0);
+    ASSERT_NE(v1, nullptr);
+
+    v2 = pcejson_parser_parse_string("xu", 0, 0);
+    ASSERT_NE(v2, nullptr);
+
+    obj = purc_variant_set_get_member_by_key_values(set, v1, v2);
+    ASSERT_NE(obj, nullptr);
+
+    first = purc_variant_make_string("shuming", true);
+    ASSERT_NE(first, nullptr);
+    last = purc_variant_make_string("xue", true);
+    ASSERT_NE(last, nullptr);
+
+    PRINT_VARIANT(set);
+    ok = purc_variant_object_set_by_static_ckey(obj, "first", first);
+    ASSERT_TRUE(ok);
+    PRINT_VARIANT(set);
+    ok = purc_variant_object_set_by_static_ckey(obj, "last", last);
+    ASSERT_FALSE(ok);
+    PRINT_VARIANT(set);
+
+    PURC_VARIANT_SAFE_CLEAR(first);
+    PURC_VARIANT_SAFE_CLEAR(last);
+    PURC_VARIANT_SAFE_CLEAR(v1);
+    PURC_VARIANT_SAFE_CLEAR(v2);
+    purc_variant_unref(set);
+}
+
+TEST(set, compare)
+{
+    PurCInstance purc;
+
+    int diff;
+    const char *s;
+    purc_variant_t set1, set2;
+
+    s = "[!'name', {name:[{first:xiaohong,last:xu}]}, {name:[{first:shuming, last:xue}]}]";
+    set1 = pcejson_parser_parse_string(s, 0, 0);
+    if (set1 == PURC_VARIANT_INVALID) {
+        ADD_FAILURE() << "failed to parse: " << s << std::endl;
+        return;
+    }
+
+    s = "[!'name', {name:[{first:shuming, last:xue}]}, {name:[{first:xiaohong,last:xu}]}]";
+    set2 = pcejson_parser_parse_string(s, 0, 0);
+    if (set2 == PURC_VARIANT_INVALID) {
+        purc_variant_unref(set1);
+        ADD_FAILURE() << "failed to parse: " << s << std::endl;
+        return;
+    }
+
+    diff = purc_variant_compare_ex(set1, set2, PCVARIANT_COMPARE_OPT_AUTO);
+    if (diff) {
+        PRINT_VARIANT(set1);
+        PRINT_VARIANT(set2);
+        ADD_FAILURE() << "diff" << std::endl;
+    }
+    purc_variant_unref(set1);
+    purc_variant_unref(set2);
+}
+
+TEST(set, undefined)
+{
+    PurCInstance purc;
+
+    int diff;
+    const char *s;
+    purc_variant_t set1, set2;
+
+    s = "[!'name', {name:[{first:xiaohong,last:xu}]}, {name:undefined}, {name:[{first:shuming, last:xue}]}, {name:undefined}]";
+    set1 = pcejson_parser_parse_string(s, 0, 0);
+    if (set1 == PURC_VARIANT_INVALID) {
+        ADD_FAILURE() << "failed to parse: " << s << std::endl;
+        return;
+    }
+
+    s = "[!'name', {name:foo, name:undefined}, {name:[{first:shuming, last:xue}]}, {name:[{first:xiaohong,last:xu}]}]";
+    set2 = pcejson_parser_parse_string(s, 0, 0);
+    if (set2 == PURC_VARIANT_INVALID) {
+        purc_variant_unref(set1);
+        ADD_FAILURE() << "failed to parse: " << s << std::endl;
+        return;
+    }
+
+    diff = purc_variant_compare_ex(set1, set2, PCVARIANT_COMPARE_OPT_AUTO);
+    if (diff) {
+        PRINT_VARIANT(set1);
+        PRINT_VARIANT(set2);
+        ADD_FAILURE() << "diff" << std::endl;
+    }
+    purc_variant_unref(set1);
+    purc_variant_unref(set2);
 }
 

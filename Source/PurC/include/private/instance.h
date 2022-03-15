@@ -34,35 +34,62 @@
 #include "private/executor.h"
 #include "private/interpreter.h"
 
-struct pcinst {
-    int errcode;
-    purc_variant_t err_exinfo;
-    const char *file;
-    int lineno;
-    const char *func;
+#include <stdio.h>
 
+struct pcinst {
+    int                     errcode;
+    purc_variant_t          err_exinfo;
+
+    char                   *app_name;
+    char                   *runner_name;
+    purc_atom_t             endpoint_atom;
+
+    unsigned int            max_embedded_levels;
+
+#define LOG_FILE_SYSLOG     ((FILE *)-1)
+    /* the FILE object for logging (-1: use syslog; NULL: disabled) */
+    FILE                   *fp_log;
+
+    /* data bounden to the current session, e.g, the statbuf of the random
+       number generator */
+    pcutils_map            *local_data_map;
+
+    struct pcvariant_heap  *variant_heap;
+    struct pcvariant_heap  *org_vrt_heap;
+
+    struct pcvarmgr        *variables;
+
+    struct pcrdr_conn      *conn_to_rdr;
+    struct renderer_capabilities *rdr_caps;
+
+    struct pcexecutor_heap *executor_heap;
+    struct pcintr_heap     *intr_heap;
+
+    /* FIXME: enable the fields ONLY when NDEBUG is undefined */
+#ifndef NDEBUG                     /* { */
 #if OS(LINUX)                      /* { */
+    const char *file;
+    const char *func;
+    int lineno;
     void *c_stacks[64];
     int   nr_stacks;
     char  so[1024];
     char  addr1[256];
     char  addr2[64];
 #endif                             /* } */
+#endif                             /* } */
 
-    char* app_name;
-    char* runner_name;
-
-    pcutils_map* local_data_map;
-
-    struct pcvariant_heap variant_heap;
-    struct pcexecutor_heap executor_heap;
-
-    struct pcintr_heap    intr_heap;
 };
 
 /* gets the current instance */
 struct pcinst* pcinst_current(void) WTF_INTERNAL;
-pcvarmgr_list_t pcinst_get_variables(void) WTF_INTERNAL;
+pcvarmgr_t pcinst_get_variables(void) WTF_INTERNAL;
+
+void pcinst_move_buffer_init_once(void) WTF_INTERNAL;
+void pcinst_move_buffer_cleanup_once(void) WTF_INTERNAL;
+
+struct pcrdr_msg *pcinst_get_message(void) WTF_INTERNAL;
+void pcinst_put_message(struct pcrdr_msg *msg) WTF_INTERNAL;
 
 #endif /* not defined PURC_PRIVATE_INSTANCE_H */
 

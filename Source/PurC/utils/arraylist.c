@@ -46,20 +46,25 @@
 #include <stdint.h>
 #include <string.h>
 
-struct pcutils_arrlist *pcutils_arrlist_new_ex(array_list_free_fn *free_fn, int initial_size)
+struct pcutils_arrlist *pcutils_arrlist_new_ex(array_list_free_fn *free_fn,
+        size_t initial_size)
 {
     struct pcutils_arrlist *arr;
 
-    if (initial_size < 0 || (size_t)initial_size >= SIZE_MAX / sizeof(void *))
+    if (initial_size >= SIZE_MAX / sizeof(void *))
         return NULL;
+    if (initial_size == 0)
+        initial_size = 1;
+
     arr = (struct pcutils_arrlist *)malloc(sizeof(struct pcutils_arrlist));
     if (!arr)
         return NULL;
+
     arr->size = initial_size;
     arr->length = 0;
     arr->free_fn = free_fn;
-    if (!(arr->array = (void **)malloc(arr->size * sizeof(void *))))
-    {
+
+    if (!(arr->array = (void **)malloc(arr->size * sizeof(void *)))) {
         free(arr);
         return NULL;
     }

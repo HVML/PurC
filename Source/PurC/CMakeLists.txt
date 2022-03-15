@@ -3,8 +3,8 @@ set_property(DIRECTORY . PROPERTY FOLDER "PurC")
 include(PurCCommon)
 include(MyMacros.cmake)
 
-configure_file(include/purc-version.h.in ${PurC_DERIVED_SOURCES_DIR}/purc-version.h)
-configure_file(include/purc-features.h.in ${PurC_DERIVED_SOURCES_DIR}/purc-features.h)
+configure_file(include/purc-version.h.in ${PurC_DERIVED_SOURCES_DIR}/purc-version.h @ONLY)
+configure_file(include/purc-features.h.in ${PurC_DERIVED_SOURCES_DIR}/purc-features.h @ONLY)
 
 set(PurC_PRIVATE_INCLUDE_DIRECTORIES
     "${CMAKE_BINARY_DIR}"
@@ -27,6 +27,9 @@ set(PurC_INSTALLED_HEADERS
     "${PURC_DIR}/include/purc-dom.h"
     "${PURC_DIR}/include/purc-html.h"
     "${PURC_DIR}/include/purc-ports.h"
+    "${PURC_DIR}/include/purc-pcrdr.h"
+    "${PURC_DIR}/include/purc-helpers.h"
+    "${PURC_DIR}/include/purc-dvobjs.h"
     "${PURC_DIR}/include/purc.h"
 )
 
@@ -39,12 +42,15 @@ set(PurC_PLATFORM_INDEPENDENT_DIRS
     "dom"
     "dvobjs"
     "dvobjs/parsers"
+    "vcm"
+    "ejson"
     "hvml"
     "vdom"
     "executors"
     "executors/parsers"
     "interpreter"
     "fetchers"
+    "pcrdr"
 )
 
 # This macro will append all C/CXX source files in ${PurC_PLATFORM_INDEPENDENT_DIRS}
@@ -55,8 +61,6 @@ APPEND_ALL_SOURCE_FILES_IN_DIRLIST(PurC_SOURCES "${PurC_PLATFORM_INDEPENDENT_DIR
 list(APPEND PurC_SOURCES
     "${PURC_DIR}/ports/vasprintf.c"
     "${PURC_DIR}/ports/misc.c"
-    "${PURC_DIR}/ejson/ejson.c"
-    "${PURC_DIR}/vcm/vcm.c"
 )
 
 # Put the CXX source files which can be unified in `Sources.txt`
@@ -229,6 +233,7 @@ add_custom_command(
            "${PurC_DERIVED_SOURCES_DIR}/ejson_err_msgs.inc"
            "${PurC_DERIVED_SOURCES_DIR}/rwstream_err_msgs.inc"
            "${PurC_DERIVED_SOURCES_DIR}/hvml_err_msgs.inc"
+           "${PurC_DERIVED_SOURCES_DIR}/pcrdr_err_msgs.inc"
     MAIN_DEPENDENCY ${BUILD_TOOLS_DIR}/make-error-info.py
     DEPENDS "${PURC_DIR}/instance/generic.error.in"
             ${PURC_DIR}/executors/executor.error.in
@@ -236,6 +241,7 @@ add_custom_command(
             ${PURC_DIR}/ejson/ejson.error.in
             ${PURC_DIR}/utils/rwstream.error.in
             ${PURC_DIR}/hvml/hvml.error.in
+            ${PURC_DIR}/pcrdr/pcrdr.error.in
     COMMAND ${Python3_EXECUTABLE} ${BUILD_TOOLS_DIR}/make-error-info.py "${PurC_DERIVED_SOURCES_DIR}"
             ${PURC_DIR}/instance/generic.error.in
             ${PURC_DIR}/executors/executor.error.in
@@ -243,6 +249,7 @@ add_custom_command(
             ${PURC_DIR}/ejson/ejson.error.in
             ${PURC_DIR}/utils/rwstream.error.in
             ${PURC_DIR}/hvml/hvml.error.in
+            ${PURC_DIR}/pcrdr/pcrdr.error.in
     COMMAND touch "${PurC_DERIVED_SOURCES_DIR}/purc-error-except.c"
     COMMENT "Generating *_err_msgs.inc by using ${Python3_EXECUTABLE}"
     WORKING_DIRECTORY "${PURC_DIR}/instance/"

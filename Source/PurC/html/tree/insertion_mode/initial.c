@@ -244,7 +244,7 @@ pchtml_html_tree_insertion_mode_initial_doctype(pchtml_html_tree_t *tree,
     pchtml_html_tree_insertion_mode_initial_doctype_ckeck(tree, doc_type,
                                                        token, is_html);
 
-    pcdom_node_insert_child(&tree->document->dom_document.node,
+    pcdom_node_append_child(&tree->document->dom_document.node,
                               pcdom_interface_node(doc_type));
 
     pcdom_document_attach_doctype(&tree->document->dom_document, doc_type);
