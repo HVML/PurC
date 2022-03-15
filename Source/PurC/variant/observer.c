@@ -349,6 +349,18 @@ pcvar_build_edge(purc_variant_t val, struct list_head *chain,
     PC_ASSERT(chain);
     PC_ASSERT(edge);
 
+    bool parent_is_set = purc_variant_is_set(edge->parent);
+    PRINT_VARIANT(edge->parent);
+    PRINT_VARIANT(val);
+    if (!parent_is_set &&
+            pcvar_container_belongs_to_set(edge->parent) == false)
+    {
+        PC_ASSERT(0);
+    }
+
+    if (list_empty(chain) == false)
+        PC_ASSERT(0);
+
     struct list_head *p, *n;
     list_for_each_safe(p, n, chain) {
         struct pcvar_rev_update_edge_node *node;
