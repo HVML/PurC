@@ -39,7 +39,7 @@ TEST(dvobjs, dvobjs_t_getter)
             "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t t = pcdvobjs_get_t();
+    purc_variant_t t = purc_dvobj_text_new();
     ASSERT_NE(t, nullptr);
     ASSERT_EQ(purc_variant_is_object (t), true);
 

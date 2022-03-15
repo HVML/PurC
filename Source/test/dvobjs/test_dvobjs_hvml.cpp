@@ -23,7 +23,7 @@ extern void get_variant_total_info (size_t *mem, size_t *value, size_t *resv);
 
 TEST(dvobjs, dvobjs_hvml_setter)
 {
-    const char *function[] = {"base", "maxIterationCount", "maxRecursionDepth",
+    const char *function[] = {"base", "max_iteration_count", "max_recursion_depth",
                               "timeout"};
     purc_variant_t param[MAX_PARAM_NR] = {0};
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
@@ -51,7 +51,7 @@ TEST(dvobjs, dvobjs_hvml_setter)
             "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t hvml = pcdvobjs_get_hvml();
+    purc_variant_t hvml = purc_dvobj_hvml_new();
     ASSERT_NE(hvml, nullptr);
     ASSERT_EQ(purc_variant_is_object (hvml), true);
 

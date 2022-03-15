@@ -30,6 +30,7 @@
 #include "purc-html.h"
 #include "purc-rwstream.h"
 #include "purc-variant.h"
+#include "purc-dvobjs.h"
 
 #include <assert.h>
 #include <time.h>
@@ -103,39 +104,10 @@ void pcdvobjs_init_instance (struct pcinst* inst) WTF_INTERNAL;
 // clean up the dvobjs module for a PurC instance.
 void pcdvobjs_cleanup_instance (struct pcinst* inst) WTF_INTERNAL;
 
-purc_variant_t pcdvobjs_get_system (void);
-purc_variant_t pcdvobjs_get_string (void);
-purc_variant_t pcdvobjs_get_logical (void);
-purc_variant_t pcdvobjs_get_ejson (void);
-purc_variant_t pcdvobjs_get_hvml (void);
-purc_variant_t pcdvobjs_get_t (void);
-purc_variant_t pcdvobjs_get_session (void);
-
-struct purc_broken_down_url {
-    char *schema;
-    char *user;
-    char *passwd;
-    char *host;
-    char *path;
-    char *query;
-    char *fragment;
-    unsigned int port;
-};
-
-struct pcvdom_dvobj_hvml {
-    struct purc_broken_down_url url;
-    unsigned long int      maxIterationCount;
-    unsigned long int      maxRecursionDepth;
-    struct timespec        timeout;
-};
-
 struct wildcard_list {
     char * wildcard;
     struct wildcard_list *next;
 };
-
-purc_variant_t
-pcdvobjs_make_doc_variant(struct pcdom_document *doc);
 
 #if 0          /* { */
 purc_variant_t

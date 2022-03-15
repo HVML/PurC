@@ -1,10 +1,10 @@
 /*
  * @file system.c
- * @author Geng Yue
+ * @author Geng Yue, Vincent Wei
  * @date 2021/07/02
- * @brief The implementation of system dynamic variant object.
+ * @brief The implementation of SYSTEM dynamic variant object.
  *
- * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ * Copyright (C) 2021, 2022 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
  *
@@ -1229,8 +1229,7 @@ env_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     return ret_var;
 }
 
-// only for test now.
-purc_variant_t pcdvobjs_get_system (void)
+purc_variant_t purc_dvobj_system_new (void)
 {
     static struct pcdvobjs_dvobjs method [] = {
         {"uname",     uname_getter,     NULL},
