@@ -424,7 +424,7 @@ pcvar_belongs_to_set(purc_variant_t val)
                 return false;
             }
         default:
-            PC_ASSERT(0);
+            return false;
     }
 }
 
