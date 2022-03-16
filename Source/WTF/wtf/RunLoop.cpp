@@ -60,6 +60,19 @@ void RunLoop::initializeMain()
     s_mainRunLoop = &RunLoop::current();
 }
 
+bool RunLoop::isMainInitizlized()
+{
+    return s_mainRunLoop != NULL;
+}
+
+void RunLoop::stopMain()
+{
+    if (s_mainRunLoop) {
+        s_mainRunLoop->stop();
+        s_mainRunLoop = NULL;
+    }
+}
+
 RunLoop& RunLoop::current()
 {
     static NeverDestroyed<ThreadSpecific<Holder>> runLoopHolder;

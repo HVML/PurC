@@ -29,8 +29,9 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "purc-variant.h"
+#include "private/debug.h"
 #include "private/tree.h"
+#include "purc-variant.h"
 
 
 enum pcvcm_node_type {
@@ -153,7 +154,7 @@ purc_variant_t pcvcm_eval (struct pcvcm_node* tree, struct pcintr_stack* stack,
 #define PRINT_VCM_NODE(_node) do {                                        \
     size_t len;                                                           \
     char *s = pcvcm_node_to_string(_node, &len);                          \
-    fprintf(stderr, "%s[%d]:%s(): %s=%.*s\n",                             \
+    PC_DEBUG("%s[%d]:%s(): %s=%.*s\n",                                    \
             pcutils_basename((char*)__FILE__), __LINE__, __func__,        \
             #_node, (int)len, s);                                         \
     free(s);                                                              \

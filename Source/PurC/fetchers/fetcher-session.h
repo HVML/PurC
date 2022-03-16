@@ -117,6 +117,8 @@ private:
 
     purc_rwstream_t m_resp_rwstream;
     purc_variant_t m_req_vid;
+
+    RunLoop* m_runloop;
 };
 
 

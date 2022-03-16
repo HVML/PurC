@@ -61,6 +61,8 @@ public:
     // Must be called from the main thread (except for the Mac platform, where it
     // can be called from any thread).
     WTF_EXPORT_PRIVATE static void initializeMain();
+    WTF_EXPORT_PRIVATE static bool isMainInitizlized();
+    WTF_EXPORT_PRIVATE static void stopMain();
 #if USE(WEB_THREAD)
     WTF_EXPORT_PRIVATE static void initializeWeb();
 #endif
