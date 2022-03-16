@@ -1736,8 +1736,20 @@ PCA_EXPORT bool purc_variant_is_type(purc_variant_t value,
  *
  * Since: 0.0.1
  */
-PCA_EXPORT enum purc_variant_type purc_variant_get_type(purc_variant_t value);
+PCA_EXPORT enum purc_variant_type
+purc_variant_get_type(purc_variant_t value);
 
+/**
+ * Get the type name (static string) for a variant type.
+ *
+ * @param type: the variant type
+ *
+ * Returns: The type name (a pointer to a static string).
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT const char*
+purc_variant_typename(enum purc_variant_type type);
 
 /**
  * Whether the value is of indicated type.

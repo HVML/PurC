@@ -207,14 +207,12 @@ static const char *typenames[] = {
 /* Make sure the number of variant types matches the size of `type_names` */
 #define _COMPILE_TIME_ASSERT(name, x)               \
        typedef int _dummy_ ## name[(x) * 2 - 1]
-
 _COMPILE_TIME_ASSERT(types, PCA_TABLESIZE(typenames) == PURC_VARIANT_TYPE_NR);
-
 #undef _COMPILE_TIME_ASSERT
 
-const char* pcvariant_get_typename(enum purc_variant_type type)
+const char* purc_variant_typename(enum purc_variant_type type)
 {
-    PC_ASSERT(type >= 0 && type < PURC_VARIANT_TYPE_NR);
+    assert(type >= 0 && type < PURC_VARIANT_TYPE_NR);
     return typenames[type];
 }
 
