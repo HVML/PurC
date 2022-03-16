@@ -277,27 +277,36 @@ variant_arr_set(purc_variant_t array, size_t idx, purc_variant_t val,
         return -1;
     }
 
-    struct pcvar_rev_update_edge edge = {
-        .parent        = array,
-        .arr_me        = old_node,
-    };
-    pcvar_break_edge_to_parent(old, &edge);
-    pcvar_break_rue_downward(old);
+    if (pcvar_container_belongs_to_set(array)) {
+        struct pcvar_rev_update_edge edge = {
+            .parent        = array,
+            .arr_me        = old_node,
+        };
+        pcvar_break_edge_to_parent(old, &edge);
+        pcvar_break_rue_downward(old);
 
-    struct arr_node *node = old_node;
-    old_node = NULL;
+        struct arr_node *node = old_node;
+        old_node = NULL;
 
-    node->val = val;
-    purc_variant_ref(val);
+        node->val = val;
+        purc_variant_ref(val);
 
-    edge.parent = array;
-    edge.arr_me = node;
-    int r = pcvar_build_edge_to_parent(node->val, &edge);
-    if (r == 0) {
-        r = pcvar_build_rue_downward(node->val);
+        edge.parent = array;
+        edge.arr_me = node;
+        int r = pcvar_build_edge_to_parent(node->val, &edge);
+        if (r == 0) {
+            r = pcvar_build_rue_downward(node->val);
+        }
+        // FIXME: recoverable?
+        PC_ASSERT(r == 0);
     }
-    // FIXME: recoverable?
-    PC_ASSERT(r == 0);
+    else {
+        struct arr_node *node = old_node;
+        old_node = NULL;
+
+        node->val = val;
+        purc_variant_ref(val);
+    }
 
     changed(array, pos, old, val, check);
     purc_variant_unref(pos);

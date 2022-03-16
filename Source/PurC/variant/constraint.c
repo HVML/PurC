@@ -225,6 +225,57 @@ again:
 }
 
 static bool
+arr_rev_update_change(
+        bool pre,
+        purc_variant_t arr,
+        struct pcvar_rev_update_edge *edge,
+        size_t nr_args,
+        purc_variant_t *argv)
+{
+    UNUSED_PARAM(pre);
+    UNUSED_PARAM(arr);
+    UNUSED_PARAM(edge);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+
+    variant_arr_t data = pcvar_arr_get_data(arr);
+    PC_ASSERT(data);
+    PC_ASSERT(&data->rev_update_chain == edge);
+
+    PC_ASSERT(nr_args == 3);
+
+    purc_variant_t set;
+    set = pcvar_top_in_rev_update_chain(arr);
+    PC_ASSERT(set != PURC_VARIANT_INVALID);
+    PC_ASSERT(purc_variant_is_set(set));
+
+    if (pre) {
+        purc_variant_t cloned;
+        cloned = purc_variant_container_clone_recursively(arr);
+        if (cloned == PURC_VARIANT_INVALID)
+            return false;
+
+        bool ok;
+        int64_t i64;
+        bool parse_str = false;
+        ok = purc_variant_cast_to_longint(argv[0], &i64, parse_str);
+        if (!ok) {
+            purc_variant_unref(cloned);
+            return false;
+        }
+        ok = purc_variant_array_set(cloned, i64, argv[2]);
+        if (!ok) {
+            purc_variant_unref(cloned);
+            return false;
+        }
+
+        return wind_up_and_check(edge, cloned);
+    }
+
+    return true;
+}
+
+static bool
 obj_rev_update_change(
         bool pre,
         purc_variant_t obj,
@@ -277,6 +328,8 @@ rev_update_change(
         purc_variant_t *argv)
 {
     switch (src->type) {
+        case PURC_VARIANT_TYPE_ARRAY:
+            return arr_rev_update_change(pre, src, edge, nr_args, argv);
         case PURC_VARIANT_TYPE_OBJECT:
             return obj_rev_update_change(pre, src, edge, nr_args, argv);
         default:
