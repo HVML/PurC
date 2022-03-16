@@ -49,9 +49,9 @@ register_listener(purc_variant_t v, unsigned int flags,
     listener->handler        = handler;
 
     if ((flags & PCVAR_LISTENER_PRE_OR_POST) == PCVAR_LISTENER_PRE) {
-        list_add_tail(&listener->list_node, listeners);
-    } else {
         list_add(&listener->list_node, listeners);
+    } else {
+        list_add_tail(&listener->list_node, listeners);
     }
 
     return listener;
@@ -258,12 +258,23 @@ pcvar_break_edge(purc_variant_t val,
     if (edge_in_val->parent == PURC_VARIANT_INVALID)
         return;
 
+    PC_ASSERT(edge_in_val->pre_listener);
+    PC_ASSERT(edge_in_val->post_listener);
+
     PC_ASSERT(edge->parent == edge_in_val->parent);
+
+    bool ok;
 
     switch (edge->parent->type) {
         case PURC_VARIANT_TYPE_ARRAY:
             PC_ASSERT(edge->arr_me->val == val);
             PC_ASSERT(edge->arr_me == edge_in_val->arr_me);
+            ok = purc_variant_revoke_listener(val, edge_in_val->pre_listener);
+            PC_ASSERT(ok);
+            edge_in_val->pre_listener = NULL;
+            ok = purc_variant_revoke_listener(val, edge_in_val->post_listener);
+            PC_ASSERT(ok);
+            edge_in_val->post_listener = NULL;
             edge_in_val->parent = PURC_VARIANT_INVALID;
             edge_in_val->arr_me = NULL;
             return;
@@ -271,6 +282,12 @@ pcvar_break_edge(purc_variant_t val,
         case PURC_VARIANT_TYPE_OBJECT:
             PC_ASSERT(edge->obj_me->val == val);
             PC_ASSERT(edge->obj_me == edge_in_val->obj_me);
+            ok = purc_variant_revoke_listener(val, edge_in_val->pre_listener);
+            PC_ASSERT(ok);
+            edge_in_val->pre_listener = NULL;
+            ok = purc_variant_revoke_listener(val, edge_in_val->post_listener);
+            PC_ASSERT(ok);
+            edge_in_val->post_listener = NULL;
             edge_in_val->parent = PURC_VARIANT_INVALID;
             edge_in_val->obj_me = NULL;
             return;
@@ -278,6 +295,12 @@ pcvar_break_edge(purc_variant_t val,
         case PURC_VARIANT_TYPE_SET:
             PC_ASSERT(edge->set_me->elem == val);
             PC_ASSERT(edge->set_me == edge_in_val->set_me);
+            ok = purc_variant_revoke_listener(val, edge_in_val->pre_listener);
+            PC_ASSERT(ok);
+            edge_in_val->pre_listener = NULL;
+            ok = purc_variant_revoke_listener(val, edge_in_val->post_listener);
+            PC_ASSERT(ok);
+            edge_in_val->post_listener = NULL;
             edge_in_val->parent = PURC_VARIANT_INVALID;
             edge_in_val->set_me = NULL;
             return;
@@ -336,6 +359,46 @@ pcvar_build_edge_to_parent(purc_variant_t val,
     }
 }
 
+static bool
+rev_update_chain_pre_handler(
+        purc_variant_t src,  // the source variant.
+        pcvar_op_t op,       // the operation identifier.
+        void *ctxt,          // the context stored when registering the handler.
+        size_t nr_args,      // the number of the relevant child variants.
+        purc_variant_t *argv // the array of all relevant child variants.
+        )
+{
+    PC_ASSERT(ctxt);
+    struct pcvar_rev_update_edge *edge;
+    edge = (struct pcvar_rev_update_edge*)ctxt;
+    UNUSED_PARAM(edge);
+    UNUSED_PARAM(src);
+    UNUSED_PARAM(op);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    return true;
+}
+
+static bool
+rev_update_chain_post_handler(
+        purc_variant_t src,  // the source variant.
+        pcvar_op_t op,       // the operation identifier.
+        void *ctxt,          // the context stored when registering the handler.
+        size_t nr_args,      // the number of the relevant child variants.
+        purc_variant_t *argv // the array of all relevant child variants.
+        )
+{
+    PC_ASSERT(ctxt);
+    struct pcvar_rev_update_edge *edge;
+    edge = (struct pcvar_rev_update_edge*)ctxt;
+    UNUSED_PARAM(edge);
+    UNUSED_PARAM(src);
+    UNUSED_PARAM(op);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    return true;
+}
+
 int
 pcvar_build_edge(purc_variant_t val,
         struct pcvar_rev_update_edge *edge_in_val,
@@ -344,6 +407,9 @@ pcvar_build_edge(purc_variant_t val,
     PC_ASSERT(val != PURC_VARIANT_INVALID);
     PC_ASSERT(edge_in_val);
     PC_ASSERT(edge);
+
+    PC_ASSERT(edge->pre_listener == NULL);
+    PC_ASSERT(edge->post_listener == NULL);
 
     bool parent_is_set = purc_variant_is_set(edge->parent);
     if (!parent_is_set &&
@@ -355,7 +421,30 @@ pcvar_build_edge(purc_variant_t val,
     if (edge_in_val->parent != PURC_VARIANT_INVALID)
         PC_ASSERT(0);
 
+    if (edge_in_val->pre_listener)
+        PC_ASSERT(0);
+
+    if (edge_in_val->post_listener)
+        PC_ASSERT(0);
+
+    struct pcvar_listener *pre_listener, *post_listener;
+    pre_listener = purc_variant_register_pre_listener(val,
+            PCVAR_OPERATION_ALL, rev_update_chain_pre_handler,
+            edge_in_val);
+    if (!pre_listener)
+        return -1;
+    post_listener = purc_variant_register_post_listener(val,
+            PCVAR_OPERATION_ALL, rev_update_chain_post_handler,
+            edge_in_val);
+    if (!post_listener) {
+        bool ok = purc_variant_revoke_listener(val, edge_in_val->pre_listener);
+        PC_ASSERT(ok);
+        return -1;
+    }
+
     *edge_in_val = *edge;
+    edge_in_val->pre_listener  = pre_listener;
+    edge_in_val->post_listener = post_listener;
 
     return 0;
 }

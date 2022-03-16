@@ -50,14 +50,10 @@ TEST(constraint, set_modify_children_of_uniqkey_from_outside)
     ASSERT_NE(name, nullptr);
 
     PRINT_VARIANT(set);
-    PRINT_VARIANT(name);
     ok = purc_variant_object_set_by_static_ckey(name, "first", first);
-    PRINT_VARIANT(name);
-    PRINT_VARIANT(set);
     ASSERT_TRUE(ok);
 
     ok = purc_variant_object_set_by_static_ckey(name, "last", last);
-    PRINT_VARIANT(name);
     PRINT_VARIANT(set);
     ASSERT_TRUE(ok); // TODO: ASSERT_FALSE
 

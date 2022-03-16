@@ -313,9 +313,8 @@ v_object_set(purc_variant_t obj, purc_variant_t k, purc_variant_t val,
     purc_variant_t ko = node->key;
     purc_variant_t vo = node->val;
 
-    if (!change(obj, ko, vo, k, val, check)) {
+    if (!change(obj, ko, vo, k, val, check))
         return -1;
-    }
 
     if (pcvar_container_belongs_to_set(obj)) {
         struct pcvar_rev_update_edge edge = {

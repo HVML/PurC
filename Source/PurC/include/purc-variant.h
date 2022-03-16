@@ -1918,11 +1918,11 @@ typedef enum {
 } pcvar_op_t;
 
 typedef bool (*pcvar_op_handler) (
-        purc_variant_t source,  // the source variant.
-        pcvar_op_t op,          // the operation identifier.
-        void *ctxt,             // the context stored when registering the handler.
-        size_t nr_args,         // the number of the relevant child variants.
-        purc_variant_t *argv    // the array of all relevant child variants.
+        purc_variant_t src,  // the source variant.
+        pcvar_op_t op,       // the operation identifier.
+        void *ctxt,          // the context stored when registering the handler.
+        size_t nr_args,      // the number of the relevant child variants.
+        purc_variant_t *argv // the array of all relevant child variants.
         );
 
 /**

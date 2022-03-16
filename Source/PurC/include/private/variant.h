@@ -251,6 +251,8 @@ struct pcvar_rev_update_edge {
         struct obj_node             *obj_me;
         struct arr_node             *arr_me;
     };
+    struct pcvar_listener           *pre_listener;
+    struct pcvar_listener           *post_listener;
 };
 
 // internal struct used by variant-set object
