@@ -360,7 +360,83 @@ pcvar_build_edge_to_parent(purc_variant_t val,
 }
 
 static bool
-rev_update_chain_handler(
+rev_update_grow(
+        bool pre,
+        purc_variant_t src,
+        struct pcvar_rev_update_edge *edge,
+        size_t nr_args,
+        purc_variant_t *argv)
+{
+    UNUSED_PARAM(pre);
+    UNUSED_PARAM(src);
+    UNUSED_PARAM(edge);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    PC_ASSERT(0);
+    return true;
+}
+
+static bool
+rev_update_shrink(
+        bool pre,
+        purc_variant_t src,
+        struct pcvar_rev_update_edge *edge,
+        size_t nr_args,
+        purc_variant_t *argv)
+{
+    UNUSED_PARAM(pre);
+    UNUSED_PARAM(src);
+    UNUSED_PARAM(edge);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    PC_ASSERT(0);
+    return true;
+}
+
+static bool
+obj_rev_update_change(
+        bool pre,
+        purc_variant_t obj,
+        struct pcvar_rev_update_edge *edge,
+        size_t nr_args,
+        purc_variant_t *argv)
+{
+    UNUSED_PARAM(pre);
+    UNUSED_PARAM(obj);
+    UNUSED_PARAM(edge);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+
+    variant_obj_t data = pcvar_obj_get_data(obj);
+    PC_ASSERT(data);
+    PC_ASSERT(&data->rev_update_chain == edge);
+
+    return true;
+}
+
+
+static bool
+rev_update_change(
+        bool pre,
+        purc_variant_t src,
+        struct pcvar_rev_update_edge *edge,
+        size_t nr_args,
+        purc_variant_t *argv)
+{
+    switch (src->type) {
+        case PURC_VARIANT_TYPE_OBJECT:
+            return obj_rev_update_change(pre, src, edge, nr_args, argv);
+        default:
+            PC_DEBUGX("Not supported for `%s` variant",
+                    pcvariant_get_typename(src->type));
+            PC_ASSERT(0);
+    }
+
+    return true;
+}
+
+static bool
+rev_update(
         bool pre,
         purc_variant_t src,
         pcvar_op_t op,
@@ -375,7 +451,16 @@ rev_update_chain_handler(
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
 
-    return true;
+    switch (op) {
+        case PCVAR_OPERATION_GROW:
+            return rev_update_grow(pre, src, edge, nr_args, argv);
+        case PCVAR_OPERATION_SHRINK:
+            return rev_update_shrink(pre, src, edge, nr_args, argv);
+        case PCVAR_OPERATION_CHANGE:
+            return rev_update_change(pre, src, edge, nr_args, argv);
+        default:
+            PC_ASSERT(0);
+    }
 }
 
 static bool
@@ -391,9 +476,10 @@ rev_update_chain_pre_handler(
     struct pcvar_rev_update_edge *edge;
     edge = (struct pcvar_rev_update_edge*)ctxt;
     PC_ASSERT(edge->parent);
+    PC_ASSERT(edge->parent != src);
 
     bool pre = true;
-    return rev_update_chain_handler(pre, src, op, edge, nr_args, argv);
+    return rev_update(pre, src, op, edge, nr_args, argv);
 }
 
 static bool
@@ -411,7 +497,7 @@ rev_update_chain_post_handler(
     PC_ASSERT(edge->parent);
 
     bool pre = false;
-    return rev_update_chain_handler(pre, src, op, edge, nr_args, argv);
+    return rev_update(pre, src, op, edge, nr_args, argv);
 }
 
 int
