@@ -173,6 +173,8 @@ const_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         retv = purc_variant_make_string_static(HVML_PREDEF_VARS_SPEC_RELEASE, false);
     else if (atom == keywords2atoms[K_SYSTEM_KEYWORD_HVML_INTRPR_NAME].atom)
         retv = purc_variant_make_string_static(HVML_INTRPR_NAME, false);
+    else if (atom == keywords2atoms[K_SYSTEM_KEYWORD_HVML_INTRPR_VERSION].atom)
+        retv = purc_variant_make_string_static(HVML_INTRPR_VERSION, false);
     else if (keywords2atoms[K_SYSTEM_KEYWORD_HVML_INTRPR_RELEASE].atom)
         retv = purc_variant_make_string_static(HVML_INTRPR_RELEASE, false);
     else {

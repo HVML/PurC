@@ -1395,7 +1395,7 @@ add_observer_into_list(struct pcutils_arrlist* list,
         struct pcintr_observer* observer)
 {
     observer->list = list;
-    int r = pcutils_arrlist_add(list, observer);
+    int r = pcutils_arrlist_append(list, observer);
     PC_ASSERT(r == 0);
 
     // TODO:

@@ -25,15 +25,11 @@
 #ifndef PURC_PRIVATE_URL_H
 #define PURC_PRIVATE_URL_H
 
-#include "private/vdom.h"
+#include "purc-utils.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-
-char * pcdvobjs_get_url (const struct purc_broken_down_url *);
-bool pcdvobjs_set_url (struct purc_broken_down_url *, const char *);
 
 #ifdef __cplusplus
 }

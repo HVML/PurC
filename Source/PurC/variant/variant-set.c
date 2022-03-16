@@ -714,7 +714,7 @@ insert_or_replace(purc_variant_t set,
     }
 
     if (!entry) {
-        int r = pcutils_arrlist_add(data->arr, node);
+        int r = pcutils_arrlist_append(data->arr, node);
         if (r)
             return -1;
         size_t count = pcutils_arrlist_length(data->arr);

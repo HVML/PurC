@@ -38,31 +38,34 @@
 #include "purc-macros.h"
 #include "purc-variant.h"
 #include "purc-dom.h"
+#include "purc-utils.h"
 
-struct purc_broken_down_url {
-    char *schema;
-    char *user;
-    char *passwd;
-    char *host;
-    char *path;
-    char *query;
-    char *fragment;
-    unsigned int port;
-};
-
+/** The structure defining the control properties of a HVML program */
 struct purc_hvml_ctrl_props {
-    struct purc_broken_down_url base_url;
+    /** The base URL as a null-terminated string. */
+    char *base_url_string;
 
+    /** The base URL broken down. */
+    struct purc_broken_down_url base_url_broken_down;
+
+    /** The maximal iteration count. */
     uint64_t            max_iteration_count;
-    unsigned short      max_recursion_depth;
-    unsigned short      max_embedded_levels;
+    /** The maximal recursion depth. */
+    uint64_t            max_recursion_depth;
+    /** The maximal embedded levels of a EJSON container. */
+    uint64_t            max_embedded_levels;
 
+    /** The timeout value for a remote request. */
     struct timespec     timeout;
 };
 
+/** The structure defining a method of a dynamic variant object. */
 struct purc_dvobj_method {
+    /* The method name. */
     const char          *name;
+    /* The getter of the method. */
     purc_dvariant_method getter;
+    /* The setter of the method. */
     purc_dvariant_method setter;
 };
 
@@ -73,37 +76,51 @@ PCA_EXTERN_C_BEGIN
  * @{
  */
 
+/**
+ * Make a dynamic variant object by using information in the array of
+ * `struct purc_dvobj_method`.
+ */
 PCA_EXPORT purc_variant_t
 purc_dvobj_make_from_methods(const struct purc_dvobj_method *method,
         size_t size);
 
+/** Make a dynamic variant object for built-in `$SYSTEM` variable. */
 PCA_EXPORT purc_variant_t
 purc_dvobj_system_new(void);
 
+/** Make a dynamic variant object for built-in `$SESSION` variable. */
 PCA_EXPORT purc_variant_t
 purc_dvobj_session_new(void);
 
+/** Make a dynamic variant object for built-in `$DATETIME` variable. */
 PCA_EXPORT purc_variant_t
 purc_dvobj_datetime_new(void);
 
+/** Make a dynamic variant object for built-in `$HVML` variable. */
 PCA_EXPORT purc_variant_t
-purc_dvobj_hvml_new(struct purc_hvml_ctrl_props **ctrl_props);
+purc_dvobj_hvml_new(const struct purc_hvml_ctrl_props **ctrl_props);
 
+/** Make a dynamic variant object for built-in `$DOC` variable. */
 PCA_EXPORT purc_variant_t
 purc_dvobj_doc_new(struct pcdom_document *doc);
 
+/** Make a dynamic variant object for built-in `$EJSON` variable. */
 PCA_EXPORT purc_variant_t
 purc_dvobj_ejson_new(void);
 
+/** Make a dynamic variant object for built-in `$L` variable. */
 PCA_EXPORT purc_variant_t
 purc_dvobj_logical_new(void);
 
+/** Make a dynamic variant object for built-in `$T` variable. */
 PCA_EXPORT purc_variant_t
 purc_dvobj_text_new(void);
 
+/** Make a dynamic variant object for built-in `$STR` variable. */
 PCA_EXPORT purc_variant_t
 purc_dvobj_string_new(void);
 
+/** Make a dynamic variant object for built-in `$URL` variable. */
 PCA_EXPORT purc_variant_t
 purc_dvobj_url_new(void);
 

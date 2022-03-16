@@ -165,7 +165,7 @@ int pcutils_arrlist_put_idx(struct pcutils_arrlist *arr, size_t idx, void *data)
     return 0;
 }
 
-int pcutils_arrlist_add(struct pcutils_arrlist *arr, void *data)
+int pcutils_arrlist_append(struct pcutils_arrlist *arr, void *data)
 {
     /* Repeat some of pcutils_arrlist_put_idx() so we can skip several
        checks that we know are unnecessary when appending at the end

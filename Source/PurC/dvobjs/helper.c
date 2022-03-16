@@ -180,34 +180,36 @@ bool pcdvobjs_wildcard_cmp (const char *str1, const char *pattern)
 }
 #endif
 
-purc_variant_t purc_dvobj_make_from_methods (const struct purc_dvobj_method *method,
-                                    size_t size)
+purc_variant_t
+purc_dvobj_make_from_methods(const struct purc_dvobj_method *methods,
+        size_t size)
 {
     size_t i = 0;
     purc_variant_t val = PURC_VARIANT_INVALID;
-    purc_variant_t ret_var= purc_variant_make_object (0, PURC_VARIANT_INVALID,
-                                                    PURC_VARIANT_INVALID);
+    purc_variant_t ret_var = purc_variant_make_object(0,
+            PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
 
     if (ret_var == PURC_VARIANT_INVALID)
         return PURC_VARIANT_INVALID;
 
     for (i = 0; i < size; i++) {
-        val = purc_variant_make_dynamic (method[i].getter, method[i].setter);
+        val = purc_variant_make_dynamic(methods[i].getter, methods[i].setter);
         if (val == PURC_VARIANT_INVALID) {
             goto error;
         }
 
-        if (!purc_variant_object_set_by_static_ckey (ret_var,
-                    method[i].name, val)) {
+        if (!purc_variant_object_set_by_static_ckey(ret_var,
+                    methods[i].name, val)) {
             goto error;
         }
 
-        purc_variant_unref (val);
+        purc_variant_unref(val);
     }
 
     return ret_var;
 
 error:
-    purc_variant_unref (ret_var);
+    purc_variant_unref(ret_var);
     return PURC_VARIANT_INVALID;
 }
+
