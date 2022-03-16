@@ -39,6 +39,8 @@
 
 using namespace PurCFetcher;
 
+extern "C"  struct pcinst* pcinst_current(void);
+
 PcFetcherSession::PcFetcherSession(uint64_t sessionId,
         IPC::Connection::Identifier identifier)
     : m_sessionId(sessionId)
@@ -51,6 +53,7 @@ PcFetcherSession::PcFetcherSession(uint64_t sessionId,
 {
     memset(&m_resp_header, 0, sizeof(m_resp_header));
     m_connection->open();
+    m_runloop = &RunLoop::current();
 }
 
 PcFetcherSession::~PcFetcherSession()
@@ -292,7 +295,7 @@ void PcFetcherSession::didFinishResourceLoad(
             if (m_resp_rwstream) {
                 purc_rwstream_seek(m_resp_rwstream, 0, SEEK_SET);
             }
-            RunLoop::main().dispatch([session=this] {
+            m_runloop->dispatch([session=this] {
                 session->m_req_handler(session->m_req_vid,
                         session->m_req_ctxt,
                         &session->m_resp_header,
@@ -325,7 +328,7 @@ void PcFetcherSession::didFailResourceLoad(const ResourceError& error)
             if (m_resp_rwstream) {
                 purc_rwstream_seek(m_resp_rwstream, 0, SEEK_SET);
             }
-            RunLoop::main().dispatch([session=this] {
+            m_runloop->dispatch([session=this] {
                 session->m_req_handler(session->m_req_vid,
                         session->m_req_ctxt,
                         &session->m_resp_header,

@@ -65,7 +65,7 @@ void async_response_handler(
     if (request_id != PURC_VARIANT_INVALID) {
         purc_variant_unref(request_id);
     }
-    RunLoop::main().stop();
+    RunLoop::current().stop();
 }
 
 
@@ -79,10 +79,6 @@ int main(int argc, char** argv)
 
     purc_instance_extra_info info = {};
     purc_init ("cn.fmsoft.hybridos.sample", "pcfetcher", &info);
-
-    RunLoop::initializeMain();
-    AtomString::init();
-    WTF::RefCountedBase::enableThreadingChecksGlobally();
 
     url = argv[1] ? argv[1] : def_url;
 
