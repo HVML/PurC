@@ -64,6 +64,167 @@ rev_update_shrink(
 }
 
 static bool
+wind_up_and_check(struct pcvar_rev_update_edge *edge, purc_variant_t _new)
+{
+    struct arr_node      *an;
+    struct obj_node      *on;
+    struct set_node      *sn;
+
+    variant_arr_t         arr_data;
+    variant_obj_t         obj_data;
+    variant_set_t         set_data;
+
+    purc_variant_t parent = edge->parent;
+    purc_variant_t cloned;
+    bool ok;
+
+again:
+
+    switch (parent->type) {
+        case PURC_VARIANT_TYPE_ARRAY:
+            an = edge->arr_me;
+            cloned = purc_variant_make_array(0, PURC_VARIANT_INVALID);
+            if (cloned == PURC_VARIANT_INVALID) {
+                purc_variant_unref(_new);
+                return false;
+            }
+            size_t nr;
+            ok = purc_variant_array_size(parent, &nr);
+            PC_ASSERT(ok);
+            PC_ASSERT(nr > 0);
+            PC_ASSERT(nr > an->node.idx);
+
+            for (size_t i=0; i<nr; ++i) {
+                purc_variant_t v;
+                if (an->node.idx == i) {
+                    v = purc_variant_ref(_new);
+                    PURC_VARIANT_SAFE_CLEAR(_new);
+                }
+                else {
+                    v = purc_variant_array_get(parent, i);
+                    PC_ASSERT(v != PURC_VARIANT_INVALID);
+                    v = purc_variant_container_clone_recursively(v);
+                    if (v == PURC_VARIANT_INVALID) {
+                        PURC_VARIANT_SAFE_CLEAR(_new);
+                        purc_variant_unref(cloned);
+                        return false;
+                    }
+                }
+                ok = purc_variant_array_append(cloned, v);
+                purc_variant_unref(v);
+                if (!ok) {
+                    purc_variant_unref(cloned);
+                    return false;
+                }
+            }
+
+            PC_ASSERT(_new == PURC_VARIANT_INVALID);
+            _new = cloned;
+            cloned = PURC_VARIANT_INVALID;
+            arr_data = pcvar_arr_get_data(parent);
+            edge = &arr_data->rev_update_chain;
+            PC_ASSERT(edge);
+            parent = edge->parent;
+            PC_ASSERT(parent != PURC_VARIANT_INVALID);
+            goto again;
+
+        case PURC_VARIANT_TYPE_OBJECT:
+            on = edge->obj_me;
+            cloned = purc_variant_make_object(0,
+                    PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+            if (cloned == PURC_VARIANT_INVALID) {
+                purc_variant_unref(_new);
+                return false;
+            }
+            obj_data = pcvar_obj_get_data(parent);
+            struct rb_root *root = &obj_data->kvs;
+            struct rb_node *p = pcutils_rbtree_first(root);
+            for (; p; p = pcutils_rbtree_next(p)) {
+                purc_variant_t v;
+                struct obj_node *node;
+                node = container_of(p, struct obj_node, node);
+                if (node == on) {
+                    v = purc_variant_ref(_new);
+                    PURC_VARIANT_SAFE_CLEAR(_new);
+                }
+                else {
+                    v = node->val;
+                    PC_ASSERT(v != PURC_VARIANT_INVALID);
+                    v = purc_variant_container_clone_recursively(v);
+                    if (v == PURC_VARIANT_INVALID) {
+                        PURC_VARIANT_SAFE_CLEAR(_new);
+                        purc_variant_unref(cloned);
+                        return false;
+                    }
+                }
+
+                ok = purc_variant_object_set(cloned, node->key, v);
+                purc_variant_unref(v);
+                if (!ok) {
+                    purc_variant_unref(cloned);
+                    return false;
+                }
+            }
+
+            PC_ASSERT(_new == PURC_VARIANT_INVALID);
+            _new = cloned;
+            cloned = PURC_VARIANT_INVALID;
+            edge = &obj_data->rev_update_chain;
+            PC_ASSERT(edge);
+            parent = edge->parent;
+            PC_ASSERT(parent != PURC_VARIANT_INVALID);
+            goto again;
+
+        case PURC_VARIANT_TYPE_SET:
+            sn = edge->set_me;
+            cloned = pcvar_set_clone_struct(parent);
+            if (cloned == PURC_VARIANT_INVALID) {
+                purc_variant_unref(_new);
+                return false;
+            }
+            set_data = pcvar_set_get_data(parent);
+            struct rb_node *first;
+            first = pcutils_rbtree_first(&set_data->elems);
+            PC_ASSERT(first);
+            struct rb_node *pn;
+            pcutils_rbtree_for_each(first, pn) {
+                purc_variant_t v;
+                struct set_node *node;
+                node = container_of(pn, struct set_node, node);
+                if (node == sn) {
+                    v = purc_variant_ref(_new);
+                    PURC_VARIANT_SAFE_CLEAR(_new);
+                }
+                else {
+                    v = node->elem;
+                    PC_ASSERT(v != PURC_VARIANT_INVALID);
+                    v = purc_variant_container_clone_recursively(v);
+                    if (v == PURC_VARIANT_INVALID) {
+                        PURC_VARIANT_SAFE_CLEAR(_new);
+                        purc_variant_unref(cloned);
+                        return false;
+                    }
+                }
+
+                bool overwrite = false;
+                ok = purc_variant_set_add(cloned, v, overwrite);
+                purc_variant_unref(v);
+                if (!ok) {
+                    purc_variant_unref(cloned);
+                    return false;
+                }
+            }
+
+            PC_ASSERT(_new == PURC_VARIANT_INVALID);
+            purc_variant_unref(cloned);
+            return true;
+
+        default:
+            PC_ASSERT(0);
+    }
+}
+
+static bool
 obj_rev_update_change(
         bool pre,
         purc_variant_t obj,
@@ -89,6 +250,21 @@ obj_rev_update_change(
     PRINT_VARIANT(set);
     PC_ASSERT(purc_variant_is_set(set));
 
+    if (pre) {
+        purc_variant_t cloned;
+        cloned = purc_variant_container_clone_recursively(obj);
+        if (cloned == PURC_VARIANT_INVALID)
+            return false;
+
+        bool ok = purc_variant_object_set(cloned, argv[2], argv[3]);
+        if (!ok) {
+            purc_variant_unref(cloned);
+            return false;
+        }
+
+        return wind_up_and_check(edge, cloned);
+    }
+
     return true;
 }
 
@@ -113,22 +289,6 @@ rev_update_change(
     return true;
 }
 
-struct integrity {
-    purc_variant_t set;
-    purc_variant_t src;
-    pcvar_op_t op;
-    struct pcvar_rev_update_edge *edge;
-    size_t nr_args;
-    purc_variant_t *argv;
-};
-
-static bool
-integrity_check(struct integrity *ud)
-{
-    UNUSED_PARAM(ud);
-    return true;
-}
-
 static bool
 rev_update(
         bool pre,
@@ -138,23 +298,6 @@ rev_update(
         size_t nr_args,
         purc_variant_t *argv)
 {
-    purc_variant_t set;
-    set = pcvar_top_in_rev_update_chain(src);
-    PC_ASSERT(set != PURC_VARIANT_INVALID);
-    PRINT_VARIANT(set);
-    PC_ASSERT(purc_variant_is_set(set));
-    struct integrity ud = {
-        .set          = set,
-        .src          = src,
-        .op           = op,
-        .edge         = edge,
-        .nr_args      = nr_args,
-        .argv         = argv,
-    };
-
-    if (pre)
-        return integrity_check(&ud);
-
     switch (op) {
         case PCVAR_OPERATION_GROW:
             return rev_update_grow(pre, src, edge, nr_args, argv);

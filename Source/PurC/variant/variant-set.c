@@ -1661,35 +1661,8 @@ int pcvariant_set_get_uniqkeys(purc_variant_t set, size_t *nr_keynames,
 purc_variant_t
 pcvariant_set_clone(purc_variant_t set, bool recursively)
 {
-    int r;
-    struct pcutils_string str;
-    pcutils_string_init(&str, 32);
-    variant_set_t data = pcvar_set_get_data(set);
-    if (data->keynames) {
-        r = 0;
-        for (size_t i=0; i<data->nr_keynames; ++i) {
-            if (i) {
-                r = pcutils_string_append_chunk(&str, " ");
-                if (r) {
-                    purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-                    break;
-                }
-            }
-            r = pcutils_string_append_chunk(&str, data->keynames[i]);
-            if (r) {
-                purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-                break;
-            }
-        }
-        if (r) {
-            pcutils_string_reset(&str);
-            return PURC_VARIANT_INVALID;
-        }
-    }
-
     purc_variant_t var;
-    var = purc_variant_make_set_by_ckey(0, str.abuf, PURC_VARIANT_INVALID);
-    pcutils_string_reset(&str);
+    var = pcvar_set_clone_struct(set);
     if (var == PURC_VARIANT_INVALID)
         return PURC_VARIANT_INVALID;
 
@@ -2023,4 +1996,42 @@ pcvar_kv_it_next(struct kv_iterator *it)
     }
 }
 
+purc_variant_t
+pcvar_set_clone_struct(purc_variant_t set)
+{
+    PC_ASSERT(set != PURC_VARIANT_INVALID);
+    PC_ASSERT(purc_variant_is_set(set));
+
+    int r;
+    struct pcutils_string str;
+    pcutils_string_init(&str, 32);
+    variant_set_t data = pcvar_set_get_data(set);
+    if (data->keynames) {
+        r = 0;
+        for (size_t i=0; i<data->nr_keynames; ++i) {
+            if (i) {
+                r = pcutils_string_append_chunk(&str, " ");
+                if (r) {
+                    purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+                    break;
+                }
+            }
+            r = pcutils_string_append_chunk(&str, data->keynames[i]);
+            if (r) {
+                purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+                break;
+            }
+        }
+        if (r) {
+            pcutils_string_reset(&str);
+            return PURC_VARIANT_INVALID;
+        }
+    }
+
+    purc_variant_t var;
+    var = purc_variant_make_set_by_ckey(0, str.abuf, PURC_VARIANT_INVALID);
+    pcutils_string_reset(&str);
+
+    return var;
+}
 

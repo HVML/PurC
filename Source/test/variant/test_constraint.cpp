@@ -55,7 +55,7 @@ TEST(constraint, set_modify_children_of_uniqkey_from_outside)
 
     ok = purc_variant_object_set_by_static_ckey(name, "last", last);
     PRINT_VARIANT(set);
-    ASSERT_TRUE(ok); // TODO: ASSERT_FALSE
+    ASSERT_FALSE(ok);
 
     PURC_VARIANT_SAFE_CLEAR(last);
     PURC_VARIANT_SAFE_CLEAR(first);

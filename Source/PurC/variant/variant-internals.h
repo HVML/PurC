@@ -238,6 +238,10 @@ pcvar_rev_update_chain_post_handler(
         purc_variant_t *argv // the array of all relevant child variants.
         );
 
+purc_variant_t
+pcvar_set_clone_struct(purc_variant_t set);
+
+
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */
