@@ -220,6 +220,24 @@ pcvar_kv_it_first(purc_variant_t set, purc_variant_t obj);
 void
 pcvar_kv_it_next(struct kv_iterator *it);
 
+bool
+pcvar_rev_update_chain_pre_handler(
+        purc_variant_t src,  // the source variant.
+        pcvar_op_t op,       // the operation identifier.
+        void *ctxt,          // the context stored when registering the handler.
+        size_t nr_args,      // the number of the relevant child variants.
+        purc_variant_t *argv // the array of all relevant child variants.
+        );
+
+bool
+pcvar_rev_update_chain_post_handler(
+        purc_variant_t src,  // the source variant.
+        pcvar_op_t op,       // the operation identifier.
+        void *ctxt,          // the context stored when registering the handler.
+        size_t nr_args,      // the number of the relevant child variants.
+        purc_variant_t *argv // the array of all relevant child variants.
+        );
+
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */
