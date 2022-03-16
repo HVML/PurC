@@ -305,12 +305,6 @@ int purc_init_ex(unsigned int modules,
     if (curr_inst->app_name)
         return PURC_ERROR_DUPLICATED;
 
-    // FIXME:
-    if (!pcrunloop_is_main_initialized()) {
-        pcrunloop_init_main();
-        curr_inst->initialized_main_runloop = true;
-    }
-
     ret = PURC_ERROR_OK;
     curr_inst->errcode = PURC_ERROR_OK;
     if (app_name)
@@ -405,6 +399,11 @@ int purc_init_ex(unsigned int modules,
     }
 
     if (modules & PURC_HAVE_FETCHER) {
+        if (!pcrunloop_is_main_initialized()) {
+            pcrunloop_init_main();
+            curr_inst->initialized_main_runloop = true;
+        }
+
         pcfetcher_init(FETCHER_MAX_CONNS, FETCHER_CACHE_QUOTA,
             (modules & PURC_HAVE_FETCHER_R));
     }
@@ -452,11 +451,11 @@ bool purc_cleanup(void)
 
         if (_modules & PURC_HAVE_FETCHER) {
             pcfetcher_term();
+            if (curr_inst->initialized_main_runloop) {
+                pcrunloop_stop_main();
+            }
         }
 
-        if (curr_inst->initialized_main_runloop) {
-            pcrunloop_stop_main();
-        }
         cleanup_instance(curr_inst);
     }
 
