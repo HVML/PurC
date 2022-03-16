@@ -17,15 +17,45 @@ TEST(dvobjs, basic)
     int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
             "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
-    bool ok;
-    purc_variant_t v;
 
-    v = purc_variant_load_dvobj_from_so(NULL, "MATH");
-    ASSERT_NE(v, PURC_VARIANT_INVALID);
-    ok = purc_variant_unload_dvobj(v);
-    ASSERT_TRUE(ok);
+    purc_variant_t dvobj;
+
+    dvobj = purc_dvobj_system_new();
+    ASSERT_EQ(purc_variant_is_object(dvobj), true);
+    purc_variant_unref(dvobj);
 
     purc_cleanup();
+}
+
+TEST(dvobjs, reuse_buff)
+{
+    purc_instance_extra_info info = {};
+    int ret = purc_init_ex(PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "test_init", &info);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    purc_rwstream_t rws;
+    rws = purc_rwstream_new_buffer (32, 1024);
+    purc_rwstream_write(rws, "hello", 5);
+    purc_rwstream_write(rws, "\0", 1);
+
+    size_t content_size, raw_size;
+    char *s;
+    s = (char*)purc_rwstream_get_mem_buffer_ex(rws,
+            &content_size, &raw_size, true);
+
+    ASSERT_NE(s, nullptr);
+    ASSERT_EQ(content_size, 6);
+    ASSERT_GT(raw_size, content_size);
+    ASSERT_EQ(memcmp("hello", s, 5), 0);
+
+    purc_rwstream_destroy(rws);
+
+    purc_variant_t v;
+    v = purc_variant_make_string_reuse_buff(s, content_size, false);
+    purc_variant_unref(v);
+
+    purc_cleanup ();
 }
 
 static purc_variant_t get_dvobj_system(void* ctxt, const char* name)
@@ -122,8 +152,11 @@ TEST(dvobjs, system)
         { "nonexistent",
             "$SYSTEM.const('nonexistent')",
             get_system_const },
+        { "nonexistent",
+            "$SYSTEM.nonexistent)",
+            NULL },
         { "kernel-name",
-            "$SYSTEM.uname['kernel-name']",
+            "$SYSTEM.uname()['kernel-name']",
             get_system_uname },
     };
 
@@ -145,57 +178,27 @@ TEST(dvobjs, system)
                 get_dvobj_system, sys, true);
         purc_variant_ejson_parse_tree_destroy(ptree);
 
-        expected = test_cases[i].get_expected(sys, test_cases[i].name);
+        if (test_cases[i].get_expected) {
+            expected = test_cases[i].get_expected(sys, test_cases[i].name);
 
-        if (purc_variant_get_type(result) != purc_variant_get_type(expected)) {
-            printf("result type: %d, error message: %s\n",
-                    purc_variant_get_type(result),
-                    purc_get_error_message(purc_get_last_error()));
+            if (purc_variant_get_type(result) != purc_variant_get_type(expected)) {
+                purc_log_error("result type: %s, error message: %s\n",
+                        purc_variant_typename(purc_variant_get_type(result)),
+                        purc_get_error_message(purc_get_last_error()));
+            }
+
+            ASSERT_EQ(purc_variant_is_equal_to(result, expected), true);
+
+            purc_variant_unref(expected);
         }
         else {
-            printf("result: %s\n", purc_variant_get_string_const(result));
+            ASSERT_EQ(purc_variant_get_type(result), PURC_VARIANT_TYPE_NULL);
         }
 
-        printf("expected: %s\n", purc_variant_get_string_const(expected));
-
-        ASSERT_EQ(purc_variant_is_equal_to(result, expected), true);
-
         purc_variant_unref(result);
-        purc_variant_unref(expected);
     }
 
     purc_variant_unref(sys);
     purc_cleanup();
-}
-
-TEST(dvobjs, reuse_buff)
-{
-    purc_instance_extra_info info = {};
-    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
-            "test_init", &info);
-    ASSERT_EQ (ret, PURC_ERROR_OK);
-
-    purc_rwstream_t rws;
-    rws = purc_rwstream_new_buffer (32, 1024);
-    purc_rwstream_write(rws, "hello", 5);
-    purc_rwstream_write(rws, "\0", 1);
-
-    size_t content_size, raw_size;
-    char *s;
-    s = (char*)purc_rwstream_get_mem_buffer_ex(rws,
-            &content_size, &raw_size, true);
-
-    ASSERT_NE(s, nullptr);
-    ASSERT_EQ(content_size, 6);
-    ASSERT_GT(raw_size, content_size);
-    ASSERT_EQ(memcmp("hello", s, 5), 0);
-
-    purc_rwstream_destroy(rws);
-
-    purc_variant_t v;
-    v = purc_variant_make_string_reuse_buff(s, content_size, false);
-    purc_variant_unref(v);
-
-    purc_cleanup ();
 }
 
