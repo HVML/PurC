@@ -1208,10 +1208,8 @@ init_buidin_doc_variable(pcintr_stack_t stack)
     }
 
     // $HVML
-    // FIXME: store the pointer to (struct purc_hvml_ctrl_props *)
-    //  created by the function.
-    if(!bind_doc_named_variable(stack,
-                BUILDIN_VAR_HVML, purc_dvobj_hvml_new(NULL))) {
+    if(!bind_doc_named_variable(stack, BUILDIN_VAR_HVML,
+                purc_dvobj_hvml_new(&stack->vdom->hvml_ctrl_props))) {
         return false;
     }
 
@@ -1736,15 +1734,6 @@ pcintr_dispatch_message(pcintr_stack_t stack, purc_variant_t source,
     pcrunloop_dispatch(runloop, pcintr_handle_message, msg);
 }
 
-void
-pcintr_set_base_uri(pcintr_stack_t stack, const char* base_uri)
-{
-    if (stack->base_uri) {
-        free(stack->base_uri);
-    }
-    stack->base_uri = strdup(base_uri);
-}
-
 purc_variant_t
 pcintr_load_from_uri(pcintr_stack_t stack, const char* uri)
 {
@@ -1752,8 +1741,8 @@ pcintr_load_from_uri(pcintr_stack_t stack, const char* uri)
         return PURC_VARIANT_INVALID;
     }
 
-    if (stack->base_uri) {
-        pcfetcher_set_base_url(stack->base_uri);
+    if (stack->vdom->hvml_ctrl_props->base_url_string) {
+        pcfetcher_set_base_url(stack->vdom->hvml_ctrl_props->base_url_string);
     }
     purc_variant_t ret = PURC_VARIANT_INVALID;
     struct pcfetcher_resp_header resp_header = {0};
