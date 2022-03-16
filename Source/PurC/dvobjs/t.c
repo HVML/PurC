@@ -68,7 +68,7 @@ get_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     return ret_var;
 }
 
-purc_variant_t pcdvobjs_get_t (void)
+purc_variant_t purc_dvobj_text_new (void)
 {
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 

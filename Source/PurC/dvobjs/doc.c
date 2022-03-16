@@ -231,7 +231,7 @@ eraser(void* native_entity,
 #endif
 
 purc_variant_t
-pcdvobjs_make_doc_variant(struct pcdom_document *doc)
+purc_dvobj_doc_new(struct pcdom_document *doc)
 {
     static struct purc_native_ops ops = {
         .property_getter            = property_getter,

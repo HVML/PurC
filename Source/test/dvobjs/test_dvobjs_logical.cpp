@@ -64,7 +64,7 @@ TEST(dvobjs, dvobjs_logical)
             "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t logical = pcdvobjs_get_logical();
+    purc_variant_t logical = purc_dvobj_logical_new();
     ASSERT_NE(logical, nullptr);
     ASSERT_EQ(purc_variant_is_object (logical), true);
 
@@ -228,7 +228,7 @@ TEST(dvobjs, dvobjs_logical_eval)
             "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t logical = pcdvobjs_get_logical();
+    purc_variant_t logical = purc_dvobj_logical_new();
     ASSERT_NE(logical, nullptr);
     ASSERT_EQ(purc_variant_is_object (logical), true);
 
@@ -381,7 +381,7 @@ TEST(dvobjs, dvobjs_logical_bc)
     if (r)
         return;
 
-    purc_variant_t logical = pcdvobjs_get_logical();
+    purc_variant_t logical = purc_dvobj_logical_new();
     ASSERT_NE(logical, nullptr);
     ASSERT_EQ(purc_variant_is_object (logical), true);
 
