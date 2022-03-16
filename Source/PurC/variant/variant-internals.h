@@ -77,7 +77,11 @@ variant_obj_t
 pcvar_obj_get_data(purc_variant_t obj) WTF_INTERNAL;
 variant_set_t
 pcvar_set_get_data(purc_variant_t set) WTF_INTERNAL;
+void
+pcvar_adjust_set_by_descendant(purc_variant_t val) WTF_INTERNAL;
 
+struct pcvar_rev_update_edge*
+pcvar_container_get_top_edge(purc_variant_t val) WTF_INTERNAL;
 bool
 pcvar_container_belongs_to_set(purc_variant_t val) WTF_INTERNAL;
 purc_variant_t

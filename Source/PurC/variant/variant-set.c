@@ -2035,3 +2035,38 @@ pcvar_set_clone_struct(purc_variant_t set)
     return var;
 }
 
+void
+pcvar_adjust_set_by_descendant(purc_variant_t val)
+{
+    struct pcvar_rev_update_edge *top;
+    top = pcvar_container_get_top_edge(val);
+    PC_ASSERT(top);
+
+    purc_variant_t set = top->parent;
+    PC_ASSERT(set != PURC_VARIANT_INVALID);
+    PC_ASSERT(purc_variant_is_set(set));
+
+    variant_set_t data = pcvar_set_get_data(set);
+    PC_ASSERT(data);
+
+    struct set_node *node = top->set_me;
+    PRINT_VARIANT(node->elem);
+    pcutils_rbtree_erase(&node->node, &data->elems);
+    PRINT_VARIANT(node->elem);
+
+    purc_variant_t kvs;
+    kvs = variant_set_kvs_from_val(data, node->elem);
+    PC_ASSERT(kvs != PURC_VARIANT_INVALID);
+    PURC_VARIANT_SAFE_CLEAR(node->kvs);
+    node->kvs = kvs;
+
+    struct element_rb_node rbn;
+    find_element_rb_node(&rbn, set, node->elem);
+    PC_ASSERT(rbn.entry == NULL);
+
+    struct rb_node *entry = &node->node;
+
+    pcutils_rbtree_link_node(entry, rbn.parent, rbn.pnode);
+    pcutils_rbtree_insert_color(entry, &data->elems);
+}
+
