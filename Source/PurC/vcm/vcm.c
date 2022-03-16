@@ -1087,6 +1087,10 @@ purc_variant_t pcvcm_node_to_variant (struct pcvcm_node* node,
             break;
     }
     node->attach = (uintptr_t) ret;
+#ifndef NDEBUG
+    PRINT_VCM_NODE(node);
+    PRINT_VARIANT(ret);
+#endif
     return ret;
 }
 
