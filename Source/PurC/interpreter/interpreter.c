@@ -43,8 +43,7 @@
 
 void pcintr_stack_init_once(void)
 {
-    pcrunloop_init_main();
-    pcrunloop_t runloop = pcrunloop_get_main();
+    pcrunloop_t runloop = pcrunloop_get_current();
     PC_ASSERT(runloop);
     init_ops();
 }

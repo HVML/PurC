@@ -65,6 +65,8 @@ struct pcinst {
     struct pcexecutor_heap *executor_heap;
     struct pcintr_heap     *intr_heap;
 
+    bool initialized_main_runloop;
+
     /* FIXME: enable the fields ONLY when NDEBUG is undefined */
 #ifndef NDEBUG                     /* { */
 #if OS(LINUX)                      /* { */

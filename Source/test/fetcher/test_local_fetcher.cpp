@@ -38,10 +38,6 @@ TEST(local_fetcher, sync)
     purc_init_ex (PURC_MODULE_HVML,"cn.fmsoft.hybridos.sample",
             "pcfetcher", &info);
 
-    RunLoop::initializeMain();
-    AtomString::init();
-    WTF::RefCountedBase::enableThreadingChecksGlobally();
-
     const char* env = "HVML_TEST_LOCAL_FETCHER";
     char base_uri[PATH_MAX+1] =  {0};
     getpath_from_env_or_rel(base_uri, sizeof(base_uri), env, "data");
@@ -123,7 +119,6 @@ void async_response_handler(
     fprintf(stderr, ".................body end\n");
     fprintf(stderr, "....................................request_id=%p\n", request_id);
     purc_variant_unref(request_id);
-    RunLoop::main().stop();
 }
 
 TEST(local_fetcher, async)
@@ -131,10 +126,6 @@ TEST(local_fetcher, async)
     purc_instance_extra_info info = {};
     purc_init_ex (PURC_MODULE_HVML,"cn.fmsoft.hybridos.sample",
             "pcfetcher", &info);
-
-    RunLoop::initializeMain();
-    AtomString::init();
-    WTF::RefCountedBase::enableThreadingChecksGlobally();
 
     const char* env = "HVML_TEST_LOCAL_FETCHER";
     char base_uri[PATH_MAX+1] =  {0};
@@ -152,7 +143,7 @@ TEST(local_fetcher, async)
                 async_response_handler,
                 NULL);
 
-    fprintf(stderr, "....................................\n");
+    fprintf(stderr, "....................................async\n");
 
     pcfetcher_term();
     purc_cleanup();

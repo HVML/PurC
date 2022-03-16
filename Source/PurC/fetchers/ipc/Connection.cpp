@@ -154,7 +154,7 @@ bool Connection::SyncMessageState::processIncomingMessage(Connection& connection
 
 void Connection::SyncMessageState::dispatchMessages()
 {
-    ASSERT(RunLoop::isMain());
+//    ASSERT(RunLoop::isMain());
 
     Vector<ConnectionAndIncomingMessage> messagesToDispatchWhileWaitingForSyncReply;
     {
@@ -168,7 +168,7 @@ void Connection::SyncMessageState::dispatchMessages()
 
 void Connection::SyncMessageState::dispatchMessagesAndResetDidScheduleDispatchMessagesForConnection(Connection& connection)
 {
-    ASSERT(RunLoop::isMain());
+//    ASSERT(RunLoop::isMain());
 
     Vector<ConnectionAndIncomingMessage> messagesToDispatchWhileWaitingForSyncReply;
     {
@@ -261,7 +261,7 @@ Connection::Connection(Identifier identifier, bool isServer, Client& client)
     , m_shouldWaitForSyncReplies(true)
     , m_shouldWaitForMessages(true)
 {
-    ASSERT(RunLoop::isMain());
+//    ASSERT(RunLoop::isMain());
     allConnections().add(m_uniqueID, this);
 
     platformInitialize(identifier);
@@ -269,7 +269,7 @@ Connection::Connection(Identifier identifier, bool isServer, Client& client)
 
 Connection::~Connection()
 {
-    ASSERT(RunLoop::isMain());
+//    ASSERT(RunLoop::isMain());
     ASSERT(!isValid());
 
     allConnections().remove(m_uniqueID);
@@ -279,7 +279,7 @@ Connection::~Connection()
 
 Connection* Connection::connection(UniqueID uniqueID)
 {
-    ASSERT(RunLoop::isMain());
+//    ASSERT(RunLoop::isMain());
     return allConnections().get(uniqueID);
 }
 
@@ -299,7 +299,7 @@ void Connection::setShouldExitOnSyncMessageSendFailure(bool shouldExitOnSyncMess
 
 void Connection::addWorkQueueMessageReceiver(ReceiverName messageReceiverName, WorkQueue& workQueue, WorkQueueMessageReceiver* workQueueMessageReceiver)
 {
-    ASSERT(RunLoop::isMain());
+//    ASSERT(RunLoop::isMain());
 
     auto locker = holdLock(m_workQueueMessageReceiversMutex);
     ASSERT(!m_workQueueMessageReceivers.contains(messageReceiverName));
@@ -309,7 +309,7 @@ void Connection::addWorkQueueMessageReceiver(ReceiverName messageReceiverName, W
 
 void Connection::removeWorkQueueMessageReceiver(ReceiverName messageReceiverName)
 {
-    ASSERT(RunLoop::isMain());
+//    ASSERT(RunLoop::isMain());
 
     auto locker = holdLock(m_workQueueMessageReceiversMutex);
     ASSERT(m_workQueueMessageReceivers.contains(messageReceiverName));
@@ -345,7 +345,7 @@ void Connection::dispatchWorkQueueMessageReceiverMessage(WorkQueueMessageReceive
 
 void Connection::addThreadMessageReceiver(ReceiverName messageReceiverName, ThreadMessageReceiver* threadMessageReceiver)
 {
-    ASSERT(RunLoop::isMain());
+//    ASSERT(RunLoop::isMain());
 
     auto locker = holdLock(m_threadMessageReceiversLock);
     ASSERT(!m_threadMessageReceivers.contains(messageReceiverName));
@@ -355,7 +355,7 @@ void Connection::addThreadMessageReceiver(ReceiverName messageReceiverName, Thre
 
 void Connection::removeThreadMessageReceiver(ReceiverName messageReceiverName)
 {
-    ASSERT(RunLoop::isMain());
+//    ASSERT(RunLoop::isMain());
 
     auto locker = holdLock(m_threadMessageReceiversLock);
     ASSERT(m_threadMessageReceivers.contains(messageReceiverName));
@@ -475,7 +475,7 @@ Seconds Connection::timeoutRespectingIgnoreTimeoutsForTesting(Seconds timeout) c
 
 std::unique_ptr<Decoder> Connection::waitForMessage(MessageName messageName, uint64_t destinationID, Seconds timeout, OptionSet<WaitForOption> waitForOptions)
 {
-    ASSERT(RunLoop::isMain());
+//    ASSERT(RunLoop::isMain());
     auto protectedThis = makeRef(*this);
 
     timeout = timeoutRespectingIgnoreTimeoutsForTesting(timeout);
@@ -558,7 +558,7 @@ std::unique_ptr<Decoder> Connection::waitForMessage(MessageName messageName, uin
 
 std::unique_ptr<Decoder> Connection::sendSyncMessage(uint64_t syncRequestID, std::unique_ptr<Encoder> encoder, Seconds timeout, OptionSet<SendSyncOption> sendSyncOptions)
 {
-    ASSERT(RunLoop::isMain());
+//    ASSERT(RunLoop::isMain());
 
     if (!isValid()) {
         didFailToSendSyncMessage();
@@ -907,7 +907,7 @@ void Connection::dispatchSyncMessage(Decoder& decoder)
 
 void Connection::dispatchDidReceiveInvalidMessage(MessageName messageName)
 {
-    ASSERT(RunLoop::isMain());
+//    ASSERT(RunLoop::isMain());
 
     if (!isValid())
         return;
@@ -1055,12 +1055,12 @@ Connection::MessagesThrottler::MessagesThrottler(Connection& connection, Dispatc
     , m_connection(connection)
     , m_dispatchMessages(dispatchMessages)
 {
-    ASSERT(RunLoop::isMain());
+//    ASSERT(RunLoop::isMain());
 }
 
 void Connection::MessagesThrottler::scheduleMessagesDispatch()
 {
-    ASSERT(RunLoop::isMain());
+//    ASSERT(RunLoop::isMain());
 
     if (m_throttlingLevel) {
         m_dispatchMessagesTimer.startOneShot(0_s);
@@ -1074,7 +1074,7 @@ void Connection::MessagesThrottler::scheduleMessagesDispatch()
 
 size_t Connection::MessagesThrottler::numberOfMessagesToProcess(size_t totalMessages)
 {
-    ASSERT(RunLoop::isMain());
+//    ASSERT(RunLoop::isMain());
 
     // Never dispatch more than 600 messages without returning to the run loop, we can go as low as 60 with maximum throttling level.
     static const size_t maxIncomingMessagesDispatchingBatchSize { 600 };
@@ -1106,7 +1106,7 @@ void Connection::dispatchOneIncomingMessage()
 
 void Connection::dispatchIncomingMessages()
 {
-    ASSERT(RunLoop::isMain());
+//    ASSERT(RunLoop::isMain());
 
     std::unique_ptr<Decoder> message;
 

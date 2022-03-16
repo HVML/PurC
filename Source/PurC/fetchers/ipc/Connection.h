@@ -98,7 +98,7 @@ template<typename AsyncReplyResult> struct AsyncReplyError {
 class MachMessage;
 class UnixMessage;
 
-class Connection : public ThreadSafeRefCounted<Connection, WTF::DestructionThread::MainRunLoop> {
+class Connection : public ThreadSafeRefCounted<Connection, WTF::DestructionThread::Any> {
 public:
     class Client : public MessageReceiver {
     public:
@@ -417,7 +417,7 @@ void moveTuple(std::tuple<A...>&& a, std::tuple<B...>& b)
 template<typename T> bool Connection::sendSync(T&& message, typename T::Reply&& reply, uint64_t destinationID, Seconds timeout, OptionSet<SendSyncOption> sendSyncOptions)
 {
     COMPILE_ASSERT(T::isSync, SyncMessageExpected);
-    RELEASE_ASSERT(RunLoop::isMain());
+//    RELEASE_ASSERT(RunLoop::isMain());
 
     uint64_t syncRequestID = 0;
     std::unique_ptr<Encoder> encoder = createSyncMessageEncoder(T::name(), destinationID, syncRequestID);
@@ -446,7 +446,7 @@ template<typename T> bool Connection::sendSync(T&& message, typename T::Reply&& 
 
 template<typename T> bool Connection::waitForAndDispatchImmediately(uint64_t destinationID, Seconds timeout, OptionSet<WaitForOption> waitForOptions)
 {
-    RELEASE_ASSERT(RunLoop::isMain());
+//    RELEASE_ASSERT(RunLoop::isMain());
     std::unique_ptr<Decoder> decoder = waitForMessage(T::name(), destinationID, timeout, waitForOptions);
     if (!decoder)
         return false;
@@ -460,13 +460,13 @@ class UnboundedSynchronousIPCScope {
 public:
     UnboundedSynchronousIPCScope()
     {
-        ASSERT(RunLoop::isMain());
+//        ASSERT(RunLoop::isMain());
         ++unboundedSynchronousIPCCount;
     }
 
     ~UnboundedSynchronousIPCScope()
     {
-        ASSERT(RunLoop::isMain());
+//        ASSERT(RunLoop::isMain());
         ASSERT(unboundedSynchronousIPCCount);
         --unboundedSynchronousIPCCount;
     }
