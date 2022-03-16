@@ -360,6 +360,25 @@ pcvar_build_edge_to_parent(purc_variant_t val,
 }
 
 static bool
+rev_update_chain_handler(
+        bool pre,
+        purc_variant_t src,
+        pcvar_op_t op,
+        struct pcvar_rev_update_edge *edge,
+        size_t nr_args,
+        purc_variant_t *argv)
+{
+    UNUSED_PARAM(pre);
+    UNUSED_PARAM(src);
+    UNUSED_PARAM(op);
+    UNUSED_PARAM(edge);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+
+    return true;
+}
+
+static bool
 rev_update_chain_pre_handler(
         purc_variant_t src,  // the source variant.
         pcvar_op_t op,       // the operation identifier.
@@ -371,12 +390,10 @@ rev_update_chain_pre_handler(
     PC_ASSERT(ctxt);
     struct pcvar_rev_update_edge *edge;
     edge = (struct pcvar_rev_update_edge*)ctxt;
-    UNUSED_PARAM(edge);
-    UNUSED_PARAM(src);
-    UNUSED_PARAM(op);
-    UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(argv);
-    return true;
+    PC_ASSERT(edge->parent);
+
+    bool pre = true;
+    return rev_update_chain_handler(pre, src, op, edge, nr_args, argv);
 }
 
 static bool
@@ -391,12 +408,10 @@ rev_update_chain_post_handler(
     PC_ASSERT(ctxt);
     struct pcvar_rev_update_edge *edge;
     edge = (struct pcvar_rev_update_edge*)ctxt;
-    UNUSED_PARAM(edge);
-    UNUSED_PARAM(src);
-    UNUSED_PARAM(op);
-    UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(argv);
-    return true;
+    PC_ASSERT(edge->parent);
+
+    bool pre = false;
+    return rev_update_chain_handler(pre, src, op, edge, nr_args, argv);
 }
 
 int
