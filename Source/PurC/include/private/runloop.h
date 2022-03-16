@@ -42,9 +42,6 @@ void pcrunloop_stop_main(void);
 
 bool pcrunloop_is_main_initialized(void);
 
-// the RunLoop of main thread
-pcrunloop_t pcrunloop_get_main(void);
-
 // the RunLoop of current thread
 pcrunloop_t pcrunloop_get_current(void);
 

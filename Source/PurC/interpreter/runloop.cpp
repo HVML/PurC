@@ -56,15 +56,15 @@ void pcrunloop_init_main(void)
 
 void pcrunloop_stop_main(void)
 {
-    BinarySemaphore semaphore;
     if (pcrunloop_is_main_initialized()) {
+        BinarySemaphore semaphore;
         RunLoop& runloop = RunLoop::main();
         runloop.dispatch([&] {
             RunLoop::stopMain();
             semaphore.signal();
         });
+        semaphore.wait();
     }
-    semaphore.wait();
 }
 
 bool pcrunloop_is_main_initialized(void)
