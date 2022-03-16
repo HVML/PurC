@@ -81,6 +81,14 @@ obj_rev_update_change(
     PC_ASSERT(data);
     PC_ASSERT(&data->rev_update_chain == edge);
 
+    PC_ASSERT(nr_args == 4);
+
+    purc_variant_t set;
+    set = pcvar_top_in_rev_update_chain(obj);
+    PC_ASSERT(set != PURC_VARIANT_INVALID);
+    PRINT_VARIANT(set);
+    PC_ASSERT(purc_variant_is_set(set));
+
     return true;
 }
 
@@ -105,6 +113,22 @@ rev_update_change(
     return true;
 }
 
+struct integrity {
+    purc_variant_t set;
+    purc_variant_t src;
+    pcvar_op_t op;
+    struct pcvar_rev_update_edge *edge;
+    size_t nr_args;
+    purc_variant_t *argv;
+};
+
+static bool
+integrity_check(struct integrity *ud)
+{
+    UNUSED_PARAM(ud);
+    return true;
+}
+
 static bool
 rev_update(
         bool pre,
@@ -114,12 +138,22 @@ rev_update(
         size_t nr_args,
         purc_variant_t *argv)
 {
-    UNUSED_PARAM(pre);
-    UNUSED_PARAM(src);
-    UNUSED_PARAM(op);
-    UNUSED_PARAM(edge);
-    UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(argv);
+    purc_variant_t set;
+    set = pcvar_top_in_rev_update_chain(src);
+    PC_ASSERT(set != PURC_VARIANT_INVALID);
+    PRINT_VARIANT(set);
+    PC_ASSERT(purc_variant_is_set(set));
+    struct integrity ud = {
+        .set          = set,
+        .src          = src,
+        .op           = op,
+        .edge         = edge,
+        .nr_args      = nr_args,
+        .argv         = argv,
+    };
+
+    if (pre)
+        return integrity_check(&ud);
 
     switch (op) {
         case PCVAR_OPERATION_GROW:
