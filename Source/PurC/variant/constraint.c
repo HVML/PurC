@@ -247,7 +247,6 @@ obj_rev_update_change(
     purc_variant_t set;
     set = pcvar_top_in_rev_update_chain(obj);
     PC_ASSERT(set != PURC_VARIANT_INVALID);
-    PRINT_VARIANT(set);
     PC_ASSERT(purc_variant_is_set(set));
 
     if (pre) {

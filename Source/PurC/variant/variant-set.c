@@ -273,45 +273,6 @@ variant_set_init(variant_set_t set, const char *unique_key)
 }
 
 static purc_variant_t
-variant_set_kvs_from_val(variant_set_t set,
-    purc_variant_t value)
-{
-    PC_ASSERT(value != PURC_VARIANT_INVALID);
-    PC_ASSERT(purc_variant_is_object(value));
-    PC_ASSERT(set->nr_keynames);
-
-    if (set->unique_key) {
-        purc_variant_t kvs;
-        kvs = purc_variant_make_object(0,
-                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
-        if (kvs == PURC_VARIANT_INVALID)
-            return PURC_VARIANT_INVALID;
-
-        for (size_t i=0; i<set->nr_keynames; ++i) {
-            const char *sk = set->keynames[i];
-            purc_variant_t v;
-            v = purc_variant_object_get_by_ckey(value, sk, false);
-            if (v == PURC_VARIANT_INVALID)
-                continue;
-            PC_ASSERT(purc_variant_is_undefined(v) == false);
-            bool ok;
-            ok = purc_variant_object_set_by_static_ckey(kvs, sk, v);
-            if (!ok) {
-                purc_variant_unref(kvs);
-                return PURC_VARIANT_INVALID;
-            }
-        }
-
-        return kvs;
-    } else {
-        PC_ASSERT(set->nr_keynames==1);
-        purc_variant_ref(value);
-
-        return value;
-    }
-}
-
-static purc_variant_t
 pcv_set_new(void)
 {
     purc_variant_t set = pcvariant_get(PVT(_SET));
@@ -644,7 +605,6 @@ elem_node_release(struct set_node *node)
     elem_node_revoke_constraints(node);
     elem_node_remove(node);
 
-    PURC_VARIANT_SAFE_CLEAR(node->kvs);
     PURC_VARIANT_SAFE_CLEAR(node->elem);
     node->set = PURC_VARIANT_INVALID;
 }
@@ -772,11 +732,6 @@ variant_set_create_elem_node(purc_variant_t set, purc_variant_t val)
     struct set_node *_new = (struct set_node*)calloc(1, sizeof(*_new));
     if (!_new) {
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return NULL;
-    }
-    _new->kvs = variant_set_kvs_from_val(data, val);
-    if (!_new->kvs) {
-        free(_new);
         return NULL;
     }
 
@@ -2050,15 +2005,7 @@ pcvar_adjust_set_by_descendant(purc_variant_t val)
     PC_ASSERT(data);
 
     struct set_node *node = top->set_me;
-    PRINT_VARIANT(node->elem);
     pcutils_rbtree_erase(&node->node, &data->elems);
-    PRINT_VARIANT(node->elem);
-
-    purc_variant_t kvs;
-    kvs = variant_set_kvs_from_val(data, node->elem);
-    PC_ASSERT(kvs != PURC_VARIANT_INVALID);
-    PURC_VARIANT_SAFE_CLEAR(node->kvs);
-    node->kvs = kvs;
 
     struct element_rb_node rbn;
     find_element_rb_node(&rbn, set, node->elem);

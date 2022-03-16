@@ -261,7 +261,6 @@ typedef struct variant_set      *variant_set_t;
 struct set_node {
     struct rb_node   node;
     purc_variant_t   elem;  // actual variant-element
-    purc_variant_t   kvs;
     size_t           idx;
 
     // managed by variant_set

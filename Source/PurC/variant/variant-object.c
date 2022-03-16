@@ -337,7 +337,7 @@ v_object_set(purc_variant_t obj, purc_variant_t k, purc_variant_t val,
         }
         // FIXME: recoverable?
         PC_ASSERT(r == 0);
-        // pcvar_adjust_set_by_descendant(obj);
+        pcvar_adjust_set_by_descendant(obj);
     }
     else {
         node->key = k;
