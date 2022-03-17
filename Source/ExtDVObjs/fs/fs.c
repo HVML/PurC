@@ -56,36 +56,6 @@ struct pcdvobjs_dvobjs_object {
     pcdvobjs_create create_func;
 };
 
-static const char * pcdvobjs_get_next_option (const char *data, 
-        const char *delims, size_t *length)
-{
-    const char *head = data;
-    char *temp = NULL;
-
-    if ((delims == NULL) || (data == NULL) || (*delims == 0x00))
-        return NULL;
-
-    *length = 0;
-
-    while (*data != 0x00) {
-        temp = strchr (delims, *data);
-        if (temp) {
-            if (head == data) {
-                head = data + 1;
-            }
-            else
-                break;
-        }
-        data++;
-    }
-
-    *length = data - head;
-    if (*length == 0)
-        head = NULL;
-
-    return head;
-}
-
 static const char * pcdvobjs_remove_space (char *buffer)
 {
     int i = 0;
@@ -252,7 +222,7 @@ list_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     // get filter array
     if (filter) {
         size_t length = 0;
-        const char *head = pcdvobjs_get_next_option (filter, ";", &length);
+        const char *head = pcutils_get_next_token (filter, ";", &length);
         while (head) {
             if (wildcard == NULL) {
                 wildcard = malloc (sizeof(struct wildcard_list));
@@ -273,7 +243,7 @@ list_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             strncpy(temp_wildcard->wildcard, head, length);
             *(temp_wildcard->wildcard + length) = 0x00;
             pcdvobjs_remove_space (temp_wildcard->wildcard);
-            head = pcdvobjs_get_next_option (head + length + 1, ";", &length);
+            head = pcutils_get_next_token (head + length + 1, ";", &length);
         }
     }
 
@@ -532,7 +502,7 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     // get filter array
     if (filter) {
         size_t length = 0;
-        const char *head = pcdvobjs_get_next_option (filter, ";", &length);
+        const char *head = pcutils_get_next_token (filter, ";", &length);
         while (head) {
             if (wildcard == NULL) {
                 wildcard = malloc (sizeof(struct wildcard_list));
@@ -553,7 +523,7 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             strncpy(temp_wildcard->wildcard, head, length);
             *(temp_wildcard->wildcard + length) = 0x00;
             pcdvobjs_remove_space (temp_wildcard->wildcard);
-            head = pcdvobjs_get_next_option (head + length + 1, ";", &length);
+            head = pcutils_get_next_token (head + length + 1, ";", &length);
         }
     }
 
@@ -569,7 +539,7 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         i = 0;
         bool quit = false;
         size_t length = 0;
-        const char * head = pcdvobjs_get_next_option (mode, " ", &length);
+        const char * head = pcutils_get_next_token (mode, " ", &length);
         while (head) {
             switch (* head)
             {
@@ -654,7 +624,7 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
             if (quit)
                 break;
-            head = pcdvobjs_get_next_option (head + length + 1, " ", &length);
+            head = pcutils_get_next_token (head + length + 1, " ", &length);
         }
     }
     else {

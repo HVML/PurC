@@ -36,36 +36,6 @@
 #define ENDIAN_LITTLE       1
 #define ENDIAN_BIG          2
 
-static const char * pcdvobjs_get_next_option (const char *data,
-        const char *delims, size_t *length)
-{
-    const char *head = data;
-    char *temp = NULL;
-
-    if ((delims == NULL) || (data == NULL) || (*delims == 0x00))
-        return NULL;
-
-    *length = 0;
-
-    while (*data != 0x00) {
-        temp = strchr (delims, *data);
-        if (temp) {
-            if (head == data) {
-                head = data + 1;
-            }
-            else
-                break;
-        }
-        data++;
-    }
-
-    *length = data - head;
-    if (*length == 0)
-        head = NULL;
-
-    return head;
-}
-
 // for file to get '\n'
 static const char * pcdvobjs_file_get_next_option (const char *data,
         const char *delims, size_t *length)
@@ -774,7 +744,7 @@ stream_readstruct_getter (purc_variant_t root, size_t nr_args,
         return PURC_VARIANT_INVALID;
     }
     format = purc_variant_get_string_const (argv[1]);
-    head = pcdvobjs_get_next_option (format, " \t\n", &length);
+    head = pcutils_get_next_token (format, " \t\n", &length);
 
     ret_var = purc_variant_make_array (0, PURC_VARIANT_INVALID);
 
@@ -962,7 +932,7 @@ stream_readstruct_getter (purc_variant_t root, size_t nr_args,
 
         purc_variant_array_append (ret_var, val);
         purc_variant_unref (val);
-        head = pcdvobjs_get_next_option (head + length, " \t\n", &length);
+        head = pcutils_get_next_token (head + length, " \t\n", &length);
     }
     return ret_var;
 }
@@ -1115,7 +1085,7 @@ stream_writestruct_getter (purc_variant_t root, size_t nr_args,
     }
 
     format = purc_variant_get_string_const (argv[1]);
-    head = pcdvobjs_get_next_option (format, " \t\n", &length);
+    head = pcutils_get_next_token (format, " \t\n", &length);
 
     while (head) {
         switch (* head)
@@ -1389,7 +1359,7 @@ stream_writestruct_getter (purc_variant_t root, size_t nr_args,
                 }
                 break;
         }
-        head = pcdvobjs_get_next_option (head + length, " \t\n", &length);
+        head = pcutils_get_next_token (head + length, " \t\n", &length);
     }
 
     ret_var = purc_variant_make_ulongint (write_length);
