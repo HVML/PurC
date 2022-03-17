@@ -31,9 +31,15 @@
 #include <string.h>
 #include <getopt.h>
 
+#define LEN_TARGET_NAME     10
+
+#define DEF_WORKSPACE_ID       "__purc_workspace"
+#define DEF_WINDOW_ID          "__purc_window"
+
 struct purc_run_info {
     char app_name[PURC_LEN_APP_NAME + 1];
     char runner_name[PURC_LEN_RUNNER_NAME + 1];
+    char target_name[LEN_TARGET_NAME + 1];          // rdr
 
     char *doc_content;
 };
@@ -79,6 +85,7 @@ static void print_usage(void)
             "  -a --app=<app_name>          - Run with the specified app name.\n"
             "  -r --runner=<runner_name>    - Run with the specified runner name.\n"
             "  -f --file=<html_file>        - The initial HTML file to load.\n"
+            "  -t --target=<renderer_name>  - The renderer name.\n"
             "  -v --version                 - Display version information and exit.\n"
             "  -h --help                    - This help.\n"
             "\n"
@@ -116,11 +123,12 @@ failed:
     return buf;
 }
 
-static char short_options[] = "a:r:f:vh";
+static char short_options[] = "a:r:f:t:vh";
 static struct option long_opts[] = {
     {"app"            , required_argument , NULL , 'a' } ,
     {"runner"         , required_argument , NULL , 'r' } ,
     {"file"           , required_argument , NULL , 'f' } ,
+    {"target"         , required_argument , NULL , 't' } ,
     {"version"        , no_argument       , NULL , 'v' } ,
     {"help"           , no_argument       , NULL , 'h' } ,
     {0, 0, 0, 0}
@@ -154,6 +162,10 @@ static int read_option_args (int argc, char **argv)
                 return -1;
             }
             break;
+        case 't':
+            if (strlen (optarg) < LEN_TARGET_NAME)
+                strcpy (run_info.target_name, optarg);
+            break;
         case '?':
             print_usage ();
             return -1;
@@ -183,12 +195,10 @@ int main(int argc, char** argv)
         return EXIT_FAILURE;
     }
 
-    purc_instance_extra_info extra_info = {
-        .renderer_prot = PURC_RDRPROT_PURCMC,
-        .renderer_uri = "unix://" PCRDR_PURCMC_US_PATH,
-    };
+    purc_instance_extra_info extra_info = {};
 
-    unsigned int modules = PURC_MODULE_HVML;
+    unsigned int modules = (PURC_MODULE_HVML | PURC_MODULE_PCRDR) & ~PURC_HAVE_FETCHER;
+
     if (!run_info.app_name[0]) {
         strcpy(run_info.app_name, "cn.fmsoft.hybridos.purc");
     }
@@ -196,6 +206,11 @@ int main(int argc, char** argv)
     if (!run_info.runner_name[0]) {
         strcpy(run_info.runner_name, "purc");
     }
+
+    if (strcmp(run_info.target_name, "purcmc") == 0) {
+        extra_info.renderer_prot = PURC_RDRPROT_PURCMC;
+        extra_info.renderer_uri = "unix://" PCRDR_PURCMC_US_PATH;
+    };
 
     ret = purc_init_ex(modules, run_info.app_name, run_info.runner_name,
             &extra_info);
@@ -215,6 +230,19 @@ int main(int argc, char** argv)
     purc_vdom_t vdom = purc_load_hvml_from_string(run_info.doc_content);
     if (!vdom) {
         fprintf(stderr, "Failed to load hvml : %s\n",
+                purc_get_error_message(purc_get_last_error()));
+        goto failed;
+    }
+
+    purc_renderer_extra_info rdr_extra_info = {};
+    ret = purc_attach_vdom_to_renderer(vdom,
+            DEF_WORKSPACE_ID,
+            DEF_WINDOW_ID,
+            NULL,
+            NULL,
+            &rdr_extra_info);
+    if (!ret) {
+        fprintf(stderr, "Failed to attach renderer : %s\n",
                 purc_get_error_message(purc_get_last_error()));
         goto failed;
     }
