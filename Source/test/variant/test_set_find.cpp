@@ -30,9 +30,6 @@ char* variant_to_string(purc_variant_t v)
 
 TEST(set, unique_key_find)
 {
-    if (0)
-        return;
-
     purc_instance_extra_info info = {};
     int ret = 0;
     bool cleanup = false;

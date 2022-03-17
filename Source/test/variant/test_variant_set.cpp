@@ -75,14 +75,6 @@ TEST(variant_set, init_with_1_str)
     ASSERT_EQ(stat->nr_values[PVT(_SET)], 0);
     ASSERT_EQ(stat->nr_values[PVT(_STRING)], 0);
 
-#if 0
-    // testing anonymous object
-    var = purc_variant_make_set(1,
-            purc_variant_make_set(1,
-                purc_variant_make_null()));
-    ASSERT_NE(var, nullptr);
-    purc_variant_unref(var);
-#endif // 0
     cleanup = purc_cleanup ();
     ASSERT_EQ (cleanup, true);
 }
@@ -165,14 +157,6 @@ TEST(variant_set, init_0_elem)
     purc_variant_unref(var);
     ASSERT_EQ(stat->nr_values[PVT(_SET)], 0);
 
-#if 0
-    // testing anonymous object
-    var = purc_variant_make_set(1,
-            purc_variant_make_set(1,
-                purc_variant_make_null()));
-    ASSERT_NE(var, nullptr);
-    purc_variant_unref(var);
-#endif // 0
     cleanup = purc_cleanup ();
     ASSERT_EQ (cleanup, true);
 }
@@ -341,14 +325,6 @@ TEST(variant_set, add_n_str)
     ASSERT_EQ(stat->nr_values[PVT(_OBJECT)], 0);
     ASSERT_EQ(stat->nr_values[PVT(_STRING)], 0);
 
-#if 0
-    // testing anonymous object
-    var = purc_variant_make_set(1,
-            purc_variant_make_set(1,
-                purc_variant_make_null()));
-    ASSERT_NE(var, nullptr);
-    purc_variant_unref(var);
-#endif // 0
     cleanup = purc_cleanup ();
     ASSERT_EQ (cleanup, true);
 }
@@ -785,9 +761,6 @@ TEST(variant_set, constraint_scalar)
 
 TEST(variant_set, constraint_scalars)
 {
-    if (1)
-        return;
-
     PurCInstance purc;
 
     bool ok;
@@ -818,8 +791,8 @@ TEST(variant_set, constraint_scalars)
     ASSERT_TRUE(ok);
     PRINT_VARIANT(set);
     ok = purc_variant_object_set_by_static_ckey(obj, "last", last);
-    ASSERT_FALSE(ok);
     PRINT_VARIANT(set);
+    ASSERT_FALSE(ok);
 
     PURC_VARIANT_SAFE_CLEAR(first);
     PURC_VARIANT_SAFE_CLEAR(last);

@@ -155,9 +155,6 @@ add_sample(const struct sample_data *sample)
 
 TEST(samples, basic)
 {
-    if (1)
-        return;
-
     bool enable_remote_fetcher = true;
     PurCInstance purc(enable_remote_fetcher);
 
@@ -189,15 +186,11 @@ run_tests(struct sample_data *samples, size_t nr, int parallel)
 
 TEST(samples, samples)
 {
-    if (1)
-        return;
-
     PurCInstance purc;
 
     ASSERT_TRUE(purc);
 
     struct sample_data samples[] = {
-#if 0
         {
             "<!DOCTYPE hvml>"
             "<hvml target=\"html\" lang=\"en\">"
@@ -262,7 +255,6 @@ TEST(samples, samples)
             "</hvml>",
             NULL,
         },
-#endif
         {
             "<!DOCTYPE hvml SYSTEM 'v: MATH'>"
             "<hvml target=\"html\" lang=\"en\">"
@@ -298,7 +290,7 @@ TEST(samples, samples)
             "    </body>"
             ""
             "</hvml>",
-            "<html lang=\"en\" target=\"html\"><head><title>Fibonacci Numbers</title></head><body><header><h1>Fibonacci Numbers less than 2000</h1><p hvml:raw=\"\">Using named array variable ($fibonacci), $MATH, and $EJSON</p></header><section><ol><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li>13</li><li>21</li><li>34</li><li>55</li><li>89</li><li>144</li><li>233</li><li>377</li><li>610</li><li>987</li><li>1597</li></ol></section><footer><p>Totally 18 numbers.</p></footer></body></html>",
+            "<html lang=\"en\" target=\"html\"><head><title>Fibonacci Numbers</title></head><body><header><h1>Fibonacci Numbers less than 2000</h1><p hvml:raw=\"\">Using named array variable ($fibonacci), $MATH, and $EJSON</p></header><section><ol><li>0</li><li>1</li><li>1</li><li>2</li><li>3</li><li>5</li><li>8</li><li>13</li><li>21</li><li>34</li><li>55</li><li>89</li><li>144</li><li>233</li><li>377</li><li>610</li><li>987</li><li>1597</li></ol></section><footer><p>Totally 18 numbers.</p></footer></body></html>",
         },
         {
             "<!DOCTYPE hvml>"
@@ -335,9 +327,8 @@ TEST(samples, samples)
             "    </body>"
             ""
             "</hvml>",
-            "<html/>",
+            "<html lang=\"en\" target=\"html\"><head><title>Fibonacci Numbers</title></head><body><header><h1>Fibonacci Numbers less than 2000</h1><p hvml:raw=\"\">Using local array variable ($!) and negative index</p></header><section><ol><li>0</li><li>1</li><li>1</li><li>2</li><li>3</li><li>5</li><li>8</li><li>13</li><li>21</li><li>34</li><li>55</li><li>89</li><li>144</li><li>233</li><li>377</li><li>610</li><li>987</li><li>1597</li></ol></section><footer><p>Totally 18 numbers.</p></footer></body></html>",
         },
-#if 0
         {
             "<!DOCTYPE hvml>"
             "<hvml target=\"html\" lang=\"en\">"
@@ -445,147 +436,9 @@ TEST(samples, samples)
             "</html>",
         },
         {
-            "<!DOCTYPE hvml>"
-            "<hvml target=\"html\" lang=\"en\">"
-            "    <head>"
-            "        <base href=\"$HVML.base(! 'https://gitlab.fmsoft.cn/hvml/hvml-docs/raw/master/samples/calculator/' )\" />"
-            ""
-            "<!--"
-            "        <update on=\"$T.map\" from=\"assets/{$SYSTEM.locale}.json\" to=\"merge\" />"
-            "-->"
-            ""
-            "        <update on=\"$T.map\" to=\"merge\">"
-            "           {"
-            "               \"HVML Calculator\": \"HVML 计算器\","
-            "               \"Current Time: \": \"当前时间：\""
-            "           }"
-            "        </update>"
-            ""
-            "<!--"
-            "        <init as=\"buttons\" from=\"assets/buttons.json\" />"
-            "-->"
-            ""
-            "        <init as=\"buttons\" uniquely>"
-            "            ["
-            "                { \"letters\": \"7\", \"class\": \"number\" },"
-            "                { \"letters\": \"8\", \"class\": \"number\" },"
-            "                { \"letters\": \"9\", \"class\": \"number\" },"
-            "                { \"letters\": \"←\", \"class\": \"c_blue backspace\" },"
-            "                { \"letters\": \"C\", \"class\": \"c_blue clear\" },"
-            "                { \"letters\": \"4\", \"class\": \"number\" },"
-            "                { \"letters\": \"5\", \"class\": \"number\" },"
-            "                { \"letters\": \"6\", \"class\": \"number\" },"
-            "                { \"letters\": \"×\", \"class\": \"c_blue multiplication\" },"
-            "                { \"letters\": \"÷\", \"class\": \"c_blue division\" },"
-            "                { \"letters\": \"1\", \"class\": \"number\" },"
-            "                { \"letters\": \"2\", \"class\": \"number\" },"
-            "                { \"letters\": \"3\", \"class\": \"number\" },"
-            "                { \"letters\": \"+\", \"class\": \"c_blue plus\" },"
-            "                { \"letters\": \"-\", \"class\": \"c_blue subtraction\" },"
-            "                { \"letters\": \"0\", \"class\": \"number\" },"
-            "                { \"letters\": \"00\", \"class\": \"number\" },"
-            "                { \"letters\": \".\", \"class\": \"number\" },"
-            "                { \"letters\": \"%\", \"class\": \"c_blue percent\" },"
-            "                { \"letters\": \"=\", \"class\": \"c_yellow equal\" },"
-            "            ]"
-            "        </init>"
-            ""
-            "        <title>$T.get('HVML Calculator')</title>"
-            ""
-            "        <update on=\"$TIMERS\" to=\"displace\">"
-            "            ["
-            "                { \"id\" : \"clock\", \"interval\" : 1000, \"active\" : \"yes\" },"
-            "            ]"
-            "        </update>"
-            ""
-            "        <link rel=\"stylesheet\" type=\"text/css\" href=\"assets/calculator.css\" />"
-            "    </head>"
-            ""
-            "    <body>"
-            "        <div id=\"calculator\">"
-            ""
-            "            <div id=\"c_text\">"
-            "                <input type=\"text\" id=\"text\" value=\"0\" readonly=\"readonly\" />"
-            "            </div>"
-            ""
-            "            <div id=\"c_value\">"
-            "                <archetype name=\"button\">"
-            "                    <li class=\"$?.class\">$?.letters</li>"
-            "                </archetype>"
-            ""
-            "                <ul>"
-            "                    <iterate on=\"$buttons\">"
-            "                        <update on=\"$@\" to=\"append\" with=\"$button\" />"
-            "                        <except type=\"NoData\" raw>"
-            "                            <p>Bad data!</p>"
-            "                        </except>"
-            "                    </iterate>"
-            "                </ul>"
-            "            </div>"
-
-            "            <div id=\"c_title\">"
-            "                <h2 id=\"c_title\">$T.get('HVML Calculator')"
-            "                    <small>$T.get('Current Time: ')<span id=\"clock\">abc</span></small>"
-            "                </h2>"
-            "                <observe on=\"$TIMERS\" for=\"expired:clock\">"
-            "                    <update on=\"#clock\" at=\"textContent\" with=\"xyz\" />"
-            "<choose on=\"foo\" by=\"this is to throw exception intentionally\" />"
-            "                </observe>"
-            "            </div>"
-            "        </div>"
-            "    </body>"
-            ""
-            "</hvml>",
-            "<html lang=\"en\" target=\"html\">"
-            "    <head>"
-            "        <base href=\"https://gitlab.fmsoft.cn/hvml/hvml-docs/raw/master/samples/calculator/\" />"
-            "        <title>HVML 计算器</title>"
-            "        <link href=\"assets/calculator.css\" rel=\"stylesheet\" type=\"text/css\" />"
-            "    </head>"
-            ""
-            "    <body>"
-            "        <div id=\"calculator\">"
-            "            <div id=\"c_text\">"
-            "                <input id=\"text\" readonly=\"readonly\" type=\"text\" value=\"0\" />"
-            "            </div>"
-            "            <div id=\"c_value\">"
-            "                <ul>"
-            "                    <li class=\"number\">7</li>"
-            "                    <li class=\"number\">8</li>"
-            "                    <li class=\"number\">9</li>"
-            "                    <li class=\"c_blue backspace\">←</li>"
-            "                    <li class=\"c_blue clear\">C</li>"
-            "                    <li class=\"number\">4</li>"
-            "                    <li class=\"number\">5</li>"
-            "                    <li class=\"number\">6</li>"
-            "                    <li class=\"c_blue multiplication\">×</li>"
-            "                    <li class=\"c_blue division\">÷</li>"
-            "                    <li class=\"number\">1</li>"
-            "                    <li class=\"number\">2</li>"
-            "                    <li class=\"number\">3</li>"
-            "                    <li class=\"c_blue plus\">+</li>"
-            "                    <li class=\"c_blue subtraction\">-</li>"
-            "                    <li class=\"number\">0</li>"
-            "                    <li class=\"number\">00</li>"
-            "                    <li class=\"number\">.</li>"
-            "                    <li class=\"c_blue percent\">%</li>"
-            "                    <li class=\"c_yellow equal\">=</li>"
-            "                </ul>"
-            "            </div>"
-            "            <div id=\"c_title\">"
-            "                <h2 id=\"c_title\">HVML 计算器<small>当前时间：<span id=\"clock\">xyz</span></small>"
-            "                </h2>"
-            "            </div>"
-            "        </div>"
-            "    </body>"
-            ""
-            "</html>",
-        },
-        {
             "<hvml><body><div id='owner'></div><update on='#owner' at='textContent' to='append' with='hello' /><update on='#owner' at='textContent' to='displace' with='world' /></body></hvml>",
             "<div id='owner'>world</div>",
         },
-#endif
     };
 
     run_tests(samples, PCA_TABLESIZE(samples), 0);
@@ -691,7 +544,6 @@ TEST(samples, files)
 
 TEST(samples, foo)
 {
-#if 0
     do {
         struct purc_instance_extra_info info = {};
         if (purc_init_ex (PURC_MODULE_HVML, "cn.fmsoft.hybridos.test",
@@ -699,6 +551,5 @@ TEST(samples, foo)
             break;
         purc_cleanup();
     } while (0);
-#endif
 }
 
