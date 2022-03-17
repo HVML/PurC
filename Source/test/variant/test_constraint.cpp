@@ -64,6 +64,104 @@ TEST(constraint, set_modify_children_of_uniqkey_from_outside)
     PURC_VARIANT_SAFE_CLEAR(set);
 }
 
+TEST(constraint, set_grow_children_of_uniqkey_from_outside)
+{
+    PurCInstance purc;
+
+    const char *s;
+    purc_variant_t set, xu, xue;
+    purc_variant_t last;
+    purc_variant_t val, elem, arr, name;
+    bool silently = true;
+    bool ok;
+
+    s = "{name:[{first:xiaohong,last:xu}], extra:foo}";
+    xu = pcejson_parser_parse_string(s, 0, 0);
+    ASSERT_NE(xu, nullptr);
+
+    s = "{name:[{first:xiaohong}], extra:bar}";
+    xue = pcejson_parser_parse_string(s, 0, 0);
+    ASSERT_NE(xue, nullptr);
+
+    s = "xu";
+    last = pcejson_parser_parse_string(s, 0, 0);
+    ASSERT_NE(last, nullptr);
+
+    set = purc_variant_make_set_by_ckey(2, "name", xu, xue);
+    ASSERT_NE(set, nullptr);
+
+    val = purc_variant_object_get_by_ckey(xue, "name", silently);
+    ASSERT_NE(val, nullptr);
+
+    elem = purc_variant_set_get_member_by_key_values(set, val, silently);
+    ASSERT_NE(elem, nullptr);
+
+    arr = purc_variant_object_get_by_ckey(elem, "name", silently);
+    ASSERT_NE(arr, nullptr);
+
+    name = purc_variant_array_get(arr, 0);
+    ASSERT_NE(name, nullptr);
+
+    PRINT_VARIANT(set);
+    ok = purc_variant_object_set_by_static_ckey(name, "last", last);
+    PRINT_VARIANT(set);
+    ASSERT_FALSE(ok);
+
+    PURC_VARIANT_SAFE_CLEAR(last);
+    PURC_VARIANT_SAFE_CLEAR(xue);
+    PURC_VARIANT_SAFE_CLEAR(xu);
+    PURC_VARIANT_SAFE_CLEAR(set);
+}
+
+TEST(constraint, set_shrink_children_of_uniqkey_from_outside)
+{
+    PurCInstance purc;
+
+    const char *s;
+    purc_variant_t set, xu, xue;
+    purc_variant_t foo;
+    purc_variant_t val, elem, arr, name;
+    bool silently = true;
+    bool ok;
+
+    s = "{name:[{first:xiaohong,last:xu}], extra:foo}";
+    xu = pcejson_parser_parse_string(s, 0, 0);
+    ASSERT_NE(xu, nullptr);
+
+    s = "{name:[{first:xiaohong,last:xu,foo:bar}], extra:bar}";
+    xue = pcejson_parser_parse_string(s, 0, 0);
+    ASSERT_NE(xue, nullptr);
+
+    s = "foo";
+    foo = pcejson_parser_parse_string(s, 0, 0);
+    ASSERT_NE(foo, nullptr);
+
+    set = purc_variant_make_set_by_ckey(2, "name", xu, xue);
+    ASSERT_NE(set, nullptr);
+
+    val = purc_variant_object_get_by_ckey(xue, "name", silently);
+    ASSERT_NE(val, nullptr);
+
+    elem = purc_variant_set_get_member_by_key_values(set, val, silently);
+    ASSERT_NE(elem, nullptr);
+
+    arr = purc_variant_object_get_by_ckey(elem, "name", silently);
+    ASSERT_NE(arr, nullptr);
+
+    name = purc_variant_array_get(arr, 0);
+    ASSERT_NE(name, nullptr);
+
+    PRINT_VARIANT(set);
+    ok = purc_variant_object_remove(name, foo, silently);
+    PRINT_VARIANT(set);
+    ASSERT_FALSE(ok);
+
+    PURC_VARIANT_SAFE_CLEAR(foo);
+    PURC_VARIANT_SAFE_CLEAR(xue);
+    PURC_VARIANT_SAFE_CLEAR(xu);
+    PURC_VARIANT_SAFE_CLEAR(set);
+}
+
 TEST(constraint, set_modify_children_of_uniqkey_from_outside_arr)
 {
     PurCInstance purc;
@@ -129,6 +227,100 @@ TEST(constraint, set_modify_children_of_uniqkey_from_outside_arr)
     ASSERT_FALSE(ok);
 
     PURC_VARIANT_SAFE_CLEAR(first);
+    PURC_VARIANT_SAFE_CLEAR(xue);
+    PURC_VARIANT_SAFE_CLEAR(xu);
+    PURC_VARIANT_SAFE_CLEAR(set);
+}
+
+TEST(constraint, set_grow_children_of_uniqkey_from_outside_arr)
+{
+    PurCInstance purc;
+
+    const char *s;
+    purc_variant_t set, xu, xue;
+    purc_variant_t last;
+    purc_variant_t val, elem, arr;
+    bool silently = true;
+    bool ok;
+
+    s = "{name:[xiaohong,xu], extra:foo}";
+    xu = pcejson_parser_parse_string(s, 0, 0);
+    ASSERT_NE(xu, nullptr);
+
+    s = "{name:[xiaohong], extra:bar}";
+    xue = pcejson_parser_parse_string(s, 0, 0);
+    ASSERT_NE(xue, nullptr);
+
+    s = "xu";
+    last = pcejson_parser_parse_string(s, 0, 0);
+    ASSERT_NE(last, nullptr);
+
+    set = purc_variant_make_set_by_ckey(2, "name", xu, xue);
+    ASSERT_NE(set, nullptr);
+
+    val = purc_variant_object_get_by_ckey(xue, "name", silently);
+    ASSERT_NE(val, nullptr);
+
+    elem = purc_variant_set_get_member_by_key_values(set, val, silently);
+    ASSERT_NE(elem, nullptr);
+
+    arr = purc_variant_object_get_by_ckey(elem, "name", silently);
+    ASSERT_NE(arr, nullptr);
+
+    PRINT_VARIANT(set);
+    PRINT_VARIANT(arr);
+    ok = purc_variant_array_append(arr, last);
+    PRINT_VARIANT(set);
+    ASSERT_FALSE(ok);
+
+    PURC_VARIANT_SAFE_CLEAR(last);
+    PURC_VARIANT_SAFE_CLEAR(xue);
+    PURC_VARIANT_SAFE_CLEAR(xu);
+    PURC_VARIANT_SAFE_CLEAR(set);
+}
+
+TEST(constraint, set_shrink_children_of_uniqkey_from_outside_arr)
+{
+    PurCInstance purc;
+
+    const char *s;
+    purc_variant_t set, xu, xue;
+    purc_variant_t last;
+    purc_variant_t val, elem, arr;
+    bool silently = true;
+    bool ok;
+
+    s = "{name:[xiaohong,xu], extra:foo}";
+    xu = pcejson_parser_parse_string(s, 0, 0);
+    ASSERT_NE(xu, nullptr);
+
+    s = "{name:[xiaohong,xu,foo], extra:bar}";
+    xue = pcejson_parser_parse_string(s, 0, 0);
+    ASSERT_NE(xue, nullptr);
+
+    s = "xu";
+    last = pcejson_parser_parse_string(s, 0, 0);
+    ASSERT_NE(last, nullptr);
+
+    set = purc_variant_make_set_by_ckey(2, "name", xu, xue);
+    ASSERT_NE(set, nullptr);
+
+    val = purc_variant_object_get_by_ckey(xue, "name", silently);
+    ASSERT_NE(val, nullptr);
+
+    elem = purc_variant_set_get_member_by_key_values(set, val, silently);
+    ASSERT_NE(elem, nullptr);
+
+    arr = purc_variant_object_get_by_ckey(elem, "name", silently);
+    ASSERT_NE(arr, nullptr);
+
+    PRINT_VARIANT(set);
+    PRINT_VARIANT(arr);
+    ok = purc_variant_array_remove(arr, 2);
+    PRINT_VARIANT(set);
+    ASSERT_FALSE(ok);
+
+    PURC_VARIANT_SAFE_CLEAR(last);
     PURC_VARIANT_SAFE_CLEAR(xue);
     PURC_VARIANT_SAFE_CLEAR(xu);
     PURC_VARIANT_SAFE_CLEAR(set);
