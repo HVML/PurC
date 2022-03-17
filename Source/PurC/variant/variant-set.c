@@ -804,7 +804,7 @@ insert(purc_variant_t set, variant_set_t data,
     if (!node)
         return -1;
 
-    int r = pcutils_arrlist_add(data->arr, node);
+    int r = pcutils_arrlist_append(data->arr, node);
     if (r) {
         elem_node_release(node);
         free(node);

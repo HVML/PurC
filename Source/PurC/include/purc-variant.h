@@ -1418,20 +1418,20 @@ purc_variant_load_from_json_stream(purc_rwstream_t stream);
  *
  * @param v: the variant value.
  * @param i64: the buffer to receive the casted long integer if success.
- * @param parse_str: a boolean indicates whether to parse a string for
- *      casting.
+ * @param force: a boolean indicates whether to force casting, e.g.,
+ *  parsing a string or returning a long integer value for null
+ *  and boolean type.
  *
  * Returns: @TRUE on success, or @FALSE on failure (the variant value can not
  *      be casted to a long integer).
  *
- * Note: A null, a boolean, a number, a long integer,
- *      an unsigned long integer, or a long double can always be casted to
- *      a long integer. If 
+ * Note: A number, a long integer, an unsigned long integer, or a long double
+ *      can always be casted to a long integer.
  *
  * Since: 0.0.1
  */
 PCA_EXPORT bool
-purc_variant_cast_to_longint(purc_variant_t v, int64_t *i64, bool parse_str);
+purc_variant_cast_to_longint(purc_variant_t v, int64_t *i64, bool force);
 
 /**
  * Trys to cast a variant value to a unsigned long integer.
@@ -1439,61 +1439,58 @@ purc_variant_cast_to_longint(purc_variant_t v, int64_t *i64, bool parse_str);
  * @param v: the variant value.
  * @param u64: the buffer to receive the casted unsigned long integer
  *      if success.
- * @param parse_str: a boolean indicates whether to parse a string for
- *      casting.
+ * @param force: a boolean indicates whether to force casting, e.g.,
+ *  parsing a string or returning a long integer value for null
+ *  and boolean type.
  *
  * Returns: @TRUE on success, or @FALSE on failure (the variant value can not
  *      be casted to an unsigned long integer).
  *
- * Note: A null, a boolean, a number, a long integer,
- *      an unsigned long integer, or a long double can always be casted to
- *      an unsigned long integer.
+ * Note: A negative number, long integer, or long double will be casted
+ *      to 0 when @force is @true.
  *
  * Since: 0.0.1
  */
 PCA_EXPORT bool
-purc_variant_cast_to_ulongint(purc_variant_t v, uint64_t *u64, bool parse_str);
+purc_variant_cast_to_ulongint(purc_variant_t v, uint64_t *u64, bool force);
 
 /**
  * Trys to cast a variant value to a nubmer.
  *
  * @param v: the variant value.
  * @param d: the buffer to receive the casted number if success.
- * @param parse_str: a boolean indicates whether to parse a string for
- *      casting.
+ * @param force: a boolean indicates whether to force casting, e.g.,
+ *  parsing a string or returning a long integer value for null
+ *  and boolean type.
  *
- * Returns: @TRUE on success, or @FALSE on failure (the variant value can not
- *      be casted to a number).
- *
- * Note: A null, a boolean, a number, a long integer,
- *      an unsigned long integer, or a long double can always be casted to
- *      a number (double float number).
+ * Note: A number, a long integer, an unsigned long integer, or a long double
+ *      can always be casted to a number (double float number).
  *
  * Since: 0.0.1
  */
 PCA_EXPORT bool
-purc_variant_cast_to_number(purc_variant_t v, double *d, bool parse_str);
+purc_variant_cast_to_number(purc_variant_t v, double *d, bool force);
 
 /**
  * Trys to cast a variant value to a long double float number.
  *
  * @param v: the variant value.
  * @param ld: the buffer to receive the casted long double if success.
- * @param parse_str: a boolean indicates whether to parse a string for
- *      casting.
+ * @param force: a boolean indicates whether to force casting, e.g.,
+ *  parsing a string or returning a long integer value for null
+ *  and boolean type.
  *
  * Returns: @TRUE on success, or @FALSE on failure (the variant value can not
  *      be casted to a long double).
  *
- * Note: A null, a boolean, a number, a long integer,
- *      an unsigned long integer, or a long double can always be casted to
- *      a long double float number.
+ * Note: A number, a long integer, an unsigned long integer, or a long double
+ *      can always be casted to a long double float number.
  *
  * Since: 0.0.1
  */
 PCA_EXPORT bool
 purc_variant_cast_to_long_double(purc_variant_t v, long double *ld,
-        bool parse_str);
+        bool force);
 
 /**
  * Trys to cast a variant value to a byte sequence.
@@ -1514,6 +1511,19 @@ PCA_EXPORT bool
 purc_variant_cast_to_byte_sequence(purc_variant_t v,
         const void **bytes, size_t *sz);
 
+/**
+ * Check one variant is equal to another exactly or not.
+ *
+ * @param v1: one variant value
+ * @param v2: another variant value
+ *
+ * Returns: The function returns a boolean indicating whether v1 is equal
+ *  to v2 exactly.
+ *
+ * Since: 0.0.1
+ */
+PCA_EXPORT bool
+purc_variant_is_equal_to(purc_variant_t v1, purc_variant_t v2);
 
 typedef enum purc_variant_compare_opt
 {
@@ -1539,12 +1549,6 @@ typedef enum purc_variant_compare_opt
 PCA_EXPORT int
 purc_variant_compare_ex(purc_variant_t v1,
         purc_variant_t v2, purc_variant_compare_opt opt);
-/**
- * Compares two variant value, staled-ver, use \purc_variant_compare_ex instead
- */
-PCA_EXPORT int
-purc_variant_compare_st(purc_variant_t v1, purc_variant_t v2);
-
 
 /**
  * A flag for the purc_variant_serialize() function which causes the output
@@ -1738,8 +1742,20 @@ PCA_EXPORT bool purc_variant_is_type(purc_variant_t value,
  *
  * Since: 0.0.1
  */
-PCA_EXPORT enum purc_variant_type purc_variant_get_type(purc_variant_t value);
+PCA_EXPORT enum purc_variant_type
+purc_variant_get_type(purc_variant_t value);
 
+/**
+ * Get the type name (static string) for a variant type.
+ *
+ * @param type: the variant type
+ *
+ * Returns: The type name (a pointer to a static string).
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT const char*
+purc_variant_typename(enum purc_variant_type type);
 
 /**
  * Whether the value is of indicated type.
@@ -2277,12 +2293,13 @@ typedef purc_variant_t (*purc_cb_get_var)(void* ctxt, const char* name);
  *      for a variable name.
  * @param ctxt: the context will be passed to the callback when evaluting
  *      a variable.
+ * @param silently: @true means ignoring the errors.
  *
  * Since: 0.1.1
  */
 PCA_EXPORT purc_variant_t
 purc_variant_ejson_parse_tree_evalute(struct purc_ejson_parse_tree *parse_tree,
-        purc_cb_get_var fn_get_var, void *ctxt);
+        purc_cb_get_var fn_get_var, void *ctxt, bool silently);
 
 /**
  * Destroy an EJSON parse tree.

@@ -50,48 +50,48 @@ test_begin
 param_begin
 number:5;
 param_end
-invalid:;
+ulongint:5;
 test_end
 
 test_begin
 param_begin
 longdouble:3;
 param_end
-invalid:;
+ulongint:3;
 test_end
 
 test_begin
 param_begin
 longint:3;
 param_end
+ulongint:3;
+test_end
+
+test_begin
+param_begin
+ulongint:1000;
+param_end
+ulongint:1000;
+test_end
+
+test_begin
+param_begin
+ulongint: 100;
+param_end
+ulongint: 100;
+test_end
+
+test_begin
+param_begin
+ulongint: 0;
+param_end
 invalid:;
 test_end
 
 test_begin
 param_begin
-ulongint:1000;
-param_end
-ulongint:1000;
-test_end
-
-test_begin
-param_begin
-ulongint: 100;
-param_end
-ulongint: 100;
-test_end
-
-test_begin
-param_begin
-ulongint: 0;
-param_end
-ulongint: 0;
-test_end
-
-test_begin
-param_begin
 ulongint: 100000;
 param_end
-ulongint: 100000;
+invalid:;
 test_end
 

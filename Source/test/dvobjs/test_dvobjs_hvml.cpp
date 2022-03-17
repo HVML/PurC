@@ -51,7 +51,7 @@ TEST(dvobjs, dvobjs_hvml_setter)
             "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t hvml = purc_dvobj_hvml_new();
+    purc_variant_t hvml = purc_dvobj_hvml_new(NULL);
     ASSERT_NE(hvml, nullptr);
     ASSERT_EQ(purc_variant_is_object (hvml), true);
 

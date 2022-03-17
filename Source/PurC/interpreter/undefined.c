@@ -202,20 +202,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (r)
         return NULL;
 
-#if 1
-    // FIXME
-    // base tag, set base uri
-    if (strcmp(element->tag_name, "base") == 0) {
-        purc_variant_t href;
-        href = ctxt->href;
-        if (href != PURC_VARIANT_INVALID && purc_variant_is_string(href)) {
-            const char* base_url = purc_variant_get_string_const(href);
-            fprintf(stderr, "base_url: [%s]\n", base_url);
-            pcintr_set_base_uri(stack, base_url);
-        }
-    }
-#endif
-
     purc_variant_t with = frame->ctnt_var;
     if (with != PURC_VARIANT_INVALID) {
         // FIXME: unify

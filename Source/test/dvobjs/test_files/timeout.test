@@ -57,14 +57,14 @@ test_begin
 param_begin
 longdouble:3;
 param_end
-invalid:;
+number:3;
 test_end
 
 test_begin
 param_begin
 longint:3;
 param_end
-invalid:;
+number:3;
 test_end
 
 test_begin
@@ -78,5 +78,5 @@ test_begin
 param_begin
 number: -3.5;
 param_end
-number: 3.5;
+invalid:;
 test_end

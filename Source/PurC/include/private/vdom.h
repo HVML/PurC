@@ -174,6 +174,7 @@ struct pcvdom_comment {
 struct purc_vdom {
     struct pcvdom_document          *document;
     struct pcintr_timers            *timers;
+    const struct purc_hvml_ctrl_props     *hvml_ctrl_props;
     uintptr_t   target_workspace_handle;  /* rdr workspace */
     uintptr_t   target_window_handle;
     uintptr_t   target_tabpage_handle;

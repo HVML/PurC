@@ -172,12 +172,12 @@ purc_dvobj_session_new(void)
 {
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
-    static struct pcdvobjs_dvobjs method [] = {
+    static struct purc_dvobj_method method [] = {
         {"cwd",               cwd_getter,              cwd_setter},
         {"user",              user_getter,             user_setter},
     };
 
-    ret_var = pcdvobjs_make_dvobjs(method, PCA_TABLESIZE(method));
+    ret_var = purc_dvobj_make_from_methods(method, PCA_TABLESIZE(method));
     if (ret_var == PURC_VARIANT_INVALID) {
         return PURC_VARIANT_INVALID;
     }

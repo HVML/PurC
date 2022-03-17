@@ -4,10 +4,10 @@ include(GoogleTest)
 
 enable_testing()
 
-# test_dvobjs
-PURC_EXECUTABLE_DECLARE(test_dvobjs)
+# test_dvobjs_system
+PURC_EXECUTABLE_DECLARE(test_dvobjs_system)
 
-list(APPEND test_dvobjs_PRIVATE_INCLUDE_DIRECTORIES
+list(APPEND test_dvobjs_system_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR}/include
     ${PurC_DERIVED_SOURCES_DIR}
     ${PURC_DIR}
@@ -15,23 +15,23 @@ list(APPEND test_dvobjs_PRIVATE_INCLUDE_DIRECTORIES
     ${WTF_DIR}
 )
 
-PURC_EXECUTABLE(test_dvobjs)
+PURC_EXECUTABLE(test_dvobjs_system)
 
-set(test_dvobjs_SOURCES
-    test_dvobjs.cpp
+set(test_dvobjs_system_SOURCES
+    test_dvobjs_system.cpp
     helper.cpp
 )
 
-set(test_dvobjs_LIBRARIES
+set(test_dvobjs_system_LIBRARIES
     PurC::PurC
     gtest_main
     gtest
     pthread
 )
 
-PURC_COMPUTE_SOURCES(test_dvobjs)
-PURC_FRAMEWORK(test_dvobjs)
-GTEST_DISCOVER_TESTS(test_dvobjs DISCOVERY_TIMEOUT 10)
+PURC_COMPUTE_SOURCES(test_dvobjs_system)
+PURC_FRAMEWORK(test_dvobjs_system)
+GTEST_DISCOVER_TESTS(test_dvobjs_system DISCOVERY_TIMEOUT 10)
 
 
 # test_dvobjs_math

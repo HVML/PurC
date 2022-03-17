@@ -70,9 +70,6 @@ pcintr_eval_vdom_attr(pcintr_stack_t stack, struct pcvdom_attr *attr);
 
 void pcintr_coroutine_ready(void);
 
-void
-pcintr_set_base_uri(pcintr_stack_t stack, const char* base_uri);
-
 purc_variant_t
 pcintr_load_from_uri(pcintr_stack_t stack, const char* uri);
 

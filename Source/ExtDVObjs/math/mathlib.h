@@ -33,13 +33,6 @@ extern "C" {
 
 typedef purc_variant_t (*pcdvobjs_create) (void);
 
-// dynamic variant in dynamic object
-struct pcdvobjs_dvobjs {
-    const char * name;
-    purc_dvariant_method getter;
-    purc_dvariant_method setter;
-};
-
 int
 math_eval(const char *input, double *d, purc_variant_t param)
 __attribute__((visibility("hidden")));
