@@ -33,10 +33,6 @@
 
 #include <math.h>
 
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-
 #if HAVE(GLIB)
 #include <gmodule.h>
 #else
@@ -57,8 +53,8 @@
 #endif
 
 #define PRINT_STATE(state_name)                                             \
-    if (parser->enable_print_log) {                                         \
-        fprintf(stderr,                                                     \
+    if (parser->enable_log) {                                               \
+        PC_DEBUG(                                                           \
             "in %s|uc=%c|hex=0x%X|stack_is_empty=%d"                        \
             "|stack_top=%c|stack_size=%ld|vcm_node->type=%d\n",             \
             curr_state_name, character, character,                          \
@@ -77,8 +73,8 @@
                 parser->curr_uc->column,                                    \
                 parser->curr_uc->character);                                \
         exinfo = purc_variant_make_string(buf, false);                      \
-        if (parser->enable_print_log) {                                     \
-            fprintf(stderr, "%s:%d|%s|%s\n", __FILE__, __LINE__, #err, buf);\
+        if (parser->enable_log) {                                           \
+            PC_DEBUG( "%s:%d|%s|%s\n", __FILE__, __LINE__, #err, buf);      \
         }                                                                   \
     }                                                                       \
     purc_set_error_exinfo(err, exinfo);                                     \
@@ -363,13 +359,13 @@ struct ucwrap *rwswrap_read_from_reconsume_list(struct rwswrap *wrap)
 
 #define print_uc_list(uc_list, tag)                                         \
     do {                                                                    \
-        fprintf(stderr, "begin print %s list\n|", tag);                     \
+        PC_DEBUG( "begin print %s list\n|", tag);                           \
         struct list_head *p, *n;                                            \
         list_for_each_safe(p, n, uc_list) {                                 \
             struct ucwrap *puc = list_entry(p, struct ucwrap, list);        \
-            fprintf(stderr, "%c", puc->character);                          \
+            PC_DEBUG( "%c", puc->character);                                \
         }                                                                   \
-        fprintf(stderr, "|\nend print %s list\n", tag);                     \
+        PC_DEBUG( "|\nend print %s list\n", tag);                           \
     } while(0)
 
 #define PRINT_CONSUMED_LIST(wrap)    \
@@ -891,14 +887,14 @@ struct pcejson {
     struct pcutils_stack* ejson_stack;
     uint32_t prev_separator;
     uint32_t nr_quoted;
-    bool enable_print_log;
+    bool enable_log;
 };
 
 #define EJSON_MAX_DEPTH         32
 #define EJSON_MIN_BUFFER_SIZE   128
 #define EJSON_MAX_BUFFER_SIZE   1024 * 1024 * 1024
 #define EJSON_END_OF_FILE       0
-#define PRINT_LOG_SWITCH_FILE "/tmp/purc_print_ejson_parser"
+#define PURC_EJSON_LOG_ENABLE  "PURC_EJSON_LOG_ENABLE"
 
 struct pcejson *pcejson_create(uint32_t depth, uint32_t flags)
 {
@@ -921,8 +917,10 @@ struct pcejson *pcejson_create(uint32_t depth, uint32_t flags)
     parser->ejson_stack = pcutils_stack_new(0);
     parser->prev_separator = 0;
     parser->nr_quoted = 0;
-    struct stat st;
-    parser->enable_print_log = (stat(PRINT_LOG_SWITCH_FILE, &st) == 0);
+
+    const char *env_value = getenv(PURC_EJSON_LOG_ENABLE);
+    parser->enable_log = ((env_value != NULL) &&
+            (*env_value == '1' || strcasecmp(env_value, "true") == 0));
 
     return parser;
 }
