@@ -1379,7 +1379,7 @@ random_sequence_getter(purc_variant_t root,
         goto failed;
     }
 
-    if (length > 256) {
+    if (length == 0 || length > 256) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto failed;
     }
