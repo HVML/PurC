@@ -57,7 +57,7 @@ struct pchvml_parser {
     int last_token_type;
     bool tag_is_operation;
     bool tag_has_raw_attr;
-    bool enable_print_log;
+    bool enable_log;
 };
 
 #ifdef __cplusplus

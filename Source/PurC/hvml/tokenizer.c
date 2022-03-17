@@ -52,8 +52,8 @@
 #define ERROR_BUF_SIZE  100
 
 #define PRINT_STATE(state_name)                                             \
-    if (parser->enable_print_log) {                                         \
-        fprintf(stderr,                                                     \
+    if (parser->enable_log) {                                               \
+        PC_DEBUG(                                                           \
             "in %s|uc=%c|hex=0x%X|stack_is_empty=%d"                        \
             "|stack_top=%c|stack_size=%ld|vcm_node->type=%d\n",             \
             curr_state_name, character, character,                          \
@@ -72,8 +72,8 @@
                 parser->curr_uc->column,                                    \
                 parser->curr_uc->character);                                \
         exinfo = purc_variant_make_string(buf, false);                      \
-        if (parser->enable_print_log) {                                     \
-            fprintf(stderr, "%s:%d|%s|%s\n", __FILE__, __LINE__, #err, buf);\
+        if (parser->enable_log) {                                           \
+            PC_DEBUG( "%s:%d|%s|%s\n", __FILE__, __LINE__, #err, buf);      \
         }                                                                   \
     }                                                                       \
     purc_set_error_exinfo(err, exinfo);                                     \
