@@ -219,7 +219,6 @@ bool Connection::processMessage()
 
     auto decoder = makeUnique<Decoder>(messageBody, messageInfo.bodySize(), nullptr, WTFMove(attachments));
 
-    //fprintf(stderr, "purc|%d|0x%lX|%s|fd=%d|receive|%s\n", getpid(), pthread_self(), this->client().connectionName(), m_socketDescriptor, description(decoder->messageName()));
     processIncomingMessage(WTFMove(decoder));
 
     if (m_readBuffer.size() > messageLength) {
@@ -383,7 +382,6 @@ bool Connection::platformCanSendOutgoingMessages() const
 
 bool Connection::sendOutgoingMessage(std::unique_ptr<Encoder> encoder)
 {
-    //fprintf(stderr, "purc|%d|0x%lX|%s|fd=%d|send|%s\n", getpid(), pthread_self(), client().connectionName(), m_socketDescriptor, description(encoder->messageName()));
     COMPILE_ASSERT(sizeof(MessageInfo) + attachmentMaxAmount * sizeof(size_t) <= messageMaxSize, AttachmentsFitToMessageInline);
 
     UnixMessage outputMessage(*encoder);
