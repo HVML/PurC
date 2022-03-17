@@ -759,6 +759,73 @@ TEST(variant_set, constraint_scalar)
     purc_variant_unref(set);
 }
 
+TEST(variant_set, constraint_scalar_grow)
+{
+    PurCInstance purc;
+
+    bool ok;
+    const char *s;
+    purc_variant_t set, v, obj, name, undefined;
+
+    s = "[!'name gender', {name:xiaohong}, {name:xiaohong,gender:male}]";
+    set = pcejson_parser_parse_string(s, 0, 0);
+    ASSERT_NE(set, nullptr);
+    ASSERT_EQ(2, purc_variant_set_get_size(set));
+
+    v = pcejson_parser_parse_string("xiaohong", 0, 0);
+    ASSERT_NE(v, nullptr);
+
+    undefined = purc_variant_make_undefined();
+    ASSERT_NE(undefined, nullptr);
+
+    obj = purc_variant_set_get_member_by_key_values(set, v, undefined);
+    ASSERT_NE(obj, nullptr);
+
+    PRINT_VARIANT(set);
+    name = purc_variant_make_string("male", true);
+    ok = purc_variant_object_set_by_static_ckey(obj, "gender", name);
+    ASSERT_FALSE(ok);
+    PRINT_VARIANT(set);
+
+    purc_variant_unref(undefined);
+    purc_variant_unref(name);
+    purc_variant_unref(v);
+    purc_variant_unref(set);
+}
+
+TEST(variant_set, constraint_scalar_shrink)
+{
+    PurCInstance purc;
+
+    bool ok;
+    const char *s;
+    purc_variant_t set, v, obj, male;
+
+    s = "[!'name gender', {name:xiaohong}, {name:xiaohong,gender:male}]";
+    set = pcejson_parser_parse_string(s, 0, 0);
+    ASSERT_NE(set, nullptr);
+    ASSERT_EQ(2, purc_variant_set_get_size(set));
+
+    v = pcejson_parser_parse_string("xiaohong", 0, 0);
+    ASSERT_NE(v, nullptr);
+
+    male = pcejson_parser_parse_string("male", 0, 0);
+    ASSERT_NE(male, nullptr);
+
+    obj = purc_variant_set_get_member_by_key_values(set, v, male);
+    ASSERT_NE(obj, nullptr);
+
+    bool silently = true;
+    PRINT_VARIANT(set);
+    ok = purc_variant_object_remove_by_static_ckey(obj, "gender", silently);
+    ASSERT_FALSE(ok);
+    PRINT_VARIANT(set);
+
+    purc_variant_unref(male);
+    purc_variant_unref(v);
+    purc_variant_unref(set);
+}
+
 TEST(variant_set, constraint_scalars)
 {
     PurCInstance purc;

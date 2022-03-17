@@ -343,52 +343,6 @@ elem_node_revoke_constraints(struct set_node *node)
     }
 }
 
-static bool
-variant_set_constraint_grow_handler(
-        purc_variant_t source,  // the source variant.
-        void *ctxt,             // the context stored when registering the handler.
-        size_t nr_args,         // the number of the relevant child variants.
-        purc_variant_t *argv    // the array of all relevant child variants.
-        )
-{
-    PC_ASSERT(source);
-    PC_ASSERT(purc_variant_is_object(source));
-    purc_variant_t set = (purc_variant_t)ctxt;
-    PC_ASSERT(set);
-    PC_ASSERT(purc_variant_is_set(set));
-    PC_ASSERT(nr_args == 2);
-    purc_variant_t k = (purc_variant_t)argv[0];
-    PC_ASSERT(k);
-    PC_ASSERT(purc_variant_is_string(k));
-    purc_variant_t v = (purc_variant_t)argv[1];
-    PC_ASSERT(v);
-
-    return true;
-}
-
-static bool
-variant_set_constraint_shrink_handler(
-        purc_variant_t source,  // the source variant.
-        void *ctxt,             // the context stored when registering the handler.
-        size_t nr_args,         // the number of the relevant child variants.
-        purc_variant_t *argv    // the array of all relevant child variants.
-        )
-{
-    PC_ASSERT(source);
-    PC_ASSERT(purc_variant_is_object(source));
-    purc_variant_t set = (purc_variant_t)ctxt;
-    PC_ASSERT(set);
-    PC_ASSERT(purc_variant_is_set(set));
-    PC_ASSERT(nr_args == 2);
-    purc_variant_t k = (purc_variant_t)argv[0];
-    PC_ASSERT(k);
-    PC_ASSERT(purc_variant_is_string(k));
-    purc_variant_t v = (purc_variant_t)argv[1];
-    PC_ASSERT(v);
-
-    return true;
-}
-
 struct element_rb_node {
     struct rb_node     **pnode;
     struct rb_node      *parent;
@@ -439,6 +393,79 @@ find_element(purc_variant_t set, purc_variant_t kvs)
         return NULL;
 
     return container_of(node.entry, struct set_node, node);
+}
+
+static bool
+variant_set_constraint_grow_handler(
+        purc_variant_t source,  // the source variant.
+        void *ctxt,             // the context stored when registering the handler.
+        size_t nr_args,         // the number of the relevant child variants.
+        purc_variant_t *argv    // the array of all relevant child variants.
+        )
+{
+    PC_ASSERT(source);
+    PC_ASSERT(purc_variant_is_object(source));
+    purc_variant_t set = (purc_variant_t)ctxt;
+    PC_ASSERT(set);
+    PC_ASSERT(purc_variant_is_set(set));
+    PC_ASSERT(nr_args == 2);
+    purc_variant_t k = (purc_variant_t)argv[0];
+    PC_ASSERT(k);
+    PC_ASSERT(purc_variant_is_string(k));
+    purc_variant_t v = (purc_variant_t)argv[1];
+    PC_ASSERT(v);
+
+    purc_variant_t tmp;
+    tmp = purc_variant_container_clone(source);
+    PC_ASSERT(tmp != PURC_VARIANT_INVALID);
+    bool ok;
+    ok = purc_variant_object_set(tmp, k, v);
+    PC_ASSERT(ok);
+
+    struct set_node *p;
+    p = find_element(set, tmp);
+    PURC_VARIANT_SAFE_CLEAR(tmp);
+    if (p && p->elem != source)
+        return false;
+
+    return true;
+}
+
+static bool
+variant_set_constraint_shrink_handler(
+        purc_variant_t source,  // the source variant.
+        void *ctxt,             // the context stored when registering the handler.
+        size_t nr_args,         // the number of the relevant child variants.
+        purc_variant_t *argv    // the array of all relevant child variants.
+        )
+{
+    PC_ASSERT(source);
+    PC_ASSERT(purc_variant_is_object(source));
+    purc_variant_t set = (purc_variant_t)ctxt;
+    PC_ASSERT(set);
+    PC_ASSERT(purc_variant_is_set(set));
+    PC_ASSERT(nr_args == 2);
+    purc_variant_t k = (purc_variant_t)argv[0];
+    PC_ASSERT(k);
+    PC_ASSERT(purc_variant_is_string(k));
+    purc_variant_t v = (purc_variant_t)argv[1];
+    PC_ASSERT(v);
+
+    purc_variant_t tmp;
+    tmp = purc_variant_container_clone(source);
+    PC_ASSERT(tmp != PURC_VARIANT_INVALID);
+    bool silently = true;
+    bool ok;
+    ok = purc_variant_object_remove(tmp, k, silently);
+    PC_ASSERT(ok);
+
+    struct set_node *p;
+    p = find_element(set, tmp);
+    PURC_VARIANT_SAFE_CLEAR(tmp);
+    if (p && p->elem != source)
+        return false;
+
+    return true;
 }
 
 static bool
