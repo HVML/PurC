@@ -327,6 +327,24 @@ pcvariant_typename(purc_variant_t v)
     return pcvariant_get_typename(type);
 }
 
+static inline bool
+pcvariant_is_true(purc_variant_t v)
+{
+    if (v->type == PURC_VARIANT_TYPE_BOOLEAN)
+        return v->b;
+
+    return false;
+}
+
+static inline bool
+pcvariant_is_false(purc_variant_t v)
+{
+    if (v->type == PURC_VARIANT_TYPE_BOOLEAN)
+        return v->b == false;
+
+    return false;
+}
+
 // return -1 if not valid set
 // on return:
 // if *keynames == NULL, this is a generic-set

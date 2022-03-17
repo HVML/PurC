@@ -1760,6 +1760,11 @@ static inline bool purc_variant_is_boolean(purc_variant_t v)
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_BOOLEAN);
 }
 
+static inline bool purc_variant_is_null(purc_variant_t v)
+{
+    return purc_variant_is_type(v, PURC_VARIANT_TYPE_NULL);
+}
+
 static inline bool purc_variant_is_exception(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_EXCEPTION);
