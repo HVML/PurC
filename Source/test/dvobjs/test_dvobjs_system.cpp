@@ -375,3 +375,82 @@ TEST(dvobjs, uname_ptr)
     purc_cleanup();
 }
 
+purc_variant_t system_time(purc_variant_t dvobj, const char* name)
+{
+    (void)dvobj;
+
+    if (strcmp(name, "get") == 0) {
+        return purc_variant_make_ulongint((uint64_t)time(NULL));
+    }
+    else if (strcmp(name, "set") == 0) {
+        return purc_variant_make_boolean(false);
+    }
+    else if (strcmp(name, "bad-set") == 0) {
+        return purc_variant_make_boolean(false);
+    }
+
+    return purc_variant_make_string_static("", true);
+}
+
+TEST(dvobjs, time)
+{
+    static const struct ejson_result test_cases[] = {
+        { "bad-set",
+            "$SYSTEM.time(! )",
+            system_time },
+        { "set",
+            "$SYSTEM.time(! 100 )",
+            system_time },
+        { "get",
+            "$SYSTEM.time()",
+            system_time },
+    };
+
+    int ret = purc_init_ex(PURC_MODULE_EJSON, "cn.fmsfot.hvml.test",
+            "dvobj", NULL);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    purc_variant_t sys = purc_dvobj_system_new();
+    ASSERT_NE(sys, nullptr);
+    ASSERT_EQ(purc_variant_is_object(sys), true);
+
+    for (size_t i = 0; i < PCA_TABLESIZE(test_cases); i++) {
+        struct purc_ejson_parse_tree *ptree;
+        purc_variant_t result, expected;
+
+        purc_log_info("evalute: %s\n", test_cases[i].ejson);
+
+        ptree = purc_variant_ejson_parse_string(test_cases[i].ejson,
+                strlen(test_cases[i].ejson));
+        result = purc_variant_ejson_parse_tree_evalute(ptree,
+                get_dvobj_system, sys, true);
+        purc_variant_ejson_parse_tree_destroy(ptree);
+
+        /* FIXME: purc_variant_ejson_parse_tree_evalute should not return NULL
+           when evaluating silently */
+        ASSERT_NE(result, nullptr);
+
+        if (test_cases[i].get_expected) {
+            expected = test_cases[i].get_expected(sys, test_cases[i].name);
+
+            if (purc_variant_get_type(result) != purc_variant_get_type(expected)) {
+                purc_log_error("result type: %s, error message: %s\n",
+                        purc_variant_typename(purc_variant_get_type(result)),
+                        purc_get_error_message(purc_get_last_error()));
+            }
+
+            ASSERT_EQ(purc_variant_is_equal_to(result, expected), true);
+
+            purc_variant_unref(expected);
+        }
+        else {
+            ASSERT_EQ(purc_variant_get_type(result), PURC_VARIANT_TYPE_NULL);
+        }
+
+        purc_variant_unref(result);
+    }
+
+    purc_variant_unref(sys);
+    purc_cleanup();
+}
+
