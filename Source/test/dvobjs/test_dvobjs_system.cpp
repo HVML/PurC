@@ -11,11 +11,42 @@
 extern void get_variant_total_info (size_t *mem, size_t *value, size_t *resv);
 #define MAX_PARAM_NR    20
 
+static void
+_trim_tail_spaces(char *dest, size_t n)
+{
+    while (n>1) {
+        if (!isspace(dest[n-1]))
+            break;
+        dest[--n] = '\0';
+    }
+}
+
+static size_t
+_fetch_cmd_output(const char *cmd, char *dest, size_t sz)
+{
+    FILE *fin = NULL;
+    size_t n = 0;
+
+    fin = popen(cmd, "r");
+    if (!fin)
+        return 0;
+
+    n = fread(dest, 1, sz - 1, fin);
+    dest[n] = '\0';
+
+    if (pclose(fin)) {
+        return 0;
+    }
+
+    _trim_tail_spaces(dest, n);
+    return n;
+}
+
 TEST(dvobjs, basic)
 {
     purc_instance_extra_info info = {};
-    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
-            "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsfot.hvml.test",
+            "dvobj", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     purc_variant_t dvobj;
@@ -30,8 +61,8 @@ TEST(dvobjs, basic)
 TEST(dvobjs, reuse_buff)
 {
     purc_instance_extra_info info = {};
-    int ret = purc_init_ex(PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
-            "test_init", &info);
+    int ret = purc_init_ex(PURC_MODULE_VARIANT, "cn.fmsfot.hvml.test",
+            "dvobj", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     purc_rwstream_t rws;
@@ -110,19 +141,18 @@ purc_variant_t get_system_const(purc_variant_t dvobj, const char* name)
 
 purc_variant_t get_system_uname(purc_variant_t dvobj, const char* name)
 {
-    const char *result = "Unknown";
+    char result[4096];
 
     (void)dvobj;
 
-    if (strcmp(name, "kernel-name") == 0) {
-#if OS(LINUX)
-        result = "Linux";
-#elif OS(MAC)
-        result = "Darwin";
-#endif
+    if (name) {
+        size_t n = _fetch_cmd_output(name, result, sizeof(result));
+        if (n == 0) {
+            return purc_variant_make_undefined();
+        }
     }
 
-    return purc_variant_make_string_static(result, false);
+    return purc_variant_make_string(result, true);
 }
 
 TEST(dvobjs, system)
@@ -155,13 +185,37 @@ TEST(dvobjs, system)
         { "nonexistent",
             "$SYSTEM.nonexistent)",
             NULL },
-        { "kernel-name",
+        { "uname -s",
             "$SYSTEM.uname()['kernel-name']",
             get_system_uname },
+        { "uname -r",
+            "$SYSTEM.uname()['kernel-release']",
+            get_system_uname },
+        { "uname -v",
+            "$SYSTEM.uname()['kernel-version']",
+            get_system_uname },
+        { "uname -m",
+            "$SYSTEM.uname()['machine']",
+            get_system_uname },
+        { "uname -p",
+            "$SYSTEM.uname()['processor']",
+            get_system_uname },
+        { "uname -i",
+            "$SYSTEM.uname()['hardware-platform']",
+            get_system_uname },
+        { "uname -o",
+            "$SYSTEM.uname()['operating-system']",
+            get_system_uname },
+        /* FIXME: uncomment this testcase after fixed the bug of
+           purc_variant_ejson_parse_tree_evalute()
+        { "uname -z",
+            "$SYSTEM.uname()['bad-part-name']",
+            get_system_uname },
+         */
     };
 
-    int ret = purc_init_ex(PURC_MODULE_EJSON, "cn.fmsoft.hybridos.test",
-            "test_init", NULL);
+    int ret = purc_init_ex(PURC_MODULE_EJSON, "cn.fmsfot.hvml.test",
+            "dvobj", NULL);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     purc_variant_t sys = purc_dvobj_system_new();
@@ -172,11 +226,17 @@ TEST(dvobjs, system)
         struct purc_ejson_parse_tree *ptree;
         purc_variant_t result, expected;
 
+        purc_log_info("evalute: %s\n", test_cases[i].ejson);
+
         ptree = purc_variant_ejson_parse_string(test_cases[i].ejson,
                 strlen(test_cases[i].ejson));
         result = purc_variant_ejson_parse_tree_evalute(ptree,
                 get_dvobj_system, sys, true);
         purc_variant_ejson_parse_tree_destroy(ptree);
+
+        /* FIXME: purc_variant_ejson_parse_tree_evalute should not return NULL
+           when evaluating silently */
+        ASSERT_NE(result, nullptr);
 
         if (test_cases[i].get_expected) {
             expected = test_cases[i].get_expected(sys, test_cases[i].name);
