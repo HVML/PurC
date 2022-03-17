@@ -251,65 +251,68 @@ uname_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     retv = purc_variant_make_object (0,
             PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
     if (retv == PURC_VARIANT_INVALID) {
-        goto failed;
+        goto fatal;
     }
 
     val = purc_variant_make_string(name.sysname, true);
     if (val == PURC_VARIANT_INVALID)
-        goto failed;
+        goto fatal;
     if (!purc_variant_object_set_by_static_ckey(retv,
                 SYSTEM_KEYWORD_kernel_name, val))
-        goto failed;
+        goto fatal;
     purc_variant_unref(val);
 
     val = purc_variant_make_string(name.nodename, true);
     if (val == PURC_VARIANT_INVALID)
-        goto failed;
+        goto fatal;
     if (!purc_variant_object_set_by_static_ckey(retv,
                 SYSTEM_KEYWORD_nodename, val))
-        goto failed;
+        goto fatal;
     purc_variant_unref(val);
 
     val = purc_variant_make_string(name.release, true);
     if (val == PURC_VARIANT_INVALID)
-        goto failed;
+        goto fatal;
     if (!purc_variant_object_set_by_static_ckey(retv,
                 SYSTEM_KEYWORD_kernel_release, val))
-        goto failed;
+        goto fatal;
     purc_variant_unref(val);
 
     val = purc_variant_make_string(name.version, true);
     if (val == PURC_VARIANT_INVALID)
-        goto failed;
+        goto fatal;
     if (!purc_variant_object_set_by_static_ckey(retv,
                 SYSTEM_KEYWORD_kernel_version, val))
-        goto failed;
+        goto fatal;
     purc_variant_unref(val);
 
     val = purc_variant_make_string(name.machine, true);
     if (val == PURC_VARIANT_INVALID)
-        goto failed;
+        goto fatal;
     if (!purc_variant_object_set_by_static_ckey(retv,
                 SYSTEM_KEYWORD_machine, val))
-        goto failed;
+        goto fatal;
     if (!purc_variant_object_set_by_static_ckey(retv,
                 SYSTEM_KEYWORD_processor, val))
-        goto failed;
+        goto fatal;
     if (!purc_variant_object_set_by_static_ckey(retv,
                 SYSTEM_KEYWORD_hardware_platform, val))
-        goto failed;
+        goto fatal;
     purc_variant_unref(val);
 
     /* FIXME: How to get the name of operating system? */
     val = purc_variant_make_string_static(_OS_NAME, false);
     if (val == PURC_VARIANT_INVALID)
-        goto failed;
+        goto fatal;
     if (!purc_variant_object_set_by_static_ckey(retv,
                 SYSTEM_KEYWORD_operating_system, val))
-        goto failed;
+        goto fatal;
     purc_variant_unref(val);
 
     return retv;
+
+fatal:
+    silently = false;
 
 failed:
     if (val)
@@ -319,6 +322,7 @@ failed:
 
     if (silently)
         return purc_variant_make_undefined();
+
     return PURC_VARIANT_INVALID;
 }
 
@@ -521,7 +525,7 @@ fatal:
 }
 
 static purc_variant_t
-time_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+time_getter(purc_variant_t root,size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
@@ -530,7 +534,7 @@ time_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(silently);
 
     time_t t_time;
-    t_time = time (NULL);
+    t_time = time(NULL);
     return purc_variant_make_ulongint((uint64_t)t_time);
 }
 
@@ -540,7 +544,6 @@ time_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(silently);
 
     struct timeval timeval;
 
@@ -611,6 +614,9 @@ failed:
 
     return PURC_VARIANT_INVALID;
 }
+
+#define SYSTEM_KEYNAME_sec   "sec"
+#define SYSTEM_KEYNAME_usec  "usec"
 
 static purc_variant_t
 time_us_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
@@ -621,9 +627,40 @@ time_us_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(argv);
     UNUSED_PARAM(silently);
 
-    time_t t_time;
-    t_time = time (NULL);
-    return purc_variant_make_ulongint((uint64_t)t_time);
+    // create an empty object
+    purc_variant_t retv = purc_variant_make_object(0,
+            PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+    if (retv == PURC_VARIANT_INVALID) {
+        goto fatal;
+    }
+
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+
+    purc_variant_t val = purc_variant_make_ulongint((uint64_t)tv.tv_sec);
+    if (val == PURC_VARIANT_INVALID)
+        goto fatal;
+    if (!purc_variant_object_set_by_static_ckey(retv,
+                SYSTEM_KEYNAME_sec, val))
+        goto fatal;
+    purc_variant_unref(val);
+
+    val = purc_variant_make_ulongint((uint64_t)tv.tv_usec);
+    if (val == PURC_VARIANT_INVALID)
+        goto fatal;
+    if (!purc_variant_object_set_by_static_ckey(retv,
+                SYSTEM_KEYNAME_usec, val))
+        goto fatal;
+    purc_variant_unref(val);
+    return retv;
+
+fatal:
+    if (val)
+        purc_variant_unref(val);
+    if (retv)
+        purc_variant_unref(retv);
+
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
@@ -634,53 +671,27 @@ time_us_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(silently);
 
-    struct timeval timeval;
+    uint64_t ul_sec, ul_usec;
 
-    if (nr_args < 1) {
+    if (nr_args < 2) {
         purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
         goto failed;
     }
 
-    switch(purc_variant_get_type(argv[0])) {
-        case PURC_VARIANT_TYPE_NUMBER:
-        {
-            double time_d, sec_d, usec_d;
-
-            purc_variant_cast_to_number(argv[0], &time_d, false);
-            if (isfinite(time_d) || isnan(time_d) || time_d < 0.0) {
-                purc_set_error(PURC_ERROR_INVALID_VALUE);
-                goto failed;
-            }
-
-            usec_d = modf(time_d, &sec_d);
-            timeval.tv_sec = (time_t)sec_d;
-            timeval.tv_usec = (suseconds_t)(usec_d * 1000000.0);
-            break;
-        }
-
-        case PURC_VARIANT_TYPE_LONGINT:
-        case PURC_VARIANT_TYPE_ULONGINT:
-        case PURC_VARIANT_TYPE_LONGDOUBLE:
-        {
-            long double time_d, sec_d, usec_d;
-            purc_variant_cast_to_long_double(argv[0], &time_d, false);
-
-            if (isfinite(time_d) || isnan(time_d) || time_d < 0.0L) {
-                purc_set_error(PURC_ERROR_INVALID_VALUE);
-                goto failed;
-            }
-
-            usec_d = modfl(time_d, &sec_d);
-            timeval.tv_sec = (time_t)sec_d;
-            timeval.tv_usec = (suseconds_t)(usec_d * 1000000.0);
-            break;
-        }
-
-        default:
-            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-            goto failed;
+    if (!purc_variant_cast_to_ulongint(argv[0], &ul_sec, false) ||
+            !purc_variant_cast_to_ulongint(argv[1], &ul_usec, false)) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
     }
 
+    if (ul_usec > 999999) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
+
+    struct timeval timeval;
+    timeval.tv_sec = (time_t)ul_sec;
+    timeval.tv_usec = (suseconds_t)ul_usec;
     if (settimeofday(&timeval, NULL)) {
         if (errno == EINVAL) {
             purc_set_error(PURC_ERROR_INVALID_VALUE);
@@ -705,7 +716,7 @@ failed:
 }
 
 static purc_variant_t
-locale_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+locale_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
@@ -862,7 +873,7 @@ bad_category:
 }
 
 static purc_variant_t
-locale_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+locale_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
@@ -1207,7 +1218,7 @@ cwd_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     if (chdir(path)) {
         int errcode;
-        switch(errno) {
+        switch (errno) {
         case ENOTDIR:
             errcode = PURC_ERROR_NOT_DESIRED_ENTITY;
             break;
@@ -1241,6 +1252,7 @@ cwd_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto failed;
     }
 
+    // TODO: broadcast "change:cwd" event
     return purc_variant_make_boolean(true);
 
 failed:
@@ -1251,110 +1263,159 @@ failed:
 }
 
 static purc_variant_t
-env_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+env_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
-
-    purc_variant_t retv = PURC_VARIANT_INVALID;
 
     if (nr_args < 1) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
-    if (argv[0] == PURC_VARIANT_INVALID ||
-            (!purc_variant_is_string (argv[0]))) {
-        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+    const char *name = purc_variant_get_string_const(argv[0]);
+    if (name == NULL) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
     }
 
-    char *result = getenv (purc_variant_get_string_const (argv[0]));
+    char *result = getenv(name);
     if (result)
-        retv = purc_variant_make_string (result, false);
-    else
-        retv = purc_variant_make_undefined ();
+        return purc_variant_make_string(result, false);
 
-    return retv;
+    purc_set_error(PURC_ERROR_NOT_EXISTS);
+
+failed:
+    if (silently)
+        return purc_variant_make_undefined();
+
+    return PURC_VARIANT_INVALID;
 }
 
 
 static purc_variant_t
-env_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+env_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
-
-    purc_variant_t retv = PURC_VARIANT_INVALID;
 
     if (nr_args < 2) {
-        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
     }
 
-    if (argv[0] == PURC_VARIANT_INVALID ||
-            (!purc_variant_is_string (argv[0]))) {
-        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
-    }
-    const char * name = purc_variant_get_string_const (argv[0]);
-
-    if ((argv[1] == PURC_VARIANT_INVALID) ||
-            (!purc_variant_is_string (argv[1]))) {
-        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
-    }
-    const char * value = purc_variant_get_string_const (argv[1]);
-
-    char * result = getenv (name);
-    if (result) {       // overwrite
-        if (setenv (name, value, 1) == 0)
-            retv = purc_variant_make_boolean (true);
-        else
-            retv = purc_variant_make_boolean (false);
-    }
-    else {              // new
-        if (setenv (name, value, 1) == 0)
-            retv = purc_variant_make_boolean (false);
-        else
-            retv = purc_variant_make_boolean (false);
+    const char *name = purc_variant_get_string_const(argv[0]);
+    if (name == NULL) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
     }
 
-    return retv;
+    int ret;
+    if (purc_variant_is_undefined(argv[1])) {
+        ret = unsetenv(name);
+    }
+    else {
+        const char *value = purc_variant_get_string_const(argv[1]);
+
+        if (value == NULL) {
+            purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+            goto failed;
+        }
+
+        ret = setenv(name, value, 1);
+    }
+
+    if (ret) {
+        int errcode;
+        switch (errno) {
+        case EINVAL:
+            errcode = PURC_ERROR_INVALID_VALUE;
+            break;
+
+        case ENOMEM:
+            errcode = PURC_ERROR_OUT_OF_MEMORY;
+            break;
+
+        default:
+            errcode = PURC_ERROR_BAD_SYSTEM_CALL;
+            break;
+        }
+
+        purc_set_error(errcode);
+        goto failed;
+    }
+
+    // TODO: broadcast "change:env" event
+    return purc_variant_make_boolean(true);
+
+failed:
+    if (silently)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
 }
+
+#if OS(LINUX)
+
+#include <sys/random.h>
 
 static purc_variant_t
 random_sequence_getter(purc_variant_t root,
         size_t nr_args, purc_variant_t *argv, bool silently)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
 
-    double random = 0.0;
-    double number = 0.0;
+    char buf[256];
 
-    if (nr_args == 0) {
-        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+    if (nr_args < 1) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
     }
 
-    if ((argv[0] == PURC_VARIANT_INVALID) ||
-            (!purc_variant_cast_to_number (argv[0], &number, false))) {
-        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+    uint64_t length;
+
+    if (!purc_variant_cast_to_ulongint(argv[0], &length, false)) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
     }
 
-    if (fabs (number) < 1.0E-10) {
-        purc_set_error (PURC_ERROR_INVALID_VALUE);
-        return PURC_VARIANT_INVALID;
+    if (length > 256) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
     }
 
-    random = number * rand() / (double)(RAND_MAX);
+    ssize_t ret = getrandom(buf, sizeof(buf), GRND_NONBLOCK);
+    if (ret < 0) {
+        purc_set_error(PURC_ERROR_BAD_SYSTEM_CALL);
+    }
 
-    return purc_variant_make_number (random);
+    return purc_variant_make_byte_sequence(buf, ret);
+
+failed:
+    if (silently) {
+        return purc_variant_make_boolean(false);
+    }
+
+    return PURC_VARIANT_INVALID;
 }
+
+#else   /* OS(LINUX) */
+
+static purc_variant_t
+random_sequence_getter(purc_variant_t root,
+        size_t nr_args, purc_variant_t *argv, bool silently)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+
+    if (silently) {
+        return purc_variant_make_boolean(false);
+    }
+
+    return PURC_VARIANT_INVALID;
+}
+#endif  /* !OS(LINUX) */
 
 purc_variant_t purc_dvobj_system_new (void)
 {
