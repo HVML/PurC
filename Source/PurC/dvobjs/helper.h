@@ -47,12 +47,6 @@ bool pcdvobjs_wildcard_cmp (const char *str1,
 
 const char *pcdvobjs_remove_space (char * buffer) WTF_INTERNAL;
 
-const char *pcdvobjs_get_next_option (const char* data,
-        const char* delims, size_t* length) WTF_INTERNAL;
-
-const char *pcdvobjs_get_prev_option (const char* data,
-        size_t str_len, const char* delims, size_t* length) WTF_INTERNAL;
-
 int pcdvobjs_logical_parse(const char *input,
         struct pcdvobjs_logical_param *param) WTF_INTERNAL;
 

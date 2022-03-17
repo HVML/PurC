@@ -1,7 +1,7 @@
 /*
  * utils.c - misc utility and helper functions
  *
- * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ * Copyright (C) 2021, 2022 FMSoft <https://www.fmsoft.cn>
  * Copyright (C) 2012 Felix Fietkau <nbd@openwrt.org>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -289,6 +289,85 @@ pcutils_trim_blanks(const char *str, size_t *sz_io)
 
     *sz_io = end - start;
     return start;
+}
+
+const char *
+pcutils_get_next_token(const char *data, const char *delims, size_t *length)
+{
+    const char *head = data;
+    char *temp = NULL;
+
+    if ((delims == NULL) || (data == NULL) || (*delims == 0x00))
+        return NULL;
+
+    *length = 0;
+
+    while (*data != 0x00) {
+        temp = strchr(delims, *data);
+        if (temp) {
+            if (head == data) {
+                head = data + 1;
+            }
+            else
+                break;
+        }
+        data++;
+    }
+
+    *length = data - head;
+    if (*length == 0)
+        head = NULL;
+
+    return head;
+}
+
+const char *
+pcutils_get_next_token_len(const char *data, size_t str_len,
+        const char *delims, size_t *length)
+{
+    const char *head = NULL;
+    size_t tail = *length;
+    char *temp = NULL;
+
+    if ((delims == NULL) || (data == NULL) || (*delims == 0x00) ||
+            (str_len == 0))
+        return NULL;
+
+    *length = 0;
+
+    while (str_len) {
+        temp = strchr(delims, *(data + str_len - 1));
+        if (temp) {
+            if (tail == str_len) {
+                str_len--;
+                tail = str_len;
+            }
+            else
+                break;
+        }
+        str_len--;
+    }
+
+    *length = tail - str_len;
+    if (*length == 0)
+        head = NULL;
+    else
+        head = data + str_len;
+
+    return head;
+}
+
+bool
+pcutils_is_meaningful_string(const char *str)
+{
+    while (*str) {
+        if (*str > 0x20)
+            return true;
+
+        str++;
+    }
+
+    return false;
 }
 
 static const char *json_hex_chars = "0123456789abcdefABCDEF";

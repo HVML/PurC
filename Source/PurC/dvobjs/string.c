@@ -617,12 +617,12 @@ format_p_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         const char *start = NULL;
         const char *end = NULL;
         size_t length = 0;
-        const char *head = pcdvobjs_get_next_option (format, "{", &length);
+        const char *head = pcutils_get_next_token (format, "{", &length);
         while (head) {
             purc_rwstream_write (rwstream, head, length);
 
             start = head + length + 1;
-            head = pcdvobjs_get_next_option (head + length + 1, "}", &length);
+            head = pcutils_get_next_token (head + length + 1, "}", &length);
             end = head + length;
             strncpy(buffer, start, end - start);
             *(buffer + (end - start)) = 0x00;
@@ -641,7 +641,7 @@ format_p_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             purc_rwstream_write (rwstream, buf + 1, sz_stream - 2);
             purc_rwstream_destroy (serialize);
 
-            head = pcdvobjs_get_next_option (head + length + 1, "{", &length);
+            head = pcutils_get_next_token (head + length + 1, "{", &length);
             end++;
 
             if (length == format_size - (head - format) - 1)
@@ -655,12 +655,12 @@ format_p_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         const char *start = NULL;
         const char *end = NULL;
         size_t length = 0;
-        const char *head = pcdvobjs_get_next_option (format, "{", &length);
+        const char *head = pcutils_get_next_token (format, "{", &length);
         while (head) {
             purc_rwstream_write (rwstream, head, length);
 
             start = head + length + 1;
-            head = pcdvobjs_get_next_option (head + length + 1, "}", &length);
+            head = pcutils_get_next_token (head + length + 1, "}", &length);
             end = head + length;
             strncpy(buffer, start, end - start);
             *(buffer + (end - start)) = 0x00;
@@ -678,7 +678,7 @@ format_p_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             purc_rwstream_write (rwstream, buf + 1, sz_stream - 2);
             purc_rwstream_destroy (serialize);
 
-            head = pcdvobjs_get_next_option (head + length + 1, "{", &length);
+            head = pcutils_get_next_token (head + length + 1, "{", &length);
             end++;
 
             if (length == format_size - (head - format) - 1)

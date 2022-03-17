@@ -487,6 +487,19 @@ pcutils_vsnprintf(char *buf, size_t *sz_io, const char *fmt, va_list ap);
 PCA_EXPORT const char*
 pcutils_trim_blanks(const char *str, size_t *sz_io);
 
+/** Determine whether a string contains meaningful characters */
+PCA_EXPORT bool
+pcutils_is_meaningful_string(const char *str);
+
+/** Get the pointer of the next valid token and length in a string */
+PCA_EXPORT const char *
+pcutils_get_next_token(const char *str, const char *delims, size_t *length);
+
+/** Get the pointer of the next valid token and length in a string */
+PCA_EXPORT const char *
+pcutils_get_next_token_len(const char *str, size_t str_len,
+        const char *delims, size_t *length);
+
 /** Escape a string for JSON */
 PCA_EXPORT char*
 pcutils_escape_string_for_json(const char* str);
