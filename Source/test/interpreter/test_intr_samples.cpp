@@ -249,6 +249,5 @@ TEST(samples, files)
     }
 
     std::cerr << "env: " << env << "=" << path << std::endl;
-    ASSERT_TRUE(0);
 }
 

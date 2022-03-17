@@ -394,7 +394,7 @@ pop_stack_frame(pcintr_stack_t stack)
 }
 
 static int
-set_input_var(struct pcintr_stack_frame *frame, purc_variant_t val)
+set_lessthan_symval(struct pcintr_stack_frame *frame, purc_variant_t val)
 {
     if (val != PURC_VARIANT_INVALID) {
         PURC_VARIANT_SAFE_CLEAR(
@@ -415,7 +415,7 @@ set_input_var(struct pcintr_stack_frame *frame, purc_variant_t val)
 }
 
 static int
-set_idx_var(struct pcintr_stack_frame *frame,
+set_percent_symval(struct pcintr_stack_frame *frame,
     struct pcintr_stack_frame *parent)
 {
     purc_variant_t idx_var;
@@ -431,7 +431,7 @@ set_idx_var(struct pcintr_stack_frame *frame,
 }
 
 static int
-set_result_var(struct pcintr_stack_frame *frame,
+set_question_symval(struct pcintr_stack_frame *frame,
     struct pcintr_stack_frame *parent)
 {
     if (parent->result_var) {
@@ -445,7 +445,7 @@ set_result_var(struct pcintr_stack_frame *frame,
 }
 
 static int
-set_at_var(struct pcintr_stack_frame *frame,
+set_at_symval(struct pcintr_stack_frame *frame,
     struct pcintr_stack_frame *parent)
 {
     if (parent->edom_element) {
@@ -460,7 +460,7 @@ set_at_var(struct pcintr_stack_frame *frame,
 }
 
 static int
-set_exclamation_var(struct pcintr_stack_frame *frame,
+set_exclamation_symval(struct pcintr_stack_frame *frame,
     struct pcintr_stack_frame *parent)
 {
     if (parent->exclamation_var) {
@@ -475,20 +475,27 @@ set_exclamation_var(struct pcintr_stack_frame *frame,
 }
 
 static int
-set_symbol_vars(struct pcintr_stack_frame *frame)
+init_symvals_with_vals_from_parent_frame(struct pcintr_stack_frame *frame)
 {
     struct pcintr_stack_frame *parent;
     parent = pcintr_stack_frame_get_parent(frame);
     if (!parent)
         return 0;
 
-    if (set_idx_var(frame, parent))
+    // $%
+    if (set_percent_symval(frame, parent))
         return -1;
-    if (set_result_var(frame, parent))
+
+    // $?
+    if (set_question_symval(frame, parent))
         return -1;
-    if (set_at_var(frame, parent))
+
+    // $@
+    if (set_at_symval(frame, parent))
         return -1;
-    if (set_exclamation_var(frame, parent))
+
+    // $!
+    if (set_exclamation_symval(frame, parent))
         return -1;
 
     return 0;
@@ -529,7 +536,7 @@ push_stack_frame(pcintr_stack_t stack)
 
     purc_variant_unref(undefined);
 
-    if (set_symbol_vars(frame)) {
+    if (init_symvals_with_vals_from_parent_frame(frame)) {
         pop_stack_frame(stack);
         return NULL;
     }
@@ -544,7 +551,7 @@ pcintr_set_input_var(pcintr_stack_t stack, purc_variant_t val)
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame);
-    set_input_var(frame, val);
+    set_lessthan_symval(frame, val);
 }
 
 purc_variant_t
