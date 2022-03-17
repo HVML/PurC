@@ -58,37 +58,6 @@ TEST(dvobjs, basic)
     purc_cleanup();
 }
 
-TEST(dvobjs, reuse_buff)
-{
-    purc_instance_extra_info info = {};
-    int ret = purc_init_ex(PURC_MODULE_VARIANT, "cn.fmsfot.hvml.test",
-            "dvobj", &info);
-    ASSERT_EQ (ret, PURC_ERROR_OK);
-
-    purc_rwstream_t rws;
-    rws = purc_rwstream_new_buffer (32, 1024);
-    purc_rwstream_write(rws, "hello", 5);
-    purc_rwstream_write(rws, "\0", 1);
-
-    size_t content_size, raw_size;
-    char *s;
-    s = (char*)purc_rwstream_get_mem_buffer_ex(rws,
-            &content_size, &raw_size, true);
-
-    ASSERT_NE(s, nullptr);
-    ASSERT_EQ(content_size, 6);
-    ASSERT_GT(raw_size, content_size);
-    ASSERT_EQ(memcmp("hello", s, 5), 0);
-
-    purc_rwstream_destroy(rws);
-
-    purc_variant_t v;
-    v = purc_variant_make_string_reuse_buff(s, content_size, false);
-    purc_variant_unref(v);
-
-    purc_cleanup ();
-}
-
 static purc_variant_t get_dvobj_system(void* ctxt, const char* name)
 {
     if (strcmp(name, "SYSTEM") == 0) {
@@ -139,23 +108,7 @@ purc_variant_t get_system_const(purc_variant_t dvobj, const char* name)
     return purc_variant_make_undefined();
 }
 
-purc_variant_t get_system_uname(purc_variant_t dvobj, const char* name)
-{
-    char result[4096];
-
-    (void)dvobj;
-
-    if (name) {
-        size_t n = _fetch_cmd_output(name, result, sizeof(result));
-        if (n == 0) {
-            return purc_variant_make_undefined();
-        }
-    }
-
-    return purc_variant_make_string(result, true);
-}
-
-TEST(dvobjs, system)
+TEST(dvobjs, const)
 {
     static const struct ejson_result test_cases[] = {
         { "HVML_SPEC_VERSION",
@@ -183,8 +136,79 @@ TEST(dvobjs, system)
             "$SYSTEM.const('nonexistent')",
             get_system_const },
         { "nonexistent",
-            "$SYSTEM.nonexistent)",
+            "$SYSTEM.nonexistent",
             NULL },
+    };
+
+    int ret = purc_init_ex(PURC_MODULE_EJSON, "cn.fmsfot.hvml.test",
+            "dvobj", NULL);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    purc_variant_t sys = purc_dvobj_system_new();
+    ASSERT_NE(sys, nullptr);
+    ASSERT_EQ(purc_variant_is_object(sys), true);
+
+    for (size_t i = 0; i < PCA_TABLESIZE(test_cases); i++) {
+        struct purc_ejson_parse_tree *ptree;
+        purc_variant_t result, expected;
+
+        purc_log_info("evalute: %s\n", test_cases[i].ejson);
+
+        ptree = purc_variant_ejson_parse_string(test_cases[i].ejson,
+                strlen(test_cases[i].ejson));
+        result = purc_variant_ejson_parse_tree_evalute(ptree,
+                get_dvobj_system, sys, true);
+        purc_variant_ejson_parse_tree_destroy(ptree);
+
+        ASSERT_NE(result, nullptr);
+
+        if (test_cases[i].get_expected) {
+            expected = test_cases[i].get_expected(sys, test_cases[i].name);
+
+            if (purc_variant_get_type(result) != purc_variant_get_type(expected)) {
+                purc_log_error("result type: %s, error message: %s\n",
+                        purc_variant_typename(purc_variant_get_type(result)),
+                        purc_get_error_message(purc_get_last_error()));
+            }
+
+            ASSERT_EQ(purc_variant_is_equal_to(result, expected), true);
+
+            purc_variant_unref(expected);
+        }
+        else {
+            ASSERT_EQ(purc_variant_get_type(result), PURC_VARIANT_TYPE_NULL);
+        }
+
+        purc_variant_unref(result);
+    }
+
+    purc_variant_unref(sys);
+    purc_cleanup();
+}
+
+purc_variant_t get_system_uname(purc_variant_t dvobj, const char* name)
+{
+    char result[4096];
+
+    (void)dvobj;
+
+    if (name && name[0] == ' ') {
+        return purc_variant_make_string(name + 1, false);
+    }
+    else if (name) {
+        size_t n = _fetch_cmd_output(name, result, sizeof(result));
+        if (n == 0) {
+            return purc_variant_make_undefined();
+        }
+        return purc_variant_make_string(result, true);
+    }
+
+    return purc_variant_make_string_static("", true);
+}
+
+TEST(dvobjs, uname)
+{
+    static const struct ejson_result test_cases[] = {
         { "uname -s",
             "$SYSTEM.uname()['kernel-name']",
             get_system_uname },
@@ -212,6 +236,95 @@ TEST(dvobjs, system)
             "$SYSTEM.uname()['bad-part-name']",
             get_system_uname },
          */
+    };
+
+    int ret = purc_init_ex(PURC_MODULE_EJSON, "cn.fmsfot.hvml.test",
+            "dvobj", NULL);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    purc_variant_t sys = purc_dvobj_system_new();
+    ASSERT_NE(sys, nullptr);
+    ASSERT_EQ(purc_variant_is_object(sys), true);
+
+    for (size_t i = 0; i < PCA_TABLESIZE(test_cases); i++) {
+        struct purc_ejson_parse_tree *ptree;
+        purc_variant_t result, expected;
+
+        purc_log_info("evalute: %s\n", test_cases[i].ejson);
+
+        ptree = purc_variant_ejson_parse_string(test_cases[i].ejson,
+                strlen(test_cases[i].ejson));
+        result = purc_variant_ejson_parse_tree_evalute(ptree,
+                get_dvobj_system, sys, true);
+        purc_variant_ejson_parse_tree_destroy(ptree);
+
+        /* FIXME: purc_variant_ejson_parse_tree_evalute should not return NULL
+           when evaluating silently */
+        ASSERT_NE(result, nullptr);
+
+        if (test_cases[i].get_expected) {
+            expected = test_cases[i].get_expected(sys, test_cases[i].name);
+
+            if (purc_variant_get_type(result) != purc_variant_get_type(expected)) {
+                purc_log_error("result type: %s, error message: %s\n",
+                        purc_variant_typename(purc_variant_get_type(result)),
+                        purc_get_error_message(purc_get_last_error()));
+            }
+
+            ASSERT_EQ(purc_variant_is_equal_to(result, expected), true);
+
+            purc_variant_unref(expected);
+        }
+        else {
+            ASSERT_EQ(purc_variant_get_type(result), PURC_VARIANT_TYPE_NULL);
+        }
+
+        purc_variant_unref(result);
+    }
+
+    purc_variant_unref(sys);
+    purc_cleanup();
+}
+
+TEST(dvobjs, uname_ptr)
+{
+    static const struct ejson_result test_cases[] = {
+        { " ",
+            "$SYSTEM.uname_prt('invalid-part-name')",
+            get_system_uname },
+        { "uname -s",
+            "$SYSTEM.uname_prt('kernel-name')",
+            get_system_uname },
+        { "uname -r",
+            "$SYSTEM.uname_prt('kernel-release')",
+            get_system_uname },
+        { "uname -v",
+            "$SYSTEM.uname_prt('kernel-version')",
+            get_system_uname },
+        { "uname -m",
+            "$SYSTEM.uname_prt('machine')",
+            get_system_uname },
+        { "uname -p",
+            "$SYSTEM.uname_prt('processor')",
+            get_system_uname },
+        { "uname -i",
+            "$SYSTEM.uname_prt('hardware-platform')",
+            get_system_uname },
+        { "uname -o",
+            "$SYSTEM.uname_prt['operating-system']",
+            get_system_uname },
+        { "uname -a",
+            "$SYSTEM.uname_prt('all')",
+            get_system_uname },
+        { "uname",
+            "$SYSTEM.uname_prt('default')",
+            get_system_uname },
+        { "uname -s -r -v",
+            "$SYSTEM.uname_prt(' kernel-name \t\nkernel-release \t\nkernel-version')",
+            get_system_uname },
+        { "uname -m -o",
+            "$SYSTEM.uname_prt(' machine \tinvalid-part-name \toperating-system')",
+            get_system_uname },
     };
 
     int ret = purc_init_ex(PURC_MODULE_EJSON, "cn.fmsfot.hvml.test",
