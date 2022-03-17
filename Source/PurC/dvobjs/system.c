@@ -190,6 +190,42 @@ failed:
     return PURC_VARIANT_INVALID;
 }
 
+#if OS(HYBRIDOS)
+#define _OS_NAME    "HybridOS"
+#elif OS(AIX)
+#define _OS_NAME    "AIX"
+#elif OS(IOS_FAMILY)
+#define _OS_NAME    "iOS Family"
+#elif OS(IOS)
+#define _OS_NAME    "iOS"
+#elif OS(TVOS)
+#define _OS_NAME    "tvOS"
+#elif OS(WATCHOS)
+#define _OS_NAME    "watchOS"
+#elif OS(MAC_OS_X)
+#define _OS_NAME    "macOS"
+#elif OS(DARWIN)
+#define _OS_NAME    "Darwin"
+#elif OS(FREEBSD)
+#define _OS_NAME    "FreeBSD"
+#elif OS(FUCHSIA)
+#define _OS_NAME    "Fuchsia"
+#elif OS(HURD)
+#define _OS_NAME    "GNU/Hurd"
+#elif OS(LINUX)
+#define _OS_NAME    "GNU/Linux"
+#elif OS(NETBSD)
+#define _OS_NAME    "NetBSD"
+#elif OS(OPENBSD)
+#define _OS_NAME    "OpenBSD"
+#elif OS(WINDOWS)
+#define _OS_NAME    "Windows"
+#elif OS(UNIX)
+#define _OS_NAME    "UNIX"
+#else
+#define _OS_NAME    "UnknowOS"
+#endif
+
 static purc_variant_t
 uname_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
@@ -260,8 +296,8 @@ uname_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto failed;
     purc_variant_unref(val);
 
-    /* FIXME: name.sysname is the kernel name */
-    val = purc_variant_make_string(name.sysname, true);
+    /* FIXME: How to get the name of operating system? */
+    val = purc_variant_make_string_static(_OS_NAME, false);
     if (val == PURC_VARIANT_INVALID)
         goto failed;
     if (!purc_variant_object_set_by_static_ckey(retv,
