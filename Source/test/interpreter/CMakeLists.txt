@@ -285,3 +285,32 @@ set(test_attach_rdr_LIBRARIES
 PURC_COMPUTE_SOURCES(test_attach_rdr)
 PURC_FRAMEWORK(test_attach_rdr)
 GTEST_DISCOVER_TESTS(test_attach_rdr DISCOVERY_TIMEOUT 10)
+
+# test_samples
+PURC_EXECUTABLE_DECLARE(test_samples)
+
+list(APPEND test_samples_PRIVATE_INCLUDE_DIRECTORIES
+    ${PURC_DIR}/include
+    ${PurC_DERIVED_SOURCES_DIR}
+    ${PURC_DIR}
+    ${CMAKE_BINARY_DIR}
+    ${WTF_DIR}
+)
+
+PURC_EXECUTABLE(test_samples)
+
+set(test_samples_SOURCES
+    test_samples.cpp
+)
+
+set(test_samples_LIBRARIES
+    PurC::PurC
+    gtest_main
+    gtest
+    pthread
+)
+
+PURC_COMPUTE_SOURCES(test_samples)
+PURC_FRAMEWORK(test_samples)
+GTEST_DISCOVER_TESTS(test_samples DISCOVERY_TIMEOUT 10)
+
