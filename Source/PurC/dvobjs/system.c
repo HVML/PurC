@@ -606,6 +606,7 @@ time_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto failed;
     }
 
+    // TODO: broadcast "change:time" event
     return purc_variant_make_boolean(true);
 
 failed:
@@ -673,14 +674,37 @@ time_us_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     uint64_t ul_sec, ul_usec;
 
-    if (nr_args < 2) {
+    if (nr_args < 1) {
         purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
         goto failed;
     }
 
-    if (!purc_variant_cast_to_ulongint(argv[0], &ul_sec, false) ||
-            !purc_variant_cast_to_ulongint(argv[1], &ul_usec, false)) {
-        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+    if (purc_variant_get_type(argv[0]) == PURC_VARIANT_TYPE_NUMBER) {
+        purc_variant_t v1 = purc_variant_object_get_by_ckey(argv[0],
+                SYSTEM_KEYNAME_sec, false);
+        purc_variant_t v2 = purc_variant_object_get_by_ckey(argv[0],
+                SYSTEM_KEYNAME_usec, false);
+
+        if (v1 == PURC_VARIANT_INVALID || v2 == PURC_VARIANT_INVALID) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            goto failed;
+        }
+
+        if (!purc_variant_cast_to_ulongint(v1, &ul_sec, false) ||
+                !purc_variant_cast_to_ulongint(v2, &ul_usec, false)) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            goto failed;
+        }
+    }
+    else if (nr_args >= 2) {
+        if (!purc_variant_cast_to_ulongint(argv[0], &ul_sec, false) ||
+                !purc_variant_cast_to_ulongint(argv[1], &ul_usec, false)) {
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            goto failed;
+        }
+    }
+    else {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
         goto failed;
     }
 
@@ -706,6 +730,7 @@ time_us_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto failed;
     }
 
+    // TODO: broadcast "change:time" event
     return purc_variant_make_boolean(true);
 
 failed:
