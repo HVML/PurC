@@ -303,7 +303,7 @@ rev_update_grow(
             return obj_rev_update_grow(pre, src, edge, nr_args, argv);
         default:
             PC_DEBUGX("Not supported for `%s` variant",
-                    pcvariant_get_typename(src->type));
+                    purc_variant_typename(src->type));
             PC_ASSERT(0);
     }
 }
@@ -406,7 +406,7 @@ rev_update_shrink(
             return obj_rev_update_shrink(pre, src, edge, nr_args, argv);
         default:
             PC_DEBUGX("Not supported for `%s` variant",
-                    pcvariant_get_typename(src->type));
+                    purc_variant_typename(src->type));
             PC_ASSERT(0);
     }
 }
@@ -509,7 +509,7 @@ rev_update_change(
             return obj_rev_update_change(pre, src, edge, nr_args, argv);
         default:
             PC_DEBUGX("Not supported for `%s` variant",
-                    pcvariant_get_typename(src->type));
+                    purc_variant_typename(src->type));
             PC_ASSERT(0);
     }
 }

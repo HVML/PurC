@@ -186,35 +186,33 @@ void pcvariant_init_instance(struct pcinst *inst)
 }
 
 static const char *typenames[] = {
-    VARIANT_TYPE_NAME_UNDEFINED,
-    VARIANT_TYPE_NAME_NULL,
-    VARIANT_TYPE_NAME_BOOLEAN,
-    VARIANT_TYPE_NAME_EXCEPTION,
-    VARIANT_TYPE_NAME_NUMBER,
-    VARIANT_TYPE_NAME_LONGINT,
-    VARIANT_TYPE_NAME_ULONGINT,
-    VARIANT_TYPE_NAME_LONGDOUBLE,
-    VARIANT_TYPE_NAME_ATOMSTRING,
-    VARIANT_TYPE_NAME_STRING,
-    VARIANT_TYPE_NAME_BYTESEQUENCE,
-    VARIANT_TYPE_NAME_DYNAMIC,
-    VARIANT_TYPE_NAME_NATIVE,
-    VARIANT_TYPE_NAME_OBJECT,
-    VARIANT_TYPE_NAME_ARRAY,
-    VARIANT_TYPE_NAME_SET,
+    PURC_VARIANT_TYPE_NAME_UNDEFINED,
+    PURC_VARIANT_TYPE_NAME_NULL,
+    PURC_VARIANT_TYPE_NAME_BOOLEAN,
+    PURC_VARIANT_TYPE_NAME_EXCEPTION,
+    PURC_VARIANT_TYPE_NAME_NUMBER,
+    PURC_VARIANT_TYPE_NAME_LONGINT,
+    PURC_VARIANT_TYPE_NAME_ULONGINT,
+    PURC_VARIANT_TYPE_NAME_LONGDOUBLE,
+    PURC_VARIANT_TYPE_NAME_ATOMSTRING,
+    PURC_VARIANT_TYPE_NAME_STRING,
+    PURC_VARIANT_TYPE_NAME_BYTESEQUENCE,
+    PURC_VARIANT_TYPE_NAME_DYNAMIC,
+    PURC_VARIANT_TYPE_NAME_NATIVE,
+    PURC_VARIANT_TYPE_NAME_OBJECT,
+    PURC_VARIANT_TYPE_NAME_ARRAY,
+    PURC_VARIANT_TYPE_NAME_SET,
 };
 
 /* Make sure the number of variant types matches the size of `type_names` */
 #define _COMPILE_TIME_ASSERT(name, x)               \
        typedef int _dummy_ ## name[(x) * 2 - 1]
-
 _COMPILE_TIME_ASSERT(types, PCA_TABLESIZE(typenames) == PURC_VARIANT_TYPE_NR);
-
 #undef _COMPILE_TIME_ASSERT
 
-const char* pcvariant_get_typename(enum purc_variant_type type)
+const char* purc_variant_typename(enum purc_variant_type type)
 {
-    PC_ASSERT(type >= 0 && type < PURC_VARIANT_TYPE_NR);
+    assert(type >= 0 && type < PURC_VARIANT_TYPE_NR);
     return typenames[type];
 }
 
@@ -578,145 +576,123 @@ static inline bool equal_long_doubles(long double a, long double b)
     return (fabsl(a - b) <= max_val * LDBL_EPSILON);
 }
 
-static int compare_objects(purc_variant_t v1, purc_variant_t v2)
+static bool equal_objects(purc_variant_t v1, purc_variant_t v2)
 {
-    int diff;
     purc_variant_t key;
     purc_variant_t m1, m2;
     size_t sz1 = purc_variant_object_get_size(v1);
     size_t sz2 = purc_variant_object_get_size(v2);
 
     if (sz1 != sz2)
-        return (int)(sz1 - sz2);
+        return false;
 
     foreach_key_value_in_variant_object(v1, key, m1)
         m2 = purc_variant_object_get(v2, key, false);
-        diff = purc_variant_compare_st(m1, m2);
-        if (diff != 0)
-            return diff;
+        if (!purc_variant_is_equal_to(m1, m2))
+            return false;
     end_foreach;
 
-    return 0;
+    return true;
 }
 
-static int compare_arrays(purc_variant_t v1, purc_variant_t v2)
+static bool equal_arrays(purc_variant_t v1, purc_variant_t v2)
 {
-    int diff;
     size_t idx;
     size_t sz1 = purc_variant_array_get_size(v1);
     size_t sz2 = purc_variant_array_get_size(v2);
     purc_variant_t m1, m2;
 
     if (sz1 != sz2)
-        return (int)(sz1 - sz2);
+        return false;
 
     idx = 0;
     size_t curr;
     foreach_value_in_variant_array(v1, m1, curr)
         (void)curr;
         m2 = purc_variant_array_get(v2, idx);
-        diff = purc_variant_compare_st(m1, m2);
-        if (diff != 0)
-            return diff;
-
+        if (!purc_variant_is_equal_to(m1, m2))
+            return false;
         idx++;
     end_foreach;
 
-    return 0;
+    return true;
 }
 
-static int compare_sets(purc_variant_t v1, purc_variant_t v2)
+static bool equal_sets(purc_variant_t v1, purc_variant_t v2)
 {
-    int diff;
     size_t sz1 = purc_variant_set_get_size(v1);
     size_t sz2 = purc_variant_set_get_size(v2);
     struct purc_variant_set_iterator* it;
     purc_variant_t m1, m2;
 
     if (sz1 != sz2)
-        return (int)(sz1 - sz2);
+        return false;
 
     it = purc_variant_set_make_iterator_begin(v2);
     foreach_value_in_variant_set_order(v1, m1)
 
         m2 = purc_variant_set_iterator_get_value(it);
-        diff = purc_variant_compare_st(m1, m2);
-        if (diff != 0)
-            goto ret;
+        if (!purc_variant_is_equal_to(m1, m2))
+            goto not_equal;
 
-    purc_variant_set_iterator_next(it);
+        purc_variant_set_iterator_next(it);
     end_foreach;
 
     purc_variant_set_release_iterator(it);
-    return 0;
+    return true;
 
-ret:
+not_equal:
     purc_variant_set_release_iterator(it);
-    return diff;
+    return false;
 }
 
-int purc_variant_compare_st(purc_variant_t v1, purc_variant_t v2)
+bool purc_variant_is_equal_to(purc_variant_t v1, purc_variant_t v2)
 {
-    int i;
     const char *str1, *str2;
     size_t len1, len2;
 
     if (v1 == NULL)
-        return v2 ? 1 : 0;
+        return v2 ? false : true;
     if (v2 == NULL)
-        return v1 ? 1 : 0;
+        return v1 ? false : true;
 
-    if (v1->type == v2->type) {
+    if (v1->type != v2->type) {
+        return false;
+    }
+
     switch (v1->type) {
         case PURC_VARIANT_TYPE_UNDEFINED:
         case PURC_VARIANT_TYPE_NULL:
-            return 0;
+            return true;
 
         case PURC_VARIANT_TYPE_BOOLEAN:
-            return (int)v1->b - (int)v2->b;
+            return v1->b == v2->b;
 
         case PURC_VARIANT_TYPE_EXCEPTION:
-            if (v1->atom == v2->atom) {
-                return 0;
-            }
-            str1 = purc_atom_to_string(v1->atom);
-            str2 = purc_atom_to_string(v2->atom);
-            return strcmp(str1, str2);
+            return v1->atom == v2->atom;
 
         case PURC_VARIANT_TYPE_NUMBER:
-            if (equal_doubles(v1->d, v2->d))
-                return 0;
-            // VWNOTE: this may get zero because of too small difference:
-            // return (int)(v1->d - v2->d);
-            if (v1->d > v2->d)
-                return 1;
-            return -1;
+            return equal_doubles(v1->d, v2->d);
 
         case PURC_VARIANT_TYPE_LONGINT:
-            return (int)(v1->i64 - v2->i64);
+            return v1->i64 == v2->i64;
 
         case PURC_VARIANT_TYPE_ULONGINT:
-            return (int)(v1->u64 - v2->u64);
+            return v1->u64 == v2->u64;
 
         case PURC_VARIANT_TYPE_LONGDOUBLE:
-            if (equal_long_doubles(v1->ld, v2->ld))
-                return 0;
-            // VWNOTE: this may get zero because of too small difference:
-            // return (int)(v1->d - v2->d);
-            if (v1->ld > v2->ld)
-                return 1;
-            return -1;
+            return equal_long_doubles(v1->ld, v2->ld);
 
         case PURC_VARIANT_TYPE_ATOMSTRING:
             str1 = purc_atom_to_string(v1->atom);
             str2 = purc_atom_to_string(v2->atom);
-            return strcmp(str1, str2);
+            return strcmp(str1, str2) == 0;
 
         case PURC_VARIANT_TYPE_STRING:
         case PURC_VARIANT_TYPE_BSEQUENCE:
             if (v1->flags & PCVARIANT_FLAG_STRING_STATIC) {
                 str1 = (const char*)v1->sz_ptr[1];
-                len1 = strlen(str1);
+                len1 = v1->sz_ptr[0];
             }
             else if (v1->flags & PCVARIANT_FLAG_EXTRA_SIZE) {
                 str1 = (const char*)v1->sz_ptr[1];
@@ -729,7 +705,7 @@ int purc_variant_compare_st(purc_variant_t v1, purc_variant_t v2)
 
             if (v2->flags & PCVARIANT_FLAG_STRING_STATIC) {
                 str2 = (const char*)v2->sz_ptr[1];
-                len2 = strlen(str2);
+                len2 = v2->sz_ptr[0];
             }
             else if (v2->flags & PCVARIANT_FLAG_EXTRA_SIZE) {
                 str2 = (const char*)v2->sz_ptr[1];
@@ -740,34 +716,26 @@ int purc_variant_compare_st(purc_variant_t v1, purc_variant_t v2)
                 len2 = v2->size;
             }
 
-            if (v1->type == PURC_VARIANT_TYPE_STRING)
-                return strcmp(str1, str2);
-
-            i = memcmp(str1, str2, (len1 > len2)?len2:len1);
-            if (i == 0 && len1 != len2) {
-                return (int)(len1 - len2);
-            }
-            return i;
+            return (len1 == len2 && memcmp(str1, str2, len1) == 0);
 
         case PURC_VARIANT_TYPE_DYNAMIC:
         case PURC_VARIANT_TYPE_NATIVE:
-            return memcmp(v1->ptr_ptr, v2->ptr_ptr, sizeof(void *) * 2);
+            return memcmp(v1->ptr_ptr, v2->ptr_ptr, sizeof(void *) * 2) == 0;
 
         case PURC_VARIANT_TYPE_OBJECT:
-            return compare_objects(v1, v2);
+            return equal_objects(v1, v2);
 
         case PURC_VARIANT_TYPE_ARRAY:
-            return compare_arrays(v1, v2);
+            return equal_arrays(v1, v2);
 
         case PURC_VARIANT_TYPE_SET:
-            return compare_sets(v1, v2);
+            return equal_sets(v1, v2);
+    }
 
-        default:
-            PC_ASSERT(0);
-            break;
-    }
-    }
-    else {
+    return false;
+
+#if 0
+    if (0) {
         long double ld1, ld2;
         if (purc_variant_cast_to_long_double(v1, &ld1, false) &&
                 purc_variant_cast_to_long_double(v2, &ld2, false)) {
@@ -814,12 +782,11 @@ int purc_variant_compare_st(purc_variant_t v1, purc_variant_t v2)
 
         return strcmp(type_names[v1->type], type_names[v2->type]);
     }
-
-    return 0;
+#endif
 }
 
 bool
-purc_variant_cast_to_longint(purc_variant_t v, int64_t *i64, bool parse_str)
+purc_variant_cast_to_longint(purc_variant_t v, int64_t *i64, bool force)
 {
     const char *bytes;
     size_t sz;
@@ -828,22 +795,34 @@ purc_variant_cast_to_longint(purc_variant_t v, int64_t *i64, bool parse_str)
 
     switch (v->type) {
         case PURC_VARIANT_TYPE_NULL:
-            *i64 = 0;
-            return true;
+            if (force) {
+                *i64 = 0;
+                return true;
+            }
+            break;
 
         case PURC_VARIANT_TYPE_BOOLEAN:
-            *i64 = (int64_t)v->b;
-            return true;
-
-        case PURC_VARIANT_TYPE_EXCEPTION:
-            return false;
+            if (force) {
+                *i64 = (int64_t)v->b;
+                return true;
+            }
+            break;
 
         case PURC_VARIANT_TYPE_NUMBER:
-            if (v->d <= INT64_MIN) {
-                *i64 = INT64_MIN;
+            if (isnan(v->d))
+                break;
+
+            if (isinf(v->d) == -1 || v->d <= INT64_MIN) {
+                if (force)
+                    *i64 = INT64_MIN;
+                else
+                    break;
             }
-            else if (v->d >= INT64_MAX) {
-                *i64 = INT64_MAX;
+            else if (isinf(v->d) == 1 || v->d >= INT64_MAX) {
+                if (force)
+                    *i64 = INT64_MAX;
+                else
+                    break;
             }
             else {
                 *i64 = (int64_t)v->d;
@@ -855,18 +834,32 @@ purc_variant_cast_to_longint(purc_variant_t v, int64_t *i64, bool parse_str)
             return true;
 
         case PURC_VARIANT_TYPE_ULONGINT:
-            if (v->u64 >= INT64_MAX)
-                *i64 = INT64_MAX;
-            else
+            if (v->u64 > INT64_MAX) {
+                if (force)
+                    *i64 = (int64_t)v->u64;
+                else
+                    break;
+            }
+            else {
                 *i64 = (int64_t)v->u64;
+            }
             return true;
 
         case PURC_VARIANT_TYPE_LONGDOUBLE:
-            if (v->ld <= INT64_MIN) {
-                *i64 = INT64_MIN;
+            if (isnan(v->ld))
+                break;
+
+            if (isinf(v->d) == -1 || v->ld <= INT64_MIN) {
+                if (force)
+                    *i64 = INT64_MIN;
+                else
+                    break;
             }
-            else if (v->ld >= INT64_MAX) {
-                *i64 = INT64_MAX;
+            else if (isinf(v->d) == 1 || v->ld >= INT64_MAX) {
+                if (force)
+                    *i64 = INT64_MAX;
+                else
+                    break;
             }
             else {
                 *i64 = (int64_t)v->ld;
@@ -874,7 +867,7 @@ purc_variant_cast_to_longint(purc_variant_t v, int64_t *i64, bool parse_str)
             return true;
 
         case PURC_VARIANT_TYPE_ATOMSTRING:
-            if (!parse_str)
+            if (!force)
                 break;
 
             bytes = purc_atom_to_string(v->atom);
@@ -886,7 +879,7 @@ purc_variant_cast_to_longint(purc_variant_t v, int64_t *i64, bool parse_str)
 
         case PURC_VARIANT_TYPE_STRING:
         case PURC_VARIANT_TYPE_BSEQUENCE:
-            if (!parse_str)
+            if (!force)
                 break;
 
             if (v->flags & PCVARIANT_FLAG_STRING_STATIC) {
@@ -914,7 +907,7 @@ purc_variant_cast_to_longint(purc_variant_t v, int64_t *i64, bool parse_str)
 }
 
 bool
-purc_variant_cast_to_ulongint(purc_variant_t v, uint64_t *u64, bool parse_str)
+purc_variant_cast_to_ulongint(purc_variant_t v, uint64_t *u64, bool force)
 {
     const char *bytes;
     size_t sz;
@@ -923,22 +916,34 @@ purc_variant_cast_to_ulongint(purc_variant_t v, uint64_t *u64, bool parse_str)
 
     switch (v->type) {
         case PURC_VARIANT_TYPE_NULL:
-            *u64 = 0;
-            return true;
+            if (force) {
+                *u64 = 0;
+                return true;
+            }
+            break;
 
         case PURC_VARIANT_TYPE_BOOLEAN:
-            *u64 = (uint64_t)v->b;
-            return true;
-
-        case PURC_VARIANT_TYPE_EXCEPTION:
-            return false;
+            if (force) {
+                *u64 = (uint64_t)v->b;
+                return true;
+            }
+            break;
 
         case PURC_VARIANT_TYPE_NUMBER:
-            if (v->d <= 0) {
-                *u64 = 0;
+            if (isnan(v->d))
+                break;
+
+            if (isinf(v->d) == -1 || v->d <= 0) {
+                if (force)
+                    *u64 = 0;
+                else
+                    break;
             }
-            else if (v->d >= UINT64_MAX) {
-                *u64 = UINT64_MAX;
+            else if (isinf(v->d) == 1 || v->d >= UINT64_MAX) {
+                if (force)
+                    *u64 = UINT64_MAX;
+                else
+                    break;
             }
             else {
                 *u64 = (uint64_t)v->d;
@@ -946,8 +951,12 @@ purc_variant_cast_to_ulongint(purc_variant_t v, uint64_t *u64, bool parse_str)
             return true;
 
         case PURC_VARIANT_TYPE_LONGINT:
-            if (v->i64 < 0)
-                *u64 = 0;
+            if (v->i64 < 0) {
+                if (force)
+                    *u64 = (uint64_t)v->i64;
+                else
+                    break;
+            }
             else
                 *u64 = (uint64_t)v->i64;
             return true;
@@ -957,10 +966,16 @@ purc_variant_cast_to_ulongint(purc_variant_t v, uint64_t *u64, bool parse_str)
             return true;
 
         case PURC_VARIANT_TYPE_LONGDOUBLE:
-            if (v->ld < 0) {
-                *u64 = 0;
+            if (isnan(v->ld))
+                break;
+
+            if (isinf(v->ld) == -1 || v->ld < 0) {
+                if (force)
+                    *u64 = 0;
+                else
+                    break;
             }
-            else if (v->ld >= UINT64_MAX) {
+            else if (isinf(v->ld) == 1 || v->ld >= UINT64_MAX) {
                 *u64 = UINT64_MAX;
             }
             else {
@@ -969,7 +984,7 @@ purc_variant_cast_to_ulongint(purc_variant_t v, uint64_t *u64, bool parse_str)
             return true;
 
         case PURC_VARIANT_TYPE_ATOMSTRING:
-            if (!parse_str)
+            if (!force)
                 break;
 
             bytes = purc_atom_to_string(v->atom);
@@ -981,7 +996,7 @@ purc_variant_cast_to_ulongint(purc_variant_t v, uint64_t *u64, bool parse_str)
 
         case PURC_VARIANT_TYPE_STRING:
         case PURC_VARIANT_TYPE_BSEQUENCE:
-            if (!parse_str)
+            if (!force)
                 break;
 
             if (v->flags & PCVARIANT_FLAG_STRING_STATIC) {
@@ -1008,7 +1023,7 @@ purc_variant_cast_to_ulongint(purc_variant_t v, uint64_t *u64, bool parse_str)
     return false;
 }
 
-bool purc_variant_cast_to_number(purc_variant_t v, double *d, bool parse_str)
+bool purc_variant_cast_to_number(purc_variant_t v, double *d, bool force)
 {
     const char *bytes;
     size_t sz;
@@ -1017,15 +1032,18 @@ bool purc_variant_cast_to_number(purc_variant_t v, double *d, bool parse_str)
 
     switch (v->type) {
         case PURC_VARIANT_TYPE_NULL:
-            *d = 0;
-            return true;
+            if (force) {
+                *d = 0;
+                return true;
+            }
+            break;
 
         case PURC_VARIANT_TYPE_BOOLEAN:
-            *d = (double)v->b;
-            return true;
-
-        case PURC_VARIANT_TYPE_EXCEPTION:
-            return false;
+            if (force) {
+                *d = (double)v->b;
+                return true;
+            }
+            break;
 
         case PURC_VARIANT_TYPE_NUMBER:
             *d = (double)v->d;
@@ -1044,7 +1062,7 @@ bool purc_variant_cast_to_number(purc_variant_t v, double *d, bool parse_str)
             return true;
 
         case PURC_VARIANT_TYPE_ATOMSTRING:
-            if (!parse_str)
+            if (!force)
                 break;
 
             bytes = purc_atom_to_string(v->atom);
@@ -1056,7 +1074,7 @@ bool purc_variant_cast_to_number(purc_variant_t v, double *d, bool parse_str)
 
         case PURC_VARIANT_TYPE_STRING:
         case PURC_VARIANT_TYPE_BSEQUENCE:
-            if (!parse_str)
+            if (!force)
                 break;
 
             if (v->flags & PCVARIANT_FLAG_STRING_STATIC) {
@@ -1085,7 +1103,7 @@ bool purc_variant_cast_to_number(purc_variant_t v, double *d, bool parse_str)
 
 bool
 purc_variant_cast_to_long_double(purc_variant_t v, long double *d,
-        bool parse_str)
+        bool force)
 {
     const char *bytes;
     size_t sz;
@@ -1094,15 +1112,18 @@ purc_variant_cast_to_long_double(purc_variant_t v, long double *d,
 
     switch (v->type) {
         case PURC_VARIANT_TYPE_NULL:
-            *d = 0;
-            return true;
+            if (force) {
+                *d = 0;
+                return true;
+            }
+            break;
 
         case PURC_VARIANT_TYPE_BOOLEAN:
-            *d = (long double)v->b;
-            return true;
-
-        case PURC_VARIANT_TYPE_EXCEPTION:
-            return false;
+            if (force) {
+                *d = (long double)v->b;
+                return true;
+            }
+            break;
 
         case PURC_VARIANT_TYPE_NUMBER:
             *d = (long double)v->d;
@@ -1121,7 +1142,7 @@ purc_variant_cast_to_long_double(purc_variant_t v, long double *d,
             return true;
 
         case PURC_VARIANT_TYPE_ATOMSTRING:
-            if (!parse_str)
+            if (!force)
                 break;
 
             bytes = purc_atom_to_string(v->atom);
@@ -1133,7 +1154,7 @@ purc_variant_cast_to_long_double(purc_variant_t v, long double *d,
 
         case PURC_VARIANT_TYPE_STRING:
         case PURC_VARIANT_TYPE_BSEQUENCE:
-            if (!parse_str)
+            if (!force)
                 break;
 
             if (v->flags & PCVARIANT_FLAG_STRING_STATIC) {
@@ -1174,9 +1195,10 @@ bool purc_variant_cast_to_byte_sequence(purc_variant_t v,
 
         case PURC_VARIANT_TYPE_STRING:
         case PURC_VARIANT_TYPE_BSEQUENCE:
-            if (v->flags & PCVARIANT_FLAG_STRING_STATIC) {
+            if (v->type == PURC_VARIANT_TYPE_STRING &&
+                    v->flags & PCVARIANT_FLAG_STRING_STATIC) {
                 *bytes = (void*)v->sz_ptr[1];
-                *sz = strlen((const char*)*bytes);
+                *sz = v->sz_ptr[0]; // strlen((const char*)*bytes) + 1;
             }
             else if (v->flags & PCVARIANT_FLAG_EXTRA_SIZE) {
                 *bytes = (void*)v->sz_ptr[1];
@@ -2421,10 +2443,10 @@ purc_variant_ejson_parse_stream(purc_rwstream_t rws)
 
 purc_variant_t
 purc_variant_ejson_parse_tree_evalute(struct purc_ejson_parse_tree *parse_tree,
-        purc_cb_get_var fn_get_var, void *ctxt)
+        purc_cb_get_var fn_get_var, void *ctxt, bool silently)
 {
-    return pcvcm_eval_ex ((struct pcvcm_node*)parse_tree, fn_get_var,
-           ctxt, true);
+    return pcvcm_eval_ex((struct pcvcm_node*)parse_tree, fn_get_var,
+           ctxt, silently);
 }
 
 void

@@ -242,7 +242,7 @@ void pchvml_token_end_attr(struct pchvml_token* token)
             strcmp(attr_name, HVML_RAW_STRING) == 0) {
         token->has_raw_attr = true;
     }
-    pcutils_arrlist_add(token->attr_list, token->curr_attr);
+    pcutils_arrlist_append(token->attr_list, token->curr_attr);
     token->curr_attr = NULL;
 }
 

@@ -138,3 +138,13 @@ InvalidOperand
     flags: None
     msg: "Invalid operand"
 
+AccessDenied
+    except: AccessDenied
+    flags: None
+    msg: "Access denied"
+
+TooMany
+    except: TooMany
+    flags: None
+    msg: "Too many"
+

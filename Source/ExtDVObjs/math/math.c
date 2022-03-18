@@ -23,10 +23,12 @@
  */
 
 #include "purc-errors.h"
-#include "private/map.h"
 #include "purc-variant.h"
-#include "mathlib.h"
 #include "purc-version.h"
+#include "purc-dvobjs.h"
+
+#include "private/map.h"
+#include "mathlib.h"
 
 #include <strings.h>
 
@@ -1517,40 +1519,6 @@ eval_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     return internal_eval_getter(1, root, nr_args, argv, silently);
 }
 
-static purc_variant_t pcdvobjs_make_dvobjs (
-        const struct pcdvobjs_dvobjs *method, size_t size)
-{
-    size_t i = 0;
-    purc_variant_t val = PURC_VARIANT_INVALID;
-    purc_variant_t ret_var= purc_variant_make_object (0, PURC_VARIANT_INVALID,
-                                                    PURC_VARIANT_INVALID);
-
-    if (ret_var == PURC_VARIANT_INVALID)
-        return PURC_VARIANT_INVALID;
-
-    for (i = 0; i < size; i++) {
-        val = purc_variant_make_dynamic (method[i].getter, method[i].setter);
-        if (val == PURC_VARIANT_INVALID) {
-            goto error;
-        }
-
-        if (!purc_variant_object_set_by_static_ckey (ret_var,
-                    method[i].name, val)) {
-            goto error;
-        }
-
-        purc_variant_unref (val);
-    }
-
-    return ret_var;
-
-error:
-    purc_variant_unref (ret_var);
-
-    return PURC_VARIANT_INVALID;
-}
-
-
 static void * map_copy_key(const void *key)
 {
     return (void*)key;
@@ -1646,7 +1614,7 @@ static purc_variant_t pcdvobjs_create_math (void)
     }
 
     // set dynamic
-    static struct pcdvobjs_dvobjs method [] = {
+    static struct purc_dvobj_method method [] = {
         {"pi",      pi_getter, NULL},
         {"pi_l",    pi_l_getter, NULL},
         {"e",       e_getter, NULL},
@@ -1702,7 +1670,7 @@ static purc_variant_t pcdvobjs_create_math (void)
         {"div",     div_getter, NULL},
     };
 
-    return pcdvobjs_make_dvobjs (method, PCA_TABLESIZE(method));
+    return purc_dvobj_make_from_methods (method, PCA_TABLESIZE(method));
 }
 
 purc_variant_t __purcex_load_dynamic_variant (const char *name, int *ver_code)

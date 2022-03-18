@@ -40,6 +40,7 @@ enum pcatom_bucket {
     ATOM_BUCKET_EXCEPT, /* the error and exception names such as NoData */
     ATOM_BUCKET_MSG,    /* the message types such as changed, attached, ... */
     ATOM_BUCKET_RDROP,  /* the renderer operations: startSession, load, ... */
+    ATOM_BUCKET_DVOBJ,  /* the keywords of DVObjs: all, default, ... */
 
     /* XXX: change this if you add a new atom bucket. */
     ATOM_BUCKET_LAST = ATOM_BUCKET_RDROP,

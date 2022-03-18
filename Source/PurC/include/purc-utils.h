@@ -392,7 +392,7 @@ struct pcutils_arrlist {
 typedef struct pcutils_arrlist pcutils_arrlist;
 
 /**
- * Allocate an pcutils_arrlist of the desired size.
+ * Allocate a pcutils_arrlist of the desired size.
  *
  * If possible, the size should be chosen to closely match
  * the actual number of elements expected to be used.
@@ -410,31 +410,47 @@ PCA_EXPORT struct pcutils_arrlist *
 pcutils_arrlist_new_ex(array_list_free_fn *free_fn, size_t initial_size);
 
 /**
- * Allocate an pcutils_arrlist of the default size (32).
- * @deprecated Use pcutils_arrlist_new_ex() instead.
+ * Allocate a pcutils_arrlist of the default size (32).
  */
 static inline struct pcutils_arrlist *
 pcutils_arrlist_new(array_list_free_fn *free_fn) {
     return pcutils_arrlist_new_ex(free_fn, ARRAY_LIST_DEFAULT_SIZE);
 }
 
-PCA_EXPORT void pcutils_arrlist_free(struct pcutils_arrlist *al);
+/** Free a pcutils_arrlist. */
+PCA_EXPORT void
+pcutils_arrlist_free(struct pcutils_arrlist *al);
 
-PCA_EXPORT void *pcutils_arrlist_get_idx(struct pcutils_arrlist *al, size_t i);
+/** Get data stored in the specified slot of a pcutils_arrlist. */
+PCA_EXPORT void *
+pcutils_arrlist_get_idx(struct pcutils_arrlist *al, size_t i);
 
-PCA_EXPORT int pcutils_arrlist_put_idx(struct pcutils_arrlist *al, size_t i, void *data);
+/** Put data in the specified slot of a pcutils_arrlist. */
+PCA_EXPORT int
+pcutils_arrlist_put_idx(struct pcutils_arrlist *al, size_t i, void *data);
 
-PCA_EXPORT int pcutils_arrlist_add(struct pcutils_arrlist *al, void *data);
+/** Append data to a pcutils_arrlist. */
+PCA_EXPORT int
+pcutils_arrlist_append(struct pcutils_arrlist *al, void *data);
 
-PCA_EXPORT size_t pcutils_arrlist_length(struct pcutils_arrlist *al);
+/** Get the length (number of slots) of a pcutils_arrlist. */
+PCA_EXPORT size_t
+pcutils_arrlist_length(struct pcutils_arrlist *al);
 
-PCA_EXPORT void pcutils_arrlist_sort(struct pcutils_arrlist *arr,
+/** Sort a pcutils_arrlist. */
+PCA_EXPORT void
+pcutils_arrlist_sort(struct pcutils_arrlist *arr,
         int (*compar)(const void *, const void *));
 
-PCA_EXPORT void *pcutils_arrlist_bsearch(const void **key,
+/** Perform a binary search in a sorted pcutils_arrlist. */
+PCA_EXPORT void *
+pcutils_arrlist_bsearch(const void **key,
         struct pcutils_arrlist *arr,
         int (*compar)(const void *, const void *));
 
+/**
+ * Remove data in a pcutils_arrlist.
+ */
 PCA_EXPORT int
 pcutils_arrlist_del_idx(struct pcutils_arrlist *arr,
         size_t idx, size_t count);
@@ -446,29 +462,61 @@ pcutils_arrlist_del_idx(struct pcutils_arrlist *arr,
 PCA_EXPORT int
 pcutils_arrlist_shrink(struct pcutils_arrlist *arr, size_t empty_slots);
 
+/**
+ * Get the data stored in the first slot of a pcutils_arrlist.
+ */
 PCA_EXPORT void*
 pcutils_arrlist_get_first(struct pcutils_arrlist *arr);
 
+/**
+ * Get the data stored in the last slot of a pcutils_arrlist.
+ */
 PCA_EXPORT void*
 pcutils_arrlist_get_last(struct pcutils_arrlist *arr);
 
+/** Portable implementation of `snprintf` */
 PCA_EXPORT char*
 pcutils_snprintf(char *buf, size_t *sz_io, const char *fmt, ...)
     PCA_ATTRIBUTE_PRINTF(3, 4);
 
+/** Portable implementation of `vsnprintf` */
 PCA_EXPORT char*
 pcutils_vsnprintf(char *buf, size_t *sz_io, const char *fmt, va_list ap);
 
-// trim leading/trailling blanks(spaces/tabs)
+/** Trim leading and trailling blank characters (whitespaces or tabs) */
 PCA_EXPORT const char*
 pcutils_trim_blanks(const char *str, size_t *sz_io);
 
+/** Trim leading and trailling space characters (whitespace, form-feed ('\f'),
+  * newline ('\n'), carriage return ('\r'), horizontal tab ('\t'),
+  * and vertical tab ('\v')) */
+PCA_EXPORT const char*
+pcutils_trim_spaces(const char *str, size_t *sz_io);
+
+/** Determine whether a string contains graphical characters (printable
+  * characters except spaces. */
+PCA_EXPORT bool
+pcutils_contains_graph(const char *str);
+
+/** Get the pointer of the next valid token and length in a string */
+PCA_EXPORT const char *
+pcutils_get_next_token(const char *str, const char *delims, size_t *length);
+
+/** Get the pointer of the next valid token and length in a string */
+PCA_EXPORT const char *
+pcutils_get_next_token_len(const char *str, size_t str_len,
+        const char *delims, size_t *length);
+
+/** Escape a string for JSON */
 PCA_EXPORT char*
 pcutils_escape_string_for_json(const char* str);
 
+/** Check validation of Unicode characters in a UTF-8 encoded string. */
 PCA_EXPORT bool
 pcutils_string_check_utf8_len(const char* str, size_t max_len,
         size_t *nr_chars, const char **end);
+
+/** Check validation of Unicode characters in a UTF-8 encoded string. */
 PCA_EXPORT bool
 pcutils_string_check_utf8(const char *str, ssize_t max_len,
         size_t *nr_chars, const char **end);
@@ -476,6 +524,50 @@ pcutils_string_check_utf8(const char *str, ssize_t max_len,
 /** Returns the basename of fname. The result is a pointer into fname. */
 PCA_EXPORT const char *
 pcutils_basename(const char* fname);
+
+/** The structure representing a broken-down URL. */
+struct purc_broken_down_url {
+    /** the schema component */
+    char *schema;
+    /** the user component */
+    char *user;
+    /** the password component */
+    char *passwd;
+    /** the host component */
+    char *host;
+    /** the path component */
+    char *path;
+    /** the query component */
+    char *query;
+    /** the fragment component */
+    char *fragment;
+    /** the port component */
+    unsigned int port;
+};
+
+/**
+ * Assemble a broken-down URL.
+ *
+ * @param broken_down The pointer to a broken-down URL structure.
+ *
+ * Returns: The assembled URL string (not percent escaped) on success,
+ *  otherwise @null.
+ */
+PCA_EXPORT char *
+pcutils_url_assemble(const struct purc_broken_down_url *broken_down);
+
+/**
+ * Break down a URL string.
+ *
+ * @param broken_down The pointer to a broken-down URL structure to store
+ *  the components of a broken down URL.
+ * @param url The null-terminated URL string.
+ *
+ * Returns: @true on success, @false for a bad URL string.
+ */
+PCA_EXPORT bool
+pcutils_url_break_down(struct purc_broken_down_url *broken_down,
+        const char *url);
 
 PCA_EXTERN_C_END
 
