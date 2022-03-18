@@ -627,7 +627,7 @@ TEST(dvobjs, time_us)
             "$SYSTEM.time_us(false)",
             system_time_us, time_us_vrtcmp, 0 },
         { "getlongdouble",
-            "$SYSTEM.time_us ", /* FIXME: there must be a tailing space */
+            "$SYSTEM.time_us",
             system_time_us, time_us_vrtcmp, 0 },
     };
 
