@@ -1145,6 +1145,7 @@ timezone_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     setenv("TZ", path, 1);
     tzset();
 
+    // TODO: broadcast "change:env" event
     return purc_variant_make_boolean(true);
 
 failed:
@@ -1356,6 +1357,68 @@ failed:
     return PURC_VARIANT_INVALID;
 }
 
+static purc_variant_t
+random_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
+
+    double random = 0.0;
+    double number = 0.0;
+
+    if (nr_args == 0) {
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        return PURC_VARIANT_INVALID;
+    }
+
+    if ((argv[0] == PURC_VARIANT_INVALID) ||
+            (!purc_variant_cast_to_number (argv[0], &number, false))) {
+        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    if (fabs (number) < 1.0E-10) {
+        purc_set_error (PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    random = number * rand() / (double)(RAND_MAX);
+
+    return purc_variant_make_number (random);
+}
+
+static purc_variant_t
+random_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
+
+    double random = 0.0;
+    double number = 0.0;
+
+    if (nr_args == 0) {
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        return PURC_VARIANT_INVALID;
+    }
+
+    if ((argv[0] == PURC_VARIANT_INVALID) ||
+            (!purc_variant_cast_to_number (argv[0], &number, false))) {
+        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    if (fabs (number) < 1.0E-10) {
+        purc_set_error (PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    random = number * rand() / (double)(RAND_MAX);
+
+    return purc_variant_make_number (random);
+}
+
 #if OS(LINUX)
 
 #include <sys/random.h>
@@ -1421,16 +1484,17 @@ random_sequence_getter(purc_variant_t root,
 purc_variant_t purc_dvobj_system_new (void)
 {
     static const struct purc_dvobj_method methods[] = {
-        { "const",      const_getter,     NULL },
-        { "uname",      uname_getter,     NULL },
-        { "uname_prt",  uname_prt_getter, NULL },
-        { "time",       time_getter,      time_setter },
-        { "time_us",    time_us_getter,   time_us_setter },
-        { "locale",     locale_getter,    locale_setter },
-        { "timezone",   timezone_getter,  timezone_setter },
-        { "cwd",        cwd_getter,       cwd_setter },
-        { "env",        env_getter,       env_setter },
-        { "random_sequence", random_sequence_getter, NULL }
+        { "const",      const_getter,       NULL },
+        { "uname",      uname_getter,       NULL },
+        { "uname_prt",  uname_prt_getter,   NULL },
+        { "time",       time_getter,        time_setter },
+        { "time_us",    time_us_getter,     time_us_setter },
+        { "locale",     locale_getter,      locale_setter },
+        { "timezone",   timezone_getter,    timezone_setter },
+        { "cwd",        cwd_getter,         cwd_setter },
+        { "env",        env_getter,         env_setter },
+        { "random",     random_getter,      random_setter },
+        { "random_sequence", random_sequence_getter, NULL },
     };
 
     if (keywords2atoms[0].atom == 0) {
@@ -1439,8 +1503,10 @@ purc_variant_t purc_dvobj_system_new (void)
                 purc_atom_from_static_string_ex(ATOM_BUCKET_DVOBJ,
                     keywords2atoms[i].keyword);
         }
+
     }
 
+    // TODO: allocate data for state of the random generator */
     return purc_dvobj_make_from_methods(methods, PCA_TABLESIZE(methods));
 }
 
@@ -1818,37 +1884,6 @@ time_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     return retv;
-}
-
-static purc_variant_t
-random_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
-{
-    UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
-
-    double random = 0.0;
-    double number = 0.0;
-
-    if (nr_args == 0) {
-        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
-    }
-
-    if ((argv[0] == PURC_VARIANT_INVALID) ||
-            (!purc_variant_cast_to_number (argv[0], &number, false))) {
-        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
-    }
-
-    if (fabs (number) < 1.0E-10) {
-        purc_set_error (PURC_ERROR_INVALID_VALUE);
-        return PURC_VARIANT_INVALID;
-    }
-
-    random = number * rand() / (double)(RAND_MAX);
-
-    return purc_variant_make_number (random);
 }
 
 #endif
