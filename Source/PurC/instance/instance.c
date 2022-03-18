@@ -46,6 +46,7 @@
 #include <stdio.h>  // fclose on inst->fp_log
 #include <stdlib.h>
 #include <string.h>
+#include <locale.h>
 
 #include "generic_err_msgs.inc"
 
@@ -155,8 +156,19 @@ static unsigned int _modules;
 // FIXME: where to put declaration
 void pchvml_keywords_init(void);
 
+locale_t __purc_locale_c;
+static void free_locale_c(void)
+{
+    if (__purc_locale_c)
+        freelocale(__purc_locale_c);
+    __purc_locale_c = NULL;
+}
+
 static void init_modules_once(void)
 {
+    __purc_locale_c = newlocale(LC_ALL_MASK, "C", (locale_t)0);
+    atexit(free_locale_c);
+
     // TODO: init modules working without instance here.
     pcutils_atom_init_once();
     atexit(pcutils_atom_cleanup_once);

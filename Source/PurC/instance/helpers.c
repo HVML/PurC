@@ -38,7 +38,7 @@ bool purc_is_valid_token (const char* token, int max_len)
 {
     int i;
 
-    if (!isalpha (token [0]))
+    if (!purc_isalpha (token [0]))
         return false;
 
     i = 1;
@@ -47,7 +47,7 @@ bool purc_is_valid_token (const char* token, int max_len)
         if (max_len > 0 && i > max_len)
             return false;
 
-        if (!isalnum (token [i]) && token[i] != '_')
+        if (!purc_isalnum (token [i]) && token[i] != '_')
             return false;
 
         i++;
@@ -60,7 +60,7 @@ bool purc_is_valid_loose_token (const char* token, int max_len)
 {
     int i;
 
-    if (!isalpha (token [0]))
+    if (!purc_isalpha (token [0]))
         return false;
 
     i = 1;
@@ -69,7 +69,7 @@ bool purc_is_valid_loose_token (const char* token, int max_len)
         if (max_len > 0 && i > max_len)
             return false;
 
-        if (!isalnum (token [i]) && token[i] != '_' && token[i] != '-')
+        if (!purc_isalnum (token [i]) && token[i] != '_' && token[i] != '-')
             return false;
 
         i++;
@@ -361,7 +361,7 @@ bool purc_is_valid_unique_id (const char* id)
         if (n > PURC_LEN_UNIQUE_ID)
             return false;
 
-        if (!isalnum (id [n]) && id [n] != '-')
+        if (!purc_isalnum (id [n]) && id [n] != '-')
             return false;
 
         n++;
@@ -378,7 +378,7 @@ bool purc_is_valid_md5_id (const char* id)
         if (n > (MD5_DIGEST_SIZE << 1))
             return false;
 
-        if (!isalnum (id [n]))
+        if (!purc_isalnum (id [n]))
             return false;
 
         n++;
