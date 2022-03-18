@@ -1058,9 +1058,36 @@ timezone_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(argv);
     UNUSED_PARAM(silently);
 
-    time_t t_time;
-    t_time = time (NULL);
-    return purc_variant_make_ulongint((uint64_t)t_time);
+    const char* timezone = NULL;
+
+    char path[PATH_MAX + 1];
+    const char* env_tz = getenv("TZ");
+    if (env_tz && env_tz[0] == ':') {
+        timezone = env_tz + 1;
+    }
+    else {
+        ssize_t nr_bytes;
+        nr_bytes = readlink(PURC_SYS_TZ_FILE, path, sizeof(path));
+        if (nr_bytes > 0 &&
+                strncmp(path, PURC_SYS_TZ_DIR,
+                    sizeof(PURC_SYS_TZ_DIR) - 1) == 0) {
+            path[nr_bytes] = 0;
+            timezone = path + sizeof(PURC_SYS_TZ_DIR) - 1;
+        }
+        else {
+            purc_log_error("Cannot determine timezone.\n");
+        }
+    }
+
+    if (timezone) {
+        return purc_variant_make_string(timezone, true);
+    }
+
+    purc_set_error(PURC_ERROR_NOT_DESIRED_ENTITY);
+    if (silently)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
@@ -1068,69 +1095,55 @@ timezone_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(silently);
-
-    struct timeval timeval;
 
     if (nr_args < 1) {
         purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
         goto failed;
     }
 
-    switch (purc_variant_get_type(argv[0])) {
-        case PURC_VARIANT_TYPE_NUMBER:
-        {
-            double time_d, sec_d, usec_d;
-
-            purc_variant_cast_to_number(argv[0], &time_d, false);
-            if (isinf(time_d) || isnan(time_d) || time_d < 0.0) {
-                purc_set_error(PURC_ERROR_INVALID_VALUE);
-                goto failed;
-            }
-
-            usec_d = modf(time_d, &sec_d);
-            timeval.tv_sec = (time_t)sec_d;
-            timeval.tv_usec = (suseconds_t)(usec_d * 1000000.0);
-            break;
-        }
-
-        case PURC_VARIANT_TYPE_LONGINT:
-        case PURC_VARIANT_TYPE_ULONGINT:
-        case PURC_VARIANT_TYPE_LONGDOUBLE:
-        {
-            long double time_d, sec_d, usec_d;
-            purc_variant_cast_to_long_double(argv[0], &time_d, false);
-
-            if (isinf(time_d) || isnan(time_d) || time_d < 0.0L) {
-                purc_set_error(PURC_ERROR_INVALID_VALUE);
-                goto failed;
-            }
-
-            usec_d = modfl(time_d, &sec_d);
-            timeval.tv_sec = (time_t)sec_d;
-            timeval.tv_usec = (suseconds_t)(usec_d * 1000000.0);
-            break;
-        }
-
-        default:
-            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-            goto failed;
-    }
-
-    if (settimeofday(&timeval, NULL)) {
-        if (errno == EINVAL) {
-            purc_set_error(PURC_ERROR_INVALID_VALUE);
-        }
-        else if (errno == EPERM) {
-            purc_set_error(PURC_ERROR_ACCESS_DENIED);
-        }
-        else {
-            purc_set_error(PURC_ERROR_BAD_SYSTEM_CALL);
-        }
-
+    const char *timezone;
+    if ((timezone = purc_variant_get_string_const(argv[0])) == NULL) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
         goto failed;
     }
+
+    char path[PATH_MAX + 1];
+    if (strlen(timezone) < PATH_MAX - sizeof(PURC_SYS_TZ_DIR)) {
+        strcpy(path, PURC_SYS_TZ_DIR);
+        strcat(path, timezone);
+        if (access(path, F_OK)) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            goto failed;
+        }
+
+        if (access(path, R_OK)) {
+            purc_set_error(PURC_ERROR_ACCESS_DENIED);
+            goto failed;
+        }
+    }
+    else {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
+
+    /* try to change timezone permanently */
+    if (nr_args > 1 && purc_variant_booleanize(argv[1])) {
+        if (unlink(PURC_SYS_TZ_FILE) == 0) {
+            if (symlink(PURC_SYS_TZ_FILE, path)) {
+                purc_set_error(PURC_ERROR_BAD_SYSTEM_CALL);
+                goto failed;
+            }
+        }
+        else {
+            purc_set_error(PURC_ERROR_ACCESS_DENIED);
+            goto failed;
+        }
+    }
+
+    strcpy(path, ":");
+    strcat(path, timezone);
+    setenv("TZ", path, 1);
+    tzset();
 
     return purc_variant_make_boolean(true);
 

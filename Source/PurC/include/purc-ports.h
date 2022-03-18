@@ -30,6 +30,9 @@
 
 #include "purc-macros.h"
 
+#define PURC_SYS_TZ_FILE    "/etc/localtime"
+#define PURC_SYS_TZ_DIR     "/usr/share/zoneinfo/" // must have tailing '/'
+
 typedef struct purc_mutex {
     void *native_impl;
 } purc_mutex;
