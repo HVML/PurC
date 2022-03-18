@@ -487,9 +487,16 @@ pcutils_vsnprintf(char *buf, size_t *sz_io, const char *fmt, va_list ap);
 PCA_EXPORT const char*
 pcutils_trim_blanks(const char *str, size_t *sz_io);
 
-/** Determine whether a string contains meaningful characters */
+/** Trim leading and trailling space characters (whitespace, form-feed ('\f'),
+  * newline ('\n'), carriage return ('\r'), horizontal tab ('\t'),
+  * and vertical tab ('\v')) */
+PCA_EXPORT const char*
+pcutils_trim_spaces(const char *str, size_t *sz_io);
+
+/** Determine whether a string contains graphical characters (printable
+  * characters except spaces. */
 PCA_EXPORT bool
-pcutils_is_meaningful_string(const char *str);
+pcutils_contains_graph(const char *str);
 
 /** Get the pointer of the next valid token and length in a string */
 PCA_EXPORT const char *
