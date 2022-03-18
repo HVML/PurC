@@ -46,6 +46,7 @@
 #include <stdio.h>  // fclose on inst->fp_log
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include <locale.h>
 
 #include "generic_err_msgs.inc"
@@ -166,8 +167,11 @@ static void free_locale_c(void)
 
 static void init_modules_once(void)
 {
+    tzset();
     __purc_locale_c = newlocale(LC_ALL_MASK, "C", (locale_t)0);
     atexit(free_locale_c);
+
+    setlocale(LC_ALL, "");
 
     // TODO: init modules working without instance here.
     pcutils_atom_init_once();

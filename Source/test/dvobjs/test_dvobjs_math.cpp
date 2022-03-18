@@ -132,7 +132,7 @@ TEST(dvobjs, dvobjs_math_pi_e)
         ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_LONGDOUBLE),
                 true);
 
-        purc_variant_cast_to_long_double (ret_var, &numberl, false);
+        purc_variant_cast_to_longdouble (ret_var, &numberl, false);
         ASSERT_EQ(numberl, math_ld[i].ld);
         purc_variant_unref(ret_var);
     }
@@ -398,7 +398,7 @@ TEST(dvobjs, dvobjs_math_const)
         ASSERT_NE(ret_var, nullptr);
         ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_LONGDOUBLE),
                 true);
-        purc_variant_cast_to_long_double (ret_var, &numberl, false);
+        purc_variant_cast_to_longdouble (ret_var, &numberl, false);
         ASSERT_EQ(numberl, math_ld[i].ld);
         purc_variant_unref(ret_var);
         purc_variant_unref(param[0]);
@@ -681,7 +681,7 @@ TEST(dvobjs, dvobjs_math_func)
         ASSERT_NE(ret_var, nullptr);
         ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_LONGDOUBLE),
                 true);
-        purc_variant_cast_to_long_double (ret_var, &numberl, false);
+        purc_variant_cast_to_longdouble (ret_var, &numberl, false);
         ASSERT_LT(fabs (numberl - math_ld[i].ld), 0.0001);
 
         purc_variant_unref(ret_var);
@@ -785,7 +785,7 @@ TEST(dvobjs, dvobjs_math_eval)
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_LONGDOUBLE),
             true);
-    purc_variant_cast_to_long_double (ret_var, &numberl, false);
+    purc_variant_cast_to_longdouble (ret_var, &numberl, false);
     printf("TEST eval_l: param is \"%s\" = %Lf\n", exp, numberl);
     purc_variant_unref(ret_var);
     purc_variant_unref(param[0]);
@@ -796,7 +796,7 @@ TEST(dvobjs, dvobjs_math_eval)
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_LONGDOUBLE),
             true);
-    purc_variant_cast_to_long_double (ret_var, &numberl, false);
+    purc_variant_cast_to_longdouble (ret_var, &numberl, false);
     printf("TEST eval_l: param is \"%s\" = %Lf\n", exp, numberl);
     purc_variant_unref(ret_var);
     purc_variant_unref(param[0]);
@@ -814,7 +814,7 @@ TEST(dvobjs, dvobjs_math_eval)
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_LONGDOUBLE),
             true);
-    purc_variant_cast_to_long_double (ret_var, &numberl, false);
+    purc_variant_cast_to_longdouble (ret_var, &numberl, false);
     printf("TEST eval_l: param is \"pi * r * r\", r = 1.0, value = %Lf\n",
             numberl);
     purc_variant_unref(ret_var);

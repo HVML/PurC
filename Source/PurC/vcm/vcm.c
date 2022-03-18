@@ -1132,14 +1132,19 @@ purc_variant_t pcvcm_eval (struct pcvcm_node* tree, struct pcintr_stack* stack,
 purc_variant_t pcvcm_eval_ex (struct pcvcm_node* tree,
         cb_find_var find_var, void* ctxt, bool silently)
 {
+    purc_variant_t ret = PURC_VARIANT_INVALID;
+
     struct pcvcm_node_op ops = {
         .find_var = find_var,
         .find_var_ctxt = ctxt,
     };
 
-    if (!tree) {
-        return purc_variant_make_null();
+    ret = tree ? pcvcm_node_to_variant (tree, &ops, silently) :
+        purc_variant_make_null();
+
+    if (ret == PURC_VARIANT_INVALID && silently) {
+        ret = purc_variant_make_undefined();
     }
-    return pcvcm_node_to_variant (tree, &ops, silently);
+    return ret;
 }
 

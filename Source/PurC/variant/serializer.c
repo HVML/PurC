@@ -661,9 +661,9 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
     size_t idx;
     variant_set_t data;
 
-    purc_get_local_data("format-double",
+    purc_get_local_data(PURC_LDNAME_FORMAT_DOUBLE,
             (uintptr_t *)&format_double, NULL);
-    purc_get_local_data("format-long-double",
+    purc_get_local_data(PURC_LDNAME_FORMAT_LDOUBLE,
             (uintptr_t *)&format_long_double, NULL);
 
     PC_ASSERT(value);

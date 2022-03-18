@@ -1151,14 +1151,14 @@ stream_writestruct_getter (purc_variant_t root, size_t nr_args,
                 else if (strncasecmp (head, "f96", length) == 0) {
                     val = purc_variant_array_get (argv[2], i);
                     i++;
-                    purc_variant_cast_to_long_double (val, &ld, false);
+                    purc_variant_cast_to_longdouble (val, &ld, false);
                     purc_rwstream_write (rwstream, (char *)&ld, 12);
                     write_length += 12;
                 }
                 else if (strncasecmp (head, "f128", length) == 0) {
                     val = purc_variant_array_get (argv[2], i);
                     i++;
-                    purc_variant_cast_to_long_double (val, &ld, false);
+                    purc_variant_cast_to_longdouble (val, &ld, false);
                     purc_rwstream_write (rwstream, (char *)&ld, 16);
                     write_length += 16;
                 }
@@ -1192,7 +1192,7 @@ stream_writestruct_getter (purc_variant_t root, size_t nr_args,
                 else if (strncasecmp (head, "f96be", length) == 0) {
                     val = purc_variant_array_get (argv[2], i);
                     i++;
-                    purc_variant_cast_to_long_double (val, &ld, false);
+                    purc_variant_cast_to_longdouble (val, &ld, false);
                     if (is_little_endian ())
                         change_order ((unsigned char *)&ld,
                                 sizeof (long double));
@@ -1202,7 +1202,7 @@ stream_writestruct_getter (purc_variant_t root, size_t nr_args,
                 else if (strncasecmp (head, "f128be", length) == 0) {
                     val = purc_variant_array_get (argv[2], i);
                     i++;
-                    purc_variant_cast_to_long_double (val, &ld, false);
+                    purc_variant_cast_to_longdouble (val, &ld, false);
                     if (is_little_endian ())
                         change_order ((unsigned char *)&ld,
                                 sizeof (long double));
@@ -1239,7 +1239,7 @@ stream_writestruct_getter (purc_variant_t root, size_t nr_args,
                 else if (strncasecmp (head, "f96le", length) == 0) {
                     val = purc_variant_array_get (argv[2], i);
                     i++;
-                    purc_variant_cast_to_long_double (val, &ld, false);
+                    purc_variant_cast_to_longdouble (val, &ld, false);
                     if (!is_little_endian ())
                         change_order ((unsigned char *)&ld,
                                 sizeof (long double));
@@ -1249,7 +1249,7 @@ stream_writestruct_getter (purc_variant_t root, size_t nr_args,
                 else if (strncasecmp (head, "f128le", length) == 0) {
                     val = purc_variant_array_get (argv[2], i);
                     i++;
-                    purc_variant_cast_to_long_double (val, &ld, false);
+                    purc_variant_cast_to_longdouble (val, &ld, false);
                     if (!is_little_endian ())
                         change_order ((unsigned char *)&ld,
                                 sizeof (long double));
