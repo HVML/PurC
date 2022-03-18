@@ -109,8 +109,6 @@ check_onlyif(struct pcvdom_attr *onlyif, bool *stop)
     bool parse_str = false;
     bool ok;
     ok = purc_variant_cast_to_longint(val, &i64, parse_str);
-    PRINT_VCM_NODE(onlyif->val);
-    PRINT_VARIANT(val);
 
     PURC_VARIANT_SAFE_CLEAR(val);
     if (!ok)
@@ -162,6 +160,9 @@ re_eval_with(struct pcintr_stack_frame *frame,
 
     int r;
     r = pcintr_set_question_var(frame, val);
+    if (r == 0) {
+        pcintr_set_input_var(pcintr_get_stack(), val);
+    }
     purc_variant_unref(val);
 
     return r ? -1 : 0;
@@ -201,6 +202,9 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 
     int r;
     r = re_eval_with(frame, ctxt->with_attr, &stop);
+    if (r == 0) {
+        r = pcintr_set_question_var(frame, on);
+    }
     PC_ASSERT(r == 0);
 
     if (stop) {
@@ -549,19 +553,6 @@ on_popping_with(pcintr_stack_t stack)
 
         if (stop) {
             ctxt->stop = 1;
-        PC_ASSERT(0);
-            return true;
-        }
-    }
-
-    if (ctxt->onlyif_attr) {
-        bool stop;
-        int r = check_onlyif(ctxt->onlyif_attr, &stop);
-        PC_ASSERT(r == 0);
-
-        if (stop) {
-            ctxt->stop = 1;
-        PC_ASSERT(0);
             return true;
         }
     }
@@ -657,6 +648,21 @@ rerun_with(pcintr_stack_t stack)
         return false;
     }
 
+    if (ctxt->onlyif_attr) {
+        bool stop;
+        int r = check_onlyif(ctxt->onlyif_attr, &stop);
+        PC_ASSERT(r == 0);
+
+        if (stop) {
+            ctxt->stop = 1;
+            return true;
+        }
+    }
+
+    r = pcintr_inc_percent_var(frame);
+    if (r)
+        return false;
+
     return true;
 }
 
@@ -696,6 +702,9 @@ rerun(pcintr_stack_t stack, void* ud)
         return false;
 
     r = pcintr_set_question_var(frame, value);
+    if (r == 0) {
+        pcintr_set_input_var(pcintr_get_stack(), value);
+    }
 
     return r ? false : true;
 }
