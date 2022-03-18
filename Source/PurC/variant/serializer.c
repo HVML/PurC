@@ -470,8 +470,8 @@ serialize_double(purc_rwstream_t rws, double d, int flags,
         format_drops_decimals = 1;
 
     looks_numeric = /* Looks like *some* kind of number */
-        isdigit((unsigned char)buf[0]) ||
-        (size > 1 && buf[0] == '-' && isdigit((unsigned char)buf[1]));
+        purc_isdigit((unsigned char)buf[0]) ||
+        (size > 1 && buf[0] == '-' && purc_isdigit((unsigned char)buf[1]));
 
     if (size < (int)sizeof(buf) - 2 &&
             looks_numeric && !p && /* Has no decimal point */

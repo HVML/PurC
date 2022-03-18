@@ -28,7 +28,6 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include <ctype.h>
 #include <string.h>
 #include <errno.h>
 
@@ -278,11 +277,11 @@ pcutils_trim_blanks(const char *str, size_t *sz_io)
     const char *tail = str + *sz_io;
 
     const char *start = head;
-    while ((start < tail) && isblank(*start))
+    while ((start < tail) && purc_isblank(*start))
         ++start;
     const char *end = tail;
     while (end > start) {
-        if (!isblank(*(end-1)))
+        if (!purc_isblank(*(end-1)))
             break;
         --end;
     }
@@ -298,11 +297,11 @@ pcutils_trim_spaces(const char *str, size_t *sz_io)
     const char *tail = str + *sz_io;
 
     const char *start = head;
-    while ((start < tail) && isspace(*start))
+    while ((start < tail) && purc_isspace(*start))
         ++start;
     const char *end = tail;
     while (end > start) {
-        if (!isspace(*(end-1)))
+        if (!purc_isspace(*(end-1)))
             break;
         --end;
     }
@@ -315,7 +314,7 @@ bool
 pcutils_contains_graph(const char *str)
 {
     while (*str) {
-        if (isgraph(*str))
+        if (purc_isgraph(*str))
             return true;
 
         str++;

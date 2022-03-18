@@ -44,20 +44,6 @@
 #define STRING_COMP_MODE_ASC        "asc"
 #define STRING_COMP_MODE_DESC       "desc"
 
-#define LOCALE_ALL                  "all"
-#define LOCALE_CTYPE                "ctype"
-#define LOCALE_ADDRESS              "address"
-#define LOCALE_COLLATE              "collate"
-#define LOCALE_NUMERIC              "numeric"
-#define LOCALE_NAME                 "name"
-#define LOCALE_TIME                 "time"
-#define LOCALE_TELEPHONE            "telephone"
-#define LOCALE_MONETARY             "monetary"
-#define LOCALE_PAPER                "paper"
-#define LOCALE_MESSAGE              "messages"
-#define LOCALE_MEASUREMENT          "measurement"
-#define LOCALE_IDENTIFICATION       "identification"
-
 #define HVML_MAP_APPEND             "append"
 #define HVML_MAP_DISPLACE           "displace"
 

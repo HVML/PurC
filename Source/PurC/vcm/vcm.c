@@ -1113,7 +1113,7 @@ purc_variant_t find_stack_var (void* ctxt, const char* name)
             pcintr_get_symbolized_var(stack, number, last);
     }
 
-    if (nr_name == 1 && ispunct(last)) {
+    if (nr_name == 1 && purc_ispunct(last)) {
         return pcintr_get_symbolized_var(stack, 0, last);
     }
 

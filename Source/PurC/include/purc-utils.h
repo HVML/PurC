@@ -30,6 +30,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <ctype.h>
+#include <locale.h>
 #include <sys/types.h>  /* TODO: for ssize_t on MacOS */
 
 #include "purc-macros.h"
@@ -569,7 +571,63 @@ PCA_EXPORT bool
 pcutils_url_break_down(struct purc_broken_down_url *broken_down,
         const char *url);
 
+extern locale_t __purc_locale_c;
+
 PCA_EXTERN_C_END
+
+static inline int purc_isalnum(int c) {
+    return isalnum_l(c, __purc_locale_c);
+}
+
+static inline int purc_isalpha(int c) {
+    return isalpha_l(c, __purc_locale_c);
+}
+
+static inline int purc_iscntrl(int c) {
+    return iscntrl_l(c, __purc_locale_c);
+}
+
+static inline int purc_isdigit(int c) {
+    return isdigit_l(c, __purc_locale_c);
+}
+
+static inline int purc_isgraph(int c) {
+    return isgraph_l(c, __purc_locale_c);
+}
+
+static inline int purc_islower(int c) {
+    return islower_l(c, __purc_locale_c);
+}
+
+static inline int purc_isprint(int c) {
+    return isprint_l(c, __purc_locale_c);
+}
+
+static inline int purc_ispunct(int c) {
+    return ispunct_l(c, __purc_locale_c);
+}
+
+static inline int purc_isspace(int c) {
+    return isspace_l(c, __purc_locale_c);
+}
+
+static inline int purc_isupper(int c) {
+    return isupper_l(c, __purc_locale_c);
+}
+
+static inline int purc_isxdigit(int c) {
+    return isxdigit_l(c, __purc_locale_c);
+}
+
+static inline int purc_isascii(int c) {
+    if (c < 0x80)
+        return 1;
+    return 0;
+}
+
+static inline int purc_isblank(int c) {
+    return isblank_l(c, __purc_locale_c);
+}
 
 #endif /* not defined PURC_PURC_UTILS_H */
 

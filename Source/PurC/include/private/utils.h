@@ -25,6 +25,8 @@
 #ifndef PURC_PRIVATE_UTILS_H
 #define PURC_PRIVATE_UTILS_H
 
+#include "purc-utils.h"
+
 #include "config.h"
 
 #include <stddef.h>
