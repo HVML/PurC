@@ -1140,6 +1140,10 @@ purc_variant_t pcvcm_eval_ex (struct pcvcm_node* tree,
     if (!tree) {
         return purc_variant_make_null();
     }
-    return pcvcm_node_to_variant (tree, &ops, silently);
+    purc_variant_t ret = pcvcm_node_to_variant (tree, &ops, silently);
+    if (ret == PURC_VARIANT_INVALID && silently) {
+        ret = purc_variant_make_undefined();
+    }
+    return ret;
 }
 

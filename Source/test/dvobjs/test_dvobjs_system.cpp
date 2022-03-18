@@ -147,11 +147,9 @@ TEST(dvobjs, const)
         { "nonexistent",
             "$SYSTEM.const('nonexistent')",
             get_system_const, NULL, PURC_ERROR_INVALID_VALUE },
-        /*
         { "nonexistent",
             "$SYSTEM.nonexistent",
-            NULL, NULL, 0 },
-            */
+            get_system_const, NULL, 0 },
     };
 
     int ret = purc_init_ex(PURC_MODULE_EJSON, "cn.fmsfot.hvml.test",
