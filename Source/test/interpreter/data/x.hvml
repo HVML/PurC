@@ -1,7 +1,7 @@
 <!DOCTYPE hvml>
 <hvml target="html" lang="en">
     <head>
-        <init as="persons_set" uniquely via="name">
+        <init as="persons_set" uniquely against="name">
             [
                 { "name": [ "xiaohong", "xu" ], "location" : "js" },
                 { "name": [ "shuming", "xue" ], "location" : "bj" },
@@ -13,7 +13,7 @@
                 { "name": [ "shuming", "xue" ], "location" : "bj" },
             ]
         </init>
-        <init as="cities" uniquely via="name">
+        <init as="cities" uniquely against="name">
             [
                 { "name": [ "sz", { province : "js" } ] },
                 { "name": [ "bj", { province : "bj" } ] },

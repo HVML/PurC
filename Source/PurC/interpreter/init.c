@@ -44,7 +44,7 @@ struct ctxt_for_init {
     purc_variant_t                from;
     purc_variant_t                from_result;
     purc_variant_t                with;
-    purc_variant_t                via;
+    purc_variant_t                against;
 
     purc_variant_t                literal;
 
@@ -62,7 +62,7 @@ ctxt_for_init_destroy(struct ctxt_for_init *ctxt)
         PURC_VARIANT_SAFE_CLEAR(ctxt->from);
         PURC_VARIANT_SAFE_CLEAR(ctxt->from_result);
         PURC_VARIANT_SAFE_CLEAR(ctxt->with);
-        PURC_VARIANT_SAFE_CLEAR(ctxt->via);
+        PURC_VARIANT_SAFE_CLEAR(ctxt->against);
         PURC_VARIANT_SAFE_CLEAR(ctxt->literal);
         free(ctxt);
     }
@@ -202,11 +202,11 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 
     purc_variant_t src = frame->ctnt_var;
 
-    if (ctxt->via != PURC_VARIANT_INVALID) {
-        PC_ASSERT(purc_variant_is_string(ctxt->via));
+    if (ctxt->against != PURC_VARIANT_INVALID) {
+        PC_ASSERT(purc_variant_is_string(ctxt->against));
 
         purc_variant_t set;
-        set = purc_variant_make_set(0, ctxt->via, PURC_VARIANT_INVALID);
+        set = purc_variant_make_set(0, ctxt->against, PURC_VARIANT_INVALID);
         if (set == PURC_VARIANT_INVALID)
             return -1;
 
@@ -379,13 +379,13 @@ process_attr_with(struct pcintr_stack_frame *frame,
 }
 
 static int
-process_attr_via(struct pcintr_stack_frame *frame,
+process_attr_against(struct pcintr_stack_frame *frame,
         struct pcvdom_element *element,
         purc_atom_t name, purc_variant_t val)
 {
     struct ctxt_for_init *ctxt;
     ctxt = (struct ctxt_for_init*)frame->ctxt;
-    if (ctxt->via != PURC_VARIANT_INVALID) {
+    if (ctxt->against != PURC_VARIANT_INVALID) {
         purc_set_error_with_info(PURC_ERROR_DUPLICATED,
                 "vdom attribute '%s' for element <%s>",
                 purc_atom_to_string(name), element->tag_name);
@@ -397,7 +397,7 @@ process_attr_via(struct pcintr_stack_frame *frame,
                 purc_atom_to_string(name), element->tag_name);
         return -1;
     }
-    ctxt->via = val;
+    ctxt->against = val;
     purc_variant_ref(val);
 
     return 0;
@@ -433,8 +433,8 @@ attr_found_val(struct pcintr_stack_frame *frame,
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, WITH)) == name) {
         return process_attr_with(frame, element, name, val);
     }
-    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, VIA)) == name) {
-        return process_attr_via(frame, element, name, val);
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, AGAINST)) == name) {
+        return process_attr_against(frame, element, name, val);
     }
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, LOCALLY)) == name) {
         PC_ASSERT(purc_variant_is_undefined(val));

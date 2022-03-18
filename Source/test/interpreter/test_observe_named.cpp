@@ -13,7 +13,7 @@ TEST(observe, basic)
     "    <head>"
     "        <link rel=\"stylesheet\" type=\"text/css\" href=\"calculator.css\" />"
     ""
-    "        <init as=\"buttons\" uniquely via=\"letters\">"
+    "        <init as=\"buttons\" uniquely against=\"letters\">"
     "            ["
     "                { \"letters\": \"7\", \"class\": \"number\" },"
     "                { \"letters\": \"8\", \"class\": \"number\" },"
