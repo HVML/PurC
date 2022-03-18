@@ -101,8 +101,6 @@ post_process_dest_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         purc_exec_inst_t exec_inst;
         exec_inst = ctxt->ops.create(PURC_EXEC_TYPE_CHOOSE, on, false);
         if (!exec_inst)
-            PRINT_VARIANT(on);
-        if (!exec_inst)
             return -1;
 
         ctxt->exec_inst = exec_inst;
@@ -111,10 +109,10 @@ post_process_dest_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         purc_variant_t value;
         value = ctxt->ops.choose(exec_inst, rule);
         if (value != PURC_VARIANT_INVALID) {
-            PURC_VARIANT_SAFE_CLEAR(frame->result_var);
-            frame->result_var = value;
-            r = 0;
-            purc_clr_error();
+            r = pcintr_set_question_var(frame, value);
+            purc_variant_unref(value);
+            if (r == 0)
+                purc_clr_error();
         }
         ok = ctxt->ops.destroy(ctxt->exec_inst);
         PC_ASSERT(ok);
@@ -123,11 +121,10 @@ post_process_dest_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     }
 
     PC_ASSERT(on != PURC_VARIANT_INVALID);
-    PURC_VARIANT_SAFE_CLEAR(frame->result_var);
-    frame->result_var = on;
-    purc_variant_ref(on);
+    int r;
+    r = pcintr_set_question_var(frame, on);
 
-    return 0;
+    return r ? -1 : 0;
 }
 
 static int
@@ -158,8 +155,10 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
             return -1;
         }
 
-        PURC_VARIANT_SAFE_CLEAR(frame->symbol_vars[PURC_SYMBOL_VAR_AT_SIGN]);
-        frame->symbol_vars[PURC_SYMBOL_VAR_AT_SIGN] = elements;
+        r = pcintr_set_question_var(frame, elements);
+        purc_variant_unref(elements);
+        if (r)
+            return -1;
     }
 
     return 0;

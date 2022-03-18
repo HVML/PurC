@@ -1108,13 +1108,13 @@ purc_variant_t find_stack_var (void* ctxt, const char* name)
 
     if(is_digit(name[0])) {
         unsigned int number = atoi(name);
-        return is_digit(last) ?
-            pcintr_get_numbered_var(stack, number) :
-            pcintr_get_symbolized_var(stack, number, last);
+
+        PC_ASSERT(is_digit(last) == 0);
+        return pcintr_get_symbolized_var(stack, number, last);
     }
 
     if (nr_name == 1 && ispunct(last)) {
-        return pcintr_get_symbolized_var(stack, 0, last);
+        return pcintr_get_symbolized_var(stack, 1, last);
     }
 
     return pcintr_find_named_var(ctxt, name);

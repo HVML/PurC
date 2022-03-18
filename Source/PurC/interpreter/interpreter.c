@@ -82,10 +82,7 @@ stack_frame_release(struct pcintr_stack_frame *frame)
 
     PURC_VARIANT_SAFE_CLEAR(frame->attr_vars);
     PURC_VARIANT_SAFE_CLEAR(frame->ctnt_var);
-    PURC_VARIANT_SAFE_CLEAR(frame->result_var);
     PURC_VARIANT_SAFE_CLEAR(frame->result_from_child);
-    PURC_VARIANT_SAFE_CLEAR(frame->mid_vars);
-    PURC_VARIANT_SAFE_CLEAR(frame->exclamation_var);
 }
 
 static void
@@ -415,87 +412,79 @@ set_lessthan_symval(struct pcintr_stack_frame *frame, purc_variant_t val)
 }
 
 static int
-set_percent_symval(struct pcintr_stack_frame *frame,
-    struct pcintr_stack_frame *parent)
+init_percent_symval(struct pcintr_stack_frame *frame)
 {
-    purc_variant_t idx_var;
-    idx_var = purc_variant_make_ulongint(parent->idx);
-    if (idx_var == PURC_VARIANT_INVALID) {
+    purc_variant_t idx;
+    idx = purc_variant_make_ulongint(0);
+    if (idx == PURC_VARIANT_INVALID)
         return -1;
-    }
-    PURC_VARIANT_SAFE_CLEAR(
-            frame->symbol_vars[PURC_SYMBOL_VAR_PERCENT_SIGN]);
-    frame->symbol_vars[PURC_SYMBOL_VAR_PERCENT_SIGN] = idx_var;
+
+    enum purc_symbol_var symbol = PURC_SYMBOL_VAR_PERCENT_SIGN;
+    PURC_VARIANT_SAFE_CLEAR(frame->symbol_vars[symbol]);
+    frame->symbol_vars[symbol] = idx;
 
     return 0;
 }
 
 static int
-set_question_symval(struct pcintr_stack_frame *frame,
-    struct pcintr_stack_frame *parent)
-{
-    if (parent->result_var) {
-        PURC_VARIANT_SAFE_CLEAR(
-                frame->symbol_vars[PURC_SYMBOL_VAR_QUESTION_MARK]);
-        frame->symbol_vars[PURC_SYMBOL_VAR_QUESTION_MARK] = parent->result_var;
-        purc_variant_ref(parent->result_var);
-    }
-
-    return 0;
-}
-
-static int
-set_at_symval(struct pcintr_stack_frame *frame,
-    struct pcintr_stack_frame *parent)
-{
-    if (parent->edom_element) {
-        purc_variant_t at = pcdvobjs_make_elements(parent->edom_element);
-        if (at == PURC_VARIANT_INVALID)
-            return -1;
-        PURC_VARIANT_SAFE_CLEAR(frame->symbol_vars[PURC_SYMBOL_VAR_AT_SIGN]);
-        frame->symbol_vars[PURC_SYMBOL_VAR_AT_SIGN] = at;
-    }
-
-    return 0;
-}
-
-static int
-set_exclamation_symval(struct pcintr_stack_frame *frame,
-    struct pcintr_stack_frame *parent)
-{
-    if (parent->exclamation_var) {
-        PURC_VARIANT_SAFE_CLEAR(frame->symbol_vars[
-                PURC_SYMBOL_VAR_EXCLAMATION]);
-        frame->symbol_vars[PURC_SYMBOL_VAR_EXCLAMATION] =
-            parent->exclamation_var;
-        purc_variant_ref(parent->exclamation_var);
-    }
-
-    return 0;
-}
-
-static int
-init_symvals_with_vals_from_parent_frame(struct pcintr_stack_frame *frame)
+init_at_symval(struct pcintr_stack_frame *frame)
 {
     struct pcintr_stack_frame *parent;
     parent = pcintr_stack_frame_get_parent(frame);
-    if (!parent)
+    if (!parent || !parent->edom_element)
         return 0;
 
-    // $%
-    if (set_percent_symval(frame, parent))
+    purc_variant_t at = pcdvobjs_make_elements(parent->edom_element);
+    if (at == PURC_VARIANT_INVALID)
         return -1;
 
-    // $?
-    if (set_question_symval(frame, parent))
+    int r;
+    r = pcintr_set_at_var(frame, at);
+    purc_variant_unref(at);
+
+    return r ? -1 : 0;
+}
+
+static int
+init_exclamation_symval(struct pcintr_stack_frame *frame)
+{
+    purc_variant_t exclamation_var;
+    exclamation_var = purc_variant_make_object(0,
+            PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+
+    if (exclamation_var == PURC_VARIANT_INVALID)
         return -1;
 
-    // $@
-    if (set_at_symval(frame, parent))
+    int r;
+    r = pcintr_set_exclamation_var(frame, exclamation_var);
+    purc_variant_unref(exclamation_var);
+
+    return r ? -1 : 0;
+}
+
+static int
+init_symvals_with_vals(struct pcintr_stack_frame *frame)
+{
+    purc_variant_t undefined = purc_variant_make_undefined();
+    if (undefined == PURC_VARIANT_INVALID)
         return -1;
 
-    // $!
-    if (set_exclamation_symval(frame, parent))
+    for (size_t i=0; i<PCA_TABLESIZE(frame->symbol_vars); ++i) {
+        frame->symbol_vars[i] = undefined;
+        purc_variant_ref(undefined);
+    }
+    purc_variant_unref(undefined);
+
+    // $0%
+    if (init_percent_symval(frame))
+        return -1;
+
+    // $0@
+    if (init_at_symval(frame))
+        return -1;
+
+    // $0!
+    if (init_exclamation_symval(frame))
         return -1;
 
     return 0;
@@ -516,27 +505,7 @@ push_stack_frame(pcintr_stack_t stack)
     list_add_tail(&frame->node, &stack->frames);
     ++stack->nr_frames;
 
-    frame->exclamation_var = purc_variant_make_object(0,
-            PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
-
-    if (frame->exclamation_var == PURC_VARIANT_INVALID) {
-        pop_stack_frame(stack);
-        return NULL;
-    }
-
-    purc_variant_t undefined = purc_variant_make_undefined();
-    if (undefined == PURC_VARIANT_INVALID) {
-        pop_stack_frame(stack);
-        return NULL;
-    }
-    for (size_t i=0; i<PCA_TABLESIZE(frame->symbol_vars); ++i) {
-        frame->symbol_vars[i] = undefined;
-        purc_variant_ref(undefined);
-    }
-
-    purc_variant_unref(undefined);
-
-    if (init_symvals_with_vals_from_parent_frame(frame)) {
+    if (init_symvals_with_vals(frame)) {
         pop_stack_frame(stack);
         return NULL;
     }
@@ -948,6 +917,7 @@ execute_one_step(pcintr_coroutine_t co)
             co->state = CO_STATE_TERMINATED;
             return;
         }
+
         pcintr_dump_document(stack);
         co->stack->stage = STACK_STAGE_EVENT_LOOP;
         // do not run execute_one_step until event's fired if co->waits > 0
@@ -2437,5 +2407,97 @@ pcintr_attribute_get_op(enum pchvml_attr_operator op)
             purc_set_error(PURC_ERROR_NOT_IMPLEMENTED);
             return NULL;
     }
+}
+
+int
+pcintr_set_symbol_var(struct pcintr_stack_frame *frame,
+        enum purc_symbol_var symbol, purc_variant_t val)
+{
+    PC_ASSERT(frame);
+    PC_ASSERT(symbol >= 0);
+    PC_ASSERT(symbol < PURC_SYMBOL_VAR_MAX);
+    PC_ASSERT(val != PURC_VARIANT_INVALID);
+
+    purc_variant_ref(val);
+    PURC_VARIANT_SAFE_CLEAR(frame->symbol_vars[symbol]);
+    frame->symbol_vars[symbol] = val;
+
+    return 0;
+}
+
+purc_variant_t
+pcintr_get_symbol_var(struct pcintr_stack_frame *frame,
+        enum purc_symbol_var symbol)
+{
+    PC_ASSERT(frame);
+    PC_ASSERT(symbol >= 0);
+    PC_ASSERT(symbol < PURC_SYMBOL_VAR_MAX);
+
+    purc_variant_t v = frame->symbol_vars[symbol];
+    PC_ASSERT(v != PURC_VARIANT_INVALID);
+    return v;
+}
+
+int
+pcintr_refresh_at_var(struct pcintr_stack_frame *frame)
+{
+    purc_variant_t at = pcdvobjs_make_elements(frame->edom_element);
+    if (at == PURC_VARIANT_INVALID)
+        return -1;
+
+    int r;
+    r = pcintr_set_at_var(frame, at);
+    purc_variant_unref(at);
+
+    return r ? -1 : 0;
+}
+
+int
+pcintr_set_at_var(struct pcintr_stack_frame *frame, purc_variant_t val)
+{
+    return pcintr_set_symbol_var(frame, PURC_SYMBOL_VAR_AT_SIGN, val);
+}
+
+int
+pcintr_set_question_var(struct pcintr_stack_frame *frame, purc_variant_t val)
+{
+    return pcintr_set_symbol_var(frame, PURC_SYMBOL_VAR_QUESTION_MARK, val);
+}
+
+purc_variant_t
+pcintr_get_question_var(struct pcintr_stack_frame *frame)
+{
+    return pcintr_get_symbol_var(frame, PURC_SYMBOL_VAR_QUESTION_MARK);
+}
+
+int
+pcintr_set_exclamation_var(struct pcintr_stack_frame *frame,
+        purc_variant_t val)
+{
+    return pcintr_set_symbol_var(frame, PURC_SYMBOL_VAR_EXCLAMATION, val);
+}
+
+purc_variant_t
+pcintr_get_exclamation_var(struct pcintr_stack_frame *frame)
+{
+    return pcintr_get_symbol_var(frame, PURC_SYMBOL_VAR_EXCLAMATION);
+}
+
+int
+pcintr_inc_percent_var(struct pcintr_stack_frame *frame)
+{
+    purc_variant_t v;
+    v = pcintr_get_symbol_var(frame, PURC_SYMBOL_VAR_PERCENT_SIGN);
+    PC_ASSERT(v != PURC_VARIANT_INVALID);
+    PC_ASSERT(purc_variant_is_ulongint(v));
+    v->u64 += 1;
+
+    return 0;
+}
+
+purc_variant_t
+pcintr_get_percent_var(struct pcintr_stack_frame *frame)
+{
+    return pcintr_get_symbol_var(frame, PURC_SYMBOL_VAR_PERCENT_SIGN);
 }
 

@@ -15,19 +15,19 @@
         </init>
 
         <iterate on 1 by="ADD: LT 2000 BY $!.fibonacci[-2]">
-            <update on="$1!.fibonacci" to="append" with="$?" />
+            <update on="$2!.fibonacci" to="append" with="$?" />
         </iterate>
 
         <section>
             <ol>
-                <iterate on="$2!.fibonacci">
+                <iterate on="$3!.fibonacci">
                     <li>$?</li>
                 </iterate>
             </ol>
         </section>
 
         <footer>
-            <p>Totally $EJSON.count($1!.fibonacci) numbers.</p>
+            <p>Totally $EJSON.count($2!.fibonacci) numbers.</p>
         </footer>
     </body>
 

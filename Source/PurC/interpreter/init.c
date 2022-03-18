@@ -111,10 +111,12 @@ post_process_as_locally(pcintr_coroutine_t co,
 
     struct pcintr_stack_frame *parent = pcintr_stack_frame_get_parent(frame);
     PC_ASSERT(parent);
-    PC_ASSERT(parent->exclamation_var);
-    if (purc_variant_is_object(parent->exclamation_var)) {
-        purc_variant_object_set(parent->exclamation_var, name, src);
-        return 0;
+    purc_variant_t exclamation_var;
+    exclamation_var = pcintr_get_exclamation_var(parent);
+    PC_ASSERT(exclamation_var != PURC_VARIANT_INVALID);
+    if (purc_variant_is_object(exclamation_var)) {
+        bool ok = purc_variant_object_set(exclamation_var, name, src);
+        return ok ? 0 : -1;
     }
 
     PC_DEBUGX("name: %s", purc_variant_get_string_const(name));
@@ -135,12 +137,14 @@ post_process_at_locally(pcintr_coroutine_t co,
 
     struct pcintr_stack_frame *parent = pcintr_stack_frame_get_parent(frame);
     while (parent) {
-        PC_ASSERT(purc_variant_is_object(parent->exclamation_var));
+        purc_variant_t exclamation_var;
+        exclamation_var = pcintr_get_exclamation_var(parent);
+        PC_ASSERT(purc_variant_is_object(exclamation_var));
         purc_variant_t v;
-        v = purc_variant_object_get(parent->exclamation_var, name, true);
+        v = purc_variant_object_get(exclamation_var, name, true);
         if (v != PURC_VARIANT_INVALID) {
-            purc_variant_object_set(parent->exclamation_var, name, src);
-            return 0;
+            bool ok = purc_variant_object_set(exclamation_var, name, src);
+            return ok ? 0 : -1;
         }
         parent = pcintr_stack_frame_get_parent(parent);
     }

@@ -365,7 +365,7 @@ static const char *calculator_4 =
     "            <update on=\"$exp_chars\" to=\"append\" with=\"[]\" />"
     ""
     "            <iterate on=\"$?\" by=\"CHAR: FROM 0\" >"
-    "                <update on=\"$exp_chars\" at=\"$1%\" to=\"append\" with=\"$?\" />"
+    "                <update on=\"$exp_chars\" at=\"$2%\" to=\"append\" with=\"$?\" />"
     "            </iterate>"
     "        </iterate>"
     ""

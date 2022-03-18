@@ -561,34 +561,13 @@ pcintr_get_symbolized_var (pcintr_stack_t stack, unsigned int number,
         return PURC_VARIANT_INVALID;
     }
 
-    purc_variant_t v = frame->symbol_vars[symbol_var];
+    purc_variant_t v = pcintr_get_symbol_var(frame, symbol_var);
     PC_ASSERT(v != PURC_VARIANT_INVALID);
     if (v != PURC_VARIANT_INVALID) {
         purc_clr_error();
         return v;
     }
     purc_set_error_with_info(PCVARIANT_ERROR_NOT_FOUND, "symbol:%c", symbol);
-    return PURC_VARIANT_INVALID;
-}
-
-purc_variant_t
-pcintr_get_numbered_var (pcintr_stack_t stack, unsigned int number)
-{
-    struct pcintr_stack_frame* frame = pcintr_stack_get_bottom_frame(stack);
-    for (unsigned int i = 0; i < number; i++) {
-        frame = pcintr_stack_frame_get_parent(frame);
-    }
-
-    if (!frame) {
-        return PURC_VARIANT_INVALID;
-    }
-
-    purc_variant_t v = frame->symbol_vars[PURC_SYMBOL_VAR_QUESTION_MARK];
-    if (v != PURC_VARIANT_INVALID) {
-        purc_clr_error();
-        return v;
-    }
-    purc_set_error_with_info(PCVARIANT_ERROR_NOT_FOUND, "number:%d", number);
     return PURC_VARIANT_INVALID;
 }
 
@@ -654,3 +633,4 @@ pcintr_remove_named_var_observer(pcintr_stack_t stack, const char* name,
 
     return PURC_VARIANT_INVALID;
 }
+

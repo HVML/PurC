@@ -58,6 +58,34 @@ pcintr_vdom_walk_attrs(struct pcintr_stack_frame *frame,
 bool
 pcintr_is_element_silently(struct pcvdom_element *element);
 
+int
+pcintr_set_symbol_var(struct pcintr_stack_frame *frame,
+        enum purc_symbol_var symbol, purc_variant_t val);
+purc_variant_t
+pcintr_get_symbol_var(struct pcintr_stack_frame *frame,
+        enum purc_symbol_var symbol);
+
+int
+pcintr_set_at_var(struct pcintr_stack_frame *frame, purc_variant_t val);
+int
+pcintr_refresh_at_var(struct pcintr_stack_frame *frame);
+
+int
+pcintr_set_question_var(struct pcintr_stack_frame *frame, purc_variant_t val);
+purc_variant_t
+pcintr_get_question_var(struct pcintr_stack_frame *frame);
+
+int
+pcintr_set_exclamation_var(struct pcintr_stack_frame *frame,
+        purc_variant_t val);
+purc_variant_t
+pcintr_get_exclamation_var(struct pcintr_stack_frame *frame);
+
+int
+pcintr_inc_percent_var(struct pcintr_stack_frame *frame);
+purc_variant_t
+pcintr_get_percent_var(struct pcintr_stack_frame *frame);
+
 // $<
 void
 pcintr_set_input_var(pcintr_stack_t stack, purc_variant_t val);

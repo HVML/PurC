@@ -88,8 +88,12 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         r = match_for_parse(for_value, strlen(for_value), &ctxt->param);
         PC_ASSERT(r == 0);
 
+        struct pcintr_stack_frame *parent;
+        parent = pcintr_stack_frame_get_parent(frame);
+        PC_ASSERT(parent);
+
         purc_variant_t parent_result;
-        parent_result = frame->symbol_vars[PURC_SYMBOL_VAR_QUESTION_MARK];
+        parent_result = pcintr_get_question_var(parent);
         PC_ASSERT(parent_result != PURC_VARIANT_INVALID);
 
         r = match_for_rule_eval(&ctxt->param.rule, parent_result, &matched);
@@ -104,12 +108,14 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     }
 
     if (matched) {
+        struct pcintr_stack_frame *parent;
+        parent = pcintr_stack_frame_get_parent(frame);
+        PC_ASSERT(parent);
         purc_variant_t parent_result;
-        parent_result = frame->symbol_vars[PURC_SYMBOL_VAR_QUESTION_MARK];
+        parent_result = pcintr_get_question_var(parent);
         PC_ASSERT(parent_result != PURC_VARIANT_INVALID);
-        PURC_VARIANT_SAFE_CLEAR(frame->result_var);
-        frame->result_var = parent_result;
-        purc_variant_ref(parent_result);
+        r = pcintr_set_question_var(frame, parent_result);
+        return r ? -1 : 0;
     }
 
     return 0;

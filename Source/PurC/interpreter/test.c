@@ -89,11 +89,10 @@ post_process_dest_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     ctxt->on = on;
     purc_variant_ref(on);
 
-    PURC_VARIANT_SAFE_CLEAR(frame->result_var);
-    frame->result_var = on;
-    purc_variant_ref(on);
+    int r;
+    r = pcintr_set_question_var(frame, on);
 
-    return 0;
+    return r ? -1 : 0;
 }
 
 static int

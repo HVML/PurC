@@ -196,8 +196,11 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
             frame->pos->tag_name);
     PC_ASSERT(child);
     frame->edom_element = child;
-
     int r;
+    r = pcintr_refresh_at_var(frame);
+    if (r)
+        return NULL;
+
     r = pcintr_vdom_walk_attrs(frame, element, NULL, attr_found);
     if (r)
         return NULL;

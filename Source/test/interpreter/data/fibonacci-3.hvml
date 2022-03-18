@@ -16,10 +16,10 @@
 
         <section>
             <dl>
-                <iterate on 1 by="ADD: LT 2000 BY $2!.last_one">
-                    <update on="$3!" at=".last_one" to="displace" with="$3!.last_two" />
-                    <update on="$3!" at=".last_two" to="displace" with="$?" />
-                    <update on="$3!" at=".count" to="displace" with += 1 />
+                <iterate on 1 by="ADD: LT 2000 BY $3!.last_one">
+                    <update on="$4!" at=".last_one" to="displace" with="$4!.last_two" />
+                    <update on="$4!" at=".last_two" to="displace" with="$?" />
+                    <update on="$4!" at=".count" to="displace" with += 1 />
                     <dt>$%</dt>
                     <dd>$?</dd>
                 </iterate>
@@ -27,7 +27,7 @@
         </section>
 
         <footer>
-            <p>Totally $1!.count numbers.</p>
+            <p>Totally $2!.count numbers.</p>
         </footer>
     </body>
 

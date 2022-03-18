@@ -99,27 +99,23 @@ check_stop(purc_variant_t val)
 static int
 check_onlyif(struct pcvdom_attr *onlyif, bool *stop)
 {
-    PC_DEBUGX("");
     purc_variant_t val;
     val = pcintr_eval_vdom_attr(pcintr_get_stack(), onlyif);
     PC_ASSERT(val != PURC_VARIANT_INVALID);
     if (val == PURC_VARIANT_INVALID)
         return -1;
 
-    PC_DEBUGX("");
     int64_t i64;
     bool parse_str = false;
     bool ok;
     ok = purc_variant_cast_to_longint(val, &i64, parse_str);
     PRINT_VCM_NODE(onlyif->val);
     PRINT_VARIANT(val);
-    sleep(1);
 
     PURC_VARIANT_SAFE_CLEAR(val);
     if (!ok)
         return -1;
 
-    PC_DEBUGX("i64:%zd", i64);
     *stop = i64 ? false : true;
 
     return 0;
@@ -164,12 +160,11 @@ re_eval_with(struct pcintr_stack_frame *frame,
 
     *stop = false;
 
-    PURC_VARIANT_SAFE_CLEAR(frame->result_var);
-    frame->result_var = val;
-    PC_DEBUGX("dddddddddddddddddddddddddddddddddddddddddddddd");
-    PRINT_VARIANT(frame->result_var);
+    int r;
+    r = pcintr_set_question_var(frame, val);
+    purc_variant_unref(val);
 
-    return 0;
+    return r ? -1 : 0;
 }
 
 static int
@@ -191,14 +186,12 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         PC_ASSERT(r == 0);
 
         if (stop) {
-            PC_DEBUGX("");
             ctxt->stop = 1;
             return 0;
         }
     }
 
     if (ctxt->with_attr == NULL) {
-        PC_DEBUGX("");
         ctxt->stop = 1;
         PC_ASSERT(0);
         return 0;
@@ -211,13 +204,11 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     PC_ASSERT(r == 0);
 
     if (stop) {
-        PC_DEBUGX("");
         ctxt->stop = 1;
         PC_ASSERT(0);
         return 0;
     }
 
-    PC_DEBUGX("");
     return 0;
 }
 
@@ -283,11 +274,10 @@ post_process_by_rule(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     if (value == PURC_VARIANT_INVALID)
         return -1;
 
-    PURC_VARIANT_SAFE_CLEAR(frame->result_var);
-    frame->result_var = value;
-    purc_variant_ref(value);
+    int r;
+    r = pcintr_set_question_var(frame, value);
 
-    return 0;
+    return r ? -1 : 0;
 }
 
 static int
@@ -662,7 +652,6 @@ rerun_with(pcintr_stack_t stack)
     PC_ASSERT(r == 0);
 
     if (stop) {
-        PC_DEBUGX("");
         ctxt->stop = 1;
         PC_ASSERT(0);
         return false;
@@ -693,7 +682,10 @@ rerun(pcintr_stack_t stack, void* ud)
     exec_inst = ctxt->exec_inst;
     PC_ASSERT(exec_inst);
 
-    frame->idx += 1;
+    int r;
+    r = pcintr_inc_percent_var(frame);
+    if (r)
+        return false;
 
     purc_exec_iter_t it = ctxt->it;
     PC_ASSERT(it);
@@ -703,11 +695,9 @@ rerun(pcintr_stack_t stack, void* ud)
     if (value == PURC_VARIANT_INVALID)
         return false;
 
-    PURC_VARIANT_SAFE_CLEAR(frame->result_var);
-    frame->result_var = value;
-    purc_variant_ref(value);
+    r = pcintr_set_question_var(frame, value);
 
-    return true;
+    return r ? false : true;
 }
 
 static void
@@ -740,8 +730,6 @@ on_comment(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 static pcvdom_element_t
 select_child(pcintr_stack_t stack, void* ud)
 {
-    PC_DEBUGX("");
-
     PC_ASSERT(stack);
     PC_ASSERT(stack == pcintr_get_stack());
 
@@ -774,7 +762,6 @@ again:
     ctxt->curr = curr;
 
     if (curr == NULL) {
-        PC_DEBUGX("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz");
         purc_clr_error();
         return NULL;
     }

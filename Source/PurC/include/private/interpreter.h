@@ -204,7 +204,7 @@ struct pcintr_stack_frame {
     // the current execution position.
     pcvdom_element_t pos;
 
-    // the symbolized variables
+    // the symbolized variables for this frame, $0?/$0@/...
     purc_variant_t symbol_vars[PURC_SYMBOL_VAR_MAX];
 
     // all attribute variants are managed by a map (attribute name -> variant).
@@ -213,19 +213,9 @@ struct pcintr_stack_frame {
     // the evaluated content variant
     purc_variant_t ctnt_var;
 
-    // the evaluated variant which is to be used as child-element's $?
-    purc_variant_t result_var;
-    // the object-variant which is to be used as child-element's $!
-    purc_variant_t exclamation_var;
-    // the idx of current iteration which is meaningful for child-element
-    size_t idx;
-
     // the evaluated variant which is to be used by parent element
     // eg.: test/match, reclusive
     purc_variant_t result_from_child;
-
-    // all intermediate variants are managed by an array.
-    purc_variant_t mid_vars;
 
     struct pcintr_element_ops ops;
 
@@ -336,9 +326,6 @@ pcintr_find_named_var(pcintr_stack_t stack, const char* name);
 purc_variant_t
 pcintr_get_symbolized_var (pcintr_stack_t stack, unsigned int number,
         char symbol);
-
-purc_variant_t
-pcintr_get_numbered_var (pcintr_stack_t stack, unsigned int number);
 
 // return observed variant
 purc_variant_t
