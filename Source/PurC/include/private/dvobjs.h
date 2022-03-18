@@ -35,23 +35,6 @@
 #include <assert.h>
 #include <time.h>
 
-#define VARIANT_TYPE_NAME_UNDEFINED     "undefined"
-#define VARIANT_TYPE_NAME_NULL          "null"
-#define VARIANT_TYPE_NAME_BOOLEAN       "boolean"
-#define VARIANT_TYPE_NAME_EXCEPTION     "exception"
-#define VARIANT_TYPE_NAME_NUMBER        "number"
-#define VARIANT_TYPE_NAME_LONGINT       "longint"
-#define VARIANT_TYPE_NAME_ULONGINT      "ulongint"
-#define VARIANT_TYPE_NAME_LONGDOUBLE    "longdouble"
-#define VARIANT_TYPE_NAME_ATOMSTRING    "atomstring"
-#define VARIANT_TYPE_NAME_STRING        "string"
-#define VARIANT_TYPE_NAME_BYTESEQUENCE  "bsequence"
-#define VARIANT_TYPE_NAME_DYNAMIC       "dynamic"
-#define VARIANT_TYPE_NAME_NATIVE        "native"
-#define VARIANT_TYPE_NAME_OBJECT        "object"
-#define VARIANT_TYPE_NAME_ARRAY         "array"
-#define VARIANT_TYPE_NAME_SET           "set"
-
 #define STRING_COMP_MODE_CASELESS   "caseless"
 #define STRING_COMP_MODE_CASE       "case"
 #define STRING_COMP_MODE_REG        "reg"
@@ -60,17 +43,6 @@
 #define STRING_COMP_MODE_AUTO       "auto"
 #define STRING_COMP_MODE_ASC        "asc"
 #define STRING_COMP_MODE_DESC       "desc"
-
-#define UNAME_SYSTEM                "operating-system"
-#define UNAME_KERNAME               "kernel-name"
-#define UNAME_NODE_NAME             "nodename"
-#define UNAME_KERRELEASE            "kernel-release"
-#define UNAME_KERVERSION            "kernel-version"
-#define UNAME_HARDWARE              "hardware-platform"
-#define UNAME_PROCESSOR             "processor"
-#define UNAME_MACHINE               "machine"
-#define UNAME_DEFAULT               "default"
-#define UNAME_ALL                   "all"
 
 #define LOCALE_ALL                  "all"
 #define LOCALE_CTYPE                "ctype"

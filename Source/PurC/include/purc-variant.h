@@ -1579,6 +1579,12 @@ purc_variant_compare_ex(purc_variant_t v1,
 
 /**
  * A flag for the purc_variant_serialize() function which causes
+ * the output to print uniqkeys for set
+ */
+#define PCVARIANT_SERIALIZE_OPT_UNIQKEYS        0x0008
+
+/**
+ * A flag for the purc_variant_serialize() function which causes
  * the output to be formatted.
  *
  * Instead of a "Two Space Tab" this gives a single tab character.
@@ -1690,21 +1696,37 @@ typedef enum purc_variant_type
     PURC_VARIANT_TYPE_FIRST = 0,
 
     /* XXX: keep consistency with type names */
+#define PURC_VARIANT_TYPE_NAME_UNDEFINED    "undefined"
     PURC_VARIANT_TYPE_UNDEFINED = PURC_VARIANT_TYPE_FIRST,
+#define PURC_VARIANT_TYPE_NAME_NULL         "null"
     PURC_VARIANT_TYPE_NULL,
+#define PURC_VARIANT_TYPE_NAME_BOOLEAN      "boolean"
     PURC_VARIANT_TYPE_BOOLEAN,
+#define PURC_VARIANT_TYPE_NAME_EXCEPTION    "exception"
     PURC_VARIANT_TYPE_EXCEPTION,
+#define PURC_VARIANT_TYPE_NAME_NUMBER       "number"
     PURC_VARIANT_TYPE_NUMBER,
+#define PURC_VARIANT_TYPE_NAME_LONGINT      "longint"
     PURC_VARIANT_TYPE_LONGINT,
+#define PURC_VARIANT_TYPE_NAME_ULONGINT     "ulongint"
     PURC_VARIANT_TYPE_ULONGINT,
+#define PURC_VARIANT_TYPE_NAME_LONGDOUBLE   "longdouble"
     PURC_VARIANT_TYPE_LONGDOUBLE,
+#define PURC_VARIANT_TYPE_NAME_ATOMSTRING   "atomstring"
     PURC_VARIANT_TYPE_ATOMSTRING,
+#define PURC_VARIANT_TYPE_NAME_STRING       "string"
     PURC_VARIANT_TYPE_STRING,
+#define PURC_VARIANT_TYPE_NAME_BYTESEQUENCE "bsequence"
     PURC_VARIANT_TYPE_BSEQUENCE,
+#define PURC_VARIANT_TYPE_NAME_DYNAMIC      "dynamic"
     PURC_VARIANT_TYPE_DYNAMIC,
+#define PURC_VARIANT_TYPE_NAME_NATIVE       "native"
     PURC_VARIANT_TYPE_NATIVE,
+#define PURC_VARIANT_TYPE_NAME_OBJECT       "object"
     PURC_VARIANT_TYPE_OBJECT,
+#define PURC_VARIANT_TYPE_NAME_ARRAY        "array"
     PURC_VARIANT_TYPE_ARRAY,
+#define PURC_VARIANT_TYPE_NAME_SET          "set"
     PURC_VARIANT_TYPE_SET,
 
     /* XXX: change this if you append a new type. */
@@ -1928,11 +1950,11 @@ typedef enum {
 } pcvar_op_t;
 
 typedef bool (*pcvar_op_handler) (
-        purc_variant_t source,  // the source variant.
-        pcvar_op_t op,          // the operation identifier.
-        void *ctxt,             // the context stored when registering the handler.
-        size_t nr_args,         // the number of the relevant child variants.
-        purc_variant_t *argv    // the array of all relevant child variants.
+        purc_variant_t src,  // the source variant.
+        pcvar_op_t op,       // the operation identifier.
+        void *ctxt,          // the context stored when registering the handler.
+        size_t nr_args,      // the number of the relevant child variants.
+        purc_variant_t *argv // the array of all relevant child variants.
         );
 
 /**

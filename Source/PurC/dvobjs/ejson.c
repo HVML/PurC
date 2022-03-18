@@ -91,33 +91,6 @@ count_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     return ret_var;
 }
 
-static const char *type_names[] = {
-    VARIANT_TYPE_NAME_UNDEFINED,
-    VARIANT_TYPE_NAME_NULL,
-    VARIANT_TYPE_NAME_BOOLEAN,
-    VARIANT_TYPE_NAME_EXCEPTION,
-    VARIANT_TYPE_NAME_NUMBER,
-    VARIANT_TYPE_NAME_LONGINT,
-    VARIANT_TYPE_NAME_ULONGINT,
-    VARIANT_TYPE_NAME_LONGDOUBLE,
-    VARIANT_TYPE_NAME_ATOMSTRING,
-    VARIANT_TYPE_NAME_STRING,
-    VARIANT_TYPE_NAME_BYTESEQUENCE,
-    VARIANT_TYPE_NAME_DYNAMIC,
-    VARIANT_TYPE_NAME_NATIVE,
-    VARIANT_TYPE_NAME_OBJECT,
-    VARIANT_TYPE_NAME_ARRAY,
-    VARIANT_TYPE_NAME_SET,
-};
-
-/* Make sure the number of variant types matches the size of `type_names` */
-#define _COMPILE_TIME_ASSERT(name, x)               \
-       typedef int _dummy_ ## name[(x) * 2 - 1]
-
-_COMPILE_TIME_ASSERT(types, PCA_TABLESIZE(type_names) == PURC_VARIANT_TYPE_NR);
-
-#undef _COMPILE_TIME_ASSERT
-
 static purc_variant_t
 type_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
@@ -125,22 +98,15 @@ type_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(root);
     UNUSED_PARAM(silently);
 
-    if ((argv == NULL) || (nr_args == 0)) {
+    if (nr_args < 1) {
         pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
-    assert (argv[0] != PURC_VARIANT_INVALID);
+    assert(argv[0] != PURC_VARIANT_INVALID);
 
-    /* make sure that the first one is `undefined` */
-    assert (strcmp (type_names[PURC_VARIANT_TYPE_FIRST],
-                VARIANT_TYPE_NAME_UNDEFINED) == 0);
-    /* make sure that the last one is `set` */
-    assert (strcmp (type_names[PURC_VARIANT_TYPE_LAST],
-                VARIANT_TYPE_NAME_SET) == 0);
-
-    return purc_variant_make_string_static (
-            type_names [purc_variant_get_type (argv[0])], false);
+    return purc_variant_make_string_static(
+            purc_variant_typename(purc_variant_get_type(argv[0])), false);
 }
 
 static purc_variant_t
@@ -314,39 +280,6 @@ static int my_array_sort (purc_variant_t v1, purc_variant_t v2, void *ud)
     return ret;
 }
 
-static int my_set_sort (size_t nr_keynames,
-        purc_variant_t v1[], purc_variant_t v2[], void *ud)
-{
-    size_t i = 0;
-    int ret = 0;
-    char *p1 = NULL;
-    char *p2 = NULL;
-    pcutils_map_entry *entry = NULL;
-
-    dvobjs_ejson_arg *sort_arg = (dvobjs_ejson_arg *)ud;
-
-
-    for (i = 0; i < nr_keynames; ++i) {
-        entry = pcutils_map_find (sort_arg->map, v1[i]);
-        p1 = (char *)entry->val;
-        entry = pcutils_map_find (sort_arg->map, v2[i]);
-        p2 = (char *)entry->val;
-
-        if (sort_arg->caseless)
-            ret = strcasecmp (p1, p2);
-        else
-            ret = strcmp (p1, p2);
-
-        if (!sort_arg->asc)
-            ret = -1 * ret;
-
-        if (ret)
-            return ret;
-    }
-
-    return 0;
-}
-
 static void * map_copy_key(const void *key)
 {
     return (void *)key;
@@ -387,8 +320,6 @@ sort_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     purc_variant_t val = PURC_VARIANT_INVALID;
     size_t i = 0;
     size_t totalsize = 0;
-    struct purc_variant_set_iterator *it_set = NULL;
-    bool having = false;
     const char *option = NULL;
     const char *order = NULL;
     dvobjs_ejson_arg sort_arg;
@@ -441,22 +372,7 @@ sort_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         pcvariant_array_sort (argv[0], (void *)&sort_arg, my_array_sort);
     }
     else {    // it is the set
-        totalsize = purc_variant_set_get_size (argv[0]);
-
-        it_set = purc_variant_set_make_iterator_begin(argv[0]);
-        while (it_set) {
-            val = purc_variant_set_iterator_get_value(it_set);
-            purc_variant_stringify_alloc (&buf, val);
-            pcutils_map_insert (sort_arg.map, val, buf);
-
-            having = purc_variant_set_iterator_next(it_set);
-            if (!having)
-                break;
-        }
-        if (it_set)
-            purc_variant_set_release_iterator(it_set);
-
-        pcvariant_set_sort (argv[0], (void *)&sort_arg, my_set_sort);
+        pcvariant_set_sort (argv[0]);
     }
 
     pcutils_map_destroy (sort_arg.map);

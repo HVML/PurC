@@ -105,6 +105,12 @@ WTF_ATTRIBUTE_PRINTF(2, 3)
 int
 pcutils_string_append(struct pcutils_string *string, const char *fmt, ...);
 
+static inline char*
+pcutils_string_get(struct pcutils_string *string)
+{
+    return string->abuf;
+}
+
 static inline size_t
 pcutils_string_length(struct pcutils_string *string)
 {

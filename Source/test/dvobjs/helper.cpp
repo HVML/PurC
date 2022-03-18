@@ -312,7 +312,8 @@ purc_variant_t get_variant (char *buf, size_t *length)
                     ret_var = purc_variant_make_set_by_ckey(0, NULL, NULL);
                     for (i = 0; i < number; i++) {
                         val = get_variant (temp, &length_sub);
-                        purc_variant_set_add (ret_var, val, false);
+                        PC_ASSERT(purc_variant_is_object(val));
+                        purc_variant_set_add (ret_var, val, true);
                         purc_variant_unref (val);
                         if (i < number - 1)
                             temp += (length_sub + 1);
@@ -368,3 +369,4 @@ purc_variant_t get_variant (char *buf, size_t *length)
 
     return ret_var;
 }
+

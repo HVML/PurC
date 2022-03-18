@@ -21,9 +21,24 @@ extern void get_variant_total_info (size_t *mem, size_t *value, size_t *resv);
 
 TEST(dvobjs, dvobjs_logical)
 {
-    const char *function[] = {"not", "and", "or", "xor", "eq", "ne", "gt",
-                              "ge", "lt", "le", "streq", "strne", "strgt",
-                              "strge", "strlt", "strle"};
+    const char *function[] = {
+        "not",
+        "and",
+        "or",
+        "xor",
+        "eq",
+        "ne",
+        "gt",
+        "ge",
+        "lt",
+        "le",
+        "streq",
+        "strne",
+        "strgt",
+        "strge",
+        "strlt",
+        "strle",
+    };
     purc_variant_t param[MAX_PARAM_NR] = {0};
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_variant_t ret_result = PURC_VARIANT_INVALID;
@@ -79,110 +94,109 @@ TEST(dvobjs, dvobjs_logical)
                                << std::endl;
 
         char *line = NULL;
-        size_t sz = 0;
-        ssize_t read = 0;
-        size_t j = 0;
-        size_t length_sub = 0;
+        if (1) {
+            size_t sz = 0;
+            ssize_t read = 0;
+            size_t j = 0;
+            size_t length_sub = 0;
 
-        line_number = 0;
+            line_number = 0;
 
-        get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
-                &nr_reserved_before);
+            get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
+                    &nr_reserved_before);
 
-        while ((read = getline(&line, &sz, fp)) != -1) {
-            *(line + read - 1) = 0;
-            line_number ++;
-
-            if (strncasecmp (line, "test_begin", 10) == 0) {
-                printf ("\ttest case on line %ld [%s] (_L.%s)\n",
-                        line_number, file_path, function[i]);
-
-                // get parameters
-                read = getline(&line, &sz, fp);
+            while ((read = getline(&line, &sz, fp)) != -1) {
                 *(line + read - 1) = 0;
                 line_number ++;
 
-                if (strcmp (line, "param_begin") == 0) {
-                    j = 0;
+                if (strncasecmp (line, "test_begin", 10) == 0) {
+                    printf ("\ttest case on line %ld [%s] (_L.%s)\n",
+                            line_number, file_path, function[i]);
 
-                    // get param
-                    while (1) {
-                        read = getline(&line, &sz, fp);
-                        *(line + read - 1) = 0;
-                        line_number ++;
-
-                        if (strcmp (line, "param_end") == 0) {
-                            break;
-                        }
-                        param[j] = get_variant (line, &length_sub);
-                        j++;
-                        ASSERT_LE(j, MAX_PARAM_NR);
-                    }
-                    // get result
+                    // get parameters
                     read = getline(&line, &sz, fp);
                     *(line + read - 1) = 0;
                     line_number ++;
 
-                    ret_result = get_variant(line, &length_sub);
+                    if (strcmp (line, "param_begin") == 0) {
+                        j = 0;
 
-                    // test case end
-                    while (1) {
+                        // get param
+                        while (1) {
+                            read = getline(&line, &sz, fp);
+                            *(line + read - 1) = 0;
+                            line_number ++;
+
+                            if (strcmp (line, "param_end") == 0) {
+                                break;
+                            }
+                            param[j] = get_variant (line, &length_sub);
+                            j++;
+                            ASSERT_LE(j, MAX_PARAM_NR);
+                        }
+                        // get result
                         read = getline(&line, &sz, fp);
                         *(line + read - 1) = 0;
                         line_number ++;
 
-                        if (strcmp (line, "test_end") == 0) {
-                            break;
+                        ret_result = get_variant(line, &length_sub);
+
+                        // test case end
+                        while (1) {
+                            read = getline(&line, &sz, fp);
+                            *(line + read - 1) = 0;
+                            line_number ++;
+
+                            if (strcmp (line, "test_end") == 0) {
+                                break;
+                            }
                         }
-                    }
 
-                    ret_var = func (NULL, j, param, false);
+                        ret_var = func (NULL, j, param, false);
 
-                    if (ret_result == PURC_VARIANT_INVALID) {
-                        ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
-                    } else {
-                        // USER MODIFIED HERE.
-                        ASSERT_EQ(purc_variant_is_type (ret_var,
-                                    PURC_VARIANT_TYPE_BOOLEAN), true);
-                        ASSERT_EQ(ret_var->b, ret_result->b);
-                    }
-
-                    if (ret_var != PURC_VARIANT_INVALID) {
-                        purc_variant_unref(ret_var);
-                        ret_var = PURC_VARIANT_INVALID;
-                    }
-
-                    if (ret_result != PURC_VARIANT_INVALID) {
-                        purc_variant_unref(ret_result);
-                        ret_result = PURC_VARIANT_INVALID;
-                    }
-
-                    for (size_t i = 0; i < j; ++i) {
-                        if (param[i] != PURC_VARIANT_INVALID) {
-                            purc_variant_unref(param[i]);
-                            param[i] = PURC_VARIANT_INVALID;
+                        if (ret_result == PURC_VARIANT_INVALID) {
+                            ASSERT_EQ(ret_var, PURC_VARIANT_INVALID);
+                        } else {
+                            // USER MODIFIED HERE.
+                            ASSERT_EQ(purc_variant_is_type (ret_var,
+                                        PURC_VARIANT_TYPE_BOOLEAN), true);
+                            ASSERT_EQ(ret_var->b, ret_result->b);
                         }
-                    }
 
-                    get_variant_total_info (&sz_total_mem_after,
-                            &sz_total_values_after, &nr_reserved_after);
-                    ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-                    ASSERT_EQ(sz_total_mem_after,
-                            sz_total_mem_before + (nr_reserved_after -
-                                nr_reserved_before) * sizeof(purc_variant));
+                        PURC_VARIANT_SAFE_CLEAR(ret_var);
+                        PURC_VARIANT_SAFE_CLEAR(ret_result);
+
+                        for (size_t i = 0; i < j; ++i)
+                            PURC_VARIANT_SAFE_CLEAR(param[i]);
+
+                        get_variant_total_info (&sz_total_mem_after,
+                                &sz_total_values_after, &nr_reserved_after);
+                        // ASSERT_EQ(sz_total_values_before, sz_total_values_after);
+                        // ASSERT_EQ(sz_total_mem_after,
+                        //         sz_total_mem_before + (nr_reserved_after -
+                        //             nr_reserved_before) * sizeof(purc_variant));
+                    } else
+                        continue;
                 } else
                     continue;
-            } else
-                continue;
+            }
+
+            length_sub++;
         }
 
-        length_sub++;
         fclose(fp);
         if (line)
             free(line);
     }
 
-    purc_variant_unref(logical);
+    PURC_VARIANT_SAFE_CLEAR(ret_var);
+    PURC_VARIANT_SAFE_CLEAR(ret_result);
+
+    for (size_t i = 0; i < PCA_TABLESIZE(param); ++i)
+        PURC_VARIANT_SAFE_CLEAR(param[i]);
+
+    PURC_VARIANT_SAFE_CLEAR(logical);
+
     purc_cleanup ();
 }
 

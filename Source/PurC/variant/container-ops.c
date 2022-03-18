@@ -254,13 +254,26 @@ end:
     return ret;
 }
 
+static purc_variant_t
+clone_if_necessary(purc_variant_t val)
+{
+    if (pcvar_container_belongs_to_set(val)) {
+        return purc_variant_container_clone_recursively(val);
+    }
+    return purc_variant_ref(val);
+}
 
 static bool
 add_object_member(void* dst, purc_variant_t key,
         purc_variant_t value, bool silently)
 {
     UNUSED_PARAM(silently);
-    return purc_variant_object_set((purc_variant_t)dst, key, value);
+    purc_variant_t cloned = clone_if_necessary(value);
+    if (cloned == PURC_VARIANT_INVALID)
+        return false;
+    bool ok = purc_variant_object_set((purc_variant_t)dst, key, cloned);
+    purc_variant_unref(cloned);
+    return ok;
 }
 
 static bool
@@ -278,7 +291,12 @@ append_array_member(void* ctxt, purc_variant_t member,
 {
     UNUSED_PARAM(member_extra);
     UNUSED_PARAM(silently);
-    return purc_variant_array_append((purc_variant_t)ctxt, member);
+    purc_variant_t cloned = clone_if_necessary(member);
+    if (cloned == PURC_VARIANT_INVALID)
+        return false;
+    bool ok = purc_variant_array_append((purc_variant_t)ctxt, cloned);
+    purc_variant_unref(cloned);
+    return ok;
 }
 
 static bool
@@ -301,7 +319,12 @@ prepend_array_member(void* ctxt, purc_variant_t member,
 {
     UNUSED_PARAM(member_extra);
     UNUSED_PARAM(silently);
-    return purc_variant_array_prepend((purc_variant_t)ctxt, member);
+    purc_variant_t cloned = clone_if_necessary(member);
+    if (cloned == PURC_VARIANT_INVALID)
+        return false;
+    bool ok = purc_variant_array_prepend((purc_variant_t)ctxt, cloned);
+    purc_variant_unref(cloned);
+    return ok;
 }
 
 static bool
@@ -313,7 +336,12 @@ insert_before_array_member(void* ctxt, purc_variant_t member,
     struct complex_ctxt* c_ctxt = (struct complex_ctxt*) ctxt;
     purc_variant_t array = (purc_variant_t) c_ctxt->ctxt;
     int idx = c_ctxt->extra;
-    return purc_variant_array_insert_before(array, idx, member);
+    purc_variant_t cloned = clone_if_necessary(member);
+    if (cloned == PURC_VARIANT_INVALID)
+        return false;
+    bool ok = purc_variant_array_insert_before(array, idx, cloned);
+    purc_variant_unref(cloned);
+    return ok;
 }
 
 static bool
@@ -325,7 +353,12 @@ insert_after_array_member(void* ctxt, purc_variant_t member,
     struct complex_ctxt* c_ctxt = (struct complex_ctxt*) ctxt;
     purc_variant_t array = (purc_variant_t) c_ctxt->ctxt;
     int idx = c_ctxt->extra;
-    return purc_variant_array_insert_after(array, idx, member);
+    purc_variant_t cloned = clone_if_necessary(member);
+    if (cloned == PURC_VARIANT_INVALID)
+        return false;
+    bool ok = purc_variant_array_insert_after(array, idx, cloned);
+    purc_variant_unref(cloned);
+    return ok;
 }
 
 static bool
@@ -333,7 +366,12 @@ add_set_member(void* ctxt, purc_variant_t member,
         purc_variant_t member_extra, bool silently)
 {
     UNUSED_PARAM(member_extra);
-    return purc_variant_set_add((purc_variant_t)ctxt, member, silently);
+    purc_variant_t cloned = clone_if_necessary(member);
+    if (cloned == PURC_VARIANT_INVALID)
+        return false;
+    bool ok = purc_variant_set_add((purc_variant_t)ctxt, cloned, silently);
+    purc_variant_unref(cloned);
+    return ok;
 }
 
 static bool
@@ -350,7 +388,12 @@ add_set_member_override(void* ctxt, purc_variant_t member,
 {
     UNUSED_PARAM(member_extra);
     UNUSED_PARAM(silently);
-    return purc_variant_set_add((purc_variant_t)ctxt, member, true);
+    purc_variant_t cloned = clone_if_necessary(member);
+    if (cloned == PURC_VARIANT_INVALID)
+        return false;
+    bool ok = purc_variant_set_add((purc_variant_t)ctxt, cloned, true);
+    purc_variant_unref(cloned);
+    return ok;
 }
 
 static bool
@@ -360,7 +403,15 @@ set_member_overwrite(void* ctxt, purc_variant_t value,
     UNUSED_PARAM(value_extra);
     UNUSED_PARAM(silently);
 
-    return purc_variant_set_add((purc_variant_t)ctxt, value, true);
+    purc_variant_t cloned = clone_if_necessary(value);
+    if (cloned == PURC_VARIANT_INVALID)
+        return false;
+    PRINT_VARIANT((purc_variant_t)ctxt);
+    PRINT_VARIANT(cloned);
+    bool ok = purc_variant_set_add((purc_variant_t)ctxt, cloned, true);
+    PRINT_VARIANT((purc_variant_t)ctxt);
+    purc_variant_unref(cloned);
+    return ok;
 }
 
 static bool
@@ -387,8 +438,13 @@ intersect_set(void* ctxt, purc_variant_t value,
     purc_variant_t set = (purc_variant_t) c_ctxt->ctxt;
     purc_variant_t result = (purc_variant_t) c_ctxt->extra;
 
-    return pcvariant_is_in_set(set, value) ?
-        purc_variant_array_append(result, value) : true;
+    purc_variant_t cloned = clone_if_necessary(value);
+    if (cloned == PURC_VARIANT_INVALID)
+        return false;
+    bool ok = pcvariant_is_in_set(set, value) ?
+        purc_variant_array_append(result, cloned) : true;
+    purc_variant_unref(cloned);
+    return ok;
 }
 
 static bool
@@ -402,7 +458,12 @@ xor_set(void* ctxt, purc_variant_t value,
     if (pcvariant_is_in_set(set, value)) {
         return purc_variant_set_remove(set, value, silently);
     }
-    return purc_variant_set_add(set, value, silently);
+    purc_variant_t cloned = clone_if_necessary(value);
+    if (cloned == PURC_VARIANT_INVALID)
+        return false;
+    bool ok = purc_variant_set_add(set, cloned, silently);
+    purc_variant_unref(cloned);
+    return ok;
 }
 
 static bool

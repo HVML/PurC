@@ -565,6 +565,8 @@
         _r = purc_variant_make_set(0, _k, PURC_VARIANT_INVALID);          \
         if (_k != PURC_VARIANT_INVALID)                                   \
             purc_variant_unref(_k);                                       \
+        if (_a == PURC_VARIANT_INVALID)                                   \
+            break;                                                        \
         bool ok = true;                                                   \
         purc_variant_t _v;                                                \
         size_t _idx;                                                      \
@@ -720,6 +722,7 @@ variants:
 set:
   '[' '!' ']'                   { MK_EMPTY_SET($$); }
 | '[' '!' ',' objs ']'          { MK_SET($$, PURC_VARIANT_INVALID, $4); }
+| '[' '!' set_key  ']'          { MK_SET($$, $3, PURC_VARIANT_INVALID); }
 | '[' '!' set_key ',' objs ']'  { MK_SET($$, $3, $5); }
 ;
 

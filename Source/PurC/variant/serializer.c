@@ -47,6 +47,8 @@
 #include "private/errors.h"
 #include "private/debug.h"
 
+#include "variant/variant-internals.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -657,6 +659,7 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
     char* format_double = NULL;
     char* format_long_double = NULL;
     size_t idx;
+    variant_set_t data;
 
     purc_get_local_data("format-double",
             (uintptr_t *)&format_double, NULL);
@@ -901,13 +904,29 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
             n = print_indent(rws, level, flags, len_expected);
             MY_CHECK(n);
 
-            MY_WRITE(rws, "[", 1);
+            if (flags & PCVARIANT_SERIALIZE_OPT_UNIQKEYS)
+                MY_WRITE(rws, "[!", 2);
+            else
+                MY_WRITE(rws, "[", 1);
+
             n = print_newline(rws, flags, len_expected);
             MY_CHECK(n);
 
+            if (flags & PCVARIANT_SERIALIZE_OPT_UNIQKEYS) {
+                data = pcvar_set_get_data(value);
+                if (data->keynames) {
+                    for (size_t i=0; i<data->nr_keynames; ++i) {
+                        const char *sk = data->keynames[i];
+                        if (i>0)
+                            MY_WRITE(rws, " ", 1);
+                        MY_WRITE(rws, sk, strlen(sk));
+                    }
+                }
+            }
+
             i = 0;
             foreach_value_in_variant_set_order(value, member)
-                if (i > 0) {
+                if (i > 0 || flags & PCVARIANT_SERIALIZE_OPT_UNIQKEYS) {
                     MY_WRITE(rws, ",", 1);
                     n = print_newline(rws, flags, len_expected);
                     MY_CHECK(n);

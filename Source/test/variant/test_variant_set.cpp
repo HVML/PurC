@@ -75,14 +75,6 @@ TEST(variant_set, init_with_1_str)
     ASSERT_EQ(stat->nr_values[PVT(_SET)], 0);
     ASSERT_EQ(stat->nr_values[PVT(_STRING)], 0);
 
-#if 0
-    // testing anonymous object
-    var = purc_variant_make_set(1,
-            purc_variant_make_set(1,
-                purc_variant_make_null()));
-    ASSERT_NE(var, nullptr);
-    purc_variant_unref(var);
-#endif // 0
     cleanup = purc_cleanup ();
     ASSERT_EQ (cleanup, true);
 }
@@ -165,14 +157,6 @@ TEST(variant_set, init_0_elem)
     purc_variant_unref(var);
     ASSERT_EQ(stat->nr_values[PVT(_SET)], 0);
 
-#if 0
-    // testing anonymous object
-    var = purc_variant_make_set(1,
-            purc_variant_make_set(1,
-                purc_variant_make_null()));
-    ASSERT_NE(var, nullptr);
-    purc_variant_unref(var);
-#endif // 0
     cleanup = purc_cleanup ();
     ASSERT_EQ (cleanup, true);
 }
@@ -209,12 +193,9 @@ TEST(variant_set, add_1_str)
 
     ASSERT_TRUE(sanity_check(var));
 
-    ASSERT_EQ(obj->refc, 1);
     purc_variant_unref(obj);
     purc_variant_unref(s);
 
-    ASSERT_EQ(stat->nr_values[PVT(_STRING)], 2);
-    ASSERT_EQ(stat->nr_values[PVT(_OBJECT)], 1);
     ASSERT_EQ(stat->nr_values[PVT(_SET)], 1);
 
     ASSERT_EQ(var->refc, 1);
@@ -257,18 +238,14 @@ TEST(variant_set, add_n_str)
         purc_variant_t obj;
         obj = purc_variant_make_object_by_static_ckey(1, "hello", s);
         ASSERT_NE(obj, nullptr);
-        ASSERT_EQ(stat->nr_values[PVT(_OBJECT)], j+1);
         bool t = purc_variant_set_add(var, obj, false);
         ASSERT_EQ(t, true);
 
         ASSERT_TRUE(sanity_check(var));
 
-        ASSERT_EQ(obj->refc, 1);
         purc_variant_unref(obj);
         purc_variant_unref(s);
     }
-    ASSERT_EQ(stat->nr_values[PVT(_STRING)], count*2);
-    ASSERT_EQ(stat->nr_values[PVT(_OBJECT)], count);
     ASSERT_EQ(stat->nr_values[PVT(_SET)], 1);
 
     int j = 0;
@@ -348,14 +325,6 @@ TEST(variant_set, add_n_str)
     ASSERT_EQ(stat->nr_values[PVT(_OBJECT)], 0);
     ASSERT_EQ(stat->nr_values[PVT(_STRING)], 0);
 
-#if 0
-    // testing anonymous object
-    var = purc_variant_make_set(1,
-            purc_variant_make_set(1,
-                purc_variant_make_null()));
-    ASSERT_NE(var, nullptr);
-    purc_variant_unref(var);
-#endif // 0
     cleanup = purc_cleanup ();
     ASSERT_EQ (cleanup, true);
 }
@@ -496,7 +465,7 @@ TEST(variant_set, sort)
         purc_variant_t set = make_set(ins, PCA_TABLESIZE(ins));
         ASSERT_NE(set, nullptr);
 
-        int r = pcvariant_set_sort(set, NULL, cmp);
+        int r = pcvariant_set_sort(set);
         ASSERT_EQ(r, 0);
 
         r = purc_variant_stringify(inbuf, sizeof(inbuf), set);
@@ -694,7 +663,7 @@ TEST(variant_set, constraint_non_valid_set)
     purc_variant_unref(set);
 
     s = "[!'name count', {name:'foo', count:3}, {name:'foo', count:4}]";
-    set = pcejson_parser_parse_string(s, 1, 1);
+    set = pcejson_parser_parse_string(s, 0, 0);
     ASSERT_NE(set, nullptr);
     ASSERT_EQ(2, purc_variant_set_get_size(set));
     purc_variant_unref(set);
@@ -790,6 +759,73 @@ TEST(variant_set, constraint_scalar)
     purc_variant_unref(set);
 }
 
+TEST(variant_set, constraint_scalar_grow)
+{
+    PurCInstance purc;
+
+    bool ok;
+    const char *s;
+    purc_variant_t set, v, obj, name, undefined;
+
+    s = "[!'name gender', {name:xiaohong}, {name:xiaohong,gender:male}]";
+    set = pcejson_parser_parse_string(s, 0, 0);
+    ASSERT_NE(set, nullptr);
+    ASSERT_EQ(2, purc_variant_set_get_size(set));
+
+    v = pcejson_parser_parse_string("xiaohong", 0, 0);
+    ASSERT_NE(v, nullptr);
+
+    undefined = purc_variant_make_undefined();
+    ASSERT_NE(undefined, nullptr);
+
+    obj = purc_variant_set_get_member_by_key_values(set, v, undefined);
+    ASSERT_NE(obj, nullptr);
+
+    PRINT_VARIANT(set);
+    name = purc_variant_make_string("male", true);
+    ok = purc_variant_object_set_by_static_ckey(obj, "gender", name);
+    ASSERT_FALSE(ok);
+    PRINT_VARIANT(set);
+
+    purc_variant_unref(undefined);
+    purc_variant_unref(name);
+    purc_variant_unref(v);
+    purc_variant_unref(set);
+}
+
+TEST(variant_set, constraint_scalar_shrink)
+{
+    PurCInstance purc;
+
+    bool ok;
+    const char *s;
+    purc_variant_t set, v, obj, male;
+
+    s = "[!'name gender', {name:xiaohong}, {name:xiaohong,gender:male}]";
+    set = pcejson_parser_parse_string(s, 0, 0);
+    ASSERT_NE(set, nullptr);
+    ASSERT_EQ(2, purc_variant_set_get_size(set));
+
+    v = pcejson_parser_parse_string("xiaohong", 0, 0);
+    ASSERT_NE(v, nullptr);
+
+    male = pcejson_parser_parse_string("male", 0, 0);
+    ASSERT_NE(male, nullptr);
+
+    obj = purc_variant_set_get_member_by_key_values(set, v, male);
+    ASSERT_NE(obj, nullptr);
+
+    bool silently = true;
+    PRINT_VARIANT(set);
+    ok = purc_variant_object_remove_by_static_ckey(obj, "gender", silently);
+    ASSERT_FALSE(ok);
+    PRINT_VARIANT(set);
+
+    purc_variant_unref(male);
+    purc_variant_unref(v);
+    purc_variant_unref(set);
+}
+
 TEST(variant_set, constraint_scalars)
 {
     PurCInstance purc;
@@ -822,8 +858,8 @@ TEST(variant_set, constraint_scalars)
     ASSERT_TRUE(ok);
     PRINT_VARIANT(set);
     ok = purc_variant_object_set_by_static_ckey(obj, "last", last);
-    ASSERT_FALSE(ok);
     PRINT_VARIANT(set);
+    ASSERT_FALSE(ok);
 
     PURC_VARIANT_SAFE_CLEAR(first);
     PURC_VARIANT_SAFE_CLEAR(last);
