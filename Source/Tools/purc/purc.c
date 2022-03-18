@@ -33,8 +33,8 @@
 
 #define LEN_TARGET_NAME     10
 
-#define DEF_WORKSPACE_ID       "__purc_workspace"
-#define DEF_WINDOW_ID          "__purc_window"
+#define DEF_WORKSPACE_ID       "purc_def_workspace"
+#define DEF_WINDOW_ID          "purc_def_window"
 
 struct purc_run_info {
     char app_name[PURC_LEN_APP_NAME + 1];
