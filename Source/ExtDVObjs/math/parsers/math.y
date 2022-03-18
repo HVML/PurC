@@ -52,7 +52,7 @@
 
         #define POW            powl
         #define STRTOD         strtold
-        #define CAST_TO_NUMBER purc_variant_cast_to_long_double
+        #define CAST_TO_NUMBER purc_variant_cast_to_longdouble
         #define MAKE_NUMBER    purc_variant_make_longdouble
     #endif
 

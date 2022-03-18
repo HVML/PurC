@@ -737,8 +737,8 @@ bool purc_variant_is_equal_to(purc_variant_t v1, purc_variant_t v2)
 #if 0
     if (0) {
         long double ld1, ld2;
-        if (purc_variant_cast_to_long_double(v1, &ld1, false) &&
-                purc_variant_cast_to_long_double(v2, &ld2, false)) {
+        if (purc_variant_cast_to_longdouble(v1, &ld1, false) &&
+                purc_variant_cast_to_longdouble(v2, &ld2, false)) {
             if (equal_long_doubles(ld1, ld2))
                 return 0;
 
@@ -751,8 +751,8 @@ bool purc_variant_is_equal_to(purc_variant_t v1, purc_variant_t v2)
 
         const void *bytes1, *bytes2;
         size_t sz1, sz2;
-        if (purc_variant_cast_to_byte_sequence(v1, &bytes1, &sz1) &&
-                purc_variant_cast_to_byte_sequence(v2, &bytes2, &sz2)) {
+        if (purc_variant_cast_to_sequence(v1, &bytes1, &sz1) &&
+                purc_variant_cast_to_sequence(v2, &bytes2, &sz2)) {
 
             int i = memcmp(bytes1, bytes2, (sz1 > sz2) ? sz2 : sz1);
             if (i == 0 && sz2 != sz1) {
@@ -1102,7 +1102,7 @@ bool purc_variant_cast_to_number(purc_variant_t v, double *d, bool force)
 }
 
 bool
-purc_variant_cast_to_long_double(purc_variant_t v, long double *d,
+purc_variant_cast_to_longdouble(purc_variant_t v, long double *d,
         bool force)
 {
     const char *bytes;
@@ -1181,7 +1181,7 @@ purc_variant_cast_to_long_double(purc_variant_t v, long double *d,
     return false;
 }
 
-bool purc_variant_cast_to_byte_sequence(purc_variant_t v,
+bool purc_variant_cast_to_sequence(purc_variant_t v,
         const void **bytes, size_t *sz)
 {
     PC_ASSERT(v);

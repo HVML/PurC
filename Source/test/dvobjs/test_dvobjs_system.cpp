@@ -942,3 +942,160 @@ TEST(dvobjs, timezone)
     purc_cleanup();
 }
 
+purc_variant_t system_random(purc_variant_t dvobj, const char* name)
+{
+    (void)dvobj;
+
+    if (strcmp(name, "default") == 0) {
+        return purc_variant_make_longint((int64_t)random());
+    }
+    else if (strcmp(name, "number") == 0) {
+        return purc_variant_make_number(1.0 * random() / RAND_MAX);
+    }
+    else if (strcmp(name, "ulongint") == 0) {
+        return purc_variant_make_ulongint(100 * random() / RAND_MAX);
+    }
+    else if (strcmp(name, "longdouble") == 0) {
+        return purc_variant_make_longdouble(-1000000.0L * random() / RAND_MAX);
+    }
+    else if (strcmp(name, "set") == 0) {
+        return purc_variant_make_boolean(true);
+    }
+
+    return purc_variant_make_boolean(false);
+}
+
+static bool random_vrtcmp(purc_variant_t r1, purc_variant_t r2)
+{
+
+    if (purc_variant_is_number(r1)) {
+        double d1, d2;
+
+        purc_variant_cast_to_number(r1, &d1, false);
+        purc_variant_cast_to_number(r2, &d2, false);
+
+        return (d1 >= 0 && d1 <= 1.0 && d2 >= 0 && d2 <= 1.0);
+    }
+    else if (purc_variant_is_longint(r1)) {
+        int64_t d1, d2;
+
+        purc_variant_cast_to_longint(r1, &d1, false);
+        purc_variant_cast_to_longint(r2, &d2, false);
+
+        return (d1 >= 0 && d1 <= RAND_MAX && d2 >= 0 && d2 <= RAND_MAX);
+    }
+    else if (purc_variant_is_ulongint(r1)) {
+        uint64_t d1, d2;
+
+        purc_variant_cast_to_ulongint(r1, &d1, false);
+        purc_variant_cast_to_ulongint(r2, &d2, false);
+
+        return (d1 <= 100 && d2 <= 100);
+    }
+    else if (purc_variant_is_longdouble(r1)) {
+        long double d1, d2;
+
+        purc_variant_cast_to_longdouble(r1, &d1, false);
+        purc_variant_cast_to_longdouble(r2, &d2, false);
+
+        return (d1 <= 0 && d1 >= -1000000.0L && d2 <= 0 && d2 >= -1000000.0L);
+    }
+
+    return false;
+}
+
+TEST(dvobjs, random)
+{
+    static const struct ejson_result test_cases[] = {
+        { "default",
+            "$SYSTEM.random()",
+            system_random, random_vrtcmp, 0 },
+        { "number",
+            "$SYSTEM.random(1.0)",
+            system_random, random_vrtcmp, 0 },
+        { "ulongint",
+            "$SYSTEM.random(100UL)",
+            system_random, random_vrtcmp, 0 },
+        { "longdouble",
+            "$SYSTEM.random(-1000000.0FL)",
+            system_random, random_vrtcmp, 0 },
+        { "bad-set",
+            "$SYSTEM.random(!)",
+            system_random, NULL, PURC_ERROR_ARGUMENT_MISSED },
+        { "bad-set",
+            "$SYSTEM.random(! 'asdfasf')",
+            system_random, NULL, PURC_ERROR_WRONG_DATA_TYPE },
+        { "bad-set",
+            "$SYSTEM.random(! 1000, 300 )",
+            system_random, NULL, PURC_ERROR_INVALID_VALUE },
+        { "failed-set",
+            "$SYSTEM.random(! 'Pacific/Auckland', true )",
+            system_random, NULL, PURC_ERROR_WRONG_DATA_TYPE },
+        { "set",
+            "$SYSTEM.random(! 1000 )",
+            system_random, NULL, 0 },
+        { "set",
+            "$SYSTEM.random(! 11000, 256 )",
+            system_random, NULL, 0 },
+        { "longdouble",
+            "$SYSTEM.random(-1000000.0FL)",
+            system_random, random_vrtcmp, 0 },
+    };
+
+    int ret = purc_init_ex(PURC_MODULE_EJSON, "cn.fmsfot.hvml.test",
+            "dvobj", NULL);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    purc_variant_t sys = purc_dvobj_system_new();
+    ASSERT_NE(sys, nullptr);
+    ASSERT_EQ(purc_variant_is_object(sys), true);
+
+    for (size_t i = 0; i < PCA_TABLESIZE(test_cases); i++) {
+        struct purc_ejson_parse_tree *ptree;
+        purc_variant_t result, expected;
+
+        purc_log_info("evalute: %s\n", test_cases[i].ejson);
+
+        ptree = purc_variant_ejson_parse_string(test_cases[i].ejson,
+                strlen(test_cases[i].ejson));
+        result = purc_variant_ejson_parse_tree_evalute(ptree,
+                get_dvobj_system, sys, true);
+        purc_variant_ejson_parse_tree_destroy(ptree);
+
+        /* FIXME: purc_variant_ejson_parse_tree_evalute should not return NULL
+           when evaluating silently */
+        ASSERT_NE(result, nullptr);
+
+        if (test_cases[i].expected) {
+            expected = test_cases[i].expected(sys, test_cases[i].name);
+
+            if (purc_variant_get_type(result) != purc_variant_get_type(expected)) {
+                purc_log_error("result type: %s, error message: %s\n",
+                        purc_variant_typename(purc_variant_get_type(result)),
+                        purc_get_error_message(purc_get_last_error()));
+            }
+
+            if (test_cases[i].vrtcmp) {
+                ASSERT_EQ(test_cases[i].vrtcmp(result, expected), true);
+            }
+            else {
+                ASSERT_EQ(purc_variant_is_equal_to(result, expected), true);
+            }
+
+            if (test_cases[i].errcode) {
+                ASSERT_EQ(purc_get_last_error(), test_cases[i].errcode);
+            }
+
+            purc_variant_unref(expected);
+        }
+        else {
+            ASSERT_EQ(purc_variant_get_type(result), PURC_VARIANT_TYPE_NULL);
+        }
+
+        purc_variant_unref(result);
+    }
+
+    purc_variant_unref(sys);
+    purc_cleanup();
+}
+

@@ -582,7 +582,7 @@ static bool cast_to_timeval(struct timeval *timeval, purc_variant_t t)
     case PURC_VARIANT_TYPE_LONGDOUBLE:
     {
         long double time_d, sec_d, usec_d;
-        purc_variant_cast_to_long_double(t, &time_d, false);
+        purc_variant_cast_to_longdouble(t, &time_d, false);
 
         if (isinf(time_d) || isnan(time_d) || time_d < 0.0L) {
             purc_set_error(PURC_ERROR_INVALID_VALUE);
@@ -731,13 +731,13 @@ time_us_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
         if (!purc_variant_cast_to_ulongint(v1, &ul_sec, false) ||
                 !purc_variant_cast_to_ulongint(v2, &ul_usec, false)) {
-            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
             goto failed;
         }
     }
     else {
         long double time_d, sec_d, usec_d;
-        purc_variant_cast_to_long_double(argv[0], &time_d, false);
+        purc_variant_cast_to_longdouble(argv[0], &time_d, false);
 
         if (isinf(time_d) || isnan(time_d) || time_d < 0.0L) {
             purc_set_error(PURC_ERROR_INVALID_VALUE);
@@ -1357,35 +1357,78 @@ failed:
     return PURC_VARIANT_INVALID;
 }
 
+#define MAX_LEN_STATE_BUF   256
+
+struct local_random_data {
+    char                state_buf[MAX_LEN_STATE_BUF];
+    size_t              state_len;
+    struct random_data  data;
+};
+
+static void cb_free_local_random_data(void *local_data)
+{
+    free(local_data);
+}
+
 static purc_variant_t
 random_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
 
-    double random = 0.0;
-    double number = 0.0;
+    struct local_random_data *rd = NULL;
+    purc_get_local_data(PURC_LDNAME_RANDOM_DATA, (uintptr_t *)&rd, NULL);
+    assert(rd);
+
+    int32_t result;
+    random_r(&rd->data, &result);
 
     if (nr_args == 0) {
-        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+        return purc_variant_make_longint((int64_t)result);
     }
 
-    if ((argv[0] == PURC_VARIANT_INVALID) ||
-            (!purc_variant_cast_to_number (argv[0], &number, false))) {
-        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+    switch (purc_variant_get_type(argv[0])) {
+    case PURC_VARIANT_TYPE_NUMBER:
+    {
+        double max, number;
+        purc_variant_cast_to_number(argv[0], &max, false);
+        number = max * result / (double)(RAND_MAX);
+        return purc_variant_make_number(number);
     }
 
-    if (fabs (number) < 1.0E-10) {
-        purc_set_error (PURC_ERROR_INVALID_VALUE);
-        return PURC_VARIANT_INVALID;
+    case PURC_VARIANT_TYPE_LONGINT:
+    {
+        int64_t max, number;
+        purc_variant_cast_to_longint(argv[0], &max, false);
+        number = max * result / RAND_MAX;
+        return purc_variant_make_ulongint(number);
     }
 
-    random = number * rand() / (double)(RAND_MAX);
+    case PURC_VARIANT_TYPE_ULONGINT:
+    {
+        uint64_t max, number;
+        purc_variant_cast_to_ulongint(argv[0], &max, false);
+        number = max * result / RAND_MAX;
+        return purc_variant_make_ulongint(number);
+    }
 
-    return purc_variant_make_number (random);
+    case PURC_VARIANT_TYPE_LONGDOUBLE:
+    {
+        long double max, number;
+        purc_variant_cast_to_longdouble(argv[0], &max, false);
+        number = max * result / (long double)(RAND_MAX);
+        return purc_variant_make_longdouble(number);
+    }
+
+    default:
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        break;
+    }
+
+    if (silently)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
@@ -1395,28 +1438,51 @@ random_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(root);
     UNUSED_PARAM(silently);
 
-    double random = 0.0;
-    double number = 0.0;
+    uint64_t seed;
+    uint64_t complexity = 8;
 
     if (nr_args == 0) {
-        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
     }
 
-    if ((argv[0] == PURC_VARIANT_INVALID) ||
-            (!purc_variant_cast_to_number (argv[0], &number, false))) {
-        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+    if (!purc_variant_cast_to_ulongint(argv[0], &seed, false)) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
     }
 
-    if (fabs (number) < 1.0E-10) {
-        purc_set_error (PURC_ERROR_INVALID_VALUE);
-        return PURC_VARIANT_INVALID;
+    if (seed > UINT32_MAX) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
     }
 
-    random = number * rand() / (double)(RAND_MAX);
+    if (nr_args > 1) {
+        if (!purc_variant_cast_to_ulongint(argv[1], &complexity, false)) {
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            goto failed;
+        }
 
-    return purc_variant_make_number (random);
+        if (complexity < 8 || complexity > 256) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            goto failed;
+        }
+    }
+
+    struct local_random_data *rd = NULL;
+    purc_get_local_data(PURC_LDNAME_RANDOM_DATA, (uintptr_t *)&rd, NULL);
+    assert(rd);
+
+    rd->data.state = NULL;
+    initstate_r((unsigned int)seed, rd->state_buf, (size_t)complexity,
+            &rd->data);
+
+    return purc_variant_make_boolean(true);
+
+failed:
+    if (silently)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
 }
 
 #if OS(LINUX)
@@ -1506,7 +1572,23 @@ purc_variant_t purc_dvobj_system_new (void)
 
     }
 
-    // TODO: allocate data for state of the random generator */
+    /* allocate data for state of the random generator */
+    struct local_random_data *rd;
+    rd = calloc(1, sizeof(*rd));
+    if (rd) {
+        if (!purc_set_local_data(PURC_LDNAME_RANDOM_DATA,
+                    (uintptr_t)rd, cb_free_local_random_data)) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            return PURC_VARIANT_INVALID;
+        }
+
+        initstate_r(time(NULL), rd->state_buf, 8, &rd->data);
+    }
+    else {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return PURC_VARIANT_INVALID;
+    }
+
     return purc_dvobj_make_from_methods(methods, PCA_TABLESIZE(methods));
 }
 

@@ -1489,7 +1489,7 @@ purc_variant_cast_to_number(purc_variant_t v, double *d, bool force);
  * Since: 0.0.1
  */
 PCA_EXPORT bool
-purc_variant_cast_to_long_double(purc_variant_t v, long double *ld,
+purc_variant_cast_to_longdouble(purc_variant_t v, long double *ld,
         bool force);
 
 /**
@@ -1508,7 +1508,7 @@ purc_variant_cast_to_long_double(purc_variant_t v, long double *ld,
  * Since: 0.0.1
  */
 PCA_EXPORT bool
-purc_variant_cast_to_byte_sequence(purc_variant_t v,
+purc_variant_cast_to_sequence(purc_variant_t v,
         const void **bytes, size_t *sz);
 
 /**
