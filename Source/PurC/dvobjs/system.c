@@ -44,102 +44,102 @@
 
 #define LEN_INI_PRINT_BUF   128
 #define LEN_MAX_PRINT_BUF   1024
-#define LEN_MAX_KEYWORD     64
+#define LEN_MAX_KW     64
 
 enum {
-#define _KEYWORD_HVML_SPEC_VERSION    "HVML_SPEC_VERSION"
-    K_KEYWORD_HVML_SPEC_VERSION,
-#define _KEYWORD_HVML_SPEC_RELEASE    "HVML_SPEC_RELEASE"
-    K_KEYWORD_HVML_SPEC_RELEASE,
-#define _KEYWORD_HVML_PREDEF_VARS_SPEC_VERSION    "HVML_PREDEF_VARS_SPEC_VERSION"
-    K_KEYWORD_HVML_PREDEF_VARS_SPEC_VERSION,
-#define _KEYWORD_HVML_PREDEF_VARS_SPEC_RELEASE    "HVML_PREDEF_VARS_SPEC_RELEASE"
-    K_KEYWORD_HVML_PREDEF_VARS_SPEC_RELEASE,
-#define _KEYWORD_HVML_INTRPR_NAME     "HVML_INTRPR_NAME"
-    K_KEYWORD_HVML_INTRPR_NAME,
-#define _KEYWORD_HVML_INTRPR_VERSION  "HVML_INTRPR_VERSION"
-    K_KEYWORD_HVML_INTRPR_VERSION,
-#define _KEYWORD_HVML_INTRPR_RELEASE  "HVML_INTRPR_RELEASE"
-    K_KEYWORD_HVML_INTRPR_RELEASE,
-#define _KEYWORD_all                  "all"
-    K_KEYWORD_all,
-#define _KEYWORD_default              "default"
-    K_KEYWORD_default,
-#define _KEYWORD_kernel_name          "kernel-name"
-    K_KEYWORD_kernel_name,
-#define _KEYWORD_kernel_release       "kernel-release"
-    K_KEYWORD_kernel_release,
-#define _KEYWORD_kernel_version       "kernel-version"
-    K_KEYWORD_kernel_version,
-#define _KEYWORD_nodename             "nodename"
-    K_KEYWORD_nodename,
-#define _KEYWORD_machine              "machine"
-    K_KEYWORD_machine,
-#define _KEYWORD_processor            "processor"
-    K_KEYWORD_processor,
-#define _KEYWORD_hardware_platform    "hardware-platform"
-    K_KEYWORD_hardware_platform,
-#define _KEYWORD_operating_system     "operating-system"
-    K_KEYWORD_operating_system,
-#define _KEYWORD_ctype                "ctype"
-    K_KEYWORD_ctype,
-#define _KEYWORD_numeric              "numeric"
-    K_KEYWORD_numeric,
-#define _KEYWORD_time                 "time"
-    K_KEYWORD_time,
-#define _KEYWORD_collate              "collate"
-    K_KEYWORD_collate,
-#define _KEYWORD_monetary             "monetary"
-    K_KEYWORD_monetary,
-#define _KEYWORD_messsages            "messsages"
-    K_KEYWORD_messsages,
-#define _KEYWORD_paper                "paper"
-    K_KEYWORD_paper,
-#define _KEYWORD_name                 "name"
-    K_KEYWORD_name,
-#define _KEYWORD_address              "address"
-    K_KEYWORD_address,
-#define _KEYWORD_telephone            "telephone"
-    K_KEYWORD_telephone,
-#define _KEYWORD_measurement          "measurement"
-    K_KEYWORD_measurement,
-#define _KEYWORD_identification       "identification"
-    K_KEYWORD_identification,
+#define _KW_HVML_SPEC_VERSION    "HVML_SPEC_VERSION"
+    K_KW_HVML_SPEC_VERSION,
+#define _KW_HVML_SPEC_RELEASE    "HVML_SPEC_RELEASE"
+    K_KW_HVML_SPEC_RELEASE,
+#define _KW_HVML_PREDEF_VARS_SPEC_VERSION    "HVML_PREDEF_VARS_SPEC_VERSION"
+    K_KW_HVML_PREDEF_VARS_SPEC_VERSION,
+#define _KW_HVML_PREDEF_VARS_SPEC_RELEASE    "HVML_PREDEF_VARS_SPEC_RELEASE"
+    K_KW_HVML_PREDEF_VARS_SPEC_RELEASE,
+#define _KW_HVML_INTRPR_NAME     "HVML_INTRPR_NAME"
+    K_KW_HVML_INTRPR_NAME,
+#define _KW_HVML_INTRPR_VERSION  "HVML_INTRPR_VERSION"
+    K_KW_HVML_INTRPR_VERSION,
+#define _KW_HVML_INTRPR_RELEASE  "HVML_INTRPR_RELEASE"
+    K_KW_HVML_INTRPR_RELEASE,
+#define _KW_all                  "all"
+    K_KW_all,
+#define _KW_default              "default"
+    K_KW_default,
+#define _KW_kernel_name          "kernel-name"
+    K_KW_kernel_name,
+#define _KW_kernel_release       "kernel-release"
+    K_KW_kernel_release,
+#define _KW_kernel_version       "kernel-version"
+    K_KW_kernel_version,
+#define _KW_nodename             "nodename"
+    K_KW_nodename,
+#define _KW_machine              "machine"
+    K_KW_machine,
+#define _KW_processor            "processor"
+    K_KW_processor,
+#define _KW_hardware_platform    "hardware-platform"
+    K_KW_hardware_platform,
+#define _KW_operating_system     "operating-system"
+    K_KW_operating_system,
+#define _KW_ctype                "ctype"
+    K_KW_ctype,
+#define _KW_numeric              "numeric"
+    K_KW_numeric,
+#define _KW_time                 "time"
+    K_KW_time,
+#define _KW_collate              "collate"
+    K_KW_collate,
+#define _KW_monetary             "monetary"
+    K_KW_monetary,
+#define _KW_messsages            "messsages"
+    K_KW_messsages,
+#define _KW_paper                "paper"
+    K_KW_paper,
+#define _KW_name                 "name"
+    K_KW_name,
+#define _KW_address              "address"
+    K_KW_address,
+#define _KW_telephone            "telephone"
+    K_KW_telephone,
+#define _KW_measurement          "measurement"
+    K_KW_measurement,
+#define _KW_identification       "identification"
+    K_KW_identification,
 };
 
 static struct keyword_to_atom {
     const char *keyword;
     purc_atom_t atom;
 } keywords2atoms [] = {
-    { _KEYWORD_HVML_SPEC_VERSION, 0 },      // "HVML_SPEC_VERSION"
-    { _KEYWORD_HVML_SPEC_RELEASE, 0 },      // "HVML_SPEC_RELEASE"
-    { _KEYWORD_HVML_PREDEF_VARS_SPEC_VERSION, 0 }, // "HVML_PREDEF_VARS_SPEC_VERSION"
-    { _KEYWORD_HVML_PREDEF_VARS_SPEC_RELEASE, 0 }, // "HVML_PREDEF_VARS_SPEC_RELEASE"
-    { _KEYWORD_HVML_INTRPR_NAME, 0 },       // "HVML_INTRPR_NAME"
-    { _KEYWORD_HVML_INTRPR_VERSION, 0 },    // "HVML_INTRPR_VERSION"
-    { _KEYWORD_HVML_INTRPR_RELEASE, 0 },    // "HVML_INTRPR_RELEASE"
-    { _KEYWORD_all, 0 },                    // "all"
-    { _KEYWORD_default, 0 },                // "default"
-    { _KEYWORD_kernel_name, 0 },            // "kernel-name"
-    { _KEYWORD_kernel_release, 0 },         // "kernel-release"
-    { _KEYWORD_kernel_version, 0 },         // "kernel-version"
-    { _KEYWORD_nodename, 0 },               // "nodename"
-    { _KEYWORD_machine, 0 },                // "machine"
-    { _KEYWORD_processor, 0 },              // "processor"
-    { _KEYWORD_hardware_platform, 0 },      // "hardware-platform"
-    { _KEYWORD_operating_system, 0 },       // "operating-system"
-    { _KEYWORD_ctype, 0 },                  // "ctype"
-    { _KEYWORD_numeric, 0 },                // "numeric"
-    { _KEYWORD_time, 0 },                   // "time"
-    { _KEYWORD_collate, 0 },                // "collate"
-    { _KEYWORD_monetary, 0 },               // "monetary"
-    { _KEYWORD_messsages, 0 },              // "messsages"
-    { _KEYWORD_paper, 0 },                  // "paper"
-    { _KEYWORD_name, 0 },                   // "name"
-    { _KEYWORD_address, 0 },                // "address"
-    { _KEYWORD_telephone, 0 },              // "telephone"
-    { _KEYWORD_measurement, 0 },            // "measurement"
-    { _KEYWORD_identification, 0 },         // "identification"
+    { _KW_HVML_SPEC_VERSION, 0 },      // "HVML_SPEC_VERSION"
+    { _KW_HVML_SPEC_RELEASE, 0 },      // "HVML_SPEC_RELEASE"
+    { _KW_HVML_PREDEF_VARS_SPEC_VERSION, 0 }, // "HVML_PREDEF_VARS_SPEC_VERSION"
+    { _KW_HVML_PREDEF_VARS_SPEC_RELEASE, 0 }, // "HVML_PREDEF_VARS_SPEC_RELEASE"
+    { _KW_HVML_INTRPR_NAME, 0 },       // "HVML_INTRPR_NAME"
+    { _KW_HVML_INTRPR_VERSION, 0 },    // "HVML_INTRPR_VERSION"
+    { _KW_HVML_INTRPR_RELEASE, 0 },    // "HVML_INTRPR_RELEASE"
+    { _KW_all, 0 },                    // "all"
+    { _KW_default, 0 },                // "default"
+    { _KW_kernel_name, 0 },            // "kernel-name"
+    { _KW_kernel_release, 0 },         // "kernel-release"
+    { _KW_kernel_version, 0 },         // "kernel-version"
+    { _KW_nodename, 0 },               // "nodename"
+    { _KW_machine, 0 },                // "machine"
+    { _KW_processor, 0 },              // "processor"
+    { _KW_hardware_platform, 0 },      // "hardware-platform"
+    { _KW_operating_system, 0 },       // "operating-system"
+    { _KW_ctype, 0 },                  // "ctype"
+    { _KW_numeric, 0 },                // "numeric"
+    { _KW_time, 0 },                   // "time"
+    { _KW_collate, 0 },                // "collate"
+    { _KW_monetary, 0 },               // "monetary"
+    { _KW_messsages, 0 },              // "messsages"
+    { _KW_paper, 0 },                  // "paper"
+    { _KW_name, 0 },                   // "name"
+    { _KW_address, 0 },                // "address"
+    { _KW_telephone, 0 },              // "telephone"
+    { _KW_measurement, 0 },            // "measurement"
+    { _KW_identification, 0 },         // "identification"
 };
 
 static purc_variant_t
@@ -167,19 +167,19 @@ const_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     purc_variant_t retv = PURC_VARIANT_INVALID;
-    if (atom == keywords2atoms[K_KEYWORD_HVML_SPEC_VERSION].atom)
+    if (atom == keywords2atoms[K_KW_HVML_SPEC_VERSION].atom)
         retv = purc_variant_make_string_static(HVML_SPEC_VERSION, false);
-    else if (atom == keywords2atoms[K_KEYWORD_HVML_SPEC_RELEASE].atom)
+    else if (atom == keywords2atoms[K_KW_HVML_SPEC_RELEASE].atom)
         retv = purc_variant_make_string_static(HVML_SPEC_RELEASE, false);
-    else if (atom == keywords2atoms[K_KEYWORD_HVML_PREDEF_VARS_SPEC_VERSION].atom)
+    else if (atom == keywords2atoms[K_KW_HVML_PREDEF_VARS_SPEC_VERSION].atom)
         retv = purc_variant_make_string_static(HVML_PREDEF_VARS_SPEC_VERSION, false);
-    else if (atom == keywords2atoms[K_KEYWORD_HVML_PREDEF_VARS_SPEC_RELEASE].atom)
+    else if (atom == keywords2atoms[K_KW_HVML_PREDEF_VARS_SPEC_RELEASE].atom)
         retv = purc_variant_make_string_static(HVML_PREDEF_VARS_SPEC_RELEASE, false);
-    else if (atom == keywords2atoms[K_KEYWORD_HVML_INTRPR_NAME].atom)
+    else if (atom == keywords2atoms[K_KW_HVML_INTRPR_NAME].atom)
         retv = purc_variant_make_string_static(HVML_INTRPR_NAME, false);
-    else if (atom == keywords2atoms[K_KEYWORD_HVML_INTRPR_VERSION].atom)
+    else if (atom == keywords2atoms[K_KW_HVML_INTRPR_VERSION].atom)
         retv = purc_variant_make_string_static(HVML_INTRPR_VERSION, false);
-    else if (keywords2atoms[K_KEYWORD_HVML_INTRPR_RELEASE].atom)
+    else if (keywords2atoms[K_KW_HVML_INTRPR_RELEASE].atom)
         retv = purc_variant_make_string_static(HVML_INTRPR_RELEASE, false);
     else {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
@@ -258,7 +258,7 @@ uname_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     if (val == PURC_VARIANT_INVALID)
         goto fatal;
     if (!purc_variant_object_set_by_static_ckey(retv,
-                _KEYWORD_kernel_name, val))
+                _KW_kernel_name, val))
         goto fatal;
     purc_variant_unref(val);
 
@@ -266,7 +266,7 @@ uname_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     if (val == PURC_VARIANT_INVALID)
         goto fatal;
     if (!purc_variant_object_set_by_static_ckey(retv,
-                _KEYWORD_nodename, val))
+                _KW_nodename, val))
         goto fatal;
     purc_variant_unref(val);
 
@@ -274,7 +274,7 @@ uname_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     if (val == PURC_VARIANT_INVALID)
         goto fatal;
     if (!purc_variant_object_set_by_static_ckey(retv,
-                _KEYWORD_kernel_release, val))
+                _KW_kernel_release, val))
         goto fatal;
     purc_variant_unref(val);
 
@@ -282,7 +282,7 @@ uname_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     if (val == PURC_VARIANT_INVALID)
         goto fatal;
     if (!purc_variant_object_set_by_static_ckey(retv,
-                _KEYWORD_kernel_version, val))
+                _KW_kernel_version, val))
         goto fatal;
     purc_variant_unref(val);
 
@@ -290,13 +290,13 @@ uname_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     if (val == PURC_VARIANT_INVALID)
         goto fatal;
     if (!purc_variant_object_set_by_static_ckey(retv,
-                _KEYWORD_machine, val))
+                _KW_machine, val))
         goto fatal;
     if (!purc_variant_object_set_by_static_ckey(retv,
-                _KEYWORD_processor, val))
+                _KW_processor, val))
         goto fatal;
     if (!purc_variant_object_set_by_static_ckey(retv,
-                _KEYWORD_hardware_platform, val))
+                _KW_hardware_platform, val))
         goto fatal;
     purc_variant_unref(val);
 
@@ -305,7 +305,7 @@ uname_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     if (val == PURC_VARIANT_INVALID)
         goto fatal;
     if (!purc_variant_object_set_by_static_ckey(retv,
-                _KEYWORD_operating_system, val))
+                _KW_operating_system, val))
         goto fatal;
     purc_variant_unref(val);
 
@@ -348,12 +348,12 @@ uname_prt_getter(purc_variant_t root,
         }
 
         parts = pcutils_trim_spaces(str, &parts_len);
-        if (parts_len == 0 || parts_len > LEN_MAX_KEYWORD) {
-            atom = keywords2atoms[K_KEYWORD_default].atom;
+        if (parts_len == 0 || parts_len > LEN_MAX_KW) {
+            atom = keywords2atoms[K_KW_default].atom;
         }
     }
     else {
-        atom = keywords2atoms[K_KEYWORD_default].atom;
+        atom = keywords2atoms[K_KW_default].atom;
     }
 
     if (uname(&name) < 0) {
@@ -373,7 +373,7 @@ uname_prt_getter(purc_variant_t root,
     }
 
     size_t nr_wrotten = 0;
-    if (atom == keywords2atoms[K_KEYWORD_all].atom) {
+    if (atom == keywords2atoms[K_KW_all].atom) {
         size_t len_part = 0;
 
         // kernel-name
@@ -421,7 +421,7 @@ uname_prt_getter(purc_variant_t root,
         purc_rwstream_write(rwstream, _OS_NAME, len_part);
         nr_wrotten += len_part;
     }
-    else if (atom == keywords2atoms[K_KEYWORD_default].atom) {
+    else if (atom == keywords2atoms[K_KW_default].atom) {
         // kernel-name
         nr_wrotten = strlen(name.sysname);
         purc_rwstream_write(rwstream, name.sysname, nr_wrotten);
@@ -433,8 +433,8 @@ uname_prt_getter(purc_variant_t root,
         do {
             size_t len_part = 0;
 
-            if (length == 0 || length > LEN_MAX_KEYWORD) {
-                atom = keywords2atoms[K_KEYWORD_kernel_name].atom;
+            if (length == 0 || length > LEN_MAX_KW) {
+                atom = keywords2atoms[K_KW_kernel_name].atom;
             }
             else {
                 /* TODO: use strndupa if it is available */
@@ -443,49 +443,49 @@ uname_prt_getter(purc_variant_t root,
                 free(tmp);
             }
 
-            if (atom == keywords2atoms[K_KEYWORD_kernel_name].atom) {
+            if (atom == keywords2atoms[K_KW_kernel_name].atom) {
                 // kernel-name
                 len_part = strlen(name.sysname);
                 purc_rwstream_write(rwstream, name.sysname, len_part);
                 nr_wrotten += len_part;
             }
-            else if (atom == keywords2atoms[K_KEYWORD_nodename].atom) {
+            else if (atom == keywords2atoms[K_KW_nodename].atom) {
                 // nodename
                 len_part = strlen(name.nodename);
                 purc_rwstream_write(rwstream, name.nodename, len_part);
                 nr_wrotten += len_part;
             }
-            else if (atom == keywords2atoms[K_KEYWORD_kernel_release].atom) {
+            else if (atom == keywords2atoms[K_KW_kernel_release].atom) {
                 // kernel-release
                 len_part = strlen(name.release);
                 purc_rwstream_write(rwstream, name.release, len_part);
                 nr_wrotten += len_part;
             }
-            else if (atom == keywords2atoms[K_KEYWORD_kernel_version].atom) {
+            else if (atom == keywords2atoms[K_KW_kernel_version].atom) {
                 // kernel-version
                 len_part = strlen(name.version);
                 purc_rwstream_write(rwstream, name.version, len_part);
                 nr_wrotten += len_part;
             }
-            else if (atom == keywords2atoms[K_KEYWORD_machine].atom) {
+            else if (atom == keywords2atoms[K_KW_machine].atom) {
                 // machine
                 len_part = strlen(name.machine);
                 purc_rwstream_write(rwstream, name.machine, len_part);
                 nr_wrotten += len_part;
             }
-            else if (atom == keywords2atoms[K_KEYWORD_processor].atom) {
+            else if (atom == keywords2atoms[K_KW_processor].atom) {
                 // processor
                 len_part = strlen(name.machine);
                 purc_rwstream_write(rwstream, name.machine, len_part);
                 nr_wrotten += len_part;
             }
-            else if (atom == keywords2atoms[K_KEYWORD_hardware_platform].atom) {
+            else if (atom == keywords2atoms[K_KW_hardware_platform].atom) {
                 // hardware-platform
                 len_part = strlen(name.machine);
                 purc_rwstream_write(rwstream, name.machine, len_part);
                 nr_wrotten += len_part;
             }
-            else if (atom == keywords2atoms[K_KEYWORD_operating_system].atom) {
+            else if (atom == keywords2atoms[K_KW_operating_system].atom) {
                 // operating-system
                 len_part = sizeof(_OS_NAME) - 1;
                 purc_rwstream_write(rwstream, _OS_NAME, len_part);
@@ -629,8 +629,8 @@ failed:
     return PURC_VARIANT_INVALID;
 }
 
-#define _KEYNAME_sec   "sec"
-#define _KEYNAME_usec  "usec"
+#define _KN_sec   "sec"
+#define _KN_usec  "usec"
 
 static purc_variant_t
 time_us_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
@@ -655,7 +655,7 @@ time_us_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     if (val == PURC_VARIANT_INVALID)
         goto fatal;
     if (!purc_variant_object_set_by_static_ckey(retv,
-                _KEYNAME_sec, val))
+                _KN_sec, val))
         goto fatal;
     purc_variant_unref(val);
 
@@ -663,7 +663,7 @@ time_us_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     if (val == PURC_VARIANT_INVALID)
         goto fatal;
     if (!purc_variant_object_set_by_static_ckey(retv,
-                _KEYNAME_usec, val))
+                _KN_usec, val))
         goto fatal;
     purc_variant_unref(val);
     return retv;
@@ -694,9 +694,9 @@ time_us_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     if (purc_variant_get_type(argv[0]) == PURC_VARIANT_TYPE_NUMBER) {
         purc_variant_t v1 = purc_variant_object_get_by_ckey(argv[0],
-                _KEYNAME_sec, false);
+                _KN_sec, false);
         purc_variant_t v2 = purc_variant_object_get_by_ckey(argv[0],
-                _KEYNAME_usec, false);
+                _KN_usec, false);
 
         if (v1 == PURC_VARIANT_INVALID || v2 == PURC_VARIANT_INVALID) {
             purc_set_error(PURC_ERROR_INVALID_VALUE);
