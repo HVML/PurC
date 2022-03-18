@@ -2811,7 +2811,7 @@ BEGIN_STATE(EJSON_JSONEE_KEYWORD_STATE)
         APPEND_TO_TEMP_BUFFER(character);
         ADVANCE_TO(EJSON_JSONEE_KEYWORD_STATE);
     }
-    if (is_whitespace(character) || character == '[' ||
+    if (is_eof(character) || is_whitespace(character) || character == '[' ||
             character == '(' || character == '<' || character == '}' ||
             character == '$' || character == '>' || character == ']'
             || character == ')' || character == ':') {
