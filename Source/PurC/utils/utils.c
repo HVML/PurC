@@ -291,6 +291,39 @@ pcutils_trim_blanks(const char *str, size_t *sz_io)
     return start;
 }
 
+const char*
+pcutils_trim_spaces(const char *str, size_t *sz_io)
+{
+    const char *head = str;
+    const char *tail = str + *sz_io;
+
+    const char *start = head;
+    while ((start < tail) && isspace(*start))
+        ++start;
+    const char *end = tail;
+    while (end > start) {
+        if (!isspace(*(end-1)))
+            break;
+        --end;
+    }
+
+    *sz_io = end - start;
+    return start;
+}
+
+bool
+pcutils_contains_graph(const char *str)
+{
+    while (*str) {
+        if (isgraph(*str))
+            return true;
+
+        str++;
+    }
+
+    return false;
+}
+
 const char *
 pcutils_get_next_token(const char *data, const char *delims, size_t *length)
 {
@@ -301,8 +334,7 @@ pcutils_get_next_token(const char *data, const char *delims, size_t *length)
         return NULL;
 
     *length = 0;
-
-    while (*data != 0x00) {
+    while (*data) {
         temp = strchr(delims, *data);
         if (temp) {
             if (head == data) {
@@ -323,6 +355,38 @@ pcutils_get_next_token(const char *data, const char *delims, size_t *length)
 
 const char *
 pcutils_get_next_token_len(const char *data, size_t str_len,
+        const char *delims, size_t *length)
+{
+    const char *head = data;
+    char *temp = NULL;
+
+    if ((delims == NULL) || (data == NULL) || (*delims == 0x00) ||
+            (str_len == 0))
+        return NULL;
+
+    *length = 0;
+    while (str_len && *data) {
+        temp = strchr(delims, *data);
+        if (temp) {
+            if (head == data) {
+                head = data + 1;
+            }
+            else
+                break;
+        }
+        data++;
+        str_len--;
+    }
+
+    *length = data - head;
+    if (*length == 0)
+        head = NULL;
+
+    return head;
+}
+
+const char *
+pcutils_get_prev_token(const char *data, size_t str_len,
         const char *delims, size_t *length)
 {
     const char *head = NULL;
@@ -355,19 +419,6 @@ pcutils_get_next_token_len(const char *data, size_t str_len,
         head = data + str_len;
 
     return head;
-}
-
-bool
-pcutils_is_meaningful_string(const char *str)
-{
-    while (*str) {
-        if (*str > 0x20)
-            return true;
-
-        str++;
-    }
-
-    return false;
 }
 
 static const char *json_hex_chars = "0123456789abcdefABCDEF";

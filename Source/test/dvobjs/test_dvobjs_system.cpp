@@ -321,13 +321,13 @@ TEST(dvobjs, uname_ptr)
             "$SYSTEM.uname_prt('hardware-platform')",
             get_system_uname, NULL },
         { "uname -o",
-            "$SYSTEM.uname_prt['operating-system']",
+            "$SYSTEM.uname_prt['  operating-system  ']",
             get_system_uname, NULL },
         { "uname -a",
-            "$SYSTEM.uname_prt('all')",
+            "$SYSTEM.uname_prt('  all ')",
             get_system_uname, NULL },
         { "uname",
-            "$SYSTEM.uname_prt('default')",
+            "$SYSTEM.uname_prt('\ndefault\t ')",
             get_system_uname, NULL },
         { "uname -s -r -v",
             "$SYSTEM.uname_prt(' kernel-name \t\nkernel-release \t\nkernel-version')",
@@ -374,6 +374,10 @@ TEST(dvobjs, uname_ptr)
                 ASSERT_EQ(test_cases[i].vrtcmp(result, expected), true);
             }
             else {
+                purc_log_error("result: %s\n",
+                        purc_variant_get_string_const(result));
+                purc_log_error("expected: %s\n",
+                        purc_variant_get_string_const(expected));
                 ASSERT_EQ(purc_variant_is_equal_to(result, expected), true);
             }
 
