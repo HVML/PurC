@@ -558,6 +558,54 @@ time_getter(purc_variant_t root,size_t nr_args, purc_variant_t *argv,
     return purc_variant_make_ulongint((uint64_t)t_time);
 }
 
+static bool cast_to_timeval(struct timeval *timeval, purc_variant_t t)
+{
+    switch (purc_variant_get_type(t)) {
+    case PURC_VARIANT_TYPE_NUMBER:
+    {
+        double time_d, sec_d, usec_d;
+
+        purc_variant_cast_to_number(t, &time_d, false);
+        if (isinf(time_d) || isnan(time_d) || time_d < 0.0) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            goto failed;
+        }
+
+        usec_d = modf(time_d, &sec_d);
+        timeval->tv_sec = (time_t)sec_d;
+        timeval->tv_usec = (suseconds_t)(usec_d * 1000000.0);
+        break;
+    }
+
+    case PURC_VARIANT_TYPE_LONGINT:
+    case PURC_VARIANT_TYPE_ULONGINT:
+    case PURC_VARIANT_TYPE_LONGDOUBLE:
+    {
+        long double time_d, sec_d, usec_d;
+        purc_variant_cast_to_long_double(t, &time_d, false);
+
+        if (isinf(time_d) || isnan(time_d) || time_d < 0.0L) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            goto failed;
+        }
+
+        usec_d = modfl(time_d, &sec_d);
+        timeval->tv_sec = (time_t)sec_d;
+        timeval->tv_usec = (suseconds_t)(usec_d * 1000000.0);
+        break;
+    }
+
+    default:
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    return true;
+
+failed:
+    return false;
+}
+
 static purc_variant_t
 time_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
@@ -572,44 +620,8 @@ time_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto failed;
     }
 
-    switch (purc_variant_get_type(argv[0])) {
-        case PURC_VARIANT_TYPE_NUMBER:
-        {
-            double time_d, sec_d, usec_d;
-
-            purc_variant_cast_to_number(argv[0], &time_d, false);
-            if (isfinite(time_d) || isnan(time_d) || time_d < 0.0) {
-                purc_set_error(PURC_ERROR_INVALID_VALUE);
-                goto failed;
-            }
-
-            usec_d = modf(time_d, &sec_d);
-            timeval.tv_sec = (time_t)sec_d;
-            timeval.tv_usec = (suseconds_t)(usec_d * 1000000.0);
-            break;
-        }
-
-        case PURC_VARIANT_TYPE_LONGINT:
-        case PURC_VARIANT_TYPE_ULONGINT:
-        case PURC_VARIANT_TYPE_LONGDOUBLE:
-        {
-            long double time_d, sec_d, usec_d;
-            purc_variant_cast_to_long_double(argv[0], &time_d, false);
-
-            if (isfinite(time_d) || isnan(time_d) || time_d < 0.0L) {
-                purc_set_error(PURC_ERROR_INVALID_VALUE);
-                goto failed;
-            }
-
-            usec_d = modfl(time_d, &sec_d);
-            timeval.tv_sec = (time_t)sec_d;
-            timeval.tv_usec = (suseconds_t)(usec_d * 1000000.0);
-            break;
-        }
-
-        default:
-            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-            goto failed;
+    if (!cast_to_timeval(&timeval, argv[0])) {
+        goto failed;
     }
 
     if (settimeofday(&timeval, NULL)) {
@@ -648,15 +660,22 @@ time_us_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(argv);
     UNUSED_PARAM(silently);
 
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+
+    if (nr_args == 0 || purc_variant_booleanize(argv[0])) {
+        long double time_ld = (long double)tv.tv_sec;
+        time_ld += tv.tv_usec/1000000.0L;
+
+        return purc_variant_make_longdouble(time_ld);
+    }
+
     // create an empty object
     purc_variant_t retv = purc_variant_make_object(0,
             PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
     if (retv == PURC_VARIANT_INVALID) {
         goto fatal;
     }
-
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
 
     purc_variant_t val = purc_variant_make_ulongint((uint64_t)tv.tv_sec);
     if (val == PURC_VARIANT_INVALID)
@@ -699,7 +718,7 @@ time_us_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto failed;
     }
 
-    if (purc_variant_get_type(argv[0]) == PURC_VARIANT_TYPE_NUMBER) {
+    if (purc_variant_get_type(argv[0]) == PURC_VARIANT_TYPE_OBJECT) {
         purc_variant_t v1 = purc_variant_object_get_by_ckey(argv[0],
                 _KN_sec, false);
         purc_variant_t v2 = purc_variant_object_get_by_ckey(argv[0],
@@ -716,16 +735,18 @@ time_us_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             goto failed;
         }
     }
-    else if (nr_args >= 2) {
-        if (!purc_variant_cast_to_ulongint(argv[0], &ul_sec, false) ||
-                !purc_variant_cast_to_ulongint(argv[1], &ul_usec, false)) {
-            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+    else {
+        long double time_d, sec_d, usec_d;
+        purc_variant_cast_to_long_double(argv[0], &time_d, false);
+
+        if (isinf(time_d) || isnan(time_d) || time_d < 0.0L) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
             goto failed;
         }
-    }
-    else {
-        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
-        goto failed;
+
+        usec_d = modfl(time_d, &sec_d);
+        ul_sec = (uint64_t)sec_d;
+        ul_usec = (uint64_t)(usec_d * 1000000.0);
     }
 
     if (ul_usec > 999999) {
@@ -1057,13 +1078,13 @@ timezone_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto failed;
     }
 
-    switch(purc_variant_get_type(argv[0])) {
+    switch (purc_variant_get_type(argv[0])) {
         case PURC_VARIANT_TYPE_NUMBER:
         {
             double time_d, sec_d, usec_d;
 
             purc_variant_cast_to_number(argv[0], &time_d, false);
-            if (isfinite(time_d) || isnan(time_d) || time_d < 0.0) {
+            if (isinf(time_d) || isnan(time_d) || time_d < 0.0) {
                 purc_set_error(PURC_ERROR_INVALID_VALUE);
                 goto failed;
             }
@@ -1081,7 +1102,7 @@ timezone_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             long double time_d, sec_d, usec_d;
             purc_variant_cast_to_long_double(argv[0], &time_d, false);
 
-            if (isfinite(time_d) || isnan(time_d) || time_d < 0.0L) {
+            if (isinf(time_d) || isnan(time_d) || time_d < 0.0L) {
                 purc_set_error(PURC_ERROR_INVALID_VALUE);
                 goto failed;
             }
