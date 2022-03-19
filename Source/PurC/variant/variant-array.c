@@ -299,6 +299,7 @@ variant_arr_set(purc_variant_t array, size_t idx, purc_variant_t val,
         }
         // FIXME: recoverable?
         PC_ASSERT(r == 0);
+        pcvar_adjust_set_by_descendant(array);
     }
     else {
         struct arr_node *node = old_node;
