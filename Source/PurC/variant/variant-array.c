@@ -148,6 +148,67 @@ variant_arr_make_pos(variant_arr_t data, size_t idx)
     return purc_variant_make_longint(idx);
 }
 
+static struct arr_node*
+arr_node_create(purc_variant_t val)
+{
+    struct arr_node *node;
+    node = (struct arr_node*)calloc(1, sizeof(*node));
+    if (!node) {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return NULL;
+    }
+
+    node->val = val;
+    purc_variant_ref(val);
+
+    return node;
+}
+
+static void
+break_rev_update_chain(purc_variant_t arr, struct arr_node *node)
+{
+#if PURC_SET_CONSTRAINT_WITH_CLONE == 1
+    if (!pcvar_container_belongs_to_set(arr))
+        return;
+#endif
+
+    struct pcvar_rev_update_edge edge = {
+        .parent        = arr,
+        .arr_me        = node,
+    };
+
+    pcvar_break_edge_to_parent(node->val, &edge);
+    pcvar_break_rue_downward(node->val);
+}
+
+static int
+build_rev_update_chain(purc_variant_t arr, struct arr_node *node)
+{
+#if PURC_SET_CONSTRAINT_WITH_CLONE == 1
+    if (!pcvar_container_belongs_to_set(arr))
+        return 0;
+#endif
+
+    int r;
+
+    struct pcvar_rev_update_edge edge = {
+        .parent        = arr,
+        .arr_me        = node,
+    };
+
+    r = pcvar_build_edge_to_parent(node->val, &edge);
+    if (r == 0) {
+        r = pcvar_build_rue_downward(node->val);
+    }
+    if (r) {
+        pcvar_break_edge_to_parent(node->val, &edge);
+        pcvar_break_rue_downward(node->val);
+        return -1;
+    }
+
+    return 0;
+}
+
 static int
 variant_arr_insert_before(purc_variant_t array, size_t idx, purc_variant_t val,
         bool check)
@@ -157,64 +218,65 @@ variant_arr_insert_before(purc_variant_t array, size_t idx, purc_variant_t val,
         return 0;
     }
 
+    variant_arr_t data = pcvar_arr_get_data(array);
+    PC_ASSERT(data);
+
+    struct pcutils_array_list *al = &data->al;
+    PC_ASSERT(al);
+
+    size_t nr = pcutils_array_list_length(al);
+    if (idx > nr)
+        idx = nr;
+
+#if PURC_SET_CONSTRAINT_WITH_CLONE == 1
     if (pcvar_container_belongs_to_set(val)) {
         purc_set_error_with_info(PURC_ERROR_NOT_SUPPORTED,
                 "add subchildren of set's uniqkey-val to other container");
         return -1;
     }
+#endif
 
-    variant_arr_t data = pcvar_arr_get_data(array);
     purc_variant_t pos = variant_arr_make_pos(data, idx);
     if (pos == PURC_VARIANT_INVALID)
         return -1;
 
-    if (!grow(array, pos, val, check)) {
-        purc_variant_unref(pos);
-        return -1;
-    }
+    struct arr_node *node = NULL;
 
-    struct arr_node *node;
-    node = (struct arr_node*)calloc(1, sizeof(*node));
-    if (!node) {
-        purc_variant_unref(pos);
-        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return -1;
-    }
-    node->val = val;
-    purc_variant_ref(val);
+    do {
+        if (!grow(array, pos, val, check))
+            break;
 
-    struct pcutils_array_list *al = &data->al;
-    int r = pcutils_array_list_insert_before(al, idx, &node->node);
-    if (r) {
-        arr_node_destroy(node);
-        purc_variant_unref(pos);
-        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return -1;
-    }
+        node = arr_node_create(val);
+        if (!node)
+            break;
 
-    if (pcvar_container_belongs_to_set(array)) {
-        struct pcvar_rev_update_edge edge = {
-            .parent        = array,
-            .arr_me        = node,
-        };
-        r = pcvar_build_edge_to_parent(val, &edge);
-        if (r == 0) {
-            r = pcvar_build_rue_downward(val);
-        }
+        int r;
+        r = pcutils_array_list_insert_before(al, idx, &node->node);
         if (r) {
-            pcvar_break_edge_to_parent(node->val, &edge);
-            pcvar_break_rue_downward(node->val);
-            arr_node_destroy(node);
-            purc_variant_unref(pos);
-            pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
-            return -1;
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            break;
         }
-    }
 
-    grown(array, pos, val, check);
+        if (build_rev_update_chain(array, node)) {
+            struct pcutils_array_list_node *p;
+            r = pcutils_array_list_remove(al, idx, &p);
+            PC_ASSERT(r == 0);
+            PC_ASSERT(&node->node == p);
+            break;
+        }
+
+        pcvar_adjust_set_by_descendant(array);
+
+        grown(array, pos, val, check);
+        purc_variant_unref(pos);
+
+        return 0;
+    } while (0);
+
+    arr_node_destroy(node);
     purc_variant_unref(pos);
 
-    return 0;
+    return -1;
 }
 
 static int
@@ -253,67 +315,63 @@ variant_arr_set(purc_variant_t array, size_t idx, purc_variant_t val,
         bool check)
 {
     variant_arr_t data = pcvar_arr_get_data(array);
+    PC_ASSERT(data);
+
     struct pcutils_array_list *al = &data->al;
-    struct pcutils_array_list_node *p;
-    p = pcutils_array_list_get(al, idx);
-    if (p == NULL) {
-        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+    PC_ASSERT(al);
+
+    size_t nr = pcutils_array_list_length(al);
+    if (idx >= nr) {
+        purc_set_error(PURC_ERROR_OVERFLOW);
         return -1;
     }
+
+    struct pcutils_array_list_node *p;
+    p = pcutils_array_list_get(al, idx);
+    PC_ASSERT(p);
+
     struct arr_node *old_node;
     old_node = (struct arr_node*)container_of(p, struct arr_node, node);
     PC_ASSERT(old_node->val != PURC_VARIANT_INVALID);
-    if (old_node->val == val)
+    if (old_node->val == val) {
+        // NOTE: keep refc intact
         return 0;
+    }
 
     purc_variant_t pos = variant_arr_make_pos(data, idx);
     if (pos == PURC_VARIANT_INVALID)
         return -1;
 
-    purc_variant_t old = old_node->val;
+    do {
+        purc_variant_t old = old_node->val;
 
-    if (!change(array, pos, old, val, check)) {
-        purc_variant_unref(pos);
-        return -1;
-    }
+        if (!change(array, pos, old, val, check))
+            break;
 
-    if (pcvar_container_belongs_to_set(array)) {
-        struct pcvar_rev_update_edge edge = {
-            .parent        = array,
-            .arr_me        = old_node,
-        };
-        pcvar_break_edge_to_parent(old, &edge);
-        pcvar_break_rue_downward(old);
-
-        struct arr_node *node = old_node;
-        old_node = NULL;
-
-        node->val = val;
-        purc_variant_ref(val);
-
-        edge.parent = array;
-        edge.arr_me = node;
-        int r = pcvar_build_edge_to_parent(node->val, &edge);
-        if (r == 0) {
-            r = pcvar_build_rue_downward(node->val);
+        old_node->val = val;
+        if (build_rev_update_chain(array, old_node)) {
+            old_node->val = old;
+            break;
         }
-        // FIXME: recoverable?
-        PC_ASSERT(r == 0);
+
+        old_node->val = old;
+        break_rev_update_chain(array, old_node);
+
+        old_node->val = purc_variant_ref(val);
+
         pcvar_adjust_set_by_descendant(array);
-    }
-    else {
-        struct arr_node *node = old_node;
-        old_node = NULL;
 
-        node->val = val;
-        purc_variant_ref(val);
-    }
+        changed(array, pos, old, val, check);
 
-    changed(array, pos, old, val, check);
+        purc_variant_unref(old);
+        purc_variant_unref(pos);
+
+        return 0;
+    } while (0);
+
     purc_variant_unref(pos);
-    purc_variant_unref(old);
 
-    return 0;
+    return -1;
 }
 
 static int
@@ -321,46 +379,52 @@ variant_arr_remove(purc_variant_t array, size_t idx,
         bool check)
 {
     variant_arr_t data = pcvar_arr_get_data(array);
+    PC_ASSERT(data);
+
+    struct pcutils_array_list *al = &data->al;
+    PC_ASSERT(al);
+
+    size_t nr = pcutils_array_list_length(al);
+    if (idx >= nr) {
+        // FIXME: failure or success???
+        return 0;
+    }
+
     purc_variant_t pos = variant_arr_make_pos(data, idx);
     if (pos == PURC_VARIANT_INVALID)
         return -1;
 
-    struct pcutils_array_list *al = &data->al;
-
     struct pcutils_array_list_node *p, *n;
     p = pcutils_array_list_get(al, idx);
-    if (!p) {
-        purc_variant_unref(pos);
-        pcinst_set_error(PURC_ERROR_OVERFLOW);
-        return -1;
-    }
+    PC_ASSERT(p);
 
     struct arr_node *node;
     node = (struct arr_node*)container_of(p, struct arr_node, node);
     PC_ASSERT(node->val);
 
-    if (!shrink(array, pos, node->val, check)) {
+    do {
+        if (!shrink(array, pos, node->val, check))
+            break;
+
+        break_rev_update_chain(array, node);
+
+        int r = pcutils_array_list_remove(al, idx, &n);
+        PC_ASSERT(r == 0);
+        PC_ASSERT(&node->node == n);
+
+        pcvar_adjust_set_by_descendant(array);
+
+        shrunk(array, pos, node->val, check);
+
+        arr_node_destroy(node);
         purc_variant_unref(pos);
-        return -1;
-    }
 
-    int r = pcutils_array_list_remove(al, idx, &n);
-    PC_ASSERT(r == 0);
-    PC_ASSERT(n == p);
+        return 0;
+    } while (0);
 
-    struct pcvar_rev_update_edge edge = {
-        .parent        = array,
-        .arr_me        = node,
-    };
-    pcvar_break_edge_to_parent(node->val, &edge);
-    pcvar_break_rue_downward(node->val);
-
-    shrunk(array, pos, node->val, check);
     purc_variant_unref(pos);
 
-    arr_node_destroy(node);
-
-    return 0;
+    return -1;
 }
 
 static inline void

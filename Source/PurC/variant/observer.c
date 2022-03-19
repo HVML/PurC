@@ -246,6 +246,7 @@ pcvar_break_edge_to_parent(purc_variant_t val,
     }
 }
 
+#if PURC_SET_CONSTRAINT_WITH_CLONE == 1
 void
 pcvar_break_edge(purc_variant_t val,
         struct pcvar_rev_update_edge *edge_in_val,
@@ -309,6 +310,7 @@ pcvar_break_edge(purc_variant_t val,
             PC_ASSERT(0);
     }
 }
+#endif
 
 int
 pcvar_build_rue_downward(purc_variant_t val)
@@ -359,6 +361,7 @@ pcvar_build_edge_to_parent(purc_variant_t val,
     }
 }
 
+#if PURC_SET_CONSTRAINT_WITH_CLONE == 1
 int
 pcvar_build_edge(purc_variant_t val,
         struct pcvar_rev_update_edge *edge_in_val,
@@ -491,4 +494,5 @@ pcvar_top_in_rev_update_chain(purc_variant_t val)
         return PURC_VARIANT_INVALID;
     return top->parent;
 }
+#endif
 

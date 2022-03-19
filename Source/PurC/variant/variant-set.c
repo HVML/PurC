@@ -734,9 +734,11 @@ variant_set_create_kvs_n(variant_set_t set, purc_variant_t v1, va_list ap)
         if (purc_variant_is_undefined(v))
             continue;
 
+#if PURC_SET_CONSTRAINT_WITH_CLONE == 1
         if (pcvar_container_belongs_to_set(v)) {
             PC_ASSERT(0);
         }
+#endif
 
         const char *sk = set->keynames[i];
         bool ok;
@@ -1024,9 +1026,11 @@ variant_set_add_val(purc_variant_t set,
         return -1;
     }
 
+#if PURC_SET_CONSTRAINT_WITH_CLONE == 1
     if (pcvar_container_belongs_to_set(val)) {
         PC_ASSERT(0);
     }
+#endif
 
     if (insert_or_replace(set, data, val, overwrite, check))
         return -1;
@@ -1652,10 +1656,14 @@ pcvariant_set_clone(purc_variant_t set, bool recursively)
     // NOTE: keep document-order
     foreach_value_in_variant_set(set, v) {
         purc_variant_t val;
+#if PURC_SET_CONSTRAINT_WITH_CLONE == 1
         PC_ASSERT(pcvar_container_belongs_to_set(v));
+#endif
         if (recursively) {
             val = pcvariant_container_clone(v, recursively);
+#if PURC_SET_CONSTRAINT_WITH_CLONE == 1
             PC_ASSERT(pcvar_container_belongs_to_set(val) == false);
+#endif
         }
         else {
             val = purc_variant_ref(v);
@@ -2022,7 +2030,8 @@ pcvar_adjust_set_by_descendant(purc_variant_t val)
 {
     struct pcvar_rev_update_edge *top;
     top = pcvar_container_get_top_edge(val);
-    PC_ASSERT(top);
+    if (!top)
+        return;
 
     purc_variant_t set = top->parent;
     PC_ASSERT(set != PURC_VARIANT_INVALID);

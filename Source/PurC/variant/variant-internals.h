@@ -80,12 +80,25 @@ pcvar_set_get_data(purc_variant_t set) WTF_INTERNAL;
 void
 pcvar_adjust_set_by_descendant(purc_variant_t val) WTF_INTERNAL;
 
+#if PURC_SET_CONSTRAINT_WITH_CLONE == 1
 struct pcvar_rev_update_edge*
 pcvar_container_get_top_edge(purc_variant_t val) WTF_INTERNAL;
 bool
 pcvar_container_belongs_to_set(purc_variant_t val) WTF_INTERNAL;
 purc_variant_t
 pcvar_top_in_rev_update_chain(purc_variant_t val) WTF_INTERNAL;
+
+// break edge utility
+void
+pcvar_break_edge(purc_variant_t val,
+        struct pcvar_rev_update_edge *edge_in_val,
+        struct pcvar_rev_update_edge *edge);
+// build edge utility
+int
+pcvar_build_edge(purc_variant_t val,
+        struct pcvar_rev_update_edge *edge_in_val,
+        struct pcvar_rev_update_edge *edge);
+#endif
 
 purc_variant_t
 pcvariant_container_clone(purc_variant_t cntr, bool recursively) WTF_INTERNAL;
@@ -122,11 +135,6 @@ pcvar_object_break_edge_to_parent(purc_variant_t obj,
 void
 pcvar_set_break_edge_to_parent(purc_variant_t set,
         struct pcvar_rev_update_edge *edge);
-// break edge utility
-void
-pcvar_break_edge(purc_variant_t val,
-        struct pcvar_rev_update_edge *edge_in_val,
-        struct pcvar_rev_update_edge *edge);
 
 // build children's reverse update edges recursively
 int
@@ -148,11 +156,6 @@ pcvar_object_build_edge_to_parent(purc_variant_t obj,
         struct pcvar_rev_update_edge *edge);
 int
 pcvar_set_build_edge_to_parent(purc_variant_t set,
-        struct pcvar_rev_update_edge *edge);
-// build edge utility
-int
-pcvar_build_edge(purc_variant_t val,
-        struct pcvar_rev_update_edge *edge_in_val,
         struct pcvar_rev_update_edge *edge);
 
 struct obj_iterator {
