@@ -496,16 +496,52 @@ update_target_content(pcintr_stack_t stack, pcdom_element_t *target,
 }
 
 static int
+displace_target_attr(pcintr_stack_t stack, pcdom_element_t *target,
+        const char *at, purc_variant_t src,
+        pcintr_attribute_op with_eval)
+{
+    UNUSED_PARAM(stack);
+    PC_ASSERT(with_eval);
+    const char *origin;
+    size_t len;
+    origin = (const char*)pcdom_element_get_attribute(target,
+            (const unsigned char*)at, strlen(at), &len);
+    purc_variant_t v;
+    if (origin) {
+        purc_variant_t l = purc_variant_make_string_static(origin, true);
+        if (l == PURC_VARIANT_INVALID)
+            return -1;
+
+        v = with_eval(l, src);
+        purc_variant_unref(l);
+        if (v == PURC_VARIANT_INVALID)
+            return -1;
+    }
+    else {
+        v = purc_variant_ref(src);
+    }
+
+    const char *s = purc_variant_get_string_const(v);
+    if (!s) {
+        purc_variant_unref(v);
+        return -1;
+    }
+
+    int r;
+    r = pcintr_util_set_attribute(target, at, s);
+    purc_variant_unref(v);
+    return r ? -1 : 0;
+}
+
+static int
 update_target_attr(pcintr_stack_t stack, pcdom_element_t *target,
         const char *at, const char *to, purc_variant_t src,
         pcintr_attribute_op with_eval)
 {
     UNUSED_PARAM(stack);
     if (purc_variant_is_string(src)) {
-        const char *s = purc_variant_get_string_const(src);
         if (strcmp(to, "displace") == 0) {
-            UNUSED_PARAM(with_eval);
-            return pcintr_util_set_attribute(target, at, s);
+            return displace_target_attr(stack, target, at, src, with_eval);
         }
         PC_DEBUGX("to: %s", to);
         PC_ASSERT(0);
@@ -654,6 +690,7 @@ process_attr_to(struct pcintr_stack_frame *frame,
         struct pcvdom_element *element,
         purc_atom_t name, purc_variant_t val)
 {
+    PRINT_VARIANT(val);
     struct ctxt_for_update *ctxt;
     ctxt = (struct ctxt_for_update*)frame->ctxt;
     if (ctxt->to != PURC_VARIANT_INVALID) {
