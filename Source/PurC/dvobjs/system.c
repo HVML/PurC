@@ -737,7 +737,10 @@ time_us_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
     else {
         long double time_d, sec_d, usec_d;
-        purc_variant_cast_to_longdouble(argv[0], &time_d, false);
+        if (!purc_variant_cast_to_longdouble(argv[0], &time_d, false)) {
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            goto failed;
+        }
 
         if (isinf(time_d) || isnan(time_d) || time_d < 0.0L) {
             purc_set_error(PURC_ERROR_INVALID_VALUE);
@@ -1090,22 +1093,9 @@ timezone_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     return PURC_VARIANT_INVALID;
 }
 
-static purc_variant_t
-timezone_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+bool pcdvobjs_is_valid_timezone(const char *timezone)
 {
-    UNUSED_PARAM(root);
-
-    if (nr_args < 1) {
-        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
-        goto failed;
-    }
-
-    const char *timezone;
-    if ((timezone = purc_variant_get_string_const(argv[0])) == NULL) {
-        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        goto failed;
-    }
+    assert(timezone);
 
     char path[PATH_MAX + 1];
     if (strlen(timezone) < PATH_MAX - sizeof(PURC_SYS_TZ_DIR)) {
@@ -1126,6 +1116,33 @@ timezone_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto failed;
     }
 
+    return true;
+
+failed:
+    return false;
+}
+
+static purc_variant_t
+timezone_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
+{
+    UNUSED_PARAM(root);
+
+    if (nr_args < 1) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    const char *timezone;
+    if ((timezone = purc_variant_get_string_const(argv[0])) == NULL) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    if (!pcdvobjs_is_valid_timezone(timezone))
+        goto failed;
+
+    char path[PATH_MAX + 1];
     /* try to change timezone permanently */
     if (nr_args > 1 && purc_variant_booleanize(argv[1])) {
         if (unlink(PURC_SYS_TZ_FILE) == 0) {
@@ -1591,382 +1608,4 @@ purc_variant_t purc_dvobj_system_new (void)
 
     return purc_dvobj_make_from_methods(methods, PCA_TABLESIZE(methods));
 }
-
-#if 0
-
-#define FORMAT_ISO8601  1
-#define FORMAT_RFC822   2
-
-static purc_variant_t
-get_time_format (int type, double epoch, const char *timezone)
-{
-    time_t t_time;
-    struct tm *t_tm = NULL;
-    char local_time[32] = {0};
-    char *tz_now = getenv ("TZ");
-    purc_variant_t retv = NULL;
-    char str_format[32] = {0};
-
-    if (type == FORMAT_ISO8601)
-        sprintf (str_format, "%%FT%%T%%z");
-    else if (type == FORMAT_RFC822)
-        sprintf (str_format, "%%a, %%d %%b %%y %%T %%z");
-    else
-        sprintf (str_format, "%%FT%%T%%z");
-
-    if (epoch == 0) {
-        if (timezone == NULL) {
-            t_time = time (NULL);
-            t_tm = localtime(&t_time);
-            if (t_tm == NULL) {
-                purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
-                return PURC_VARIANT_INVALID;
-            }
-
-            if(strftime(local_time, 32, str_format, t_tm) == 0) {
-                purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
-                return PURC_VARIANT_INVALID;
-            }
-
-            // create a string variant
-            retv = purc_variant_make_string (local_time, false);
-            if(retv == PURC_VARIANT_INVALID) {
-                purc_set_error (PURC_ERROR_INVALID_VALUE);
-                return PURC_VARIANT_INVALID;
-            }
-        }
-        else {
-            setenv ("TZ", timezone, 0);
-            t_time = time (NULL);
-            t_tm = localtime(&t_time);
-            if (t_tm == NULL) {
-                purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
-                return PURC_VARIANT_INVALID;
-            }
-
-            if(strftime(local_time, 32, str_format, t_tm) == 0) {
-                purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
-                return PURC_VARIANT_INVALID;
-            }
-
-            if (tz_now)
-                setenv ("TZ", tz_now, 1);
-            else
-                unsetenv ("TZ");
-
-            // create a string variant
-            retv = purc_variant_make_string (local_time, false);
-            if(retv == PURC_VARIANT_INVALID) {
-                purc_set_error (PURC_ERROR_INVALID_VALUE);
-                return PURC_VARIANT_INVALID;
-            }
-        }
-    }
-    else {
-        if (timezone == NULL) {
-            t_time = epoch;
-            t_tm = localtime(&t_time);
-            if (t_tm == NULL) {
-                purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
-                return PURC_VARIANT_INVALID;
-            }
-
-            if(strftime(local_time, 32, str_format, t_tm) == 0) {
-                purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
-                return PURC_VARIANT_INVALID;
-            }
-
-            // create a string variant
-            retv = purc_variant_make_string (local_time, false);
-            if(retv == PURC_VARIANT_INVALID) {
-                purc_set_error (PURC_ERROR_INVALID_VALUE);
-                return PURC_VARIANT_INVALID;
-            }
-        }
-        else {
-            setenv ("TZ", timezone, 0);
-
-            t_time = epoch;
-            t_tm = localtime(&t_time);
-
-            if (t_tm == NULL) {
-                purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
-                return PURC_VARIANT_INVALID;
-            }
-
-            if(strftime(local_time, 32, str_format, t_tm) == 0) {
-                purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
-                return PURC_VARIANT_INVALID;
-            }
-
-            if (tz_now)
-                setenv ("TZ", tz_now, 1);
-            else
-                unsetenv ("TZ");
-
-            // create a string variant
-            retv = purc_variant_make_string (local_time, false);
-            if(retv == PURC_VARIANT_INVALID) {
-                purc_set_error (PURC_ERROR_INVALID_VALUE);
-                return PURC_VARIANT_INVALID;
-            }
-        }
-    }
-
-    return retv;
-}
-
-
-static purc_variant_t
-time_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
-{
-    UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
-
-    purc_variant_t retv = PURC_VARIANT_INVALID;
-    purc_variant_t val = PURC_VARIANT_INVALID;
-    double epoch = 0.0;
-    const char *name = NULL;
-    const char *timezone = NULL;
-    time_t t_time;
-    struct tm *t_tm = NULL;
-
-    if (nr_args == 0) {
-        t_time = time (NULL);
-        return purc_variant_make_ulongint ((uint64_t) t_time);
-    }
-
-    if ((nr_args >= 1) && (argv[0] == PURC_VARIANT_INVALID ||
-                    (!purc_variant_is_string (argv[0])))) {
-        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
-    }
-    else
-        name = purc_variant_get_string_const (argv[0]);
-
-    if ((nr_args >= 2) && (argv[1] == PURC_VARIANT_INVALID ||
-            (!((purc_variant_is_ulongint (argv[1]))   ||
-               (purc_variant_is_longdouble (argv[1])) ||
-               (purc_variant_is_longint (argv[1]))    ||
-               (purc_variant_is_number (argv[1])))))) {
-        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
-    }
-    else if (nr_args >= 2)
-        purc_variant_cast_to_number (argv[1], &epoch, false);
-
-    if ((nr_args >= 3) && (argv[2] == PURC_VARIANT_INVALID ||
-            (!purc_variant_is_string (argv[2])))) {
-        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
-    }
-    else if (nr_args >= 3)
-        timezone = purc_variant_get_string_const (argv[2]);
-
-    if (strcasecmp (name, "tm") == 0) {
-        t_time = time (NULL);
-        t_tm = localtime(&t_time);
-
-        retv = purc_variant_make_object (0, PURC_VARIANT_INVALID,
-                PURC_VARIANT_INVALID);
-        if(retv == PURC_VARIANT_INVALID) {
-            purc_set_error (PURC_ERROR_INVALID_VALUE);
-            return PURC_VARIANT_INVALID;
-        }
-
-        val = purc_variant_make_number (t_tm->tm_sec);
-        purc_variant_object_set_by_static_ckey (retv, "sec", val);
-        purc_variant_unref (val);
-
-        val = purc_variant_make_number (t_tm->tm_min);
-        purc_variant_object_set_by_static_ckey (retv, "min", val);
-        purc_variant_unref (val);
-
-        val = purc_variant_make_number (t_tm->tm_hour);
-        purc_variant_object_set_by_static_ckey (retv, "hour", val);
-        purc_variant_unref (val);
-
-        val = purc_variant_make_number (t_tm->tm_mday);
-        purc_variant_object_set_by_static_ckey (retv, "mday", val);
-        purc_variant_unref (val);
-
-        val = purc_variant_make_number (t_tm->tm_mon);
-        purc_variant_object_set_by_static_ckey (retv, "mon", val);
-        purc_variant_unref (val);
-
-        val = purc_variant_make_number (t_tm->tm_year);
-        purc_variant_object_set_by_static_ckey (retv, "year", val);
-        purc_variant_unref (val);
-
-        val = purc_variant_make_number (t_tm->tm_wday);
-        purc_variant_object_set_by_static_ckey (retv, "wday", val);
-        purc_variant_unref (val);
-
-        val = purc_variant_make_number (t_tm->tm_yday);
-        purc_variant_object_set_by_static_ckey (retv, "yday", val);
-        purc_variant_unref (val);
-
-        val = purc_variant_make_number (t_tm->tm_isdst);
-        purc_variant_object_set_by_static_ckey (retv, "isdst", val);
-        purc_variant_unref (val);
-    }
-    else if (strcasecmp (name, "iso8601") == 0) {
-        retv = get_time_format (FORMAT_ISO8601, epoch, timezone);
-    }
-    else if (strcasecmp (name, "rfc822") == 0) {
-        retv = get_time_format (FORMAT_RFC822, epoch, timezone);
-    }
-    else {
-        /* replace 
-           %Y: year
-           %m: month
-           %d: day
-           %H: hour
-           %M: minute
-           %S: second
-         */
-        purc_rwstream_t rwstream = purc_rwstream_new_buffer (32, STREAM_SIZE);
-        char buffer[16];
-        int start = 0;
-        int i = 0;
-        char *tz_now = getenv ("TZ");
-
-        if (epoch == 0) {
-            if (timezone == NULL) {
-                t_time = time (NULL);
-                t_tm = localtime(&t_time);
-                if (t_tm == NULL) {
-                    purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
-                    return PURC_VARIANT_INVALID;
-                }
-            }
-            else {
-                setenv ("TZ", timezone, 0);
-                t_time = time (NULL);
-                t_tm = localtime(&t_time);
-                if (t_tm == NULL) {
-                    purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
-                    return PURC_VARIANT_INVALID;
-                }
-                if (tz_now)
-                    setenv ("TZ", tz_now, 1);
-                else
-                    unsetenv ("TZ");
-            }
-        }
-        else {
-            if (timezone == NULL) {
-                t_time = epoch;
-                t_tm = localtime(&t_time);
-                if (t_tm == NULL) {
-                    purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
-                    return PURC_VARIANT_INVALID;
-                }
-            }
-            else {
-                setenv ("TZ", timezone, 0);
-
-                t_time = epoch;
-                t_tm = localtime(&t_time);
-
-                if (t_tm == NULL) {
-                    purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
-                    return PURC_VARIANT_INVALID;
-                }
-                if (tz_now)
-                    setenv ("TZ", tz_now, 1);
-                else
-                    unsetenv ("TZ");
-
-            }
-        }
-
-        while (*(name + i) != 0x00) {
-            if (*(name + i) == '%') {
-                switch (*(name + i + 1)) {
-                    case 0x00:
-                        break;
-                    case '%':
-                        purc_rwstream_write (rwstream, name + start, i - start);
-                        purc_rwstream_write (rwstream, "%", 1);
-                        i++;
-                        start = i + 1;
-                        break;
-                    case 'Y':
-                        purc_rwstream_write (rwstream, name + start, i - start);
-                        sprintf (buffer, "%d", t_tm->tm_year + 1900);
-                        purc_rwstream_write (rwstream, buffer, strlen (buffer));
-                        i++;
-                        start = i + 1;
-                        break;
-                    case 'm':
-                        purc_rwstream_write (rwstream, name + start, i - start);
-                        sprintf (buffer, "%d", t_tm->tm_mon + 1);
-                        purc_rwstream_write (rwstream, buffer, strlen (buffer));
-                        i++;
-                        start = i + 1;
-                        break;
-                    case 'd':
-                        purc_rwstream_write (rwstream, name + start, i - start);
-                        sprintf (buffer, "%d", t_tm->tm_mday);
-                        purc_rwstream_write (rwstream, buffer, strlen (buffer));
-                        i++;
-                        start = i + 1;
-                        break;
-                    case 'H':
-                        purc_rwstream_write (rwstream, name + start, i - start);
-                        sprintf (buffer, "%d", t_tm->tm_hour);
-                        purc_rwstream_write (rwstream, buffer, strlen (buffer));
-                        i++;
-                        start = i + 1;
-                        break;
-                    case 'M':
-                        purc_rwstream_write (rwstream, name + start, i - start);
-                        sprintf (buffer, "%d", t_tm->tm_min);
-                        purc_rwstream_write (rwstream, buffer, strlen (buffer));
-                        i++;
-                        start = i + 1;
-                        break;
-                    case 'S':
-                        purc_rwstream_write (rwstream, name + start, i - start);
-                        sprintf (buffer, "%d", t_tm->tm_sec);
-                        purc_rwstream_write (rwstream, buffer, strlen (buffer));
-                        i++;
-                        start = i + 1;
-                        break;
-                }
-            }
-            i++;
-        }
-
-        if (i != start) {
-            purc_rwstream_write (rwstream, name + start, strlen (name + start));
-            purc_rwstream_write (rwstream, "\0", 1);
-        }
-
-        size_t rw_size = 0;
-        size_t content_size = 0;
-        char *rw_string = purc_rwstream_get_mem_buffer_ex (rwstream,
-                                            &content_size, &rw_size, true);
-
-        if ((rw_size == 0) || (rw_string == NULL))
-            retv = PURC_VARIANT_INVALID;
-        else {
-            retv = purc_variant_make_string_reuse_buff (rw_string,
-                                                        rw_size, false);
-            if(retv == PURC_VARIANT_INVALID) {
-                purc_set_error (PURC_ERROR_INVALID_VALUE);
-                retv = PURC_VARIANT_INVALID;
-            }
-        }
-
-        purc_rwstream_destroy (rwstream);
-
-    }
-
-    return retv;
-}
-
-#endif
 
