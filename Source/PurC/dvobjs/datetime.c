@@ -335,6 +335,130 @@ static size_t estimate_buffer_size(const char *timeformat)
     return sz;
 }
 
+typedef char *(*cb_on_found)(const char *needle, size_t len, void *ctxt,
+        size_t *rep_len);
+
+#define BRACE_STATE_OUT     0
+#define BRACE_STATE_IN      1
+
+static void handle_braces(char *haystack, size_t len,
+        cb_on_found on_found, void *ctxt)
+{
+    int state = BRACE_STATE_OUT;
+    char *needle = NULL;
+    size_t needle_len = 0;
+    char *p = haystack;
+
+    while (len > 0 && p[0]) {
+        switch (state) {
+        case BRACE_STATE_OUT:
+            if (p[0] == '\\' && p[1] == '{') {
+                memmove(p, p + 1, len);
+                p++;
+                len--;
+            }
+            else if (p[0] == '\\' && p[1] == '}') {
+                memmove(p, p + 1, len);
+                p++;
+                len--;
+            }
+            else if (p[0] == '{') {
+                state = BRACE_STATE_IN;
+                needle = p;
+                needle_len = 1;
+            }
+            break;
+
+        case BRACE_STATE_IN:
+            if (p[0] == '\\' && p[1] == '{') {
+                memmove(p, p + 1, len);
+                p++;
+                len--;
+            }
+            else if (p[0] == '\\' && p[1] == '}') {
+                memmove(p, p + 1, len);
+                p++;
+                len--;
+            }
+            else if (p[0] == '}') {
+                state = BRACE_STATE_OUT;
+            }
+            else {
+                needle_len++;
+
+                size_t rep_len;
+                char *replace;
+                replace = on_found(needle, needle_len, ctxt, &rep_len);
+                if (replace) {
+                    if (rep_len < needle_len) {
+                        memcpy(needle, replace, rep_len);
+                        memmove(needle + rep_len, needle + needle_len,
+                                len - needle_len);
+                    }
+                    else {
+                        memcpy(needle, replace, needle_len);
+                        if (rep_len > needle_len)
+                            purc_log_warn("replacement longer than needle.\n");
+                    }
+
+                    free(replace);
+                }
+            }
+            break;
+        }
+
+        p++;
+        len--;
+    }
+}
+
+static char *
+on_found(const char *needle, size_t len, void *ctxt, size_t *rep_len)
+{
+    char *result = NULL;
+
+    if (len == 3 && needle[1] == 'm') {
+        // {m}
+        suseconds_t usec = *(suseconds_t *)ctxt;
+        if (usec < 0) usec = 0;
+        if (usec > 999999) usec = 999999;
+
+        int msec = usec / 1000;
+        assert(msec >= 0 && msec < 1000);
+
+        result = malloc(4);
+        int n = snprintf(result, 4, "%03d", msec);
+        if (n < 0 || (size_t)n >= 4) {
+            free(result);
+            result = NULL;
+        }
+        *rep_len = 3;
+    }
+    else if (len >= 8 && needle[len - 2] == 'c' && needle[len - 3] == 'w') {
+        // {+hhmmwc}
+        result = malloc(8);
+        if (needle[1] == '+' || needle[1] == '-') {
+            result[0] = needle[1];
+            result[1] = needle[2];
+            result[2] = needle[3];
+            result[3] = ':';
+            result[4] = needle[4];
+            result[5] = needle[5];
+            *rep_len = 6;
+        }
+        else {
+            result[0] = needle[1];
+            result[1] = needle[2];
+            result[2] = ':';
+            result[3] = needle[3];
+            result[4] = needle[4];
+            *rep_len = 5;
+        }
+    }
+
+    return result;
+}
+
 static purc_variant_t
 format_broken_down_time(const char *timeformat, const struct tm *tm,
         suseconds_t usec)
@@ -350,12 +474,14 @@ format_broken_down_time(const char *timeformat, const struct tm *tm,
     }
 
     if (strftime(result, max, timeformat, tm) == 0) {
-        // should not occure.
-        PC_ASSERT(0);
+        // should not occur.
+        purc_log_error("Too small buffer to format time\n");
+        purc_set_error(PURC_ERROR_TOO_SMALL_BUFF);
+        return PURC_VARIANT_INVALID;
     }
 
     /* replace {m}, and {+/-HHMMwc} here */
-    (void)usec;
+    handle_braces(result, max, on_found, &usec);
 
     return purc_variant_make_string_reuse_buff(result, max, false);
 }
