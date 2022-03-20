@@ -9,11 +9,11 @@
 
 #define NR_THREADS          10
 
-static purc_atom_t other_inst[NR_THREADS];
-static purc_atom_t main_inst;
+static volatile purc_atom_t other_inst[NR_THREADS];
+static volatile purc_atom_t main_inst;
 
 struct thread_arg {
-    sem_t   wait;
+    sem_t  *wait;
     int     nr;
 };
 
@@ -25,17 +25,17 @@ static void* general_thread_entry(void* arg)
     sprintf(runner_name, "thread%d", my_arg->nr);
 
     // initial purc instance
-    int ret = purc_init_ex(PURC_MODULE_VARIANT, "cn.fmsoft.hvml.purc",
+    int ret = purc_init_ex(PURC_MODULE_VARIANT, "cn.fmsoft.purc.test",
             runner_name, NULL);
 
     if (ret == PURC_ERROR_OK) {
-        purc_enable_log(true, true);
+        purc_enable_log(true, false);
         other_inst[my_arg->nr] =
             purc_inst_create_move_buffer(PCINST_MOVE_BUFFER_BROADCAST, 16);
         purc_log_info("purc_inst_create_move_buffer returns: %x\n",
                 other_inst[my_arg->nr]);
     }
-    sem_post(&my_arg->wait);
+    sem_post(my_arg->wait);
 
     size_t n;
     do {
@@ -83,12 +83,22 @@ static int create_thread(int nr)
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
     arg.nr = nr;
-    sem_init(&arg.wait, 0, 0);
+    sem_unlink("sync");
+    arg.wait = sem_open("sync", O_CREAT | O_EXCL, 0644, 0);
+    if (arg.wait == SEM_FAILED) {
+        purc_log_error("failed to create semaphore: %s\n", strerror(errno));
+        return -1;
+    }
     ret = pthread_create(&th, &attr, general_thread_entry, &arg);
+    if (ret) {
+        sem_close(arg.wait);
+        purc_log_error("failed to create thread: %d\n", nr);
+        return -1;
+    }
     pthread_attr_destroy(&attr);
 
-    sem_wait(&arg.wait);
-    sem_destroy(&arg.wait);
+    sem_wait(arg.wait);
+    sem_close(arg.wait);
 
     return ret;
 }
@@ -98,11 +108,11 @@ TEST(instance, thread)
     int ret;
 
     // initial purc
-    ret = purc_init_ex(PURC_MODULE_VARIANT, "cn.fmsoft.hvml.purc", "test",
+    ret = purc_init_ex(PURC_MODULE_VARIANT, "cn.fmsoft.purc.test", "threads",
             NULL);
     ASSERT_EQ(ret, PURC_ERROR_OK);
 
-    purc_enable_log(true, true);
+    purc_enable_log(true, false);
 
     main_inst =
             purc_inst_create_move_buffer(PCINST_MOVE_BUFFER_BROADCAST, 16);
@@ -159,11 +169,11 @@ TEST(instance, threads)
     int ret;
 
     // initial purc
-    ret = purc_init_ex(PURC_MODULE_VARIANT, "cn.fmsoft.hvml.purc", "test",
+    ret = purc_init_ex(PURC_MODULE_VARIANT, "cn.fmsoft.purc.test", "threads",
             NULL);
     ASSERT_EQ(ret, PURC_ERROR_OK);
 
-    purc_enable_log(true, true);
+    purc_enable_log(true, false);
 
     main_inst =
             purc_inst_create_move_buffer(PCINST_MOVE_BUFFER_BROADCAST, 16);
