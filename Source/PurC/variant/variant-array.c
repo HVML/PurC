@@ -760,9 +760,6 @@ pcvar_array_break_rue_downward(purc_variant_t arr)
 {
     PC_ASSERT(purc_variant_is_array(arr));
 
-    if (pcvar_container_belongs_to_set(arr))
-        return;
-
     variant_arr_t data = pcvar_arr_get_data(arr);
     if (!data)
         return;

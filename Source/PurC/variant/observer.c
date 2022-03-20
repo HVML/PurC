@@ -198,9 +198,13 @@ pcvar_break_rue_downward(purc_variant_t val)
     PC_ASSERT(val != PURC_VARIANT_INVALID);
     switch (val->type) {
         case PURC_VARIANT_TYPE_ARRAY:
+            if (pcvar_container_belongs_to_set(val))
+                return;
             pcvar_array_break_rue_downward(val);
             return;
         case PURC_VARIANT_TYPE_OBJECT:
+            if (pcvar_container_belongs_to_set(val))
+                return;
             pcvar_object_break_rue_downward(val);
             return;
         case PURC_VARIANT_TYPE_SET:

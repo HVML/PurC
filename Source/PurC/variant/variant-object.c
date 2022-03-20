@@ -850,9 +850,6 @@ pcvar_object_break_rue_downward(purc_variant_t obj)
 {
     PC_ASSERT(purc_variant_is_object(obj));
 
-    if (pcvar_container_belongs_to_set(obj))
-        return;
-
     variant_obj_t data = (variant_obj_t)obj->sz_ptr[1];
     if (!data)
         return;
