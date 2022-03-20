@@ -1376,6 +1376,7 @@ failed:
 
 #define MAX_LEN_STATE_BUF   256
 
+#if HAVE(RANDOM_R)
 struct local_random_data {
     char                state_buf[MAX_LEN_STATE_BUF];
     size_t              state_len;
@@ -1386,6 +1387,9 @@ static void cb_free_local_random_data(void *local_data)
 {
     free(local_data);
 }
+#else
+static char random_state[MAX_LEN_STATE_BUF];
+#endif
 
 static purc_variant_t
 random_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
@@ -1393,12 +1397,17 @@ random_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 {
     UNUSED_PARAM(root);
 
+#if HAVE(RANDOM_R)
     struct local_random_data *rd = NULL;
     purc_get_local_data(PURC_LDNAME_RANDOM_DATA, (uintptr_t *)&rd, NULL);
     assert(rd);
 
     int32_t result;
     random_r(&rd->data, &result);
+#else
+    long int result;
+    result = random();
+#endif
 
     if (nr_args == 0) {
         return purc_variant_make_longint((int64_t)result);
@@ -1485,6 +1494,7 @@ random_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         }
     }
 
+#if HAVE(RANDOM_R)
     struct local_random_data *rd = NULL;
     purc_get_local_data(PURC_LDNAME_RANDOM_DATA, (uintptr_t *)&rd, NULL);
     assert(rd);
@@ -1492,6 +1502,9 @@ random_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     rd->data.state = NULL;
     initstate_r((unsigned int)seed, rd->state_buf, (size_t)complexity,
             &rd->data);
+#else
+    initstate((unsigned int)seed, random_state, (size_t)complexity);
+#endif
 
     return purc_variant_make_boolean(true);
 
@@ -1589,6 +1602,7 @@ purc_variant_t purc_dvobj_system_new (void)
 
     }
 
+#if HAVE(RANDOM_R)
     /* allocate data for state of the random generator */
     struct local_random_data *rd;
     rd = calloc(1, sizeof(*rd));
@@ -1605,6 +1619,9 @@ purc_variant_t purc_dvobj_system_new (void)
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return PURC_VARIANT_INVALID;
     }
+#else
+    initstate(time(NULL), random_state, 8);
+#endif
 
     return purc_dvobj_make_from_methods(methods, PCA_TABLESIZE(methods));
 }
