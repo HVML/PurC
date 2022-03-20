@@ -179,9 +179,25 @@ purc_variant_t time_prt(purc_variant_t dvobj, const char* name)
 {
     (void)dvobj;
     const char *timeformat = NULL;
+    const char *timezone = NULL;
+    time_t t;
 
     if (strcmp(name, "default") == 0) {
         timeformat = _TF_iso8601;
+        t = time(NULL);
+    }
+    else if (strcmp(name, "iso8601-timezone") == 0) {
+        timeformat = keywords2formats[K_KW_iso8601].format;
+        t = time(NULL);
+    }
+    else if (strcmp(name, "iso8601-epoch") == 0) {
+        timeformat = keywords2formats[K_KW_iso8601].format;
+        t = 0;
+    }
+    else if (strcmp(name, "iso8601-epoch-timezone") == 0) {
+        timeformat = keywords2formats[K_KW_iso8601].format;
+        t = 0;
+        timezone = ":Asia/Shanghai";
     }
     else {
         for (size_t i = 0; i < PCA_TABLESIZE(keywords2formats); i++) {
@@ -189,21 +205,30 @@ purc_variant_t time_prt(purc_variant_t dvobj, const char* name)
                 timeformat = keywords2formats[i].format;
             }
         }
+
+        t = time(NULL);
     }
 
     if (timeformat) {
         char buf[256];
-        time_t t;
         struct tm tm;
 
-        t = time(NULL);
         if (strncmp(timeformat, PURC_TFORMAT_PREFIX_UTC,
                     sizeof(PURC_TFORMAT_PREFIX_UTC) - 1) == 0) {
             gmtime_r(&t, &tm);
             timeformat += sizeof(PURC_TFORMAT_PREFIX_UTC) - 1;
         }
         else {
+            char *tz_old = NULL;
+
+            if (timezone) {
+                tz_old = getenv("TZ");
+                setenv("TZ", timezone, 1);
+            }
             localtime_r(&t, &tm);
+
+            if (tz_old)
+                setenv("TZ", tz_old, 1);
         }
         strftime(buf, sizeof(buf), timeformat, &tm);
 
@@ -249,6 +274,21 @@ TEST(dvobjs, time_prt)
         { "bad",
             "$DATETIME.time_prt('bad')",
             time_prt, NULL, PURC_ERROR_INVALID_VALUE },
+        { "bad",
+            "$DATETIME.time_prt('iso8601', false, false)",
+            time_prt, NULL, PURC_ERROR_WRONG_DATA_TYPE },
+        { "bad",
+            "$DATETIME.time_prt('iso8601', 3600, false)",
+            time_prt, NULL, PURC_ERROR_WRONG_DATA_TYPE },
+        { "bad",
+            "$DATETIME.time_prt('iso8601', 3600, 'Bad/Timezone')",
+            time_prt, NULL, PURC_ERROR_INVALID_VALUE },
+        { "bad",
+            "$DATETIME.time_prt('iso8601', -3600)",
+            time_prt, NULL, PURC_ERROR_INVALID_VALUE },
+        { "default",
+            "$DATETIME.time_prt",
+            time_prt, time_prt_vrtcmp, 0 },
         { "default",
             "$DATETIME.time_prt()",
             time_prt, time_prt_vrtcmp, 0 },
@@ -291,6 +331,195 @@ TEST(dvobjs, time_prt)
         { "w3c",
             "$DATETIME.time_prt('w3c')",
             time_prt, time_prt_vrtcmp_ex, 0 },
+        { "iso8601",
+            "$DATETIME.time_prt('iso8601', null)",
+            time_prt, time_prt_vrtcmp, 0 },
+        { "iso8601-timezone",
+            "$DATETIME.time_prt('iso8601', null, 'Asia/Shanghai')",
+            time_prt, time_prt_vrtcmp, 0 },
+        { "iso8601-epoch",
+            "$DATETIME.time_prt('iso8601', 0)",
+            time_prt, time_prt_vrtcmp, 0 },
+        { "iso8601-epoch-timezone",
+            "$DATETIME.time_prt('iso8601', 0, 'Asia/Shanghai')",
+            time_prt, time_prt_vrtcmp, 0 },
+    };
+
+    int ret = purc_init_ex(PURC_MODULE_EJSON, "cn.fmsfot.hvml.test",
+            "dvobj", NULL);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    purc_variant_t dvobj = purc_dvobj_datetime_new();
+    ASSERT_NE(dvobj, nullptr);
+    ASSERT_EQ(purc_variant_is_object(dvobj), true);
+
+    for (size_t i = 0; i < PCA_TABLESIZE(test_cases); i++) {
+        struct purc_ejson_parse_tree *ptree;
+        purc_variant_t result, expected;
+
+        purc_log_info("evalute: %s\n", test_cases[i].ejson);
+
+        ptree = purc_variant_ejson_parse_string(test_cases[i].ejson,
+                strlen(test_cases[i].ejson));
+        result = purc_variant_ejson_parse_tree_evalute(ptree,
+                get_dvobj_datetime, dvobj, true);
+        purc_variant_ejson_parse_tree_destroy(ptree);
+
+        /* FIXME: purc_variant_ejson_parse_tree_evalute should not return NULL
+           when evaluating silently */
+        ASSERT_NE(result, nullptr);
+
+        if (test_cases[i].expected) {
+            expected = test_cases[i].expected(dvobj, test_cases[i].name);
+
+            if (purc_variant_get_type(result) != purc_variant_get_type(expected)) {
+                purc_log_error("result type: %s, error message: %s\n",
+                        purc_variant_typename(purc_variant_get_type(result)),
+                        purc_get_error_message(purc_get_last_error()));
+            }
+
+            if (test_cases[i].vrtcmp) {
+                ASSERT_EQ(test_cases[i].vrtcmp(result, expected), true);
+            }
+            else {
+                ASSERT_EQ(purc_variant_is_equal_to(result, expected), true);
+            }
+
+            if (test_cases[i].errcode) {
+                ASSERT_EQ(purc_get_last_error(), test_cases[i].errcode);
+            }
+
+            purc_variant_unref(expected);
+        }
+        else {
+            ASSERT_EQ(purc_variant_get_type(result), PURC_VARIANT_TYPE_NULL);
+        }
+
+        purc_variant_unref(result);
+    }
+
+    purc_variant_unref(dvobj);
+    purc_cleanup();
+}
+
+purc_variant_t fmttime(purc_variant_t dvobj, const char* name)
+{
+    (void)dvobj;
+    const char *timeformat = NULL;
+    const char *timezone = NULL;
+    time_t t;
+
+    if (strcmp(name, "bad") == 0) {
+        // do not assign timeformat
+    }
+    else if (strcmp(name, "iso8601") == 0) {
+        timeformat = keywords2formats[K_KW_iso8601].format;
+        t = time(NULL);
+    }
+    else if (strcmp(name, "iso8601-timezone") == 0) {
+        timeformat = keywords2formats[K_KW_iso8601].format;
+        t = time(NULL);
+    }
+    else if (strcmp(name, "iso8601-epoch") == 0) {
+        timeformat = keywords2formats[K_KW_iso8601].format;
+        t = 0;
+    }
+    else if (strcmp(name, "iso8601-epoch-timezone") == 0) {
+        timeformat = keywords2formats[K_KW_iso8601].format;
+        t = 0;
+        timezone = ":Asia/Shanghai";
+    }
+    else {
+        timeformat = name;
+        t = time(NULL);
+    }
+
+    if (timeformat) {
+        char buf[256];
+        struct tm tm;
+
+        if (strncmp(timeformat, PURC_TFORMAT_PREFIX_UTC,
+                    sizeof(PURC_TFORMAT_PREFIX_UTC) - 1) == 0) {
+            gmtime_r(&t, &tm);
+            timeformat += sizeof(PURC_TFORMAT_PREFIX_UTC) - 1;
+        }
+        else {
+            char *tz_old = NULL;
+
+            if (timezone) {
+                tz_old = getenv("TZ");
+                setenv("TZ", timezone, 1);
+            }
+            localtime_r(&t, &tm);
+
+            if (tz_old)
+                setenv("TZ", tz_old, 1);
+        }
+        strftime(buf, sizeof(buf), timeformat, &tm);
+
+        return purc_variant_make_string(buf, false);
+    }
+
+    return purc_variant_make_boolean(false);
+}
+
+static bool fmttime_vrtcmp(purc_variant_t result, purc_variant_t expected)
+{
+    const char *t1, *t2;
+
+    t1 = purc_variant_get_string_const(result);
+    t2 = purc_variant_get_string_const(expected);
+
+    if (t1 && t2) {
+        purc_log_info("result: %s <-> expected: %s\n", t1, t2);
+        return strcmp(t1, t2) == 0;
+    }
+
+    return false;
+}
+
+TEST(dvobjs, fmttime)
+{
+    static const struct ejson_result test_cases[] = {
+        { "bad",
+            "$DATETIME.fmttime",
+            fmttime, NULL, PURC_ERROR_ARGUMENT_MISSED },
+        { "bad",
+            "$DATETIME.fmttime()",
+            fmttime, NULL, PURC_ERROR_ARGUMENT_MISSED },
+        { "bad",
+            "$DATETIME.fmttime(false)",
+            fmttime, NULL, PURC_ERROR_WRONG_DATA_TYPE },
+        { "bad",
+            "$DATETIME.fmttime('bad', false)",
+            fmttime, NULL, PURC_ERROR_WRONG_DATA_TYPE },
+        { "bad",
+            "$DATETIME.fmttime('bad', 0, false)",
+            fmttime, NULL, PURC_ERROR_WRONG_DATA_TYPE },
+        { "bad",
+            "$DATETIME.fmttime('bad', -3600)",
+            fmttime, NULL, PURC_ERROR_INVALID_VALUE },
+        { "bad",
+            "$DATETIME.fmttime('bad', 3600, 'Bad/TimeZone')",
+            fmttime, NULL, PURC_ERROR_INVALID_VALUE },
+        { "iso8601",
+            "$DATETIME.fmttime('%Y-%m-%dT%H:%M:%S%z')",
+            fmttime, fmttime_vrtcmp, 0 },
+        { "iso8601",
+            "$DATETIME.fmttime('%Y-%m-%dT%H:%M:%S%z', null)",
+            fmttime, fmttime_vrtcmp, 0 },
+        { "iso8601-timezone",
+            "$DATETIME.fmttime('%Y-%m-%dT%H:%M:%S%z', null, 'Asia/Shanghai')",
+            fmttime, fmttime_vrtcmp, 0 },
+        { "iso8601-epoch",
+            "$DATETIME.fmttime('%Y-%m-%dT%H:%M:%S%z', 0)",
+            fmttime, fmttime_vrtcmp, 0 },
+        { "iso8601-epoch-timezone",
+            "$DATETIME.fmttime('%Y-%m-%dT%H:%M:%S%z', 0, 'Asia/Shanghai')",
+            fmttime, fmttime_vrtcmp, 0 },
+        { "{UTC}It is %H:%M now in UTC",
+            "$DATETIME.fmttime('{UTC}It is %H:%M now in UTC')",
+            fmttime, fmttime_vrtcmp, 0 },
     };
 
     int ret = purc_init_ex(PURC_MODULE_EJSON, "cn.fmsfot.hvml.test",
