@@ -130,7 +130,7 @@ enum {
     K_KW_rfc1123,
 // RFC 7231 (example: Sat, 30 Apr 2016 17:52:13 GMT)
 #define _KW_rfc7231     "rfc7231"
-#define _TF_rfc7231     "{GMT}%a, %d %b %y %H:%M:%S GMT"// "D, d M Y H:i:s \G\M\T"
+#define _TF_rfc7231     "{UTC}%a, %d %b %y %H:%M:%S GMT"// "D, d M Y H:i:s \G\M\T"
     K_KW_rfc7231,
 // RFC 2822 (example: Mon, 15 Aug 2005 15:52:01 +0000)
 #define _KW_rfc2822     "rfc2822"
@@ -155,8 +155,6 @@ enum {
 
     K_KW_FORMAT_NAME_LAST  = K_KW_w3c,
 };
-
-#define TF_PREFIX_GMT       "{GMT}"
 
 static struct keyword_to_format {
     const char *keyword;
@@ -199,9 +197,10 @@ purc_variant_t time_prt(purc_variant_t dvobj, const char* name)
         struct tm tm;
 
         t = time(NULL);
-        if (strncmp(timeformat, TF_PREFIX_GMT, sizeof(TF_PREFIX_GMT) - 1) == 0) {
+        if (strncmp(timeformat, PURC_TFORMAT_PREFIX_UTC,
+                    sizeof(PURC_TFORMAT_PREFIX_UTC) - 1) == 0) {
             gmtime_r(&t, &tm);
-            timeformat += sizeof(TF_PREFIX_GMT) - 1;
+            timeformat += sizeof(PURC_TFORMAT_PREFIX_UTC) - 1;
         }
         else {
             localtime_r(&t, &tm);

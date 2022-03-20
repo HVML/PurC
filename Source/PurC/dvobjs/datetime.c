@@ -42,7 +42,6 @@
 #include <sys/time.h>
 
 #define LEN_MAX_KEYWORD     64
-#define TF_PREFIX_GMT       "{GMT}"
 
 #define _KN_usec            "usec"
 #define _KN_sec             "sec"
@@ -88,7 +87,7 @@ enum {
     K_KW_rfc1123,
 // RFC 7231 (example: Sat, 30 Apr 2016 17:52:13 GMT)
 #define _KW_rfc7231     "rfc7231"
-#define _TF_rfc7231     "{GMT}%a, %d %b %y %H:%M:%S GMT"// "D, d M Y H:i:s \G\M\T"
+#define _TF_rfc7231     "{UTC}%a, %d %b %y %H:%M:%S GMT"// "D, d M Y H:i:s \G\M\T"
     K_KW_rfc7231,
 // RFC 2822 (example: Mon, 15 Aug 2005 15:52:01 +0000)
 #define _KW_rfc2822     "rfc2822"
@@ -553,9 +552,10 @@ format_time(const char *timeformat, const struct timeval *tv,
     struct tm tm;
 
     /* check if use GMT */
-    if (strncmp(timeformat, TF_PREFIX_GMT, sizeof(TF_PREFIX_GMT) - 1) == 0) {
+    if (strncmp(timeformat, PURC_TFORMAT_PREFIX_UTC,
+                sizeof(PURC_TFORMAT_PREFIX_UTC) - 1) == 0) {
         gmtime_r(&tv->tv_sec, &tm);
-        timeformat += sizeof(TF_PREFIX_GMT) - 1;
+        timeformat += sizeof(PURC_TFORMAT_PREFIX_UTC) - 1;
     }
     else {
         get_local_broken_down_time(&tm, tv->tv_sec, timezone);
@@ -750,7 +750,7 @@ fatal:
 }
 
 static purc_variant_t
-gmtime_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+utctime_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
@@ -1118,7 +1118,7 @@ purc_variant_t purc_dvobj_datetime_new(void)
 {
     static const struct purc_dvobj_method methods[] = {
         { "time_prt",   time_prt_getter,    NULL },
-        { "gmtime",     gmtime_getter,      NULL },
+        { "utctime",    utctime_getter,      NULL },
         { "localtime",  localtime_getter,   NULL },
         { "fmttime",    fmttime_getter,     NULL },
         { "fmtbdtime",  fmtbdtime_getter,   NULL },
