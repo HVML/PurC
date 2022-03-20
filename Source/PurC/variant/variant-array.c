@@ -228,6 +228,15 @@ build_rev_update_chain(purc_variant_t arr, struct arr_node *node)
 }
 
 static int
+check_grow(purc_variant_t arr, size_t idx, purc_variant_t val)
+{
+    UNUSED_PARAM(arr);
+    UNUSED_PARAM(idx);
+    UNUSED_PARAM(val);
+    return 0;
+}
+
+static int
 variant_arr_insert_before(purc_variant_t arr, size_t idx, purc_variant_t val,
         bool check)
 {
@@ -262,6 +271,9 @@ variant_arr_insert_before(purc_variant_t arr, size_t idx, purc_variant_t val,
 
     do {
         if (!grow(arr, pos, val, check))
+            break;
+
+        if (check_grow(arr, idx, val))
             break;
 
         node = arr_node_create(val);
@@ -327,6 +339,15 @@ variant_arr_get(variant_arr_t data, size_t idx)
 }
 
 static int
+check_change(purc_variant_t arr, struct arr_node *node, purc_variant_t val)
+{
+    UNUSED_PARAM(arr);
+    UNUSED_PARAM(node);
+    UNUSED_PARAM(val);
+    return 0;
+}
+
+static int
 variant_arr_set(purc_variant_t arr, size_t idx, purc_variant_t val,
         bool check)
 {
@@ -364,6 +385,9 @@ variant_arr_set(purc_variant_t arr, size_t idx, purc_variant_t val,
         if (!change(arr, pos, old, val, check))
             break;
 
+        if (check_change(arr, old_node, val))
+            break;
+
         old_node->val = val;
         if (build_rev_update_chain(arr, old_node)) {
             break_rev_update_chain(arr, old_node);
@@ -389,6 +413,14 @@ variant_arr_set(purc_variant_t arr, size_t idx, purc_variant_t val,
     purc_variant_unref(pos);
 
     return -1;
+}
+
+static int
+check_shrink(purc_variant_t arr, struct arr_node *node)
+{
+    UNUSED_PARAM(arr);
+    UNUSED_PARAM(node);
+    return 0;
 }
 
 static int
@@ -421,6 +453,9 @@ variant_arr_remove(purc_variant_t arr, size_t idx,
 
     do {
         if (!shrink(arr, pos, node->val, check))
+            break;
+
+        if (check_shrink(arr, node))
             break;
 
         break_rev_update_chain(arr, node);

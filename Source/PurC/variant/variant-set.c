@@ -775,13 +775,22 @@ variant_set_create_elem_node(purc_variant_t set, purc_variant_t val)
 }
 
 static int
-set_remove(purc_variant_t set, variant_set_t data, struct set_node *node,
+check_shrink(purc_variant_t set, struct set_node *node)
+{
+    UNUSED_PARAM(set);
+    UNUSED_PARAM(node);
+    return 0;
+}
+
+static int
+set_remove(purc_variant_t set, struct set_node *node,
         bool check)
 {
-    UNUSED_PARAM(data);
-
     do {
         if (!shrink(set, node->val, check))
+            break;
+
+        if (check_shrink(set, node))
             break;
 
         elem_node_revoke_constraints(set, node);
@@ -800,6 +809,14 @@ set_remove(purc_variant_t set, variant_set_t data, struct set_node *node,
 }
 
 static int
+check_grow(purc_variant_t set, purc_variant_t val)
+{
+    UNUSED_PARAM(set);
+    UNUSED_PARAM(val);
+    return 0;
+}
+
+static int
 insert(purc_variant_t set, variant_set_t data,
         purc_variant_t val,
         struct rb_node *parent, struct rb_node **pnode,
@@ -809,6 +826,9 @@ insert(purc_variant_t set, variant_set_t data,
 
     do {
         if (!grow(set, val, check))
+            break;
+
+        if (check_grow(set, val))
             break;
 
         node = variant_set_create_elem_node(set, val);
@@ -969,6 +989,15 @@ prepare_variant(purc_variant_t set, purc_variant_t val)
 }
 
 static int
+check_change(purc_variant_t set, struct set_node *node, purc_variant_t val)
+{
+    UNUSED_PARAM(set);
+    UNUSED_PARAM(node);
+    UNUSED_PARAM(val);
+    return 0;
+}
+
+static int
 insert_or_replace(purc_variant_t set,
         variant_set_t data, purc_variant_t val, bool overwrite,
         bool check)
@@ -1011,6 +1040,9 @@ insert_or_replace(purc_variant_t set,
             break;
 
         if (!change(set, curr->val, tmp, check))
+            break;
+
+        if (check_change(set, curr, tmp))
             break;
 
         if (elem_node_replace(set, curr, tmp))
@@ -1211,7 +1243,7 @@ purc_variant_set_remove(purc_variant_t set, purc_variant_t value,
     struct set_node *p;
     p = find_element(set, value);
     if (p)
-        r = set_remove(set, data, p, check);
+        r = set_remove(set, p, check);
 
     if (r)
         return false;
@@ -1279,7 +1311,7 @@ purc_variant_set_remove_member_by_key_values(purc_variant_t set,
     purc_variant_ref(v);
 
     bool check = true;
-    int r = set_remove(set, data, p, check);
+    int r = set_remove(set, p, check);
     if (r) {
         purc_variant_unref(v);
         return PURC_VARIANT_INVALID;
@@ -1349,7 +1381,7 @@ purc_variant_set_remove_by_index(purc_variant_t set, int idx)
     purc_variant_ref(v);
 
     bool check = true;
-    int r = set_remove(set, data, node, check);
+    int r = set_remove(set, node, check);
     if (r) {
         purc_variant_unref(v);
         return PURC_VARIANT_INVALID;

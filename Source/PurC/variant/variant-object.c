@@ -240,6 +240,14 @@ build_rev_update_chain(purc_variant_t obj, struct obj_node *node)
 }
 
 static int
+check_shrink(purc_variant_t obj, struct obj_node *node)
+{
+    UNUSED_PARAM(obj);
+    UNUSED_PARAM(node);
+    return 0;
+}
+
+static int
 v_object_remove(purc_variant_t obj, purc_variant_t key, bool silently,
         bool check)
 {
@@ -283,6 +291,9 @@ v_object_remove(purc_variant_t obj, purc_variant_t key, bool silently,
         if (!shrink(obj, k, v, check))
             break;
 
+        if (check_shrink(obj, node))
+            break;
+
         break_rev_update_chain(obj, node);
 
         --data->size;
@@ -303,17 +314,37 @@ v_object_remove(purc_variant_t obj, purc_variant_t key, bool silently,
 }
 
 static int
-v_object_set(purc_variant_t obj, purc_variant_t k, purc_variant_t val,
+check_grow(purc_variant_t obj, purc_variant_t k, purc_variant_t v)
+{
+    UNUSED_PARAM(obj);
+    UNUSED_PARAM(k);
+    UNUSED_PARAM(v);
+    return 0;
+}
+
+static int
+check_change(purc_variant_t obj, struct obj_node *node,
+        purc_variant_t k, purc_variant_t v)
+{
+    UNUSED_PARAM(obj);
+    UNUSED_PARAM(node);
+    UNUSED_PARAM(k);
+    UNUSED_PARAM(v);
+    return 0;
+}
+
+static int
+v_object_set(purc_variant_t obj, purc_variant_t key, purc_variant_t val,
         bool check)
 {
-    if (!k || !val) {
+    if (!key || !val) {
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         return -1;
     }
 
     if (purc_variant_is_undefined(val)) {
         bool silently = true;
-        v_object_remove(obj, k, silently, check);
+        v_object_remove(obj, key, silently, check);
         return 0;
     }
 
@@ -335,7 +366,7 @@ v_object_set(purc_variant_t obj, purc_variant_t k, purc_variant_t val,
     while (*pnode) {
         struct obj_node *node;
         node = container_of(*pnode, struct obj_node, node);
-        int ret = purc_variant_compare_ex(k, node->key,
+        int ret = purc_variant_compare_ex(key, node->key,
                 PCVARIANT_COMPARE_OPT_AUTO);
 
         parent = *pnode;
@@ -351,12 +382,15 @@ v_object_set(purc_variant_t obj, purc_variant_t k, purc_variant_t val,
     }
 
     if (!entry) { //new the entry
-        struct obj_node *node = obj_node_create(k, val);
+        struct obj_node *node = obj_node_create(key, val);
         if (!node)
             return -1;
 
         do {
-            if (!grow(obj, k, val, check))
+            if (!grow(obj, key, val, check))
+                break;
+
+            if (check_grow(obj, key, val))
                 break;
 
             entry = &node->node;
@@ -371,7 +405,7 @@ v_object_set(purc_variant_t obj, purc_variant_t k, purc_variant_t val,
 
             pcvar_adjust_set_by_descendant(obj);
 
-            grown(obj, k, val, check);
+            grown(obj, key, val, check);
 
             return 0;
         } while (0);
@@ -392,10 +426,13 @@ v_object_set(purc_variant_t obj, purc_variant_t k, purc_variant_t val,
         purc_variant_t ko = node->key;
         purc_variant_t vo = node->val;
 
-        if (!change(obj, ko, vo, k, val, check))
+        if (!change(obj, ko, vo, key, val, check))
             break;
 
-        node->key = k;
+        if (check_change(obj, node, key, val))
+            break;
+
+        node->key = key;
         node->val = val;
         if (build_rev_update_chain(obj, node)) {
             break_rev_update_chain(obj, node);
@@ -408,12 +445,12 @@ v_object_set(purc_variant_t obj, purc_variant_t k, purc_variant_t val,
         node->val = vo;
         break_rev_update_chain(obj, node);
 
-        node->key = purc_variant_ref(k);
+        node->key = purc_variant_ref(key);
         node->val = purc_variant_ref(val);
 
         pcvar_adjust_set_by_descendant(obj);
 
-        changed(obj, ko, vo, k, val, check);
+        changed(obj, ko, vo, key, val, check);
 
         purc_variant_unref(ko);
         purc_variant_unref(vo);
