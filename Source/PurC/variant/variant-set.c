@@ -661,25 +661,11 @@ elem_node_replace(purc_variant_t set, struct set_node *node,
 {
     PC_ASSERT(node->val != PURC_VARIANT_INVALID);
 
-    variant_set_t data = pcvar_set_get_data(set);
-
-    purc_variant_ref(val);
-
     elem_node_revoke_constraints(set, node);
-    pcutils_rbtree_erase(&node->node, &data->elems);
 
     PURC_VARIANT_SAFE_CLEAR(node->val);
 
-    node->val = val;
-
-    struct element_rb_node rbn;
-    find_element_rb_node(&rbn, set, val);
-    PC_ASSERT(rbn.entry == NULL);
-
-    struct rb_node *entry = &node->node;
-
-    pcutils_rbtree_link_node(entry, rbn.parent, rbn.pnode);
-    pcutils_rbtree_insert_color(entry, &data->elems);
+    node->val = purc_variant_ref(val);
 
     if (!elem_node_setup_constraints(set, node))
         return -1;
