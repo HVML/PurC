@@ -40,6 +40,8 @@
 #include "purc-dom.h"
 #include "purc-utils.h"
 
+#define PURC_TFORMAT_PREFIX_UTC       "{UTC}"
+
 /** The structure defining the control properties of a HVML program */
 struct purc_hvml_ctrl_props {
     /** The base URL as a null-terminated string. */

@@ -1,13 +1,13 @@
 /**
  * @file dvobjs.h
- * @author 
+ * @author Geng Yue, Vincent Wei
  * @date 2021/07/02
  * @brief The interface for dynamic variant objects.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -51,16 +51,18 @@
 extern "C" {
 #endif  /* __cplusplus */
 
+bool pcdvobjs_is_valid_timezone(const char *timezone) WTF_INTERNAL;
+
 // initialize dvobjs module (once)
-void pcdvobjs_init_once (void) WTF_INTERNAL;
+void pcdvobjs_init_once(void) WTF_INTERNAL;
 
 struct pcinst;
 
 // initialize the dvobjs module for a PurC instance.
-void pcdvobjs_init_instance (struct pcinst* inst) WTF_INTERNAL;
+void pcdvobjs_init_instance(struct pcinst* inst) WTF_INTERNAL;
 
 // clean up the dvobjs module for a PurC instance.
-void pcdvobjs_cleanup_instance (struct pcinst* inst) WTF_INTERNAL;
+void pcdvobjs_cleanup_instance(struct pcinst* inst) WTF_INTERNAL;
 
 struct wildcard_list {
     char * wildcard;
