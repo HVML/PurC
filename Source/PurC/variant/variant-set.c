@@ -616,8 +616,7 @@ static void
 elem_node_remove(purc_variant_t set, struct set_node *node)
 {
     variant_set_t data = pcvar_set_get_data(set);
-    if (!data)
-        return;
+    PC_ASSERT(data);
 
     if (node->idx == (size_t)-1)
         return;
@@ -637,8 +636,6 @@ elem_node_remove(purc_variant_t set, struct set_node *node)
 static void
 elem_node_release(purc_variant_t set, struct set_node *node)
 {
-    UNUSED_PARAM(set);
-
     if (!node)
         return;
 
@@ -806,8 +803,7 @@ set_remove(purc_variant_t set, variant_set_t data, struct set_node *node,
 
         shrunk(set, node->val, check);
 
-        elem_node_release(set, node);
-        free(node);
+        elem_node_destroy(set, node);
 
         return 0;
     } while (0);
