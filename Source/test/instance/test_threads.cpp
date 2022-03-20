@@ -5,6 +5,7 @@
 #include <pthread.h>
 #include <semaphore.h>
 #include <unistd.h>
+#include <fcntl.h>           /* For O_* constants */
 #include <gtest/gtest.h>
 
 #define NR_THREADS          10
