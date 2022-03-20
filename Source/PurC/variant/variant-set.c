@@ -311,6 +311,11 @@ elem_node_revoke_constraints(struct set_node *node)
     if (node->elem == PURC_VARIANT_INVALID)
         return;
 
+#if PURC_SET_CONSTRAINT_WITH_CLONE == 1
+    if (pcvar_container_belongs_to_set(node->elem) == false)
+        return;
+#endif
+
     if (node->constraints) {
         PC_ASSERT(node->elem);
         bool ok;
@@ -546,6 +551,11 @@ elem_node_setup_constraints(struct set_node *node)
     purc_variant_t elem = node->elem;
     PC_ASSERT(elem != PURC_VARIANT_INVALID);
     PC_ASSERT(purc_variant_is_object(elem));
+
+#if PURC_SET_CONSTRAINT_WITH_CLONE == 1
+    if (pcvar_container_belongs_to_set(node->elem))
+        return true;
+#endif
 
     struct pcvar_rev_update_edge edge = {
         .parent        = set,

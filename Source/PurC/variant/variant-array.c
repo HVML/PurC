@@ -228,13 +228,8 @@ build_rev_update_chain(purc_variant_t arr, struct arr_node *node)
     if (r == 0) {
         r = pcvar_build_rue_downward(node->val);
     }
-    if (r) {
-        pcvar_break_edge_to_parent(node->val, &edge);
-        pcvar_break_rue_downward(node->val);
-        return -1;
-    }
 
-    return 0;
+    return r ? -1 : 0;
 }
 
 static int
