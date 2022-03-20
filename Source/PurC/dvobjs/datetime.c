@@ -21,6 +21,9 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+
+// #undef NDEBUG
+
 #include "config.h"
 #include "helper.h"
 
@@ -57,13 +60,13 @@ enum {
 
 // Atom (example: 2005-08-15T15:52:01+00:00)
 #define _KW_atom        "atom"
-#define _TF_atom        "%Y-%m-%dT%H:%M:%S{%zwc}"     // "Y-m-d\TH:i:sP"
+#define _TF_atom        "%Y-%m-%dT%H:%M:%S{%z:}"     // "Y-m-d\TH:i:sP"
     K_KW_atom = K_KW_FORMAT_NAME_FIRST,
 // HTTP Cookies (example: Monday, 15-Aug-2005 15:52:01 UTC)
 #define _KW_cookie      "cookie"
 #define _TF_cookie      "%A, %d-%m-%Y %H:%M:%S %Z"  // "l, d-M-Y H:i:s T"
     K_KW_cookie,
-// Same as 'ATOM' (example: 2005-08-15T15:52:01+00:00)
+// Same as 'ATOM' (example: 2005-08-15T15:52:01+0000)
 #define _KW_iso8601     "iso8601"
 #define _TF_iso8601     "%Y-%m-%dT%H:%M:%S%z"       // "Y-m-d\TH:i:sO"
     K_KW_iso8601,
@@ -93,11 +96,11 @@ enum {
     K_KW_rfc2822,
 // Same as 'ATOM'
 #define _KW_rfc3339     "rfc3339"
-#define _TF_rfc3339     "%Y-%m-%dT%H:%M:%S{%zwc}"   // "Y-m-d\TH:i:sP"
+#define _TF_rfc3339     "%Y-%m-%dT%H:%M:%S{%z:}"   // "Y-m-d\TH:i:sP"
     K_KW_rfc3339,
 // RFC 3339 EXTENDED format (example: 2005-08-15T15:52:01.000+00:00)
-#define _KW_rfc3339_ex  "rfc3339-extended"
-#define _TF_rfc3339_ex  "%Y-%m-%dT%H:%M:%S.{m}{%zwc}"   // "Y-m-d\TH:i:s.vP"
+#define _KW_rfc3339_ex  "rfc3339-ex"
+#define _TF_rfc3339_ex  "%Y-%m-%dT%H:%M:%S.{m}{%z:}"   // "Y-m-d\TH:i:s.vP"
     K_KW_rfc3339_ex,
 // RSS (example: Mon, 15 Aug 2005 15:52:01 +0000)
 #define _KW_rss         "rss"
@@ -105,7 +108,7 @@ enum {
     K_KW_rss,
 // World Wide Web Consortium (example: 2005-08-15T15:52:01+00:00)
 #define _KW_w3c         "w3c"
-#define _TF_w3c         "%Y-%m-%dT%H:%M:%S{%zwc}"   // "Y-m-d\TH:i:sP"
+#define _TF_w3c         "%Y-%m-%dT%H:%M:%S{%z:}"   // "Y-m-d\TH:i:sP"
     K_KW_w3c,
 
     K_KW_FORMAT_NAME_LAST  = K_KW_w3c,
@@ -332,7 +335,7 @@ static size_t estimate_buffer_size(const char *timeformat)
         timeformat++;
     }
 
-    return sz;
+    return sz + 1;
 }
 
 typedef char *(*cb_on_found)(const char *needle, size_t len, void *ctxt,
@@ -354,12 +357,10 @@ static void handle_braces(char *haystack, size_t len,
         case BRACE_STATE_OUT:
             if (p[0] == '\\' && p[1] == '{') {
                 memmove(p, p + 1, len);
-                p++;
                 len--;
             }
             else if (p[0] == '\\' && p[1] == '}') {
                 memmove(p, p + 1, len);
-                p++;
                 len--;
             }
             else if (p[0] == '{') {
@@ -372,18 +373,16 @@ static void handle_braces(char *haystack, size_t len,
         case BRACE_STATE_IN:
             if (p[0] == '\\' && p[1] == '{') {
                 memmove(p, p + 1, len);
-                p++;
                 len--;
+                needle_len++;
             }
             else if (p[0] == '\\' && p[1] == '}') {
                 memmove(p, p + 1, len);
-                p++;
                 len--;
+                needle_len++;
             }
             else if (p[0] == '}') {
                 state = BRACE_STATE_OUT;
-            }
-            else {
                 needle_len++;
 
                 size_t rep_len;
@@ -392,8 +391,7 @@ static void handle_braces(char *haystack, size_t len,
                 if (replace) {
                     if (rep_len < needle_len) {
                         memcpy(needle, replace, rep_len);
-                        memmove(needle + rep_len, needle + needle_len,
-                                len - needle_len);
+                        memmove(needle + rep_len, needle + needle_len, len);
                     }
                     else {
                         memcpy(needle, replace, needle_len);
@@ -403,6 +401,9 @@ static void handle_braces(char *haystack, size_t len,
 
                     free(replace);
                 }
+            }
+            else {
+                needle_len++;
             }
             break;
         }
@@ -416,6 +417,8 @@ static char *
 on_found(const char *needle, size_t len, void *ctxt, size_t *rep_len)
 {
     char *result = NULL;
+
+    PC_DEBUG("In %s: needle: %s, len: %lu\n", __func__, needle, len);
 
     if (len == 3 && needle[1] == 'm') {
         // {m}
@@ -434,26 +437,35 @@ on_found(const char *needle, size_t len, void *ctxt, size_t *rep_len)
         }
         *rep_len = 3;
     }
-    else if (len >= 8 && needle[len - 2] == 'c' && needle[len - 3] == 'w') {
-        // {+hhmmwc}
+    else if (len == 8 && needle[len - 2] == ':' &&
+            (needle[1] == '+' || needle[1] == '-') &&
+            purc_isdigit(needle[2]) && purc_isdigit(needle[3]) &&
+            purc_isdigit(needle[4]) && purc_isdigit(needle[5])) {
+
+        // {+hhmm:}
         result = malloc(8);
-        if (needle[1] == '+' || needle[1] == '-') {
-            result[0] = needle[1];
-            result[1] = needle[2];
-            result[2] = needle[3];
-            result[3] = ':';
-            result[4] = needle[4];
-            result[5] = needle[5];
-            *rep_len = 6;
-        }
-        else {
-            result[0] = needle[1];
-            result[1] = needle[2];
-            result[2] = ':';
-            result[3] = needle[3];
-            result[4] = needle[4];
-            *rep_len = 5;
-        }
+        result[0] = needle[1];
+        result[1] = needle[2];
+        result[2] = needle[3];
+        result[3] = ':';
+        result[4] = needle[4];
+        result[5] = needle[5];
+        result[6] = '\0';
+        *rep_len = 6;
+    }
+    else if (len == 7 && needle[len - 2] == ':' &&
+            purc_isdigit(needle[1]) && purc_isdigit(needle[2]) &&
+            purc_isdigit(needle[3]) && purc_isdigit(needle[4])) {
+
+        // {hhmm:}
+        result = malloc(8);
+        result[0] = needle[1];
+        result[1] = needle[2];
+        result[2] = ':';
+        result[3] = needle[3];
+        result[4] = needle[4];
+        result[5] = '\0';
+        *rep_len = 5;
     }
 
     return result;
@@ -467,6 +479,8 @@ format_broken_down_time(const char *timeformat, const struct tm *tm,
     char *result = NULL;
 
     max = estimate_buffer_size(timeformat);
+    PC_DEBUG("buffer size for %s: %lu\n", timeformat, max);
+
     result = malloc(max);
     if (result == NULL) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
@@ -480,7 +494,53 @@ format_broken_down_time(const char *timeformat, const struct tm *tm,
         return PURC_VARIANT_INVALID;
     }
 
-    /* replace {m}, and {+/-HHMMwc} here */
+    /* replace {m}, and {+/-HHMM:} here */
+#ifndef NDEBUG
+    {
+        struct _testcase {
+            const char *haystack;
+            suseconds_t usec;
+
+            const char *result;
+        } testcases[] = {
+            { "millisecond: {m}", 345000,
+              "millisecond: 345" },
+            { "colon: {+1030:}", 0,
+              "colon: +10:30" },
+            { "colon: {0000:}", 0,
+              "colon: 00:00" },
+            { "colon: {-0200:}", 0,
+              "colon: -02:00" },
+            { "millisecond: 12:30:55.{m} {+0430:} end of {m}.", 456789,
+              "millisecond: 12:30:55.456 +04:30 end of 456." },
+            { "{a} {+0430}", 0,
+              "{a} {+0430}" },
+            { "{abcd} {+abcd:}", 0,
+              "{abcd} {+abcd:}" },
+            { "\\{m} \\{+1234:}", 0,
+              "{m} {+1234:}" },
+            { "{m\\} {+1234:\\}", 0,
+              "{m} {+1234:}" },
+            { "bad {m", 0,
+              "bad {m" },
+            { "bad {+1234:", 0,
+              "bad {+1234:" },
+        };
+
+        for (size_t i = 0; i < PCA_TABLESIZE(testcases); i++) {
+            char *haystack = strdup(testcases[i].haystack);
+            handle_braces(haystack, strlen(haystack),
+                    on_found, &testcases[i].usec);
+
+            purc_log_debug("checking: %s\n", testcases[i].haystack);
+            purc_log_debug("result: %s <-> expected: %s\n",
+                    haystack, testcases[i].result);
+            assert(strcmp(haystack, testcases[i].result) == 0);
+            free(haystack);
+        }
+    }
+#endif
+
     handle_braces(result, max, on_found, &usec);
 
     return purc_variant_make_string_reuse_buff(result, max, false);
@@ -517,6 +577,7 @@ time_prt_getter(purc_variant_t root,
 
     if (nr_args == 0) {
         gettimeofday(&tv, NULL);
+        timeformat = timeformats[K_KW_iso8601];
     }
     else if (nr_args > 0) {
         const char *name;
@@ -566,6 +627,9 @@ time_prt_getter(purc_variant_t root,
                 goto failed;
             }
 #endif
+        }
+        else {
+            gettimeofday(&tv, NULL);
         }
 
         if (nr_args > 2) {
