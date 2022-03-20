@@ -230,10 +230,41 @@ build_rev_update_chain(purc_variant_t arr, struct arr_node *node)
 static int
 check_grow(purc_variant_t arr, size_t idx, purc_variant_t val)
 {
-    UNUSED_PARAM(arr);
-    UNUSED_PARAM(idx);
-    UNUSED_PARAM(val);
-    return 0;
+    if (!pcvar_container_belongs_to_set(arr))
+        return 0;
+
+    purc_variant_t _new = purc_variant_make_array(0, PURC_VARIANT_INVALID);
+    if (_new == PURC_VARIANT_INVALID)
+        return -1;
+
+    bool ok = true;
+    do {
+        size_t i;
+        purc_variant_t v;
+        foreach_value_in_variant_array(arr, v, i) {
+            PC_ASSERT(i < idx);
+            ok = purc_variant_array_append(_new, v);
+            if (!ok)
+                break;
+        } end_foreach;
+
+        if (!ok)
+            break;
+
+        ok = purc_variant_array_append(_new, val);
+        if (!ok)
+            break;
+
+        PRINT_VARIANT(arr);
+        PRINT_VARIANT(_new);
+
+        PURC_VARIANT_SAFE_CLEAR(_new);
+
+        return 0;
+    } while (0);
+
+    PURC_VARIANT_SAFE_CLEAR(_new);
+    return -1;
 }
 
 static int
@@ -341,10 +372,42 @@ variant_arr_get(variant_arr_t data, size_t idx)
 static int
 check_change(purc_variant_t arr, struct arr_node *node, purc_variant_t val)
 {
-    UNUSED_PARAM(arr);
-    UNUSED_PARAM(node);
-    UNUSED_PARAM(val);
-    return 0;
+    if (!pcvar_container_belongs_to_set(arr))
+        return 0;
+
+    purc_variant_t _new = purc_variant_make_array(0, PURC_VARIANT_INVALID);
+    if (_new == PURC_VARIANT_INVALID)
+        return -1;
+
+    bool ok = true;
+    do {
+        bool found = false;
+        size_t i;
+        purc_variant_t v;
+        foreach_value_in_variant_array(arr, v, i) {
+            if (i == node->node.idx) {
+                found = true;
+            }
+            ok = purc_variant_array_append(_new, i == node->node.idx ? val : v);
+            if (!ok)
+                break;
+        } end_foreach;
+
+        if (!ok)
+            break;
+
+        PC_ASSERT(found);
+
+        PRINT_VARIANT(arr);
+        PRINT_VARIANT(_new);
+
+        PURC_VARIANT_SAFE_CLEAR(_new);
+
+        return 0;
+    } while (0);
+
+    PURC_VARIANT_SAFE_CLEAR(_new);
+    return -1;
 }
 
 static int
@@ -418,9 +481,44 @@ variant_arr_set(purc_variant_t arr, size_t idx, purc_variant_t val,
 static int
 check_shrink(purc_variant_t arr, struct arr_node *node)
 {
-    UNUSED_PARAM(arr);
-    UNUSED_PARAM(node);
-    return 0;
+    if (!pcvar_container_belongs_to_set(arr))
+        return 0;
+
+    purc_variant_t _new = purc_variant_make_array(0, PURC_VARIANT_INVALID);
+    if (_new == PURC_VARIANT_INVALID)
+        return -1;
+
+    bool ok = true;
+    do {
+        bool found = false;
+        size_t i;
+        purc_variant_t v;
+        foreach_value_in_variant_array(arr, v, i) {
+            if (i == node->node.idx) {
+                PC_ASSERT(!found);
+                found = true;
+                continue;
+            }
+            ok = purc_variant_array_append(_new, v);
+            if (!ok)
+                break;
+        } end_foreach;
+
+        if (!ok)
+            break;
+
+        PC_ASSERT(found);
+
+        PRINT_VARIANT(arr);
+        PRINT_VARIANT(_new);
+
+        PURC_VARIANT_SAFE_CLEAR(_new);
+
+        return 0;
+    } while (0);
+
+    PURC_VARIANT_SAFE_CLEAR(_new);
+    return -1;
 }
 
 static int

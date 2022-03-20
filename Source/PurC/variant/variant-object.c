@@ -242,9 +242,45 @@ build_rev_update_chain(purc_variant_t obj, struct obj_node *node)
 static int
 check_shrink(purc_variant_t obj, struct obj_node *node)
 {
-    UNUSED_PARAM(obj);
-    UNUSED_PARAM(node);
-    return 0;
+    if (!pcvar_container_belongs_to_set(obj))
+        return 0;
+
+    purc_variant_t _new = purc_variant_make_object(0,
+            PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+    if (_new == PURC_VARIANT_INVALID)
+        return -1;
+
+    bool ok = true;
+    do {
+        bool found = false;
+        purc_variant_t kk, vv;
+        foreach_key_value_in_variant_object(obj, kk, vv) {
+            if (kk == node->key) {
+                PC_ASSERT(!found);
+                found = true;
+                continue;
+            }
+            ok = purc_variant_object_set(_new, kk, vv);
+            if (!ok)
+                break;
+        } end_foreach;
+
+        if (!ok)
+            break;
+
+        if (!found)
+            break;
+
+        PRINT_VARIANT(obj);
+        PRINT_VARIANT(_new);
+
+        PURC_VARIANT_SAFE_CLEAR(_new);
+
+        return 0;
+    } while (0);
+
+    PURC_VARIANT_SAFE_CLEAR(_new);
+    return -1;
 }
 
 static int
@@ -316,21 +352,87 @@ v_object_remove(purc_variant_t obj, purc_variant_t key, bool silently,
 static int
 check_grow(purc_variant_t obj, purc_variant_t k, purc_variant_t v)
 {
-    UNUSED_PARAM(obj);
-    UNUSED_PARAM(k);
-    UNUSED_PARAM(v);
-    return 0;
+    if (!pcvar_container_belongs_to_set(obj))
+        return 0;
+
+    purc_variant_t _new = purc_variant_make_object(0,
+            PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+    if (_new == PURC_VARIANT_INVALID)
+        return -1;
+
+    bool ok = true;
+    do {
+        purc_variant_t kk, vv;
+        foreach_key_value_in_variant_object(obj, kk, vv) {
+            ok = purc_variant_object_set(_new, kk, vv);
+            if (!ok)
+                break;
+        } end_foreach;
+
+        if (!ok)
+            break;
+
+        ok = purc_variant_object_set(_new, k, v);
+        if (!ok)
+            break;
+
+        PRINT_VARIANT(obj);
+        PRINT_VARIANT(_new);
+
+        PURC_VARIANT_SAFE_CLEAR(_new);
+
+        return 0;
+    } while (0);
+
+    PURC_VARIANT_SAFE_CLEAR(_new);
+    return -1;
 }
 
 static int
 check_change(purc_variant_t obj, struct obj_node *node,
         purc_variant_t k, purc_variant_t v)
 {
-    UNUSED_PARAM(obj);
-    UNUSED_PARAM(node);
-    UNUSED_PARAM(k);
-    UNUSED_PARAM(v);
-    return 0;
+    if (!pcvar_container_belongs_to_set(obj))
+        return 0;
+
+    purc_variant_t _new = purc_variant_make_object(0,
+            PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+    if (_new == PURC_VARIANT_INVALID)
+        return -1;
+
+    bool ok = true;
+    do {
+        bool found = false;
+        purc_variant_t kk, vv;
+        foreach_key_value_in_variant_object(obj, kk, vv) {
+            if (node->key == kk) {
+                PC_ASSERT(!found);
+                found = true;
+                ok = purc_variant_object_set(_new, k, v);
+            }
+            else {
+                ok = purc_variant_object_set(_new, kk, vv);
+            }
+            if (!ok)
+                break;
+        } end_foreach;
+
+        if (!ok)
+            break;
+
+        if (!found)
+            break;
+
+        PRINT_VARIANT(obj);
+        PRINT_VARIANT(_new);
+
+        PURC_VARIANT_SAFE_CLEAR(_new);
+
+        return 0;
+    } while (0);
+
+    PURC_VARIANT_SAFE_CLEAR(_new);
+    return -1;
 }
 
 static int

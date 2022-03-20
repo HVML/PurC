@@ -777,9 +777,45 @@ variant_set_create_elem_node(purc_variant_t set, purc_variant_t val)
 static int
 check_shrink(purc_variant_t set, struct set_node *node)
 {
-    UNUSED_PARAM(set);
-    UNUSED_PARAM(node);
-    return 0;
+    if (!pcvar_container_belongs_to_set(set))
+        return 0;
+
+    purc_variant_t _new = pcvar_set_clone_struct(set);
+    if (_new == PURC_VARIANT_INVALID)
+        return -1;
+
+    bool ok = true;
+    do {
+        bool found = false;
+        purc_variant_t v;
+        foreach_value_in_variant_set(set, v) {
+            if (node->val == v) {
+                PC_ASSERT(!found);
+                found = true;
+                continue;
+            }
+            bool overwrite = false;
+            ok = purc_variant_set_add(_new, v, overwrite);
+            if (!ok)
+                break;
+        } end_foreach;
+
+        if (!ok)
+            break;
+
+        if (!found)
+            break;
+
+        PRINT_VARIANT(set);
+        PRINT_VARIANT(_new);
+
+        PURC_VARIANT_SAFE_CLEAR(_new);
+
+        return 0;
+    } while (0);
+
+    PURC_VARIANT_SAFE_CLEAR(_new);
+    return -1;
 }
 
 static int
@@ -811,9 +847,40 @@ set_remove(purc_variant_t set, struct set_node *node,
 static int
 check_grow(purc_variant_t set, purc_variant_t val)
 {
-    UNUSED_PARAM(set);
-    UNUSED_PARAM(val);
-    return 0;
+    if (!pcvar_container_belongs_to_set(set))
+        return 0;
+
+    purc_variant_t _new = pcvar_set_clone_struct(set);
+    if (_new == PURC_VARIANT_INVALID)
+        return -1;
+
+    bool ok = true;
+    do {
+        bool overwrite = false;
+        purc_variant_t v;
+        foreach_value_in_variant_set(set, v) {
+            ok = purc_variant_set_add(_new, v, overwrite);
+            if (!ok)
+                break;
+        } end_foreach;
+
+        if (!ok)
+            break;
+
+        ok = purc_variant_set_add(_new, val, overwrite);
+        if (!ok)
+            break;
+
+        PRINT_VARIANT(set);
+        PRINT_VARIANT(_new);
+
+        PURC_VARIANT_SAFE_CLEAR(_new);
+
+        return 0;
+    } while (0);
+
+    PURC_VARIANT_SAFE_CLEAR(_new);
+    return -1;
 }
 
 static int
@@ -991,10 +1058,47 @@ prepare_variant(purc_variant_t set, purc_variant_t val)
 static int
 check_change(purc_variant_t set, struct set_node *node, purc_variant_t val)
 {
-    UNUSED_PARAM(set);
-    UNUSED_PARAM(node);
-    UNUSED_PARAM(val);
-    return 0;
+    if (!pcvar_container_belongs_to_set(set))
+        return 0;
+
+    purc_variant_t _new = pcvar_set_clone_struct(set);
+    if (_new == PURC_VARIANT_INVALID)
+        return -1;
+
+    bool ok = true;
+    do {
+        bool found = false;
+        purc_variant_t v;
+        foreach_value_in_variant_set(set, v) {
+            bool overwrite = false;
+            if (node->val == v) {
+                PC_ASSERT(!found);
+                found = true;
+                ok = purc_variant_set_add(_new, val, overwrite);
+            }
+            else {
+                ok = purc_variant_set_add(_new, v, overwrite);
+            }
+            if (!ok)
+                break;
+        } end_foreach;
+
+        if (!ok)
+            break;
+
+        if (!found)
+            break;
+
+        PRINT_VARIANT(set);
+        PRINT_VARIANT(_new);
+
+        PURC_VARIANT_SAFE_CLEAR(_new);
+
+        return 0;
+    } while (0);
+
+    PURC_VARIANT_SAFE_CLEAR(_new);
+    return -1;
 }
 
 static int

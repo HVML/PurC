@@ -310,7 +310,7 @@ move_or_clone_mutable_descendants_in_object(struct travel_context *ctxt,
             return false;
         }
 
-        node->val = retv;
+        _node->val = retv;
         pcutils_arrlist_add(ctxt->vrts_to_unref, v);
     } end_foreach;
 
@@ -477,12 +477,12 @@ move_or_clone_immutable_descendants_in_object(struct travel_context *ctxt,
             }
 
             if (retk != k) {
-                node->key = retk;
+                _node->key = retk;
                 pcutils_arrlist_add(ctxt->vrts_to_unref, k);
             }
 
             if (retv != v) {
-                node->val = retv;
+                _node->val = retv;
                 pcutils_arrlist_add(ctxt->vrts_to_unref, v);
             }
             break;

@@ -483,9 +483,9 @@ PCA_EXTERN_C_END
         struct rb_node *_p = pcutils_rbtree_first(_root);           \
         for (; _p; _p = pcutils_rbtree_next(_p))                    \
         {                                                           \
-            struct obj_node *node;                                  \
-            node = container_of(_p, struct obj_node, node);         \
-            _val = node->val;                                       \
+            struct obj_node *_node;                                 \
+            _node = container_of(_p, struct obj_node, node);        \
+            _val = _node->val;                                      \
      /* } */                                                        \
  /* } while (0) */
 
@@ -497,10 +497,10 @@ PCA_EXTERN_C_END
         struct rb_node *_p = pcutils_rbtree_first(_root);           \
         for (; _p; _p = pcutils_rbtree_next(_p))                    \
         {                                                           \
-            struct obj_node *node;                                  \
-            node = container_of(_p, struct obj_node, node);         \
-            _key = node->key;                                       \
-            _val = node->val;                                       \
+            struct obj_node *_node;                                 \
+            _node = container_of(_p, struct obj_node, node);        \
+            _key = _node->key;                                      \
+            _val = _node->val;                                      \
      /* } */                                                        \
  /* } while (0) */
 
@@ -514,10 +514,10 @@ PCA_EXTERN_C_END
             ({_next = _p ? pcutils_rbtree_next(_p) : NULL; _p;});   \
             _p = _next)                                             \
         {                                                           \
-            struct obj_node *node;                                  \
-            node = container_of(_p, struct obj_node, node);         \
-            _key = node->key;                                       \
-            _val = node->val;                                       \
+            struct obj_node *_node;                                 \
+            _node = container_of(_p, struct obj_node, node);        \
+            _key = _node->key;                                      \
+            _val = _node->val;                                      \
      /* } */                                                        \
  /* } while (0) */
 
