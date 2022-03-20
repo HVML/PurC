@@ -157,6 +157,7 @@ static unsigned int _modules;
 // FIXME: where to put declaration
 void pchvml_keywords_init(void);
 
+#if 0
 locale_t __purc_locale_c;
 static void free_locale_c(void)
 {
@@ -164,13 +165,16 @@ static void free_locale_c(void)
         freelocale(__purc_locale_c);
     __purc_locale_c = NULL;
 }
+#endif
 
 static void init_modules_once(void)
 {
-    tzset();
-    __purc_locale_c = newlocale(LC_ALL_MASK, "C", (locale_t)0);
+#if 0
+     __purc_locale_c = newlocale(LC_ALL_MASK, "C", (locale_t)0);
     atexit(free_locale_c);
+#endif
 
+    tzset();
     setlocale(LC_ALL, "");
 
     // TODO: init modules working without instance here.

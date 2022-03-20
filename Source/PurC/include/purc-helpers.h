@@ -36,6 +36,7 @@
 #include <time.h>
 
 #include "purc-macros.h"
+#include "purc-utils.h"
 
 #define PURC_LEN_HOST_NAME             127
 #define PURC_LEN_APP_NAME              127
@@ -339,7 +340,7 @@ purc_name_toupper(char *name)
     int i = 0;
 
     while (name [i]) {
-        name [i] = toupper(name[i]);
+        name [i] = purc_toupper(name[i]);
         i++;
     }
 
@@ -368,7 +369,7 @@ purc_name_tolower_copy(const char *name, char *buff, int max_len)
     int n = 0;
 
     while (*name) {
-        buff [n] = tolower(*name);
+        buff [n] = purc_tolower(*name);
         name++;
         n++;
 
@@ -402,7 +403,7 @@ purc_name_toupper_copy(const char *name, char *buff, int max_len)
     int n = 0;
 
     while (*name) {
-        buff [n] = toupper(*name);
+        buff [n] = purc_toupper(*name);
         name++;
         n++;
 

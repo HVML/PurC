@@ -32,7 +32,7 @@
 #include <stdarg.h>
 #include <ctype.h>
 #include <locale.h>
-#include <sys/types.h>  /* TODO: for ssize_t on MacOS */
+#include <sys/types.h>  /* for ssize_t on macOS */
 
 #include "purc-macros.h"
 
@@ -571,62 +571,113 @@ PCA_EXPORT bool
 pcutils_url_break_down(struct purc_broken_down_url *broken_down,
         const char *url);
 
-extern locale_t __purc_locale_c;
-
 PCA_EXTERN_C_END
 
-static inline int purc_isalnum(int c) {
-    return isalnum_l(c, __purc_locale_c);
-}
-
-static inline int purc_isalpha(int c) {
-    return isalpha_l(c, __purc_locale_c);
-}
-
-static inline int purc_iscntrl(int c) {
-    return iscntrl_l(c, __purc_locale_c);
-}
-
-static inline int purc_isdigit(int c) {
-    return isdigit_l(c, __purc_locale_c);
-}
-
-static inline int purc_isgraph(int c) {
-    return isgraph_l(c, __purc_locale_c);
-}
-
+/** Checks for a lowercase character. */
 static inline int purc_islower(int c) {
-    return islower_l(c, __purc_locale_c);
+    unsigned char uc = (unsigned char)c;
+    return (uc >= 'a' && uc <= 'z');
 }
 
-static inline int purc_isprint(int c) {
-    return isprint_l(c, __purc_locale_c);
-}
-
-static inline int purc_ispunct(int c) {
-    return ispunct_l(c, __purc_locale_c);
-}
-
-static inline int purc_isspace(int c) {
-    return isspace_l(c, __purc_locale_c);
-}
-
+/** Checks for a uppercase character. */
 static inline int purc_isupper(int c) {
-    return isupper_l(c, __purc_locale_c);
+    unsigned char uc = (unsigned char)c;
+    return (uc >= 'A' && uc <= 'Z');
 }
 
+/** Checks for an alphabetic character;
+  * it is equivalent to (purc_isupper(c) || purc_islower(c)). */
+static inline int purc_isalpha(int c) {
+    return purc_islower(c) || purc_isupper(c);
+}
+
+/** Checks for a digit ('0' through '9'). */
+static inline int purc_isdigit(int c) {
+    unsigned char uc = (unsigned char)c;
+    return (uc >= '0' && uc <= '9');
+}
+
+/** Checks for an alphanumeric character;
+  * it is equivalent to (purc_isalpha(c) || purc_isdigit(c)). */
+static inline int purc_isalnum(int c) {
+    return purc_isalpha(c) || purc_isdigit(c);
+}
+
+/** Checks for a control character. */
+static inline int purc_iscntrl(int c) {
+    unsigned char uc = (unsigned char)c;
+    return (uc < 0x20);
+}
+
+/** Checks for any printable character except space. */
+static inline int purc_isgraph(int c) {
+    unsigned char uc = (unsigned char)c;
+    return (uc >= 0x21 && uc <= 0x7E);
+}
+
+/** Checks for any printable character including space. */
+static inline int purc_isprint(int c) {
+    unsigned char uc = (unsigned char)c;
+    return ((uc >= 0x09 && uc <= 0x0D) || (uc >= 0x20 && uc <= 0x7E));
+}
+
+/** Checks for any printable character which is not a space or
+  * an alphanumeric character. */
+static inline int purc_ispunct(int c) {
+    unsigned char uc = (unsigned char)c;
+    return ((uc >= 0x21 && uc <= 0x2F) ||
+            (uc >= 0x3A && uc <= 0x40) ||
+            (uc >= 0x5B && uc <= 0x60) ||
+            (uc >= 0x7B && uc <= 0x7E));
+}
+
+/** Checks for white-space characters: space, form-feed ('\f'), newline ('\n'),
+  * carriage return ('\r'), horizontal tab ('\t'), and vertical tab ('\v'). */
+static inline int purc_isspace(int c) {
+    unsigned char uc = (unsigned char)c;
+    return ((uc >= 0x09 && uc <= 0x0D) || (uc == 0x20));
+}
+
+/** Checks for hexadecimal digits, that is, one of
+  * 0 1 2 3 4 5 6 7 8 9 a b c d e f A B C D E F. */
 static inline int purc_isxdigit(int c) {
-    return isxdigit_l(c, __purc_locale_c);
+    unsigned char uc = (unsigned char)c;
+    return ((uc >= '0' && uc <= '9') ||
+            (uc >= 'a' && uc <= 'f') ||
+            (uc >= 'A' && uc <= 'F'));
 }
 
+/** Checks whether c is a 7-bit unsigned char value that fits into
+  * the ASCII character set. */
 static inline int purc_isascii(int c) {
-    if (c < 0x80)
+    unsigned char uc = (unsigned char)c;
+    if (uc < 0x80)
         return 1;
     return 0;
 }
 
+/** Checks for a blank character; that is, a space or a tab. */
 static inline int purc_isblank(int c) {
-    return isblank_l(c, __purc_locale_c);
+    unsigned char uc = (unsigned char)c;
+    return (uc == ' ' || uc == '\t');
+}
+
+/** Returns the uppercase equivalent if the specified character is
+  * an ASCII lowercase letter. Otherwise, it returns the character. */
+static inline int purc_toupper(int c) {
+    if (purc_islower(c)) {
+        return c - 'a' + 'A';
+    }
+    return c;
+}
+
+/** Returns the lowercase equivalent if the specified character is
+  * an ASCII uppercase letter. Otherwise, it returns the character. */
+static inline int purc_tolower(int c) {
+    if (purc_isupper(c)) {
+        return c - 'A' + 'a';
+    }
+    return c;
 }
 
 #endif /* not defined PURC_PURC_UTILS_H */
