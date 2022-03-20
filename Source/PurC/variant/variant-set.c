@@ -309,7 +309,7 @@ break_rev_update_chain(purc_variant_t set, struct set_node *node)
     pcvar_break_edge_to_parent(node->val, &edge);
 
     struct kv_iterator it;
-    it = pcvar_kv_it_first(node->set, node->val);
+    it = pcvar_kv_it_first(set, node->val);
     while (1) {
         struct obj_node *on = it.it.curr;
         if (on == NULL)
@@ -327,12 +327,9 @@ break_rev_update_chain(purc_variant_t set, struct set_node *node)
 }
 
 static void
-elem_node_revoke_constraints(struct set_node *node)
+elem_node_revoke_constraints(purc_variant_t set, struct set_node *node)
 {
     if (!node)
-        return;
-
-    if (node->set == PURC_VARIANT_INVALID)
         return;
 
     if (node->val == PURC_VARIANT_INVALID)
@@ -346,7 +343,7 @@ elem_node_revoke_constraints(struct set_node *node)
         node->constraints = NULL;
     }
 
-    break_rev_update_chain(node->set, node);
+    break_rev_update_chain(set, node);
 }
 
 struct element_rb_node {
@@ -553,7 +550,7 @@ build_rev_update_chain(purc_variant_t set, struct set_node *node)
         return -1;
 
     struct kv_iterator it;
-    it = pcvar_kv_it_first(node->set, node->val);
+    it = pcvar_kv_it_first(set, node->val);
     while (1) {
         struct obj_node *on = it.it.curr;
         if (on == NULL)
@@ -578,10 +575,8 @@ build_rev_update_chain(purc_variant_t set, struct set_node *node)
 }
 
 static bool
-elem_node_setup_constraints(struct set_node *node)
+elem_node_setup_constraints(purc_variant_t set, struct set_node *node)
 {
-    PC_ASSERT(node->set != PURC_VARIANT_INVALID);
-    purc_variant_t set = node->set;
     variant_set_t data = pcvar_set_get_data(set);
     PC_ASSERT(data);
 
@@ -618,12 +613,8 @@ refresh_arr(struct pcutils_arrlist *arr, size_t idx)
 }
 
 static void
-elem_node_remove(struct set_node *node)
+elem_node_remove(purc_variant_t set, struct set_node *node)
 {
-    if (node->set == PURC_VARIANT_INVALID)
-        return;
-
-    purc_variant_t set = node->set;
     variant_set_t data = pcvar_set_get_data(set);
     if (!data)
         return;
@@ -651,11 +642,10 @@ elem_node_release(purc_variant_t set, struct set_node *node)
     if (!node)
         return;
 
-    elem_node_revoke_constraints(node);
-    elem_node_remove(node);
+    elem_node_revoke_constraints(set, node);
+    elem_node_remove(set, node);
 
     PURC_VARIANT_SAFE_CLEAR(node->val);
-    node->set = PURC_VARIANT_INVALID;
 }
 
 static void
@@ -669,24 +659,21 @@ elem_node_destroy(purc_variant_t set, struct set_node *node)
 }
 
 static int
-elem_node_replace(struct set_node *node,
+elem_node_replace(purc_variant_t set, struct set_node *node,
         purc_variant_t val)
 {
-    PC_ASSERT(node->set != PURC_VARIANT_INVALID);
     PC_ASSERT(node->val != PURC_VARIANT_INVALID);
 
-    purc_variant_t set = node->set;
     variant_set_t data = pcvar_set_get_data(set);
 
     purc_variant_ref(val);
 
-    elem_node_revoke_constraints(node);
+    elem_node_revoke_constraints(set, node);
     pcutils_rbtree_erase(&node->node, &data->elems);
 
     PURC_VARIANT_SAFE_CLEAR(node->val);
 
     node->val = val;
-    node->set = set;
 
     struct element_rb_node rbn;
     find_element_rb_node(&rbn, set, val);
@@ -697,7 +684,7 @@ elem_node_replace(struct set_node *node,
     pcutils_rbtree_link_node(entry, rbn.parent, rbn.pnode);
     pcutils_rbtree_insert_color(entry, &data->elems);
 
-    if (!elem_node_setup_constraints(node))
+    if (!elem_node_setup_constraints(set, node))
         return -1;
 
     return 0;
@@ -796,7 +783,6 @@ variant_set_create_elem_node(purc_variant_t set, purc_variant_t val)
     }
 
     _new->idx = (size_t)-1;
-    _new->set = set;
     _new->val = val;
     purc_variant_ref(val);
 
@@ -813,8 +799,8 @@ set_remove(purc_variant_t set, variant_set_t data, struct set_node *node,
         if (!shrink(set, node->val, check))
             break;
 
-        elem_node_revoke_constraints(node);
-        elem_node_remove(node);
+        elem_node_revoke_constraints(set, node);
+        elem_node_remove(set, node);
 
         pcvar_adjust_set_by_descendant(set);
 
@@ -858,7 +844,7 @@ insert(purc_variant_t set, variant_set_t data,
         pcutils_rbtree_link_node(entry, parent, pnode);
         pcutils_rbtree_insert_color(entry, &data->elems);
 
-        if (!elem_node_setup_constraints(node))
+        if (!elem_node_setup_constraints(set, node))
             break;
 
         pcvar_adjust_set_by_descendant(set);
@@ -1026,8 +1012,6 @@ insert_or_replace(purc_variant_t set,
     struct set_node *curr;
     curr = container_of(rbn.entry, struct set_node, node);
 
-    PC_ASSERT(curr->set != PURC_VARIANT_INVALID);
-
     if (curr->val == val)
         return 0;
 
@@ -1045,7 +1029,7 @@ insert_or_replace(purc_variant_t set,
         if (!change(set, curr->val, tmp, check))
             break;
 
-        if (elem_node_replace(curr, tmp))
+        if (elem_node_replace(set, curr, tmp))
             break;
 
         changed(set, curr->val, tmp, check);

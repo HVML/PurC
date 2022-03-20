@@ -266,9 +266,6 @@ struct set_node {
     purc_variant_t   val;  // actual variant-element
     size_t           idx;
 
-    // managed by variant_set
-    purc_variant_t   set; // owner
-
     struct pcvar_listener           *constraints;
 };
 
