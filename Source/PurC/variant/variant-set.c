@@ -627,13 +627,28 @@ elem_node_remove(struct set_node *node)
 }
 
 static void
-elem_node_release(struct set_node *node)
+elem_node_release(purc_variant_t set, struct set_node *node)
 {
+    UNUSED_PARAM(set);
+
+    if (!node)
+        return;
+
     elem_node_revoke_constraints(node);
     elem_node_remove(node);
 
     PURC_VARIANT_SAFE_CLEAR(node->elem);
     node->set = PURC_VARIANT_INVALID;
+}
+
+static void
+elem_node_destroy(purc_variant_t set, struct set_node *node)
+{
+    if (!node)
+        return;
+
+    elem_node_release(set, node);
+    free(node);
 }
 
 static int
@@ -672,7 +687,7 @@ elem_node_replace(struct set_node *node,
 }
 
 static void
-variant_set_release_elems(variant_set_t data)
+variant_set_release_elems(purc_variant_t set, variant_set_t data)
 {
     if (!data->arr)
         return;
@@ -686,8 +701,7 @@ variant_set_release_elems(variant_set_t data)
             struct set_node *node;
             node = (struct set_node*)p;
 
-            elem_node_release(node);
-            free(node);
+            elem_node_destroy(set, node);
         }
     }
 
@@ -696,9 +710,9 @@ variant_set_release_elems(variant_set_t data)
 }
 
 static void
-variant_set_release(variant_set_t data)
+variant_set_release(purc_variant_t set, variant_set_t data)
 {
-    variant_set_release_elems(data);
+    variant_set_release_elems(set, data);
 
     free(data->keynames);
     data->keynames = NULL;
@@ -764,6 +778,7 @@ variant_set_create_elem_node(purc_variant_t set, purc_variant_t val)
         return NULL;
     }
 
+    _new->idx  = (size_t)-1;
     _new->set  = set;
     _new->elem = val;
     purc_variant_ref(val);
@@ -777,19 +792,24 @@ set_remove(purc_variant_t set, variant_set_t data, struct set_node *node,
 {
     UNUSED_PARAM(data);
 
-    if (!shrink(set, node->elem, check)) {
-        return -1;
-    }
+    do {
+        if (!shrink(set, node->elem, check))
+            break;
 
-    elem_node_revoke_constraints(node);
-    elem_node_remove(node);
+        elem_node_revoke_constraints(node);
+        elem_node_remove(node);
 
-    shrunk(set, node->elem, check);
+        pcvar_adjust_set_by_descendant(set);
 
-    elem_node_release(node);
-    free(node);
+        shrunk(set, node->elem, check);
 
-    return 0;
+        elem_node_release(set, node);
+        free(node);
+
+        return 0;
+    } while (0);
+
+    return -1;
 }
 
 static int
@@ -798,39 +818,42 @@ insert(purc_variant_t set, variant_set_t data,
         struct rb_node *parent, struct rb_node **pnode,
         bool check)
 {
-    if (!grow(set, val, check))
-        return -1;
+    struct set_node *node = NULL;
 
-    struct set_node *node;
-    node = variant_set_create_elem_node(set, val);
-    if (!node)
-        return -1;
+    do {
+        if (!grow(set, val, check))
+            break;
 
-    int r = pcutils_arrlist_add(data->arr, node);
-    if (r) {
-        elem_node_release(node);
-        free(node);
-        return -1;
-    }
+        node = variant_set_create_elem_node(set, val);
+        if (!node)
+            break;
 
-    size_t count = pcutils_arrlist_length(data->arr);
-    node->idx = count - 1;
+        PC_ASSERT(node->idx == (size_t)-1);
+        int r = pcutils_arrlist_add(data->arr, node);
+        if (r)
+            break;
 
-    struct rb_node *entry = &node->node;
+        size_t count = pcutils_arrlist_length(data->arr);
+        node->idx = count - 1;
 
-    pcutils_rbtree_link_node(entry, parent, pnode);
-    pcutils_rbtree_insert_color(entry, &data->elems);
+        struct rb_node *entry = &node->node;
 
-    if (!elem_node_setup_constraints(node)) {
-        bool check = false;
-        r = set_remove(set, data, node, check);
-        PC_ASSERT(r == 0);
-        return -1;
-    }
+        pcutils_rbtree_link_node(entry, parent, pnode);
+        pcutils_rbtree_insert_color(entry, &data->elems);
 
-    grown(set, node->elem, check);
+        if (!elem_node_setup_constraints(node))
+            break;
 
-    return 0;
+        pcvar_adjust_set_by_descendant(set);
+
+        grown(set, node->elem, check);
+
+        return 0;
+    } while (0);
+
+    elem_node_destroy(set, node);
+
+    return -1;
 }
 
 static purc_variant_t
@@ -886,8 +909,17 @@ is_keyname(variant_set_t data, const char *s)
 }
 
 static purc_variant_t
-prepare_variant(variant_set_t data, purc_variant_t val)
+prepare_variant(purc_variant_t set, purc_variant_t val)
 {
+#if PURC_SET_CONSTRAINT_WITH_CLONE == 1
+    if (pcvar_container_belongs_to_set(val))
+        return purc_variant_ref(val);
+#else
+    return purc_variant_ref(val);
+#endif
+    variant_set_t data = pcvar_set_get_data(set);
+    PC_ASSERT(data);
+
     purc_variant_t obj;
     obj = purc_variant_make_object(0,
             PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
@@ -959,7 +991,7 @@ insert_or_replace(purc_variant_t set,
 
     if (!rbn.entry) {
         purc_variant_t cloned;
-        cloned = prepare_variant(data, val);
+        cloned = prepare_variant(set, val);
         if (cloned == PURC_VARIANT_INVALID)
             return -1;
 
@@ -982,7 +1014,7 @@ insert_or_replace(purc_variant_t set,
     if (curr->elem == val)
         return 0;
 
-    purc_variant_t cloned = prepare_variant(data, val);
+    purc_variant_t cloned = prepare_variant(set, val);
     if (cloned == PURC_VARIANT_INVALID)
         return -1;
 
@@ -1528,9 +1560,10 @@ pcvariant_set_release(purc_variant_t value)
     variant_set_t data = pcvar_set_get_data(value);
     PC_ASSERT(data);
 
-    variant_set_release(data);
+    variant_set_release(value, data);
     free(data);
     pcv_set_set_data(value, NULL);
+
     pcvariant_stat_set_extra_size(value, 0);
 }
 
@@ -2023,6 +2056,18 @@ pcvar_set_clone_struct(purc_variant_t set)
     pcutils_string_reset(&str);
 
     return var;
+}
+
+void
+pcvar_adjust_set_by_edge(purc_variant_t set,
+        struct pcvar_rev_update_edge *edge)
+{
+    PC_ASSERT(set != PURC_VARIANT_INVALID);
+    PC_ASSERT(purc_variant_is_set(set));
+    PC_ASSERT(edge);
+    PC_ASSERT(set == edge->parent);
+
+    PC_ASSERT(0);
 }
 
 void

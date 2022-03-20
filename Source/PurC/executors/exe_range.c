@@ -94,10 +94,12 @@ init_result_set_with_set(struct pcexec_exe_range_inst *exe_range_inst,
     foreach_value_in_variant_set(input, v)
         // FIXME: clone does NOT break semantics!!!
         purc_variant_t cloned = purc_variant_ref(v);
+#if PURC_SET_CONSTRAINT_WITH_CLONE == 1
         if (pcvar_container_belongs_to_set(cloned)) {
             purc_variant_unref(cloned);
             cloned = purc_variant_container_clone_recursively(v);
         }
+#endif
         if (cloned == PURC_VARIANT_INVALID) {
             ok = false;
             break;

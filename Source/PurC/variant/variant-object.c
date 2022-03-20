@@ -156,13 +156,51 @@ static purc_variant_t v_object_new_with_capacity(void)
 }
 
 static void
-obj_node_destroy(struct obj_node *node)
+break_rev_update_chain(purc_variant_t obj, struct obj_node *node)
+{
+#if PURC_SET_CONSTRAINT_WITH_CLONE == 1
+    if (!pcvar_container_belongs_to_set(obj))
+        return;
+#endif
+
+    struct pcvar_rev_update_edge edge = {
+        .parent        = obj,
+        .obj_me        = node,
+    };
+
+    pcvar_break_edge_to_parent(node->val, &edge);
+    pcvar_break_rue_downward(node->val);
+}
+
+static void
+obj_node_release(purc_variant_t obj, struct obj_node *node)
 {
     if (!node)
         return;
 
+    break_rev_update_chain(obj, node);
+
+    variant_obj_t data = pcvar_obj_get_data(obj);
+    PC_ASSERT(data);
+
+    struct rb_root *root = &data->kvs;
+    if (&node->node == root->rb_node || node->node.rb_parent) {
+        --data->size;
+        pcutils_rbtree_erase(&node->node, root);
+        node->node.rb_parent = NULL;
+    }
+
     PURC_VARIANT_SAFE_CLEAR(node->key);
     PURC_VARIANT_SAFE_CLEAR(node->val);
+}
+
+static void
+obj_node_destroy(purc_variant_t obj, struct obj_node *node)
+{
+    if (!node)
+        return;
+
+    obj_node_release(obj, node);
 
     free(node);
 }
@@ -181,23 +219,6 @@ obj_node_create(purc_variant_t k, purc_variant_t v)
     node->val = purc_variant_ref(v);
 
     return node;
-}
-
-static void
-break_rev_update_chain(purc_variant_t obj, struct obj_node *node)
-{
-#if PURC_SET_CONSTRAINT_WITH_CLONE == 1
-    if (!pcvar_container_belongs_to_set(obj))
-        return;
-#endif
-
-    struct pcvar_rev_update_edge edge = {
-        .parent        = obj,
-        .obj_me        = node,
-    };
-
-    pcvar_break_edge_to_parent(node->val, &edge);
-    pcvar_break_rue_downward(node->val);
 }
 
 static int
@@ -275,13 +296,15 @@ v_object_remove(purc_variant_t obj, purc_variant_t key, bool silently,
         break_rev_update_chain(obj, node);
 
         --data->size;
+        PC_ASSERT(entry == root->rb_node || entry->rb_parent);
         pcutils_rbtree_erase(entry, root);
+        entry->rb_parent = NULL;
 
         pcvar_adjust_set_by_descendant(obj);
 
         shrunk(obj, k, v, check);
 
-        obj_node_destroy(node);
+        obj_node_destroy(obj, node);
 
         return 0;
     } while (0);
@@ -353,11 +376,8 @@ v_object_set(purc_variant_t obj, purc_variant_t k, purc_variant_t val,
 
             ++data->size;
 
-            if (build_rev_update_chain(obj, node)) {
-                --data->size;
-                pcutils_rbtree_erase(entry, root);
+            if (build_rev_update_chain(obj, node))
                 break;
-            }
 
             pcvar_adjust_set_by_descendant(obj);
 
@@ -366,7 +386,7 @@ v_object_set(purc_variant_t obj, purc_variant_t k, purc_variant_t val,
             return 0;
         } while (0);
 
-        obj_node_destroy(node);
+        obj_node_destroy(obj, node);
 
         return -1;
     }
@@ -565,25 +585,14 @@ void pcvariant_object_release (purc_variant_t value)
 
     struct rb_root *root = &data->kvs;
 
-    struct rb_node *p = pcutils_rbtree_first(root);
-    while (p) {
-        struct rb_node *next = pcutils_rbtree_next(p);
+    struct rb_node *p, *n;
+    pcutils_rbtree_for_each_safe(pcutils_rbtree_first(root), p, n) {
         struct obj_node *node;
         node = container_of(p, struct obj_node, node);
 
-        struct pcvar_rev_update_edge edge = {
-            .parent        = value,
-            .obj_me        = node,
-        };
-        pcvar_break_edge_to_parent(node->val, &edge);
-        pcvar_break_rue_downward(node->val);
-
-        pcutils_rbtree_erase(p, root);
-        PURC_VARIANT_SAFE_CLEAR(node->key);
-        PURC_VARIANT_SAFE_CLEAR(node->val);
-        free(node);
-        p = next;
+        obj_node_destroy(value, node);
     }
+
     free(data);
 
     value->sz_ptr[1] = (uintptr_t)NULL; // say no to double free
