@@ -660,6 +660,9 @@ time_us_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(argv);
     UNUSED_PARAM(silently);
 
+    purc_variant_t retv = PURC_VARIANT_INVALID;
+    purc_variant_t val = PURC_VARIANT_INVALID;
+
     struct timeval tv;
     gettimeofday(&tv, NULL);
 
@@ -671,13 +674,13 @@ time_us_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     // create an empty object
-    purc_variant_t retv = purc_variant_make_object(0,
+    retv = purc_variant_make_object(0,
             PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
     if (retv == PURC_VARIANT_INVALID) {
         goto fatal;
     }
 
-    purc_variant_t val = purc_variant_make_ulongint((uint64_t)tv.tv_sec);
+    val = purc_variant_make_ulongint((uint64_t)tv.tv_sec);
     if (val == PURC_VARIANT_INVALID)
         goto fatal;
     if (!purc_variant_object_set_by_static_ckey(retv,

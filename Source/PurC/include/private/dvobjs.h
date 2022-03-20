@@ -35,6 +35,13 @@
 #include <assert.h>
 #include <time.h>
 
+#define PURC_SYS_TZ_FILE    "/etc/localtime"
+#if OS(DARWIN)
+#define PURC_SYS_TZ_DIR     "/var/db/timezone/zoneinfo/"
+#else
+#define PURC_SYS_TZ_DIR     "/usr/share/zoneinfo/"
+#endif
+
 #define STRING_COMP_MODE_CASELESS   "caseless"
 #define STRING_COMP_MODE_CASE       "case"
 #define STRING_COMP_MODE_REG        "reg"

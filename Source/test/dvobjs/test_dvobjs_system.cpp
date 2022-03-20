@@ -3,6 +3,7 @@
 #include "purc-ports.h"
 
 #include "config.h"
+#include "private/dvobjs.h"
 #include "../helpers.h"
 
 #include <stdio.h>
@@ -235,15 +236,17 @@ TEST(dvobjs, uname)
         { "uname -m",
             "$SYSTEM.uname()['machine']",
             get_system_uname, NULL, 0 },
-        { "uname -p",
+        { "uname -m",
             "$SYSTEM.uname()['processor']",
             get_system_uname, NULL, 0 },
+#if OS(LINUX)
         { "uname -i",
             "$SYSTEM.uname()['hardware-platform']",
             get_system_uname, NULL, 0 },
         { "uname -o",
             "$SYSTEM.uname()['operating-system']",
             get_system_uname, NULL, 0 },
+#endif
         /* FIXME: uncomment this testcase after fixed the bug of
            purc_variant_ejson_parse_tree_evalute()
         { "uname -z",
@@ -323,9 +326,10 @@ TEST(dvobjs, uname_ptr)
         { "uname -m",
             "$SYSTEM.uname_prt('machine')",
             get_system_uname, NULL, 0 },
-        { "uname -p",
+        { "uname -m",
             "$SYSTEM.uname_prt('processor')",
             get_system_uname, NULL, 0 },
+#if OS(LINUX)
         { "uname -i",
             "$SYSTEM.uname_prt('hardware-platform')",
             get_system_uname, NULL, 0 },
@@ -335,14 +339,15 @@ TEST(dvobjs, uname_ptr)
         { "uname -a",
             "$SYSTEM.uname_prt('  all ')",
             get_system_uname, NULL, 0 },
+        { "uname -m -o",
+            "$SYSTEM.uname_prt(' machine \tinvalid-part-name \toperating-system')",
+            get_system_uname, NULL, 0 },
+#endif
         { "uname",
             "$SYSTEM.uname_prt('\ndefault\t ')",
             get_system_uname, NULL, 0 },
         { "uname -s -r -v",
             "$SYSTEM.uname_prt(' kernel-name \t\nkernel-release \t\nkernel-version')",
-            get_system_uname, NULL, 0 },
-        { "uname -m -o",
-            "$SYSTEM.uname_prt(' machine \tinvalid-part-name \toperating-system')",
             get_system_uname, NULL, 0 },
     };
 
@@ -447,9 +452,11 @@ TEST(dvobjs, time)
         { "negative",
             "$SYSTEM.time(! -100L )",
             system_time, NULL, PURC_ERROR_INVALID_VALUE },
+#if OS(LINUX)
         { "negative",
             "$SYSTEM.time(! -100UL )",
             system_time, NULL, PURC_ERROR_INVALID_VALUE },
+#endif
         { "negative",
             "$SYSTEM.time(! -1000.0FL )",
             system_time, NULL, PURC_ERROR_INVALID_VALUE  },
