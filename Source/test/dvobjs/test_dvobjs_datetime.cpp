@@ -616,10 +616,9 @@ TEST(dvobjs, broken_down_time)
         { "iso8601",
             "$DATETIME.fmtbdtime('%Y-%m-%dT%H:%M:%S%z', null)",
             fmttime, fmttime_vrtcmp, 0 },
-        /* FIXME: unexpected evaluation : $DATETIME.fmtbdtime('%Y-%m-%dT%H:%M:%S%z', $DATETIME.localtime)
         { "iso8601",
             "$DATETIME.fmtbdtime('%Y-%m-%dT%H:%M:%S%z', $DATETIME.localtime)",
-            fmttime, fmttime_vrtcmp, 0 }, */
+            fmttime, fmttime_vrtcmp, 0 },
         { "iso8601",
             "$DATETIME.fmtbdtime('%Y-%m-%dT%H:%M:%S%z', $DATETIME.localtime())",
             fmttime, fmttime_vrtcmp, 0 },

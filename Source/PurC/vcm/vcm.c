@@ -763,6 +763,15 @@ static bool is_action_node(struct pcvcm_node* node)
             );
 }
 
+static bool is_handle_as_getter(struct pcvcm_node* node)
+{
+    struct pcvcm_node* parent_node = PARENT_NODE(node);
+    if (is_action_node(parent_node) && FIRST_CHILD(parent_node) == node) {
+        return false;
+    }
+    return true;
+}
+
 enum method_type {
     GETTER_METHOD,
     SETTER_METHOD
@@ -835,7 +844,6 @@ purc_variant_t pcvcm_node_get_element_to_variant (struct pcvcm_node* node,
         has_index = false;
     }
 
-    struct pcvcm_node* parent_node = PARENT_NODE(node);
     if (purc_variant_is_object(caller_var)) {
         purc_variant_t val = purc_variant_object_get(caller_var, param_var,
                 silently);
@@ -849,10 +857,11 @@ purc_variant_t pcvcm_node_get_element_to_variant (struct pcvcm_node* node,
             goto clear_param_var;
         }
 
-        if (is_action_node(parent_node)) {
+        if (!is_handle_as_getter(node)) {
             ret_var = val;
             goto clear_param_var;
         }
+
         ret_var = call_dvariant_method(caller_var, val, 0, NULL, GETTER_METHOD,
                 silently);
         purc_variant_unref(val);
@@ -880,7 +889,7 @@ purc_variant_t pcvcm_node_get_element_to_variant (struct pcvcm_node* node,
             goto clear_param_var;
         }
 
-        if (is_action_node(parent_node)) {
+        if (!is_handle_as_getter(node)) {
             ret_var = val;
             goto clear_param_var;
         }
@@ -911,7 +920,7 @@ purc_variant_t pcvcm_node_get_element_to_variant (struct pcvcm_node* node,
             goto clear_param_var;
         }
 
-        if (is_action_node(parent_node)) {
+        if (!is_handle_as_getter(node)) {
             ret_var = val;
             goto clear_param_var;
         }
@@ -927,7 +936,7 @@ purc_variant_t pcvcm_node_get_element_to_variant (struct pcvcm_node* node,
         goto clear_param_var;
     }
     else if (purc_variant_is_native(caller_var)) {
-        if (is_action_node(parent_node)) {
+        if (!is_handle_as_getter(node)) {
             ret_var = purc_variant_make_array(2, caller_var, param_var);
             goto clear_param_var;
         }
