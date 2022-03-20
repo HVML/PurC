@@ -364,7 +364,7 @@ move_or_clone_mutable_descendants_in_set(struct travel_context *ctxt,
             return false;
         }
 
-        _p->elem = retv;
+        _p->val = retv;
         pcutils_arrlist_add(ctxt->vrts_to_unref, v);
 
     } end_foreach;
@@ -524,7 +524,7 @@ move_or_clone_immutable_descendants_in_set(struct travel_context *ctxt,
             }
 
             if (retv != v) {
-                _p->elem = retv;
+                _p->val = retv;
                 pcutils_arrlist_add(ctxt->vrts_to_unref, v);
             }
             break;

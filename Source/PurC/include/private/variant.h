@@ -263,7 +263,7 @@ typedef struct variant_set      *variant_set_t;
 
 struct set_node {
     struct rb_node   node;
-    purc_variant_t   elem;  // actual variant-element
+    purc_variant_t   val;  // actual variant-element
     size_t           idx;
 
     // managed by variant_set
@@ -538,7 +538,7 @@ PCA_EXTERN_C_END
               _p; });                                                   \
              _p = _n)                                                   \
         {                                                               \
-            _val = _p->elem;                                            \
+            _val = _p->val;                                             \
      /* } */                                                            \
   /* } while (0) */
 
@@ -557,7 +557,7 @@ PCA_EXTERN_C_END
               _p; });                                                   \
              _p = _n)                                                   \
         {                                                               \
-            _val = _p->elem;                                            \
+            _val = _p->val;                                             \
      /* } */                                                            \
   /* } while (0) */
 
@@ -575,7 +575,7 @@ PCA_EXTERN_C_END
               _p; });                                                   \
              _p = _n)                                                   \
         {                                                               \
-            _val = _p->elem;                                            \
+            _val = _p->val;                                             \
      /* } */                                                            \
   /* } while (0) */
 
@@ -594,7 +594,7 @@ PCA_EXTERN_C_END
               _p; });                                                   \
              _p = _n)                                                   \
         {                                                               \
-            _val = _p->elem;                                            \
+            _val = _p->val;                                             \
      /* } */                                                            \
   /* } while (0) */
 
@@ -611,7 +611,7 @@ PCA_EXTERN_C_END
         {                                                               \
             struct set_node *_en;                                       \
             _en = container_of(_p, struct set_node, node);              \
-            _val = _en->elem;                                           \
+            _val = _en->val;                                            \
      /* } */                                                            \
   /* } while (0) */
 
@@ -628,7 +628,7 @@ PCA_EXTERN_C_END
         {                                                               \
             struct set_node *_en;                                       \
             _en = container_of(_p, struct set_node, node);              \
-            _val = _en->elem;                                           \
+            _val = _en->val;                                            \
      /* } */                                                            \
   /* } while (0) */
 
@@ -645,7 +645,7 @@ PCA_EXTERN_C_END
         {                                                               \
             struct set_node *_en;                                       \
             _en = container_of(_p, struct set_node, node);              \
-            _val = _en->elem;                                           \
+            _val = _en->val;                                            \
      /* } */                                                            \
   /* } while (0) */
 
@@ -662,7 +662,7 @@ PCA_EXTERN_C_END
         {                                                               \
             struct set_node *_en;                                       \
             _en = container_of(_p, struct set_node, node);              \
-            _val = _en->elem;                                           \
+            _val = _en->val;                                            \
      /* } */                                                            \
   /* } while (0) */
 

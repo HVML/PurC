@@ -162,7 +162,7 @@ again:
                     PURC_VARIANT_SAFE_CLEAR(_new);
                 }
                 else {
-                    v = node->elem;
+                    v = node->val;
                     PC_ASSERT(v != PURC_VARIANT_INVALID);
                     v = purc_variant_container_clone_recursively(v);
                     if (v == PURC_VARIANT_INVALID) {

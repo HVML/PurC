@@ -298,7 +298,7 @@ pcvar_break_edge(purc_variant_t val,
             return;
 
         case PURC_VARIANT_TYPE_SET:
-            PC_ASSERT(edge->set_me->elem == val);
+            PC_ASSERT(edge->set_me->val == val);
             PC_ASSERT(edge->set_me == edge_in_val->set_me);
             ok = purc_variant_revoke_listener(val, edge_in_val->pre_listener);
             PC_ASSERT(ok);
