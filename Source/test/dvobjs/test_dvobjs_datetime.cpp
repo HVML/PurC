@@ -412,6 +412,9 @@ purc_variant_t fmttime(purc_variant_t dvobj, const char* name)
     if (strcmp(name, "bad") == 0) {
         // do not assign timeformat
     }
+    else if (strcmp(name, "object") == 0) {
+        return purc_variant_make_object(0, NULL, NULL);
+    }
     else if (strcmp(name, "iso8601") == 0) {
         timeformat = keywords2formats[K_KW_iso8601].format;
         t = time(NULL);
@@ -519,6 +522,121 @@ TEST(dvobjs, fmttime)
             fmttime, fmttime_vrtcmp, 0 },
         { "{UTC}It is %H:%M now in UTC",
             "$DATETIME.fmttime('{UTC}It is %H:%M now in UTC')",
+            fmttime, fmttime_vrtcmp, 0 },
+    };
+
+    int ret = purc_init_ex(PURC_MODULE_EJSON, "cn.fmsfot.hvml.test",
+            "dvobj", NULL);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    purc_variant_t dvobj = purc_dvobj_datetime_new();
+    ASSERT_NE(dvobj, nullptr);
+    ASSERT_EQ(purc_variant_is_object(dvobj), true);
+
+    for (size_t i = 0; i < PCA_TABLESIZE(test_cases); i++) {
+        struct purc_ejson_parse_tree *ptree;
+        purc_variant_t result, expected;
+
+        purc_log_info("evalute: %s\n", test_cases[i].ejson);
+
+        ptree = purc_variant_ejson_parse_string(test_cases[i].ejson,
+                strlen(test_cases[i].ejson));
+        result = purc_variant_ejson_parse_tree_evalute(ptree,
+                get_dvobj_datetime, dvobj, true);
+        purc_variant_ejson_parse_tree_destroy(ptree);
+
+        /* FIXME: purc_variant_ejson_parse_tree_evalute should not return NULL
+           when evaluating silently */
+        ASSERT_NE(result, nullptr);
+
+        if (test_cases[i].expected) {
+            expected = test_cases[i].expected(dvobj, test_cases[i].name);
+
+            if (purc_variant_get_type(result) != purc_variant_get_type(expected)) {
+                purc_log_error("result type: %s, error message: %s\n",
+                        purc_variant_typename(purc_variant_get_type(result)),
+                        purc_get_error_message(purc_get_last_error()));
+            }
+
+            if (test_cases[i].vrtcmp) {
+                ASSERT_EQ(test_cases[i].vrtcmp(result, expected), true);
+            }
+            else {
+                ASSERT_EQ(purc_variant_is_equal_to(result, expected), true);
+            }
+
+            if (test_cases[i].errcode) {
+                ASSERT_EQ(purc_get_last_error(), test_cases[i].errcode);
+            }
+
+            purc_variant_unref(expected);
+        }
+        else {
+            ASSERT_EQ(purc_variant_get_type(result), PURC_VARIANT_TYPE_NULL);
+        }
+
+        purc_variant_unref(result);
+    }
+
+    purc_variant_unref(dvobj);
+    purc_cleanup();
+}
+
+static bool result_is_object(purc_variant_t result, purc_variant_t expected)
+{
+    (void)expected;
+
+    return purc_variant_is_object(result);
+}
+
+TEST(dvobjs, broken_down_time)
+{
+    static const struct ejson_result test_cases[] = {
+        { "bad",
+            "$DATETIME.utctime(false)",
+            fmttime, NULL, PURC_ERROR_WRONG_DATA_TYPE },
+        { "bad",
+            "$DATETIME.localtime(false)",
+            fmttime, NULL, PURC_ERROR_WRONG_DATA_TYPE },
+        { "bad",
+            "$DATETIME.localtime(null, false)",
+            fmttime, NULL, PURC_ERROR_WRONG_DATA_TYPE },
+        { "object",
+            "$DATETIME.localtime",
+            fmttime, result_is_object, 0 },
+        { "object",
+            "$DATETIME.localtime(null)",
+            fmttime, result_is_object, 0 },
+        { "object",
+            "$DATETIME.localtime(null, 'Asia/Shanghai')",
+            fmttime, result_is_object, 0 },
+        { "object",
+            "$DATETIME.localtime(0, 'Asia/Shanghai')",
+            fmttime, result_is_object, 0 },
+        { "iso8601",
+            "$DATETIME.fmtbdtime('%Y-%m-%dT%H:%M:%S%z', null)",
+            fmttime, fmttime_vrtcmp, 0 },
+        /* FIXME: unexpected evaluation : $DATETIME.fmtbdtime('%Y-%m-%dT%H:%M:%S%z', $DATETIME.localtime)
+        { "iso8601",
+            "$DATETIME.fmtbdtime('%Y-%m-%dT%H:%M:%S%z', $DATETIME.localtime)",
+            fmttime, fmttime_vrtcmp, 0 }, */
+        { "iso8601",
+            "$DATETIME.fmtbdtime('%Y-%m-%dT%H:%M:%S%z', $DATETIME.localtime())",
+            fmttime, fmttime_vrtcmp, 0 },
+        { "iso8601-timezone",
+            "$DATETIME.fmtbdtime('%Y-%m-%dT%H:%M:%S%z', $DATETIME.localtime(null, 'Asia/Shanghai'))",
+            fmttime, fmttime_vrtcmp, 0 },
+        { "{UTC}It is %H:%M now in UTC",
+            "$DATETIME.fmtbdtime('{UTC}It is %H:%M now in UTC', $DATETIME.utctime())",
+            fmttime, fmttime_vrtcmp, 0 },
+        { "iso8601",
+            "$DATETIME.fmtbdtime('%Y-%m-%dT%H:%M:%S%z', null)",
+            fmttime, fmttime_vrtcmp, 0 },
+        { "iso8601-epoch",
+            "$DATETIME.fmtbdtime('%Y-%m-%dT%H:%M:%S%z', $DATETIME.localtime(0))",
+            fmttime, fmttime_vrtcmp, 0 },
+        { "iso8601-epoch-timezone",
+            "$DATETIME.fmtbdtime('%Y-%m-%dT%H:%M:%S%z', $DATETIME.localtime(0, 'Asia/Shanghai'))",
             fmttime, fmttime_vrtcmp, 0 },
     };
 

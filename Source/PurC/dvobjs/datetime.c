@@ -154,10 +154,7 @@ static void get_local_broken_down_time(struct tm *result,
     char *tz_old = NULL;
 
     if (timezone) {
-        char *env = getenv("TZ");
-        if (env) {
-            tz_old = strdup(env);
-        }
+        tz_old = getenv("TZ");
 
         /* change timezone temporarily. */
         char new_timezone[strlen(timezone) + 1];
@@ -171,7 +168,6 @@ static void get_local_broken_down_time(struct tm *result,
     if (tz_old) {
         // restore timezone.
         setenv("TZ", tz_old, 1);
-        free(tz_old);
     }
 }
 
@@ -181,10 +177,7 @@ static time_t get_time_from_broken_down_time(struct tm *tm,
     char *tz_old = NULL;
 
     if (timezone) {
-        char *env = getenv("TZ");
-        if (env) {
-            tz_old = strdup(env);
-        }
+        tz_old = getenv("TZ");
 
         /* change timezone temporarily. */
         char new_timezone[strlen(timezone) + 1];
@@ -198,7 +191,6 @@ static time_t get_time_from_broken_down_time(struct tm *tm,
     if (tz_old) {
         // restore timezone.
         setenv("TZ", tz_old, 1);
-        free(tz_old);
     }
 
     return t;
@@ -492,6 +484,7 @@ format_broken_down_time(const char *timeformat, const struct tm *tm,
         purc_set_error(PURC_ERROR_TOO_SMALL_BUFF);
         return PURC_VARIANT_INVALID;
     }
+    PC_DEBUG("formated time: %s\n", result);
 
     /* replace {m}, and {+/-HHMM:} here */
 #ifndef NDEBUG
@@ -551,7 +544,7 @@ format_time(const char *timeformat, const struct timeval *tv,
 {
     struct tm tm;
 
-    /* check if use GMT */
+    /* check if use UTC */
     if (strncmp(timeformat, PURC_TFORMAT_PREFIX_UTC,
                 sizeof(PURC_TFORMAT_PREFIX_UTC) - 1) == 0) {
         gmtime_r(&tv->tv_sec, &tm);
@@ -562,7 +555,6 @@ format_time(const char *timeformat, const struct timeval *tv,
     }
 
     return format_broken_down_time(timeformat, &tm, tv->tv_usec);
-
 }
 
 static purc_variant_t
@@ -914,10 +906,13 @@ get_broken_down_time(purc_variant_t bdtime, struct tm *tm, suseconds_t *usec)
     double number;
     purc_variant_t val;
 
-    if (purc_variant_is_object(bdtime)) {
+    if (!purc_variant_is_object(bdtime)) {
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
         return false;
     }
+
+    time_t t = 0;
+    localtime_r(&t, tm);    /* XXX: we must initialize tm with localtime_r */
 
     val = purc_variant_object_get_by_ckey(bdtime, _KN_usec, false);
     if (val == PURC_VARIANT_INVALID) {
@@ -983,8 +978,7 @@ get_broken_down_time(purc_variant_t bdtime, struct tm *tm, suseconds_t *usec)
     if (val == PURC_VARIANT_INVALID) {
         goto failed;
     }
-    if (!purc_variant_cast_to_number(val, &number, false) ||
-            number < 1900.0) {
+    if (!purc_variant_cast_to_number(val, &number, false)) {
         goto failed;
     }
     tm->tm_year = (int)number;
@@ -1050,11 +1044,21 @@ fmtbdtime_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto failed;
     }
 
-    if (!get_broken_down_time(argv[1], &tm, &usec)) {
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
+    if (purc_variant_is_null(argv[1])) {
+        struct timeval tv;
+        gettimeofday(&tv, NULL);
+        get_local_broken_down_time(&tm, tv.tv_sec, NULL);
+        usec = tv.tv_usec;
+    }
+    else if (!get_broken_down_time(argv[1], &tm, &usec)) {
         goto failed;
     }
 
+    /* check if use UTC */
+    if (strncmp(timeformat, PURC_TFORMAT_PREFIX_UTC,
+                sizeof(PURC_TFORMAT_PREFIX_UTC) - 1) == 0) {
+        timeformat += sizeof(PURC_TFORMAT_PREFIX_UTC) - 1;
+    }
     return format_broken_down_time(timeformat, &tm, usec);
 
 failed:
