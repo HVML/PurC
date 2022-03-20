@@ -300,27 +300,10 @@ pcv_set_new(void)
 }
 
 static void
-elem_node_revoke_constraints(struct set_node *node)
+break_rev_update_chain(purc_variant_t set, struct set_node *node)
 {
-    if (!node)
-        return;
-
-    if (node->set == PURC_VARIANT_INVALID)
-        return;
-
-    if (node->elem == PURC_VARIANT_INVALID)
-        return;
-
-    if (node->constraints) {
-        PC_ASSERT(node->elem);
-        bool ok;
-        ok = purc_variant_revoke_listener(node->elem, node->constraints);
-        PC_ASSERT(ok);
-        node->constraints = NULL;
-    }
-
     struct pcvar_rev_update_edge edge = {
-        .parent        = node->set,
+        .parent        = set,
         .set_me        = node,
     };
     pcvar_break_edge_to_parent(node->elem, &edge);
@@ -341,6 +324,29 @@ elem_node_revoke_constraints(struct set_node *node)
         }
         pcvar_kv_it_next(&it);
     }
+}
+
+static void
+elem_node_revoke_constraints(struct set_node *node)
+{
+    if (!node)
+        return;
+
+    if (node->set == PURC_VARIANT_INVALID)
+        return;
+
+    if (node->elem == PURC_VARIANT_INVALID)
+        return;
+
+    if (node->constraints) {
+        PC_ASSERT(node->elem);
+        bool ok;
+        ok = purc_variant_revoke_listener(node->elem, node->constraints);
+        PC_ASSERT(ok);
+        node->constraints = NULL;
+    }
+
+    break_rev_update_chain(node->set, node);
 }
 
 struct element_rb_node {
@@ -535,25 +541,16 @@ variant_set_constraints_handler(
     }
 }
 
-static bool
-elem_node_setup_constraints(struct set_node *node)
+static int
+build_rev_update_chain(purc_variant_t set, struct set_node *node)
 {
-    PC_ASSERT(node->set != PURC_VARIANT_INVALID);
-    purc_variant_t set = node->set;
-    variant_set_t data = pcvar_set_get_data(set);
-    PC_ASSERT(data);
-
-    purc_variant_t elem = node->elem;
-    PC_ASSERT(elem != PURC_VARIANT_INVALID);
-    PC_ASSERT(purc_variant_is_object(elem));
-
     struct pcvar_rev_update_edge edge = {
         .parent        = set,
         .set_me        = node,
     };
     int r = pcvar_build_edge_to_parent(node->elem, &edge);
-    // FIXME: recoverable???
-    PC_ASSERT(r == 0);
+    if (r)
+        return -1;
 
     struct kv_iterator it;
     it = pcvar_kv_it_first(node->set, node->elem);
@@ -571,17 +568,37 @@ elem_node_setup_constraints(struct set_node *node)
             if (r == 0) {
                 r = pcvar_build_rue_downward(on->val);
             }
-            // FIXME: recoverable???
-            PC_ASSERT(r == 0);
+            if (r)
+                return -1;
         }
         pcvar_kv_it_next(&it);
     }
 
+    return 0;
+}
+
+static bool
+elem_node_setup_constraints(struct set_node *node)
+{
+    PC_ASSERT(node->set != PURC_VARIANT_INVALID);
+    purc_variant_t set = node->set;
+    variant_set_t data = pcvar_set_get_data(set);
+    PC_ASSERT(data);
+
+    purc_variant_t elem = node->elem;
+    PC_ASSERT(elem != PURC_VARIANT_INVALID);
+    PC_ASSERT(purc_variant_is_object(elem));
+
+    int r;
+    r = build_rev_update_chain(set, node);
+    if (r)
+        return false;
+
     node->constraints = purc_variant_register_pre_listener(node->elem,
             PCVAR_OPERATION_ALL, variant_set_constraints_handler, set);
 
-    // FIXME: recoverable???
-    PC_ASSERT(node->constraints);
+    if (node->constraints == NULL)
+        return false;
 
     return true;
 }
