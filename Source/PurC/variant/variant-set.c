@@ -661,11 +661,13 @@ elem_node_replace(purc_variant_t set, struct set_node *node,
 {
     PC_ASSERT(node->val != PURC_VARIANT_INVALID);
 
+    purc_variant_ref(val);
+
     elem_node_revoke_constraints(set, node);
 
     PURC_VARIANT_SAFE_CLEAR(node->val);
 
-    node->val = purc_variant_ref(val);
+    node->val = val;
 
     if (!elem_node_setup_constraints(set, node))
         return -1;
