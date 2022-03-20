@@ -132,11 +132,6 @@ pcvar_arr_get_data(purc_variant_t arr)
 static void
 break_rev_update_chain(purc_variant_t arr, struct arr_node *node)
 {
-#if PURC_SET_CONSTRAINT_WITH_CLONE == 1
-    if (!pcvar_container_belongs_to_set(arr))
-        return;
-#endif
-
     struct pcvar_rev_update_edge edge = {
         .parent        = arr,
         .arr_me        = node,
@@ -764,6 +759,9 @@ void
 pcvar_array_break_rue_downward(purc_variant_t arr)
 {
     PC_ASSERT(purc_variant_is_array(arr));
+
+    if (pcvar_container_belongs_to_set(arr))
+        return;
 
     variant_arr_t data = pcvar_arr_get_data(arr);
     if (!data)

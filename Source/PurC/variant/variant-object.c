@@ -158,11 +158,6 @@ static purc_variant_t v_object_new_with_capacity(void)
 static void
 break_rev_update_chain(purc_variant_t obj, struct obj_node *node)
 {
-#if PURC_SET_CONSTRAINT_WITH_CLONE == 1
-    if (!pcvar_container_belongs_to_set(obj))
-        return;
-#endif
-
     struct pcvar_rev_update_edge edge = {
         .parent        = obj,
         .obj_me        = node,
@@ -854,6 +849,10 @@ void
 pcvar_object_break_rue_downward(purc_variant_t obj)
 {
     PC_ASSERT(purc_variant_is_object(obj));
+
+    if (pcvar_container_belongs_to_set(obj))
+        return;
+
     variant_obj_t data = (variant_obj_t)obj->sz_ptr[1];
     if (!data)
         return;
