@@ -1016,6 +1016,8 @@ insert_or_replace(purc_variant_t set,
         if (elem_node_replace(set, curr, tmp))
             break;
 
+        pcvar_adjust_set_by_descendant(set);
+
         changed(set, curr->val, tmp, check);
 
         PURC_VARIANT_SAFE_CLEAR(tmp);
