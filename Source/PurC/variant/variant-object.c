@@ -398,6 +398,7 @@ v_object_set(purc_variant_t obj, purc_variant_t k, purc_variant_t val,
         node->key = k;
         node->val = val;
         if (build_rev_update_chain(obj, node)) {
+            break_rev_update_chain(obj, node);
             node->key = ko;
             node->val = vo;
             break;

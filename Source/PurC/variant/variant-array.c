@@ -366,6 +366,7 @@ variant_arr_set(purc_variant_t array, size_t idx, purc_variant_t val,
 
         old_node->val = val;
         if (build_rev_update_chain(array, old_node)) {
+            break_rev_update_chain(array, old_node);
             old_node->val = old;
             break;
         }
