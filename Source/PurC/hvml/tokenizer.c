@@ -2173,7 +2173,8 @@ BEGIN_STATE(HVML_EJSON_CONTROL_STATE)
         RESET_TEMP_BUFFER();
         RECONSUME_IN(HVML_EJSON_BYTE_SEQUENCE_STATE);
     }
-    if (character == 't' || character == 'f' || character == 'n') {
+    if (character == 't' || character == 'f' || character == 'n'
+            || character == 'u') {
         RESET_TEMP_BUFFER();
         RECONSUME_IN(HVML_EJSON_KEYWORD_STATE);
     }
@@ -3086,6 +3087,12 @@ BEGIN_STATE(HVML_EJSON_AFTER_KEYWORD_STATE)
         }
         if (pchvml_buffer_equal_to(parser->temp_buffer, "null", 4)) {
             struct pcvcm_node* node = pcvcm_node_new_null();
+            APPEND_AS_VCM_CHILD(node);
+            RESET_TEMP_BUFFER();
+            RECONSUME_IN(HVML_EJSON_AFTER_VALUE_STATE);
+        }
+        if (pchvml_buffer_equal_to(parser->temp_buffer, "undefined", 9)) {
+            struct pcvcm_node* node = pcvcm_node_new_undefined();
             APPEND_AS_VCM_CHILD(node);
             RESET_TEMP_BUFFER();
             RECONSUME_IN(HVML_EJSON_AFTER_VALUE_STATE);
