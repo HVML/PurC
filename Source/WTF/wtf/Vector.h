@@ -20,6 +20,8 @@
 
 #pragma once
 
+ALLOW_DEPRECATED_DECLARATIONS_BEGIN
+
 #include <initializer_list>
 #include <limits>
 #include <string.h>
@@ -1736,6 +1738,8 @@ inline auto copyToVector(const Collection& collection) -> Vector<typename CopyTo
 }
 
 } // namespace WTF
+ 
+ALLOW_DEPRECATED_DECLARATIONS_END
 
 using WTF::UnsafeVectorOverflow;
 using WTF::Vector;

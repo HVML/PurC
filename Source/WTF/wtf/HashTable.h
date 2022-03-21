@@ -21,6 +21,8 @@
 
 #pragma once
 
+ALLOW_DEPRECATED_DECLARATIONS_BEGIN
+
 #include <atomic>
 #include <iterator>
 #include <mutex>
@@ -1643,5 +1645,7 @@ DECLARE_ALLOCATOR_WITH_HEAP_IDENTIFIER(HashTable);
     }
 
 } // namespace WTF
+
+ALLOW_DEPRECATED_DECLARATIONS_END
 
 #include <wtf/HashIterators.h>
