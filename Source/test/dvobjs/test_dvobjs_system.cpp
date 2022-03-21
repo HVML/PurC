@@ -1106,3 +1106,292 @@ TEST(dvobjs, random)
     purc_cleanup();
 }
 
+purc_variant_t system_cwd(purc_variant_t dvobj, const char* name)
+{
+    (void)dvobj;
+
+    if (strcmp(name, "bad") == 0) {
+        return purc_variant_make_boolean(false);
+    }
+    else if (strcmp(name, "current") == 0) {
+        char path[PATH_MAX + 1];
+        if (getcwd(path, sizeof(path)) == NULL)
+            return purc_variant_make_boolean(false);
+
+        return purc_variant_make_string(path, false);
+    }
+    else {
+        if (chdir("/var/tmp"))
+            return purc_variant_make_boolean(false);
+
+        return purc_variant_make_boolean(true);
+    }
+
+    return purc_variant_make_boolean(false);
+}
+
+static bool cwd_vrtcmp(purc_variant_t r1, purc_variant_t r2)
+{
+    const char *d1, *d2;
+
+    if (purc_variant_is_boolean(r1) && purc_variant_is_boolean(r2)) {
+        return purc_variant_is_true(r1) && purc_variant_is_true(r2);
+    }
+    else {
+
+        d1 = purc_variant_get_string_const(r1);
+        d2 = purc_variant_get_string_const(r2);
+
+        if (d1 == NULL || d2 == NULL)
+            return false;
+
+        return (strcmp(d1, d2) == 0);
+    }
+
+    return false;
+}
+
+TEST(dvobjs, cwd)
+{
+    static const struct ejson_result test_cases[] = {
+        { "bad",
+            "$SYSTEM.cwd(! )",
+            system_cwd, NULL, PURC_ERROR_ARGUMENT_MISSED },
+        { "bad",
+            "$SYSTEM.cwd(! false )",
+            system_cwd, NULL, PURC_ERROR_WRONG_DATA_TYPE },
+        { "bad",
+            "$SYSTEM.cwd(! '/not/existe' )",
+            system_cwd, NULL, PURC_ERROR_NOT_EXISTS },
+        { "bad",
+            "$SYSTEM.cwd(! '/bin/echo' )",
+            system_cwd, NULL, PURC_ERROR_NOT_DESIRED_ENTITY },
+        { "bad",
+            "$SYSTEM.cwd(! '/root' )",
+            system_cwd, NULL, PURC_ERROR_ACCESS_DENIED },
+        { "current",
+            "$SYSTEM.cwd",
+            system_cwd, cwd_vrtcmp, 0 },
+        { "current",
+            "$SYSTEM.cwd()",
+            system_cwd, cwd_vrtcmp, 0 },
+        { "set",
+            "$SYSTEM.cwd(! '/var/tmp' )",
+            system_cwd, cwd_vrtcmp, 0 },
+        { "current",
+            "$SYSTEM.cwd",
+            system_cwd, cwd_vrtcmp, 0 },
+    };
+
+    int ret = purc_init_ex(PURC_MODULE_EJSON, "cn.fmsfot.hvml.test",
+            "dvobj", NULL);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    purc_variant_t sys = purc_dvobj_system_new();
+    ASSERT_NE(sys, nullptr);
+    ASSERT_EQ(purc_variant_is_object(sys), true);
+
+    for (size_t i = 0; i < PCA_TABLESIZE(test_cases); i++) {
+        struct purc_ejson_parse_tree *ptree;
+        purc_variant_t result, expected;
+
+        purc_log_info("evalute: %s\n", test_cases[i].ejson);
+
+        ptree = purc_variant_ejson_parse_string(test_cases[i].ejson,
+                strlen(test_cases[i].ejson));
+        result = purc_variant_ejson_parse_tree_evalute(ptree,
+                get_dvobj_system, sys, true);
+        purc_variant_ejson_parse_tree_destroy(ptree);
+
+        /* FIXME: purc_variant_ejson_parse_tree_evalute should not return NULL
+           when evaluating silently */
+        ASSERT_NE(result, nullptr);
+
+        if (test_cases[i].expected) {
+            expected = test_cases[i].expected(sys, test_cases[i].name);
+
+            if (purc_variant_get_type(result) != purc_variant_get_type(expected)) {
+                purc_log_error("result type: %s, error message: %s\n",
+                        purc_variant_typename(purc_variant_get_type(result)),
+                        purc_get_error_message(purc_get_last_error()));
+            }
+
+            if (test_cases[i].vrtcmp) {
+                ASSERT_EQ(test_cases[i].vrtcmp(result, expected), true);
+            }
+            else {
+                ASSERT_EQ(purc_variant_is_equal_to(result, expected), true);
+            }
+
+            if (test_cases[i].errcode) {
+                ASSERT_EQ(purc_get_last_error(), test_cases[i].errcode);
+            }
+
+            purc_variant_unref(expected);
+        }
+        else {
+            ASSERT_EQ(purc_variant_get_type(result), PURC_VARIANT_TYPE_NULL);
+        }
+
+        purc_variant_unref(result);
+    }
+
+    purc_variant_unref(sys);
+    purc_cleanup();
+}
+
+purc_variant_t system_env(purc_variant_t dvobj, const char* name)
+{
+    (void)dvobj;
+
+    if (strcmp(name, "bad") == 0) {
+        return purc_variant_make_undefined();
+    }
+    else if (strcmp(name, "bad-set") == 0) {
+        return purc_variant_make_boolean(false);
+    }
+    else if (strcmp(name, "set") == 0) {
+        char *env = getenv("PURC_TEST");
+        if (env && strcmp(env, "on") == 0)
+            return purc_variant_make_boolean(true);
+        return purc_variant_make_boolean(false);
+    }
+    else if (strcmp(name, "test-set") == 0) {
+        char *env = getenv("PURC_TEST");
+        if (env)
+            return purc_variant_make_string(env, false);
+        return purc_variant_make_undefined();
+    }
+    else if (strcmp(name, "unset") == 0) {
+        char *env = getenv("PURC_TEST");
+        if (env == NULL)
+            return purc_variant_make_boolean(true);
+        return purc_variant_make_boolean(false);
+    }
+    else if (strcmp(name, "test-unset") == 0) {
+        char *env = getenv("PURC_TEST");
+        if (env == NULL)
+            return purc_variant_make_undefined();
+        return purc_variant_make_string(env, false);
+    }
+
+    return purc_variant_make_undefined();
+}
+
+static bool env_vrtcmp(purc_variant_t r1, purc_variant_t r2)
+{
+    const char *d1, *d2;
+
+    if (purc_variant_is_boolean(r1) && purc_variant_is_boolean(r2)) {
+        return purc_variant_is_true(r1) && purc_variant_is_true(r2);
+    }
+    else {
+
+        d1 = purc_variant_get_string_const(r1);
+        d2 = purc_variant_get_string_const(r2);
+
+        if (d1 == NULL || d2 == NULL)
+            return false;
+
+        return (strcmp(d1, d2) == 0);
+    }
+
+    return false;
+}
+
+TEST(dvobjs, env)
+{
+    static const struct ejson_result test_cases[] = {
+        { "bad",
+            "$SYSTEM.env",
+            system_env, NULL, PURC_ERROR_ARGUMENT_MISSED },
+        { "bad",
+            "$SYSTEM.env",
+            system_env, NULL, PURC_ERROR_ARGUMENT_MISSED },
+        { "bad",
+            "$SYSTEM.env( false )",
+            system_env, NULL, PURC_ERROR_WRONG_DATA_TYPE },
+        { "bad",
+            "$SYSTEM.env( null )",
+            system_env, NULL, PURC_ERROR_WRONG_DATA_TYPE },
+        { "bad-set",
+            "$SYSTEM.env(! false )",
+            system_env, NULL, PURC_ERROR_ARGUMENT_MISSED },
+        { "bad-set",
+            "$SYSTEM.env(! false, null )",
+            system_env, NULL, PURC_ERROR_WRONG_DATA_TYPE },
+        { "bad-set",
+            "$SYSTEM.env(! 'PURC_TEST', false )",
+            system_env, NULL, PURC_ERROR_WRONG_DATA_TYPE },
+        { "set",
+            "$SYSTEM.env(! 'PURC_TEST', 'on' )",
+            system_env, env_vrtcmp, 0 },
+        { "test-set",
+            "$SYSTEM.env('PURC_TEST')",
+            system_env, env_vrtcmp, 0 },
+        /* FIXME: failed to evalute the JSONEE when ussing undefined
+        { "unset",
+            "$SYSTEM.env(! 'PURC_TEST', undefined )",
+            system_env, env_vrtcmp, 0 },
+        { "test-unset",
+            "$SYSTEM.env('PURC_TEST')",
+            system_env, env_vrtcmp, 0 }, */
+    };
+
+    int ret = purc_init_ex(PURC_MODULE_EJSON, "cn.fmsfot.hvml.test",
+            "dvobj", NULL);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    purc_variant_t sys = purc_dvobj_system_new();
+    ASSERT_NE(sys, nullptr);
+    ASSERT_EQ(purc_variant_is_object(sys), true);
+
+    for (size_t i = 0; i < PCA_TABLESIZE(test_cases); i++) {
+        struct purc_ejson_parse_tree *ptree;
+        purc_variant_t result, expected;
+
+        purc_log_info("evalute: %s\n", test_cases[i].ejson);
+
+        ptree = purc_variant_ejson_parse_string(test_cases[i].ejson,
+                strlen(test_cases[i].ejson));
+        result = purc_variant_ejson_parse_tree_evalute(ptree,
+                get_dvobj_system, sys, true);
+        purc_variant_ejson_parse_tree_destroy(ptree);
+
+        /* FIXME: purc_variant_ejson_parse_tree_evalute should not return NULL
+           when evaluating silently */
+        ASSERT_NE(result, nullptr);
+
+        if (test_cases[i].expected) {
+            expected = test_cases[i].expected(sys, test_cases[i].name);
+
+            if (purc_variant_get_type(result) != purc_variant_get_type(expected)) {
+                purc_log_error("result type: %s, error message: %s\n",
+                        purc_variant_typename(purc_variant_get_type(result)),
+                        purc_get_error_message(purc_get_last_error()));
+            }
+
+            if (test_cases[i].vrtcmp) {
+                ASSERT_EQ(test_cases[i].vrtcmp(result, expected), true);
+            }
+            else {
+                ASSERT_EQ(purc_variant_is_equal_to(result, expected), true);
+            }
+
+            if (test_cases[i].errcode) {
+                ASSERT_EQ(purc_get_last_error(), test_cases[i].errcode);
+            }
+
+            purc_variant_unref(expected);
+        }
+        else {
+            ASSERT_EQ(purc_variant_get_type(result), PURC_VARIANT_TYPE_NULL);
+        }
+
+        purc_variant_unref(result);
+    }
+
+    purc_variant_unref(sys);
+    purc_cleanup();
+}
+

@@ -1353,6 +1353,7 @@ env_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     int ret;
     if (purc_variant_is_undefined(argv[1])) {
+        purc_log_info("got undefined ini %s\n", __func__);
         ret = unsetenv(name);
     }
     else {
