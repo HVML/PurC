@@ -210,7 +210,9 @@ find_timer(struct pcintr_timers* timers, const char* id)
 bool
 add_timer(struct pcintr_timers* timers, const char* id, pcintr_timer_t timer)
 {
-    if (0 == pcutils_map_insert(timers->timers_map, id, timer)) {
+    int r;
+    r = pcutils_map_find_replace_or_insert(timers->timers_map, id, timer, NULL);
+    if (0 == r) {
         return true;
     }
     return false;

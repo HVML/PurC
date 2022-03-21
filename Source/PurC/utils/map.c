@@ -30,6 +30,7 @@
 #include <errno.h>
 
 #include "config.h"
+#include "private/debug.h"
 #include "private/map.h"
 #include "purc-ports.h"
 
@@ -344,27 +345,18 @@ int pcutils_map_insert_ex (pcutils_map* map, const void* key,
         }
     }
 
+    int r = -1;
     if (!entry) {
         entry = new_entry (map, key, val, free_val_alt);
         pcutils_rbtree_link_node (&entry->node,
                 (struct rb_node*)parent, (struct rb_node**)pentry);
         pcutils_rbtree_insert_color (&entry->node, &map->root);
         map->size++;
-    }
-    else {
-        if (map->free_val) {
-            map->free_val (entry->val);
-        }
-
-        if (map->copy_val) {
-            entry->val = map->copy_val (val);
-        }
-        else
-            entry->val = (void*)val;
+        r = 0;
     }
 
     WRUNLOCK_MAP (map);
-    return 0;
+    return r ? -1 : 0;
 }
 
 int pcutils_map_find_replace_or_insert (pcutils_map* map, const void* key,
@@ -470,4 +462,86 @@ int pcutils_map_traverse (pcutils_map *map, void *ud,
     return r;
 }
 
+#define IT_NEXT(curr) curr == NULL ? NULL : \
+    container_of(pcutils_rbtree_next((&curr->node)), pcutils_map_entry, node)
+#define IT_PREV(curr) curr == NULL ? NULL : \
+    container_of(pcutils_rbtree_prev((&curr->node)), pcutils_map_entry, node)
+
+struct pcutils_map_iterator
+pcutils_map_it_begin_first(pcutils_map *map)
+{
+    struct pcutils_map_iterator it = {};
+    if (!map)
+        return it;
+
+    PC_ASSERT((map)->rwlock.native_impl == NULL);
+
+    struct rb_root *root = &map->root;
+    if (!root)
+        return it;
+
+    struct rb_node *first = pcutils_rbtree_first(root);
+    if (first) {
+        it.curr = container_of(first, pcutils_map_entry, node);
+        it.next = IT_NEXT(it.curr);
+    }
+
+    return it;
+}
+
+struct pcutils_map_iterator
+pcutils_map_it_begin_last(pcutils_map *map)
+{
+    struct pcutils_map_iterator it = {};
+    if (!map)
+        return it;
+
+    PC_ASSERT((map)->rwlock.native_impl == NULL);
+
+    struct rb_root *root = &map->root;
+    if (!root)
+        return it;
+
+    struct rb_node *last = pcutils_rbtree_last(root);
+    if (last) {
+        it.curr = container_of(last, pcutils_map_entry, node);
+        it.prev = IT_PREV(it.curr);
+    }
+
+    return it;
+}
+
+struct pcutils_map_entry*
+pcutils_map_it_value(struct pcutils_map_iterator *it)
+{
+    return it->curr;
+}
+
+struct pcutils_map_entry*
+pcutils_map_it_next(struct pcutils_map_iterator *it)
+{
+    it->prev = it->curr;
+    it->curr = it->next;
+    it->next = IT_NEXT(it->curr);
+
+    return it->curr;
+}
+
+struct pcutils_map_entry*
+pcutils_map_it_prev(struct pcutils_map_iterator *it)
+{
+    it->next = it->curr;
+    it->curr = it->prev;
+    it->prev = IT_PREV(it->curr);
+
+    return it->curr;
+}
+
+void
+pcutils_map_it_end(struct pcutils_map_iterator *it)
+{
+    it->curr = NULL;
+    it->next = NULL;
+    it->prev = NULL;
+}
 
