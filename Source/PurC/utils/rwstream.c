@@ -251,8 +251,6 @@ purc_rwstream_t purc_rwstream_new_buffer (size_t sz_init, size_t sz_max)
     struct buffer_rwstream* rws = (struct buffer_rwstream*) calloc(
             1, sizeof(struct buffer_rwstream));
 
-    sz_max = sz_max < sz_init ? sz_init : sz_max;
-
     size_t sz = get_min_size(sz_init, sz_max);
 
     rws->rwstream.funcs = &buffer_funcs;

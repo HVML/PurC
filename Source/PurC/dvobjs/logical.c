@@ -804,7 +804,7 @@ eval_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 // only for test now.
 purc_variant_t purc_dvobj_logical_new (void)
 {
-    static struct pcdvobjs_dvobjs method [] = {
+    static struct purc_dvobj_method method [] = {
         {"not",   not_getter,   NULL},
         {"and",   and_getter,   NULL},
         {"or",    or_getter,    NULL},
@@ -824,5 +824,5 @@ purc_variant_t purc_dvobj_logical_new (void)
         {"eval",  eval_getter,  NULL}
     };
 
-    return pcdvobjs_make_dvobjs (method, PCA_TABLESIZE(method));
+    return purc_dvobj_make_from_methods (method, PCA_TABLESIZE(method));
 }

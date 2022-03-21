@@ -977,9 +977,9 @@ TEST(dvobjs, dvobjs_file_stream_read_write_struct)
                             ASSERT_EQ (u1, u2);
                             break;
                         case PURC_VARIANT_TYPE_LONGDOUBLE:
-                            purc_variant_cast_to_long_double (ret_result,
+                            purc_variant_cast_to_longdouble (ret_result,
                                     &ld1, false);
-                            purc_variant_cast_to_long_double (param[k + 2],
+                            purc_variant_cast_to_longdouble (param[k + 2],
                                     &ld2, false);
                             ASSERT_EQ (ld1, ld2);
                             break;

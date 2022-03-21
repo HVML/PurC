@@ -242,7 +242,7 @@ void pchvml_token_end_attr(struct pchvml_token* token)
             strcmp(attr_name, HVML_RAW_STRING) == 0) {
         token->has_raw_attr = true;
     }
-    pcutils_arrlist_add(token->attr_list, token->curr_attr);
+    pcutils_arrlist_append(token->attr_list, token->curr_attr);
     token->curr_attr = NULL;
 }
 
@@ -654,7 +654,7 @@ pchvml_util_dump_token(const struct pchvml_token *token,
 {
     PC_ASSERT(token);
     if (token->type == PCHVML_TOKEN_EOF) {
-        fprintf(stderr, "%s[%d]:%s(): EOF\n",
+        PC_DEBUG("%s[%d]:%s(): EOF\n",
                 pcutils_basename((char*)file), line, func);
         return;
     }
@@ -664,14 +664,14 @@ pchvml_util_dump_token(const struct pchvml_token *token,
     if (token_buff) {
         const char* type_name;
         type_name = pchvml_token_get_type_name((struct pchvml_token*)token);
-        fprintf(stderr, "%s[%d]:%s(): %s:%s\n",
+        PC_DEBUG("%s[%d]:%s(): %s:%s\n",
                 pcutils_basename((char*)file), line, func,
                 type_name, pchvml_buffer_get_buffer(token_buff));
         pchvml_buffer_destroy(token_buff);
         return;
     }
 
-    fprintf(stderr, "%s[%d]:%s(): OUT_OF_MEMORY\n",
+    PC_DEBUG("%s[%d]:%s(): OUT_OF_MEMORY\n",
             pcutils_basename((char*)file), line, func);
 }
 

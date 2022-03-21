@@ -72,11 +72,11 @@ purc_variant_t purc_dvobj_text_new (void)
 {
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
-    static struct pcdvobjs_dvobjs method [] = {
+    static struct purc_dvobj_method method [] = {
         {"get",          get_getter,          NULL},
     };
 
-    ret_var = pcdvobjs_make_dvobjs (method, PCA_TABLESIZE(method));
+    ret_var = purc_dvobj_make_from_methods (method, PCA_TABLESIZE(method));
 
     if (ret_var) {
         purc_variant_t dict = purc_variant_make_object (0,

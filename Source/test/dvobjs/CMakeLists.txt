@@ -4,10 +4,10 @@ include(GoogleTest)
 
 enable_testing()
 
-# test_dvobjs
-PURC_EXECUTABLE_DECLARE(test_dvobjs)
+# test_dvobjs_system
+PURC_EXECUTABLE_DECLARE(test_dvobjs_system)
 
-list(APPEND test_dvobjs_PRIVATE_INCLUDE_DIRECTORIES
+list(APPEND test_dvobjs_system_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR}/include
     ${PurC_DERIVED_SOURCES_DIR}
     ${PURC_DIR}
@@ -15,29 +15,28 @@ list(APPEND test_dvobjs_PRIVATE_INCLUDE_DIRECTORIES
     ${WTF_DIR}
 )
 
-PURC_EXECUTABLE(test_dvobjs)
+PURC_EXECUTABLE(test_dvobjs_system)
 
-set(test_dvobjs_SOURCES
-    test_dvobjs.cpp
+set(test_dvobjs_system_SOURCES
+    test_dvobjs_system.cpp
     helper.cpp
 )
 
-set(test_dvobjs_LIBRARIES
+set(test_dvobjs_system_LIBRARIES
     PurC::PurC
     gtest_main
     gtest
     pthread
 )
 
-PURC_COMPUTE_SOURCES(test_dvobjs)
-PURC_FRAMEWORK(test_dvobjs)
-GTEST_DISCOVER_TESTS(test_dvobjs DISCOVERY_TIMEOUT 10)
+PURC_COMPUTE_SOURCES(test_dvobjs_system)
+PURC_FRAMEWORK(test_dvobjs_system)
+GTEST_DISCOVER_TESTS(test_dvobjs_system DISCOVERY_TIMEOUT 10)
 
+# test_dvobjs_datetime
+PURC_EXECUTABLE_DECLARE(test_dvobjs_datetime)
 
-# test_dvobjs_math
-PURC_EXECUTABLE_DECLARE(test_dvobjs_math)
-
-list(APPEND test_dvobjs_math_PRIVATE_INCLUDE_DIRECTORIES
+list(APPEND test_dvobjs_datetime_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR}/include
     ${PurC_DERIVED_SOURCES_DIR}
     ${PURC_DIR}
@@ -45,151 +44,23 @@ list(APPEND test_dvobjs_math_PRIVATE_INCLUDE_DIRECTORIES
     ${WTF_DIR}
 )
 
-target_compile_definitions(test_dvobjs_math PRIVATE SOPATH="${CMAKE_BINARY_DIR}/Source/ExtDVObjs/math")
+PURC_EXECUTABLE(test_dvobjs_datetime)
 
-PURC_EXECUTABLE(test_dvobjs_math)
-
-set(test_dvobjs_math_SOURCES
-    test_dvobjs_math.cpp
+set(test_dvobjs_datetime_SOURCES
+    test_dvobjs_datetime.cpp
     helper.cpp
 )
 
-set(test_dvobjs_math_LIBRARIES
+set(test_dvobjs_datetime_LIBRARIES
     PurC::PurC
     gtest_main
     gtest
     pthread
 )
 
-PURC_COMPUTE_SOURCES(test_dvobjs_math)
-PURC_FRAMEWORK(test_dvobjs_math)
-GTEST_DISCOVER_TESTS(test_dvobjs_math DISCOVERY_TIMEOUT 10)
-
-
-# test_dvobjs_logical
-PURC_EXECUTABLE_DECLARE(test_dvobjs_logical)
-
-list(APPEND test_dvobjs_logical_PRIVATE_INCLUDE_DIRECTORIES
-    ${PURC_DIR}/include
-    ${PurC_DERIVED_SOURCES_DIR}
-    ${PURC_DIR}
-    ${CMAKE_BINARY_DIR}
-    ${WTF_DIR}
-)
-
-PURC_EXECUTABLE(test_dvobjs_logical)
-
-set(test_dvobjs_logical_SOURCES
-    test_dvobjs_logical.cpp
-    helper.cpp
-)
-
-set(test_dvobjs_logical_LIBRARIES
-    PurC::PurC
-    gtest_main
-    gtest
-    pthread
-)
-
-PURC_COMPUTE_SOURCES(test_dvobjs_logical)
-PURC_FRAMEWORK(test_dvobjs_logical)
-GTEST_DISCOVER_TESTS(test_dvobjs_logical DISCOVERY_TIMEOUT 10)
-
-
-# test_dvobjs_string
-PURC_EXECUTABLE_DECLARE(test_dvobjs_string)
-
-list(APPEND test_dvobjs_string_PRIVATE_INCLUDE_DIRECTORIES
-    ${PURC_DIR}/include
-    ${PurC_DERIVED_SOURCES_DIR}
-    ${PURC_DIR}
-    ${CMAKE_BINARY_DIR}
-    ${WTF_DIR}
-)
-
-PURC_EXECUTABLE(test_dvobjs_string)
-
-set(test_dvobjs_string_SOURCES
-    test_dvobjs_string.cpp
-    helper.cpp
-)
-
-set(test_dvobjs_string_LIBRARIES
-    PurC::PurC
-    gtest_main
-    gtest
-    pthread
-)
-
-PURC_COMPUTE_SOURCES(test_dvobjs_string)
-PURC_FRAMEWORK(test_dvobjs_string)
-GTEST_DISCOVER_TESTS(test_dvobjs_string DISCOVERY_TIMEOUT 10)
-
-
-# test_dvobjs_fs
-PURC_EXECUTABLE_DECLARE(test_dvobjs_fs)
-
-list(APPEND test_dvobjs_fs_PRIVATE_INCLUDE_DIRECTORIES
-    ${PURC_DIR}/include
-    ${PurC_DERIVED_SOURCES_DIR}
-    ${PURC_DIR}
-    ${CMAKE_BINARY_DIR}
-    ${WTF_DIR}
-)
-
-PURC_EXECUTABLE(test_dvobjs_fs)
-
-target_compile_definitions(test_dvobjs_fs PRIVATE SOPATH="${CMAKE_BINARY_DIR}/Source/ExtDVObjs/fs")
-
-set(test_dvobjs_fs_SOURCES
-    test_dvobjs_fs.cpp
-    helper.cpp
-)
-
-set(test_dvobjs_fs_LIBRARIES
-    PurC::PurC
-    gtest_main
-    gtest
-    pthread
-)
-
-PURC_COMPUTE_SOURCES(test_dvobjs_fs)
-PURC_FRAMEWORK(test_dvobjs_fs)
-GTEST_DISCOVER_TESTS(test_dvobjs_fs DISCOVERY_TIMEOUT 10)
-
-
-# test_dvobjs_file
-PURC_EXECUTABLE_DECLARE(test_dvobjs_file)
-
-list(APPEND test_dvobjs_file_PRIVATE_INCLUDE_DIRECTORIES
-    ${PURC_DIR}/include
-    ${PurC_DERIVED_SOURCES_DIR}
-    ${PURC_DIR}
-    ${CMAKE_BINARY_DIR}
-    ${WTF_DIR}
-)
-
-PURC_EXECUTABLE(test_dvobjs_file)
-
-target_compile_definitions(test_dvobjs_file PRIVATE SOPATH="${CMAKE_BINARY_DIR}/Source/ExtDVObjs/fs")
-
-set(test_dvobjs_file_SOURCES
-    test_dvobjs_file.cpp
-    helper.cpp
-)
-
-set(test_dvobjs_file_LIBRARIES
-    PurC::PurC
-    gtest_main
-    gtest
-    pthread
-)
-
-PURC_COMPUTE_SOURCES(test_dvobjs_file)
-PURC_FRAMEWORK(test_dvobjs_file)
-GTEST_DISCOVER_TESTS(test_dvobjs_file DISCOVERY_TIMEOUT 10)
-
-
+PURC_COMPUTE_SOURCES(test_dvobjs_datetime)
+PURC_FRAMEWORK(test_dvobjs_datetime)
+GTEST_DISCOVER_TESTS(test_dvobjs_datetime DISCOVERY_TIMEOUT 10)
 
 # test_ejson
 PURC_EXECUTABLE_DECLARE(test_dvobjs_ejson)
@@ -252,10 +123,10 @@ PURC_COMPUTE_SOURCES(test_dvobjs_hvml)
 PURC_FRAMEWORK(test_dvobjs_hvml)
 GTEST_DISCOVER_TESTS(test_dvobjs_hvml DISCOVERY_TIMEOUT 10)
 
-# test_dvobjs_t
-PURC_EXECUTABLE_DECLARE(test_dvobjs_t)
+# test_dvobjs_text
+PURC_EXECUTABLE_DECLARE(test_dvobjs_text)
 
-list(APPEND test_dvobjs_t_PRIVATE_INCLUDE_DIRECTORIES
+list(APPEND test_dvobjs_text_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR}/include
     ${PurC_DERIVED_SOURCES_DIR}
     ${PURC_DIR}
@@ -263,20 +134,173 @@ list(APPEND test_dvobjs_t_PRIVATE_INCLUDE_DIRECTORIES
     ${WTF_DIR}
 )
 
-PURC_EXECUTABLE(test_dvobjs_t)
+PURC_EXECUTABLE(test_dvobjs_text)
 
-set(test_dvobjs_t_SOURCES
-    test_dvobjs_t.cpp
+set(test_dvobjs_text_SOURCES
+    test_dvobjs_text.cpp
     helper.cpp
 )
 
-set(test_dvobjs_t_LIBRARIES
+set(test_dvobjs_text_LIBRARIES
     PurC::PurC
     gtest_main
     gtest
     pthread
 )
 
-PURC_COMPUTE_SOURCES(test_dvobjs_t)
-PURC_FRAMEWORK(test_dvobjs_t)
-GTEST_DISCOVER_TESTS(test_dvobjs_t DISCOVERY_TIMEOUT 10)
+PURC_COMPUTE_SOURCES(test_dvobjs_text)
+PURC_FRAMEWORK(test_dvobjs_text)
+GTEST_DISCOVER_TESTS(test_dvobjs_text DISCOVERY_TIMEOUT 10)
+
+# test_dvobjs_logical
+PURC_EXECUTABLE_DECLARE(test_dvobjs_logical)
+
+list(APPEND test_dvobjs_logical_PRIVATE_INCLUDE_DIRECTORIES
+    ${PURC_DIR}/include
+    ${PurC_DERIVED_SOURCES_DIR}
+    ${PURC_DIR}
+    ${CMAKE_BINARY_DIR}
+    ${WTF_DIR}
+)
+
+PURC_EXECUTABLE(test_dvobjs_logical)
+
+set(test_dvobjs_logical_SOURCES
+    test_dvobjs_logical.cpp
+    helper.cpp
+)
+
+set(test_dvobjs_logical_LIBRARIES
+    PurC::PurC
+    gtest_main
+    gtest
+    pthread
+)
+
+PURC_COMPUTE_SOURCES(test_dvobjs_logical)
+PURC_FRAMEWORK(test_dvobjs_logical)
+GTEST_DISCOVER_TESTS(test_dvobjs_logical DISCOVERY_TIMEOUT 10)
+
+
+# test_dvobjs_string
+PURC_EXECUTABLE_DECLARE(test_dvobjs_string)
+
+list(APPEND test_dvobjs_string_PRIVATE_INCLUDE_DIRECTORIES
+    ${PURC_DIR}/include
+    ${PurC_DERIVED_SOURCES_DIR}
+    ${PURC_DIR}
+    ${CMAKE_BINARY_DIR}
+    ${WTF_DIR}
+)
+
+PURC_EXECUTABLE(test_dvobjs_string)
+
+set(test_dvobjs_string_SOURCES
+    test_dvobjs_string.cpp
+    helper.cpp
+)
+
+set(test_dvobjs_string_LIBRARIES
+    PurC::PurC
+    gtest_main
+    gtest
+    pthread
+)
+
+PURC_COMPUTE_SOURCES(test_dvobjs_string)
+PURC_FRAMEWORK(test_dvobjs_string)
+GTEST_DISCOVER_TESTS(test_dvobjs_string DISCOVERY_TIMEOUT 10)
+
+# test_dvobjs_math
+PURC_EXECUTABLE_DECLARE(test_dvobjs_math)
+
+list(APPEND test_dvobjs_math_PRIVATE_INCLUDE_DIRECTORIES
+    ${PURC_DIR}/include
+    ${PurC_DERIVED_SOURCES_DIR}
+    ${PURC_DIR}
+    ${CMAKE_BINARY_DIR}
+    ${WTF_DIR}
+)
+
+target_compile_definitions(test_dvobjs_math PRIVATE SOPATH="${CMAKE_BINARY_DIR}/Source/ExtDVObjs/math")
+
+PURC_EXECUTABLE(test_dvobjs_math)
+
+set(test_dvobjs_math_SOURCES
+    test_dvobjs_math.cpp
+    helper.cpp
+)
+
+set(test_dvobjs_math_LIBRARIES
+    PurC::PurC
+    gtest_main
+    gtest
+    pthread
+)
+
+PURC_COMPUTE_SOURCES(test_dvobjs_math)
+PURC_FRAMEWORK(test_dvobjs_math)
+GTEST_DISCOVER_TESTS(test_dvobjs_math DISCOVERY_TIMEOUT 10)
+
+# test_dvobjs_fs
+PURC_EXECUTABLE_DECLARE(test_dvobjs_fs)
+
+list(APPEND test_dvobjs_fs_PRIVATE_INCLUDE_DIRECTORIES
+    ${PURC_DIR}/include
+    ${PurC_DERIVED_SOURCES_DIR}
+    ${PURC_DIR}
+    ${CMAKE_BINARY_DIR}
+    ${WTF_DIR}
+)
+
+PURC_EXECUTABLE(test_dvobjs_fs)
+
+target_compile_definitions(test_dvobjs_fs PRIVATE SOPATH="${CMAKE_BINARY_DIR}/Source/ExtDVObjs/fs")
+
+set(test_dvobjs_fs_SOURCES
+    test_dvobjs_fs.cpp
+    helper.cpp
+)
+
+set(test_dvobjs_fs_LIBRARIES
+    PurC::PurC
+    gtest_main
+    gtest
+    pthread
+)
+
+PURC_COMPUTE_SOURCES(test_dvobjs_fs)
+PURC_FRAMEWORK(test_dvobjs_fs)
+GTEST_DISCOVER_TESTS(test_dvobjs_fs DISCOVERY_TIMEOUT 10)
+
+# test_dvobjs_file
+PURC_EXECUTABLE_DECLARE(test_dvobjs_file)
+
+list(APPEND test_dvobjs_file_PRIVATE_INCLUDE_DIRECTORIES
+    ${PURC_DIR}/include
+    ${PurC_DERIVED_SOURCES_DIR}
+    ${PURC_DIR}
+    ${CMAKE_BINARY_DIR}
+    ${WTF_DIR}
+)
+
+PURC_EXECUTABLE(test_dvobjs_file)
+
+target_compile_definitions(test_dvobjs_file PRIVATE SOPATH="${CMAKE_BINARY_DIR}/Source/ExtDVObjs/fs")
+
+set(test_dvobjs_file_SOURCES
+    test_dvobjs_file.cpp
+    helper.cpp
+)
+
+set(test_dvobjs_file_LIBRARIES
+    PurC::PurC
+    gtest_main
+    gtest
+    pthread
+)
+
+PURC_COMPUTE_SOURCES(test_dvobjs_file)
+PURC_FRAMEWORK(test_dvobjs_file)
+GTEST_DISCOVER_TESTS(test_dvobjs_file DISCOVERY_TIMEOUT 10)
+

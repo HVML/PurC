@@ -48,6 +48,11 @@
 /* ==== OS() - underlying operating system; only to be used for mandated low-level services like
    virtual memory, not to choose a GUI toolkit ==== */
 
+/* OS(HYBRIDOS) - HybridOS */
+#if defined(__HybridOS__)
+#define WTF_OS_HYBRIDOS 1
+#endif
+
 /* OS(AIX) - AIX */
 #if defined(_AIX)
 #define WTF_OS_AIX 1

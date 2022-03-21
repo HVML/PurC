@@ -129,13 +129,13 @@ pchvml_rwswrap_read_from_reconsume_list(struct pchvml_rwswrap* wrap)
 
 #define print_uc_list(uc_list, tag)                                         \
     do {                                                                    \
-        fprintf(stderr, "begin print %s list\n|", tag);                     \
+        PC_DEBUG("begin print %s list\n|", tag);                            \
         struct list_head *p, *n;                                            \
         list_for_each_safe(p, n, uc_list) {                                 \
             struct pchvml_uc* puc = list_entry(p, struct pchvml_uc, list);  \
-            fprintf(stderr, "%c", puc->character);                          \
+            PC_DEBUG("%c", puc->character);                                 \
         }                                                                   \
-        fprintf(stderr, "|\nend print %s list\n", tag);                     \
+        PC_DEBUG("|\nend print %s list\n", tag);                            \
     } while(0)
 
 #define PRINT_CONSUMED_LIST(wrap)    \

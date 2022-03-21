@@ -167,4 +167,15 @@ purc_get_api_version_string (void) {
 
 PCA_EXTERN_C_END
 
+#define HVML_SPEC_VERSION               "1.0"
+#define HVML_SPEC_RELEASE               "硕鼠"
+
+#define HVML_PREDEF_VARS_SPEC_VERSION   "1.0"
+#define HVML_PREDEF_VARS_SPEC_RELEASE   "硕鼠"
+
+#define HVML_INTRPR_NAME                "PurC"
+#define HVML_INTRPR_VERSION             PURC_VERSION_STRING
+#define HVML_INTRPR_RELEASE             "立春"
+
 #endif /* not defined PURC_PURC_VERSION_H */
+
