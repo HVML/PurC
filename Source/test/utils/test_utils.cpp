@@ -937,6 +937,18 @@ TEST(utils, map)
     ASSERT_EQ((size_t)entry->val, 12);
 
     r = pcutils_map_traverse(map, NULL, map_visit);
+
+    struct pcutils_map_iterator it;
+    it = pcutils_map_it_begin_first(map);
+
+    while ((entry=pcutils_map_it_value(&it)) != NULL) {
+        ASSERT_STREQ((const char*)entry->key, "name");
+        ASSERT_EQ(12, (size_t)entry->val);
+        pcutils_map_it_next(&it);
+    }
+
+    pcutils_map_it_end(&it);
+
     pcutils_map_destroy(map);
     ASSERT_EQ(r, 0);
 }

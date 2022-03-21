@@ -312,3 +312,31 @@ PURC_COMPUTE_SOURCES(test_constraint)
 PURC_FRAMEWORK(test_constraint)
 GTEST_DISCOVER_TESTS(test_constraint DISCOVERY_TIMEOUT 10)
 
+# test_variant_map
+PURC_EXECUTABLE_DECLARE(test_variant_map)
+
+list(APPEND test_variant_map_PRIVATE_INCLUDE_DIRECTORIES
+    ${PURC_DIR}/include
+    ${PurC_DERIVED_SOURCES_DIR}
+    ${PURC_DIR}
+    ${CMAKE_BINARY_DIR}
+    ${WTF_DIR}
+)
+
+PURC_EXECUTABLE(test_variant_map)
+
+set(test_variant_map_SOURCES
+    test_variant_map.cpp
+)
+
+set(test_variant_map_LIBRARIES
+    PurC::PurC
+    gtest_main
+    gtest
+    pthread
+)
+
+PURC_COMPUTE_SOURCES(test_variant_map)
+PURC_FRAMEWORK(test_variant_map)
+GTEST_DISCOVER_TESTS(test_variant_map DISCOVERY_TIMEOUT 10)
+

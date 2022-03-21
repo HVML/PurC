@@ -809,6 +809,10 @@ check_shrink(purc_variant_t set, struct set_node *node)
         PRINT_VARIANT(set);
         PRINT_VARIANT(_new);
 
+        int r = pcvar_reverse_check(set, _new);
+        if (r)
+            break;
+
         PURC_VARIANT_SAFE_CLEAR(_new);
 
         return 0;
@@ -873,6 +877,10 @@ check_grow(purc_variant_t set, purc_variant_t val)
 
         PRINT_VARIANT(set);
         PRINT_VARIANT(_new);
+
+        int r = pcvar_reverse_check(set, _new);
+        if (r)
+            break;
 
         PURC_VARIANT_SAFE_CLEAR(_new);
 
@@ -1091,6 +1099,10 @@ check_change(purc_variant_t set, struct set_node *node, purc_variant_t val)
 
         PRINT_VARIANT(set);
         PRINT_VARIANT(_new);
+
+        int r = pcvar_reverse_check(set, _new);
+        if (r)
+            break;
 
         PURC_VARIANT_SAFE_CLEAR(_new);
 
@@ -1851,7 +1863,10 @@ pcvar_set_break_edge_to_parent(purc_variant_t set,
     if (!data)
         return;
 
-    pcvar_break_edge(set, &data->rev_update_chain, edge);
+    if (!data->rev_update_chain)
+        return;
+
+    pcutils_map_erase(data->rev_update_chain, edge);
 }
 
 int
@@ -1863,7 +1878,20 @@ pcvar_set_build_edge_to_parent(purc_variant_t set,
     if (!data)
         return 0;
 
-    return pcvar_build_edge(set, &data->rev_update_chain, edge);
+    if (!data->rev_update_chain) {
+        data->rev_update_chain = pcvar_create_rev_update_chain();
+        if (!data->rev_update_chain)
+            return -1;
+    }
+
+    pcutils_map_entry *entry = pcutils_map_find(data->rev_update_chain, edge);
+    if (entry)
+        return 0;
+
+    int r;
+    r = pcutils_map_insert(data->rev_update_chain, edge, edge);
+
+    return r ? -1 : 0;
 }
 
 static struct set_node*
@@ -2196,6 +2224,9 @@ pcvar_adjust_set_by_edge(purc_variant_t set,
 void
 pcvar_adjust_set_by_descendant(purc_variant_t val)
 {
+    UNUSED_PARAM(val);
+    PC_ASSERT(0);
+#if 0              /* { */
     struct pcvar_rev_update_edge *top;
     top = pcvar_container_get_top_edge(val);
     if (!top)
@@ -2219,5 +2250,6 @@ pcvar_adjust_set_by_descendant(purc_variant_t val)
 
     pcutils_rbtree_link_node(entry, rbn.parent, rbn.pnode);
     pcutils_rbtree_insert_color(entry, &data->elems);
+#endif             /* } */
 }
 

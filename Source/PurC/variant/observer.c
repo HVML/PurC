@@ -250,72 +250,6 @@ pcvar_break_edge_to_parent(purc_variant_t val,
     }
 }
 
-#if PURC_SET_CONSTRAINT_WITH_CLONE == 1
-void
-pcvar_break_edge(purc_variant_t val,
-        struct pcvar_rev_update_edge *edge_in_val,
-        struct pcvar_rev_update_edge *edge)
-{
-    PC_ASSERT(val != PURC_VARIANT_INVALID);
-    PC_ASSERT(edge_in_val);
-    PC_ASSERT(edge);
-
-    if (edge_in_val->parent == PURC_VARIANT_INVALID)
-        return;
-
-    PC_ASSERT(edge_in_val->pre_listener);
-    PC_ASSERT(edge_in_val->post_listener);
-
-    PC_ASSERT(edge->parent == edge_in_val->parent);
-
-    bool ok;
-
-    switch (edge->parent->type) {
-        case PURC_VARIANT_TYPE_ARRAY:
-            PC_ASSERT(edge->arr_me->val == val);
-            PC_ASSERT(edge->arr_me == edge_in_val->arr_me);
-            ok = purc_variant_revoke_listener(val, edge_in_val->pre_listener);
-            PC_ASSERT(ok);
-            edge_in_val->pre_listener = NULL;
-            ok = purc_variant_revoke_listener(val, edge_in_val->post_listener);
-            PC_ASSERT(ok);
-            edge_in_val->post_listener = NULL;
-            edge_in_val->parent = PURC_VARIANT_INVALID;
-            edge_in_val->arr_me = NULL;
-            return;
-
-        case PURC_VARIANT_TYPE_OBJECT:
-            PC_ASSERT(edge->obj_me->val == val);
-            PC_ASSERT(edge->obj_me == edge_in_val->obj_me);
-            ok = purc_variant_revoke_listener(val, edge_in_val->pre_listener);
-            PC_ASSERT(ok);
-            edge_in_val->pre_listener = NULL;
-            ok = purc_variant_revoke_listener(val, edge_in_val->post_listener);
-            PC_ASSERT(ok);
-            edge_in_val->post_listener = NULL;
-            edge_in_val->parent = PURC_VARIANT_INVALID;
-            edge_in_val->obj_me = NULL;
-            return;
-
-        case PURC_VARIANT_TYPE_SET:
-            PC_ASSERT(edge->set_me->val == val);
-            PC_ASSERT(edge->set_me == edge_in_val->set_me);
-            ok = purc_variant_revoke_listener(val, edge_in_val->pre_listener);
-            PC_ASSERT(ok);
-            edge_in_val->pre_listener = NULL;
-            ok = purc_variant_revoke_listener(val, edge_in_val->post_listener);
-            PC_ASSERT(ok);
-            edge_in_val->post_listener = NULL;
-            edge_in_val->parent = PURC_VARIANT_INVALID;
-            edge_in_val->set_me = NULL;
-            return;
-
-        default:
-            PC_ASSERT(0);
-    }
-}
-#endif
-
 int
 pcvar_build_rue_downward(purc_variant_t val)
 {
@@ -366,54 +300,15 @@ pcvar_build_edge_to_parent(purc_variant_t val,
 }
 
 #if PURC_SET_CONSTRAINT_WITH_CLONE == 1
-int
-pcvar_build_edge(purc_variant_t val,
-        struct pcvar_rev_update_edge *edge_in_val,
-        struct pcvar_rev_update_edge *edge)
+
+static bool
+is_rev_update_chain_empty(pcutils_map *chain)
 {
-    PC_ASSERT(val != PURC_VARIANT_INVALID);
-    PC_ASSERT(edge_in_val);
-    PC_ASSERT(edge);
+    if (!chain)
+        return true;
 
-    PC_ASSERT(edge->pre_listener == NULL);
-    PC_ASSERT(edge->post_listener == NULL);
-
-    bool parent_is_set = purc_variant_is_set(edge->parent);
-    if (!parent_is_set &&
-            pcvar_container_belongs_to_set(edge->parent) == false)
-    {
-        PC_ASSERT(0);
-    }
-
-    if (edge_in_val->parent != PURC_VARIANT_INVALID)
-        PC_ASSERT(0);
-
-    if (edge_in_val->pre_listener)
-        PC_ASSERT(0);
-
-    if (edge_in_val->post_listener)
-        PC_ASSERT(0);
-
-    struct pcvar_listener *pre_listener, *post_listener;
-    pre_listener = purc_variant_register_pre_listener(val,
-            PCVAR_OPERATION_ALL, pcvar_rev_update_chain_pre_handler,
-            edge_in_val);
-    if (!pre_listener)
-        return -1;
-    post_listener = purc_variant_register_post_listener(val,
-            PCVAR_OPERATION_ALL, pcvar_rev_update_chain_post_handler,
-            edge_in_val);
-    if (!post_listener) {
-        bool ok = purc_variant_revoke_listener(val, edge_in_val->pre_listener);
-        PC_ASSERT(ok);
-        return -1;
-    }
-
-    *edge_in_val = *edge;
-    edge_in_val->pre_listener  = pre_listener;
-    edge_in_val->post_listener = post_listener;
-
-    return 0;
+    size_t nr = pcutils_map_get_size(chain);
+    return nr == 0 ? true : false;
 }
 
 bool
@@ -425,31 +320,32 @@ pcvar_container_belongs_to_set(purc_variant_t val)
             {
                 variant_arr_t data = pcvar_arr_get_data(val);
                 PC_ASSERT(data);
-                if (data->rev_update_chain.parent != PURC_VARIANT_INVALID)
-                    return true;
-                return false;
+                if (is_rev_update_chain_empty(data->rev_update_chain))
+                    return false;
+                return true;
             }
         case PURC_VARIANT_TYPE_OBJECT:
             {
                 variant_obj_t data = pcvar_obj_get_data(val);
                 PC_ASSERT(data);
-                if (data->rev_update_chain.parent != PURC_VARIANT_INVALID)
-                    return true;
-                return false;
+                if (is_rev_update_chain_empty(data->rev_update_chain))
+                    return false;
+                return true;
             }
         case PURC_VARIANT_TYPE_SET:
             {
                 variant_set_t data = pcvar_set_get_data(val);
                 PC_ASSERT(data);
-                if (data->rev_update_chain.parent != PURC_VARIANT_INVALID)
-                    return true;
-                return false;
+                if (is_rev_update_chain_empty(data->rev_update_chain))
+                    return false;
+                return true;
             }
         default:
             return false;
     }
 }
 
+#if 0         /* { */
 struct pcvar_rev_update_edge*
 pcvar_container_get_top_edge(purc_variant_t val)
 {
@@ -498,5 +394,6 @@ pcvar_top_in_rev_update_chain(purc_variant_t val)
         return PURC_VARIANT_INVALID;
     return top->parent;
 }
+#endif        /* } */
 #endif
 

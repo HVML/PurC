@@ -32,6 +32,7 @@
 #include "rbtree.h"
 #include "array_list.h"
 #include "private/debug.h"
+#include "private/map.h"
 
 #define PURC_SET_CONSTRAINT_WITH_CLONE               1
 
@@ -254,8 +255,6 @@ struct pcvar_rev_update_edge {
         struct obj_node             *obj_me;
         struct arr_node             *arr_me;
     };
-    struct pcvar_listener           *pre_listener;
-    struct pcvar_listener           *post_listener;
 };
 
 // internal struct used by variant-set object
@@ -277,7 +276,7 @@ struct variant_set {
     struct pcutils_arrlist *arr;    // also stored in arraylist
 
 #if PURC_SET_CONSTRAINT_WITH_CLONE == 1
-    struct pcvar_rev_update_edge     rev_update_chain;
+    pcutils_map                     *rev_update_chain;
 #endif
 };
 
@@ -295,7 +294,7 @@ struct variant_obj {
     size_t                  size;
 
 #if PURC_SET_CONSTRAINT_WITH_CLONE == 1
-    struct pcvar_rev_update_edge     rev_update_chain;
+    pcutils_map                     *rev_update_chain;
 #endif
 };
 
@@ -311,7 +310,7 @@ struct variant_arr {
     struct pcutils_array_list     al;  // struct arr_node*
 
 #if PURC_SET_CONSTRAINT_WITH_CLONE == 1
-    struct pcvar_rev_update_edge     rev_update_chain;
+    pcutils_map                     *rev_update_chain;
 #endif
 };
 

@@ -1519,3 +1519,4 @@ TEST(variant, variant_compare)
 
     purc_cleanup ();
 }
+

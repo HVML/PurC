@@ -29,6 +29,7 @@
 
 #include <stdlib.h>
 
+#if 0               /* { */
 static bool
 wind_up_and_check(struct pcvar_rev_update_edge *edge, purc_variant_t _new)
 {
@@ -570,5 +571,210 @@ pcvar_rev_update_chain_post_handler(
 
     bool pre = false;
     return rev_update(pre, src, op, edge, nr_args, argv);
+}
+#endif              /* } */
+
+static void
+key_free(void *key)
+{
+    struct pcvar_rev_update_edge *edge;
+    edge = (struct pcvar_rev_update_edge*)key;
+    free(edge);
+}
+
+static int
+key_comp(const void *key1, const void *key2)
+{
+    struct pcvar_rev_update_edge *l, *r;
+    l = (struct pcvar_rev_update_edge*)key1;
+    r = (struct pcvar_rev_update_edge*)key2;
+
+    if (l->parent < r->parent)
+        return -1;
+
+    if (l->parent == r->parent) {
+        if (l->arr_me < r->arr_me)
+            return -1;
+
+        if (l->arr_me == r->arr_me)
+            return 0;
+    }
+
+    return 1;
+}
+
+pcutils_map*
+pcvar_create_rev_update_chain(void)
+{
+    copy_key_fn copy_key = NULL;
+    free_key_fn free_key = key_free;
+    copy_val_fn copy_val = NULL;
+    free_val_fn free_val = NULL;
+    comp_key_fn comp_key = key_comp;
+
+    bool threads = false;
+    return pcutils_map_create(copy_key, free_key, copy_val, free_val,
+            comp_key, threads);
+}
+
+static void*
+ref(const void *v)
+{
+    return purc_variant_ref((purc_variant_t)v);
+}
+
+static void
+unref(void *v)
+{
+    purc_variant_unref((purc_variant_t)v);
+}
+
+static int
+comp(const void *key1, const void *key2)
+{
+    purc_variant_t k1 = (purc_variant_t)key1;
+    purc_variant_t k2 = (purc_variant_t)key2;
+
+    return k1 - k2;
+}
+
+struct reverse_checker {
+    pcutils_map           *input;
+    pcutils_map           *cache;
+    pcutils_map           *output;
+};
+
+static int
+reverse_check_chain(pcutils_map *chain,
+        purc_variant_t old, purc_variant_t _new,
+        struct reverse_checker *checker)
+{
+    UNUSED_PARAM(chain);
+    UNUSED_PARAM(old);
+    UNUSED_PARAM(_new);
+    UNUSED_PARAM(checker);
+    PC_ASSERT(0);
+}
+
+static int
+reverse_check_arr(purc_variant_t arr, purc_variant_t _new,
+        struct reverse_checker *checker)
+{
+    if (pcvar_container_belongs_to_set(arr) == false)
+        return 0;
+
+    variant_arr_t arr_data;
+    arr_data = pcvar_arr_get_data(arr);
+
+    return reverse_check_chain(arr_data->rev_update_chain, arr, _new, checker);
+}
+
+static int
+reverse_check_obj(purc_variant_t obj, purc_variant_t _new,
+        struct reverse_checker *checker)
+{
+    if (pcvar_container_belongs_to_set(obj) == false)
+        return 0;
+
+    variant_obj_t obj_data;
+    obj_data = pcvar_obj_get_data(obj);
+
+    return reverse_check_chain(obj_data->rev_update_chain, obj, _new, checker);
+}
+
+static int
+reverse_check_set(purc_variant_t set, purc_variant_t _new,
+        struct reverse_checker *checker)
+{
+    if (pcvar_container_belongs_to_set(set) == false)
+        return 0;
+
+    variant_set_t set_data;
+    set_data = pcvar_set_get_data(set);
+
+    return reverse_check_chain(set_data->rev_update_chain, set, _new, checker);
+}
+
+static int
+reverse_check_val(void *key, void *val, void *ud)
+{
+    purc_variant_t old  = (purc_variant_t)key;
+    purc_variant_t _new = (purc_variant_t)val;
+    struct reverse_checker *checker = (struct reverse_checker*)ud;
+
+    switch (old->type) {
+        case PURC_VARIANT_TYPE_ARRAY:
+            return reverse_check_arr(old, _new, checker);
+        case PURC_VARIANT_TYPE_OBJECT:
+            return reverse_check_obj(old, _new, checker);
+        case PURC_VARIANT_TYPE_SET:
+            return reverse_check_set(old, _new, checker);
+        default:
+            PC_ASSERT(0);
+    }
+}
+
+static int
+reverse_check(pcutils_map *input, pcutils_map *cache, pcutils_map *output)
+{
+    size_t nr;
+    int r;
+    struct reverse_checker checker = {
+        .input        = input,
+        .cache        = cache,
+        .output       = output,
+    };
+
+again:
+    nr = pcutils_map_get_size(input);
+    if (nr == 0)
+        return 0;
+
+    r = pcutils_map_traverse(input, &checker, reverse_check_val);
+
+    if (r)
+        return -1;
+
+    goto again;
+}
+
+int
+pcvar_reverse_check(purc_variant_t old, purc_variant_t _new)
+{
+    copy_key_fn copy_key = ref;
+    free_key_fn free_key = unref;
+    copy_val_fn copy_val = ref;
+    free_val_fn free_val = unref;
+    comp_key_fn comp_key = comp;
+
+    bool threads = false;
+    pcutils_map *input = pcutils_map_create(copy_key, free_key,
+            copy_val, free_val, comp_key, threads);
+    pcutils_map *cache = pcutils_map_create(copy_key, free_key,
+            copy_val, free_val, comp_key, threads);
+    pcutils_map *output = pcutils_map_create(copy_key, free_key,
+            copy_val, free_val, comp_key, threads);
+
+    int r = 0;
+    do {
+        r = pcutils_map_insert(input, old, _new);
+        if (r)
+            break;
+
+        r = reverse_check(input, cache, output);
+        if (r)
+            break;
+
+        pcutils_map_destroy(output);
+        pcutils_map_destroy(cache);
+        pcutils_map_destroy(input);
+        return 0;
+    } while (0);
+
+    pcutils_map_destroy(output);
+    pcutils_map_destroy(cache);
+    pcutils_map_destroy(input);
+
+    return -1;
 }
 
