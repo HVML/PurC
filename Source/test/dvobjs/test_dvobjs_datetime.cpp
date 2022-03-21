@@ -197,7 +197,7 @@ purc_variant_t time_prt(purc_variant_t dvobj, const char* name)
     else if (strcmp(name, "iso8601-epoch-timezone") == 0) {
         timeformat = keywords2formats[K_KW_iso8601].format;
         t = 0;
-        timezone = ":Asia/Shanghai";
+        timezone = ":America/New_York";
     }
     else {
         for (size_t i = 0; i < PCA_TABLESIZE(keywords2formats); i++) {
@@ -220,15 +220,22 @@ purc_variant_t time_prt(purc_variant_t dvobj, const char* name)
         }
         else {
             char *tz_old = NULL;
-
             if (timezone) {
-                tz_old = getenv("TZ");
+                char *env = getenv("TZ");
+                if (env)
+                    tz_old = strdup(env);
+
                 setenv("TZ", timezone, 1);
+                tzset();
             }
+
             localtime_r(&t, &tm);
 
-            if (tz_old)
+            if (tz_old) {
                 setenv("TZ", tz_old, 1);
+                tzset();
+                free(tz_old);
+            }
         }
         strftime(buf, sizeof(buf), timeformat, &tm);
 
@@ -335,13 +342,13 @@ TEST(dvobjs, time_prt)
             "$DATETIME.time_prt('iso8601', null)",
             time_prt, time_prt_vrtcmp, 0 },
         { "iso8601-timezone",
-            "$DATETIME.time_prt('iso8601', null, 'Asia/Shanghai')",
+            "$DATETIME.time_prt('iso8601', null, 'America/New_York')",
             time_prt, time_prt_vrtcmp, 0 },
         { "iso8601-epoch",
             "$DATETIME.time_prt('iso8601', 0)",
             time_prt, time_prt_vrtcmp, 0 },
         { "iso8601-epoch-timezone",
-            "$DATETIME.time_prt('iso8601', 0, 'Asia/Shanghai')",
+            "$DATETIME.time_prt('iso8601', 0, 'America/New_York')",
             time_prt, time_prt_vrtcmp, 0 },
     };
 
@@ -427,10 +434,15 @@ purc_variant_t fmttime(purc_variant_t dvobj, const char* name)
         timeformat = keywords2formats[K_KW_iso8601].format;
         t = 0;
     }
+    else if (strcmp(name, "iso8601-epoch-utc") == 0) {
+        timeformat = keywords2formats[K_KW_iso8601].format;
+        t = 0;
+        timezone = ":UTC";
+    }
     else if (strcmp(name, "iso8601-epoch-timezone") == 0) {
         timeformat = keywords2formats[K_KW_iso8601].format;
         t = 0;
-        timezone = ":Asia/Shanghai";
+        timezone = ":America/New_York";
     }
     else {
         timeformat = name;
@@ -441,23 +453,34 @@ purc_variant_t fmttime(purc_variant_t dvobj, const char* name)
         char buf[256];
         struct tm tm;
 
-        if (strncmp(timeformat, PURC_TFORMAT_PREFIX_UTC,
+        if (timezone && strcmp(timezone, ":UTC") == 0) {
+            gmtime_r(&t, &tm);
+        }
+        else if (strncmp(timeformat, PURC_TFORMAT_PREFIX_UTC,
                     sizeof(PURC_TFORMAT_PREFIX_UTC) - 1) == 0) {
             gmtime_r(&t, &tm);
             timeformat += sizeof(PURC_TFORMAT_PREFIX_UTC) - 1;
         }
         else {
             char *tz_old = NULL;
-
             if (timezone) {
-                tz_old = getenv("TZ");
+                char *env = getenv("TZ");
+                if (env)
+                    tz_old = strdup(env);
+
                 setenv("TZ", timezone, 1);
+                tzset();
             }
+
             localtime_r(&t, &tm);
 
-            if (tz_old)
+            if (tz_old) {
                 setenv("TZ", tz_old, 1);
+                tzset();
+                free(tz_old);
+            }
         }
+
         strftime(buf, sizeof(buf), timeformat, &tm);
 
         return purc_variant_make_string(buf, false);
@@ -512,13 +535,13 @@ TEST(dvobjs, fmttime)
             "$DATETIME.fmttime('%Y-%m-%dT%H:%M:%S%z', null)",
             fmttime, fmttime_vrtcmp, 0 },
         { "iso8601-timezone",
-            "$DATETIME.fmttime('%Y-%m-%dT%H:%M:%S%z', null, 'Asia/Shanghai')",
+            "$DATETIME.fmttime('%Y-%m-%dT%H:%M:%S%z', null, 'America/New_York')",
             fmttime, fmttime_vrtcmp, 0 },
         { "iso8601-epoch",
             "$DATETIME.fmttime('%Y-%m-%dT%H:%M:%S%z', 0)",
             fmttime, fmttime_vrtcmp, 0 },
         { "iso8601-epoch-timezone",
-            "$DATETIME.fmttime('%Y-%m-%dT%H:%M:%S%z', 0, 'Asia/Shanghai')",
+            "$DATETIME.fmttime('%Y-%m-%dT%H:%M:%S%z', 0, 'America/New_York')",
             fmttime, fmttime_vrtcmp, 0 },
         { "{UTC}It is %H:%M now in UTC",
             "$DATETIME.fmttime('{UTC}It is %H:%M now in UTC')",
@@ -601,6 +624,15 @@ TEST(dvobjs, broken_down_time)
         { "bad",
             "$DATETIME.localtime(null, false)",
             fmttime, NULL, PURC_ERROR_WRONG_DATA_TYPE },
+        { "bad",
+            "$DATETIME.mktime",
+            fmttime, NULL, PURC_ERROR_ARGUMENT_MISSED },
+        { "bad",
+            "$DATETIME.mktime()",
+            fmttime, NULL, PURC_ERROR_ARGUMENT_MISSED },
+        { "bad",
+            "$DATETIME.mktime(false)",
+            fmttime, NULL, PURC_ERROR_WRONG_DATA_TYPE },
         { "object",
             "$DATETIME.localtime",
             fmttime, result_is_object, 0 },
@@ -608,10 +640,10 @@ TEST(dvobjs, broken_down_time)
             "$DATETIME.localtime(null)",
             fmttime, result_is_object, 0 },
         { "object",
-            "$DATETIME.localtime(null, 'Asia/Shanghai')",
+            "$DATETIME.localtime(null, 'America/New_York')",
             fmttime, result_is_object, 0 },
         { "object",
-            "$DATETIME.localtime(0, 'Asia/Shanghai')",
+            "$DATETIME.localtime(0, 'America/New_York')",
             fmttime, result_is_object, 0 },
         { "iso8601",
             "$DATETIME.fmtbdtime('%Y-%m-%dT%H:%M:%S%z', null)",
@@ -623,19 +655,40 @@ TEST(dvobjs, broken_down_time)
             "$DATETIME.fmtbdtime('%Y-%m-%dT%H:%M:%S%z', $DATETIME.localtime())",
             fmttime, fmttime_vrtcmp, 0 },
         { "iso8601-timezone",
-            "$DATETIME.fmtbdtime('%Y-%m-%dT%H:%M:%S%z', $DATETIME.localtime(null, 'Asia/Shanghai'))",
+            "$DATETIME.fmtbdtime('%Y-%m-%dT%H:%M:%S%z', $DATETIME.localtime(null, 'America/New_York'))",
             fmttime, fmttime_vrtcmp, 0 },
         { "{UTC}It is %H:%M now in UTC",
             "$DATETIME.fmtbdtime('{UTC}It is %H:%M now in UTC', $DATETIME.utctime())",
+            fmttime, fmttime_vrtcmp, 0 },
+        { "{UTC}It is %H:%M now in UTC",
+            "$DATETIME.fmtbdtime('{UTC}It is %H:%M now in UTC', $DATETIME.utctime(null))",
+            fmttime, fmttime_vrtcmp, 0 },
+        { "iso8601-epoch-utc",
+            "$DATETIME.fmtbdtime('{UTC}%Y-%m-%dT%H:%M:%S%z', $DATETIME.utctime(0))",
             fmttime, fmttime_vrtcmp, 0 },
         { "iso8601",
             "$DATETIME.fmtbdtime('%Y-%m-%dT%H:%M:%S%z', null)",
             fmttime, fmttime_vrtcmp, 0 },
         { "iso8601-epoch",
+            "$DATETIME.fmttime('%Y-%m-%dT%H:%M:%S%z', $DATETIME.mktime($DATETIME.utctime(0)))",
+            fmttime, fmttime_vrtcmp, 0 },
+        { "{UTC}It is %H:%M now in UTC",
+            "$DATETIME.fmttime('{UTC}It is %H:%M now in UTC', $DATETIME.mktime($DATETIME.utctime(null)))",
+            fmttime, fmttime_vrtcmp, 0 },
+        { "iso8601-epoch",
             "$DATETIME.fmtbdtime('%Y-%m-%dT%H:%M:%S%z', $DATETIME.localtime(0))",
             fmttime, fmttime_vrtcmp, 0 },
         { "iso8601-epoch-timezone",
-            "$DATETIME.fmtbdtime('%Y-%m-%dT%H:%M:%S%z', $DATETIME.localtime(0, 'Asia/Shanghai'))",
+            "$DATETIME.fmtbdtime('%Y-%m-%dT%H:%M:%S%z', $DATETIME.localtime(0, 'America/New_York'))",
+            fmttime, fmttime_vrtcmp, 0 },
+        { "iso8601",
+            "$DATETIME.fmttime('%Y-%m-%dT%H:%M:%S%z', $DATETIME.mktime($DATETIME.localtime(null)))",
+            fmttime, fmttime_vrtcmp, 0 },
+        { "iso8601-timezone",
+            "$DATETIME.fmttime('%Y-%m-%dT%H:%M:%S%z', $DATETIME.mktime($DATETIME.localtime(null, 'America/New_York')))",
+            fmttime, fmttime_vrtcmp, 0 },
+        { "iso8601-epoch-timezone",
+            "$DATETIME.fmttime('%Y-%m-%dT%H:%M:%S%z', $DATETIME.mktime($DATETIME.localtime(0, 'America/New_York')))",
             fmttime, fmttime_vrtcmp, 0 },
     };
 

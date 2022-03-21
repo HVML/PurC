@@ -1055,21 +1055,18 @@ failed:
     return PURC_VARIANT_INVALID;
 }
 
-static purc_variant_t
-timezone_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+bool
+pcdvobjs_get_current_timezone(char *buff, size_t sz_buff)
 {
-    UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(argv);
-    UNUSED_PARAM(silently);
-
-    const char* timezone = NULL;
-
+    const char *timezone;
     char path[PATH_MAX + 1];
+
     const char* env_tz = getenv("TZ");
     if (env_tz && env_tz[0] == ':') {
         timezone = env_tz + 1;
+        if (!pcdvobjs_is_valid_timezone(timezone)) {
+            timezone = "posixrules";
+        }
     }
     else {
         ssize_t nr_bytes;
@@ -1081,15 +1078,37 @@ timezone_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             timezone = path + sizeof(PURC_SYS_TZ_DIR) - 1;
         }
         else {
+            purc_set_error(PURC_ERROR_BAD_SYSTEM_CALL);
             purc_log_error("Cannot determine timezone.\n");
+            goto failed;
         }
     }
 
-    if (timezone) {
-        return purc_variant_make_string(timezone, true);
+    if (strlen(timezone) >= sz_buff) {
+        purc_set_error(PURC_ERROR_TOO_SMALL_BUFF);
+        goto failed;
     }
 
-    purc_set_error(PURC_ERROR_NOT_DESIRED_ENTITY);
+    strcpy(buff, timezone);
+    return true;
+
+failed:
+    return false;
+}
+
+static purc_variant_t
+timezone_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+
+    char timezone[MAX_LEN_TIMEZONE];
+    if (pcdvobjs_get_current_timezone(timezone, sizeof(timezone))) {
+        return purc_variant_make_string(timezone, false);
+    }
+
     if (silently)
         return purc_variant_make_boolean(false);
 
