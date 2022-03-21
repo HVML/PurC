@@ -3,10 +3,10 @@
 ## 预定义变量
 
 * 按照[预定义变量规范](https://gitlab.fmsoft.cn/hvml/hvml-docs/-/blob/master/zh/hvml-spec-predefined-variables-v1.0-zh.md)要求调整已有的实现。主要涉及：
-   1. `$SYSTEM`
-   1. `$SESSION`
-   1. `$HVML`
-   1. `$DATETIME`
+   1. ~~`$SYSTEM`~~
+   1. ~~`$SESSION`~~
+   1. ~~`$HVML`~~
+   1. ~~`$DATETIME`~~
    1. `$EJSON`
 * 按照[预定义变量规范](https://gitlab.fmsoft.cn/hvml/hvml-docs/-/blob/master/zh/hvml-spec-predefined-variables-v1.0-zh.md)要求调整或增强预定义变量的实现。主要涉及：
    1. `$URL`
@@ -24,6 +24,7 @@
 * 调整解析器，根据动作元素中是否包含有 `silently` 副词属性，为 `bool silently` 参数传递相应的实参。
 
 * 异常和错误的处理（2022 年 4 月起）
+   1. 调整已有的接口或者动态对象方法的实现，静默求值时，对非致命错误（相当于产生可忽略异常；致命错误指内存分配失败等导致程序无法正常运行的错误），应返回一个表示错误状态的有效变体值，如 `false`、`null`、`undefined` 或者空字符串。
    1. 按规范要求处理异常和错误。
    1. `catch` 标签。
 
