@@ -94,6 +94,32 @@ int pcutils_map_erase (pcutils_map* map, void* key);
 int pcutils_map_traverse (pcutils_map *map, void *ud,
         int (*cb)(void *key, void *val, void *ud));
 
+struct pcutils_map_iterator {
+    struct pcutils_map_entry         *curr;
+    struct pcutils_map_entry         *next;
+    struct pcutils_map_entry         *prev;
+
+    void                             *ctx;
+};
+
+struct pcutils_map_iterator
+pcutils_map_it_begin_first(pcutils_map *map);
+
+struct pcutils_map_iterator
+pcutils_map_it_begin_last(pcutils_map *map);
+
+struct pcutils_map_entry*
+pcutils_map_it_value(struct pcutils_map_iterator *it);
+
+struct pcutils_map_entry*
+pcutils_map_it_next(struct pcutils_map_iterator *it);
+
+struct pcutils_map_entry*
+pcutils_map_it_prev(struct pcutils_map_iterator *it);
+
+void
+pcutils_map_it_end(struct pcutils_map_iterator *it);
+
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */
