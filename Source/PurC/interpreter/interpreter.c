@@ -596,40 +596,6 @@ walk_attr(void *key, void *val, void *ud)
     struct pcvdom_element *element = data->element;
     PC_ASSERT(element);
 
-    // struct pcvcm_node *vcm = attr->val;
-
-    // purc_variant_t value = PURC_VARIANT_INVALID;
-    // if (!vcm) {
-    //     value = purc_variant_make_undefined();
-    //     PC_ASSERT(value != PURC_VARIANT_INVALID);
-    // }
-    // else {
-    //     pcintr_stack_t stack = pcintr_get_stack();
-    //     PC_ASSERT(stack);
-    //     value = pcvcm_eval(vcm, stack);
-    //     if (value == PURC_VARIANT_INVALID ||
-    //         purc_variant_is_undefined(value))
-    //     {
-    //         if (0) {
-    //             PC_DEBUGX("attr name: %s", attr->key);
-    //             PRINT_VCM_NODE(vcm);
-    //         }
-    //         if (value != PURC_VARIANT_INVALID)
-    //             purc_variant_unref(value);
-    //         return -1;
-    //     }
-    // }
-
-
-    // bool ok;
-    // // NOTE: no need to strdup attr->key
-    // ok = purc_variant_object_set_by_static_ckey(frame->attr_vars,
-    //         attr->key, value);
-    // purc_variant_unref(value);
-
-    // if (!ok)
-    //     return -1;
-
     purc_atom_t atom = PCHVML_KEYWORD_ATOM(HVML, attr->key);
     // NOTE: we only dispatch those keyworded-attr to caller
     return data->cb(frame, element, atom, attr, data->ud);
