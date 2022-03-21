@@ -23,10 +23,12 @@
  */
 
 #include "purc-errors.h"
-#include "private/map.h"
 #include "purc-variant.h"
-#include "mathlib.h"
 #include "purc-version.h"
+#include "purc-dvobjs.h"
+
+#include "private/map.h"
+#include "mathlib.h"
 
 #include <strings.h>
 
@@ -308,7 +310,7 @@ const_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     long double ld = 0.0;
     purc_variant_cast_to_number (argv[1], &number, false);
     if (nr_args > 2)
-        purc_variant_cast_to_long_double (argv[2], &ld, false);
+        purc_variant_cast_to_longdouble (argv[2], &ld, false);
     else
         ld = (long double)number;
 
@@ -338,7 +340,7 @@ const_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         val->d = number;
         val->ld = ld;
 
-        if (pcutils_map_insert (const_map, key, val)) {
+        if (pcutils_map_find_replace_or_insert (const_map, key, val, NULL)) {
             free(key);
             free(val);
         }
@@ -401,8 +403,8 @@ add_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         type = purc_variant_get_type (argv[2]);
     }
 
-    purc_variant_cast_to_long_double (argv[0], &number1, false);
-    purc_variant_cast_to_long_double (argv[1], &number2, false);
+    purc_variant_cast_to_longdouble (argv[0], &number1, false);
+    purc_variant_cast_to_longdouble (argv[1], &number2, false);
     number1 += number2;
     GET_EXCEPTION(number1);
 
@@ -445,8 +447,8 @@ sub_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         type = purc_variant_get_type (argv[2]);
     }
 
-    purc_variant_cast_to_long_double (argv[0], &number1, false);
-    purc_variant_cast_to_long_double (argv[1], &number2, false);
+    purc_variant_cast_to_longdouble (argv[0], &number1, false);
+    purc_variant_cast_to_longdouble (argv[1], &number2, false);
     number1 -= number2;
     GET_EXCEPTION(number1);
 
@@ -489,8 +491,8 @@ mul_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         type = purc_variant_get_type (argv[2]);
     }
 
-    purc_variant_cast_to_long_double (argv[0], &number1, false);
-    purc_variant_cast_to_long_double (argv[1], &number2, false);
+    purc_variant_cast_to_longdouble (argv[0], &number1, false);
+    purc_variant_cast_to_longdouble (argv[1], &number2, false);
     number1 *= number2;
     GET_EXCEPTION(number1);
 
@@ -533,8 +535,8 @@ div_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         type = purc_variant_get_type (argv[2]);
     }
 
-    purc_variant_cast_to_long_double (argv[0], &number1, false);
-    purc_variant_cast_to_long_double (argv[1], &number2, false);
+    purc_variant_cast_to_longdouble (argv[0], &number1, false);
+    purc_variant_cast_to_longdouble (argv[1], &number2, false);
     number1 /= number2;
     GET_EXCEPTION(number1);
 
@@ -822,7 +824,7 @@ sin_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     GET_PARAM_NUMBER(1);
     GET_VARIANT_NUMBER_TYPE (argv[0]);
 
-    purc_variant_cast_to_long_double (argv[0], &number, false);
+    purc_variant_cast_to_longdouble (argv[0], &number, false);
     number = sinl (number);
     GET_EXCEPTION_OR_CREATE_VARIANT(number, 1);
 
@@ -843,7 +845,7 @@ cos_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     GET_PARAM_NUMBER(1);
     GET_VARIANT_NUMBER_TYPE (argv[0]);
 
-    purc_variant_cast_to_long_double (argv[0], &number, false);
+    purc_variant_cast_to_longdouble (argv[0], &number, false);
     number = cosl (number);
     GET_EXCEPTION_OR_CREATE_VARIANT(number, 1);
 
@@ -864,7 +866,7 @@ tan_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     GET_PARAM_NUMBER(1);
     GET_VARIANT_NUMBER_TYPE (argv[0]);
 
-    purc_variant_cast_to_long_double (argv[0], &number, false);
+    purc_variant_cast_to_longdouble (argv[0], &number, false);
     number = tanl (number);
     GET_EXCEPTION_OR_CREATE_VARIANT(number, 1);
 
@@ -884,7 +886,7 @@ sinh_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     GET_PARAM_NUMBER(1);
     GET_VARIANT_NUMBER_TYPE (argv[0]);
 
-    purc_variant_cast_to_long_double (argv[0], &number, false);
+    purc_variant_cast_to_longdouble (argv[0], &number, false);
     number = sinhl (number);
     GET_EXCEPTION_OR_CREATE_VARIANT(number, 1);
 
@@ -905,7 +907,7 @@ cosh_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     GET_PARAM_NUMBER(1);
     GET_VARIANT_NUMBER_TYPE (argv[0]);
 
-    purc_variant_cast_to_long_double (argv[0], &number, false);
+    purc_variant_cast_to_longdouble (argv[0], &number, false);
     number = coshl (number);
     GET_EXCEPTION_OR_CREATE_VARIANT(number, 1);
 
@@ -926,7 +928,7 @@ tanh_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     GET_PARAM_NUMBER(1);
     GET_VARIANT_NUMBER_TYPE (argv[0]);
 
-    purc_variant_cast_to_long_double (argv[0], &number, false);
+    purc_variant_cast_to_longdouble (argv[0], &number, false);
     number = tanhl (number);
     GET_EXCEPTION_OR_CREATE_VARIANT(number, 1);
 
@@ -946,7 +948,7 @@ asin_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     GET_PARAM_NUMBER(1);
     GET_VARIANT_NUMBER_TYPE (argv[0]);
 
-    purc_variant_cast_to_long_double (argv[0], &number, false);
+    purc_variant_cast_to_longdouble (argv[0], &number, false);
 
     number = asinl (number);
     GET_EXCEPTION_OR_CREATE_VARIANT(number, 1);
@@ -968,7 +970,7 @@ acos_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     GET_PARAM_NUMBER(1);
     GET_VARIANT_NUMBER_TYPE (argv[0]);
 
-    purc_variant_cast_to_long_double (argv[0], &number, false);
+    purc_variant_cast_to_longdouble (argv[0], &number, false);
 
     number = acosl (number);
     GET_EXCEPTION_OR_CREATE_VARIANT(number, 1);
@@ -990,7 +992,7 @@ atan_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     GET_PARAM_NUMBER(1);
     GET_VARIANT_NUMBER_TYPE (argv[0]);
 
-    purc_variant_cast_to_long_double (argv[0], &number, false);
+    purc_variant_cast_to_longdouble (argv[0], &number, false);
 
     number = atanl (number);
     GET_EXCEPTION_OR_CREATE_VARIANT(number, 1);
@@ -1011,7 +1013,7 @@ asinh_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     GET_PARAM_NUMBER(1);
     GET_VARIANT_NUMBER_TYPE (argv[0]);
 
-    purc_variant_cast_to_long_double (argv[0], &number, false);
+    purc_variant_cast_to_longdouble (argv[0], &number, false);
 
     number = asinhl (number);
     GET_EXCEPTION_OR_CREATE_VARIANT(number, 1);
@@ -1033,7 +1035,7 @@ acosh_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     GET_PARAM_NUMBER(1);
     GET_VARIANT_NUMBER_TYPE (argv[0]);
 
-    purc_variant_cast_to_long_double (argv[0], &number, false);
+    purc_variant_cast_to_longdouble (argv[0], &number, false);
 
     number = acoshl (number);
     GET_EXCEPTION_OR_CREATE_VARIANT(number, 1);
@@ -1055,7 +1057,7 @@ atanh_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     GET_PARAM_NUMBER(1);
     GET_VARIANT_NUMBER_TYPE (argv[0]);
 
-    purc_variant_cast_to_long_double (argv[0], &number, false);
+    purc_variant_cast_to_longdouble (argv[0], &number, false);
 
     number = atanhl (number);
     GET_EXCEPTION_OR_CREATE_VARIANT(number, 1);
@@ -1097,7 +1099,7 @@ sqrt_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     GET_PARAM_NUMBER(1);
     GET_VARIANT_NUMBER_TYPE (argv[0]);
 
-    purc_variant_cast_to_long_double (argv[0], &number, false);
+    purc_variant_cast_to_longdouble (argv[0], &number, false);
     number = sqrtl (number);
     GET_EXCEPTION_OR_CREATE_VARIANT(number, 1);
 
@@ -1143,8 +1145,8 @@ fmod_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     GET_VARIANT_NUMBER_TYPE (argv[0]);
     GET_VARIANT_NUMBER_TYPE (argv[1]);
 
-    purc_variant_cast_to_long_double (argv[0], &number1, false);
-    purc_variant_cast_to_long_double (argv[1], &number2, false);
+    purc_variant_cast_to_longdouble (argv[0], &number1, false);
+    purc_variant_cast_to_longdouble (argv[1], &number2, false);
 
     number1 = fmodl (number1, number2);
     GET_EXCEPTION_OR_CREATE_VARIANT(number1, 1);
@@ -1188,7 +1190,7 @@ fabs_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             ret_var = purc_variant_make_ulongint (u64);
             break;
         case PURC_VARIANT_TYPE_LONGDOUBLE:
-            purc_variant_cast_to_long_double (argv[0], &ld, false);
+            purc_variant_cast_to_longdouble (argv[0], &ld, false);
             ld = fabsl (ld);
             GET_EXCEPTION(ld);
             ret_var = purc_variant_make_longdouble (ld);
@@ -1232,7 +1234,7 @@ log_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     GET_PARAM_NUMBER(1);
     GET_VARIANT_NUMBER_TYPE (argv[0]);
 
-    purc_variant_cast_to_long_double (argv[0], &number, false);
+    purc_variant_cast_to_longdouble (argv[0], &number, false);
 
     number = logl (number);
     GET_EXCEPTION_OR_CREATE_VARIANT(number, 1);
@@ -1274,7 +1276,7 @@ log10_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     GET_PARAM_NUMBER(1);
     GET_VARIANT_NUMBER_TYPE (argv[0]);
 
-    purc_variant_cast_to_long_double (argv[0], &number, false);
+    purc_variant_cast_to_longdouble (argv[0], &number, false);
 
     number = log10l (number);
     GET_EXCEPTION_OR_CREATE_VARIANT(number, 1);
@@ -1321,8 +1323,8 @@ pow_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     GET_VARIANT_NUMBER_TYPE (argv[0]);
     GET_VARIANT_NUMBER_TYPE (argv[1]);
 
-    purc_variant_cast_to_long_double (argv[0], &number1, false);
-    purc_variant_cast_to_long_double (argv[1], &number2, false);
+    purc_variant_cast_to_longdouble (argv[0], &number1, false);
+    purc_variant_cast_to_longdouble (argv[1], &number2, false);
 
     number1 = powl (number1, number2);
     GET_EXCEPTION_OR_CREATE_VARIANT(number1, 1);
@@ -1364,7 +1366,7 @@ exp_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     GET_PARAM_NUMBER(1);
     GET_VARIANT_NUMBER_TYPE (argv[0]);
 
-    purc_variant_cast_to_long_double (argv[0], &number, false);
+    purc_variant_cast_to_longdouble (argv[0], &number, false);
 
     number = expl (number);
     GET_EXCEPTION_OR_CREATE_VARIANT(number, 1);
@@ -1406,7 +1408,7 @@ floor_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     GET_PARAM_NUMBER(1);
     GET_VARIANT_NUMBER_TYPE (argv[0]);
 
-    purc_variant_cast_to_long_double (argv[0], &number, false);
+    purc_variant_cast_to_longdouble (argv[0], &number, false);
 
     number = floorl (number);
     GET_EXCEPTION_OR_CREATE_VARIANT(number, 1);
@@ -1448,7 +1450,7 @@ ceil_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     GET_PARAM_NUMBER(1);
     GET_VARIANT_NUMBER_TYPE (argv[0]);
 
-    purc_variant_cast_to_long_double (argv[0], &number, false);
+    purc_variant_cast_to_longdouble (argv[0], &number, false);
 
     number = ceill (number);
     GET_EXCEPTION_OR_CREATE_VARIANT(number, 1);
@@ -1516,40 +1518,6 @@ eval_l_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 {
     return internal_eval_getter(1, root, nr_args, argv, silently);
 }
-
-static purc_variant_t pcdvobjs_make_dvobjs (
-        const struct pcdvobjs_dvobjs *method, size_t size)
-{
-    size_t i = 0;
-    purc_variant_t val = PURC_VARIANT_INVALID;
-    purc_variant_t ret_var= purc_variant_make_object (0, PURC_VARIANT_INVALID,
-                                                    PURC_VARIANT_INVALID);
-
-    if (ret_var == PURC_VARIANT_INVALID)
-        return PURC_VARIANT_INVALID;
-
-    for (i = 0; i < size; i++) {
-        val = purc_variant_make_dynamic (method[i].getter, method[i].setter);
-        if (val == PURC_VARIANT_INVALID) {
-            goto error;
-        }
-
-        if (!purc_variant_object_set_by_static_ckey (ret_var,
-                    method[i].name, val)) {
-            goto error;
-        }
-
-        purc_variant_unref (val);
-    }
-
-    return ret_var;
-
-error:
-    purc_variant_unref (ret_var);
-
-    return PURC_VARIANT_INVALID;
-}
-
 
 static void * map_copy_key(const void *key)
 {
@@ -1629,7 +1597,7 @@ static purc_variant_t pcdvobjs_create_math (void)
             }
             *v = const_key_value[i].value;
 
-            if (pcutils_map_insert (const_map, k, v)) {
+            if (pcutils_map_find_replace_or_insert (const_map, k, v, NULL)) {
                 free(k);
                 free(v);
                 break;
@@ -1646,7 +1614,7 @@ static purc_variant_t pcdvobjs_create_math (void)
     }
 
     // set dynamic
-    static struct pcdvobjs_dvobjs method [] = {
+    static struct purc_dvobj_method method [] = {
         {"pi",      pi_getter, NULL},
         {"pi_l",    pi_l_getter, NULL},
         {"e",       e_getter, NULL},
@@ -1702,7 +1670,7 @@ static purc_variant_t pcdvobjs_create_math (void)
         {"div",     div_getter, NULL},
     };
 
-    return pcdvobjs_make_dvobjs (method, PCA_TABLESIZE(method));
+    return purc_dvobj_make_from_methods (method, PCA_TABLESIZE(method));
 }
 
 purc_variant_t __purcex_load_dynamic_variant (const char *name, int *ver_code)

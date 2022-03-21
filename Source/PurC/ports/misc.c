@@ -63,7 +63,7 @@ size_t pcutils_get_cmdline_arg(int arg, char* buf, size_t sz_buf)
     for (i = 0; i < sz_buf - 1; i++) {
         int ch = fgetc(fp);
 
-        if (isalnum(ch) || ch == '-' || ch == '_')
+        if (purc_isalnum(ch) || ch == '-' || ch == '_')
             buf[n++] = ch;
         else if (n > 0 && ch == '/')
             buf[n++] = '.';

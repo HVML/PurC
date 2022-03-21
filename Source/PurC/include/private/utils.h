@@ -25,6 +25,8 @@
 #ifndef PURC_PRIVATE_UTILS_H
 #define PURC_PRIVATE_UTILS_H
 
+#include "purc-utils.h"
+
 #include "config.h"
 
 #include <stddef.h>
@@ -156,6 +158,8 @@ void pcutils_bin2hex (const unsigned char *bin, int len, char *hex);
    return the number of bytes converted, <= 0 for error */
 int pcutils_hex2bin (const char *hex, unsigned char *bin);
 
+int pcutils_parse_int32(const char *buf, size_t len, int32_t *retval);
+int pcutils_parse_uint32(const char *buf, size_t len, uint32_t *retval);
 int pcutils_parse_int64(const char *buf, size_t len, int64_t *retval);
 int pcutils_parse_uint64(const char *buf, size_t len, uint64_t *retval);
 int pcutils_parse_double(const char *buf, size_t len, double *retval);

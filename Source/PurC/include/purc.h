@@ -194,6 +194,10 @@ static inline int purc_init(const char* app_name, const char* runner_name,
 PCA_EXPORT bool
 purc_cleanup(void);
 
+#define PURC_LDNAME_RANDOM_DATA     "random_data"
+#define PURC_LDNAME_FORMAT_DOUBLE   "format-double"
+#define PURC_LDNAME_FORMAT_LDOUBLE  "format-long-double"
+
 typedef void (*cb_free_local_data) (void *local_data);
 
 /**

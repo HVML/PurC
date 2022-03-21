@@ -87,9 +87,9 @@ at_getter(void *entity,
 
     bool ok;
     uint64_t uidx;
-    bool parse_str = true;
+    bool force = true;
 
-    ok = purc_variant_cast_to_ulongint(argv[0], &uidx, parse_str);
+    ok = purc_variant_cast_to_ulongint(argv[0], &uidx, force);
     if (!ok) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;

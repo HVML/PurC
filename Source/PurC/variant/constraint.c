@@ -225,8 +225,8 @@ arr_rev_update_grow(
         }
 
         int64_t i64;
-        bool parse_str = false;
-        ok = purc_variant_cast_to_longint(argv[0], &i64, parse_str);
+        bool force = false;
+        ok = purc_variant_cast_to_longint(argv[0], &i64, force);
         if (!ok) {
             purc_variant_unref(cloned);
             return false;
@@ -304,7 +304,7 @@ rev_update_grow(
             return obj_rev_update_grow(pre, src, edge, nr_args, argv);
         default:
             PC_DEBUGX("Not supported for `%s` variant",
-                    pcvariant_get_typename(src->type));
+                    purc_variant_typename(src->type));
             PC_ASSERT(0);
     }
 }
@@ -336,8 +336,8 @@ arr_rev_update_shrink(
 
         bool ok;
         int64_t i64;
-        bool parse_str = false;
-        ok = purc_variant_cast_to_longint(argv[0], &i64, parse_str);
+        bool force = false;
+        ok = purc_variant_cast_to_longint(argv[0], &i64, force);
         if (!ok) {
             purc_variant_unref(cloned);
             return false;
@@ -407,7 +407,7 @@ rev_update_shrink(
             return obj_rev_update_shrink(pre, src, edge, nr_args, argv);
         default:
             PC_DEBUGX("Not supported for `%s` variant",
-                    pcvariant_get_typename(src->type));
+                    purc_variant_typename(src->type));
             PC_ASSERT(0);
     }
 }
@@ -439,8 +439,8 @@ arr_rev_update_change(
 
         bool ok;
         int64_t i64;
-        bool parse_str = false;
-        ok = purc_variant_cast_to_longint(argv[0], &i64, parse_str);
+        bool force = false;
+        ok = purc_variant_cast_to_longint(argv[0], &i64, force);
         if (!ok) {
             purc_variant_unref(cloned);
             return false;
@@ -510,7 +510,7 @@ rev_update_change(
             return obj_rev_update_change(pre, src, edge, nr_args, argv);
         default:
             PC_DEBUGX("Not supported for `%s` variant",
-                    pcvariant_get_typename(src->type));
+                    purc_variant_typename(src->type));
             PC_ASSERT(0);
     }
 }

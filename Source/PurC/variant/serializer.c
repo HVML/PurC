@@ -470,8 +470,8 @@ serialize_double(purc_rwstream_t rws, double d, int flags,
         format_drops_decimals = 1;
 
     looks_numeric = /* Looks like *some* kind of number */
-        isdigit((unsigned char)buf[0]) ||
-        (size > 1 && buf[0] == '-' && isdigit((unsigned char)buf[1]));
+        purc_isdigit((unsigned char)buf[0]) ||
+        (size > 1 && buf[0] == '-' && purc_isdigit((unsigned char)buf[1]));
 
     if (size < (int)sizeof(buf) - 2 &&
             looks_numeric && !p && /* Has no decimal point */
@@ -661,9 +661,9 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
     size_t idx;
     variant_set_t data;
 
-    purc_get_local_data("format-double",
+    purc_get_local_data(PURC_LDNAME_FORMAT_DOUBLE,
             (uintptr_t *)&format_double, NULL);
-    purc_get_local_data("format-long-double",
+    purc_get_local_data(PURC_LDNAME_FORMAT_LDOUBLE,
             (uintptr_t *)&format_long_double, NULL);
 
     PC_ASSERT(value);

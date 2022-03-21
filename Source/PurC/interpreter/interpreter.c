@@ -511,6 +511,7 @@ push_stack_frame(pcintr_stack_t stack)
     }
 
     frame->silently = false;
+    frame->owner    = stack;
     return frame;
 }
 
@@ -1031,9 +1032,11 @@ pcintr_stack_frame_get_parent(struct pcintr_stack_frame *frame)
     if (!frame)
         return NULL;
 
-    struct list_head *n = frame->node.prev;
-    if (!n)
+    if (list_is_first(&frame->node, &frame->owner->frames))
         return NULL;
+
+    struct list_head *n = frame->node.prev;
+    PC_ASSERT(n);
 
     return container_of(n, struct pcintr_stack_frame, node);
 }
@@ -1151,6 +1154,7 @@ end:
 
 #define BUILDIN_VAR_HVML        "HVML"
 #define BUILDIN_VAR_SYSTEM      "SYSTEM"
+#define BUILDIN_VAR_DATETIME    "DATETIME"
 #define BUILDIN_VAR_T           "T"
 #define BUILDIN_VAR_L           "L"
 #define BUILDIN_VAR_DOC         "DOC"
@@ -1185,13 +1189,20 @@ init_buidin_doc_variable(pcintr_stack_t stack)
     }
 
     // $HVML
-    if(!bind_doc_named_variable(stack, BUILDIN_VAR_HVML, purc_dvobj_hvml_new())) {
+    if(!bind_doc_named_variable(stack, BUILDIN_VAR_HVML,
+                purc_dvobj_hvml_new(&stack->vdom->hvml_ctrl_props))) {
         return false;
     }
 
     // $SYSTEM
     if(!bind_doc_named_variable(stack, BUILDIN_VAR_SYSTEM,
                 purc_dvobj_system_new())) {
+        return false;
+    }
+
+    // $DATETIME
+    if(!bind_doc_named_variable(stack, BUILDIN_VAR_DATETIME,
+                purc_dvobj_datetime_new())) {
         return false;
     }
 
@@ -1368,7 +1379,7 @@ add_observer_into_list(struct pcutils_arrlist* list,
         struct pcintr_observer* observer)
 {
     observer->list = list;
-    int r = pcutils_arrlist_add(list, observer);
+    int r = pcutils_arrlist_append(list, observer);
     PC_ASSERT(r == 0);
 
     // TODO:
@@ -1710,15 +1721,6 @@ pcintr_dispatch_message(pcintr_stack_t stack, purc_variant_t source,
     pcrunloop_dispatch(runloop, pcintr_handle_message, msg);
 }
 
-void
-pcintr_set_base_uri(pcintr_stack_t stack, const char* base_uri)
-{
-    if (stack->base_uri) {
-        free(stack->base_uri);
-    }
-    stack->base_uri = strdup(base_uri);
-}
-
 purc_variant_t
 pcintr_load_from_uri(pcintr_stack_t stack, const char* uri)
 {
@@ -1726,8 +1728,8 @@ pcintr_load_from_uri(pcintr_stack_t stack, const char* uri)
         return PURC_VARIANT_INVALID;
     }
 
-    if (stack->base_uri) {
-        pcfetcher_set_base_url(stack->base_uri);
+    if (stack->vdom->hvml_ctrl_props->base_url_string) {
+        pcfetcher_set_base_url(stack->vdom->hvml_ctrl_props->base_url_string);
     }
     purc_variant_t ret = PURC_VARIANT_INVALID;
     struct pcfetcher_resp_header resp_header = {0};
@@ -2433,9 +2435,7 @@ pcintr_get_symbol_var(struct pcintr_stack_frame *frame,
     PC_ASSERT(symbol >= 0);
     PC_ASSERT(symbol < PURC_SYMBOL_VAR_MAX);
 
-    purc_variant_t v = frame->symbol_vars[symbol];
-    PC_ASSERT(v != PURC_VARIANT_INVALID);
-    return v;
+    return frame->symbol_vars[symbol];
 }
 
 int

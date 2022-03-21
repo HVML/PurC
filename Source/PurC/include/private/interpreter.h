@@ -231,6 +231,8 @@ struct pcintr_stack_frame {
     preemptor_f        preemptor;
 
     bool silently;
+
+    pcintr_stack_t     owner;
 };
 
 struct pcintr_dynamic_args {

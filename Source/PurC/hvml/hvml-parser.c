@@ -41,10 +41,6 @@
 
 #include <math.h>
 
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-
 #if HAVE(GLIB)
 #include <gmodule.h>
 #else
@@ -82,7 +78,7 @@ void pchvml_init_once(void)
     pcinst_register_error_message_segment(&_hvml_err_msgs_seg);
 }
 
-#define PRINT_LOG_SWITCH_FILE "/tmp/purc_hvml_tokenizer"
+#define PURC_HVML_LOG_ENABLE  "PURC_HVML_LOG_ENABLE"
 
 struct pchvml_parser* pchvml_create(uint32_t flags, size_t queue_size)
 {
@@ -103,8 +99,9 @@ struct pchvml_parser* pchvml_create(uint32_t flags, size_t queue_size)
     parser->nr_quoted = 0;
     parser->tag_is_operation = false;
     parser->tag_has_raw_attr = false;
-    struct stat st;
-    parser->enable_print_log = (stat(PRINT_LOG_SWITCH_FILE, &st) == 0);
+    const char *env_value = getenv(PURC_HVML_LOG_ENABLE);
+    parser->enable_log = ((env_value != NULL) &&
+            (*env_value == '1' || strcasecmp(env_value, "true") == 0));
 
     return parser;
 }

@@ -911,7 +911,7 @@ insert(purc_variant_t set, variant_set_t data,
             break;
 
         PC_ASSERT(node->idx == (size_t)-1);
-        int r = pcutils_arrlist_add(data->arr, node);
+        int r = pcutils_arrlist_append(data->arr, node);
         if (r)
             break;
 

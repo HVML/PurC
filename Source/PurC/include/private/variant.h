@@ -318,17 +318,14 @@ int pcvariant_array_sort(purc_variant_t value, void *ud,
         int (*cmp)(purc_variant_t l, purc_variant_t r, void *ud));
 int pcvariant_set_sort(purc_variant_t value);
 
-const char* pcvariant_get_typename(enum purc_variant_type type);
-
-int
-pcvariant_equal(purc_variant_t l, purc_variant_t r);
+int pcvariant_equal(purc_variant_t l, purc_variant_t r);
 
 static inline const char*
 pcvariant_typename(purc_variant_t v)
 {
     enum purc_variant_type type;
     type = purc_variant_get_type(v);
-    return pcvariant_get_typename(type);
+    return purc_variant_typename(type);
 }
 
 static inline bool

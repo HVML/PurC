@@ -46,6 +46,8 @@
 #include <stdio.h>  // fclose on inst->fp_log
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
+#include <locale.h>
 
 #include "generic_err_msgs.inc"
 
@@ -155,8 +157,26 @@ static unsigned int _modules;
 // FIXME: where to put declaration
 void pchvml_keywords_init(void);
 
+#if 0
+locale_t __purc_locale_c;
+static void free_locale_c(void)
+{
+    if (__purc_locale_c)
+        freelocale(__purc_locale_c);
+    __purc_locale_c = NULL;
+}
+#endif
+
 static void init_modules_once(void)
 {
+#if 0
+     __purc_locale_c = newlocale(LC_ALL_MASK, "C", (locale_t)0);
+    atexit(free_locale_c);
+#endif
+
+    tzset();
+    setlocale(LC_ALL, "");
+
     // TODO: init modules working without instance here.
     pcutils_atom_init_once();
     atexit(pcutils_atom_cleanup_once);
@@ -354,8 +374,6 @@ int purc_init_ex(unsigned int modules,
             purc_atom_from_string_ex(PURC_ATOM_BUCKET_USER, endpoint_name);
         assert(curr_inst->endpoint_atom);
     }
-
-    curr_inst->max_embedded_levels = MAX_EMBEDDED_LEVELS;
 
     enable_log_on_demand();
 

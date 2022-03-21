@@ -208,11 +208,13 @@ static bool
 move_or_clone_mutable_descendants_in_array(struct travel_context *ctxt,
         purc_variant_t arr)
 {
+#if 0
     ctxt->el++;
     if (ctxt->el >= ctxt->inst->max_embedded_levels) {
         purc_set_error(PCEJSON_ERROR_MAX_DEPTH_EXCEEDED);
         return false;
     }
+#endif
 
     size_t idx;
     purc_variant_t v;
@@ -254,7 +256,7 @@ move_or_clone_mutable_descendants_in_array(struct travel_context *ctxt,
         }
 
         _p->val = retv;
-        pcutils_arrlist_add(ctxt->vrts_to_unref, v);
+        pcutils_arrlist_append(ctxt->vrts_to_unref, v);
 
     } end_foreach;
 
@@ -265,11 +267,13 @@ static bool
 move_or_clone_mutable_descendants_in_object(struct travel_context *ctxt,
         purc_variant_t obj)
 {
+#if 0
     ctxt->el++;
     if (ctxt->el >= ctxt->inst->max_embedded_levels) {
         purc_set_error(PCEJSON_ERROR_MAX_DEPTH_EXCEEDED);
         return false;
     }
+#endif
 
     purc_variant_t k,v;
     foreach_key_value_in_variant_object(obj, k, v) {
@@ -311,7 +315,7 @@ move_or_clone_mutable_descendants_in_object(struct travel_context *ctxt,
         }
 
         _node->val = retv;
-        pcutils_arrlist_add(ctxt->vrts_to_unref, v);
+        pcutils_arrlist_append(ctxt->vrts_to_unref, v);
     } end_foreach;
 
     return true;
@@ -321,11 +325,13 @@ static bool
 move_or_clone_mutable_descendants_in_set(struct travel_context *ctxt,
         purc_variant_t set)
 {
+#if 0
     ctxt->el++;
     if (ctxt->el >= ctxt->inst->max_embedded_levels) {
         purc_set_error(PCEJSON_ERROR_MAX_DEPTH_EXCEEDED);
         return false;
     }
+#endif
 
     purc_variant_t v;
     foreach_value_in_variant_set(set, v) {
@@ -365,7 +371,7 @@ move_or_clone_mutable_descendants_in_set(struct travel_context *ctxt,
         }
 
         _p->val = retv;
-        pcutils_arrlist_add(ctxt->vrts_to_unref, v);
+        pcutils_arrlist_append(ctxt->vrts_to_unref, v);
 
     } end_foreach;
 
@@ -404,11 +410,13 @@ static bool
 move_or_clone_immutable_descendants_in_array(struct travel_context *ctxt,
         purc_variant_t arr)
 {
+#if 0
     ctxt->el++;
     if (ctxt->el >= ctxt->inst->max_embedded_levels) {
         purc_set_error(PCEJSON_ERROR_MAX_DEPTH_EXCEEDED);
         return false;
     }
+#endif
 
     size_t idx;
     purc_variant_t v;
@@ -435,7 +443,7 @@ move_or_clone_immutable_descendants_in_array(struct travel_context *ctxt,
 
             if (retv != v) {
                 _p->val = retv;
-                pcutils_arrlist_add(ctxt->vrts_to_unref, v);
+                pcutils_arrlist_append(ctxt->vrts_to_unref, v);
             }
             break;
         }
@@ -448,11 +456,13 @@ static bool
 move_or_clone_immutable_descendants_in_object(struct travel_context *ctxt,
         purc_variant_t obj)
 {
+#if 0
     ctxt->el++;
     if (ctxt->el >= ctxt->inst->max_embedded_levels) {
         purc_set_error(PCEJSON_ERROR_MAX_DEPTH_EXCEEDED);
         return false;
     }
+#endif
 
     purc_variant_t k,v;
     foreach_key_value_in_variant_object(obj, k, v) {
@@ -478,12 +488,12 @@ move_or_clone_immutable_descendants_in_object(struct travel_context *ctxt,
 
             if (retk != k) {
                 _node->key = retk;
-                pcutils_arrlist_add(ctxt->vrts_to_unref, k);
+                pcutils_arrlist_append(ctxt->vrts_to_unref, k);
             }
 
             if (retv != v) {
                 _node->val = retv;
-                pcutils_arrlist_add(ctxt->vrts_to_unref, v);
+                pcutils_arrlist_append(ctxt->vrts_to_unref, v);
             }
             break;
         }
@@ -496,11 +506,13 @@ static bool
 move_or_clone_immutable_descendants_in_set(struct travel_context *ctxt,
         purc_variant_t set)
 {
+#if 0
     ctxt->el++;
     if (ctxt->el >= ctxt->inst->max_embedded_levels) {
         purc_set_error(PCEJSON_ERROR_MAX_DEPTH_EXCEEDED);
         return false;
     }
+#endif
 
     purc_variant_t v;
     foreach_value_in_variant_set(set, v) {
@@ -525,7 +537,7 @@ move_or_clone_immutable_descendants_in_set(struct travel_context *ctxt,
 
             if (retv != v) {
                 _p->val = retv;
-                pcutils_arrlist_add(ctxt->vrts_to_unref, v);
+                pcutils_arrlist_append(ctxt->vrts_to_unref, v);
             }
             break;
         }

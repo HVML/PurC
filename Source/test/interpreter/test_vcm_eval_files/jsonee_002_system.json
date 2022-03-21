@@ -1,1 +1,1 @@
-$SYSTEM
+$SYSTEM.const('HVML_INTRPR_NAME')

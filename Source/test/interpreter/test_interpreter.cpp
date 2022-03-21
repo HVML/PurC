@@ -149,10 +149,10 @@ static const char *calculator_2 =
 
     "            <div id=\"c_title\">"
     "                <h2 id=\"c_title\">$T.get('HVML Calculator')"
-    "                    <small>$T.get('Current Time: ')<span id=\"clock\">$SYSTEM.time('%H:%M:%S')</span></small>"
+    "                    <small>$T.get('Current Time: ')<span id=\"clock\">$DATETIME.time_prt()</span></small>"
     "                </h2>"
     "                <observe on=\"$TIMERS\" for=\"expired:clock\">"
-    "                    <update on=\"#clock\" at=\"textContent\" with=\"$SYSTEM.time('%H:%M:%S')\" />"
+    "                    <update on=\"#clock\" at=\"textContent\" with=\"$DATETIME.time_prt()\" />"
     "                    <update on=\"$TIMERS\" to=\"overwrite\">"
     "                       { \"id\" : \"clock\", \"active\" : \"no\" }"
     "                    </update>"
@@ -227,10 +227,10 @@ static const char *calculator_3 =
     ""
     "            <div id=\"c_title\">"
     "                <h2 id=\"c_title\">$T.get('HVML Calculator')"
-    "                    <small>$T.get('Current Time: ')<span id=\"clock\">$SYSTEM.time('%H:%M:%S')</span></small>"
+    "                    <small>$T.get('Current Time: ')<span id=\"clock\">$DATETIME.time_prt()</span></small>"
     "                </h2>"
     "                <observe on=\"$TIMERS\" for=\"expired:clock\">"
-    "                    <update on=\"#clock\" at=\"textContent\" with=\"$SYSTEM.time('%H:%M:%S')\" />"
+    "                    <update on=\"#clock\" at=\"textContent\" with=\"$DATETIME.time_prt()\" />"
     "                </observe>"
     "            </div>"
     ""
@@ -387,10 +387,10 @@ static const char *calculator_4 =
     ""
     "            <div id=\"c_title\">"
     "                <h2 id=\"c_title\">$T.get('HVML Calculator')"
-    "                    <small>$T.get('Current Time: ')<span id=\"clock\">$SYSTEM.time('%H:%M:%S')</span></small>"
+    "                    <small>$T.get('Current Time: ')<span id=\"clock\">$DATETIME.time_prt()</span></small>"
     "                </h2>"
     "                <observe on=\"$TIMERS\" for=\"expired:clock\">"
-    "                    <update on=\"#clock\" at=\"textContent\" to=\"displace\" with=\"$SYSTEM.time('%H:%M:%S')\" />"
+    "                    <update on=\"#clock\" at=\"textContent\" to=\"displace\" with=\"$DATETIME.time_prt()\" />"
     "                </observe>"
     "            </div>"
     ""
@@ -537,7 +537,7 @@ static const char *buggy1 =
     ""
     "            <div id=\"c_title\">"
     "                <h2 id=\"c_title\">$T.get('HVML Calculator')"
-    "                    <small>$T.get('Current Time: ')<span id=\"clock\">$SYSTEM.time('%H:%M:%S')</span></small>"
+    "                    <small>$T.get('Current Time: ')<span id=\"clock\">$DATETIME.time_prt()</span></small>"
     "                </h2>"
     "                <iterate on=\"[1,2,3]\">"
     "                    <update on=\"#clock\" at=\"textContent\" to=\"displace\" with=\"iterator:$?\" />"
@@ -605,7 +605,7 @@ static const char *buggy2 =
     "<hvml><head><title>hello</title></head><body><span id=\"clock\">xyz</span><xinput xid=\"xexp\"></xinput><update on=\"#clock\" at=\"textContent\" to=\"displace\" with=\"abc\"/></body></hvml>";
 
 static const char *buggy3 =
-    "<hvml><body><span id=\"clock\">xyz</span><update on=\"#clock\" at=\"textContent\" to=\"displace\" with=\"$SYSTEM.time('%H:%M:%S')\" /></body></hvml>";
+    "<hvml><body><span id=\"clock\">xyz</span><update on=\"#clock\" at=\"textContent\" to=\"displace\" with=\"$DATETIME.time_prt()\" /></body></hvml>";
 
 static const char *buggy4 =
     "<hvml target=\"html\" lang=\"en\">"
