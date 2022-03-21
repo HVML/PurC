@@ -53,6 +53,7 @@
 #define _KN_wday            "wday"
 #define _KN_yday            "yday"
 #define _KN_isdst           "isdst"
+#define _KN_tz              "tz"
 
 enum {
     K_KW_FORMAT_NAME_FIRST  = 0,
@@ -148,50 +149,50 @@ static const char *timeformats[] = {
     _TF_w3c,
 };
 
-static void get_local_broken_down_time(struct tm *result,
-        time_t sec, const char *timezone)
+static char *set_tz(const char *timezone)
 {
     char *tz_old = NULL;
 
     if (timezone) {
-        tz_old = getenv("TZ");
+        char *env = getenv("TZ");
+        if (env)
+            tz_old = strdup(env);
 
         /* change timezone temporarily. */
         char new_timezone[strlen(timezone) + 1];
         strcpy(new_timezone, ":");
         strcat(new_timezone, timezone);
         setenv("TZ", new_timezone, 1);
+        tzset();
     }
 
-    localtime_r(&sec, result);
+    return tz_old;
+}
 
+static void unset_tz(char *tz_old)
+{
     if (tz_old) {
         // restore timezone.
         setenv("TZ", tz_old, 1);
+        free(tz_old);
+        tzset();
     }
+}
+
+static void get_local_broken_down_time(struct tm *result,
+        time_t sec, const char *timezone)
+{
+    char *tz_old = set_tz(timezone);
+    localtime_r(&sec, result);
+    unset_tz(tz_old);
 }
 
 static time_t get_time_from_broken_down_time(struct tm *tm,
         const char *timezone)
 {
-    char *tz_old = NULL;
-
-    if (timezone) {
-        tz_old = getenv("TZ");
-
-        /* change timezone temporarily. */
-        char new_timezone[strlen(timezone) + 1];
-        strcpy(new_timezone, ":");
-        strcat(new_timezone, timezone);
-        setenv("TZ", new_timezone, 1);
-    }
-
+    char *tz_old = set_tz(timezone);
     time_t t = mktime(tm);
-
-    if (tz_old) {
-        // restore timezone.
-        setenv("TZ", tz_old, 1);
-    }
+    unset_tz(tz_old);
 
     return t;
 }
@@ -464,7 +465,7 @@ on_found(const char *needle, size_t len, void *ctxt, size_t *rep_len)
 
 static purc_variant_t
 format_broken_down_time(const char *timeformat, const struct tm *tm,
-        suseconds_t usec)
+        suseconds_t usec, const char *timezone)
 {
     size_t max;
     char *result = NULL;
@@ -478,12 +479,15 @@ format_broken_down_time(const char *timeformat, const struct tm *tm,
         return PURC_VARIANT_INVALID;
     }
 
+    char *tz_old = set_tz(timezone);
     if (strftime(result, max, timeformat, tm) == 0) {
         // should not occur.
         purc_log_error("Too small buffer to format time\n");
         purc_set_error(PURC_ERROR_TOO_SMALL_BUFF);
         return PURC_VARIANT_INVALID;
     }
+    unset_tz(tz_old);
+
     PC_DEBUG("formated time: %s\n", result);
 
     /* replace {m}, and {+/-HHMM:} here */
@@ -554,7 +558,7 @@ format_time(const char *timeformat, const struct timeval *tv,
         get_local_broken_down_time(&tm, tv->tv_sec, timezone);
     }
 
-    return format_broken_down_time(timeformat, &tm, tv->tv_usec);
+    return format_broken_down_time(timeformat, &tm, tv->tv_usec, timezone);
 }
 
 static purc_variant_t
@@ -647,10 +651,19 @@ failed:
 }
 
 static purc_variant_t
-make_broken_down_time(const struct tm *tm, suseconds_t usec)
+make_broken_down_time(const struct tm *tm, suseconds_t usec,
+        const char *timezone)
 {
     purc_variant_t retv = PURC_VARIANT_INVALID;
     purc_variant_t val = PURC_VARIANT_INVALID;
+
+    char buff[MAX_LEN_TIMEZONE];
+    if (timezone == NULL) {
+        if (!pcdvobjs_get_current_timezone(buff, sizeof(buff))) {
+            goto fatal;
+        }
+        timezone = buff;
+    }
 
     retv = purc_variant_make_object(0, PURC_VARIANT_INVALID,
             PURC_VARIANT_INVALID);
@@ -729,6 +742,13 @@ make_broken_down_time(const struct tm *tm, suseconds_t usec)
         goto fatal;
     purc_variant_unref(val);
 
+    val = purc_variant_make_string(timezone, false);
+    if (val == PURC_VARIANT_INVALID)
+        goto fatal;
+    if (!purc_variant_object_set_by_static_ckey(retv, _KN_tz, val))
+        goto fatal;
+    purc_variant_unref(val);
+
     return retv;
 
 fatal:
@@ -770,8 +790,7 @@ utctime_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     struct tm result;
     gmtime_r(&tv.tv_sec, &result);
-
-    return make_broken_down_time(&result, tv.tv_usec);
+    return make_broken_down_time(&result, tv.tv_usec, PURC_TIMEZONE_UTC);
 
 failed:
     if (silently)
@@ -824,7 +843,7 @@ localtime_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     struct tm result;
     get_local_broken_down_time(&result, tv.tv_sec, timezone);
-    return make_broken_down_time(&result, tv.tv_usec);
+    return make_broken_down_time(&result, tv.tv_usec, timezone);
 
 failed:
     if (silently)
@@ -900,19 +919,29 @@ failed:
     return PURC_VARIANT_INVALID;
 }
 
-static bool
+static const char *
 get_broken_down_time(purc_variant_t bdtime, struct tm *tm, suseconds_t *usec)
 {
+    const char *timezone;
     double number;
     purc_variant_t val;
 
     if (!purc_variant_is_object(bdtime)) {
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        return false;
+        return NULL;
     }
 
-    time_t t = 0;
-    localtime_r(&t, tm);    /* XXX: we must initialize tm with localtime_r */
+    val = purc_variant_object_get_by_ckey(bdtime, _KN_tz, false);
+    if (val == PURC_VARIANT_INVALID) {
+        goto failed;
+    }
+    if ((timezone = purc_variant_get_string_const(val)) == NULL) {
+        goto failed;
+    }
+
+    if (!pcdvobjs_is_valid_timezone(timezone)) {
+        goto failed;
+    }
 
     val = purc_variant_object_get_by_ckey(bdtime, _KN_usec, false);
     if (val == PURC_VARIANT_INVALID) {
@@ -1017,11 +1046,18 @@ get_broken_down_time(purc_variant_t bdtime, struct tm *tm, suseconds_t *usec)
     if (number < 0)
         tm->tm_isdst = -1;
 
-    return true;
+    {
+        char *tz_old = set_tz(timezone);
+        time_t t = mktime(tm);
+        localtime_r(&t, tm);
+        unset_tz(tz_old);
+    }
+
+    return timezone;
 
 failed:
     purc_set_error(PURC_ERROR_INVALID_VALUE);
-    return false;
+    return NULL;
 }
 
 static purc_variant_t
@@ -1031,6 +1067,7 @@ fmtbdtime_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(root);
 
     const char *timeformat = NULL;
+    const char *timezone = NULL;
     struct tm tm;
     suseconds_t usec;
 
@@ -1050,16 +1087,20 @@ fmtbdtime_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         get_local_broken_down_time(&tm, tv.tv_sec, NULL);
         usec = tv.tv_usec;
     }
-    else if (!get_broken_down_time(argv[1], &tm, &usec)) {
+    else if ((timezone = get_broken_down_time(argv[1], &tm, &usec)) == NULL) {
         goto failed;
+
+        if (!pcdvobjs_is_valid_timezone(timezone)) {
+            goto failed;
+        }
     }
 
-    /* check if use UTC */
+    /* skip the possible UTC prefix */
     if (strncmp(timeformat, PURC_TFORMAT_PREFIX_UTC,
                 sizeof(PURC_TFORMAT_PREFIX_UTC) - 1) == 0) {
         timeformat += sizeof(PURC_TFORMAT_PREFIX_UTC) - 1;
     }
-    return format_broken_down_time(timeformat, &tm, usec);
+    return format_broken_down_time(timeformat, &tm, usec, timezone);
 
 failed:
     if (silently)
@@ -1082,22 +1123,12 @@ mktime_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto failed;
     }
 
-    if (!get_broken_down_time(argv[0], &tm, &usec)) {
+    if ((timezone = get_broken_down_time(argv[0], &tm, &usec)) == NULL) {
         goto failed;
     }
 
-    if (nr_args > 1) {
-        const char *tz = NULL;
-        if ((tz = purc_variant_get_string_const(argv[2])) == NULL) {
-            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-            goto failed;
-        }
-
-        if (!pcdvobjs_is_valid_timezone(tz)) {
-            goto failed;
-        }
-
-        timezone = tz;
+    if (!pcdvobjs_is_valid_timezone(timezone)) {
+        goto failed;
     }
 
     time_t result = get_time_from_broken_down_time(&tm, timezone);

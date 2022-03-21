@@ -42,6 +42,10 @@
 #define PURC_SYS_TZ_DIR     "/usr/share/zoneinfo/"
 #endif
 
+#define PURC_TIMEZONE_UTC   "UTC"
+
+#define MAX_LEN_TIMEZONE    128
+
 #define STRING_COMP_MODE_CASELESS   "caseless"
 #define STRING_COMP_MODE_CASE       "case"
 #define STRING_COMP_MODE_REG        "reg"
@@ -59,6 +63,7 @@ extern "C" {
 #endif  /* __cplusplus */
 
 bool pcdvobjs_is_valid_timezone(const char *timezone) WTF_INTERNAL;
+bool pcdvobjs_get_current_timezone(char *buff, size_t sz_buff) WTF_INTERNAL;
 
 // initialize dvobjs module (once)
 void pcdvobjs_init_once(void) WTF_INTERNAL;
