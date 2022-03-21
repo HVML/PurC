@@ -1,6 +1,6 @@
 /*
  * @file variant-basic.c
- * @author Geng Yue
+ * @author Geng Yue, Vincent Wei
  * @date 2021/07/02
  * @brief The implementation of variant.
  *
@@ -277,6 +277,13 @@ purc_variant_t purc_variant_make_string_reuse_buff(char* str_utf8,
         pcutils_string_check_utf8_len(str_utf8, sz_buff, &nr_chars, &end);
     }
     len = end - str_utf8;
+    str_utf8[len] = '\0'; /* make sure the string is null-terminated */
+    len++;
+
+    if (len < sz_buff) {
+        /* shrink the buffer to release not used space. */
+        str_utf8 = realloc(str_utf8, len);
+    }
 
     value = pcvariant_get(PURC_VARIANT_TYPE_STRING);
 
@@ -291,10 +298,7 @@ purc_variant_t purc_variant_make_string_reuse_buff(char* str_utf8,
     value->extra_size = nr_chars;
 
     value->sz_ptr[1] = (uintptr_t)(str_utf8);
-    pcvariant_stat_set_extra_size(value, len + 1);
-
-    // it is required if str_utf8 is comming from rwstream!!!
-    str_utf8[len] = '\0';
+    pcvariant_stat_set_extra_size(value, len);
 
     return value;
 }

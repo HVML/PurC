@@ -485,21 +485,40 @@ static purc_variant_t find_inst_var(const char* name)
 }
 
 static purc_variant_t
-_find_locally_var(struct pcintr_stack_frame *frame, const char *name)
+_find_named_temp_var(struct pcintr_stack_frame *frame, const char *name)
 {
-    while (frame) {
-        purc_variant_t exclamation_var =
-            frame->symbol_vars[PURC_SYMBOL_VAR_EXCLAMATION];
-        if (exclamation_var) {
-            purc_variant_t v = purc_variant_object_get_by_ckey(exclamation_var,
-                    name, true);
-            if (v != PURC_VARIANT_INVALID) {
-                return v;
-            }
-        }
-        frame = pcintr_stack_frame_get_parent(frame);
-    }
-    return PURC_VARIANT_INVALID;
+    struct pcintr_stack_frame *p = frame;
+
+again:
+
+    if (p == NULL)
+        return PURC_VARIANT_INVALID;
+
+    do {
+        purc_variant_t tmp;
+        tmp = pcintr_get_exclamation_var(p);
+        if (tmp == PURC_VARIANT_INVALID)
+            break;
+
+        if (purc_variant_is_object(tmp) == false)
+            break;
+
+        bool silently = false;
+        purc_variant_t v;
+        v = purc_variant_object_get_by_ckey(tmp, name, silently);
+        if (v == PURC_VARIANT_INVALID)
+            break;
+
+        PRINT_VARIANT(v);
+        PC_ASSERT(0);
+        return v;
+    } while (0);
+
+    PC_DEBUGX("name: %s @%p", name, p);
+    p = pcintr_stack_frame_get_parent(p);
+    PC_DEBUGX("name: %s @%p", name, p);
+
+    goto again;
 }
 
 purc_variant_t
@@ -513,15 +532,12 @@ pcintr_find_named_var(pcintr_stack_t stack, const char* name)
     struct pcintr_stack_frame* frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame);
 
-    purc_variant_t v = PURC_VARIANT_INVALID;
-    // FIXME:
-#if 0
-    v = _find_locally_var(frame, name);
+    purc_variant_t v;
+    v = _find_named_temp_var(frame, name);
     if (v) {
         purc_clr_error();
         return v;
     }
-#endif
 
     v = _find_named_scope_var(frame->pos, name, NULL);
     if (v) {

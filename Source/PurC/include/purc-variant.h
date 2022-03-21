@@ -1414,6 +1414,40 @@ PCA_EXPORT purc_variant_t
 purc_variant_load_from_json_stream(purc_rwstream_t stream);
 
 /**
+ * Trys to cast a variant value to a 32-bit integer.
+ *
+ * @param v: the variant value.
+ * @param i32: the buffer to receive the casted integer if success.
+ * @param force: a boolean indicates whether to force casting, e.g.,
+ *  parsing a string or returning a integer value for null
+ *  and boolean type.
+ *
+ * Returns: @TRUE on success, or @FALSE on failure (the variant value can not
+ *      be casted to a 32-bit integer).
+ *
+ * Since: 0.0.1
+ */
+PCA_EXPORT bool
+purc_variant_cast_to_int32(purc_variant_t v, int32_t *i32, bool force);
+
+/**
+ * Trys to cast a variant value to a unsigned 32-bit integer.
+ *
+ * @param v: the variant value.
+ * @param u32: the buffer to receive the casted integer if success.
+ * @param force: a boolean indicates whether to force casting, e.g.,
+ *  parsing a string or returning a integer value for null
+ *  and boolean type.
+ *
+ * Returns: @TRUE on success, or @FALSE on failure (the variant value can not
+ *      be casted to a unsigned 32-bit integer).
+ *
+ * Since: 0.0.1
+ */
+PCA_EXPORT bool
+purc_variant_cast_to_uint32(purc_variant_t v, uint32_t *u32, bool force);
+
+/**
  * Trys to cast a variant value to a long integer.
  *
  * @param v: the variant value.
@@ -1773,94 +1807,109 @@ purc_variant_get_type(purc_variant_t value);
 PCA_EXPORT const char*
 purc_variant_typename(enum purc_variant_type type);
 
-/**
- * Whether the value is of indicated type.
- *
- * @param v: the variant value
- *
- * Returns: @true if Yes, otherwise @false.
- *
- * Since: 0.0.1
- */
+/** Check whether the value is a undefined. */
 static inline bool purc_variant_is_undefined(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_UNDEFINED);
 }
 
+/** Check whether the value is a null. */
 static inline bool purc_variant_is_null(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_NULL);
 }
 
+/** Check whether the value is a boolean. */
 static inline bool purc_variant_is_boolean(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_BOOLEAN);
 }
 
+/** Check whether the value is an exception. */
 static inline bool purc_variant_is_exception(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_EXCEPTION);
 }
 
+/** Check whether the value is a number. */
 static inline bool purc_variant_is_number(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_NUMBER);
 }
 
+/** Check whether the value is a longint. */
 static inline bool purc_variant_is_longint(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_LONGINT);
 }
 
+/** Check whether the value is a ulongint. */
 static inline bool purc_variant_is_ulongint(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_ULONGINT);
 }
 
+/** Check whether the value is a longdouble. */
 static inline bool purc_variant_is_longdouble(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_LONGDOUBLE);
 }
 
+/** Check whether the value is an atomstring. */
 static inline bool purc_variant_is_atomstring(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_ATOMSTRING);
 }
 
+/** Check whether the value is a string. */
 static inline bool purc_variant_is_string(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_STRING);
 }
 
+/** Check whether the value is a byte sequence. */
 static inline bool purc_variant_is_sequence(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_BSEQUENCE);
 }
 
+/** Check whether the value is a dynamic variant. */
 static inline bool purc_variant_is_dynamic(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_DYNAMIC);
 }
 
+/** Check whether the value is a native entity. */
 static inline bool purc_variant_is_native(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_NATIVE);
 }
 
+/** Check whether the value is an object. */
 static inline bool purc_variant_is_object(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_OBJECT);
 }
 
+/** Check whether the value is an array. */
 static inline bool purc_variant_is_array(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_ARRAY);
 }
 
+/** Check whether the value is a set. */
 static inline bool purc_variant_is_set(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_SET);
 }
+
+/** Check whether the value is a boolean and having value of true. */
+PCA_EXPORT bool
+purc_variant_is_true(purc_variant_t v);
+
+/** Check whether the value is a boolean and having value of false. */
+PCA_EXPORT bool
+purc_variant_is_false(purc_variant_t v);
 
 struct purc_variant_stat {
     size_t nr_values[PURC_VARIANT_TYPE_NR];

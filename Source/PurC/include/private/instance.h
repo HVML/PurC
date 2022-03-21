@@ -44,8 +44,6 @@ struct pcinst {
     char                   *runner_name;
     purc_atom_t             endpoint_atom;
 
-    unsigned int            max_embedded_levels;
-
 #define LOG_FILE_SYSLOG     ((FILE *)-1)
     /* the FILE object for logging (-1: use syslog; NULL: disabled) */
     FILE                   *fp_log;
