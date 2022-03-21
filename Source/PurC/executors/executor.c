@@ -197,7 +197,7 @@ bool purc_register_executor(const char* name, purc_exec_ops_t ops)
     }
     record->ops  = *ops;
 
-    r = pcutils_map_insert(heap->executors, name, record);
+    r = pcutils_map_find_replace_or_insert(heap->executors, name, record, NULL);
     if (r) {
         pcinst_set_error(PCEXECUTOR_ERROR_OOM);
         goto failure;
