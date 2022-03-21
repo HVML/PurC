@@ -1,6 +1,6 @@
 /*
  * @file variant.c
- * @author Geng Yue
+ * @author Geng Yue, Vincent Wei
  * @date 2021/07/02
  * @brief The implementation of public part for variant.
  *
@@ -783,6 +783,275 @@ bool purc_variant_is_equal_to(purc_variant_t v1, purc_variant_t v2)
         return strcmp(type_names[v1->type], type_names[v2->type]);
     }
 #endif
+}
+
+bool
+purc_variant_is_true(purc_variant_t v)
+{
+    PC_ASSERT(v);
+
+    if (v->type == PURC_VARIANT_TYPE_BOOLEAN) {
+        return v->b;
+    }
+
+    return false;
+}
+
+bool
+purc_variant_is_false(purc_variant_t v)
+{
+    PC_ASSERT(v);
+
+    if (v->type == PURC_VARIANT_TYPE_BOOLEAN) {
+        return !v->b;
+    }
+
+    return false;
+}
+
+bool
+purc_variant_cast_to_int32(purc_variant_t v, int32_t *i32, bool force)
+{
+    const char *bytes;
+    size_t sz;
+
+    PC_ASSERT(v);
+
+    switch (v->type) {
+        case PURC_VARIANT_TYPE_NULL:
+            if (force) {
+                *i32 = 0;
+                return true;
+            }
+            break;
+
+        case PURC_VARIANT_TYPE_BOOLEAN:
+            if (force) {
+                *i32 = (int32_t)v->b;
+                return true;
+            }
+            break;
+
+        case PURC_VARIANT_TYPE_NUMBER:
+            if (isnan(v->d))
+                break;
+
+            if (isinf(v->d) == -1 || v->d <= INT32_MIN) {
+                if (force)
+                    *i32 = INT32_MIN;
+                else
+                    break;
+            }
+            else if (isinf(v->d) == 1 || v->d >= INT32_MAX) {
+                if (force)
+                    *i32 = INT32_MAX;
+                else
+                    break;
+            }
+            else {
+                *i32 = (int32_t)v->d;
+            }
+            return true;
+
+        case PURC_VARIANT_TYPE_LONGINT:
+            if (force || (v->i64 >= INT32_MIN && v->i64 <= INT32_MAX))
+                *i32 = (int32_t)v->i64;
+            else
+                break;
+            return true;
+
+        case PURC_VARIANT_TYPE_ULONGINT:
+            if (v->u64 > INT32_MAX) {
+                if (force)
+                    *i32 = (int32_t)v->u64;
+                else
+                    break;
+            }
+            else {
+                *i32 = (int32_t)v->u64;
+            }
+            return true;
+
+        case PURC_VARIANT_TYPE_LONGDOUBLE:
+            if (isnan(v->ld))
+                break;
+
+            if (isinf(v->d) == -1 || v->ld <= INT32_MIN) {
+                if (force)
+                    *i32 = INT32_MIN;
+                else
+                    break;
+            }
+            else if (isinf(v->d) == 1 || v->ld >= INT32_MAX) {
+                if (force)
+                    *i32 = INT32_MAX;
+                else
+                    break;
+            }
+            else {
+                *i32 = (int32_t)v->ld;
+            }
+            return true;
+
+        case PURC_VARIANT_TYPE_ATOMSTRING:
+            if (!force)
+                break;
+
+            bytes = purc_atom_to_string(v->atom);
+            sz = strlen(bytes);
+            if (pcutils_parse_int32(bytes, sz, i32) != 0) {
+                *i32 = 0;
+            }
+            return true;
+
+        case PURC_VARIANT_TYPE_STRING:
+        case PURC_VARIANT_TYPE_BSEQUENCE:
+            if (!force)
+                break;
+
+            if (v->flags & PCVARIANT_FLAG_STRING_STATIC) {
+                bytes = (void*)v->sz_ptr[1];
+                sz = strlen((const char*)bytes);
+            }
+            else if (v->flags & PCVARIANT_FLAG_EXTRA_SIZE) {
+                bytes = (void*)v->sz_ptr[1];
+                sz = v->sz_ptr[0];
+            }
+            else {
+                bytes = (void*)v->bytes;
+                sz = v->size;
+            }
+            if (pcutils_parse_int32(bytes, sz, i32) != 0) {
+                *i32 = 0;
+            }
+            return true;
+
+        default:
+            break;
+    }
+
+    return false;
+}
+
+bool
+purc_variant_cast_to_uint32(purc_variant_t v, uint32_t *u32, bool force)
+{
+    const char *bytes;
+    size_t sz;
+
+    PC_ASSERT(v);
+
+    switch (v->type) {
+        case PURC_VARIANT_TYPE_NULL:
+            if (force) {
+                *u32 = 0;
+                return true;
+            }
+            break;
+
+        case PURC_VARIANT_TYPE_BOOLEAN:
+            if (force) {
+                *u32 = (uint32_t)v->b;
+                return true;
+            }
+            break;
+
+        case PURC_VARIANT_TYPE_NUMBER:
+            if (isnan(v->d))
+                break;
+
+            if (isinf(v->d) == -1 || v->d <= 0) {
+                if (force)
+                    *u32 = 0;
+                else
+                    break;
+            }
+            else if (isinf(v->d) == 1 || v->d >= UINT32_MAX) {
+                if (force)
+                    *u32 = UINT32_MAX;
+                else
+                    break;
+            }
+            else {
+                *u32 = (uint32_t)v->d;
+            }
+            return true;
+
+        case PURC_VARIANT_TYPE_LONGINT:
+            if (v->i64 < 0) {
+                if (force)
+                    *u32 = (uint32_t)v->i64;
+                else
+                    break;
+            }
+            else
+                *u32 = (uint32_t)v->i64;
+            return true;
+
+        case PURC_VARIANT_TYPE_ULONGINT:
+            if (force || v->u64 < UINT32_MAX)
+                *u32 = (uint32_t)v->u64;
+            else
+                break;
+
+            return true;
+
+        case PURC_VARIANT_TYPE_LONGDOUBLE:
+            if (isnan(v->ld))
+                break;
+
+            if (isinf(v->ld) == -1 || v->ld < 0) {
+                if (force)
+                    *u32 = 0;
+                else
+                    break;
+            }
+            else if (isinf(v->ld) == 1 || v->ld >= UINT32_MAX) {
+                *u32 = UINT32_MAX;
+            }
+            else {
+                *u32 = (uint32_t)v->ld;
+            }
+            return true;
+
+        case PURC_VARIANT_TYPE_ATOMSTRING:
+            if (!force)
+                break;
+
+            bytes = purc_atom_to_string(v->atom);
+            sz = strlen(bytes);
+            if (pcutils_parse_uint32(bytes, sz, u32) != 0) {
+                *u32 = 0;
+            }
+            return true;
+
+        case PURC_VARIANT_TYPE_STRING:
+        case PURC_VARIANT_TYPE_BSEQUENCE:
+            if (!force)
+                break;
+
+            if (v->flags & PCVARIANT_FLAG_STRING_STATIC) {
+                bytes = (void*)v->sz_ptr[1];
+                sz = strlen((const char*)bytes);
+            }
+            else if (v->flags & PCVARIANT_FLAG_EXTRA_SIZE) {
+                bytes = (void*)v->sz_ptr[1];
+                sz = v->sz_ptr[0];
+            }
+            else {
+                bytes = (void*)v->bytes;
+                sz = v->size;
+            }
+            if (pcutils_parse_uint32(bytes, sz, u32) != 0) {
+                *u32 = 0;
+            }
+            return true;
+
+        default:
+            break;
+    }
+
+    return false;
 }
 
 bool

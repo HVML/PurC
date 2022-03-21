@@ -375,8 +375,6 @@ int purc_init_ex(unsigned int modules,
         assert(curr_inst->endpoint_atom);
     }
 
-    curr_inst->max_embedded_levels = MAX_EMBEDDED_LEVELS;
-
     enable_log_on_demand();
 
     // map for local data

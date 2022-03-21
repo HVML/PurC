@@ -156,6 +156,39 @@ size_t pcutils_get_next_fibonacci_number(size_t n)
         buf = my_buf;                                   \
     }
 
+int pcutils_parse_int32(const char *buf, size_t len, int32_t *retval)
+{
+    char *end = NULL;
+    int32_t val;
+
+    COPY_STRING(buf, len);
+
+    errno = 0;
+    val = strtol(buf, &end, 10);
+    if (end != buf)
+        *retval = val;
+    return ((val == 0 && errno != 0) || (end == buf)) ? 1 : 0;
+}
+
+int pcutils_parse_uint32(const char *buf, size_t len, uint32_t *retval)
+{
+    char *end = NULL;
+    uint32_t val;
+
+    COPY_STRING(buf, len);
+
+    errno = 0;
+    while (*buf == ' ')
+        buf++;
+    if (*buf == '-')
+        return 1; /* error: uint cannot be negative */
+
+    val = strtoul(buf, &end, 10);
+    if (end != buf)
+        *retval = val;
+    return ((val == 0 && errno != 0) || (end == buf)) ? 1 : 0;
+}
+
 int pcutils_parse_int64(const char *buf, size_t len, int64_t *retval)
 {
     char *end = NULL;
