@@ -367,7 +367,7 @@ sort_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         for (i = 0; i < totalsize; ++i) {
             val = purc_variant_array_get(argv[0], i);
             purc_variant_stringify_alloc (&buf, val);
-            pcutils_map_insert (sort_arg.map, val, buf);
+            pcutils_map_find_replace_or_insert (sort_arg.map, val, buf, NULL);
         }
         pcvariant_array_sort (argv[0], (void *)&sort_arg, my_array_sort);
     }
