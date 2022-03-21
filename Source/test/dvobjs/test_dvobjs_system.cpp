@@ -1285,6 +1285,9 @@ static bool env_vrtcmp(purc_variant_t r1, purc_variant_t r2)
     if (purc_variant_is_boolean(r1) && purc_variant_is_boolean(r2)) {
         return purc_variant_is_true(r1) && purc_variant_is_true(r2);
     }
+    else if (purc_variant_is_undefined(r1) && purc_variant_is_undefined(r2)) {
+        return true;
+    }
     else {
 
         d1 = purc_variant_get_string_const(r1);
@@ -1329,13 +1332,12 @@ TEST(dvobjs, env)
         { "test-set",
             "$SYSTEM.env('PURC_TEST')",
             system_env, env_vrtcmp, 0 },
-        /* FIXME: failed to evalute the JSONEE when ussing undefined
         { "unset",
             "$SYSTEM.env(! 'PURC_TEST', undefined )",
             system_env, env_vrtcmp, 0 },
         { "test-unset",
             "$SYSTEM.env('PURC_TEST')",
-            system_env, env_vrtcmp, 0 }, */
+            system_env, env_vrtcmp, 0 },
     };
 
     int ret = purc_init_ex(PURC_MODULE_EJSON, "cn.fmsfot.hvml.test",

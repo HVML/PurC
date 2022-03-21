@@ -1172,7 +1172,8 @@ BEGIN_STATE(EJSON_CONTROL_STATE)
         RESET_TEMP_BUFFER();
         RECONSUME_IN(EJSON_BYTE_SEQUENCE_STATE);
     }
-    if (character == 't' || character == 'f' || character == 'n') {
+    if (character == 't' || character == 'f' || character == 'n'
+            || character == 'u') {
         RESET_TEMP_BUFFER();
         RECONSUME_IN(EJSON_KEYWORD_STATE);
     }
@@ -1980,8 +1981,56 @@ BEGIN_STATE(EJSON_KEYWORD_STATE)
         }
         RECONSUME_IN(EJSON_CONTROL_STATE);
     }
-    if (character == 't' || character == 'f' || character == 'n') {
+    if (character == 't') {
         if (uc_buffer_is_empty(parser->temp_buffer)) {
+            APPEND_TO_TEMP_BUFFER(character);
+            ADVANCE_TO(EJSON_KEYWORD_STATE);
+        }
+        SET_ERR(PCEJSON_ERROR_UNEXPECTED_JSON_KEYWORD);
+        RETURN_AND_STOP_PARSE();
+    }
+    if (character == 'f') {
+        if (uc_buffer_is_empty(parser->temp_buffer)
+           || uc_buffer_equal_to(parser->temp_buffer, "unde", 4)
+                ) {
+            APPEND_TO_TEMP_BUFFER(character);
+            ADVANCE_TO(EJSON_KEYWORD_STATE);
+        }
+        SET_ERR(PCEJSON_ERROR_UNEXPECTED_JSON_KEYWORD);
+        RETURN_AND_STOP_PARSE();
+    }
+    if (character == 'n') {
+        if (uc_buffer_is_empty(parser->temp_buffer)
+           || uc_buffer_equal_to(parser->temp_buffer, "u", 1)
+           || uc_buffer_equal_to(parser->temp_buffer, "undefi", 6)
+           ) {
+            APPEND_TO_TEMP_BUFFER(character);
+            ADVANCE_TO(EJSON_KEYWORD_STATE);
+        }
+        SET_ERR(PCEJSON_ERROR_UNEXPECTED_JSON_KEYWORD);
+        RETURN_AND_STOP_PARSE();
+    }
+    if (character == 'u') {
+        if (uc_buffer_is_empty(parser->temp_buffer)
+           || uc_buffer_equal_to(parser->temp_buffer, "tr", 2)
+           || uc_buffer_equal_to(parser->temp_buffer, "n", 1)) {
+            APPEND_TO_TEMP_BUFFER(character);
+            ADVANCE_TO(EJSON_KEYWORD_STATE);
+        }
+        SET_ERR(PCEJSON_ERROR_UNEXPECTED_JSON_KEYWORD);
+        RETURN_AND_STOP_PARSE();
+    }
+    if (character == 'd') {
+        if (uc_buffer_equal_to(parser->temp_buffer, "un", 2)
+           || uc_buffer_equal_to(parser->temp_buffer, "undefine", 8)) {
+            APPEND_TO_TEMP_BUFFER(character);
+            ADVANCE_TO(EJSON_KEYWORD_STATE);
+        }
+        SET_ERR(PCEJSON_ERROR_UNEXPECTED_JSON_KEYWORD);
+        RETURN_AND_STOP_PARSE();
+    }
+    if (character == 'i') {
+        if (uc_buffer_equal_to(parser->temp_buffer, "undef", 5)) {
             APPEND_TO_TEMP_BUFFER(character);
             ADVANCE_TO(EJSON_KEYWORD_STATE);
         }
@@ -1996,18 +2045,11 @@ BEGIN_STATE(EJSON_KEYWORD_STATE)
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_JSON_KEYWORD);
         RETURN_AND_STOP_PARSE();
     }
-    if (character == 'u') {
-        if (uc_buffer_equal_to(parser->temp_buffer, "tr", 2)
-           || uc_buffer_equal_to(parser->temp_buffer, "n", 1)) {
-            APPEND_TO_TEMP_BUFFER(character);
-            ADVANCE_TO(EJSON_KEYWORD_STATE);
-        }
-        SET_ERR(PCEJSON_ERROR_UNEXPECTED_JSON_KEYWORD);
-        RETURN_AND_STOP_PARSE();
-    }
     if (character == 'e') {
         if (uc_buffer_equal_to(parser->temp_buffer, "tru", 3)
            || uc_buffer_equal_to(parser->temp_buffer, "fals", 4)
+           || uc_buffer_equal_to(parser->temp_buffer, "und", 3)
+           || uc_buffer_equal_to(parser->temp_buffer, "undefin", 7)
            ) {
             APPEND_TO_TEMP_BUFFER(character);
             ADVANCE_TO(EJSON_KEYWORD_STATE);
@@ -2070,6 +2112,12 @@ BEGIN_STATE(EJSON_AFTER_KEYWORD_STATE)
         }
         if (uc_buffer_equal_to(parser->temp_buffer, "null", 4)) {
             struct pcvcm_node *node = pcvcm_node_new_null();
+            APPEND_AS_VCM_CHILD(node);
+            RESET_TEMP_BUFFER();
+            RECONSUME_IN(EJSON_AFTER_VALUE_STATE);
+        }
+        if (uc_buffer_equal_to(parser->temp_buffer, "undefined", 9)) {
+            struct pcvcm_node *node = pcvcm_node_new_undefined();
             APPEND_AS_VCM_CHILD(node);
             RESET_TEMP_BUFFER();
             RECONSUME_IN(EJSON_AFTER_VALUE_STATE);

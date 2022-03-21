@@ -35,6 +35,7 @@
 
 
 enum pcvcm_node_type {
+    PCVCM_NODE_TYPE_UNDEFINED,
     PCVCM_NODE_TYPE_OBJECT,
     PCVCM_NODE_TYPE_ARRAY,
     PCVCM_NODE_TYPE_STRING,
@@ -74,6 +75,8 @@ struct pcvcm_node {
 #ifdef __cplusplus
 extern "C" {
 #endif  /* __cplusplus */
+
+struct pcvcm_node* pcvcm_node_new_undefined ();
 
 struct pcvcm_node* pcvcm_node_new_object (size_t nr_nodes,
         struct pcvcm_node** nodes);
