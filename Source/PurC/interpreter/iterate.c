@@ -106,7 +106,7 @@ check_onlyif(struct pcvdom_attr *onlyif, bool *stop)
         return -1;
 
     int64_t i64;
-    bool parse_str = false;
+    bool parse_str = true;
     bool ok;
     ok = purc_variant_cast_to_longint(val, &i64, parse_str);
 

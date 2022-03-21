@@ -25,7 +25,7 @@ TEST(observe, basic)
     "                    <span id=\"clock\">00:00</span>"
     "                </h2>"
     "                <observe on=\"$TIMERS\" for=\"expired:clock\">"
-    "                    <update on=\"#clock\" at=\"textContent\" with=\"$SYSTEM.time('%H:%M:%S')\" />"
+    "                    <update on=\"#clock\" at=\"textContent\" with=\"$DATETIME.time_prt()\" />"
     "                    <update on=\"$TIMERS\" to=\"overwrite\">"
     "                       { \"id\" : \"clock\", \"active\" : \"no\" }"
     "                    </update>"

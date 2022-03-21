@@ -1151,6 +1151,7 @@ end:
 
 #define BUILDIN_VAR_HVML        "HVML"
 #define BUILDIN_VAR_SYSTEM      "SYSTEM"
+#define BUILDIN_VAR_DATETIME    "DATETIME"
 #define BUILDIN_VAR_T           "T"
 #define BUILDIN_VAR_L           "L"
 #define BUILDIN_VAR_DOC         "DOC"
@@ -1193,6 +1194,12 @@ init_buidin_doc_variable(pcintr_stack_t stack)
     // $SYSTEM
     if(!bind_doc_named_variable(stack, BUILDIN_VAR_SYSTEM,
                 purc_dvobj_system_new())) {
+        return false;
+    }
+
+    // $DATETIME
+    if(!bind_doc_named_variable(stack, BUILDIN_VAR_DATETIME,
+                purc_dvobj_datetime_new())) {
         return false;
     }
 
