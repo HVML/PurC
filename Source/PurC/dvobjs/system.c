@@ -1353,13 +1353,14 @@ env_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     int ret;
     if (purc_variant_is_undefined(argv[1])) {
+        purc_log_info("got undefined in %s\n", __func__);
         ret = unsetenv(name);
     }
     else {
         const char *value = purc_variant_get_string_const(argv[1]);
 
         if (value == NULL) {
-            purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
             goto failed;
         }
 

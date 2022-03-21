@@ -1,0 +1,4 @@
+<hvml>
+    <test on="$AAA.BB(undefined)">
+    </test>
+</hvml>

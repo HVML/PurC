@@ -73,6 +73,11 @@ static struct pcvcm_node* pcvcm_node_new (enum pcvcm_node_type type)
 }
 
 
+struct pcvcm_node* pcvcm_node_new_undefined ()
+{
+    return pcvcm_node_new (PCVCM_NODE_TYPE_UNDEFINED);
+}
+
 struct pcvcm_node* pcvcm_node_new_object (size_t nr_nodes,
         struct pcvcm_node** nodes)
 {
@@ -423,6 +428,10 @@ void pcvcm_node_write_to_rwstream(purc_rwstream_t rws, struct pcvcm_node* node)
 {
     switch (node->type)
     {
+    case PCVCM_NODE_TYPE_UNDEFINED:
+        purc_rwstream_write(rws, "undefined", 9);
+        break;
+
     case PCVCM_NODE_TYPE_OBJECT:
         purc_rwstream_write(rws, "make_object(", 12);
         WRITE_CHILD_NODE();
@@ -1029,6 +1038,10 @@ purc_variant_t pcvcm_node_to_variant (struct pcvcm_node* node,
     purc_variant_t ret = PURC_VARIANT_INVALID;
     switch (node->type)
     {
+        case PCVCM_NODE_TYPE_UNDEFINED:
+            ret = purc_variant_make_undefined();
+            break;
+
         case PCVCM_NODE_TYPE_OBJECT:
             ret = pcvcm_node_object_to_variant (node, ops, silently);
             break;

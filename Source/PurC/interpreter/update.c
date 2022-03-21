@@ -274,55 +274,6 @@ update_object(pcintr_stack_t stack,
     return -1;
 }
 
-#if 0
-static int
-update_object(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
-{
-    UNUSED_PARAM(co);
-    struct ctxt_for_update *ctxt;
-    ctxt = (struct ctxt_for_update*)frame->ctxt;
-    PC_ASSERT(ctxt);
-    purc_variant_t on  = ctxt->on;
-    purc_variant_t to  = ctxt->to;
-    purc_variant_t src = ctxt->src;
-    PC_ASSERT(on != PURC_VARIANT_INVALID);
-    PC_ASSERT(to != PURC_VARIANT_INVALID);
-    PC_ASSERT(src != PURC_VARIANT_INVALID);
-
-    purc_variant_t target = on;
-    purc_variant_t at  = ctxt->at;
-    if (at != PURC_VARIANT_INVALID) {
-        PC_ASSERT(purc_variant_is_string(at));
-        const char *s_at = purc_variant_get_string_const(at);
-        PC_ASSERT(s_at && s_at[0]=='.');
-        s_at += 1;
-        purc_variant_t v = purc_variant_object_get_by_ckey(on, s_at, false);
-        PC_ASSERT(v != PURC_VARIANT_INVALID);
-        target = v;
-        return -1;
-    }
-
-    const char *op = purc_variant_get_string_const(to);
-    PC_ASSERT(op);
-    if (strcmp(op, "merge")==0) {
-    // TODO
-        if (!purc_variant_object_merge_another(target, src, true)) {
-            purc_set_error(PURC_ERROR_INVALID_VALUE);
-            return -1;
-        }
-        return 0;
-    }
-    if (strcmp(op, "displace")==0) {
-        PC_ASSERT(0); // Not implemented yet
-        purc_variant_t at = ctxt->at;
-        bool ok = purc_variant_object_set(on, at, src);
-        return ok ? 0 : -1;
-    }
-    PC_ASSERT(0); // Not implemented yet
-    return -1;
-}
-#endif
-
 static int
 update_array(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         purc_variant_t src,

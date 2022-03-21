@@ -22,7 +22,7 @@ unref(void *v)
 static int
 cmp(const void *l, const void *r)
 {
-    return pcvariant_equal((purc_variant_t)l, (purc_variant_t)r);
+    return pcvariant_diff((purc_variant_t)l, (purc_variant_t)r);
 }
 
 TEST(variant, map)

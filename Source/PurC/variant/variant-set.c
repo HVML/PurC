@@ -161,7 +161,7 @@ obj_node_diff(struct obj_node *l, struct obj_node *r)
     PC_ASSERT(rk);
 
     if (lk != rk) {
-        diff = pcvariant_equal(lk, rk);
+        diff = pcvariant_diff(lk, rk);
         if (diff)
             return diff;
     }
@@ -173,7 +173,7 @@ obj_node_diff(struct obj_node *l, struct obj_node *r)
     PC_ASSERT(rv);
 
     if (lv != rv) {
-        diff = pcvariant_equal(lv, rv);
+        diff = pcvariant_diff(lv, rv);
     }
 
     return diff;
@@ -495,7 +495,7 @@ variant_set_constraint_change_handler(
     PC_ASSERT(purc_variant_is_string(kn));
     purc_variant_t vn = (purc_variant_t)argv[3];
     PC_ASSERT(vn);
-    PC_ASSERT(0 == pcvariant_equal(ko, kn));
+    PC_ASSERT(0 == pcvariant_diff(ko, kn));
 
     purc_variant_t tmp;
     tmp = purc_variant_container_clone(source);
