@@ -2656,7 +2656,7 @@ purc_variant_container_clone_recursively(purc_variant_t ctnr)
 }
 
 int
-pcvariant_equal(purc_variant_t l, purc_variant_t r)
+pcvariant_diff(purc_variant_t l, purc_variant_t r)
 {
     PC_ASSERT(l != PURC_VARIANT_INVALID);
     PC_ASSERT(r != PURC_VARIANT_INVALID);
