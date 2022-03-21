@@ -472,7 +472,7 @@ format_broken_down_time(const char *timeformat, const struct tm *tm,
     max = estimate_buffer_size(timeformat);
     PC_DEBUG("buffer size for %s: %lu\n", timeformat, max);
 
-    result = malloc(max);
+    result = malloc(max+1);
     if (result == NULL) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return PURC_VARIANT_INVALID;
