@@ -314,7 +314,7 @@ int pcvariant_array_sort(purc_variant_t value, void *ud,
         int (*cmp)(purc_variant_t l, purc_variant_t r, void *ud));
 int pcvariant_set_sort(purc_variant_t value);
 
-int pcvariant_equal(purc_variant_t l, purc_variant_t r);
+int pcvariant_diff(purc_variant_t l, purc_variant_t r);
 
 static inline const char*
 pcvariant_typename(purc_variant_t v)

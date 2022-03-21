@@ -1,6 +1,6 @@
 /*
- * @file t.c
- * @author Geng Yue
+ * @file text.c
+ * @author Geng Yue, Vincent Wei
  * @date 2021/07/02
  * @brief The implementation of T dynamic variant object.
  *
@@ -31,31 +31,27 @@
 #define T_MAP_NAME          "map"
 
 static purc_variant_t
-get_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+get_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
 
-    if ((root == PURC_VARIANT_INVALID) || (argv == NULL) || (nr_args < 1)) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
-    }
-    if (!purc_variant_is_object (root)) {
-        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
-    }
-    if (!purc_variant_is_string (argv[0])) {
-        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+    if (nr_args < 1) {
+        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
     }
 
+    if (!purc_variant_is_string(argv[0])) {
+        pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
-    purc_variant_t var = purc_variant_object_get_by_ckey (root, T_MAP_NAME,
-            false);
+    purc_variant_t var = purc_variant_object_get_by_ckey(root,
+            T_MAP_NAME, false);
+
     if (var) {
-        ret_var = purc_variant_object_get (var, argv[0], false);
+        ret_var = purc_variant_object_get(var, argv[0], false);
         // ret_var is a reference of value
         if (ret_var == PURC_VARIANT_INVALID)
             ret_var = argv[0];
@@ -63,27 +59,45 @@ get_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     else
         ret_var = argv[0];
 
-    purc_variant_ref (ret_var);
+    purc_variant_ref(ret_var);
 
     return ret_var;
+
+failed:
+    if (silently)
+        return purc_variant_make_string_static("", false);
+
+    return PURC_VARIANT_INVALID;
 }
 
 purc_variant_t purc_dvobj_text_new (void)
 {
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    purc_variant_t dict = PURC_VARIANT_INVALID;
 
     static struct purc_dvobj_method method [] = {
-        {"get",          get_getter,          NULL},
+        { "get", get_getter, NULL },
     };
 
-    ret_var = purc_dvobj_make_from_methods (method, PCA_TABLESIZE(method));
+    ret_var = purc_dvobj_make_from_methods(method, PCA_TABLESIZE(method));
+    if (ret_var == PURC_VARIANT_INVALID)
+        goto fatal;
 
-    if (ret_var) {
-        purc_variant_t dict = purc_variant_make_object (0,
+    dict = purc_variant_make_object(0,
                 PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
-        purc_variant_object_set_by_static_ckey (ret_var, T_MAP_NAME, dict);
-        purc_variant_unref (dict);
-    }
+    if (dict == PURC_VARIANT_INVALID)
+        goto fatal;
+    if (!purc_variant_object_set_by_static_ckey(ret_var, T_MAP_NAME, dict))
+        goto fatal;
+    purc_variant_unref(dict);
 
     return ret_var;
+
+fatal:
+    if (dict)
+        purc_variant_unref(dict);
+    if (ret_var)
+        purc_variant_unref(ret_var);
+
+    return PURC_VARIANT_INVALID;
 }

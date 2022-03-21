@@ -6,12 +6,13 @@
    1. `$SYSTEM`
    1. `$SESSION`
    1. `$HVML`
-   1. `$EJSON`
    1. `$DATETIME`
+   1. `$EJSON`
 * 按照[预定义变量规范](https://gitlab.fmsoft.cn/hvml/hvml-docs/-/blob/master/zh/hvml-spec-predefined-variables-v1.0-zh.md)要求调整或增强预定义变量的实现。主要涉及：
-   1. `$STR`
    1. `$URL`
    1. `$FS`
+   1. `$FILE`
+   1. `$STR`
 
 ## 解释器
 
