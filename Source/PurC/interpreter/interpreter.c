@@ -511,6 +511,7 @@ push_stack_frame(pcintr_stack_t stack)
     }
 
     frame->silently = false;
+    frame->owner    = stack;
     return frame;
 }
 
@@ -1031,9 +1032,11 @@ pcintr_stack_frame_get_parent(struct pcintr_stack_frame *frame)
     if (!frame)
         return NULL;
 
-    struct list_head *n = frame->node.prev;
-    if (!n)
+    if (list_is_first(&frame->node, &frame->owner->frames))
         return NULL;
+
+    struct list_head *n = frame->node.prev;
+    PC_ASSERT(n);
 
     return container_of(n, struct pcintr_stack_frame, node);
 }
@@ -2432,9 +2435,7 @@ pcintr_get_symbol_var(struct pcintr_stack_frame *frame,
     PC_ASSERT(symbol >= 0);
     PC_ASSERT(symbol < PURC_SYMBOL_VAR_MAX);
 
-    purc_variant_t v = frame->symbol_vars[symbol];
-    PC_ASSERT(v != PURC_VARIANT_INVALID);
-    return v;
+    return frame->symbol_vars[symbol];
 }
 
 int
