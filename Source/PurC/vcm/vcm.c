@@ -68,6 +68,19 @@
         return variant;                                                     \
     }
 
+#define PCVCM_CHECK_FAIL_GOTO(node, variant, silently, label)               \
+    if (node->type != PCVCM_NODE_TYPE_UNDEFINED) {                          \
+        if (purc_variant_is_undefined(variant)) {                           \
+            goto label;                                                     \
+        }                                                                   \
+        else if (variant == PURC_VARIANT_INVALID) {                         \
+            goto label;                                                     \
+        }                                                                   \
+    }                                                                       \
+    else if (variant == PURC_VARIANT_INVALID) {                             \
+        goto label;                                                         \
+    }
+
 struct pcvcm_node_op {
     cb_find_var find_var;
     void* find_var_ctxt;
@@ -654,6 +667,9 @@ purc_variant_t pcvcm_node_object_to_variant (struct pcvcm_node* node,
 {
     purc_variant_t object = purc_variant_make_object (0,
             PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+    if (!object) {
+        return PURC_VARIANT_INVALID;
+    }
 
     struct pcvcm_node* k_node = FIRST_CHILD(node);
     struct pcvcm_node* v_node = NEXT_CHILD(k_node);
@@ -680,16 +696,26 @@ purc_variant_t pcvcm_node_array_to_variant (struct pcvcm_node* node,
        struct pcvcm_node_op* ops, bool silently)
 {
     purc_variant_t array = purc_variant_make_array (0, PURC_VARIANT_INVALID);
+    if (!array) {
+        return PURC_VARIANT_INVALID;
+    }
 
     struct pcvcm_node* array_node = FIRST_CHILD(node);
     while (array_node) {
         purc_variant_t vt = pcvcm_node_to_variant (array_node, ops, silently);
+        PCVCM_CHECK_FAIL_GOTO(array_node, vt, silently, err);
         purc_variant_array_append (array, vt);
         purc_variant_unref (vt);
 
         array_node = NEXT_CHILD(array_node);
     }
     return array;
+
+err:
+    if (array) {
+        purc_variant_unref(array);
+    }
+    return PURC_VARIANT_INVALID;
 }
 
 purc_variant_t pcvcm_node_concat_string_to_variant (struct pcvcm_node* node,
@@ -707,18 +733,16 @@ purc_variant_t pcvcm_node_concat_string_to_variant (struct pcvcm_node* node,
     struct pcvcm_node* child = FIRST_CHILD(node);
     while (child) {
         purc_variant_t v = pcvcm_node_to_variant(child, ops, silently);
-        if (v) {
-            char* buf = NULL;
-            int total = purc_variant_stringify_alloc(&buf, v);
-            if (total) {
-                purc_rwstream_write(rws, buf, total);
-            }
-            free(buf);
-            purc_variant_unref(v);
+        PCVCM_CHECK_FAIL_GOTO(child, v, silently, err);
+
+        char* buf = NULL;
+        int total = purc_variant_stringify_alloc(&buf, v);
+        if (total) {
+            purc_rwstream_write(rws, buf, total);
         }
-        else {
-            goto err;
-        }
+        free(buf);
+        purc_variant_unref(v);
+
         child = NEXT_CHILD(child);
     }
 
@@ -847,15 +871,11 @@ purc_variant_t pcvcm_node_get_element_to_variant (struct pcvcm_node* node,
     }
 
     purc_variant_t caller_var = pcvcm_node_to_variant(caller_node, ops, silently);
-    if (!caller_var) {
-        goto err;
-    }
+    PCVCM_CHECK_FAIL_GOTO(caller_node, caller_var, silently, err);
 
     struct pcvcm_node* param_node  = NEXT_CHILD(caller_node);
     purc_variant_t param_var = pcvcm_node_to_variant(param_node, ops, silently);
-    if (!param_var) {
-        goto clean_caller_var;
-    }
+    PCVCM_CHECK_FAIL_GOTO(param_node, param_var, silently, clean_caller_var);
 
     bool has_index = true;
     int64_t index = -1;
@@ -989,9 +1009,7 @@ purc_variant_t pcvcm_node_call_method_to_variant (struct pcvcm_node* node,
     }
 
     purc_variant_t caller_var = pcvcm_node_to_variant(caller_node, ops, silently);
-    if (!caller_var) {
-        goto err;
-    }
+    PCVCM_CHECK_FAIL_GOTO(caller_node, caller_var, silently, err);
 
     if (!purc_variant_is_dynamic(caller_var)
             && !purc_variant_is_array(caller_var)) {
@@ -1007,9 +1025,7 @@ purc_variant_t pcvcm_node_call_method_to_variant (struct pcvcm_node* node,
         struct pcvcm_node* param_node = NEXT_CHILD(caller_node);
         while (param_node) {
             purc_variant_t vt = pcvcm_node_to_variant (param_node, ops, silently);
-            if (!vt) {
-                goto clean_params;
-            }
+            PCVCM_CHECK_FAIL_GOTO(param_node, vt, silently, clean_params);
 
             params[i] = vt;
             i++;
