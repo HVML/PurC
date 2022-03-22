@@ -55,6 +55,19 @@
 #define MIN_BUF_SIZE         32
 #define MAX_BUF_SIZE         SIZE_MAX
 
+#define PCVCM_CHECK_FAIL_RET(node, variant, silently)                       \
+    if (node->type != PCVCM_NODE_TYPE_UNDEFINED) {                          \
+        if (purc_variant_is_undefined(variant)) {                           \
+            return variant;                                                 \
+        }                                                                   \
+        else if (variant == PURC_VARIANT_INVALID) {                         \
+            return silently ? purc_variant_make_undefined() : variant;      \
+        }                                                                   \
+    }                                                                       \
+    else if (variant == PURC_VARIANT_INVALID) {                             \
+        return variant;                                                     \
+    }
+
 struct pcvcm_node_op {
     cb_find_var find_var;
     void* find_var_ctxt;
@@ -646,7 +659,10 @@ purc_variant_t pcvcm_node_object_to_variant (struct pcvcm_node* node,
     struct pcvcm_node* v_node = NEXT_CHILD(k_node);
     while (k_node && v_node) {
         purc_variant_t key = pcvcm_node_to_variant (k_node, ops, silently);
+        PCVCM_CHECK_FAIL_RET(k_node, key, silently);
+
         purc_variant_t value = pcvcm_node_to_variant(v_node, ops, silently);
+        PCVCM_CHECK_FAIL_RET(v_node, value, silently);
 
         purc_variant_object_set (object, key, value);
 
