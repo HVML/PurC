@@ -100,8 +100,8 @@ struct pchtml_html_tokenizer {
     const unsigned char                 *last;
 
     /* Entities */
-    const pchtml_sbst_entry_static_t *entity;
-    const pchtml_sbst_entry_static_t *entity_match;
+    const pcutils_sbst_entry_static_t *entity;
+    const pcutils_sbst_entry_static_t *entity_match;
     uintptr_t                        entity_start;
     uintptr_t                        entity_end;
     uint32_t                         entity_length;

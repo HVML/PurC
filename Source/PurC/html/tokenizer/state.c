@@ -1846,12 +1846,12 @@ pchtml_html_tokenizer_state_char_ref_named(pchtml_html_tokenizer_t *tkz,
 {
     size_t size, tail_size;
     unsigned char *start;
-    const pchtml_sbst_entry_static_t *entry = tkz->entity;
+    const pcutils_sbst_entry_static_t *entry = tkz->entity;
 
     const unsigned char *begin = data;
 
     while (data < end) {
-        entry = pchtml_sbst_entry_static_find(pchtml_html_tokenizer_res_entities_sbst,
+        entry = pcutils_sbst_entry_static_find(pchtml_html_tokenizer_res_entities_sbst,
                                               entry, *data);
         if (entry == NULL) {
             pchtml_html_tokenizer_state_append_m(tkz, begin, (data - begin));

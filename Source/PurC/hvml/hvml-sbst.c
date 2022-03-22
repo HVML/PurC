@@ -50,14 +50,14 @@
 #endif
 
 struct pchvml_sbst {
-    const pchtml_sbst_entry_static_t* strt;
-    const pchtml_sbst_entry_static_t* root;
-    const pchtml_sbst_entry_static_t* match;
+    const pcutils_sbst_entry_static_t* strt;
+    const pcutils_sbst_entry_static_t* root;
+    const pcutils_sbst_entry_static_t* match;
     struct pcutils_arrlist* ucs;
 };
 
 static
-struct pchvml_sbst* pchvml_sbst_new(const pchtml_sbst_entry_static_t* strt)
+struct pchvml_sbst* pchvml_sbst_new(const pcutils_sbst_entry_static_t* strt)
 {
     struct pchvml_sbst* sbst = (struct pchvml_sbst*)
         PCHVML_ALLOC(sizeof(struct pchvml_sbst));
@@ -89,8 +89,8 @@ bool pchvml_sbst_advance_ex(struct pchvml_sbst* sbst,
     if (case_insensitive && uc >= 'A' && uc <= 'Z') {
         uc = uc | 0x20;
     }
-    const pchtml_sbst_entry_static_t* ret =
-                pchtml_sbst_entry_static_find(sbst->strt, sbst->root, uc);
+    const pcutils_sbst_entry_static_t* ret =
+                pcutils_sbst_entry_static_find(sbst->strt, sbst->root, uc);
     if (ret) {
         if (ret->value) {
             sbst->match = ret;
@@ -122,7 +122,7 @@ struct pchvml_sbst* pchvml_sbst_new_char_ref(void)
     return pchvml_sbst_new(pchtml_html_tokenizer_res_entities_sbst);
 }
 
-static const pchtml_sbst_entry_static_t markup_declaration_open_state_sbst[] =
+static const pcutils_sbst_entry_static_t markup_declaration_open_state_sbst[] =
 {
     {0x00, NULL, 0, 0, 0, 0},
     {0x44, NULL, 0, 3, 2, 4},
@@ -148,7 +148,7 @@ struct pchvml_sbst* pchvml_sbst_new_markup_declaration_open_state(void)
     return pchvml_sbst_new(markup_declaration_open_state_sbst);
 }
 
-static const pchtml_sbst_entry_static_t after_doctype_name_state_sbst[] =
+static const pcutils_sbst_entry_static_t after_doctype_name_state_sbst[] =
 {
     {0x00, NULL, 0, 0, 0, 0},
     {0x73, NULL, 0, 2, 0, 3},
