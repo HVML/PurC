@@ -28,7 +28,7 @@
 #include "config.h"
 #include "purc-utils.h"
 
-#include "html/sbst.h"
+#include "private/sbst.h"
 #define PCHTML_HTML_TOKENIZER_RES_ENTITIES_SBST
 #include "html/tokenizer/res.h"
 

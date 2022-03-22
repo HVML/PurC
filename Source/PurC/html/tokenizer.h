@@ -40,7 +40,7 @@
 #include "purc-rwstream.h"
 
 #include "html/in.h"
-#include "html/sbst.h"
+#include "private/sbst.h"
 #include "html/base.h"
 #include "html/token.h"
 #include "html/tag.h"
