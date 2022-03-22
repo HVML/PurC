@@ -481,6 +481,16 @@ purc_variant_t fmttime(purc_variant_t dvobj, const char* name)
         char buf[256];
         struct tm tm;
 
+        char *tz_old = NULL;
+        if (timezone) {
+            char *env = getenv("TZ");
+            if (env)
+                tz_old = strdup(env);
+
+            setenv("TZ", timezone, 1);
+            tzset();
+        }
+
         if (timezone && strcmp(timezone, ":UTC") == 0) {
             gmtime_r(&t, &tm);
         }
@@ -490,26 +500,16 @@ purc_variant_t fmttime(purc_variant_t dvobj, const char* name)
             timeformat += sizeof(PURC_TFORMAT_PREFIX_UTC) - 1;
         }
         else {
-            char *tz_old = NULL;
-            if (timezone) {
-                char *env = getenv("TZ");
-                if (env)
-                    tz_old = strdup(env);
-
-                setenv("TZ", timezone, 1);
-                tzset();
-            }
-
             localtime_r(&t, &tm);
-
-            if (tz_old) {
-                setenv("TZ", tz_old, 1);
-                tzset();
-                free(tz_old);
-            }
         }
 
         strftime(buf, sizeof(buf), timeformat, &tm);
+
+        if (tz_old) {
+            setenv("TZ", tz_old, 1);
+            tzset();
+            free(tz_old);
+        }
 
         return purc_variant_make_string(buf, false);
     }

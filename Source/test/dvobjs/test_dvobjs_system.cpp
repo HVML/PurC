@@ -449,17 +449,17 @@ TEST(dvobjs, time)
         { "bad-set",
             "$SYSTEM.time(! )",
             system_time, NULL, PURC_ERROR_ARGUMENT_MISSED },
+#if OS(LINUX)
         { "negative",
             "$SYSTEM.time(! -100L )",
             system_time, NULL, PURC_ERROR_INVALID_VALUE },
-#if OS(LINUX)
         { "negative",
             "$SYSTEM.time(! -100UL )",
             system_time, NULL, PURC_ERROR_INVALID_VALUE },
-#endif
         { "negative",
             "$SYSTEM.time(! -1000.0FL )",
             system_time, NULL, PURC_ERROR_INVALID_VALUE  },
+#endif
         { "set",
             "$SYSTEM.time(! 100 )",
             system_time, NULL, PURC_ERROR_ACCESS_DENIED },
@@ -1166,9 +1166,15 @@ TEST(dvobjs, cwd)
         { "bad",
             "$SYSTEM.cwd(! '/bin/echo' )",
             system_cwd, NULL, PURC_ERROR_NOT_DESIRED_ENTITY },
+#if OS(LINUX)
         { "bad",
             "$SYSTEM.cwd(! '/root' )",
             system_cwd, NULL, PURC_ERROR_ACCESS_DENIED },
+#else
+        { "bad",
+            "$SYSTEM.cwd(! '/root' )",
+            system_cwd, NULL, PURC_ERROR_NOT_EXISTS },
+#endif
         { "current",
             "$SYSTEM.cwd",
             system_cwd, cwd_vrtcmp, 0 },
