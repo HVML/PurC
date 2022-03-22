@@ -25,6 +25,8 @@
 
 #pragma once
 
+ALLOW_DEPRECATED_DECLARATIONS_BEGIN
+
 #include <iterator>
 
 namespace WTF {
@@ -220,3 +222,5 @@ namespace WTF {
     }
 
 } // namespace WTF
+
+ALLOW_DEPRECATED_DECLARATIONS_END

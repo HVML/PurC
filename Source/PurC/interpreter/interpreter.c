@@ -1723,7 +1723,7 @@ pcintr_load_from_uri(pcintr_stack_t stack, const char* uri)
 #define DOC_QUERY         "query"
 
 purc_variant_t
-pcintr_doc_query(purc_vdom_t vdom, const char* css)
+pcintr_doc_query(purc_vdom_t vdom, const char* css, bool silently)
 {
     purc_variant_t ret = PURC_VARIANT_INVALID;
     if (vdom == NULL || css == NULL) {
@@ -1755,7 +1755,7 @@ pcintr_doc_query(purc_vdom_t vdom, const char* css)
     }
 
     // TODO: silenly
-    ret = native_func (purc_variant_native_get_entity(doc), 1, &arg, false);
+    ret = native_func (purc_variant_native_get_entity(doc), 1, &arg, silently);
     purc_variant_unref(arg);
 end:
     return ret;

@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <fcntl.h>           /* For O_* constants */
 #include <gtest/gtest.h>
+#include <wtf/Compiler.h>
 
 #define NR_THREADS          10
 
@@ -84,6 +85,7 @@ static int create_thread(int nr)
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
     arg.nr = nr;
+ALLOW_DEPRECATED_DECLARATIONS_BEGIN
     sem_unlink("sync");
     arg.wait = sem_open("sync", O_CREAT | O_EXCL, 0644, 0);
     if (arg.wait == SEM_FAILED) {
@@ -100,6 +102,7 @@ static int create_thread(int nr)
 
     sem_wait(arg.wait);
     sem_close(arg.wait);
+ALLOW_DEPRECATED_DECLARATIONS_END
 
     return ret;
 }
