@@ -1,5 +1,5 @@
 {
-  "&DOCTYPE": { "codepoints": [198], "characters": "DOCTYPE" },
-  "&[CDATA[": { "codepoints": [198], "characters": "[CDATA[" },
-  "&--": { "codepoints": [8204], "characters": "--" }
+  "&DOCTYPE": { "characters": "DOCTYPE" },
+  "&[CDATA[": { "characters": "[CDATA[" },
+  "&--": { "characters": "--" }
 }
