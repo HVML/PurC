@@ -82,18 +82,20 @@ pcvar_adjust_set_by_descendant(purc_variant_t val) WTF_INTERNAL;
 
 pcutils_map*
 pcvar_create_rev_update_chain(void) WTF_INTERNAL;
+void
+pcvar_destroy_rev_update_chain(pcutils_map *chain) WTF_INTERNAL;
+int
+pcvar_rev_update_chain_add(pcutils_map *chain,
+        struct pcvar_rev_update_edge *edge) WTF_INTERNAL;
+void
+pcvar_rev_update_chain_del(pcutils_map *chain,
+        struct pcvar_rev_update_edge *edge) WTF_INTERNAL;
 
 int
 pcvar_reverse_check(purc_variant_t old, purc_variant_t _new) WTF_INTERNAL;
 
-#if PURC_SET_CONSTRAINT_WITH_CLONE == 1
-struct pcvar_rev_update_edge*
-pcvar_container_get_top_edge(purc_variant_t val) WTF_INTERNAL;
 bool
 pcvar_container_belongs_to_set(purc_variant_t val) WTF_INTERNAL;
-purc_variant_t
-pcvar_top_in_rev_update_chain(purc_variant_t val) WTF_INTERNAL;
-#endif
 
 purc_variant_t
 pcvariant_container_clone(purc_variant_t cntr, bool recursively) WTF_INTERNAL;
@@ -242,6 +244,25 @@ pcvar_rev_update_chain_post_handler(
 
 purc_variant_t
 pcvar_set_clone_struct(purc_variant_t set);
+
+// constraint-releated
+purc_variant_t
+pcvar_make_arr(void);
+
+int
+pcvar_arr_append(purc_variant_t arr, purc_variant_t val);
+
+purc_variant_t
+pcvar_make_obj(void);
+
+int
+pcvar_obj_set(purc_variant_t obj, purc_variant_t k, purc_variant_t v);
+
+purc_variant_t
+pcvar_make_set(variant_set_t data);
+
+int
+pcvar_set_add(purc_variant_t set, purc_variant_t val);
 
 
 #ifdef __cplusplus

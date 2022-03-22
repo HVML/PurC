@@ -299,8 +299,6 @@ pcvar_build_edge_to_parent(purc_variant_t val,
     }
 }
 
-#if PURC_SET_CONSTRAINT_WITH_CLONE == 1
-
 static bool
 is_rev_update_chain_empty(pcutils_map *chain)
 {
@@ -344,56 +342,4 @@ pcvar_container_belongs_to_set(purc_variant_t val)
             return false;
     }
 }
-
-#if 0         /* { */
-struct pcvar_rev_update_edge*
-pcvar_container_get_top_edge(purc_variant_t val)
-{
-    PC_ASSERT(val != PURC_VARIANT_INVALID);
-again:
-    switch (val->type) {
-        case PURC_VARIANT_TYPE_ARRAY:
-            {
-                variant_arr_t data = pcvar_arr_get_data(val);
-                PC_ASSERT(data);
-                if (data->rev_update_chain.parent == PURC_VARIANT_INVALID)
-                    return NULL;
-                if (purc_variant_is_set(data->rev_update_chain.parent))
-                    return &data->rev_update_chain;
-                val = data->rev_update_chain.parent;
-                break;
-            }
-        case PURC_VARIANT_TYPE_OBJECT:
-            {
-                variant_obj_t data = pcvar_obj_get_data(val);
-                PC_ASSERT(data);
-                if (data->rev_update_chain.parent == PURC_VARIANT_INVALID)
-                    return NULL;
-                if (purc_variant_is_set(data->rev_update_chain.parent))
-                    return &data->rev_update_chain;
-                val = data->rev_update_chain.parent;
-                break;
-            }
-        case PURC_VARIANT_TYPE_SET:
-            {
-                return NULL;
-            }
-        default:
-            PC_ASSERT(0);
-    }
-    goto again;
-}
-
-purc_variant_t
-pcvar_top_in_rev_update_chain(purc_variant_t val)
-{
-    PC_ASSERT(val != PURC_VARIANT_INVALID);
-    struct pcvar_rev_update_edge *top;
-    top = pcvar_container_get_top_edge(val);
-    if (!top)
-        return PURC_VARIANT_INVALID;
-    return top->parent;
-}
-#endif        /* } */
-#endif
 

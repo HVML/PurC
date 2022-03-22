@@ -152,6 +152,9 @@ static purc_variant_t v_object_new_with_capacity(void)
     var->sz_ptr[1]     = (uintptr_t)data;
     var->refc          = 1;
 
+    size_t extra = OBJ_EXTRA_SIZE(data);
+    pcvariant_stat_set_extra_size(var, extra);
+
     return var;
 }
 
@@ -219,10 +222,8 @@ obj_node_create(purc_variant_t k, purc_variant_t v)
 static int
 build_rev_update_chain(purc_variant_t obj, struct obj_node *node)
 {
-#if PURC_SET_CONSTRAINT_WITH_CLONE == 1
     if (!pcvar_container_belongs_to_set(obj))
         return 0;
-#endif
 
     int r;
 
@@ -250,7 +251,7 @@ check_shrink(purc_variant_t obj, struct obj_node *node)
     if (_new == PURC_VARIANT_INVALID)
         return -1;
 
-    bool ok = true;
+    int r = 0;
     do {
         bool found = false;
         purc_variant_t kk, vv;
@@ -260,21 +261,18 @@ check_shrink(purc_variant_t obj, struct obj_node *node)
                 found = true;
                 continue;
             }
-            ok = purc_variant_object_set(_new, kk, vv);
-            if (!ok)
+            r = pcvar_obj_set(_new, kk, vv);
+            if (r)
                 break;
         } end_foreach;
 
-        if (!ok)
+        if (r)
             break;
 
         if (!found)
             break;
 
-        PRINT_VARIANT(obj);
-        PRINT_VARIANT(_new);
-
-        int r = pcvar_reverse_check(obj, _new);
+        r = pcvar_reverse_check(obj, _new);
         if (r)
             break;
 
@@ -328,22 +326,26 @@ v_object_remove(purc_variant_t obj, purc_variant_t key, bool silently,
     purc_variant_t v = node->val;
 
     do {
-        if (!shrink(obj, k, v, check))
-            break;
+        if (check) {
+            if (!shrink(obj, k, v, check))
+                break;
 
-        if (check_shrink(obj, node))
-            break;
+            if (check_shrink(obj, node))
+                break;
 
-        break_rev_update_chain(obj, node);
+            break_rev_update_chain(obj, node);
+        }
 
         --data->size;
         PC_ASSERT(entry == root->rb_node || entry->rb_parent);
         pcutils_rbtree_erase(entry, root);
         entry->rb_parent = NULL;
 
-        pcvar_adjust_set_by_descendant(obj);
+        if (check) {
+            pcvar_adjust_set_by_descendant(obj);
 
-        shrunk(obj, k, v, check);
+            shrunk(obj, k, v, check);
+        }
 
         obj_node_destroy(obj, node);
 
@@ -364,24 +366,21 @@ check_grow(purc_variant_t obj, purc_variant_t k, purc_variant_t v)
     if (_new == PURC_VARIANT_INVALID)
         return -1;
 
-    bool ok = true;
+    int r = 0;
     do {
         purc_variant_t kk, vv;
         foreach_key_value_in_variant_object(obj, kk, vv) {
-            ok = purc_variant_object_set(_new, kk, vv);
-            if (!ok)
+            r = pcvar_obj_set(_new, kk, vv);
+            if (r)
                 break;
         } end_foreach;
 
-        if (!ok)
+        if (r)
             break;
 
-        ok = purc_variant_object_set(_new, k, v);
-        if (!ok)
+        r = pcvar_obj_set(_new, k, v);
+        if (r)
             break;
-
-        PRINT_VARIANT(obj);
-        PRINT_VARIANT(_new);
 
         int r = pcvar_reverse_check(obj, _new);
         if (r)
@@ -408,7 +407,7 @@ check_change(purc_variant_t obj, struct obj_node *node,
     if (_new == PURC_VARIANT_INVALID)
         return -1;
 
-    bool ok = true;
+    int r = 0;
     do {
         bool found = false;
         purc_variant_t kk, vv;
@@ -416,25 +415,23 @@ check_change(purc_variant_t obj, struct obj_node *node,
             if (node->key == kk) {
                 PC_ASSERT(!found);
                 found = true;
-                ok = purc_variant_object_set(_new, k, v);
+                r = pcvar_obj_set(_new, k, v);
             }
             else {
-                ok = purc_variant_object_set(_new, kk, vv);
+                r = pcvar_obj_set(_new, kk, vv);
             }
-            if (!ok)
+            if (r)
                 break;
         } end_foreach;
 
-        if (!ok)
+        if (r)
             break;
 
         if (!found)
             break;
 
-        PRINT_VARIANT(obj);
-        PRINT_VARIANT(_new);
-
         int r = pcvar_reverse_check(obj, _new);
+        PC_DEBUGX("r: %d", r);
         if (r)
             break;
 
@@ -465,14 +462,6 @@ v_object_set(purc_variant_t obj, purc_variant_t key, purc_variant_t val,
     variant_obj_t data = pcvar_obj_get_data(obj);
     PC_ASSERT(data);
 
-#if PURC_SET_CONSTRAINT_WITH_CLONE == 1
-    if (pcvar_container_belongs_to_set(val)) {
-        purc_set_error_with_info(PURC_ERROR_NOT_SUPPORTED,
-                "add subchildren of set's uniqkey-val to other container");
-        return -1;
-    }
-#endif
-
     struct rb_root *root = &data->kvs;
     struct rb_node **pnode = &root->rb_node;
     struct rb_node *parent = NULL;
@@ -501,11 +490,13 @@ v_object_set(purc_variant_t obj, purc_variant_t key, purc_variant_t val,
             return -1;
 
         do {
-            if (!grow(obj, key, val, check))
-                break;
+            if (check) {
+                if (!grow(obj, key, val, check))
+                    break;
 
-            if (check_grow(obj, key, val))
-                break;
+                if (check_grow(obj, key, val))
+                    break;
+            }
 
             entry = &node->node;
 
@@ -514,12 +505,17 @@ v_object_set(purc_variant_t obj, purc_variant_t key, purc_variant_t val,
 
             ++data->size;
 
-            if (build_rev_update_chain(obj, node))
-                break;
+            if (check) {
+                if (build_rev_update_chain(obj, node))
+                    break;
 
-            pcvar_adjust_set_by_descendant(obj);
+                pcvar_adjust_set_by_descendant(obj);
 
-            grown(obj, key, val, check);
+                grown(obj, key, val, check);
+            }
+
+            size_t extra = OBJ_EXTRA_SIZE(data);
+            pcvariant_stat_set_extra_size(obj, extra);
 
             return 0;
         } while (0);
@@ -540,39 +536,59 @@ v_object_set(purc_variant_t obj, purc_variant_t key, purc_variant_t val,
         purc_variant_t ko = node->key;
         purc_variant_t vo = node->val;
 
-        if (!change(obj, ko, vo, key, val, check))
-            break;
+        if (check) {
+            if (!change(obj, ko, vo, key, val, check))
+                break;
 
-        if (check_change(obj, node, key, val))
-            break;
+            if (check_change(obj, node, key, val))
+                break;
 
-        node->key = key;
-        node->val = val;
-        if (build_rev_update_chain(obj, node)) {
-            break_rev_update_chain(obj, node);
+            node->key = key;
+            node->val = val;
+            if (build_rev_update_chain(obj, node)) {
+                break_rev_update_chain(obj, node);
+                node->key = ko;
+                node->val = vo;
+                break;
+            }
+
             node->key = ko;
             node->val = vo;
-            break;
+            break_rev_update_chain(obj, node);
         }
-
-        node->key = ko;
-        node->val = vo;
-        break_rev_update_chain(obj, node);
 
         node->key = purc_variant_ref(key);
         node->val = purc_variant_ref(val);
 
-        pcvar_adjust_set_by_descendant(obj);
+        if (check) {
+            pcvar_adjust_set_by_descendant(obj);
 
-        changed(obj, ko, vo, key, val, check);
+            changed(obj, ko, vo, key, val, check);
+        }
 
         purc_variant_unref(ko);
         purc_variant_unref(vo);
+
+        size_t extra = OBJ_EXTRA_SIZE(data);
+        pcvariant_stat_set_extra_size(obj, extra);
 
         return 0;
     } while (0);
 
     return -1;
+}
+
+purc_variant_t
+pcvar_make_obj(void)
+{
+    return v_object_new_with_capacity();
+}
+
+int
+pcvar_obj_set(purc_variant_t obj, purc_variant_t key, purc_variant_t val)
+{
+    bool check = false;
+    return v_object_set(obj, key, val, check);
 }
 
 static int
@@ -733,6 +749,11 @@ void pcvariant_object_release (purc_variant_t value)
         node = container_of(p, struct obj_node, node);
 
         obj_node_destroy(value, node);
+    }
+
+    if (data->rev_update_chain) {
+        pcvar_destroy_rev_update_chain(data->rev_update_chain);
+        data->rev_update_chain = NULL;
     }
 
     free(data);
@@ -1032,7 +1053,7 @@ pcvar_object_break_edge_to_parent(purc_variant_t obj,
     if (!data->rev_update_chain)
         return;
 
-    pcutils_map_erase(data->rev_update_chain, edge);
+    pcutils_map_erase(data->rev_update_chain, edge->obj_me);
 }
 
 int
@@ -1078,12 +1099,14 @@ pcvar_object_build_edge_to_parent(purc_variant_t obj,
             return -1;
     }
 
-    pcutils_map_entry *entry = pcutils_map_find(data->rev_update_chain, edge);
+    pcutils_map_entry *entry;
+    entry = pcutils_map_find(data->rev_update_chain, edge->obj_me);
     if (entry)
         return 0;
 
     int r;
-    r = pcutils_map_insert(data->rev_update_chain, edge, edge);
+    r = pcutils_map_insert(data->rev_update_chain,
+            edge->obj_me, edge->parent);
 
     return r ? -1 : 0;
 }

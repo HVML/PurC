@@ -368,10 +368,12 @@ TEST(constraint, set_add_children_of_uniqkey_to_other_container)
     ASSERT_NE(name, nullptr);
 
     other = purc_variant_make_array(1, name);
-    ASSERT_EQ(other, nullptr);
+    ASSERT_NE(other, nullptr);
+    PURC_VARIANT_SAFE_CLEAR(other);
 
     other = purc_variant_make_object_by_static_ckey(1, "foo", name);
-    ASSERT_EQ(other, nullptr);
+    ASSERT_NE(other, nullptr);
+    PURC_VARIANT_SAFE_CLEAR(other);
 
     PURC_VARIANT_SAFE_CLEAR(last);
     PURC_VARIANT_SAFE_CLEAR(first);

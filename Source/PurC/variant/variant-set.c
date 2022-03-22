@@ -135,10 +135,13 @@ variant_set_get_extra_size(variant_set_t set)
     }
     size_t sz_record = sizeof(struct set_node) +
         sizeof(purc_variant_t) * set->nr_keynames;
-    size_t count = pcutils_arrlist_length(set->arr);
+    size_t count = 0;
+    if (set->arr)
+        count = pcutils_arrlist_length(set->arr);
     extra += sz_record * count;
     extra += sizeof(*set->arr);
-    extra += sizeof(struct set_node*)*(set->arr->size);
+    if (set->arr)
+        extra += sizeof(struct set_node*)*(set->arr->size);
 
     return extra;
 }
@@ -295,6 +298,9 @@ pcv_set_new(void)
 
     set->refc          = 1;
 
+    size_t extra = variant_set_get_extra_size(ptr);
+    pcvariant_stat_set_extra_size(set, extra);
+
     // a valid empty set
     return set;
 }
@@ -334,14 +340,6 @@ elem_node_revoke_constraints(purc_variant_t set, struct set_node *node)
 
     if (node->val == PURC_VARIANT_INVALID)
         return;
-
-    if (node->constraints) {
-        PC_ASSERT(node->val);
-        bool ok;
-        ok = purc_variant_revoke_listener(node->val, node->constraints);
-        PC_ASSERT(ok);
-        node->constraints = NULL;
-    }
 
     break_rev_update_chain(set, node);
 }
@@ -398,146 +396,6 @@ find_element(purc_variant_t set, purc_variant_t kvs)
     return container_of(node.entry, struct set_node, node);
 }
 
-static bool
-variant_set_constraint_grow_handler(
-        purc_variant_t source,  // the source variant.
-        void *ctxt,             // the context stored when registering the handler.
-        size_t nr_args,         // the number of the relevant child variants.
-        purc_variant_t *argv    // the array of all relevant child variants.
-        )
-{
-    PC_ASSERT(source);
-    PC_ASSERT(purc_variant_is_object(source));
-    purc_variant_t set = (purc_variant_t)ctxt;
-    PC_ASSERT(set);
-    PC_ASSERT(purc_variant_is_set(set));
-    PC_ASSERT(nr_args == 2);
-    purc_variant_t k = (purc_variant_t)argv[0];
-    PC_ASSERT(k);
-    PC_ASSERT(purc_variant_is_string(k));
-    purc_variant_t v = (purc_variant_t)argv[1];
-    PC_ASSERT(v);
-
-    purc_variant_t tmp;
-    tmp = purc_variant_container_clone(source);
-    PC_ASSERT(tmp != PURC_VARIANT_INVALID);
-    bool ok;
-    ok = purc_variant_object_set(tmp, k, v);
-    PC_ASSERT(ok);
-
-    struct set_node *p;
-    p = find_element(set, tmp);
-    PURC_VARIANT_SAFE_CLEAR(tmp);
-    if (p && p->val != source)
-        return false;
-
-    return true;
-}
-
-static bool
-variant_set_constraint_shrink_handler(
-        purc_variant_t source,  // the source variant.
-        void *ctxt,             // the context stored when registering the handler.
-        size_t nr_args,         // the number of the relevant child variants.
-        purc_variant_t *argv    // the array of all relevant child variants.
-        )
-{
-    PC_ASSERT(source);
-    PC_ASSERT(purc_variant_is_object(source));
-    purc_variant_t set = (purc_variant_t)ctxt;
-    PC_ASSERT(set);
-    PC_ASSERT(purc_variant_is_set(set));
-    PC_ASSERT(nr_args == 2);
-    purc_variant_t k = (purc_variant_t)argv[0];
-    PC_ASSERT(k);
-    PC_ASSERT(purc_variant_is_string(k));
-    purc_variant_t v = (purc_variant_t)argv[1];
-    PC_ASSERT(v);
-
-    purc_variant_t tmp;
-    tmp = purc_variant_container_clone(source);
-    PC_ASSERT(tmp != PURC_VARIANT_INVALID);
-    bool silently = true;
-    bool ok;
-    ok = purc_variant_object_remove(tmp, k, silently);
-    PC_ASSERT(ok);
-
-    struct set_node *p;
-    p = find_element(set, tmp);
-    PURC_VARIANT_SAFE_CLEAR(tmp);
-    if (p && p->val != source)
-        return false;
-
-    return true;
-}
-
-static bool
-variant_set_constraint_change_handler(
-        purc_variant_t source,  // the source variant.
-        void *ctxt,             // the context stored when registering the handler.
-        size_t nr_args,         // the number of the relevant child variants.
-        purc_variant_t *argv    // the array of all relevant child variants.
-        )
-{
-    PC_ASSERT(source);
-    PC_ASSERT(purc_variant_is_object(source));
-    purc_variant_t set = (purc_variant_t)ctxt;
-    PC_ASSERT(set);
-    PC_ASSERT(purc_variant_is_set(set));
-    PC_ASSERT(nr_args == 4);
-    purc_variant_t ko = (purc_variant_t)argv[0];
-    PC_ASSERT(ko);
-    PC_ASSERT(purc_variant_is_string(ko));
-    purc_variant_t vo = (purc_variant_t)argv[1];
-    PC_ASSERT(vo);
-    purc_variant_t kn = (purc_variant_t)argv[2];
-    PC_ASSERT(kn);
-    PC_ASSERT(purc_variant_is_string(kn));
-    purc_variant_t vn = (purc_variant_t)argv[3];
-    PC_ASSERT(vn);
-    PC_ASSERT(0 == pcvariant_diff(ko, kn));
-
-    purc_variant_t tmp;
-    tmp = purc_variant_container_clone(source);
-    PC_ASSERT(tmp != PURC_VARIANT_INVALID);
-    bool ok;
-    ok = purc_variant_object_set(tmp, kn, vn);
-    PC_ASSERT(ok);
-
-    struct set_node *p;
-    p = find_element(set, tmp);
-    PURC_VARIANT_SAFE_CLEAR(tmp);
-    if (p && p->val != source)
-        return false;
-
-    return true;
-}
-
-static bool
-variant_set_constraints_handler(
-        purc_variant_t source,  // the source variant.
-        pcvar_op_t op,          // the operation identifier.
-        void *ctxt,             // the context stored when registering the handler.
-        size_t nr_args,         // the number of the relevant child variants.
-        purc_variant_t *argv    // the array of all relevant child variants.
-        )
-{
-    switch (op) {
-        case PCVAR_OPERATION_GROW:
-            return variant_set_constraint_grow_handler(source, ctxt,
-                    nr_args, argv);
-        case PCVAR_OPERATION_SHRINK:
-            return variant_set_constraint_shrink_handler(source, ctxt,
-                    nr_args, argv);
-        case PCVAR_OPERATION_CHANGE:
-            return variant_set_constraint_change_handler(source, ctxt,
-                    nr_args, argv);
-        default:
-            PC_ASSERT(0);
-            return false;
-    }
-}
-
 static int
 build_rev_update_chain(purc_variant_t set, struct set_node *node)
 {
@@ -587,12 +445,6 @@ elem_node_setup_constraints(purc_variant_t set, struct set_node *node)
     int r;
     r = build_rev_update_chain(set, node);
     if (r)
-        return false;
-
-    node->constraints = purc_variant_register_pre_listener(node->val,
-            PCVAR_OPERATION_ALL, variant_set_constraints_handler, set);
-
-    if (node->constraints == NULL)
         return false;
 
     return true;
@@ -657,20 +509,24 @@ elem_node_destroy(purc_variant_t set, struct set_node *node)
 
 static int
 elem_node_replace(purc_variant_t set, struct set_node *node,
-        purc_variant_t val)
+        purc_variant_t val, bool check)
 {
     PC_ASSERT(node->val != PURC_VARIANT_INVALID);
 
     purc_variant_ref(val);
 
-    elem_node_revoke_constraints(set, node);
+    if (check) {
+        elem_node_revoke_constraints(set, node);
+    }
 
     PURC_VARIANT_SAFE_CLEAR(node->val);
 
     node->val = val;
 
-    if (!elem_node_setup_constraints(set, node))
-        return -1;
+    if (check) {
+        if (!elem_node_setup_constraints(set, node))
+            return -1;
+    }
 
     return 0;
 }
@@ -717,8 +573,7 @@ variant_set_create_kvs_n(variant_set_t set, purc_variant_t v1, va_list ap)
     PC_ASSERT(v1 != PURC_VARIANT_INVALID);
 
     purc_variant_t kvs;
-    kvs = purc_variant_make_object(0,
-            PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+    kvs = pcvar_make_obj();
     if (kvs == PURC_VARIANT_INVALID)
         return PURC_VARIANT_INVALID;
 
@@ -736,12 +591,6 @@ variant_set_create_kvs_n(variant_set_t set, purc_variant_t v1, va_list ap)
         }
         if (purc_variant_is_undefined(v))
             continue;
-
-#if PURC_SET_CONSTRAINT_WITH_CLONE == 1
-        if (pcvar_container_belongs_to_set(v)) {
-            PC_ASSERT(0);
-        }
-#endif
 
         const char *sk = set->keynames[i];
         bool ok;
@@ -784,7 +633,7 @@ check_shrink(purc_variant_t set, struct set_node *node)
     if (_new == PURC_VARIANT_INVALID)
         return -1;
 
-    bool ok = true;
+    int r = 0;
     do {
         bool found = false;
         purc_variant_t v;
@@ -794,22 +643,18 @@ check_shrink(purc_variant_t set, struct set_node *node)
                 found = true;
                 continue;
             }
-            bool overwrite = false;
-            ok = purc_variant_set_add(_new, v, overwrite);
-            if (!ok)
+            r = pcvar_set_add(_new, v);
+            if (r)
                 break;
         } end_foreach;
 
-        if (!ok)
+        if (r)
             break;
 
         if (!found)
             break;
 
-        PRINT_VARIANT(set);
-        PRINT_VARIANT(_new);
-
-        int r = pcvar_reverse_check(set, _new);
+        r = pcvar_reverse_check(set, _new);
         if (r)
             break;
 
@@ -827,18 +672,23 @@ set_remove(purc_variant_t set, struct set_node *node,
         bool check)
 {
     do {
-        if (!shrink(set, node->val, check))
-            break;
+        if (check) {
+            if (!shrink(set, node->val, check))
+                break;
 
-        if (check_shrink(set, node))
-            break;
+            if (check_shrink(set, node))
+                break;
 
-        elem_node_revoke_constraints(set, node);
+            elem_node_revoke_constraints(set, node);
+        }
+
         elem_node_remove(set, node);
 
-        pcvar_adjust_set_by_descendant(set);
+        if (check) {
+            pcvar_adjust_set_by_descendant(set);
 
-        shrunk(set, node->val, check);
+            shrunk(set, node->val, check);
+        }
 
         elem_node_destroy(set, node);
 
@@ -858,27 +708,23 @@ check_grow(purc_variant_t set, purc_variant_t val)
     if (_new == PURC_VARIANT_INVALID)
         return -1;
 
-    bool ok = true;
+    int r = 0;
     do {
-        bool overwrite = false;
         purc_variant_t v;
         foreach_value_in_variant_set(set, v) {
-            ok = purc_variant_set_add(_new, v, overwrite);
-            if (!ok)
+            r = pcvar_set_add(_new, v);
+            if (r)
                 break;
         } end_foreach;
 
-        if (!ok)
+        if (r)
             break;
 
-        ok = purc_variant_set_add(_new, val, overwrite);
-        if (!ok)
+        r = pcvar_set_add(_new, val);
+        if (r)
             break;
 
-        PRINT_VARIANT(set);
-        PRINT_VARIANT(_new);
-
-        int r = pcvar_reverse_check(set, _new);
+        r = pcvar_reverse_check(set, _new);
         if (r)
             break;
 
@@ -900,11 +746,13 @@ insert(purc_variant_t set, variant_set_t data,
     struct set_node *node = NULL;
 
     do {
-        if (!grow(set, val, check))
-            break;
+        if (check) {
+            if (!grow(set, val, check))
+                break;
 
-        if (check_grow(set, val))
-            break;
+            if (check_grow(set, val))
+                break;
+        }
 
         node = variant_set_create_elem_node(set, val);
         if (!node)
@@ -923,12 +771,14 @@ insert(purc_variant_t set, variant_set_t data,
         pcutils_rbtree_link_node(entry, parent, pnode);
         pcutils_rbtree_insert_color(entry, &data->elems);
 
-        if (!elem_node_setup_constraints(set, node))
-            break;
+        if (check) {
+            if (!elem_node_setup_constraints(set, node))
+                break;
 
-        pcvar_adjust_set_by_descendant(set);
+            pcvar_adjust_set_by_descendant(set);
 
-        grown(set, node->val, check);
+            grown(set, node->val, check);
+        }
 
         return 0;
     } while (0);
@@ -938,129 +788,22 @@ insert(purc_variant_t set, variant_set_t data,
     return -1;
 }
 
-static purc_variant_t
-variant_set_union(variant_set_t data, purc_variant_t old, purc_variant_t _new)
+int
+pcvar_set_add(purc_variant_t set, purc_variant_t val)
 {
-    UNUSED_PARAM(data);
-    // FIXME: performance, performance, performance!!!
-    purc_variant_t output;
-    output = purc_variant_make_object(0,
-            PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
-    if (output == PURC_VARIANT_INVALID)
-        return PURC_VARIANT_INVALID;
-
-    purc_variant_t k, v;
-    foreach_key_value_in_variant_object(_new, k, v) {
-        PC_ASSERT(purc_variant_is_undefined(v) == false);
-        bool ok;
-        ok = purc_variant_object_set(output, k, v);
-        if (!ok) {
-            purc_variant_unref(output);
-            return PURC_VARIANT_INVALID;
-        }
-    } end_foreach;
-
-    foreach_key_value_in_variant_object(old, k, v) {
-        PC_ASSERT(purc_variant_is_undefined(v) == false);
-        bool silently = true;
-        purc_variant_t t = purc_variant_object_get(output, k, silently);
-        if (t != PURC_VARIANT_INVALID)
-            continue;
-
-        bool ok;
-        ok = purc_variant_object_set(output, k, v);
-        if (!ok) {
-            purc_variant_unref(output);
-            return PURC_VARIANT_INVALID;
-        }
-    } end_foreach;
-
-    return output;
-}
-
-static bool
-is_keyname(variant_set_t data, const char *s)
-{
-    for (size_t i=0; i<data->nr_keynames; ++i) {
-        const char *sk = data->keynames[i];
-        if (strcmp(sk, s) == 0)
-            return true;
-    }
-
-    return false;
-}
-
-static purc_variant_t
-prepare_variant(purc_variant_t set, purc_variant_t val)
-{
-#if PURC_SET_CONSTRAINT_WITH_CLONE == 1
-    if (pcvar_container_belongs_to_set(val))
-        return purc_variant_ref(val);
-#else
-    return purc_variant_ref(val);
-#endif
     variant_set_t data = pcvar_set_get_data(set);
     PC_ASSERT(data);
 
-    purc_variant_t obj;
-    obj = purc_variant_make_object(0,
-            PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
-    if ( obj == PURC_VARIANT_INVALID)
-        return PURC_VARIANT_INVALID;
+    struct element_rb_node rbn;
+    find_element_rb_node(&rbn, set, val);
 
-    int generic = data->keynames ? 0 : 1;
-    size_t nr_cloned_kvs = 0;
+    if (rbn.entry) {
+        purc_set_error(PURC_ERROR_DUPLICATED);
+        return -1;
+    }
 
-    purc_variant_t k, v;
-    foreach_key_value_in_variant_object(val, k, v) {
-        purc_variant_t cloned = purc_variant_ref(v);
-
-        if (generic) {
-            PURC_VARIANT_SAFE_CLEAR(cloned);
-            cloned = purc_variant_container_clone_recursively(v);
-            if (cloned == PURC_VARIANT_INVALID) {
-                purc_variant_unref(obj);
-                return PURC_VARIANT_INVALID;
-            }
-        }
-        else if (nr_cloned_kvs < data->nr_keynames) {
-            const char *sk = purc_variant_get_string_const(k);
-            if (is_keyname(data, sk)) {
-                PURC_VARIANT_SAFE_CLEAR(cloned);
-                cloned = purc_variant_container_clone_recursively(v);
-                if (cloned == PURC_VARIANT_INVALID) {
-                    purc_variant_unref(obj);
-                    return PURC_VARIANT_INVALID;
-                }
-                ++nr_cloned_kvs;
-            }
-            else {
-                PURC_VARIANT_SAFE_CLEAR(cloned);
-                cloned = purc_variant_container_clone_recursively(v);
-                if (cloned == PURC_VARIANT_INVALID) {
-                    purc_variant_unref(obj);
-                    return PURC_VARIANT_INVALID;
-                }
-            }
-        }
-        else {
-            PURC_VARIANT_SAFE_CLEAR(cloned);
-            cloned = purc_variant_container_clone_recursively(v);
-            if (cloned == PURC_VARIANT_INVALID) {
-                purc_variant_unref(obj);
-                return PURC_VARIANT_INVALID;
-            }
-        }
-
-        bool ok = purc_variant_object_set(obj, k, cloned);;
-        purc_variant_unref(cloned);
-        if (!ok) {
-            purc_variant_unref(obj);
-            return PURC_VARIANT_INVALID;
-        }
-    } end_foreach;
-
-    return obj;
+    bool check = false;
+    return insert(set, data, val, rbn.parent, rbn.pnode, check);
 }
 
 static int
@@ -1073,34 +816,30 @@ check_change(purc_variant_t set, struct set_node *node, purc_variant_t val)
     if (_new == PURC_VARIANT_INVALID)
         return -1;
 
-    bool ok = true;
+    int r = 0;
     do {
         bool found = false;
         purc_variant_t v;
         foreach_value_in_variant_set(set, v) {
-            bool overwrite = false;
             if (node->val == v) {
                 PC_ASSERT(!found);
                 found = true;
-                ok = purc_variant_set_add(_new, val, overwrite);
+                r = pcvar_set_add(_new, val);
             }
             else {
-                ok = purc_variant_set_add(_new, v, overwrite);
+                r = pcvar_set_add(_new, v);
             }
-            if (!ok)
+            if (r)
                 break;
         } end_foreach;
 
-        if (!ok)
+        if (r)
             break;
 
         if (!found)
             break;
 
-        PRINT_VARIANT(set);
-        PRINT_VARIANT(_new);
-
-        int r = pcvar_reverse_check(set, _new);
+        r = pcvar_reverse_check(set, _new);
         if (r)
             break;
 
@@ -1122,13 +861,7 @@ insert_or_replace(purc_variant_t set,
     find_element_rb_node(&rbn, set, val);
 
     if (!rbn.entry) {
-        purc_variant_t cloned;
-        cloned = prepare_variant(set, val);
-        if (cloned == PURC_VARIANT_INVALID)
-            return -1;
-
-        int r = insert(set, data, cloned, rbn.parent, rbn.pnode, check);
-        purc_variant_unref(cloned);
+        int r = insert(set, data, val, rbn.parent, rbn.pnode, check);
 
         return r ? -1 : 0;
     }
@@ -1144,36 +877,26 @@ insert_or_replace(purc_variant_t set,
     if (curr->val == val)
         return 0;
 
-    purc_variant_t cloned = prepare_variant(set, val);
-    if (cloned == PURC_VARIANT_INVALID)
-        return -1;
-
-    purc_variant_t tmp = variant_set_union(data, curr->val, val);
-    PURC_VARIANT_SAFE_CLEAR(cloned);
-
     do {
-        if (tmp == PURC_VARIANT_INVALID)
+        if (check) {
+            if (!change(set, curr->val, val, check))
+                break;
+
+            if (check_change(set, curr, val))
+                break;
+        }
+
+        if (elem_node_replace(set, curr, val, check))
             break;
 
-        if (!change(set, curr->val, tmp, check))
-            break;
+        if (check) {
+            pcvar_adjust_set_by_descendant(set);
 
-        if (check_change(set, curr, tmp))
-            break;
-
-        if (elem_node_replace(set, curr, tmp))
-            break;
-
-        pcvar_adjust_set_by_descendant(set);
-
-        changed(set, curr->val, tmp, check);
-
-        PURC_VARIANT_SAFE_CLEAR(tmp);
+            changed(set, curr->val, val, check);
+        }
 
         return 0;
     } while (0);
-
-    PURC_VARIANT_SAFE_CLEAR(tmp);
 
     return -1;
 }
@@ -1192,12 +915,6 @@ variant_set_add_val(purc_variant_t set,
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         return -1;
     }
-
-#if PURC_SET_CONSTRAINT_WITH_CLONE == 1
-    if (pcvar_container_belongs_to_set(val)) {
-        PC_ASSERT(0);
-    }
-#endif
 
     if (insert_or_replace(set, data, val, overwrite, check))
         return -1;
@@ -1227,8 +944,7 @@ variant_set_add_valsn(purc_variant_t set, variant_set_t data, bool overwrite,
 }
 
 static purc_variant_t
-make_set_c(bool check, size_t sz, const char *unique_key,
-    purc_variant_t value0, va_list ap)
+make_set_0(const char *unique_key)
 {
     purc_variant_t set = pcv_set_new();
     if (set==PURC_VARIANT_INVALID) {
@@ -1239,6 +955,29 @@ make_set_c(bool check, size_t sz, const char *unique_key,
         variant_set_t data = pcvar_set_get_data(set);
         if (variant_set_init(data, unique_key))
             break;
+
+        size_t extra = variant_set_get_extra_size(data);
+        pcvariant_stat_set_extra_size(set, extra);
+        return set;
+    } while (0);
+
+    // cleanup
+    purc_variant_unref(set);
+
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+make_set_c(bool check, size_t sz, const char *unique_key,
+    purc_variant_t value0, va_list ap)
+{
+    purc_variant_t set = make_set_0(unique_key);
+    if (set==PURC_VARIANT_INVALID) {
+        return PURC_VARIANT_INVALID;
+    }
+
+    do {
+        variant_set_t data = pcvar_set_get_data(set);
 
         if (sz>0) {
             purc_variant_t  v = value0;
@@ -1824,14 +1563,8 @@ pcvariant_set_clone(purc_variant_t set, bool recursively)
     // NOTE: keep document-order
     foreach_value_in_variant_set(set, v) {
         purc_variant_t val;
-#if PURC_SET_CONSTRAINT_WITH_CLONE == 1
-        PC_ASSERT(pcvar_container_belongs_to_set(v));
-#endif
         if (recursively) {
             val = pcvariant_container_clone(v, recursively);
-#if PURC_SET_CONSTRAINT_WITH_CLONE == 1
-            PC_ASSERT(pcvar_container_belongs_to_set(val) == false);
-#endif
         }
         else {
             val = purc_variant_ref(v);
@@ -1866,7 +1599,7 @@ pcvar_set_break_edge_to_parent(purc_variant_t set,
     if (!data->rev_update_chain)
         return;
 
-    pcutils_map_erase(data->rev_update_chain, edge);
+    pcutils_map_erase(data->rev_update_chain, edge->set_me);
 }
 
 int
@@ -1884,12 +1617,14 @@ pcvar_set_build_edge_to_parent(purc_variant_t set,
             return -1;
     }
 
-    pcutils_map_entry *entry = pcutils_map_find(data->rev_update_chain, edge);
+    pcutils_map_entry *entry;
+    entry = pcutils_map_find(data->rev_update_chain, edge->set_me);
     if (entry)
         return 0;
 
     int r;
-    r = pcutils_map_insert(data->rev_update_chain, edge, edge);
+    r = pcutils_map_insert(data->rev_update_chain,
+            edge->set_me, edge->parent);
 
     return r ? -1 : 0;
 }
@@ -2209,6 +1944,41 @@ pcvar_set_clone_struct(purc_variant_t set)
     return var;
 }
 
+purc_variant_t
+pcvar_make_set(variant_set_t data)
+{
+    int r;
+    struct pcutils_string str;
+    pcutils_string_init(&str, 32);
+    if (data->keynames) {
+        r = 0;
+        for (size_t i=0; i<data->nr_keynames; ++i) {
+            if (i) {
+                r = pcutils_string_append_chunk(&str, " ");
+                if (r) {
+                    purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+                    break;
+                }
+            }
+            r = pcutils_string_append_chunk(&str, data->keynames[i]);
+            if (r) {
+                purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+                break;
+            }
+        }
+        if (r) {
+            pcutils_string_reset(&str);
+            return PURC_VARIANT_INVALID;
+        }
+    }
+
+    purc_variant_t var;
+    var = make_set_0(str.abuf);
+    pcutils_string_reset(&str);
+
+    return var;
+}
+
 void
 pcvar_adjust_set_by_edge(purc_variant_t set,
         struct pcvar_rev_update_edge *edge)
@@ -2219,37 +1989,5 @@ pcvar_adjust_set_by_edge(purc_variant_t set,
     PC_ASSERT(set == edge->parent);
 
     PC_ASSERT(0);
-}
-
-void
-pcvar_adjust_set_by_descendant(purc_variant_t val)
-{
-    UNUSED_PARAM(val);
-    PC_ASSERT(0);
-#if 0              /* { */
-    struct pcvar_rev_update_edge *top;
-    top = pcvar_container_get_top_edge(val);
-    if (!top)
-        return;
-
-    purc_variant_t set = top->parent;
-    PC_ASSERT(set != PURC_VARIANT_INVALID);
-    PC_ASSERT(purc_variant_is_set(set));
-
-    variant_set_t data = pcvar_set_get_data(set);
-    PC_ASSERT(data);
-
-    struct set_node *node = top->set_me;
-    pcutils_rbtree_erase(&node->node, &data->elems);
-
-    struct element_rb_node rbn;
-    find_element_rb_node(&rbn, set, node->val);
-    PC_ASSERT(rbn.entry == NULL);
-
-    struct rb_node *entry = &node->node;
-
-    pcutils_rbtree_link_node(entry, rbn.parent, rbn.pnode);
-    pcutils_rbtree_insert_color(entry, &data->elems);
-#endif             /* } */
 }
 
