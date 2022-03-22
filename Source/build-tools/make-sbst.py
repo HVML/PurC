@@ -218,4 +218,25 @@ def entities_bst_print(bst):
 
 
 if __name__ == "__main__":
-    entities_bst("sbst.json");
+
+    if len(sys.argv) < 2:
+        raise Exception('expecting output_dir input.json')
+
+    first_arg = True
+    second_arg = False
+    for parameter in sys.argv:
+        if first_arg:
+            first_arg = False
+            second_arg = True
+            continue
+        if second_arg:
+            base_dir = parameter
+            second_arg = False
+            continue
+
+        fname = os.path.splitext(parameter)[0]
+        dst_file = '%s/%s_sbst.inc' % (base_dir, fname)
+        with open(dst_file, "w+") as output_file:
+            output_file.write(entities_bst(parameter))
+
+    print("Done.")
