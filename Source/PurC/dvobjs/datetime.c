@@ -158,12 +158,14 @@ static char *set_tz(const char *timezone)
         if (env)
             tz_old = strdup(env);
 
-        /* change timezone temporarily. */
-        char new_timezone[strlen(timezone) + 1];
-        strcpy(new_timezone, ":");
-        strcat(new_timezone, timezone);
-        setenv("TZ", new_timezone, 1);
-        tzset();
+        if (env == NULL || strcmp(env, timezone)) {
+            /* change timezone temporarily. */
+            char new_timezone[strlen(timezone) + 1];
+            strcpy(new_timezone, ":");
+            strcat(new_timezone, timezone);
+            setenv("TZ", new_timezone, 1);
+            tzset();
+        }
     }
 
     return tz_old;
@@ -172,10 +174,12 @@ static char *set_tz(const char *timezone)
 static void unset_tz(char *tz_old)
 {
     if (tz_old) {
-        // restore timezone.
-        setenv("TZ", tz_old, 1);
+        if (strcmp(getenv("TZ"), tz_old)) {
+            // restore old timezone.
+            setenv("TZ", tz_old, 1);
+            tzset();
+        }
         free(tz_old);
-        tzset();
     }
 }
 
@@ -613,7 +617,7 @@ time_prt_getter(purc_variant_t root,
                     goto failed;
                 }
 
-                if (isinf(time_d) || isnan(time_d) || time_d < 0.0L) {
+                if (isinf(time_d) || isnan(time_d)) {
                     purc_set_error(PURC_ERROR_INVALID_VALUE);
                     goto failed;
                 }
@@ -862,7 +866,7 @@ utctime_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             goto failed;
         }
 
-        if (isinf(time_d) || isnan(time_d) || time_d < 0.0L) {
+        if (isinf(time_d) || isnan(time_d)) {
             purc_set_error(PURC_ERROR_INVALID_VALUE);
             goto failed;
         }
@@ -901,7 +905,7 @@ localtime_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             goto failed;
         }
 
-        if (isinf(time_d) || isnan(time_d) || time_d < 0.0L) {
+        if (isinf(time_d) || isnan(time_d)) {
             purc_set_error(PURC_ERROR_INVALID_VALUE);
             goto failed;
         }
@@ -965,7 +969,7 @@ fmttime_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             goto failed;
         }
 
-        if (isinf(time_d) || isnan(time_d) || time_d < 0.0L) {
+        if (isinf(time_d) || isnan(time_d)) {
             purc_set_error(PURC_ERROR_INVALID_VALUE);
             goto failed;
         }
@@ -973,26 +977,20 @@ fmttime_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         usec_d = modfl(time_d, &sec_d);
         tv.tv_sec = (time_t)sec_d;
         tv.tv_usec = (suseconds_t)(usec_d * 1000000.0);
-#if 0
-        if (tv.tv_usec < 0 || tv.tv_usec > 999999) {
-            purc_set_error(PURC_ERROR_INVALID_VALUE);
+    }
+
+    if (nr_args > 2) {
+        const char *tz = NULL;
+        if ((tz = purc_variant_get_string_const(argv[2])) == NULL) {
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
             goto failed;
         }
-#endif
 
-        if (nr_args > 2) {
-            const char *tz = NULL;
-            if ((tz = purc_variant_get_string_const(argv[2])) == NULL) {
-                purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-                goto failed;
-            }
-
-            if (!pcdvobjs_is_valid_timezone(tz)) {
-                goto failed;
-            }
-
-            timezone = tz;
+        if (!pcdvobjs_is_valid_timezone(tz)) {
+            goto failed;
         }
+
+        timezone = tz;
     }
 
     return format_time(timeformat, &tv, timezone);
@@ -1022,7 +1020,6 @@ get_broken_down_time(purc_variant_t bdtime, struct tm *tm, suseconds_t *usec)
     if ((timezone = purc_variant_get_string_const(val)) == NULL) {
         goto failed;
     }
-
     if (!pcdvobjs_is_valid_timezone(timezone)) {
         goto failed;
     }
@@ -1130,12 +1127,10 @@ get_broken_down_time(purc_variant_t bdtime, struct tm *tm, suseconds_t *usec)
     if (number < 0)
         tm->tm_isdst = -1;
 
-    {
-        char *tz_old = set_tz(timezone);
-        time_t t = mktime(tm);
-        localtime_r(&t, tm);
-        unset_tz(tz_old);
-    }
+    char *tz_old = set_tz(timezone);
+    time_t t = mktime(tm);
+    localtime_r(&t, tm);
+    unset_tz(tz_old);
 
     return timezone;
 
@@ -1171,8 +1166,10 @@ fmtbdtime_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         get_local_broken_down_time(&tm, tv.tv_sec, NULL);
         usec = tv.tv_usec;
     }
-    else if ((timezone = get_broken_down_time(argv[1], &tm, &usec)) == NULL) {
-        goto failed;
+    else {
+        if ((timezone = get_broken_down_time(argv[1], &tm, &usec)) == NULL) {
+            goto failed;
+        }
 
         if (!pcdvobjs_is_valid_timezone(timezone)) {
             goto failed;
