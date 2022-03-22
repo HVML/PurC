@@ -180,7 +180,7 @@ static const pcutils_sbst_entry_static_t ejson_keywords_sbst[] =
     {0x66, NULL, 0, 0, 0, 19},
     {0x72, NULL, 0, 0, 0, 6},
     {0x75, NULL, 0, 0, 0, 7},
-    {0x65, (char*)"\\x74\\x72\\x75\\x65", 4, 0, 0, 0},
+    {0x65, (char*)"\x74\x72\x75\x65", 4, 0, 0, 0},
     {0x6e, NULL, 0, 0, 0, 9},
     {0x64, NULL, 0, 0, 0, 10},
     {0x65, NULL, 0, 0, 0, 11},
@@ -188,14 +188,14 @@ static const pcutils_sbst_entry_static_t ejson_keywords_sbst[] =
     {0x69, NULL, 0, 0, 0, 13},
     {0x6e, NULL, 0, 0, 0, 14},
     {0x65, NULL, 0, 0, 0, 15},
-    {0x64, (char*)"\\x75\\x6e\\x64\\x65\\x66\\x69\\x6e\\x65\\x64", 9, 0, 0, 0},
+    {0x64, (char*)"\x75\x6e\x64\x65\x66\x69\x6e\x65\x64", 9, 0, 0, 0},
     {0x75, NULL, 0, 0, 0, 17},
     {0x6c, NULL, 0, 0, 0, 18},
-    {0x6c, (char*)"\\x6e\\x75\\x6c\\x6c", 4, 0, 0, 0},
+    {0x6c, (char*)"\x6e\x75\x6c\x6c", 4, 0, 0, 0},
     {0x61, NULL, 0, 0, 0, 20},
     {0x6c, NULL, 0, 0, 0, 21},
     {0x73, NULL, 0, 0, 0, 22},
-    {0x65, (char*)"\\x66\\x61\\x6c\\x73\\x65", 5, 0, 0, 0}
+    {0x65, (char*)"\x66\x61\x6c\x73\x65", 5, 0, 0, 0}
 };
 
 struct pchvml_sbst* pchvml_sbst_new_ejson_keywords(void)

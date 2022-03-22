@@ -2960,107 +2960,26 @@ BEGIN_STATE(HVML_EJSON_KEYWORD_STATE)
         }
         RECONSUME_IN(HVML_EJSON_CONTROL_STATE);
     }
-    if (character == 't') {
-        if (pchvml_buffer_is_empty(parser->temp_buffer)) {
-            APPEND_TO_TEMP_BUFFER(character);
-            ADVANCE_TO(HVML_EJSON_KEYWORD_STATE);
-        }
-        SET_ERR(PCHVML_ERROR_UNEXPECTED_JSON_KEYWORD);
+    if (parser->sbst == NULL) {
+        parser->sbst = pchvml_sbst_new_ejson_keywords();
+    }
+    bool ret = pchvml_sbst_advance_ex(parser->sbst, character, true);
+    if (!ret) {
+        SET_ERR(PCHVML_ERROR_INVALID_CHARACTER_SEQUENCE_AFTER_DOCTYPE_NAME);
+        pchvml_sbst_destroy(parser->sbst);
+        parser->sbst = NULL;
         RETURN_AND_STOP_PARSE();
     }
-    if (character == 'f') {
-        if (pchvml_buffer_is_empty(parser->temp_buffer)
-           || pchvml_buffer_equal_to(parser->temp_buffer, "unde", 4)
-                ) {
-            APPEND_TO_TEMP_BUFFER(character);
-            ADVANCE_TO(HVML_EJSON_KEYWORD_STATE);
-        }
-        SET_ERR(PCHVML_ERROR_UNEXPECTED_JSON_KEYWORD);
-        RETURN_AND_STOP_PARSE();
+
+    const char* value = pchvml_sbst_get_match(parser->sbst);
+    if (value == NULL) {
+        ADVANCE_TO(HVML_EJSON_KEYWORD_STATE);
     }
-    if (character == 'n') {
-        if (pchvml_buffer_is_empty(parser->temp_buffer)
-           || pchvml_buffer_equal_to(parser->temp_buffer, "u", 1)
-           || pchvml_buffer_equal_to(parser->temp_buffer, "undefi", 6)
-           ) {
-            APPEND_TO_TEMP_BUFFER(character);
-            ADVANCE_TO(HVML_EJSON_KEYWORD_STATE);
-        }
-        SET_ERR(PCHVML_ERROR_UNEXPECTED_JSON_KEYWORD);
-        RETURN_AND_STOP_PARSE();
-    }
-    if (character == 'u') {
-        if (pchvml_buffer_is_empty(parser->temp_buffer)
-           || pchvml_buffer_equal_to(parser->temp_buffer, "tr", 2)
-           || pchvml_buffer_equal_to(parser->temp_buffer, "n", 1)) {
-            APPEND_TO_TEMP_BUFFER(character);
-            ADVANCE_TO(HVML_EJSON_KEYWORD_STATE);
-        }
-        SET_ERR(PCHVML_ERROR_UNEXPECTED_JSON_KEYWORD);
-        RETURN_AND_STOP_PARSE();
-    }
-    if (character == 'd') {
-        if (pchvml_buffer_equal_to(parser->temp_buffer, "un", 2)
-           || pchvml_buffer_equal_to(parser->temp_buffer, "undefine", 8)) {
-            APPEND_TO_TEMP_BUFFER(character);
-            ADVANCE_TO(HVML_EJSON_KEYWORD_STATE);
-        }
-        SET_ERR(PCHVML_ERROR_UNEXPECTED_JSON_KEYWORD);
-        RETURN_AND_STOP_PARSE();
-    }
-    if (character == 'i') {
-        if (pchvml_buffer_equal_to(parser->temp_buffer, "undef", 5)) {
-            APPEND_TO_TEMP_BUFFER(character);
-            ADVANCE_TO(HVML_EJSON_KEYWORD_STATE);
-        }
-        SET_ERR(PCHVML_ERROR_UNEXPECTED_JSON_KEYWORD);
-        RETURN_AND_STOP_PARSE();
-    }
-    if (character == 'r') {
-        if (pchvml_buffer_equal_to(parser->temp_buffer, "t", 1)) {
-            APPEND_TO_TEMP_BUFFER(character);
-            ADVANCE_TO(HVML_EJSON_KEYWORD_STATE);
-        }
-        SET_ERR(PCHVML_ERROR_UNEXPECTED_JSON_KEYWORD);
-        RETURN_AND_STOP_PARSE();
-    }
-    if (character == 'e') {
-        if (pchvml_buffer_equal_to(parser->temp_buffer, "tru", 3)
-           || pchvml_buffer_equal_to(parser->temp_buffer, "fals", 4)
-           || pchvml_buffer_equal_to(parser->temp_buffer, "und", 3)
-           || pchvml_buffer_equal_to(parser->temp_buffer, "undefin", 7)
-           ) {
-            APPEND_TO_TEMP_BUFFER(character);
-            ADVANCE_TO(HVML_EJSON_KEYWORD_STATE);
-        }
-        SET_ERR(PCHVML_ERROR_UNEXPECTED_JSON_KEYWORD);
-        RETURN_AND_STOP_PARSE();
-    }
-    if (character == 'a') {
-        if (pchvml_buffer_equal_to(parser->temp_buffer, "f", 1)) {
-            APPEND_TO_TEMP_BUFFER(character);
-            ADVANCE_TO(HVML_EJSON_KEYWORD_STATE);
-        }
-        SET_ERR(PCHVML_ERROR_UNEXPECTED_JSON_KEYWORD);
-        RETURN_AND_STOP_PARSE();
-    }
-    if (character == 'l') {
-        if (pchvml_buffer_equal_to(parser->temp_buffer, "nu", 2)
-         || pchvml_buffer_equal_to(parser->temp_buffer, "nul", 3)
-         || pchvml_buffer_equal_to(parser->temp_buffer, "fa", 2)) {
-            APPEND_TO_TEMP_BUFFER(character);
-            ADVANCE_TO(HVML_EJSON_KEYWORD_STATE);
-        }
-        SET_ERR(PCHVML_ERROR_UNEXPECTED_JSON_KEYWORD);
-        RETURN_AND_STOP_PARSE();
-    }
-    if (character == 's') {
-        if (pchvml_buffer_equal_to(parser->temp_buffer, "fal", 3)) {
-            APPEND_TO_TEMP_BUFFER(character);
-            ADVANCE_TO(HVML_EJSON_KEYWORD_STATE);
-        }
-        SET_ERR(PCHVML_ERROR_UNEXPECTED_JSON_KEYWORD);
-        RETURN_AND_STOP_PARSE();
+    else {
+        APPEND_BYTES_TO_TEMP_BUFFER(value, strlen(value));
+        pchvml_sbst_destroy(parser->sbst);
+        parser->sbst = NULL;
+        ADVANCE_TO(HVML_EJSON_AFTER_KEYWORD_STATE);
     }
     SET_ERR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
     RETURN_AND_STOP_PARSE();
