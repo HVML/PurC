@@ -34,7 +34,7 @@ def entities_bst(json_filename, name):
     index = entities_bst_load(json_filename)
     bst = entities_bst_create(index);
     result = entities_bst_result(name, bst)
-    return ''.join(result)
+    return ''.join(result).replace('\\\\x', '\\x')
 
 def entities_bst_load(json_filename):
     jdata = json.load(open(json_filename))
@@ -155,7 +155,7 @@ def toHex(s):
     lst = []
 
     for ch in bytes(s, 'utf-8'):
-        hv = hex(ch).replace('0x', '\\\\x')
+        hv = hex(ch).replace('0x', '\\\\x')    # python 3.8
         lst.append(hv)
 
     return ''.join(lst)
