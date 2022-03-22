@@ -56,7 +56,6 @@ struct pchvml_sbst {
     struct pcutils_arrlist* ucs;
 };
 
-static
 struct pchvml_sbst* pchvml_sbst_new(const pcutils_sbst_entry_static_t* strt)
 {
     struct pchvml_sbst* sbst = (struct pchvml_sbst*)
