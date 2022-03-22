@@ -39,6 +39,8 @@
 
 #pragma once
 
+ALLOW_DEPRECATED_DECLARATIONS_BEGIN
+
 #include <functional>
 #include <limits.h>
 #include <new>
@@ -2079,3 +2081,5 @@ using WTF::Variant;
 #if COMPILER(MSVC)
 #pragma warning(pop)
 #endif
+
+ALLOW_DEPRECATED_DECLARATIONS_END
