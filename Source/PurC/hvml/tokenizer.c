@@ -2965,7 +2965,7 @@ BEGIN_STATE(HVML_EJSON_KEYWORD_STATE)
     }
     bool ret = pchvml_sbst_advance_ex(parser->sbst, character, true);
     if (!ret) {
-        SET_ERR(PCHVML_ERROR_INVALID_CHARACTER_SEQUENCE_AFTER_DOCTYPE_NAME);
+        SET_ERR(PCHVML_ERROR_UNEXPECTED_JSON_KEYWORD);
         pchvml_sbst_destroy(parser->sbst);
         parser->sbst = NULL;
         RETURN_AND_STOP_PARSE();
