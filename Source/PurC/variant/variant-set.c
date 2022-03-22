@@ -559,6 +559,11 @@ variant_set_release(purc_variant_t set, variant_set_t data)
 {
     variant_set_release_elems(set, data);
 
+    if (data->rev_update_chain) {
+        pcvar_destroy_rev_update_chain(data->rev_update_chain);
+        data->rev_update_chain = NULL;
+    }
+
     free(data->keynames);
     data->keynames = NULL;
     data->nr_keynames = 0;
