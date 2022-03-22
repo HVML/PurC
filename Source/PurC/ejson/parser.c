@@ -30,6 +30,7 @@
 #include "private/debug.h"
 #include "private/utils.h"
 #include "private/stack.h"
+#include "hvml/hvml-sbst.h"
 
 #include <math.h>
 
@@ -885,6 +886,7 @@ struct pcejson {
     struct pcvcm_node* vcm_node;
     struct pcvcm_stack* vcm_stack;
     struct pcutils_stack* ejson_stack;
+    struct pchvml_sbst* sbst;
     uint32_t prev_separator;
     uint32_t nr_quoted;
     bool enable_log;
@@ -1981,107 +1983,26 @@ BEGIN_STATE(EJSON_KEYWORD_STATE)
         }
         RECONSUME_IN(EJSON_CONTROL_STATE);
     }
-    if (character == 't') {
-        if (uc_buffer_is_empty(parser->temp_buffer)) {
-            APPEND_TO_TEMP_BUFFER(character);
-            ADVANCE_TO(EJSON_KEYWORD_STATE);
-        }
+    if (parser->sbst == NULL) {
+        parser->sbst = pchvml_sbst_new_ejson_keywords();
+    }
+    bool ret = pchvml_sbst_advance_ex(parser->sbst, character, true);
+    if (!ret) {
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_JSON_KEYWORD);
+        pchvml_sbst_destroy(parser->sbst);
+        parser->sbst = NULL;
         RETURN_AND_STOP_PARSE();
     }
-    if (character == 'f') {
-        if (uc_buffer_is_empty(parser->temp_buffer)
-           || uc_buffer_equal_to(parser->temp_buffer, "unde", 4)
-                ) {
-            APPEND_TO_TEMP_BUFFER(character);
-            ADVANCE_TO(EJSON_KEYWORD_STATE);
-        }
-        SET_ERR(PCEJSON_ERROR_UNEXPECTED_JSON_KEYWORD);
-        RETURN_AND_STOP_PARSE();
+
+    const char* value = pchvml_sbst_get_match(parser->sbst);
+    if (value == NULL) {
+        ADVANCE_TO(EJSON_KEYWORD_STATE);
     }
-    if (character == 'n') {
-        if (uc_buffer_is_empty(parser->temp_buffer)
-           || uc_buffer_equal_to(parser->temp_buffer, "u", 1)
-           || uc_buffer_equal_to(parser->temp_buffer, "undefi", 6)
-           ) {
-            APPEND_TO_TEMP_BUFFER(character);
-            ADVANCE_TO(EJSON_KEYWORD_STATE);
-        }
-        SET_ERR(PCEJSON_ERROR_UNEXPECTED_JSON_KEYWORD);
-        RETURN_AND_STOP_PARSE();
-    }
-    if (character == 'u') {
-        if (uc_buffer_is_empty(parser->temp_buffer)
-           || uc_buffer_equal_to(parser->temp_buffer, "tr", 2)
-           || uc_buffer_equal_to(parser->temp_buffer, "n", 1)) {
-            APPEND_TO_TEMP_BUFFER(character);
-            ADVANCE_TO(EJSON_KEYWORD_STATE);
-        }
-        SET_ERR(PCEJSON_ERROR_UNEXPECTED_JSON_KEYWORD);
-        RETURN_AND_STOP_PARSE();
-    }
-    if (character == 'd') {
-        if (uc_buffer_equal_to(parser->temp_buffer, "un", 2)
-           || uc_buffer_equal_to(parser->temp_buffer, "undefine", 8)) {
-            APPEND_TO_TEMP_BUFFER(character);
-            ADVANCE_TO(EJSON_KEYWORD_STATE);
-        }
-        SET_ERR(PCEJSON_ERROR_UNEXPECTED_JSON_KEYWORD);
-        RETURN_AND_STOP_PARSE();
-    }
-    if (character == 'i') {
-        if (uc_buffer_equal_to(parser->temp_buffer, "undef", 5)) {
-            APPEND_TO_TEMP_BUFFER(character);
-            ADVANCE_TO(EJSON_KEYWORD_STATE);
-        }
-        SET_ERR(PCEJSON_ERROR_UNEXPECTED_JSON_KEYWORD);
-        RETURN_AND_STOP_PARSE();
-    }
-    if (character == 'r') {
-        if (uc_buffer_equal_to(parser->temp_buffer, "t", 1)) {
-            APPEND_TO_TEMP_BUFFER(character);
-            ADVANCE_TO(EJSON_KEYWORD_STATE);
-        }
-        SET_ERR(PCEJSON_ERROR_UNEXPECTED_JSON_KEYWORD);
-        RETURN_AND_STOP_PARSE();
-    }
-    if (character == 'e') {
-        if (uc_buffer_equal_to(parser->temp_buffer, "tru", 3)
-           || uc_buffer_equal_to(parser->temp_buffer, "fals", 4)
-           || uc_buffer_equal_to(parser->temp_buffer, "und", 3)
-           || uc_buffer_equal_to(parser->temp_buffer, "undefin", 7)
-           ) {
-            APPEND_TO_TEMP_BUFFER(character);
-            ADVANCE_TO(EJSON_KEYWORD_STATE);
-        }
-        SET_ERR(PCEJSON_ERROR_UNEXPECTED_JSON_KEYWORD);
-        RETURN_AND_STOP_PARSE();
-    }
-    if (character == 'a') {
-        if (uc_buffer_equal_to(parser->temp_buffer, "f", 1)) {
-            APPEND_TO_TEMP_BUFFER(character);
-            ADVANCE_TO(EJSON_KEYWORD_STATE);
-        }
-        SET_ERR(PCEJSON_ERROR_UNEXPECTED_JSON_KEYWORD);
-        RETURN_AND_STOP_PARSE();
-    }
-    if (character == 'l') {
-        if (uc_buffer_equal_to(parser->temp_buffer, "nu", 2)
-         || uc_buffer_equal_to(parser->temp_buffer, "nul", 3)
-         || uc_buffer_equal_to(parser->temp_buffer, "fa", 2)) {
-            APPEND_TO_TEMP_BUFFER(character);
-            ADVANCE_TO(EJSON_KEYWORD_STATE);
-        }
-        SET_ERR(PCEJSON_ERROR_UNEXPECTED_JSON_KEYWORD);
-        RETURN_AND_STOP_PARSE();
-    }
-    if (character == 's') {
-        if (uc_buffer_equal_to(parser->temp_buffer, "fal", 3)) {
-            APPEND_TO_TEMP_BUFFER(character);
-            ADVANCE_TO(EJSON_KEYWORD_STATE);
-        }
-        SET_ERR(PCEJSON_ERROR_UNEXPECTED_JSON_KEYWORD);
-        RETURN_AND_STOP_PARSE();
+    else {
+        APPEND_BYTES_TO_TEMP_BUFFER(value, strlen(value));
+        pchvml_sbst_destroy(parser->sbst);
+        parser->sbst = NULL;
+        ADVANCE_TO(EJSON_AFTER_KEYWORD_STATE);
     }
     if (is_eof(character)) {
         RECONSUME_IN(EJSON_AFTER_KEYWORD_STATE);

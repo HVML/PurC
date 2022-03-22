@@ -48,7 +48,7 @@
 #ifdef PCHTML_HTML_TOKENIZER_RES_ENTITIES_SBST
 #ifndef PCHTML_HTML_TOKENIZER_RES_ENTITIES_SBST_ENABLED
 #define PCHTML_HTML_TOKENIZER_RES_ENTITIES_SBST_ENABLED
-static const pchtml_sbst_entry_static_t pchtml_html_tokenizer_res_entities_sbst[] =
+static const pcutils_sbst_entry_static_t pchtml_html_tokenizer_res_entities_sbst[] =
 {
 	{0x00, NULL, 0, 0, 0, 0}, {0x61, NULL, 0, 3, 2, 53},
 	{0x6e, NULL, 0, 30, 29, 257}, {0x4e, NULL, 0, 5, 4, 856},

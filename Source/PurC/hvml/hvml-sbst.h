@@ -31,6 +31,7 @@
 
 #include "config.h"
 #include "purc-utils.h"
+#include "private/sbst.h"
 
 struct pchvml_sbst;
 
@@ -41,6 +42,7 @@ extern "C" {
 struct pchvml_sbst* pchvml_sbst_new_char_ref(void);
 struct pchvml_sbst* pchvml_sbst_new_markup_declaration_open_state(void);
 struct pchvml_sbst* pchvml_sbst_new_after_doctype_name_state(void);
+struct pchvml_sbst* pchvml_sbst_new_ejson_keywords(void);
 
 void pchvml_sbst_destroy(struct pchvml_sbst* sbst);
 

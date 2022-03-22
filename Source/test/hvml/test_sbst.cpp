@@ -12,30 +12,30 @@
 #include <fcntl.h>
 #include <math.h>
 
-#include "sbst.h"
+#include "private/sbst.h"
 #define PCHTML_HTML_TOKENIZER_RES_ENTITIES_SBST
 #include "html/tokenizer/res.h"
 
 TEST(hvml_entity, sbst_find)
 {
-    const pchtml_sbst_entry_static_t* strt =
+    const pcutils_sbst_entry_static_t* strt =
         pchtml_html_tokenizer_res_entities_sbst;
-    const pchtml_sbst_entry_static_t* root = strt + 1;
+    const pcutils_sbst_entry_static_t* root = strt + 1;
 
-    const pchtml_sbst_entry_static_t* ret =
-        pchtml_sbst_entry_static_find(strt, root, 'A');
+    const pcutils_sbst_entry_static_t* ret =
+        pcutils_sbst_entry_static_find(strt, root, 'A');
     ASSERT_NE(ret, nullptr);
 
     root = &pchtml_html_tokenizer_res_entities_sbst[ ret->next ];
-    ret = pchtml_sbst_entry_static_find(strt, root, 'M');
+    ret = pcutils_sbst_entry_static_find(strt, root, 'M');
     ASSERT_NE(ret, nullptr);
 
     root = &pchtml_html_tokenizer_res_entities_sbst[ ret->next ];
-    ret = pchtml_sbst_entry_static_find(strt, root, 'P');
+    ret = pcutils_sbst_entry_static_find(strt, root, 'P');
     ASSERT_NE(ret, nullptr);
 
     root = &pchtml_html_tokenizer_res_entities_sbst[ ret->next ];
-    ret = pchtml_sbst_entry_static_find(strt, root, ';');
+    ret = pcutils_sbst_entry_static_find(strt, root, ';');
     ASSERT_NE(ret, nullptr);
 }
 

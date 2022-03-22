@@ -1,0 +1,5 @@
+{
+  "&DOCTYPE": { "characters": "DOCTYPE" },
+  "&[CDATA[": { "characters": "[CDATA[" },
+  "&--": { "characters": "--" }
+}
