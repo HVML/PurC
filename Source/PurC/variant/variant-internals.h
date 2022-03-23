@@ -80,12 +80,22 @@ pcvar_set_get_data(purc_variant_t set) WTF_INTERNAL;
 void
 pcvar_adjust_set_by_descendant(purc_variant_t val) WTF_INTERNAL;
 
-struct pcvar_rev_update_edge*
-pcvar_container_get_top_edge(purc_variant_t val) WTF_INTERNAL;
+pcutils_map*
+pcvar_create_rev_update_chain(void) WTF_INTERNAL;
+void
+pcvar_destroy_rev_update_chain(pcutils_map *chain) WTF_INTERNAL;
+int
+pcvar_rev_update_chain_add(pcutils_map *chain,
+        struct pcvar_rev_update_edge *edge) WTF_INTERNAL;
+void
+pcvar_rev_update_chain_del(pcutils_map *chain,
+        struct pcvar_rev_update_edge *edge) WTF_INTERNAL;
+
+int
+pcvar_reverse_check(purc_variant_t old, purc_variant_t _new) WTF_INTERNAL;
+
 bool
 pcvar_container_belongs_to_set(purc_variant_t val) WTF_INTERNAL;
-purc_variant_t
-pcvar_top_in_rev_update_chain(purc_variant_t val) WTF_INTERNAL;
 
 purc_variant_t
 pcvariant_container_clone(purc_variant_t cntr, bool recursively) WTF_INTERNAL;
@@ -122,11 +132,6 @@ pcvar_object_break_edge_to_parent(purc_variant_t obj,
 void
 pcvar_set_break_edge_to_parent(purc_variant_t set,
         struct pcvar_rev_update_edge *edge);
-// break edge utility
-void
-pcvar_break_edge(purc_variant_t val,
-        struct pcvar_rev_update_edge *edge_in_val,
-        struct pcvar_rev_update_edge *edge);
 
 // build children's reverse update edges recursively
 int
@@ -148,11 +153,6 @@ pcvar_object_build_edge_to_parent(purc_variant_t obj,
         struct pcvar_rev_update_edge *edge);
 int
 pcvar_set_build_edge_to_parent(purc_variant_t set,
-        struct pcvar_rev_update_edge *edge);
-// build edge utility
-int
-pcvar_build_edge(purc_variant_t val,
-        struct pcvar_rev_update_edge *edge_in_val,
         struct pcvar_rev_update_edge *edge);
 
 struct obj_iterator {
@@ -245,6 +245,27 @@ pcvar_rev_update_chain_post_handler(
 purc_variant_t
 pcvar_set_clone_struct(purc_variant_t set);
 
+// constraint-releated
+purc_variant_t
+pcvar_make_arr(void);
+
+int
+pcvar_arr_append(purc_variant_t arr, purc_variant_t val);
+
+purc_variant_t
+pcvar_make_obj(void);
+
+int
+pcvar_obj_set(purc_variant_t obj, purc_variant_t k, purc_variant_t v);
+
+purc_variant_t
+pcvar_make_set(variant_set_t data);
+
+int
+pcvar_set_add(purc_variant_t set, purc_variant_t val);
+
+int
+pcvar_readjust_set(purc_variant_t set, struct set_node *node);
 
 #ifdef __cplusplus
 }
