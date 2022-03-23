@@ -34,7 +34,7 @@
 test_begin
 param_begin
 param_end
-invalid:;
+string:"undefined";
 test_end
 
 test_begin

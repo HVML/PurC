@@ -34,7 +34,7 @@
 test_begin
 param_begin
 param_end
-invalid:;
+ulongint:0;
 test_end
 
 test_begin

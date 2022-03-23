@@ -46,6 +46,9 @@
 
 #define MAX_LEN_TIMEZONE    128
 
+#define PURC_KEYWORD_true   "true"
+#define PURC_KEYWORD_false  "false"
+
 #define STRING_COMP_MODE_CASELESS   "caseless"
 #define STRING_COMP_MODE_CASE       "case"
 #define STRING_COMP_MODE_REG        "reg"
