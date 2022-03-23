@@ -589,8 +589,8 @@ purc_variant_t purc_variant_make_byte_sequence_reuse_buff(void* bytes,
         size_t nr_bytes, size_t sz_buff)
 {
     // VWNOTE: check nr_bytes is not zero.
-    PCVARIANT_CHECK_FAIL_RET((bytes != NULL && nr_bytes > 0),
-        PURC_VARIANT_INVALID);
+    PCVARIANT_CHECK_FAIL_RET((bytes != NULL && nr_bytes > 0 &&
+                nr_bytes <= sz_buff), PURC_VARIANT_INVALID);
 
     purc_variant_t value = pcvariant_get (PURC_VARIANT_TYPE_BSEQUENCE);
 
@@ -603,8 +603,12 @@ purc_variant_t purc_variant_make_byte_sequence_reuse_buff(void* bytes,
     value->flags = PCVARIANT_FLAG_EXTRA_SIZE;
     value->refc = 1;
 
+    if (nr_bytes < sz_buff) {
+        /* shrink the buffer to release not used space. */
+        bytes = realloc(bytes, nr_bytes);
+    }
     value->sz_ptr[1] = (uintptr_t) bytes;
-    pcvariant_stat_set_extra_size (value, sz_buff);
+    pcvariant_stat_set_extra_size (value, nr_bytes);
 
     return value;
 }
@@ -634,7 +638,7 @@ const unsigned char *purc_variant_get_bytes_const(purc_variant_t sequence,
     return bytes;
 }
 
-bool purc_variant_sequence_bytes(purc_variant_t sequence, size_t *length)
+bool purc_variant_bsequence_bytes(purc_variant_t sequence, size_t *length)
 {
     PC_ASSERT(sequence && length);
 

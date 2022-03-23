@@ -831,7 +831,7 @@ TEST(variant, pcvariant_atom_string)
 // to test:
 // purc_variant_make_byte_sequence ();
 // purc_variant_get_bytes_const ();
-// purc_variant_sequence_length ();
+// purc_variant_bsequence_length ();
 // purc_variant_serialize ()
 TEST(variant, pcvariant_sequence)
 {
@@ -850,7 +850,7 @@ TEST(variant, pcvariant_sequence)
     // expected: get the variant with original byte sequence
     value = purc_variant_make_byte_sequence (short_bytes, 15);
     ASSERT_NE(value, PURC_VARIANT_INVALID);
-    length = purc_variant_sequence_length (value);
+    length = purc_variant_bsequence_length (value);
     ASSERT_LT (length, real_size);
     ASSERT_EQ (length, 15);
     purc_variant_unref(value);
@@ -860,7 +860,7 @@ TEST(variant, pcvariant_sequence)
     // expected: get the variant with original string
     value = purc_variant_make_byte_sequence (long_bytes, 30);
     ASSERT_NE(value, PURC_VARIANT_INVALID);
-    length = purc_variant_sequence_length (value);
+    length = purc_variant_bsequence_length (value);
     ASSERT_GT (length, real_size);
     ASSERT_EQ (length, 30);
     purc_variant_unref(value);

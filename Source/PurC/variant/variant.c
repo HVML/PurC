@@ -751,8 +751,8 @@ bool purc_variant_is_equal_to(purc_variant_t v1, purc_variant_t v2)
 
         const void *bytes1, *bytes2;
         size_t sz1, sz2;
-        if (purc_variant_cast_to_sequence(v1, &bytes1, &sz1) &&
-                purc_variant_cast_to_sequence(v2, &bytes2, &sz2)) {
+        if (purc_variant_cast_to_byte_sequence(v1, &bytes1, &sz1) &&
+                purc_variant_cast_to_byte_sequence(v2, &bytes2, &sz2)) {
 
             int i = memcmp(bytes1, bytes2, (sz1 > sz2) ? sz2 : sz1);
             if (i == 0 && sz2 != sz1) {
@@ -1450,7 +1450,7 @@ purc_variant_cast_to_longdouble(purc_variant_t v, long double *d,
     return false;
 }
 
-bool purc_variant_cast_to_sequence(purc_variant_t v,
+bool purc_variant_cast_to_byte_sequence(purc_variant_t v,
         const void **bytes, size_t *sz)
 {
     PC_ASSERT(v);
@@ -1528,7 +1528,7 @@ compare_stringify (purc_variant_t v, char *stackbuffer, size_t size)
                 total = length;
             }
             else if (v->type == PURC_VARIANT_TYPE_BSEQUENCE) {
-                length = purc_variant_sequence_length (v);
+                length = purc_variant_bsequence_length (v);
                 total = length * 2;
             }
             else if (v->type == PURC_VARIANT_TYPE_ATOMSTRING) {
