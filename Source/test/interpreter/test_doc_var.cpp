@@ -80,7 +80,7 @@ TEST(doc_var, basic)
     "        </div>"
     ""
     "        <div value=\"$buttons[0].letters\">"
-    "            <init as=\"buttons\" uniquely>"
+    "            <init as=\"buttons\" uniquely locally>"
     "                ["
     "                    { \"letters\": \"777\", \"class\": \"number\" },"
     "                ]"

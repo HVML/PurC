@@ -510,7 +510,6 @@ again:
             break;
 
         PRINT_VARIANT(v);
-        PC_ASSERT(0);
         return v;
     } while (0);
 
