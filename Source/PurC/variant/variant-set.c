@@ -1996,3 +1996,24 @@ pcvar_adjust_set_by_edge(purc_variant_t set,
     PC_ASSERT(0);
 }
 
+int
+pcvar_readjust_set(purc_variant_t set, struct set_node *node)
+{
+    PC_ASSERT(set != PURC_VARIANT_INVALID);
+    PC_ASSERT(purc_variant_is_set(set));
+    variant_set_t data = pcvar_set_get_data(set);
+
+    pcutils_rbtree_erase(&node->node, &data->elems);
+
+    struct element_rb_node rbn;
+    find_element_rb_node(&rbn, set, node->val);
+    PC_ASSERT(rbn.entry == NULL);
+
+    struct rb_node *entry = &node->node;
+
+    pcutils_rbtree_link_node(entry, rbn.parent, rbn.pnode);
+    pcutils_rbtree_insert_color(entry, &data->elems);
+
+    return 0;
+}
+

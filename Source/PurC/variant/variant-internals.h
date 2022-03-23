@@ -264,6 +264,8 @@ pcvar_make_set(variant_set_t data);
 int
 pcvar_set_add(purc_variant_t set, purc_variant_t val);
 
+int
+pcvar_readjust_set(purc_variant_t set, struct set_node *node);
 
 #ifdef __cplusplus
 }

@@ -433,17 +433,6 @@ get_chain(purc_variant_t val)
 }
 
 static int
-readjust_set(purc_variant_t set, struct set_node *node)
-{
-    PC_ASSERT(set != PURC_VARIANT_INVALID);
-    PC_ASSERT(purc_variant_is_set(set));
-    variant_set_t set_data = pcvar_set_get_data(set);
-
-    pcutils_rbtree_erase(&node->node, &set_data->elems);
-    return 0;
-}
-
-static int
 wind_up_val(purc_variant_t val, struct reverse_checker *checker)
 {
     int r = 0;
@@ -467,7 +456,7 @@ wind_up_val(purc_variant_t val, struct reverse_checker *checker)
         if (purc_variant_is_set(parent)) {
             struct set_node *node;
             node = (struct set_node*)entry->key;
-            r = readjust_set(parent, node);
+            r = pcvar_readjust_set(parent, node);
         }
         else {
             r = pcutils_map_find_replace_or_insert(checker->output,

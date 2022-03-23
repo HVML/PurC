@@ -162,6 +162,15 @@ TEST(constraint, set_shrink_children_of_uniqkey_from_outside)
     PURC_VARIANT_SAFE_CLEAR(set);
 }
 
+static int
+var_diff(purc_variant_t val, const char *s)
+{
+    purc_variant_t v = pcejson_parser_parse_string(s, 0, 0);
+    int diff = pcvariant_diff(val, v);
+    purc_variant_unref(v);
+    return diff;
+}
+
 TEST(constraint, set_modify_children_of_uniqkey_from_outside_arr)
 {
     PurCInstance purc;
@@ -187,42 +196,57 @@ TEST(constraint, set_modify_children_of_uniqkey_from_outside_arr)
 
     set = purc_variant_make_set_by_ckey(2, "name", xu, xue);
     ASSERT_NE(set, nullptr);
+    ASSERT_EQ(0, var_diff(set, "[!name, {name:[{first:xiaohong,last:xu}], extra:foo}, {name:[{first:shuming,last:xue}], extra:bar}]"));
 
     val = purc_variant_object_get_by_ckey(xu, "name", silently);
     ASSERT_NE(val, nullptr);
+    ASSERT_EQ(0, var_diff(val, "[{first:xiaohong,last:xu}]"));
+    ASSERT_EQ(0, var_diff(set, "[!name, {name:[{first:xiaohong,last:xu}], extra:foo}, {name:[{first:shuming,last:xue}], extra:bar}]"));
 
     elem = purc_variant_set_get_member_by_key_values(set, val, silently);
     ASSERT_NE(elem, nullptr);
+    ASSERT_EQ(0, var_diff(elem, "{name:[{first:xiaohong,last:xu}], extra:foo}"));
+    ASSERT_EQ(0, var_diff(set, "[!name, {name:[{first:xiaohong,last:xu}], extra:foo}, {name:[{first:shuming,last:xue}], extra:bar}]"));
 
     arr = purc_variant_object_get_by_ckey(elem, "name", silently);
     ASSERT_NE(arr, nullptr);
+    ASSERT_EQ(0, var_diff(arr, "[{first:xiaohong,last:xu}]"));
+    ASSERT_EQ(0, var_diff(set, "[!name, {name:[{first:xiaohong,last:xu}], extra:foo}, {name:[{first:shuming,last:xue}], extra:bar}]"));
 
     PRINT_VARIANT(set);
     ok = purc_variant_array_set(arr, 0, first);
+    PRINT_VARIANT(set);
     ASSERT_TRUE(ok);
+    ASSERT_EQ(0, var_diff(arr, "[\"shuming\"]"));
+    ASSERT_EQ(0, var_diff(set, "[!name, {name:[\"shuming\"], extra:foo}, {name:[{first:shuming,last:xue}], extra:bar}]"));
 
     val = purc_variant_object_get_by_ckey(xue, "name", silently);
     ASSERT_NE(val, nullptr);
+    ASSERT_EQ(0, var_diff(val, "[{first:shuming,last:xue}]"));
 
     elem = purc_variant_set_get_member_by_key_values(set, val, silently);
     ASSERT_NE(elem, nullptr);
+    ASSERT_EQ(0, var_diff(elem, "{name:[{first:shuming,last:xue}], extra:bar}"));
 
     purc_variant_t arr1;
     arr1 = purc_variant_object_get_by_ckey(elem, "name", silently);
     ASSERT_NE(arr1, nullptr);
+    ASSERT_EQ(0, var_diff(arr1, "[{first:shuming,last:xue}]"));
 
     purc_variant_t elem1;
     elem1 = purc_variant_array_get(arr1, 0);
     ASSERT_NE(elem1, nullptr);
+    ASSERT_EQ(0, var_diff(elem1, "{first:shuming,last:xue}"));
 
-    elem1 = purc_variant_container_clone_recursively(elem1);
-    ASSERT_NE(elem1, nullptr);
+    // elem1 = purc_variant_container_clone_recursively(elem1);
+    // ASSERT_NE(elem1, nullptr);
+    // ASSERT_EQ(0, var_diff(elem1, "{first:shuming,last:xue}"));
 
     PRINT_VARIANT(set);
     PRINT_VARIANT(arr);
     PRINT_VARIANT(elem1);
     ok = purc_variant_array_set(arr, 0, elem1);
-    PURC_VARIANT_SAFE_CLEAR(elem1);
+    // PURC_VARIANT_SAFE_CLEAR(elem1);
     PRINT_VARIANT(set);
     ASSERT_FALSE(ok);
 
