@@ -1479,9 +1479,11 @@ BEGIN_STATE(EJSON_RIGHT_BRACKET_STATE)
             if (parent) {
                 UPDATE_VCM_NODE(parent);
             }
+#if 0
             if (ejson_stack_is_empty()) {
                 ADVANCE_TO(EJSON_FINISHED_STATE);
             }
+#endif
             ADVANCE_TO(EJSON_AFTER_VALUE_STATE);
         }
         if (uc == '"') {
