@@ -293,6 +293,7 @@ TEST(constraint, set_grow_children_of_uniqkey_from_outside_arr)
 
     PRINT_VARIANT(set);
     PRINT_VARIANT(arr);
+    PRINT_VARIANT(last);
     ok = purc_variant_array_append(arr, last);
     PRINT_VARIANT(set);
     ASSERT_FALSE(ok);
