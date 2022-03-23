@@ -1542,7 +1542,7 @@ purc_variant_cast_to_longdouble(purc_variant_t v, long double *ld,
  * Since: 0.0.1
  */
 PCA_EXPORT bool
-purc_variant_cast_to_sequence(purc_variant_t v,
+purc_variant_cast_to_byte_sequence(purc_variant_t v,
         const void **bytes, size_t *sz);
 
 /**
@@ -1572,7 +1572,7 @@ typedef enum purc_variant_compare_opt
  *
  * @param v1: one of compared variant value
  * @param v2: the other variant value to be compared
- * @param flags: comparation flags
+ * @param flags: comparison flags
  *
  * Returns: The function returns an integer less than, equal to, or greater
  *      than zero if v1 is found, respectively, to be less than, to match,
