@@ -313,9 +313,9 @@ v_object_remove(purc_variant_t obj, purc_variant_t key, bool silently,
     }
 
     if (!entry) {
-        if (silently) {
+        if (silently)
             return 0;
-        }
+
         pcinst_set_error(PCVARIANT_ERROR_NOT_FOUND);
         return -1;
     }
@@ -817,9 +817,9 @@ purc_variant_t purc_variant_object_get(purc_variant_t obj, purc_variant_t key,
     }
 
     if (!entry) {
-        if (!silently) {
+        if (!silently)
             pcinst_set_error(PCVARIANT_ERROR_NOT_FOUND);
-        }
+
         return PURC_VARIANT_INVALID;
     }
 
