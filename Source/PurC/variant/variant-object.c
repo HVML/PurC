@@ -152,7 +152,137 @@ static purc_variant_t v_object_new_with_capacity(void)
     var->sz_ptr[1]     = (uintptr_t)data;
     var->refc          = 1;
 
+    size_t extra = OBJ_EXTRA_SIZE(data);
+    pcvariant_stat_set_extra_size(var, extra);
+
     return var;
+}
+
+static void
+break_rev_update_chain(purc_variant_t obj, struct obj_node *node)
+{
+    struct pcvar_rev_update_edge edge = {
+        .parent        = obj,
+        .obj_me        = node,
+    };
+
+    pcvar_break_edge_to_parent(node->val, &edge);
+    pcvar_break_rue_downward(node->val);
+}
+
+static void
+obj_node_release(purc_variant_t obj, struct obj_node *node)
+{
+    if (!node)
+        return;
+
+    break_rev_update_chain(obj, node);
+
+    variant_obj_t data = pcvar_obj_get_data(obj);
+    PC_ASSERT(data);
+
+    struct rb_root *root = &data->kvs;
+    if (&node->node == root->rb_node || node->node.rb_parent) {
+        --data->size;
+        pcutils_rbtree_erase(&node->node, root);
+        node->node.rb_parent = NULL;
+    }
+
+    PURC_VARIANT_SAFE_CLEAR(node->key);
+    PURC_VARIANT_SAFE_CLEAR(node->val);
+}
+
+static void
+obj_node_destroy(purc_variant_t obj, struct obj_node *node)
+{
+    if (!node)
+        return;
+
+    obj_node_release(obj, node);
+
+    free(node);
+}
+
+static struct obj_node*
+obj_node_create(purc_variant_t k, purc_variant_t v)
+{
+    struct obj_node *node;
+    node = (struct obj_node*)calloc(1, sizeof(*node));
+    if (!node) {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return NULL;
+    }
+
+    node->key = purc_variant_ref(k);
+    node->val = purc_variant_ref(v);
+
+    return node;
+}
+
+static int
+build_rev_update_chain(purc_variant_t obj, struct obj_node *node)
+{
+    if (!pcvar_container_belongs_to_set(obj))
+        return 0;
+
+    int r;
+
+    struct pcvar_rev_update_edge edge = {
+        .parent        = obj,
+        .obj_me        = node,
+    };
+
+    r = pcvar_build_edge_to_parent(node->val, &edge);
+    if (r == 0) {
+        r = pcvar_build_rue_downward(node->val);
+    }
+
+    return r ? -1 : 0;
+}
+
+static int
+check_shrink(purc_variant_t obj, struct obj_node *node)
+{
+    if (!pcvar_container_belongs_to_set(obj))
+        return 0;
+
+    purc_variant_t _new = purc_variant_make_object(0,
+            PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+    if (_new == PURC_VARIANT_INVALID)
+        return -1;
+
+    int r = 0;
+    do {
+        bool found = false;
+        purc_variant_t kk, vv;
+        foreach_key_value_in_variant_object(obj, kk, vv) {
+            if (kk == node->key) {
+                PC_ASSERT(!found);
+                found = true;
+                continue;
+            }
+            r = pcvar_obj_set(_new, kk, vv);
+            if (r)
+                break;
+        } end_foreach;
+
+        if (r)
+            break;
+
+        if (!found)
+            break;
+
+        r = pcvar_reverse_check(obj, _new);
+        if (r)
+            break;
+
+        PURC_VARIANT_SAFE_CLEAR(_new);
+
+        return 0;
+    } while (0);
+
+    PURC_VARIANT_SAFE_CLEAR(_new);
+    return -1;
 }
 
 static int
@@ -195,49 +325,138 @@ v_object_remove(purc_variant_t obj, purc_variant_t key, bool silently,
     purc_variant_t k = node->key;
     purc_variant_t v = node->val;
 
-    if (!shrink(obj, k, v, check)) {
-        return -1;
-    }
+    do {
+        if (check) {
+            if (!shrink(obj, k, v, check))
+                break;
 
-    struct pcvar_rev_update_edge edge = {
-        .parent        = obj,
-        .obj_me        = node,
-    };
-    pcvar_break_edge_to_parent(node->val, &edge);
-    pcvar_break_rue_downward(node->val);
+            if (check_shrink(obj, node))
+                break;
 
-    pcutils_rbtree_erase(entry, root);
-    --data->size;
+            break_rev_update_chain(obj, node);
+        }
 
-    shrunk(obj, k, v, check);
+        --data->size;
+        PC_ASSERT(entry == root->rb_node || entry->rb_parent);
+        pcutils_rbtree_erase(entry, root);
+        entry->rb_parent = NULL;
 
-    purc_variant_unref(k);
-    purc_variant_unref(v);
+        if (check) {
+            pcvar_adjust_set_by_descendant(obj);
 
-    free(node);
+            shrunk(obj, k, v, check);
+        }
 
-    return 0;
+        obj_node_destroy(obj, node);
+
+        return 0;
+    } while (0);
+
+    return -1;
 }
 
 static int
-v_object_set(purc_variant_t obj, purc_variant_t k, purc_variant_t val,
+check_grow(purc_variant_t obj, purc_variant_t k, purc_variant_t v)
+{
+    if (!pcvar_container_belongs_to_set(obj))
+        return 0;
+
+    purc_variant_t _new = purc_variant_make_object(0,
+            PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+    if (_new == PURC_VARIANT_INVALID)
+        return -1;
+
+    int r = 0;
+    do {
+        purc_variant_t kk, vv;
+        foreach_key_value_in_variant_object(obj, kk, vv) {
+            r = pcvar_obj_set(_new, kk, vv);
+            if (r)
+                break;
+        } end_foreach;
+
+        if (r)
+            break;
+
+        r = pcvar_obj_set(_new, k, v);
+        if (r)
+            break;
+
+        int r = pcvar_reverse_check(obj, _new);
+        if (r)
+            break;
+
+        PURC_VARIANT_SAFE_CLEAR(_new);
+
+        return 0;
+    } while (0);
+
+    PURC_VARIANT_SAFE_CLEAR(_new);
+    return -1;
+}
+
+static int
+check_change(purc_variant_t obj, struct obj_node *node,
+        purc_variant_t k, purc_variant_t v)
+{
+    if (!pcvar_container_belongs_to_set(obj))
+        return 0;
+
+    purc_variant_t _new = purc_variant_make_object(0,
+            PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+    if (_new == PURC_VARIANT_INVALID)
+        return -1;
+
+    int r = 0;
+    do {
+        bool found = false;
+        purc_variant_t kk, vv;
+        foreach_key_value_in_variant_object(obj, kk, vv) {
+            if (node->key == kk) {
+                PC_ASSERT(!found);
+                found = true;
+                r = pcvar_obj_set(_new, k, v);
+            }
+            else {
+                r = pcvar_obj_set(_new, kk, vv);
+            }
+            if (r)
+                break;
+        } end_foreach;
+
+        if (r)
+            break;
+
+        if (!found)
+            break;
+
+        int r = pcvar_reverse_check(obj, _new);
+        PC_DEBUGX("r: %d", r);
+        if (r)
+            break;
+
+        PURC_VARIANT_SAFE_CLEAR(_new);
+
+        return 0;
+    } while (0);
+
+    PURC_VARIANT_SAFE_CLEAR(_new);
+    return -1;
+}
+
+static int
+v_object_set(purc_variant_t obj, purc_variant_t key, purc_variant_t val,
         bool check)
 {
-    if (!k || !val) {
+    if (!key || !val) {
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         return -1;
     }
 
     if (purc_variant_is_undefined(val)) {
         bool silently = true;
-        v_object_remove(obj, k, silently, check);
+        v_object_remove(obj, key, silently, check);
         return 0;
-    }
-
-    if (pcvar_container_belongs_to_set(val)) {
-        purc_set_error_with_info(PURC_ERROR_NOT_SUPPORTED,
-                "add subchildren of set's uniqkey-val to other container");
-        return -1;
     }
 
     variant_obj_t data = pcvar_obj_get_data(obj);
@@ -250,7 +469,7 @@ v_object_set(purc_variant_t obj, purc_variant_t k, purc_variant_t val,
     while (*pnode) {
         struct obj_node *node;
         node = container_of(*pnode, struct obj_node, node);
-        int ret = purc_variant_compare_ex(k, node->key,
+        int ret = purc_variant_compare_ex(key, node->key,
                 PCVARIANT_COMPARE_OPT_AUTO);
 
         parent = *pnode;
@@ -266,92 +485,110 @@ v_object_set(purc_variant_t obj, purc_variant_t k, purc_variant_t val,
     }
 
     if (!entry) { //new the entry
-        struct obj_node *node = (struct obj_node*)calloc(1, sizeof(*node));
-        if (!node) {
-            pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        struct obj_node *node = obj_node_create(key, val);
+        if (!node)
             return -1;
-        }
 
-        if (!grow(obj, k, val, check)) {
-            free(node);
-            return -1;
-        }
+        do {
+            if (check) {
+                if (!grow(obj, key, val, check))
+                    break;
 
-        node->key = k;
-        node->val = val;
-        purc_variant_ref(k);
-        purc_variant_ref(val);
-        entry = &node->node;
-
-        pcutils_rbtree_link_node(entry, parent, pnode);
-        pcutils_rbtree_insert_color(entry, root);
-
-        ++data->size;
-
-        if (pcvar_container_belongs_to_set(obj)) {
-            struct pcvar_rev_update_edge edge = {
-                .parent        = obj,
-                .obj_me        = node,
-            };
-            int r = pcvar_build_edge_to_parent(val, &edge);
-            if (r == 0) {
-                r = pcvar_build_rue_downward(val);
+                if (check_grow(obj, key, val))
+                    break;
             }
-            // TODO: recover
-            PC_ASSERT(r == 0);
-        }
 
-        grown(obj, k, val, check);
-        return 0;
+            entry = &node->node;
+
+            pcutils_rbtree_link_node(entry, parent, pnode);
+            pcutils_rbtree_insert_color(entry, root);
+
+            ++data->size;
+
+            if (check) {
+                if (build_rev_update_chain(obj, node))
+                    break;
+
+                pcvar_adjust_set_by_descendant(obj);
+
+                grown(obj, key, val, check);
+            }
+
+            size_t extra = OBJ_EXTRA_SIZE(data);
+            pcvariant_stat_set_extra_size(obj, extra);
+
+            return 0;
+        } while (0);
+
+        obj_node_destroy(obj, node);
+
+        return -1;
     }
 
     struct obj_node *node;
     node = container_of(entry, struct obj_node, node);
-    if (node->val == val)
+    if (node->val == val) {
+        // NOTE: keep refc intact
         return 0;
+    }
 
-    purc_variant_t ko = node->key;
-    purc_variant_t vo = node->val;
+    do {
+        purc_variant_t ko = node->key;
+        purc_variant_t vo = node->val;
 
-    if (!change(obj, ko, vo, k, val, check))
-        return -1;
+        if (check) {
+            if (!change(obj, ko, vo, key, val, check))
+                break;
 
-    if (pcvar_container_belongs_to_set(obj)) {
-        struct pcvar_rev_update_edge edge = {
-            .parent        = obj,
-            .obj_me        = node,
-        };
-        pcvar_break_edge_to_parent(node->val, &edge);
-        pcvar_break_rue_downward(node->val);
+            if (check_change(obj, node, key, val))
+                break;
 
-        node->key = k;
-        node->val = val;
-        purc_variant_ref(k);
-        purc_variant_ref(val);
+            node->key = key;
+            node->val = val;
+            if (build_rev_update_chain(obj, node)) {
+                break_rev_update_chain(obj, node);
+                node->key = ko;
+                node->val = vo;
+                break;
+            }
 
-        edge.parent = obj;
-        edge.obj_me = node;
-        int r = pcvar_build_edge_to_parent(node->val, &edge);
-        if (r == 0) {
-            r = pcvar_build_rue_downward(node->val);
+            node->key = ko;
+            node->val = vo;
+            break_rev_update_chain(obj, node);
         }
-        // FIXME: recoverable?
-        PC_ASSERT(r == 0);
-        pcvar_adjust_set_by_descendant(obj);
-    }
-    else {
-        node->key = k;
-        node->val = val;
-        purc_variant_ref(k);
-        purc_variant_ref(val);
-    }
 
-    changed(obj, ko, vo, k, val, check);
+        node->key = purc_variant_ref(key);
+        node->val = purc_variant_ref(val);
 
-    purc_variant_unref(ko);
-    purc_variant_unref(vo);
+        if (check) {
+            pcvar_adjust_set_by_descendant(obj);
 
-    return 0;
+            changed(obj, ko, vo, key, val, check);
+        }
+
+        purc_variant_unref(ko);
+        purc_variant_unref(vo);
+
+        size_t extra = OBJ_EXTRA_SIZE(data);
+        pcvariant_stat_set_extra_size(obj, extra);
+
+        return 0;
+    } while (0);
+
+    return -1;
+}
+
+purc_variant_t
+pcvar_make_obj(void)
+{
+    return v_object_new_with_capacity();
+}
+
+int
+pcvar_obj_set(purc_variant_t obj, purc_variant_t key, purc_variant_t val)
+{
+    bool check = false;
+    return v_object_set(obj, key, val, check);
 }
 
 static int
@@ -506,25 +743,19 @@ void pcvariant_object_release (purc_variant_t value)
 
     struct rb_root *root = &data->kvs;
 
-    struct rb_node *p = pcutils_rbtree_first(root);
-    while (p) {
-        struct rb_node *next = pcutils_rbtree_next(p);
+    struct rb_node *p, *n;
+    pcutils_rbtree_for_each_safe(pcutils_rbtree_first(root), p, n) {
         struct obj_node *node;
         node = container_of(p, struct obj_node, node);
 
-        struct pcvar_rev_update_edge edge = {
-            .parent        = value,
-            .obj_me        = node,
-        };
-        pcvar_break_edge_to_parent(node->val, &edge);
-        pcvar_break_rue_downward(node->val);
-
-        pcutils_rbtree_erase(p, root);
-        PURC_VARIANT_SAFE_CLEAR(node->key);
-        PURC_VARIANT_SAFE_CLEAR(node->val);
-        free(node);
-        p = next;
+        obj_node_destroy(value, node);
     }
+
+    if (data->rev_update_chain) {
+        pcvar_destroy_rev_update_chain(data->rev_update_chain);
+        data->rev_update_chain = NULL;
+    }
+
     free(data);
 
     value->sz_ptr[1] = (uintptr_t)NULL; // say no to double free
@@ -791,6 +1022,7 @@ void
 pcvar_object_break_rue_downward(purc_variant_t obj)
 {
     PC_ASSERT(purc_variant_is_object(obj));
+
     variant_obj_t data = (variant_obj_t)obj->sz_ptr[1];
     if (!data)
         return;
@@ -818,7 +1050,10 @@ pcvar_object_break_edge_to_parent(purc_variant_t obj,
     if (!data)
         return;
 
-    pcvar_break_edge(obj, &data->rev_update_chain, edge);
+    if (!data->rev_update_chain)
+        return;
+
+    pcutils_map_erase(data->rev_update_chain, edge->obj_me);
 }
 
 int
@@ -858,7 +1093,22 @@ pcvar_object_build_edge_to_parent(purc_variant_t obj,
     if (!data)
         return 0;
 
-    return pcvar_build_edge(obj, &data->rev_update_chain, edge);
+    if (!data->rev_update_chain) {
+        data->rev_update_chain = pcvar_create_rev_update_chain();
+        if (!data->rev_update_chain)
+            return -1;
+    }
+
+    pcutils_map_entry *entry;
+    entry = pcutils_map_find(data->rev_update_chain, edge->obj_me);
+    if (entry)
+        return 0;
+
+    int r;
+    r = pcutils_map_insert(data->rev_update_chain,
+            edge->obj_me, edge->parent);
+
+    return r ? -1 : 0;
 }
 
 static void

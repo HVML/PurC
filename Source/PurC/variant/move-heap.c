@@ -314,7 +314,7 @@ move_or_clone_mutable_descendants_in_object(struct travel_context *ctxt,
             return false;
         }
 
-        node->val = retv;
+        _node->val = retv;
         pcutils_arrlist_append(ctxt->vrts_to_unref, v);
     } end_foreach;
 
@@ -370,7 +370,7 @@ move_or_clone_mutable_descendants_in_set(struct travel_context *ctxt,
             return false;
         }
 
-        _p->elem = retv;
+        _p->val = retv;
         pcutils_arrlist_append(ctxt->vrts_to_unref, v);
 
     } end_foreach;
@@ -487,12 +487,12 @@ move_or_clone_immutable_descendants_in_object(struct travel_context *ctxt,
             }
 
             if (retk != k) {
-                node->key = retk;
+                _node->key = retk;
                 pcutils_arrlist_append(ctxt->vrts_to_unref, k);
             }
 
             if (retv != v) {
-                node->val = retv;
+                _node->val = retv;
                 pcutils_arrlist_append(ctxt->vrts_to_unref, v);
             }
             break;
@@ -536,7 +536,7 @@ move_or_clone_immutable_descendants_in_set(struct travel_context *ctxt,
             }
 
             if (retv != v) {
-                _p->elem = retv;
+                _p->val = retv;
                 pcutils_arrlist_append(ctxt->vrts_to_unref, v);
             }
             break;

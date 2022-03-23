@@ -944,6 +944,7 @@ void pcejson_destroy(struct pcejson *parser)
         pcvcm_node_destroy(n);
         pcvcm_stack_destroy(parser->vcm_stack);
         pcutils_stack_destroy(parser->ejson_stack);
+        pchvml_sbst_destroy(parser->sbst);
         pc_free(parser);
     }
 }
