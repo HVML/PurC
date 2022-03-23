@@ -34,6 +34,10 @@
 #include <assert.h>
 #include <stdlib.h>
 
+#define LEN_INI_SERIALIZE_BUF   128
+#define LEN_MAX_SERIALIZE_BUF   4096
+#define LEN_MAX_KEYWORD         64
+
 static purc_variant_t
 type_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
@@ -274,6 +278,8 @@ enum {
     K_KW_no_slash_escape,
 };
 
+#define _KW_DELIMITERS  " \t\n\v\f\r"
+
 static struct keyword_to_atom {
     const char *    keyword;
     unsigned int    flag;
@@ -303,24 +309,97 @@ serialize_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(root);
     UNUSED_PARAM(silently);
 
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
-    purc_rwstream_t serialize = NULL;
-    char *buf = NULL;
-    size_t sz_stream = 0;
+    const char *options = NULL;
+    size_t options_len;
+    unsigned int flags = PCVARIANT_SERIALIZE_OPT_PLAIN;
+
+    purc_variant_t vrt;
 
     if (nr_args == 0) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+        vrt = purc_variant_make_undefined();
+        if (vrt == PURC_VARIANT_INVALID) {
+            goto fatal;
+        }
+    }
+    else {
+        vrt = argv[0];
+
+        if (nr_args > 1) {
+            options = purc_variant_get_string_const_ex(argv[1], &options_len);
+            if (options) {
+                options = pcutils_trim_spaces(options, &options_len);
+                if (options_len == 0) {
+                    options = NULL;
+                }
+            }
+        }
     }
 
-    serialize = purc_rwstream_new_buffer (32, STREAM_SIZE);
-    purc_variant_serialize (argv[0], serialize, 3, 0, &sz_stream);
-    buf = purc_rwstream_get_mem_buffer (serialize, &sz_stream);
-    purc_rwstream_destroy (serialize);
+    if (options) {
+        size_t length = 0;
+        const char *option = pcutils_get_next_token_len(options, options_len,
+                _KW_DELIMITERS, &length);
 
-    ret_var = purc_variant_make_string_reuse_buff (buf, sz_stream + 1, false);
+        do {
 
-    return ret_var;
+            if (length > 0 || length <= LEN_MAX_KEYWORD) {
+                purc_atom_t atom;
+
+                /* TODO: use strndupa if it is available */
+                char *tmp = strndup(option, length);
+                atom = purc_atom_try_string_ex(ATOM_BUCKET_DVOBJ, tmp);
+                free(tmp);
+
+                if (atom > 0) {
+                    size_t i;
+                    for (i = 0; i < PCA_TABLESIZE(keywords2atoms); i++) {
+                        if (atom == keywords2atoms[i].atom) {
+                            if (keywords2atoms[i].flag &
+                                    PCVARIANT_SERIALIZE_OPT_BSEQUENCE_MASK) {
+                                // clear the byte sequence mask
+                                flags &= ~PCVARIANT_SERIALIZE_OPT_BSEQUENCE_MASK;
+                            }
+
+                            flags |= keywords2atoms[i].flag;
+                        }
+                    }
+                }
+            }
+
+            if (options_len <= length)
+                break;
+
+            options_len -= length;
+            option = pcutils_get_next_token_len(option + length, options_len,
+                    _KW_DELIMITERS, &length);
+        } while (option);
+    }
+
+    purc_rwstream_t my_stream;
+    ssize_t n;
+
+    my_stream = purc_rwstream_new_buffer(LEN_INI_SERIALIZE_BUF,
+            LEN_MAX_SERIALIZE_BUF);
+    n = purc_variant_serialize(vrt, my_stream, 0, flags, NULL);
+    if (nr_args == 0)
+        purc_variant_unref(vrt);
+
+    if (n == -1) {
+        goto fatal;
+    }
+
+    purc_rwstream_write(my_stream, "\0", 1);
+
+    char *buf = NULL;
+    size_t sz_content, sz_buffer;
+    buf = purc_rwstream_get_mem_buffer_ex(my_stream,
+            &sz_content, &sz_buffer, true);
+    purc_rwstream_destroy(my_stream);
+
+    return purc_variant_make_string_reuse_buff(buf, sz_buffer, false);
+
+fatal:
+    return PURC_VARIANT_INVALID;
 }
 
 typedef struct __dvobjs_ejson_arg {
@@ -499,8 +578,7 @@ compare_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     return ret_var;
 }
 
-// only for test now.
-purc_variant_t purc_dvobj_ejson_new (void)
+purc_variant_t purc_dvobj_ejson_new(void)
 {
     static struct purc_dvobj_method method [] = {
         {"type",        type_getter, NULL},
@@ -522,5 +600,5 @@ purc_variant_t purc_dvobj_ejson_new (void)
 
     }
 
-    return purc_dvobj_make_from_methods (method, PCA_TABLESIZE(method));
+    return purc_dvobj_make_from_methods(method, PCA_TABLESIZE(method));
 }
