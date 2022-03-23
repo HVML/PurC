@@ -512,7 +512,7 @@ TEST(dvobjs, time)
             }
 
             if (test_cases[i].errcode) {
-                ASSERT_EQ(purc_get_last_error(), test_cases[i].errcode);
+                EXPECT_EQ(purc_get_last_error(), test_cases[i].errcode);
             }
 
             purc_variant_unref(expected);
@@ -1387,7 +1387,7 @@ TEST(dvobjs, env)
             }
 
             if (test_cases[i].errcode) {
-                ASSERT_EQ(purc_get_last_error(), test_cases[i].errcode);
+                EXPECT_EQ(purc_get_last_error(), test_cases[i].errcode);
             }
 
             purc_variant_unref(expected);
