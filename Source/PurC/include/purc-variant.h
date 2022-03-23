@@ -1899,7 +1899,7 @@ static inline bool purc_variant_is_string(purc_variant_t v)
 }
 
 /** Check whether the value is a byte sequence. */
-static inline bool purc_variant_is_sequence(purc_variant_t v)
+static inline bool purc_variant_is_bsequence(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_BSEQUENCE);
 }

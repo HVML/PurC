@@ -402,6 +402,281 @@ fatal:
     return PURC_VARIANT_INVALID;
 }
 
+static purc_variant_t
+parse_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
+
+    if (nr_args < 2) {
+        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    const char *string;
+    size_t length;
+    string = purc_variant_get_string_const_ex(argv[1], &length);
+    if (string == NULL) {
+        pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    // TODO
+
+    bool v = purc_variant_is_equal_to(argv[0], argv[1]);
+    return purc_variant_make_boolean(v);
+
+failed:
+    return purc_variant_make_undefined();
+}
+
+static purc_variant_t
+isequal_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
+
+    if (nr_args < 2) {
+        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    bool v = purc_variant_is_equal_to(argv[0], argv[1]);
+    return purc_variant_make_boolean(v);
+
+failed:
+    return purc_variant_make_undefined();
+}
+
+static purc_variant_t
+compare_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
+{
+    UNUSED_PARAM(root);
+
+    const char *option = NULL;
+    unsigned int flag = PCVARIANT_COMPARE_OPT_AUTO;
+
+    if (nr_args < 2) {
+        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    if (nr_args >= 3) {
+        option = purc_variant_get_string_const(argv[2]);
+        if (option == NULL) {
+            pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            goto failed;
+        }
+
+        if (strcmp(option, PURC_KW_caseless) == 0)
+            flag = PCVARIANT_COMPARE_OPT_CASELESS;
+        else if (strcmp(option, PURC_KW_case) == 0)
+            flag = PCVARIANT_COMPARE_OPT_CASE;
+        else if (strcmp(option, PURC_KW_number) == 0)
+            flag = PCVARIANT_COMPARE_OPT_NUMBER;
+    }
+
+    double result = 0.0L;
+    result = purc_variant_compare_ex(argv[0], argv[1], flag);
+    return purc_variant_make_number(result);
+
+failed:
+    if (silently)
+        return purc_variant_make_undefined();
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+fetchstr_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
+
+    const char *encoding = NULL;
+    uint64_t length;
+    int64_t offset = 0;
+
+    if (nr_args < 3) {
+        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    if (!purc_variant_is_bsequence(argv[0])) {
+        pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    if ((encoding = purc_variant_get_string_const(argv[1])) == NULL) {
+        pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    if (!purc_variant_cast_to_ulongint(argv[2], &length, false)) {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
+
+    if (nr_args >= 3) {
+        if (!purc_variant_cast_to_longint(argv[3], &offset, false)) {
+            pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+            goto failed;
+        }
+    }
+
+    const unsigned char *bytes;
+    size_t nr_bytes;
+    bytes = purc_variant_get_bytes_const(argv[0], &nr_bytes);
+
+    if (offset > 0 && (uint64_t)offset > nr_bytes) {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
+
+    if (offset < 0 &&  (uint64_t)-offset > nr_bytes) {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
+
+    if (offset < 0)
+        offset = nr_bytes + offset;
+
+    if (offset + length > nr_bytes) {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
+
+    if (length == 0)
+        return purc_variant_make_string_static("", false);
+
+    bytes += offset;
+    char *str = NULL;
+    size_t str_len;
+    if (strcmp(encoding, PURC_KW_utf8) == 0) {
+        return purc_variant_make_string_ex((const char *)bytes, length, !silently);
+    }
+    else if (strcmp(encoding, PURC_KW_utf16) == 0) {
+        str = pcutils_string_decode_utf16(bytes, length, &str_len, silently);
+    }
+    else if (strcmp(encoding, PURC_KW_utf32) == 0) {
+        str = pcutils_string_decode_utf32(bytes, length, &str_len, silently);
+    }
+    else {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
+
+    if (str == NULL) {
+        pcinst_set_error(PURC_ERROR_BAD_ENCODING);
+        goto failed;
+    }
+
+    return purc_variant_make_string_reuse_buff(str, str_len, !silently);
+
+failed:
+    if (silently)
+        return purc_variant_make_undefined();
+
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+fetchreal_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
+
+    const char *format = NULL;
+    size_t length = 0;
+    int64_t offset = 0;
+
+    if (nr_args < 2) {
+        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    if (!purc_variant_is_bsequence(argv[0])) {
+        pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    if ((format = purc_variant_get_string_const(argv[1])) == NULL) {
+        pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    // parse format and get the length of real number.
+    if (strcmp(format, PURC_KW_i8) == 0) {
+        length = 1;
+    }
+
+    if (nr_args >= 2) {
+        if (!purc_variant_cast_to_longint(argv[3], &offset, false)) {
+            pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+            goto failed;
+        }
+    }
+
+    const unsigned char *bytes;
+    size_t nr_bytes;
+    bytes = purc_variant_get_bytes_const(argv[0], &nr_bytes);
+
+    if (offset > 0 && (uint64_t)offset > nr_bytes) {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
+
+    if (offset < 0 &&  (uint64_t)-offset > nr_bytes) {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
+
+    if (offset < 0)
+        offset = nr_bytes + offset;
+
+    if (offset + length > nr_bytes) {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
+
+    return purc_variant_make_number((double)*bytes);
+
+failed:
+    if (silently)
+        return purc_variant_make_undefined();
+
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+shuffle_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
+
+    if (nr_args < 1) {
+        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    if (!(purc_variant_is_array(argv[0]) || purc_variant_is_set(argv[0]))) {
+        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    // TODO
+
+    return purc_variant_make_boolean(true);
+
+failed:
+    return purc_variant_make_boolean(false);
+}
+
 typedef struct __dvobjs_ejson_arg {
     bool asc;
     bool caseless;
@@ -537,58 +812,22 @@ sort_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     return ret_var;
 }
 
-static purc_variant_t
-compare_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
-{
-    UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
-
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
-    const char *option = NULL;
-    double compare = 0.0L;
-    unsigned int flag = PCVARIANT_COMPARE_OPT_AUTO;
-
-    if ((argv == NULL) || (nr_args < 3)) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
-    }
-
-    if ((argv[2] != PURC_VARIANT_INVALID) &&
-         (!purc_variant_is_string (argv[2]))) {
-        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
-    }
-
-    option = purc_variant_get_string_const (argv[2]);
-
-    if (strcasecmp (option, STRING_COMP_MODE_CASELESS) == 0)
-        flag = PCVARIANT_COMPARE_OPT_CASELESS;
-    else if (strcasecmp (option, STRING_COMP_MODE_CASE) == 0)
-        flag = PCVARIANT_COMPARE_OPT_CASE;
-    else if (strcasecmp (option, STRING_COMP_MODE_NUMBER) == 0)
-        flag = PCVARIANT_COMPARE_OPT_NUMBER;
-    else
-        flag = PCVARIANT_COMPARE_OPT_AUTO;
-
-    compare = purc_variant_compare_ex (argv[0], argv[1], flag);
-
-    ret_var = purc_variant_make_number (compare);
-
-    return ret_var;
-}
-
 purc_variant_t purc_dvobj_ejson_new(void)
 {
     static struct purc_dvobj_method method [] = {
-        {"type",        type_getter, NULL},
-        {"count",       count_getter, NULL},
-        {"numberify",   numberify_getter, NULL},
-        {"booleanize",  booleanize_getter, NULL},
-        {"stringify",   stringify_getter, NULL},
-        {"serialize",   serialize_getter, NULL},
-        {"sort",        sort_getter, NULL},
-        {"compare",     compare_getter, NULL}
+        { "type",       type_getter, NULL },
+        { "count",      count_getter, NULL },
+        { "numberify",  numberify_getter, NULL },
+        { "booleanize", booleanize_getter, NULL },
+        { "stringify",  stringify_getter, NULL },
+        { "serialize",  serialize_getter, NULL },
+        { "parse",      parse_getter, NULL },
+        { "isequal",    isequal_getter, NULL },
+        { "compare",    compare_getter, NULL },
+        { "fetchstr",   fetchstr_getter, NULL },
+        { "fetchreal",  fetchreal_getter, NULL },
+        { "shuffle",    shuffle_getter, NULL },
+        { "sort",       sort_getter, NULL },
     };
 
     if (keywords2atoms[0].atom == 0) {

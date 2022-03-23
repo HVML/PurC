@@ -245,7 +245,7 @@ static const char utf8_skip_data[256] = {
 const char * const _pcutils_utf8_skip = utf8_skip_data;
 
 size_t
-pcutils_string_utf8_chars (const char *p, ssize_t max)
+pcutils_string_utf8_chars(const char *p, ssize_t max)
 {
     size_t nr_chars = 0;
     const char *start = p;
@@ -275,5 +275,31 @@ pcutils_string_utf8_chars (const char *p, ssize_t max)
     }
 
     return nr_chars;
+}
+
+char *
+pcutils_string_decode_utf16(const unsigned char* bytes, size_t max_len,
+        size_t *str_len, bool silently)
+{
+    (void)bytes;
+    (void)max_len;
+    (void)str_len;
+    (void)silently;
+
+    // TODO
+    return NULL;
+}
+
+char *
+pcutils_string_decode_utf32(const unsigned char* bytes, size_t max_len,
+        size_t *str_len, bool silently)
+{
+    (void)bytes;
+    (void)max_len;
+    (void)str_len;
+    (void)silently;
+
+    // TODO
+    return NULL;
 }
 

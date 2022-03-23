@@ -523,6 +523,14 @@ PCA_EXPORT bool
 pcutils_string_check_utf8(const char *str, ssize_t max_len,
         size_t *nr_chars, const char **end);
 
+PCA_EXPORT char *
+pcutils_string_decode_utf16(const unsigned char* bytes, size_t max_len,
+        size_t *str_len, bool silently);
+
+PCA_EXPORT char *
+pcutils_string_decode_utf32(const unsigned char* bytes, size_t max_len,
+        size_t *str_len, bool silently);
+
 /** Returns the basename of fname. The result is a pointer into fname. */
 PCA_EXPORT const char *
 pcutils_basename(const char* fname);
