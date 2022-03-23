@@ -445,7 +445,10 @@ struct pcvcm_node* pcvcm_node_new_call_setter (struct pcvcm_node* variable,
 #define WRITE_VARIANT()                                                     \
     do {                                                                    \
         size_t len_expected = 0;                                            \
-        purc_variant_serialize(v, rws, 0, PCVARIANT_SERIALIZE_OPT_PLAIN,    \
+        purc_variant_serialize(v, rws, 0,                                   \
+                PCVARIANT_SERIALIZE_OPT_REAL_EJSON |                        \
+                PCVARIANT_SERIALIZE_OPT_BSEQUENCE_BASE64 |                  \
+                PCVARIANT_SERIALIZE_OPT_PLAIN,                              \
                 &len_expected);                                             \
     } while (false)
 

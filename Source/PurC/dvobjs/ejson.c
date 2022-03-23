@@ -26,18 +26,13 @@
 
 #include "private/instance.h"
 #include "private/errors.h"
+#include "private/atom-buckets.h"
 #include "private/dvobjs.h"
 #include "purc-variant.h"
 #include "helper.h"
 
 #include <assert.h>
 #include <stdlib.h>
-
-typedef struct __dvobjs_ejson_arg {
-    bool asc;
-    bool caseless;
-    pcutils_map *map;
-} dvobjs_ejson_arg;
 
 static purc_variant_t
 type_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
@@ -246,6 +241,61 @@ fatal:
     return PURC_VARIANT_INVALID;
 }
 
+enum {
+#define _KW_real_json       "real-json"
+    K_KW_real_json,
+#define _KW_real_ejson      "real-ejson"
+    K_KW_real_ejson,
+#define _KW_runtime_null    "runtime-null"
+    K_KW_runtime_null,
+#define _KW_runtime_string  "runtime-string"
+    K_KW_runtime_string,
+#define _KW_plain           "plain"
+    K_KW_plain,
+#define _KW_spaced          "spaced"
+    K_KW_spaced,
+#define _KW_pretty          "pretty"
+    K_KW_pretty,
+#define _KW_pretty_tab      "pretty-tab"
+    K_KW_pretty_tab,
+#define _KW_bseq_hex_string "bseq-hex-string"
+    K_KW_bseq_hex_string,
+#define _KW_bseq_hex        "bseq-hex"
+    K_KW_bseq_hex,
+#define _KW_bseq_bin        "bseq-bin"
+    K_KW_bseq_bin,
+#define _KW_bseq_bin_dots   "bseq-bin-dots"
+    K_KW_bseq_bin_dots,
+#define _KW_bseq_base64     "bseq-base64"
+    K_KW_bseq_base64,
+#define _KW_no_trailing_zero    "no-trailing-zero"
+    K_KW_no_trailing_zero,
+#define _KW_no_slash_escape     "no-slash-escape"
+    K_KW_no_slash_escape,
+};
+
+static struct keyword_to_atom {
+    const char *    keyword;
+    unsigned int    flag;
+    purc_atom_t     atom;
+} keywords2atoms [] = {
+    { _KW_real_json,        PCVARIANT_SERIALIZE_OPT_REAL_JSON, 0 },
+    { _KW_real_ejson,       PCVARIANT_SERIALIZE_OPT_REAL_EJSON, 0 },
+    { _KW_runtime_null,     PCVARIANT_SERIALIZE_OPT_RUNTIME_NULL, 0 },
+    { _KW_runtime_string,   PCVARIANT_SERIALIZE_OPT_RUNTIME_STRING, 0 },
+    { _KW_plain,            PCVARIANT_SERIALIZE_OPT_PLAIN, 0 },
+    { _KW_spaced,           PCVARIANT_SERIALIZE_OPT_SPACED, 0 },
+    { _KW_pretty,           PCVARIANT_SERIALIZE_OPT_PRETTY, 0 },
+    { _KW_pretty_tab,       PCVARIANT_SERIALIZE_OPT_PRETTY_TAB, 0 },
+    { _KW_bseq_hex_string,  PCVARIANT_SERIALIZE_OPT_BSEQUENCE_HEX_STRING, 0 },
+    { _KW_bseq_hex,         PCVARIANT_SERIALIZE_OPT_BSEQUENCE_HEX, 0 },
+    { _KW_bseq_bin,         PCVARIANT_SERIALIZE_OPT_BSEQUENCE_BIN, 0 },
+    { _KW_bseq_bin_dots,    PCVARIANT_SERIALIZE_OPT_BSEQUENCE_BIN_DOT, 0 },
+    { _KW_bseq_base64,      PCVARIANT_SERIALIZE_OPT_BSEQUENCE_BASE64, 0 },
+    { _KW_no_trailing_zero, PCVARIANT_SERIALIZE_OPT_NOZERO, 0 },
+    { _KW_no_slash_escape,  PCVARIANT_SERIALIZE_OPT_NOSLASHESCAPE, 0 },
+};
+
 static purc_variant_t
 serialize_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
@@ -272,6 +322,12 @@ serialize_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     return ret_var;
 }
+
+typedef struct __dvobjs_ejson_arg {
+    bool asc;
+    bool caseless;
+    pcutils_map *map;
+} dvobjs_ejson_arg;
 
 static int my_array_sort (purc_variant_t v1, purc_variant_t v2, void *ud)
 {
@@ -456,6 +512,15 @@ purc_variant_t purc_dvobj_ejson_new (void)
         {"sort",        sort_getter, NULL},
         {"compare",     compare_getter, NULL}
     };
+
+    if (keywords2atoms[0].atom == 0) {
+        for (size_t i = 0; i < PCA_TABLESIZE(keywords2atoms); i++) {
+            keywords2atoms[i].atom =
+                purc_atom_from_static_string_ex(ATOM_BUCKET_DVOBJ,
+                    keywords2atoms[i].keyword);
+        }
+
+    }
 
     return purc_dvobj_make_from_methods (method, PCA_TABLESIZE(method));
 }

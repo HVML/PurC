@@ -322,8 +322,20 @@ serialize_bsequence(purc_rwstream_t rws, const char* content,
     ssize_t nr_written = 0, n;
     size_t i;
 
-    switch (flags & PCVARIANT_SERIALIZE_OPT_BSEQUECE_MASK) {
-        case PCVARIANT_SERIALIZE_OPT_BSEQUECE_HEX:
+    switch (flags & PCVARIANT_SERIALIZE_OPT_BSEQUENCE_MASK) {
+        case PCVARIANT_SERIALIZE_OPT_BSEQUENCE_HEX_STRING:
+            MY_WRITE(rws, "\"", 1);
+            for (i = 0; i < sz_content; i++) {
+                unsigned char byte = (unsigned char)content[i];
+                char buff[2];
+                buff [0] = hex_chars[(byte >> 4) & 0x0f];
+                buff [1] = hex_chars[byte & 0x0f];
+                MY_WRITE(rws, buff, 2);
+            }
+            MY_WRITE(rws, "\"", 1);
+            break;
+
+        case PCVARIANT_SERIALIZE_OPT_BSEQUENCE_HEX:
             MY_WRITE(rws, "bx", 2);
             for (i = 0; i < sz_content; i++) {
                 unsigned char byte = (unsigned char)content[i];
@@ -334,7 +346,8 @@ serialize_bsequence(purc_rwstream_t rws, const char* content,
             }
             break;
 
-        case PCVARIANT_SERIALIZE_OPT_BSEQUECE_BIN:
+        case PCVARIANT_SERIALIZE_OPT_BSEQUENCE_BIN:
+        case PCVARIANT_SERIALIZE_OPT_BSEQUENCE_BIN_DOT:
             MY_WRITE(rws, "bb", 2);
             for (i = 0; i < sz_content; i++) {
                 unsigned char byte = (unsigned char)content[i];
@@ -347,7 +360,8 @@ serialize_bsequence(purc_rwstream_t rws, const char* content,
                         buff[k] = '0';
                     k++;
 
-                    if (flags & PCVARIANT_SERIALIZE_OPT_BSEQUENCE_BIN_DOT &&
+                    if ((flags & PCVARIANT_SERIALIZE_OPT_BSEQUENCE_MASK) ==
+                            PCVARIANT_SERIALIZE_OPT_BSEQUENCE_BIN_DOT &&
                             (j == 3 || (j == 7 && i != sz_content - 1))) {
                         buff[k] = '.';
                         k++;
@@ -358,7 +372,7 @@ serialize_bsequence(purc_rwstream_t rws, const char* content,
             }
             break;
 
-        case PCVARIANT_SERIALIZE_OPT_BSEQUECE_BASE64:
+        case PCVARIANT_SERIALIZE_OPT_BSEQUENCE_BASE64:
         default:
             MY_WRITE(rws, "b64", 3);
             n = serialize_bsequence_base64(rws, content, sz_content,
@@ -566,8 +580,10 @@ serialize_long_double(purc_rwstream_t rws, long double ld, int flags,
         }
 
         // append FL postfix
-        strcat(buf, "FL");
-        size += 2;
+        if (flags & PCVARIANT_SERIALIZE_OPT_REAL_EJSON) {
+            strcat(buf, "FL");
+            size += 2;
+        }
     }
 
     if (len_expected)
@@ -670,23 +686,22 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
 
     switch (value->type) {
         case PURC_VARIANT_TYPE_UNDEFINED:
-            content = "undefined";
-            // sz_content = 9;
+            if (flags & PCVARIANT_SERIALIZE_OPT_RUNTIME_STRING)
+                content = "\"<undefined>\"";
+            else
+                content = "null";
             break;
 
         case PURC_VARIANT_TYPE_NULL:
             content = "null";
-            // sz_content = 4;
             break;
 
         case PURC_VARIANT_TYPE_BOOLEAN:
             if (value->b) {
                 content = "true";
-                // sz_content = 4;
             }
             else {
                 content = "false";
-                // sz_content = 5;
             }
             break;
 
@@ -709,8 +724,7 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
                 goto failed;
             if (n == 0) {
                 n = serialize_double(rws, value->d, flags,
-                        format_double,
-                        len_expected);
+                        format_double, len_expected);
                 if (n < 0)
                     goto failed;
             }
@@ -720,20 +734,36 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
             break;
 
         case PURC_VARIANT_TYPE_LONGINT:
-            if (snprintf(buff, sizeof(buff), "%lldL",
+        {
+            const char *format;
+            if (flags & PCVARIANT_SERIALIZE_OPT_REAL_EJSON)
+                format = "%lldL";
+            else
+                format = "%lld";
+
+            if (snprintf(buff, sizeof(buff), format,
                         (long long int)value->i64) < 0)
                 goto failed;
             content = buff;
             // sz_content = strlen(buff);
             break;
+        }
 
         case PURC_VARIANT_TYPE_ULONGINT:
-            if (snprintf(buff, sizeof(buff), "%lluUL",
+        {
+            const char *format;
+            if (flags & PCVARIANT_SERIALIZE_OPT_REAL_EJSON)
+                format = "%lluUL";
+            else
+                format = "%llu";
+
+            if (snprintf(buff, sizeof(buff), format,
                         (long long unsigned)value->u64) < 0)
                 goto failed;
             content = buff;
             // sz_content = strlen(buff);
             break;
+        }
 
         case PURC_VARIANT_TYPE_LONGDOUBLE:
             n = serialize_long_double(rws, value->ld, flags,
@@ -784,13 +814,17 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
             break;
 
         case PURC_VARIANT_TYPE_DYNAMIC:
-            content = "<dynamic>";
-            // sz_content = 9;
+            if (flags & PCVARIANT_SERIALIZE_OPT_RUNTIME_STRING)
+                content = "\"<dynamic>\"";
+            else
+                content = "null";
             break;
 
         case PURC_VARIANT_TYPE_NATIVE:
-            content = "<native>";
-            // sz_content = 8;
+            if (flags & PCVARIANT_SERIALIZE_OPT_RUNTIME_STRING)
+                content = "\"<native>\"";
+            else
+                content = "null";
             break;
 
         case PURC_VARIANT_TYPE_OBJECT:

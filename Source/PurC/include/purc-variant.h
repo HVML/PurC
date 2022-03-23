@@ -1585,82 +1585,113 @@ purc_variant_compare_ex(purc_variant_t v1,
         purc_variant_t v2, purc_variant_compare_opt opt);
 
 /**
- * A flag for the purc_variant_serialize() function which causes the output
- * to have no extra whitespace or formatting applied.
+ * A flag for the purc_variant_serialize() function which serializes
+ * all real numbers as JSON numbers.
  */
-#define PCVARIANT_SERIALIZE_OPT_PLAIN           0x0000
+#define PCVARIANT_SERIALIZE_OPT_REAL_JSON               0x00000000
 
 /**
- * A flag for the purc_variant_serialize() function which causes the output to
- * have minimal whitespace inserted to make things slightly more readable.
+ * A flag for the purc_variant_serialize() function which serializes
+ * a real numbers by using EJSON notation.
  */
-#define PCVARIANT_SERIALIZE_OPT_SPACED          0x0001
+#define PCVARIANT_SERIALIZE_OPT_REAL_EJSON              0x00000001
 
 /**
- * A flag for the purc_variant_serialize() function which causes
- * the output to be formatted.
- *
- * See the "Two Space Tab" option at http://jsonformatter.curiousconcept.com/
- * for an example of the format.
+ * A flag for the purc_variant_serialize() function which serializes
+ * all runtime types (undefined, dynamic, and native) as JSON null.
  */
-#define PCVARIANT_SERIALIZE_OPT_PRETTY          0x0002
+#define PCVARIANT_SERIALIZE_OPT_RUNTIME_NULL            0x00000000
+
+/**
+ * A flag for the purc_variant_serialize() function which serializes
+ * all runtime types (undefined, dynamic, and native) as placeholders
+ * in JSON strings.
+ */
+#define PCVARIANT_SERIALIZE_OPT_RUNTIME_STRING          0x00000002
 
 /**
  * A flag for the purc_variant_serialize() function which causes
  * the output to drop trailing zero for float values.
  */
-#define PCVARIANT_SERIALIZE_OPT_NOZERO          0x0004
+#define PCVARIANT_SERIALIZE_OPT_NOZERO                  0x00000004
 
 /**
  * A flag for the purc_variant_serialize() function which causes
- * the output to print uniqkeys for set
+ * the output to not escape the forward slashes ('/').
  */
-#define PCVARIANT_SERIALIZE_OPT_UNIQKEYS        0x0008
+#define PCVARIANT_SERIALIZE_OPT_NOSLASHESCAPE           0x00000008
+
+/**
+ * A flag for the purc_variant_serialize() function which
+ * causes the output to have no extra whitespace or formatting applied.
+ */
+#define PCVARIANT_SERIALIZE_OPT_PLAIN                   0x00000000
 
 /**
  * A flag for the purc_variant_serialize() function which causes
- * the output to be formatted.
+ * the output to have minimal whitespace inserted to make things slightly
+ * more readable.
+ */
+#define PCVARIANT_SERIALIZE_OPT_SPACED                  0x00000010
+
+/**
+ * A flag for the purc_variant_serialize() function which causes
+ * the output to be formatted by using "Two Space Tab".
  *
- * Instead of a "Two Space Tab" this gives a single tab character.
+ * See the "Two Space Tab" option at <http://jsonformatter.curiousconcept.com>
+ * for an example of the format.
  */
-#define PCVARIANT_SERIALIZE_OPT_PRETTY_TAB      0x0010
+#define PCVARIANT_SERIALIZE_OPT_PRETTY                  0x00000020
 
 /**
  * A flag for the purc_variant_serialize() function which causes
- * the output to not escape the forward slashes.
+ * the output to be formatted by using a single tab character instead of
+ * "Two Space Tab".
  */
-#define PCVARIANT_SERIALIZE_OPT_NOSLASHESCAPE   0x0020
+#define PCVARIANT_SERIALIZE_OPT_PRETTY_TAB              0x00000040
 
-#define PCVARIANT_SERIALIZE_OPT_BSEQUECE_MASK   0x0F00
+#define PCVARIANT_SERIALIZE_OPT_BSEQUENCE_MASK          0x00000F00
+/**
+ * A flag for the purc_variant_serialize() function which causes
+ * the output to have dot for binary sequence.
+ */
+#define PCVARIANT_SERIALIZE_OPT_BSEQUENCE_HEX_STRING    0x00000000
+
 /**
  * A flag for the purc_variant_serialize() function which causes
  * the output to use hexadecimal characters for byte sequence.
  */
-#define PCVARIANT_SERIALIZE_OPT_BSEQUECE_HEX    0x0100
+#define PCVARIANT_SERIALIZE_OPT_BSEQUENCE_HEX           0x00000100
 
 /**
  * A flag for the purc_variant_serialize() function which causes
  * the output to use binary characters for byte sequence.
  */
-#define PCVARIANT_SERIALIZE_OPT_BSEQUECE_BIN    0x0200
+#define PCVARIANT_SERIALIZE_OPT_BSEQUENCE_BIN           0x00000200
 
 /**
  * A flag for the purc_variant_serialize() function which causes
  * the output to use BASE64 encoding for byte sequence.
  */
-#define PCVARIANT_SERIALIZE_OPT_BSEQUECE_BASE64 0x0300
+#define PCVARIANT_SERIALIZE_OPT_BSEQUENCE_BASE64        0x00000300
 
 /**
  * A flag for the purc_variant_serialize() function which causes
  * the output to have dot for binary sequence.
  */
-#define PCVARIANT_SERIALIZE_OPT_BSEQUENCE_BIN_DOT       0x0040
+#define PCVARIANT_SERIALIZE_OPT_BSEQUENCE_BIN_DOT       0x00000400
+
+/**
+ * A flag for the purc_variant_serialize() function which causes
+ * the output to print unique keys of a set.
+ */
+#define PCVARIANT_SERIALIZE_OPT_UNIQKEYS                0x10000000
 
 /**
  * A flag for the purc_variant_serialize() function which causes
  * the function ignores the output errors.
  */
-#define PCVARIANT_SERIALIZE_OPT_IGNORE_ERRORS           0x0080
+#define PCVARIANT_SERIALIZE_OPT_IGNORE_ERRORS           0x20000000
 
 /**
  * Serialize a variant value
