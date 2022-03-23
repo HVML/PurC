@@ -352,10 +352,6 @@ uname_prt_getter(purc_variant_t root,
             parts_len = sizeof(_KW_default) - 1;
             atom = keywords2atoms[K_KW_default].atom;
         }
-        else if (parts_len > LEN_MAX_KEYWORD) {
-            purc_set_error(PURC_ERROR_INVALID_VALUE);
-            goto failed;
-        }
     }
     else {
         parts = _KW_default;
@@ -625,7 +621,11 @@ time_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
 
+#ifndef NDEBUG
+    struct timeval timeval = {};
+#else
     struct timeval timeval;
+#endif
 
     if (nr_args < 1) {
         purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
@@ -933,7 +933,7 @@ locale_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     categories = pcutils_trim_spaces(categories, &categories_len);
-    if (categories_len == 0 || categories_len > LEN_MAX_KEYWORD) {
+    if (categories_len == 0) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto failed;
     }

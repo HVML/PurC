@@ -303,7 +303,7 @@ max_embedded_levels_setter(purc_variant_t root,
 
     uint64_t u64;
     if (purc_variant_cast_to_ulongint(argv[0], &u64, false) &&
-            u64 > 0 && u64 <= USHRT_MAX) {
+            u64 > 0 && u64 <= MAX_EMBEDDED_LEVELS) {
         struct purc_hvml_ctrl_props *ctrl_props = hvml_ctrl_props(root);
         assert(ctrl_props);
 
@@ -486,7 +486,7 @@ purc_dvobj_hvml_new(const struct purc_hvml_ctrl_props **ctrl_props)
 
     my_props->max_iteration_count = UINT64_MAX;
     my_props->max_recursion_depth = UINT16_MAX;
-    my_props->max_embedded_levels = MAX_EMBEDDED_LEVELS;
+    my_props->max_embedded_levels = DEF_EMBEDDED_LEVELS;
     my_props->timeout.tv_sec = DEFAULT_HVML_TIMEOUT_SEC;
     my_props->timeout.tv_nsec = DEFAULT_HVML_TIMEOUT_NSEC;
 

@@ -26,6 +26,7 @@
 
 #include "private/instance.h"
 #include "private/errors.h"
+#include "private/atom-buckets.h"
 #include "private/dvobjs.h"
 #include "purc-variant.h"
 #include "helper.h"
@@ -33,11 +34,9 @@
 #include <assert.h>
 #include <stdlib.h>
 
-typedef struct __dvobjs_ejson_arg {
-    bool asc;
-    bool caseless;
-    pcutils_map *map;
-} dvobjs_ejson_arg;
+#define LEN_INI_SERIALIZE_BUF   128
+#define LEN_MAX_SERIALIZE_BUF   4096
+#define LEN_MAX_KEYWORD         64
 
 static purc_variant_t
 type_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
@@ -246,6 +245,63 @@ fatal:
     return PURC_VARIANT_INVALID;
 }
 
+enum {
+#define _KW_real_json       "real-json"
+    K_KW_real_json,
+#define _KW_real_ejson      "real-ejson"
+    K_KW_real_ejson,
+#define _KW_runtime_null    "runtime-null"
+    K_KW_runtime_null,
+#define _KW_runtime_string  "runtime-string"
+    K_KW_runtime_string,
+#define _KW_plain           "plain"
+    K_KW_plain,
+#define _KW_spaced          "spaced"
+    K_KW_spaced,
+#define _KW_pretty          "pretty"
+    K_KW_pretty,
+#define _KW_pretty_tab      "pretty-tab"
+    K_KW_pretty_tab,
+#define _KW_bseq_hex_string "bseq-hex-string"
+    K_KW_bseq_hex_string,
+#define _KW_bseq_hex        "bseq-hex"
+    K_KW_bseq_hex,
+#define _KW_bseq_bin        "bseq-bin"
+    K_KW_bseq_bin,
+#define _KW_bseq_bin_dots   "bseq-bin-dots"
+    K_KW_bseq_bin_dots,
+#define _KW_bseq_base64     "bseq-base64"
+    K_KW_bseq_base64,
+#define _KW_no_trailing_zero    "no-trailing-zero"
+    K_KW_no_trailing_zero,
+#define _KW_no_slash_escape     "no-slash-escape"
+    K_KW_no_slash_escape,
+};
+
+#define _KW_DELIMITERS  " \t\n\v\f\r"
+
+static struct keyword_to_atom {
+    const char *    keyword;
+    unsigned int    flag;
+    purc_atom_t     atom;
+} keywords2atoms [] = {
+    { _KW_real_json,        PCVARIANT_SERIALIZE_OPT_REAL_JSON, 0 },
+    { _KW_real_ejson,       PCVARIANT_SERIALIZE_OPT_REAL_EJSON, 0 },
+    { _KW_runtime_null,     PCVARIANT_SERIALIZE_OPT_RUNTIME_NULL, 0 },
+    { _KW_runtime_string,   PCVARIANT_SERIALIZE_OPT_RUNTIME_STRING, 0 },
+    { _KW_plain,            PCVARIANT_SERIALIZE_OPT_PLAIN, 0 },
+    { _KW_spaced,           PCVARIANT_SERIALIZE_OPT_SPACED, 0 },
+    { _KW_pretty,           PCVARIANT_SERIALIZE_OPT_PRETTY, 0 },
+    { _KW_pretty_tab,       PCVARIANT_SERIALIZE_OPT_PRETTY_TAB, 0 },
+    { _KW_bseq_hex_string,  PCVARIANT_SERIALIZE_OPT_BSEQUENCE_HEX_STRING, 0 },
+    { _KW_bseq_hex,         PCVARIANT_SERIALIZE_OPT_BSEQUENCE_HEX, 0 },
+    { _KW_bseq_bin,         PCVARIANT_SERIALIZE_OPT_BSEQUENCE_BIN, 0 },
+    { _KW_bseq_bin_dots,    PCVARIANT_SERIALIZE_OPT_BSEQUENCE_BIN_DOT, 0 },
+    { _KW_bseq_base64,      PCVARIANT_SERIALIZE_OPT_BSEQUENCE_BASE64, 0 },
+    { _KW_no_trailing_zero, PCVARIANT_SERIALIZE_OPT_NOZERO, 0 },
+    { _KW_no_slash_escape,  PCVARIANT_SERIALIZE_OPT_NOSLASHESCAPE, 0 },
+};
+
 static purc_variant_t
 serialize_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
@@ -253,25 +309,104 @@ serialize_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(root);
     UNUSED_PARAM(silently);
 
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
-    purc_rwstream_t serialize = NULL;
-    char *buf = NULL;
-    size_t sz_stream = 0;
+    const char *options = NULL;
+    size_t options_len;
+    unsigned int flags = PCVARIANT_SERIALIZE_OPT_PLAIN;
+
+    purc_variant_t vrt;
 
     if (nr_args == 0) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+        vrt = purc_variant_make_undefined();
+        if (vrt == PURC_VARIANT_INVALID) {
+            goto fatal;
+        }
+    }
+    else {
+        vrt = argv[0];
+
+        if (nr_args > 1) {
+            options = purc_variant_get_string_const_ex(argv[1], &options_len);
+            if (options) {
+                options = pcutils_trim_spaces(options, &options_len);
+                if (options_len == 0) {
+                    options = NULL;
+                }
+            }
+        }
     }
 
-    serialize = purc_rwstream_new_buffer (32, STREAM_SIZE);
-    purc_variant_serialize (argv[0], serialize, 3, 0, &sz_stream);
-    buf = purc_rwstream_get_mem_buffer (serialize, &sz_stream);
-    purc_rwstream_destroy (serialize);
+    if (options) {
+        size_t length = 0;
+        const char *option = pcutils_get_next_token_len(options, options_len,
+                _KW_DELIMITERS, &length);
 
-    ret_var = purc_variant_make_string_reuse_buff (buf, sz_stream + 1, false);
+        do {
 
-    return ret_var;
+            if (length > 0 || length <= LEN_MAX_KEYWORD) {
+                purc_atom_t atom;
+
+                /* TODO: use strndupa if it is available */
+                char *tmp = strndup(option, length);
+                atom = purc_atom_try_string_ex(ATOM_BUCKET_DVOBJ, tmp);
+                free(tmp);
+
+                if (atom > 0) {
+                    size_t i;
+                    for (i = 0; i < PCA_TABLESIZE(keywords2atoms); i++) {
+                        if (atom == keywords2atoms[i].atom) {
+                            if (keywords2atoms[i].flag &
+                                    PCVARIANT_SERIALIZE_OPT_BSEQUENCE_MASK) {
+                                // clear the byte sequence mask
+                                flags &= ~PCVARIANT_SERIALIZE_OPT_BSEQUENCE_MASK;
+                            }
+
+                            flags |= keywords2atoms[i].flag;
+                        }
+                    }
+                }
+            }
+
+            if (options_len <= length)
+                break;
+
+            options_len -= length;
+            option = pcutils_get_next_token_len(option + length, options_len,
+                    _KW_DELIMITERS, &length);
+        } while (option);
+    }
+
+    purc_rwstream_t my_stream;
+    ssize_t n;
+
+    my_stream = purc_rwstream_new_buffer(LEN_INI_SERIALIZE_BUF,
+            LEN_MAX_SERIALIZE_BUF);
+    n = purc_variant_serialize(vrt, my_stream, 0, flags, NULL);
+    if (nr_args == 0)
+        purc_variant_unref(vrt);
+
+    if (n == -1) {
+        goto fatal;
+    }
+
+    purc_rwstream_write(my_stream, "\0", 1);
+
+    char *buf = NULL;
+    size_t sz_content, sz_buffer;
+    buf = purc_rwstream_get_mem_buffer_ex(my_stream,
+            &sz_content, &sz_buffer, true);
+    purc_rwstream_destroy(my_stream);
+
+    return purc_variant_make_string_reuse_buff(buf, sz_buffer, false);
+
+fatal:
+    return PURC_VARIANT_INVALID;
 }
+
+typedef struct __dvobjs_ejson_arg {
+    bool asc;
+    bool caseless;
+    pcutils_map *map;
+} dvobjs_ejson_arg;
 
 static int my_array_sort (purc_variant_t v1, purc_variant_t v2, void *ud)
 {
@@ -443,8 +578,7 @@ compare_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     return ret_var;
 }
 
-// only for test now.
-purc_variant_t purc_dvobj_ejson_new (void)
+purc_variant_t purc_dvobj_ejson_new(void)
 {
     static struct purc_dvobj_method method [] = {
         {"type",        type_getter, NULL},
@@ -457,5 +591,14 @@ purc_variant_t purc_dvobj_ejson_new (void)
         {"compare",     compare_getter, NULL}
     };
 
-    return purc_dvobj_make_from_methods (method, PCA_TABLESIZE(method));
+    if (keywords2atoms[0].atom == 0) {
+        for (size_t i = 0; i < PCA_TABLESIZE(keywords2atoms); i++) {
+            keywords2atoms[i].atom =
+                purc_atom_from_static_string_ex(ATOM_BUCKET_DVOBJ,
+                    keywords2atoms[i].keyword);
+        }
+
+    }
+
+    return purc_dvobj_make_from_methods(method, PCA_TABLESIZE(method));
 }

@@ -512,7 +512,9 @@ TEST(dvobjs, time)
             }
 
             if (test_cases[i].errcode) {
-                EXPECT_EQ(purc_get_last_error(), test_cases[i].errcode);
+                if (purc_get_last_error() != PURC_ERROR_ACCESS_DENIED) {
+                    EXPECT_EQ(purc_get_last_error(), test_cases[i].errcode);
+                }
             }
 
             purc_variant_unref(expected);
