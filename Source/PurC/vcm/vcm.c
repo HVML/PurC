@@ -1203,6 +1203,9 @@ purc_variant_t pcvcm_eval_ex (struct pcvcm_node* tree,
     if (ret == PURC_VARIANT_INVALID && silently) {
         ret = purc_variant_make_undefined();
     }
+#ifndef NDEBUG
+    PRINT_VARIANT(ret);
+#endif
     return ret;
 }
 
