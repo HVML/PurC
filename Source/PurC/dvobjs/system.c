@@ -625,7 +625,11 @@ time_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
 
+#ifndef NDEBUG
+    struct timeval timeval = {};
+#else
     struct timeval timeval;
+#endif
 
     if (nr_args < 1) {
         purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
