@@ -465,7 +465,8 @@ TEST(variant, pcvariant_ulongint)
     purc_rwstream_seek(my_rws, 0, SEEK_SET);
     size_t len_expected = 0;
     ssize_t n = purc_variant_serialize(value, my_rws,
-            0, PCVARIANT_SERIALIZE_OPT_NOZERO, &len_expected);
+            0, PCVARIANT_SERIALIZE_OPT_REAL_EJSON | PCVARIANT_SERIALIZE_OPT_NOZERO,
+            &len_expected);
     ASSERT_GT(n, 0);
 
     buf[n] = 0;
@@ -484,7 +485,8 @@ TEST(variant, pcvariant_ulongint)
     purc_rwstream_seek(my_rws, 0, SEEK_SET);
     len_expected = 0;
     n = purc_variant_serialize(value, my_rws,
-            0, PCVARIANT_SERIALIZE_OPT_NOZERO, &len_expected);
+            0, PCVARIANT_SERIALIZE_OPT_REAL_EJSON | PCVARIANT_SERIALIZE_OPT_NOZERO,
+            &len_expected);
     ASSERT_GT(n, 0);
 
     buf[n] = 0;
@@ -521,7 +523,8 @@ TEST(variant, pcvariant_longint)
     purc_rwstream_seek(my_rws, 0, SEEK_SET);
     size_t len_expected = 0;
     ssize_t n = purc_variant_serialize(value, my_rws,
-            0, PCVARIANT_SERIALIZE_OPT_NOZERO, &len_expected);
+            0, PCVARIANT_SERIALIZE_OPT_REAL_EJSON | PCVARIANT_SERIALIZE_OPT_NOZERO,
+            &len_expected);
     ASSERT_GT(n, 0);
 
     buf[n] = 0;
@@ -541,7 +544,8 @@ TEST(variant, pcvariant_longint)
     purc_rwstream_seek(my_rws, 0, SEEK_SET);
     len_expected = 0;
     n = purc_variant_serialize(value, my_rws,
-            0, PCVARIANT_SERIALIZE_OPT_NOZERO, &len_expected);
+            0, PCVARIANT_SERIALIZE_OPT_REAL_EJSON | PCVARIANT_SERIALIZE_OPT_NOZERO,
+            &len_expected);
     ASSERT_GT(n, 0);
 
     buf[n] = 0;
@@ -578,7 +582,8 @@ TEST(variant, pcvariant_longdouble)
 
     size_t len_expected = 0;
     ssize_t n = purc_variant_serialize(value, my_rws,
-            0, PCVARIANT_SERIALIZE_OPT_NOZERO, &len_expected);
+            0, PCVARIANT_SERIALIZE_OPT_REAL_EJSON | PCVARIANT_SERIALIZE_OPT_NOZERO,
+            &len_expected);
     ASSERT_GT(n, 0);
 
     buf[n] = 0;
