@@ -219,7 +219,7 @@ TEST(dvobjs, dvobjs_file_bin_head)
     param[0] = purc_variant_make_string ("/etc/passwd", false);
     param[1] = purc_variant_make_number (0);
     ret_var = func (NULL, 2, param, false);
-    ASSERT_EQ(purc_variant_sequence_length(ret_var), filestat.st_size);
+    ASSERT_EQ(purc_variant_bsequence_length(ret_var), filestat.st_size);
     purc_variant_unref(param[0]);
     purc_variant_unref(param[1]);
     purc_variant_unref(ret_var);
@@ -228,7 +228,7 @@ TEST(dvobjs, dvobjs_file_bin_head)
     param[0] = purc_variant_make_string ("/etc/passwd", false);
     param[1] = purc_variant_make_number (3);
     ret_var = func (NULL, 2, param, false);
-    ASSERT_EQ(purc_variant_sequence_length(ret_var), 3);
+    ASSERT_EQ(purc_variant_bsequence_length(ret_var), 3);
     purc_variant_unref(param[0]);
     purc_variant_unref(param[1]);
     purc_variant_unref(ret_var);
@@ -237,7 +237,7 @@ TEST(dvobjs, dvobjs_file_bin_head)
     param[0] = purc_variant_make_string ("/etc/passwd", false);
     param[1] = purc_variant_make_number (-3);
     ret_var = func (NULL, 2, param, false);
-    ASSERT_EQ(purc_variant_sequence_length(ret_var), filestat.st_size - 3);
+    ASSERT_EQ(purc_variant_bsequence_length(ret_var), filestat.st_size - 3);
     purc_variant_unref(param[0]);
     purc_variant_unref(param[1]);
     purc_variant_unref(ret_var);
@@ -297,7 +297,7 @@ TEST(dvobjs, dvobjs_file_bin_tail)
     param[0] = purc_variant_make_string ("/etc/passwd", false);
     param[1] = purc_variant_make_number (0);
     ret_var = func (NULL, 2, param, false);
-    ASSERT_EQ(purc_variant_sequence_length(ret_var), filestat.st_size);
+    ASSERT_EQ(purc_variant_bsequence_length(ret_var), filestat.st_size);
     purc_variant_unref(param[0]);
     purc_variant_unref(param[1]);
     purc_variant_unref(ret_var);
@@ -306,7 +306,7 @@ TEST(dvobjs, dvobjs_file_bin_tail)
     param[0] = purc_variant_make_string ("/etc/passwd", false);
     param[1] = purc_variant_make_number (3);
     ret_var = func (NULL, 2, param, false);
-    ASSERT_EQ(purc_variant_sequence_length(ret_var), 3);
+    ASSERT_EQ(purc_variant_bsequence_length(ret_var), 3);
     purc_variant_unref(param[0]);
     purc_variant_unref(param[1]);
     purc_variant_unref(ret_var);
@@ -315,7 +315,7 @@ TEST(dvobjs, dvobjs_file_bin_tail)
     param[0] = purc_variant_make_string ("/etc/passwd", false);
     param[1] = purc_variant_make_number (-3);
     ret_var = func (NULL, 2, param, false);
-    ASSERT_EQ(purc_variant_sequence_length(ret_var), filestat.st_size - 3);
+    ASSERT_EQ(purc_variant_bsequence_length(ret_var), filestat.st_size - 3);
     purc_variant_unref(param[0]);
     purc_variant_unref(param[1]);
     purc_variant_unref(ret_var);
@@ -548,7 +548,7 @@ TEST(dvobjs, dvobjs_file_stream_readbytes)
 
     ASSERT_EQ(purc_variant_is_type (val,
                     PURC_VARIANT_TYPE_BSEQUENCE), true);
-    ASSERT_EQ(purc_variant_sequence_length (val), 20);
+    ASSERT_EQ(purc_variant_bsequence_length (val), 20);
     purc_variant_unref(param[1]);
     purc_variant_unref(val);
 

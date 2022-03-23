@@ -1528,7 +1528,7 @@ compare_stringify (purc_variant_t v, char *stackbuffer, size_t size)
                 total = length;
             }
             else if (v->type == PURC_VARIANT_TYPE_BSEQUENCE) {
-                length = purc_variant_sequence_length (v);
+                length = purc_variant_bsequence_length (v);
                 total = length * 2;
             }
             else if (v->type == PURC_VARIANT_TYPE_ATOMSTRING) {
