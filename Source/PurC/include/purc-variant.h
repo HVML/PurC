@@ -1970,7 +1970,7 @@ purc_variant_booleanize(purc_variant_t value);
  *
  * Since: 0.0.3
  */
-PCA_EXPORT int
+PCA_EXPORT ssize_t
 purc_variant_stringify(char *buf, size_t len, purc_variant_t value);
 
 /**
@@ -1988,7 +1988,7 @@ purc_variant_stringify(char *buf, size_t len, purc_variant_t value);
  *
  * Since: 0.0.3
  */
-PCA_EXPORT int
+PCA_EXPORT ssize_t
 purc_variant_stringify_alloc(char **strp, purc_variant_t value);
 
 struct pcvar_listener;

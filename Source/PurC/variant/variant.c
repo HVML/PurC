@@ -2311,7 +2311,7 @@ do_stringify_buffer(void *arg, const char *src)
     buffer->curr += n;
 }
 
-int
+ssize_t
 purc_variant_stringify(char *buf, size_t len, purc_variant_t value)
 {
     struct stringify_buffer buffer = {
@@ -2339,7 +2339,7 @@ do_stringify_stringbuilder(void *arg, const char *src)
     pcutils_stringbuilder_snprintf(sb, "%s", src);
 }
 
-int
+ssize_t
 purc_variant_stringify_alloc(char **strp, purc_variant_t value)
 {
     struct pcutils_stringbuilder sb;
@@ -2351,20 +2351,19 @@ purc_variant_stringify_alloc(char **strp, purc_variant_t value)
 
     variant_stringify(&arg, value);
 
-    size_t total = sb.total;
+    ssize_t total = sb.total;
 
     if (sb.oom) {
-        total = (size_t)-1;
+        total = -1;
     } else {
         if (strp) {
             *strp = pcutils_stringbuilder_build(&sb);
             if (!*strp)
-                total = (size_t)-1;
+                total = -1;
         }
     }
 
     pcutils_stringbuilder_reset(&sb);
-
     return total;
 }
 

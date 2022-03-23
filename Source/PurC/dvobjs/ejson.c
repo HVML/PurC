@@ -1,6 +1,6 @@
 /*
  * @file ejson.c
- * @author Geng Yue
+ * @author Geng Yue, Vincent Wei
  * @date 2021/07/02
  * @brief The implementation of EJSON dynamic variant object.
  *
@@ -22,6 +22,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#undef NDEBUG
+
 #include "private/instance.h"
 #include "private/errors.h"
 #include "private/dvobjs.h"
@@ -38,25 +40,41 @@ typedef struct __dvobjs_ejson_arg {
 } dvobjs_ejson_arg;
 
 static purc_variant_t
-count_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+type_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(silently);
 
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
-    size_t number;
-
-    if ((argv == NULL) || (nr_args == 0)) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+    const char *type;
+    if (nr_args == 0) {
+        // treat as undefined
+        type = purc_variant_typename(PURC_VARIANT_TYPE_UNDEFINED);
+    }
+    else {
+        assert(argv[0] != PURC_VARIANT_INVALID);
+        type = purc_variant_typename(purc_variant_get_type(argv[0]));
     }
 
-    assert (argv[0] != PURC_VARIANT_INVALID);
+    return purc_variant_make_string_static(type, false);
+}
 
-    switch (purc_variant_get_type (argv[0])) {
+static purc_variant_t
+count_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
+
+    size_t count;
+
+    if (nr_args == 0) {
+        count = 0;  // treat as undefined
+    }
+    else {
+        switch (purc_variant_get_type(argv[0])) {
         case PURC_VARIANT_TYPE_UNDEFINED:
-            number = 0;
+            count = 0;
             break;
 
         case PURC_VARIANT_TYPE_NULL:
@@ -71,163 +89,165 @@ count_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         case PURC_VARIANT_TYPE_BSEQUENCE:
         case PURC_VARIANT_TYPE_DYNAMIC:
         case PURC_VARIANT_TYPE_NATIVE:
-            number = 1;
+            count = 1;
             break;
 
         case PURC_VARIANT_TYPE_OBJECT:
-            number = purc_variant_object_get_size (argv[0]);
+            count = purc_variant_object_get_size(argv[0]);
             break;
 
         case PURC_VARIANT_TYPE_ARRAY:
-            number = purc_variant_array_get_size (argv[0]);
+            count = purc_variant_array_get_size(argv[0]);
             break;
 
         case PURC_VARIANT_TYPE_SET:
-            number = purc_variant_set_get_size (argv[0]);
+            count = purc_variant_set_get_size(argv[0]);
             break;
+        }
     }
 
-    ret_var = purc_variant_make_ulongint (number);
-    return ret_var;
+    return purc_variant_make_ulongint(count);
 }
 
 static purc_variant_t
-type_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+numberify_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(silently);
 
-    if (nr_args < 1) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+    double number;
+    if (nr_args == 0) {
+        // treat as undefined
+        number = 0.0;
+    }
+    else {
+        assert(argv[0]);
+        number = purc_variant_numberify(argv[0]);
     }
 
-    assert(argv[0] != PURC_VARIANT_INVALID);
-
-    return purc_variant_make_string_static(
-            purc_variant_typename(purc_variant_get_type(argv[0])), false);
+    return purc_variant_make_number(number);
 }
 
 static purc_variant_t
-numberify_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+booleanize_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(silently);
 
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
-    double number = 0.0;
-
-    if ((argv == NULL) || (nr_args == 0)) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+    bool retv;
+    if (nr_args == 0) {
+        retv = false;
+    }
+    else {
+        assert(argv[0]);
+        if (purc_variant_booleanize(argv[0]))
+            retv = true;
+        else
+            retv = false;
     }
 
-    number = purc_variant_numberify (argv[0]);
-    ret_var = purc_variant_make_number (number);
-
-    return ret_var;
+    return purc_variant_make_boolean(retv);
 }
 
 static purc_variant_t
-booleanize_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+stringify_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(silently);
 
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    const char *str_static = NULL;
+    char buff_in_stack[128];
+    char *buff = NULL;
+    size_t n = 0;
 
-    if ((argv == NULL) || (nr_args == 0)) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+    if (nr_args == 0) {
+        str_static = purc_variant_typename(PURC_VARIANT_TYPE_UNDEFINED);
     }
+    else {
+        switch (purc_variant_get_type (argv[0])) {
+        case PURC_VARIANT_TYPE_UNDEFINED:
+        case PURC_VARIANT_TYPE_NULL:
+            str_static = purc_variant_typename(PURC_VARIANT_TYPE_UNDEFINED);
+            break;
 
-    if (purc_variant_booleanize (argv[0]))
-        ret_var = purc_variant_make_boolean (true);
-    else
-        ret_var = purc_variant_make_boolean (false);
-
-    return ret_var;
-}
-
-static purc_variant_t
-stringify_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
-{
-    UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
-
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
-    char *buffer = NULL;
-    int total = 0;
-    char stackbuf[64] = {0,};
-
-    if ((argv == NULL) || (nr_args == 0)) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
-    }
-
-    int type = purc_variant_get_type (argv[0]);
-
-    switch (type) {
-        case PURC_VARIANT_TYPE_OBJECT:
-        case PURC_VARIANT_TYPE_ARRAY:
-        case PURC_VARIANT_TYPE_SET:
-            total = purc_variant_stringify_alloc (&buffer, argv[0]);
-            if (total == -1) {
-                pcinst_set_error (PURC_ERROR_INVALID_VALUE);
-                ret_var = PURC_VARIANT_INVALID;
-            }
+        case PURC_VARIANT_TYPE_BOOLEAN:
+            if (purc_variant_is_true(argv[0]))
+                str_static = PURC_KEYWORD_true;
             else
-                ret_var = purc_variant_make_string_reuse_buff (
-                        buffer, total, false);
+                str_static = PURC_KEYWORD_false;
             break;
+
+        case PURC_VARIANT_TYPE_BSEQUENCE:
+        case PURC_VARIANT_TYPE_OBJECT:
+        case PURC_VARIANT_TYPE_ARRAY:
+        case PURC_VARIANT_TYPE_SET:
+            n = purc_variant_stringify_alloc(&buff, argv[0]);
+            if (n == (size_t)-1) {
+                // Keep the error code set by purc_variant_stringify_alloc.
+                goto fatal;
+            }
+            break;
+
         case PURC_VARIANT_TYPE_EXCEPTION:
         case PURC_VARIANT_TYPE_ATOMSTRING:
         case PURC_VARIANT_TYPE_STRING:
-        case PURC_VARIANT_TYPE_BSEQUENCE:
-            if (type == PURC_VARIANT_TYPE_STRING) {
-                total = purc_variant_string_size (argv[0]);
-                buffer = malloc (total);
-            }
-            else if (type == PURC_VARIANT_TYPE_BSEQUENCE) {
-                total = purc_variant_bsequence_length (argv[0]);
-                buffer = malloc (total * 2 + 1);
-            }
-            else if (type == PURC_VARIANT_TYPE_ATOMSTRING) {
-                total = strlen (purc_variant_get_atom_string_const (argv[0])) + 1;
-                buffer = malloc (total);
-            }
-            else {
-                total = strlen (
-                        purc_variant_get_exception_string_const (argv[0])) + 1;
-                buffer = malloc (total);
-            }
+        {
+            const char *str = purc_variant_get_string_const_ex(argv[0], &n);
+            assert(str);
 
-            if (buffer == NULL) {
-                pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
-                ret_var = PURC_VARIANT_INVALID;
+            if (n > 0) {
+                buff = malloc(n);
+                if (buff == NULL) {
+                    purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+                    goto fatal;
+                }
+                memcpy(buff, str, n);
             }
-            else {
-                purc_variant_stringify (buffer, total, argv[0]);
-                ret_var = purc_variant_make_string_reuse_buff (
-                        buffer, total, false);
+            else
+                str_static = "";
+            break;
+        }
+
+        case PURC_VARIANT_TYPE_NUMBER:
+        case PURC_VARIANT_TYPE_LONGINT:
+        case PURC_VARIANT_TYPE_ULONGINT:
+        case PURC_VARIANT_TYPE_LONGDOUBLE:
+        case PURC_VARIANT_TYPE_DYNAMIC:
+        case PURC_VARIANT_TYPE_NATIVE:
+            n = purc_variant_stringify(buff_in_stack, sizeof(buff_in_stack),
+                    argv[0]);
+            if (n == (size_t)-1 || n >= sizeof(buff_in_stack)) {
+                purc_set_error(PURC_ERROR_TOO_SMALL_BUFF);
+                goto fatal;
             }
+            buff = buff_in_stack;
             break;
-        default:
-            buffer = stackbuf;
-            purc_variant_stringify (buffer, 64, argv[0]);
-            ret_var = purc_variant_make_string (buffer, false);
-            break;
+        }
     }
 
-    return ret_var;
+    if (str_static) {
+        return purc_variant_make_string_static(str_static, false);
+    }
+    else if (buff == buff_in_stack) {
+        return purc_variant_make_string(buff, false);
+    }
+    else if (buff != NULL) {
+        return purc_variant_make_string_reuse_buff(buff, n, false);
+    }
+    else {
+        assert(0);
+        return purc_variant_make_string_static("", false);
+    }
+
+fatal:
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
-serialize_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+serialize_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
@@ -238,7 +258,7 @@ serialize_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     char *buf = NULL;
     size_t sz_stream = 0;
 
-    if ((argv == NULL) || (nr_args == 0)) {
+    if (nr_args == 0) {
         pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
