@@ -166,7 +166,7 @@ struct stringify_record records[] = {
     { "false",              "false" },
     { "10 ",                  "10" },  // TODO: no tail space required
     { "0.0 ",                "0" },
-    { "''",                 "null" },
+    { "''",                 "" },
     { "' '",                " " },
     { "'0'",                "0" },
     { "'0.0'",              "0.0" },

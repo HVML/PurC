@@ -1819,6 +1819,12 @@ BEGIN_STATE(EJSON_VALUE_SINGLE_QUOTED_STATE)
         size_t nr_buf_chars = uc_buffer_get_size_in_chars(
                 parser->temp_buffer);
         if (parser->nr_quoted > 1 || nr_buf_chars >= 1) {
+            RESTORE_VCM_NODE();
+            struct pcvcm_node *node = pcvcm_node_new_string(
+                    uc_buffer_get_bytes(parser->temp_buffer)
+                    );
+            APPEND_AS_VCM_CHILD(node);
+            RESET_TEMP_BUFFER();
             RESET_QUOTED_COUNTER();
             RECONSUME_IN(EJSON_AFTER_VALUE_STATE);
         }
