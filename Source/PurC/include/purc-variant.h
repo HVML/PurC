@@ -438,7 +438,7 @@ purc_variant_get_bytes_const(purc_variant_t value, size_t* nr_bytes);
  * Since: 0.0.1
  */
 PCA_EXPORT bool
-purc_variant_sequence_bytes(purc_variant_t sequence, size_t *length);
+purc_variant_bsequence_bytes(purc_variant_t sequence, size_t *length);
 
 /**
  * Get the number of bytes in a byte sequence variant value.
@@ -451,10 +451,10 @@ purc_variant_sequence_bytes(purc_variant_t sequence, size_t *length);
  * Since: 0.0.1
  */
 static inline ssize_t
-purc_variant_sequence_length(purc_variant_t sequence)
+purc_variant_bsequence_length(purc_variant_t sequence)
 {
     size_t len;
-    if (!purc_variant_sequence_bytes(sequence, &len))
+    if (!purc_variant_bsequence_bytes(sequence, &len))
         return PURC_VARIANT_BADSIZE;
     return len;
 }
@@ -535,11 +535,11 @@ struct purc_native_ops {
     purc_variant_t (*eraser)(void* native_entity, bool silently);
 
     /** the callback when the variant was observed (nullable). */
-    bool (*on_observe) (void* native_entity,
+    bool (*on_observe)(void* native_entity,
             const char *event_name, const char *event_subname);
 
     /** the callback when the variant was released (nullable). */
-    void (*on_release) (void* native_entity);
+    void (*on_release)(void* native_entity);
 };
 
 /**
@@ -553,7 +553,7 @@ struct purc_native_ops {
  *
  * Since: 0.0.2
  */
-purc_variant_t purc_variant_make_native (void *native_entity,
+purc_variant_t purc_variant_make_native(void *native_entity,
     const struct purc_native_ops *ops);
 
 
@@ -1542,7 +1542,7 @@ purc_variant_cast_to_longdouble(purc_variant_t v, long double *ld,
  * Since: 0.0.1
  */
 PCA_EXPORT bool
-purc_variant_cast_to_sequence(purc_variant_t v,
+purc_variant_cast_to_byte_sequence(purc_variant_t v,
         const void **bytes, size_t *sz);
 
 /**
@@ -1572,7 +1572,7 @@ typedef enum purc_variant_compare_opt
  *
  * @param v1: one of compared variant value
  * @param v2: the other variant value to be compared
- * @param flags: comparation flags
+ * @param flags: comparison flags
  *
  * Returns: The function returns an integer less than, equal to, or greater
  *      than zero if v1 is found, respectively, to be less than, to match,

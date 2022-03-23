@@ -193,7 +193,7 @@ stringify_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
                 buffer = malloc (total);
             }
             else if (type == PURC_VARIANT_TYPE_BSEQUENCE) {
-                total = purc_variant_sequence_length (argv[0]);
+                total = purc_variant_bsequence_length (argv[0]);
                 buffer = malloc (total * 2 + 1);
             }
             else if (type == PURC_VARIANT_TYPE_ATOMSTRING) {

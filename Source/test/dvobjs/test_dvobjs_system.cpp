@@ -413,7 +413,7 @@ purc_variant_t system_time(purc_variant_t dvobj, const char* name)
     (void)dvobj;
 
     if (strcmp(name, "get") == 0) {
-        return purc_variant_make_ulongint((uint64_t)time(NULL));
+        return purc_variant_make_longint((int64_t)time(NULL));
     }
     else if (strcmp(name, "set") == 0) {
         return purc_variant_make_boolean(false);
@@ -430,11 +430,11 @@ purc_variant_t system_time(purc_variant_t dvobj, const char* name)
 
 static bool time_vrtcmp(purc_variant_t t1, purc_variant_t t2)
 {
-    uint64_t u1, u2;
+    int64_t u1, u2;
 
-    if (purc_variant_is_ulongint(t1) && purc_variant_is_ulongint(t2)) {
-        purc_variant_cast_to_ulongint(t1, &u1, false);
-        purc_variant_cast_to_ulongint(t2, &u2, false);
+    if (purc_variant_is_longint(t1) && purc_variant_is_longint(t2)) {
+        purc_variant_cast_to_longint(t1, &u1, false);
+        purc_variant_cast_to_longint(t2, &u2, false);
 
         if (u1 == u2 || (u1 + 1) == u2)
             return true;
@@ -449,17 +449,17 @@ TEST(dvobjs, time)
         { "bad-set",
             "$SYSTEM.time(! )",
             system_time, NULL, PURC_ERROR_ARGUMENT_MISSED },
+#if OS(LINUX)
         { "negative",
             "$SYSTEM.time(! -100L )",
             system_time, NULL, PURC_ERROR_INVALID_VALUE },
-#if OS(LINUX)
         { "negative",
             "$SYSTEM.time(! -100UL )",
             system_time, NULL, PURC_ERROR_INVALID_VALUE },
-#endif
         { "negative",
             "$SYSTEM.time(! -1000.0FL )",
             system_time, NULL, PURC_ERROR_INVALID_VALUE  },
+#endif
         { "set",
             "$SYSTEM.time(! 100 )",
             system_time, NULL, PURC_ERROR_ACCESS_DENIED },
@@ -540,11 +540,11 @@ purc_variant_t system_time_us(purc_variant_t dvobj, const char* name)
         struct timeval tv;
         gettimeofday(&tv, NULL);
 
-        purc_variant_t val = purc_variant_make_ulongint((uint64_t)tv.tv_sec);
+        purc_variant_t val = purc_variant_make_longint((int64_t)tv.tv_sec);
         purc_variant_object_set_by_static_ckey(retv, "sec", val);
         purc_variant_unref(val);
 
-        val = purc_variant_make_ulongint((uint64_t)tv.tv_usec);
+        val = purc_variant_make_longint((int64_t)tv.tv_usec);
         purc_variant_object_set_by_static_ckey(retv, "usec", val);
         purc_variant_unref(val);
 
@@ -574,24 +574,24 @@ purc_variant_t system_time_us(purc_variant_t dvobj, const char* name)
 
 static bool time_us_vrtcmp(purc_variant_t t1, purc_variant_t t2)
 {
-    uint64_t u1, u2;
+    int64_t u1, u2;
     purc_variant_t v1, v2;
 
     if (purc_variant_is_object(t1) && purc_variant_is_object(t2)) {
         v1 = purc_variant_object_get_by_ckey(t1, "sec", false);
         v2 = purc_variant_object_get_by_ckey(t2, "sec", false);
 
-        if (purc_variant_is_ulongint(v1) && purc_variant_is_ulongint(v2)) {
-            purc_variant_cast_to_ulongint(v1, &u1, false);
-            purc_variant_cast_to_ulongint(v2, &u2, false);
+        if (purc_variant_is_longint(v1) && purc_variant_is_longint(v2)) {
+            purc_variant_cast_to_longint(v1, &u1, false);
+            purc_variant_cast_to_longint(v2, &u2, false);
 
             if (u1 == u2 || (u1 + 1) == u2)
                 return true;
         }
     }
     else if (purc_variant_is_longdouble(t1) && purc_variant_is_longdouble(t2)) {
-        purc_variant_cast_to_ulongint(t1, &u1, false);
-        purc_variant_cast_to_ulongint(t2, &u2, false);
+        purc_variant_cast_to_longint(t1, &u1, false);
+        purc_variant_cast_to_longint(t2, &u2, false);
 
         if (u1 == u2 || (u1 + 1) == u2)
             return true;
@@ -1166,9 +1166,15 @@ TEST(dvobjs, cwd)
         { "bad",
             "$SYSTEM.cwd(! '/bin/echo' )",
             system_cwd, NULL, PURC_ERROR_NOT_DESIRED_ENTITY },
+#if OS(LINUX)
         { "bad",
             "$SYSTEM.cwd(! '/root' )",
             system_cwd, NULL, PURC_ERROR_ACCESS_DENIED },
+#else
+        { "bad",
+            "$SYSTEM.cwd(! '/root' )",
+            system_cwd, NULL, PURC_ERROR_NOT_EXISTS },
+#endif
         { "current",
             "$SYSTEM.cwd",
             system_cwd, cwd_vrtcmp, 0 },

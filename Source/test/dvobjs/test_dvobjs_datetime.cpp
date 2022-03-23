@@ -189,6 +189,7 @@ purc_variant_t time_prt(purc_variant_t dvobj, const char* name)
     else if (strcmp(name, "iso8601-timezone") == 0) {
         timeformat = keywords2formats[K_KW_iso8601].format;
         t = time(NULL);
+        timezone = ":America/New_York";
     }
     else if (strcmp(name, "iso8601-epoch") == 0) {
         timeformat = keywords2formats[K_KW_iso8601].format;
@@ -197,6 +198,15 @@ purc_variant_t time_prt(purc_variant_t dvobj, const char* name)
     else if (strcmp(name, "iso8601-epoch-timezone") == 0) {
         timeformat = keywords2formats[K_KW_iso8601].format;
         t = 0;
+        timezone = ":America/New_York";
+    }
+    else if (strcmp(name, "iso8601-before-epoch") == 0) {
+        timeformat = keywords2formats[K_KW_iso8601].format;
+        t = -3600;
+    }
+    else if (strcmp(name, "iso8601-before-epoch-timezone") == 0) {
+        timeformat = keywords2formats[K_KW_iso8601].format;
+        t = -3600;
         timezone = ":America/New_York";
     }
     else {
@@ -290,9 +300,6 @@ TEST(dvobjs, time_prt)
         { "bad",
             "$DATETIME.time_prt('iso8601', 3600, 'Bad/Timezone')",
             time_prt, NULL, PURC_ERROR_INVALID_VALUE },
-        { "bad",
-            "$DATETIME.time_prt('iso8601', -3600)",
-            time_prt, NULL, PURC_ERROR_INVALID_VALUE },
         { "default",
             "$DATETIME.time_prt",
             time_prt, time_prt_vrtcmp, 0 },
@@ -349,6 +356,12 @@ TEST(dvobjs, time_prt)
             time_prt, time_prt_vrtcmp, 0 },
         { "iso8601-epoch-timezone",
             "$DATETIME.time_prt('iso8601', 0, 'America/New_York')",
+            time_prt, time_prt_vrtcmp, 0 },
+        { "iso8601-before-epoch",
+            "$DATETIME.time_prt('iso8601', -3600)",
+            time_prt, NULL, PURC_ERROR_INVALID_VALUE },
+        { "iso8601-before-epoch-timezone",
+            "$DATETIME.time_prt('iso8601', -3600, 'America/New_York')",
             time_prt, time_prt_vrtcmp, 0 },
     };
 
@@ -429,6 +442,7 @@ purc_variant_t fmttime(purc_variant_t dvobj, const char* name)
     else if (strcmp(name, "iso8601-timezone") == 0) {
         timeformat = keywords2formats[K_KW_iso8601].format;
         t = time(NULL);
+        timezone = ":America/New_York";
     }
     else if (strcmp(name, "iso8601-epoch") == 0) {
         timeformat = keywords2formats[K_KW_iso8601].format;
@@ -444,6 +458,20 @@ purc_variant_t fmttime(purc_variant_t dvobj, const char* name)
         t = 0;
         timezone = ":America/New_York";
     }
+    else if (strcmp(name, "iso8601-before-epoch") == 0) {
+        timeformat = keywords2formats[K_KW_iso8601].format;
+        t = -3600;
+    }
+    else if (strcmp(name, "iso8601-before-epoch-utc") == 0) {
+        timeformat = keywords2formats[K_KW_iso8601].format;
+        t = -3600;
+        timezone = ":UTC";
+    }
+    else if (strcmp(name, "iso8601-before-epoch-timezone") == 0) {
+        timeformat = keywords2formats[K_KW_iso8601].format;
+        t = -3600;
+        timezone = ":America/New_York";
+    }
     else {
         timeformat = name;
         t = time(NULL);
@@ -452,6 +480,16 @@ purc_variant_t fmttime(purc_variant_t dvobj, const char* name)
     if (timeformat) {
         char buf[256];
         struct tm tm;
+
+        char *tz_old = NULL;
+        if (timezone) {
+            char *env = getenv("TZ");
+            if (env)
+                tz_old = strdup(env);
+
+            setenv("TZ", timezone, 1);
+            tzset();
+        }
 
         if (timezone && strcmp(timezone, ":UTC") == 0) {
             gmtime_r(&t, &tm);
@@ -462,26 +500,16 @@ purc_variant_t fmttime(purc_variant_t dvobj, const char* name)
             timeformat += sizeof(PURC_TFORMAT_PREFIX_UTC) - 1;
         }
         else {
-            char *tz_old = NULL;
-            if (timezone) {
-                char *env = getenv("TZ");
-                if (env)
-                    tz_old = strdup(env);
-
-                setenv("TZ", timezone, 1);
-                tzset();
-            }
-
             localtime_r(&t, &tm);
-
-            if (tz_old) {
-                setenv("TZ", tz_old, 1);
-                tzset();
-                free(tz_old);
-            }
         }
 
         strftime(buf, sizeof(buf), timeformat, &tm);
+
+        if (tz_old) {
+            setenv("TZ", tz_old, 1);
+            tzset();
+            free(tz_old);
+        }
 
         return purc_variant_make_string(buf, false);
     }
@@ -522,9 +550,6 @@ TEST(dvobjs, fmttime)
         { "bad",
             "$DATETIME.fmttime('bad', 0, false)",
             fmttime, NULL, PURC_ERROR_WRONG_DATA_TYPE },
-        { "bad",
-            "$DATETIME.fmttime('bad', -3600)",
-            fmttime, NULL, PURC_ERROR_INVALID_VALUE },
         { "bad",
             "$DATETIME.fmttime('bad', 3600, 'Bad/TimeZone')",
             fmttime, NULL, PURC_ERROR_INVALID_VALUE },
@@ -666,6 +691,9 @@ TEST(dvobjs, broken_down_time)
         { "iso8601-epoch-utc",
             "$DATETIME.fmtbdtime('{UTC}%Y-%m-%dT%H:%M:%S%z', $DATETIME.utctime(0))",
             fmttime, fmttime_vrtcmp, 0 },
+        { "iso8601-before-epoch-utc",
+            "$DATETIME.fmtbdtime('{UTC}%Y-%m-%dT%H:%M:%S%z', $DATETIME.utctime(-3600))",
+            fmttime, fmttime_vrtcmp, 0 },
         { "iso8601",
             "$DATETIME.fmtbdtime('%Y-%m-%dT%H:%M:%S%z', null)",
             fmttime, fmttime_vrtcmp, 0 },
@@ -678,17 +706,23 @@ TEST(dvobjs, broken_down_time)
         { "iso8601-epoch",
             "$DATETIME.fmtbdtime('%Y-%m-%dT%H:%M:%S%z', $DATETIME.localtime(0))",
             fmttime, fmttime_vrtcmp, 0 },
+        { "iso8601-before-epoch",
+            "$DATETIME.fmtbdtime('%Y-%m-%dT%H:%M:%S%z', $DATETIME.localtime(-3600))",
+            fmttime, fmttime_vrtcmp, 0 },
         { "iso8601-epoch-timezone",
             "$DATETIME.fmtbdtime('%Y-%m-%dT%H:%M:%S%z', $DATETIME.localtime(0, 'America/New_York'))",
+            fmttime, fmttime_vrtcmp, 0 },
+        { "iso8601-before-epoch-timezone",
+            "$DATETIME.fmtbdtime('%Y-%m-%dT%H:%M:%S%z', $DATETIME.localtime(-3600, 'America/New_York'))",
             fmttime, fmttime_vrtcmp, 0 },
         { "iso8601",
             "$DATETIME.fmttime('%Y-%m-%dT%H:%M:%S%z', $DATETIME.mktime($DATETIME.localtime(null)))",
             fmttime, fmttime_vrtcmp, 0 },
         { "iso8601-timezone",
-            "$DATETIME.fmttime('%Y-%m-%dT%H:%M:%S%z', $DATETIME.mktime($DATETIME.localtime(null, 'America/New_York')))",
+            "$DATETIME.fmttime('%Y-%m-%dT%H:%M:%S%z', $DATETIME.mktime($DATETIME.localtime(null, 'America/New_York')), 'America/New_York')",
             fmttime, fmttime_vrtcmp, 0 },
         { "iso8601-epoch-timezone",
-            "$DATETIME.fmttime('%Y-%m-%dT%H:%M:%S%z', $DATETIME.mktime($DATETIME.localtime(0, 'America/New_York')))",
+            "$DATETIME.fmttime('%Y-%m-%dT%H:%M:%S%z', $DATETIME.mktime($DATETIME.localtime(0, 'America/New_York')), 'America/New_York')",
             fmttime, fmttime_vrtcmp, 0 },
     };
 

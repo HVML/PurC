@@ -555,7 +555,7 @@ time_getter(purc_variant_t root,size_t nr_args, purc_variant_t *argv,
 
     time_t t_time;
     t_time = time(NULL);
-    return purc_variant_make_ulongint((uint64_t)t_time);
+    return purc_variant_make_longint((int64_t)t_time);
 }
 
 static bool cast_to_timeval(struct timeval *timeval, purc_variant_t t)
@@ -566,7 +566,7 @@ static bool cast_to_timeval(struct timeval *timeval, purc_variant_t t)
         double time_d, sec_d, usec_d;
 
         purc_variant_cast_to_number(t, &time_d, false);
-        if (isinf(time_d) || isnan(time_d) || time_d < 0.0) {
+        if (isinf(time_d) || isnan(time_d)) {
             purc_set_error(PURC_ERROR_INVALID_VALUE);
             goto failed;
         }
@@ -579,12 +579,24 @@ static bool cast_to_timeval(struct timeval *timeval, purc_variant_t t)
 
     case PURC_VARIANT_TYPE_LONGINT:
     case PURC_VARIANT_TYPE_ULONGINT:
+    {
+        int64_t sec;
+        if (!purc_variant_cast_to_longint(t, &sec, false)) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            goto failed;
+        }
+
+        timeval->tv_usec = (time_t)sec;
+        timeval->tv_usec = 0;
+        break;
+    }
+
     case PURC_VARIANT_TYPE_LONGDOUBLE:
     {
         long double time_d, sec_d, usec_d;
         purc_variant_cast_to_longdouble(t, &time_d, false);
 
-        if (isinf(time_d) || isnan(time_d) || time_d < 0.0L) {
+        if (isinf(time_d) || isnan(time_d)) {
             purc_set_error(PURC_ERROR_INVALID_VALUE);
             goto failed;
         }
@@ -680,7 +692,7 @@ time_us_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto fatal;
     }
 
-    val = purc_variant_make_ulongint((uint64_t)tv.tv_sec);
+    val = purc_variant_make_longint((int64_t)tv.tv_sec);
     if (val == PURC_VARIANT_INVALID)
         goto fatal;
     if (!purc_variant_object_set_by_static_ckey(retv,
@@ -688,7 +700,7 @@ time_us_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto fatal;
     purc_variant_unref(val);
 
-    val = purc_variant_make_ulongint((uint64_t)tv.tv_usec);
+    val = purc_variant_make_longint((int64_t)tv.tv_usec);
     if (val == PURC_VARIANT_INVALID)
         goto fatal;
     if (!purc_variant_object_set_by_static_ckey(retv,
@@ -714,7 +726,7 @@ time_us_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(silently);
 
-    uint64_t ul_sec, ul_usec;
+    int64_t l_sec, l_usec;
 
     if (nr_args < 1) {
         purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
@@ -732,8 +744,8 @@ time_us_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             goto failed;
         }
 
-        if (!purc_variant_cast_to_ulongint(v1, &ul_sec, false) ||
-                !purc_variant_cast_to_ulongint(v2, &ul_usec, false)) {
+        if (!purc_variant_cast_to_longint(v1, &l_sec, false) ||
+                !purc_variant_cast_to_longint(v2, &l_usec, false)) {
             purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
             goto failed;
         }
@@ -751,18 +763,18 @@ time_us_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         }
 
         usec_d = modfl(time_d, &sec_d);
-        ul_sec = (uint64_t)sec_d;
-        ul_usec = (uint64_t)(usec_d * 1000000.0);
+        l_sec = (int64_t)sec_d;
+        l_usec = (int64_t)(usec_d * 1000000.0);
     }
 
-    if (ul_usec > 999999) {
+    if (l_usec < 0 || l_usec > 999999) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto failed;
     }
 
     struct timeval timeval;
-    timeval.tv_sec = (time_t)ul_sec;
-    timeval.tv_usec = (suseconds_t)ul_usec;
+    timeval.tv_sec = (time_t)l_sec;
+    timeval.tv_usec = (suseconds_t)l_usec;
     if (settimeofday(&timeval, NULL)) {
         if (errno == EINVAL) {
             purc_set_error(PURC_ERROR_INVALID_VALUE);
@@ -1353,7 +1365,6 @@ env_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     int ret;
     if (purc_variant_is_undefined(argv[1])) {
-        purc_log_info("got undefined in %s\n", __func__);
         ret = unsetenv(name);
     }
     else {
@@ -1450,7 +1461,7 @@ random_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         int64_t max, number;
         purc_variant_cast_to_longint(argv[0], &max, false);
         number = max * result / RAND_MAX;
-        return purc_variant_make_ulongint(number);
+        return purc_variant_make_longint(number);
     }
 
     case PURC_VARIANT_TYPE_ULONGINT:

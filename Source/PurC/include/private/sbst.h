@@ -30,11 +30,10 @@
  * Author: Alexander Borisov <borisov@lexbor.com>
  */
 
-#ifndef PCHTML_SBST_H
-#define PCHTML_SBST_H
+#ifndef PCUTILS_SBST_H
+#define PCUTILS_SBST_H
 
 #include "config.h"
-#include "html/base.h"
 
 #include <string.h>
 
@@ -51,16 +50,15 @@ typedef struct {
     size_t     left;
     size_t     right;
     size_t     next;
-}
-pchtml_sbst_entry_static_t;
+} pcutils_sbst_entry_static_t;
 
 
 /*
  * Inline functions
  */
-static inline const pchtml_sbst_entry_static_t *
-pchtml_sbst_entry_static_find(const pchtml_sbst_entry_static_t *strt,
-                              const pchtml_sbst_entry_static_t *root,
+static inline const pcutils_sbst_entry_static_t *
+pcutils_sbst_entry_static_find(const pcutils_sbst_entry_static_t *strt,
+                              const pcutils_sbst_entry_static_t *root,
                               const unsigned char key)
 {
     while (root != strt) {
@@ -82,4 +80,4 @@ pchtml_sbst_entry_static_find(const pchtml_sbst_entry_static_t *strt,
 }       /* __cplusplus */
 #endif
 
-#endif  /* PCHTML_SBST_H */
+#endif  /* PCUTILS_SBST_H */
