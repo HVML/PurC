@@ -407,3 +407,73 @@ TEST(constraint, set_add_children_of_uniqkey_to_other_container)
     PURC_VARIANT_SAFE_CLEAR(set);
 }
 
+TEST(constraint, set_child_in_different_positions)
+{
+    PurCInstance purc;
+
+    const char *s;
+    purc_variant_t set, xu, xue;
+    purc_variant_t empty;
+    purc_variant_t val, elem, arr;
+    bool silently = true;
+    bool ok;
+
+    s = "{name:[{first:xiaohong,last:xu}], extra:foo}";
+    xu = pcejson_parser_parse_string(s, 0, 0);
+    ASSERT_NE(xu, nullptr);
+
+    s = "{name:[{first:shuming,last:xue}], extra:bar}";
+    xue = pcejson_parser_parse_string(s, 0, 0);
+    ASSERT_NE(xue, nullptr);
+
+    set = purc_variant_make_set_by_ckey(2, "name", xu, xue);
+    ASSERT_NE(set, nullptr);
+    ASSERT_EQ(0, var_diff(set, "[!name,{name:[{first:xiaohong,last:xu}], extra:foo},{name:[{first:shuming,last:xue}], extra:bar}]"));
+
+    s = "[]";
+    empty = pcejson_parser_parse_string(s, 0, 0);
+    ASSERT_NE(empty, nullptr);
+    ASSERT_EQ(0, var_diff(empty, "[]"));
+
+    val = purc_variant_object_get_by_ckey(xu, "name", silently);
+    ASSERT_NE(val, nullptr);
+
+    elem = purc_variant_set_get_member_by_key_values(set, val, silently);
+    ASSERT_NE(elem, nullptr);
+
+    arr = purc_variant_object_get_by_ckey(elem, "name", silently);
+    ASSERT_NE(arr, nullptr);
+
+    ok = purc_variant_array_append(arr, empty);
+    ASSERT_TRUE(ok);
+    PRINT_VARIANT(set);
+    ASSERT_EQ(0, var_diff(set, "[!name,{name:[{first:xiaohong,last:xu},[]], extra:foo},{name:[{first:shuming,last:xue}], extra:bar}]"));
+
+    val = purc_variant_object_get_by_ckey(xue, "name", silently);
+    ASSERT_NE(val, nullptr);
+
+    elem = purc_variant_set_get_member_by_key_values(set, val, silently);
+    ASSERT_NE(elem, nullptr);
+
+    arr = purc_variant_object_get_by_ckey(elem, "name", silently);
+    ASSERT_NE(arr, nullptr);
+
+    ok = purc_variant_array_append(arr, empty);
+    ASSERT_TRUE(ok);
+    PRINT_VARIANT(set);
+    ASSERT_EQ(0, var_diff(set, "[!name,{name:[{first:xiaohong,last:xu},[]], extra:foo},{name:[{first:shuming,last:xue},[]], extra:bar}]"));
+
+    val = purc_variant_make_string("hello", true);
+    ASSERT_NE(val, nullptr);
+    ok = purc_variant_array_append(empty, val);
+    ASSERT_TRUE(ok);
+    PURC_VARIANT_SAFE_CLEAR(val);
+    ASSERT_EQ(0, var_diff(set, "[!name,{name:[{first:xiaohong,last:xu},[hello]], extra:foo},{name:[{first:shuming,last:xue},[hello]], extra:bar}]"));
+
+
+    PURC_VARIANT_SAFE_CLEAR(empty);
+    PURC_VARIANT_SAFE_CLEAR(xue);
+    PURC_VARIANT_SAFE_CLEAR(xu);
+    PURC_VARIANT_SAFE_CLEAR(set);
+}
+
