@@ -13,8 +13,6 @@
    obj:/usr/lib/x86_64-linux-gnu/ld-2.31.so
 }
 
-#########################
-# GSubprocessLauncher *launcher = g_subprocess_launcher_new(G_SUBPROCESS_FLAGS_INHERIT_FDS);
 {
    <g_subprocess_launcher_new>
    Memcheck:Leak
@@ -75,43 +73,8 @@
    fun:g_object_new_valist
    fun:g_object_new
 }
-# GSubprocessLauncher *launcher = g_subprocess_launcher_new(G_SUBPROCESS_FLAGS_INHERIT_FDS);
-#########################
-
 {
-   <_ZN3WTF10AtomString4initEv>
-   Memcheck:Leak
-   match-leak-kinds: possible
-   fun:malloc
-   fun:_ZN3WTF10fastMallocEm
-   fun:_ZN3WTF16fastZeroedMallocEm
-   fun:_ZN3WTF10FastMalloc12zeroedMallocEm
-   fun:_ZN3WTF9HashTableINS_6PackedIPNS_10StringImplEEES4_NS_17IdentityExtractorENS_10StringHashENS_10HashTraitsIS4_EES8_E13allocateTableEj
-   fun:_ZN3WTF9HashTableINS_6PackedIPNS_10StringImplEEES4_NS_17IdentityExtractorENS_10StringHashENS_10HashTraitsIS4_EES8_E6rehashEjPS4_
-   fun:_ZN3WTF9HashTableINS_6PackedIPNS_10StringImplEEES4_NS_17IdentityExtractorENS_10StringHashENS_10HashTraitsIS4_EES8_E6expandEPS4_
-   fun:_ZN3WTF9HashTableINS_6PackedIPNS_10StringImplEEES4_NS_17IdentityExtractorENS_10StringHashENS_10HashTraitsIS4_EES8_E18addPassingHashCodeINS_24HashSetTranslatorAdapterINS_30BufferFromStaticDataTranslatorIhEEEERKNS_24HashTranslatorCharBufferIhEESI_EENS_18HashTableAddResultINS_17HashTableIteratorIS4_S4_S5_S6_S8_S8_EEEEOT0_OT1_
-   fun:_ZN3WTF7HashSetINS_6PackedIPNS_10StringImplEEENS_10StringHashENS_10HashTraitsIS4_EEE3addINS_30BufferFromStaticDataTranslatorIhEENS_24HashTranslatorCharBufferIhEEEENS_18HashTableAddResultINS_17HashTableIteratorIS4_S4_NS_17IdentityExtractorES5_S7_S7_EEEERKT0_
-   fun:_ZN3WTFL16addToStringTableINS_24HashTranslatorCharBufferIhEENS_30BufferFromStaticDataTranslatorIhEEEENS_3RefINS_14AtomStringImplENS_13DumbPtrTraitsIS6_EEEERNS_21AtomStringTableLockerERNS_7HashSetINS_6PackedIPNS_10StringImplEEENS_10StringHashENS_10HashTraitsISG_EEEERKT_
-   fun:_ZN3WTFL16addToStringTableINS_24HashTranslatorCharBufferIhEENS_30BufferFromStaticDataTranslatorIhEEEENS_3RefINS_14AtomStringImplENS_13DumbPtrTraitsIS6_EEEERKT_
-   fun:_ZN3WTF14AtomStringImpl10addLiteralEPKcj
-   fun:_ZN3WTF10AtomStringC1ILj2EEERAT__KcNS0_23ConstructFromLiteralTagE
-   fun:_ZN3WTF18LazyNeverDestroyedIKNS_10AtomStringENS_22MainThreadAccessTraitsEE27constructWithoutAccessCheckIJRA2_KcNS1_23ConstructFromLiteralTagEEEEvDpOT_
-   fun:_ZZN3WTF10AtomString4initEvENKUlvE_clEv
-   fun:_ZSt13__invoke_implIvZN3WTF10AtomString4initEvEUlvE_JEET_St14__invoke_otherOT0_DpOT1_
-   fun:_ZSt8__invokeIZN3WTF10AtomString4initEvEUlvE_JEENSt15__invoke_resultIT_JDpT0_EE4typeEOS4_DpOS5_
-   fun:_ZZSt9call_onceIZN3WTF10AtomString4initEvEUlvE_JEEvRSt9once_flagOT_DpOT0_ENKUlvE_clEv
-   fun:_ZZSt9call_onceIZN3WTF10AtomString4initEvEUlvE_JEEvRSt9once_flagOT_DpOT0_ENKUlvE0_clEv
-   fun:_ZZSt9call_onceIZN3WTF10AtomString4initEvEUlvE_JEEvRSt9once_flagOT_DpOT0_ENUlvE0_4_FUNEv
-   fun:__pthread_once_slow
-   fun:_ZL14__gthread_oncePiPFvvE
-   fun:_ZSt9call_onceIZN3WTF10AtomString4initEvEUlvE_JEEvRSt9once_flagOT_DpOT0_
-   fun:_ZN3WTF10AtomString4initEv
-}
-
-#########################
-# fetcher
-{
-   <pcfetcher_request_sync>
+   <_ZN3WTF10StringView19setUnderlyingStringEPKNS_10StringImplE>
    Memcheck:Leak
    match-leak-kinds: possible
    fun:malloc
@@ -126,9 +89,6 @@
    fun:_ZN3WTF7HashMapIPKNS_10StringImplEPNS_10StringView16UnderlyingStringENS_7PtrHashIS3_EENS_10HashTraitsIS3_EENS9_IS6_EEE3addIDnEENS_18HashTableAddResultINS_17HashTableIteratorIS3_NS_12KeyValuePairIS3_S6_EENS_24KeyValuePairKeyExtractorISH_EES8_NSC_18KeyValuePairTraitsESA_EEEERKS3_OT_
    fun:_ZN3WTF10StringView19setUnderlyingStringEPKNS_10StringImplE
 }
-# fetcher
-#########################
-
 {
    <purc_init_ex>
    Memcheck:Leak
