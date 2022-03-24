@@ -1720,6 +1720,26 @@ pcintr_load_from_uri(pcintr_stack_t stack, const char* uri)
     return ret;
 }
 
+purc_variant_t
+pcintr_load_from_uri_async(pcintr_stack_t stack, const char* uri,
+        pcfetcher_response_handler handler, void* ctxt)
+{
+    if (uri == NULL || handler == NULL) {
+        return PURC_VARIANT_INVALID;
+    }
+
+    if (stack->vdom->hvml_ctrl_props->base_url_string) {
+        pcfetcher_set_base_url(stack->vdom->hvml_ctrl_props->base_url_string);
+    }
+    return pcfetcher_request_async(
+            uri,
+            PCFETCHER_REQUEST_METHOD_GET,
+            NULL,
+            10,
+            handler,
+            ctxt);
+}
+
 #define DOC_QUERY         "query"
 
 purc_variant_t
