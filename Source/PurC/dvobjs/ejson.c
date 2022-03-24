@@ -605,6 +605,50 @@ failed:
     return PURC_VARIANT_INVALID;
 }
 
+typedef purc_real_t (*fn_fetch_real)(const unsigned char *bytes);
+
+static const struct real_info {
+    uint8_t         length;         // unit length in bytes
+    uint8_t         real_type;      // EJSON real type
+    fn_fetch_real   fetcher;        // fetcher
+} real_info[] = {
+    { 1,  PURC_VARIANT_TYPE_LONGINT,    purc_fetch_i8       },  // "i8"
+    { 2,  PURC_VARIANT_TYPE_LONGINT,    purc_fetch_i16      },  // "i16"
+    { 4,  PURC_VARIANT_TYPE_LONGINT,    purc_fetch_i32      },  // "i32"
+    { 8,  PURC_VARIANT_TYPE_LONGINT,    purc_fetch_i64      },  // "i64"
+    { 2,  PURC_VARIANT_TYPE_LONGINT,    purc_fetch_i16le    },  // "i16le"
+    { 4,  PURC_VARIANT_TYPE_LONGINT,    purc_fetch_i32le    },  // "i32le"
+    { 6,  PURC_VARIANT_TYPE_LONGINT,    purc_fetch_i64le    },  // "i64le"
+    { 2,  PURC_VARIANT_TYPE_LONGINT,    purc_fetch_i16be    },  // "i16be"
+    { 4,  PURC_VARIANT_TYPE_LONGINT,    purc_fetch_i32be    },  // "i32be"
+    { 8,  PURC_VARIANT_TYPE_LONGINT,    purc_fetch_i64be    },  // "i64be"
+    { 1,  PURC_VARIANT_TYPE_ULONGINT,   purc_fetch_u8       },  // "u8"
+    { 2,  PURC_VARIANT_TYPE_ULONGINT,   purc_fetch_u16      },  // "u16"
+    { 4,  PURC_VARIANT_TYPE_ULONGINT,   purc_fetch_u32      },  // "u32"
+    { 8,  PURC_VARIANT_TYPE_ULONGINT,   purc_fetch_u64      },  // "u64"
+    { 2,  PURC_VARIANT_TYPE_ULONGINT,   purc_fetch_u16le    },  // "u16le"
+    { 4,  PURC_VARIANT_TYPE_ULONGINT,   purc_fetch_u32le    },  // "u32le"
+    { 8,  PURC_VARIANT_TYPE_ULONGINT,   purc_fetch_u64le    },  // "u64le"
+    { 2,  PURC_VARIANT_TYPE_ULONGINT,   purc_fetch_u16be    },  // "u16be"
+    { 4,  PURC_VARIANT_TYPE_ULONGINT,   purc_fetch_u32be    },  // "u32be"
+    { 8,  PURC_VARIANT_TYPE_ULONGINT,   purc_fetch_u64be    },  // "u64be"
+    { 2,  PURC_VARIANT_TYPE_NUMBER,     purc_fetch_f16      },  // "f16"
+    { 4,  PURC_VARIANT_TYPE_NUMBER,     purc_fetch_f32      },  // "f32"
+    { 8,  PURC_VARIANT_TYPE_NUMBER,     purc_fetch_f64      },  // "f64"
+    { 12, PURC_VARIANT_TYPE_LONGDOUBLE, purc_fetch_f96      },  // "f96"
+    { 16, PURC_VARIANT_TYPE_LONGDOUBLE, purc_fetch_f128     },  // "f128"
+    { 2,  PURC_VARIANT_TYPE_NUMBER,     purc_fetch_f16le    },  // "f16le"
+    { 4,  PURC_VARIANT_TYPE_NUMBER,     purc_fetch_f32le    },  // "f32le"
+    { 8,  PURC_VARIANT_TYPE_NUMBER,     purc_fetch_f64le    },  // "f64le"
+    { 12, PURC_VARIANT_TYPE_LONGDOUBLE, purc_fetch_f96le    },  // "f96le"
+    { 16, PURC_VARIANT_TYPE_LONGDOUBLE, purc_fetch_f128le   },  // "f128le"
+    { 2,  PURC_VARIANT_TYPE_NUMBER,     purc_fetch_f16be    },  // "f16be"
+    { 4,  PURC_VARIANT_TYPE_NUMBER,     purc_fetch_f32be    },  // "f32be"
+    { 8,  PURC_VARIANT_TYPE_NUMBER,     purc_fetch_f64be    },  // "f64be"
+    { 12, PURC_VARIANT_TYPE_LONGDOUBLE, purc_fetch_f96be    },  // "f96be"
+    { 16, PURC_VARIANT_TYPE_LONGDOUBLE, purc_fetch_f128be   },  // "f128be"
+};
+
 static purc_variant_t
 fetchreal_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
@@ -632,10 +676,13 @@ fetchreal_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     // parse format and get the length of real number.
-    if (strcmp(format, PURC_KW_i8) == 0) {
-        length = 1;
-    }
+    size_t format_len;
+    format = pcutils_trim_spaces(format, &format_len);
+    int format_id = pcdvobjs_global_keyword_id(format, format_len);
+    assert(format_id >= PURC_K_KW_i8 && format_id <= PURC_K_KW_f128be);
 
+    format_id -= PURC_K_KW_i8;
+    length = real_info[format_id].length;
     if (nr_args >= 2) {
         if (!purc_variant_cast_to_longint(argv[3], &offset, false)) {
             pcinst_set_error(PURC_ERROR_INVALID_VALUE);
@@ -665,7 +712,20 @@ fetchreal_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto failed;
     }
 
-    return purc_variant_make_number((double)*bytes);
+    purc_real_t real = real_info[format_id].fetcher(bytes);
+    switch (real_info[format_id].real_type) {
+        case PURC_VARIANT_TYPE_LONGINT:
+            return purc_variant_make_longint(real.i64);
+        case PURC_VARIANT_TYPE_ULONGINT:
+            return purc_variant_make_ulongint(real.u64);
+        case PURC_VARIANT_TYPE_NUMBER:
+            return purc_variant_make_ulongint(real.d);
+        case PURC_VARIANT_TYPE_LONGDOUBLE:
+            return purc_variant_make_ulongint(real.ld);
+        default:
+            assert(0);
+            break;
+    }
 
 failed:
     if (silently)

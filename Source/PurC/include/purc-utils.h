@@ -547,6 +547,118 @@ PCA_EXPORT char *
 pcutils_string_decode_utf32(const unsigned char* bytes, size_t max_len,
         size_t *sz_space, bool silently);
 
+typedef union {
+    int64_t     i64;
+    uint64_t    u64;
+    double      d;
+    long double ld;
+} purc_real_t;
+
+PCA_EXPORT purc_real_t
+purc_fetch_i8(const unsigned char *bytes);
+
+PCA_EXPORT purc_real_t
+purc_fetch_i16(const unsigned char *bytes);
+
+PCA_EXPORT purc_real_t
+purc_fetch_i32(const unsigned char *bytes);
+
+PCA_EXPORT purc_real_t
+purc_fetch_i64(const unsigned char *bytes);
+
+PCA_EXPORT purc_real_t
+purc_fetch_i16le(const unsigned char *bytes);
+
+PCA_EXPORT purc_real_t
+purc_fetch_i32le(const unsigned char *bytes);
+
+PCA_EXPORT purc_real_t
+purc_fetch_i64le(const unsigned char *bytes);
+
+PCA_EXPORT purc_real_t
+purc_fetch_i16be(const unsigned char *bytes);
+
+PCA_EXPORT purc_real_t
+purc_fetch_i32be(const unsigned char *bytes);
+
+PCA_EXPORT purc_real_t
+purc_fetch_i64be(const unsigned char *bytes);
+
+PCA_EXPORT purc_real_t
+purc_fetch_u8(const unsigned char *bytes);
+
+PCA_EXPORT purc_real_t
+purc_fetch_u16(const unsigned char *bytes);
+
+PCA_EXPORT purc_real_t
+purc_fetch_u32(const unsigned char *bytes);
+
+PCA_EXPORT purc_real_t
+purc_fetch_u64(const unsigned char *bytes);
+
+PCA_EXPORT purc_real_t
+purc_fetch_u16le(const unsigned char *bytes);
+
+PCA_EXPORT purc_real_t
+purc_fetch_u32le(const unsigned char *bytes);
+
+PCA_EXPORT purc_real_t
+purc_fetch_u64le(const unsigned char *bytes);
+
+PCA_EXPORT purc_real_t
+purc_fetch_u16be(const unsigned char *bytes);
+
+PCA_EXPORT purc_real_t
+purc_fetch_u32be(const unsigned char *bytes);
+
+PCA_EXPORT purc_real_t
+purc_fetch_u64be(const unsigned char *bytes);
+
+PCA_EXPORT purc_real_t
+purc_fetch_f16(const unsigned char *bytes);
+
+PCA_EXPORT purc_real_t
+purc_fetch_f32(const unsigned char *bytes);
+
+PCA_EXPORT purc_real_t
+purc_fetch_f64(const unsigned char *bytes);
+
+PCA_EXPORT purc_real_t
+purc_fetch_f96(const unsigned char *bytes);
+
+PCA_EXPORT purc_real_t
+purc_fetch_f128(const unsigned char *bytes);
+
+PCA_EXPORT purc_real_t
+purc_fetch_f16le(const unsigned char *bytes);
+
+PCA_EXPORT purc_real_t
+purc_fetch_f32le(const unsigned char *bytes);
+
+PCA_EXPORT purc_real_t
+purc_fetch_f64le(const unsigned char *bytes);
+
+PCA_EXPORT purc_real_t
+purc_fetch_f96le(const unsigned char *bytes);
+
+PCA_EXPORT purc_real_t
+purc_fetch_f128le(const unsigned char *bytes);
+
+PCA_EXPORT purc_real_t
+purc_fetch_f16be(const unsigned char *bytes);
+
+PCA_EXPORT purc_real_t
+purc_fetch_f32be(const unsigned char *bytes);
+
+PCA_EXPORT purc_real_t
+purc_fetch_f64be(const unsigned char *bytes);
+
+PCA_EXPORT purc_real_t
+purc_fetch_f96be(const unsigned char *bytes);
+
+PCA_EXPORT purc_real_t
+purc_fetch_f128be(const unsigned char *bytes);
+
 /** Returns the basename of fname. The result is a pointer into fname. */
 PCA_EXPORT const char *
 pcutils_basename(const char* fname);
