@@ -44,7 +44,6 @@
 
 #define LEN_INI_PRINT_BUF   128
 #define LEN_MAX_PRINT_BUF   1024
-#define LEN_MAX_KEYWORD     64
 
 enum {
 #define _KW_HVML_SPEC_VERSION   "HVML_SPEC_VERSION"
@@ -436,7 +435,7 @@ uname_prt_getter(purc_variant_t root,
         do {
             size_t len_part = 0;
 
-            if (length == 0 || length > LEN_MAX_KEYWORD) {
+            if (length == 0 || length > MAX_LEN_KEYWORD) {
                 atom = keywords2atoms[K_KW_kernel_name].atom;
             }
             else {
@@ -827,7 +826,7 @@ locale_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             length = sizeof(_KW_messages) - 1;
             atom = keywords2atoms[K_KW_messages].atom;
         }
-        else if (length > LEN_MAX_KEYWORD) {
+        else if (length > MAX_LEN_KEYWORD) {
             purc_set_error(PURC_ERROR_INVALID_VALUE);
             goto failed;
         }
@@ -945,7 +944,7 @@ locale_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     locale = pcutils_trim_spaces(locale, &locale_len);
-    if (locale_len == 0 || locale_len > LEN_MAX_KEYWORD) {
+    if (locale_len == 0 || locale_len > MAX_LEN_KEYWORD) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto failed;
     }

@@ -36,7 +36,6 @@
 
 #define LEN_INI_SERIALIZE_BUF   128
 #define LEN_MAX_SERIALIZE_BUF   4096
-#define LEN_MAX_KEYWORD         64
 
 static purc_variant_t
 type_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
@@ -342,7 +341,7 @@ serialize_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
         do {
 
-            if (length > 0 || length <= LEN_MAX_KEYWORD) {
+            if (length > 0 || length <= MAX_LEN_KEYWORD) {
                 purc_atom_t atom;
 
                 /* TODO: use strndupa if it is available */
@@ -555,16 +554,39 @@ fetchstr_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     bytes += offset;
     char *str = NULL;
     size_t str_len;
-    if (strcmp(encoding, PURC_KW_utf8) == 0) {
+    size_t encoding_len;
+
+    encoding = pcutils_trim_spaces(encoding, &encoding_len);
+    int encoding_id = pcdvobjs_global_keyword_id(encoding, encoding_len);
+    switch (encoding_id) {
+    case PURC_K_KW_utf8:
         return purc_variant_make_string_ex((const char *)bytes, length, !silently);
-    }
-    else if (strcmp(encoding, PURC_KW_utf16) == 0) {
+
+    case PURC_K_KW_utf16:
         str = pcutils_string_decode_utf16(bytes, length, &str_len, silently);
-    }
-    else if (strcmp(encoding, PURC_KW_utf32) == 0) {
+        break;
+
+    case PURC_K_KW_utf32:
         str = pcutils_string_decode_utf32(bytes, length, &str_len, silently);
-    }
-    else {
+        break;
+
+    case PURC_K_KW_utf16le:
+        str = pcutils_string_decode_utf16le(bytes, length, &str_len, silently);
+        break;
+
+    case PURC_K_KW_utf32le:
+        str = pcutils_string_decode_utf32le(bytes, length, &str_len, silently);
+        break;
+
+    case PURC_K_KW_utf16be:
+        str = pcutils_string_decode_utf16be(bytes, length, &str_len, silently);
+        break;
+
+    case PURC_K_KW_utf32be:
+        str = pcutils_string_decode_utf32be(bytes, length, &str_len, silently);
+        break;
+
+    default:
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         goto failed;
     }
@@ -836,7 +858,6 @@ purc_variant_t purc_dvobj_ejson_new(void)
                 purc_atom_from_static_string_ex(ATOM_BUCKET_DVOBJ,
                     keywords2atoms[i].keyword);
         }
-
     }
 
     return purc_dvobj_make_from_methods(method, PCA_TABLESIZE(method));

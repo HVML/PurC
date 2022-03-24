@@ -45,13 +45,15 @@
 #define PURC_TIMEZONE_UTC   "UTC"
 
 #define MAX_LEN_TIMEZONE    128
+#define MAX_LEN_KEYWORD     64
 
 #define PURC_KEYWORD_true   "true"
 #define PURC_KEYWORD_false  "false"
 
 enum {
+    PURC_K_KW_FIRST = 0,
 #define PURC_KW_caseless    "caseless"
-    PURC_K_KW_caseless,
+    PURC_K_KW_caseless = PURC_K_KW_FIRST,
 #define PURC_KW_case        "case"
     PURC_K_KW_case,
 #define PURC_KW_reg         "reg"
@@ -144,9 +146,21 @@ enum {
     PURC_K_KW_utf16,
 #define PURC_KW_utf32       "utf32"
     PURC_K_KW_utf32,
+#define PURC_KW_utf16le     "utf16le"
+    PURC_K_KW_utf16le,
+#define PURC_KW_utf32le     "utf32le"
+    PURC_K_KW_utf32le,
+#define PURC_KW_utf16be     "utf16be"
+    PURC_K_KW_utf16be,
+#define PURC_KW_utf32be     "utf32be"
+    PURC_K_KW_utf32be,
 #define PURC_KW_padding     "padding"
     PURC_K_KW_padding,
+
+    PURC_K_KW_LAST = PURC_K_KW_padding,
 };
+
+#define PURC_GLOBAL_KEYWORD_NR  (PURC_K_KW_LAST - PURC_K_KW_FIRST + 1)
 
 #define STRING_COMP_MODE_CASELESS   "caseless"
 #define STRING_COMP_MODE_CASE       "case"
@@ -160,6 +174,9 @@ enum {
 #ifdef __cplusplus
 extern "C" {
 #endif  /* __cplusplus */
+
+/* return -1 for bad keyword */
+int pcdvobjs_global_keyword_id(const char *keyword, size_t length);
 
 bool pcdvobjs_is_valid_timezone(const char *timezone) WTF_INTERNAL;
 bool pcdvobjs_get_current_timezone(char *buff, size_t sz_buff) WTF_INTERNAL;
