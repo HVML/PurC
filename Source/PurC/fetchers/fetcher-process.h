@@ -112,7 +112,7 @@ public:
         enum pcfetcher_request_method method,
         purc_variant_t params,
         uint32_t timeout,
-        response_handler handler,
+        pcfetcher_response_handler handler,
         void* ctxt);
 
     purc_rwstream_t requestSync(
