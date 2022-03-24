@@ -58,7 +58,7 @@ param_begin
 undefined:;
 boolean:false;
 param_end
-invalid:;
+number:15;
 test_end
 
 test_begin
@@ -66,7 +66,7 @@ param_begin
 undefined:;
 boolean:true;
 param_end
-invalid:;
+number:1;
 test_end
 
 test_begin
@@ -74,7 +74,7 @@ param_begin
 null:;
 undefined:;
 param_end
-invalid:;
+number:-7;
 test_end
 
 test_begin

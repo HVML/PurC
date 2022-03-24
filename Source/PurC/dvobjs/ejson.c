@@ -36,7 +36,6 @@
 
 #define LEN_INI_SERIALIZE_BUF   128
 #define LEN_MAX_SERIALIZE_BUF   4096
-#define LEN_MAX_KEYWORD         64
 
 static purc_variant_t
 type_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
@@ -342,7 +341,7 @@ serialize_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
         do {
 
-            if (length > 0 || length <= LEN_MAX_KEYWORD) {
+            if (length > 0 || length <= MAX_LEN_KEYWORD) {
                 purc_atom_t atom;
 
                 /* TODO: use strndupa if it is available */
@@ -400,6 +399,364 @@ serialize_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
 fatal:
     return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+parse_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
+
+    if (nr_args < 2) {
+        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    const char *string;
+    size_t length;
+    string = purc_variant_get_string_const_ex(argv[1], &length);
+    if (string == NULL) {
+        pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    // TODO
+
+    bool v = purc_variant_is_equal_to(argv[0], argv[1]);
+    return purc_variant_make_boolean(v);
+
+failed:
+    return purc_variant_make_undefined();
+}
+
+static purc_variant_t
+isequal_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
+
+    if (nr_args < 2) {
+        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    bool v = purc_variant_is_equal_to(argv[0], argv[1]);
+    return purc_variant_make_boolean(v);
+
+failed:
+    return purc_variant_make_undefined();
+}
+
+static purc_variant_t
+compare_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
+{
+    UNUSED_PARAM(root);
+
+    const char *option = NULL;
+    unsigned int flag = PCVARIANT_COMPARE_OPT_AUTO;
+
+    if (nr_args < 2) {
+        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    if (nr_args >= 3) {
+        option = purc_variant_get_string_const(argv[2]);
+        if (option == NULL) {
+            pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            goto failed;
+        }
+
+        if (strcmp(option, PURC_KW_caseless) == 0)
+            flag = PCVARIANT_COMPARE_OPT_CASELESS;
+        else if (strcmp(option, PURC_KW_case) == 0)
+            flag = PCVARIANT_COMPARE_OPT_CASE;
+        else if (strcmp(option, PURC_KW_number) == 0)
+            flag = PCVARIANT_COMPARE_OPT_NUMBER;
+    }
+
+    double result = 0.0L;
+    result = purc_variant_compare_ex(argv[0], argv[1], flag);
+    return purc_variant_make_number(result);
+
+failed:
+    if (silently)
+        return purc_variant_make_undefined();
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+fetchstr_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
+
+    const char *encoding = NULL;
+    uint64_t length;
+    int64_t offset = 0;
+
+    if (nr_args < 3) {
+        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    if (!purc_variant_is_bsequence(argv[0])) {
+        pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    if ((encoding = purc_variant_get_string_const(argv[1])) == NULL) {
+        pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    if (!purc_variant_cast_to_ulongint(argv[2], &length, false)) {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
+
+    if (nr_args >= 3) {
+        if (!purc_variant_cast_to_longint(argv[3], &offset, false)) {
+            pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+            goto failed;
+        }
+    }
+
+    const unsigned char *bytes;
+    size_t nr_bytes;
+    bytes = purc_variant_get_bytes_const(argv[0], &nr_bytes);
+
+    if (offset > 0 && (uint64_t)offset > nr_bytes) {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
+
+    if (offset < 0 &&  (uint64_t)-offset > nr_bytes) {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
+
+    if (offset < 0)
+        offset = nr_bytes + offset;
+
+    if (offset + length > nr_bytes) {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
+
+    if (length == 0)
+        return purc_variant_make_string_static("", false);
+
+    bytes += offset;
+    char *str = NULL;
+    size_t str_len;
+    size_t encoding_len;
+
+    encoding = pcutils_trim_spaces(encoding, &encoding_len);
+    int encoding_id = pcdvobjs_global_keyword_id(encoding, encoding_len);
+    switch (encoding_id) {
+    case PURC_K_KW_utf8:
+        return purc_variant_make_string_ex((const char *)bytes, length, !silently);
+
+    case PURC_K_KW_utf16:
+        str = pcutils_string_decode_utf16(bytes, length, &str_len, silently);
+        break;
+
+    case PURC_K_KW_utf32:
+        str = pcutils_string_decode_utf32(bytes, length, &str_len, silently);
+        break;
+
+    case PURC_K_KW_utf16le:
+        str = pcutils_string_decode_utf16le(bytes, length, &str_len, silently);
+        break;
+
+    case PURC_K_KW_utf32le:
+        str = pcutils_string_decode_utf32le(bytes, length, &str_len, silently);
+        break;
+
+    case PURC_K_KW_utf16be:
+        str = pcutils_string_decode_utf16be(bytes, length, &str_len, silently);
+        break;
+
+    case PURC_K_KW_utf32be:
+        str = pcutils_string_decode_utf32be(bytes, length, &str_len, silently);
+        break;
+
+    default:
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
+
+    if (str == NULL) {
+        pcinst_set_error(PURC_ERROR_BAD_ENCODING);
+        goto failed;
+    }
+
+    return purc_variant_make_string_reuse_buff(str, str_len, !silently);
+
+failed:
+    if (silently)
+        return purc_variant_make_undefined();
+
+    return PURC_VARIANT_INVALID;
+}
+
+typedef purc_real_t (*fn_fetch_real)(const unsigned char *bytes);
+
+static const struct real_info {
+    uint8_t         length;         // unit length in bytes
+    uint8_t         real_type;      // EJSON real type
+    fn_fetch_real   fetcher;        // fetcher
+} real_info[] = {
+    { 1,  PURC_VARIANT_TYPE_LONGINT,    purc_fetch_i8       },  // "i8"
+    { 2,  PURC_VARIANT_TYPE_LONGINT,    purc_fetch_i16      },  // "i16"
+    { 4,  PURC_VARIANT_TYPE_LONGINT,    purc_fetch_i32      },  // "i32"
+    { 8,  PURC_VARIANT_TYPE_LONGINT,    purc_fetch_i64      },  // "i64"
+    { 2,  PURC_VARIANT_TYPE_LONGINT,    purc_fetch_i16le    },  // "i16le"
+    { 4,  PURC_VARIANT_TYPE_LONGINT,    purc_fetch_i32le    },  // "i32le"
+    { 6,  PURC_VARIANT_TYPE_LONGINT,    purc_fetch_i64le    },  // "i64le"
+    { 2,  PURC_VARIANT_TYPE_LONGINT,    purc_fetch_i16be    },  // "i16be"
+    { 4,  PURC_VARIANT_TYPE_LONGINT,    purc_fetch_i32be    },  // "i32be"
+    { 8,  PURC_VARIANT_TYPE_LONGINT,    purc_fetch_i64be    },  // "i64be"
+    { 1,  PURC_VARIANT_TYPE_ULONGINT,   purc_fetch_u8       },  // "u8"
+    { 2,  PURC_VARIANT_TYPE_ULONGINT,   purc_fetch_u16      },  // "u16"
+    { 4,  PURC_VARIANT_TYPE_ULONGINT,   purc_fetch_u32      },  // "u32"
+    { 8,  PURC_VARIANT_TYPE_ULONGINT,   purc_fetch_u64      },  // "u64"
+    { 2,  PURC_VARIANT_TYPE_ULONGINT,   purc_fetch_u16le    },  // "u16le"
+    { 4,  PURC_VARIANT_TYPE_ULONGINT,   purc_fetch_u32le    },  // "u32le"
+    { 8,  PURC_VARIANT_TYPE_ULONGINT,   purc_fetch_u64le    },  // "u64le"
+    { 2,  PURC_VARIANT_TYPE_ULONGINT,   purc_fetch_u16be    },  // "u16be"
+    { 4,  PURC_VARIANT_TYPE_ULONGINT,   purc_fetch_u32be    },  // "u32be"
+    { 8,  PURC_VARIANT_TYPE_ULONGINT,   purc_fetch_u64be    },  // "u64be"
+    { 2,  PURC_VARIANT_TYPE_NUMBER,     purc_fetch_f16      },  // "f16"
+    { 4,  PURC_VARIANT_TYPE_NUMBER,     purc_fetch_f32      },  // "f32"
+    { 8,  PURC_VARIANT_TYPE_NUMBER,     purc_fetch_f64      },  // "f64"
+    { 12, PURC_VARIANT_TYPE_LONGDOUBLE, purc_fetch_f96      },  // "f96"
+    { 16, PURC_VARIANT_TYPE_LONGDOUBLE, purc_fetch_f128     },  // "f128"
+    { 2,  PURC_VARIANT_TYPE_NUMBER,     purc_fetch_f16le    },  // "f16le"
+    { 4,  PURC_VARIANT_TYPE_NUMBER,     purc_fetch_f32le    },  // "f32le"
+    { 8,  PURC_VARIANT_TYPE_NUMBER,     purc_fetch_f64le    },  // "f64le"
+    { 12, PURC_VARIANT_TYPE_LONGDOUBLE, purc_fetch_f96le    },  // "f96le"
+    { 16, PURC_VARIANT_TYPE_LONGDOUBLE, purc_fetch_f128le   },  // "f128le"
+    { 2,  PURC_VARIANT_TYPE_NUMBER,     purc_fetch_f16be    },  // "f16be"
+    { 4,  PURC_VARIANT_TYPE_NUMBER,     purc_fetch_f32be    },  // "f32be"
+    { 8,  PURC_VARIANT_TYPE_NUMBER,     purc_fetch_f64be    },  // "f64be"
+    { 12, PURC_VARIANT_TYPE_LONGDOUBLE, purc_fetch_f96be    },  // "f96be"
+    { 16, PURC_VARIANT_TYPE_LONGDOUBLE, purc_fetch_f128be   },  // "f128be"
+};
+
+static purc_variant_t
+fetchreal_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
+
+    const char *format = NULL;
+    size_t length = 0;
+    int64_t offset = 0;
+
+    if (nr_args < 2) {
+        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    if (!purc_variant_is_bsequence(argv[0])) {
+        pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    if ((format = purc_variant_get_string_const(argv[1])) == NULL) {
+        pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    // parse format and get the length of real number.
+    size_t format_len;
+    format = pcutils_trim_spaces(format, &format_len);
+    int format_id = pcdvobjs_global_keyword_id(format, format_len);
+    assert(format_id >= PURC_K_KW_i8 && format_id <= PURC_K_KW_f128be);
+
+    format_id -= PURC_K_KW_i8;
+    length = real_info[format_id].length;
+    if (nr_args >= 2) {
+        if (!purc_variant_cast_to_longint(argv[3], &offset, false)) {
+            pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+            goto failed;
+        }
+    }
+
+    const unsigned char *bytes;
+    size_t nr_bytes;
+    bytes = purc_variant_get_bytes_const(argv[0], &nr_bytes);
+
+    if (offset > 0 && (uint64_t)offset > nr_bytes) {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
+
+    if (offset < 0 &&  (uint64_t)-offset > nr_bytes) {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
+
+    if (offset < 0)
+        offset = nr_bytes + offset;
+
+    if (offset + length > nr_bytes) {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
+
+    purc_real_t real = real_info[format_id].fetcher(bytes);
+    switch (real_info[format_id].real_type) {
+        case PURC_VARIANT_TYPE_LONGINT:
+            return purc_variant_make_longint(real.i64);
+        case PURC_VARIANT_TYPE_ULONGINT:
+            return purc_variant_make_ulongint(real.u64);
+        case PURC_VARIANT_TYPE_NUMBER:
+            return purc_variant_make_ulongint(real.d);
+        case PURC_VARIANT_TYPE_LONGDOUBLE:
+            return purc_variant_make_ulongint(real.ld);
+        default:
+            assert(0);
+            break;
+    }
+
+failed:
+    if (silently)
+        return purc_variant_make_undefined();
+
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+shuffle_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
+
+    if (nr_args < 1) {
+        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    if (!(purc_variant_is_array(argv[0]) || purc_variant_is_set(argv[0]))) {
+        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    // TODO
+
+    return purc_variant_make_boolean(true);
+
+failed:
+    return purc_variant_make_boolean(false);
 }
 
 typedef struct __dvobjs_ejson_arg {
@@ -537,58 +894,22 @@ sort_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     return ret_var;
 }
 
-static purc_variant_t
-compare_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
-{
-    UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
-
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
-    const char *option = NULL;
-    double compare = 0.0L;
-    unsigned int flag = PCVARIANT_COMPARE_OPT_AUTO;
-
-    if ((argv == NULL) || (nr_args < 3)) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
-    }
-
-    if ((argv[2] != PURC_VARIANT_INVALID) &&
-         (!purc_variant_is_string (argv[2]))) {
-        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
-    }
-
-    option = purc_variant_get_string_const (argv[2]);
-
-    if (strcasecmp (option, STRING_COMP_MODE_CASELESS) == 0)
-        flag = PCVARIANT_COMPARE_OPT_CASELESS;
-    else if (strcasecmp (option, STRING_COMP_MODE_CASE) == 0)
-        flag = PCVARIANT_COMPARE_OPT_CASE;
-    else if (strcasecmp (option, STRING_COMP_MODE_NUMBER) == 0)
-        flag = PCVARIANT_COMPARE_OPT_NUMBER;
-    else
-        flag = PCVARIANT_COMPARE_OPT_AUTO;
-
-    compare = purc_variant_compare_ex (argv[0], argv[1], flag);
-
-    ret_var = purc_variant_make_number (compare);
-
-    return ret_var;
-}
-
 purc_variant_t purc_dvobj_ejson_new(void)
 {
     static struct purc_dvobj_method method [] = {
-        {"type",        type_getter, NULL},
-        {"count",       count_getter, NULL},
-        {"numberify",   numberify_getter, NULL},
-        {"booleanize",  booleanize_getter, NULL},
-        {"stringify",   stringify_getter, NULL},
-        {"serialize",   serialize_getter, NULL},
-        {"sort",        sort_getter, NULL},
-        {"compare",     compare_getter, NULL}
+        { "type",       type_getter, NULL },
+        { "count",      count_getter, NULL },
+        { "numberify",  numberify_getter, NULL },
+        { "booleanize", booleanize_getter, NULL },
+        { "stringify",  stringify_getter, NULL },
+        { "serialize",  serialize_getter, NULL },
+        { "parse",      parse_getter, NULL },
+        { "isequal",    isequal_getter, NULL },
+        { "compare",    compare_getter, NULL },
+        { "fetchstr",   fetchstr_getter, NULL },
+        { "fetchreal",  fetchreal_getter, NULL },
+        { "shuffle",    shuffle_getter, NULL },
+        { "sort",       sort_getter, NULL },
     };
 
     if (keywords2atoms[0].atom == 0) {
@@ -597,7 +918,6 @@ purc_variant_t purc_dvobj_ejson_new(void)
                 purc_atom_from_static_string_ex(ATOM_BUCKET_DVOBJ,
                     keywords2atoms[i].keyword);
         }
-
     }
 
     return purc_dvobj_make_from_methods(method, PCA_TABLESIZE(method));
