@@ -53,6 +53,13 @@ struct ctxt_for_init {
     unsigned int                  async:1;
 };
 
+struct fetcher_for_init {
+    pcintr_stack_t                stack;
+    struct pcvdom_element         *element;
+    purc_variant_t                name;
+    unsigned int                  under_head:1;
+};
+
 static void
 ctxt_for_init_destroy(struct ctxt_for_init *ctxt)
 {
@@ -487,33 +494,43 @@ void load_response_handler(purc_variant_t request_id, void *ctxt,
         const struct pcfetcher_resp_header *resp_header,
         purc_rwstream_t resp)
 {
-    UNUSED_PARAM(request_id);
-    UNUSED_PARAM(ctxt);
-    UNUSED_PARAM(resp_header);
-    UNUSED_PARAM(resp);
-    PC_DEBUG("....................................\n");
-    PC_DEBUG(".................head begin\n");
+    struct fetcher_for_init *fetcher = (struct fetcher_for_init*)ctxt;
+
     PC_DEBUG("ret_code=%d\n", resp_header->ret_code);
     PC_DEBUG("mime_type=%s\n", resp_header->mime_type);
     PC_DEBUG("sz_resp=%ld\n", resp_header->sz_resp);
-    PC_DEBUG(".................head end\n");
-    PC_DEBUG(".................body begin\n");
-    if (resp) {
+    if (resp && resp_header->ret_code == 200) {
         size_t sz_content = 0;
         size_t sz_buffer = 0;
         char* buf = (char*)purc_rwstream_get_mem_buffer_ex(resp, &sz_content,
                 &sz_buffer, false);
-        PC_DEBUG("buffer size=%ld\n", sz_buffer);
-        PC_DEBUG("body size=%ld|buflen=%ld\n", sz_content,
-                buf ? strlen(buf) : 0);
-        PC_DEBUG("%s\n", buf ? buf : NULL);
+
+        bool ok;
+        struct pcvdom_element *element = fetcher->element;
+        purc_variant_t ret = purc_variant_make_from_json_string(buf, sz_content);
+        if (ret != PURC_VARIANT_INVALID) {
+            const char *s_name = purc_variant_get_string_const(fetcher->name);
+            if (fetcher->under_head) {
+                ok = purc_bind_document_variable(fetcher->stack->vdom, s_name,
+                        ret);
+            } else {
+                element = pcvdom_element_parent(element);
+                ok = pcintr_bind_scope_variable(element, s_name, ret);
+            }
+            purc_variant_unref(ret);
+        }
+
+#if 0
+        // TODO : error
+        if (!ok) {
+        }
+#endif
         purc_rwstream_destroy(resp);
     }
-    PC_DEBUG(".................body end\n");
-    PC_DEBUG("....................................request_id=%p\n", request_id);
     if (request_id != PURC_VARIANT_INVALID) {
         purc_variant_unref(request_id);
     }
+    free(fetcher);
 }
 
 static void*
@@ -556,6 +573,12 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         ctxt->async = 0;
     }
 
+    while ((element=pcvdom_element_parent(element))) {
+        if (element->tag_id == PCHVML_TAG_HEAD) {
+            ctxt->under_head = 1;
+        }
+    }
+
     purc_variant_t from = ctxt->from;
     if (from != PURC_VARIANT_INVALID && purc_variant_is_string(from)
             && pcfetcher_is_init()) {
@@ -568,18 +591,24 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
             ctxt->from_result = v;
         }
         else {
+            struct fetcher_for_init *fetcher = (struct fetcher_for_init*)
+                malloc(sizeof(struct fetcher_for_init));
+            if (!fetcher) {
+                purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+                return NULL;
+            }
+            fetcher->stack = stack;
+            fetcher->element = element;
+            fetcher->name = ctxt->as;
+            purc_variant_ref(fetcher->name);
+            fetcher->under_head = ctxt->under_head;
             purc_variant_t v = pcintr_load_from_uri_async(stack, uri,
-                    load_response_handler, stack);
+                    load_response_handler, fetcher);
             if (v == PURC_VARIANT_INVALID)
                 return NULL;
         }
     }
 
-    while ((element=pcvdom_element_parent(element))) {
-        if (element->tag_id == PCHVML_TAG_HEAD) {
-            ctxt->under_head = 1;
-        }
-    }
     purc_clr_error();
 
     if (r)
