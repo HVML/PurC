@@ -50,6 +50,7 @@ struct ctxt_for_init {
 
     unsigned int                  under_head:1;
     unsigned int                  locally:1;
+    unsigned int                  async:1;
 };
 
 static void
@@ -439,6 +440,18 @@ attr_found_val(struct pcintr_stack_frame *frame,
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, LOCALLY)) == name) {
         PC_ASSERT(purc_variant_is_undefined(val));
         ctxt->locally = 1;
+        return 0;
+    }
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, ASYNCHRONOUSLY)) == name
+            || pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, ASYNC)) == name) {
+        PC_ASSERT(purc_variant_is_undefined(val));
+        ctxt->async = 1;
+        return 0;
+    }
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, SYNCHRONOUSLY)) == name
+            || pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, SYNC)) == name) {
+        PC_ASSERT(purc_variant_is_undefined(val));
+        ctxt->async = 0;
         return 0;
     }
 
