@@ -368,17 +368,17 @@ pcutils_token_it_value(struct pcutils_token_iterator *it)
     return &it->curr;
 }
 
-bool
+struct pcutils_token*
 pcutils_token_it_next(struct pcutils_token_iterator *it)
 {
     if (it->curr.start == NULL)
-        return false;
+        return NULL;
 
     it->curr.start = it->next;
 
     refresh(it);
 
-    return it->curr.start ? true : false;
+    return it->curr.start ? &it->curr : NULL;
 }
 
 void

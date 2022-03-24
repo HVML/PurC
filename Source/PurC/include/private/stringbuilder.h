@@ -148,7 +148,7 @@ pcutils_token_it_begin(const char *start, const char *end, const char c);
 struct pcutils_token*
 pcutils_token_it_value(struct pcutils_token_iterator *it);
 
-bool
+struct pcutils_token*
 pcutils_token_it_next(struct pcutils_token_iterator *it);
 
 void
