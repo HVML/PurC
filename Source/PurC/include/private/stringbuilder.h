@@ -128,6 +128,32 @@ int
 pcutils_token_by_delim(const char *start, const char *end, const char c,
         void *ud, pcutils_token_found_f cb);
 
+struct pcutils_token {
+    const char                *start;
+    const char                *end;
+};
+
+struct pcutils_token_iterator {
+    struct pcutils_token           curr;
+    const char                    *next;
+
+    const char                    *str;
+    const char                    *end;
+    char                           delim;
+};
+
+struct pcutils_token_iterator
+pcutils_token_it_begin(const char *start, const char *end, const char c);
+
+struct pcutils_token*
+pcutils_token_it_value(struct pcutils_token_iterator *it);
+
+bool
+pcutils_token_it_next(struct pcutils_token_iterator *it);
+
+void
+pcutils_token_it_end(struct pcutils_token_iterator *it);
+
 PCA_EXTERN_C_END
 
 #endif  /* PURC_PRIVATE_STRINGBUILDER_H */

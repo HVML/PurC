@@ -316,3 +316,76 @@ pcutils_token_by_delim(const char *start, const char *end, const char c,
     return r;
 }
 
+static inline const char*
+TOKEN_START(const char *start, const char *end, const char delim)
+{
+    const char *p = start;
+    while (p != end && *p == delim)
+        ++p;
+    return p;
+}
+
+static inline const char*
+TOKEN_END(const char *start, const char *end, const char delim)
+{
+    const char *p = start;
+    while (p != end && *p != delim)
+        ++p;
+    return p;
+}
+
+static void
+refresh(struct pcutils_token_iterator *it)
+{
+    if (it->curr.start) {
+        it->curr.end = TOKEN_END(it->curr.start, it->curr.end, it->delim);
+        it->next = TOKEN_START(it->curr.end, it->curr.end, it->delim);
+    }
+    else {
+        it->curr.end = NULL;
+        it->next = NULL;
+    }
+}
+
+struct pcutils_token_iterator
+pcutils_token_it_begin(const char *start, const char *end, const char c)
+{
+    struct pcutils_token_iterator it = {};
+    it.curr.start = start;
+    it.curr.end   = end;
+    it.delim      = c;
+
+    it.curr.start = TOKEN_START(start, end, c);
+
+    refresh(&it);
+
+    return it;
+}
+
+struct pcutils_token*
+pcutils_token_it_value(struct pcutils_token_iterator *it)
+{
+    return &it->curr;
+}
+
+bool
+pcutils_token_it_next(struct pcutils_token_iterator *it)
+{
+    if (it->curr.start == NULL)
+        return false;
+
+    it->curr.start = it->next;
+
+    refresh(it);
+
+    return it->curr.start ? true : false;
+}
+
+void
+pcutils_token_it_end(struct pcutils_token_iterator *it)
+{
+    it->curr.start = NULL;
+    it->curr.end = NULL;
+    it->next = NULL;
+}
+
