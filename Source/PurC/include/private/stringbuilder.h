@@ -94,7 +94,14 @@ int
 pcutils_string_check_size(struct pcutils_string *string, size_t size);
 
 int
-pcutils_string_append_chunk(struct pcutils_string *string, const char *chunk);
+pcutils_string_append_chunk(struct pcutils_string *string,
+        const char *chunk, size_t len);
+
+static inline int
+pcutils_string_append_str(struct pcutils_string *string, const char *str)
+{
+    return pcutils_string_append_chunk(string, str, strlen(str));
+}
 
 WTF_ATTRIBUTE_PRINTF(2, 0)
 int
@@ -127,6 +134,32 @@ typedef int (*pcutils_token_found_f)(const char *start, const char *end,
 int
 pcutils_token_by_delim(const char *start, const char *end, const char c,
         void *ud, pcutils_token_found_f cb);
+
+struct pcutils_token {
+    const char                *start;
+    const char                *end;
+};
+
+struct pcutils_token_iterator {
+    struct pcutils_token           curr;
+    const char                    *next;
+
+    const char                    *str;
+    const char                    *end;
+    char                           delim;
+};
+
+struct pcutils_token_iterator
+pcutils_token_it_begin(const char *start, const char *end, const char c);
+
+struct pcutils_token*
+pcutils_token_it_value(struct pcutils_token_iterator *it);
+
+struct pcutils_token*
+pcutils_token_it_next(struct pcutils_token_iterator *it);
+
+void
+pcutils_token_it_end(struct pcutils_token_iterator *it);
 
 PCA_EXTERN_C_END
 

@@ -32,8 +32,6 @@
 #include "hvml-tag.h"
 #include "hvml-tag-static-list.inc"
 
-#include <ctype.h>
-
 const struct pchvml_tag_entry*
 pchvml_tag_static_get_by_id(enum pchvml_tag_id id)
 {

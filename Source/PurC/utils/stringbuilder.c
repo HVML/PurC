@@ -224,21 +224,16 @@ pcutils_string_check_size(struct pcutils_string *string, size_t size)
 }
 
 int
-pcutils_string_append_chunk(struct pcutils_string *string, const char *chunk)
+pcutils_string_append_chunk(struct pcutils_string *string,
+        const char *chunk, size_t len)
 {
-    size_t len = strlen(chunk);
-
     int r;
     r = pcutils_string_check_size(string, len + 1);
     if (r)
         return -1;
 
-#if 0   /* NOTE: use `strcpy` is Ok, because you have checked the space. */
-    strncpy(string->curr, chunk, len);
-    string->curr[len] = '\0';
-#else
     strcpy(string->curr, chunk);
-#endif
+
     string->curr += len;
 
     return 0;
@@ -314,5 +309,78 @@ pcutils_token_by_delim(const char *start, const char *end, const char c,
 
     r = cb(start, end, ud);
     return r;
+}
+
+static inline const char*
+TOKEN_START(const char *start, const char *end, const char delim)
+{
+    const char *p = start;
+    while (p != end && *p == delim)
+        ++p;
+    return p;
+}
+
+static inline const char*
+TOKEN_END(const char *start, const char *end, const char delim)
+{
+    const char *p = start;
+    while (p != end && *p != delim)
+        ++p;
+    return p;
+}
+
+static void
+refresh(struct pcutils_token_iterator *it)
+{
+    if (it->curr.start) {
+        it->curr.end = TOKEN_END(it->curr.start, it->curr.end, it->delim);
+        it->next = TOKEN_START(it->curr.end, it->curr.end, it->delim);
+    }
+    else {
+        it->curr.end = NULL;
+        it->next = NULL;
+    }
+}
+
+struct pcutils_token_iterator
+pcutils_token_it_begin(const char *start, const char *end, const char c)
+{
+    struct pcutils_token_iterator it = {};
+    it.curr.start = start;
+    it.curr.end   = end;
+    it.delim      = c;
+
+    it.curr.start = TOKEN_START(start, end, c);
+
+    refresh(&it);
+
+    return it;
+}
+
+struct pcutils_token*
+pcutils_token_it_value(struct pcutils_token_iterator *it)
+{
+    return &it->curr;
+}
+
+struct pcutils_token*
+pcutils_token_it_next(struct pcutils_token_iterator *it)
+{
+    if (it->curr.start == NULL)
+        return NULL;
+
+    it->curr.start = it->next;
+
+    refresh(it);
+
+    return it->curr.start ? &it->curr : NULL;
+}
+
+void
+pcutils_token_it_end(struct pcutils_token_iterator *it)
+{
+    it->curr.start = NULL;
+    it->curr.end = NULL;
+    it->next = NULL;
 }
 

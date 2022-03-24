@@ -36,7 +36,6 @@
 
 #include "ops.h"
 
-#include <ctype.h>
 #include <pthread.h>
 #include <unistd.h>
 
@@ -498,10 +497,9 @@ update_target_attr(pcintr_stack_t stack, pcdom_element_t *target,
         PC_ASSERT(0);
         return -1;
     }
-    char *sv;
+    char *sv = pcvariant_to_string(src);
+    PC_ASSERT(sv);
     int r;
-    r = purc_variant_stringify_alloc(&sv, src);
-    PC_ASSERT(r >= 0 && sv);
     r = pcintr_util_set_attribute(target, at, sv);
     PC_ASSERT(r == 0);
     free(sv);

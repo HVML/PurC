@@ -2501,6 +2501,21 @@ char* pcvariant_serialize_alloc(char *buf, size_t sz, purc_variant_t val)
     return p;
 }
 
+char* pcvariant_to_string(purc_variant_t v)
+{
+    purc_rwstream_t rws = purc_rwstream_new_buffer(PRINT_MIN_BUFFER,
+            PRINT_MAX_BUFFER);
+    size_t len = 0;
+    purc_variant_serialize(v, rws, 0,
+            PCVARIANT_SERIALIZE_OPT_PLAIN | PCVARIANT_SERIALIZE_OPT_UNIQKEYS,
+            &len);
+    purc_rwstream_write(rws, "", 1);
+    char* buf = (char*)purc_rwstream_get_mem_buffer_ex(rws,
+            NULL, NULL, true);
+    purc_rwstream_destroy(rws);
+    return buf;
+}
+
 static int
 pcvariant_object_set_va(purc_variant_t obj, size_t nr_kvs, va_list ap)
 {

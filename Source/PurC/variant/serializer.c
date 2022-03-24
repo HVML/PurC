@@ -54,7 +54,6 @@
 #include <string.h>
 #include <math.h>
 #include <float.h>
-#include <ctype.h>
 
 static const char *hex_chars = "0123456789abcdefABCDEF";
 

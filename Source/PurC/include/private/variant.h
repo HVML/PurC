@@ -62,21 +62,11 @@ PCA_EXTERN_C_BEGIN
             pcutils_basename((char*)__FILE__), __LINE__, __func__, #_v, _v);  \
         break;                                                                \
     }                                                                         \
-    purc_rwstream_t _rws = purc_rwstream_new_buffer(PRINT_MIN_BUFFER,         \
-            PRINT_MAX_BUFFER);                                                \
-    size_t _len = 0;                                                          \
-    purc_variant_serialize(_v, _rws,                                          \
-            0,                                                                \
-            PCVARIANT_SERIALIZE_OPT_PLAIN | PCVARIANT_SERIALIZE_OPT_UNIQKEYS, \
-            &_len);                                                           \
-    purc_rwstream_write(_rws, "", 1);                                         \
-    char* _buf = (char*)purc_rwstream_get_mem_buffer_ex(_rws,                 \
-            NULL, NULL, true);                                                \
+    char* _buf = pcvariant_to_string(_v);                                     \
     PC_DEBUG("%s[%d]:%s(): %s[%p]=%s\n",                                      \
             pcutils_basename((char*)__FILE__), __LINE__, __func__,            \
             #_v, _v, _buf);                                                   \
     free(_buf);                                                               \
-    purc_rwstream_destroy(_rws);                                              \
 } while (0)
 
 
@@ -353,6 +343,8 @@ int pcvariant_set_get_uniqkeys(purc_variant_t set, size_t *nr_keynames,
 
 ssize_t pcvariant_serialize(char *buf, size_t sz, purc_variant_t val);
 char* pcvariant_serialize_alloc(char *buf, size_t sz, purc_variant_t val);
+
+char* pcvariant_to_string(purc_variant_t v);
 
 purc_variant_t pcvariant_make_object(size_t nr_kvs, ...);
 

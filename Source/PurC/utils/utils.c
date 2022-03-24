@@ -99,7 +99,7 @@ int pcutils_hex2bin (const char *hex, unsigned char *bin)
             half = (*hex - '0') & 0x0f;
         }
         else {
-            int c = tolower (*hex);
+            int c = purc_tolower (*hex);
             if (c >= 'a' && c <= 'f') {
                 half = (*hex - 'a' + 0x10) & 0x0f;
             }
