@@ -61,6 +61,8 @@ int pcfetcher_init(size_t max_conns, size_t cache_quota,
 
 int pcfetcher_term(void);
 
+bool pcfetcher_is_init(void);
+
 const char* pcfetcher_set_base_url(const char* base_url);
 
 void pcfetcher_cookie_set(const char* domain,

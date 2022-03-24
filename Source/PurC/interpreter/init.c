@@ -556,10 +556,9 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         ctxt->async = 0;
     }
 
-    // FIXME
-    // load from network
     purc_variant_t from = ctxt->from;
-    if (from != PURC_VARIANT_INVALID && purc_variant_is_string(from)) {
+    if (from != PURC_VARIANT_INVALID && purc_variant_is_string(from)
+            && pcfetcher_is_init()) {
         const char* uri = purc_variant_get_string_const(from);
         if (!ctxt->async) {
             purc_variant_t v = pcintr_load_from_uri(stack, uri);
@@ -649,6 +648,7 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     if (!vcm)
         return 0;
 
+    // FIXME
     if ((ctxt->from && !ctxt->async) || ctxt->with) {
         purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
                 "no content is permitted "
