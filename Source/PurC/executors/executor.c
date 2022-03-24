@@ -27,6 +27,8 @@
 #include "private/errors.h"
 #include "private/instance.h"
 
+#include "purc-utils.h"
+
 #include "pcexe-helper.h"
 
 #include "exe_key.h"
@@ -42,8 +44,6 @@
 #include "exe_objformula.h"
 #include "exe_sql.h"
 #include "exe_travel.h"
-
-#include <ctype.h>
 
 #include "executor_err_msgs.inc"
 
@@ -247,14 +247,14 @@ bool purc_get_executor(const char* name, purc_exec_ops_t ops)
     }
 
     const char *h = name;
-    while (*h && isspace(*h))
+    while (*h && purc_isspace(*h))
         ++h;
 
     if (!*h)
         return false;
 
     const char *t = h + 1;
-    while (*t && !isspace(*t) && *t != ':')
+    while (*t && !purc_isspace(*t) && *t != ':')
         ++t;
 
     char *s = strndup(h, t-h);

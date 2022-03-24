@@ -318,7 +318,7 @@ void purc_generate_unique_id (char* id_buff, const char* prefix)
 
     for (i = 0; i < 8; i++) {
         if (i < n) {
-            my_prefix [i] = toupper (prefix [i]);
+            my_prefix [i] = purc_toupper (prefix [i]);
         }
         else
             my_prefix [i] = 'X';
