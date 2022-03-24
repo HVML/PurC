@@ -31,7 +31,6 @@
 #include <stddef.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <ctype.h>
 #include <time.h>
 
 #include "purc-macros.h"

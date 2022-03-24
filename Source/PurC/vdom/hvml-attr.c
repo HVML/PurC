@@ -32,13 +32,11 @@
 #include "hvml-attr.h"
 #include "hvml-attr-static-list.inc"
 
-#include <ctype.h>
-
 const struct pchvml_attr_entry*
 pchvml_attr_static_search(const char* name, size_t length)
 {
-    unsigned int v = (unsigned char)tolower(name[0])
-        * (unsigned char)tolower(name[length-1]);
+    unsigned int v = (unsigned char)purc_tolower(name[0])
+        * (unsigned char)purc_tolower(name[length-1]);
     unsigned idx = v % PCHVML_ATTR_STATIC_SIZE;
 
     const struct pchvml_attr_entry *entry = &pchvml_attr_static_list_index[idx];

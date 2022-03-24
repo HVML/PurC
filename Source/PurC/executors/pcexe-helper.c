@@ -29,7 +29,6 @@
 #include "private/errors.h"
 #include "private/variant.h"
 
-#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -877,7 +876,7 @@ normalize_space(char *s)
     size_t n = strlen(s);
     for (size_t i=0; i<n; ++i) {
         const char c = s[i];
-        if (isspace(c)) {
+        if (purc_isspace(c)) {
             s[i] = ' ';
         }
     }
@@ -889,7 +888,7 @@ normalize_toupper(char *s)
     size_t n = strlen(s);
     for (size_t i=0; i<n; ++i) {
         const char c = s[i];
-        s[i] = toupper(c);
+        s[i] = purc_toupper(c);
     }
 }
 
@@ -900,7 +899,7 @@ compress_spaces(char *s)
     if (n==0)
         return;
 
-    if (isspace(*s)) {
+    if (purc_isspace(*s)) {
         *s = ' ';
     }
 
@@ -911,7 +910,7 @@ compress_spaces(char *s)
 
     for (size_t i=1; i<n; ++i) {
         const char c = s[i];
-        if (isspace(c)) {
+        if (purc_isspace(c)) {
             if (*t == ' ') {
                 continue;
             }

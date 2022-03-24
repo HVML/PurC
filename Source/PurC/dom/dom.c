@@ -37,8 +37,6 @@
 #include "private/dom.h"
 #include "private/stringbuilder.h"
 
-#include <ctype.h>
-
 void pcdom_init_once(void)
 {
     // initialize others
