@@ -491,6 +491,29 @@ void load_response_handler(purc_variant_t request_id, void *ctxt,
     UNUSED_PARAM(ctxt);
     UNUSED_PARAM(resp_header);
     UNUSED_PARAM(resp);
+    PC_DEBUG("....................................\n");
+    PC_DEBUG(".................head begin\n");
+    PC_DEBUG("ret_code=%d\n", resp_header->ret_code);
+    PC_DEBUG("mime_type=%s\n", resp_header->mime_type);
+    PC_DEBUG("sz_resp=%ld\n", resp_header->sz_resp);
+    PC_DEBUG(".................head end\n");
+    PC_DEBUG(".................body begin\n");
+    if (resp) {
+        size_t sz_content = 0;
+        size_t sz_buffer = 0;
+        char* buf = (char*)purc_rwstream_get_mem_buffer_ex(resp, &sz_content,
+                &sz_buffer, false);
+        PC_DEBUG("buffer size=%ld\n", sz_buffer);
+        PC_DEBUG("body size=%ld|buflen=%ld\n", sz_content,
+                buf ? strlen(buf) : 0);
+        PC_DEBUG("%s\n", buf ? buf : NULL);
+        purc_rwstream_destroy(resp);
+    }
+    PC_DEBUG(".................body end\n");
+    PC_DEBUG("....................................request_id=%p\n", request_id);
+    if (request_id != PURC_VARIANT_INVALID) {
+        purc_variant_unref(request_id);
+    }
 }
 
 static void*
@@ -529,13 +552,16 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (r)
         return NULL;
 
+    if (ctxt->locally) {
+        ctxt->async = 0;
+    }
+
     // FIXME
     // load from network
     purc_variant_t from = ctxt->from;
     if (from != PURC_VARIANT_INVALID && purc_variant_is_string(from)) {
-        PC_ASSERT(0); // TODO: async load
         const char* uri = purc_variant_get_string_const(from);
-        if (ctxt->locally || !ctxt->async) {
+        if (!ctxt->async) {
             purc_variant_t v = pcintr_load_from_uri(stack, uri);
             if (v == PURC_VARIANT_INVALID)
                 return NULL;
@@ -623,7 +649,7 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     if (!vcm)
         return 0;
 
-    if (ctxt->from || ctxt->with) {
+    if ((ctxt->from && !ctxt->async) || ctxt->with) {
         purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
                 "no content is permitted "
                 "since there's no `from/with` attribute");
