@@ -36,7 +36,6 @@
 
 #include "ops.h"
 
-#include <ctype.h>
 #include <pthread.h>
 #include <unistd.h>
 

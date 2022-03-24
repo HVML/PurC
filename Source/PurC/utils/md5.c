@@ -40,7 +40,6 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <ctype.h>
 
 /*
  * The basic MD5 functions.
