@@ -32,6 +32,7 @@
 #include <getopt.h>
 
 #define LEN_TARGET_NAME     10
+#define LEN_DATA_FETCHER    10
 
 #define DEF_WORKSPACE_ID       "purc_def_workspace"
 #define DEF_WINDOW_ID          "purc_def_window"
@@ -40,6 +41,7 @@ struct purc_run_info {
     char app_name[PURC_LEN_APP_NAME + 1];
     char runner_name[PURC_LEN_RUNNER_NAME + 1];
     char target_name[LEN_TARGET_NAME + 1];          // rdr
+    char data_fetcher[LEN_DATA_FETCHER + 1];          // data fetcher
 
     char *doc_content;
 };
@@ -86,6 +88,7 @@ static void print_usage(void)
             "  -r --runner=<runner_name>    - Run with the specified runner name.\n"
             "  -f --file=<html_file>        - The initial HTML file to load.\n"
             "  -t --target=<renderer_name>  - The renderer name.\n"
+            "  -d --data-fetcher=<fetcher>  - The data fetcher(none, local, remote).\n"
             "  -v --version                 - Display version information and exit.\n"
             "  -h --help                    - This help.\n"
             "\n"
@@ -123,12 +126,13 @@ failed:
     return buf;
 }
 
-static char short_options[] = "a:r:f:t:vh";
+static char short_options[] = "a:r:f:t:d:vh";
 static struct option long_opts[] = {
     {"app"            , required_argument , NULL , 'a' } ,
     {"runner"         , required_argument , NULL , 'r' } ,
     {"file"           , required_argument , NULL , 'f' } ,
     {"target"         , required_argument , NULL , 't' } ,
+    {"data-fetcher"   , required_argument , NULL , 'd' } ,
     {"version"        , no_argument       , NULL , 'v' } ,
     {"help"           , no_argument       , NULL , 'h' } ,
     {0, 0, 0, 0}
@@ -166,6 +170,10 @@ static int read_option_args (int argc, char **argv)
             if (strlen (optarg) < LEN_TARGET_NAME)
                 strcpy (run_info.target_name, optarg);
             break;
+        case 'd':
+            if (strlen (optarg) < LEN_DATA_FETCHER)
+                strcpy (run_info.data_fetcher, optarg);
+            break;
         case '?':
             print_usage ();
             return -1;
@@ -197,7 +205,16 @@ int main(int argc, char** argv)
 
     purc_instance_extra_info extra_info = {};
 
-    unsigned int modules = (PURC_MODULE_HVML | PURC_MODULE_PCRDR) & ~PURC_HAVE_FETCHER;
+    unsigned int modules = 0;
+    if (strcmp(run_info.data_fetcher, "local") == 0) {
+        modules = (PURC_MODULE_HVML | PURC_MODULE_PCRDR);
+    }
+    else if (strcmp(run_info.data_fetcher, "remote") == 0) {
+        modules = (PURC_MODULE_HVML | PURC_MODULE_PCRDR) | PURC_HAVE_FETCHER_R;
+    }
+    else {
+        modules = (PURC_MODULE_HVML | PURC_MODULE_PCRDR) & ~PURC_HAVE_FETCHER;
+    }
 
     if (!run_info.app_name[0]) {
         strcpy(run_info.app_name, "cn.fmsoft.hybridos.purc");
