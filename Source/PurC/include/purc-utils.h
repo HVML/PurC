@@ -30,7 +30,6 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdarg.h>
-#include <ctype.h>
 #include <locale.h>
 #include <sys/types.h>  /* for ssize_t on macOS */
 

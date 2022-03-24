@@ -29,7 +29,6 @@
 #include "private/utils.h"
 
 #include <stdio.h>
-#include <ctype.h>
 
 #if OS(LINUX)
 
