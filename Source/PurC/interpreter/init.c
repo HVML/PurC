@@ -483,6 +483,16 @@ attr_found(struct pcintr_stack_frame *frame,
     return r ? -1 : 0;
 }
 
+void load_response_handler(purc_variant_t request_id, void *ctxt,
+        const struct pcfetcher_resp_header *resp_header,
+        purc_rwstream_t resp)
+{
+    UNUSED_PARAM(request_id);
+    UNUSED_PARAM(ctxt);
+    UNUSED_PARAM(resp_header);
+    UNUSED_PARAM(resp);
+}
+
 static void*
 after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 {
@@ -525,11 +535,19 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (from != PURC_VARIANT_INVALID && purc_variant_is_string(from)) {
         PC_ASSERT(0); // TODO: async load
         const char* uri = purc_variant_get_string_const(from);
-        purc_variant_t v = pcintr_load_from_uri(stack, uri);
-        if (v == PURC_VARIANT_INVALID)
-            return NULL;
-        PURC_VARIANT_SAFE_CLEAR(ctxt->from_result);
-        ctxt->from_result = v;
+        if (ctxt->locally || !ctxt->async) {
+            purc_variant_t v = pcintr_load_from_uri(stack, uri);
+            if (v == PURC_VARIANT_INVALID)
+                return NULL;
+            PURC_VARIANT_SAFE_CLEAR(ctxt->from_result);
+            ctxt->from_result = v;
+        }
+        else {
+            purc_variant_t v = pcintr_load_from_uri_async(stack, uri,
+                    load_response_handler, stack);
+            if (v == PURC_VARIANT_INVALID)
+                return NULL;
+        }
     }
 
     while ((element=pcvdom_element_parent(element))) {
