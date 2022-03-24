@@ -94,7 +94,14 @@ int
 pcutils_string_check_size(struct pcutils_string *string, size_t size);
 
 int
-pcutils_string_append_chunk(struct pcutils_string *string, const char *chunk);
+pcutils_string_append_chunk(struct pcutils_string *string,
+        const char *chunk, size_t len);
+
+static inline int
+pcutils_string_append_str(struct pcutils_string *string, const char *str)
+{
+    return pcutils_string_append_chunk(string, str, strlen(str));
+}
 
 WTF_ATTRIBUTE_PRINTF(2, 0)
 int

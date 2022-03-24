@@ -1924,13 +1924,13 @@ pcvar_set_clone_struct(purc_variant_t set)
         r = 0;
         for (size_t i=0; i<data->nr_keynames; ++i) {
             if (i) {
-                r = pcutils_string_append_chunk(&str, " ");
+                r = pcutils_string_append_chunk(&str, " ", 1);
                 if (r) {
                     purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
                     break;
                 }
             }
-            r = pcutils_string_append_chunk(&str, data->keynames[i]);
+            r = pcutils_string_append_str(&str, data->keynames[i]);
             if (r) {
                 purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
                 break;
@@ -1959,13 +1959,13 @@ pcvar_make_set(variant_set_t data)
         r = 0;
         for (size_t i=0; i<data->nr_keynames; ++i) {
             if (i) {
-                r = pcutils_string_append_chunk(&str, " ");
+                r = pcutils_string_append_chunk(&str, " ", 1);
                 if (r) {
                     purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
                     break;
                 }
             }
-            r = pcutils_string_append_chunk(&str, data->keynames[i]);
+            r = pcutils_string_append_str(&str, data->keynames[i]);
             if (r) {
                 purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
                 break;
