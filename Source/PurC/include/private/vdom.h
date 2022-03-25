@@ -56,7 +56,7 @@ enum pchvml_attr_operator {
     PCHVML_ATTRIBUTE_SUBTRACTION_OPERATOR,    // -=
     PCHVML_ATTRIBUTE_ASTERISK_OPERATOR,       // *=
     PCHVML_ATTRIBUTE_REGEX_OPERATOR,          // /=
-    PCHVML_ATTRIBUTE_REMAINDER_OPERATOR,      // %=
+    PCHVML_ATTRIBUTE_PRECISE_OPERATOR,        // %=
     PCHVML_ATTRIBUTE_REPLACE_OPERATOR,        // ~=
     PCHVML_ATTRIBUTE_HEAD_OPERATOR,           // ^=
     PCHVML_ATTRIBUTE_TAIL_OPERATOR,           // $=
@@ -522,6 +522,10 @@ pcvdom_util_fprintf(const char *buf, size_t len)
     fprintf(stderr, "%.*s", (int)len, buf);
     return 0;
 }
+
+purc_variant_t
+pcvdom_tokenwised_eval_attr(enum pchvml_attr_operator op,
+        purc_variant_t l, purc_variant_t r);
 
 #define PRINT_VDOM_NODE(_node)      \
     pcvdom_util_node_serialize(_node, pcvdom_util_fprintf)

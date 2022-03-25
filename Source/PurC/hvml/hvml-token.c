@@ -490,7 +490,7 @@ struct pchvml_buffer* pchvml_token_attr_to_string(
         pchvml_buffer_append_bytes(buffer, "/=", 2);
         break;
 
-    case PCHVML_ATTRIBUTE_REMAINDER_OPERATOR:
+    case PCHVML_ATTRIBUTE_PRECISE_OPERATOR:
         pchvml_buffer_append_bytes(buffer, "%=", 2);
         break;
 
