@@ -1633,7 +1633,7 @@ BEGIN_STATE(HVML_SPECIAL_ATTRIBUTE_OPERATOR_IN_ATTRIBUTE_NAME_STATE)
                 case '%':
                     pchvml_token_set_assignment_to_attr(
                             parser->token,
-                            PCHVML_ATTRIBUTE_REMAINDER_OPERATOR);
+                            PCHVML_ATTRIBUTE_PRECISE_OPERATOR);
                     break;
                 case '~':
                     pchvml_token_set_assignment_to_attr(
@@ -1702,7 +1702,7 @@ BEGIN_STATE(HVML_SPECIAL_ATTRIBUTE_OPERATOR_AFTER_ATTRIBUTE_NAME_STATE)
                 case '%':
                     pchvml_token_set_assignment_to_attr(
                             parser->token,
-                            PCHVML_ATTRIBUTE_REMAINDER_OPERATOR);
+                            PCHVML_ATTRIBUTE_PRECISE_OPERATOR);
                     break;
                 case '~':
                     pchvml_token_set_assignment_to_attr(
