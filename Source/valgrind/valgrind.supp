@@ -107,4 +107,14 @@
    fun:pcrunloop_init_main
    fun:purc_init_ex
 }
+{
+   <pcdvobjs_init_once>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:atom_init_bucket
+   fun:atom_get_bucket
+   fun:purc_atom_from_static_string_ex
+   fun:pcdvobjs_init_once
+}
 
