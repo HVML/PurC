@@ -194,6 +194,14 @@ pcutils_string_reset(struct pcutils_string *string)
     string->curr       = string->buf;
 }
 
+void
+pcutils_string_clear(struct pcutils_string *string)
+{
+    string->curr = string->abuf;
+    string->end  = string->curr;
+    string->curr[0] = '\0';
+}
+
 int
 pcutils_string_check_size(struct pcutils_string *string, size_t size)
 {

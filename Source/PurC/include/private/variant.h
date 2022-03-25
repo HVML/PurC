@@ -333,6 +333,32 @@ pcvariant_is_false(purc_variant_t v)
     return false;
 }
 
+static inline bool
+pcvariant_is_of_string(purc_variant_t v)
+{
+    switch (v->type) {
+        case PURC_VARIANT_TYPE_STRING:
+        case PURC_VARIANT_TYPE_ATOMSTRING:
+            return true;
+        default:
+            return false;
+    }
+}
+
+static inline bool
+pcvariant_is_of_number(purc_variant_t v)
+{
+    switch (v->type) {
+        case PURC_VARIANT_TYPE_NUMBER:
+        case PURC_VARIANT_TYPE_LONGINT:
+        case PURC_VARIANT_TYPE_ULONGINT:
+        case PURC_VARIANT_TYPE_LONGDOUBLE:
+            return true;
+        default:
+            return false;
+    }
+}
+
 // return -1 if not valid set
 // on return:
 // if *keynames == NULL, this is a generic-set

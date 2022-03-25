@@ -90,6 +90,9 @@ pcutils_string_init(struct pcutils_string *string, size_t chunk_size);
 void
 pcutils_string_reset(struct pcutils_string *string);
 
+void
+pcutils_string_clear(struct pcutils_string *string);
+
 int
 pcutils_string_check_size(struct pcutils_string *string, size_t size);
 
