@@ -506,6 +506,7 @@ void load_response_handler(purc_variant_t request_id, void *ctxt,
                 &sz_buffer, false);
 
         bool ok;
+        (void)ok;
         struct pcvdom_element *element = fetcher->element;
         purc_variant_t ret = purc_variant_make_from_json_string(buf, sz_content);
         if (ret != PURC_VARIANT_INVALID) {
