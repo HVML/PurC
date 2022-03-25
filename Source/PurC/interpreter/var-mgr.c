@@ -45,11 +45,13 @@
 #define EVENT_ATTACHED          "change:attached"
 #define EVENT_DETACHED          "change:detached"
 #define EVENT_DISPLACED         "change:displaced"
+#define EVENT_EXCEPT            "except:"
 
 enum var_event_type {
     VAR_EVENT_TYPE_ATTACHED,
     VAR_EVENT_TYPE_DETACHED,
     VAR_EVENT_TYPE_DISPLACED,
+    VAR_EVENT_TYPE_EXCEPT,
 };
 
 struct var_observe {
@@ -362,7 +364,7 @@ bool pcvarmgr_dispatch_except(pcvarmgr_t mgr, const char* name,
         struct var_observe* obs = (struct var_observe*) pcutils_array_get(
                 mgr->var_observers, i);
         if (strcmp(name, obs->name) == 0
-                && obs->type == VAR_EVENT_TYPE_ATTACHED) {
+                && obs->type == VAR_EVENT_TYPE_EXCEPT) {
             pcintr_dispatch_message(obs->stack, mgr->object, type, sub_type,
                     PURC_VARIANT_INVALID);
         }
@@ -390,6 +392,9 @@ static purc_variant_t pcvarmgr_add_observer(pcvarmgr_t mgr, const char* name,
     }
     else if (strcmp(event, EVENT_DISPLACED) == 0) {
         type = VAR_EVENT_TYPE_DISPLACED;
+    }
+    else if (strncmp(event, EVENT_EXCEPT, strlen(EVENT_EXCEPT)) == 0) {
+        type = VAR_EVENT_TYPE_EXCEPT;
     }
 
     pcintr_stack_t stack = pcintr_get_stack();
