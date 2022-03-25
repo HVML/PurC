@@ -718,8 +718,7 @@ void
 pcutils_wildcard_destroy(struct pcutils_wildcard *wildcard);
 
 bool
-pcutils_wildcard_match(struct pcutils_wildcard *wildcard,
-        const char *str, size_t nr);
+pcutils_wildcard_match(struct pcutils_wildcard *wildcard, const char *str);
 
 PCA_EXTERN_C_END
 
