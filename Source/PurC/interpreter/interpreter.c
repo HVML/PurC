@@ -532,7 +532,9 @@ eval_vdom_attr(pcintr_stack_t stack, struct pcvdom_attr *attr)
     if (!attr->val)
         return purc_variant_make_undefined();
 
-    return pcvcm_eval(attr->val, stack, false);
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_stack_get_bottom_frame(stack);
+    return pcvcm_eval(attr->val, stack, frame->silently);
 }
 
 int
