@@ -604,7 +604,7 @@ pcutils_wildcard_destroy(struct pcutils_wildcard *wildcard)
 
 #if USE(GLIB)            /* { */
 static bool
-wild_match(GPatternSpec *pattern, const char *str)
+wildcard_match(GPatternSpec *pattern, const char *str)
 {
 #if GLIB_CHECK_VERSION(2, 70, 0)
     return g_pattern_spec_match_string(pattern, str);
@@ -616,7 +616,7 @@ wild_match(GPatternSpec *pattern, const char *str)
 #else                    /* }{ */
 
 static bool
-wild_match(const char *pattern, const char *str)
+wildcard_match(const char *pattern, const char *str)
 {
     // TODO: better match in unicode
 
@@ -662,14 +662,28 @@ wild_match(const char *pattern, const char *str)
 }
 #endif                   /* } */
 
-bool
-pcutils_wildcard_match(struct pcutils_wildcard *wildcard, const char *str)
+int
+pcutils_wildcard_match(struct pcutils_wildcard *wildcard,
+        const char *str, size_t nr, bool *matched)
 {
     if (!wildcard || !wildcard->pattern) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
-        return false;
+        return -1;
     }
 
-    return wild_match(wildcard->pattern, str);
+    if (str[nr] == '\0') {
+        *matched = wildcard_match(wildcard->pattern, str);
+        return 0;
+    }
+
+    char *s = strndup(str, nr);
+    if (!s) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return -1;
+    }
+
+    *matched = wildcard_match(wildcard->pattern, s);
+    free(s);
+    return 0;
 }
 
