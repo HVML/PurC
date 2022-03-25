@@ -540,7 +540,7 @@ struct pcutils_wildcard
 };
 
 struct pcutils_wildcard*
-pcutils_wildcard_create(const char *pattern)
+pcutils_wildcard_create(const char *pattern, size_t nr)
 {
     struct pcutils_wildcard *wildcard;
     wildcard = (struct pcutils_wildcard*)calloc(1, sizeof(*wildcard));
@@ -549,7 +549,19 @@ pcutils_wildcard_create(const char *pattern)
         return NULL;
     }
 #if USE(GLIB)            /* { */
-    wildcard->pattern = g_pattern_spec_new(pattern);
+    if (pattern[nr] == '\0') {
+        wildcard->pattern = g_pattern_spec_new(pattern);
+    }
+    else {
+        char *s = strndup(pattern, nr);
+        if (!s) {
+            pcutils_wildcard_destroy(wildcard);
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            return NULL;
+        }
+        wildcard->pattern = g_pattern_spec_new(pattern);
+        free(s);
+    }
 #else                    /* }{ */
     wildcard->pattern = strdup(pattern);
 #endif                   /* } */
@@ -642,13 +654,27 @@ wild_match(const char *pattern, const char *str)
 #endif                   /* } */
 
 bool
-pcutils_wildcard_match(struct pcutils_wildcard *wildcard, const char *str)
+pcutils_wildcard_match(struct pcutils_wildcard *wildcard,
+        const char *str, size_t nr)
 {
     if (!wildcard || !wildcard->pattern) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         return false;
     }
 
-    return wild_match(wildcard->pattern, str);
+    if (str[nr] == '\0') {
+        return wild_match(wildcard->pattern, str);
+    }
+    else {
+        char *s = strndup(str, nr);
+        if (!s) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            return false;
+        }
+        bool ok;
+        ok = wild_match(wildcard->pattern, s);
+        free(s);
+        return ok;
+    }
 }
 
