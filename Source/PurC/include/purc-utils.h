@@ -708,6 +708,20 @@ pcutils_url_break_down(struct purc_broken_down_url *broken_down,
 
 PCA_EXTERN_C_END
 
+PCA_EXTERN_C_BEGIN
+struct pcutils_wildcard;
+
+struct pcutils_wildcard*
+pcutils_wildcard_create(const char *pattern);
+
+void
+pcutils_wildcard_destroy(struct pcutils_wildcard *wildcard);
+
+bool
+pcutils_wildcard_match(struct pcutils_wildcard *wildcard, const char *str);
+
+PCA_EXTERN_C_END
+
 /** Checks for a lowercase character. */
 static inline int purc_islower(int c) {
     unsigned char uc = (unsigned char)c;

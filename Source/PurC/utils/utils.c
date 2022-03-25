@@ -31,6 +31,10 @@
 #include <string.h>
 #include <errno.h>
 
+#if HAVE(GLIB)
+#include <glib.h>
+#endif // HAVE(GLIB)
+
 #define foreach_arg(_arg, _addr, _len, _first_addr, _first_len) \
     for (_addr = (_first_addr), _len = (_first_len); \
         _addr; \
@@ -525,3 +529,126 @@ char* pcutils_escape_string_for_json (const char* str)
 
     return pb->buf;
 }
+
+struct pcutils_wildcard
+{
+#if USE(GLIB)            /* { */
+    GPatternSpec *pattern;
+#else                    /* }{ */
+    char         *pattern;
+#endif                   /* } */
+};
+
+struct pcutils_wildcard*
+pcutils_wildcard_create(const char *pattern)
+{
+    struct pcutils_wildcard *wildcard;
+    wildcard = (struct pcutils_wildcard*)calloc(1, sizeof(*wildcard));
+    if (!wildcard) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return NULL;
+    }
+#if USE(GLIB)            /* { */
+    wildcard->pattern = g_pattern_spec_new(pattern);
+#else                    /* }{ */
+    wildcard->pattern = strdup(pattern);
+#endif                   /* } */
+
+    if (!wildcard->pattern) {
+        pcutils_wildcard_destroy(wildcard);
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return NULL;
+    }
+
+    return wildcard;
+}
+
+void
+pcutils_wildcard_destroy(struct pcutils_wildcard *wildcard)
+{
+    if (!wildcard)
+        return;
+
+    if (wildcard->pattern) {
+#if USE(GLIB)            /* { */
+        g_pattern_spec_free(wildcard->pattern);
+#else                    /* }{ */
+        free(wildcard->pattern);
+#endif                   /* } */
+        wildcard->pattern = NULL;
+    }
+
+    free(wildcard);
+}
+
+#if USE(GLIB)            /* { */
+static bool
+wild_match(GPatternSpec *pattern, const char *str)
+{
+#if GLIB_CHECK_VERSION(2, 70, 0)
+    return g_pattern_spec_match_string(pattern, str);
+#else
+    return g_pattern_match_string(pattern, str);
+#endif
+}
+
+#else                    /* }{ */
+
+static bool
+wild_match(const char *pattern, const char *str)
+{
+    // TODO: better match in unicode
+
+    int len1 = strlen (str);
+    int len2 = strlen (pattern);
+    int mark = 0;
+    int p1 = 0;
+    int p2 = 0;
+
+    while ((p1 < len1) && (p2<len2)) {
+        if (pattern[p2] == '?') {
+            p1++;
+            p2++;
+            continue;
+        }
+        if (pattern[p2] == '*') {
+            p2++;
+            mark = p2;
+            continue;
+        }
+        if (str[p1] != pattern[p2]) {
+            if (p1 == 0 && p2 == 0)
+                return false;
+            p1 -= p2 - mark - 1;
+            p2 = mark;
+            continue;
+        }
+        p1++;
+        p2++;
+    }
+    if (p2 == len2) {
+        if (p1 == len1)
+            return true;
+        if (pattern[p2 - 1] == '*')
+            return true;
+    }
+    while (p2 < len2) {
+        if (pattern[p2] != '*')
+            return false;
+        p2++;
+    }
+    return true;
+}
+#endif                   /* } */
+
+bool
+pcutils_wildcard_match(struct pcutils_wildcard *wildcard, const char *str)
+{
+    if (!wildcard || !wildcard->pattern) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        return false;
+    }
+
+    return wild_match(wildcard->pattern, str);
+}
+
