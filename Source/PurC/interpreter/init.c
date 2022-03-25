@@ -732,6 +732,10 @@ on_child_finished(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         purc_variant_ref(ctxt->literal);
         return post_process(co, frame);
     }
+    // FIXME:
+    if (ctxt->async) {
+        return 0;
+    }
 
     return -1;
 }
