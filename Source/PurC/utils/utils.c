@@ -540,7 +540,7 @@ struct pcutils_wildcard
 };
 
 struct pcutils_wildcard*
-pcutils_wildcard_create(const char *pattern)
+pcutils_wildcard_create(const char *pattern, size_t nr)
 {
     struct pcutils_wildcard *wildcard;
     wildcard = (struct pcutils_wildcard*)calloc(1, sizeof(*wildcard));
@@ -548,11 +548,32 @@ pcutils_wildcard_create(const char *pattern)
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
     }
+
+    char *s = NULL;
+    const char *p = NULL;
+    if (pattern[nr] == '\0') {
+        p = pattern;
+    }
+    else {
+        s = strndup(pattern, nr);
+        if (!s) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            return NULL;
+        }
+        p = s;
+    }
+
+    if (pattern[nr] == '\0') {
 #if USE(GLIB)            /* { */
-    wildcard->pattern = g_pattern_spec_new(pattern);
+        wildcard->pattern = g_pattern_spec_new(p);
 #else                    /* }{ */
-    wildcard->pattern = strdup(pattern);
+        wildcard->pattern = s;
+        s = NULL;
 #endif                   /* } */
+    }
+
+    if (s)
+        free(s);
 
     if (!wildcard->pattern) {
         pcutils_wildcard_destroy(wildcard);

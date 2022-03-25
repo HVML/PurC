@@ -712,7 +712,7 @@ PCA_EXTERN_C_BEGIN
 struct pcutils_wildcard;
 
 struct pcutils_wildcard*
-pcutils_wildcard_create(const char *pattern);
+pcutils_wildcard_create(const char *pattern, size_t nr);
 
 void
 pcutils_wildcard_destroy(struct pcutils_wildcard *wildcard);
