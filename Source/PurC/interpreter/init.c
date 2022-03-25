@@ -499,35 +499,60 @@ void load_response_handler(purc_variant_t request_id, void *ctxt,
     PC_DEBUG("ret_code=%d\n", resp_header->ret_code);
     PC_DEBUG("mime_type=%s\n", resp_header->mime_type);
     PC_DEBUG("sz_resp=%ld\n", resp_header->sz_resp);
-    if (resp && resp_header->ret_code == 200) {
-        size_t sz_content = 0;
-        size_t sz_buffer = 0;
-        char* buf = (char*)purc_rwstream_get_mem_buffer_ex(resp, &sz_content,
-                &sz_buffer, false);
+    bool has_except = false;
+    if (!resp || resp_header->ret_code != 200) {
+        has_except = true;
+        goto dispatch_except;
+    }
 
-        bool ok;
-        (void)ok;
-        struct pcvdom_element *element = fetcher->element;
-        purc_variant_t ret = purc_variant_make_from_json_string(buf, sz_content);
-        if (ret != PURC_VARIANT_INVALID) {
-            const char *s_name = purc_variant_get_string_const(fetcher->name);
-            if (fetcher->under_head) {
-                ok = purc_bind_document_variable(fetcher->stack->vdom, s_name,
-                        ret);
-            } else {
-                element = pcvdom_element_parent(element);
-                ok = pcintr_bind_scope_variable(element, s_name, ret);
-            }
-            purc_variant_unref(ret);
-        }
+    size_t sz_content = 0;
+    size_t sz_buffer = 0;
+    char* buf = (char*)purc_rwstream_get_mem_buffer_ex(resp, &sz_content,
+            &sz_buffer, false);
 
-#if 0
-        // TODO : error
-        if (!ok) {
+    bool ok;
+    struct pcvdom_element *element = fetcher->element;
+    purc_variant_t ret = purc_variant_make_from_json_string(buf, sz_content);
+    const char *s_name = purc_variant_get_string_const(fetcher->name);
+    if (ret != PURC_VARIANT_INVALID) {
+        if (fetcher->under_head) {
+            ok = purc_bind_document_variable(fetcher->stack->vdom, s_name,
+                    ret);
+        } else {
+            element = pcvdom_element_parent(element);
+            ok = pcintr_bind_scope_variable(element, s_name, ret);
         }
-#endif
+        purc_variant_unref(ret);
+        if (ok) {
+            goto clean_rws;
+        }
+        has_except = true;
+        goto dispatch_except;
+    }
+    else {
+        has_except = true;
+        goto dispatch_except;
+    }
+
+dispatch_except:
+    if (has_except) {
+        purc_atom_t atom = purc_get_error_exception(purc_get_last_error());
+        pcvarmgr_t varmgr;
+        if (fetcher->under_head) {
+            varmgr = pcvdom_document_get_variables(fetcher->stack->vdom);
+        }
+        else {
+            element = pcvdom_element_parent(element);
+            varmgr = pcvdom_element_get_variables(element);
+        }
+        pcvarmgr_dispatch_except(varmgr, s_name, purc_atom_to_string(atom));
+    }
+
+clean_rws:
+    if (resp) {
         purc_rwstream_destroy(resp);
     }
+
     if (request_id != PURC_VARIANT_INVALID) {
         purc_variant_unref(request_id);
     }

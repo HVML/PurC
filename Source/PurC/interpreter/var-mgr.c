@@ -45,11 +45,13 @@
 #define EVENT_ATTACHED          "change:attached"
 #define EVENT_DETACHED          "change:detached"
 #define EVENT_DISPLACED         "change:displaced"
+#define EVENT_EXCEPT            "except:"
 
 enum var_event_type {
     VAR_EVENT_TYPE_ATTACHED,
     VAR_EVENT_TYPE_DETACHED,
     VAR_EVENT_TYPE_DISPLACED,
+    VAR_EVENT_TYPE_EXCEPT,
 };
 
 struct var_observe {
@@ -343,6 +345,36 @@ bool pcvarmgr_remove(pcvarmgr_t mgr, const char* name)
     return false;
 }
 
+bool pcvarmgr_dispatch_except(pcvarmgr_t mgr, const char* name,
+        const char* except)
+{
+    purc_variant_t type = purc_variant_make_string(MSG_TYPE_CHANGE, false);
+    if (type == PURC_VARIANT_INVALID) {
+        return false;
+    }
+
+    purc_variant_t sub_type = purc_variant_make_string(except, false);
+    if (sub_type == PURC_VARIANT_INVALID) {
+        purc_variant_unref(type);
+        return false;
+    }
+
+    size_t sz = pcutils_array_length(mgr->var_observers);
+    for (size_t i = 0; i < sz; i++) {
+        struct var_observe* obs = (struct var_observe*) pcutils_array_get(
+                mgr->var_observers, i);
+        if (strcmp(name, obs->name) == 0
+                && obs->type == VAR_EVENT_TYPE_EXCEPT) {
+            pcintr_dispatch_message(obs->stack, mgr->object, type, sub_type,
+                    PURC_VARIANT_INVALID);
+        }
+    }
+
+    purc_variant_unref(sub_type);
+    purc_variant_unref(type);
+    return true;
+}
+
 static purc_variant_t pcvarmgr_add_observer(pcvarmgr_t mgr, const char* name,
         const char* event)
 {
@@ -360,6 +392,9 @@ static purc_variant_t pcvarmgr_add_observer(pcvarmgr_t mgr, const char* name,
     }
     else if (strcmp(event, EVENT_DISPLACED) == 0) {
         type = VAR_EVENT_TYPE_DISPLACED;
+    }
+    else if (strncmp(event, EVENT_EXCEPT, strlen(EVENT_EXCEPT)) == 0) {
+        type = VAR_EVENT_TYPE_EXCEPT;
     }
 
     pcintr_stack_t stack = pcintr_get_stack();
