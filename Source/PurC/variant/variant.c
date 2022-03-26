@@ -1885,6 +1885,7 @@ numberify_bs(const unsigned char *s, size_t nr)
         nr = size;
     }
 
+    /* FIXME: Use purc_fetch_xxx */
 #if CPU(BIG_ENDIAN)
     char buffer[size] = {0,};
     for (int i = 0; i < nr; i++)
@@ -2037,6 +2038,7 @@ purc_variant_numberify(purc_variant_t value)
     }
 }
 
+#if 0
 static inline bool
 booleanize_str(const char *s)
 {
@@ -2054,57 +2056,111 @@ booleanize_bs(const unsigned char *s, size_t nr)
 
     return numberify_bs(s, nr) != 0.0 ? true : false;
 }
+#endif
+
+static bool
+booleanize_dynamic(purc_variant_t value)
+{
+    purc_dvariant_method getter;
+    getter = purc_variant_dynamic_get_getter(value);
+
+    if (!getter)
+        return false;
+
+    purc_variant_t v = getter(value, 0, NULL, true); // TODO: silently
+    if (v == PURC_VARIANT_INVALID)
+        return false;
+
+    bool b = purc_variant_booleanize(v);
+    purc_variant_unref(v);
+
+    return b;
+}
+
+static bool
+booleanize_native(purc_variant_t value)
+{
+    void *native = value->ptr_ptr[0];
+
+    struct purc_native_ops *ops;
+    ops = (struct purc_native_ops*)value->ptr_ptr[1];
+
+    if (!ops || !ops->property_getter)
+        return false;
+
+    purc_nvariant_method getter = (ops->property_getter)("__boolean");
+    if (!getter)
+        return false;
+
+    purc_variant_t v = getter(native, 0, NULL, true);  // TODO: silently
+    if (v == PURC_VARIANT_INVALID)
+        return false;
+
+    bool b = purc_variant_booleanize(v);
+    purc_variant_unref(v);
+
+    return b;
+}
 
 bool
 purc_variant_booleanize(purc_variant_t value)
 {
     PC_ASSERT(value != PURC_VARIANT_INVALID);
 
-    const char *s;
-    const unsigned char *bs;
     size_t nr;
-    enum purc_variant_type type = purc_variant_get_type(value);
+    switch (value->type) {
+    case PURC_VARIANT_TYPE_UNDEFINED:
+        return false;
 
-    switch (type)
-    {
-        case PURC_VARIANT_TYPE_UNDEFINED:
-            return false;
-        case PURC_VARIANT_TYPE_NULL:
-            return false;
-        case PURC_VARIANT_TYPE_BOOLEAN:
-            return value->b;
-        case PURC_VARIANT_TYPE_EXCEPTION:
-            return false;
-        case PURC_VARIANT_TYPE_NUMBER:
-            return value->d != 0.0 ? true : false;
-        case PURC_VARIANT_TYPE_LONGINT:
-            return value->i64 ? true : false;
-        case PURC_VARIANT_TYPE_ULONGINT:
-            return value->u64 ? true : false;
-        case PURC_VARIANT_TYPE_LONGDOUBLE:
-            return value->ld != 0.0 ? true : false;
-        case PURC_VARIANT_TYPE_ATOMSTRING:
-            s = purc_variant_get_atom_string_const(value);
-            return booleanize_str(s);
-        case PURC_VARIANT_TYPE_STRING:
-            s = purc_variant_get_string_const(value);
-            return booleanize_str(s);
-        case PURC_VARIANT_TYPE_BSEQUENCE:
-            bs = purc_variant_get_bytes_const(value, &nr);
-            return booleanize_bs(bs, nr);
-        case PURC_VARIANT_TYPE_DYNAMIC:
-            return numberify_dynamic(value) != 0.0 ? true : false;
-        case PURC_VARIANT_TYPE_NATIVE:
-            return numberify_native(value) != 0.0 ? true : false;
-        case PURC_VARIANT_TYPE_OBJECT:
-            return numberify_object(value) != 0.0 ? true : false;
-        case PURC_VARIANT_TYPE_ARRAY:
-            return numberify_array(value) != 0.0 ? true : false;
-        case PURC_VARIANT_TYPE_SET:
-            return numberify_set(value) != 0.0 ? true : false;
-        default:
-            PC_ASSERT(0);
-            break;
+    case PURC_VARIANT_TYPE_NULL:
+        return false;
+
+    case PURC_VARIANT_TYPE_BOOLEAN:
+        return value->b;
+
+    case PURC_VARIANT_TYPE_NUMBER:
+        return value->d != 0;
+
+    case PURC_VARIANT_TYPE_LONGINT:
+        return value->i64 != 0;
+
+    case PURC_VARIANT_TYPE_ULONGINT:
+        return value->u64 != 0;
+
+    case PURC_VARIANT_TYPE_LONGDOUBLE:
+        return value->ld != 0;
+
+    case PURC_VARIANT_TYPE_EXCEPTION:
+    case PURC_VARIANT_TYPE_ATOMSTRING:
+    case PURC_VARIANT_TYPE_STRING:
+        purc_variant_get_string_const_ex(value, &nr);
+        return (nr != 0);
+
+    case PURC_VARIANT_TYPE_BSEQUENCE:
+        purc_variant_get_bytes_const(value, &nr);
+        return (nr != 0);
+
+    case PURC_VARIANT_TYPE_OBJECT:
+        return purc_variant_object_get_size(value) != 0;
+        // return numberify_object(value) != 0.0 ? true : false;
+
+    case PURC_VARIANT_TYPE_ARRAY:
+        return purc_variant_array_get_size(value) != 0;
+        // return numberify_array(value) != 0.0 ? true : false;
+
+    case PURC_VARIANT_TYPE_SET:
+        return purc_variant_set_get_size(value) != 0;
+        // return numberify_set(value) != 0.0 ? true : false;
+
+    case PURC_VARIANT_TYPE_DYNAMIC:
+        return booleanize_dynamic(value);
+
+    case PURC_VARIANT_TYPE_NATIVE:
+        return booleanize_native(value);
+
+    default:
+        PC_ASSERT(0);
+        break;
     }
 }
 
