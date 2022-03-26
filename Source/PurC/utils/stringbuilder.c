@@ -325,7 +325,7 @@ TOKEN_START(const char *start, const char *end, const char delim)
     const char *p = start;
     while (p != end && *p == delim)
         ++p;
-    return p;
+    return (p == end) ? NULL : p;
 }
 
 static inline const char*
