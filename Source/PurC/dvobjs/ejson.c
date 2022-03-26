@@ -847,13 +847,13 @@ failed:
     return PURC_VARIANT_INVALID;
 }
 
+#if 0
 struct sort_opt {
-    int method;
+    purc_vrtcmp_opt_t method;
     bool asc;
     pcutils_map *map;
 };
 
-#if 0
 static int my_array_sort (purc_variant_t v1, purc_variant_t v2, void *ud)
 {
     int ret = 0;
@@ -909,6 +909,11 @@ static void map_free_val(void *val)
     if (val)
         free (val);
 }
+
+    sort_arg.map = pcutils_map_create(map_copy_key, map_free_key,
+            map_copy_val, map_free_val, map_comp_key, false);
+
+    pcutils_map_destroy(sort_arg.map);
 #endif
 
 static purc_variant_t
@@ -919,11 +924,8 @@ sort_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     purc_variant_t val = PURC_VARIANT_INVALID;
     size_t totalsize = 0;
-    struct sort_opt sort_arg;
 
-    sort_arg.asc = true;
-    sort_arg.method = PURC_K_KW_auto;
-    sort_arg.map = NULL;
+    uintptr_t sort_opt = PCVARIANT_SORT_ASC;
 
     if (nr_args == 0) {
         pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
@@ -970,10 +972,10 @@ sort_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
         int order_id = pcdvobjs_global_keyword_id(order, order_len);
         if (order_id == PURC_K_KW_asc) {
-            sort_arg.asc = true;
+            sort_opt = PCVARIANT_SORT_DESC;
         }
         else if (order_id == PURC_K_KW_desc) {
-            sort_arg.asc = false;
+            sort_opt = PCVARIANT_SORT_ASC;
         }
         else {
             pcinst_set_error(PURC_ERROR_INVALID_VALUE);
@@ -999,16 +1001,20 @@ sort_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
         int option_id = pcdvobjs_global_keyword_id(option, option_len);
         if (option_id == PURC_K_KW_auto) {
-            sort_arg.method = PURC_K_KW_auto;
+            double number;
+            if (purc_variant_cast_to_number(val, &number, false))
+                sort_opt |= PCVARIANT_COMPARE_OPT_NUMBER;
+            else
+                sort_opt |= PCVARIANT_COMPARE_OPT_CASE;
         }
         else if (option_id == PURC_K_KW_number) {
-            sort_arg.method = PURC_K_KW_number;
+            sort_opt |= PCVARIANT_COMPARE_OPT_NUMBER;
         }
         else if (option_id == PURC_K_KW_case) {
-            sort_arg.method = PURC_K_KW_case;
+            sort_opt |= PCVARIANT_COMPARE_OPT_CASE;
         }
         else if (option_id == PURC_K_KW_caseless) {
-            sort_arg.method = PURC_K_KW_caseless;
+            sort_opt |= PCVARIANT_COMPARE_OPT_CASELESS;
         }
         else {
             pcinst_set_error(PURC_ERROR_INVALID_VALUE);
@@ -1016,37 +1022,13 @@ sort_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         }
     }
 
-    if (sort_arg.method == PURC_K_KW_auto) {
-        double number;
-        if (purc_variant_cast_to_number(val, &number, false))
-            sort_arg.method = PURC_K_KW_number;
-        else
-            sort_arg.method = PURC_K_KW_case;
-    }
-
-#if 0
-    sort_arg.map = pcutils_map_create(map_copy_key, map_free_key,
-            map_copy_val, map_free_val, map_comp_key, false);
-#endif
-
+    /* use the default variant comparison function */
     if (purc_variant_is_array(argv[0])) {
-#if 0
-        for (size_t i = 0; i < totalsize; ++i) {
-            char *buf = NULL;
-            val = purc_variant_array_get(argv[0], i);
-            purc_variant_stringify_alloc(&buf, val);
-            pcutils_map_find_replace_or_insert(sort_arg.map, val, buf, NULL);
-        }
-#endif
-        pcvariant_array_sort(argv[0], NULL, NULL);
+        pcvariant_array_sort(argv[0], (void *)sort_opt, NULL);
     }
     else {
-        pcvariant_set_sort(argv[0], NULL, NULL);
+        pcvariant_set_sort(argv[0], (void *)sort_opt, NULL);
     }
-
-#if 0
-    pcutils_map_destroy(sort_arg.map);
-#endif
 
 done:
     return purc_variant_ref(argv[0]);

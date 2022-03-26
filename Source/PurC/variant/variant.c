@@ -1559,8 +1559,8 @@ compare_stringify (purc_variant_t v, char *stackbuffer, size_t size)
     return buffer;
 }
 
-static int compare_string_method (purc_variant_t v1,
-        purc_variant_t v2, purc_variant_compare_opt opt)
+static int compare_string_method (purc_variant_t v1, purc_variant_t v2,
+        purc_vrtcmp_opt_t opt)
 {
     int compare = 0.0L;
     char *buf1 = NULL;
@@ -1590,7 +1590,7 @@ static int compare_string_method (purc_variant_t v1,
 }
 
 int purc_variant_compare_ex (purc_variant_t v1,
-        purc_variant_t v2, purc_variant_compare_opt opt)
+        purc_variant_t v2, purc_vrtcmp_opt_t opt)
 {
     int compare = 0;
 

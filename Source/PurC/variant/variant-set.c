@@ -1476,6 +1476,7 @@ int pcvariant_set_compare(purc_variant_t lv, purc_variant_t rv)
 */
 
 struct set_user_data {
+    purc_vrtcmp_opt_t cmp_opt;
     int (*cmp)(purc_variant_t l, purc_variant_t r, void *ud);
     void *ud;
 };

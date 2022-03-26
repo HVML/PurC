@@ -1565,7 +1565,7 @@ typedef enum purc_variant_compare_opt
     PCVARIANT_COMPARE_OPT_NUMBER,
     PCVARIANT_COMPARE_OPT_CASE,
     PCVARIANT_COMPARE_OPT_CASELESS,
-} purc_variant_compare_opt;
+} purc_vrtcmp_opt_t;
 
 /**
  * Compares two variant value
@@ -1581,8 +1581,8 @@ typedef enum purc_variant_compare_opt
  * Since: 0.0.1
  */
 PCA_EXPORT int
-purc_variant_compare_ex(purc_variant_t v1,
-        purc_variant_t v2, purc_variant_compare_opt opt);
+purc_variant_compare_ex(purc_variant_t v1, purc_variant_t v2,
+        purc_vrtcmp_opt_t opt);
 
 /**
  * A flag for the purc_variant_serialize() function which serializes

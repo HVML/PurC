@@ -884,8 +884,16 @@ sort_cmp(struct pcutils_array_list_node *l, struct pcutils_array_list_node *r,
 
 static int vrtcmp(purc_variant_t l, purc_variant_t r, void *ud)
 {
-    UNUSED_PARAM(ud);
-    return purc_variant_compare_ex(l, r, PCVARIANT_COMPARE_OPT_AUTO);
+    uintptr_t sort_flags;
+    purc_vrtcmp_opt_t cmpopt;
+
+    sort_flags = (uintptr_t)ud;
+    cmpopt = (purc_vrtcmp_opt_t)(sort_flags & PCVARIANT_CMPOPT_MASK);
+
+    int retv = purc_variant_compare_ex(l, r, cmpopt);
+    if (sort_flags & PCVARIANT_SORT_DESC)
+        retv = -retv;
+    return retv;
 }
 
 int pcvariant_array_sort(purc_variant_t arr, void *ud,
