@@ -167,8 +167,11 @@ stringify_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     else {
         switch (purc_variant_get_type (argv[0])) {
         case PURC_VARIANT_TYPE_UNDEFINED:
-        case PURC_VARIANT_TYPE_NULL:
             str_static = purc_variant_typename(PURC_VARIANT_TYPE_UNDEFINED);
+            break;
+
+        case PURC_VARIANT_TYPE_NULL:
+            str_static = purc_variant_typename(PURC_VARIANT_TYPE_NULL);
             break;
 
         case PURC_VARIANT_TYPE_BOOLEAN:
@@ -457,7 +460,10 @@ isequal_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     return purc_variant_make_boolean(v);
 
 failed:
-    return purc_variant_make_undefined();
+    if (silently)
+        return purc_variant_make_undefined();
+
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
