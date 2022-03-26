@@ -1480,6 +1480,20 @@ struct set_user_data {
     void *ud;
 };
 
+static int vrtcmp(purc_variant_t l, purc_variant_t r, void *ud)
+{
+    uintptr_t sort_flags;
+    purc_vrtcmp_opt_t cmpopt;
+
+    sort_flags = (uintptr_t)ud;
+    cmpopt = (purc_vrtcmp_opt_t)(sort_flags & PCVARIANT_CMPOPT_MASK);
+
+    int retv = purc_variant_compare_ex(l, r, cmpopt);
+    if (sort_flags & PCVARIANT_SORT_DESC)
+        retv = -retv;
+    return retv;
+}
+
 #if OS(HURD) || OS(LINUX)
 static int user_cmp(const void *l, const void *r, void *ud)
 {
@@ -1491,16 +1505,6 @@ static int user_cmp(const void *l, const void *r, void *ud)
     /* TODO: get the value by keys? */
     return d->cmp(nl->val, nr->val, d->ud);
 }
-
-static int cmp_variant(const void *l, const void *r, void *ud)
-{
-    purc_variant_t set = (purc_variant_t)ud;
-
-    struct set_node *nl = *(struct set_node**)l;
-    struct set_node *nr = *(struct set_node**)r;
-
-    return variant_set_compare_by_set_keys(set, nl->val, nr->val);
-}
 #elif OS(DARWIN) || OS(FREEBSD) || OS(NETBSD) || OS(OPENBSD) || OS(WINDOWS)
 static int user_cmp(void *ud, const void *l, const void *r)
 {
@@ -1511,15 +1515,6 @@ static int user_cmp(void *ud, const void *l, const void *r)
 
     /* TODO: get the value by keys? */
     return d->cmp(nl->val, nr->val, d->ud);
-}
-
-static int cmp_variant(void *ud, const void *l, const void *r)
-{
-    purc_variant_t set = (purc_variant_t)ud;
-
-    struct set_node *nl = *(struct set_node**)l;
-    struct set_node *nr = *(struct set_node**)r;
-    return variant_set_compare_by_set_keys(set, nl->val, nr->val);
 }
 #else
 #error Unsupported operating system.
@@ -1537,29 +1532,21 @@ int pcvariant_set_sort(purc_variant_t value, void *ud,
         return -1;
     void *arr = al->array;
 
-    if (cmp) {
-        struct set_user_data d = {
-            .cmp = cmp,
-            .ud  = ud,
-        };
+    struct set_user_data d = {
+        .cmp = cmp,
+        .ud  = ud,
+    };
+
+    if (d.cmp == NULL)
+        d.cmp = vrtcmp;
 
 #if OS(HURD) || OS(LINUX)
-        qsort_r(arr, al->length, sizeof(struct set_node*), user_cmp, &d);
+    qsort_r(arr, al->length, sizeof(struct set_node*), user_cmp, &d);
 #elif OS(DARWIN) || OS(FREEBSD) || OS(NETBSD) || OS(OPENBSD)
-        qsort_r(arr, al->length, sizeof(struct set_node*), &d, user_cmp);
+    qsort_r(arr, al->length, sizeof(struct set_node*), &d, user_cmp);
 #elif OS(WINDOWS)
-        qsort_s(arr, al->length, sizeof(struct set_node*), user_cmp, &d);
+    qsort_s(arr, al->length, sizeof(struct set_node*), user_cmp, &d);
 #endif
-    }
-    else {
-#if OS(HURD) || OS(LINUX)
-        qsort_r(arr, al->length, sizeof(struct set_node*), cmp_variant, value);
-#elif OS(DARWIN) || OS(FREEBSD) || OS(NETBSD) || OS(OPENBSD)
-        qsort_r(arr, al->length, sizeof(struct set_node*), value, cmp_variant);
-#elif OS(WINDOWS)
-        qsort_s(arr, al->length, sizeof(struct set_node*), cmp_variant, value);
-#endif
-    }
 
     refresh_arr(al, 0);
 
