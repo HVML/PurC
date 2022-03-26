@@ -805,25 +805,55 @@ shuffle_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto failed;
     }
 
-    if (!(purc_variant_is_array(argv[0]) || purc_variant_is_set(argv[0]))) {
-        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+    if (purc_variant_is_array(argv[0])) {
+        ssize_t sz = purc_variant_array_get_size(argv[0]);
+
+        if (sz > 1) {
+            struct pcutils_array_list *al = variant_array_get_data(argv[0]);
+            struct pcutils_array_list_node *p;
+            array_list_for_each(al, p) {
+                size_t new_idx = (size_t)pcdvobjs_get_random() % (size_t)sz;
+                pcutils_array_list_swap(al, p->idx, new_idx);
+            }
+        }
+    }
+    else if (purc_variant_is_set(argv[0])) {
+        ssize_t sz = purc_variant_set_get_size(argv[0]);
+
+        if (sz > 1) {
+            struct pcutils_arrlist *arr;
+            arr = ((variant_set_t)argv[0]->sz_ptr[1])->arr;
+
+            for (size_t idx = 0; idx < (size_t)sz; idx++) {
+                size_t new_idx = (size_t)pcdvobjs_get_random() % (size_t)sz;
+
+                pcutils_arrlist_swap(arr, idx, new_idx);
+            }
+
+            pcvariant_set_refresh(argv[0]);
+        }
+    }
+    else {
+        pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
         goto failed;
     }
 
-    // TODO
-
-    return purc_variant_make_boolean(true);
+    return purc_variant_ref(argv[0]);
 
 failed:
-    return purc_variant_make_boolean(false);
+    if (silently)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
 }
 
-typedef struct __dvobjs_ejson_arg {
+struct sort_opt {
+    int method;
     bool asc;
-    bool caseless;
     pcutils_map *map;
-} dvobjs_ejson_arg;
+};
 
+#if 0
 static int my_array_sort (purc_variant_t v1, purc_variant_t v2, void *ud)
 {
     int ret = 0;
@@ -831,17 +861,17 @@ static int my_array_sort (purc_variant_t v1, purc_variant_t v2, void *ud)
     char *p2 = NULL;
     pcutils_map_entry *entry = NULL;
 
-    dvobjs_ejson_arg *sort_arg = (dvobjs_ejson_arg *)ud;
-    entry = pcutils_map_find (sort_arg->map, v1);
+    struct sort_opt *sort_arg = (struct sort_opt *)ud;
+    entry = pcutils_map_find(sort_arg->map, v1);
     p1 = (char *)entry->val;
     entry = NULL;
-    entry = pcutils_map_find (sort_arg->map, v2);
+    entry = pcutils_map_find(sort_arg->map, v2);
     p2 = (char *)entry->val;
 
-    if (sort_arg->caseless)
-        ret = strcasecmp (p1, p2);
+    if (sort_arg->method == PURC_K_KW_caseless)
+        ret = strcasecmp(p1, p2);
     else
-        ret = strcmp (p1, p2);
+        ret = strcmp(p1, p2);
 
     if (!sort_arg->asc)
         ret = -1 * ret;
@@ -879,78 +909,153 @@ static void map_free_val(void *val)
     if (val)
         free (val);
 }
+#endif
 
 static purc_variant_t
-sort_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+sort_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
 
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_variant_t val = PURC_VARIANT_INVALID;
-    size_t i = 0;
     size_t totalsize = 0;
-    const char *option = NULL;
-    const char *order = NULL;
-    dvobjs_ejson_arg sort_arg;
-    char *buf = NULL;
+    struct sort_opt sort_arg;
 
     sort_arg.asc = true;
-    sort_arg.caseless = false;
+    sort_arg.method = PURC_K_KW_auto;
     sort_arg.map = NULL;
 
-    if ((argv == NULL) || (nr_args < 2)) {
+    if (nr_args == 0) {
         pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
-    if (!(purc_variant_is_array (argv[0]) || purc_variant_is_set (argv[0]))) {
-        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+    if (purc_variant_is_array(argv[0])) {
+        totalsize = purc_variant_array_get_size(argv[0]);
+        if (totalsize > 1) {
+            val = purc_variant_array_get(argv[0], 0);
+        }
+    }
+    else if (purc_variant_is_set(argv[0])) {
+        totalsize = purc_variant_set_get_size(argv[0]);
+        if (totalsize > 1) {
+            val = purc_variant_set_get_by_index(argv[0], 0);
+        }
+    }
+    else {
+        pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    if (totalsize < 2) {
+        // no need to sort
+        goto done;
     }
 
     // get sort order: asc, desc
-    if ((argv[1] == PURC_VARIANT_INVALID) ||
-                (!purc_variant_is_string (argv[1]))) {
-        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
-    }
-    order = purc_variant_get_string_const (argv[1]);
-    if (strcasecmp (order, STRING_COMP_MODE_DESC) == 0)
-        sort_arg.asc = false;
-
-    // get sort option: case, caseless
-    if ((nr_args == 3) && (argv[2] != PURC_VARIANT_INVALID) &&
-                (purc_variant_is_string (argv[2]))) {
-        option = purc_variant_get_string_const (argv[2]);
-        if (strcasecmp (option, STRING_COMP_MODE_CASELESS) == 0)
-            sort_arg.caseless = true;
-    }
-
-    sort_arg.map = pcutils_map_create (map_copy_key, map_free_key,
-            map_copy_val, map_free_val, map_comp_key, false);
-
-    // it is the array
-    if (purc_variant_is_array (argv[0])) {
-        totalsize = purc_variant_array_get_size (argv[0]);
-
-        for (i = 0; i < totalsize; ++i) {
-            val = purc_variant_array_get(argv[0], i);
-            purc_variant_stringify_alloc (&buf, val);
-            pcutils_map_find_replace_or_insert (sort_arg.map, val, buf, NULL);
+    if (nr_args >= 2) {
+        const char *order;
+        size_t order_len;
+        order = purc_variant_get_string_const_ex(argv[1], &order_len);
+        if (order == NULL) {
+            pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            goto failed;
         }
-        pcvariant_array_sort (argv[0], (void *)&sort_arg, my_array_sort);
+
+        order = pcutils_trim_spaces(order, &order_len);
+        if (order_len == 0) {
+            pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+            goto failed;
+        }
+
+        int order_id = pcdvobjs_global_keyword_id(order, order_len);
+        if (order_id == PURC_K_KW_asc) {
+            sort_arg.asc = true;
+        }
+        else if (order_id == PURC_K_KW_desc) {
+            sort_arg.asc = false;
+        }
+        else {
+            pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+            goto failed;
+        }
     }
-    else {    // it is the set
-        pcvariant_set_sort (argv[0]);
+
+    // get sort option: auto, number, case, caseless
+    if (nr_args >= 3) {
+        const char *option;
+        size_t option_len;
+        option = purc_variant_get_string_const_ex(argv[2], &option_len);
+        if (option == NULL) {
+            pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            goto failed;
+        }
+
+        option = pcutils_trim_spaces(option, &option_len);
+        if (option_len == 0) {
+            pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+            goto failed;
+        }
+
+        int option_id = pcdvobjs_global_keyword_id(option, option_len);
+        if (option_id == PURC_K_KW_auto) {
+            sort_arg.method = PURC_K_KW_auto;
+        }
+        else if (option_id == PURC_K_KW_number) {
+            sort_arg.method = PURC_K_KW_number;
+        }
+        else if (option_id == PURC_K_KW_case) {
+            sort_arg.method = PURC_K_KW_case;
+        }
+        else if (option_id == PURC_K_KW_caseless) {
+            sort_arg.method = PURC_K_KW_caseless;
+        }
+        else {
+            pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+            goto failed;
+        }
     }
 
-    pcutils_map_destroy (sort_arg.map);
+    if (sort_arg.method == PURC_K_KW_auto) {
+        double number;
+        if (purc_variant_cast_to_number(val, &number, false))
+            sort_arg.method = PURC_K_KW_number;
+        else
+            sort_arg.method = PURC_K_KW_case;
+    }
 
-    ret_var = argv[0];
+#if 0
+    sort_arg.map = pcutils_map_create(map_copy_key, map_free_key,
+            map_copy_val, map_free_val, map_comp_key, false);
+#endif
 
-    return ret_var;
+    if (purc_variant_is_array(argv[0])) {
+#if 0
+        for (size_t i = 0; i < totalsize; ++i) {
+            char *buf = NULL;
+            val = purc_variant_array_get(argv[0], i);
+            purc_variant_stringify_alloc(&buf, val);
+            pcutils_map_find_replace_or_insert(sort_arg.map, val, buf, NULL);
+        }
+#endif
+        pcvariant_array_sort(argv[0], NULL, NULL);
+    }
+    else {
+        pcvariant_set_sort(argv[0], NULL, NULL);
+    }
+
+#if 0
+    pcutils_map_destroy(sort_arg.map);
+#endif
+
+done:
+    return purc_variant_ref(argv[0]);
+
+failed:
+    if (silently)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
 }
 
 purc_variant_t purc_dvobj_ejson_new(void)

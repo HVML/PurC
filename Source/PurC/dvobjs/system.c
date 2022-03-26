@@ -1424,12 +1424,8 @@ static void cb_free_local_random_data(void *local_data)
 static char random_state[MAX_LEN_STATE_BUF];
 #endif
 
-static purc_variant_t
-random_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+int32_t pcdvobjs_get_random(void)
 {
-    UNUSED_PARAM(root);
-
 #if HAVE(RANDOM_R)
     struct local_random_data *rd = NULL;
     purc_get_local_data(PURC_LDNAME_RANDOM_DATA, (uintptr_t *)&rd, NULL);
@@ -1441,6 +1437,17 @@ random_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     long int result;
     result = random();
 #endif
+
+    return (int32_t)result;
+}
+
+static purc_variant_t
+random_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
+{
+    UNUSED_PARAM(root);
+
+    int32_t result = pcdvobjs_get_random();
 
     if (nr_args == 0) {
         return purc_variant_make_longint((int64_t)result);

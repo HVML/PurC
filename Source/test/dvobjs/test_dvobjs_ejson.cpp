@@ -646,11 +646,10 @@ TEST(dvobjs, sort)
                         free (buf2);
                     }
 
-                    // it will return array or set variant. do not unref here
-//                    if (ret_var != PURC_VARIANT_INVALID) {
-//                        purc_variant_unref(ret_var);
-//                        ret_var = PURC_VARIANT_INVALID;
-//                    }
+                    if (ret_var != PURC_VARIANT_INVALID) {
+                        purc_variant_unref(ret_var);
+                        ret_var = PURC_VARIANT_INVALID;
+                    }
 
                     if (ret_result != PURC_VARIANT_INVALID) {
                         purc_variant_unref(ret_result);

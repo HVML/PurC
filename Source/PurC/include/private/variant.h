@@ -303,7 +303,9 @@ struct variant_arr {
 
 int pcvariant_array_sort(purc_variant_t value, void *ud,
         int (*cmp)(purc_variant_t l, purc_variant_t r, void *ud));
-int pcvariant_set_sort(purc_variant_t value);
+int pcvariant_set_sort(purc_variant_t value, void *ud,
+        int (*cmp)(purc_variant_t l, purc_variant_t r, void *ud));
+void pcvariant_set_refresh(purc_variant_t set);
 
 int pcvariant_diff(purc_variant_t l, purc_variant_t r);
 

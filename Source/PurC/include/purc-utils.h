@@ -430,6 +430,10 @@ pcutils_arrlist_get_idx(struct pcutils_arrlist *al, size_t i);
 PCA_EXPORT int
 pcutils_arrlist_put_idx(struct pcutils_arrlist *al, size_t i, void *data);
 
+/** Swap data of two slots in a pcutils_arrlist. */
+PCA_EXPORT bool
+pcutils_arrlist_swap(struct pcutils_arrlist *al, size_t idx1, size_t idx2);
+
 /** Append data to a pcutils_arrlist. */
 PCA_EXPORT int
 pcutils_arrlist_append(struct pcutils_arrlist *al, void *data);
