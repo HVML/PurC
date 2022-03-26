@@ -414,3 +414,109 @@ TEST(dvobjs, isequal)
     run_testcases(test_cases, PCA_TABLESIZE(test_cases));
 }
 
+purc_variant_t fetchreal(purc_variant_t dvobj, const char* name)
+{
+    (void)dvobj;
+
+    if (name[0] == 'i') {
+        unsigned long long u = strtoull(name + 1, NULL, 16);
+        return purc_variant_make_longint((int64_t)u);
+    }
+    else if (name[0] == 'u') {
+        unsigned long long u = strtoull(name + 1, NULL, 16);
+        return purc_variant_make_ulongint(u);
+    }
+    else if (name[0] == 'd') {
+        double d = strtod(name + 1, NULL);
+        return purc_variant_make_number(d);
+    }
+
+    return purc_variant_make_undefined();
+}
+
+static bool fetchreal_vrtcmp(purc_variant_t result, purc_variant_t expected)
+{
+    long double ld1, ld2;
+
+    if (purc_variant_cast_to_longdouble(result, &ld1, false) &&
+            purc_variant_cast_to_longdouble(expected, &ld2, false)) {
+        return ld1 == ld2;
+    }
+
+    return false;
+}
+
+TEST(dvobjs, fetchreal)
+{
+    static const struct ejson_result test_cases[] = {
+        { "bad",
+            "$EJSON.fetchreal",
+            fetchreal, NULL, PURC_ERROR_ARGUMENT_MISSED },
+        { "bad",
+            "$EJSON.fetchreal(undefined)",
+            fetchreal, NULL, PURC_ERROR_ARGUMENT_MISSED },
+        { "bad",
+            "$EJSON.fetchreal(undefined, false)",
+            fetchreal, NULL, PURC_ERROR_WRONG_DATA_TYPE },
+        { "bad",
+            "$EJSON.fetchreal(bx00, 'i8', 2)",
+            fetchreal, NULL, PURC_ERROR_INVALID_VALUE },
+        { "bad",
+            "$EJSON.fetchreal(bx00, 'i8', 1)",
+            fetchreal, NULL, PURC_ERROR_INVALID_VALUE },
+        { "i00",
+            "$EJSON.fetchreal(bx00, 'i8', 0)",
+            fetchreal, fetchreal_vrtcmp, 0 },
+        { "uFF",
+            "$EJSON.fetchreal(bxFF, 'u8', 0)",
+            fetchreal, fetchreal_vrtcmp, 0 },
+        { "uFF",
+            "$EJSON.fetchreal(bxFF, 'u8', -1)",
+            fetchreal, fetchreal_vrtcmp, 0 },
+        { "i3412",
+            "$EJSON.fetchreal(bx1234, 'i16le', 0)",
+            fetchreal, fetchreal_vrtcmp, 0 },
+        { "i1234",
+            "$EJSON.fetchreal(bx1234, 'i16be', 0)",
+            fetchreal, fetchreal_vrtcmp, 0 },
+        { "uFFEE",
+            "$EJSON.fetchreal(bxEEFF, 'u16le', 0)",
+            fetchreal, fetchreal_vrtcmp, 0 },
+        { "uEEFF",
+            "$EJSON.fetchreal(bxEEFF, 'u16be', 0)",
+            fetchreal, fetchreal_vrtcmp, 0 },
+        { "i78563412",
+            "$EJSON.fetchreal(bx12345678, 'i32le', 0)",
+            fetchreal, fetchreal_vrtcmp, 0 },
+        { "i12345678",
+            "$EJSON.fetchreal(bx12345678, 'i32be', 0)",
+            fetchreal, fetchreal_vrtcmp, 0 },
+        { "uFFEEDDCC",
+            "$EJSON.fetchreal(bxCCDDEEFF, 'u32le', 0)",
+            fetchreal, fetchreal_vrtcmp, 0 },
+        { "uCCDDEEFF",
+            "$EJSON.fetchreal(bxCCDDEEFF, 'u32be', 0)",
+            fetchreal, fetchreal_vrtcmp, 0 },
+        { "i8877665544332211",
+            "$EJSON.fetchreal(bx1122334455667788, 'i64le', 0)",
+            fetchreal, fetchreal_vrtcmp, 0 },
+        { "i1122334455667788",
+            "$EJSON.fetchreal(bx1122334455667788, 'i64be', 0)",
+            fetchreal, fetchreal_vrtcmp, 0 },
+        { "uFFEEDDCCBBAA9988",
+            "$EJSON.fetchreal(bx8899AABBCCDDEEFF, 'u64le', 0)",
+            fetchreal, fetchreal_vrtcmp, 0 },
+        { "u8899AABBCCDDEEFF",
+            "$EJSON.fetchreal(bx8899AABBCCDDEEFF, 'u64be', 0)",
+            fetchreal, fetchreal_vrtcmp, 0 },
+        { "i4433",
+            "$EJSON.fetchreal(bx1122334455667788, 'i16le', 2)",
+            fetchreal, fetchreal_vrtcmp, 0 },
+        { "i7766",
+            "$EJSON.fetchreal(bx1122334455667788, 'i16le', -3)",
+            fetchreal, fetchreal_vrtcmp, 0 },
+    };
+
+    run_testcases(test_cases, PCA_TABLESIZE(test_cases));
+}
+

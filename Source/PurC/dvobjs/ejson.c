@@ -746,8 +746,8 @@ fetchreal_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     format_id -= PURC_K_KW_i8;
     length = real_info[format_id].length;
-    if (nr_args >= 2) {
-        if (!purc_variant_cast_to_longint(argv[3], &offset, false)) {
+    if (nr_args > 2) {
+        if (!purc_variant_cast_to_longint(argv[2], &offset, false)) {
             pcinst_set_error(PURC_ERROR_INVALID_VALUE);
             goto failed;
         }
@@ -763,15 +763,16 @@ fetchreal_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto failed;
     }
 
-    if (offset < 0)
+    if (offset < 0) {
         offset = nr_bytes + offset;
+    }
 
     if (offset + length > nr_bytes) {
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         goto failed;
     }
 
-    purc_real_t real = real_info[format_id].fetcher(bytes);
+    purc_real_t real = real_info[format_id].fetcher(bytes + offset);
     switch (real_info[format_id].real_type) {
         case PURC_VARIANT_TYPE_LONGINT:
             return purc_variant_make_longint(real.i64);
