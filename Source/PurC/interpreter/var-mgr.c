@@ -548,9 +548,7 @@ again:
         return v;
     } while (0);
 
-    PC_DEBUGX("name: %s @%p", name, p);
     p = pcintr_stack_frame_get_parent(p);
-    PC_DEBUGX("name: %s @%p", name, p);
 
     goto again;
 }
