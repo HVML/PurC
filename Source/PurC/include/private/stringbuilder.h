@@ -149,11 +149,12 @@ struct pcutils_token_iterator {
 
     const char                    *str;
     const char                    *end;
-    char                           delim;
+    int (*is_delim)(const char c);
 };
 
 struct pcutils_token_iterator
-pcutils_token_it_begin(const char *start, const char *end, const char c);
+pcutils_token_it_begin(const char *start, const char *end,
+        int (*is_delim)(const char c));
 
 struct pcutils_token*
 pcutils_token_it_value(struct pcutils_token_iterator *it);

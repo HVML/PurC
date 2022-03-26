@@ -1568,7 +1568,7 @@ tokenwised_eval_attr_str_add(purc_variant_t ll, purc_variant_t rr)
     const size_t len = strlen(_new);
 
     struct pcutils_token_iterator it;
-    it =pcutils_token_it_begin(tokens, tokens + strlen(tokens), ' ');
+    it =pcutils_token_it_begin(tokens, tokens + strlen(tokens), NULL);
     struct pcutils_token *token;
     for (token = pcutils_token_it_value(&it);
         token;
@@ -1635,7 +1635,7 @@ tokenwised_eval_attr_str_sub(purc_variant_t ll, purc_variant_t rr)
     pcutils_string_init(&str, 128);
 
     struct pcutils_token_iterator it;
-    it =pcutils_token_it_begin(tokens, tokens + strlen(tokens), ' ');
+    it =pcutils_token_it_begin(tokens, tokens + strlen(tokens), NULL);
     struct pcutils_token *token;
     for (token = pcutils_token_it_value(&it);
         token;
@@ -1682,7 +1682,7 @@ tokenwised_eval_attr_str_append_or_prepend(purc_variant_t ll,
     size_t sz = 0;
     struct pcutils_token *token;
     struct pcutils_token_iterator it;
-    it =pcutils_token_it_begin(tokens, tokens + strlen(tokens), ' ');
+    it =pcutils_token_it_begin(tokens, tokens + strlen(tokens), NULL);
     for (token = pcutils_token_it_value(&it);
         token;
         token = pcutils_token_it_next(&it))
@@ -1697,7 +1697,7 @@ tokenwised_eval_attr_str_append_or_prepend(purc_variant_t ll,
     int r = 0;
 
     size_t i = 0;
-    it =pcutils_token_it_begin(tokens, tokens + strlen(tokens), ' ');
+    it =pcutils_token_it_begin(tokens, tokens + strlen(tokens), NULL);
     for (token = pcutils_token_it_value(&it);
         token;
         token = pcutils_token_it_next(&it), ++i)
@@ -1819,7 +1819,7 @@ tokenwised_eval_attr_str_regex_re_replace(purc_variant_t ll,
     size_t idx = 0;
     struct pcutils_token *token;
     struct pcutils_token_iterator it;
-    it =pcutils_token_it_begin(tokens, tokens + strlen(tokens), ' ');
+    it =pcutils_token_it_begin(tokens, tokens + strlen(tokens), NULL);
     for (token = pcutils_token_it_value(&it);
         token;
         token = pcutils_token_it_next(&it), ++idx)
@@ -1916,7 +1916,7 @@ tokenwised_eval_attr_str_regex_pattern_replace(purc_variant_t ll,
     size_t idx = 0;
     struct pcutils_token *token;
     struct pcutils_token_iterator it;
-    it =pcutils_token_it_begin(tokens, tokens + strlen(tokens), ' ');
+    it =pcutils_token_it_begin(tokens, tokens + strlen(tokens), NULL);
     for (token = pcutils_token_it_value(&it);
         token;
         token = pcutils_token_it_next(&it), ++idx)
@@ -2007,7 +2007,7 @@ tokenwised_eval_attr_str_wildcard_wildcard_replace(purc_variant_t ll,
     size_t idx = 0;
     struct pcutils_token *token;
     struct pcutils_token_iterator it;
-    it =pcutils_token_it_begin(tokens, tokens + strlen(tokens), ' ');
+    it =pcutils_token_it_begin(tokens, tokens + strlen(tokens), NULL);
     for (token = pcutils_token_it_value(&it);
         token;
         token = pcutils_token_it_next(&it), ++idx)
@@ -2123,7 +2123,7 @@ tokenwised_eval_attr_str_prepend_or_append(purc_variant_t ll,
     size_t idx = 0;
     struct pcutils_token *token;
     struct pcutils_token_iterator it;
-    it =pcutils_token_it_begin(tokens, tokens + strlen(tokens), ' ');
+    it =pcutils_token_it_begin(tokens, tokens + strlen(tokens), NULL);
     for (token = pcutils_token_it_value(&it);
         token;
         token = pcutils_token_it_next(&it), ++idx)
