@@ -206,10 +206,10 @@ static void init_modules_once(void)
 
         if (_modules & PURC_HAVE_EJSON) {
             pcejson_init_once();
+            pcdvobjs_init_once();
         }
 
         if (_modules & PURC_HAVE_HVML) {
-            pcdvobjs_init_once();
             pcexecutor_init_once();
             pcintr_stack_init_once();
         }

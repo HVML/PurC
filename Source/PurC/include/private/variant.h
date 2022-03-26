@@ -301,9 +301,15 @@ struct variant_arr {
     pcutils_map                     *rev_update_chain;
 };
 
+#define PCVARIANT_SORT_DESC            0x10000000
+#define PCVARIANT_SORT_ASC             0x00000000
+#define PCVARIANT_CMPOPT_MASK          0x0000FFFF
+
 int pcvariant_array_sort(purc_variant_t value, void *ud,
         int (*cmp)(purc_variant_t l, purc_variant_t r, void *ud));
-int pcvariant_set_sort(purc_variant_t value);
+int pcvariant_set_sort(purc_variant_t value, void *ud,
+        int (*cmp)(purc_variant_t l, purc_variant_t r, void *ud));
+void pcvariant_set_refresh(purc_variant_t set);
 
 int pcvariant_diff(purc_variant_t l, purc_variant_t r);
 

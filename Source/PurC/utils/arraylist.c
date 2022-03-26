@@ -88,6 +88,17 @@ void *pcutils_arrlist_get_idx(struct pcutils_arrlist *arr, size_t i)
     return arr->array[i];
 }
 
+bool pcutils_arrlist_swap(struct pcutils_arrlist *arr, size_t idx1, size_t idx2)
+{
+    if (idx1 >= arr->length || idx2 >= arr->length || idx1 == idx2)
+        return false;
+
+    void* tmp = arr->array[idx1];
+    arr->array[idx1] = arr->array[idx2];
+    arr->array[idx2] = tmp;
+    return true;
+}
+
 static int pcutils_arrlist_expand_internal(struct pcutils_arrlist *arr, size_t max)
 {
     void *t;

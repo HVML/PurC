@@ -93,6 +93,37 @@ PURC_COMPUTE_SOURCES(test_dvobjs_ejson)
 PURC_FRAMEWORK(test_dvobjs_ejson)
 GTEST_DISCOVER_TESTS(test_dvobjs_ejson DISCOVERY_TIMEOUT 10)
 
+# test_ejson_more
+PURC_EXECUTABLE_DECLARE(test_dvobjs_ejson_more)
+
+list(APPEND test_dvobjs_ejson_more_PRIVATE_INCLUDE_DIRECTORIES
+    ${PURC_DIR}/include
+    ${PurC_DERIVED_SOURCES_DIR}
+    ${PURC_DIR}
+    ${CMAKE_BINARY_DIR}
+    ${WTF_DIR}
+    ${GLIB_INCLUDE_DIR}
+    ${GLIBCONFIG_INCLUDE_DIR}
+)
+
+PURC_EXECUTABLE(test_dvobjs_ejson_more)
+
+set(test_dvobjs_ejson_more_SOURCES
+    test_dvobjs_ejson_more.cpp
+    helper.cpp
+)
+
+set(test_dvobjs_ejson_more_LIBRARIES
+    PurC::PurC
+    gtest_main
+    gtest
+    pthread
+)
+
+PURC_COMPUTE_SOURCES(test_dvobjs_ejson_more)
+PURC_FRAMEWORK(test_dvobjs_ejson_more)
+GTEST_DISCOVER_TESTS(test_dvobjs_ejson_more DISCOVERY_TIMEOUT 10)
+
 
 # test_dvobjs_hvml
 PURC_EXECUTABLE_DECLARE(test_dvobjs_hvml)

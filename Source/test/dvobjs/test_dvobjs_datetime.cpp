@@ -52,8 +52,8 @@ _fetch_cmd_output(const char *cmd, char *dest, size_t sz)
 TEST(dvobjs, basic)
 {
     purc_instance_extra_info info = {};
-    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsfot.hvml.test",
-            "dvobj", &info);
+    int ret = purc_init_ex(PURC_MODULE_EJSON, "cn.fmsfot.hvml.test",
+            "dvobjs", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     purc_variant_t dvobj;
@@ -366,7 +366,7 @@ TEST(dvobjs, time_prt)
     };
 
     int ret = purc_init_ex(PURC_MODULE_EJSON, "cn.fmsfot.hvml.test",
-            "dvobj", NULL);
+            "dvobjs", NULL);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     purc_variant_t dvobj = purc_dvobj_datetime_new();
@@ -574,7 +574,7 @@ TEST(dvobjs, fmttime)
     };
 
     int ret = purc_init_ex(PURC_MODULE_EJSON, "cn.fmsfot.hvml.test",
-            "dvobj", NULL);
+            "dvobjs", NULL);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     purc_variant_t dvobj = purc_dvobj_datetime_new();
@@ -727,7 +727,7 @@ TEST(dvobjs, broken_down_time)
     };
 
     int ret = purc_init_ex(PURC_MODULE_EJSON, "cn.fmsfot.hvml.test",
-            "dvobj", NULL);
+            "dvobjs", NULL);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     purc_variant_t dvobj = purc_dvobj_datetime_new();

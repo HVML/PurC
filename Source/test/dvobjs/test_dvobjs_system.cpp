@@ -54,7 +54,7 @@ _fetch_cmd_output(const char *cmd, char *dest, size_t sz)
 TEST(dvobjs, basic)
 {
     purc_instance_extra_info info = {};
-    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsfot.hvml.test",
+    int ret = purc_init_ex(PURC_MODULE_EJSON, "cn.fmsfot.hvml.test",
             "dvobj", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
