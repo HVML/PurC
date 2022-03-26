@@ -108,6 +108,8 @@ int pcdvobjs_global_keyword_id(const char *keyword, size_t length)
         atom = purc_atom_try_string_ex(ATOM_BUCKET_DVOBJ, tmp);
         free(tmp);
 
+        assert(keywords2atoms[PURC_K_KW_FIRST].atom);
+
         /* We can expect the atoms in keywords2atoms are increasing one by one. */
         if (atom >= keywords2atoms[PURC_K_KW_FIRST].atom &&
                 atom <= keywords2atoms[PURC_K_KW_LAST].atom) {

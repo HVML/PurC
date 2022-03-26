@@ -21,7 +21,7 @@ extern purc_variant_t get_variant (char *buf, size_t *length);
 extern void get_variant_total_info (size_t *mem, size_t *value, size_t *resv);
 #define MAX_PARAM_NR    20
 
-TEST(dvobjs, dvobjs_ejson_type)
+TEST(dvobjs, type)
 {
     const char *function[] = {"type"};
     purc_variant_t param[MAX_PARAM_NR] = {0};
@@ -45,8 +45,8 @@ TEST(dvobjs, dvobjs_ejson_type)
 
     // get and function
     purc_instance_extra_info info = {};
-    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
-            "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
+            "dvobjs", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     purc_variant_t ejson = purc_dvobj_ejson_new();
@@ -186,7 +186,7 @@ TEST(dvobjs, dvobjs_ejson_type)
     purc_cleanup ();
 }
 
-TEST(dvobjs, dvobjs_ejson_number)
+TEST(dvobjs, count)
 {
     const char *function[] = {"count"};
     purc_variant_t param[MAX_PARAM_NR] = {0};
@@ -210,8 +210,8 @@ TEST(dvobjs, dvobjs_ejson_number)
 
     // get and function
     purc_instance_extra_info info = {};
-    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
-            "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
+            "dvobjs", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     purc_variant_t ejson = purc_dvobj_ejson_new();
@@ -349,7 +349,7 @@ TEST(dvobjs, dvobjs_ejson_number)
     purc_cleanup ();
 }
 
-TEST(dvobjs, dvobjs_ejson_compare)
+TEST(dvobjs, compare)
 {
     const char *function[] = {"compare"};
     purc_variant_t param[MAX_PARAM_NR] = {0};
@@ -373,8 +373,8 @@ TEST(dvobjs, dvobjs_ejson_compare)
 
     // get and function
     purc_instance_extra_info info = {};
-    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
-            "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
+            "dvobjs", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     purc_variant_t ejson = purc_dvobj_ejson_new();
@@ -515,7 +515,7 @@ TEST(dvobjs, dvobjs_ejson_compare)
     purc_cleanup ();
 }
 
-TEST(dvobjs, dvobjs_ejson_sort)
+TEST(dvobjs, sort)
 {
     const char *function[] = {"sort"};
     purc_variant_t param[MAX_PARAM_NR] = {0};
@@ -539,8 +539,8 @@ TEST(dvobjs, dvobjs_ejson_sort)
 
     // get and function
     purc_instance_extra_info info = {};
-    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
-            "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
+            "dvobjs", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     purc_variant_t ejson = purc_dvobj_ejson_new();
