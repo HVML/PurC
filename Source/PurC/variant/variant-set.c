@@ -1476,7 +1476,6 @@ int pcvariant_set_compare(purc_variant_t lv, purc_variant_t rv)
 */
 
 struct set_user_data {
-    purc_vrtcmp_opt_t cmp_opt;
     int (*cmp)(purc_variant_t l, purc_variant_t r, void *ud);
     void *ud;
 };
@@ -1489,6 +1488,7 @@ static int user_cmp(const void *l, const void *r, void *ud)
     struct set_node *nl = *(struct set_node**)l;
     struct set_node *nr = *(struct set_node**)r;
 
+    /* TODO: get the value by keys? */
     return d->cmp(nl->val, nr->val, d->ud);
 }
 
@@ -1509,6 +1509,7 @@ static int user_cmp(void *ud, const void *l, const void *r)
     struct set_node *nl = *(struct set_node**)l;
     struct set_node *nr = *(struct set_node**)r;
 
+    /* TODO: get the value by keys? */
     return d->cmp(nl->val, nr->val, d->ud);
 }
 
