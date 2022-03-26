@@ -464,6 +464,12 @@ refresh_arr(struct pcutils_arrlist *arr, size_t idx)
     }
 }
 
+void pcvariant_set_refresh(purc_variant_t set)
+{
+    variant_set_t data = pcvar_set_get_data(set);
+    refresh_arr(data->arr, 0);
+}
+
 static void
 elem_node_remove(purc_variant_t set, struct set_node *node)
 {
@@ -1470,13 +1476,22 @@ int pcvariant_set_compare(purc_variant_t lv, purc_variant_t rv)
 */
 
 struct set_user_data {
-    int (*cmp)(size_t nr_keynames,
-            purc_variant_t l[], purc_variant_t r[], void *ud);
+    purc_vrtcmp_opt_t cmp_opt;
+    int (*cmp)(purc_variant_t l, purc_variant_t r, void *ud);
     void *ud;
-    size_t               nr_keynames;
 };
 
 #if OS(HURD) || OS(LINUX)
+static int user_cmp(const void *l, const void *r, void *ud)
+{
+    struct set_user_data *d = ud;
+
+    struct set_node *nl = *(struct set_node**)l;
+    struct set_node *nr = *(struct set_node**)r;
+
+    return d->cmp(nl->val, nr->val, d->ud);
+}
+
 static int cmp_variant(const void *l, const void *r, void *ud)
 {
     purc_variant_t set = (purc_variant_t)ud;
@@ -1487,6 +1502,16 @@ static int cmp_variant(const void *l, const void *r, void *ud)
     return variant_set_compare_by_set_keys(set, nl->val, nr->val);
 }
 #elif OS(DARWIN) || OS(FREEBSD) || OS(NETBSD) || OS(OPENBSD) || OS(WINDOWS)
+static int user_cmp(void *ud, const void *l, const void *r)
+{
+    struct set_user_data *d = ud;
+
+    struct set_node *nl = *(struct set_node**)l;
+    struct set_node *nr = *(struct set_node**)r;
+
+    return d->cmp(nl->val, nr->val, d->ud);
+}
+
 static int cmp_variant(void *ud, const void *l, const void *r)
 {
     purc_variant_t set = (purc_variant_t)ud;
@@ -1499,7 +1524,8 @@ static int cmp_variant(void *ud, const void *l, const void *r)
 #error Unsupported operating system.
 #endif
 
-int pcvariant_set_sort(purc_variant_t value)
+int pcvariant_set_sort(purc_variant_t value, void *ud,
+        int (*cmp)(purc_variant_t l, purc_variant_t r, void *ud))
 {
     if (!value || value->type != PURC_VARIANT_TYPE_SET)
         return -1;
@@ -1510,13 +1536,29 @@ int pcvariant_set_sort(purc_variant_t value)
         return -1;
     void *arr = al->array;
 
+    if (cmp) {
+        struct set_user_data d = {
+            .cmp = cmp,
+            .ud  = ud,
+        };
+
 #if OS(HURD) || OS(LINUX)
-    qsort_r(arr, al->length, sizeof(struct set_node*), cmp_variant, value);
+        qsort_r(arr, al->length, sizeof(struct set_node*), user_cmp, &d);
 #elif OS(DARWIN) || OS(FREEBSD) || OS(NETBSD) || OS(OPENBSD)
-    qsort_r(arr, al->length, sizeof(struct set_node*), value, cmp_variant);
+        qsort_r(arr, al->length, sizeof(struct set_node*), &d, user_cmp);
 #elif OS(WINDOWS)
-    qsort_s(arr, al->length, sizeof(struct set_node*), cmp_variant, value);
+        qsort_s(arr, al->length, sizeof(struct set_node*), user_cmp, &d);
 #endif
+    }
+    else {
+#if OS(HURD) || OS(LINUX)
+        qsort_r(arr, al->length, sizeof(struct set_node*), cmp_variant, value);
+#elif OS(DARWIN) || OS(FREEBSD) || OS(NETBSD) || OS(OPENBSD)
+        qsort_r(arr, al->length, sizeof(struct set_node*), value, cmp_variant);
+#elif OS(WINDOWS)
+        qsort_s(arr, al->length, sizeof(struct set_node*), cmp_variant, value);
+#endif
+    }
 
     refresh_arr(al, 0);
 

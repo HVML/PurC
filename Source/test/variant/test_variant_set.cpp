@@ -465,7 +465,7 @@ TEST(variant_set, sort)
         purc_variant_t set = make_set(ins, PCA_TABLESIZE(ins));
         ASSERT_NE(set, nullptr);
 
-        int r = pcvariant_set_sort(set);
+        int r = pcvariant_set_sort(set, NULL, NULL);
         ASSERT_EQ(r, 0);
 
         r = purc_variant_stringify(inbuf, sizeof(inbuf), set);

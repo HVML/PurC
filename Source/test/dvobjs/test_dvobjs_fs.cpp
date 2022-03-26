@@ -34,8 +34,8 @@ TEST(dvobjs, dvobjs_fs_list)
     size_t nr_reserved_after = 0;
 
     purc_instance_extra_info info = {};
-    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
-            "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
+            "dvobjs", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
@@ -312,8 +312,8 @@ TEST(dvobjs, dvobjs_fs_list_prt)
     size_t nr_reserved_after = 0;
 
     purc_instance_extra_info info = {};
-    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
-            "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
+            "dvobjs", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
@@ -440,8 +440,8 @@ TEST(dvobjs, dvobjs_fs_mkdir)
     size_t nr_reserved_after = 0;
 
     purc_instance_extra_info info = {};
-    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
-            "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
+            "dvobjs", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
@@ -523,8 +523,8 @@ TEST(dvobjs, dvobjs_fs_rmdir)
     size_t nr_reserved_after = 0;
 
     purc_instance_extra_info info = {};
-    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
-            "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
+            "dvobjs", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
@@ -607,8 +607,8 @@ TEST(dvobjs, dvobjs_fs_rm)
     size_t nr_reserved_after = 0;
 
     purc_instance_extra_info info = {};
-    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
-            "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
+            "dvobjs", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
@@ -691,8 +691,8 @@ TEST(dvobjs, dvobjs_fs_unlink)
     size_t nr_reserved_after = 0;
 
     purc_instance_extra_info info = {};
-    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
-            "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
+            "dvobjs", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
@@ -772,8 +772,8 @@ TEST(dvobjs, dvobjs_fs_touch)
     size_t nr_reserved_after = 0;
 
     purc_instance_extra_info info = {};
-    int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
-            "test_init", &info);
+    int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
+            "dvobjs", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,

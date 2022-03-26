@@ -882,6 +882,20 @@ sort_cmp(struct pcutils_array_list_node *l, struct pcutils_array_list_node *r,
     return d->cmp(l_n->val, r_n->val, d->ud);
 }
 
+static int vrtcmp(purc_variant_t l, purc_variant_t r, void *ud)
+{
+    uintptr_t sort_flags;
+    purc_vrtcmp_opt_t cmpopt;
+
+    sort_flags = (uintptr_t)ud;
+    cmpopt = (purc_vrtcmp_opt_t)(sort_flags & PCVARIANT_CMPOPT_MASK);
+
+    int retv = purc_variant_compare_ex(l, r, cmpopt);
+    if (sort_flags & PCVARIANT_SORT_DESC)
+        retv = -retv;
+    return retv;
+}
+
 int pcvariant_array_sort(purc_variant_t arr, void *ud,
         int (*cmp)(purc_variant_t l, purc_variant_t r, void *ud))
 {
@@ -894,6 +908,10 @@ int pcvariant_array_sort(purc_variant_t arr, void *ud,
         .cmp = cmp,
         .ud  = ud,
     };
+
+    if (d.cmp == NULL) {
+        d.cmp = vrtcmp;
+    }
 
     int r;
     r = pcutils_array_list_sort(&data->al, &d, sort_cmp);

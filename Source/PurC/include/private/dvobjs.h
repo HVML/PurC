@@ -197,13 +197,7 @@ struct wildcard_list {
     struct wildcard_list *next;
 };
 
-#if 0          /* { */
-purc_variant_t
-pcdvobjs_make_element_variant(struct pcdom_element *element);
-
-struct pcdom_element*
-pcdvobjs_get_element_from_variant(purc_variant_t val);
-#endif         /* } */
+int32_t pcdvobjs_get_random(void) WTF_INTERNAL;
 
 purc_variant_t
 pcdvobjs_make_elements(struct pcdom_element *element);
