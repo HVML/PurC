@@ -53,6 +53,65 @@ struct ejson_result {
     int                     errcode;
 };
 
+static void run_testcases(const struct ejson_result *test_cases, size_t n)
+{
+    int ret = purc_init_ex(PURC_MODULE_EJSON, "cn.fmsfot.hvml.test",
+            "dvobjs", NULL);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    purc_variant_t dvobj = purc_dvobj_ejson_new();
+    ASSERT_NE(dvobj, nullptr);
+    ASSERT_EQ(purc_variant_is_object(dvobj), true);
+
+    for (size_t i = 0; i < n; i++) {
+        struct purc_ejson_parse_tree *ptree;
+        purc_variant_t result, expected;
+
+        purc_log_info("evalute: %s\n", test_cases[i].ejson);
+
+        ptree = purc_variant_ejson_parse_string(test_cases[i].ejson,
+                strlen(test_cases[i].ejson));
+        result = purc_variant_ejson_parse_tree_evalute(ptree,
+                get_dvobj_ejson, dvobj, true);
+        purc_variant_ejson_parse_tree_destroy(ptree);
+
+        /* FIXME: purc_variant_ejson_parse_tree_evalute should not return NULL
+           when evaluating silently */
+        ASSERT_NE(result, nullptr);
+
+        if (test_cases[i].expected) {
+            expected = test_cases[i].expected(dvobj, test_cases[i].name);
+
+            if (purc_variant_get_type(result) != purc_variant_get_type(expected)) {
+                purc_log_error("result type: %s, error message: %s\n",
+                        purc_variant_typename(purc_variant_get_type(result)),
+                        purc_get_error_message(purc_get_last_error()));
+            }
+
+            if (test_cases[i].vrtcmp) {
+                ASSERT_EQ(test_cases[i].vrtcmp(result, expected), true);
+            }
+            else {
+                ASSERT_EQ(purc_variant_is_equal_to(result, expected), true);
+            }
+
+            if (test_cases[i].errcode) {
+                ASSERT_EQ(purc_get_last_error(), test_cases[i].errcode);
+            }
+
+            purc_variant_unref(expected);
+        }
+        else {
+            ASSERT_EQ(purc_variant_get_type(result), PURC_VARIANT_TYPE_NULL);
+        }
+
+        purc_variant_unref(result);
+    }
+
+    purc_variant_unref(dvobj);
+    purc_cleanup();
+}
+
 purc_variant_t numberify(purc_variant_t dvobj, const char* name)
 {
     double d = 0;
@@ -122,61 +181,7 @@ TEST(dvobjs, numberify)
             numberify, numberify_vrtcmp, 0 },
     };
 
-    int ret = purc_init_ex(PURC_MODULE_EJSON, "cn.fmsfot.hvml.test",
-            "dvobjs", NULL);
-    ASSERT_EQ (ret, PURC_ERROR_OK);
-
-    purc_variant_t dvobj = purc_dvobj_ejson_new();
-    ASSERT_NE(dvobj, nullptr);
-    ASSERT_EQ(purc_variant_is_object(dvobj), true);
-
-    for (size_t i = 0; i < PCA_TABLESIZE(test_cases); i++) {
-        struct purc_ejson_parse_tree *ptree;
-        purc_variant_t result, expected;
-
-        purc_log_info("evalute: %s\n", test_cases[i].ejson);
-
-        ptree = purc_variant_ejson_parse_string(test_cases[i].ejson,
-                strlen(test_cases[i].ejson));
-        result = purc_variant_ejson_parse_tree_evalute(ptree,
-                get_dvobj_ejson, dvobj, true);
-        purc_variant_ejson_parse_tree_destroy(ptree);
-
-        /* FIXME: purc_variant_ejson_parse_tree_evalute should not return NULL
-           when evaluating silently */
-        ASSERT_NE(result, nullptr);
-
-        if (test_cases[i].expected) {
-            expected = test_cases[i].expected(dvobj, test_cases[i].name);
-
-            if (purc_variant_get_type(result) != purc_variant_get_type(expected)) {
-                purc_log_error("result type: %s, error message: %s\n",
-                        purc_variant_typename(purc_variant_get_type(result)),
-                        purc_get_error_message(purc_get_last_error()));
-            }
-
-            if (test_cases[i].vrtcmp) {
-                ASSERT_EQ(test_cases[i].vrtcmp(result, expected), true);
-            }
-            else {
-                ASSERT_EQ(purc_variant_is_equal_to(result, expected), true);
-            }
-
-            if (test_cases[i].errcode) {
-                ASSERT_EQ(purc_get_last_error(), test_cases[i].errcode);
-            }
-
-            purc_variant_unref(expected);
-        }
-        else {
-            ASSERT_EQ(purc_variant_get_type(result), PURC_VARIANT_TYPE_NULL);
-        }
-
-        purc_variant_unref(result);
-    }
-
-    purc_variant_unref(dvobj);
-    purc_cleanup();
+    run_testcases(test_cases, PCA_TABLESIZE(test_cases));
 }
 
 purc_variant_t booleanize(purc_variant_t dvobj, const char* name)
@@ -248,59 +253,7 @@ TEST(dvobjs, booleanize)
             booleanize, booleanize_vrtcmp, 0 },
     };
 
-    int ret = purc_init_ex(PURC_MODULE_EJSON, "cn.fmsfot.hvml.test",
-            "dvobjs", NULL);
-    ASSERT_EQ (ret, PURC_ERROR_OK);
-
-    purc_variant_t dvobj = purc_dvobj_ejson_new();
-    ASSERT_NE(dvobj, nullptr);
-    ASSERT_EQ(purc_variant_is_object(dvobj), true);
-
-    for (size_t i = 0; i < PCA_TABLESIZE(test_cases); i++) {
-        struct purc_ejson_parse_tree *ptree;
-        purc_variant_t result, expected;
-
-        purc_log_info("evalute: %s\n", test_cases[i].ejson);
-
-        ptree = purc_variant_ejson_parse_string(test_cases[i].ejson,
-                strlen(test_cases[i].ejson));
-        result = purc_variant_ejson_parse_tree_evalute(ptree,
-                get_dvobj_ejson, dvobj, true);
-        purc_variant_ejson_parse_tree_destroy(ptree);
-
-        ASSERT_NE(result, nullptr);
-
-        if (test_cases[i].expected) {
-            expected = test_cases[i].expected(dvobj, test_cases[i].name);
-
-            if (purc_variant_get_type(result) != purc_variant_get_type(expected)) {
-                purc_log_error("result type: %s, error message: %s\n",
-                        purc_variant_typename(purc_variant_get_type(result)),
-                        purc_get_error_message(purc_get_last_error()));
-            }
-
-            if (test_cases[i].vrtcmp) {
-                ASSERT_EQ(test_cases[i].vrtcmp(result, expected), true);
-            }
-            else {
-                ASSERT_EQ(purc_variant_is_equal_to(result, expected), true);
-            }
-
-            if (test_cases[i].errcode) {
-                ASSERT_EQ(purc_get_last_error(), test_cases[i].errcode);
-            }
-
-            purc_variant_unref(expected);
-        }
-        else {
-            ASSERT_EQ(purc_variant_get_type(result), PURC_VARIANT_TYPE_NULL);
-        }
-
-        purc_variant_unref(result);
-    }
-
-    purc_variant_unref(dvobj);
-    purc_cleanup();
+    run_testcases(test_cases, PCA_TABLESIZE(test_cases));
 }
 
 purc_variant_t stringify(purc_variant_t dvobj, const char* name)
@@ -371,59 +324,7 @@ TEST(dvobjs, stringify)
             stringify, stringify_vrtcmp, 0 },
     };
 
-    int ret = purc_init_ex(PURC_MODULE_EJSON, "cn.fmsfot.hvml.test",
-            "dvobjs", NULL);
-    ASSERT_EQ (ret, PURC_ERROR_OK);
-
-    purc_variant_t dvobj = purc_dvobj_ejson_new();
-    ASSERT_NE(dvobj, nullptr);
-    ASSERT_EQ(purc_variant_is_object(dvobj), true);
-
-    for (size_t i = 0; i < PCA_TABLESIZE(test_cases); i++) {
-        struct purc_ejson_parse_tree *ptree;
-        purc_variant_t result, expected;
-
-        purc_log_info("evalute: %s\n", test_cases[i].ejson);
-
-        ptree = purc_variant_ejson_parse_string(test_cases[i].ejson,
-                strlen(test_cases[i].ejson));
-        result = purc_variant_ejson_parse_tree_evalute(ptree,
-                get_dvobj_ejson, dvobj, true);
-        purc_variant_ejson_parse_tree_destroy(ptree);
-
-        ASSERT_NE(result, nullptr);
-
-        if (test_cases[i].expected) {
-            expected = test_cases[i].expected(dvobj, test_cases[i].name);
-
-            if (purc_variant_get_type(result) != purc_variant_get_type(expected)) {
-                purc_log_error("result type: %s, error message: %s\n",
-                        purc_variant_typename(purc_variant_get_type(result)),
-                        purc_get_error_message(purc_get_last_error()));
-            }
-
-            if (test_cases[i].vrtcmp) {
-                ASSERT_EQ(test_cases[i].vrtcmp(result, expected), true);
-            }
-            else {
-                ASSERT_EQ(purc_variant_is_equal_to(result, expected), true);
-            }
-
-            if (test_cases[i].errcode) {
-                ASSERT_EQ(purc_get_last_error(), test_cases[i].errcode);
-            }
-
-            purc_variant_unref(expected);
-        }
-        else {
-            ASSERT_EQ(purc_variant_get_type(result), PURC_VARIANT_TYPE_NULL);
-        }
-
-        purc_variant_unref(result);
-    }
-
-    purc_variant_unref(dvobj);
-    purc_cleanup();
+    run_testcases(test_cases, PCA_TABLESIZE(test_cases));
 }
 
 purc_variant_t isequal(purc_variant_t dvobj, const char* name)
@@ -510,58 +411,6 @@ TEST(dvobjs, isequal)
             isequal, isequal_vrtcmp, 0 },
     };
 
-    int ret = purc_init_ex(PURC_MODULE_EJSON, "cn.fmsfot.hvml.test",
-            "dvobjs", NULL);
-    ASSERT_EQ (ret, PURC_ERROR_OK);
-
-    purc_variant_t dvobj = purc_dvobj_ejson_new();
-    ASSERT_NE(dvobj, nullptr);
-    ASSERT_EQ(purc_variant_is_object(dvobj), true);
-
-    for (size_t i = 0; i < PCA_TABLESIZE(test_cases); i++) {
-        struct purc_ejson_parse_tree *ptree;
-        purc_variant_t result, expected;
-
-        purc_log_info("evalute: %s\n", test_cases[i].ejson);
-
-        ptree = purc_variant_ejson_parse_string(test_cases[i].ejson,
-                strlen(test_cases[i].ejson));
-        result = purc_variant_ejson_parse_tree_evalute(ptree,
-                get_dvobj_ejson, dvobj, true);
-        purc_variant_ejson_parse_tree_destroy(ptree);
-
-        ASSERT_NE(result, nullptr);
-
-        if (test_cases[i].expected) {
-            expected = test_cases[i].expected(dvobj, test_cases[i].name);
-
-            if (purc_variant_get_type(result) != purc_variant_get_type(expected)) {
-                purc_log_error("result type: %s, error message: %s\n",
-                        purc_variant_typename(purc_variant_get_type(result)),
-                        purc_get_error_message(purc_get_last_error()));
-            }
-
-            if (test_cases[i].vrtcmp) {
-                ASSERT_EQ(test_cases[i].vrtcmp(result, expected), true);
-            }
-            else {
-                ASSERT_EQ(purc_variant_is_equal_to(result, expected), true);
-            }
-
-            if (test_cases[i].errcode) {
-                ASSERT_EQ(purc_get_last_error(), test_cases[i].errcode);
-            }
-
-            purc_variant_unref(expected);
-        }
-        else {
-            ASSERT_EQ(purc_variant_get_type(result), PURC_VARIANT_TYPE_NULL);
-        }
-
-        purc_variant_unref(result);
-    }
-
-    purc_variant_unref(dvobj);
-    purc_cleanup();
+    run_testcases(test_cases, PCA_TABLESIZE(test_cases));
 }
 
