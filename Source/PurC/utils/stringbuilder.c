@@ -25,6 +25,7 @@
 
 #include "config.h"
 #include "private/stringbuilder.h"
+#include "purc-helpers.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -240,9 +241,10 @@ pcutils_string_append_chunk(struct pcutils_string *string,
     if (r)
         return -1;
 
-    strcpy(string->curr, chunk);
+    strncpy(string->curr, chunk, len);
 
     string->curr += len;
+    *string->curr = '\0';
 
     return 0;
 }
@@ -320,19 +322,21 @@ pcutils_token_by_delim(const char *start, const char *end, const char c,
 }
 
 static inline const char*
-TOKEN_START(const char *start, const char *end, const char delim)
+TOKEN_START(const char *start, const char *end,
+        int (*is_delim)(const char c))
 {
     const char *p = start;
-    while (p != end && *p == delim)
+    while (p < end && is_delim(*p))
         ++p;
     return (p == end) ? NULL : p;
 }
 
 static inline const char*
-TOKEN_END(const char *start, const char *end, const char delim)
+TOKEN_END(const char *start, const char *end,
+        int (*is_delim)(const char c))
 {
     const char *p = start;
-    while (p != end && *p != delim)
+    while (p < end && !is_delim(*p))
         ++p;
     return p;
 }
@@ -341,8 +345,8 @@ static void
 refresh(struct pcutils_token_iterator *it)
 {
     if (it->curr.start) {
-        it->curr.end = TOKEN_END(it->curr.start, it->curr.end, it->delim);
-        it->next = TOKEN_START(it->curr.end, it->curr.end, it->delim);
+        it->curr.end = TOKEN_END(it->curr.start, it->end, it->is_delim);
+        it->next = TOKEN_START(it->curr.end, it->end, it->is_delim);
     }
     else {
         it->curr.end = NULL;
@@ -350,15 +354,22 @@ refresh(struct pcutils_token_iterator *it)
     }
 }
 
+static int
+is_space(const char c)
+{
+    return purc_isspace(c);
+}
+
 struct pcutils_token_iterator
-pcutils_token_it_begin(const char *start, const char *end, const char c)
+pcutils_token_it_begin(const char *start, const char *end,
+        int (*is_delim)(const char c))
 {
     struct pcutils_token_iterator it = {};
-    it.curr.start = start;
-    it.curr.end   = end;
-    it.delim      = c;
+    it.str      = start;
+    it.end      = end;
+    it.is_delim = is_delim ? is_delim : is_space;
 
-    it.curr.start = TOKEN_START(start, end, c);
+    it.curr.start = TOKEN_START(start, end, it.is_delim);
 
     refresh(&it);
 
