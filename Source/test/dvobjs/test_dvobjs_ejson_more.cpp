@@ -725,7 +725,7 @@ static bool shuffle_vrtcmp(purc_variant_t result, purc_variant_t expected)
     if (s1 == NULL || s2 == NULL)
         return false;
 
-    purc_log_info("result: %s; expected: %s\n", s1, s2);
+    purc_log_debug("result: %s; expected: %s\n", s1, s2);
 
     char str[strlen(s2) + 1];
     strcpy(str, s2);
