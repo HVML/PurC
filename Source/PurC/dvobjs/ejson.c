@@ -200,12 +200,13 @@ stringify_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             assert(str);
 
             if (n > 0) {
-                buff = malloc(n);
+                buff = malloc(n+1);
                 if (buff == NULL) {
                     purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
                     goto fatal;
                 }
                 memcpy(buff, str, n);
+                buff[n] = '\0';
             }
             else
                 str_static = "";
