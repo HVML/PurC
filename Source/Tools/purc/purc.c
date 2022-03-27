@@ -30,6 +30,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <getopt.h>
+#include <limits.h>
 
 #define LEN_TARGET_NAME     10
 #define LEN_DATA_FETCHER    10
@@ -44,6 +45,7 @@ struct purc_run_info {
     char data_fetcher[LEN_DATA_FETCHER + 1];          // data fetcher
 
     char *doc_content;
+    char url[PATH_MAX + 1];
 };
 
 struct purc_run_info run_info;
@@ -86,7 +88,8 @@ static void print_usage(void)
             ""
             "  -a --app=<app_name>          - Run with the specified app name.\n"
             "  -r --runner=<runner_name>    - Run with the specified runner name.\n"
-            "  -f --file=<html_file>        - The initial HTML file to load.\n"
+            "  -f --file=<hvml_file>        - The initial HVML file to load.\n"
+            "  -u --url=<hvml_url>          - The initial HVML file to load.\n"
             "  -t --target=<renderer_name>  - The renderer name.\n"
             "  -d --data-fetcher=<fetcher>  - The data fetcher(none, local, remote).\n"
             "  -v --version                 - Display version information and exit.\n"
@@ -126,11 +129,12 @@ failed:
     return buf;
 }
 
-static char short_options[] = "a:r:f:t:d:vh";
+static char short_options[] = "a:r:f:u:t:d:vh";
 static struct option long_opts[] = {
     {"app"            , required_argument , NULL , 'a' } ,
     {"runner"         , required_argument , NULL , 'r' } ,
     {"file"           , required_argument , NULL , 'f' } ,
+    {"url"            , required_argument , NULL , 'u' } ,
     {"target"         , required_argument , NULL , 't' } ,
     {"data-fetcher"   , required_argument , NULL , 'd' } ,
     {"version"        , no_argument       , NULL , 'v' } ,
@@ -141,6 +145,10 @@ static struct option long_opts[] = {
 static int read_option_args (int argc, char **argv)
 {
     int o, idx = 0;
+    if (argc == 1) {
+        print_usage ();
+        return -1;
+    }
 
     while ((o = getopt_long (argc, argv, short_options, long_opts, &idx)) >= 0) {
         if (-1 == o || EOF == o)
@@ -166,6 +174,10 @@ static int read_option_args (int argc, char **argv)
                 return -1;
             }
             break;
+        case 'u':
+            if (strlen (optarg) < PATH_MAX)
+                strcpy (run_info.url, optarg);
+            break;
         case 't':
             if (strlen (optarg) < LEN_TARGET_NAME)
                 strcpy (run_info.target_name, optarg);
@@ -190,11 +202,6 @@ static int read_option_args (int argc, char **argv)
     return 0;
 }
 
-static const char *test_content =
-    "<hvml><body>"
-    "<div></div>"
-    "</body></hvml>";
-
 int main(int argc, char** argv)
 {
     int ret;
@@ -206,13 +213,14 @@ int main(int argc, char** argv)
     purc_instance_extra_info extra_info = {};
 
     unsigned int modules = 0;
-    if (strcmp(run_info.data_fetcher, "local") == 0) {
+    if (!run_info.data_fetcher[0] ||
+            strcmp(run_info.data_fetcher, "local") == 0) {
         modules = (PURC_MODULE_HVML | PURC_MODULE_PCRDR);
     }
     else if (strcmp(run_info.data_fetcher, "remote") == 0) {
         modules = (PURC_MODULE_HVML | PURC_MODULE_PCRDR) | PURC_HAVE_FETCHER_R;
     }
-    else {
+    else if (strcmp(run_info.data_fetcher, "none") == 0) {
         modules = (PURC_MODULE_HVML | PURC_MODULE_PCRDR) & ~PURC_HAVE_FETCHER;
     }
 
@@ -237,14 +245,18 @@ int main(int argc, char** argv)
         return EXIT_FAILURE;
     }
 
-    if (!run_info.doc_content) {
-        run_info.doc_content = strdup(test_content);
-        if(!run_info.doc_content) {
-            goto failed;
-        }
+
+    purc_vdom_t vdom = NULL;
+    if (run_info.doc_content) {
+        vdom = purc_load_hvml_from_string(run_info.doc_content);
+    }
+    else if (run_info.url[0]) {
+        vdom = purc_load_hvml_from_url(run_info.url);
+    }
+    else {
+        goto failed;
     }
 
-    purc_vdom_t vdom = purc_load_hvml_from_string(run_info.doc_content);
     if (!vdom) {
         fprintf(stderr, "Failed to load hvml : %s\n",
                 purc_get_error_message(purc_get_last_error()));
