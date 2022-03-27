@@ -50,6 +50,9 @@ purc_variant_t pcvarmgr_get(pcvarmgr_t mgr, const char* name);
 
 bool pcvarmgr_remove(pcvarmgr_t mgr, const char* name);
 
+bool pcvarmgr_dispatch_except(pcvarmgr_t mgr, const char* name,
+        const char* except);
+
 PCA_EXTERN_C_END
 
 #endif /* not defined PURC_PRIVATE_VAR_MGR_H */

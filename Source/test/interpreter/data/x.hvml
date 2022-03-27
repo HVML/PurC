@@ -45,6 +45,30 @@
             <!-- how to check $?.province is coming from set -->
             <update on="$?.province" to="displace" with="$province"/>
         </iterate>
+        <div class="foo" id="foo text-warning" op="+=">
+            <update on="$@" at="attr.class" to="displace" with += "text-warning"/>
+        </div>
+        <div class="foo text-warning" id="foo" op="-=">
+            <update on="$@" at="attr.class" to="displace" with -= "text-warning"/>
+        </div>
+        <div class="info warning" id="text-info text-warning" op="*=">
+            <update on="$@" at="attr.class" to="displace" with *= "^text-"/>
+        </div>
+        <div class="foo text-warning" id="foo text-info" op="/=">
+            <update on="$@" at="attr.class" to="displace" with /= "/^text-/text-info"/>
+        </div>
+        <div class="foo text-warning" id="foo text-info" op="%=">
+            <update on="$@" at="attr.class" to="displace" with %= "text-warning text-info"/>
+        </div>
+        <div class="foo text-warning" id="foo text-info" op="~=">
+            <update on="$@" at="attr.class" to="displace" with ~= "text-* text-info"/>
+        </div>
+        <div class="ab" id="Cab" op="^=">
+            <update on="$@" at="attr.class" to="displace" with ^= "C"/>
+        </div>
+        <div class="ab" id="abC" op='$='>
+            <update on="$@" at="attr.class" to="displace" with $= "C"/>
+        </div>
     </body>
 </hvml>
 

@@ -58,7 +58,7 @@ typedef purc_variant_t (*pcfetcher_request_async_fn)(
         enum pcfetcher_request_method method,
         purc_variant_t params,
         uint32_t timeout,
-        response_handler handler,
+        pcfetcher_response_handler handler,
         void* ctxt);
 
 typedef purc_rwstream_t (*pcfetcher_request_sync_fn)(
@@ -111,7 +111,7 @@ purc_variant_t pcfetcher_local_request_async(
         enum pcfetcher_request_method method,
         purc_variant_t params,
         uint32_t timeout,
-        response_handler handler,
+        pcfetcher_response_handler handler,
         void* ctxt);
 
 purc_rwstream_t pcfetcher_local_request_sync(
@@ -152,7 +152,7 @@ purc_variant_t pcfetcher_remote_request_async(
         enum pcfetcher_request_method method,
         purc_variant_t params,
         uint32_t timeout,
-        response_handler handler,
+        pcfetcher_response_handler handler,
         void* ctxt);
 
 purc_rwstream_t pcfetcher_remote_request_sync(

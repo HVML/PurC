@@ -50,6 +50,14 @@ struct ctxt_for_init {
 
     unsigned int                  under_head:1;
     unsigned int                  locally:1;
+    unsigned int                  async:1;
+};
+
+struct fetcher_for_init {
+    pcintr_stack_t                stack;
+    struct pcvdom_element         *element;
+    purc_variant_t                name;
+    unsigned int                  under_head:1;
 };
 
 static void
@@ -441,6 +449,18 @@ attr_found_val(struct pcintr_stack_frame *frame,
         ctxt->locally = 1;
         return 0;
     }
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, ASYNCHRONOUSLY)) == name
+            || pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, ASYNC)) == name) {
+        PC_ASSERT(purc_variant_is_undefined(val));
+        ctxt->async = 1;
+        return 0;
+    }
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, SYNCHRONOUSLY)) == name
+            || pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, SYNC)) == name) {
+        PC_ASSERT(purc_variant_is_undefined(val));
+        ctxt->async = 0;
+        return 0;
+    }
 
     purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
             "vdom attribute '%s' for element <%s>",
@@ -468,6 +488,75 @@ attr_found(struct pcintr_stack_frame *frame,
     purc_variant_unref(val);
 
     return r ? -1 : 0;
+}
+
+void load_response_handler(purc_variant_t request_id, void *ctxt,
+        const struct pcfetcher_resp_header *resp_header,
+        purc_rwstream_t resp)
+{
+    struct fetcher_for_init *fetcher = (struct fetcher_for_init*)ctxt;
+
+    PC_DEBUG("ret_code=%d\n", resp_header->ret_code);
+    PC_DEBUG("mime_type=%s\n", resp_header->mime_type);
+    PC_DEBUG("sz_resp=%ld\n", resp_header->sz_resp);
+    bool has_except = false;
+    if (!resp || resp_header->ret_code != 200) {
+        has_except = true;
+        goto dispatch_except;
+    }
+
+    size_t sz_content = 0;
+    size_t sz_buffer = 0;
+    char* buf = (char*)purc_rwstream_get_mem_buffer_ex(resp, &sz_content,
+            &sz_buffer, false);
+
+    bool ok;
+    struct pcvdom_element *element = fetcher->element;
+    purc_variant_t ret = purc_variant_make_from_json_string(buf, sz_content);
+    const char *s_name = purc_variant_get_string_const(fetcher->name);
+    if (ret != PURC_VARIANT_INVALID) {
+        if (fetcher->under_head) {
+            ok = purc_bind_document_variable(fetcher->stack->vdom, s_name,
+                    ret);
+        } else {
+            element = pcvdom_element_parent(element);
+            ok = pcintr_bind_scope_variable(element, s_name, ret);
+        }
+        purc_variant_unref(ret);
+        if (ok) {
+            goto clean_rws;
+        }
+        has_except = true;
+        goto dispatch_except;
+    }
+    else {
+        has_except = true;
+        goto dispatch_except;
+    }
+
+dispatch_except:
+    if (has_except) {
+        purc_atom_t atom = purc_get_error_exception(purc_get_last_error());
+        pcvarmgr_t varmgr;
+        if (fetcher->under_head) {
+            varmgr = pcvdom_document_get_variables(fetcher->stack->vdom);
+        }
+        else {
+            element = pcvdom_element_parent(element);
+            varmgr = pcvdom_element_get_variables(element);
+        }
+        pcvarmgr_dispatch_except(varmgr, s_name, purc_atom_to_string(atom));
+    }
+
+clean_rws:
+    if (resp) {
+        purc_rwstream_destroy(resp);
+    }
+
+    if (request_id != PURC_VARIANT_INVALID) {
+        purc_variant_unref(request_id);
+    }
+    free(fetcher);
 }
 
 static void*
@@ -506,17 +595,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (r)
         return NULL;
 
-    // FIXME
-    // load from network
-    purc_variant_t from = ctxt->from;
-    if (from != PURC_VARIANT_INVALID && purc_variant_is_string(from)) {
-        PC_ASSERT(0); // TODO: async load
-        const char* uri = purc_variant_get_string_const(from);
-        purc_variant_t v = pcintr_load_from_uri(stack, uri);
-        if (v == PURC_VARIANT_INVALID)
-            return NULL;
-        PURC_VARIANT_SAFE_CLEAR(ctxt->from_result);
-        ctxt->from_result = v;
+    if (ctxt->locally) {
+        ctxt->async = 0;
     }
 
     while ((element=pcvdom_element_parent(element))) {
@@ -524,6 +604,37 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
             ctxt->under_head = 1;
         }
     }
+
+    purc_variant_t from = ctxt->from;
+    if (from != PURC_VARIANT_INVALID && purc_variant_is_string(from)
+            && pcfetcher_is_init()) {
+        const char* uri = purc_variant_get_string_const(from);
+        if (!ctxt->async) {
+            purc_variant_t v = pcintr_load_from_uri(stack, uri);
+            if (v == PURC_VARIANT_INVALID)
+                return NULL;
+            PURC_VARIANT_SAFE_CLEAR(ctxt->from_result);
+            ctxt->from_result = v;
+        }
+        else {
+            struct fetcher_for_init *fetcher = (struct fetcher_for_init*)
+                malloc(sizeof(struct fetcher_for_init));
+            if (!fetcher) {
+                purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+                return NULL;
+            }
+            fetcher->stack = stack;
+            fetcher->element = element;
+            fetcher->name = ctxt->as;
+            purc_variant_ref(fetcher->name);
+            fetcher->under_head = ctxt->under_head;
+            purc_variant_t v = pcintr_load_from_uri_async(stack, uri,
+                    load_response_handler, fetcher);
+            if (v == PURC_VARIANT_INVALID)
+                return NULL;
+        }
+    }
+
     purc_clr_error();
 
     if (r)
@@ -592,7 +703,8 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     if (!vcm)
         return 0;
 
-    if (ctxt->from || ctxt->with) {
+    // FIXME
+    if ((ctxt->from && !ctxt->async) || ctxt->with) {
         purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
                 "no content is permitted "
                 "since there's no `from/with` attribute");
@@ -645,6 +757,10 @@ on_child_finished(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         frame->ctnt_var = ctxt->literal;
         purc_variant_ref(ctxt->literal);
         return post_process(co, frame);
+    }
+    // FIXME:
+    if (ctxt->async) {
+        return 0;
     }
 
     return -1;

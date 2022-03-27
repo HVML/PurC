@@ -639,7 +639,6 @@ process_attr_to(struct pcintr_stack_frame *frame,
         struct pcvdom_element *element,
         purc_atom_t name, purc_variant_t val)
 {
-    PRINT_VARIANT(val);
     struct ctxt_for_update *ctxt;
     ctxt = (struct ctxt_for_update*)frame->ctxt;
     if (ctxt->to != PURC_VARIANT_INVALID) {

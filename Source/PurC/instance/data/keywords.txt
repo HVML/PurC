@@ -33,4 +33,8 @@ hvml type
 hvml locally
 hvml onlyif
 hvml while
+hvml synchronously
+hvml sync
+hvml asynchronously
+hvml async
 

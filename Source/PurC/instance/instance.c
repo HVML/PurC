@@ -55,6 +55,7 @@
 #define FETCHER_CACHE_QUOTA      10240
 
 static struct const_str_atom _except_names[] = {
+    { "OK", 0 },
     { "BadEncoding", 0 },
     { "BadHVMLTag", 0 },
     { "BadHVMLAttrName", 0 },

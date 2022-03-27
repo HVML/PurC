@@ -67,7 +67,7 @@ public:
         enum pcfetcher_request_method method,
         purc_variant_t params,
         uint32_t timeout,
-        response_handler handler,
+        pcfetcher_response_handler handler,
         void* ctxt);
 
     purc_rwstream_t requestSync(
@@ -112,7 +112,7 @@ private:
     BinarySemaphore m_waitForSyncReplySemaphore;
     struct pcfetcher_resp_header m_resp_header;
 
-    response_handler m_req_handler;
+    pcfetcher_response_handler m_req_handler;
     void* m_req_ctxt;
 
     purc_rwstream_t m_resp_rwstream;

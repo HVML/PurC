@@ -30,7 +30,7 @@
 static struct pcfetcher* s_remote_fetcher = NULL;
 static struct pcfetcher* s_local_fetcher = NULL;
 
-static struct pcfetcher* get_fetcher()
+struct pcfetcher* get_fetcher(void)
 {
     return s_remote_fetcher ? s_remote_fetcher : s_local_fetcher;
 }
@@ -67,6 +67,11 @@ int pcfetcher_term(void)
     }
 
     return 0;
+}
+
+bool pcfetcher_is_init(void)
+{
+    return s_remote_fetcher || s_local_fetcher;
 }
 
 const char* pcfetcher_set_base_url(const char* base_url)
@@ -109,7 +114,7 @@ purc_variant_t pcfetcher_request_async(
         enum pcfetcher_request_method method,
         purc_variant_t params,
         uint32_t timeout,
-        response_handler handler,
+        pcfetcher_response_handler handler,
         void* ctxt)
 {
     struct pcfetcher* fetcher = get_fetcher();

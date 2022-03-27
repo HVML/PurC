@@ -532,7 +532,9 @@ eval_vdom_attr(pcintr_stack_t stack, struct pcvdom_attr *attr)
     if (!attr->val)
         return purc_variant_make_undefined();
 
-    return pcvcm_eval(attr->val, stack, false);
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_stack_get_bottom_frame(stack);
+    return pcvcm_eval(attr->val, stack, frame->silently);
 }
 
 int
@@ -1055,11 +1057,24 @@ purc_vdom_t
 purc_load_hvml_from_url_ex(const char* url,
         struct pcintr_supervisor_ops *ops, void *ctxt)
 {
-    UNUSED_PARAM(url);
-    UNUSED_PARAM(ops);
-    UNUSED_PARAM(ctxt);
-    PC_ASSERT(0); // Not implemented yet
-    return NULL;
+    purc_vdom_t vdom = NULL;
+    purc_variant_t ret = PURC_VARIANT_INVALID;
+    struct pcfetcher_resp_header resp_header = {0};
+    purc_rwstream_t resp = pcfetcher_request_sync(
+            url,
+            PCFETCHER_REQUEST_METHOD_GET,
+            NULL,
+            10,
+            &resp_header);
+    if (resp_header.ret_code == 200) {
+        vdom = purc_load_hvml_from_rwstream_ex(resp, ops, ctxt);
+        purc_rwstream_destroy(resp);
+    }
+
+    if (resp_header.mime_type) {
+        free(resp_header.mime_type);
+    }
+    return vdom;
 }
 
 static struct pcvdom_document*
@@ -1720,6 +1735,26 @@ pcintr_load_from_uri(pcintr_stack_t stack, const char* uri)
     return ret;
 }
 
+purc_variant_t
+pcintr_load_from_uri_async(pcintr_stack_t stack, const char* uri,
+        pcfetcher_response_handler handler, void* ctxt)
+{
+    if (uri == NULL || handler == NULL) {
+        return PURC_VARIANT_INVALID;
+    }
+
+    if (stack->vdom->hvml_ctrl_props->base_url_string) {
+        pcfetcher_set_base_url(stack->vdom->hvml_ctrl_props->base_url_string);
+    }
+    return pcfetcher_request_async(
+            uri,
+            PCFETCHER_REQUEST_METHOD_GET,
+            NULL,
+            10,
+            handler,
+            ctxt);
+}
+
 #define DOC_QUERY         "query"
 
 purc_variant_t
@@ -2292,23 +2327,6 @@ pcintr_util_set_child(pcdom_element_t *parent, const char *fmt, ...)
 }
 
 static purc_variant_t
-attribute_addition_string(const char *sl, const char *sr)
-{
-    size_t nl = strlen(sl);
-    size_t nr = strlen(sr);
-    char *buf = (char*)malloc(nl + nr + 1);
-    if (!buf) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return PURC_VARIANT_INVALID;
-    }
-    strcpy(buf, sl);
-    strcat(buf, sr);
-    PC_DEBUGX("buf: [%s]", buf);
-    return purc_variant_make_string_reuse_buff(buf, nl+nr, true);
-}
-
-
-static purc_variant_t
 attribute_assign(purc_variant_t left, purc_variant_t right)
 {
     UNUSED_PARAM(left);
@@ -2321,44 +2339,57 @@ attribute_assign(purc_variant_t left, purc_variant_t right)
 static purc_variant_t
 attribute_addition(purc_variant_t left, purc_variant_t right)
 {
-    // FIXME: add or replace token
-    if (purc_variant_is_string(left)) {
-        if (purc_variant_is_string(right)) {
-            return attribute_addition_string(
-                    purc_variant_get_string_const(left),
-                    purc_variant_get_string_const(right));
-        }
-        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
-    }
+    return pcvdom_tokenwised_eval_attr(PCHVML_ATTRIBUTE_ADDITION_OPERATOR,
+            left, right);
+}
 
-    // FIXME: numberify?
-    double dl, dr;
-    dl = purc_variant_numberify(left);
-    dr = purc_variant_numberify(right);
+static purc_variant_t
+attribute_subtraction(purc_variant_t left, purc_variant_t right)
+{
+    return pcvdom_tokenwised_eval_attr(PCHVML_ATTRIBUTE_SUBTRACTION_OPERATOR,
+            left, right);
+}
 
-    return purc_variant_make_number(dl + dr);
+static purc_variant_t
+attribute_asterisk(purc_variant_t left, purc_variant_t right)
+{
+    return pcvdom_tokenwised_eval_attr(PCHVML_ATTRIBUTE_ASTERISK_OPERATOR,
+            left, right);
+}
+
+static purc_variant_t
+attribute_regex(purc_variant_t left, purc_variant_t right)
+{
+    return pcvdom_tokenwised_eval_attr(PCHVML_ATTRIBUTE_REGEX_OPERATOR,
+            left, right);
+}
+
+static purc_variant_t
+attribute_precise(purc_variant_t left, purc_variant_t right)
+{
+    return pcvdom_tokenwised_eval_attr(PCHVML_ATTRIBUTE_PRECISE_OPERATOR,
+            left, right);
+}
+
+static purc_variant_t
+attribute_replace(purc_variant_t left, purc_variant_t right)
+{
+    return pcvdom_tokenwised_eval_attr(PCHVML_ATTRIBUTE_REPLACE_OPERATOR,
+            left, right);
+}
+
+static purc_variant_t
+attribute_head_addition(purc_variant_t left, purc_variant_t right)
+{
+    return pcvdom_tokenwised_eval_attr(PCHVML_ATTRIBUTE_HEAD_OPERATOR,
+            left, right);
 }
 
 static purc_variant_t
 attribute_tail_addition(purc_variant_t left, purc_variant_t right)
 {
-    if (purc_variant_is_string(left)) {
-        if (purc_variant_is_string(right)) {
-            return attribute_addition_string(
-                    purc_variant_get_string_const(left),
-                    purc_variant_get_string_const(right));
-        }
-        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
-    }
-
-    // FIXME: numberify?
-    double dl, dr;
-    dl = purc_variant_numberify(left);
-    dr = purc_variant_numberify(right);
-
-    return purc_variant_make_number(dl + dr);
+    return pcvdom_tokenwised_eval_attr(PCHVML_ATTRIBUTE_TAIL_OPERATOR,
+            left, right);
 }
 
 pcintr_attribute_op
@@ -2367,10 +2398,31 @@ pcintr_attribute_get_op(enum pchvml_attr_operator op)
     switch (op) {
         case PCHVML_ATTRIBUTE_OPERATOR:
             return attribute_assign;
+
         case PCHVML_ATTRIBUTE_ADDITION_OPERATOR:
             return attribute_addition;
+
+        case PCHVML_ATTRIBUTE_SUBTRACTION_OPERATOR:
+            return attribute_subtraction;
+
+        case PCHVML_ATTRIBUTE_ASTERISK_OPERATOR:
+            return attribute_asterisk;
+
+        case PCHVML_ATTRIBUTE_REGEX_OPERATOR:
+            return attribute_regex;
+
+        case PCHVML_ATTRIBUTE_PRECISE_OPERATOR:
+            return attribute_precise;
+
+        case PCHVML_ATTRIBUTE_REPLACE_OPERATOR:
+            return attribute_replace;
+
+        case PCHVML_ATTRIBUTE_HEAD_OPERATOR:
+            return attribute_head_addition;
+
         case PCHVML_ATTRIBUTE_TAIL_OPERATOR:
             return attribute_tail_addition;
+
         default:
             purc_set_error(PURC_ERROR_NOT_IMPLEMENTED);
             return NULL;

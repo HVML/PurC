@@ -1568,7 +1568,7 @@ tokenwised_eval_attr_str_add(purc_variant_t ll, purc_variant_t rr)
     const size_t len = strlen(_new);
 
     struct pcutils_token_iterator it;
-    it =pcutils_token_it_begin(tokens, tokens + strlen(tokens), NULL);
+    it = pcutils_token_it_begin(tokens, tokens + strlen(tokens), NULL);
     struct pcutils_token *token;
     for (token = pcutils_token_it_value(&it);
         token;
@@ -1635,7 +1635,7 @@ tokenwised_eval_attr_str_sub(purc_variant_t ll, purc_variant_t rr)
     pcutils_string_init(&str, 128);
 
     struct pcutils_token_iterator it;
-    it =pcutils_token_it_begin(tokens, tokens + strlen(tokens), NULL);
+    it = pcutils_token_it_begin(tokens, tokens + strlen(tokens), NULL);
     struct pcutils_token *token;
     for (token = pcutils_token_it_value(&it);
         token;
@@ -1682,7 +1682,7 @@ tokenwised_eval_attr_str_append_or_prepend(purc_variant_t ll,
     size_t sz = 0;
     struct pcutils_token *token;
     struct pcutils_token_iterator it;
-    it =pcutils_token_it_begin(tokens, tokens + strlen(tokens), NULL);
+    it = pcutils_token_it_begin(tokens, tokens + strlen(tokens), NULL);
     for (token = pcutils_token_it_value(&it);
         token;
         token = pcutils_token_it_next(&it))
@@ -1697,7 +1697,7 @@ tokenwised_eval_attr_str_append_or_prepend(purc_variant_t ll,
     int r = 0;
 
     size_t i = 0;
-    it =pcutils_token_it_begin(tokens, tokens + strlen(tokens), NULL);
+    it = pcutils_token_it_begin(tokens, tokens + strlen(tokens), NULL);
     for (token = pcutils_token_it_value(&it);
         token;
         token = pcutils_token_it_next(&it), ++i)
@@ -1744,31 +1744,30 @@ split_pattern_replace(const char *tokens,
         const char **pattern, size_t *nr1,
         const char **replace, size_t *nr2)
 {
-    size_t sz;
-    tokens = pcutils_trim_blanks(tokens, &sz);
+    struct pcutils_token *token;
+    struct pcutils_token_iterator it;
+    it = pcutils_token_it_begin(tokens, tokens + strlen(tokens), NULL);
+    do {
+        token = pcutils_token_it_value(&it);
+        if (!token)
+            break;
+        *pattern = token->start;
+        *nr1 = token->end - token->start;
 
-    if (sz == 0 || tokens[0] != '/') {
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
-        return -1;
-    }
+        token = pcutils_token_it_next(&it);
+        if (!token)
+            break;
 
-    const char *end = tokens + sz;
-    const char *p = tokens + 1;
-    while (p < end && *p != '/')
-        ++p;
+        size_t sz = strlen(token->start);
+        *replace = pcutils_trim_blanks(token->start, &sz);
+        *nr2 = sz;
 
-    if (p == end) {
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
-        return -1;
-    }
+        pcutils_token_it_end(&it);
+        return 0;
+    } while (0);
+    pcutils_token_it_end(&it);
 
-    *pattern = tokens + 1;
-    *nr1 = p - *pattern;
-
-    *replace = p + 1;
-    *nr2 = strlen(*replace);
-
-    return 0;
+    return -1;
 }
 
 static int
@@ -1776,25 +1775,63 @@ split_re_replace(const char *tokens, regex_t *re,
         const char **replace, size_t *nr)
 {
     int r;
-    const char *pattern;
-    size_t sz;
 
-    r = split_pattern_replace(tokens, &pattern, &sz, replace, nr);
-    if (r)
-        return -1;
+    struct pcutils_string pattern;
+    pcutils_string_init(&pattern, strlen(tokens) + 1);
 
-    char *s = strndup(pattern, sz);
-    if (!s) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+    const char *p = tokens;
+    while (*p && purc_isspace(*p))
+        ++p;
+
+    if (*p != '/') {
+        purc_set_error(PURC_ERROR_INVALID_OPERAND);
         return -1;
     }
 
-    r = regcomp(re, s, REG_EXTENDED|REG_NOSUB);
-    free(s);
+    r = 0;
+    for (++p; 1; ++p) {
+        char c = *p;
+        if (!c) {
+            purc_set_error(PURC_ERROR_INVALID_OPERAND);
+            r = -1;
+            break;
+        }
+
+        if (c == '/')
+            break;
+
+        if (c == '\\') {
+            ++p;
+            c = *p;
+            if (!c) {
+                purc_set_error(PURC_ERROR_INVALID_OPERAND);
+                r = -1;
+                break;
+            }
+        }
+
+        r = pcutils_string_append_chunk(&pattern, &c, 1);
+        if (r) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            break;
+        }
+    }
+
+    if (r) {
+        pcutils_string_reset(&pattern);
+        return -1;
+    }
+
+    r = regcomp(re, pattern.abuf, REG_EXTENDED|REG_NOSUB);
+    pcutils_string_reset(&pattern);
     if (r) {
         purc_set_error(PURC_ERROR_INVALID_OPERAND);
         return -1;
     }
+
+    ++p;
+    *replace = p;
+    *nr = strlen(p);
 
     return 0;
 }
@@ -1819,7 +1856,7 @@ tokenwised_eval_attr_str_regex_re_replace(purc_variant_t ll,
     size_t idx = 0;
     struct pcutils_token *token;
     struct pcutils_token_iterator it;
-    it =pcutils_token_it_begin(tokens, tokens + strlen(tokens), NULL);
+    it = pcutils_token_it_begin(tokens, tokens + strlen(tokens), NULL);
     for (token = pcutils_token_it_value(&it);
         token;
         token = pcutils_token_it_next(&it), ++idx)
@@ -1875,15 +1912,6 @@ tokenwised_eval_attr_str_regex_replace(purc_variant_t ll,
 
     const char *s = purc_variant_get_string_const(rr);
     PC_ASSERT(s);
-    size_t len = strlen(s);
-    if (len <= 2) {
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
-        return PURC_VARIANT_INVALID;
-    }
-    if (s[0] != '/' || s[len-1] != '/') {
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
-        return PURC_VARIANT_INVALID;
-    }
 
     regex_t re;
     const char *replace;
@@ -1916,7 +1944,7 @@ tokenwised_eval_attr_str_regex_pattern_replace(purc_variant_t ll,
     size_t idx = 0;
     struct pcutils_token *token;
     struct pcutils_token_iterator it;
-    it =pcutils_token_it_begin(tokens, tokens + strlen(tokens), NULL);
+    it = pcutils_token_it_begin(tokens, tokens + strlen(tokens), NULL);
     for (token = pcutils_token_it_value(&it);
         token;
         token = pcutils_token_it_next(&it), ++idx)
@@ -1965,15 +1993,6 @@ tokenwised_eval_attr_str_replace(purc_variant_t ll,
 
     const char *s = purc_variant_get_string_const(rr);
     PC_ASSERT(s);
-    size_t len = strlen(s);
-    if (len <= 2) {
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
-        return PURC_VARIANT_INVALID;
-    }
-    if (s[0] != '/' || s[len-1] != '/') {
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
-        return PURC_VARIANT_INVALID;
-    }
 
     const char *pattern;
     size_t sz;
@@ -1993,7 +2012,6 @@ static purc_variant_t
 tokenwised_eval_attr_str_wildcard_wildcard_replace(purc_variant_t ll,
         struct pcutils_wildcard *wildcard, const char *replace, size_t nr)
 {
-    PC_ASSERT(0);
     int r = 0;
 
     const char *tokens = purc_variant_get_string_const(ll);
@@ -2007,7 +2025,7 @@ tokenwised_eval_attr_str_wildcard_wildcard_replace(purc_variant_t ll,
     size_t idx = 0;
     struct pcutils_token *token;
     struct pcutils_token_iterator it;
-    it =pcutils_token_it_begin(tokens, tokens + strlen(tokens), NULL);
+    it = pcutils_token_it_begin(tokens, tokens + strlen(tokens), NULL);
     for (token = pcutils_token_it_value(&it);
         token;
         token = pcutils_token_it_next(&it), ++idx)
@@ -2059,15 +2077,6 @@ tokenwised_eval_attr_str_wildcard_replace(purc_variant_t ll,
 
     const char *s = purc_variant_get_string_const(rr);
     PC_ASSERT(s);
-    if (strlen(s) <= 2) {
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
-        return PURC_VARIANT_INVALID;
-    }
-    size_t len = strlen(s);
-    if (s[0] != '/' || s[len-1] != '/') {
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
-        return PURC_VARIANT_INVALID;
-    }
 
     const char *pattern;
     size_t sz;
@@ -2109,10 +2118,6 @@ tokenwised_eval_attr_str_prepend_or_append(purc_variant_t ll,
     const char *s = purc_variant_get_string_const(rr);
     PC_ASSERT(s);
     const size_t len = strlen(s);
-    if (len <= 2) {
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
-        return PURC_VARIANT_INVALID;
-    }
 
     const char *tokens = purc_variant_get_string_const(ll);
     PC_ASSERT(tokens);
@@ -2123,7 +2128,7 @@ tokenwised_eval_attr_str_prepend_or_append(purc_variant_t ll,
     size_t idx = 0;
     struct pcutils_token *token;
     struct pcutils_token_iterator it;
-    it =pcutils_token_it_begin(tokens, tokens + strlen(tokens), NULL);
+    it = pcutils_token_it_begin(tokens, tokens + strlen(tokens), NULL);
     for (token = pcutils_token_it_value(&it);
         token;
         token = pcutils_token_it_next(&it), ++idx)
@@ -2194,11 +2199,11 @@ tokenwised_eval_attr_str(enum pchvml_attr_operator op,
 
         case PCHVML_ATTRIBUTE_HEAD_OPERATOR:
             // ^=
-            return tokenwised_eval_attr_str_prepend_or_append(ll, rr, true);
+            return tokenwised_eval_attr_str_prepend_or_append(ll, rr, false);
 
         case PCHVML_ATTRIBUTE_TAIL_OPERATOR:
             // $=
-            return tokenwised_eval_attr_str_prepend_or_append(ll, rr, false);
+            return tokenwised_eval_attr_str_prepend_or_append(ll, rr, true);
 
         default:
             purc_set_error(PURC_ERROR_INVALID_VALUE);

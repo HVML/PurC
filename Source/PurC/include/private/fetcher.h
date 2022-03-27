@@ -46,7 +46,7 @@ struct pcfetcher_resp_header {
     size_t sz_resp;
 };
 
-typedef void (*response_handler)(
+typedef void (*pcfetcher_response_handler)(
         purc_variant_t request_id, void* ctxt,
         const struct pcfetcher_resp_header *resp_header,
         purc_rwstream_t resp);
@@ -60,6 +60,8 @@ int pcfetcher_init(size_t max_conns, size_t cache_quota,
         bool enable_remote_fetcher);
 
 int pcfetcher_term(void);
+
+bool pcfetcher_is_init(void);
 
 const char* pcfetcher_set_base_url(const char* base_url);
 
@@ -79,7 +81,7 @@ purc_variant_t pcfetcher_request_async(
         enum pcfetcher_request_method method,
         purc_variant_t params,
         uint32_t timeout,
-        response_handler handler,
+        pcfetcher_response_handler handler,
         void* ctxt);
 
 purc_rwstream_t pcfetcher_request_sync(
