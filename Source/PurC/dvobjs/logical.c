@@ -1,6 +1,6 @@
 /*
  * @file logical.c
- * @author Geng Yue
+ * @author Geng Yue, Vincent Wei
  * @date 2021/07/02
  * @brief The implementation of logical dynamic variant object.
  *
@@ -25,13 +25,14 @@
 #include "private/instance.h"
 #include "private/errors.h"
 #include "private/dvobjs.h"
+#include "private/utils.h"
 #include "purc-variant.h"
 #include "helper.h"
 
 #include <math.h>
 #include <regex.h>
 
-static bool reg_cmp (const char *buf1, const char *buf2)
+static bool reg_cmp(const char *buf1, const char *buf2)
 {
     regex_t reg;
     int err = 0;
@@ -41,7 +42,7 @@ static bool reg_cmp (const char *buf1, const char *buf2)
     if ((buf1 == NULL) || (buf2 == NULL))
         return false;
 
-    if (regcomp (&reg, buf1, REG_EXTENDED) < 0) {
+    if (regcomp(&reg, buf1, REG_EXTENDED) < 0) {
         goto error;
     }
 
@@ -58,577 +59,599 @@ static bool reg_cmp (const char *buf1, const char *buf2)
         goto error_free;
     }
 
-    regfree (&reg);
+    regfree(&reg);
 
     return true;
 
 error_free:
-    regfree (&reg);
+    regfree(&reg);
+
 error:
     return false;
 }
 
 static purc_variant_t
-not_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+not_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(silently);
 
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    bool result;
 
-    if ((argv == NULL) || (nr_args < 1)) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+    if (nr_args < 1) {
+        // treat as undefined
+        result = true;
+    }
+    else {
+        result = !purc_variant_booleanize(argv[0]);
     }
 
-    if (purc_variant_booleanize (argv[0]))
-        ret_var = purc_variant_make_boolean (false);
-    else
-        ret_var = purc_variant_make_boolean (true);
-
-    return ret_var;
+    return purc_variant_make_boolean(result);
 }
 
 static purc_variant_t
-and_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+and_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(silently);
 
-    bool judge = true;
-    size_t i = 0;
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
-
-    if ((argv == NULL) || (nr_args < 2)) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+    bool result;
+    if (nr_args < 2) {
+        // treat as undefined
+        result = false;
     }
-
-    for (i = 0; i < nr_args; i++) {
-        if ((argv[i] != PURC_VARIANT_INVALID) &&
-                (!purc_variant_booleanize (argv[i]))) {
-            judge = false;
-            break;
+    else {
+        result = true;
+        for (size_t i = 0; i < nr_args; i++) {
+            if (!purc_variant_booleanize(argv[i])) {
+                result = false;
+                break;
+            }
         }
     }
 
-    if (judge)
-        ret_var = purc_variant_make_boolean (true);
-    else
-        ret_var = purc_variant_make_boolean (false);
-
-    return ret_var;
+    return purc_variant_make_boolean(result);
 }
 
 static purc_variant_t
-or_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+or_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(silently);
 
-    bool judge = false;
-    size_t i = 0;
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
-
-    if ((argv == NULL) || (nr_args < 2)) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+    bool result;
+    if (nr_args == 0) {
+        // treat as undefined
+        result = false;
     }
-
-    for (i = 0; i < nr_args; i++) {
-        if ((argv[i] != PURC_VARIANT_INVALID) &&
-                (purc_variant_booleanize (argv[i]))) {
-            judge = true;
-            break;
+    else if (nr_args == 1) {
+        result = purc_variant_booleanize(argv[0]);
+    }
+    else {
+        result = false;
+        for (size_t i = 0; i < nr_args; i++) {
+            if (purc_variant_booleanize(argv[0])) {
+                result = true;
+                break;
+            }
         }
     }
 
-    if (judge)
-        ret_var = purc_variant_make_boolean (true);
-    else
-        ret_var = purc_variant_make_boolean (false);
-
-    return ret_var;
+    return purc_variant_make_boolean(result);
 }
 
 static purc_variant_t
-xor_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+xor_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(silently);
 
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
-    unsigned judge1 = 0x00;
-    unsigned judge2 = 0x00;
+    uint8_t judge1;
+    uint8_t judge2;
 
-    if ((argv == NULL) || (nr_args != 2)) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+    if (nr_args == 0) {
+        judge1 = 0;
+        judge2 = 0;
     }
-    if (argv[1] == PURC_VARIANT_INVALID) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+    else if (nr_args == 1) {
+        if (purc_variant_booleanize(argv[0]))
+            judge1 = 1;
+        judge2 = 0;
     }
+    else {
+        if (purc_variant_booleanize (argv[0]))
+            judge1 = 1;
+        else
+            judge1 = 0;
 
-    if (purc_variant_booleanize (argv[0]))
-        judge1 = 0x01;
-
-    if (purc_variant_booleanize (argv[1]))
-        judge2 = 0x01;
+        if (purc_variant_booleanize (argv[1]))
+            judge2 = 1;
+        else
+            judge2 = 0;
+    }
 
     judge1 ^= judge2;
 
-    if (judge1)
-        ret_var = purc_variant_make_boolean (true);
-    else
-        ret_var = purc_variant_make_boolean (false);
-
-    return ret_var;
+    return purc_variant_make_boolean(judge1 != 0);
 }
 
 static purc_variant_t
-eq_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+eq_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(silently);
 
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
-    double value1 = 0.0L;
-    double value2 = 0.0L;
+    double v1, v2;
 
-    if ((argv == NULL) || (nr_args < 2)) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+    if (nr_args == 0) {
+        v1 = 0;
+        v2 = 0;
+    }
+    else if (nr_args == 1) {
+        v1 = purc_variant_numberify(argv[0]);
+        v2 = 0;
+    }
+    else {
+        v1 = purc_variant_numberify(argv[0]);
+        v2 = purc_variant_numberify(argv[1]);
     }
 
-    if (argv[1] == PURC_VARIANT_INVALID) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
-    }
-
-    value1 = purc_variant_numberify (argv[0]);
-    value2 = purc_variant_numberify (argv[1]);
-
-    if (fabs (value1 - value2) < 1.0E-10)
-        ret_var = purc_variant_make_boolean (true);
-    else
-        ret_var = purc_variant_make_boolean (false);
-
-    return ret_var;
+    return purc_variant_make_boolean(pcutils_equal_doubles(v1, v2));
 }
 
 static purc_variant_t
-ne_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+ne_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(silently);
 
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
-    double value1 = 0.0L;
-    double value2 = 0.0L;
+    double v1, v2;
 
-    if ((argv == NULL) || (nr_args != 2)) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+    if (nr_args == 0) {
+        v1 = 0;
+        v2 = 0;
+    }
+    else if (nr_args == 1) {
+        v1 = purc_variant_numberify(argv[0]);
+        v2 = 0;
+    }
+    else {
+        v1 = purc_variant_numberify(argv[0]);
+        v2 = purc_variant_numberify(argv[1]);
     }
 
-    if (argv[1] == PURC_VARIANT_INVALID) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
-    }
-
-    value1 = purc_variant_numberify (argv[0]);
-    value2 = purc_variant_numberify (argv[1]);
-
-    if (fabs (value1 - value2) >= 1.0E-10)
-        ret_var = purc_variant_make_boolean (true);
-    else
-        ret_var = purc_variant_make_boolean (false);
-
-    return ret_var;
+    return purc_variant_make_boolean(!pcutils_equal_doubles(v1, v2));
 }
 
 static purc_variant_t
-gt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+gt_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(silently);
 
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
-    double value1 = 0.0L;
-    double value2 = 0.0L;
+    double v1, v2;
 
-    if ((argv == NULL) || (nr_args != 2)) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+    if (nr_args == 0) {
+        v1 = 0;
+        v2 = 0;
+    }
+    else if (nr_args == 1) {
+        v1 = purc_variant_numberify(argv[0]);
+        v2 = 0;
+    }
+    else {
+        v1 = purc_variant_numberify(argv[0]);
+        v2 = purc_variant_numberify(argv[1]);
     }
 
-    if (argv[1] == PURC_VARIANT_INVALID) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
-    }
-
-    value1 = purc_variant_numberify (argv[0]);
-    value2 = purc_variant_numberify (argv[1]);
-
-    if (value1 > value2)
-        ret_var = purc_variant_make_boolean (true);
-    else
-        ret_var = purc_variant_make_boolean (false);
-
-    return ret_var;
+    return purc_variant_make_boolean((v1 > v2));
 }
 
 static purc_variant_t
-ge_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+ge_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(silently);
 
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
-    double value1 = 0.0L;
-    double value2 = 0.0L;
+    double v1, v2;
 
-    if ((argv == NULL) || (nr_args != 2)) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+    if (nr_args == 0) {
+        v1 = 0;
+        v2 = 0;
+    }
+    else if (nr_args == 1) {
+        v1 = purc_variant_numberify(argv[0]);
+        v2 = 0;
+    }
+    else {
+        v1 = purc_variant_numberify(argv[0]);
+        v2 = purc_variant_numberify(argv[1]);
     }
 
-    if (argv[1] == PURC_VARIANT_INVALID) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
-    }
-
-    value1 = purc_variant_numberify (argv[0]);
-    value2 = purc_variant_numberify (argv[1]);
-
-    if (value1 >= value2)
-        ret_var = purc_variant_make_boolean (true);
-    else
-        ret_var = purc_variant_make_boolean (false);
-
-    return ret_var;
+    return purc_variant_make_boolean((v1 >= v2));
 }
 
 static purc_variant_t
-lt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+lt_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(silently);
 
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
-    double value1 = 0.0L;
-    double value2 = 0.0L;
+    double v1, v2;
 
-    if ((argv == NULL) || (nr_args != 2)) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+    if (nr_args == 0) {
+        v1 = 0;
+        v2 = 0;
+    }
+    else if (nr_args == 1) {
+        v1 = purc_variant_numberify(argv[0]);
+        v2 = 0;
+    }
+    else {
+        v1 = purc_variant_numberify(argv[0]);
+        v2 = purc_variant_numberify(argv[1]);
     }
 
-    if (argv[1] == PURC_VARIANT_INVALID) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
-    }
-
-    value1 = purc_variant_numberify (argv[0]);
-    value2 = purc_variant_numberify (argv[1]);
-
-    if (value1 < value2)
-        ret_var = purc_variant_make_boolean (true);
-    else
-        ret_var = purc_variant_make_boolean (false);
-
-    return ret_var;
+    return purc_variant_make_boolean((v1 < v2));
 }
 
 static purc_variant_t
-le_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+le_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(silently);
 
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
-    double value1 = 0.0L;
-    double value2 = 0.0L;
+    double v1, v2;
 
-    if ((argv == NULL) || (nr_args != 2)) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+    if (nr_args == 0) {
+        v1 = 0;
+        v2 = 0;
+    }
+    else if (nr_args == 1) {
+        v1 = purc_variant_numberify(argv[0]);
+        v2 = 0;
+    }
+    else {
+        v1 = purc_variant_numberify(argv[0]);
+        v2 = purc_variant_numberify(argv[1]);
     }
 
-    if (argv[1] == PURC_VARIANT_INVALID) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+    return purc_variant_make_boolean((v1 <= v2));
+}
+
+static int strcmp_method(purc_variant_t arg)
+{
+    const char *option;
+    size_t option_len;
+
+    option = purc_variant_get_string_const_ex(arg, &option_len);
+    if (option == NULL) {
+        pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        return -1;
     }
 
-    value1 = purc_variant_numberify (argv[0]);
-    value2 = purc_variant_numberify (argv[1]);
+    option = pcutils_trim_spaces(option, &option_len);
+    if (option_len == 0) {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        return -1;
+    }
 
-    if (value1 <= value2)
-        ret_var = purc_variant_make_boolean (true);
-    else
-        ret_var = purc_variant_make_boolean (false);
+    int id = pcdvobjs_global_keyword_id(option, option_len);
+    if (id == PURC_K_KW_caseless ||
+            id == PURC_K_KW_case ||
+            id == PURC_K_KW_wildcard ||
+            id == PURC_K_KW_reg)
+        return id;
 
-    return ret_var;
+    pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+    return -1;
+}
+
+static int strcmp_case(purc_variant_t arg)
+{
+    const char *option;
+    size_t option_len;
+
+    option = purc_variant_get_string_const_ex(arg, &option_len);
+    if (option == NULL) {
+        pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        return -1;
+    }
+
+    option = pcutils_trim_spaces(option, &option_len);
+    if (option_len == 0) {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        return -1;
+    }
+
+    int id = pcdvobjs_global_keyword_id(option, option_len);
+    if (id == PURC_K_KW_caseless || id == PURC_K_KW_case)
+        return id;
+
+    pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+    return -1;
 }
 
 static purc_variant_t
-streq_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+streq_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
 
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
-
-    if ((argv == NULL) || (nr_args < 3)) {
+    if (nr_args < 3) {
         pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
-    if (!purc_variant_is_string (argv[0])) {
-        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+    int method;
+    if ((method = strcmp_method(argv[0])) < 0) {
+        goto failed;
     }
 
-    if ((argv[1] == PURC_VARIANT_INVALID) ||
-            (argv[2] == PURC_VARIANT_INVALID)) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+    const char *str1, *str2;
+    char *buff1 = NULL, *buff2 = NULL;
+
+    str1 = purc_variant_get_string_const(argv[1]);
+    if (str1 == NULL) {
+        if (purc_variant_stringify_alloc(&buff1, argv[1]) < 0)
+            goto fatal;
+        str1 = buff1;
     }
 
-    const char *option = purc_variant_get_string_const (argv[0]);
-    purc_rwstream_t stream1 = purc_rwstream_new_buffer (32, STREAM_SIZE);
-    purc_rwstream_t stream2 = purc_rwstream_new_buffer (32, STREAM_SIZE);
-    size_t sz_stream1 = 0;
-    size_t sz_stream2 = 0;
-
-    purc_variant_serialize (argv[1], stream1, 3, 0, &sz_stream1);
-    purc_variant_serialize (argv[2], stream2, 3, 0, &sz_stream2);
-
-    char *buf1 = purc_rwstream_get_mem_buffer (stream1, &sz_stream1);
-    char *buf2 = purc_rwstream_get_mem_buffer (stream2, &sz_stream2);
-
-    if (strcasecmp (option, STRING_COMP_MODE_CASELESS) == 0) {
-        if (strcasecmp (buf1, buf2) == 0)
-            ret_var = purc_variant_make_boolean (true);
-        else
-            ret_var = purc_variant_make_boolean (false);
-    }
-    else if (strcasecmp (option, STRING_COMP_MODE_CASE) == 0) {
-        if (strcmp (buf1, buf2) == 0)
-            ret_var = purc_variant_make_boolean (true);
-        else
-            ret_var = purc_variant_make_boolean (false);
-    }
-    else if (strcasecmp (option, STRING_COMP_MODE_WILDCARD) == 0) {
-        if (pcdvobjs_wildcard_cmp (buf2, buf1))
-            ret_var = purc_variant_make_boolean (true);
-        else
-            ret_var = purc_variant_make_boolean (false);
-    }
-    else if (strcasecmp (option, STRING_COMP_MODE_REG) == 0) {
-        if (reg_cmp (buf1, buf2))
-            ret_var = purc_variant_make_boolean (true);
-        else
-            ret_var = purc_variant_make_boolean (false);
+    str2 = purc_variant_get_string_const(argv[2]);
+    if (str2 == NULL) {
+        if (purc_variant_stringify_alloc(&buff2, argv[2]) < 0) {
+            if (buff1)
+                free(buff1);
+            goto fatal;
+        }
+        str2 = buff2;
     }
 
-    purc_rwstream_destroy (stream1);
-    purc_rwstream_destroy (stream2);
+    bool result;
+    switch (method) {
+    case PURC_K_KW_case:
+        result = (strcmp(str1, str2) == 0);
+        break;
+    case PURC_K_KW_caseless:
+        result = (strcasecmp(str1, str2) == 0);
+        break;
+    case PURC_K_KW_wildcard:
+        result = pcdvobjs_wildcard_cmp(str2, str1);
+        break;
+    case PURC_K_KW_reg:
+        result = reg_cmp(str1, str2);
+        break;
+    default:
+        assert(0);
+        result = false;
+        break;
+    }
 
-    return ret_var;
+    if (buff1)
+        free(buff1);
+    if (buff2)
+        free(buff2);
+
+    return purc_variant_make_boolean(result);
+
+failed:
+    if (silently)
+        return purc_variant_make_undefined();
+
+fatal:
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
-strne_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+strne_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
 
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
-
-    if ((argv == NULL) || (nr_args < 3)) {
+    if (nr_args < 3) {
         pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
-    if (!purc_variant_is_string (argv[0])) {
-        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+    int method;
+    if ((method = strcmp_method(argv[0])) < 0) {
+        goto failed;
     }
 
-    if ((argv[1] == PURC_VARIANT_INVALID) ||
-            (argv[2] == PURC_VARIANT_INVALID)) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+    const char *str1, *str2;
+    char *buff1 = NULL, *buff2 = NULL;
+
+    str1 = purc_variant_get_string_const(argv[1]);
+    if (str1 == NULL) {
+        if (purc_variant_stringify_alloc(&buff1, argv[1]) < 0)
+            goto fatal;
+        str1 = buff1;
     }
 
-    const char *option = purc_variant_get_string_const (argv[0]);
-    purc_rwstream_t stream1 = purc_rwstream_new_buffer (32, STREAM_SIZE);
-    purc_rwstream_t stream2 = purc_rwstream_new_buffer (32, STREAM_SIZE);
-    size_t sz_stream1 = 0;
-    size_t sz_stream2 = 0;
-
-    purc_variant_serialize (argv[1], stream1, 3, 0, &sz_stream1);
-    purc_variant_serialize (argv[2], stream2, 3, 0, &sz_stream2);
-
-    char *buf1 = purc_rwstream_get_mem_buffer (stream1, &sz_stream1);
-    char *buf2 = purc_rwstream_get_mem_buffer (stream2, &sz_stream2);
-
-    if (strcasecmp (option, STRING_COMP_MODE_CASELESS) == 0) {
-        if (strcasecmp (buf1, buf2) == 0)
-            ret_var = purc_variant_make_boolean (false);
-        else
-            ret_var = purc_variant_make_boolean (true);
-    }
-    else if (strcasecmp (option, STRING_COMP_MODE_CASE) == 0) {
-        if (strcmp (buf1, buf2) == 0)
-            ret_var = purc_variant_make_boolean (false);
-        else
-            ret_var = purc_variant_make_boolean (true);
-    }
-    else if (strcasecmp (option, STRING_COMP_MODE_WILDCARD) == 0) {
-        if (pcdvobjs_wildcard_cmp (buf2, buf1))
-            ret_var = purc_variant_make_boolean (false);
-        else
-            ret_var = purc_variant_make_boolean (true);
-    }
-    else if (strcasecmp (option, STRING_COMP_MODE_REG) == 0) {
-        if (reg_cmp (buf1, buf2))
-            ret_var = purc_variant_make_boolean (false);
-        else
-            ret_var = purc_variant_make_boolean (true);
+    str2 = purc_variant_get_string_const(argv[2]);
+    if (str2 == NULL) {
+        if (purc_variant_stringify_alloc(&buff2, argv[2]) < 0) {
+            if (buff1)
+                free(buff1);
+            goto fatal;
+        }
+        str2 = buff2;
     }
 
-    purc_rwstream_destroy (stream1);
-    purc_rwstream_destroy (stream2);
+    bool result;
+    switch (method) {
+    case PURC_K_KW_case:
+        result = (strcmp(str1, str2) != 0);
+        break;
+    case PURC_K_KW_caseless:
+        result = (strcasecmp(str1, str2) != 0);
+        break;
+    case PURC_K_KW_wildcard:
+        result = !pcdvobjs_wildcard_cmp(str2, str1);
+        break;
+    case PURC_K_KW_reg:
+        result = !reg_cmp(str1, str2);
+        break;
+    default:
+        assert(0);
+        result = false;
+        break;
+    }
 
-    return ret_var;
+    if (buff1)
+        free(buff1);
+    if (buff2)
+        free(buff2);
+
+    return purc_variant_make_boolean(result);
+
+failed:
+    if (silently)
+        return purc_variant_make_undefined();
+
+fatal:
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
-strgt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+strgt_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
 
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
-
-    if ((argv == NULL) || (nr_args < 3)) {
+    if (nr_args < 3) {
         pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
-    if (!purc_variant_is_string (argv[0])) {
-        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+    int method;
+    if ((method = strcmp_case(argv[0])) < 0) {
+        goto failed;
     }
 
-    if ((argv[1] == PURC_VARIANT_INVALID) ||
-            (argv[2] == PURC_VARIANT_INVALID)) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+    const char *str1, *str2;
+    char *buff1 = NULL, *buff2 = NULL;
+
+    str1 = purc_variant_get_string_const(argv[1]);
+    if (str1 == NULL) {
+        if (purc_variant_stringify_alloc(&buff1, argv[1]) < 0)
+            goto fatal;
+        str1 = buff1;
     }
 
-    const char *option = purc_variant_get_string_const (argv[0]);
-    purc_rwstream_t stream1 = purc_rwstream_new_buffer (32, STREAM_SIZE);
-    purc_rwstream_t stream2 = purc_rwstream_new_buffer (32, STREAM_SIZE);
-    size_t sz_stream1 = 0;
-    size_t sz_stream2 = 0;
-
-    purc_variant_serialize (argv[1], stream1, 3, 0, &sz_stream1);
-    purc_variant_serialize (argv[2], stream2, 3, 0, &sz_stream2);
-
-    char *buf1 = purc_rwstream_get_mem_buffer (stream1, &sz_stream1);
-    char *buf2 = purc_rwstream_get_mem_buffer (stream2, &sz_stream2);
-
-    if (strcasecmp (option, STRING_COMP_MODE_CASELESS) == 0) {
-        if (strcasecmp (buf1, buf2) > 0)
-            ret_var = purc_variant_make_boolean (true);
-        else
-            ret_var = purc_variant_make_boolean (false);
-    }
-    else if (strcasecmp (option, STRING_COMP_MODE_CASE) == 0) {
-        if (strcmp (buf1, buf2) > 0)
-            ret_var = purc_variant_make_boolean (true);
-        else
-            ret_var = purc_variant_make_boolean (false);
+    str2 = purc_variant_get_string_const(argv[2]);
+    if (str2 == NULL) {
+        if (purc_variant_stringify_alloc(&buff2, argv[2]) < 0) {
+            if (buff1)
+                free(buff1);
+            goto fatal;
+        }
+        str2 = buff2;
     }
 
-    purc_rwstream_destroy (stream1);
-    purc_rwstream_destroy (stream2);
+    bool result;
+    switch (method) {
+    case PURC_K_KW_case:
+        result = (strcmp(str1, str2) > 0);
+        break;
+    case PURC_K_KW_caseless:
+        result = (strcasecmp(str1, str2) > 0);
+        break;
+    default:
+        assert(0);
+        result = false;
+        break;
+    }
 
-    return ret_var;
+    if (buff1)
+        free(buff1);
+    if (buff2)
+        free(buff2);
+
+    return purc_variant_make_boolean(result);
+
+failed:
+    if (silently)
+        return purc_variant_make_undefined();
+
+fatal:
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
-strge_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+strge_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
 
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
-
-    if ((argv == NULL) || (nr_args < 3)) {
+    if (nr_args < 3) {
         pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
-    if (!purc_variant_is_string (argv[0])) {
-        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+    int method;
+    if ((method = strcmp_case(argv[0])) < 0) {
+        goto failed;
     }
 
-    if ((argv[1] == PURC_VARIANT_INVALID) ||
-            (argv[2] == PURC_VARIANT_INVALID)) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+    const char *str1, *str2;
+    char *buff1 = NULL, *buff2 = NULL;
+
+    str1 = purc_variant_get_string_const(argv[1]);
+    if (str1 == NULL) {
+        if (purc_variant_stringify_alloc(&buff1, argv[1]) < 0)
+            goto fatal;
+        str1 = buff1;
     }
 
-    const char *option = purc_variant_get_string_const (argv[0]);
-    purc_rwstream_t stream1 = purc_rwstream_new_buffer (32, STREAM_SIZE);
-    purc_rwstream_t stream2 = purc_rwstream_new_buffer (32, STREAM_SIZE);
-    size_t sz_stream1 = 0;
-    size_t sz_stream2 = 0;
-
-
-    purc_variant_serialize (argv[1], stream1, 3, 0, &sz_stream1);
-    purc_variant_serialize (argv[2], stream2, 3, 0, &sz_stream2);
-
-    char *buf1 = purc_rwstream_get_mem_buffer (stream1, &sz_stream1);
-    char *buf2 = purc_rwstream_get_mem_buffer (stream2, &sz_stream2);
-
-    if (strcasecmp (option, STRING_COMP_MODE_CASELESS) == 0) {
-        if (strcasecmp (buf1, buf2) >= 0)
-            ret_var = purc_variant_make_boolean (true);
-        else
-            ret_var = purc_variant_make_boolean (false);
-    }
-    else if (strcasecmp (option, STRING_COMP_MODE_CASE) == 0) {
-        if (strcmp (buf1, buf2) >= 0)
-            ret_var = purc_variant_make_boolean (true);
-        else
-            ret_var = purc_variant_make_boolean (false);
+    str2 = purc_variant_get_string_const(argv[2]);
+    if (str2 == NULL) {
+        if (purc_variant_stringify_alloc(&buff2, argv[2]) < 0) {
+            if (buff1)
+                free(buff1);
+            goto fatal;
+        }
+        str2 = buff2;
     }
 
-    purc_rwstream_destroy (stream1);
-    purc_rwstream_destroy (stream2);
+    bool result;
+    switch (method) {
+    case PURC_K_KW_case:
+        result = (strcmp(str1, str2) >= 0);
+        break;
+    case PURC_K_KW_caseless:
+        result = (strcasecmp(str1, str2) >= 0);
+        break;
+    default:
+        assert(0);
+        result = false;
+        break;
+    }
 
-    return ret_var;
+    if (buff1)
+        free(buff1);
+    if (buff2)
+        free(buff2);
+
+    return purc_variant_make_boolean(result);
+
+failed:
+    if (silently)
+        return purc_variant_make_undefined();
+
+fatal:
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
@@ -636,56 +659,64 @@ strlt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
 
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
-
-    if ((argv == NULL) || (nr_args < 3)) {
+    if (nr_args < 3) {
         pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
-    if (!purc_variant_is_string (argv[0])) {
-        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+    int method;
+    if ((method = strcmp_case(argv[0])) < 0) {
+        goto failed;
     }
 
-    if ((argv[1] == PURC_VARIANT_INVALID) ||
-            (argv[2] == PURC_VARIANT_INVALID)) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+    const char *str1, *str2;
+    char *buff1 = NULL, *buff2 = NULL;
+
+    str1 = purc_variant_get_string_const(argv[1]);
+    if (str1 == NULL) {
+        if (purc_variant_stringify_alloc(&buff1, argv[1]) < 0)
+            goto fatal;
+        str1 = buff1;
     }
 
-    const char *option = purc_variant_get_string_const (argv[0]);
-    purc_rwstream_t stream1 = purc_rwstream_new_buffer (32, STREAM_SIZE);
-    purc_rwstream_t stream2 = purc_rwstream_new_buffer (32, STREAM_SIZE);
-    size_t sz_stream1 = 0;
-    size_t sz_stream2 = 0;
-
-
-    purc_variant_serialize (argv[1], stream1, 3, 0, &sz_stream1);
-    purc_variant_serialize (argv[2], stream2, 3, 0, &sz_stream2);
-
-    char *buf1 = purc_rwstream_get_mem_buffer (stream1, &sz_stream1);
-    char *buf2 = purc_rwstream_get_mem_buffer (stream2, &sz_stream2);
-
-    if (strcasecmp (option, STRING_COMP_MODE_CASELESS) == 0) {
-        if (strcasecmp (buf1, buf2) < 0)
-            ret_var = purc_variant_make_boolean (true);
-        else
-            ret_var = purc_variant_make_boolean (false);
-    }
-    else if (strcasecmp (option, STRING_COMP_MODE_CASE) == 0) {
-        if (strcmp (buf1, buf2) < 0)
-            ret_var = purc_variant_make_boolean (true);
-        else
-            ret_var = purc_variant_make_boolean (false);
+    str2 = purc_variant_get_string_const(argv[2]);
+    if (str2 == NULL) {
+        if (purc_variant_stringify_alloc(&buff2, argv[2]) < 0) {
+            if (buff1)
+                free(buff1);
+            goto fatal;
+        }
+        str2 = buff2;
     }
 
-    purc_rwstream_destroy (stream1);
-    purc_rwstream_destroy (stream2);
+    bool result;
+    switch (method) {
+    case PURC_K_KW_case:
+        result = (strcmp(str1, str2) < 0);
+        break;
+    case PURC_K_KW_caseless:
+        result = (strcasecmp(str1, str2) < 0);
+        break;
+    default:
+        assert(0);
+        result = false;
+        break;
+    }
 
-    return ret_var;
+    if (buff1)
+        free(buff1);
+    if (buff2)
+        free(buff2);
+
+    return purc_variant_make_boolean(result);
+
+failed:
+    if (silently)
+        return purc_variant_make_undefined();
+
+fatal:
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
@@ -693,116 +724,105 @@ strle_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
 
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
-
-    if ((argv == NULL) || (nr_args < 3)) {
+    if (nr_args < 3) {
         pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
-    if (!purc_variant_is_string (argv[0])) {
-        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+    int method;
+    if ((method = strcmp_case(argv[0])) < 0) {
+        goto failed;
     }
 
-    if ((argv[1] == PURC_VARIANT_INVALID) ||
-            (argv[2] == PURC_VARIANT_INVALID)) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+    const char *str1, *str2;
+    char *buff1 = NULL, *buff2 = NULL;
+
+    str1 = purc_variant_get_string_const(argv[1]);
+    if (str1 == NULL) {
+        if (purc_variant_stringify_alloc(&buff1, argv[1]) < 0)
+            goto fatal;
+        str1 = buff1;
     }
 
-    const char *option = purc_variant_get_string_const (argv[0]);
-    purc_rwstream_t stream1 = purc_rwstream_new_buffer (32, STREAM_SIZE);
-    purc_rwstream_t stream2 = purc_rwstream_new_buffer (32, STREAM_SIZE);
-    size_t sz_stream1 = 0;
-    size_t sz_stream2 = 0;
-
-    purc_variant_serialize (argv[1], stream1, 3, 0, &sz_stream1);
-    purc_variant_serialize (argv[2], stream2, 3, 0, &sz_stream2);
-
-    char *buf1 = purc_rwstream_get_mem_buffer (stream1, &sz_stream1);
-    char *buf2 = purc_rwstream_get_mem_buffer (stream2, &sz_stream2);
-
-    if (strcasecmp (option, STRING_COMP_MODE_CASELESS) == 0) {
-        if (strcasecmp (buf1, buf2) <= 0)
-            ret_var = purc_variant_make_boolean (true);
-        else
-            ret_var = purc_variant_make_boolean (false);
-    }
-    else if (strcasecmp (option, STRING_COMP_MODE_CASE) == 0) {
-        if (strcmp (buf1, buf2) <= 0)
-            ret_var = purc_variant_make_boolean (true);
-        else
-            ret_var = purc_variant_make_boolean (false);
+    str2 = purc_variant_get_string_const(argv[2]);
+    if (str2 == NULL) {
+        if (purc_variant_stringify_alloc(&buff2, argv[2]) < 0) {
+            if (buff1)
+                free(buff1);
+            goto fatal;
+        }
+        str2 = buff2;
     }
 
-    purc_rwstream_destroy (stream1);
-    purc_rwstream_destroy (stream2);
+    bool result;
+    switch (method) {
+    case PURC_K_KW_case:
+        result = (strcmp(str1, str2) <= 0);
+        break;
+    case PURC_K_KW_caseless:
+        result = (strcasecmp(str1, str2) <= 0);
+        break;
+    default:
+        assert(0);
+        result = false;
+        break;
+    }
 
-    return ret_var;
+    if (buff1)
+        free(buff1);
+    if (buff2)
+        free(buff2);
+
+    return purc_variant_make_boolean(result);
+
+failed:
+    if (silently)
+        return purc_variant_make_undefined();
+
+fatal:
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
-eval_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+eval_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
 
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
-
-    if ((argv == NULL) || (nr_args < 2)) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+    if (nr_args < 1) {
+        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
     }
 
-    if (!purc_variant_is_string (argv[0])) {
-        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+    const char *exp = purc_variant_get_string_const(argv[0]);
+    if (exp == NULL) {
+        pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
     }
 
-    if ((argv[1] != PURC_VARIANT_INVALID) &&
-            (!purc_variant_is_object (argv[1]))) {
-        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+    if (nr_args > 1 && !purc_variant_is_object(argv[1])) {
+        pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
     }
 
-#if 0
-    size_t length = purc_variant_string_size (argv[0]);
-    struct pcdvobjs_logical_param myparam = {0, argv[1]}; /* my instance data */
-    yyscan_t lexer;                 /* flex instance data */
-
-    if(logicallex_init_extra(&myparam, &lexer)) {
-        return PURC_VARIANT_INVALID;
-    }
-
-    YY_BUFFER_STATE buffer = logical_scan_bytes (
-                purc_variant_get_string_const (argv[0]), length, lexer);
-    logical_switch_to_buffer (buffer, lexer);
-    logicalparse(&myparam, lexer);
-    logical_delete_buffer(buffer, lexer);
-    logicallex_destroy (lexer);
-#else // ! 0
     struct pcdvobjs_logical_param myparam = {
         0,
-        argv[1],
+        (nr_args > 1) ? argv[1] : PURC_VARIANT_INVALID,
         PURC_VARIANT_INVALID
     };
-    pcdvobjs_logical_parse(purc_variant_get_string_const(argv[0]), &myparam);
-#endif // 0
+    pcdvobjs_logical_parse(exp, &myparam);
 
-    if (myparam.result)
-        ret_var = purc_variant_make_boolean (true);
-    else
-        ret_var = purc_variant_make_boolean (false);
+    return purc_variant_make_boolean(myparam.result);
 
-    return ret_var;
+failed:
+    if (silently)
+        return purc_variant_make_undefined();
+
+    return PURC_VARIANT_INVALID;
 }
 
-// only for test now.
-purc_variant_t purc_dvobj_logical_new (void)
+purc_variant_t purc_dvobj_logical_new(void)
 {
     static struct purc_dvobj_method method [] = {
         {"not",   not_getter,   NULL},
@@ -824,5 +844,5 @@ purc_variant_t purc_dvobj_logical_new (void)
         {"eval",  eval_getter,  NULL}
     };
 
-    return purc_dvobj_make_from_methods (method, PCA_TABLESIZE(method));
+    return purc_dvobj_make_from_methods(method, PCA_TABLESIZE(method));
 }

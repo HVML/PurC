@@ -34,14 +34,14 @@
 test_begin
 param_begin
 param_end
-invalid:;
+boolean:true;
 test_end
 
 test_begin
 param_begin
 null:;
 param_end
-invalid:;
+boolean:true;
 test_end
 
 test_begin

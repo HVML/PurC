@@ -169,5 +169,22 @@ int pcutils_parse_long_double(const char *buf, size_t len, long double *retval);
 }
 #endif
 
+#include <math.h>
+#include <float.h>
+
+/* securely comparison of floating-point variables */
+static inline bool pcutils_equal_doubles(double a, double b)
+{
+    double max_val = fabs(a) > fabs(b) ? fabs(a) : fabs(b);
+    return (fabs(a - b) <= max_val * DBL_EPSILON);
+}
+
+/* securely comparison of floating-point variables */
+static inline bool pcutils_equal_longdoubles(long double a, long double b)
+{
+    long double max_val = fabsl(a) > fabsl(b) ? fabsl(a) : fabsl(b);
+    return (fabsl(a - b) <= max_val * LDBL_EPSILON);
+}
+
 #endif /* not defined PURC_PRIVATE_UTILS_H */
 

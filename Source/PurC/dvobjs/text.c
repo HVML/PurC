@@ -59,9 +59,7 @@ get_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     else
         ret_var = argv[0];
 
-    purc_variant_ref(ret_var);
-
-    return ret_var;
+    return purc_variant_ref(ret_var);
 
 failed:
     if (silently)
@@ -70,7 +68,7 @@ failed:
     return PURC_VARIANT_INVALID;
 }
 
-purc_variant_t purc_dvobj_text_new (void)
+purc_variant_t purc_dvobj_text_new(void)
 {
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_variant_t dict = PURC_VARIANT_INVALID;
