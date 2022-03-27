@@ -666,7 +666,7 @@ fetchstr_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
 failed:
     if (silently)
-        return purc_variant_make_undefined();
+        return purc_variant_make_string_static("", false);
 
 fatal:
     return PURC_VARIANT_INVALID;

@@ -525,7 +525,7 @@ purc_variant_t fetchstr(purc_variant_t dvobj, const char* name)
     (void)dvobj;
 
     if (strcmp(name, "bad") == 0) {
-        return purc_variant_make_undefined();
+        return purc_variant_make_string_static("", false);
     }
     else {
         return purc_variant_make_string_static(name, false);
