@@ -609,8 +609,8 @@ TEST(dvobjs, fetchstr)
         { "海",
             "$EJSON.fetchstr(bxE58C97E4BAACE4B88AE6B5B7, 'utf8 ', null, 9)",
             fetchstr, fetchstr_vrtcmp, 0 },
-        { "HVML是全球首个可编程标记语言！", // with BOM
-            "$EJSON.fetchstr(bxFEFF00480056004D004C662F5168740399964E2A53EF7F167A0B68078BB08BED8A00FF01, 'utf16 ', null, 0)",
+        { "HVML", // with BOM
+            "$EJSON.fetchstr(bx48564D4CE698AFE585A8E79083E9A696E4B8AAE58FAFE7BC96E7A88BE6A087E8AEB0E8AFADE8A880EFBC81, 'utf8 ', 4, 0)",
             fetchstr, fetchstr_vrtcmp, 0 },
         { "HVML是全球首个可编程标记语言！", // with BOM
             "$EJSON.fetchstr(bxFFFE480056004D004C002F666851037496992A4EEF53167F0B7A0768B08BED8B008A01FF, 'utf16 ', null, 0)",
