@@ -2135,10 +2135,6 @@ pcintr_template_append(purc_variant_t val, struct pcvcm_node *vcm)
     return template_append(tpl, vcm);
 }
 
-
-typedef int
-(*pcintr_template_walk_cb)(struct pcvcm_node *vcm, void *ctxt);
-
 void
 pcintr_template_walk(purc_variant_t val, void *ctxt,
         pcintr_template_walk_cb cb)

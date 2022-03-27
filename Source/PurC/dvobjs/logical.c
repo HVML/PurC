@@ -160,6 +160,8 @@ xor_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     else if (nr_args == 1) {
         if (purc_variant_booleanize(argv[0]))
             judge1 = 1;
+        else
+            judge1 = 0;
         judge2 = 0;
     }
     else {

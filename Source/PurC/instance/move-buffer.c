@@ -349,7 +349,7 @@ do_move_message(struct pcinst* inst, pcrdr_msg *msg)
 static void
 do_take_message(struct pcinst* inst, pcrdr_msg *msg)
 {
-    static const unsigned int mb_owner = 0;
+    unsigned int mb_owner = 0;
     struct pcrdr_msg_hdr *hdr = (struct pcrdr_msg_hdr *)msg;
 
     if (atomic_compare_exchange_strong(&hdr->owner, &mb_owner,
