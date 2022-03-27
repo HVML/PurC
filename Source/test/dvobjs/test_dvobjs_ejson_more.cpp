@@ -814,7 +814,7 @@ TEST(dvobjs, parse)
         { "bad",
             "$EJSON.parse('[')",
             parse, NULL, PCEJSON_ERROR_UNEXPECTED_EOF },
-        { "null",   /* FIXME */
+        { "null",
             "$EJSON.serialize($EJSON.parse('['))",
             parse, parse_vrtcmp, 0 },
         { "[]",
