@@ -343,7 +343,7 @@ struct my_string {
 static int mystring_append_mchar(struct my_string *mystr,
         const unsigned char *mchar, size_t mchar_len)
 {
-    if (mystr->nr_bytes + mchar_len < mystr->sz_space) {
+    if (mystr->nr_bytes + mchar_len > mystr->sz_space) {
         size_t new_sz;
         new_sz = pcutils_get_next_fibonacci_number(mystr->nr_bytes + mchar_len);
 
