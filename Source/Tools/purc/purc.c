@@ -213,13 +213,14 @@ int main(int argc, char** argv)
     purc_instance_extra_info extra_info = {};
 
     unsigned int modules = 0;
-    if (strcmp(run_info.data_fetcher, "local") == 0) {
+    if (!run_info.data_fetcher[0] ||
+            strcmp(run_info.data_fetcher, "local") == 0) {
         modules = (PURC_MODULE_HVML | PURC_MODULE_PCRDR);
     }
     else if (strcmp(run_info.data_fetcher, "remote") == 0) {
         modules = (PURC_MODULE_HVML | PURC_MODULE_PCRDR) | PURC_HAVE_FETCHER_R;
     }
-    else {
+    else if (strcmp(run_info.data_fetcher, "none") == 0) {
         modules = (PURC_MODULE_HVML | PURC_MODULE_PCRDR) & ~PURC_HAVE_FETCHER;
     }
 
