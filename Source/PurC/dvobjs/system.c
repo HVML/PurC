@@ -627,7 +627,9 @@ time_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
 
-    struct timeval timeval;
+    // NOTE: initialize with {} to prevent `uninitialized ...` error
+    // from being reported by valgrind
+    struct timeval timeval = {};
 
     if (nr_args < 1) {
         purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
