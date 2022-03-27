@@ -133,7 +133,7 @@ or_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     else {
         result = false;
         for (size_t i = 0; i < nr_args; i++) {
-            if (purc_variant_booleanize(argv[0])) {
+            if (purc_variant_booleanize(argv[i])) {
                 result = true;
                 break;
             }
