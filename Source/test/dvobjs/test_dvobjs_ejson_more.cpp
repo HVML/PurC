@@ -520,3 +520,115 @@ TEST(dvobjs, fetchreal)
     run_testcases(test_cases, PCA_TABLESIZE(test_cases));
 }
 
+purc_variant_t fetchstr(purc_variant_t dvobj, const char* name)
+{
+    (void)dvobj;
+
+    if (strcmp(name, "bad") == 0) {
+        return purc_variant_make_undefined();
+    }
+    else {
+        return purc_variant_make_string_static(name, false);
+    }
+
+    return purc_variant_make_undefined();
+}
+
+static bool fetchstr_vrtcmp(purc_variant_t result, purc_variant_t expected)
+{
+    const char *s1, *s2;
+
+    s1 = purc_variant_get_string_const(result);
+    s2 = purc_variant_get_string_const(expected);
+    return (s1 && s2 && strcmp(s1, s2) == 0);
+}
+
+TEST(dvobjs, fetchstr)
+{
+    static const struct ejson_result test_cases[] = {
+        { "bad",
+            "$EJSON.fetchstr",
+            fetchstr, NULL, PURC_ERROR_ARGUMENT_MISSED },
+        { "bad",
+            "$EJSON.fetchstr(undefined)",
+            fetchstr, NULL, PURC_ERROR_ARGUMENT_MISSED },
+        { "bad",
+            "$EJSON.fetchstr(undefined, false)",
+            fetchstr, NULL, PURC_ERROR_WRONG_DATA_TYPE },
+        { "bad",
+            "$EJSON.fetchstr(bx00, 'bad')",
+            fetchstr, NULL, PURC_ERROR_INVALID_VALUE },
+        { "bad",
+            "$EJSON.fetchstr(bx00, false)",
+            fetchstr, NULL, PURC_ERROR_WRONG_DATA_TYPE },
+        { "bad",
+            "$EJSON.fetchstr(bx00, '')",
+            fetchstr, NULL, PURC_ERROR_INVALID_VALUE },
+        { "bad",
+            "$EJSON.fetchstr(bx00, 'utf8', 2)",
+            fetchstr, NULL, PURC_ERROR_INVALID_VALUE },
+        { "bad",
+            "$EJSON.fetchstr(bx00, 'utf8', 1, 1)",
+            fetchstr, NULL, PURC_ERROR_INVALID_VALUE },
+        { "bad",
+            "$EJSON.fetchstr(bx00, 'utf8', null, -2)",
+            fetchstr, NULL, PURC_ERROR_INVALID_VALUE },
+        { "bad",
+            "$EJSON.fetchstr(bx00, 'utf8', false, -2)",
+            fetchstr, NULL, PURC_ERROR_INVALID_VALUE },
+        { "bad",
+            "$EJSON.fetchstr(bxE58C97E4BAACE4B88AE6B5B7, 'unknow', 6, 6)",
+            fetchstr, NULL, PURC_ERROR_INVALID_VALUE },
+        { "",
+            "$EJSON.fetchstr(bxE58C97E4BAACE4B88AE6B5B7, 'utf16', null, 11)",
+            fetchstr, fetchstr_vrtcmp, 0 },
+        { "",
+            "$EJSON.fetchstr(bxE58C97E4BAACE4B88AE6B5B7, 'utf16le', null, 11)",
+            fetchstr, fetchstr_vrtcmp, 0 },
+        { "",
+            "$EJSON.fetchstr(bxE58C97E4BAACE4B88AE6B5B7, 'utf16be', null, 11)",
+            fetchstr, fetchstr_vrtcmp, 0 },
+        { "",
+            "$EJSON.fetchstr(bxE58C97E4BAACE4B88AE6B5B7, 'utf32', null, 10)",
+            fetchstr, fetchstr_vrtcmp, 0 },
+        { "",
+            "$EJSON.fetchstr(bxE58C97E4BAACE4B88AE6B5B7, 'utf32le', null, 10)",
+            fetchstr, fetchstr_vrtcmp, 0 },
+        { "",
+            "$EJSON.fetchstr(bxE58C97E4BAACE4B88AE6B5B7, 'utf32be', null, 10)",
+            fetchstr, fetchstr_vrtcmp, 0 },
+        { "上海",
+            "$EJSON.fetchstr(bxE58C97E4BAACE4B88AE6B5B7, 'utf8', 6, 6)",
+            fetchstr, fetchstr_vrtcmp, 0 },
+        { "上海",
+            "$EJSON.fetchstr(bxE58C97E4BAACE4B88AE6B5B7, 'utf8 ', 6, 6)",
+            fetchstr, fetchstr_vrtcmp, 0 },
+        { "北京上海",
+            "$EJSON.fetchstr(bxE58C97E4BAACE4B88AE6B5B7, 'utf8 ', null, 0)",
+            fetchstr, fetchstr_vrtcmp, 0 },
+        { "海",
+            "$EJSON.fetchstr(bxE58C97E4BAACE4B88AE6B5B7, 'utf8 ', null, 9)",
+            fetchstr, fetchstr_vrtcmp, 0 },
+        { "HVML是全球首个可编程标记语言！", // with BOM
+            "$EJSON.fetchstr(bxFEFF00480056004D004C662F5168740399964E2A53EF7F167A0B68078BB08BED8A00FF01, 'utf16 ', null, 0)",
+            fetchstr, fetchstr_vrtcmp, 0 },
+        { "HVML是全球首个可编程标记语言！", // with BOM
+            "$EJSON.fetchstr(bxFFFE480056004D004C002F666851037496992A4EEF53167F0B7A0768B08BED8B008A01FF, 'utf16 ', null, 0)",
+            fetchstr, fetchstr_vrtcmp, 0 },
+        { "HVML是全球首个可编程标记语言！", // without BOM
+            "$EJSON.fetchstr(bx480056004D004C002F666851037496992A4EEF53167F0B7A0768B08BED8B008A01FF, 'utf16le ', null, 0)",
+            fetchstr, fetchstr_vrtcmp, 0 },
+        { "HVML是全球首个可编程标记语言！",// with BOM
+            "$EJSON.fetchstr(bx0000FEFF00000048000000560000004D0000004C0000662F00005168000074030000999600004E2A000053EF00007F1600007A0B0000680700008BB000008BED00008A000000FF01, 'utf32 ', null, 0)",
+            fetchstr, fetchstr_vrtcmp, 0 },
+        { "HVML是全球首个可编程标记语言！",// with BOM
+            "$EJSON.fetchstr(bxFFFE000048000000560000004D0000004C0000002F6600006851000003740000969900002A4E0000EF530000167F00000B7A000007680000B08B0000ED8B0000008A000001FF0000, 'utf32 ', null, 0)",
+            fetchstr, fetchstr_vrtcmp, 0 },
+        { "HVML是全球首个可编程标记语言！",// without BOM
+            "$EJSON.fetchstr(bx00000048000000560000004D0000004C0000662F00005168000074030000999600004E2A000053EF00007F1600007A0B0000680700008BB000008BED00008A000000FF01, 'utf32be ', null, 0)",
+            fetchstr, fetchstr_vrtcmp, 0 },
+    };
+
+    run_testcases(test_cases, PCA_TABLESIZE(test_cases));
+}
+

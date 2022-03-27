@@ -541,15 +541,18 @@ fetchstr_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     const char *encoding = NULL;
     size_t encoding_len;
-    uint64_t length;
-    int64_t offset = 0;
+    size_t length;
+    ssize_t offset = 0;
 
-    if (nr_args < 3) {
+    if (nr_args < 2) {
         pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
         goto failed;
     }
 
-    if (!purc_variant_is_bsequence(argv[0])) {
+    const unsigned char *bytes;
+    size_t nr_bytes;
+    bytes = purc_variant_get_bytes_const(argv[0], &nr_bytes);
+    if (bytes == NULL) {
         pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
         goto failed;
     }
@@ -560,33 +563,31 @@ fetchstr_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto failed;
     }
 
-    if (encoding_len == 0) {
-        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
-        goto failed;
-    }
-
-    if (!purc_variant_cast_to_ulongint(argv[2], &length, false)) {
-        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
-        goto failed;
-    }
-
-    if (nr_args >= 3) {
-        if (!purc_variant_cast_to_longint(argv[3], &offset, false)) {
+    length = nr_bytes;
+    if (nr_args > 2 && !purc_variant_is_null(argv[2])) {
+        uint64_t tmp;
+        if (!purc_variant_cast_to_ulongint(argv[2], &tmp, false)) {
             pcinst_set_error(PURC_ERROR_INVALID_VALUE);
             goto failed;
         }
+        length = (size_t)tmp;
     }
 
-    const unsigned char *bytes;
-    size_t nr_bytes;
-    bytes = purc_variant_get_bytes_const(argv[0], &nr_bytes);
+    if (nr_args > 3) {
+        int64_t tmp;
+        if (!purc_variant_cast_to_longint(argv[3], &tmp, false)) {
+            pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+            goto failed;
+        }
+        offset = (ssize_t)tmp;
+    }
 
-    if (offset > 0 && (uint64_t)offset >= nr_bytes) {
+    if (offset > 0 && (size_t)offset >= nr_bytes) {
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         goto failed;
     }
 
-    if (offset < 0 &&  (uint64_t)-offset > nr_bytes) {
+    if (offset < 0 && (size_t)-offset > nr_bytes) {
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         goto failed;
     }
@@ -594,9 +595,15 @@ fetchstr_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     if (offset < 0)
         offset = nr_bytes + offset;
 
-    if (offset + length > nr_bytes) {
-        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
-        goto failed;
+    if (nr_args > 2 && !purc_variant_is_null(argv[2])) {
+        if (offset + length > nr_bytes) {
+            pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+            goto failed;
+        }
+    }
+    else {
+        // length is calculated
+        length = nr_bytes - offset;
     }
 
     if (length == 0)
@@ -607,6 +614,11 @@ fetchstr_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     size_t str_len;
 
     encoding = pcutils_trim_spaces(encoding, &encoding_len);
+    if (encoding_len == 0) {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
+
     int encoding_id = pcdvobjs_global_keyword_id(encoding, encoding_len);
     switch (encoding_id) {
     case PURC_K_KW_utf8:
@@ -642,6 +654,10 @@ fetchstr_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     if (str == NULL) {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto fatal;
+    }
+    else if (str == (char *)-1) {
         pcinst_set_error(PURC_ERROR_BAD_ENCODING);
         goto failed;
     }
@@ -652,6 +668,7 @@ failed:
     if (silently)
         return purc_variant_make_undefined();
 
+fatal:
     return PURC_VARIANT_INVALID;
 }
 
@@ -709,7 +726,7 @@ fetchreal_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     const char *format = NULL;
     size_t format_len;
     size_t length = 0;
-    int64_t offset = 0;
+    ssize_t offset = 0;
 
     if (nr_args < 2) {
         pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
@@ -748,18 +765,20 @@ fetchreal_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     format_id -= PURC_K_KW_i8;
     length = real_info[format_id].length;
     if (nr_args > 2) {
-        if (!purc_variant_cast_to_longint(argv[2], &offset, false)) {
+        int64_t tmp;
+        if (!purc_variant_cast_to_longint(argv[2], &tmp, false)) {
             pcinst_set_error(PURC_ERROR_INVALID_VALUE);
             goto failed;
         }
+        offset = (ssize_t)tmp;
     }
 
-    if (offset > 0 && (uint64_t)offset >= nr_bytes) {
+    if (offset > 0 && (size_t)offset >= nr_bytes) {
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         goto failed;
     }
 
-    if (offset < 0 &&  (uint64_t)-offset > nr_bytes) {
+    if (offset < 0 && (size_t)-offset > nr_bytes) {
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         goto failed;
     }
