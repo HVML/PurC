@@ -414,3 +414,489 @@ TEST(dvobjs, isequal)
     run_testcases(test_cases, PCA_TABLESIZE(test_cases));
 }
 
+purc_variant_t fetchreal(purc_variant_t dvobj, const char* name)
+{
+    (void)dvobj;
+
+    if (name[0] == 'i') {
+        unsigned long long u = strtoull(name + 1, NULL, 16);
+        return purc_variant_make_longint((int64_t)u);
+    }
+    else if (name[0] == 'u') {
+        unsigned long long u = strtoull(name + 1, NULL, 16);
+        return purc_variant_make_ulongint(u);
+    }
+    else if (name[0] == 'd') {
+        double d = strtod(name + 1, NULL);
+        return purc_variant_make_number(d);
+    }
+
+    return purc_variant_make_undefined();
+}
+
+static bool fetchreal_vrtcmp(purc_variant_t result, purc_variant_t expected)
+{
+    long double ld1, ld2;
+
+    if (purc_variant_cast_to_longdouble(result, &ld1, false) &&
+            purc_variant_cast_to_longdouble(expected, &ld2, false)) {
+        return ld1 == ld2;
+    }
+
+    return false;
+}
+
+TEST(dvobjs, fetchreal)
+{
+    static const struct ejson_result test_cases[] = {
+        { "bad",
+            "$EJSON.fetchreal",
+            fetchreal, NULL, PURC_ERROR_ARGUMENT_MISSED },
+        { "bad",
+            "$EJSON.fetchreal(undefined)",
+            fetchreal, NULL, PURC_ERROR_ARGUMENT_MISSED },
+        { "bad",
+            "$EJSON.fetchreal(undefined, false)",
+            fetchreal, NULL, PURC_ERROR_WRONG_DATA_TYPE },
+        { "bad",
+            "$EJSON.fetchreal(bx00, 'i8', 2)",
+            fetchreal, NULL, PURC_ERROR_INVALID_VALUE },
+        { "bad",
+            "$EJSON.fetchreal(bx00, 'i8', 1)",
+            fetchreal, NULL, PURC_ERROR_INVALID_VALUE },
+        { "i00",
+            "$EJSON.fetchreal(bx00, 'i8', 0)",
+            fetchreal, fetchreal_vrtcmp, 0 },
+        { "uFF",
+            "$EJSON.fetchreal(bxFF, 'u8', 0)",
+            fetchreal, fetchreal_vrtcmp, 0 },
+        { "uFF",
+            "$EJSON.fetchreal(bxFF, 'u8', -1)",
+            fetchreal, fetchreal_vrtcmp, 0 },
+        { "i3412",
+            "$EJSON.fetchreal(bx1234, 'i16le', 0)",
+            fetchreal, fetchreal_vrtcmp, 0 },
+        { "i1234",
+            "$EJSON.fetchreal(bx1234, 'i16be', 0)",
+            fetchreal, fetchreal_vrtcmp, 0 },
+        { "uFFEE",
+            "$EJSON.fetchreal(bxEEFF, 'u16le', 0)",
+            fetchreal, fetchreal_vrtcmp, 0 },
+        { "uEEFF",
+            "$EJSON.fetchreal(bxEEFF, 'u16be', 0)",
+            fetchreal, fetchreal_vrtcmp, 0 },
+        { "i78563412",
+            "$EJSON.fetchreal(bx12345678, 'i32le', 0)",
+            fetchreal, fetchreal_vrtcmp, 0 },
+        { "i12345678",
+            "$EJSON.fetchreal(bx12345678, 'i32be', 0)",
+            fetchreal, fetchreal_vrtcmp, 0 },
+        { "uFFEEDDCC",
+            "$EJSON.fetchreal(bxCCDDEEFF, 'u32le', 0)",
+            fetchreal, fetchreal_vrtcmp, 0 },
+        { "uCCDDEEFF",
+            "$EJSON.fetchreal(bxCCDDEEFF, 'u32be', 0)",
+            fetchreal, fetchreal_vrtcmp, 0 },
+        { "i8877665544332211",
+            "$EJSON.fetchreal(bx1122334455667788, 'i64le', 0)",
+            fetchreal, fetchreal_vrtcmp, 0 },
+        { "i1122334455667788",
+            "$EJSON.fetchreal(bx1122334455667788, 'i64be', 0)",
+            fetchreal, fetchreal_vrtcmp, 0 },
+        { "uFFEEDDCCBBAA9988",
+            "$EJSON.fetchreal(bx8899AABBCCDDEEFF, 'u64le', 0)",
+            fetchreal, fetchreal_vrtcmp, 0 },
+        { "u8899AABBCCDDEEFF",
+            "$EJSON.fetchreal(bx8899AABBCCDDEEFF, 'u64be', 0)",
+            fetchreal, fetchreal_vrtcmp, 0 },
+        { "i4433",
+            "$EJSON.fetchreal(bx1122334455667788, 'i16le', 2)",
+            fetchreal, fetchreal_vrtcmp, 0 },
+        { "i7766",
+            "$EJSON.fetchreal(bx1122334455667788, 'i16le', -3)",
+            fetchreal, fetchreal_vrtcmp, 0 },
+    };
+
+    run_testcases(test_cases, PCA_TABLESIZE(test_cases));
+}
+
+purc_variant_t fetchstr(purc_variant_t dvobj, const char* name)
+{
+    (void)dvobj;
+
+    if (strcmp(name, "bad") == 0) {
+        return purc_variant_make_string_static("", false);
+    }
+    else {
+        return purc_variant_make_string_static(name, false);
+    }
+
+    return purc_variant_make_undefined();
+}
+
+static bool fetchstr_vrtcmp(purc_variant_t result, purc_variant_t expected)
+{
+    const char *s1, *s2;
+
+    s1 = purc_variant_get_string_const(result);
+    s2 = purc_variant_get_string_const(expected);
+    return (s1 && s2 && strcmp(s1, s2) == 0);
+}
+
+TEST(dvobjs, fetchstr)
+{
+    static const struct ejson_result test_cases[] = {
+        { "bad",
+            "$EJSON.fetchstr",
+            fetchstr, NULL, PURC_ERROR_ARGUMENT_MISSED },
+        { "bad",
+            "$EJSON.fetchstr(undefined)",
+            fetchstr, NULL, PURC_ERROR_ARGUMENT_MISSED },
+        { "bad",
+            "$EJSON.fetchstr(undefined, false)",
+            fetchstr, NULL, PURC_ERROR_WRONG_DATA_TYPE },
+        { "bad",
+            "$EJSON.fetchstr(bx00, 'bad')",
+            fetchstr, NULL, PURC_ERROR_INVALID_VALUE },
+        { "bad",
+            "$EJSON.fetchstr(bx00, false)",
+            fetchstr, NULL, PURC_ERROR_WRONG_DATA_TYPE },
+        { "bad",
+            "$EJSON.fetchstr(bx00, '')",
+            fetchstr, NULL, PURC_ERROR_INVALID_VALUE },
+        { "bad",
+            "$EJSON.fetchstr(bx00, 'utf8', 2)",
+            fetchstr, NULL, PURC_ERROR_INVALID_VALUE },
+        { "bad",
+            "$EJSON.fetchstr(bx00, 'utf8', 1, 1)",
+            fetchstr, NULL, PURC_ERROR_INVALID_VALUE },
+        { "bad",
+            "$EJSON.fetchstr(bx00, 'utf8', null, -2)",
+            fetchstr, NULL, PURC_ERROR_INVALID_VALUE },
+        { "bad",
+            "$EJSON.fetchstr(bx00, 'utf8', false, -2)",
+            fetchstr, NULL, PURC_ERROR_INVALID_VALUE },
+        { "bad",
+            "$EJSON.fetchstr(bxE58C97E4BAACE4B88AE6B5B7, 'unknow', 6, 6)",
+            fetchstr, NULL, PURC_ERROR_INVALID_VALUE },
+        { "",
+            "$EJSON.fetchstr(bxE58C97E4BAACE4B88AE6B5B7, 'utf16', null, 11)",
+            fetchstr, fetchstr_vrtcmp, 0 },
+        { "",
+            "$EJSON.fetchstr(bxE58C97E4BAACE4B88AE6B5B7, 'utf16le', null, 11)",
+            fetchstr, fetchstr_vrtcmp, 0 },
+        { "",
+            "$EJSON.fetchstr(bxE58C97E4BAACE4B88AE6B5B7, 'utf16be', null, 11)",
+            fetchstr, fetchstr_vrtcmp, 0 },
+        { "",
+            "$EJSON.fetchstr(bxE58C97E4BAACE4B88AE6B5B7, 'utf32', null, 10)",
+            fetchstr, fetchstr_vrtcmp, 0 },
+        { "",
+            "$EJSON.fetchstr(bxE58C97E4BAACE4B88AE6B5B7, 'utf32le', null, 10)",
+            fetchstr, fetchstr_vrtcmp, 0 },
+        { "",
+            "$EJSON.fetchstr(bxE58C97E4BAACE4B88AE6B5B7, 'utf32be', null, 10)",
+            fetchstr, fetchstr_vrtcmp, 0 },
+        { "上海",
+            "$EJSON.fetchstr(bxE58C97E4BAACE4B88AE6B5B7, 'utf8', 6, 6)",
+            fetchstr, fetchstr_vrtcmp, 0 },
+        { "上海",
+            "$EJSON.fetchstr(bxE58C97E4BAACE4B88AE6B5B7, 'utf8 ', 6, 6)",
+            fetchstr, fetchstr_vrtcmp, 0 },
+        { "北京上海",
+            "$EJSON.fetchstr(bxE58C97E4BAACE4B88AE6B5B7, 'utf8 ', null, 0)",
+            fetchstr, fetchstr_vrtcmp, 0 },
+        { "海",
+            "$EJSON.fetchstr(bxE58C97E4BAACE4B88AE6B5B7, 'utf8 ', null, 9)",
+            fetchstr, fetchstr_vrtcmp, 0 },
+        { "HVML", // with BOM
+            "$EJSON.fetchstr(bx48564D4CE698AFE585A8E79083E9A696E4B8AAE58FAFE7BC96E7A88BE6A087E8AEB0E8AFADE8A880EFBC81, 'utf8 ', 4, 0)",
+            fetchstr, fetchstr_vrtcmp, 0 },
+        { "HVML是全球首个可编程标记语言！", // with BOM
+            "$EJSON.fetchstr(bxFFFE480056004D004C002F666851037496992A4EEF53167F0B7A0768B08BED8B008A01FF, 'utf16 ', null, 0)",
+            fetchstr, fetchstr_vrtcmp, 0 },
+        { "HVML是全球首个可编程标记语言！", // without BOM
+            "$EJSON.fetchstr(bx480056004D004C002F666851037496992A4EEF53167F0B7A0768B08BED8B008A01FF, 'utf16le ', null, 0)",
+            fetchstr, fetchstr_vrtcmp, 0 },
+        { "HVML是全球首个可编程标记语言！",// with BOM
+            "$EJSON.fetchstr(bx0000FEFF00000048000000560000004D0000004C0000662F00005168000074030000999600004E2A000053EF00007F1600007A0B0000680700008BB000008BED00008A000000FF01, 'utf32 ', null, 0)",
+            fetchstr, fetchstr_vrtcmp, 0 },
+        { "HVML是全球首个可编程标记语言！",// with BOM
+            "$EJSON.fetchstr(bxFFFE000048000000560000004D0000004C0000002F6600006851000003740000969900002A4E0000EF530000167F00000B7A000007680000B08B0000ED8B0000008A000001FF0000, 'utf32 ', null, 0)",
+            fetchstr, fetchstr_vrtcmp, 0 },
+        { "HVML是全球首个可编程标记语言！",// without BOM
+            "$EJSON.fetchstr(bx00000048000000560000004D0000004C0000662F00005168000074030000999600004E2A000053EF00007F1600007A0B0000680700008BB000008BED00008A000000FF01, 'utf32be ', null, 0)",
+            fetchstr, fetchstr_vrtcmp, 0 },
+    };
+
+    run_testcases(test_cases, PCA_TABLESIZE(test_cases));
+}
+
+purc_variant_t sort(purc_variant_t dvobj, const char* name)
+{
+    (void)dvobj;
+
+    if (strcmp(name, "bad") == 0) {
+        return purc_variant_make_boolean(false);
+    }
+    else {
+        return purc_variant_make_string_static(name, false);
+    }
+
+    return purc_variant_make_boolean(false);
+}
+
+static bool sort_vrtcmp(purc_variant_t result, purc_variant_t expected)
+{
+    const char *s1, *s2;
+
+    s1 = purc_variant_get_string_const(result);
+    s2 = purc_variant_get_string_const(expected);
+    return (s1 && s2 && strcmp(s1, s2) == 0);
+}
+
+TEST(dvobjs, sort)
+{
+    static const struct ejson_result test_cases[] = {
+        { "bad",
+            "$EJSON.sort",
+            sort, NULL, PURC_ERROR_ARGUMENT_MISSED },
+        { "bad",
+            "$EJSON.sort(undefined)",
+            sort, NULL, PURC_ERROR_WRONG_DATA_TYPE },
+        { "bad",
+            "$EJSON.sort(undefined, false)",
+            sort, NULL, PURC_ERROR_WRONG_DATA_TYPE },
+        { "bad",
+            "$EJSON.sort([1, 2, 3], 'asc', false)",
+            sort, NULL, PURC_ERROR_WRONG_DATA_TYPE },
+        { "bad",
+            "$EJSON.sort([1, 2, 3], 'asc', 'unknown')",
+            sort, NULL, PURC_ERROR_INVALID_VALUE },
+        { "[]",
+            "$EJSON.serialize($EJSON.sort([], 'asc'))",
+            sort, sort_vrtcmp, 0 },
+        { "[1]",
+            "$EJSON.serialize($EJSON.sort([1], 'desc'))",
+            sort, sort_vrtcmp, 0 },
+        { "[1,2,3]",
+            "$EJSON.serialize($EJSON.sort([3, 2, 1]))",
+            sort, sort_vrtcmp, 0 },
+        { "[3,2,1]",
+            "$EJSON.serialize($EJSON.sort([1, 2, 3], 'desc'))",
+            sort, sort_vrtcmp, 0 },
+        { "[\"003\",\"002\",\"001\"]",
+            "$EJSON.serialize($EJSON.sort(['001', '002', '003'], 'desc', 'case'))",
+            sort, sort_vrtcmp, 0 },
+        { "[\"1\",\"02\",\"003\"]",
+            "$EJSON.serialize($EJSON.sort(['1', '02', '003'], 'desc', 'case'))",
+            sort, sort_vrtcmp, 0 },
+        { "[\"003\",\"02\",\"1\"]",
+            "$EJSON.serialize($EJSON.sort(['1', '02', '003'], 'desc', 'number'))",
+            sort, sort_vrtcmp, 0 },
+        { "[\"3\",\"02\",1]",
+            "$EJSON.serialize($EJSON.sort([1, '02', '3'], 'desc', 'auto'))",
+            sort, sort_vrtcmp, 0 },
+    };
+
+    run_testcases(test_cases, PCA_TABLESIZE(test_cases));
+}
+
+purc_variant_t shuffle(purc_variant_t dvobj, const char* name)
+{
+    (void)dvobj;
+
+    if (strcmp(name, "bad") == 0) {
+        return purc_variant_make_boolean(false);
+    }
+    else {
+        return purc_variant_make_string_static(name, false);
+    }
+
+    return purc_variant_make_boolean(false);
+}
+
+static bool shuffle_vrtcmp(purc_variant_t result, purc_variant_t expected)
+{
+    const char *s1, *s2;
+
+    s1 = purc_variant_get_string_const(result);
+    s2 = purc_variant_get_string_const(expected);
+    if (s1 == NULL || s2 == NULL)
+        return false;
+
+    purc_log_debug("result: %s; expected: %s\n", s1, s2);
+
+    char str[strlen(s2) + 1];
+    strcpy(str, s2);
+
+    char *deli = strchr(str, '\t');
+    if (deli) {
+        *deli = '\0';
+        const char* second = deli + 1;
+
+        return (strcmp(s1, str) == 0) || (strcmp(s1, second) == 0);
+    }
+
+    return (strcmp(s1, s2) == 0);
+}
+
+TEST(dvobjs, shuffle)
+{
+    static const struct ejson_result test_cases[] = {
+        { "bad",
+            "$EJSON.shuffle",
+            shuffle, NULL, PURC_ERROR_ARGUMENT_MISSED },
+        { "bad",
+            "$EJSON.shuffle(undefined)",
+            shuffle, NULL, PURC_ERROR_WRONG_DATA_TYPE },
+        { "bad",
+            "$EJSON.shuffle(false)",
+            shuffle, NULL, PURC_ERROR_WRONG_DATA_TYPE },
+        { "bad",
+            "$EJSON.shuffle(null)",
+            shuffle, NULL, PURC_ERROR_WRONG_DATA_TYPE },
+        { "[]",
+            "$EJSON.serialize($EJSON.shuffle([]))",
+            shuffle, shuffle_vrtcmp, 0 },
+        { "[1]",
+            "$EJSON.serialize($EJSON.shuffle([1]))",
+            shuffle, shuffle_vrtcmp, 0 },
+        { "[1,2]\t[2,1]",
+            "$EJSON.serialize($EJSON.shuffle([1, 2]))",
+            shuffle, shuffle_vrtcmp, 0 },
+    };
+
+    run_testcases(test_cases, PCA_TABLESIZE(test_cases));
+}
+
+purc_variant_t parse(purc_variant_t dvobj, const char* name)
+{
+    (void)dvobj;
+
+    if (strcmp(name, "bad") == 0) {
+        return purc_variant_make_undefined();
+    }
+    else {
+        return purc_variant_make_string_static(name, false);
+    }
+
+    return purc_variant_make_undefined();
+}
+
+static bool parse_vrtcmp(purc_variant_t result, purc_variant_t expected)
+{
+    const char *s1, *s2;
+
+    s1 = purc_variant_get_string_const(result);
+    s2 = purc_variant_get_string_const(expected);
+    if (s1 == NULL || s2 == NULL)
+        return false;
+
+    return (strcmp(s1, s2) == 0);
+}
+
+TEST(dvobjs, parse)
+{
+    static const struct ejson_result test_cases[] = {
+        { "bad",
+            "$EJSON.parse",
+            parse, NULL, PURC_ERROR_ARGUMENT_MISSED },
+        { "bad",
+            "$EJSON.parse(undefined)",
+            parse, NULL, PURC_ERROR_WRONG_DATA_TYPE },
+        { "bad",
+            "$EJSON.parse(false)",
+            parse, NULL, PURC_ERROR_WRONG_DATA_TYPE },
+        { "bad",
+            "$EJSON.parse(null)",
+            parse, NULL, PURC_ERROR_WRONG_DATA_TYPE },
+        { "bad",
+            "$EJSON.parse('[')",
+            parse, NULL, PURC_ERROR_OUT_OF_MEMORY }, /* FIXME: PURC_ERROR_OUT_OF_MEMORY: wrong error code */
+        /* FIXME: when evaluating silently, the expression should return `undefined`
+        { "bad",
+            "$EJSON.serialize($EJSON.parse('['))",
+            parse, NULL, PURC_ERROR_OUT_OF_MEMORY },
+        */
+        { "[]",
+            "$EJSON.serialize($EJSON.parse('[]'))",
+            parse, parse_vrtcmp, 0 },
+        { "[1]",
+            "$EJSON.serialize($EJSON.parse('[1]'))",
+            parse, parse_vrtcmp, 0 },
+        { "[1,2]",
+            "$EJSON.serialize($EJSON.parse('[1, 2]'))",
+            parse, parse_vrtcmp, 0 },
+    };
+
+    run_testcases(test_cases, PCA_TABLESIZE(test_cases));
+}
+
+purc_variant_t serialize(purc_variant_t dvobj, const char* name)
+{
+    (void)dvobj;
+
+    return purc_variant_make_string_static(name, false);
+}
+
+static bool serialize_vrtcmp(purc_variant_t result, purc_variant_t expected)
+{
+    const char *s1, *s2;
+
+    s1 = purc_variant_get_string_const(result);
+    s2 = purc_variant_get_string_const(expected);
+    if (s1 == NULL || s2 == NULL)
+        return false;
+
+    purc_log_info("result: %s; expected: %s\n", s1, s2);
+    return (strcmp(s1, s2) == 0);
+}
+
+TEST(dvobjs, serialize)
+{
+    static const struct ejson_result test_cases[] = {
+        { "null",
+            "$EJSON.serialize",
+            serialize, serialize_vrtcmp, 0 },
+        { "null",
+            "$EJSON.serialize(undefined, false)",
+            serialize, serialize_vrtcmp, 0 },
+        { "null",
+            "$EJSON.serialize(undefined, 'unknown')",
+            serialize, serialize_vrtcmp, 0 },
+        { "null",
+            "$EJSON.serialize",
+            serialize, serialize_vrtcmp, 0 },
+        { "\"<undefined>\"",
+            "$EJSON.serialize(undefined, 'runtime-string')",
+            serialize, serialize_vrtcmp, 0 },
+        { "\"11223344\"",
+            "$EJSON.serialize(bx11223344)",
+            serialize, serialize_vrtcmp, 0 },
+        { "\"11223344\"",
+            "$EJSON.serialize(bx11223344, 'bseq-hex-string')",
+            serialize, serialize_vrtcmp, 0 },
+        { "bx11223344",
+            "$EJSON.serialize(bx11223344, 'bseq-hex')",
+            serialize, serialize_vrtcmp, 0 },
+        { "bb00010001001000100011001101000100",
+            "$EJSON.serialize(bx11223344, 'bseq-bin')",
+            serialize, serialize_vrtcmp, 0 },
+        { "bb0001.0001.0010.0010.0011.0011.0100.0100",
+            "$EJSON.serialize(bx11223344, 'bseq-bin-dots')",
+            serialize, serialize_vrtcmp, 0 },
+        { "b64ESIzRA==",
+            "$EJSON.serialize(bx11223344, 'bseq-base64')",
+            serialize, serialize_vrtcmp, 0 },
+        { "[1,2,b64ESIzRA==]",
+            "$EJSON.serialize([1.0FL, 2.0, bx11223344], '\nreal-json  bseq-base64 ')",
+            serialize, serialize_vrtcmp, 0 },
+        { "[1FL,-2L,2UL,b64ESIzRA==]",
+            "$EJSON.serialize([1.0FL, -2L, 2UL, bx11223344], '\nreal-ejson  bseq-base64 ')",
+            serialize, serialize_vrtcmp, 0 },
+    };
+
+    run_testcases(test_cases, PCA_TABLESIZE(test_cases));
+}
+
