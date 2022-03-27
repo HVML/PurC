@@ -348,10 +348,17 @@ serialize_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             if (length > 0 || length <= MAX_LEN_KEYWORD) {
                 purc_atom_t atom;
 
+#if 0
                 /* TODO: use strndupa if it is available */
                 char *tmp = strndup(option, length);
                 atom = purc_atom_try_string_ex(ATOM_BUCKET_DVOBJ, tmp);
                 free(tmp);
+#else
+                char tmp[length + 1];
+                strncpy(tmp, option, length);
+                tmp[length]= '\0';
+                atom = purc_atom_try_string_ex(ATOM_BUCKET_DVOBJ, tmp);
+#endif
 
                 if (atom > 0) {
                     size_t i;
@@ -411,21 +418,20 @@ parse_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 {
     UNUSED_PARAM(root);
 
-    if (nr_args < 2) {
+    if (nr_args < 1) {
         pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
         goto failed;
     }
 
     const char *string;
     size_t length;
-    string = purc_variant_get_string_const_ex(argv[1], &length);
+    string = purc_variant_get_string_const_ex(argv[0], &length);
     if (string == NULL) {
         pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
         goto failed;
     }
 
     struct purc_ejson_parse_tree *ptree;
-
     ptree = purc_variant_ejson_parse_string(string, length);
     if (ptree == NULL) {
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
@@ -993,10 +999,10 @@ sort_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
         int order_id = pcdvobjs_global_keyword_id(order, order_len);
         if (order_id == PURC_K_KW_asc) {
-            sort_opt = PCVARIANT_SORT_DESC;
+            sort_opt = PCVARIANT_SORT_ASC;
         }
         else if (order_id == PURC_K_KW_desc) {
-            sort_opt = PCVARIANT_SORT_ASC;
+            sort_opt = PCVARIANT_SORT_DESC;
         }
         else {
             pcinst_set_error(PURC_ERROR_INVALID_VALUE);

@@ -439,10 +439,17 @@ uname_prt_getter(purc_variant_t root,
                 atom = keywords2atoms[K_KW_kernel_name].atom;
             }
             else {
+#if 0
                 /* TODO: use strndupa if it is available */
                 char *tmp = strndup(part, length);
                 atom = purc_atom_try_string_ex(ATOM_BUCKET_DVOBJ, tmp);
                 free(tmp);
+#else
+                char tmp[length + 1];
+                strncpy(tmp, part, length);
+                tmp[length]= '\0';
+                atom = purc_atom_try_string_ex(ATOM_BUCKET_DVOBJ, tmp);
+#endif
             }
 
             if (atom == keywords2atoms[K_KW_kernel_name].atom) {
@@ -1429,10 +1436,12 @@ int32_t pcdvobjs_get_random(void)
 #if HAVE(RANDOM_R)
     struct local_random_data *rd = NULL;
     purc_get_local_data(PURC_LDNAME_RANDOM_DATA, (uintptr_t *)&rd, NULL);
-    assert(rd);
 
     int32_t result;
-    random_r(&rd->data, &result);
+    if (rd)
+        random_r(&rd->data, &result);
+    else
+        result = (int32_t)random();
 #else
     long int result;
     result = random();

@@ -103,10 +103,17 @@ int pcdvobjs_global_keyword_id(const char *keyword, size_t length)
 {
     if (LIKELY(length > 0 || length <= MAX_LEN_KEYWORD)) {
         purc_atom_t atom;
+#if 0
         /* TODO: use strndupa if it is available */
         char *tmp = strndup(keyword, length);
         atom = purc_atom_try_string_ex(ATOM_BUCKET_DVOBJ, tmp);
         free(tmp);
+#else
+        char tmp[length + 1];
+        strncpy(tmp, keyword, length);
+        tmp[length]= '\0';
+        atom = purc_atom_try_string_ex(ATOM_BUCKET_DVOBJ, tmp);
+#endif
 
         assert(keywords2atoms[PURC_K_KW_FIRST].atom);
 
