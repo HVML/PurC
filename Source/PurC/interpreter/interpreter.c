@@ -1058,7 +1058,6 @@ purc_load_hvml_from_url_ex(const char* url,
         struct pcintr_supervisor_ops *ops, void *ctxt)
 {
     purc_vdom_t vdom = NULL;
-    purc_variant_t ret = PURC_VARIANT_INVALID;
     struct pcfetcher_resp_header resp_header = {0};
     purc_rwstream_t resp = pcfetcher_request_sync(
             url,
