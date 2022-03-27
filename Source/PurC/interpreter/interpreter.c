@@ -1057,11 +1057,24 @@ purc_vdom_t
 purc_load_hvml_from_url_ex(const char* url,
         struct pcintr_supervisor_ops *ops, void *ctxt)
 {
-    UNUSED_PARAM(url);
-    UNUSED_PARAM(ops);
-    UNUSED_PARAM(ctxt);
-    PC_ASSERT(0); // Not implemented yet
-    return NULL;
+    purc_vdom_t vdom = NULL;
+    purc_variant_t ret = PURC_VARIANT_INVALID;
+    struct pcfetcher_resp_header resp_header = {0};
+    purc_rwstream_t resp = pcfetcher_request_sync(
+            url,
+            PCFETCHER_REQUEST_METHOD_GET,
+            NULL,
+            10,
+            &resp_header);
+    if (resp_header.ret_code == 200) {
+        vdom = purc_load_hvml_from_rwstream_ex(resp, ops, ctxt);
+        purc_rwstream_destroy(resp);
+    }
+
+    if (resp_header.mime_type) {
+        free(resp_header.mime_type);
+    }
+    return vdom;
 }
 
 static struct pcvdom_document*
