@@ -813,12 +813,10 @@ TEST(dvobjs, parse)
             parse, NULL, PURC_ERROR_WRONG_DATA_TYPE },
         { "bad",
             "$EJSON.parse('[')",
-            parse, NULL, PURC_ERROR_OUT_OF_MEMORY }, /* FIXME: PURC_ERROR_OUT_OF_MEMORY: wrong error code */
-        /* FIXME: when evaluating silently, the expression should return `undefined`
-        { "bad",
+            parse, NULL, PCEJSON_ERROR_UNEXPECTED_EOF },
+        { "null",   /* FIXME */
             "$EJSON.serialize($EJSON.parse('['))",
-            parse, NULL, PURC_ERROR_OUT_OF_MEMORY },
-        */
+            parse, parse_vrtcmp, 0 },
         { "[]",
             "$EJSON.serialize($EJSON.parse('[]'))",
             parse, parse_vrtcmp, 0 },

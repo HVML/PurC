@@ -434,8 +434,7 @@ parse_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     struct purc_ejson_parse_tree *ptree;
     ptree = purc_variant_ejson_parse_string(string, length);
     if (ptree == NULL) {
-        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        goto fatal;
+        goto failed;
     }
 
     purc_variant_t retv;
@@ -447,7 +446,6 @@ failed:
     if (silently)
         return purc_variant_make_undefined();
 
-fatal:
     return PURC_VARIANT_INVALID;
 }
 
@@ -495,12 +493,12 @@ compare_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             goto failed;
         }
 
+        option = pcutils_trim_spaces(option, &option_len);
         if (option_len == 0) {
             pcinst_set_error(PURC_ERROR_INVALID_VALUE);
             goto failed;
         }
 
-        option = pcutils_trim_spaces(option, &option_len);
         int cmp_id = pcdvobjs_global_keyword_id(option, option_len);
         switch (cmp_id) {
         case PURC_K_KW_auto:

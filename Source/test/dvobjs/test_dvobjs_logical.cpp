@@ -247,7 +247,7 @@ TEST(dvobjs, dvobjs_logical_eval)
         param[0] = purc_variant_make_string (samples[i].expr, false);
         param[1] = PURC_VARIANT_INVALID;
         std::cout << "parsing [" << samples[i].expr << "]" << std::endl;
-        ret_var = func (NULL, 2, param, false);
+        ret_var = func (NULL, 1, param, false);
         ASSERT_NE(ret_var, nullptr);
         ASSERT_EQ(purc_variant_is_type (ret_var,
                     PURC_VARIANT_TYPE_BOOLEAN), true);
@@ -289,7 +289,7 @@ _eval(purc_dvariant_method func, const char *expr,
     param[0] = purc_variant_make_string(expr, false);
     param[1] = PURC_VARIANT_INVALID;
 
-    purc_variant_t ret_var = func(NULL, 2, param, false);
+    purc_variant_t ret_var = func(NULL, 1, param, false);
     purc_variant_unref(param[0]);
     if (param[1])
         purc_variant_unref(param[1]);
@@ -418,7 +418,7 @@ TEST(dvobjs, dvobjs_logical_bc)
                 _process_file(func, dir->d_name, l, sizeof(l));
                 _eval_bc(dir->d_name, r, sizeof(r));
                 fprintf(stderr, "[%s] =?= [%s]\n", l, r);
-                EXPECT_STREQ(l, r) << "Failed to parse bc file: ["
+                EXPECT_STREQ(l, r) << "Failed to compare with bc result: ["
                     << dir->d_name << "]" << std::endl;
             }
         }
