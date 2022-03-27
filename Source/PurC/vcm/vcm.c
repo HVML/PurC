@@ -54,13 +54,14 @@
 #define MIN_BUF_SIZE         32
 #define MAX_BUF_SIZE         SIZE_MAX
 
+#if 0
 #define PCVCM_CHECK_FAIL_RET(node, variant, silently)                       \
     if (node->type != PCVCM_NODE_TYPE_UNDEFINED) {                          \
-        if (purc_variant_is_undefined(variant)) {                           \
-            return variant;                                                 \
-        }                                                                   \
-        else if (variant == PURC_VARIANT_INVALID) {                         \
+        if (variant == PURC_VARIANT_INVALID) {                              \
             return silently ? purc_variant_make_undefined() : variant;      \
+        }                                                                   \
+        else if (purc_variant_is_undefined(variant)) {                      \
+            return variant;                                                 \
         }                                                                   \
     }                                                                       \
     else if (variant == PURC_VARIANT_INVALID) {                             \
@@ -69,14 +70,25 @@
 
 #define PCVCM_CHECK_FAIL_GOTO(node, variant, silently, label)               \
     if (node->type != PCVCM_NODE_TYPE_UNDEFINED) {                          \
-        if (purc_variant_is_undefined(variant)) {                           \
+        if (variant == PURC_VARIANT_INVALID) {                              \
             goto label;                                                     \
         }                                                                   \
-        else if (variant == PURC_VARIANT_INVALID) {                         \
+        else if (purc_variant_is_undefined(variant)) {                      \
             goto label;                                                     \
         }                                                                   \
     }                                                                       \
     else if (variant == PURC_VARIANT_INVALID) {                             \
+        goto label;                                                         \
+    }
+#endif
+
+#define PCVCM_CHECK_FAIL_RET(node, variant, silently)                       \
+    if (variant == PURC_VARIANT_INVALID) {                                  \
+        return variant;                                                     \
+    }
+
+#define PCVCM_CHECK_FAIL_GOTO(node, variant, silently, label)               \
+    if (variant == PURC_VARIANT_INVALID) {                                  \
         goto label;                                                         \
     }
 
@@ -1027,7 +1039,10 @@ purc_variant_t pcvcm_node_call_method_to_variant (struct pcvcm_node* node,
         struct pcvcm_node* param_node = NEXT_CHILD(caller_node);
         while (param_node) {
             purc_variant_t vt = pcvcm_node_to_variant (param_node, ops, silently);
-            PCVCM_CHECK_FAIL_GOTO(param_node, vt, silently, clean_params);
+//            PCVCM_CHECK_FAIL_GOTO(param_node, vt, silently, clean_params);
+            if (vt == PURC_VARIANT_INVALID) {
+                goto clean_params;
+            }
 
             params[i] = vt;
             i++;
@@ -1188,6 +1203,9 @@ purc_variant_t pcvcm_eval (struct pcvcm_node* tree, struct pcintr_stack* stack,
 purc_variant_t pcvcm_eval_ex (struct pcvcm_node* tree,
         cb_find_var find_var, void* ctxt, bool silently)
 {
+#ifndef NDEBUG
+    PC_DEBUG("pcvcm_eval_ex|begin|silently=%d\n", silently);
+#endif
     purc_variant_t ret = PURC_VARIANT_INVALID;
 
     struct pcvcm_node_op ops = {
@@ -1204,6 +1222,7 @@ purc_variant_t pcvcm_eval_ex (struct pcvcm_node* tree,
     }
 #ifndef NDEBUG
     PRINT_VARIANT(ret);
+    PC_DEBUG("pcvcm_eval_ex|end|silently=%d\n", silently);
 #endif
     return ret;
 }
