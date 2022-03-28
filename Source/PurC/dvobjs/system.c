@@ -42,9 +42,6 @@
 #include <sys/utsname.h>
 #include <sys/time.h>
 
-#define LEN_INI_PRINT_BUF   128
-#define LEN_MAX_PRINT_BUF   1024
-
 enum {
 #define _KW_HVML_SPEC_VERSION   "HVML_SPEC_VERSION"
     K_KW_HVML_SPEC_VERSION,

@@ -34,9 +34,6 @@
 #include <assert.h>
 #include <stdlib.h>
 
-#define LEN_INI_SERIALIZE_BUF   128
-#define LEN_MAX_SERIALIZE_BUF   4096
-
 static purc_variant_t
 type_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
@@ -837,8 +834,18 @@ shuffle_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             struct pcutils_array_list *al = variant_array_get_data(argv[0]);
             struct pcutils_array_list_node *p;
             array_list_for_each(al, p) {
-                size_t new_idx = (size_t)pcdvobjs_get_random() % (size_t)sz;
-                pcutils_array_list_swap(al, p->idx, new_idx);
+
+                size_t new_idx;
+                if (sz < RAND_MAX) {
+                    new_idx = (size_t)pcdvobjs_get_random() % sz;
+                }
+                else {
+                    new_idx = (size_t)pcdvobjs_get_random();
+                    new_idx = new_idx * sz / RAND_MAX;
+                }
+
+                if (new_idx != p->idx)
+                    pcutils_array_list_swap(al, p->idx, new_idx);
             }
         }
     }
@@ -850,9 +857,18 @@ shuffle_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             arr = ((variant_set_t)argv[0]->sz_ptr[1])->arr;
 
             for (size_t idx = 0; idx < (size_t)sz; idx++) {
-                size_t new_idx = (size_t)pcdvobjs_get_random() % (size_t)sz;
 
-                pcutils_arrlist_swap(arr, idx, new_idx);
+                size_t new_idx;
+                if (sz < RAND_MAX) {
+                    new_idx = (size_t)pcdvobjs_get_random() % sz;
+                }
+                else {
+                    new_idx = (size_t)pcdvobjs_get_random();
+                    new_idx = new_idx * sz / RAND_MAX;
+                }
+
+                if (new_idx != idx)
+                    pcutils_arrlist_swap(arr, idx, new_idx);
             }
 
             pcvariant_set_refresh(argv[0]);

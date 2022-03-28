@@ -34,7 +34,7 @@
 test_begin
 param_begin
 param_end
-invalid:;
+string:"";
 test_end
 
 test_begin
@@ -50,13 +50,38 @@ test_begin
 param_begin
 string:"";
 param_end
-number:1;
+string:"";
 test_end
 
 test_begin
 param_begin
-string:"hello world";
+string:"";
+string:"";
 param_end
-number:12;
+string:"";
+test_end
+
+test_begin
+param_begin
+string:"shenzhen";
+string:"beijing";
+param_end
+string:"shenzhenbeijing";
+test_end
+
+test_begin
+param_begin
+string:"shenzhen";
+string:"";
+param_end
+string:"shenzhen";
+test_end
+
+test_begin
+param_begin
+string:"";
+string:"beijing";
+param_end
+string:"beijing";
 test_end
 

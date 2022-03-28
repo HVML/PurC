@@ -1,10 +1,10 @@
 /*
  * @file string.c
- * @author Geng Yue
+ * @author Geng Yue, Vincent Wei
  * @date 2021/07/02
  * @brief The implementation of string dynamic variant object.
  *
- * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ * Copyright (C) 2021, 2022 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
  *
@@ -22,12 +22,17 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "private/instance.h"
+#include "config.h"
+
 #include "private/errors.h"
 #include "private/dvobjs.h"
+#include "private/utils.h"
 #include "purc-variant.h"
 #include "helper.h"
 
+#if USE(GLIB)
+#include <glib.h>
+#endif
 
 static const char * get_next_segment (const char *data,
         const char *delim, size_t *length)
@@ -55,83 +60,464 @@ static const char * get_next_segment (const char *data,
 }
 
 static purc_variant_t
-contains_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+nr_chars_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
 
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
-
-    if ((argv == NULL) || (nr_args < 2)) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+    if (nr_args < 1) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
     }
 
-    if (!purc_variant_is_string (argv[0])) {
-        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+    size_t nr_chars;
+    if (!purc_variant_string_chars(argv[0], &nr_chars)) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
     }
 
-    if ((argv[1] == PURC_VARIANT_INVALID) ||
-            (!purc_variant_is_string (argv[1]))) {
-        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
-    }
+    return purc_variant_make_ulongint(nr_chars);
 
-    const char *source = purc_variant_get_string_const (argv[0]);
-    const char *sub = purc_variant_get_string_const (argv[1]);
-
-    if (strstr (source, sub))
-        ret_var = purc_variant_make_boolean (true);
-    else
-        ret_var = purc_variant_make_boolean (false);
-
-    return ret_var;
+failed:
+    if (silently)
+        return purc_variant_make_boolean(false);
+    return PURC_VARIANT_INVALID;
 }
 
+static purc_variant_t
+contains_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
+{
+    UNUSED_PARAM(root);
+
+    if (nr_args < 2) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    const char* haystack, *needle;
+    size_t len_haystack, len_needle;
+    haystack = purc_variant_get_string_const_ex(argv[0], &len_haystack);
+    if (haystack == NULL) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    needle = purc_variant_get_string_const_ex(argv[1], &len_needle);
+    if (needle == NULL) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    bool ignore_case = false;
+    if (nr_args > 2) {
+        ignore_case = purc_variant_booleanize(argv[2]);
+    }
+
+    bool result;
+    if (len_needle == 0) {
+        result = true;
+    }
+    else if (!ignore_case && len_needle > len_haystack) {
+        result = false;
+    }
+    else if (ignore_case) {
+#if USE(GLIB)
+        gchar *g_haystack = g_utf8_strdown(haystack, -1);
+        gchar *g_needle =  g_utf8_strdown(needle, -1);
+        result = strstr(g_haystack, g_needle) != NULL;
+        g_free(g_haystack);
+        g_free(g_needle);
+#else
+        result = strcasestr(haystack, needle) != NULL;
+#endif
+    }
+    else {
+        result = strstr(haystack, needle) != NULL;
+    }
+
+    return purc_variant_make_boolean(result);
+
+failed:
+    if (silently)
+        return purc_variant_make_boolean(false);
+    return PURC_VARIANT_INVALID;
+}
 
 static purc_variant_t
-ends_with_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+starts_with_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
+{
+    UNUSED_PARAM(root);
+
+    if (nr_args < 2) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    const char* haystack, *needle;
+    size_t len_haystack, len_needle;
+    haystack = purc_variant_get_string_const_ex(argv[0], &len_haystack);
+    if (haystack == NULL) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    needle = purc_variant_get_string_const_ex(argv[1], &len_needle);
+    if (needle == NULL) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    bool ignore_case = false;
+    if (nr_args > 2) {
+        ignore_case = purc_variant_booleanize(argv[2]);
+    }
+
+    bool result;
+    if (len_needle == 0) {
+        result = true;
+    }
+    else if (!ignore_case && len_needle > len_haystack) {
+        result = false;
+    }
+    else if (ignore_case) {
+#if USE(GLIB)
+        gchar *g_haystack = g_utf8_strdown(haystack, - 1);
+        gchar *g_needle =  g_utf8_strdown(needle, - 1);
+        /* the length may change after calling g_utf8_strdown */
+        len_haystack = strlen(g_haystack);
+        len_needle = strlen(g_needle);
+        if (len_needle > len_haystack)
+            result = false;
+        else
+            result = strncmp(g_haystack, g_needle, strlen(g_needle)) == 0;
+        g_free(g_haystack);
+        g_free(g_needle);
+#else
+        result = strncasecmp(haystack, needle, len_needle) == 0;
+#endif
+    }
+    else {
+        result = strncmp(haystack, needle, len_needle) == 0;
+    }
+
+    return purc_variant_make_boolean(result);
+
+failed:
+    if (silently)
+        return purc_variant_make_boolean(false);
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+ends_with_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
+{
+    UNUSED_PARAM(root);
+
+    if (nr_args < 2) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    const char* haystack, *needle;
+    size_t len_haystack, len_needle;
+    haystack = purc_variant_get_string_const_ex(argv[0], &len_haystack);
+    if (haystack == NULL) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    needle = purc_variant_get_string_const_ex(argv[1], &len_needle);
+    if (needle == NULL) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    bool ignore_case = false;
+    if (nr_args > 2) {
+        ignore_case = purc_variant_booleanize(argv[2]);
+    }
+
+    bool result;
+    if (len_needle == 0) {
+        result = true;
+    }
+    else if (!ignore_case && len_needle > len_haystack) {
+        result = false;
+    }
+    else if (ignore_case) {
+#if USE(GLIB)
+        gchar *g_haystack = g_utf8_strdown(haystack, - 1);
+        gchar *g_needle =  g_utf8_strdown(needle, - 1);
+        len_haystack = strlen(g_haystack);
+        len_needle = strlen(g_needle);
+        if (len_needle > len_haystack)
+            result = false;
+        else
+            result = strncmp(g_haystack + len_haystack - len_needle,
+                    g_needle, len_needle) == 0;
+        g_free(g_haystack);
+        g_free(g_needle);
+#else
+        result = strncasecmp(haystack + len_haystack - len_needle,
+                needle, len_needle) == 0;
+#endif
+    }
+    else {
+        result = strncmp(haystack + len_haystack - len_needle,
+                needle, len_needle) == 0;
+    }
+
+    return purc_variant_make_boolean(result);
+
+failed:
+    if (silently)
+        return purc_variant_make_boolean(false);
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+join_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(silently);
 
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    purc_rwstream_t rwstream;
+    rwstream = purc_rwstream_new_buffer(LEN_INI_PRINT_BUF, LEN_MAX_PRINT_BUF);
+    if (rwstream == NULL)
+        goto fatal;
 
-    if ((argv == NULL) || (nr_args < 2)) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+    for (size_t i; i < nr_args; i++) {
+        const char *str;
+        size_t len_str;
+
+        str = purc_variant_get_string_const_ex(argv[i], &len_str);
+        if (str) {
+            purc_rwstream_write(rwstream, str, len_str);
+        }
+        else if (silently) {
+            // do nothing
+        }
+        else {
+            purc_rwstream_destroy(rwstream);
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            goto fatal;
+        }
     }
 
-    if (!purc_variant_is_string (argv[0])) {
-        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+    purc_rwstream_write(rwstream, "", 1);
+
+    size_t sz_buffer = 0;
+    size_t sz_content = 0;
+    char *content = NULL;
+    content = purc_rwstream_get_mem_buffer_ex(rwstream,
+            &sz_content, &sz_buffer, true);
+    purc_rwstream_destroy(rwstream);
+
+    return purc_variant_make_string_reuse_buff(content, sz_buffer, false);
+
+fatal:
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+tolower_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
+{
+    UNUSED_PARAM(root);
+
+    if (nr_args < 1) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
     }
 
-    if ((argv[1] == PURC_VARIANT_INVALID) ||
-            (!purc_variant_is_string (argv[1]))) {
-        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+    const char *str;
+    size_t length;
+    str = purc_variant_get_string_const_ex(argv[0], &length);
+    if (str == NULL) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
     }
 
-    const char *source = purc_variant_get_string_const (argv[0]);
-    size_t len_source = purc_variant_string_size (argv[0]) - 1;
-    const char *sub = purc_variant_get_string_const (argv[1]);
-    size_t len_sub = purc_variant_string_size (argv[1]) -1;
+    if (length == 0)
+        return purc_variant_make_string_static("", false);
 
-    if ((len_source == 0) || (len_sub == 0) || (len_source < len_sub)) {
-        ret_var = purc_variant_make_boolean (false);
+    char *new_str = NULL;
+    size_t len_new;
+
+#if USE(GLIB)
+    new_str = g_utf8_strdown(str, length);
+    len_new = strlen(new_str);
+#else
+    new_str = strndup(str, length);
+    if (new_str) {
+        for (size_t i = 0; i < length; i++) {
+            if (purc_isupper(new_str[i]))
+                new_str[i] = purc_tolower(new_str[i]);
+        }
+        len_new = length;
+    }
+#endif
+
+    if (new_str == NULL) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto fatal;
+    }
+
+    return purc_variant_make_string_reuse_buff(new_str, len_new, false);
+
+failed:
+    if (silently)
+        return purc_variant_make_string_static("", false);
+fatal:
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+toupper_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
+{
+    UNUSED_PARAM(root);
+
+    if (nr_args < 1) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    const char *str;
+    size_t length;
+    str = purc_variant_get_string_const_ex(argv[0], &length);
+    if (str == NULL) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    if (length == 0)
+        return purc_variant_make_string_static("", false);
+
+    char *new_str = NULL;
+    size_t len_new;
+
+#if USE(GLIB)
+    new_str = g_utf8_strup(str, length);
+    len_new = strlen(new_str);
+#else
+    new_str = strndup(str, length);
+    if (new_str) {
+        for (size_t i = 0; i < length; i++) {
+            if (purc_islower(new_str[i]))
+                new_str[i] = purc_toupper(new_str[i]);
+        }
+        len_new = length;
+    }
+#endif
+
+    if (new_str == NULL) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto fatal;
+    }
+
+    return purc_variant_make_string_reuse_buff(new_str, len_new, false);
+
+failed:
+    if (silently)
+        return purc_variant_make_string_static("", false);
+fatal:
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+shuffle_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
+{
+    UNUSED_PARAM(root);
+
+    if (nr_args < 1) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    const char *str;
+    size_t len;
+    size_t nr_chars;
+
+    str = purc_variant_get_string_const_ex(argv[0], &len);
+    if (str == NULL) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    purc_variant_string_chars(argv[0], &nr_chars);
+    if (nr_chars < 2) {
+        // just return the value itself, but reference it.
+        return purc_variant_ref(argv[0]);
+    }
+
+    char *new_str = NULL;
+    if (nr_chars == len) {
+        // ASCII string
+        new_str = strndup(str, len);
+        if (new_str == NULL) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            goto fatal;
+        }
+
+        for (size_t i =  0; i < len; i++) {
+            size_t new_idx = (size_t)pcdvobjs_get_random() % (size_t)len;
+
+            if (new_idx != i) {
+                char tmp = new_str[new_idx];
+                new_str[new_idx] = new_str[i];
+                new_str[i] = tmp;
+            }
+        }
     }
     else {
-        if (strncmp (source + len_source - len_sub, sub, len_sub) != 0)
-            ret_var = purc_variant_make_boolean (false);
-        else
-            ret_var = purc_variant_make_boolean (true);
+        uint32_t *ucs = malloc(sizeof(uint32_t) * nr_chars);
+        if (ucs == NULL) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            goto fatal;
+        }
+
+        size_t n = pcutils_string_decode_utf8(ucs, nr_chars, str);
+        assert(n == nr_chars);
+
+        for (size_t i =  0; i < n; i++) {
+            size_t new_idx;
+            if (n < RAND_MAX) {
+                new_idx = (size_t)pcdvobjs_get_random() % n;
+            }
+            else {
+                new_idx = (size_t)pcdvobjs_get_random();
+                new_idx = new_idx * n / RAND_MAX;
+            }
+
+            if (new_idx != i) {
+                uint32_t tmp = ucs[new_idx];
+                ucs[new_idx] = ucs[i];
+                ucs[i] = tmp;
+            }
+        }
+
+        new_str = pcutils_string_encode_utf8(ucs, n, &len);
+        free(ucs);
+
+        if (new_str == NULL) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            goto fatal;
+        }
     }
 
-    return ret_var;
+    return purc_variant_make_string_reuse_buff(new_str, len, false);
+
+failed:
+    if (silently)
+        return purc_variant_make_string_static("", false);
+fatal:
+    return PURC_VARIANT_INVALID;
 }
 
 
@@ -147,18 +533,18 @@ explode_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     char *buf = NULL;
 
     if ((argv == NULL) || (nr_args < 2)) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
     if (!purc_variant_is_string (argv[0])) {
-        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
 
     if ((argv[1] == PURC_VARIANT_INVALID) ||
             (!purc_variant_is_string (argv[1]))) {
-        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
 
@@ -173,7 +559,7 @@ explode_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     while (head) {
         buf = malloc (length + 1);
         if (buf == NULL) {
-            pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
+            purc_set_error (PURC_ERROR_OUT_OF_MEMORY);
             purc_variant_unref (ret_var);
             return PURC_VARIANT_INVALID;
         }
@@ -210,19 +596,19 @@ implode_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     size_t i = 0;
 
     if ((argv == NULL) || (nr_args < 2)) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
     // argv[1] must be array
     if ((argv[1] == PURC_VARIANT_INVALID) ||
             !purc_variant_is_array (argv[1])) {
-        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
     purc_variant_array_size (argv[1], &array_size);
     if (array_size == 0) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
@@ -283,57 +669,6 @@ implode_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     return ret_var;
 }
 
-
-static purc_variant_t
-shuffle_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
-{
-    UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
-
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
-
-    if ((argv == NULL) || (nr_args < 1)) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
-    }
-
-    size_t size;
-    if (!purc_variant_string_bytes(argv[0], &size)) {
-        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
-    }
-
-    if (size < 2) {
-        // just return the value itself, but reference it.
-        return purc_variant_ref(argv[0]);
-    }
-
-    char *src = malloc (size);
-    if (src == NULL) {
-        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
-        return PURC_VARIANT_INVALID;
-    }
-
-    strcpy (src, purc_variant_get_string_const (argv[0]));
-    *(src + size - 1) = 0x00;
-
-    /* FIXME: shuffle the characeters not bytes */
-    size_t i = 0;
-    int random = 0;
-    for(i =  0; i < size - 1; i++) {
-        random = (rand () % (size - 1));
-        int tmp = *(src + random);
-        *(src + random) = *(src + i);
-        *(src + i) = tmp;
-    }
-
-    ret_var = purc_variant_make_string_reuse_buff (src, size-1, false);
-
-    return ret_var;
-}
-
-
 static purc_variant_t
 replace_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
@@ -344,35 +679,35 @@ replace_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if ((argv == NULL) || (nr_args < 3)) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
     if (!purc_variant_is_string (argv[0])) {
-        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
 
     if ((argv[1] == PURC_VARIANT_INVALID) ||
             (!purc_variant_is_string (argv[1]))) {
-        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
 
     if ((argv[2] == PURC_VARIANT_INVALID) ||
             (!purc_variant_is_string (argv[2]))) {
-        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
 
     size_t len_delim = purc_variant_string_size (argv[0]) - 1;
     if (len_delim == 0) {
-        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
     len_delim = purc_variant_string_size (argv[1]) - 1;
     if (len_delim == 0) {
-        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
 
@@ -423,13 +758,13 @@ format_c_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     if ((argv == NULL) || (nr_args == 0)) {
         purc_rwstream_destroy (rwstream);
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
     if (!purc_variant_is_string (argv[0])) {
         purc_rwstream_destroy (rwstream);
-        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
     else
@@ -556,7 +891,7 @@ format_c_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         ret_var = purc_variant_make_string_reuse_buff (rw_string,
                 rw_size, false);
         if(ret_var == PURC_VARIANT_INVALID) {
-            pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+            purc_set_error (PURC_ERROR_INVALID_VALUE);
             ret_var = PURC_VARIANT_INVALID;
         }
     }
@@ -587,13 +922,13 @@ format_p_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     if ((argv == NULL) || (nr_args == 0)) {
         purc_rwstream_destroy(rwstream);
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
     if ( (!purc_variant_is_string (argv[0]))) {
         purc_rwstream_destroy(rwstream);
-        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
     else {
@@ -609,7 +944,7 @@ format_p_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         type = 1;
     else {
         purc_rwstream_destroy(rwstream);
-        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
 
@@ -700,161 +1035,12 @@ format_p_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         ret_var = purc_variant_make_string_reuse_buff (rw_string,
                 content_size, false);
         if(ret_var == PURC_VARIANT_INVALID) {
-            pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+            purc_set_error (PURC_ERROR_INVALID_VALUE);
             ret_var = PURC_VARIANT_INVALID;
         }
     }
 
     purc_rwstream_destroy (rwstream);
-
-    return ret_var;
-}
-
-static purc_variant_t
-strcat_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
-{
-    UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
-
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
-
-    if ((argv == NULL) || (nr_args < 2)) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
-    }
-
-    if (!purc_variant_is_string (argv[0])) {
-        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
-    }
-    if ((argv[1] == PURC_VARIANT_INVALID) ||
-            (!purc_variant_is_string (argv[1]))) {
-        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
-    }
-
-    size_t len1 = purc_variant_string_size (argv[0]);
-    size_t len2 = purc_variant_string_size (argv[1]);
-    size_t len = len1 + len2;
-
-    char *dest = malloc (len + 1);
-    if (dest == NULL) {
-        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
-        ret_var = PURC_VARIANT_INVALID;
-    }
-    else {
-        strcpy(dest, purc_variant_get_string_const (argv[0]));
-        strcat(dest, purc_variant_get_string_const (argv[1]));
-        ret_var = purc_variant_make_string_reuse_buff (dest, len, false);
-    }
-
-    return ret_var;
-}
-
-static purc_variant_t
-strlen_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
-{
-    UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
-
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
-
-    if ((argv == NULL) || (nr_args < 1)) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
-    }
-
-    if (!purc_variant_is_string (argv[0])) {
-        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
-    }
-
-    ret_var = purc_variant_make_ulongint (purc_variant_string_size (argv[0]));
-
-    return ret_var;
-}
-
-static purc_variant_t
-lower_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
-{
-    UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
-
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
-
-    if ((argv == NULL) || (nr_args < 1)) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
-    }
-
-    if (!purc_variant_is_string (argv[0])) {
-        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
-    }
-
-    size_t length = 0;
-    purc_variant_string_bytes (argv[0], &length);
-    const char * src = purc_variant_get_string_const (argv[0]);
-    char *buf = malloc (length + 1);
-    if (buf == NULL) {
-        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
-        ret_var = PURC_VARIANT_INVALID;
-    }
-    else {
-        for (size_t i = 0; i < length; i++) {
-            if (*(src + i) >= 'A' && *(src + i) <= 'Z')
-                *(buf + i) = *(src + i) + 32;
-            else
-                *(buf + i) = *(src + i);
-        }
-        *(buf + length) = 0x00;
-        ret_var = purc_variant_make_string_reuse_buff (buf, length, false);
-    }
-
-    return ret_var;
-}
-
-
-static purc_variant_t
-upper_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
-{
-    UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
-
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
-
-    if ((argv == NULL) || (nr_args < 1)) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
-    }
-
-    if (!purc_variant_is_string (argv[0])) {
-        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
-    }
-
-    size_t length = 0;
-    purc_variant_string_bytes (argv[0], &length);
-    const char * src = purc_variant_get_string_const (argv[0]);
-    char *buf = malloc (length + 1);
-    if (buf == NULL) {
-        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
-        ret_var = PURC_VARIANT_INVALID;
-    }
-    else {
-        for (size_t i = 0; i < length; i++) {
-            if (*(src + i) >= 'a' && *(src + i) <= 'z')
-                *(buf + i) = *(src + i) - 32;
-            else
-                *(buf + i) = *(src + i);
-        }
-        *(buf + length) = 0x00;
-        ret_var = purc_variant_make_string_reuse_buff (buf, length, false);
-    }
 
     return ret_var;
 }
@@ -869,12 +1055,12 @@ substr_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if ((argv == NULL) || (nr_args < 2)) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
     if (!purc_variant_is_string (argv[0])) {
-        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
     size_t str_len = 0;
@@ -882,7 +1068,7 @@ substr_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     const char * src = purc_variant_get_string_const (argv[0]);
 
     if (argv[1] == NULL || !purc_variant_is_longint (argv[1])) {
-        pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
     int64_t pos = 0;
@@ -904,7 +1090,7 @@ substr_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     int64_t length = 0;
     if (nr_args > 2) {
         if(argv[2] == NULL || !purc_variant_is_longint (argv[2])) {
-            pcinst_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+            purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
             return PURC_VARIANT_INVALID;
         }
         purc_variant_cast_to_longint (argv[2], &length, false);
@@ -928,7 +1114,7 @@ substr_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     else {
         char *buf = malloc (length + 1);
         if (buf == NULL) {
-            pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
+            purc_set_error (PURC_ERROR_OUT_OF_MEMORY);
             return PURC_VARIANT_INVALID;
         }
 
@@ -940,24 +1126,24 @@ substr_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     return ret_var;
 }
 
-// only for test now.
-purc_variant_t purc_dvobj_string_new (void)
+purc_variant_t purc_dvobj_string_new(void)
 {
     static struct purc_dvobj_method method [] = {
-        {"contains",  contains_getter,  NULL},
-        {"ends_with", ends_with_getter, NULL},
-        {"explode",   explode_getter,   NULL},
-        {"implode",   implode_getter,   NULL},
-        {"shuffle",   shuffle_getter,   NULL},
-        {"replace",   replace_getter,   NULL},
-        {"format_c",  format_c_getter,  NULL},
-        {"format_p",  format_p_getter,  NULL},
-        {"strcat",    strcat_getter,    NULL},
-        {"strlen",    strlen_getter,    NULL},
-        {"upper",     upper_getter,     NULL},
-        {"lower",     lower_getter,     NULL},
-        {"substr",    substr_getter,    NULL},
+        { "nr_chars",   nr_chars_getter,    NULL },
+        { "contains",   contains_getter,    NULL },
+        { "starts_with",starts_with_getter,   NULL },
+        { "ends_with",  ends_with_getter,   NULL },
+        { "join",       join_getter,        NULL },
+        { "tolower",    tolower_getter,     NULL },
+        { "toupper",    toupper_getter,     NULL },
+        { "shuffle",    shuffle_getter,     NULL },
+        { "explode",    explode_getter,     NULL },
+        { "implode",    implode_getter,     NULL },
+        { "replace",    replace_getter,     NULL },
+        { "format_c",   format_c_getter,    NULL },
+        { "format_p",   format_p_getter,    NULL },
+        { "substr",     substr_getter,      NULL },
     };
 
-    return purc_dvobj_make_from_methods (method, PCA_TABLESIZE(method));
+    return purc_dvobj_make_from_methods(method, PCA_TABLESIZE(method));
 }
