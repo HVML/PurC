@@ -329,6 +329,9 @@ purc_variant_t
 pcintr_get_symbolized_var (pcintr_stack_t stack, unsigned int number,
         char symbol);
 
+int
+pcintr_unbind_named_var(pcintr_stack_t stack, const char *name);
+
 // return observed variant
 purc_variant_t
 pcintr_add_named_var_observer(pcintr_stack_t stack, const char* name,
