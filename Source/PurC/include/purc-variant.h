@@ -784,37 +784,32 @@ purc_variant_make_object(size_t nr_kv_pairs,
  *
  * @param obj: the variant value of obj type
  * @param key: the key of key-value pair
- * @param silently: @true means ignoring the following errors:
- *      - PCVARIANT_ERROR_NOT_FOUND
  *
  * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.0.1
  */
 PCA_EXPORT purc_variant_t
-purc_variant_object_get(purc_variant_t obj, purc_variant_t key, bool silently);
+purc_variant_object_get(purc_variant_t obj, purc_variant_t key);
 
 /**
  * Gets the value by key from an object with key as c string
  *
  * @param obj: the variant value of obj type
  * @param key: the key of key-value pair
- * @param silently: @true means ignoring the following errors:
- *      - PCVARIANT_ERROR_NOT_FOUND
  *
  * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.0.1
  */
 static inline purc_variant_t
-purc_variant_object_get_by_ckey(purc_variant_t obj, const char* key,
-        bool silently)
+purc_variant_object_get_by_ckey(purc_variant_t obj, const char* key)
 {
     purc_variant_t k = purc_variant_make_string_static(key, true);
     if (k==PURC_VARIANT_INVALID) {
         return PURC_VARIANT_INVALID;
     }
-    purc_variant_t v = purc_variant_object_get(obj, k, silently);
+    purc_variant_t v = purc_variant_object_get(obj, k);
     purc_variant_unref(k);
     return v;
 }

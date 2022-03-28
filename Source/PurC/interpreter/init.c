@@ -124,6 +124,8 @@ post_process_as_locally(pcintr_coroutine_t co,
     PC_ASSERT(exclamation_var != PURC_VARIANT_INVALID);
     if (purc_variant_is_object(exclamation_var)) {
         bool ok = purc_variant_object_set(exclamation_var, name, src);
+        if (ok)
+            purc_clr_error();
         return ok ? 0 : -1;
     }
 
@@ -149,9 +151,11 @@ post_process_at_locally(pcintr_coroutine_t co,
         exclamation_var = pcintr_get_exclamation_var(parent);
         PC_ASSERT(purc_variant_is_object(exclamation_var));
         purc_variant_t v;
-        v = purc_variant_object_get(exclamation_var, name, true);
+        v = purc_variant_object_get(exclamation_var, name);
         if (v != PURC_VARIANT_INVALID) {
             bool ok = purc_variant_object_set(exclamation_var, name, src);
+            if (ok)
+                purc_clr_error();
             return ok ? 0 : -1;
         }
         parent = pcintr_stack_frame_get_parent(parent);

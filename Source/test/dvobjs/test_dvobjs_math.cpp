@@ -100,7 +100,7 @@ TEST(dvobjs, dvobjs_math_pi_e)
     for (i = 0; i < size; i++) {
         // test double function
         purc_variant_t dynamic = purc_variant_object_get_by_ckey (math,
-                math_d[i].func, false);
+                math_d[i].func);
         ASSERT_NE(dynamic, nullptr);
         ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -119,7 +119,7 @@ TEST(dvobjs, dvobjs_math_pi_e)
         purc_variant_unref(ret_var);
 
         // test long double function
-        dynamic = purc_variant_object_get_by_ckey (math, math_ld[i].func, false);
+        dynamic = purc_variant_object_get_by_ckey (math, math_ld[i].func);
         ASSERT_NE(dynamic, nullptr);
         ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -306,7 +306,7 @@ TEST(dvobjs, dvobjs_math_const)
     ASSERT_NE(math, nullptr);
     ASSERT_EQ(purc_variant_is_object (math), true);
 
-    purc_variant_t dynamic = purc_variant_object_get_by_ckey (math, "const", false);
+    purc_variant_t dynamic = purc_variant_object_get_by_ckey (math, "const");
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -385,7 +385,7 @@ TEST(dvobjs, dvobjs_math_const)
     purc_variant_unref(param[0]);
 
     // test const_l
-    dynamic = purc_variant_object_get_by_ckey (math, "const_l", false);
+    dynamic = purc_variant_object_get_by_ckey (math, "const_l");
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -649,7 +649,7 @@ TEST(dvobjs, dvobjs_math_func)
 
     for (i = 0; i < size; i++) {
         purc_variant_t dynamic = purc_variant_object_get_by_ckey (math,
-                math_d[i].func, false);
+                math_d[i].func);
         ASSERT_NE(dynamic, nullptr);
         ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -669,7 +669,7 @@ TEST(dvobjs, dvobjs_math_func)
         purc_variant_unref(param[0]);
 
 
-        dynamic = purc_variant_object_get_by_ckey (math, math_ld[i].func, false);
+        dynamic = purc_variant_object_get_by_ckey (math, math_ld[i].func);
         ASSERT_NE(dynamic, nullptr);
         ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -725,7 +725,7 @@ TEST(dvobjs, dvobjs_math_eval)
     ASSERT_NE(math, nullptr);
     ASSERT_EQ(purc_variant_is_object (math), true);
 
-    purc_variant_t dynamic = purc_variant_object_get_by_ckey (math, "eval", false);
+    purc_variant_t dynamic = purc_variant_object_get_by_ckey (math, "eval");
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -772,7 +772,7 @@ TEST(dvobjs, dvobjs_math_eval)
     purc_variant_unref(param[0]);
     purc_variant_unref(param[1]);
 
-    dynamic = purc_variant_object_get_by_ckey (math, "eval_l", false);
+    dynamic = purc_variant_object_get_by_ckey (math, "eval_l");
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -857,7 +857,7 @@ TEST(dvobjs, dvobjs_math_assignment)
     ASSERT_NE(math, nullptr);
     ASSERT_EQ(purc_variant_is_object (math), true);
 
-    purc_variant_t dynamic = purc_variant_object_get_by_ckey (math, "eval", false);
+    purc_variant_t dynamic = purc_variant_object_get_by_ckey (math, "eval");
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -929,7 +929,7 @@ TEST(dvobjs, dvobjs_math_samples)
     ASSERT_NE(math, nullptr);
     ASSERT_EQ(purc_variant_is_object (math), true);
 
-    purc_variant_t dynamic = purc_variant_object_get_by_ckey (math, "eval", false);
+    purc_variant_t dynamic = purc_variant_object_get_by_ckey (math, "eval");
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -1104,7 +1104,7 @@ TEST(dvobjs, dvobjs_math_bc)
     ASSERT_NE(math, nullptr);
     ASSERT_EQ(purc_variant_is_object (math), true);
 
-    purc_variant_t dynamic = purc_variant_object_get_by_ckey (math, "eval", false);
+    purc_variant_t dynamic = purc_variant_object_get_by_ckey (math, "eval");
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 

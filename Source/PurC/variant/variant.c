@@ -587,7 +587,7 @@ static bool equal_objects(purc_variant_t v1, purc_variant_t v2)
         return false;
 
     foreach_key_value_in_variant_object(v1, key, m1)
-        m2 = purc_variant_object_get(v2, key, false);
+        m2 = purc_variant_object_get(v2, key);
         if (!purc_variant_is_equal_to(m1, m2))
             return false;
     end_foreach;
@@ -1831,7 +1831,7 @@ bool purc_variant_unload_dvobj (purc_variant_t dvobj)
 
     uint64_t u64 = 0;
     purc_variant_t val = purc_variant_object_get_by_ckey (dvobj,
-            EXOBJ_LOAD_HANDLE_KEY, false);
+            EXOBJ_LOAD_HANDLE_KEY);
     if (val == PURC_VARIANT_INVALID) {
         pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return false;

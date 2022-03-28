@@ -48,7 +48,7 @@ TEST(dvobjs, dvobjs_fs_list)
     ASSERT_NE(fs, nullptr);
     ASSERT_EQ(purc_variant_is_object (fs), true);
 
-    purc_variant_t dynamic = purc_variant_object_get_by_ckey (fs, "list", false);
+    purc_variant_t dynamic = purc_variant_object_get_by_ckey (fs, "list");
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -95,37 +95,37 @@ TEST(dvobjs, dvobjs_fs_list)
 
     for (i = 0; i < size; i++)  {
         tmp_obj = purc_variant_array_get (ret_var, i);
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "name", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "name");
         printf ("\t%s  ", purc_variant_get_string_const (tmp_var));
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "dev", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "dev");
         printf ("\t%s  ", purc_variant_get_string_const (tmp_var));
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "inode", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "inode");
         printf ("\t%ld  ", (long int)(tmp_var->d));
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "type", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "type");
         printf ("\t%s  ", purc_variant_get_string_const (tmp_var));
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "mode_str", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "mode_str");
         printf ("\t%s  ", purc_variant_get_string_const (tmp_var));
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "nlink", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "nlink");
         printf ("\t%ld  ", (long int)(tmp_var->d));
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "uid", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "uid");
         printf ("\t%ld  ", (long int)(tmp_var->d));
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "gid", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "gid");
         printf ("\t%ld  ", (long int)(tmp_var->d));
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "rdev_major", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "rdev_major");
         printf ("\t%ld  ", (long int)(tmp_var->d));
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "rdev_minor", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "rdev_minor");
         printf ("\t%ld  ", (long int)(tmp_var->d));
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "size", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "size");
         printf ("\t%ld  ", (long int)(tmp_var->d));
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "blksize", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "blksize");
         printf ("\t%ld  ", (long int)(tmp_var->d));
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "blocks", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "blocks");
         printf ("\t%ld  ", (long int)(tmp_var->d));
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "atime", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "atime");
         printf ("\t%s  ", purc_variant_get_string_const (tmp_var));
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "mtime", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "mtime");
         printf ("\t%s  ", purc_variant_get_string_const (tmp_var));
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "ctime", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "ctime");
         printf ("\t%s  ", purc_variant_get_string_const (tmp_var));
 
         printf ("\n");
@@ -144,37 +144,37 @@ TEST(dvobjs, dvobjs_fs_list)
 
     for (i = 0; i < size; i++)  {
         tmp_obj = purc_variant_array_get (ret_var, i);
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "name", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "name");
         printf ("\t%s  ", purc_variant_get_string_const (tmp_var));
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "dev", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "dev");
         printf ("\t%s  ", purc_variant_get_string_const (tmp_var));
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "inode", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "inode");
         printf ("\t%ld  ", (long int)(tmp_var->d));
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "type", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "type");
         printf ("\t%s  ", purc_variant_get_string_const (tmp_var));
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "mode_str", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "mode_str");
         printf ("\t%s  ", purc_variant_get_string_const (tmp_var));
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "nlink", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "nlink");
         printf ("\t%ld  ", (long int)(tmp_var->d));
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "uid", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "uid");
         printf ("\t%ld  ", (long int)(tmp_var->d));
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "gid", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "gid");
         printf ("\t%ld  ", (long int)(tmp_var->d));
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "rdev_major", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "rdev_major");
         printf ("\t%ld  ", (long int)(tmp_var->d));
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "rdev_minor", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "rdev_minor");
         printf ("\t%ld  ", (long int)(tmp_var->d));
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "size", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "size");
         printf ("\t%ld  ", (long int)(tmp_var->d));
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "blksize", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "blksize");
         printf ("\t%ld  ", (long int)(tmp_var->d));
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "blocks", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "blocks");
         printf ("\t%ld  ", (long int)(tmp_var->d));
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "atime", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "atime");
         printf ("\t%s  ", purc_variant_get_string_const (tmp_var));
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "mtime", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "mtime");
         printf ("\t%s  ", purc_variant_get_string_const (tmp_var));
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "ctime", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "ctime");
         printf ("\t%s  ", purc_variant_get_string_const (tmp_var));
 
         printf ("\n");
@@ -195,37 +195,37 @@ TEST(dvobjs, dvobjs_fs_list)
 
     for (i = 0; i < size; i++)  {
         tmp_obj = purc_variant_array_get (ret_var, i);
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "name", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "name");
         printf ("\t%s  ", purc_variant_get_string_const (tmp_var));
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "dev", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "dev");
         printf ("\t%s  ", purc_variant_get_string_const (tmp_var));
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "inode", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "inode");
         printf ("\t%ld  ", (long int)(tmp_var->d));
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "type", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "type");
         printf ("\t%s  ", purc_variant_get_string_const (tmp_var));
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "mode_str", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "mode_str");
         printf ("\t%s  ", purc_variant_get_string_const (tmp_var));
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "nlink", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "nlink");
         printf ("\t%ld  ", (long int)(tmp_var->d));
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "uid", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "uid");
         printf ("\t%ld  ", (long int)(tmp_var->d));
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "gid", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "gid");
         printf ("\t%ld  ", (long int)(tmp_var->d));
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "rdev_major", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "rdev_major");
         printf ("\t%ld  ", (long int)(tmp_var->d));
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "rdev_minor", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "rdev_minor");
         printf ("\t%ld  ", (long int)(tmp_var->d));
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "size", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "size");
         printf ("\t%ld  ", (long int)(tmp_var->d));
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "blksize", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "blksize");
         printf ("\t%ld  ", (long int)(tmp_var->d));
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "blocks", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "blocks");
         printf ("\t%ld  ", (long int)(tmp_var->d));
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "atime", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "atime");
         printf ("\t%s  ", purc_variant_get_string_const (tmp_var));
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "mtime", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "mtime");
         printf ("\t%s  ", purc_variant_get_string_const (tmp_var));
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "ctime", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "ctime");
         printf ("\t%s  ", purc_variant_get_string_const (tmp_var));
 
         printf ("\n");
@@ -246,37 +246,37 @@ TEST(dvobjs, dvobjs_fs_list)
 
     for (i = 0; i < size; i++)  {
         tmp_obj = purc_variant_array_get (ret_var, i);
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "name", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "name");
         printf ("\t%s  ", purc_variant_get_string_const (tmp_var));
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "dev", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "dev");
         printf ("\t%s  ", purc_variant_get_string_const (tmp_var));
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "inode", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "inode");
         printf ("\t%ld  ", (long int)(tmp_var->d));
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "type", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "type");
         printf ("\t%s  ", purc_variant_get_string_const (tmp_var));
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "mode_str", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "mode_str");
         printf ("\t%s  ", purc_variant_get_string_const (tmp_var));
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "nlink", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "nlink");
         printf ("\t%ld  ", (long int)(tmp_var->d));
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "uid", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "uid");
         printf ("\t%ld  ", (long int)(tmp_var->d));
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "gid", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "gid");
         printf ("\t%ld  ", (long int)(tmp_var->d));
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "rdev_major", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "rdev_major");
         printf ("\t%ld  ", (long int)(tmp_var->d));
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "rdev_minor", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "rdev_minor");
         printf ("\t%ld  ", (long int)(tmp_var->d));
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "size", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "size");
         printf ("\t%ld  ", (long int)(tmp_var->d));
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "blksize", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "blksize");
         printf ("\t%ld  ", (long int)(tmp_var->d));
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "blocks", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "blocks");
         printf ("\t%ld  ", (long int)(tmp_var->d));
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "atime", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "atime");
         printf ("\t%s  ", purc_variant_get_string_const (tmp_var));
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "mtime", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "mtime");
         printf ("\t%s  ", purc_variant_get_string_const (tmp_var));
-        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "ctime", false);
+        tmp_var = purc_variant_object_get_by_ckey (tmp_obj, "ctime");
         printf ("\t%s  ", purc_variant_get_string_const (tmp_var));
 
         printf ("\n");
@@ -327,7 +327,7 @@ TEST(dvobjs, dvobjs_fs_list_prt)
     ASSERT_EQ(purc_variant_is_object (fs), true);
 
 
-    purc_variant_t dynamic = purc_variant_object_get_by_ckey (fs, "list_prt", false);
+    purc_variant_t dynamic = purc_variant_object_get_by_ckey (fs, "list_prt");
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -455,7 +455,7 @@ TEST(dvobjs, dvobjs_fs_mkdir)
     ASSERT_EQ(purc_variant_is_object (fs), true);
 
 
-    purc_variant_t dynamic = purc_variant_object_get_by_ckey (fs, "mkdir", false);
+    purc_variant_t dynamic = purc_variant_object_get_by_ckey (fs, "mkdir");
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -537,7 +537,7 @@ TEST(dvobjs, dvobjs_fs_rmdir)
     ASSERT_NE(fs, nullptr);
     ASSERT_EQ(purc_variant_is_object (fs), true);
 
-    purc_variant_t dynamic = purc_variant_object_get_by_ckey (fs, "rmdir", false);
+    purc_variant_t dynamic = purc_variant_object_get_by_ckey (fs, "rmdir");
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -621,7 +621,7 @@ TEST(dvobjs, dvobjs_fs_rm)
     ASSERT_NE(fs, nullptr);
     ASSERT_EQ(purc_variant_is_object (fs), true);
 
-    purc_variant_t dynamic = purc_variant_object_get_by_ckey (fs, "rm", false);
+    purc_variant_t dynamic = purc_variant_object_get_by_ckey (fs, "rm");
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -705,7 +705,7 @@ TEST(dvobjs, dvobjs_fs_unlink)
     ASSERT_NE(fs, nullptr);
     ASSERT_EQ(purc_variant_is_object (fs), true);
 
-    purc_variant_t dynamic = purc_variant_object_get_by_ckey (fs, "unlink", false);
+    purc_variant_t dynamic = purc_variant_object_get_by_ckey (fs, "unlink");
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -786,7 +786,7 @@ TEST(dvobjs, dvobjs_fs_touch)
     ASSERT_NE(fs, nullptr);
     ASSERT_EQ(purc_variant_is_object (fs), true);
 
-    purc_variant_t dynamic = purc_variant_object_get_by_ckey (fs, "touch", false);
+    purc_variant_t dynamic = purc_variant_object_get_by_ckey (fs, "touch");
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 

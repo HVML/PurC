@@ -44,12 +44,11 @@ TEST(dvobjs, dvobjs_file_text_head)
     ASSERT_NE(file, nullptr);
     ASSERT_EQ(purc_variant_is_object (file), true);
 
-    purc_variant_t text = purc_variant_object_get_by_ckey(file, "text", false);
+    purc_variant_t text = purc_variant_object_get_by_ckey(file, "text");
     ASSERT_NE(text, nullptr);
     ASSERT_EQ(purc_variant_is_object (text), true);
 
-    purc_variant_t dynamic = purc_variant_object_get_by_ckey (text, "head",
-            false);
+    purc_variant_t dynamic = purc_variant_object_get_by_ckey (text, "head");
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -122,12 +121,11 @@ TEST(dvobjs, dvobjs_file_text_tail)
     ASSERT_NE(file, nullptr);
     ASSERT_EQ(purc_variant_is_object (file), true);
 
-    purc_variant_t text = purc_variant_object_get_by_ckey (file, "text", false);
+    purc_variant_t text = purc_variant_object_get_by_ckey (file, "text");
     ASSERT_NE(text, nullptr);
     ASSERT_EQ(purc_variant_is_object (text), true);
 
-    purc_variant_t dynamic = purc_variant_object_get_by_ckey (text, "tail",
-            false);
+    purc_variant_t dynamic = purc_variant_object_get_by_ckey (text, "tail");
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -200,12 +198,11 @@ TEST(dvobjs, dvobjs_file_bin_head)
     ASSERT_NE(file, nullptr);
     ASSERT_EQ(purc_variant_is_object (file), true);
 
-    purc_variant_t text = purc_variant_object_get_by_ckey(file, "bin", false);
+    purc_variant_t text = purc_variant_object_get_by_ckey(file, "bin");
     ASSERT_NE(text, nullptr);
     ASSERT_EQ(purc_variant_is_object (text), true);
 
-    purc_variant_t dynamic = purc_variant_object_get_by_ckey (text, "head",
-            false);
+    purc_variant_t dynamic = purc_variant_object_get_by_ckey (text, "head");
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -278,12 +275,11 @@ TEST(dvobjs, dvobjs_file_bin_tail)
     ASSERT_NE(file, nullptr);
     ASSERT_EQ(purc_variant_is_object (file), true);
 
-    purc_variant_t text = purc_variant_object_get_by_ckey (file, "bin", false);
+    purc_variant_t text = purc_variant_object_get_by_ckey (file, "bin");
     ASSERT_NE(text, nullptr);
     ASSERT_EQ(purc_variant_is_object (text), true);
 
-    purc_variant_t dynamic = purc_variant_object_get_by_ckey (text, "tail",
-            false);
+    purc_variant_t dynamic = purc_variant_object_get_by_ckey (text, "tail");
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -358,13 +354,11 @@ TEST(dvobjs, dvobjs_file_stream_open_seek_close)
     ASSERT_NE(file, nullptr);
     ASSERT_EQ(purc_variant_is_object (file), true);
 
-    purc_variant_t stream = purc_variant_object_get_by_ckey (file, "stream",
-            false);
+    purc_variant_t stream = purc_variant_object_get_by_ckey (file, "stream");
     ASSERT_NE(stream, nullptr);
     ASSERT_EQ(purc_variant_is_object (stream), true);
 
-    purc_variant_t dynamic = purc_variant_object_get_by_ckey (stream, "open",
-            false);
+    purc_variant_t dynamic = purc_variant_object_get_by_ckey (stream, "open");
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -394,7 +388,7 @@ TEST(dvobjs, dvobjs_file_stream_open_seek_close)
     purc_variant_unref(param[1]);
 
     // seek
-    dynamic = purc_variant_object_get_by_ckey (stream, "seek", false);
+    dynamic = purc_variant_object_get_by_ckey (stream, "seek");
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -416,7 +410,7 @@ TEST(dvobjs, dvobjs_file_stream_open_seek_close)
     purc_variant_unref(val);
 
     // close
-    dynamic = purc_variant_object_get_by_ckey (stream, "close", false);
+    dynamic = purc_variant_object_get_by_ckey (stream, "close");
 #if 0 // no such method
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
@@ -477,13 +471,11 @@ TEST(dvobjs, dvobjs_file_stream_readbytes)
     ASSERT_EQ(purc_variant_is_object (file), true);
 
 
-    purc_variant_t stream = purc_variant_object_get_by_ckey (file, "stream",
-            false);
+    purc_variant_t stream = purc_variant_object_get_by_ckey (file, "stream");
     ASSERT_NE(stream, nullptr);
     ASSERT_EQ(purc_variant_is_object (stream), true);
 
-    purc_variant_t dynamic = purc_variant_object_get_by_ckey (stream, "open",
-            false);
+    purc_variant_t dynamic = purc_variant_object_get_by_ckey (stream, "open");
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -512,8 +504,7 @@ TEST(dvobjs, dvobjs_file_stream_readbytes)
     purc_variant_unref(param[1]);
 
     // seek
-    dynamic = purc_variant_object_get_by_ckey (stream, "seek",
-            false);
+    dynamic = purc_variant_object_get_by_ckey (stream, "seek");
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -535,7 +526,7 @@ TEST(dvobjs, dvobjs_file_stream_readbytes)
     purc_variant_unref(val);
 
     // readbytes
-    dynamic = purc_variant_object_get_by_ckey (stream, "readbytes", false);
+    dynamic = purc_variant_object_get_by_ckey (stream, "readbytes");
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -553,7 +544,7 @@ TEST(dvobjs, dvobjs_file_stream_readbytes)
     purc_variant_unref(val);
 
     // close
-    dynamic = purc_variant_object_get_by_ckey (stream, "close", false);
+    dynamic = purc_variant_object_get_by_ckey (stream, "close");
 #if 0
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
@@ -611,13 +602,11 @@ TEST(dvobjs, dvobjs_file_stream_readlines)
     ASSERT_NE(file, nullptr);
     ASSERT_EQ(purc_variant_is_object (file), true);
 
-    purc_variant_t stream = purc_variant_object_get_by_ckey (file, "stream",
-            false);
+    purc_variant_t stream = purc_variant_object_get_by_ckey (file, "stream");
     ASSERT_NE(stream, nullptr);
     ASSERT_EQ(purc_variant_is_object (stream), true);
 
-    purc_variant_t dynamic = purc_variant_object_get_by_ckey (stream, "open",
-            false);
+    purc_variant_t dynamic = purc_variant_object_get_by_ckey (stream, "open");
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -647,8 +636,7 @@ TEST(dvobjs, dvobjs_file_stream_readlines)
     purc_variant_unref(param[1]);
 
     // seek
-    dynamic = purc_variant_object_get_by_ckey (stream, "seek",
-            false);
+    dynamic = purc_variant_object_get_by_ckey (stream, "seek");
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -670,7 +658,7 @@ TEST(dvobjs, dvobjs_file_stream_readlines)
     purc_variant_unref(param[2]);
 
     // readbytes
-    dynamic = purc_variant_object_get_by_ckey (stream, "readlines", false);
+    dynamic = purc_variant_object_get_by_ckey (stream, "readlines");
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -689,8 +677,7 @@ TEST(dvobjs, dvobjs_file_stream_readlines)
     purc_variant_unref(param[1]);
 
     // close
-    dynamic = purc_variant_object_get_by_ckey (stream, "close",
-            false);
+    dynamic = purc_variant_object_get_by_ckey (stream, "close");
 #if 0
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
@@ -755,12 +742,12 @@ TEST(dvobjs, dvobjs_file_stream_read_write_struct)
     ASSERT_NE(file, nullptr);
     ASSERT_EQ(purc_variant_is_object (file), true);
 
-    purc_variant_t stream = purc_variant_object_get_by_ckey (file, "stream", false);
+    purc_variant_t stream = purc_variant_object_get_by_ckey (file, "stream");
     ASSERT_NE(stream, nullptr);
     ASSERT_EQ(purc_variant_is_object (stream), true);
 
     // open
-    purc_variant_t dynamic = purc_variant_object_get_by_ckey (stream, "open", false);
+    purc_variant_t dynamic = purc_variant_object_get_by_ckey (stream, "open");
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -769,7 +756,7 @@ TEST(dvobjs, dvobjs_file_stream_read_write_struct)
     ASSERT_NE(open, nullptr);
 
     // writestruct
-    dynamic = purc_variant_object_get_by_ckey (stream, "writestruct", false);
+    dynamic = purc_variant_object_get_by_ckey (stream, "writestruct");
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -778,7 +765,7 @@ TEST(dvobjs, dvobjs_file_stream_read_write_struct)
     ASSERT_NE(writestruct, nullptr);
 
     // readstruct
-    dynamic = purc_variant_object_get_by_ckey (stream, "readstruct", false);
+    dynamic = purc_variant_object_get_by_ckey (stream, "readstruct");
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -787,7 +774,7 @@ TEST(dvobjs, dvobjs_file_stream_read_write_struct)
     ASSERT_NE(readstruct, nullptr);
 
     // seek
-    dynamic = purc_variant_object_get_by_ckey (stream, "seek", false);
+    dynamic = purc_variant_object_get_by_ckey (stream, "seek");
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -796,7 +783,7 @@ TEST(dvobjs, dvobjs_file_stream_read_write_struct)
     ASSERT_NE(seek, nullptr);
 
     // close
-    dynamic = purc_variant_object_get_by_ckey (stream, "close", false);
+    dynamic = purc_variant_object_get_by_ckey (stream, "close");
 #if 0
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);

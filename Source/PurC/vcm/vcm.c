@@ -904,8 +904,7 @@ purc_variant_t pcvcm_node_get_element_to_variant (struct pcvcm_node* node,
     }
 
     if (purc_variant_is_object(caller_var)) {
-        purc_variant_t val = purc_variant_object_get(caller_var, param_var,
-                silently);
+        purc_variant_t val = purc_variant_object_get(caller_var, param_var);
         if (!val) {
             goto clear_param_var;
         }

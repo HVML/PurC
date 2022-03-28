@@ -96,7 +96,7 @@
 
         for (size_t i=0; i<PCA_TABLESIZE(ptr_ptr); ++i) {
             purc_variant_t v = purc_variant_object_get_by_ckey(logical,
-                (const char*)ptr_ptr[i][1], false);
+                (const char*)ptr_ptr[i][1]);
             if (v == PURC_VARIANT_INVALID)
                 return -1;
 
@@ -272,15 +272,13 @@
         size_t  sz  = _a[0];                                         \
         char c  = ptr[sz];                                           \
         ptr[sz] = '\0';                                              \
-        _r = purc_variant_object_get_by_ckey(param->variables, ptr,  \
-                false);                                              \
+        _r = purc_variant_object_get_by_ckey(param->variables, ptr); \
         ptr[sz] = c;                                                 \
         if (_r == PURC_VARIANT_INVALID) {                            \
             if (!param->v && !purc_variant_is_object(param->v))      \
                 YYABORT;                                             \
             ptr[sz] = '\0';                                          \
-            _r = purc_variant_object_get_by_ckey(param->v, ptr,      \
-                false);                                              \
+            _r = purc_variant_object_get_by_ckey(param->v, ptr);     \
             ptr[sz] = c;                                             \
             if (_r == PURC_VARIANT_INVALID)                          \
                 YYABORT;                                             \

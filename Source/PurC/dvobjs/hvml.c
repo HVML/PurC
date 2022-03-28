@@ -45,7 +45,7 @@ hvml_ctrl_props(purc_variant_t root)
 {
     purc_variant_t var;
 
-    var = purc_variant_object_get_by_ckey(root, DVOBJ_HVML_DATA_NAME, false);
+    var = purc_variant_object_get_by_ckey(root, DVOBJ_HVML_DATA_NAME);
     assert(var && purc_variant_is_native(var));
 
     return (struct purc_hvml_ctrl_props *)purc_variant_native_get_entity(var);

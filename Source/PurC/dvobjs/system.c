@@ -739,9 +739,9 @@ time_us_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     if (purc_variant_get_type(argv[0]) == PURC_VARIANT_TYPE_OBJECT) {
         purc_variant_t v1 = purc_variant_object_get_by_ckey(argv[0],
-                _KN_sec, false);
+                _KN_sec);
         purc_variant_t v2 = purc_variant_object_get_by_ckey(argv[0],
-                _KN_usec, false);
+                _KN_usec);
 
         if (v1 == PURC_VARIANT_INVALID || v2 == PURC_VARIANT_INVALID) {
             purc_set_error(PURC_ERROR_INVALID_VALUE);

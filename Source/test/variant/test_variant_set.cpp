@@ -674,7 +674,7 @@ TEST(variant_set, constraint_non_valid_set)
     ASSERT_EQ(2, purc_variant_set_get_size(set));
     foreach_value_in_variant_set(set, v)
         ASSERT_TRUE(purc_variant_is_object(v));
-        v = purc_variant_object_get_by_ckey(v, "name", false);
+        v = purc_variant_object_get_by_ckey(v, "name");
         ASSERT_NE(v, nullptr);
         ASSERT_TRUE(purc_variant_is_string(v));
         const char *s = purc_variant_get_string_const(v);
@@ -710,7 +710,7 @@ TEST(variant_set, constraint)
     // v = purc_variant_set_get_member_by_key_values(set, k);
     // ASSERT_NE(v, nullptr);
 
-    // arr = purc_variant_object_get_by_ckey(v, "name", true);
+    // arr = purc_variant_object_get_by_ckey(v, "name");
     // ASSERT_NE(arr, nullptr);
 
     // obj = purc_variant_array_get(arr, 0);
