@@ -327,7 +327,7 @@ purc_variant_t pcvarmgr_get(pcvarmgr_t mgr, const char* name)
     }
 
     purc_variant_t v;
-    v = purc_variant_object_get_by_ckey(mgr->object, name, false);
+    v = purc_variant_object_get_by_ckey(mgr->object, name);
     if (v) {
         return v;
     }
@@ -538,9 +538,8 @@ again:
         if (purc_variant_is_object(tmp) == false)
             break;
 
-        bool silently = false;
         purc_variant_t v;
-        v = purc_variant_object_get_by_ckey(tmp, name, silently);
+        v = purc_variant_object_get_by_ckey(tmp, name);
         if (v == PURC_VARIANT_INVALID)
             break;
 

@@ -57,7 +57,7 @@ TEST(dvobjs, type)
         printf ("test _ejson.%s:\n", function[i]);
 
         purc_variant_t dynamic = purc_variant_object_get_by_ckey (ejson,
-                function[i], false);
+                function[i]);
         ASSERT_NE(dynamic, nullptr);
         ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -222,7 +222,7 @@ TEST(dvobjs, count)
         printf ("test _ejson.%s:\n", function[i]);
 
         purc_variant_t dynamic = purc_variant_object_get_by_ckey (ejson,
-                function[i], false);
+                function[i]);
         ASSERT_NE(dynamic, nullptr);
         ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -385,7 +385,7 @@ TEST(dvobjs, compare)
         printf ("test _ejson.%s:\n", function[i]);
 
         purc_variant_t dynamic = purc_variant_object_get_by_ckey (ejson,
-                function[i], false);
+                function[i]);
         ASSERT_NE(dynamic, nullptr);
         ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -551,7 +551,7 @@ TEST(dvobjs, sort)
         printf ("test _ejson.%s:\n", function[i]);
 
         purc_variant_t dynamic = purc_variant_object_get_by_ckey (ejson,
-                function[i], false);
+                function[i]);
         ASSERT_NE(dynamic, nullptr);
         ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 

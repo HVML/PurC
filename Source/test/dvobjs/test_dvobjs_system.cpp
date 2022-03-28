@@ -580,8 +580,8 @@ static bool time_us_vrtcmp(purc_variant_t t1, purc_variant_t t2)
     purc_variant_t v1, v2;
 
     if (purc_variant_is_object(t1) && purc_variant_is_object(t2)) {
-        v1 = purc_variant_object_get_by_ckey(t1, "sec", false);
-        v2 = purc_variant_object_get_by_ckey(t2, "sec", false);
+        v1 = purc_variant_object_get_by_ckey(t1, "sec");
+        v2 = purc_variant_object_get_by_ckey(t2, "sec");
 
         if (purc_variant_is_longint(v1) && purc_variant_is_longint(v2)) {
             purc_variant_cast_to_longint(v1, &u1, false);

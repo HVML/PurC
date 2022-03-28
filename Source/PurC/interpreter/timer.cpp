@@ -228,7 +228,7 @@ static pcintr_timer_t
 get_inner_timer(pcintr_stack_t stack, purc_variant_t timer_var)
 {
     purc_variant_t id;
-    id = purc_variant_object_get_by_ckey(timer_var, TIMERS_STR_ID, false);
+    id = purc_variant_object_get_by_ckey(timer_var, TIMERS_STR_ID);
     if (!id) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         return NULL;
@@ -256,7 +256,7 @@ static void
 destroy_inner_timer(pcintr_stack_t stack, purc_variant_t timer_var)
 {
     purc_variant_t id;
-    id = purc_variant_object_get_by_ckey(timer_var, TIMERS_STR_ID, false);
+    id = purc_variant_object_get_by_ckey(timer_var, TIMERS_STR_ID);
     if (!id) {
         return;
     }
@@ -277,9 +277,9 @@ timers_listener_handler(purc_variant_t source, pcvar_op_t msg_type,
     pcintr_stack_t stack = (pcintr_stack_t) ctxt;
     if (msg_type == PCVAR_OPERATION_GROW) {
         purc_variant_t interval = purc_variant_object_get_by_ckey(argv[0],
-                TIMERS_STR_INTERVAL, false);
+                TIMERS_STR_INTERVAL);
         purc_variant_t active = purc_variant_object_get_by_ckey(argv[0],
-                TIMERS_STR_ACTIVE, false);
+                TIMERS_STR_ACTIVE);
         pcintr_timer_t timer = get_inner_timer(stack, argv[0]);
         if (!timer) {
             return false;
@@ -301,9 +301,9 @@ timers_listener_handler(purc_variant_t source, pcvar_op_t msg_type,
             return false;
         }
         purc_variant_t interval = purc_variant_object_get_by_ckey(nv,
-                TIMERS_STR_INTERVAL, true);
+                TIMERS_STR_INTERVAL);
         purc_variant_t active = purc_variant_object_get_by_ckey(nv,
-                TIMERS_STR_ACTIVE, true);
+                TIMERS_STR_ACTIVE);
         if (interval != PURC_VARIANT_INVALID) {
             uint64_t ret = 0;
             purc_variant_cast_to_ulongint(interval, &ret, false);
@@ -311,6 +311,9 @@ timers_listener_handler(purc_variant_t source, pcvar_op_t msg_type,
             if (oval != ret) {
                 pcintr_timer_set_interval(timer, ret);
             }
+        }
+        else {
+            purc_clr_error();
         }
         bool next_active = pcintr_timer_is_active(timer);
         if (active != PURC_VARIANT_INVALID) {

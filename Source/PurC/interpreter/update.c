@@ -227,7 +227,7 @@ displace_object(pcintr_stack_t stack,
         purc_variant_t k = purc_variant_make_string(s_at, true);
         if (k == PURC_VARIANT_INVALID)
             return -1;
-        purc_variant_t o = purc_variant_object_get(on, k, true);
+        purc_variant_t o = purc_variant_object_get(on, k);
         PC_ASSERT(o != PURC_VARIANT_INVALID);
         purc_variant_t v = with_eval(o, src);
         PC_ASSERT(v != PURC_VARIANT_INVALID);

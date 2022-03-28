@@ -199,7 +199,7 @@ int main(void)
     DEF_ANONY_VARS(args, 10);
     purc_dvariant_method func;
 
-    dynamic = purc_variant_object_get_by_ckey(foobar, "foo", false);
+    dynamic = purc_variant_object_get_by_ckey(foobar, "foo");
     if (dynamic == PURC_VARIANT_INVALID)
         quit_on_error(2);
 
@@ -209,7 +209,7 @@ int main(void)
             purc_variant_get_string_const(retv));
     purc_variant_unref(retv);
 
-    dynamic = purc_variant_object_get_by_ckey(foobar, "bar", false);
+    dynamic = purc_variant_object_get_by_ckey(foobar, "bar");
     if (dynamic == PURC_VARIANT_INVALID)
         quit_on_error(2);
 
@@ -219,7 +219,7 @@ int main(void)
             purc_variant_get_string_const(retv));
     purc_variant_unref(retv);
 
-    dynamic = purc_variant_object_get_by_ckey(foobar, "qux", false);
+    dynamic = purc_variant_object_get_by_ckey(foobar, "qux");
     if (dynamic == PURC_VARIANT_INVALID)
         quit_on_error(2);
 
