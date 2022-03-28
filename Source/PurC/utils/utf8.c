@@ -334,6 +334,28 @@ utf8_from_uc(uint32_t uc, unsigned char* mchar)
     return len;
 }
 
+static uint32_t
+utf8_to_uc(const char* mchar)
+{
+    uint32_t uc = *((unsigned char *)(mchar++));
+    int n, t;
+
+    if (uc & 0x80) {
+        n = 1;
+        while (uc & (0x80 >> n))
+            n++;
+
+        uc &= (1 << (8-n)) - 1;
+        while (--n > 0) {
+            t = *((unsigned char *)(mchar++));
+
+            uc = (uc << 6) | (t & 0x3F);
+        }
+    }
+
+    return uc;
+}
+
 struct my_string {
     char *buff;
     size_t nr_bytes;
@@ -580,5 +602,78 @@ pcutils_string_decode_utf32(const unsigned char* bytes, size_t max_len,
 #else
 #error "Unsupported endian"
 #endif
+}
+
+size_t
+pcutils_string_decode_utf8(uint32_t *ucs, size_t max_chars,
+        const char* str_utf8)
+{
+    const char *p = str_utf8;
+    size_t n = 0;
+
+    while (*p && n < max_chars) {
+        ucs[n] = utf8_to_uc(p);
+        p = pcutils_utf8_next_char(p);
+        n++;
+    }
+
+    return n;
+}
+
+uint32_t *
+pcutils_string_decode_utf8_alloc(const char* str_utf8, ssize_t max_len,
+        size_t *nr_chars)
+{
+    size_t n;
+
+    n = pcutils_string_utf8_chars(str_utf8, max_len);
+    if (n == 0) {
+        return NULL;
+    }
+
+    uint32_t *ucs = malloc(sizeof(uint32_t) * n);
+    if (ucs == NULL)
+        return NULL;
+
+    const char *p = str_utf8;
+    n = 0;
+    while (*p) {
+        ucs[n] = utf8_to_uc(p);
+        p = pcutils_utf8_next_char(p);
+        n++;
+    }
+
+    if (nr_chars)
+        *nr_chars = n;
+
+    return ucs;
+}
+
+char *
+pcutils_string_encode_utf8(const uint32_t *ucs, size_t nr_chars,
+        size_t *sz_space)
+{
+    size_t n = 0;
+    struct my_string mystr = { NULL, 0, 0 };
+
+    while (n < nr_chars) {
+        unsigned char mchar[6];
+        size_t mchar_len;
+        mchar_len = utf8_from_uc(ucs[n], mchar);
+        if (mystring_append_mchar(&mystr, mchar, mchar_len)) {
+            goto fatal;
+        }
+
+        n++;
+    }
+
+    if (mystring_done(&mystr) == 0) {
+        if (sz_space)
+            *sz_space = mystr.sz_space;
+        return mystr.buff;
+    }
+
+fatal:
+    return NULL;
 }
 

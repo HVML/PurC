@@ -50,38 +50,20 @@ test_begin
 param_begin
 string:"";
 param_end
-invalid:;
+ulongint:0;
 test_end
 
 test_begin
 param_begin
-string:"";
-string:"";
+string:"hello world";
 param_end
-string:"";
+ulongint:11;
 test_end
 
 test_begin
 param_begin
-string:"shenzhen";
-string:"beijing";
+string:"呼噜猫";
 param_end
-string:"shenzhenbeijing";
-test_end
-
-test_begin
-param_begin
-string:"shenzhen";
-string:"";
-param_end
-string:"shenzhen";
-test_end
-
-test_begin
-param_begin
-string:"";
-string:"beijing";
-param_end
-string:"beijing";
+ulongint:3;
 test_end
 
