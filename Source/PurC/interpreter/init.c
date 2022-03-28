@@ -183,6 +183,8 @@ post_process_locally(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     return -1;
 }
 
+#define UNDEFINED       "undefined"
+
 static int
 post_process_src(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         purc_variant_t src)
@@ -202,6 +204,12 @@ post_process_src(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         return -1;
 
     PC_ASSERT(purc_variant_is_string(name));
+
+    // FIXME: <init at="name" with="undefined" />
+    if (purc_variant_is_string(src) &&
+            strcmp(purc_variant_get_string_const(src), UNDEFINED) == 0) {
+        return pcintr_unbind_named_var(co->stack, name);
+    }
 
     return post_process_bind_scope_var(co, frame, name, src);
 }
