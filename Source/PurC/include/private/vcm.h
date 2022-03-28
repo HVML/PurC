@@ -76,82 +76,82 @@ struct pcvcm_node {
 extern "C" {
 #endif  /* __cplusplus */
 
-struct pcvcm_node* pcvcm_node_new_undefined ();
+struct pcvcm_node *pcvcm_node_new_undefined();
 
-struct pcvcm_node* pcvcm_node_new_object (size_t nr_nodes,
-        struct pcvcm_node** nodes);
+struct pcvcm_node *pcvcm_node_new_object(size_t nr_nodes,
+        struct pcvcm_node **nodes);
 
-struct pcvcm_node* pcvcm_node_new_array (size_t nr_nodes,
-        struct pcvcm_node** nodes);
+struct pcvcm_node *pcvcm_node_new_array(size_t nr_nodes,
+        struct pcvcm_node **nodes);
 
-struct pcvcm_node* pcvcm_node_new_string (const char* str_utf8);
+struct pcvcm_node *pcvcm_node_new_string(const char *str_utf8);
 
-struct pcvcm_node* pcvcm_node_new_null ();
+struct pcvcm_node *pcvcm_node_new_null();
 
-struct pcvcm_node* pcvcm_node_new_boolean (bool b);
+struct pcvcm_node *pcvcm_node_new_boolean(bool b);
 
-struct pcvcm_node* pcvcm_node_new_number (double d);
+struct pcvcm_node *pcvcm_node_new_number(double d);
 
-struct pcvcm_node* pcvcm_node_new_longint (int64_t i64);
+struct pcvcm_node *pcvcm_node_new_longint(int64_t i64);
 
-struct pcvcm_node* pcvcm_node_new_ulongint (uint64_t u64);
+struct pcvcm_node *pcvcm_node_new_ulongint(uint64_t u64);
 
-struct pcvcm_node* pcvcm_node_new_longdouble (long double ld);
+struct pcvcm_node *pcvcm_node_new_longdouble(long double ld);
 
-struct pcvcm_node* pcvcm_node_new_byte_sequence (const void* bytes,
+struct pcvcm_node *pcvcm_node_new_byte_sequence(const void *bytes,
         size_t nr_bytes);
 
-struct pcvcm_node* pcvcm_node_new_byte_sequence_from_bx (const void* bytes,
+struct pcvcm_node *pcvcm_node_new_byte_sequence_from_bx(const void *bytes,
         size_t nr_bytes);
 
-struct pcvcm_node* pcvcm_node_new_byte_sequence_from_bb (const void* bytes,
+struct pcvcm_node *pcvcm_node_new_byte_sequence_from_bb(const void *bytes,
         size_t nr_bytes);
 
-struct pcvcm_node* pcvcm_node_new_byte_sequence_from_b64 (const void* bytes,
+struct pcvcm_node *pcvcm_node_new_byte_sequence_from_b64 (const void *bytes,
         size_t nr_bytes);
 
-struct pcvcm_node* pcvcm_node_new_concat_string (size_t nr_nodes,
-        struct pcvcm_node* nodes);
+struct pcvcm_node *pcvcm_node_new_concat_string(size_t nr_nodes,
+        struct pcvcm_node *nodes);
 
-struct pcvcm_node* pcvcm_node_new_get_variable (struct pcvcm_node* node);
+struct pcvcm_node *pcvcm_node_new_get_variable(struct pcvcm_node *node);
 
-struct pcvcm_node* pcvcm_node_new_get_element (struct pcvcm_node* variable,
-        struct pcvcm_node* identifier);
+struct pcvcm_node *pcvcm_node_new_get_element(struct pcvcm_node *variable,
+        struct pcvcm_node *identifier);
 
-struct pcvcm_node* pcvcm_node_new_call_getter (struct pcvcm_node* variable,
-        size_t nr_params, struct pcvcm_node* params);
+struct pcvcm_node *pcvcm_node_new_call_getter(struct pcvcm_node *variable,
+        size_t nr_params, struct pcvcm_node *params);
 
-struct pcvcm_node* pcvcm_node_new_call_setter (struct pcvcm_node* variable,
-        size_t nr_params, struct pcvcm_node* params);
+struct pcvcm_node *pcvcm_node_new_call_setter(struct pcvcm_node *variable,
+        size_t nr_params, struct pcvcm_node *params);
 
 
-char* pcvcm_node_to_string (struct pcvcm_node* node, size_t* nr_bytes);
+char *pcvcm_node_to_string(struct pcvcm_node *node, size_t *nr_bytes);
 
 /*
  * Removes root and its children from the tree, freeing any memory allocated.
  */
-void pcvcm_node_destroy (struct pcvcm_node* root);
+void pcvcm_node_destroy(struct pcvcm_node *root);
 
 struct pcvcm_stack;
-struct pcvcm_stack* pcvcm_stack_new ();
+struct pcvcm_stack *pcvcm_stack_new();
 
-bool pcvcm_stack_is_empty (struct pcvcm_stack* stack);
+bool pcvcm_stack_is_empty(struct pcvcm_stack *stack);
 
-void pcvcm_stack_push (struct pcvcm_stack* stack, struct pcvcm_node* e);
+void pcvcm_stack_push(struct pcvcm_stack *stack, struct pcvcm_node *e);
 
-struct pcvcm_node* pcvcm_stack_pop (struct pcvcm_stack* stack);
+struct pcvcm_node *pcvcm_stack_pop(struct pcvcm_stack *stack);
 
-struct pcvcm_node* pcvcm_stack_bottommost (struct pcvcm_stack* stack);
+struct pcvcm_node *pcvcm_stack_bottommost(struct pcvcm_stack *stack);
 
-void pcvcm_stack_destroy (struct pcvcm_stack* stack);
+void pcvcm_stack_destroy(struct pcvcm_stack *stack);
 
-typedef purc_variant_t (*cb_find_var) (void* ctxt, const char* name);
+typedef purc_variant_t(*cb_find_var) (void *ctxt, const char *name);
 
-purc_variant_t pcvcm_eval_ex (struct pcvcm_node* tree, cb_find_var find_var,
-        void* ctxt, bool silently);
+purc_variant_t pcvcm_eval_ex(struct pcvcm_node *tree, cb_find_var find_var,
+        void *ctxt, bool silently);
 
 struct pcintr_stack;
-purc_variant_t pcvcm_eval (struct pcvcm_node* tree, struct pcintr_stack* stack,
+purc_variant_t pcvcm_eval(struct pcvcm_node *tree, struct pcintr_stack *stack,
         bool silently);
 
 #define PRINT_VCM_NODE(_node) do {                                        \
