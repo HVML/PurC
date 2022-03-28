@@ -312,6 +312,9 @@ timers_listener_handler(purc_variant_t source, pcvar_op_t msg_type,
                 pcintr_timer_set_interval(timer, ret);
             }
         }
+        else {
+            purc_clr_error();
+        }
         bool next_active = pcintr_timer_is_active(timer);
         if (active != PURC_VARIANT_INVALID) {
             if (is_euqal(active, TIMERS_STR_YES)) {
