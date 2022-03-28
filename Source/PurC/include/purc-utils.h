@@ -550,6 +550,18 @@ PCA_EXPORT char *
 pcutils_string_decode_utf32(const unsigned char* bytes, size_t max_len,
         size_t *sz_space, bool silently);
 
+PCA_EXPORT size_t
+pcutils_string_decode_utf8(uint32_t *ucs, size_t max_chars,
+        const char* str_utf8);
+
+PCA_EXPORT uint32_t *
+pcutils_string_decode_utf8_alloc(const char* str_utf8, ssize_t max_len,
+        size_t *nr_chars);
+
+PCA_EXPORT char *
+pcutils_string_encode_utf8(const uint32_t *ucs, size_t nr_chars,
+        size_t *sz_space);
+
 typedef union {
     int64_t     i64;
     uint64_t    u64;

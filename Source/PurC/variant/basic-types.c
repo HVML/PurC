@@ -87,8 +87,7 @@ purc_variant_t purc_variant_make_exception(purc_atom_t except_atom)
         return PURC_VARIANT_INVALID;
     }
 
-    purc_variant_t value = pcvariant_get (PURC_VARIANT_TYPE_EXCEPTION);
-
+    purc_variant_t value = pcvariant_get(PURC_VARIANT_TYPE_EXCEPTION);
     if (value == NULL) {
         pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
         return PURC_VARIANT_INVALID;
@@ -99,7 +98,8 @@ purc_variant_t purc_variant_make_exception(purc_atom_t except_atom)
     value->flags = 0;
     value->refc = 1;
     value->atom = except_atom;
-
+    value->extra_size = pcutils_string_utf8_chars(
+            purc_atom_to_string(except_atom), -1);
     return value;
 }
 
@@ -348,7 +348,7 @@ const char* purc_variant_get_string_const_ex(purc_variant_t string,
 
     const char *str_str = NULL;
 
-    if (IS_TYPE (string, PURC_VARIANT_TYPE_STRING)) {
+    if (IS_TYPE(string, PURC_VARIANT_TYPE_STRING)) {
         if ((string->flags & PCVARIANT_FLAG_EXTRA_SIZE) ||
                 (string->flags & PCVARIANT_FLAG_STRING_STATIC)) {
             str_str = (const char *)string->sz_ptr[1];
@@ -359,13 +359,13 @@ const char* purc_variant_get_string_const_ex(purc_variant_t string,
             len = string->size - 1;
         }
     }
-    else if (IS_TYPE (string, PURC_VARIANT_TYPE_ATOMSTRING) ||
-            IS_TYPE (string, PURC_VARIANT_TYPE_EXCEPTION)) {
+    else if (IS_TYPE(string, PURC_VARIANT_TYPE_ATOMSTRING) ||
+            IS_TYPE(string, PURC_VARIANT_TYPE_EXCEPTION)) {
         str_str = purc_atom_to_string(string->atom);
         len = strlen(str_str);
     }
     else {
-        pcinst_set_error (PCVARIANT_ERROR_INVALID_TYPE);
+        pcinst_set_error(PCVARIANT_ERROR_INVALID_TYPE);
     }
 
     if (str_str && str_len) {
@@ -440,6 +440,7 @@ purc_variant_make_atom_string (const char* str_utf8, bool check_encoding)
         }
     }
     else {
+        // XXX: the string must be enconded in UTF-8 correctly.
         nr_chars = pcutils_string_utf8_chars(str_utf8, -1);
     }
 
@@ -461,6 +462,7 @@ purc_variant_make_atom_string (const char* str_utf8, bool check_encoding)
     value->flags = 0;
     value->refc = 1;
     value->atom = atom;
+    value->extra_size = nr_chars;
 
     return value;
 }
@@ -481,6 +483,7 @@ purc_variant_make_atom_string_static(const char* str_utf8,
         }
     }
     else {
+        // XXX: the string must be enconded in UTF-8 correctly.
         nr_chars = pcutils_string_utf8_chars(str_utf8, -1);
     }
 
@@ -490,7 +493,7 @@ purc_variant_make_atom_string_static(const char* str_utf8,
         return PURC_VARIANT_INVALID;
     }
 
-    value = pcvariant_get (PURC_VARIANT_TYPE_ATOMSTRING);
+    value = pcvariant_get(PURC_VARIANT_TYPE_ATOMSTRING);
 
     if (value == NULL) {
         pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
@@ -503,6 +506,7 @@ purc_variant_make_atom_string_static(const char* str_utf8,
     value->flags = PCVARIANT_FLAG_STRING_STATIC;
     value->refc = 1;
     value->atom = atom;
+    value->extra_size = nr_chars;
 
     return value;
 }

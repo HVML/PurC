@@ -1027,9 +1027,9 @@ TEST(dvobjs, dvobjs_string_format_p)
     purc_cleanup ();
 }
 
-TEST(dvobjs, dvobjs_string_strcat)
+TEST(dvobjs, dvobjs_string_join)
 {
-    const char *function[] = {"strcat"};
+    const char *function[] = {"join"};
     purc_variant_t param[MAX_PARAM_NR];
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_variant_t ret_result = PURC_VARIANT_INVALID;
@@ -1192,9 +1192,9 @@ TEST(dvobjs, dvobjs_string_strcat)
     purc_cleanup ();
 }
 
-TEST(dvobjs, dvobjs_string_lower)
+TEST(dvobjs, dvobjs_string_tolower)
 {
-    const char *function[] = {"lower"};
+    const char *function[] = {"tolower"};
     purc_variant_t param[MAX_PARAM_NR];
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_variant_t ret_result = PURC_VARIANT_INVALID;
@@ -1357,9 +1357,9 @@ TEST(dvobjs, dvobjs_string_lower)
     purc_cleanup ();
 }
 
-TEST(dvobjs, dvobjs_string_upper)
+TEST(dvobjs, dvobjs_string_toupper)
 {
-    const char *function[] = {"upper"};
+    const char *function[] = {"toupper"};
     purc_variant_t param[MAX_PARAM_NR];
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_variant_t ret_result = PURC_VARIANT_INVALID;
@@ -1522,9 +1522,9 @@ TEST(dvobjs, dvobjs_string_upper)
     purc_cleanup ();
 }
 
-TEST(dvobjs, dvobjs_string_strlen)
+TEST(dvobjs, dvobjs_string_nr_chars)
 {
-    const char *function[] = {"strlen"};
+    const char *function[] = {"nr_chars"};
     purc_variant_t param[MAX_PARAM_NR];
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_variant_t ret_result = PURC_VARIANT_INVALID;
