@@ -91,27 +91,6 @@
             _r->d = _a.d;                              \
     } while (0)
 
-    #define ASSIGN(_a, _b) do {                                           \
-        if (!param->variables) {                                          \
-            param->variables = purc_variant_make_object(0, NULL, NULL);   \
-            if (!param->variables)                                        \
-                YYABORT;                                                  \
-        }                                                                 \
-        purc_variant_t v;                                                 \
-        v = MAKE_NUMBER(_b.d);                                            \
-        if (!v)                                                           \
-            YYABORT;                                                      \
-                                                                          \
-        purc_variant_t k = purc_variant_make_string(_a, true);            \
-        bool ok;                                                          \
-        ok = purc_variant_object_set(param->variables, k, v);             \
-        purc_variant_unref(k);                                            \
-        purc_variant_unref(v);                                            \
-                                                                          \
-        if (!ok)                                                          \
-            YYABORT;                                                      \
-    } while (0)
-
     #define NEG(_r, _a) do {                           \
             _r.d = -_a.d;                              \
     } while (0)
@@ -205,11 +184,6 @@ input:
 
 statement:
   exp         { SET(param, $1); }
-| assignment
-;
-
-assignment:
-  VAR '=' exp      { ASSIGN($1, $3); free($1); }
 ;
 
 exp: 
