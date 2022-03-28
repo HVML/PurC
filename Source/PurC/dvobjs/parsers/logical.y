@@ -332,22 +332,7 @@
 
 input:
   %empty
-| statements
-| statements nop
-| nop statements
-| nop statements nop
-;
-
-statements:
-  statement
-| statements nop statement
-;
-
-nop:
-  '\n'
-| ';'
-| nop '\n'
-| nop ';'
+| statement
 ;
 
 statement:
