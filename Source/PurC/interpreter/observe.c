@@ -391,6 +391,13 @@ attr_found(struct pcintr_stack_frame *frame,
     return r ? -1 : 0;
 }
 
+static void
+on_named_observe_release(void* native_entity)
+{
+    struct pcintr_observer *observer = (struct pcintr_observer*)native_entity;
+    pcintr_revoke_observer(observer);
+}
+
 static void*
 after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 {
@@ -470,6 +477,23 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
             frame->edom_element, pos, listener);
     if (observer == NULL) {
         return NULL;
+    }
+
+    if (ctxt->as != PURC_VARIANT_INVALID && purc_variant_is_string(ctxt->as)) {
+        const char* name = purc_variant_get_string_const(ctxt->as);
+        static struct purc_native_ops ops = {
+            .on_release                   = on_named_observe_release,
+        };
+
+        purc_variant_t v = purc_variant_make_native(observer, &ops);
+        if (v == PURC_VARIANT_INVALID) {
+            pcintr_revoke_observer(observer);
+            return NULL;
+        }
+        if(!pcintr_bind_document_variable(stack->vdom, name, v)) {
+            purc_variant_unref(v); // on_release
+            return NULL;
+        }
     }
 
     purc_clr_error();
