@@ -293,7 +293,7 @@ join_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto fatal;
     }
 
-    for (size_t i; i < nr_args; i++) {
+    for (size_t i = 0; i < nr_args; i++) {
         const char *str;
         size_t len_str;
 

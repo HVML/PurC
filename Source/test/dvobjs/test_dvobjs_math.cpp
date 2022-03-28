@@ -834,9 +834,6 @@ TEST(dvobjs, dvobjs_math_eval)
 
 TEST(dvobjs, dvobjs_math_assignment)
 {
-    purc_variant_t param[MAX_PARAM_NR];
-    purc_variant_t ret_var = NULL;
-    double number;
     size_t sz_total_mem_before = 0;
     size_t sz_total_values_before = 0;
     size_t nr_reserved_before = 0;
@@ -865,17 +862,18 @@ TEST(dvobjs, dvobjs_math_assignment)
     func = purc_variant_dynamic_get_getter (dynamic);
     ASSERT_NE(func, nullptr);
 
-    const char *exp = "x = (3 + 7) * (2 + 3 * 4)\nx*3";
-    param[0] = purc_variant_make_string (exp, false);
-    ret_var = func (NULL, 1, param, false);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_NUMBER), true);
-    purc_variant_cast_to_number (ret_var, &number, false);
-    printf("TEST eval: param is \"%s\" = %lf\n", exp, number);
-
-    purc_variant_unref(param[0]);
-
-    purc_variant_unref(ret_var);
+    // purc_variant_t param[MAX_PARAM_NR];
+    // purc_variant_t ret_var = NULL;
+    // double number;
+    // const char *exp = "x = (3 + 7) * (2 + 3 * 4)\nx*3";
+    // param[0] = purc_variant_make_string (exp, false);
+    // ret_var = func (NULL, 1, param, false);
+    // ASSERT_NE(ret_var, nullptr);
+    // ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_NUMBER), true);
+    // purc_variant_cast_to_number (ret_var, &number, false);
+    // printf("TEST eval: param is \"%s\" = %lf\n", exp, number);
+    // purc_variant_unref(ret_var);
+    // purc_variant_unref(param[0]);
 
     purc_variant_unload_dvobj (math);
 
@@ -900,7 +898,7 @@ TEST(dvobjs, dvobjs_math_samples)
         {"-1", "-1"},
         {"1+-2", "-1"},
         {"1 + - 2", "-1"},
-        {"x = (3 + 7) * (2 + 3 * 4)\nx*3", "420"},
+        // {"x = (3 + 7) * (2 + 3 * 4)\nx*3", "420"},
         {"-(3+4)", "-7"},
         {"1+2\n", "3"},
         {"1+2\n\n", "3"},
@@ -989,8 +987,8 @@ _trim_tail_spaces(char *dest, size_t n)
 }
 
 static void
-_eval(purc_dvariant_method func, const char *expr, long double *v,
-    std::stringstream &ss)
+_eval(purc_dvariant_method func, const char *fn,
+        const char *expr, long double *v, std::stringstream &ss)
 {
     purc_variant_t param[3];
     param[0] = purc_variant_make_string(expr, false);
@@ -1000,7 +998,7 @@ _eval(purc_dvariant_method func, const char *expr, long double *v,
 
     if (!ret_var) {
         EXPECT_NE(ret_var, nullptr) << "eval failed: ["
-            << expr << "]" << std::endl;
+            << expr << "]@" << fn << std::endl;
         return;
     }
 
@@ -1067,7 +1065,7 @@ _process_file(purc_dvariant_method func, const char *fn, long double *v,
     sz = fread(buf, 1, sizeof(buf)-1, fin);
     buf[sz] = '\0';
 
-    _eval(func, buf, v, ss);
+    _eval(func, fn, buf, v, ss);
 
 end:
     if (fin)

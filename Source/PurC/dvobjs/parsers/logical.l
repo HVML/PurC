@@ -93,13 +93,13 @@ do {                                              \
           if (state != INITIAL) return -1;
           yyterminate(); }
 
-[!<>();]       { C(); R(); return *yytext; }
-">="	       { C(); R(); return MKT(GE); }
-"<="	       { C(); R(); return MKT(LE); }
-"=="	       { C(); R(); return MKT(EQ); }
-"!="	       { C(); R(); return MKT(NE); }
-"&&"	       { C(); R(); return MKT(AND); }
-"||"	       { C(); R(); return MKT(OR); }
+[!<>();]   { C(); R(); return *yytext; }
+">="       { C(); R(); return MKT(GE); }
+"<="       { C(); R(); return MKT(LE); }
+"=="       { C(); R(); return MKT(EQ); }
+"!="       { C(); R(); return MKT(NE); }
+"&&"       { C(); R(); return MKT(AND); }
+"||"       { C(); R(); return MKT(OR); }
 
 
 
@@ -115,10 +115,9 @@ do {                                              \
 
 [_[:alpha:]][[:alnum:]]*  { C(); SET_VAR(); R(); return MKT(VAR); }
 
-[ \t]   { C(); R(); /* ignore white space */ }
+[ \t\r\n]   { C(); R(); /* ignore white space */ }
 
-.	    { C(); R(); return *yytext; } /* let bison to handle it */
-\n      { L(); R(); return *yytext; }
+.           { C(); R(); return *yytext; } /* let bison to handle it */
 
 %%
 
