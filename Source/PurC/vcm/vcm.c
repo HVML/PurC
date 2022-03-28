@@ -54,44 +54,6 @@
 #define MIN_BUF_SIZE         32
 #define MAX_BUF_SIZE         SIZE_MAX
 
-#if 0
-#define PCVCM_CHECK_FAIL_RET(node, variant, silently)                       \
-    if (node->type != PCVCM_NODE_TYPE_UNDEFINED) {                          \
-        if (variant == PURC_VARIANT_INVALID) {                              \
-            return silently ? purc_variant_make_undefined() : variant;      \
-        }                                                                   \
-        else if (purc_variant_is_undefined(variant)) {                      \
-            return variant;                                                 \
-        }                                                                   \
-    }                                                                       \
-    else if (variant == PURC_VARIANT_INVALID) {                             \
-        return variant;                                                     \
-    }
-
-#define PCVCM_CHECK_FAIL_GOTO(node, variant, silently, label)               \
-    if (node->type != PCVCM_NODE_TYPE_UNDEFINED) {                          \
-        if (variant == PURC_VARIANT_INVALID) {                              \
-            goto label;                                                     \
-        }                                                                   \
-        else if (purc_variant_is_undefined(variant)) {                      \
-            goto label;                                                     \
-        }                                                                   \
-    }                                                                       \
-    else if (variant == PURC_VARIANT_INVALID) {                             \
-        goto label;                                                         \
-    }
-#endif
-
-#define PCVCM_CHECK_FAIL_RET(node, variant, silently)                       \
-    if (variant == PURC_VARIANT_INVALID) {                                  \
-        return variant;                                                     \
-    }
-
-#define PCVCM_CHECK_FAIL_GOTO(node, variant, silently, label)               \
-    if (variant == PURC_VARIANT_INVALID) {                                  \
-        goto label;                                                         \
-    }
-
 struct pcvcm_node_op {
     cb_find_var find_var;
     void *find_var_ctxt;
@@ -441,29 +403,33 @@ struct pcvcm_node *pcvcm_node_new_call_setter(struct pcvcm_node *variable,
     return n;
 }
 
-#define WRITE_CHILD_NODE()                                                  \
-    do {                                                                    \
-        struct pcvcm_node *child = FIRST_CHILD(node);                       \
-        while (child) {                                                     \
-            pcvcm_node_write_to_rwstream(rws, child);                       \
-            child = NEXT_CHILD(child);                                      \
-            if (child) {                                                    \
-                purc_rwstream_write(rws, ",", 1);                           \
-            }                                                               \
-        }                                                                   \
-    } while (false)
-
-#define WRITE_VARIANT()                                                     \
-    do {                                                                    \
-        size_t len_expected = 0;                                            \
-        purc_variant_serialize(v, rws, 0,                                   \
-                PCVARIANT_SERIALIZE_OPT_REAL_EJSON |                        \
-                PCVARIANT_SERIALIZE_OPT_BSEQUENCE_BASE64 |                  \
-                PCVARIANT_SERIALIZE_OPT_PLAIN,                              \
-                &len_expected);                                             \
-    } while (false)
+static
+void pcvcm_node_write_to_rwstream(purc_rwstream_t rws, struct pcvcm_node *node);
 
 static
+void write_child_node_rwstream(purc_rwstream_t rws, struct pcvcm_node *node)
+{
+    struct pcvcm_node *child = FIRST_CHILD(node);
+    while (child) {
+        pcvcm_node_write_to_rwstream(rws, child);
+        child = NEXT_CHILD(child);
+        if (child) {
+            purc_rwstream_write(rws, ",", 1);
+        }
+    }
+}
+
+static
+void write_variant_to_rwstream(purc_rwstream_t rws, purc_variant_t v)
+{
+    size_t len_expected = 0;
+    purc_variant_serialize(v, rws, 0,
+            PCVARIANT_SERIALIZE_OPT_REAL_EJSON |
+            PCVARIANT_SERIALIZE_OPT_BSEQUENCE_BASE64 |
+            PCVARIANT_SERIALIZE_OPT_PLAIN,
+            &len_expected);
+}
+
 void pcvcm_node_write_to_rwstream(purc_rwstream_t rws, struct pcvcm_node *node)
 {
     switch(node->type)
@@ -474,13 +440,13 @@ void pcvcm_node_write_to_rwstream(purc_rwstream_t rws, struct pcvcm_node *node)
 
     case PCVCM_NODE_TYPE_OBJECT:
         purc_rwstream_write(rws, "make_object(", 12);
-        WRITE_CHILD_NODE();
+        write_child_node_rwstream(rws, node);;
         purc_rwstream_write(rws, ")", 1);
         break;
 
     case PCVCM_NODE_TYPE_ARRAY:
         purc_rwstream_write(rws, "make_array(", 11);
-        WRITE_CHILD_NODE();
+        write_child_node_rwstream(rws, node);;
         purc_rwstream_write(rws, ")", 1);
         break;
 
@@ -498,7 +464,7 @@ void pcvcm_node_write_to_rwstream(purc_rwstream_t rws, struct pcvcm_node *node)
     case PCVCM_NODE_TYPE_BOOLEAN:
     {
         purc_variant_t v = purc_variant_make_boolean(node->b);
-        WRITE_VARIANT();
+        write_variant_to_rwstream(rws, v);;
         purc_variant_unref(v);
         break;
     }
@@ -506,7 +472,7 @@ void pcvcm_node_write_to_rwstream(purc_rwstream_t rws, struct pcvcm_node *node)
     case PCVCM_NODE_TYPE_NUMBER:
     {
         purc_variant_t v = purc_variant_make_number(node->d);
-        WRITE_VARIANT();
+        write_variant_to_rwstream(rws, v);;
         purc_variant_unref(v);
         break;
     }
@@ -514,7 +480,7 @@ void pcvcm_node_write_to_rwstream(purc_rwstream_t rws, struct pcvcm_node *node)
     case PCVCM_NODE_TYPE_LONG_INT:
     {
         purc_variant_t v = purc_variant_make_longint(node->i64);
-        WRITE_VARIANT();
+        write_variant_to_rwstream(rws, v);;
         purc_variant_unref(v);
         break;
     }
@@ -522,7 +488,7 @@ void pcvcm_node_write_to_rwstream(purc_rwstream_t rws, struct pcvcm_node *node)
     case PCVCM_NODE_TYPE_ULONG_INT:
     {
         purc_variant_t v = purc_variant_make_ulongint(node->u64);
-        WRITE_VARIANT();
+        write_variant_to_rwstream(rws, v);;
         purc_variant_unref(v);
         break;
     }
@@ -530,7 +496,7 @@ void pcvcm_node_write_to_rwstream(purc_rwstream_t rws, struct pcvcm_node *node)
     case PCVCM_NODE_TYPE_LONG_DOUBLE:
     {
         purc_variant_t v = purc_variant_make_longdouble(node->ld);
-        WRITE_VARIANT();
+        write_variant_to_rwstream(rws, v);;
         purc_variant_unref(v);
         break;
     }
@@ -539,38 +505,38 @@ void pcvcm_node_write_to_rwstream(purc_rwstream_t rws, struct pcvcm_node *node)
     {
         purc_variant_t v = purc_variant_make_byte_sequence(
                 (void*)node->sz_ptr[1], node->sz_ptr[0]);
-        WRITE_VARIANT();
+        write_variant_to_rwstream(rws, v);;
         purc_variant_unref(v);
         break;
     }
 
     case PCVCM_NODE_TYPE_FUNC_CONCAT_STRING:
         purc_rwstream_write(rws, "concat_string(", 14);
-        WRITE_CHILD_NODE();
+        write_child_node_rwstream(rws, node);;
         purc_rwstream_write(rws, ")", 1);
         break;
 
     case PCVCM_NODE_TYPE_FUNC_GET_VARIABLE:
         purc_rwstream_write(rws, "get_variable(", 13);
-        WRITE_CHILD_NODE();
+        write_child_node_rwstream(rws, node);;
         purc_rwstream_write(rws, ")", 1);
         break;
 
     case PCVCM_NODE_TYPE_FUNC_GET_ELEMENT:
         purc_rwstream_write(rws, "get_element(", 12);
-        WRITE_CHILD_NODE();
+        write_child_node_rwstream(rws, node);;
         purc_rwstream_write(rws, ")", 1);
         break;
 
     case PCVCM_NODE_TYPE_FUNC_CALL_GETTER:
         purc_rwstream_write(rws, "call_getter(", 12);
-        WRITE_CHILD_NODE();
+        write_child_node_rwstream(rws, node);;
         purc_rwstream_write(rws, ")", 1);
         break;
 
     case PCVCM_NODE_TYPE_FUNC_CALL_SETTER:
         purc_rwstream_write(rws, "call_setter(", 12);
-        WRITE_CHILD_NODE();
+        write_child_node_rwstream(rws, node);;
         purc_rwstream_write(rws, ")", 1);
         break;
     }
@@ -673,28 +639,38 @@ void pcvcm_stack_destroy(struct pcvcm_stack *stack)
     free(stack);
 }
 
+static
 purc_variant_t pcvcm_node_to_variant(struct pcvcm_node *node,
         struct pcvcm_node_op *ops, bool silently);
 
+static
 purc_variant_t pcvcm_node_object_to_variant(struct pcvcm_node *node,
         struct pcvcm_node_op *ops, bool silently)
 {
     purc_variant_t object = purc_variant_make_object(0,
             PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
-    if (!object) {
+    if (object == PURC_VARIANT_INVALID) {
         return PURC_VARIANT_INVALID;
     }
 
+    purc_variant_t key;
+    purc_variant_t value;
     struct pcvcm_node *k_node = FIRST_CHILD(node);
     struct pcvcm_node *v_node = NEXT_CHILD(k_node);
     while (k_node && v_node) {
-        purc_variant_t key = pcvcm_node_to_variant(k_node, ops, silently);
-        PCVCM_CHECK_FAIL_RET(k_node, key, silently);
+        key = pcvcm_node_to_variant(k_node, ops, silently);
+        if (key == PURC_VARIANT_INVALID) {
+            goto out_unref_object;
+        }
 
-        purc_variant_t value = pcvcm_node_to_variant(v_node, ops, silently);
-        PCVCM_CHECK_FAIL_RET(v_node, value, silently);
+        value = pcvcm_node_to_variant(v_node, ops, silently);
+        if (value == PURC_VARIANT_INVALID) {
+            goto out_unref_key;
+        }
 
-        purc_variant_object_set(object, key, value);
+        if (!purc_variant_object_set(object, key, value)) {
+            goto out_unref_value;
+        }
 
         purc_variant_unref(key);
         purc_variant_unref(value);
@@ -704,40 +680,51 @@ purc_variant_t pcvcm_node_object_to_variant(struct pcvcm_node *node,
     }
 
     return object;
+
+out_unref_value:
+    purc_variant_unref(value);
+out_unref_key:
+    purc_variant_unref(key);
+out_unref_object:
+    purc_variant_unref(object);
+    return PURC_VARIANT_INVALID;
 }
 
 purc_variant_t pcvcm_node_array_to_variant(struct pcvcm_node *node,
        struct pcvcm_node_op *ops, bool silently)
 {
     purc_variant_t array = purc_variant_make_array(0, PURC_VARIANT_INVALID);
-    if (!array) {
+    if (array == PURC_VARIANT_INVALID) {
         return PURC_VARIANT_INVALID;
     }
 
+    purc_variant_t v;
     struct pcvcm_node *array_node = FIRST_CHILD(node);
     while (array_node) {
-        purc_variant_t vt = pcvcm_node_to_variant(array_node, ops, silently);
-        PCVCM_CHECK_FAIL_GOTO(array_node, vt, silently, err);
-        purc_variant_array_append(array, vt);
-        purc_variant_unref(vt);
+        v = pcvcm_node_to_variant(array_node, ops, silently);
+        if (v == PURC_VARIANT_INVALID) {
+            goto out_unref_array;
+        }
+
+        if(!purc_variant_array_append(array, v)) {
+            goto out_unref_v;
+        }
+        purc_variant_unref(v);
 
         array_node = NEXT_CHILD(array_node);
     }
     return array;
 
-err:
-    if (array) {
-        purc_variant_unref(array);
-    }
+out_unref_v:
+    purc_variant_unref(v);
+out_unref_array:
+    purc_variant_unref(array);
     return PURC_VARIANT_INVALID;
 }
 
 purc_variant_t pcvcm_node_concat_string_to_variant(struct pcvcm_node *node,
        struct pcvcm_node_op *ops, bool silently)
 {
-    UNUSED_PARAM(node);
-    UNUSED_PARAM(ops);
-
     purc_rwstream_t rws = purc_rwstream_new_buffer(MIN_BUF_SIZE, MAX_BUF_SIZE);
     if (!rws) {
         return PURC_VARIANT_INVALID;
@@ -747,8 +734,11 @@ purc_variant_t pcvcm_node_concat_string_to_variant(struct pcvcm_node *node,
     struct pcvcm_node *child = FIRST_CHILD(node);
     while (child) {
         purc_variant_t v = pcvcm_node_to_variant(child, ops, silently);
-        PCVCM_CHECK_FAIL_GOTO(child, v, silently, err);
+        if (v == PURC_VARIANT_INVALID) {
+            goto out_destroy_rws;
+        }
 
+        // FIXME: stringify or serialize
         char *buf = NULL;
         int total = purc_variant_stringify_alloc(&buf, v);
         if (total) {
@@ -784,11 +774,12 @@ purc_variant_t pcvcm_node_concat_string_to_variant(struct pcvcm_node *node,
         }
     }
 
-err:
+out_destroy_rws:
     purc_rwstream_destroy(rws);
     return ret_var;
 }
 
+static
 purc_variant_t pcvcm_node_get_variable_to_variant(struct pcvcm_node *node,
        struct pcvcm_node_op *ops, bool silently)
 {
@@ -840,6 +831,7 @@ enum method_type {
     SETTER_METHOD
 };
 
+static
 purc_variant_t call_dvariant_method(purc_variant_t root, purc_variant_t var,
         size_t nr_args, purc_variant_t *argv, enum method_type type,
         bool silently)
@@ -853,6 +845,7 @@ purc_variant_t call_dvariant_method(purc_variant_t root, purc_variant_t var,
     return PURC_VARIANT_INVALID;
 }
 
+static
 purc_variant_t call_nvariant_method(purc_variant_t var,
         const char *key_name, size_t nr_args, purc_variant_t *argv,
         enum method_type type, bool silently)
@@ -875,27 +868,34 @@ static purc_variant_t get_attach_variant(struct pcvcm_node *node)
     return node ? (purc_variant_t)node->attach : PURC_VARIANT_INVALID;
 }
 
+static
 purc_variant_t pcvcm_node_get_element_to_variant(struct pcvcm_node *node,
        struct pcvcm_node_op *ops, bool silently)
 {
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     struct pcvcm_node *caller_node = FIRST_CHILD(node);
     if (!caller_node) {
-        goto err;
+        goto out;
     }
 
-    purc_variant_t caller_var = pcvcm_node_to_variant(caller_node, ops, silently);
-    PCVCM_CHECK_FAIL_GOTO(caller_node, caller_var, silently, err);
+    purc_variant_t caller_var = pcvcm_node_to_variant(caller_node, ops,
+            silently);
+    if (caller_var == PURC_VARIANT_INVALID) {
+        goto out;
+    }
 
     struct pcvcm_node *param_node  = NEXT_CHILD(caller_node);
-    purc_variant_t param_var = pcvcm_node_to_variant(param_node, ops, silently);
-    PCVCM_CHECK_FAIL_GOTO(param_node, param_var, silently, clean_caller_var);
+    purc_variant_t param_var = pcvcm_node_to_variant(param_node, ops,
+            silently);
+    if (param_var == PURC_VARIANT_INVALID) {
+        goto out_unref_caller_var;
+    }
 
     bool has_index = true;
     int64_t index = -1;
     if (param_node->type == PCVCM_NODE_TYPE_STRING) {
-        if (pcutils_parse_int64((const char*)param_node->sz_ptr[1], param_node->sz_ptr[0],
-                    &index) != 0) {
+        if (pcutils_parse_int64((const char*)param_node->sz_ptr[1],
+                    param_node->sz_ptr[0], &index) != 0) {
             has_index = false;
         }
     }
@@ -905,19 +905,24 @@ purc_variant_t pcvcm_node_get_element_to_variant(struct pcvcm_node *node,
 
     if (purc_variant_is_object(caller_var)) {
         purc_variant_t val = purc_variant_object_get(caller_var, param_var);
-        if (!val) {
-            goto clear_param_var;
+        if (val != PURC_VARIANT_INVALID) {
+            purc_variant_ref(val);
+        }
+        else if (silently) {
+            val = purc_variant_make_undefined();
+        }
+        else {
+            goto out_unref_param_var;
         }
 
-        purc_variant_ref(val);
         if (!purc_variant_is_dynamic(val)) {
             ret_var = val;
-            goto clear_param_var;
+            goto out_unref_param_var;
         }
 
         if (!is_handle_as_getter(node)) {
             ret_var = val;
-            goto clear_param_var;
+            goto out_unref_param_var;
         }
 
         ret_var = call_dvariant_method(caller_var, val, 0, NULL, GETTER_METHOD,
@@ -926,30 +931,30 @@ purc_variant_t pcvcm_node_get_element_to_variant(struct pcvcm_node *node,
     }
     else if (purc_variant_is_array(caller_var)) {
         if (!has_index) {
-            goto clear_param_var;
+            goto out_unref_param_var;
         }
         if (index < 0) {
             size_t len = purc_variant_array_get_size(caller_var);
             index += len;
         }
         if (index < 0) {
-            goto clear_param_var;
+            goto out_unref_param_var;
         }
 
         purc_variant_t val = purc_variant_array_get(caller_var, index);
-        if (!val) {
-            goto clear_param_var;
+        if (val == PURC_VARIANT_INVALID) {
+            goto out_unref_param_var;
         }
 
         purc_variant_ref(val);
         if (!purc_variant_is_dynamic(val)) {
             ret_var = val;
-            goto clear_param_var;
+            goto out_unref_param_var;
         }
 
         if (!is_handle_as_getter(node)) {
             ret_var = val;
-            goto clear_param_var;
+            goto out_unref_param_var;
         }
         ret_var = call_dvariant_method(caller_var, val, 0, NULL, GETTER_METHOD,
                 silently);
@@ -957,30 +962,30 @@ purc_variant_t pcvcm_node_get_element_to_variant(struct pcvcm_node *node,
     }
     else if (purc_variant_is_set(caller_var)) {
         if (!has_index) {
-            goto clear_param_var;
+            goto out_unref_param_var;
         }
         if (index < 0) {
             size_t len = purc_variant_set_get_size(caller_var);
             index += len;
         }
         if (index < 0) {
-            goto clear_param_var;
+            goto out_unref_param_var;
         }
 
         purc_variant_t val = purc_variant_set_get_by_index(caller_var, index);
-        if (!val) {
-            goto clear_param_var;
+        if (val == PURC_VARIANT_INVALID) {
+            goto out_unref_param_var;
         }
 
         purc_variant_ref(val);
         if (!purc_variant_is_dynamic(val)) {
             ret_var = val;
-            goto clear_param_var;
+            goto out_unref_param_var;
         }
 
         if (!is_handle_as_getter(node)) {
             ret_var = val;
-            goto clear_param_var;
+            goto out_unref_param_var;
         }
         ret_var = call_dvariant_method(caller_var, val, 0, NULL, GETTER_METHOD,
                 silently);
@@ -991,24 +996,24 @@ purc_variant_t pcvcm_node_get_element_to_variant(struct pcvcm_node *node,
                 get_attach_variant(FIRST_CHILD(caller_node)),
                 caller_var, 1, &param_var, GETTER_METHOD,
                 silently);
-        goto clear_param_var;
+        goto out_unref_param_var;
     }
     else if (purc_variant_is_native(caller_var)) {
         if (!is_handle_as_getter(node)) {
             ret_var = purc_variant_make_array(2, caller_var, param_var);
-            goto clear_param_var;
+            goto out_unref_param_var;
         }
         ret_var = call_nvariant_method(caller_var,
                 purc_variant_get_string_const(param_var), 0, NULL,
                 GETTER_METHOD, silently);
-        goto clear_param_var;
+        goto out_unref_param_var;
     }
 
-clear_param_var:
+out_unref_param_var:
     purc_variant_unref(param_var);
-clean_caller_var:
+out_unref_caller_var:
     purc_variant_unref(caller_var);
-err:
+out:
     return ret_var;
 }
 
@@ -1018,29 +1023,34 @@ purc_variant_t pcvcm_node_call_method_to_variant(struct pcvcm_node *node,
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     struct pcvcm_node *caller_node = FIRST_CHILD(node);
     if (!caller_node) {
-        goto err;
+        goto out;
     }
 
     purc_variant_t caller_var = pcvcm_node_to_variant(caller_node, ops, silently);
-    PCVCM_CHECK_FAIL_GOTO(caller_node, caller_var, silently, err);
+    if (caller_var == PURC_VARIANT_INVALID) {
+        goto out;
+    }
 
     if (!purc_variant_is_dynamic(caller_var)
             && !purc_variant_is_array(caller_var)) {
-        goto clean_caller_var;
+        goto out_unref_caller_var;
     }
 
     purc_variant_t *params = NULL;
     size_t nr_params = CHILDREN_NUMBER(node) - 1;
     if (nr_params > 0) {
         params = (purc_variant_t*)calloc(nr_params, sizeof(purc_variant_t));
+        if (!params) {
+            pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            goto out_unref_caller_var;
+        }
 
         int i = 0;
         struct pcvcm_node *param_node = NEXT_CHILD(caller_node);
         while (param_node) {
             purc_variant_t vt = pcvcm_node_to_variant(param_node, ops, silently);
-//            PCVCM_CHECK_FAIL_GOTO(param_node, vt, silently, clean_params);
             if (vt == PURC_VARIANT_INVALID) {
-                goto clean_params;
+                goto out_unref_params;
             }
 
             params[i] = vt;
@@ -1066,7 +1076,7 @@ purc_variant_t pcvcm_node_call_method_to_variant(struct pcvcm_node *node,
         }
     }
 
-clean_params:
+out_unref_params:
     for (size_t i = 0; i < nr_params; i++) {
         if (params[i]) {
             purc_variant_unref(params[i]);
@@ -1074,9 +1084,9 @@ clean_params:
     }
     free(params);
 
-clean_caller_var:
+out_unref_caller_var:
     purc_variant_unref(caller_var);
-err:
+out:
     return ret_var;
 }
 
@@ -1164,7 +1174,7 @@ purc_variant_t pcvcm_node_to_variant(struct pcvcm_node *node,
     return ret;
 }
 
-PCA_INLINE UNUSED_FUNCTION bool is_digit(char c)
+static inline bool is_digit(char c)
 {
     return c >= '0' && c <= '9';
 }
@@ -1188,6 +1198,12 @@ purc_variant_t find_stack_var(void *ctxt, const char *name)
     }
 
     return pcintr_find_named_var(ctxt, name);
+}
+
+static bool has_fatal_error()
+{
+    int err = purc_get_last_error();
+    return (err == PURC_ERROR_OUT_OF_MEMORY);
 }
 
 purc_variant_t pcvcm_eval(struct pcvcm_node *tree, struct pcintr_stack *stack,
@@ -1216,7 +1232,8 @@ purc_variant_t pcvcm_eval_ex(struct pcvcm_node *tree,
         ret = pcvcm_node_to_variant(tree, &ops, silently);
     }
 
-    if (ret == PURC_VARIANT_INVALID && silently) {
+    if (ret == PURC_VARIANT_INVALID
+            && silently && !has_fatal_error()) {
         ret = purc_variant_make_undefined();
     }
 #ifndef NDEBUG
