@@ -96,10 +96,9 @@ do {                                              \
 
 [_[:alpha:]][[:alnum:]]*  { C(); yylval->str = strdup(yytext); R(); return MKT(VAR); }
 
-[ \t]   { C(); R(); /* ignore white space */ }
+[ \t\r\n]   { C(); R(); /* ignore white space */ }
 
-.	    { C(); R(); return *yytext; } /* let bison to handle it */
-\n      { L(); R(); return *yytext; }
+.           { C(); R(); return *yytext; } /* let bison to handle it */
 
 %%
 

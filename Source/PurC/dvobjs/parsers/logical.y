@@ -180,30 +180,6 @@
         }
     }
 
-    static int set_var(struct pcdvobjs_logical_param *param,
-                    char *var, size_t len, purc_variant_t v)
-    {
-        if (!param->variables) {
-            param->variables = purc_variant_make_object(0,
-                        NULL, PURC_VARIANT_INVALID);
-            if (!param->variables) {
-                return -1;
-            }
-        }
-        char c = var[len];
-        var[len] = '\0';
-        purc_variant_t key = purc_variant_make_string(var, true);
-        var[len] = c;
-        if (key == PURC_VARIANT_INVALID)
-            return -1;
-
-        bool ok;
-        ok = purc_variant_object_set(param->variables, key, v);
-        purc_variant_unref(key);
-
-        return ok ? 0 : -1;
-    }
-
     #define EVAL_FREE(v) do {            \
         if (v)                           \
             purc_variant_unref(v);       \
@@ -213,15 +189,6 @@
         param->result = eval_variant(_a);              \
         purc_variant_unref(_a);                        \
         _a = PURC_VARIANT_INVALID;                     \
-    } while (0)
-
-    #define EVAL_ASSIGN(_a, _b) do {                        \
-        int r;                                              \
-        char   *ptr  = (char*)_a[1];                        \
-        size_t  sz   = (size_t)_a[0];                       \
-        r = set_var(param, ptr, sz, _b);                    \
-        if (r)                                              \
-            YYABORT;                                        \
     } while (0)
 
     #define EVAL_APPLY_1(_f, _r, _a) do {                            \
@@ -332,31 +299,11 @@
 
 input:
   %empty
-| statements
-| statements nop
-| nop statements
-| nop statements nop
-;
-
-statements:
-  statement
-| statements nop statement
-;
-
-nop:
-  '\n'
-| ';'
-| nop '\n'
-| nop ';'
+| statement
 ;
 
 statement:
   exp                { EVAL_SET($1); }
-| assignment
-;
-
-assignment:
-  VAR '=' exp        { EVAL_ASSIGN($1, $3); EVAL_FREE($3); }
 ;
 
 exp:
