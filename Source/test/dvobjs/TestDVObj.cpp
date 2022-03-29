@@ -23,7 +23,7 @@ TestDVObj::TestDVObj()
 
 TestDVObj::~TestDVObj()
 {
-    for (map<string, purc_variant_t>::iterator i = m_dvobjs.begin();
+    for (dvobj_map_t::iterator i = m_dvobjs.begin();
             i != m_dvobjs.end(); i++) {
         purc_variant_unref((*i).second);
     }
@@ -239,7 +239,7 @@ void TestDVObj::run_testcases_in_file(const char *path_name, const char *file_na
 
             purc_variant_unref(result);
             purc_variant_unref(expected);
-            case_number++;
+            case_number ++;
         }
 
         get_variant_total_info(&sz_total_mem_after,
