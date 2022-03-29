@@ -29,7 +29,6 @@
 #include "private/errors.h"
 #include "private/debug.h"
 #include "private/dvobjs.h"
-#include "private/stringbuilder.h"
 #include "private/utils.h"
 #include "variant-internals.h"
 
@@ -338,14 +337,14 @@ bool pcvariant_is_mutable(purc_variant_t val)
     }
 }
 
-static inline void
+static void
 referenced(purc_variant_t value)
 {
     // pcvariant_on_post_fired(value, pcvariant_atom_reference, 0, NULL);
     UNUSED_PARAM(value);
 }
 
-static inline void
+static void
 unreferenced(purc_variant_t value)
 {
     // pcvariant_on_post_fired(value, pcvariant_atom_unreference, 0, NULL);
@@ -563,14 +562,14 @@ void pcvariant_put(purc_variant_t value)
 }
 
 /* securely comparison of floating-point variables */
-static inline bool equal_doubles(double a, double b)
+static bool equal_doubles(double a, double b)
 {
     double max_val = fabs(a) > fabs(b) ? fabs(a) : fabs(b);
     return (fabs(a - b) <= max_val * DBL_EPSILON);
 }
 
 /* securely comparison of floating-point variables */
-static inline bool equal_long_doubles(long double a, long double b)
+static bool equal_long_doubles(long double a, long double b)
 {
     long double max_val = fabsl(a) > fabsl(b) ? fabsl(a) : fabsl(b);
     return (fabsl(a - b) <= max_val * LDBL_EPSILON);
@@ -1862,7 +1861,7 @@ bool purc_variant_unload_dvobj (purc_variant_t dvobj)
     return ret;
 }
 
-static inline double
+static double
 numberify_str(const char *s)
 {
     if (!s || !*s)
@@ -1871,7 +1870,7 @@ numberify_str(const char *s)
     return strtod(s, NULL);
 }
 
-static inline double
+static double
 numberify_bs(const unsigned char *s, size_t nr)
 {
     if (!s || nr == 0)
@@ -1898,7 +1897,7 @@ numberify_bs(const unsigned char *s, size_t nr)
     return (double)number;
 }
 
-static inline double
+static double
 numberify_dynamic(purc_variant_t value)
 {
     purc_dvariant_method getter;
@@ -1917,7 +1916,7 @@ numberify_dynamic(purc_variant_t value)
     return d;
 }
 
-static inline double
+static double
 numberify_native(purc_variant_t value)
 {
     void *native = value->ptr_ptr[0];
@@ -1942,7 +1941,7 @@ numberify_native(purc_variant_t value)
     return d;
 }
 
-static inline double
+static double
 numberify_array(purc_variant_t value)
 {
     size_t sz;
@@ -1959,7 +1958,7 @@ numberify_array(purc_variant_t value)
     return d;
 }
 
-static inline double
+static double
 numberify_object(purc_variant_t value)
 {
     double d = 0.0;
@@ -1972,7 +1971,7 @@ numberify_object(purc_variant_t value)
     return d;
 }
 
-static inline double
+static double
 numberify_set(purc_variant_t value)
 {
     double d = 0.0;
@@ -2039,7 +2038,7 @@ purc_variant_numberify(purc_variant_t value)
 }
 
 #if 0
-static inline bool
+static bool
 booleanize_str(const char *s)
 {
     if (!s || !*s)
@@ -2048,7 +2047,7 @@ booleanize_str(const char *s)
     return numberify_str(s) != 0.0 ? true : false;
 }
 
-static inline bool
+static bool
 booleanize_bs(const unsigned char *s, size_t nr)
 {
     if (!s || nr == 0)
@@ -2170,15 +2169,7 @@ struct stringify_arg
     void *arg;
 };
 
-struct stringify_buffer
-{
-    char                 *buf;
-    const size_t          len;
-
-    size_t                curr;
-};
-
-static inline void
+static void
 stringify_bs(struct stringify_arg *arg, const unsigned char *bs, size_t nr)
 {
     static const char chars[] = "0123456789ABCDEF";
@@ -2207,10 +2198,10 @@ stringify_bs(struct stringify_arg *arg, const unsigned char *bs, size_t nr)
     }
 }
 
-static inline void
+static void
 variant_stringify(struct stringify_arg *arg, purc_variant_t value);
 
-static inline void
+static void
 stringify_array(struct stringify_arg *arg, purc_variant_t value)
 {
     size_t sz = 0;
@@ -2224,7 +2215,7 @@ stringify_array(struct stringify_arg *arg, purc_variant_t value)
     arg->cb(arg->arg, "");
 }
 
-static inline void
+static void
 stringify_object(struct stringify_arg *arg, purc_variant_t value)
 {
     purc_variant_t k, v;
@@ -2237,7 +2228,7 @@ stringify_object(struct stringify_arg *arg, purc_variant_t value)
     arg->cb(arg->arg, "");
 }
 
-static inline void
+static void
 stringify_set(struct stringify_arg *arg, purc_variant_t value)
 {
     purc_variant_t v;
@@ -2248,7 +2239,7 @@ stringify_set(struct stringify_arg *arg, purc_variant_t value)
     arg->cb(arg->arg, "");
 }
 
-static inline void
+static void
 stringify_dynamic(struct stringify_arg *arg, purc_variant_t value)
 {
     purc_dvariant_method getter = purc_variant_dynamic_get_getter(value);
@@ -2259,7 +2250,7 @@ stringify_dynamic(struct stringify_arg *arg, purc_variant_t value)
     arg->cb(arg->arg, buf);
 }
 
-static inline void
+static void
 stringify_native(struct stringify_arg *arg, purc_variant_t value)
 {
     void *native = purc_variant_native_get_entity(value);
@@ -2269,7 +2260,7 @@ stringify_native(struct stringify_arg *arg, purc_variant_t value)
     arg->cb(arg->arg, buf);
 }
 
-static inline void
+static void
 variant_stringify(struct stringify_arg *arg, purc_variant_t value)
 {
     const unsigned char *bs;
@@ -2345,82 +2336,133 @@ variant_stringify(struct stringify_arg *arg, purc_variant_t value)
     }
 }
 
-static inline void
-do_stringify_buffer(void *arg, const char *src)
-{
-    struct stringify_buffer *buffer;
-    buffer = (struct stringify_buffer *)arg;
-
-    char *p;
-    size_t len;
-    int n;
-
-    if (buffer->curr < buffer->len) {
-        p = buffer->buf + buffer->curr;
-        len = buffer->len - buffer->curr;
-        n = snprintf(p, len, "%s", src);
-        PC_ASSERT(n >= 0);
-    }
-    else {
-        n = snprintf(NULL, 0, "%s", src);
-    }
-    buffer->curr += n;
-}
-
 ssize_t
 purc_variant_stringify_buff(char *buf, size_t len, purc_variant_t value)
 {
-    struct stringify_buffer buffer = {
-        .buf           = buf,
-        .len           = len,
+    PC_ASSERT(buf);
+    PC_ASSERT(len > 0);
+
+    purc_rwstream_t stream;
+    stream = purc_rwstream_new_from_mem((void*)buf, len);
+    if (!stream)
+        return -1;
+
+    unsigned int flags = 0;
+    ssize_t sz = purc_variant_stringify(stream, value, flags, NULL);
+    purc_rwstream_destroy(stream);
+
+    if (sz == -1)
+        return -1;
+
+    PC_ASSERT((size_t)sz < len);
+    if ((size_t)sz < len) {
+        buf[sz] = '\0';
+    }
+    else {
+        buf[len-1] = '\0';
+    }
+
+    return sz;
+}
+
+struct stringify_stream {
+    purc_rwstream_t           stream;
+    unsigned int              flags;
+    size_t                    written;
+    size_t                    accu;
+    int                       err;
+};
+
+static void
+do_stringify_stream(void *arg, const char *src)
+{
+    struct stringify_stream *ud;
+    ud = (struct stringify_stream*)arg;
+
+    size_t len = strlen(src);
+    if (ud->err == 0 && ud->stream && len>0) {
+        ssize_t sz = purc_rwstream_write(ud->stream, src, len);
+        if (sz == -1) {
+            ud->err = -1;
+        }
+        else {
+            PC_ASSERT(sz >= 0);
+            PC_ASSERT((size_t)sz == len); // FIXME: < len ???
+            ud->written += sz;
+        }
+    }
+    ud->accu += len;
+}
+
+ssize_t
+purc_variant_stringify(purc_rwstream_t stream, purc_variant_t value,
+        unsigned int flags, size_t *len_expected)
+{
+    if (value == PURC_VARIANT_INVALID) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        return -1;
+    }
+
+    struct stringify_stream ud = {
+        .stream           = stream,
+        .flags            = flags,
+        .written          = 0,
+        .accu             = 0,
+        .err              = 0,
     };
 
-    buffer.curr          = 0;
-
     struct stringify_arg arg;
-    arg.cb    = do_stringify_buffer;
-    arg.arg   = &buffer;
+    arg.cb    = do_stringify_stream;
+    arg.arg   = &ud;
 
     variant_stringify(&arg, value);
 
-    return buffer.curr;
-}
+    PC_ASSERT(ud.err == 0);
 
-static inline void
-do_stringify_stringbuilder(void *arg, const char *src)
-{
-    struct pcutils_stringbuilder *sb;
-    sb = (struct pcutils_stringbuilder*)arg;
+    if (ud.err)
+        return -1;
 
-    pcutils_stringbuilder_snprintf(sb, "%s", src);
+    if (len_expected)
+        *len_expected = ud.accu;
+
+    return ud.written;
 }
 
 ssize_t
 purc_variant_stringify_alloc(char **strp, purc_variant_t value)
 {
-    struct pcutils_stringbuilder sb;
-    pcutils_stringbuilder_init(&sb, 1024);
+    purc_rwstream_t stream;
+    stream = purc_rwstream_new_buffer(0, 0);
+    if (!stream)
+        return -1;
 
-    struct stringify_arg arg;
-    arg.cb    = do_stringify_stringbuilder;
-    arg.arg   = &sb;
-
-    variant_stringify(&arg, value);
-
-    ssize_t total = sb.total;
-
-    if (sb.oom) {
-        total = -1;
-    } else {
-        if (strp) {
-            *strp = pcutils_stringbuilder_build(&sb);
-            if (!*strp)
-                total = -1;
-        }
+    unsigned int flags = 0;
+    ssize_t sz = purc_variant_stringify(stream, value, flags, NULL);
+    if (sz == -1) {
+        purc_rwstream_destroy(stream);
+        return -1;
     }
 
-    pcutils_stringbuilder_reset(&sb);
-    return total;
+    if (!strp) {
+        purc_rwstream_destroy(stream);
+        return -1;
+    }
+
+    size_t sz_content, sz_buff;
+    bool res_buff = true;
+    char *p;
+    p = (char*)purc_rwstream_get_mem_buffer_ex(stream,
+            &sz_content, &sz_buff, res_buff);
+    purc_rwstream_destroy(stream);
+
+    PC_ASSERT(p);
+    PC_ASSERT(sz_buff >= 1);
+    PC_ASSERT(sz_content <= sz_buff);
+    p[sz_content] = '\0';
+
+    *strp = p;
+
+    return sz_content;
 }
 
 // experiment
