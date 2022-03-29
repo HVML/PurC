@@ -1580,6 +1580,60 @@ pcintr_find_observer(pcintr_stack_t stack, purc_variant_t observed,
     return NULL;
 }
 
+struct pcutils_arrlist*
+pcintr_find_all_observer(pcintr_stack_t stack, purc_variant_t observed,
+        purc_variant_t msg_type, purc_variant_t sub_type)
+{
+    if (observed == PURC_VARIANT_INVALID ||
+            msg_type == PURC_VARIANT_INVALID) {
+        return NULL;
+    }
+    const char* msg = purc_variant_get_string_const(msg_type);
+    const char* sub = (sub_type != PURC_VARIANT_INVALID) ?
+        purc_variant_get_string_const(sub_type) : NULL;
+
+    struct pcutils_arrlist* list = NULL;
+    if (purc_variant_is_type(observed, PURC_VARIANT_TYPE_DYNAMIC)) {
+        list = stack->dynamic_variant_observer_list;
+    }
+    else if (purc_variant_is_type(observed, PURC_VARIANT_TYPE_NATIVE)) {
+        list = stack->native_variant_observer_list;
+    }
+    else {
+        list = stack->common_variant_observer_list;
+    }
+
+    if (!list) {
+        return NULL;
+    }
+
+    struct pcutils_arrlist* ret_list = pcutils_arrlist_new(NULL);
+    if (ret_list == NULL) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return NULL;
+    }
+
+    size_t n = pcutils_arrlist_length(list);
+    for (size_t i = 0; i < n; i++) {
+        struct pcintr_observer* observer = pcutils_arrlist_get_idx(list, i);
+        if (observer->observed == observed &&
+                (strcmp(observer->msg_type, msg) == 0) &&
+                (
+                 (observer->sub_type && strcmp(observer->sub_type, sub) == 0) ||
+                 (observer->sub_type == sub)
+                 )
+                ) {
+            pcutils_arrlist_append(ret_list, observer);
+        }
+    }
+    n = pcutils_arrlist_length(ret_list);
+    if (n) {
+        return ret_list;
+    }
+    pcutils_arrlist_free(ret_list);
+    return NULL;
+}
+
 bool
 pcintr_is_observer_empty(pcintr_stack_t stack)
 {
@@ -1654,37 +1708,43 @@ static int
 pcintr_handle_message(void *ctxt)
 {
     pcintr_stack_t stack = NULL;
-    struct pcintr_observer* observer = NULL; {
-        struct pcintr_message* msg = (struct pcintr_message*) ctxt;
-        PC_ASSERT(msg);
 
-        stack = msg->stack;
-        PC_ASSERT(stack);
+    struct pcutils_arrlist* observers = NULL;
 
-        observer = pcintr_find_observer(msg->stack,
-                msg->source, msg->type, msg->sub_type);
-        pcintr_message_destroy(msg);
-        if (observer == NULL) {
-            return 0;
-        }
+    struct pcintr_message* msg = (struct pcintr_message*) ctxt;
+    PC_ASSERT(msg);
+
+    stack = msg->stack;
+    PC_ASSERT(stack);
+
+    observers = pcintr_find_all_observer(msg->stack,
+            msg->source, msg->type, msg->sub_type);
+    pcintr_message_destroy(msg);
+    if (observers == NULL) {
+        return 0;
     }
 
-    // FIXME:
-    // push stack frame
-    struct pcintr_stack_frame *frame;
-    frame = push_stack_frame(stack);
-    if (!frame)
-        return -1;
+    size_t n = pcutils_arrlist_length(observers);
+    for (size_t i = 0; i < n; i++) {
+        struct pcintr_observer* observer = pcutils_arrlist_get_idx(observers, i);
 
-    frame->ops = pcintr_get_ops_by_element(observer->pos);
-    frame->scope = observer->scope;
-    frame->pos = observer->pos;
-    frame->silently = pcintr_is_element_silently(frame->pos);
-    frame->edom_element = observer->edom_element;
-    frame->next_step = NEXT_STEP_AFTER_PUSHED;
+        // FIXME:
+        // push stack frame
+        struct pcintr_stack_frame *frame;
+        frame = push_stack_frame(stack);
+        if (!frame)
+            return -1;
 
-    stack->co.state = CO_STATE_READY;
-    pcintr_coroutine_ready();
+        frame->ops = pcintr_get_ops_by_element(observer->pos);
+        frame->scope = observer->scope;
+        frame->pos = observer->pos;
+        frame->silently = pcintr_is_element_silently(frame->pos);
+        frame->edom_element = observer->edom_element;
+        frame->next_step = NEXT_STEP_AFTER_PUSHED;
+
+        stack->co.state = CO_STATE_READY;
+        pcintr_coroutine_ready();
+    }
 
     return 0;
 }
