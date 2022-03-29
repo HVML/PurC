@@ -737,6 +737,21 @@ int
 pcutils_wildcard_match(struct pcutils_wildcard *wildcard,
         const char *str, size_t nr, bool *matched);
 
+/** the UTF-8 compliant version of strtoupper */
+char *pcutils_strtoupper(const char *str, ssize_t len, size_t *new_len);
+
+/** the UTF-8 compliant version of strtolower */
+char *pcutils_strtolower(const char *str, ssize_t len, size_t *new_len);
+
+/** the UTF-8 compliant version of strncasecmp */
+int pcutils_strncasecmp(const char *s1, const char *s2, size_t n);
+
+/** the UTF-8 compliant version of strcasestr */
+char *pcutils_strcasestr(const char *haystack, const char *needle);
+
+/** the UTF-8 compliant version of strreverse */
+char *pcutils_strreverse(const char *str, ssize_t len, size_t nr_chars);
+
 PCA_EXTERN_C_END
 
 /** Checks for a lowercase character. */
