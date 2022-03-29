@@ -28,9 +28,35 @@ public:
 
     static purc_variant_t dvobj_new(const char *dvobj_name)
     {
-        if (strcmp(dvobj_name, "STR") == 0) {
+        if (strcmp(dvobj_name, "SYSTEM") == 0) {
+            return purc_dvobj_system_new();
+        }
+        else if (strcmp(dvobj_name, "DATETIME") == 0) {
+            return purc_dvobj_datetime_new();
+        }
+        else if (strcmp(dvobj_name, "HVML") == 0) {
+            return purc_dvobj_hvml_new(NULL);
+        }
+        else if (strcmp(dvobj_name, "EJSON") == 0) {
+            return purc_dvobj_ejson_new();
+        }
+        else if (strcmp(dvobj_name, "SESSION") == 0) {
+            return purc_dvobj_session_new();
+        }
+        else if (strcmp(dvobj_name, "L") == 0) {
+            return purc_dvobj_logical_new();
+        }
+        else if (strcmp(dvobj_name, "T") == 0) {
+            return purc_dvobj_text_new();
+        }
+        else if (strcmp(dvobj_name, "STR") == 0) {
             return purc_dvobj_string_new();
         }
+#if 0
+        else if (strcmp(dvobj_name, "URL") == 0) {
+            return purc_dvobj_url_new();
+        }
+#endif
 
         return PURC_VARIANT_INVALID;
     }

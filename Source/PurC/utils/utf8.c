@@ -677,3 +677,74 @@ fatal:
     return NULL;
 }
 
+char *
+pcutils_strreverse(const char *str, ssize_t len, size_t nr_chars)
+{
+    char *new_str;
+    size_t length;
+
+    if (len >= 0) {
+        length = (size_t)len;
+    }
+    else {
+        const char *p = str;
+        const char *start = str;
+
+        nr_chars = 0;
+        while (*p) {
+            p = pcutils_utf8_next_char(p);
+            ++nr_chars;
+        }
+        length = p - start;
+    }
+
+    if (nr_chars == 0) {
+        new_str = strdup("");
+        if (new_str == NULL) {
+            goto fatal;
+        }
+    }
+    else if (nr_chars == length) {
+        // ASCII string
+        new_str = strndup(str, length);
+        if (new_str == NULL) {
+            goto fatal;
+        }
+
+        for (size_t i =  0; i < length >> 1; i++) {
+            char tmp = new_str[length - i - 1];
+            new_str[length - i - 1] = new_str[i];
+            new_str[i] = tmp;
+        }
+    }
+    else {
+        char *new_str = malloc(length + 1);
+        if (new_str == NULL) {
+            goto fatal;
+        }
+
+        new_str[length] = 0;
+
+        char *dst = new_str + length;
+        while (*str) {
+            const char* next;
+            next = pcutils_utf8_next_char(str);
+
+            size_t l = next - str;
+            if (l == 1) {
+                dst[-1] = *str;
+            }
+            else {
+                memcpy(dst - l, str, l);
+            }
+            str = next;
+            dst -= l;
+        }
+    }
+
+    return new_str;
+
+fatal:
+    return NULL;
+}
+

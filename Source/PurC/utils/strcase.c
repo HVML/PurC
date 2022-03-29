@@ -20,6 +20,12 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ * Note that some code come from GLIB (<https://github.com/GNOME/glib>),
+ * which is governed by LGPLv2. The copyright owners:
+ *
+ * Copyright (C) 1999 Tom Tromey
+ * Copyright (C) 2000 Red Hat, Inc.
  */
 
 #undef NDEBUG
@@ -32,7 +38,7 @@
 #include "config.h"
 #include "private/utf8.h"
 
-#if 0 // USE(GLIB)
+#if USE(GLIB)
 #include <glib.h>
 
 char *pcutils_strtoupper(const char *str, ssize_t len, size_t *len_new)
@@ -51,58 +57,221 @@ char *pcutils_strtolower(const char *str, ssize_t len, size_t *len_new)
     return new_str;
 }
 
+typedef enum {
+  LOCALE_NORMAL,
+  LOCALE_TURKIC,
+  LOCALE_LITHUANIAN
+} locale_type;
+
+static locale_type get_locale_type(void)
+{
+    const char *locale = setlocale(LC_CTYPE, NULL);
+    if (locale == NULL)
+        return LOCALE_NORMAL;
+
+    switch (locale[0]) {
+    case 'a':
+        if (locale[1] == 'z')
+            return LOCALE_TURKIC;
+        break;
+    case 'l':
+        if (locale[1] == 't')
+            return LOCALE_LITHUANIAN;
+        break;
+    case 't':
+        if (locale[1] == 'r')
+            return LOCALE_TURKIC;
+        break;
+    }
+
+    return LOCALE_NORMAL;
+}
+
+#define G_UNICHAR_FULLWIDTH_A 0xff21
+#define G_UNICHAR_FULLWIDTH_I 0xff29
+#define G_UNICHAR_FULLWIDTH_J 0xff2a
+#define G_UNICHAR_FULLWIDTH_F 0xff26
+#define G_UNICHAR_FULLWIDTH_a 0xff41
+#define G_UNICHAR_FULLWIDTH_f 0xff46
+
+/* traverses the string checking for characters with combining class == 230
+ * until a base character is found */
+static bool
+has_more_above(const char *str)
+{
+    const char *p = str;
+    int combining_class;
+
+    while (*p) {
+        combining_class = g_unichar_combining_class(g_utf8_get_char(p));
+        if (combining_class == 230)
+            return true;
+        else if (combining_class == 0)
+            break;
+
+        p = g_utf8_next_char(p);
+    }
+
+    return false;
+}
+
+#define MAX_LOWER_CHARS     3
+
+static size_t
+utf8_char_to_lower(locale_type lt, const char *p, gunichar *ucs)
+{
+    gunichar c = g_utf8_get_char(p);
+    size_t len = 0;
+
+    // lower characters;
+    memset(ucs, 0, sizeof(uint32_t) * MAX_LOWER_CHARS);
+
+    const char *last = p;
+    p = g_utf8_next_char(p);
+
+    if (lt == LOCALE_TURKIC && (c == 'I' || c == 0x130 ||
+                c == G_UNICHAR_FULLWIDTH_I)) {
+
+        bool combining_dot = (c == 'I' || c == G_UNICHAR_FULLWIDTH_I) &&
+            g_utf8_get_char(p) == 0x0307;
+
+        if (combining_dot || c == 0x130) {
+            /* I + COMBINING DOT ABOVE => i (U+0069)
+             * LATIN CAPITAL LETTER I WITH DOT ABOVE => i (U+0069) */
+            ucs[0] = 0x0069;
+            if (combining_dot)
+                len += _pcutils_utf8_skip[*(unsigned char *)p];
+        }
+        else {
+            /* I => LATIN SMALL LETTER DOTLESS I */
+            ucs[0] = 0x131;
+        }
+    }
+    /* Introduce an explicit dot above when lowercasing capital I's and J's
+     * whenever there are more accents above. [SpecialCasing.txt] */
+    else if (lt == LOCALE_LITHUANIAN &&
+            (c == 0x00cc || c == 0x00cd || c == 0x0128))
+    {
+        ucs[0] = 0x0069;
+        ucs[1] = 0x0307;
+
+        switch (c) {
+        case 0x00cc:
+            ucs[2] = 0x0300;
+            break;
+        case 0x00cd:
+            ucs[2] = 0x0301;
+            break;
+        case 0x0128:
+            ucs[2] = 0x0303;
+            break;
+        }
+    }
+    else if (lt == LOCALE_LITHUANIAN &&
+            (c == 'I' || c == G_UNICHAR_FULLWIDTH_I ||
+             c == 'J' || c == G_UNICHAR_FULLWIDTH_J || c == 0x012e) &&
+            has_more_above(p))
+    {
+        ucs[0] = g_unichar_tolower(c);
+        ucs[1] = 0x0307;
+    }
+    else if (c == 0x03A3) {
+        /* GREEK CAPITAL LETTER SIGMA */
+        if (*p) {
+            gunichar next_c = g_utf8_get_char(p);
+
+            /* SIGMA mapps differently depending on whether it is
+             * final or not. The following simplified test would
+             * fail in the case of combining marks following the
+             * sigma, but I don't think that occurs in real text.
+             * The test here matches that in ICU.
+             */
+            if (g_unichar_isalpha(next_c)) /* Lu,Ll,Lt,Lm,Lo */
+                ucs[0] = 0x3c3;     /* GREEK SMALL SIGMA */
+            else
+                ucs[0] = 0x3c2;     /* GREEK SMALL FINAL SIGMA */
+        }
+        else
+            ucs[0] = 0x3c2;         /* GREEK SMALL FINAL SIGMA */
+    }
+    else {
+        ucs[0] = g_unichar_tolower(c);
+    }
+
+    len += _pcutils_utf8_skip[*(unsigned char *)last];
+
+    return len;
+}
+
 int pcutils_strncasecmp(const char *s1, const char *s2, size_t n)
 {
-#if 0
-    int ret;
-    gchar *g_haystack = g_utf8_strdown(haystack, - 1);
-    gchar *g_needle =  g_utf8_strdown(needle, - 1);
-    /* the length may change after calling g_utf8_strdown */
-    len_haystack = strlen(g_haystack);
-    len_needle = strlen(g_needle);
-    ret = strncmp(g_haystack, g_needle, strlen(g_needle));
-    g_free(g_haystack);
-    g_free(g_needle);
-    return ret;
-#else
-    (void)s1;
-    (void)s2;
-    (void)n;
+    gunichar ucs1[MAX_LOWER_CHARS];
+    gunichar ucs2[MAX_LOWER_CHARS];
+
+    locale_type lt = get_locale_type();
+
+    while (n > 0) {
+        size_t len1 = utf8_char_to_lower(lt, s1, ucs1);
+        size_t len2 = utf8_char_to_lower(lt, s2, ucs2);
+
+        int diff = memcmp(ucs1, ucs2, sizeof(ucs1));
+        if (diff) {
+            return diff;
+        }
+
+        if (n > MAX(len1, len2)) {
+            n -= MAX(len1, len2);
+        }
+        else
+            n = 0;
+
+        s1 += len1;
+        s2 += len2;
+    }
+
     return 0;
-#endif
 }
 
 char *pcutils_strcasestr(const char *haystack, const char *needle)
 {
-#if 0
-    int result;
+    locale_type lt = get_locale_type();
+    gunichar ucs1[MAX_LOWER_CHARS];
+    gunichar ucs2[MAX_LOWER_CHARS];
 
-    gchar *g_haystack = g_utf8_strdown(haystack, -1);
-    if (g_haystack == NULL)
-        return -1;
-    gchar *g_needle =  g_utf8_strdown(needle, -1);
-    if (g_needle == NULL) {
-        free(g_haystack);
-        return -1;
+    char* p = (char *)haystack;
+    while (*p) {
+
+        size_t len1 = utf8_char_to_lower(lt, haystack, ucs1);
+        size_t len2 = utf8_char_to_lower(lt, needle, ucs2);
+
+        int diff = memcmp(ucs1, ucs2, sizeof(ucs1));
+        if (diff == 0) {
+            const char *p1 = p + len1;
+            const char *p2 = needle + len2;
+            while (*p1 && *p2) {
+                len1 = utf8_char_to_lower(lt, p1, ucs1);
+                len2 = utf8_char_to_lower(lt, p2, ucs2);
+
+                if (memcmp(ucs1, ucs2, sizeof(ucs1)))
+                    goto not_matched;
+
+                p1 += len1;
+                p2 += len2;
+            }
+
+            if (*p1 == 0 && *p2)    // end of haystack
+                goto done;
+
+            /* matched */
+            return p;
+        }
+
+not_matched:
+        p += len1;
     }
 
-    result = strstr(g_haystack, g_needle) ? 0 : 1;
-
-    g_free(g_haystack);
-    g_free(g_needle);
-
-    return result;
-#else
-    (void)haystack;
-    (void)needle;
+done:
     return NULL;
-#endif
-}
-
-char *pcutils_strreverse(const char *str, ssize_t len, size_t nr_chars)
-{
-    UNUSED_PARAM(nr_chars);
-    return g_utf8_strreverse(str, len);
 }
 
 #else /* USE(GLIB) */
@@ -174,7 +343,7 @@ char *pcutils_strcasestr(const char *haystack, const char *needle)
         lower2 = purc_tolower(*needle);
 
         if (lower1 == lower2) {
-            const char *p1 = p, *p2 = needle;
+            const char *p1 = p + 1, *p2 = needle + 1;
             while (*p1 && *p2) {
                 if (purc_tolower(*p1) != purc_tolower(*p2))
                     goto not_matched;
@@ -183,7 +352,7 @@ char *pcutils_strcasestr(const char *haystack, const char *needle)
                 p2++;
             }
 
-            if (*p2)    // end of haystack
+            if (*p1 == 0 && *p2)    // end of haystack
                 goto done;
 
             /* matched */
@@ -195,74 +364,6 @@ not_matched:
     }
 
 done:
-    return NULL;
-}
-
-char *pcutils_strreverse(const char *str, ssize_t len, size_t nr_chars)
-{
-    char *new_str;
-    size_t length;
-
-    if (len >= 0) {
-        length = (size_t)len;
-    }
-    else {
-        const char *p = str;
-        const char *start = str;
-
-        nr_chars = 0;
-        while (*p) {
-            p = pcutils_utf8_next_char(p);
-            ++nr_chars;
-        }
-        length = p - start;
-    }
-
-    if (nr_chars == 0) {
-        new_str = strdup("");
-        if (new_str == NULL) {
-            goto fatal;
-        }
-    }
-    else if (nr_chars == length) {
-        // ASCII string
-        new_str = strndup(str, length);
-        if (new_str == NULL) {
-            goto fatal;
-        }
-
-        for (size_t i =  0; i < length >> 1; i++) {
-            char tmp = new_str[length - i - 1];
-            new_str[length - i - 1] = new_str[i];
-            new_str[i] = tmp;
-        }
-    }
-    else {
-        uint32_t *ucs = malloc(sizeof(uint32_t) * nr_chars);
-        if (ucs == NULL) {
-            goto fatal;
-        }
-
-        size_t n = pcutils_string_decode_utf8(ucs, nr_chars, str);
-        assert(n == nr_chars);
-
-        for (size_t i =  0; i < n >> 1; i++) {
-            uint32_t tmp = ucs[length - i - 1];
-            ucs[length - i - 1] = ucs[i];
-            ucs[i] = tmp;
-        }
-
-        new_str = pcutils_string_encode_utf8(ucs, n, &length);
-        free(ucs);
-
-        if (new_str == NULL) {
-            goto fatal;
-        }
-    }
-
-    return new_str;
-
-fatal:
     return NULL;
 }
 
