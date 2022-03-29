@@ -477,3 +477,35 @@ TEST(constraint, set_child_in_different_positions)
     PURC_VARIANT_SAFE_CLEAR(set);
 }
 
+TEST(constraint, perf)
+{
+    PurCInstance purc;
+
+    const char *s;
+    purc_variant_t v1, v2;
+
+    s = "[!name, {name:[{first:xiaohong,last:xu}], extra:foo}, {name:[{first:shuming,last:xue}], extra:bar}]";
+    v1 = pcejson_parser_parse_string(s, 0, 0);
+    v2 = pcejson_parser_parse_string(s, 0, 0);
+
+    const char *env = getenv("IS_EQUAL_TO");
+
+    size_t nr = 1024 * 8;
+
+    if (!env) {
+        for (size_t i=0; i<nr; ++i) {
+            int diff = pcvariant_diff(v1, v2);
+            ASSERT_EQ(diff, 0);
+        }
+    }
+    else {
+        for (size_t i=0; i<nr; ++i) {
+            bool eq = purc_variant_is_equal_to(v1, v2);
+            ASSERT_TRUE(eq);
+        }
+    }
+
+    PURC_VARIANT_SAFE_CLEAR(v1);
+    PURC_VARIANT_SAFE_CLEAR(v2);
+}
+
