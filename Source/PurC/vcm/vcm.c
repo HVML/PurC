@@ -905,16 +905,11 @@ purc_variant_t pcvcm_node_get_element_to_variant(struct pcvcm_node *node,
 
     if (purc_variant_is_object(caller_var)) {
         purc_variant_t val = purc_variant_object_get(caller_var, param_var);
-        if (val != PURC_VARIANT_INVALID) {
-            purc_variant_ref(val);
-        }
-        else if (silently) {
-            val = purc_variant_make_undefined();
-        }
-        else {
+        if (val == PURC_VARIANT_INVALID) {
             goto out_unref_param_var;
         }
 
+        purc_variant_ref(val);
         if (!purc_variant_is_dynamic(val)) {
             ret_var = val;
             goto out_unref_param_var;
@@ -1090,6 +1085,12 @@ out:
     return ret_var;
 }
 
+static bool has_fatal_error()
+{
+    int err = purc_get_last_error();
+    return (err == PURC_ERROR_OUT_OF_MEMORY);
+}
+
 purc_variant_t pcvcm_node_to_variant(struct pcvcm_node *node,
         struct pcvcm_node_op *ops, bool silently)
 {
@@ -1166,6 +1167,12 @@ purc_variant_t pcvcm_node_to_variant(struct pcvcm_node *node,
             ret = purc_variant_make_null();
             break;
     }
+
+    if (ret == PURC_VARIANT_INVALID
+            && silently && !has_fatal_error()) {
+        ret = purc_variant_make_undefined();
+    }
+
     node->attach = (uintptr_t)ret;
 #ifndef NDEBUG
     PRINT_VCM_NODE(node);
@@ -1200,12 +1207,6 @@ purc_variant_t find_stack_var(void *ctxt, const char *name)
     return pcintr_find_named_var(ctxt, name);
 }
 
-static bool has_fatal_error()
-{
-    int err = purc_get_last_error();
-    return (err == PURC_ERROR_OUT_OF_MEMORY);
-}
-
 purc_variant_t pcvcm_eval(struct pcvcm_node *tree, struct pcintr_stack *stack,
         bool silently)
 {
@@ -1232,10 +1233,6 @@ purc_variant_t pcvcm_eval_ex(struct pcvcm_node *tree,
         ret = pcvcm_node_to_variant(tree, &ops, silently);
     }
 
-    if (ret == PURC_VARIANT_INVALID
-            && silently && !has_fatal_error()) {
-        ret = purc_variant_make_undefined();
-    }
 #ifndef NDEBUG
     PRINT_VARIANT(ret);
     PC_DEBUG("pcvcm_eval_ex|end|silently=%d\n", silently);
