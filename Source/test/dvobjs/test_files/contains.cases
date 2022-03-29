@@ -21,3 +21,15 @@ positive:
 positive:
     $STR.contains("hello world", "Hello ", true)
     true
+
+positive:
+    $STR.contains("HVML是全球首个可编程标记语言", "hvml", true)
+    true
+
+positive:
+    $STR.contains("HVML是全球首个可编程标记语言", "HVML", true)
+    true
+
+positive:
+    $STR.contains("HVML是全球首个可编程标记语言", "Hvml")
+    false
