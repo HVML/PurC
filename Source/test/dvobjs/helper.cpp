@@ -7,6 +7,8 @@
 #include "private/utils.h"
 #include "private/dvobjs.h"
 
+#include "TestDVObj.h"
+
 #include "../helpers.h"
 
 #include <stdio.h>
@@ -368,5 +370,206 @@ purc_variant_t get_variant (char *buf, size_t *length)
     }
 
     return ret_var;
+}
+
+void TestDVObj::run_testcases(const char *dvobj_name,
+        const struct dvobj_result *test_cases, size_t n)
+{
+    int ret = purc_init_ex(PURC_MODULE_EJSON, "cn.fmsfot.hvml.test",
+            "dvobjs", NULL);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    purc_variant_t dvobj = dvobj_new(dvobj_name);
+    ASSERT_NE(dvobj, nullptr);
+    ASSERT_EQ(purc_variant_is_object(dvobj), true);
+
+    for (size_t i = 0; i < n; i++) {
+        struct purc_ejson_parse_tree *ptree;
+        purc_variant_t result, expected;
+
+        purc_log_info("Evaluting: %s\n", test_cases[i].jsonee);
+
+        ptree = purc_variant_ejson_parse_string(test_cases[i].jsonee,
+                strlen(test_cases[i].jsonee));
+        result = purc_variant_ejson_parse_tree_evalute(ptree,
+                get_dvobj, dvobj, true);
+        purc_variant_ejson_parse_tree_destroy(ptree);
+
+        /* FIXME: purc_variant_string_parse_tree_evalute should not return NULL
+           when evaluating silently */
+        ASSERT_NE(result, nullptr);
+
+        if (test_cases[i].expected) {
+            expected = test_cases[i].expected(dvobj, test_cases[i].name);
+
+            if (purc_variant_get_type(result) != purc_variant_get_type(expected)) {
+                purc_log_error("result type: %s, error message: %s\n",
+                        purc_variant_typename(purc_variant_get_type(result)),
+                        purc_get_error_message(purc_get_last_error()));
+            }
+
+            if (test_cases[i].vrtcmp) {
+                ASSERT_EQ(test_cases[i].vrtcmp(result, expected), true);
+            }
+            else {
+                ASSERT_EQ(purc_variant_is_equal_to(result, expected), true);
+            }
+
+            if (test_cases[i].errcode) {
+                ASSERT_EQ(purc_get_last_error(), test_cases[i].errcode);
+            }
+
+            purc_variant_unref(expected);
+        }
+        else {
+            ASSERT_EQ(purc_variant_get_type(result), PURC_VARIANT_TYPE_NULL);
+        }
+
+        purc_variant_unref(result);
+    }
+
+    purc_variant_unref(dvobj);
+    purc_cleanup();
+}
+
+void TestDVObj::run_testcases_in_file(const char *dvobj_name,
+        const char *path_name, const char *file_name)
+{
+    size_t line_number = 0;
+    size_t case_number = 0;
+    char file_path[4096 + 1];
+
+    int ret = purc_init_ex(PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
+            "dvobjs", NULL);
+    ASSERT_EQ(ret, PURC_ERROR_OK);
+
+    purc_variant_t dvobj = dvobj_new(dvobj_name);
+    ASSERT_NE(dvobj, nullptr);
+    ASSERT_EQ(purc_variant_is_object(dvobj), true);
+
+    // get test file
+    strcpy(file_path, path_name);
+    strcat(file_path, "/");
+    strcat(file_path, file_name);
+    strcat(file_path, ".cases");
+
+    FILE *fp = fopen(file_path, "r");   // open test_list
+    ASSERT_NE(fp, nullptr) << "Failed to open file: ["
+        << file_path << "]" << std::endl;
+
+    char *line = NULL;
+    size_t sz = 0;
+    ssize_t read = 0;
+    size_t sz_total_mem_before = 0;
+    size_t sz_total_values_before = 0;
+    size_t nr_reserved_before = 0;
+    size_t sz_total_mem_after = 0;
+    size_t sz_total_values_after = 0;
+    size_t nr_reserved_after = 0;
+    get_variant_total_info(&sz_total_mem_before, &sz_total_values_before,
+            &nr_reserved_before);
+
+    line_number = 0;
+    while ((read = getline(&line, &sz, fp)) != -1) {
+        *(line + read - 1) = 0;
+        line_number++;
+
+        struct purc_ejson_parse_tree *ptree;
+
+        if (line[0] == '#') {
+            // ignore
+        }
+        else if (strncasecmp(line, "negative", 8) == 0) {
+            purc_log_info("Negative case #%ld, on line #%ld\n", case_number, line_number);
+
+            // read expression
+            read = getline(&line, &sz, fp);
+            line[read - 1] = 0;
+            line_number++;
+
+            const char* exp;
+            size_t exp_len = read - 1;
+            exp = pcutils_trim_spaces(line, &exp_len);
+
+            purc_variant_t result;
+            purc_log_info("Evaluating: `%s`\n", exp);
+            ptree = purc_variant_ejson_parse_string(exp, exp_len);
+            result = purc_variant_ejson_parse_tree_evalute(ptree,
+                    get_dvobj, dvobj, true);
+            purc_variant_ejson_parse_tree_destroy(ptree);
+            purc_variant_unref(result);
+
+            // read exception name
+            read = getline(&line, &sz, fp);
+            *(line + read - 1) = 0;
+            line_number++;
+
+            const char* exc;
+            size_t exc_len = read - 1;
+            exc = pcutils_trim_spaces(line, &exc_len);
+            purc_log_info("Exception `%s` expected\n", exc);
+
+            purc_atom_t except_atom = purc_get_error_exception(purc_get_last_error());
+
+            ASSERT_EQ(except_atom, purc_atom_try_string_ex(1, exc));
+            case_number++;
+        }
+        else if (strncasecmp(line, "positive", 8) == 0) {
+            purc_variant_t result, expected;
+
+            purc_log_info("Positive case #%ld on line #%ld\n", case_number, line_number);
+
+            // read expression
+            read = getline(&line, &sz, fp);
+            line[read - 1] = 0;
+            line_number++;
+
+            const char* exp;
+            size_t exp_len = read - 1;
+            exp = pcutils_trim_spaces(line, &exp_len);
+
+            purc_log_info("Evaluting: `%s`\n", exp);
+            ptree = purc_variant_ejson_parse_string(exp, exp_len);
+            result = purc_variant_ejson_parse_tree_evalute(ptree,
+                    get_dvobj, dvobj, true);
+            purc_variant_ejson_parse_tree_destroy(ptree);
+
+            // read expected result
+            read = getline(&line, &sz, fp);
+            *(line + read - 1) = 0;
+            line_number++;
+
+            exp_len = read - 1;
+            exp = pcutils_trim_spaces(line, &exp_len);
+
+            purc_log_info("Result `%s` expected\n", exp);
+
+            ptree = purc_variant_ejson_parse_string(exp, exp_len);
+            expected = purc_variant_ejson_parse_tree_evalute(ptree,
+                    NULL, NULL, true);
+            purc_variant_ejson_parse_tree_destroy(ptree);
+
+            bool check = purc_variant_is_equal_to(result, expected);
+            ASSERT_EQ(check, true);
+
+            purc_variant_unref(result);
+            purc_variant_unref(expected);
+            case_number++;
+        }
+
+        get_variant_total_info(&sz_total_mem_after,
+                &sz_total_values_after, &nr_reserved_after);
+        ASSERT_EQ(sz_total_values_before, sz_total_values_after);
+        ASSERT_EQ(sz_total_mem_after,
+                sz_total_mem_before + (nr_reserved_after -
+                    nr_reserved_before) * purc_variant_wrapper_size());
+    }
+
+    fclose(fp);
+    if (line)
+        free(line);
+
+    purc_variant_unref(dvobj);
+    purc_cleanup();
 }
 
