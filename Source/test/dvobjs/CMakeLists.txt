@@ -242,6 +242,35 @@ PURC_COMPUTE_SOURCES(test_dvobjs_string)
 PURC_FRAMEWORK(test_dvobjs_string)
 GTEST_DISCOVER_TESTS(test_dvobjs_string DISCOVERY_TIMEOUT 10)
 
+# test_dvobjs_string_more
+PURC_EXECUTABLE_DECLARE(test_dvobjs_string_more)
+
+list(APPEND test_dvobjs_string_more_PRIVATE_INCLUDE_DIRECTORIES
+    ${PURC_DIR}/include
+    ${PurC_DERIVED_SOURCES_DIR}
+    ${PURC_DIR}
+    ${CMAKE_BINARY_DIR}
+    ${WTF_DIR}
+)
+
+PURC_EXECUTABLE(test_dvobjs_string_more)
+
+set(test_dvobjs_string_more_SOURCES
+    test_dvobjs_string_more.cpp
+    helper.cpp
+)
+
+set(test_dvobjs_string_more_LIBRARIES
+    PurC::PurC
+    gtest_main
+    gtest
+    pthread
+)
+
+PURC_COMPUTE_SOURCES(test_dvobjs_string_more)
+PURC_FRAMEWORK(test_dvobjs_string_more)
+GTEST_DISCOVER_TESTS(test_dvobjs_string_more DISCOVERY_TIMEOUT 10)
+
 # test_dvobjs_math
 PURC_EXECUTABLE_DECLARE(test_dvobjs_math)
 
