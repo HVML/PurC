@@ -41,6 +41,7 @@ public:
     void run_testcases_in_file(const char *path_name, const char *file_name);
 
 private:
-    map <string, purc_variant_t> m_dvobjs;
+    typedef map <string, purc_variant_t> dvobj_map_t;
+    dvobj_map_t m_dvobjs;
 };
 
