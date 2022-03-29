@@ -681,6 +681,10 @@ again:
 static bool
 _unbind_named_scope_var(pcvdom_element_t elem, const char* name)
 {
+    if (!elem) {
+        return false;
+    }
+
     purc_variant_t v = pcintr_get_scope_variable(elem, name);
     if (v) {
         return pcintr_unbind_scope_variable(elem, name);
@@ -689,6 +693,10 @@ _unbind_named_scope_var(pcvdom_element_t elem, const char* name)
     pcvdom_element_t parent = pcvdom_element_parent(elem);
     if (parent) {
         return _unbind_named_scope_var(parent, name);
+    }
+    else {
+        // FIXME: vdom.c:563
+        purc_clr_error();
     }
     return false;
 }

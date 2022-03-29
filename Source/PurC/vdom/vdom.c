@@ -345,7 +345,6 @@ pcvdom_document_unbind_variable(purc_vdom_t vdom,
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         return false;
     }
-    PC_ASSERT(0);
     return pcvarmgr_remove(vdom->document->variables, name);
 }
 

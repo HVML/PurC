@@ -494,6 +494,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
             purc_variant_unref(v); // on_release
             return NULL;
         }
+        purc_variant_unref(v);
     }
 
     purc_clr_error();
