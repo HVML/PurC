@@ -129,7 +129,8 @@ contains_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         g_free(g_haystack);
         g_free(g_needle);
 #else
-        result = strcasestr(haystack, needle) != NULL;
+        /* TODO */
+        result = strstr(haystack, needle) != NULL;
 #endif
     }
     else {
@@ -287,8 +288,10 @@ join_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     purc_rwstream_t rwstream;
     rwstream = purc_rwstream_new_buffer(LEN_INI_PRINT_BUF, LEN_MAX_PRINT_BUF);
-    if (rwstream == NULL)
+    if (rwstream == NULL) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto fatal;
+    }
 
     for (size_t i = 0; i < nr_args; i++) {
         const char *str;
@@ -296,19 +299,25 @@ join_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
         str = purc_variant_get_string_const_ex(argv[i], &len_str);
         if (str) {
-            purc_rwstream_write(rwstream, str, len_str);
+            ssize_t nr_wrotten = purc_rwstream_write(rwstream, str, len_str);
+            if (nr_wrotten < 0 || (size_t)nr_wrotten < len_str) {
+                purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+                goto fatal;
+            }
         }
         else if (silently) {
             // do nothing
         }
         else {
-            purc_rwstream_destroy(rwstream);
             purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
             goto fatal;
         }
     }
 
-    purc_rwstream_write(rwstream, "", 1);
+    if (purc_rwstream_write(rwstream, "", 1) < 1) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto fatal;
+    }
 
     size_t sz_buffer = 0;
     size_t sz_content = 0;
@@ -320,6 +329,8 @@ join_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     return purc_variant_make_string_reuse_buff(content, sz_buffer, false);
 
 fatal:
+    if (rwstream)
+        purc_rwstream_destroy(rwstream);
     return PURC_VARIANT_INVALID;
 }
 
@@ -520,6 +531,158 @@ fatal:
     return PURC_VARIANT_INVALID;
 }
 
+static purc_variant_t
+repeat_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
+{
+    UNUSED_PARAM(root);
+
+    if (nr_args < 2) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    const char *str;
+    size_t len_str;
+
+    str = purc_variant_get_string_const_ex(argv[0], &len_str);
+    if (str == NULL) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    uint64_t times;
+    if (!purc_variant_cast_to_ulongint(argv[0], &times, false)) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    purc_rwstream_t rwstream;
+    rwstream = purc_rwstream_new_buffer(LEN_INI_PRINT_BUF, LEN_MAX_PRINT_BUF);
+    if (rwstream == NULL) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto fatal;
+    }
+
+    for (uint64_t i; i < times; i++) {
+        ssize_t nr_wrotten = purc_rwstream_write(rwstream, str, len_str);
+        if (nr_wrotten < 0 || (size_t)nr_wrotten < len_str) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            goto fatal;
+        }
+    }
+
+    if (purc_rwstream_write(rwstream, "", 1) < 1) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto fatal;
+    }
+
+    size_t sz_buffer = 0;
+    size_t sz_content = 0;
+    char *content = NULL;
+    content = purc_rwstream_get_mem_buffer_ex(rwstream,
+            &sz_content, &sz_buffer, true);
+    purc_rwstream_destroy(rwstream);
+
+    return purc_variant_make_string_reuse_buff(content, sz_buffer, false);
+
+failed:
+    if (silently)
+        return purc_variant_make_string_static("", false);
+
+fatal:
+    if (rwstream)
+        purc_rwstream_destroy(rwstream);
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+reverse_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
+{
+    UNUSED_PARAM(root);
+
+    if (nr_args < 1) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    const char *str;
+    size_t length;
+    str = purc_variant_get_string_const_ex(argv[0], &length);
+    if (str == NULL) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    if (length == 0)
+        return purc_variant_make_string_static("", false);
+
+    size_t nr_chars;
+    purc_variant_string_chars(argv[0], &nr_chars);
+    if (nr_chars < 2) {
+        // just return the value itself, but reference it.
+        return purc_variant_ref(argv[0]);
+    }
+
+    char *new_str = NULL;
+    size_t len_new;
+
+#if USE(GLIB)
+    new_str = g_utf8_strreverse(str, length);
+    if (new_str == NULL) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto fatal;
+    }
+#else
+    if (nr_chars == length) {
+        // ASCII string
+        new_str = strndup(str, length);
+        if (new_str == NULL) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            goto fatal;
+        }
+
+        for (size_t i =  0; i < length >> 1; i++) {
+            char tmp = new_str[length - i - 1];
+            new_str[length - i - 1] = new_str[i];
+            new_str[i] = tmp;
+        }
+    }
+    else {
+        uint32_t *ucs = malloc(sizeof(uint32_t) * nr_chars);
+        if (ucs == NULL) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            goto fatal;
+        }
+
+        size_t n = pcutils_string_decode_utf8(ucs, nr_chars, str);
+        assert(n == nr_chars);
+
+        for (size_t i =  0; i < n >> 1; i++) {
+            uint32_t tmp = ucs[length - i - 1];
+            ucs[length - i - 1] = ucs[i];
+            ucs[i] = tmp;
+        }
+
+        new_str = pcutils_string_encode_utf8(ucs, n, &length);
+        free(ucs);
+
+        if (new_str == NULL) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            goto fatal;
+        }
+    }
+#endif
+
+    return purc_variant_make_string_reuse_buff(new_str, len_new, false);
+
+failed:
+    if (silently)
+        return purc_variant_make_string_static("", false);
+fatal:
+    return PURC_VARIANT_INVALID;
+}
 
 static purc_variant_t
 explode_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
@@ -1137,6 +1300,8 @@ purc_variant_t purc_dvobj_string_new(void)
         { "tolower",    tolower_getter,     NULL },
         { "toupper",    toupper_getter,     NULL },
         { "shuffle",    shuffle_getter,     NULL },
+        { "repeat",     repeat_getter,      NULL },
+        { "reverse",    reverse_getter,     NULL },
         { "explode",    explode_getter,     NULL },
         { "implode",    implode_getter,     NULL },
         { "replace",    replace_getter,     NULL },

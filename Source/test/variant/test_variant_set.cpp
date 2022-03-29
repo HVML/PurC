@@ -430,8 +430,8 @@ cmp(size_t nr_keynames,
     (void)ud;
     for (size_t i=0; i<nr_keynames; ++i) {
         char lbuf[1024], rbuf[1024];
-        purc_variant_stringify(lbuf, sizeof(lbuf), l[i]);
-        purc_variant_stringify(rbuf, sizeof(rbuf), r[i]);
+        purc_variant_stringify_buff(lbuf, sizeof(lbuf), l[i]);
+        purc_variant_stringify_buff(rbuf, sizeof(rbuf), r[i]);
         int r = strcmp(lbuf, rbuf);
         if (r)
             return r;
@@ -468,7 +468,7 @@ TEST(variant_set, sort)
         int r = pcvariant_set_sort(set, NULL, NULL);
         ASSERT_EQ(r, 0);
 
-        r = purc_variant_stringify(inbuf, sizeof(inbuf), set);
+        r = purc_variant_stringify_buff(inbuf, sizeof(inbuf), set);
         ASSERT_GT(r, 0);
 
         purc_variant_unref(set);
@@ -478,7 +478,7 @@ TEST(variant_set, sort)
         purc_variant_t set = make_set(outs, PCA_TABLESIZE(outs));
         ASSERT_NE(set, nullptr);
 
-        int r = purc_variant_stringify(outbuf, sizeof(outbuf), set);
+        int r = purc_variant_stringify_buff(outbuf, sizeof(outbuf), set);
         ASSERT_GT(r, 0);
 
         purc_variant_unref(set);
@@ -561,7 +561,7 @@ TEST(variant_set, generic)
         purc_variant_t set = make_generic_set(2, "id", "1", "name", "foo");
         ASSERT_NE(set, nullptr);
 
-        int r = purc_variant_stringify(inbuf, sizeof(inbuf), set);
+        int r = purc_variant_stringify_buff(inbuf, sizeof(inbuf), set);
         ASSERT_GT(r, 0);
 
         purc_variant_unref(set);
@@ -571,7 +571,7 @@ TEST(variant_set, generic)
         purc_variant_t set = make_generic_set(2, "name", "foo", "id", "1");
         ASSERT_NE(set, nullptr);
 
-        int r = purc_variant_stringify(outbuf, sizeof(outbuf), set);
+        int r = purc_variant_stringify_buff(outbuf, sizeof(outbuf), set);
         ASSERT_GT(r, 0);
 
         purc_variant_unref(set);

@@ -1980,13 +1980,11 @@ PCA_EXPORT bool
 purc_variant_booleanize(purc_variant_t value);
 
 /**
- * Stringify a variant value to buffer
+ * Stringify a variant value to a pre-allocated buffer.
  *
- * @param buf: the pointer that points to the buffer to store result content
- *
- * @param len: the size of the above buffer
- *
- * @param value: variant value to be operated
+ * @param buff: the pointer to the buffer to store result content.
+ * @param sz_buff: the size of the pre-allocated buffer.
+ * @param value: the variant value to be stringified.
  *
  * Returns: totol # of result content that has been succesfully written
  *          or shall be written if buffer is large enough
@@ -1997,14 +1995,13 @@ purc_variant_booleanize(purc_variant_t value);
  * Since: 0.0.3
  */
 PCA_EXPORT ssize_t
-purc_variant_stringify(char *buf, size_t len, purc_variant_t value);
+purc_variant_stringify_buff(char *buff, size_t sz_buff, purc_variant_t value);
 
 /**
- * Stringify a variant value in the similar way as `asprintf` does
+ * Stringify a variant value in the similar way as `asprintf` does.
  *
- * @param strp: the newly allocated space would be stored in *strp
- *
- * @param value: variant value to be operated
+ * @param strp: the buffer to receive the pointer to the allocated space.
+ * @param value: variant value to be operated.
  *
  * Returns: totol # of result content that has been succesfully written
  *          or shall be written if buffer is large enough
@@ -2016,6 +2013,43 @@ purc_variant_stringify(char *buf, size_t len, purc_variant_t value);
  */
 PCA_EXPORT ssize_t
 purc_variant_stringify_alloc(char **strp, purc_variant_t value);
+
+/**
+ * A flag for the purc_variant_stringify_stream() function which causes
+ * the function ignores the output errors.
+ */
+#define PCVARIANT_STRINGIFY_OPT_IGNORE_ERRORS           0x10000000
+
+/**
+ * Stringify a variant value to a writable stream.
+ *
+ * @param stream: the stream to which the stringified data write.
+ * @param value: the variant value to be stringified.
+ * @param flags: the stringifing flags.
+ * @param len_expected: The buffer to receive the expected length of
+ *      the stringified data (nullable). The value in the buffer should be
+ *      set to 0 initially.
+ *
+ * Returns:
+ * The size of the stringified data written to the stream;
+ * On error, -1 is returned, and error code is set to indicate
+ * the cause of the error.
+ *
+ * If the function is called with the flag
+ * PCVARIANT_STRINGIFY_OPT_IGNORE_ERRORS set, this function always
+ * returned the number of bytes written to the stream actually.
+ * Meanwhile, if @len_expected is not null, the expected length of
+ * the stringified data will be returned through this buffer.
+ *
+ * Therefore, you can prepare a small memory stream with the flag
+ * PCVARIANT_STRINGIFY_OPT_IGNORE_ERRORS set to count the
+ * expected length of the stringified data.
+ *
+ * Since: 0.1.1
+ */
+PCA_EXPORT ssize_t
+purc_variant_stringify(purc_rwstream_t stream, purc_variant_t value,
+        unsigned int flags, size_t *len_expected);
 
 struct pcvar_listener;
 typedef struct pcvar_listener pcvar_listener;

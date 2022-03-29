@@ -1546,14 +1546,14 @@ compare_stringify (purc_variant_t v, char *stackbuffer, size_t size)
                 if (buffer == NULL)
                     stackbuffer[0] = '\0';
                 else
-                    purc_variant_stringify (buffer, total+1, v);
+                    purc_variant_stringify_buff (buffer, total+1, v);
             }
             else
-                purc_variant_stringify (stackbuffer, size, v);
+                purc_variant_stringify_buff (stackbuffer, size, v);
             break;
 
         default:
-            purc_variant_stringify (stackbuffer, size, v);
+            purc_variant_stringify_buff (stackbuffer, size, v);
             break;
     }
     return buffer;
@@ -2368,7 +2368,7 @@ do_stringify_buffer(void *arg, const char *src)
 }
 
 ssize_t
-purc_variant_stringify(char *buf, size_t len, purc_variant_t value)
+purc_variant_stringify_buff(char *buf, size_t len, purc_variant_t value)
 {
     struct stringify_buffer buffer = {
         .buf           = buf,
