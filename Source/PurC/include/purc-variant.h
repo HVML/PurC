@@ -44,6 +44,16 @@ typedef struct purc_variant* purc_variant_t;
 PCA_EXTERN_C_BEGIN
 
 /**
+ * Gets the size of a variant wrapper.
+ *
+ * Returns: 
+ *
+ * Since: 0.1.1
+ */
+PCA_EXPORT size_t
+purc_variant_wrapper_size(void);
+
+/**
  * Gets the reference count of a variant value
  *
  * @param value: the variant value

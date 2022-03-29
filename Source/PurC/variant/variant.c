@@ -210,6 +210,12 @@ static const char *typenames[] = {
 _COMPILE_TIME_ASSERT(types, PCA_TABLESIZE(typenames) == PURC_VARIANT_TYPE_NR);
 #undef _COMPILE_TIME_ASSERT
 
+size_t
+purc_variant_wrapper_size(void)
+{
+    return sizeof(purc_variant);
+}
+
 const char* purc_variant_typename(enum purc_variant_type type)
 {
     assert(type >= 0 && type < PURC_VARIANT_TYPE_NR);
@@ -280,6 +286,9 @@ void pcvariant_cleanup_instance(struct pcinst *inst)
         pcvarmgr_destroy(inst->variables);
         inst->variables = NULL;
     }
+
+    if (heap == NULL)
+        return;
 
     /* VWNOTE: do not try to release the extra memory here. */
 #if USE(LOOP_BUFFER_FOR_RESERVED)
