@@ -32,7 +32,7 @@
 #include "config.h"
 #include "private/utf8.h"
 
-#if USE(GLIB)
+#if 0 // USE(GLIB)
 #include <glib.h>
 
 char *pcutils_strtoupper(const char *str, ssize_t len, size_t *len_new)
