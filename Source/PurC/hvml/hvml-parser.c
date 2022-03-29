@@ -101,7 +101,7 @@ struct pchvml_parser* pchvml_create(uint32_t flags, size_t queue_size)
     parser->tag_has_raw_attr = false;
     const char *env_value = getenv(PURC_HVML_LOG_ENABLE);
     parser->enable_log = ((env_value != NULL) &&
-            (*env_value == '1' || strcasecmp(env_value, "true") == 0));
+            (*env_value == '1' || pcutils_strcasecmp(env_value, "true") == 0));
 
     return parser;
 }

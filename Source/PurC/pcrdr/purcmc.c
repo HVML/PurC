@@ -27,6 +27,7 @@
 #include "private/list.h"
 #include "private/debug.h"
 #include "private/utils.h"
+#include "purc-utils.h"
 #include "connect.h"
 
 #include <stdio.h>
@@ -653,7 +654,7 @@ pcrdr_msg *pcrdr_purcmc_connect(const char* renderer_uri,
 {
     pcrdr_msg *msg = NULL;
 
-    if (strncasecmp (SCHEMA_UNIX_SOCKET, renderer_uri,
+    if (pcutils_strncasecmp (SCHEMA_UNIX_SOCKET, renderer_uri,
             sizeof(SCHEMA_UNIX_SOCKET) - 1)) {
         purc_set_error(PURC_ERROR_NOT_SUPPORTED);
         return NULL;

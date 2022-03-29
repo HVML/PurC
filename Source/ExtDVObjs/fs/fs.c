@@ -545,61 +545,61 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             {
                 case 'm':
                 case 'M':
-                    if (strncasecmp (head, "mode", length) == 0) {
+                    if (pcutils_strncasecmp (head, "mode", length) == 0) {
                         display[i] = DISPLAY_MODE;
                         i++;
                     }
-                    else if (strncasecmp (head, "mtime", length) == 0) {
+                    else if (pcutils_strncasecmp (head, "mtime", length) == 0) {
                         display[i] = DISPLAY_MTIME;
                         i++;
                     }
                     break;
                 case 'n':
                 case 'N':
-                    if (strncasecmp (head, "nlink", length) == 0) {
+                    if (pcutils_strncasecmp (head, "nlink", length) == 0) {
                         display[i] = DISPLAY_NLINK;
                         i++;
                     }
-                    else if (strncasecmp (head, "name", length) == 0) {
+                    else if (pcutils_strncasecmp (head, "name", length) == 0) {
                         display[i] = DISPLAY_NAME;
                         i++;
                     }
                     break;
                 case 'u':
                 case 'U':
-                    if (strncasecmp (head, "uid", length) == 0) {
+                    if (pcutils_strncasecmp (head, "uid", length) == 0) {
                         display[i] = DISPLAY_UID;
                         i++;
                     }
                     break;
                 case 'g':
                 case 'G':
-                    if (strncasecmp (head, "gid", length) == 0) {
+                    if (pcutils_strncasecmp (head, "gid", length) == 0) {
                         display[i] = DISPLAY_GID;
                         i++;
                     }
                     break;
                 case 's':
                 case 'S':
-                    if (strncasecmp (head, "size", length) == 0) {
+                    if (pcutils_strncasecmp (head, "size", length) == 0) {
                         display[i] = DISPLAY_SIZE;
                         i++;
                     }
                     break;
                 case 'b':
                 case 'B':
-                    if (strncasecmp (head, "blksize", length) == 0) {
+                    if (pcutils_strncasecmp (head, "blksize", length) == 0) {
                         display[i] = DISPLAY_BLKSIZE;
                         i++;
                     }
                     break;
                 case 'a':
                 case 'A':
-                    if (strncasecmp (head, "atime", length) == 0) {
+                    if (pcutils_strncasecmp (head, "atime", length) == 0) {
                         display[i] = DISPLAY_ATIME;
                         i++;
                     }
-                    else if (strncasecmp (head, "all", length) == 0) {
+                    else if (pcutils_strncasecmp (head, "all", length) == 0) {
                         for (i = 0; i < (DISPLAY_MAX - 1); i++)
                             display[i] = i + 1;
                         quit = true;
@@ -607,14 +607,14 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
                     break;
                 case 'c':
                 case 'C':
-                    if (strncasecmp (head, "ctime", length) == 0) {
+                    if (pcutils_strncasecmp (head, "ctime", length) == 0) {
                         display[i] = DISPLAY_CTIME;
                         i++;
                     }
                     break;
                 case 'd':
                 case 'D':
-                    if (strncasecmp (head, "default", length) == 0) {
+                    if (pcutils_strncasecmp (head, "default", length) == 0) {
                         for (i = 0; i < (DISPLAY_MAX - 1); i++)
                             display[i] = i + 1;
                         quit = true;
@@ -1032,7 +1032,7 @@ purc_variant_t __purcex_load_dynamic_variant (const char *name, int *ver_code)
 {
     size_t i = 0;
     for (i = 0; i < PCA_TABLESIZE(dynamic_objects); i++) {
-        if (strncasecmp (name, dynamic_objects[i].name, strlen (name)) == 0)
+        if (pcutils_strncasecmp (name, dynamic_objects[i].name, strlen (name)) == 0)
             break;
     }
 

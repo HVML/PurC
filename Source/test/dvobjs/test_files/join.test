@@ -43,7 +43,7 @@ boolean:true;
 string:"hello world";
 number:3;
 param_end
-invalid:;
+string:"truehello world3";
 test_end
 
 test_begin

@@ -967,7 +967,7 @@ literal_expression_eval(struct literal_expression *lexp,
     }
 
     if (MATCHING_FLAGS_IS_SET_WITH(lexp->suffix.matching_flags, MATCHING_FLAG_I)) {
-        cmp = strncasecmp;
+        cmp = pcutils_strncasecmp;
     } else {
         cmp = strncmp;
     }

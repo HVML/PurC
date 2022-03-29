@@ -45,10 +45,10 @@
 #define PURC_TIMEZONE_UTC   "UTC"
 
 #define LEN_INI_PRINT_BUF       128
-#define LEN_MAX_PRINT_BUF       4096
+#define LEN_MAX_PRINT_BUF       0   // without limitation
 
 #define LEN_INI_SERIALIZE_BUF   128
-#define LEN_MAX_SERIALIZE_BUF   8192
+#define LEN_MAX_SERIALIZE_BUF   0   // without limitation
 
 #define MAX_LEN_TIMEZONE    128
 #define MAX_LEN_KEYWORD     64

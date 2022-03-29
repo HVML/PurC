@@ -258,6 +258,7 @@ PURC_EXECUTABLE(test_dvobjs_string_more)
 set(test_dvobjs_string_more_SOURCES
     test_dvobjs_string_more.cpp
     helper.cpp
+    TestDVObj.cpp
 )
 
 set(test_dvobjs_string_more_LIBRARIES

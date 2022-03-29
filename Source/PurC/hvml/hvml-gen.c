@@ -436,7 +436,7 @@ create_doctype(struct pcvdom_gen *gen, struct pchvml_token *token)
     if (r)
         FAIL_RET();
 
-    if (strcasecmp(name, "hvml"))
+    if (pcutils_strcasecmp(name, "hvml"))
         gen->doc->quirks = 1;
 
     return 0;
@@ -822,7 +822,7 @@ on_mode_in_head(struct pcvdom_gen *gen, struct pchvml_token *token)
         elem = container_of(node, struct pcvdom_element, node);
         const char *tagname = pcvdom_element_get_tagname(elem);
 
-        if (strcasecmp(tagname, tag) == 0) {
+        if (pcutils_strcasecmp(tagname, tag) == 0) {
             pop_node(gen);
             set_parser_state_if_necessary(gen);
             return 0;

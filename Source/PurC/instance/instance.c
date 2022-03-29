@@ -293,14 +293,14 @@ static void enable_log_on_demand(void)
         return;
 
     bool enable = (*env_value == '1' ||
-            strcasecmp(env_value, "true") == 0);
+            pcutils_strcasecmp(env_value, "true") == 0);
     if (!enable)
         return;
 
     bool use_syslog = false;
     if ((env_value = getenv(PURC_ENVV_LOG_SYSLOG))) {
         use_syslog = (*env_value == '1' ||
-                strcasecmp(env_value, "true") == 0);
+                pcutils_strcasecmp(env_value, "true") == 0);
     }
 
     purc_enable_log(true, use_syslog);
