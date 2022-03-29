@@ -2770,11 +2770,8 @@ purc_variant_container_clone_recursively(purc_variant_t ctnr)
 int
 pcvariant_diff(purc_variant_t l, purc_variant_t r)
 {
-    PC_ASSERT(l != PURC_VARIANT_INVALID);
-    PC_ASSERT(r != PURC_VARIANT_INVALID);
-    int diff;
-    diff = purc_variant_compare_ex(l, r, PCVARIANT_COMPARE_OPT_AUTO);
-    return diff;
+    bool caseless = false;
+    return pcvar_compare_ex(l, r, caseless);
 }
 
 struct purc_ejson_parse_tree *
@@ -2834,5 +2831,243 @@ void
 purc_variant_ejson_parse_tree_destroy(struct purc_ejson_parse_tree *parse_tree)
 {
     pcvcm_node_destroy((struct pcvcm_node *)parse_tree);
+}
+
+static int
+cmp_by_obj(purc_variant_t l, purc_variant_t r, bool caseless)
+{
+    int diff;
+
+    variant_obj_t ld, rd;
+    ld = (variant_obj_t)l->sz_ptr[1];
+    rd = (variant_obj_t)r->sz_ptr[1];
+    PC_ASSERT(ld);
+    PC_ASSERT(rd);
+    struct rb_root *lroot = &ld->kvs;
+    struct rb_root *rroot = &rd->kvs;
+    struct rb_node *lnode = pcutils_rbtree_first(lroot);
+    struct rb_node *rnode = pcutils_rbtree_first(rroot);
+    for (;
+        lnode && rnode;
+        lnode = pcutils_rbtree_next(lnode), rnode = pcutils_rbtree_next(rnode))
+    {
+        struct obj_node *lo, *ro;
+        lo = container_of(lnode, struct obj_node, node);
+        ro = container_of(rnode, struct obj_node, node);
+        PC_ASSERT(lo->key);
+        PC_ASSERT(ro->key);
+        const char *lk = purc_variant_get_string_const(lo->key);
+        const char *rk = purc_variant_get_string_const(ro->key);
+        PC_ASSERT(lk);
+        PC_ASSERT(rk);
+
+        // NOTE: ignore caseless for keyname
+        diff = strcmp(lk, rk);
+        if (diff)
+            return diff;
+
+        purc_variant_t lv = lo->val;
+        purc_variant_t rv = ro->val;
+        PC_ASSERT(lv != PURC_VARIANT_INVALID);
+        PC_ASSERT(rv != PURC_VARIANT_INVALID);
+
+        diff = pcvar_compare_ex(lv, rv, caseless);
+        if (diff)
+            return diff;
+    }
+
+    if (lnode)
+        return 1;
+    else if (rnode)
+        return -1;
+    else
+        return 0;
+}
+
+static int
+cmp_by_arr(purc_variant_t l, purc_variant_t r, bool caseless)
+{
+    int diff;
+
+    variant_arr_t ld, rd;
+    ld = (variant_arr_t)l->sz_ptr[1];
+    rd = (variant_arr_t)r->sz_ptr[1];
+    PC_ASSERT(ld);
+    PC_ASSERT(rd);
+
+    struct pcutils_array_list *la = &ld->al;
+    struct pcutils_array_list *ra = &rd->al;
+
+    struct pcutils_array_list_node *lnode = pcutils_array_list_get_first(la);
+    struct pcutils_array_list_node *rnode = pcutils_array_list_get_first(ra);
+
+    for (;
+        lnode && rnode;
+        lnode = pcutils_array_list_get(la, lnode->idx + 1),
+        rnode = pcutils_array_list_get(ra, rnode->idx + 1))
+    {
+        struct arr_node *lo, *ro;
+        lo = container_of(lnode, struct arr_node, node);
+        ro = container_of(rnode, struct arr_node, node);
+
+        purc_variant_t lv = lo->val;
+        purc_variant_t rv = ro->val;
+        PC_ASSERT(lv != PURC_VARIANT_INVALID);
+        PC_ASSERT(rv != PURC_VARIANT_INVALID);
+
+        diff = pcvar_compare_ex(lv, rv, caseless);
+        if (diff)
+            return diff;
+    }
+
+    if (lnode)
+        return 1;
+    else if (rnode)
+        return -1;
+    else
+        return 0;
+}
+
+static int
+cmp_by_set(purc_variant_t l, purc_variant_t r, bool caseless)
+{
+    int diff;
+
+    variant_set_t ld, rd;
+    ld = (variant_set_t)l->sz_ptr[1];
+    rd = (variant_set_t)r->sz_ptr[1];
+    PC_ASSERT(ld);
+    PC_ASSERT(rd);
+    struct rb_root *lroot = &ld->elems;
+    struct rb_root *rroot = &rd->elems;
+    struct rb_node *lnode = pcutils_rbtree_first(lroot);
+    struct rb_node *rnode = pcutils_rbtree_first(rroot);
+    for (;
+        lnode && rnode;
+        lnode = pcutils_rbtree_next(lnode), rnode = pcutils_rbtree_next(rnode))
+    {
+        struct set_node *lo, *ro;
+        lo = container_of(lnode, struct set_node, node);
+        ro = container_of(rnode, struct set_node, node);
+
+        purc_variant_t lv = lo->val;
+        purc_variant_t rv = ro->val;
+        PC_ASSERT(lv != PURC_VARIANT_INVALID);
+        PC_ASSERT(rv != PURC_VARIANT_INVALID);
+
+        diff = pcvar_compare_ex(lv, rv, caseless);
+        if (diff)
+            return diff;
+    }
+
+    if (lnode)
+        return 1;
+    else if (rnode)
+        return -1;
+    else
+        return 0;
+}
+
+int
+pcvar_compare_ex(purc_variant_t l, purc_variant_t r, bool caseless)
+{
+    if (l == r)
+        return 0;
+    else if (l == PURC_VARIANT_INVALID)
+        return -1;
+    else if (r == PURC_VARIANT_INVALID)
+        return 1;
+
+    int diff;
+    const char *ls, *rs;
+    const unsigned char *lb, *rb;
+
+    if (l->type != r->type)
+        return l->type - r->type;
+
+    switch(l->type) {
+        case PURC_VARIANT_TYPE_UNDEFINED:
+            return 0;
+
+        case PURC_VARIANT_TYPE_NULL:
+            return 0;
+
+        case PURC_VARIANT_TYPE_BOOLEAN:
+            return l->b - r->b;
+
+        case PURC_VARIANT_TYPE_EXCEPTION:
+            return l->atom - r->atom;
+
+        case PURC_VARIANT_TYPE_NUMBER:
+            if (equal_doubles(l->d, r->d))
+                return 0;
+
+            return (l->d < r->d) ? -1 : 1;
+
+        case PURC_VARIANT_TYPE_LONGINT:
+            if (l->i64 == r->i64)
+                return 0;
+            return (l->i64 < r->i64) ? -1 : 1;
+
+        case PURC_VARIANT_TYPE_ULONGINT:
+            if (l->u64 == r->u64)
+                return 0;
+            return (l->u64 < r->u64) ? -1 : 1;
+
+        case PURC_VARIANT_TYPE_LONGDOUBLE:
+            if (equal_long_doubles(l->ld, r->ld))
+                return 0;
+
+            return (l->ld < r->ld) ? -1 : 1;
+
+        case PURC_VARIANT_TYPE_ATOMSTRING:
+            return l->atom - r->atom;
+
+        case PURC_VARIANT_TYPE_STRING:
+            ls = purc_variant_get_string_const(l);
+            rs = purc_variant_get_string_const(r);
+            if (caseless)
+                return strcasecmp(ls, rs);
+
+            return strcmp(ls, rs);
+
+        case PURC_VARIANT_TYPE_BSEQUENCE:
+            // NOTE: caseless is ignored
+            lb = (const unsigned char*)l->sz_ptr[1];
+            rb = (const unsigned char*)r->sz_ptr[1];
+            if (l->sz_ptr[0] < r->sz_ptr[0]) {
+                diff = memcmp(lb, rb, l->sz_ptr[0]);
+                if (diff)
+                    return diff;
+                return -1;
+            }
+            else if (l->sz_ptr[0] == r->sz_ptr[0]) {
+                return memcmp(lb, rb, l->sz_ptr[0]);
+            }
+            else {
+                diff = memcmp(lb, rb, l->sz_ptr[0]);
+                if (diff)
+                    return diff;
+                return 1;
+            }
+
+        case PURC_VARIANT_TYPE_DYNAMIC:
+        case PURC_VARIANT_TYPE_NATIVE:
+            // NOTE: compare by addresses
+            return memcmp(l->ptr_ptr, r->ptr_ptr, sizeof(void *) * 2) == 0;
+
+        case PURC_VARIANT_TYPE_OBJECT:
+            return cmp_by_obj(l, r, caseless);
+
+        case PURC_VARIANT_TYPE_ARRAY:
+            return cmp_by_arr(l, r, caseless);
+
+        case PURC_VARIANT_TYPE_SET:
+            return cmp_by_set(l, r, caseless);
+
+        default:
+            PC_ASSERT(0);
+
+    }
 }
 
