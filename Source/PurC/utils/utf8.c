@@ -117,7 +117,7 @@ error:
 }
 
 static const char *
-fast_validate_len (const char *str, ssize_t max_len, size_t *nr_chars)
+fast_validate_len(const char *str, ssize_t max_len, size_t *nr_chars)
 {
     size_t n = 0;
     const char *p;
