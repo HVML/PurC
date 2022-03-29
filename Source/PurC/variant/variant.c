@@ -2780,7 +2780,7 @@ int
 pcvariant_diff(purc_variant_t l, purc_variant_t r)
 {
     bool caseless = false;
-    return pcvar_compare_ex(l, r, caseless);
+    return pcvar_compare_exactly(l, r, caseless);
 }
 
 struct purc_ejson_parse_tree *
@@ -2880,7 +2880,7 @@ cmp_by_obj(purc_variant_t l, purc_variant_t r, bool caseless)
         PC_ASSERT(lv != PURC_VARIANT_INVALID);
         PC_ASSERT(rv != PURC_VARIANT_INVALID);
 
-        diff = pcvar_compare_ex(lv, rv, caseless);
+        diff = pcvar_compare_exactly(lv, rv, caseless);
         if (diff)
             return diff;
     }
@@ -2924,7 +2924,7 @@ cmp_by_arr(purc_variant_t l, purc_variant_t r, bool caseless)
         PC_ASSERT(lv != PURC_VARIANT_INVALID);
         PC_ASSERT(rv != PURC_VARIANT_INVALID);
 
-        diff = pcvar_compare_ex(lv, rv, caseless);
+        diff = pcvar_compare_exactly(lv, rv, caseless);
         if (diff)
             return diff;
     }
@@ -2964,7 +2964,7 @@ cmp_by_set(purc_variant_t l, purc_variant_t r, bool caseless)
         PC_ASSERT(lv != PURC_VARIANT_INVALID);
         PC_ASSERT(rv != PURC_VARIANT_INVALID);
 
-        diff = pcvar_compare_ex(lv, rv, caseless);
+        diff = pcvar_compare_exactly(lv, rv, caseless);
         if (diff)
             return diff;
     }
@@ -2978,7 +2978,7 @@ cmp_by_set(purc_variant_t l, purc_variant_t r, bool caseless)
 }
 
 int
-pcvar_compare_ex(purc_variant_t l, purc_variant_t r, bool caseless)
+pcvar_compare_exactly(purc_variant_t l, purc_variant_t r, bool caseless)
 {
     if (l == r)
         return 0;

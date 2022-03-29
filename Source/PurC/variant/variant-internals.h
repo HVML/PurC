@@ -271,7 +271,7 @@ pcvar_readjust_set(purc_variant_t set, struct set_node *node);
 // recursive-implementation, thus caller's responsible for enough stack space
 // except stack space, no extra memory is required
 int
-pcvar_compare_ex(purc_variant_t l, purc_variant_t r, bool caseless);
+pcvar_compare_exactly(purc_variant_t l, purc_variant_t r, bool caseless);
 
 #ifdef __cplusplus
 }
