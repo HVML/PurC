@@ -254,6 +254,7 @@ join_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     for (size_t i = 0; i < nr_args; i++) {
+#if 0
         const char *str;
         size_t len_str;
 
@@ -272,10 +273,14 @@ join_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
             goto fatal;
         }
+#else
+        if (purc_variant_stringify(rwstream, argv[i], 0, NULL) < 0) {
+            goto fatal;
+        }
+#endif
     }
 
     if (purc_rwstream_write(rwstream, "", 1) < 1) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto fatal;
     }
 
