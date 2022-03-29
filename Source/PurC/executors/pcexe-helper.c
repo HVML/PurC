@@ -939,7 +939,7 @@ literal_expression_eval(struct literal_expression *lexp,
                 goto end;
         }
         if (!target) {
-            int n = purc_variant_stringify(buf, sizeof(buf), val);
+            int n = purc_variant_stringify_buff(buf, sizeof(buf), val);
             if (n < 0 || (size_t)n >= sizeof(buf))
                 goto end;
             target = buf;
@@ -956,7 +956,7 @@ literal_expression_eval(struct literal_expression *lexp,
                 goto end;
         }
         if (!target) {
-            int n = purc_variant_stringify(buf, sizeof(buf), val);
+            int n = purc_variant_stringify_buff(buf, sizeof(buf), val);
             if (n < 0 || (size_t)n >= sizeof(buf))
                 goto end;
             target = buf;
@@ -985,7 +985,7 @@ literal_expression_eval(struct literal_expression *lexp,
     if (literal && target) {
         r = cmp(literal, target, n);
     } else {
-        r = purc_variant_stringify(buf, sizeof(buf), val);
+        r = purc_variant_stringify_buff(buf, sizeof(buf), val);
         if (r < 0 || (size_t)r >= sizeof(buf)) {
             // FIXME:
             r = -1;
@@ -1090,7 +1090,7 @@ wildcard_expression_eval(struct wildcard_expression *wexp,
     char buf[BUF_SIZE];
 
     int r = -1;
-    r = purc_variant_stringify(buf, sizeof(buf), val);
+    r = purc_variant_stringify_buff(buf, sizeof(buf), val);
     if (r < 0 || (size_t)r >= sizeof(buf))
         return -1;
 
@@ -1216,7 +1216,7 @@ regular_expression_eval(struct regular_expression *rexp,
     int v = 0;
 
     char buf[BUF_SIZE];
-    r = purc_variant_stringify(buf, sizeof(buf), val);
+    r = purc_variant_stringify_buff(buf, sizeof(buf), val);
     if (r < 0 || (size_t)r >= sizeof(buf))
         return -1;
     const char *s = buf;

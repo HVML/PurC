@@ -492,7 +492,7 @@ TEST(variant_array, sort)
         int r = pcvariant_array_sort(arr, NULL, cmp);
         ASSERT_EQ(r, 0);
 
-        r = purc_variant_stringify(inbuf, sizeof(inbuf), arr);
+        r = purc_variant_stringify_buff(inbuf, sizeof(inbuf), arr);
         ASSERT_GT(r, 0);
 
         purc_variant_unref(arr);
@@ -502,7 +502,7 @@ TEST(variant_array, sort)
         purc_variant_t arr = make_array(outs, PCA_TABLESIZE(outs));
         ASSERT_NE(arr, nullptr);
 
-        int r = purc_variant_stringify(outbuf, sizeof(outbuf), arr);
+        int r = purc_variant_stringify_buff(outbuf, sizeof(outbuf), arr);
         ASSERT_GT(r, 0);
 
         purc_variant_unref(arr);

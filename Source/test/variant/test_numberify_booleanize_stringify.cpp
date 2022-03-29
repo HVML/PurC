@@ -194,7 +194,7 @@ do_stringify(struct stringify_record *p)
     }
 
     char buf[8192];
-    int r = purc_variant_stringify(buf, sizeof(buf), v);
+    int r = purc_variant_stringify_buff(buf, sizeof(buf), v);
     purc_variant_unref(v);
 
     ASSERT_LT(r, sizeof(buf)) << "Buffer too small";
@@ -281,7 +281,7 @@ do_stringify_bs(struct stringify_bs_record *p)
     }
 
     char buf[8192];
-    int r = purc_variant_stringify(buf, sizeof(buf), v);
+    int r = purc_variant_stringify_buff(buf, sizeof(buf), v);
     purc_variant_unref(v);
 
     ASSERT_LT(r, sizeof(buf)) << "Buffer too small";

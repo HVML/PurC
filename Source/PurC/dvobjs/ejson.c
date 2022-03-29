@@ -216,7 +216,7 @@ stringify_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         case PURC_VARIANT_TYPE_LONGDOUBLE:
         case PURC_VARIANT_TYPE_DYNAMIC:
         case PURC_VARIANT_TYPE_NATIVE:
-            n = purc_variant_stringify(buff_in_stack, sizeof(buff_in_stack),
+            n = purc_variant_stringify_buff(buff_in_stack, sizeof(buff_in_stack),
                     argv[0]);
             if (n == (size_t)-1 || n >= sizeof(buff_in_stack)) {
                 purc_set_error(PURC_ERROR_TOO_SMALL_BUFF);
