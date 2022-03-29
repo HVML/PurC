@@ -715,8 +715,7 @@ int
 pcintr_unbind_named_var(pcintr_stack_t stack, const char *name)
 {
     if (!stack || !name) {
-        PC_ASSERT(0); // FIXME: still recoverable???
-        return PURC_VARIANT_INVALID;
+        return PCVARIANT_ERROR_NOT_FOUND;
     }
 
     struct pcintr_stack_frame* frame = pcintr_stack_get_bottom_frame(stack);
