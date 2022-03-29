@@ -28,3 +28,15 @@ TEST(dvobjs, contains)
 
     TestDVObj::run_testcases_in_file("STR", data_path, "contains");
 }
+
+TEST(dvobjs, join)
+{
+    char data_path[4096 + 1];
+    const char *env = "DVOBJS_TEST_PATH";
+
+    test_getpath_from_env_or_rel(data_path, sizeof(data_path),
+            env, "test_files");
+
+    TestDVObj::run_testcases_in_file("STR", data_path, "join");
+}
+

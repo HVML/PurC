@@ -1,0 +1,16 @@
+positive:
+    $STR.join
+    ""
+
+positive:
+    $STR.join("hello ", "world")
+    "hello world"
+
+positive:
+    $STR.join(1, ':', 2, ':', 3)
+    "1:2:3"
+
+positive:
+    $STR.join("HVML", "是", "全球", "首个", "可编程", "标记语言")
+    "HVML是全球首个可编程标记语言"
+
