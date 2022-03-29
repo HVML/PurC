@@ -899,7 +899,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     // load from network
     purc_variant_t from = ctxt->from;
     if (from != PURC_VARIANT_INVALID && purc_variant_is_string(from)) {
-        PC_ASSERT(0); // TODO: async load
+        //PC_ASSERT(0);
         if (ctxt->with != PURC_VARIANT_INVALID) {
             PC_ASSERT(ctxt->with_op == PCHVML_ATTRIBUTE_OPERATOR);
         }
