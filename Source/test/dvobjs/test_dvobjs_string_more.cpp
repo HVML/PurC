@@ -26,7 +26,9 @@ TEST(dvobjs, contains)
     test_getpath_from_env_or_rel(data_path, sizeof(data_path),
             env, "test_files");
 
-    TestDVObj::run_testcases_in_file("STR", data_path, "contains");
+    TestDVObj tester;
+    tester.dvobj_new("STR");
+    tester.run_testcases_in_file(data_path, "contains");
 }
 
 TEST(dvobjs, join)
@@ -37,6 +39,8 @@ TEST(dvobjs, join)
     test_getpath_from_env_or_rel(data_path, sizeof(data_path),
             env, "test_files");
 
-    TestDVObj::run_testcases_in_file("STR", data_path, "join");
+    TestDVObj tester;
+    tester.dvobj_new("STR");
+    tester.run_testcases_in_file(data_path, "join");
 }
 
