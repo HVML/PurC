@@ -646,6 +646,97 @@ pcintr_get_symbolized_var (pcintr_stack_t stack, unsigned int number,
     return PURC_VARIANT_INVALID;
 }
 
+static bool
+_unbind_named_temp_var(struct pcintr_stack_frame *frame, const char *name)
+{
+    struct pcintr_stack_frame *p = frame;
+
+again:
+
+    if (p == NULL)
+        return false;
+
+    do {
+        purc_variant_t tmp;
+        tmp = pcintr_get_exclamation_var(p);
+        if (tmp == PURC_VARIANT_INVALID)
+            break;
+
+        if (purc_variant_is_object(tmp) == false)
+            break;
+
+        purc_variant_t v;
+        v = purc_variant_object_get_by_ckey(tmp, name);
+        if (v == PURC_VARIANT_INVALID)
+            break;
+
+        return purc_variant_object_remove_by_static_ckey(tmp, name, false);
+    } while (0);
+
+    p = pcintr_stack_frame_get_parent(p);
+
+    goto again;
+}
+
+static bool
+_unbind_named_scope_var(pcvdom_element_t elem, const char* name)
+{
+    if (!elem) {
+        return false;
+    }
+
+    purc_variant_t v = pcintr_get_scope_variable(elem, name);
+    if (v) {
+        return pcintr_unbind_scope_variable(elem, name);
+    }
+
+    pcvdom_element_t parent = pcvdom_element_parent(elem);
+    if (parent) {
+        return _unbind_named_scope_var(parent, name);
+    }
+    else {
+        // FIXME: vdom.c:563
+        purc_clr_error();
+    }
+    return false;
+}
+
+static bool
+_unbind_doc_buildin_var(purc_vdom_t vdom, const char* name)
+{
+    purc_variant_t v = pcvdom_document_get_variable(vdom, name);
+    if (v) {
+        return pcvdom_document_unbind_variable(vdom, name);
+    }
+    return false;
+}
+
+int
+pcintr_unbind_named_var(pcintr_stack_t stack, const char *name)
+{
+    if (!stack || !name) {
+        PC_ASSERT(0); // FIXME: still recoverable???
+        return PURC_VARIANT_INVALID;
+    }
+
+    struct pcintr_stack_frame* frame = pcintr_stack_get_bottom_frame(stack);
+    PC_ASSERT(frame);
+
+    if (_unbind_named_temp_var(frame, name)) {
+        return PURC_ERROR_OK;
+    }
+
+    if (_unbind_named_scope_var(frame->pos, name)) {
+        return PURC_ERROR_OK;
+    }
+
+    if (_unbind_doc_buildin_var(stack->vdom, name)) {
+        return PURC_ERROR_OK;
+    }
+    purc_set_error_with_info(PCVARIANT_ERROR_NOT_FOUND, "name:%s", name);
+    return PCVARIANT_ERROR_NOT_FOUND;
+}
+
 purc_variant_t
 pcintr_add_named_var_observer(pcintr_stack_t stack, const char* name,
         const char* event)
