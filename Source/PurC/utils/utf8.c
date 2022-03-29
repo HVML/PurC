@@ -718,7 +718,7 @@ pcutils_strreverse(const char *str, ssize_t len, size_t nr_chars)
         }
     }
     else {
-        char *new_str = malloc(length + 1);
+        new_str = malloc(length + 1);
         if (new_str == NULL) {
             goto fatal;
         }

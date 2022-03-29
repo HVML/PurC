@@ -565,7 +565,6 @@ reverse_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     char *new_str = NULL;
-
     new_str = pcutils_strreverse(str, length, nr_chars);
     if (new_str == NULL) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
