@@ -30,10 +30,6 @@
 #include "purc-variant.h"
 #include "helper.h"
 
-#if USE(GLIB)
-#include <glib.h>
-#endif
-
 static const char * get_next_segment (const char *data,
         const char *delim, size_t *length)
 {
@@ -122,16 +118,7 @@ contains_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         result = false;
     }
     else if (ignore_case) {
-#if USE(GLIB)
-        gchar *g_haystack = g_utf8_strdown(haystack, -1);
-        gchar *g_needle =  g_utf8_strdown(needle, -1);
-        result = strstr(g_haystack, g_needle) != NULL;
-        g_free(g_haystack);
-        g_free(g_needle);
-#else
-        /* TODO */
-        result = strstr(haystack, needle) != NULL;
-#endif
+        result  = pcutils_strcasestr(haystack, needle) != NULL;
     }
     else {
         result = strstr(haystack, needle) != NULL;
@@ -142,6 +129,7 @@ contains_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 failed:
     if (silently)
         return purc_variant_make_boolean(false);
+
     return PURC_VARIANT_INVALID;
 }
 
@@ -183,21 +171,7 @@ starts_with_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         result = false;
     }
     else if (ignore_case) {
-#if USE(GLIB)
-        gchar *g_haystack = g_utf8_strdown(haystack, - 1);
-        gchar *g_needle =  g_utf8_strdown(needle, - 1);
-        /* the length may change after calling g_utf8_strdown */
-        len_haystack = strlen(g_haystack);
-        len_needle = strlen(g_needle);
-        if (len_needle > len_haystack)
-            result = false;
-        else
-            result = strncmp(g_haystack, g_needle, strlen(g_needle)) == 0;
-        g_free(g_haystack);
-        g_free(g_needle);
-#else
-        result = strncasecmp(haystack, needle, len_needle) == 0;
-#endif
+        result = pcutils_strncasecmp(haystack, needle, len_needle) == 0;
     }
     else {
         result = strncmp(haystack, needle, len_needle) == 0;
@@ -249,22 +223,8 @@ ends_with_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         result = false;
     }
     else if (ignore_case) {
-#if USE(GLIB)
-        gchar *g_haystack = g_utf8_strdown(haystack, - 1);
-        gchar *g_needle =  g_utf8_strdown(needle, - 1);
-        len_haystack = strlen(g_haystack);
-        len_needle = strlen(g_needle);
-        if (len_needle > len_haystack)
-            result = false;
-        else
-            result = strncmp(g_haystack + len_haystack - len_needle,
-                    g_needle, len_needle) == 0;
-        g_free(g_haystack);
-        g_free(g_needle);
-#else
-        result = strncasecmp(haystack + len_haystack - len_needle,
+        result = pcutils_strncasecmp(haystack + len_haystack - len_needle,
                 needle, len_needle) == 0;
-#endif
     }
     else {
         result = strncmp(haystack + len_haystack - len_needle,
@@ -359,20 +319,7 @@ tolower_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     char *new_str = NULL;
     size_t len_new;
 
-#if USE(GLIB)
-    new_str = g_utf8_strdown(str, length);
-    len_new = strlen(new_str);
-#else
-    new_str = strndup(str, length);
-    if (new_str) {
-        for (size_t i = 0; i < length; i++) {
-            if (purc_isupper(new_str[i]))
-                new_str[i] = purc_tolower(new_str[i]);
-        }
-        len_new = length;
-    }
-#endif
-
+    new_str = pcutils_strtolower(str, length, &len_new);
     if (new_str == NULL) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto fatal;
@@ -412,20 +359,7 @@ toupper_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     char *new_str = NULL;
     size_t len_new;
 
-#if USE(GLIB)
-    new_str = g_utf8_strup(str, length);
-    len_new = strlen(new_str);
-#else
-    new_str = strndup(str, length);
-    if (new_str) {
-        for (size_t i = 0; i < length; i++) {
-            if (purc_islower(new_str[i]))
-                new_str[i] = purc_toupper(new_str[i]);
-        }
-        len_new = length;
-    }
-#endif
-
+    new_str = pcutils_strtoupper(str, length, &len_new);
     if (new_str == NULL) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto fatal;
@@ -626,56 +560,14 @@ reverse_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     char *new_str = NULL;
-    size_t len_new;
 
-#if USE(GLIB)
-    new_str = g_utf8_strreverse(str, length);
+    new_str = pcutils_strreverse(str, length, nr_chars);
     if (new_str == NULL) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto fatal;
     }
-#else
-    if (nr_chars == length) {
-        // ASCII string
-        new_str = strndup(str, length);
-        if (new_str == NULL) {
-            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-            goto fatal;
-        }
 
-        for (size_t i =  0; i < length >> 1; i++) {
-            char tmp = new_str[length - i - 1];
-            new_str[length - i - 1] = new_str[i];
-            new_str[i] = tmp;
-        }
-    }
-    else {
-        uint32_t *ucs = malloc(sizeof(uint32_t) * nr_chars);
-        if (ucs == NULL) {
-            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-            goto fatal;
-        }
-
-        size_t n = pcutils_string_decode_utf8(ucs, nr_chars, str);
-        assert(n == nr_chars);
-
-        for (size_t i =  0; i < n >> 1; i++) {
-            uint32_t tmp = ucs[length - i - 1];
-            ucs[length - i - 1] = ucs[i];
-            ucs[i] = tmp;
-        }
-
-        new_str = pcutils_string_encode_utf8(ucs, n, &length);
-        free(ucs);
-
-        if (new_str == NULL) {
-            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-            goto fatal;
-        }
-    }
-#endif
-
-    return purc_variant_make_string_reuse_buff(new_str, len_new, false);
+    return purc_variant_make_string_reuse_buff(new_str, length, false);
 
 failed:
     if (silently)

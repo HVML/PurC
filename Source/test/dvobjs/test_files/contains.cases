@@ -1,0 +1,23 @@
+negative:
+    $STR.contains
+    ArgumentMissed
+
+negative:
+    $STR.contains(false)
+    ArgumentMissed
+
+positive:
+    $STR.contains("hello world", "hello ")
+    true
+
+positive:
+    $STR.contains("hello world", "Hello ")
+    false
+
+positive:
+    $STR.contains("hello world", "Hello ", false)
+    false
+
+positive:
+    $STR.contains("hello world", "Hello ", true)
+    true
