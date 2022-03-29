@@ -1,0 +1,6 @@
+<hvml>
+    <body>
+        <init at="opsPerSecond" with="undefined"/>
+        <update on $users[1] at=".age" with undefined />
+    </body>
+</hvml>
