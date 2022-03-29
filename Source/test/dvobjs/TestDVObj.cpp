@@ -75,8 +75,6 @@ purc_variant_t TestDVObj::dvobj_new(const char *dvobj_name)
 purc_variant_t TestDVObj::get_dvobj(void* ctxt, const char* name)
 {
     TestDVObj *p = static_cast<TestDVObj *>(ctxt);
-    purc_log_info("members in map: %lu\n", p->m_dvobjs.size());
-    purc_log_info("dvobj: %p for %s in map (%p)\n", p->m_dvobjs[name], name, p);
     return p->m_dvobjs[name];
 }
 
