@@ -117,4 +117,18 @@
    fun:purc_atom_from_static_string_ex
    fun:pcdvobjs_init_once
 }
+{
+   <purc_init_ex>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:atom_init_bucket
+   fun:atom_get_bucket
+   fun:purc_atom_from_static_string_ex
+   fun:pcexcept_init_once
+   fun:init_modules_once
+   fun:__pthread_once_slow
+   fun:init_once
+   fun:purc_init_ex
+}
 
