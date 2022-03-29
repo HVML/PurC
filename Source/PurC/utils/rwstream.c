@@ -242,11 +242,14 @@ static size_t get_min_size(size_t sz_min, size_t sz_max) {
 /* rwstream api */
 purc_rwstream_t purc_rwstream_new_buffer (size_t sz_init, size_t sz_max)
 {
-    if (sz_init == 0 || sz_max <= sz_init)
-    {
-        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
-        return NULL;
+    if (sz_max == 0 || sz_max < sz_init) {
+        sz_max = SIZE_MAX;
     }
+
+    if (sz_init == 0) {
+        sz_init = MIN_BUFFER_SIZE;
+    }
+
 
     struct buffer_rwstream* rws = (struct buffer_rwstream*) calloc(
             1, sizeof(struct buffer_rwstream));
@@ -939,6 +942,7 @@ static ssize_t buffer_write (purc_rwstream_t rws, const void* buf, size_t count)
     {
         memcpy(buffer->here, buf, count);
         buffer->here += count;
+        *buffer->here = 0;
         return count;
     }
     return 0;

@@ -1313,7 +1313,7 @@ TEST(dump_rwstream, mem_buffer)
     purc_rwstream_t rws = purc_rwstream_new_from_mem (buf, buf_len);
     ASSERT_NE(rws, nullptr);
 
-    purc_rwstream_t rws_out = purc_rwstream_new_buffer (buf_len, buf_len*2);
+    purc_rwstream_t rws_out = purc_rwstream_new_buffer (0, 0);
     ASSERT_NE(rws_out, nullptr);
 
     size_t sz = 0;
@@ -1327,6 +1327,9 @@ TEST(dump_rwstream, mem_buffer)
     purc_rwstream_seek (rws_out, 0, SEEK_SET);
     sz = purc_rwstream_dump_to_another (rws, rws_out, -1);
     ASSERT_EQ(sz, buf_len);
+
+    mem_buffer = (char*)purc_rwstream_get_mem_buffer (rws_out, &sz);
+    ASSERT_EQ(0, strncmp(buf, mem_buffer, 5));
     ASSERT_STREQ(mem_buffer, buf);
     ASSERT_EQ(sz, purc_rwstream_tell(rws_out));
 
