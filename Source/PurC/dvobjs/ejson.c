@@ -910,7 +910,7 @@ static int my_array_sort (purc_variant_t v1, purc_variant_t v2, void *ud)
     p2 = (char *)entry->val;
 
     if (sort_arg->method == PURC_K_KW_caseless)
-        ret = strcasecmp(p1, p2);
+        ret = pcutils_strcasecmp(p1, p2);
     else
         ret = strcmp(p1, p2);
 

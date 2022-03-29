@@ -426,7 +426,7 @@ streq_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         result = (strcmp(str1, str2) == 0);
         break;
     case PURC_K_KW_caseless:
-        result = (strcasecmp(str1, str2) == 0);
+        result = (pcutils_strcasecmp(str1, str2) == 0);
         break;
     case PURC_K_KW_wildcard:
         result = pcdvobjs_wildcard_cmp(str2, str1);
@@ -497,7 +497,7 @@ strne_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         result = (strcmp(str1, str2) != 0);
         break;
     case PURC_K_KW_caseless:
-        result = (strcasecmp(str1, str2) != 0);
+        result = (pcutils_strcasecmp(str1, str2) != 0);
         break;
     case PURC_K_KW_wildcard:
         result = !pcdvobjs_wildcard_cmp(str2, str1);
@@ -568,7 +568,7 @@ strgt_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         result = (strcmp(str1, str2) > 0);
         break;
     case PURC_K_KW_caseless:
-        result = (strcasecmp(str1, str2) > 0);
+        result = (pcutils_strcasecmp(str1, str2) > 0);
         break;
     default:
         assert(0);
@@ -633,7 +633,7 @@ strge_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         result = (strcmp(str1, str2) >= 0);
         break;
     case PURC_K_KW_caseless:
-        result = (strcasecmp(str1, str2) >= 0);
+        result = (pcutils_strcasecmp(str1, str2) >= 0);
         break;
     default:
         assert(0);
@@ -698,7 +698,7 @@ strlt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         result = (strcmp(str1, str2) < 0);
         break;
     case PURC_K_KW_caseless:
-        result = (strcasecmp(str1, str2) < 0);
+        result = (pcutils_strcasecmp(str1, str2) < 0);
         break;
     default:
         assert(0);
@@ -763,7 +763,7 @@ strle_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         result = (strcmp(str1, str2) <= 0);
         break;
     case PURC_K_KW_caseless:
-        result = (strcasecmp(str1, str2) <= 0);
+        result = (pcutils_strcasecmp(str1, str2) <= 0);
         break;
     default:
         assert(0);

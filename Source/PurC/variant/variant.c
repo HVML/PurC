@@ -1587,7 +1587,7 @@ static int compare_string_method (purc_variant_t v1, purc_variant_t v2,
     if (opt == PCVARIANT_COMPARE_OPT_CASE)
         compare = (double)strcmp (buf1, buf2);
     else
-        compare = (double)strcasecmp (buf1, buf2);
+        compare = (double)pcutils_strcasecmp (buf1, buf2);
 
     if (buf1 != stackbuf1)
         free (buf1);
@@ -3036,7 +3036,7 @@ pcvar_compare_ex(purc_variant_t l, purc_variant_t r, bool caseless)
             ls = purc_variant_get_string_const(l);
             rs = purc_variant_get_string_const(r);
             if (caseless)
-                return strcasecmp(ls, rs);
+                return pcutils_strcasecmp(ls, rs);
 
             return strcmp(ls, rs);
 

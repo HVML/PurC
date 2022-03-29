@@ -444,7 +444,7 @@ _COMPILE_TIME_ASSERT(types,
 static bool on_type(pcrdr_msg *msg, char *value)
 {
     for (size_t i = 0; i < PCA_TABLESIZE(type_names); i++) {
-        if (strcasecmp(value, type_names[i]) == 0) {
+        if (pcutils_strcasecmp(value, type_names[i]) == 0) {
             msg->type = PCRDR_MSG_TYPE_FIRST + i;
             return true;
         }
@@ -485,7 +485,7 @@ static bool on_target(pcrdr_msg *msg, char *value)
 
     size_t i;
     for (i = 0; i < PCA_TABLESIZE(target_names); i++) {
-        if (strcasecmp(value, target_names[i]) == 0) {
+        if (pcutils_strcasecmp(value, target_names[i]) == 0) {
             msg->target = PCRDR_MSG_TARGET_FIRST + i;
             break;
         }
@@ -546,7 +546,7 @@ static bool on_element(pcrdr_msg *msg, char *value)
 
     size_t i;
     for (i = 0; i < PCA_TABLESIZE(element_type_names); i++) {
-        if (strcasecmp(value, element_type_names[i]) == 0) {
+        if (pcutils_strcasecmp(value, element_type_names[i]) == 0) {
             msg->elementType = PCRDR_MSG_ELEMENT_TYPE_FIRST + i;
             break;
         }
@@ -623,7 +623,7 @@ _COMPILE_TIME_ASSERT(data_types,
 static bool on_data_type(pcrdr_msg *msg, char *value)
 {
     for (size_t i = 0; i < PCA_TABLESIZE(data_type_names); i++) {
-        if (strcasecmp(value, data_type_names[i]) == 0) {
+        if (pcutils_strcasecmp(value, data_type_names[i]) == 0) {
             msg->dataType = PCRDR_MSG_DATA_TYPE_FIRST + i;
             return true;
         }
@@ -680,7 +680,7 @@ static key_op find_key_op(const char* key)
         int cmp;
 
         mid = (low + high) / 2;
-        cmp = strcasecmp(key, key_ops[mid].key);
+        cmp = pcutils_strcasecmp(key, key_ops[mid].key);
         if (cmp == 0) {
             goto found;
         }
@@ -1130,17 +1130,17 @@ pcrdr_parse_renderer_capabilities(const char *data)
                     goto failed;
                 }
 
-                if (strcasecmp(markup, "html") == 0) {
+                if (pcutils_strcasecmp(markup, "html") == 0) {
                     rdr_caps->html_version = strdup(version);
                     if (rdr_caps->html_version == NULL)
                         goto failed;
                 }
-                else if (strcasecmp(markup, "xgml") == 0) {
+                else if (pcutils_strcasecmp(markup, "xgml") == 0) {
                     rdr_caps->xgml_version = strdup(version);
                     if (rdr_caps->xgml_version == NULL)
                         goto failed;
                 }
-                else if (strcasecmp(markup, "xml") == 0) {
+                else if (pcutils_strcasecmp(markup, "xml") == 0) {
                     rdr_caps->xml_version = strdup(version);
                     if (rdr_caps->xml_version == NULL)
                         goto failed;
@@ -1170,19 +1170,19 @@ pcrdr_parse_renderer_capabilities(const char *data)
                     goto failed;
                 }
 
-                if (strcasecmp(cap, "workspace") == 0) {
+                if (pcutils_strcasecmp(cap, "workspace") == 0) {
                     rdr_caps->workspace = strtol(limit, NULL, 10);
                 }
-                else if (strcasecmp(cap, "tabbedWindow") == 0) {
+                else if (pcutils_strcasecmp(cap, "tabbedWindow") == 0) {
                     rdr_caps->tabbedWindow = strtol(limit, NULL, 10);
                 }
-                else if (strcasecmp(cap, "tabbedPage") == 0) {
+                else if (pcutils_strcasecmp(cap, "tabbedPage") == 0) {
                     rdr_caps->tabbedPage = strtol(limit, NULL, 10);
                 }
-                else if (strcasecmp(cap, "plainWindow") == 0) {
+                else if (pcutils_strcasecmp(cap, "plainWindow") == 0) {
                     rdr_caps->plainWindow = strtol(limit, NULL, 10);
                 }
-                else if (strcasecmp(cap, "windowLevel") == 0) {
+                else if (pcutils_strcasecmp(cap, "windowLevel") == 0) {
                     rdr_caps->windowLevel = strtol(limit, NULL, 10);
                 }
             }
@@ -1201,7 +1201,7 @@ pcrdr_parse_renderer_capabilities(const char *data)
                 break;
             }
 
-            if (strcasecmp(cap, "windowLevels") == 0) {
+            if (pcutils_strcasecmp(cap, "windowLevels") == 0) {
                 if (rdr_caps->windowLevel <= 0) {
                     PC_WARN("Found windowLevels but windowLevel is <= 0");
                     break;

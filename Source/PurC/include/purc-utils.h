@@ -30,6 +30,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <string.h>
 #include <locale.h>
 #include <sys/types.h>  /* for ssize_t on macOS */
 
@@ -753,6 +754,22 @@ char *pcutils_strcasestr(const char *haystack, const char *needle);
 char *pcutils_strreverse(const char *str, ssize_t len, size_t nr_chars);
 
 PCA_EXTERN_C_END
+
+static inline int
+pcutils_strcasecmp(const char *s1, const char *s2) {
+    size_t n1 = strlen(s1);
+    size_t n2 = strlen(s2);
+    size_t n = n1 < n2 ? n1 : n2;
+    int diff = pcutils_strncasecmp(s1, s2, n);
+    if (diff)
+        return diff;
+
+    if (n1 == n2)
+        return 0;
+
+    return n1 < n2 ? -1 : 1;
+}
+
 
 /** Checks for a lowercase character. */
 static inline int purc_islower(int c) {
