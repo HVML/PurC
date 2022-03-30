@@ -53,7 +53,7 @@ TEST(object, make_object_c)
     purc_instance_extra_info info = {};
     int ret = 0;
     bool cleanup = false;
-    struct purc_variant_stat *stat;
+    const struct purc_variant_stat *stat;
 
     ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
             "test_init", &info);
@@ -261,7 +261,7 @@ TEST(object, make_object)
     purc_instance_extra_info info = {};
     int ret = 0;
     bool cleanup = false;
-    struct purc_variant_stat *stat;
+    const struct purc_variant_stat *stat;
 
     ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
             "test_init", &info);
@@ -359,7 +359,7 @@ TEST(object, unref)
     purc_instance_extra_info info = {};
     int ret = 0;
     bool cleanup = false;
-    struct purc_variant_stat *stat;
+    const struct purc_variant_stat *stat;
 
     ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
             "test_init", &info);

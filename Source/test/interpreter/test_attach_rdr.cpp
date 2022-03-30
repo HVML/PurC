@@ -591,7 +591,7 @@ TEST(interpreter, basic)
     ASSERT_TRUE(purc);
 
     // get statitics information
-    struct purc_variant_stat * stat = purc_variant_usage_stat ();
+    const struct purc_variant_stat * stat = purc_variant_usage_stat ();
     ASSERT_NE(stat, nullptr);
 
     for (size_t i=0; i<PCA_TABLESIZE(hvmls); ++i) {

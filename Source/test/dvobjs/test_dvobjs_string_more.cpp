@@ -18,42 +18,9 @@ TEST(dvobjs, basic)
     purc_cleanup();
 }
 
-TEST(dvobjs, contains)
+TEST(dvobjs, string_more)
 {
-    char data_path[4096 + 1];
-    const char *env = "DVOBJS_TEST_PATH";
-
-    test_getpath_from_env_or_rel(data_path, sizeof(data_path),
-            env, "test_files");
-
     TestDVObj tester;
-    tester.dvobj_new("STR");
-    tester.run_testcases_in_file(data_path, "contains");
-}
-
-TEST(dvobjs, join)
-{
-    char data_path[4096 + 1];
-    const char *env = "DVOBJS_TEST_PATH";
-
-    test_getpath_from_env_or_rel(data_path, sizeof(data_path),
-            env, "test_files");
-
-    TestDVObj tester;
-    tester.dvobj_new("STR");
-    tester.run_testcases_in_file(data_path, "join");
-}
-
-TEST(dvobjs, reverse)
-{
-    char data_path[4096 + 1];
-    const char *env = "DVOBJS_TEST_PATH";
-
-    test_getpath_from_env_or_rel(data_path, sizeof(data_path),
-            env, "test_files");
-
-    TestDVObj tester;
-    tester.dvobj_new("STR");
-    tester.run_testcases_in_file(data_path, "reverse");
+    tester.run_testcases_in_file("string");
 }
 

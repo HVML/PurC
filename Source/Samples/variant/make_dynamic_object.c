@@ -247,7 +247,7 @@ int main(void)
 
     purc_variant_unref(foobar);
 
-    struct purc_variant_stat *stat = NULL;
+    const struct purc_variant_stat *stat = NULL;
     stat = purc_variant_usage_stat();
 
     assert(0 == stat->nr_values[PURC_VARIANT_TYPE_ARRAY]);

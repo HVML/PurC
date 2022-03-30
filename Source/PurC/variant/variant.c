@@ -314,10 +314,10 @@ void pcvariant_cleanup_instance(struct pcinst *inst)
         heap->gc = NULL;
     }
 
-    PC_ASSERT(heap->v_undefined.refc == 0);
-    PC_ASSERT(heap->v_null.refc == 0);
-    PC_ASSERT(heap->v_true.refc == 0);
-    PC_ASSERT(heap->v_false.refc == 0);
+    assert(heap->v_undefined.refc == 0);
+    assert(heap->v_null.refc == 0);
+    assert(heap->v_true.refc == 0);
+    assert(heap->v_false.refc == 0);
 
     free(heap);
     inst->variant_heap = NULL;
@@ -421,7 +421,7 @@ unsigned int purc_variant_unref(purc_variant_t value)
     return value->refc;
 }
 
-struct purc_variant_stat * purc_variant_usage_stat(void)
+const struct purc_variant_stat *purc_variant_usage_stat(void)
 {
     struct pcinst *inst = pcinst_current();
     if (inst == NULL) {

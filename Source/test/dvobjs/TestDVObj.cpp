@@ -19,6 +19,10 @@ TestDVObj::TestDVObj()
         purc_log_error("purc_init_ex returns error (%d), please check appName and runnerName\n", ret);
         exit(1);
     }
+
+    const struct purc_variant_stat *stat;
+    stat = purc_variant_usage_stat();
+    m_init_stat = *stat;
 }
 
 TestDVObj::~TestDVObj()
@@ -28,45 +32,56 @@ TestDVObj::~TestDVObj()
         purc_variant_unref((*i).second);
     }
 
+    const struct purc_variant_stat *stat;
+    stat = purc_variant_usage_stat();
+
+    if (m_init_stat.nr_total_values != stat->nr_total_values ||
+            stat->sz_total_mem != (m_init_stat.sz_total_mem + (stat->nr_reserved -
+                    m_init_stat.nr_reserved) * purc_variant_wrapper_size())) {
+        purc_log_error("Memory leak found\n");
+        exit(1);
+    }
+
     purc_cleanup();
 }
 
-purc_variant_t TestDVObj::dvobj_new(const char *dvobj_name)
+purc_variant_t TestDVObj::dvobj_new(const char *name)
 {
     purc_variant_t dvobj = PURC_VARIANT_INVALID;
 
-    if (strcmp(dvobj_name, "SYSTEM") == 0) {
+    if (strcmp(name, "SYSTEM") == 0) {
         dvobj = purc_dvobj_system_new();
     }
-    else if (strcmp(dvobj_name, "DATETIME") == 0) {
+    else if (strcmp(name, "DATETIME") == 0) {
         dvobj = purc_dvobj_datetime_new();
     }
-    else if (strcmp(dvobj_name, "HVML") == 0) {
+    else if (strcmp(name, "HVML") == 0) {
         dvobj = purc_dvobj_hvml_new(NULL);
     }
-    else if (strcmp(dvobj_name, "EJSON") == 0) {
+    else if (strcmp(name, "EJSON") == 0) {
         dvobj = purc_dvobj_ejson_new();
     }
-    else if (strcmp(dvobj_name, "SESSION") == 0) {
+    else if (strcmp(name, "SESSION") == 0) {
         dvobj = purc_dvobj_session_new();
     }
-    else if (strcmp(dvobj_name, "L") == 0) {
+    else if (strcmp(name, "L") == 0) {
         dvobj = purc_dvobj_logical_new();
     }
-    else if (strcmp(dvobj_name, "T") == 0) {
+    else if (strcmp(name, "T") == 0) {
         dvobj = purc_dvobj_text_new();
     }
-    else if (strcmp(dvobj_name, "STR") == 0) {
+    else if (strcmp(name, "STR") == 0) {
+        purc_log_info("create dvobj for %s\n", name);
         dvobj = purc_dvobj_string_new();
     }
 #if 0
-    else if (strcmp(dvobj_name, "URL") == 0) {
+    else if (strcmp(name, "URL") == 0) {
         dvobj = purc_dvobj_url_new();
     }
 #endif
 
     if (dvobj != PURC_VARIANT_INVALID) {
-        m_dvobjs[dvobj_name] = dvobj;
+        m_dvobjs[name] = dvobj;
     }
 
     return dvobj;
@@ -74,8 +89,19 @@ purc_variant_t TestDVObj::dvobj_new(const char *dvobj_name)
 
 purc_variant_t TestDVObj::get_dvobj(void* ctxt, const char* name)
 {
+    purc_variant_t dvobj = PURC_VARIANT_INVALID;
+
     TestDVObj *p = static_cast<TestDVObj *>(ctxt);
-    return p->m_dvobjs[name];
+
+    dvobj_map_t::iterator i = p->m_dvobjs.find(name);
+    if (i == p->m_dvobjs.end()) {
+        purc_log_info("not found: %s\n", name);
+        dvobj = p->dvobj_new(name);
+    }
+    else
+        dvobj = (*i).second;
+
+    return dvobj;
 }
 
 void TestDVObj::run_testcases(const struct dvobj_result *test_cases, size_t n)
@@ -126,14 +152,15 @@ void TestDVObj::run_testcases(const struct dvobj_result *test_cases, size_t n)
     }
 }
 
-void TestDVObj::run_testcases_in_file(const char *path_name, const char *file_name)
+void TestDVObj::run_testcases_in_file(const char *file_name)
 {
-    size_t line_number = 0;
-    size_t case_number = 0;
     char file_path[4096 + 1];
+    const char *env = "DVOBJS_TEST_PATH";
+
+    test_getpath_from_env_or_rel(file_path, sizeof(file_path),
+            env, "test_files");
 
     // get test file
-    strcpy(file_path, path_name);
     strcat(file_path, "/");
     strcat(file_path, file_name);
     strcat(file_path, ".cases");
@@ -142,17 +169,14 @@ void TestDVObj::run_testcases_in_file(const char *path_name, const char *file_na
     ASSERT_NE(fp, nullptr) << "Failed to open file: ["
         << file_path << "]" << std::endl;
 
+    purc_log_info("Run test cases from file: %s\n", file_path);
+
+    size_t line_number = 0;
+    size_t case_number = 0;
+
     char *line = NULL;
     size_t sz = 0;
     ssize_t read = 0;
-    size_t sz_total_mem_before = 0;
-    size_t sz_total_values_before = 0;
-    size_t nr_reserved_before = 0;
-    size_t sz_total_mem_after = 0;
-    size_t sz_total_values_after = 0;
-    size_t nr_reserved_after = 0;
-    get_variant_total_info(&sz_total_mem_before, &sz_total_values_before,
-            &nr_reserved_before);
 
     line_number = 0;
     while ((read = getline(&line, &sz, fp)) != -1) {
@@ -242,12 +266,6 @@ void TestDVObj::run_testcases_in_file(const char *path_name, const char *file_na
             case_number ++;
         }
 
-        get_variant_total_info(&sz_total_mem_after,
-                &sz_total_values_after, &nr_reserved_after);
-        ASSERT_EQ(sz_total_values_before, sz_total_values_after);
-        ASSERT_EQ(sz_total_mem_after,
-                sz_total_mem_before + (nr_reserved_after -
-                    nr_reserved_before) * purc_variant_wrapper_size());
     }
 
     fclose(fp);

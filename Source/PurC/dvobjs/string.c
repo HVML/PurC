@@ -490,10 +490,19 @@ repeat_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto failed;
     }
 
-    uint64_t times;
-    if (!purc_variant_cast_to_ulongint(argv[0], &times, false)) {
+    int64_t times;
+    if (!purc_variant_cast_to_longint(argv[1], &times, false)) {
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
         goto failed;
+    }
+
+    if (times < 0) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
+
+    if (len_str == 0 || times == 0) {
+        return purc_variant_make_string_static("", false);
     }
 
     purc_rwstream_t rwstream;
@@ -503,7 +512,7 @@ repeat_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto fatal;
     }
 
-    for (uint64_t i; i < times; i++) {
+    for (int64_t i; i < times; i++) {
         ssize_t nr_wrotten = purc_rwstream_write(rwstream, str, len_str);
         if (nr_wrotten < 0 || (size_t)nr_wrotten < len_str) {
             purc_set_error(PURC_ERROR_OUT_OF_MEMORY);

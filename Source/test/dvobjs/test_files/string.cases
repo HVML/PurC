@@ -1,0 +1,289 @@
+# test cases for $STR.contains
+# TODO: more cases for case-insensitive.
+negative:
+    $STR.contains
+    ArgumentMissed
+
+negative:
+    $STR.contains(false)
+    ArgumentMissed
+
+negative:
+    $STR.contains('', false)
+    WrongDataType
+
+positive:
+    $STR.contains("hello world", "hello ")
+    true
+
+positive:
+    $STR.contains("hello world", "Hello ")
+    false
+
+positive:
+    $STR.contains("hello world", "Hello ", false)
+    false
+
+positive:
+    $STR.contains("hello world", "Hello ", true)
+    true
+
+positive:
+    $STR.contains("HVML是全球首个可编程标记语言", "hvml", true)
+    true
+
+positive:
+    $STR.contains("HVML是全球首个可编程标记语言", "HVML", true)
+    true
+
+positive:
+    $STR.contains("ＨＶＭＬ是全球首个可编程标记语言", "Hvml")
+    false
+
+positive:
+    $STR.contains("ＨＶＭＬ是全球首个可编程标记语言", "ｈｖｍ", true)
+    true
+
+positive:
+    $STR.contains("HVML是全球首个可编程标记语言", "全球")
+    true
+
+# test cases for $STR.starts_with
+# TODO: more cases for case-insensitive.
+negative:
+    $STR.starts_with
+    ArgumentMissed
+
+negative:
+    $STR.starts_with(false)
+    ArgumentMissed
+
+negative:
+    $STR.starts_with('', false)
+    WrongDataType
+
+positive:
+    $STR.starts_with("hello world", "hello ")
+    true
+
+positive:
+    $STR.starts_with("hello world", "hello world")
+    true
+
+positive:
+    $STR.starts_with("hello world", "hello world ")
+    false
+
+positive:
+    $STR.starts_with("hello world", "Hello ")
+    false
+
+positive:
+    $STR.starts_with("hello world", "")
+    true
+
+positive:
+    $STR.starts_with("hello world", "Hello ", false)
+    false
+
+positive:
+    $STR.starts_with("hello world", "Hello ", true)
+    true
+
+positive:
+    $STR.starts_with("HVML是全球首个可编程标记语言", "hvml", true)
+    true
+
+positive:
+    $STR.starts_with("HVML是全球首个可编程标记语言", "HVML", true)
+    true
+
+positive:
+    $STR.starts_with("ＨＶＭＬ是全球首个可编程标记语言", "ｈｖｍ", true)
+    true
+
+positive:
+    $STR.starts_with("HVML是全球首个可编程标记语言", "Hvml")
+    false
+
+# test cases for $STR.ends_with
+# TODO: more cases for case-insensitive.
+negative:
+    $STR.ends_with
+    ArgumentMissed
+
+negative:
+    $STR.ends_with(false)
+    ArgumentMissed
+
+negative:
+    $STR.ends_with('', false)
+    WrongDataType
+
+positive:
+    $STR.ends_with("hello world", "world")
+    true
+
+positive:
+    $STR.ends_with("hello world", "Hello ")
+    false
+
+positive:
+    $STR.ends_with("hello world", "world  ")
+    false
+
+positive:
+    $STR.ends_with("hello world", "hello world")
+    true
+
+positive:
+    $STR.ends_with("hello world", "hello world ")
+    false
+
+positive:
+    $STR.ends_with("hello world", "")
+    true
+
+positive:
+    $STR.ends_with("HVML是全球首个可编程标记语言", "语言")
+    true
+
+positive:
+    $STR.ends_with("全球首个可编程标记语言ＨＶＭＬ", "ｈｖｍｌ")
+    false
+
+positive:
+    $STR.ends_with("全球首个可编程标记语言ＨＶＭＬ", "ｈｖｍｌ", true)
+    true
+
+positive:
+    $STR.ends_with("HVML是全球首个可编程标记语言", "全球")
+    false
+
+# test cases for $STR.tolower
+# TODO: more cases for some special languages
+negative:
+    $STR.tolower
+    ArgumentMissed
+
+negative:
+    $STR.tolower(false)
+    WrongDataType
+
+positive:
+    $STR.tolower('')
+    ''
+
+positive:
+    $STR.tolower("HVML! ")
+    "hvml! "
+
+positive:
+    $STR.tolower("ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯＰＱＲＳＴＵＶＷＸＹＺ")
+    "ａｂｃｄｅｆｇｈｉｊｋｌｍｎｏｐｑｒｓｔｕｖｗｘｙｚ"
+
+positive:
+    $STR.tolower("中华民族万岁！")
+    "中华民族万岁！"
+
+# test cases for $STR.toupper
+# TODO: more cases for some special languages
+negative:
+    $STR.toupper
+    ArgumentMissed
+
+negative:
+    $STR.toupper(false)
+    WrongDataType
+
+positive:
+    $STR.toupper('')
+    ''
+
+positive:
+    $STR.toupper("hvml! ")
+    "HVML! "
+
+positive:
+    $STR.toupper("ａｂｃｄｅｆｇｈｉｊｋｌｍｎｏｐｑｒｓｔｕｖｗｘｙｚ")
+    "ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯＰＱＲＳＴＵＶＷＸＹＺ"
+
+positive:
+    $STR.toupper("中华民族万岁！")
+    "中华民族万岁！"
+
+# test cases for $STR.join
+positive:
+    $STR.join
+    ""
+
+positive:
+    $STR.join("hello ", "world")
+    "hello world"
+
+positive:
+    $STR.join(1, ':', 2, ':', 3)
+    "1:2:3"
+
+positive:
+    $STR.join("HVML", "是", "全球", "首个", "可编程", "标记语言")
+    "HVML是全球首个可编程标记语言"
+
+# test cases for $STR.reverse
+negative:
+    $STR.reverse
+    ArgumentMissed
+
+negative:
+    $STR.reverse(false)
+    WrongDataType
+
+positive:
+    $STR.reverse("")
+    ""
+
+positive:
+    $STR.reverse("1")
+    "1"
+
+positive:
+    $STR.reverse("中")
+    "中"
+
+positive:
+    $STR.reverse("123456")
+    "654321"
+
+positive:
+    $STR.reverse("HVML是全球首个可编程标记语言")
+    "言语记标程编可个首球全是LMVH"
+
+# test cases for $STR.repeat
+negative:
+    $STR.repeat
+    ArgumentMissed
+
+negative:
+    $STR.repeat(false)
+    ArgumentMissed
+
+negative:
+    $STR.repeat('', false)
+    WrongDataType
+
+negative:
+    $STR.repeat('', -1)
+    InvalidValue
+
+positive:
+    $STR.repeat("JavaScript", 0)
+    ""
+
+positive:
+    $STR.repeat("HVML! ", 3)
+    "HVML! HVML! HVML! "
+
+positive:
+    $STR.repeat("中华民族万岁！", 10)
+    "中华民族万岁！中华民族万岁！中华民族万岁！中华民族万岁！中华民族万岁！中华民族万岁！中华民族万岁！中华民族万岁！中华民族万岁！中华民族万岁！"
+
