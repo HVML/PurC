@@ -37,8 +37,6 @@
     #define YY_TYPEDEF_YY_SCANNER_T
     typedef void* yyscan_t;
     #endif
-
-    struct logical_funcs; // forward declaration
 }
 
 %code provides {
@@ -50,162 +48,87 @@
     static void yyerror(
         YYLTYPE *yylloc,                   // match %define locations
         yyscan_t arg,                      // match %param
-        struct logical_funcs *funcs,          // match %parse-param
         struct pcdvobjs_logical_param *param, // match %parse-param
         const char *errsg
     );
 
-    struct logical_funcs {
-        purc_dvariant_method not_f;
-        purc_dvariant_method and_f;
-        purc_dvariant_method or_f;
-        purc_dvariant_method eq_f;
-        purc_dvariant_method ne_f;
-        purc_dvariant_method gt_f;
-        purc_dvariant_method ge_f;
-        purc_dvariant_method lt_f;
-        purc_dvariant_method le_f;
-        purc_dvariant_method streq_f;
-        purc_dvariant_method strne_f;
-        purc_dvariant_method strgt_f;
-        purc_dvariant_method strge_f;
-        purc_dvariant_method strlt_f;
-        purc_dvariant_method strle_f;
-    };
-
-    static int init_logical_funcs(struct logical_funcs *funcs,
-                purc_variant_t logical)
+    static double ge(double l, double r)
     {
-        void* ptr_ptr[][2] = {
-            { &funcs->not_f,    (void*)"not" },
-            { &funcs->and_f,    (void*)"and" },
-            { &funcs->or_f,     (void*)"or" },
-            { &funcs->eq_f,     (void*)"eq" },
-            { &funcs->ne_f,     (void*)"ne" },
-            { &funcs->gt_f,     (void*)"gt" },
-            { &funcs->ge_f,     (void*)"ge" },
-            { &funcs->lt_f,     (void*)"lt" },
-            { &funcs->le_f,     (void*)"le" },
-            { &funcs->streq_f,  (void*)"streq" },
-            { &funcs->strne_f,  (void*)"strne" },
-            { &funcs->strgt_f,  (void*)"strgt" },
-            { &funcs->strge_f,  (void*)"strge" },
-            { &funcs->strlt_f,  (void*)"strlt" },
-            { &funcs->strle_f,  (void*)"strle" },
-        };
+        bool eq = pcutils_equal_doubles(l, r);
+        if (eq)
+            return 1.0;
 
-        for (size_t i=0; i<PCA_TABLESIZE(ptr_ptr); ++i) {
-            purc_variant_t v = purc_variant_object_get_by_ckey(logical,
-                (const char*)ptr_ptr[i][1]);
-            if (v == PURC_VARIANT_INVALID)
-                return -1;
-
-            purc_dvariant_method func;
-            func = purc_variant_dynamic_get_getter(v);
-            if (!func)
-                return -1;
-
-            *(purc_dvariant_method*)ptr_ptr[i][0] = func;
-        }
-
-        return 0;
+        return (l > r) ? 1.0 : 0.0;
     }
 
-    static int eval_variant(purc_variant_t v)
+    static double le(double l, double r)
     {
-        switch (v->type) {
-            case PURC_VARIANT_TYPE_NULL:
-                {
-                    return 0;
-                } break;
-            case PURC_VARIANT_TYPE_BOOLEAN:
-                {
-                    return v->b ? 1 : 0;
-                } break;
-            case PURC_VARIANT_TYPE_NUMBER:
-                {
-                    return v->d != 0 ? 1 : 0;
-                } break;
-            case PURC_VARIANT_TYPE_LONGINT:
-                {
-                    return v->i64 ? 1 : 0;
-                } break;
-            case PURC_VARIANT_TYPE_ULONGINT:
-                {
-                    return v->u64 ? 1 : 0;
-                } break;
-            case PURC_VARIANT_TYPE_LONGDOUBLE:
-                {
-                    return v->ld != 0 ? 1 : 0;
-                } break;
-            case PURC_VARIANT_TYPE_ATOMSTRING:
-                {
-                    return v->atom ? 1 : 0;
-                } break;
-            case PURC_VARIANT_TYPE_STRING:
-                {
-                    return v->sz_ptr[0] ? 1 : 0;
-                } break;
-            case PURC_VARIANT_TYPE_BSEQUENCE:
-                {
-                    return v->sz_ptr[0] ? 1 : 0;
-                } break;
-            case PURC_VARIANT_TYPE_DYNAMIC:
-                {
-                    return (v->ptr_ptr[0] || v->ptr_ptr[1]) ? 1 : 0;
-                } break;
-            case PURC_VARIANT_TYPE_NATIVE:
-                {
-                    return (v->ptr_ptr[0]) ? 1 : 0;
-                } break;
-            case PURC_VARIANT_TYPE_OBJECT:
-                {
-                    int n = purc_variant_object_get_size(v);
-                    return n>0 ? 1 : 0;
-                } break;
-            case PURC_VARIANT_TYPE_ARRAY:
-                {
-                    size_t sz = purc_variant_array_get_size(v);
-                    return sz>0 ? 1 : 0;
-                } break;
-            case PURC_VARIANT_TYPE_SET:
-                {
-                    size_t sz = purc_variant_set_get_size(v);
-                    return sz>0 ? 1 : 0;
-                } break;
-            default:
-                {
-                    return 0;
-                }
-        }
+        bool eq = pcutils_equal_doubles(l, r);
+        if (eq)
+            return 1.0;
+
+        return (l < r) ? 1.0 : 0.0;
+    }
+
+    static double eq(double l, double r)
+    {
+        bool eq = pcutils_equal_doubles(l, r);
+        return eq ? 1.0 : 0.0;
+    }
+
+    static double ne(double l, double r)
+    {
+        bool eq = pcutils_equal_doubles(l, r);
+        return eq ? 0.0 : 1.0;
+    }
+
+    static double and(double l, double r)
+    {
+        int lz = (fpclassify(l) == FP_ZERO) ? 0 : 1;
+        int rz = (fpclassify(r) == FP_ZERO) ? 0 : 1;
+        return (lz && rz) ? 1.0 : 0.0;
+    }
+
+    static double or(double l, double r)
+    {
+        int lz = (fpclassify(l) == FP_ZERO) ? 0 : 1;
+        int rz = (fpclassify(r) == FP_ZERO) ? 0 : 1;
+        return (lz || rz) ? 1.0 : 0.0;
+    }
+
+    static double gt(double l, double r)
+    {
+        return (l > r) ? 1.0 : 0.0;
+    }
+
+    static double lt(double l, double r)
+    {
+        return (l < r) ? 1.0 : 0.0;
+    }
+
+    static double not(double d)
+    {
+        return (fpclassify(d) == FP_ZERO) ? 1.0 : 0.0;
+    }
+
+    static int eval_boolean(double d)
+    {
+        return (FP_ZERO == fpclassify(d)) ? false : true;
     }
 
     #define EVAL_FREE(v) do {            \
-        if (v)                           \
-            purc_variant_unref(v);       \
     } while (0)
 
     #define EVAL_SET(_a) do {                          \
-        param->result = eval_variant(_a);              \
-        purc_variant_unref(_a);                        \
-        _a = PURC_VARIANT_INVALID;                     \
+        param->result = eval_boolean(_a);              \
     } while (0)
 
     #define EVAL_APPLY_1(_f, _r, _a) do {                            \
-        purc_variant_t vars[1] = {_a};                               \
-        _r = _f(PURC_VARIANT_INVALID, PCA_TABLESIZE(vars), vars, false);    \
-        purc_variant_unref(_a);                                      \
-        if (_r == PURC_VARIANT_INVALID)                              \
-            YYABORT;                                                 \
+        _r = _f(_a);                                                 \
     } while (0)
 
     #define EVAL_APPLY_2(_f, _r, _a, _b) do {                        \
-        purc_variant_t vars[2] = {_a, _b};                           \
-        _r = _f(PURC_VARIANT_INVALID, PCA_TABLESIZE(vars), vars, false);    \
-        purc_variant_unref(_a);                                      \
-        purc_variant_unref(_b);                                      \
-        if (_r == PURC_VARIANT_INVALID)                              \
-            YYABORT;                                                 \
+        _r = _f(_a, _b);                                             \
     } while (0)
 
     #define EVAL_INT(_r, _a) do {                                    \
@@ -215,9 +138,7 @@
         ptr[sz] = '\0';                                              \
         long long ll = atoll(ptr);                                   \
         ptr[sz] = c;                                                 \
-        _r = purc_variant_make_longint(ll);                          \
-        if (_r == PURC_VARIANT_INVALID)                              \
-            YYABORT;                                                 \
+        _r = ll;                                                     \
     } while (0)
 
     #define EVAL_NUM(_r, _a) do {                                    \
@@ -227,9 +148,7 @@
         ptr[sz] = '\0';                                              \
         double d = atof(ptr);                                        \
         ptr[sz] = c;                                                 \
-        _r = purc_variant_make_number(d);                            \
-        if (_r == PURC_VARIANT_INVALID)                              \
-            YYABORT;                                                 \
+        _r = d;                                                      \
     } while (0)
 
     #define EVAL_VAR(_r, _a) do {                                    \
@@ -239,18 +158,19 @@
         size_t  sz  = _a[0];                                         \
         char c  = ptr[sz];                                           \
         ptr[sz] = '\0';                                              \
-        _r = purc_variant_object_get_by_ckey(param->variables, ptr); \
+        purc_variant_t _v;                                           \
+        _v = purc_variant_object_get_by_ckey(param->variables, ptr); \
         ptr[sz] = c;                                                 \
-        if (_r == PURC_VARIANT_INVALID) {                            \
+        if (_v == PURC_VARIANT_INVALID) {                            \
             if (!param->v && !purc_variant_is_object(param->v))      \
                 YYABORT;                                             \
             ptr[sz] = '\0';                                          \
-            _r = purc_variant_object_get_by_ckey(param->v, ptr);     \
+            _v = purc_variant_object_get_by_ckey(param->v, ptr);     \
             ptr[sz] = c;                                             \
-            if (_r == PURC_VARIANT_INVALID)                          \
+            if (_v == PURC_VARIANT_INVALID)                          \
                 YYABORT;                                             \
         }                                                            \
-        purc_variant_ref(_r);                                        \
+        _r = purc_variant_numberify(_v);                             \
     } while (0)
 }
 
@@ -264,11 +184,10 @@
 %verbose
 
 %param { yyscan_t arg }
-%parse-param { struct logical_funcs *funcs }
 %parse-param { struct pcdvobjs_logical_param *param }
 
 %union { uintptr_t  sz_ptr[2]; }
-%union { purc_variant_t v; }
+%union { double v; }
 
 %destructor { EVAL_FREE($$); } <v>
 
@@ -308,15 +227,15 @@ statement:
 
 exp:
   term
-| exp GE exp         { EVAL_APPLY_2(funcs->ge_f, $$, $1, $3); }
-| exp LE exp         { EVAL_APPLY_2(funcs->le_f, $$, $1, $3); }
-| exp EQ exp         { EVAL_APPLY_2(funcs->eq_f, $$, $1, $3); }
-| exp NE exp         { EVAL_APPLY_2(funcs->ne_f, $$, $1, $3); }
-| exp AND exp        { EVAL_APPLY_2(funcs->and_f, $$, $1, $3); }
-| exp OR exp         { EVAL_APPLY_2(funcs->or_f, $$, $1, $3); }
-| exp '>' exp        { EVAL_APPLY_2(funcs->gt_f, $$, $1, $3); }
-| exp '<' exp        { EVAL_APPLY_2(funcs->lt_f, $$, $1, $3); }
-| '!' exp %prec NEG  { EVAL_APPLY_1(funcs->not_f, $$, $2); }
+| exp GE exp         { EVAL_APPLY_2(ge, $$, $1, $3); }
+| exp LE exp         { EVAL_APPLY_2(le, $$, $1, $3); }
+| exp EQ exp         { EVAL_APPLY_2(eq, $$, $1, $3); }
+| exp NE exp         { EVAL_APPLY_2(ne, $$, $1, $3); }
+| exp AND exp        { EVAL_APPLY_2(and, $$, $1, $3); }
+| exp OR exp         { EVAL_APPLY_2(or, $$, $1, $3); }
+| exp '>' exp        { EVAL_APPLY_2(gt, $$, $1, $3); }
+| exp '<' exp        { EVAL_APPLY_2(lt, $$, $1, $3); }
+| '!' exp %prec NEG  { EVAL_APPLY_1(not, $$, $2); }
 ;
 
 term:
@@ -333,7 +252,6 @@ static void
 yyerror(
     YYLTYPE *yylloc,                   // match %define locations
     yyscan_t arg,                      // match %param
-    struct logical_funcs *funcs,          // match %parse-param
     struct pcdvobjs_logical_param *param, // match %parse-param
     const char *errsg
 )
@@ -341,7 +259,6 @@ yyerror(
     // to implement it here
     (void)yylloc;
     (void)arg;
-    (void)funcs;
     (void)param;
     fprintf(stderr, "(%d,%d)->(%d,%d): %s\n",
         yylloc->first_line, yylloc->first_column,
@@ -352,30 +269,19 @@ yyerror(
 int pcdvobjs_logical_parse(const char *input,
         struct pcdvobjs_logical_param *param)
 {
-    int r;
     yyscan_t arg = {0};
-    purc_variant_t logical = purc_dvobj_logical_new();
-    if (logical == PURC_VARIANT_INVALID)
-        return 1;
-
-    struct logical_funcs funcs = {0};
-    r = init_logical_funcs(&funcs, logical);
-    if (r)
-        return 1;
 
     yylex_init(&arg);
     // yyset_in(in, arg);
     // yyset_debug(debug, arg);
     yyset_extra(param, arg);
     yy_scan_string(input, arg);
-    int ret =yyparse(arg, &funcs, param);
+    int ret =yyparse(arg, param);
     yylex_destroy(arg);
     if (param->variables) {
         purc_variant_unref(param->variables);
         param->variables = NULL;
     }
-
-    purc_variant_unref(logical);
 
     return ret ? 1 : 0;
 }
