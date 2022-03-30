@@ -114,6 +114,12 @@ attr_found_val(struct pcintr_stack_frame *frame,
         if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, TYPE)) == name) {
             return 0;
         }
+        if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, REL)) == name) {
+            return 0;
+        }
+        if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, NAME)) == name) {
+            return 0;
+        }
         PC_DEBUGX("name: %s", purc_atom_to_string(name));
         PC_ASSERT(0);
         return -1;
