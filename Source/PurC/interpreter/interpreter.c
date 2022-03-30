@@ -1746,6 +1746,7 @@ pcintr_handle_message(void *ctxt)
         pcintr_coroutine_ready();
     }
 
+    pcutils_arrlist_free(observers);
     return 0;
 }
 
