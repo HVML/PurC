@@ -17,7 +17,7 @@
 
 void get_variant_total_info (size_t *mem, size_t *value, size_t *resv)
 {
-    struct purc_variant_stat * stat = purc_variant_usage_stat ();
+    const struct purc_variant_stat * stat = purc_variant_usage_stat ();
     ASSERT_NE(stat, nullptr);
 
     *mem = stat->sz_total_mem;

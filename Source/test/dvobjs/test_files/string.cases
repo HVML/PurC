@@ -1,0 +1,82 @@
+# test cases for $STR.contains
+negative:
+    $STR.contains
+    ArgumentMissed
+
+negative:
+    $STR.contains(false)
+    ArgumentMissed
+
+positive:
+    $STR.contains("hello world", "hello ")
+    true
+
+positive:
+    $STR.contains("hello world", "Hello ")
+    false
+
+positive:
+    $STR.contains("hello world", "Hello ", false)
+    false
+
+positive:
+    $STR.contains("hello world", "Hello ", true)
+    true
+
+positive:
+    $STR.contains("HVML是全球首个可编程标记语言", "hvml", true)
+    true
+
+positive:
+    $STR.contains("HVML是全球首个可编程标记语言", "HVML", true)
+    true
+
+positive:
+    $STR.contains("HVML是全球首个可编程标记语言", "Hvml")
+    false
+
+# test cases for $STR.join
+positive:
+    $STR.join
+    ""
+
+positive:
+    $STR.join("hello ", "world")
+    "hello world"
+
+positive:
+    $STR.join(1, ':', 2, ':', 3)
+    "1:2:3"
+
+positive:
+    $STR.join("HVML", "是", "全球", "首个", "可编程", "标记语言")
+    "HVML是全球首个可编程标记语言"
+
+# test cases for $STR.reverse
+negative:
+    $STR.reverse
+    ArgumentMissed
+
+negative:
+    $STR.reverse(false)
+    WrongDataType
+
+positive:
+    $STR.reverse("")
+    ""
+
+positive:
+    $STR.reverse("1")
+    "1"
+
+positive:
+    $STR.reverse("中")
+    "中"
+
+positive:
+    $STR.reverse("123456")
+    "654321"
+
+positive:
+    $STR.reverse("HVML是全球首个可编程标记语言")
+    "言语记标程编可个首球全是LMVH"

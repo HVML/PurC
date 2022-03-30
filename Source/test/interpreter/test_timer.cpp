@@ -93,7 +93,7 @@ TEST(TIMER, init)
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     // get statitics information
-    struct purc_variant_stat * stat = purc_variant_usage_stat ();
+    const struct purc_variant_stat * stat = purc_variant_usage_stat ();
     ASSERT_NE(stat, nullptr);
 
     purc_vdom_t vdom = purc_load_hvml_from_string(hvml);

@@ -25,7 +25,7 @@ TEST(variant, pcvariant_init_once)
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     // get statitics information
-    struct purc_variant_stat * stat = purc_variant_usage_stat ();
+    const struct purc_variant_stat * stat = purc_variant_usage_stat ();
     ASSERT_NE(stat, nullptr);
 
     EXPECT_EQ (stat->nr_values[PURC_VARIANT_TYPE_NULL], 0);
@@ -68,7 +68,7 @@ TEST(variant, pcvariant_init_10_times)
         ASSERT_EQ (ret, PURC_ERROR_OK);
 
         // get statitics information
-        struct purc_variant_stat * stat = purc_variant_usage_stat ();
+        const struct purc_variant_stat * stat = purc_variant_usage_stat ();
 
         ASSERT_NE(stat, nullptr);
 
@@ -104,7 +104,7 @@ TEST(variant, pcvariant_null)
     size_t size = sizeof(purc_variant);
     int times = 0;
     int module_times = 0;
-    struct purc_variant_stat * stat = NULL;
+    const struct purc_variant_stat * stat = NULL;
     purc_variant_t value = NULL;
     purc_variant_t value_prev = NULL;
 
@@ -188,7 +188,7 @@ TEST(variant, pcvariant_undefined)
     size_t size = sizeof(purc_variant);
     int times = 0;
     int module_times = 0;
-    struct purc_variant_stat * stat = NULL;
+    const struct purc_variant_stat * stat = NULL;
     purc_variant_t value = NULL;
     purc_variant_t value_prev = NULL;
 
@@ -264,7 +264,7 @@ TEST(variant, pcvariant_undefined)
 }
 
 // to test: only one true and one false variant instance, but they are calculated
-//          in one field of struct purc_variant_stat
+//          in one field of const struct purc_variant_stat
 // purc_variant_make_undefined
 TEST(variant, pcvariant_boolean)
 {
@@ -272,7 +272,7 @@ TEST(variant, pcvariant_boolean)
     size_t size = sizeof(purc_variant);
     int times = 0;
     int module_times = 0;
-    struct purc_variant_stat * stat = NULL;
+    const struct purc_variant_stat * stat = NULL;
     purc_variant_t value_true = NULL;
     purc_variant_t value_true_prev = NULL;
     purc_variant_t value_false = NULL;
@@ -1010,7 +1010,7 @@ TEST(variant, pcvariant_loopbuffer_one)
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     // get statitics information
-    struct purc_variant_stat * stat = purc_variant_usage_stat ();
+    const struct purc_variant_stat * stat = purc_variant_usage_stat ();
     ASSERT_NE(stat, nullptr);
     old_size = stat->sz_total_mem;
 
@@ -1061,7 +1061,7 @@ TEST(variant, pcvariant_loopbuffer_all)
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     // get statitics information
-    struct purc_variant_stat * stat = purc_variant_usage_stat ();
+    const struct purc_variant_stat * stat = purc_variant_usage_stat ();
     ASSERT_NE(stat, nullptr);
     old_size = stat->sz_total_mem;
 
@@ -1288,7 +1288,7 @@ TEST(variant, four_constants)
     int ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsfot.hvml.test", "variant", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    struct purc_variant_stat * stat = purc_variant_usage_stat ();
+    const struct purc_variant_stat * stat = purc_variant_usage_stat ();
     ASSERT_NE(stat, nullptr);
     ASSERT_EQ(stat->nr_values[PURC_VARIANT_TYPE_UNDEFINED], 0);
     ASSERT_EQ(stat->nr_values[PURC_VARIANT_TYPE_NULL], 0);
@@ -1425,7 +1425,7 @@ TEST(variant, load_from_so)
 
 static void get_variant_total_info (size_t *mem, size_t *value, size_t *resv)
 {
-    struct purc_variant_stat * stat = purc_variant_usage_stat ();
+    const struct purc_variant_stat * stat = purc_variant_usage_stat ();
     ASSERT_NE(stat, nullptr);
 
     *mem = stat->sz_total_mem;

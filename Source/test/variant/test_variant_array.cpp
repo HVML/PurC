@@ -14,7 +14,7 @@ TEST(variant_array, init_with_1_str)
     purc_instance_extra_info info = {};
     int ret = 0;
     bool cleanup = false;
-    struct purc_variant_stat *stat;
+    const struct purc_variant_stat *stat;
 
     ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
             "test_init", &info);
@@ -69,7 +69,7 @@ TEST(variant_array, init_0_elem)
     purc_instance_extra_info info = {};
     int ret = 0;
     bool cleanup = false;
-    struct purc_variant_stat *stat;
+    const struct purc_variant_stat *stat;
 
     ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
             "test_init", &info);
@@ -108,7 +108,7 @@ TEST(variant_array, add_1_str)
     purc_instance_extra_info info = {};
     int ret = 0;
     bool cleanup = false;
-    struct purc_variant_stat *stat;
+    const struct purc_variant_stat *stat;
 
     ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
             "test_init", &info);
@@ -170,7 +170,7 @@ TEST(variant_array, add_n_str)
     purc_instance_extra_info info = {};
     int ret = 0;
     bool cleanup = false;
-    struct purc_variant_stat *stat;
+    const struct purc_variant_stat *stat;
 
     ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
             "test_init", &info);
@@ -232,7 +232,7 @@ TEST(variant_array, add_n_str_and_remove)
     purc_instance_extra_info info = {};
     int ret = 0;
     bool cleanup = false;
-    struct purc_variant_stat *stat;
+    const struct purc_variant_stat *stat;
 
     ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
             "test_init", &info);
@@ -301,7 +301,7 @@ TEST(variant_array, add_n_str_and_remove_pub)
     purc_instance_extra_info info = {};
     int ret = 0;
     bool cleanup = false;
-    struct purc_variant_stat *stat;
+    const struct purc_variant_stat *stat;
 
     ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
             "test_init", &info);
@@ -373,7 +373,7 @@ TEST(variant_array, make_ref_add_unref_unref)
     purc_instance_extra_info info = {};
     int ret = 0;
     bool cleanup = false;
-    struct purc_variant_stat *stat;
+    const struct purc_variant_stat *stat;
 
     ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
             "test_init", &info);
@@ -469,7 +469,7 @@ TEST(variant_array, sort)
     purc_instance_extra_info info = {};
     int ret = 0;
     bool cleanup = false;
-    struct purc_variant_stat *stat;
+    const struct purc_variant_stat *stat;
 
     ret = purc_init_ex (PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
             "test_init", &info);

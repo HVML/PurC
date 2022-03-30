@@ -421,7 +421,7 @@ unsigned int purc_variant_unref(purc_variant_t value)
     return value->refc;
 }
 
-struct purc_variant_stat * purc_variant_usage_stat(void)
+const struct purc_variant_stat *purc_variant_usage_stat(void)
 {
     struct pcinst *inst = pcinst_current();
     if (inst == NULL) {

@@ -1963,7 +1963,8 @@ struct purc_variant_stat {
  *
  * Since: 0.0.1
  */
-PCA_EXPORT struct purc_variant_stat*  purc_variant_usage_stat(void);
+PCA_EXPORT const struct purc_variant_stat *
+purc_variant_usage_stat(void);
 
 /**
  * Numberify a variant value to double
