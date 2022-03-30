@@ -29,7 +29,7 @@ public:
 
     void run_testcases(const struct dvobj_result *test_cases, size_t n);
 
-    void run_testcases_in_file(const char *path_name, const char *file_name);
+    void run_testcases_in_file(const char *file_name);
 
 private:
     typedef map <string, purc_variant_t> dvobj_map_t;

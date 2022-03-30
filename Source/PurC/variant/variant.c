@@ -314,10 +314,10 @@ void pcvariant_cleanup_instance(struct pcinst *inst)
         heap->gc = NULL;
     }
 
-    PC_ASSERT(heap->v_undefined.refc == 0);
-    PC_ASSERT(heap->v_null.refc == 0);
-    PC_ASSERT(heap->v_true.refc == 0);
-    PC_ASSERT(heap->v_false.refc == 0);
+    assert(heap->v_undefined.refc == 0);
+    assert(heap->v_null.refc == 0);
+    assert(heap->v_true.refc == 0);
+    assert(heap->v_false.refc == 0);
 
     free(heap);
     inst->variant_heap = NULL;

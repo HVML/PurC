@@ -152,14 +152,15 @@ void TestDVObj::run_testcases(const struct dvobj_result *test_cases, size_t n)
     }
 }
 
-void TestDVObj::run_testcases_in_file(const char *path_name, const char *file_name)
+void TestDVObj::run_testcases_in_file(const char *file_name)
 {
-    size_t line_number = 0;
-    size_t case_number = 0;
     char file_path[4096 + 1];
+    const char *env = "DVOBJS_TEST_PATH";
+
+    test_getpath_from_env_or_rel(file_path, sizeof(file_path),
+            env, "test_files");
 
     // get test file
-    strcpy(file_path, path_name);
     strcat(file_path, "/");
     strcat(file_path, file_name);
     strcat(file_path, ".cases");
@@ -167,6 +168,11 @@ void TestDVObj::run_testcases_in_file(const char *path_name, const char *file_na
     FILE *fp = fopen(file_path, "r");   // open test_list
     ASSERT_NE(fp, nullptr) << "Failed to open file: ["
         << file_path << "]" << std::endl;
+
+    purc_log_info("Run test cases from file: %s\n", file_path);
+
+    size_t line_number = 0;
+    size_t case_number = 0;
 
     char *line = NULL;
     size_t sz = 0;

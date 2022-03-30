@@ -20,13 +20,7 @@ TEST(dvobjs, basic)
 
 TEST(dvobjs, string_more)
 {
-    char data_path[4096 + 1];
-    const char *env = "DVOBJS_TEST_PATH";
-
-    test_getpath_from_env_or_rel(data_path, sizeof(data_path),
-            env, "test_files");
-
     TestDVObj tester;
-    tester.run_testcases_in_file(data_path, "string");
+    tester.run_testcases_in_file("string");
 }
 
