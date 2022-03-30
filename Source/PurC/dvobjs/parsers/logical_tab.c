@@ -23,6 +23,7 @@
  */
 
 #define _GNU_SOURCE
+#include <math.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <string.h>
@@ -32,6 +33,7 @@
 // #include "logical.h"
 #include "private/dvobjs.h"
 #include "private/variant.h"
+#include "private/utils.h"
 
 #include "../helper.h"
 
