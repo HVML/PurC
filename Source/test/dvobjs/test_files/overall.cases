@@ -304,6 +304,14 @@ negative:
     $EJSON.fetchreal(bx12345678, 'i16:3')
     InvalidValue
 
+negative:
+    $EJSON.fetchreal(bx12345678, 'asdf:')
+    InvalidValue
+
+negative:
+    $EJSON.fetchreal(bx12345678, ':sadf')
+    InvalidValue
+
 positive:
     $EJSON.fetchreal(bx00020004, 'i16be')
     2L
