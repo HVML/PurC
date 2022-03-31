@@ -1173,7 +1173,17 @@ crc32_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto fatal;
     }
 
-    pcutils_crc32_begin(&crc32);
+    /*
+     * We are using CRC32/POSIX parameters:
+     *      Width  : 32
+     *      Poly   : 0x04c11db7
+     *      Init   : parameter, typically 0
+     *      RefIn  : false
+     *      RefOut : false
+     *      XorOut : 0xffffffff
+     * For more info, see <https://crccalc.com/>
+     */
+    pcutils_crc32_begin(&crc32, (uint32_t)0);
     if (purc_variant_stringify(stream, argv[0],
             PCVARIANT_STRINGIFY_OPT_BSEQUENCE_BAREBYTES, NULL) < 0) {
         goto fatal;
@@ -1181,8 +1191,7 @@ crc32_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     purc_rwstream_destroy(stream);
 
-    pcutils_crc32_end(&crc32);
-    purc_log_info("%08X\n", crc32);
+    pcutils_crc32_end(&crc32, (uint32_t)-1);
 
     if (binary) {
         return purc_variant_make_byte_sequence(&crc32, sizeof(crc32));

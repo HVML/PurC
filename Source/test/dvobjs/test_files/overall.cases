@@ -331,15 +331,15 @@ negative:
 
 positive:
     $EJSON.crc32('HVML', false)
-    '231e2c0c'
+    '7ad1cde5'
 
 positive:
     $EJSON.crc32('HVML', false, true)
-    '231E2C0C'
+    '7AD1CDE5'
 
 positive:
     $EJSON.crc32('HVML')
-    bx231E2C0C
+    bx7ad1cde5
 
 # test cases for $EJSON.md5
 negative:

@@ -110,9 +110,9 @@ void pcutils_atom_cleanup_once(void) WTF_INTERNAL;
 
 void *pcutils_calloc_a(size_t len, ...) WTF_INTERNAL;
 
-void pcutils_crc32_begin(uint32_t* crc);
+void pcutils_crc32_begin(uint32_t* crc, uint32_t init);
 void pcutils_crc32_update(const void *data, size_t nr_bytes, uint32_t* crc);
-void pcutils_crc32_end(uint32_t* crc);
+void pcutils_crc32_end(uint32_t* crc, uint32_t xor_out);
 
 #define MD5_DIGEST_SIZE          (16)
 
