@@ -324,3 +324,20 @@ positive:
     $EJSON.fetchreal(bx00020004, ' i16be:2 ')
     [2L, 4L]
 
+# test cases for $EJSON.md5
+negative:
+    $EJSON.md5
+    ArgumentMissed
+
+positive:
+    $EJSON.md5('HVML', false)
+    'b2565228770ec540692d8a0cfcd3a990'
+
+positive:
+    $EJSON.md5('HVML', false, true)
+    'B2565228770EC540692D8A0CFCD3A990'
+
+positive:
+    $EJSON.md5('HVML')
+    bxb2565228770ec540692d8a0cfcd3a990
+

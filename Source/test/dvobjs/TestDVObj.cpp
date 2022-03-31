@@ -260,7 +260,7 @@ void TestDVObj::run_testcases_in_file(const char *file_name)
 
             purc_variant_unref(result);
             purc_variant_unref(expected);
-            case_number ++;
+            case_number++;
         }
 
     }

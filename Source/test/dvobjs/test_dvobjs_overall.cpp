@@ -18,7 +18,7 @@ TEST(dvobjs, basic)
     purc_cleanup();
 }
 
-TEST(dvobjs, string_more)
+TEST(dvobjs, overall)
 {
     TestDVObj tester;
     tester.run_testcases_in_file("overall");
