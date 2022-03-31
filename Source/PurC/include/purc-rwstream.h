@@ -144,7 +144,7 @@ purc_rwstream_new_from_win32_socket (int socket, size_t sz_buf);
 typedef ssize_t (*pcrws_cb_write)(void *ctxt, const void *buf, size_t count);
 
 /**
- * Creates a new purc_rwstream_t which is dedicated to serilization,
+ * Creates a new purc_rwstream_t which is dedicated for dump only,
  * that is, the new purc_rwstream_t is write-only and not seekable.
  *
  * @param ctxt: the buffer
@@ -157,7 +157,7 @@ typedef ssize_t (*pcrws_cb_write)(void *ctxt, const void *buf, size_t count);
  * Since: 0.0.1
  */
 PCA_EXPORT purc_rwstream_t
-purc_rwstream_new_for_serialization(void *ctxt, pcrws_cb_write fn);
+purc_rwstream_new_for_dump (void *ctxt, pcrws_cb_write fn);
 
 /**
  * Release the purc_rwstream_t

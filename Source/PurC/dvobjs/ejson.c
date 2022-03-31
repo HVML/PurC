@@ -24,11 +24,14 @@
 
 // #undef NDEBUG
 
-#include "private/instance.h"
+#include "purc-variant.h"
+#include "purc-utils.h"
+
+#include "private/variant.h"
 #include "private/errors.h"
 #include "private/atom-buckets.h"
 #include "private/dvobjs.h"
-#include "purc-variant.h"
+#include "private/utils.h"
 #include "helper.h"
 
 #include <assert.h>
@@ -1133,6 +1136,191 @@ failed:
     return PURC_VARIANT_INVALID;
 }
 
+static ssize_t cb_calc_crc32(void *ctxt, const void *buf, size_t count)
+{
+    uint32_t *crc32 = ctxt;
+    pcutils_crc32(buf, count, crc32);
+    return count;
+}
+
+static purc_variant_t
+crc32_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
+
+    purc_rwstream_t stream = NULL;
+
+    if (nr_args == 0) {
+        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    bool binary = false;
+    if (nr_args > 1) {
+        binary = purc_variant_booleanize(argv[1]);
+    }
+
+    uint32_t crc32;
+    stream = purc_rwstream_new_for_dump(&crc32, cb_calc_crc32);
+    if (stream == NULL) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto fatal;
+    }
+
+    if (purc_variant_stringify(stream, argv[0],
+            PCVARIANT_STRINGIFY_OPT_BSEQUENCE_BAREBYTES, NULL) < 0) {
+        goto fatal;
+    }
+
+    purc_rwstream_destroy(stream);
+
+    if (binary) {
+        return purc_variant_make_byte_sequence(&crc32, sizeof(crc32));
+    }
+    else {
+        char hex[sizeof(crc32) * 2 + 1];
+        pcutils_bin2hex((unsigned char *)&crc32, sizeof(crc32), hex);
+        return purc_variant_make_string(hex, false);
+    }
+
+failed:
+    if (silently)
+        return purc_variant_make_undefined();
+
+fatal:
+    if (stream)
+        purc_rwstream_destroy(stream);
+    return PURC_VARIANT_INVALID;
+}
+
+static ssize_t cb_calc_md5(void *ctxt, const void *buf, size_t count)
+{
+    pcutils_md5_ctxt *md5_ctxt = ctxt;
+    pcutils_md5_hash(md5_ctxt, buf, count);
+    return count;
+}
+
+static purc_variant_t
+md5_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
+
+    purc_rwstream_t stream = NULL;
+
+    if (nr_args == 0) {
+        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    bool binary = false;
+    if (nr_args > 1) {
+        binary = purc_variant_booleanize(argv[1]);
+    }
+
+    pcutils_md5_ctxt md5_ctxt;
+    stream = purc_rwstream_new_for_dump(&md5_ctxt, cb_calc_md5);
+    if (stream == NULL) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto fatal;
+    }
+
+    pcutils_md5_begin(&md5_ctxt);
+    if (purc_variant_stringify(stream, argv[0],
+            PCVARIANT_STRINGIFY_OPT_BSEQUENCE_BAREBYTES, NULL) < 0) {
+        goto fatal;
+    }
+
+    purc_rwstream_destroy(stream);
+
+    unsigned char md5[MD5_DIGEST_SIZE];
+    pcutils_md5_end(&md5_ctxt, md5);
+
+    if (binary) {
+        return purc_variant_make_byte_sequence(md5, sizeof(md5));
+    }
+    else {
+        char hex[sizeof(md5) * 2 + 1];
+        pcutils_bin2hex(md5, sizeof(md5), hex);
+        return purc_variant_make_string(hex, false);
+    }
+
+failed:
+    if (silently)
+        return purc_variant_make_undefined();
+
+fatal:
+    if (stream)
+        purc_rwstream_destroy(stream);
+    return PURC_VARIANT_INVALID;
+}
+
+static ssize_t cb_calc_sha1(void *ctxt, const void *buf, size_t count)
+{
+    pcutils_sha1_ctxt *sha1_ctxt = ctxt;
+    pcutils_sha1_hash(sha1_ctxt, buf, count);
+    return count;
+}
+
+static purc_variant_t
+sha1_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
+
+    purc_rwstream_t stream = NULL;
+
+    if (nr_args == 0) {
+        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    bool binary = false;
+    if (nr_args > 1) {
+        binary = purc_variant_booleanize(argv[1]);
+    }
+
+    pcutils_sha1_ctxt sha1_ctxt;
+    stream = purc_rwstream_new_for_dump(&sha1_ctxt, cb_calc_sha1);
+    if (stream == NULL) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto fatal;
+    }
+
+    pcutils_sha1_begin(&sha1_ctxt);
+    if (purc_variant_stringify(stream, argv[0],
+            PCVARIANT_STRINGIFY_OPT_BSEQUENCE_BAREBYTES, NULL) < 0) {
+        goto fatal;
+    }
+
+    purc_rwstream_destroy(stream);
+
+    unsigned char sha1[SHA1_DIGEST_SIZE];
+    pcutils_sha1_end(&sha1_ctxt, sha1);
+
+    if (binary) {
+        return purc_variant_make_byte_sequence(sha1, sizeof(sha1));
+    }
+    else {
+        char hex[sizeof(sha1) * 2 + 1];
+        pcutils_bin2hex(sha1, sizeof(sha1), hex);
+        return purc_variant_make_string(hex, false);
+    }
+
+failed:
+    if (silently)
+        return purc_variant_make_undefined();
+
+fatal:
+    if (stream)
+        purc_rwstream_destroy(stream);
+    return PURC_VARIANT_INVALID;
+}
+
 purc_variant_t purc_dvobj_ejson_new(void)
 {
     static struct purc_dvobj_method method [] = {
@@ -1149,6 +1337,9 @@ purc_variant_t purc_dvobj_ejson_new(void)
         { "fetchreal",  fetchreal_getter, NULL },
         { "shuffle",    shuffle_getter, NULL },
         { "sort",       sort_getter, NULL },
+        { "crc32",      crc32_getter, NULL },
+        { "md5",        md5_getter, NULL },
+        { "sha1",       sha1_getter, NULL },
     };
 
     if (keywords2atoms[0].atom == 0) {

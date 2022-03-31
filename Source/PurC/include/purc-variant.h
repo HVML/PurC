@@ -1656,9 +1656,10 @@ purc_variant_compare_ex(purc_variant_t v1, purc_variant_t v2,
 #define PCVARIANT_SERIALIZE_OPT_PRETTY_TAB              0x00000040
 
 #define PCVARIANT_SERIALIZE_OPT_BSEQUENCE_MASK          0x00000F00
+
 /**
  * A flag for the purc_variant_serialize() function which causes
- * the output to have dot for binary sequence.
+ * the function serializes byte sequences as a hexadecimal string.
  */
 #define PCVARIANT_SERIALIZE_OPT_BSEQUENCE_HEX_STRING    0x00000000
 
@@ -2026,10 +2027,22 @@ PCA_EXPORT ssize_t
 purc_variant_stringify_alloc(char **strp, purc_variant_t value);
 
 /**
- * A flag for the purc_variant_stringify_stream() function which causes
+ * A flag for the purc_variant_stringify() function which causes
  * the function ignores the output errors.
  */
 #define PCVARIANT_STRINGIFY_OPT_IGNORE_ERRORS           0x10000000
+
+/**
+ * A flag for the purc_variant_stringify() function which causes
+ * the function stringifies byte sequences as bare bytes.
+ */
+#define PCVARIANT_STRINGIFY_OPT_BSEQUENCE_BAREBYTES     0x00000100
+
+/**
+ * A flag for the purc_variant_stringify() function which causes
+ * the function stringifies real numers as bare bytes.
+ */
+#define PCVARIANT_STRINGIFY_OPT_REAL_BAREBYTES          0x00000200
 
 /**
  * Stringify a variant value to a writable stream.

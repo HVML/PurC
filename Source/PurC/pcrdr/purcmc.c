@@ -241,14 +241,14 @@ static int purcmc_connect_via_unix_socket (const char* path_to_socket,
     }
 
     {
-        pcutils_md5_ctx_t ctx;
+        pcutils_md5_ctxt ctx;
         unsigned char md5_digest[16];
 
         pcutils_md5_begin (&ctx);
-        pcutils_md5_hash (app_name, strlen (app_name), &ctx);
-        pcutils_md5_hash ("/", 1, &ctx);
-        pcutils_md5_hash (runner_name, strlen (runner_name), &ctx);
-        pcutils_md5_end (md5_digest, &ctx);
+        pcutils_md5_hash (&ctx, app_name, strlen (app_name));
+        pcutils_md5_hash (&ctx, "/", 1);
+        pcutils_md5_hash (&ctx, runner_name, strlen (runner_name));
+        pcutils_md5_end (&ctx, md5_digest);
         pcutils_bin2hex (md5_digest, 16, peer_name);
     }
 
