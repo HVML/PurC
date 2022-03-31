@@ -317,10 +317,10 @@ positive:
     2L
 
 positive:
-    $EJSON.fetchreal(bx00020004, 'i16be:1', 2)
+    $EJSON.fetchreal(bx00020004, ' i16be:1 ', 2)
     4L
 
 positive:
-    $EJSON.fetchreal(bx00020004, 'i16be:2')
+    $EJSON.fetchreal(bx00020004, ' i16be:2 ')
     [2L, 4L]
 
