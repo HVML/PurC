@@ -431,7 +431,7 @@ static rwstream_funcs wo_funcs = {
 };
 
 purc_rwstream_t
-purc_rwstream_new_for_serialization (void *ctxt, pcrws_cb_write fn)
+purc_rwstream_new_for_dump (void *ctxt, pcrws_cb_write fn)
 {
     if (fn == NULL) {
         pcinst_set_error (PURC_ERROR_INVALID_VALUE);

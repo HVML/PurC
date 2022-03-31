@@ -87,7 +87,7 @@
  * the bit counters.  There are no alignment requirements.
  */
 static const void *
-body(pcutils_md5_ctx_t *ctx, const void *data, unsigned long size)
+body(pcutils_md5_ctxt *ctx, const void *data, unsigned long size)
 {
     const unsigned char *ptr;
     uint32_t a, b, c, d;
@@ -197,7 +197,7 @@ body(pcutils_md5_ctx_t *ctx, const void *data, unsigned long size)
     return ptr;
 }
 
-void pcutils_md5_begin(pcutils_md5_ctx_t *ctx)
+void pcutils_md5_begin(pcutils_md5_ctxt *ctx)
 {
     ctx->a = 0x67452301;
     ctx->b = 0xefcdab89;
@@ -208,7 +208,7 @@ void pcutils_md5_begin(pcutils_md5_ctx_t *ctx)
     ctx->hi = 0;
 }
 
-void pcutils_md5_hash(const void *data, size_t size, pcutils_md5_ctx_t *ctx)
+void pcutils_md5_hash(pcutils_md5_ctxt *ctx, const void *data, size_t size)
 {
     uint32_t saved_lo;
     unsigned long used, available;
@@ -242,7 +242,7 @@ void pcutils_md5_hash(const void *data, size_t size, pcutils_md5_ctx_t *ctx)
     memcpy(ctx->buffer, data, size);
 }
 
-void pcutils_md5_end(unsigned char *resbuf, pcutils_md5_ctx_t *ctx)
+void pcutils_md5_end(pcutils_md5_ctxt *ctx, unsigned char *resbuf)
 {
     unsigned char *result = resbuf;
     unsigned long used, available;
@@ -294,19 +294,19 @@ void pcutils_md5_end(unsigned char *resbuf, pcutils_md5_ctx_t *ctx)
     memset(ctx, 0, sizeof(*ctx));
 }
 
-void pcutils_md5digest (const char *string, unsigned char* digest)
+void pcutils_md5digest(const char *string, unsigned char* digest)
 {
-    pcutils_md5_ctx_t ctx;
+    pcutils_md5_ctxt ctx;
 
-    pcutils_md5_begin (&ctx);
-    pcutils_md5_hash (string, strlen (string), &ctx);
-    pcutils_md5_end (digest, &ctx);
+    pcutils_md5_begin(&ctx);
+    pcutils_md5_hash(&ctx, string, strlen (string));
+    pcutils_md5_end(&ctx, digest);
 }
 
 int pcutils_md5sum(const char *file, unsigned char *md5_buf)
 {
     char buf[256];
-    pcutils_md5_ctx_t ctx;
+    pcutils_md5_ctxt ctx;
     int ret = 0;
     FILE *f;
 
@@ -320,11 +320,11 @@ int pcutils_md5sum(const char *file, unsigned char *md5_buf)
         if (!len)
             break;
 
-        pcutils_md5_hash(buf, len, &ctx);
+        pcutils_md5_hash(&ctx, buf, len);
         ret += len;
     } while(1);
 
-    pcutils_md5_end(md5_buf, &ctx);
+    pcutils_md5_end(&ctx, md5_buf);
     fclose(f);
 
     return ret;

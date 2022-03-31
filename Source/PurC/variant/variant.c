@@ -2174,8 +2174,9 @@ purc_variant_booleanize(purc_variant_t value)
 
 struct stringify_arg
 {
-    void (*cb)(void *arg, const char *src);
+    void (*cb)(void *arg, const void *src, size_t len);
     void *arg;
+    unsigned int flags;
 };
 
 static void
@@ -2196,14 +2197,14 @@ stringify_bs(struct stringify_arg *arg, const unsigned char *bs, size_t nr)
         *p++ = chars[l];
         if (p == end) {
             *p = '\0';
-            arg->cb(arg->arg, buffer);
+            arg->cb(arg->arg, buffer, 0);
             p = buffer;
         }
     }
 
     if (p>buffer) {
         *p = '\0';
-        arg->cb(arg->arg, buffer);
+        arg->cb(arg->arg, buffer, 0);
     }
 }
 
@@ -2219,9 +2220,9 @@ stringify_array(struct stringify_arg *arg, purc_variant_t value)
     for (size_t i=0; i<sz; ++i) {
         purc_variant_t v = purc_variant_array_get(value, i);
         variant_stringify(arg, v);
-        arg->cb(arg->arg, "\n");
+        arg->cb(arg->arg, "\n", 0);
     }
-    arg->cb(arg->arg, "");
+    arg->cb(arg->arg, "", 0);
 }
 
 static void
@@ -2230,11 +2231,11 @@ stringify_object(struct stringify_arg *arg, purc_variant_t value)
     purc_variant_t k, v;
     foreach_key_value_in_variant_object(value, k, v)
         variant_stringify(arg, k);
-        arg->cb(arg->arg, ":");
+        arg->cb(arg->arg, ":", 0);
         variant_stringify(arg, v);
-        arg->cb(arg->arg, "\n");
+        arg->cb(arg->arg, "\n", 0);
     end_foreach;
-    arg->cb(arg->arg, "");
+    arg->cb(arg->arg, "", 0);
 }
 
 static void
@@ -2243,9 +2244,9 @@ stringify_set(struct stringify_arg *arg, purc_variant_t value)
     purc_variant_t v;
     foreach_value_in_variant_set_order(value, v)
         variant_stringify(arg, v);
-        arg->cb(arg->arg, "\n");
+        arg->cb(arg->arg, "\n", 0);
     end_foreach;
-    arg->cb(arg->arg, "");
+    arg->cb(arg->arg, "", 0);
 }
 
 static void
@@ -2256,7 +2257,7 @@ stringify_dynamic(struct stringify_arg *arg, purc_variant_t value)
 
     char buf[128];
     snprintf(buf, sizeof(buf), "<dynamic: %p, %p>", getter, setter);
-    arg->cb(arg->arg, buf);
+    arg->cb(arg->arg, buf, 0);
 }
 
 static void
@@ -2266,82 +2267,113 @@ stringify_native(struct stringify_arg *arg, purc_variant_t value)
 
     char buf[128];
     snprintf(buf, sizeof(buf), "<native: %p>", native);
-    arg->cb(arg->arg, buf);
+    arg->cb(arg->arg, buf, 0);
 }
 
 static void
 variant_stringify(struct stringify_arg *arg, purc_variant_t value)
 {
-    const unsigned char *bs;
-    size_t nr;
     enum purc_variant_type type = purc_variant_get_type(value);
     char buf[128];
 
-    switch (type)
-    {
-        case PURC_VARIANT_TYPE_UNDEFINED:
-            arg->cb(arg->arg, "undefined");
-            break;
-        case PURC_VARIANT_TYPE_NULL:
-            arg->cb(arg->arg, "null");
-            break;
-        case PURC_VARIANT_TYPE_BOOLEAN:
-            if (value->b) {
-                arg->cb(arg->arg, "true");
-            } else {
-                arg->cb(arg->arg, "false");
-            }
-            break;
-        case PURC_VARIANT_TYPE_EXCEPTION:
-            arg->cb(arg->arg,
-                    purc_variant_get_exception_string_const(value));
-            break;
-        case PURC_VARIANT_TYPE_NUMBER:
+    switch (type) {
+    case PURC_VARIANT_TYPE_UNDEFINED:
+        arg->cb(arg->arg, "undefined", 0);
+        break;
+    case PURC_VARIANT_TYPE_NULL:
+        arg->cb(arg->arg, "null", 0);
+        break;
+    case PURC_VARIANT_TYPE_BOOLEAN:
+        if (value->b) {
+            arg->cb(arg->arg, "true", 0);
+        } else {
+            arg->cb(arg->arg, "false", 0);
+        }
+        break;
+    case PURC_VARIANT_TYPE_NUMBER:
+        if (arg->flags & PCVARIANT_STRINGIFY_OPT_REAL_BAREBYTES) {
+            arg->cb(arg->arg, &value->d, sizeof(double));
+        }
+        else {
             snprintf(buf, sizeof(buf), "%g", value->d);
-            arg->cb(arg->arg, buf);
-            break;
-        case PURC_VARIANT_TYPE_LONGINT:
+            arg->cb(arg->arg, buf, 0);
+        }
+        break;
+    case PURC_VARIANT_TYPE_LONGINT:
+        if (arg->flags & PCVARIANT_STRINGIFY_OPT_REAL_BAREBYTES) {
+            arg->cb(arg->arg, &value->i64, sizeof(int64_t));
+        }
+        else {
             snprintf(buf, sizeof(buf), "%" PRId64 "", value->i64);
-            arg->cb(arg->arg, buf);
-            break;
-        case PURC_VARIANT_TYPE_ULONGINT:
+            arg->cb(arg->arg, buf, 0);
+        }
+        break;
+
+    case PURC_VARIANT_TYPE_ULONGINT:
+        if (arg->flags & PCVARIANT_STRINGIFY_OPT_REAL_BAREBYTES) {
+            arg->cb(arg->arg, &value->u64, sizeof(uint64_t));
+        }
+        else {
             snprintf(buf, sizeof(buf), "%" PRIu64 "", value->u64);
-            arg->cb(arg->arg, buf);
-            break;
-        case PURC_VARIANT_TYPE_LONGDOUBLE:
+            arg->cb(arg->arg, buf, 0);
+        }
+        break;
+
+    case PURC_VARIANT_TYPE_LONGDOUBLE:
+        if (arg->flags & PCVARIANT_STRINGIFY_OPT_REAL_BAREBYTES) {
+            arg->cb(arg->arg, &value->ld, sizeof(long double));
+        }
+        else {
             snprintf(buf, sizeof(buf), "%Lg", value->ld);
-            arg->cb(arg->arg, buf);
-            break;
-        case PURC_VARIANT_TYPE_ATOMSTRING:
-            arg->cb(arg->arg,
-                    purc_variant_get_atom_string_const(value));
-            break;
-        case PURC_VARIANT_TYPE_STRING:
-            arg->cb(arg->arg,
-                    purc_variant_get_string_const(value));
-            break;
-        case PURC_VARIANT_TYPE_BSEQUENCE:
-            bs = purc_variant_get_bytes_const(value, &nr);
+            arg->cb(arg->arg, buf, 0);
+        }
+        break;
+
+    case PURC_VARIANT_TYPE_EXCEPTION:
+    case PURC_VARIANT_TYPE_ATOMSTRING:
+    case PURC_VARIANT_TYPE_STRING:
+    {
+        const char *str;
+        size_t len;
+
+        str = purc_variant_get_string_const_ex(value, &len);
+        arg->cb(arg->arg, str, len);
+        break;
+    }
+
+    case PURC_VARIANT_TYPE_BSEQUENCE:
+    {
+        const unsigned char *bs;
+        size_t nr;
+
+        bs = purc_variant_get_bytes_const(value, &nr);
+        if (arg->flags & PCVARIANT_STRINGIFY_OPT_BSEQUENCE_BAREBYTES) {
+            arg->cb(arg->arg, bs, nr);
+        }
+        else {
             stringify_bs(arg, bs, nr);
-            break;
-        case PURC_VARIANT_TYPE_DYNAMIC:
-            stringify_dynamic(arg, value);
-            break;
-        case PURC_VARIANT_TYPE_NATIVE:
-            stringify_native(arg, value);
-            break;
-        case PURC_VARIANT_TYPE_OBJECT:
-            stringify_object(arg, value);
-            break;
-        case PURC_VARIANT_TYPE_ARRAY:
-            stringify_array(arg, value);
-            break;
-        case PURC_VARIANT_TYPE_SET:
-            stringify_set(arg, value);
-            break;
-        default:
-            PC_ASSERT(0);
-            break;
+        }
+        break;
+    }
+
+    case PURC_VARIANT_TYPE_DYNAMIC:
+        stringify_dynamic(arg, value);
+        break;
+    case PURC_VARIANT_TYPE_NATIVE:
+        stringify_native(arg, value);
+        break;
+    case PURC_VARIANT_TYPE_OBJECT:
+        stringify_object(arg, value);
+        break;
+    case PURC_VARIANT_TYPE_ARRAY:
+        stringify_array(arg, value);
+        break;
+    case PURC_VARIANT_TYPE_SET:
+        stringify_set(arg, value);
+        break;
+    default:
+        PC_ASSERT(0);
+        break;
     }
 }
 
@@ -2383,13 +2415,15 @@ struct stringify_stream {
 };
 
 static void
-do_stringify_stream(void *arg, const char *src)
+do_stringify_stream(void *arg, const void *src, size_t len)
 {
     struct stringify_stream *ud;
     ud = (struct stringify_stream*)arg;
 
-    size_t len = strlen(src);
-    if (ud->err == 0 && ud->stream && len>0) {
+    if (len == 0)
+        len = strlen(src);
+
+    if (ud->err == 0 && ud->stream && len > 0) {
         ssize_t sz = purc_rwstream_write(ud->stream, src, len);
         if (sz == -1) {
             ud->err = -1;
@@ -2400,6 +2434,7 @@ do_stringify_stream(void *arg, const char *src)
             ud->written += sz;
         }
     }
+
     ud->accu += len;
 }
 
@@ -2423,6 +2458,7 @@ purc_variant_stringify(purc_rwstream_t stream, purc_variant_t value,
     struct stringify_arg arg;
     arg.cb    = do_stringify_stream;
     arg.arg   = &ud;
+    arg.flags = flags;
 
     variant_stringify(&arg, value);
 
