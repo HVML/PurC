@@ -324,6 +324,23 @@ positive:
     $EJSON.fetchreal(bx00020004, ' i16be:2 ')
     [2L, 4L]
 
+# test cases for $EJSON.crc32
+negative:
+    $EJSON.crc32
+    ArgumentMissed
+
+positive:
+    $EJSON.crc32('HVML', false)
+    '231e2c0c'
+
+positive:
+    $EJSON.crc32('HVML', false, true)
+    '231E2C0C'
+
+positive:
+    $EJSON.crc32('HVML')
+    bx231E2C0C
+
 # test cases for $EJSON.md5
 negative:
     $EJSON.md5
@@ -340,4 +357,21 @@ positive:
 positive:
     $EJSON.md5('HVML')
     bxb2565228770ec540692d8a0cfcd3a990
+
+# test cases for $EJSON.sha1
+negative:
+    $EJSON.sha1
+    ArgumentMissed
+
+positive:
+    $EJSON.sha1('HVML', false)
+    'da03f74dd36a33cf908ad0ae743510772d120983'
+
+positive:
+    $EJSON.sha1('HVML', false, true)
+    'DA03F74DD36A33CF908AD0AE743510772D120983'
+
+positive:
+    $EJSON.sha1('HVML')
+    bxda03f74dd36a33cf908ad0ae743510772d120983
 

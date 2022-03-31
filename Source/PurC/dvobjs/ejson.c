@@ -1139,7 +1139,7 @@ failed:
 static ssize_t cb_calc_crc32(void *ctxt, const void *buf, size_t count)
 {
     uint32_t *crc32 = ctxt;
-    pcutils_crc32(buf, count, crc32);
+    pcutils_crc32_update(buf, count, crc32);
     return count;
 }
 
@@ -1173,12 +1173,16 @@ crc32_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto fatal;
     }
 
+    pcutils_crc32_begin(&crc32);
     if (purc_variant_stringify(stream, argv[0],
             PCVARIANT_STRINGIFY_OPT_BSEQUENCE_BAREBYTES, NULL) < 0) {
         goto fatal;
     }
 
     purc_rwstream_destroy(stream);
+
+    pcutils_crc32_end(&crc32);
+    purc_log_info("%08X\n", crc32);
 
     if (binary) {
         return purc_variant_make_byte_sequence(&crc32, sizeof(crc32));
