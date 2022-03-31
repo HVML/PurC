@@ -89,7 +89,7 @@ bool base_variant_msg_listener(purc_variant_t source, pcvar_op_t msg_type,
     purc_variant_t type = purc_variant_make_string(
             smsg, false);
 
-    pcintr_dispatch_message((pcintr_stack_t)ctxt,
+    pcintr_dispatch_message_ex((pcintr_stack_t)ctxt,
             source, type, PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
 
     purc_variant_unref(type);

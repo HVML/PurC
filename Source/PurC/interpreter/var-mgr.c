@@ -125,7 +125,7 @@ static bool mgr_grow_handler(purc_variant_t source, pcvar_op_t msg_type,
                 mgr->var_observers, i);
         if (strcmp(name, obs->name) == 0
                 && obs->type == VAR_EVENT_TYPE_ATTACHED) {
-            pcintr_dispatch_message(obs->stack, source, type, sub_type,
+            pcintr_dispatch_message_ex(obs->stack, source, type, sub_type,
                     PURC_VARIANT_INVALID);
         }
     }
@@ -167,7 +167,7 @@ static bool mgr_shrink_handler(purc_variant_t source, pcvar_op_t msg_type,
                 mgr->var_observers, i);
         if (strcmp(name, obs->name) == 0
                 && obs->type == VAR_EVENT_TYPE_DETACHED) {
-            pcintr_dispatch_message(obs->stack, source, type, sub_type,
+            pcintr_dispatch_message_ex(obs->stack, source, type, sub_type,
                     PURC_VARIANT_INVALID);
         }
     }
@@ -209,7 +209,7 @@ static bool mgr_change_handler(purc_variant_t source, pcvar_op_t msg_type,
                 mgr->var_observers, i);
         if (strcmp(name, obs->name) == 0
                 && obs->type == VAR_EVENT_TYPE_DISPLACED) {
-            pcintr_dispatch_message(obs->stack, source, type, sub_type,
+            pcintr_dispatch_message_ex(obs->stack, source, type, sub_type,
                     PURC_VARIANT_INVALID);
         }
     }
@@ -365,7 +365,7 @@ bool pcvarmgr_dispatch_except(pcvarmgr_t mgr, const char* name,
                 mgr->var_observers, i);
         if (strcmp(name, obs->name) == 0
                 && obs->type == VAR_EVENT_TYPE_EXCEPT) {
-            pcintr_dispatch_message(obs->stack, mgr->object, type, sub_type,
+            pcintr_dispatch_message_ex(obs->stack, mgr->object, type, sub_type,
                     PURC_VARIANT_INVALID);
         }
     }

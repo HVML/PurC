@@ -1672,6 +1672,11 @@ pcintr_message_create(pcintr_stack_t stack, purc_variant_t source,
 {
     struct pcintr_message* msg = (struct pcintr_message*)malloc(
             sizeof(struct pcintr_message));
+    if (!msg) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return NULL;
+    }
+
     msg->stack = stack;
 
     msg->source = source;
@@ -1750,16 +1755,66 @@ pcintr_handle_message(void *ctxt)
     return 0;
 }
 
-void
+int
 pcintr_dispatch_message(pcintr_stack_t stack, purc_variant_t source,
+        purc_variant_t for_value, purc_variant_t extra)
+{
+    int ret = -1;
+    const char *for_value_str = purc_variant_get_string_const(for_value);
+    char *value = strdup(for_value_str);
+    if (!value) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return ret;
+    }
+
+    char *p = value;
+    char *s_type = strtok_r(p, ":", &p);
+    if (!s_type) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto out_free_value;
+    }
+
+    purc_variant_t type = purc_variant_make_string(s_type, true);
+    if (type == PURC_VARIANT_INVALID) {
+        goto out_free_value;
+    }
+
+    purc_variant_t sub_type = PURC_VARIANT_INVALID;
+    char *s_sub_type = strtok_r(p, ":", &p);
+    if (s_sub_type) {
+        sub_type = purc_variant_make_string(s_sub_type, true);
+        if (sub_type == PURC_VARIANT_INVALID) {
+            goto out_unref_type;
+        }
+    }
+
+    ret = pcintr_dispatch_message_ex(stack, source, type, sub_type, extra);
+
+    purc_variant_unref(sub_type);
+
+out_unref_type:
+    purc_variant_unref(type);
+
+out_free_value:
+    free(value);
+
+    return ret;
+}
+
+int
+pcintr_dispatch_message_ex(pcintr_stack_t stack, purc_variant_t source,
         purc_variant_t type, purc_variant_t sub_type, purc_variant_t extra)
 {
     struct pcintr_message* msg = pcintr_message_create(stack, source, type,
             sub_type, extra);
+    if (!msg) {
+        return PURC_ERROR_OUT_OF_MEMORY;
+    }
 
     pcrunloop_t runloop = pcrunloop_get_current();
     PC_ASSERT(runloop);
     pcrunloop_dispatch(runloop, pcintr_handle_message, msg);
+    return PURC_ERROR_OK;
 }
 
 purc_variant_t

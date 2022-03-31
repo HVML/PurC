@@ -372,8 +372,12 @@ pcintr_find_observer(pcintr_stack_t stack, purc_variant_t observed,
 bool
 pcintr_is_observer_empty(pcintr_stack_t stack);
 
-void
+int
 pcintr_dispatch_message(pcintr_stack_t stack, purc_variant_t source,
+        purc_variant_t for_value, purc_variant_t extra);
+
+int
+pcintr_dispatch_message_ex(pcintr_stack_t stack, purc_variant_t source,
         purc_variant_t type, purc_variant_t sub_type, purc_variant_t extra);
 
 bool

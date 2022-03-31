@@ -179,7 +179,7 @@ void timer_fire_func(const char* id, void* ctxt)
     purc_variant_t type = purc_variant_make_string(TIMERS_STR_EXPIRED, false);
     purc_variant_t sub_type = purc_variant_make_string(id, false);
 
-    pcintr_dispatch_message((pcintr_stack_t)ctxt,
+    pcintr_dispatch_message_ex((pcintr_stack_t)ctxt,
             stack->vdom->timers->timers_var,
             type, sub_type, PURC_VARIANT_INVALID);
 
