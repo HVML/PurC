@@ -2100,7 +2100,7 @@ BEGIN_STATE(EJSON_BYTE_SEQUENCE_STATE)
 END_STATE()
 
 BEGIN_STATE(EJSON_AFTER_BYTE_SEQUENCE_STATE)
-    if (is_whitespace(character) || character == '}'
+    if (is_eof(character) || is_whitespace(character) || character == '}'
             || character == ']' || character == ',' || character == ')') {
         struct pcvcm_node *node = create_byte_sequenct(parser->temp_buffer);
         if (node == NULL) {
@@ -2117,7 +2117,7 @@ BEGIN_STATE(EJSON_AFTER_BYTE_SEQUENCE_STATE)
 END_STATE()
 
 BEGIN_STATE(EJSON_HEX_BYTE_SEQUENCE_STATE)
-    if (is_whitespace(character) || character == '}'
+    if (is_eof(character) || is_whitespace(character) || character == '}'
             || character == ']' || character == ',' || character == ')') {
         RECONSUME_IN(EJSON_AFTER_BYTE_SEQUENCE_STATE);
     }
@@ -2131,7 +2131,7 @@ BEGIN_STATE(EJSON_HEX_BYTE_SEQUENCE_STATE)
 END_STATE()
 
 BEGIN_STATE(EJSON_BINARY_BYTE_SEQUENCE_STATE)
-    if (is_whitespace(character) || character == '}'
+    if (is_eof(character) || is_whitespace(character) || character == '}'
             || character == ']' || character == ',' || character == ')') {
         RECONSUME_IN(EJSON_AFTER_BYTE_SEQUENCE_STATE);
     }
@@ -2147,7 +2147,7 @@ BEGIN_STATE(EJSON_BINARY_BYTE_SEQUENCE_STATE)
 END_STATE()
 
 BEGIN_STATE(EJSON_BASE64_BYTE_SEQUENCE_STATE)
-    if (is_whitespace(character) || character == '}'
+    if (is_eof(character) || is_whitespace(character) || character == '}'
             || character == ']' || character == ',' || character == ')') {
         RECONSUME_IN(EJSON_AFTER_BYTE_SEQUENCE_STATE);
     }
