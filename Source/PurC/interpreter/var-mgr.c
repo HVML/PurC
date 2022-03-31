@@ -314,9 +314,17 @@ bool pcvarmgr_add(pcvarmgr_t mgr, const char* name,
     if (k == PURC_VARIANT_INVALID) {
         return false;
     }
-    bool b = purc_variant_object_set(mgr->object, k, variant);
+    bool ret = false;
+    purc_variant_t v = purc_variant_object_get(mgr->object, k);
+    if (v == PURC_VARIANT_INVALID) {
+        purc_clr_error();
+        ret = purc_variant_object_set(mgr->object, k, variant);
+    }
+    else {
+        ret = purc_variant_container_displace(v, variant, false);
+    }
     purc_variant_unref(k);
-    return b;
+    return ret;
 }
 
 purc_variant_t pcvarmgr_get(pcvarmgr_t mgr, const char* name)
