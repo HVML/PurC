@@ -1403,6 +1403,7 @@ void observer_free_func(void *data)
             purc_variant_revoke_listener(observer->observed,
                     observer->listener);
         }
+        purc_variant_unref(observer->observed);
         free(observer->msg_type);
         free(observer->sub_type);
         free(observer);
@@ -1473,6 +1474,7 @@ pcintr_register_observer(purc_variant_t observed,
         return NULL;
     }
     observer->observed = observed;
+    purc_variant_ref(observed);
     observer->scope = scope;
     observer->edom_element = edom_element;
     observer->pos = pos;
