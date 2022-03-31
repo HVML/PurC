@@ -753,18 +753,24 @@ fetchreal_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto failed;
     }
 
+    // parse format and get the length of real number.
+    format = pcutils_trim_spaces(format, &format_len);
     if (format_len == 0) {
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         goto failed;
     }
 
-    // parse format and get the length of real number.
-    format = pcutils_trim_spaces(format, &format_len);
+    ssize_t quantity = pcdvobjs_quantity_in_format(format, &format_len);
+    if (quantity < 0 || format_len == 0) {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
+
     int format_id = pcdvobjs_global_keyword_id(format, format_len);
     assert(format_id >= PURC_K_KW_i8 && format_id <= PURC_K_KW_f128be);
 
     format_id -= PURC_K_KW_i8;
-    length = real_info[format_id].length;
+    length = real_info[format_id].length * quantity;
     if (nr_args > 2) {
         int64_t tmp;
         if (!purc_variant_cast_to_longint(argv[2], &tmp, false)) {
@@ -793,25 +799,71 @@ fetchreal_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto failed;
     }
 
-    purc_real_t real = real_info[format_id].fetcher(bytes + offset);
-    switch (real_info[format_id].real_type) {
-        case PURC_VARIANT_TYPE_LONGINT:
-            return purc_variant_make_longint(real.i64);
-        case PURC_VARIANT_TYPE_ULONGINT:
-            return purc_variant_make_ulongint(real.u64);
-        case PURC_VARIANT_TYPE_NUMBER:
-            return purc_variant_make_ulongint(real.d);
-        case PURC_VARIANT_TYPE_LONGDOUBLE:
-            return purc_variant_make_ulongint(real.ld);
-        default:
-            assert(0);
-            break;
+    bytes += offset;
+    if (quantity == 1) {
+        purc_real_t real = real_info[format_id].fetcher(bytes);
+        switch (real_info[format_id].real_type) {
+            case PURC_VARIANT_TYPE_LONGINT:
+                return purc_variant_make_longint(real.i64);
+            case PURC_VARIANT_TYPE_ULONGINT:
+                return purc_variant_make_ulongint(real.u64);
+            case PURC_VARIANT_TYPE_NUMBER:
+                return purc_variant_make_ulongint(real.d);
+            case PURC_VARIANT_TYPE_LONGDOUBLE:
+                return purc_variant_make_ulongint(real.ld);
+            default:
+                assert(0);
+                break;
+        }
+    }
+    else {
+        purc_variant_t retv;
+
+        retv = purc_variant_make_array(0, PURC_VARIANT_INVALID);
+        if (retv == PURC_VARIANT_INVALID) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            goto fatal;
+        }
+
+        for (ssize_t i = 0; i < quantity; i++) {
+            purc_variant_t vrt = PURC_VARIANT_INVALID;
+            purc_real_t real = real_info[format_id].fetcher(bytes);
+            switch (real_info[format_id].real_type) {
+                case PURC_VARIANT_TYPE_LONGINT:
+                    vrt = purc_variant_make_longint(real.i64);
+                    break;
+                case PURC_VARIANT_TYPE_ULONGINT:
+                    vrt = purc_variant_make_ulongint(real.u64);
+                    break;
+                case PURC_VARIANT_TYPE_NUMBER:
+                    vrt = purc_variant_make_ulongint(real.d);
+                    break;
+                case PURC_VARIANT_TYPE_LONGDOUBLE:
+                    vrt = purc_variant_make_ulongint(real.ld);
+                    break;
+                default:
+                    assert(0);
+                    break;
+            }
+
+            if (vrt == PURC_VARIANT_INVALID ||
+                    !purc_variant_array_append(retv, vrt)) {
+                purc_variant_unref(retv);
+                goto fatal;
+            }
+            purc_variant_unref(vrt);
+
+            bytes += real_info[format_id].length;
+        }
+
+        return retv;
     }
 
 failed:
     if (silently)
         return purc_variant_make_undefined();
 
+fatal:
     return PURC_VARIANT_INVALID;
 }
 

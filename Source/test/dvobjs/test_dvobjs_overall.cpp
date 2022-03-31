@@ -21,6 +21,6 @@ TEST(dvobjs, basic)
 TEST(dvobjs, string_more)
 {
     TestDVObj tester;
-    tester.run_testcases_in_file("string");
+    tester.run_testcases_in_file("overall");
 }
 

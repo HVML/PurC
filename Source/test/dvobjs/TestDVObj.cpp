@@ -39,7 +39,6 @@ TestDVObj::~TestDVObj()
             stat->sz_total_mem != (m_init_stat.sz_total_mem + (stat->nr_reserved -
                     m_init_stat.nr_reserved) * purc_variant_wrapper_size())) {
         purc_log_error("Memory leak found\n");
-        exit(1);
     }
 
     purc_cleanup();
@@ -71,7 +70,6 @@ purc_variant_t TestDVObj::dvobj_new(const char *name)
         dvobj = purc_dvobj_text_new();
     }
     else if (strcmp(name, "STR") == 0) {
-        purc_log_info("create dvobj for %s\n", name);
         dvobj = purc_dvobj_string_new();
     }
 #if 0
@@ -95,7 +93,6 @@ purc_variant_t TestDVObj::get_dvobj(void* ctxt, const char* name)
 
     dvobj_map_t::iterator i = p->m_dvobjs.find(name);
     if (i == p->m_dvobjs.end()) {
-        purc_log_info("not found: %s\n", name);
         dvobj = p->dvobj_new(name);
     }
     else
