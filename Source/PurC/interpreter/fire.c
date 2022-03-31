@@ -253,7 +253,37 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         return NULL;
     }
 
-    // TODO : fire event
+    // named var
+    if (ctxt->at != PURC_VARIANT_INVALID && purc_variant_is_string(ctxt->at)) {
+        const char* name = purc_variant_get_string_const(ctxt->at);
+        purc_variant_t observed = pcintr_get_named_var_observed(stack, name);
+        if (observed) {
+            int ret = pcintr_dispatch_message(stack, observed, ctxt->for_var,
+                    ctxt->with);
+            if (ret != PURC_ERROR_OK) {
+                return NULL;
+            }
+        }
+    }
+    else {
+        purc_variant_t on = ctxt->on;
+// TODO : css selector
+#if 0
+        if (purc_variant_is_string(ctxt->on)) {
+            const char* at_str = purc_variant_get_string_const(ctxt->on);
+            if (at_str[0] == '#') {
+            }
+        }
+        else
+#endif
+        {
+            int ret = pcintr_dispatch_message(stack, on, ctxt->for_var,
+                    ctxt->with);
+            if (ret != PURC_ERROR_OK) {
+                return NULL;
+            }
+        }
+    }
 
     purc_clr_error();
 

@@ -334,6 +334,10 @@ pcintr_unbind_named_var(pcintr_stack_t stack, const char *name);
 
 // return observed variant
 purc_variant_t
+pcintr_get_named_var_observed(pcintr_stack_t stack, const char* name);
+
+// return observed variant
+purc_variant_t
 pcintr_add_named_var_observer(pcintr_stack_t stack, const char* name,
         const char* event);
 

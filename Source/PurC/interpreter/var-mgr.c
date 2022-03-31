@@ -736,6 +736,35 @@ pcintr_unbind_named_var(pcintr_stack_t stack, const char *name)
     return PCVARIANT_ERROR_NOT_FOUND;
 }
 
+static pcvarmgr_t
+find_named_var_mgr(pcintr_stack_t stack, const char *name)
+{
+    purc_variant_t v = find_doc_buildin_var(stack->vdom, name);
+    if (v) {
+        purc_clr_error();
+        return pcvdom_document_get_variables(stack->vdom);
+    }
+
+    v = find_inst_var(name);
+    if (v) {
+        purc_clr_error();
+        return pcinst_get_variables();
+    }
+    return NULL;
+}
+
+purc_variant_t
+pcintr_get_named_var_observed(pcintr_stack_t stack, const char *name)
+{
+    if (!stack || !name) {
+        PC_ASSERT(0); // FIXME: still recoverable???
+        return PURC_VARIANT_INVALID;
+    }
+
+    pcvarmgr_t mgr = find_named_var_mgr(stack, name);
+    return mgr? mgr->object : PURC_VARIANT_INVALID;
+}
+
 purc_variant_t
 pcintr_add_named_var_observer(pcintr_stack_t stack, const char* name,
         const char* event)
@@ -746,23 +775,9 @@ pcintr_add_named_var_observer(pcintr_stack_t stack, const char* name,
         return PURC_VARIANT_INVALID;
     }
 
-    pcvarmgr_t mgr = NULL;
-    purc_variant_t v = find_doc_buildin_var(stack->vdom, name);
-    if (v) {
-        purc_clr_error();
-        mgr = pcvdom_document_get_variables(stack->vdom);
-        return pcvarmgr_add_observer(mgr, name, event);
-    }
-
-    v = find_inst_var(name);
-    if (v) {
-        purc_clr_error();
-        mgr = pcinst_get_variables();
-        return pcvarmgr_add_observer(mgr, name, event);
-    }
-
-    purc_set_error_with_info(PCVARIANT_ERROR_NOT_FOUND, "name:%s", name);
-    return PURC_VARIANT_INVALID;
+    pcvarmgr_t mgr = find_named_var_mgr(stack, name);
+    return mgr ? pcvarmgr_add_observer(mgr, name, event) :
+        PURC_VARIANT_INVALID;
 }
 
 purc_variant_t
