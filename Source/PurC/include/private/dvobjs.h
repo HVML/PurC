@@ -181,6 +181,11 @@ enum {
 extern "C" {
 #endif  /* __cplusplus */
 
+/* return the quantity in a format string like `u16be:12`,
+   -1 for bad quantity. */
+ssize_t
+pcdvobjs_quantity_in_format(const char *format, size_t *format_length);
+
 /* return -1 for bad keyword */
 int pcdvobjs_global_keyword_id(const char *keyword, size_t length);
 

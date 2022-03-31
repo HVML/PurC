@@ -34,6 +34,26 @@
 #include <time.h>
 #include <limits.h>
 
+#define DVOBJS_SEPERATOR_COLON      ':'
+
+ssize_t
+pcdvobjs_quantity_in_format(const char *format, size_t *format_length)
+{
+    const char *seperator;
+
+    long int quantity;
+
+    if ((seperator = strchr(format, ':'))) {
+        quantity = strtol(seperator + 1, NULL, 10);
+        *format_length = seperator - format;
+    }
+    else {
+        quantity = 1;
+    }
+
+    return (ssize_t)quantity;
+}
+
 static struct keyword_to_atom {
     const char *    keyword;
     purc_atom_t     atom;
