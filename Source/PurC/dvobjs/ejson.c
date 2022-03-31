@@ -1157,9 +1157,13 @@ crc32_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto failed;
     }
 
-    bool binary = false;
+    bool binary = true;
+    bool uppercase = false;
     if (nr_args > 1) {
         binary = purc_variant_booleanize(argv[1]);
+        if (!binary && nr_args > 2) {
+            uppercase = purc_variant_booleanize(argv[2]);
+        }
     }
 
     uint32_t crc32;
@@ -1181,7 +1185,7 @@ crc32_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
     else {
         char hex[sizeof(crc32) * 2 + 1];
-        pcutils_bin2hex((unsigned char *)&crc32, sizeof(crc32), hex);
+        pcutils_bin2hex((unsigned char *)&crc32, sizeof(crc32), hex, uppercase);
         return purc_variant_make_string(hex, false);
     }
 
@@ -1216,9 +1220,13 @@ md5_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto failed;
     }
 
-    bool binary = false;
+    bool binary = true;
+    bool uppercase = false;
     if (nr_args > 1) {
         binary = purc_variant_booleanize(argv[1]);
+        if (!binary && nr_args > 2) {
+            uppercase = purc_variant_booleanize(argv[2]);
+        }
     }
 
     pcutils_md5_ctxt md5_ctxt;
@@ -1244,7 +1252,7 @@ md5_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
     else {
         char hex[sizeof(md5) * 2 + 1];
-        pcutils_bin2hex(md5, sizeof(md5), hex);
+        pcutils_bin2hex(md5, sizeof(md5), hex, uppercase);
         return purc_variant_make_string(hex, false);
     }
 
@@ -1279,9 +1287,13 @@ sha1_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto failed;
     }
 
-    bool binary = false;
+    bool binary = true;
+    bool uppercase = false;
     if (nr_args > 1) {
         binary = purc_variant_booleanize(argv[1]);
+        if (!binary && nr_args > 2) {
+            uppercase = purc_variant_booleanize(argv[2]);
+        }
     }
 
     pcutils_sha1_ctxt sha1_ctxt;
@@ -1307,7 +1319,7 @@ sha1_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
     else {
         char hex[sizeof(sha1) * 2 + 1];
-        pcutils_bin2hex(sha1, sizeof(sha1), hex);
+        pcutils_bin2hex(sha1, sizeof(sha1), hex, uppercase);
         return purc_variant_make_string(hex, false);
     }
 

@@ -143,11 +143,12 @@ void pcutils_sha1_hash(pcutils_sha1_ctxt *context, const void *data, size_t len)
 void pcutils_sha1_end(pcutils_sha1_ctxt *context, uint8_t *digest);
 
 /* hex must be long enough to hold the heximal characters */
-void pcutils_bin2hex (const unsigned char *bin, int len, char *hex);
+void pcutils_bin2hex(const unsigned char *bin, int len, char *hex,
+        bool uppercase);
 
 /* bin must be long enough to hold the bytes.
    return the number of bytes converted, <= 0 for error */
-int pcutils_hex2bin (const char *hex, unsigned char *bin);
+int pcutils_hex2bin(const char *hex, unsigned char *bin);
 
 int pcutils_parse_int32(const char *buf, size_t len, int32_t *retval);
 int pcutils_parse_uint32(const char *buf, size_t len, uint32_t *retval);

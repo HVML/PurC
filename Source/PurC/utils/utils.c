@@ -75,12 +75,19 @@ void *pcutils_calloc_a(size_t len, ...)
     return ret;
 }
 
-static char hex_digits [] = {
-    '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'
-};
+static const char *hex_digits_lower = "0123456789abcdef";
+static const char *hex_digits_upper = "0123456789ABCDEF";
 
-void pcutils_bin2hex (const unsigned char *bin, int len, char *hex)
+void pcutils_bin2hex (const unsigned char *bin, int len, char *hex,
+        bool uppercase)
 {
+    const char *hex_digits;
+
+    if (uppercase)
+        hex_digits = hex_digits_upper;
+    else
+        hex_digits = hex_digits_lower;
+
     for (int i = 0; i < len; i++) {
         unsigned char byte = bin [i];
         hex [i*2] = hex_digits [(byte >> 4) & 0x0f];

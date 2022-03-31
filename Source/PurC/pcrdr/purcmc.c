@@ -249,7 +249,7 @@ static int purcmc_connect_via_unix_socket (const char* path_to_socket,
         pcutils_md5_hash (&ctx, "/", 1);
         pcutils_md5_hash (&ctx, runner_name, strlen (runner_name));
         pcutils_md5_end (&ctx, md5_digest);
-        pcutils_bin2hex (md5_digest, 16, peer_name);
+        pcutils_bin2hex (md5_digest, 16, peer_name, false);
     }
 
     /* fill socket address structure w/our address */

@@ -350,7 +350,7 @@ void purc_generate_md5_id (char* id_buff, const char* prefix)
         PC_INFO ("The buffer is too small for resultId.\n");
 
     pcutils_md5digest (key, md5_digest);
-    pcutils_bin2hex (md5_digest, MD5_DIGEST_SIZE, id_buff);
+    pcutils_bin2hex (md5_digest, MD5_DIGEST_SIZE, id_buff, false);
 }
 
 bool purc_is_valid_unique_id (const char* id)
