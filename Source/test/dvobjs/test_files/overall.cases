@@ -287,3 +287,32 @@ positive:
     $STR.repeat("中华民族万岁！", 10)
     "中华民族万岁！中华民族万岁！中华民族万岁！中华民族万岁！中华民族万岁！中华民族万岁！中华民族万岁！中华民族万岁！中华民族万岁！中华民族万岁！"
 
+# test cases for $EJSON.fetchreal with quantity specified
+negative:
+    $EJSON.fetchreal(bx12345678, 'i16:10')
+    InvalidValue
+
+negative:
+    $EJSON.fetchreal(bx12345678, 'i16:0')
+    InvalidValue
+
+negative:
+    $EJSON.fetchreal(bx12345678, 'i16:-3')
+    InvalidValue
+
+negative:
+    $EJSON.fetchreal(bx12345678, 'i16:3')
+    InvalidValue
+
+positive:
+    $EJSON.fetchreal(bx00020004, 'i16be')
+    2L
+
+positive:
+    $EJSON.fetchreal(bx00020004, 'i16be:1', 2)
+    4L
+
+positive:
+    $EJSON.fetchreal(bx00020004, 'i16be:2')
+    [2L, 4L]
+
