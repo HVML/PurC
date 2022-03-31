@@ -728,7 +728,7 @@ fetchreal_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(silently);
 
     const char *format = NULL;
-    size_t format_len;
+    size_t format_len = 0;
     size_t length = 0;
     ssize_t offset = 0;
 
@@ -764,12 +764,17 @@ fetchreal_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     ssize_t quantity = pcdvobjs_quantity_in_format(format, &format_len);
+    PC_DEBUGX("format: %s[%zd][%zd]", format, format_len, quantity);
     if (quantity < 0 || format_len == 0) {
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         goto failed;
     }
 
     int format_id = pcdvobjs_global_keyword_id(format, format_len);
+    if (format_id < PURC_K_KW_i8 || format_id > PURC_K_KW_f128be) {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
     assert(format_id >= PURC_K_KW_i8 && format_id <= PURC_K_KW_f128be);
 
     format_id -= PURC_K_KW_i8;
@@ -849,12 +854,15 @@ fetchreal_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
                     break;
             }
 
-            if (vrt == PURC_VARIANT_INVALID ||
-                    !purc_variant_array_append(retv, vrt)) {
+            if (vrt == PURC_VARIANT_INVALID)
+                goto fatal;
+
+            bool ok = purc_variant_array_append(retv, vrt);
+            purc_variant_unref(vrt);
+            if (!ok) {
                 purc_variant_unref(retv);
                 goto fatal;
             }
-            purc_variant_unref(vrt);
 
             bytes += real_info[format_id].length;
         }

@@ -512,7 +512,7 @@ repeat_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto fatal;
     }
 
-    for (int64_t i; i < times; i++) {
+    for (int64_t i=0; i < times; i++) {
         ssize_t nr_wrotten = purc_rwstream_write(rwstream, str, len_str);
         if (nr_wrotten < 0 || (size_t)nr_wrotten < len_str) {
             purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
