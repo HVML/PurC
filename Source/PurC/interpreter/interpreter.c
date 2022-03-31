@@ -1790,7 +1790,9 @@ pcintr_dispatch_message(pcintr_stack_t stack, purc_variant_t source,
 
     ret = pcintr_dispatch_message_ex(stack, source, type, sub_type, extra);
 
-    purc_variant_unref(sub_type);
+    if (sub_type) {
+        purc_variant_unref(sub_type);
+    }
 
 out_unref_type:
     purc_variant_unref(type);

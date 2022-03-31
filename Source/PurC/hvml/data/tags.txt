@@ -38,7 +38,7 @@ archedata
     categories: template data ordinary noun
 
 # normal elements: ordinary operation elements
-back bind call catch choose close clear connect define erase include iterate listen load match observe request reduce return test update forget
+back bind call catch choose close clear connect define erase include iterate listen load match observe request reduce return test update forget fire
     state: data
     categories: verb ordinary
 
