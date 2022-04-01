@@ -564,6 +564,7 @@ void pcutils_crc32_begin(pcutils_crc32_ctxt *ctxt, purc_crc32_algo_t algo)
     ctxt->crc32 = ctxt->init;
 }
 
+#if 0
 static const uint8_t reflect_table[] = {
     0x0,    // 0x0,
     0x8,    // 0x1,
@@ -603,6 +604,7 @@ static inline uint8_t reflect_uint32(uint32_t u32)
 
     return result;
 }
+#endif
 
 void pcutils_crc32_update(pcutils_crc32_ctxt *ctxt,
         const void *data, size_t n)
@@ -611,11 +613,14 @@ void pcutils_crc32_update(pcutils_crc32_ctxt *ctxt,
 
     while (n--) {
         uint8_t ch;
-
+#if 0
         if (ctxt->refin)
             ch = reflect_uint8(*buf);
         else
             ch = *buf;
+#else
+        ch = *buf;
+#endif
 
         if (ctxt->refout)
             ctxt->crc32 = (((ctxt->crc32) >> 8) ^
