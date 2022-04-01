@@ -110,6 +110,13 @@ static struct keyword_to_atom {
     { PURC_KW_utf16be,  0 },    // "utf16be"
     { PURC_KW_utf32be,  0 },    // "utf32be"
     { PURC_KW_padding,  0 },    // "padding"
+    { PURC_KW_binary,   0 },    // "binary"
+    { PURC_KW_string,   0 },    // "string"
+    { PURC_KW_uppercase,0 },    // "uppercase"
+    { PURC_KW_lowercase,0 },    // "lowercase"
+    { PURC_KW_longint,  0 },    // "longint"
+    { PURC_KW_ulongint, 0 },    // "ulongint"
+    { PURC_KW_longdouble,   0 },// "longdouble"
 };
 
 /* Make sure the number of keywords2atoms matches the number of keywords */

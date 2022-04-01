@@ -162,8 +162,23 @@ enum {
     PURC_K_KW_utf32be,
 #define PURC_KW_padding     "padding"
     PURC_K_KW_padding,
+#define PURC_KW_binary      "binary"
+    PURC_K_KW_binary,
+#define PURC_KW_string      "string"
+    PURC_K_KW_string,
+#define PURC_KW_uppercase   "uppercase"
+    PURC_K_KW_uppercase,
+#define PURC_KW_lowercase   "lowercase"
+    PURC_K_KW_lowercase,
+#define PURC_KW_longint     "longint"
+    PURC_K_KW_longint,
+#define PURC_KW_ulongint    "ulongint"
+    PURC_K_KW_ulongint,
+#define PURC_KW_longdouble  "longdouble"
+    PURC_K_KW_longdouble,
 
-    PURC_K_KW_LAST = PURC_K_KW_padding,
+    /* XXX: change this when a new keyword appended */
+    PURC_K_KW_LAST = PURC_K_KW_longdouble,
 };
 
 #define PURC_GLOBAL_KEYWORD_NR  (PURC_K_KW_LAST - PURC_K_KW_FIRST + 1)
