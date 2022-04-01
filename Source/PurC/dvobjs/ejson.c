@@ -1153,12 +1153,13 @@ static struct crc32algo_to_atom {
     { PURC_ALGO_CRC32_MPEG2,    0 }, // "CRC-32/MPEG-2"
     { PURC_ALGO_CRC32_POSIX,    0 }, // "CRC-32/POSIX"
     { PURC_ALGO_CRC32_XFER,     0 }, // "CRC-32/XFER"
-#if 0
+    { PURC_ALGO_CRC32_ISCSI,    0 }, // "CRC-32/ISCSI"
     { PURC_ALGO_CRC32C,         0 }, // "CRC-32C"
+    { PURC_ALGO_CRC32_BASE91_D, 0 }, // "CRC-32/BASE91-D"
     { PURC_ALGO_CRC32D,         0 }, // "CRC-32D"
     { PURC_ALGO_CRC32_JAMCRC,   0 }, // "CRC-32/JAMCRC"
-    { PURC_ALGO_CRC32Q,         0 }, // "CRC-32/Q"
-#endif
+    { PURC_ALGO_CRC32_AIXM,     0 }, // "CRC-32/AIXM"
+    { PURC_ALGO_CRC32Q,         0 }, // "CRC-32Q"
 };
 
 static ssize_t cb_calc_crc32(void *ctxt, const void *buf, size_t count)

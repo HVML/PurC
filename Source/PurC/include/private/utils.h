@@ -121,16 +121,20 @@ typedef enum {
     PURC_K_ALGO_CRC32_POSIX,
 #define PURC_ALGO_CRC32_XFER        "CRC-32/XFER"
     PURC_K_ALGO_CRC32_XFER,
-#if 0
+#define PURC_ALGO_CRC32_ISCSI       "CRC-32/ISCSI"
+    PURC_K_ALGO_CRC32_ISCSI,
 #define PURC_ALGO_CRC32C            "CRC-32C"
     PURC_K_ALGO_CRC32C,
+#define PURC_ALGO_CRC32_BASE91_D    "CRC-32/BASE91-D"
+    PURC_K_ALGO_CRC32_BASE91_D,
 #define PURC_ALGO_CRC32D            "CRC-32D"
     PURC_K_ALGO_CRC32D,
 #define PURC_ALGO_CRC32_JAMCRC      "CRC-32/JAMCRC"
     PURC_K_ALGO_CRC32_JAMCRC,
-#define PURC_ALGO_CRC32Q            "CRC-32/Q"
+#define PURC_ALGO_CRC32_AIXM        "CRC-32/AIXM"
+    PURC_K_ALGO_CRC32_AIXM,
+#define PURC_ALGO_CRC32Q            "CRC-32Q"
     PURC_K_ALGO_CRC32Q,
-#endif
 } purc_crc32_algo_t;
 
 typedef struct pcutils_crc32_ctxt {
