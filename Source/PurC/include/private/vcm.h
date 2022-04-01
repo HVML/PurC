@@ -154,6 +154,9 @@ struct pcintr_stack;
 purc_variant_t pcvcm_eval(struct pcvcm_node *tree, struct pcintr_stack *stack,
         bool silently);
 
+purc_variant_t
+pcvcm_to_expression_variable(struct pcvcm_node *vcm, bool release_vcm);
+
 #define PRINT_VCM_NODE(_node) do {                                        \
     size_t len;                                                           \
     char *s = pcvcm_node_to_string(_node, &len);                          \
