@@ -54,9 +54,18 @@
 #define MIN_BUF_SIZE         32
 #define MAX_BUF_SIZE         SIZE_MAX
 
+#define EVAL_KEY            "eval"
+#define EVAL_CONST_KEY      "eval_const"
+
 struct pcvcm_node_op {
     cb_find_var find_var;
     void *find_var_ctxt;
+};
+
+struct pcvcm_variant {
+    struct pcvcm_node *vcm;
+    purc_variant_t const_value;
+    bool release_vcm;
 };
 
 static struct pcvcm_node *pcvcm_node_new(enum pcvcm_node_type type)
@@ -1238,5 +1247,98 @@ purc_variant_t pcvcm_eval_ex(struct pcvcm_node *tree,
     PC_DEBUG("pcvcm_eval_ex|end|silently=%d\n", silently);
 #endif
     return ret;
+}
+
+static purc_variant_t
+eval(void *native_entity, size_t nr_args, purc_variant_t *argv,
+        bool silently)
+{
+    UNUSED_PARAM(native_entity);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+
+    struct pcvcm_variant *vcm_ex = (struct pcvcm_variant*)native_entity;
+    struct pcintr_stack *stack = pcintr_get_stack();
+    return pcvcm_eval(vcm_ex->vcm, stack, silently);
+}
+
+static purc_variant_t
+eval_const(void *native_entity, size_t nr_args, purc_variant_t *argv,
+        bool silently)
+{
+    UNUSED_PARAM(native_entity);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(silently);
+    struct pcvcm_variant *vcm_ex = (struct pcvcm_variant*)native_entity;
+    if (vcm_ex->const_value) {
+        return vcm_ex->const_value;
+    }
+
+    vcm_ex->const_value = eval(native_entity, nr_args, argv, silently);
+    return vcm_ex->const_value;
+}
+
+static inline
+purc_nvariant_method property_getter(const char* key_name)
+{
+    if (strcmp(key_name, EVAL_KEY) == 0) {
+        return eval;
+    }
+
+    if (strcmp(key_name, EVAL_CONST_KEY) == 0) {
+        return eval_const;
+    }
+
+    return NULL;
+}
+
+static void
+on_release(void *native_entity)
+{
+    struct pcvcm_variant *vcm_variant = (struct pcvcm_variant*)native_entity;
+    if (vcm_variant->release_vcm) {
+        free(vcm_variant->vcm);
+    }
+    if (vcm_variant->const_value) {
+        purc_variant_unref(vcm_variant->const_value);
+    }
+    free(vcm_variant);
+}
+
+purc_variant_t
+pcvcm_to_expression_variant(struct pcvcm_node *vcm, bool release_vcm)
+{
+    static struct purc_native_ops ops = {
+        .property_getter        = property_getter,
+        .property_setter        = NULL,
+        .property_eraser        = NULL,
+        .property_cleaner       = NULL,
+
+        .updater                = NULL,
+        .cleaner                = NULL,
+        .eraser                 = NULL,
+
+        .on_observe            = NULL,
+        .on_release            = on_release,
+    };
+
+    struct pcvcm_variant *vcm_ex = (struct pcvcm_variant*)calloc(1,
+            sizeof(struct pcvcm_variant));
+    if (!vcm_ex) {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return PURC_VARIANT_INVALID;
+    }
+
+    purc_variant_t v = purc_variant_make_native(vcm_ex, &ops);
+    if (v == PURC_VARIANT_INVALID) {
+        free(vcm_ex);
+        return PURC_VARIANT_INVALID;
+    }
+
+    vcm_ex->vcm = vcm;
+    vcm_ex->release_vcm = release_vcm;
+
+    return v;
 }
 
