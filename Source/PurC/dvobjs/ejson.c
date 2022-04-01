@@ -1136,10 +1136,24 @@ failed:
     return PURC_VARIANT_INVALID;
 }
 
+static struct crc32algo_to_atom {
+    const char *    algo;
+    purc_atom_t     atom;
+} crc32algo2atoms[] = {
+    { PURC_ALGO_CRC32,          0 }, // "CRC-32"
+    { PURC_ALGO_CRC32_BZIP2,    0 }, // "CRC-32/BZIP2"
+    { PURC_ALGO_CRC32C,         0 }, // "CRC-32C"
+    { PURC_ALGO_CRC32D,         0 }, // "CRC-32D"
+    { PURC_ALGO_CRC32_JAMCRC,   0 }, // "CRC-32/JAMCRC"
+    { PURC_ALGO_CRC32_MPEG2,    0 }, // "CRC-32/MPEG-2"
+    { PURC_ALGO_CRC32_POSIX,    0 }, // "CRC-32/POSIX"
+    { PURC_ALGO_CRC32Q,         0 }, // "CRC-32/Q"
+    { PURC_ALGO_CRC32_XFER,     0 }, // "CRC-32/XFER"
+};
+
 static ssize_t cb_calc_crc32(void *ctxt, const void *buf, size_t count)
 {
-    uint32_t *crc32 = ctxt;
-    pcutils_crc32_update(buf, count, crc32);
+    pcutils_crc32_update(ctxt, buf, count);
     return count;
 }
 
@@ -1157,33 +1171,64 @@ crc32_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto failed;
     }
 
-    bool binary = true;
-    bool uppercase = false;
-    if (nr_args > 1) {
-        binary = purc_variant_booleanize(argv[1]);
-        if (!binary && nr_args > 2) {
-            uppercase = purc_variant_booleanize(argv[2]);
+    purc_crc32_algo_t algo = PURC_K_ALGO_CRC32_POSIX;
+    if (nr_args > 1 && !purc_variant_is_null(argv[1])) {
+        const char *option;
+        size_t option_len;
+        option = purc_variant_get_string_const_ex(argv[1], &option_len);
+        if (option == NULL) {
+            pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            goto failed;
+        }
+
+        option = pcutils_trim_spaces(option, &option_len);
+        if (option_len == 0) {
+            pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+            goto failed;
+        }
+
+        purc_atom_t atom;
+        char tmp[option_len + 1];
+        strncpy(tmp, option, option_len);
+        tmp[option_len]= '\0';
+        atom = purc_atom_try_string_ex(ATOM_BUCKET_DVOBJ, tmp);
+
+        for (size_t i = 0; i < PCA_TABLESIZE(crc32algo2atoms); i++) {
+            if (atom == crc32algo2atoms[i].atom) {
+                algo = PURC_K_ALGO_CRC32 + i;
+                break;
+            }
         }
     }
 
-    uint32_t crc32;
-    stream = purc_rwstream_new_for_dump(&crc32, cb_calc_crc32);
+    int ret_type = PURC_K_KW_binary;
+    if (nr_args > 2) {
+        const char *option;
+        size_t option_len;
+        option = purc_variant_get_string_const_ex(argv[2], &option_len);
+        if (option == NULL) {
+            pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            goto failed;
+        }
+
+        option = pcutils_trim_spaces(option, &option_len);
+        if (option_len == 0) {
+            pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+            goto failed;
+        }
+
+        ret_type = pcdvobjs_global_keyword_id(option, option_len);
+    }
+
+    pcutils_crc32_ctxt ctxt;
+    stream = purc_rwstream_new_for_dump(&ctxt, cb_calc_crc32);
     if (stream == NULL) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto fatal;
     }
 
-    /*
-     * We are using CRC32/POSIX parameters:
-     *      Width  : 32
-     *      Poly   : 0x04c11db7
-     *      Init   : parameter, typically 0
-     *      RefIn  : false
-     *      RefOut : false
-     *      XorOut : 0xffffffff
-     * For more info, see <https://crccalc.com/>
-     */
-    pcutils_crc32_begin(&crc32, (uint32_t)0);
+    pcutils_crc32_begin(&ctxt, algo);
+
     if (purc_variant_stringify(stream, argv[0],
             PCVARIANT_STRINGIFY_OPT_BSEQUENCE_BAREBYTES, NULL) < 0) {
         goto fatal;
@@ -1191,15 +1236,24 @@ crc32_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     purc_rwstream_destroy(stream);
 
-    pcutils_crc32_end(&crc32, (uint32_t)-1);
+    uint32_t crc32;
+    pcutils_crc32_end(&ctxt, &crc32);
+    purc_log_info("%08x\n", crc32);
 
-    if (binary) {
-        return purc_variant_make_byte_sequence(&crc32, sizeof(crc32));
-    }
-    else {
-        char hex[sizeof(crc32) * 2 + 1];
-        pcutils_bin2hex((unsigned char *)&crc32, sizeof(crc32), hex, uppercase);
-        return purc_variant_make_string(hex, false);
+    switch (ret_type) {
+        case PURC_K_KW_binary:  // fallthrough
+        default:
+            return purc_variant_make_byte_sequence(&crc32, sizeof(crc32));
+        case PURC_K_KW_ulongint:
+            return purc_variant_make_ulongint((uint64_t)crc32);
+        case PURC_K_KW_uppercase:
+        case PURC_K_KW_lowercase:
+        {
+            char hex[sizeof(crc32) * 2 + 1];
+            pcutils_bin2hex((unsigned char *)&crc32, sizeof(crc32), hex,
+                    ret_type == PURC_K_KW_uppercase);
+            return purc_variant_make_string(hex, false);
+        }
     }
 
 failed:
@@ -1233,13 +1287,23 @@ md5_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto failed;
     }
 
-    bool binary = true;
-    bool uppercase = false;
+    int ret_type = PURC_K_KW_binary;
     if (nr_args > 1) {
-        binary = purc_variant_booleanize(argv[1]);
-        if (!binary && nr_args > 2) {
-            uppercase = purc_variant_booleanize(argv[2]);
+        const char *option;
+        size_t option_len;
+        option = purc_variant_get_string_const_ex(argv[1], &option_len);
+        if (option == NULL) {
+            pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            goto failed;
         }
+
+        option = pcutils_trim_spaces(option, &option_len);
+        if (option_len == 0) {
+            pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+            goto failed;
+        }
+
+        ret_type = pcdvobjs_global_keyword_id(option, option_len);
     }
 
     pcutils_md5_ctxt md5_ctxt;
@@ -1260,13 +1324,18 @@ md5_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     unsigned char md5[MD5_DIGEST_SIZE];
     pcutils_md5_end(&md5_ctxt, md5);
 
-    if (binary) {
-        return purc_variant_make_byte_sequence(md5, sizeof(md5));
-    }
-    else {
-        char hex[sizeof(md5) * 2 + 1];
-        pcutils_bin2hex(md5, sizeof(md5), hex, uppercase);
-        return purc_variant_make_string(hex, false);
+    switch (ret_type) {
+        case PURC_K_KW_binary:  // fallthrough
+        default:
+            return purc_variant_make_byte_sequence(md5, sizeof(md5));
+        case PURC_K_KW_uppercase:
+        case PURC_K_KW_lowercase:
+        {
+            char hex[sizeof(md5) * 2 + 1];
+            pcutils_bin2hex(md5, sizeof(md5), hex,
+                    ret_type == PURC_K_KW_uppercase);
+            return purc_variant_make_string(hex, false);
+        }
     }
 
 failed:
@@ -1300,13 +1369,23 @@ sha1_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto failed;
     }
 
-    bool binary = true;
-    bool uppercase = false;
+    int ret_type = PURC_K_KW_binary;
     if (nr_args > 1) {
-        binary = purc_variant_booleanize(argv[1]);
-        if (!binary && nr_args > 2) {
-            uppercase = purc_variant_booleanize(argv[2]);
+        const char *option;
+        size_t option_len;
+        option = purc_variant_get_string_const_ex(argv[1], &option_len);
+        if (option == NULL) {
+            pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            goto failed;
         }
+
+        option = pcutils_trim_spaces(option, &option_len);
+        if (option_len == 0) {
+            pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+            goto failed;
+        }
+
+        ret_type = pcdvobjs_global_keyword_id(option, option_len);
     }
 
     pcutils_sha1_ctxt sha1_ctxt;
@@ -1327,13 +1406,19 @@ sha1_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     unsigned char sha1[SHA1_DIGEST_SIZE];
     pcutils_sha1_end(&sha1_ctxt, sha1);
 
-    if (binary) {
-        return purc_variant_make_byte_sequence(sha1, sizeof(sha1));
-    }
-    else {
-        char hex[sizeof(sha1) * 2 + 1];
-        pcutils_bin2hex(sha1, sizeof(sha1), hex, uppercase);
-        return purc_variant_make_string(hex, false);
+    switch (ret_type) {
+        case PURC_K_KW_binary:  // fallthrough
+        default:
+            return purc_variant_make_byte_sequence(sha1, sizeof(sha1));
+
+        case PURC_K_KW_uppercase:
+        case PURC_K_KW_lowercase:
+        {
+            char hex[sizeof(sha1) * 2 + 1];
+            pcutils_bin2hex(sha1, sizeof(sha1), hex,
+                    ret_type == PURC_K_KW_uppercase);
+            return purc_variant_make_string(hex, false);
+        }
     }
 
 failed:
@@ -1375,5 +1460,12 @@ purc_variant_t purc_dvobj_ejson_new(void)
         }
     }
 
+    if (crc32algo2atoms[0].atom == 0) {
+        for (size_t i = 0; i < PCA_TABLESIZE(crc32algo2atoms); i++) {
+            crc32algo2atoms[i].atom =
+                purc_atom_from_static_string_ex(ATOM_BUCKET_DVOBJ,
+                    crc32algo2atoms[i].algo);
+        }
+    }
     return purc_dvobj_make_from_methods(method, PCA_TABLESIZE(method));
 }

@@ -217,7 +217,7 @@ void TestDVObj::run_testcases_in_file(const char *file_name)
 
             purc_atom_t except_atom = purc_get_error_exception(purc_get_last_error());
 
-            ASSERT_EQ(except_atom, purc_atom_try_string_ex(1, exc));
+            EXPECT_EQ(except_atom, purc_atom_try_string_ex(1, exc));
             case_number++;
         }
         else if (strncasecmp(line, "positive", 8) == 0) {
@@ -256,7 +256,7 @@ void TestDVObj::run_testcases_in_file(const char *file_name)
             purc_variant_ejson_parse_tree_destroy(ptree);
 
             bool check = purc_variant_is_equal_to(result, expected);
-            ASSERT_EQ(check, true);
+            EXPECT_EQ(check, true);
 
             purc_variant_unref(result);
             purc_variant_unref(expected);

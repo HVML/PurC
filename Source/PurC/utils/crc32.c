@@ -1,41 +1,70 @@
 /*
- * crc32.c - Implementation of CRC32 checksum function.
+ * @file crc32.c
+ * @author Vincent Wei (https://github.com/VincentWei)
+ * @date 2022/04/01
+ * @brief The implementation of CRC32 checksum function.
  *
- * This is a simple public domain implementation of CRC32 from
- * <http://home.thep.lu.se/~bjorn/crc/>
+ * Copyright (C) 2022 FMSoft <https://www.fmsoft.cn>
  *
- * Modify the source code with Unix C style by Vincent Wei
- *  - Mar. 2022
+ * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
  *
- * Copyright (C) 2020, 2021 FMSoft <https://www.fmsoft.cn>
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- * Here is a simple implementation of the commonly used CRC32 checksum using
- * the reverse polynomial 0xEDB88320. The algorithm is consistent with setting
- * of all bits in the initial CRC, along with negation of the bit pattern of
- * the final running CRC.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+
+#include "purc-helpers.h"
 
 #include "config.h"
 #include "private/utils.h"
 
-#if 0
-static uint32_t crc32_for_byte(uint32_t r)
+/*
+
+// program to generate the crc32_table.
+
+#include <stdio.h>
+
+#define POLY    0x04c11db7
+#define POSTFIX "04c11db7"
+
+int main (void)
 {
-    for (int j = 0; j < 8; ++j)
-        r = (r & 1 ? 0 : (uint32_t)0xEDB88320L) ^ r >> 1;
-    return r ^ (uint32_t)0xFF000000L;
+    uint32_t i, j;
+    uint32_t c;
+    int table[256];
+    for (i = 0; i < 256; i++)
+    {
+        for (c = i << 24, j = 8; j > 0; --j)
+            c = c & 0x80000000 ? (c << 1) ^ POLY : (c << 1);
+        table[i] = c;
+    }
+    printf ("static const uint32_t crc32_table_" POSTFIX "[] =\n{\n");
+    for (i = 0; i < 256; i += 4)
+    {
+        printf ("  0x%08x, 0x%08x, 0x%08x, 0x%08x",
+                table[i + 0], table[i + 1], table[i + 2], table[i + 3]);
+        if (i + 4 < 256)
+            putchar (',');
+        putchar ('\n');
+    }
+    printf ("};\n");
+    return 0;
 }
 
-    static uint32_t table[0x100];
+// For more information on CRC, see
+// <http://www.ross.net/crc/download/crc_v3.txt>
+*/
 
-    if (UNLIKELY(table[0] == 0)) {
-        for (size_t i = 0; i < 0x100; ++i)
-            table[i] = crc32_for_byte(i);
-    }
-
-#else
-static const uint32_t crc32_table[] =
-{
+static const uint32_t crc32_table_04c11db7[] = {
   0x00000000, 0x04c11db7, 0x09823b6e, 0x0d4326d9,
   0x130476dc, 0x17c56b6b, 0x1a864db2, 0x1e475005,
   0x2608edb8, 0x22c9f00f, 0x2f8ad6d6, 0x2b4bcb61,
@@ -101,25 +130,479 @@ static const uint32_t crc32_table[] =
   0xafb010b1, 0xab710d06, 0xa6322bdf, 0xa2f33668,
   0xbcb4666d, 0xb8757bda, 0xb5365d03, 0xb1f740b4
 };
-#endif
 
-void pcutils_crc32_begin(uint32_t* crc, uint32_t init)
+static const uint32_t crc32_table_1edc6f41[] =
 {
-    *crc = init;
+  0x00000000, 0x1edc6f41, 0x3db8de82, 0x2364b1c3,
+  0x7b71bd04, 0x65add245, 0x46c96386, 0x58150cc7,
+  0xf6e37a08, 0xe83f1549, 0xcb5ba48a, 0xd587cbcb,
+  0x8d92c70c, 0x934ea84d, 0xb02a198e, 0xaef676cf,
+  0xf31a9b51, 0xedc6f410, 0xcea245d3, 0xd07e2a92,
+  0x886b2655, 0x96b74914, 0xb5d3f8d7, 0xab0f9796,
+  0x05f9e159, 0x1b258e18, 0x38413fdb, 0x269d509a,
+  0x7e885c5d, 0x6054331c, 0x433082df, 0x5deced9e,
+  0xf8e959e3, 0xe63536a2, 0xc5518761, 0xdb8de820,
+  0x8398e4e7, 0x9d448ba6, 0xbe203a65, 0xa0fc5524,
+  0x0e0a23eb, 0x10d64caa, 0x33b2fd69, 0x2d6e9228,
+  0x757b9eef, 0x6ba7f1ae, 0x48c3406d, 0x561f2f2c,
+  0x0bf3c2b2, 0x152fadf3, 0x364b1c30, 0x28977371,
+  0x70827fb6, 0x6e5e10f7, 0x4d3aa134, 0x53e6ce75,
+  0xfd10b8ba, 0xe3ccd7fb, 0xc0a86638, 0xde740979,
+  0x866105be, 0x98bd6aff, 0xbbd9db3c, 0xa505b47d,
+  0xef0edc87, 0xf1d2b3c6, 0xd2b60205, 0xcc6a6d44,
+  0x947f6183, 0x8aa30ec2, 0xa9c7bf01, 0xb71bd040,
+  0x19eda68f, 0x0731c9ce, 0x2455780d, 0x3a89174c,
+  0x629c1b8b, 0x7c4074ca, 0x5f24c509, 0x41f8aa48,
+  0x1c1447d6, 0x02c82897, 0x21ac9954, 0x3f70f615,
+  0x6765fad2, 0x79b99593, 0x5add2450, 0x44014b11,
+  0xeaf73dde, 0xf42b529f, 0xd74fe35c, 0xc9938c1d,
+  0x918680da, 0x8f5aef9b, 0xac3e5e58, 0xb2e23119,
+  0x17e78564, 0x093bea25, 0x2a5f5be6, 0x348334a7,
+  0x6c963860, 0x724a5721, 0x512ee6e2, 0x4ff289a3,
+  0xe104ff6c, 0xffd8902d, 0xdcbc21ee, 0xc2604eaf,
+  0x9a754268, 0x84a92d29, 0xa7cd9cea, 0xb911f3ab,
+  0xe4fd1e35, 0xfa217174, 0xd945c0b7, 0xc799aff6,
+  0x9f8ca331, 0x8150cc70, 0xa2347db3, 0xbce812f2,
+  0x121e643d, 0x0cc20b7c, 0x2fa6babf, 0x317ad5fe,
+  0x696fd939, 0x77b3b678, 0x54d707bb, 0x4a0b68fa,
+  0xc0c1d64f, 0xde1db90e, 0xfd7908cd, 0xe3a5678c,
+  0xbbb06b4b, 0xa56c040a, 0x8608b5c9, 0x98d4da88,
+  0x3622ac47, 0x28fec306, 0x0b9a72c5, 0x15461d84,
+  0x4d531143, 0x538f7e02, 0x70ebcfc1, 0x6e37a080,
+  0x33db4d1e, 0x2d07225f, 0x0e63939c, 0x10bffcdd,
+  0x48aaf01a, 0x56769f5b, 0x75122e98, 0x6bce41d9,
+  0xc5383716, 0xdbe45857, 0xf880e994, 0xe65c86d5,
+  0xbe498a12, 0xa095e553, 0x83f15490, 0x9d2d3bd1,
+  0x38288fac, 0x26f4e0ed, 0x0590512e, 0x1b4c3e6f,
+  0x435932a8, 0x5d855de9, 0x7ee1ec2a, 0x603d836b,
+  0xcecbf5a4, 0xd0179ae5, 0xf3732b26, 0xedaf4467,
+  0xb5ba48a0, 0xab6627e1, 0x88029622, 0x96def963,
+  0xcb3214fd, 0xd5ee7bbc, 0xf68aca7f, 0xe856a53e,
+  0xb043a9f9, 0xae9fc6b8, 0x8dfb777b, 0x9327183a,
+  0x3dd16ef5, 0x230d01b4, 0x0069b077, 0x1eb5df36,
+  0x46a0d3f1, 0x587cbcb0, 0x7b180d73, 0x65c46232,
+  0x2fcf0ac8, 0x31136589, 0x1277d44a, 0x0cabbb0b,
+  0x54beb7cc, 0x4a62d88d, 0x6906694e, 0x77da060f,
+  0xd92c70c0, 0xc7f01f81, 0xe494ae42, 0xfa48c103,
+  0xa25dcdc4, 0xbc81a285, 0x9fe51346, 0x81397c07,
+  0xdcd59199, 0xc209fed8, 0xe16d4f1b, 0xffb1205a,
+  0xa7a42c9d, 0xb97843dc, 0x9a1cf21f, 0x84c09d5e,
+  0x2a36eb91, 0x34ea84d0, 0x178e3513, 0x09525a52,
+  0x51475695, 0x4f9b39d4, 0x6cff8817, 0x7223e756,
+  0xd726532b, 0xc9fa3c6a, 0xea9e8da9, 0xf442e2e8,
+  0xac57ee2f, 0xb28b816e, 0x91ef30ad, 0x8f335fec,
+  0x21c52923, 0x3f194662, 0x1c7df7a1, 0x02a198e0,
+  0x5ab49427, 0x4468fb66, 0x670c4aa5, 0x79d025e4,
+  0x243cc87a, 0x3ae0a73b, 0x198416f8, 0x075879b9,
+  0x5f4d757e, 0x41911a3f, 0x62f5abfc, 0x7c29c4bd,
+  0xd2dfb272, 0xcc03dd33, 0xef676cf0, 0xf1bb03b1,
+  0xa9ae0f76, 0xb7726037, 0x9416d1f4, 0x8acabeb5
+};
+
+static const uint32_t crc32_table_a833982b[] =
+{
+  0x00000000, 0xa833982b, 0xf854a87d, 0x50673056,
+  0x589ac8d1, 0xf0a950fa, 0xa0ce60ac, 0x08fdf887,
+  0xb13591a2, 0x19060989, 0x496139df, 0xe152a1f4,
+  0xe9af5973, 0x419cc158, 0x11fbf10e, 0xb9c86925,
+  0xca58bb6f, 0x626b2344, 0x320c1312, 0x9a3f8b39,
+  0x92c273be, 0x3af1eb95, 0x6a96dbc3, 0xc2a543e8,
+  0x7b6d2acd, 0xd35eb2e6, 0x833982b0, 0x2b0a1a9b,
+  0x23f7e21c, 0x8bc47a37, 0xdba34a61, 0x7390d24a,
+  0x3c82eef5, 0x94b176de, 0xc4d64688, 0x6ce5dea3,
+  0x64182624, 0xcc2bbe0f, 0x9c4c8e59, 0x347f1672,
+  0x8db77f57, 0x2584e77c, 0x75e3d72a, 0xddd04f01,
+  0xd52db786, 0x7d1e2fad, 0x2d791ffb, 0x854a87d0,
+  0xf6da559a, 0x5ee9cdb1, 0x0e8efde7, 0xa6bd65cc,
+  0xae409d4b, 0x06730560, 0x56143536, 0xfe27ad1d,
+  0x47efc438, 0xefdc5c13, 0xbfbb6c45, 0x1788f46e,
+  0x1f750ce9, 0xb74694c2, 0xe721a494, 0x4f123cbf,
+  0x7905ddea, 0xd13645c1, 0x81517597, 0x2962edbc,
+  0x219f153b, 0x89ac8d10, 0xd9cbbd46, 0x71f8256d,
+  0xc8304c48, 0x6003d463, 0x3064e435, 0x98577c1e,
+  0x90aa8499, 0x38991cb2, 0x68fe2ce4, 0xc0cdb4cf,
+  0xb35d6685, 0x1b6efeae, 0x4b09cef8, 0xe33a56d3,
+  0xebc7ae54, 0x43f4367f, 0x13930629, 0xbba09e02,
+  0x0268f727, 0xaa5b6f0c, 0xfa3c5f5a, 0x520fc771,
+  0x5af23ff6, 0xf2c1a7dd, 0xa2a6978b, 0x0a950fa0,
+  0x4587331f, 0xedb4ab34, 0xbdd39b62, 0x15e00349,
+  0x1d1dfbce, 0xb52e63e5, 0xe54953b3, 0x4d7acb98,
+  0xf4b2a2bd, 0x5c813a96, 0x0ce60ac0, 0xa4d592eb,
+  0xac286a6c, 0x041bf247, 0x547cc211, 0xfc4f5a3a,
+  0x8fdf8870, 0x27ec105b, 0x778b200d, 0xdfb8b826,
+  0xd74540a1, 0x7f76d88a, 0x2f11e8dc, 0x872270f7,
+  0x3eea19d2, 0x96d981f9, 0xc6beb1af, 0x6e8d2984,
+  0x6670d103, 0xce434928, 0x9e24797e, 0x3617e155,
+  0xf20bbbd4, 0x5a3823ff, 0x0a5f13a9, 0xa26c8b82,
+  0xaa917305, 0x02a2eb2e, 0x52c5db78, 0xfaf64353,
+  0x433e2a76, 0xeb0db25d, 0xbb6a820b, 0x13591a20,
+  0x1ba4e2a7, 0xb3977a8c, 0xe3f04ada, 0x4bc3d2f1,
+  0x385300bb, 0x90609890, 0xc007a8c6, 0x683430ed,
+  0x60c9c86a, 0xc8fa5041, 0x989d6017, 0x30aef83c,
+  0x89669119, 0x21550932, 0x71323964, 0xd901a14f,
+  0xd1fc59c8, 0x79cfc1e3, 0x29a8f1b5, 0x819b699e,
+  0xce895521, 0x66bacd0a, 0x36ddfd5c, 0x9eee6577,
+  0x96139df0, 0x3e2005db, 0x6e47358d, 0xc674ada6,
+  0x7fbcc483, 0xd78f5ca8, 0x87e86cfe, 0x2fdbf4d5,
+  0x27260c52, 0x8f159479, 0xdf72a42f, 0x77413c04,
+  0x04d1ee4e, 0xace27665, 0xfc854633, 0x54b6de18,
+  0x5c4b269f, 0xf478beb4, 0xa41f8ee2, 0x0c2c16c9,
+  0xb5e47fec, 0x1dd7e7c7, 0x4db0d791, 0xe5834fba,
+  0xed7eb73d, 0x454d2f16, 0x152a1f40, 0xbd19876b,
+  0x8b0e663e, 0x233dfe15, 0x735ace43, 0xdb695668,
+  0xd394aeef, 0x7ba736c4, 0x2bc00692, 0x83f39eb9,
+  0x3a3bf79c, 0x92086fb7, 0xc26f5fe1, 0x6a5cc7ca,
+  0x62a13f4d, 0xca92a766, 0x9af59730, 0x32c60f1b,
+  0x4156dd51, 0xe965457a, 0xb902752c, 0x1131ed07,
+  0x19cc1580, 0xb1ff8dab, 0xe198bdfd, 0x49ab25d6,
+  0xf0634cf3, 0x5850d4d8, 0x0837e48e, 0xa0047ca5,
+  0xa8f98422, 0x00ca1c09, 0x50ad2c5f, 0xf89eb474,
+  0xb78c88cb, 0x1fbf10e0, 0x4fd820b6, 0xe7ebb89d,
+  0xef16401a, 0x4725d831, 0x1742e867, 0xbf71704c,
+  0x06b91969, 0xae8a8142, 0xfeedb114, 0x56de293f,
+  0x5e23d1b8, 0xf6104993, 0xa67779c5, 0x0e44e1ee,
+  0x7dd433a4, 0xd5e7ab8f, 0x85809bd9, 0x2db303f2,
+  0x254efb75, 0x8d7d635e, 0xdd1a5308, 0x7529cb23,
+  0xcce1a206, 0x64d23a2d, 0x34b50a7b, 0x9c869250,
+  0x947b6ad7, 0x3c48f2fc, 0x6c2fc2aa, 0xc41c5a81
+};
+
+static const uint32_t crc32_table_814141ab[] =
+{
+  0x00000000, 0x814141ab, 0x83c3c2fd, 0x02828356,
+  0x86c6c451, 0x078785fa, 0x050506ac, 0x84444707,
+  0x8cccc909, 0x0d8d88a2, 0x0f0f0bf4, 0x8e4e4a5f,
+  0x0a0a0d58, 0x8b4b4cf3, 0x89c9cfa5, 0x08888e0e,
+  0x98d8d3b9, 0x19999212, 0x1b1b1144, 0x9a5a50ef,
+  0x1e1e17e8, 0x9f5f5643, 0x9dddd515, 0x1c9c94be,
+  0x14141ab0, 0x95555b1b, 0x97d7d84d, 0x169699e6,
+  0x92d2dee1, 0x13939f4a, 0x11111c1c, 0x90505db7,
+  0xb0f0e6d9, 0x31b1a772, 0x33332424, 0xb272658f,
+  0x36362288, 0xb7776323, 0xb5f5e075, 0x34b4a1de,
+  0x3c3c2fd0, 0xbd7d6e7b, 0xbfffed2d, 0x3ebeac86,
+  0xbafaeb81, 0x3bbbaa2a, 0x3939297c, 0xb87868d7,
+  0x28283560, 0xa96974cb, 0xabebf79d, 0x2aaab636,
+  0xaeeef131, 0x2fafb09a, 0x2d2d33cc, 0xac6c7267,
+  0xa4e4fc69, 0x25a5bdc2, 0x27273e94, 0xa6667f3f,
+  0x22223838, 0xa3637993, 0xa1e1fac5, 0x20a0bb6e,
+  0xe0a08c19, 0x61e1cdb2, 0x63634ee4, 0xe2220f4f,
+  0x66664848, 0xe72709e3, 0xe5a58ab5, 0x64e4cb1e,
+  0x6c6c4510, 0xed2d04bb, 0xefaf87ed, 0x6eeec646,
+  0xeaaa8141, 0x6bebc0ea, 0x696943bc, 0xe8280217,
+  0x78785fa0, 0xf9391e0b, 0xfbbb9d5d, 0x7afadcf6,
+  0xfebe9bf1, 0x7fffda5a, 0x7d7d590c, 0xfc3c18a7,
+  0xf4b496a9, 0x75f5d702, 0x77775454, 0xf63615ff,
+  0x727252f8, 0xf3331353, 0xf1b19005, 0x70f0d1ae,
+  0x50506ac0, 0xd1112b6b, 0xd393a83d, 0x52d2e996,
+  0xd696ae91, 0x57d7ef3a, 0x55556c6c, 0xd4142dc7,
+  0xdc9ca3c9, 0x5ddde262, 0x5f5f6134, 0xde1e209f,
+  0x5a5a6798, 0xdb1b2633, 0xd999a565, 0x58d8e4ce,
+  0xc888b979, 0x49c9f8d2, 0x4b4b7b84, 0xca0a3a2f,
+  0x4e4e7d28, 0xcf0f3c83, 0xcd8dbfd5, 0x4cccfe7e,
+  0x44447070, 0xc50531db, 0xc787b28d, 0x46c6f326,
+  0xc282b421, 0x43c3f58a, 0x414176dc, 0xc0003777,
+  0x40005999, 0xc1411832, 0xc3c39b64, 0x4282dacf,
+  0xc6c69dc8, 0x4787dc63, 0x45055f35, 0xc4441e9e,
+  0xcccc9090, 0x4d8dd13b, 0x4f0f526d, 0xce4e13c6,
+  0x4a0a54c1, 0xcb4b156a, 0xc9c9963c, 0x4888d797,
+  0xd8d88a20, 0x5999cb8b, 0x5b1b48dd, 0xda5a0976,
+  0x5e1e4e71, 0xdf5f0fda, 0xdddd8c8c, 0x5c9ccd27,
+  0x54144329, 0xd5550282, 0xd7d781d4, 0x5696c07f,
+  0xd2d28778, 0x5393c6d3, 0x51114585, 0xd050042e,
+  0xf0f0bf40, 0x71b1feeb, 0x73337dbd, 0xf2723c16,
+  0x76367b11, 0xf7773aba, 0xf5f5b9ec, 0x74b4f847,
+  0x7c3c7649, 0xfd7d37e2, 0xffffb4b4, 0x7ebef51f,
+  0xfafab218, 0x7bbbf3b3, 0x793970e5, 0xf878314e,
+  0x68286cf9, 0xe9692d52, 0xebebae04, 0x6aaaefaf,
+  0xeeeea8a8, 0x6fafe903, 0x6d2d6a55, 0xec6c2bfe,
+  0xe4e4a5f0, 0x65a5e45b, 0x6727670d, 0xe66626a6,
+  0x622261a1, 0xe363200a, 0xe1e1a35c, 0x60a0e2f7,
+  0xa0a0d580, 0x21e1942b, 0x2363177d, 0xa22256d6,
+  0x266611d1, 0xa727507a, 0xa5a5d32c, 0x24e49287,
+  0x2c6c1c89, 0xad2d5d22, 0xafafde74, 0x2eee9fdf,
+  0xaaaad8d8, 0x2beb9973, 0x29691a25, 0xa8285b8e,
+  0x38780639, 0xb9394792, 0xbbbbc4c4, 0x3afa856f,
+  0xbebec268, 0x3fff83c3, 0x3d7d0095, 0xbc3c413e,
+  0xb4b4cf30, 0x35f58e9b, 0x37770dcd, 0xb6364c66,
+  0x32720b61, 0xb3334aca, 0xb1b1c99c, 0x30f08837,
+  0x10503359, 0x911172f2, 0x9393f1a4, 0x12d2b00f,
+  0x9696f708, 0x17d7b6a3, 0x155535f5, 0x9414745e,
+  0x9c9cfa50, 0x1dddbbfb, 0x1f5f38ad, 0x9e1e7906,
+  0x1a5a3e01, 0x9b1b7faa, 0x9999fcfc, 0x18d8bd57,
+  0x8888e0e0, 0x09c9a14b, 0x0b4b221d, 0x8a0a63b6,
+  0x0e4e24b1, 0x8f0f651a, 0x8d8de64c, 0x0ccca7e7,
+  0x044429e9, 0x85056842, 0x8787eb14, 0x06c6aabf,
+  0x8282edb8, 0x03c3ac13, 0x01412f45, 0x80006eee
+};
+
+static const uint32_t crc32_table_000000af[] =
+{
+  0x00000000, 0x000000af, 0x0000015e, 0x000001f1,
+  0x000002bc, 0x00000213, 0x000003e2, 0x0000034d,
+  0x00000578, 0x000005d7, 0x00000426, 0x00000489,
+  0x000007c4, 0x0000076b, 0x0000069a, 0x00000635,
+  0x00000af0, 0x00000a5f, 0x00000bae, 0x00000b01,
+  0x0000084c, 0x000008e3, 0x00000912, 0x000009bd,
+  0x00000f88, 0x00000f27, 0x00000ed6, 0x00000e79,
+  0x00000d34, 0x00000d9b, 0x00000c6a, 0x00000cc5,
+  0x000015e0, 0x0000154f, 0x000014be, 0x00001411,
+  0x0000175c, 0x000017f3, 0x00001602, 0x000016ad,
+  0x00001098, 0x00001037, 0x000011c6, 0x00001169,
+  0x00001224, 0x0000128b, 0x0000137a, 0x000013d5,
+  0x00001f10, 0x00001fbf, 0x00001e4e, 0x00001ee1,
+  0x00001dac, 0x00001d03, 0x00001cf2, 0x00001c5d,
+  0x00001a68, 0x00001ac7, 0x00001b36, 0x00001b99,
+  0x000018d4, 0x0000187b, 0x0000198a, 0x00001925,
+  0x00002bc0, 0x00002b6f, 0x00002a9e, 0x00002a31,
+  0x0000297c, 0x000029d3, 0x00002822, 0x0000288d,
+  0x00002eb8, 0x00002e17, 0x00002fe6, 0x00002f49,
+  0x00002c04, 0x00002cab, 0x00002d5a, 0x00002df5,
+  0x00002130, 0x0000219f, 0x0000206e, 0x000020c1,
+  0x0000238c, 0x00002323, 0x000022d2, 0x0000227d,
+  0x00002448, 0x000024e7, 0x00002516, 0x000025b9,
+  0x000026f4, 0x0000265b, 0x000027aa, 0x00002705,
+  0x00003e20, 0x00003e8f, 0x00003f7e, 0x00003fd1,
+  0x00003c9c, 0x00003c33, 0x00003dc2, 0x00003d6d,
+  0x00003b58, 0x00003bf7, 0x00003a06, 0x00003aa9,
+  0x000039e4, 0x0000394b, 0x000038ba, 0x00003815,
+  0x000034d0, 0x0000347f, 0x0000358e, 0x00003521,
+  0x0000366c, 0x000036c3, 0x00003732, 0x0000379d,
+  0x000031a8, 0x00003107, 0x000030f6, 0x00003059,
+  0x00003314, 0x000033bb, 0x0000324a, 0x000032e5,
+  0x00005780, 0x0000572f, 0x000056de, 0x00005671,
+  0x0000553c, 0x00005593, 0x00005462, 0x000054cd,
+  0x000052f8, 0x00005257, 0x000053a6, 0x00005309,
+  0x00005044, 0x000050eb, 0x0000511a, 0x000051b5,
+  0x00005d70, 0x00005ddf, 0x00005c2e, 0x00005c81,
+  0x00005fcc, 0x00005f63, 0x00005e92, 0x00005e3d,
+  0x00005808, 0x000058a7, 0x00005956, 0x000059f9,
+  0x00005ab4, 0x00005a1b, 0x00005bea, 0x00005b45,
+  0x00004260, 0x000042cf, 0x0000433e, 0x00004391,
+  0x000040dc, 0x00004073, 0x00004182, 0x0000412d,
+  0x00004718, 0x000047b7, 0x00004646, 0x000046e9,
+  0x000045a4, 0x0000450b, 0x000044fa, 0x00004455,
+  0x00004890, 0x0000483f, 0x000049ce, 0x00004961,
+  0x00004a2c, 0x00004a83, 0x00004b72, 0x00004bdd,
+  0x00004de8, 0x00004d47, 0x00004cb6, 0x00004c19,
+  0x00004f54, 0x00004ffb, 0x00004e0a, 0x00004ea5,
+  0x00007c40, 0x00007cef, 0x00007d1e, 0x00007db1,
+  0x00007efc, 0x00007e53, 0x00007fa2, 0x00007f0d,
+  0x00007938, 0x00007997, 0x00007866, 0x000078c9,
+  0x00007b84, 0x00007b2b, 0x00007ada, 0x00007a75,
+  0x000076b0, 0x0000761f, 0x000077ee, 0x00007741,
+  0x0000740c, 0x000074a3, 0x00007552, 0x000075fd,
+  0x000073c8, 0x00007367, 0x00007296, 0x00007239,
+  0x00007174, 0x000071db, 0x0000702a, 0x00007085,
+  0x000069a0, 0x0000690f, 0x000068fe, 0x00006851,
+  0x00006b1c, 0x00006bb3, 0x00006a42, 0x00006aed,
+  0x00006cd8, 0x00006c77, 0x00006d86, 0x00006d29,
+  0x00006e64, 0x00006ecb, 0x00006f3a, 0x00006f95,
+  0x00006350, 0x000063ff, 0x0000620e, 0x000062a1,
+  0x000061ec, 0x00006143, 0x000060b2, 0x0000601d,
+  0x00006628, 0x00006687, 0x00006776, 0x000067d9,
+  0x00006494, 0x0000643b, 0x000065ca, 0x00006565
+};
+/* For the parameters of different CRC32 algorithms, see
+   <https://crccalc.com/> */
+void pcutils_crc32_begin(pcutils_crc32_ctxt *ctxt, purc_crc32_algo_t algo)
+{
+    switch (algo) {
+        case PURC_K_ALGO_CRC32:
+            ctxt->poly = 0x04C11DB7L;
+            ctxt->init = 0xFFFFFFFFL;
+            ctxt->xorout = 0xFFFFFFFFL;
+            ctxt->refin = true;
+            ctxt->refout = true;
+            ctxt->table_static = crc32_table_04c11db7;
+            break;
+
+        case PURC_K_ALGO_CRC32_BZIP2:
+            ctxt->poly = 0x04C11DB7L;
+            ctxt->init = 0xFFFFFFFFL;
+            ctxt->xorout = 0xFFFFFFFFL;
+            ctxt->refin = false;
+            ctxt->refout = false;
+            ctxt->table_static = crc32_table_04c11db7;
+            break;
+
+        case PURC_K_ALGO_CRC32_XFER:
+            ctxt->poly = 0x000000AFL;
+            ctxt->init = 0;
+            ctxt->xorout = 0;
+            ctxt->refin = false;
+            ctxt->refout = false;
+            ctxt->table_static = crc32_table_000000af;
+            break;
+
+        case PURC_K_ALGO_CRC32_MPEG2:
+            ctxt->poly = 0x04C11DB7L;
+            ctxt->init = 0xFFFFFFFFL;
+            ctxt->xorout = 0;
+            ctxt->refin = false;
+            ctxt->refout = false;
+            ctxt->table_static = crc32_table_04c11db7;
+            break;
+
+        case PURC_K_ALGO_CRC32_POSIX:
+            ctxt->poly = 0x04C11DB7L;
+            ctxt->init = 0;
+            ctxt->xorout = 0xFFFFFFFFL;
+            ctxt->refin = false;
+            ctxt->refout = false;
+            ctxt->table_static = crc32_table_04c11db7;
+            break;
+
+        case PURC_K_ALGO_CRC32C:
+            ctxt->poly = 0x1EDC6F41L;
+            ctxt->init = 0xFFFFFFFFL;
+            ctxt->xorout = 0xFFFFFFFFL;
+            ctxt->refin = true;
+            ctxt->refout = true;
+            ctxt->table_static = crc32_table_1edc6f41;
+            break;
+
+        case PURC_K_ALGO_CRC32D:
+            ctxt->poly = 0xA833982BL;
+            ctxt->init = 0xFFFFFFFFL;
+            ctxt->xorout = 0xFFFFFFFFL;
+            ctxt->refin = true;
+            ctxt->refout = true;
+            ctxt->table_static = crc32_table_a833982b;
+            break;
+
+        case PURC_K_ALGO_CRC32_JAMCRC:
+            ctxt->poly = 0x04C11DB7L;
+            ctxt->init = 0xFFFFFFFFL;
+            ctxt->xorout = 0;
+            ctxt->refin = true;
+            ctxt->refout = true;
+            ctxt->table_static = crc32_table_04c11db7;
+            break;
+
+        case PURC_K_ALGO_CRC32Q:
+            ctxt->poly = 0x814141ABL;
+            ctxt->init = 0;
+            ctxt->xorout = 0;
+            ctxt->refin = false;
+            ctxt->refout = false;
+            ctxt->table_static = crc32_table_814141ab;
+            break;
+    }
+
+    ctxt->crc32 = ctxt->init;
 }
 
-void pcutils_crc32_update(const void *data, size_t nr_bytes, uint32_t* crc)
-{
-    const unsigned char *buf = data;
+static const uint8_t reflect_table[] = {
+    0x0,    // 0x0,
+    0x8,    // 0x1,
+    0x4,    // 0x2,
+    0xC,    // 0x3,
+    0x2,    // 0x4,
+    0xA,    // 0x5,
+    0x6,    // 0x6,
+    0xE,    // 0x7,
+    0x1,    // 0x8,
+    0x9,    // 0x9,
+    0x5,    // 0xA,
+    0xD,    // 0xB,
+    0x3,    // 0xC,
+    0xB,    // 0xD,
+    0x7,    // 0xE,
+    0xF,    // 0xF,
+};
 
-    while (nr_bytes--) {
-        *crc = (*crc << 8) ^ crc32_table[((*crc >> 24) ^ *buf) & 255];
+static inline uint8_t reflect_uint8(uint8_t u8)
+{
+    uint8_t half_l = u8 & 0x0F;
+    uint8_t half_h = (u8 >> 4) & 0x0F;
+
+    return (reflect_table[half_l] << 4) | reflect_table[half_h];
+}
+
+static inline uint8_t reflect_uint32(uint32_t u32)
+{
+    uint32_t result = 0;
+
+    for (int i = 0; i < 32; i++) {
+        if ((u32 >> i) & 0x01L) {
+            result |= 0x01L << (31 - i);
+        }
+    }
+
+    return result;
+}
+
+void pcutils_crc32_update(pcutils_crc32_ctxt *ctxt,
+        const void *data, size_t n)
+{
+    const uint8_t *buf = data;
+
+    while (n--) {
+        uint8_t ch;
+
+        if (ctxt->refin)
+            ch = reflect_uint8(*buf);
+        else
+            ch = *buf;
+
+        ctxt->crc32 = (ctxt->crc32 << 8) ^
+            ctxt->table_static[((ctxt->crc32 >> 24) ^ ch) & 255];
         buf++;
+
     }
 }
 
-void pcutils_crc32_end(uint32_t* crc, uint32_t xor_out)
+void pcutils_crc32_end(pcutils_crc32_ctxt *ctxt, uint32_t* crc32)
 {
-    *crc ^= xor_out;
+    if (ctxt->refout)
+        ctxt->crc32 = reflect_uint32(ctxt->crc32);
+    *crc32 = ctxt->crc32 ^ ctxt->xorout;
+}
+
+static void calc_crc32_table(uint32_t *table, uint32_t poly)
+{
+    int i, j;
+    uint32_t c;
+
+    for (i = 0; i < 256; i++) {
+        for (c = i << 24, j = 8; j > 0; --j)
+            c = c & 0x80000000 ? (c << 1) ^ poly : (c << 1);
+        table[i] = c;
+    }
+}
+
+pcutils_crc32_ctxt *
+pcutils_crc32_begin_custom(uint32_t poly, uint32_t init, uint32_t xorout,
+        bool refin, bool refout)
+{
+    pcutils_crc32_ctxt *ctxt;
+
+    ctxt = malloc(sizeof(*ctxt));
+    if (ctxt) {
+        ctxt->table_alloc = malloc(sizeof(uint32_t)*256);
+        if (ctxt->table_alloc == NULL) {
+            free(ctxt);
+            ctxt = NULL;
+            goto fatal;
+        }
+
+        ctxt->poly = poly;
+        ctxt->init = init;
+        ctxt->xorout = xorout;
+        ctxt->refin = refin;
+        ctxt->refout = refout;
+        calc_crc32_table(ctxt->table_alloc, poly);
+    }
+
+fatal:
+    return ctxt;
+}
+
+void
+pcutils_crc32_end_custom(pcutils_crc32_ctxt *ctxt, uint32_t* crc32)
+{
+    *crc32 = ctxt->crc32 ^ ctxt->xorout;
+    free(ctxt->table_alloc);
+    free(ctxt);
 }
 
