@@ -62,7 +62,8 @@ struct pcvcm_node_op {
     void *find_var_ctxt;
 };
 
-struct pcvcm_variant {
+// expression variable
+struct pcvcm_ev {
     struct pcvcm_node *vcm;
     purc_variant_t const_value;
     bool release_vcm;
@@ -1257,9 +1258,12 @@ eval(void *native_entity, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
 
-    struct pcvcm_variant *vcm_ex = (struct pcvcm_variant*)native_entity;
+    struct pcvcm_ev *vcm_ev = (struct pcvcm_ev*)native_entity;
     struct pcintr_stack *stack = pcintr_get_stack();
-    return pcvcm_eval(vcm_ex->vcm, stack, silently);
+    if (!stack) {
+        return PURC_VARIANT_INVALID;
+    }
+    return pcvcm_eval(vcm_ev->vcm, stack, silently);
 }
 
 static purc_variant_t
@@ -1270,13 +1274,13 @@ eval_const(void *native_entity, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
     UNUSED_PARAM(silently);
-    struct pcvcm_variant *vcm_ex = (struct pcvcm_variant*)native_entity;
-    if (vcm_ex->const_value) {
-        return vcm_ex->const_value;
+    struct pcvcm_ev *vcm_ev = (struct pcvcm_ev*)native_entity;
+    if (vcm_ev->const_value) {
+        return vcm_ev->const_value;
     }
 
-    vcm_ex->const_value = eval(native_entity, nr_args, argv, silently);
-    return vcm_ex->const_value;
+    vcm_ev->const_value = eval(native_entity, nr_args, argv, silently);
+    return vcm_ev->const_value;
 }
 
 static inline
@@ -1296,7 +1300,7 @@ purc_nvariant_method property_getter(const char* key_name)
 static void
 on_release(void *native_entity)
 {
-    struct pcvcm_variant *vcm_variant = (struct pcvcm_variant*)native_entity;
+    struct pcvcm_ev *vcm_variant = (struct pcvcm_ev*)native_entity;
     if (vcm_variant->release_vcm) {
         free(vcm_variant->vcm);
     }
@@ -1307,7 +1311,7 @@ on_release(void *native_entity)
 }
 
 purc_variant_t
-pcvcm_to_expression_variant(struct pcvcm_node *vcm, bool release_vcm)
+pcvcm_to_expression_variable(struct pcvcm_node *vcm, bool release_vcm)
 {
     static struct purc_native_ops ops = {
         .property_getter        = property_getter,
@@ -1323,21 +1327,21 @@ pcvcm_to_expression_variant(struct pcvcm_node *vcm, bool release_vcm)
         .on_release            = on_release,
     };
 
-    struct pcvcm_variant *vcm_ex = (struct pcvcm_variant*)calloc(1,
-            sizeof(struct pcvcm_variant));
-    if (!vcm_ex) {
+    struct pcvcm_ev *vcm_ev = (struct pcvcm_ev*)calloc(1,
+            sizeof(struct pcvcm_ev));
+    if (!vcm_ev) {
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return PURC_VARIANT_INVALID;
     }
 
-    purc_variant_t v = purc_variant_make_native(vcm_ex, &ops);
+    purc_variant_t v = purc_variant_make_native(vcm_ev, &ops);
     if (v == PURC_VARIANT_INVALID) {
-        free(vcm_ex);
+        free(vcm_ev);
         return PURC_VARIANT_INVALID;
     }
 
-    vcm_ex->vcm = vcm;
-    vcm_ex->release_vcm = release_vcm;
+    vcm_ev->vcm = vcm;
+    vcm_ev->release_vcm = release_vcm;
 
     return v;
 }
