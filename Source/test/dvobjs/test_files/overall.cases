@@ -334,20 +334,12 @@ positive:
     3855470970UL
 
 positive:
+    $EJSON.crc32('HVML', 'CRC-32', 'ulongint')
+    761839935UL
+
+positive:
     $EJSON.crc32('HVML', 'CRC-32/BZIP2', 'ulongint')
     583601153UL
-
-#positive:
-#    $EJSON.crc32('HVML', 'CRC-32C', 'ulongint')
-#    1088443129UL
-
-#positive:
-#    $EJSON.crc32('HVML', 'CRC-32D', 'ulongint')
-#    3051174686UL
-
-#positive:
-#    $EJSON.crc32('HVML', 'CRC-32/JAMCRC', 'ulongint')
-#    3533127360UL
 
 positive:
     $EJSON.crc32('HVML', 'CRC-32/MPEG-2', 'ulongint')
@@ -356,10 +348,6 @@ positive:
 positive:
     $EJSON.crc32('HVML', 'CRC-32/POSIX', 'ulongint')
     3855470970UL
-
-#positive:
-#    $EJSON.crc32('HVML', 'CRC-32Q', 'ulongint')
-#    355205254UL
 
 positive:
     $EJSON.crc32('HVML', 'CRC-32/XFER', 'ulongint')
@@ -397,6 +385,26 @@ positive:
 positive:
     $EJSON.crc32('HVML', 'CRC-32/POSIX', 'uppercase')
     '7AD1CDE5'
+
+# NotSupported
+#positive:
+#    $EJSON.crc32('HVML', 'CRC-32C', 'ulongint')
+#    1088443129UL
+
+# NotSupported
+#positive:
+#    $EJSON.crc32('HVML', 'CRC-32D', 'ulongint')
+#    3051174686UL
+
+# NotSupported
+#positive:
+#    $EJSON.crc32('HVML', 'CRC-32/JAMCRC', 'ulongint')
+#    3533127360UL
+
+# NotSupported
+#positive:
+#    $EJSON.crc32('HVML', 'CRC-32Q', 'ulongint')
+#    355205254UL
 
 # test cases for $EJSON.md5
 negative:
