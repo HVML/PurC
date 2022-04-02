@@ -177,27 +177,6 @@ set_error_exinfo_with_debug(int errcode, purc_variant_t exinfo,
 
     backtrace_snapshot(inst, file, line, func);
 
-    // set the exception info into stack
-    pcintr_stack_t stack = pcintr_get_stack();
-    if (stack) {
-        struct pcintr_exception *exception = &stack->exception;
-
-        exception->error_except = info->except_atom;
-        PURC_VARIANT_SAFE_CLEAR(exception->exinfo);
-        exception->exinfo = exinfo;
-        if (exinfo != PURC_VARIANT_INVALID) {
-            purc_variant_ref(exinfo);
-        }
-        if (exception->bt) {
-            pcdebug_backtrace_unref(exception->bt);
-            exception->bt = NULL;
-        }
-
-        if (inst->bt)
-            exception->bt = pcdebug_backtrace_ref(inst->bt);
-        stack->except = errcode ? 1 : 0; // FIXME: when to set stack->error???
-    }
-
     return PURC_ERROR_OK;
 }
 

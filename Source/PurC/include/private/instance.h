@@ -80,5 +80,7 @@ void pcinst_move_buffer_cleanup_once(void) WTF_INTERNAL;
 struct pcrdr_msg *pcinst_get_message(void) WTF_INTERNAL;
 void pcinst_put_message(struct pcrdr_msg *msg) WTF_INTERNAL;
 
+void pcinst_clear_error(struct pcinst *inst) WTF_INTERNAL;
+
 #endif /* not defined PURC_PRIVATE_INSTANCE_H */
 

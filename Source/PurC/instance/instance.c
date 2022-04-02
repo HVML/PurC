@@ -283,14 +283,10 @@ static void cleanup_instance(struct pcinst *curr_inst)
         curr_inst->fp_log = NULL;
     }
 
-#ifndef NDEBUG                     /* { */
-#if OS(LINUX)                      /* { */
     if (curr_inst->bt) {
         pcdebug_backtrace_unref(curr_inst->bt);
         curr_inst->bt = NULL;
     }
-#endif                             /* } */
-#endif                             /* } */
 }
 
 static void enable_log_on_demand(void)
@@ -619,3 +615,18 @@ purc_unbind_document_variable(purc_vdom_t vdom, const char* name)
     return pcvdom_document_unbind_variable(vdom, name);
 }
 #endif
+
+void pcinst_clear_error(struct pcinst *inst)
+{
+    if (!inst)
+        return;
+
+    inst->errcode = 0;
+    PURC_VARIANT_SAFE_CLEAR(inst->err_exinfo);
+
+    if (inst->bt) {
+        pcdebug_backtrace_unref(inst->bt);
+        inst->bt = NULL;
+    }
+}
+

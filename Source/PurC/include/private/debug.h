@@ -113,12 +113,12 @@ struct pcdebug_backtrace {
 };
 
 struct pcdebug_backtrace*
-pcdebug_backtrace_ref(struct pcdebug_backtrace *bt);
+pcdebug_backtrace_ref(struct pcdebug_backtrace *bt) WTF_INTERNAL;
 
 void
-pcdebug_backtrace_unref(struct pcdebug_backtrace *bt);
+pcdebug_backtrace_unref(struct pcdebug_backtrace *bt) WTF_INTERNAL;
 
 void
-pcdebug_backtrace_dump(struct pcdebug_backtrace *bt);
+pcdebug_backtrace_dump(struct pcdebug_backtrace *bt) WTF_INTERNAL;
 
 #endif /* PURC_PRIVATE_DEBUG_H */

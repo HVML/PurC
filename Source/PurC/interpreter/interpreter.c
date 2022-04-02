@@ -302,6 +302,7 @@ stack_release(pcintr_stack_t stack)
         free(stack->base_uri);
     }
 
+    PURC_VARIANT_SAFE_CLEAR(stack->exception.exinfo);
     if (stack->exception.bt) {
         pcdebug_backtrace_unref(stack->exception.bt);
         stack->exception.bt = NULL;
@@ -846,6 +847,30 @@ on_select_child(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 }
 
 static void
+exception_copy(struct pcintr_exception *exception)
+{
+    if (!exception)
+        return;
+
+    const struct pcinst *inst = pcinst_current();
+    exception->errcode        = inst->errcode;
+    exception->error_except   = inst->error_except;
+
+    if (inst->err_exinfo)
+        purc_variant_ref(inst->err_exinfo);
+    PURC_VARIANT_SAFE_CLEAR(exception->exinfo);
+    exception->exinfo = inst->err_exinfo;
+
+    if (inst->bt)
+        pcdebug_backtrace_ref(inst->bt);
+    if (exception->bt) {
+        pcdebug_backtrace_unref(exception->bt);
+    }
+
+    exception->bt = inst->bt;
+}
+
+static void
 execute_one_step(pcintr_coroutine_t co)
 {
     pcintr_stack_t stack = co->stack;
@@ -881,6 +906,16 @@ execute_one_step(pcintr_coroutine_t co)
     PC_ASSERT(co->state == CO_STATE_RUN);
     co->state = CO_STATE_READY;
     PC_ASSERT(co->stack);
+
+    struct pcinst *inst = pcinst_current();
+    PC_ASSERT(inst);
+    if (inst->errcode) {
+        PC_ASSERT(co->stack->except == 0);
+        exception_copy(&co->stack->exception);
+        co->stack->except = 1;
+        pcinst_clear_error(inst);
+        PC_ASSERT(inst->errcode == 0);
+    }
 
     if (co->stack->except) {
         dump_stack(co->stack);
