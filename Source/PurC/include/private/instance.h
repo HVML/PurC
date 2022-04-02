@@ -39,6 +39,7 @@
 struct pcinst {
     int                     errcode;
     purc_variant_t          err_exinfo;
+    purc_atom_t             error_except;
 
     char                   *app_name;
     char                   *runner_name;
@@ -66,19 +67,7 @@ struct pcinst {
     bool initialized_main_runloop;
 
     /* FIXME: enable the fields ONLY when NDEBUG is undefined */
-#ifndef NDEBUG                     /* { */
-#if OS(LINUX)                      /* { */
-    const char *file;
-    const char *func;
-    int lineno;
-    void *c_stacks[64];
-    int   nr_stacks;
-    char  so[1024];
-    char  addr1[256];
-    char  addr2[64];
-#endif                             /* } */
-#endif                             /* } */
-
+    struct pcdebug_backtrace  *bt;
 };
 
 /* gets the current instance */

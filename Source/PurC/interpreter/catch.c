@@ -100,7 +100,7 @@ post_process_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     char* tok = strtok_r(ctx, " ", &ctx);
     while (tok) {
         purc_atom_t t = purc_atom_try_string(msg);
-        if (t == stack->error_except) {
+        if (t == stack->except) {
             ctxt->match = true;
             break;
         }

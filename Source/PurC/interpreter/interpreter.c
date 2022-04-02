@@ -301,6 +301,11 @@ stack_release(pcintr_stack_t stack)
     if (stack->base_uri) {
         free(stack->base_uri);
     }
+
+    if (stack->exception.bt) {
+        pcdebug_backtrace_unref(stack->exception.bt);
+        stack->exception.bt = NULL;
+    }
 }
 
 static void
@@ -687,10 +692,15 @@ dump_stack(pcintr_stack_t stack)
 {
     fprintf(stderr, "dumping stacks of corroutine [%p] ......\n", &stack->co);
     PC_ASSERT(stack);
+    struct pcintr_exception *exception = &stack->exception;
+    struct pcdebug_backtrace *bt = exception->bt;
+    if (!bt)
+        return;
+
     fprintf(stderr, "error_except: generated @%s[%d]:%s()\n",
-            pcutils_basename((char*)stack->file), stack->lineno, stack->func);
-    purc_atom_t     error_except = stack->error_except;
-    purc_variant_t  err_except_info = stack->err_except_info;
+            pcutils_basename((char*)bt->file), bt->line, bt->func);
+    purc_atom_t     error_except = exception->error_except;
+    purc_variant_t  err_except_info = exception->exinfo;
     if (error_except) {
         fprintf(stderr, "error_except: %s\n",
                 purc_atom_to_string(error_except));
@@ -871,6 +881,7 @@ execute_one_step(pcintr_coroutine_t co)
     PC_ASSERT(co->state == CO_STATE_RUN);
     co->state = CO_STATE_READY;
     PC_ASSERT(co->stack);
+
     if (co->stack->except) {
         dump_stack(co->stack);
         dump_c_stack();
