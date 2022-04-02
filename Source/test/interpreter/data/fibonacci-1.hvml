@@ -14,7 +14,7 @@
             [0, 1, ]
         </init>
 
-        <iterate on 1 by="ADD: LT 2000 BY $fibonacci[$MATHx.sub($EJSON.count($fibonacci), 2)]">
+        <iterate on 1 by="ADD: LT 2000 BY $fibonacci[$MATH.sub($EJSON.count($fibonacci), 2)]">
             <update on="$fibonacci" to="append" with="$?" />
         </iterate>
 
