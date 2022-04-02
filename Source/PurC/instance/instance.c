@@ -291,8 +291,6 @@ static void cleanup_instance(struct pcinst *curr_inst)
     }
 #endif                             /* } */
 #endif                             /* } */
-
-    PURC_VARIANT_SAFE_CLEAR(curr_inst->err_exinfo);
 }
 
 static void enable_log_on_demand(void)
@@ -462,6 +460,8 @@ bool purc_cleanup(void)
         curr_inst = PURC_GET_THREAD_LOCAL(inst);
         if (curr_inst == NULL || curr_inst->app_name == NULL)
             return false;
+
+        PURC_VARIANT_SAFE_CLEAR(curr_inst->err_exinfo);
 
         /* disconnnect from the renderer */
         if (_modules & PURC_HAVE_PCRDR && curr_inst->conn_to_rdr) {
