@@ -60,7 +60,7 @@ static struct keyword_to_atom {
 } keywords2atoms [] = {
     { PURC_KW_caseless, 0 },    // "caseless"
     { PURC_KW_case,     0 },    // "case"
-    { PURC_KW_reg,      0 },    // "reg"
+    { PURC_KW_regexp,   0 },    // "regexp"
     { PURC_KW_wildcard, 0 },    // "wildcard"
     { PURC_KW_number,   0 },    // "number"
     { PURC_KW_auto,     0 },    // "auto"
@@ -117,6 +117,9 @@ static struct keyword_to_atom {
     { PURC_KW_longint,  0 },    // "longint"
     { PURC_KW_ulongint, 0 },    // "ulongint"
     { PURC_KW_longdouble,   0 },// "longdouble"
+    { PURC_KW_object,   0 },    // "object"
+    { PURC_KW_local,   0 },     // "local"
+    { PURC_KW_global,  0 },     // "global"
 };
 
 /* Make sure the number of keywords2atoms matches the number of keywords */
