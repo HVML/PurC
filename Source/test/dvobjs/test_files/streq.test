@@ -108,7 +108,7 @@ test_end
 
 test_begin
 param_begin
-string:"reg";
+string:"regexp";
 string:"he.*";
 string:"hello world";
 param_end
@@ -117,7 +117,7 @@ test_end
 
 test_begin
 param_begin
-string:"reg";
+string:"regexp";
 string:"he[lbc]lo world";
 string:"hello world";
 param_end
@@ -126,7 +126,7 @@ test_end
 
 test_begin
 param_begin
-string:"reg";
+string:"regexp";
 string:"he[abc]lo world";
 string:"hello world";
 param_end

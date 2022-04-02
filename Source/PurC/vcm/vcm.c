@@ -54,9 +54,19 @@
 #define MIN_BUF_SIZE         32
 #define MAX_BUF_SIZE         SIZE_MAX
 
+#define EVAL_KEY            "eval"
+#define EVAL_CONST_KEY      "eval_const"
+
 struct pcvcm_node_op {
     cb_find_var find_var;
     void *find_var_ctxt;
+};
+
+// expression variable
+struct pcvcm_ev {
+    struct pcvcm_node *vcm;
+    purc_variant_t const_value;
+    bool release_vcm;
 };
 
 static struct pcvcm_node *pcvcm_node_new(enum pcvcm_node_type type)
@@ -783,27 +793,46 @@ static
 purc_variant_t pcvcm_node_get_variable_to_variant(struct pcvcm_node *node,
        struct pcvcm_node_op *ops, bool silently)
 {
-    UNUSED_PARAM(silently);
+    purc_variant_t ret = PURC_VARIANT_INVALID;
     if (!ops) {
-        return PURC_VARIANT_INVALID;
+        goto out;
     }
 
     struct pcvcm_node *name_node = FIRST_CHILD(node);
     if (!name_node) {
-        return PURC_VARIANT_INVALID;
+        goto out;
     }
 
-    size_t nr_name = (size_t)name_node->sz_ptr[0];
-    char *name = (char*)name_node->sz_ptr[1];
+    purc_variant_t name_var = pcvcm_node_to_variant(name_node, ops,
+            silently);
+    if (name_var == PURC_VARIANT_INVALID) {
+        goto out;
+    }
+
+    if (!purc_variant_is_string(name_var)) {
+        goto out_unref_name_var;
+    }
+
+    const char *name = purc_variant_get_string_const(name_var);
+    size_t nr_name = strlen(name);
     if (!name || nr_name == 0) {
-        return PURC_VARIANT_INVALID;
+        goto out_unref_name_var;
     }
 
-    purc_variant_t ret =  ops->find_var ?  ops->find_var(ops->find_var_ctxt,
-            name) : PURC_VARIANT_INVALID;
+    if(!ops->find_var) {
+        pcinst_set_error(PCVARIANT_ERROR_NOT_FOUND);
+        goto out_unref_name_var;
+    }
+
+    ret = ops->find_var(ops->find_var_ctxt, name);
     if (ret) {
         purc_variant_ref(ret);
     }
+
+out_unref_name_var:
+    purc_variant_unref(name_var);
+
+out:
     return ret;
 }
 
@@ -1232,11 +1261,110 @@ purc_variant_t pcvcm_eval_ex(struct pcvcm_node *tree,
     if (tree) {
         ret = pcvcm_node_to_variant(tree, &ops, silently);
     }
+    else if (silently) {
+        ret = purc_variant_make_undefined();
+    }
 
 #ifndef NDEBUG
     PRINT_VARIANT(ret);
     PC_DEBUG("pcvcm_eval_ex|end|silently=%d\n", silently);
 #endif
     return ret;
+}
+
+static purc_variant_t
+eval(void *native_entity, size_t nr_args, purc_variant_t *argv,
+        bool silently)
+{
+    UNUSED_PARAM(native_entity);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+
+    struct pcvcm_ev *vcm_ev = (struct pcvcm_ev*)native_entity;
+    struct pcintr_stack *stack = pcintr_get_stack();
+    if (!stack) {
+        return PURC_VARIANT_INVALID;
+    }
+    return pcvcm_eval(vcm_ev->vcm, stack, silently);
+}
+
+static purc_variant_t
+eval_const(void *native_entity, size_t nr_args, purc_variant_t *argv,
+        bool silently)
+{
+    UNUSED_PARAM(native_entity);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(silently);
+    struct pcvcm_ev *vcm_ev = (struct pcvcm_ev*)native_entity;
+    if (vcm_ev->const_value) {
+        return vcm_ev->const_value;
+    }
+
+    vcm_ev->const_value = eval(native_entity, nr_args, argv, silently);
+    return vcm_ev->const_value;
+}
+
+static inline
+purc_nvariant_method property_getter(const char* key_name)
+{
+    if (strcmp(key_name, EVAL_KEY) == 0) {
+        return eval;
+    }
+
+    if (strcmp(key_name, EVAL_CONST_KEY) == 0) {
+        return eval_const;
+    }
+
+    return NULL;
+}
+
+static void
+on_release(void *native_entity)
+{
+    struct pcvcm_ev *vcm_variant = (struct pcvcm_ev*)native_entity;
+    if (vcm_variant->release_vcm) {
+        free(vcm_variant->vcm);
+    }
+    if (vcm_variant->const_value) {
+        purc_variant_unref(vcm_variant->const_value);
+    }
+    free(vcm_variant);
+}
+
+purc_variant_t
+pcvcm_to_expression_variable(struct pcvcm_node *vcm, bool release_vcm)
+{
+    static struct purc_native_ops ops = {
+        .property_getter        = property_getter,
+        .property_setter        = NULL,
+        .property_eraser        = NULL,
+        .property_cleaner       = NULL,
+
+        .updater                = NULL,
+        .cleaner                = NULL,
+        .eraser                 = NULL,
+
+        .on_observe            = NULL,
+        .on_release            = on_release,
+    };
+
+    struct pcvcm_ev *vcm_ev = (struct pcvcm_ev*)calloc(1,
+            sizeof(struct pcvcm_ev));
+    if (!vcm_ev) {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return PURC_VARIANT_INVALID;
+    }
+
+    purc_variant_t v = purc_variant_make_native(vcm_ev, &ops);
+    if (v == PURC_VARIANT_INVALID) {
+        free(vcm_ev);
+        return PURC_VARIANT_INVALID;
+    }
+
+    vcm_ev->vcm = vcm;
+    vcm_ev->release_vcm = release_vcm;
+
+    return v;
 }
 

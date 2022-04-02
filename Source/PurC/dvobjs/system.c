@@ -669,9 +669,6 @@ time_us_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(argv);
-    UNUSED_PARAM(silently);
 
     purc_variant_t retv = PURC_VARIANT_INVALID;
     purc_variant_t val = PURC_VARIANT_INVALID;
@@ -679,36 +676,70 @@ time_us_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     struct timeval tv;
     gettimeofday(&tv, NULL);
 
-    if (nr_args == 0 || purc_variant_booleanize(argv[0])) {
+    int rettype = -1;
+    if (nr_args == 0) {
+        rettype = PURC_K_KW_longdouble;
+    }
+    else {
+        const char *option;
+        size_t option_len;
+
+        option = purc_variant_get_string_const_ex(argv[0], &option_len);
+        if (option == NULL) {
+            pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        }
+        else {
+            option = pcutils_trim_spaces(option, &option_len);
+            if (option_len == 0) {
+                pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+            }
+            else {
+                rettype = pcdvobjs_global_keyword_id(option, option_len);
+            }
+        }
+    }
+
+    if (rettype == -1) {
+        // bad keyword, do not change error code.
+    }
+    else if (rettype == PURC_K_KW_longdouble) {
+        silently = true;
+    }
+    else if (rettype == PURC_K_KW_object) {
+        // create an empty object
+        retv = purc_variant_make_object(0,
+                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+        if (retv == PURC_VARIANT_INVALID) {
+            goto fatal;
+        }
+
+        val = purc_variant_make_longint((int64_t)tv.tv_sec);
+        if (val == PURC_VARIANT_INVALID)
+            goto fatal;
+        if (!purc_variant_object_set_by_static_ckey(retv,
+                    _KN_sec, val))
+            goto fatal;
+        purc_variant_unref(val);
+
+        val = purc_variant_make_longint((int64_t)tv.tv_usec);
+        if (val == PURC_VARIANT_INVALID)
+            goto fatal;
+        if (!purc_variant_object_set_by_static_ckey(retv,
+                    _KN_usec, val))
+            goto fatal;
+        purc_variant_unref(val);
+        return retv;
+    }
+    else {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+    }
+
+    if (silently) {
         long double time_ld = (long double)tv.tv_sec;
         time_ld += tv.tv_usec/1000000.0L;
 
         return purc_variant_make_longdouble(time_ld);
     }
-
-    // create an empty object
-    retv = purc_variant_make_object(0,
-            PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
-    if (retv == PURC_VARIANT_INVALID) {
-        goto fatal;
-    }
-
-    val = purc_variant_make_longint((int64_t)tv.tv_sec);
-    if (val == PURC_VARIANT_INVALID)
-        goto fatal;
-    if (!purc_variant_object_set_by_static_ckey(retv,
-                _KN_sec, val))
-        goto fatal;
-    purc_variant_unref(val);
-
-    val = purc_variant_make_longint((int64_t)tv.tv_usec);
-    if (val == PURC_VARIANT_INVALID)
-        goto fatal;
-    if (!purc_variant_object_set_by_static_ckey(retv,
-                _KN_usec, val))
-        goto fatal;
-    purc_variant_unref(val);
-    return retv;
 
 fatal:
     if (val)
@@ -1178,17 +1209,58 @@ timezone_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto failed;
 
     char path[PATH_MAX + 1];
-    /* try to change timezone permanently */
-    if (nr_args > 1 && purc_variant_booleanize(argv[1])) {
-        if (unlink(PURC_SYS_TZ_FILE) == 0) {
-            if (symlink(PURC_SYS_TZ_FILE, path)) {
-                purc_set_error(PURC_ERROR_BAD_SYSTEM_CALL);
+    if (nr_args > 1) {
+        int global = -1;
+        const char *option;
+        size_t option_len;
+
+        option = purc_variant_get_string_const_ex(argv[1], &option_len);
+        if (option == NULL) {
+            pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        }
+        else {
+            option = pcutils_trim_spaces(option, &option_len);
+            if (option_len == 0) {
+                pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+            }
+            else {
+                switch (pcdvobjs_global_keyword_id(option, option_len)) {
+                case PURC_K_KW_local:
+                    global = 0;
+                    break;
+                case PURC_K_KW_global:
+                    global = 1;
+                    break;
+                default:
+                    // keep global being -1
+                    pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+                    break;
+                }
+            }
+        }
+
+        if (global == -1) {
+            if (silently) {
+                global = 0;
+            }
+            else {
                 goto failed;
             }
         }
-        else {
-            purc_set_error(PURC_ERROR_ACCESS_DENIED);
-            goto failed;
+
+        /* try to change timezone permanently */
+        if (global) {
+
+            if (unlink(PURC_SYS_TZ_FILE) == 0) {
+                if (symlink(PURC_SYS_TZ_FILE, path)) {
+                    purc_set_error(PURC_ERROR_BAD_SYSTEM_CALL);
+                    goto failed;
+                }
+            }
+            else {
+                purc_set_error(PURC_ERROR_ACCESS_DENIED);
+                goto failed;
+            }
         }
     }
 

@@ -352,7 +352,7 @@ static int strcmp_method(purc_variant_t arg)
     if (id == PURC_K_KW_caseless ||
             id == PURC_K_KW_case ||
             id == PURC_K_KW_wildcard ||
-            id == PURC_K_KW_reg)
+            id == PURC_K_KW_regexp)
         return id;
 
     pcinst_set_error(PURC_ERROR_INVALID_VALUE);
@@ -431,7 +431,7 @@ streq_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     case PURC_K_KW_wildcard:
         result = pcdvobjs_wildcard_cmp(str2, str1);
         break;
-    case PURC_K_KW_reg:
+    case PURC_K_KW_regexp:
         result = reg_cmp(str1, str2);
         break;
     default:
@@ -502,7 +502,7 @@ strne_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     case PURC_K_KW_wildcard:
         result = !pcdvobjs_wildcard_cmp(str2, str1);
         break;
-    case PURC_K_KW_reg:
+    case PURC_K_KW_regexp:
         result = !reg_cmp(str1, str2);
         break;
     default:
