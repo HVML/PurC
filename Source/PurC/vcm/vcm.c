@@ -1319,6 +1319,15 @@ purc_nvariant_method property_getter(const char* key_name)
     return NULL;
 }
 
+bool on_observe(void *native_entity, const char *event_name,
+        const char *event_subname)
+{
+    UNUSED_PARAM(native_entity);
+    UNUSED_PARAM(event_name);
+    UNUSED_PARAM(event_subname);
+    return true;
+}
+
 static void
 on_release(void *native_entity)
 {
@@ -1345,7 +1354,7 @@ pcvcm_to_expression_variable(struct pcvcm_node *vcm, bool release_vcm)
         .cleaner                = NULL,
         .eraser                 = NULL,
 
-        .on_observe            = NULL,
+        .on_observe            = on_observe,
         .on_release            = on_release,
     };
 
