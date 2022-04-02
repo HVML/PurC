@@ -1182,8 +1182,11 @@ crc32_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto failed;
     }
 
-    purc_crc32_algo_t algo = PURC_K_ALGO_CRC32_POSIX;
-    if (nr_args > 1 && !purc_variant_is_null(argv[1])) {
+    purc_crc32_algo_t algo = PURC_K_ALGO_CRC32_UNKNOWN;
+    if (nr_args == 1 || purc_variant_is_null(argv[1])) {
+        algo = PURC_K_ALGO_CRC32;
+    }
+    else {
         const char *option;
         size_t option_len;
         option = purc_variant_get_string_const_ex(argv[1], &option_len);
@@ -1210,9 +1213,14 @@ crc32_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
                 break;
             }
         }
+
+        if (algo == PURC_K_ALGO_CRC32_UNKNOWN) {
+            pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+            goto failed;
+        }
     }
 
-    int ret_type = PURC_K_KW_binary;
+    int ret_type = PURC_K_KW_ulongint;
     if (nr_args > 2) {
         const char *option;
         size_t option_len;
@@ -1252,11 +1260,11 @@ crc32_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     purc_log_info("%08x\n", crc32);
 
     switch (ret_type) {
-        case PURC_K_KW_binary:  // fallthrough
-        default:
-            return purc_variant_make_byte_sequence(&crc32, sizeof(crc32));
         case PURC_K_KW_ulongint:
+        default:
             return purc_variant_make_ulongint((uint64_t)crc32);
+        case PURC_K_KW_binary:
+            return purc_variant_make_byte_sequence(&crc32, sizeof(crc32));
         case PURC_K_KW_uppercase:
         case PURC_K_KW_lowercase:
         {

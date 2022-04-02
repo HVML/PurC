@@ -111,6 +111,8 @@ void pcutils_atom_cleanup_once(void) WTF_INTERNAL;
 void *pcutils_calloc_a(size_t len, ...) WTF_INTERNAL;
 
 typedef enum {
+    PURC_K_ALGO_CRC32_UNKNOWN = -1,
+
 #define PURC_ALGO_CRC32             "CRC-32"
     PURC_K_ALGO_CRC32 = 0,
 #define PURC_ALGO_CRC32_BZIP2       "CRC-32/BZIP2"

@@ -26,6 +26,7 @@
 
 #include "config.h"
 #include "private/utils.h"
+#include "private/debug.h"
 
 /*
 
@@ -557,6 +558,10 @@ void pcutils_crc32_begin(pcutils_crc32_ctxt *ctxt, purc_crc32_algo_t algo)
             ctxt->refin = false;
             ctxt->refout = false;
             ctxt->table_static = crc32_table_814141ab;
+            break;
+
+        case PURC_K_ALGO_CRC32_UNKNOWN:
+            PC_ASSERT(0);
             break;
     }
 

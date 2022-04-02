@@ -329,9 +329,18 @@ negative:
     $EJSON.crc32
     ArgumentMissed
 
+negative:
+    $EJSON.crc32('HVML', 'unknown')
+    InvalidValue
+
 positive:
     $EJSON.crc32('HVML', null, 'ulongint')
-    3855470970UL
+    761839935UL
+
+# define `ulongint`
+positive:
+    $EJSON.crc32('HVML', null, 'asdfklasfd')
+    761839935UL
 
 positive:
     $EJSON.crc32('HVML', 'CRC-32', 'ulongint')
@@ -354,32 +363,32 @@ positive:
     2600375422UL
 
 positive:
-    $EJSON.fetchreal($EJSON.crc32('HVML', 'CRC-32/MPEG-2'), 'u32')
+    $EJSON.fetchreal($EJSON.crc32('HVML', 'CRC-32/MPEG-2', 'binary'), 'u32')
     3711366142UL
 
 # ENDIAN-dependent
 positive:
     $EJSON.crc32('HVML')
-    bx7ad1cde5
+    761839935UL
 
 positive:
     $EJSON.crc32('HVML', null, 'binary')
-    bx7ad1cde5
+    bx3FC1682D
 
 # ENDIAN-dependent
 positive:
     $EJSON.crc32('HVML', null, 'lowercase')
-    '7ad1cde5'
+    '3fc1682d'
 
 # ENDIAN-dependent
 positive:
     $EJSON.crc32('HVML', null, 'uppercase')
-    '7AD1CDE5'
+    '3FC1682D'
 
 # ENDIAN-dependent
 positive:
     $EJSON.crc32('HVML', 'CRC-32/POSIX')
-    bx7ad1cde5
+    3855470970UL
 
 # ENDIAN-dependent
 positive:
