@@ -476,6 +476,7 @@ repeat_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 {
     UNUSED_PARAM(root);
 
+    purc_rwstream_t rwstream = NULL;
     if (nr_args < 2) {
         purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
         goto failed;
@@ -505,7 +506,6 @@ repeat_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         return purc_variant_make_string_static("", false);
     }
 
-    purc_rwstream_t rwstream;
     rwstream = purc_rwstream_new_buffer(LEN_INI_PRINT_BUF, LEN_MAX_PRINT_BUF);
     if (rwstream == NULL) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);

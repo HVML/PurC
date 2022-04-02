@@ -329,17 +329,99 @@ negative:
     $EJSON.crc32
     ArgumentMissed
 
-positive:
-    $EJSON.crc32('HVML', false)
-    '7ad1cde5'
+negative:
+    $EJSON.crc32('HVML', 'unknown')
+    InvalidValue
 
 positive:
-    $EJSON.crc32('HVML', false, true)
+    $EJSON.crc32('HVML', null, 'ulongint')
+    761839935UL
+
+# define `ulongint`
+positive:
+    $EJSON.crc32('HVML', null, 'asdfklasfd')
+    761839935UL
+
+positive:
+    $EJSON.crc32('HVML', 'CRC-32', 'ulongint')
+    761839935UL
+
+positive:
+    $EJSON.crc32('HVML', 'CRC-32/BZIP2', 'ulongint')
+    583601153UL
+
+positive:
+    $EJSON.crc32('HVML', 'CRC-32/MPEG-2', 'ulongint')
+    3711366142UL
+
+positive:
+    $EJSON.crc32('HVML', 'CRC-32/POSIX', 'ulongint')
+    3855470970UL
+
+positive:
+    $EJSON.crc32('HVML', 'CRC-32/XFER', 'ulongint')
+    2600375422UL
+
+positive:
+    $EJSON.fetchreal($EJSON.crc32('HVML', 'CRC-32/MPEG-2', 'binary'), 'u32')
+    3711366142UL
+
+# ENDIAN-dependent
+positive:
+    $EJSON.crc32('HVML')
+    761839935UL
+
+positive:
+    $EJSON.crc32('HVML', null, 'binary')
+    bx3FC1682D
+
+# ENDIAN-dependent
+positive:
+    $EJSON.crc32('HVML', null, 'lowercase')
+    '3fc1682d'
+
+# ENDIAN-dependent
+positive:
+    $EJSON.crc32('HVML', null, 'uppercase')
+    '3FC1682D'
+
+# ENDIAN-dependent
+positive:
+    $EJSON.crc32('HVML', 'CRC-32/POSIX')
+    3855470970UL
+
+# ENDIAN-dependent
+positive:
+    $EJSON.crc32('HVML', 'CRC-32/POSIX', 'uppercase')
     '7AD1CDE5'
 
 positive:
-    $EJSON.crc32('HVML')
-    bx7ad1cde5
+    $EJSON.crc32('HVML', 'CRC-32/ISCSI', 'ulongint')
+    1088443129UL
+
+positive:
+    $EJSON.crc32('HVML', 'CRC-32C', 'ulongint')
+    1088443129UL
+
+positive:
+    $EJSON.crc32('HVML', 'CRC-32/BASE91-D', 'ulongint')
+    3051174686UL
+
+positive:
+    $EJSON.crc32('HVML', 'CRC-32D', 'ulongint')
+    3051174686UL
+
+positive:
+    $EJSON.crc32('HVML', 'CRC-32/JAMCRC', 'ulongint')
+    3533127360UL
+
+positive:
+    $EJSON.crc32('HVML', 'CRC-32/AIXM', 'ulongint')
+    355205254UL
+
+positive:
+    $EJSON.crc32('HVML', 'CRC-32Q', 'ulongint')
+    355205254UL
 
 # test cases for $EJSON.md5
 negative:
@@ -347,16 +429,20 @@ negative:
     ArgumentMissed
 
 positive:
-    $EJSON.md5('HVML', false)
+    $EJSON.md5('HVML')
+    bxb2565228770ec540692d8a0cfcd3a990
+
+positive:
+    $EJSON.md5('HVML', 'binary')
+    bxb2565228770ec540692d8a0cfcd3a990
+
+positive:
+    $EJSON.md5('HVML', 'lowercase')
     'b2565228770ec540692d8a0cfcd3a990'
 
 positive:
-    $EJSON.md5('HVML', false, true)
+    $EJSON.md5('HVML', 'uppercase')
     'B2565228770EC540692D8A0CFCD3A990'
-
-positive:
-    $EJSON.md5('HVML')
-    bxb2565228770ec540692d8a0cfcd3a990
 
 # test cases for $EJSON.sha1
 negative:
@@ -364,14 +450,18 @@ negative:
     ArgumentMissed
 
 positive:
-    $EJSON.sha1('HVML', false)
+    $EJSON.sha1('HVML')
+    bxda03f74dd36a33cf908ad0ae743510772d120983
+
+positive:
+    $EJSON.sha1('HVML', 'binary')
+    bxda03f74dd36a33cf908ad0ae743510772d120983
+
+positive:
+    $EJSON.sha1('HVML', 'lowercase')
     'da03f74dd36a33cf908ad0ae743510772d120983'
 
 positive:
-    $EJSON.sha1('HVML', false, true)
+    $EJSON.sha1('HVML', 'uppercase')
     'DA03F74DD36A33CF908AD0AE743510772D120983'
-
-positive:
-    $EJSON.sha1('HVML')
-    bxda03f74dd36a33cf908ad0ae743510772d120983
 

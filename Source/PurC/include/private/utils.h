@@ -7,7 +7,7 @@
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -110,9 +110,65 @@ void pcutils_atom_cleanup_once(void) WTF_INTERNAL;
 
 void *pcutils_calloc_a(size_t len, ...) WTF_INTERNAL;
 
-void pcutils_crc32_begin(uint32_t* crc, uint32_t init);
-void pcutils_crc32_update(const void *data, size_t nr_bytes, uint32_t* crc);
-void pcutils_crc32_end(uint32_t* crc, uint32_t xor_out);
+typedef enum {
+    PURC_K_ALGO_CRC32_UNKNOWN = -1,
+
+#define PURC_ALGO_CRC32             "CRC-32"
+    PURC_K_ALGO_CRC32 = 0,
+#define PURC_ALGO_CRC32_BZIP2       "CRC-32/BZIP2"
+    PURC_K_ALGO_CRC32_BZIP2,
+#define PURC_ALGO_CRC32_MPEG2       "CRC-32/MPEG-2"
+    PURC_K_ALGO_CRC32_MPEG2,
+#define PURC_ALGO_CRC32_POSIX       "CRC-32/POSIX"
+    PURC_K_ALGO_CRC32_POSIX,
+#define PURC_ALGO_CRC32_XFER        "CRC-32/XFER"
+    PURC_K_ALGO_CRC32_XFER,
+#define PURC_ALGO_CRC32_ISCSI       "CRC-32/ISCSI"
+    PURC_K_ALGO_CRC32_ISCSI,
+#define PURC_ALGO_CRC32C            "CRC-32C"
+    PURC_K_ALGO_CRC32C,
+#define PURC_ALGO_CRC32_BASE91_D    "CRC-32/BASE91-D"
+    PURC_K_ALGO_CRC32_BASE91_D,
+#define PURC_ALGO_CRC32D            "CRC-32D"
+    PURC_K_ALGO_CRC32D,
+#define PURC_ALGO_CRC32_JAMCRC      "CRC-32/JAMCRC"
+    PURC_K_ALGO_CRC32_JAMCRC,
+#define PURC_ALGO_CRC32_AIXM        "CRC-32/AIXM"
+    PURC_K_ALGO_CRC32_AIXM,
+#define PURC_ALGO_CRC32Q            "CRC-32Q"
+    PURC_K_ALGO_CRC32Q,
+} purc_crc32_algo_t;
+
+typedef struct pcutils_crc32_ctxt {
+    uint32_t    poly;
+    uint32_t    init;
+    uint32_t    xorout;
+    uint32_t    crc32;
+
+    bool        refin;
+    bool        refout;
+
+    union {
+        const uint32_t *table_static;
+        uint32_t       *table_alloc;
+    };
+} pcutils_crc32_ctxt;
+
+void
+pcutils_crc32_begin(pcutils_crc32_ctxt *ctxt, purc_crc32_algo_t algo);
+
+void
+pcutils_crc32_update(pcutils_crc32_ctxt *ctxt, const void *data, size_t sz);
+
+void
+pcutils_crc32_end(pcutils_crc32_ctxt *ctxt, uint32_t* crc32);
+
+pcutils_crc32_ctxt *
+pcutils_crc32_begin_custom(uint32_t poly, uint32_t init, uint32_t xorout,
+        bool refin, bool refout);
+
+void
+pcutils_crc32_end_custom(pcutils_crc32_ctxt *ctxt, uint32_t* crc32);
 
 #define MD5_DIGEST_SIZE          (16)
 
