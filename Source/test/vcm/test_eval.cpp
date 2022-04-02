@@ -40,6 +40,13 @@ static const struct vcm_eval_test_data test_cases[] = {
         true,
         PURC_VARIANT_TYPE_UNDEFINED
     },
+    {
+        NULL,
+        NULL,
+        true,
+        true,
+        PURC_VARIANT_TYPE_UNDEFINED
+    },
 };
 
 class test_vcm_eval : public testing::TestWithParam<vcm_eval_test_data>
@@ -62,11 +69,15 @@ TEST_P(test_vcm_eval, eval_silently)
     struct purc_ejson_parse_tree *ptree;
     purc_variant_t result;
 
-    purc_variant_t obj = purc_variant_make_from_json_string(data.object,
-            strlen(data.object));
+    size_t sz = data.object ? strlen(data.object) : 0;
+    ptree = purc_variant_ejson_parse_string(data.object, sz);
+    purc_variant_t obj = purc_variant_ejson_parse_tree_evalute(ptree, NULL,
+            PURC_VARIANT_INVALID, data.silently);
+    purc_variant_ejson_parse_tree_destroy(ptree);
     ASSERT_NE(obj, nullptr);
 
-    ptree = purc_variant_ejson_parse_string(data.jsonee, strlen(data.jsonee));
+    sz = data.jsonee ? strlen(data.jsonee) : 0;
+    ptree = purc_variant_ejson_parse_string(data.jsonee, sz);
     result = purc_variant_ejson_parse_tree_evalute(ptree,
             find_var, obj, data.silently);
     purc_variant_ejson_parse_tree_destroy(ptree);

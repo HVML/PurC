@@ -1261,6 +1261,9 @@ purc_variant_t pcvcm_eval_ex(struct pcvcm_node *tree,
     if (tree) {
         ret = pcvcm_node_to_variant(tree, &ops, silently);
     }
+    else if (silently) {
+        ret = purc_variant_make_undefined();
+    }
 
 #ifndef NDEBUG
     PRINT_VARIANT(ret);
