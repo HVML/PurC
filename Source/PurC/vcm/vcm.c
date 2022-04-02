@@ -793,27 +793,46 @@ static
 purc_variant_t pcvcm_node_get_variable_to_variant(struct pcvcm_node *node,
        struct pcvcm_node_op *ops, bool silently)
 {
-    UNUSED_PARAM(silently);
+    purc_variant_t ret = PURC_VARIANT_INVALID;
     if (!ops) {
-        return PURC_VARIANT_INVALID;
+        goto out;
     }
 
     struct pcvcm_node *name_node = FIRST_CHILD(node);
     if (!name_node) {
-        return PURC_VARIANT_INVALID;
+        goto out;
     }
 
-    size_t nr_name = (size_t)name_node->sz_ptr[0];
-    char *name = (char*)name_node->sz_ptr[1];
+    purc_variant_t name_var = pcvcm_node_to_variant(name_node, ops,
+            silently);
+    if (name_var == PURC_VARIANT_INVALID) {
+        goto out;
+    }
+
+    if (!purc_variant_is_string(name_var)) {
+        goto out_unref_name_var;
+    }
+
+    const char *name = purc_variant_get_string_const(name_var);
+    size_t nr_name = strlen(name);
     if (!name || nr_name == 0) {
-        return PURC_VARIANT_INVALID;
+        goto out_unref_name_var;
     }
 
-    purc_variant_t ret =  ops->find_var ?  ops->find_var(ops->find_var_ctxt,
-            name) : PURC_VARIANT_INVALID;
+    if(!ops->find_var) {
+        pcinst_set_error(PCVARIANT_ERROR_NOT_FOUND);
+        goto out_unref_name_var;
+    }
+
+    ret = ops->find_var(ops->find_var_ctxt, name);
     if (ret) {
         purc_variant_ref(ret);
     }
+
+out_unref_name_var:
+    purc_variant_unref(name_var);
+
+out:
     return ret;
 }
 
