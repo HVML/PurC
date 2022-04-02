@@ -40,6 +40,7 @@ struct ctxt_for_bind {
     struct pcvcm_node            *vcm_ev;
     purc_variant_t                as;
 
+    unsigned int                  under_head:1;
     unsigned int                  locally:1;
 };
 
@@ -63,15 +64,44 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
     UNUSED_PARAM(co);
     UNUSED_PARAM(frame);
-#if 0
     struct ctxt_for_bind *ctxt;
     ctxt = (struct ctxt_for_bind*)frame->ctxt;
 
-#endif
+    purc_variant_t val = pcvcm_to_expression_variable(ctxt->vcm_ev, false);
+    if (val == PURC_VARIANT_INVALID) {
+        return -1;
+    }
 
-    // TODO
+    bool ok = false;
+    purc_variant_t name = ctxt->as;
+    if (ctxt->locally) {
+        struct pcintr_stack_frame *parent = pcintr_stack_frame_get_parent(frame);
+        PC_ASSERT(parent);
+        purc_variant_t exclamation_var;
+        exclamation_var = pcintr_get_exclamation_var(parent);
+        PC_ASSERT(exclamation_var != PURC_VARIANT_INVALID);
+        if (purc_variant_is_object(exclamation_var)) {
+            ok = purc_variant_object_set(exclamation_var, name, val);
+        }
+    }
+    else {
+        struct pcvdom_element *element = frame->scope;
+        const char *s_name = purc_variant_get_string_const(name);
+        if (ctxt->under_head) {
+            ok = purc_bind_document_variable(co->stack->vdom, s_name, val);
+        } else {
+            element = pcvdom_element_parent(element);
+            PC_ASSERT(element);
+            ok = pcintr_bind_scope_variable(element, s_name, val);
+        }
+    }
 
-    return 0;
+    purc_variant_unref(val);
+    if (ok) {
+        purc_clr_error();
+        return 0;
+    }
+    return -1;
 }
 
 static int
@@ -189,6 +219,12 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     if (ctxt->as == PURC_VARIANT_INVALID) {
         return NULL;
+    }
+
+    while ((element=pcvdom_element_parent(element))) {
+        if (element->tag_id == PCHVML_TAG_HEAD) {
+            ctxt->under_head = 1;
+        }
     }
 
     purc_clr_error();
