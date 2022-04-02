@@ -97,4 +97,28 @@ extern "C" {
 
 #endif /* defined NDEBUG */
 
+struct pcdebug_backtrace {
+    int         refc;
+
+    const char *file;
+    int line;
+    const char *func;
+
+#ifndef NDEBUG                     /* { */
+#if OS(LINUX)                      /* { */
+    void       *c_stacks[64];
+    int         nr_stacks;
+#endif                             /* } */
+#endif                             /* } */
+};
+
+struct pcdebug_backtrace*
+pcdebug_backtrace_ref(struct pcdebug_backtrace *bt);
+
+void
+pcdebug_backtrace_unref(struct pcdebug_backtrace *bt);
+
+void
+pcdebug_backtrace_dump(struct pcdebug_backtrace *bt);
+
 #endif /* PURC_PRIVATE_DEBUG_H */

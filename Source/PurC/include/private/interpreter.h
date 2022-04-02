@@ -99,6 +99,14 @@ struct pcintr_supervisor_ops {
     void (*on_cleanup)(pcintr_stack_t stack, void *ctxt);
 };
 
+struct pcintr_exception {
+    int                      errcode;
+    purc_atom_t              error_except;
+    purc_variant_t           exinfo;
+
+    struct pcdebug_backtrace  *bt;
+};
+
 struct pcintr_stack {
     struct list_head frames;
 
@@ -115,18 +123,15 @@ struct pcintr_stack {
 
     // executing state
     // FIXME: move to struct pcintr_coroutine?
-    uint32_t        error:1;
+    // uint32_t        error:1;
     uint32_t        except:1;
     /* uint32_t        paused:1; */
 
     enum pcintr_stack_stage       stage;
 
     // error or except info
-    purc_atom_t     error_except;
-    purc_variant_t  err_except_info;
-    const char     *file;
-    int             lineno;
-    const char     *func;
+    // valid only when except == 1
+    struct pcintr_exception       exception;
 
     // executing statistics
     struct timespec time_executed;

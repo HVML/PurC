@@ -282,6 +282,17 @@ static void cleanup_instance(struct pcinst *curr_inst)
         fclose(curr_inst->fp_log);
         curr_inst->fp_log = NULL;
     }
+
+#ifndef NDEBUG                     /* { */
+#if OS(LINUX)                      /* { */
+    if (curr_inst->bt) {
+        pcdebug_backtrace_unref(curr_inst->bt);
+        curr_inst->bt = NULL;
+    }
+#endif                             /* } */
+#endif                             /* } */
+
+    PURC_VARIANT_SAFE_CLEAR(curr_inst->err_exinfo);
 }
 
 static void enable_log_on_demand(void)
