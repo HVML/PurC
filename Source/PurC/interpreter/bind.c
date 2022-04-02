@@ -37,9 +37,8 @@
 
 struct ctxt_for_bind {
     struct pcvdom_node           *curr;
-    purc_variant_t                on;
+    struct pcvcm_node            *vcm_ev;
     purc_variant_t                as;
-    purc_variant_t                literal;
 
     unsigned int                  locally:1;
 };
@@ -48,9 +47,7 @@ static void
 ctxt_for_bind_destroy(struct ctxt_for_bind *ctxt)
 {
     if (ctxt) {
-        PURC_VARIANT_SAFE_CLEAR(ctxt->on);
         PURC_VARIANT_SAFE_CLEAR(ctxt->as);
-        PURC_VARIANT_SAFE_CLEAR(ctxt->literal);
         free(ctxt);
     }
 }
@@ -62,31 +59,6 @@ ctxt_destroy(void *ctxt)
 }
 
 static int
-process_attr_on(struct pcintr_stack_frame *frame,
-        struct pcvdom_element *element,
-        purc_atom_t name, purc_variant_t val)
-{
-    struct ctxt_for_bind *ctxt;
-    ctxt = (struct ctxt_for_bind*)frame->ctxt;
-    if (ctxt->on != PURC_VARIANT_INVALID) {
-        purc_set_error_with_info(PURC_ERROR_DUPLICATED,
-                "vdom attribute '%s' for element <%s>",
-                purc_atom_to_string(name), element->tag_name);
-        return -1;
-    }
-    if (val == PURC_VARIANT_INVALID) {
-        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
-                "vdom attribute '%s' for element <%s> undefined",
-                purc_atom_to_string(name), element->tag_name);
-        return -1;
-    }
-    ctxt->on = val;
-    purc_variant_ref(val);
-
-    return 0;
-}
-
-static int
 post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
     UNUSED_PARAM(co);
@@ -95,7 +67,6 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     struct ctxt_for_bind *ctxt;
     ctxt = (struct ctxt_for_bind*)frame->ctxt;
 
-    purc_variant_t src = frame->ctnt_var;
 #endif
 
     // TODO
@@ -144,7 +115,8 @@ attr_found_val(struct pcintr_stack_frame *frame,
     ctxt = (struct ctxt_for_bind*)frame->ctxt;
 
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, ON)) == name) {
-        return process_attr_on(frame, element, name, val);
+        ctxt->vcm_ev = attr->val;
+        return 0;
     }
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, AS)) == name) {
         return process_attr_as(frame, element, name, val);
@@ -173,8 +145,9 @@ attr_found(struct pcintr_stack_frame *frame,
     PC_ASSERT(attr->op == PCHVML_ATTRIBUTE_OPERATOR);
 
     purc_variant_t val = pcintr_eval_vdom_attr(pcintr_get_stack(), attr);
-    if (val == PURC_VARIANT_INVALID)
+    if (val == PURC_VARIANT_INVALID) {
         return -1;
+    }
 
     int r = attr_found_val(frame, element, name, val, attr, ud);
     purc_variant_unref(val);
@@ -214,8 +187,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         return NULL;
 
 
-    if (ctxt->on == PURC_VARIANT_INVALID &&
-            ctxt->as == PURC_VARIANT_INVALID) {
+    if (ctxt->as == PURC_VARIANT_INVALID) {
         return NULL;
     }
 
@@ -277,21 +249,14 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     if (!vcm)
         return 0;
 
-    if (ctxt->on) {
+    if (ctxt->vcm_ev) {
         purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
                 "no content is permitted "
                 "since there's no `on` attribute");
         return -1;
     }
 
-    // NOTE: element is still the owner of vcm_content
-    purc_variant_t v = pcvcm_eval(vcm, co->stack, frame->silently);
-    if (v == PURC_VARIANT_INVALID)
-        return -1;
-
-    PURC_VARIANT_SAFE_CLEAR(ctxt->literal);
-    ctxt->literal = v;
-
+    ctxt->vcm_ev = vcm;
     return 0;
 }
 
@@ -312,20 +277,9 @@ on_child_finished(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     ctxt = (struct ctxt_for_bind*)frame->ctxt;
     PC_ASSERT(ctxt);
 
-    if (ctxt->on) {
-        if (ctxt->on != PURC_VARIANT_INVALID) {
-            PURC_VARIANT_SAFE_CLEAR(frame->ctnt_var);
-            frame->ctnt_var = ctxt->on;
-            purc_variant_ref(ctxt->on);
-            return post_process(co, frame);
-        }
-    }
-    if (ctxt->literal != PURC_VARIANT_INVALID) {
-        frame->ctnt_var = ctxt->literal;
-        purc_variant_ref(ctxt->literal);
+    if (ctxt->vcm_ev) {
         return post_process(co, frame);
     }
-
     return -1;
 }
 
