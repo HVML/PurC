@@ -62,8 +62,8 @@ enum {
     PURC_K_KW_caseless = PURC_K_KW_FIRST,
 #define PURC_KW_case        "case"
     PURC_K_KW_case,
-#define PURC_KW_reg         "reg"
-    PURC_K_KW_reg,
+#define PURC_KW_regexp      "regexp"
+    PURC_K_KW_regexp,
 #define PURC_KW_wildcard    "wildcard"
     PURC_K_KW_wildcard,
 #define PURC_KW_number      "number"
@@ -176,9 +176,15 @@ enum {
     PURC_K_KW_ulongint,
 #define PURC_KW_longdouble  "longdouble"
     PURC_K_KW_longdouble,
+#define PURC_KW_object      "object"
+    PURC_K_KW_object,
+#define PURC_KW_local       "local"
+    PURC_K_KW_local,
+#define PURC_KW_global      "global"
+    PURC_K_KW_global,
 
     /* XXX: change this when a new keyword appended */
-    PURC_K_KW_LAST = PURC_K_KW_longdouble,
+    PURC_K_KW_LAST = PURC_K_KW_global,
 };
 
 #define PURC_GLOBAL_KEYWORD_NR  (PURC_K_KW_LAST - PURC_K_KW_FIRST + 1)
