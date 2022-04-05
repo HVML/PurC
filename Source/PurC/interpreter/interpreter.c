@@ -2703,4 +2703,31 @@ pcintr_event_timer_fire(const char* id, void* ctxt)
 {
     UNUSED_PARAM(id);
     UNUSED_PARAM(ctxt);
+
+    if (!ctxt) {
+        return;
+    }
+
+    pcintr_stack_t stack = (pcintr_stack_t)ctxt;
+    if (stack->native_variant_observer_list == NULL) {
+        return;
+    }
+
+    size_t n = pcutils_arrlist_length(stack->native_variant_observer_list);
+    for (size_t i = 0; i < n; i++) {
+        struct pcintr_observer* observer = pcutils_arrlist_get_idx(
+                stack->native_variant_observer_list, i);
+        purc_variant_t var = observer->observed;
+        struct purc_native_ops *ops = purc_variant_native_get_ops(var);
+        if (!ops) {
+            continue;
+        }
+        purc_nvariant_method is_vcm_ev = ops->property_getter(
+                PCVCM_EV_PROPERTY_VCM_EV);
+        if (is_vcm_ev) {
+            // TODO
+            // create virtual frame
+            // eval vcm_ev and compare with old value
+        }
+    }
 }
