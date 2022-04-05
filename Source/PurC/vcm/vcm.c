@@ -54,9 +54,6 @@
 #define MIN_BUF_SIZE         32
 #define MAX_BUF_SIZE         SIZE_MAX
 
-#define EVAL_KEY            "eval"
-#define EVAL_CONST_KEY      "eval_const"
-
 struct pcvcm_node_op {
     cb_find_var find_var;
     void *find_var_ctxt;
@@ -1305,15 +1302,30 @@ eval_const(void *native_entity, size_t nr_args, purc_variant_t *argv,
     return vcm_ev->const_value;
 }
 
+static purc_variant_t
+vcm_ev(void *native_entity, size_t nr_args, purc_variant_t *argv,
+        bool silently)
+{
+    UNUSED_PARAM(native_entity);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(silently);
+    return purc_variant_make_boolean(true);
+}
+
 static inline
 purc_nvariant_method property_getter(const char* key_name)
 {
-    if (strcmp(key_name, EVAL_KEY) == 0) {
+    if (strcmp(key_name, PCVCM_EV_PROPERTY_EVAL) == 0) {
         return eval;
     }
 
-    if (strcmp(key_name, EVAL_CONST_KEY) == 0) {
+    if (strcmp(key_name, PCVCM_EV_PROPERTY_EVAL_CONST) == 0) {
         return eval_const;
+    }
+
+    if (strcmp(key_name, PCVCM_EV_PROPERTY_VCM_EV) == 0) {
+        return vcm_ev;
     }
 
     return NULL;

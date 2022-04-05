@@ -57,6 +57,10 @@ enum pcvcm_node_type {
 #define EXTRA_PROTECT_FLAG      0x0001
 #define EXTRA_SUGAR_FLAG        0x0002
 
+#define PCVCM_EV_PROPERTY_EVAL            "eval"
+#define PCVCM_EV_PROPERTY_EVAL_CONST      "eval_const"
+#define PCVCM_EV_PROPERTY_VCM_EV          "vcm_ev"
+
 struct pcvcm_node {
     struct pctree_node tree_node;
     enum pcvcm_node_type type;
