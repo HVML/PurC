@@ -257,6 +257,9 @@ bool
 pcintr_rdr_dom_displace_child(pcintr_stack_t stack, pcdom_element_t *element,
         pcdom_node_t *child);
 
+void
+pcintr_event_timer_fire(const char* id, void* ctxt);
+
 PCA_EXTERN_C_END
 
 #endif  /* PURC_INTERPRETER_INTERNAL_H */

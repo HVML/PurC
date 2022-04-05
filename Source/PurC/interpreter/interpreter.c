@@ -42,6 +42,7 @@
 #include <stdarg.h>
 
 #define EVENT_SEPARATOR      ":"
+#define EVENT_TIMER_INTRVAL  10
 
 void pcintr_stack_init_once(void)
 {
@@ -308,6 +309,11 @@ stack_release(pcintr_stack_t stack)
     if (stack->exception.bt) {
         pcdebug_backtrace_unref(stack->exception.bt);
         stack->exception.bt = NULL;
+    }
+
+    if (stack->event_timer) {
+        pcintr_timer_destroy(stack->event_timer);
+        stack->event_timer = NULL;
     }
 }
 
@@ -1311,6 +1317,16 @@ purc_load_hvml_from_rwstream_ex(purc_rwstream_t stream,
         return NULL;
     }
     stack_init(stack);
+
+    stack->event_timer = pcintr_timer_create(NULL, NULL, stack,
+            pcintr_event_timer_fire);
+    if (!stack->event_timer) {
+        vdom_destroy(vdom);
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return NULL;
+    }
+    pcintr_timer_set_interval(stack->event_timer, EVENT_TIMER_INTRVAL);
+    pcintr_timer_start(stack->event_timer);
 
     stack->vdom = vdom;
     stack->co.stack = stack;
@@ -2682,3 +2698,9 @@ pcintr_get_percent_var(struct pcintr_stack_frame *frame)
     return pcintr_get_symbol_var(frame, PURC_SYMBOL_VAR_PERCENT_SIGN);
 }
 
+void
+pcintr_event_timer_fire(const char* id, void* ctxt)
+{
+    UNUSED_PARAM(id);
+    UNUSED_PARAM(ctxt);
+}

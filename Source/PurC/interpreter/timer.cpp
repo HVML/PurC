@@ -48,7 +48,7 @@ class PurcTimer : public WTF::RunLoop::TimerBase {
             , m_ctxt(ctxt)
             , m_func(func)
         {
-            m_id = strdup(id);
+            m_id = id ? strdup(id) : NULL;
         }
 
         ~PurcTimer()

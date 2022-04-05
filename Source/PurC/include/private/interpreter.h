@@ -36,6 +36,7 @@
 #include "private/html.h"
 #include "private/list.h"
 #include "private/vdom.h"
+#include "private/timer.h"
 
 struct pcintr_coroutine;
 typedef struct pcintr_coroutine pcintr_coroutine;
@@ -159,6 +160,8 @@ struct pcintr_stack {
     // experimental: currently for test-case-only
     struct pcintr_supervisor_ops        ops;
     void                                *ctxt;  // no-owner-ship!!!
+
+    pcintr_timer_t                      *event_timer; // 10ms
 };
 
 enum purc_symbol_var {
