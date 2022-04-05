@@ -41,6 +41,8 @@
 
 #include <stdarg.h>
 
+#define EVENT_SEPARATOR      ":"
+
 void pcintr_stack_init_once(void)
 {
     pcrunloop_t runloop = pcrunloop_get_current();
@@ -1503,14 +1505,14 @@ pcintr_register_observer(purc_variant_t observed,
     }
 
     char* p = value;
-    char* msg_type = strtok_r(p, ":", &p);
+    char* msg_type = strtok_r(p, EVENT_SEPARATOR, &p);
     if (!msg_type) {
         //TODO : purc_set_error();
         free(value);
         return NULL;
     }
 
-    char* sub_type = strtok_r(p, ":", &p);
+    char* sub_type = strtok_r(p, EVENT_SEPARATOR, &p);
 
     struct pcintr_observer* observer =  (struct pcintr_observer*)calloc(1,
             sizeof(struct pcintr_observer));
@@ -1557,14 +1559,14 @@ pcintr_revoke_observer_ex(purc_variant_t observed, purc_variant_t for_value)
     }
 
     char* p = value;
-    char* msg_type = strtok_r(p, ":", &p);
+    char* msg_type = strtok_r(p, EVENT_SEPARATOR, &p);
     if (!msg_type) {
         //TODO : purc_set_error();
         free(value);
         return false;
     }
 
-    char* sub_type = strtok_r(p, ":", &p);
+    char* sub_type = strtok_r(p, EVENT_SEPARATOR, &p);
     purc_variant_t msg_type_var = purc_variant_make_string(msg_type, false);
     purc_variant_t sub_type_var = PURC_VARIANT_INVALID;
     if (sub_type) {
@@ -1816,7 +1818,7 @@ pcintr_dispatch_message(pcintr_stack_t stack, purc_variant_t source,
     }
 
     char *p = value;
-    char *s_type = strtok_r(p, ":", &p);
+    char *s_type = strtok_r(p, EVENT_SEPARATOR, &p);
     if (!s_type) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto out_free_value;
@@ -1828,7 +1830,7 @@ pcintr_dispatch_message(pcintr_stack_t stack, purc_variant_t source,
     }
 
     purc_variant_t sub_type = PURC_VARIANT_INVALID;
-    char *s_sub_type = strtok_r(p, ":", &p);
+    char *s_sub_type = strtok_r(p, EVENT_SEPARATOR, &p);
     if (s_sub_type) {
         sub_type = purc_variant_make_string(s_sub_type, true);
         if (sub_type == PURC_VARIANT_INVALID) {

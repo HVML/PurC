@@ -161,6 +161,8 @@ regist_variant_listener(pcintr_stack_t stack, purc_variant_t observed,
     return false;
 }
 
+#define EVENT_SEPARATOR      ":"
+
 static bool
 regist_inner_data(pcintr_stack_t stack, purc_variant_t observed,
         purc_variant_t event, struct pcvar_listener** listener)
@@ -201,10 +203,26 @@ regist_inner_data(pcintr_stack_t stack, purc_variant_t observed,
             if (is_immutable_variant_msg(t)) {
                 return regist_variant_listener(stack, observed, t, listener);
             }
-            struct purc_native_ops* ops = purc_variant_native_get_ops(observed);
+            struct purc_native_ops *ops = purc_variant_native_get_ops(observed);
             if (ops && ops->on_observe) {
-                //TODO
-                return false;
+                void *native_entity = purc_variant_native_get_entity(observed);
+                char *msg_dup = strdup(msg);
+                if (!msg_dup) {
+                    purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+                    return false;
+                }
+                char *key;
+                char *value;
+                char *saveptr;
+                key = strtok_r(msg_dup, EVENT_SEPARATOR, &saveptr);
+                if (key == NULL) {
+                    purc_set_error(PURC_ERROR_INVALID_VALUE);
+                    return false;
+                }
+                value = strtok_r(NULL, EVENT_SEPARATOR, &saveptr);
+                bool ret = ops->on_observe(native_entity, key, value);
+                free(msg_dup);
+                return ret;
             }
             break;
 
