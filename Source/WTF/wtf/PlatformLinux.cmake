@@ -5,6 +5,7 @@ list(APPEND WTF_PUBLIC_HEADERS
     glib/GMutexLocker.h
     glib/GRefPtr.h
     glib/GSocketMonitor.h
+    glib/GFdMonitor.h
     glib/GTypedefs.h
     glib/GUniquePtr.h
     glib/RunLoopSourcePriority.h
@@ -27,6 +28,7 @@ list(APPEND WTF_SOURCES
     glib/GLibUtilities.cpp
     glib/GRefPtr.cpp
     glib/GSocketMonitor.cpp
+    glib/GFdMonitor.cpp
     glib/RunLoopGLib.cpp
     glib/SocketConnection.cpp
     glib/URLGLib.cpp
