@@ -1713,5 +1713,6 @@ purc_variant_t purc_dvobj_ejson_new(void)
                     crc32algo2atoms[i].algo);
         }
     }
+
     return purc_dvobj_make_from_methods(method, PCA_TABLESIZE(method));
 }

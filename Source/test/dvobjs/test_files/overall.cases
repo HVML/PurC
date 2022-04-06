@@ -549,3 +549,7 @@ positive:
     $EJSON.base64_decode('SFZNTA==')
     bx48564d4c
 
+positive:
+    $EJSON.fetchstr($EJSON.base64_decode('SFZNTCDmmK/lhajnkIPpppbmrL7lj6/nvJbnqIvmoIforrDor63oqIA='), 'utf8')
+    'HVML 是全球首款可编程标记语言'
+
