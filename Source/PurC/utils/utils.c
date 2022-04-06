@@ -78,7 +78,7 @@ void *pcutils_calloc_a(size_t len, ...)
 static const char *hex_digits_lower = "0123456789abcdef";
 static const char *hex_digits_upper = "0123456789ABCDEF";
 
-void pcutils_bin2hex (const unsigned char *bin, int len, char *hex,
+void pcutils_bin2hex (const unsigned char *bin, size_t len, char *hex,
         bool uppercase)
 {
     const char *hex_digits;
@@ -88,7 +88,7 @@ void pcutils_bin2hex (const unsigned char *bin, int len, char *hex,
     else
         hex_digits = hex_digits_lower;
 
-    for (int i = 0; i < len; i++) {
+    for (size_t i = 0; i < len; i++) {
         unsigned char byte = bin [i];
         hex [i*2] = hex_digits [(byte >> 4) & 0x0f];
         hex [i*2+1] = hex_digits [byte & 0x0f];
@@ -96,12 +96,10 @@ void pcutils_bin2hex (const unsigned char *bin, int len, char *hex,
     hex [len * 2] = '\0';
 }
 
-/* bin must be long enough to hold the bytes.
-   return the number of bytes converted, <= 0 for error */
-int pcutils_hex2bin (const char *hex, unsigned char *bin)
+int pcutils_hex2bin (const char *hex, unsigned char *bin, size_t *converted)
 {
-    int pos = 0;
-    int sz = 0;
+    size_t pos = 0;
+    size_t sz = 0;
 
     while (*hex) {
         unsigned char half;
@@ -115,7 +113,7 @@ int pcutils_hex2bin (const char *hex, unsigned char *bin)
                 half = (*hex - 'a' + 0x10) & 0x0f;
             }
             else {
-                return -1;
+                goto failed;
             }
         }
 
@@ -131,7 +129,14 @@ int pcutils_hex2bin (const char *hex, unsigned char *bin)
         pos++;
     }
 
-    return sz;
+    if (converted)
+        *converted = sz;
+    return 0;
+
+failed:
+    if (converted)
+        *converted = sz;
+    return -1;
 }
 
 size_t pcutils_get_next_fibonacci_number(size_t n)

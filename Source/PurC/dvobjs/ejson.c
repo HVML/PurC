@@ -419,7 +419,7 @@ parse_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(root);
 
     if (nr_args < 1) {
-        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
         goto failed;
     }
 
@@ -427,7 +427,7 @@ parse_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     size_t length;
     string = purc_variant_get_string_const_ex(argv[0], &length);
     if (string == NULL) {
-        pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
         goto failed;
     }
 
@@ -457,7 +457,7 @@ isequal_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(silently);
 
     if (nr_args < 2) {
-        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
         goto failed;
     }
 
@@ -482,20 +482,20 @@ compare_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     unsigned int flag = PCVARIANT_COMPARE_OPT_AUTO;
 
     if (nr_args < 2) {
-        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
         goto failed;
     }
 
     if (nr_args >= 3) {
         option = purc_variant_get_string_const_ex(argv[2], &option_len);
         if (option == NULL) {
-            pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
             goto failed;
         }
 
         option = pcutils_trim_spaces(option, &option_len);
         if (option_len == 0) {
-            pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
             goto failed;
         }
 
@@ -519,7 +519,7 @@ compare_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
         default:
             if (!silently) {
-                pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+                purc_set_error(PURC_ERROR_INVALID_VALUE);
                 goto failed;
             }
             break;
@@ -549,7 +549,7 @@ fetchstr_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     ssize_t offset = 0;
 
     if (nr_args < 2) {
-        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
         goto failed;
     }
 
@@ -557,13 +557,13 @@ fetchstr_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     size_t nr_bytes;
     bytes = purc_variant_get_bytes_const(argv[0], &nr_bytes);
     if (bytes == NULL) {
-        pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
         goto failed;
     }
 
     encoding = purc_variant_get_string_const_ex(argv[1], &encoding_len);
     if (encoding == NULL) {
-        pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
         goto failed;
     }
 
@@ -571,7 +571,7 @@ fetchstr_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     if (nr_args > 2 && !purc_variant_is_null(argv[2])) {
         uint64_t tmp;
         if (!purc_variant_cast_to_ulongint(argv[2], &tmp, false)) {
-            pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
             goto failed;
         }
         length = (size_t)tmp;
@@ -580,19 +580,19 @@ fetchstr_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     if (nr_args > 3) {
         int64_t tmp;
         if (!purc_variant_cast_to_longint(argv[3], &tmp, false)) {
-            pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
             goto failed;
         }
         offset = (ssize_t)tmp;
     }
 
     if (offset > 0 && (size_t)offset >= nr_bytes) {
-        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto failed;
     }
 
     if (offset < 0 && (size_t)-offset > nr_bytes) {
-        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto failed;
     }
 
@@ -601,7 +601,7 @@ fetchstr_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     if (nr_args > 2 && !purc_variant_is_null(argv[2])) {
         if (offset + length > nr_bytes) {
-            pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
             goto failed;
         }
     }
@@ -619,7 +619,7 @@ fetchstr_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     encoding = pcutils_trim_spaces(encoding, &encoding_len);
     if (encoding_len == 0) {
-        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto failed;
     }
 
@@ -653,16 +653,16 @@ fetchstr_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         break;
 
     default:
-        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto failed;
     }
 
     if (str == NULL) {
-        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto fatal;
     }
     else if (str == (char *)-1) {
-        pcinst_set_error(PURC_ERROR_BAD_ENCODING);
+        purc_set_error(PURC_ERROR_BAD_ENCODING);
         goto failed;
     }
 
@@ -733,7 +733,7 @@ fetchreal_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     ssize_t offset = 0;
 
     if (nr_args < 2) {
-        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
         goto failed;
     }
 
@@ -741,38 +741,38 @@ fetchreal_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     size_t nr_bytes;
     bytes = purc_variant_get_bytes_const(argv[0], &nr_bytes);
     if (bytes == NULL) {
-        pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
         goto failed;
     }
 
     if (nr_bytes == 0) {
-        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto failed;
     }
 
     format = purc_variant_get_string_const_ex(argv[1], &format_len);
     if (format == NULL) {
-        pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
         goto failed;
     }
 
     // parse format and get the length of real number.
     format = pcutils_trim_spaces(format, &format_len);
     if (format_len == 0) {
-        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto failed;
     }
 
     ssize_t quantity = pcdvobjs_quantity_in_format(format, &format_len);
     PC_DEBUGX("format: %s[%zd][%zd]", format, format_len, quantity);
     if (quantity < 0 || format_len == 0) {
-        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto failed;
     }
 
     int format_id = pcdvobjs_global_keyword_id(format, format_len);
     if (format_id < PURC_K_KW_i8 || format_id > PURC_K_KW_f128be) {
-        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto failed;
     }
     assert(format_id >= PURC_K_KW_i8 && format_id <= PURC_K_KW_f128be);
@@ -782,19 +782,19 @@ fetchreal_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     if (nr_args > 2) {
         int64_t tmp;
         if (!purc_variant_cast_to_longint(argv[2], &tmp, false)) {
-            pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
             goto failed;
         }
         offset = (ssize_t)tmp;
     }
 
     if (offset > 0 && (size_t)offset >= nr_bytes) {
-        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto failed;
     }
 
     if (offset < 0 && (size_t)-offset > nr_bytes) {
-        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto failed;
     }
 
@@ -803,7 +803,7 @@ fetchreal_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     if (offset + length > nr_bytes) {
-        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto failed;
     }
 
@@ -886,7 +886,7 @@ shuffle_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(silently);
 
     if (nr_args < 1) {
-        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
         goto failed;
     }
 
@@ -938,7 +938,7 @@ shuffle_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         }
     }
     else {
-        pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
         goto failed;
     }
 
@@ -1032,7 +1032,7 @@ sort_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     uintptr_t sort_opt = PCVARIANT_SORT_ASC;
 
     if (nr_args == 0) {
-        pcinst_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         goto failed;
     }
 
@@ -1049,7 +1049,7 @@ sort_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         }
     }
     else {
-        pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
         goto failed;
     }
 
@@ -1064,13 +1064,13 @@ sort_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         size_t order_len;
         order = purc_variant_get_string_const_ex(argv[1], &order_len);
         if (order == NULL) {
-            pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
             goto failed;
         }
 
         order = pcutils_trim_spaces(order, &order_len);
         if (order_len == 0) {
-            pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
             goto failed;
         }
 
@@ -1082,7 +1082,7 @@ sort_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             sort_opt = PCVARIANT_SORT_DESC;
         }
         else {
-            pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
             goto failed;
         }
     }
@@ -1093,13 +1093,13 @@ sort_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         size_t option_len;
         option = purc_variant_get_string_const_ex(argv[2], &option_len);
         if (option == NULL) {
-            pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
             goto failed;
         }
 
         option = pcutils_trim_spaces(option, &option_len);
         if (option_len == 0) {
-            pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
             goto failed;
         }
 
@@ -1121,7 +1121,7 @@ sort_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             sort_opt |= PCVARIANT_COMPARE_OPT_CASELESS;
         }
         else {
-            pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
             goto failed;
         }
     }
@@ -1173,12 +1173,11 @@ crc32_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
 
     purc_rwstream_t stream = NULL;
 
     if (nr_args == 0) {
-        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
         goto failed;
     }
 
@@ -1191,13 +1190,13 @@ crc32_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         size_t option_len;
         option = purc_variant_get_string_const_ex(argv[1], &option_len);
         if (option == NULL) {
-            pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
             goto failed;
         }
 
         option = pcutils_trim_spaces(option, &option_len);
         if (option_len == 0) {
-            pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
             goto failed;
         }
 
@@ -1215,7 +1214,7 @@ crc32_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         }
 
         if (algo == PURC_K_ALGO_CRC32_UNKNOWN) {
-            pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
             goto failed;
         }
     }
@@ -1226,13 +1225,13 @@ crc32_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         size_t option_len;
         option = purc_variant_get_string_const_ex(argv[2], &option_len);
         if (option == NULL) {
-            pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
             goto failed;
         }
 
         option = pcutils_trim_spaces(option, &option_len);
         if (option_len == 0) {
-            pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
             goto failed;
         }
 
@@ -1297,12 +1296,11 @@ md5_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
 
     purc_rwstream_t stream = NULL;
 
     if (nr_args == 0) {
-        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
         goto failed;
     }
 
@@ -1312,13 +1310,13 @@ md5_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         size_t option_len;
         option = purc_variant_get_string_const_ex(argv[1], &option_len);
         if (option == NULL) {
-            pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
             goto failed;
         }
 
         option = pcutils_trim_spaces(option, &option_len);
         if (option_len == 0) {
-            pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
             goto failed;
         }
 
@@ -1379,12 +1377,11 @@ sha1_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
 
     purc_rwstream_t stream = NULL;
 
     if (nr_args == 0) {
-        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
         goto failed;
     }
 
@@ -1394,13 +1391,13 @@ sha1_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         size_t option_len;
         option = purc_variant_get_string_const_ex(argv[1], &option_len);
         if (option == NULL) {
-            pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
             goto failed;
         }
 
         option = pcutils_trim_spaces(option, &option_len);
         if (option_len == 0) {
-            pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
             goto failed;
         }
 
@@ -1450,6 +1447,132 @@ fatal:
     return PURC_VARIANT_INVALID;
 }
 
+static purc_variant_t
+bin2hex_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
+{
+    UNUSED_PARAM(root);
+
+    const unsigned char *bytes = NULL;
+    size_t nr_bytes = 0;
+
+    if (nr_args == 0) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    if (purc_variant_is_string(argv[0])) {
+        bytes = (const unsigned char *)
+            purc_variant_get_string_const_ex(argv[0], &nr_bytes);
+    }
+    else if (purc_variant_is_bsequence(argv[0])) {
+        bytes = purc_variant_get_bytes_const(argv[0], &nr_bytes);
+    }
+
+    if (bytes == NULL) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    if (nr_bytes == 0) {
+        return purc_variant_make_string_static("", false);
+    }
+
+    int opt_case = PURC_K_KW_lowercase;
+    if (nr_args > 1) {
+        const char *option;
+        size_t option_len;
+        option = purc_variant_get_string_const_ex(argv[1], &option_len);
+        if (option == NULL) {
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            goto failed;
+        }
+
+        option = pcutils_trim_spaces(option, &option_len);
+        if (option_len == 0) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            goto failed;
+        }
+
+        opt_case = pcdvobjs_global_keyword_id(option, option_len);
+        if (opt_case != PURC_K_KW_lowercase &&
+                opt_case != PURC_K_KW_uppercase) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            goto failed;
+        }
+    }
+
+    char *buff = malloc(nr_bytes * 2 + 1);
+    if (buff == NULL) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto fatal;
+    }
+
+    pcutils_bin2hex(bytes, nr_bytes, buff, opt_case == PURC_K_KW_uppercase);
+
+    return purc_variant_make_string_reuse_buff(buff, nr_bytes * 2 + 1, false);
+
+failed:
+    if (silently)
+        return purc_variant_make_undefined();
+
+fatal:
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+hex2bin_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
+{
+    UNUSED_PARAM(root);
+
+    const char *string = NULL;
+    size_t len = 0;
+
+    if (nr_args == 0) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    string = purc_variant_get_string_const_ex(argv[0], &len);
+    if (string == NULL) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    if (len < 2) {
+        purc_set_error(PURC_ERROR_BAD_ENCODING);
+        goto failed;
+    }
+
+    size_t expected = len / 2;
+    unsigned char *bytes = malloc(expected);
+    if (bytes == NULL) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto fatal;
+    }
+
+    size_t converted;
+    pcutils_hex2bin(string, bytes, &converted);
+    if (converted < expected) {
+        purc_set_error(PURC_ERROR_BAD_ENCODING);
+        if (!silently)
+            goto fatal;
+    }
+
+    return purc_variant_make_byte_sequence_reuse_buff(bytes, converted,
+            expected);
+
+failed:
+    if (silently) {
+        unsigned char one_byte;
+        return purc_variant_make_byte_sequence(&one_byte, 0);
+    }
+
+fatal:
+    return PURC_VARIANT_INVALID;
+}
+
 purc_variant_t purc_dvobj_ejson_new(void)
 {
     static struct purc_dvobj_method method [] = {
@@ -1469,6 +1592,8 @@ purc_variant_t purc_dvobj_ejson_new(void)
         { "crc32",      crc32_getter, NULL },
         { "md5",        md5_getter, NULL },
         { "sha1",       sha1_getter, NULL },
+        { "bin2hex",    bin2hex_getter, NULL },
+        { "hex2bin",    hex2bin_getter, NULL },
     };
 
     if (keywords2atoms[0].atom == 0) {
