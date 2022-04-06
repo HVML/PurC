@@ -302,7 +302,6 @@ struct pcvcm_node *pcvcm_node_new_byte_sequence_from_bb(const void *bytes,
     return n;
 }
 
-int b64_decode(const void *src, void *dest, size_t dest_len);
 struct pcvcm_node *pcvcm_node_new_byte_sequence_from_b64 (const void *bytes,
         size_t nr_bytes)
 {
@@ -315,7 +314,7 @@ struct pcvcm_node *pcvcm_node_new_byte_sequence_from_b64 (const void *bytes,
     size_t sz_buf = nr_bytes;
     uint8_t *buf = (uint8_t*)calloc(sz_buf, 1);
 
-    int ret = b64_decode(p, buf, sz_buf);
+    ssize_t ret = pcutils_b64_decode(p, buf, sz_buf);
     if (ret == -1) {
         free(buf);
         pcinst_set_error(PCHVML_ERROR_UNEXPECTED_CHARACTER);

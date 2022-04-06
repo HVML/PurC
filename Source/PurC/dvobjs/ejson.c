@@ -1514,7 +1514,7 @@ bin2hex_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
 failed:
     if (silently)
-        return purc_variant_make_undefined();
+        return purc_variant_make_string_static("", false);
 
 fatal:
     return PURC_VARIANT_INVALID;
@@ -1553,11 +1553,11 @@ hex2bin_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     size_t converted;
-    pcutils_hex2bin(string, bytes, &converted);
-    if (converted < expected) {
+    if (pcutils_hex2bin(string, bytes, &converted) < 0 ||
+            converted < expected) {
+        free(bytes);
         purc_set_error(PURC_ERROR_BAD_ENCODING);
-        if (!silently)
-            goto fatal;
+        goto failed;
     }
 
     return purc_variant_make_byte_sequence_reuse_buff(bytes, converted,
@@ -1565,8 +1565,108 @@ hex2bin_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
 failed:
     if (silently) {
-        unsigned char one_byte;
-        return purc_variant_make_byte_sequence(&one_byte, 0);
+        return purc_variant_make_undefined();
+    }
+
+fatal:
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+base64_encode_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
+{
+    UNUSED_PARAM(root);
+
+    const unsigned char *bytes = NULL;
+    size_t nr_bytes = 0;
+
+    if (nr_args == 0) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    if (purc_variant_is_string(argv[0])) {
+        bytes = (const unsigned char *)
+            purc_variant_get_string_const_ex(argv[0], &nr_bytes);
+    }
+    else if (purc_variant_is_bsequence(argv[0])) {
+        bytes = purc_variant_get_bytes_const(argv[0], &nr_bytes);
+    }
+
+    if (bytes == NULL) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    if (nr_bytes == 0) {
+        return purc_variant_make_string_static("", false);
+    }
+
+    size_t sz_buff = pcutils_b64_encoded_length(nr_bytes);
+    char *buff = malloc(sz_buff);
+    if (buff == NULL) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto fatal;
+    }
+
+    pcutils_b64_encode(bytes, nr_bytes, buff, sz_buff);
+
+    return purc_variant_make_string_reuse_buff(buff, sz_buff, false);
+
+failed:
+    if (silently)
+        return purc_variant_make_string_static("", false);
+
+fatal:
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+base64_decode_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
+{
+    UNUSED_PARAM(root);
+
+    const char *string = NULL;
+    size_t len = 0;
+
+    if (nr_args == 0) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    string = purc_variant_get_string_const_ex(argv[0], &len);
+    if (string == NULL) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    if (len < 4) {
+        purc_set_error(PURC_ERROR_BAD_ENCODING);
+        goto failed;
+    }
+
+    size_t expected = pcutils_b64_decoded_length(len);
+    unsigned char *bytes = malloc(expected);
+    if (bytes == NULL) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto fatal;
+    }
+
+    ssize_t converted = pcutils_b64_decode(string, bytes, expected);
+    if (converted < 0) {
+        free(bytes);
+        purc_set_error(PURC_ERROR_BAD_ENCODING);
+        goto failed;
+    }
+
+    return purc_variant_make_byte_sequence_reuse_buff(bytes, converted,
+            expected);
+
+failed:
+    if (silently) {
+        return purc_variant_make_byte_sequence_empty();
     }
 
 fatal:
@@ -1594,6 +1694,8 @@ purc_variant_t purc_dvobj_ejson_new(void)
         { "sha1",       sha1_getter, NULL },
         { "bin2hex",    bin2hex_getter, NULL },
         { "hex2bin",    hex2bin_getter, NULL },
+        { "base64_encode", base64_encode_getter, NULL },
+        { "base64_decode", base64_decode_getter, NULL },
     };
 
     if (keywords2atoms[0].atom == 0) {

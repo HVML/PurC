@@ -208,6 +208,20 @@ void pcutils_bin2hex(const unsigned char *bin, size_t len, char *hex,
    return 0 on success, < 0 for error */
 int pcutils_hex2bin(const char *hex, unsigned char *bin, size_t *converted);
 
+static inline size_t pcutils_b64_encoded_length(size_t src_len)
+{
+    return (src_len + 3) * 4 / 3 + 1;
+}
+
+static inline size_t pcutils_b64_decoded_length(size_t src_len)
+{
+    return (src_len + 2) * 3 / 4 + 1;
+}
+
+ssize_t pcutils_b64_encode(const void *src, size_t src_len,
+        void *dst, size_t sz_dst);
+ssize_t pcutils_b64_decode(const void *src, void *dst, size_t sz_dst);
+
 int pcutils_parse_int32(const char *buf, size_t len, int32_t *retval);
 int pcutils_parse_uint32(const char *buf, size_t len, uint32_t *retval);
 int pcutils_parse_int64(const char *buf, size_t len, int64_t *retval);

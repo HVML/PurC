@@ -110,7 +110,7 @@ int pcutils_hex2bin (const char *hex, unsigned char *bin, size_t *converted)
         else {
             int c = purc_tolower (*hex);
             if (c >= 'a' && c <= 'f') {
-                half = (*hex - 'a' + 0x10) & 0x0f;
+                half = (*hex - 'a' + 0x0a) & 0x0f;
             }
             else {
                 goto failed;
@@ -118,15 +118,16 @@ int pcutils_hex2bin (const char *hex, unsigned char *bin, size_t *converted)
         }
 
         if (pos % 2 == 0) {
-            *bin = half;
+            *bin = half << 4;
         }
         else {
-            *bin |= half << 4;
+            *bin |= half;
             bin++;
             sz++;
         }
 
         pos++;
+        hex++;
     }
 
     if (converted)
