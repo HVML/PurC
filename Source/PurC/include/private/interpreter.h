@@ -73,9 +73,9 @@ struct pcintr_coroutine {
 };
 
 enum pcintr_stack_stage {
-    STACK_STAGE_FIRST_ROUND,
-    STACK_STAGE_EVENT_LOOP,
-    STACK_STAGE_TERMINATING,
+    STACK_STAGE_FIRST_ROUND                = 0x00,
+    STACK_STAGE_EVENT_LOOP                 = 0x01,
+    STACK_STAGE_TERMINATING                = 0x02,
 };
 
 struct pcintr_loaded_var {

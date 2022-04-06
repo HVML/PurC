@@ -930,6 +930,7 @@ execute_one_step(pcintr_coroutine_t co)
         dump_c_stack();
         co->state = CO_STATE_TERMINATED;
         purc_clr_error();
+        PC_ASSERT(0); // TODO:
     }
 
     bool no_frames = list_empty(&co->stack->frames);
