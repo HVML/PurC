@@ -604,6 +604,245 @@ pcutils_string_decode_utf32(const unsigned char* bytes, size_t max_len,
 #endif
 }
 
+#define LOBYTE(w)       ((uint8_t)(w))
+#define HIBYTE(w)       ((uint8_t)(((uint16_t)(w) >> 8) & 0xFF))
+#define LOWORD(dw)      ((uint16_t)(uint32_t)(dw))
+#define HIWORD(dw)      ((uint16_t)((((uint32_t)(dw)) >> 16) & 0xFFFF))
+
+size_t
+pcutils_string_encode_utf16le(const char* utf8, size_t len, size_t nr_chars,
+        unsigned char *bytes, size_t max_bytes)
+{
+    UNUSED_PARAM(len);
+    const char *p = utf8;
+    size_t nr_bytes = 0;
+
+    while (nr_chars > 0 && *p) {
+        uint32_t uc;
+        uint16_t w1, w2;
+        size_t len;
+
+        uc = utf8_to_uc(p);
+        if (uc > 0x10FFFF) {
+            break;
+        }
+
+        if (uc < 0x10000) {
+            len = 2;
+        }
+        else {
+            len = 4;
+        }
+
+        if (nr_bytes + len > max_bytes) {
+            break;
+        }
+
+        if (len == 2) {
+            bytes[0] = LOBYTE(uc);
+            bytes[1] = HIBYTE(uc);
+        }
+        else {
+            uc -= 0x10000;
+            w1 = 0xD800;
+            w2 = 0xDC00;
+
+            w1 |= (uc >> 10);
+            w2 |= (uc & 0x03FF);
+
+            bytes[0] = LOBYTE(w1);
+            bytes[1] = HIBYTE(w1);
+            bytes[2] = LOBYTE(w2);
+            bytes[3] = HIBYTE(w2);
+        }
+
+        p = pcutils_utf8_next_char(p);
+        nr_bytes += len;
+        bytes += len;
+        nr_chars--;
+    }
+
+    if (max_bytes > nr_bytes + 2) {
+        bytes[0] = 0;
+        bytes[1] = 0;
+        nr_bytes += 2;
+    }
+
+    return nr_bytes;
+}
+
+size_t
+pcutils_string_encode_utf32le(const char* utf8, size_t len, size_t nr_chars,
+        unsigned char *bytes, size_t max_bytes)
+{
+    UNUSED_PARAM(len);
+    const char *p = utf8;
+    size_t nr_bytes = 0;
+
+    while (nr_chars > 0 && *p) {
+        uint32_t uc;
+
+        uc = utf8_to_uc(p);
+        if (uc > 0x10FFFF) {
+            break;
+        }
+
+        if (nr_bytes + 4 > max_bytes) {
+            break;
+        }
+
+        bytes[0] = LOBYTE(LOWORD(uc));
+        bytes[1] = HIBYTE(LOWORD(uc));
+        bytes[2] = LOBYTE(HIWORD(uc));
+        bytes[3] = HIBYTE(HIWORD(uc));
+
+        p = pcutils_utf8_next_char(p);
+        nr_bytes += 4;
+        bytes += 4;
+        nr_chars--;
+    }
+
+    if (max_bytes > nr_bytes + 4) {
+        bytes[0] = 0;
+        bytes[1] = 0;
+        bytes[2] = 0;
+        bytes[3] = 0;
+        nr_bytes += 4;
+    }
+
+    return nr_bytes;
+}
+
+size_t
+pcutils_string_encode_utf16be(const char* utf8, size_t len, size_t nr_chars,
+       unsigned char *bytes, size_t max_bytes)
+{
+    UNUSED_PARAM(len);
+    const char *p = utf8;
+    size_t nr_bytes = 0;
+
+    while (nr_chars > 0 && *p) {
+        uint32_t uc;
+        uint16_t w1, w2;
+        size_t len;
+
+        uc = utf8_to_uc(p);
+        if (uc > 0x10FFFF) {
+            break;
+        }
+
+        if (uc < 0x10000) {
+            len = 2;
+        }
+        else {
+            len = 4;
+        }
+
+        if (nr_bytes + len > max_bytes) {
+            break;
+        }
+
+        if (len == 2) {
+            bytes[1] = LOBYTE(uc);
+            bytes[0] = HIBYTE(uc);
+        }
+        else {
+            uc -= 0x10000;
+            w1 = 0xD800;
+            w2 = 0xDC00;
+
+            w1 |= (uc >> 10);
+            w2 |= (uc & 0x03FF);
+
+            bytes[3] = LOBYTE(w1);
+            bytes[2] = HIBYTE(w1);
+            bytes[1] = LOBYTE(w2);
+            bytes[0] = HIBYTE(w2);
+        }
+
+        p = pcutils_utf8_next_char(p);
+        nr_bytes += len;
+        bytes += len;
+        nr_chars--;
+    }
+
+    if (max_bytes > nr_bytes + 2) {
+        bytes[0] = 0;
+        bytes[1] = 0;
+        nr_bytes += 2;
+    }
+
+    return nr_bytes;
+}
+
+size_t
+pcutils_string_encode_utf32be(const char* utf8, size_t len, size_t nr_chars,
+        unsigned char *bytes, size_t max_bytes)
+{
+    UNUSED_PARAM(len);
+    const char *p = utf8;
+    size_t nr_bytes = 0;
+
+    while (nr_chars > 0 && *p) {
+        uint32_t uc;
+
+        uc = utf8_to_uc(p);
+        if (uc > 0x10FFFF) {
+            break;
+        }
+
+        if (nr_bytes + 4 > max_bytes) {
+            break;
+        }
+
+        bytes[3] = LOBYTE(LOWORD(uc));
+        bytes[2] = HIBYTE(LOWORD(uc));
+        bytes[1] = LOBYTE(HIWORD(uc));
+        bytes[0] = HIBYTE(HIWORD(uc));
+
+        p = pcutils_utf8_next_char(p);
+        nr_bytes += 4;
+        bytes += 4;
+        nr_chars--;
+    }
+
+    if (max_bytes > nr_bytes + 4) {
+        bytes[0] = 0;
+        bytes[1] = 0;
+        bytes[2] = 0;
+        bytes[3] = 0;
+        nr_bytes += 4;
+    }
+
+    return nr_bytes;
+}
+
+size_t
+pcutils_string_encode_utf16(const char* utf8, size_t len, size_t nr_chars,
+        unsigned char *bytes, size_t max_bytes)
+{
+#if CPU(LITTLE_ENDIAN)
+    return pcutils_string_encode_utf16le(utf8, len, nr_chars, bytes, max_bytes);
+#elif CPU(BIG_ENDIAN)
+    return pcutils_string_encode_utf16be(utf8, len, nr_chars, bytes, max_bytes);
+#else
+#error "Unsupported endian"
+#endif
+}
+
+size_t
+pcutils_string_encode_utf32(const char* utf8, size_t len, size_t nr_chars,
+        unsigned char *bytes, size_t max_bytes)
+{
+#if CPU(LITTLE_ENDIAN)
+    return pcutils_string_encode_utf32le(utf8, len, nr_chars, bytes, max_bytes);
+#elif CPU(BIG_ENDIAN)
+    return pcutils_string_encode_utf32be(utf8, len, nr_chars, bytes, max_bytes);
+#else
+#error "Unsupported endian"
+#endif
+}
+
 size_t
 pcutils_string_decode_utf8(uint32_t *ucs, size_t max_chars,
         const char* str_utf8)
