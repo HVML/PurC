@@ -33,8 +33,6 @@
 #include "private/map.h"
 
 typedef void* pcrunloop_t;
-typedef void* pcrunloop_io_handle;
-
 enum pcrunloop_io_condition
 {
     PCRUNLOOP_IO_IN,
@@ -77,11 +75,11 @@ void pcrunloop_set_idle_func(pcrunloop_t runloop, pcrunloop_func func, void* ctx
 typedef bool (*pcrunloop_io_callback)(int fd,
         enum pcrunloop_io_condition condition, void *ctxt);
 
-pcrunloop_io_handle pcrunloop_add_unix_fd(pcrunloop_t runloop, int fd,
+uintptr_t pcrunloop_add_fd_monitor(pcrunloop_t runloop, int fd,
         enum pcrunloop_io_condition condition, pcrunloop_io_callback callback,
         void *ctxt);
 
-void pcrunloop_remove_unix_fd(pcrunloop_t runloop, pcrunloop_io_handle handle);
+void pcrunloop_remove_fd_monitor(pcrunloop_t runloop, uintptr_t handle);
 
 PCA_EXTERN_C_END
 

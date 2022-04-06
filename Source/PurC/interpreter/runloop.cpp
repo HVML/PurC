@@ -33,9 +33,6 @@
 #include <wtf/RunLoop.h>
 #include <wtf/threads/BinarySemaphore.h>
 
-#if USE(GLIB)
-#include <wtf/glib/GFdMonitor.h>
-#endif
 
 #include <stdlib.h>
 #include <string.h>
@@ -162,28 +159,24 @@ to_gio_condition(enum pcrunloop_io_condition condition)
 }
 
 
-pcrunloop_io_handle pcrunloop_add_unix_fd(pcrunloop_t runloop, int fd,
+uintptr_t pcrunloop_add_fd_monitor(pcrunloop_t runloop, int fd,
         enum pcrunloop_io_condition condition, pcrunloop_io_callback callback,
         void *ctxt)
 {
     if (!runloop) {
         runloop = pcrunloop_get_current();
     }
-    GFdMonitor *monitor = new GFdMonitor();
-    if (!monitor) {
-        return NULL;
-    }
-    monitor->start(fd, to_gio_condition(condition), *(RunLoop*)runloop,
-        [callback, ctxt] (gint fd, GIOCondition condition) -> gboolean {
+    return ((RunLoop*)runloop)->addFdMonitor(fd, to_gio_condition(condition),
+            [callback, ctxt] (gint fd, GIOCondition condition) -> gboolean {
             return callback(fd, to_io_condition(condition), ctxt);
         });
-    return (pcrunloop_io_handle)monitor;
 }
 
-void pcrunloop_remove_unix_fd(pcrunloop_t runloop, pcrunloop_io_handle handle)
+void pcrunloop_remove_fd_monitor(pcrunloop_t runloop, uintptr_t handle)
 {
-    UNUSED_PARAM(runloop);
-    GFdMonitor *monitor = (GFdMonitor*)handle;
-    delete monitor;
+    if (!runloop) {
+        runloop = pcrunloop_get_current();
+    }
+    ((RunLoop*)runloop)->removeFdMonitor(handle);
 }
 

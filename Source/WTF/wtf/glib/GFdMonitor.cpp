@@ -42,7 +42,7 @@ gboolean GFdMonitor::fdSourceCallback(gint fd, GIOCondition condition,
     return monitor->m_callback(fd, condition);
 }
 
-void GFdMonitor::start(gint fd, GIOCondition condition, RunLoop& runLoop,
+void GFdMonitor::start(gint fd, GIOCondition condition, GMainContext* gctxt,
         Function<gboolean(gint, GIOCondition)>&& callback)
 {
     stop();
@@ -54,7 +54,7 @@ void GFdMonitor::start(gint fd, GIOCondition condition, RunLoop& runLoop,
                 reinterpret_cast<GCallback>(fdSourceCallback)), this, nullptr);
     g_source_set_priority(m_source.get(),
             RunLoopSourcePriority::RunLoopDispatcher);
-    g_source_attach(m_source.get(), runLoop.mainContext());
+    g_source_attach(m_source.get(), gctxt);
 }
 
 void GFdMonitor::stop()

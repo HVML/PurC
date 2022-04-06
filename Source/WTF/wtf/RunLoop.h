@@ -43,6 +43,7 @@
 
 #if USE(GLIB_EVENT_LOOP)
 #include <wtf/glib/GRefPtr.h>
+#include <wtf/glib/GFdMonitor.h>
 #endif
 
 namespace WTF {
@@ -94,6 +95,9 @@ public:
 #if USE(GLIB_EVENT_LOOP)
     WTF_EXPORT_PRIVATE GMainContext* mainContext() const { return m_mainContext.get(); }
     WTF_EXPORT_PRIVATE void setIdleCallback(WTF::Function<void()>&& function);
+    WTF_EXPORT_PRIVATE uintptr_t addFdMonitor(gint fd, GIOCondition condition,
+            Function<gboolean(gint, GIOCondition)>&& callback);
+    WTF_EXPORT_PRIVATE void removeFdMonitor(uintptr_t handle);
 #endif
 
 #if USE(GENERIC_EVENT_LOOP) || USE(WINDOWS_EVENT_LOOP)
@@ -234,6 +238,8 @@ private:
 
     GRefPtr<GSource> m_idleSource;
     Function<void()> m_idleCallback;
+
+    Vector<RefPtr<GFdMonitor>> m_fdMonitors;
 #elif USE(GENERIC_EVENT_LOOP)
     void schedule(Ref<TimerBase::ScheduledTask>&&);
     void schedule(const AbstractLocker&, Ref<TimerBase::ScheduledTask>&&);

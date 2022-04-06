@@ -27,19 +27,19 @@
 #include <glib.h>
 #include <wtf/Forward.h>
 #include <wtf/Noncopyable.h>
-#include <wtf/RunLoop.h>
+#include <wtf/RefCounted.h>
 #include <wtf/glib/GRefPtr.h>
 
 namespace WTF {
 
-class GFdMonitor {
+class GFdMonitor : public RefCounted<GFdMonitor> {
     WTF_MAKE_NONCOPYABLE(GFdMonitor);
 public:
     GFdMonitor() = default;
     WTF_EXPORT_PRIVATE ~GFdMonitor();
 
     WTF_EXPORT_PRIVATE void start(gint fd, GIOCondition condition,
-            RunLoop& runLoop,
+            GMainContext* gctxt,
             Function<gboolean(gint, GIOCondition)>&& callback);
     WTF_EXPORT_PRIVATE void stop();
     bool isActive() const { return !!m_source; }

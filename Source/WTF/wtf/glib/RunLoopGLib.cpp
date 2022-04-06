@@ -107,6 +107,27 @@ void RunLoop::setIdleCallback(WTF::Function<void()>&& function)
     }
 }
 
+uintptr_t RunLoop::addFdMonitor(gint fd, GIOCondition condition,
+            Function<gboolean(gint, GIOCondition)>&& callback)
+{
+    RefPtr<GFdMonitor> monitor = adoptRef(new GFdMonitor());
+    monitor->start(fd, condition, mainContext(), WTFMove(callback));
+    m_fdMonitors.append(monitor);
+    return (uintptr_t)monitor.get();
+}
+
+void RunLoop::removeFdMonitor(uintptr_t handle)
+{
+    if (!handle) {
+        return;
+    }
+    GFdMonitor *p = (GFdMonitor*) handle;
+    size_t ret = m_fdMonitors.find(p);
+    if (ret != notFound) {
+        m_fdMonitors.remove(ret);
+    }
+}
+
 void RunLoop::run()
 {
     RunLoop& runLoop = RunLoop::current();
