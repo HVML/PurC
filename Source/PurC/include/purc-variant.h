@@ -424,6 +424,17 @@ purc_variant_make_byte_sequence_reuse_buff(void* bytes, size_t nr_bytes,
         size_t sz_buff);
 
 /**
+ * Creates an empty byte sequence variant.
+ *
+ * Returns: A purc_variant_t with byte sequence type,
+ *      or PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.0.2
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_make_byte_sequence_empty(void);
+
+/**
  * Gets the pointer of byte array which is encapsulated in byte sequence type.
  *
  * @param value: the data of byte sequence type
