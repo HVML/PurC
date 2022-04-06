@@ -563,6 +563,30 @@ PCA_EXPORT char *
 pcutils_string_encode_utf8(const uint32_t *ucs, size_t nr_chars,
         size_t *sz_space);
 
+PCA_EXPORT size_t
+pcutils_string_encode_utf16le(const char* utf8, size_t len, size_t nr_chars,
+        unsigned char *bytes, size_t max_bytes);
+
+PCA_EXPORT size_t
+pcutils_string_encode_utf32le(const char* utf8, size_t len, size_t nr_chars,
+        unsigned char *bytes, size_t max_bytes);
+
+PCA_EXPORT size_t
+pcutils_string_encode_utf16be(const char* utf8, size_t len, size_t nr_chars,
+       unsigned char *bytes, size_t max_bytes);
+
+PCA_EXPORT size_t
+pcutils_string_encode_utf32be(const char* utf8, size_t len, size_t nr_chars,
+        unsigned char *bytes, size_t max_bytes);
+
+PCA_EXPORT size_t
+pcutils_string_encode_utf16(const char* utf8, size_t len, size_t nr_chars,
+        unsigned char *bytes, size_t max_bytes);
+
+PCA_EXPORT size_t
+pcutils_string_encode_utf32(const char* utf8, size_t len, size_t nr_chars,
+        unsigned char *bytes, size_t max_bytes);
+
 typedef union {
     int64_t     i64;
     uint64_t    u64;
@@ -674,6 +698,111 @@ purc_fetch_f96be(const unsigned char *bytes);
 
 PCA_EXPORT purc_real_t
 purc_fetch_f128be(const unsigned char *bytes);
+
+PCA_EXPORT bool
+purc_dump_i8(unsigned char *dst, purc_real_t real, bool force);
+
+PCA_EXPORT bool
+purc_dump_i16(unsigned char *dst, purc_real_t real, bool force);
+
+PCA_EXPORT bool
+purc_dump_i32(unsigned char *dst, purc_real_t real, bool force);
+
+PCA_EXPORT bool
+purc_dump_i64(unsigned char *dst, purc_real_t real, bool force);
+
+PCA_EXPORT bool
+purc_dump_i16le(unsigned char *dst, purc_real_t real, bool force);
+
+PCA_EXPORT bool
+purc_dump_i32le(unsigned char *dst, purc_real_t real, bool force);
+
+PCA_EXPORT bool
+purc_dump_i64le(unsigned char *dst, purc_real_t real, bool force);
+
+PCA_EXPORT bool
+purc_dump_i16be(unsigned char *dst, purc_real_t real, bool force);
+
+PCA_EXPORT bool
+purc_dump_i32be(unsigned char *dst, purc_real_t real, bool force);
+
+PCA_EXPORT bool
+purc_dump_i64be(unsigned char *dst, purc_real_t real, bool force);
+
+PCA_EXPORT bool
+purc_dump_u8(unsigned char *dst, purc_real_t real, bool force);
+
+PCA_EXPORT bool
+purc_dump_u16(unsigned char *dst, purc_real_t real, bool force);
+
+PCA_EXPORT bool
+purc_dump_u32(unsigned char *dst, purc_real_t real, bool force);
+
+PCA_EXPORT bool
+purc_dump_u64(unsigned char *dst, purc_real_t real, bool force);
+
+PCA_EXPORT bool
+purc_dump_u16le(unsigned char *dst, purc_real_t real, bool force);
+
+PCA_EXPORT bool
+purc_dump_u32le(unsigned char *dst, purc_real_t real, bool force);
+
+PCA_EXPORT bool
+purc_dump_u64le(unsigned char *dst, purc_real_t real, bool force);
+
+PCA_EXPORT bool
+purc_dump_u16be(unsigned char *dst, purc_real_t real, bool force);
+
+PCA_EXPORT bool
+purc_dump_u32be(unsigned char *dst, purc_real_t real, bool force);
+
+PCA_EXPORT bool
+purc_dump_u64be(unsigned char *dst, purc_real_t real, bool force);
+
+PCA_EXPORT bool
+purc_dump_f16(unsigned char *dst, purc_real_t real, bool force);
+
+PCA_EXPORT bool
+purc_dump_f32(unsigned char *dst, purc_real_t real, bool force);
+
+PCA_EXPORT bool
+purc_dump_f64(unsigned char *dst, purc_real_t real, bool force);
+
+PCA_EXPORT bool
+purc_dump_f96(unsigned char *dst, purc_real_t real, bool force);
+
+PCA_EXPORT bool
+purc_dump_f128(unsigned char *dst, purc_real_t real, bool force);
+
+PCA_EXPORT bool
+purc_dump_f16le(unsigned char *dst, purc_real_t real, bool force);
+
+PCA_EXPORT bool
+purc_dump_f32le(unsigned char *dst, purc_real_t real, bool force);
+
+PCA_EXPORT bool
+purc_dump_f64le(unsigned char *dst, purc_real_t real, bool force);
+
+PCA_EXPORT bool
+purc_dump_f96le(unsigned char *dst, purc_real_t real, bool force);
+
+PCA_EXPORT bool
+purc_dump_f128le(unsigned char *dst, purc_real_t real, bool force);
+
+PCA_EXPORT bool
+purc_dump_f16be(unsigned char *dst, purc_real_t real, bool force);
+
+PCA_EXPORT bool
+purc_dump_f32be(unsigned char *dst, purc_real_t real, bool force);
+
+PCA_EXPORT bool
+purc_dump_f64be(unsigned char *dst, purc_real_t real, bool force);
+
+PCA_EXPORT bool
+purc_dump_f96be(unsigned char *dst, purc_real_t real, bool force);
+
+PCA_EXPORT bool
+purc_dump_f128be(unsigned char *dst, purc_real_t real, bool force);
 
 /** Returns the basename of fname. The result is a pointer into fname. */
 PCA_EXPORT const char *

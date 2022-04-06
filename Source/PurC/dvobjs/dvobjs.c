@@ -48,7 +48,7 @@ pcdvobjs_quantity_in_format(const char *format, size_t *format_length)
         *format_length = seperator - format;
     }
     else {
-        quantity = 1;
+        quantity = 0;
     }
 
     return (ssize_t)quantity;
