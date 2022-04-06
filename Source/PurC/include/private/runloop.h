@@ -7,7 +7,7 @@
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -33,6 +33,17 @@
 #include "private/map.h"
 
 typedef void* pcrunloop_t;
+typedef void* pcrunloop_io_handle;
+
+enum pcrunloop_io_condition
+{
+    PCRUNLOOP_IO_IN,
+    PCRUNLOOP_IO_OUT,
+    PCRUNLOOP_IO_PRI,
+    PCRUNLOOP_IO_ERR,
+    PCRUNLOOP_IO_HUP,
+    PCRUNLOOP_IO_NVAL,
+};
 
 PCA_EXTERN_C_BEGIN
 
@@ -62,6 +73,15 @@ typedef int (*pcrunloop_func)(void* ctxt);
 void pcrunloop_dispatch(pcrunloop_t runloop, pcrunloop_func func, void* ctxt);
 
 void pcrunloop_set_idle_func(pcrunloop_t runloop, pcrunloop_func func, void* ctxt);
+
+typedef bool (*pcrunloop_io_callback)(int fd,
+        enum pcrunloop_io_condition condition, void *ctxt);
+
+pcrunloop_io_handle pcrunloop_add_unix_fd(pcrunloop_t runloop, int fd,
+        enum pcrunloop_io_condition condition, pcrunloop_io_callback callback,
+        void *ctxt);
+
+void pcrunloop_remove_unix_fd(pcrunloop_t runloop, pcrunloop_io_handle handle);
 
 PCA_EXTERN_C_END
 
