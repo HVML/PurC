@@ -2699,6 +2699,19 @@ pcintr_get_percent_var(struct pcintr_stack_frame *frame)
 }
 
 void
+pcintr_observe_vcm_ev(pcintr_stack_t stack, struct pcintr_observer* observer,
+        purc_variant_t var, struct purc_native_ops *ops)
+{
+    UNUSED_PARAM(stack);
+    UNUSED_PARAM(observer);
+    UNUSED_PARAM(var);
+    UNUSED_PARAM(ops);
+    // TODO
+    // create virtual frame
+    // eval vcm_ev and compare with old value
+}
+
+void
 pcintr_event_timer_fire(const char* id, void* ctxt)
 {
     UNUSED_PARAM(id);
@@ -2725,9 +2738,7 @@ pcintr_event_timer_fire(const char* id, void* ctxt)
         purc_nvariant_method is_vcm_ev = ops->property_getter(
                 PCVCM_EV_PROPERTY_VCM_EV);
         if (is_vcm_ev) {
-            // TODO
-            // create virtual frame
-            // eval vcm_ev and compare with old value
+            pcintr_observe_vcm_ev(stack, observer, var, ops);
         }
     }
 }
