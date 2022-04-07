@@ -26,6 +26,7 @@
 
 #include "purc-errors.h"
 
+#include "private/debug.h"
 #include "private/errors.h"
 #include "private/instance.h"
 
@@ -65,13 +66,88 @@ purc_variant_t purc_get_last_error_ex(void)
     return PURC_VARIANT_INVALID;
 }
 
-int purc_set_error_exinfo_with_debug(int errcode, purc_variant_t exinfo,
-        const char *file, int lineno, const char *func)
+static void
+backtrace_release(struct pcdebug_backtrace *bt)
+{
+    if (!bt)
+        return;
+
+    PC_ASSERT(bt->refc == 0);
+}
+
+static void
+backtrace_destroy(struct pcdebug_backtrace *bt)
+{
+    if (!bt)
+        return;
+
+    backtrace_release(bt);
+    free(bt);
+}
+
+struct pcdebug_backtrace*
+pcdebug_backtrace_ref(struct pcdebug_backtrace *bt)
+{
+    bt->refc += 1;
+    return bt;
+}
+
+void
+pcdebug_backtrace_unref(struct pcdebug_backtrace *bt)
+{
+    PC_ASSERT(bt->refc > 0);
+    bt->refc -= 1;
+    if (bt->refc > 0)
+        return;
+
+    backtrace_destroy(bt);
+}
+
+static void
+backtrace_snapshot(struct pcinst *inst, const char *file, int line,
+        const char *func)
+{
+    if (inst->bt) {
+        PC_ASSERT(inst->bt->refc > 0);
+        if (inst->bt->refc > 1) {
+            pcdebug_backtrace_unref(inst->bt);
+            inst->bt = NULL;
+        }
+    }
+
+    if (inst->bt == NULL) {
+        inst->bt = (struct pcdebug_backtrace*)malloc(sizeof(*inst->bt));
+        if (inst->bt == NULL)
+            return;
+    }
+
+    struct pcdebug_backtrace *bt = inst->bt;
+
+    do {
+        bt->file      = file;
+        bt->line      = line;
+        bt->func      = func;
+
+#ifndef NDEBUG                     /* { */
+#if OS(LINUX)                      /* { */
+        bt->nr_stacks = backtrace(bt->c_stacks, PCA_TABLESIZE(bt->c_stacks));
+#endif                             /* } */
+#endif                             /* } */
+        bt->refc = 1;
+        return;
+    } while (0);
+
+    backtrace_destroy(bt);
+}
+
+static int
+set_error_exinfo_with_debug(int errcode, purc_variant_t exinfo,
+        const char *file, int line, const char *func)
 {
 #ifndef NDEBUG                     /* { */
     if (0 && errcode) {
         PC_DEBUGX("%s[%d]:%s(): %d",
-                pcutils_basename((char*)file), lineno, func, errcode);
+                pcutils_basename((char*)file), line, func, errcode);
         if (exinfo != PURC_VARIANT_INVALID)
             PRINT_VARIANT(exinfo);
     }
@@ -87,41 +163,29 @@ int purc_set_error_exinfo_with_debug(int errcode, purc_variant_t exinfo,
     PURC_VARIANT_SAFE_CLEAR(inst->err_exinfo);
     inst->err_exinfo = exinfo;
 
+    const struct err_msg_info* info = get_error_info(errcode);
+    if (info == NULL ||
+            ((info->flags & PURC_EXCEPT_FLAGS_REQUIRED) && !exinfo)) {
 #ifndef NDEBUG                     /* { */
-#if OS(LINUX)                      /* { */
-    inst->file       = file;
-    inst->lineno     = lineno;
-    inst->func       = func;
-
-    inst->nr_stacks = backtrace(inst->c_stacks, PCA_TABLESIZE(inst->c_stacks));
+        PC_DEBUGX("%s[%d]:%s(): %d",
+                pcutils_basename((char*)file), line, func, errcode);
 #endif                             /* } */
-#endif                             /* } */
-
-    // set the exception info into stack
-    pcintr_stack_t stack = pcintr_get_stack();
-    if (stack) {
-        const struct err_msg_info* info = get_error_info(errcode);
-        if (info == NULL ||
-                ((info->flags & PURC_EXCEPT_FLAGS_REQUIRED) && !exinfo)) {
-#ifndef NDEBUG                     /* { */
-            PC_DEBUGX("%s[%d]:%s(): %d",
-                    pcutils_basename((char*)file), lineno, func, errcode);
-#endif                             /* } */
-            return PURC_ERROR_INVALID_VALUE;
-        }
-        stack->error_except = info->except_atom;
-        PURC_VARIANT_SAFE_CLEAR(stack->err_except_info);
-        stack->err_except_info = exinfo;
-        if (exinfo != PURC_VARIANT_INVALID) {
-            purc_variant_ref(exinfo);
-        }
-        stack->file = file;
-        stack->lineno = lineno;
-        stack->func = func;
-        stack->except = errcode ? 1 : 0; // FIXME: when to set stack->error???
+    }
+    if (info) {
+        inst->error_except = info->except_atom;
     }
 
+    backtrace_snapshot(inst, file, line, func);
+
     return PURC_ERROR_OK;
+}
+
+int
+purc_set_error_exinfo_with_debug(int errcode, purc_variant_t exinfo,
+        const char *file, int lineno, const char *func)
+{
+    // NOTE: this is intentionally!!!
+    return set_error_exinfo_with_debug(errcode, exinfo, file, lineno, func);
 }
 
 int
@@ -145,7 +209,7 @@ purc_set_error_with_info_debug(int err_code,
     v = purc_variant_make_string(buf, true);
     PC_ASSERT(v != PURC_VARIANT_INVALID);
 
-    r = purc_set_error_exinfo_with_debug(err_code, v,
+    r = set_error_exinfo_with_debug(err_code, v,
             file, lineno, func);
 
     return r;
@@ -204,8 +268,8 @@ dump_stack_by_cmd(int *level, const char *cmd)
 {
     char *func = NULL;
     size_t func_len = 0;
-    char *file_lineno = NULL;
-    size_t file_lineno_len = 0;
+    char *file_line = NULL;
+    size_t file_line_len = 0;
 
     FILE *in = popen(cmd, "r");
     PC_ASSERT(in);
@@ -218,28 +282,23 @@ dump_stack_by_cmd(int *level, const char *cmd)
         PC_ASSERT(r > 0);
         func[r-1] = '\0';
 
-        r = getline(&file_lineno, &file_lineno_len, in);
+        r = getline(&file_line, &file_line_len, in);
         PC_ASSERT(r > 0);
-        file_lineno[r-1] = '\0';
+        file_line[r-1] = '\0';
 
-        fprintf(stderr, "%02d: %s (%s)\n", *level, func, file_lineno);
+        fprintf(stderr, "%02d: %s (%s)\n", *level, func, file_line);
         *level = *level + 1;
     }
 
     pclose(in);
-    free(file_lineno);
+    free(file_line);
     free(func);
 }
 
 static void
-dump_stacks_ex(char **stacks, regex_t *regex)
+dump_stacks_ex(char **stacks, int nr_stacks, regex_t *regex)
 {
     char cmd[4096];
-
-    struct pcinst* inst = pcinst_current();
-    PC_ASSERT(inst);
-
-    PC_ASSERT(inst->nr_stacks > 0);
 
     char *p = cmd;
     size_t len = sizeof(cmd);
@@ -248,40 +307,44 @@ dump_stacks_ex(char **stacks, regex_t *regex)
     p += n;
     len -= n;
 
-    char prev_so[sizeof(inst->so)];
+    char  so[1024];
+    char  addr1[256];
+    char  addr2[64];
+
+    char prev_so[sizeof(so)];
     prev_so[0] = '\0';
 
     int level = 0;
     int added = 0;
 
-    for (int i=0; i<inst->nr_stacks; ++i) {
+    for (int i=0; i<nr_stacks; ++i) {
         regmatch_t matches[20] = {};
         int r = regexec(regex, stacks[i], PCA_TABLESIZE(matches), matches, 0);
         PC_ASSERT(r != REG_NOMATCH);
         int n;
-        n = snprintf(inst->so, sizeof(inst->so), "%.*s",
+        n = snprintf(so, sizeof(so), "%.*s",
                 matches[1].rm_eo - matches[1].rm_so,
                 stacks[i] + matches[1].rm_so);
-        if (n<0 || (size_t)n>=sizeof(inst->so))
+        if (n<0 || (size_t)n>=sizeof(so))
             break;
-        n = snprintf(inst->addr1, sizeof(inst->addr1), "%.*s",
+        n = snprintf(addr1, sizeof(addr1), "%.*s",
                 matches[2].rm_eo - matches[2].rm_so,
                 stacks[i] + matches[2].rm_so);
-        if (n<0 || (size_t)n>=sizeof(inst->addr1))
+        if (n<0 || (size_t)n>=sizeof(addr1))
             break;
-        n = snprintf(inst->addr2, sizeof(inst->addr2), "%.*s",
+        n = snprintf(addr2, sizeof(addr2), "%.*s",
                 matches[3].rm_eo - matches[3].rm_so,
                 stacks[i] + matches[3].rm_so);
-        if (n<0 || (size_t)n>=sizeof(inst->addr2))
+        if (n<0 || (size_t)n>=sizeof(addr2))
             break;
 
-        void *paddr2 = (void*)strtoll(inst->addr2, NULL, 0);
+        void *paddr2 = (void*)strtoll(addr2, NULL, 0);
         Dl_info info = {};
         r = dladdr(paddr2, &info);
         if (r <= 0)
             break;
 
-        if (strcmp(prev_so, inst->so) == 0) {
+        if (strcmp(prev_so, so) == 0) {
             n = snprintf(p, len,
                     " 0x%zx",
                     (char*)paddr2 - (char*)info.dli_fbase);
@@ -310,7 +373,7 @@ dump_stacks_ex(char **stacks, regex_t *regex)
 
             n = snprintf(p, len,
                     " -e '%s' '0x%zx'",
-                    inst->so, (char*)paddr2 - (char*)info.dli_fbase);
+                    so, (char*)paddr2 - (char*)info.dli_fbase);
             if (n<0 || (size_t)n>=len) {
                 *p = '\0';
                 n = 0;
@@ -321,7 +384,7 @@ dump_stacks_ex(char **stacks, regex_t *regex)
         p += n;
         len -= n;
 
-        n = snprintf(prev_so, sizeof(prev_so), "%s", inst->so);
+        n = snprintf(prev_so, sizeof(prev_so), "%s", so);
         if (n<0 || (size_t)n>=sizeof(prev_so))
             break;
     }
@@ -334,12 +397,22 @@ dump_stacks_ex(char **stacks, regex_t *regex)
 
 void pcinst_dump_stack(void)
 {
-#ifndef NDEBUG                     /* { */
-#if OS(LINUX)                      /* { */
     struct pcinst* inst = pcinst_current();
     PC_ASSERT(inst);
 
-    PC_ASSERT(inst->nr_stacks > 0);
+    pcdebug_backtrace_dump(inst->bt);
+}
+
+void
+pcdebug_backtrace_dump(struct pcdebug_backtrace *bt)
+{
+    if (!bt)
+        return;
+
+#ifndef NDEBUG                     /* { */
+#if OS(LINUX)                      /* { */
+    if (bt->nr_stacks == 0)
+        return;
 
     regex_t regex;
     const char *pattern = "([^(]+)\\(([^(]+)\\) \\[([^]]+)\\]";
@@ -354,9 +427,10 @@ void pcinst_dump_stack(void)
     }
 
     PC_ASSERT(r == 0);
-    char **stacks = backtrace_symbols(inst->c_stacks, inst->nr_stacks);
+    char **stacks;
+    stacks = backtrace_symbols(bt->c_stacks, bt->nr_stacks);
     if (stacks)
-        dump_stacks_ex(stacks, &regex);
+        dump_stacks_ex(stacks, bt->nr_stacks, &regex);
 
     regfree(&regex);
 

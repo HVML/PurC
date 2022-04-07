@@ -4,7 +4,7 @@
  * @date 2021/07/02
  * @brief The main header file of PurC.
  *
- * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ * Copyright (C) 2021, 2022 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
  *
@@ -42,6 +42,7 @@
 #include "purc-helpers.h"
 #include "purc-pcrdr.h"
 #include "purc-dvobjs.h"
+#include "purc-runloop.h"
 
 /** The structure defining the extra information for a new PurC instance. */
 typedef struct purc_instance_extra_info {

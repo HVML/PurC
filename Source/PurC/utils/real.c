@@ -60,6 +60,31 @@ purc_fetch_i8(const unsigned char *bytes)
     return real;
 }
 
+bool
+purc_dump_i8(unsigned char *dst, purc_real_t real, bool force)
+{
+    int8_t i8;
+
+    if (real.i64 > INT8_MAX) {
+        if (force)
+            i8 = INT8_MAX;
+        else
+            return false;
+    }
+    else if (real.i64 < INT8_MIN) {
+        if (force)
+            i8 = INT8_MIN;
+        else
+            return false;
+    }
+    else {
+        i8 = (int8_t)real.i64;
+    }
+
+    dst[0] = (uint8_t)i8;
+    return true;
+}
+
 purc_real_t
 purc_fetch_i16(const unsigned char *bytes)
 {
@@ -67,6 +92,18 @@ purc_fetch_i16(const unsigned char *bytes)
     return purc_fetch_i16le(bytes);
 #elif CPU(BIG_ENDIAN)
     return purc_fetch_i16be(bytes);
+#else
+#error "Unsupported endian"
+#endif
+}
+
+bool
+purc_dump_i16(unsigned char *dst, purc_real_t real, bool force)
+{
+#if CPU(LITTLE_ENDIAN)
+    return purc_dump_i16le(dst, real, force);
+#elif CPU(BIG_ENDIAN)
+    return purc_dump_i16be(dst, real, force);
 #else
 #error "Unsupported endian"
 #endif
@@ -84,6 +121,18 @@ purc_fetch_i32(const unsigned char *bytes)
 #endif
 }
 
+bool
+purc_dump_i32(unsigned char *dst, purc_real_t real, bool force)
+{
+#if CPU(LITTLE_ENDIAN)
+    return purc_dump_i32le(dst, real, force);
+#elif CPU(BIG_ENDIAN)
+    return purc_dump_i32be(dst, real, force);
+#else
+#error "Unsupported endian"
+#endif
+}
+
 purc_real_t
 purc_fetch_i64(const unsigned char *bytes)
 {
@@ -91,6 +140,18 @@ purc_fetch_i64(const unsigned char *bytes)
     return purc_fetch_i64le(bytes);
 #elif CPU(BIG_ENDIAN)
     return purc_fetch_i64be(bytes);
+#else
+#error "Unsupported endian"
+#endif
+}
+
+bool
+purc_dump_i64(unsigned char *dst, purc_real_t real, bool force)
+{
+#if CPU(LITTLE_ENDIAN)
+    return purc_dump_i64le(dst, real, force);
+#elif CPU(BIG_ENDIAN)
+    return purc_dump_i64be(dst, real, force);
 #else
 #error "Unsupported endian"
 #endif
@@ -105,6 +166,39 @@ purc_fetch_i16le(const unsigned char *bytes)
     return real;
 }
 
+#define LOBYTE(w)       ((uint8_t)(w))
+#define HIBYTE(w)       ((uint8_t)(((uint16_t)(w) >> 8) & 0xFF))
+#define LOWORD(dw)      ((uint16_t)(uint32_t)(dw))
+#define HIWORD(dw)      ((uint16_t)((((uint32_t)(dw)) >> 16) & 0xFFFF))
+#define LODWORD(dw)     ((uint32_t)(uint64_t)(dw))
+#define HIDWORD(dw)     ((uint32_t)((((uint64_t)(dw)) >> 32) & 0xFFFFFFFF))
+
+bool
+purc_dump_i16le(unsigned char *dst, purc_real_t real, bool force)
+{
+    int16_t i16;
+
+    if (real.i64 > INT16_MAX) {
+        if (force)
+            i16 = INT16_MAX;
+        else
+            return false;
+    }
+    else if (real.i64 < INT16_MIN) {
+        if (force)
+            i16 = INT16_MIN;
+        else
+            return false;
+    }
+    else {
+        i16 = (int16_t)real.i64;
+    }
+
+    dst[0] = LOBYTE(i16);
+    dst[1] = HIBYTE(i16);
+    return true;
+}
+
 purc_real_t
 purc_fetch_i32le(const unsigned char *bytes)
 {
@@ -112,6 +206,34 @@ purc_fetch_i32le(const unsigned char *bytes)
     int32_t i32 = (int32_t)MAKEWORD32(bytes[0], bytes[1], bytes[2], bytes[3]);
     real.i64 = (int64_t)i32;
     return real;
+}
+
+bool
+purc_dump_i32le(unsigned char *dst, purc_real_t real, bool force)
+{
+    int32_t i32;
+
+    if (real.i64 > INT32_MAX) {
+        if (force)
+            i32 = INT32_MAX;
+        else
+            return false;
+    }
+    else if (real.i64 < INT32_MIN) {
+        if (force)
+            i32 = INT32_MIN;
+        else
+            return false;
+    }
+    else {
+        i32 = (int32_t)real.i64;
+    }
+
+    dst[0] = LOBYTE(LOWORD(i32));
+    dst[1] = HIBYTE(LOWORD(i32));
+    dst[2] = LOBYTE(HIWORD(i32));
+    dst[3] = HIBYTE(HIWORD(i32));
+    return true;
 }
 
 purc_real_t
@@ -123,6 +245,22 @@ purc_fetch_i64le(const unsigned char *bytes)
     return real;
 }
 
+bool
+purc_dump_i64le(unsigned char *dst, purc_real_t real, bool force)
+{
+    UNUSED_PARAM(force);
+
+    dst[0] = LOBYTE(LOWORD(LODWORD(real.i64)));
+    dst[1] = HIBYTE(LOWORD(LODWORD(real.i64)));
+    dst[2] = LOBYTE(HIWORD(LODWORD(real.i64)));
+    dst[3] = HIBYTE(HIWORD(LODWORD(real.i64)));
+    dst[4] = LOBYTE(LOWORD(HIDWORD(real.i64)));
+    dst[5] = HIBYTE(LOWORD(HIDWORD(real.i64)));
+    dst[6] = HIBYTE(HIWORD(HIDWORD(real.i64)));
+    dst[7] = HIBYTE(HIWORD(HIDWORD(real.i64)));
+    return true;
+}
+
 purc_real_t
 purc_fetch_i16be(const unsigned char *bytes)
 {
@@ -130,6 +268,32 @@ purc_fetch_i16be(const unsigned char *bytes)
     int16_t i16 = (int16_t)MAKEWORD16(bytes[1], bytes[0]);
     real.i64 = (int64_t)i16;
     return real;
+}
+
+bool
+purc_dump_i16be(unsigned char *dst, purc_real_t real, bool force)
+{
+    int16_t i16;
+
+    if (real.i64 > INT16_MAX) {
+        if (force)
+            i16 = INT16_MAX;
+        else
+            return false;
+    }
+    else if (real.i64 < INT16_MIN) {
+        if (force)
+            i16 = INT16_MIN;
+        else
+            return false;
+    }
+    else {
+        i16 = (int16_t)real.i64;
+    }
+
+    dst[1] = LOBYTE(i16);
+    dst[0] = HIBYTE(i16);
+    return true;
 }
 
 purc_real_t
@@ -141,6 +305,34 @@ purc_fetch_i32be(const unsigned char *bytes)
     return real;
 }
 
+bool
+purc_dump_i32be(unsigned char *dst, purc_real_t real, bool force)
+{
+    int32_t i32;
+
+    if (real.i64 > INT32_MAX) {
+        if (force)
+            i32 = INT32_MAX;
+        else
+            return false;
+    }
+    else if (real.i64 < INT32_MIN) {
+        if (force)
+            i32 = INT32_MIN;
+        else
+            return false;
+    }
+    else {
+        i32 = (int32_t)real.i64;
+    }
+
+    dst[3] = LOBYTE(LOWORD(i32));
+    dst[2] = HIBYTE(LOWORD(i32));
+    dst[1] = LOBYTE(HIWORD(i32));
+    dst[0] = HIBYTE(HIWORD(i32));
+    return true;
+}
+
 purc_real_t
 purc_fetch_i64be(const unsigned char *bytes)
 {
@@ -148,6 +340,22 @@ purc_fetch_i64be(const unsigned char *bytes)
     real.i64 = (int64_t)MAKEWORD64(bytes[7], bytes[6], bytes[5], bytes[4],
             bytes[3], bytes[2], bytes[1], bytes[0]);
     return real;
+}
+
+bool
+purc_dump_i64be(unsigned char *dst, purc_real_t real, bool force)
+{
+    UNUSED_PARAM(force);
+
+    dst[7] = LOBYTE(LOWORD(LODWORD(real.i64)));
+    dst[6] = HIBYTE(LOWORD(LODWORD(real.i64)));
+    dst[5] = LOBYTE(HIWORD(LODWORD(real.i64)));
+    dst[4] = HIBYTE(HIWORD(LODWORD(real.i64)));
+    dst[3] = LOBYTE(LOWORD(HIDWORD(real.i64)));
+    dst[2] = HIBYTE(LOWORD(HIDWORD(real.i64)));
+    dst[1] = HIBYTE(HIWORD(HIDWORD(real.i64)));
+    dst[0] = HIBYTE(HIWORD(HIDWORD(real.i64)));
+    return true;
 }
 
 purc_real_t
@@ -158,6 +366,25 @@ purc_fetch_u8(const unsigned char *bytes)
     return real;
 }
 
+bool
+purc_dump_u8(unsigned char *dst, purc_real_t real, bool force)
+{
+    uint8_t u8;
+
+    if (real.u64 > UINT8_MAX) {
+        if (force)
+            u8 = UINT8_MAX;
+        else
+            return false;
+    }
+    else {
+        u8 = (uint8_t)real.u64;
+    }
+
+    dst[0] = u8;
+    return true;
+}
+
 purc_real_t
 purc_fetch_u16(const unsigned char *bytes)
 {
@@ -165,6 +392,18 @@ purc_fetch_u16(const unsigned char *bytes)
     return purc_fetch_u16le(bytes);
 #elif CPU(BIG_ENDIAN)
     return purc_fetch_u16be(bytes);
+#else
+#error "Unsupported endian"
+#endif
+}
+
+bool
+purc_dump_u16(unsigned char *dst, purc_real_t real, bool force)
+{
+#if CPU(LITTLE_ENDIAN)
+    return purc_dump_u16le(dst, real, force);
+#elif CPU(BIG_ENDIAN)
+    return purc_dump_u16be(dst, real, force);
 #else
 #error "Unsupported endian"
 #endif
@@ -182,6 +421,18 @@ purc_fetch_u32(const unsigned char *bytes)
 #endif
 }
 
+bool
+purc_dump_u32(unsigned char *dst, purc_real_t real, bool force)
+{
+#if CPU(LITTLE_ENDIAN)
+    return purc_dump_u32le(dst, real, force);
+#elif CPU(BIG_ENDIAN)
+    return purc_dump_u32be(dst, real, force);
+#else
+#error "Unsupported endian"
+#endif
+}
+
 purc_real_t
 purc_fetch_u64(const unsigned char *bytes)
 {
@@ -189,6 +440,18 @@ purc_fetch_u64(const unsigned char *bytes)
     return purc_fetch_u64le(bytes);
 #elif CPU(BIG_ENDIAN)
     return purc_fetch_u64be(bytes);
+#else
+#error "Unsupported endian"
+#endif
+}
+
+bool
+purc_dump_u64(unsigned char *dst, purc_real_t real, bool force)
+{
+#if CPU(LITTLE_ENDIAN)
+    return purc_dump_u64le(dst, real, force);
+#elif CPU(BIG_ENDIAN)
+    return purc_dump_u64be(dst, real, force);
 #else
 #error "Unsupported endian"
 #endif
@@ -203,6 +466,26 @@ purc_fetch_u16le(const unsigned char *bytes)
     return real;
 }
 
+bool
+purc_dump_u16le(unsigned char *dst, purc_real_t real, bool force)
+{
+    uint16_t u16;
+
+    if (real.u64 > UINT16_MAX) {
+        if (force)
+            u16 = UINT16_MAX;
+        else
+            return false;
+    }
+    else {
+        u16 = (uint16_t)real.u64;
+    }
+
+    dst[0] = LOBYTE(u16);
+    dst[1] = HIBYTE(u16);
+    return true;
+}
+
 purc_real_t
 purc_fetch_u32le(const unsigned char *bytes)
 {
@@ -210,6 +493,28 @@ purc_fetch_u32le(const unsigned char *bytes)
     uint32_t u32 = MAKEWORD32(bytes[0], bytes[1], bytes[2], bytes[3]);
     real.u64 = (uint64_t)u32;
     return real;
+}
+
+bool
+purc_dump_u32le(unsigned char *dst, purc_real_t real, bool force)
+{
+    uint32_t u32;
+
+    if (real.u64 > UINT32_MAX) {
+        if (force)
+            u32 = UINT32_MAX;
+        else
+            return false;
+    }
+    else {
+        u32 = (uint32_t)real.u64;
+    }
+
+    dst[0] = LOBYTE(LOWORD(u32));
+    dst[1] = HIBYTE(LOWORD(u32));
+    dst[2] = LOBYTE(HIWORD(u32));
+    dst[3] = HIBYTE(HIWORD(u32));
+    return true;
 }
 
 purc_real_t
@@ -221,6 +526,22 @@ purc_fetch_u64le(const unsigned char *bytes)
     return real;
 }
 
+bool
+purc_dump_u64le(unsigned char *dst, purc_real_t real, bool force)
+{
+    UNUSED_PARAM(force);
+
+    dst[0] = LOBYTE(LOWORD(LODWORD(real.u64)));
+    dst[1] = HIBYTE(LOWORD(LODWORD(real.u64)));
+    dst[2] = LOBYTE(HIWORD(LODWORD(real.u64)));
+    dst[3] = HIBYTE(HIWORD(LODWORD(real.u64)));
+    dst[4] = LOBYTE(LOWORD(HIDWORD(real.u64)));
+    dst[5] = HIBYTE(LOWORD(HIDWORD(real.u64)));
+    dst[6] = HIBYTE(HIWORD(HIDWORD(real.u64)));
+    dst[7] = HIBYTE(HIWORD(HIDWORD(real.u64)));
+    return true;
+}
+
 purc_real_t
 purc_fetch_u16be(const unsigned char *bytes)
 {
@@ -228,6 +549,26 @@ purc_fetch_u16be(const unsigned char *bytes)
     uint16_t u16 = (uint16_t)MAKEWORD16(bytes[1], bytes[0]);
     real.u64 = (uint64_t)u16;
     return real;
+}
+
+bool
+purc_dump_u16be(unsigned char *dst, purc_real_t real, bool force)
+{
+    uint16_t u16;
+
+    if (real.u64 > UINT16_MAX) {
+        if (force)
+            u16 = UINT16_MAX;
+        else
+            return false;
+    }
+    else {
+        u16 = (uint16_t)real.u64;
+    }
+
+    dst[1] = LOBYTE(u16);
+    dst[0] = HIBYTE(u16);
+    return true;
 }
 
 purc_real_t
@@ -239,6 +580,28 @@ purc_fetch_u32be(const unsigned char *bytes)
     return real;
 }
 
+bool
+purc_dump_u32be(unsigned char *dst, purc_real_t real, bool force)
+{
+    uint32_t u32;
+
+    if (real.u64 > UINT32_MAX) {
+        if (force)
+            u32 = UINT32_MAX;
+        else
+            return false;
+    }
+    else {
+        u32 = (uint32_t)real.u64;
+    }
+
+    dst[3] = LOBYTE(LOWORD(u32));
+    dst[2] = HIBYTE(LOWORD(u32));
+    dst[1] = LOBYTE(HIWORD(u32));
+    dst[0] = HIBYTE(HIWORD(u32));
+    return true;
+}
+
 purc_real_t
 purc_fetch_u64be(const unsigned char *bytes)
 {
@@ -248,6 +611,22 @@ purc_fetch_u64be(const unsigned char *bytes)
     return real;
 }
 
+bool
+purc_dump_u64be(unsigned char *dst, purc_real_t real, bool force)
+{
+    UNUSED_PARAM(force);
+
+    dst[7] = LOBYTE(LOWORD(LODWORD(real.u64)));
+    dst[6] = HIBYTE(LOWORD(LODWORD(real.u64)));
+    dst[5] = LOBYTE(HIWORD(LODWORD(real.u64)));
+    dst[4] = HIBYTE(HIWORD(LODWORD(real.u64)));
+    dst[3] = LOBYTE(LOWORD(HIDWORD(real.u64)));
+    dst[2] = HIBYTE(LOWORD(HIDWORD(real.u64)));
+    dst[1] = HIBYTE(HIWORD(HIDWORD(real.u64)));
+    dst[0] = HIBYTE(HIWORD(HIDWORD(real.u64)));
+    return true;
+}
+
 purc_real_t
 purc_fetch_f16(const unsigned char *bytes)
 {
@@ -255,6 +634,18 @@ purc_fetch_f16(const unsigned char *bytes)
     return purc_fetch_f16le(bytes);
 #elif CPU(BIG_ENDIAN)
     return purc_fetch_f16be(bytes);
+#else
+#error "Unsupported endian"
+#endif
+}
+
+bool
+purc_dump_f16(unsigned char *dst, purc_real_t real, bool force)
+{
+#if CPU(LITTLE_ENDIAN)
+    return purc_dump_f16le(dst, real, force);
+#elif CPU(BIG_ENDIAN)
+    return purc_dump_f16be(dst, real, force);
 #else
 #error "Unsupported endian"
 #endif
@@ -272,6 +663,18 @@ purc_fetch_f32(const unsigned char *bytes)
 #endif
 }
 
+bool
+purc_dump_f32(unsigned char *dst, purc_real_t real, bool force)
+{
+#if CPU(LITTLE_ENDIAN)
+    return purc_dump_f32le(dst, real, force);
+#elif CPU(BIG_ENDIAN)
+    return purc_dump_f32be(dst, real, force);
+#else
+#error "Unsupported endian"
+#endif
+}
+
 purc_real_t
 purc_fetch_f64(const unsigned char *bytes)
 {
@@ -279,6 +682,18 @@ purc_fetch_f64(const unsigned char *bytes)
     return purc_fetch_f64le(bytes);
 #elif CPU(BIG_ENDIAN)
     return purc_fetch_f64be(bytes);
+#else
+#error "Unsupported endian"
+#endif
+}
+
+bool
+purc_dump_f64(unsigned char *dst, purc_real_t real, bool force)
+{
+#if CPU(LITTLE_ENDIAN)
+    return purc_dump_f64le(dst, real, force);
+#elif CPU(BIG_ENDIAN)
+    return purc_dump_f64be(dst, real, force);
 #else
 #error "Unsupported endian"
 #endif
@@ -296,6 +711,18 @@ purc_fetch_f96(const unsigned char *bytes)
 #endif
 }
 
+bool
+purc_dump_f96(unsigned char *dst, purc_real_t real, bool force)
+{
+#if CPU(LITTLE_ENDIAN)
+    return purc_dump_f96le(dst, real, force);
+#elif CPU(BIG_ENDIAN)
+    return purc_dump_f96be(dst, real, force);
+#else
+#error "Unsupported endian"
+#endif
+}
+
 purc_real_t
 purc_fetch_f128(const unsigned char *bytes)
 {
@@ -303,6 +730,18 @@ purc_fetch_f128(const unsigned char *bytes)
     return purc_fetch_f128le(bytes);
 #elif CPU(BIG_ENDIAN)
     return purc_fetch_f128be(bytes);
+#else
+#error "Unsupported endian"
+#endif
+}
+
+bool
+purc_dump_f128(unsigned char *dst, purc_real_t real, bool force)
+{
+#if CPU(LITTLE_ENDIAN)
+    return purc_dump_f128le(dst, real, force);
+#elif CPU(BIG_ENDIAN)
+    return purc_dump_f128be(dst, real, force);
 #else
 #error "Unsupported endian"
 #endif
@@ -362,22 +801,77 @@ purc_fetch_f16le(const unsigned char *bytes)
     return assemble_f16(bytes[0], bytes[1]);
 }
 
+bool
+purc_dump_f16le(unsigned char *dst, purc_real_t real, bool force)
+{
+    UNUSED_PARAM(force);
+    union {
+        float f32;
+        uint8_t u8[4];
+    } my_real;
+
+    my_real.f32 = (float)real.d;
+
+    dst[0] = my_real.u8[0];
+    dst[1] = my_real.u8[1];
+    return true;
+}
+
 purc_real_t
 purc_fetch_f32le(const unsigned char *bytes)
 {
     purc_real_t real;
-    float f32 = (float)MAKEWORD32(bytes[0], bytes[1], bytes[2], bytes[3]);
+    float f32;
+    uint8_t *dst = (uint8_t *)&f32;
+
+    dst[0] = bytes[0];
+    dst[1] = bytes[1];
+    dst[2] = bytes[2];
+    dst[3] = bytes[3];
     real.d = (double)f32;
     return real;
+}
+
+bool
+purc_dump_f32le(unsigned char *dst, purc_real_t real, bool force)
+{
+    UNUSED_PARAM(force);
+    float f32 = (float)real.d;
+    uint8_t *src = (uint8_t *)&f32;
+
+    dst[0] = src[0];
+    dst[1] = src[1];
+    dst[2] = src[2];
+    dst[3] = src[3];
+    return false;
 }
 
 purc_real_t
 purc_fetch_f64le(const unsigned char *bytes)
 {
+    double f64;
+    uint8_t *dst = (uint8_t *)&f64;
+
+    for (int i = 0; i < 8; i++) {
+        dst[i] = bytes[i];
+    }
+
     purc_real_t real;
-    real.d = (double)MAKEWORD64(bytes[0], bytes[1], bytes[2], bytes[3],
-            bytes[4], bytes[5], bytes[6], bytes[7]);
+    real.d = f64;
     return real;
+}
+
+bool
+purc_dump_f64le(unsigned char *dst, purc_real_t real, bool force)
+{
+    UNUSED_PARAM(force);
+    uint8_t *src = (uint8_t *)&real.d;
+
+    for (int i = 0; i < 8; i++) {
+        dst[i] = src[i];
+    }
+
+    return false;
 }
 
 purc_real_t
@@ -396,6 +890,23 @@ purc_fetch_f96le(const unsigned char *bytes)
 
     real.ld = my_real.ld;
     return real;
+}
+
+bool
+purc_dump_f96le(unsigned char *dst, purc_real_t real, bool force)
+{
+    UNUSED_PARAM(force);
+    uint8_t *src = (uint8_t *)&real.ld;
+
+    for (int i = 0; i < 8; i++) {
+        dst[i] = src[i];
+    }
+
+    for (int i = 0; i < 4; i++) {
+        dst[8 + i] = src[12 + i];
+    }
+
+    return true;
 }
 
 #if 0
@@ -439,28 +950,96 @@ purc_fetch_f128le(const unsigned char *bytes)
 }
 #endif
 
+bool
+purc_dump_f128le(unsigned char *dst, purc_real_t real, bool force)
+{
+    UNUSED_PARAM(force);
+    uint8_t *src = (uint8_t *)&real.ld;
+
+    for (int i = 0; i < 16; i++) {
+        dst[i] = src[i];
+    }
+
+    return true;
+}
+
 purc_real_t
 purc_fetch_f16be(const unsigned char *bytes)
 {
     return assemble_f16(bytes[1], bytes[0]);
 }
 
+bool
+purc_dump_f16be(unsigned char *dst, purc_real_t real, bool force)
+{
+    UNUSED_PARAM(force);
+    union {
+        float f32;
+        uint8_t u8[4];
+    } my_real;
+
+    my_real.f32 = (float)real.d;
+
+    dst[1] = my_real.u8[0];
+    dst[0] = my_real.u8[1];
+    return true;
+}
+
 purc_real_t
 purc_fetch_f32be(const unsigned char *bytes)
 {
     purc_real_t real;
-    float f32 = (float)MAKEWORD32(bytes[3], bytes[2], bytes[1], bytes[0]);
+    float f32;
+    uint8_t *dst = (uint8_t *)&f32;
+
+    dst[3] = bytes[0];
+    dst[2] = bytes[1];
+    dst[1] = bytes[2];
+    dst[0] = bytes[3];
     real.d = (double)f32;
     return real;
+}
+
+bool
+purc_dump_f32be(unsigned char *dst, purc_real_t real, bool force)
+{
+    UNUSED_PARAM(force);
+    float f32 = (float)real.d;
+    uint8_t *src = (uint8_t *)&f32;
+
+    dst[3] = src[0];
+    dst[2] = src[1];
+    dst[1] = src[2];
+    dst[0] = src[3];
+    return false;
 }
 
 purc_real_t
 purc_fetch_f64be(const unsigned char *bytes)
 {
+    double f64;
+    uint8_t *dst = (uint8_t *)&f64;
+
+    for (int i = 0; i < 8; i++) {
+        dst[7 - i] = bytes[i];
+    }
+
     purc_real_t real;
-    real.d = (double)MAKEWORD64(bytes[7], bytes[6], bytes[5], bytes[4],
-            bytes[3], bytes[2], bytes[1], bytes[0]);
+    real.d = f64;
     return real;
+}
+
+bool
+purc_dump_f64be(unsigned char *dst, purc_real_t real, bool force)
+{
+    UNUSED_PARAM(force);
+    uint8_t *src = (uint8_t *)&real.d;
+
+    for (int i = 0; i < 8; i++) {
+        dst[i] = src[i];
+    }
+
+    return false;
 }
 
 purc_real_t
@@ -478,6 +1057,23 @@ purc_fetch_f96be(const unsigned char *bytes)
             bytes[3], bytes[2], bytes[1], bytes[0]);
     real.ld = my_real.ld;
     return real;
+}
+
+bool
+purc_dump_f96be(unsigned char *dst, purc_real_t real, bool force)
+{
+    UNUSED_PARAM(force);
+    uint8_t *src = (uint8_t *)&real.ld;
+
+    for (int i = 0; i < 8; i++) {
+        dst[i] = src[15 - i];
+    }
+
+    for (int i = 0; i < 4; i++) {
+        dst[8 + i] = src[15 - 12 - i];
+    }
+
+    return true;
 }
 
 #if 0
@@ -512,4 +1108,17 @@ purc_fetch_f128be(const unsigned char *bytes)
     return real;
 }
 #endif
+
+bool
+purc_dump_f128be(unsigned char *dst, purc_real_t real, bool force)
+{
+    UNUSED_PARAM(force);
+    uint8_t *src = (uint8_t *)&real.ld;
+
+    for (int i = 0; i < 16; i++) {
+        dst[i] = src[15 - i];
+    }
+
+    return true;
+}
 

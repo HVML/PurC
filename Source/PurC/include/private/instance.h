@@ -39,6 +39,7 @@
 struct pcinst {
     int                     errcode;
     purc_variant_t          err_exinfo;
+    purc_atom_t             error_except;
 
     char                   *app_name;
     char                   *runner_name;
@@ -66,19 +67,7 @@ struct pcinst {
     bool initialized_main_runloop;
 
     /* FIXME: enable the fields ONLY when NDEBUG is undefined */
-#ifndef NDEBUG                     /* { */
-#if OS(LINUX)                      /* { */
-    const char *file;
-    const char *func;
-    int lineno;
-    void *c_stacks[64];
-    int   nr_stacks;
-    char  so[1024];
-    char  addr1[256];
-    char  addr2[64];
-#endif                             /* } */
-#endif                             /* } */
-
+    struct pcdebug_backtrace  *bt;
 };
 
 /* gets the current instance */
@@ -90,6 +79,8 @@ void pcinst_move_buffer_cleanup_once(void) WTF_INTERNAL;
 
 struct pcrdr_msg *pcinst_get_message(void) WTF_INTERNAL;
 void pcinst_put_message(struct pcrdr_msg *msg) WTF_INTERNAL;
+
+void pcinst_clear_error(struct pcinst *inst) WTF_INTERNAL;
 
 #endif /* not defined PURC_PRIVATE_INSTANCE_H */
 

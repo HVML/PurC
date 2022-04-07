@@ -50,6 +50,7 @@ ctxt_for_fire_destroy(struct ctxt_for_fire *ctxt)
         PURC_VARIANT_SAFE_CLEAR(ctxt->on);
         PURC_VARIANT_SAFE_CLEAR(ctxt->for_var);
         PURC_VARIANT_SAFE_CLEAR(ctxt->at);
+        PURC_VARIANT_SAFE_CLEAR(ctxt->with);
         free(ctxt);
     }
 }
