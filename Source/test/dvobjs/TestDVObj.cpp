@@ -149,6 +149,21 @@ void TestDVObj::run_testcases(const struct dvobj_result *test_cases, size_t n)
     }
 }
 
+/**
+ * Creates a new purc_rwstream_t which is dedicated for dump only,
+ * that is, the new purc_rwstream_t is write-only and not seekable.
+ *
+ * @param ctxt: the buffer
+ *
+ * @return A purc_rwstream_t on success, @NULL on failure and the error code
+ *         is set to indicate the error. The error code:
+ *  - @PURC_ERROR_INVALID_VALUE: Invalid value
+ *  - @PURC_ERROR_OUT_OF_MEMORY: Out of memory
+ *
+ * Since: 0.0.1
+ */
+PCA_EXPORT purc_rwstream_t
+purc_rwstream_new_for_dump (void *ctxt, pcrws_cb_write fn);
 void TestDVObj::run_testcases_in_file(const char *file_name)
 {
     char file_path[4096 + 1];
@@ -256,6 +271,16 @@ void TestDVObj::run_testcases_in_file(const char *file_name)
             purc_variant_ejson_parse_tree_destroy(ptree);
 
             bool check = purc_variant_is_equal_to(result, expected);
+            if (!check) {
+                char buf[4096];
+                purc_rwstream_t stm;
+                stm = purc_rwstream_new_from_mem(buf, sizeof(buf)-1);
+                ssize_t n = purc_variant_serialize(result, stm, 0, 0, NULL);
+                ASSERT_GT(n, 0);
+                buf[n] = '\0';
+                purc_log_info("Serialized result: %s\n", buf);
+            }
+
             EXPECT_EQ(check, true);
 
             purc_variant_unref(result);
