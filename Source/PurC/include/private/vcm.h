@@ -60,6 +60,7 @@ enum pcvcm_node_type {
 #define PCVCM_EV_PROPERTY_EVAL            "eval"
 #define PCVCM_EV_PROPERTY_EVAL_CONST      "eval_const"
 #define PCVCM_EV_PROPERTY_VCM_EV          "vcm_ev"
+#define PCVCM_EV_PROPERTY_LAST_VALUE      "last_value"
 
 struct pcvcm_node {
     struct pctree_node tree_node;

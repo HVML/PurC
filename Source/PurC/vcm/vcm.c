@@ -63,6 +63,7 @@ struct pcvcm_node_op {
 struct pcvcm_ev {
     struct pcvcm_node *vcm;
     purc_variant_t const_value;
+    purc_variant_t last_value;
     bool release_vcm;
 };
 
@@ -1312,19 +1313,32 @@ vcm_ev(void *native_entity, size_t nr_args, purc_variant_t *argv,
     return purc_variant_make_boolean(true);
 }
 
+
+static purc_variant_t
+last_value(void *native_entity, size_t nr_args, purc_variant_t *argv,
+        bool silently)
+{
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(silently);
+    struct pcvcm_ev *vcm_ev = (struct pcvcm_ev*)native_entity;
+    return vcm_ev->last_value;
+}
+
 static inline
 purc_nvariant_method property_getter(const char* key_name)
 {
     if (strcmp(key_name, PCVCM_EV_PROPERTY_EVAL) == 0) {
         return eval;
     }
-
-    if (strcmp(key_name, PCVCM_EV_PROPERTY_EVAL_CONST) == 0) {
+    else if (strcmp(key_name, PCVCM_EV_PROPERTY_EVAL_CONST) == 0) {
         return eval_const;
     }
-
-    if (strcmp(key_name, PCVCM_EV_PROPERTY_VCM_EV) == 0) {
+    else if (strcmp(key_name, PCVCM_EV_PROPERTY_VCM_EV) == 0) {
         return vcm_ev;
+    }
+    else if (strcmp(key_name, PCVCM_EV_PROPERTY_LAST_VALUE) == 0) {
+        return last_value;
     }
 
     return NULL;
@@ -1333,10 +1347,15 @@ purc_nvariant_method property_getter(const char* key_name)
 bool on_observe(void *native_entity, const char *event_name,
         const char *event_subname)
 {
-    UNUSED_PARAM(native_entity);
     UNUSED_PARAM(event_name);
     UNUSED_PARAM(event_subname);
-    return true;
+    struct pcvcm_ev *vcm_ev = (struct pcvcm_ev*)native_entity;
+    struct pcintr_stack *stack = pcintr_get_stack();
+    if (!stack) {
+        return false;
+    }
+    vcm_ev->last_value = pcvcm_eval(vcm_ev->vcm, stack, false);
+    return (vcm_ev->last_value) ? true : false;
 }
 
 static void
@@ -1348,6 +1367,9 @@ on_release(void *native_entity)
     }
     if (vcm_variant->const_value) {
         purc_variant_unref(vcm_variant->const_value);
+    }
+    if (vcm_variant->last_value) {
+        purc_variant_unref(vcm_variant->last_value);
     }
     free(vcm_variant);
 }
