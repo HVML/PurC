@@ -41,7 +41,7 @@
 #include "private/atom-buckets.h"
 #include "private/fetcher.h"
 #include "private/pcrdr.h"
-#include "private/runloop.h"
+#include "purc-runloop.h"
 
 #include <stdio.h>  // fclose on inst->fp_log
 #include <stdlib.h>

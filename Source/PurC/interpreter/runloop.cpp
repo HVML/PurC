@@ -26,7 +26,7 @@
 
 #include "config.h"
 
-#include "private/runloop.h"
+#include "purc-runloop.h"
 #include "private/errors.h"
 
 #include <wtf/Threading.h>

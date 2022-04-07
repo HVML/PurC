@@ -2,7 +2,7 @@
 
 #include "private/fetcher.h"
 #include "private/debug.h"
-#include "private/runloop.h"
+#include "purc-runloop.h"
 
 #include <gtest/gtest.h>
 #include <wtf/RunLoop.h>

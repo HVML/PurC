@@ -1,6 +1,6 @@
 #include "purc.h"
 
-#include "private/runloop.h"
+#include "purc-runloop.h"
 #include "private/interpreter.h"
 #include "private/timer.h"
 

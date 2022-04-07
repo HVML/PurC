@@ -31,7 +31,7 @@
 #include "private/errors.h"
 #include "private/timer.h"
 #include "private/interpreter.h"
-#include "private/runloop.h"
+#include "purc-runloop.h"
 
 #include <wtf/RunLoop.h>
 #include <wtf/Seconds.h>

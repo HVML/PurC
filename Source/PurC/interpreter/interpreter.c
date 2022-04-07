@@ -29,7 +29,7 @@
 
 #include "private/debug.h"
 #include "private/instance.h"
-#include "private/runloop.h"
+#include "purc-runloop.h"
 #include "private/dvobjs.h"
 #include "private/fetcher.h"
 
