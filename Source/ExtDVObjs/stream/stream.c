@@ -1,10 +1,10 @@
 /*
- * @file file.c
- * @author Geng Yue
+ * @file stream.c
+ * @author Geng Yue, Xue Shuming
  * @date 2021/07/02
- * @brief The implementation of file dynamic variant object.
+ * @brief The implementation of stream dynamic variant object.
  *
- * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ * Copyright (C) 2021, 2022 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
  *
@@ -37,7 +37,7 @@
 #define ENDIAN_BIG          2
 
 // for file to get '\n'
-static const char * pcdvobjs_file_get_next_option (const char *data,
+static const char * pcdvobjs_stream_get_next_option (const char *data,
         const char *delims, size_t *length)
 {
     const char *head = data;
@@ -60,32 +60,6 @@ static const char * pcdvobjs_file_get_next_option (const char *data,
     return head;
 }
 
-static const char * pcdvobjs_file_get_prev_option (const char *data,
-        size_t str_len, const char *delims, size_t *length)
-{
-    const char *head = NULL;
-    size_t tail = str_len;
-    char* temp = NULL;
-
-    if ((delims == NULL) || (data == NULL) || (*delims == 0x00) ||
-            (str_len == 0))
-        return NULL;
-
-    *length = 0;
-
-    while (str_len) {
-        temp = strchr (delims, *(data + str_len - 1));
-        if (temp)
-            break;
-        str_len--;
-    }
-
-    *length = tail - str_len;
-    head = data + str_len;
-
-    return head;
-}
-
 static inline bool is_little_endian (void)
 {
 #if CPU(BIG_ENDIAN)
@@ -93,86 +67,6 @@ static inline bool is_little_endian (void)
 #elif CPU(LITTLE_ENDIAN)
     return true;
 #endif
-}
-
-static ssize_t find_line (FILE *fp, int line_num, ssize_t file_length)
-{
-    size_t pos = 0;
-    int i = 0;
-    unsigned char buffer[BUFFER_SIZE];
-    ssize_t read_size = 0;
-    size_t length = 0;
-    const char *head = NULL;
-
-    if (line_num > 0) {
-        fseek (fp, 0L, SEEK_SET);
-
-        while (line_num) {
-            read_size = fread (buffer, 1, BUFFER_SIZE, fp);
-            if (read_size < 0)
-                break;
-
-            head = pcdvobjs_file_get_next_option ((char *)buffer,
-                    "\n", &length);
-            while (head) {
-                pos += length + 1;          // to be checked
-                line_num --;
-
-                if (line_num == 0)
-                    break;
-
-                head = pcdvobjs_file_get_next_option (head + length + 1, 
-                        "\n", &length);
-            }
-            if (read_size < BUFFER_SIZE)           // to the end
-                break;
-
-            if (line_num == 0)
-                break;
-        }
-    }
-    else {
-        line_num = -1 * line_num;
-        file_length --;                     // the last is 0x0A
-        pos = file_length;
-
-        while (line_num) {
-            if (file_length <= BUFFER_SIZE)
-                fseek (fp, 0L, SEEK_SET);
-            else
-                fseek (fp, file_length - (i + 1) * BUFFER_SIZE, SEEK_SET);
-
-            read_size = fread (buffer, 1, BUFFER_SIZE, fp);
-            if (read_size < 0)
-                break;
-
-            head = pcdvobjs_file_get_prev_option ((char *)buffer,
-                    read_size, "\n", &length);
-            while (head) {
-                pos -= length;
-                pos--;
-                line_num --;
-
-                if (line_num == 0)
-                    break;
-
-                read_size -= length;
-                read_size--;
-                head = pcdvobjs_file_get_prev_option ((char *)buffer,
-                        read_size, "\n", &length);
-            }
-            if (read_size < BUFFER_SIZE)           // to the end
-                break;
-
-            if (line_num == 0)
-                break;
-
-            i ++;
-            file_length -= BUFFER_SIZE;
-        }
-    }
-
-    return pos;
 }
 
 static ssize_t find_line_stream (purc_rwstream_t stream, int line_num)
@@ -190,7 +84,7 @@ static ssize_t find_line_stream (purc_rwstream_t stream, int line_num)
         if (read_size < 0)
             break;
 
-        head = pcdvobjs_file_get_next_option ((char *)buffer,
+        head = pcdvobjs_stream_get_next_option ((char *)buffer,
                 "\n", &length);
         while (head) {
             pos += length + 1;          // to be checked
@@ -199,7 +93,7 @@ static ssize_t find_line_stream (purc_rwstream_t stream, int line_num)
             if (line_num == 0)
                 break;
 
-            head = pcdvobjs_file_get_next_option (head + length + 1,
+            head = pcdvobjs_stream_get_next_option (head + length + 1,
                     "\n", &length);
         }
         if (read_size < BUFFER_SIZE)           // to the end
@@ -212,323 +106,6 @@ static ssize_t find_line_stream (purc_rwstream_t stream, int line_num)
     return pos;
 }
 
-static purc_variant_t
-text_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
-{
-    UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
-
-    int64_t line_num = 0;
-    const char *filename = NULL;
-    FILE *fp = NULL;
-    size_t pos = 0;
-    struct stat filestat;
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
-
-    if (nr_args != 2) {
-        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
-    }
-
-    if (argv[0] == PURC_VARIANT_INVALID ||
-            (!purc_variant_is_string (argv[0]))) {
-        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
-    }
-
-    // get the file name
-    filename = purc_variant_get_string_const (argv[0]);
-
-    // check whether the file exists
-    if((access(filename, F_OK | R_OK)) != 0) {
-        purc_set_error (PURC_ERROR_NOT_EXISTS);
-        return PURC_VARIANT_INVALID;
-    }
-
-    // get the file length
-    if(stat(filename, &filestat) < 0) {
-        purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
-        return PURC_VARIANT_INVALID;
-    }
-    if (filestat.st_size == 0) {
-        return purc_variant_make_string ("", false);
-    }
-
-    if (argv[1] != PURC_VARIANT_INVALID)
-        purc_variant_cast_to_longint (argv[1], &line_num, false);
-
-    fp = fopen (filename, "r");
-    if (fp == NULL) {
-        purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
-        return PURC_VARIANT_INVALID;
-    }
-
-    if (line_num == 0)
-        pos = filestat.st_size;
-    else
-        pos = find_line (fp, line_num, filestat.st_size);
-
-    char *content = malloc (pos + 1);
-    if (content == NULL) {
-        fclose (fp);
-        return purc_variant_make_string ("", false);
-    }
-
-    fseek (fp, 0L, SEEK_SET);
-    pos = fread (content, 1, pos, fp);
-    *(content + pos) = 0x00;
-
-    ret_var = purc_variant_make_string_reuse_buff (content, pos, false);
-    fclose (fp);
-
-    return ret_var;
-}
-
-static purc_variant_t
-text_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
-{
-    UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
-
-    int64_t line_num = 0;
-    const char *filename = NULL;
-    FILE *fp = NULL;
-    size_t pos = 0;
-    struct stat filestat;
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
-
-    if (nr_args != 2) {
-        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
-    }
-
-    if (argv[0] == PURC_VARIANT_INVALID ||
-            (!purc_variant_is_string (argv[0]))) {
-        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
-    }
-
-    // get the file name
-    filename = purc_variant_get_string_const (argv[0]);
-
-    // check whether the file exists
-    if((access(filename, F_OK | R_OK)) != 0) {
-        purc_set_error (PURC_ERROR_NOT_EXISTS);
-        return PURC_VARIANT_INVALID;
-    }
-
-    // get the file length
-    if(stat(filename, &filestat) < 0) {
-        purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
-        return PURC_VARIANT_INVALID;
-    }
-    if (filestat.st_size == 0) {
-        return purc_variant_make_string ("", false);
-    }
-
-    if (argv[1] != PURC_VARIANT_INVALID)
-        purc_variant_cast_to_longint (argv[1], &line_num, false);
-
-    line_num = -1 * line_num;
-
-    fp = fopen (filename, "r");
-    if (fp == NULL) {
-        purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
-        return PURC_VARIANT_INVALID;
-    }
-
-    if (line_num == 0)
-        pos = filestat.st_size;
-    else
-        pos = find_line (fp, line_num, filestat.st_size);
-
-    // pos is \n
-    if (line_num < 0)
-        pos++;
-
-    fseek (fp, pos, SEEK_SET);
-
-    pos = filestat.st_size - pos;
-
-    char *content = malloc (pos + 1);
-    if (content == NULL) {
-        fclose (fp);
-        return purc_variant_make_string ("", false);
-    }
-
-    pos = fread (content, 1, pos, fp);
-    *(content + pos) = 0x00;
-
-    ret_var = purc_variant_make_string_reuse_buff (content, pos, false);
-
-    fclose (fp);
-
-    return ret_var;
-}
-
-static purc_variant_t
-bin_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
-{
-    UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
-
-    int64_t byte_num = 0;
-    const char *filename = NULL;
-    FILE *fp = NULL;
-    size_t pos = 0;
-    struct stat filestat;
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
-
-    if (nr_args != 2) {
-        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
-    }
-
-    if (argv[0] == PURC_VARIANT_INVALID ||
-            (!purc_variant_is_string (argv[0]))) {
-        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
-    }
-
-    // get the file name
-    filename = purc_variant_get_string_const (argv[0]);
-
-    // check whether the file exists
-    if((access(filename, F_OK | R_OK)) != 0) {
-        purc_set_error (PURC_ERROR_NOT_EXISTS);
-        return PURC_VARIANT_INVALID;
-    }
-
-    // get the file length
-    if(stat(filename, &filestat) < 0) {
-        purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
-        return PURC_VARIANT_INVALID;
-    }
-    if (filestat.st_size == 0) {
-        return PURC_VARIANT_INVALID;
-    }
-
-    if (argv[1] != PURC_VARIANT_INVALID)
-        purc_variant_cast_to_longint (argv[1], &byte_num, false);
-
-    fp = fopen (filename, "r");
-    if (fp == NULL) {
-        purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
-        return PURC_VARIANT_INVALID;
-    }
-
-    if (byte_num == 0)
-        pos = filestat.st_size;
-    else if (byte_num > 0)
-        pos = byte_num;
-    else {
-        if ((-1 * byte_num) > filestat.st_size) {
-            return PURC_VARIANT_INVALID;
-        }
-        else
-            pos = filestat.st_size + byte_num;
-    }
-
-    char *content = malloc (pos);
-    if (content == NULL) {
-        fclose (fp);
-        return PURC_VARIANT_INVALID;
-    }
-
-    fseek (fp, 0L, SEEK_SET);
-    pos = fread (content, 1, pos, fp);
-
-    ret_var = purc_variant_make_byte_sequence_reuse_buff (content, pos, pos);
-
-    fclose (fp);
-
-    return ret_var;
-}
-
-
-static purc_variant_t
-bin_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
-{
-    UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
-
-    int64_t byte_num = 0;
-    const char *filename = NULL;
-    FILE *fp = NULL;
-    size_t pos = 0;
-    struct stat filestat;
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
-
-    if (nr_args != 2) {
-        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
-    }
-
-    if (argv[0] == PURC_VARIANT_INVALID ||
-            (!purc_variant_is_string (argv[0]))) {
-        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
-    }
-
-    // get the file name
-    filename = purc_variant_get_string_const (argv[0]);
-
-    // check whether the file exists
-    if((access(filename, F_OK | R_OK)) != 0) {
-        purc_set_error (PURC_ERROR_NOT_EXISTS);
-        return PURC_VARIANT_INVALID;
-    }
-
-    // get the file length
-    if(stat(filename, &filestat) < 0) {
-        purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
-        return PURC_VARIANT_INVALID;
-    }
-    if (filestat.st_size == 0) {
-        return PURC_VARIANT_INVALID;
-    }
-
-    if (argv[1] != NULL)
-        purc_variant_cast_to_longint (argv[1], &byte_num, false);
-
-    fp = fopen (filename, "r");
-    if (fp == NULL) {
-        purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
-        return PURC_VARIANT_INVALID;
-    }
-
-    if (byte_num == 0)
-        pos = filestat.st_size;
-    else if (byte_num > 0)
-        pos = byte_num;
-    else {
-        if ((-1 * byte_num) > filestat.st_size) {
-            return PURC_VARIANT_INVALID;
-        }
-        else
-            pos = filestat.st_size + byte_num;
-    }
-
-    fseek (fp, filestat.st_size - pos, SEEK_SET);
-
-    char *content = malloc (pos);
-    if (content == NULL) {
-        fclose (fp);
-        return PURC_VARIANT_INVALID;
-    }
-
-    pos = fread (content, 1, pos, fp);
-
-    ret_var = purc_variant_make_byte_sequence_reuse_buff (content, pos, pos);
-
-    fclose (fp);
-
-    return ret_var;
-}
 
 static void
 release_rwstream(void *native_entity)
@@ -1518,61 +1095,8 @@ stream_seek_getter (purc_variant_t root, size_t nr_args,
     return ret_var;
 }
 
-#if 0   // we do not need close method, the rwstream will be destroyed
-        // when the variant is released.
-static purc_variant_t
-stream_close_getter (purc_variant_t root, size_t nr_args,
-        purc_variant_t *argv, bool silently)
+purc_variant_t pcdvobjs_create_stream (void)
 {
-    UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
-
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
-    purc_rwstream_t rwstream = NULL;
-    int close = 0;
-
-    if (nr_args != 1) {
-        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
-    }
-
-    if (argv[0] == PURC_VARIANT_INVALID ||
-            (!purc_variant_is_native (argv[0]))) {
-        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
-    }
-    rwstream = purc_variant_native_get_entity (argv[0]);
-    if (rwstream == NULL) {
-        purc_set_error (PURC_ERROR_INVALID_VALUE);
-        return PURC_VARIANT_INVALID;
-    }
-
-    close = purc_rwstream_destroy (rwstream);
-
-    if (close == 0)
-        ret_var = purc_variant_make_boolean (true);
-    else
-        ret_var = purc_variant_make_boolean (false);
-
-    return ret_var;
-}
-#endif
-
-purc_variant_t pcdvobjs_create_file (void)
-{
-    purc_variant_t file_text = PURC_VARIANT_INVALID;
-    purc_variant_t file_bin = PURC_VARIANT_INVALID;
-    purc_variant_t file_stream = PURC_VARIANT_INVALID;
-    purc_variant_t file = PURC_VARIANT_INVALID;
-
-    static struct purc_dvobj_method text [] = {
-        {"head",     text_head_getter, NULL},
-        {"tail",     text_tail_getter, NULL} };
-
-    static struct purc_dvobj_method  bin[] = {
-        {"head",     bin_head_getter, NULL},
-        {"tail",     bin_tail_getter, NULL} };
-
     static struct purc_dvobj_method  stream[] = {
         {"open",        stream_open_getter,        NULL},
         {"readstruct",  stream_readstruct_getter,  NULL},
@@ -1580,35 +1104,8 @@ purc_variant_t pcdvobjs_create_file (void)
         {"readlines",   stream_readlines_getter,   NULL},
         {"readbytes",   stream_readbytes_getter,   NULL},
         {"seek",        stream_seek_getter,        NULL},
-        // {"close",       stream_close_getter,       NULL},
     };
 
-
-    file_text = purc_dvobj_make_from_methods (text, PCA_TABLESIZE(text));
-    if (file_text == PURC_VARIANT_INVALID)
-        goto error_text;
-
-
-    file_bin = purc_dvobj_make_from_methods (bin, PCA_TABLESIZE(bin));
-    if (file_bin == PURC_VARIANT_INVALID)
-        goto error_bin;
-
-    file_stream = purc_dvobj_make_from_methods (stream, PCA_TABLESIZE(stream));
-    if (file_stream == PURC_VARIANT_INVALID)
-        goto error_stream;
-
-    file = purc_variant_make_object_by_static_ckey (3,
-                                "text",   file_text,
-                                "bin",    file_bin,
-                                "stream", file_stream);
-
-    purc_variant_unref (file_stream);
-error_stream:
-    purc_variant_unref (file_bin);
-error_bin:
-    purc_variant_unref (file_text);
-error_text:
-
-
-    return file;
+    return purc_dvobj_make_from_methods (stream, PCA_TABLESIZE(stream));
 }
+
