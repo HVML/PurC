@@ -4,7 +4,7 @@
  * @date 2021/12/14
  * @brief The C api for RunLoop.
  *
- * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ * Copyright (C) 2021, 2022 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
  *
