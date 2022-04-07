@@ -2415,7 +2415,7 @@ BEGIN_STATE(HVML_EJSON_LEFT_BRACKET_STATE)
         }
         uint32_t uc = ejson_stack_top();
         if (uc == '(' || uc == '<' || uc == '[' || uc == ':' || uc == 0
-                || uc == '"') {
+                || uc == '"' || uc == 'U') {
             ejson_stack_push('[');
             if (parser->vcm_node) {
                 vcm_stack_push(parser->vcm_node);

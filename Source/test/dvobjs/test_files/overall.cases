@@ -465,3 +465,91 @@ positive:
     $EJSON.sha1('HVML', 'uppercase')
     'DA03F74DD36A33CF908AD0AE743510772D120983'
 
+# test cases for $EJSON.bin2hex
+negative:
+    $EJSON.bin2hex
+    ArgumentMissed
+
+negative:
+    $EJSON.bin2hex(null)
+    WrongDataType
+
+negative:
+    $EJSON.bin2hex('HVML', 'dasf')
+    InvalidValue
+
+positive:
+    $EJSON.bin2hex('HVML')
+    '48564d4c'
+
+positive:
+    $EJSON.bin2hex('HVML', 'lowercase')
+    '48564d4c'
+
+positive:
+    $EJSON.bin2hex('HVML', 'uppercase')
+    '48564D4C'
+
+# test cases for $EJSON.hex2bin
+negative:
+    $EJSON.hex2bin
+    ArgumentMissed
+
+negative:
+    $EJSON.hex2bin(null)
+    WrongDataType
+
+negative:
+    $EJSON.hex2bin('asdaf')
+    BadEncoding
+
+positive:
+    $EJSON.hex2bin('0FF')
+    bb0000.1111
+
+positive:
+    $EJSON.hex2bin('0FF0')
+    bx0ff0
+
+positive:
+    $EJSON.hex2bin('48564d4c')
+    bx48564d4c
+
+# test cases for $EJSON.base64_encode
+negative:
+    $EJSON.base64_encode
+    ArgumentMissed
+
+negative:
+    $EJSON.base64_encode(false)
+    WrongDataType
+
+positive:
+    $EJSON.base64_encode('HVML')
+    'SFZNTA=='
+
+positive:
+    $EJSON.base64_encode(bx48564d4c)
+    'SFZNTA=='
+
+positive:
+    $EJSON.base64_encode('HVML 是全球首款可编程标记语言')
+    'SFZNTCDmmK/lhajnkIPpppbmrL7lj6/nvJbnqIvmoIforrDor63oqIA='
+
+# test cases for $EJSON.base64_decode
+negative:
+    $EJSON.base64_decode
+    ArgumentMissed
+
+negative:
+    $EJSON.base64_decode(false)
+    WrongDataType
+
+positive:
+    $EJSON.base64_decode('SFZNTA==')
+    bx48564d4c
+
+positive:
+    $EJSON.fetchstr($EJSON.base64_decode('SFZNTCDmmK/lhajnkIPpppbmrL7lj6/nvJbnqIvmoIforrDor63oqIA='), 'utf8')
+    'HVML 是全球首款可编程标记语言'
+

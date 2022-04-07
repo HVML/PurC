@@ -1,4 +1,5 @@
 /*
+ * Copyright (C) 2021, 2022 FMSoft <https://www.fmsoft.cn>
  * Copyright (C) 2010 Apple Inc. All rights reserved.
  * Portions Copyright (c) 2010 Motorola Mobility, Inc.  All rights reserved.
  *
@@ -104,6 +105,27 @@ void RunLoop::setIdleCallback(WTF::Function<void()>&& function)
     }
     else {
         g_source_destroy(m_idleSource.get());
+    }
+}
+
+uintptr_t RunLoop::addFdMonitor(gint fd, GIOCondition condition,
+            Function<gboolean(gint, GIOCondition)>&& callback)
+{
+    RefPtr<GFdMonitor> monitor = adoptRef(new GFdMonitor());
+    monitor->start(fd, condition, mainContext(), WTFMove(callback));
+    m_fdMonitors.append(monitor);
+    return (uintptr_t)monitor.get();
+}
+
+void RunLoop::removeFdMonitor(uintptr_t handle)
+{
+    if (!handle) {
+        return;
+    }
+    GFdMonitor *p = (GFdMonitor*) handle;
+    size_t ret = m_fdMonitors.find(p);
+    if (ret != notFound) {
+        m_fdMonitors.remove(ret);
     }
 }
 

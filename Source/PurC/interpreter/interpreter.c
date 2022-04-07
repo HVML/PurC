@@ -29,7 +29,7 @@
 
 #include "private/debug.h"
 #include "private/instance.h"
-#include "private/runloop.h"
+#include "purc-runloop.h"
 #include "private/dvobjs.h"
 #include "private/fetcher.h"
 
@@ -46,7 +46,7 @@
 
 void pcintr_stack_init_once(void)
 {
-    pcrunloop_t runloop = pcrunloop_get_current();
+    purc_runloop_t runloop = purc_runloop_get_current();
     PC_ASSERT(runloop);
     init_ops();
 }
@@ -1020,9 +1020,9 @@ static int run_coroutines(void *ctxt)
         pcintr_coroutine_ready();
     }
     else if (waits==0) {
-        pcrunloop_t runloop = pcrunloop_get_current();
+        purc_runloop_t runloop = purc_runloop_get_current();
         PC_ASSERT(runloop);
-        pcrunloop_stop(runloop);
+        purc_runloop_stop(runloop);
     }
 
     return 0;
@@ -1030,9 +1030,9 @@ static int run_coroutines(void *ctxt)
 
 void pcintr_coroutine_ready(void)
 {
-    pcrunloop_t runloop = pcrunloop_get_current();
+    purc_runloop_t runloop = purc_runloop_get_current();
     PC_ASSERT(runloop);
-    pcrunloop_dispatch(runloop, run_coroutines, NULL);
+    purc_runloop_dispatch(runloop, run_coroutines, NULL);
 }
 
 struct pcintr_stack_frame*
@@ -1374,7 +1374,7 @@ purc_run(purc_variant_t request, purc_event_handler handler)
     UNUSED_PARAM(request);
     UNUSED_PARAM(handler);
 
-    pcrunloop_run();
+    purc_runloop_run();
 
     return true;
 }
@@ -1879,9 +1879,9 @@ pcintr_dispatch_message_ex(pcintr_stack_t stack, purc_variant_t source,
         return PURC_ERROR_OUT_OF_MEMORY;
     }
 
-    pcrunloop_t runloop = pcrunloop_get_current();
+    purc_runloop_t runloop = purc_runloop_get_current();
     PC_ASSERT(runloop);
-    pcrunloop_dispatch(runloop, pcintr_handle_message, msg);
+    purc_runloop_dispatch(runloop, pcintr_handle_message, msg);
     return PURC_ERROR_OK;
 }
 

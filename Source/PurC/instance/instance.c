@@ -41,7 +41,7 @@
 #include "private/atom-buckets.h"
 #include "private/fetcher.h"
 #include "private/pcrdr.h"
-#include "private/runloop.h"
+#include "purc-runloop.h"
 
 #include <stdio.h>  // fclose on inst->fp_log
 #include <stdlib.h>
@@ -423,8 +423,8 @@ int purc_init_ex(unsigned int modules,
     }
 
     if (modules & PURC_HAVE_FETCHER) {
-        if (!pcrunloop_is_main_initialized()) {
-            pcrunloop_init_main();
+        if (!purc_runloop_is_main_initialized()) {
+            purc_runloop_init_main();
             curr_inst->initialized_main_runloop = true;
         }
 
@@ -478,7 +478,7 @@ bool purc_cleanup(void)
         if (_modules & PURC_HAVE_FETCHER) {
             pcfetcher_term();
             if (curr_inst->initialized_main_runloop) {
-                pcrunloop_stop_main();
+                purc_runloop_stop_main();
             }
         }
 

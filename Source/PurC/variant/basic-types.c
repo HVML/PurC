@@ -617,6 +617,24 @@ purc_variant_t purc_variant_make_byte_sequence_reuse_buff(void* bytes,
     return value;
 }
 
+purc_variant_t purc_variant_make_byte_sequence_empty(void)
+{
+    static const size_t sz_bytes = MAX(sizeof(long double), sizeof(void*) * 2);
+    purc_variant_t value = pcvariant_get (PURC_VARIANT_TYPE_BSEQUENCE);
+
+    if (value == NULL) {
+        pcinst_set_error (PURC_ERROR_OUT_OF_MEMORY);
+        return PURC_VARIANT_INVALID;
+    }
+
+    value->type = PURC_VARIANT_TYPE_BSEQUENCE;
+    value->flags = 0;
+    value->refc = 1;
+    value->size = 0;
+    memset(value->bytes, 0, sz_bytes);
+
+    return value;
+}
 
 const unsigned char *purc_variant_get_bytes_const(purc_variant_t sequence,
         size_t* nr_bytes)

@@ -1,5 +1,5 @@
 /*
- * base64 - libhibox base64 functions
+ * base64 - base64 functions
  *
  * Copyright (C) 2015 Felix Fietkau <nbd@openwrt.org>
  *
@@ -14,11 +14,7 @@
  * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- */
-
-/*    $OpenBSD: base64.c,v 1.7 2013/12/31 02:32:56 tedu Exp $    */
-
-/*
+ *
  * Copyright (c) 1996 by Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -33,9 +29,7 @@
  * PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
  * ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
  * SOFTWARE.
- */
-
-/*
+ *
  * Portions Copyright (c) 1995 by International Business Machines, Inc.
  *
  * International Business Machines, Inc. (hereinafter called IBM) grants
@@ -60,13 +54,13 @@
  * IF IBM IS APPRISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
 
-#include "purc-utils.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
 #include <assert.h>
+
+#include "private/utils.h"
 
 static const char Base64[] =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
@@ -135,7 +129,7 @@ static const char Pad64 = '=';
        characters followed by one "=" padding character.
    */
 
-int b64_encode(const void *_src, size_t srclength,
+ssize_t pcutils_b64_encode(const void *_src, size_t srclength,
            void *dest, size_t targsize)
 {
     const unsigned char *src = _src;
@@ -199,7 +193,7 @@ int b64_encode(const void *_src, size_t srclength,
    it returns the number of data bytes stored at the target, or -1 on error.
  */
 
-int b64_decode(const void *_src, void *dest, size_t targsize)
+ssize_t pcutils_b64_decode(const void *_src, void *dest, size_t targsize)
 {
     const char *src = _src;
     unsigned char *target = dest;
@@ -331,3 +325,4 @@ int b64_decode(const void *_src, void *dest, size_t targsize)
 
     return (tarindex);
 }
+
