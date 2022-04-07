@@ -37,7 +37,8 @@ TEST(timer, oneShot)
 
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    pcintr_timer_t timer = pcintr_timer_create("oneShot", NULL, one_shot_timer_fire);
+    pcintr_timer_t timer = pcintr_timer_create(NULL, "oneShot", NULL,
+            one_shot_timer_fire);
     ASSERT_NE (timer, nullptr);
 
     pcintr_timer_set_interval(timer, 200);
@@ -63,7 +64,8 @@ TEST(timer, interval)
 
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    pcintr_timer_t timer = pcintr_timer_create("oneShot", NULL, interval_timer_fire);
+    pcintr_timer_t timer = pcintr_timer_create(NULL, "oneShot", NULL,
+            interval_timer_fire);
     ASSERT_NE (timer, nullptr);
 
     pcintr_timer_set_interval(timer, 100);

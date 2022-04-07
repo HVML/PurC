@@ -49,7 +49,7 @@ class PurcTimer : public WTF::RunLoop::TimerBase {
             , m_ctxt(ctxt)
             , m_func(func)
         {
-            m_id = strdup(id);
+            m_id = id ? strdup(id) : NULL;
         }
 
         ~PurcTimer()
@@ -74,9 +74,11 @@ class PurcTimer : public WTF::RunLoop::TimerBase {
 };
 
 pcintr_timer_t
-pcintr_timer_create(const char* id, void* ctxt, pcintr_timer_fire_func func)
+pcintr_timer_create(purc_runloop_t runloop, const char* id, void* ctxt,
+        pcintr_timer_fire_func func)
 {
-    PurcTimer* timer = new PurcTimer(id, ctxt, func, RunLoop::current());
+    RunLoop* loop = runloop ? (RunLoop*)runloop : &RunLoop::current(); 
+    PurcTimer* timer = new PurcTimer(id, ctxt, func, *loop);
     if (!timer) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
@@ -240,7 +242,7 @@ get_inner_timer(pcintr_stack_t stack, purc_variant_t timer_var)
         return timer;
     }
 
-    timer = pcintr_timer_create(idstr, stack, timer_fire_func);
+    timer = pcintr_timer_create(NULL, idstr, stack, timer_fire_func);
     if (timer == NULL) {
         return NULL;
     }

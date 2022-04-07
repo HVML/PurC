@@ -282,6 +282,11 @@ static void cleanup_instance(struct pcinst *curr_inst)
         fclose(curr_inst->fp_log);
         curr_inst->fp_log = NULL;
     }
+
+    if (curr_inst->bt) {
+        pcdebug_backtrace_unref(curr_inst->bt);
+        curr_inst->bt = NULL;
+    }
 }
 
 static void enable_log_on_demand(void)
@@ -452,6 +457,8 @@ bool purc_cleanup(void)
         if (curr_inst == NULL || curr_inst->app_name == NULL)
             return false;
 
+        PURC_VARIANT_SAFE_CLEAR(curr_inst->err_exinfo);
+
         /* disconnnect from the renderer */
         if (_modules & PURC_HAVE_PCRDR && curr_inst->conn_to_rdr) {
             pcrdr_cleanup_instance(curr_inst);
@@ -608,3 +615,18 @@ purc_unbind_document_variable(purc_vdom_t vdom, const char* name)
     return pcvdom_document_unbind_variable(vdom, name);
 }
 #endif
+
+void pcinst_clear_error(struct pcinst *inst)
+{
+    if (!inst)
+        return;
+
+    inst->errcode = 0;
+    PURC_VARIANT_SAFE_CLEAR(inst->err_exinfo);
+
+    if (inst->bt) {
+        pcdebug_backtrace_unref(inst->bt);
+        inst->bt = NULL;
+    }
+}
+

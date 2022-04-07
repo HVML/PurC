@@ -41,6 +41,11 @@
 
 #include <stdarg.h>
 
+#define EVENT_SEPARATOR      ":"
+#define EVENT_TIMER_INTRVAL  10
+
+#define MSG_TYPE_CHANGE     "change"
+
 void pcintr_stack_init_once(void)
 {
     purc_runloop_t runloop = purc_runloop_get_current();
@@ -300,6 +305,17 @@ stack_release(pcintr_stack_t stack)
 
     if (stack->base_uri) {
         free(stack->base_uri);
+    }
+
+    PURC_VARIANT_SAFE_CLEAR(stack->exception.exinfo);
+    if (stack->exception.bt) {
+        pcdebug_backtrace_unref(stack->exception.bt);
+        stack->exception.bt = NULL;
+    }
+
+    if (stack->event_timer) {
+        pcintr_timer_destroy(stack->event_timer);
+        stack->event_timer = NULL;
     }
 }
 
@@ -687,10 +703,15 @@ dump_stack(pcintr_stack_t stack)
 {
     fprintf(stderr, "dumping stacks of corroutine [%p] ......\n", &stack->co);
     PC_ASSERT(stack);
+    struct pcintr_exception *exception = &stack->exception;
+    struct pcdebug_backtrace *bt = exception->bt;
+    if (!bt)
+        return;
+
     fprintf(stderr, "error_except: generated @%s[%d]:%s()\n",
-            pcutils_basename((char*)stack->file), stack->lineno, stack->func);
-    purc_atom_t     error_except = stack->error_except;
-    purc_variant_t  err_except_info = stack->err_except_info;
+            pcutils_basename((char*)bt->file), bt->line, bt->func);
+    purc_atom_t     error_except = exception->error_except;
+    purc_variant_t  err_except_info = exception->exinfo;
     if (error_except) {
         fprintf(stderr, "error_except: %s\n",
                 purc_atom_to_string(error_except));
@@ -836,6 +857,30 @@ on_select_child(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 }
 
 static void
+exception_copy(struct pcintr_exception *exception)
+{
+    if (!exception)
+        return;
+
+    const struct pcinst *inst = pcinst_current();
+    exception->errcode        = inst->errcode;
+    exception->error_except   = inst->error_except;
+
+    if (inst->err_exinfo)
+        purc_variant_ref(inst->err_exinfo);
+    PURC_VARIANT_SAFE_CLEAR(exception->exinfo);
+    exception->exinfo = inst->err_exinfo;
+
+    if (inst->bt)
+        pcdebug_backtrace_ref(inst->bt);
+    if (exception->bt) {
+        pcdebug_backtrace_unref(exception->bt);
+    }
+
+    exception->bt = inst->bt;
+}
+
+static void
 execute_one_step(pcintr_coroutine_t co)
 {
     pcintr_stack_t stack = co->stack;
@@ -871,6 +916,17 @@ execute_one_step(pcintr_coroutine_t co)
     PC_ASSERT(co->state == CO_STATE_RUN);
     co->state = CO_STATE_READY;
     PC_ASSERT(co->stack);
+
+    struct pcinst *inst = pcinst_current();
+    PC_ASSERT(inst);
+    if (inst->errcode) {
+        PC_ASSERT(co->stack->except == 0);
+        exception_copy(&co->stack->exception);
+        co->stack->except = 1;
+        pcinst_clear_error(inst);
+        PC_ASSERT(inst->errcode == 0);
+    }
+
     if (co->stack->except) {
         dump_stack(co->stack);
         dump_c_stack();
@@ -1264,6 +1320,16 @@ purc_load_hvml_from_rwstream_ex(purc_rwstream_t stream,
     }
     stack_init(stack);
 
+    stack->event_timer = pcintr_timer_create(NULL, NULL, stack,
+            pcintr_event_timer_fire);
+    if (!stack->event_timer) {
+        vdom_destroy(vdom);
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return NULL;
+    }
+    pcintr_timer_set_interval(stack->event_timer, EVENT_TIMER_INTRVAL);
+    pcintr_timer_start(stack->event_timer);
+
     stack->vdom = vdom;
     stack->co.stack = stack;
     stack->co.state = CO_STATE_READY;
@@ -1457,14 +1523,14 @@ pcintr_register_observer(purc_variant_t observed,
     }
 
     char* p = value;
-    char* msg_type = strtok_r(p, ":", &p);
+    char* msg_type = strtok_r(p, EVENT_SEPARATOR, &p);
     if (!msg_type) {
         //TODO : purc_set_error();
         free(value);
         return NULL;
     }
 
-    char* sub_type = strtok_r(p, ":", &p);
+    char* sub_type = strtok_r(p, EVENT_SEPARATOR, &p);
 
     struct pcintr_observer* observer =  (struct pcintr_observer*)calloc(1,
             sizeof(struct pcintr_observer));
@@ -1511,14 +1577,14 @@ pcintr_revoke_observer_ex(purc_variant_t observed, purc_variant_t for_value)
     }
 
     char* p = value;
-    char* msg_type = strtok_r(p, ":", &p);
+    char* msg_type = strtok_r(p, EVENT_SEPARATOR, &p);
     if (!msg_type) {
         //TODO : purc_set_error();
         free(value);
         return false;
     }
 
-    char* sub_type = strtok_r(p, ":", &p);
+    char* sub_type = strtok_r(p, EVENT_SEPARATOR, &p);
     purc_variant_t msg_type_var = purc_variant_make_string(msg_type, false);
     purc_variant_t sub_type_var = PURC_VARIANT_INVALID;
     if (sub_type) {
@@ -1770,7 +1836,7 @@ pcintr_dispatch_message(pcintr_stack_t stack, purc_variant_t source,
     }
 
     char *p = value;
-    char *s_type = strtok_r(p, ":", &p);
+    char *s_type = strtok_r(p, EVENT_SEPARATOR, &p);
     if (!s_type) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto out_free_value;
@@ -1782,7 +1848,7 @@ pcintr_dispatch_message(pcintr_stack_t stack, purc_variant_t source,
     }
 
     purc_variant_t sub_type = PURC_VARIANT_INVALID;
-    char *s_sub_type = strtok_r(p, ":", &p);
+    char *s_sub_type = strtok_r(p, EVENT_SEPARATOR, &p);
     if (s_sub_type) {
         sub_type = purc_variant_make_string(s_sub_type, true);
         if (sub_type == PURC_VARIANT_INVALID) {
@@ -2634,3 +2700,93 @@ pcintr_get_percent_var(struct pcintr_stack_frame *frame)
     return pcintr_get_symbol_var(frame, PURC_SYMBOL_VAR_PERCENT_SIGN);
 }
 
+void
+pcintr_observe_vcm_ev(pcintr_stack_t stack, struct pcintr_observer* observer,
+        purc_variant_t var, struct purc_native_ops *ops)
+{
+    UNUSED_PARAM(stack);
+    UNUSED_PARAM(observer);
+    UNUSED_PARAM(var);
+    UNUSED_PARAM(ops);
+
+    void *native_entity = purc_variant_native_get_entity(var);
+
+    // create virtual frame
+    struct pcintr_stack_frame *frame;
+    frame = push_stack_frame(stack);
+    if (!frame)
+        return;
+
+    frame->ops = pcintr_get_ops_by_element(observer->pos);
+    frame->scope = observer->scope;
+    frame->pos = observer->pos;
+    frame->silently = pcintr_is_element_silently(frame->pos);
+    frame->edom_element = observer->edom_element;
+
+    // eval value
+    purc_nvariant_method eval_getter = ops->property_getter(
+            PCVCM_EV_PROPERTY_EVAL);
+    purc_variant_t new_val = eval_getter(native_entity, 0, NULL,
+            frame->silently);
+    pop_stack_frame(stack);
+
+    if (!new_val) {
+        return;
+    }
+
+    // get last value
+    purc_nvariant_method last_value_getter = ops->property_getter(
+            PCVCM_EV_PROPERTY_LAST_VALUE);
+    purc_variant_t last_value = last_value_getter(native_entity, 0, NULL,
+            frame->silently);
+    int cmp = purc_variant_compare_ex(new_val, last_value,
+            PCVARIANT_COMPARE_OPT_AUTO);
+    if (cmp == 0) {
+        purc_variant_unref(new_val);
+        return;
+    }
+
+    purc_nvariant_method last_value_setter = ops->property_setter(
+            PCVCM_EV_PROPERTY_LAST_VALUE);
+    last_value_setter(native_entity, 1, &new_val, frame->silently);
+
+    // dispatch change event
+    purc_variant_t type = purc_variant_make_string(MSG_TYPE_CHANGE, false);
+    purc_variant_t sub_type = PURC_VARIANT_INVALID;
+
+    pcintr_dispatch_message_ex(stack, var, type, sub_type, PURC_VARIANT_INVALID);
+
+    purc_variant_unref(type);
+}
+
+void
+pcintr_event_timer_fire(const char* id, void* ctxt)
+{
+    UNUSED_PARAM(id);
+    UNUSED_PARAM(ctxt);
+
+    if (!ctxt) {
+        return;
+    }
+
+    pcintr_stack_t stack = (pcintr_stack_t)ctxt;
+    if (stack->native_variant_observer_list == NULL) {
+        return;
+    }
+
+    size_t n = pcutils_arrlist_length(stack->native_variant_observer_list);
+    for (size_t i = 0; i < n; i++) {
+        struct pcintr_observer* observer = pcutils_arrlist_get_idx(
+                stack->native_variant_observer_list, i);
+        purc_variant_t var = observer->observed;
+        struct purc_native_ops *ops = purc_variant_native_get_ops(var);
+        if (!ops) {
+            continue;
+        }
+        purc_nvariant_method is_vcm_ev = ops->property_getter(
+                PCVCM_EV_PROPERTY_VCM_EV);
+        if (is_vcm_ev) {
+            pcintr_observe_vcm_ev(stack, observer, var, ops);
+        }
+    }
+}
