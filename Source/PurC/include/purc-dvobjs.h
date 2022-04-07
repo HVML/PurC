@@ -3,7 +3,7 @@
  * @date 2021/03/15
  * @brief This file declares APIs for the built-in Dynmaic Variant Objects.
  *
- * Copyright (c) 2022 FMSoft (http://www.fmsoft.cn)
+ * Copyright (C) 2022 FMSoft (http://www.fmsoft.cn)
  *
  * Authors:
  *  Vincent Wei (<https://github.com/VincentWei>), 2022

@@ -3,7 +3,7 @@
  * @date 2021/03/08
  * @brief This file declares APIs of global helpers.
  *
- * Copyright (c) 2022 FMSoft (http://www.fmsoft.cn)
+ * Copyright (C) 2022 FMSoft (http://www.fmsoft.cn)
  *
  * Authors:
  *  Vincent Wei (<https://github.com/VincentWei>), 2022
