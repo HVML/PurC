@@ -586,22 +586,27 @@ positive:
 negative:
     $EJSON.unpack
     ArgumentMissed
+    []
 
 negative:
     $EJSON.unpack("")
     ArgumentMissed
+    []
 
 negative:
     $EJSON.unpack("", bx00FF)
     InvalidValue
+    []
 
 negative:
     $EJSON.unpack(false, false)
     WrongDataType
+    []
 
 negative:
     $EJSON.unpack("utf8", false)
     WrongDataType
+    []
 
 positive:
     $EJSON.unpack("utf8", $EJSON.base64_decode('SFZNTCDmmK/lhajnkIPpppbmrL7lj6/nvJbnqIvmoIforrDor63oqIA='))

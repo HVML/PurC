@@ -581,7 +581,22 @@ fetchstr_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto failed;
     }
 
-    length = nr_bytes;
+    encoding = pcutils_trim_spaces(encoding, &encoding_len);
+    if (encoding_len == 0) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
+
+    int encoding_id = purc_dvobj_parse_format(encoding, encoding_len, &length);
+    if (encoding_id < 0) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
+
+    if (length == 0) {
+        length = nr_bytes;
+    }
+
     if (nr_args > 2 && !purc_variant_is_null(argv[2])) {
         uint64_t tmp;
         if (!purc_variant_cast_to_ulongint(argv[2], &tmp, false)) {
@@ -619,28 +634,17 @@ fetchstr_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             goto failed;
         }
     }
-    else {
-        // length is calculated
+
+    if (length >= nr_bytes - offset) {
         length = nr_bytes - offset;
     }
 
     if (length == 0)
         return purc_variant_make_string_static("", false);
 
-    bytes += offset;
-    nr_bytes -= offset;
-
-    encoding = pcutils_trim_spaces(encoding, &encoding_len);
-    if (encoding_len == 0) {
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
-        goto failed;
-    }
-
     size_t consumed;
-    int encoding_id = pcdvobjs_global_keyword_id(encoding, encoding_len);
-
     purc_variant_t retv;
-    retv = purc_dvobj_unpack_string(bytes, nr_bytes, &consumed,
+    retv = purc_dvobj_unpack_string(bytes + offset, length, &consumed,
             encoding_id, silently);
 
     if (retv == PURC_VARIANT_INVALID) {
@@ -1066,9 +1070,6 @@ purc_dvobj_unpack_bytes(const uint8_t *bytes, size_t nr_bytes,
             purc_set_error(PURC_ERROR_INVALID_VALUE);
             goto failed;
         }
-
-        purc_log_info("format: %s (%d), quantity: %lu\n",
-                format, format_id, quantity);
 
         if (format_id >= PURC_K_KW_i8 && format_id <= PURC_K_KW_f128be) {
 
