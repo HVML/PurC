@@ -131,4 +131,36 @@
    fun:init_once
    fun:purc_init_ex
 }
+{
+   <purc_init_ex>
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   fun:_ZN3WTF10fastMallocEm
+   fun:_ZN3WTF16fastZeroedMallocEm
+   fun:_ZN3WTF10FastMalloc12zeroedMallocEm
+   fun:_ZN3WTF9HashTableIPNS_6ThreadES2_NS_17IdentityExtractorENS_7PtrHashIS2_EENS_10HashTraitsIS2_EES7_E13allocateTableEj
+   fun:_ZN3WTF9HashTableIPNS_6ThreadES2_NS_17IdentityExtractorENS_7PtrHashIS2_EENS_10HashTraitsIS2_EES7_E6rehashEjPS2_
+   fun:_ZN3WTF9HashTableIPNS_6ThreadES2_NS_17IdentityExtractorENS_7PtrHashIS2_EENS_10HashTraitsIS2_EES7_E6expandEPS2_
+   fun:_ZN3WTF9HashTableIPNS_6ThreadES2_NS_17IdentityExtractorENS_7PtrHashIS2_EENS_10HashTraitsIS2_EES7_E3addINS_22IdentityHashTranslatorIS7_S5_EERKS2_S2_EENS_18HashTableAddResultINS_17HashTableIteratorIS2_S2_S3_S5_S7_S7_EEEEOT0_OT1_
+   fun:_ZN3WTF9HashTableIPNS_6ThreadES2_NS_17IdentityExtractorENS_7PtrHashIS2_EENS_10HashTraitsIS2_EES7_E3addEOS2_
+   fun:_ZN3WTF7HashSetIPNS_6ThreadENS_7PtrHashIS2_EENS_10HashTraitsIS2_EEE3addEOS2_
+   fun:_ZN3WTF6Thread6createEPKcONS_8FunctionIFvvEEENS_10ThreadTypeE
+   fun:purc_runloop_init_main
+   fun:purc_init_ex
+}
+{
+   <_ZL12process_filePKc>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:atom_new
+   fun:atom_from_string
+   fun:atom_from_string_locked
+   fun:purc_atom_from_static_string_ex
+   fun:purc_dvobj_system_new
+   fun:init_buidin_doc_variable
+   fun:purc_load_hvml_from_rwstream_ex
+   fun:purc_load_hvml_from_string_ex
+}
 
