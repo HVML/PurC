@@ -28,7 +28,7 @@
 #include <stdint.h>
 
 typedef void* purc_runloop_t;
-enum purc_runloop_io_condition
+typedef enum purc_runloop_io_state
 {
     PCRUNLOOP_IO_IN,
     PCRUNLOOP_IO_OUT,
@@ -36,7 +36,7 @@ enum purc_runloop_io_condition
     PCRUNLOOP_IO_ERR,
     PCRUNLOOP_IO_HUP,
     PCRUNLOOP_IO_NVAL,
-};
+} purc_runloop_io_state;
 
 PCA_EXTERN_C_BEGIN
 
@@ -70,11 +70,11 @@ void purc_runloop_set_idle_func(purc_runloop_t runloop, purc_runloop_func func,
         void* ctxt);
 
 typedef bool (*purc_runloop_io_callback)(int fd,
-        enum purc_runloop_io_condition condition, void *ctxt);
+        purc_runloop_io_state state, void *ctxt);
 
 uintptr_t purc_runloop_add_fd_monitor(purc_runloop_t runloop, int fd,
-        enum purc_runloop_io_condition condition,
-        purc_runloop_io_callback callback, void *ctxt);
+        purc_runloop_io_state state, purc_runloop_io_callback callback,
+        void *ctxt);
 
 void purc_runloop_remove_fd_monitor(purc_runloop_t runloop, uintptr_t handle);
 
