@@ -28,7 +28,7 @@
 #include <stdint.h>
 
 typedef void* purc_runloop_t;
-typedef enum purc_runloop_io_state
+typedef enum purc_runloop_io_event
 {
     PCRUNLOOP_IO_IN,
     PCRUNLOOP_IO_OUT,
@@ -36,46 +36,159 @@ typedef enum purc_runloop_io_state
     PCRUNLOOP_IO_ERR,
     PCRUNLOOP_IO_HUP,
     PCRUNLOOP_IO_NVAL,
-} purc_runloop_io_state;
+} purc_runloop_io_event;
 
 PCA_EXTERN_C_BEGIN
 
+/**
+ * Init main runloop
+ *
+ * Return: void
+ *
+ * Since: 0.1.1
+ */
+PCA_EXPORT
 void purc_runloop_init_main(void);
 
+/**
+ * Stop main runloop
+ *
+ * Return: void
+ *
+ * Since: 0.1.1
+ */
+PCA_EXPORT
 void purc_runloop_stop_main(void);
 
+/**
+ * Check if the man runloop is initialized.
+ *
+ * Returns: The function returns a boolean indicating whether main RunLoop
+ *  is initialized.
+ *
+ * Since: 0.1.1
+ */
+PCA_EXPORT
 bool purc_runloop_is_main_initialized(void);
 
-// the RunLoop of current thread
+/**
+ * Get the runloop of current thread
+ *
+ * Returns: The runloop of current thread
+ *
+ * Since: 0.1.1
+ */
+PCA_EXPORT
 purc_runloop_t purc_runloop_get_current(void);
 
-// check if current is in main thread
+/**
+ * Check if current is on main runloop.
+ *
+ * Returns: The function returns a boolean indicating whether current is on main
+ *  runloop.
+ *
+ * Since: 0.1.1
+ */
+PCA_EXPORT
 bool purc_runloop_is_on_main(void);
 
-// start the current runloop
+/**
+ * Start the current runloop
+ *
+ * Returns: void
+ *
+ * Since: 0.1.1
+ */
+PCA_EXPORT
 void purc_runloop_run(void);
 
-// stop the runloop
+/**
+ * Stop the runloop
+ *
+ * @param runloop: the runloop.
+ *
+ * Returns: void
+ *
+ * Since: 0.1.1
+ */
+PCA_EXPORT
 void purc_runloop_stop(purc_runloop_t runloop);
 
-// warkup the runloop
+/**
+ * Warkup the runloop
+ *
+ * @param runloop: the runloop.
+ *
+ * Returns: void
+ *
+ * Since: 0.1.1
+ */
+PCA_EXPORT
 void purc_runloop_wakeup(purc_runloop_t runloop);
 
-// dispatch function
-typedef int (*purc_runloop_func)(void* ctxt);
+typedef int (*purc_runloop_func)(void *ctxt);
+
+/**
+ * Dispatch function on the runloop
+ *
+ * @param runloop: the runloop.
+ * @param func: the function to dispatch.
+ * @param ctxt: the data to pass to the function
+ *
+ * Returns: void
+ *
+ * Since: 0.1.1
+ */
+PCA_EXPORT
 void purc_runloop_dispatch(purc_runloop_t runloop, purc_runloop_func func,
-        void* ctxt);
-
-void purc_runloop_set_idle_func(purc_runloop_t runloop, purc_runloop_func func,
-        void* ctxt);
-
-typedef bool (*purc_runloop_io_callback)(int fd,
-        purc_runloop_io_state state, void *ctxt);
-
-uintptr_t purc_runloop_add_fd_monitor(purc_runloop_t runloop, int fd,
-        purc_runloop_io_state state, purc_runloop_io_callback callback,
         void *ctxt);
 
+/**
+ * Set the idle function on the runloop which will be called on idle.
+ *
+ * @param runloop: the runloop.
+ * @param func: the function.
+ * @param ctxt: the data to pass to the function
+ *
+ * Returns: void
+ *
+ * Since: 0.1.1
+ */
+PCA_EXPORT
+void purc_runloop_set_idle_func(purc_runloop_t runloop, purc_runloop_func func,
+        void *ctxt);
+
+typedef bool (*purc_runloop_io_callback)(int fd,
+        purc_runloop_io_event event, void *ctxt);
+
+/**
+ * Add file descriptors monitor on the runloop
+ *
+ * @param runloop: the runloop
+ * @param fd: the file descriptors
+ * @param event: the io event
+ * @param callback: the callback function
+ * @param ctxt: the data to pass to the function
+ *
+ * Returns: the handle of the monitor
+ *
+ * Since: 0.1.1
+ */
+PCA_EXPORT
+uintptr_t purc_runloop_add_fd_monitor(purc_runloop_t runloop, int fd,
+        purc_runloop_io_event event, purc_runloop_io_callback callback,
+        void *ctxt);
+
+/**
+ * Remove file descriptors monitor on the runloop
+ *
+ * @param runloop: the runloop
+ * @param handle: the monitor handle
+ *
+ * Returns: void
+ *
+ * Since: 0.1.1
+ */
 void purc_runloop_remove_fd_monitor(purc_runloop_t runloop, uintptr_t handle);
 
 PCA_EXTERN_C_END

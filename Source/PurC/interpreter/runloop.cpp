@@ -122,8 +122,8 @@ void purc_runloop_set_idle_func(purc_runloop_t runloop, purc_runloop_func func,
     }
 }
 
-static purc_runloop_io_state
-to_runloop_io_state(GIOCondition condition)
+static purc_runloop_io_event
+to_runloop_io_event(GIOCondition condition)
 {
     switch (condition) {
     case G_IO_IN:
@@ -142,9 +142,9 @@ to_runloop_io_state(GIOCondition condition)
 }
 
 static GIOCondition
-to_gio_condition(purc_runloop_io_state state)
+to_gio_condition(purc_runloop_io_event event)
 {
-    switch (state) {
+    switch (event) {
     case PCRUNLOOP_IO_IN:
         return G_IO_IN;
     case PCRUNLOOP_IO_OUT:
@@ -162,15 +162,15 @@ to_gio_condition(purc_runloop_io_state state)
 
 
 uintptr_t purc_runloop_add_fd_monitor(purc_runloop_t runloop, int fd,
-        purc_runloop_io_state state, purc_runloop_io_callback callback,
+        purc_runloop_io_event event, purc_runloop_io_callback callback,
         void *ctxt)
 {
     if (!runloop) {
         runloop = purc_runloop_get_current();
     }
-    return ((RunLoop*)runloop)->addFdMonitor(fd, to_gio_condition(state),
+    return ((RunLoop*)runloop)->addFdMonitor(fd, to_gio_condition(event),
             [callback, ctxt] (gint fd, GIOCondition condition) -> gboolean {
-            return callback(fd, to_runloop_io_state(condition), ctxt);
+            return callback(fd, to_runloop_io_event(condition), ctxt);
         });
 }
 
