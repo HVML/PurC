@@ -139,6 +139,7 @@ to_runloop_io_event(GIOCondition condition)
     case G_IO_NVAL:
         return PCRUNLOOP_IO_NVAL;
     }
+    return PCRUNLOOP_IO_NVAL;
 }
 
 static GIOCondition
@@ -158,6 +159,7 @@ to_gio_condition(purc_runloop_io_event event)
     case PCRUNLOOP_IO_NVAL:
         return G_IO_NVAL;
     }
+    return G_IO_NVAL;
 }
 
 
