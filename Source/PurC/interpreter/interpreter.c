@@ -952,12 +952,13 @@ execute_one_step(pcintr_coroutine_t co)
     PC_ASSERT(inst);
     if (inst->errcode) {
         PC_ASSERT(co->stack->except == 0);
-#ifndef NDEBUG                     /* { */
-        dump_stack(co->stack);
-#endif                             /* } */
         exception_copy(&co->stack->exception);
         co->stack->except = 1;
         pcinst_clear_error(inst);
+        PC_ASSERT(inst->errcode == 0);
+#ifndef NDEBUG                     /* { */
+        dump_stack(co->stack);
+#endif                             /* } */
         PC_ASSERT(inst->errcode == 0);
     }
 
@@ -973,7 +974,7 @@ execute_one_step(pcintr_coroutine_t co)
         pcintr_dump_document(stack);
         co->stack->stage = STACK_STAGE_EVENT_LOOP;
         // do not run execute_one_step until event's fired if co->waits > 0
-        if (co->waits) { // FIXME:
+        if (co->stack->except == 0 && co->waits) { // FIXME:
             co->state = CO_STATE_WAIT;
             return;
         }
