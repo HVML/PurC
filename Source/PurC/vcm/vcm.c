@@ -1270,7 +1270,7 @@ purc_variant_t pcvcm_eval_ex(struct pcvcm_node *tree,
 }
 
 static purc_variant_t
-eval(void *native_entity, size_t nr_args, purc_variant_t *argv,
+eval_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(native_entity);
@@ -1286,7 +1286,7 @@ eval(void *native_entity, size_t nr_args, purc_variant_t *argv,
 }
 
 static purc_variant_t
-eval_const(void *native_entity, size_t nr_args, purc_variant_t *argv,
+eval_const_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(native_entity);
@@ -1298,12 +1298,12 @@ eval_const(void *native_entity, size_t nr_args, purc_variant_t *argv,
         return vcm_ev->const_value;
     }
 
-    vcm_ev->const_value = eval(native_entity, nr_args, argv, silently);
+    vcm_ev->const_value = eval_getter(native_entity, nr_args, argv, silently);
     return vcm_ev->const_value;
 }
 
 static purc_variant_t
-vcm_ev(void *native_entity, size_t nr_args, purc_variant_t *argv,
+vcm_ev_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(native_entity);
@@ -1315,7 +1315,7 @@ vcm_ev(void *native_entity, size_t nr_args, purc_variant_t *argv,
 
 
 static purc_variant_t
-last_value(void *native_entity, size_t nr_args, purc_variant_t *argv,
+last_value_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(nr_args);
@@ -1325,20 +1325,52 @@ last_value(void *native_entity, size_t nr_args, purc_variant_t *argv,
     return vcm_ev->last_value;
 }
 
+static purc_variant_t
+last_value_setter(void *native_entity, size_t nr_args, purc_variant_t *argv,
+        bool silently)
+{
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(silently);
+    if (nr_args == 0) {
+        return PURC_VARIANT_INVALID;
+    }
+
+    struct pcvcm_ev *vcm_ev = (struct pcvcm_ev*)native_entity;
+    if (vcm_ev->last_value) {
+        purc_variant_unref(vcm_ev->last_value);
+    }
+    vcm_ev->last_value = argv[0];
+    if (vcm_ev->last_value) {
+        purc_variant_ref(vcm_ev->last_value);
+    }
+    return vcm_ev->last_value;
+}
+
 static inline
 purc_nvariant_method property_getter(const char* key_name)
 {
     if (strcmp(key_name, PCVCM_EV_PROPERTY_EVAL) == 0) {
-        return eval;
+        return eval_getter;
     }
     else if (strcmp(key_name, PCVCM_EV_PROPERTY_EVAL_CONST) == 0) {
-        return eval_const;
+        return eval_const_getter;
     }
     else if (strcmp(key_name, PCVCM_EV_PROPERTY_VCM_EV) == 0) {
-        return vcm_ev;
+        return vcm_ev_getter;
     }
     else if (strcmp(key_name, PCVCM_EV_PROPERTY_LAST_VALUE) == 0) {
-        return last_value;
+        return last_value_getter;
+    }
+
+    return NULL;
+}
+
+static inline
+purc_nvariant_method property_setter(const char* key_name)
+{
+    if (strcmp(key_name, PCVCM_EV_PROPERTY_LAST_VALUE) == 0) {
+        return last_value_setter;
     }
 
     return NULL;
@@ -1379,7 +1411,7 @@ pcvcm_to_expression_variable(struct pcvcm_node *vcm, bool release_vcm)
 {
     static struct purc_native_ops ops = {
         .property_getter        = property_getter,
-        .property_setter        = NULL,
+        .property_setter        = property_setter,
         .property_eraser        = NULL,
         .property_cleaner       = NULL,
 

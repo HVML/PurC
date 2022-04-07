@@ -44,6 +44,8 @@
 #define EVENT_SEPARATOR      ":"
 #define EVENT_TIMER_INTRVAL  10
 
+#define MSG_TYPE_CHANGE     "change"
+
 void pcintr_stack_init_once(void)
 {
     purc_runloop_t runloop = purc_runloop_get_current();
@@ -2706,9 +2708,55 @@ pcintr_observe_vcm_ev(pcintr_stack_t stack, struct pcintr_observer* observer,
     UNUSED_PARAM(observer);
     UNUSED_PARAM(var);
     UNUSED_PARAM(ops);
-    // TODO
+
+    void *native_entity = purc_variant_native_get_entity(var);
+
     // create virtual frame
-    // eval vcm_ev and compare with old value
+    struct pcintr_stack_frame *frame;
+    frame = push_stack_frame(stack);
+    if (!frame)
+        return;
+
+    frame->ops = pcintr_get_ops_by_element(observer->pos);
+    frame->scope = observer->scope;
+    frame->pos = observer->pos;
+    frame->silently = pcintr_is_element_silently(frame->pos);
+    frame->edom_element = observer->edom_element;
+
+    // eval value
+    purc_nvariant_method eval_getter = ops->property_getter(
+            PCVCM_EV_PROPERTY_EVAL);
+    purc_variant_t new_val = eval_getter(native_entity, 0, NULL,
+            frame->silently);
+    pop_stack_frame(stack);
+
+    if (!new_val) {
+        return;
+    }
+
+    // get last value
+    purc_nvariant_method last_value_getter = ops->property_getter(
+            PCVCM_EV_PROPERTY_LAST_VALUE);
+    purc_variant_t last_value = last_value_getter(native_entity, 0, NULL,
+            frame->silently);
+    int cmp = purc_variant_compare_ex(new_val, last_value,
+            PCVARIANT_COMPARE_OPT_AUTO);
+    if (cmp == 0) {
+        purc_variant_unref(new_val);
+        return;
+    }
+
+    purc_nvariant_method last_value_setter = ops->property_setter(
+            PCVCM_EV_PROPERTY_LAST_VALUE);
+    last_value_setter(native_entity, 1, &new_val, frame->silently);
+
+    // dispatch change event
+    purc_variant_t type = purc_variant_make_string(MSG_TYPE_CHANGE, false);
+    purc_variant_t sub_type = PURC_VARIANT_INVALID;
+
+    pcintr_dispatch_message_ex(stack, var, type, sub_type, PURC_VARIANT_INVALID);
+
+    purc_variant_unref(type);
 }
 
 void
