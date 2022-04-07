@@ -634,19 +634,17 @@ fetchstr_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             goto failed;
         }
     }
-    else {
-        // length is calculated
+
+    if (length >= nr_bytes - offset) {
         length = nr_bytes - offset;
     }
 
     if (length == 0)
         return purc_variant_make_string_static("", false);
 
-    bytes += offset;
-
     size_t consumed;
     purc_variant_t retv;
-    retv = purc_dvobj_unpack_string(bytes, length, &consumed,
+    retv = purc_dvobj_unpack_string(bytes + offset, length, &consumed,
             encoding_id, silently);
 
     if (retv == PURC_VARIANT_INVALID) {
