@@ -3,7 +3,7 @@
  * @date 2021/01/12
  * @brief This file declares API to handle PCRDR protocol.
  *
- * Copyright (c) 2022 FMSoft (http://www.fmsoft.cn)
+ * Copyright (C) 2022 FMSoft (http://www.fmsoft.cn)
  *
  * Authors:
  *  Vincent Wei (<https://github.com/VincentWei>), 2021, 2022
