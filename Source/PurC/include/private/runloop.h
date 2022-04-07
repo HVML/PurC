@@ -22,12 +22,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef PURC_PRIVATE_RUNLOOP_H
-#define PURC_PRIVATE_RUNLOOP_H
+#ifndef PURC_RUNLOOP_H
+#define PURC_RUNLOOP_H
 
-#include "purc.h"
-
-#include "config.h"
+#include <stdint.h>
 
 typedef void* purc_runloop_t;
 enum purc_runloop_io_condition
@@ -82,5 +80,5 @@ void purc_runloop_remove_fd_monitor(purc_runloop_t runloop, uintptr_t handle);
 
 PCA_EXTERN_C_END
 
-#endif /* not defined PURC_PRIVATE_RUNLOOP_H */
+#endif /* not defined PURC_RUNLOOP_H */
 
