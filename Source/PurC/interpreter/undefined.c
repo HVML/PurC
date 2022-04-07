@@ -332,7 +332,6 @@ on_comment(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 static pcvdom_element_t
 select_child(pcintr_stack_t stack, void* ud)
 {
-                PC_ASSERT(stack->except == 0);
     PC_ASSERT(stack);
     PC_ASSERT(stack == pcintr_get_stack());
 
@@ -378,7 +377,6 @@ again:
             {
                 pcvdom_element_t element = PCVDOM_ELEMENT_FROM_NODE(curr);
                 on_element(co, frame, element);
-                PC_ASSERT(stack->except == 0);
                 return element;
             }
         case PCVDOM_NODE_CONTENT:

@@ -889,7 +889,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     PC_ASSERT(r == 0);
     if (r)
         return NULL;
-    purc_clr_error();
 
     if (ctxt->on == PURC_VARIANT_INVALID) {
         PC_ASSERT(0);
@@ -1051,6 +1050,12 @@ on_child_finished(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         return process(co, frame, ctxt->literal, with_eval);
     }
 
+    struct pcvdom_element *element = frame->pos;
+    PC_ASSERT(element);
+
+    purc_set_error_with_info(PURC_EXCEPT_ARGUMENT_MISSED,
+                "lack of vdom attribute 'with/from' for element <%s>",
+                element->tag_name);
     return -1;
 }
 
@@ -1081,16 +1086,17 @@ again:
         struct pcvdom_node *node = &element->node;
         node = pcvdom_node_first_child(node);
         curr = node;
+        purc_clr_error();
     }
     else {
         curr = pcvdom_node_next_sibling(curr);
+        purc_clr_error();
     }
 
     ctxt->curr = curr;
 
     if (curr == NULL) {
-        purc_clr_error();
-        PC_ASSERT(0 == on_child_finished(co, frame));
+        on_child_finished(co, frame);
         return NULL;
     }
 

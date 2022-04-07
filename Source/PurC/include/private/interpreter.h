@@ -108,6 +108,13 @@ struct pcintr_exception {
     struct pcdebug_backtrace  *bt;
 };
 
+void
+pcintr_exception_clear(struct pcintr_exception *exception);
+
+void
+pcintr_exception_move(struct pcintr_exception *dst,
+        struct pcintr_exception *src);
+
 struct pcintr_stack {
     struct list_head frames;
 
