@@ -4,7 +4,7 @@
  * @date 2021/12/14
  * @brief The C api for RunLoop.
  *
- * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ * Copyright (C) 2021, 2022 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
  *
@@ -26,12 +26,13 @@
 
 #include "config.h"
 
-#include "private/runloop.h"
+#include "purc-runloop.h"
 #include "private/errors.h"
 
 #include <wtf/Threading.h>
 #include <wtf/RunLoop.h>
 #include <wtf/threads/BinarySemaphore.h>
+
 
 #include <stdlib.h>
 #include <string.h>
@@ -39,9 +40,9 @@
 
 #define MAIN_RUNLOOP_THREAD_NAME    "__purc_main_runloop_thread"
 
-void pcrunloop_init_main(void)
+void purc_runloop_init_main(void)
 {
-    if (pcrunloop_is_main_initialized()) {
+    if (purc_runloop_is_main_initialized()) {
         return;
     }
     BinarySemaphore semaphore;
@@ -54,9 +55,9 @@ void pcrunloop_init_main(void)
     semaphore.wait();
 }
 
-void pcrunloop_stop_main(void)
+void purc_runloop_stop_main(void)
 {
-    if (pcrunloop_is_main_initialized()) {
+    if (purc_runloop_is_main_initialized()) {
         BinarySemaphore semaphore;
         RunLoop& runloop = RunLoop::main();
         runloop.dispatch([&] {
@@ -67,41 +68,42 @@ void pcrunloop_stop_main(void)
     }
 }
 
-bool pcrunloop_is_main_initialized(void)
+bool purc_runloop_is_main_initialized(void)
 {
     return RunLoop::isMainInitizlized();
 }
 
-pcrunloop_t pcrunloop_get_current(void)
+purc_runloop_t purc_runloop_get_current(void)
 {
-    return (pcrunloop_t)&RunLoop::current();
+    return (purc_runloop_t)&RunLoop::current();
 }
 
-bool pcrunloop_is_on_main(void)
+bool purc_runloop_is_on_main(void)
 {
     return RunLoop::isMain();
 }
 
-void pcrunloop_run(void)
+void purc_runloop_run(void)
 {
     RunLoop::run();
 }
 
-void pcrunloop_stop(pcrunloop_t runloop)
+void purc_runloop_stop(purc_runloop_t runloop)
 {
     if (runloop) {
         ((RunLoop*)runloop)->stop();
     }
 }
 
-void pcrunloop_wakeup(pcrunloop_t runloop)
+void purc_runloop_wakeup(purc_runloop_t runloop)
 {
     if (runloop) {
         ((RunLoop*)runloop)->wakeUp();
     }
 }
 
-void pcrunloop_dispatch(pcrunloop_t runloop, pcrunloop_func func, void* ctxt)
+void purc_runloop_dispatch(purc_runloop_t runloop, purc_runloop_func func,
+        void* ctxt)
 {
     if (runloop) {
         ((RunLoop*)runloop)->dispatch([func, ctxt]() {
@@ -110,7 +112,8 @@ void pcrunloop_dispatch(pcrunloop_t runloop, pcrunloop_func func, void* ctxt)
     }
 }
 
-void pcrunloop_set_idle_func(pcrunloop_t runloop, pcrunloop_func func, void* ctxt)
+void purc_runloop_set_idle_func(purc_runloop_t runloop, purc_runloop_func func,
+        void* ctxt)
 {
     if (runloop) {
         ((RunLoop*)runloop)->setIdleCallback([func, ctxt]() {
@@ -118,3 +121,66 @@ void pcrunloop_set_idle_func(pcrunloop_t runloop, pcrunloop_func func, void* ctx
         });
     }
 }
+
+static purc_runloop_io_event
+to_runloop_io_event(GIOCondition condition)
+{
+    switch (condition) {
+    case G_IO_IN:
+        return PCRUNLOOP_IO_IN;
+    case G_IO_OUT:
+        return PCRUNLOOP_IO_OUT;
+    case G_IO_PRI:
+        return PCRUNLOOP_IO_PRI;
+    case G_IO_ERR:
+        return PCRUNLOOP_IO_ERR;
+    case G_IO_HUP:
+        return PCRUNLOOP_IO_HUP;
+    case G_IO_NVAL:
+        return PCRUNLOOP_IO_NVAL;
+    }
+    return PCRUNLOOP_IO_NVAL;
+}
+
+static GIOCondition
+to_gio_condition(purc_runloop_io_event event)
+{
+    switch (event) {
+    case PCRUNLOOP_IO_IN:
+        return G_IO_IN;
+    case PCRUNLOOP_IO_OUT:
+        return G_IO_OUT;
+    case PCRUNLOOP_IO_PRI:
+        return G_IO_PRI;
+    case PCRUNLOOP_IO_ERR:
+        return G_IO_ERR;
+    case PCRUNLOOP_IO_HUP:
+        return G_IO_HUP;
+    case PCRUNLOOP_IO_NVAL:
+        return G_IO_NVAL;
+    }
+    return G_IO_NVAL;
+}
+
+
+uintptr_t purc_runloop_add_fd_monitor(purc_runloop_t runloop, int fd,
+        purc_runloop_io_event event, purc_runloop_io_callback callback,
+        void *ctxt)
+{
+    if (!runloop) {
+        runloop = purc_runloop_get_current();
+    }
+    return ((RunLoop*)runloop)->addFdMonitor(fd, to_gio_condition(event),
+            [callback, ctxt] (gint fd, GIOCondition condition) -> gboolean {
+            return callback(fd, to_runloop_io_event(condition), ctxt);
+        });
+}
+
+void purc_runloop_remove_fd_monitor(purc_runloop_t runloop, uintptr_t handle)
+{
+    if (!runloop) {
+        runloop = purc_runloop_get_current();
+    }
+    ((RunLoop*)runloop)->removeFdMonitor(handle);
+}
+

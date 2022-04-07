@@ -4,7 +4,7 @@
  * @date 2021/07/02
  * @brief The API for variant.
  *
- * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ * Copyright (C) 2021, 2022 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
  *
@@ -424,6 +424,17 @@ purc_variant_make_byte_sequence_reuse_buff(void* bytes, size_t nr_bytes,
         size_t sz_buff);
 
 /**
+ * Creates an empty byte sequence variant.
+ *
+ * Returns: A purc_variant_t with byte sequence type,
+ *      or PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.0.2
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_make_byte_sequence_empty(void);
+
+/**
  * Gets the pointer of byte array which is encapsulated in byte sequence type.
  *
  * @param value: the data of byte sequence type
@@ -683,7 +694,8 @@ purc_variant_array_set(purc_variant_t array, int idx, purc_variant_t value);
  *
  * Since: 0.0.1
  */
-PCA_EXPORT bool purc_variant_array_remove(purc_variant_t array, int idx);
+PCA_EXPORT bool
+purc_variant_array_remove(purc_variant_t array, int idx);
 
 
 /**

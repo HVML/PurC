@@ -28,7 +28,7 @@
 #include "internal.h"
 
 #include "private/debug.h"
-#include "private/runloop.h"
+#include "purc-runloop.h"
 #include "private/stringbuilder.h"
 
 #include "ops.h"

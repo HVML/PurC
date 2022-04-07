@@ -28,7 +28,7 @@
 #include "internal.h"
 
 #include "private/debug.h"
-#include "private/runloop.h"
+#include "purc-runloop.h"
 
 #include "ops.h"
 
@@ -61,6 +61,10 @@ ctxt_destroy(void *ctxt)
     ctxt_for_observe_destroy((struct ctxt_for_observe*)ctxt);
 }
 
+#define MSG_TYPE_GROW       "grow"
+#define MSG_TYPE_SHRINK     "shrink"
+#define MSG_TYPE_CHANGE     "change"
+
 bool base_variant_msg_listener(purc_variant_t source, pcvar_op_t msg_type,
         void* ctxt, size_t nr_args, purc_variant_t* argv)
 {
@@ -73,13 +77,13 @@ bool base_variant_msg_listener(purc_variant_t source, pcvar_op_t msg_type,
     const char *smsg = NULL;
     switch (msg_type) {
         case PCVAR_OPERATION_GROW:
-            smsg = "grow";
+            smsg = MSG_TYPE_GROW;
             break;
         case PCVAR_OPERATION_SHRINK:
-            smsg = "shrink";
+            smsg = MSG_TYPE_SHRINK;
             break;
         case PCVAR_OPERATION_CHANGE:
-            smsg = "change";
+            smsg = MSG_TYPE_CHANGE;
             break;
         default:
             PC_ASSERT(0);

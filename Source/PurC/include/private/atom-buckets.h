@@ -51,6 +51,8 @@ enum pcatom_bucket {
        typedef int _dummy_ ## name[(x) * 2 - 1]
 
 _COMPILE_TIME_ASSERT(buckets, ATOM_BUCKET_LAST < PURC_ATOM_BUCKET_USER);
+_COMPILE_TIME_ASSERT(bucket_except,
+        ATOM_BUCKET_EXCEPT == PURC_ATOM_BUCKET_EXCEPT);
 
 #undef _COMPILE_TIME_ASSERT
 

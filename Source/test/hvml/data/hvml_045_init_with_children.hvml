@@ -1,0 +1,20 @@
+<init as="evenNumbers" with=[0,] >
+    <iterate on=$?[0] with=$MATH.add($0<,2) nosetotail>
+        <test on=$?>
+            <match on=$L.gt($?,100) exclusively>
+                <back to="4" />
+            </match>
+            <match>
+                <update on="$evenNumbers" to="append" with="$?">
+            </match>
+        </test>
+    </iterate>
+
+    <ol>
+        <iterate on=$evenNumbers by="RANGE: FROM 0">
+            <li>$?</li>
+        </iterate>
+    </ol>
+
+</init>
+

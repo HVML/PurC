@@ -31,6 +31,7 @@
 #include "private/errors.h"
 #include "private/timer.h"
 #include "private/interpreter.h"
+#include "purc-runloop.h"
 
 #include <wtf/RunLoop.h>
 #include <wtf/Seconds.h>
@@ -73,7 +74,7 @@ class PurcTimer : public WTF::RunLoop::TimerBase {
 };
 
 pcintr_timer_t
-pcintr_timer_create(pcrunloop_t runloop, const char* id, void* ctxt,
+pcintr_timer_create(purc_runloop_t runloop, const char* id, void* ctxt,
         pcintr_timer_fire_func func)
 {
     RunLoop* loop = runloop ? (RunLoop*)runloop : &RunLoop::current(); 

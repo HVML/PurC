@@ -423,7 +423,7 @@ make_set(const int *vals, size_t nr)
     return set;
 }
 
-static inline int
+static inline UNUSED_FUNCTION int
 cmp(size_t nr_keynames,
         purc_variant_t l[], purc_variant_t r[], void *ud)
 {

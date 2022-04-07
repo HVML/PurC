@@ -42,6 +42,7 @@ hvml_041_attr_tail_assignment
 hvml_042_attr_regex_assignment
 hvml_043_one_line
 hvml_044_undefined
+hvml_045_init_with_children
 jsonee_001_double_quoted_attr
 jsonee_002_unquoted_attr
 jsonee_003_attr_without_value

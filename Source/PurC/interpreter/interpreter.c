@@ -29,7 +29,7 @@
 
 #include "private/debug.h"
 #include "private/instance.h"
-#include "private/runloop.h"
+#include "purc-runloop.h"
 #include "private/dvobjs.h"
 #include "private/fetcher.h"
 
@@ -44,9 +44,11 @@
 #define EVENT_SEPARATOR      ":"
 #define EVENT_TIMER_INTRVAL  10
 
+#define MSG_TYPE_CHANGE     "change"
+
 void pcintr_stack_init_once(void)
 {
-    pcrunloop_t runloop = pcrunloop_get_current();
+    purc_runloop_t runloop = purc_runloop_get_current();
     PC_ASSERT(runloop);
     init_ops();
 }
@@ -1054,9 +1056,9 @@ static int run_coroutines(void *ctxt)
         pcintr_coroutine_ready();
     }
     else if (waits==0) {
-        pcrunloop_t runloop = pcrunloop_get_current();
+        purc_runloop_t runloop = purc_runloop_get_current();
         PC_ASSERT(runloop);
-        pcrunloop_stop(runloop);
+        purc_runloop_stop(runloop);
     }
 
     return 0;
@@ -1064,9 +1066,9 @@ static int run_coroutines(void *ctxt)
 
 void pcintr_coroutine_ready(void)
 {
-    pcrunloop_t runloop = pcrunloop_get_current();
+    purc_runloop_t runloop = purc_runloop_get_current();
     PC_ASSERT(runloop);
-    pcrunloop_dispatch(runloop, run_coroutines, NULL);
+    purc_runloop_dispatch(runloop, run_coroutines, NULL);
 }
 
 struct pcintr_stack_frame*
@@ -1408,7 +1410,7 @@ purc_run(purc_variant_t request, purc_event_handler handler)
     UNUSED_PARAM(request);
     UNUSED_PARAM(handler);
 
-    pcrunloop_run();
+    purc_runloop_run();
 
     return true;
 }
@@ -1913,9 +1915,9 @@ pcintr_dispatch_message_ex(pcintr_stack_t stack, purc_variant_t source,
         return PURC_ERROR_OUT_OF_MEMORY;
     }
 
-    pcrunloop_t runloop = pcrunloop_get_current();
+    purc_runloop_t runloop = purc_runloop_get_current();
     PC_ASSERT(runloop);
-    pcrunloop_dispatch(runloop, pcintr_handle_message, msg);
+    purc_runloop_dispatch(runloop, pcintr_handle_message, msg);
     return PURC_ERROR_OK;
 }
 
@@ -2733,6 +2735,65 @@ pcintr_get_percent_var(struct pcintr_stack_frame *frame)
 }
 
 void
+pcintr_observe_vcm_ev(pcintr_stack_t stack, struct pcintr_observer* observer,
+        purc_variant_t var, struct purc_native_ops *ops)
+{
+    UNUSED_PARAM(stack);
+    UNUSED_PARAM(observer);
+    UNUSED_PARAM(var);
+    UNUSED_PARAM(ops);
+
+    void *native_entity = purc_variant_native_get_entity(var);
+
+    // create virtual frame
+    struct pcintr_stack_frame *frame;
+    frame = push_stack_frame(stack);
+    if (!frame)
+        return;
+
+    frame->ops = pcintr_get_ops_by_element(observer->pos);
+    frame->scope = observer->scope;
+    frame->pos = observer->pos;
+    frame->silently = pcintr_is_element_silently(frame->pos);
+    frame->edom_element = observer->edom_element;
+
+    // eval value
+    purc_nvariant_method eval_getter = ops->property_getter(
+            PCVCM_EV_PROPERTY_EVAL);
+    purc_variant_t new_val = eval_getter(native_entity, 0, NULL,
+            frame->silently);
+    pop_stack_frame(stack);
+
+    if (!new_val) {
+        return;
+    }
+
+    // get last value
+    purc_nvariant_method last_value_getter = ops->property_getter(
+            PCVCM_EV_PROPERTY_LAST_VALUE);
+    purc_variant_t last_value = last_value_getter(native_entity, 0, NULL,
+            frame->silently);
+    int cmp = purc_variant_compare_ex(new_val, last_value,
+            PCVARIANT_COMPARE_OPT_AUTO);
+    if (cmp == 0) {
+        purc_variant_unref(new_val);
+        return;
+    }
+
+    purc_nvariant_method last_value_setter = ops->property_setter(
+            PCVCM_EV_PROPERTY_LAST_VALUE);
+    last_value_setter(native_entity, 1, &new_val, frame->silently);
+
+    // dispatch change event
+    purc_variant_t type = purc_variant_make_string(MSG_TYPE_CHANGE, false);
+    purc_variant_t sub_type = PURC_VARIANT_INVALID;
+
+    pcintr_dispatch_message_ex(stack, var, type, sub_type, PURC_VARIANT_INVALID);
+
+    purc_variant_unref(type);
+}
+
+void
 pcintr_event_timer_fire(const char* id, void* ctxt)
 {
     UNUSED_PARAM(id);
@@ -2759,9 +2820,7 @@ pcintr_event_timer_fire(const char* id, void* ctxt)
         purc_nvariant_method is_vcm_ev = ops->property_getter(
                 PCVCM_EV_PROPERTY_VCM_EV);
         if (is_vcm_ev) {
-            // TODO
-            // create virtual frame
-            // eval vcm_ev and compare with old value
+            pcintr_observe_vcm_ev(stack, observer, var, ops);
         }
     }
 }

@@ -2,7 +2,7 @@
 
 #include "private/fetcher.h"
 #include "private/debug.h"
-#include "private/runloop.h"
+#include "purc-runloop.h"
 
 #include <gtest/gtest.h>
 #include <wtf/RunLoop.h>
@@ -129,15 +129,15 @@ TEST(fetcher, init_pcrdr_cleanup)
 TEST(fetcher, runloop)
 {
     do {
-        pcrunloop_init_main();
+        purc_runloop_init_main();
     } while (0);
 }
 
 TEST(fetcher, runloop_stop)
 {
     do {
-        pcrunloop_init_main();
-        pcrunloop_stop_main();
+        purc_runloop_init_main();
+        purc_runloop_stop_main();
     } while (0);
 }
 
