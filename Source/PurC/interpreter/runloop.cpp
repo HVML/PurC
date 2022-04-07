@@ -40,9 +40,9 @@
 
 #define MAIN_RUNLOOP_THREAD_NAME    "__purc_main_runloop_thread"
 
-void pcrunloop_init_main(void)
+void purc_runloop_init_main(void)
 {
-    if (pcrunloop_is_main_initialized()) {
+    if (purc_runloop_is_main_initialized()) {
         return;
     }
     BinarySemaphore semaphore;
@@ -55,9 +55,9 @@ void pcrunloop_init_main(void)
     semaphore.wait();
 }
 
-void pcrunloop_stop_main(void)
+void purc_runloop_stop_main(void)
 {
-    if (pcrunloop_is_main_initialized()) {
+    if (purc_runloop_is_main_initialized()) {
         BinarySemaphore semaphore;
         RunLoop& runloop = RunLoop::main();
         runloop.dispatch([&] {
@@ -68,41 +68,42 @@ void pcrunloop_stop_main(void)
     }
 }
 
-bool pcrunloop_is_main_initialized(void)
+bool purc_runloop_is_main_initialized(void)
 {
     return RunLoop::isMainInitizlized();
 }
 
-pcrunloop_t pcrunloop_get_current(void)
+purc_runloop_t purc_runloop_get_current(void)
 {
-    return (pcrunloop_t)&RunLoop::current();
+    return (purc_runloop_t)&RunLoop::current();
 }
 
-bool pcrunloop_is_on_main(void)
+bool purc_runloop_is_on_main(void)
 {
     return RunLoop::isMain();
 }
 
-void pcrunloop_run(void)
+void purc_runloop_run(void)
 {
     RunLoop::run();
 }
 
-void pcrunloop_stop(pcrunloop_t runloop)
+void purc_runloop_stop(purc_runloop_t runloop)
 {
     if (runloop) {
         ((RunLoop*)runloop)->stop();
     }
 }
 
-void pcrunloop_wakeup(pcrunloop_t runloop)
+void purc_runloop_wakeup(purc_runloop_t runloop)
 {
     if (runloop) {
         ((RunLoop*)runloop)->wakeUp();
     }
 }
 
-void pcrunloop_dispatch(pcrunloop_t runloop, pcrunloop_func func, void* ctxt)
+void purc_runloop_dispatch(purc_runloop_t runloop, purc_runloop_func func,
+        void* ctxt)
 {
     if (runloop) {
         ((RunLoop*)runloop)->dispatch([func, ctxt]() {
@@ -111,7 +112,8 @@ void pcrunloop_dispatch(pcrunloop_t runloop, pcrunloop_func func, void* ctxt)
     }
 }
 
-void pcrunloop_set_idle_func(pcrunloop_t runloop, pcrunloop_func func, void* ctxt)
+void purc_runloop_set_idle_func(purc_runloop_t runloop, purc_runloop_func func,
+        void* ctxt)
 {
     if (runloop) {
         ((RunLoop*)runloop)->setIdleCallback([func, ctxt]() {
@@ -120,7 +122,7 @@ void pcrunloop_set_idle_func(pcrunloop_t runloop, pcrunloop_func func, void* ctx
     }
 }
 
-static enum pcrunloop_io_condition
+static enum purc_runloop_io_condition
 to_io_condition(GIOCondition condition)
 {
     switch (condition) {
@@ -140,7 +142,7 @@ to_io_condition(GIOCondition condition)
 }
 
 static GIOCondition
-to_gio_condition(enum pcrunloop_io_condition condition)
+to_gio_condition(enum purc_runloop_io_condition condition)
 {
     switch (condition) {
     case PCRUNLOOP_IO_IN:
@@ -159,12 +161,12 @@ to_gio_condition(enum pcrunloop_io_condition condition)
 }
 
 
-uintptr_t pcrunloop_add_fd_monitor(pcrunloop_t runloop, int fd,
-        enum pcrunloop_io_condition condition, pcrunloop_io_callback callback,
+uintptr_t purc_runloop_add_fd_monitor(purc_runloop_t runloop, int fd,
+        enum purc_runloop_io_condition condition, purc_runloop_io_callback callback,
         void *ctxt)
 {
     if (!runloop) {
-        runloop = pcrunloop_get_current();
+        runloop = purc_runloop_get_current();
     }
     return ((RunLoop*)runloop)->addFdMonitor(fd, to_gio_condition(condition),
             [callback, ctxt] (gint fd, GIOCondition condition) -> gboolean {
@@ -172,10 +174,10 @@ uintptr_t pcrunloop_add_fd_monitor(pcrunloop_t runloop, int fd,
         });
 }
 
-void pcrunloop_remove_fd_monitor(pcrunloop_t runloop, uintptr_t handle)
+void purc_runloop_remove_fd_monitor(purc_runloop_t runloop, uintptr_t handle)
 {
     if (!runloop) {
-        runloop = pcrunloop_get_current();
+        runloop = purc_runloop_get_current();
     }
     ((RunLoop*)runloop)->removeFdMonitor(handle);
 }

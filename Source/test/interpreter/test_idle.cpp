@@ -11,7 +11,7 @@ int on_idle_callback(void* ctxt)
     UNUSED_PARAM(ctxt);
     static int i = 0;
     if (i > 1000) {
-        pcrunloop_stop(pcrunloop_get_current());
+        purc_runloop_stop(purc_runloop_get_current());
     }
     i++;
     return 0;
@@ -29,7 +29,7 @@ TEST(idle, idle)
 
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    pcrunloop_set_idle_func(pcrunloop_get_current(), on_idle_callback, NULL);
+    purc_runloop_set_idle_func(purc_runloop_get_current(), on_idle_callback, NULL);
 
     purc_run(PURC_VARIANT_INVALID, NULL);
 

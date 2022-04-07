@@ -11,7 +11,7 @@ void one_shot_timer_fire(const char* id, void* ctxt)
 {
     UNUSED_PARAM(id);
     UNUSED_PARAM(ctxt);
-    pcrunloop_stop(pcrunloop_get_current());
+    purc_runloop_stop(purc_runloop_get_current());
 }
 
 void interval_timer_fire(const char* id, void* ctxt)
@@ -20,7 +20,7 @@ void interval_timer_fire(const char* id, void* ctxt)
     UNUSED_PARAM(id);
     UNUSED_PARAM(ctxt);
     if (i > 5) {
-        pcrunloop_stop(pcrunloop_get_current());
+        purc_runloop_stop(purc_runloop_get_current());
     }
     i++;
 }

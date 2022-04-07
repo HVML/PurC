@@ -29,11 +29,8 @@
 
 #include "config.h"
 
-#include "private/variant.h"
-#include "private/map.h"
-
-typedef void* pcrunloop_t;
-enum pcrunloop_io_condition
+typedef void* purc_runloop_t;
+enum purc_runloop_io_condition
 {
     PCRUNLOOP_IO_IN,
     PCRUNLOOP_IO_OUT,
@@ -45,41 +42,43 @@ enum pcrunloop_io_condition
 
 PCA_EXTERN_C_BEGIN
 
-void pcrunloop_init_main(void);
+void purc_runloop_init_main(void);
 
-void pcrunloop_stop_main(void);
+void purc_runloop_stop_main(void);
 
-bool pcrunloop_is_main_initialized(void);
+bool purc_runloop_is_main_initialized(void);
 
 // the RunLoop of current thread
-pcrunloop_t pcrunloop_get_current(void);
+purc_runloop_t purc_runloop_get_current(void);
 
 // check if current is in main thread
-bool pcrunloop_is_on_main(void);
+bool purc_runloop_is_on_main(void);
 
 // start the current runloop
-void pcrunloop_run(void);
+void purc_runloop_run(void);
 
 // stop the runloop
-void pcrunloop_stop(pcrunloop_t runloop);
+void purc_runloop_stop(purc_runloop_t runloop);
 
 // warkup the runloop
-void pcrunloop_wakeup(pcrunloop_t runloop);
+void purc_runloop_wakeup(purc_runloop_t runloop);
 
 // dispatch function
-typedef int (*pcrunloop_func)(void* ctxt);
-void pcrunloop_dispatch(pcrunloop_t runloop, pcrunloop_func func, void* ctxt);
+typedef int (*purc_runloop_func)(void* ctxt);
+void purc_runloop_dispatch(purc_runloop_t runloop, purc_runloop_func func,
+        void* ctxt);
 
-void pcrunloop_set_idle_func(pcrunloop_t runloop, pcrunloop_func func, void* ctxt);
+void purc_runloop_set_idle_func(purc_runloop_t runloop, purc_runloop_func func,
+        void* ctxt);
 
-typedef bool (*pcrunloop_io_callback)(int fd,
-        enum pcrunloop_io_condition condition, void *ctxt);
+typedef bool (*purc_runloop_io_callback)(int fd,
+        enum purc_runloop_io_condition condition, void *ctxt);
 
-uintptr_t pcrunloop_add_fd_monitor(pcrunloop_t runloop, int fd,
-        enum pcrunloop_io_condition condition, pcrunloop_io_callback callback,
-        void *ctxt);
+uintptr_t purc_runloop_add_fd_monitor(purc_runloop_t runloop, int fd,
+        enum purc_runloop_io_condition condition,
+        purc_runloop_io_callback callback, void *ctxt);
 
-void pcrunloop_remove_fd_monitor(pcrunloop_t runloop, uintptr_t handle);
+void purc_runloop_remove_fd_monitor(purc_runloop_t runloop, uintptr_t handle);
 
 PCA_EXTERN_C_END
 
