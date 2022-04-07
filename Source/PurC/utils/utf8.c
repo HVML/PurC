@@ -406,20 +406,21 @@ static void mystring_free(struct my_string *mystr)
 
 static char *
 string_decode_utf16(const unsigned char* bytes, size_t max_len,
-        size_t *sz_space, bool silently, bool le_or_be)
+        size_t *sz_space, size_t *consumed, bool silently, bool le_or_be)
 {
-    size_t nr_consumed = 0, nr_left = max_len;
+    size_t nr_left = max_len;
     uint32_t uc;
 
     struct my_string mystr = { NULL, 0, 0 };
 
+    *consumed = 0;
     while (nr_left > 1) {
         uint16_t w1, w2;
 
         if (le_or_be)
-            w1 = MAKEWORD16(bytes[nr_consumed], bytes[nr_consumed + 1]);
+            w1 = MAKEWORD16(bytes[*consumed], bytes[*consumed + 1]);
         else
-            w1 = MAKEWORD16(bytes[nr_consumed + 1], bytes[nr_consumed]);
+            w1 = MAKEWORD16(bytes[*consumed + 1], bytes[*consumed]);
 
         if (w1 == 0)
             goto done;
@@ -427,7 +428,7 @@ string_decode_utf16(const unsigned char* bytes, size_t max_len,
         if (w1 < 0xD800 || w1 > 0xDFFF) {
             uc = w1;
 
-            nr_consumed += 2;
+            *consumed += 2;
             nr_left -= 2;
         }
         else {
@@ -435,9 +436,9 @@ string_decode_utf16(const unsigned char* bytes, size_t max_len,
                 goto bad_encoding;
 
             if (le_or_be)
-                w2 = MAKEWORD16(bytes[nr_consumed + 2], bytes[nr_consumed + 3]);
+                w2 = MAKEWORD16(bytes[*consumed + 2], bytes[*consumed + 3]);
             else
-                w2 = MAKEWORD16(bytes[nr_consumed + 3], bytes[nr_consumed + 2]);
+                w2 = MAKEWORD16(bytes[*consumed + 3], bytes[*consumed + 2]);
 
             if (w2 < 0xDC00 || w2 > 0xDFFF)
                 goto bad_encoding;
@@ -447,7 +448,7 @@ string_decode_utf16(const unsigned char* bytes, size_t max_len,
             uc |= (w2 & 0x03FF);
             uc += 0x10000;
 
-            nr_consumed += 4;
+            *consumed += 4;
             nr_left -= 4;
         }
 
@@ -478,16 +479,18 @@ fatal:
 
 char *
 pcutils_string_decode_utf16le(const unsigned char* bytes, size_t max_len,
-        size_t *sz_space, bool silently)
+        size_t *sz_space, size_t *consumed, bool silently)
 {
-    return string_decode_utf16(bytes, max_len, sz_space, silently, true);
+    return string_decode_utf16(bytes, max_len, sz_space, consumed,
+            silently, true);
 }
 
 char *
 pcutils_string_decode_utf16be(const unsigned char* bytes, size_t max_len,
-        size_t *sz_space, bool silently)
+        size_t *sz_space, size_t *consumed, bool silently)
 {
-    return string_decode_utf16(bytes, max_len, sz_space, silently, false);
+    return string_decode_utf16(bytes, max_len, sz_space, consumed,
+            silently, false);
 }
 
 #define MAKEDWORD32(first, second, third, fourth)       \
@@ -500,27 +503,28 @@ pcutils_string_decode_utf16be(const unsigned char* bytes, size_t max_len,
 
 static char *
 string_decode_utf32(const unsigned char* bytes, size_t max_len,
-        size_t *sz_space, bool silently, bool le_or_be)
+        size_t *sz_space, size_t *consumed, bool silently, bool le_or_be)
 {
     UNUSED_PARAM(silently);
 
-    size_t nr_consumed = 0, nr_left = max_len;
+    size_t nr_left = max_len;
     uint32_t uc;
 
     struct my_string mystr = { NULL, 0, 0 };
 
+    *consumed = 0;
     while (nr_left > 3) {
         if (le_or_be)
-            uc = MAKEDWORD32(bytes[nr_consumed], bytes[nr_consumed + 1],
-                    bytes[nr_consumed + 2], bytes[nr_consumed + 3]);
+            uc = MAKEDWORD32(bytes[*consumed], bytes[*consumed + 1],
+                    bytes[*consumed + 2], bytes[*consumed + 3]);
         else
-            uc = MAKEDWORD32(bytes[nr_consumed + 3], bytes[nr_consumed + 2],
-                    bytes[nr_consumed + 1], bytes[nr_consumed]);
+            uc = MAKEDWORD32(bytes[*consumed + 3], bytes[*consumed + 2],
+                    bytes[*consumed + 1], bytes[*consumed]);
 
         if (uc == 0)
             goto done;
 
-        nr_consumed += 4;
+        *consumed += 4;
         nr_left -= 4;
 
         /* got a Unicode code point */
@@ -544,36 +548,40 @@ fatal:
 
 char *
 pcutils_string_decode_utf32le(const unsigned char* bytes, size_t max_len,
-        size_t *sz_space, bool silently)
+        size_t *sz_space, size_t *consumed, bool silently)
 {
-    return string_decode_utf32(bytes, max_len, sz_space, silently, true);
+    return string_decode_utf32(bytes, max_len, sz_space, consumed,
+            silently, true);
 }
 
 char *
 pcutils_string_decode_utf32be(const unsigned char* bytes, size_t max_len,
-        size_t *sz_space, bool silently)
+        size_t *sz_space, size_t *consumed, bool silently)
 {
-    return string_decode_utf32(bytes, max_len, sz_space, silently, false);
+    return string_decode_utf32(bytes, max_len, sz_space, consumed,
+            silently, false);
 }
 
 char *
 pcutils_string_decode_utf16(const unsigned char* bytes, size_t max_len,
-        size_t *sz_space, bool silently)
+        size_t *sz_space, size_t *consumed, bool silently)
 {
     /* check BOM first */
     if (max_len > 1) {
         if (bytes[0] == 0xFF && bytes[1] == 0xFE)   /* LE */
             return string_decode_utf16(bytes + 2, max_len - 2,
-                    sz_space, silently, true);
+                    sz_space, consumed, silently, true);
         else if (bytes[0] == 0xFE && bytes[1] == 0xFF)   /* BE */
             return string_decode_utf16(bytes + 2, max_len - 2,
-                    sz_space, silently, false);
+                    sz_space, consumed, silently, false);
     }
 
 #if CPU(LITTLE_ENDIAN)
-    return string_decode_utf16(bytes, max_len, sz_space, silently, true);
+    return string_decode_utf16(bytes, max_len, sz_space, consumed,
+            silently, true);
 #elif CPU(BIG_ENDIAN)
-    return string_decode_utf16(bytes, max_len, sz_space, silently, false);
+    return string_decode_utf16(bytes, max_len, sz_space, consumed,
+            silently, false);
 #else
 #error "Unsupported endian"
 #endif
@@ -581,24 +589,26 @@ pcutils_string_decode_utf16(const unsigned char* bytes, size_t max_len,
 
 char *
 pcutils_string_decode_utf32(const unsigned char* bytes, size_t max_len,
-        size_t *sz_space, bool silently)
+        size_t *sz_space, size_t *consumed, bool silently)
 {
     /* check BOM first */
     if (max_len > 3) {
         if (bytes[0] == 0xFF && bytes[1] == 0xFE &&
                 bytes[2] == 0x00 && bytes[3] == 0x00)   /* LE */
             return string_decode_utf32(bytes + 4, max_len - 4,
-                    sz_space, silently, true);
+                    sz_space, consumed, silently, true);
         else if (bytes[0] == 0x00 && bytes[1] == 0x00 &&
                 bytes[2] == 0xFE && bytes[3] == 0xFF)   /* BE */
             return string_decode_utf32(bytes + 4, max_len - 4,
-                    sz_space, silently, false);
+                    sz_space, consumed, silently, false);
     }
 
 #if CPU(LITTLE_ENDIAN)
-    return string_decode_utf32(bytes, max_len, sz_space, silently, true);
+    return string_decode_utf32(bytes, max_len, sz_space, consumed,
+            silently, true);
 #elif CPU(BIG_ENDIAN)
-    return string_decode_utf32(bytes, max_len, sz_space, silently, false);
+    return string_decode_utf32(bytes, max_len, sz_space, consumed,
+            silently, false);
 #else
 #error "Unsupported endian"
 #endif

@@ -553,3 +553,68 @@ positive:
     $EJSON.fetchstr($EJSON.base64_decode('SFZNTCDmmK/lhajnkIPpppbmrL7lj6/nvJbnqIvmoIforrDor63oqIA='), 'utf8')
     'HVML 是全球首款可编程标记语言'
 
+# test cases for $EJSON.pack
+negative:
+    $EJSON.pack
+    ArgumentMissed
+
+negative:
+    $EJSON.pack("")
+    ArgumentMissed
+
+negative:
+    $EJSON.pack("", true)
+    InvalidValue
+
+negative:
+    $EJSON.pack("utf8", true)
+    WrongDataType
+
+positive:
+    $EJSON.pack( "i16le i32le", 10, 10)
+    bx0a000a000000
+
+positive:
+    $EJSON.pack( "i16le:2 i32le", [[10, 15], 255])
+    bx0A000F00FF000000
+
+positive:
+    $EJSON.pack( "i16le:2 i32le", [10, 15], 255)
+    bx0A000F00FF000000
+
+# test cases for $EJSON.unpack
+negative:
+    $EJSON.unpack
+    ArgumentMissed
+
+negative:
+    $EJSON.unpack("")
+    ArgumentMissed
+
+negative:
+    $EJSON.unpack("", bx00FF)
+    InvalidValue
+
+negative:
+    $EJSON.unpack(false, false)
+    WrongDataType
+
+negative:
+    $EJSON.unpack("utf8", false)
+    WrongDataType
+
+positive:
+    $EJSON.unpack("utf8", $EJSON.base64_decode('SFZNTCDmmK/lhajnkIPpppbmrL7lj6/nvJbnqIvmoIforrDor63oqIA='))
+    ['HVML 是全球首款可编程标记语言']
+
+positive:
+    $EJSON.unpack("i16le i32le", bx0a000a000000)
+    [10L, 10L]
+
+positive:
+    $EJSON.unpack("i16le:2 i32le", bx0A000F00FF000000)
+    [[10L, 15L], 255L]
+
+positive:
+    $EJSON.unpack("i16le:2 i32le", $EJSON.pack("i16le:2 i32le", [[10, 15], 255]))
+    [[10L, 15L], 255L]

@@ -529,27 +529,27 @@ pcutils_string_check_utf8(const char *str, ssize_t max_len,
 
 PCA_EXPORT char *
 pcutils_string_decode_utf16le(const unsigned char* bytes, size_t max_len,
-        size_t *sz_space, bool silently);
+        size_t *sz_space, size_t *consumed, bool silently);
 
 PCA_EXPORT char *
 pcutils_string_decode_utf32le(const unsigned char* bytes, size_t max_len,
-        size_t *sz_space, bool silently);
+        size_t *sz_space, size_t *consumed, bool silently);
 
 PCA_EXPORT char *
 pcutils_string_decode_utf16be(const unsigned char* bytes, size_t max_len,
-        size_t *sz_space, bool silently);
+        size_t *sz_space, size_t *consumed, bool silently);
 
 PCA_EXPORT char *
 pcutils_string_decode_utf32be(const unsigned char* bytes, size_t max_len,
-        size_t *sz_space, bool silently);
+        size_t *sz_space, size_t *consumed, bool silently);
 
 PCA_EXPORT char *
 pcutils_string_decode_utf16(const unsigned char* bytes, size_t max_len,
-        size_t *sz_space, bool silently);
+        size_t *sz_space, size_t *consumed, bool silently);
 
 PCA_EXPORT char *
 pcutils_string_decode_utf32(const unsigned char* bytes, size_t max_len,
-        size_t *sz_space, bool silently);
+        size_t *sz_space, size_t *consumed, bool silently);
 
 PCA_EXPORT size_t
 pcutils_string_decode_utf8(uint32_t *ucs, size_t max_chars,

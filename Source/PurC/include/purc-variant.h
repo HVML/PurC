@@ -694,7 +694,8 @@ purc_variant_array_set(purc_variant_t array, int idx, purc_variant_t value);
  *
  * Since: 0.0.1
  */
-PCA_EXPORT bool purc_variant_array_remove(purc_variant_t array, int idx);
+PCA_EXPORT bool
+purc_variant_array_remove(purc_variant_t array, int idx);
 
 
 /**
