@@ -218,7 +218,6 @@ void TestDVObj::run_testcases_in_file(const char *file_name)
             result = purc_variant_ejson_parse_tree_evalute(ptree,
                     TestDVObj::get_dvobj, this, true);
             purc_variant_ejson_parse_tree_destroy(ptree);
-            purc_variant_unref(result);
 
             // read exception name
             read = getline(&line, &sz, fp);
@@ -232,7 +231,41 @@ void TestDVObj::run_testcases_in_file(const char *file_name)
 
             purc_atom_t except_atom = purc_get_error_exception(purc_get_last_error());
 
-            EXPECT_EQ(except_atom, purc_atom_try_string_ex(1, exc));
+            EXPECT_EQ(except_atom, purc_atom_try_string_ex(PURC_ATOM_BUCKET_EXCEPT, exc));
+
+            // read expected result
+            read = getline(&line, &sz, fp);
+            *(line + read - 1) = 0;
+            line_number++;
+
+            exp_len = read - 1;
+            exp = pcutils_trim_spaces(line, &exp_len);
+            if (exp_len > 0) {
+                purc_log_info("Silent result `%s` expected\n", exp);
+
+                purc_variant_t expected;
+                ptree = purc_variant_ejson_parse_string(exp, exp_len);
+                expected = purc_variant_ejson_parse_tree_evalute(ptree,
+                        NULL, NULL, true);
+                purc_variant_ejson_parse_tree_destroy(ptree);
+
+                bool check = purc_variant_is_equal_to(result, expected);
+                if (!check) {
+                    char buf[4096];
+                    purc_rwstream_t stm;
+                    stm = purc_rwstream_new_from_mem(buf, sizeof(buf)-1);
+                    ssize_t n = purc_variant_serialize(result, stm, 0, 0, NULL);
+                    ASSERT_GT(n, 0);
+                    buf[n] = '\0';
+                    purc_log_info("Serialized result: %s\n", buf);
+                    purc_rwstream_destroy(stm);
+                }
+
+                EXPECT_EQ(check, true);
+                purc_variant_unref(expected);
+            }
+
+            purc_variant_unref(result);
             case_number++;
         }
         else if (strncasecmp(line, "positive", 8) == 0) {
@@ -279,6 +312,7 @@ void TestDVObj::run_testcases_in_file(const char *file_name)
                 ASSERT_GT(n, 0);
                 buf[n] = '\0';
                 purc_log_info("Serialized result: %s\n", buf);
+                purc_rwstream_destroy(stm);
             }
 
             EXPECT_EQ(check, true);

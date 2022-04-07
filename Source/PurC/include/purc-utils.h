@@ -198,6 +198,9 @@ typedef unsigned int purc_atom_t;
 /** The atom bucket identifier for default */
 #define PURC_ATOM_BUCKET_DEF    0
 
+/** The atom bucket identifier for exception name */
+#define PURC_ATOM_BUCKET_EXCEPT 1
+
 /** The atom bucket identifier reserved for user usage */
 #define PURC_ATOM_BUCKET_USER   (PURC_ATOM_BUCKETS_NR - 1)
 
