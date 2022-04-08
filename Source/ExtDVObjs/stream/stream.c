@@ -30,7 +30,9 @@
 #include "purc-runloop.h"
 
 #include <unistd.h>
+#include <sys/types.h>
 #include <sys/stat.h>
+#include <fcntl.h>
 
 #define BUFFER_SIZE         1024
 #define ENDIAN_PLATFORM     0
@@ -43,6 +45,10 @@
 #define SCHEMA_WIN_SOCK     "winsock"
 #define SCHEMA_WS           "ws"
 #define SCHEMA_WSS          "wss"
+
+
+#define PIPO_DEFAULT_MODE       0777
+#define RWSTREAM_FD_BUFFER      1024
 
 enum pcdvobjs_stream_type {
     STREAM_TYPE_FILE_STDIN,
@@ -178,11 +184,87 @@ out:
     return NULL;
 }
 
+static
+bool is_file_exists(const char* file)
+{
+    struct stat filestat;
+    return (0 == stat(file, &filestat));
+}
+
+// option: r(read), w(write), n(nonblock)
 struct pcdvobjs_stream *create_pipe_stream(struct purc_broken_down_url *url,
         purc_variant_t option)
 {
     UNUSED_PARAM(url);
     UNUSED_PARAM(option);
+    const char* option_s = purc_variant_get_string_const(option);
+
+    if (!is_file_exists(url->path)) {
+         int ret = mkfifo(url->path, PIPO_DEFAULT_MODE);
+         if (ret != 0) {
+             purc_set_error(PURC_ERROR_BAD_SYSTEM_CALL);
+             return NULL;
+         }
+    }
+
+    int rw = 0;
+    int flags = 0;
+    // parse option
+    while (*option_s) {
+        switch (*option_s) {
+            break;
+            rw = rw | 0x1;
+
+        case 'w':
+            rw = rw | 0x2;
+            break;
+
+        case 'n':
+            flags = flags | O_NONBLOCK;
+            break;
+        }
+        option_s++;
+    }
+
+    switch (rw) {
+    case 1:
+        flags = flags | O_RDONLY;
+        break;
+    case 2:
+        flags = flags | O_WRONLY;
+        break;
+    case 3:
+        flags = flags | O_RDWR;
+        break;
+    }
+
+    int fd = open(url->path, flags);
+    if (fd == -1) {
+        purc_set_error(PURC_ERROR_BAD_SYSTEM_CALL);
+        return NULL;
+    }
+
+    struct pcdvobjs_stream* stream = dvobjs_stream_create(STREAM_TYPE_PIPE,
+            url, option);
+    if (!stream) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto out_close_fd;
+    }
+
+    stream->rws = purc_rwstream_new_from_unix_fd(fd, RWSTREAM_FD_BUFFER);
+    if (stream->rws == NULL) {
+        goto out_free_stream;
+    }
+    stream->fd = fd;
+
+    return stream;
+
+out_free_stream:
+    dvobjs_stream_destroy(stream);
+
+out_close_fd:
+    close(fd);
+
     return NULL;
 }
 
