@@ -294,7 +294,7 @@ struct pcdvobjs_stream *create_unix_sock_stream(struct purc_broken_down_url *url
         goto out_close_fd;
     }
 
-    struct pcdvobjs_stream* stream = dvobjs_stream_create(STREAM_TYPE_PIPE,
+    struct pcdvobjs_stream* stream = dvobjs_stream_create(STREAM_TYPE_UNIX_SOCK,
             url, option);
     if (!stream) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
