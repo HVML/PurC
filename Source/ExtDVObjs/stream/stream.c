@@ -48,6 +48,10 @@
 #define SCHEMA_WS           "ws"
 #define SCHEMA_WSS          "wss"
 
+#define STDIN_NAME          "stdin"
+#define STDOUT_NAME         "stdout"
+#define STDERR_NAME         "stderr"
+
 
 #define PIPO_DEFAULT_MODE       0777
 #define RWSTREAM_FD_BUFFER      1024
@@ -1461,6 +1465,60 @@ stream_seek_getter(purc_variant_t root, size_t nr_args,
     return ret_var;
 }
 
+bool add_stdio_property(purc_variant_t v)
+{
+    static const struct purc_native_ops ops = {
+        .on_release = on_release,
+    };
+    struct pcdvobjs_stream* stream = NULL;
+    purc_variant_t var;
+
+    // stdin
+    stream = create_file_stdin_stream();
+    if (!stream) {
+        goto out;
+    }
+    var = purc_variant_make_native(stream, &ops);
+    if (var == PURC_VARIANT_INVALID) {
+        goto out;
+    }
+    if (!purc_variant_object_set_by_static_ckey(v, STDIN_NAME, var)) {
+        goto out_unref_var;;
+    }
+
+    // stdout
+    stream = create_file_stdout_stream();
+    if (!stream) {
+        goto out;
+    }
+    var = purc_variant_make_native(stream, &ops);
+    if (var == PURC_VARIANT_INVALID) {
+        goto out;
+    }
+    if (!purc_variant_object_set_by_static_ckey(v, STDOUT_NAME, var)) {
+        goto out_unref_var;;
+    }
+
+    // stderr
+    stream = create_file_stderr_stream();
+    if (!stream) {
+        goto out;
+    }
+    var = purc_variant_make_native(stream, &ops);
+    if (var == PURC_VARIANT_INVALID) {
+        goto out;
+    }
+    if (!purc_variant_object_set_by_static_ckey(v, STDERR_NAME, var)) {
+        goto out_unref_var;;
+    }
+
+out_unref_var:
+    purc_variant_unref(var);
+
+out:
+    return false;
+}
+
 purc_variant_t pcdvobjs_create_stream(void)
 {
     static struct purc_dvobj_method  stream[] = {
@@ -1472,6 +1530,18 @@ purc_variant_t pcdvobjs_create_stream(void)
         {"seek",        stream_seek_getter,        NULL},
     };
 
-    return purc_dvobj_make_from_methods(stream, PCA_TABLESIZE(stream));
+    purc_variant_t v = purc_dvobj_make_from_methods(stream,
+            PCA_TABLESIZE(stream));
+    if (v == PURC_VARIANT_INVALID) {
+        return PURC_VARIANT_INVALID;
+    }
+
+    if (add_stdio_property(v)) {
+        return v;
+    }
+
+    purc_variant_unref(v);
+    return PURC_VARIANT_INVALID;
+
 }
 
