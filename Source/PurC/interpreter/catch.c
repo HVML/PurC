@@ -40,6 +40,7 @@
 struct ctxt_for_catch {
     struct pcvdom_node *curr;
     purc_variant_t for_var;
+    struct pcintr_exception *exception;
     bool match;
 };
 
@@ -69,10 +70,9 @@ post_process_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     PC_ASSERT(ctxt);
 
     pcintr_stack_t stack = co->stack;
-    if (!stack->except) {
-        ctxt->match = false;
-        return 0;
-    }
+    PC_ASSERT(stack->except == 0);
+    PC_ASSERT(ctxt->exception);
+    PC_ASSERT(ctxt->exception->error_except);
 
     const char *msg = NULL;
     purc_variant_t for_var = ctxt->for_var;
@@ -99,8 +99,9 @@ post_process_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     char* ctx = except_msg;
     char* tok = strtok_r(ctx, " ", &ctx);
     while (tok) {
-        purc_atom_t t = purc_atom_try_string(msg);
-        if (t == stack->except) {
+        purc_atom_t t = purc_atom_try_string_ex(ATOM_BUCKET_EXCEPT, tok);
+        if (t == ctxt->exception->error_except) {
+            PC_ASSERT(t);
             ctxt->match = true;
             break;
         }
@@ -196,12 +197,11 @@ attr_found(struct pcintr_stack_frame *frame,
 }
 
 static void*
-after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
+_after_pushed(pcintr_stack_t stack, pcvdom_element_t pos,
+        struct pcintr_exception *exception)
 {
-    PC_ASSERT(stack && pos);
-    PC_ASSERT(stack == pcintr_get_stack());
-    if (pcintr_check_insertion_mode_for_normal_element(stack))
-        return NULL;
+    int r = pcintr_check_insertion_mode_for_normal_element(stack);
+    PC_ASSERT(r == 0);
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
@@ -214,6 +214,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         return NULL;
     }
 
+    ctxt->exception = exception;
+
     frame->ctxt = ctxt;
     frame->ctxt_destroy = ctxt_destroy;
 
@@ -222,7 +224,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     struct pcvdom_element *element = frame->pos;
     PC_ASSERT(element);
 
-    int r;
     r = pcintr_vdom_walk_attrs(frame, element, NULL, attr_found);
     if (r)
         return NULL;
@@ -230,6 +231,32 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     r = post_process(&stack->co, frame);
     if (r)
         return NULL;
+
+    return ctxt;
+}
+
+static void*
+after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
+{
+    PC_ASSERT(stack && pos);
+    PC_ASSERT(stack == pcintr_get_stack());
+
+    if (stack->except == 0)
+        return NULL;
+
+    struct pcintr_exception cache = {};
+    pcintr_exception_move(&cache, &stack->exception);
+    stack->except = 0;
+
+    struct ctxt_for_catch *ctxt;
+    ctxt = (struct ctxt_for_catch*)_after_pushed(stack, pos, &cache);
+    if (!ctxt || !ctxt->match) {
+        pcintr_exception_move(&stack->exception, &cache);
+        stack->except = 1;
+    }
+
+    pcintr_exception_clear(&cache);
+    ctxt->exception = NULL;
 
     return ctxt;
 }
@@ -244,6 +271,9 @@ on_popping(pcintr_stack_t stack, void* ud)
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame);
     PC_ASSERT(ud == frame->ctxt);
+
+    if (frame->ctxt == NULL)
+        return true;
 
     struct pcvdom_element *element = frame->pos;
     PC_ASSERT(element);
@@ -297,6 +327,9 @@ select_child(pcintr_stack_t stack, void* ud)
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(ud == frame->ctxt);
 
+    if (frame->ctxt == NULL)
+        return NULL;
+
     struct ctxt_for_catch *ctxt;
     ctxt = (struct ctxt_for_catch*)frame->ctxt;
 
@@ -314,17 +347,17 @@ again:
         struct pcvdom_node *node = &element->node;
         node = pcvdom_node_first_child(node);
         curr = node;
+        purc_clr_error();
     }
     else {
         curr = pcvdom_node_next_sibling(curr);
+        purc_clr_error();
     }
 
     ctxt->curr = curr;
 
-    if (curr == NULL) {
-        purc_clr_error();
+    if (curr == NULL)
         return NULL;
-    }
 
     switch (curr->type) {
         case PCVDOM_NODE_DOCUMENT:

@@ -252,6 +252,44 @@ loaded_vars_release(pcintr_stack_t stack)
     PC_ASSERT(r == 0);
 }
 
+void
+pcintr_exception_clear(struct pcintr_exception *exception)
+{
+    if (!exception)
+        return;
+
+    PURC_VARIANT_SAFE_CLEAR(exception->exinfo);
+    if (exception->bt) {
+        pcdebug_backtrace_unref(exception->bt);
+        exception->bt = NULL;
+    }
+    exception->error_except = 0;
+}
+
+void
+pcintr_exception_move(struct pcintr_exception *dst,
+        struct pcintr_exception *src)
+{
+    if (dst == src)
+        return;
+
+    if (dst->exinfo != src->exinfo) {
+        PURC_VARIANT_SAFE_CLEAR(dst->exinfo);
+        dst->exinfo = src->exinfo;
+        src->exinfo = PURC_VARIANT_INVALID;
+    }
+
+    if (dst->bt != src->bt) {
+        if (dst->bt)
+            pcdebug_backtrace_unref(dst->bt);
+        dst->bt = src->bt;
+        src->bt = NULL;
+    }
+
+    dst->error_except = src->error_except;
+    src->error_except = 0;
+}
+
 static void
 stack_release(pcintr_stack_t stack)
 {
@@ -307,11 +345,7 @@ stack_release(pcintr_stack_t stack)
         free(stack->base_uri);
     }
 
-    PURC_VARIANT_SAFE_CLEAR(stack->exception.exinfo);
-    if (stack->exception.bt) {
-        pcdebug_backtrace_unref(stack->exception.bt);
-        stack->exception.bt = NULL;
-    }
+    pcintr_exception_clear(&stack->exception);
 
     if (stack->event_timer) {
         pcintr_timer_destroy(stack->event_timer);
@@ -876,7 +910,6 @@ exception_copy(struct pcintr_exception *exception)
     if (exception->bt) {
         pcdebug_backtrace_unref(exception->bt);
     }
-
     exception->bt = inst->bt;
 }
 
@@ -925,13 +958,10 @@ execute_one_step(pcintr_coroutine_t co)
         co->stack->except = 1;
         pcinst_clear_error(inst);
         PC_ASSERT(inst->errcode == 0);
-    }
-
-    if (co->stack->except) {
+#ifndef NDEBUG                     /* { */
         dump_stack(co->stack);
-        dump_c_stack();
-        co->state = CO_STATE_TERMINATED;
-        purc_clr_error();
+#endif                             /* } */
+        PC_ASSERT(inst->errcode == 0);
     }
 
     bool no_frames = list_empty(&co->stack->frames);
@@ -946,7 +976,7 @@ execute_one_step(pcintr_coroutine_t co)
         pcintr_dump_document(stack);
         co->stack->stage = STACK_STAGE_EVENT_LOOP;
         // do not run execute_one_step until event's fired if co->waits > 0
-        if (co->waits) { // FIXME:
+        if (co->stack->except == 0 && co->waits) { // FIXME:
             co->state = CO_STATE_WAIT;
             return;
         }
@@ -984,6 +1014,10 @@ static int run_coroutines(void *ctxt)
                     execute_one_step(co);
                     //PC_ASSERT(purc_get_last_error() == PURC_ERROR_OK);
                     if (co->state == CO_STATE_TERMINATED) {
+                        if (co->stack->except) {
+                            dump_c_stack();
+                        }
+
                         if (co->stack->ops.on_terminated) {
                             co->stack->ops.on_terminated(co->stack, co->stack->ctxt);
                             co->stack->ops.on_terminated = NULL;

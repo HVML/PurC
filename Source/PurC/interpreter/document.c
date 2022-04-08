@@ -78,6 +78,9 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     PC_ASSERT(stack == pcintr_get_stack());
     PC_ASSERT(stack->mode == STACK_VDOM_BEFORE_HVML);
 
+    if (stack->except)
+        return NULL;
+
     int r;
 
     struct pcintr_stack_frame *frame;
@@ -154,6 +157,9 @@ on_popping(pcintr_stack_t stack, void* ud)
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(ud == frame->ctxt);
 
+    if (frame->ctxt == NULL)
+        return true;
+
     struct ctxt_for_document *ctxt;
     ctxt = (struct ctxt_for_document*)frame->ctxt;
     if (ctxt) {
@@ -201,6 +207,9 @@ select_child(pcintr_stack_t stack, void* ud)
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(ud == frame->ctxt);
+
+    if (frame->ctxt == NULL)
+        return NULL;
 
     struct ctxt_for_document *ctxt;
     ctxt = (struct ctxt_for_document*)frame->ctxt;

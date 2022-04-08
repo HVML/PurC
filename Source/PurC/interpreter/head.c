@@ -83,6 +83,9 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     PC_ASSERT(stack->mode == STACK_VDOM_BEFORE_HEAD);
     stack->mode = STACK_VDOM_IN_HEAD;
 
+    if (stack->except)
+        return NULL;
+
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame);
@@ -128,6 +131,9 @@ on_popping(pcintr_stack_t stack, void* ud)
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame);
     PC_ASSERT(ud == frame->ctxt);
+
+    if (frame->ctxt == NULL)
+        return true;
 
     struct pcvdom_element *element = frame->pos;
     PC_ASSERT(element);
@@ -179,6 +185,9 @@ select_child(pcintr_stack_t stack, void* ud)
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(ud == frame->ctxt);
+
+    if (frame->ctxt == NULL)
+        return NULL;
 
     struct ctxt_for_head *ctxt;
     ctxt = (struct ctxt_for_head*)frame->ctxt;

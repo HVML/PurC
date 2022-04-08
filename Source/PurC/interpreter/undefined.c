@@ -177,6 +177,9 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
             break;
     }
 
+    if (stack->except)
+        return NULL;
+
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame);
@@ -257,6 +260,9 @@ on_popping(pcintr_stack_t stack, void* ud)
     PC_ASSERT(frame);
     PC_ASSERT(ud == frame->ctxt);
 
+    if (frame->ctxt == NULL)
+        return true;
+
     struct pcvdom_element *element = frame->pos;
     PC_ASSERT(element);
 
@@ -326,7 +332,6 @@ on_comment(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 static pcvdom_element_t
 select_child(pcintr_stack_t stack, void* ud)
 {
-                PC_ASSERT(stack->except == 0);
     PC_ASSERT(stack);
     PC_ASSERT(stack == pcintr_get_stack());
 
@@ -334,6 +339,9 @@ select_child(pcintr_stack_t stack, void* ud)
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(ud == frame->ctxt);
+
+    if (frame->ctxt == NULL)
+        return NULL;
 
     struct ctxt_for_undefined *ctxt;
     ctxt = (struct ctxt_for_undefined*)frame->ctxt;
@@ -369,7 +377,6 @@ again:
             {
                 pcvdom_element_t element = PCVDOM_ELEMENT_FROM_NODE(curr);
                 on_element(co, frame, element);
-                PC_ASSERT(stack->except == 0);
                 return element;
             }
         case PCVDOM_NODE_CONTENT:

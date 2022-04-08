@@ -2183,7 +2183,7 @@ hex2bin_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     size_t expected = len / 2;
-    unsigned char *bytes = malloc(expected);
+    unsigned char *bytes = malloc(expected+1);
     if (bytes == NULL) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto fatal;
