@@ -167,7 +167,67 @@ bool is_file_exists(const char* file)
     return (0 == stat(file, &filestat));
 }
 
+static
+struct pcdvobjs_stream *create_file_std_stream(enum pcdvobjs_stream_type type)
+{
+    FILE* fp = NULL;
+    switch (type) {
+    case STREAM_TYPE_FILE_STDIN:
+        fp = stdin;
+        break;
 
+    case STREAM_TYPE_FILE_STDOUT:
+        fp = stdout;
+        break;
+
+    case STREAM_TYPE_FILE_STDERR:
+        fp = stderr;
+        break;
+
+    default:
+        return NULL;
+    }
+
+    struct pcdvobjs_stream* stream = dvobjs_stream_create(type,
+            NULL, PURC_VARIANT_INVALID);
+    if (!stream) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto out;
+    }
+
+    stream->rws = purc_rwstream_new_from_fp(fp);
+    if (stream->rws == NULL) {
+        goto out_free_stream;
+    }
+
+    return stream;
+
+out_free_stream:
+    dvobjs_stream_destroy(stream);
+
+out:
+    return NULL;
+}
+
+inline
+struct pcdvobjs_stream *create_file_stdin_stream()
+{
+    return create_file_std_stream(STREAM_TYPE_FILE_STDIN);
+}
+
+inline
+struct pcdvobjs_stream *create_file_stdout_stream()
+{
+    return create_file_std_stream(STREAM_TYPE_FILE_STDOUT);
+}
+
+inline
+struct pcdvobjs_stream *create_file_stderr_stream()
+{
+    return create_file_std_stream(STREAM_TYPE_FILE_STDERR);
+}
+
+static
 struct pcdvobjs_stream *create_file_stream(struct purc_broken_down_url *url,
         purc_variant_t option)
 {
@@ -195,6 +255,7 @@ out:
 }
 
 // option: r(read), w(write), n(nonblock)
+static
 struct pcdvobjs_stream *create_pipe_stream(struct purc_broken_down_url *url,
         purc_variant_t option)
 {
@@ -271,6 +332,7 @@ out_close_fd:
     return NULL;
 }
 
+static
 struct pcdvobjs_stream *create_unix_sock_stream(struct purc_broken_down_url *url,
         purc_variant_t option)
 {
