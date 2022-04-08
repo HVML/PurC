@@ -32,6 +32,8 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/socket.h>
+#include <sys/un.h>
 #include <fcntl.h>
 
 #define BUFFER_SIZE         1024
@@ -271,8 +273,48 @@ out_close_fd:
 struct pcdvobjs_stream *create_unix_sock_stream(struct purc_broken_down_url *url,
         purc_variant_t option)
 {
-    UNUSED_PARAM(url);
     UNUSED_PARAM(option);
+
+    if (!is_file_exists(url->path)) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        return NULL;
+    }
+    int fd = 0;
+    if ((fd = socket (AF_UNIX, SOCK_STREAM, 0)) < 0) {
+        purc_set_error(PCRDR_ERROR_IO);
+        return NULL;
+    }
+
+    struct sockaddr_un unix_addr;
+    memset (&unix_addr, 0, sizeof(unix_addr));
+    unix_addr.sun_family = AF_UNIX;
+    strcpy(unix_addr.sun_path, url->path);
+    int len = sizeof (unix_addr.sun_family) + strlen (unix_addr.sun_path);
+    if (connect(fd, (struct sockaddr *) &unix_addr, len) < 0) {
+        goto out_close_fd;
+    }
+
+    struct pcdvobjs_stream* stream = dvobjs_stream_create(STREAM_TYPE_PIPE,
+            url, option);
+    if (!stream) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto out_close_fd;
+    }
+
+    stream->rws = purc_rwstream_new_from_unix_fd(fd, RWSTREAM_FD_BUFFER);
+    if (stream->rws == NULL) {
+        goto out_free_stream;
+    }
+    stream->fd = fd;
+
+    return stream;
+
+out_free_stream:
+    dvobjs_stream_destroy(stream);
+
+out_close_fd:
+    close (fd);
+
     return NULL;
 }
 
