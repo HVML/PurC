@@ -371,7 +371,13 @@ select_child(pcintr_stack_t stack, void* ud)
     PC_ASSERT(ud == frame->ctxt);
     PC_ASSERT(ud);
 
+    if (stack->back_anchor == frame)
+        stack->back_anchor = NULL;
+
     if (frame->ctxt == NULL)
+        return NULL;
+
+    if (stack->back_anchor)
         return NULL;
 
     if (frame->result_from_child)

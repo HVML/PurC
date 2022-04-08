@@ -769,11 +769,14 @@ dump_stack(pcintr_stack_t stack)
 #endif                             /* } */
 
 static void
-dump_c_stack(void)
+dump_c_stack(struct pcdebug_backtrace *bt)
 {
+    if (!bt)
+        return;
+
     struct pcinst *inst = pcinst_current();
     fprintf(stderr, "dumping stacks of purc instance [%p]......\n", inst);
-    pcinst_dump_stack();
+    pcdebug_backtrace_dump(bt);
 }
 
 int
@@ -977,11 +980,12 @@ execute_one_step(pcintr_coroutine_t co)
 
         pcintr_dump_document(stack);
         co->stack->stage = STACK_STAGE_EVENT_LOOP;
-        // do not run execute_one_step until event's fired if co->waits > 0
+        // do not run execute-one-step until event's fired if co->waits > 0
         if (co->stack->except == 0 && co->waits) { // FIXME:
             co->state = CO_STATE_WAIT;
             return;
         }
+
         co->state = CO_STATE_TERMINATED;
         PC_DEBUGX("co terminating: %p", co);
     }
@@ -1017,8 +1021,9 @@ static int run_coroutines(void *ctxt)
                     //PC_ASSERT(purc_get_last_error() == PURC_ERROR_OK);
                     if (co->state == CO_STATE_TERMINATED) {
                         if (co->stack->except) {
-                            dump_c_stack();
+                            dump_c_stack(co->stack->exception.bt);
                         }
+                        PC_ASSERT(co->stack->back_anchor == NULL);
 
                         if (co->stack->ops.on_terminated) {
                             co->stack->ops.on_terminated(co->stack, co->stack->ctxt);

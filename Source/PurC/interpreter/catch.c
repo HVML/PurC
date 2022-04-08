@@ -327,7 +327,13 @@ select_child(pcintr_stack_t stack, void* ud)
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(ud == frame->ctxt);
 
+    if (stack->back_anchor == frame)
+        stack->back_anchor = NULL;
+
     if (frame->ctxt == NULL)
+        return NULL;
+
+    if (stack->back_anchor)
         return NULL;
 
     struct ctxt_for_catch *ctxt;
@@ -367,7 +373,6 @@ again:
             {
                 pcvdom_element_t element = PCVDOM_ELEMENT_FROM_NODE(curr);
                 on_element(co, frame, element);
-                PC_ASSERT(stack->except == 0);
                 return element;
             }
         case PCVDOM_NODE_CONTENT:

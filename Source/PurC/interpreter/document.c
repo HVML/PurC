@@ -208,7 +208,13 @@ select_child(pcintr_stack_t stack, void* ud)
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(ud == frame->ctxt);
 
+    if (stack->back_anchor == frame)
+        stack->back_anchor = NULL;
+
     if (frame->ctxt == NULL)
+        return NULL;
+
+    if (stack->back_anchor)
         return NULL;
 
     struct ctxt_for_document *ctxt;
@@ -222,15 +228,16 @@ again:
     if (curr == NULL) {
         struct pcvdom_document *document = stack->vdom->document;
         curr = pcvdom_node_first_child(&document->node);
+        purc_clr_error();
     }
     else {
         curr = pcvdom_node_next_sibling(curr);
+        purc_clr_error();
     }
 
     ctxt->curr = curr;
 
     if (curr == NULL) {
-        purc_clr_error();
         return NULL;
     }
 
