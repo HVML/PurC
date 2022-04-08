@@ -56,6 +56,9 @@
 #define PIPO_DEFAULT_MODE       0777
 #define RWSTREAM_FD_BUFFER      1024
 
+#define STREAM_DVOBJ_VERSION  0
+#define STREAM_DESCRIPTION    "For io stream operations in PURC"
+
 enum pcdvobjs_stream_type {
     STREAM_TYPE_FILE_STDIN,
     STREAM_TYPE_FILE_STDOUT,
@@ -1543,5 +1546,34 @@ purc_variant_t pcdvobjs_create_stream(void)
     purc_variant_unref(v);
     return PURC_VARIANT_INVALID;
 
+}
+
+purc_variant_t __purcex_load_dynamic_variant(const char *name, int *ver_code)
+{
+    UNUSED_PARAM(name);
+    *ver_code = STREAM_DVOBJ_VERSION;
+
+    return pcdvobjs_create_stream();
+}
+
+size_t __purcex_get_number_of_dynamic_variants(void)
+{
+    return 1;
+}
+
+const char * __purcex_get_dynamic_variant_name(size_t idx)
+{
+    if (idx != 0)
+        return NULL;
+
+    return "STREAM";
+}
+
+const char * __purcex_get_dynamic_variant_desc(size_t idx)
+{
+    if (idx != 0)
+        return NULL;
+
+    return STREAM_DESCRIPTION;
 }
 
