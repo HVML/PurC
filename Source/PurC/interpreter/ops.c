@@ -55,6 +55,7 @@ const struct tag_id_ops maps[] = {
     {PCHVML_TAG_CATCH,             pcintr_get_catch_ops},
     {PCHVML_TAG_FORGET,            pcintr_get_forget_ops},
     {PCHVML_TAG_FIRE,              pcintr_get_fire_ops},
+    {PCHVML_TAG_BACK,              pcintr_get_back_ops},
 };
 
 void init_ops(void)

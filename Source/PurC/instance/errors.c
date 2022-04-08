@@ -395,14 +395,6 @@ dump_stacks_ex(char **stacks, int nr_stacks, regex_t *regex)
 #endif                             /* } */
 #endif                             /* } */
 
-void pcinst_dump_stack(void)
-{
-    struct pcinst* inst = pcinst_current();
-    PC_ASSERT(inst);
-
-    pcdebug_backtrace_dump(inst->bt);
-}
-
 void
 pcdebug_backtrace_dump(struct pcdebug_backtrace *bt)
 {

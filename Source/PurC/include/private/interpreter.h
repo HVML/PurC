@@ -141,6 +141,9 @@ struct pcintr_stack {
     // valid only when except == 1
     struct pcintr_exception       exception;
 
+    // for `back` to use
+    struct pcintr_stack_frame         *back_anchor;
+
     // executing statistics
     struct timespec time_executed;
     struct timespec time_idle;
