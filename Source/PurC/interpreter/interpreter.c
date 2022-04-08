@@ -690,6 +690,7 @@ pcintr_is_element_silently(struct pcvdom_element *element)
     return element ? pcvdom_element_is_silently(element) : false;
 }
 
+#ifndef NDEBUG                     /* { */
 static void
 dump_stack_frame(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
         size_t level)
@@ -765,6 +766,7 @@ dump_stack(pcintr_stack_t stack)
         }
     }
 }
+#endif                             /* } */
 
 static void
 dump_c_stack(void)
