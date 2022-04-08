@@ -202,6 +202,15 @@ on_release(void *native_entity)
     dvobjs_stream_destroy((struct pcdvobjs_stream *)native_entity);
 }
 
+purc_rwstream_t get_rwstream_from_variant(purc_variant_t v)
+{
+    struct pcdvobjs_stream *stream = purc_variant_native_get_entity(v);
+    if (stream) {
+        return stream->rws;
+    }
+    return NULL;
+}
+
 // for file to get '\n'
 static const char * pcdvobjs_stream_get_next_option (const char *data,
         const char *delims, size_t *length)
@@ -479,7 +488,7 @@ stream_readstruct_getter (purc_variant_t root, size_t nr_args,
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
-    rwstream = purc_variant_native_get_entity (argv[0]);
+    rwstream = get_rwstream_from_variant (argv[0]);
     if (rwstream == NULL) {
         purc_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
@@ -813,7 +822,7 @@ stream_writestruct_getter (purc_variant_t root, size_t nr_args,
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
-    rwstream = purc_variant_native_get_entity (argv[0]);
+    rwstream = get_rwstream_from_variant (argv[0]);
     if (rwstream == NULL) {
         purc_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
@@ -1134,7 +1143,7 @@ stream_readlines_getter (purc_variant_t root, size_t nr_args,
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
-    rwstream = purc_variant_native_get_entity (argv[0]);
+    rwstream = get_rwstream_from_variant (argv[0]);
     if (rwstream == NULL) {
         purc_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
@@ -1185,7 +1194,7 @@ stream_readbytes_getter (purc_variant_t root, size_t nr_args,
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
-    rwstream = purc_variant_native_get_entity (argv[0]);
+    rwstream = get_rwstream_from_variant (argv[0]);
     if (rwstream == NULL) {
         purc_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
@@ -1245,7 +1254,7 @@ stream_seek_getter (purc_variant_t root, size_t nr_args,
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
-    rwstream = purc_variant_native_get_entity (argv[0]);
+    rwstream = get_rwstream_from_variant (argv[0]);
     if (rwstream == NULL) {
         purc_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
