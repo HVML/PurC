@@ -885,11 +885,13 @@ TEST(gio_rwstream, new_destroy)
     rws = purc_rwstream_new_from_unix_fd (fd, 1024);
     ASSERT_NE(rws, nullptr);
 
+#if 0
     int flags = fcntl (fd, F_GETFL);
 #ifdef O_NONBLOCK
     ASSERT_EQ(flags & O_NONBLOCK, 0);
 #else
     ASSERT_EQ(flags & O_NDELAY, 0);
+#endif
 #endif
 
     ret = purc_rwstream_destroy (rws);

@@ -313,13 +313,14 @@ purc_rwstream_t purc_rwstream_new_from_unix_fd (int fd, size_t sz_buf)
         return NULL;
     }
 
+#if 0
     GIOFlags flags = g_io_channel_get_flags(gio_channel);
     g_io_channel_set_flags(gio_channel, flags & ~G_IO_FLAG_NONBLOCK, NULL);
+#endif
 
     g_io_channel_set_encoding (gio_channel, NULL, NULL);
 
-    if (sz_buf > 0)
-    {
+    if (sz_buf > 0) {
         g_io_channel_set_buffer_size(gio_channel, sz_buf);
     }
 
