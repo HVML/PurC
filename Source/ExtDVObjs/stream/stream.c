@@ -27,6 +27,7 @@
 #include "private/errors.h"
 #include "private/dvobjs.h"
 #include "purc-variant.h"
+#include "purc-runloop.h"
 
 #include <unistd.h>
 #include <sys/stat.h>
@@ -35,6 +36,171 @@
 #define ENDIAN_PLATFORM     0
 #define ENDIAN_LITTLE       1
 #define ENDIAN_BIG          2
+
+#define SCHEMA_FILE         "file"
+#define SCHEMA_PIPE         "pipe"
+#define SCHEMA_UNIX_SOCK    "unix"
+#define SCHEMA_WIN_SOCK     "winsock"
+#define SCHEMA_WS           "ws"
+#define SCHEMA_WSS          "wss"
+
+enum pcdvobjs_stream_type {
+    STREAM_TYPE_FILE_STDIN,
+    STREAM_TYPE_FILE_STDOUT,
+    STREAM_TYPE_FILE_STDERR,
+    STREAM_TYPE_FILE,
+    STREAM_TYPE_PIPE,
+    STREAM_TYPE_UNIX_SOCK,
+    STREAM_TYPE_WIN_SOCK,
+    STREAM_TYPE_WS,
+    STREAM_TYPE_WSS,
+};
+
+struct pcdvobjs_stream {
+    enum pcdvobjs_stream_type type;
+    struct purc_broken_down_url *url;
+    purc_rwstream_t rws;
+    purc_variant_t option;
+    uintptr_t monitor;
+    int fd;
+};
+
+
+static
+void purc_broken_down_url_destroy(struct purc_broken_down_url *url)
+{
+    if (!url) {
+        return;
+    }
+
+    if (url->schema) {
+        free(url->schema);
+    }
+
+    if (url->user) {
+        free(url->user);
+    }
+
+    if (url->passwd) {
+        free(url->passwd);
+    }
+
+    if (url->host) {
+        free(url->host);
+    }
+
+    if (url->path) {
+        free(url->path);
+    }
+
+    if (url->query) {
+        free(url->query);
+    }
+
+    if (url->fragment) {
+        free(url->fragment);
+    }
+}
+
+static
+struct pcdvobjs_stream *dvobjs_stream_create(enum pcdvobjs_stream_type type,
+        struct purc_broken_down_url *url, purc_variant_t option)
+{
+    struct pcdvobjs_stream *stream = (struct pcdvobjs_stream*)calloc(1,
+            sizeof(struct pcdvobjs_stream));
+    if (!stream) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return NULL;
+    }
+    stream->type = type;
+    stream->url = url;
+    if (option) {
+        stream->option = option;
+        purc_variant_ref(stream->option);
+    }
+    return stream;
+}
+
+static
+void dvobjs_stream_destroy(struct pcdvobjs_stream *stream)
+{
+    if (!stream) {
+        return;
+    }
+
+    if (stream->url) {
+        purc_broken_down_url_destroy(stream->url);
+    }
+
+    if (stream->rws) {
+        purc_rwstream_destroy(stream->rws);
+    }
+
+    if (stream->option) {
+        purc_variant_unref(stream->option);
+    }
+
+    if (stream->monitor) {
+        purc_runloop_remove_fd_monitor(purc_runloop_get_current(),
+                stream->monitor);
+    }
+
+    if (stream->fd) {
+        close(stream->fd);
+    }
+
+    free(stream);
+}
+
+struct pcdvobjs_stream *create_file_stream(struct purc_broken_down_url *url,
+        purc_variant_t option)
+{
+    struct pcdvobjs_stream* stream = dvobjs_stream_create(STREAM_TYPE_FILE,
+            url, option);
+    if (!stream) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto out;
+    }
+
+    stream->rws = purc_rwstream_new_from_file(url->path,
+            purc_variant_get_string_const(option));
+    if (stream->rws == NULL) {
+        goto out_free_stream;
+    }
+
+
+    return stream;
+
+out_free_stream:
+    dvobjs_stream_destroy(stream);
+
+out:
+    return NULL;
+}
+
+struct pcdvobjs_stream *create_pipe_stream(struct purc_broken_down_url *url,
+        purc_variant_t option)
+{
+    UNUSED_PARAM(url);
+    UNUSED_PARAM(option);
+    return NULL;
+}
+
+struct pcdvobjs_stream *create_unix_sock_stream(struct purc_broken_down_url *url,
+        purc_variant_t option)
+{
+    UNUSED_PARAM(url);
+    UNUSED_PARAM(option);
+    return NULL;
+}
+
+// stream native variant
+
+static void
+on_release(void *native_entity)
+{
+    dvobjs_stream_destroy((struct pcdvobjs_stream *)native_entity);
+}
 
 // for file to get '\n'
 static const char * pcdvobjs_stream_get_next_option (const char *data,
@@ -107,12 +273,6 @@ static ssize_t find_line_stream (purc_rwstream_t stream, int line_num)
 }
 
 
-static void
-release_rwstream(void *native_entity)
-{
-    purc_rwstream_destroy((purc_rwstream_t)native_entity);
-}
-
 static purc_variant_t
 stream_open_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
@@ -125,10 +285,7 @@ stream_open_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         return PURC_VARIANT_INVALID;
     }
 
-    const char *filename = NULL;
-    struct stat filestat;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
-    purc_rwstream_t rwstream = NULL;
 
     if (argv[0] == PURC_VARIANT_INVALID ||
             (!purc_variant_is_string (argv[0]))) {
@@ -142,35 +299,48 @@ stream_open_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         return PURC_VARIANT_INVALID;
     }
 
-    // get the file name
-    filename = purc_variant_get_string_const (argv[0]);
-    // check whether the file exists
-    if((access(filename, F_OK | R_OK)) != 0) {
-        purc_set_error (PURC_ERROR_NOT_EXISTS);
+    struct purc_broken_down_url *url= (struct purc_broken_down_url*)
+        calloc(1, sizeof(struct purc_broken_down_url));
+    if(!pcutils_url_break_down(url, purc_variant_get_string_const(argv[0]))) {
+        purc_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
     }
 
-    // get the file length
-    if(stat(filename, &filestat) < 0) {
-        purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
-        return PURC_VARIANT_INVALID;
+    struct pcdvobjs_stream* stream = NULL;
+    if (strcmp(SCHEMA_FILE, url->schema) == 0) {
+        stream = create_file_stream(url, argv[1]);
     }
+    else if (strcmp(SCHEMA_PIPE, url->schema) == 0) {
+        stream = create_pipe_stream(url, argv[1]);
+    }
+    else if (strcmp(SCHEMA_UNIX_SOCK, url->schema) == 0) {
+        stream = create_unix_sock_stream(url, argv[1]);
+    }
+#if 0
+    // TODO
+    else if (strcmp(SCHEMA_WIN_SOCK, url.schema) == 0) {
+    }
+    else if (strcmp(SCHEMA_WS, url.schema) == 0) {
+    }
+    else if (strcmp(SCHEMA_WSS, url.schema) == 0) {
+    }
+#endif
 
-    rwstream = purc_rwstream_new_from_file (filename,
-            purc_variant_get_string_const (argv[1]));
-
-    if (rwstream == NULL) {
-        purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
-        return PURC_VARIANT_INVALID;
+    if (!stream) {
+        goto out_free_url;
     }
 
     // setup a callback for `on_release` to destroy the stream automatically
     static const struct purc_native_ops ops = {
-        .on_release = release_rwstream,
+        .on_release = on_release,
     };
-    ret_var = purc_variant_make_native (rwstream, &ops);
-
+    ret_var = purc_variant_make_native(stream, &ops);
     return ret_var;
+
+out_free_url:
+    purc_broken_down_url_destroy(url);
+
+    return PURC_VARIANT_INVALID;
 }
 
 static inline void change_order (unsigned char *buf, size_t size)
