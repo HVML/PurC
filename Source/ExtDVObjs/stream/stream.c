@@ -160,6 +160,14 @@ void dvobjs_stream_destroy(struct pcdvobjs_stream *stream)
     free(stream);
 }
 
+static
+bool is_file_exists(const char* file)
+{
+    struct stat filestat;
+    return (0 == stat(file, &filestat));
+}
+
+
 struct pcdvobjs_stream *create_file_stream(struct purc_broken_down_url *url,
         purc_variant_t option)
 {
@@ -184,13 +192,6 @@ out_free_stream:
 
 out:
     return NULL;
-}
-
-static
-bool is_file_exists(const char* file)
-{
-    struct stat filestat;
-    return (0 == stat(file, &filestat));
 }
 
 // option: r(read), w(write), n(nonblock)
