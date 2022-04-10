@@ -216,19 +216,19 @@ out:
     return NULL;
 }
 
-inline
+static inline
 struct pcdvobjs_stream *create_file_stdin_stream()
 {
     return create_file_std_stream(STREAM_TYPE_FILE_STDIN);
 }
 
-inline
+static inline
 struct pcdvobjs_stream *create_file_stdout_stream()
 {
     return create_file_std_stream(STREAM_TYPE_FILE_STDOUT);
 }
 
-inline
+static inline
 struct pcdvobjs_stream *create_file_stderr_stream()
 {
     return create_file_std_stream(STREAM_TYPE_FILE_STDERR);
@@ -1486,7 +1486,7 @@ bool add_stdio_property(purc_variant_t v)
         goto out;
     }
     if (!purc_variant_object_set_by_static_ckey(v, STDIN_NAME, var)) {
-        goto out_unref_var;;
+        goto out_unref_var;
     }
 
     // stdout
@@ -1499,7 +1499,7 @@ bool add_stdio_property(purc_variant_t v)
         goto out;
     }
     if (!purc_variant_object_set_by_static_ckey(v, STDOUT_NAME, var)) {
-        goto out_unref_var;;
+        goto out_unref_var;
     }
 
     // stderr
@@ -1512,8 +1512,10 @@ bool add_stdio_property(purc_variant_t v)
         goto out;
     }
     if (!purc_variant_object_set_by_static_ckey(v, STDERR_NAME, var)) {
-        goto out_unref_var;;
+        goto out_unref_var;
     }
+
+    return true;
 
 out_unref_var:
     purc_variant_unref(var);
