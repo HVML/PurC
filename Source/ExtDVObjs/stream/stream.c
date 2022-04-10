@@ -52,6 +52,11 @@
 #define STDOUT_NAME         "stdout"
 #define STDERR_NAME         "stderr"
 
+#define STREAM_EVENT_NAME           "event"
+#define STREAM_SUB_EVENT_R_NAME     "r"
+#define STREAM_SUB_EVENT_W_NAME     "w"
+#define STREAM_SUB_EVENT_RW_NAME    "rw"
+
 
 #define PIPO_DEFAULT_MODE       0777
 #define RWSTREAM_FD_BUFFER      1024
@@ -388,7 +393,50 @@ out_close_fd:
     return NULL;
 }
 
+static bool
+stream_io_callback(int fd, purc_runloop_io_event event, void *ctxt)
+{
+    UNUSED_PARAM(fd);
+    UNUSED_PARAM(event);
+    UNUSED_PARAM(ctxt);
+    // TODO: dispatch event
+    return true;
+}
+
 // stream native variant
+static bool
+on_observe(void *native_entity, const char *event_name,
+        const char *event_subname)
+{
+    if (strcmp(event_name, STREAM_EVENT_NAME) != 0) {
+        return false;
+    }
+
+    purc_runloop_io_event event;
+    if (strcmp(event_subname, STREAM_SUB_EVENT_R_NAME) == 0) {
+        event = PCRUNLOOP_IO_IN;
+    }
+    else if (strcmp(event_subname, STREAM_SUB_EVENT_W_NAME) == 0) {
+        event = PCRUNLOOP_IO_OUT;
+    }
+    else if (strcmp(event_subname, STREAM_SUB_EVENT_RW_NAME) == 0) {
+        event = PCRUNLOOP_IO_IN | PCRUNLOOP_IO_OUT;
+    }
+
+    struct pcdvobjs_stream *stream = (struct pcdvobjs_stream*)native_entity;
+    struct pcintr_stack *stack = pcintr_get_stack();
+    if (!stack) {
+        return false;
+    }
+    if (stream->fd && (stream->type == STREAM_TYPE_PIPE ||
+            stream->type == STREAM_TYPE_UNIX_SOCK)) {
+        stream->monitor = purc_runloop_add_fd_monitor(
+                purc_runloop_get_current(), stream->fd, event,
+                stream_io_callback, stream);
+        return stream->monitor ? true : false;
+    }
+    return true;
+}
 
 static void
 on_release(void *native_entity)
@@ -535,6 +583,7 @@ stream_open_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     // setup a callback for `on_release` to destroy the stream automatically
     static const struct purc_native_ops ops = {
+        .on_observe = on_observe,
         .on_release = on_release,
     };
     ret_var = purc_variant_make_native(stream, &ops);
@@ -1471,6 +1520,7 @@ stream_seek_getter(purc_variant_t root, size_t nr_args,
 bool add_stdio_property(purc_variant_t v)
 {
     static const struct purc_native_ops ops = {
+        .on_observe = on_observe,
         .on_release = on_release,
     };
     struct pcdvobjs_stream* stream = NULL;
