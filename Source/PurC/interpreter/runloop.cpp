@@ -28,6 +28,7 @@
 
 #include "purc-runloop.h"
 #include "private/errors.h"
+#include "private/interpreter.h"
 
 #include <wtf/Threading.h>
 #include <wtf/RunLoop.h>
@@ -182,5 +183,19 @@ void purc_runloop_remove_fd_monitor(purc_runloop_t runloop, uintptr_t handle)
         runloop = purc_runloop_get_current();
     }
     ((RunLoop*)runloop)->removeFdMonitor(handle);
+}
+
+int purc_runloop_dispatch_message(purc_runloop_t runloop, purc_variant_t source,
+        purc_variant_t type, purc_variant_t sub_type, purc_variant_t extra)
+{
+    if (!runloop) {
+        runloop = purc_runloop_get_current();
+    }
+    struct pcintr_stack *stack = pcintr_get_stack();
+    if (!stack) {
+        return -1;
+    }
+
+    return pcintr_dispatch_message_ex(stack, source, type, sub_type, extra);
 }
 
