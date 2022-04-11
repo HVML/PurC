@@ -581,6 +581,21 @@ on_observe(void *native_entity, const char *event_name,
     return true;
 }
 
+static bool
+on_forget(void *native_entity, const char *event_name,
+        const char *event_subname)
+{
+    UNUSED_PARAM(event_name);
+    UNUSED_PARAM(event_subname);
+    struct pcdvobjs_stream *stream = (struct pcdvobjs_stream*)native_entity;
+    if (stream->monitor) {
+        purc_runloop_remove_fd_monitor(purc_runloop_get_current(),
+                stream->monitor);
+        stream->monitor = 0;
+    }
+    return true;
+}
+
 static void
 on_release(void *native_entity)
 {
@@ -727,6 +742,7 @@ stream_open_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     // setup a callback for `on_release` to destroy the stream automatically
     static const struct purc_native_ops ops = {
         .on_observe = on_observe,
+        .on_forget = on_forget,
         .on_release = on_release,
     };
     ret_var = purc_variant_make_native(stream, &ops);
@@ -1668,6 +1684,7 @@ bool add_stdio_property(purc_variant_t v)
 {
     static const struct purc_native_ops ops = {
         .on_observe = on_observe,
+        .on_forget = on_forget,
         .on_release = on_release,
     };
     struct pcdvobjs_stream* stream = NULL;
