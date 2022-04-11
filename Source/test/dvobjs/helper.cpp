@@ -65,6 +65,7 @@ static struct purc_native_ops rws_ops = {
     .eraser                = NULL,
 
     .on_observe           = NULL,
+    .on_forget            = NULL,
     .on_release           = rws_releaser,
 };
 

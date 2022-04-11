@@ -210,6 +210,7 @@ static struct purc_native_ops _dummy_ops = {
     .eraser                = NULL,
 
     .on_observe           = NULL,
+    .on_forget            = NULL,
     .on_release           = _dummy_releaser,
 };
 

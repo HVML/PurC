@@ -464,6 +464,7 @@ static struct purc_native_ops _my_ops = {
     .eraser                = NULL,
 
     .on_observe           = NULL,
+    .on_forget            = NULL,
     .on_release           = _my_releaser,
 };
 
