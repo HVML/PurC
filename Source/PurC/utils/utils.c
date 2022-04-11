@@ -140,6 +140,42 @@ failed:
     return -1;
 }
 
+int pcutils_hex2byte (const char *hex, unsigned char *byte)
+{
+    size_t pos;
+
+    for (pos = 0; pos < 2; pos++) {
+        unsigned char half;
+
+        if (*hex >= '0' && *hex <= '9') {
+            half = (*hex - '0') & 0x0f;
+        }
+        else {
+            int c = purc_tolower (*hex);
+            if (c >= 'a' && c <= 'f') {
+                half = (*hex - 'a' + 0x0a) & 0x0f;
+            }
+            else {
+                goto failed;
+            }
+        }
+
+        if (pos % 2 == 0) {
+            *byte = half << 4;
+        }
+        else {
+            *byte |= half;
+        }
+
+        hex++;
+    }
+
+    return 0;
+
+failed:
+    return -1;
+}
+
 size_t pcutils_get_next_fibonacci_number(size_t n)
 {
     size_t fib_0 = 0;
