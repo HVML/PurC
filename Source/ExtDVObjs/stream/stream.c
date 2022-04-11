@@ -26,6 +26,7 @@
 #include "private/instance.h"
 #include "private/errors.h"
 #include "private/dvobjs.h"
+#include "private/atom-buckets.h"
 #include "purc-variant.h"
 #include "purc-runloop.h"
 
@@ -63,6 +64,35 @@
 
 #define STREAM_DVOBJ_VERSION  0
 #define STREAM_DESCRIPTION    "For io stream operations in PURC"
+
+#define OPTION_READ             "read"
+#define OPTION_WRITE            "write"
+#define OPTION_NONBLOCK         "nonblock"
+#define OPTION_DEFAULT          "default"
+
+#define _KW_DELIMITERS  " \t\n\v\f\r"
+
+enum {
+#define _KW_default             "default"
+    K_KW_default,
+#define _KW_read                "read"
+    K_KW_read,
+#define _KW_write               "write"
+    K_KW_write,
+#define _KW_nonblock            "nonblock"
+    K_KW_nonblock,
+};
+
+static struct keyword_to_atom {
+    const char *keyword;
+    purc_atom_t atom;
+} keywords2atoms [] = {
+    { _KW_default, 0 },                // "default"
+    { _KW_read, 0 },                   // "read"
+    { _KW_write, 0 },                  // "write"
+    { _KW_nonblock, 0 },               // "nonblock"
+};
+
 
 enum pcdvobjs_stream_type {
     STREAM_TYPE_FILE_STDIN,
@@ -249,6 +279,104 @@ static inline
 struct pcdvobjs_stream *create_file_stderr_stream()
 {
     return create_file_std_stream(STREAM_TYPE_FILE_STDERR);
+}
+
+#define READ_FLAG       0x01
+#define WRITE_FLAG      0x02
+
+int parse_option(purc_variant_t option)
+{
+    purc_atom_t atom = 0;
+    size_t parts_len;
+    const char *parts;
+    int rwflags = 0;
+    bool nonblock = false;
+
+    if (option == PURC_VARIANT_INVALID) {
+        atom = keywords2atoms[K_KW_default].atom;
+    }
+    else {
+        parts = purc_variant_get_string_const_ex(option, &parts_len);
+        if (parts == NULL) {
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            goto out;
+        }
+
+        parts = pcutils_trim_spaces(parts, &parts_len);
+        if (parts_len == 0) {
+            atom = keywords2atoms[K_KW_default].atom;
+        }
+    }
+
+    if (atom == 0) {
+        char *tmp = strndup(parts, parts_len);
+        atom = purc_atom_try_string_ex(ATOM_BUCKET_DVOBJ, tmp);
+        free(tmp);
+    }
+
+    if (atom == keywords2atoms[K_KW_default].atom) {
+        rwflags = READ_FLAG | WRITE_FLAG;
+    }
+    else {
+        size_t length = 0;
+        const char *part = pcutils_get_next_token_len(parts, parts_len,
+                _KW_DELIMITERS, &length);
+        do {
+            size_t len_part = 0;
+
+            if (length == 0 || length > MAX_LEN_KEYWORD) {
+                atom = keywords2atoms[K_KW_read].atom;
+            }
+            else {
+                char tmp[length + 1];
+                strncpy(tmp, part, length);
+                tmp[length]= '\0';
+                atom = purc_atom_try_string_ex(ATOM_BUCKET_DVOBJ, tmp);
+            }
+
+            if (atom == keywords2atoms[K_KW_read].atom) {
+                rwflags |= READ_FLAG;
+            }
+            else if (atom == keywords2atoms[K_KW_write].atom) {
+                rwflags |= WRITE_FLAG;
+            }
+            else if (atom == keywords2atoms[K_KW_nonblock].atom) {
+                nonblock = true;
+            }
+            else {
+                // invalid part name
+                len_part = 0;
+            }
+
+            if (parts_len <= length)
+                break;
+
+            parts_len -= length;
+            part = pcutils_get_next_token_len(part + length, parts_len,
+                    _KW_DELIMITERS, &length);
+        } while (part);
+    }
+
+    int rw_options = 0;
+    switch (rwflags) {
+    case 1:
+        rw_options = O_RDONLY;
+        break;
+    case 2:
+        rw_options = O_WRONLY;
+        break;
+    case 3:
+        rw_options = O_RDWR;
+        break;
+    }
+
+    if (nonblock) {
+        rw_options |= O_NONBLOCK;
+    }
+    return rw_options;
+
+out:
+    return -1;
 }
 
 static
@@ -1629,6 +1757,14 @@ purc_variant_t pcdvobjs_create_stream(void)
         {"readbytes",   stream_readbytes_getter,   NULL},
         {"seek",        stream_seek_getter,        NULL},
     };
+
+    if (keywords2atoms[0].atom == 0) {
+        for (size_t i = 0; i < PCA_TABLESIZE(keywords2atoms); i++) {
+            keywords2atoms[i].atom =
+                purc_atom_from_static_string_ex(ATOM_BUCKET_DVOBJ,
+                    keywords2atoms[i].keyword);
+        }
+    }
 
     purc_variant_t v = purc_dvobj_make_from_methods(stream,
             PCA_TABLESIZE(stream));
