@@ -120,6 +120,8 @@ static struct keyword_to_atom {
     { PURC_KW_object,   0 },    // "object"
     { PURC_KW_local,   0 },     // "local"
     { PURC_KW_global,  0 },     // "global"
+    { PURC_KW_rfc1738,  0 },    // "rfc1738"
+    { PURC_KW_rfc3986,  0 },    // "rfc3986"
 };
 
 /* Make sure the number of keywords2atoms matches the number of keywords */

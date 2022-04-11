@@ -33,6 +33,7 @@
 #include "config.h"
 
 #include "private/utf8.h"
+#include "private/utils.h"
 
 #include <string.h>
 #include <assert.h>
@@ -356,54 +357,6 @@ utf8_to_uc(const char* mchar)
     return uc;
 }
 
-struct my_string {
-    char *buff;
-    size_t nr_bytes;
-    size_t sz_space;
-};
-
-static int mystring_append_mchar(struct my_string *mystr,
-        const unsigned char *mchar, size_t mchar_len)
-{
-    if (mystr->nr_bytes + mchar_len > mystr->sz_space) {
-        size_t new_sz;
-        new_sz = pcutils_get_next_fibonacci_number(mystr->nr_bytes + mchar_len);
-
-        mystr->buff = realloc(mystr->buff, new_sz);
-        if (mystr->buff == NULL)
-            return -1;
-
-        mystr->sz_space = new_sz;
-    }
-
-    memcpy(mystr->buff + mystr->nr_bytes, mchar, mchar_len);
-    mystr->nr_bytes += mchar_len;
-    return 0;
-}
-
-static int mystring_done(struct my_string *mystr)
-{
-    if (mystr->nr_bytes + 1 > mystr->sz_space) {
-        mystr->buff = realloc(mystr->buff, mystr->nr_bytes + 1);
-        if (mystr->buff == NULL)
-            return -1;
-    }
-
-    mystr->buff[mystr->nr_bytes] = '\0';  // null-terminated
-    mystr->nr_bytes += 1;
-
-    // shrink the buffer
-    mystr->buff = realloc(mystr->buff, mystr->nr_bytes);
-    mystr->sz_space = mystr->nr_bytes;
-    return 0;
-}
-
-static void mystring_free(struct my_string *mystr)
-{
-    if (mystr->buff)
-        free(mystr->buff);
-}
-
 static char *
 string_decode_utf16(const unsigned char* bytes, size_t max_len,
         size_t *sz_space, size_t *consumed, bool silently, bool le_or_be)
@@ -411,7 +364,7 @@ string_decode_utf16(const unsigned char* bytes, size_t max_len,
     size_t nr_left = max_len;
     uint32_t uc;
 
-    struct my_string mystr = { NULL, 0, 0 };
+    struct pcutils_mystring mystr = { NULL, 0, 0 };
 
     *consumed = 0;
     while (nr_left > 1) {
@@ -456,19 +409,19 @@ string_decode_utf16(const unsigned char* bytes, size_t max_len,
         unsigned char mchar[6];
         size_t mchar_len;
         mchar_len = utf8_from_uc(uc, mchar);
-        if (mystring_append_mchar(&mystr, mchar, mchar_len)) {
+        if (pcutils_mystring_append_mchar(&mystr, mchar, mchar_len)) {
             goto fatal;
         }
     }
 
 bad_encoding:
     if (!silently) {
-        mystring_free(&mystr);
+        pcutils_mystring_free(&mystr);
         return (char *)-1;
     }
 
 done:
-    if (mystring_done(&mystr) == 0) {
+    if (pcutils_mystring_done(&mystr) == 0) {
         *sz_space = mystr.sz_space;
         return mystr.buff;
     }
@@ -510,7 +463,7 @@ string_decode_utf32(const unsigned char* bytes, size_t max_len,
     size_t nr_left = max_len;
     uint32_t uc;
 
-    struct my_string mystr = { NULL, 0, 0 };
+    struct pcutils_mystring mystr = { NULL, 0, 0 };
 
     *consumed = 0;
     while (nr_left > 3) {
@@ -531,13 +484,13 @@ string_decode_utf32(const unsigned char* bytes, size_t max_len,
         unsigned char mchar[6];
         size_t mchar_len;
         mchar_len = utf8_from_uc(uc, mchar);
-        if (mystring_append_mchar(&mystr, mchar, mchar_len)) {
+        if (pcutils_mystring_append_mchar(&mystr, mchar, mchar_len)) {
             goto fatal;
         }
     }
 
 done:
-    if (mystring_done(&mystr) == 0) {
+    if (pcutils_mystring_done(&mystr) == 0) {
         *sz_space = mystr.sz_space;
         return mystr.buff;
     }
@@ -903,20 +856,20 @@ pcutils_string_encode_utf8(const uint32_t *ucs, size_t nr_chars,
         size_t *sz_space)
 {
     size_t n = 0;
-    struct my_string mystr = { NULL, 0, 0 };
+    struct pcutils_mystring mystr = { NULL, 0, 0 };
 
     while (n < nr_chars) {
         unsigned char mchar[6];
         size_t mchar_len;
         mchar_len = utf8_from_uc(ucs[n], mchar);
-        if (mystring_append_mchar(&mystr, mchar, mchar_len)) {
+        if (pcutils_mystring_append_mchar(&mystr, mchar, mchar_len)) {
             goto fatal;
         }
 
         n++;
     }
 
-    if (mystring_done(&mystr) == 0) {
+    if (pcutils_mystring_done(&mystr) == 0) {
         if (sz_space)
             *sz_space = mystr.sz_space;
         return mystr.buff;
