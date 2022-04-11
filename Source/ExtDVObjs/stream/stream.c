@@ -59,6 +59,7 @@
 #define STREAM_SUB_EVENT_ALL       "*"
 
 
+#define FILE_DEFAULT_MODE       0644
 #define PIPO_DEFAULT_MODE       0777
 #define RWSTREAM_FD_BUFFER      1024
 
@@ -385,12 +386,18 @@ struct pcdvobjs_stream *create_file_stream(struct purc_broken_down_url *url,
         return NULL;
     }
 
-    if (!is_file_exists(url->path)) {
+    int fd = 0;
+    if (is_file_exists(url->path)) {
+        fd = open(url->path, flags);
+    }
+    else if ((flags & O_WRONLY) || (flags & O_RDWR)) {
+        fd = open(url->path, flags | O_CREAT, FILE_DEFAULT_MODE);
+    }
+    else {
         purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
         return NULL;
     }
 
-    int fd = open(url->path, flags);
     if (fd == -1) {
         purc_set_error(PURC_ERROR_BAD_SYSTEM_CALL);
         return NULL;
