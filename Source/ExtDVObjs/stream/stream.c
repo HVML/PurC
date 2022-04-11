@@ -53,10 +53,10 @@
 #define STDOUT_NAME         "stdout"
 #define STDERR_NAME         "stderr"
 
-#define STREAM_EVENT_NAME           "event"
-#define STREAM_SUB_EVENT_R_NAME     "r"
-#define STREAM_SUB_EVENT_W_NAME     "w"
-#define STREAM_SUB_EVENT_RW_NAME    "rw"
+#define STREAM_EVENT_NAME          "event"
+#define STREAM_SUB_EVENT_READ      "read"
+#define STREAM_SUB_EVENT_WRITE     "write"
+#define STREAM_SUB_EVENT_ALL       "*"
 
 
 #define PIPO_DEFAULT_MODE       0777
@@ -113,7 +113,6 @@ struct pcdvobjs_stream {
     purc_variant_t option;
     purc_variant_t observed;
     uintptr_t monitor;
-    purc_runloop_io_event event;
     int fd;
 };
 
@@ -531,17 +530,14 @@ stream_io_callback(int fd, purc_runloop_io_event event, void *ctxt)
     UNUSED_PARAM(fd);
     // dispatch event
     struct pcdvobjs_stream *stream = (struct pcdvobjs_stream*) ctxt;
-    if (event & stream->event) {
-        const char* sub = NULL;
-        if (stream->event == PCRUNLOOP_IO_IN) {
-            sub = STREAM_SUB_EVENT_R_NAME;
-        }
-        else if (stream->event == PCRUNLOOP_IO_OUT) {
-            sub = STREAM_SUB_EVENT_W_NAME;
-        }
-        else {
-            sub = STREAM_SUB_EVENT_RW_NAME;
-        }
+    const char* sub = NULL;
+    if (event == PCRUNLOOP_IO_IN) {
+        sub = STREAM_SUB_EVENT_READ;
+    }
+    else if (event == PCRUNLOOP_IO_OUT) {
+        sub = STREAM_SUB_EVENT_WRITE;
+    }
+    if (sub) {
         purc_variant_t type = purc_variant_make_string(STREAM_EVENT_NAME, false);
         purc_variant_t sub_type = purc_variant_make_string(sub, false);
 
@@ -564,13 +560,13 @@ on_observe(void *native_entity, const char *event_name,
     }
 
     purc_runloop_io_event event;
-    if (strcmp(event_subname, STREAM_SUB_EVENT_R_NAME) == 0) {
+    if (strcmp(event_subname, STREAM_SUB_EVENT_READ) == 0) {
         event = PCRUNLOOP_IO_IN;
     }
-    else if (strcmp(event_subname, STREAM_SUB_EVENT_W_NAME) == 0) {
+    else if (strcmp(event_subname, STREAM_SUB_EVENT_WRITE) == 0) {
         event = PCRUNLOOP_IO_OUT;
     }
-    else if (strcmp(event_subname, STREAM_SUB_EVENT_RW_NAME) == 0) {
+    else if (strcmp(event_subname, STREAM_SUB_EVENT_ALL) == 0) {
         event = PCRUNLOOP_IO_IN | PCRUNLOOP_IO_OUT;
     }
 
@@ -579,13 +575,11 @@ on_observe(void *native_entity, const char *event_name,
     if (!stack) {
         return false;
     }
-    if (stream->fd && (stream->type == STREAM_TYPE_PIPE ||
-            stream->type == STREAM_TYPE_UNIX_SOCK)) {
+    if (stream->fd) {
         stream->monitor = purc_runloop_add_fd_monitor(
                 purc_runloop_get_current(), stream->fd, event,
                 stream_io_callback, stream);
         if (stream->monitor) {
-            stream->event = event;
             return true;
         }
         return false;
