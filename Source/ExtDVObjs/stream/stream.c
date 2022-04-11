@@ -162,6 +162,10 @@ void dvobjs_stream_destroy(struct pcdvobjs_stream *stream)
         purc_variant_unref(stream->option);
     }
 
+    if (stream->observed) {
+        purc_variant_unref(stream->observed);
+    }
+
     if (stream->monitor) {
         purc_runloop_remove_fd_monitor(purc_runloop_get_current(),
                 stream->monitor);
@@ -185,17 +189,21 @@ static
 struct pcdvobjs_stream *create_file_std_stream(enum pcdvobjs_stream_type type)
 {
     FILE* fp = NULL;
+    int fd = -1;
     switch (type) {
     case STREAM_TYPE_FILE_STDIN:
         fp = stdin;
+        fd = dup(STDIN_FILENO);
         break;
 
     case STREAM_TYPE_FILE_STDOUT:
         fp = stdout;
+        fd = dup(STDOUT_FILENO);
         break;
 
     case STREAM_TYPE_FILE_STDERR:
         fp = stderr;
+        fd = dup(STDERR_FILENO);
         break;
 
     default:
@@ -213,6 +221,7 @@ struct pcdvobjs_stream *create_file_std_stream(enum pcdvobjs_stream_type type)
     if (stream->rws == NULL) {
         goto out_free_stream;
     }
+    stream->fd = fd;
 
     return stream;
 
@@ -220,6 +229,7 @@ out_free_stream:
     dvobjs_stream_destroy(stream);
 
 out:
+    close(fd);
     return NULL;
 }
 
