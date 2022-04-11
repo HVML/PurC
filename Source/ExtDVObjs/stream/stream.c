@@ -413,7 +413,11 @@ struct pcdvobjs_stream *create_pipe_stream(struct purc_broken_down_url *url,
 {
     UNUSED_PARAM(url);
     UNUSED_PARAM(option);
-    const char* option_s = purc_variant_get_string_const(option);
+
+    int flags = parse_option(option);
+    if (flags == -1) {
+        return NULL;
+    }
 
     if (!is_file_exists(url->path)) {
          int ret = mkfifo(url->path, PIPO_DEFAULT_MODE);
@@ -421,37 +425,6 @@ struct pcdvobjs_stream *create_pipe_stream(struct purc_broken_down_url *url,
              purc_set_error(PURC_ERROR_BAD_SYSTEM_CALL);
              return NULL;
          }
-    }
-
-    int rw = 0;
-    int flags = 0;
-    // parse option
-    while (*option_s) {
-        switch (*option_s) {
-            break;
-            rw = rw | 0x1;
-
-        case 'w':
-            rw = rw | 0x2;
-            break;
-
-        case 'n':
-            flags = flags | O_NONBLOCK;
-            break;
-        }
-        option_s++;
-    }
-
-    switch (rw) {
-    case 1:
-        flags = flags | O_RDONLY;
-        break;
-    case 2:
-        flags = flags | O_WRONLY;
-        break;
-    case 3:
-        flags = flags | O_RDWR;
-        break;
     }
 
     int fd = open(url->path, flags);
