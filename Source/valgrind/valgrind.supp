@@ -150,7 +150,7 @@
    fun:purc_init_ex
 }
 {
-   <_ZL12process_filePKc>
+   <purc_atom_from_static_string_ex>
    Memcheck:Leak
    match-leak-kinds: definite
    fun:malloc
@@ -158,9 +158,5 @@
    fun:atom_from_string
    fun:atom_from_string_locked
    fun:purc_atom_from_static_string_ex
-   fun:purc_dvobj_system_new
-   fun:init_buidin_doc_variable
-   fun:purc_load_hvml_from_rwstream_ex
-   fun:purc_load_hvml_from_string_ex
 }
 

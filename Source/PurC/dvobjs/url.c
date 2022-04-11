@@ -181,15 +181,15 @@ decode_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 {
     UNUSED_PARAM(root);
 
-    if (nr_args < 1) {
-        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
-        goto failed;
-    }
-
     const void *string;
     size_t length;
     int rtt = PURC_K_KW_string;     // return type
     int rfc = PURC_K_KW_rfc1738;    // encoding type
+
+    if (nr_args < 1) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
 
     string = purc_variant_get_string_const_ex(argv[0], &length);
     if (string == NULL) {
