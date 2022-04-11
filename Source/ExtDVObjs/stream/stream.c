@@ -65,6 +65,7 @@
 
 #define STREAM_DVOBJ_VERSION  0
 #define STREAM_DESCRIPTION    "For io stream operations in PURC"
+#define STREAM_NAME             "STREAM"
 
 #define OPTION_READ             "read"
 #define OPTION_WRITE            "write"
@@ -1803,7 +1804,7 @@ const char * __purcex_get_dynamic_variant_name(size_t idx)
     if (idx != 0)
         return NULL;
 
-    return "STREAM";
+    return STREAM_NAME;
 }
 
 const char * __purcex_get_dynamic_variant_desc(size_t idx)
