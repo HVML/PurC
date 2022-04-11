@@ -72,11 +72,9 @@ purc_variant_t TestDVObj::dvobj_new(const char *name)
     else if (strcmp(name, "STR") == 0) {
         dvobj = purc_dvobj_string_new();
     }
-#if 0
     else if (strcmp(name, "URL") == 0) {
         dvobj = purc_dvobj_url_new();
     }
-#endif
 
     if (dvobj != PURC_VARIANT_INVALID) {
         m_dvobjs[name] = dvobj;

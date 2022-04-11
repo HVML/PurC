@@ -1138,6 +1138,12 @@ purc_dvobj_unpack_bytes(const uint8_t *bytes, size_t nr_bytes,
 
     } while (true);
 
+    /* if there is only one member, return the member instead of the array */
+    if (purc_variant_array_get_size(retv) == 1) {
+        item = purc_variant_ref(item);
+        purc_variant_unref(retv);
+        return item;
+    }
     return retv;
 
 failed:

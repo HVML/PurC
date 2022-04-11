@@ -646,11 +646,22 @@ const unsigned char *purc_variant_get_bytes_const(purc_variant_t sequence,
     if (IS_TYPE(sequence, PURC_VARIANT_TYPE_BSEQUENCE)) {
         if ((sequence->flags & PCVARIANT_FLAG_EXTRA_SIZE) ||
                     (sequence->flags & PCVARIANT_FLAG_STRING_STATIC)) {
-            bytes = (unsigned char *)sequence->sz_ptr[1];
+            bytes = (const unsigned char *)sequence->sz_ptr[1];
             *nr_bytes = (size_t)sequence->sz_ptr[0];
         }
         else {
             bytes = sequence->bytes;
+            *nr_bytes = sequence->size;
+        }
+    }
+    else if (IS_TYPE(sequence, PURC_VARIANT_TYPE_STRING)) {
+        if ((sequence->flags & PCVARIANT_FLAG_EXTRA_SIZE) ||
+                (sequence->flags & PCVARIANT_FLAG_STRING_STATIC)) {
+            bytes = (const unsigned char *)sequence->sz_ptr[1];
+            *nr_bytes = (size_t)sequence->sz_ptr[0];
+        }
+        else {
+            bytes = (const unsigned char *)sequence->bytes;
             *nr_bytes = sequence->size;
         }
     }

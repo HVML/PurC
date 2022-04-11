@@ -208,6 +208,10 @@ void pcutils_bin2hex(const unsigned char *bin, size_t len, char *hex,
    return 0 on success, < 0 for error */
 int pcutils_hex2bin(const char *hex, unsigned char *bin, size_t *converted);
 
+/* convert two heximal characters to a byte.
+   return 0 on success, < 0 for bad input string */
+int pcutils_hex2byte(const char *hex, unsigned char *byte);
+
 static inline size_t pcutils_b64_encoded_length(size_t src_len)
 {
     return (src_len + 3) * 4 / 3 + 1;
@@ -228,6 +232,25 @@ int pcutils_parse_int64(const char *buf, size_t len, int64_t *retval);
 int pcutils_parse_uint64(const char *buf, size_t len, uint64_t *retval);
 int pcutils_parse_double(const char *buf, size_t len, double *retval);
 int pcutils_parse_long_double(const char *buf, size_t len, long double *retval);
+
+struct pcutils_mystring {
+    char *buff;
+    size_t nr_bytes;
+    size_t sz_space;
+};
+
+#define DECL_MYSTRING(name) struct pcutils_mystring name = { NULL, 0, 0 }
+
+static inline void pcutils_mystring_init(struct pcutils_mystring *mystr) {
+    mystr->buff = NULL;
+    mystr->nr_bytes = 0;
+    mystr->sz_space = 0;
+}
+
+int pcutils_mystring_append_mchar(struct pcutils_mystring *mystr,
+        const unsigned char *mchar, size_t mchar_len);
+int pcutils_mystring_done(struct pcutils_mystring *mystr);
+void pcutils_mystring_free(struct pcutils_mystring *mystr);
 
 #ifdef __cplusplus
 }
