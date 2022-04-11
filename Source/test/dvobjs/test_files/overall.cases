@@ -628,4 +628,103 @@ positive:
     $EJSON.unpack("i16le", bx0a000a000000)
     10L
 
+# test cases for $URL.encode
+negative:
+    $URL.encode
+    ArgumentMissed
+    ''
+
+negative:
+    $URL.encode(false)
+    WrongDataType
+    ''
+
+negative:
+    $URL.encode(bx00FF, false)
+    WrongDataType
+    ''
+
+negative:
+    $URL.encode(bx00FF, 'asfdasfd')
+    InvalidValue
+    ''
+
+positive:
+    $URL.encode('')
+    ''
+
+positive:
+    $URL.encode('HVML: 是全球首款可编程标记语言-_.')
+    'HVML%3A+%E6%98%AF%E5%85%A8%E7%90%83%E9%A6%96%E6%AC%BE%E5%8F%AF%E7%BC%96%E7%A8%8B%E6%A0%87%E8%AE%B0%E8%AF%AD%E8%A8%80-_.'
+
+positive:
+    $URL.encode('HVML: 是全球首款可编程标记语言-_.', 'rfc1738')
+    'HVML%3A+%E6%98%AF%E5%85%A8%E7%90%83%E9%A6%96%E6%AC%BE%E5%8F%AF%E7%BC%96%E7%A8%8B%E6%A0%87%E8%AE%B0%E8%AF%AD%E8%A8%80-_.'
+
+positive:
+    $URL.encode('HVML: 是全球首款可编程标记语言-_.', 'rfc3986')
+    'HVML%3A%20%E6%98%AF%E5%85%A8%E7%90%83%E9%A6%96%E6%AC%BE%E5%8F%AF%E7%BC%96%E7%A8%8B%E6%A0%87%E8%AE%B0%E8%AF%AD%E8%A8%80-_.'
+
+# test cases for $URL.decode
+negative:
+    $URL.decode
+    ArgumentMissed
+    ''
+
+negative:
+    $URL.decode(false)
+    WrongDataType
+    ''
+
+negative:
+    $URL.decode(bx00FF, false)
+    WrongDataType
+    ''
+
+negative:
+    $URL.decode('', 'asfdasfd')
+    InvalidValue
+    ''
+
+negative:
+    $URL.decode('', 'string', 'asdfasdf')
+    InvalidValue
+    ''
+
+negative:
+    $URL.decode('+', 'string', 'rfc3986')
+    InvalidValue
+    ''
+
+positive:
+    $URL.decode('')
+    ''
+
+positive:
+    $URL.decode('HVML%3A+%E6%98%AF%E5%85%A8%E7%90%83%E9%A6%96%E6%AC%BE%E5%8F%AF%E7%BC%96%E7%A8%8B%E6%A0%87%E8%AE%B0%E8%AF%AD%E8%A8%80-_.', 'string')
+    'HVML: 是全球首款可编程标记语言-_.'
+
+positive:
+    $URL.decode('HVML%3A+%E6%98%AF%E5%85%A8%E7%90%83%E9%A6%96%E6%AC%BE%E5%8F%AF%E7%BC%96%E7%A8%8B%E6%A0%87%E8%AE%B0%E8%AF%AD%E8%A8%80-_.', 'string', 'rfc1738')
+    'HVML: 是全球首款可编程标记语言-_.'
+
+positive:
+    $URL.decode('HVML%3A+%E6%98%AF%E5%85%A8%E7%90%83%E9%A6%96%E6%AC%BE%E5%8F%AF%E7%BC%96%E7%A8%8B%E6%A0%87%E8%AE%B0%E8%AF%AD%E8%A8%80-_.', 'string', 'rfc3986')
+    'HVML:'
+
+positive:
+    $URL.decode('%E6%98%AF%E5%85%A8%E7%90%83%E9%A6%96%E6%AC%BE%E5%8F%AF%E7%BC%96%E7%A8%8B%E6%A0%87%E8%AE%B0%E8%AF%AD%E8%A8%80', 'binary')
+    bxE698AFE585A8E79083E9A696E6ACBEE58FAFE7BC96E7A88BE6A087E8AEB0E8AFADE8A880
+
+positive:
+    $URL.decode('HVML%3A+-_.', 'binary', 'rfc1738')
+    bx48564d4c3A202d5f2e
+
+positive:
+    $URL.decode('HVML:+-_.', 'binary', 'rfc1738')
+    bx48564d4c
+
+positive:
+    $URL.decode('HVML+-_.', 'binary', 'rfc3986')
+    bx48564d4c
 
