@@ -559,6 +559,10 @@ struct purc_native_ops {
     bool (*on_observe)(void* native_entity,
             const char *event_name, const char *event_subname);
 
+    /** the callback when the variant was revoke observed (nullable). */
+    bool (*on_forget)(void* native_entity,
+            const char *event_name, const char *event_subname);
+
     /** the callback when the variant was released (nullable). */
     void (*on_release)(void* native_entity);
 };
