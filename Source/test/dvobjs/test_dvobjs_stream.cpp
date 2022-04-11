@@ -63,7 +63,10 @@ TEST(dvobjs, dvobjs_stream_open_seek_close)
     std::cerr << "env: " << env << "=" << data_path << std::endl;
 
     char file_path[1024] = {0};
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-truncation"
     snprintf(file_path, 1023, "file://%s/stream.test", data_path);
+#pragma GCC diagnostic pop
 
     printf ("TEST stream_open_seek_close: nr_args=2, \
             param1=\"%s\":\n", file_path);
@@ -158,7 +161,10 @@ TEST(dvobjs, dvobjs_stream_readbytes)
     std::cerr << "env: " << env << "=" << data_path << std::endl;
 
     char file_path[1024] = {0};
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-truncation"
     snprintf(file_path, 1023, "file://%s/stream.test", data_path);
+#pragma GCC diagnostic pop
 
     printf ("TEST stream_readbytes: \
             nr_args=2, param1=\"%s\":\n", file_path);
@@ -288,7 +294,10 @@ TEST(dvobjs, dvobjs_stream_readlines)
     std::cerr << "env: " << env << "=" << data_path << std::endl;
 
     char file_path[1024] = {0};
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-truncation"
     snprintf(file_path, 1023, "file://%s/stream.test", data_path);
+#pragma GCC diagnostic pop
 
     printf ("TEST stream_readlines: nr_args=2, \
             param1=\"%s\":\n", file_path);
@@ -476,8 +485,11 @@ TEST(dvobjs, dvobjs_stream_read_write_struct)
     // get the temp file for write and read
     char temp_file[1024] = {0};
     char file_path[1024] = {0};
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-truncation"
     snprintf(temp_file, 1023, "%s/rwstruct.test", data_path);
     snprintf(file_path, 1023, "file://%s/rwstruct.test", data_path);
+#pragma GCC diagnostic pop
 
     char command[1024] = {0};
     strcat (command, "touch ");

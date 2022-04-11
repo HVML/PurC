@@ -321,8 +321,6 @@ int parse_option(purc_variant_t option)
         const char *part = pcutils_get_next_token_len(parts, parts_len,
                 _KW_DELIMITERS, &length);
         do {
-            size_t len_part = 0;
-
             if (length == 0 || length > MAX_LEN_KEYWORD) {
                 atom = keywords2atoms[K_KW_read].atom;
             }
@@ -341,10 +339,6 @@ int parse_option(purc_variant_t option)
             }
             else if (atom == keywords2atoms[K_KW_nonblock].atom) {
                 nonblock = true;
-            }
-            else {
-                // invalid part name
-                len_part = 0;
             }
 
             if (parts_len <= length)
