@@ -610,7 +610,7 @@ negative:
 
 positive:
     $EJSON.unpack("utf8", $EJSON.base64_decode('SFZNTCDmmK/lhajnkIPpppbmrL7lj6/nvJbnqIvmoIforrDor63oqIA='))
-    ['HVML 是全球首款可编程标记语言']
+    'HVML 是全球首款可编程标记语言'
 
 positive:
     $EJSON.unpack("i16le i32le", bx0a000a000000)
@@ -623,3 +623,9 @@ positive:
 positive:
     $EJSON.unpack("i16le:2 i32le", $EJSON.pack("i16le:2 i32le", [[10, 15], 255]))
     [[10L, 15L], 255L]
+
+positive:
+    $EJSON.unpack("i16le", bx0a000a000000)
+    10L
+
+
