@@ -72,6 +72,10 @@
 #define OPTION_NONBLOCK         "nonblock"
 #define OPTION_DEFAULT          "default"
 
+#define OPTION_SET              "set"
+#define OPTION_CURRENT          "current"
+#define OPTION_END              "end"
+
 #define _KW_DELIMITERS  " \t\n\v\f\r"
 
 enum {
@@ -699,7 +703,7 @@ stream_open_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     if (nr_args != 2) {
         purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+        goto out;
     }
 
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
@@ -707,20 +711,20 @@ stream_open_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     if (argv[0] == PURC_VARIANT_INVALID ||
             (!purc_variant_is_string(argv[0]))) {
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+        goto out;
     }
 
     if (argv[1] == PURC_VARIANT_INVALID ||
             (!purc_variant_is_string(argv[1]))) {
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+        goto out;
     }
 
     struct purc_broken_down_url *url= (struct purc_broken_down_url*)
         calloc(1, sizeof(struct purc_broken_down_url));
     if (!pcutils_url_break_down(url, purc_variant_get_string_const(argv[0]))) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
-        return PURC_VARIANT_INVALID;
+        goto out;
     }
 
     struct pcdvobjs_stream* stream = NULL;
@@ -762,6 +766,10 @@ stream_open_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
 out_free_url:
     purc_broken_down_url_destroy(url);
+
+out:
+    if (silently)
+        return purc_variant_make_undefined();
 
     return PURC_VARIANT_INVALID;
 }
@@ -894,24 +902,24 @@ stream_readstruct_getter(purc_variant_t root, size_t nr_args,
 
     if (nr_args != 2) {
         purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+        goto out;
     }
 
     if (argv[0] == PURC_VARIANT_INVALID ||
             (!purc_variant_is_native(argv[0]))) {
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+        goto out;
     }
     rwstream = get_rwstream_from_variant(argv[0]);
     if (rwstream == NULL) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
-        return PURC_VARIANT_INVALID;
+        goto out;
     }
 
     if (argv[1] == PURC_VARIANT_INVALID ||
             (!purc_variant_is_string(argv[1]))) {
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+        goto out;
     }
     format = purc_variant_get_string_const(argv[1]);
     head = pcutils_get_next_token(format, " \t\n", &length);
@@ -1105,6 +1113,11 @@ stream_readstruct_getter(purc_variant_t root, size_t nr_args,
         head = pcutils_get_next_token(head + length, " \t\n", &length);
     }
     return ret_var;
+
+out:
+    if (silently)
+        return purc_variant_make_undefined();
+    return PURC_VARIANT_INVALID;
 }
 
 static inline void write_rwstream_int(purc_rwstream_t rwstream,
@@ -1228,18 +1241,18 @@ stream_writestruct_getter(purc_variant_t root, size_t nr_args,
 
     if (nr_args != 3) {
         purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+        goto out;
     }
 
     if (argv[0] == PURC_VARIANT_INVALID ||
             (!purc_variant_is_native(argv[0]))) {
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+        goto out;
     }
     rwstream = get_rwstream_from_variant(argv[0]);
     if (rwstream == NULL) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
-        return PURC_VARIANT_INVALID;
+        goto out;
     }
 
     if (argv[1] == PURC_VARIANT_INVALID ||
@@ -1251,7 +1264,7 @@ stream_writestruct_getter(purc_variant_t root, size_t nr_args,
     if (argv[2] == PURC_VARIANT_INVALID ||
             (!purc_variant_is_array(argv[2]))) {
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+        goto out;
     }
 
     format = purc_variant_get_string_const(argv[1]);
@@ -1534,6 +1547,11 @@ stream_writestruct_getter(purc_variant_t root, size_t nr_args,
 
     ret_var = purc_variant_make_ulongint(write_length);
     return ret_var;
+
+out:
+    if (silently)
+        return purc_variant_make_undefined();
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
@@ -1549,18 +1567,18 @@ stream_readlines_getter(purc_variant_t root, size_t nr_args,
 
     if (nr_args != 2) {
         purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+        goto out;
     }
 
     if (argv[0] == PURC_VARIANT_INVALID ||
             (!purc_variant_is_native(argv[0]))) {
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+        goto out;
     }
     rwstream = get_rwstream_from_variant(argv[0]);
     if (rwstream == NULL) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
-        return PURC_VARIANT_INVALID;
+        goto out;
     }
 
     if (argv[1] != PURC_VARIANT_INVALID) {
@@ -1586,6 +1604,11 @@ stream_readlines_getter(purc_variant_t root, size_t nr_args,
         ret_var = purc_variant_make_string_reuse_buff(content, pos, false);
     }
     return ret_var;
+
+out:
+    if (silently)
+        return purc_variant_make_undefined();
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
@@ -1600,24 +1623,24 @@ stream_writelines_getter(purc_variant_t root, size_t nr_args,
 
     if (nr_args != 2) {
         purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+        goto out;
     }
 
     if (argv[0] == PURC_VARIANT_INVALID ||
             (!purc_variant_is_native(argv[0]))) {
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+        goto out;
     }
     if (argv[1] == PURC_VARIANT_INVALID ||
             (!purc_variant_is_string(argv[1]))) {
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+        goto out;
     }
 
     rwstream = get_rwstream_from_variant(argv[0]);
     if (rwstream == NULL) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
-        return PURC_VARIANT_INVALID;
+        goto out;
     }
 
     const char *buffer = (const char *)purc_variant_get_string_const (argv[1]);
@@ -1627,6 +1650,11 @@ stream_writelines_getter(purc_variant_t root, size_t nr_args,
         return  purc_variant_make_ulongint(nr_write);
     }
     return ret_var;
+
+out:
+    if (silently)
+        return purc_variant_make_undefined();
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
@@ -1642,17 +1670,17 @@ stream_readbytes_getter(purc_variant_t root, size_t nr_args,
 
     if (nr_args != 2) {
         purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+        goto out;
     }
     if (argv[0] == PURC_VARIANT_INVALID ||
             (!purc_variant_is_native(argv[0]))) {
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+        goto out;
     }
     rwstream = get_rwstream_from_variant(argv[0]);
     if (rwstream == NULL) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
-        return PURC_VARIANT_INVALID;
+        goto out;
     }
 
     if (argv[1] != PURC_VARIANT_INVALID) {
@@ -1669,7 +1697,7 @@ stream_readbytes_getter(purc_variant_t root, size_t nr_args,
 
         if (content == NULL) {
             purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-            return PURC_VARIANT_INVALID;
+            goto out;
         }
 
         size = purc_rwstream_read(rwstream, content, byte_num);
@@ -1684,6 +1712,11 @@ stream_readbytes_getter(purc_variant_t root, size_t nr_args,
     }
 
     return ret_var;
+
+out:
+    if (silently)
+        return purc_variant_make_undefined();
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
@@ -1698,23 +1731,23 @@ stream_writebytes_getter(purc_variant_t root, size_t nr_args,
 
     if (nr_args != 2) {
         purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+        goto out;
     }
     if (argv[0] == PURC_VARIANT_INVALID ||
             (!purc_variant_is_native(argv[0]))) {
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+        goto out;
     }
     if (argv[1] == PURC_VARIANT_INVALID ||
             (!purc_variant_is_bsequence(argv[0]))) {
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+        goto out;
     }
 
     rwstream = get_rwstream_from_variant(argv[0]);
     if (rwstream == NULL) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
-        return PURC_VARIANT_INVALID;
+        goto out;
     }
 
     size_t bsize = 0;
@@ -1725,6 +1758,11 @@ stream_writebytes_getter(purc_variant_t root, size_t nr_args,
     }
 
     return ret_var;
+
+out:
+    if (silently)
+        return purc_variant_make_undefined();
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
@@ -1742,32 +1780,54 @@ stream_seek_getter(purc_variant_t root, size_t nr_args,
 
     if (nr_args != 3) {
         purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+        goto out;
     }
 
     if (argv[0] == PURC_VARIANT_INVALID ||
             (!purc_variant_is_native(argv[0]))) {
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+        goto out;
     }
+    if (argv[2] == PURC_VARIANT_INVALID ||
+            (!purc_variant_is_string(argv[2]))) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto out;
+    }
+
+    const char* option = purc_variant_get_string_const(argv[2]);
+    if (strcmp(option, OPTION_SET) == 0) {
+        whence = SEEK_SET;
+    }
+    else if (strcmp(option, OPTION_CURRENT) == 0) {
+        whence = SEEK_CUR;
+    }
+    else if (strcmp(option, OPTION_END) == 0) {
+        whence = SEEK_END;
+    }
+    else {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto out;
+    }
+
     rwstream = get_rwstream_from_variant(argv[0]);
     if (rwstream == NULL) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
-        return PURC_VARIANT_INVALID;
+        goto out;
     }
 
     if (argv[1] != PURC_VARIANT_INVALID) {
         purc_variant_cast_to_longint(argv[1], &byte_num, false);
     }
 
-    if (argv[2] != PURC_VARIANT_INVALID) {
-        purc_variant_cast_to_longint(argv[2], &whence, false);
-    }
-
     off = purc_rwstream_seek(rwstream, byte_num, (int)whence);
     ret_var = purc_variant_make_longint(off);
 
     return ret_var;
+
+out:
+    if (silently)
+        return purc_variant_make_undefined();
+    return PURC_VARIANT_INVALID;
 }
 
 bool add_stdio_property(purc_variant_t v)

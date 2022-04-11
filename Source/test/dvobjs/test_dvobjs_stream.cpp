@@ -89,7 +89,7 @@ TEST(dvobjs, dvobjs_stream_open_seek_close)
 
     param[0] = ret_var;
     param[1] = purc_variant_make_ulongint (17);
-    param[2] = purc_variant_make_longint (SEEK_CUR);
+    param[2] = purc_variant_make_string ("current", false);
     val = func (NULL, 3, param, false);
 
     ASSERT_EQ(purc_variant_is_type (val,
@@ -186,7 +186,7 @@ TEST(dvobjs, dvobjs_stream_readbytes)
 
     param[0] = ret_var;
     param[1] = purc_variant_make_ulongint (10);
-    param[2] = purc_variant_make_longint (SEEK_CUR);
+    param[2] = purc_variant_make_string ("current", false);
     val = func (NULL, 3, param, false);
 
     ASSERT_EQ(purc_variant_is_type (val,
@@ -320,7 +320,7 @@ TEST(dvobjs, dvobjs_stream_readlines)
 
     param[0] = ret_var;
     param[1] = purc_variant_make_ulongint (0);
-    param[2] = purc_variant_make_longint (SEEK_CUR);
+    param[2] = purc_variant_make_string ("current", false);
     val = func (NULL, 3, param, false);
 
     ASSERT_EQ(purc_variant_is_type (val,
@@ -588,7 +588,7 @@ TEST(dvobjs, dvobjs_stream_read_write_struct)
                 // seek to the beginning
                 for_open[0] = test_file;
                 for_open[1] = purc_variant_make_ulongint (0);
-                for_open[2] = purc_variant_make_longint (SEEK_SET);
+                for_open[2] = purc_variant_make_string ("set", false);
                 ret_var = seek (NULL, 3, for_open, false);
 
                 ASSERT_EQ(purc_variant_is_type (ret_var,
