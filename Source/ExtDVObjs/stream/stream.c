@@ -406,7 +406,6 @@ out:
     return NULL;
 }
 
-// option: r(read), w(write), n(nonblock)
 static
 struct pcdvobjs_stream *create_pipe_stream(struct purc_broken_down_url *url,
         purc_variant_t option)
