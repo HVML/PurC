@@ -182,21 +182,16 @@ enum {
     PURC_K_KW_local,
 #define PURC_KW_global      "global"
     PURC_K_KW_global,
+#define PURC_KW_rfc1738      "rfc1738"
+    PURC_K_KW_rfc1738,
+#define PURC_KW_rfc3986      "rfc3986"
+    PURC_K_KW_rfc3986,
 
     /* XXX: change this when a new keyword appended */
-    PURC_K_KW_LAST = PURC_K_KW_global,
+    PURC_K_KW_LAST = PURC_K_KW_rfc3986,
 };
 
 #define PURC_GLOBAL_KEYWORD_NR  (PURC_K_KW_LAST - PURC_K_KW_FIRST + 1)
-
-#define STRING_COMP_MODE_CASELESS   "caseless"
-#define STRING_COMP_MODE_CASE       "case"
-#define STRING_COMP_MODE_REG        "reg"
-#define STRING_COMP_MODE_WILDCARD   "wildcard"
-#define STRING_COMP_MODE_NUMBER     "number"
-#define STRING_COMP_MODE_AUTO       "auto"
-#define STRING_COMP_MODE_ASC        "asc"
-#define STRING_COMP_MODE_DESC       "desc"
 
 #ifdef __cplusplus
 extern "C" {
