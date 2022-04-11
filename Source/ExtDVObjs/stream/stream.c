@@ -1646,6 +1646,47 @@ stream_readbytes_getter(purc_variant_t root, size_t nr_args,
 }
 
 static purc_variant_t
+stream_writebytes_getter(purc_variant_t root, size_t nr_args,
+        purc_variant_t *argv, bool silently)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
+
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    purc_rwstream_t rwstream = NULL;
+
+    if (nr_args != 2) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        return PURC_VARIANT_INVALID;
+    }
+    if (argv[0] == PURC_VARIANT_INVALID ||
+            (!purc_variant_is_native(argv[0]))) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        return PURC_VARIANT_INVALID;
+    }
+    if (argv[1] == PURC_VARIANT_INVALID ||
+            (!purc_variant_is_bsequence(argv[0]))) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    rwstream = get_rwstream_from_variant(argv[0]);
+    if (rwstream == NULL) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    size_t bsize = 0;
+    const unsigned char *buffer = purc_variant_get_bytes_const (argv[1], &bsize);
+    if (buffer && bsize) {
+        ssize_t nr_write = purc_rwstream_write (rwstream, buffer, bsize);
+        return  purc_variant_make_ulongint(nr_write);
+    }
+
+    return ret_var;
+}
+
+static purc_variant_t
 stream_seek_getter(purc_variant_t root, size_t nr_args,
         purc_variant_t *argv, bool silently)
 {
@@ -1760,6 +1801,7 @@ purc_variant_t pcdvobjs_create_stream(void)
         {"writestruct", stream_writestruct_getter, NULL},
         {"readlines",   stream_readlines_getter,   NULL},
         {"readbytes",   stream_readbytes_getter,   NULL},
+        {"writebytes",  stream_writebytes_getter,  NULL},
         {"seek",        stream_seek_getter,        NULL},
     };
 
