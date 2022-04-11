@@ -357,8 +357,12 @@ int parse_option(purc_variant_t option)
         } while (part);
     }
 
-    int rw_options = 0;
+    int rw_options = -1;
     switch (rwflags) {
+    case 0:
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        break;
+
     case 1:
         rw_options = O_RDONLY;
         break;
@@ -383,6 +387,22 @@ static
 struct pcdvobjs_stream *create_file_stream(struct purc_broken_down_url *url,
         purc_variant_t option)
 {
+    int flags = parse_option(option);
+    if (flags == -1) {
+        return NULL;
+    }
+
+    if (!is_file_exists(url->path)) {
+        purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+        return NULL;
+    }
+
+    int fd = open(url->path, flags);
+    if (fd == -1) {
+        purc_set_error(PURC_ERROR_BAD_SYSTEM_CALL);
+        return NULL;
+    }
+
     struct pcdvobjs_stream* stream = dvobjs_stream_create(STREAM_TYPE_FILE,
             url, option);
     if (!stream) {
@@ -390,12 +410,11 @@ struct pcdvobjs_stream *create_file_stream(struct purc_broken_down_url *url,
         goto out;
     }
 
-    stream->rws = purc_rwstream_new_from_file(url->path,
-            purc_variant_get_string_const(option));
+    stream->rws = purc_rwstream_new_from_unix_fd(fd, RWSTREAM_FD_BUFFER);
     if (stream->rws == NULL) {
         goto out_free_stream;
     }
-
+    stream->fd = fd;
 
     return stream;
 
@@ -403,6 +422,7 @@ out_free_stream:
     dvobjs_stream_destroy(stream);
 
 out:
+    close(fd);
     return NULL;
 }
 
