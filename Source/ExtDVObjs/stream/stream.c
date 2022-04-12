@@ -23,12 +23,9 @@
  */
 
 #include "config.h"
-#include "private/instance.h"
-#include "private/errors.h"
-#include "private/dvobjs.h"
-#include "private/atom-buckets.h"
 #include "purc-variant.h"
 #include "purc-runloop.h"
+#include "purc-dvobjs.h"
 
 #include <unistd.h>
 #include <sys/types.h>
@@ -76,7 +73,11 @@
 #define OPTION_CURRENT          "current"
 #define OPTION_END              "end"
 
+#define MAX_LEN_KEYWORD     64
+
 #define _KW_DELIMITERS  " \t\n\v\f\r"
+
+#define STREAM_ATOM_BUCKET PURC_ATOM_BUCKET_USER // ATOM_BUCKET_DVOBJ
 
 enum {
 #define _KW_default             "default"
@@ -315,7 +316,7 @@ int parse_option(purc_variant_t option)
 
     if (atom == 0) {
         char *tmp = strndup(parts, parts_len);
-        atom = purc_atom_try_string_ex(ATOM_BUCKET_DVOBJ, tmp);
+        atom = purc_atom_try_string_ex(STREAM_ATOM_BUCKET, tmp);
         free(tmp);
     }
 
@@ -334,7 +335,7 @@ int parse_option(purc_variant_t option)
                 char tmp[length + 1];
                 strncpy(tmp, part, length);
                 tmp[length]= '\0';
-                atom = purc_atom_try_string_ex(ATOM_BUCKET_DVOBJ, tmp);
+                atom = purc_atom_try_string_ex(STREAM_ATOM_BUCKET, tmp);
             }
 
             if (atom == keywords2atoms[K_KW_read].atom) {
@@ -577,10 +578,6 @@ on_observe(void *native_entity, const char *event_name,
     }
 
     struct pcdvobjs_stream *stream = (struct pcdvobjs_stream*)native_entity;
-    struct pcintr_stack *stack = pcintr_get_stack();
-    if (!stack) {
-        return false;
-    }
     if (stream->fd) {
         stream->monitor = purc_runloop_add_fd_monitor(
                 purc_runloop_get_current(), stream->fd, event,
@@ -1910,7 +1907,7 @@ purc_variant_t pcdvobjs_create_stream(void)
     if (keywords2atoms[0].atom == 0) {
         for (size_t i = 0; i < PCA_TABLESIZE(keywords2atoms); i++) {
             keywords2atoms[i].atom =
-                purc_atom_from_static_string_ex(ATOM_BUCKET_DVOBJ,
+                purc_atom_from_static_string_ex(STREAM_ATOM_BUCKET,
                     keywords2atoms[i].keyword);
         }
     }
