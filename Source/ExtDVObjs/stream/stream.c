@@ -822,102 +822,15 @@ static inline void read_rwstream(purc_rwstream_t rwstream,
     }
 }
 
-/*
-   According to IEEE 754
-    sign    e      base   offset
-16   1      5       10      15
-32   1      8       23     127
-64   1      11      52     1023
-96   1      15      64     16383
-128  1      15      64     16383
-*/
-
-static purc_variant_t
-read_rwstream_float(purc_rwstream_t rwstream, int type, int bytes)
-{
-    purc_variant_t val = PURC_VARIANT_INVALID;
-    unsigned char buf[128];
-    float f = 0.0F;
-    double d = 0.0;
-    long double ld = 0.0L;
-    unsigned long long sign = 0;
-    unsigned long long e = 0;
-    unsigned long long base = 0;
-    unsigned short number = 0;
-
-    // change byte order to little endian
-    purc_rwstream_read(rwstream, buf, bytes);
-    switch (type) {
-        case ENDIAN_PLATFORM:
-            break;
-        case ENDIAN_LITTLE:
-            if (!is_little_endian())
-                change_order(buf, bytes);
-            break;
-        case ENDIAN_BIG:
-            if (is_little_endian())
-                change_order(buf, bytes);
-            break;
-    }
-
-    switch (bytes) {
-        case 2:
-            number = *((unsigned short *)buf);
-            sign = number >> 15;
-            e = (number >> 10) & 0x1F;
-            base = number & 0x3FF;
-
-            sign = sign << 63;
-            e = 1023 + e - 15;
-            e = e << 52;
-            sign |= e;
-            base = base << (52 - 10);
-            sign |= base;
-            memcpy(buf, &sign, 8);
-
-            d = *((double *)buf);
-            val = purc_variant_make_number(d);
-            break;
-        case 4:
-            f = *((float *)buf);
-            d = (double)f;
-            val = purc_variant_make_number(d);
-            break;
-        case 8:
-            d = *((double *)buf);
-            val = purc_variant_make_number(d);
-            break;
-        case 12:
-        case 16:
-            ld = *((long double *)buf);
-            val = purc_variant_make_longdouble(ld);
-            break;
-    }
-
-    return val;
-}
-
-
 static purc_variant_t
 stream_readstruct_getter(purc_variant_t root, size_t nr_args,
         purc_variant_t *argv, bool silently)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
 
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
-    purc_variant_t val = PURC_VARIANT_INVALID;
-    purc_rwstream_t rwstream = NULL;
-    const char *format = NULL;
-    const char *head = NULL;
-    size_t length = 0;
-    unsigned char buf[64];
-    unsigned char * buffer = NULL;  // for string and bytes sequence
-    int64_t i64 = 0;
-    uint64_t u64 = 0;
-    int read_number = 0;
-
-    if (nr_args != 2) {
+    const char *formats = NULL;
+    size_t formats_left = 0;
+    if (nr_args < 2) {
         purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
         goto out;
     }
@@ -927,213 +840,38 @@ stream_readstruct_getter(purc_variant_t root, size_t nr_args,
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
         goto out;
     }
-    rwstream = get_rwstream_from_variant(argv[0]);
-    if (rwstream == NULL) {
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
-        goto out;
-    }
 
     if (argv[1] == PURC_VARIANT_INVALID ||
             (!purc_variant_is_string(argv[1]))) {
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
         goto out;
     }
-    format = purc_variant_get_string_const(argv[1]);
-    head = pcutils_get_next_token(format, " \t\n", &length);
 
-    ret_var = purc_variant_make_array(0, PURC_VARIANT_INVALID);
-
-    while (head) {
-        switch (* head)
-        {
-            case 'i':
-            case 'I':
-                *((int64_t *)buf) = 0;
-                if (pcutils_strncasecmp(head, "i8", length) == 0)
-                    read_rwstream(rwstream, buf, ENDIAN_PLATFORM, 1);
-                else if (pcutils_strncasecmp(head, "i16", length) == 0)
-                    read_rwstream(rwstream, buf, ENDIAN_PLATFORM, 2);
-                else if (pcutils_strncasecmp(head, "i32", length) == 0)
-                    read_rwstream(rwstream, buf, ENDIAN_PLATFORM, 4);
-                else if (pcutils_strncasecmp(head, "i64", length) == 0)
-                    read_rwstream(rwstream, buf, ENDIAN_PLATFORM, 8);
-                else if (pcutils_strncasecmp(head, "i16le", length) == 0)
-                    read_rwstream(rwstream, buf, ENDIAN_LITTLE, 2);
-                else if (pcutils_strncasecmp(head, "i32le", length) == 0)
-                    read_rwstream(rwstream, buf, ENDIAN_LITTLE, 4);
-                else if (pcutils_strncasecmp(head, "i64le", length) == 0)
-                    read_rwstream(rwstream, buf, ENDIAN_LITTLE, 8);
-                else if (pcutils_strncasecmp(head, "i16be", length) == 0)
-                    read_rwstream(rwstream, buf, ENDIAN_BIG, 2);
-                else if (pcutils_strncasecmp(head, "i32be", length) == 0)
-                    read_rwstream(rwstream, buf, ENDIAN_BIG, 4);
-                else if (pcutils_strncasecmp(head, "i64be", length) == 0)
-                    read_rwstream(rwstream, buf, ENDIAN_BIG, 8);
-
-                i64 = (int64_t)(*((int64_t *)buf));
-                val = purc_variant_make_longint(i64);
-                break;
-            case 'f':
-            case 'F':
-                *((float *)buf) = 0;
-                if (pcutils_strncasecmp(head, "f16", length) == 0)
-                    val = read_rwstream_float(rwstream, ENDIAN_PLATFORM, 2);
-                else if (pcutils_strncasecmp(head, "f32", length) == 0)
-                    val = read_rwstream_float(rwstream, ENDIAN_PLATFORM, 4);
-                else if (pcutils_strncasecmp(head, "f64", length) == 0)
-                    val = read_rwstream_float(rwstream, ENDIAN_PLATFORM, 8);
-                else if (pcutils_strncasecmp(head, "f96", length) == 0)
-                    val = read_rwstream_float(rwstream, ENDIAN_PLATFORM, 12);
-                else if (pcutils_strncasecmp(head, "f128", length) == 0)
-                    val = read_rwstream_float(rwstream, ENDIAN_PLATFORM, 16);
-
-                else if (pcutils_strncasecmp(head, "f16le", length) == 0)
-                    val = read_rwstream_float(rwstream, ENDIAN_LITTLE, 2);
-                else if (pcutils_strncasecmp(head, "f32le", length) == 0)
-                    val = read_rwstream_float(rwstream, ENDIAN_LITTLE, 4);
-                else if (pcutils_strncasecmp(head, "f64le", length) == 0)
-                    val = read_rwstream_float(rwstream, ENDIAN_LITTLE, 8);
-                else if (pcutils_strncasecmp(head, "f96le", length) == 0)
-                    val = read_rwstream_float(rwstream, ENDIAN_LITTLE, 12);
-                else if (pcutils_strncasecmp(head, "f128le", length) == 0)
-                    val = read_rwstream_float(rwstream, ENDIAN_LITTLE, 16);
-
-                else if (pcutils_strncasecmp(head, "f16be", length) == 0)
-                    val = read_rwstream_float(rwstream, ENDIAN_BIG, 2);
-                else if (pcutils_strncasecmp(head, "f32be", length) == 0)
-                    val = read_rwstream_float(rwstream, ENDIAN_BIG, 4);
-                else if (pcutils_strncasecmp(head, "f64be", length) == 0)
-                    val = read_rwstream_float(rwstream, ENDIAN_BIG, 8);
-                else if (pcutils_strncasecmp(head, "f96be", length) == 0)
-                    val = read_rwstream_float(rwstream, ENDIAN_BIG, 12);
-                else if (pcutils_strncasecmp(head, "f128be", length) == 0)
-                    val = read_rwstream_float(rwstream, ENDIAN_BIG, 16);
-                break;
-            case 'u':
-            case 'U':
-                *((uint64_t *)buf) = 0;
-                if (pcutils_strncasecmp(head, "u8", length) == 0)
-                    read_rwstream(rwstream, buf, ENDIAN_PLATFORM, 1);
-                else if (pcutils_strncasecmp(head, "u16", length) == 0)
-                    read_rwstream(rwstream, buf, ENDIAN_PLATFORM, 2);
-                else if (pcutils_strncasecmp(head, "u32", length) == 0)
-                    read_rwstream(rwstream, buf, ENDIAN_PLATFORM, 4);
-                else if (pcutils_strncasecmp(head, "u64", length) == 0)
-                    read_rwstream(rwstream, buf, ENDIAN_PLATFORM, 8);
-                else if (pcutils_strncasecmp(head, "u16le", length) == 0)
-                    read_rwstream(rwstream, buf, ENDIAN_LITTLE, 2);
-                else if (pcutils_strncasecmp(head, "u32le", length) == 0)
-                    read_rwstream(rwstream, buf, ENDIAN_LITTLE, 4);
-                else if (pcutils_strncasecmp(head, "u64le", length) == 0)
-                    read_rwstream(rwstream, buf, ENDIAN_LITTLE, 8);
-                else if (pcutils_strncasecmp(head, "u16be", length) == 0)
-                    read_rwstream(rwstream, buf, ENDIAN_BIG, 2);
-                else if (pcutils_strncasecmp(head, "u32be", length) == 0)
-                    read_rwstream(rwstream, buf, ENDIAN_BIG, 4);
-                else if (pcutils_strncasecmp(head, "u64be", length) == 0)
-                    read_rwstream(rwstream, buf, ENDIAN_BIG, 8);
-
-                u64 = (uint64_t)(*((uint64_t *)buf));
-                val = purc_variant_make_ulongint(u64);
-                break;
-            case 'b':
-            case 'B':
-                if (length > 1) { // get length
-                    strncpy((char *)buf, head + 1, length - 1);
-                    *(buf + length - 1)= 0x00;
-                    read_number = atoi((char *)buf);
-
-                    if (read_number) {
-                        buffer = malloc(read_number);
-                        if (buffer == NULL)
-                            val = purc_variant_make_null();
-                        else {
-                            purc_rwstream_read(rwstream, buffer, read_number);
-                            val = purc_variant_make_byte_sequence_reuse_buff(
-                                        buffer, read_number, read_number);
-                        }
-                    }
-                    else
-                        val = purc_variant_make_null();
-                }
-                else
-                    val = purc_variant_make_null();
-
-                break;
-            case 'p':
-            case 'P':
-                if (length > 1) { // get length
-                    strncpy((char *)buf, head + 1, length - 1);
-                    *(buf + length - 1)= 0x00;
-                    read_number = atoi((char *)buf);
-
-                    if (read_number) {
-                        int i = 0;
-                        int times = read_number / sizeof(long double);
-                        int rest = read_number % sizeof(long double);
-                        long double ld = 0;
-                        for (i = 0; i < times; i++)
-                            purc_rwstream_read(rwstream,
-                                    &ld, sizeof(long double));
-                        purc_rwstream_read(rwstream, &ld, rest);
-                    }
-                }
-                break;
-            case 's':
-            case 'S':
-                if (length > 1) {          // get length
-                    strncpy((char *)buf, head + 1, length - 1);
-                    *(buf + length - 1)= 0x00;
-                    read_number = atoi((char *)buf);
-
-                    if (read_number) {
-                        buffer = malloc(read_number + 1);
-                        if (buffer == NULL)
-                            val = purc_variant_make_string("", false);
-                        else {
-                            purc_rwstream_read(rwstream, buffer, read_number);
-                            *(buffer + read_number) = 0x00;
-                            val = purc_variant_make_string_reuse_buff(
-                                    (char *)buffer, read_number, false);
-                        }
-                    }
-                    else
-                        val = purc_variant_make_string("", false);
-                }
-                else {
-                    int i = 0;
-                    int j = 0;
-                    size_t mem_size = BUFFER_SIZE;
-
-                    buffer = malloc(mem_size);
-                    for (i = 0, j = 0; ; i++, j++) {
-                        ssize_t r = purc_rwstream_read(rwstream, buffer + i, 1);
-                        if (r <= 0)
-                            break;
-                        if (*(buffer + i) == 0x00)
-                            break;
-
-                        if (j == 1023) {
-                            j = 0;
-                            mem_size += BUFFER_SIZE;
-                            buffer = realloc(buffer, mem_size);
-                        }
-                    }
-                    val = purc_variant_make_string_reuse_buff(
-                            (char *)buffer, i, false);
-                }
-                break;
-        }
-
-        purc_variant_array_append(ret_var, val);
-        purc_variant_unref(val);
-        head = pcutils_get_next_token(head + length, " \t\n", &length);
+    purc_rwstream_t rwstream = get_rwstream_from_variant(argv[0]);
+    if (rwstream == NULL) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto out;
     }
-    return ret_var;
+
+    formats = purc_variant_get_string_const_ex(argv[1], &formats_left);
+    if (formats == NULL) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto out;
+    }
+
+    formats = pcutils_trim_spaces(formats, &formats_left);
+    if (formats_left == 0) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto out;
+    }
+
+    return purc_dvobj_read_struct(rwstream, formats, formats_left, silently);
 
 out:
-    if (silently)
-        return purc_variant_make_undefined();
+    if (silently) {
+        return purc_variant_make_array(0, PURC_VARIANT_INVALID);
+    }
+
     return PURC_VARIANT_INVALID;
 }
 
