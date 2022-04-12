@@ -385,6 +385,7 @@ TEST(dvobjs, dvobjs_stream_readlines)
     purc_cleanup ();
 }
 
+#if 0
 TEST(dvobjs, dvobjs_stream_read_write_struct)
 {
     purc_variant_t param[MAX_PARAM_NR] = {PURC_VARIANT_INVALID};
@@ -717,3 +718,4 @@ TEST(dvobjs, dvobjs_stream_read_write_struct)
 
     purc_cleanup ();
 }
+#endif

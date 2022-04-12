@@ -104,6 +104,9 @@ static struct keyword_to_atom {
     { _KW_default, 0 },             // "default"
     { _KW_read, 0 },                // "read"
     { _KW_write, 0 },               // "write"
+    { _KW_append, 0 },              // "append"
+    { _KW_create, 0 },              // "create"
+    { _KW_truncate, 0 },            // "truncate"
     { _KW_nonblock, 0 },            // "nonblock"
     { _KW_set, 0 },                 // "set"
     { _KW_current, 0 },             // "current"
@@ -310,8 +313,8 @@ int parse_option(purc_variant_t option)
     purc_atom_t atom = 0;
     size_t parts_len;
     const char *parts;
-    int rwflags = 0;
-    bool nonblock = false;
+    int rw = 0;
+    int flags = 0;
 
     if (option == PURC_VARIANT_INVALID) {
         atom = keywords2atoms[K_KW_default].atom;
@@ -336,7 +339,7 @@ int parse_option(purc_variant_t option)
     }
 
     if (atom == keywords2atoms[K_KW_default].atom) {
-        rwflags = READ_FLAG | WRITE_FLAG;
+        rw = READ_FLAG | WRITE_FLAG;
     }
     else {
         size_t length = 0;
@@ -354,13 +357,22 @@ int parse_option(purc_variant_t option)
             }
 
             if (atom == keywords2atoms[K_KW_read].atom) {
-                rwflags |= READ_FLAG;
+                rw |= READ_FLAG;
             }
             else if (atom == keywords2atoms[K_KW_write].atom) {
-                rwflags |= WRITE_FLAG;
+                rw |= WRITE_FLAG;
             }
             else if (atom == keywords2atoms[K_KW_nonblock].atom) {
-                nonblock = true;
+                flags |= O_NONBLOCK;
+            }
+            else if (atom == keywords2atoms[K_KW_append].atom) {
+                flags |= O_APPEND;
+            }
+            else if (atom == keywords2atoms[K_KW_create].atom) {
+                flags |= O_CREAT;
+            }
+            else if (atom == keywords2atoms[K_KW_truncate].atom) {
+                flags |= O_TRUNC;
             }
 
             if (parts_len <= length)
@@ -372,27 +384,19 @@ int parse_option(purc_variant_t option)
         } while (part);
     }
 
-    int rw_options = -1;
-    switch (rwflags) {
-    case 0:
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
-        break;
-
+    switch (rw) {
     case 1:
-        rw_options = O_RDONLY;
+        flags |= O_RDONLY;
         break;
     case 2:
-        rw_options = O_WRONLY;
+        flags |= O_WRONLY;
         break;
     case 3:
-        rw_options = O_RDWR;
+        flags |= O_RDWR;
         break;
     }
 
-    if (nonblock) {
-        rw_options |= O_NONBLOCK;
-    }
-    return rw_options;
+    return flags;
 
 out:
     return -1;
@@ -408,15 +412,11 @@ struct pcdvobjs_stream *create_file_stream(struct purc_broken_down_url *url,
     }
 
     int fd = 0;
-    if (is_file_exists(url->path)) {
-        fd = open(url->path, flags);
+    if (flags & O_CREAT) {
+        fd = open(url->path, flags, FILE_DEFAULT_MODE);
     }
     else if ((flags & O_WRONLY) || (flags & O_RDWR)) {
-        fd = open(url->path, flags | O_CREAT, FILE_DEFAULT_MODE);
-    }
-    else {
-        purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
-        return NULL;
+        fd = open(url->path, flags);
     }
 
     if (fd == -1) {
@@ -459,7 +459,7 @@ struct pcdvobjs_stream *create_pipe_stream(struct purc_broken_down_url *url,
         return NULL;
     }
 
-    if (!is_file_exists(url->path)) {
+    if (!is_file_exists(url->path) && (flags & O_CREAT)) {
          int ret = mkfifo(url->path, PIPO_DEFAULT_MODE);
          if (ret != 0) {
              purc_set_error(PURC_ERROR_BAD_SYSTEM_CALL);
@@ -755,12 +755,14 @@ stream_open_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     else if (atom == keywords2atoms[K_KW_unix].atom) {
         stream = create_unix_sock_stream(url, argv[1]);
     }
+#if 0
     else if (atom == keywords2atoms[K_KW_winsock].atom) {
     }
     else if (atom == keywords2atoms[K_KW_ws].atom) {
     }
     else if (atom == keywords2atoms[K_KW_wss].atom) {
     }
+#endif
 
     if (!stream) {
         goto out_free_url;
@@ -1237,24 +1239,13 @@ stream_writestruct_getter(purc_variant_t root, size_t nr_args,
     UNUSED_PARAM(root);
     UNUSED_PARAM(silently);
 
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
-    purc_variant_t val = PURC_VARIANT_INVALID;
-    purc_rwstream_t rwstream = NULL;
-    const char *format = NULL;
-    const char *head = NULL;
-    size_t length = 0;
-    unsigned char buf[64];
-    const unsigned char * buffer = NULL;  // for string and bytes sequence
-    float f = 0.0F;
-    double d = 0.0;
-    long double ld = 0.0L;
-    int write_number = 0;
-    int i = 0;
-    size_t bsize = 0;
-    unsigned short ui16 = 0;
-    size_t write_length = 0;
+    struct pcdvobj_bytes_buff bf = { NULL, 0, 0 };
 
-    if (nr_args != 3) {
+    purc_rwstream_t rwstream = NULL;
+    size_t write_length = 0;
+    const char *formats = NULL;
+    size_t formats_left = 0;
+    if (nr_args < 3) {
         purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
         goto out;
     }
@@ -1264,306 +1255,55 @@ stream_writestruct_getter(purc_variant_t root, size_t nr_args,
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
         goto out;
     }
+
+    if (argv[1] == PURC_VARIANT_INVALID ||
+            (!purc_variant_is_string(argv[1]))) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto out;
+    }
+
     rwstream = get_rwstream_from_variant(argv[0]);
     if (rwstream == NULL) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto out;
     }
 
-    if (argv[1] == PURC_VARIANT_INVALID ||
-            (!purc_variant_is_string(argv[1]))) {
+    formats = purc_variant_get_string_const_ex(argv[1], &formats_left);
+    if (formats == NULL) {
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
-    if (argv[2] == PURC_VARIANT_INVALID ||
-            (!purc_variant_is_array(argv[2]))) {
-        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        goto out;
+    formats = pcutils_trim_spaces(formats, &formats_left);
+    if (formats_left == 0) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
     }
 
-    format = purc_variant_get_string_const(argv[1]);
-    head = pcutils_get_next_token(format, " \t\n", &length);
+    if (purc_dvobj_pack_variants(&bf, argv + 1, nr_args - 1, formats,
+                formats_left, silently)) {
+        if (bf.bytes == NULL)
+            goto out;
 
-    while (head) {
-        switch (* head)
-        {
-            case 'i':
-            case 'I':
-                if (pcutils_strncasecmp(head, "i8", length) == 0)
-                    write_rwstream_int(rwstream,
-                            argv[2], &i, ENDIAN_PLATFORM, 1, &write_length);
-                else if (pcutils_strncasecmp(head, "i16", length) == 0)
-                    write_rwstream_int(rwstream,
-                            argv[2], &i, ENDIAN_PLATFORM, 2, &write_length);
-                else if (pcutils_strncasecmp(head, "i32", length) == 0)
-                    write_rwstream_int(rwstream,
-                            argv[2], &i, ENDIAN_PLATFORM, 4, &write_length);
-                else if (pcutils_strncasecmp(head, "i64", length) == 0)
-                    write_rwstream_int(rwstream,
-                            argv[2], &i, ENDIAN_PLATFORM, 8, &write_length);
-                else if (pcutils_strncasecmp(head, "i16le", length) == 0)
-                    write_rwstream_int(rwstream,
-                            argv[2], &i, ENDIAN_LITTLE, 2, &write_length);
-                else if (pcutils_strncasecmp(head, "i32le", length) == 0)
-                    write_rwstream_int(rwstream,
-                            argv[2], &i, ENDIAN_LITTLE, 4, &write_length);
-                else if (pcutils_strncasecmp(head, "i64le", length) == 0)
-                    write_rwstream_int(rwstream,
-                            argv[2], &i, ENDIAN_LITTLE, 8, &write_length);
-                else if (pcutils_strncasecmp(head, "i16be", length) == 0)
-                    write_rwstream_int(rwstream,
-                            argv[2], &i, ENDIAN_BIG, 2, &write_length);
-                else if (pcutils_strncasecmp(head, "i32be", length) == 0)
-                    write_rwstream_int(rwstream,
-                            argv[2], &i, ENDIAN_BIG, 4, &write_length);
-                else if (pcutils_strncasecmp(head, "i64be", length) == 0)
-                    write_rwstream_int(rwstream,
-                            argv[2], &i, ENDIAN_BIG, 8, &write_length);
-                break;
-            case 'f':
-            case 'F':
-                if (pcutils_strncasecmp(head, "f16", length) == 0) {
-                    val = purc_variant_array_get(argv[2], i);
-                    i++;
-                    purc_variant_cast_to_number(val, &d, false);
-                    ui16 = write_double_to_16 (d, ENDIAN_PLATFORM);
-                    purc_rwstream_write(rwstream, &ui16, 2);
-                    write_length += 2;
-                }
-                else if (pcutils_strncasecmp(head, "f32", length) == 0) {
-                    val = purc_variant_array_get(argv[2], i);
-                    i++;
-                    purc_variant_cast_to_number(val, &d, false);
-                    f = (float)d;
-                    purc_rwstream_write(rwstream, (char *)&f, 4);
-                    write_length += 4;
-                }
-                else if (pcutils_strncasecmp(head, "f64", length) == 0) {
-                    val = purc_variant_array_get(argv[2], i);
-                    i++;
-                    purc_variant_cast_to_number(val, &d, false);
-                    purc_rwstream_write(rwstream, (char *)&d, 8);
-                    write_length += 8;
-                }
-                else if (pcutils_strncasecmp(head, "f96", length) == 0) {
-                    val = purc_variant_array_get(argv[2], i);
-                    i++;
-                    purc_variant_cast_to_longdouble(val, &ld, false);
-                    purc_rwstream_write(rwstream, (char *)&ld, 12);
-                    write_length += 12;
-                }
-                else if (pcutils_strncasecmp(head, "f128", length) == 0) {
-                    val = purc_variant_array_get(argv[2], i);
-                    i++;
-                    purc_variant_cast_to_longdouble(val, &ld, false);
-                    purc_rwstream_write(rwstream, (char *)&ld, 16);
-                    write_length += 16;
-                }
-                else if (pcutils_strncasecmp(head, "f16be", length) == 0) {
-                    val = purc_variant_array_get(argv[2], i);
-                    i++;
-                    purc_variant_cast_to_number(val, &d, false);
-                    ui16 = write_double_to_16 (d, ENDIAN_BIG);
-                    purc_rwstream_write(rwstream, &ui16, 2);
-                    write_length += 2;
-                }
-                else if (pcutils_strncasecmp(head, "f32be", length) == 0) {
-                    val = purc_variant_array_get(argv[2], i);
-                    i++;
-                    purc_variant_cast_to_number(val, &d, false);
-                    f = (float)d;
-                    if (is_little_endian())
-                        change_order((unsigned char *)&f, sizeof(float));
-                    purc_rwstream_write(rwstream, (char *)&f, 4);
-                    write_length += 4;
-                }
-                else if (pcutils_strncasecmp(head, "f64be", length) == 0) {
-                    val = purc_variant_array_get(argv[2], i);
-                    i++;
-                    purc_variant_cast_to_number(val, &d, false);
-                    if (is_little_endian())
-                        change_order((unsigned char *)&d, sizeof(double));
-                    purc_rwstream_write(rwstream, (char *)&d, 8);
-                    write_length += 8;
-                }
-                else if (pcutils_strncasecmp(head, "f96be", length) == 0) {
-                    val = purc_variant_array_get(argv[2], i);
-                    i++;
-                    purc_variant_cast_to_longdouble(val, &ld, false);
-                    if (is_little_endian())
-                        change_order((unsigned char *)&ld,
-                                sizeof(long double));
-                    purc_rwstream_write(rwstream, (char *)&ld, 12);
-                    write_length += 12;
-                }
-                else if (pcutils_strncasecmp(head, "f128be", length) == 0) {
-                    val = purc_variant_array_get(argv[2], i);
-                    i++;
-                    purc_variant_cast_to_longdouble(val, &ld, false);
-                    if (is_little_endian())
-                        change_order((unsigned char *)&ld,
-                                sizeof(long double));
-                    purc_rwstream_write(rwstream, (char *)&ld, 16);
-                    write_length += 16;
-                }
-                else if (pcutils_strncasecmp(head, "f16le", length) == 0) {
-                    val = purc_variant_array_get(argv[2], i);
-                    i++;
-                    purc_variant_cast_to_number(val, &d, false);
-                    ui16 = write_double_to_16 (d, ENDIAN_LITTLE);
-                    purc_rwstream_write(rwstream, &ui16, 2);
-                    write_length += 2;
-                }
-                else if (pcutils_strncasecmp(head, "f32le", length) == 0) {
-                    val = purc_variant_array_get(argv[2], i);
-                    i++;
-                    purc_variant_cast_to_number(val, &d, false);
-                    f = (float)d;
-                    if (!is_little_endian())
-                        change_order((unsigned char *)&f, sizeof(float));
-                    purc_rwstream_write(rwstream, (char *)&f, 4);
-                    write_length += 4;
-                }
-                else if (pcutils_strncasecmp(head, "f64le", length) == 0) {
-                    val = purc_variant_array_get(argv[2], i);
-                    i++;
-                    purc_variant_cast_to_number(val, &d, false);
-                    if (!is_little_endian())
-                        change_order((unsigned char *)&d, sizeof(double));
-                    purc_rwstream_write(rwstream, (char *)&d, 8);
-                    write_length += 8;
-                }
-                else if (pcutils_strncasecmp(head, "f96le", length) == 0) {
-                    val = purc_variant_array_get(argv[2], i);
-                    i++;
-                    purc_variant_cast_to_longdouble(val, &ld, false);
-                    if (!is_little_endian())
-                        change_order((unsigned char *)&ld,
-                                sizeof(long double));
-                    purc_rwstream_write(rwstream, (char *)&ld, 12);
-                    write_length += 12;
-                }
-                else if (pcutils_strncasecmp(head, "f128le", length) == 0) {
-                    val = purc_variant_array_get(argv[2], i);
-                    i++;
-                    purc_variant_cast_to_longdouble(val, &ld, false);
-                    if (!is_little_endian())
-                        change_order((unsigned char *)&ld,
-                                sizeof(long double));
-                    purc_rwstream_write(rwstream, (char *)&ld, 16);
-                    write_length += 16;
-                }
-                break;
-            case 'u':
-            case 'U':
-                if (pcutils_strncasecmp(head, "u8", length) == 0)
-                    write_rwstream_uint(rwstream,
-                            argv[2], &i, ENDIAN_PLATFORM, 1, &write_length);
-                else if (pcutils_strncasecmp(head, "u16", length) == 0)
-                    write_rwstream_uint(rwstream,
-                            argv[2], &i, ENDIAN_PLATFORM, 2, &write_length);
-                else if (pcutils_strncasecmp(head, "u32", length) == 0)
-                    write_rwstream_uint(rwstream,
-                            argv[2], &i, ENDIAN_PLATFORM, 4, &write_length);
-                else if (pcutils_strncasecmp(head, "u64", length) == 0) {
-                    write_rwstream_uint(rwstream,
-                            argv[2], &i, ENDIAN_PLATFORM, 8, &write_length);
-                }
-                else if (pcutils_strncasecmp(head, "u16le", length) == 0)
-                    write_rwstream_uint(rwstream,
-                            argv[2], &i, ENDIAN_LITTLE, 2, &write_length);
-                else if (pcutils_strncasecmp(head, "u32le", length) == 0)
-                    write_rwstream_uint(rwstream,
-                            argv[2], &i, ENDIAN_LITTLE, 4, &write_length);
-                else if (pcutils_strncasecmp(head, "u64le", length) == 0)
-                    write_rwstream_uint(rwstream,
-                            argv[2], &i, ENDIAN_LITTLE, 8, &write_length);
-                else if (pcutils_strncasecmp(head, "u16be", length) == 0)
-                    write_rwstream_uint(rwstream,
-                            argv[2], &i, ENDIAN_BIG, 2, &write_length);
-                else if (pcutils_strncasecmp(head, "u32be", length) == 0)
-                    write_rwstream_uint(rwstream,
-                            argv[2], &i, ENDIAN_BIG, 4, &write_length);
-                else if (pcutils_strncasecmp(head, "u64be", length) == 0)
-                    write_rwstream_uint(rwstream,
-                            argv[2], &i, ENDIAN_BIG, 8, &write_length);
+        goto failed;
+    }
 
-                break;
-            case 'b':
-            case 'B':
-                val = purc_variant_array_get(argv[2], i);
-                i++;
+    silently = true;    // fall through
 
-                // get sequence length
-                if (length > 1) {
-                    strncpy((char *)buf, head + 1, length - 1);
-                    *(buf + length - 1)= 0x00;
-                    write_number = atoi((char *)buf);
-
-                    if (write_number) {
-                        bsize = write_number;
-                        buffer = purc_variant_get_bytes_const(val, &bsize);
-                        purc_rwstream_write(rwstream, buffer, write_number);
-                        write_length += write_number;
-                    }
-                }
-                break;
-
-            case 'p':
-            case 'P':
-                val = purc_variant_array_get(argv[2], i);
-                i++;
-
-                // get white space length
-                if (length > 1) {
-                    strncpy((char *)buf, head + 1, length - 1);
-                    *(buf + length - 1)= 0x00;
-                    write_number = atoi((char *)buf);
-
-                    if (write_number) {
-                        int i = 0;
-                        int times = write_number / sizeof(long double);
-                        int rest = write_number % sizeof(long double);
-                        ld = 0;
-                        for (i = 0; i < times; i++)
-                            purc_rwstream_write(rwstream,
-                                    &ld, sizeof(long double));
-                        purc_rwstream_write(rwstream, &ld, rest);
-                        write_length += write_number;
-                    }
-                }
-                break;
-
-            case 's':
-            case 'S':
-                val = purc_variant_array_get(argv[2], i);
-                i++;
-
-                // get string length
-                if (length > 1) {
-                    strncpy((char *)buf, head + 1, length - 1);
-                    *(buf + length - 1)= 0x00;
-                    write_number = atoi((char *)buf);
-                } else {
-                    write_number = purc_variant_string_size(val);
-                }
-
-                if (write_number) {
-                    buffer = (unsigned char *)purc_variant_get_string_const
-                        (val);
-                    purc_rwstream_write(rwstream, buffer, write_number);
-                    write_length += write_number;
-                }
-                break;
+failed:
+    if (silently) {
+        if (bf.bytes) {
+            write_length = purc_rwstream_write(rwstream, bf.bytes, bf.nr_bytes);
+            free(bf.bytes);
+            bf.bytes = NULL;
         }
-        head = pcutils_get_next_token(head + length, " \t\n", &length);
+        return purc_variant_make_ulongint(write_length);
     }
-
-    ret_var = purc_variant_make_ulongint(write_length);
-    return ret_var;
 
 out:
+    if (bf.bytes)
+        free(bf.bytes);
+
     if (silently)
         return purc_variant_make_undefined();
     return PURC_VARIANT_INVALID;
