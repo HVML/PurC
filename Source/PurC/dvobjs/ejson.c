@@ -1159,6 +1159,183 @@ fatal:
     return PURC_VARIANT_INVALID;
 }
 
+static
+const uint8_t *dump_stream(purc_rwstream_t in, purc_rwstream_t out,
+        size_t count, size_t *nr_dump)
+{
+    purc_rwstream_seek(out, 0L, SEEK_SET);
+    ssize_t nr = purc_rwstream_dump_to_another(in, out, count);
+    if (nr == -1) {
+        if (nr_dump) {
+            *nr_dump = 0;
+        }
+        return NULL;
+    }
+    return purc_rwstream_get_mem_buffer(out, nr_dump);
+}
+
+purc_variant_t
+purc_dvobj_read_struct(purc_rwstream_t stream,
+        const char *formats, size_t formats_left, bool silently)
+{
+    const uint8_t *bytes = NULL;
+    size_t nr_bytes = 0;
+    purc_variant_t retv = purc_variant_make_array(0, PURC_VARIANT_INVALID);
+    purc_variant_t item = PURC_VARIANT_INVALID;
+
+    if (retv == PURC_VARIANT_INVALID) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto fatal;
+    }
+
+    purc_rwstream_t rws = purc_rwstream_new_buffer(LEN_INI_SERIALIZE_BUF,
+            LEN_MAX_SERIALIZE_BUF);
+    if (rws == NULL) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto fatal;
+    }
+
+    do {
+        const char *format;
+        size_t format_len, consumed;
+
+        format = pcutils_get_next_token_len(formats, formats_left,
+                _KW_DELIMITERS, &format_len);
+        if (format == NULL) {
+            break;
+        }
+
+        formats += format_len;
+        formats_left -= format_len;
+
+        int format_id;
+        size_t quantity;
+        format_id = purc_dvobj_parse_format(format, format_len, &quantity);
+        if (format_id < 0) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            goto failed;
+        }
+
+        if (format_id >= PURC_K_KW_i8 && format_id <= PURC_K_KW_f128be) {
+
+            if (quantity == 0)
+                quantity = 1;
+
+            int real_id = format_id - PURC_K_KW_i8;
+            consumed = real_info[real_id].length * quantity;
+
+            bytes = dump_stream(stream, rws, consumed, &nr_bytes);
+            if (consumed > nr_bytes) {
+                purc_set_error(PURC_ERROR_INVALID_VALUE);
+                goto failed;
+            }
+
+            item = purc_dvobj_unpack_real(bytes, nr_bytes, format_id, quantity);
+        }
+        else if (format_id == PURC_K_KW_bytes) {
+            if (quantity == 0) {
+                purc_set_error(PURC_ERROR_INVALID_VALUE);
+                goto failed;
+            }
+
+            bytes = dump_stream(stream, rws, quantity, &nr_bytes);
+            if (bytes == NULL ||  quantity > nr_bytes) {
+                purc_set_error(PURC_ERROR_INVALID_VALUE);
+                goto failed;
+            }
+
+            item = purc_variant_make_byte_sequence(bytes, quantity);
+            consumed = quantity;
+        }
+        else if (format_id == PURC_K_KW_padding) {
+            if (quantity == 0) {
+                purc_set_error(PURC_ERROR_INVALID_VALUE);
+                goto failed;
+            }
+
+            bytes = dump_stream(stream, rws, quantity, &nr_bytes);
+            if (bytes == NULL ||  quantity > nr_bytes) {
+                purc_set_error(PURC_ERROR_INVALID_VALUE);
+                goto failed;
+            }
+
+            item = purc_variant_make_undefined();
+            consumed = quantity;
+        }
+        else if (format_id >= PURC_K_KW_utf8 &&
+                format_id <= PURC_K_KW_utf32be) {
+
+            if (quantity > 0) {
+                bytes = dump_stream(stream, rws, quantity, &nr_bytes);
+                if (quantity > nr_bytes) {
+                    purc_set_error(PURC_ERROR_INVALID_VALUE);
+                    goto failed;
+                }
+            }
+            else if (quantity == 0) {
+                bytes = dump_stream(stream, rws, -1, &nr_bytes);
+                if (nr_bytes == 0) {
+                    purc_set_error(PURC_ERROR_INVALID_VALUE);
+                    goto failed;
+                }
+                quantity = nr_bytes;
+            }
+
+            item = purc_dvobj_unpack_string(bytes, quantity, &consumed,
+                    format_id, silently);
+            if (consumed < nr_bytes) {
+                purc_rwstream_seek(stream, consumed - nr_bytes, SEEK_CUR);
+            }
+        }
+
+        if (item == PURC_VARIANT_INVALID) {
+            goto fatal;
+        }
+        else if (purc_variant_is_undefined(item)) {
+            purc_variant_unref(item);
+            goto failed;
+        }
+        else if (!purc_variant_array_append(retv, item)) {
+            goto fatal;
+        }
+        purc_variant_unref(item);
+
+        if (consumed >= nr_bytes)
+            break;
+
+        bytes += consumed;
+        nr_bytes -= consumed;
+
+    } while (true);
+
+    if (rws) {
+        purc_rwstream_destroy(rws);
+        rws = NULL;
+    }
+
+    /* if there is only one member, return the member instead of the array */
+    if (purc_variant_array_get_size(retv) == 1) {
+        item = purc_variant_ref(item);
+        purc_variant_unref(retv);
+        return item;
+    }
+    return retv;
+
+failed:
+    if (silently)
+        return retv;
+
+fatal:
+    if (item)
+        purc_variant_unref(item);
+    if (retv)
+        purc_variant_unref(retv);
+    if (rws)
+        purc_rwstream_destroy(rws);
+
+    return PURC_VARIANT_INVALID;
+}
+
 int
 purc_dvobj_pack_real(struct pcdvobj_bytes_buff *bf, purc_variant_t item,
         int format_id, size_t quantity, bool silently)
