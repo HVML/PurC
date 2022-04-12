@@ -34,72 +34,87 @@
 #include <sys/un.h>
 #include <fcntl.h>
 
-#define BUFFER_SIZE         1024
-#define ENDIAN_PLATFORM     0
-#define ENDIAN_LITTLE       1
-#define ENDIAN_BIG          2
+#define DVOBJ_STREAM_NAME           "STREAM"
+#define DVOBJ_STREAM_DESC           "For io stream operations in PURC"
+#define DVOBJ_STREAM_VERSION        0
 
-#define SCHEMA_FILE         "file"
-#define SCHEMA_PIPE         "pipe"
-#define SCHEMA_UNIX_SOCK    "unix"
-#define SCHEMA_WIN_SOCK     "winsock"
-#define SCHEMA_WS           "ws"
-#define SCHEMA_WSS          "wss"
+#define BUFFER_SIZE                 1024
 
-#define STDIN_NAME          "stdin"
-#define STDOUT_NAME         "stdout"
-#define STDERR_NAME         "stderr"
+#define ENDIAN_PLATFORM             0
+#define ENDIAN_LITTLE               1
+#define ENDIAN_BIG                  2
 
-#define STREAM_EVENT_NAME          "event"
-#define STREAM_SUB_EVENT_READ      "read"
-#define STREAM_SUB_EVENT_WRITE     "write"
-#define STREAM_SUB_EVENT_ALL       "*"
+#define STDIN_NAME                  "stdin"
+#define STDOUT_NAME                 "stdout"
+#define STDERR_NAME                 "stderr"
 
+#define STREAM_EVENT_NAME           "event"
+#define STREAM_SUB_EVENT_READ       "read"
+#define STREAM_SUB_EVENT_WRITE      "write"
+#define STREAM_SUB_EVENT_ALL        "*"
 
-#define FILE_DEFAULT_MODE       0644
-#define PIPO_DEFAULT_MODE       0777
-#define RWSTREAM_FD_BUFFER      1024
+#define FILE_DEFAULT_MODE           0644
+#define PIPO_DEFAULT_MODE           0777
 
-#define STREAM_DVOBJ_VERSION  0
-#define STREAM_DESCRIPTION    "For io stream operations in PURC"
-#define STREAM_NAME             "STREAM"
+#define MAX_LEN_KEYWORD             64
 
-#define OPTION_READ             "read"
-#define OPTION_WRITE            "write"
-#define OPTION_NONBLOCK         "nonblock"
-#define OPTION_DEFAULT          "default"
+#define _KW_DELIMITERS              " \t\n\v\f\r"
 
-#define OPTION_SET              "set"
-#define OPTION_CURRENT          "current"
-#define OPTION_END              "end"
-
-#define MAX_LEN_KEYWORD     64
-
-#define _KW_DELIMITERS  " \t\n\v\f\r"
-
-#define STREAM_ATOM_BUCKET PURC_ATOM_BUCKET_USER // ATOM_BUCKET_DVOBJ
+#define STREAM_ATOM_BUCKET          PURC_ATOM_BUCKET_USER // ATOM_BUCKET_DVOBJ
 
 enum {
-#define _KW_default             "default"
+#define _KW_default                 "default"
     K_KW_default,
-#define _KW_read                "read"
+#define _KW_read                    "read"
     K_KW_read,
-#define _KW_write               "write"
+#define _KW_write                   "write"
     K_KW_write,
-#define _KW_nonblock            "nonblock"
+#define _KW_append                  "append"
+    K_KW_append,
+#define _KW_create                  "create"
+    K_KW_create,
+#define _KW_truncate                "truncate"
+    K_KW_truncate,
+#define _KW_nonblock                "nonblock"
     K_KW_nonblock,
+#define _KW_set                     "set"
+    K_KW_set,
+#define _KW_current                 "current"
+    K_KW_current,
+#define _KW_end                     "end"
+    K_KW_end,
+#define _KW_file                    "file"
+    K_KW_file,
+#define _KW_pipe                    "pipe"
+    K_KW_pipe,
+#define _KW_unix                    "unix"
+    K_KW_unix,
+#define _KW_winsock                 "winsock"
+    K_KW_winsock,
+#define _KW_ws                      "ws"
+    K_KW_ws,
+#define _KW_wss                     "wss"
+    K_KW_wss,
 };
 
 static struct keyword_to_atom {
     const char *keyword;
     purc_atom_t atom;
 } keywords2atoms [] = {
-    { _KW_default, 0 },                // "default"
-    { _KW_read, 0 },                   // "read"
-    { _KW_write, 0 },                  // "write"
-    { _KW_nonblock, 0 },               // "nonblock"
+    { _KW_default, 0 },             // "default"
+    { _KW_read, 0 },                // "read"
+    { _KW_write, 0 },               // "write"
+    { _KW_nonblock, 0 },            // "nonblock"
+    { _KW_set, 0 },                 // "set"
+    { _KW_current, 0 },             // "current"
+    { _KW_end, 0 },                 // "end"
+    { _KW_file, 0 },                // "file"
+    { _KW_pipe, 0 },                // "pipe"
+    { _KW_unix, 0 },                // "unix"
+    { _KW_winsock, 0 },             // "winsock"
+    { _KW_ws, 0 },                  // "ws"
+    { _KW_wss, 0 },                 // "wss"
 };
-
 
 enum pcdvobjs_stream_type {
     STREAM_TYPE_FILE_STDIN,
@@ -416,7 +431,7 @@ struct pcdvobjs_stream *create_file_stream(struct purc_broken_down_url *url,
         goto out;
     }
 
-    stream->rws = purc_rwstream_new_from_unix_fd(fd, RWSTREAM_FD_BUFFER);
+    stream->rws = purc_rwstream_new_from_unix_fd(fd, BUFFER_SIZE);
     if (stream->rws == NULL) {
         goto out_free_stream;
     }
@@ -465,7 +480,7 @@ struct pcdvobjs_stream *create_pipe_stream(struct purc_broken_down_url *url,
         goto out_close_fd;
     }
 
-    stream->rws = purc_rwstream_new_from_unix_fd(fd, RWSTREAM_FD_BUFFER);
+    stream->rws = purc_rwstream_new_from_unix_fd(fd, BUFFER_SIZE);
     if (stream->rws == NULL) {
         goto out_free_stream;
     }
@@ -514,7 +529,7 @@ struct pcdvobjs_stream *create_unix_sock_stream(struct purc_broken_down_url *url
         goto out_close_fd;
     }
 
-    stream->rws = purc_rwstream_new_from_unix_fd(fd, RWSTREAM_FD_BUFFER);
+    stream->rws = purc_rwstream_new_from_unix_fd(fd, BUFFER_SIZE);
     if (stream->rws == NULL) {
         goto out_free_stream;
     }
@@ -724,25 +739,28 @@ stream_open_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto out;
     }
 
+    purc_atom_t atom = purc_atom_try_string_ex(STREAM_ATOM_BUCKET, url->schema);
+    if (atom == 0) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto out_free_url;
+    }
+
     struct pcdvobjs_stream* stream = NULL;
-    if (strcmp(SCHEMA_FILE, url->schema) == 0) {
+    if (atom == keywords2atoms[K_KW_file].atom) {
         stream = create_file_stream(url, argv[1]);
     }
-    else if (strcmp(SCHEMA_PIPE, url->schema) == 0) {
+    else if (atom == keywords2atoms[K_KW_pipe].atom) {
         stream = create_pipe_stream(url, argv[1]);
     }
-    else if (strcmp(SCHEMA_UNIX_SOCK, url->schema) == 0) {
+    else if (atom == keywords2atoms[K_KW_unix].atom) {
         stream = create_unix_sock_stream(url, argv[1]);
     }
-#if 0
-    // TODO
-    else if (strcmp(SCHEMA_WIN_SOCK, url.schema) == 0) {
+    else if (atom == keywords2atoms[K_KW_winsock].atom) {
     }
-    else if (strcmp(SCHEMA_WS, url.schema) == 0) {
+    else if (atom == keywords2atoms[K_KW_ws].atom) {
     }
-    else if (strcmp(SCHEMA_WSS, url.schema) == 0) {
+    else if (atom == keywords2atoms[K_KW_wss].atom) {
     }
-#endif
 
     if (!stream) {
         goto out_free_url;
@@ -1792,18 +1810,20 @@ stream_seek_getter(purc_variant_t root, size_t nr_args,
     }
 
     const char* option = purc_variant_get_string_const(argv[2]);
-    if (strcmp(option, OPTION_SET) == 0) {
-        whence = SEEK_SET;
-    }
-    else if (strcmp(option, OPTION_CURRENT) == 0) {
-        whence = SEEK_CUR;
-    }
-    else if (strcmp(option, OPTION_END) == 0) {
-        whence = SEEK_END;
-    }
-    else {
+    purc_atom_t atom = purc_atom_try_string_ex(STREAM_ATOM_BUCKET, option);
+    if (atom == 0) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto out;
+    }
+
+    if (atom == keywords2atoms[K_KW_set].atom) {
+        whence = SEEK_SET;
+    }
+    else if (atom == keywords2atoms[K_KW_current].atom) {
+        whence = SEEK_CUR;
+    }
+    else if (atom == keywords2atoms[K_KW_end].atom) {
+        whence = SEEK_END;
     }
 
     rwstream = get_rwstream_from_variant(argv[0]);
@@ -1930,7 +1950,7 @@ purc_variant_t pcdvobjs_create_stream(void)
 purc_variant_t __purcex_load_dynamic_variant(const char *name, int *ver_code)
 {
     UNUSED_PARAM(name);
-    *ver_code = STREAM_DVOBJ_VERSION;
+    *ver_code = DVOBJ_STREAM_VERSION;
 
     return pcdvobjs_create_stream();
 }
@@ -1945,7 +1965,7 @@ const char * __purcex_get_dynamic_variant_name(size_t idx)
     if (idx != 0)
         return NULL;
 
-    return STREAM_NAME;
+    return DVOBJ_STREAM_NAME;
 }
 
 const char * __purcex_get_dynamic_variant_desc(size_t idx)
@@ -1953,6 +1973,6 @@ const char * __purcex_get_dynamic_variant_desc(size_t idx)
     if (idx != 0)
         return NULL;
 
-    return STREAM_DESCRIPTION;
+    return DVOBJ_STREAM_DESC;
 }
 
