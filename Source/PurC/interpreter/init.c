@@ -504,7 +504,7 @@ attr_found(struct pcintr_stack_frame *frame,
     return r ? -1 : 0;
 }
 
-void load_response_handler(purc_variant_t request_id, void *ctxt,
+static void load_response_handler(purc_variant_t request_id, void *ctxt,
         const struct pcfetcher_resp_header *resp_header,
         purc_rwstream_t resp)
 {
