@@ -24,3 +24,12 @@ positive:
     $FS.unlink('/tmp/test_stream_create')
     true
 
+# $STREAM.writebytes
+
+positive:
+    $STREAM.writebytes($STREAM.open('file:///tmp/test_stream_writebytes', 'read write create truncate'), bx48564d4c3A202d5f2e)
+    9UL
+
+positive:
+    $STREAM.writebytes($STREAM.open('file:///tmp/test_stream_writebytes', 'read write create truncate'), 'write string')
+    12UL

@@ -1233,7 +1233,9 @@ stream_writebytes_getter(purc_variant_t root, size_t nr_args,
         goto out;
     }
     if (argv[1] == PURC_VARIANT_INVALID ||
-            (!purc_variant_is_bsequence(argv[0]))) {
+            (!purc_variant_is_bsequence(argv[1]) &&
+             !purc_variant_is_string(argv[1]))
+            ) {
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
         goto out;
     }
@@ -1245,10 +1247,17 @@ stream_writebytes_getter(purc_variant_t root, size_t nr_args,
     }
 
     size_t bsize = 0;
-    const unsigned char *buffer = purc_variant_get_bytes_const (argv[1], &bsize);
+    const unsigned char *buffer = NULL;
+    if (purc_variant_is_bsequence(argv[1])) {
+        buffer = purc_variant_get_bytes_const (argv[1], &bsize);
+    }
+    else {
+        buffer = (const unsigned char *)purc_variant_get_string_const(argv[1]);
+        bsize = strlen((const char*)buffer);
+    }
     if (buffer && bsize) {
         ssize_t nr_write = purc_rwstream_write (rwstream, buffer, bsize);
-        return  purc_variant_make_ulongint(nr_write);
+        return purc_variant_make_ulongint(nr_write);
     }
 
     return ret_var;

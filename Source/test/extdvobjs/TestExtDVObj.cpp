@@ -338,6 +338,8 @@ void TestExtDVObj::run_testcases_in_file(const char *file_name)
             purc_variant_ejson_parse_tree_destroy(ptree);
 
             bool check = purc_variant_is_equal_to(result, expected);
+            purc_log_info("result=%s\n", purc_variant_typename(purc_variant_get_type(result)));
+            purc_log_info("expected=%s\n", purc_variant_typename(purc_variant_get_type(expected)));
             if (!check) {
                 char buf[4096];
                 purc_rwstream_t stm;

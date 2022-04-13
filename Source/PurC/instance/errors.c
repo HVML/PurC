@@ -145,7 +145,7 @@ set_error_exinfo_with_debug(int errcode, purc_variant_t exinfo,
         const char *file, int line, const char *func)
 {
 #ifndef NDEBUG                     /* { */
-    if (0 && errcode) {
+    if (1 && errcode) {
         PC_DEBUGX("%s[%d]:%s(): %d",
                 pcutils_basename((char*)file), line, func, errcode);
         if (exinfo != PURC_VARIANT_INVALID)
