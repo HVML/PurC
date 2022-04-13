@@ -733,5 +733,10 @@ positive:
     'number'
 
 positive:
-    $EJSON.type($STREAM.open('file:///tmp/test_stream_create', 'read write create'))
+    $EJSON.type($STREAM.open('file:///tmp/test_stream_create', 'read write create truncate'))
     'native'
+
+positive:
+    $FS.unlink('/tmp/test_stream_create')
+    true
+

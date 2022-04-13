@@ -96,6 +96,10 @@ purc_variant_t TestDVObj::extdvobj_new(const char *name)
         dvobj = purc_variant_load_dvobj_from_so ("STREAM", "STREAM");
     }
 
+    if (strcmp(name, "FS") == 0) {
+        dvobj = purc_variant_load_dvobj_from_so ("FS", "FS");
+    }
+
     if (dvobj != PURC_VARIANT_INVALID) {
         m_extdvobjs[name] = dvobj;
     }
