@@ -713,7 +713,7 @@ stream_open_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(root);
     UNUSED_PARAM(silently);
 
-    if (nr_args != 2) {
+    if (nr_args < 1) {
         purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
         goto out;
     }
@@ -726,8 +726,9 @@ stream_open_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto out;
     }
 
-    if (argv[1] == PURC_VARIANT_INVALID ||
-            (!purc_variant_is_string(argv[1]))) {
+    purc_variant_t option = nr_args > 1 ? argv[1] : PURC_VARIANT_INVALID;
+    if (option != PURC_VARIANT_INVALID &&
+            (!purc_variant_is_string(option))) {
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
         goto out;
     }
@@ -747,13 +748,13 @@ stream_open_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     struct pcdvobjs_stream* stream = NULL;
     if (atom == keywords2atoms[K_KW_file].atom) {
-        stream = create_file_stream(url, argv[1]);
+        stream = create_file_stream(url, option);
     }
     else if (atom == keywords2atoms[K_KW_pipe].atom) {
-        stream = create_pipe_stream(url, argv[1]);
+        stream = create_pipe_stream(url, option);
     }
     else if (atom == keywords2atoms[K_KW_unix].atom) {
-        stream = create_unix_sock_stream(url, argv[1]);
+        stream = create_unix_sock_stream(url, option);
     }
 #if 0
     else if (atom == keywords2atoms[K_KW_winsock].atom) {
