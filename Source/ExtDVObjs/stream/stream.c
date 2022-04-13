@@ -1024,7 +1024,7 @@ stream_writestruct_getter(purc_variant_t root, size_t nr_args,
         goto failed;
     }
 
-    if (purc_dvobj_pack_variants(&bf, argv + 1, nr_args - 1, formats,
+    if (purc_dvobj_pack_variants(&bf, argv + 2, nr_args - 2, formats,
                 formats_left, silently)) {
         if (bf.bytes == NULL)
             goto out;
