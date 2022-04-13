@@ -2325,6 +2325,11 @@ on_release(void* native_entity)
     template_destroy(tpl);
 }
 
+static struct purc_native_ops ops_tpl = {
+    .cleaner                      = cleaner,
+    .on_release                   = on_release,
+};
+
 purc_variant_t
 pcintr_template_make(void)
 {
@@ -2333,13 +2338,7 @@ pcintr_template_make(void)
     if (!tpl)
         return PURC_VARIANT_INVALID;
 
-    static struct purc_native_ops ops = {
-        .cleaner                       = cleaner,
-
-        .on_release                   = on_release,
-    };
-
-    purc_variant_t v = purc_variant_make_native(tpl, &ops);
+    purc_variant_t v = purc_variant_make_native(tpl, &ops_tpl);
     if (!v) {
         template_destroy(tpl);
         return PURC_VARIANT_INVALID;
@@ -2349,10 +2348,36 @@ pcintr_template_make(void)
 }
 
 int
+is_template_variant(purc_variant_t val)
+{
+    if (val == PURC_VARIANT_INVALID ||
+            purc_variant_is_native(val) == false)
+    {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        return -1;
+    }
+
+    struct purc_native_ops *ops;
+    ops = (struct purc_native_ops*)val->ptr_ptr[1];
+
+    if (ops != &ops_tpl) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        return -1;
+    }
+
+    return 0;
+}
+
+int
 pcintr_template_append(purc_variant_t val, struct pcvcm_node *vcm)
 {
     PC_ASSERT(val);
     PC_ASSERT(vcm);
+
+    int r;
+    r = is_template_variant(val);
+    if (r)
+        return -1;
 
     void *native_entity = purc_variant_native_get_entity(val);
     PC_ASSERT(native_entity);
@@ -2366,10 +2391,10 @@ void
 pcintr_template_walk(purc_variant_t val, void *ctxt,
         pcintr_template_walk_cb cb)
 {
-    if (!val)
-        return;
-
-    PC_ASSERT(val);
+    int r;
+    r = is_template_variant(val);
+    // FIXME: modify pcintr_template_walk function-signature
+    PC_ASSERT(r == 0);
 
     void *native_entity = purc_variant_native_get_entity(val);
     PC_ASSERT(native_entity);
