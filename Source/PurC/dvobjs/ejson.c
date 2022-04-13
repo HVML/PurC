@@ -1300,11 +1300,13 @@ purc_dvobj_read_struct(purc_rwstream_t stream,
         }
         purc_variant_unref(item);
 
+#if 0
         if (consumed >= nr_bytes)
             break;
 
         bytes += consumed;
         nr_bytes -= consumed;
+#endif
 
     } while (true);
 

@@ -62,13 +62,17 @@ positive:
 
 # $STREAM.writestruct/readsruct
 positive:
-    $STREAM.writestruct($STREAM.open('file:///tmp/test_stream_struct', 'read write create truncate'), "i16le i32le", 10, 10)
-    6UL
-
-positive:
     $STREAM.writestruct($STREAM.open('file:///tmp/test_stream_struct', 'read write create truncate'), "i16le:2 i32le", [[10, 15], 255])
     8UL
 
 positive:
     $STREAM.writestruct($STREAM.open('file:///tmp/test_stream_struct', 'read write create truncate'), "i16le:2 i32le", [10, 15], 255)
     8UL
+
+positive:
+    $STREAM.writestruct($STREAM.open('file:///tmp/test_stream_struct', 'read write create truncate'), "i16le i32le", 10, 10)
+    6UL
+
+positive:
+    $STREAM.readstruct($STREAM.open('file:///tmp/test_stream_struct', 'read write'), "i16le i32le")
+    [10, 10]
