@@ -61,7 +61,41 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
     UNUSED_PARAM(co);
     UNUSED_PARAM(frame);
-    PC_ASSERT(0);
+
+    struct ctxt_for_define *ctxt;
+    ctxt = (struct ctxt_for_define*)frame->ctxt;
+    PC_ASSERT(ctxt);
+
+    if (ctxt->as == PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_EXCEPT_ARGUMENT_MISSED,
+                    "lack of vdom attribute 'with/from' for element <%s>",
+                    frame->pos->tag_name);
+
+        return -1;
+    }
+
+    if (purc_variant_is_string(ctxt->as) == false) {
+        purc_set_error_with_info(PURC_EXCEPT_INVALID_VALUE,
+                    "vdom attribute 'with/from' for element <%s> "
+                    "is not of string type",
+                    frame->pos->tag_name);
+
+        return -1;
+    }
+
+    const char *s_name = purc_variant_get_string_const(ctxt->as);
+
+    pcvdom_element_t parent = pcvdom_element_parent(frame->pos);
+    PC_ASSERT(parent);
+
+    purc_variant_t v = pcintr_wrap_vdom(frame->pos);
+    if (v == PURC_VARIANT_INVALID)
+        return -1;
+
+    bool ok = pcintr_bind_scope_variable(parent, s_name, v);
+    purc_variant_unref(v);
+
+    return ok ? 0 : -1;
 }
 
 static int
@@ -159,6 +193,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     frame->ctxt_destroy = ctxt_destroy;
 
     frame->pos = pos; // ATTENTION!!
+    frame->scope = pos;
 
     frame->attr_vars = purc_variant_make_object(0,
             PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);

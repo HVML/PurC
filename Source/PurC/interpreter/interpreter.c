@@ -2850,3 +2850,46 @@ pcintr_event_timer_fire(const char* id, void* ctxt)
         }
     }
 }
+
+static struct purc_native_ops ops_vdom = {};
+
+purc_variant_t
+pcintr_wrap_vdom(pcvdom_element_t vdom)
+{
+    PC_ASSERT(vdom != NULL);
+
+    purc_variant_t val;
+    val = purc_variant_make_native(vdom, &ops_vdom);
+
+    return val;
+}
+
+pcvdom_element_t
+pcintr_get_vdom_from_variant(purc_variant_t val)
+{
+    if (val == PURC_VARIANT_INVALID) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        return NULL;
+    }
+
+    if (purc_variant_is_native(val) == false) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        return NULL;
+    }
+
+    void *native = purc_variant_native_get_entity(val);
+    if (native == NULL) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        return NULL;
+    }
+
+    struct purc_native_ops *ops;
+    ops = (struct purc_native_ops*)val->ptr_ptr[1];
+    if (ops != &ops_vdom) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        return NULL;
+    }
+
+    return (pcvdom_element_t)native;
+}
+
