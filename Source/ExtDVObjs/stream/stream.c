@@ -664,13 +664,14 @@ static inline bool is_little_endian(void)
 #endif
 }
 
-static ssize_t find_line_stream(purc_rwstream_t stream, int line_num)
+static int read_lines(purc_rwstream_t stream, int line_num,
+        purc_variant_t array)
 {
-    size_t pos = 0;
     unsigned char buffer[BUFFER_SIZE];
     ssize_t read_size = 0;
     size_t length = 0;
     const char *head = NULL;
+    const char *end = NULL;
 
     purc_rwstream_seek(stream, 0L, SEEK_SET);
 
@@ -679,10 +680,19 @@ static ssize_t find_line_stream(purc_rwstream_t stream, int line_num)
         if (read_size < 0)
             break;
 
+        end = (const char*)(buffer + read_size);
         head = pcdvobjs_stream_get_next_option((char *)buffer,
                 "\n", &length);
-        while (head) {
-            pos += length + 1;          // to be checked
+        while (head && head < end) {
+            purc_variant_t var = purc_variant_make_string_ex(head, length,
+                    false);
+            if (!var) {
+                return -1;
+            }
+            if (!purc_variant_array_append(array, var)) {
+                purc_variant_unref(var);
+                return -1;
+            }
             line_num --;
 
             if (line_num == 0)
@@ -698,7 +708,7 @@ static ssize_t find_line_stream(purc_rwstream_t stream, int line_num)
             break;
     }
 
-    return pos;
+    return 0;
 }
 
 
@@ -1050,9 +1060,13 @@ stream_readlines_getter(purc_variant_t root, size_t nr_args,
     UNUSED_PARAM(root);
     UNUSED_PARAM(silently);
 
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_rwstream_t rwstream = NULL;
     int64_t line_num = 0;
+    purc_variant_t ret_var = purc_variant_make_array(0, PURC_VARIANT_INVALID);
+    if (!ret_var) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto out;
+    }
 
     if (nr_args != 2) {
         purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
@@ -1076,27 +1090,23 @@ stream_readlines_getter(purc_variant_t root, size_t nr_args,
             line_num = 0;
     }
 
-    if (line_num == 0)
-        ret_var = purc_variant_make_string("", false);
-    else {
-        size_t pos = find_line_stream(rwstream, line_num);
-
-        char * content = malloc(pos + 1);
-        if (content == NULL) {
-            return purc_variant_make_string("", false);
+    if (line_num > 0) {
+        int ret = read_lines(rwstream, line_num, ret_var);
+        if (ret != 0) {
+            goto out;
         }
-
-        purc_rwstream_seek(rwstream, 0L, SEEK_SET);
-        pos = purc_rwstream_read(rwstream, content, pos);
-        *(content + pos - 1) = 0x00;
-
-        ret_var = purc_variant_make_string_reuse_buff(content, pos, false);
     }
+
     return ret_var;
 
 out:
     if (silently)
-        return purc_variant_make_undefined();
+        return ret_var;
+
+    if (ret_var) {
+        purc_variant_unref(ret_var);
+    }
+
     return PURC_VARIANT_INVALID;
 }
 
