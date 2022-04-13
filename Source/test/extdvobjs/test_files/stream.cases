@@ -41,3 +41,13 @@ positive:
 positive:
     $FS.unlink('/tmp/test_stream_bytes')
     true
+
+# $STREAM.writelines/readlines
+
+positive:
+    $STREAM.writelines($STREAM.open('file:///tmp/test_stream_lines', 'read write create truncate'), "This is the string to write")
+    28UL
+
+positive:
+    $STREAM.writelines($STREAM.open('file:///tmp/test_stream_lines', 'read write create truncate'), ["This is the string to write", "Second line"])
+    40UL

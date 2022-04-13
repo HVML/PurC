@@ -1107,7 +1107,6 @@ stream_writelines_getter(purc_variant_t root, size_t nr_args,
     UNUSED_PARAM(root);
     UNUSED_PARAM(silently);
 
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_rwstream_t rwstream = NULL;
 
     if (nr_args != 2) {
@@ -1120,8 +1119,30 @@ stream_writelines_getter(purc_variant_t root, size_t nr_args,
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
         goto out;
     }
-    if (argv[1] == PURC_VARIANT_INVALID ||
-            (!purc_variant_is_string(argv[1]))) {
+
+    if (argv[1] == PURC_VARIANT_INVALID) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto out;
+    }
+
+    enum purc_variant_type type = purc_variant_get_type(argv[1]);
+
+    switch (type) {
+    case PURC_VARIANT_TYPE_STRING:
+        break;
+    case PURC_VARIANT_TYPE_ARRAY:
+        {
+            size_t sz_array = purc_variant_array_get_size(argv[1]);
+            for (size_t i = 0; i < sz_array; i++) {
+                if (!purc_variant_is_string(
+                            purc_variant_array_get(argv[1], i))) {
+                    purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+                    goto out;
+                }
+            }
+        }
+        break;
+    default:
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
         goto out;
     }
@@ -1132,13 +1153,31 @@ stream_writelines_getter(purc_variant_t root, size_t nr_args,
         goto out;
     }
 
-    const char *buffer = (const char *)purc_variant_get_string_const (argv[1]);
-    ssize_t buffer_size = purc_variant_string_size(argv[1]);
-    if (buffer && buffer_size > 0) {
-        ssize_t nr_write = purc_rwstream_write (rwstream, buffer, buffer_size);
-        return  purc_variant_make_ulongint(nr_write);
+    ssize_t nr_write = 0;
+    const char *buffer = NULL;
+    ssize_t buffer_size = 0;
+    if (purc_variant_is_string(argv[1])) {
+        buffer = (const char *)purc_variant_get_string_const(argv[1]);
+        buffer_size = strlen(buffer);
+        if (buffer && buffer_size > 0) {
+            nr_write = purc_rwstream_write (rwstream, buffer, buffer_size);
+            nr_write += purc_rwstream_write(rwstream, "\n", 1);
+        }
     }
-    return ret_var;
+    else {
+        size_t sz_array = purc_variant_array_get_size(argv[1]);
+        for (size_t i = 0; i < sz_array; i++) {
+            purc_variant_t var = purc_variant_array_get(argv[1], i);
+            buffer = (const char *)purc_variant_get_string_const(var);
+            buffer_size = strlen(buffer);
+            if (buffer && buffer_size > 0) {
+                nr_write += purc_rwstream_write (rwstream, buffer, buffer_size);
+                nr_write += purc_rwstream_write(rwstream, "\n", 1);
+            }
+        }
+    }
+
+    return  purc_variant_make_ulongint(nr_write);
 
 out:
     if (silently)
