@@ -136,7 +136,7 @@ struct pcdvobjs_stream {
     struct purc_broken_down_url *url;
     purc_rwstream_t rws;
     purc_variant_t option;
-    purc_variant_t observed;
+    purc_variant_t observed;  // not inc ref
     uintptr_t monitor;
     int fd;
 };
@@ -214,10 +214,6 @@ void dvobjs_stream_destroy(struct pcdvobjs_stream *stream)
 
     if (stream->option) {
         purc_variant_unref(stream->option);
-    }
-
-    if (stream->observed) {
-        purc_variant_unref(stream->observed);
     }
 
     if (stream->monitor) {
@@ -778,7 +774,6 @@ stream_open_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     ret_var = purc_variant_make_native(stream, &ops);
     if (ret_var) {
         stream->observed = ret_var;
-        purc_variant_ref(stream->observed);
     }
     return ret_var;
 
@@ -1355,7 +1350,6 @@ bool add_stdio_property(purc_variant_t v)
         goto out;
     }
     stream->observed = var;
-    purc_variant_ref(stream->observed);
     if (!purc_variant_object_set_by_static_ckey(v, STDIN_NAME, var)) {
         goto out_unref_var;
     }
@@ -1370,7 +1364,6 @@ bool add_stdio_property(purc_variant_t v)
         goto out;
     }
     stream->observed = var;
-    purc_variant_ref(stream->observed);
     if (!purc_variant_object_set_by_static_ckey(v, STDOUT_NAME, var)) {
         goto out_unref_var;
     }
@@ -1385,7 +1378,6 @@ bool add_stdio_property(purc_variant_t v)
         goto out;
     }
     stream->observed = var;
-    purc_variant_ref(stream->observed);
     if (!purc_variant_object_set_by_static_ckey(v, STDERR_NAME, var)) {
         goto out_unref_var;
     }
@@ -1426,9 +1418,13 @@ purc_variant_t pcdvobjs_create_stream(void)
         return PURC_VARIANT_INVALID;
     }
 
+#if 0
     if (add_stdio_property(v)) {
         return v;
     }
+#else
+    return v;
+#endif
 
     purc_variant_unref(v);
     return PURC_VARIANT_INVALID;
