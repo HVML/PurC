@@ -1190,9 +1190,10 @@ stream_readbytes_getter(purc_variant_t root, size_t nr_args,
         }
 
         size = purc_rwstream_read(rwstream, content, byte_num);
-        if (size > 0)
-            ret_var =
-                purc_variant_make_byte_sequence_reuse_buff(content, size, size);
+        if (size > 0) {
+            ret_var = purc_variant_make_byte_sequence_reuse_buff(content,
+                    size, size);
+        }
         else {
             free(content);
             purc_set_error(PURC_ERROR_INVALID_VALUE);
