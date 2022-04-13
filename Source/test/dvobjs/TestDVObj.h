@@ -24,7 +24,6 @@ public:
     ~TestDVObj();
 
     purc_variant_t dvobj_new(const char *dvobj_name);
-    purc_variant_t extdvobj_new(const char *dvobj_name);
 
     static purc_variant_t get_dvobj(void* ctxt, const char* name);
 
@@ -35,7 +34,6 @@ public:
 private:
     typedef map <string, purc_variant_t> dvobj_map_t;
     dvobj_map_t m_dvobjs;
-    dvobj_map_t m_extdvobjs;
     struct purc_variant_stat m_init_stat;
 };
 

@@ -6,5 +6,5 @@ positive:
 
 positive:
     $FS.unlink('/tmp/test_stream_create')
-    false
+    true
 

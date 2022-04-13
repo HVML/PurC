@@ -728,15 +728,3 @@ positive:
     $URL.decode('HVML+-_.', 'binary', 'rfc3986')
     bx48564d4c
 
-positive:
-    $EJSON.type(123)
-    'number'
-
-positive:
-    $EJSON.type($STREAM.open('file:///tmp/test_stream_create', 'read write create truncate'))
-    'native'
-
-positive:
-    $FS.unlink('/tmp/test_stream_create')
-    true
-

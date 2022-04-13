@@ -32,11 +32,6 @@ TestDVObj::~TestDVObj()
         purc_variant_unref((*i).second);
     }
 
-    for (dvobj_map_t::iterator i = m_extdvobjs.begin();
-            i != m_extdvobjs.end(); i++) {
-        purc_variant_unload_dvobj((*i).second);
-    }
-
     const struct purc_variant_stat *stat;
     stat = purc_variant_usage_stat();
 
@@ -88,25 +83,6 @@ purc_variant_t TestDVObj::dvobj_new(const char *name)
     return dvobj;
 }
 
-purc_variant_t TestDVObj::extdvobj_new(const char *name)
-{
-    purc_variant_t dvobj = PURC_VARIANT_INVALID;
-
-    if (strcmp(name, "STREAM") == 0) {
-        dvobj = purc_variant_load_dvobj_from_so ("STREAM", "STREAM");
-    }
-
-    if (strcmp(name, "FS") == 0) {
-        dvobj = purc_variant_load_dvobj_from_so ("FS", "FS");
-    }
-
-    if (dvobj != PURC_VARIANT_INVALID) {
-        m_extdvobjs[name] = dvobj;
-    }
-
-    return dvobj;
-}
-
 purc_variant_t TestDVObj::get_dvobj(void* ctxt, const char* name)
 {
     purc_variant_t dvobj = PURC_VARIANT_INVALID;
@@ -116,18 +92,6 @@ purc_variant_t TestDVObj::get_dvobj(void* ctxt, const char* name)
     dvobj_map_t::iterator i = p->m_dvobjs.find(name);
     if (i == p->m_dvobjs.end()) {
         dvobj = p->dvobj_new(name);
-    }
-    else
-        dvobj = (*i).second;
-
-    if (dvobj) {
-        return dvobj;
-    }
-
-
-    i = p->m_extdvobjs.find(name);
-    if (i == p->m_extdvobjs.end()) {
-        dvobj = p->extdvobj_new(name);
     }
     else
         dvobj = (*i).second;
