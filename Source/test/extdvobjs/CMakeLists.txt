@@ -115,6 +115,7 @@ target_compile_definitions(test_extdvobjs_stream PRIVATE SOPATH="${CMAKE_BINARY_
 set(test_extdvobjs_stream_SOURCES
     test_extdvobjs_stream.cpp
     helper.cpp
+    TestExtDVObj.cpp
 )
 
 set(test_extdvobjs_stream_LIBRARIES

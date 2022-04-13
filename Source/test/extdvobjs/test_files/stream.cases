@@ -1,0 +1,10 @@
+# test cases for $STREAM.open
+# TODO: more cases for case-insensitive.
+positive:
+    $EJSON.type($STREAM.open('file:///tmp/test_stream_create', 'read write create truncate'))
+    'native'
+
+positive:
+    $FS.unlink('/tmp/test_stream_create')
+    false
+
