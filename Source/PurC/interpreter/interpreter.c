@@ -883,14 +883,8 @@ on_select_child(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         child_frame->pos = element;
         child_frame->silently = pcintr_is_element_silently(child_frame->pos);
         child_frame->edom_element = frame->edom_element;
-        if (pcvdom_element_is_hvml_native(element)) {
-            child_frame->scope = frame->scope;
-            PC_ASSERT(child_frame->scope);
-        }
-        else {
-            purc_clr_error();
-            child_frame->scope = element;
-        }
+        child_frame->scope = child_frame->pos;
+
         child_frame->next_step = NEXT_STEP_AFTER_PUSHED;
     }
 }
