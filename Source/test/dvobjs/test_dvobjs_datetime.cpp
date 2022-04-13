@@ -399,6 +399,14 @@ TEST(dvobjs, time_prt)
             }
 
             if (test_cases[i].vrtcmp) {
+                if (test_cases[i].vrtcmp(result, expected) == true) {
+                    ptree = purc_variant_ejson_parse_string(test_cases[i].ejson,
+                            strlen(test_cases[i].ejson));
+                    PURC_VARIANT_SAFE_CLEAR(result);
+                    result = purc_variant_ejson_parse_tree_evalute(ptree,
+                            get_dvobj_datetime, dvobj, true);
+                    purc_variant_ejson_parse_tree_destroy(ptree);
+                }
                 ASSERT_EQ(test_cases[i].vrtcmp(result, expected), true);
             }
             else {
