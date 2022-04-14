@@ -1160,18 +1160,18 @@ fatal:
 }
 
 static
-const uint8_t *dump_stream(purc_rwstream_t in, purc_rwstream_t out,
-        size_t count, size_t *nr_dump)
+const uint8_t *rwstream_read_bytes(purc_rwstream_t in, purc_rwstream_t buff,
+        size_t count, size_t *nr_read)
 {
-    purc_rwstream_seek(out, 0L, SEEK_SET);
-    ssize_t nr = purc_rwstream_dump_to_another(in, out, count);
+    purc_rwstream_seek(buff, 0L, SEEK_SET);
+    ssize_t nr = purc_rwstream_dump_to_another(in, buff, count);
     if (nr == -1) {
-        if (nr_dump) {
-            *nr_dump = 0;
+        if (nr_read) {
+            *nr_read = 0;
         }
         return NULL;
     }
-    return purc_rwstream_get_mem_buffer(out, nr_dump);
+    return purc_rwstream_get_mem_buffer(buff, nr_read);
 }
 
 purc_variant_t
@@ -1224,7 +1224,7 @@ purc_dvobj_read_struct(purc_rwstream_t stream,
             int real_id = format_id - PURC_K_KW_i8;
             consumed = real_info[real_id].length * quantity;
 
-            bytes = dump_stream(stream, rws, consumed, &nr_bytes);
+            bytes = rwstream_read_bytes(stream, rws, consumed, &nr_bytes);
             if (consumed > nr_bytes) {
                 purc_set_error(PURC_ERROR_INVALID_VALUE);
                 goto failed;
@@ -1238,7 +1238,7 @@ purc_dvobj_read_struct(purc_rwstream_t stream,
                 goto failed;
             }
 
-            bytes = dump_stream(stream, rws, quantity, &nr_bytes);
+            bytes = rwstream_read_bytes(stream, rws, quantity, &nr_bytes);
             if (bytes == NULL ||  quantity > nr_bytes) {
                 purc_set_error(PURC_ERROR_INVALID_VALUE);
                 goto failed;
@@ -1253,7 +1253,7 @@ purc_dvobj_read_struct(purc_rwstream_t stream,
                 goto failed;
             }
 
-            bytes = dump_stream(stream, rws, quantity, &nr_bytes);
+            bytes = rwstream_read_bytes(stream, rws, quantity, &nr_bytes);
             if (bytes == NULL ||  quantity > nr_bytes) {
                 purc_set_error(PURC_ERROR_INVALID_VALUE);
                 goto failed;
@@ -1266,14 +1266,14 @@ purc_dvobj_read_struct(purc_rwstream_t stream,
                 format_id <= PURC_K_KW_utf32be) {
 
             if (quantity > 0) {
-                bytes = dump_stream(stream, rws, quantity, &nr_bytes);
+                bytes = rwstream_read_bytes(stream, rws, quantity, &nr_bytes);
                 if (quantity > nr_bytes) {
                     purc_set_error(PURC_ERROR_INVALID_VALUE);
                     goto failed;
                 }
             }
             else if (quantity == 0) {
-                bytes = dump_stream(stream, rws, -1, &nr_bytes);
+                bytes = rwstream_read_bytes(stream, rws, -1, &nr_bytes);
                 if (nr_bytes == 0) {
                     purc_set_error(PURC_ERROR_INVALID_VALUE);
                     goto failed;
