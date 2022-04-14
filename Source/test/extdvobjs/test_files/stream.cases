@@ -42,7 +42,7 @@ positive:
     $FS.unlink('/tmp/test_stream_bytes')
     true
 
- $STREAM.writelines/readlines
+# $STREAM.writelines/readlines
 
 positive:
     $STREAM.writelines($STREAM.open('file:///tmp/test_stream_lines', 'read write create truncate'), "This is the string to write")
@@ -97,3 +97,23 @@ positive:
     $FS.unlink('/tmp/test_stream_struct')
     true
 
+# $STREAM.seek
+positive:
+    $STREAM.writelines($STREAM.open('file:///tmp/test_stream_seek', 'read write create truncate'), "This is the string to write")
+    28UL
+
+positive:
+    $STREAM.seek($STREAM.open('file:///tmp/test_stream_seek', 'read write'), 10, 'set')
+    10L
+
+positive:
+    $STREAM.seek($STREAM.open('file:///tmp/test_stream_seek', 'read write'), 3, 'current')
+    3L
+
+positive:
+    $STREAM.seek($STREAM.open('file:///tmp/test_stream_seek', 'read write'), -3, 'current')
+    -1L
+
+positive:
+    $STREAM.seek($STREAM.open('file:///tmp/test_stream_seek', 'read write'), -3, 'end')
+    25L
