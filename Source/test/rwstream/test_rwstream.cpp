@@ -875,22 +875,18 @@ TEST(gio_rwstream, new_destroy)
     create_temp_file(tmp_file, buf, buf_len);
 
     int fd = open(tmp_file, O_RDWR);
-    purc_rwstream_t rws = purc_rwstream_new_from_unix_fd (fd, 1024);
+    purc_rwstream_t rws = purc_rwstream_new_from_unix_fd (fd);
     ASSERT_NE(rws, nullptr);
 
     int ret = purc_rwstream_destroy (rws);
     ASSERT_EQ(ret, 0);
 
     fd = open(tmp_file, O_RDWR | O_NONBLOCK);
-    rws = purc_rwstream_new_from_unix_fd (fd, 1024);
+    rws = purc_rwstream_new_from_unix_fd (fd);
     ASSERT_NE(rws, nullptr);
 
     int flags = fcntl (fd, F_GETFL);
-#ifdef O_NONBLOCK
-    ASSERT_EQ(flags & O_NONBLOCK, 0);
-#else
-    ASSERT_EQ(flags & O_NDELAY, 0);
-#endif
+    ASSERT_EQ(flags & O_NONBLOCK, O_NONBLOCK);
 
     ret = purc_rwstream_destroy (rws);
     ASSERT_EQ(ret, 0);
@@ -907,7 +903,7 @@ TEST(gio_rwstream, read_char)
     int fd = open(tmp_file, O_RDWR, S_IRGRP | S_IWGRP | S_IRUSR
             | S_IWUSR | S_IROTH);
 
-    purc_rwstream_t rws = purc_rwstream_new_from_unix_fd (fd, 1024);
+    purc_rwstream_t rws = purc_rwstream_new_from_unix_fd (fd);
     ASSERT_NE(rws, nullptr);
 
     char read_buf[1024] = {0};
@@ -932,7 +928,7 @@ TEST(gio_rwstream, write_char)
     int fd = open(tmp_file, O_RDWR | O_CREAT, S_IRGRP | S_IWGRP | S_IRUSR
             | S_IWUSR | S_IROTH);
 
-    purc_rwstream_t rws = purc_rwstream_new_from_unix_fd (fd, 1024);
+    purc_rwstream_t rws = purc_rwstream_new_from_unix_fd (fd);
     ASSERT_NE(rws, nullptr);
 
     int write_len = purc_rwstream_write (rws, buf, buf_len);
@@ -963,7 +959,7 @@ TEST(gio_rwstream, read_utf8_char)
     int fd = open(tmp_file, O_RDWR, S_IRGRP | S_IWGRP | S_IRUSR
             | S_IWUSR | S_IROTH);
 
-    purc_rwstream_t rws = purc_rwstream_new_from_unix_fd (fd, 1024);
+    purc_rwstream_t rws = purc_rwstream_new_from_unix_fd (fd);
     ASSERT_NE(rws, nullptr);
 
     char read_buf[100] = {0};
@@ -1054,7 +1050,7 @@ TEST(gio_rwstream, seek_tell)
     int fd = open(tmp_file, O_RDWR, S_IRGRP | S_IWGRP | S_IRUSR
             | S_IWUSR | S_IROTH);
 
-    purc_rwstream_t rws = purc_rwstream_new_from_unix_fd (fd, 1024);
+    purc_rwstream_t rws = purc_rwstream_new_from_unix_fd (fd);
     ASSERT_NE(rws, nullptr);
 
     off_t pos = purc_rwstream_seek (rws, 1, SEEK_SET);
@@ -1064,7 +1060,7 @@ TEST(gio_rwstream, seek_tell)
     ASSERT_EQ(pos, 11);
 
     off_t tpos = purc_rwstream_tell (rws);
-    ASSERT_EQ(tpos, -1);
+    ASSERT_EQ(tpos, 11);
 
     char read_buf[10] = {0};
     int read_len = purc_rwstream_read (rws, read_buf, 1);
@@ -1072,8 +1068,7 @@ TEST(gio_rwstream, seek_tell)
 
     pos = purc_rwstream_seek (rws, 10, SEEK_END);
     tpos = purc_rwstream_tell (rws);
-    ASSERT_NE(pos, tpos);
-    ASSERT_EQ(tpos, -1);
+    ASSERT_EQ(pos, tpos);
 
     int ret = purc_rwstream_destroy (rws);
     ASSERT_EQ(ret, 0);
@@ -1091,7 +1086,7 @@ TEST(gio_rwstream, seek_read)
     int fd = open(tmp_file, O_RDWR, S_IRGRP | S_IWGRP | S_IRUSR
             | S_IWUSR | S_IROTH);
 
-    purc_rwstream_t rws = purc_rwstream_new_from_unix_fd (fd, 1024);
+    purc_rwstream_t rws = purc_rwstream_new_from_unix_fd (fd);
 
     char read_buf[100] = {0};
     uint32_t wc = 0;
@@ -1281,7 +1276,7 @@ TEST(dump_rwstream, stdio_gio)
     ASSERT_NE(rws, nullptr);
 
     int fd = open(out_file, O_WRONLY | O_APPEND | O_CREAT, 0644);
-    purc_rwstream_t rws_out = purc_rwstream_new_from_unix_fd (fd, 1024);
+    purc_rwstream_t rws_out = purc_rwstream_new_from_unix_fd (fd);
     ASSERT_NE(rws_out, nullptr);
 
     size_t sz = 0;
