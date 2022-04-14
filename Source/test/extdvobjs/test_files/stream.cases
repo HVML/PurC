@@ -62,17 +62,29 @@ positive:
 
 # $STREAM.writestruct/readsruct
 positive:
-    $STREAM.writestruct($STREAM.open('file:///tmp/test_stream_struct', 'read write create truncate'), "i16le:2 i32le", [[10, 15], 255])
-    8UL
+    $STREAM.writestruct($STREAM.open('file:///tmp/test_stream_struct', 'read write create truncate'), "i16le i32le", 10, 10)
+    6UL
+
+positive:
+    $STREAM.readstruct($STREAM.open('file:///tmp/test_stream_struct', 'read write'), "i16le i32le")
+    [10L, 10L]
 
 positive:
     $STREAM.writestruct($STREAM.open('file:///tmp/test_stream_struct', 'read write create truncate'), "i16le:2 i32le", [10, 15], 255)
     8UL
 
 positive:
-    $STREAM.writestruct($STREAM.open('file:///tmp/test_stream_struct', 'read write create truncate'), "i16le i32le", 10, 10)
-    6UL
+    $STREAM.readstruct($STREAM.open('file:///tmp/test_stream_struct', 'read write'), "i16le:2 i32le")
+    [[10L, 15L], 255L]
 
 positive:
-    $STREAM.readstruct($STREAM.open('file:///tmp/test_stream_struct', 'read write'), "i16le i32le")
-    [10, 10]
+    $STREAM.writestruct($STREAM.open('file:///tmp/test_stream_struct', 'read write create truncate'), "i16le:2 i32le", [[10, 15], 255])
+    8UL
+
+positive:
+    $STREAM.readstruct($STREAM.open('file:///tmp/test_stream_struct', 'read write'), "i16le:2 i32le")
+    [[10L, 15L], 255L]
+
+positive:
+    $FS.unlink('/tmp/test_stream_struct')
+    true
