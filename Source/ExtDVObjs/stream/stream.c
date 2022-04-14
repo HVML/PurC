@@ -407,7 +407,7 @@ struct pcdvobjs_stream *create_file_stream(struct purc_broken_down_url *url,
     if (flags & O_CREAT) {
         fd = open(url->path, flags, FILE_DEFAULT_MODE);
     }
-    else if ((flags & O_WRONLY) || (flags & O_RDWR)) {
+    else {
         fd = open(url->path, flags);
     }
 

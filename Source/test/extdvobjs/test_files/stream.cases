@@ -24,8 +24,7 @@ positive:
     $FS.unlink('/tmp/test_stream_create')
     true
 
-## $STREAM.readbytes/writebytes
-#
+# $STREAM.readbytes/writebytes
 positive:
     $STREAM.writebytes($STREAM.open('file:///tmp/test_stream_bytes', 'read write create truncate'), bx48564d4c3A202d5f2e)
     9UL
@@ -35,7 +34,7 @@ positive:
     12UL
 
 positive:
-    $STREAM.readbytes($STREAM.open('file:///tmp/test_stream_bytes', 'read write'), 10)
+    $STREAM.readbytes($STREAM.open('file:///tmp/test_stream_bytes', 'read'), 10)
     bx77726974652073747269
 
 positive:
@@ -53,15 +52,15 @@ positive:
     40UL
 
 positive:
-    $STREAM.readlines($STREAM.open('file:///tmp/test_stream_lines', 'read write'), 0)
+    $STREAM.readlines($STREAM.open('file:///tmp/test_stream_lines', 'read'), 0)
     []
 
 positive:
-    $STREAM.readlines($STREAM.open('file:///tmp/test_stream_lines', 'read write'), 1)
+    $STREAM.readlines($STREAM.open('file:///tmp/test_stream_lines', 'read'), 1)
     ["This is the string to write"]
 
 positive:
-    $STREAM.readlines($STREAM.open('file:///tmp/test_stream_lines', 'read write'), 20)
+    $STREAM.readlines($STREAM.open('file:///tmp/test_stream_lines', 'read'), 20)
     ["This is the string to write", "Second line"]
 
 positive:
@@ -74,7 +73,7 @@ positive:
     6UL
 
 positive:
-    $STREAM.readstruct($STREAM.open('file:///tmp/test_stream_struct', 'read write'), "i16le i32le")
+    $STREAM.readstruct($STREAM.open('file:///tmp/test_stream_struct', 'read'), "i16le i32le")
     [10L, 10L]
 
 positive:
@@ -82,7 +81,7 @@ positive:
     8UL
 
 positive:
-    $STREAM.readstruct($STREAM.open('file:///tmp/test_stream_struct', 'read write'), "i16le:2 i32le")
+    $STREAM.readstruct($STREAM.open('file:///tmp/test_stream_struct', 'read'), "i16le:2 i32le")
     [[10L, 15L], 255L]
 
 positive:
@@ -90,7 +89,7 @@ positive:
     8UL
 
 positive:
-    $STREAM.readstruct($STREAM.open('file:///tmp/test_stream_struct', 'read write'), "i16le:2 i32le")
+    $STREAM.readstruct($STREAM.open('file:///tmp/test_stream_struct', 'read'), "i16le:2 i32le")
     [[10L, 15L], 255L]
 
 positive:
