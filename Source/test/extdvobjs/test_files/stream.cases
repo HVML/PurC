@@ -116,3 +116,7 @@ positive:
 positive:
     $STREAM.seek($STREAM.open('file:///tmp/test_stream_seek', 'read write'), -3, 'end')
     25L
+
+positive:
+    $FS.unlink('/tmp/test_stream_seek')
+    true

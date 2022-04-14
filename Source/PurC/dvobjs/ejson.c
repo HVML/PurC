@@ -1174,6 +1174,14 @@ const uint8_t *rwstream_read_bytes(purc_rwstream_t in, purc_rwstream_t buff,
     return purc_rwstream_get_mem_buffer(buff, nr_read);
 }
 
+static
+const uint8_t *rwstream_read_string(purc_rwstream_t in, purc_rwstream_t buff,
+        int format_id, size_t *nr_read)
+{
+    UNUSED_PARAM(format_id);
+    return rwstream_read_bytes(in, buff, -1, nr_read);
+}
+
 purc_variant_t
 purc_dvobj_read_struct(purc_rwstream_t stream,
         const char *formats, size_t formats_left, bool silently)
@@ -1273,7 +1281,7 @@ purc_dvobj_read_struct(purc_rwstream_t stream,
                 }
             }
             else if (quantity == 0) {
-                bytes = rwstream_read_bytes(stream, rws, -1, &nr_bytes);
+                bytes = rwstream_read_string(stream, rws, -1, &nr_bytes);
                 if (nr_bytes == 0) {
                     purc_set_error(PURC_ERROR_INVALID_VALUE);
                     goto failed;
