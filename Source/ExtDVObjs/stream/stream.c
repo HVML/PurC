@@ -238,21 +238,17 @@ bool is_file_exists(const char* file)
 static
 struct pcdvobjs_stream *create_file_std_stream(enum pcdvobjs_stream_type type)
 {
-    FILE* fp = NULL;
     int fd = -1;
     switch (type) {
     case STREAM_TYPE_FILE_STDIN:
-        fp = stdin;
         fd = dup(STDIN_FILENO);
         break;
 
     case STREAM_TYPE_FILE_STDOUT:
-        fp = stdout;
         fd = dup(STDOUT_FILENO);
         break;
 
     case STREAM_TYPE_FILE_STDERR:
-        fp = stderr;
         fd = dup(STDERR_FILENO);
         break;
 
@@ -267,7 +263,7 @@ struct pcdvobjs_stream *create_file_std_stream(enum pcdvobjs_stream_type type)
         goto out;
     }
 
-    stream->rws = purc_rwstream_new_from_fp(fp);
+    stream->rws = purc_rwstream_new_from_unix_fd(fd, BUFFER_SIZE);
     if (stream->rws == NULL) {
         goto out_free_stream;
     }
@@ -693,6 +689,7 @@ static int read_lines(purc_rwstream_t stream, int line_num,
                 purc_variant_unref(var);
                 return -1;
             }
+            purc_variant_unref(var);
             line_num --;
 
             if (line_num == 0)
@@ -1403,6 +1400,7 @@ bool add_stdio_property(purc_variant_t v)
     if (!purc_variant_object_set_by_static_ckey(v, STDIN_NAME, var)) {
         goto out_unref_var;
     }
+    purc_variant_unref(var);
 
     // stdout
     stream = create_file_stdout_stream();
@@ -1417,6 +1415,7 @@ bool add_stdio_property(purc_variant_t v)
     if (!purc_variant_object_set_by_static_ckey(v, STDOUT_NAME, var)) {
         goto out_unref_var;
     }
+    purc_variant_unref(var);
 
     // stderr
     stream = create_file_stderr_stream();
@@ -1431,6 +1430,7 @@ bool add_stdio_property(purc_variant_t v)
     if (!purc_variant_object_set_by_static_ckey(v, STDERR_NAME, var)) {
         goto out_unref_var;
     }
+    purc_variant_unref(var);
 
     return true;
 
@@ -1468,17 +1468,12 @@ purc_variant_t pcdvobjs_create_stream(void)
         return PURC_VARIANT_INVALID;
     }
 
-#if 0
     if (add_stdio_property(v)) {
         return v;
     }
-#else
-    return v;
-#endif
 
     purc_variant_unref(v);
     return PURC_VARIANT_INVALID;
-
 }
 
 purc_variant_t __purcex_load_dynamic_variant(const char *name, int *ver_code)
