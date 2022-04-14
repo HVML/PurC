@@ -55,7 +55,7 @@ _process_file(const char *fn)
         return -1;
     }
 
-    rin = purc_rwstream_new_from_unix_fd(dup(fileno(fin)), 1024);
+    rin = purc_rwstream_new_from_unix_fd(dup(fileno(fin)));
     if (!rin) {
         int err = errno;
         ADD_FAILURE() << "Failed to open stream for ["

@@ -263,7 +263,7 @@ struct pcdvobjs_stream *create_file_std_stream(enum pcdvobjs_stream_type type)
         goto out;
     }
 
-    stream->rws = purc_rwstream_new_from_unix_fd(fd, BUFFER_SIZE);
+    stream->rws = purc_rwstream_new_from_unix_fd(fd);
     if (stream->rws == NULL) {
         goto out_free_stream;
     }
@@ -423,7 +423,7 @@ struct pcdvobjs_stream *create_file_stream(struct purc_broken_down_url *url,
         goto out;
     }
 
-    stream->rws = purc_rwstream_new_from_unix_fd(fd, BUFFER_SIZE);
+    stream->rws = purc_rwstream_new_from_unix_fd(fd);
     if (stream->rws == NULL) {
         goto out_free_stream;
     }
@@ -472,7 +472,7 @@ struct pcdvobjs_stream *create_pipe_stream(struct purc_broken_down_url *url,
         goto out_close_fd;
     }
 
-    stream->rws = purc_rwstream_new_from_unix_fd(fd, BUFFER_SIZE);
+    stream->rws = purc_rwstream_new_from_unix_fd(fd);
     if (stream->rws == NULL) {
         goto out_free_stream;
     }
@@ -521,7 +521,7 @@ struct pcdvobjs_stream *create_unix_sock_stream(struct purc_broken_down_url *url
         goto out_close_fd;
     }
 
-    stream->rws = purc_rwstream_new_from_unix_fd(fd, BUFFER_SIZE);
+    stream->rws = purc_rwstream_new_from_unix_fd(fd);
     if (stream->rws == NULL) {
         goto out_free_stream;
     }

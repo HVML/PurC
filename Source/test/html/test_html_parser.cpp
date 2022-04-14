@@ -67,7 +67,7 @@ TEST(html, html_parser_html_file_x)
 
     purc_rwstream_destroy(io);
 
-    io = purc_rwstream_new_from_unix_fd(dup(fileno(stderr)), -1);
+    io = purc_rwstream_new_from_unix_fd(dup(fileno(stderr)));
 
     int n;
     n = pchtml_doc_write_to_stream(doc, io);
@@ -131,7 +131,7 @@ TEST(html, html_parser_chunk)
     ur = pchtml_html_document_parse_chunk_end(doc);
     ASSERT_EQ(ur, PCHTML_STATUS_OK);
 
-    io = purc_rwstream_new_from_unix_fd(dup(fileno(stderr)), -1);
+    io = purc_rwstream_new_from_unix_fd(dup(fileno(stderr)));
 
     int n;
     n = pchtml_doc_write_to_stream(doc, io);
@@ -157,7 +157,7 @@ TEST(html, load_from_html)
     FILE *furls;
     purc_rwstream_t out;
 
-    out = purc_rwstream_new_from_unix_fd(dup(fileno(stderr)), -1);
+    out = purc_rwstream_new_from_unix_fd(dup(fileno(stderr)));
     ASSERT_NE(out, nullptr);
 
     n = snprintf(urls_txt, sizeof(urls_txt),
