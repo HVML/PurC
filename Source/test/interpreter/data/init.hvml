@@ -1,0 +1,16 @@
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<hvml target="html" lang="en">
+    <head>
+        <init as="fibonacci">
+            [0, 1, ]
+        </init>
+    </head>
+
+    <body>
+        <div>
+            <update on="$@" at="attr.foo" to="displace" with = "$fibonacci[1]"/>
+        </div>
+    </body>
+
+</hvml>
+

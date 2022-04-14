@@ -578,7 +578,7 @@ pcintr_find_named_var(pcintr_stack_t stack, const char* name)
         return v;
     }
 
-    v = _find_named_scope_var(frame->pos, name, NULL);
+    v = _find_named_scope_var(frame->scope, name, NULL);
     if (v) {
         purc_clr_error();
         return v;

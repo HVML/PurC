@@ -87,8 +87,17 @@ post_process_bind_scope_var(pcintr_coroutine_t co,
         struct pcintr_stack_frame *frame,
         purc_variant_t name, purc_variant_t val)
 {
-    struct pcvdom_element *element = frame->scope;
-    PC_ASSERT(element);
+    struct pcvdom_element *element = pcvdom_element_parent(frame->pos);
+
+    if (co->stack->mode == STACK_VDOM_IN_HEAD &&
+            element &&
+            element->tag_id == PCHVML_TAG_HEAD)
+    {
+        struct pcvdom_element *p = pcvdom_element_parent(element);
+        if (p->tag_id == PCHVML_TAG_HVML) {
+            element = p;
+        }
+    }
 
     const char *s_name = purc_variant_get_string_const(name);
     PC_ASSERT(s_name);
@@ -504,7 +513,7 @@ attr_found(struct pcintr_stack_frame *frame,
     return r ? -1 : 0;
 }
 
-void load_response_handler(purc_variant_t request_id, void *ctxt,
+static void load_response_handler(purc_variant_t request_id, void *ctxt,
         const struct pcfetcher_resp_header *resp_header,
         purc_rwstream_t resp)
 {
@@ -579,6 +588,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     PC_ASSERT(stack && pos);
     PC_ASSERT(stack == pcintr_get_stack());
 
+
     if (stack->except)
         return NULL;
 
@@ -587,6 +597,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
+
+    PC_ASSERT(frame && frame->pos);
 
     struct ctxt_for_init *ctxt;
     ctxt = (struct ctxt_for_init*)calloc(1, sizeof(*ctxt));
@@ -599,6 +611,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     frame->ctxt_destroy = ctxt_destroy;
 
     frame->pos = pos; // ATTENTION!!
+    PC_ASSERT(frame->pos == frame->scope);
 
     frame->attr_vars = purc_variant_make_object(0,
             PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);

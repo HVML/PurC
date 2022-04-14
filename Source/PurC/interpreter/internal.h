@@ -260,9 +260,13 @@ pcintr_rdr_dom_displace_child(pcintr_stack_t stack, pcdom_element_t *element,
 void
 pcintr_event_timer_fire(const char* id, void* ctxt);
 
+purc_variant_t
+pcintr_wrap_vdom(pcvdom_element_t vdom);
+
+pcvdom_element_t
+pcintr_get_vdom_from_variant(purc_variant_t val);
+
 PCA_EXTERN_C_END
 
 #endif  /* PURC_INTERPRETER_INTERNAL_H */
-
-
 
