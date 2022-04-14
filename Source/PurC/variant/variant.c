@@ -1853,9 +1853,8 @@ bool purc_variant_unload_dvobj (purc_variant_t dvobj)
 
 #if OS(LINUX) || OS(UNIX)
     if (u64) {
-        if (dlclose((void *)u64) == 0) {
-            purc_variant_unref (dvobj);
-        } else {
+        purc_variant_unref (dvobj);
+        if (dlclose((void *)u64) != 0) {
             pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
             ret = false;
         }
