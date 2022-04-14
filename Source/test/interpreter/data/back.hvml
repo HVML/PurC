@@ -1,0 +1,16 @@
+<!DOCTYPE hvml>
+<hvml target="html" lang="en">
+    <head>
+    </head>
+
+    <body>
+        <div class="this shall be overwritten" id="abC">
+            <div class="de">
+                <back to=2 />
+                <update on="$2@" at="attr.classx" to="displace" with="you can NOT see me"/>
+            </div>
+            <update on="$1@" at="attr.class" to="displace" with="you can see me"/>
+        </div>
+    </body>
+</hvml>
+

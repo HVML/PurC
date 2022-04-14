@@ -90,6 +90,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     }
 
     ctxt->define = define;
+    frame->scope = define;
 
     return 0;
 }
