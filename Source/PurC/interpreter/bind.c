@@ -85,7 +85,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         }
     }
     else {
-        struct pcvdom_element *element = frame->scope;
+        struct pcvdom_element *element = frame->pos;
         const char *s_name = purc_variant_get_string_const(name);
         if (ctxt->under_head) {
             ok = purc_bind_document_variable(co->stack->vdom, s_name, val);
