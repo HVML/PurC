@@ -1171,7 +1171,10 @@ const uint8_t *rwstream_read_bytes(purc_rwstream_t in, purc_rwstream_t buff,
         }
         return NULL;
     }
-    return purc_rwstream_get_mem_buffer(buff, nr_read);
+    if (nr_read) {
+        *nr_read = nr;
+    }
+    return purc_rwstream_get_mem_buffer(buff, NULL);
 }
 
 static
@@ -1196,23 +1199,19 @@ const uint8_t *rwstream_read_string(purc_rwstream_t in, purc_rwstream_t buff,
         break;
     }
     purc_rwstream_seek(buff, 0L, SEEK_SET);
-    int nr_n = 0;
-    char c = 0;
     int read_len = 0;
     int nr_write = 0;
-    while ((read_len = purc_rwstream_read(in, &c, 1)) > 0) {
-        nr_write += purc_rwstream_write(buff, &c, 1);
-        if (c == 0) {
-            nr_n++;
-            if (nr_n == nr_null) {
-                break;
-            }
-        }
-        else {
-            nr_n = 0;
+    uint32_t uc = 0;
+    while ((read_len = purc_rwstream_read(in, &uc, nr_null)) > 0) {
+        nr_write += purc_rwstream_write(buff, &uc, read_len);
+        if (uc == 0) {
+            break;
         }
     }
-    return purc_rwstream_get_mem_buffer(buff, nr_read);
+    if (nr_read) {
+        *nr_read = nr_write;
+    }
+    return purc_rwstream_get_mem_buffer(buff, NULL);
 }
 
 purc_variant_t
@@ -1324,9 +1323,6 @@ purc_dvobj_read_struct(purc_rwstream_t stream,
 
             item = purc_dvobj_unpack_string(bytes, quantity, &consumed,
                     format_id, silently);
-            if (consumed < nr_bytes) {
-                purc_rwstream_seek(stream, consumed - nr_bytes, SEEK_CUR);
-            }
         }
 
         if (item == PURC_VARIANT_INVALID) {

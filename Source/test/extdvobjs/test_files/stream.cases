@@ -151,9 +151,9 @@ positive:
     "This is the string to write, Second line"
 
 positive:
-    $STREAM.writestruct($STREAM.open('file:///tmp/test_stream_readstring', 'read write create truncate'), 'utf32:168 i16le', "This is the string to write, Second line", 99)
+    $STREAM.writestruct($STREAM.open('file:///tmp/test_stream_readstring', 'read write create truncate'), 'utf32:165 i16le', "This is the string to write, Second line", 99)
     166UL
 
 positive:
-    $STREAM.readstruct($STREAM.open('file:///tmp/test_stream_readstring', 'read'), 'utf32')
-    "This is the string to write, Second line"
+    $STREAM.readstruct($STREAM.open('file:///tmp/test_stream_readstring', 'read'), 'utf32 i16le')
+    ["This is the string to write, Second line", 99L]
