@@ -465,7 +465,7 @@ static purc_variant_t pcvarmgr_remove_observer(pcvarmgr_t mgr, const char* name,
 }
 
 static purc_variant_t
-_find_named_scope_var(pcvdom_element_t elem, const char* name, pcvarmgr_t* mgr)
+_find_named_scope_var_in_vdom(pcvdom_element_t elem, const char* name, pcvarmgr_t* mgr)
 {
     if (!elem || !name) {
         PC_ASSERT(name); // FIXME: still recoverable???
@@ -473,18 +473,68 @@ _find_named_scope_var(pcvdom_element_t elem, const char* name, pcvarmgr_t* mgr)
         return PURC_VARIANT_INVALID;
     }
 
-    purc_variant_t v = pcintr_get_scope_variable(elem, name);
+    purc_variant_t v;
+
+again:
+
+    PC_DEBUGX("finding [$%s] from <%s>...", name, elem->tag_name);
+    v = pcintr_get_scope_variable(elem, name);
     if (v) {
         if (mgr) {
             *mgr = pcvdom_element_get_variables(elem);
         }
+        PRINT_VARIANT(v);
+        PC_DEBUGX("found=-==");
         return v;
     }
 
-    pcvdom_element_t parent = pcvdom_element_parent(elem);
-    if (parent) {
-        return _find_named_scope_var(parent, name, mgr);
+    elem = pcvdom_element_parent(elem);
+    if (elem)
+        goto again;
+
+    purc_set_error_with_info(PCVARIANT_ERROR_NOT_FOUND, "name:%s", name);
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+_find_named_scope_var(struct pcintr_stack_frame *frame, const char* name, pcvarmgr_t* mgr)
+{
+    if (frame->scope)
+        return _find_named_scope_var_in_vdom(frame->scope, name, mgr);
+
+    pcvdom_element_t elem = frame->pos;
+
+    if (!elem || !name) {
+        PC_ASSERT(name); // FIXME: still recoverable???
+        purc_set_error_with_info(PCVARIANT_ERROR_NOT_FOUND, "name:%s", name);
+        return PURC_VARIANT_INVALID;
     }
+
+    purc_variant_t v;
+
+again:
+
+    PC_DEBUGX("finding [$%s] from <%s>...", name, elem->tag_name);
+    v = pcintr_get_scope_variable(elem, name);
+    if (v) {
+        if (mgr) {
+            *mgr = pcvdom_element_get_variables(elem);
+        }
+        PRINT_VARIANT(v);
+        PC_DEBUGX("found=-==");
+        return v;
+    }
+
+    frame = pcintr_stack_frame_get_parent(frame);
+    if (frame) {
+        if (frame->scope)
+            return _find_named_scope_var_in_vdom(frame->scope, name, mgr);
+
+        elem = frame->pos;
+        if (elem)
+            goto again;
+    }
+
     purc_set_error_with_info(PCVARIANT_ERROR_NOT_FOUND, "name:%s", name);
     return PURC_VARIANT_INVALID;
 }
@@ -578,7 +628,7 @@ pcintr_find_named_var(pcintr_stack_t stack, const char* name)
         return v;
     }
 
-    v = _find_named_scope_var(frame->pos, name, NULL);
+    v = _find_named_scope_var(frame, name, NULL);
     if (v) {
         purc_clr_error();
         return v;

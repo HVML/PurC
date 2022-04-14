@@ -255,11 +255,10 @@ on_child_finished(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     if (s_name == NULL)
         return -1;
 
-    struct pcvdom_element *scope = frame->scope;
-    PC_ASSERT(scope);
+    struct pcvdom_element *parent = pcvdom_element_parent(frame->pos);
 
     bool ok;
-    ok = pcintr_bind_scope_variable(scope, s_name, frame->ctnt_var);
+    ok = pcintr_bind_scope_variable(parent, s_name, frame->ctnt_var);
     if (!ok)
         return -1;
 

@@ -33,14 +33,11 @@
 #include <errno.h>
 #include <string.h>
 
-#if ENABLE(SOCKET_STREAM) && HAVE(GLIB)
 #if OS(UNIX)
 #include <sys/types.h>
 #include <unistd.h>
 #include <fcntl.h>
 #endif // 0S(UNIX)
-#include <glib.h>
-#endif // ENABLE(SOCKET_STREAM) && HAVE(GLIB)
 
 #include "rwstream_err_msgs.inc"
 
@@ -112,14 +109,13 @@ struct buffer_rwstream
     bool buff_reserved;
 };
 
-#if ENABLE(SOCKET_STREAM) && HAVE(GLIB)
-struct gio_rwstream
+#if OS(LINUX) || OS(UNIX) || OS(MAC_OS_X)
+struct fd_rwstream
 {
     purc_rwstream rwstream;
-    GIOChannel* gio_channel;
     int fd;
 };
-#endif // ENABLE(SOCKET_STREAM) && HAVE(GLIB)
+#endif // OS(LINUX) || OS(UNIX) || OS(MAC_OS_X)
 
 static off_t stdio_seek (purc_rwstream_t rws, off_t offset, int whence);
 static off_t stdio_tell (purc_rwstream_t rws);
@@ -177,57 +173,24 @@ static rwstream_funcs buffer_funcs = {
 };
 
 
-#if ENABLE(SOCKET_STREAM) && HAVE(GLIB)
-static off_t gio_seek (purc_rwstream_t rws, off_t offset, int whence);
-static off_t gio_tell (purc_rwstream_t rws);
-static ssize_t gio_read (purc_rwstream_t rws, void* buf, size_t count);
-static ssize_t gio_write (purc_rwstream_t rws, const void* buf, size_t count);
-static ssize_t gio_flush (purc_rwstream_t rws);
-static int gio_destroy (purc_rwstream_t rws);
+#if OS(LINUX) || OS(UNIX) || OS(MAC_OS_X)
 
-static rwstream_funcs gio_funcs = {
-    gio_seek,
-    gio_tell,
-    gio_read,
-    gio_write,
-    gio_flush,
-    gio_destroy,
+static off_t fd_seek (purc_rwstream_t rws, off_t offset, int whence);
+static off_t fd_tell (purc_rwstream_t rws);
+static ssize_t fd_read (purc_rwstream_t rws, void* buf, size_t count);
+static ssize_t fd_write (purc_rwstream_t rws, const void* buf, size_t count);
+static int fd_destroy (purc_rwstream_t rws);
+
+static rwstream_funcs fd_funcs = {
+    fd_seek,
+    fd_tell,
+    fd_read,
+    fd_write,
+    NULL,           // flush
+    fd_destroy,
     NULL,
 };
-
-int rwstream_error_code_from_gerror (GError* err)
-{
-    if (err == NULL)
-    {
-        return PURC_ERROR_OK;
-    }
-
-    switch (err->code)
-    {
-        case G_IO_CHANNEL_ERROR_FBIG:
-            return PCRWSTREAM_ERROR_FILE_TOO_BIG;
-        case G_IO_CHANNEL_ERROR_INVAL:
-            return PURC_ERROR_INVALID_VALUE;
-        case G_IO_CHANNEL_ERROR_IO:
-            return PCRWSTREAM_ERROR_IO;
-        case G_IO_CHANNEL_ERROR_ISDIR:
-            return PCRWSTREAM_ERROR_IS_DIR;
-        case G_IO_CHANNEL_ERROR_NOSPC:
-            return PCRWSTREAM_ERROR_NO_SPACE;
-        case G_IO_CHANNEL_ERROR_NXIO:
-            return PCRWSTREAM_ERROR_NO_DEVICE_OR_ADDRESS;
-        case G_IO_CHANNEL_ERROR_OVERFLOW:
-            return PCRWSTREAM_ERROR_OVERFLOW;
-        case G_IO_CHANNEL_ERROR_PIPE:
-            return PCRWSTREAM_ERROR_PIPE;
-        case G_IO_CHANNEL_ERROR_FAILED:
-            return PCRWSTREAM_ERROR_FAILED;
-        default:
-            return PCRWSTREAM_ERROR_FAILED;
-    }
-}
-#endif // ENABLE(SOCKET_STREAM) && HAVE(GLIB)
-
+#endif // OS(LINUX) || OS(UNIX) || OS(MAC_OS_X)
 
 static size_t get_min_size(size_t sz_min, size_t sz_max) {
     size_t min = pcutils_get_next_fibonacci_number(sz_min);
@@ -303,89 +266,26 @@ purc_rwstream_t purc_rwstream_new_from_fp (FILE* fp)
     return (purc_rwstream_t)rws;
 }
 
-#if ENABLE(SOCKET_STREAM) && HAVE(GLIB)
-purc_rwstream_t purc_rwstream_new_from_unix_fd (int fd, size_t sz_buf)
+purc_rwstream_t purc_rwstream_new_from_unix_fd (int fd)
 {
-    GIOChannel* gio_channel = g_io_channel_unix_new(fd);
-    if (gio_channel == NULL)
-    {
+#if OS(LINUX) || OS(UNIX) || OS(MAC_OS_X)
+    struct fd_rwstream* fd_rws = (struct fd_rwstream*) calloc(
+            1, sizeof(struct fd_rwstream));
+    if (fd_rws == NULL) {
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
     }
 
-    GIOFlags flags = g_io_channel_get_flags(gio_channel);
-    g_io_channel_set_flags(gio_channel, flags & ~G_IO_FLAG_NONBLOCK, NULL);
-
-    g_io_channel_set_encoding (gio_channel, NULL, NULL);
-
-    if (sz_buf > 0)
-    {
-        g_io_channel_set_buffer_size(gio_channel, sz_buf);
-    }
-
-    struct gio_rwstream* gio = (struct gio_rwstream*) calloc(
-            1, sizeof(struct gio_rwstream));
-    gio->rwstream.funcs = &gio_funcs;
-    gio->gio_channel = gio_channel;
-    gio->fd = fd;
-    return (purc_rwstream_t) gio;
-}
+    fd_rws->rwstream.funcs = &fd_funcs;
+    fd_rws->fd = fd;
+    return (purc_rwstream_t)fd_rws;
 #else
-purc_rwstream_t purc_rwstream_new_from_unix_fd (int fd, size_t sz_buf)
-{
     UNUSED_PARAM(fd);
-    UNUSED_PARAM(sz_buf);
     pcinst_set_error(PURC_ERROR_NOT_IMPLEMENTED);
     return NULL;
-}
-#endif // ENABLE(SOCKET_STREAM) && HAVE(GLIB)
-
-#if ENABLE(SOCKET_STREAM) && HAVE(GLIB) && OS(WINDOWS) && defined(G_OS_WIN32)
-static off_t win_socket_seek (purc_rwstream_t rws, off_t offset, int whence)
-{
-    UNUSED_PARAM(rws);
-    UNUSED_PARAM(offset);
-    UNUSED_PARAM(whence);
-    pcinst_set_error(PURC_ERROR_NOT_IMPLEMENTED);
-    return -1;
+#endif
 }
 
-static rwstream_funcs win_socket_funcs = {
-    win_socket_seek,
-    gio_tell,
-    gio_read,
-    gio_write,
-    gio_flush,
-    gio_destroy,
-    NULL,
-};
-
-purc_rwstream_t purc_rwstream_new_from_win32_socket (int socket, size_t sz_buf)
-{
-    GIOChannel* gio_channel = g_io_channel_win32_new_socket(socket);
-    if (gio_channel == NULL)
-    {
-        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return NULL;
-    }
-
-    GIOFlags flags = g_io_channel_get_flags(gio_channel);
-    g_io_channel_set_flags(gio_channel, flags & ~G_IO_FLAG_NONBLOCK, NULL);
-
-    g_io_channel_set_encoding (gio_channel, NULL, NULL);
-
-    if (sz_buf > 0)
-    {
-        g_io_channel_set_buffer_size(gio_channel, sz_buf);
-    }
-
-    struct gio_rwstream* gio = (struct gio_rwstream*) calloc(
-            1, sizeof(struct gio_rwstream));
-    gio->rwstream.funcs = &win_socket_funcs;
-    gio->gio_channel = gio_channel;
-    return (purc_rwstream_t)rws;
-}
-#else
 purc_rwstream_t purc_rwstream_new_from_win32_socket (int socket, size_t sz_buf)
 {
     UNUSED_PARAM(socket);
@@ -393,7 +293,6 @@ purc_rwstream_t purc_rwstream_new_from_win32_socket (int socket, size_t sz_buf)
     pcinst_set_error(PURC_ERROR_NOT_IMPLEMENTED);
     return NULL;
 }
-#endif // ENABLE(SOCKET_STREAM) && HAVE(GLIB) && OS(WINDOWS) && defined(G_OS_WIN32)
 
 struct wo_rwstream
 {
@@ -982,104 +881,36 @@ static void* buffer_get_mem_buffer (purc_rwstream_t rws,
     return buffer->base;
 }
 
-#if ENABLE(SOCKET_STREAM) && HAVE(GLIB)
-/* glib rwstream functions */
-static off_t gio_seek (purc_rwstream_t rws, off_t offset, int whence)
+#if OS(LINUX) || OS(UNIX) || OS(MAC_OS_X)
+
+static off_t fd_seek (purc_rwstream_t rws, off_t offset, int whence)
 {
-#if OS(UNIX)
-    struct gio_rwstream* gio = (struct gio_rwstream *)rws;
-    GSeekType type;
-    switch (whence) {
-        case SEEK_SET:
-            type = G_SEEK_SET;
-            break;
-        case SEEK_CUR:
-            type = G_SEEK_CUR;
-            break;
-        case SEEK_END:
-            type = G_SEEK_END;
-            break;
-        default:
-            pcinst_set_error(PURC_ERROR_INVALID_VALUE);
-            return(-1);
-    }
-
-    GError* err = NULL;
-    GIOStatus ios = g_io_channel_seek_position (gio->gio_channel, offset,
-            type, &err);
-    if (ios == G_IO_STATUS_NORMAL)
-    {
-        return lseek(gio->fd, 0, SEEK_CUR);
-    }
-    pcinst_set_error(rwstream_error_code_from_gerror(err));
-
-    if (err)
-        g_error_free(err);
-    return -1;
-#else
-    UNUSED_PARAM(rws);
-    UNUSED_PARAM(offset);
-    UNUSED_PARAM(whence);
-    pcinst_set_error(PURC_ERROR_NOT_IMPLEMENTED);
-    return -1;
-#endif // OS(UNIX)
+    struct fd_rwstream* fd_rws = (struct fd_rwstream *)rws;
+    return lseek(fd_rws->fd, offset, whence);
 }
 
-static off_t gio_tell (purc_rwstream_t rws)
+static off_t fd_tell (purc_rwstream_t rws)
 {
-    UNUSED_PARAM(rws);
-    pcinst_set_error(PURC_ERROR_NOT_IMPLEMENTED);
-    return -1;
+    struct fd_rwstream* fd_rws = (struct fd_rwstream *)rws;
+    return lseek(fd_rws->fd, 0, SEEK_CUR);
 }
 
-static ssize_t gio_read (purc_rwstream_t rws, void* buf, size_t count)
+static ssize_t fd_read (purc_rwstream_t rws, void* buf, size_t count)
 {
-    struct gio_rwstream* gio = (struct gio_rwstream *)rws;
-    gsize read = 0;
-    GError* err = NULL;
-    g_io_channel_read_chars (gio->gio_channel, buf, count, &read, &err);
-    pcinst_set_error(rwstream_error_code_from_gerror(err));
-    if (err)
-        g_error_free(err);
-    return read;
+    struct fd_rwstream* fd_rws = (struct fd_rwstream *)rws;
+    return read(fd_rws->fd, buf, count);
 }
 
-static ssize_t gio_write (purc_rwstream_t rws, const void* buf, size_t count)
+static ssize_t fd_write (purc_rwstream_t rws, const void* buf, size_t count)
 {
-    struct gio_rwstream* gio = (struct gio_rwstream *)rws;
-    gsize write = 0;
-    GError* err = NULL;
-    g_io_channel_write_chars (gio->gio_channel, buf, count, &write, &err);
-    pcinst_set_error(rwstream_error_code_from_gerror(err));
-    if (err)
-        g_error_free(err);
-    return write;
+    struct fd_rwstream* fd_rws = (struct fd_rwstream *)rws;
+    return write(fd_rws->fd, buf, count);
 }
 
-static ssize_t gio_flush (purc_rwstream_t rws)
+static int fd_destroy (purc_rwstream_t rws)
 {
-    struct gio_rwstream* gio = (struct gio_rwstream *)rws;
-    GError* err = NULL;
-    GIOStatus ios = g_io_channel_flush (gio->gio_channel, &err);
-    if (ios == G_IO_STATUS_NORMAL)
-    {
-        return 0;
-    }
-    if (err)
-        g_error_free(err);
-    return -1;
-}
-
-static int gio_destroy (purc_rwstream_t rws)
-{
-    struct gio_rwstream* gio = (struct gio_rwstream *)rws;
-    if (gio->gio_channel)
-    {
-        g_io_channel_shutdown(gio->gio_channel, TRUE, NULL);
-        g_io_channel_unref(gio->gio_channel);
-    }
     free(rws);
     return 0;
 }
 
-#endif // ENABLE(SOCKET_STREAM)
+#endif // OS(LINUX) || OS(UNIX) || OS(MAC_OS_X)

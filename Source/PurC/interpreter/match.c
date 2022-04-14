@@ -236,6 +236,14 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame);
 
+    struct pcintr_stack_frame *parent;
+    parent = pcintr_stack_frame_get_parent(frame);
+    if (!parent || !parent->pos || parent->pos->tag_id != PCHVML_TAG_TEST) {
+        purc_set_error_with_info(PURC_EXCEPT_ENTITY_NOT_FOUND,
+                "no matching <test> for <match>");
+        return NULL;
+    }
+
     struct ctxt_for_match *ctxt;
     ctxt = (struct ctxt_for_match*)calloc(1, sizeof(*ctxt));
     if (!ctxt) {
@@ -288,10 +296,11 @@ on_popping(pcintr_stack_t stack, void* ud)
     ctxt = (struct ctxt_for_match*)frame->ctxt;
     if (ctxt) {
         if (ctxt->is_exclusively && ctxt->matched) {
-            // FIXME: what if target element in between test/match???
             struct pcintr_stack_frame *parent;
             parent = pcintr_stack_frame_get_parent(frame);
             PC_ASSERT(parent);
+            PC_ASSERT(parent->pos);
+            PC_ASSERT(parent->pos->tag_id == PCHVML_TAG_TEST);
             PURC_VARIANT_SAFE_CLEAR(parent->result_from_child);
             parent->result_from_child = purc_variant_make_boolean(true);
             PC_ASSERT(parent->result_from_child != PURC_VARIANT_INVALID);
