@@ -107,7 +107,6 @@ PCA_EXPORT purc_rwstream_t purc_rwstream_new_from_fp (FILE* fp);
  * mode.
  *
  * @param fd: file descriptor
- * @param sz_buf: buffer size
  *
  * @return A purc_rwstream_t on success, @NULL on failure and the error code
  *         is set to indicate the error. The error code:
@@ -119,7 +118,7 @@ PCA_EXPORT purc_rwstream_t purc_rwstream_new_from_fp (FILE* fp);
  * Since: 0.0.1
  */
 PCA_EXPORT purc_rwstream_t
-purc_rwstream_new_from_unix_fd (int fd, size_t sz_buf);
+purc_rwstream_new_from_unix_fd (int fd);
 
 /**
  * Creates a new purc_rwstream_t for the given socket on Windows (Win32 && GLIB).
