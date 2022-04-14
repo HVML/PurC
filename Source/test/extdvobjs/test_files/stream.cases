@@ -120,3 +120,40 @@ positive:
 positive:
     $FS.unlink('/tmp/test_stream_seek')
     true
+
+# $STREAM read string
+positive:
+    $STREAM.writestruct($STREAM.open('file:///tmp/test_stream_readstring', 'read write create truncate'), 'utf8:40', "This is the string to write, Second line")
+    40UL
+
+positive:
+    $STREAM.readstruct($STREAM.open('file:///tmp/test_stream_readstring', 'read'), 'utf8')
+    "This is the string to write, Second line"
+
+positive:
+    $STREAM.writestruct($STREAM.open('file:///tmp/test_stream_readstring', 'read write create truncate'), 'utf8:40 i16le', "This is the string to write, Second line", 10)
+    42UL
+
+positive:
+    $STREAM.writestruct($STREAM.open('file:///tmp/test_stream_readstring', 'read write create truncate'), 'utf8 i16le', "This is the string to write, Second line", 10)
+    43UL
+
+positive:
+    $STREAM.readstruct($STREAM.open('file:///tmp/test_stream_readstring', 'read'), 'utf8')
+    "This is the string to write, Second line"
+
+positive:
+    $STREAM.writestruct($STREAM.open('file:///tmp/test_stream_readstring', 'read write create truncate'), 'utf16:84 i16le', "This is the string to write, Second line", 99)
+    84UL
+
+positive:
+    $STREAM.readstruct($STREAM.open('file:///tmp/test_stream_readstring', 'read'), 'utf16')
+    "This is the string to write, Second line"
+
+positive:
+    $STREAM.writestruct($STREAM.open('file:///tmp/test_stream_readstring', 'read write create truncate'), 'utf32:168 i16le', "This is the string to write, Second line", 99)
+    166UL
+
+positive:
+    $STREAM.readstruct($STREAM.open('file:///tmp/test_stream_readstring', 'read'), 'utf32')
+    "This is the string to write, Second line"

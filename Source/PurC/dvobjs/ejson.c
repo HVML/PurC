@@ -1179,7 +1179,40 @@ const uint8_t *rwstream_read_string(purc_rwstream_t in, purc_rwstream_t buff,
         int format_id, size_t *nr_read)
 {
     UNUSED_PARAM(format_id);
-    return rwstream_read_bytes(in, buff, -1, nr_read);
+    int nr_null = 0;
+    switch (format_id) {
+    case PURC_K_KW_utf8:
+        nr_null = 1;
+        break;
+    case PURC_K_KW_utf16:
+    case PURC_K_KW_utf16le:
+    case PURC_K_KW_utf16be:
+        nr_null = 2;
+        break;
+    case PURC_K_KW_utf32:
+    case PURC_K_KW_utf32le:
+    case PURC_K_KW_utf32be:
+        nr_null = 4;
+        break;
+    }
+    purc_rwstream_seek(buff, 0L, SEEK_SET);
+    int nr_n = 0;
+    char c = 0;
+    int read_len = 0;
+    int nr_write = 0;
+    while ((read_len = purc_rwstream_read(in, &c, 1)) > 0) {
+        nr_write += purc_rwstream_write(buff, &c, 1);
+        if (c == 0) {
+            nr_n++;
+            if (nr_n == nr_null) {
+                break;
+            }
+        }
+        else {
+            nr_n = 0;
+        }
+    }
+    return purc_rwstream_get_mem_buffer(buff, nr_read);
 }
 
 purc_variant_t
@@ -1281,7 +1314,7 @@ purc_dvobj_read_struct(purc_rwstream_t stream,
                 }
             }
             else if (quantity == 0) {
-                bytes = rwstream_read_string(stream, rws, -1, &nr_bytes);
+                bytes = rwstream_read_string(stream, rws, format_id, &nr_bytes);
                 if (nr_bytes == 0) {
                     purc_set_error(PURC_ERROR_INVALID_VALUE);
                     goto failed;
@@ -1307,15 +1340,6 @@ purc_dvobj_read_struct(purc_rwstream_t stream,
             goto fatal;
         }
         purc_variant_unref(item);
-
-#if 0
-        if (consumed >= nr_bytes)
-            break;
-
-        bytes += consumed;
-        nr_bytes -= consumed;
-#endif
-
     } while (true);
 
     if (rws) {
