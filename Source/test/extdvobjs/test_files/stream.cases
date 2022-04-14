@@ -157,3 +157,22 @@ positive:
 positive:
     $STREAM.readstruct($STREAM.open('file:///tmp/test_stream_readstring', 'read'), 'utf32 i16le')
     ["This is the string to write, Second line", 99L]
+
+positive:
+    $FS.unlink('/tmp/test_stream_readstring')
+    true
+
+positive:
+    $STREAM.writelines($STREAM.stdout, '##### write to stdout #####')
+    28UL
+
+positive:
+    $STREAM.writelines($STREAM.stderr, '##### write to stderr #####')
+    28UL
+
+# input 'aaa' by keyboard
+#positive:
+#    $STREAM.readlines($STREAM.stdin, 1)
+#    ["aaa"]
+
+
