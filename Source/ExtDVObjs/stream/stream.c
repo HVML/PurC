@@ -1373,7 +1373,7 @@ stream_seek_getter(purc_variant_t root, size_t nr_args,
 
 out:
     if (silently)
-        return purc_variant_make_undefined();
+        return purc_variant_make_longint(-1);
     return PURC_VARIANT_INVALID;
 }
 
