@@ -107,7 +107,6 @@ post_process_bind_scope_var(pcintr_coroutine_t co,
     if (ctxt->under_head) {
         ok = purc_bind_document_variable(co->stack->vdom, s_name, val);
     } else {
-        element = pcvdom_element_parent(element);
         PC_ASSERT(element);
         ok = pcintr_bind_scope_variable(element, s_name, val);
     }
@@ -611,7 +610,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     frame->ctxt_destroy = ctxt_destroy;
 
     frame->pos = pos; // ATTENTION!!
-    PC_ASSERT(frame->pos == frame->scope);
 
     frame->attr_vars = purc_variant_make_object(0,
             PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);

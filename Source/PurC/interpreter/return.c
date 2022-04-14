@@ -1,8 +1,8 @@
 /**
- * @file define.c
+ * @file return.c
  * @author Xu Xiaohong
- * @date 2022/04/13
- * @brief
+ * @date 2022/04/14
+ * @brief The ops for <return>
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -32,20 +32,22 @@
 
 #include "ops.h"
 
+#include "purc-executor.h"
+
 #include <pthread.h>
 #include <unistd.h>
 
-struct ctxt_for_define {
-    struct pcvdom_node           *curr;
-
-    purc_variant_t                as;
+struct ctxt_for_return {
+    struct pcintr_stack_frame         *back_anchor;
+    purc_variant_t      with;
 };
 
 static void
-ctxt_for_define_destroy(struct ctxt_for_define *ctxt)
+ctxt_for_return_destroy(struct ctxt_for_return *ctxt)
 {
     if (ctxt) {
-        PURC_VARIANT_SAFE_CLEAR(ctxt->as);
+        PURC_VARIANT_SAFE_CLEAR(ctxt->with);
+
         free(ctxt);
     }
 }
@@ -53,59 +55,73 @@ ctxt_for_define_destroy(struct ctxt_for_define *ctxt)
 static void
 ctxt_destroy(void *ctxt)
 {
-    ctxt_for_define_destroy((struct ctxt_for_define*)ctxt);
+    ctxt_for_return_destroy((struct ctxt_for_return*)ctxt);
+}
+
+static int
+post_process_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
+{
+    UNUSED_PARAM(co);
+
+    struct ctxt_for_return *ctxt;
+    ctxt = (struct ctxt_for_return*)frame->ctxt;
+    PC_ASSERT(ctxt);
+
+    PC_ASSERT(ctxt->back_anchor == NULL);
+
+    struct pcintr_stack_frame *p = pcintr_stack_frame_get_parent(frame);
+    for(; p; p = pcintr_stack_frame_get_parent(p)) {
+        pcvdom_element_t pos = p->pos;
+        if (pos->tag_id == PCHVML_TAG_CALL ||
+            pos->tag_id == PCHVML_TAG_INCLUDE)
+        {
+            ctxt->back_anchor = p;
+            break;
+        }
+    }
+
+    if (ctxt->back_anchor == NULL) {
+        purc_set_error_with_info(PURC_EXCEPT_ENTITY_NOT_FOUND,
+                "no matching <call>/<include> for <return>");
+        return -1;
+    }
+
+    if (ctxt->with != PURC_VARIANT_INVALID) {
+        struct pcintr_stack_frame *back_anchor = ctxt->back_anchor;
+        int r = pcintr_set_question_var(back_anchor, ctxt->with);
+        if (r)
+            return -1;
+    }
+
+    co->stack->back_anchor = ctxt->back_anchor;
+
+    return 0;
 }
 
 static int
 post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
     UNUSED_PARAM(co);
-    UNUSED_PARAM(frame);
 
-    struct ctxt_for_define *ctxt;
-    ctxt = (struct ctxt_for_define*)frame->ctxt;
+    struct ctxt_for_return *ctxt;
+    ctxt = (struct ctxt_for_return*)frame->ctxt;
     PC_ASSERT(ctxt);
 
-    if (ctxt->as == PURC_VARIANT_INVALID) {
-        purc_set_error_with_info(PURC_EXCEPT_ARGUMENT_MISSED,
-                    "lack of vdom attribute 'with/from' for element <%s>",
-                    frame->pos->tag_name);
+    int r = post_process_data(co, frame);
+    if (r)
+        return r;
 
-        return -1;
-    }
-
-    if (purc_variant_is_string(ctxt->as) == false) {
-        purc_set_error_with_info(PURC_EXCEPT_INVALID_VALUE,
-                    "vdom attribute 'with/from' for element <%s> "
-                    "is not of string type",
-                    frame->pos->tag_name);
-
-        return -1;
-    }
-
-    const char *s_name = purc_variant_get_string_const(ctxt->as);
-
-    pcvdom_element_t parent = pcvdom_element_parent(frame->pos);
-    PC_ASSERT(parent);
-
-    purc_variant_t v = pcintr_wrap_vdom(frame->pos);
-    if (v == PURC_VARIANT_INVALID)
-        return -1;
-
-    bool ok = pcintr_bind_scope_variable(parent, s_name, v);
-    purc_variant_unref(v);
-
-    return ok ? 0 : -1;
+    return 0;
 }
 
 static int
-process_attr_as(struct pcintr_stack_frame *frame,
+process_attr_with(struct pcintr_stack_frame *frame,
         struct pcvdom_element *element,
         purc_atom_t name, purc_variant_t val)
 {
-    struct ctxt_for_define *ctxt;
-    ctxt = (struct ctxt_for_define*)frame->ctxt;
-    if (ctxt->as != PURC_VARIANT_INVALID) {
+    struct ctxt_for_return *ctxt;
+    ctxt = (struct ctxt_for_return*)frame->ctxt;
+    if (ctxt->with != PURC_VARIANT_INVALID) {
         purc_set_error_with_info(PURC_ERROR_DUPLICATED,
                 "vdom attribute '%s' for element <%s>",
                 purc_atom_to_string(name), element->tag_name);
@@ -117,7 +133,8 @@ process_attr_as(struct pcintr_stack_frame *frame,
                 purc_atom_to_string(name), element->tag_name);
         return -1;
     }
-    ctxt->as = val;
+
+    ctxt->with = val;
     purc_variant_ref(val);
 
     return 0;
@@ -135,15 +152,14 @@ attr_found_val(struct pcintr_stack_frame *frame,
     PC_ASSERT(name);
     PC_ASSERT(attr->op == PCHVML_ATTRIBUTE_OPERATOR);
 
-    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, AS)) == name) {
-        return process_attr_as(frame, element, name, val);
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, WITH)) == name) {
+        return process_attr_with(frame, element, name, val);
     }
 
-    purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
+    purc_set_error_with_info(PURC_EXCEPT_NOT_IMPLEMENTED,
             "vdom attribute '%s' for element <%s>",
             purc_atom_to_string(name), element->tag_name);
 
-    PC_ASSERT(0); // Not implemented yet
     return -1;
 }
 
@@ -176,14 +192,15 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (stack->except)
         return NULL;
 
-    if (pcintr_check_insertion_mode_for_normal_element(stack))
-        return NULL;
+    int r = pcintr_check_insertion_mode_for_normal_element(stack);
+    PC_ASSERT(r == 0);
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
+    PC_ASSERT(frame);
 
-    struct ctxt_for_define *ctxt;
-    ctxt = (struct ctxt_for_define*)calloc(1, sizeof(*ctxt));
+    struct ctxt_for_return *ctxt;
+    ctxt = (struct ctxt_for_return*)calloc(1, sizeof(*ctxt));
     if (!ctxt) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
@@ -194,15 +211,9 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     frame->pos = pos; // ATTENTION!!
 
-    frame->attr_vars = purc_variant_make_object(0,
-            PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
-    if (frame->attr_vars == PURC_VARIANT_INVALID)
-        return NULL;
-
     struct pcvdom_element *element = frame->pos;
     PC_ASSERT(element);
 
-    int r;
     r = pcintr_vdom_walk_attrs(frame, element, NULL, attr_found);
     if (r)
         return NULL;
@@ -231,10 +242,10 @@ on_popping(pcintr_stack_t stack, void* ud)
     struct pcvdom_element *element = frame->pos;
     PC_ASSERT(element);
 
-    struct ctxt_for_define *ctxt;
-    ctxt = (struct ctxt_for_define*)frame->ctxt;
+    struct ctxt_for_return *ctxt;
+    ctxt = (struct ctxt_for_return*)frame->ctxt;
     if (ctxt) {
-        ctxt_for_define_destroy(ctxt);
+        ctxt_for_return_destroy(ctxt);
         frame->ctxt = NULL;
     }
 
@@ -249,9 +260,8 @@ ops = {
     .select_child       = NULL,
 };
 
-struct pcintr_element_ops* pcintr_get_define_ops(void)
+struct pcintr_element_ops* pcintr_get_return_ops(void)
 {
     return &ops;
 }
-
 

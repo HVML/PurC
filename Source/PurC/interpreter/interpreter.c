@@ -702,13 +702,13 @@ dump_stack_frame(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
         return;
     }
     pcvdom_element_t scope = frame->scope;
-    PC_ASSERT(scope);
     pcvdom_element_t pos = frame->pos;
     for (size_t i=0; i<level; ++i) {
         fprintf(stderr, "  ");
     }
     fprintf(stderr, "scope:<%s>; pos:<%s>\n",
-        scope->tag_name, pos ? pos->tag_name : NULL);
+        (scope ? scope->tag_name : NULL),
+        (pos ? pos->tag_name : NULL));
 }
 
 static void
@@ -883,7 +883,7 @@ on_select_child(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         child_frame->pos = element;
         child_frame->silently = pcintr_is_element_silently(child_frame->pos);
         child_frame->edom_element = frame->edom_element;
-        child_frame->scope = child_frame->pos;
+        child_frame->scope = NULL;
 
         child_frame->next_step = NEXT_STEP_AFTER_PUSHED;
     }

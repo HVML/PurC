@@ -154,8 +154,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     frame->pos = pos; // ATTENTION!!
 
-    PC_ASSERT(frame->scope == frame->pos);
-
     frame->attr_vars = purc_variant_make_object(0,
             PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
     if (frame->attr_vars == PURC_VARIANT_INVALID)
