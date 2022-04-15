@@ -30,12 +30,12 @@
 typedef void* purc_runloop_t;
 typedef enum purc_runloop_io_event
 {
-    PCRUNLOOP_IO_IN,
-    PCRUNLOOP_IO_OUT,
-    PCRUNLOOP_IO_PRI,
-    PCRUNLOOP_IO_ERR,
-    PCRUNLOOP_IO_HUP,
-    PCRUNLOOP_IO_NVAL,
+    PCRUNLOOP_IO_IN = 0x01,
+    PCRUNLOOP_IO_PRI = 0x02,
+    PCRUNLOOP_IO_OUT = 0x04,
+    PCRUNLOOP_IO_ERR = 0x08,
+    PCRUNLOOP_IO_HUP = 0x16,
+    PCRUNLOOP_IO_NVAL = 0x32,
 } purc_runloop_io_event;
 
 PCA_EXTERN_C_BEGIN

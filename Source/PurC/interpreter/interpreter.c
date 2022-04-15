@@ -2843,10 +2843,12 @@ pcintr_event_timer_fire(const char* id, void* ctxt)
         if (!ops) {
             continue;
         }
-        purc_nvariant_method is_vcm_ev = ops->property_getter(
-                PCVCM_EV_PROPERTY_VCM_EV);
-        if (is_vcm_ev) {
-            pcintr_observe_vcm_ev(stack, observer, var, ops);
+        if (ops->property_getter) {
+            purc_nvariant_method is_vcm_ev = ops->property_getter(
+                    PCVCM_EV_PROPERTY_VCM_EV);
+            if (is_vcm_ev) {
+                pcintr_observe_vcm_ev(stack, observer, var, ops);
+            }
         }
     }
 }

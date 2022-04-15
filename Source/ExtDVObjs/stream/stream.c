@@ -546,10 +546,10 @@ stream_io_callback(int fd, purc_runloop_io_event event, void *ctxt)
     // dispatch event
     struct pcdvobjs_stream *stream = (struct pcdvobjs_stream*) ctxt;
     const char* sub = NULL;
-    if (event == PCRUNLOOP_IO_IN) {
+    if (event & PCRUNLOOP_IO_IN) {
         sub = STREAM_SUB_EVENT_READ;
     }
-    else if (event == PCRUNLOOP_IO_OUT) {
+    else if (event & PCRUNLOOP_IO_OUT) {
         sub = STREAM_SUB_EVENT_WRITE;
     }
     if (sub) {

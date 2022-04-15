@@ -128,3 +128,31 @@ set(test_extdvobjs_stream_LIBRARIES
 PURC_COMPUTE_SOURCES(test_extdvobjs_stream)
 PURC_FRAMEWORK(test_extdvobjs_stream)
 GTEST_DISCOVER_TESTS(test_extdvobjs_stream DISCOVERY_TIMEOUT 10)
+
+# test_stream_observe
+PURC_EXECUTABLE_DECLARE(test_stream_observe)
+
+list(APPEND test_stream_observe_PRIVATE_INCLUDE_DIRECTORIES
+    ${PURC_DIR}/include
+    ${PurC_DERIVED_SOURCES_DIR}
+    ${PURC_DIR}
+    ${CMAKE_BINARY_DIR}
+    ${WTF_DIR}
+)
+
+PURC_EXECUTABLE(test_stream_observe)
+
+set(test_stream_observe_SOURCES
+    test_stream_observe.cpp
+)
+
+set(test_stream_observe_LIBRARIES
+    PurC::PurC
+    gtest_main
+    gtest
+    pthread
+)
+
+PURC_COMPUTE_SOURCES(test_stream_observe)
+PURC_FRAMEWORK(test_stream_observe)
+GTEST_DISCOVER_TESTS(test_stream_observe DISCOVERY_TIMEOUT 10)
