@@ -631,6 +631,12 @@ purc_error_from_errno (int err_no)
         break;
 #endif
 
+#ifdef EOVERFLOW
+    case EOVERFLOW:
+        return PURC_ERROR_TOO_LARGE_ENTITY;
+        break;
+#endif
+
     default:
         return PURC_ERROR_BAD_SYSTEM_CALL;
     }

@@ -2,11 +2,11 @@
 # TODO: more cases for case-insensitive.
 negative:
     $STREAM.open('file:///tmp/test_stream_not_exist')
-    OSFailure
+    EntityNotFound
 
 negative:
     $STREAM.open('file:///tmp/test_stream_not_exist', 'read write')
-    OSFailure
+    EntityNotFound
 
 positive:
     $EJSON.type($STREAM.open('file:///tmp/test_stream_not_exist', 'create'))
