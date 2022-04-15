@@ -38,6 +38,10 @@ positive:
     bx77726974652073747269
 
 positive:
+    $STREAM.readbytes($STREAM.open('file:///tmp/test_stream_bytes', 'read'), 100)
+    bx777269746520737472696e67
+
+positive:
     $FS.unlink('/tmp/test_stream_bytes')
     true
 
