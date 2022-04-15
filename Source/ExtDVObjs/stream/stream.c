@@ -1322,10 +1322,19 @@ stream_seek_getter(purc_variant_t root, size_t nr_args,
     int64_t byte_num = 0;
     off_t off = 0;
     int64_t whence = 0;
+    const char* option = _KW_set;
 
-    if (nr_args != 3) {
+    if (nr_args < 2) {
         purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
         goto out;
+    }
+    else if (nr_args > 2) {
+        if (argv[2] != PURC_VARIANT_INVALID &&
+                (!purc_variant_is_string(argv[2]))) {
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            goto out;
+        }
+        option = purc_variant_get_string_const(argv[2]);
     }
 
     if (argv[0] == PURC_VARIANT_INVALID ||
@@ -1333,13 +1342,7 @@ stream_seek_getter(purc_variant_t root, size_t nr_args,
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
         goto out;
     }
-    if (argv[2] == PURC_VARIANT_INVALID ||
-            (!purc_variant_is_string(argv[2]))) {
-        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        goto out;
-    }
 
-    const char* option = purc_variant_get_string_const(argv[2]);
     purc_atom_t atom = purc_atom_try_string_ex(STREAM_ATOM_BUCKET, option);
     if (atom == 0) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
@@ -1367,13 +1370,16 @@ stream_seek_getter(purc_variant_t root, size_t nr_args,
     }
 
     off = purc_rwstream_seek(rwstream, byte_num, (int)whence);
+    if (off == -1) {
+        goto out;
+    }
     ret_var = purc_variant_make_longint(off);
 
     return ret_var;
 
 out:
     if (silently)
-        return purc_variant_make_longint(-1);
+        return purc_variant_make_boolean(false);
     return PURC_VARIANT_INVALID;
 }
 

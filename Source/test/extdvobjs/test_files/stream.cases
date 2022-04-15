@@ -111,11 +111,27 @@ positive:
 
 positive:
     $STREAM.seek($STREAM.open('file:///tmp/test_stream_seek', 'read write'), -3, 'current')
-    -1L
+    false
 
 positive:
     $STREAM.seek($STREAM.open('file:///tmp/test_stream_seek', 'read write'), -3, 'end')
     25L
+
+positive:
+    $STREAM.seek($STREAM.open('file:///tmp/test_stream_seek', 'read write'), 10)
+    10L
+
+positive:
+    $STREAM.seek($STREAM.open('file:///tmp/test_stream_seek', 'read write'), -10)
+    false
+
+negative:
+    $STREAM.seek($STREAM.open('file:///tmp/test_stream_seek', 'read write'), 10, 'not support')
+    InvalidValue
+
+negative:
+    $STREAM.seek($STREAM.open('file:///tmp/test_stream_seek', 'read write'), 10, '')
+    InvalidValue
 
 positive:
     $FS.unlink('/tmp/test_stream_seek')
