@@ -1046,7 +1046,7 @@ out:
         free(bf.bytes);
 
     if (silently)
-        return purc_variant_make_undefined();
+        return purc_variant_make_ulongint(write_length);
     return PURC_VARIANT_INVALID;
 }
 
@@ -1115,6 +1115,7 @@ stream_writelines_getter(purc_variant_t root, size_t nr_args,
     UNUSED_PARAM(silently);
 
     purc_rwstream_t rwstream = NULL;
+    ssize_t nr_write = 0;
 
     if (nr_args != 2) {
         purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
@@ -1160,7 +1161,6 @@ stream_writelines_getter(purc_variant_t root, size_t nr_args,
         goto out;
     }
 
-    ssize_t nr_write = 0;
     const char *buffer = NULL;
     ssize_t buffer_size = 0;
     if (purc_variant_is_string(argv[1])) {
@@ -1184,11 +1184,11 @@ stream_writelines_getter(purc_variant_t root, size_t nr_args,
         }
     }
 
-    return  purc_variant_make_ulongint(nr_write);
+    return purc_variant_make_ulongint(nr_write);
 
 out:
     if (silently)
-        return purc_variant_make_undefined();
+        return purc_variant_make_ulongint(nr_write);
     return PURC_VARIANT_INVALID;
 }
 
@@ -1306,7 +1306,7 @@ stream_writebytes_getter(purc_variant_t root, size_t nr_args,
 
 out:
     if (silently)
-        return purc_variant_make_undefined();
+        return purc_variant_make_ulongint(0);
     return PURC_VARIANT_INVALID;
 }
 
