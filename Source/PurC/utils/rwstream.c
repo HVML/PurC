@@ -890,25 +890,41 @@ static void* buffer_get_mem_buffer (purc_rwstream_t rws,
 static off_t fd_seek (purc_rwstream_t rws, off_t offset, int whence)
 {
     struct fd_rwstream* fd_rws = (struct fd_rwstream *)rws;
-    return lseek(fd_rws->fd, offset, whence);
+    off_t ret = lseek(fd_rws->fd, offset, whence);
+    if (ret == -1) {
+        purc_set_error(purc_error_from_errno(errno));
+    }
+    return ret;
 }
 
 static off_t fd_tell (purc_rwstream_t rws)
 {
     struct fd_rwstream* fd_rws = (struct fd_rwstream *)rws;
-    return lseek(fd_rws->fd, 0, SEEK_CUR);
+    off_t ret = lseek(fd_rws->fd, 0, SEEK_CUR);
+    if (ret == -1) {
+        purc_set_error(purc_error_from_errno(errno));
+    }
+    return ret;
 }
 
 static ssize_t fd_read (purc_rwstream_t rws, void* buf, size_t count)
 {
     struct fd_rwstream* fd_rws = (struct fd_rwstream *)rws;
-    return read(fd_rws->fd, buf, count);
+    ssize_t ret = read(fd_rws->fd, buf, count);
+    if (ret == -1) {
+        purc_set_error(purc_error_from_errno(errno));
+    }
+    return ret;
 }
 
 static ssize_t fd_write (purc_rwstream_t rws, const void* buf, size_t count)
 {
     struct fd_rwstream* fd_rws = (struct fd_rwstream *)rws;
-    return write(fd_rws->fd, buf, count);
+    ssize_t ret = write(fd_rws->fd, buf, count);
+    if (ret == -1) {
+        purc_set_error(purc_error_from_errno(errno));
+    }
+    return ret;
 }
 
 static int fd_destroy (purc_rwstream_t rws)
