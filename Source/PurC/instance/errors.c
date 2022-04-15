@@ -625,7 +625,7 @@ purc_error_from_errno (int err_no)
 #endif
 
     default:
-        return PCRDR_ERROR_UNEXPECTED;
+        return PURC_ERROR_BAD_SYSTEM_CALL;
     }
     return PURC_ERROR_OK;
 }

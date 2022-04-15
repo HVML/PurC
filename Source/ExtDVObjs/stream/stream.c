@@ -33,6 +33,7 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <fcntl.h>
+#include <errno.h>
 
 #define DVOBJ_STREAM_NAME           "STREAM"
 #define DVOBJ_STREAM_DESC           "For io stream operations in PURC"
@@ -412,7 +413,7 @@ struct pcdvobjs_stream *create_file_stream(struct purc_broken_down_url *url,
     }
 
     if (fd == -1) {
-        purc_set_error(PURC_ERROR_BAD_SYSTEM_CALL);
+        purc_set_error(purc_error_from_errno(errno));
         return NULL;
     }
 
@@ -454,14 +455,14 @@ struct pcdvobjs_stream *create_pipe_stream(struct purc_broken_down_url *url,
     if (!is_file_exists(url->path) && (flags & O_CREAT)) {
          int ret = mkfifo(url->path, PIPO_DEFAULT_MODE);
          if (ret != 0) {
-             purc_set_error(PURC_ERROR_BAD_SYSTEM_CALL);
+             purc_set_error(purc_error_from_errno(errno));
              return NULL;
          }
     }
 
     int fd = open(url->path, flags);
     if (fd == -1) {
-        purc_set_error(PURC_ERROR_BAD_SYSTEM_CALL);
+        purc_set_error(purc_error_from_errno(errno));
         return NULL;
     }
 
