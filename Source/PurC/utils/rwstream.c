@@ -554,6 +554,10 @@ ssize_t purc_rwstream_dump_to_another (purc_rwstream_t in,
                 return -1;
             }
 
+            if (read_len == 0) {
+                break;
+            }
+
             write_len = purc_rwstream_write (out, buffer, read_len);
             if (write_len != read_len) {
                 return -1;

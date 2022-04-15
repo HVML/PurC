@@ -92,6 +92,11 @@ positive:
     $STREAM.readstruct($STREAM.open('file:///tmp/test_stream_struct', 'read'), "i16le:2 i32le")
     [[10L, 15L], 255L]
 
+negative:
+    $STREAM.readstruct($STREAM.open('file:///tmp/test_stream_struct', 'read'), "i16le:2 i32le:10")
+    InvalidValue
+    [[10L, 15L]]
+
 positive:
     $FS.unlink('/tmp/test_stream_struct')
     true
