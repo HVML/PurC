@@ -637,6 +637,18 @@ purc_error_from_errno (int err_no)
         break;
 #endif
 
+#ifdef EFBIG
+    case EFBIG:
+        return PURC_ERROR_TOO_LARGE_ENTITY;
+        break;
+#endif
+
+#ifdef EDQUOT
+    case EDQUOT:
+        return PCRWSTREAM_ERROR_NO_SPACE;
+        break;
+#endif
+
     default:
         return PURC_ERROR_BAD_SYSTEM_CALL;
     }
