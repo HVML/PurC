@@ -54,7 +54,7 @@ BadEncoding
     msg: "Bad encoding"
 
 NotSupported
-    except: NotImplemented
+    except: Unsupported
     flags: None
     msg: "Not supported"
 

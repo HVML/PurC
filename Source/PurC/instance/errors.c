@@ -33,6 +33,7 @@
 #include "private/interpreter.h" // FIXME:
 
 #include <stdarg.h>
+#include <errno.h>
 
 #ifndef NDEBUG                     /* { */
 #if OS(LINUX)                      /* { */
@@ -516,44 +517,44 @@ purc_error_from_errno (int err_no)
 
 #ifdef ENOTSUP
     case ENOTSUP:
-        return PURC_ERROR_NOT_SUPPORT;
+        return PURC_ERROR_NOT_SUPPORTED;
         break;
 #endif
 
     /* EOPNOTSUPP == ENOTSUP on Linux, but POSIX considers them distinct */
 #if defined (EOPNOTSUPP) && (!defined (ENOTSUP) || (EOPNOTSUPP != ENOTSUP))
     case EOPNOTSUPP:
-        return PURC_ERROR_NOT_SUPPORT;
+        return PURC_ERROR_NOT_SUPPORTED;
         break;
 #endif
 
 #ifdef EPROTONOSUPPORT
     case EPROTONOSUPPORT:
-        return PURC_ERROR_NOT_SUPPORT;
+        return PURC_ERROR_NOT_SUPPORTED;
         break;
 #endif
 
 #ifdef ESOCKTNOSUPPORT
     case ESOCKTNOSUPPORT:
-        return PURC_ERROR_NOT_SUPPORT;
+        return PURC_ERROR_NOT_SUPPORTED;
         break;
 #endif
 
 #ifdef EPFNOSUPPORT
     case EPFNOSUPPORT:
-        return PURC_ERROR_NOT_SUPPORT;
+        return PURC_ERROR_NOT_SUPPORTED;
         break;
 #endif
 
 #ifdef EAFNOSUPPORT
     case EAFNOSUPPORT:
-        return PURC_ERROR_NOT_SUPPORT;
+        return PURC_ERROR_NOT_SUPPORTED;
         break;
 #endif
 
 #ifdef ETIMEDOUT
     case ETIMEDOUT:
-        return PURC_ERROR_TIMEDOUT;
+        return PURC_ERROR_TIMEOUT;
         break;
 #endif
 
@@ -621,6 +622,12 @@ purc_error_from_errno (int err_no)
 #ifdef EMSGSIZE
     case EMSGSIZE:
         return PURC_ERROR_TOO_LARGE_ENTITY;
+        break;
+#endif
+
+#ifdef ESPIPE
+    case ESPIPE:
+        return PURC_ERROR_NOT_SUPPORTED;
         break;
 #endif
 

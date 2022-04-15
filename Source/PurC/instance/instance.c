@@ -107,6 +107,7 @@ static struct const_str_atom _except_names[] = {
     { "OSFailure", 0 },
     { "NotReady", 0 },
     { "NotImplemented", 0 },
+    { "Unsupported", 0 },
 };
 
 /* Make sure the number of error messages matches the number of error codes */
