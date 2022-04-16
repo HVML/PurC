@@ -181,9 +181,11 @@ uintptr_t purc_runloop_add_fd_monitor(purc_runloop_t runloop, int fd,
     if (!runloop) {
         runloop = purc_runloop_get_current();
     }
+
+    void *stack = pcintr_get_stack();
     return ((RunLoop*)runloop)->addFdMonitor(fd, to_gio_condition(event),
-            [callback, ctxt] (gint fd, GIOCondition condition) -> gboolean {
-            return callback(fd, to_runloop_io_event(condition), ctxt);
+            [callback, ctxt, stack] (gint fd, GIOCondition condition) -> gboolean {
+            return callback(fd, to_runloop_io_event(condition), ctxt, stack);
         });
 }
 
@@ -196,16 +198,21 @@ void purc_runloop_remove_fd_monitor(purc_runloop_t runloop, uintptr_t handle)
 }
 
 int purc_runloop_dispatch_message(purc_runloop_t runloop, purc_variant_t source,
-        purc_variant_t type, purc_variant_t sub_type, purc_variant_t extra)
+        purc_variant_t type, purc_variant_t sub_type, purc_variant_t extra,
+        void *stack)
 {
     if (!runloop) {
         runloop = purc_runloop_get_current();
     }
-    struct pcintr_stack *stack = pcintr_get_stack();
     if (!stack) {
+        stack = pcintr_get_stack();
         return -1;
     }
 
-    return pcintr_dispatch_message_ex(stack, source, type, sub_type, extra);
+    if (stack) {
+        return pcintr_dispatch_message_ex((struct pcintr_stack *)stack, source,
+                type, sub_type, extra);
+    }
+    return -1;
 }
 

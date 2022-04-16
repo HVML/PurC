@@ -540,7 +540,7 @@ out_close_fd:
 }
 
 static bool
-stream_io_callback(int fd, purc_runloop_io_event event, void *ctxt)
+stream_io_callback(int fd, purc_runloop_io_event event, void *ctxt, void *stack)
 {
     UNUSED_PARAM(fd);
     // dispatch event
@@ -557,7 +557,7 @@ stream_io_callback(int fd, purc_runloop_io_event event, void *ctxt)
         purc_variant_t sub_type = purc_variant_make_string(sub, false);
 
         purc_runloop_dispatch_message(purc_runloop_get_current(),
-                stream->observed, type, sub_type, PURC_VARIANT_INVALID);
+                stream->observed, type, sub_type, PURC_VARIANT_INVALID, stack);
 
         purc_variant_unref(type);
         purc_variant_unref(sub_type);
@@ -669,8 +669,6 @@ static int read_lines(purc_rwstream_t stream, int line_num,
     size_t length = 0;
     const char *head = NULL;
     const char *end = NULL;
-
-    purc_rwstream_seek(stream, 0L, SEEK_SET);
 
     while (line_num) {
         read_size = purc_rwstream_read(stream, buffer, BUFFER_SIZE);

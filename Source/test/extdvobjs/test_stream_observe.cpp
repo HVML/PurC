@@ -20,16 +20,17 @@ TEST(observe, basic)
     ""
     "            <div id=\"c_title\">"
     "                <h2 id=\"c_title\">Stream observe<br/>"
-    "                    <span id=\"clock\">$DATETIME.fmtbdtime('%Y-%m-%dT%H:%M:%S', null)</span>"
-    "                    <span id=\"stream_content\"></span>"
+    "                    <span id=\"content\">$DATETIME.fmtbdtime('%Y-%m-%dT%H:%M:%S', null)</span>"
     "                </h2>"
-    "                <observe on=\"$STREAM.open('pipe:///var/tmp/stream_pipe', 'read create nonblock')\" for=\"event:read\">"
-    "                    <update on=\"#stream_content\" at=\"textContent\" with=\"$STREAM.readlines($@, 1)\" />"
+    "                <init as='stream_pipe' with=\"$STREAM.open('pipe:///var/tmp/stream_pipe', 'read create nonblock')\"/>"
+    "                <observe on=\"$stream_pipe\" for=\"event:read\">"
+    "                    <update on=\"#content\" at=\"textContent\" with=\"$EJSON.stringify($STREAM.readlines($stream_pipe, 1))\" />"
+    "                    <forget on=\"$stream_pipe\" for=\"event:read\"/>"
     "                </observe>"
     ""
     "                <observe on=\"$TIMERS\" for=\"expired:clock\">"
-    "                    <update on=\"#clock\" at=\"textContent\" with=\"$DATETIME.fmtbdtime('%Y-%m-%dT%H:%M:%S', null)\" />"
-    "                    <update on=\"#clock\" at=\"textContent\" with=\"$EJSON.stringify($STREAM.writelines($STREAM.open('pipe:///var/tmp/stream_pipe', 'write'), 'write line to pipe'))\" />"
+    "                    <update on=\"#content\" at=\"textContent\" with=\"$DATETIME.fmtbdtime('%Y-%m-%dT%H:%M:%S', null)\" />"
+    "                    <update on=\"#content\" at=\"textContent\" with=\"$EJSON.stringify($STREAM.writelines($STREAM.open('pipe:///var/tmp/stream_pipe', 'write'), 'write line to pipe'))\" />"
     "                    <forget on=\"$TIMERS\" for=\"expired:clock\"/>"
     "                </observe>"
     ""
@@ -66,7 +67,6 @@ TEST(observe, basic)
 
     purc_run(PURC_VARIANT_INVALID, NULL);
 
-    fprintf(stderr, "##################################### call unload\n");
     purc_variant_unload_dvobj(stream);
     cleanup = purc_cleanup ();
     ASSERT_EQ (cleanup, true);
