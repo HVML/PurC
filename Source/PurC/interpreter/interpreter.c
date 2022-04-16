@@ -1861,7 +1861,8 @@ pcintr_handle_message(void *ctxt)
         frame->next_step = NEXT_STEP_AFTER_PUSHED;
 
         stack->co.state = CO_STATE_READY;
-        pcintr_coroutine_ready();
+       // pcintr_coroutine_ready();
+        run_coroutines(NULL);
     }
 
     pcutils_arrlist_free(observers);
