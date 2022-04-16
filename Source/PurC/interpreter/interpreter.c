@@ -1504,6 +1504,16 @@ void observer_free_func(void *data)
             purc_variant_revoke_listener(observer->observed,
                     observer->listener);
         }
+        if (purc_variant_is_native(observer->observed)) {
+            struct purc_native_ops *ops = purc_variant_native_get_ops(
+                    observer->observed);
+            if (ops && ops->on_forget) {
+                void *native_entity = purc_variant_native_get_entity(
+                        observer->observed);
+                ops->on_forget(native_entity, observer->msg_type,
+                        observer->sub_type);
+            }
+        }
         purc_variant_unref(observer->observed);
         free(observer->msg_type);
         free(observer->sub_type);
