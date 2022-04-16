@@ -1352,8 +1352,12 @@ purc_dvobj_read_struct(purc_rwstream_t stream,
     return retv;
 
 failed:
-    if (silently)
+    if (silently) {
+        if (rws) {
+            purc_rwstream_destroy(rws);
+        }
         return retv;
+    }
 
 fatal:
     if (item)

@@ -177,6 +177,8 @@ void purc_broken_down_url_destroy(struct purc_broken_down_url *url)
     if (url->fragment) {
         free(url->fragment);
     }
+
+    free(url);
 }
 
 static
