@@ -628,30 +628,6 @@ purc_rwstream_t get_rwstream_from_variant(purc_variant_t v)
     return NULL;
 }
 
-// for file to get '\n'
-static const char *pcdvobjs_stream_get_next_option(const char *data,
-        const char *delims, size_t *length)
-{
-    const char *head = data;
-    char *temp = NULL;
-
-    if ((delims == NULL) || (data == NULL) || (*delims == 0x00))
-        return NULL;
-
-    *length = 0;
-
-    while (*data != 0x00) {
-        temp = strchr(delims, *data);
-        if (temp)
-            break;
-        data++;
-    }
-
-    *length = data - head;
-
-    return head;
-}
-
 static inline bool is_little_endian(void)
 {
 #if CPU(BIG_ENDIAN)
@@ -661,6 +637,7 @@ static inline bool is_little_endian(void)
 #endif
 }
 
+#define LINE_FLAG           "\n"
 static int read_lines(purc_rwstream_t stream, int line_num,
         purc_variant_t array)
 {
@@ -676,8 +653,9 @@ static int read_lines(purc_rwstream_t stream, int line_num,
             break;
 
         end = (const char*)(buffer + read_size);
-        head = pcdvobjs_stream_get_next_option((char *)buffer,
-                "\n", &length);
+
+        head = pcutils_get_next_token_len((const char*)buffer, read_size,
+                LINE_FLAG, &length);
         while (head && head < end) {
             purc_variant_t var = purc_variant_make_string_ex(head, length,
                     false);
@@ -694,8 +672,8 @@ static int read_lines(purc_rwstream_t stream, int line_num,
             if (line_num == 0)
                 break;
 
-            head = pcdvobjs_stream_get_next_option(head + length + 1,
-                    "\n", &length);
+            head = pcutils_get_next_token_len(head + length, read_size - length,
+                LINE_FLAG, &length);
         }
         if (read_size < BUFFER_SIZE)           // to the end
             break;
