@@ -71,5 +71,7 @@ TEST(observe, basic)
     purc_variant_unload_dvobj(stream);
     cleanup = purc_cleanup ();
     ASSERT_EQ (cleanup, true);
+
+    unlink("/var/tmp/stream_pipe");
 }
 
