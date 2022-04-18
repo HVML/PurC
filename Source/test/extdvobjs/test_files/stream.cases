@@ -56,15 +56,15 @@ positive:
     40UL
 
 positive:
-    $STREAM.readlines($STREAM.open('file:///tmp/test_stream_lines', 'read'), 0)
+    $STREAM.open('file:///tmp/test_stream_lines', 'read').readlines(0)
     []
 
 positive:
-    $STREAM.readlines($STREAM.open('file:///tmp/test_stream_lines', 'read'), 1)
+    $STREAM.open('file:///tmp/test_stream_lines', 'read').readlines(1)
     ["This is the string to write"]
 
 positive:
-    $STREAM.readlines($STREAM.open('file:///tmp/test_stream_lines', 'read'), 20)
+    $STREAM.open('file:///tmp/test_stream_lines', 'read').readlines(20)
     ["This is the string to write", "Second line"]
 
 positive:

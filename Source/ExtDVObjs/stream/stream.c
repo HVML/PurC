@@ -619,14 +619,61 @@ writestruct_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
     return PURC_VARIANT_INVALID;
 }
 
+static int read_lines(purc_rwstream_t stream, int line_num,
+        purc_variant_t array);
 static purc_variant_t
 readlines_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
                 bool silently)
 {
-    UNUSED_PARAM(native_entity);
-    UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(argv);
-    UNUSED_PARAM(silently);
+    struct pcdvobjs_stream *stream;
+    purc_rwstream_t rwstream = NULL;
+    int64_t line_num = 0;
+    if (native_entity == NULL) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto out;
+    }
+
+    stream = get_stream(native_entity);
+    rwstream = stream->rws;
+    if (rwstream == NULL) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto out;
+    }
+
+    purc_variant_t ret_var = purc_variant_make_array(0, PURC_VARIANT_INVALID);
+    if (!ret_var) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto out;
+    }
+
+    if (nr_args < 1) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto out;
+    }
+
+    if (argv[0] != PURC_VARIANT_INVALID &&
+            !purc_variant_cast_to_longint(argv[0], &line_num, false)) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto out;
+    }
+
+    if (line_num > 0) {
+        int ret = read_lines(rwstream, line_num, ret_var);
+        if (ret != 0) {
+            goto out;
+        }
+    }
+
+    return ret_var;
+
+out:
+    if (silently)
+        return ret_var;
+
+    if (ret_var) {
+        purc_variant_unref(ret_var);
+    }
+
     return PURC_VARIANT_INVALID;
 }
 
@@ -1420,63 +1467,6 @@ out:
     return PURC_VARIANT_INVALID;
 }
 
-static purc_variant_t
-stream_readlines_getter(purc_variant_t root, size_t nr_args,
-        purc_variant_t *argv, bool silently)
-{
-    UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
-
-    purc_rwstream_t rwstream = NULL;
-    int64_t line_num = 0;
-    purc_variant_t ret_var = purc_variant_make_array(0, PURC_VARIANT_INVALID);
-    if (!ret_var) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        goto out;
-    }
-
-    if (nr_args != 2) {
-        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
-        goto out;
-    }
-
-    if (argv[0] == PURC_VARIANT_INVALID ||
-            (!purc_variant_is_native(argv[0]))) {
-        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        goto out;
-    }
-    rwstream = get_rwstream_from_variant(argv[0]);
-    if (rwstream == NULL) {
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
-        goto out;
-    }
-
-    if (argv[1] != PURC_VARIANT_INVALID) {
-        purc_variant_cast_to_longint(argv[1], &line_num, false);
-        if (line_num < 0)
-            line_num = 0;
-    }
-
-    if (line_num > 0) {
-        int ret = read_lines(rwstream, line_num, ret_var);
-        if (ret != 0) {
-            goto out;
-        }
-    }
-
-    return ret_var;
-
-out:
-    if (silently)
-        return ret_var;
-
-    if (ret_var) {
-        purc_variant_unref(ret_var);
-    }
-
-    return PURC_VARIANT_INVALID;
-}
-
 bool add_stdio_property(purc_variant_t v)
 {
     static const struct purc_native_ops ops = {
@@ -1548,7 +1538,6 @@ purc_variant_t pcdvobjs_create_stream(void)
         {"open",        stream_open_getter,        NULL},
         {"readstruct",  stream_readstruct_getter,  NULL},
         {"writestruct", stream_writestruct_getter, NULL},
-        {"readlines",   stream_readlines_getter,   NULL},
     };
 
     if (keywords2atoms[0].atom == 0) {
