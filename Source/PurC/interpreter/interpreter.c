@@ -1232,6 +1232,7 @@ end:
 #define BUILDIN_VAR_SESSION     "SESSION"
 #define BUILDIN_VAR_EJSON       "EJSON"
 #define BUILDIN_VAR_STR         "STR"
+#define BUILDIN_VAR_STREAM      "STREAM"
 
 static bool
 bind_doc_named_variable(pcintr_stack_t stack, const char* name,
@@ -1293,6 +1294,12 @@ init_buidin_doc_variable(pcintr_stack_t stack)
     // $STR
     if(!bind_doc_named_variable(stack, BUILDIN_VAR_STR,
                 purc_dvobj_string_new())) {
+        return false;
+    }
+
+    // $STREAM
+    if(!bind_doc_named_variable(stack, BUILDIN_VAR_STREAM,
+                purc_dvobj_stream_new())) {
         return false;
     }
 
