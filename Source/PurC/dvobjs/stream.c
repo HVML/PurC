@@ -422,7 +422,7 @@ static int read_lines(purc_rwstream_t stream, int line_num,
             if (line_num == 0)
                 break;
 
-            head = pcutils_get_next_token_len(head + length, read_size - length,
+            head = pcutils_get_next_token_len(head + length, end - head - length,
                 LINE_FLAG, &length);
         }
         if (read_size < BUFFER_SIZE)           // to the end
