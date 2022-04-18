@@ -1,203 +1,203 @@
-# test cases for $STREAM.open
-# TODO: more cases for case-insensitive.
-negative:
-    $STREAM.open('file:///tmp/test_stream_not_exist')
-    EntityNotFound
-
-negative:
-    $STREAM.open('file:///tmp/test_stream_not_exist', 'read write')
-    EntityNotFound
-
-positive:
-    $EJSON.type($STREAM.open('file:///tmp/test_stream_not_exist', 'create'))
-    'native'
-
-positive:
-    $FS.unlink('/tmp/test_stream_not_exist')
-    true
-
-positive:
-    $EJSON.type($STREAM.open('file:///tmp/test_stream_create', 'read write create truncate'))
-    'native'
-
-positive:
-    $FS.unlink('/tmp/test_stream_create')
-    true
-
-# $STREAM.readbytes/writebytes
-positive:
-    $STREAM.writebytes($STREAM.open('file:///tmp/test_stream_bytes', 'read write create truncate'), bx48564d4c3A202d5f2e)
-    9UL
-
-positive:
-    $STREAM.writebytes($STREAM.open('file:///tmp/test_stream_bytes', 'read write create truncate'), 'write string')
-    12UL
-
-positive:
-    $STREAM.readbytes($STREAM.open('file:///tmp/test_stream_bytes', 'read'), 10)
-    bx77726974652073747269
-
-positive:
-    $STREAM.readbytes($STREAM.open('file:///tmp/test_stream_bytes', 'read'), 100)
-    bx777269746520737472696e67
-
-positive:
-    $FS.unlink('/tmp/test_stream_bytes')
-    true
-
-# $STREAM.writelines/readlines
-
-positive:
-    $STREAM.writelines($STREAM.open('file:///tmp/test_stream_lines', 'read write create truncate'), "This is the string to write")
-    28UL
-
-positive:
-    $STREAM.writelines($STREAM.open('file:///tmp/test_stream_lines', 'read write create truncate'), ["This is the string to write", "Second line"])
-    40UL
-
-positive:
-    $STREAM.readlines($STREAM.open('file:///tmp/test_stream_lines', 'read'), 0)
-    []
-
-positive:
-    $STREAM.readlines($STREAM.open('file:///tmp/test_stream_lines', 'read'), 1)
-    ["This is the string to write"]
-
-positive:
-    $STREAM.readlines($STREAM.open('file:///tmp/test_stream_lines', 'read'), 20)
-    ["This is the string to write", "Second line"]
-
-positive:
-    $FS.unlink('/tmp/test_stream_lines')
-    true
-
-# $STREAM.writestruct/readsruct
-positive:
-    $STREAM.writestruct($STREAM.open('file:///tmp/test_stream_struct', 'read write create truncate'), "i16le i32le", 10, 10)
-    6UL
-
-positive:
-    $STREAM.readstruct($STREAM.open('file:///tmp/test_stream_struct', 'read'), "i16le i32le")
-    [10L, 10L]
-
-positive:
-    $STREAM.writestruct($STREAM.open('file:///tmp/test_stream_struct', 'read write create truncate'), "i16le:2 i32le", [10, 15], 255)
-    8UL
-
-positive:
-    $STREAM.readstruct($STREAM.open('file:///tmp/test_stream_struct', 'read'), "i16le:2 i32le")
-    [[10L, 15L], 255L]
-
-positive:
-    $STREAM.writestruct($STREAM.open('file:///tmp/test_stream_struct', 'read write create truncate'), "i16le:2 i32le", [[10, 15], 255])
-    8UL
-
-positive:
-    $STREAM.readstruct($STREAM.open('file:///tmp/test_stream_struct', 'read'), "i16le:2 i32le")
-    [[10L, 15L], 255L]
-
-negative:
-    $STREAM.readstruct($STREAM.open('file:///tmp/test_stream_struct', 'read'), "i16le:2 i32le:10")
-    InvalidValue
-    [[10L, 15L]]
-
-positive:
-    $FS.unlink('/tmp/test_stream_struct')
-    true
-
-# $STREAM.seek
+## test cases for $STREAM.open
+## TODO: more cases for case-insensitive.
+#negative:
+#    $STREAM.open('file:///tmp/test_stream_not_exist')
+#    EntityNotFound
+#
+#negative:
+#    $STREAM.open('file:///tmp/test_stream_not_exist', 'read write')
+#    EntityNotFound
+#
+#positive:
+#    $EJSON.type($STREAM.open('file:///tmp/test_stream_not_exist', 'create'))
+#    'native'
+#
+#positive:
+#    $FS.unlink('/tmp/test_stream_not_exist')
+#    true
+#
+#positive:
+#    $EJSON.type($STREAM.open('file:///tmp/test_stream_create', 'read write create truncate'))
+#    'native'
+#
+#positive:
+#    $FS.unlink('/tmp/test_stream_create')
+#    true
+#
+## $STREAM.readbytes/writebytes
+#positive:
+#    $STREAM.writebytes($STREAM.open('file:///tmp/test_stream_bytes', 'read write create truncate'), bx48564d4c3A202d5f2e)
+#    9UL
+#
+#positive:
+#    $STREAM.writebytes($STREAM.open('file:///tmp/test_stream_bytes', 'read write create truncate'), 'write string')
+#    12UL
+#
+#positive:
+#    $STREAM.readbytes($STREAM.open('file:///tmp/test_stream_bytes', 'read'), 10)
+#    bx77726974652073747269
+#
+#positive:
+#    $STREAM.readbytes($STREAM.open('file:///tmp/test_stream_bytes', 'read'), 100)
+#    bx777269746520737472696e67
+#
+#positive:
+#    $FS.unlink('/tmp/test_stream_bytes')
+#    true
+#
+## $STREAM.writelines/readlines
+#
+#positive:
+#    $STREAM.writelines($STREAM.open('file:///tmp/test_stream_lines', 'read write create truncate'), "This is the string to write")
+#    28UL
+#
+#positive:
+#    $STREAM.writelines($STREAM.open('file:///tmp/test_stream_lines', 'read write create truncate'), ["This is the string to write", "Second line"])
+#    40UL
+#
+#positive:
+#    $STREAM.readlines($STREAM.open('file:///tmp/test_stream_lines', 'read'), 0)
+#    []
+#
+#positive:
+#    $STREAM.readlines($STREAM.open('file:///tmp/test_stream_lines', 'read'), 1)
+#    ["This is the string to write"]
+#
+#positive:
+#    $STREAM.readlines($STREAM.open('file:///tmp/test_stream_lines', 'read'), 20)
+#    ["This is the string to write", "Second line"]
+#
+#positive:
+#    $FS.unlink('/tmp/test_stream_lines')
+#    true
+#
+## $STREAM.writestruct/readsruct
+#positive:
+#    $STREAM.writestruct($STREAM.open('file:///tmp/test_stream_struct', 'read write create truncate'), "i16le i32le", 10, 10)
+#    6UL
+#
+#positive:
+#    $STREAM.readstruct($STREAM.open('file:///tmp/test_stream_struct', 'read'), "i16le i32le")
+#    [10L, 10L]
+#
+#positive:
+#    $STREAM.writestruct($STREAM.open('file:///tmp/test_stream_struct', 'read write create truncate'), "i16le:2 i32le", [10, 15], 255)
+#    8UL
+#
+#positive:
+#    $STREAM.readstruct($STREAM.open('file:///tmp/test_stream_struct', 'read'), "i16le:2 i32le")
+#    [[10L, 15L], 255L]
+#
+#positive:
+#    $STREAM.writestruct($STREAM.open('file:///tmp/test_stream_struct', 'read write create truncate'), "i16le:2 i32le", [[10, 15], 255])
+#    8UL
+#
+#positive:
+#    $STREAM.readstruct($STREAM.open('file:///tmp/test_stream_struct', 'read'), "i16le:2 i32le")
+#    [[10L, 15L], 255L]
+#
+#negative:
+#    $STREAM.readstruct($STREAM.open('file:///tmp/test_stream_struct', 'read'), "i16le:2 i32le:10")
+#    InvalidValue
+#    [[10L, 15L]]
+#
+#positive:
+#    $FS.unlink('/tmp/test_stream_struct')
+#    true
+#
+## $STREAM.seek
 positive:
     $STREAM.writelines($STREAM.open('file:///tmp/test_stream_seek', 'read write create truncate'), "This is the string to write")
     28UL
 
 positive:
-    $STREAM.seek($STREAM.open('file:///tmp/test_stream_seek', 'read write'), 10, 'set')
+    $STREAM.open('file:///tmp/test_stream_seek', 'read write').seek(10, 'set')
     10L
 
 positive:
-    $STREAM.seek($STREAM.open('file:///tmp/test_stream_seek', 'read write'), 3, 'current')
+    $STREAM.open('file:///tmp/test_stream_seek', 'read write').seek(3, 'current')
     3L
 
 positive:
-    $STREAM.seek($STREAM.open('file:///tmp/test_stream_seek', 'read write'), -3, 'current')
+    $STREAM.open('file:///tmp/test_stream_seek', 'read write').seek(-3, 'current')
     false
 
 positive:
-    $STREAM.seek($STREAM.open('file:///tmp/test_stream_seek', 'read write'), -3, 'end')
+    $STREAM.open('file:///tmp/test_stream_seek', 'read write').seek(-3, 'end')
     25L
 
 positive:
-    $STREAM.seek($STREAM.open('file:///tmp/test_stream_seek', 'read write'), 10)
+    $STREAM.open('file:///tmp/test_stream_seek', 'read write').seek(10)
     10L
 
 positive:
-    $STREAM.seek($STREAM.open('file:///tmp/test_stream_seek', 'read write'), -10)
+    $STREAM.open('file:///tmp/test_stream_seek', 'read write').seek(-10)
     false
 
 negative:
-    $STREAM.seek($STREAM.open('file:///tmp/test_stream_seek', 'read write'), 10, 'not support')
+    $STREAM.open('file:///tmp/test_stream_seek', 'read write').seek(10, 'not support')
     InvalidValue
 
 negative:
-    $STREAM.seek($STREAM.open('file:///tmp/test_stream_seek', 'read write'), 10, '')
+    $STREAM.open('file:///tmp/test_stream_seek', 'read write').seek(10, '')
     InvalidValue
 
 positive:
     $FS.unlink('/tmp/test_stream_seek')
     true
 
-# $STREAM read string
-positive:
-    $STREAM.writestruct($STREAM.open('file:///tmp/test_stream_readstring', 'read write create truncate'), 'utf8:40', "This is the string to write, Second line")
-    40UL
-
-positive:
-    $STREAM.readstruct($STREAM.open('file:///tmp/test_stream_readstring', 'read'), 'utf8')
-    "This is the string to write, Second line"
-
-positive:
-    $STREAM.writestruct($STREAM.open('file:///tmp/test_stream_readstring', 'read write create truncate'), 'utf8:40 i16le', "This is the string to write, Second line", 10)
-    42UL
-
-positive:
-    $STREAM.writestruct($STREAM.open('file:///tmp/test_stream_readstring', 'read write create truncate'), 'utf8 i16le', "This is the string to write, Second line", 10)
-    43UL
-
-positive:
-    $STREAM.readstruct($STREAM.open('file:///tmp/test_stream_readstring', 'read'), 'utf8')
-    "This is the string to write, Second line"
-
-positive:
-    $STREAM.writestruct($STREAM.open('file:///tmp/test_stream_readstring', 'read write create truncate'), 'utf16:84 i16le', "This is the string to write, Second line", 99)
-    84UL
-
-positive:
-    $STREAM.readstruct($STREAM.open('file:///tmp/test_stream_readstring', 'read'), 'utf16')
-    "This is the string to write, Second line"
-
-positive:
-    $STREAM.writestruct($STREAM.open('file:///tmp/test_stream_readstring', 'read write create truncate'), 'utf32:165 i16le', "This is the string to write, Second line", 99)
-    166UL
-
-positive:
-    $STREAM.readstruct($STREAM.open('file:///tmp/test_stream_readstring', 'read'), 'utf32 i16le')
-    ["This is the string to write, Second line", 99L]
-
-positive:
-    $FS.unlink('/tmp/test_stream_readstring')
-    true
-
-positive:
-    $STREAM.writelines($STREAM.stdout, '##### write to stdout #####')
-    28UL
-
-positive:
-    $STREAM.writelines($STREAM.stderr, '##### write to stderr #####')
-    28UL
-
-# input 'aaa' by keyboard
+## $STREAM read string
 #positive:
-#    $STREAM.readlines($STREAM.stdin, 1)
-#    ["aaa"]
-
-
+#    $STREAM.writestruct($STREAM.open('file:///tmp/test_stream_readstring', 'read write create truncate'), 'utf8:40', "This is the string to write, Second line")
+#    40UL
+#
+#positive:
+#    $STREAM.readstruct($STREAM.open('file:///tmp/test_stream_readstring', 'read'), 'utf8')
+#    "This is the string to write, Second line"
+#
+#positive:
+#    $STREAM.writestruct($STREAM.open('file:///tmp/test_stream_readstring', 'read write create truncate'), 'utf8:40 i16le', "This is the string to write, Second line", 10)
+#    42UL
+#
+#positive:
+#    $STREAM.writestruct($STREAM.open('file:///tmp/test_stream_readstring', 'read write create truncate'), 'utf8 i16le', "This is the string to write, Second line", 10)
+#    43UL
+#
+#positive:
+#    $STREAM.readstruct($STREAM.open('file:///tmp/test_stream_readstring', 'read'), 'utf8')
+#    "This is the string to write, Second line"
+#
+#positive:
+#    $STREAM.writestruct($STREAM.open('file:///tmp/test_stream_readstring', 'read write create truncate'), 'utf16:84 i16le', "This is the string to write, Second line", 99)
+#    84UL
+#
+#positive:
+#    $STREAM.readstruct($STREAM.open('file:///tmp/test_stream_readstring', 'read'), 'utf16')
+#    "This is the string to write, Second line"
+#
+#positive:
+#    $STREAM.writestruct($STREAM.open('file:///tmp/test_stream_readstring', 'read write create truncate'), 'utf32:165 i16le', "This is the string to write, Second line", 99)
+#    166UL
+#
+#positive:
+#    $STREAM.readstruct($STREAM.open('file:///tmp/test_stream_readstring', 'read'), 'utf32 i16le')
+#    ["This is the string to write, Second line", 99L]
+#
+#positive:
+#    $FS.unlink('/tmp/test_stream_readstring')
+#    true
+#
+#positive:
+#    $STREAM.writelines($STREAM.stdout, '##### write to stdout #####')
+#    28UL
+#
+#positive:
+#    $STREAM.writelines($STREAM.stderr, '##### write to stderr #####')
+#    28UL
+#
+## input 'aaa' by keyboard
+##positive:
+##    $STREAM.readlines($STREAM.stdin, 1)
+##    ["aaa"]
+#
+#

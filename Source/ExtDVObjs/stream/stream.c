@@ -100,9 +100,9 @@ enum {
     K_KW_readstruct,
 #define _KW_writestruct             "writestruct"
     K_KW_writestruct,
-#define _KW_readlines              "readlines"
+#define _KW_readlines               "readlines"
     K_KW_readlines,
-#define _KW_writelines             "writelines"
+#define _KW_writelines              "writelines"
     K_KW_writelines,
 #define _KW_readbytes               "readbytes"
     K_KW_readbytes,
@@ -134,6 +134,14 @@ static struct keyword_to_atom {
     { _KW_winsock, 0 },             // "winsock"
     { _KW_ws, 0 },                  // "ws"
     { _KW_wss, 0 },                 // "wss"
+    { _KW_readstruct, 0},           // readstruct
+    { _KW_writestruct, 0},          // writestruct
+    { _KW_readlines, 0},            // readlines
+    { _KW_writelines, 0},           // writelines
+    { _KW_readbytes, 0},            // readbytes
+    { _KW_writebytes, 0},           // writebytes
+    { _KW_seek, 0},                 // seek
+    { _KW_close, 0},                // close
 };
 
 enum pcdvobjs_stream_type {
@@ -583,6 +591,12 @@ stream_io_callback(int fd, purc_runloop_io_event event, void *ctxt, void *stack)
     return true;
 }
 
+static inline
+struct pcdvobjs_stream *get_stream(void *native_entity)
+{
+    return (struct pcdvobjs_stream*)native_entity;
+}
+
 static purc_variant_t
 readstruct_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
                 bool silently)
@@ -657,6 +671,72 @@ seek_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
     UNUSED_PARAM(silently);
+
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    struct pcdvobjs_stream *stream;
+    purc_rwstream_t rwstream;
+    int64_t byte_num = 0;
+    off_t off = 0;
+    int64_t whence = 0;
+    const char* option = _KW_set;
+
+    if (native_entity == NULL) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto out;
+    }
+
+    stream = get_stream(native_entity);
+    rwstream = stream->rws;
+    if (rwstream == NULL) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto out;
+    }
+
+
+    if (nr_args < 1) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto out;
+    }
+    else if (nr_args > 1) {
+        if (argv[1] != PURC_VARIANT_INVALID &&
+                (!purc_variant_is_string(argv[1]))) {
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            goto out;
+        }
+        option = purc_variant_get_string_const(argv[1]);
+    }
+
+    purc_atom_t atom = purc_atom_try_string_ex(STREAM_ATOM_BUCKET, option);
+    if (atom == 0) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto out;
+    }
+
+    if (atom == keywords2atoms[K_KW_set].atom) {
+        whence = SEEK_SET;
+    }
+    else if (atom == keywords2atoms[K_KW_current].atom) {
+        whence = SEEK_CUR;
+    }
+    else if (atom == keywords2atoms[K_KW_end].atom) {
+        whence = SEEK_END;
+    }
+
+    if (argv[0] != PURC_VARIANT_INVALID) {
+        purc_variant_cast_to_longint(argv[0], &byte_num, false);
+    }
+
+    off = purc_rwstream_seek(rwstream, byte_num, (int)whence);
+    if (off == -1) {
+        goto out;
+    }
+    ret_var = purc_variant_make_longint(off);
+
+    return ret_var;
+
+out:
+    if (silently)
+        return purc_variant_make_boolean(false);
     return PURC_VARIANT_INVALID;
 }
 
@@ -1431,79 +1511,6 @@ out:
     return PURC_VARIANT_INVALID;
 }
 
-static purc_variant_t
-stream_seek_getter(purc_variant_t root, size_t nr_args,
-        purc_variant_t *argv, bool silently)
-{
-    UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
-
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
-    purc_rwstream_t rwstream = NULL;
-    int64_t byte_num = 0;
-    off_t off = 0;
-    int64_t whence = 0;
-    const char* option = _KW_set;
-
-    if (nr_args < 2) {
-        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
-        goto out;
-    }
-    else if (nr_args > 2) {
-        if (argv[2] != PURC_VARIANT_INVALID &&
-                (!purc_variant_is_string(argv[2]))) {
-            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-            goto out;
-        }
-        option = purc_variant_get_string_const(argv[2]);
-    }
-
-    if (argv[0] == PURC_VARIANT_INVALID ||
-            (!purc_variant_is_native(argv[0]))) {
-        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        goto out;
-    }
-
-    purc_atom_t atom = purc_atom_try_string_ex(STREAM_ATOM_BUCKET, option);
-    if (atom == 0) {
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
-        goto out;
-    }
-
-    if (atom == keywords2atoms[K_KW_set].atom) {
-        whence = SEEK_SET;
-    }
-    else if (atom == keywords2atoms[K_KW_current].atom) {
-        whence = SEEK_CUR;
-    }
-    else if (atom == keywords2atoms[K_KW_end].atom) {
-        whence = SEEK_END;
-    }
-
-    rwstream = get_rwstream_from_variant(argv[0]);
-    if (rwstream == NULL) {
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
-        goto out;
-    }
-
-    if (argv[1] != PURC_VARIANT_INVALID) {
-        purc_variant_cast_to_longint(argv[1], &byte_num, false);
-    }
-
-    off = purc_rwstream_seek(rwstream, byte_num, (int)whence);
-    if (off == -1) {
-        goto out;
-    }
-    ret_var = purc_variant_make_longint(off);
-
-    return ret_var;
-
-out:
-    if (silently)
-        return purc_variant_make_boolean(false);
-    return PURC_VARIANT_INVALID;
-}
-
 bool add_stdio_property(purc_variant_t v)
 {
     static const struct purc_native_ops ops = {
@@ -1579,7 +1586,6 @@ purc_variant_t pcdvobjs_create_stream(void)
         {"writelines",  stream_writelines_getter,  NULL},
         {"readbytes",   stream_readbytes_getter,   NULL},
         {"writebytes",  stream_writebytes_getter,  NULL},
-        {"seek",        stream_seek_getter,        NULL},
     };
 
     if (keywords2atoms[0].atom == 0) {
