@@ -778,11 +778,37 @@ static purc_variant_t
 close_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
                 bool silently)
 {
-    UNUSED_PARAM(native_entity);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
     UNUSED_PARAM(silently);
-    return PURC_VARIANT_INVALID;
+    if (native_entity == NULL) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        return purc_variant_make_boolean(false);
+    }
+
+    struct pcdvobjs_stream *stream = get_stream(native_entity);
+    if (stream->rws) {
+        purc_rwstream_destroy(stream->rws);
+        stream->rws = NULL;
+    }
+
+    if (stream->option) {
+        purc_variant_unref(stream->option);
+        stream->option = PURC_VARIANT_INVALID;
+    }
+
+    if (stream->monitor) {
+        purc_runloop_remove_fd_monitor(purc_runloop_get_current(),
+                stream->monitor);
+        stream->monitor = 0;
+    }
+
+    if (stream->fd) {
+        close(stream->fd);
+        stream->fd = 0;
+    }
+
+    return purc_variant_make_boolean(true);
 }
 
 static bool

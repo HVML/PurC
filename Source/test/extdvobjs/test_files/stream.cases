@@ -184,6 +184,10 @@ positive:
     ["This is the string to write, Second line", 99L]
 
 positive:
+    $STREAM.open('file:///tmp/test_stream_readstring', 'read write create truncate').close()
+    true
+
+positive:
     $FS.unlink('/tmp/test_stream_readstring')
     true
 
