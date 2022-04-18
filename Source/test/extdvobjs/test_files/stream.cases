@@ -77,7 +77,7 @@ positive:
     6UL
 
 positive:
-    $STREAM.readstruct($STREAM.open('file:///tmp/test_stream_struct', 'read'), "i16le i32le")
+    $STREAM.open('file:///tmp/test_stream_struct', 'read').readstruct("i16le i32le")
     [10L, 10L]
 
 positive:
@@ -85,7 +85,7 @@ positive:
     8UL
 
 positive:
-    $STREAM.readstruct($STREAM.open('file:///tmp/test_stream_struct', 'read'), "i16le:2 i32le")
+    $STREAM.open('file:///tmp/test_stream_struct', 'read').readstruct("i16le:2 i32le")
     [[10L, 15L], 255L]
 
 positive:
@@ -93,11 +93,11 @@ positive:
     8UL
 
 positive:
-    $STREAM.readstruct($STREAM.open('file:///tmp/test_stream_struct', 'read'), "i16le:2 i32le")
+    $STREAM.open('file:///tmp/test_stream_struct', 'read').readstruct("i16le:2 i32le")
     [[10L, 15L], 255L]
 
 negative:
-    $STREAM.readstruct($STREAM.open('file:///tmp/test_stream_struct', 'read'), "i16le:2 i32le:10")
+    $STREAM.open('file:///tmp/test_stream_struct', 'read').readstruct("i16le:2 i32le:10")
     InvalidValue
     [[10L, 15L]]
 
@@ -152,7 +152,7 @@ positive:
     40UL
 
 positive:
-    $STREAM.readstruct($STREAM.open('file:///tmp/test_stream_readstring', 'read'), 'utf8')
+    $STREAM.open('file:///tmp/test_stream_readstring', 'read').readstruct('utf8')
     "This is the string to write, Second line"
 
 positive:
@@ -164,7 +164,7 @@ positive:
     43UL
 
 positive:
-    $STREAM.readstruct($STREAM.open('file:///tmp/test_stream_readstring', 'read'), 'utf8')
+    $STREAM.open('file:///tmp/test_stream_readstring', 'read').readstruct('utf8')
     "This is the string to write, Second line"
 
 positive:
@@ -172,7 +172,7 @@ positive:
     84UL
 
 positive:
-    $STREAM.readstruct($STREAM.open('file:///tmp/test_stream_readstring', 'read'), 'utf16')
+    $STREAM.open('file:///tmp/test_stream_readstring', 'read').readstruct('utf16')
     "This is the string to write, Second line"
 
 positive:
@@ -180,7 +180,7 @@ positive:
     166UL
 
 positive:
-    $STREAM.readstruct($STREAM.open('file:///tmp/test_stream_readstring', 'read'), 'utf32 i16le')
+    $STREAM.open('file:///tmp/test_stream_readstring', 'read').readstruct('utf32 i16le')
     ["This is the string to write, Second line", 99L]
 
 positive:
