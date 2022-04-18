@@ -870,7 +870,6 @@ property_getter(const char *name)
 {
     purc_atom_t atom = purc_atom_try_string_ex(STREAM_ATOM_BUCKET, name);
     if (atom == 0) {
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
         return NULL;
     }
 
