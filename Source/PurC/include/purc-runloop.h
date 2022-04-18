@@ -30,12 +30,12 @@
 typedef void* purc_runloop_t;
 typedef enum purc_runloop_io_event
 {
-    PCRUNLOOP_IO_IN,
-    PCRUNLOOP_IO_OUT,
-    PCRUNLOOP_IO_PRI,
-    PCRUNLOOP_IO_ERR,
-    PCRUNLOOP_IO_HUP,
-    PCRUNLOOP_IO_NVAL,
+    PCRUNLOOP_IO_IN = 0x01,
+    PCRUNLOOP_IO_PRI = 0x02,
+    PCRUNLOOP_IO_OUT = 0x04,
+    PCRUNLOOP_IO_ERR = 0x08,
+    PCRUNLOOP_IO_HUP = 0x10,
+    PCRUNLOOP_IO_NVAL = 0x20,
 } purc_runloop_io_event;
 
 PCA_EXTERN_C_BEGIN
@@ -159,7 +159,7 @@ void purc_runloop_set_idle_func(purc_runloop_t runloop, purc_runloop_func func,
         void *ctxt);
 
 typedef bool (*purc_runloop_io_callback)(int fd,
-        purc_runloop_io_event event, void *ctxt);
+        purc_runloop_io_event event, void *ctxt, void *stack);
 
 /**
  * Add file descriptors monitor on the runloop
@@ -189,7 +189,29 @@ uintptr_t purc_runloop_add_fd_monitor(purc_runloop_t runloop, int fd,
  *
  * Since: 0.1.1
  */
+PCA_EXPORT
 void purc_runloop_remove_fd_monitor(purc_runloop_t runloop, uintptr_t handle);
+
+/**
+ * Dispatch message
+ *
+ * @param runloop: the runloop
+ * @param source: the source of the message
+ * @param type: the type of the message
+ * @param sub_type: the sub type of the message
+ * @param extra: the extra of the message
+ * @param stack: the pointer to the stack
+ *
+ * Return: denote if the function succeeds or not
+ *         0:  Success
+ *         -1: Failed
+ *
+ * Since: 0.1.1
+ */
+PCA_EXPORT
+int purc_runloop_dispatch_message(purc_runloop_t runloop, purc_variant_t source,
+        purc_variant_t type, purc_variant_t sub_type, purc_variant_t extra,
+        void  *stack);
 
 PCA_EXTERN_C_END
 

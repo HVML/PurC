@@ -1232,6 +1232,7 @@ end:
 #define BUILDIN_VAR_SESSION     "SESSION"
 #define BUILDIN_VAR_EJSON       "EJSON"
 #define BUILDIN_VAR_STR         "STR"
+#define BUILDIN_VAR_STREAM      "STREAM"
 
 static bool
 bind_doc_named_variable(pcintr_stack_t stack, const char* name,
@@ -1293,6 +1294,12 @@ init_buidin_doc_variable(pcintr_stack_t stack)
     // $STR
     if(!bind_doc_named_variable(stack, BUILDIN_VAR_STR,
                 purc_dvobj_string_new())) {
+        return false;
+    }
+
+    // $STREAM
+    if(!bind_doc_named_variable(stack, BUILDIN_VAR_STREAM,
+                purc_dvobj_stream_new())) {
         return false;
     }
 
@@ -1503,6 +1510,16 @@ void observer_free_func(void *data)
         if (observer->listener) {
             purc_variant_revoke_listener(observer->observed,
                     observer->listener);
+        }
+        if (purc_variant_is_native(observer->observed)) {
+            struct purc_native_ops *ops = purc_variant_native_get_ops(
+                    observer->observed);
+            if (ops && ops->on_forget) {
+                void *native_entity = purc_variant_native_get_entity(
+                        observer->observed);
+                ops->on_forget(native_entity, observer->msg_type,
+                        observer->sub_type);
+            }
         }
         purc_variant_unref(observer->observed);
         free(observer->msg_type);
@@ -1851,7 +1868,8 @@ pcintr_handle_message(void *ctxt)
         frame->next_step = NEXT_STEP_AFTER_PUSHED;
 
         stack->co.state = CO_STATE_READY;
-        pcintr_coroutine_ready();
+       // pcintr_coroutine_ready();
+        run_coroutines(NULL);
     }
 
     pcutils_arrlist_free(observers);
@@ -2843,10 +2861,12 @@ pcintr_event_timer_fire(const char* id, void* ctxt)
         if (!ops) {
             continue;
         }
-        purc_nvariant_method is_vcm_ev = ops->property_getter(
-                PCVCM_EV_PROPERTY_VCM_EV);
-        if (is_vcm_ev) {
-            pcintr_observe_vcm_ev(stack, observer, var, ops);
+        if (ops->property_getter) {
+            purc_nvariant_method is_vcm_ev = ops->property_getter(
+                    PCVCM_EV_PROPERTY_VCM_EV);
+            if (is_vcm_ev) {
+                pcintr_observe_vcm_ev(stack, observer, var, ops);
+            }
         }
     }
 }

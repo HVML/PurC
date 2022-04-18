@@ -93,6 +93,11 @@ NotExists
     flags: None
     msg: "Does not exist"
 
+Exists
+    except: EntityExists
+    flags: None
+    msg: "Entity exist"
+
 ArgumentMissed
     except: ArgumentMissed
     flags: None
@@ -148,10 +153,40 @@ TooMany
     flags: None
     msg: "Too many"
 
+TooLong
+    except: TooLong
+    flags: None
+    msg: "Too long"
+
+Timeout
+    except: Timeout
+    flags: None
+    msg: "Timeout"
+
 NotReady
     except: NotReady
     flags: None
-    msg: "Not Ready"
+    msg: "Not ready"
+
+BrokenPipe
+    except: BrokenPipe
+    flags: None
+    msg: "Broken pipe"
+
+ConnectionAborted
+    except: ConnectionAborted
+    flags: None
+    msg: "Connection aborted"
+
+ConnectionRefused
+    except: ConnectionRefused
+    flags: None
+    msg: "Connection refused"
+
+ConnectionReset
+    except: ConnectionReset
+    flags: None
+    msg: "Connection reset"
 
 Incompleted
     except: Incompleted

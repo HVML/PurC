@@ -139,6 +139,7 @@ enum {
     PURC_ERROR_INCOMPLETE_OBJECT,
     PURC_ERROR_NO_FREE_SLOT,
     PURC_ERROR_NOT_EXISTS,
+    PURC_ERROR_EXISTS,
     PURC_ERROR_ARGUMENT_MISSED,
     PURC_ERROR_WRONG_DATA_TYPE,
     PURC_ERROR_WRONG_STAGE,
@@ -153,9 +154,15 @@ enum {
     PURC_ERROR_NOT_READY,
     PURC_ERROR_INCOMPLETED,
     PURC_ERROR_SYSTEM_FAULT,
+    PURC_ERROR_TOO_LONG,
+    PURC_ERROR_TIMEOUT,
+    PURC_ERROR_BROKEN_PIPE,
+    PURC_ERROR_CONNECTION_ABORTED,
+    PURC_ERROR_CONNECTION_REFUSED,
+    PURC_ERROR_CONNECTION_RESET,
 
     /* XXX: change this when you append a new error code */
-    PURC_ERROR_LAST = PURC_ERROR_SYSTEM_FAULT,
+    PURC_ERROR_LAST = PURC_ERROR_CONNECTION_RESET,
 };
 
 #define PURC_ERROR_NR       (PURC_ERROR_LAST - PURC_ERROR_FIRST + 1)
@@ -468,6 +475,16 @@ purc_is_except_atom (purc_atom_t atom);
  */
 PCA_EXPORT purc_atom_t
 purc_get_except_atom_by_id (int id);
+
+/**
+ * purc_error_from_errno:
+ *
+ * @err_no: errno see <errno.h>
+ *
+ * Returns: The PURC error code
+ */
+PCA_EXPORT int
+purc_error_from_errno (int err_no);
 
 PCA_EXTERN_C_END
 

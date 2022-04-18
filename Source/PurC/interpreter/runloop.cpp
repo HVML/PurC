@@ -28,6 +28,7 @@
 
 #include "purc-runloop.h"
 #include "private/errors.h"
+#include "private/interpreter.h"
 
 #include <wtf/Threading.h>
 #include <wtf/RunLoop.h>
@@ -125,41 +126,51 @@ void purc_runloop_set_idle_func(purc_runloop_t runloop, purc_runloop_func func,
 static purc_runloop_io_event
 to_runloop_io_event(GIOCondition condition)
 {
-    switch (condition) {
-    case G_IO_IN:
-        return PCRUNLOOP_IO_IN;
-    case G_IO_OUT:
-        return PCRUNLOOP_IO_OUT;
-    case G_IO_PRI:
-        return PCRUNLOOP_IO_PRI;
-    case G_IO_ERR:
-        return PCRUNLOOP_IO_ERR;
-    case G_IO_HUP:
-        return PCRUNLOOP_IO_HUP;
-    case G_IO_NVAL:
-        return PCRUNLOOP_IO_NVAL;
+    int event = 0;;
+    if (condition & G_IO_IN) {
+        event |= PCRUNLOOP_IO_IN;
     }
-    return PCRUNLOOP_IO_NVAL;
+    if (condition & G_IO_PRI) {
+        event |= PCRUNLOOP_IO_PRI;
+    }
+    if (condition & G_IO_OUT) {
+        event |= PCRUNLOOP_IO_OUT;
+    }
+    if (condition & G_IO_ERR) {
+        event |= PCRUNLOOP_IO_ERR;
+    }
+    if (condition & G_IO_HUP) {
+        event |= PCRUNLOOP_IO_HUP;
+    }
+    if (condition & G_IO_NVAL) {
+        event |= PCRUNLOOP_IO_NVAL;
+    }
+    return (purc_runloop_io_event)event;
 }
 
 static GIOCondition
 to_gio_condition(purc_runloop_io_event event)
 {
-    switch (event) {
-    case PCRUNLOOP_IO_IN:
-        return G_IO_IN;
-    case PCRUNLOOP_IO_OUT:
-        return G_IO_OUT;
-    case PCRUNLOOP_IO_PRI:
-        return G_IO_PRI;
-    case PCRUNLOOP_IO_ERR:
-        return G_IO_ERR;
-    case PCRUNLOOP_IO_HUP:
-        return G_IO_HUP;
-    case PCRUNLOOP_IO_NVAL:
-        return G_IO_NVAL;
+    int condition = 0;
+    if (event & PCRUNLOOP_IO_IN) {
+        condition |= G_IO_IN;
     }
-    return G_IO_NVAL;
+    if (event & PCRUNLOOP_IO_PRI) {
+        condition |= G_IO_PRI;
+    }
+    if (event & PCRUNLOOP_IO_OUT) {
+        condition |= G_IO_OUT;
+    }
+    if (event & PCRUNLOOP_IO_ERR) {
+        condition |= G_IO_ERR;
+    }
+    if (event & PCRUNLOOP_IO_HUP) {
+        condition |= G_IO_HUP;
+    }
+    if (event & PCRUNLOOP_IO_NVAL) {
+        condition |= G_IO_NVAL;
+    }
+    return (GIOCondition)condition;
 }
 
 
@@ -170,9 +181,11 @@ uintptr_t purc_runloop_add_fd_monitor(purc_runloop_t runloop, int fd,
     if (!runloop) {
         runloop = purc_runloop_get_current();
     }
+
+    void *stack = pcintr_get_stack();
     return ((RunLoop*)runloop)->addFdMonitor(fd, to_gio_condition(event),
-            [callback, ctxt] (gint fd, GIOCondition condition) -> gboolean {
-            return callback(fd, to_runloop_io_event(condition), ctxt);
+            [callback, ctxt, stack] (gint fd, GIOCondition condition) -> gboolean {
+            return callback(fd, to_runloop_io_event(condition), ctxt, stack);
         });
 }
 
@@ -182,5 +195,24 @@ void purc_runloop_remove_fd_monitor(purc_runloop_t runloop, uintptr_t handle)
         runloop = purc_runloop_get_current();
     }
     ((RunLoop*)runloop)->removeFdMonitor(handle);
+}
+
+int purc_runloop_dispatch_message(purc_runloop_t runloop, purc_variant_t source,
+        purc_variant_t type, purc_variant_t sub_type, purc_variant_t extra,
+        void *stack)
+{
+    if (!runloop) {
+        runloop = purc_runloop_get_current();
+    }
+    if (!stack) {
+        stack = pcintr_get_stack();
+        return -1;
+    }
+
+    if (stack) {
+        return pcintr_dispatch_message_ex((struct pcintr_stack *)stack, source,
+                type, sub_type, extra);
+    }
+    return -1;
 }
 

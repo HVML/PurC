@@ -573,6 +573,7 @@ void pcvariant_put(purc_variant_t value)
 /* securely comparison of floating-point variables */
 static bool equal_doubles(double a, double b)
 {
+    fprintf(stderr, "############################## a=%f|b=%f\n", a, b);
     double max_val = fabs(a) > fabs(b) ? fabs(a) : fabs(b);
     return (fabs(a - b) <= max_val * DBL_EPSILON);
 }
@@ -1852,9 +1853,8 @@ bool purc_variant_unload_dvobj (purc_variant_t dvobj)
 
 #if OS(LINUX) || OS(UNIX)
     if (u64) {
-        if (dlclose((void *)u64) == 0) {
-            purc_variant_unref (dvobj);
-        } else {
+        purc_variant_unref (dvobj);
+        if (dlclose((void *)u64) != 0) {
             pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
             ret = false;
         }

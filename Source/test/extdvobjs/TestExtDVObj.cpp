@@ -1,6 +1,6 @@
 #include "purc.h"
 
-#include "TestDVObj.h"
+#include "TestExtDVObj.h"
 
 #include "../helpers.h"
 
@@ -10,10 +10,10 @@
 #include <math.h>
 #include <gtest/gtest.h>
 
-TestDVObj::TestDVObj()
+TestExtDVObj::TestExtDVObj()
 {
     int ret = purc_init_ex(PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
-            "dvobjs", NULL);
+            "extdvobjs", NULL);
 
     if (ret != PURC_ERROR_OK) {
         purc_log_error("purc_init_ex returns error (%d), please check appName and runnerName\n", ret);
@@ -25,11 +25,16 @@ TestDVObj::TestDVObj()
     m_init_stat = *stat;
 }
 
-TestDVObj::~TestDVObj()
+TestExtDVObj::~TestExtDVObj()
 {
     for (dvobj_map_t::iterator i = m_dvobjs.begin();
             i != m_dvobjs.end(); i++) {
         purc_variant_unref((*i).second);
+    }
+
+    for (dvobj_map_t::iterator i = m_extdvobjs.begin();
+            i != m_extdvobjs.end(); i++) {
+        purc_variant_unload_dvobj((*i).second);
     }
 
     const struct purc_variant_stat *stat;
@@ -44,7 +49,7 @@ TestDVObj::~TestDVObj()
     purc_cleanup();
 }
 
-purc_variant_t TestDVObj::dvobj_new(const char *name)
+purc_variant_t TestExtDVObj::dvobj_new(const char *name)
 {
     purc_variant_t dvobj = PURC_VARIANT_INVALID;
 
@@ -86,11 +91,26 @@ purc_variant_t TestDVObj::dvobj_new(const char *name)
     return dvobj;
 }
 
-purc_variant_t TestDVObj::get_dvobj(void* ctxt, const char* name)
+purc_variant_t TestExtDVObj::extdvobj_new(const char *name)
 {
     purc_variant_t dvobj = PURC_VARIANT_INVALID;
 
-    TestDVObj *p = static_cast<TestDVObj *>(ctxt);
+    if (strcmp(name, "FS") == 0) {
+        dvobj = purc_variant_load_dvobj_from_so ("FS", "FS");
+    }
+
+    if (dvobj != PURC_VARIANT_INVALID) {
+        m_extdvobjs[name] = dvobj;
+    }
+
+    return dvobj;
+}
+
+purc_variant_t TestExtDVObj::get_dvobj(void* ctxt, const char* name)
+{
+    purc_variant_t dvobj = PURC_VARIANT_INVALID;
+
+    TestExtDVObj *p = static_cast<TestExtDVObj *>(ctxt);
 
     dvobj_map_t::iterator i = p->m_dvobjs.find(name);
     if (i == p->m_dvobjs.end()) {
@@ -99,10 +119,22 @@ purc_variant_t TestDVObj::get_dvobj(void* ctxt, const char* name)
     else
         dvobj = (*i).second;
 
+    if (dvobj) {
+        return dvobj;
+    }
+
+
+    i = p->m_extdvobjs.find(name);
+    if (i == p->m_extdvobjs.end()) {
+        dvobj = p->extdvobj_new(name);
+    }
+    else
+        dvobj = (*i).second;
+
     return dvobj;
 }
 
-void TestDVObj::run_testcases(const struct dvobj_result *test_cases, size_t n)
+void TestExtDVObj::run_testcases(const struct dvobj_result *test_cases, size_t n)
 {
     for (size_t i = 0; i < n; i++) {
         struct purc_ejson_parse_tree *ptree;
@@ -113,7 +145,7 @@ void TestDVObj::run_testcases(const struct dvobj_result *test_cases, size_t n)
         ptree = purc_variant_ejson_parse_string(test_cases[i].jsonee,
                 strlen(test_cases[i].jsonee));
         result = purc_variant_ejson_parse_tree_evalute(ptree,
-                TestDVObj::get_dvobj, this, true);
+                TestExtDVObj::get_dvobj, this, true);
         purc_variant_ejson_parse_tree_destroy(ptree);
 
         /* FIXME: purc_variant_string_parse_tree_evalute should not return NULL
@@ -165,7 +197,7 @@ void TestDVObj::run_testcases(const struct dvobj_result *test_cases, size_t n)
  */
 PCA_EXPORT purc_rwstream_t
 purc_rwstream_new_for_dump (void *ctxt, pcrws_cb_write fn);
-void TestDVObj::run_testcases_in_file(const char *file_name)
+void TestExtDVObj::run_testcases_in_file(const char *file_name)
 {
     char file_path[4096 + 1];
     const char *env = "DVOBJS_TEST_PATH";
@@ -217,7 +249,7 @@ void TestDVObj::run_testcases_in_file(const char *file_name)
             purc_log_info("Evaluating: `%s`\n", exp);
             ptree = purc_variant_ejson_parse_string(exp, exp_len);
             result = purc_variant_ejson_parse_tree_evalute(ptree,
-                    TestDVObj::get_dvobj, this, true);
+                    TestExtDVObj::get_dvobj, this, true);
             purc_variant_ejson_parse_tree_destroy(ptree);
 
             // read exception name
@@ -286,7 +318,7 @@ void TestDVObj::run_testcases_in_file(const char *file_name)
             purc_log_info("Evaluting: `%s`\n", exp);
             ptree = purc_variant_ejson_parse_string(exp, exp_len);
             result = purc_variant_ejson_parse_tree_evalute(ptree,
-                    TestDVObj::get_dvobj, this, true);
+                    TestExtDVObj::get_dvobj, this, true);
             purc_variant_ejson_parse_tree_destroy(ptree);
 
             // read expected result
@@ -305,6 +337,8 @@ void TestDVObj::run_testcases_in_file(const char *file_name)
             purc_variant_ejson_parse_tree_destroy(ptree);
 
             bool check = purc_variant_is_equal_to(result, expected);
+            purc_log_info("result=%s\n", purc_variant_typename(purc_variant_get_type(result)));
+            purc_log_info("expected=%s\n", purc_variant_typename(purc_variant_get_type(expected)));
             if (!check) {
                 char buf[4096];
                 purc_rwstream_t stm;

@@ -959,9 +959,9 @@ unlink_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     if (S_ISREG(filestat.st_mode)) {
         if (unlink (filename) == 0)
-            ret_var = purc_variant_make_boolean (false);
-        else
             ret_var = purc_variant_make_boolean (true);
+        else
+            ret_var = purc_variant_make_boolean (false);
     }
     else
         ret_var = purc_variant_make_boolean (false);

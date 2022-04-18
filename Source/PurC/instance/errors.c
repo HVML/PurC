@@ -33,6 +33,7 @@
 #include "private/interpreter.h" // FIXME:
 
 #include <stdarg.h>
+#include <errno.h>
 
 #ifndef NDEBUG                     /* { */
 #if OS(LINUX)                      /* { */
@@ -145,7 +146,7 @@ set_error_exinfo_with_debug(int errcode, purc_variant_t exinfo,
         const char *file, int line, const char *func)
 {
 #ifndef NDEBUG                     /* { */
-    if (0 && errcode) {
+    if (1 && errcode) {
         PC_DEBUGX("%s[%d]:%s(): %d",
                 pcutils_basename((char*)file), line, func, errcode);
         if (exinfo != PURC_VARIANT_INVALID)
@@ -431,3 +432,225 @@ pcdebug_backtrace_dump(struct pcdebug_backtrace *bt)
 #endif                             /* } */
 }
 
+int
+purc_error_from_errno (int err_no)
+{
+    UNUSED_PARAM(err_no);
+    switch (err_no)
+    {
+    case 0:
+        return PURC_ERROR_OK;
+        break;
+
+#ifdef EEXIST
+    case EEXIST:
+        return PURC_ERROR_EXISTS;
+        break;
+#endif
+
+#ifdef EISDIR
+    case EISDIR:
+        return PCRWSTREAM_ERROR_IS_DIR;
+        break;
+#endif
+
+#ifdef EACCES
+    case EACCES:
+        return PURC_ERROR_ACCESS_DENIED;
+        break;
+#endif
+
+
+#ifdef ENAMETOOLONG
+    case ENAMETOOLONG:
+        return PURC_ERROR_TOO_LONG;
+        break;
+#endif
+
+#ifdef ENOENT
+    case ENOENT:
+        return PURC_ERROR_NOT_EXISTS;
+        break;
+#endif
+
+#ifdef ENOTDIR
+    case ENOTDIR:
+        return PURC_ERROR_NOT_DESIRED_ENTITY;
+        break;
+#endif
+
+#ifdef EROFS
+    case EROFS:
+        return PURC_ERROR_ACCESS_DENIED;
+        break;
+#endif
+
+#ifdef ELOOP
+    case ELOOP:
+        return PURC_ERROR_TOO_MANY;
+        break;
+#endif
+
+#ifdef ENOSPC
+    case ENOSPC:
+        return PCRWSTREAM_ERROR_NO_SPACE;
+        break;
+#endif
+
+#ifdef ENOMEM
+    case ENOMEM:
+        return PCRWSTREAM_ERROR_NO_SPACE;
+        break;
+#endif
+
+#ifdef EINVAL
+    case EINVAL:
+        return PURC_ERROR_INVALID_VALUE;
+        break;
+#endif
+
+#ifdef EPERM
+    case EPERM:
+        return PURC_ERROR_ACCESS_DENIED;
+        break;
+#endif
+
+#ifdef ENOTSUP
+    case ENOTSUP:
+        return PURC_ERROR_NOT_SUPPORTED;
+        break;
+#endif
+
+    /* EOPNOTSUPP == ENOTSUP on Linux, but POSIX considers them distinct */
+#if defined (EOPNOTSUPP) && (!defined (ENOTSUP) || (EOPNOTSUPP != ENOTSUP))
+    case EOPNOTSUPP:
+        return PURC_ERROR_NOT_SUPPORTED;
+        break;
+#endif
+
+#ifdef EPROTONOSUPPORT
+    case EPROTONOSUPPORT:
+        return PURC_ERROR_NOT_SUPPORTED;
+        break;
+#endif
+
+#ifdef ESOCKTNOSUPPORT
+    case ESOCKTNOSUPPORT:
+        return PURC_ERROR_NOT_SUPPORTED;
+        break;
+#endif
+
+#ifdef EPFNOSUPPORT
+    case EPFNOSUPPORT:
+        return PURC_ERROR_NOT_SUPPORTED;
+        break;
+#endif
+
+#ifdef EAFNOSUPPORT
+    case EAFNOSUPPORT:
+        return PURC_ERROR_NOT_SUPPORTED;
+        break;
+#endif
+
+#ifdef ETIMEDOUT
+    case ETIMEDOUT:
+        return PURC_ERROR_TIMEOUT;
+        break;
+#endif
+
+#ifdef EBUSY
+    case EBUSY:
+        return PURC_ERROR_NOT_READY;
+        break;
+#endif
+
+#ifdef EWOULDBLOCK
+    case EWOULDBLOCK:
+        return PCRWSTREAM_ERROR_IO;
+        break;
+#endif
+
+/* EWOULDBLOCK == EAGAIN on most systems, but POSIX considers them distinct */
+#if defined (EAGAIN) && (!defined (EWOULDBLOCK) || (EWOULDBLOCK != EAGAIN))
+    case EAGAIN:
+        return PCRWSTREAM_ERROR_IO;
+        break;
+#endif
+
+#ifdef EMFILE
+    case EMFILE:
+        return PURC_ERROR_TOO_MANY;
+        break;
+#endif
+
+#ifdef EHOSTUNREACH
+    case EHOSTUNREACH:
+        return PURC_ERROR_CONNECTION_REFUSED;
+        break;
+#endif
+
+#ifdef ENETUNREACH
+    case ENETUNREACH:
+        return PURC_ERROR_CONNECTION_REFUSED;
+        break;
+#endif
+
+#ifdef ECONNREFUSED
+    case ECONNREFUSED:
+        return PURC_ERROR_CONNECTION_REFUSED;
+        break;
+#endif
+
+#ifdef EPIPE
+    case EPIPE:
+        return PURC_ERROR_BROKEN_PIPE;
+        break;
+#endif
+
+#ifdef ECONNRESET
+    case ECONNRESET:
+        return PURC_ERROR_CONNECTION_RESET;
+        break;
+#endif
+
+#ifdef ENOTCONN
+    case ENOTCONN:
+        return PURC_ERROR_NOT_READY;
+        break;
+#endif
+
+#ifdef EMSGSIZE
+    case EMSGSIZE:
+        return PURC_ERROR_TOO_LARGE_ENTITY;
+        break;
+#endif
+
+#ifdef ESPIPE
+    case ESPIPE:
+        return PURC_ERROR_NOT_SUPPORTED;
+        break;
+#endif
+
+#ifdef EOVERFLOW
+    case EOVERFLOW:
+        return PURC_ERROR_TOO_LARGE_ENTITY;
+        break;
+#endif
+
+#ifdef EFBIG
+    case EFBIG:
+        return PURC_ERROR_TOO_LARGE_ENTITY;
+        break;
+#endif
+
+#ifdef EDQUOT
+    case EDQUOT:
+        return PCRWSTREAM_ERROR_NO_SPACE;
+        break;
+#endif
+
+    default:
+        return PURC_ERROR_BAD_SYSTEM_CALL;
+    }
+    return PURC_ERROR_OK;
+}
