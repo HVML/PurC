@@ -34,11 +34,11 @@ positive:
     12UL
 
 positive:
-    $STREAM.readbytes($STREAM.open('file:///tmp/test_stream_bytes', 'read'), 10)
+    $STREAM.open('file:///tmp/test_stream_bytes', 'read').readbytes(10)
     bx77726974652073747269
 
 positive:
-    $STREAM.readbytes($STREAM.open('file:///tmp/test_stream_bytes', 'read'), 100)
+    $STREAM.open('file:///tmp/test_stream_bytes', 'read').readbytes(100)
     bx777269746520737472696e67
 
 positive:
