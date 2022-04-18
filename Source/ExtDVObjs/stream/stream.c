@@ -659,6 +659,7 @@ writebytes_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     struct pcdvobjs_stream *stream;
     purc_rwstream_t rwstream = NULL;
+    purc_variant_t data;
 
     if (native_entity == NULL) {
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
@@ -676,10 +677,11 @@ writebytes_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
         purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
         goto out;
     }
+    data = argv[0];
 
-    if (argv[0] == PURC_VARIANT_INVALID ||
-            (!purc_variant_is_bsequence(argv[0]) &&
-             !purc_variant_is_string(argv[0]))
+    if (data == PURC_VARIANT_INVALID ||
+            (!purc_variant_is_bsequence(data) &&
+             !purc_variant_is_string(data))
             ) {
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
         goto out;
@@ -687,11 +689,11 @@ writebytes_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
 
     size_t bsize = 0;
     const unsigned char *buffer = NULL;
-    if (purc_variant_is_bsequence(argv[0])) {
-        buffer = purc_variant_get_bytes_const (argv[0], &bsize);
+    if (purc_variant_is_bsequence(data)) {
+        buffer = purc_variant_get_bytes_const (data, &bsize);
     }
     else {
-        buffer = (const unsigned char *)purc_variant_get_string_const(argv[0]);
+        buffer = (const unsigned char *)purc_variant_get_string_const(data);
         bsize = strlen((const char*)buffer);
     }
     if (buffer && bsize) {
@@ -731,7 +733,6 @@ seek_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
         goto out;
     }
 
-
     if (nr_args < 1) {
         purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
         goto out;
@@ -743,6 +744,12 @@ seek_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
             goto out;
         }
         option = purc_variant_get_string_const(argv[1]);
+    }
+
+    if (argv[0] != PURC_VARIANT_INVALID &&
+            !purc_variant_cast_to_longint(argv[0], &byte_num, false)) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto out;
     }
 
     purc_atom_t atom = purc_atom_try_string_ex(STREAM_ATOM_BUCKET, option);
@@ -759,10 +766,6 @@ seek_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
     }
     else if (atom == keywords2atoms[K_KW_end].atom) {
         whence = SEEK_END;
-    }
-
-    if (argv[0] != PURC_VARIANT_INVALID) {
-        purc_variant_cast_to_longint(argv[0], &byte_num, false);
     }
 
     off = purc_rwstream_seek(rwstream, byte_num, (int)whence);
