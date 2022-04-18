@@ -80,6 +80,9 @@ purc_variant_t TestExtDVObj::dvobj_new(const char *name)
     else if (strcmp(name, "URL") == 0) {
         dvobj = purc_dvobj_url_new();
     }
+    else if (strcmp(name, "STREAM") == 0) {
+        dvobj = purc_dvobj_stream_new();
+    }
 
     if (dvobj != PURC_VARIANT_INVALID) {
         m_dvobjs[name] = dvobj;
@@ -91,10 +94,6 @@ purc_variant_t TestExtDVObj::dvobj_new(const char *name)
 purc_variant_t TestExtDVObj::extdvobj_new(const char *name)
 {
     purc_variant_t dvobj = PURC_VARIANT_INVALID;
-
-    if (strcmp(name, "STREAM") == 0) {
-        dvobj = purc_variant_load_dvobj_from_so ("STREAM", "STREAM");
-    }
 
     if (strcmp(name, "FS") == 0) {
         dvobj = purc_variant_load_dvobj_from_so ("FS", "FS");
