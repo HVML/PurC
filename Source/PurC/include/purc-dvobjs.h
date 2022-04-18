@@ -125,6 +125,10 @@ purc_dvobj_string_new(void);
 PCA_EXPORT purc_variant_t
 purc_dvobj_url_new(void);
 
+/** Make a dynamic variant object for built-in `$STREAM` variable. */
+PCA_EXPORT purc_variant_t
+purc_dvobj_stream_new(void);
+
 /** Parse format string and return the format identifier and quantity.
   * Return -1 on error. Quantity will be 0 if not specified. */
 PCA_EXPORT int

@@ -35,10 +35,6 @@
 #include <fcntl.h>
 #include <errno.h>
 
-#define DVOBJ_STREAM_NAME           "STREAM"
-#define DVOBJ_STREAM_DESC           "For io stream operations in PURC"
-#define DVOBJ_STREAM_VERSION        0
-
 #define BUFFER_SIZE                 1024
 
 #define ENDIAN_PLATFORM             0
@@ -1388,7 +1384,7 @@ out:
     return false;
 }
 
-purc_variant_t pcdvobjs_create_stream(void)
+purc_variant_t purc_dvobj_stream_new(void)
 {
     static struct purc_dvobj_method  stream[] = {
         {"open",        stream_open_getter,        NULL},
@@ -1416,32 +1412,4 @@ purc_variant_t pcdvobjs_create_stream(void)
     return PURC_VARIANT_INVALID;
 }
 
-purc_variant_t __purcex_load_dynamic_variant(const char *name, int *ver_code)
-{
-    UNUSED_PARAM(name);
-    *ver_code = DVOBJ_STREAM_VERSION;
-
-    return pcdvobjs_create_stream();
-}
-
-size_t __purcex_get_number_of_dynamic_variants(void)
-{
-    return 1;
-}
-
-const char * __purcex_get_dynamic_variant_name(size_t idx)
-{
-    if (idx != 0)
-        return NULL;
-
-    return DVOBJ_STREAM_NAME;
-}
-
-const char * __purcex_get_dynamic_variant_desc(size_t idx)
-{
-    if (idx != 0)
-        return NULL;
-
-    return DVOBJ_STREAM_DESC;
-}
 

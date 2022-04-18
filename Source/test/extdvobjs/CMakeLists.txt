@@ -97,38 +97,6 @@ PURC_COMPUTE_SOURCES(test_extdvobjs_file)
 PURC_FRAMEWORK(test_extdvobjs_file)
 GTEST_DISCOVER_TESTS(test_extdvobjs_file DISCOVERY_TIMEOUT 10)
 
-# test_extdvobjs_stream
-PURC_EXECUTABLE_DECLARE(test_extdvobjs_stream)
-
-list(APPEND test_extdvobjs_stream_PRIVATE_INCLUDE_DIRECTORIES
-    ${PURC_DIR}/include
-    ${PurC_DERIVED_SOURCES_DIR}
-    ${PURC_DIR}
-    ${CMAKE_BINARY_DIR}
-    ${WTF_DIR}
-)
-
-PURC_EXECUTABLE(test_extdvobjs_stream)
-
-target_compile_definitions(test_extdvobjs_stream PRIVATE SOPATH="${CMAKE_BINARY_DIR}/Source/ExtDVObjs/fs")
-
-set(test_extdvobjs_stream_SOURCES
-    test_extdvobjs_stream.cpp
-    helper.cpp
-    TestExtDVObj.cpp
-)
-
-set(test_extdvobjs_stream_LIBRARIES
-    PurC::PurC
-    gtest_main
-    gtest
-    pthread
-)
-
-PURC_COMPUTE_SOURCES(test_extdvobjs_stream)
-PURC_FRAMEWORK(test_extdvobjs_stream)
-GTEST_DISCOVER_TESTS(test_extdvobjs_stream DISCOVERY_TIMEOUT 10)
-
 # test_stream_observe_readable
 PURC_EXECUTABLE_DECLARE(test_stream_observe_readable)
 

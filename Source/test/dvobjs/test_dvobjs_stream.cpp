@@ -1,7 +1,7 @@
 #include "config.h"
 #include "purc.h"
 
-#include "TestExtDVObj.h"
+#include "TestDVObj.h"
 #include "../helpers.h"
 
 #include <stdio.h>
@@ -11,7 +11,7 @@
 
 TEST(dvobjs, stream)
 {
-    TestExtDVObj tester;
+    TestDVObj tester;
     tester.run_testcases_in_file("stream");
 }
 

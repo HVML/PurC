@@ -4,5 +4,4 @@ include(PurCCommon)
 
 add_subdirectory(fs)
 add_subdirectory(math)
-add_subdirectory(stream)
 
