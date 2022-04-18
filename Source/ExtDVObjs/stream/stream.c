@@ -686,7 +686,7 @@ writebytes_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
     }
     else {
         buffer = (const unsigned char *)purc_variant_get_string_const(data);
-        bsize = strlen((const char*)buffer);
+        bsize = strlen((const char*)buffer) + 1;
     }
     if (buffer && bsize) {
         ssize_t nr_write = purc_rwstream_write (rwstream, buffer, bsize);
