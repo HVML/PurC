@@ -96,6 +96,22 @@ enum {
     K_KW_ws,
 #define _KW_wss                     "wss"
     K_KW_wss,
+#define _KW_readstruct              "readstruct"
+    K_KW_readstruct,
+#define _KW_writestruct             "writestruct"
+    K_KW_writestruct,
+#define _KW_readlines              "readlines"
+    K_KW_readlines,
+#define _KW_writelines             "writelines"
+    K_KW_writelines,
+#define _KW_readbytes               "readbytes"
+    K_KW_readbytes,
+#define _KW_writebytes              "writebytes"
+    K_KW_writebytes,
+#define _KW_seek                    "seek"
+    K_KW_seek,
+#define _KW_close                   "close"
+    K_KW_close,
 };
 
 static struct keyword_to_atom {
@@ -567,6 +583,94 @@ stream_io_callback(int fd, purc_runloop_io_event event, void *ctxt, void *stack)
     return true;
 }
 
+static purc_variant_t
+readstruct_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
+                bool silently)
+{
+    UNUSED_PARAM(native_entity);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(silently);
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+writestruct_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
+                bool silently)
+{
+    UNUSED_PARAM(native_entity);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(silently);
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+readlines_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
+                bool silently)
+{
+    UNUSED_PARAM(native_entity);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(silently);
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+writelines_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
+                bool silently)
+{
+    UNUSED_PARAM(native_entity);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(silently);
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+readbytes_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
+                bool silently)
+{
+    UNUSED_PARAM(native_entity);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(silently);
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+writebytes_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
+                bool silently)
+{
+    UNUSED_PARAM(native_entity);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(silently);
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+seek_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
+                bool silently)
+{
+    UNUSED_PARAM(native_entity);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(silently);
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+close_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
+                bool silently)
+{
+    UNUSED_PARAM(native_entity);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(silently);
+    return PURC_VARIANT_INVALID;
+}
+
 // stream native variant
 static bool
 on_observe(void *native_entity, const char *event_name,
@@ -619,6 +723,43 @@ static void
 on_release(void *native_entity)
 {
     dvobjs_stream_destroy((struct pcdvobjs_stream *)native_entity);
+}
+
+
+static purc_nvariant_method
+property_getter(const char *name)
+{
+    purc_atom_t atom = purc_atom_try_string_ex(STREAM_ATOM_BUCKET, name);
+    if (atom == 0) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        return NULL;
+    }
+
+    if (atom == keywords2atoms[K_KW_readstruct].atom) {
+        return readstruct_getter;
+    }
+    else if (atom == keywords2atoms[K_KW_writestruct].atom) {
+        return writestruct_getter;
+    }
+    else if (atom == keywords2atoms[K_KW_readlines].atom) {
+        return readlines_getter;
+    }
+    else if (atom == keywords2atoms[K_KW_writelines].atom) {
+        return writelines_getter;
+    }
+    else if (atom == keywords2atoms[K_KW_readbytes].atom) {
+        return readbytes_getter;
+    }
+    else if (atom == keywords2atoms[K_KW_writebytes].atom) {
+        return writebytes_getter;
+    }
+    else if (atom == keywords2atoms[K_KW_seek].atom) {
+        return seek_getter;
+    }
+    else if (atom == keywords2atoms[K_KW_close].atom) {
+        return close_getter;
+    }
+    return NULL;
 }
 
 purc_rwstream_t get_rwstream_from_variant(purc_variant_t v)
@@ -753,6 +894,7 @@ stream_open_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     // setup a callback for `on_release` to destroy the stream automatically
     static const struct purc_native_ops ops = {
+        .property_getter = property_getter,
         .on_observe = on_observe,
         .on_forget = on_forget,
         .on_release = on_release,
@@ -1365,6 +1507,7 @@ out:
 bool add_stdio_property(purc_variant_t v)
 {
     static const struct purc_native_ops ops = {
+        .property_getter = property_getter,
         .on_observe = on_observe,
         .on_forget = on_forget,
         .on_release = on_release,
