@@ -255,342 +255,6 @@ void dvobjs_stream_destroy(struct pcdvobjs_stream *stream)
     free(stream);
 }
 
-static
-bool is_file_exists(const char* file)
-{
-    struct stat filestat;
-    return (0 == stat(file, &filestat));
-}
-
-static
-struct pcdvobjs_stream *create_file_std_stream(enum pcdvobjs_stream_type type)
-{
-    int fd = -1;
-    switch (type) {
-    case STREAM_TYPE_FILE_STDIN:
-        fd = dup(STDIN_FILENO);
-        break;
-
-    case STREAM_TYPE_FILE_STDOUT:
-        fd = dup(STDOUT_FILENO);
-        break;
-
-    case STREAM_TYPE_FILE_STDERR:
-        fd = dup(STDERR_FILENO);
-        break;
-
-    default:
-        return NULL;
-    }
-
-    struct pcdvobjs_stream* stream = dvobjs_stream_create(type,
-            NULL, PURC_VARIANT_INVALID);
-    if (!stream) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        goto out;
-    }
-
-    stream->rws = purc_rwstream_new_from_unix_fd(fd);
-    if (stream->rws == NULL) {
-        goto out_free_stream;
-    }
-    stream->fd = fd;
-
-    return stream;
-
-out_free_stream:
-    dvobjs_stream_destroy(stream);
-
-out:
-    close(fd);
-    return NULL;
-}
-
-static inline
-struct pcdvobjs_stream *create_file_stdin_stream()
-{
-    return create_file_std_stream(STREAM_TYPE_FILE_STDIN);
-}
-
-static inline
-struct pcdvobjs_stream *create_file_stdout_stream()
-{
-    return create_file_std_stream(STREAM_TYPE_FILE_STDOUT);
-}
-
-static inline
-struct pcdvobjs_stream *create_file_stderr_stream()
-{
-    return create_file_std_stream(STREAM_TYPE_FILE_STDERR);
-}
-
-#define READ_FLAG       0x01
-#define WRITE_FLAG      0x02
-
-int parse_option(purc_variant_t option)
-{
-    purc_atom_t atom = 0;
-    size_t parts_len;
-    const char *parts;
-    int rw = 0;
-    int flags = 0;
-
-    if (option == PURC_VARIANT_INVALID) {
-        atom = keywords2atoms[K_KW_default].atom;
-    }
-    else {
-        parts = purc_variant_get_string_const_ex(option, &parts_len);
-        if (parts == NULL) {
-            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-            goto out;
-        }
-
-        parts = pcutils_trim_spaces(parts, &parts_len);
-        if (parts_len == 0) {
-            atom = keywords2atoms[K_KW_default].atom;
-        }
-    }
-
-    if (atom == 0) {
-        char *tmp = strndup(parts, parts_len);
-        atom = purc_atom_try_string_ex(STREAM_ATOM_BUCKET, tmp);
-        free(tmp);
-    }
-
-    if (atom == keywords2atoms[K_KW_default].atom) {
-        rw = READ_FLAG | WRITE_FLAG;
-    }
-    else {
-        size_t length = 0;
-        const char *part = pcutils_get_next_token_len(parts, parts_len,
-                _KW_DELIMITERS, &length);
-        do {
-            if (length == 0 || length > MAX_LEN_KEYWORD) {
-                atom = keywords2atoms[K_KW_read].atom;
-            }
-            else {
-                char tmp[length + 1];
-                strncpy(tmp, part, length);
-                tmp[length]= '\0';
-                atom = purc_atom_try_string_ex(STREAM_ATOM_BUCKET, tmp);
-            }
-
-            if (atom == keywords2atoms[K_KW_read].atom) {
-                rw |= READ_FLAG;
-            }
-            else if (atom == keywords2atoms[K_KW_write].atom) {
-                rw |= WRITE_FLAG;
-            }
-            else if (atom == keywords2atoms[K_KW_nonblock].atom) {
-                flags |= O_NONBLOCK;
-            }
-            else if (atom == keywords2atoms[K_KW_append].atom) {
-                flags |= O_APPEND;
-            }
-            else if (atom == keywords2atoms[K_KW_create].atom) {
-                flags |= O_CREAT;
-            }
-            else if (atom == keywords2atoms[K_KW_truncate].atom) {
-                flags |= O_TRUNC;
-            }
-
-            if (parts_len <= length)
-                break;
-
-            parts_len -= length;
-            part = pcutils_get_next_token_len(part + length, parts_len,
-                    _KW_DELIMITERS, &length);
-        } while (part);
-    }
-
-    switch (rw) {
-    case 1:
-        flags |= O_RDONLY;
-        break;
-    case 2:
-        flags |= O_WRONLY;
-        break;
-    case 3:
-        flags |= O_RDWR;
-        break;
-    }
-
-    return flags;
-
-out:
-    return -1;
-}
-
-static
-struct pcdvobjs_stream *create_file_stream(struct purc_broken_down_url *url,
-        purc_variant_t option)
-{
-    int flags = parse_option(option);
-    if (flags == -1) {
-        return NULL;
-    }
-
-    int fd = 0;
-    if (flags & O_CREAT) {
-        fd = open(url->path, flags, FILE_DEFAULT_MODE);
-    }
-    else {
-        fd = open(url->path, flags);
-    }
-
-    if (fd == -1) {
-        purc_set_error(purc_error_from_errno(errno));
-        return NULL;
-    }
-
-    struct pcdvobjs_stream* stream = dvobjs_stream_create(STREAM_TYPE_FILE,
-            url, option);
-    if (!stream) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        goto out;
-    }
-
-    stream->rws = purc_rwstream_new_from_unix_fd(fd);
-    if (stream->rws == NULL) {
-        goto out_free_stream;
-    }
-    stream->fd = fd;
-
-    return stream;
-
-out_free_stream:
-    dvobjs_stream_destroy(stream);
-
-out:
-    close(fd);
-    return NULL;
-}
-
-static
-struct pcdvobjs_stream *create_pipe_stream(struct purc_broken_down_url *url,
-        purc_variant_t option)
-{
-    UNUSED_PARAM(url);
-    UNUSED_PARAM(option);
-
-    int flags = parse_option(option);
-    if (flags == -1) {
-        return NULL;
-    }
-
-    if (!is_file_exists(url->path) && (flags & O_CREAT)) {
-         int ret = mkfifo(url->path, PIPO_DEFAULT_MODE);
-         if (ret != 0) {
-             purc_set_error(purc_error_from_errno(errno));
-             return NULL;
-         }
-    }
-
-    int fd = open(url->path, flags);
-    if (fd == -1) {
-        purc_set_error(purc_error_from_errno(errno));
-        return NULL;
-    }
-
-    struct pcdvobjs_stream* stream = dvobjs_stream_create(STREAM_TYPE_PIPE,
-            url, option);
-    if (!stream) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        goto out_close_fd;
-    }
-
-    stream->rws = purc_rwstream_new_from_unix_fd(fd);
-    if (stream->rws == NULL) {
-        goto out_free_stream;
-    }
-    stream->fd = fd;
-
-    return stream;
-
-out_free_stream:
-    dvobjs_stream_destroy(stream);
-
-out_close_fd:
-    close(fd);
-
-    return NULL;
-}
-
-static
-struct pcdvobjs_stream *create_unix_sock_stream(struct purc_broken_down_url *url,
-        purc_variant_t option)
-{
-    UNUSED_PARAM(option);
-
-    if (!is_file_exists(url->path)) {
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
-        return NULL;
-    }
-    int fd = 0;
-    if ((fd = socket (AF_UNIX, SOCK_STREAM, 0)) < 0) {
-        purc_set_error(PCRDR_ERROR_IO);
-        return NULL;
-    }
-
-    struct sockaddr_un unix_addr;
-    memset (&unix_addr, 0, sizeof(unix_addr));
-    unix_addr.sun_family = AF_UNIX;
-    strcpy(unix_addr.sun_path, url->path);
-    int len = sizeof (unix_addr.sun_family) + strlen (unix_addr.sun_path);
-    if (connect(fd, (struct sockaddr *) &unix_addr, len) < 0) {
-        goto out_close_fd;
-    }
-
-    struct pcdvobjs_stream* stream = dvobjs_stream_create(STREAM_TYPE_UNIX_SOCK,
-            url, option);
-    if (!stream) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        goto out_close_fd;
-    }
-
-    stream->rws = purc_rwstream_new_from_unix_fd(fd);
-    if (stream->rws == NULL) {
-        goto out_free_stream;
-    }
-    stream->fd = fd;
-
-    return stream;
-
-out_free_stream:
-    dvobjs_stream_destroy(stream);
-
-out_close_fd:
-    close (fd);
-
-    return NULL;
-}
-
-static bool
-stream_io_callback(int fd, purc_runloop_io_event event, void *ctxt, void *stack)
-{
-    UNUSED_PARAM(fd);
-    // dispatch event
-    struct pcdvobjs_stream *stream = (struct pcdvobjs_stream*) ctxt;
-    const char* sub = NULL;
-    if (event & PCRUNLOOP_IO_IN) {
-        sub = STREAM_SUB_EVENT_READ;
-    }
-    else if (event & PCRUNLOOP_IO_OUT) {
-        sub = STREAM_SUB_EVENT_WRITE;
-    }
-    if (sub) {
-        purc_variant_t type = purc_variant_make_string(STREAM_EVENT_NAME, false);
-        purc_variant_t sub_type = purc_variant_make_string(sub, false);
-
-        purc_runloop_dispatch_message(purc_runloop_get_current(),
-                stream->observed, type, sub_type, PURC_VARIANT_INVALID, stack);
-
-        purc_variant_unref(type);
-        purc_variant_unref(sub_type);
-    }
-    return true;
-}
-
 static inline
 struct pcdvobjs_stream *get_stream(void *native_entity)
 {
@@ -727,8 +391,54 @@ out:
     return PURC_VARIANT_INVALID;
 }
 
+#define LINE_FLAG           "\n"
 static int read_lines(purc_rwstream_t stream, int line_num,
-        purc_variant_t array);
+        purc_variant_t array)
+{
+    unsigned char buffer[BUFFER_SIZE];
+    ssize_t read_size = 0;
+    size_t length = 0;
+    const char *head = NULL;
+    const char *end = NULL;
+
+    while (line_num) {
+        read_size = purc_rwstream_read(stream, buffer, BUFFER_SIZE);
+        if (read_size < 0)
+            break;
+
+        end = (const char*)(buffer + read_size);
+
+        head = pcutils_get_next_token_len((const char*)buffer, read_size,
+                LINE_FLAG, &length);
+        while (head && head < end) {
+            purc_variant_t var = purc_variant_make_string_ex(head, length,
+                    false);
+            if (!var) {
+                return -1;
+            }
+            if (!purc_variant_array_append(array, var)) {
+                purc_variant_unref(var);
+                return -1;
+            }
+            purc_variant_unref(var);
+            line_num --;
+
+            if (line_num == 0)
+                break;
+
+            head = pcutils_get_next_token_len(head + length, read_size - length,
+                LINE_FLAG, &length);
+        }
+        if (read_size < BUFFER_SIZE)           // to the end
+            break;
+
+        if (line_num == 0)
+            break;
+    }
+
+    return 0;
+}
+
 static purc_variant_t
 readlines_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
                 bool silently)
@@ -1075,7 +785,33 @@ close_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
     return PURC_VARIANT_INVALID;
 }
 
-// stream native variant
+static bool
+stream_io_callback(int fd, purc_runloop_io_event event, void *ctxt, void *stack)
+{
+    UNUSED_PARAM(fd);
+    // dispatch event
+    struct pcdvobjs_stream *stream = (struct pcdvobjs_stream*) ctxt;
+    const char* sub = NULL;
+    if (event & PCRUNLOOP_IO_IN) {
+        sub = STREAM_SUB_EVENT_READ;
+    }
+    else if (event & PCRUNLOOP_IO_OUT) {
+        sub = STREAM_SUB_EVENT_WRITE;
+    }
+    if (sub) {
+        purc_variant_t type = purc_variant_make_string(STREAM_EVENT_NAME, false);
+        purc_variant_t sub_type = purc_variant_make_string(sub, false);
+
+        purc_runloop_dispatch_message(purc_runloop_get_current(),
+                stream->observed, type, sub_type, PURC_VARIANT_INVALID, stack);
+
+        purc_variant_unref(type);
+        purc_variant_unref(sub_type);
+    }
+    return true;
+}
+
+
 static bool
 on_observe(void *native_entity, const char *event_name,
         const char *event_subname)
@@ -1165,52 +901,315 @@ property_getter(const char *name)
     return NULL;
 }
 
-#define LINE_FLAG           "\n"
-static int read_lines(purc_rwstream_t stream, int line_num,
-        purc_variant_t array)
+static
+struct pcdvobjs_stream *create_file_std_stream(enum pcdvobjs_stream_type type)
 {
-    unsigned char buffer[BUFFER_SIZE];
-    ssize_t read_size = 0;
-    size_t length = 0;
-    const char *head = NULL;
-    const char *end = NULL;
+    int fd = -1;
+    switch (type) {
+    case STREAM_TYPE_FILE_STDIN:
+        fd = dup(STDIN_FILENO);
+        break;
 
-    while (line_num) {
-        read_size = purc_rwstream_read(stream, buffer, BUFFER_SIZE);
-        if (read_size < 0)
-            break;
+    case STREAM_TYPE_FILE_STDOUT:
+        fd = dup(STDOUT_FILENO);
+        break;
 
-        end = (const char*)(buffer + read_size);
+    case STREAM_TYPE_FILE_STDERR:
+        fd = dup(STDERR_FILENO);
+        break;
 
-        head = pcutils_get_next_token_len((const char*)buffer, read_size,
-                LINE_FLAG, &length);
-        while (head && head < end) {
-            purc_variant_t var = purc_variant_make_string_ex(head, length,
-                    false);
-            if (!var) {
-                return -1;
-            }
-            if (!purc_variant_array_append(array, var)) {
-                purc_variant_unref(var);
-                return -1;
-            }
-            purc_variant_unref(var);
-            line_num --;
-
-            if (line_num == 0)
-                break;
-
-            head = pcutils_get_next_token_len(head + length, read_size - length,
-                LINE_FLAG, &length);
-        }
-        if (read_size < BUFFER_SIZE)           // to the end
-            break;
-
-        if (line_num == 0)
-            break;
+    default:
+        return NULL;
     }
 
-    return 0;
+    struct pcdvobjs_stream* stream = dvobjs_stream_create(type,
+            NULL, PURC_VARIANT_INVALID);
+    if (!stream) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto out;
+    }
+
+    stream->rws = purc_rwstream_new_from_unix_fd(fd);
+    if (stream->rws == NULL) {
+        goto out_free_stream;
+    }
+    stream->fd = fd;
+
+    return stream;
+
+out_free_stream:
+    dvobjs_stream_destroy(stream);
+
+out:
+    close(fd);
+    return NULL;
+}
+
+static inline
+struct pcdvobjs_stream *create_file_stdin_stream()
+{
+    return create_file_std_stream(STREAM_TYPE_FILE_STDIN);
+}
+
+static inline
+struct pcdvobjs_stream *create_file_stdout_stream()
+{
+    return create_file_std_stream(STREAM_TYPE_FILE_STDOUT);
+}
+
+static inline
+struct pcdvobjs_stream *create_file_stderr_stream()
+{
+    return create_file_std_stream(STREAM_TYPE_FILE_STDERR);
+}
+
+static
+bool is_file_exists(const char* file)
+{
+    struct stat filestat;
+    return (0 == stat(file, &filestat));
+}
+
+#define READ_FLAG       0x01
+#define WRITE_FLAG      0x02
+
+static
+int parse_open_option(purc_variant_t option)
+{
+    purc_atom_t atom = 0;
+    size_t parts_len;
+    const char *parts;
+    int rw = 0;
+    int flags = 0;
+
+    if (option == PURC_VARIANT_INVALID) {
+        atom = keywords2atoms[K_KW_default].atom;
+    }
+    else {
+        parts = purc_variant_get_string_const_ex(option, &parts_len);
+        if (parts == NULL) {
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            goto out;
+        }
+
+        parts = pcutils_trim_spaces(parts, &parts_len);
+        if (parts_len == 0) {
+            atom = keywords2atoms[K_KW_default].atom;
+        }
+    }
+
+    if (atom == 0) {
+        char *tmp = strndup(parts, parts_len);
+        atom = purc_atom_try_string_ex(STREAM_ATOM_BUCKET, tmp);
+        free(tmp);
+    }
+
+    if (atom == keywords2atoms[K_KW_default].atom) {
+        rw = READ_FLAG | WRITE_FLAG;
+    }
+    else {
+        size_t length = 0;
+        const char *part = pcutils_get_next_token_len(parts, parts_len,
+                _KW_DELIMITERS, &length);
+        do {
+            if (length == 0 || length > MAX_LEN_KEYWORD) {
+                atom = keywords2atoms[K_KW_read].atom;
+            }
+            else {
+                char tmp[length + 1];
+                strncpy(tmp, part, length);
+                tmp[length]= '\0';
+                atom = purc_atom_try_string_ex(STREAM_ATOM_BUCKET, tmp);
+            }
+
+            if (atom == keywords2atoms[K_KW_read].atom) {
+                rw |= READ_FLAG;
+            }
+            else if (atom == keywords2atoms[K_KW_write].atom) {
+                rw |= WRITE_FLAG;
+            }
+            else if (atom == keywords2atoms[K_KW_nonblock].atom) {
+                flags |= O_NONBLOCK;
+            }
+            else if (atom == keywords2atoms[K_KW_append].atom) {
+                flags |= O_APPEND;
+            }
+            else if (atom == keywords2atoms[K_KW_create].atom) {
+                flags |= O_CREAT;
+            }
+            else if (atom == keywords2atoms[K_KW_truncate].atom) {
+                flags |= O_TRUNC;
+            }
+
+            if (parts_len <= length)
+                break;
+
+            parts_len -= length;
+            part = pcutils_get_next_token_len(part + length, parts_len,
+                    _KW_DELIMITERS, &length);
+        } while (part);
+    }
+
+    switch (rw) {
+    case 1:
+        flags |= O_RDONLY;
+        break;
+    case 2:
+        flags |= O_WRONLY;
+        break;
+    case 3:
+        flags |= O_RDWR;
+        break;
+    }
+
+    return flags;
+
+out:
+    return -1;
+}
+
+static
+struct pcdvobjs_stream *create_file_stream(struct purc_broken_down_url *url,
+        purc_variant_t option)
+{
+    int flags = parse_open_option(option);
+    if (flags == -1) {
+        return NULL;
+    }
+
+    int fd = 0;
+    if (flags & O_CREAT) {
+        fd = open(url->path, flags, FILE_DEFAULT_MODE);
+    }
+    else {
+        fd = open(url->path, flags);
+    }
+
+    if (fd == -1) {
+        purc_set_error(purc_error_from_errno(errno));
+        return NULL;
+    }
+
+    struct pcdvobjs_stream* stream = dvobjs_stream_create(STREAM_TYPE_FILE,
+            url, option);
+    if (!stream) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto out;
+    }
+
+    stream->rws = purc_rwstream_new_from_unix_fd(fd);
+    if (stream->rws == NULL) {
+        goto out_free_stream;
+    }
+    stream->fd = fd;
+
+    return stream;
+
+out_free_stream:
+    dvobjs_stream_destroy(stream);
+
+out:
+    close(fd);
+    return NULL;
+}
+
+static
+struct pcdvobjs_stream *create_pipe_stream(struct purc_broken_down_url *url,
+        purc_variant_t option)
+{
+    UNUSED_PARAM(url);
+    UNUSED_PARAM(option);
+
+    int flags = parse_open_option(option);
+    if (flags == -1) {
+        return NULL;
+    }
+
+    if (!is_file_exists(url->path) && (flags & O_CREAT)) {
+         int ret = mkfifo(url->path, PIPO_DEFAULT_MODE);
+         if (ret != 0) {
+             purc_set_error(purc_error_from_errno(errno));
+             return NULL;
+         }
+    }
+
+    int fd = open(url->path, flags);
+    if (fd == -1) {
+        purc_set_error(purc_error_from_errno(errno));
+        return NULL;
+    }
+
+    struct pcdvobjs_stream* stream = dvobjs_stream_create(STREAM_TYPE_PIPE,
+            url, option);
+    if (!stream) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto out_close_fd;
+    }
+
+    stream->rws = purc_rwstream_new_from_unix_fd(fd);
+    if (stream->rws == NULL) {
+        goto out_free_stream;
+    }
+    stream->fd = fd;
+
+    return stream;
+
+out_free_stream:
+    dvobjs_stream_destroy(stream);
+
+out_close_fd:
+    close(fd);
+
+    return NULL;
+}
+
+static
+struct pcdvobjs_stream *create_unix_sock_stream(struct purc_broken_down_url *url,
+        purc_variant_t option)
+{
+    UNUSED_PARAM(option);
+
+    if (!is_file_exists(url->path)) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        return NULL;
+    }
+    int fd = 0;
+    if ((fd = socket (AF_UNIX, SOCK_STREAM, 0)) < 0) {
+        purc_set_error(PCRDR_ERROR_IO);
+        return NULL;
+    }
+
+    struct sockaddr_un unix_addr;
+    memset (&unix_addr, 0, sizeof(unix_addr));
+    unix_addr.sun_family = AF_UNIX;
+    strcpy(unix_addr.sun_path, url->path);
+    int len = sizeof (unix_addr.sun_family) + strlen (unix_addr.sun_path);
+    if (connect(fd, (struct sockaddr *) &unix_addr, len) < 0) {
+        goto out_close_fd;
+    }
+
+    struct pcdvobjs_stream* stream = dvobjs_stream_create(STREAM_TYPE_UNIX_SOCK,
+            url, option);
+    if (!stream) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto out_close_fd;
+    }
+
+    stream->rws = purc_rwstream_new_from_unix_fd(fd);
+    if (stream->rws == NULL) {
+        goto out_free_stream;
+    }
+    stream->fd = fd;
+
+    return stream;
+
+out_free_stream:
+    dvobjs_stream_destroy(stream);
+
+out_close_fd:
+    close (fd);
+
+    return NULL;
 }
 
 static purc_variant_t
