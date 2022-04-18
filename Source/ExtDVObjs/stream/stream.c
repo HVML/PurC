@@ -1129,7 +1129,6 @@ on_release(void *native_entity)
     dvobjs_stream_destroy((struct pcdvobjs_stream *)native_entity);
 }
 
-
 static purc_nvariant_method
 property_getter(const char *name)
 {
@@ -1164,24 +1163,6 @@ property_getter(const char *name)
         return close_getter;
     }
     return NULL;
-}
-
-purc_rwstream_t get_rwstream_from_variant(purc_variant_t v)
-{
-    struct pcdvobjs_stream *stream = purc_variant_native_get_entity(v);
-    if (stream) {
-        return stream->rws;
-    }
-    return NULL;
-}
-
-static inline bool is_little_endian(void)
-{
-#if CPU(BIG_ENDIAN)
-    return false;
-#elif CPU(LITTLE_ENDIAN)
-    return true;
-#endif
 }
 
 #define LINE_FLAG           "\n"
@@ -1231,7 +1212,6 @@ static int read_lines(purc_rwstream_t stream, int line_num,
 
     return 0;
 }
-
 
 static purc_variant_t
 stream_open_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
@@ -1317,132 +1297,6 @@ out:
         return purc_variant_make_undefined();
 
     return PURC_VARIANT_INVALID;
-}
-
-static inline void change_order(unsigned char *buf, size_t size)
-{
-    size_t time = 0;
-    unsigned char temp = 0;
-
-    for (time = 0; time < size / 2; size ++) {
-        temp = *(buf + time);
-        *(buf + time) = *(buf + size - 1 - time);
-        *(buf + size - 1 - time) = temp;
-    }
-    return;
-}
-
-static inline void read_rwstream(purc_rwstream_t rwstream,
-                    unsigned char *buf, int type, int bytes)
-{
-    purc_rwstream_read(rwstream, buf, bytes);
-    switch (type) {
-        case ENDIAN_PLATFORM:
-            break;
-        case ENDIAN_LITTLE:
-            if (!is_little_endian())
-                change_order(buf, bytes);
-            break;
-        case ENDIAN_BIG:
-            if (is_little_endian())
-                change_order(buf, bytes);
-            break;
-    }
-}
-
-static inline void write_rwstream_int(purc_rwstream_t rwstream,
-        purc_variant_t arg, int *index, int type, int bytes, size_t *length)
-{
-    purc_variant_t val = PURC_VARIANT_INVALID;
-    int64_t i64 = 0;
-
-    val = purc_variant_array_get(arg, *index);
-    (*index)++;
-    purc_variant_cast_to_longint(val, &i64, false);
-    switch (type) {
-        case ENDIAN_PLATFORM:
-            break;
-        case ENDIAN_LITTLE:
-            if (!is_little_endian())
-                change_order((unsigned char *)&i64, sizeof(int64_t));
-            break;
-        case ENDIAN_BIG:
-            if (is_little_endian())
-                change_order((unsigned char *)&i64, sizeof(int64_t));
-            break;
-    }
-
-    if (is_little_endian())
-        purc_rwstream_write(rwstream, (char *)&i64, bytes);
-    else
-        purc_rwstream_write(rwstream,
-                (char *)&i64 + sizeof(int64_t) - bytes, bytes);
-    *length += bytes;
-}
-
-static inline unsigned short  write_double_to_16 (double d, int type)
-{
-    unsigned long long number = 0;
-    unsigned long long sign = 0;
-    unsigned long long e = 0;
-    unsigned long long base = 0;
-    unsigned short ret = 0;
-
-    memcpy(&number, &d, sizeof(double));
-
-    sign = number >> 63;
-    e = (number >> 52) & 0x7FFFF;
-    base = (number & 0xFFFFFFFFFFFFF) >> (52 - 10);
-
-    e = 15 + e - 1023;
-    e = e << 10;
-    base |= e;
-    base |= (sign << 15);
-    ret = base;
-
-    switch (type) {
-        case ENDIAN_PLATFORM:
-            break;
-        case ENDIAN_LITTLE:
-            if (!is_little_endian())
-                change_order((unsigned char *)&ret, 2);
-            break;
-        case ENDIAN_BIG:
-            if (is_little_endian())
-                change_order((unsigned char *)&ret, 2);
-            break;
-    }
-    return ret;
-}
-
-static inline void write_rwstream_uint(purc_rwstream_t rwstream,
-        purc_variant_t arg, int *index, int type, int bytes, size_t *length)
-{
-    purc_variant_t val = PURC_VARIANT_INVALID;
-    uint64_t u64 = 0;
-
-    val = purc_variant_array_get(arg, *index);
-    (*index)++;
-    purc_variant_cast_to_ulongint(val, &u64, false);
-    switch (type) {
-        case ENDIAN_PLATFORM:
-            break;
-        case ENDIAN_LITTLE:
-            if (!is_little_endian())
-                change_order((unsigned char *)&u64, sizeof(uint64_t));
-            break;
-        case ENDIAN_BIG:
-            if (is_little_endian())
-                change_order((unsigned char *)&u64, sizeof(uint64_t));
-            break;
-    }
-
-    if (is_little_endian())
-        purc_rwstream_write(rwstream, (char *)&u64, bytes);
-    else
-        purc_rwstream_write(rwstream,
-                (char *)&u64 + sizeof(uint64_t) - bytes, bytes);
-    *length += bytes;
 }
 
 bool add_stdio_property(purc_variant_t v)
