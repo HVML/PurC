@@ -50,8 +50,8 @@
 #define STDERR_NAME                 "stderr"
 
 #define STREAM_EVENT_NAME           "event"
-#define STREAM_SUB_EVENT_READ       "read"
-#define STREAM_SUB_EVENT_WRITE      "write"
+#define STREAM_SUB_EVENT_READ       "readable"
+#define STREAM_SUB_EVENT_WRITE      "writable"
 #define STREAM_SUB_EVENT_ALL        "*"
 
 #define FILE_DEFAULT_MODE           0644
