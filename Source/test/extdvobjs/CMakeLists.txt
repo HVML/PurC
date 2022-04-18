@@ -129,10 +129,10 @@ PURC_COMPUTE_SOURCES(test_extdvobjs_stream)
 PURC_FRAMEWORK(test_extdvobjs_stream)
 GTEST_DISCOVER_TESTS(test_extdvobjs_stream DISCOVERY_TIMEOUT 10)
 
-# test_stream_observe
-PURC_EXECUTABLE_DECLARE(test_stream_observe)
+# test_stream_observe_readable
+PURC_EXECUTABLE_DECLARE(test_stream_observe_readable)
 
-list(APPEND test_stream_observe_PRIVATE_INCLUDE_DIRECTORIES
+list(APPEND test_stream_observe_readable_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR}/include
     ${PurC_DERIVED_SOURCES_DIR}
     ${PURC_DIR}
@@ -140,27 +140,27 @@ list(APPEND test_stream_observe_PRIVATE_INCLUDE_DIRECTORIES
     ${WTF_DIR}
 )
 
-PURC_EXECUTABLE(test_stream_observe)
+PURC_EXECUTABLE(test_stream_observe_readable)
 
-set(test_stream_observe_SOURCES
-    test_stream_observe.cpp
+set(test_stream_observe_readable_SOURCES
+    test_stream_observe_readable.cpp
 )
 
-set(test_stream_observe_LIBRARIES
+set(test_stream_observe_readable_LIBRARIES
     PurC::PurC
     gtest_main
     gtest
     pthread
 )
 
-PURC_COMPUTE_SOURCES(test_stream_observe)
-PURC_FRAMEWORK(test_stream_observe)
-GTEST_DISCOVER_TESTS(test_stream_observe DISCOVERY_TIMEOUT 10)
+PURC_COMPUTE_SOURCES(test_stream_observe_readable)
+PURC_FRAMEWORK(test_stream_observe_readable)
+GTEST_DISCOVER_TESTS(test_stream_observe_readable DISCOVERY_TIMEOUT 10)
 
-# test_stream_observe_write
-PURC_EXECUTABLE_DECLARE(test_stream_observe_write)
+# test_stream_observe_writable
+PURC_EXECUTABLE_DECLARE(test_stream_observe_writable)
 
-list(APPEND test_stream_observe_write_PRIVATE_INCLUDE_DIRECTORIES
+list(APPEND test_stream_observe_writable_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR}/include
     ${PurC_DERIVED_SOURCES_DIR}
     ${PURC_DIR}
@@ -168,19 +168,19 @@ list(APPEND test_stream_observe_write_PRIVATE_INCLUDE_DIRECTORIES
     ${WTF_DIR}
 )
 
-PURC_EXECUTABLE(test_stream_observe_write)
+PURC_EXECUTABLE(test_stream_observe_writable)
 
-set(test_stream_observe_write_SOURCES
-    test_stream_observe_write.cpp
+set(test_stream_observe_writable_SOURCES
+    test_stream_observe_writable.cpp
 )
 
-set(test_stream_observe_write_LIBRARIES
+set(test_stream_observe_writable_LIBRARIES
     PurC::PurC
     gtest_main
     gtest
     pthread
 )
 
-PURC_COMPUTE_SOURCES(test_stream_observe_write)
-PURC_FRAMEWORK(test_stream_observe_write)
-GTEST_DISCOVER_TESTS(test_stream_observe_write DISCOVERY_TIMEOUT 10)
+PURC_COMPUTE_SOURCES(test_stream_observe_writable)
+PURC_FRAMEWORK(test_stream_observe_writable)
+GTEST_DISCOVER_TESTS(test_stream_observe_writable DISCOVERY_TIMEOUT 10)
