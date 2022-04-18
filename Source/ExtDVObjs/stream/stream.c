@@ -656,10 +656,54 @@ static purc_variant_t
 writebytes_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
                 bool silently)
 {
-    UNUSED_PARAM(native_entity);
-    UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(argv);
-    UNUSED_PARAM(silently);
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    struct pcdvobjs_stream *stream;
+    purc_rwstream_t rwstream = NULL;
+
+    if (native_entity == NULL) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto out;
+    }
+
+    stream = get_stream(native_entity);
+    rwstream = stream->rws;
+    if (rwstream == NULL) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto out;
+    }
+
+    if (nr_args < 1) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto out;
+    }
+
+    if (argv[0] == PURC_VARIANT_INVALID ||
+            (!purc_variant_is_bsequence(argv[0]) &&
+             !purc_variant_is_string(argv[0]))
+            ) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto out;
+    }
+
+    size_t bsize = 0;
+    const unsigned char *buffer = NULL;
+    if (purc_variant_is_bsequence(argv[0])) {
+        buffer = purc_variant_get_bytes_const (argv[0], &bsize);
+    }
+    else {
+        buffer = (const unsigned char *)purc_variant_get_string_const(argv[0]);
+        bsize = strlen((const char*)buffer);
+    }
+    if (buffer && bsize) {
+        ssize_t nr_write = purc_rwstream_write (rwstream, buffer, bsize);
+        return purc_variant_make_ulongint(nr_write);
+    }
+
+    return ret_var;
+
+out:
+    if (silently)
+        return purc_variant_make_ulongint(0);
     return PURC_VARIANT_INVALID;
 }
 
@@ -667,11 +711,6 @@ static purc_variant_t
 seek_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
                 bool silently)
 {
-    UNUSED_PARAM(native_entity);
-    UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(argv);
-    UNUSED_PARAM(silently);
-
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     struct pcdvobjs_stream *stream;
     purc_rwstream_t rwstream;
@@ -1456,61 +1495,6 @@ out:
     return PURC_VARIANT_INVALID;
 }
 
-static purc_variant_t
-stream_writebytes_getter(purc_variant_t root, size_t nr_args,
-        purc_variant_t *argv, bool silently)
-{
-    UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
-
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
-    purc_rwstream_t rwstream = NULL;
-
-    if (nr_args != 2) {
-        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
-        goto out;
-    }
-    if (argv[0] == PURC_VARIANT_INVALID ||
-            (!purc_variant_is_native(argv[0]))) {
-        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        goto out;
-    }
-    if (argv[1] == PURC_VARIANT_INVALID ||
-            (!purc_variant_is_bsequence(argv[1]) &&
-             !purc_variant_is_string(argv[1]))
-            ) {
-        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        goto out;
-    }
-
-    rwstream = get_rwstream_from_variant(argv[0]);
-    if (rwstream == NULL) {
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
-        goto out;
-    }
-
-    size_t bsize = 0;
-    const unsigned char *buffer = NULL;
-    if (purc_variant_is_bsequence(argv[1])) {
-        buffer = purc_variant_get_bytes_const (argv[1], &bsize);
-    }
-    else {
-        buffer = (const unsigned char *)purc_variant_get_string_const(argv[1]);
-        bsize = strlen((const char*)buffer);
-    }
-    if (buffer && bsize) {
-        ssize_t nr_write = purc_rwstream_write (rwstream, buffer, bsize);
-        return purc_variant_make_ulongint(nr_write);
-    }
-
-    return ret_var;
-
-out:
-    if (silently)
-        return purc_variant_make_ulongint(0);
-    return PURC_VARIANT_INVALID;
-}
-
 bool add_stdio_property(purc_variant_t v)
 {
     static const struct purc_native_ops ops = {
@@ -1585,7 +1569,6 @@ purc_variant_t pcdvobjs_create_stream(void)
         {"readlines",   stream_readlines_getter,   NULL},
         {"writelines",  stream_writelines_getter,  NULL},
         {"readbytes",   stream_readbytes_getter,   NULL},
-        {"writebytes",  stream_writebytes_getter,  NULL},
     };
 
     if (keywords2atoms[0].atom == 0) {
