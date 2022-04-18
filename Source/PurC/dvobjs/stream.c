@@ -51,7 +51,7 @@
 #define STREAM_SUB_EVENT_ALL        "*"
 
 #define FILE_DEFAULT_MODE           0644
-#define PIPO_DEFAULT_MODE           0777
+#define PIPO_DEFAULT_MODE           0644
 
 #define MAX_LEN_KEYWORD             64
 
@@ -1154,7 +1154,13 @@ struct pcdvobjs_stream *create_pipe_stream(struct purc_broken_down_url *url,
          }
     }
 
-    int fd = open(url->path, flags);
+    int fd = 0;
+    if (flags & O_CREAT) {
+        fd = open(url->path, flags, PIPO_DEFAULT_MODE);
+    }
+    else {
+        fd = open(url->path, flags);
+    }
     if (fd == -1) {
         purc_set_error(purc_error_from_errno(errno));
         return NULL;
