@@ -157,3 +157,8 @@ Incompleted
     except: Incompleted
     flags: None
     msg: "Incompleted"
+
+SystemFault
+    except: SystemFault
+    flags: None
+    msg: "System fault"

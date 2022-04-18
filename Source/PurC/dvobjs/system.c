@@ -913,8 +913,8 @@ sleep_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             goto failed;
         }
         else {
-            purc_set_error(PURC_ERROR_INVALID_VALUE);
-            goto failed;
+            purc_set_error(PURC_ERROR_SYSTEM_FAULT);
+            goto fatal;
         }
     }
 
@@ -934,6 +934,7 @@ failed:
     if (silently)
         return purc_variant_make_boolean(false);
 
+fatal:
     return PURC_VARIANT_INVALID;
 }
 

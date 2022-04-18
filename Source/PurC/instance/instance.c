@@ -104,6 +104,7 @@ static struct const_str_atom _except_names[] = {
     { "ConnectionReset", 0 },
     { "NameResolutionFailed", 0 },
     { "RequestFailed", 0 },
+    { "SystemFault", 0 },
     { "OSFailure", 0 },
     { "NotReady", 0 },
     { "NotImplemented", 0 },
