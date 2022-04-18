@@ -48,11 +48,11 @@ positive:
 # $STREAM.writelines/readlines
 
 positive:
-    $STREAM.writelines($STREAM.open('file:///tmp/test_stream_lines', 'read write create truncate'), "This is the string to write")
+    $STREAM.open('file:///tmp/test_stream_lines', 'read write create truncate').writelines("This is the string to write")
     28UL
 
 positive:
-    $STREAM.writelines($STREAM.open('file:///tmp/test_stream_lines', 'read write create truncate'), ["This is the string to write", "Second line"])
+    $STREAM.open('file:///tmp/test_stream_lines', 'read write create truncate').writelines(["This is the string to write", "Second line"])
     40UL
 
 positive:
@@ -105,9 +105,9 @@ positive:
     $FS.unlink('/tmp/test_stream_struct')
     true
 
-# $STREAM.seek
+ $STREAM.seek
 positive:
-    $STREAM.writelines($STREAM.open('file:///tmp/test_stream_seek', 'read write create truncate'), "This is the string to write")
+    $STREAM.open('file:///tmp/test_stream_seek', 'read write create truncate').writelines("This is the string to write")
     28UL
 
 positive:
@@ -188,11 +188,11 @@ positive:
     true
 
 positive:
-    $STREAM.writelines($STREAM.stdout, '##### write to stdout #####')
+    $STREAM.stdout.writelines('##### write to stdout #####')
     28UL
 
 positive:
-    $STREAM.writelines($STREAM.stderr, '##### write to stderr #####')
+    $STREAM.stderr.writelines('##### write to stderr #####')
     28UL
 
 # input 'aaa' by keyboard

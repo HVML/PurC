@@ -634,10 +634,84 @@ static purc_variant_t
 writelines_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
                 bool silently)
 {
-    UNUSED_PARAM(native_entity);
-    UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(argv);
-    UNUSED_PARAM(silently);
+    struct pcdvobjs_stream *stream;
+    purc_rwstream_t rwstream = NULL;
+    ssize_t nr_write = 0;
+    purc_variant_t data;
+
+    if (native_entity == NULL) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto out;
+    }
+
+    stream = get_stream(native_entity);
+    rwstream = stream->rws;
+    if (rwstream == NULL) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto out;
+    }
+
+    if (nr_args < 1) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto out;
+    }
+
+    if (argv[0] == PURC_VARIANT_INVALID) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto out;
+    }
+
+    data = argv[0];
+    enum purc_variant_type type = purc_variant_get_type(data);
+
+    switch (type) {
+    case PURC_VARIANT_TYPE_STRING:
+        break;
+    case PURC_VARIANT_TYPE_ARRAY:
+        {
+            size_t sz_array = purc_variant_array_get_size(data);
+            for (size_t i = 0; i < sz_array; i++) {
+                if (!purc_variant_is_string(
+                            purc_variant_array_get(data, i))) {
+                    purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+                    goto out;
+                }
+            }
+        }
+        break;
+    default:
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto out;
+    }
+
+    const char *buffer = NULL;
+    ssize_t buffer_size = 0;
+    if (purc_variant_is_string(data)) {
+        buffer = (const char *)purc_variant_get_string_const(data);
+        buffer_size = strlen(buffer);
+        if (buffer && buffer_size > 0) {
+            nr_write = purc_rwstream_write (rwstream, buffer, buffer_size);
+            nr_write += purc_rwstream_write(rwstream, "\n", 1);
+        }
+    }
+    else {
+        size_t sz_array = purc_variant_array_get_size(data);
+        for (size_t i = 0; i < sz_array; i++) {
+            purc_variant_t var = purc_variant_array_get(data, i);
+            buffer = (const char *)purc_variant_get_string_const(var);
+            buffer_size = strlen(buffer);
+            if (buffer && buffer_size > 0) {
+                nr_write += purc_rwstream_write (rwstream, buffer, buffer_size);
+                nr_write += purc_rwstream_write(rwstream, "\n", 1);
+            }
+        }
+    }
+
+    return purc_variant_make_ulongint(nr_write);
+
+out:
+    if (silently)
+        return purc_variant_make_ulongint(nr_write);
     return PURC_VARIANT_INVALID;
 }
 
@@ -1403,91 +1477,6 @@ out:
     return PURC_VARIANT_INVALID;
 }
 
-static purc_variant_t
-stream_writelines_getter(purc_variant_t root, size_t nr_args,
-        purc_variant_t *argv, bool silently)
-{
-    UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
-
-    purc_rwstream_t rwstream = NULL;
-    ssize_t nr_write = 0;
-
-    if (nr_args != 2) {
-        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
-        goto out;
-    }
-
-    if (argv[0] == PURC_VARIANT_INVALID ||
-            (!purc_variant_is_native(argv[0]))) {
-        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        goto out;
-    }
-
-    if (argv[1] == PURC_VARIANT_INVALID) {
-        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        goto out;
-    }
-
-    enum purc_variant_type type = purc_variant_get_type(argv[1]);
-
-    switch (type) {
-    case PURC_VARIANT_TYPE_STRING:
-        break;
-    case PURC_VARIANT_TYPE_ARRAY:
-        {
-            size_t sz_array = purc_variant_array_get_size(argv[1]);
-            for (size_t i = 0; i < sz_array; i++) {
-                if (!purc_variant_is_string(
-                            purc_variant_array_get(argv[1], i))) {
-                    purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-                    goto out;
-                }
-            }
-        }
-        break;
-    default:
-        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        goto out;
-    }
-
-    rwstream = get_rwstream_from_variant(argv[0]);
-    if (rwstream == NULL) {
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
-        goto out;
-    }
-
-    const char *buffer = NULL;
-    ssize_t buffer_size = 0;
-    if (purc_variant_is_string(argv[1])) {
-        buffer = (const char *)purc_variant_get_string_const(argv[1]);
-        buffer_size = strlen(buffer);
-        if (buffer && buffer_size > 0) {
-            nr_write = purc_rwstream_write (rwstream, buffer, buffer_size);
-            nr_write += purc_rwstream_write(rwstream, "\n", 1);
-        }
-    }
-    else {
-        size_t sz_array = purc_variant_array_get_size(argv[1]);
-        for (size_t i = 0; i < sz_array; i++) {
-            purc_variant_t var = purc_variant_array_get(argv[1], i);
-            buffer = (const char *)purc_variant_get_string_const(var);
-            buffer_size = strlen(buffer);
-            if (buffer && buffer_size > 0) {
-                nr_write += purc_rwstream_write (rwstream, buffer, buffer_size);
-                nr_write += purc_rwstream_write(rwstream, "\n", 1);
-            }
-        }
-    }
-
-    return purc_variant_make_ulongint(nr_write);
-
-out:
-    if (silently)
-        return purc_variant_make_ulongint(nr_write);
-    return PURC_VARIANT_INVALID;
-}
-
 bool add_stdio_property(purc_variant_t v)
 {
     static const struct purc_native_ops ops = {
@@ -1560,7 +1549,6 @@ purc_variant_t pcdvobjs_create_stream(void)
         {"readstruct",  stream_readstruct_getter,  NULL},
         {"writestruct", stream_writestruct_getter, NULL},
         {"readlines",   stream_readlines_getter,   NULL},
-        {"writelines",  stream_writelines_getter,  NULL},
     };
 
     if (keywords2atoms[0].atom == 0) {
