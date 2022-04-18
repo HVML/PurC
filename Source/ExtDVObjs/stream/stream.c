@@ -612,10 +612,75 @@ static purc_variant_t
 writestruct_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
                 bool silently)
 {
-    UNUSED_PARAM(native_entity);
-    UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(argv);
-    UNUSED_PARAM(silently);
+    struct pcdvobj_bytes_buff bf = { NULL, 0, 0 };
+
+    struct pcdvobjs_stream *stream;
+    purc_rwstream_t rwstream = NULL;
+    size_t write_length = 0;
+    const char *formats = NULL;
+    size_t formats_left = 0;
+
+    if (native_entity == NULL) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto out;
+    }
+
+    stream = get_stream(native_entity);
+    rwstream = stream->rws;
+    if (rwstream == NULL) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto out;
+    }
+
+    if (nr_args < 2) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto out;
+    }
+
+    if (argv[0] == PURC_VARIANT_INVALID ||
+            (!purc_variant_is_string(argv[0]))) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto out;
+    }
+
+    formats = purc_variant_get_string_const_ex(argv[0], &formats_left);
+    if (formats == NULL) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    formats = pcutils_trim_spaces(formats, &formats_left);
+    if (formats_left == 0) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
+
+    if (purc_dvobj_pack_variants(&bf, argv + 1, nr_args - 1, formats,
+                formats_left, silently)) {
+        if (bf.bytes == NULL)
+            goto out;
+
+        goto failed;
+    }
+
+    silently = true;    // fall through
+
+failed:
+    if (silently) {
+        if (bf.bytes) {
+            write_length = purc_rwstream_write(rwstream, bf.bytes, bf.nr_bytes);
+            free(bf.bytes);
+            bf.bytes = NULL;
+        }
+        return purc_variant_make_ulongint(write_length);
+    }
+
+out:
+    if (bf.bytes)
+        free(bf.bytes);
+
+    if (silently)
+        return purc_variant_make_ulongint(write_length);
     return PURC_VARIANT_INVALID;
 }
 
@@ -1390,83 +1455,6 @@ static inline void write_rwstream_uint(purc_rwstream_t rwstream,
     *length += bytes;
 }
 
-static purc_variant_t
-stream_writestruct_getter(purc_variant_t root, size_t nr_args,
-        purc_variant_t *argv, bool silently)
-{
-    UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
-
-    struct pcdvobj_bytes_buff bf = { NULL, 0, 0 };
-
-    purc_rwstream_t rwstream = NULL;
-    size_t write_length = 0;
-    const char *formats = NULL;
-    size_t formats_left = 0;
-    if (nr_args < 3) {
-        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
-        goto out;
-    }
-
-    if (argv[0] == PURC_VARIANT_INVALID ||
-            (!purc_variant_is_native(argv[0]))) {
-        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        goto out;
-    }
-
-    if (argv[1] == PURC_VARIANT_INVALID ||
-            (!purc_variant_is_string(argv[1]))) {
-        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        goto out;
-    }
-
-    rwstream = get_rwstream_from_variant(argv[0]);
-    if (rwstream == NULL) {
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
-        goto out;
-    }
-
-    formats = purc_variant_get_string_const_ex(argv[1], &formats_left);
-    if (formats == NULL) {
-        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        goto failed;
-    }
-
-    formats = pcutils_trim_spaces(formats, &formats_left);
-    if (formats_left == 0) {
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
-        goto failed;
-    }
-
-    if (purc_dvobj_pack_variants(&bf, argv + 2, nr_args - 2, formats,
-                formats_left, silently)) {
-        if (bf.bytes == NULL)
-            goto out;
-
-        goto failed;
-    }
-
-    silently = true;    // fall through
-
-failed:
-    if (silently) {
-        if (bf.bytes) {
-            write_length = purc_rwstream_write(rwstream, bf.bytes, bf.nr_bytes);
-            free(bf.bytes);
-            bf.bytes = NULL;
-        }
-        return purc_variant_make_ulongint(write_length);
-    }
-
-out:
-    if (bf.bytes)
-        free(bf.bytes);
-
-    if (silently)
-        return purc_variant_make_ulongint(write_length);
-    return PURC_VARIANT_INVALID;
-}
-
 bool add_stdio_property(purc_variant_t v)
 {
     static const struct purc_native_ops ops = {
@@ -1537,7 +1525,6 @@ purc_variant_t pcdvobjs_create_stream(void)
     static struct purc_dvobj_method  stream[] = {
         {"open",        stream_open_getter,        NULL},
         {"readstruct",  stream_readstruct_getter,  NULL},
-        {"writestruct", stream_writestruct_getter, NULL},
     };
 
     if (keywords2atoms[0].atom == 0) {
