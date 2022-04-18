@@ -832,6 +832,112 @@ failed:
 }
 
 static purc_variant_t
+sleep_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(silently);
+
+    uint64_t ul_sec;
+    long     l_nsec;
+
+    if (nr_args < 1) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    int arg_type = purc_variant_get_type(argv[0]);
+    if (arg_type == PURC_VARIANT_TYPE_LONGINT) {
+        int64_t tmp;
+        purc_variant_cast_to_longint(argv[0], &tmp, false);
+        if (tmp < 0) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            goto failed;
+        }
+
+        ul_sec = (uint64_t)tmp;
+    }
+    else if (arg_type == PURC_VARIANT_TYPE_ULONGINT) {
+        purc_variant_cast_to_ulongint(argv[0], &ul_sec, false);
+    }
+    else if (arg_type == PURC_VARIANT_TYPE_NUMBER) {
+        double time_d, sec_d, nsec_d;
+        purc_variant_cast_to_number(argv[0], &time_d, false);
+
+        if (isinf(time_d) || isnan(time_d) || time_d < 0) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            goto failed;
+        }
+
+        nsec_d = modf(time_d, &sec_d);
+        ul_sec = (uint64_t)sec_d;
+        l_nsec = (long)(nsec_d * 1000000000.0);
+    }
+    else if (arg_type == PURC_VARIANT_TYPE_LONGDOUBLE) {
+        long double time_d, sec_d, nsec_d;
+        purc_variant_cast_to_longdouble(argv[0], &time_d, false);
+
+        if (isinf(time_d) || isnan(time_d) || time_d < 0.0L) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            goto failed;
+        }
+
+        nsec_d = modfl(time_d, &sec_d);
+        ul_sec = (uint64_t)sec_d;
+        l_nsec = (long)(nsec_d * 1000000000.0);
+    }
+    else {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    if (l_nsec < 0 || l_nsec > 999999999) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
+
+    long double ld_rem;
+    struct timespec req, rem;
+    req.tv_sec = (time_t)ul_sec;
+    req.tv_nsec = (long)l_nsec;
+    if (nanosleep(&req, &rem) == 0) {
+        ld_rem = 0;
+    }
+    else {
+        if (errno == EINTR) {
+            ld_rem = rem.tv_sec + rem.tv_nsec / 1000000000.0L;
+        }
+        else if (errno == EINVAL) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            goto failed;
+        }
+        else {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            goto failed;
+        }
+    }
+
+    if (arg_type == PURC_VARIANT_TYPE_LONGINT) {
+        return purc_variant_make_ulongint((int64_t)ld_rem);
+    }
+    else if (arg_type == PURC_VARIANT_TYPE_ULONGINT) {
+        return purc_variant_make_ulongint((uint64_t)ld_rem);
+    }
+    else if (arg_type == PURC_VARIANT_TYPE_ULONGINT) {
+        return purc_variant_make_number((double)ld_rem);
+    }
+
+    return purc_variant_make_longdouble(ld_rem);
+
+failed:
+    if (silently)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
 locale_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
@@ -1701,6 +1807,7 @@ purc_variant_t purc_dvobj_system_new (void)
         { "uname_prt",  uname_prt_getter,   NULL },
         { "time",       time_getter,        time_setter },
         { "time_us",    time_us_getter,     time_us_setter },
+        { "sleep",      sleep_getter,       NULL },
         { "locale",     locale_getter,      locale_setter },
         { "timezone",   timezone_getter,    timezone_setter },
         { "cwd",        cwd_getter,         cwd_setter },

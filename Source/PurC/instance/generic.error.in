@@ -54,7 +54,7 @@ BadEncoding
     msg: "Bad encoding"
 
 NotSupported
-    except: NotImplemented
+    except: Unsupported
     flags: None
     msg: "Not supported"
 
@@ -148,3 +148,12 @@ TooMany
     flags: None
     msg: "Too many"
 
+NotReady
+    except: NotReady
+    flags: None
+    msg: "Not Ready"
+
+Incompleted
+    except: Incompleted
+    flags: None
+    msg: "Incompleted"
