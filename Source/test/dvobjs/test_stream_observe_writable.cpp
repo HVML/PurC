@@ -65,9 +65,6 @@ TEST(observe, basic)
 
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t stream = purc_variant_load_dvobj_from_so ("STREAM", "STREAM");
-    ASSERT_NE(stream, nullptr);
-
     if(!is_file_exists(file)) {
         ret = mkfifo(file, 0777);
         ASSERT_EQ(ret, 0);
@@ -97,12 +94,8 @@ TEST(observe, basic)
     purc_vdom_t vdom = purc_load_hvml_from_string(hvml);
     ASSERT_NE(vdom, nullptr);
 
-    bool bind = purc_bind_document_variable(vdom, "STREAM", stream);
-    ASSERT_EQ(bind, true);
-
     purc_run(PURC_VARIANT_INVALID, NULL);
 
-    purc_variant_unload_dvobj(stream);
     cleanup = purc_cleanup ();
     ASSERT_EQ (cleanup, true);
 
