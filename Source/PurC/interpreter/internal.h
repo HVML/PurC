@@ -107,6 +107,9 @@ pcintr_load_from_uri_async(pcintr_stack_t stack, const char* uri,
         pcfetcher_response_handler handler, void* ctxt);
 
 purc_variant_t
+pcintr_load_vdom_fragment_from_uri(pcintr_stack_t stack, const char* uri);
+
+purc_variant_t
 pcintr_doc_query(purc_vdom_t vdom, const char* css, bool silently);
 
 
