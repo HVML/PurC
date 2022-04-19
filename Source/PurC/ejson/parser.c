@@ -129,22 +129,22 @@
 
 #define RESET_TEMP_BUFFER()                                                 \
     do {                                                                    \
-        uc_buffer_reset(parser->temp_buffer);                           \
+        uc_buffer_reset(parser->temp_buffer);                               \
     } while (false)
 
 #define APPEND_TO_TEMP_BUFFER(c)                                            \
     do {                                                                    \
-        uc_buffer_append(parser->temp_buffer, c);                       \
+        uc_buffer_append(parser->temp_buffer, c);                           \
     } while (false)
 
 #define APPEND_BYTES_TO_TEMP_BUFFER(bytes, nr_bytes)                        \
     do {                                                                    \
-        uc_buffer_append_bytes(parser->temp_buffer, bytes, nr_bytes);   \
+        uc_buffer_append_bytes(parser->temp_buffer, bytes, nr_bytes);       \
     } while (false)
 
 #define APPEND_BUFFER_TO_TEMP_BUFFER(buffer)                                \
     do {                                                                    \
-        uc_buffer_append_another(parser->temp_buffer, buffer);          \
+        uc_buffer_append_another(parser->temp_buffer, buffer);              \
     } while (false)
 
 #define IS_TEMP_BUFFER_EMPTY()                                              \
@@ -152,12 +152,12 @@
 
 #define RESET_STRING_BUFFER()                                               \
     do {                                                                    \
-        uc_buffer_reset(parser->string_buffer);                         \
+        uc_buffer_reset(parser->string_buffer);                             \
     } while (false)
 
 #define APPEND_TO_STRING_BUFFER(uc)                                         \
     do {                                                                    \
-        uc_buffer_append(parser->string_buffer, uc);                    \
+        uc_buffer_append(parser->string_buffer, uc);                        \
     } while (false)
 
 #define RESET_QUOTED_COUNTER()                                              \

@@ -204,6 +204,12 @@ struct pcvcm_node *pcvcm_node_new_byte_sequence(const void *bytes,
         return NULL;
     }
 
+    if (nr_bytes == 0) {
+        n->sz_ptr[0] = 0;
+        n->sz_ptr[1] = 0;
+        return n;
+    }
+
     uint8_t *buf = (uint8_t*)malloc(nr_bytes + 1);
     memcpy(buf, bytes, nr_bytes);
     buf[nr_bytes] = 0;
@@ -252,6 +258,12 @@ struct pcvcm_node *pcvcm_node_new_byte_sequence_from_bx(const void *bytes,
         return NULL;
     }
 
+    if (nr_bytes == 0) {
+        n->sz_ptr[0] = 0;
+        n->sz_ptr[1] = 0;
+        return n;
+    }
+
     const uint8_t *p = bytes;
     size_t sz = nr_bytes;
     if (sz % 2 != 0) {
@@ -273,6 +285,12 @@ struct pcvcm_node *pcvcm_node_new_byte_sequence_from_bb(const void *bytes,
     struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_BYTE_SEQUENCE);
     if (!n) {
         return NULL;
+    }
+
+    if (nr_bytes == 0) {
+        n->sz_ptr[0] = 0;
+        n->sz_ptr[1] = 0;
+        return n;
     }
 
     const uint8_t *p = bytes;
@@ -306,6 +324,12 @@ struct pcvcm_node *pcvcm_node_new_byte_sequence_from_b64 (const void *bytes,
     struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_BYTE_SEQUENCE);
     if (!n) {
         return NULL;
+    }
+
+    if (nr_bytes == 0) {
+        n->sz_ptr[0] = 0;
+        n->sz_ptr[1] = 0;
+        return n;
     }
 
     const uint8_t *p = bytes;
@@ -510,8 +534,14 @@ void pcvcm_node_write_to_rwstream(purc_rwstream_t rws, struct pcvcm_node *node)
 
     case PCVCM_NODE_TYPE_BYTE_SEQUENCE:
     {
-        purc_variant_t v = purc_variant_make_byte_sequence(
+        purc_variant_t v;
+        if (node->sz_ptr[0]) {
+            v = purc_variant_make_byte_sequence(
                 (void*)node->sz_ptr[1], node->sz_ptr[0]);
+        }
+        else {
+            v = purc_variant_make_byte_sequence_empty();
+        }
         write_variant_to_rwstream(rws, v);;
         purc_variant_unref(v);
         break;
@@ -1164,8 +1194,9 @@ purc_variant_t pcvcm_node_to_variant(struct pcvcm_node *node,
             break;
 
         case PCVCM_NODE_TYPE_BYTE_SEQUENCE:
-            return purc_variant_make_byte_sequence(
-                    (void*)node->sz_ptr[1], node->sz_ptr[0]);
+            return (node->sz_ptr[0] > 0) ? purc_variant_make_byte_sequence(
+                    (void*)node->sz_ptr[1], node->sz_ptr[0])
+                    : purc_variant_make_byte_sequence_empty();
 
         case PCVCM_NODE_TYPE_FUNC_CONCAT_STRING:
             ret = pcvcm_node_concat_string_to_variant(node, ops, silently);
