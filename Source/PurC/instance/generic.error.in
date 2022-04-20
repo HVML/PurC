@@ -197,3 +197,8 @@ SystemFault
     except: SystemFault
     flags: None
     msg: "System fault"
+
+DuplicateName
+    except: DuplicateName
+    flags: None
+    msg: "Duplicate name"
