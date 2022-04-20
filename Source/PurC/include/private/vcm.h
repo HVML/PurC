@@ -51,6 +51,10 @@ enum pcvcm_node_type {
     PCVCM_NODE_TYPE_FUNC_GET_ELEMENT,
     PCVCM_NODE_TYPE_FUNC_CALL_GETTER,
     PCVCM_NODE_TYPE_FUNC_CALL_SETTER,
+    PCVCM_NODE_TYPE_CJSONEE,
+    PCVCM_NODE_TYPE_CJSONEE_OP_AND,
+    PCVCM_NODE_TYPE_CJSONEE_OP_OR,
+    PCVCM_NODE_TYPE_CJSONEE_OP_SEMICOLON,
 };
 
 #define EXTRA_NULL              0x0000
@@ -128,6 +132,14 @@ struct pcvcm_node *pcvcm_node_new_call_getter(struct pcvcm_node *variable,
 
 struct pcvcm_node *pcvcm_node_new_call_setter(struct pcvcm_node *variable,
         size_t nr_params, struct pcvcm_node *params);
+
+struct pcvcm_node *pcvcm_node_new_cjsonee();
+
+struct pcvcm_node *pcvcm_node_new_cjsonee_op_and();
+
+struct pcvcm_node *pcvcm_node_new_cjsonee_op_or();
+
+struct pcvcm_node *pcvcm_node_new_cjsonee_op_semicolon();
 
 
 char *pcvcm_node_to_string(struct pcvcm_node *node, size_t *nr_bytes);

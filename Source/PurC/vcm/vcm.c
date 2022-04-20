@@ -434,6 +434,26 @@ struct pcvcm_node *pcvcm_node_new_call_setter(struct pcvcm_node *variable,
     return n;
 }
 
+struct pcvcm_node *pcvcm_node_new_cjsonee()
+{
+    return pcvcm_node_new(PCVCM_NODE_TYPE_CJSONEE);
+}
+
+struct pcvcm_node *pcvcm_node_new_cjsonee_op_and()
+{
+    return pcvcm_node_new(PCVCM_NODE_TYPE_CJSONEE_OP_AND);
+}
+
+struct pcvcm_node *pcvcm_node_new_cjsonee_op_or()
+{
+    return pcvcm_node_new(PCVCM_NODE_TYPE_CJSONEE_OP_OR);
+}
+
+struct pcvcm_node *pcvcm_node_new_cjsonee_op_semicolon()
+{
+    return pcvcm_node_new(PCVCM_NODE_TYPE_CJSONEE_OP_SEMICOLON);
+}
+
 static
 void pcvcm_node_write_to_rwstream(purc_rwstream_t rws, struct pcvcm_node *node);
 
@@ -575,6 +595,20 @@ void pcvcm_node_write_to_rwstream(purc_rwstream_t rws, struct pcvcm_node *node)
         purc_rwstream_write(rws, "call_setter(", 12);
         write_child_node_rwstream(rws, node);;
         purc_rwstream_write(rws, ")", 1);
+        break;
+    case PCVCM_NODE_TYPE_CJSONEE:
+        purc_rwstream_write(rws, "{{ ", 3);
+        write_child_node_rwstream(rws, node);;
+        purc_rwstream_write(rws, " }}", 3);
+        break;
+    case PCVCM_NODE_TYPE_CJSONEE_OP_AND:
+        purc_rwstream_write(rws, " && ", 4);
+        break;
+    case PCVCM_NODE_TYPE_CJSONEE_OP_OR:
+        purc_rwstream_write(rws, " || ", 4);
+        break;
+    case PCVCM_NODE_TYPE_CJSONEE_OP_SEMICOLON:
+        purc_rwstream_write(rws, "; ", 2);
         break;
     }
 }
