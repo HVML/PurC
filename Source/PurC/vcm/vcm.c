@@ -1175,6 +1175,105 @@ out:
     return ret_var;
 }
 
+bool is_cjsonee_op(struct pcvcm_node *node)
+{
+    if (!node) {
+        return false;
+    }
+    switch (node->type) {
+    case PCVCM_NODE_TYPE_CJSONEE_OP_AND:
+    case PCVCM_NODE_TYPE_CJSONEE_OP_OR:
+    case PCVCM_NODE_TYPE_CJSONEE_OP_SEMICOLON:
+        return true;
+    default:
+        return false;
+    }
+    return false;
+}
+
+static
+purc_variant_t pcvcm_node_cjsonee_to_variant(struct pcvcm_node *node,
+       struct pcvcm_node_op *ops, bool silently)
+{
+    UNUSED_PARAM(node);
+    UNUSED_PARAM(ops);
+    UNUSED_PARAM(silently);
+    purc_variant_t curr_val = PURC_VARIANT_INVALID;
+    struct pcvcm_node *curr_node = FIRST_CHILD(node);
+    struct pcvcm_node *op_node = NULL;
+    while (curr_node) {
+        if (is_cjsonee_op(curr_node)) {
+            pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+            goto failed;
+        }
+
+        curr_val = pcvcm_node_to_variant(curr_node, ops, silently);
+        if (curr_val == PURC_VARIANT_INVALID) {
+            goto failed;
+        }
+
+        op_node = NEXT_CHILD(curr_node);
+        if (op_node == NULL) {
+            break;
+        }
+
+        if (is_cjsonee_op(op_node)) {
+            pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+            goto failed;
+        }
+
+
+        curr_node = NEXT_CHILD(op_node);
+        switch (op_node->type) {
+        case PCVCM_NODE_TYPE_CJSONEE_OP_SEMICOLON:
+            {
+                if (!curr_node) {
+                    goto out;
+                }
+            }
+            break;
+
+        case PCVCM_NODE_TYPE_CJSONEE_OP_AND:
+            {
+                if (!curr_node) {
+                    pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+                    goto failed;
+                }
+                if (!purc_variant_booleanize(curr_val)) {
+                    goto out;
+                }
+            }
+            break;
+
+        case PCVCM_NODE_TYPE_CJSONEE_OP_OR:
+            {
+                if (!curr_node) {
+                    pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+                    goto failed;
+                }
+                if (purc_variant_booleanize(curr_val)) {
+                    goto out;
+                }
+            }
+            break;
+
+        default:
+            pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+            goto failed;
+        }
+        purc_variant_unref(curr_val);
+    }
+
+out:
+    return curr_val;
+
+failed:
+    if (curr_val) {
+        purc_variant_unref(curr_val);
+    }
+    return PURC_VARIANT_INVALID;
+}
+
 static bool has_fatal_error()
 {
     int err = purc_get_last_error();
@@ -1252,6 +1351,10 @@ purc_variant_t pcvcm_node_to_variant(struct pcvcm_node *node,
         case PCVCM_NODE_TYPE_FUNC_CALL_SETTER:
             ret = pcvcm_node_call_method_to_variant(node, ops, SETTER_METHOD,
                     silently);
+            break;
+
+        case PCVCM_NODE_TYPE_CJSONEE:
+            ret = pcvcm_node_cjsonee_to_variant(node, ops, silently);
             break;
 
         default:
