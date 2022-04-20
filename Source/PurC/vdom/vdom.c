@@ -1306,7 +1306,10 @@ vdom_node_remove(struct pcvdom_node *node)
     if (!parent)
         return;
 
-    parent->remove_child(parent, node);
+    if (parent->remove_child)
+        parent->remove_child(parent, node);
+    else
+        pctree_node_remove(&node->node);
 }
 
 static void

@@ -1,6 +1,8 @@
 #include "purc.h"
 #include "private/vdom.h"
 
+#include "../helpers.h"
+
 #include <gtest/gtest.h>
 
 int _element_count(struct pcvdom_element *top,
@@ -27,15 +29,7 @@ int _node_count(struct pcvdom_node *top,
 
 TEST(vdom, basic)
 {
-    purc_instance_extra_info info = {};
-    int ret = 0;
-    bool cleanup = false;
-
-    // initial purc
-    ret = purc_init_ex (PURC_MODULE_HVML, "cn.fmsoft.hybridos.test",
-            "test_init", &info);
-
-    ASSERT_EQ (ret, PURC_ERROR_OK);
+    PurCInstance purc("cn.fmsoft.hybridos.test", "test_init", false);
 
     struct pcvdom_document *doc;
     doc = pcvdom_document_create_with_doctype("hvml", "v: MATH FS");
@@ -112,8 +106,19 @@ TEST(vdom, basic)
     EXPECT_EQ(nodes, 10);
 
     pcvdom_document_destroy(doc);
+}
 
-    cleanup = purc_cleanup ();
-    ASSERT_EQ (cleanup, true);
+TEST(vdom, fragment)
+{
+    PurCInstance purc("cn.fmsoft.hybridos.test", "test_init", false);
+
+    const char *buf = "<div></div>";
+    struct pcvdom_element *elem;
+    elem = pcvdom_util_document_parse_fragment_buf((const unsigned char*)buf, strlen(buf), NULL);
+    EXPECT_NE(elem, nullptr);
+    if (elem) {
+        PRINT_VDOM_NODE(&elem->node);
+        pcvdom_node_destroy(&elem->node);
+    }
 }
 
