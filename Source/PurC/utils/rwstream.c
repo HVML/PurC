@@ -347,6 +347,59 @@ purc_rwstream_new_for_dump (void *ctxt, pcrws_cb_write fn)
     return (purc_rwstream_t)rws;
 }
 
+struct ro_rwstream
+{
+    purc_rwstream rwstream;
+    void *ctxt;
+    pcrws_cb_read cb_read;
+    off_t read_bytes;
+};
+
+static off_t ro_tell (purc_rwstream_t rws)
+{
+    struct ro_rwstream *ro_rws = (struct ro_rwstream *)rws;
+
+    return ro_rws->read_bytes;
+}
+
+static ssize_t ro_read (purc_rwstream_t rws, void* buf, size_t count)
+{
+    struct ro_rwstream *ro_rws = (struct ro_rwstream *)rws;
+    ssize_t bytes = ro_rws->cb_read (ro_rws->ctxt, buf, count);
+
+    if (bytes > 0)
+        ro_rws->read_bytes += bytes;
+    return bytes;
+}
+
+static rwstream_funcs ro_funcs = {
+    NULL,
+    ro_tell,
+    ro_read,
+    NULL,
+    NULL,
+    NULL,
+    NULL
+};
+
+purc_rwstream_t
+purc_rwstream_new_for_read (void *ctxt, pcrws_cb_read fn)
+{
+    if (fn == NULL) {
+        pcinst_set_error (PURC_ERROR_INVALID_VALUE);
+        return NULL;
+    }
+
+    struct ro_rwstream* rws = (struct ro_rwstream*) calloc(1,
+            sizeof (struct ro_rwstream));
+
+    rws->rwstream.funcs = &ro_funcs;
+    rws->ctxt = ctxt;
+    rws->cb_read = fn;
+    rws->read_bytes = 0;
+    return (purc_rwstream_t)rws;
+}
+
 int purc_rwstream_destroy (purc_rwstream_t rws)
 {
     if (rws == NULL) {

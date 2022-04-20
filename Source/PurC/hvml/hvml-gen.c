@@ -1322,3 +1322,127 @@ pcvdom_util_document_from_buf(const unsigned char *buf, size_t len,
     return doc;
 }
 
+struct combined_stream {
+    purc_rwstream_t           leading;
+    purc_rwstream_t           ctnt;
+    purc_rwstream_t           tail;
+
+    int                       idx;
+};
+
+static ssize_t combined_stream_read(void *ctxt, void *buf, size_t count)
+{
+    if (count == 0)
+        return 0;
+
+    struct combined_stream *rs = (struct combined_stream*)ctxt;
+    purc_rwstream_t in;
+
+again:
+
+    switch (rs->idx) {
+        case 0:
+            in = rs->leading;
+            break;
+        case 1:
+            in = rs->ctnt;
+            break;
+        case 2:
+            in = rs->tail;
+            break;
+        default:
+            purc_set_error(PURC_ERROR_OVERFLOW);
+            return -1;
+    }
+
+    ssize_t n = purc_rwstream_read(in, buf, count);
+    if (n == 0) {
+        rs->idx += 1;
+        if (rs->idx == 3)
+            return count;
+        goto again;
+    }
+
+    return n;
+}
+
+struct pcvdom_element*
+parse_fragment(purc_rwstream_t in, struct pcvdom_pos *pos)
+{
+    struct pcvdom_document *doc;
+    doc = pcvdom_util_document_from_stream(in, pos);
+    PC_ASSERT(doc);
+    if (!doc)
+        return NULL;
+
+    struct pcvdom_element *elem = doc->body;
+    PC_ASSERT(elem);
+
+    pcvdom_node_remove(&elem->node);
+
+    doc->body = NULL;
+    pcvdom_document_destroy(doc);
+
+    return elem;
+}
+
+struct pcvdom_element*
+pcvdom_util_document_parse_fragment(purc_rwstream_t in,
+        struct pcvdom_pos *pos)
+{
+    if (!in) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        return NULL;
+    }
+    UNUSED_PARAM(pos);
+
+    const char *leading = "<hvml><body>";
+    const char *tail    = "</body></hvml>";
+
+    struct combined_stream combined = {
+        .leading = purc_rwstream_new_from_mem((void*)leading, strlen(leading)),
+        .ctnt    = in,
+        .tail    = purc_rwstream_new_from_mem((void*)tail, strlen(tail)),
+        .idx     = 0,
+    };
+
+    purc_rwstream_t rs = NULL;
+
+    if (combined.leading && combined.tail)
+        rs = purc_rwstream_new_for_read(&combined, combined_stream_read);
+
+    struct pcvdom_element *elem;
+    elem = parse_fragment(rs, pos);
+
+    if (rs) {
+        purc_rwstream_destroy(rs);
+        rs = NULL;
+    }
+    if (combined.leading) {
+        purc_rwstream_destroy(combined.leading);
+        combined.leading = NULL;
+    }
+    if (combined.tail) {
+        purc_rwstream_destroy(combined.tail);
+        combined.tail = NULL;
+    }
+
+    return elem;
+}
+
+struct pcvdom_element*
+pcvdom_util_document_parse_fragment_buf(const unsigned char *buf, size_t len,
+        struct pcvdom_pos *pos)
+{
+    purc_rwstream_t in;
+    in = purc_rwstream_new_from_mem((void*)buf, len);
+    if (!in)
+        return NULL;
+
+    pcvdom_element_t elem;
+    elem = pcvdom_util_document_parse_fragment(in, pos);
+    purc_rwstream_destroy(in);
+    return elem;
+}
+
+
