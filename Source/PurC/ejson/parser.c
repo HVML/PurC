@@ -1241,6 +1241,15 @@ BEGIN_STATE(EJSON_CONTROL_STATE)
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
         RETURN_AND_STOP_PARSE();
     }
+    if (character == '&') {
+        RECONSUME_IN(EJSON_AMPERSAND_STATE);
+    }
+    if (character == '|') {
+        RECONSUME_IN(EJSON_OR_SIGN_STATE);
+    }
+    if (character == ';') {
+        RECONSUME_IN(EJSON_SEMICOLON_STATE);
+    }
     if (parser->vcm_node != NULL && (parser->vcm_node->type ==
             PCVCM_NODE_TYPE_FUNC_GET_VARIABLE ||
             parser->vcm_node->type ==
@@ -1318,6 +1327,37 @@ BEGIN_STATE(EJSON_LEFT_BRACE_STATE)
         RECONSUME_IN(EJSON_DOLLAR_STATE);
     }
     uint32_t uc = ejson_stack_top();
+    if (character == ' ') {
+        if (uc == 'P') {
+            ejson_stack_pop();
+            uc = ejson_stack_top();
+            if (uc == 'P') {
+                ejson_stack_pop();
+                ejson_stack_push('{');
+                if (parser->vcm_node) {
+                    vcm_stack_push(parser->vcm_node);
+                }
+                struct pcvcm_node *node = pcvcm_node_new_cjsonee();
+                UPDATE_VCM_NODE(node);
+                ADVANCE_TO(EJSON_CONTROL_STATE);
+            }
+            else {
+                if (!pcejson_inc_depth(parser)) {
+                    SET_ERR(PCEJSON_ERROR_MAX_DEPTH_EXCEEDED);
+                    return -1;
+                }
+                ejson_stack_push('{');
+                if (parser->vcm_node) {
+                    vcm_stack_push(parser->vcm_node);
+                }
+                struct pcvcm_node *node = pcvcm_node_new_object(0, NULL);
+                UPDATE_VCM_NODE(node);
+                RECONSUME_IN(EJSON_BEFORE_NAME_STATE);
+            }
+        }
+        SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
+        RETURN_AND_STOP_PARSE();
+    }
     if (uc == 'P') {
         ejson_stack_pop();
         ejson_stack_push('{');
@@ -1346,6 +1386,10 @@ BEGIN_STATE(EJSON_RIGHT_BRACE_STATE)
     }
     uint32_t uc = ejson_stack_top();
     if (character == '}') {
+        if (uc == 'C') {
+            RESET_TEMP_BUFFER();
+            RECONSUME_IN(EJSON_CJSONEE_FINISHED_STATE);
+        }
         if (uc == ':') {
             ejson_stack_pop();
             uc = ejson_stack_top();
