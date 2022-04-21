@@ -1,1 +1,1 @@
-{{ "attr1";false||true&&false }}
+{{ "attr1";false||true&&false||$A&&$A.B||$A()&&$A(123)||$A.X.Y(123) }}

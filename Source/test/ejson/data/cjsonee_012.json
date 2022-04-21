@@ -1,1 +1,1 @@
-{{ $$$$$ABC.b;false||true&&false }}
+{{ $$$$$ABC.b;false||true&&false||$A&&$A.B||$A()&&$A(123)||$A.X.Y(123) }}

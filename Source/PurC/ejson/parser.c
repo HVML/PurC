@@ -996,7 +996,9 @@ bool pcejson_inc_depth (struct pcejson* parser)
 static inline UNUSED_FUNCTION
 void pcejson_dec_depth (struct pcejson* parser)
 {
-    parser->depth--;
+    if (parser->depth > 0) {
+        parser->depth--;
+    }
 }
 
 static UNUSED_FUNCTION
@@ -2752,7 +2754,8 @@ BEGIN_STATE(EJSON_JSONEE_VARIABLE_STATE)
         ADVANCE_TO(EJSON_JSONEE_VARIABLE_STATE);
     }
     if (is_whitespace(character) || character == '}' || character == '"'
-            || character == ']' || character == ')' || character == ';') {
+            || character == ']' || character == ')' || character == ';'
+            || character == '&' || character == '|') {
         if (uc_buffer_is_empty(parser->temp_buffer)) {
             SET_ERR(PCEJSON_ERROR_BAD_JSONEE_VARIABLE_NAME);
             RETURN_AND_STOP_PARSE();
@@ -2922,7 +2925,8 @@ BEGIN_STATE(EJSON_JSONEE_KEYWORD_STATE)
     if (is_eof(character) || is_whitespace(character) || character == '[' ||
             character == '(' || character == '<' || character == '}' ||
             character == '$' || character == '>' || character == ']'
-            || character == ')' || character == ':' || character == ';') {
+            || character == ')' || character == ':' || character == ';'
+            || character == '&' || character == '|') {
         if (uc_buffer_is_empty(parser->temp_buffer)) {
             SET_ERR(PCEJSON_ERROR_BAD_JSONEE_KEYWORD);
             RETURN_AND_STOP_PARSE();

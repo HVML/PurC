@@ -1,1 +1,1 @@
-{{  ; false || true && false }}
+{{  ; false || true && false || get_variable("A") && get_element(get_variable("A"),"B") || call_getter(get_variable("A")) && call_getter(get_variable("A"),123) || call_getter(get_element(get_element(get_variable("A"),"X"),"Y"),123) }}
