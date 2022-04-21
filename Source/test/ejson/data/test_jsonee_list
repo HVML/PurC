@@ -67,6 +67,6 @@ jsonee_066_call_get_with_nesting_array
 jsonee_067_call_set_with_nesting_array
 jsonee_068_string_with_get_variable
 jsonee_069_undefined
-cjsonee_001_semicolon
+cjsonee_001
 cjsonee_002
 cjsonee_003
