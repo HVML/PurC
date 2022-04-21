@@ -2746,8 +2746,8 @@ BEGIN_STATE(EJSON_JSONEE_VARIABLE_STATE)
         APPEND_TO_TEMP_BUFFER(character);
         ADVANCE_TO(EJSON_JSONEE_VARIABLE_STATE);
     }
-    if (is_whitespace(character) || character == '}'
-            || character == '"' || character == ']' || character == ')') {
+    if (is_whitespace(character) || character == '}' || character == '"'
+            || character == ']' || character == ')' || character == ';') {
         if (uc_buffer_is_empty(parser->temp_buffer)) {
             SET_ERR(PCEJSON_ERROR_BAD_JSONEE_VARIABLE_NAME);
             RETURN_AND_STOP_PARSE();
