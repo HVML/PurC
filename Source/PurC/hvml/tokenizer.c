@@ -2321,7 +2321,7 @@ BEGIN_STATE(HVML_EJSON_LEFT_BRACE_STATE)
             uc = ejson_stack_top();
             if (uc == 'P') {
                 ejson_stack_pop();
-                ejson_stack_push('{');
+                ejson_stack_push('C');
                 if (parser->vcm_node) {
                     vcm_stack_push(parser->vcm_node);
                 }
@@ -4161,7 +4161,7 @@ BEGIN_STATE(HVML_EJSON_OR_SIGN_STATE)
 END_STATE()
 
 BEGIN_STATE(HVML_EJSON_SEMICOLON_STATE)
-    if (character == ',') {
+    if (character == ';') {
         while (parser->vcm_node &&
                 parser->vcm_node->type != PCVCM_NODE_TYPE_CJSONEE) {
             ejson_stack_pop();

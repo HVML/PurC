@@ -458,16 +458,22 @@ static
 void pcvcm_node_write_to_rwstream(purc_rwstream_t rws, struct pcvcm_node *node);
 
 static
-void write_child_node_rwstream(purc_rwstream_t rws, struct pcvcm_node *node)
+void write_child_node_rwstream_ex(purc_rwstream_t rws, struct pcvcm_node *node, bool print_comma)
 {
     struct pcvcm_node *child = FIRST_CHILD(node);
     while (child) {
         pcvcm_node_write_to_rwstream(rws, child);
         child = NEXT_CHILD(child);
-        if (child) {
+        if (child && print_comma) {
             purc_rwstream_write(rws, ",", 1);
         }
     }
+}
+
+static
+void write_child_node_rwstream(purc_rwstream_t rws, struct pcvcm_node *node)
+{
+    write_child_node_rwstream_ex(rws, node, true);
 }
 
 static
@@ -598,7 +604,7 @@ void pcvcm_node_write_to_rwstream(purc_rwstream_t rws, struct pcvcm_node *node)
         break;
     case PCVCM_NODE_TYPE_CJSONEE:
         purc_rwstream_write(rws, "{{ ", 3);
-        write_child_node_rwstream(rws, node);;
+        write_child_node_rwstream_ex(rws, node, false);
         purc_rwstream_write(rws, " }}", 3);
         break;
     case PCVCM_NODE_TYPE_CJSONEE_OP_AND:
@@ -608,7 +614,7 @@ void pcvcm_node_write_to_rwstream(purc_rwstream_t rws, struct pcvcm_node *node)
         purc_rwstream_write(rws, " || ", 4);
         break;
     case PCVCM_NODE_TYPE_CJSONEE_OP_SEMICOLON:
-        purc_rwstream_write(rws, "; ", 2);
+        purc_rwstream_write(rws, " ; ", 3);
         break;
     }
 }
