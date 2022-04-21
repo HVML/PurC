@@ -1449,10 +1449,12 @@ BEGIN_STATE(EJSON_RIGHT_BRACE_STATE)
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
         RETURN_AND_STOP_PARSE();
     }
+#if 0
     if (character == '.' && uc == '$') {
         ejson_stack_pop();
         POP_AS_VCM_PARENT_AND_UPDATE_VCM();
     }
+#endif
     RECONSUME_IN(EJSON_CONTROL_STATE);
 END_STATE()
 
@@ -1701,7 +1703,7 @@ BEGIN_STATE(EJSON_AFTER_VALUE_STATE)
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
         RETURN_AND_STOP_PARSE();
     }
-    if (character == '<' || character == '.') {
+    if (character == '<' || character == '.' || character == ';') {
         RECONSUME_IN(EJSON_CONTROL_STATE);
     }
     if (uc == '"' || uc  == 'U') {
@@ -2917,7 +2919,7 @@ BEGIN_STATE(EJSON_JSONEE_KEYWORD_STATE)
     if (is_eof(character) || is_whitespace(character) || character == '[' ||
             character == '(' || character == '<' || character == '}' ||
             character == '$' || character == '>' || character == ']'
-            || character == ')' || character == ':') {
+            || character == ')' || character == ':' || character == ';') {
         if (uc_buffer_is_empty(parser->temp_buffer)) {
             SET_ERR(PCEJSON_ERROR_BAD_JSONEE_KEYWORD);
             RETURN_AND_STOP_PARSE();
