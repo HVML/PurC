@@ -494,6 +494,14 @@ struct pcvdom_document*
 pcvdom_util_document_from_buf(const unsigned char *buf, size_t len,
         struct pcvdom_pos *pos);
 
+struct pcvdom_element*
+pcvdom_util_document_parse_fragment(purc_rwstream_t in,
+        struct pcvdom_pos *pos);
+
+struct pcvdom_element*
+pcvdom_util_document_parse_fragment_buf(const unsigned char *buf, size_t len,
+        struct pcvdom_pos *pos);
+
 enum pcvdom_util_node_serialize_opt {
     PCVDOM_UTIL_NODE_SERIALIZE__UNDEF,
     PCVDOM_UTIL_NODE_SERIALIZE_INDENT,

@@ -1993,6 +1993,41 @@ pcintr_load_from_uri_async(pcintr_stack_t stack, const char* uri,
             ctxt);
 }
 
+purc_variant_t
+pcintr_load_vdom_fragment_from_uri(pcintr_stack_t stack, const char* uri)
+{
+    if (uri == NULL) {
+        return PURC_VARIANT_INVALID;
+    }
+
+    if (stack->vdom->hvml_ctrl_props->base_url_string) {
+        pcfetcher_set_base_url(stack->vdom->hvml_ctrl_props->base_url_string);
+    }
+    purc_variant_t ret = PURC_VARIANT_INVALID;
+    struct pcfetcher_resp_header resp_header = {0};
+    purc_rwstream_t resp = pcfetcher_request_sync(
+            uri,
+            PCFETCHER_REQUEST_METHOD_GET,
+            NULL,
+            10,
+            &resp_header);
+    if (resp_header.ret_code == 200) {
+        size_t sz_content = 0;
+        char* buf = (char*)purc_rwstream_get_mem_buffer(resp, &sz_content);
+        (void)buf;
+        purc_clr_error();
+        // TODO: modify vdom in place????
+        // ret = purc_variant_make_from_json_string(buf, sz_content);
+        purc_rwstream_destroy(resp);
+        PC_ASSERT(0);
+    }
+
+    if (resp_header.mime_type) {
+        free(resp_header.mime_type);
+    }
+    return ret;
+}
+
 #define DOC_QUERY         "query"
 
 purc_variant_t
