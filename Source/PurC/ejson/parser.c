@@ -1706,6 +1706,9 @@ BEGIN_STATE(EJSON_AFTER_VALUE_STATE)
     if (character == '<' || character == '.' || character == ';') {
         RECONSUME_IN(EJSON_CONTROL_STATE);
     }
+    if (character == ';' || character == '|' || character == '&') {
+        RECONSUME_IN(EJSON_CONTROL_STATE);
+    }
     if (uc == '"' || uc  == 'U') {
         RECONSUME_IN(EJSON_CONTROL_STATE);
     }
@@ -2076,8 +2079,8 @@ END_STATE()
 BEGIN_STATE(EJSON_AFTER_KEYWORD_STATE)
     if (is_whitespace(character) || character == '}'
             || character == ']' || character == ','
-            || character == ')'
-            || is_eof(character)) {
+            || character == ')' || character == ';' || character == '&'
+            || character == '|' || is_eof(character)) {
         if (uc_buffer_equal_to(parser->temp_buffer, "true", 4)) {
             RESTORE_VCM_NODE();
             struct pcvcm_node *node = pcvcm_node_new_boolean(true);
@@ -3081,7 +3084,11 @@ BEGIN_STATE(EJSON_AFTER_JSONEE_STRING_STATE)
 END_STATE()
 
 BEGIN_STATE(EJSON_AMPERSAND_STATE)
-    if (is_whitespace(character)) {
+    if (character == '&') {
+        APPEND_TO_TEMP_BUFFER(character);
+        ADVANCE_TO(EJSON_AMPERSAND_STATE);
+    }
+    {
         if (uc_buffer_equal_to(parser->temp_buffer, "&&", 2)) {
             while (parser->vcm_node &&
                     parser->vcm_node->type != PCVCM_NODE_TYPE_CJSONEE) {
@@ -3095,21 +3102,19 @@ BEGIN_STATE(EJSON_AMPERSAND_STATE)
             struct pcvcm_node *node = pcvcm_node_new_cjsonee_op_and();
             APPEND_AS_VCM_CHILD(node);
             RESET_TEMP_BUFFER();
-            ADVANCE_TO(EJSON_CONTROL_STATE);
+            RECONSUME_IN(EJSON_CONTROL_STATE);
         }
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
         RETURN_AND_STOP_PARSE();
     }
-    if (character == '&') {
-        APPEND_TO_TEMP_BUFFER(character);
-        ADVANCE_TO(EJSON_AMPERSAND_STATE);
-    }
-    SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
-    RETURN_AND_STOP_PARSE();
 END_STATE()
 
 BEGIN_STATE(EJSON_OR_SIGN_STATE)
-    if (is_whitespace(character)) {
+    if (character == '|') {
+        APPEND_TO_TEMP_BUFFER(character);
+        ADVANCE_TO(EJSON_OR_SIGN_STATE);
+    }
+    {
         if (uc_buffer_equal_to(parser->temp_buffer, "||", 2)) {
             while (parser->vcm_node &&
                     parser->vcm_node->type != PCVCM_NODE_TYPE_CJSONEE) {
@@ -3123,17 +3128,11 @@ BEGIN_STATE(EJSON_OR_SIGN_STATE)
             struct pcvcm_node *node = pcvcm_node_new_cjsonee_op_or();
             APPEND_AS_VCM_CHILD(node);
             RESET_TEMP_BUFFER();
-            ADVANCE_TO(EJSON_CONTROL_STATE);
+            RECONSUME_IN(EJSON_CONTROL_STATE);
         }
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
         RETURN_AND_STOP_PARSE();
     }
-    if (character == '|') {
-        APPEND_TO_TEMP_BUFFER(character);
-        ADVANCE_TO(EJSON_OR_SIGN_STATE);
-    }
-    SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
-    RETURN_AND_STOP_PARSE();
 END_STATE()
 
 BEGIN_STATE(EJSON_SEMICOLON_STATE)

@@ -1,1 +1,1 @@
-{{ "this is attr $VAR"; }}
+{{ "this is attr $VAR";false||true&&false }}

@@ -1,1 +1,1 @@
-{{ call_setter(get_element(get_variable("ABC"),"b"),get_element(get_variable("PA"),"M"),get_element(get_variable("PB"),"N")) ;  }}
+{{ call_setter(get_element(get_variable("ABC"),"b"),get_element(get_variable("PA"),"M"),get_element(get_variable("PB"),"N")) ; false || true && false }}

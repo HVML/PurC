@@ -1,1 +1,1 @@
-{{ ${$a.attr.class}; }}
+{{ ${$a.attr.class};false||true&&false }}

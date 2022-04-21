@@ -1,1 +1,1 @@
-{{ $AA.BB(undefined); }}
+{{ $AA.BB(undefined);false||true&&false }}

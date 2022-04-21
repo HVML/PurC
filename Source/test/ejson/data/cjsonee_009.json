@@ -1,1 +1,1 @@
-{{ $ABC.DEF; }}
+{{ $ABC.DEF;false||true&&false }}

@@ -1,1 +1,1 @@
-{{ "attr"; }}
+{{ "attr";false||true&&false }}

@@ -1,1 +1,1 @@
-{{ get_variable(get_variable(get_variable(get_variable(get_variable(get_variable("ABC")))))) ;  }}
+{{ get_variable(get_variable(get_variable(get_variable(get_variable(get_variable("ABC")))))) ; false || true && false }}

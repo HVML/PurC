@@ -1,1 +1,1 @@
-{{ $abc(); }}
+{{ $abc();false||true&&false }}

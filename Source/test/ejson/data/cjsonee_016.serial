@@ -1,1 +1,1 @@
-{{ get_element(get_element(get_variable("ABC"),"b"),get_element(get_variable("C"),"d")) ;  }}
+{{ get_element(get_element(get_variable("ABC"),"b"),get_element(get_variable("C"),"d")) ; false || true && false }}

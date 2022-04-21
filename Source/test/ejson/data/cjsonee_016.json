@@ -1,1 +1,1 @@
-{{ $ABC.b[$C.d]; }}
+{{ $ABC.b[$C.d];false||true&&false }}
