@@ -261,6 +261,10 @@ enum tokenizer_state {
     EJSON_JSONEE_KEYWORD_STATE,
     EJSON_JSONEE_STRING_STATE,
     EJSON_AFTER_JSONEE_STRING_STATE,
+    EJSON_AMPERSAND_STATE,
+    EJSON_OR_SIGN_STATE,
+    EJSON_SEMICOLON_STATE,
+    EJSON_CJSONEE_FINISHED_STATE,
 
     LAST_STATE = EJSON_AFTER_JSONEE_STRING_STATE,
 };
@@ -3029,6 +3033,88 @@ BEGIN_STATE(EJSON_AFTER_JSONEE_STRING_STATE)
     SET_ERR(PCEJSON_ERROR_BAD_JSONEE_NAME);
     RETURN_AND_STOP_PARSE();
 END_STATE()
+
+BEGIN_STATE(EJSON_AMPERSAND_STATE)
+    if (is_whitespace(character)) {
+        if (uc_buffer_equal_to(parser->temp_buffer, "&&", 2)) {
+            while (parser->vcm_node &&
+                    parser->vcm_node->type != PCVCM_NODE_TYPE_CJSONEE) {
+                ejson_stack_pop();
+                POP_AS_VCM_PARENT_AND_UPDATE_VCM();
+            }
+            struct pcvcm_node *node = pcvcm_node_new_cjsonee_op_and();
+            APPEND_AS_VCM_CHILD(node);
+            RESET_TEMP_BUFFER();
+            ADVANCE_TO(EJSON_CONTROL_STATE);
+        }
+        SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
+        RETURN_AND_STOP_PARSE();
+    }
+    if (character == '&') {
+        APPEND_TO_TEMP_BUFFER(character);
+        ADVANCE_TO(EJSON_AMPERSAND_STATE);
+    }
+    SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
+    RETURN_AND_STOP_PARSE();
+END_STATE()
+
+BEGIN_STATE(EJSON_OR_SIGN_STATE)
+    if (is_whitespace(character)) {
+        if (uc_buffer_equal_to(parser->temp_buffer, "||", 2)) {
+            while (parser->vcm_node &&
+                    parser->vcm_node->type != PCVCM_NODE_TYPE_CJSONEE) {
+                ejson_stack_pop();
+                POP_AS_VCM_PARENT_AND_UPDATE_VCM();
+            }
+            struct pcvcm_node *node = pcvcm_node_new_cjsonee_op_or();
+            APPEND_AS_VCM_CHILD(node);
+            RESET_TEMP_BUFFER();
+            ADVANCE_TO(EJSON_CONTROL_STATE);
+        }
+        SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
+        RETURN_AND_STOP_PARSE();
+    }
+    if (character == '|') {
+        APPEND_TO_TEMP_BUFFER(character);
+        ADVANCE_TO(EJSON_OR_SIGN_STATE);
+    }
+    SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
+    RETURN_AND_STOP_PARSE();
+END_STATE()
+
+BEGIN_STATE(EJSON_SEMICOLON_STATE)
+    if (character == ',') {
+        while (parser->vcm_node &&
+                parser->vcm_node->type != PCVCM_NODE_TYPE_CJSONEE) {
+            ejson_stack_pop();
+            POP_AS_VCM_PARENT_AND_UPDATE_VCM();
+        }
+        struct pcvcm_node *node = pcvcm_node_new_cjsonee_op_semicolon();
+        APPEND_AS_VCM_CHILD(node);
+        ADVANCE_TO(EJSON_CONTROL_STATE);
+    }
+    RECONSUME_IN(EJSON_CONTROL_STATE);
+END_STATE()
+
+BEGIN_STATE(EJSON_CJSONEE_FINISHED_STATE)
+    if (character == '}') {
+        APPEND_TO_TEMP_BUFFER(character);
+        if (uc_buffer_equal_to(parser->temp_buffer, "}}", 2)) {
+            ejson_stack_pop();
+            POP_AS_VCM_PARENT_AND_UPDATE_VCM();
+            ADVANCE_TO(EJSON_CONTROL_STATE);
+        }
+        ADVANCE_TO(EJSON_CJSONEE_FINISHED_STATE);
+    }
+    if (uc_buffer_equal_to(parser->temp_buffer, "}}", 2)) {
+        ejson_stack_pop();
+        POP_AS_VCM_PARENT_AND_UPDATE_VCM();
+        RECONSUME_IN(EJSON_CONTROL_STATE);
+    }
+    SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
+    RETURN_AND_STOP_PARSE();
+END_STATE()
+
 
 PCEJSON_PARSER_END
 #endif
