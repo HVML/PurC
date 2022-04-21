@@ -1705,7 +1705,7 @@ BEGIN_STATE(EJSON_AFTER_VALUE_STATE)
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
         RETURN_AND_STOP_PARSE();
     }
-    if (character == '<' || character == '.' || character == ';') {
+    if (character == '<' || character == '.') {
         RECONSUME_IN(EJSON_CONTROL_STATE);
     }
     if (character == ';' || character == '|' || character == '&') {

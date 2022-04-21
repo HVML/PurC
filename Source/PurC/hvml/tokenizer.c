@@ -2425,10 +2425,12 @@ BEGIN_STATE(HVML_EJSON_RIGHT_BRACE_STATE)
         SET_ERR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
         RETURN_AND_STOP_PARSE();
     }
+#if 0
     if (character == '.' && uc == '$') {
         ejson_stack_pop();
         POP_AS_VCM_PARENT_AND_UPDATE_VCM();
     }
+#endif
     RECONSUME_IN(HVML_EJSON_CONTROL_STATE);
 END_STATE()
 
@@ -2669,6 +2671,9 @@ BEGIN_STATE(HVML_EJSON_AFTER_VALUE_STATE)
         RETURN_AND_STOP_PARSE();
     }
     if (character == '<' || character == '.') {
+        RECONSUME_IN(HVML_EJSON_CONTROL_STATE);
+    }
+    if (character == ';' || character == '|' || character == '&') {
         RECONSUME_IN(HVML_EJSON_CONTROL_STATE);
     }
     if (uc == '"' || uc  == 'U') {
@@ -3030,7 +3035,8 @@ END_STATE()
 BEGIN_STATE(HVML_EJSON_AFTER_KEYWORD_STATE)
     if (is_whitespace(character) || character == '}'
             || character == ']' || character == ','
-            || character == ')') {
+            || character == ')' || character == ';' || character == '&'
+            || character == '|') {
         if (pchvml_buffer_equal_to(parser->temp_buffer, "true", 4)) {
             RESTORE_VCM_NODE();
             struct pcvcm_node* node = pcvcm_node_new_boolean(true);
@@ -3697,7 +3703,8 @@ BEGIN_STATE(HVML_EJSON_JSONEE_VARIABLE_STATE)
         ADVANCE_TO(HVML_EJSON_JSONEE_VARIABLE_STATE);
     }
     if (is_whitespace(character) || character == '}'
-            || character == '"' || character == ']' || character == ')') {
+            || character == '"' || character == ']' || character == ')'
+            || character == ';' || character == '&' || character == '|') {
         if (pchvml_buffer_is_empty(parser->temp_buffer)) {
             SET_ERR(PCHVML_ERROR_BAD_JSONEE_VARIABLE_NAME);
             RETURN_AND_STOP_PARSE();
@@ -3867,7 +3874,8 @@ BEGIN_STATE(HVML_EJSON_JSONEE_KEYWORD_STATE)
     if (is_whitespace(character) || character == '[' ||
             character == '(' || character == '<' || character == '}' ||
             character == '$' || character == '>' || character == ']'
-            || character == ')' || character == ':') {
+            || character == ')' || character == ':' || character == ';'
+            || character == '&' || character == '|') {
         if (pchvml_buffer_is_empty(parser->temp_buffer)) {
             SET_ERR(PCHVML_ERROR_BAD_JSONEE_KEYWORD);
             RETURN_AND_STOP_PARSE();
@@ -4113,7 +4121,11 @@ BEGIN_STATE(HVML_EJSON_TEMPLATE_FINISHED_STATE)
 END_STATE()
 
 BEGIN_STATE(HVML_EJSON_AMPERSAND_STATE)
-    if (is_whitespace(character)) {
+    if (character == '&') {
+        APPEND_TO_TEMP_BUFFER(character);
+        ADVANCE_TO(HVML_EJSON_AMPERSAND_STATE);
+    }
+    {
         if (pchvml_buffer_equal_to(parser->temp_buffer, "&&", 2)) {
             while (parser->vcm_node &&
                     parser->vcm_node->type != PCVCM_NODE_TYPE_CJSONEE) {
@@ -4127,21 +4139,19 @@ BEGIN_STATE(HVML_EJSON_AMPERSAND_STATE)
             struct pcvcm_node *node = pcvcm_node_new_cjsonee_op_and();
             APPEND_AS_VCM_CHILD(node);
             RESET_TEMP_BUFFER();
-            ADVANCE_TO(HVML_EJSON_CONTROL_STATE);
+            RECONSUME_IN(HVML_EJSON_CONTROL_STATE);
         }
         SET_ERR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
         RETURN_AND_STOP_PARSE();
     }
-    if (character == '&') {
-        APPEND_TO_TEMP_BUFFER(character);
-        ADVANCE_TO(HVML_EJSON_AMPERSAND_STATE);
-    }
-    SET_ERR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
-    RETURN_AND_STOP_PARSE();
 END_STATE()
 
 BEGIN_STATE(HVML_EJSON_OR_SIGN_STATE)
-    if (is_whitespace(character)) {
+    if (character == '|') {
+        APPEND_TO_TEMP_BUFFER(character);
+        ADVANCE_TO(HVML_EJSON_OR_SIGN_STATE);
+    }
+    {
         if (pchvml_buffer_equal_to(parser->temp_buffer, "||", 2)) {
             while (parser->vcm_node &&
                     parser->vcm_node->type != PCVCM_NODE_TYPE_CJSONEE) {
@@ -4155,17 +4165,11 @@ BEGIN_STATE(HVML_EJSON_OR_SIGN_STATE)
             struct pcvcm_node *node = pcvcm_node_new_cjsonee_op_or();
             APPEND_AS_VCM_CHILD(node);
             RESET_TEMP_BUFFER();
-            ADVANCE_TO(HVML_EJSON_CONTROL_STATE);
+            RECONSUME_IN(HVML_EJSON_CONTROL_STATE);
         }
         SET_ERR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
         RETURN_AND_STOP_PARSE();
     }
-    if (character == '|') {
-        APPEND_TO_TEMP_BUFFER(character);
-        ADVANCE_TO(HVML_EJSON_OR_SIGN_STATE);
-    }
-    SET_ERR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
-    RETURN_AND_STOP_PARSE();
 END_STATE()
 
 BEGIN_STATE(HVML_EJSON_SEMICOLON_STATE)
