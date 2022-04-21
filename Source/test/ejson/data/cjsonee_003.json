@@ -1,0 +1,7 @@
+{{
+    $STREAM.stdout.writelines({{
+        $SYSTEM.cwd(! '/root') && $FS.list_prt ||
+        'Cannot change directory to "/root"''
+    }})
+}}
+

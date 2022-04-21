@@ -1,0 +1,1 @@
+{{ call_getter(get_element(get_element(get_variable("STREAM"),"stdout"),"writelines"),{{ call_setter(get_element(get_variable("SYSTEM"),"cwd"),"/root") && get_element(get_variable("FS"),"list_prt") || "Cannot change directory to "/root"" }}) }}
