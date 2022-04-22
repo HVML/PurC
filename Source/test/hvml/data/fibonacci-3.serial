@@ -36,13 +36,13 @@ PCHVML_TOKEN_END_TAG|</header>
 PCHVML_TOKEN_VCM_TREE|"
 
         "
-PCHVML_TOKEN_START_TAG|<init as="last_one" with=0L locally/>
+PCHVML_TOKEN_START_TAG|<init as="last_one" with=0L temporarily/>
 PCHVML_TOKEN_VCM_TREE|"
         "
-PCHVML_TOKEN_START_TAG|<init as="last_two" with=1L locally/>
+PCHVML_TOKEN_START_TAG|<init as="last_two" with=1L temporarily/>
 PCHVML_TOKEN_VCM_TREE|"
         "
-PCHVML_TOKEN_START_TAG|<init as="count" with=2L locally/>
+PCHVML_TOKEN_START_TAG|<init as="count" with=2L temporarily/>
 PCHVML_TOKEN_VCM_TREE|"
 
         "

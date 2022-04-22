@@ -49,7 +49,7 @@ struct ctxt_for_init {
     purc_variant_t                literal;
 
     unsigned int                  under_head:1;
-    unsigned int                  locally:1;
+    unsigned int                  temporarily:1;
     unsigned int                  async:1;
 };
 
@@ -115,7 +115,7 @@ post_process_bind_scope_var(pcintr_coroutine_t co,
 }
 
 static int
-post_process_as_locally(pcintr_coroutine_t co,
+post_process_as_temporarily(pcintr_coroutine_t co,
         struct pcintr_stack_frame *frame,
         purc_variant_t name,
         purc_variant_t src)
@@ -143,7 +143,7 @@ post_process_as_locally(pcintr_coroutine_t co,
 }
 
 static int
-post_process_at_locally(pcintr_coroutine_t co,
+post_process_at_temporarily(pcintr_coroutine_t co,
         struct pcintr_stack_frame *frame,
         purc_variant_t name,
         purc_variant_t src)
@@ -174,17 +174,17 @@ post_process_at_locally(pcintr_coroutine_t co,
 }
 
 static int
-post_process_locally(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
+post_process_temporarily(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         purc_variant_t src)
 {
     struct ctxt_for_init *ctxt;
     ctxt = (struct ctxt_for_init*)frame->ctxt;
 
     if (ctxt->as) {
-        return post_process_as_locally(co, frame, ctxt->as, src);
+        return post_process_as_temporarily(co, frame, ctxt->as, src);
     }
     if (ctxt->at) {
-        return post_process_at_locally(co, frame, ctxt->at, src);
+        return post_process_at_temporarily(co, frame, ctxt->at, src);
     }
 
     PC_ASSERT(0);
@@ -200,8 +200,8 @@ post_process_src(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     struct ctxt_for_init *ctxt;
     ctxt = (struct ctxt_for_init*)frame->ctxt;
 
-    if (ctxt->locally) {
-        return post_process_locally(co, frame, src);
+    if (ctxt->temporarily) {
+        return post_process_temporarily(co, frame, src);
     }
 
     // FIXME: <init at="name" with="undefined" />
@@ -466,9 +466,9 @@ attr_found_val(struct pcintr_stack_frame *frame,
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, AGAINST)) == name) {
         return process_attr_against(frame, element, name, val);
     }
-    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, LOCALLY)) == name) {
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, TEMPORARILY)) == name) {
         PC_ASSERT(purc_variant_is_undefined(val));
-        ctxt->locally = 1;
+        ctxt->temporarily = 1;
         return 0;
     }
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, ASYNCHRONOUSLY)) == name
@@ -624,7 +624,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (r)
         return NULL;
 
-    if (ctxt->locally) {
+    if (ctxt->temporarily) {
         ctxt->async = 0;
     }
 

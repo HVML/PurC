@@ -30,7 +30,6 @@ hvml excl
 hvml href
 hvml raw
 hvml type
-hvml locally
 hvml onlyif
 hvml while
 hvml synchronously
@@ -38,4 +37,5 @@ hvml sync
 hvml asynchronously
 hvml async
 hvml rel
+hvml temporarily
 
