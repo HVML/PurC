@@ -766,6 +766,33 @@ bool is_whitespace(uint32_t uc)
 }
 
 static inline UNUSED_FUNCTION
+bool is_delimiter(uint32_t uc)
+{
+    switch (uc) {
+    case END_OF_FILE:
+    case ' ':
+    case 0x0A:
+    case 0x09:
+    case 0x0C:
+    case '{':
+    case '}':
+    case '[':
+    case ']':
+    case '(':
+    case ')':
+    case '<':
+    case '>':
+    case '$':
+    case ':':
+    case ';':
+    case '&':
+    case '|':
+        return true;
+    }
+    return false;
+}
+
+static inline UNUSED_FUNCTION
 uint32_t to_ascii_lower_unchecked(uint32_t uc)
 {
     return uc | 0x20;
@@ -2925,11 +2952,7 @@ BEGIN_STATE(EJSON_JSONEE_KEYWORD_STATE)
         APPEND_TO_TEMP_BUFFER(character);
         ADVANCE_TO(EJSON_JSONEE_KEYWORD_STATE);
     }
-    if (is_eof(character) || is_whitespace(character) || character == '[' ||
-            character == '(' || character == '<' || character == '}' ||
-            character == '$' || character == '>' || character == ']'
-            || character == ')' || character == ':' || character == ';'
-            || character == '&' || character == '|') {
+    if (is_delimiter(character) || character == '"') {
         if (uc_buffer_is_empty(parser->temp_buffer)) {
             SET_ERR(PCEJSON_ERROR_BAD_JSONEE_KEYWORD);
             RETURN_AND_STOP_PARSE();
@@ -2942,22 +2965,6 @@ BEGIN_STATE(EJSON_JSONEE_KEYWORD_STATE)
         RESET_TEMP_BUFFER();
         ejson_stack_pop();
         POP_AS_VCM_PARENT_AND_UPDATE_VCM();
-        RECONSUME_IN(EJSON_CONTROL_STATE);
-    }
-    if (character == '"') {
-        if (uc_buffer_is_empty(parser->temp_buffer)) {
-            SET_ERR(PCEJSON_ERROR_BAD_JSONEE_KEYWORD);
-            RETURN_AND_STOP_PARSE();
-        }
-        if (parser->vcm_node) {
-            vcm_stack_push(parser->vcm_node);
-        }
-        parser->vcm_node = pcvcm_node_new_string(
-                   uc_buffer_get_bytes(parser->temp_buffer));
-        RESET_TEMP_BUFFER();
-        ejson_stack_pop();
-        POP_AS_VCM_PARENT_AND_UPDATE_VCM();
-        //ADVANCE_TO(EJSON_CONTROL_STATE);
         RECONSUME_IN(EJSON_CONTROL_STATE);
     }
     if (character == ',') {
@@ -3100,14 +3107,12 @@ BEGIN_STATE(EJSON_AMPERSAND_STATE)
             uint32_t uc = ejson_stack_top();
             while (uc != 'C') {
                 ejson_stack_pop();
+                POP_AS_VCM_PARENT_AND_UPDATE_VCM();
                 uc = ejson_stack_top();
             }
-            while (parser->vcm_node &&
+            if (parser->vcm_node &&
                     parser->vcm_node->type != PCVCM_NODE_TYPE_CJSONEE) {
                 POP_AS_VCM_PARENT_AND_UPDATE_VCM();
-                if (vcm_stack_is_empty()) {
-                    break;
-                }
             }
             struct pcvcm_node *node = pcvcm_node_new_cjsonee_op_and();
             APPEND_AS_VCM_CHILD(node);
@@ -3129,14 +3134,12 @@ BEGIN_STATE(EJSON_OR_SIGN_STATE)
             uint32_t uc = ejson_stack_top();
             while (uc != 'C') {
                 ejson_stack_pop();
+                POP_AS_VCM_PARENT_AND_UPDATE_VCM();
                 uc = ejson_stack_top();
             }
-            while (parser->vcm_node &&
+            if (parser->vcm_node &&
                     parser->vcm_node->type != PCVCM_NODE_TYPE_CJSONEE) {
                 POP_AS_VCM_PARENT_AND_UPDATE_VCM();
-                if (vcm_stack_is_empty()) {
-                    break;
-                }
             }
             struct pcvcm_node *node = pcvcm_node_new_cjsonee_op_or();
             APPEND_AS_VCM_CHILD(node);
@@ -3153,14 +3156,12 @@ BEGIN_STATE(EJSON_SEMICOLON_STATE)
         uint32_t uc = ejson_stack_top();
         while (uc != 'C') {
             ejson_stack_pop();
+            POP_AS_VCM_PARENT_AND_UPDATE_VCM();
             uc = ejson_stack_top();
         }
-        while (parser->vcm_node &&
+        if (parser->vcm_node &&
                 parser->vcm_node->type != PCVCM_NODE_TYPE_CJSONEE) {
             POP_AS_VCM_PARENT_AND_UPDATE_VCM();
-            if (vcm_stack_is_empty()) {
-                break;
-            }
         }
         struct pcvcm_node *node = pcvcm_node_new_cjsonee_op_semicolon();
         APPEND_AS_VCM_CHILD(node);

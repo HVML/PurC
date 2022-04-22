@@ -4134,17 +4134,12 @@ BEGIN_STATE(HVML_EJSON_AMPERSAND_STATE)
             uint32_t uc = ejson_stack_top();
             while (uc != 'C') {
                 ejson_stack_pop();
-                if (ejson_stack_is_empty()) {
-                    break;
-                }
+                POP_AS_VCM_PARENT_AND_UPDATE_VCM();
                 uc = ejson_stack_top();
             }
-            while (parser->vcm_node &&
+            if (parser->vcm_node &&
                     parser->vcm_node->type != PCVCM_NODE_TYPE_CJSONEE) {
                 POP_AS_VCM_PARENT_AND_UPDATE_VCM();
-                if (vcm_stack_is_empty()) {
-                    break;
-                }
             }
             struct pcvcm_node *node = pcvcm_node_new_cjsonee_op_and();
             APPEND_AS_VCM_CHILD(node);
@@ -4166,17 +4161,12 @@ BEGIN_STATE(HVML_EJSON_OR_SIGN_STATE)
             uint32_t uc = ejson_stack_top();
             while (uc != 'C') {
                 ejson_stack_pop();
-                if (ejson_stack_is_empty()) {
-                    break;
-                }
+                POP_AS_VCM_PARENT_AND_UPDATE_VCM();
                 uc = ejson_stack_top();
             }
-            while (parser->vcm_node &&
+            if (parser->vcm_node &&
                     parser->vcm_node->type != PCVCM_NODE_TYPE_CJSONEE) {
                 POP_AS_VCM_PARENT_AND_UPDATE_VCM();
-                if (vcm_stack_is_empty()) {
-                    break;
-                }
             }
             struct pcvcm_node *node = pcvcm_node_new_cjsonee_op_or();
             APPEND_AS_VCM_CHILD(node);
@@ -4193,17 +4183,12 @@ BEGIN_STATE(HVML_EJSON_SEMICOLON_STATE)
         uint32_t uc = ejson_stack_top();
         while (uc != 'C') {
             ejson_stack_pop();
-            if (ejson_stack_is_empty()) {
-                break;
-            }
+            POP_AS_VCM_PARENT_AND_UPDATE_VCM();
             uc = ejson_stack_top();
         }
-        while (parser->vcm_node &&
+        if (parser->vcm_node &&
                 parser->vcm_node->type != PCVCM_NODE_TYPE_CJSONEE) {
             POP_AS_VCM_PARENT_AND_UPDATE_VCM();
-            if (vcm_stack_is_empty()) {
-                break;
-            }
         }
         struct pcvcm_node *node = pcvcm_node_new_cjsonee_op_semicolon();
         APPEND_AS_VCM_CHILD(node);
