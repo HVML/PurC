@@ -3094,14 +3094,17 @@ BEGIN_STATE(EJSON_AMPERSAND_STATE)
     }
     {
         if (uc_buffer_equal_to(parser->temp_buffer, "&&", 2)) {
+            uint32_t uc = ejson_stack_top();
+            while (uc != 'C') {
+                ejson_stack_pop();
+                uc = ejson_stack_top();
+            }
             while (parser->vcm_node &&
                     parser->vcm_node->type != PCVCM_NODE_TYPE_CJSONEE) {
-                ejson_stack_pop();
                 POP_AS_VCM_PARENT_AND_UPDATE_VCM();
-            }
-            uint32_t uc = ejson_stack_top();
-            if (uc != 'C') {
-                ejson_stack_push('C');
+                if (vcm_stack_is_empty()) {
+                    break;
+                }
             }
             struct pcvcm_node *node = pcvcm_node_new_cjsonee_op_and();
             APPEND_AS_VCM_CHILD(node);
@@ -3120,14 +3123,17 @@ BEGIN_STATE(EJSON_OR_SIGN_STATE)
     }
     {
         if (uc_buffer_equal_to(parser->temp_buffer, "||", 2)) {
+            uint32_t uc = ejson_stack_top();
+            while (uc != 'C') {
+                ejson_stack_pop();
+                uc = ejson_stack_top();
+            }
             while (parser->vcm_node &&
                     parser->vcm_node->type != PCVCM_NODE_TYPE_CJSONEE) {
-                ejson_stack_pop();
                 POP_AS_VCM_PARENT_AND_UPDATE_VCM();
-            }
-            uint32_t uc = ejson_stack_top();
-            if (uc != 'C') {
-                ejson_stack_push('C');
+                if (vcm_stack_is_empty()) {
+                    break;
+                }
             }
             struct pcvcm_node *node = pcvcm_node_new_cjsonee_op_or();
             APPEND_AS_VCM_CHILD(node);
@@ -3141,14 +3147,17 @@ END_STATE()
 
 BEGIN_STATE(EJSON_SEMICOLON_STATE)
     if (character == ';') {
+        uint32_t uc = ejson_stack_top();
+        while (uc != 'C') {
+            ejson_stack_pop();
+            uc = ejson_stack_top();
+        }
         while (parser->vcm_node &&
                 parser->vcm_node->type != PCVCM_NODE_TYPE_CJSONEE) {
-            ejson_stack_pop();
             POP_AS_VCM_PARENT_AND_UPDATE_VCM();
-        }
-        uint32_t uc = ejson_stack_top();
-        if (uc != 'C') {
-            ejson_stack_push('C');
+            if (vcm_stack_is_empty()) {
+                break;
+            }
         }
         struct pcvcm_node *node = pcvcm_node_new_cjsonee_op_semicolon();
         APPEND_AS_VCM_CHILD(node);

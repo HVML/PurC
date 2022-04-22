@@ -2091,7 +2091,8 @@ BEGIN_STATE(HVML_EJSON_CONTROL_STATE)
         RECONSUME_IN(HVML_EJSON_LEFT_BRACE_STATE);
     }
     if (character == '}') {
-        if ((parser->vcm_node->type == PCVCM_NODE_TYPE_FUNC_CONCAT_STRING)
+        if (parser->vcm_node && (parser->vcm_node->type ==
+                    PCVCM_NODE_TYPE_FUNC_CONCAT_STRING)
                 && (uc == '"' || uc == '\'' || uc == 'U')) {
             RECONSUME_IN(HVML_EJSON_AFTER_JSONEE_STRING_STATE);
         }
@@ -4127,14 +4128,20 @@ BEGIN_STATE(HVML_EJSON_AMPERSAND_STATE)
     }
     {
         if (pchvml_buffer_equal_to(parser->temp_buffer, "&&", 2)) {
+            uint32_t uc = ejson_stack_top();
+            while (uc != 'C') {
+                ejson_stack_pop();
+                if (ejson_stack_is_empty()) {
+                    break;
+                }
+                uc = ejson_stack_top();
+            }
             while (parser->vcm_node &&
                     parser->vcm_node->type != PCVCM_NODE_TYPE_CJSONEE) {
-                ejson_stack_pop();
                 POP_AS_VCM_PARENT_AND_UPDATE_VCM();
-            }
-            uint32_t uc = ejson_stack_top();
-            if (uc != 'C') {
-                ejson_stack_push('C');
+                if (vcm_stack_is_empty()) {
+                    break;
+                }
             }
             struct pcvcm_node *node = pcvcm_node_new_cjsonee_op_and();
             APPEND_AS_VCM_CHILD(node);
@@ -4153,14 +4160,20 @@ BEGIN_STATE(HVML_EJSON_OR_SIGN_STATE)
     }
     {
         if (pchvml_buffer_equal_to(parser->temp_buffer, "||", 2)) {
+            uint32_t uc = ejson_stack_top();
+            while (uc != 'C') {
+                ejson_stack_pop();
+                if (ejson_stack_is_empty()) {
+                    break;
+                }
+                uc = ejson_stack_top();
+            }
             while (parser->vcm_node &&
                     parser->vcm_node->type != PCVCM_NODE_TYPE_CJSONEE) {
-                ejson_stack_pop();
                 POP_AS_VCM_PARENT_AND_UPDATE_VCM();
-            }
-            uint32_t uc = ejson_stack_top();
-            if (uc != 'C') {
-                ejson_stack_push('C');
+                if (vcm_stack_is_empty()) {
+                    break;
+                }
             }
             struct pcvcm_node *node = pcvcm_node_new_cjsonee_op_or();
             APPEND_AS_VCM_CHILD(node);
@@ -4174,14 +4187,20 @@ END_STATE()
 
 BEGIN_STATE(HVML_EJSON_SEMICOLON_STATE)
     if (character == ';') {
+        uint32_t uc = ejson_stack_top();
+        while (uc != 'C') {
+            ejson_stack_pop();
+            if (ejson_stack_is_empty()) {
+                break;
+            }
+            uc = ejson_stack_top();
+        }
         while (parser->vcm_node &&
                 parser->vcm_node->type != PCVCM_NODE_TYPE_CJSONEE) {
-            ejson_stack_pop();
             POP_AS_VCM_PARENT_AND_UPDATE_VCM();
-        }
-        uint32_t uc = ejson_stack_top();
-        if (uc != 'C') {
-            ejson_stack_push('C');
+            if (vcm_stack_is_empty()) {
+                break;
+            }
         }
         struct pcvcm_node *node = pcvcm_node_new_cjsonee_op_semicolon();
         APPEND_AS_VCM_CHILD(node);
