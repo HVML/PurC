@@ -1004,13 +1004,39 @@ rm_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 static purc_variant_t pcdvobjs_create_fs(void)
 {
     static struct purc_dvobj_method method [] = {
-        {"list",     list_getter, NULL},
-        {"list_prt", list_prt_getter, NULL},
-        {"mkdir",    mkdir_getter, NULL},
-        {"rmdir",    rmdir_getter, NULL},
-        {"touch",    touch_getter, NULL},
-        {"unlink",   unlink_getter, NULL},
-        {"rm",       rm_getter, NULL} };
+        {"list",          list_getter, NULL},
+        {"list_prt",      list_prt_getter, NULL},
+        /*{"basename",      basename_getter, NULL},
+        {"chgrp",         chgrp_getter, NULL},
+        {"chmod",         chmod_getter, NULL},
+        {"chown",         chown_getter, NULL},
+        {"copy",          copy_getter, NULL},
+        {"dirname",       dirname_getter, NULL},
+        {"disk_usage",    disk_usage_getter, NULL},
+        {"file_exists",   file_exists_getter, NULL},
+        {"file_is",       file_is_getter, NULL},
+        {"lchgrp",        lchgrp_getter, NULL},
+        {"lchown",        lchown_getter, NULL},
+        {"linkinfo",      linkinfo_getter, NULL},
+        {"lstat",         lstat_getter, NULL},
+        {"link",          link_getter, NULL},*/
+        {"mkdir",         mkdir_getter, NULL},
+        /*{"pathinfo",      pathinfo_getter, NULL},
+        {"readlink",      readlink_getter, NULL},
+        {"realpath",      realpath_getter, NULL},
+        {"rename",        rename_getter, NULL},*/
+        {"rmdir",         rmdir_getter, NULL},
+        //{"stat",          stat_getter, NULL},
+        //{"symlink",       symlink_getter, NULL},
+        //{"tempname",      tempname_getter, NULL},
+        {"touch",         touch_getter, NULL},
+        //{"umask",         umask_getter, NULL},
+        {"unlink",        unlink_getter, NULL},
+        {"rm",            rm_getter, NULL},//?
+        /*{"file_contents", file_contents_getter, NULL},
+        {"open_dir",      open_dir_getter, NULL},
+        {"dir_read",      dir_read_getter, NULL},
+        {"dir_rewind",    dir_rewind_getter, NULL}*/ };
 
     return purc_dvobj_make_from_methods (method, PCA_TABLESIZE(method));
 }
