@@ -3422,13 +3422,13 @@ BEGIN_STATE(TKZ_STATE_EJSON_VALUE_NUMBER_HEX)
         ADVANCE_TO(TKZ_STATE_EJSON_VALUE_NUMBER_HEX);
     }
     if (character == 'U' || character == 'L') {
-        RECONSUME_IN(HVML_EJSON_VALUE_NUMBER_HEX_SUFFIX_ISTATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_VALUE_NUMBER_HEX_SUFFIX);
     }
     SET_ERR(PCHVML_ERROR_UNEXPECTED_JSON_NUMBER_INTEGER);
     RETURN_AND_STOP_PARSE();
 END_STATE()
 
-BEGIN_STATE(HVML_EJSON_VALUE_NUMBER_HEX_SUFFIX_ISTATE)
+BEGIN_STATE(TKZ_STATE_EJSON_VALUE_NUMBER_HEX_SUFFIX)
     if (is_whitespace(character) || character == '}'
             || character == ']' || character == ',' || character == ')') {
         RECONSUME_IN(TKZ_STATE_EJSON_AFTER_VALUE_NUMBER_HEX);
@@ -3437,13 +3437,13 @@ BEGIN_STATE(HVML_EJSON_VALUE_NUMBER_HEX_SUFFIX_ISTATE)
     if (character == 'U') {
         if (is_ascii_hex_digit(last_c)) {
             APPEND_TO_TEMP_BUFFER(character);
-            ADVANCE_TO(HVML_EJSON_VALUE_NUMBER_HEX_SUFFIX_ISTATE);
+            ADVANCE_TO(TKZ_STATE_EJSON_VALUE_NUMBER_HEX_SUFFIX);
         }
     }
     if (character == 'L') {
         if (is_ascii_hex_digit(last_c) || last_c == 'U') {
             APPEND_TO_TEMP_BUFFER(character);
-            ADVANCE_TO(HVML_EJSON_VALUE_NUMBER_HEX_SUFFIX_ISTATE);
+            ADVANCE_TO(TKZ_STATE_EJSON_VALUE_NUMBER_HEX_SUFFIX);
         }
     }
     SET_ERR(PCHVML_ERROR_UNEXPECTED_JSON_NUMBER_INTEGER);
