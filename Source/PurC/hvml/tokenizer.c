@@ -33,6 +33,7 @@
 #include "private/utils.h"
 #include "private/dom.h"
 #include "private/hvml.h"
+#include "private/tkz-helper.h"
 
 #include "hvml-buffer.h"
 #include "hvml-rwswrap.h"
