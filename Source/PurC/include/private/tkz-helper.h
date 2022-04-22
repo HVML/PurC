@@ -32,8 +32,19 @@
 #include "private/errors.h"
 #include "private/debug.h"
 #include "private/utils.h"
+#include "private/list.h"
 
-#define TKZ_END_OF_FILE       0
+#define TKZ_END_OF_FILE          0
+#define TKZ_INVALID_CHARACTER    0xFFFFFFFF
+
+struct tkz_reader;
+struct tkz_uc {
+    struct list_head list;
+    uint32_t character;
+    int line;
+    int column;
+    int position;
+};
 
 PCA_EXTERN_C_BEGIN
 
@@ -215,6 +226,17 @@ is_context_variable(uint32_t c)
     }
     return false;
 }
+
+// tokenizer reader
+struct tkz_reader *tkz_reader_new(void);
+
+void tkz_reader_set_rwstream(struct tkz_reader *reader, purc_rwstream_t rws);
+
+struct tkz_uc *tkz_reader_next_char(struct tkz_reader *reader);
+
+bool tkz_reader_reconsume_last_char(struct tkz_reader *reader);
+
+void tkz_reader_destroy(struct tkz_reader *reader);
 
 PCA_EXTERN_C_END
 
