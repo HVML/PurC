@@ -31,7 +31,6 @@
 #include "private/utils.h"
 #include "private/stack.h"
 #include "private/tkz-helper.h"
-#include "hvml/hvml-sbst.h"
 
 #include <math.h>
 
@@ -301,7 +300,7 @@ struct pcejson {
     struct pcvcm_node* vcm_node;
     struct pcvcm_stack* vcm_stack;
     struct pcutils_stack* ejson_stack;
-    struct pchvml_sbst* sbst;
+    struct tkz_sbst* sbst;
     uint32_t prev_separator;
     uint32_t nr_quoted;
     bool enable_log;
@@ -359,7 +358,7 @@ void pcejson_destroy(struct pcejson *parser)
         pcvcm_node_destroy(n);
         pcvcm_stack_destroy(parser->vcm_stack);
         pcutils_stack_destroy(parser->ejson_stack);
-        pchvml_sbst_destroy(parser->sbst);
+        tkz_sbst_destroy(parser->sbst);
         pc_free(parser);
     }
 }
@@ -1462,23 +1461,23 @@ BEGIN_STATE(TKZ_STATE_EJSON_KEYWORD)
         RECONSUME_IN(TKZ_STATE_EJSON_CONTROL);
     }
     if (parser->sbst == NULL) {
-        parser->sbst = pchvml_sbst_new_ejson_keywords();
+        parser->sbst = tkz_sbst_new_ejson_keywords();
     }
-    bool ret = pchvml_sbst_advance_ex(parser->sbst, character, true);
+    bool ret = tkz_sbst_advance_ex(parser->sbst, character, true);
     if (!ret) {
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_JSON_KEYWORD);
-        pchvml_sbst_destroy(parser->sbst);
+        tkz_sbst_destroy(parser->sbst);
         parser->sbst = NULL;
         RETURN_AND_STOP_PARSE();
     }
 
-    const char* value = pchvml_sbst_get_match(parser->sbst);
+    const char* value = tkz_sbst_get_match(parser->sbst);
     if (value == NULL) {
         ADVANCE_TO(TKZ_STATE_EJSON_KEYWORD);
     }
     else {
         APPEND_BYTES_TO_TEMP_BUFFER(value, strlen(value));
-        pchvml_sbst_destroy(parser->sbst);
+        tkz_sbst_destroy(parser->sbst);
         parser->sbst = NULL;
         ADVANCE_TO(TKZ_STATE_EJSON_AFTER_KEYWORD);
     }

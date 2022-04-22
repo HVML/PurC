@@ -36,7 +36,6 @@
 #include "private/tkz-helper.h"
 
 #include "hvml-token.h"
-#include "hvml-sbst.h"
 #include "hvml-attr.h"
 #include "hvml-tag.h"
 
@@ -878,41 +877,41 @@ END_STATE()
 
 BEGIN_STATE(TKZ_STATE_MARKUP_DECLARATION_OPEN)
     if (parser->sbst == NULL) {
-        parser->sbst = pchvml_sbst_new_markup_declaration_open_state();
+        parser->sbst = tkz_sbst_new_markup_declaration_open_state();
     }
-    bool ret = pchvml_sbst_advance_ex(parser->sbst, character, false);
+    bool ret = tkz_sbst_advance_ex(parser->sbst, character, false);
     if (!ret) {
         SET_ERR(PCHVML_ERROR_INCORRECTLY_OPENED_COMMENT);
-        pchvml_sbst_destroy(parser->sbst);
+        tkz_sbst_destroy(parser->sbst);
         parser->sbst = NULL;
         RETURN_AND_STOP_PARSE();
     }
 
-    const char* value = pchvml_sbst_get_match(parser->sbst);
+    const char* value = tkz_sbst_get_match(parser->sbst);
     if (value == NULL) {
         ADVANCE_TO(TKZ_STATE_MARKUP_DECLARATION_OPEN);
     }
 
     if (strcmp(value, "--") == 0) {
         parser->token = pchvml_token_new_comment();
-        pchvml_sbst_destroy(parser->sbst);
+        tkz_sbst_destroy(parser->sbst);
         parser->sbst = NULL;
         RESET_TEMP_BUFFER();
         ADVANCE_TO(TKZ_STATE_COMMENT_START);
     }
     if (strcmp(value, "DOCTYPE") == 0) {
-        pchvml_sbst_destroy(parser->sbst);
+        tkz_sbst_destroy(parser->sbst);
         parser->sbst = NULL;
         ADVANCE_TO(TKZ_STATE_DOCTYPE);
     }
     if (strcmp(value, "[CDATA[") == 0) {
-        pchvml_sbst_destroy(parser->sbst);
+        tkz_sbst_destroy(parser->sbst);
         parser->sbst = NULL;
         RESET_TEMP_BUFFER();
         ADVANCE_TO(TKZ_STATE_CDATA_SECTION);
     }
     SET_ERR(PCHVML_ERROR_INCORRECTLY_OPENED_COMMENT);
-    pchvml_sbst_destroy(parser->sbst);
+    tkz_sbst_destroy(parser->sbst);
     parser->sbst = NULL;
     RETURN_AND_STOP_PARSE();
 END_STATE()
@@ -1112,33 +1111,33 @@ BEGIN_STATE(TKZ_STATE_AFTER_DOCTYPE_NAME)
         RETURN_AND_RECONSUME_IN(TKZ_STATE_DATA);
     }
     if (parser->sbst == NULL) {
-        parser->sbst = pchvml_sbst_new_after_doctype_name_state();
+        parser->sbst = tkz_sbst_new_after_doctype_name_state();
     }
-    bool ret = pchvml_sbst_advance_ex(parser->sbst, character, true);
+    bool ret = tkz_sbst_advance_ex(parser->sbst, character, true);
     if (!ret) {
         SET_ERR(PCHVML_ERROR_INVALID_CHARACTER_SEQUENCE_AFTER_DOCTYPE_NAME);
-        pchvml_sbst_destroy(parser->sbst);
+        tkz_sbst_destroy(parser->sbst);
         parser->sbst = NULL;
         RETURN_AND_STOP_PARSE();
     }
 
-    const char* value = pchvml_sbst_get_match(parser->sbst);
+    const char* value = tkz_sbst_get_match(parser->sbst);
     if (value == NULL) {
         ADVANCE_TO(TKZ_STATE_AFTER_DOCTYPE_NAME);
     }
 
     if (strcmp(value, "PUBLIC") == 0) {
-        pchvml_sbst_destroy(parser->sbst);
+        tkz_sbst_destroy(parser->sbst);
         parser->sbst = NULL;
         ADVANCE_TO(TKZ_STATE_AFTER_DOCTYPE_PUBLIC_KEYWORD);
     }
     if (strcmp(value, "SYSTEM") == 0) {
-        pchvml_sbst_destroy(parser->sbst);
+        tkz_sbst_destroy(parser->sbst);
         parser->sbst = NULL;
         ADVANCE_TO(TKZ_STATE_AFTER_DOCTYPE_SYSTEM_KEYWORD);
     }
     SET_ERR(PCHVML_ERROR_INVALID_CHARACTER_SEQUENCE_AFTER_DOCTYPE_NAME);
-    pchvml_sbst_destroy(parser->sbst);
+    tkz_sbst_destroy(parser->sbst);
     parser->sbst = NULL;
     RETURN_AND_STOP_PARSE();
 END_STATE()
@@ -1447,11 +1446,11 @@ END_STATE()
 
 BEGIN_STATE(TKZ_STATE_NAMED_CHARACTER_REFERENCE)
     if (parser->sbst == NULL) {
-        parser->sbst = pchvml_sbst_new_char_ref();
+        parser->sbst = tkz_sbst_new_char_ref();
     }
-    bool ret = pchvml_sbst_advance(parser->sbst, character);
+    bool ret = tkz_sbst_advance(parser->sbst, character);
     if (!ret) {
-        struct pcutils_arrlist* ucs = pchvml_sbst_get_buffered_ucs(
+        struct pcutils_arrlist* ucs = tkz_sbst_get_buffered_ucs(
                 parser->sbst);
         size_t length = pcutils_arrlist_length(ucs);
         for (size_t i = 0; i < length; i++) {
@@ -1459,14 +1458,14 @@ BEGIN_STATE(TKZ_STATE_NAMED_CHARACTER_REFERENCE)
                     ucs, i);
             APPEND_TO_STRING_BUFFER(uc);
         }
-        pchvml_sbst_destroy(parser->sbst);
+        tkz_sbst_destroy(parser->sbst);
         parser->sbst = NULL;
         APPEND_BUFFER_TO_TEMP_BUFFER(parser->string_buffer);
         RESET_STRING_BUFFER();
         ADVANCE_TO(TKZ_STATE_AMBIGUOUS_AMPERSAND);
     }
 
-    const char* value = pchvml_sbst_get_match(parser->sbst);
+    const char* value = tkz_sbst_get_match(parser->sbst);
     if (value == NULL) {
         ADVANCE_TO(TKZ_STATE_NAMED_CHARACTER_REFERENCE);
     }
@@ -1476,7 +1475,7 @@ BEGIN_STATE(TKZ_STATE_NAMED_CHARACTER_REFERENCE)
     APPEND_BYTES_TO_TEMP_BUFFER(value, strlen(value));
     RESET_STRING_BUFFER();
 
-    pchvml_sbst_destroy(parser->sbst);
+    tkz_sbst_destroy(parser->sbst);
     parser->sbst = NULL;
     ADVANCE_TO(parser->return_state);
 END_STATE()
@@ -3011,23 +3010,23 @@ BEGIN_STATE(TKZ_STATE_EJSON_KEYWORD)
         RECONSUME_IN(TKZ_STATE_EJSON_CONTROL);
     }
     if (parser->sbst == NULL) {
-        parser->sbst = pchvml_sbst_new_ejson_keywords();
+        parser->sbst = tkz_sbst_new_ejson_keywords();
     }
-    bool ret = pchvml_sbst_advance_ex(parser->sbst, character, true);
+    bool ret = tkz_sbst_advance_ex(parser->sbst, character, true);
     if (!ret) {
         SET_ERR(PCHVML_ERROR_UNEXPECTED_JSON_KEYWORD);
-        pchvml_sbst_destroy(parser->sbst);
+        tkz_sbst_destroy(parser->sbst);
         parser->sbst = NULL;
         RETURN_AND_STOP_PARSE();
     }
 
-    const char* value = pchvml_sbst_get_match(parser->sbst);
+    const char* value = tkz_sbst_get_match(parser->sbst);
     if (value == NULL) {
         ADVANCE_TO(TKZ_STATE_EJSON_KEYWORD);
     }
     else {
         APPEND_BYTES_TO_TEMP_BUFFER(value, strlen(value));
-        pchvml_sbst_destroy(parser->sbst);
+        tkz_sbst_destroy(parser->sbst);
         parser->sbst = NULL;
         ADVANCE_TO(TKZ_STATE_EJSON_AFTER_KEYWORD);
     }

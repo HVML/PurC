@@ -33,7 +33,7 @@ struct tkz_uc;
 struct tkz_buffer;
 struct pchvml_token;
 struct tkz_reader;
-struct pchvml_sbst;
+struct tkz_sbst;
 
 struct pchvml_parser {
     int state;
@@ -45,7 +45,7 @@ struct pchvml_parser {
     struct tkz_buffer* tag_name;
     struct tkz_buffer* string_buffer;
     struct pchvml_token* token;
-    struct pchvml_sbst* sbst;
+    struct tkz_sbst* sbst;
     struct pcvcm_node* vcm_node;
     struct pcvcm_stack* vcm_stack;
     struct pcutils_stack* ejson_stack;

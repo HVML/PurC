@@ -34,7 +34,6 @@
 #include "private/tkz-helper.h"
 
 #include "hvml-token.h"
-#include "hvml-sbst.h"
 #include "hvml-attr.h"
 #include "hvml-tag.h"
 
@@ -150,7 +149,7 @@ void pchvml_destroy(struct pchvml_parser* parser)
         tkz_buffer_destroy (parser->tag_name);
         tkz_buffer_destroy (parser->string_buffer);
         if (parser->sbst) {
-            pchvml_sbst_destroy(parser->sbst);
+            tkz_sbst_destroy(parser->sbst);
         }
         struct pcvcm_node* n = parser->vcm_node;
         parser->vcm_node = NULL;

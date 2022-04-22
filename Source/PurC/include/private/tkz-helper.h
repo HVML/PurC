@@ -28,6 +28,10 @@
 
 #include "config.h"
 
+#include "private/sbst.h"
+#define PCHTML_HTML_TOKENIZER_RES_ENTITIES_SBST
+#include "html/tokenizer/res.h"
+
 #include "private/instance.h"
 #include "private/errors.h"
 #include "private/debug.h"
@@ -52,6 +56,8 @@ struct tkz_buffer {
     uint8_t *stop;
     size_t nr_chars;
 };
+
+struct tkz_sbst;
 
 PCA_EXTERN_C_BEGIN
 
@@ -332,6 +338,34 @@ tkz_buffer_reset(struct tkz_buffer *buffer);
 void
 tkz_buffer_destroy(struct tkz_buffer *buffer);
 
+// sbst
+struct tkz_sbst *tkz_sbst_new_char_ref(void);
+struct tkz_sbst *tkz_sbst_new_markup_declaration_open_state(void);
+struct tkz_sbst *tkz_sbst_new_after_doctype_name_state(void);
+struct tkz_sbst *tkz_sbst_new_ejson_keywords(void);
+
+void tkz_sbst_destroy(struct tkz_sbst *sbst);
+
+bool tkz_sbst_advance_ex(struct tkz_sbst *sbst, uint32_t uc,
+        bool case_insensitive);
+
+/*
+ * case sensitive
+ */
+PCA_INLINE bool
+tkz_sbst_advance(struct tkz_sbst *sbst, uint32_t uc)
+{
+    return tkz_sbst_advance_ex(sbst, uc, false);
+}
+
+const char*
+tkz_sbst_get_match(struct tkz_sbst *sbst);
+
+/*
+ * return arraylist of unicode character (uint32_t)
+ */
+struct pcutils_arrlist*
+tkz_sbst_get_buffered_ucs(struct tkz_sbst *sbst);
 
 PCA_EXTERN_C_END
 
