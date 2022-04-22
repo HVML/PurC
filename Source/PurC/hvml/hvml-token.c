@@ -33,6 +33,7 @@
 #include "private/debug.h"
 #include "private/errors.h"
 #include "private/vcm.h"
+#include "private/tkz-helper.h"
 #include "hvml-token.h"
 
 #if HAVE(GLIB)
@@ -53,8 +54,8 @@
 
 struct pchvml_token_attr {
     enum pchvml_attr_operator assignment;
-    struct pchvml_buffer* name;
-    struct pchvml_buffer* value;
+    struct tkz_buffer* name;
+    struct tkz_buffer* value;
     struct pcvcm_node* vcm;
     uint32_t quote;
     bool vcm_reserved;
@@ -67,14 +68,14 @@ struct pchvml_token {
     bool whitespace;
     bool has_raw_attr;
 
-    struct pchvml_buffer* name;
+    struct tkz_buffer* name;
     struct pcutils_arrlist* attr_list;
 
-    struct pchvml_buffer* text_content;
+    struct tkz_buffer* text_content;
     struct pcvcm_node* vcm_content;
 
-    struct pchvml_buffer* public_identifier;
-    struct pchvml_buffer* system_information;
+    struct tkz_buffer* public_identifier;
+    struct tkz_buffer* system_information;
 
     struct pchvml_token_attr* curr_attr;
 };
@@ -104,10 +105,10 @@ void pchvml_token_attr_destroy(struct pchvml_token_attr* attr)
         return;
     }
     if (attr->name) {
-        pchvml_buffer_destroy(attr->name);
+        tkz_buffer_destroy(attr->name);
     }
     if (attr->value) {
-        pchvml_buffer_destroy(attr->value);
+        tkz_buffer_destroy(attr->value);
     }
     if (attr->vcm && !attr->vcm_reserved) {
         pcvcm_node_destroy(attr->vcm);
@@ -136,7 +137,7 @@ void pchvml_token_destroy(struct pchvml_token* token)
     }
 
     if (token->name) {
-        pchvml_buffer_destroy(token->name);
+        tkz_buffer_destroy(token->name);
     }
 
     if (token->attr_list) {
@@ -144,7 +145,7 @@ void pchvml_token_destroy(struct pchvml_token* token)
     }
 
     if (token->text_content) {
-        pchvml_buffer_destroy(token->text_content);
+        tkz_buffer_destroy(token->text_content);
     }
 
     if (token->vcm_content) {
@@ -152,11 +153,11 @@ void pchvml_token_destroy(struct pchvml_token* token)
     }
 
     if (token->public_identifier) {
-        pchvml_buffer_destroy(token->public_identifier);
+        tkz_buffer_destroy(token->public_identifier);
     }
 
     if (token->system_information) {
-        pchvml_buffer_destroy(token->system_information);
+        tkz_buffer_destroy(token->system_information);
     }
 
     pchvml_token_attr_destroy(token->curr_attr);
@@ -173,36 +174,36 @@ void pchvml_token_append_to_attr_name(struct pchvml_token* token,
         uint32_t uc)
 {
     if (!token->curr_attr->name) {
-        token->curr_attr->name = pchvml_buffer_new();
+        token->curr_attr->name = tkz_buffer_new();
     }
-    pchvml_buffer_append(token->curr_attr->name, uc);
+    tkz_buffer_append(token->curr_attr->name, uc);
 }
 
 void pchvml_token_append_bytes_to_attr_name(struct pchvml_token* token,
         const char* bytes, size_t sz_bytes)
 {
     if (!token->curr_attr->name) {
-        token->curr_attr->name = pchvml_buffer_new();
+        token->curr_attr->name = tkz_buffer_new();
     }
-    pchvml_buffer_append_bytes(token->curr_attr->name, bytes, sz_bytes);
+    tkz_buffer_append_bytes(token->curr_attr->name, bytes, sz_bytes);
 }
 
 void pchvml_token_append_to_attr_value(struct pchvml_token* token,
         uint32_t uc)
 {
     if (!token->curr_attr->value) {
-        token->curr_attr->value = pchvml_buffer_new();
+        token->curr_attr->value = tkz_buffer_new();
     }
-    pchvml_buffer_append(token->curr_attr->value, uc);
+    tkz_buffer_append(token->curr_attr->value, uc);
 }
 
 void pchvml_token_append_bytes_to_attr_value(struct pchvml_token* token,
         const char* bytes, size_t sz_bytes)
 {
     if (!token->curr_attr->value) {
-        token->curr_attr->value = pchvml_buffer_new();
+        token->curr_attr->value = tkz_buffer_new();
     }
-    pchvml_buffer_append_bytes(token->curr_attr->value, bytes, sz_bytes);
+    tkz_buffer_append_bytes(token->curr_attr->value, bytes, sz_bytes);
 }
 
 void pchvml_token_append_vcm_to_attr(struct pchvml_token* token,
@@ -230,14 +231,14 @@ void pchvml_token_end_attr(struct pchvml_token* token)
 
     if (token->curr_attr->value) {
         token->curr_attr->vcm = pcvcm_node_new_string(
-                pchvml_buffer_get_buffer(token->curr_attr->value));
+                tkz_buffer_get_bytes(token->curr_attr->value));
     }
 
     if (!token->attr_list) {
         token->attr_list = pcutils_arrlist_new(
                 pchvml_token_attr_list_free_fn);
     }
-    const char* attr_name = pchvml_buffer_get_buffer(token->curr_attr->name);
+    const char* attr_name = tkz_buffer_get_bytes(token->curr_attr->name);
     if (strcmp(attr_name, RAW_STRING) == 0 ||
             strcmp(attr_name, HVML_RAW_STRING) == 0) {
         token->has_raw_attr = true;
@@ -249,59 +250,59 @@ void pchvml_token_end_attr(struct pchvml_token* token)
 void pchvml_token_append_to_name(struct pchvml_token* token, uint32_t uc)
 {
     if (!token->name) {
-        token->name = pchvml_buffer_new();
+        token->name = tkz_buffer_new();
     }
-    pchvml_buffer_append(token->name, uc);
+    tkz_buffer_append(token->name, uc);
 }
 
 void pchvml_token_append_buffer_to_name(struct pchvml_token* token,
-        struct pchvml_buffer* buffer)
+        struct tkz_buffer* buffer)
 {
     if (!token->name) {
-        token->name = pchvml_buffer_new();
+        token->name = tkz_buffer_new();
     }
-    pchvml_buffer_append_another(token->name, buffer);
+    tkz_buffer_append_another(token->name, buffer);
 }
 
 const char* pchvml_token_get_name(struct pchvml_token* token)
 {
-    return token->name ? pchvml_buffer_get_buffer(token->name) : NULL;
+    return token->name ? tkz_buffer_get_bytes(token->name) : NULL;
 }
 
 const char* pchvml_token_get_text(struct pchvml_token* token)
 {
     return token->text_content ?
-        pchvml_buffer_get_buffer(token->text_content) : NULL;
+        tkz_buffer_get_bytes(token->text_content) : NULL;
 }
 
 void pchvml_token_append_bytes_to_text(struct pchvml_token* token,
         const char* bytes, size_t sz_bytes)
 {
     if (!token->text_content) {
-        token->text_content = pchvml_buffer_new();
+        token->text_content = tkz_buffer_new();
     }
-    pchvml_buffer_append_bytes(token->text_content, bytes, sz_bytes);
+    tkz_buffer_append_bytes(token->text_content, bytes, sz_bytes);
 }
 
 void pchvml_token_append_to_public_identifier(struct pchvml_token* token,
         uint32_t uc)
 {
     if (!token->public_identifier) {
-        token->public_identifier = pchvml_buffer_new();
+        token->public_identifier = tkz_buffer_new();
     }
-    pchvml_buffer_append(token->public_identifier, uc);
+    tkz_buffer_append(token->public_identifier, uc);
 }
 
 const char* pchvml_token_get_public_identifier(struct pchvml_token* token)
 {
     return token->public_identifier ?
-        pchvml_buffer_get_buffer(token->public_identifier) : NULL;
+        tkz_buffer_get_bytes(token->public_identifier) : NULL;
 }
 
 void pchvml_token_reset_public_identifier(struct pchvml_token* token)
 {
     if (token->public_identifier) {
-        pchvml_buffer_reset(token->public_identifier);
+        tkz_buffer_reset(token->public_identifier);
     }
 }
 
@@ -309,21 +310,21 @@ void pchvml_token_append_to_system_information(struct pchvml_token* token,
         uint32_t uc)
 {
     if (!token->system_information) {
-        token->system_information = pchvml_buffer_new();
+        token->system_information = tkz_buffer_new();
     }
-    pchvml_buffer_append(token->system_information, uc);
+    tkz_buffer_append(token->system_information, uc);
 }
 
 const char* pchvml_token_get_system_information(struct pchvml_token* token)
 {
     return token->system_information ?
-        pchvml_buffer_get_buffer(token->system_information) : NULL;
+        tkz_buffer_get_bytes(token->system_information) : NULL;
 }
 
 void pchvml_token_reset_system_information(struct pchvml_token* token)
 {
     if (token->system_information) {
-        pchvml_buffer_reset(token->system_information);
+        tkz_buffer_reset(token->system_information);
     }
 }
 bool pchvml_token_is_type(struct pchvml_token* token,
@@ -438,7 +439,7 @@ struct pchvml_token_attr* pchvml_token_get_attr(
 
 const char* pchvml_token_attr_get_name(struct pchvml_token_attr* attr)
 {
-    return pchvml_buffer_get_buffer(attr->name);
+    return tkz_buffer_get_bytes(attr->name);
 }
 
 struct pcvcm_node* pchvml_token_attr_get_value_ex(
@@ -454,15 +455,15 @@ enum pchvml_attr_operator pchvml_token_attr_get_operator(
     return attr->assignment;
 }
 
-struct pchvml_buffer* pchvml_token_attr_to_string(
+struct tkz_buffer* pchvml_token_attr_to_string(
         struct pchvml_token_attr* attr)
 {
     if (!attr) {
         return NULL;
     }
-    struct pchvml_buffer* buffer = pchvml_buffer_new();
+    struct tkz_buffer* buffer = tkz_buffer_new();
     // name
-    pchvml_buffer_append_another(buffer, attr->name);
+    tkz_buffer_append_another(buffer, attr->name);
 
     if (!attr->vcm) {
         return buffer;
@@ -471,39 +472,39 @@ struct pchvml_buffer* pchvml_token_attr_to_string(
     // assignment
     switch (attr->assignment) {
     case PCHVML_ATTRIBUTE_OPERATOR:
-        pchvml_buffer_append_bytes(buffer, "=", 1);
+        tkz_buffer_append_bytes(buffer, "=", 1);
         break;
 
     case PCHVML_ATTRIBUTE_ADDITION_OPERATOR:
-        pchvml_buffer_append_bytes(buffer, "+=", 2);
+        tkz_buffer_append_bytes(buffer, "+=", 2);
         break;
 
     case PCHVML_ATTRIBUTE_SUBTRACTION_OPERATOR:
-        pchvml_buffer_append_bytes(buffer, "-=", 2);
+        tkz_buffer_append_bytes(buffer, "-=", 2);
         break;
 
     case PCHVML_ATTRIBUTE_ASTERISK_OPERATOR:
-        pchvml_buffer_append_bytes(buffer, "*=", 2);
+        tkz_buffer_append_bytes(buffer, "*=", 2);
         break;
 
     case PCHVML_ATTRIBUTE_REGEX_OPERATOR:
-        pchvml_buffer_append_bytes(buffer, "/=", 2);
+        tkz_buffer_append_bytes(buffer, "/=", 2);
         break;
 
     case PCHVML_ATTRIBUTE_PRECISE_OPERATOR:
-        pchvml_buffer_append_bytes(buffer, "%=", 2);
+        tkz_buffer_append_bytes(buffer, "%=", 2);
         break;
 
     case PCHVML_ATTRIBUTE_REPLACE_OPERATOR:
-        pchvml_buffer_append_bytes(buffer, "~=", 2);
+        tkz_buffer_append_bytes(buffer, "~=", 2);
         break;
 
     case PCHVML_ATTRIBUTE_HEAD_OPERATOR:
-        pchvml_buffer_append_bytes(buffer, "^=", 2);
+        tkz_buffer_append_bytes(buffer, "^=", 2);
         break;
 
     case PCHVML_ATTRIBUTE_TAIL_OPERATOR:
-        pchvml_buffer_append_bytes(buffer, "$=", 2);
+        tkz_buffer_append_bytes(buffer, "$=", 2);
         break;
 
     default:
@@ -518,124 +519,124 @@ struct pchvml_buffer* pchvml_token_attr_to_string(
 #if 0
     switch (attr->quote) {
     case '"':
-        pchvml_buffer_append_bytes(buffer, "\"", 1);
-        pchvml_buffer_append_bytes(buffer, vcm_buffer, nr_vcm_buffer);
-        pchvml_buffer_append_bytes(buffer, "\"", 1);
+        tkz_buffer_append_bytes(buffer, "\"", 1);
+        tkz_buffer_append_bytes(buffer, vcm_buffer, nr_vcm_buffer);
+        tkz_buffer_append_bytes(buffer, "\"", 1);
         break;
 
     case '\'':
-        pchvml_buffer_append_bytes(buffer, "\'", 1);
-        pchvml_buffer_append_bytes(buffer, vcm_buffer, nr_vcm_buffer);
-        pchvml_buffer_append_bytes(buffer, "\'", 1);
+        tkz_buffer_append_bytes(buffer, "\'", 1);
+        tkz_buffer_append_bytes(buffer, vcm_buffer, nr_vcm_buffer);
+        tkz_buffer_append_bytes(buffer, "\'", 1);
         break;
 
     case 'U':
-        pchvml_buffer_append_bytes(buffer, vcm_buffer, nr_vcm_buffer);
+        tkz_buffer_append_bytes(buffer, vcm_buffer, nr_vcm_buffer);
         break;
 
     default:
-        pchvml_buffer_append_bytes(buffer, "\"", 1);
-        pchvml_buffer_append_bytes(buffer, vcm_buffer, nr_vcm_buffer);
-        pchvml_buffer_append_bytes(buffer, "\"", 1);
+        tkz_buffer_append_bytes(buffer, "\"", 1);
+        tkz_buffer_append_bytes(buffer, vcm_buffer, nr_vcm_buffer);
+        tkz_buffer_append_bytes(buffer, "\"", 1);
         break;
     }
 #else
-    pchvml_buffer_append_bytes(buffer, vcm_buffer, nr_vcm_buffer);
+    tkz_buffer_append_bytes(buffer, vcm_buffer, nr_vcm_buffer);
 #endif
     free(vcm_buffer);
 
     return buffer;
 }
 
-void pchvml_add_attr_list_to_buffer(struct pchvml_buffer* buffer, 
+void pchvml_add_attr_list_to_buffer(struct tkz_buffer* buffer, 
         struct pcutils_arrlist* attrs)
 {
     if (!attrs) {
         return;
     }
     struct pchvml_token_attr* attr = NULL;
-    struct pchvml_buffer* attr_buffer = NULL;
+    struct tkz_buffer* attr_buffer = NULL;
     size_t nr_attrs = pcutils_arrlist_length(attrs);
     for (size_t i = 0; i < nr_attrs; i++) {
-        pchvml_buffer_append_bytes(buffer, " ", 1);
+        tkz_buffer_append_bytes(buffer, " ", 1);
         attr = (struct pchvml_token_attr*) pcutils_arrlist_get_idx(attrs, i);
         attr_buffer = pchvml_token_attr_to_string(attr);
         if (attr_buffer) {
-            pchvml_buffer_append_another(buffer, attr_buffer);
-            pchvml_buffer_destroy(attr_buffer);
+            tkz_buffer_append_another(buffer, attr_buffer);
+            tkz_buffer_destroy(attr_buffer);
         }
     }
 }
 
-struct pchvml_buffer* pchvml_token_to_string(struct pchvml_token* token)
+struct tkz_buffer* pchvml_token_to_string(struct pchvml_token* token)
 {
     if (!token) {
         return NULL;
     }
-    struct pchvml_buffer* buffer = NULL;
+    struct tkz_buffer* buffer = NULL;
 
     switch (token->type) {
     case PCHVML_TOKEN_DOCTYPE:
-        buffer = pchvml_buffer_new();
-        pchvml_buffer_append_bytes(buffer, "<!DOCTYPE ", 10);
-        pchvml_buffer_append_another(buffer, token->name);
+        buffer = tkz_buffer_new();
+        tkz_buffer_append_bytes(buffer, "<!DOCTYPE ", 10);
+        tkz_buffer_append_another(buffer, token->name);
         if (token->public_identifier) {
-            pchvml_buffer_append_bytes(buffer, " PUBLIC \"", 9);
-            pchvml_buffer_append_another(buffer, token->public_identifier);
-            pchvml_buffer_append_bytes(buffer, "\"", 1);
+            tkz_buffer_append_bytes(buffer, " PUBLIC \"", 9);
+            tkz_buffer_append_another(buffer, token->public_identifier);
+            tkz_buffer_append_bytes(buffer, "\"", 1);
         }
 
         if (token->system_information) {
-            pchvml_buffer_append_bytes(buffer, " SYSTEM \"", 9);
-            pchvml_buffer_append_another(buffer, token->system_information);
-            pchvml_buffer_append_bytes(buffer, "\"", 1);
+            tkz_buffer_append_bytes(buffer, " SYSTEM \"", 9);
+            tkz_buffer_append_another(buffer, token->system_information);
+            tkz_buffer_append_bytes(buffer, "\"", 1);
         }
 
-        pchvml_buffer_append_bytes(buffer, ">", 1);
+        tkz_buffer_append_bytes(buffer, ">", 1);
         break;
 
     case PCHVML_TOKEN_START_TAG:
-        buffer = pchvml_buffer_new();
-        pchvml_buffer_append_bytes(buffer, "<", 1);
-        pchvml_buffer_append_another(buffer, token->name);
+        buffer = tkz_buffer_new();
+        tkz_buffer_append_bytes(buffer, "<", 1);
+        tkz_buffer_append_another(buffer, token->name);
         pchvml_add_attr_list_to_buffer(buffer, token->attr_list);
         if (token->self_closing) {
-            pchvml_buffer_append_bytes(buffer, "/", 1);
+            tkz_buffer_append_bytes(buffer, "/", 1);
         }
-        pchvml_buffer_append_bytes(buffer, ">", 1);
+        tkz_buffer_append_bytes(buffer, ">", 1);
         break;
 
     case PCHVML_TOKEN_END_TAG:
-        buffer = pchvml_buffer_new();
-        pchvml_buffer_append_bytes(buffer, "</", 2);
-        pchvml_buffer_append_another(buffer, token->name);
+        buffer = tkz_buffer_new();
+        tkz_buffer_append_bytes(buffer, "</", 2);
+        tkz_buffer_append_another(buffer, token->name);
         pchvml_add_attr_list_to_buffer(buffer, token->attr_list);
-        pchvml_buffer_append_bytes(buffer, ">", 1);
+        tkz_buffer_append_bytes(buffer, ">", 1);
         break;
 
     case PCHVML_TOKEN_COMMENT:
-        buffer = pchvml_buffer_new();
-        pchvml_buffer_append_bytes(buffer, "<!--", 4);
+        buffer = tkz_buffer_new();
+        tkz_buffer_append_bytes(buffer, "<!--", 4);
         if (token->text_content) {
-            pchvml_buffer_append_another(buffer, token->text_content);
+            tkz_buffer_append_another(buffer, token->text_content);
         }
-        pchvml_buffer_append_bytes(buffer, "-->", 3);
+        tkz_buffer_append_bytes(buffer, "-->", 3);
         break;
 
     case PCHVML_TOKEN_CHARACTER:
-        buffer = pchvml_buffer_new();
+        buffer = tkz_buffer_new();
         if (token->text_content) {
-            pchvml_buffer_append_another(buffer, token->text_content);
+            tkz_buffer_append_another(buffer, token->text_content);
         }
         break;
 
     case PCHVML_TOKEN_VCM_TREE:
         {
-            buffer = pchvml_buffer_new();
+            buffer = tkz_buffer_new();
             size_t nr_vcm_buffer = 0;
             char* vcm_buffer = pcvcm_node_to_string(token->vcm_content,
                     &nr_vcm_buffer);
-            pchvml_buffer_append_bytes(buffer, vcm_buffer, nr_vcm_buffer);
+            tkz_buffer_append_bytes(buffer, vcm_buffer, nr_vcm_buffer);
             free(vcm_buffer);
         }
         break;
@@ -659,15 +660,15 @@ pchvml_util_dump_token(const struct pchvml_token *token,
         return;
     }
 
-    struct pchvml_buffer* token_buff;
+    struct tkz_buffer* token_buff;
     token_buff = pchvml_token_to_string((struct pchvml_token*)token);
     if (token_buff) {
         const char* type_name;
         type_name = pchvml_token_get_type_name((struct pchvml_token*)token);
         PC_DEBUG("%s[%d]:%s(): %s:%s\n",
                 pcutils_basename((char*)file), line, func,
-                type_name, pchvml_buffer_get_buffer(token_buff));
-        pchvml_buffer_destroy(token_buff);
+                type_name, tkz_buffer_get_bytes(token_buff));
+        tkz_buffer_destroy(token_buff);
         return;
     }
 

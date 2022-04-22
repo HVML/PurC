@@ -33,7 +33,6 @@
 #include "private/hvml.h"
 #include "private/tkz-helper.h"
 
-#include "hvml-buffer.h"
 #include "hvml-token.h"
 #include "hvml-sbst.h"
 #include "hvml-attr.h"
@@ -89,9 +88,9 @@ struct pchvml_parser* pchvml_create(uint32_t flags, size_t queue_size)
             sizeof(struct pchvml_parser));
     parser->state = 0;
     parser->reader = tkz_reader_new ();
-    parser->temp_buffer = pchvml_buffer_new ();
-    parser->tag_name = pchvml_buffer_new ();
-    parser->string_buffer = pchvml_buffer_new ();
+    parser->temp_buffer = tkz_buffer_new ();
+    parser->tag_name = tkz_buffer_new ();
+    parser->string_buffer = tkz_buffer_new ();
     parser->vcm_stack = pcvcm_stack_new();
     parser->ejson_stack = pcutils_stack_new(0);
     parser->char_ref_code = 0;
@@ -115,9 +114,9 @@ void pchvml_reset(struct pchvml_parser* parser, uint32_t flags,
     parser->state = 0;
     tkz_reader_destroy (parser->reader);
     parser->reader = tkz_reader_new ();
-    pchvml_buffer_reset (parser->temp_buffer);
-    pchvml_buffer_reset (parser->tag_name);
-    pchvml_buffer_reset (parser->string_buffer);
+    tkz_buffer_reset (parser->temp_buffer);
+    tkz_buffer_reset (parser->tag_name);
+    tkz_buffer_reset (parser->string_buffer);
 
     struct pcvcm_node* n = parser->vcm_node;
     parser->vcm_node = NULL;
@@ -147,9 +146,9 @@ void pchvml_destroy(struct pchvml_parser* parser)
 {
     if (parser) {
         tkz_reader_destroy (parser->reader);
-        pchvml_buffer_destroy (parser->temp_buffer);
-        pchvml_buffer_destroy (parser->tag_name);
-        pchvml_buffer_destroy (parser->string_buffer);
+        tkz_buffer_destroy (parser->temp_buffer);
+        tkz_buffer_destroy (parser->tag_name);
+        tkz_buffer_destroy (parser->string_buffer);
         if (parser->sbst) {
             pchvml_sbst_destroy(parser->sbst);
         }

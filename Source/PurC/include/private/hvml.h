@@ -30,7 +30,7 @@
 #include "private/vcm.h"
 
 struct tkz_uc;
-struct pchvml_buffer;
+struct tkz_buffer;
 struct pchvml_token;
 struct tkz_reader;
 struct pchvml_sbst;
@@ -41,9 +41,9 @@ struct pchvml_parser {
     int transit_state;
     struct tkz_uc* curr_uc;
     struct tkz_reader* reader;
-    struct pchvml_buffer* temp_buffer;
-    struct pchvml_buffer* tag_name;
-    struct pchvml_buffer* string_buffer;
+    struct tkz_buffer* temp_buffer;
+    struct tkz_buffer* tag_name;
+    struct tkz_buffer* string_buffer;
     struct pchvml_token* token;
     struct pchvml_sbst* sbst;
     struct pcvcm_node* vcm_node;

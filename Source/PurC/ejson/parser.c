@@ -130,35 +130,35 @@
 
 #define RESET_TEMP_BUFFER()                                                 \
     do {                                                                    \
-        uc_buffer_reset(parser->temp_buffer);                               \
+        tkz_buffer_reset(parser->temp_buffer);                               \
     } while (false)
 
 #define APPEND_TO_TEMP_BUFFER(c)                                            \
     do {                                                                    \
-        uc_buffer_append(parser->temp_buffer, c);                           \
+        tkz_buffer_append(parser->temp_buffer, c);                           \
     } while (false)
 
 #define APPEND_BYTES_TO_TEMP_BUFFER(bytes, nr_bytes)                        \
     do {                                                                    \
-        uc_buffer_append_bytes(parser->temp_buffer, bytes, nr_bytes);       \
+        tkz_buffer_append_bytes(parser->temp_buffer, bytes, nr_bytes);       \
     } while (false)
 
 #define APPEND_BUFFER_TO_TEMP_BUFFER(buffer)                                \
     do {                                                                    \
-        uc_buffer_append_another(parser->temp_buffer, buffer);              \
+        tkz_buffer_append_another(parser->temp_buffer, buffer);              \
     } while (false)
 
 #define IS_TEMP_BUFFER_EMPTY()                                              \
-        uc_buffer_is_empty(parser->temp_buffer)
+        tkz_buffer_is_empty(parser->temp_buffer)
 
 #define RESET_STRING_BUFFER()                                               \
     do {                                                                    \
-        uc_buffer_reset(parser->string_buffer);                             \
+        tkz_buffer_reset(parser->string_buffer);                             \
     } while (false)
 
 #define APPEND_TO_STRING_BUFFER(uc)                                         \
     do {                                                                    \
-        uc_buffer_append(parser->string_buffer, uc);                        \
+        tkz_buffer_append(parser->string_buffer, uc);                        \
     } while (false)
 
 #define RESET_QUOTED_COUNTER()                                              \
@@ -270,13 +270,6 @@ enum tokenizer_state {
     LAST_STATE = TKZ_STATE_EJSON_CJSONEE_FINISHED,
 };
 
-struct uc_buffer {
-    uint8_t *base;
-    uint8_t *here;
-    uint8_t *stop;
-    size_t nr_chars;
-};
-
 #define print_uc_list(uc_list, tag)                                         \
     do {                                                                    \
         PC_DEBUG( "begin print %s list\n|", tag);                           \
@@ -294,300 +287,6 @@ struct uc_buffer {
 #define PRINT_RECONSUM_LIST(wrap)    \
         print_uc_list(&wrap->reconsume_list, "reconsume")
 
-// buffer
-#define MIN_BUFFER_CAPACITY 32
-
-static inline UNUSED_FUNCTION
-size_t get_buffer_size(size_t sz)
-{
-    size_t sz_buf = pcutils_get_next_fibonacci_number(sz);
-    return sz_buf < MIN_BUFFER_CAPACITY ? MIN_BUFFER_CAPACITY : sz_buf;
-}
-
-static inline UNUSED_FUNCTION
-struct uc_buffer *uc_buffer_new(void)
-{
-    struct uc_buffer *buffer = (struct uc_buffer*) calloc(
-            1, sizeof(struct uc_buffer));
-    size_t sz_init = get_buffer_size(MIN_BUFFER_CAPACITY);
-    buffer->base = (uint8_t*) calloc(1, sz_init + 1);
-    buffer->here = buffer->base;
-    buffer->stop = buffer->base + sz_init;
-    buffer->nr_chars = 0;
-    return buffer;
-}
-
-static inline UNUSED_FUNCTION
-void uc_buffer_reset(struct uc_buffer *buffer)
-{
-    memset(buffer->base, 0, buffer->stop - buffer->base);
-    buffer->here = buffer->base;
-    buffer->nr_chars = 0;
-}
-
-static inline UNUSED_FUNCTION
-void uc_buffer_destroy(struct uc_buffer *buffer)
-{
-    if (buffer) {
-        free(buffer->base);
-        free(buffer);
-    }
-}
-
-static inline UNUSED_FUNCTION
-bool uc_buffer_is_empty(struct uc_buffer *buffer)
-{
-    return buffer->here == buffer->base;
-}
-
-static inline UNUSED_FUNCTION
-size_t uc_buffer_get_size_in_bytes(struct uc_buffer *buffer)
-{
-    return buffer->here - buffer->base;
-}
-
-static inline UNUSED_FUNCTION
-size_t uc_buffer_get_size_in_chars(struct uc_buffer *buffer)
-{
-    return buffer->nr_chars;
-}
-
-static inline UNUSED_FUNCTION
-const char *uc_buffer_get_bytes(struct uc_buffer *buffer)
-{
-    return (const char *)buffer->base;
-}
-
-static inline UNUSED_FUNCTION
-bool is_utf8_leading_byte(char c)
-{
-    return (c & 0xC0) != 0x80;
-}
-
-static inline UNUSED_FUNCTION
-uint32_t utf8_to_uint32_t(const unsigned char *utf8_char, int utf8_char_len)
-{
-    uint32_t wc = *((unsigned char *)(utf8_char++));
-    int n = utf8_char_len;
-    int t = 0;
-
-    if (wc & 0x80) {
-        wc &= (1 <<(8-n)) - 1;
-        while (--n > 0) {
-            t = *((unsigned char *)(utf8_char++));
-            wc = (wc << 6) | (t & 0x3F);
-        }
-    }
-
-    return wc;
-}
-
-static inline UNUSED_FUNCTION
-void uc_buffer_append_inner(struct uc_buffer *buffer,
-        const char *bytes, size_t nr_bytes)
-{
-    uint8_t *newpos = buffer->here + nr_bytes;
-    if ( newpos > buffer->stop ) {
-        size_t new_size = get_buffer_size(newpos - buffer->base);
-        off_t here_offset = buffer->here - buffer->base;
-
-        uint8_t *newbuf = (uint8_t*) realloc(buffer->base, new_size + 1);
-        if (newbuf == NULL) {
-            pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
-            return;
-        }
-
-        buffer->base = newbuf;
-        buffer->here = buffer->base + here_offset;
-        buffer->stop = buffer->base + new_size;
-    }
-
-    memcpy(buffer->here, bytes, nr_bytes);
-    buffer->here += nr_bytes;
-    *buffer->here = 0;
-}
-
-static inline UNUSED_FUNCTION
-void uc_buffer_append_bytes(struct uc_buffer *buffer,
-        const char *bytes, size_t nr_bytes)
-{
-    uc_buffer_append_inner(buffer, bytes, nr_bytes);
-    const uint8_t *p = (const uint8_t*)bytes;
-    const uint8_t *end = p + nr_bytes;
-    while (p != end) {
-        if (is_utf8_leading_byte(*p)) {
-            buffer->nr_chars++;
-        }
-        p++;
-    }
-}
-
-static inline UNUSED_FUNCTION
-size_t uc_to_utf8(uint32_t c, char *outbuf)
-{
-    size_t len = 0;
-    int first;
-    int i;
-
-    if (c < 0x80) {
-        first = 0;
-        len = 1;
-    }
-    else if (c < 0x800) {
-        first = 0xc0;
-        len = 2;
-    }
-    else if (c < 0x10000) {
-        first = 0xe0;
-        len = 3;
-    }
-    else if (c < 0x200000) {
-        first = 0xf0;
-        len = 4;
-    }
-    else if (c < 0x4000000) {
-        first = 0xf8;
-        len = 5;
-    }
-    else {
-        first = 0xfc;
-        len = 6;
-    }
-
-    if (outbuf) {
-        for (i = len - 1; i > 0; --i) {
-            outbuf[i] = (c & 0x3f) | 0x80;
-            c >>= 6;
-        }
-        outbuf[0] = c | first;
-    }
-
-    return len;
-}
-
-static inline UNUSED_FUNCTION
-void uc_buffer_append(struct uc_buffer *buffer, uint32_t uc)
-{
-    char buf[8] = {0};
-    size_t len = uc_to_utf8(uc, buf);
-    uc_buffer_append_bytes(buffer, buf, len);
-}
-
-static inline UNUSED_FUNCTION
-void uc_buffer_append_chars(struct uc_buffer *buffer,
-        const uint32_t *ucs, size_t nr_ucs)
-{
-    for (size_t i = 0; i < nr_ucs; i++) {
-        uc_buffer_append(buffer, ucs[i]);
-    }
-}
-
-static inline UNUSED_FUNCTION
-void uc_buffer_append_another(struct uc_buffer *buffer,
-        struct uc_buffer *another)
-{
-    uc_buffer_append_bytes(buffer,
-        uc_buffer_get_bytes(another),
-        uc_buffer_get_size_in_bytes(another));
-}
-
-static inline UNUSED_FUNCTION
-void uc_buffer_delete_head_chars(
-        struct uc_buffer *buffer, size_t sz)
-{
-    uint8_t *p = buffer->base;
-    size_t nr = 0;
-    while (p < buffer->here && nr <= sz) {
-        if (is_utf8_leading_byte(*p)) {
-            nr++;
-        }
-        p = p + 1;
-    }
-    p = p - 1;
-    size_t n = buffer->here - p;
-    memmove(buffer->base, p, n);
-    buffer->here = buffer->base + n;
-    memset(buffer->here, 0, buffer->stop - buffer->here);
-}
-
-static inline UNUSED_FUNCTION
-void uc_buffer_delete_tail_chars(struct uc_buffer *buffer, size_t sz)
-{
-    uint8_t *p = buffer->here - 1;
-    while (p >= buffer->base && sz > 0) {
-        if (is_utf8_leading_byte(*p)) {
-            sz--;
-        }
-        p = p - 1;
-    }
-    buffer->here = p + 1;
-    memset(buffer->here, 0, buffer->stop - buffer->here);
-}
-
-static inline UNUSED_FUNCTION
-bool uc_buffer_end_with(struct uc_buffer *buffer,
-        const char *bytes, size_t nr_bytes)
-{
-    size_t sz = uc_buffer_get_size_in_bytes(buffer);
-    return (sz >= nr_bytes
-            && memcmp(buffer->here - nr_bytes, bytes, nr_bytes) == 0);
-}
-
-static inline UNUSED_FUNCTION
-bool uc_buffer_equal_to(struct uc_buffer *buffer,
-        const char *bytes, size_t nr_bytes)
-{
-    size_t sz = uc_buffer_get_size_in_bytes(buffer);
-    return (sz == nr_bytes && memcmp(buffer->base, bytes, sz) == 0);
-}
-
-static inline UNUSED_FUNCTION
-uint32_t uc_buffer_get_last_char(struct uc_buffer *buffer)
-{
-    if (uc_buffer_is_empty(buffer)) {
-        return 0;
-    }
-
-    uint8_t *p = buffer->here - 1;
-    while (p >= buffer->base) {
-        if (is_utf8_leading_byte(*p)) {
-            break;
-        }
-        p = p - 1;
-    }
-    return utf8_to_uint32_t(p, buffer->here - p);
-}
-
-static inline UNUSED_FUNCTION
-bool uc_buffer_is_int(struct uc_buffer *buffer)
-{
-    char *p = NULL;
-    strtol((const char*)buffer->base, &p, 10);
-    return (p == (char*)buffer->here);
-}
-
-static inline UNUSED_FUNCTION
-bool uc_buffer_is_number(struct uc_buffer *buffer)
-{
-    char *p = NULL;
-    strtold((const char*)buffer->base, &p);
-    return (p == (const char*)buffer->here);
-}
-
-static inline UNUSED_FUNCTION
-bool uc_buffer_is_whitespace(struct uc_buffer *buffer)
-{
-    uint8_t *p = buffer->base;
-    while (p !=  buffer->here) {
-        if (*p == ' ' || *p == '\x0A' || *p == '\x09' || *p == '\x0C') {
-            p++;
-            continue;
-        }
-        return false;
-    }
-    return true;
-}
-
 struct pcejson {
     int state;
     int return_state;
@@ -597,8 +296,8 @@ struct pcejson {
 
     struct tkz_uc* curr_uc;
     struct tkz_reader* tkz_reader;
-    struct uc_buffer* temp_buffer;
-    struct uc_buffer* string_buffer;
+    struct tkz_buffer* temp_buffer;
+    struct tkz_buffer* string_buffer;
     struct pcvcm_node* vcm_node;
     struct pcvcm_stack* vcm_stack;
     struct pcutils_stack* ejson_stack;
@@ -629,8 +328,8 @@ struct pcejson *pcejson_create(uint32_t depth, uint32_t flags)
 
     parser->curr_uc = NULL;
     parser->tkz_reader = tkz_reader_new();
-    parser->temp_buffer = uc_buffer_new();
-    parser->string_buffer = uc_buffer_new();
+    parser->temp_buffer = tkz_buffer_new();
+    parser->string_buffer = tkz_buffer_new();
     parser->vcm_stack = pcvcm_stack_new();
     parser->ejson_stack = pcutils_stack_new(0);
     parser->prev_separator = 0;
@@ -647,8 +346,8 @@ void pcejson_destroy(struct pcejson *parser)
 {
     if (parser) {
         tkz_reader_destroy(parser->tkz_reader);
-        uc_buffer_destroy(parser->temp_buffer);
-        uc_buffer_destroy(parser->string_buffer);
+        tkz_buffer_destroy(parser->temp_buffer);
+        tkz_buffer_destroy(parser->string_buffer);
         struct pcvcm_node* n = parser->vcm_node;
         parser->vcm_node = NULL;
         while (!pcvcm_stack_is_empty(parser->vcm_stack)) {
@@ -675,8 +374,8 @@ void pcejson_reset(struct pcejson *parser, uint32_t depth, uint32_t flags)
     tkz_reader_destroy(parser->tkz_reader);
     parser->tkz_reader = tkz_reader_new();
 
-    uc_buffer_reset(parser->temp_buffer);
-    uc_buffer_reset(parser->string_buffer);
+    tkz_buffer_reset(parser->temp_buffer);
+    tkz_buffer_reset(parser->string_buffer);
 
     struct pcvcm_node* n = parser->vcm_node;
     parser->vcm_node = NULL;
@@ -711,11 +410,11 @@ void pcejson_dec_depth (struct pcejson* parser)
 }
 
 static UNUSED_FUNCTION
-struct pcvcm_node *create_byte_sequenct(struct uc_buffer *buffer)
+struct pcvcm_node *create_byte_sequenct(struct tkz_buffer *buffer)
 {
     UNUSED_PARAM(buffer);
-    size_t nr_bytes = uc_buffer_get_size_in_bytes(buffer);
-    const char *bytes = uc_buffer_get_bytes(buffer);
+    size_t nr_bytes = tkz_buffer_get_size_in_bytes(buffer);
+    const char *bytes = tkz_buffer_get_bytes(buffer);
     if (bytes[1] == 'x') {
         return pcvcm_node_new_byte_sequence_from_bx(bytes + 2, nr_bytes - 2);
     }
@@ -927,9 +626,9 @@ BEGIN_STATE(TKZ_STATE_EJSON_CONTROL)
         }
         if (uc == ':') {
             ejson_stack_pop();
-            if (!uc_buffer_is_empty(parser->temp_buffer)) {
+            if (!tkz_buffer_is_empty(parser->temp_buffer)) {
                 struct pcvcm_node *node = pcvcm_node_new_string(
-                uc_buffer_get_bytes(parser->temp_buffer));
+                tkz_buffer_get_bytes(parser->temp_buffer));
                 APPEND_AS_VCM_CHILD(node);
                 RESET_TEMP_BUFFER();
             }
@@ -1350,9 +1049,9 @@ BEGIN_STATE(TKZ_STATE_EJSON_AFTER_VALUE)
         RECONSUME_IN(TKZ_STATE_EJSON_FINISHED);
     }
     if (character == '"' || character == '\'') {
-        if (!uc_buffer_is_empty(parser->temp_buffer)) {
+        if (!tkz_buffer_is_empty(parser->temp_buffer)) {
             struct pcvcm_node *node = pcvcm_node_new_string(
-                    uc_buffer_get_bytes(parser->temp_buffer));
+                    tkz_buffer_get_bytes(parser->temp_buffer));
             APPEND_AS_VCM_CHILD(node);
             RESET_TEMP_BUFFER();
         }
@@ -1380,9 +1079,9 @@ BEGIN_STATE(TKZ_STATE_EJSON_AFTER_VALUE)
             ADVANCE_TO(TKZ_STATE_EJSON_BEFORE_NAME);
         }
         if (uc == '[') {
-            if (!uc_buffer_is_empty(parser->temp_buffer)) {
+            if (!tkz_buffer_is_empty(parser->temp_buffer)) {
                 struct pcvcm_node *node = pcvcm_node_new_string(
-                uc_buffer_get_bytes(parser->temp_buffer));
+                tkz_buffer_get_bytes(parser->temp_buffer));
                 APPEND_AS_VCM_CHILD(node);
                 RESET_TEMP_BUFFER();
             }
@@ -1397,9 +1096,9 @@ BEGIN_STATE(TKZ_STATE_EJSON_AFTER_VALUE)
         }
         if (uc == ':') {
             ejson_stack_pop();
-            if (!uc_buffer_is_empty(parser->temp_buffer)) {
+            if (!tkz_buffer_is_empty(parser->temp_buffer)) {
                 struct pcvcm_node *node = pcvcm_node_new_string(
-                uc_buffer_get_bytes(parser->temp_buffer));
+                tkz_buffer_get_bytes(parser->temp_buffer));
                 APPEND_AS_VCM_CHILD(node);
                 RESET_TEMP_BUFFER();
             }
@@ -1472,9 +1171,9 @@ BEGIN_STATE(TKZ_STATE_EJSON_AFTER_NAME)
         ADVANCE_TO(TKZ_STATE_EJSON_AFTER_NAME);
     }
     if (character == ':') {
-        if (!uc_buffer_is_empty(parser->temp_buffer)) {
+        if (!tkz_buffer_is_empty(parser->temp_buffer)) {
             struct pcvcm_node *node = pcvcm_node_new_string(
-                uc_buffer_get_bytes(parser->temp_buffer));
+                tkz_buffer_get_bytes(parser->temp_buffer));
             APPEND_AS_VCM_CHILD(node);
         }
         ADVANCE_TO(TKZ_STATE_EJSON_CONTROL);
@@ -1500,9 +1199,9 @@ BEGIN_STATE(TKZ_STATE_EJSON_NAME_UNQUOTED)
                 NULL);
         UPDATE_VCM_NODE(snode);
         ejson_stack_push('U');
-        if (!uc_buffer_is_empty(parser->temp_buffer)) {
+        if (!tkz_buffer_is_empty(parser->temp_buffer)) {
             struct pcvcm_node *node = pcvcm_node_new_string(
-                    uc_buffer_get_bytes(parser->temp_buffer)
+                    tkz_buffer_get_bytes(parser->temp_buffer)
                     );
             APPEND_AS_VCM_CHILD(node);
             RESET_TEMP_BUFFER();
@@ -1515,7 +1214,7 @@ END_STATE()
 
 BEGIN_STATE(TKZ_STATE_EJSON_NAME_SINGLE_QUOTED)
     if (character == '\'') {
-        size_t nr_buf_chars = uc_buffer_get_size_in_chars(
+        size_t nr_buf_chars = tkz_buffer_get_size_in_chars(
                 parser->temp_buffer);
         if (nr_buf_chars >= 1) {
             ADVANCE_TO(TKZ_STATE_EJSON_AFTER_NAME);
@@ -1538,10 +1237,10 @@ END_STATE()
 
 BEGIN_STATE(TKZ_STATE_EJSON_NAME_DOUBLE_QUOTED)
     if (character == '"') {
-        size_t nr_buf_chars = uc_buffer_get_size_in_chars(
+        size_t nr_buf_chars = tkz_buffer_get_size_in_chars(
                 parser->temp_buffer);
         if (nr_buf_chars > 1) {
-            uc_buffer_delete_head_chars (parser->temp_buffer, 1);
+            tkz_buffer_delete_head_chars (parser->temp_buffer, 1);
             ADVANCE_TO(TKZ_STATE_EJSON_AFTER_NAME);
         }
         else if (nr_buf_chars == 1) {
@@ -1570,9 +1269,9 @@ BEGIN_STATE(TKZ_STATE_EJSON_NAME_DOUBLE_QUOTED)
                 NULL);
         UPDATE_VCM_NODE(snode);
         ejson_stack_push('"');
-        if (!uc_buffer_is_empty(parser->temp_buffer)) {
+        if (!tkz_buffer_is_empty(parser->temp_buffer)) {
             struct pcvcm_node *node = pcvcm_node_new_string(
-                    uc_buffer_get_bytes(parser->temp_buffer)
+                    tkz_buffer_get_bytes(parser->temp_buffer)
                     );
             APPEND_AS_VCM_CHILD(node);
             RESET_TEMP_BUFFER();
@@ -1586,12 +1285,12 @@ END_STATE()
 BEGIN_STATE(TKZ_STATE_EJSON_VALUE_SINGLE_QUOTED)
     if (character == '\'') {
         parser->nr_quoted++;
-        size_t nr_buf_chars = uc_buffer_get_size_in_chars(
+        size_t nr_buf_chars = tkz_buffer_get_size_in_chars(
                 parser->temp_buffer);
         if (parser->nr_quoted > 1 || nr_buf_chars >= 1) {
             RESTORE_VCM_NODE();
             struct pcvcm_node *node = pcvcm_node_new_string(
-                    uc_buffer_get_bytes(parser->temp_buffer)
+                    tkz_buffer_get_bytes(parser->temp_buffer)
                     );
             APPEND_AS_VCM_CHILD(node);
             RESET_TEMP_BUFFER();
@@ -1641,26 +1340,26 @@ BEGIN_STATE(TKZ_STATE_EJSON_VALUE_DOUBLE_QUOTED)
                 NULL);
         UPDATE_VCM_NODE(snode);
         ejson_stack_push('"');
-        if (!uc_buffer_is_empty(parser->temp_buffer)) {
-            if (uc_buffer_end_with(parser->temp_buffer, "{", 1)) {
+        if (!tkz_buffer_is_empty(parser->temp_buffer)) {
+            if (tkz_buffer_end_with(parser->temp_buffer, "{", 1)) {
                 tkz_reader_reconsume_last_char(parser->tkz_reader);
                 tkz_reader_reconsume_last_char(parser->tkz_reader);
-                uc_buffer_delete_tail_chars(parser->temp_buffer, 1);
-                if (!uc_buffer_is_empty(parser->temp_buffer)) {
+                tkz_buffer_delete_tail_chars(parser->temp_buffer, 1);
+                if (!tkz_buffer_is_empty(parser->temp_buffer)) {
                     struct pcvcm_node *node = pcvcm_node_new_string(
-                            uc_buffer_get_bytes(parser->temp_buffer)
+                            tkz_buffer_get_bytes(parser->temp_buffer)
                             );
                     APPEND_AS_VCM_CHILD(node);
                 }
             }
-            else if (uc_buffer_end_with(parser->temp_buffer, "{{", 2)) {
+            else if (tkz_buffer_end_with(parser->temp_buffer, "{{", 2)) {
                 tkz_reader_reconsume_last_char(parser->tkz_reader);
                 tkz_reader_reconsume_last_char(parser->tkz_reader);
                 tkz_reader_reconsume_last_char(parser->tkz_reader);
-                uc_buffer_delete_tail_chars(parser->temp_buffer, 2);
-                if (!uc_buffer_is_empty(parser->temp_buffer)) {
+                tkz_buffer_delete_tail_chars(parser->temp_buffer, 2);
+                if (!tkz_buffer_is_empty(parser->temp_buffer)) {
                     struct pcvcm_node *node = pcvcm_node_new_string(
-                            uc_buffer_get_bytes(parser->temp_buffer)
+                            tkz_buffer_get_bytes(parser->temp_buffer)
                             );
                     APPEND_AS_VCM_CHILD(node);
                 }
@@ -1668,7 +1367,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_VALUE_DOUBLE_QUOTED)
             else {
                 tkz_reader_reconsume_last_char(parser->tkz_reader);
                 struct pcvcm_node *node = pcvcm_node_new_string(
-                        uc_buffer_get_bytes(parser->temp_buffer)
+                        tkz_buffer_get_bytes(parser->temp_buffer)
                         );
                 APPEND_AS_VCM_CHILD(node);
             }
@@ -1702,7 +1401,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_VALUE_TWO_DOUBLE_QUOTED)
     }
     RESTORE_VCM_NODE();
     struct pcvcm_node *node = pcvcm_node_new_string(
-            uc_buffer_get_bytes(parser->temp_buffer)
+            tkz_buffer_get_bytes(parser->temp_buffer)
             );
     APPEND_AS_VCM_CHILD(node);
     RESET_TEMP_BUFFER();
@@ -1717,12 +1416,12 @@ BEGIN_STATE(TKZ_STATE_EJSON_VALUE_THREE_DOUBLE_QUOTED)
             APPEND_TO_TEMP_BUFFER(character);
         }
         if (parser->nr_quoted >= 6
-                && uc_buffer_end_with(parser->temp_buffer,
+                && tkz_buffer_end_with(parser->temp_buffer,
                     "\"\"\"", 3)) {
             RESTORE_VCM_NODE();
-            uc_buffer_delete_tail_chars(parser->temp_buffer, 3);
+            tkz_buffer_delete_tail_chars(parser->temp_buffer, 3);
             struct pcvcm_node *node = pcvcm_node_new_string(
-                    uc_buffer_get_bytes(parser->temp_buffer)
+                    tkz_buffer_get_bytes(parser->temp_buffer)
                     );
             APPEND_AS_VCM_CHILD(node);
             RESET_TEMP_BUFFER();
@@ -1753,9 +1452,9 @@ BEGIN_STATE(TKZ_STATE_EJSON_KEYWORD)
                 NULL);
         UPDATE_VCM_NODE(snode);
         ejson_stack_push('U');
-        if (!uc_buffer_is_empty(parser->temp_buffer)) {
+        if (!tkz_buffer_is_empty(parser->temp_buffer)) {
             struct pcvcm_node *node = pcvcm_node_new_string(
-                    uc_buffer_get_bytes(parser->temp_buffer)
+                    tkz_buffer_get_bytes(parser->temp_buffer)
                     );
             APPEND_AS_VCM_CHILD(node);
             RESET_TEMP_BUFFER();
@@ -1795,14 +1494,14 @@ BEGIN_STATE(TKZ_STATE_EJSON_AFTER_KEYWORD)
             || character == ']' || character == ','
             || character == ')' || character == ';' || character == '&'
             || character == '|' || is_eof(character)) {
-        if (uc_buffer_equal_to(parser->temp_buffer, "true", 4)) {
+        if (tkz_buffer_equal_to(parser->temp_buffer, "true", 4)) {
             RESTORE_VCM_NODE();
             struct pcvcm_node *node = pcvcm_node_new_boolean(true);
             APPEND_AS_VCM_CHILD(node);
             RESET_TEMP_BUFFER();
             RECONSUME_IN(TKZ_STATE_EJSON_AFTER_VALUE);
         }
-        if (uc_buffer_equal_to(parser->temp_buffer, "false",
+        if (tkz_buffer_equal_to(parser->temp_buffer, "false",
                     5)) {
             RESTORE_VCM_NODE();
             struct pcvcm_node *node = pcvcm_node_new_boolean(false);
@@ -1810,13 +1509,13 @@ BEGIN_STATE(TKZ_STATE_EJSON_AFTER_KEYWORD)
             RESET_TEMP_BUFFER();
             RECONSUME_IN(TKZ_STATE_EJSON_AFTER_VALUE);
         }
-        if (uc_buffer_equal_to(parser->temp_buffer, "null", 4)) {
+        if (tkz_buffer_equal_to(parser->temp_buffer, "null", 4)) {
             struct pcvcm_node *node = pcvcm_node_new_null();
             APPEND_AS_VCM_CHILD(node);
             RESET_TEMP_BUFFER();
             RECONSUME_IN(TKZ_STATE_EJSON_AFTER_VALUE);
         }
-        if (uc_buffer_equal_to(parser->temp_buffer, "undefined", 9)) {
+        if (tkz_buffer_equal_to(parser->temp_buffer, "undefined", 9)) {
             struct pcvcm_node *node = pcvcm_node_new_undefined();
             APPEND_AS_VCM_CHILD(node);
             RESET_TEMP_BUFFER();
@@ -1833,7 +1532,7 @@ END_STATE()
 
 BEGIN_STATE(TKZ_STATE_EJSON_BYTE_SEQUENCE)
     if (character == 'b') {
-        if (uc_buffer_is_empty(parser->temp_buffer)) {
+        if (tkz_buffer_is_empty(parser->temp_buffer)) {
             APPEND_TO_TEMP_BUFFER(character);
             ADVANCE_TO(TKZ_STATE_EJSON_BYTE_SEQUENCE);
         }
@@ -1856,9 +1555,9 @@ BEGIN_STATE(TKZ_STATE_EJSON_BYTE_SEQUENCE)
                 NULL);
         UPDATE_VCM_NODE(snode);
         ejson_stack_push('U');
-        if (!uc_buffer_is_empty(parser->temp_buffer)) {
+        if (!tkz_buffer_is_empty(parser->temp_buffer)) {
             struct pcvcm_node *node = pcvcm_node_new_string(
-                    uc_buffer_get_bytes(parser->temp_buffer)
+                    tkz_buffer_get_bytes(parser->temp_buffer)
                     );
             APPEND_AS_VCM_CHILD(node);
             RESET_TEMP_BUFFER();
@@ -1927,7 +1626,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_BASE64_BYTE_SEQUENCE)
     }
     if (is_ascii_digit(character) || is_ascii_alpha(character)
             || character == '+' || character == '-') {
-        if (!uc_buffer_end_with(parser->temp_buffer, "=", 1)) {
+        if (!tkz_buffer_end_with(parser->temp_buffer, "=", 1)) {
             APPEND_TO_TEMP_BUFFER(character);
             ADVANCE_TO(TKZ_STATE_EJSON_BASE64_BYTE_SEQUENCE);
         }
@@ -1958,9 +1657,9 @@ BEGIN_STATE(TKZ_STATE_EJSON_VALUE_NUMBER)
                 NULL);
         UPDATE_VCM_NODE(snode);
         ejson_stack_push('U');
-        if (!uc_buffer_is_empty(parser->temp_buffer)) {
+        if (!tkz_buffer_is_empty(parser->temp_buffer)) {
             struct pcvcm_node *node = pcvcm_node_new_string(
-                    uc_buffer_get_bytes(parser->temp_buffer)
+                    tkz_buffer_get_bytes(parser->temp_buffer)
                     );
             APPEND_AS_VCM_CHILD(node);
             RESET_TEMP_BUFFER();
@@ -1975,14 +1674,14 @@ BEGIN_STATE(TKZ_STATE_EJSON_AFTER_VALUE_NUMBER)
     if (is_whitespace(character) || character == '}'
             || character == ']' || character == ',' || character == ')'
             || is_eof(character)) {
-        if (uc_buffer_end_with(parser->temp_buffer, "-", 1)
-            || uc_buffer_end_with(parser->temp_buffer, "E", 1)
-            || uc_buffer_end_with(parser->temp_buffer, "e", 1)) {
+        if (tkz_buffer_end_with(parser->temp_buffer, "-", 1)
+            || tkz_buffer_end_with(parser->temp_buffer, "E", 1)
+            || tkz_buffer_end_with(parser->temp_buffer, "e", 1)) {
             SET_ERR(PCEJSON_ERROR_BAD_JSON_NUMBER);
             RETURN_AND_STOP_PARSE();
         }
         double d = strtod(
-                uc_buffer_get_bytes(parser->temp_buffer), NULL);
+                tkz_buffer_get_bytes(parser->temp_buffer), NULL);
         RESTORE_VCM_NODE();
         struct pcvcm_node *node = pcvcm_node_new_number(d);
         APPEND_AS_VCM_CHILD(node);
@@ -2003,7 +1702,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_VALUE_NUMBER_INTEGER)
         ADVANCE_TO(TKZ_STATE_EJSON_VALUE_NUMBER_INTEGER);
     }
     if (character == 'x') {
-        if(uc_buffer_equal_to(parser->temp_buffer, "0", 1)) {
+        if(tkz_buffer_equal_to(parser->temp_buffer, "0", 1)) {
             RESET_TEMP_BUFFER();
             ADVANCE_TO(TKZ_STATE_EJSON_VALUE_NUMBER_HEX);
         }
@@ -2022,8 +1721,8 @@ BEGIN_STATE(TKZ_STATE_EJSON_VALUE_NUMBER_INTEGER)
         RECONSUME_IN(TKZ_STATE_EJSON_VALUE_NUMBER_SUFFIX_INTEGER);
     }
     if (character == 'I' && (
-                uc_buffer_is_empty(parser->temp_buffer) ||
-                uc_buffer_equal_to(parser->temp_buffer, "-", 1)
+                tkz_buffer_is_empty(parser->temp_buffer) ||
+                tkz_buffer_equal_to(parser->temp_buffer, "-", 1)
                 )) {
         RECONSUME_IN(TKZ_STATE_EJSON_VALUE_NUMBER_INFINITY);
     }
@@ -2042,7 +1741,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_VALUE_NUMBER_FRACTION)
     }
 
     if (is_ascii_digit(character)) {
-        if (uc_buffer_end_with(parser->temp_buffer, "F", 1)) {
+        if (tkz_buffer_end_with(parser->temp_buffer, "F", 1)) {
             SET_ERR(PCEJSON_ERROR_BAD_JSON_NUMBER);
             RETURN_AND_STOP_PARSE();
         }
@@ -2054,10 +1753,10 @@ BEGIN_STATE(TKZ_STATE_EJSON_VALUE_NUMBER_FRACTION)
         ADVANCE_TO(TKZ_STATE_EJSON_VALUE_NUMBER_FRACTION);
     }
     if (character == 'L') {
-        if (uc_buffer_end_with(parser->temp_buffer, "F", 1)) {
+        if (tkz_buffer_end_with(parser->temp_buffer, "F", 1)) {
             APPEND_TO_TEMP_BUFFER(character);
             long double ld = strtold (
-                    uc_buffer_get_bytes(parser->temp_buffer), NULL);
+                    tkz_buffer_get_bytes(parser->temp_buffer), NULL);
             RESTORE_VCM_NODE();
             struct pcvcm_node *node = pcvcm_node_new_longdouble(ld);
             APPEND_AS_VCM_CHILD(node);
@@ -2066,7 +1765,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_VALUE_NUMBER_FRACTION)
         }
     }
     if (character == 'E' || character == 'e') {
-        if (uc_buffer_end_with(parser->temp_buffer, ".", 1)) {
+        if (tkz_buffer_end_with(parser->temp_buffer, ".", 1)) {
             SET_ERR(PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER_FRACTION);
             RETURN_AND_STOP_PARSE();
         }
@@ -2099,7 +1798,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_VALUE_NUMBER_EXPONENT_INTEGER)
         RECONSUME_IN(TKZ_STATE_EJSON_AFTER_VALUE_NUMBER);
     }
     if (is_ascii_digit(character)) {
-        if (uc_buffer_end_with(parser->temp_buffer, "F", 1)) {
+        if (tkz_buffer_end_with(parser->temp_buffer, "F", 1)) {
             SET_ERR(PCEJSON_ERROR_BAD_JSON_NUMBER);
             RETURN_AND_STOP_PARSE();
         }
@@ -2111,10 +1810,10 @@ BEGIN_STATE(TKZ_STATE_EJSON_VALUE_NUMBER_EXPONENT_INTEGER)
         ADVANCE_TO(TKZ_STATE_EJSON_VALUE_NUMBER_EXPONENT_INTEGER);
     }
     if (character == 'L') {
-        if (uc_buffer_end_with(parser->temp_buffer, "F", 1)) {
+        if (tkz_buffer_end_with(parser->temp_buffer, "F", 1)) {
             APPEND_TO_TEMP_BUFFER(character);
             long double ld = strtold (
-                    uc_buffer_get_bytes(parser->temp_buffer), NULL);
+                    tkz_buffer_get_bytes(parser->temp_buffer), NULL);
             RESTORE_VCM_NODE();
             struct pcvcm_node *node = pcvcm_node_new_longdouble(ld);
             APPEND_AS_VCM_CHILD(node);
@@ -2127,7 +1826,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_VALUE_NUMBER_EXPONENT_INTEGER)
 END_STATE()
 
 BEGIN_STATE(TKZ_STATE_EJSON_VALUE_NUMBER_SUFFIX_INTEGER)
-    uint32_t last_c = uc_buffer_get_last_char(
+    uint32_t last_c = tkz_buffer_get_last_char(
             parser->temp_buffer);
     if (is_whitespace(character) || character == '}'
             || character == ']' || character == ',' || character == ')') {
@@ -2142,10 +1841,10 @@ BEGIN_STATE(TKZ_STATE_EJSON_VALUE_NUMBER_SUFFIX_INTEGER)
     if (character == 'L') {
         if (is_ascii_digit(last_c) || last_c == 'U') {
             APPEND_TO_TEMP_BUFFER(character);
-            if (uc_buffer_end_with(parser->temp_buffer, "UL", 2)
+            if (tkz_buffer_end_with(parser->temp_buffer, "UL", 2)
                     ) {
                 uint64_t u64 = strtoull (
-                    uc_buffer_get_bytes(parser->temp_buffer),
+                    tkz_buffer_get_bytes(parser->temp_buffer),
                     NULL, 10);
                 RESTORE_VCM_NODE();
                 struct pcvcm_node *node = pcvcm_node_new_ulongint(u64);
@@ -2153,10 +1852,10 @@ BEGIN_STATE(TKZ_STATE_EJSON_VALUE_NUMBER_SUFFIX_INTEGER)
                 RESET_TEMP_BUFFER();
                 ADVANCE_TO(TKZ_STATE_EJSON_AFTER_VALUE);
             }
-            else if (uc_buffer_end_with(parser->temp_buffer,
+            else if (tkz_buffer_end_with(parser->temp_buffer,
                         "L", 1)) {
                 int64_t i64 = strtoll (
-                    uc_buffer_get_bytes(parser->temp_buffer),
+                    tkz_buffer_get_bytes(parser->temp_buffer),
                     NULL, 10);
                 RESTORE_VCM_NODE();
                 struct pcvcm_node *node = pcvcm_node_new_longint(i64);
@@ -2191,7 +1890,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_VALUE_NUMBER_HEX_SUFFIX)
             || character == ']' || character == ',' || character == ')') {
         RECONSUME_IN(TKZ_STATE_EJSON_AFTER_VALUE_NUMBER_HEX);
     }
-    uint32_t last_c = uc_buffer_get_last_char(parser->temp_buffer);
+    uint32_t last_c = tkz_buffer_get_last_char(parser->temp_buffer);
     if (character == 'U') {
         if (is_ascii_hex_digit(last_c)) {
             APPEND_TO_TEMP_BUFFER(character);
@@ -2212,9 +1911,9 @@ BEGIN_STATE(TKZ_STATE_EJSON_AFTER_VALUE_NUMBER_HEX)
     if (is_whitespace(character) || character == '}'
             || character == ']' || character == ',' || character == ')'
             || is_eof(character)) {
-        const char *bytes = uc_buffer_get_bytes(parser->temp_buffer);
-        if (uc_buffer_end_with(parser->temp_buffer, "U", 1)
-                || uc_buffer_end_with(parser->temp_buffer, "UL", 2)
+        const char *bytes = tkz_buffer_get_bytes(parser->temp_buffer);
+        if (tkz_buffer_end_with(parser->temp_buffer, "U", 1)
+                || tkz_buffer_end_with(parser->temp_buffer, "UL", 2)
                 ) {
             uint64_t u64 = strtoull (bytes, NULL, 16);
             RESTORE_VCM_NODE();
@@ -2239,7 +1938,7 @@ END_STATE()
 BEGIN_STATE(TKZ_STATE_EJSON_VALUE_NUMBER_INFINITY)
     if (is_whitespace(character) || character == '}'
             || character == ']' || character == ',' || character == ')') {
-        if (uc_buffer_equal_to(parser->temp_buffer,
+        if (tkz_buffer_equal_to(parser->temp_buffer,
                     "-Infinity", 9)) {
             double d = -INFINITY;
             RESTORE_VCM_NODE();
@@ -2248,7 +1947,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_VALUE_NUMBER_INFINITY)
             RESET_TEMP_BUFFER();
             RECONSUME_IN(TKZ_STATE_EJSON_AFTER_VALUE);
         }
-        if (uc_buffer_equal_to(parser->temp_buffer,
+        if (tkz_buffer_equal_to(parser->temp_buffer,
                 "Infinity", 8)) {
             double d = INFINITY;
             RESTORE_VCM_NODE();
@@ -2261,8 +1960,8 @@ BEGIN_STATE(TKZ_STATE_EJSON_VALUE_NUMBER_INFINITY)
         RETURN_AND_STOP_PARSE();
     }
     if (character == 'I') {
-        if (uc_buffer_is_empty(parser->temp_buffer)
-            || uc_buffer_equal_to(parser->temp_buffer, "-", 1)) {
+        if (tkz_buffer_is_empty(parser->temp_buffer)
+            || tkz_buffer_equal_to(parser->temp_buffer, "-", 1)) {
             APPEND_TO_TEMP_BUFFER(character);
             ADVANCE_TO(TKZ_STATE_EJSON_VALUE_NUMBER_INFINITY);
         }
@@ -2271,10 +1970,10 @@ BEGIN_STATE(TKZ_STATE_EJSON_VALUE_NUMBER_INFINITY)
     }
 
     if (character == 'n') {
-        if (uc_buffer_equal_to(parser->temp_buffer, "I", 1)
-          || uc_buffer_equal_to(parser->temp_buffer, "-I", 2)
-          || uc_buffer_equal_to(parser->temp_buffer, "Infi", 4)
-          || uc_buffer_equal_to(parser->temp_buffer, "-Infi", 5)
+        if (tkz_buffer_equal_to(parser->temp_buffer, "I", 1)
+          || tkz_buffer_equal_to(parser->temp_buffer, "-I", 2)
+          || tkz_buffer_equal_to(parser->temp_buffer, "Infi", 4)
+          || tkz_buffer_equal_to(parser->temp_buffer, "-Infi", 5)
             ) {
             APPEND_TO_TEMP_BUFFER(character);
             ADVANCE_TO(TKZ_STATE_EJSON_VALUE_NUMBER_INFINITY);
@@ -2284,8 +1983,8 @@ BEGIN_STATE(TKZ_STATE_EJSON_VALUE_NUMBER_INFINITY)
     }
 
     if (character == 'f') {
-        if (uc_buffer_equal_to(parser->temp_buffer, "In", 2)
-            || uc_buffer_equal_to (parser->temp_buffer, "-In", 3)
+        if (tkz_buffer_equal_to(parser->temp_buffer, "In", 2)
+            || tkz_buffer_equal_to (parser->temp_buffer, "-In", 3)
                 ) {
             APPEND_TO_TEMP_BUFFER(character);
             ADVANCE_TO(TKZ_STATE_EJSON_VALUE_NUMBER_INFINITY);
@@ -2295,10 +1994,10 @@ BEGIN_STATE(TKZ_STATE_EJSON_VALUE_NUMBER_INFINITY)
     }
 
     if (character == 'i') {
-        if (uc_buffer_equal_to(parser->temp_buffer, "Inf", 3)
-         || uc_buffer_equal_to(parser->temp_buffer, "-Inf", 4)
-         || uc_buffer_equal_to(parser->temp_buffer, "Infin", 5)
-         || uc_buffer_equal_to(parser->temp_buffer, "-Infin", 6)
+        if (tkz_buffer_equal_to(parser->temp_buffer, "Inf", 3)
+         || tkz_buffer_equal_to(parser->temp_buffer, "-Inf", 4)
+         || tkz_buffer_equal_to(parser->temp_buffer, "Infin", 5)
+         || tkz_buffer_equal_to(parser->temp_buffer, "-Infin", 6)
          ) {
             APPEND_TO_TEMP_BUFFER(character);
             ADVANCE_TO(TKZ_STATE_EJSON_VALUE_NUMBER_INFINITY);
@@ -2308,8 +2007,8 @@ BEGIN_STATE(TKZ_STATE_EJSON_VALUE_NUMBER_INFINITY)
     }
 
     if (character == 't') {
-        if (uc_buffer_equal_to(parser->temp_buffer, "Infini", 6)
-            || uc_buffer_equal_to (parser->temp_buffer,
+        if (tkz_buffer_equal_to(parser->temp_buffer, "Infini", 6)
+            || tkz_buffer_equal_to (parser->temp_buffer,
                 "-Infini", 7)
                 ) {
             APPEND_TO_TEMP_BUFFER(character);
@@ -2320,8 +2019,8 @@ BEGIN_STATE(TKZ_STATE_EJSON_VALUE_NUMBER_INFINITY)
     }
 
     if (character == 'y') {
-        if (uc_buffer_equal_to(parser->temp_buffer, "Infinit", 7)
-           || uc_buffer_equal_to (parser->temp_buffer,
+        if (tkz_buffer_equal_to(parser->temp_buffer, "Infinit", 7)
+           || tkz_buffer_equal_to (parser->temp_buffer,
                "-Infinit", 8)
                 ) {
             APPEND_TO_TEMP_BUFFER(character);
@@ -2338,7 +2037,7 @@ END_STATE()
 BEGIN_STATE(TKZ_STATE_EJSON_VALUE_NAN)
     if (is_whitespace(character) || character == '}'
             || character == ']' || character == ',' || character == ')') {
-        if (uc_buffer_equal_to(parser->temp_buffer, "NaN", 3)) {
+        if (tkz_buffer_equal_to(parser->temp_buffer, "NaN", 3)) {
             double d = NAN;
             RESTORE_VCM_NODE();
             struct pcvcm_node *node = pcvcm_node_new_number(d);
@@ -2350,8 +2049,8 @@ BEGIN_STATE(TKZ_STATE_EJSON_VALUE_NAN)
         RETURN_AND_STOP_PARSE();
     }
     if (character == 'N') {
-        if (uc_buffer_is_empty(parser->temp_buffer)
-          || uc_buffer_equal_to(parser->temp_buffer, "Na", 2)) {
+        if (tkz_buffer_is_empty(parser->temp_buffer)
+          || tkz_buffer_equal_to(parser->temp_buffer, "Na", 2)) {
             APPEND_TO_TEMP_BUFFER(character);
             ADVANCE_TO(TKZ_STATE_EJSON_VALUE_NAN);
         }
@@ -2360,7 +2059,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_VALUE_NAN)
     }
 
     if (character == 'a') {
-        if (uc_buffer_equal_to(parser->temp_buffer, "N", 1)) {
+        if (tkz_buffer_equal_to(parser->temp_buffer, "N", 1)) {
             APPEND_TO_TEMP_BUFFER(character);
             ADVANCE_TO(TKZ_STATE_EJSON_VALUE_NAN);
         }
@@ -2409,7 +2108,7 @@ END_STATE()
 BEGIN_STATE(TKZ_STATE_EJSON_STRING_ESCAPE_FOUR_HEXADECIMAL_DIGITS)
     if (is_ascii_hex_digit(character)) {
         APPEND_TO_STRING_BUFFER(character);
-        size_t nr_chars = uc_buffer_get_size_in_chars(
+        size_t nr_chars = tkz_buffer_get_size_in_chars(
                 parser->string_buffer);
         if (nr_chars == 4) {
             APPEND_BYTES_TO_TEMP_BUFFER("\\u", 2);
@@ -2426,25 +2125,25 @@ END_STATE()
 
 BEGIN_STATE(TKZ_STATE_EJSON_JSONEE_VARIABLE)
     if (character == '"') {
-        if (uc_buffer_is_empty(parser->temp_buffer)) {
+        if (tkz_buffer_is_empty(parser->temp_buffer)) {
             RECONSUME_IN(TKZ_STATE_EJSON_VALUE_DOUBLE_QUOTED);
         }
     }
     if (character == '\'') {
-        if (uc_buffer_is_empty(parser->temp_buffer)) {
+        if (tkz_buffer_is_empty(parser->temp_buffer)) {
             RESET_QUOTED_COUNTER();
             RECONSUME_IN(TKZ_STATE_EJSON_VALUE_SINGLE_QUOTED);
         }
     }
     if (character == '$') {
-        if (uc_buffer_is_empty(parser->temp_buffer)) {
+        if (tkz_buffer_is_empty(parser->temp_buffer)) {
             RECONSUME_IN(TKZ_STATE_EJSON_CONTROL);
         }
         if (parser->vcm_node) {
             vcm_stack_push(parser->vcm_node);
         }
         parser->vcm_node = pcvcm_node_new_string(
-                   uc_buffer_get_bytes(parser->temp_buffer));
+                   tkz_buffer_get_bytes(parser->temp_buffer));
         RESET_TEMP_BUFFER();
         uint32_t uc = ejson_stack_top();
         while (uc == '$') {
@@ -2468,7 +2167,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_JSONEE_VARIABLE)
     if (is_whitespace(character) || character == '}' || character == '"'
             || character == ']' || character == ')' || character == ';'
             || character == '&' || character == '|') {
-        if (uc_buffer_is_empty(parser->temp_buffer)) {
+        if (tkz_buffer_is_empty(parser->temp_buffer)) {
             SET_ERR(PCEJSON_ERROR_BAD_JSONEE_VARIABLE_NAME);
             RETURN_AND_STOP_PARSE();
         }
@@ -2476,7 +2175,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_JSONEE_VARIABLE)
             vcm_stack_push(parser->vcm_node);
         }
         parser->vcm_node = pcvcm_node_new_string(
-                   uc_buffer_get_bytes(parser->temp_buffer));
+                   tkz_buffer_get_bytes(parser->temp_buffer));
         RESET_TEMP_BUFFER();
         uint32_t uc = ejson_stack_top();
         while (uc == '$') {
@@ -2490,7 +2189,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_JSONEE_VARIABLE)
         RECONSUME_IN(TKZ_STATE_EJSON_CONTROL);
     }
     if (character == ',') {
-        if (uc_buffer_is_empty(parser->temp_buffer)) {
+        if (tkz_buffer_is_empty(parser->temp_buffer)) {
             SET_ERR(PCEJSON_ERROR_BAD_JSONEE_VARIABLE_NAME);
             RETURN_AND_STOP_PARSE();
         }
@@ -2498,7 +2197,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_JSONEE_VARIABLE)
             vcm_stack_push(parser->vcm_node);
         }
         parser->vcm_node = pcvcm_node_new_string(
-                   uc_buffer_get_bytes(parser->temp_buffer));
+                   tkz_buffer_get_bytes(parser->temp_buffer));
         RESET_TEMP_BUFFER();
         uint32_t uc = ejson_stack_top();
         while (uc == '$') {
@@ -2512,12 +2211,12 @@ BEGIN_STATE(TKZ_STATE_EJSON_JSONEE_VARIABLE)
         RECONSUME_IN(TKZ_STATE_EJSON_AFTER_VALUE);
     }
     if (character == ':') {
-        if (uc_buffer_is_empty(parser->temp_buffer)
-            || uc_buffer_is_int(parser->temp_buffer)) {
+        if (tkz_buffer_is_empty(parser->temp_buffer)
+            || tkz_buffer_is_int(parser->temp_buffer)) {
             APPEND_TO_TEMP_BUFFER(character);
             ADVANCE_TO(TKZ_STATE_EJSON_JSONEE_VARIABLE);
         }
-        if (uc_buffer_is_empty(parser->temp_buffer)) {
+        if (tkz_buffer_is_empty(parser->temp_buffer)) {
             APPEND_TO_TEMP_BUFFER(character);
             ADVANCE_TO(TKZ_STATE_EJSON_JSONEE_VARIABLE);
         }
@@ -2525,7 +2224,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_JSONEE_VARIABLE)
             vcm_stack_push(parser->vcm_node);
         }
         parser->vcm_node = pcvcm_node_new_string(
-                   uc_buffer_get_bytes(parser->temp_buffer));
+                   tkz_buffer_get_bytes(parser->temp_buffer));
         RESET_TEMP_BUFFER();
         uint32_t uc = ejson_stack_top();
         while (uc == '$') {
@@ -2550,14 +2249,14 @@ BEGIN_STATE(TKZ_STATE_EJSON_JSONEE_VARIABLE)
         ADVANCE_TO(TKZ_STATE_EJSON_CONTROL);
     }
     if (is_context_variable(character)) {
-        if (uc_buffer_is_empty(parser->temp_buffer)
-            || uc_buffer_is_int(parser->temp_buffer)) {
+        if (tkz_buffer_is_empty(parser->temp_buffer)
+            || tkz_buffer_is_int(parser->temp_buffer)) {
             APPEND_TO_TEMP_BUFFER(character);
             ADVANCE_TO(TKZ_STATE_EJSON_JSONEE_VARIABLE);
         }
     }
     if (character == '[' || character == '(') {
-        if (uc_buffer_is_empty(parser->temp_buffer)) {
+        if (tkz_buffer_is_empty(parser->temp_buffer)) {
             SET_ERR(PCEJSON_ERROR_BAD_JSONEE_VARIABLE_NAME);
             RETURN_AND_STOP_PARSE();
         }
@@ -2565,7 +2264,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_JSONEE_VARIABLE)
             vcm_stack_push(parser->vcm_node);
         }
         parser->vcm_node = pcvcm_node_new_string(
-                   uc_buffer_get_bytes(parser->temp_buffer));
+                   tkz_buffer_get_bytes(parser->temp_buffer));
         RESET_TEMP_BUFFER();
         uint32_t uc = ejson_stack_top();
         if (uc == '$') {
@@ -2576,14 +2275,14 @@ BEGIN_STATE(TKZ_STATE_EJSON_JSONEE_VARIABLE)
     }
     if (character == '<' || character == '>') {
         // FIXME
-        if (uc_buffer_is_empty(parser->temp_buffer)) {
+        if (tkz_buffer_is_empty(parser->temp_buffer)) {
             APPEND_TO_TEMP_BUFFER(character);
         }
         if (parser->vcm_node) {
             vcm_stack_push(parser->vcm_node);
         }
         parser->vcm_node = pcvcm_node_new_string(
-                   uc_buffer_get_bytes(parser->temp_buffer));
+                   tkz_buffer_get_bytes(parser->temp_buffer));
         RESET_TEMP_BUFFER();
         uint32_t uc = ejson_stack_top();
         if (uc == '$') {
@@ -2593,7 +2292,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_JSONEE_VARIABLE)
         RECONSUME_IN(TKZ_STATE_EJSON_CONTROL);
     }
     if (character == '.') {
-        if (uc_buffer_is_empty(parser->temp_buffer)) {
+        if (tkz_buffer_is_empty(parser->temp_buffer)) {
             SET_ERR(PCEJSON_ERROR_BAD_JSONEE_VARIABLE_NAME);
             RETURN_AND_STOP_PARSE();
         }
@@ -2601,7 +2300,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_JSONEE_VARIABLE)
             vcm_stack_push(parser->vcm_node);
         }
         parser->vcm_node = pcvcm_node_new_string(
-                   uc_buffer_get_bytes(parser->temp_buffer));
+                   tkz_buffer_get_bytes(parser->temp_buffer));
         RESET_TEMP_BUFFER();
         uint32_t uc = ejson_stack_top();
         if (uc == '$') {
@@ -2611,7 +2310,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_JSONEE_VARIABLE)
         RECONSUME_IN(TKZ_STATE_EJSON_JSONEE_FULL_STOP_SIGN);
     }
     if (character == '=') {
-        if (uc_buffer_is_empty(parser->temp_buffer)) {
+        if (tkz_buffer_is_empty(parser->temp_buffer)) {
             APPEND_TO_TEMP_BUFFER(character);
             ADVANCE_TO(TKZ_STATE_EJSON_JSONEE_VARIABLE);
         }
@@ -2622,7 +2321,7 @@ END_STATE()
 
 BEGIN_STATE(TKZ_STATE_EJSON_JSONEE_KEYWORD)
     if (is_ascii_digit(character)) {
-        if (uc_buffer_is_empty(parser->temp_buffer)) {
+        if (tkz_buffer_is_empty(parser->temp_buffer)) {
             SET_ERR(PCEJSON_ERROR_BAD_JSONEE_KEYWORD);
             RETURN_AND_STOP_PARSE();
         }
@@ -2635,7 +2334,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_JSONEE_KEYWORD)
         ADVANCE_TO(TKZ_STATE_EJSON_JSONEE_KEYWORD);
     }
     if (is_delimiter(character) || character == '"') {
-        if (uc_buffer_is_empty(parser->temp_buffer)) {
+        if (tkz_buffer_is_empty(parser->temp_buffer)) {
             SET_ERR(PCEJSON_ERROR_BAD_JSONEE_KEYWORD);
             RETURN_AND_STOP_PARSE();
         }
@@ -2643,14 +2342,14 @@ BEGIN_STATE(TKZ_STATE_EJSON_JSONEE_KEYWORD)
             vcm_stack_push(parser->vcm_node);
         }
         parser->vcm_node = pcvcm_node_new_string(
-                   uc_buffer_get_bytes(parser->temp_buffer));
+                   tkz_buffer_get_bytes(parser->temp_buffer));
         RESET_TEMP_BUFFER();
         ejson_stack_pop();
         POP_AS_VCM_PARENT_AND_UPDATE_VCM();
         RECONSUME_IN(TKZ_STATE_EJSON_CONTROL);
     }
     if (character == ',') {
-        if (uc_buffer_is_empty(parser->temp_buffer)) {
+        if (tkz_buffer_is_empty(parser->temp_buffer)) {
             SET_ERR(PCEJSON_ERROR_BAD_JSONEE_KEYWORD);
             RETURN_AND_STOP_PARSE();
         }
@@ -2658,7 +2357,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_JSONEE_KEYWORD)
             vcm_stack_push(parser->vcm_node);
         }
         parser->vcm_node = pcvcm_node_new_string(
-                   uc_buffer_get_bytes(parser->temp_buffer));
+                   tkz_buffer_get_bytes(parser->temp_buffer));
         RESET_TEMP_BUFFER();
         ejson_stack_pop();
         POP_AS_VCM_PARENT_AND_UPDATE_VCM();
@@ -2669,7 +2368,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_JSONEE_KEYWORD)
         RECONSUME_IN(TKZ_STATE_EJSON_AFTER_VALUE);
     }
     if (character == '.') {
-        if (uc_buffer_is_empty(parser->temp_buffer)) {
+        if (tkz_buffer_is_empty(parser->temp_buffer)) {
             SET_ERR(PCEJSON_ERROR_BAD_JSONEE_KEYWORD);
             RETURN_AND_STOP_PARSE();
         }
@@ -2677,7 +2376,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_JSONEE_KEYWORD)
             vcm_stack_push(parser->vcm_node);
         }
         parser->vcm_node = pcvcm_node_new_string(
-                   uc_buffer_get_bytes(parser->temp_buffer));
+                   tkz_buffer_get_bytes(parser->temp_buffer));
         RESET_TEMP_BUFFER();
         ejson_stack_pop();
         POP_AS_VCM_PARENT_AND_UPDATE_VCM();
@@ -2705,9 +2404,9 @@ BEGIN_STATE(TKZ_STATE_EJSON_JSONEE_STRING)
                     NULL);
             UPDATE_VCM_NODE(snode);
             ejson_stack_push('"');
-            if (!uc_buffer_is_empty(parser->temp_buffer)) {
+            if (!tkz_buffer_is_empty(parser->temp_buffer)) {
                 struct pcvcm_node *node = pcvcm_node_new_string(
-                   uc_buffer_get_bytes(parser->temp_buffer));
+                   tkz_buffer_get_bytes(parser->temp_buffer));
                 APPEND_AS_VCM_CHILD(node);
                 RESET_TEMP_BUFFER();
                 ADVANCE_TO(TKZ_STATE_EJSON_JSONEE_STRING);
@@ -2725,7 +2424,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_JSONEE_STRING)
             vcm_stack_push(parser->vcm_node);
         }
         parser->vcm_node = pcvcm_node_new_string(
-                uc_buffer_get_bytes(parser->temp_buffer));
+                tkz_buffer_get_bytes(parser->temp_buffer));
         RESET_TEMP_BUFFER();
         RECONSUME_IN(TKZ_STATE_EJSON_AFTER_JSONEE_STRING);
     }
@@ -2785,7 +2484,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_AMPERSAND)
         ADVANCE_TO(TKZ_STATE_EJSON_AMPERSAND);
     }
     {
-        if (uc_buffer_equal_to(parser->temp_buffer, "&&", 2)) {
+        if (tkz_buffer_equal_to(parser->temp_buffer, "&&", 2)) {
             uint32_t uc = ejson_stack_top();
             while (uc != 'C') {
                 ejson_stack_pop();
@@ -2812,7 +2511,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_OR_SIGN)
         ADVANCE_TO(TKZ_STATE_EJSON_OR_SIGN);
     }
     {
-        if (uc_buffer_equal_to(parser->temp_buffer, "||", 2)) {
+        if (tkz_buffer_equal_to(parser->temp_buffer, "||", 2)) {
             uint32_t uc = ejson_stack_top();
             while (uc != 'C') {
                 ejson_stack_pop();
@@ -2855,14 +2554,14 @@ END_STATE()
 BEGIN_STATE(TKZ_STATE_EJSON_CJSONEE_FINISHED)
     if (character == '}') {
         APPEND_TO_TEMP_BUFFER(character);
-        if (uc_buffer_equal_to(parser->temp_buffer, "}}", 2)) {
+        if (tkz_buffer_equal_to(parser->temp_buffer, "}}", 2)) {
             ejson_stack_pop();
             POP_AS_VCM_PARENT_AND_UPDATE_VCM();
             ADVANCE_TO(TKZ_STATE_EJSON_CONTROL);
         }
         ADVANCE_TO(TKZ_STATE_EJSON_CJSONEE_FINISHED);
     }
-    if (uc_buffer_equal_to(parser->temp_buffer, "}}", 2)) {
+    if (tkz_buffer_equal_to(parser->temp_buffer, "}}", 2)) {
         ejson_stack_pop();
         POP_AS_VCM_PARENT_AND_UPDATE_VCM();
         RECONSUME_IN(TKZ_STATE_EJSON_CONTROL);

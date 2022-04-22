@@ -1,6 +1,5 @@
 #include "purc.h"
 
-#include "hvml-buffer.h"
 #include "hvml-sbst.h"
 
 #include <stdio.h>

@@ -46,6 +46,13 @@ struct tkz_uc {
     int position;
 };
 
+struct tkz_buffer {
+    uint8_t *base;
+    uint8_t *here;
+    uint8_t *stop;
+    size_t nr_chars;
+};
+
 PCA_EXTERN_C_BEGIN
 
 PCA_INLINE bool
@@ -237,6 +244,94 @@ struct tkz_uc *tkz_reader_next_char(struct tkz_reader *reader);
 bool tkz_reader_reconsume_last_char(struct tkz_reader *reader);
 
 void tkz_reader_destroy(struct tkz_reader *reader);
+
+
+// tokenizer buffer
+struct tkz_buffer *tkz_buffer_new(void);
+
+PCA_INLINE
+bool
+tkz_buffer_is_empty(struct tkz_buffer *buffer)
+{
+    return buffer->here == buffer->base;
+}
+
+PCA_INLINE size_t
+tkz_buffer_get_size_in_bytes(struct tkz_buffer *buffer)
+{
+    return buffer->here - buffer->base;
+}
+
+PCA_INLINE size_t
+tkz_buffer_get_size_in_chars(struct tkz_buffer *buffer)
+{
+    return buffer->nr_chars;
+}
+
+PCA_INLINE const char *
+tkz_buffer_get_bytes(struct tkz_buffer *buffer)
+{
+    return(const char*)buffer->base;
+}
+
+void
+tkz_buffer_append_bytes(struct tkz_buffer *buffer, const char *bytes,
+        size_t nr_bytes);
+
+void
+tkz_buffer_append(struct tkz_buffer *buffer, uint32_t uc);
+
+void
+tkz_buffer_append_chars(struct tkz_buffer *buffer, const uint32_t *ucs,
+        size_t nr_ucs);
+
+PCA_INLINE void
+tkz_buffer_append_another(struct tkz_buffer *buffer,
+        struct tkz_buffer *another)
+{
+    tkz_buffer_append_bytes(buffer,
+        tkz_buffer_get_bytes(another),
+        tkz_buffer_get_size_in_bytes(another));
+}
+
+/*
+ * delete characters from head
+ */
+void
+tkz_buffer_delete_head_chars(struct tkz_buffer *buffer, size_t sz);
+
+/*
+ * delete characters from tail
+ */
+void
+tkz_buffer_delete_tail_chars(struct tkz_buffer *buffer, size_t sz);
+
+bool
+tkz_buffer_end_with(struct tkz_buffer *buffer, const char *bytes,
+        size_t nr_bytes);
+
+bool
+tkz_buffer_equal_to(struct tkz_buffer *buffer, const char *bytes,
+        size_t nr_bytes);
+
+uint32_t
+tkz_buffer_get_last_char(struct tkz_buffer *buffer);
+
+bool
+tkz_buffer_is_int(struct tkz_buffer *buffer);
+
+bool
+tkz_buffer_is_number(struct tkz_buffer *buffer);
+
+bool
+tkz_buffer_is_whitespace(struct tkz_buffer *buffer);
+
+void
+tkz_buffer_reset(struct tkz_buffer *buffer);
+
+void
+tkz_buffer_destroy(struct tkz_buffer *buffer);
+
 
 PCA_EXTERN_C_END
 

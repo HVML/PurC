@@ -28,7 +28,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <private/vdom.h>
-#include "hvml-buffer.h"
+#include "private/tkz-helper.h"
 
 enum pchvml_token_type {
     PCHVML_TOKEN_DOCTYPE,
@@ -85,7 +85,7 @@ void pchvml_token_destroy(struct pchvml_token* token);
 void pchvml_token_append_to_name(struct pchvml_token* token, uint32_t uc);
 
 void pchvml_token_append_buffer_to_name(struct pchvml_token* token,
-        struct pchvml_buffer* buffer);
+        struct tkz_buffer* buffer);
 
 const char* pchvml_token_get_name(struct pchvml_token* token);
 
@@ -180,9 +180,9 @@ const struct pcvcm_node* pchvml_token_attr_get_value(
 enum pchvml_attr_operator pchvml_token_attr_get_operator(
         struct pchvml_token_attr* attr);
 
-struct pchvml_buffer* pchvml_token_attr_to_string(
+struct tkz_buffer* pchvml_token_attr_to_string(
         struct pchvml_token_attr* attr);
-struct pchvml_buffer* pchvml_token_to_string(struct pchvml_token* token);
+struct tkz_buffer* pchvml_token_to_string(struct pchvml_token* token);
 
 void
 pchvml_util_dump_token(const struct pchvml_token *token,

@@ -35,7 +35,6 @@
 #include "private/hvml.h"
 #include "private/tkz-helper.h"
 
-#include "hvml-buffer.h"
 #include "hvml-token.h"
 #include "hvml-sbst.h"
 #include "hvml-attr.h"
@@ -128,7 +127,7 @@ next_state:                                                             \
 }
 
 #define TEMP_BUFFER_TO_VCM_NODE()                                       \
-        pchvml_buffer_to_vcm_node(parser->temp_buffer)
+        tkz_buffer_to_vcm_node(parser->temp_buffer)
 
 #define ejson_stack_is_empty()  pcutils_stack_is_empty(parser->ejson_stack)
 #define ejson_stack_top()  pcutils_stack_top(parser->ejson_stack)
@@ -251,40 +250,40 @@ next_state:                                                             \
 
 #define RESET_TEMP_BUFFER()                                                 \
     do {                                                                    \
-        pchvml_buffer_reset(parser->temp_buffer);                           \
+        tkz_buffer_reset(parser->temp_buffer);                           \
     } while (false)
 
 #define APPEND_TO_TEMP_BUFFER(c)                                            \
     do {                                                                    \
-        pchvml_buffer_append(parser->temp_buffer, c);                       \
+        tkz_buffer_append(parser->temp_buffer, c);                       \
     } while (false)
 
 #define APPEND_BYTES_TO_TEMP_BUFFER(bytes, nr_bytes)                        \
     do {                                                                    \
-        pchvml_buffer_append_bytes(parser->temp_buffer, bytes, nr_bytes);   \
+        tkz_buffer_append_bytes(parser->temp_buffer, bytes, nr_bytes);   \
     } while (false)
 
 #define APPEND_BUFFER_TO_TEMP_BUFFER(buffer)                                \
     do {                                                                    \
-        pchvml_buffer_append_another(parser->temp_buffer, buffer);          \
+        tkz_buffer_append_another(parser->temp_buffer, buffer);          \
     } while (false)
 
 #define IS_TEMP_BUFFER_EMPTY()                                              \
-        pchvml_buffer_is_empty(parser->temp_buffer)
+        tkz_buffer_is_empty(parser->temp_buffer)
 
 #define RESET_STRING_BUFFER()                                               \
     do {                                                                    \
-        pchvml_buffer_reset(parser->string_buffer);                         \
+        tkz_buffer_reset(parser->string_buffer);                         \
     } while (false)
 
 #define APPEND_TO_STRING_BUFFER(uc)                                         \
     do {                                                                    \
-        pchvml_buffer_append(parser->string_buffer, uc);                    \
+        tkz_buffer_append(parser->string_buffer, uc);                    \
     } while (false)
 
 #define APPEND_BYTES_TO_STRING_BUFFER(bytes, nr_bytes)                      \
     do {                                                                    \
-        pchvml_buffer_append_bytes(parser->string_buffer, bytes, nr_bytes); \
+        tkz_buffer_append_bytes(parser->string_buffer, bytes, nr_bytes); \
     } while (false)
 
 #define RESET_QUOTED_COUNTER()                                              \
@@ -299,11 +298,11 @@ next_state:                                                             \
 
 #define APPEND_TEMP_BUFFER_TO_TOKEN_TEXT()                                  \
     do {                                                                    \
-        const char* c = pchvml_buffer_get_buffer(parser->temp_buffer);      \
-        size_t nr_c = pchvml_buffer_get_size_in_bytes(                      \
+        const char* c = tkz_buffer_get_bytes(parser->temp_buffer);      \
+        size_t nr_c = tkz_buffer_get_size_in_bytes(                      \
                 parser->temp_buffer);                                       \
         pchvml_token_append_bytes_to_text(parser->token, c, nr_c);          \
-        pchvml_buffer_reset(parser->temp_buffer);                           \
+        tkz_buffer_reset(parser->temp_buffer);                           \
     } while (false)
 
 #define APPEND_TO_TOKEN_PUBLIC_ID(uc)                                       \
@@ -348,8 +347,8 @@ next_state:                                                             \
 
 #define APPEND_BUFFER_TO_TOKEN_ATTR_VALUE(buffer)                           \
     do {                                                                    \
-        const char* c = pchvml_buffer_get_buffer(buffer);                   \
-        size_t nr_c = pchvml_buffer_get_size_in_bytes(buffer);              \
+        const char* c = tkz_buffer_get_bytes(buffer);                   \
+        size_t nr_c = tkz_buffer_get_size_in_bytes(buffer);              \
         pchvml_token_append_bytes_to_attr_value(parser->token, c, nr_c);    \
     } while (false)
 
@@ -360,11 +359,11 @@ next_state:                                                             \
 
 #define APPEND_TEMP_BUFFER_TO_TOKEN_ATTR_NAME()                             \
     do {                                                                    \
-        const char* c = pchvml_buffer_get_buffer(parser->temp_buffer);      \
-        size_t nr_c = pchvml_buffer_get_size_in_bytes(                      \
+        const char* c = tkz_buffer_get_bytes(parser->temp_buffer);      \
+        size_t nr_c = tkz_buffer_get_size_in_bytes(                      \
                 parser->temp_buffer);                                       \
         pchvml_token_append_bytes_to_attr_name(parser->token, c, nr_c);     \
-        pchvml_buffer_reset(parser->temp_buffer);                           \
+        tkz_buffer_reset(parser->temp_buffer);                           \
     } while (false)
 
 #define UPDATE_VCM_NODE(node)                                                  \
@@ -451,12 +450,12 @@ void pchvml_parser_save_tag_name(struct pchvml_parser* parser)
         const char* name = pchvml_token_get_name(parser->token);
         parser->tag_is_operation = pchvml_parser_is_operation_tag(name);
         parser->tag_has_raw_attr = pchvml_token_has_raw_attr(parser->token);
-        pchvml_buffer_reset(parser->tag_name);
-        pchvml_buffer_append_bytes(parser->tag_name,
+        tkz_buffer_reset(parser->tag_name);
+        tkz_buffer_append_bytes(parser->tag_name,
                 name, strlen(name));
     }
     else {
-        pchvml_buffer_reset(parser->tag_name);
+        tkz_buffer_reset(parser->tag_name);
         parser->tag_is_operation = false;
         parser->tag_has_raw_attr = false;
     }
@@ -466,7 +465,7 @@ static UNUSED_FUNCTION
 bool pchvml_parser_is_appropriate_end_tag(struct pchvml_parser* parser)
 {
     const char* name = pchvml_token_get_name(parser->token);
-    return pchvml_buffer_equal_to (parser->tag_name, name,
+    return tkz_buffer_equal_to (parser->tag_name, name,
             strlen(name));
 }
 
@@ -474,7 +473,7 @@ static UNUSED_FUNCTION
 bool pchvml_parser_is_appropriate_tag_name(struct pchvml_parser* parser,
         const char* name)
 {
-    return pchvml_buffer_equal_to (parser->tag_name, name,
+    return tkz_buffer_equal_to (parser->tag_name, name,
             strlen(name));
 }
 
@@ -525,14 +524,14 @@ bool pchvml_parser_is_template_tag (const char* name)
 static UNUSED_FUNCTION
 bool pchvml_parser_is_in_template (struct pchvml_parser* parser)
 {
-    const char* name = pchvml_buffer_get_buffer(parser->tag_name);
+    const char* name = tkz_buffer_get_bytes(parser->tag_name);
     return pchvml_parser_is_template_tag(name);
 }
 
 static UNUSED_FUNCTION
 bool pchvml_parser_is_in_json_content_tag (struct pchvml_parser* parser)
 {
-    const char* name = pchvml_buffer_get_buffer(parser->tag_name);
+    const char* name = tkz_buffer_get_bytes(parser->tag_name);
     return pchvml_parser_is_json_content_tag(name);
 }
 
@@ -562,12 +561,12 @@ bool pchvml_parser_is_handle_as_jsonee(struct pchvml_token* token, uint32_t uc)
 
 static UNUSED_FUNCTION
 struct pcvcm_node* pchvml_parser_new_byte_sequence (struct pchvml_parser* hvml,
-    struct pchvml_buffer* buffer)
+    struct tkz_buffer* buffer)
 {
     UNUSED_PARAM(hvml);
     UNUSED_PARAM(buffer);
-    size_t nr_bytes = pchvml_buffer_get_size_in_bytes(buffer);
-    const char* bytes = pchvml_buffer_get_buffer(buffer);
+    size_t nr_bytes = tkz_buffer_get_size_in_bytes(buffer);
+    const char* bytes = tkz_buffer_get_bytes(buffer);
     if (bytes[1] == 'x') {
         return pcvcm_node_new_byte_sequence_from_bx(bytes + 2, nr_bytes - 2);
     }
@@ -581,10 +580,10 @@ struct pcvcm_node* pchvml_parser_new_byte_sequence (struct pchvml_parser* hvml,
 }
 
 static UNUSED_FUNCTION
-struct pcvcm_node* pchvml_buffer_to_vcm_node(struct pchvml_buffer* buffer)
+struct pcvcm_node* tkz_buffer_to_vcm_node(struct tkz_buffer* buffer)
 {
     return buffer ? pcvcm_node_new_string(
-                    pchvml_buffer_get_buffer(buffer)) : NULL;
+                    tkz_buffer_get_bytes(buffer)) : NULL;
 }
 
 static UNUSED_FUNCTION
@@ -1601,13 +1600,13 @@ END_STATE()
 
 BEGIN_STATE(TKZ_STATE_SPECIAL_ATTRIBUTE_OPERATOR_IN_ATTRIBUTE_NAME)
     if (character == '=') {
-        if (pchvml_buffer_is_empty(parser->temp_buffer)) {
+        if (tkz_buffer_is_empty(parser->temp_buffer)) {
             pchvml_token_set_assignment_to_attr(
                     parser->token,
                     PCHVML_ATTRIBUTE_OPERATOR);
         }
         else {
-            uint32_t op = pchvml_buffer_get_last_char(
+            uint32_t op = tkz_buffer_get_last_char(
                     parser->temp_buffer);
             switch (op) {
                 case '+':
@@ -1660,7 +1659,7 @@ BEGIN_STATE(TKZ_STATE_SPECIAL_ATTRIBUTE_OPERATOR_IN_ATTRIBUTE_NAME)
         ADVANCE_TO(TKZ_STATE_BEFORE_ATTRIBUTE_VALUE);
     }
     if (character == '>'
-        &&  pchvml_buffer_equal_to(parser->temp_buffer, "/", 1)) {
+        &&  tkz_buffer_equal_to(parser->temp_buffer, "/", 1)) {
         END_TOKEN_ATTR();
         RECONSUME_IN(TKZ_STATE_SELF_CLOSING_START_TAG);
     }
@@ -1670,13 +1669,13 @@ END_STATE()
 
 BEGIN_STATE(TKZ_STATE_SPECIAL_ATTRIBUTE_OPERATOR_AFTER_ATTRIBUTE_NAME)
     if (character == '=') {
-        if (pchvml_buffer_is_empty(parser->temp_buffer)) {
+        if (tkz_buffer_is_empty(parser->temp_buffer)) {
             pchvml_token_set_assignment_to_attr(
                     parser->token,
                     PCHVML_ATTRIBUTE_OPERATOR);
         }
         else {
-            uint32_t op = pchvml_buffer_get_last_char(
+            uint32_t op = tkz_buffer_get_last_char(
                     parser->temp_buffer);
             switch (op) {
                 case '+':
@@ -1728,13 +1727,13 @@ BEGIN_STATE(TKZ_STATE_SPECIAL_ATTRIBUTE_OPERATOR_AFTER_ATTRIBUTE_NAME)
         }
         ADVANCE_TO(TKZ_STATE_BEFORE_ATTRIBUTE_VALUE);
     }
-    if (pchvml_buffer_equal_to(parser->temp_buffer, "$", 1)) {
+    if (tkz_buffer_equal_to(parser->temp_buffer, "$", 1)) {
         tkz_reader_reconsume_last_char(parser->reader);
         tkz_reader_reconsume_last_char(parser->reader);
         ADVANCE_TO(TKZ_STATE_BEFORE_ATTRIBUTE_VALUE);
     }
     if (character == '>'
-        &&  pchvml_buffer_equal_to(parser->temp_buffer, "/", 1)) {
+        &&  tkz_buffer_equal_to(parser->temp_buffer, "/", 1)) {
         END_TOKEN_ATTR();
         RECONSUME_IN(TKZ_STATE_SELF_CLOSING_START_TAG);
     }
@@ -1750,17 +1749,17 @@ BEGIN_STATE(TKZ_STATE_TEXT_CONTENT)
     }
     if (character == '<') {
         if (!IS_TEMP_BUFFER_EMPTY()) {
-            size_t nr_chars = pchvml_buffer_get_size_in_chars(parser->temp_buffer);
+            size_t nr_chars = tkz_buffer_get_size_in_chars(parser->temp_buffer);
             if (parser->nr_whitespace > 0
                     && nr_chars > parser->nr_whitespace) {
-                size_t nr_bytes = pchvml_buffer_get_size_in_bytes(
+                size_t nr_bytes = tkz_buffer_get_size_in_bytes(
                         parser->temp_buffer);
-                const char* bytes = pchvml_buffer_get_buffer(
+                const char* bytes = tkz_buffer_get_bytes(
                         parser->temp_buffer);
                 RESET_STRING_BUFFER();
                 APPEND_BYTES_TO_STRING_BUFFER(bytes, nr_bytes - parser->nr_whitespace);
                 struct pcvcm_node* node = pcvcm_node_new_string(
-                    pchvml_buffer_get_buffer(parser->string_buffer)
+                    tkz_buffer_get_bytes(parser->string_buffer)
                     );
                 if (!node) {
                     RETURN_AND_STOP_PARSE();
@@ -1771,7 +1770,7 @@ BEGIN_STATE(TKZ_STATE_TEXT_CONTENT)
                 const char* pos = bytes + (nr_bytes - parser->nr_whitespace);
                 APPEND_BYTES_TO_STRING_BUFFER(pos, parser->nr_whitespace);
                 node = pcvcm_node_new_string(
-                    pchvml_buffer_get_buffer(parser->string_buffer)
+                    tkz_buffer_get_bytes(parser->string_buffer)
                     );
                 if (!node) {
                     RETURN_AND_STOP_PARSE();
@@ -1806,14 +1805,14 @@ BEGIN_STATE(TKZ_STATE_TEXT_CONTENT)
         if (character == '$') {
             parser->nr_whitespace = 0;
             if (!IS_TEMP_BUFFER_EMPTY()) {
-                if (pchvml_buffer_equal_to(parser->temp_buffer, "{", 1)) {
+                if (tkz_buffer_equal_to(parser->temp_buffer, "{", 1)) {
                     tkz_reader_reconsume_last_char(parser->reader);
                     tkz_reader_reconsume_last_char(parser->reader);
                     RESET_VCM_NODE();
                     SET_TRANSIT_STATE(TKZ_STATE_TEXT_CONTENT);
                     ADVANCE_TO(TKZ_STATE_EJSON_DATA);
                 }
-                if (pchvml_buffer_equal_to(parser->temp_buffer, "{{", 2)) {
+                if (tkz_buffer_equal_to(parser->temp_buffer, "{{", 2)) {
                     tkz_reader_reconsume_last_char(parser->reader);
                     tkz_reader_reconsume_last_char(parser->reader);
                     tkz_reader_reconsume_last_char(parser->reader);
@@ -1836,7 +1835,7 @@ BEGIN_STATE(TKZ_STATE_TEXT_CONTENT)
         if (character == '{') {
             parser->nr_whitespace = 0;
             if (!IS_TEMP_BUFFER_EMPTY() &&
-                    !pchvml_buffer_end_with(parser->temp_buffer, "{", 1)) {
+                    !tkz_buffer_end_with(parser->temp_buffer, "{", 1)) {
                 struct pcvcm_node* node = TEMP_BUFFER_TO_VCM_NODE();
                 if (!node) {
                     RETURN_AND_STOP_PARSE();
@@ -1869,7 +1868,7 @@ BEGIN_STATE(TKZ_STATE_JSONTEXT_CONTENT)
 END_STATE()
 
 BEGIN_STATE(TKZ_STATE_JSONEE_ATTRIBUTE_VALUE_DOUBLE_QUOTED)
-    if (pchvml_buffer_end_with(parser->temp_buffer, "\\", 1)) {
+    if (tkz_buffer_end_with(parser->temp_buffer, "\\", 1)) {
         APPEND_TO_TEMP_BUFFER(character);
         ADVANCE_TO(TKZ_STATE_JSONEE_ATTRIBUTE_VALUE_DOUBLE_QUOTED);
     }
@@ -1893,14 +1892,14 @@ BEGIN_STATE(TKZ_STATE_JSONEE_ATTRIBUTE_VALUE_DOUBLE_QUOTED)
         ADVANCE_TO(TKZ_STATE_CHARACTER_REFERENCE);
     }
     if (character == '[' &&
-            pchvml_buffer_equal_to(parser->temp_buffer, "~", 1)) {
+            tkz_buffer_equal_to(parser->temp_buffer, "~", 1)) {
         APPEND_TO_TEMP_BUFFER(character);
         ADVANCE_TO(TKZ_STATE_JSONEE_ATTRIBUTE_VALUE_DOUBLE_QUOTED);
     }
     if (character == '$' || character == '{' || character == '[') {
         bool handle = pchvml_parser_is_handle_as_jsonee(parser->token,
                 character);
-        bool buffer_is_white = pchvml_buffer_is_whitespace(
+        bool buffer_is_white = tkz_buffer_is_whitespace(
                 parser->temp_buffer);
         if (handle && buffer_is_white) {
             ejson_stack_push('"');
@@ -1945,18 +1944,18 @@ END_STATE()
 
 BEGIN_STATE(TKZ_STATE_JSONEE_ATTRIBUTE_VALUE_UNQUOTED)
     if (is_whitespace(character)) {
-        if (!pchvml_buffer_is_empty(parser->temp_buffer)) {
+        if (!tkz_buffer_is_empty(parser->temp_buffer)) {
 
-            if (pchvml_buffer_is_int(parser->temp_buffer)) {
+            if (tkz_buffer_is_int(parser->temp_buffer)) {
                 int64_t i64 = strtoll (
-                    pchvml_buffer_get_buffer(parser->temp_buffer),
+                    tkz_buffer_get_bytes(parser->temp_buffer),
                     NULL, 10);
                 struct pcvcm_node* node = pcvcm_node_new_longint(i64);
                 pchvml_token_append_vcm_to_attr(parser->token, node);
             }
-            else if (pchvml_buffer_is_number(parser->temp_buffer)) {
+            else if (tkz_buffer_is_number(parser->temp_buffer)) {
                 double d = strtod(
-                    pchvml_buffer_get_buffer(parser->temp_buffer), NULL);
+                    tkz_buffer_get_bytes(parser->temp_buffer), NULL);
                 struct pcvcm_node* node = pcvcm_node_new_number(d);
                 pchvml_token_append_vcm_to_attr(parser->token, node);
             }
@@ -1974,7 +1973,7 @@ BEGIN_STATE(TKZ_STATE_JSONEE_ATTRIBUTE_VALUE_UNQUOTED)
         ADVANCE_TO(TKZ_STATE_CHARACTER_REFERENCE);
     }
     if (character == '>') {
-        if (!pchvml_buffer_is_empty(parser->temp_buffer)) {
+        if (!tkz_buffer_is_empty(parser->temp_buffer)) {
             APPEND_BUFFER_TO_TOKEN_ATTR_VALUE(parser->temp_buffer);
             RESET_TEMP_BUFFER();
         }
@@ -1982,7 +1981,7 @@ BEGIN_STATE(TKZ_STATE_JSONEE_ATTRIBUTE_VALUE_UNQUOTED)
         RETURN_AND_SWITCH_TO(TKZ_STATE_DATA);
     }
     if (is_eof(character)) {
-        if (!pchvml_buffer_is_empty(parser->temp_buffer)) {
+        if (!tkz_buffer_is_empty(parser->temp_buffer)) {
             APPEND_BUFFER_TO_TOKEN_ATTR_VALUE(parser->temp_buffer);
             RESET_TEMP_BUFFER();
         }
@@ -1993,7 +1992,7 @@ BEGIN_STATE(TKZ_STATE_JSONEE_ATTRIBUTE_VALUE_UNQUOTED)
     if (character == '$' || character == '{' || character == '[') {
         bool handle = pchvml_parser_is_handle_as_jsonee(parser->token,
                 character);
-        bool buffer_is_white = pchvml_buffer_is_whitespace(
+        bool buffer_is_white = tkz_buffer_is_whitespace(
                 parser->temp_buffer);
         if (handle && buffer_is_white) {
             ejson_stack_push('U');
@@ -2002,7 +2001,7 @@ BEGIN_STATE(TKZ_STATE_JSONEE_ATTRIBUTE_VALUE_UNQUOTED)
         }
 
         ejson_stack_push('U');
-        if (!pchvml_buffer_is_empty(parser->temp_buffer)) {
+        if (!tkz_buffer_is_empty(parser->temp_buffer)) {
             if (parser->vcm_node) {
                 vcm_stack_push(parser->vcm_node);
             }
@@ -2010,7 +2009,7 @@ BEGIN_STATE(TKZ_STATE_JSONEE_ATTRIBUTE_VALUE_UNQUOTED)
                     NULL);
             UPDATE_VCM_NODE(snode);
             struct pcvcm_node* node = pcvcm_node_new_string(
-                    pchvml_buffer_get_buffer(parser->temp_buffer)
+                    tkz_buffer_get_bytes(parser->temp_buffer)
                     );
             APPEND_AS_VCM_CHILD(node);
             RESET_TEMP_BUFFER();
@@ -2205,9 +2204,9 @@ BEGIN_STATE(TKZ_STATE_EJSON_CONTROL)
         }
         if (uc == ':') {
             ejson_stack_pop();
-            if (!pchvml_buffer_is_empty(parser->temp_buffer)) {
+            if (!tkz_buffer_is_empty(parser->temp_buffer)) {
                 struct pcvcm_node* node = pcvcm_node_new_string(
-                pchvml_buffer_get_buffer(parser->temp_buffer));
+                tkz_buffer_get_bytes(parser->temp_buffer));
                 APPEND_AS_VCM_CHILD(node);
                 RESET_TEMP_BUFFER();
             }
@@ -2608,9 +2607,9 @@ BEGIN_STATE(TKZ_STATE_EJSON_AFTER_VALUE)
         RETURN_AND_STOP_PARSE();
     }
     if (character == '"' || character == '\'') {
-        if (!pchvml_buffer_is_empty(parser->temp_buffer)) {
+        if (!tkz_buffer_is_empty(parser->temp_buffer)) {
             struct pcvcm_node* node = pcvcm_node_new_string(
-                    pchvml_buffer_get_buffer(parser->temp_buffer));
+                    tkz_buffer_get_bytes(parser->temp_buffer));
             APPEND_AS_VCM_CHILD(node);
             RESET_TEMP_BUFFER();
         }
@@ -2637,9 +2636,9 @@ BEGIN_STATE(TKZ_STATE_EJSON_AFTER_VALUE)
             ADVANCE_TO(TKZ_STATE_EJSON_BEFORE_NAME);
         }
         if (uc == '[') {
-            if (!pchvml_buffer_is_empty(parser->temp_buffer)) {
+            if (!tkz_buffer_is_empty(parser->temp_buffer)) {
                 struct pcvcm_node* node = pcvcm_node_new_string(
-                pchvml_buffer_get_buffer(parser->temp_buffer));
+                tkz_buffer_get_bytes(parser->temp_buffer));
                 APPEND_AS_VCM_CHILD(node);
                 RESET_TEMP_BUFFER();
             }
@@ -2654,9 +2653,9 @@ BEGIN_STATE(TKZ_STATE_EJSON_AFTER_VALUE)
         }
         if (uc == ':') {
             ejson_stack_pop();
-            if (!pchvml_buffer_is_empty(parser->temp_buffer)) {
+            if (!tkz_buffer_is_empty(parser->temp_buffer)) {
                 struct pcvcm_node* node = pcvcm_node_new_string(
-                pchvml_buffer_get_buffer(parser->temp_buffer));
+                tkz_buffer_get_bytes(parser->temp_buffer));
                 APPEND_AS_VCM_CHILD(node);
                 RESET_TEMP_BUFFER();
             }
@@ -2729,9 +2728,9 @@ BEGIN_STATE(TKZ_STATE_EJSON_AFTER_NAME)
         ADVANCE_TO(TKZ_STATE_EJSON_AFTER_NAME);
     }
     if (character == ':') {
-        if (!pchvml_buffer_is_empty(parser->temp_buffer)) {
+        if (!tkz_buffer_is_empty(parser->temp_buffer)) {
             struct pcvcm_node* node = pcvcm_node_new_string(
-                pchvml_buffer_get_buffer(parser->temp_buffer));
+                tkz_buffer_get_bytes(parser->temp_buffer));
             APPEND_AS_VCM_CHILD(node);
         }
         ADVANCE_TO(TKZ_STATE_EJSON_CONTROL);
@@ -2757,9 +2756,9 @@ BEGIN_STATE(TKZ_STATE_EJSON_NAME_UNQUOTED)
                 NULL);
         UPDATE_VCM_NODE(snode);
         ejson_stack_push('U');
-        if (!pchvml_buffer_is_empty(parser->temp_buffer)) {
+        if (!tkz_buffer_is_empty(parser->temp_buffer)) {
             struct pcvcm_node* node = pcvcm_node_new_string(
-                    pchvml_buffer_get_buffer(parser->temp_buffer)
+                    tkz_buffer_get_bytes(parser->temp_buffer)
                     );
             APPEND_AS_VCM_CHILD(node);
             RESET_TEMP_BUFFER();
@@ -2772,7 +2771,7 @@ END_STATE()
 
 BEGIN_STATE(TKZ_STATE_EJSON_NAME_SINGLE_QUOTED)
     if (character == '\'') {
-        size_t nr_buf_chars = pchvml_buffer_get_size_in_chars(
+        size_t nr_buf_chars = tkz_buffer_get_size_in_chars(
                 parser->temp_buffer);
         if (nr_buf_chars >= 1) {
             ADVANCE_TO(TKZ_STATE_EJSON_AFTER_NAME);
@@ -2795,10 +2794,10 @@ END_STATE()
 
 BEGIN_STATE(TKZ_STATE_EJSON_NAME_DOUBLE_QUOTED)
     if (character == '"') {
-        size_t nr_buf_chars = pchvml_buffer_get_size_in_chars(
+        size_t nr_buf_chars = tkz_buffer_get_size_in_chars(
                 parser->temp_buffer);
         if (nr_buf_chars > 1) {
-            pchvml_buffer_delete_head_chars (parser->temp_buffer, 1);
+            tkz_buffer_delete_head_chars (parser->temp_buffer, 1);
             ADVANCE_TO(TKZ_STATE_EJSON_AFTER_NAME);
         }
         else if (nr_buf_chars == 1) {
@@ -2827,9 +2826,9 @@ BEGIN_STATE(TKZ_STATE_EJSON_NAME_DOUBLE_QUOTED)
                 NULL);
         UPDATE_VCM_NODE(snode);
         ejson_stack_push('"');
-        if (!pchvml_buffer_is_empty(parser->temp_buffer)) {
+        if (!tkz_buffer_is_empty(parser->temp_buffer)) {
             struct pcvcm_node* node = pcvcm_node_new_string(
-                    pchvml_buffer_get_buffer(parser->temp_buffer)
+                    tkz_buffer_get_bytes(parser->temp_buffer)
                     );
             APPEND_AS_VCM_CHILD(node);
             RESET_TEMP_BUFFER();
@@ -2842,7 +2841,7 @@ END_STATE()
 
 BEGIN_STATE(TKZ_STATE_EJSON_VALUE_SINGLE_QUOTED)
     if (character == '\'') {
-        size_t nr_buf_chars = pchvml_buffer_get_size_in_chars(
+        size_t nr_buf_chars = tkz_buffer_get_size_in_chars(
                 parser->temp_buffer);
         if (nr_buf_chars >= 1) {
             RECONSUME_IN(TKZ_STATE_EJSON_AFTER_VALUE);
@@ -2890,26 +2889,26 @@ BEGIN_STATE(TKZ_STATE_EJSON_VALUE_DOUBLE_QUOTED)
                 NULL);
         UPDATE_VCM_NODE(snode);
         ejson_stack_push('"');
-        if (!pchvml_buffer_is_empty(parser->temp_buffer)) {
-            if (pchvml_buffer_end_with(parser->temp_buffer, "{", 1)) {
+        if (!tkz_buffer_is_empty(parser->temp_buffer)) {
+            if (tkz_buffer_end_with(parser->temp_buffer, "{", 1)) {
                 tkz_reader_reconsume_last_char(parser->reader);
                 tkz_reader_reconsume_last_char(parser->reader);
-                pchvml_buffer_delete_tail_chars(parser->temp_buffer, 1);
-                if (!pchvml_buffer_is_empty(parser->temp_buffer)) {
+                tkz_buffer_delete_tail_chars(parser->temp_buffer, 1);
+                if (!tkz_buffer_is_empty(parser->temp_buffer)) {
                     struct pcvcm_node* node = pcvcm_node_new_string(
-                            pchvml_buffer_get_buffer(parser->temp_buffer)
+                            tkz_buffer_get_bytes(parser->temp_buffer)
                             );
                     APPEND_AS_VCM_CHILD(node);
                 }
             }
-            else if (pchvml_buffer_end_with(parser->temp_buffer, "{{", 2)) {
+            else if (tkz_buffer_end_with(parser->temp_buffer, "{{", 2)) {
                 tkz_reader_reconsume_last_char(parser->reader);
                 tkz_reader_reconsume_last_char(parser->reader);
                 tkz_reader_reconsume_last_char(parser->reader);
-                pchvml_buffer_delete_tail_chars(parser->temp_buffer, 2);
-                if (!pchvml_buffer_is_empty(parser->temp_buffer)) {
+                tkz_buffer_delete_tail_chars(parser->temp_buffer, 2);
+                if (!tkz_buffer_is_empty(parser->temp_buffer)) {
                     struct pcvcm_node* node = pcvcm_node_new_string(
-                            pchvml_buffer_get_buffer(parser->temp_buffer)
+                            tkz_buffer_get_bytes(parser->temp_buffer)
                             );
                     APPEND_AS_VCM_CHILD(node);
                 }
@@ -2917,7 +2916,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_VALUE_DOUBLE_QUOTED)
             else {
                 tkz_reader_reconsume_last_char(parser->reader);
                 struct pcvcm_node* node = pcvcm_node_new_string(
-                        pchvml_buffer_get_buffer(parser->temp_buffer)
+                        tkz_buffer_get_bytes(parser->temp_buffer)
                         );
                 APPEND_AS_VCM_CHILD(node);
             }
@@ -2951,7 +2950,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_VALUE_TWO_DOUBLE_QUOTED)
     }
     RESTORE_VCM_NODE();
     struct pcvcm_node* node = pcvcm_node_new_string(
-            pchvml_buffer_get_buffer(parser->temp_buffer)
+            tkz_buffer_get_bytes(parser->temp_buffer)
             );
     APPEND_AS_VCM_CHILD(node);
     RESET_TEMP_BUFFER();
@@ -2966,12 +2965,12 @@ BEGIN_STATE(TKZ_STATE_EJSON_VALUE_THREE_DOUBLE_QUOTED)
             APPEND_TO_TEMP_BUFFER(character);
         }
         if (parser->nr_quoted >= 6
-                && pchvml_buffer_end_with(parser->temp_buffer,
+                && tkz_buffer_end_with(parser->temp_buffer,
                     "\"\"\"", 3)) {
             RESTORE_VCM_NODE();
-            pchvml_buffer_delete_tail_chars(parser->temp_buffer, 3);
+            tkz_buffer_delete_tail_chars(parser->temp_buffer, 3);
             struct pcvcm_node* node = pcvcm_node_new_string(
-                    pchvml_buffer_get_buffer(parser->temp_buffer)
+                    tkz_buffer_get_bytes(parser->temp_buffer)
                     );
             APPEND_AS_VCM_CHILD(node);
             RESET_TEMP_BUFFER();
@@ -3002,9 +3001,9 @@ BEGIN_STATE(TKZ_STATE_EJSON_KEYWORD)
                 NULL);
         UPDATE_VCM_NODE(snode);
         ejson_stack_push('U');
-        if (!pchvml_buffer_is_empty(parser->temp_buffer)) {
+        if (!tkz_buffer_is_empty(parser->temp_buffer)) {
             struct pcvcm_node* node = pcvcm_node_new_string(
-                    pchvml_buffer_get_buffer(parser->temp_buffer)
+                    tkz_buffer_get_bytes(parser->temp_buffer)
                     );
             APPEND_AS_VCM_CHILD(node);
             RESET_TEMP_BUFFER();
@@ -3041,14 +3040,14 @@ BEGIN_STATE(TKZ_STATE_EJSON_AFTER_KEYWORD)
             || character == ']' || character == ','
             || character == ')' || character == ';' || character == '&'
             || character == '|') {
-        if (pchvml_buffer_equal_to(parser->temp_buffer, "true", 4)) {
+        if (tkz_buffer_equal_to(parser->temp_buffer, "true", 4)) {
             RESTORE_VCM_NODE();
             struct pcvcm_node* node = pcvcm_node_new_boolean(true);
             APPEND_AS_VCM_CHILD(node);
             RESET_TEMP_BUFFER();
             RECONSUME_IN(TKZ_STATE_EJSON_AFTER_VALUE);
         }
-        if (pchvml_buffer_equal_to(parser->temp_buffer, "false",
+        if (tkz_buffer_equal_to(parser->temp_buffer, "false",
                     5)) {
             RESTORE_VCM_NODE();
             struct pcvcm_node* node = pcvcm_node_new_boolean(false);
@@ -3056,13 +3055,13 @@ BEGIN_STATE(TKZ_STATE_EJSON_AFTER_KEYWORD)
             RESET_TEMP_BUFFER();
             RECONSUME_IN(TKZ_STATE_EJSON_AFTER_VALUE);
         }
-        if (pchvml_buffer_equal_to(parser->temp_buffer, "null", 4)) {
+        if (tkz_buffer_equal_to(parser->temp_buffer, "null", 4)) {
             struct pcvcm_node* node = pcvcm_node_new_null();
             APPEND_AS_VCM_CHILD(node);
             RESET_TEMP_BUFFER();
             RECONSUME_IN(TKZ_STATE_EJSON_AFTER_VALUE);
         }
-        if (pchvml_buffer_equal_to(parser->temp_buffer, "undefined", 9)) {
+        if (tkz_buffer_equal_to(parser->temp_buffer, "undefined", 9)) {
             struct pcvcm_node* node = pcvcm_node_new_undefined();
             APPEND_AS_VCM_CHILD(node);
             RESET_TEMP_BUFFER();
@@ -3079,7 +3078,7 @@ END_STATE()
 
 BEGIN_STATE(TKZ_STATE_EJSON_BYTE_SEQUENCE)
     if (character == 'b') {
-        if (pchvml_buffer_is_empty(parser->temp_buffer)) {
+        if (tkz_buffer_is_empty(parser->temp_buffer)) {
             APPEND_TO_TEMP_BUFFER(character);
             ADVANCE_TO(TKZ_STATE_EJSON_BYTE_SEQUENCE);
         }
@@ -3102,9 +3101,9 @@ BEGIN_STATE(TKZ_STATE_EJSON_BYTE_SEQUENCE)
                 NULL);
         UPDATE_VCM_NODE(snode);
         ejson_stack_push('U');
-        if (!pchvml_buffer_is_empty(parser->temp_buffer)) {
+        if (!tkz_buffer_is_empty(parser->temp_buffer)) {
             struct pcvcm_node* node = pcvcm_node_new_string(
-                    pchvml_buffer_get_buffer(parser->temp_buffer)
+                    tkz_buffer_get_bytes(parser->temp_buffer)
                     );
             APPEND_AS_VCM_CHILD(node);
             RESET_TEMP_BUFFER();
@@ -3174,7 +3173,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_BASE64_BYTE_SEQUENCE)
     }
     if (is_ascii_digit(character) || is_ascii_alpha(character)
             || character == '+' || character == '-') {
-        if (!pchvml_buffer_end_with(parser->temp_buffer, "=", 1)) {
+        if (!tkz_buffer_end_with(parser->temp_buffer, "=", 1)) {
             APPEND_TO_TEMP_BUFFER(character);
             ADVANCE_TO(TKZ_STATE_EJSON_BASE64_BYTE_SEQUENCE);
         }
@@ -3205,9 +3204,9 @@ BEGIN_STATE(TKZ_STATE_EJSON_VALUE_NUMBER)
                 NULL);
         UPDATE_VCM_NODE(snode);
         ejson_stack_push('U');
-        if (!pchvml_buffer_is_empty(parser->temp_buffer)) {
+        if (!tkz_buffer_is_empty(parser->temp_buffer)) {
             struct pcvcm_node* node = pcvcm_node_new_string(
-                    pchvml_buffer_get_buffer(parser->temp_buffer)
+                    tkz_buffer_get_bytes(parser->temp_buffer)
                     );
             APPEND_AS_VCM_CHILD(node);
             RESET_TEMP_BUFFER();
@@ -3221,14 +3220,14 @@ END_STATE()
 BEGIN_STATE(TKZ_STATE_EJSON_AFTER_VALUE_NUMBER)
     if (is_whitespace(character) || character == '}'
             || character == ']' || character == ',' || character == ')') {
-        if (pchvml_buffer_end_with(parser->temp_buffer, "-", 1)
-            || pchvml_buffer_end_with(parser->temp_buffer, "E", 1)
-            || pchvml_buffer_end_with(parser->temp_buffer, "e", 1)) {
+        if (tkz_buffer_end_with(parser->temp_buffer, "-", 1)
+            || tkz_buffer_end_with(parser->temp_buffer, "E", 1)
+            || tkz_buffer_end_with(parser->temp_buffer, "e", 1)) {
             SET_ERR(PCHVML_ERROR_BAD_JSON_NUMBER);
             RETURN_AND_STOP_PARSE();
         }
         double d = strtod(
-                pchvml_buffer_get_buffer(parser->temp_buffer), NULL);
+                tkz_buffer_get_bytes(parser->temp_buffer), NULL);
         RESTORE_VCM_NODE();
         struct pcvcm_node* node = pcvcm_node_new_number(d);
         APPEND_AS_VCM_CHILD(node);
@@ -3249,7 +3248,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_VALUE_NUMBER_INTEGER)
         ADVANCE_TO(TKZ_STATE_EJSON_VALUE_NUMBER_INTEGER);
     }
     if (character == 'x') {
-        if(pchvml_buffer_equal_to(parser->temp_buffer, "0", 1)) {
+        if(tkz_buffer_equal_to(parser->temp_buffer, "0", 1)) {
             RESET_TEMP_BUFFER();
             ADVANCE_TO(TKZ_STATE_EJSON_VALUE_NUMBER_HEX);
         }
@@ -3268,8 +3267,8 @@ BEGIN_STATE(TKZ_STATE_EJSON_VALUE_NUMBER_INTEGER)
         RECONSUME_IN(TKZ_STATE_EJSON_VALUE_NUMBER_SUFFIX_INTEGER);
     }
     if (character == 'I' && (
-                pchvml_buffer_is_empty(parser->temp_buffer) ||
-                pchvml_buffer_equal_to(parser->temp_buffer, "-", 1)
+                tkz_buffer_is_empty(parser->temp_buffer) ||
+                tkz_buffer_equal_to(parser->temp_buffer, "-", 1)
                 )) {
         RECONSUME_IN(TKZ_STATE_EJSON_VALUE_NUMBER_INFINITY);
     }
@@ -3284,7 +3283,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_VALUE_NUMBER_FRACTION)
     }
 
     if (is_ascii_digit(character)) {
-        if (pchvml_buffer_end_with(parser->temp_buffer, "F", 1)) {
+        if (tkz_buffer_end_with(parser->temp_buffer, "F", 1)) {
             SET_ERR(PCHVML_ERROR_BAD_JSON_NUMBER);
             RETURN_AND_STOP_PARSE();
         }
@@ -3296,10 +3295,10 @@ BEGIN_STATE(TKZ_STATE_EJSON_VALUE_NUMBER_FRACTION)
         ADVANCE_TO(TKZ_STATE_EJSON_VALUE_NUMBER_FRACTION);
     }
     if (character == 'L') {
-        if (pchvml_buffer_end_with(parser->temp_buffer, "F", 1)) {
+        if (tkz_buffer_end_with(parser->temp_buffer, "F", 1)) {
             APPEND_TO_TEMP_BUFFER(character);
             long double ld = strtold (
-                    pchvml_buffer_get_buffer(parser->temp_buffer), NULL);
+                    tkz_buffer_get_bytes(parser->temp_buffer), NULL);
             RESTORE_VCM_NODE();
             struct pcvcm_node* node = pcvcm_node_new_longdouble(ld);
             APPEND_AS_VCM_CHILD(node);
@@ -3308,7 +3307,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_VALUE_NUMBER_FRACTION)
         }
     }
     if (character == 'E' || character == 'e') {
-        if (pchvml_buffer_end_with(parser->temp_buffer, ".", 1)) {
+        if (tkz_buffer_end_with(parser->temp_buffer, ".", 1)) {
             SET_ERR(PCHVML_ERROR_UNEXPECTED_JSON_NUMBER_FRACTION);
             RETURN_AND_STOP_PARSE();
         }
@@ -3341,7 +3340,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_VALUE_NUMBER_EXPONENT_INTEGER)
         RECONSUME_IN(TKZ_STATE_EJSON_AFTER_VALUE_NUMBER);
     }
     if (is_ascii_digit(character)) {
-        if (pchvml_buffer_end_with(parser->temp_buffer, "F", 1)) {
+        if (tkz_buffer_end_with(parser->temp_buffer, "F", 1)) {
             SET_ERR(PCHVML_ERROR_BAD_JSON_NUMBER);
             RETURN_AND_STOP_PARSE();
         }
@@ -3353,10 +3352,10 @@ BEGIN_STATE(TKZ_STATE_EJSON_VALUE_NUMBER_EXPONENT_INTEGER)
         ADVANCE_TO(TKZ_STATE_EJSON_VALUE_NUMBER_EXPONENT_INTEGER);
     }
     if (character == 'L') {
-        if (pchvml_buffer_end_with(parser->temp_buffer, "F", 1)) {
+        if (tkz_buffer_end_with(parser->temp_buffer, "F", 1)) {
             APPEND_TO_TEMP_BUFFER(character);
             long double ld = strtold (
-                    pchvml_buffer_get_buffer(parser->temp_buffer), NULL);
+                    tkz_buffer_get_bytes(parser->temp_buffer), NULL);
             RESTORE_VCM_NODE();
             struct pcvcm_node* node = pcvcm_node_new_longdouble(ld);
             APPEND_AS_VCM_CHILD(node);
@@ -3369,7 +3368,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_VALUE_NUMBER_EXPONENT_INTEGER)
 END_STATE()
 
 BEGIN_STATE(TKZ_STATE_EJSON_VALUE_NUMBER_SUFFIX_INTEGER)
-    uint32_t last_c = pchvml_buffer_get_last_char(
+    uint32_t last_c = tkz_buffer_get_last_char(
             parser->temp_buffer);
     if (is_whitespace(character) || character == '}'
             || character == ']' || character == ',' || character == ')') {
@@ -3384,10 +3383,10 @@ BEGIN_STATE(TKZ_STATE_EJSON_VALUE_NUMBER_SUFFIX_INTEGER)
     if (character == 'L') {
         if (is_ascii_digit(last_c) || last_c == 'U') {
             APPEND_TO_TEMP_BUFFER(character);
-            if (pchvml_buffer_end_with(parser->temp_buffer, "UL", 2)
+            if (tkz_buffer_end_with(parser->temp_buffer, "UL", 2)
                     ) {
                 uint64_t u64 = strtoull (
-                    pchvml_buffer_get_buffer(parser->temp_buffer),
+                    tkz_buffer_get_bytes(parser->temp_buffer),
                     NULL, 10);
                 RESTORE_VCM_NODE();
                 struct pcvcm_node* node = pcvcm_node_new_ulongint(u64);
@@ -3395,10 +3394,10 @@ BEGIN_STATE(TKZ_STATE_EJSON_VALUE_NUMBER_SUFFIX_INTEGER)
                 RESET_TEMP_BUFFER();
                 ADVANCE_TO(TKZ_STATE_EJSON_AFTER_VALUE);
             }
-            else if (pchvml_buffer_end_with(parser->temp_buffer,
+            else if (tkz_buffer_end_with(parser->temp_buffer,
                         "L", 1)) {
                 int64_t i64 = strtoll (
-                    pchvml_buffer_get_buffer(parser->temp_buffer),
+                    tkz_buffer_get_bytes(parser->temp_buffer),
                     NULL, 10);
                 RESTORE_VCM_NODE();
                 struct pcvcm_node* node = pcvcm_node_new_longint(i64);
@@ -3433,7 +3432,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_VALUE_NUMBER_HEX_SUFFIX)
             || character == ']' || character == ',' || character == ')') {
         RECONSUME_IN(TKZ_STATE_EJSON_AFTER_VALUE_NUMBER_HEX);
     }
-    uint32_t last_c = pchvml_buffer_get_last_char(parser->temp_buffer);
+    uint32_t last_c = tkz_buffer_get_last_char(parser->temp_buffer);
     if (character == 'U') {
         if (is_ascii_hex_digit(last_c)) {
             APPEND_TO_TEMP_BUFFER(character);
@@ -3454,9 +3453,9 @@ BEGIN_STATE(TKZ_STATE_EJSON_AFTER_VALUE_NUMBER_HEX)
     if (is_whitespace(character) || character == '}'
             || character == ']' || character == ',' || character == ')'
             || is_eof(character)) {
-        const char *bytes = pchvml_buffer_get_buffer(parser->temp_buffer);
-        if (pchvml_buffer_end_with(parser->temp_buffer, "U", 1)
-                || pchvml_buffer_end_with(parser->temp_buffer, "UL", 2)
+        const char *bytes = tkz_buffer_get_bytes(parser->temp_buffer);
+        if (tkz_buffer_end_with(parser->temp_buffer, "U", 1)
+                || tkz_buffer_end_with(parser->temp_buffer, "UL", 2)
                 ) {
             uint64_t u64 = strtoull (bytes, NULL, 16);
             RESTORE_VCM_NODE();
@@ -3481,7 +3480,7 @@ END_STATE()
 BEGIN_STATE(TKZ_STATE_EJSON_VALUE_NUMBER_INFINITY)
     if (is_whitespace(character) || character == '}'
             || character == ']' || character == ',' || character == ')') {
-        if (pchvml_buffer_equal_to(parser->temp_buffer,
+        if (tkz_buffer_equal_to(parser->temp_buffer,
                     "-Infinity", 9)) {
             double d = -INFINITY;
             RESTORE_VCM_NODE();
@@ -3490,7 +3489,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_VALUE_NUMBER_INFINITY)
             RESET_TEMP_BUFFER();
             RECONSUME_IN(TKZ_STATE_EJSON_AFTER_VALUE);
         }
-        if (pchvml_buffer_equal_to(parser->temp_buffer,
+        if (tkz_buffer_equal_to(parser->temp_buffer,
                 "Infinity", 8)) {
             double d = INFINITY;
             RESTORE_VCM_NODE();
@@ -3503,8 +3502,8 @@ BEGIN_STATE(TKZ_STATE_EJSON_VALUE_NUMBER_INFINITY)
         RETURN_AND_STOP_PARSE();
     }
     if (character == 'I') {
-        if (pchvml_buffer_is_empty(parser->temp_buffer)
-            || pchvml_buffer_equal_to(parser->temp_buffer, "-", 1)) {
+        if (tkz_buffer_is_empty(parser->temp_buffer)
+            || tkz_buffer_equal_to(parser->temp_buffer, "-", 1)) {
             APPEND_TO_TEMP_BUFFER(character);
             ADVANCE_TO(TKZ_STATE_EJSON_VALUE_NUMBER_INFINITY);
         }
@@ -3513,10 +3512,10 @@ BEGIN_STATE(TKZ_STATE_EJSON_VALUE_NUMBER_INFINITY)
     }
 
     if (character == 'n') {
-        if (pchvml_buffer_equal_to(parser->temp_buffer, "I", 1)
-          || pchvml_buffer_equal_to(parser->temp_buffer, "-I", 2)
-          || pchvml_buffer_equal_to(parser->temp_buffer, "Infi", 4)
-          || pchvml_buffer_equal_to(parser->temp_buffer, "-Infi", 5)
+        if (tkz_buffer_equal_to(parser->temp_buffer, "I", 1)
+          || tkz_buffer_equal_to(parser->temp_buffer, "-I", 2)
+          || tkz_buffer_equal_to(parser->temp_buffer, "Infi", 4)
+          || tkz_buffer_equal_to(parser->temp_buffer, "-Infi", 5)
             ) {
             APPEND_TO_TEMP_BUFFER(character);
             ADVANCE_TO(TKZ_STATE_EJSON_VALUE_NUMBER_INFINITY);
@@ -3526,8 +3525,8 @@ BEGIN_STATE(TKZ_STATE_EJSON_VALUE_NUMBER_INFINITY)
     }
 
     if (character == 'f') {
-        if (pchvml_buffer_equal_to(parser->temp_buffer, "In", 2)
-            || pchvml_buffer_equal_to (parser->temp_buffer, "-In", 3)
+        if (tkz_buffer_equal_to(parser->temp_buffer, "In", 2)
+            || tkz_buffer_equal_to (parser->temp_buffer, "-In", 3)
                 ) {
             APPEND_TO_TEMP_BUFFER(character);
             ADVANCE_TO(TKZ_STATE_EJSON_VALUE_NUMBER_INFINITY);
@@ -3537,10 +3536,10 @@ BEGIN_STATE(TKZ_STATE_EJSON_VALUE_NUMBER_INFINITY)
     }
 
     if (character == 'i') {
-        if (pchvml_buffer_equal_to(parser->temp_buffer, "Inf", 3)
-         || pchvml_buffer_equal_to(parser->temp_buffer, "-Inf", 4)
-         || pchvml_buffer_equal_to(parser->temp_buffer, "Infin", 5)
-         || pchvml_buffer_equal_to(parser->temp_buffer, "-Infin", 6)
+        if (tkz_buffer_equal_to(parser->temp_buffer, "Inf", 3)
+         || tkz_buffer_equal_to(parser->temp_buffer, "-Inf", 4)
+         || tkz_buffer_equal_to(parser->temp_buffer, "Infin", 5)
+         || tkz_buffer_equal_to(parser->temp_buffer, "-Infin", 6)
          ) {
             APPEND_TO_TEMP_BUFFER(character);
             ADVANCE_TO(TKZ_STATE_EJSON_VALUE_NUMBER_INFINITY);
@@ -3550,8 +3549,8 @@ BEGIN_STATE(TKZ_STATE_EJSON_VALUE_NUMBER_INFINITY)
     }
 
     if (character == 't') {
-        if (pchvml_buffer_equal_to(parser->temp_buffer, "Infini", 6)
-            || pchvml_buffer_equal_to (parser->temp_buffer,
+        if (tkz_buffer_equal_to(parser->temp_buffer, "Infini", 6)
+            || tkz_buffer_equal_to (parser->temp_buffer,
                 "-Infini", 7)
                 ) {
             APPEND_TO_TEMP_BUFFER(character);
@@ -3562,8 +3561,8 @@ BEGIN_STATE(TKZ_STATE_EJSON_VALUE_NUMBER_INFINITY)
     }
 
     if (character == 'y') {
-        if (pchvml_buffer_equal_to(parser->temp_buffer, "Infinit", 7)
-           || pchvml_buffer_equal_to (parser->temp_buffer,
+        if (tkz_buffer_equal_to(parser->temp_buffer, "Infinit", 7)
+           || tkz_buffer_equal_to (parser->temp_buffer,
                "-Infinit", 8)
                 ) {
             APPEND_TO_TEMP_BUFFER(character);
@@ -3580,7 +3579,7 @@ END_STATE()
 BEGIN_STATE(TKZ_STATE_EJSON_VALUE_NAN)
     if (is_whitespace(character) || character == '}'
             || character == ']' || character == ',' || character == ')') {
-        if (pchvml_buffer_equal_to(parser->temp_buffer, "NaN", 3)) {
+        if (tkz_buffer_equal_to(parser->temp_buffer, "NaN", 3)) {
             double d = NAN;
             RESTORE_VCM_NODE();
             struct pcvcm_node* node = pcvcm_node_new_number(d);
@@ -3592,8 +3591,8 @@ BEGIN_STATE(TKZ_STATE_EJSON_VALUE_NAN)
         RETURN_AND_STOP_PARSE();
     }
     if (character == 'N') {
-        if (pchvml_buffer_is_empty(parser->temp_buffer)
-          || pchvml_buffer_equal_to(parser->temp_buffer, "Na", 2)) {
+        if (tkz_buffer_is_empty(parser->temp_buffer)
+          || tkz_buffer_equal_to(parser->temp_buffer, "Na", 2)) {
             APPEND_TO_TEMP_BUFFER(character);
             ADVANCE_TO(TKZ_STATE_EJSON_VALUE_NAN);
         }
@@ -3602,7 +3601,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_VALUE_NAN)
     }
 
     if (character == 'a') {
-        if (pchvml_buffer_equal_to(parser->temp_buffer, "N", 1)) {
+        if (tkz_buffer_equal_to(parser->temp_buffer, "N", 1)) {
             APPEND_TO_TEMP_BUFFER(character);
             ADVANCE_TO(TKZ_STATE_EJSON_VALUE_NAN);
         }
@@ -3651,7 +3650,7 @@ END_STATE()
 BEGIN_STATE(TKZ_STATE_EJSON_STRING_ESCAPE_FOUR_HEXADECIMAL_DIGITS)
     if (is_ascii_hex_digit(character)) {
         APPEND_TO_STRING_BUFFER(character);
-        size_t nr_chars = pchvml_buffer_get_size_in_chars(
+        size_t nr_chars = tkz_buffer_get_size_in_chars(
                 parser->string_buffer);
         if (nr_chars == 4) {
             APPEND_BYTES_TO_TEMP_BUFFER("\\u", 2);
@@ -3668,24 +3667,24 @@ END_STATE()
 
 BEGIN_STATE(TKZ_STATE_EJSON_JSONEE_VARIABLE)
     if (character == '"') {
-        if (pchvml_buffer_is_empty(parser->temp_buffer)) {
+        if (tkz_buffer_is_empty(parser->temp_buffer)) {
             RECONSUME_IN(TKZ_STATE_EJSON_VALUE_DOUBLE_QUOTED);
         }
     }
     if (character == '\'') {
-        if (pchvml_buffer_is_empty(parser->temp_buffer)) {
+        if (tkz_buffer_is_empty(parser->temp_buffer)) {
             RECONSUME_IN(TKZ_STATE_EJSON_VALUE_SINGLE_QUOTED);
         }
     }
     if (character == '$') {
-        if (pchvml_buffer_is_empty(parser->temp_buffer)) {
+        if (tkz_buffer_is_empty(parser->temp_buffer)) {
             RECONSUME_IN(TKZ_STATE_EJSON_CONTROL);
         }
         if (parser->vcm_node) {
             vcm_stack_push(parser->vcm_node);
         }
         parser->vcm_node = pcvcm_node_new_string(
-                   pchvml_buffer_get_buffer(parser->temp_buffer));
+                   tkz_buffer_get_bytes(parser->temp_buffer));
         RESET_TEMP_BUFFER();
         uint32_t uc = ejson_stack_top();
         while (uc == '$') {
@@ -3709,7 +3708,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_JSONEE_VARIABLE)
     if (is_whitespace(character) || character == '}'
             || character == '"' || character == ']' || character == ')'
             || character == ';' || character == '&' || character == '|') {
-        if (pchvml_buffer_is_empty(parser->temp_buffer)) {
+        if (tkz_buffer_is_empty(parser->temp_buffer)) {
             SET_ERR(PCHVML_ERROR_BAD_JSONEE_VARIABLE_NAME);
             RETURN_AND_STOP_PARSE();
         }
@@ -3717,7 +3716,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_JSONEE_VARIABLE)
             vcm_stack_push(parser->vcm_node);
         }
         parser->vcm_node = pcvcm_node_new_string(
-                   pchvml_buffer_get_buffer(parser->temp_buffer));
+                   tkz_buffer_get_bytes(parser->temp_buffer));
         RESET_TEMP_BUFFER();
         uint32_t uc = ejson_stack_top();
         while (uc == '$') {
@@ -3731,7 +3730,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_JSONEE_VARIABLE)
         RECONSUME_IN(TKZ_STATE_EJSON_CONTROL);
     }
     if (character == ',') {
-        if (pchvml_buffer_is_empty(parser->temp_buffer)) {
+        if (tkz_buffer_is_empty(parser->temp_buffer)) {
             SET_ERR(PCHVML_ERROR_BAD_JSONEE_VARIABLE_NAME);
             RETURN_AND_STOP_PARSE();
         }
@@ -3739,7 +3738,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_JSONEE_VARIABLE)
             vcm_stack_push(parser->vcm_node);
         }
         parser->vcm_node = pcvcm_node_new_string(
-                   pchvml_buffer_get_buffer(parser->temp_buffer));
+                   tkz_buffer_get_bytes(parser->temp_buffer));
         RESET_TEMP_BUFFER();
         uint32_t uc = ejson_stack_top();
         while (uc == '$') {
@@ -3753,12 +3752,12 @@ BEGIN_STATE(TKZ_STATE_EJSON_JSONEE_VARIABLE)
         RECONSUME_IN(TKZ_STATE_EJSON_AFTER_VALUE);
     }
     if (character == ':') {
-        if (pchvml_buffer_is_empty(parser->temp_buffer)
-            || pchvml_buffer_is_int(parser->temp_buffer)) {
+        if (tkz_buffer_is_empty(parser->temp_buffer)
+            || tkz_buffer_is_int(parser->temp_buffer)) {
             APPEND_TO_TEMP_BUFFER(character);
             ADVANCE_TO(TKZ_STATE_EJSON_JSONEE_VARIABLE);
         }
-        if (pchvml_buffer_is_empty(parser->temp_buffer)) {
+        if (tkz_buffer_is_empty(parser->temp_buffer)) {
             APPEND_TO_TEMP_BUFFER(character);
             ADVANCE_TO(TKZ_STATE_EJSON_JSONEE_VARIABLE);
         }
@@ -3766,7 +3765,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_JSONEE_VARIABLE)
             vcm_stack_push(parser->vcm_node);
         }
         parser->vcm_node = pcvcm_node_new_string(
-                   pchvml_buffer_get_buffer(parser->temp_buffer));
+                   tkz_buffer_get_bytes(parser->temp_buffer));
         RESET_TEMP_BUFFER();
         uint32_t uc = ejson_stack_top();
         while (uc == '$') {
@@ -3791,14 +3790,14 @@ BEGIN_STATE(TKZ_STATE_EJSON_JSONEE_VARIABLE)
         ADVANCE_TO(TKZ_STATE_EJSON_CONTROL);
     }
     if (is_context_variable(character)) {
-        if (pchvml_buffer_is_empty(parser->temp_buffer)
-            || pchvml_buffer_is_int(parser->temp_buffer)) {
+        if (tkz_buffer_is_empty(parser->temp_buffer)
+            || tkz_buffer_is_int(parser->temp_buffer)) {
             APPEND_TO_TEMP_BUFFER(character);
             ADVANCE_TO(TKZ_STATE_EJSON_JSONEE_VARIABLE);
         }
     }
     if (character == '[' || character == '(') {
-        if (pchvml_buffer_is_empty(parser->temp_buffer)) {
+        if (tkz_buffer_is_empty(parser->temp_buffer)) {
             SET_ERR(PCHVML_ERROR_BAD_JSONEE_VARIABLE_NAME);
             RETURN_AND_STOP_PARSE();
         }
@@ -3806,7 +3805,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_JSONEE_VARIABLE)
             vcm_stack_push(parser->vcm_node);
         }
         parser->vcm_node = pcvcm_node_new_string(
-                   pchvml_buffer_get_buffer(parser->temp_buffer));
+                   tkz_buffer_get_bytes(parser->temp_buffer));
         RESET_TEMP_BUFFER();
         uint32_t uc = ejson_stack_top();
         if (uc == '$') {
@@ -3817,14 +3816,14 @@ BEGIN_STATE(TKZ_STATE_EJSON_JSONEE_VARIABLE)
     }
     if (character == '<' || character == '>') {
         // FIXME
-        if (pchvml_buffer_is_empty(parser->temp_buffer)) {
+        if (tkz_buffer_is_empty(parser->temp_buffer)) {
             APPEND_TO_TEMP_BUFFER(character);
         }
         if (parser->vcm_node) {
             vcm_stack_push(parser->vcm_node);
         }
         parser->vcm_node = pcvcm_node_new_string(
-                   pchvml_buffer_get_buffer(parser->temp_buffer));
+                   tkz_buffer_get_bytes(parser->temp_buffer));
         RESET_TEMP_BUFFER();
         uint32_t uc = ejson_stack_top();
         if (uc == '$') {
@@ -3834,7 +3833,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_JSONEE_VARIABLE)
         RECONSUME_IN(TKZ_STATE_EJSON_CONTROL);
     }
     if (character == '.') {
-        if (pchvml_buffer_is_empty(parser->temp_buffer)) {
+        if (tkz_buffer_is_empty(parser->temp_buffer)) {
             SET_ERR(PCHVML_ERROR_BAD_JSONEE_VARIABLE_NAME);
             RETURN_AND_STOP_PARSE();
         }
@@ -3842,7 +3841,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_JSONEE_VARIABLE)
             vcm_stack_push(parser->vcm_node);
         }
         parser->vcm_node = pcvcm_node_new_string(
-                   pchvml_buffer_get_buffer(parser->temp_buffer));
+                   tkz_buffer_get_bytes(parser->temp_buffer));
         RESET_TEMP_BUFFER();
         uint32_t uc = ejson_stack_top();
         if (uc == '$') {
@@ -3852,7 +3851,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_JSONEE_VARIABLE)
         RECONSUME_IN(TKZ_STATE_EJSON_JSONEE_FULL_STOP_SIGN);
     }
     if (character == '=') {
-        if (pchvml_buffer_is_empty(parser->temp_buffer)) {
+        if (tkz_buffer_is_empty(parser->temp_buffer)) {
             APPEND_TO_TEMP_BUFFER(character);
             ADVANCE_TO(TKZ_STATE_EJSON_JSONEE_VARIABLE);
         }
@@ -3863,7 +3862,7 @@ END_STATE()
 
 BEGIN_STATE(TKZ_STATE_EJSON_JSONEE_KEYWORD)
     if (is_ascii_digit(character)) {
-        if (pchvml_buffer_is_empty(parser->temp_buffer)) {
+        if (tkz_buffer_is_empty(parser->temp_buffer)) {
             SET_ERR(PCHVML_ERROR_BAD_JSONEE_KEYWORD);
             RETURN_AND_STOP_PARSE();
         }
@@ -3880,7 +3879,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_JSONEE_KEYWORD)
             character == '$' || character == '>' || character == ']'
             || character == ')' || character == ':' || character == ';'
             || character == '&' || character == '|') {
-        if (pchvml_buffer_is_empty(parser->temp_buffer)) {
+        if (tkz_buffer_is_empty(parser->temp_buffer)) {
             SET_ERR(PCHVML_ERROR_BAD_JSONEE_KEYWORD);
             RETURN_AND_STOP_PARSE();
         }
@@ -3888,14 +3887,14 @@ BEGIN_STATE(TKZ_STATE_EJSON_JSONEE_KEYWORD)
             vcm_stack_push(parser->vcm_node);
         }
         parser->vcm_node = pcvcm_node_new_string(
-                   pchvml_buffer_get_buffer(parser->temp_buffer));
+                   tkz_buffer_get_bytes(parser->temp_buffer));
         RESET_TEMP_BUFFER();
         ejson_stack_pop();
         POP_AS_VCM_PARENT_AND_UPDATE_VCM();
         RECONSUME_IN(TKZ_STATE_EJSON_CONTROL);
     }
     if (character == '"') {
-        if (pchvml_buffer_is_empty(parser->temp_buffer)) {
+        if (tkz_buffer_is_empty(parser->temp_buffer)) {
             SET_ERR(PCHVML_ERROR_BAD_JSONEE_KEYWORD);
             RETURN_AND_STOP_PARSE();
         }
@@ -3903,7 +3902,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_JSONEE_KEYWORD)
             vcm_stack_push(parser->vcm_node);
         }
         parser->vcm_node = pcvcm_node_new_string(
-                   pchvml_buffer_get_buffer(parser->temp_buffer));
+                   tkz_buffer_get_bytes(parser->temp_buffer));
         RESET_TEMP_BUFFER();
         ejson_stack_pop();
         POP_AS_VCM_PARENT_AND_UPDATE_VCM();
@@ -3911,7 +3910,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_JSONEE_KEYWORD)
         RECONSUME_IN(TKZ_STATE_EJSON_CONTROL);
     }
     if (character == ',') {
-        if (pchvml_buffer_is_empty(parser->temp_buffer)) {
+        if (tkz_buffer_is_empty(parser->temp_buffer)) {
             SET_ERR(PCHVML_ERROR_BAD_JSONEE_KEYWORD);
             RETURN_AND_STOP_PARSE();
         }
@@ -3919,7 +3918,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_JSONEE_KEYWORD)
             vcm_stack_push(parser->vcm_node);
         }
         parser->vcm_node = pcvcm_node_new_string(
-                   pchvml_buffer_get_buffer(parser->temp_buffer));
+                   tkz_buffer_get_bytes(parser->temp_buffer));
         RESET_TEMP_BUFFER();
         ejson_stack_pop();
         POP_AS_VCM_PARENT_AND_UPDATE_VCM();
@@ -3930,7 +3929,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_JSONEE_KEYWORD)
         RECONSUME_IN(TKZ_STATE_EJSON_AFTER_VALUE);
     }
     if (character == '.') {
-        if (pchvml_buffer_is_empty(parser->temp_buffer)) {
+        if (tkz_buffer_is_empty(parser->temp_buffer)) {
             SET_ERR(PCHVML_ERROR_BAD_JSONEE_KEYWORD);
             RETURN_AND_STOP_PARSE();
         }
@@ -3938,7 +3937,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_JSONEE_KEYWORD)
             vcm_stack_push(parser->vcm_node);
         }
         parser->vcm_node = pcvcm_node_new_string(
-                   pchvml_buffer_get_buffer(parser->temp_buffer));
+                   tkz_buffer_get_bytes(parser->temp_buffer));
         RESET_TEMP_BUFFER();
         ejson_stack_pop();
         POP_AS_VCM_PARENT_AND_UPDATE_VCM();
@@ -3966,9 +3965,9 @@ BEGIN_STATE(TKZ_STATE_EJSON_JSONEE_STRING)
                     NULL);
             UPDATE_VCM_NODE(snode);
             ejson_stack_push('"');
-            if (!pchvml_buffer_is_empty(parser->temp_buffer)) {
+            if (!tkz_buffer_is_empty(parser->temp_buffer)) {
                 struct pcvcm_node* node = pcvcm_node_new_string(
-                   pchvml_buffer_get_buffer(parser->temp_buffer));
+                   tkz_buffer_get_bytes(parser->temp_buffer));
                 APPEND_AS_VCM_CHILD(node);
                 RESET_TEMP_BUFFER();
                 ADVANCE_TO(TKZ_STATE_EJSON_JSONEE_STRING);
@@ -3986,7 +3985,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_JSONEE_STRING)
             vcm_stack_push(parser->vcm_node);
         }
         parser->vcm_node = pcvcm_node_new_string(
-                pchvml_buffer_get_buffer(parser->temp_buffer));
+                tkz_buffer_get_bytes(parser->temp_buffer));
         RESET_TEMP_BUFFER();
         RECONSUME_IN(TKZ_STATE_EJSON_AFTER_JSONEE_STRING);
     }
@@ -4042,10 +4041,10 @@ END_STATE()
 
 BEGIN_STATE(TKZ_STATE_EJSON_TEMPLATE_DATA)
     if (character == '<') {
-        if (!pchvml_buffer_is_empty(parser->temp_buffer) &&
-                !pchvml_buffer_is_whitespace(parser->temp_buffer)) {
+        if (!tkz_buffer_is_empty(parser->temp_buffer) &&
+                !tkz_buffer_is_whitespace(parser->temp_buffer)) {
             struct pcvcm_node* node = pcvcm_node_new_string(
-                    pchvml_buffer_get_buffer(parser->temp_buffer)
+                    tkz_buffer_get_bytes(parser->temp_buffer)
                     );
             APPEND_AS_VCM_CHILD(node);
             RESET_TEMP_BUFFER();
@@ -4057,9 +4056,9 @@ BEGIN_STATE(TKZ_STATE_EJSON_TEMPLATE_DATA)
         RETURN_AND_STOP_PARSE();
     }
     if (character == '$') {
-        if (!pchvml_buffer_is_empty(parser->temp_buffer)) {
+        if (!tkz_buffer_is_empty(parser->temp_buffer)) {
             struct pcvcm_node* node = pcvcm_node_new_string(
-                    pchvml_buffer_get_buffer(parser->temp_buffer)
+                    tkz_buffer_get_bytes(parser->temp_buffer)
                     );
             APPEND_AS_VCM_CHILD(node);
             RESET_TEMP_BUFFER();
@@ -4095,7 +4094,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_TEMPLATE_DATA_END_TAG_NAME)
         ADVANCE_TO(TKZ_STATE_EJSON_TEMPLATE_DATA_END_TAG_NAME);
     }
     if (character == '>') {
-        const char* name = pchvml_buffer_get_buffer(
+        const char* name = tkz_buffer_get_bytes(
                 parser->string_buffer);
         if (pchvml_parser_is_appropriate_tag_name(parser, name)) {
             RECONSUME_IN(TKZ_STATE_EJSON_TEMPLATE_FINISHED);
@@ -4130,7 +4129,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_AMPERSAND)
         ADVANCE_TO(TKZ_STATE_EJSON_AMPERSAND);
     }
     {
-        if (pchvml_buffer_equal_to(parser->temp_buffer, "&&", 2)) {
+        if (tkz_buffer_equal_to(parser->temp_buffer, "&&", 2)) {
             uint32_t uc = ejson_stack_top();
             while (uc != 'C') {
                 ejson_stack_pop();
@@ -4157,7 +4156,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_OR_SIGN)
         ADVANCE_TO(TKZ_STATE_EJSON_OR_SIGN);
     }
     {
-        if (pchvml_buffer_equal_to(parser->temp_buffer, "||", 2)) {
+        if (tkz_buffer_equal_to(parser->temp_buffer, "||", 2)) {
             uint32_t uc = ejson_stack_top();
             while (uc != 'C') {
                 ejson_stack_pop();
@@ -4200,14 +4199,14 @@ END_STATE()
 BEGIN_STATE(TKZ_STATE_EJSON_CJSONEE_FINISHED)
     if (character == '}') {
         APPEND_TO_TEMP_BUFFER(character);
-        if (pchvml_buffer_equal_to(parser->temp_buffer, "}}", 2)) {
+        if (tkz_buffer_equal_to(parser->temp_buffer, "}}", 2)) {
             ejson_stack_pop();
             POP_AS_VCM_PARENT_AND_UPDATE_VCM();
             ADVANCE_TO(TKZ_STATE_EJSON_CONTROL);
         }
         ADVANCE_TO(TKZ_STATE_EJSON_CJSONEE_FINISHED);
     }
-    if (pchvml_buffer_equal_to(parser->temp_buffer, "}}", 2)) {
+    if (tkz_buffer_equal_to(parser->temp_buffer, "}}", 2)) {
         ejson_stack_pop();
         POP_AS_VCM_PARENT_AND_UPDATE_VCM();
         RECONSUME_IN(TKZ_STATE_EJSON_CONTROL);
