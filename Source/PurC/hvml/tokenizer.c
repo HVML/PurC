@@ -2231,12 +2231,15 @@ BEGIN_STATE(HVML_EJSON_CONTROL_STATE)
         RETURN_AND_STOP_PARSE();
     }
     if (character == '&') {
+        RESET_TEMP_BUFFER();
         RECONSUME_IN(HVML_EJSON_AMPERSAND_STATE);
     }
     if (character == '|') {
+        RESET_TEMP_BUFFER();
         RECONSUME_IN(HVML_EJSON_OR_SIGN_STATE);
     }
     if (character == ';') {
+        RESET_TEMP_BUFFER();
         RECONSUME_IN(HVML_EJSON_SEMICOLON_STATE);
     }
     if (parser->vcm_node->type ==

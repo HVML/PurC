@@ -1223,11 +1223,10 @@ purc_variant_t pcvcm_node_cjsonee_to_variant(struct pcvcm_node *node,
             break;
         }
 
-        if (is_cjsonee_op(op_node)) {
+        if (!is_cjsonee_op(op_node)) {
             pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
             goto failed;
         }
-
 
         curr_node = NEXT_CHILD(op_node);
         switch (op_node->type) {
