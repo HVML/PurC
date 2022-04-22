@@ -31,9 +31,9 @@
 #include "private/utils.h"
 #include "private/dom.h"
 #include "private/hvml.h"
+#include "private/tkz-helper.h"
 
 #include "hvml-buffer.h"
-#include "hvml-rwswrap.h"
 #include "hvml-token.h"
 #include "hvml-sbst.h"
 #include "hvml-attr.h"
@@ -88,7 +88,7 @@ struct pchvml_parser* pchvml_create(uint32_t flags, size_t queue_size)
     struct pchvml_parser* parser = (struct pchvml_parser*) PCHVML_ALLOC(
             sizeof(struct pchvml_parser));
     parser->state = 0;
-    parser->rwswrap = pchvml_rwswrap_new ();
+    parser->reader = tkz_reader_new ();
     parser->temp_buffer = pchvml_buffer_new ();
     parser->tag_name = pchvml_buffer_new ();
     parser->string_buffer = pchvml_buffer_new ();
@@ -113,8 +113,8 @@ void pchvml_reset(struct pchvml_parser* parser, uint32_t flags,
     UNUSED_PARAM(queue_size);
 
     parser->state = 0;
-    pchvml_rwswrap_destroy (parser->rwswrap);
-    parser->rwswrap = pchvml_rwswrap_new ();
+    tkz_reader_destroy (parser->reader);
+    parser->reader = tkz_reader_new ();
     pchvml_buffer_reset (parser->temp_buffer);
     pchvml_buffer_reset (parser->tag_name);
     pchvml_buffer_reset (parser->string_buffer);
@@ -146,7 +146,7 @@ void pchvml_reset(struct pchvml_parser* parser, uint32_t flags,
 void pchvml_destroy(struct pchvml_parser* parser)
 {
     if (parser) {
-        pchvml_rwswrap_destroy (parser->rwswrap);
+        tkz_reader_destroy (parser->reader);
         pchvml_buffer_destroy (parser->temp_buffer);
         pchvml_buffer_destroy (parser->tag_name);
         pchvml_buffer_destroy (parser->string_buffer);

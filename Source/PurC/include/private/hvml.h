@@ -29,18 +29,18 @@
 #include "private/stack.h"
 #include "private/vcm.h"
 
-struct pchvml_uc;
+struct tkz_uc;
 struct pchvml_buffer;
 struct pchvml_token;
-struct pchvml_rwswrap;
+struct tkz_reader;
 struct pchvml_sbst;
 
 struct pchvml_parser {
     int state;
     int return_state;
     int transit_state;
-    struct pchvml_uc* curr_uc;
-    struct pchvml_rwswrap* rwswrap;
+    struct tkz_uc* curr_uc;
+    struct tkz_reader* reader;
     struct pchvml_buffer* temp_buffer;
     struct pchvml_buffer* tag_name;
     struct pchvml_buffer* string_buffer;

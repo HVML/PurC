@@ -270,26 +270,6 @@ enum tokenizer_state {
     LAST_STATE = TKZ_STATE_EJSON_CJSONEE_FINISHED,
 };
 
-struct ucwrap {
-    struct list_head list;
-    uint32_t character;
-    int line;
-    int column;
-    int position;
-};
-
-struct rwswrap {
-    purc_rwstream_t rws;
-    struct list_head reconsume_list;
-    struct list_head consumed_list;
-    size_t nr_consumed_list;
-
-    struct ucwrap curr_uc;
-    int line;
-    int column;
-    int consumed;
-};
-
 struct uc_buffer {
     uint8_t *base;
     uint8_t *here;
@@ -297,81 +277,12 @@ struct uc_buffer {
     size_t nr_chars;
 };
 
-static inline UNUSED_FUNCTION
-struct ucwrap *ucwrap_new(void)
-{
-    return pc_alloc(sizeof(struct ucwrap));
-}
-
-static inline UNUSED_FUNCTION
-void ucwrap_destroy(struct ucwrap *uc)
-{
-    if (uc) {
-        pc_free(uc);
-    }
-}
-
-static inline UNUSED_FUNCTION
-struct rwswrap *rwswrap_new(void)
-{
-    struct rwswrap *wrap = pc_alloc(sizeof(struct rwswrap));
-    if (!wrap) {
-        return NULL;
-    }
-    INIT_LIST_HEAD(&wrap->reconsume_list);
-    INIT_LIST_HEAD(&wrap->consumed_list);
-    wrap->line = 1;
-    wrap->column = 0;
-    wrap->consumed = 0;
-    return wrap;
-}
-
-static inline UNUSED_FUNCTION
-void rwswrap_set_rwstream(struct rwswrap *wrap, purc_rwstream_t rws)
-{
-    wrap->rws = rws;
-}
-
-static inline UNUSED_FUNCTION
-struct ucwrap *rwswrap_read_from_rwstream(struct rwswrap *wrap)
-{
-    char c[8] = {0};
-    uint32_t uc = 0;
-    int nr_c = purc_rwstream_read_utf8_char(wrap->rws, c, &uc);
-    if (nr_c < 0) {
-        uc = INVALID_CHARACTER;
-    }
-    wrap->column++;
-    wrap->consumed++;
-
-    wrap->curr_uc.character = uc;
-    wrap->curr_uc.line = wrap->line;
-    wrap->curr_uc.column = wrap->column;
-    wrap->curr_uc.position = wrap->consumed;
-    if (uc == '\n') {
-        wrap->line++;
-        wrap->column = 0;
-    }
-    return &wrap->curr_uc;
-}
-
-static inline UNUSED_FUNCTION
-struct ucwrap *rwswrap_read_from_reconsume_list(struct rwswrap *wrap)
-{
-    struct ucwrap *puc = list_entry(wrap->reconsume_list.next,
-            struct ucwrap, list);
-    wrap->curr_uc = *puc;
-    list_del_init(&puc->list);
-    ucwrap_destroy(puc);
-    return &wrap->curr_uc;
-}
-
 #define print_uc_list(uc_list, tag)                                         \
     do {                                                                    \
         PC_DEBUG( "begin print %s list\n|", tag);                           \
         struct list_head *p, *n;                                            \
         list_for_each_safe(p, n, uc_list) {                                 \
-            struct ucwrap *puc = list_entry(p, struct ucwrap, list);        \
+            struct tkz_uc *puc = list_entry(p, struct tkz_uc, list);        \
             PC_DEBUG( "%c", puc->character);                                \
         }                                                                   \
         PC_DEBUG( "|\nend print %s list\n", tag);                           \
@@ -382,81 +293,6 @@ struct ucwrap *rwswrap_read_from_reconsume_list(struct rwswrap *wrap)
 
 #define PRINT_RECONSUM_LIST(wrap)    \
         print_uc_list(&wrap->reconsume_list, "reconsume")
-
-static inline UNUSED_FUNCTION
-bool rwswrap_add_consumed(struct rwswrap *wrap, struct ucwrap *uc)
-{
-    struct ucwrap *p = ucwrap_new();
-    if (!p) {
-        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return false;
-    }
-
-    *p = *uc;
-    list_add_tail(&p->list, &wrap->consumed_list);
-    wrap->nr_consumed_list++;
-
-    if (wrap->nr_consumed_list > NR_CONSUMED_LIST_LIMIT) {
-        struct ucwrap *first = list_first_entry(
-                &wrap->consumed_list, struct ucwrap, list);
-        list_del_init(&first->list);
-        ucwrap_destroy(first);
-        wrap->nr_consumed_list--;
-    }
-    return true;
-}
-
-static inline UNUSED_FUNCTION
-bool rwswrap_reconsume_last_char(struct rwswrap *wrap)
-{
-    if (!wrap->nr_consumed_list) {
-        return true;
-    }
-
-    struct ucwrap *last = list_last_entry(
-            &wrap->consumed_list, struct ucwrap, list);
-    list_del_init(&last->list);
-    wrap->nr_consumed_list--;
-
-    list_add(&last->list, &wrap->reconsume_list);
-    return true;
-}
-
-static inline UNUSED_FUNCTION
-struct ucwrap *rwswrap_next_char(struct rwswrap *wrap)
-{
-    struct ucwrap *ret = NULL;
-    if (list_empty(&wrap->reconsume_list)) {
-        ret = rwswrap_read_from_rwstream(wrap);
-    }
-    else {
-        ret = rwswrap_read_from_reconsume_list(wrap);
-    }
-
-    if (rwswrap_add_consumed(wrap, ret)) {
-        return ret;
-    }
-    return NULL;
-}
-
-static inline UNUSED_FUNCTION
-void rwswrap_destroy(struct rwswrap *wrap)
-{
-    if (wrap) {
-        struct list_head *p, *n;
-        list_for_each_safe(p, n, &wrap->reconsume_list) {
-            struct ucwrap *puc = list_entry(p, struct ucwrap, list);
-            list_del_init(&puc->list);
-            ucwrap_destroy(puc);
-        }
-        list_for_each_safe(p, n, &wrap->consumed_list) {
-            struct ucwrap *puc = list_entry(p, struct ucwrap, list);
-            list_del_init(&puc->list);
-            ucwrap_destroy(puc);
-        }
-        pc_free(wrap);
-    }
-}
 
 // buffer
 #define MIN_BUFFER_CAPACITY 32
@@ -759,8 +595,8 @@ struct pcejson {
     uint32_t max_depth;
     uint32_t flags;
 
-    struct ucwrap* curr_uc;
-    struct rwswrap* rwswrap;
+    struct tkz_uc* curr_uc;
+    struct tkz_reader* tkz_reader;
     struct uc_buffer* temp_buffer;
     struct uc_buffer* string_buffer;
     struct pcvcm_node* vcm_node;
@@ -792,7 +628,7 @@ struct pcejson *pcejson_create(uint32_t depth, uint32_t flags)
     parser->flags = flags;
 
     parser->curr_uc = NULL;
-    parser->rwswrap = rwswrap_new();
+    parser->tkz_reader = tkz_reader_new();
     parser->temp_buffer = uc_buffer_new();
     parser->string_buffer = uc_buffer_new();
     parser->vcm_stack = pcvcm_stack_new();
@@ -810,7 +646,7 @@ struct pcejson *pcejson_create(uint32_t depth, uint32_t flags)
 void pcejson_destroy(struct pcejson *parser)
 {
     if (parser) {
-        rwswrap_destroy(parser->rwswrap);
+        tkz_reader_destroy(parser->tkz_reader);
         uc_buffer_destroy(parser->temp_buffer);
         uc_buffer_destroy(parser->string_buffer);
         struct pcvcm_node* n = parser->vcm_node;
@@ -836,8 +672,8 @@ void pcejson_reset(struct pcejson *parser, uint32_t depth, uint32_t flags)
     parser->depth = 0;
     parser->flags = flags;
 
-    rwswrap_destroy(parser->rwswrap);
-    parser->rwswrap = rwswrap_new();
+    tkz_reader_destroy(parser->tkz_reader);
+    parser->tkz_reader = tkz_reader_new();
 
     uc_buffer_reset(parser->temp_buffer);
     uc_buffer_reset(parser->string_buffer);
@@ -908,10 +744,10 @@ int pcejson_parse(struct pcvcm_node **vcm_tree,                             \
                                                                             \
     uint32_t character = 0;                                                 \
     struct pcejson* parser = *parser_param;                                 \
-    rwswrap_set_rwstream (parser->rwswrap, rws);                            \
+    tkz_reader_set_rwstream (parser->tkz_reader, rws);                            \
                                                                             \
 next_input:                                                                 \
-    parser->curr_uc = rwswrap_next_char (parser->rwswrap);                  \
+    parser->curr_uc = tkz_reader_next_char (parser->tkz_reader);                  \
     if (!parser->curr_uc) {                                                 \
         return -1;                                                          \
     }                                                                       \
@@ -1807,8 +1643,8 @@ BEGIN_STATE(TKZ_STATE_EJSON_VALUE_DOUBLE_QUOTED)
         ejson_stack_push('"');
         if (!uc_buffer_is_empty(parser->temp_buffer)) {
             if (uc_buffer_end_with(parser->temp_buffer, "{", 1)) {
-                rwswrap_reconsume_last_char(parser->rwswrap);
-                rwswrap_reconsume_last_char(parser->rwswrap);
+                tkz_reader_reconsume_last_char(parser->tkz_reader);
+                tkz_reader_reconsume_last_char(parser->tkz_reader);
                 uc_buffer_delete_tail_chars(parser->temp_buffer, 1);
                 if (!uc_buffer_is_empty(parser->temp_buffer)) {
                     struct pcvcm_node *node = pcvcm_node_new_string(
@@ -1818,9 +1654,9 @@ BEGIN_STATE(TKZ_STATE_EJSON_VALUE_DOUBLE_QUOTED)
                 }
             }
             else if (uc_buffer_end_with(parser->temp_buffer, "{{", 2)) {
-                rwswrap_reconsume_last_char(parser->rwswrap);
-                rwswrap_reconsume_last_char(parser->rwswrap);
-                rwswrap_reconsume_last_char(parser->rwswrap);
+                tkz_reader_reconsume_last_char(parser->tkz_reader);
+                tkz_reader_reconsume_last_char(parser->tkz_reader);
+                tkz_reader_reconsume_last_char(parser->tkz_reader);
                 uc_buffer_delete_tail_chars(parser->temp_buffer, 2);
                 if (!uc_buffer_is_empty(parser->temp_buffer)) {
                     struct pcvcm_node *node = pcvcm_node_new_string(
@@ -1830,7 +1666,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_VALUE_DOUBLE_QUOTED)
                 }
             }
             else {
-                rwswrap_reconsume_last_char(parser->rwswrap);
+                tkz_reader_reconsume_last_char(parser->tkz_reader);
                 struct pcvcm_node *node = pcvcm_node_new_string(
                         uc_buffer_get_bytes(parser->temp_buffer)
                         );

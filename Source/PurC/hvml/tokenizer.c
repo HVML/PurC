@@ -36,7 +36,6 @@
 #include "private/tkz-helper.h"
 
 #include "hvml-buffer.h"
-#include "hvml-rwswrap.h"
 #include "hvml-token.h"
 #include "hvml-sbst.h"
 #include "hvml-attr.h"
@@ -92,16 +91,16 @@ struct pchvml_token* pchvml_next_token(struct pchvml_parser* parser,    \
         return token;                                                   \
     }                                                                   \
                                                                         \
-    pchvml_rwswrap_set_rwstream (parser->rwswrap, rws);                 \
+    tkz_reader_set_rwstream (parser->reader, rws);                 \
                                                                         \
 next_input:                                                             \
-    parser->curr_uc = pchvml_rwswrap_next_char (parser->rwswrap);       \
+    parser->curr_uc = tkz_reader_next_char (parser->reader);       \
     if (!parser->curr_uc) {                                             \
         return NULL;                                                    \
     }                                                                   \
                                                                         \
     character = parser->curr_uc->character;                             \
-    if (character == PCHVML_INVALID_CHARACTER) {                        \
+    if (character == TKZ_INVALID_CHARACTER) {                           \
         SET_ERR(PCHVML_ERROR_INVALID_UTF8_CHARACTER);                   \
         return NULL;                                                    \
     }                                                                   \
@@ -210,7 +209,7 @@ next_state:                                                             \
         pchvml_token_done(parser->token);                                   \
         struct pchvml_token* token = parser->token;                         \
         parser->token = NULL;                                               \
-        pchvml_rwswrap_reconsume_last_char(parser->rwswrap);                \
+        tkz_reader_reconsume_last_char(parser->reader);                \
         parser->last_token_type = pchvml_token_get_type(token);             \
         return token;                                                       \
     } while (false)
@@ -1730,8 +1729,8 @@ BEGIN_STATE(TKZ_STATE_SPECIAL_ATTRIBUTE_OPERATOR_AFTER_ATTRIBUTE_NAME)
         ADVANCE_TO(TKZ_STATE_BEFORE_ATTRIBUTE_VALUE);
     }
     if (pchvml_buffer_equal_to(parser->temp_buffer, "$", 1)) {
-        pchvml_rwswrap_reconsume_last_char(parser->rwswrap);
-        pchvml_rwswrap_reconsume_last_char(parser->rwswrap);
+        tkz_reader_reconsume_last_char(parser->reader);
+        tkz_reader_reconsume_last_char(parser->reader);
         ADVANCE_TO(TKZ_STATE_BEFORE_ATTRIBUTE_VALUE);
     }
     if (character == '>'
@@ -1780,7 +1779,7 @@ BEGIN_STATE(TKZ_STATE_TEXT_CONTENT)
                 struct pchvml_token* next_token = pchvml_token_new_vcm(node);
                 pchvml_token_set_is_whitespace(next_token, true);
                 parser->nr_whitespace = 0;
-                pchvml_rwswrap_reconsume_last_char(parser->rwswrap);
+                tkz_reader_reconsume_last_char(parser->reader);
                 RETURN_MULTIPLE_AND_SWITCH_TO(
                         token, next_token, TKZ_STATE_DATA);
             }
@@ -1808,16 +1807,16 @@ BEGIN_STATE(TKZ_STATE_TEXT_CONTENT)
             parser->nr_whitespace = 0;
             if (!IS_TEMP_BUFFER_EMPTY()) {
                 if (pchvml_buffer_equal_to(parser->temp_buffer, "{", 1)) {
-                    pchvml_rwswrap_reconsume_last_char(parser->rwswrap);
-                    pchvml_rwswrap_reconsume_last_char(parser->rwswrap);
+                    tkz_reader_reconsume_last_char(parser->reader);
+                    tkz_reader_reconsume_last_char(parser->reader);
                     RESET_VCM_NODE();
                     SET_TRANSIT_STATE(TKZ_STATE_TEXT_CONTENT);
                     ADVANCE_TO(TKZ_STATE_EJSON_DATA);
                 }
                 if (pchvml_buffer_equal_to(parser->temp_buffer, "{{", 2)) {
-                    pchvml_rwswrap_reconsume_last_char(parser->rwswrap);
-                    pchvml_rwswrap_reconsume_last_char(parser->rwswrap);
-                    pchvml_rwswrap_reconsume_last_char(parser->rwswrap);
+                    tkz_reader_reconsume_last_char(parser->reader);
+                    tkz_reader_reconsume_last_char(parser->reader);
+                    tkz_reader_reconsume_last_char(parser->reader);
                     RESET_VCM_NODE();
                     SET_TRANSIT_STATE(TKZ_STATE_TEXT_CONTENT);
                     ADVANCE_TO(TKZ_STATE_EJSON_DATA);
@@ -2893,8 +2892,8 @@ BEGIN_STATE(TKZ_STATE_EJSON_VALUE_DOUBLE_QUOTED)
         ejson_stack_push('"');
         if (!pchvml_buffer_is_empty(parser->temp_buffer)) {
             if (pchvml_buffer_end_with(parser->temp_buffer, "{", 1)) {
-                pchvml_rwswrap_reconsume_last_char(parser->rwswrap);
-                pchvml_rwswrap_reconsume_last_char(parser->rwswrap);
+                tkz_reader_reconsume_last_char(parser->reader);
+                tkz_reader_reconsume_last_char(parser->reader);
                 pchvml_buffer_delete_tail_chars(parser->temp_buffer, 1);
                 if (!pchvml_buffer_is_empty(parser->temp_buffer)) {
                     struct pcvcm_node* node = pcvcm_node_new_string(
@@ -2904,9 +2903,9 @@ BEGIN_STATE(TKZ_STATE_EJSON_VALUE_DOUBLE_QUOTED)
                 }
             }
             else if (pchvml_buffer_end_with(parser->temp_buffer, "{{", 2)) {
-                pchvml_rwswrap_reconsume_last_char(parser->rwswrap);
-                pchvml_rwswrap_reconsume_last_char(parser->rwswrap);
-                pchvml_rwswrap_reconsume_last_char(parser->rwswrap);
+                tkz_reader_reconsume_last_char(parser->reader);
+                tkz_reader_reconsume_last_char(parser->reader);
+                tkz_reader_reconsume_last_char(parser->reader);
                 pchvml_buffer_delete_tail_chars(parser->temp_buffer, 2);
                 if (!pchvml_buffer_is_empty(parser->temp_buffer)) {
                     struct pcvcm_node* node = pcvcm_node_new_string(
@@ -2916,7 +2915,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_VALUE_DOUBLE_QUOTED)
                 }
             }
             else {
-                pchvml_rwswrap_reconsume_last_char(parser->rwswrap);
+                tkz_reader_reconsume_last_char(parser->reader);
                 struct pcvcm_node* node = pcvcm_node_new_string(
                         pchvml_buffer_get_buffer(parser->temp_buffer)
                         );
