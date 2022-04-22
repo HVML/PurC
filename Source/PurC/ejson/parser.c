@@ -214,59 +214,59 @@
 enum tokenizer_state {
     FIRST_STATE = 0,
 
-    EJSON_DATA_STATE = FIRST_STATE,
-    EJSON_FINISHED_STATE,
-    EJSON_CONTROL_STATE,
-    EJSON_LEFT_BRACE_STATE,
-    EJSON_RIGHT_BRACE_STATE,
-    EJSON_LEFT_BRACKET_STATE,
-    EJSON_RIGHT_BRACKET_STATE,
-    EJSON_LEFT_PARENTHESIS_STATE,
-    EJSON_RIGHT_PARENTHESIS_STATE,
-    EJSON_DOLLAR_STATE,
-    EJSON_AFTER_VALUE_STATE,
-    EJSON_BEFORE_NAME_STATE,
-    EJSON_AFTER_NAME_STATE,
-    EJSON_NAME_UNQUOTED_STATE,
-    EJSON_NAME_SINGLE_QUOTED_STATE,
-    EJSON_NAME_DOUBLE_QUOTED_STATE,
-    EJSON_VALUE_SINGLE_QUOTED_STATE,
-    EJSON_VALUE_DOUBLE_QUOTED_STATE,
-    EJSON_AFTER_VALUE_DOUBLE_QUOTED_STATE,
-    EJSON_VALUE_TWO_DOUBLE_QUOTED_STATE,
-    EJSON_VALUE_THREE_DOUBLE_QUOTED_STATE,
-    EJSON_KEYWORD_STATE,
-    EJSON_AFTER_KEYWORD_STATE,
-    EJSON_BYTE_SEQUENCE_STATE,
-    EJSON_AFTER_BYTE_SEQUENCE_STATE,
-    EJSON_HEX_BYTE_SEQUENCE_STATE,
-    EJSON_BINARY_BYTE_SEQUENCE_STATE,
-    EJSON_BASE64_BYTE_SEQUENCE_STATE,
-    EJSON_VALUE_NUMBER_STATE,
-    EJSON_AFTER_VALUE_NUMBER_STATE,
-    EJSON_VALUE_NUMBER_INTEGER_STATE,
-    EJSON_VALUE_NUMBER_FRACTION_STATE,
-    EJSON_VALUE_NUMBER_EXPONENT_STATE,
-    EJSON_VALUE_NUMBER_EXPONENT_INTEGER_STATE,
-    EJSON_VALUE_NUMBER_SUFFIX_INTEGER_STATE,
-    EJSON_VALUE_NUMBER_HEX_STATE,
+    TKZ_STATE_EJSON_DATA = FIRST_STATE,
+    TKZ_STATE_EJSON_FINISHED,
+    TKZ_STATE_EJSON_CONTROL,
+    TKZ_STATE_EJSON_LEFT_BRACE,
+    TKZ_STATE_EJSON_RIGHT_BRACE,
+    TKZ_STATE_EJSON_LEFT_BRACKET,
+    TKZ_STATE_EJSON_RIGHT_BRACKET,
+    TKZ_STATE_EJSON_LEFT_PARENTHESIS,
+    TKZ_STATE_EJSON_RIGHT_PARENTHESIS,
+    TKZ_STATE_EJSON_DOLLAR,
+    TKZ_STATE_EJSON_AFTER_VALUE,
+    TKZ_STATE_EJSON_BEFORE_NAME,
+    TKZ_STATE_EJSON_AFTER_NAME,
+    TKZ_STATE_EJSON_NAME_UNQUOTED,
+    TKZ_STATE_EJSON_NAME_SINGLE_QUOTED,
+    TKZ_STATE_EJSON_NAME_DOUBLE_QUOTED,
+    TKZ_STATE_EJSON_VALUE_SINGLE_QUOTED,
+    TKZ_STATE_EJSON_VALUE_DOUBLE_QUOTED,
+    TKZ_STATE_EJSON_AFTER_VALUE_DOUBLE_QUOTED,
+    TKZ_STATE_EJSON_VALUE_TWO_DOUBLE_QUOTED,
+    TKZ_STATE_EJSON_VALUE_THREE_DOUBLE_QUOTED,
+    TKZ_STATE_EJSON_KEYWORD,
+    TKZ_STATE_EJSON_AFTER_KEYWORD,
+    TKZ_STATE_EJSON_BYTE_SEQUENCE,
+    TKZ_STATE_EJSON_AFTER_BYTE_SEQUENCE,
+    TKZ_STATE_EJSON_HEX_BYTE_SEQUENCE,
+    TKZ_STATE_EJSON_BINARY_BYTE_SEQUENCE,
+    TKZ_STATE_EJSON_BASE64_BYTE_SEQUENCE,
+    TKZ_STATE_EJSON_VALUE_NUMBER,
+    TKZ_STATE_EJSON_AFTER_VALUE_NUMBER,
+    TKZ_STATE_EJSON_VALUE_NUMBER_INTEGER,
+    TKZ_STATE_EJSON_VALUE_NUMBER_FRACTION,
+    TKZ_STATE_EJSON_VALUE_NUMBER_EXPONENT,
+    TKZ_STATE_EJSON_VALUE_NUMBER_EXPONENT_INTEGER,
+    TKZ_STATE_EJSON_VALUE_NUMBER_SUFFIX_INTEGER,
+    TKZ_STATE_EJSON_VALUE_NUMBER_HEX,
     EJSON_VALUE_NUMBER_HEX_SUFFIX_ISTATE,
-    EJSON_AFTER_VALUE_NUMBER_HEX_STATE,
-    EJSON_VALUE_NUMBER_INFINITY_STATE,
-    EJSON_VALUE_NAN_STATE,
-    EJSON_STRING_ESCAPE_STATE,
-    EJSON_STRING_ESCAPE_FOUR_HEXADECIMAL_DIGITS_STATE,
-    EJSON_JSONEE_VARIABLE_STATE,
-    EJSON_JSONEE_FULL_STOP_SIGN_STATE,
-    EJSON_JSONEE_KEYWORD_STATE,
-    EJSON_JSONEE_STRING_STATE,
-    EJSON_AFTER_JSONEE_STRING_STATE,
-    EJSON_AMPERSAND_STATE,
-    EJSON_OR_SIGN_STATE,
-    EJSON_SEMICOLON_STATE,
-    EJSON_CJSONEE_FINISHED_STATE,
+    TKZ_STATE_EJSON_AFTER_VALUE_NUMBER_HEX,
+    TKZ_STATE_EJSON_VALUE_NUMBER_INFINITY,
+    TKZ_STATE_EJSON_VALUE_NAN,
+    TKZ_STATE_EJSON_STRING_ESCAPE,
+    TKZ_STATE_EJSON_STRING_ESCAPE_FOUR_HEXADECIMAL_DIGITS,
+    TKZ_STATE_EJSON_JSONEE_VARIABLE,
+    TKZ_STATE_EJSON_JSONEE_FULL_STOP_SIGN,
+    TKZ_STATE_EJSON_JSONEE_KEYWORD,
+    TKZ_STATE_EJSON_JSONEE_STRING,
+    TKZ_STATE_EJSON_AFTER_JSONEE_STRING,
+    TKZ_STATE_EJSON_AMPERSAND,
+    TKZ_STATE_EJSON_OR_SIGN,
+    TKZ_STATE_EJSON_SEMICOLON,
+    TKZ_STATE_EJSON_CJSONEE_FINISHED,
 
-    LAST_STATE = EJSON_AFTER_JSONEE_STRING_STATE,
+    LAST_STATE = TKZ_STATE_EJSON_CJSONEE_FINISHED,
 };
 
 struct ucwrap {
@@ -1100,18 +1100,18 @@ next_state:                                                                 \
 #if 1
 PCEJSON_PARSER_BEGIN
 
-BEGIN_STATE(EJSON_DATA_STATE)
+BEGIN_STATE(TKZ_STATE_EJSON_DATA)
     if (is_eof(character)) {
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_EOF);
         RETURN_AND_STOP_PARSE();
     }
     if (is_whitespace (character) || character == 0xFEFF) {
-        ADVANCE_TO(EJSON_DATA_STATE);
+        ADVANCE_TO(TKZ_STATE_EJSON_DATA);
     }
-    RECONSUME_IN(EJSON_CONTROL_STATE);
+    RECONSUME_IN(TKZ_STATE_EJSON_CONTROL);
 END_STATE()
 
-BEGIN_STATE(EJSON_FINISHED_STATE)
+BEGIN_STATE(TKZ_STATE_EJSON_FINISHED)
     if (!is_eof(character) && !is_whitespace(character)) {
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
         RETURN_AND_STOP_PARSE();
@@ -1133,104 +1133,104 @@ BEGIN_STATE(EJSON_FINISHED_STATE)
     return 0;
 END_STATE()
 
-BEGIN_STATE(EJSON_CONTROL_STATE)
+BEGIN_STATE(TKZ_STATE_EJSON_CONTROL)
     uint32_t uc = ejson_stack_top();
     if (is_whitespace(character)) {
         if (ejson_stack_is_empty()) {
-            RECONSUME_IN(EJSON_FINISHED_STATE);
+            RECONSUME_IN(TKZ_STATE_EJSON_FINISHED);
         }
         if (uc == '"' || uc == '\'' || uc == 'U') {
-            RECONSUME_IN(EJSON_AFTER_JSONEE_STRING_STATE);
+            RECONSUME_IN(TKZ_STATE_EJSON_AFTER_JSONEE_STRING);
         }
-        ADVANCE_TO(EJSON_CONTROL_STATE);
+        ADVANCE_TO(TKZ_STATE_EJSON_CONTROL);
     }
     if (character == '{') {
-        RECONSUME_IN(EJSON_LEFT_BRACE_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_LEFT_BRACE);
     }
     if (character == '}') {
         if ((parser->vcm_node->type == PCVCM_NODE_TYPE_FUNC_CONCAT_STRING)
                 && (uc == '"' || uc == '\'' || uc == 'U')) {
-            RECONSUME_IN(EJSON_AFTER_JSONEE_STRING_STATE);
+            RECONSUME_IN(TKZ_STATE_EJSON_AFTER_JSONEE_STRING);
         }
-        RECONSUME_IN(EJSON_RIGHT_BRACE_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_RIGHT_BRACE);
     }
     if (character == '[') {
-        RECONSUME_IN(EJSON_LEFT_BRACKET_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_LEFT_BRACKET);
     }
     if (character == ']') {
         if (parser->vcm_node != NULL && parser->vcm_node->type ==
                 PCVCM_NODE_TYPE_FUNC_CONCAT_STRING
                 && (uc == '"' || uc == '\'' || uc == 'U')) {
-            RECONSUME_IN(EJSON_AFTER_JSONEE_STRING_STATE);
+            RECONSUME_IN(TKZ_STATE_EJSON_AFTER_JSONEE_STRING);
         }
-        RECONSUME_IN(EJSON_RIGHT_BRACKET_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_RIGHT_BRACKET);
     }
     if (character == '<' || character == '>') {
-        RECONSUME_IN(EJSON_FINISHED_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_FINISHED);
     }
     if (character == '/') {
         if (ejson_stack_is_empty() && parser->vcm_node) {
-            RECONSUME_IN(EJSON_FINISHED_STATE);
+            RECONSUME_IN(TKZ_STATE_EJSON_FINISHED);
         }
     }
     if (character == '(') {
-        ADVANCE_TO(EJSON_LEFT_PARENTHESIS_STATE);
+        ADVANCE_TO(TKZ_STATE_EJSON_LEFT_PARENTHESIS);
     }
     if (character == ')') {
         if (ejson_stack_is_empty() && parser->vcm_node) {
-            RECONSUME_IN(EJSON_FINISHED_STATE);
+            RECONSUME_IN(TKZ_STATE_EJSON_FINISHED);
         }
         if (uc == '"' || uc == '\'' || uc == 'U') {
-            RECONSUME_IN(EJSON_AFTER_JSONEE_STRING_STATE);
+            RECONSUME_IN(TKZ_STATE_EJSON_AFTER_JSONEE_STRING);
         }
         pcejson_dec_depth(parser);
-        ADVANCE_TO(EJSON_RIGHT_PARENTHESIS_STATE);
+        ADVANCE_TO(TKZ_STATE_EJSON_RIGHT_PARENTHESIS);
     }
     if (character == '$') {
-        RECONSUME_IN(EJSON_DOLLAR_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_DOLLAR);
     }
     if (character == '"') {
         if (ejson_stack_is_empty() && parser->vcm_node) {
-            RECONSUME_IN(EJSON_FINISHED_STATE);
+            RECONSUME_IN(TKZ_STATE_EJSON_FINISHED);
         }
         if (uc == '"') {
-            RECONSUME_IN(EJSON_AFTER_JSONEE_STRING_STATE);
+            RECONSUME_IN(TKZ_STATE_EJSON_AFTER_JSONEE_STRING);
         }
         else {
             RESET_TEMP_BUFFER();
             RESET_QUOTED_COUNTER();
-            RECONSUME_IN(EJSON_VALUE_DOUBLE_QUOTED_STATE);
+            RECONSUME_IN(TKZ_STATE_EJSON_VALUE_DOUBLE_QUOTED);
         }
     }
     if (character == '\'') {
         RESET_TEMP_BUFFER();
         RESET_QUOTED_COUNTER();
-        RECONSUME_IN(EJSON_VALUE_SINGLE_QUOTED_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_VALUE_SINGLE_QUOTED);
     }
     if (character == 'b') {
         RESET_TEMP_BUFFER();
-        RECONSUME_IN(EJSON_BYTE_SEQUENCE_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_BYTE_SEQUENCE);
     }
     if (character == 't' || character == 'f' || character == 'n'
             || character == 'u') {
         RESET_TEMP_BUFFER();
-        RECONSUME_IN(EJSON_KEYWORD_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_KEYWORD);
     }
     if (character == 'I') {
         RESET_TEMP_BUFFER();
-        RECONSUME_IN(EJSON_VALUE_NUMBER_INFINITY_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_VALUE_NUMBER_INFINITY);
     }
     if (character == 'N') {
         RESET_TEMP_BUFFER();
-        RECONSUME_IN(EJSON_VALUE_NAN_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_VALUE_NAN);
     }
     if (is_ascii_digit(character) || character == '-') {
         RESET_TEMP_BUFFER();
-        RECONSUME_IN(EJSON_VALUE_NUMBER_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_VALUE_NUMBER);
     }
     if (is_eof(character)) {
         if (parser->vcm_node) {
-            RECONSUME_IN(EJSON_FINISHED_STATE);
+            RECONSUME_IN(TKZ_STATE_EJSON_FINISHED);
         }
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_EOF);
         RETURN_AND_STOP_PARSE();
@@ -1238,10 +1238,10 @@ BEGIN_STATE(EJSON_CONTROL_STATE)
     if (character == ',') {
         if (uc == '{') {
             ejson_stack_pop();
-            ADVANCE_TO(EJSON_BEFORE_NAME_STATE);
+            ADVANCE_TO(TKZ_STATE_EJSON_BEFORE_NAME);
         }
         if (uc == '[' || uc == '(' || uc == '<') {
-            ADVANCE_TO(EJSON_CONTROL_STATE);
+            ADVANCE_TO(TKZ_STATE_EJSON_CONTROL);
         }
         if (uc == ':') {
             ejson_stack_pop();
@@ -1255,16 +1255,16 @@ BEGIN_STATE(EJSON_CONTROL_STATE)
                     parser->vcm_node->type != PCVCM_NODE_TYPE_OBJECT) {
                 POP_AS_VCM_PARENT_AND_UPDATE_VCM();
             }
-            ADVANCE_TO(EJSON_BEFORE_NAME_STATE);
+            ADVANCE_TO(TKZ_STATE_EJSON_BEFORE_NAME);
         }
         if (uc == '"') {
-            RECONSUME_IN(EJSON_JSONEE_STRING_STATE);
+            RECONSUME_IN(TKZ_STATE_EJSON_JSONEE_STRING);
         }
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
         RETURN_AND_STOP_PARSE();
     }
     if (character == '.') {
-        RECONSUME_IN(EJSON_JSONEE_FULL_STOP_SIGN_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_JSONEE_FULL_STOP_SIGN);
     }
     if (uc == '[') {
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
@@ -1272,15 +1272,15 @@ BEGIN_STATE(EJSON_CONTROL_STATE)
     }
     if (character == '&') {
         RESET_TEMP_BUFFER();
-        RECONSUME_IN(EJSON_AMPERSAND_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_AMPERSAND);
     }
     if (character == '|') {
         RESET_TEMP_BUFFER();
-        RECONSUME_IN(EJSON_OR_SIGN_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_OR_SIGN);
     }
     if (character == ';') {
         RESET_TEMP_BUFFER();
-        RECONSUME_IN(EJSON_SEMICOLON_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_SEMICOLON);
     }
     if (parser->vcm_node != NULL && (parser->vcm_node->type ==
             PCVCM_NODE_TYPE_FUNC_GET_VARIABLE ||
@@ -1289,19 +1289,19 @@ BEGIN_STATE(EJSON_CONTROL_STATE)
         size_t n = pctree_node_children_number(
                 (struct pctree_node*)parser->vcm_node);
         if (n < 2) {
-            RECONSUME_IN(EJSON_JSONEE_VARIABLE_STATE);
+            RECONSUME_IN(TKZ_STATE_EJSON_JSONEE_VARIABLE);
         }
         else {
             POP_AS_VCM_PARENT_AND_UPDATE_VCM();
         }
     }
     if (ejson_stack_is_empty() && parser->vcm_node) {
-        RECONSUME_IN(EJSON_FINISHED_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_FINISHED);
     }
-    RECONSUME_IN(EJSON_JSONEE_STRING_STATE);
+    RECONSUME_IN(TKZ_STATE_EJSON_JSONEE_STRING);
 END_STATE()
 
-BEGIN_STATE(EJSON_DOLLAR_STATE)
+BEGIN_STATE(TKZ_STATE_EJSON_DOLLAR)
     if (is_whitespace(character)) {
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
         RETURN_AND_STOP_PARSE();
@@ -1317,18 +1317,18 @@ BEGIN_STATE(EJSON_DOLLAR_STATE)
         ejson_stack_push('$');
         struct pcvcm_node *snode = pcvcm_node_new_get_variable(NULL);
         UPDATE_VCM_NODE(snode);
-        ADVANCE_TO(EJSON_DOLLAR_STATE);
+        ADVANCE_TO(TKZ_STATE_EJSON_DOLLAR);
     }
     if (character == '{') {
         ejson_stack_push('P');
         RESET_TEMP_BUFFER();
-        ADVANCE_TO(EJSON_JSONEE_VARIABLE_STATE);
+        ADVANCE_TO(TKZ_STATE_EJSON_JSONEE_VARIABLE);
     }
     RESET_TEMP_BUFFER();
-    RECONSUME_IN(EJSON_JSONEE_VARIABLE_STATE);
+    RECONSUME_IN(TKZ_STATE_EJSON_JSONEE_VARIABLE);
 END_STATE()
 
-BEGIN_STATE(EJSON_JSONEE_FULL_STOP_SIGN_STATE)
+BEGIN_STATE(TKZ_STATE_EJSON_JSONEE_FULL_STOP_SIGN)
     if (character == '.' &&
         (parser->vcm_node->type ==
                 PCVCM_NODE_TYPE_FUNC_GET_VARIABLE ||
@@ -1344,19 +1344,19 @@ BEGIN_STATE(EJSON_JSONEE_FULL_STOP_SIGN_STATE)
                 NULL);
         APPEND_CHILD(node, parser->vcm_node);
         UPDATE_VCM_NODE(node);
-        ADVANCE_TO(EJSON_JSONEE_KEYWORD_STATE);
+        ADVANCE_TO(TKZ_STATE_EJSON_JSONEE_KEYWORD);
     }
     SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
     RETURN_AND_STOP_PARSE();
 END_STATE()
 
-BEGIN_STATE(EJSON_LEFT_BRACE_STATE)
+BEGIN_STATE(TKZ_STATE_EJSON_LEFT_BRACE)
     if (character == '{') {
         ejson_stack_push('P');
-        ADVANCE_TO(EJSON_LEFT_BRACE_STATE);
+        ADVANCE_TO(TKZ_STATE_EJSON_LEFT_BRACE);
     }
     if (character == '$') {
-        RECONSUME_IN(EJSON_DOLLAR_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_DOLLAR);
     }
     uint32_t uc = ejson_stack_top();
     if (is_whitespace(character)) {
@@ -1371,7 +1371,7 @@ BEGIN_STATE(EJSON_LEFT_BRACE_STATE)
                 }
                 struct pcvcm_node *node = pcvcm_node_new_cjsonee();
                 UPDATE_VCM_NODE(node);
-                ADVANCE_TO(EJSON_CONTROL_STATE);
+                ADVANCE_TO(TKZ_STATE_EJSON_CONTROL);
             }
             else {
                 if (!pcejson_inc_depth(parser)) {
@@ -1384,7 +1384,7 @@ BEGIN_STATE(EJSON_LEFT_BRACE_STATE)
                 }
                 struct pcvcm_node *node = pcvcm_node_new_object(0, NULL);
                 UPDATE_VCM_NODE(node);
-                RECONSUME_IN(EJSON_BEFORE_NAME_STATE);
+                RECONSUME_IN(TKZ_STATE_EJSON_BEFORE_NAME);
             }
         }
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
@@ -1402,16 +1402,16 @@ BEGIN_STATE(EJSON_LEFT_BRACE_STATE)
         }
         struct pcvcm_node *node = pcvcm_node_new_object(0, NULL);
         UPDATE_VCM_NODE(node);
-        RECONSUME_IN(EJSON_BEFORE_NAME_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_BEFORE_NAME);
     }
     SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
     RETURN_AND_STOP_PARSE();
 END_STATE()
 
-BEGIN_STATE(EJSON_RIGHT_BRACE_STATE)
+BEGIN_STATE(TKZ_STATE_EJSON_RIGHT_BRACE)
     if (is_eof(character)) {
         if (parser->vcm_node) {
-            RECONSUME_IN(EJSON_FINISHED_STATE);
+            RECONSUME_IN(TKZ_STATE_EJSON_FINISHED);
         }
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_EOF);
         RETURN_AND_STOP_PARSE();
@@ -1420,7 +1420,7 @@ BEGIN_STATE(EJSON_RIGHT_BRACE_STATE)
     if (character == '}') {
         if (uc == 'C') {
             RESET_TEMP_BUFFER();
-            RECONSUME_IN(EJSON_CJSONEE_FINISHED_STATE);
+            RECONSUME_IN(TKZ_STATE_EJSON_CJSONEE_FINISHED);
         }
         if (uc == ':') {
             ejson_stack_pop();
@@ -1431,9 +1431,9 @@ BEGIN_STATE(EJSON_RIGHT_BRACE_STATE)
             pcejson_dec_depth(parser);
             POP_AS_VCM_PARENT_AND_UPDATE_VCM();
             if (ejson_stack_is_empty()) {
-                ADVANCE_TO(EJSON_FINISHED_STATE);
+                ADVANCE_TO(TKZ_STATE_EJSON_FINISHED);
             }
-            ADVANCE_TO(EJSON_AFTER_VALUE_STATE);
+            ADVANCE_TO(TKZ_STATE_EJSON_AFTER_VALUE);
         }
         else if (uc == 'P') {
             ejson_stack_pop();
@@ -1446,28 +1446,28 @@ BEGIN_STATE(EJSON_RIGHT_BRACE_STATE)
             // FIXME : <update from="assets/{$SYSTEM.locale}.json" />
             POP_AS_VCM_PARENT_AND_UPDATE_VCM();
             if (ejson_stack_is_empty()) {
-                ADVANCE_TO(EJSON_FINISHED_STATE);
+                ADVANCE_TO(TKZ_STATE_EJSON_FINISHED);
             }
-            ADVANCE_TO(EJSON_RIGHT_BRACE_STATE);
+            ADVANCE_TO(TKZ_STATE_EJSON_RIGHT_BRACE);
         }
         else if (uc == '(' || uc == '<' || uc == '"') {
-            ADVANCE_TO(EJSON_CONTROL_STATE);
+            ADVANCE_TO(TKZ_STATE_EJSON_CONTROL);
         }
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_RIGHT_BRACE);
         RETURN_AND_STOP_PARSE();
     }
     if (uc == '"') {
-        RECONSUME_IN(EJSON_JSONEE_STRING_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_JSONEE_STRING);
     }
     if (is_whitespace(character)) {
-        ADVANCE_TO(EJSON_RIGHT_BRACE_STATE);
+        ADVANCE_TO(TKZ_STATE_EJSON_RIGHT_BRACE);
     }
     if (character == ':') {
         if (uc == '{') {
             POP_AS_VCM_PARENT_AND_UPDATE_VCM();
             vcm_stack_push(parser->vcm_node);
             RESET_VCM_NODE();
-            ADVANCE_TO(EJSON_CONTROL_STATE);
+            ADVANCE_TO(TKZ_STATE_EJSON_CONTROL);
         }
         if (uc == 'P') {
             ejson_stack_pop();
@@ -1476,7 +1476,7 @@ BEGIN_STATE(EJSON_RIGHT_BRACE_STATE)
             APPEND_CHILD(node, parser->vcm_node);
             vcm_stack_push(node);
             RESET_VCM_NODE();
-            ADVANCE_TO(EJSON_CONTROL_STATE);
+            ADVANCE_TO(TKZ_STATE_EJSON_CONTROL);
         }
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
         RETURN_AND_STOP_PARSE();
@@ -1487,10 +1487,10 @@ BEGIN_STATE(EJSON_RIGHT_BRACE_STATE)
         POP_AS_VCM_PARENT_AND_UPDATE_VCM();
     }
 #endif
-    RECONSUME_IN(EJSON_CONTROL_STATE);
+    RECONSUME_IN(TKZ_STATE_EJSON_CONTROL);
 END_STATE()
 
-BEGIN_STATE(EJSON_LEFT_BRACKET_STATE)
+BEGIN_STATE(TKZ_STATE_EJSON_LEFT_BRACKET)
     if (character == '[') {
         if (parser->vcm_node && ejson_stack_is_empty()) {
             ejson_stack_push('[');
@@ -1498,7 +1498,7 @@ BEGIN_STATE(EJSON_LEFT_BRACKET_STATE)
                     NULL);
             APPEND_CHILD(node, parser->vcm_node);
             UPDATE_VCM_NODE(node);
-            ADVANCE_TO(EJSON_CONTROL_STATE);
+            ADVANCE_TO(TKZ_STATE_EJSON_CONTROL);
         }
         if (parser->vcm_node && (parser->vcm_node->type ==
                 PCVCM_NODE_TYPE_FUNC_GET_VARIABLE ||
@@ -1509,7 +1509,7 @@ BEGIN_STATE(EJSON_LEFT_BRACKET_STATE)
                     NULL);
             APPEND_CHILD(node, parser->vcm_node);
             UPDATE_VCM_NODE(node);
-            ADVANCE_TO(EJSON_CONTROL_STATE);
+            ADVANCE_TO(TKZ_STATE_EJSON_CONTROL);
         }
         uint32_t uc = ejson_stack_top();
         if (uc == '(' || uc == '<' || uc == '[' || uc == ':' || uc == 0
@@ -1524,7 +1524,7 @@ BEGIN_STATE(EJSON_LEFT_BRACKET_STATE)
             }
             struct pcvcm_node *node = pcvcm_node_new_array(0, NULL);
             UPDATE_VCM_NODE(node);
-            ADVANCE_TO(EJSON_CONTROL_STATE);
+            ADVANCE_TO(TKZ_STATE_EJSON_CONTROL);
         }
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
         RETURN_AND_STOP_PARSE();
@@ -1537,9 +1537,9 @@ BEGIN_STATE(EJSON_LEFT_BRACKET_STATE)
     RETURN_AND_STOP_PARSE();
 END_STATE()
 
-BEGIN_STATE(EJSON_RIGHT_BRACKET_STATE)
+BEGIN_STATE(TKZ_STATE_EJSON_RIGHT_BRACKET)
     if (is_whitespace(character)) {
-        ADVANCE_TO(EJSON_RIGHT_BRACKET_STATE);
+        ADVANCE_TO(TKZ_STATE_EJSON_RIGHT_BRACKET);
     }
     if (is_eof(character)) {
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_EOF);
@@ -1551,10 +1551,10 @@ BEGIN_STATE(EJSON_RIGHT_BRACKET_STATE)
             ejson_stack_pop();
             uc = ejson_stack_top();
             if (uc == '"' || uc == 'U') {
-                ADVANCE_TO(EJSON_AFTER_VALUE_STATE);
+                ADVANCE_TO(TKZ_STATE_EJSON_AFTER_VALUE);
             }
             POP_AS_VCM_PARENT_AND_UPDATE_VCM();
-            ADVANCE_TO(EJSON_AFTER_VALUE_STATE);
+            ADVANCE_TO(TKZ_STATE_EJSON_AFTER_VALUE);
         }
         if (uc == '[') {
             ejson_stack_pop();
@@ -1567,25 +1567,25 @@ BEGIN_STATE(EJSON_RIGHT_BRACKET_STATE)
             }
 #if 0
             if (ejson_stack_is_empty()) {
-                ADVANCE_TO(EJSON_FINISHED_STATE);
+                ADVANCE_TO(TKZ_STATE_EJSON_FINISHED);
             }
 #endif
-            ADVANCE_TO(EJSON_AFTER_VALUE_STATE);
+            ADVANCE_TO(TKZ_STATE_EJSON_AFTER_VALUE);
         }
         if (uc == '"') {
-            RECONSUME_IN(EJSON_JSONEE_STRING_STATE);
+            RECONSUME_IN(TKZ_STATE_EJSON_JSONEE_STRING);
         }
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_RIGHT_BRACKET);
         RETURN_AND_STOP_PARSE();
     }
     if (ejson_stack_is_empty()
             || uc == '(' || uc == '<') {
-        RECONSUME_IN(EJSON_CONTROL_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_CONTROL);
     }
-    ADVANCE_TO(EJSON_CONTROL_STATE);
+    ADVANCE_TO(TKZ_STATE_EJSON_CONTROL);
 END_STATE()
 
-BEGIN_STATE(EJSON_LEFT_PARENTHESIS_STATE)
+BEGIN_STATE(TKZ_STATE_EJSON_LEFT_PARENTHESIS)
     if (is_eof(character)) {
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_EOF);
         RETURN_AND_STOP_PARSE();
@@ -1600,7 +1600,7 @@ BEGIN_STATE(EJSON_LEFT_PARENTHESIS_STATE)
             APPEND_CHILD(node, parser->vcm_node);
             UPDATE_VCM_NODE(node);
             ejson_stack_push('<');
-            ADVANCE_TO(EJSON_CONTROL_STATE);
+            ADVANCE_TO(TKZ_STATE_EJSON_CONTROL);
         }
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
         RETURN_AND_STOP_PARSE();
@@ -1618,27 +1618,27 @@ BEGIN_STATE(EJSON_LEFT_PARENTHESIS_STATE)
         APPEND_CHILD(node, parser->vcm_node);
         UPDATE_VCM_NODE(node);
         ejson_stack_push('(');
-        RECONSUME_IN(EJSON_CONTROL_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_CONTROL);
     }
     if (ejson_stack_is_empty()) {
-        RECONSUME_IN(EJSON_FINISHED_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_FINISHED);
     }
     SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
     RETURN_AND_STOP_PARSE();
 END_STATE()
 
-BEGIN_STATE(EJSON_RIGHT_PARENTHESIS_STATE)
+BEGIN_STATE(TKZ_STATE_EJSON_RIGHT_PARENTHESIS)
     uint32_t uc = ejson_stack_top();
     if (character == '.') {
         if (uc == '(' || uc == '<') {
             ejson_stack_pop();
-            RECONSUME_IN(EJSON_CONTROL_STATE);
+            RECONSUME_IN(TKZ_STATE_EJSON_CONTROL);
         }
         if (ejson_stack_is_empty()) {
             SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
             RETURN_AND_STOP_PARSE();
         }
-        RECONSUME_IN(EJSON_CONTROL_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_CONTROL);
     }
     else {
         if (uc == '(' || uc == '<') {
@@ -1646,26 +1646,26 @@ BEGIN_STATE(EJSON_RIGHT_PARENTHESIS_STATE)
             if (!vcm_stack_is_empty()) {
                 POP_AS_VCM_PARENT_AND_UPDATE_VCM();
             }
-            RECONSUME_IN(EJSON_CONTROL_STATE);
+            RECONSUME_IN(TKZ_STATE_EJSON_CONTROL);
         }
         if (ejson_stack_is_empty()) {
             SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
             RETURN_AND_STOP_PARSE();
         }
-        RECONSUME_IN(EJSON_CONTROL_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_CONTROL);
     }
 END_STATE()
 
-BEGIN_STATE(EJSON_AFTER_VALUE_STATE)
+BEGIN_STATE(TKZ_STATE_EJSON_AFTER_VALUE)
     uint32_t uc = ejson_stack_top();
     if (is_whitespace(character)) {
         if (ejson_stack_is_empty() || uc  == 'U' || uc == '"' || uc == 'T') {
-            RECONSUME_IN(EJSON_CONTROL_STATE);
+            RECONSUME_IN(TKZ_STATE_EJSON_CONTROL);
         }
-        ADVANCE_TO(EJSON_AFTER_VALUE_STATE);
+        ADVANCE_TO(TKZ_STATE_EJSON_AFTER_VALUE);
     }
     if (is_eof(character) && ejson_stack_is_empty()) {
-        RECONSUME_IN(EJSON_FINISHED_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_FINISHED);
     }
     if (character == '"' || character == '\'') {
         if (!uc_buffer_is_empty(parser->temp_buffer)) {
@@ -1677,25 +1677,25 @@ BEGIN_STATE(EJSON_AFTER_VALUE_STATE)
         if (uc == '"' || uc == '\'') {
             ejson_stack_pop();
             if (ejson_stack_is_empty()) {
-                ADVANCE_TO(EJSON_FINISHED_STATE);
+                ADVANCE_TO(TKZ_STATE_EJSON_FINISHED);
             }
         }
-        ADVANCE_TO(EJSON_AFTER_VALUE_STATE);
+        ADVANCE_TO(TKZ_STATE_EJSON_AFTER_VALUE);
     }
     if (character == '}') {
-        RECONSUME_IN(EJSON_RIGHT_BRACE_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_RIGHT_BRACE);
     }
     if (character == ']') {
-        RECONSUME_IN(EJSON_RIGHT_BRACKET_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_RIGHT_BRACKET);
     }
     if (character == ')') {
         pcejson_dec_depth(parser);
-        ADVANCE_TO(EJSON_RIGHT_PARENTHESIS_STATE);
+        ADVANCE_TO(TKZ_STATE_EJSON_RIGHT_PARENTHESIS);
     }
     if (character == ',') {
         if (uc == '{') {
             ejson_stack_pop();
-            ADVANCE_TO(EJSON_BEFORE_NAME_STATE);
+            ADVANCE_TO(TKZ_STATE_EJSON_BEFORE_NAME);
         }
         if (uc == '[') {
             if (!uc_buffer_is_empty(parser->temp_buffer)) {
@@ -1708,10 +1708,10 @@ BEGIN_STATE(EJSON_AFTER_VALUE_STATE)
                     parser->vcm_node->type != PCVCM_NODE_TYPE_ARRAY) {
                 POP_AS_VCM_PARENT_AND_UPDATE_VCM();
             }
-            ADVANCE_TO(EJSON_CONTROL_STATE);
+            ADVANCE_TO(TKZ_STATE_EJSON_CONTROL);
         }
         if (uc == '(' || uc == '<') {
-            ADVANCE_TO(EJSON_CONTROL_STATE);
+            ADVANCE_TO(TKZ_STATE_EJSON_CONTROL);
         }
         if (uc == ':') {
             ejson_stack_pop();
@@ -1725,32 +1725,32 @@ BEGIN_STATE(EJSON_AFTER_VALUE_STATE)
                     parser->vcm_node->type != PCVCM_NODE_TYPE_OBJECT) {
                 POP_AS_VCM_PARENT_AND_UPDATE_VCM();
             }
-            ADVANCE_TO(EJSON_BEFORE_NAME_STATE);
+            ADVANCE_TO(TKZ_STATE_EJSON_BEFORE_NAME);
         }
         // FIXME
         if (ejson_stack_is_empty() && parser->vcm_node) {
             parser->prev_separator = 0;
-            RECONSUME_IN(EJSON_FINISHED_STATE);
+            RECONSUME_IN(TKZ_STATE_EJSON_FINISHED);
         }
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
         RETURN_AND_STOP_PARSE();
     }
     if (character == '<' || character == '.') {
-        RECONSUME_IN(EJSON_CONTROL_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_CONTROL);
     }
     if (character == ';' || character == '|' || character == '&') {
-        RECONSUME_IN(EJSON_CONTROL_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_CONTROL);
     }
     if (uc == '"' || uc  == 'U') {
-        RECONSUME_IN(EJSON_CONTROL_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_CONTROL);
     }
     SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
     RETURN_AND_STOP_PARSE();
 END_STATE()
 
-BEGIN_STATE(EJSON_BEFORE_NAME_STATE)
+BEGIN_STATE(TKZ_STATE_EJSON_BEFORE_NAME)
     if (is_whitespace(character)) {
-        ADVANCE_TO(EJSON_BEFORE_NAME_STATE);
+        ADVANCE_TO(TKZ_STATE_EJSON_BEFORE_NAME);
     }
     uint32_t uc = ejson_stack_top();
     if (character == '"') {
@@ -1759,35 +1759,35 @@ BEGIN_STATE(EJSON_BEFORE_NAME_STATE)
         if (uc == '{') {
             ejson_stack_push(':');
         }
-        RECONSUME_IN(EJSON_NAME_DOUBLE_QUOTED_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_NAME_DOUBLE_QUOTED);
     }
     if (character == '\'') {
         RESET_TEMP_BUFFER();
         if (uc == '{') {
             ejson_stack_push(':');
         }
-        RECONSUME_IN(EJSON_NAME_SINGLE_QUOTED_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_NAME_SINGLE_QUOTED);
     }
     if (character == '}') {
-        RECONSUME_IN(EJSON_RIGHT_BRACE_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_RIGHT_BRACE);
     }
     if (character == '$') {
-        RECONSUME_IN(EJSON_CONTROL_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_CONTROL);
     }
     if (is_ascii_alpha(character)) {
         RESET_TEMP_BUFFER();
         if (uc == '{') {
             ejson_stack_push(':');
         }
-        RECONSUME_IN(EJSON_NAME_UNQUOTED_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_NAME_UNQUOTED);
     }
     SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
     RETURN_AND_STOP_PARSE();
 END_STATE()
 
-BEGIN_STATE(EJSON_AFTER_NAME_STATE)
+BEGIN_STATE(TKZ_STATE_EJSON_AFTER_NAME)
     if (is_whitespace(character)) {
-        ADVANCE_TO(EJSON_AFTER_NAME_STATE);
+        ADVANCE_TO(TKZ_STATE_EJSON_AFTER_NAME);
     }
     if (character == ':') {
         if (!uc_buffer_is_empty(parser->temp_buffer)) {
@@ -1795,20 +1795,20 @@ BEGIN_STATE(EJSON_AFTER_NAME_STATE)
                 uc_buffer_get_bytes(parser->temp_buffer));
             APPEND_AS_VCM_CHILD(node);
         }
-        ADVANCE_TO(EJSON_CONTROL_STATE);
+        ADVANCE_TO(TKZ_STATE_EJSON_CONTROL);
     }
     SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
     RETURN_AND_STOP_PARSE();
 END_STATE()
 
-BEGIN_STATE(EJSON_NAME_UNQUOTED_STATE)
+BEGIN_STATE(TKZ_STATE_EJSON_NAME_UNQUOTED)
     if (is_whitespace(character) || character == ':') {
-        RECONSUME_IN(EJSON_AFTER_NAME_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_AFTER_NAME);
     }
     if (is_ascii_alpha(character) || is_ascii_digit(character)
             || character == '-' || character == '_') {
         APPEND_TO_TEMP_BUFFER(character);
-        ADVANCE_TO(EJSON_NAME_UNQUOTED_STATE);
+        ADVANCE_TO(TKZ_STATE_EJSON_NAME_UNQUOTED);
     }
     if (character == '$') {
         if (parser->vcm_node) {
@@ -1825,56 +1825,56 @@ BEGIN_STATE(EJSON_NAME_UNQUOTED_STATE)
             APPEND_AS_VCM_CHILD(node);
             RESET_TEMP_BUFFER();
         }
-        RECONSUME_IN(EJSON_CONTROL_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_CONTROL);
     }
     SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
     RETURN_AND_STOP_PARSE();
 END_STATE()
 
-BEGIN_STATE(EJSON_NAME_SINGLE_QUOTED_STATE)
+BEGIN_STATE(TKZ_STATE_EJSON_NAME_SINGLE_QUOTED)
     if (character == '\'') {
         size_t nr_buf_chars = uc_buffer_get_size_in_chars(
                 parser->temp_buffer);
         if (nr_buf_chars >= 1) {
-            ADVANCE_TO(EJSON_AFTER_NAME_STATE);
+            ADVANCE_TO(TKZ_STATE_EJSON_AFTER_NAME);
         }
         else {
-            ADVANCE_TO(EJSON_NAME_SINGLE_QUOTED_STATE);
+            ADVANCE_TO(TKZ_STATE_EJSON_NAME_SINGLE_QUOTED);
         }
     }
     if (character == '\\') {
-        SET_RETURN_STATE(EJSON_NAME_SINGLE_QUOTED_STATE);
-        ADVANCE_TO(EJSON_STRING_ESCAPE_STATE);
+        SET_RETURN_STATE(TKZ_STATE_EJSON_NAME_SINGLE_QUOTED);
+        ADVANCE_TO(TKZ_STATE_EJSON_STRING_ESCAPE);
     }
     if (is_eof(character)) {
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_EOF);
         RETURN_AND_STOP_PARSE();
     }
     APPEND_TO_TEMP_BUFFER(character);
-    ADVANCE_TO(EJSON_NAME_SINGLE_QUOTED_STATE);
+    ADVANCE_TO(TKZ_STATE_EJSON_NAME_SINGLE_QUOTED);
 END_STATE()
 
-BEGIN_STATE(EJSON_NAME_DOUBLE_QUOTED_STATE)
+BEGIN_STATE(TKZ_STATE_EJSON_NAME_DOUBLE_QUOTED)
     if (character == '"') {
         size_t nr_buf_chars = uc_buffer_get_size_in_chars(
                 parser->temp_buffer);
         if (nr_buf_chars > 1) {
             uc_buffer_delete_head_chars (parser->temp_buffer, 1);
-            ADVANCE_TO(EJSON_AFTER_NAME_STATE);
+            ADVANCE_TO(TKZ_STATE_EJSON_AFTER_NAME);
         }
         else if (nr_buf_chars == 1) {
             RESET_TEMP_BUFFER();
             RESTORE_VCM_NODE();
             struct pcvcm_node *node = pcvcm_node_new_string ("");
             APPEND_AS_VCM_CHILD(node);
-            ADVANCE_TO(EJSON_AFTER_NAME_STATE);
+            ADVANCE_TO(TKZ_STATE_EJSON_AFTER_NAME);
         }
         APPEND_TO_TEMP_BUFFER(character);
-        ADVANCE_TO(EJSON_NAME_DOUBLE_QUOTED_STATE);
+        ADVANCE_TO(TKZ_STATE_EJSON_NAME_DOUBLE_QUOTED);
     }
     if (character == '\\') {
         SET_RETURN_STATE(curr_state);
-        ADVANCE_TO(EJSON_STRING_ESCAPE_STATE);
+        ADVANCE_TO(TKZ_STATE_EJSON_STRING_ESCAPE);
     }
     if (is_eof(character)) {
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_EOF);
@@ -1895,13 +1895,13 @@ BEGIN_STATE(EJSON_NAME_DOUBLE_QUOTED_STATE)
             APPEND_AS_VCM_CHILD(node);
             RESET_TEMP_BUFFER();
         }
-        RECONSUME_IN(EJSON_CONTROL_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_CONTROL);
     }
     APPEND_TO_TEMP_BUFFER(character);
-    ADVANCE_TO(EJSON_NAME_DOUBLE_QUOTED_STATE);
+    ADVANCE_TO(TKZ_STATE_EJSON_NAME_DOUBLE_QUOTED);
 END_STATE()
 
-BEGIN_STATE(EJSON_VALUE_SINGLE_QUOTED_STATE)
+BEGIN_STATE(TKZ_STATE_EJSON_VALUE_SINGLE_QUOTED)
     if (character == '\'') {
         parser->nr_quoted++;
         size_t nr_buf_chars = uc_buffer_get_size_in_chars(
@@ -1914,38 +1914,38 @@ BEGIN_STATE(EJSON_VALUE_SINGLE_QUOTED_STATE)
             APPEND_AS_VCM_CHILD(node);
             RESET_TEMP_BUFFER();
             RESET_QUOTED_COUNTER();
-            RECONSUME_IN(EJSON_AFTER_VALUE_STATE);
+            RECONSUME_IN(TKZ_STATE_EJSON_AFTER_VALUE);
         }
         else {
-            ADVANCE_TO(EJSON_VALUE_SINGLE_QUOTED_STATE);
+            ADVANCE_TO(TKZ_STATE_EJSON_VALUE_SINGLE_QUOTED);
         }
     }
     if (character == '\\') {
         SET_RETURN_STATE(curr_state);
-        ADVANCE_TO(EJSON_STRING_ESCAPE_STATE);
+        ADVANCE_TO(TKZ_STATE_EJSON_STRING_ESCAPE);
     }
     if (is_eof(character)) {
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_EOF);
         RETURN_AND_STOP_PARSE();
     }
     APPEND_TO_TEMP_BUFFER(character);
-    ADVANCE_TO(EJSON_VALUE_SINGLE_QUOTED_STATE);
+    ADVANCE_TO(TKZ_STATE_EJSON_VALUE_SINGLE_QUOTED);
 END_STATE()
 
-BEGIN_STATE(EJSON_VALUE_DOUBLE_QUOTED_STATE)
+BEGIN_STATE(TKZ_STATE_EJSON_VALUE_DOUBLE_QUOTED)
     if (character == '"') {
         if (parser->nr_quoted == 0) {
             parser->nr_quoted++;
-            ADVANCE_TO(EJSON_VALUE_DOUBLE_QUOTED_STATE);
+            ADVANCE_TO(TKZ_STATE_EJSON_VALUE_DOUBLE_QUOTED);
         }
         else if (parser->nr_quoted == 1) {
-            RECONSUME_IN(EJSON_VALUE_TWO_DOUBLE_QUOTED_STATE);
+            RECONSUME_IN(TKZ_STATE_EJSON_VALUE_TWO_DOUBLE_QUOTED);
         }
-        RECONSUME_IN(EJSON_AFTER_VALUE_DOUBLE_QUOTED_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_AFTER_VALUE_DOUBLE_QUOTED);
     }
     if (character == '\\') {
         SET_RETURN_STATE(curr_state);
-        ADVANCE_TO(EJSON_STRING_ESCAPE_STATE);
+        ADVANCE_TO(TKZ_STATE_EJSON_STRING_ESCAPE);
     }
     if (is_eof(character)) {
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_EOF);
@@ -1991,31 +1991,31 @@ BEGIN_STATE(EJSON_VALUE_DOUBLE_QUOTED_STATE)
                 APPEND_AS_VCM_CHILD(node);
             }
             RESET_TEMP_BUFFER();
-            ADVANCE_TO(EJSON_CONTROL_STATE);
+            ADVANCE_TO(TKZ_STATE_EJSON_CONTROL);
         }
-        RECONSUME_IN(EJSON_CONTROL_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_CONTROL);
     }
     APPEND_TO_TEMP_BUFFER(character);
-    ADVANCE_TO(EJSON_VALUE_DOUBLE_QUOTED_STATE);
+    ADVANCE_TO(TKZ_STATE_EJSON_VALUE_DOUBLE_QUOTED);
 END_STATE()
 
-BEGIN_STATE(EJSON_AFTER_VALUE_DOUBLE_QUOTED_STATE)
+BEGIN_STATE(TKZ_STATE_EJSON_AFTER_VALUE_DOUBLE_QUOTED)
     if (character == '\"') {
         RESET_QUOTED_COUNTER();
-        RECONSUME_IN(EJSON_AFTER_VALUE_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_AFTER_VALUE);
     }
     SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
     RETURN_AND_STOP_PARSE();
 END_STATE()
 
-BEGIN_STATE(EJSON_VALUE_TWO_DOUBLE_QUOTED_STATE)
+BEGIN_STATE(TKZ_STATE_EJSON_VALUE_TWO_DOUBLE_QUOTED)
     if (character == '"') {
         if (parser->nr_quoted == 1) {
             parser->nr_quoted++;
-            ADVANCE_TO(EJSON_VALUE_TWO_DOUBLE_QUOTED_STATE);
+            ADVANCE_TO(TKZ_STATE_EJSON_VALUE_TWO_DOUBLE_QUOTED);
         }
         else if (parser->nr_quoted == 2) {
-            RECONSUME_IN(EJSON_VALUE_THREE_DOUBLE_QUOTED_STATE);
+            RECONSUME_IN(TKZ_STATE_EJSON_VALUE_THREE_DOUBLE_QUOTED);
         }
     }
     RESTORE_VCM_NODE();
@@ -2025,10 +2025,10 @@ BEGIN_STATE(EJSON_VALUE_TWO_DOUBLE_QUOTED_STATE)
     APPEND_AS_VCM_CHILD(node);
     RESET_TEMP_BUFFER();
     RESET_QUOTED_COUNTER();
-    RECONSUME_IN(EJSON_AFTER_VALUE_STATE);
+    RECONSUME_IN(TKZ_STATE_EJSON_AFTER_VALUE);
 END_STATE()
 
-BEGIN_STATE(EJSON_VALUE_THREE_DOUBLE_QUOTED_STATE)
+BEGIN_STATE(TKZ_STATE_EJSON_VALUE_THREE_DOUBLE_QUOTED)
     if (character == '\"') {
         parser->nr_quoted++;
         if (parser->nr_quoted > 3) {
@@ -2045,23 +2045,23 @@ BEGIN_STATE(EJSON_VALUE_THREE_DOUBLE_QUOTED_STATE)
             APPEND_AS_VCM_CHILD(node);
             RESET_TEMP_BUFFER();
             RESET_QUOTED_COUNTER();
-            ADVANCE_TO(EJSON_AFTER_VALUE_STATE);
+            ADVANCE_TO(TKZ_STATE_EJSON_AFTER_VALUE);
         }
-        ADVANCE_TO(EJSON_VALUE_THREE_DOUBLE_QUOTED_STATE);
+        ADVANCE_TO(TKZ_STATE_EJSON_VALUE_THREE_DOUBLE_QUOTED);
     }
     if (is_eof(character)) {
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_EOF);
         RETURN_AND_STOP_PARSE();
     }
     APPEND_TO_TEMP_BUFFER(character);
-    ADVANCE_TO(EJSON_VALUE_THREE_DOUBLE_QUOTED_STATE);
+    ADVANCE_TO(TKZ_STATE_EJSON_VALUE_THREE_DOUBLE_QUOTED);
 END_STATE()
 
-BEGIN_STATE(EJSON_KEYWORD_STATE)
+BEGIN_STATE(TKZ_STATE_EJSON_KEYWORD)
     if (is_whitespace(character) || character == '}'
             || character == ']' || character == ','
             || character == ')') {
-        RECONSUME_IN(EJSON_AFTER_KEYWORD_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_AFTER_KEYWORD);
     }
     if (character == '$') {
         if (parser->vcm_node) {
@@ -2078,7 +2078,7 @@ BEGIN_STATE(EJSON_KEYWORD_STATE)
             APPEND_AS_VCM_CHILD(node);
             RESET_TEMP_BUFFER();
         }
-        RECONSUME_IN(EJSON_CONTROL_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_CONTROL);
     }
     if (parser->sbst == NULL) {
         parser->sbst = pchvml_sbst_new_ejson_keywords();
@@ -2093,22 +2093,22 @@ BEGIN_STATE(EJSON_KEYWORD_STATE)
 
     const char* value = pchvml_sbst_get_match(parser->sbst);
     if (value == NULL) {
-        ADVANCE_TO(EJSON_KEYWORD_STATE);
+        ADVANCE_TO(TKZ_STATE_EJSON_KEYWORD);
     }
     else {
         APPEND_BYTES_TO_TEMP_BUFFER(value, strlen(value));
         pchvml_sbst_destroy(parser->sbst);
         parser->sbst = NULL;
-        ADVANCE_TO(EJSON_AFTER_KEYWORD_STATE);
+        ADVANCE_TO(TKZ_STATE_EJSON_AFTER_KEYWORD);
     }
     if (is_eof(character)) {
-        RECONSUME_IN(EJSON_AFTER_KEYWORD_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_AFTER_KEYWORD);
     }
     SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
     RETURN_AND_STOP_PARSE();
 END_STATE()
 
-BEGIN_STATE(EJSON_AFTER_KEYWORD_STATE)
+BEGIN_STATE(TKZ_STATE_EJSON_AFTER_KEYWORD)
     if (is_whitespace(character) || character == '}'
             || character == ']' || character == ','
             || character == ')' || character == ';' || character == '&'
@@ -2118,7 +2118,7 @@ BEGIN_STATE(EJSON_AFTER_KEYWORD_STATE)
             struct pcvcm_node *node = pcvcm_node_new_boolean(true);
             APPEND_AS_VCM_CHILD(node);
             RESET_TEMP_BUFFER();
-            RECONSUME_IN(EJSON_AFTER_VALUE_STATE);
+            RECONSUME_IN(TKZ_STATE_EJSON_AFTER_VALUE);
         }
         if (uc_buffer_equal_to(parser->temp_buffer, "false",
                     5)) {
@@ -2126,19 +2126,19 @@ BEGIN_STATE(EJSON_AFTER_KEYWORD_STATE)
             struct pcvcm_node *node = pcvcm_node_new_boolean(false);
             APPEND_AS_VCM_CHILD(node);
             RESET_TEMP_BUFFER();
-            RECONSUME_IN(EJSON_AFTER_VALUE_STATE);
+            RECONSUME_IN(TKZ_STATE_EJSON_AFTER_VALUE);
         }
         if (uc_buffer_equal_to(parser->temp_buffer, "null", 4)) {
             struct pcvcm_node *node = pcvcm_node_new_null();
             APPEND_AS_VCM_CHILD(node);
             RESET_TEMP_BUFFER();
-            RECONSUME_IN(EJSON_AFTER_VALUE_STATE);
+            RECONSUME_IN(TKZ_STATE_EJSON_AFTER_VALUE);
         }
         if (uc_buffer_equal_to(parser->temp_buffer, "undefined", 9)) {
             struct pcvcm_node *node = pcvcm_node_new_undefined();
             APPEND_AS_VCM_CHILD(node);
             RESET_TEMP_BUFFER();
-            RECONSUME_IN(EJSON_AFTER_VALUE_STATE);
+            RECONSUME_IN(TKZ_STATE_EJSON_AFTER_VALUE);
         }
         RESET_TEMP_BUFFER();
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
@@ -2149,22 +2149,22 @@ BEGIN_STATE(EJSON_AFTER_KEYWORD_STATE)
     RETURN_AND_STOP_PARSE();
 END_STATE()
 
-BEGIN_STATE(EJSON_BYTE_SEQUENCE_STATE)
+BEGIN_STATE(TKZ_STATE_EJSON_BYTE_SEQUENCE)
     if (character == 'b') {
         if (uc_buffer_is_empty(parser->temp_buffer)) {
             APPEND_TO_TEMP_BUFFER(character);
-            ADVANCE_TO(EJSON_BYTE_SEQUENCE_STATE);
+            ADVANCE_TO(TKZ_STATE_EJSON_BYTE_SEQUENCE);
         }
         APPEND_TO_TEMP_BUFFER(character);
-        ADVANCE_TO(EJSON_BINARY_BYTE_SEQUENCE_STATE);
+        ADVANCE_TO(TKZ_STATE_EJSON_BINARY_BYTE_SEQUENCE);
     }
     if (character == 'x') {
         APPEND_TO_TEMP_BUFFER(character);
-        ADVANCE_TO(EJSON_HEX_BYTE_SEQUENCE_STATE);
+        ADVANCE_TO(TKZ_STATE_EJSON_HEX_BYTE_SEQUENCE);
     }
     if (character == '6') {
         APPEND_TO_TEMP_BUFFER(character);
-        ADVANCE_TO(EJSON_BASE64_BYTE_SEQUENCE_STATE);
+        ADVANCE_TO(TKZ_STATE_EJSON_BASE64_BYTE_SEQUENCE);
     }
     if (character == '$') {
         if (parser->vcm_node) {
@@ -2181,13 +2181,13 @@ BEGIN_STATE(EJSON_BYTE_SEQUENCE_STATE)
             APPEND_AS_VCM_CHILD(node);
             RESET_TEMP_BUFFER();
         }
-        RECONSUME_IN(EJSON_CONTROL_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_CONTROL);
     }
     SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
     RETURN_AND_STOP_PARSE();
 END_STATE()
 
-BEGIN_STATE(EJSON_AFTER_BYTE_SEQUENCE_STATE)
+BEGIN_STATE(TKZ_STATE_EJSON_AFTER_BYTE_SEQUENCE)
     if (is_eof(character) || is_whitespace(character) || character == '}'
             || character == ']' || character == ',' || character == ')') {
         struct pcvcm_node *node = create_byte_sequenct(parser->temp_buffer);
@@ -2198,56 +2198,56 @@ BEGIN_STATE(EJSON_AFTER_BYTE_SEQUENCE_STATE)
         RESTORE_VCM_NODE();
         APPEND_AS_VCM_CHILD(node);
         RESET_TEMP_BUFFER();
-        RECONSUME_IN(EJSON_AFTER_VALUE_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_AFTER_VALUE);
     }
     SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
     RETURN_AND_STOP_PARSE();
 END_STATE()
 
-BEGIN_STATE(EJSON_HEX_BYTE_SEQUENCE_STATE)
+BEGIN_STATE(TKZ_STATE_EJSON_HEX_BYTE_SEQUENCE)
     if (is_eof(character) || is_whitespace(character) || character == '}'
             || character == ']' || character == ',' || character == ')') {
-        RECONSUME_IN(EJSON_AFTER_BYTE_SEQUENCE_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_AFTER_BYTE_SEQUENCE);
     }
     else if (is_ascii_digit(character)
             || is_ascii_hex_digit(character)) {
         APPEND_TO_TEMP_BUFFER(character);
-        ADVANCE_TO(EJSON_HEX_BYTE_SEQUENCE_STATE);
+        ADVANCE_TO(TKZ_STATE_EJSON_HEX_BYTE_SEQUENCE);
     }
     SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
     RETURN_AND_STOP_PARSE();
 END_STATE()
 
-BEGIN_STATE(EJSON_BINARY_BYTE_SEQUENCE_STATE)
+BEGIN_STATE(TKZ_STATE_EJSON_BINARY_BYTE_SEQUENCE)
     if (is_eof(character) || is_whitespace(character) || character == '}'
             || character == ']' || character == ',' || character == ')') {
-        RECONSUME_IN(EJSON_AFTER_BYTE_SEQUENCE_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_AFTER_BYTE_SEQUENCE);
     }
     else if (is_ascii_binary_digit(character)) {
         APPEND_TO_TEMP_BUFFER(character);
-        ADVANCE_TO(EJSON_BINARY_BYTE_SEQUENCE_STATE);
+        ADVANCE_TO(TKZ_STATE_EJSON_BINARY_BYTE_SEQUENCE);
     }
     if (character == '.') {
-        ADVANCE_TO(EJSON_BINARY_BYTE_SEQUENCE_STATE);
+        ADVANCE_TO(TKZ_STATE_EJSON_BINARY_BYTE_SEQUENCE);
     }
     SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
     RETURN_AND_STOP_PARSE();
 END_STATE()
 
-BEGIN_STATE(EJSON_BASE64_BYTE_SEQUENCE_STATE)
+BEGIN_STATE(TKZ_STATE_EJSON_BASE64_BYTE_SEQUENCE)
     if (is_eof(character) || is_whitespace(character) || character == '}'
             || character == ']' || character == ',' || character == ')') {
-        RECONSUME_IN(EJSON_AFTER_BYTE_SEQUENCE_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_AFTER_BYTE_SEQUENCE);
     }
     if (character == '=') {
         APPEND_TO_TEMP_BUFFER(character);
-        ADVANCE_TO(EJSON_BASE64_BYTE_SEQUENCE_STATE);
+        ADVANCE_TO(TKZ_STATE_EJSON_BASE64_BYTE_SEQUENCE);
     }
     if (is_ascii_digit(character) || is_ascii_alpha(character)
             || character == '+' || character == '-') {
         if (!uc_buffer_end_with(parser->temp_buffer, "=", 1)) {
             APPEND_TO_TEMP_BUFFER(character);
-            ADVANCE_TO(EJSON_BASE64_BYTE_SEQUENCE_STATE);
+            ADVANCE_TO(TKZ_STATE_EJSON_BASE64_BYTE_SEQUENCE);
         }
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_BASE64);
         RETURN_AND_STOP_PARSE();
@@ -2256,17 +2256,17 @@ BEGIN_STATE(EJSON_BASE64_BYTE_SEQUENCE_STATE)
     RETURN_AND_STOP_PARSE();
 END_STATE()
 
-BEGIN_STATE(EJSON_VALUE_NUMBER_STATE)
+BEGIN_STATE(TKZ_STATE_EJSON_VALUE_NUMBER)
     if (is_whitespace(character) || character == '}'
             || character == ']' || character == ',' || character == ')') {
-        RECONSUME_IN(EJSON_AFTER_VALUE_NUMBER_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_AFTER_VALUE_NUMBER);
     }
     if (is_ascii_digit(character)) {
-        RECONSUME_IN(EJSON_VALUE_NUMBER_INTEGER_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_VALUE_NUMBER_INTEGER);
     }
     if (character == '-') {
         APPEND_TO_TEMP_BUFFER(character);
-        ADVANCE_TO(EJSON_VALUE_NUMBER_INTEGER_STATE);
+        ADVANCE_TO(TKZ_STATE_EJSON_VALUE_NUMBER_INTEGER);
     }
     if (character == '$') {
         if (parser->vcm_node) {
@@ -2283,13 +2283,13 @@ BEGIN_STATE(EJSON_VALUE_NUMBER_STATE)
             APPEND_AS_VCM_CHILD(node);
             RESET_TEMP_BUFFER();
         }
-        RECONSUME_IN(EJSON_CONTROL_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_CONTROL);
     }
     SET_ERR(PCEJSON_ERROR_BAD_JSON_NUMBER);
     RETURN_AND_STOP_PARSE();
 END_STATE()
 
-BEGIN_STATE(EJSON_AFTER_VALUE_NUMBER_STATE)
+BEGIN_STATE(TKZ_STATE_EJSON_AFTER_VALUE_NUMBER)
     if (is_whitespace(character) || character == '}'
             || character == ']' || character == ',' || character == ')'
             || is_eof(character)) {
@@ -2305,58 +2305,58 @@ BEGIN_STATE(EJSON_AFTER_VALUE_NUMBER_STATE)
         struct pcvcm_node *node = pcvcm_node_new_number(d);
         APPEND_AS_VCM_CHILD(node);
         RESET_TEMP_BUFFER();
-        RECONSUME_IN(EJSON_AFTER_VALUE_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_AFTER_VALUE);
     }
     SET_ERR(PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER);
     RETURN_AND_STOP_PARSE();
 END_STATE()
 
-BEGIN_STATE(EJSON_VALUE_NUMBER_INTEGER_STATE)
+BEGIN_STATE(TKZ_STATE_EJSON_VALUE_NUMBER_INTEGER)
     if (is_whitespace(character) || character == '}'
             || character == ']' || character == ',' || character == ')') {
-        RECONSUME_IN(EJSON_AFTER_VALUE_NUMBER_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_AFTER_VALUE_NUMBER);
     }
     if (is_ascii_digit(character)) {
         APPEND_TO_TEMP_BUFFER(character);
-        ADVANCE_TO(EJSON_VALUE_NUMBER_INTEGER_STATE);
+        ADVANCE_TO(TKZ_STATE_EJSON_VALUE_NUMBER_INTEGER);
     }
     if (character == 'x') {
         if(uc_buffer_equal_to(parser->temp_buffer, "0", 1)) {
             RESET_TEMP_BUFFER();
-            ADVANCE_TO(EJSON_VALUE_NUMBER_HEX_STATE);
+            ADVANCE_TO(TKZ_STATE_EJSON_VALUE_NUMBER_HEX);
         }
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER_INTEGER);
         RETURN_AND_STOP_PARSE();
     }
     if (character == 'E' || character == 'e') {
         APPEND_TO_TEMP_BUFFER('e');
-        ADVANCE_TO(EJSON_VALUE_NUMBER_EXPONENT_STATE);
+        ADVANCE_TO(TKZ_STATE_EJSON_VALUE_NUMBER_EXPONENT);
     }
     if (character == '.' || character == 'F') {
         APPEND_TO_TEMP_BUFFER(character);
-        ADVANCE_TO(EJSON_VALUE_NUMBER_FRACTION_STATE);
+        ADVANCE_TO(TKZ_STATE_EJSON_VALUE_NUMBER_FRACTION);
     }
     if (character == 'U' || character == 'L') {
-        RECONSUME_IN(EJSON_VALUE_NUMBER_SUFFIX_INTEGER_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_VALUE_NUMBER_SUFFIX_INTEGER);
     }
     if (character == 'I' && (
                 uc_buffer_is_empty(parser->temp_buffer) ||
                 uc_buffer_equal_to(parser->temp_buffer, "-", 1)
                 )) {
-        RECONSUME_IN(EJSON_VALUE_NUMBER_INFINITY_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_VALUE_NUMBER_INFINITY);
     }
     if (is_eof(character)) {
-        ADVANCE_TO(EJSON_AFTER_VALUE_NUMBER_STATE);
+        ADVANCE_TO(TKZ_STATE_EJSON_AFTER_VALUE_NUMBER);
     }
     SET_ERR(PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER_INTEGER);
     RETURN_AND_STOP_PARSE();
 END_STATE()
 
-BEGIN_STATE(EJSON_VALUE_NUMBER_FRACTION_STATE)
+BEGIN_STATE(TKZ_STATE_EJSON_VALUE_NUMBER_FRACTION)
     if (is_whitespace(character) || character == '}'
             || character == ']' || character == ',' || character == ')'
             || is_eof(character)) {
-        RECONSUME_IN(EJSON_AFTER_VALUE_NUMBER_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_AFTER_VALUE_NUMBER);
     }
 
     if (is_ascii_digit(character)) {
@@ -2365,11 +2365,11 @@ BEGIN_STATE(EJSON_VALUE_NUMBER_FRACTION_STATE)
             RETURN_AND_STOP_PARSE();
         }
         APPEND_TO_TEMP_BUFFER(character);
-        ADVANCE_TO(EJSON_VALUE_NUMBER_FRACTION_STATE);
+        ADVANCE_TO(TKZ_STATE_EJSON_VALUE_NUMBER_FRACTION);
     }
     if (character == 'F') {
         APPEND_TO_TEMP_BUFFER(character);
-        ADVANCE_TO(EJSON_VALUE_NUMBER_FRACTION_STATE);
+        ADVANCE_TO(TKZ_STATE_EJSON_VALUE_NUMBER_FRACTION);
     }
     if (character == 'L') {
         if (uc_buffer_end_with(parser->temp_buffer, "F", 1)) {
@@ -2380,7 +2380,7 @@ BEGIN_STATE(EJSON_VALUE_NUMBER_FRACTION_STATE)
             struct pcvcm_node *node = pcvcm_node_new_longdouble(ld);
             APPEND_AS_VCM_CHILD(node);
             RESET_TEMP_BUFFER();
-            ADVANCE_TO(EJSON_AFTER_VALUE_STATE);
+            ADVANCE_TO(TKZ_STATE_EJSON_AFTER_VALUE);
         }
     }
     if (character == 'E' || character == 'e') {
@@ -2389,32 +2389,32 @@ BEGIN_STATE(EJSON_VALUE_NUMBER_FRACTION_STATE)
             RETURN_AND_STOP_PARSE();
         }
         APPEND_TO_TEMP_BUFFER('e');
-        ADVANCE_TO(EJSON_VALUE_NUMBER_EXPONENT_STATE);
+        ADVANCE_TO(TKZ_STATE_EJSON_VALUE_NUMBER_EXPONENT);
     }
     SET_ERR(PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER_FRACTION);
     RETURN_AND_STOP_PARSE();
 END_STATE()
 
-BEGIN_STATE(EJSON_VALUE_NUMBER_EXPONENT_STATE)
+BEGIN_STATE(TKZ_STATE_EJSON_VALUE_NUMBER_EXPONENT)
     if (is_whitespace(character) || character == '}'
             || character == ']' || character == ',' || character == ')') {
-        RECONSUME_IN(EJSON_AFTER_VALUE_NUMBER_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_AFTER_VALUE_NUMBER);
     }
     if (is_ascii_digit(character)) {
-        RECONSUME_IN(EJSON_VALUE_NUMBER_EXPONENT_INTEGER_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_VALUE_NUMBER_EXPONENT_INTEGER);
     }
     if (character == '+' || character == '-') {
         APPEND_TO_TEMP_BUFFER(character);
-        ADVANCE_TO(EJSON_VALUE_NUMBER_EXPONENT_INTEGER_STATE);
+        ADVANCE_TO(TKZ_STATE_EJSON_VALUE_NUMBER_EXPONENT_INTEGER);
     }
     SET_ERR(PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER_EXPONENT);
     RETURN_AND_STOP_PARSE();
 END_STATE()
 
-BEGIN_STATE(EJSON_VALUE_NUMBER_EXPONENT_INTEGER_STATE)
+BEGIN_STATE(TKZ_STATE_EJSON_VALUE_NUMBER_EXPONENT_INTEGER)
     if (is_whitespace(character) || character == '}'
             || character == ']' || character == ',' || character == ')') {
-        RECONSUME_IN(EJSON_AFTER_VALUE_NUMBER_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_AFTER_VALUE_NUMBER);
     }
     if (is_ascii_digit(character)) {
         if (uc_buffer_end_with(parser->temp_buffer, "F", 1)) {
@@ -2422,11 +2422,11 @@ BEGIN_STATE(EJSON_VALUE_NUMBER_EXPONENT_INTEGER_STATE)
             RETURN_AND_STOP_PARSE();
         }
         APPEND_TO_TEMP_BUFFER(character);
-        ADVANCE_TO(EJSON_VALUE_NUMBER_EXPONENT_INTEGER_STATE);
+        ADVANCE_TO(TKZ_STATE_EJSON_VALUE_NUMBER_EXPONENT_INTEGER);
     }
     if (character == 'F') {
         APPEND_TO_TEMP_BUFFER(character);
-        ADVANCE_TO(EJSON_VALUE_NUMBER_EXPONENT_INTEGER_STATE);
+        ADVANCE_TO(TKZ_STATE_EJSON_VALUE_NUMBER_EXPONENT_INTEGER);
     }
     if (character == 'L') {
         if (uc_buffer_end_with(parser->temp_buffer, "F", 1)) {
@@ -2437,24 +2437,24 @@ BEGIN_STATE(EJSON_VALUE_NUMBER_EXPONENT_INTEGER_STATE)
             struct pcvcm_node *node = pcvcm_node_new_longdouble(ld);
             APPEND_AS_VCM_CHILD(node);
             RESET_TEMP_BUFFER();
-            ADVANCE_TO(EJSON_AFTER_VALUE_NUMBER_STATE);
+            ADVANCE_TO(TKZ_STATE_EJSON_AFTER_VALUE_NUMBER);
         }
     }
     SET_ERR(PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER_EXPONENT);
     RETURN_AND_STOP_PARSE();
 END_STATE()
 
-BEGIN_STATE(EJSON_VALUE_NUMBER_SUFFIX_INTEGER_STATE)
+BEGIN_STATE(TKZ_STATE_EJSON_VALUE_NUMBER_SUFFIX_INTEGER)
     uint32_t last_c = uc_buffer_get_last_char(
             parser->temp_buffer);
     if (is_whitespace(character) || character == '}'
             || character == ']' || character == ',' || character == ')') {
-        RECONSUME_IN(EJSON_AFTER_VALUE_NUMBER_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_AFTER_VALUE_NUMBER);
     }
     if (character == 'U') {
         if (is_ascii_digit(last_c)) {
             APPEND_TO_TEMP_BUFFER(character);
-            ADVANCE_TO(EJSON_VALUE_NUMBER_SUFFIX_INTEGER_STATE);
+            ADVANCE_TO(TKZ_STATE_EJSON_VALUE_NUMBER_SUFFIX_INTEGER);
         }
     }
     if (character == 'L') {
@@ -2469,7 +2469,7 @@ BEGIN_STATE(EJSON_VALUE_NUMBER_SUFFIX_INTEGER_STATE)
                 struct pcvcm_node *node = pcvcm_node_new_ulongint(u64);
                 APPEND_AS_VCM_CHILD(node);
                 RESET_TEMP_BUFFER();
-                ADVANCE_TO(EJSON_AFTER_VALUE_STATE);
+                ADVANCE_TO(TKZ_STATE_EJSON_AFTER_VALUE);
             }
             else if (uc_buffer_end_with(parser->temp_buffer,
                         "L", 1)) {
@@ -2480,7 +2480,7 @@ BEGIN_STATE(EJSON_VALUE_NUMBER_SUFFIX_INTEGER_STATE)
                 struct pcvcm_node *node = pcvcm_node_new_longint(i64);
                 APPEND_AS_VCM_CHILD(node);
                 RESET_TEMP_BUFFER();
-                ADVANCE_TO(EJSON_AFTER_VALUE_STATE);
+                ADVANCE_TO(TKZ_STATE_EJSON_AFTER_VALUE);
             }
         }
     }
@@ -2488,14 +2488,14 @@ BEGIN_STATE(EJSON_VALUE_NUMBER_SUFFIX_INTEGER_STATE)
     RETURN_AND_STOP_PARSE();
 END_STATE()
 
-BEGIN_STATE(EJSON_VALUE_NUMBER_HEX_STATE)
+BEGIN_STATE(TKZ_STATE_EJSON_VALUE_NUMBER_HEX)
     if (is_whitespace(character) || character == '}'
             || character == ']' || character == ',' || character == ')') {
-        RECONSUME_IN(EJSON_AFTER_VALUE_NUMBER_HEX_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_AFTER_VALUE_NUMBER_HEX);
     }
     if (is_ascii_hex_digit(character)) {
         APPEND_TO_TEMP_BUFFER(character);
-        ADVANCE_TO(EJSON_VALUE_NUMBER_HEX_STATE);
+        ADVANCE_TO(TKZ_STATE_EJSON_VALUE_NUMBER_HEX);
     }
     if (character == 'U' || character == 'L') {
         RECONSUME_IN(EJSON_VALUE_NUMBER_HEX_SUFFIX_ISTATE);
@@ -2507,7 +2507,7 @@ END_STATE()
 BEGIN_STATE(EJSON_VALUE_NUMBER_HEX_SUFFIX_ISTATE)
     if (is_whitespace(character) || character == '}'
             || character == ']' || character == ',' || character == ')') {
-        RECONSUME_IN(EJSON_AFTER_VALUE_NUMBER_HEX_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_AFTER_VALUE_NUMBER_HEX);
     }
     uint32_t last_c = uc_buffer_get_last_char(parser->temp_buffer);
     if (character == 'U') {
@@ -2526,7 +2526,7 @@ BEGIN_STATE(EJSON_VALUE_NUMBER_HEX_SUFFIX_ISTATE)
     RETURN_AND_STOP_PARSE();
 END_STATE()
 
-BEGIN_STATE(EJSON_AFTER_VALUE_NUMBER_HEX_STATE)
+BEGIN_STATE(TKZ_STATE_EJSON_AFTER_VALUE_NUMBER_HEX)
     if (is_whitespace(character) || character == '}'
             || character == ']' || character == ',' || character == ')'
             || is_eof(character)) {
@@ -2539,7 +2539,7 @@ BEGIN_STATE(EJSON_AFTER_VALUE_NUMBER_HEX_STATE)
             struct pcvcm_node *node = pcvcm_node_new_ulongint(u64);
             APPEND_AS_VCM_CHILD(node);
             RESET_TEMP_BUFFER();
-            RECONSUME_IN(EJSON_AFTER_VALUE_STATE);
+            RECONSUME_IN(TKZ_STATE_EJSON_AFTER_VALUE);
         }
         else {
             int64_t i64 = strtoll (bytes, NULL, 16);
@@ -2547,14 +2547,14 @@ BEGIN_STATE(EJSON_AFTER_VALUE_NUMBER_HEX_STATE)
             struct pcvcm_node *node = pcvcm_node_new_longint(i64);
             APPEND_AS_VCM_CHILD(node);
             RESET_TEMP_BUFFER();
-            RECONSUME_IN(EJSON_AFTER_VALUE_STATE);
+            RECONSUME_IN(TKZ_STATE_EJSON_AFTER_VALUE);
         }
     }
     SET_ERR(PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER_INTEGER);
     RETURN_AND_STOP_PARSE();
 END_STATE()
 
-BEGIN_STATE(EJSON_VALUE_NUMBER_INFINITY_STATE)
+BEGIN_STATE(TKZ_STATE_EJSON_VALUE_NUMBER_INFINITY)
     if (is_whitespace(character) || character == '}'
             || character == ']' || character == ',' || character == ')') {
         if (uc_buffer_equal_to(parser->temp_buffer,
@@ -2564,7 +2564,7 @@ BEGIN_STATE(EJSON_VALUE_NUMBER_INFINITY_STATE)
             struct pcvcm_node *node = pcvcm_node_new_number(d);
             APPEND_AS_VCM_CHILD(node);
             RESET_TEMP_BUFFER();
-            RECONSUME_IN(EJSON_AFTER_VALUE_STATE);
+            RECONSUME_IN(TKZ_STATE_EJSON_AFTER_VALUE);
         }
         if (uc_buffer_equal_to(parser->temp_buffer,
                 "Infinity", 8)) {
@@ -2573,7 +2573,7 @@ BEGIN_STATE(EJSON_VALUE_NUMBER_INFINITY_STATE)
             struct pcvcm_node *node = pcvcm_node_new_number(d);
             APPEND_AS_VCM_CHILD(node);
             RESET_TEMP_BUFFER();
-            RECONSUME_IN(EJSON_AFTER_VALUE_STATE);
+            RECONSUME_IN(TKZ_STATE_EJSON_AFTER_VALUE);
         }
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER);
         RETURN_AND_STOP_PARSE();
@@ -2582,7 +2582,7 @@ BEGIN_STATE(EJSON_VALUE_NUMBER_INFINITY_STATE)
         if (uc_buffer_is_empty(parser->temp_buffer)
             || uc_buffer_equal_to(parser->temp_buffer, "-", 1)) {
             APPEND_TO_TEMP_BUFFER(character);
-            ADVANCE_TO(EJSON_VALUE_NUMBER_INFINITY_STATE);
+            ADVANCE_TO(TKZ_STATE_EJSON_VALUE_NUMBER_INFINITY);
         }
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER);
         RETURN_AND_STOP_PARSE();
@@ -2595,7 +2595,7 @@ BEGIN_STATE(EJSON_VALUE_NUMBER_INFINITY_STATE)
           || uc_buffer_equal_to(parser->temp_buffer, "-Infi", 5)
             ) {
             APPEND_TO_TEMP_BUFFER(character);
-            ADVANCE_TO(EJSON_VALUE_NUMBER_INFINITY_STATE);
+            ADVANCE_TO(TKZ_STATE_EJSON_VALUE_NUMBER_INFINITY);
         }
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER);
         RETURN_AND_STOP_PARSE();
@@ -2606,7 +2606,7 @@ BEGIN_STATE(EJSON_VALUE_NUMBER_INFINITY_STATE)
             || uc_buffer_equal_to (parser->temp_buffer, "-In", 3)
                 ) {
             APPEND_TO_TEMP_BUFFER(character);
-            ADVANCE_TO(EJSON_VALUE_NUMBER_INFINITY_STATE);
+            ADVANCE_TO(TKZ_STATE_EJSON_VALUE_NUMBER_INFINITY);
         }
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER);
         RETURN_AND_STOP_PARSE();
@@ -2619,7 +2619,7 @@ BEGIN_STATE(EJSON_VALUE_NUMBER_INFINITY_STATE)
          || uc_buffer_equal_to(parser->temp_buffer, "-Infin", 6)
          ) {
             APPEND_TO_TEMP_BUFFER(character);
-            ADVANCE_TO(EJSON_VALUE_NUMBER_INFINITY_STATE);
+            ADVANCE_TO(TKZ_STATE_EJSON_VALUE_NUMBER_INFINITY);
         }
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER);
         RETURN_AND_STOP_PARSE();
@@ -2631,7 +2631,7 @@ BEGIN_STATE(EJSON_VALUE_NUMBER_INFINITY_STATE)
                 "-Infini", 7)
                 ) {
             APPEND_TO_TEMP_BUFFER(character);
-            ADVANCE_TO(EJSON_VALUE_NUMBER_INFINITY_STATE);
+            ADVANCE_TO(TKZ_STATE_EJSON_VALUE_NUMBER_INFINITY);
         }
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER);
         RETURN_AND_STOP_PARSE();
@@ -2643,7 +2643,7 @@ BEGIN_STATE(EJSON_VALUE_NUMBER_INFINITY_STATE)
                "-Infinit", 8)
                 ) {
             APPEND_TO_TEMP_BUFFER(character);
-            ADVANCE_TO(EJSON_VALUE_NUMBER_INFINITY_STATE);
+            ADVANCE_TO(TKZ_STATE_EJSON_VALUE_NUMBER_INFINITY);
         }
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER);
         RETURN_AND_STOP_PARSE();
@@ -2653,7 +2653,7 @@ BEGIN_STATE(EJSON_VALUE_NUMBER_INFINITY_STATE)
     RETURN_AND_STOP_PARSE();
 END_STATE()
 
-BEGIN_STATE(EJSON_VALUE_NAN_STATE)
+BEGIN_STATE(TKZ_STATE_EJSON_VALUE_NAN)
     if (is_whitespace(character) || character == '}'
             || character == ']' || character == ',' || character == ')') {
         if (uc_buffer_equal_to(parser->temp_buffer, "NaN", 3)) {
@@ -2662,7 +2662,7 @@ BEGIN_STATE(EJSON_VALUE_NAN_STATE)
             struct pcvcm_node *node = pcvcm_node_new_number(d);
             APPEND_AS_VCM_CHILD(node);
             RESET_TEMP_BUFFER();
-            RECONSUME_IN(EJSON_AFTER_VALUE_STATE);
+            RECONSUME_IN(TKZ_STATE_EJSON_AFTER_VALUE);
         }
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER);
         RETURN_AND_STOP_PARSE();
@@ -2671,7 +2671,7 @@ BEGIN_STATE(EJSON_VALUE_NAN_STATE)
         if (uc_buffer_is_empty(parser->temp_buffer)
           || uc_buffer_equal_to(parser->temp_buffer, "Na", 2)) {
             APPEND_TO_TEMP_BUFFER(character);
-            ADVANCE_TO(EJSON_VALUE_NAN_STATE);
+            ADVANCE_TO(TKZ_STATE_EJSON_VALUE_NAN);
         }
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER);
         RETURN_AND_STOP_PARSE();
@@ -2680,7 +2680,7 @@ BEGIN_STATE(EJSON_VALUE_NAN_STATE)
     if (character == 'a') {
         if (uc_buffer_equal_to(parser->temp_buffer, "N", 1)) {
             APPEND_TO_TEMP_BUFFER(character);
-            ADVANCE_TO(EJSON_VALUE_NAN_STATE);
+            ADVANCE_TO(TKZ_STATE_EJSON_VALUE_NAN);
         }
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER);
         RETURN_AND_STOP_PARSE();
@@ -2690,7 +2690,7 @@ BEGIN_STATE(EJSON_VALUE_NAN_STATE)
     RETURN_AND_STOP_PARSE();
 END_STATE()
 
-BEGIN_STATE(EJSON_STRING_ESCAPE_STATE)
+BEGIN_STATE(TKZ_STATE_EJSON_STRING_ESCAPE)
     switch (character)
     {
         case 'b':
@@ -2716,7 +2716,7 @@ BEGIN_STATE(EJSON_STRING_ESCAPE_STATE)
         case 'u':
             RESET_STRING_BUFFER();
             ADVANCE_TO(
-              EJSON_STRING_ESCAPE_FOUR_HEXADECIMAL_DIGITS_STATE);
+              TKZ_STATE_EJSON_STRING_ESCAPE_FOUR_HEXADECIMAL_DIGITS);
             break;
         default:
             SET_ERR(PCEJSON_ERROR_BAD_JSON_STRING_ESCAPE_ENTITY);
@@ -2724,7 +2724,7 @@ BEGIN_STATE(EJSON_STRING_ESCAPE_STATE)
     }
 END_STATE()
 
-BEGIN_STATE(EJSON_STRING_ESCAPE_FOUR_HEXADECIMAL_DIGITS_STATE)
+BEGIN_STATE(TKZ_STATE_EJSON_STRING_ESCAPE_FOUR_HEXADECIMAL_DIGITS)
     if (is_ascii_hex_digit(character)) {
         APPEND_TO_STRING_BUFFER(character);
         size_t nr_chars = uc_buffer_get_size_in_chars(
@@ -2736,27 +2736,27 @@ BEGIN_STATE(EJSON_STRING_ESCAPE_FOUR_HEXADECIMAL_DIGITS_STATE)
             ADVANCE_TO(parser->return_state);
         }
         ADVANCE_TO(
-            EJSON_STRING_ESCAPE_FOUR_HEXADECIMAL_DIGITS_STATE);
+            TKZ_STATE_EJSON_STRING_ESCAPE_FOUR_HEXADECIMAL_DIGITS);
     }
     SET_ERR(PCEJSON_ERROR_BAD_JSON_STRING_ESCAPE_ENTITY);
     RETURN_AND_STOP_PARSE();
 END_STATE()
 
-BEGIN_STATE(EJSON_JSONEE_VARIABLE_STATE)
+BEGIN_STATE(TKZ_STATE_EJSON_JSONEE_VARIABLE)
     if (character == '"') {
         if (uc_buffer_is_empty(parser->temp_buffer)) {
-            RECONSUME_IN(EJSON_VALUE_DOUBLE_QUOTED_STATE);
+            RECONSUME_IN(TKZ_STATE_EJSON_VALUE_DOUBLE_QUOTED);
         }
     }
     if (character == '\'') {
         if (uc_buffer_is_empty(parser->temp_buffer)) {
             RESET_QUOTED_COUNTER();
-            RECONSUME_IN(EJSON_VALUE_SINGLE_QUOTED_STATE);
+            RECONSUME_IN(TKZ_STATE_EJSON_VALUE_SINGLE_QUOTED);
         }
     }
     if (character == '$') {
         if (uc_buffer_is_empty(parser->temp_buffer)) {
-            RECONSUME_IN(EJSON_CONTROL_STATE);
+            RECONSUME_IN(TKZ_STATE_EJSON_CONTROL);
         }
         if (parser->vcm_node) {
             vcm_stack_push(parser->vcm_node);
@@ -2773,15 +2773,15 @@ BEGIN_STATE(EJSON_JSONEE_VARIABLE_STATE)
         if (uc == '(' || uc == '<' || uc == '.' || uc == '"') {
             POP_AS_VCM_PARENT_AND_UPDATE_VCM();
         }
-        RECONSUME_IN(EJSON_CONTROL_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_CONTROL);
     }
     if (character == '_' || is_ascii_digit(character)) {
         APPEND_TO_TEMP_BUFFER(character);
-        ADVANCE_TO(EJSON_JSONEE_VARIABLE_STATE);
+        ADVANCE_TO(TKZ_STATE_EJSON_JSONEE_VARIABLE);
     }
     if (is_ascii_alpha(character) || character == '-') {
         APPEND_TO_TEMP_BUFFER(character);
-        ADVANCE_TO(EJSON_JSONEE_VARIABLE_STATE);
+        ADVANCE_TO(TKZ_STATE_EJSON_JSONEE_VARIABLE);
     }
     if (is_whitespace(character) || character == '}' || character == '"'
             || character == ']' || character == ')' || character == ';'
@@ -2805,7 +2805,7 @@ BEGIN_STATE(EJSON_JSONEE_VARIABLE_STATE)
         if (uc == '(' || uc == '<' || uc == '.' || uc == '"' || uc == 'T') {
             POP_AS_VCM_PARENT_AND_UPDATE_VCM();
         }
-        RECONSUME_IN(EJSON_CONTROL_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_CONTROL);
     }
     if (character == ',') {
         if (uc_buffer_is_empty(parser->temp_buffer)) {
@@ -2827,17 +2827,17 @@ BEGIN_STATE(EJSON_JSONEE_VARIABLE_STATE)
         if (uc == '(' || uc == '<') {
             POP_AS_VCM_PARENT_AND_UPDATE_VCM();
         }
-        RECONSUME_IN(EJSON_AFTER_VALUE_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_AFTER_VALUE);
     }
     if (character == ':') {
         if (uc_buffer_is_empty(parser->temp_buffer)
             || uc_buffer_is_int(parser->temp_buffer)) {
             APPEND_TO_TEMP_BUFFER(character);
-            ADVANCE_TO(EJSON_JSONEE_VARIABLE_STATE);
+            ADVANCE_TO(TKZ_STATE_EJSON_JSONEE_VARIABLE);
         }
         if (uc_buffer_is_empty(parser->temp_buffer)) {
             APPEND_TO_TEMP_BUFFER(character);
-            ADVANCE_TO(EJSON_JSONEE_VARIABLE_STATE);
+            ADVANCE_TO(TKZ_STATE_EJSON_JSONEE_VARIABLE);
         }
         if (parser->vcm_node) {
             vcm_stack_push(parser->vcm_node);
@@ -2863,15 +2863,15 @@ BEGIN_STATE(EJSON_JSONEE_VARIABLE_STATE)
             UPDATE_VCM_NODE(node);
         }
         if (ejson_stack_is_empty()) {
-            RECONSUME_IN(EJSON_FINISHED_STATE);
+            RECONSUME_IN(TKZ_STATE_EJSON_FINISHED);
         }
-        ADVANCE_TO(EJSON_CONTROL_STATE);
+        ADVANCE_TO(TKZ_STATE_EJSON_CONTROL);
     }
     if (is_context_variable(character)) {
         if (uc_buffer_is_empty(parser->temp_buffer)
             || uc_buffer_is_int(parser->temp_buffer)) {
             APPEND_TO_TEMP_BUFFER(character);
-            ADVANCE_TO(EJSON_JSONEE_VARIABLE_STATE);
+            ADVANCE_TO(TKZ_STATE_EJSON_JSONEE_VARIABLE);
         }
     }
     if (character == '[' || character == '(') {
@@ -2890,7 +2890,7 @@ BEGIN_STATE(EJSON_JSONEE_VARIABLE_STATE)
             ejson_stack_pop();
             POP_AS_VCM_PARENT_AND_UPDATE_VCM();
         }
-        RECONSUME_IN(EJSON_CONTROL_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_CONTROL);
     }
     if (character == '<' || character == '>') {
         // FIXME
@@ -2908,7 +2908,7 @@ BEGIN_STATE(EJSON_JSONEE_VARIABLE_STATE)
             ejson_stack_pop();
             POP_AS_VCM_PARENT_AND_UPDATE_VCM();
         }
-        RECONSUME_IN(EJSON_CONTROL_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_CONTROL);
     }
     if (character == '.') {
         if (uc_buffer_is_empty(parser->temp_buffer)) {
@@ -2926,31 +2926,31 @@ BEGIN_STATE(EJSON_JSONEE_VARIABLE_STATE)
             ejson_stack_pop();
             POP_AS_VCM_PARENT_AND_UPDATE_VCM();
         }
-        RECONSUME_IN(EJSON_JSONEE_FULL_STOP_SIGN_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_JSONEE_FULL_STOP_SIGN);
     }
     if (character == '=') {
         if (uc_buffer_is_empty(parser->temp_buffer)) {
             APPEND_TO_TEMP_BUFFER(character);
-            ADVANCE_TO(EJSON_JSONEE_VARIABLE_STATE);
+            ADVANCE_TO(TKZ_STATE_EJSON_JSONEE_VARIABLE);
         }
     }
     SET_ERR(PCEJSON_ERROR_BAD_JSONEE_VARIABLE_NAME);
     RETURN_AND_STOP_PARSE();
 END_STATE()
 
-BEGIN_STATE(EJSON_JSONEE_KEYWORD_STATE)
+BEGIN_STATE(TKZ_STATE_EJSON_JSONEE_KEYWORD)
     if (is_ascii_digit(character)) {
         if (uc_buffer_is_empty(parser->temp_buffer)) {
             SET_ERR(PCEJSON_ERROR_BAD_JSONEE_KEYWORD);
             RETURN_AND_STOP_PARSE();
         }
         APPEND_TO_TEMP_BUFFER(character);
-        ADVANCE_TO(EJSON_JSONEE_KEYWORD_STATE);
+        ADVANCE_TO(TKZ_STATE_EJSON_JSONEE_KEYWORD);
     }
     if (is_ascii_alpha(character) || character == '_' ||
             character == '-') {
         APPEND_TO_TEMP_BUFFER(character);
-        ADVANCE_TO(EJSON_JSONEE_KEYWORD_STATE);
+        ADVANCE_TO(TKZ_STATE_EJSON_JSONEE_KEYWORD);
     }
     if (is_delimiter(character) || character == '"') {
         if (uc_buffer_is_empty(parser->temp_buffer)) {
@@ -2965,7 +2965,7 @@ BEGIN_STATE(EJSON_JSONEE_KEYWORD_STATE)
         RESET_TEMP_BUFFER();
         ejson_stack_pop();
         POP_AS_VCM_PARENT_AND_UPDATE_VCM();
-        RECONSUME_IN(EJSON_CONTROL_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_CONTROL);
     }
     if (character == ',') {
         if (uc_buffer_is_empty(parser->temp_buffer)) {
@@ -2984,7 +2984,7 @@ BEGIN_STATE(EJSON_JSONEE_KEYWORD_STATE)
         if (uc == '(' || uc == '<') {
             POP_AS_VCM_PARENT_AND_UPDATE_VCM();
         }
-        RECONSUME_IN(EJSON_AFTER_VALUE_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_AFTER_VALUE);
     }
     if (character == '.') {
         if (uc_buffer_is_empty(parser->temp_buffer)) {
@@ -2999,20 +2999,20 @@ BEGIN_STATE(EJSON_JSONEE_KEYWORD_STATE)
         RESET_TEMP_BUFFER();
         ejson_stack_pop();
         POP_AS_VCM_PARENT_AND_UPDATE_VCM();
-        RECONSUME_IN(EJSON_JSONEE_FULL_STOP_SIGN_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_JSONEE_FULL_STOP_SIGN);
     }
     SET_ERR(PCEJSON_ERROR_BAD_JSONEE_KEYWORD);
     RETURN_AND_STOP_PARSE();
 END_STATE()
 
-BEGIN_STATE(EJSON_JSONEE_STRING_STATE)
+BEGIN_STATE(TKZ_STATE_EJSON_JSONEE_STRING)
     uint32_t uc = ejson_stack_top();
     if (is_whitespace(character)) {
         if (uc == 'U') {
-            RECONSUME_IN(EJSON_AFTER_JSONEE_STRING_STATE);
+            RECONSUME_IN(TKZ_STATE_EJSON_AFTER_JSONEE_STRING);
         }
         APPEND_TO_TEMP_BUFFER(character);
-        ADVANCE_TO(EJSON_JSONEE_STRING_STATE);
+        ADVANCE_TO(TKZ_STATE_EJSON_JSONEE_STRING);
     }
     if (character == '$') {
         if (uc != 'U' && uc != '"') {
@@ -3028,14 +3028,14 @@ BEGIN_STATE(EJSON_JSONEE_STRING_STATE)
                    uc_buffer_get_bytes(parser->temp_buffer));
                 APPEND_AS_VCM_CHILD(node);
                 RESET_TEMP_BUFFER();
-                ADVANCE_TO(EJSON_JSONEE_STRING_STATE);
+                ADVANCE_TO(TKZ_STATE_EJSON_JSONEE_STRING);
             }
         }
-        RECONSUME_IN(EJSON_CONTROL_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_CONTROL);
     }
     if (character == '\\') {
         SET_RETURN_STATE(curr_state);
-        ADVANCE_TO(EJSON_STRING_ESCAPE_STATE);
+        ADVANCE_TO(TKZ_STATE_EJSON_STRING_ESCAPE);
     }
     if (character == '"') {
         if (parser->vcm_node) {
@@ -3045,7 +3045,7 @@ BEGIN_STATE(EJSON_JSONEE_STRING_STATE)
         parser->vcm_node = pcvcm_node_new_string(
                 uc_buffer_get_bytes(parser->temp_buffer));
         RESET_TEMP_BUFFER();
-        RECONSUME_IN(EJSON_AFTER_JSONEE_STRING_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_AFTER_JSONEE_STRING);
     }
     if (is_eof(character)) {
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_EOF);
@@ -3057,10 +3057,10 @@ BEGIN_STATE(EJSON_JSONEE_STRING_STATE)
         RETURN_AND_STOP_PARSE();
     }
     APPEND_TO_TEMP_BUFFER(character);
-    ADVANCE_TO(EJSON_JSONEE_STRING_STATE);
+    ADVANCE_TO(TKZ_STATE_EJSON_JSONEE_STRING);
 END_STATE()
 
-BEGIN_STATE(EJSON_AFTER_JSONEE_STRING_STATE)
+BEGIN_STATE(TKZ_STATE_EJSON_AFTER_JSONEE_STRING)
     uint32_t uc = ejson_stack_top();
     if (is_whitespace(character)) {
         POP_AS_VCM_PARENT_AND_UPDATE_VCM();
@@ -3069,9 +3069,9 @@ BEGIN_STATE(EJSON_AFTER_JSONEE_STRING_STATE)
             if (!ejson_stack_is_empty()) {
                 POP_AS_VCM_PARENT_AND_UPDATE_VCM();
             }
-            RECONSUME_IN(EJSON_CONTROL_STATE);
+            RECONSUME_IN(TKZ_STATE_EJSON_CONTROL);
         }
-        RECONSUME_IN(EJSON_JSONEE_STRING_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_JSONEE_STRING);
     }
     if (character == '"') {
         if (uc == 'U') {
@@ -3083,7 +3083,7 @@ BEGIN_STATE(EJSON_AFTER_JSONEE_STRING_STATE)
         if (!ejson_stack_is_empty()) {
             POP_AS_VCM_PARENT_AND_UPDATE_VCM();
         }
-        ADVANCE_TO(EJSON_CONTROL_STATE);
+        ADVANCE_TO(TKZ_STATE_EJSON_CONTROL);
     }
     if (character == '}' || character == ']' || character == ')') {
         POP_AS_VCM_PARENT_AND_UPDATE_VCM();
@@ -3091,16 +3091,16 @@ BEGIN_STATE(EJSON_AFTER_JSONEE_STRING_STATE)
         if (!ejson_stack_is_empty()) {
             POP_AS_VCM_PARENT_AND_UPDATE_VCM();
         }
-        ADVANCE_TO(EJSON_CONTROL_STATE);
+        ADVANCE_TO(TKZ_STATE_EJSON_CONTROL);
     }
     SET_ERR(PCEJSON_ERROR_BAD_JSONEE_NAME);
     RETURN_AND_STOP_PARSE();
 END_STATE()
 
-BEGIN_STATE(EJSON_AMPERSAND_STATE)
+BEGIN_STATE(TKZ_STATE_EJSON_AMPERSAND)
     if (character == '&') {
         APPEND_TO_TEMP_BUFFER(character);
-        ADVANCE_TO(EJSON_AMPERSAND_STATE);
+        ADVANCE_TO(TKZ_STATE_EJSON_AMPERSAND);
     }
     {
         if (uc_buffer_equal_to(parser->temp_buffer, "&&", 2)) {
@@ -3117,17 +3117,17 @@ BEGIN_STATE(EJSON_AMPERSAND_STATE)
             struct pcvcm_node *node = pcvcm_node_new_cjsonee_op_and();
             APPEND_AS_VCM_CHILD(node);
             RESET_TEMP_BUFFER();
-            RECONSUME_IN(EJSON_CONTROL_STATE);
+            RECONSUME_IN(TKZ_STATE_EJSON_CONTROL);
         }
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
         RETURN_AND_STOP_PARSE();
     }
 END_STATE()
 
-BEGIN_STATE(EJSON_OR_SIGN_STATE)
+BEGIN_STATE(TKZ_STATE_EJSON_OR_SIGN)
     if (character == '|') {
         APPEND_TO_TEMP_BUFFER(character);
-        ADVANCE_TO(EJSON_OR_SIGN_STATE);
+        ADVANCE_TO(TKZ_STATE_EJSON_OR_SIGN);
     }
     {
         if (uc_buffer_equal_to(parser->temp_buffer, "||", 2)) {
@@ -3144,14 +3144,14 @@ BEGIN_STATE(EJSON_OR_SIGN_STATE)
             struct pcvcm_node *node = pcvcm_node_new_cjsonee_op_or();
             APPEND_AS_VCM_CHILD(node);
             RESET_TEMP_BUFFER();
-            RECONSUME_IN(EJSON_CONTROL_STATE);
+            RECONSUME_IN(TKZ_STATE_EJSON_CONTROL);
         }
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
         RETURN_AND_STOP_PARSE();
     }
 END_STATE()
 
-BEGIN_STATE(EJSON_SEMICOLON_STATE)
+BEGIN_STATE(TKZ_STATE_EJSON_SEMICOLON)
     if (character == ';') {
         uint32_t uc = ejson_stack_top();
         while (uc != 'C') {
@@ -3165,25 +3165,25 @@ BEGIN_STATE(EJSON_SEMICOLON_STATE)
         }
         struct pcvcm_node *node = pcvcm_node_new_cjsonee_op_semicolon();
         APPEND_AS_VCM_CHILD(node);
-        ADVANCE_TO(EJSON_CONTROL_STATE);
+        ADVANCE_TO(TKZ_STATE_EJSON_CONTROL);
     }
-    RECONSUME_IN(EJSON_CONTROL_STATE);
+    RECONSUME_IN(TKZ_STATE_EJSON_CONTROL);
 END_STATE()
 
-BEGIN_STATE(EJSON_CJSONEE_FINISHED_STATE)
+BEGIN_STATE(TKZ_STATE_EJSON_CJSONEE_FINISHED)
     if (character == '}') {
         APPEND_TO_TEMP_BUFFER(character);
         if (uc_buffer_equal_to(parser->temp_buffer, "}}", 2)) {
             ejson_stack_pop();
             POP_AS_VCM_PARENT_AND_UPDATE_VCM();
-            ADVANCE_TO(EJSON_CONTROL_STATE);
+            ADVANCE_TO(TKZ_STATE_EJSON_CONTROL);
         }
-        ADVANCE_TO(EJSON_CJSONEE_FINISHED_STATE);
+        ADVANCE_TO(TKZ_STATE_EJSON_CJSONEE_FINISHED);
     }
     if (uc_buffer_equal_to(parser->temp_buffer, "}}", 2)) {
         ejson_stack_pop();
         POP_AS_VCM_PARENT_AND_UPDATE_VCM();
-        RECONSUME_IN(EJSON_CONTROL_STATE);
+        RECONSUME_IN(TKZ_STATE_EJSON_CONTROL);
     }
     SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
     RETURN_AND_STOP_PARSE();
