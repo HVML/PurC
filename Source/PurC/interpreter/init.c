@@ -606,7 +606,9 @@ attr_found_val(struct pcintr_stack_frame *frame,
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, VIA)) == name) {
         return process_attr_via(frame, element, name, val);
     }
-    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, TEMPORARILY)) == name) {
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, TEMPORARILY)) == name ||
+            pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, TEMP)) == name)
+    {
         PC_ASSERT(purc_variant_is_undefined(val));
         ctxt->temporarily = 1;
         if (ctxt->async) {
@@ -633,10 +635,9 @@ attr_found_val(struct pcintr_stack_frame *frame,
     }
 
     purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
-            "vdom attribute '%s' for element <%s>",
+            "unknown vdom attribute '%s' for element <%s>",
             purc_atom_to_string(name), element->tag_name);
 
-    PC_ASSERT(0); // Not implemented yet
     return -1;
 }
 
@@ -647,8 +648,13 @@ attr_found(struct pcintr_stack_frame *frame,
         struct pcvdom_attr *attr,
         void *ud)
 {
-    PC_ASSERT(name);
     PC_ASSERT(attr->op == PCHVML_ATTRIBUTE_OPERATOR);
+    if (!name) {
+        purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
+                "unknown vdom attribute '%s' for element <%s>",
+                attr->key, element->tag_name);
+        return -1;
+    }
 
     purc_variant_t val = pcintr_eval_vdom_attr(pcintr_get_stack(), attr);
     if (val == PURC_VARIANT_INVALID)
