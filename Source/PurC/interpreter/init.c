@@ -212,7 +212,7 @@ post_process_src_by_level(pcintr_coroutine_t co,
         if (p == NULL) {
             if (!silently) {
                 purc_set_error_with_info(PURC_EXCEPT_ENTITY_NOT_FOUND,
-                        "no frame exists");
+                        "no vdom element exists");
                 return -1;
             }
             p = parent;
