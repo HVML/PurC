@@ -118,25 +118,41 @@ post_process_bind_at_frame(pcintr_coroutine_t co, struct ctxt_for_init *ctxt,
     return ok ? 0 : -1;
 }
 
-static int
-post_process_bind_at_vdom(pcintr_coroutine_t co, struct ctxt_for_init *ctxt,
-        struct pcvdom_element *elem, purc_variant_t src)
+static const char*
+get_name(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
     UNUSED_PARAM(co);
+
+    struct ctxt_for_init *ctxt;
+    ctxt = (struct ctxt_for_init*)frame->ctxt;
 
     purc_variant_t name = ctxt->as;
 
     if (name == PURC_VARIANT_INVALID) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
-        return -1;
+        return NULL;
     }
 
     if (purc_variant_is_string(name) == false) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
-        return -1;
+        return NULL;
     }
 
     const char *s_name = purc_variant_get_string_const(name);
+    return s_name;
+}
+
+static int
+post_process_bind_at_vdom(pcintr_coroutine_t co,
+        struct pcintr_stack_frame *frame,
+        struct pcvdom_element *elem, purc_variant_t src)
+{
+    UNUSED_PARAM(co);
+
+    const char *s_name = get_name(co, frame);
+    if (!s_name)
+        return -1;
+
     bool ok;
     ok = pcintr_bind_scope_variable(elem, s_name, src);
     return ok ? 0 : -1;
@@ -201,7 +217,7 @@ post_process_src_by_level(pcintr_coroutine_t co,
             }
             p = parent;
         }
-        return post_process_bind_at_vdom(co, ctxt, p, src);
+        return post_process_bind_at_vdom(co, frame, p, src);
     }
 }
 
@@ -277,7 +293,7 @@ post_process_src_by_id(pcintr_coroutine_t co,
                 return -1;
             }
         }
-        return post_process_bind_at_vdom(co, ctxt, p, src);
+        return post_process_bind_at_vdom(co, frame, p, src);
     }
 }
 
@@ -289,19 +305,9 @@ post_process_src(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     ctxt = (struct ctxt_for_init*)frame->ctxt;
 
     if (ctxt->at == PURC_VARIANT_INVALID) {
-        purc_variant_t name = ctxt->as;
-
-        if (name == PURC_VARIANT_INVALID) {
-            purc_set_error(PURC_ERROR_INVALID_VALUE);
+        const char *s_name = get_name(co, frame);
+        if (!s_name)
             return -1;
-        }
-
-        if (purc_variant_is_string(name) == false) {
-            purc_set_error(PURC_ERROR_INVALID_VALUE);
-            return -1;
-        }
-
-        const char *s_name = purc_variant_get_string_const(name);
 
         if (ctxt->under_head) {
             uint64_t level = 0;
