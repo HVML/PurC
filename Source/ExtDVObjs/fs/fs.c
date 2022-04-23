@@ -39,6 +39,7 @@
 #include <dirent.h>
 #include <fcntl.h>
 #include <time.h>
+#include <stdlib.h>
 
 #if USE(GLIB)
 #include <glib.h>
@@ -191,8 +192,17 @@ list_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     char au[10] = {0};
     int i = 0;
 
+    if (nr_args < 1) {
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        return PURC_VARIANT_INVALID;
+    }
+
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
+    if (NULL == string_filename) {
+        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+        return PURC_VARIANT_INVALID;
+    }
     strcpy (dir_name, string_filename);
 
     if (access(dir_name, F_OK | R_OK) != 0) {
@@ -461,8 +471,17 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     char au[10] = {0};
     int i = 0;
 
+    if (nr_args < 1) {
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        return PURC_VARIANT_INVALID;
+    }
+
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
+    if (NULL == string_filename) {
+        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+        return PURC_VARIANT_INVALID;
+    }
     strcpy (dir_name, string_filename);
 
     if (access(dir_name, F_OK | R_OK) != 0) {
@@ -761,12 +780,16 @@ basename_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
     UNUSED_PARAM(silently);
 
     char filename[PATH_MAX];
     const char *string_filename = NULL;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
+
+    if (nr_args < 1) {
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        return PURC_VARIANT_INVALID;
+    }
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
@@ -783,12 +806,16 @@ chgrp_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
     UNUSED_PARAM(silently);
 
     char filename[PATH_MAX];
     const char *string_filename = NULL;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
+
+    if (nr_args < 1) {
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        return PURC_VARIANT_INVALID;
+    }
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
@@ -805,12 +832,16 @@ chmod_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
     UNUSED_PARAM(silently);
 
     char filename[PATH_MAX];
     const char *string_filename = NULL;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
+
+    if (nr_args < 1) {
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        return PURC_VARIANT_INVALID;
+    }
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
@@ -827,12 +858,16 @@ chown_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
     UNUSED_PARAM(silently);
 
     char filename[PATH_MAX];
     const char *string_filename = NULL;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
+
+    if (nr_args < 1) {
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        return PURC_VARIANT_INVALID;
+    }
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
@@ -849,12 +884,16 @@ copy_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
     UNUSED_PARAM(silently);
 
     char filename[PATH_MAX];
     const char *string_filename = NULL;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
+
+    if (nr_args < 1) {
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        return PURC_VARIANT_INVALID;
+    }
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
@@ -871,12 +910,16 @@ dirname_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
     UNUSED_PARAM(silently);
 
     char filename[PATH_MAX];
     const char *string_filename = NULL;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
+
+    if (nr_args < 1) {
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        return PURC_VARIANT_INVALID;
+    }
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
@@ -893,12 +936,16 @@ disk_usage_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
     UNUSED_PARAM(silently);
 
     char filename[PATH_MAX];
     const char *string_filename = NULL;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
+
+    if (nr_args < 1) {
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        return PURC_VARIANT_INVALID;
+    }
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
@@ -915,12 +962,16 @@ file_exists_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
     UNUSED_PARAM(silently);
 
     char filename[PATH_MAX];
     const char *string_filename = NULL;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
+
+    if (nr_args < 1) {
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        return PURC_VARIANT_INVALID;
+    }
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
@@ -937,12 +988,16 @@ file_is_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
     UNUSED_PARAM(silently);
 
     char filename[PATH_MAX];
     const char *string_filename = NULL;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
+
+    if (nr_args < 1) {
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        return PURC_VARIANT_INVALID;
+    }
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
@@ -959,12 +1014,16 @@ lchgrp_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
     UNUSED_PARAM(silently);
 
     char filename[PATH_MAX];
     const char *string_filename = NULL;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
+
+    if (nr_args < 1) {
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        return PURC_VARIANT_INVALID;
+    }
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
@@ -981,12 +1040,16 @@ lchown_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
     UNUSED_PARAM(silently);
 
     char filename[PATH_MAX];
     const char *string_filename = NULL;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
+
+    if (nr_args < 1) {
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        return PURC_VARIANT_INVALID;
+    }
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
@@ -1003,12 +1066,16 @@ linkinfo_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
     UNUSED_PARAM(silently);
 
     char filename[PATH_MAX];
     const char *string_filename = NULL;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
+
+    if (nr_args < 1) {
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        return PURC_VARIANT_INVALID;
+    }
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
@@ -1025,12 +1092,16 @@ lstat_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
     UNUSED_PARAM(silently);
 
     char filename[PATH_MAX];
     const char *string_filename = NULL;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
+
+    if (nr_args < 1) {
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        return PURC_VARIANT_INVALID;
+    }
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
@@ -1047,12 +1118,16 @@ link_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
     UNUSED_PARAM(silently);
 
     char filename[PATH_MAX];
     const char *string_filename = NULL;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
+
+    if (nr_args < 1) {
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        return PURC_VARIANT_INVALID;
+    }
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
@@ -1069,14 +1144,22 @@ mkdir_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
     UNUSED_PARAM(silently);
 
     const char *filename = NULL;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
+    if (nr_args < 1) {
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        return PURC_VARIANT_INVALID;
+    }
+
     // get the file name
     filename = purc_variant_get_string_const (argv[0]);
+    if (NULL == filename) {
+        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+        return PURC_VARIANT_INVALID;
+    }
 
     if (mkdir (filename, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) == 0)
         ret_var = purc_variant_make_boolean (false);
@@ -1091,12 +1174,16 @@ pathinfo_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
     UNUSED_PARAM(silently);
 
     char filename[PATH_MAX];
     const char *string_filename = NULL;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
+
+    if (nr_args < 1) {
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        return PURC_VARIANT_INVALID;
+    }
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
@@ -1113,12 +1200,16 @@ readlink_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
     UNUSED_PARAM(silently);
 
     char filename[PATH_MAX];
     const char *string_filename = NULL;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
+
+    if (nr_args < 1) {
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        return PURC_VARIANT_INVALID;
+    }
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
@@ -1135,12 +1226,16 @@ realpath_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
     UNUSED_PARAM(silently);
 
     char filename[PATH_MAX];
     const char *string_filename = NULL;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
+
+    if (nr_args < 1) {
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        return PURC_VARIANT_INVALID;
+    }
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
@@ -1157,12 +1252,16 @@ rename_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
     UNUSED_PARAM(silently);
 
     char filename[PATH_MAX];
     const char *string_filename = NULL;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
+
+    if (nr_args < 1) {
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        return PURC_VARIANT_INVALID;
+    }
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
@@ -1179,7 +1278,6 @@ rmdir_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
     UNUSED_PARAM(silently);
 
     const char *filename = NULL;
@@ -1189,8 +1287,17 @@ rmdir_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     bool empty = true;
 
+    if (nr_args < 1) {
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        return PURC_VARIANT_INVALID;
+    }
+
     // get the file name
     filename = purc_variant_get_string_const (argv[0]);
+    if (NULL == filename) {
+        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+        return PURC_VARIANT_INVALID;
+    }
 
     if (access(filename, F_OK | R_OK) != 0) {
         purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
@@ -1235,12 +1342,16 @@ stat_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
     UNUSED_PARAM(silently);
 
     char filename[PATH_MAX];
     const char *string_filename = NULL;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
+
+    if (nr_args < 1) {
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        return PURC_VARIANT_INVALID;
+    }
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
@@ -1257,12 +1368,16 @@ symlink_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
     UNUSED_PARAM(silently);
 
     char filename[PATH_MAX];
     const char *string_filename = NULL;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
+
+    if (nr_args < 1) {
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        return PURC_VARIANT_INVALID;
+    }
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
@@ -1279,12 +1394,16 @@ tempname_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
     UNUSED_PARAM(silently);
 
     char filename[PATH_MAX];
     const char *string_filename = NULL;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
+
+    if (nr_args < 1) {
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        return PURC_VARIANT_INVALID;
+    }
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
@@ -1301,14 +1420,22 @@ touch_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
     UNUSED_PARAM(silently);
 
     const char *filename = NULL;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
+    if (nr_args < 1) {
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        return PURC_VARIANT_INVALID;
+    }
+
     // get the file name
     filename = purc_variant_get_string_const (argv[0]);
+    if (NULL == filename) {
+        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+        return PURC_VARIANT_INVALID;
+    }
 
     // file not exist, create it
     if (access(filename, F_OK | R_OK) != 0) {
@@ -1343,12 +1470,16 @@ umask_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
     UNUSED_PARAM(silently);
 
     char filename[PATH_MAX];
     const char *string_filename = NULL;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
+
+    if (nr_args < 1) {
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        return PURC_VARIANT_INVALID;
+    }
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
@@ -1365,15 +1496,23 @@ unlink_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
     UNUSED_PARAM(silently);
 
     const char *filename = NULL;
     struct stat filestat;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
+    if (nr_args < 1) {
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        return PURC_VARIANT_INVALID;
+    }
+
     // get the file name
     filename = purc_variant_get_string_const (argv[0]);
+    if (NULL == filename) {
+        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+        return PURC_VARIANT_INVALID;
+    }
 
     if (access(filename, F_OK | R_OK) != 0) {
         purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
@@ -1400,14 +1539,22 @@ rm_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
     UNUSED_PARAM(silently);
 
     const char *filename = NULL;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
+    if (nr_args < 1) {
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        return PURC_VARIANT_INVALID;
+    }
+
     // get the file name
     filename = purc_variant_get_string_const (argv[0]);
+    if (NULL == filename) {
+        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+        return PURC_VARIANT_INVALID;
+    }
 
     if (remove_dir ((char *)filename))
         ret_var = purc_variant_make_boolean (false);
@@ -1423,12 +1570,16 @@ file_contents_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
     UNUSED_PARAM(silently);
 
     char filename[PATH_MAX];
     const char *string_filename = NULL;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
+
+    if (nr_args < 1) {
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        return PURC_VARIANT_INVALID;
+    }
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
@@ -1445,12 +1596,16 @@ open_dir_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
     UNUSED_PARAM(silently);
 
     char filename[PATH_MAX];
     const char *string_filename = NULL;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
+
+    if (nr_args < 1) {
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        return PURC_VARIANT_INVALID;
+    }
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
@@ -1467,12 +1622,16 @@ dir_read_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
     UNUSED_PARAM(silently);
 
     char filename[PATH_MAX];
     const char *string_filename = NULL;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
+
+    if (nr_args < 1) {
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        return PURC_VARIANT_INVALID;
+    }
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
@@ -1489,12 +1648,16 @@ dir_rewind_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
     UNUSED_PARAM(silently);
 
     char filename[PATH_MAX];
     const char *string_filename = NULL;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
+
+    if (nr_args < 1) {
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        return PURC_VARIANT_INVALID;
+    }
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
