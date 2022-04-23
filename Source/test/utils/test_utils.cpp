@@ -1274,7 +1274,7 @@ TEST(utils, snprintf)
 TEST(utils, error)
 {
     PurCInstance purc;
-    const char *s = purc_get_error_message(PURC_EXCEPT_TIMEOUT);
+    const char *s = purc_get_error_message(PURC_ERROR_TIMEOUT);
     ASSERT_STREQ(s, "Timeout");
 }
 
