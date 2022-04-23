@@ -1959,7 +1959,26 @@ BEGIN_STATE(TKZ_STATE_JSONEE_ATTRIBUTE_VALUE_UNQUOTED)
                 pchvml_token_append_vcm_to_attr(parser->token, node);
             }
             else {
-                APPEND_BUFFER_TO_TOKEN_ATTR_VALUE(parser->temp_buffer);
+                if (tkz_buffer_equal_to(parser->temp_buffer, "true", 4)) {
+                    struct pcvcm_node* node = pcvcm_node_new_boolean(true);
+                    pchvml_token_append_vcm_to_attr(parser->token, node);
+                }
+                else if (tkz_buffer_equal_to(parser->temp_buffer, "false",
+                            5)) {
+                    struct pcvcm_node* node = pcvcm_node_new_boolean(false);
+                    pchvml_token_append_vcm_to_attr(parser->token, node);
+                }
+                else if (tkz_buffer_equal_to(parser->temp_buffer, "null", 4)) {
+                    struct pcvcm_node* node = pcvcm_node_new_null();
+                    pchvml_token_append_vcm_to_attr(parser->token, node);
+                }
+                else if (tkz_buffer_equal_to(parser->temp_buffer, "undefined", 9)) {
+                    struct pcvcm_node* node = pcvcm_node_new_undefined();
+                    pchvml_token_append_vcm_to_attr(parser->token, node);
+                }
+                else {
+                    APPEND_BUFFER_TO_TOKEN_ATTR_VALUE(parser->temp_buffer);
+                }
             }
             RESET_TEMP_BUFFER();
 
@@ -1988,7 +2007,26 @@ BEGIN_STATE(TKZ_STATE_JSONEE_ATTRIBUTE_VALUE_UNQUOTED)
                 pchvml_token_append_vcm_to_attr(parser->token, node);
             }
             else {
-                APPEND_BUFFER_TO_TOKEN_ATTR_VALUE(parser->temp_buffer);
+                if (tkz_buffer_equal_to(parser->temp_buffer, "true", 4)) {
+                    struct pcvcm_node* node = pcvcm_node_new_boolean(true);
+                    pchvml_token_append_vcm_to_attr(parser->token, node);
+                }
+                else if (tkz_buffer_equal_to(parser->temp_buffer, "false",
+                            5)) {
+                    struct pcvcm_node* node = pcvcm_node_new_boolean(false);
+                    pchvml_token_append_vcm_to_attr(parser->token, node);
+                }
+                else if (tkz_buffer_equal_to(parser->temp_buffer, "null", 4)) {
+                    struct pcvcm_node* node = pcvcm_node_new_null();
+                    pchvml_token_append_vcm_to_attr(parser->token, node);
+                }
+                else if (tkz_buffer_equal_to(parser->temp_buffer, "undefined", 9)) {
+                    struct pcvcm_node* node = pcvcm_node_new_undefined();
+                    pchvml_token_append_vcm_to_attr(parser->token, node);
+                }
+                else {
+                    APPEND_BUFFER_TO_TOKEN_ATTR_VALUE(parser->temp_buffer);
+                }
             }
             RESET_TEMP_BUFFER();
 
@@ -2013,7 +2051,26 @@ BEGIN_STATE(TKZ_STATE_JSONEE_ATTRIBUTE_VALUE_UNQUOTED)
                 pchvml_token_append_vcm_to_attr(parser->token, node);
             }
             else {
-                APPEND_BUFFER_TO_TOKEN_ATTR_VALUE(parser->temp_buffer);
+                if (tkz_buffer_equal_to(parser->temp_buffer, "true", 4)) {
+                    struct pcvcm_node* node = pcvcm_node_new_boolean(true);
+                    pchvml_token_append_vcm_to_attr(parser->token, node);
+                }
+                else if (tkz_buffer_equal_to(parser->temp_buffer, "false",
+                            5)) {
+                    struct pcvcm_node* node = pcvcm_node_new_boolean(false);
+                    pchvml_token_append_vcm_to_attr(parser->token, node);
+                }
+                else if (tkz_buffer_equal_to(parser->temp_buffer, "null", 4)) {
+                    struct pcvcm_node* node = pcvcm_node_new_null();
+                    pchvml_token_append_vcm_to_attr(parser->token, node);
+                }
+                else if (tkz_buffer_equal_to(parser->temp_buffer, "undefined", 9)) {
+                    struct pcvcm_node* node = pcvcm_node_new_undefined();
+                    pchvml_token_append_vcm_to_attr(parser->token, node);
+                }
+                else {
+                    APPEND_BUFFER_TO_TOKEN_ATTR_VALUE(parser->temp_buffer);
+                }
             }
             RESET_TEMP_BUFFER();
         }

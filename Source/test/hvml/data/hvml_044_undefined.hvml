@@ -2,5 +2,6 @@
     <body>
         <init at="opsPerSecond" with="undefined"/>
         <update on $users[1] at=".age" with undefined />
+        <update on $users[1] at=".age" with false />
     </body>
 </hvml>
