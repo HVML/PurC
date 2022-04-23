@@ -305,7 +305,7 @@ TEST(samples, samples)
             "            <p hvml:raw>Using local array variable ($!) and negative index</p>"
             "        </header>"
             ""
-            "        <init as='fibonacci' locally>"
+            "        <init as='fibonacci' temporarily>"
             "            [0, 1, ]"
             "        </init>"
             ""

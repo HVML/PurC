@@ -14,7 +14,7 @@
             <test on=$FS.file_is($REQUEST.dir, 'dir readable')>
 
                 <match on="$?" exclusively>
-                    <init as="count" with=0 locally />
+                    <init as="count" with=0 temporarily />
 
                     <ol>
                         <choose on=$FS.opendir($REQUEST.dir) >

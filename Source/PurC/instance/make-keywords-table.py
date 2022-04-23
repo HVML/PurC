@@ -42,12 +42,13 @@ def read_cfgs_fin(fin):
         cfg = s.split()
 
         prefix = cfg[0]
-        kw = cfg[1]
 
-        if not prefix in cfgs:
-            cfgs[prefix] = []
+        for i in range(len(cfg)):
+            if i > 0:
+                if not prefix in cfgs:
+                    cfgs[prefix] = []
 
-        cfgs[prefix].append(kw)
+                cfgs[prefix].append(cfg[i])
 
         line = fin.readline()
 
