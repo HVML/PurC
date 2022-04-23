@@ -25,18 +25,14 @@ hvml via
 hvml against
 hvml name
 hvml for
-hvml exclusively
-hvml excl
+hvml exclusively excl
 hvml href
 hvml raw
 hvml type
 hvml onlyif
 hvml while
-hvml synchronously
-hvml sync
-hvml asynchronously
-hvml async
+hvml synchronously sync
+hvml asynchronously async
 hvml rel
-hvml temporarily
-hvml temp
+hvml temporarily temp
 
