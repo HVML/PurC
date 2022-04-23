@@ -27,7 +27,7 @@
 #include "private/debug.h"
 #include "private/utils.h"
 #include "private/vdom.h"
-#include "hvml/hvml-rwswrap.h"
+#include "private/tkz-helper.h"
 #include "hvml-gen.h"
 
 #ifndef VTT
@@ -1234,7 +1234,7 @@ int pchvml_parser_get_curr_pos(struct pchvml_parser* parser,
     if (!parser)
         return -1;
 
-    struct pchvml_uc *uc = parser->curr_uc;
+    struct tkz_uc *uc = parser->curr_uc;
     if (!uc)
         return -1;
 

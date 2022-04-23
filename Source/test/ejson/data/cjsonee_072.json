@@ -1,0 +1,8 @@
+{{
+    $SYSTEM.cwd(! '/root') &&
+    $FS.list ||
+    $STREAM.stdout.writelines(
+        'Cannot change directory to "/root"'); $SYSTEM.cwd(! '/' ) &&
+        $FS.list || false
+}}
+

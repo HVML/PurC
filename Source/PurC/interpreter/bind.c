@@ -41,7 +41,7 @@ struct ctxt_for_bind {
     purc_variant_t                as;
 
     unsigned int                  under_head:1;
-    unsigned int                  locally:1;
+    unsigned int                  temporarily:1;
 };
 
 static void
@@ -74,7 +74,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 
     bool ok = false;
     purc_variant_t name = ctxt->as;
-    if (ctxt->locally) {
+    if (ctxt->temporarily) {
         struct pcintr_stack_frame *parent = pcintr_stack_frame_get_parent(frame);
         PC_ASSERT(parent);
         purc_variant_t exclamation_var;
@@ -151,9 +151,9 @@ attr_found_val(struct pcintr_stack_frame *frame,
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, AS)) == name) {
         return process_attr_as(frame, element, name, val);
     }
-    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, LOCALLY)) == name) {
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, TEMPORARILY)) == name) {
         PC_ASSERT(purc_variant_is_undefined(val));
-        ctxt->locally = 1;
+        ctxt->temporarily = 1;
         return 0;
     }
 

@@ -31,11 +31,9 @@
 #include "private/utils.h"
 #include "private/dom.h"
 #include "private/hvml.h"
+#include "private/tkz-helper.h"
 
-#include "hvml-buffer.h"
-#include "hvml-rwswrap.h"
 #include "hvml-token.h"
-#include "hvml-sbst.h"
 #include "hvml-attr.h"
 #include "hvml-tag.h"
 
@@ -88,10 +86,10 @@ struct pchvml_parser* pchvml_create(uint32_t flags, size_t queue_size)
     struct pchvml_parser* parser = (struct pchvml_parser*) PCHVML_ALLOC(
             sizeof(struct pchvml_parser));
     parser->state = 0;
-    parser->rwswrap = pchvml_rwswrap_new ();
-    parser->temp_buffer = pchvml_buffer_new ();
-    parser->tag_name = pchvml_buffer_new ();
-    parser->string_buffer = pchvml_buffer_new ();
+    parser->reader = tkz_reader_new ();
+    parser->temp_buffer = tkz_buffer_new ();
+    parser->tag_name = tkz_buffer_new ();
+    parser->string_buffer = tkz_buffer_new ();
     parser->vcm_stack = pcvcm_stack_new();
     parser->ejson_stack = pcutils_stack_new(0);
     parser->char_ref_code = 0;
@@ -113,11 +111,11 @@ void pchvml_reset(struct pchvml_parser* parser, uint32_t flags,
     UNUSED_PARAM(queue_size);
 
     parser->state = 0;
-    pchvml_rwswrap_destroy (parser->rwswrap);
-    parser->rwswrap = pchvml_rwswrap_new ();
-    pchvml_buffer_reset (parser->temp_buffer);
-    pchvml_buffer_reset (parser->tag_name);
-    pchvml_buffer_reset (parser->string_buffer);
+    tkz_reader_destroy (parser->reader);
+    parser->reader = tkz_reader_new ();
+    tkz_buffer_reset (parser->temp_buffer);
+    tkz_buffer_reset (parser->tag_name);
+    tkz_buffer_reset (parser->string_buffer);
 
     struct pcvcm_node* n = parser->vcm_node;
     parser->vcm_node = NULL;
@@ -146,12 +144,12 @@ void pchvml_reset(struct pchvml_parser* parser, uint32_t flags,
 void pchvml_destroy(struct pchvml_parser* parser)
 {
     if (parser) {
-        pchvml_rwswrap_destroy (parser->rwswrap);
-        pchvml_buffer_destroy (parser->temp_buffer);
-        pchvml_buffer_destroy (parser->tag_name);
-        pchvml_buffer_destroy (parser->string_buffer);
+        tkz_reader_destroy (parser->reader);
+        tkz_buffer_destroy (parser->temp_buffer);
+        tkz_buffer_destroy (parser->tag_name);
+        tkz_buffer_destroy (parser->string_buffer);
         if (parser->sbst) {
-            pchvml_sbst_destroy(parser->sbst);
+            tkz_sbst_destroy(parser->sbst);
         }
         struct pcvcm_node* n = parser->vcm_node;
         parser->vcm_node = NULL;

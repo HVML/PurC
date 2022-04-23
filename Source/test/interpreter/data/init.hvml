@@ -1,7 +1,7 @@
 <!DOCTYPE hvml SYSTEM 'v: MATH'>
 <hvml target="html" lang="en">
     <head>
-        <init as="fibonacci">
+        <init as="fibonacci" temp>
             [0, 1, ]
         </init>
     </head>

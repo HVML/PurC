@@ -205,3 +205,51 @@ positive:
 #    ["aaa"]
 
 
+#  CJSONEE
+positive:
+    {{ $STREAM.stderr.writelines('first line') && $STREAM.stderr.writelines('second line') }}
+    12UL
+
+positive:
+    {{ $STREAM.stderr.writelines('first line') || $STREAM.stderr.writelines('second line') }}
+    11UL
+
+positive:
+    {{ $STREAM.stderr.writelines('first line') && {{ $STREAM.stderr.writelines('second line') || $STREAM.stderr.writelines('third line') }} }}
+    12UL
+
+positive:
+    {{ $STREAM.stderr.writelines('first line') && {{ $STREAM.stderr.writelines('second line') && $STREAM.stderr.writelines('third line') }} }}
+    11UL
+
+positive:
+    {{ $STREAM.stderr.writelines('first line'); $STREAM.stderr.writelines('second line') ; $STREAM.stderr.writelines('third line') }}
+    11UL
+
+positive:
+    {{ $STREAM.stderr.writelines('first line'); $STREAM.stderr.writelines('second line') && $STREAM.stderr.writelines('third line') }}
+    11UL
+
+positive:
+    {{ $STREAM.stderr.writelines('first line'); $STREAM.stderr.writelines('second line') || $STREAM.stderr.writelines('third line') }}
+    12UL
+
+positive:
+    {{ {{ $STREAM.stderr.writelines('first line') && $STREAM.stderr.writelines('second line') }} || $STREAM.stderr.writelines('third line') }}
+    12UL
+
+positive:
+    {{ {{ $STREAM.stderr.writelines('first line') && $STREAM.stderr.writelines('second line') }} && $STREAM.stderr.writelines('third line') }}
+    11UL
+
+positive:
+    {{ {{ $STREAM.stderr.writelines('first line') && $STREAM.stderr.writelines('second line') }} && "End Infos" }}
+    "End Infos"
+
+positive:
+    {{ {{ $STREAM.stderr.writelines('first line') && $STREAM.stderr.writelines('second line') }} ; "End Infos" }}
+    "End Infos"
+
+positive:
+    {{ {{ $STREAM.stderr.writelines('first line') || $STREAM.stderr.writelines('second line') }} || "End Infos" }}
+    11UL

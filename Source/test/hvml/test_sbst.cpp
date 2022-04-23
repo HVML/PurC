@@ -1,7 +1,6 @@
 #include "purc.h"
 
-#include "hvml-buffer.h"
-#include "hvml-sbst.h"
+#include "private/tkz-helper.h"
 
 #include <stdio.h>
 #include <errno.h>
@@ -41,50 +40,50 @@ TEST(hvml_entity, sbst_find)
 
 TEST(hvml_character_reference, new_destory)
 {
-    struct pchvml_sbst* search = pchvml_sbst_new_char_ref();
+    struct tkz_sbst* search = tkz_sbst_new_char_ref();
     ASSERT_NE(search, nullptr);
-    pchvml_sbst_destroy(search);
+    tkz_sbst_destroy(search);
 }
 
 TEST(hvml_character_reference, match)
 {
-    struct pchvml_sbst* search = pchvml_sbst_new_char_ref();
+    struct tkz_sbst* search = tkz_sbst_new_char_ref();
     ASSERT_NE(search, nullptr);
 
-    bool ret = pchvml_sbst_advance(search, 'A');
+    bool ret = tkz_sbst_advance(search, 'A');
     ASSERT_EQ(ret, true);
 
-    ret = pchvml_sbst_advance(search, 'M');
+    ret = tkz_sbst_advance(search, 'M');
     ASSERT_EQ(ret, true);
 
-    ret = pchvml_sbst_advance(search, 'P');
+    ret = tkz_sbst_advance(search, 'P');
     ASSERT_EQ(ret, true);
 
-    ret = pchvml_sbst_advance(search, ';');
+    ret = tkz_sbst_advance(search, ';');
     ASSERT_EQ(ret, true);
 
-    pchvml_sbst_destroy(search);
+    tkz_sbst_destroy(search);
 }
 
 
 TEST(hvml_character_reference, unmatch)
 {
-    struct pchvml_sbst* search = pchvml_sbst_new_char_ref();
+    struct tkz_sbst* search = tkz_sbst_new_char_ref();
     ASSERT_NE(search, nullptr);
 
-    bool ret = pchvml_sbst_advance(search, 'A');
+    bool ret = tkz_sbst_advance(search, 'A');
     ASSERT_EQ(ret, true);
 
-    ret = pchvml_sbst_advance(search, 'M');
+    ret = tkz_sbst_advance(search, 'M');
     ASSERT_EQ(ret, true);
 
-    ret = pchvml_sbst_advance(search, 'P');
+    ret = tkz_sbst_advance(search, 'P');
     ASSERT_EQ(ret, true);
 
-    ret = pchvml_sbst_advance(search, 'n');
+    ret = tkz_sbst_advance(search, 'n');
     ASSERT_EQ(ret, false);
 
-    struct pcutils_arrlist* ucs = pchvml_sbst_get_buffered_ucs(search);
+    struct pcutils_arrlist* ucs = tkz_sbst_get_buffered_ucs(search);
     size_t len = pcutils_arrlist_length(ucs);
     ASSERT_EQ(len, 4);
 
@@ -100,150 +99,150 @@ TEST(hvml_character_reference, unmatch)
     uc = (wchar_t)(uintptr_t) pcutils_arrlist_get_idx(ucs, 3);
     ASSERT_EQ(uc, 'n');
 
-    pchvml_sbst_destroy(search);
+    tkz_sbst_destroy(search);
 }
 
 TEST(hvml_markup_declaration_open_state, match_two_minus)
 {
-    struct pchvml_sbst* search = pchvml_sbst_new_markup_declaration_open_state();
+    struct tkz_sbst* search = tkz_sbst_new_markup_declaration_open_state();
     ASSERT_NE(search, nullptr);
 
-    bool ret = pchvml_sbst_advance(search, '-');
+    bool ret = tkz_sbst_advance(search, '-');
     ASSERT_EQ(ret, true);
 
-    ret = pchvml_sbst_advance(search, '-');
+    ret = tkz_sbst_advance(search, '-');
     ASSERT_EQ(ret, true);
 
-    const char* match = pchvml_sbst_get_match(search);
+    const char* match = tkz_sbst_get_match(search);
     ASSERT_STREQ(match, "--");
 
-    struct pcutils_arrlist* ucs = pchvml_sbst_get_buffered_ucs(search);
+    struct pcutils_arrlist* ucs = tkz_sbst_get_buffered_ucs(search);
     size_t len = pcutils_arrlist_length(ucs);
     ASSERT_EQ(len, 2);
 
-    pchvml_sbst_destroy(search);
+    tkz_sbst_destroy(search);
 }
 
 TEST(hvml_markup_declaration_open_state, match_doctype)
 {
-    struct pchvml_sbst* search = pchvml_sbst_new_markup_declaration_open_state();
+    struct tkz_sbst* search = tkz_sbst_new_markup_declaration_open_state();
     ASSERT_NE(search, nullptr);
 
     bool ret = false;
 
-    ret = pchvml_sbst_advance_ex(search, 'D', false);
+    ret = tkz_sbst_advance_ex(search, 'D', false);
     ASSERT_EQ(ret, true);
-    ret = pchvml_sbst_advance_ex(search, 'O', false);
+    ret = tkz_sbst_advance_ex(search, 'O', false);
     ASSERT_EQ(ret, true);
-    ret = pchvml_sbst_advance_ex(search, 'C', false);
+    ret = tkz_sbst_advance_ex(search, 'C', false);
     ASSERT_EQ(ret, true);
-    ret = pchvml_sbst_advance_ex(search, 'T', false);
+    ret = tkz_sbst_advance_ex(search, 'T', false);
     ASSERT_EQ(ret, true);
-    ret = pchvml_sbst_advance_ex(search, 'Y', false);
+    ret = tkz_sbst_advance_ex(search, 'Y', false);
     ASSERT_EQ(ret, true);
-    ret = pchvml_sbst_advance_ex(search, 'P', false);
+    ret = tkz_sbst_advance_ex(search, 'P', false);
     ASSERT_EQ(ret, true);
-    ret = pchvml_sbst_advance_ex(search, 'E', false);
+    ret = tkz_sbst_advance_ex(search, 'E', false);
     ASSERT_EQ(ret, true);
 
-    const char* match = pchvml_sbst_get_match(search);
+    const char* match = tkz_sbst_get_match(search);
     ASSERT_STREQ(match, "DOCTYPE");
 
-    struct pcutils_arrlist* ucs = pchvml_sbst_get_buffered_ucs(search);
+    struct pcutils_arrlist* ucs = tkz_sbst_get_buffered_ucs(search);
     size_t len = pcutils_arrlist_length(ucs);
     ASSERT_EQ(len, 7);
 
-    pchvml_sbst_destroy(search);
+    tkz_sbst_destroy(search);
 }
 
 TEST(hvml_markup_declaration_open_state, match_cdata)
 {
-    struct pchvml_sbst* search = pchvml_sbst_new_markup_declaration_open_state();
+    struct tkz_sbst* search = tkz_sbst_new_markup_declaration_open_state();
     ASSERT_NE(search, nullptr);
 
     bool ret = false;
 
-    ret = pchvml_sbst_advance(search, '[');
+    ret = tkz_sbst_advance(search, '[');
     ASSERT_EQ(ret, true);
-    ret = pchvml_sbst_advance(search, 'C');
+    ret = tkz_sbst_advance(search, 'C');
     ASSERT_EQ(ret, true);
-    ret = pchvml_sbst_advance(search, 'D');
+    ret = tkz_sbst_advance(search, 'D');
     ASSERT_EQ(ret, true);
-    ret = pchvml_sbst_advance(search, 'A');
+    ret = tkz_sbst_advance(search, 'A');
     ASSERT_EQ(ret, true);
-    ret = pchvml_sbst_advance(search, 'T');
+    ret = tkz_sbst_advance(search, 'T');
     ASSERT_EQ(ret, true);
-    ret = pchvml_sbst_advance(search, 'A');
+    ret = tkz_sbst_advance(search, 'A');
     ASSERT_EQ(ret, true);
-    ret = pchvml_sbst_advance(search, '[');
+    ret = tkz_sbst_advance(search, '[');
     ASSERT_EQ(ret, true);
 
-    const char* match = pchvml_sbst_get_match(search);
+    const char* match = tkz_sbst_get_match(search);
     ASSERT_STREQ(match, "[CDATA[");
 
-    struct pcutils_arrlist* ucs = pchvml_sbst_get_buffered_ucs(search);
+    struct pcutils_arrlist* ucs = tkz_sbst_get_buffered_ucs(search);
     size_t len = pcutils_arrlist_length(ucs);
     ASSERT_EQ(len, 7);
 
-    pchvml_sbst_destroy(search);
+    tkz_sbst_destroy(search);
 }
 
 TEST(hvml_new_after_doctype_name_state, match_public)
 {
-    struct pchvml_sbst* search = pchvml_sbst_new_after_doctype_name_state();
+    struct tkz_sbst* search = tkz_sbst_new_after_doctype_name_state();
     ASSERT_NE(search, nullptr);
 
     bool ret = false;
 
-    ret = pchvml_sbst_advance_ex(search, 'P', true);
+    ret = tkz_sbst_advance_ex(search, 'P', true);
     ASSERT_EQ(ret, true);
-    ret = pchvml_sbst_advance_ex(search, 'U', true);
+    ret = tkz_sbst_advance_ex(search, 'U', true);
     ASSERT_EQ(ret, true);
-    ret = pchvml_sbst_advance_ex(search, 'B', true);
+    ret = tkz_sbst_advance_ex(search, 'B', true);
     ASSERT_EQ(ret, true);
-    ret = pchvml_sbst_advance_ex(search, 'L', true);
+    ret = tkz_sbst_advance_ex(search, 'L', true);
     ASSERT_EQ(ret, true);
-    ret = pchvml_sbst_advance_ex(search, 'I', true);
+    ret = tkz_sbst_advance_ex(search, 'I', true);
     ASSERT_EQ(ret, true);
-    ret = pchvml_sbst_advance_ex(search, 'C', true);
+    ret = tkz_sbst_advance_ex(search, 'C', true);
     ASSERT_EQ(ret, true);
 
-    const char* match = pchvml_sbst_get_match(search);
+    const char* match = tkz_sbst_get_match(search);
     ASSERT_STREQ(match, "PUBLIC");
 
-    struct pcutils_arrlist* ucs = pchvml_sbst_get_buffered_ucs(search);
+    struct pcutils_arrlist* ucs = tkz_sbst_get_buffered_ucs(search);
     size_t len = pcutils_arrlist_length(ucs);
     ASSERT_EQ(len, 6);
 
-    pchvml_sbst_destroy(search);
+    tkz_sbst_destroy(search);
 }
 
 TEST(hvml_new_after_doctype_name_state, match_system)
 {
-    struct pchvml_sbst* search = pchvml_sbst_new_after_doctype_name_state();
+    struct tkz_sbst* search = tkz_sbst_new_after_doctype_name_state();
     ASSERT_NE(search, nullptr);
 
     bool ret = false;
 
-    ret = pchvml_sbst_advance_ex(search, 'S', true);
+    ret = tkz_sbst_advance_ex(search, 'S', true);
     ASSERT_EQ(ret, true);
-    ret = pchvml_sbst_advance_ex(search, 'Y', true);
+    ret = tkz_sbst_advance_ex(search, 'Y', true);
     ASSERT_EQ(ret, true);
-    ret = pchvml_sbst_advance_ex(search, 'S', true);
+    ret = tkz_sbst_advance_ex(search, 'S', true);
     ASSERT_EQ(ret, true);
-    ret = pchvml_sbst_advance_ex(search, 'T', true);
+    ret = tkz_sbst_advance_ex(search, 'T', true);
     ASSERT_EQ(ret, true);
-    ret = pchvml_sbst_advance_ex(search, 'E', true);
+    ret = tkz_sbst_advance_ex(search, 'E', true);
     ASSERT_EQ(ret, true);
-    ret = pchvml_sbst_advance_ex(search, 'M', true);
+    ret = tkz_sbst_advance_ex(search, 'M', true);
     ASSERT_EQ(ret, true);
 
-    const char* match = pchvml_sbst_get_match(search);
+    const char* match = tkz_sbst_get_match(search);
     ASSERT_STREQ(match, "SYSTEM");
 
-    struct pcutils_arrlist* ucs = pchvml_sbst_get_buffered_ucs(search);
+    struct pcutils_arrlist* ucs = tkz_sbst_get_buffered_ucs(search);
     size_t len = pcutils_arrlist_length(ucs);
     ASSERT_EQ(len, 6);
 
-    pchvml_sbst_destroy(search);
+    tkz_sbst_destroy(search);
 }
