@@ -10,6 +10,8 @@ PURC_EXECUTABLE_DECLARE(test_utils)
 list(APPEND test_utils_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR}/include
     ${PurC_DERIVED_SOURCES_DIR}
+    ${PURC_DIR}
+    ${CMAKE_BINARY_DIR}
 )
 
 PURC_EXECUTABLE(test_utils)

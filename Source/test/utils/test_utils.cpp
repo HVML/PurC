@@ -1,4 +1,5 @@
 #include "purc.h"
+#include "private/debug.h"
 #include "private/array_list.h"
 #include "private/list.h"
 #include "private/avl.h"
@@ -7,6 +8,8 @@
 #include "private/rbtree.h"
 #include "private/atom-buckets.h"
 #include "private/sorted-array.h"
+
+#include "../helpers.h"
 
 #include <stdio.h>
 #include <errno.h>
@@ -1266,5 +1269,12 @@ TEST(utils, snprintf)
     ASSERT_STREQ(p, FMT);
     free(p);
 #undef FMT
+}
+
+TEST(utils, error)
+{
+    PurCInstance purc;
+    const char *s = purc_get_error_message(PURC_EXCEPT_TIMEOUT);
+    ASSERT_STREQ(s, "Timeout");
 }
 
