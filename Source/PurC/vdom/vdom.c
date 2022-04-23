@@ -1436,20 +1436,6 @@ pcvdom_element_is_silently(struct pcvdom_element *element)
         pcvdom_element_find_attr(element, SILENTLY_ATTR_FULL_NAME);
 }
 
-#define CASEINSENSITIVELY_ATTR_NAME          "caseinsensitively"
-#define CASEINSENSITIVELY_ATTR_FULL_NAME     "hvml:caseinsensitively"
-
-bool
-pcvdom_element_is_casesensitively(struct pcvdom_element *element)
-{
-    if (pcvdom_element_find_attr(element, CASEINSENSITIVELY_ATTR_NAME))
-        return false;
-    if (pcvdom_element_find_attr(element, CASEINSENSITIVELY_ATTR_FULL_NAME))
-        return false;
-
-    return true;
-}
-
 static purc_variant_t
 tokenwised_eval_attr_num(enum pchvml_attr_operator op,
         purc_variant_t ll, purc_variant_t rr)

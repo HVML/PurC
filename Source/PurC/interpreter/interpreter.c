@@ -562,7 +562,6 @@ push_stack_frame(pcintr_stack_t stack)
 
     frame->owner           = stack;
     frame->silently        = 0;
-    frame->casesensitively = 1;
     return frame;
 }
 
@@ -689,12 +688,6 @@ bool
 pcintr_is_element_silently(struct pcvdom_element *element)
 {
     return element ? pcvdom_element_is_silently(element) : false;
-}
-
-bool
-pcintr_is_element_casesensitively(struct pcvdom_element *element)
-{
-    return element ? pcvdom_element_is_casesensitively(element) : false;
 }
 
 #ifndef NDEBUG                     /* { */
@@ -890,8 +883,6 @@ on_select_child(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         child_frame->pos = element;
         child_frame->silently = pcintr_is_element_silently(child_frame->pos) ?
             1 : 0;
-        child_frame->casesensitively = pcintr_is_element_casesensitively(
-                child_frame->pos) ?  1 : 0;
         child_frame->edom_element = frame->edom_element;
         child_frame->scope = NULL;
 
@@ -1874,8 +1865,6 @@ pcintr_handle_message(void *ctxt)
         frame->scope = observer->scope;
         frame->pos = observer->pos;
         frame->silently = pcintr_is_element_silently(frame->pos) ? 1 : 0;
-        frame->casesensitively = pcintr_is_element_casesensitively(
-                frame->pos) ? 1 : 0;
         frame->edom_element = observer->edom_element;
         frame->next_step = NEXT_STEP_AFTER_PUSHED;
 
@@ -2846,8 +2835,6 @@ pcintr_observe_vcm_ev(pcintr_stack_t stack, struct pcintr_observer* observer,
     frame->scope = observer->scope;
     frame->pos = observer->pos;
     frame->silently = pcintr_is_element_silently(frame->pos) ? 1 : 0;
-    frame->casesensitively = pcintr_is_element_casesensitively(
-            frame->pos) ? 1 : 0;
     frame->edom_element = observer->edom_element;
 
     // eval value

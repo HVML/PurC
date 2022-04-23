@@ -251,7 +251,6 @@ struct pcintr_stack_frame {
     pcintr_stack_t     owner;
 
     unsigned int       silently:1;
-    unsigned int       casesensitively:1;
 };
 
 struct pcintr_dynamic_args {

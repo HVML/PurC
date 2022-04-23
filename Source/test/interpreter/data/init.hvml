@@ -4,6 +4,32 @@
         <init as="fibonacci" temp>
             [0, 1, ]
         </init>
+        <init as="users" uniquely against="id">
+            [
+                { "id": "1", "avatar": "/img/avatars/1.png", "name": "Tom", "region": "en_US" },
+                { "id": "2", "avatar": "/img/avatars/2.png", "name": "Jerry", "region": "zh_CN" }
+            ]
+        </init>
+
+        <init as="locales" uniquely caseinsensitively>
+            [ "zh_CN", "zh_HK", "zh_TW", "en_US", "en_UK", "en_us" ]
+        </init>
+
+        <init as="users">
+            [
+                { "id": "1", "avatar": "/img/avatars/101.png", "name": "Jerry", "region": "en_US" },
+                { "id": "2", "avatar": "/img/avatars/102.png", "name": "Tom", "region": "en_US" },
+                { "id": "3", "avatar": "/img/avatars/103.png", "name": "Mike", "region": "en_US" },
+            ]
+        </init>
+
+        <init as="users" with="[]" />
+
+        <!--
+        <init as="math" from="purc_dvobj_math" via="LOAD" />
+
+        <init as="locales" from="http://foo.bar.com/locales" with="{ from: 'foo' }" via="POST" />
+        -->
     </head>
 
     <body>

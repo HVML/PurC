@@ -35,4 +35,6 @@ hvml synchronously sync
 hvml asynchronously async
 hvml rel
 hvml temporarily temp
+hvml casesensitively
+hvml caseinsensitively
 
