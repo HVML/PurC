@@ -52,6 +52,7 @@ struct ctxt_for_init {
     unsigned int                  under_head:1;
     unsigned int                  temporarily:1;
     unsigned int                  async:1;
+    unsigned int                  casesensitively:1;
 };
 
 struct fetcher_for_init {
@@ -222,7 +223,7 @@ post_process_src_by_level(pcintr_coroutine_t co,
 }
 
 static bool
-match_id(pcintr_coroutine_t co,
+match_id(pcintr_coroutine_t co, struct ctxt_for_init *ctxt,
         struct pcvdom_element *elem, const char *id)
 {
     struct pcvdom_attr *attr;
@@ -238,12 +239,24 @@ match_id(pcintr_coroutine_t co,
 
     bool matched = false;
 
-    if (purc_variant_is_string(v)) {
+    do {
+        if (purc_variant_is_string(v) == false)
+            break;
         const char *sv = purc_variant_get_string_const(v);
-        if (sv && strcmp(sv, id) == 0) {
+        if (!sv)
+            break;
+
+        if (ctxt->casesensitively && strcmp(sv, id) == 0) {
             matched = true;
+            PC_ASSERT(0);
         }
-    }
+        else if (!ctxt->casesensitively && strcasecmp(sv, id) == 0) {
+            matched = true;
+            PC_ASSERT(0);
+        }
+
+    } while (0);
+
     purc_variant_unref(v);
 
     return matched;
@@ -276,7 +289,7 @@ post_process_src_by_id(pcintr_coroutine_t co,
         while (p) {
             if (p == NULL)
                 break;
-            if (match_id(co, p, id))
+            if (match_id(co, ctxt, p, id))
                 break;
             p = pcvdom_element_parent(p);
         }
@@ -287,7 +300,7 @@ post_process_src_by_id(pcintr_coroutine_t co,
                 return -1;
             }
             p = parent;
-            if (match_id(co, p, id) == false) {
+            if (match_id(co, ctxt, p, id) == false) {
                 purc_set_error_with_info(PURC_EXCEPT_ENTITY_NOT_FOUND,
                         "no vdom element exists");
                 return -1;
@@ -760,6 +773,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         return NULL;
     }
 
+    ctxt->casesensitively = 1;
+
     frame->ctxt = ctxt;
     frame->ctxt_destroy = ctxt_destroy;
 
@@ -817,6 +832,9 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
                 return NULL;
         }
     }
+
+    ctxt->casesensitively = pcintr_is_element_casesensitively(frame->pos) ?
+        1 : 0;
 
     purc_clr_error();
 

@@ -1585,7 +1585,7 @@ static int compare_string_method (purc_variant_t v1, purc_variant_t v2,
     if (buf2 == NULL)
         buf2 = stackbuf2;
 
-    if (opt == PCVARIANT_COMPARE_OPT_CASE)
+    if (opt == PCVARIANT_COMPARE_OPT_CASE || opt == PCVARIANT_COMPARE_OPT_AUTO)
         compare = (double)strcmp (buf1, buf2);
     else
         compare = (double)pcutils_strcasecmp (buf1, buf2);

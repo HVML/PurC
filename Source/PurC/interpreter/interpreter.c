@@ -560,8 +560,9 @@ push_stack_frame(pcintr_stack_t stack)
         return NULL;
     }
 
-    frame->silently = false;
-    frame->owner    = stack;
+    frame->owner           = stack;
+    frame->silently        = 0;
+    frame->casesensitively = 1;
     return frame;
 }
 
@@ -584,7 +585,7 @@ eval_vdom_attr(pcintr_stack_t stack, struct pcvdom_attr *attr)
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
-    return pcvcm_eval(attr->val, stack, frame->silently);
+    return pcvcm_eval(attr->val, stack, frame->silently ? true : false);
 }
 
 int
@@ -688,6 +689,12 @@ bool
 pcintr_is_element_silently(struct pcvdom_element *element)
 {
     return element ? pcvdom_element_is_silently(element) : false;
+}
+
+bool
+pcintr_is_element_casesensitively(struct pcvdom_element *element)
+{
+    return element ? pcvdom_element_is_casesensitively(element) : false;
 }
 
 #ifndef NDEBUG                     /* { */
@@ -881,7 +888,10 @@ on_select_child(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 
         child_frame->ops = pcintr_get_ops_by_element(element);
         child_frame->pos = element;
-        child_frame->silently = pcintr_is_element_silently(child_frame->pos);
+        child_frame->silently = pcintr_is_element_silently(child_frame->pos) ?
+            1 : 0;
+        child_frame->casesensitively = pcintr_is_element_casesensitively(
+                child_frame->pos) ?  1 : 0;
         child_frame->edom_element = frame->edom_element;
         child_frame->scope = NULL;
 
@@ -1863,7 +1873,9 @@ pcintr_handle_message(void *ctxt)
         frame->ops = pcintr_get_ops_by_element(observer->pos);
         frame->scope = observer->scope;
         frame->pos = observer->pos;
-        frame->silently = pcintr_is_element_silently(frame->pos);
+        frame->silently = pcintr_is_element_silently(frame->pos) ? 1 : 0;
+        frame->casesensitively = pcintr_is_element_casesensitively(
+                frame->pos) ? 1 : 0;
         frame->edom_element = observer->edom_element;
         frame->next_step = NEXT_STEP_AFTER_PUSHED;
 
@@ -2833,14 +2845,16 @@ pcintr_observe_vcm_ev(pcintr_stack_t stack, struct pcintr_observer* observer,
     frame->ops = pcintr_get_ops_by_element(observer->pos);
     frame->scope = observer->scope;
     frame->pos = observer->pos;
-    frame->silently = pcintr_is_element_silently(frame->pos);
+    frame->silently = pcintr_is_element_silently(frame->pos) ? 1 : 0;
+    frame->casesensitively = pcintr_is_element_casesensitively(
+            frame->pos) ? 1 : 0;
     frame->edom_element = observer->edom_element;
 
     // eval value
     purc_nvariant_method eval_getter = ops->property_getter(
             PCVCM_EV_PROPERTY_EVAL);
     purc_variant_t new_val = eval_getter(native_entity, 0, NULL,
-            frame->silently);
+            frame->silently ? true : false);
     pop_stack_frame(stack);
 
     if (!new_val) {
@@ -2851,7 +2865,7 @@ pcintr_observe_vcm_ev(pcintr_stack_t stack, struct pcintr_observer* observer,
     purc_nvariant_method last_value_getter = ops->property_getter(
             PCVCM_EV_PROPERTY_LAST_VALUE);
     purc_variant_t last_value = last_value_getter(native_entity, 0, NULL,
-            frame->silently);
+            frame->silently ? true : false);
     int cmp = purc_variant_compare_ex(new_val, last_value,
             PCVARIANT_COMPARE_OPT_AUTO);
     if (cmp == 0) {
@@ -2861,7 +2875,8 @@ pcintr_observe_vcm_ev(pcintr_stack_t stack, struct pcintr_observer* observer,
 
     purc_nvariant_method last_value_setter = ops->property_setter(
             PCVCM_EV_PROPERTY_LAST_VALUE);
-    last_value_setter(native_entity, 1, &new_val, frame->silently);
+    last_value_setter(native_entity, 1, &new_val,
+            frame->silently ? true : false);
 
     // dispatch change event
     purc_variant_t type = purc_variant_make_string(MSG_TYPE_CHANGE, false);

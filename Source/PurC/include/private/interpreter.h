@@ -248,9 +248,10 @@ struct pcintr_stack_frame {
     // coordinated between element-implementer and coroutine-coordinator
     preemptor_f        preemptor;
 
-    bool silently;
-
     pcintr_stack_t     owner;
+
+    unsigned int       silently:1;
+    unsigned int       casesensitively:1;
 };
 
 struct pcintr_dynamic_args {
