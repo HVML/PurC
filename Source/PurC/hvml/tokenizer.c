@@ -1971,9 +1971,50 @@ BEGIN_STATE(TKZ_STATE_JSONEE_ATTRIBUTE_VALUE_UNQUOTED)
         SET_RETURN_STATE(TKZ_STATE_JSONEE_ATTRIBUTE_VALUE_UNQUOTED);
         ADVANCE_TO(TKZ_STATE_CHARACTER_REFERENCE);
     }
+    if (character == '/') {
+        if (!tkz_buffer_is_empty(parser->temp_buffer)) {
+
+            if (tkz_buffer_is_int(parser->temp_buffer)) {
+                int64_t i64 = strtoll (
+                    tkz_buffer_get_bytes(parser->temp_buffer),
+                    NULL, 10);
+                struct pcvcm_node* node = pcvcm_node_new_longint(i64);
+                pchvml_token_append_vcm_to_attr(parser->token, node);
+            }
+            else if (tkz_buffer_is_number(parser->temp_buffer)) {
+                double d = strtod(
+                    tkz_buffer_get_bytes(parser->temp_buffer), NULL);
+                struct pcvcm_node* node = pcvcm_node_new_number(d);
+                pchvml_token_append_vcm_to_attr(parser->token, node);
+            }
+            else {
+                APPEND_BUFFER_TO_TOKEN_ATTR_VALUE(parser->temp_buffer);
+            }
+            RESET_TEMP_BUFFER();
+
+        }
+        END_TOKEN_ATTR();
+        RECONSUME_IN(TKZ_STATE_BEFORE_ATTRIBUTE_NAME);
+    }
     if (character == '>') {
         if (!tkz_buffer_is_empty(parser->temp_buffer)) {
-            APPEND_BUFFER_TO_TOKEN_ATTR_VALUE(parser->temp_buffer);
+
+            if (tkz_buffer_is_int(parser->temp_buffer)) {
+                int64_t i64 = strtoll (
+                    tkz_buffer_get_bytes(parser->temp_buffer),
+                    NULL, 10);
+                struct pcvcm_node* node = pcvcm_node_new_longint(i64);
+                pchvml_token_append_vcm_to_attr(parser->token, node);
+            }
+            else if (tkz_buffer_is_number(parser->temp_buffer)) {
+                double d = strtod(
+                    tkz_buffer_get_bytes(parser->temp_buffer), NULL);
+                struct pcvcm_node* node = pcvcm_node_new_number(d);
+                pchvml_token_append_vcm_to_attr(parser->token, node);
+            }
+            else {
+                APPEND_BUFFER_TO_TOKEN_ATTR_VALUE(parser->temp_buffer);
+            }
             RESET_TEMP_BUFFER();
         }
         END_TOKEN_ATTR();
