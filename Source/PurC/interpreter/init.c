@@ -939,16 +939,24 @@ on_child_finished(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         purc_variant_ref(ctxt->with);
         return post_process(co, frame);
     }
+
+    if (ctxt->literal == PURC_VARIANT_INVALID) {
+        ctxt->literal = purc_variant_make_undefined();
+    }
+
     if (ctxt->literal != PURC_VARIANT_INVALID) {
         frame->ctnt_var = ctxt->literal;
         purc_variant_ref(ctxt->literal);
         return post_process(co, frame);
     }
+
     // FIXME:
     if (ctxt->async) {
         return 0;
     }
 
+    purc_set_error_with_info(PURC_EXCEPT_ENTITY_NOT_FOUND,
+            "no value defined for <init>");
     return -1;
 }
 
@@ -994,7 +1002,7 @@ again:
 
     if (curr == NULL) {
         purc_clr_error();
-        PC_ASSERT(0 == on_child_finished(co, frame));
+        on_child_finished(co, frame);
         return NULL;
     }
 
