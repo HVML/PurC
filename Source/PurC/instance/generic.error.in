@@ -68,15 +68,15 @@ TooSmallBuff
     flags: None
     msg: "Too small buffer"
 
-NullObject
-    except: InternalFailure
-    flags: None
-    msg: "Null object"
-
 TooSmallSize
     except: InternalFailure
     flags: None
     msg: "Too small size"
+
+NullObject
+    except: InternalFailure
+    flags: None
+    msg: "Null object"
 
 IncompleteObject
     except: InvalidValue
@@ -153,6 +153,22 @@ TooMany
     flags: None
     msg: "Too many"
 
+NotReady
+    except: NotReady
+    flags: None
+    msg: "Not ready"
+
+Incompleted
+    except: Incompleted
+    flags: None
+    msg: "Incompleted"
+
+SystemFault
+    except: SystemFault
+    flags: None
+    msg: "System fault"
+
+
 TooLong
     except: TooLong
     flags: None
@@ -162,11 +178,6 @@ Timeout
     except: Timeout
     flags: None
     msg: "Timeout"
-
-NotReady
-    except: NotReady
-    flags: None
-    msg: "Not ready"
 
 BrokenPipe
     except: BrokenPipe
@@ -187,16 +198,6 @@ ConnectionReset
     except: ConnectionReset
     flags: None
     msg: "Connection reset"
-
-Incompleted
-    except: Incompleted
-    flags: None
-    msg: "Incompleted"
-
-SystemFault
-    except: SystemFault
-    flags: None
-    msg: "System fault"
 
 DuplicateName
     except: DuplicateName
