@@ -310,6 +310,93 @@ post_process_src_by_id(pcintr_coroutine_t co,
 }
 
 static int
+post_process_src_by_topmost(pcintr_coroutine_t co,
+        struct pcintr_stack_frame *frame, purc_variant_t src)
+{
+    struct ctxt_for_init *ctxt;
+    ctxt = (struct ctxt_for_init*)frame->ctxt;
+
+    if (ctxt->temporarily) {
+        struct pcintr_stack_frame *p = frame;
+        struct pcintr_stack_frame *parent;
+        parent = pcintr_stack_frame_get_parent(p);
+        uint64_t level = 0;
+        while (parent) {
+            p = parent;
+            parent = pcintr_stack_frame_get_parent(p);
+            level += 1;
+        }
+        PC_ASSERT(level > 0);
+        return post_process_src_by_level(co, frame, src, level);
+    }
+    else {
+        const char *s_name = get_name(co, frame);
+        if (!s_name)
+            return -1;
+        bool ok;
+        ok = purc_bind_document_variable(co->stack->vdom, s_name, src);
+        return ok ? 0 : -1;
+    }
+}
+
+static int
+post_process_src_by_atom(pcintr_coroutine_t co,
+        struct pcintr_stack_frame *frame, purc_variant_t src, purc_atom_t atom)
+{
+    struct ctxt_for_init *ctxt;
+    ctxt = (struct ctxt_for_init*)frame->ctxt;
+
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, _PARENT)) == atom) {
+        if (ctxt->temporarily) {
+            purc_set_error_with_info(PURC_EXCEPT_BAD_NAME,
+                    "at = '%s' conflicts with temporarily",
+                    purc_atom_to_string(atom));
+            return -1;
+        }
+        return post_process_src_by_level(co, frame, src, 1);
+    }
+
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, _GRANDPARENT)) == atom ) {
+        if (ctxt->temporarily) {
+            purc_set_error_with_info(PURC_EXCEPT_BAD_NAME,
+                    "at = '%s' conflicts with temporarily",
+                    purc_atom_to_string(atom));
+            return -1;
+        }
+        return post_process_src_by_level(co, frame, src, 2);
+    }
+
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, _ROOT)) == atom ) {
+        if (ctxt->temporarily) {
+            purc_set_error_with_info(PURC_EXCEPT_BAD_NAME,
+                    "at = '%s' conflicts with temporarily",
+                    purc_atom_to_string(atom));
+            return -1;
+        }
+        return post_process_src_by_topmost(co, frame, src);
+    }
+
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, _LAST)) == atom) {
+        ctxt->temporarily = 1;
+        return post_process_src_by_level(co, frame, src, 1);
+    }
+
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, _NEXTTOLAST)) == atom) {
+        ctxt->temporarily = 1;
+        return post_process_src_by_level(co, frame, src, 2);
+    }
+
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, _TOPMOST)) == atom) {
+        ctxt->temporarily = 1;
+        return post_process_src_by_topmost(co, frame, src);
+    }
+
+    purc_set_error_with_info(PURC_EXCEPT_BAD_NAME,
+            "at = '%s'", purc_atom_to_string(atom));
+    return -1;
+}
+
+static int
 post_process_src(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         purc_variant_t src)
 {
@@ -345,17 +432,13 @@ post_process_src(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         if (s_at[0] == '#')
             return post_process_src_by_id(co, frame, src, s_at+1);
         else if (s_at[0] == '_') {
-            if (strcmp(s_at, "_parent") == 0)
-                return post_process_src_by_level(co, frame, src, 1);
-            if (strcmp(s_at, "_grandparent") == 0)
-                return post_process_src_by_level(co, frame, src, 2);
-            else if (strcmp(s_at, "_ancestor") == 0)
-                return post_process_src_by_level(co, frame, src, 3);
-            else {
+            purc_atom_t atom = PCHVML_KEYWORD_ATOM(HVML, s_at);
+            if (atom == 0) {
                 purc_set_error_with_info(PURC_EXCEPT_BAD_NAME,
                         "at = '%s'", s_at);
                 return -1;
             }
+            return post_process_src_by_atom(co, frame, src, atom);
         }
     }
     bool ok;
