@@ -313,6 +313,10 @@ void
 tkz_buffer_delete_tail_chars(struct tkz_buffer *buffer, size_t sz);
 
 bool
+tkz_buffer_start_with(struct tkz_buffer *buffer, const char *bytes,
+        size_t nr_bytes);
+
+bool
 tkz_buffer_end_with(struct tkz_buffer *buffer, const char *bytes,
         size_t nr_bytes);
 

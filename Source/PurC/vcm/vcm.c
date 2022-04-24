@@ -1403,6 +1403,18 @@ purc_variant_t find_stack_var(void *ctxt, const char *name)
         return pcintr_get_symbolized_var(stack, 1, last);
     }
 
+    // # + anchor + symbol
+    if (name[0] == '#') {
+        char* anchor = strndup(name + 1, nr_name - 2);
+        if (!anchor) {
+            return PURC_VARIANT_INVALID;
+        }
+        purc_variant_t var = pcintr_find_anchor_symbolized_var(stack, anchor,
+                last);
+        free(anchor);
+        return var;
+    }
+
     return pcintr_find_named_var(ctxt, name);
 }
 

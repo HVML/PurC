@@ -248,9 +248,9 @@ struct pcintr_stack_frame {
     // coordinated between element-implementer and coroutine-coordinator
     preemptor_f        preemptor;
 
-    bool silently;
-
     pcintr_stack_t     owner;
+
+    unsigned int       silently:1;
 };
 
 struct pcintr_dynamic_args {
@@ -345,6 +345,10 @@ pcintr_find_named_var(pcintr_stack_t stack, const char* name);
 
 purc_variant_t
 pcintr_get_symbolized_var (pcintr_stack_t stack, unsigned int number,
+        char symbol);
+
+purc_variant_t
+pcintr_find_anchor_symbolized_var(pcintr_stack_t stack, const char *anchor,
         char symbol);
 
 int

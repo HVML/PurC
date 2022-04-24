@@ -388,6 +388,15 @@ void tkz_buffer_delete_tail_chars(
     memset(buffer->here, 0, buffer->stop - buffer->here);
 }
 
+bool
+tkz_buffer_start_with(struct tkz_buffer *buffer, const char *bytes,
+        size_t nr_bytes)
+{
+    size_t sz = tkz_buffer_get_size_in_bytes(buffer);
+    return (sz >= nr_bytes
+            && memcmp(buffer->base, bytes, nr_bytes) == 0);
+}
+
 bool tkz_buffer_end_with(struct tkz_buffer *buffer,
         const char *bytes, size_t nr_bytes)
 {

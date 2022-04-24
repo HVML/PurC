@@ -43,6 +43,130 @@
 #endif                             /* } */
 #endif                             /* } */
 
+static const char *except_messages[] = {
+    /* PURC_EXCEPT_OK */
+    "OK",
+    /* PURC_EXCEPT_BAD_ENCODING */
+    "Bad encoding",
+    /* PURC_EXCEPT_BAD_HVML_TAG */
+    "Bad HVML tag",
+    /* PURC_EXCEPT_BAD_HVML_ATTR_NAME */
+    "Bad HVML attr name",
+    /* PURC_EXCEPT_BAD_HVML_ATTR_VALUE */
+    "Bad HVML attr value",
+    /* PURC_EXCEPT_BAD_HVML_CONTENT */
+    "Bad HVML content",
+    /* PURC_EXCEPT_BAD_TARGET_HTML */
+    "Bad target html",
+    /* PURC_EXCEPT_BAD_TARGET_XGML */
+    "Bad target xgml",
+    /* PURC_EXCEPT_BAD_TARGET_XML */
+    "Bad target xml",
+    /* PURC_EXCEPT_BAD_EXPRESSION */
+    "Bad expression",
+    /* PURC_EXCEPT_BAD_EXECUTOR */
+    "Bad executor",
+    /* PURC_EXCEPT_BAD_NAME */
+    "Bad name",
+    /* PURC_EXCEPT_NO_DATA */
+    "No data",
+    /* PURC_EXCEPT_NOT_ITERABLE */
+    "Not iterable",
+    /* PURC_EXCEPT_BAD_INDEX */
+    "Bad index",
+    /* PURC_EXCEPT_NO_SUCH_KEY */
+    "No such key",
+    /* PURC_EXCEPT_DUPLICATE_KEY */
+    "Duplicate key",
+    /* PURC_EXCEPT_ARGUMENT_MISSED */
+    "Argument missed",
+    /* PURC_EXCEPT_WRONG_DATA_TYPE */
+    "Wrong data type",
+    /* PURC_EXCEPT_INVALID_VALUE */
+    "Invalid value",
+    /* PURC_EXCEPT_MAX_ITERATION_COUNT */
+    "Max iteration count",
+    /* PURC_EXCEPT_MAX_RECURSION_DEPTH */
+    "Max recursion depth",
+    /* PURC_EXCEPT_UNAUTHORIZED */
+    "Unauthorized",
+    /* PURC_EXCEPT_TIMEOUT */
+    "Timeout",
+    /* PURC_EXCEPT_E_DOM_FAILURE */
+    "eDom failure",
+    /* PURC_EXCEPT_LOST_RENDERER */
+    "Lost renderer",
+    /* PURC_EXCEPT_MEMORY_FAILURE */
+    "Memory failure",
+    /* PURC_EXCEPT_INTERNAL_FAILURE */
+    "Internal failure",
+    /* PURC_EXCEPT_ZERO_DIVISION */
+    "Zero division",
+    /* PURC_EXCEPT_OVERFLOW */
+    "Overflow",
+    /* PURC_EXCEPT_UNDERFLOW */
+    "Underflow",
+    /* PURC_EXCEPT_INVALID_FLOAT */
+    "Invalid float",
+    /* PURC_EXCEPT_ACCESS_DENIED */
+    "Access denied",
+    /* PURC_EXCEPT_IO_FAILURE */
+    "IO failure",
+    /* PURC_EXCEPT_TOO_SMALL */
+    "Too small",
+    /* PURC_EXCEPT_TOO_MANY */
+    "Too many",
+    /* PURC_EXCEPT_TOO_LONG */
+    "Too long",
+    /* PURC_EXCEPT_TOO_LARGE */
+    "Too large",
+    /* PURC_EXCEPT_NOT_DESIRED_ENTITY */
+    "Not desired entity",
+    /* PURC_EXCEPT_INVALID_OPERAND */
+    "Invalid operand",
+    /* PURC_EXCEPT_ENTITY_NOT_FOUND */
+    "Entity not found",
+    /* PURC_EXCEPT_ENTITY_EXISTS */
+    "Entity exists",
+    /* PURC_EXCEPT_NO_STORAGE_SPACE */
+    "No storage space",
+    /* PURC_EXCEPT_BROKEN_PIPE */
+    "Broken pipe",
+    /* PURC_EXCEPT_CONNECTION_ABORTED */
+    "Connection aborted",
+    /* PURC_EXCEPT_CONNECTION_REFUSED */
+    "Connection refused",
+    /* PURC_EXCEPT_CONNECTION_RESET */
+    "Connection reset",
+    /* PURC_EXCEPT_NAME_RESOLUTION_FAILED */
+    "Name resolution failed",
+    /* PURC_EXCEPT_REQUEST_FAILED */
+    "Request failed",
+    /* PURC_EXCEPT_SYSTEM_FAULT */
+    "System fault",
+    /* PURC_EXCEPT_OS_FAILURE */
+    "OS failure",
+    /* PURC_EXCEPT_NOT_READY */
+    "Not ready",
+    /* PURC_EXCEPT_NOT_IMPLEMENTED */
+    "Not implemented",
+    /* PURC_EXCEPT_UNSUPPORTED */
+    "Unsupported",
+    /* PURC_EXCEPT_INCOMPLETED */
+    "Incompleted",
+    /* PURC_EXCEPT_DUPLICATE_NAME */
+    "Duplicate name",
+};
+
+
+#define _COMPILE_TIME_ASSERT(name, x)               \
+           typedef int _dummy_ ## name[(x) * 2 - 1]
+
+_COMPILE_TIME_ASSERT(except_msgs,
+                PCA_TABLESIZE(except_messages) == PURC_EXCEPT_NR);
+
+#undef _COMPILE_TIME_ASSERT
+
 static const struct err_msg_info* get_error_info(int errcode);
 
 static int _noinst_errcode;
@@ -240,6 +364,14 @@ const char* purc_get_error_message(int errcode)
 {
     const struct err_msg_info* info = get_error_info(errcode);
     return info ? info->msg : UNKNOWN_ERR_CODE;
+}
+
+const char* purc_get_except_message(int except)
+{
+    if (except >= PURC_EXCEPT_FIRST && except < PURC_EXCEPT_NR) {
+        return except_messages[except];
+    }
+    return NULL;
 }
 
 purc_atom_t purc_get_error_exception(int errcode)

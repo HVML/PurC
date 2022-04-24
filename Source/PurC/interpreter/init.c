@@ -35,23 +35,32 @@
 #include <pthread.h>
 #include <unistd.h>
 
+enum VIA {
+    VIA_LOAD,
+    VIA_GET,
+    VIA_POST,
+    VIA_DELETE,
+};
+
 struct ctxt_for_init {
     struct pcvdom_node           *curr;
 
     purc_variant_t                as;
     purc_variant_t                at;
-    purc_variant_t                uniquely;
     purc_variant_t                from;
     purc_variant_t                from_result;
     purc_variant_t                with;
     purc_variant_t                against;
-    purc_variant_t                via;
 
     purc_variant_t                literal;
+
+    enum VIA                      via;
 
     unsigned int                  under_head:1;
     unsigned int                  temporarily:1;
     unsigned int                  async:1;
+    unsigned int                  casesensitively:1;
+    unsigned int                  uniquely:1;
 };
 
 struct fetcher_for_init {
@@ -67,12 +76,10 @@ ctxt_for_init_destroy(struct ctxt_for_init *ctxt)
     if (ctxt) {
         PURC_VARIANT_SAFE_CLEAR(ctxt->as);
         PURC_VARIANT_SAFE_CLEAR(ctxt->at);
-        PURC_VARIANT_SAFE_CLEAR(ctxt->uniquely);
         PURC_VARIANT_SAFE_CLEAR(ctxt->from);
         PURC_VARIANT_SAFE_CLEAR(ctxt->from_result);
         PURC_VARIANT_SAFE_CLEAR(ctxt->with);
         PURC_VARIANT_SAFE_CLEAR(ctxt->against);
-        PURC_VARIANT_SAFE_CLEAR(ctxt->via);
         PURC_VARIANT_SAFE_CLEAR(ctxt->literal);
         free(ctxt);
     }
@@ -212,7 +219,7 @@ post_process_src_by_level(pcintr_coroutine_t co,
         if (p == NULL) {
             if (!silently) {
                 purc_set_error_with_info(PURC_EXCEPT_ENTITY_NOT_FOUND,
-                        "no frame exists");
+                        "no vdom element exists");
                 return -1;
             }
             p = parent;
@@ -238,12 +245,17 @@ match_id(pcintr_coroutine_t co,
 
     bool matched = false;
 
-    if (purc_variant_is_string(v)) {
+    do {
+        if (purc_variant_is_string(v) == false)
+            break;
         const char *sv = purc_variant_get_string_const(v);
-        if (sv && strcmp(sv, id) == 0) {
+        if (!sv)
+            break;
+
+        if (strcmp(sv, id) == 0)
             matched = true;
-        }
-    }
+    } while (0);
+
     purc_variant_unref(v);
 
     return matched;
@@ -298,6 +310,93 @@ post_process_src_by_id(pcintr_coroutine_t co,
 }
 
 static int
+post_process_src_by_topmost(pcintr_coroutine_t co,
+        struct pcintr_stack_frame *frame, purc_variant_t src)
+{
+    struct ctxt_for_init *ctxt;
+    ctxt = (struct ctxt_for_init*)frame->ctxt;
+
+    if (ctxt->temporarily) {
+        struct pcintr_stack_frame *p = frame;
+        struct pcintr_stack_frame *parent;
+        parent = pcintr_stack_frame_get_parent(p);
+        uint64_t level = 0;
+        while (parent) {
+            p = parent;
+            parent = pcintr_stack_frame_get_parent(p);
+            level += 1;
+        }
+        PC_ASSERT(level > 0);
+        return post_process_src_by_level(co, frame, src, level);
+    }
+    else {
+        const char *s_name = get_name(co, frame);
+        if (!s_name)
+            return -1;
+        bool ok;
+        ok = purc_bind_document_variable(co->stack->vdom, s_name, src);
+        return ok ? 0 : -1;
+    }
+}
+
+static int
+post_process_src_by_atom(pcintr_coroutine_t co,
+        struct pcintr_stack_frame *frame, purc_variant_t src, purc_atom_t atom)
+{
+    struct ctxt_for_init *ctxt;
+    ctxt = (struct ctxt_for_init*)frame->ctxt;
+
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, _PARENT)) == atom) {
+        if (ctxt->temporarily) {
+            purc_set_error_with_info(PURC_EXCEPT_BAD_NAME,
+                    "at = '%s' conflicts with temporarily",
+                    purc_atom_to_string(atom));
+            return -1;
+        }
+        return post_process_src_by_level(co, frame, src, 1);
+    }
+
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, _GRANDPARENT)) == atom ) {
+        if (ctxt->temporarily) {
+            purc_set_error_with_info(PURC_EXCEPT_BAD_NAME,
+                    "at = '%s' conflicts with temporarily",
+                    purc_atom_to_string(atom));
+            return -1;
+        }
+        return post_process_src_by_level(co, frame, src, 2);
+    }
+
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, _ROOT)) == atom ) {
+        if (ctxt->temporarily) {
+            purc_set_error_with_info(PURC_EXCEPT_BAD_NAME,
+                    "at = '%s' conflicts with temporarily",
+                    purc_atom_to_string(atom));
+            return -1;
+        }
+        return post_process_src_by_topmost(co, frame, src);
+    }
+
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, _LAST)) == atom) {
+        ctxt->temporarily = 1;
+        return post_process_src_by_level(co, frame, src, 1);
+    }
+
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, _NEXTTOLAST)) == atom) {
+        ctxt->temporarily = 1;
+        return post_process_src_by_level(co, frame, src, 2);
+    }
+
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, _TOPMOST)) == atom) {
+        ctxt->temporarily = 1;
+        return post_process_src_by_topmost(co, frame, src);
+    }
+
+    purc_set_error_with_info(PURC_EXCEPT_BAD_NAME,
+            "at = '%s'", purc_atom_to_string(atom));
+    return -1;
+}
+
+static int
 post_process_src(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         purc_variant_t src)
 {
@@ -333,17 +432,13 @@ post_process_src(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         if (s_at[0] == '#')
             return post_process_src_by_id(co, frame, src, s_at+1);
         else if (s_at[0] == '_') {
-            if (strcmp(s_at, "_parent") == 0)
-                return post_process_src_by_level(co, frame, src, 1);
-            if (strcmp(s_at, "_grandparent") == 0)
-                return post_process_src_by_level(co, frame, src, 2);
-            else if (strcmp(s_at, "_ancestor") == 0)
-                return post_process_src_by_level(co, frame, src, 3);
-            else {
+            purc_atom_t atom = PCHVML_KEYWORD_ATOM(HVML, s_at);
+            if (atom == 0) {
                 purc_set_error_with_info(PURC_EXCEPT_BAD_NAME,
                         "at = '%s'", s_at);
                 return -1;
             }
+            return post_process_src_by_atom(co, frame, src, atom);
         }
     }
     bool ok;
@@ -439,31 +534,6 @@ process_attr_at(struct pcintr_stack_frame *frame,
 }
 
 static int
-process_attr_uniquely(struct pcintr_stack_frame *frame,
-        struct pcvdom_element *element,
-        purc_atom_t name, purc_variant_t val)
-{
-    struct ctxt_for_init *ctxt;
-    ctxt = (struct ctxt_for_init*)frame->ctxt;
-    if (ctxt->uniquely != PURC_VARIANT_INVALID) {
-        purc_set_error_with_info(PURC_ERROR_DUPLICATED,
-                "vdom attribute '%s' for element <%s>",
-                purc_atom_to_string(name), element->tag_name);
-        return -1;
-    }
-    if (val == PURC_VARIANT_INVALID) {
-        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
-                "vdom attribute '%s' for element <%s> undefined",
-                purc_atom_to_string(name), element->tag_name);
-        return -1;
-    }
-    ctxt->uniquely = val;
-    purc_variant_ref(val);
-
-    return 0;
-}
-
-static int
 process_attr_from(struct pcintr_stack_frame *frame,
         struct pcvdom_element *element,
         purc_atom_t name, purc_variant_t val)
@@ -552,22 +622,40 @@ process_attr_via(struct pcintr_stack_frame *frame,
 {
     struct ctxt_for_init *ctxt;
     ctxt = (struct ctxt_for_init*)frame->ctxt;
-    if (ctxt->via != PURC_VARIANT_INVALID) {
-        purc_set_error_with_info(PURC_ERROR_DUPLICATED,
-                "vdom attribute '%s' for element <%s>",
-                purc_atom_to_string(name), element->tag_name);
-        return -1;
-    }
     if (val == PURC_VARIANT_INVALID) {
         purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
                 "vdom attribute '%s' for element <%s> undefined",
                 purc_atom_to_string(name), element->tag_name);
         return -1;
     }
-    ctxt->via = val;
-    purc_variant_ref(val);
+    const char *s_val = purc_variant_get_string_const(val);
+    if (!s_val)
+        return -1;
 
-    return 0;
+    if (strcmp(s_val, "LOAD") == 0) {
+        ctxt->via = VIA_LOAD;
+        return 0;
+    }
+
+    if (strcmp(s_val, "GET") == 0) {
+        ctxt->via = VIA_GET;
+        return 0;
+    }
+
+    if (strcmp(s_val, "POST") == 0) {
+        ctxt->via = VIA_POST;
+        return 0;
+    }
+
+    if (strcmp(s_val, "DELETE") == 0) {
+        ctxt->via = VIA_DELETE;
+        return 0;
+    }
+
+    purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+            "unknown vdom attribute '%s = %s' for element <%s>",
+            purc_atom_to_string(name), s_val, element->tag_name);
+    return -1;
 }
 
 static int
@@ -592,7 +680,19 @@ attr_found_val(struct pcintr_stack_frame *frame,
         return process_attr_at(frame, element, name, val);
     }
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, UNIQUELY)) == name) {
-        return process_attr_uniquely(frame, element, name, val);
+        PC_ASSERT(purc_variant_is_undefined(val));
+        ctxt->uniquely = 1;
+        return 0;
+    }
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CASESENSITIVELY)) == name) {
+        PC_ASSERT(purc_variant_is_undefined(val));
+        ctxt->casesensitively= 1;
+        return 0;
+    }
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CASEINSENSITIVELY)) == name) {
+        PC_ASSERT(purc_variant_is_undefined(val));
+        ctxt->casesensitively= 0;
+        return 0;
     }
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, FROM)) == name) {
         return process_attr_from(frame, element, name, val);
@@ -759,6 +859,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
     }
+
+    ctxt->casesensitively = 1;
 
     frame->ctxt = ctxt;
     frame->ctxt_destroy = ctxt_destroy;

@@ -1,0 +1,4 @@
+<hvml>
+    <test on="$#aname<"/>
+    <test on="$#aname?"/>
+</hvml>
