@@ -35,6 +35,13 @@
 #include <pthread.h>
 #include <unistd.h>
 
+enum VIA {
+    VIA_LOAD,
+    VIA_GET,
+    VIA_POST,
+    VIA_DELETE,
+};
+
 struct ctxt_for_init {
     struct pcvdom_node           *curr;
 
@@ -44,9 +51,10 @@ struct ctxt_for_init {
     purc_variant_t                from_result;
     purc_variant_t                with;
     purc_variant_t                against;
-    purc_variant_t                via;
 
     purc_variant_t                literal;
+
+    enum VIA                      via;
 
     unsigned int                  under_head:1;
     unsigned int                  temporarily:1;
@@ -72,7 +80,6 @@ ctxt_for_init_destroy(struct ctxt_for_init *ctxt)
         PURC_VARIANT_SAFE_CLEAR(ctxt->from_result);
         PURC_VARIANT_SAFE_CLEAR(ctxt->with);
         PURC_VARIANT_SAFE_CLEAR(ctxt->against);
-        PURC_VARIANT_SAFE_CLEAR(ctxt->via);
         PURC_VARIANT_SAFE_CLEAR(ctxt->literal);
         free(ctxt);
     }
@@ -532,22 +539,40 @@ process_attr_via(struct pcintr_stack_frame *frame,
 {
     struct ctxt_for_init *ctxt;
     ctxt = (struct ctxt_for_init*)frame->ctxt;
-    if (ctxt->via != PURC_VARIANT_INVALID) {
-        purc_set_error_with_info(PURC_ERROR_DUPLICATED,
-                "vdom attribute '%s' for element <%s>",
-                purc_atom_to_string(name), element->tag_name);
-        return -1;
-    }
     if (val == PURC_VARIANT_INVALID) {
         purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
                 "vdom attribute '%s' for element <%s> undefined",
                 purc_atom_to_string(name), element->tag_name);
         return -1;
     }
-    ctxt->via = val;
-    purc_variant_ref(val);
+    const char *s_val = purc_variant_get_string_const(val);
+    if (!s_val)
+        return -1;
 
-    return 0;
+    if (strcmp(s_val, "LOAD") == 0) {
+        ctxt->via = VIA_LOAD;
+        return 0;
+    }
+
+    if (strcmp(s_val, "GET") == 0) {
+        ctxt->via = VIA_GET;
+        return 0;
+    }
+
+    if (strcmp(s_val, "POST") == 0) {
+        ctxt->via = VIA_POST;
+        return 0;
+    }
+
+    if (strcmp(s_val, "DELETE") == 0) {
+        ctxt->via = VIA_DELETE;
+        return 0;
+    }
+
+    purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+            "unknown vdom attribute '%s = %s' for element <%s>",
+            purc_atom_to_string(name), s_val, element->tag_name);
+    return -1;
 }
 
 static int
