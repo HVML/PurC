@@ -203,7 +203,7 @@ list_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
-    strcpy (dir_name, string_filename);
+    strncpy (dir_name, string_filename, sizeof(dir_name));
 
     if (access(dir_name, F_OK | R_OK) != 0) {
         purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
@@ -277,7 +277,7 @@ list_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         obj_var = purc_variant_make_object (0, PURC_VARIANT_INVALID,
                 PURC_VARIANT_INVALID);
 
-        strcpy (filename, dir_name);
+        strncpy (filename, dir_name, sizeof(filename));
         strcat (filename, "/");
         strcat (filename, ptr->d_name);
 
@@ -482,7 +482,7 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
-    strcpy (dir_name, string_filename);
+    strncpy (dir_name, string_filename, sizeof(dir_name));
 
     if (access(dir_name, F_OK | R_OK) != 0) {
         purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
@@ -658,7 +658,7 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         if (wildcard && (temp_wildcard == NULL))
             continue;
 
-        strcpy (filename, dir_name);
+        strncpy (filename, dir_name, sizeof(filename));
         strcat (filename, "/");
         strcat (filename, ptr->d_name);
 
@@ -782,23 +782,57 @@ basename_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(root);
     UNUSED_PARAM(silently);
 
-    char filename[PATH_MAX];
-    const char *string_filename = NULL;
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    // On Linux, slash (/) is used as directory separator character.
+    const char separator = '/';
+    const char *string_path = NULL;
+    const char *string_suffix = NULL;
+    const char *base_begin = NULL;
+    const char *temp_ptr = NULL;
+    const char *base_end = NULL;
+    purc_variant_t ret_string = PURC_VARIANT_INVALID;
 
     if (nr_args < 1) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
-    // get the file name
-    string_filename = purc_variant_get_string_const (argv[0]);
-    strcpy (filename, string_filename);
+    // get the parameters
+    string_path = purc_variant_get_string_const (argv[0]);
+    if (NULL == string_path) {
+        ret_string = purc_variant_make_string("", true);
+        return ret_string;
+    }
+    if (nr_args > 1) {
+        string_suffix = purc_variant_get_string_const (argv[1]);
+    }
 
-    // wait for code
+    // Mark out the trailing name component.
+    base_begin = string_path;
+    temp_ptr = base_begin;
+    base_end = base_begin + strlen(string_path);
+    while (base_end > base_begin && separator == *base_end) {
+        base_end--;
+    }
+    while (temp_ptr < base_end) {
+        if (separator == *temp_ptr) {
+            base_begin = temp_ptr;
+        }
+        temp_ptr ++;
+    }
 
-    //ret_var = purc_variant_make_string(p, true);
-    return ret_var;
+    // If the name component ends in suffix this will also be cut off.
+    if (string_suffix) {
+        int suffix_len = strlen(string_suffix);
+        temp_ptr = base_end - suffix_len;
+        if (temp_ptr > base_begin &&
+            0 == strncmp(string_suffix, temp_ptr, suffix_len)) {
+            base_end = temp_ptr - 1;
+        }
+    }
+
+    ret_string = purc_variant_make_string_ex(base_begin,
+            (base_end - base_begin), true);
+    return ret_string;
 }
 
 static purc_variant_t
@@ -819,7 +853,7 @@ chgrp_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
-    strcpy (filename, string_filename);
+    strncpy (filename, string_filename, sizeof(filename));
 
     // wait for code
 
@@ -845,7 +879,7 @@ chmod_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
-    strcpy (filename, string_filename);
+    strncpy (filename, string_filename, sizeof(filename));
 
     // wait for code
 
@@ -871,7 +905,7 @@ chown_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
-    strcpy (filename, string_filename);
+    strncpy (filename, string_filename, sizeof(filename));
 
     // wait for code
 
@@ -897,7 +931,7 @@ copy_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
-    strcpy (filename, string_filename);
+    strncpy (filename, string_filename, sizeof(filename));
 
     // wait for code
 
@@ -923,7 +957,7 @@ dirname_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
-    strcpy (filename, string_filename);
+    strncpy (filename, string_filename, sizeof(filename));
 
     // wait for code
 
@@ -949,7 +983,7 @@ disk_usage_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
-    strcpy (filename, string_filename);
+    strncpy (filename, string_filename, sizeof(filename));
 
     // wait for code
 
@@ -975,7 +1009,7 @@ file_exists_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
-    strcpy (filename, string_filename);
+    strncpy (filename, string_filename, sizeof(filename));
 
     // wait for code
 
@@ -1001,7 +1035,7 @@ file_is_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
-    strcpy (filename, string_filename);
+    strncpy (filename, string_filename, sizeof(filename));
 
     // wait for code
 
@@ -1027,7 +1061,7 @@ lchgrp_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
-    strcpy (filename, string_filename);
+    strncpy (filename, string_filename, sizeof(filename));
 
     // wait for code
 
@@ -1053,7 +1087,7 @@ lchown_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
-    strcpy (filename, string_filename);
+    strncpy (filename, string_filename, sizeof(filename));
 
     // wait for code
 
@@ -1079,7 +1113,7 @@ linkinfo_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
-    strcpy (filename, string_filename);
+    strncpy (filename, string_filename, sizeof(filename));
 
     // wait for code
 
@@ -1105,7 +1139,7 @@ lstat_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
-    strcpy (filename, string_filename);
+    strncpy (filename, string_filename, sizeof(filename));
 
     // wait for code
 
@@ -1131,7 +1165,7 @@ link_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
-    strcpy (filename, string_filename);
+    strncpy (filename, string_filename, sizeof(filename));
 
     // wait for code
 
@@ -1187,7 +1221,7 @@ pathinfo_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
-    strcpy (filename, string_filename);
+    strncpy (filename, string_filename, sizeof(filename));
 
     // wait for code
 
@@ -1213,7 +1247,7 @@ readlink_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
-    strcpy (filename, string_filename);
+    strncpy (filename, string_filename, sizeof(filename));
 
     // wait for code
 
@@ -1239,7 +1273,7 @@ realpath_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
-    strcpy (filename, string_filename);
+    strncpy (filename, string_filename, sizeof(filename));
 
     // wait for code
 
@@ -1265,7 +1299,7 @@ rename_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
-    strcpy (filename, string_filename);
+    strncpy (filename, string_filename, sizeof(filename));
 
     // wait for code
 
@@ -1355,7 +1389,7 @@ stat_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
-    strcpy (filename, string_filename);
+    strncpy (filename, string_filename, sizeof(filename));
 
     // wait for code
 
@@ -1381,7 +1415,7 @@ symlink_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
-    strcpy (filename, string_filename);
+    strncpy (filename, string_filename, sizeof(filename));
 
     // wait for code
 
@@ -1407,7 +1441,7 @@ tempname_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
-    strcpy (filename, string_filename);
+    strncpy (filename, string_filename, sizeof(filename));
 
     // wait for code
 
@@ -1483,7 +1517,7 @@ umask_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
-    strcpy (filename, string_filename);
+    strncpy (filename, string_filename, sizeof(filename));
 
     // wait for code
 
@@ -1583,7 +1617,7 @@ file_contents_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
-    strcpy (filename, string_filename);
+    strncpy (filename, string_filename, sizeof(filename));
 
     // wait for code
 
@@ -1609,7 +1643,7 @@ open_dir_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
-    strcpy (filename, string_filename);
+    strncpy (filename, string_filename, sizeof(filename));
 
     // wait for code
 
@@ -1635,7 +1669,7 @@ dir_read_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
-    strcpy (filename, string_filename);
+    strncpy (filename, string_filename, sizeof(filename));
 
     // wait for code
 
@@ -1661,7 +1695,7 @@ dir_rewind_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
-    strcpy (filename, string_filename);
+    strncpy (filename, string_filename, sizeof(filename));
 
     // wait for code
 

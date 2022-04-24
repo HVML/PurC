@@ -431,9 +431,8 @@ TEST(dvobjs, dvobjs_fs_list_prt)
 // basename
 TEST(dvobjs, dvobjs_fs_basename)
 {
-/*
-    purc_variant_t param[MAX_PARAM_NR];
-    purc_variant_t ret_var = NULL;
+    //purc_variant_t param[MAX_PARAM_NR];
+    //purc_variant_t ret_var = NULL;
     size_t sz_total_mem_before = 0;
     size_t sz_total_values_before = 0;
     size_t nr_reserved_before = 0;
@@ -471,6 +470,7 @@ TEST(dvobjs, dvobjs_fs_basename)
         env, "test_files");
     std::cerr << "env: " << env << "=" << data_path << std::endl;
 
+/*
     char file_path[1024] = {0};
     strcpy (file_path, data_path);
     strcat (file_path, "/fs/test");
@@ -500,7 +500,7 @@ TEST(dvobjs, dvobjs_fs_basename)
     else  {
         rmdir (file_path);
     }
-
+*/
     purc_variant_unload_dvobj (fs);
 
     get_variant_total_info (&sz_total_mem_after,
@@ -510,7 +510,6 @@ TEST(dvobjs, dvobjs_fs_basename)
                 nr_reserved_before) * sizeof(purc_variant));
 
     purc_cleanup ();
-*/
 }
 
 // chgrp
