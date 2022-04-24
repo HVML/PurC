@@ -2,6 +2,7 @@
 
 #include "private/hvml.h"
 #include "private/utils.h"
+#include "private/tkz-helper.h"
 #include "purc-rwstream.h"
 #include "hvml/hvml-token.h"
 
@@ -205,19 +206,19 @@ TEST_P(hvml_parser_next_token, parse_and_serialize)
     size_t sz = strlen (hvml);
     purc_rwstream_t rws = purc_rwstream_new_from_mem((void*)hvml, sz);
 
-    struct pchvml_buffer* buffer = pchvml_buffer_new();
+    struct tkz_buffer* buffer = tkz_buffer_new();
 
     struct pchvml_token* token = NULL;
     while((token = pchvml_next_token(parser, rws)) != NULL) {
-        struct pchvml_buffer* token_buff = pchvml_token_to_string(token);
+        struct tkz_buffer* token_buff = pchvml_token_to_string(token);
         if (token_buff) {
             const char* type_name = pchvml_token_get_type_name(token);
-            PRINTF("%s:%s\n", type_name, pchvml_buffer_get_buffer(token_buff));
-            pchvml_buffer_append_bytes(buffer, type_name, strlen(type_name));
-            pchvml_buffer_append_bytes(buffer, "|", 1);
-            pchvml_buffer_append_another(buffer, token_buff);
-            pchvml_buffer_append_bytes(buffer, "\n", 1);
-            pchvml_buffer_destroy(token_buff);
+            PRINTF("%s:%s\n", type_name, tkz_buffer_get_bytes(token_buff));
+            tkz_buffer_append_bytes(buffer, type_name, strlen(type_name));
+            tkz_buffer_append_bytes(buffer, "|", 1);
+            tkz_buffer_append_another(buffer, token_buff);
+            tkz_buffer_append_bytes(buffer, "\n", 1);
+            tkz_buffer_destroy(token_buff);
         }
         enum pchvml_token_type type = pchvml_token_get_type(token);
         pchvml_token_destroy(token);
@@ -225,7 +226,7 @@ TEST_P(hvml_parser_next_token, parse_and_serialize)
         if (type == PCHVML_TOKEN_EOF) {
             break;
         }
-//        PRINTF("serial : %s|code=%d\n", pchvml_buffer_get_buffer(buffer)
+//        PRINTF("serial : %s|code=%d\n", tkz_buffer_get_bytes(buffer)
 //                , purc_get_last_error());
     }
     int error = purc_get_last_error();
@@ -234,12 +235,12 @@ TEST_P(hvml_parser_next_token, parse_and_serialize)
     if (error_code != PCHVML_SUCCESS)
     {
         purc_rwstream_destroy(rws);
-        pchvml_buffer_destroy(buffer);
+        tkz_buffer_destroy(buffer);
         pchvml_destroy(parser);
         return;
     }
 
-    const char* serial = pchvml_buffer_get_buffer(buffer);
+    const char* serial = tkz_buffer_get_bytes(buffer);
     char* result = strdup(serial);
 //    PRINTF("serial : %s", serial);
     FILE* fp = fopen("/tmp/tokenizer", "w");
@@ -249,7 +250,7 @@ TEST_P(hvml_parser_next_token, parse_and_serialize)
     free(result);
 
     purc_rwstream_destroy(rws);
-    pchvml_buffer_destroy(buffer);
+    tkz_buffer_destroy(buffer);
     pchvml_destroy(parser);
 }
 

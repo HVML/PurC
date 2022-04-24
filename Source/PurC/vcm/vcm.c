@@ -204,6 +204,12 @@ struct pcvcm_node *pcvcm_node_new_byte_sequence(const void *bytes,
         return NULL;
     }
 
+    if (nr_bytes == 0) {
+        n->sz_ptr[0] = 0;
+        n->sz_ptr[1] = 0;
+        return n;
+    }
+
     uint8_t *buf = (uint8_t*)malloc(nr_bytes + 1);
     memcpy(buf, bytes, nr_bytes);
     buf[nr_bytes] = 0;
@@ -252,6 +258,12 @@ struct pcvcm_node *pcvcm_node_new_byte_sequence_from_bx(const void *bytes,
         return NULL;
     }
 
+    if (nr_bytes == 0) {
+        n->sz_ptr[0] = 0;
+        n->sz_ptr[1] = 0;
+        return n;
+    }
+
     const uint8_t *p = bytes;
     size_t sz = nr_bytes;
     if (sz % 2 != 0) {
@@ -273,6 +285,12 @@ struct pcvcm_node *pcvcm_node_new_byte_sequence_from_bb(const void *bytes,
     struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_BYTE_SEQUENCE);
     if (!n) {
         return NULL;
+    }
+
+    if (nr_bytes == 0) {
+        n->sz_ptr[0] = 0;
+        n->sz_ptr[1] = 0;
+        return n;
     }
 
     const uint8_t *p = bytes;
@@ -306,6 +324,12 @@ struct pcvcm_node *pcvcm_node_new_byte_sequence_from_b64 (const void *bytes,
     struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_BYTE_SEQUENCE);
     if (!n) {
         return NULL;
+    }
+
+    if (nr_bytes == 0) {
+        n->sz_ptr[0] = 0;
+        n->sz_ptr[1] = 0;
+        return n;
     }
 
     const uint8_t *p = bytes;
@@ -410,20 +434,46 @@ struct pcvcm_node *pcvcm_node_new_call_setter(struct pcvcm_node *variable,
     return n;
 }
 
+struct pcvcm_node *pcvcm_node_new_cjsonee()
+{
+    return pcvcm_node_new(PCVCM_NODE_TYPE_CJSONEE);
+}
+
+struct pcvcm_node *pcvcm_node_new_cjsonee_op_and()
+{
+    return pcvcm_node_new(PCVCM_NODE_TYPE_CJSONEE_OP_AND);
+}
+
+struct pcvcm_node *pcvcm_node_new_cjsonee_op_or()
+{
+    return pcvcm_node_new(PCVCM_NODE_TYPE_CJSONEE_OP_OR);
+}
+
+struct pcvcm_node *pcvcm_node_new_cjsonee_op_semicolon()
+{
+    return pcvcm_node_new(PCVCM_NODE_TYPE_CJSONEE_OP_SEMICOLON);
+}
+
 static
 void pcvcm_node_write_to_rwstream(purc_rwstream_t rws, struct pcvcm_node *node);
 
 static
-void write_child_node_rwstream(purc_rwstream_t rws, struct pcvcm_node *node)
+void write_child_node_rwstream_ex(purc_rwstream_t rws, struct pcvcm_node *node, bool print_comma)
 {
     struct pcvcm_node *child = FIRST_CHILD(node);
     while (child) {
         pcvcm_node_write_to_rwstream(rws, child);
         child = NEXT_CHILD(child);
-        if (child) {
+        if (child && print_comma) {
             purc_rwstream_write(rws, ",", 1);
         }
     }
+}
+
+static
+void write_child_node_rwstream(purc_rwstream_t rws, struct pcvcm_node *node)
+{
+    write_child_node_rwstream_ex(rws, node, true);
 }
 
 static
@@ -510,8 +560,14 @@ void pcvcm_node_write_to_rwstream(purc_rwstream_t rws, struct pcvcm_node *node)
 
     case PCVCM_NODE_TYPE_BYTE_SEQUENCE:
     {
-        purc_variant_t v = purc_variant_make_byte_sequence(
+        purc_variant_t v;
+        if (node->sz_ptr[0]) {
+            v = purc_variant_make_byte_sequence(
                 (void*)node->sz_ptr[1], node->sz_ptr[0]);
+        }
+        else {
+            v = purc_variant_make_byte_sequence_empty();
+        }
         write_variant_to_rwstream(rws, v);;
         purc_variant_unref(v);
         break;
@@ -545,6 +601,20 @@ void pcvcm_node_write_to_rwstream(purc_rwstream_t rws, struct pcvcm_node *node)
         purc_rwstream_write(rws, "call_setter(", 12);
         write_child_node_rwstream(rws, node);;
         purc_rwstream_write(rws, ")", 1);
+        break;
+    case PCVCM_NODE_TYPE_CJSONEE:
+        purc_rwstream_write(rws, "{{ ", 3);
+        write_child_node_rwstream_ex(rws, node, false);
+        purc_rwstream_write(rws, " }}", 3);
+        break;
+    case PCVCM_NODE_TYPE_CJSONEE_OP_AND:
+        purc_rwstream_write(rws, " && ", 4);
+        break;
+    case PCVCM_NODE_TYPE_CJSONEE_OP_OR:
+        purc_rwstream_write(rws, " || ", 4);
+        break;
+    case PCVCM_NODE_TYPE_CJSONEE_OP_SEMICOLON:
+        purc_rwstream_write(rws, " ; ", 3);
         break;
     }
 }
@@ -1111,6 +1181,104 @@ out:
     return ret_var;
 }
 
+bool is_cjsonee_op(struct pcvcm_node *node)
+{
+    if (!node) {
+        return false;
+    }
+    switch (node->type) {
+    case PCVCM_NODE_TYPE_CJSONEE_OP_AND:
+    case PCVCM_NODE_TYPE_CJSONEE_OP_OR:
+    case PCVCM_NODE_TYPE_CJSONEE_OP_SEMICOLON:
+        return true;
+    default:
+        return false;
+    }
+    return false;
+}
+
+static
+purc_variant_t pcvcm_node_cjsonee_to_variant(struct pcvcm_node *node,
+       struct pcvcm_node_op *ops, bool silently)
+{
+    UNUSED_PARAM(node);
+    UNUSED_PARAM(ops);
+    UNUSED_PARAM(silently);
+    purc_variant_t curr_val = PURC_VARIANT_INVALID;
+    struct pcvcm_node *curr_node = FIRST_CHILD(node);
+    struct pcvcm_node *op_node = NULL;
+    while (curr_node) {
+        if (is_cjsonee_op(curr_node)) {
+            pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+            goto failed;
+        }
+
+        curr_val = pcvcm_node_to_variant(curr_node, ops, silently);
+        if (curr_val == PURC_VARIANT_INVALID) {
+            goto failed;
+        }
+
+        op_node = NEXT_CHILD(curr_node);
+        if (op_node == NULL) {
+            break;
+        }
+
+        if (!is_cjsonee_op(op_node)) {
+            pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+            goto failed;
+        }
+
+        curr_node = NEXT_CHILD(op_node);
+        switch (op_node->type) {
+        case PCVCM_NODE_TYPE_CJSONEE_OP_SEMICOLON:
+            {
+                if (!curr_node) {
+                    goto out;
+                }
+            }
+            break;
+
+        case PCVCM_NODE_TYPE_CJSONEE_OP_AND:
+            {
+                if (!curr_node) {
+                    pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+                    goto failed;
+                }
+                if (!purc_variant_booleanize(curr_val)) {
+                    goto out;
+                }
+            }
+            break;
+
+        case PCVCM_NODE_TYPE_CJSONEE_OP_OR:
+            {
+                if (!curr_node) {
+                    pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+                    goto failed;
+                }
+                if (purc_variant_booleanize(curr_val)) {
+                    goto out;
+                }
+            }
+            break;
+
+        default:
+            pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+            goto failed;
+        }
+        purc_variant_unref(curr_val);
+    }
+
+out:
+    return curr_val;
+
+failed:
+    if (curr_val) {
+        purc_variant_unref(curr_val);
+    }
+    return PURC_VARIANT_INVALID;
+}
+
 static bool has_fatal_error()
 {
     int err = purc_get_last_error();
@@ -1164,8 +1332,9 @@ purc_variant_t pcvcm_node_to_variant(struct pcvcm_node *node,
             break;
 
         case PCVCM_NODE_TYPE_BYTE_SEQUENCE:
-            return purc_variant_make_byte_sequence(
-                    (void*)node->sz_ptr[1], node->sz_ptr[0]);
+            return (node->sz_ptr[0] > 0) ? purc_variant_make_byte_sequence(
+                    (void*)node->sz_ptr[1], node->sz_ptr[0])
+                    : purc_variant_make_byte_sequence_empty();
 
         case PCVCM_NODE_TYPE_FUNC_CONCAT_STRING:
             ret = pcvcm_node_concat_string_to_variant(node, ops, silently);
@@ -1187,6 +1356,10 @@ purc_variant_t pcvcm_node_to_variant(struct pcvcm_node *node,
         case PCVCM_NODE_TYPE_FUNC_CALL_SETTER:
             ret = pcvcm_node_call_method_to_variant(node, ops, SETTER_METHOD,
                     silently);
+            break;
+
+        case PCVCM_NODE_TYPE_CJSONEE:
+            ret = pcvcm_node_cjsonee_to_variant(node, ops, silently);
             break;
 
         default:

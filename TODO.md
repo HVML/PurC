@@ -6,8 +6,11 @@
    1. ~~`$SYSTEM`~~
    1. ~~`$SESSION`~~
    1. ~~`$HVML`~~
+      - `$HVML.target` 方法
    1. ~~`$DATETIME`~~
-   1. `$EJSON`
+   1. ~~`$EJSON`~~
+   1. `$STREAM`
+      - ~~`file://` 的支持~~
 * 按照[预定义变量规范](https://gitlab.fmsoft.cn/hvml/hvml-docs/-/blob/master/zh/hvml-spec-predefined-variables-v1.0-zh.md)要求调整或增强预定义变量的实现。主要涉及：
    1. `$URL`
    1. `$FS`
@@ -15,6 +18,13 @@
    1. `$STR`
 
 ## 解释器
+
+* 按照[HVML 规范 1.0 RC3](https://gitlab.fmsoft.cn/hvml/hvml-docs/-/blob/master/zh/hvml-spec-v1.0-zh.md#rc3-220501)中的描述调整已有实现，主要有：
+   1. `init` 等调整 `at` 属性的使用。
+   1. `init` 标签 `via` 属性的支持。
+   1. `observe` 和 `forget` 支持使用通配符和正则表达式指定待观察或待遗忘的事件名称。
+   1. `observe` 支持使用 `with` 属性指定以命名的操作组。
+   1. `observe` 支持针对操作组定义 `$<` 上下文变量。
 
 * 按照[HVML 规范 1.0 RC2](https://gitlab.fmsoft.cn/hvml/hvml-docs/-/blob/master/zh/hvml-spec-v1.0-zh.md#rc2-220401)中的描述调整已有实现，主要有：
    1. ~~局部命名变量可直接使用其名称来引用，相比静态变量，具有较高的名称查找优先级。~~
@@ -25,17 +35,16 @@
 
 * 异常和错误的处理（2022 年 4 月起）
    1. ~~调整已有的接口或者动态对象方法的实现，静默求值时，对非致命错误（相当于产生可忽略异常；致命错误指内存分配失败等导致程序无法正常运行的错误），应返回一个表示错误状态的有效变体值，如 `false`、`null`、`undefined` 或者空字符串。~~
-   1. 按规范要求处理异常和错误。
-   1. `catch` 标签。
+   1. ~~按规范要求处理异常和错误。~~
+   1. ~~`catch` 标签。~~
 
-* 新标签支持（2022 年 4 月起）
+* 新标签支持
    1. ~~`observe` 支持 `as` 属性命名一个观察者。~~
    1. ~~`fire` 标签。~~
-   1. `bind` 标签。
-   1. `request` 标签。
+   1. ~~`bind` 标签。~~
    1. `define` 和 `include` 标签。
    1. `call` 和 `return` 标签。
-   1. `connect` 、`send` 和 `disconnect` 标签。
+   1. `request` 标签。
 
 * ~~每个解释器实例拥有自己的 RunLoop 事件循环。~~
 
@@ -45,8 +54,10 @@
 
 ## eJSON 解析和求值
 
+* 支持 `$#myAnchor?` 这种使用锚定位上下文变量的写法。
+* ~~支持 CJSONEE（复杂 JSON 表达式）。~~
 * ~~eJSON 解析模块，可独立于 HVML 执行栈运行，可支持用户自定义的变量获取接口。~~
-* 在 eJSON 求值时，增加对可忽略异常的处理
+* ~~在 eJSON 求值时，增加对可忽略异常的处理~~
    1. ~~调整动态值以及原生实体的获取器及设置器原型，增加 `bool silently` 形参。~~
 
 ## eDOM

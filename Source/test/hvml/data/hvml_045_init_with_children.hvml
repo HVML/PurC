@@ -5,7 +5,8 @@
                 <back to="4" />
             </match>
             <match>
-                <update on="$evenNumbers" to="append" with="$?">
+                <update on="$evenNumbers" to="append" with="$?"/>
+                <update on="$evenNumbers" to="append" with=3/>
             </match>
         </test>
     </iterate>

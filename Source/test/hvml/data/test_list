@@ -317,8 +317,8 @@ ejson_178_n_number_2.e3 PCHVML_ERROR_UNEXPECTED_JSON_NUMBER_FRACTION
 ejson_179_n_number_-2.
 ejson_180_n_number_9.e+ PCHVML_ERROR_UNEXPECTED_JSON_NUMBER_FRACTION
 ejson_181_n_number_expression PCHVML_ERROR_UNEXPECTED_JSON_NUMBER_INTEGER
-ejson_182_n_number_hex_1_digit PCHVML_ERROR_UNEXPECTED_JSON_NUMBER_INTEGER
-ejson_183_n_number_hex_2_digits PCHVML_ERROR_UNEXPECTED_JSON_NUMBER_INTEGER
+ejson_182_n_number_hex_1_digit
+ejson_183_n_number_hex_2_digits
 ejson_184_n_number_+Inf PCHVML_ERROR_UNEXPECTED_CHARACTER
 ejson_185_n_number_Inf PCHVML_ERROR_UNEXPECTED_JSON_NUMBER
 ejson_186_n_number_invalid+- PCHVML_ERROR_UNEXPECTED_JSON_NUMBER_EXPONENT
@@ -450,6 +450,7 @@ ejson_311_p_unclosed_object_in_array PCHVML_ERROR_UNEXPECTED_RIGHT_BRACKET
 ejson_312_multiple_line_array
 ejson_313_multiple_comma_on_array PCHVML_ERROR_UNEXPECTED_COMMA
 ejson_314_key_value_with_minus
+ejson_315_p_hex_integer
 neg.1
 neg.2
 neg.3
@@ -471,3 +472,78 @@ loading-1
 loading-2
 loading-3
 readdir-1
+cjsonee_001
+cjsonee_002
+cjsonee_003
+cjsonee_004
+cjsonee_005
+cjsonee_006
+cjsonee_007
+cjsonee_008
+cjsonee_009
+cjsonee_010
+cjsonee_011
+cjsonee_012
+cjsonee_013
+cjsonee_014
+cjsonee_015
+cjsonee_016
+cjsonee_017
+cjsonee_018
+cjsonee_019
+cjsonee_020
+cjsonee_021
+cjsonee_022
+cjsonee_023
+cjsonee_024
+cjsonee_025
+cjsonee_026
+cjsonee_027
+cjsonee_028
+cjsonee_029
+cjsonee_030
+cjsonee_031
+cjsonee_032
+cjsonee_033
+cjsonee_034
+cjsonee_035
+cjsonee_036
+cjsonee_037
+cjsonee_038
+cjsonee_039
+cjsonee_040
+cjsonee_041
+cjsonee_042
+cjsonee_043
+cjsonee_044
+cjsonee_045
+cjsonee_046
+cjsonee_047
+cjsonee_048
+cjsonee_049
+cjsonee_050
+cjsonee_051
+cjsonee_052
+cjsonee_053
+cjsonee_054
+cjsonee_055
+cjsonee_056
+cjsonee_057
+cjsonee_058
+cjsonee_059
+cjsonee_060
+cjsonee_061
+cjsonee_062
+cjsonee_063
+cjsonee_064
+cjsonee_065
+cjsonee_066
+cjsonee_067
+cjsonee_068
+cjsonee_069
+cjsonee_070
+cjsonee_071
+cjsonee_072
+cjsonee_073
+cjsonee_074
+cjsonee_075

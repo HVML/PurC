@@ -29,23 +29,23 @@
 #include "private/stack.h"
 #include "private/vcm.h"
 
-struct pchvml_uc;
-struct pchvml_buffer;
+struct tkz_uc;
+struct tkz_buffer;
 struct pchvml_token;
-struct pchvml_rwswrap;
-struct pchvml_sbst;
+struct tkz_reader;
+struct tkz_sbst;
 
 struct pchvml_parser {
     int state;
     int return_state;
     int transit_state;
-    struct pchvml_uc* curr_uc;
-    struct pchvml_rwswrap* rwswrap;
-    struct pchvml_buffer* temp_buffer;
-    struct pchvml_buffer* tag_name;
-    struct pchvml_buffer* string_buffer;
+    struct tkz_uc* curr_uc;
+    struct tkz_reader* reader;
+    struct tkz_buffer* temp_buffer;
+    struct tkz_buffer* tag_name;
+    struct tkz_buffer* string_buffer;
     struct pchvml_token* token;
-    struct pchvml_sbst* sbst;
+    struct tkz_sbst* sbst;
     struct pcvcm_node* vcm_node;
     struct pcvcm_stack* vcm_stack;
     struct pcutils_stack* ejson_stack;
