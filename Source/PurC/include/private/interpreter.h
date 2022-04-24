@@ -347,6 +347,10 @@ purc_variant_t
 pcintr_get_symbolized_var (pcintr_stack_t stack, unsigned int number,
         char symbol);
 
+purc_variant_t
+pcintr_find_anchor_symbolized_var(pcintr_stack_t stack, const char *anchor,
+        char symbol);
+
 int
 pcintr_unbind_named_var(pcintr_stack_t stack, const char *name);
 

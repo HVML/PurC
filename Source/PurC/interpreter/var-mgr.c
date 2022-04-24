@@ -47,6 +47,8 @@
 #define EVENT_DISPLACED         "change:displaced"
 #define EVENT_EXCEPT            "except:"
 
+#define ATTR_KEY_ID             "id"
+
 enum var_event_type {
     VAR_EVENT_TYPE_ATTACHED,
     VAR_EVENT_TYPE_DETACHED,
@@ -701,6 +703,50 @@ pcintr_get_symbolized_var (pcintr_stack_t stack, unsigned int number,
         return v;
     }
     purc_set_error_with_info(PCVARIANT_ERROR_NOT_FOUND, "symbol:%c", symbol);
+    return PURC_VARIANT_INVALID;
+}
+
+purc_variant_t
+pcintr_find_anchor_symbolized_var(pcintr_stack_t stack, const char *anchor,
+        char symbol)
+{
+    purc_variant_t ret = PURC_VARIANT_INVALID;
+    enum purc_symbol_var symbol_var = _to_symbol(symbol);
+    if (symbol_var == PURC_SYMBOL_VAR_MAX) {
+        PC_DEBUGX("symbol: [%c]", symbol);
+        PC_ASSERT(0);
+        return PURC_VARIANT_INVALID;
+    }
+
+    struct pcintr_stack_frame* frame = pcintr_stack_get_bottom_frame(stack);
+
+    while (frame) {
+        pcvdom_element_t elem = frame->pos;
+        purc_variant_t elem_id = pcvdom_element_eval_attr_val(elem, ATTR_KEY_ID);
+        if (!elem_id) {
+            frame = pcintr_stack_frame_get_parent(frame);
+            continue;
+        }
+
+        if (purc_variant_is_string(elem_id)) {
+            const char *id = purc_variant_get_string_const(elem_id);
+            if (id && id[0] == '#' && strcmp(id+1, anchor) == 0) {
+                ret = pcintr_get_symbol_var(frame, symbol_var);
+                if (ret == PURC_VARIANT_INVALID) {
+                    purc_set_error_with_info(PCVARIANT_ERROR_NOT_FOUND,
+                            "symbol:%c", symbol);
+                }
+                else {
+                    purc_clr_error();
+                }
+                purc_variant_unref(elem_id);
+                return ret;
+            }
+        }
+        purc_variant_unref(elem_id);
+        frame = pcintr_stack_frame_get_parent(frame);
+    }
+
     return PURC_VARIANT_INVALID;
 }
 
