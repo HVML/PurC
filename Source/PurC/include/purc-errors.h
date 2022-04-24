@@ -449,6 +449,16 @@ PCA_EXPORT const char*
 purc_get_error_message(int errcode);
 
 /**
+ * purc_get_except_message:
+ *
+ * @errcode: the except.
+ *
+ * Returns: The message for the specified except.
+ */
+const char*
+purc_get_except_message(int except);
+
+/**
  * purc_get_error_exceptions:
  *
  * @errcode: the error code.
