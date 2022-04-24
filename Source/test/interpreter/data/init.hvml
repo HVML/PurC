@@ -25,6 +25,10 @@
 
         <init as="users" with="[]" />
 
+        <init as="fibonacci" at="_topmost" temp>
+            [0, 222, ]
+        </init>
+
         <!--
         <init as="math" from="purc_dvobj_math" via="LOAD" />
 
