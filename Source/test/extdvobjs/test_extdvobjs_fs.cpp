@@ -18,6 +18,7 @@
 extern void get_variant_total_info (size_t *mem, size_t *value, size_t *resv);
 #define MAX_PARAM_NR    20
 
+// list
 TEST(dvobjs, dvobjs_fs_list)
 {
     purc_variant_t param[MAX_PARAM_NR];
@@ -296,7 +297,7 @@ TEST(dvobjs, dvobjs_fs_list)
     purc_cleanup ();
 }
 
-
+// list_prt
 TEST(dvobjs, dvobjs_fs_list_prt)
 {
     purc_variant_t param[MAX_PARAM_NR];
@@ -427,7 +428,157 @@ TEST(dvobjs, dvobjs_fs_list_prt)
     purc_cleanup ();
 }
 
+// basename
+TEST(dvobjs, dvobjs_fs_basename)
+{
+/*
+    purc_variant_t param[MAX_PARAM_NR];
+    purc_variant_t ret_var = NULL;
+    size_t sz_total_mem_before = 0;
+    size_t sz_total_values_before = 0;
+    size_t nr_reserved_before = 0;
+    size_t sz_total_mem_after = 0;
+    size_t sz_total_values_after = 0;
+    size_t nr_reserved_after = 0;
 
+    purc_instance_extra_info info = {};
+    int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
+            "dvobjs", &info);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
+            &nr_reserved_before);
+
+    const char *env;
+    env = "DVOBJS_SO_PATH";
+    setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
+    purc_variant_t fs = purc_variant_load_dvobj_from_so (NULL, "FS");
+    ASSERT_NE(fs, nullptr);
+    ASSERT_EQ(purc_variant_is_object (fs), true);
+
+
+    purc_variant_t dynamic = purc_variant_object_get_by_ckey (fs, "basename");
+    ASSERT_NE(dynamic, nullptr);
+    ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
+
+    purc_dvariant_method func = NULL;
+    func = purc_variant_dynamic_get_getter (dynamic);
+    ASSERT_NE(func, nullptr);
+
+    char data_path[PATH_MAX+1];
+    env = "DVOBJS_TEST_PATH";
+    test_getpath_from_env_or_rel(data_path, sizeof(data_path),
+        env, "test_files");
+    std::cerr << "env: " << env << "=" << data_path << std::endl;
+
+    char file_path[1024] = {0};
+    strcpy (file_path, data_path);
+    strcat (file_path, "/fs/test");
+
+    printf ("TEST list_prt: nr_args = 0, param = NULL:\n");
+    ret_var = func (NULL, 0, param, false);
+    ASSERT_EQ(ret_var, nullptr);
+    printf("\t\tReturn PURC_VARIANT_INVALID\n");
+
+    printf ("TEST list_prt: nr_args = 1, param[0] = NUMBER:\n");
+    param[0] = purc_variant_make_number (1);
+    ret_var = func (NULL, 1, param, false);
+    ASSERT_EQ(ret_var, nullptr);
+    printf("\t\tReturn PURC_VARIANT_INVALID\n");
+    purc_variant_unref(param[0]);
+
+    printf ("TEST list: nr_args = 1, param[0] = path:\n");
+    param[0] = purc_variant_make_string (file_path, true);
+    ret_var = func (NULL, 1, param, false);
+    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN), true);
+    purc_variant_unref(param[0]);
+    purc_variant_unref(ret_var);
+
+    if (access(file_path, F_OK | R_OK) != 0)  {
+        printf ("\tCreate directory error!\n");
+    }
+    else  {
+        rmdir (file_path);
+    }
+
+    purc_variant_unload_dvobj (fs);
+
+    get_variant_total_info (&sz_total_mem_after,
+            &sz_total_values_after, &nr_reserved_after);
+    ASSERT_EQ(sz_total_values_before, sz_total_values_after);
+    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
+                nr_reserved_before) * sizeof(purc_variant));
+
+    purc_cleanup ();
+*/
+}
+
+// chgrp
+TEST(dvobjs, dvobjs_fs_chgrp)
+{
+}
+
+// chmod
+TEST(dvobjs, dvobjs_fs_chmod)
+{
+}
+
+// chown
+TEST(dvobjs, dvobjs_fs_chown)
+{
+}
+
+// copy
+TEST(dvobjs, dvobjs_fs_copy)
+{
+}
+
+// dirname
+TEST(dvobjs, dvobjs_fs_dirname)
+{
+}
+
+// disk_usage
+TEST(dvobjs, dvobjs_fs_disk_usage)
+{
+}
+
+// file_exists
+TEST(dvobjs, dvobjs_fs_file_exists)
+{
+}
+
+// file_is
+TEST(dvobjs, dvobjs_fs_file_is)
+{
+}
+
+// lchgrp
+TEST(dvobjs, dvobjs_fs_lchgrp)
+{
+}
+
+// lchown
+TEST(dvobjs, dvobjs_fs_lchown)
+{
+}
+
+// linkinfo
+TEST(dvobjs, dvobjs_fs_linkinfo)
+{
+}
+
+// lstat
+TEST(dvobjs, dvobjs_fs_lstat)
+{
+}
+
+// link
+TEST(dvobjs, dvobjs_fs_link)
+{
+}
+
+// mkdir
 TEST(dvobjs, dvobjs_fs_mkdir)
 {
     purc_variant_t param[MAX_PARAM_NR];
@@ -510,7 +661,27 @@ TEST(dvobjs, dvobjs_fs_mkdir)
     purc_cleanup ();
 }
 
+// pathinfo
+TEST(dvobjs, dvobjs_fs_pathinfo)
+{
+}
 
+// readlink
+TEST(dvobjs, dvobjs_fs_readlink)
+{
+}
+
+// realpath
+TEST(dvobjs, dvobjs_fs_realpath)
+{
+}
+
+// rename
+TEST(dvobjs, dvobjs_fs_rename)
+{
+}
+
+// rmdir
 TEST(dvobjs, dvobjs_fs_rmdir)
 {
     purc_variant_t param[MAX_PARAM_NR];
@@ -594,7 +765,27 @@ TEST(dvobjs, dvobjs_fs_rmdir)
     purc_cleanup ();
 }
 
+// stat
+TEST(dvobjs, dvobjs_fs_stat)
+{
+}
 
+// symlink
+TEST(dvobjs, dvobjs_fs_symlink)
+{
+}
+
+// tempname
+TEST(dvobjs, dvobjs_fs_tempname)
+{
+}
+
+// umask
+TEST(dvobjs, dvobjs_fs_umask)
+{
+}
+
+// rm
 TEST(dvobjs, dvobjs_fs_rm)
 {
     purc_variant_t param[MAX_PARAM_NR];
@@ -678,7 +869,7 @@ TEST(dvobjs, dvobjs_fs_rm)
     purc_cleanup ();
 }
 
-
+// unlink
 TEST(dvobjs, dvobjs_fs_unlink)
 {
     purc_variant_t param[MAX_PARAM_NR];
@@ -758,7 +949,7 @@ TEST(dvobjs, dvobjs_fs_unlink)
     purc_cleanup ();
 }
 
-
+// touch
 TEST(dvobjs, dvobjs_fs_touch)
 {
     purc_variant_t param[MAX_PARAM_NR];
@@ -843,4 +1034,24 @@ TEST(dvobjs, dvobjs_fs_touch)
     unlink (file_path);
 
     purc_cleanup ();
+}
+
+// file_contents
+TEST(dvobjs, dvobjs_fs_file_contents)
+{
+}
+
+// open_dir
+TEST(dvobjs, dvobjs_fs_open_dir)
+{
+}
+
+// dir_read
+TEST(dvobjs, dvobjs_fs_read)
+{
+}
+
+// dir_rewind
+TEST(dvobjs, dvobjs_fs_rewind)
+{
 }
