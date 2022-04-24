@@ -3888,7 +3888,14 @@ BEGIN_STATE(TKZ_STATE_EJSON_JSONEE_VARIABLE)
     }
     if (is_context_variable(character)) {
         if (tkz_buffer_is_empty(parser->temp_buffer)
-            || tkz_buffer_is_int(parser->temp_buffer)) {
+            || tkz_buffer_is_int(parser->temp_buffer)
+            || tkz_buffer_start_with(parser->temp_buffer, "#", 1)) {
+            APPEND_TO_TEMP_BUFFER(character);
+            ADVANCE_TO(TKZ_STATE_EJSON_JSONEE_VARIABLE);
+        }
+    }
+    if (character == '#') {
+        if (tkz_buffer_is_empty(parser->temp_buffer)) {
             APPEND_TO_TEMP_BUFFER(character);
             ADVANCE_TO(TKZ_STATE_EJSON_JSONEE_VARIABLE);
         }
