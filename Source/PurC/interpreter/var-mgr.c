@@ -730,7 +730,7 @@ pcintr_find_anchor_symbolized_var(pcintr_stack_t stack, const char *anchor,
 
         if (purc_variant_is_string(elem_id)) {
             const char *id = purc_variant_get_string_const(elem_id);
-            if (id && strcmp(id, anchor) == 0) {
+            if (id && id[0] == '#' && strcmp(id+1, anchor) == 0) {
                 ret = pcintr_get_symbol_var(frame, symbol_var);
                 if (ret == PURC_VARIANT_INVALID) {
                     purc_set_error_with_info(PCVARIANT_ERROR_NOT_FOUND,

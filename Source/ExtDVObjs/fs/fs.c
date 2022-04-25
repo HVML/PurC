@@ -810,12 +810,14 @@ basename_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     base_begin = string_path;
     temp_ptr = base_begin;
     base_end = base_begin + strlen(string_path);
-    while (base_end > base_begin && separator == *base_end) {
+
+    while (base_end > base_begin && separator == *(base_end - 1)) {
         base_end--;
     }
+
     while (temp_ptr < base_end) {
         if (separator == *temp_ptr) {
-            base_begin = temp_ptr;
+            base_begin = temp_ptr + 1;
         }
         temp_ptr ++;
     }
@@ -826,7 +828,7 @@ basename_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         temp_ptr = base_end - suffix_len;
         if (temp_ptr > base_begin &&
             0 == strncmp(string_suffix, temp_ptr, suffix_len)) {
-            base_end = temp_ptr - 1;
+            base_end = temp_ptr;
         }
     }
 
