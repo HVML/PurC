@@ -236,6 +236,9 @@ bool pcregex_is_match_ex(const char *pattern, const char *str,
         enum pcregex_compile_flags compile_options,
         enum pcregex_match_flags match_options)
 {
+    if (!pattern || !str) {
+        return false;
+    }
     return g_regex_match_simple(pattern, str,
             to_g_regex_compile_flags(compile_options),
             to_g_regex_match_flags(match_options));
@@ -288,7 +291,10 @@ bool pcregex_match_ex(struct pcregex *regex, const char *str,
             enum pcregex_match_flags match_options,
             struct pcregex_match_info **match_info)
 {
-    if (!regex) {
+    if (!regex || !str) {
+        if (match_info) {
+            *match_info = NULL;
+        }
         return false;
     }
 
