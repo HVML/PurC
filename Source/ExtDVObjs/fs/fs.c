@@ -844,8 +844,7 @@ chgrp_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(root);
     UNUSED_PARAM(silently);
 
-    char filename[PATH_MAX];
-    const char *string_filename = NULL;
+    const char *filename = NULL;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if (nr_args < 1) {
@@ -854,12 +853,17 @@ chgrp_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     // get the file name
-    string_filename = purc_variant_get_string_const (argv[0]);
-    strncpy (filename, string_filename, sizeof(filename));
+    filename = purc_variant_get_string_const (argv[0]);
 
     // wait for code
+    int uid = 0;
+    int gid = 0;
 
-    ret_var = purc_variant_make_boolean (true);
+    if (0 == chown (filename, uid, gid))
+        ret_var = purc_variant_make_boolean (true);
+    else
+        ret_var = purc_variant_make_boolean (false);
+
     return ret_var;
 }
 
@@ -870,8 +874,7 @@ chmod_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(root);
     UNUSED_PARAM(silently);
 
-    char filename[PATH_MAX];
-    const char *string_filename = NULL;
+    const char *filename = NULL;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if (nr_args < 1) {
@@ -880,12 +883,16 @@ chmod_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     // get the file name
-    string_filename = purc_variant_get_string_const (argv[0]);
-    strncpy (filename, string_filename, sizeof(filename));
+    filename = purc_variant_get_string_const (argv[0]);
 
     // wait for code
+    int new_mode = 0;
 
-    ret_var = purc_variant_make_boolean (true);
+    if (0 == chmod (filename, new_mode))
+        ret_var = purc_variant_make_boolean (true);
+    else
+        ret_var = purc_variant_make_boolean (false);
+
     return ret_var;
 }
 
@@ -896,8 +903,7 @@ chown_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(root);
     UNUSED_PARAM(silently);
 
-    char filename[PATH_MAX];
-    const char *string_filename = NULL;
+    const char *filename = NULL;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if (nr_args < 1) {
@@ -906,12 +912,17 @@ chown_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     // get the file name
-    string_filename = purc_variant_get_string_const (argv[0]);
-    strncpy (filename, string_filename, sizeof(filename));
+    filename = purc_variant_get_string_const (argv[0]);
 
     // wait for code
+    int uid = 0;
+    int gid = 0;
 
-    ret_var = purc_variant_make_boolean (true);
+    if (0 == chown (filename, uid, gid))
+        ret_var = purc_variant_make_boolean (true);
+    else
+        ret_var = purc_variant_make_boolean (false);
+
     return ret_var;
 }
 
