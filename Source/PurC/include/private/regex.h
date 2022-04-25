@@ -79,17 +79,21 @@ extern "C" {
 /*
  * Scans for a match in string for pattern
  */
-bool pcregex_is_match(const char *pattern, const char *str,
+bool pcregex_is_match_ex(const char *pattern, const char *str,
         enum pcregex_compile_flags compile_options,
         enum pcregex_match_flags match_options);
+
+bool pcregex_is_match(const char *pattern, const char *str);
 
 /*
  * Compiles the regular expression to an internal form
  *
  */
-struct pcregex *pcregex_new(const char *pattern,
+struct pcregex *pcregex_new_ex(const char *pattern,
         enum pcregex_compile_flags compile_options,
         enum pcregex_match_flags match_options);
+
+struct pcregex *pcregex_new(const char *pattern);
 
 void pcregex_destroy(struct pcregex *regex);
 
@@ -99,8 +103,11 @@ void pcregex_destroy(struct pcregex *regex);
  * The match_options are combined with the match options specified when
  * the regex structure was created.
  */
-bool pcregex_match(struct pcregex *regex, const char *str,
+bool pcregex_match_ex(struct pcregex *regex, const char *str,
             enum pcregex_match_flags match_options,
+            struct pcregex_match_info **match_info);
+
+bool pcregex_match(struct pcregex *regex, const char *str,
             struct pcregex_match_info **match_info);
 
 /*

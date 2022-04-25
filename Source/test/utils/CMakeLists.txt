@@ -4,7 +4,7 @@ include(GoogleTest)
 
 enable_testing()
 
-# test_stack
+# test_utils
 PURC_EXECUTABLE_DECLARE(test_utils)
 
 list(APPEND test_utils_PRIVATE_INCLUDE_DIRECTORIES
@@ -30,3 +30,30 @@ set(test_utils_LIBRARIES
 PURC_COMPUTE_SOURCES(test_utils)
 PURC_FRAMEWORK(test_utils)
 GTEST_DISCOVER_TESTS(test_utils DISCOVERY_TIMEOUT 10)
+
+# test_regex
+PURC_EXECUTABLE_DECLARE(test_regex)
+
+list(APPEND test_regex_PRIVATE_INCLUDE_DIRECTORIES
+    ${PURC_DIR}/include
+    ${PurC_DERIVED_SOURCES_DIR}
+    ${PURC_DIR}
+    ${CMAKE_BINARY_DIR}
+)
+
+PURC_EXECUTABLE(test_regex)
+
+set(test_regex_SOURCES
+    test_regex.cpp
+)
+
+set(test_regex_LIBRARIES
+    PurC::PurC
+    gtest_main
+    gtest
+    pthread
+)
+
+PURC_COMPUTE_SOURCES(test_regex)
+PURC_FRAMEWORK(test_regex)
+GTEST_DISCOVER_TESTS(test_regex DISCOVERY_TIMEOUT 10)

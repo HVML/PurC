@@ -232,7 +232,7 @@ void set_error_code_from_gerror(GError *err)
     g_error_free(err);
 }
 
-bool pcregex_is_match(const char *pattern, const char *str,
+bool pcregex_is_match_ex(const char *pattern, const char *str,
         enum pcregex_compile_flags compile_options,
         enum pcregex_match_flags match_options)
 {
@@ -241,7 +241,12 @@ bool pcregex_is_match(const char *pattern, const char *str,
             to_g_regex_match_flags(match_options));
 }
 
-struct pcregex *pcregex_new(const char *pattern,
+bool pcregex_is_match(const char *pattern, const char *str)
+{
+    return pcregex_is_match_ex(pattern, str, 0, 0);
+}
+
+struct pcregex *pcregex_new_ex(const char *pattern,
         enum pcregex_compile_flags compile_options,
         enum pcregex_match_flags match_options)
 {
@@ -265,6 +270,11 @@ struct pcregex *pcregex_new(const char *pattern,
     return NULL;
 }
 
+struct pcregex *pcregex_new(const char *pattern)
+{
+    return pcregex_new_ex(pattern, 0, 0);
+}
+
 void pcregex_destroy(struct pcregex *regex)
 {
     if (!regex) {
@@ -274,7 +284,7 @@ void pcregex_destroy(struct pcregex *regex)
     free(regex);
 }
 
-bool pcregex_match(struct pcregex *regex, const char *str,
+bool pcregex_match_ex(struct pcregex *regex, const char *str,
             enum pcregex_match_flags match_options,
             struct pcregex_match_info **match_info)
 {
@@ -312,6 +322,12 @@ bool pcregex_match(struct pcregex *regex, const char *str,
         }
     }
     return ret;
+}
+
+bool pcregex_match(struct pcregex *regex, const char *str,
+            struct pcregex_match_info **match_info)
+{
+    return pcregex_match_ex(regex, str, 0, match_info);
 }
 
 bool pcregex_match_info_matches(const struct pcregex_match_info *match_info)
@@ -355,7 +371,7 @@ void pcregex_match_info_desroy(struct pcregex_match_info *match_info)
 
 #else /* HAVA(GLIB) */
 
-bool pcregex_is_match(const char *pattern, const char *str,
+bool pcregex_is_match_ex(const char *pattern, const char *str,
         enum pcregex_compile_flags compile_options,
         enum pcregex_match_flags match_options)
 {
@@ -368,7 +384,12 @@ bool pcregex_is_match(const char *pattern, const char *str,
     return false;
 }
 
-struct pcregex *pcregex_new(const char *pattern,
+bool pcregex_is_match(const char *pattern, const char *str)
+{
+    return pcregex_is_match_ex(pattern, str, 0, 0);
+}
+
+struct pcregex *pcregex_new_ex(const char *pattern,
         enum pcregex_compile_flags compile_options,
         enum pcregex_match_flags match_options)
 {
@@ -379,13 +400,18 @@ struct pcregex *pcregex_new(const char *pattern,
     return NULL;
 }
 
+struct pcregex *pcregex_new(const char *pattern)
+{
+    return pcregex_new_ex(pattern, 0, 0);
+}
+
 void pcregex_destroy(struct pcregex *regex)
 {
     UNUSED_PARAM(regex);
     purc_set_error(PURC_ERROR_NOT_IMPLEMENTED);
 }
 
-bool pcregex_match(struct pcregex *regex, const char *str,
+bool pcregex_match_ex(struct pcregex *regex, const char *str,
             enum pcregex_match_flags match_options,
             struct pcregex_match_info **match_info)
 {
