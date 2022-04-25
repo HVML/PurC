@@ -358,10 +358,17 @@ char *pcregex_match_info_fetch(const struct pcregex_match_info *match_info,
     if (!match_info) {
         return NULL;
     }
-    return g_match_info_fetch(match_info->g_match_info, match_num);
+    char *word = g_match_info_fetch(match_info->g_match_info, match_num);
+    if (!word) {
+        return NULL;
+    }
+
+    char *ret = strdup(word);
+    g_free(word);
+    return ret;
 }
 
-void pcregex_match_info_desroy(struct pcregex_match_info *match_info)
+void pcregex_match_info_destroy(struct pcregex_match_info *match_info)
 {
     if (match_info) {
         g_match_info_free(match_info->g_match_info);
@@ -446,7 +453,7 @@ char *pcregex_match_info_fetch(const struct pcregex_match_info *match_info,
     return NULL;
 }
 
-void pcregex_match_info_desroy(struct pcregex_match_info *match_info)
+void pcregex_match_info_destroy(struct pcregex_match_info *match_info)
 {
     UNUSED_PARAM(match_info);
     purc_set_error(PURC_ERROR_NOT_IMPLEMENTED);

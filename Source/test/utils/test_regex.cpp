@@ -53,3 +53,37 @@ TEST(regex, match)
 
     pcregex_destroy(regex);
 }
+
+TEST(regex, match_info)
+{
+    const char *str = "abc def xyz";
+    const char *pattern = "[a-z]+";
+    struct pcregex_match_info *infos = NULL;
+
+    struct pcregex *regex = pcregex_new(pattern);
+    ASSERT_NE(regex, nullptr);
+
+    bool ret = pcregex_match(regex, str, &infos);
+    ASSERT_EQ(ret, true);
+
+    ret = pcregex_match_info_matches(infos);
+    ASSERT_EQ(ret, true);
+
+    char *word = pcregex_match_info_fetch(infos, 0);
+    ASSERT_STREQ(word, "abc");
+
+    ret = pcregex_match_info_next(infos);
+    ASSERT_EQ(ret, true);
+
+    word = pcregex_match_info_fetch(infos, 0);
+    ASSERT_STREQ(word, "def");
+
+    ret = pcregex_match_info_next(infos);
+    ASSERT_EQ(ret, true);
+
+    word = pcregex_match_info_fetch(infos, 0);
+    ASSERT_STREQ(word, "xyz");
+
+    pcregex_match_info_destroy(infos);
+    pcregex_destroy(regex);
+}

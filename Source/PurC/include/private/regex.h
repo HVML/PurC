@@ -128,7 +128,7 @@ bool pcregex_match_info_next(const struct pcregex_match_info *match_info);
 char *pcregex_match_info_fetch(const struct pcregex_match_info *match_info,
             int match_num);
 
-void pcregex_match_info_desroy(struct pcregex_match_info *match_info);
+void pcregex_match_info_destroy(struct pcregex_match_info *match_info);
 
 #ifdef __cplusplus
 }
