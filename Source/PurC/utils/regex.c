@@ -256,7 +256,7 @@ struct pcregex *pcregex_new_ex(const char *pattern,
         return NULL;
     }
 
-    GError *err;
+    GError *err = NULL;
     regex->g_regex = g_regex_new(pattern,
             to_g_regex_compile_flags(compile_options),
             to_g_regex_match_flags(match_options),
@@ -344,7 +344,7 @@ bool pcregex_match_info_next(const struct pcregex_match_info *match_info)
     if (!match_info) {
         return false;
     }
-    GError *err;
+    GError *err = NULL;
     bool ret = g_match_info_next(match_info->g_match_info, &err);
     if (!ret) {
         set_error_code_from_gerror(err);
