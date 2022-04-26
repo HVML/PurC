@@ -265,6 +265,7 @@ struct pcintr_observer {
 
     // the type of the message observed (cloned from the `for` attribute)
     char* msg_type;
+    purc_atom_t msg_type_atom;
 
     // the sub type of the message observed (cloned from the `for` attribute; nullable).
     char* sub_type;

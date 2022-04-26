@@ -1599,6 +1599,8 @@ pcintr_register_observer(purc_variant_t observed,
     observer->edom_element = edom_element;
     observer->pos = pos;
     observer->msg_type = strdup(msg_type);
+    observer->msg_type_atom = purc_atom_try_string_ex(ATOM_BUCKET_MSG,
+            msg_type);
     observer->sub_type = sub_type ? strdup(sub_type) : NULL;
     observer->listener = listener;
     add_observer_into_list(list, observer);
@@ -1667,10 +1669,10 @@ pcintr_revoke_observer_ex(purc_variant_t observed, purc_variant_t for_value)
 }
 
 bool is_observer_match(struct pcintr_observer *observer,
-        purc_variant_t observed, const char *type, const char *sub_type)
+        purc_variant_t observed, purc_atom_t type_atom, const char *sub_type)
 {
     if ((observer->observed == observed) &&
-                (strcmp(observer->msg_type, type) == 0)) {
+                (observer->msg_type_atom == type_atom)) {
         if (observer->sub_type == sub_type ||
                 pcregex_is_match(observer->sub_type, sub_type)) {
             return true;
@@ -1688,6 +1690,11 @@ pcintr_find_all_observer(pcintr_stack_t stack, purc_variant_t observed,
         return NULL;
     }
     const char* msg = purc_variant_get_string_const(msg_type);
+    purc_atom_t msg_atom = purc_atom_try_string_ex(ATOM_BUCKET_MSG, msg);
+    if (msg_atom == 0) {
+        return NULL;
+    }
+
     const char* sub = (sub_type != PURC_VARIANT_INVALID) ?
         purc_variant_get_string_const(sub_type) : NULL;
 
@@ -1715,7 +1722,7 @@ pcintr_find_all_observer(pcintr_stack_t stack, purc_variant_t observed,
     size_t n = pcutils_arrlist_length(list);
     for (size_t i = 0; i < n; i++) {
         struct pcintr_observer* observer = pcutils_arrlist_get_idx(list, i);
-        if (is_observer_match(observer, observed, msg, sub)) {
+        if (is_observer_match(observer, observed, msg_atom, sub)) {
             pcutils_arrlist_append(ret_list, observer);
         }
     }
