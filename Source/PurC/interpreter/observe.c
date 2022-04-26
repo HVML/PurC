@@ -340,7 +340,7 @@ register_named_var_observer(pcintr_stack_t stack,
         return NULL;
     }
     return pcintr_register_observer(observed, for_var, frame->pos,
-            frame->edom_element, frame->pos, NULL, NULL, NULL);
+            frame->edom_element, frame->pos, NULL, NULL);
 }
 
 static struct pcintr_observer *
@@ -381,7 +381,7 @@ register_native_var_observer(pcintr_stack_t stack,
     }
 
     observer = pcintr_register_observer(observed, for_var, frame->pos,
-            frame->edom_element, frame->pos, NULL, NULL, NULL);
+            frame->edom_element, frame->pos, NULL, NULL);
 
 out_free_event_s:
     free(event_s);
@@ -399,7 +399,16 @@ register_timer_observer(pcintr_stack_t stack,
 {
     UNUSED_PARAM(stack);
     return pcintr_register_observer(on, for_var, frame->pos,
-            frame->edom_element, frame->pos, NULL, NULL, NULL);
+            frame->edom_element, frame->pos, NULL, NULL);
+}
+
+void on_revoke_mmutable_var_observer(struct pcintr_observer *observer,
+        void *data)
+{
+    if (observer && data) {
+        struct pcvar_listener *listener = (struct pcvar_listener*)data;
+        purc_variant_revoke_listener(observer->observed, listener);
+    }
 }
 
 static struct pcintr_observer *
@@ -421,7 +430,8 @@ register_mmutable_var_observer(pcintr_stack_t stack,
         return NULL;
     }
     return pcintr_register_observer(on, for_var, frame->pos,
-            frame->edom_element, frame->pos, listener, NULL, NULL);
+            frame->edom_element, frame->pos,
+            on_revoke_mmutable_var_observer, listener);
 }
 
 static void*

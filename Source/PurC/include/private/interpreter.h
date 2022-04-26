@@ -286,9 +286,6 @@ struct pcintr_observer {
     // the arraylist containing this struct pointer
     struct list_head* list;
 
-    // variant listener for object, set, array
-    struct pcvar_listener* listener;
-
     // callback when revoke observer
     pcintr_on_revoke_observer on_revoke;
     void *on_revoke_data;
@@ -395,7 +392,6 @@ pcintr_register_observer(purc_variant_t observed,
         purc_variant_t for_value, pcvdom_element_t scope,
         pcdom_element_t *edom_element,
         pcvdom_element_t pos,
-        struct pcvar_listener* listener,
         pcintr_on_revoke_observer on_revoke,
         void *on_revoke_data
         );

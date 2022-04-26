@@ -299,12 +299,8 @@ release_observer(struct pcintr_observer *observer)
 
     list_del(&observer->node);
 
-    if (observer->listener) {
-        PC_ASSERT(observer->observed != PURC_VARIANT_INVALID);
-        purc_variant_revoke_listener(observer->observed,
-                observer->listener);
-
-        observer->listener = NULL;
+    if (observer->on_revoke) {
+        observer->on_revoke(observer, observer->on_revoke_data);
     }
 
     if (observer->observed != PURC_VARIANT_INVALID) {
@@ -1534,7 +1530,6 @@ pcintr_register_observer(purc_variant_t observed,
         purc_variant_t for_value, pcvdom_element_t scope,
         pcdom_element_t *edom_element,
         pcvdom_element_t pos,
-        struct pcvar_listener* listener,
         pcintr_on_revoke_observer on_revoke,
         void *on_revoke_data
         )
@@ -1586,7 +1581,6 @@ pcintr_register_observer(purc_variant_t observed,
     observer->msg_type_atom = purc_atom_try_string_ex(ATOM_BUCKET_MSG,
             msg_type);
     observer->sub_type = sub_type ? strdup(sub_type) : NULL;
-    observer->listener = listener;
     observer->on_revoke = on_revoke;
     observer->on_revoke_data = on_revoke_data;
     add_observer_into_list(list, observer);
