@@ -104,7 +104,7 @@ public:
     }
 
     PurCInstance(const char *app = NULL, const char *runner = NULL,
-            bool enable_remote_fetcher = true) {
+            bool enable_remote_fetcher = false) {
         init_ok = -1;
         info = {};
         if (app == NULL)
