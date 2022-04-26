@@ -437,6 +437,53 @@ register_named_var_observer(pcintr_stack_t stack,
             frame->edom_element, frame->pos, NULL, NULL, NULL);
 }
 
+struct pcintr_observer *
+register_native_var_observer(pcintr_stack_t stack,
+        struct pcintr_stack_frame *frame,
+        purc_variant_t for_var,
+        purc_variant_t on
+        )
+{
+    UNUSED_PARAM(stack);
+    purc_variant_t observed = on;
+    struct pcintr_observer *observer = NULL;
+    struct purc_native_ops *ops = purc_variant_native_get_ops(observed);
+    if (!ops || !ops->on_observe) {
+        goto out;
+    }
+
+    void *native_entity = purc_variant_native_get_entity(observed);
+    const char *event = purc_variant_get_string_const(for_var);
+    char *event_s = strdup(event);
+    if (!event_s) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto out;
+    }
+
+    char *key;
+    char *value;
+    char *saveptr;
+    key = strtok_r(event_s, EVENT_SEPARATOR, &saveptr);
+    if (key == NULL) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto out_free_event_s;
+    }
+
+    value = strtok_r(NULL, EVENT_SEPARATOR, &saveptr);
+    if(!ops->on_observe(native_entity, key, value)) {
+        goto out_free_event_s;
+    }
+
+    observer = pcintr_register_observer(observed, for_var, frame->pos,
+            frame->edom_element, frame->pos, NULL, NULL, NULL);
+
+out_free_event_s:
+    free(event_s);
+
+out:
+    return observer;
+}
+
 static void*
 after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 {
@@ -494,7 +541,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         observer = register_named_var_observer(stack, frame, for_var,
                 ctxt->at);
     }
-    else {
+    else if (purc_variant_is_string(ctxt->on)) {
 // TODO : css selector
 #if 0
         if (purc_variant_is_string(ctxt->on)) {
@@ -502,13 +549,16 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
             if (at_str[0] == '#') {
             }
         }
-        else
 #endif
-        {
-            observed = ctxt->on;
-            if (!regist_inner_data(stack, on, for_var, &listener)) {
-                return NULL;
-            }
+    }
+    else if (purc_variant_is_native(ctxt->on)) {
+        observer = register_native_var_observer(stack, frame, for_var,
+                ctxt->on);
+    }
+    else {
+        observed = ctxt->on;
+        if (!regist_inner_data(stack, on, for_var, &listener)) {
+            return NULL;
         }
         observer = pcintr_register_observer(observed, for_var, frame->pos,
             frame->edom_element, pos, listener, NULL, NULL);
