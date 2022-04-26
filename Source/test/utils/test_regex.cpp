@@ -71,18 +71,24 @@ TEST(regex, match_info)
 
     char *word = pcregex_match_info_fetch(infos, 0);
     ASSERT_STREQ(word, "abc");
+    free(word);
+    word = NULL;
 
     ret = pcregex_match_info_next(infos);
     ASSERT_EQ(ret, true);
 
     word = pcregex_match_info_fetch(infos, 0);
     ASSERT_STREQ(word, "def");
+    free(word);
+    word = NULL;
 
     ret = pcregex_match_info_next(infos);
     ASSERT_EQ(ret, true);
 
     word = pcregex_match_info_fetch(infos, 0);
     ASSERT_STREQ(word, "xyz");
+    free(word);
+    word = NULL;
 
     pcregex_match_info_destroy(infos);
     pcregex_destroy(regex);
