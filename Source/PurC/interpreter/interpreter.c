@@ -1873,12 +1873,17 @@ pcintr_load_from_uri(pcintr_stack_t stack, const char* uri)
         // FIXME:
         purc_clr_error();
         ret = purc_variant_make_from_json_string(buf, sz_content);
-        purc_rwstream_destroy(resp);
     }
 
     if (resp_header.mime_type) {
         free(resp_header.mime_type);
     }
+
+    if (resp) {
+        purc_rwstream_destroy(resp);
+        resp = NULL;
+    }
+
     return ret;
 }
 
