@@ -285,6 +285,20 @@ static bool time_prt_vrtcmp_ex(purc_variant_t result, purc_variant_t expected)
     return false;
 }
 
+static purc_variant_t
+eval(const char *ejson, purc_variant_t dvobj)
+{
+    purc_variant_t result;
+
+    struct purc_ejson_parse_tree *ptree;
+    ptree = purc_variant_ejson_parse_string(ejson, strlen(ejson));
+    result = purc_variant_ejson_parse_tree_evalute(ptree,
+            get_dvobj_datetime, dvobj, true);
+    purc_variant_ejson_parse_tree_destroy(ptree);
+
+    return result;
+}
+
 TEST(dvobjs, time_prt)
 {
     static const struct ejson_result test_cases[] = {
@@ -374,16 +388,11 @@ TEST(dvobjs, time_prt)
     ASSERT_EQ(purc_variant_is_object(dvobj), true);
 
     for (size_t i = 0; i < PCA_TABLESIZE(test_cases); i++) {
-        struct purc_ejson_parse_tree *ptree;
         purc_variant_t result, expected;
 
         purc_log_info("evalute: %s\n", test_cases[i].ejson);
 
-        ptree = purc_variant_ejson_parse_string(test_cases[i].ejson,
-                strlen(test_cases[i].ejson));
-        result = purc_variant_ejson_parse_tree_evalute(ptree,
-                get_dvobj_datetime, dvobj, true);
-        purc_variant_ejson_parse_tree_destroy(ptree);
+        result = eval(test_cases[i].ejson, dvobj);
 
         /* FIXME: purc_variant_ejson_parse_tree_evalute should not return NULL
            when evaluating silently */
@@ -400,12 +409,8 @@ TEST(dvobjs, time_prt)
 
             if (test_cases[i].vrtcmp) {
                 if (test_cases[i].vrtcmp(result, expected) != true) {
-                    ptree = purc_variant_ejson_parse_string(test_cases[i].ejson,
-                            strlen(test_cases[i].ejson));
                     PURC_VARIANT_SAFE_CLEAR(result);
-                    result = purc_variant_ejson_parse_tree_evalute(ptree,
-                            get_dvobj_datetime, dvobj, true);
-                    purc_variant_ejson_parse_tree_destroy(ptree);
+                    result = eval(test_cases[i].ejson, dvobj);
                 }
                 ASSERT_EQ(test_cases[i].vrtcmp(result, expected), true);
             }
@@ -590,16 +595,11 @@ TEST(dvobjs, fmttime)
     ASSERT_EQ(purc_variant_is_object(dvobj), true);
 
     for (size_t i = 0; i < PCA_TABLESIZE(test_cases); i++) {
-        struct purc_ejson_parse_tree *ptree;
         purc_variant_t result, expected;
 
         purc_log_info("evalute: %s\n", test_cases[i].ejson);
 
-        ptree = purc_variant_ejson_parse_string(test_cases[i].ejson,
-                strlen(test_cases[i].ejson));
-        result = purc_variant_ejson_parse_tree_evalute(ptree,
-                get_dvobj_datetime, dvobj, true);
-        purc_variant_ejson_parse_tree_destroy(ptree);
+        result = eval(test_cases[i].ejson, dvobj);
 
         /* FIXME: purc_variant_ejson_parse_tree_evalute should not return NULL
            when evaluating silently */
@@ -615,6 +615,10 @@ TEST(dvobjs, fmttime)
             }
 
             if (test_cases[i].vrtcmp) {
+                if (test_cases[i].vrtcmp(result, expected) != true) {
+                    PURC_VARIANT_SAFE_CLEAR(result);
+                    result = eval(test_cases[i].ejson, dvobj);
+                }
                 ASSERT_EQ(test_cases[i].vrtcmp(result, expected), true);
             }
             else {
@@ -743,16 +747,11 @@ TEST(dvobjs, broken_down_time)
     ASSERT_EQ(purc_variant_is_object(dvobj), true);
 
     for (size_t i = 0; i < PCA_TABLESIZE(test_cases); i++) {
-        struct purc_ejson_parse_tree *ptree;
         purc_variant_t result, expected;
 
         purc_log_info("evalute: %s\n", test_cases[i].ejson);
 
-        ptree = purc_variant_ejson_parse_string(test_cases[i].ejson,
-                strlen(test_cases[i].ejson));
-        result = purc_variant_ejson_parse_tree_evalute(ptree,
-                get_dvobj_datetime, dvobj, true);
-        purc_variant_ejson_parse_tree_destroy(ptree);
+        result = eval(test_cases[i].ejson, dvobj);
 
         /* FIXME: purc_variant_ejson_parse_tree_evalute should not return NULL
            when evaluating silently */
@@ -768,6 +767,10 @@ TEST(dvobjs, broken_down_time)
             }
 
             if (test_cases[i].vrtcmp) {
+                if (test_cases[i].vrtcmp(result, expected) != true) {
+                    PURC_VARIANT_SAFE_CLEAR(result);
+                    result = eval(test_cases[i].ejson, dvobj);
+                }
                 ASSERT_EQ(test_cases[i].vrtcmp(result, expected), true);
             }
             else {

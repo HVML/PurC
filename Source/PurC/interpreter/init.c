@@ -902,6 +902,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
             ctxt->from_result = v;
         }
         else {
+            PC_ASSERT(0); // TODO: test
             struct fetcher_for_init *fetcher = (struct fetcher_for_init*)
                 malloc(sizeof(struct fetcher_for_init));
             if (!fetcher) {
