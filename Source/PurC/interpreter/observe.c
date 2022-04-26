@@ -35,6 +35,8 @@
 #include <pthread.h>
 #include <unistd.h>
 
+#define EVENT_SEPARATOR      ":"
+
 struct ctxt_for_observe {
     struct pcvdom_node           *curr;
     purc_variant_t                on;
@@ -162,102 +164,6 @@ regist_variant_listener(pcintr_stack_t stack, purc_variant_t observed,
     if (*listener != NULL) {
         return true;
     }
-    return false;
-}
-
-#define EVENT_SEPARATOR      ":"
-
-static bool
-regist_inner_data(pcintr_stack_t stack, purc_variant_t observed,
-        purc_variant_t event, struct pcvar_listener** listener)
-{
-    UNUSED_PARAM(listener);
-
-    if (!purc_variant_is_string(event)) {
-        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        return false;
-    }
-
-    const char* msg = purc_variant_get_string_const(event);
-    purc_atom_t t = purc_atom_try_string(msg);
-
-    switch (purc_variant_get_type(observed)) {
-        case PURC_VARIANT_TYPE_NULL:
-        case PURC_VARIANT_TYPE_BOOLEAN:
-        case PURC_VARIANT_TYPE_EXCEPTION:
-        case PURC_VARIANT_TYPE_NUMBER:
-        case PURC_VARIANT_TYPE_LONGINT:
-        case PURC_VARIANT_TYPE_ULONGINT:
-        case PURC_VARIANT_TYPE_LONGDOUBLE:
-        case PURC_VARIANT_TYPE_ATOMSTRING:
-        case PURC_VARIANT_TYPE_STRING:
-        case PURC_VARIANT_TYPE_BSEQUENCE:
-            if (is_immutable_variant_msg(t)) {
-                return regist_variant_listener(stack, observed, t, listener);
-            }
-            break;
-
-        case PURC_VARIANT_TYPE_DYNAMIC:
-            if (is_immutable_variant_msg(t)) {
-                return regist_variant_listener(stack, observed, t, listener);
-            }
-            break;
-
-        case PURC_VARIANT_TYPE_NATIVE:
-            if (is_immutable_variant_msg(t)) {
-                return regist_variant_listener(stack, observed, t, listener);
-            }
-            struct purc_native_ops *ops = purc_variant_native_get_ops(observed);
-            if (ops && ops->on_observe) {
-                void *native_entity = purc_variant_native_get_entity(observed);
-                char *msg_dup = strdup(msg);
-                if (!msg_dup) {
-                    purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-                    return false;
-                }
-                char *key;
-                char *value;
-                char *saveptr;
-                key = strtok_r(msg_dup, EVENT_SEPARATOR, &saveptr);
-                if (key == NULL) {
-                    purc_set_error(PURC_ERROR_INVALID_VALUE);
-                    return false;
-                }
-                value = strtok_r(NULL, EVENT_SEPARATOR, &saveptr);
-                bool ret = ops->on_observe(native_entity, key, value);
-                free(msg_dup);
-                return ret;
-            }
-            break;
-
-        case PURC_VARIANT_TYPE_OBJECT:
-        case PURC_VARIANT_TYPE_ARRAY:
-            if (is_mmutable_variant_msg(t)) {
-                return regist_variant_listener(stack, observed, t, listener);
-            }
-            break;
-
-        case PURC_VARIANT_TYPE_SET:
-            if (is_mmutable_variant_msg(t)) {
-                return regist_variant_listener(stack, observed, t, listener);
-            }
-            else if (pcintr_is_timers(stack, observed)) {
-                if ((strncmp(msg, TIMERS_EXPIRED_PREFIX,
-                                strlen(TIMERS_EXPIRED_PREFIX)) == 0)
-                        || (strncmp(msg, TIMERS_ACTIVATED_PREFIX,
-                                strlen(TIMERS_ACTIVATED_PREFIX)) == 0)
-                        || (strncmp(msg, TIMERS_DEACTIVATED_PREFIX,
-                                strlen(TIMERS_DEACTIVATED_PREFIX)) == 0)) {
-                    return true;
-                }
-            }
-            break;
-
-        default:
-            break;
-    }
-
-    purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
     return false;
 }
 
@@ -420,7 +326,7 @@ on_named_observe_release(void* native_entity)
     pcintr_revoke_observer(observer);
 }
 
-struct pcintr_observer *
+static struct pcintr_observer *
 register_named_var_observer(pcintr_stack_t stack,
         struct pcintr_stack_frame *frame,
         purc_variant_t for_var,
@@ -437,7 +343,7 @@ register_named_var_observer(pcintr_stack_t stack,
             frame->edom_element, frame->pos, NULL, NULL, NULL);
 }
 
-struct pcintr_observer *
+static struct pcintr_observer *
 register_native_var_observer(pcintr_stack_t stack,
         struct pcintr_stack_frame *frame,
         purc_variant_t for_var,
@@ -484,6 +390,40 @@ out:
     return observer;
 }
 
+static struct pcintr_observer *
+register_timer_observer(pcintr_stack_t stack,
+        struct pcintr_stack_frame *frame,
+        purc_variant_t for_var,
+        purc_variant_t on
+        )
+{
+    UNUSED_PARAM(stack);
+    return pcintr_register_observer(on, for_var, frame->pos,
+            frame->edom_element, frame->pos, NULL, NULL, NULL);
+}
+
+static struct pcintr_observer *
+register_mmutable_var_observer(pcintr_stack_t stack,
+        struct pcintr_stack_frame *frame,
+        purc_variant_t for_var,
+        purc_variant_t on
+        )
+{
+    const char* event = purc_variant_get_string_const(for_var);
+    purc_atom_t t = purc_atom_try_string(event);
+
+    if (!is_mmutable_variant_msg(t)) {
+        return NULL;
+    }
+
+    struct pcvar_listener *listener = NULL;
+    if (!regist_variant_listener(stack, on, t, &listener)) {
+        return NULL;
+    }
+    return pcintr_register_observer(on, for_var, frame->pos,
+            frame->edom_element, frame->pos, listener, NULL, NULL);
+}
+
 static void*
 after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 {
@@ -526,8 +466,10 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     purc_variant_t for_var;
     for_var = ctxt->for_var;
-    if (for_var == PURC_VARIANT_INVALID)
+    if (for_var == PURC_VARIANT_INVALID || !purc_variant_is_string(for_var)) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
         return NULL;
+    }
 
     if (stack->stage != STACK_STAGE_FIRST_ROUND) {
         purc_clr_error();
@@ -535,33 +477,39 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     }
 
     struct pcintr_observer* observer = NULL;
-    struct pcvar_listener* listener = NULL;
-    purc_variant_t observed = PURC_VARIANT_INVALID;
     if (ctxt->at != PURC_VARIANT_INVALID && purc_variant_is_string(ctxt->at)) {
         observer = register_named_var_observer(stack, frame, for_var,
                 ctxt->at);
     }
+#if 0
     else if (purc_variant_is_string(ctxt->on)) {
 // TODO : css selector
-#if 0
         if (purc_variant_is_string(ctxt->on)) {
             const char* at_str = purc_variant_get_string_const(ctxt->on);
             if (at_str[0] == '#') {
             }
         }
-#endif
     }
+#endif
     else if (purc_variant_is_native(ctxt->on)) {
         observer = register_native_var_observer(stack, frame, for_var,
                 ctxt->on);
     }
+    else if (pcintr_is_timers(stack, ctxt->on)) {
+        observer = register_timer_observer(stack, frame, for_var, ctxt->on);
+    }
     else {
-        observed = ctxt->on;
-        if (!regist_inner_data(stack, on, for_var, &listener)) {
-            return NULL;
+        switch(purc_variant_get_type(ctxt->on))
+        {
+        case PURC_VARIANT_TYPE_OBJECT:
+        case PURC_VARIANT_TYPE_ARRAY:
+        case PURC_VARIANT_TYPE_SET:
+            observer = register_mmutable_var_observer(stack, frame, for_var,
+                    ctxt->on);
+            break;
+        default:
+            break;
         }
-        observer = pcintr_register_observer(observed, for_var, frame->pos,
-            frame->edom_element, pos, listener, NULL, NULL);
     }
 
     if (observer == NULL) {
