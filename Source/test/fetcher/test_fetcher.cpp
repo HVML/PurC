@@ -4,6 +4,8 @@
 #include "private/debug.h"
 #include "purc-runloop.h"
 
+#include "../helpers.h"
+
 #include <gtest/gtest.h>
 #include <wtf/RunLoop.h>
 #include <wtf/FileSystem.h>
@@ -157,6 +159,11 @@ TEST(fetcher, launcher)
         // enough?
         g_object_unref(launcher);
     } while (0);
+}
+
+TEST(fetcher, Instance)
+{
+    PurCInstance purc("cn.fmsoft.hybridos.sample", "pcfetcher");
 }
 
 #if 0                        /* { */
