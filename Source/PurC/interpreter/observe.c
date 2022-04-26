@@ -420,6 +420,23 @@ on_named_observe_release(void* native_entity)
     pcintr_revoke_observer(observer);
 }
 
+struct pcintr_observer *
+register_named_var_observer(pcintr_stack_t stack,
+        struct pcintr_stack_frame *frame,
+        purc_variant_t for_var,
+        purc_variant_t at_var
+        )
+{
+    const char* name = purc_variant_get_string_const(at_var);
+    const char* event = purc_variant_get_string_const(for_var);
+    purc_variant_t observed = pcintr_add_named_var_observer(stack, name, event);
+    if (observed == PURC_VARIANT_INVALID) {
+        return NULL;
+    }
+    return pcintr_register_observer(observed, for_var, frame->pos,
+            frame->edom_element, frame->pos, NULL, NULL, NULL);
+}
+
 static void*
 after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 {
@@ -470,15 +487,12 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         return ctxt;
     }
 
+    struct pcintr_observer* observer = NULL;
     struct pcvar_listener* listener = NULL;
     purc_variant_t observed = PURC_VARIANT_INVALID;
     if (ctxt->at != PURC_VARIANT_INVALID && purc_variant_is_string(ctxt->at)) {
-        const char* name = purc_variant_get_string_const(ctxt->at);
-        const char* event = purc_variant_get_string_const(for_var);
-        observed = pcintr_add_named_var_observer(stack, name, event);
-        if (observed == PURC_VARIANT_INVALID) {
-            return NULL;
-        }
+        observer = register_named_var_observer(stack, frame, for_var,
+                ctxt->at);
     }
     else {
 // TODO : css selector
@@ -496,11 +510,10 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
                 return NULL;
             }
         }
+        observer = pcintr_register_observer(observed, for_var, frame->pos,
+            frame->edom_element, pos, listener, NULL, NULL);
     }
 
-    struct pcintr_observer* observer;
-    observer = pcintr_register_observer(observed, for_var, frame->pos,
-            frame->edom_element, pos, listener, NULL, NULL);
     if (observer == NULL) {
         return NULL;
     }
