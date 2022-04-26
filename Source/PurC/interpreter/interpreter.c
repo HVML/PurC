@@ -1535,7 +1535,9 @@ pcintr_register_observer(purc_variant_t observed,
         purc_variant_t for_value, pcvdom_element_t scope,
         pcdom_element_t *edom_element,
         pcvdom_element_t pos,
-        struct pcvar_listener* listener
+        struct pcvar_listener* listener,
+        pcintr_on_revoke_observer on_revoke,
+        void *on_revoke_data
         )
 {
     UNUSED_PARAM(for_value);
@@ -1603,6 +1605,8 @@ pcintr_register_observer(purc_variant_t observed,
             msg_type);
     observer->sub_type = sub_type ? strdup(sub_type) : NULL;
     observer->listener = listener;
+    observer->on_revoke = on_revoke;
+    observer->on_revoke_data = on_revoke_data;
     add_observer_into_list(list, observer);
 
     free(value);

@@ -500,7 +500,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     struct pcintr_observer* observer;
     observer = pcintr_register_observer(observed, for_var, frame->pos,
-            frame->edom_element, pos, listener);
+            frame->edom_element, pos, listener, NULL, NULL);
     if (observer == NULL) {
         return NULL;
     }
