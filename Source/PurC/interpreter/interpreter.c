@@ -1656,6 +1656,7 @@ pcintr_revoke_observer_ex(purc_variant_t observed, purc_variant_t for_value)
                 pcintr_revoke_observer(observer);
             }
         }
+        pcutils_arrlist_free(observers);
     }
 
     purc_variant_unref(msg_type_var);
