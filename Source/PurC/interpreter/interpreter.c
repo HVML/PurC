@@ -1581,6 +1581,8 @@ pcintr_register_observer(purc_variant_t observed,
     observer->edom_element = edom_element;
     observer->pos = pos;
     observer->msg_type = strdup(msg_type);
+    observer->msg_type_atom = purc_atom_try_string_ex(ATOM_BUCKET_MSG,
+            msg_type);
     observer->sub_type = sub_type ? strdup(sub_type) : NULL;
     observer->listener = listener;
     add_observer_into_list(list, observer);
@@ -1624,10 +1626,10 @@ get_observer_list(pcintr_stack_t stack, purc_variant_t observed)
 }
 
 bool is_observer_match(struct pcintr_observer *observer,
-        purc_variant_t observed, const char *type, const char *sub_type)
+        purc_variant_t observed, purc_atom_t type_atom, const char *sub_type)
 {
     if ((observer->observed == observed) &&
-                (strcmp(observer->msg_type, type) == 0)) {
+                (observer->msg_type_atom == type_atom)) {
         if (observer->sub_type == sub_type ||
                 pcregex_is_match(observer->sub_type, sub_type)) {
             return true;
@@ -1654,13 +1656,20 @@ pcintr_revoke_observer_ex(purc_variant_t observed, purc_variant_t for_value)
         free(value);
         return false;
     }
+    purc_atom_t msg_type_atom = purc_atom_try_string_ex(ATOM_BUCKET_MSG,
+            msg_type);
+    if (msg_type_atom == 0) {
+        //TODO : purc_set_error();
+        free(value);
+        return false;
+    }
 
     char* sub_type = strtok_r(p, EVENT_SEPARATOR, &p);
 
     struct list_head* list = get_observer_list(stack, observed); {
         struct pcintr_observer *p, *n;
         list_for_each_entry_safe(p, n, list, node) {
-            if (is_observer_match(p, observed, msg_type, sub_type)) {
+            if (is_observer_match(p, observed, msg_type_atom, sub_type)) {
                 pcintr_revoke_observer(p);
                 break;
             }
@@ -1735,16 +1744,22 @@ pcintr_handle_message(void *ctxt)
     PC_ASSERT(stack);
 
     const char *msg_type = purc_variant_get_string_const(msg->type);
+    PC_ASSERT(msg_type);
+
     const char *sub_type = NULL;
     if (msg->sub_type != PURC_VARIANT_INVALID)
         sub_type = purc_variant_get_string_const(msg->sub_type);
+
+    purc_atom_t msg_type_atom = purc_atom_try_string_ex(ATOM_BUCKET_MSG,
+            msg_type);
+    PC_ASSERT(msg_type_atom);
 
     purc_variant_t observed = msg->source;
 
     struct list_head* list = get_observer_list(stack, observed); {
         struct pcintr_observer *p, *n;
         list_for_each_entry_safe(p, n, list, node) {
-            if (is_observer_match(p, observed, msg_type, sub_type)) {
+            if (is_observer_match(p, observed, msg_type_atom, sub_type)) {
                 // FIXME:
                 // push stack frame
                 struct pcintr_stack_frame *frame;
