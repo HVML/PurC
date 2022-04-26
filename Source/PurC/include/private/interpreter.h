@@ -155,9 +155,10 @@ struct pcintr_stack {
     struct pcintr_coroutine        co;
 
     // for observe
-    struct pcutils_arrlist* common_variant_observer_list;
-    struct pcutils_arrlist* dynamic_variant_observer_list;
-    struct pcutils_arrlist* native_variant_observer_list;
+    // struct pcintr_observer
+    struct list_head common_variant_observer_list;
+    struct list_head dynamic_variant_observer_list;
+    struct list_head native_variant_observer_list;
 
     pchtml_html_document_t     *doc;
 
@@ -260,6 +261,8 @@ struct pcintr_dynamic_args {
 };
 
 struct pcintr_observer {
+    struct list_head            node;
+
     // the observed variant.
     purc_variant_t observed;
 
@@ -276,7 +279,7 @@ struct pcintr_observer {
     pcvdom_element_t pos;
 
     // the arraylist containing this struct pointer
-    struct pcutils_arrlist* list;
+    struct list_head* list;
 
     // variant listener for object, set, array
     struct pcvar_listener* listener;
@@ -385,18 +388,11 @@ pcintr_register_observer(purc_variant_t observed,
         pcvdom_element_t pos,
         struct pcvar_listener* listener);
 
-bool
+void
 pcintr_revoke_observer(struct pcintr_observer* observer);
 
 bool
 pcintr_revoke_observer_ex(purc_variant_t observed, purc_variant_t for_value);
-
-struct pcutils_arrlist*
-pcintr_find_all_observer(pcintr_stack_t stack, purc_variant_t observed,
-        purc_variant_t msg_type, purc_variant_t sub_type);
-
-bool
-pcintr_is_observer_empty(pcintr_stack_t stack);
 
 int
 pcintr_dispatch_message(pcintr_stack_t stack, purc_variant_t source,
