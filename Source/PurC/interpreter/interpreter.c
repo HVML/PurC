@@ -1638,33 +1638,11 @@ bool is_observer_match(struct pcintr_observer *observer,
     return false;
 }
 
-bool
-pcintr_revoke_observer_ex(purc_variant_t observed, purc_variant_t for_value)
+void
+pcintr_revoke_observer_ex(purc_variant_t observed,
+        purc_atom_t msg_type_atom, const char *sub_type)
 {
     pcintr_stack_t stack = pcintr_get_stack();
-    const char* for_value_str = purc_variant_get_string_const(for_value);
-    char* value = strdup(for_value_str);
-    if (!value) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return false;
-    }
-
-    char* p = value;
-    char* msg_type = strtok_r(p, EVENT_SEPARATOR, &p);
-    if (!msg_type) {
-        //TODO : purc_set_error();
-        free(value);
-        return false;
-    }
-    purc_atom_t msg_type_atom = purc_atom_try_string_ex(ATOM_BUCKET_MSG,
-            msg_type);
-    if (msg_type_atom == 0) {
-        //TODO : purc_set_error();
-        free(value);
-        return false;
-    }
-
-    char* sub_type = strtok_r(p, EVENT_SEPARATOR, &p);
 
     struct list_head* list = get_observer_list(stack, observed); {
         struct pcintr_observer *p, *n;
@@ -1675,9 +1653,6 @@ pcintr_revoke_observer_ex(purc_variant_t observed, purc_variant_t for_value)
             }
         }
     }
-
-    free(value);
-    return true;
 }
 
 

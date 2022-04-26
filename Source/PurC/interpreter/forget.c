@@ -35,11 +35,17 @@
 #include <pthread.h>
 #include <unistd.h>
 
+#define EVENT_SEPARATOR      ':'
+
 struct ctxt_for_forget {
     struct pcvdom_node           *curr;
     purc_variant_t                on;
     purc_variant_t                for_var;
     purc_variant_t                at;
+
+    char                         *msg_type;
+    char                         *sub_type;
+    purc_atom_t                   msg_type_atom;
 };
 
 static void
@@ -49,6 +55,14 @@ ctxt_for_forget_destroy(struct ctxt_for_forget *ctxt)
         PURC_VARIANT_SAFE_CLEAR(ctxt->on);
         PURC_VARIANT_SAFE_CLEAR(ctxt->for_var);
         PURC_VARIANT_SAFE_CLEAR(ctxt->at);
+        if (ctxt->msg_type) {
+            free(ctxt->msg_type);
+            ctxt->msg_type = NULL;
+        }
+        if (ctxt->sub_type) {
+            free(ctxt->sub_type);
+            ctxt->sub_type = NULL;
+        }
         free(ctxt);
     }
 }
@@ -130,6 +144,32 @@ process_attr_for(struct pcintr_stack_frame *frame,
     }
     ctxt->for_var = val;
     purc_variant_ref(val);
+
+    const char *s = purc_variant_get_string_const(ctxt->for_var);
+    const char *p = strchr(s, EVENT_SEPARATOR);
+    if (p) {
+        ctxt->msg_type = strndup(s, p-s);
+        ctxt->sub_type = strdup(p+1);
+    }
+    else {
+        ctxt->msg_type = strdup(s);
+    }
+
+    if (ctxt->msg_type == NULL) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "unknown vdom attribute '%s = %s' for element <%s>",
+                purc_atom_to_string(name), s, element->tag_name);
+        return -1;
+    }
+
+    ctxt->msg_type_atom = purc_atom_try_string_ex(ATOM_BUCKET_MSG,
+            ctxt->msg_type);
+    if (ctxt->msg_type_atom == 0) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "unknown vdom attribute '%s = %s' for element <%s>",
+                purc_atom_to_string(name), s, element->tag_name);
+        return -1;
+    }
 
     return 0;
 }
@@ -231,11 +271,10 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (ctxt->at != PURC_VARIANT_INVALID && purc_variant_is_string(ctxt->at)) {
         const char* name = purc_variant_get_string_const(ctxt->at);
         const char* event = purc_variant_get_string_const(for_var);
-        purc_variant_t v = pcintr_remove_named_var_observer(stack, name, event);
-        bool ret = pcintr_revoke_observer_ex(v, for_var);
-        if (!ret) {
-            return NULL;
-        }
+        purc_variant_t v;
+        v = pcintr_remove_named_var_observer(stack, name, event);
+        pcintr_revoke_observer_ex(v,
+                ctxt->msg_type_atom, ctxt->sub_type);
     }
     else {
         purc_variant_t on = ctxt->on;
@@ -249,10 +288,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         else
 #endif
         {
-            bool ret = pcintr_revoke_observer_ex(on, for_var);
-            if (!ret) {
-                return NULL;
-            }
+            pcintr_revoke_observer_ex(on,
+                ctxt->msg_type_atom, ctxt->sub_type);
         }
     }
 
