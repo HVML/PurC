@@ -55,6 +55,7 @@ ctxt_for_forget_destroy(struct ctxt_for_forget *ctxt)
         PURC_VARIANT_SAFE_CLEAR(ctxt->on);
         PURC_VARIANT_SAFE_CLEAR(ctxt->for_var);
         PURC_VARIANT_SAFE_CLEAR(ctxt->at);
+
         if (ctxt->msg_type) {
             free(ctxt->msg_type);
             ctxt->msg_type = NULL;

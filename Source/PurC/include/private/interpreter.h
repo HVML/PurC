@@ -271,7 +271,6 @@ struct pcintr_observer {
     purc_variant_t observed;
 
     // the type of the message observed (cloned from the `for` attribute)
-    char* msg_type;
     purc_atom_t msg_type_atom;
 
     // the sub type of the message observed (cloned from the `for` attribute; nullable).
@@ -389,7 +388,9 @@ pcintr_is_timers(pcintr_stack_t stack, purc_variant_t v);
 
 struct pcintr_observer*
 pcintr_register_observer(purc_variant_t observed,
-        purc_variant_t for_value, pcvdom_element_t scope,
+        purc_variant_t for_value,
+        purc_atom_t msg_type_atom, const char *sub_type,
+        pcvdom_element_t scope,
         pcdom_element_t *edom_element,
         pcvdom_element_t pos,
         pcintr_on_revoke_observer on_revoke,
@@ -405,7 +406,9 @@ pcintr_revoke_observer_ex(purc_variant_t observed,
 
 int
 pcintr_dispatch_message(pcintr_stack_t stack, purc_variant_t source,
-        purc_variant_t for_value, purc_variant_t extra);
+        purc_variant_t for_value,
+        purc_atom_t msg_type_atom, const char *sub_type,
+        purc_variant_t extra);
 
 int
 pcintr_dispatch_message_ex(pcintr_stack_t stack, purc_variant_t source,

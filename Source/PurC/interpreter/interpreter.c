@@ -42,7 +42,6 @@
 
 #include <stdarg.h>
 
-#define EVENT_SEPARATOR      ":"
 #define EVENT_TIMER_INTRVAL  10
 
 #define MSG_TYPE_CHANGE     "change"
@@ -310,7 +309,8 @@ release_observer(struct pcintr_observer *observer)
             if (ops && ops->on_forget) {
                 void *native_entity = purc_variant_native_get_entity(
                         observer->observed);
-                ops->on_forget(native_entity, observer->msg_type,
+                ops->on_forget(native_entity,
+                        purc_atom_to_string(observer->msg_type_atom),
                         observer->sub_type);
             }
         }
@@ -318,8 +318,6 @@ release_observer(struct pcintr_observer *observer)
         PURC_VARIANT_SAFE_CLEAR(observer->observed);
     }
 
-    free(observer->msg_type);
-    observer->msg_type = NULL;
     free(observer->sub_type);
     observer->sub_type = NULL;
 }
@@ -1527,7 +1525,9 @@ add_observer_into_list(struct list_head *list,
 
 struct pcintr_observer*
 pcintr_register_observer(purc_variant_t observed,
-        purc_variant_t for_value, pcvdom_element_t scope,
+        purc_variant_t for_value,
+        purc_atom_t msg_type_atom, const char *sub_type,
+        pcvdom_element_t scope,
         pcdom_element_t *edom_element,
         pcvdom_element_t pos,
         pcintr_on_revoke_observer on_revoke,
@@ -1548,44 +1548,23 @@ pcintr_register_observer(purc_variant_t observed,
         list = &stack->common_variant_observer_list;
     }
 
-    const char* for_value_str = purc_variant_get_string_const(for_value);
-    char* value = strdup(for_value_str);
-    if (!value) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return NULL;
-    }
-
-    char* p = value;
-    char* msg_type = strtok_r(p, EVENT_SEPARATOR, &p);
-    if (!msg_type) {
-        //TODO : purc_set_error();
-        free(value);
-        return NULL;
-    }
-
-    char* sub_type = strtok_r(p, EVENT_SEPARATOR, &p);
-
     struct pcintr_observer* observer =  (struct pcintr_observer*)calloc(1,
             sizeof(struct pcintr_observer));
     if (!observer) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        free(value);
         return NULL;
     }
+
     observer->observed = observed;
     purc_variant_ref(observed);
     observer->scope = scope;
     observer->edom_element = edom_element;
     observer->pos = pos;
-    observer->msg_type = strdup(msg_type);
-    observer->msg_type_atom = purc_atom_try_string_ex(ATOM_BUCKET_MSG,
-            msg_type);
+    observer->msg_type_atom = msg_type_atom;
     observer->sub_type = sub_type ? strdup(sub_type) : NULL;
     observer->on_revoke = on_revoke;
     observer->on_revoke_data = on_revoke_data;
     add_observer_into_list(list, observer);
-
-    free(value);
 
     return observer;
 }
@@ -1760,50 +1739,33 @@ pcintr_handle_message(void *ctxt)
 
 int
 pcintr_dispatch_message(pcintr_stack_t stack, purc_variant_t source,
-        purc_variant_t for_value, purc_variant_t extra)
+        purc_variant_t for_value,
+        purc_atom_t msg_type_atom, const char *sub_type,
+        purc_variant_t extra)
 {
-    int ret = -1;
-    const char *for_value_str = purc_variant_get_string_const(for_value);
-    char *value = strdup(for_value_str);
-    if (!value) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return ret;
-    }
+    UNUSED_PARAM(for_value);
 
-    char *p = value;
-    char *s_type = strtok_r(p, EVENT_SEPARATOR, &p);
-    if (!s_type) {
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
-        goto out_free_value;
-    }
+    const char *s_type = purc_atom_to_string(msg_type_atom);
+    PC_ASSERT(s_type);
 
-    purc_variant_t type = purc_variant_make_string(s_type, true);
-    if (type == PURC_VARIANT_INVALID) {
-        goto out_free_value;
-    }
+    purc_variant_t v_type = purc_variant_make_string(s_type, true);
+    if (v_type == PURC_VARIANT_INVALID)
+        return -1;
 
-    purc_variant_t sub_type = PURC_VARIANT_INVALID;
-    char *s_sub_type = strtok_r(p, EVENT_SEPARATOR, &p);
-    if (s_sub_type) {
-        sub_type = purc_variant_make_string(s_sub_type, true);
-        if (sub_type == PURC_VARIANT_INVALID) {
-            goto out_unref_type;
+    purc_variant_t v_sub_type = PURC_VARIANT_INVALID;
+    if (sub_type) {
+        v_sub_type = purc_variant_make_string(sub_type, true);
+        if (v_sub_type == PURC_VARIANT_INVALID) {
+            PURC_VARIANT_SAFE_CLEAR(v_type);
+            return -1;
         }
     }
 
-    ret = pcintr_dispatch_message_ex(stack, source, type, sub_type, extra);
+    int r = pcintr_dispatch_message_ex(stack, source, v_type, v_sub_type, extra);
+    PURC_VARIANT_SAFE_CLEAR(v_sub_type);
+    PURC_VARIANT_SAFE_CLEAR(v_type);
 
-    if (sub_type) {
-        purc_variant_unref(sub_type);
-    }
-
-out_unref_type:
-    purc_variant_unref(type);
-
-out_free_value:
-    free(value);
-
-    return ret;
+    return r;
 }
 
 int

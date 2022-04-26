@@ -35,7 +35,7 @@
 #include <pthread.h>
 #include <unistd.h>
 
-#define EVENT_SEPARATOR      ":"
+#define EVENT_SEPARATOR      ':'
 
 struct ctxt_for_observe {
     struct pcvdom_node           *curr;
@@ -43,6 +43,10 @@ struct ctxt_for_observe {
     purc_variant_t                for_var;
     purc_variant_t                at;
     purc_variant_t                as;
+
+    char                         *msg_type;
+    char                         *sub_type;
+    purc_atom_t                   msg_type_atom;
 };
 
 static void
@@ -53,6 +57,15 @@ ctxt_for_observe_destroy(struct ctxt_for_observe *ctxt)
         PURC_VARIANT_SAFE_CLEAR(ctxt->for_var);
         PURC_VARIANT_SAFE_CLEAR(ctxt->at);
         PURC_VARIANT_SAFE_CLEAR(ctxt->as);
+
+        if (ctxt->msg_type) {
+            free(ctxt->msg_type);
+            ctxt->msg_type = NULL;
+        }
+        if (ctxt->sub_type) {
+            free(ctxt->sub_type);
+            ctxt->sub_type = NULL;
+        }
         free(ctxt);
     }
 }
@@ -264,6 +277,32 @@ process_attr_for(struct pcintr_stack_frame *frame,
     ctxt->for_var = val;
     purc_variant_ref(val);
 
+    const char *s = purc_variant_get_string_const(ctxt->for_var);
+    const char *p = strchr(s, EVENT_SEPARATOR);
+    if (p) {
+        ctxt->msg_type = strndup(s, p-s);
+        ctxt->sub_type = strdup(p+1);
+    }
+    else {
+        ctxt->msg_type = strdup(s);
+    }
+
+    if (ctxt->msg_type == NULL) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "unknown vdom attribute '%s = %s' for element <%s>",
+                purc_atom_to_string(name), s, element->tag_name);
+        return -1;
+    }
+
+    ctxt->msg_type_atom = purc_atom_try_string_ex(ATOM_BUCKET_MSG,
+            ctxt->msg_type);
+    if (ctxt->msg_type_atom == 0) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "unknown vdom attribute '%s = %s' for element <%s>",
+                purc_atom_to_string(name), s, element->tag_name);
+        return -1;
+    }
+
     return 0;
 }
 
@@ -329,76 +368,69 @@ on_named_observe_release(void* native_entity)
 static struct pcintr_observer *
 register_named_var_observer(pcintr_stack_t stack,
         struct pcintr_stack_frame *frame,
-        purc_variant_t for_var,
         purc_variant_t at_var
         )
 {
+    struct ctxt_for_observe *ctxt;
+    ctxt = (struct ctxt_for_observe*)frame->ctxt;
+
     const char* name = purc_variant_get_string_const(at_var);
-    const char* event = purc_variant_get_string_const(for_var);
+    const char* event = purc_variant_get_string_const(ctxt->for_var);
     purc_variant_t observed = pcintr_add_named_var_observer(stack, name, event);
     if (observed == PURC_VARIANT_INVALID) {
         return NULL;
     }
-    return pcintr_register_observer(observed, for_var, frame->pos,
+    return pcintr_register_observer(observed,
+            ctxt->for_var, ctxt->msg_type_atom, ctxt->sub_type,
+            frame->pos,
             frame->edom_element, frame->pos, NULL, NULL);
 }
 
 static struct pcintr_observer *
 register_native_var_observer(pcintr_stack_t stack,
         struct pcintr_stack_frame *frame,
-        purc_variant_t for_var,
         purc_variant_t on
         )
 {
     UNUSED_PARAM(stack);
+    struct ctxt_for_observe *ctxt;
+    ctxt = (struct ctxt_for_observe*)frame->ctxt;
+
     purc_variant_t observed = on;
     struct pcintr_observer *observer = NULL;
     struct purc_native_ops *ops = purc_variant_native_get_ops(observed);
-    if (!ops || !ops->on_observe) {
-        goto out;
-    }
+    PC_ASSERT(ops && ops->on_observe);
 
     void *native_entity = purc_variant_native_get_entity(observed);
-    const char *event = purc_variant_get_string_const(for_var);
-    char *event_s = strdup(event);
-    if (!event_s) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        goto out;
+
+    if(!ops->on_observe(native_entity,
+        purc_atom_to_string(ctxt->msg_type_atom), ctxt->sub_type))
+    {
+        // TODO: purc_set_error
+        return NULL;
     }
 
-    char *key;
-    char *value;
-    char *saveptr;
-    key = strtok_r(event_s, EVENT_SEPARATOR, &saveptr);
-    if (key == NULL) {
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
-        goto out_free_event_s;
-    }
-
-    value = strtok_r(NULL, EVENT_SEPARATOR, &saveptr);
-    if(!ops->on_observe(native_entity, key, value)) {
-        goto out_free_event_s;
-    }
-
-    observer = pcintr_register_observer(observed, for_var, frame->pos,
+    observer = pcintr_register_observer(observed,
+            ctxt->for_var, ctxt->msg_type_atom, ctxt->sub_type,
+            frame->pos,
             frame->edom_element, frame->pos, NULL, NULL);
 
-out_free_event_s:
-    free(event_s);
-
-out:
     return observer;
 }
 
 static struct pcintr_observer *
 register_timer_observer(pcintr_stack_t stack,
         struct pcintr_stack_frame *frame,
-        purc_variant_t for_var,
         purc_variant_t on
         )
 {
     UNUSED_PARAM(stack);
-    return pcintr_register_observer(on, for_var, frame->pos,
+    struct ctxt_for_observe *ctxt;
+    ctxt = (struct ctxt_for_observe*)frame->ctxt;
+
+    return pcintr_register_observer(on,
+            ctxt->for_var, ctxt->msg_type_atom, ctxt->sub_type,
+            frame->pos,
             frame->edom_element, frame->pos, NULL, NULL);
 }
 
@@ -414,22 +446,24 @@ void on_revoke_mmutable_var_observer(struct pcintr_observer *observer,
 static struct pcintr_observer *
 register_mmutable_var_observer(pcintr_stack_t stack,
         struct pcintr_stack_frame *frame,
-        purc_variant_t for_var,
         purc_variant_t on
         )
 {
-    const char* event = purc_variant_get_string_const(for_var);
-    purc_atom_t t = purc_atom_try_string(event);
+    PC_ASSERT(0);
 
-    if (!is_mmutable_variant_msg(t)) {
+    struct ctxt_for_observe *ctxt;
+    ctxt = (struct ctxt_for_observe*)frame->ctxt;
+
+    if (!is_mmutable_variant_msg(ctxt->msg_type_atom))
         return NULL;
-    }
 
     struct pcvar_listener *listener = NULL;
-    if (!regist_variant_listener(stack, on, t, &listener)) {
+    if (!regist_variant_listener(stack, on, ctxt->msg_type_atom, &listener))
         return NULL;
-    }
-    return pcintr_register_observer(on, for_var, frame->pos,
+
+    return pcintr_register_observer(on,
+            ctxt->for_var, ctxt->msg_type_atom, ctxt->sub_type,
+            frame->pos,
             frame->edom_element, frame->pos,
             on_revoke_mmutable_var_observer, listener);
 }
@@ -488,8 +522,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     struct pcintr_observer* observer = NULL;
     if (ctxt->at != PURC_VARIANT_INVALID && purc_variant_is_string(ctxt->at)) {
-        observer = register_named_var_observer(stack, frame, for_var,
-                ctxt->at);
+        observer = register_named_var_observer(stack, frame, ctxt->at);
     }
 #if 0
     else if (purc_variant_is_string(ctxt->on)) {
@@ -502,11 +535,10 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     }
 #endif
     else if (purc_variant_is_native(ctxt->on)) {
-        observer = register_native_var_observer(stack, frame, for_var,
-                ctxt->on);
+        observer = register_native_var_observer(stack, frame, ctxt->on);
     }
     else if (pcintr_is_timers(stack, ctxt->on)) {
-        observer = register_timer_observer(stack, frame, for_var, ctxt->on);
+        observer = register_timer_observer(stack, frame, ctxt->on);
     }
     else {
         switch(purc_variant_get_type(ctxt->on))
@@ -514,8 +546,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         case PURC_VARIANT_TYPE_OBJECT:
         case PURC_VARIANT_TYPE_ARRAY:
         case PURC_VARIANT_TYPE_SET:
-            observer = register_mmutable_var_observer(stack, frame, for_var,
-                    ctxt->on);
+            observer = register_mmutable_var_observer(stack, frame, ctxt->on);
             break;
         default:
             break;
