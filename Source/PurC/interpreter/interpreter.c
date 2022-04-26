@@ -32,6 +32,7 @@
 #include "purc-runloop.h"
 #include "private/dvobjs.h"
 #include "private/fetcher.h"
+#include "private/regex.h"
 
 #include "ops.h"
 #include "../hvml/hvml-gen.h"
@@ -1644,10 +1645,17 @@ pcintr_revoke_observer_ex(purc_variant_t observed, purc_variant_t for_value)
         sub_type_var = purc_variant_make_string(sub_type, false);
     }
 
-    struct pcintr_observer* observer = pcintr_find_observer(stack, observed,
-        msg_type_var, sub_type_var);
-    if (observer) {
-        pcintr_revoke_observer(observer);
+    struct pcutils_arrlist* observers = pcintr_find_all_observer(stack,
+            observed, msg_type_var, sub_type_var);
+    if (observers != NULL) {
+        size_t n = pcutils_arrlist_length(observers);
+        for (size_t i = 0; i < n; i++) {
+            struct pcintr_observer* observer = pcutils_arrlist_get_idx(
+                    observers, i);
+            if (observer) {
+                pcintr_revoke_observer(observer);
+            }
+        }
     }
 
     purc_variant_unref(msg_type_var);
@@ -1658,47 +1666,17 @@ pcintr_revoke_observer_ex(purc_variant_t observed, purc_variant_t for_value)
     return true;
 }
 
-struct pcintr_observer*
-pcintr_find_observer(pcintr_stack_t stack, purc_variant_t observed,
-        purc_variant_t msg_type, purc_variant_t sub_type)
+bool is_observer_match(struct pcintr_observer *observer,
+        purc_variant_t observed, const char *type, const char *sub_type)
 {
-    if (observed == PURC_VARIANT_INVALID ||
-            msg_type == PURC_VARIANT_INVALID) {
-        return NULL;
-    }
-    const char* msg = purc_variant_get_string_const(msg_type);
-    const char* sub = (sub_type != PURC_VARIANT_INVALID) ?
-        purc_variant_get_string_const(sub_type) : NULL;
-
-    struct pcutils_arrlist* list = NULL;
-    if (purc_variant_is_type(observed, PURC_VARIANT_TYPE_DYNAMIC)) {
-        list = stack->dynamic_variant_observer_list;
-    }
-    else if (purc_variant_is_type(observed, PURC_VARIANT_TYPE_NATIVE)) {
-        list = stack->native_variant_observer_list;
-    }
-    else {
-        list = stack->common_variant_observer_list;
-    }
-
-    if (!list) {
-        return NULL;
-    }
-
-    size_t n = pcutils_arrlist_length(list);
-    for (size_t i = 0; i < n; i++) {
-        struct pcintr_observer* observer = pcutils_arrlist_get_idx(list, i);
-        if (observer->observed == observed &&
-                (strcmp(observer->msg_type, msg) == 0) &&
-                (
-                 (observer->sub_type && strcmp(observer->sub_type, sub) == 0) ||
-                 (observer->sub_type == sub)
-                 )
-                ) {
-            return observer;
+    if ((observer->observed == observed) &&
+                (strcmp(observer->msg_type, type) == 0)) {
+        if (observer->sub_type == sub_type ||
+                pcregex_is_match(observer->sub_type, sub_type)) {
+            return true;
         }
     }
-    return NULL;
+    return false;
 }
 
 struct pcutils_arrlist*
@@ -1737,13 +1715,7 @@ pcintr_find_all_observer(pcintr_stack_t stack, purc_variant_t observed,
     size_t n = pcutils_arrlist_length(list);
     for (size_t i = 0; i < n; i++) {
         struct pcintr_observer* observer = pcutils_arrlist_get_idx(list, i);
-        if (observer->observed == observed &&
-                (strcmp(observer->msg_type, msg) == 0) &&
-                (
-                 (observer->sub_type && strcmp(observer->sub_type, sub) == 0) ||
-                 (observer->sub_type == sub)
-                 )
-                ) {
+        if (is_observer_match(observer, observed, msg, sub)) {
             pcutils_arrlist_append(ret_list, observer);
         }
     }

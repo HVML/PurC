@@ -30,6 +30,21 @@ TEST(regex, is_match)
 
     match = pcregex_is_match("\\d", "a1b");
     ASSERT_EQ(match, true);
+
+    match = pcregex_is_match(NULL, "a1b");
+    ASSERT_EQ(match, false);
+
+    match = pcregex_is_match("\\d", NULL);
+    ASSERT_EQ(match, false);
+
+    match = pcregex_is_match("abc", "abc");
+    ASSERT_EQ(match, true);
+
+    match = pcregex_is_match("abc", "abc");
+    ASSERT_EQ(match, true);
+
+    match = pcregex_is_match("...", "abc");
+    ASSERT_EQ(match, true);
 }
 
 TEST(regex, match)
@@ -93,3 +108,4 @@ TEST(regex, match_info)
     pcregex_match_info_destroy(infos);
     pcregex_destroy(regex);
 }
+
