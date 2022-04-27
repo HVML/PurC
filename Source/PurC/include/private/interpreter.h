@@ -55,6 +55,10 @@ struct pcintr_stack_frame;
 typedef struct pcintr_stack_frame pcintr_stack_frame;
 typedef struct pcintr_stack_frame *pcintr_stack_frame_t;
 
+struct pcintr_observer;
+typedef void (*pcintr_on_revoke_observer)(struct pcintr_observer *observer,
+        void *data);
+
 enum pcintr_coroutine_state {
     CO_STATE_READY,            /* ready to run next step */
     CO_STATE_RUN,              /* is running */
@@ -155,9 +159,10 @@ struct pcintr_stack {
     struct pcintr_coroutine        co;
 
     // for observe
-    struct pcutils_arrlist* common_variant_observer_list;
-    struct pcutils_arrlist* dynamic_variant_observer_list;
-    struct pcutils_arrlist* native_variant_observer_list;
+    // struct pcintr_observer
+    struct list_head common_variant_observer_list;
+    struct list_head dynamic_variant_observer_list;
+    struct list_head native_variant_observer_list;
 
     pchtml_html_document_t     *doc;
 
@@ -260,11 +265,13 @@ struct pcintr_dynamic_args {
 };
 
 struct pcintr_observer {
+    struct list_head            node;
+
     // the observed variant.
     purc_variant_t observed;
 
     // the type of the message observed (cloned from the `for` attribute)
-    char* msg_type;
+    purc_atom_t msg_type_atom;
 
     // the sub type of the message observed (cloned from the `for` attribute; nullable).
     char* sub_type;
@@ -276,10 +283,11 @@ struct pcintr_observer {
     pcvdom_element_t pos;
 
     // the arraylist containing this struct pointer
-    struct pcutils_arrlist* list;
+    struct list_head* list;
 
-    // variant listener for object, set, array
-    struct pcvar_listener* listener;
+    // callback when revoke observer
+    pcintr_on_revoke_observer on_revoke;
+    void *on_revoke_data;
 };
 
 struct pcinst;
@@ -380,27 +388,27 @@ pcintr_is_timers(pcintr_stack_t stack, purc_variant_t v);
 
 struct pcintr_observer*
 pcintr_register_observer(purc_variant_t observed,
-        purc_variant_t for_value, pcvdom_element_t scope,
+        purc_variant_t for_value,
+        purc_atom_t msg_type_atom, const char *sub_type,
+        pcvdom_element_t scope,
         pcdom_element_t *edom_element,
         pcvdom_element_t pos,
-        struct pcvar_listener* listener);
+        pcintr_on_revoke_observer on_revoke,
+        void *on_revoke_data
+        );
 
-bool
+void
 pcintr_revoke_observer(struct pcintr_observer* observer);
 
-bool
-pcintr_revoke_observer_ex(purc_variant_t observed, purc_variant_t for_value);
-
-struct pcintr_observer*
-pcintr_find_observer(pcintr_stack_t stack, purc_variant_t observed,
-        purc_variant_t msg_type, purc_variant_t sub_type);
-
-bool
-pcintr_is_observer_empty(pcintr_stack_t stack);
+void
+pcintr_revoke_observer_ex(purc_variant_t observed,
+        purc_atom_t msg_type_atom, const char *sub_type);
 
 int
 pcintr_dispatch_message(pcintr_stack_t stack, purc_variant_t source,
-        purc_variant_t for_value, purc_variant_t extra);
+        purc_variant_t for_value,
+        purc_atom_t msg_type_atom, const char *sub_type,
+        purc_variant_t extra);
 
 int
 pcintr_dispatch_message_ex(pcintr_stack_t stack, purc_variant_t source,

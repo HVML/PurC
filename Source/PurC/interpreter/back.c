@@ -68,7 +68,7 @@ post_process_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     PC_ASSERT(ctxt);
 
     if (ctxt->back_anchor == NULL) {
-        purc_set_error_with_info(PURC_EXCEPT_ENTITY_NOT_FOUND,
+        purc_set_error_with_info(PURC_ERROR_ENTITY_NOT_FOUND,
                 "vdom attribute 'to' for element <back> undefined");
         return -1;
     }
@@ -119,7 +119,7 @@ process_back_level(struct pcintr_stack_frame *frame,
     }
 
     if (p == NULL) {
-        purc_set_error_with_info(PURC_EXCEPT_ENTITY_NOT_FOUND,
+        purc_set_error_with_info(PURC_ERROR_ENTITY_NOT_FOUND,
                 "vdom attribute '%s' for element <%s>",
                 purc_atom_to_string(name), element->tag_name);
         return -1;
@@ -152,7 +152,7 @@ process_attr_to(struct pcintr_stack_frame *frame,
     if (purc_variant_is_string(val)) {
         const char *s_to = purc_variant_get_string_const(val);
         if (s_to[0] == '#') {
-            purc_set_error_with_info(PURC_EXCEPT_NOT_IMPLEMENTED,
+            purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
                     "<%s to = %s>", element->tag_name, s_to);
             return -1;
         }
@@ -168,7 +168,7 @@ process_attr_to(struct pcintr_stack_frame *frame,
                 return process_back_level(frame, element, name, 3);
             }
             else {
-                purc_set_error_with_info(PURC_EXCEPT_NOT_IMPLEMENTED,
+                purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
                         "<%s to = %s>", element->tag_name, s_to);
                 return -1;
             }
@@ -180,14 +180,14 @@ process_attr_to(struct pcintr_stack_frame *frame,
     else if (purc_variant_is_longint(val)) {
         int64_t back_level = val->i64;
         if (back_level <= 0) {
-            purc_set_error_with_info(PURC_EXCEPT_INVALID_VALUE,
+            purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
                     "<%s to = %zd>", element->tag_name, back_level);
             return -1;
         }
         return process_back_level(frame, element, name, (uint64_t)back_level);
     }
 
-    purc_set_error_with_info(PURC_EXCEPT_NOT_IMPLEMENTED,
+    purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
             "<%s to = ...>", element->tag_name);
     return -1;
 }
@@ -238,7 +238,7 @@ attr_found_val(struct pcintr_stack_frame *frame,
         return process_attr_with(frame, element, name, val);
     }
 
-    purc_set_error_with_info(PURC_EXCEPT_NOT_IMPLEMENTED,
+    purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
             "vdom attribute '%s' for element <%s>",
             purc_atom_to_string(name), element->tag_name);
 

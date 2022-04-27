@@ -114,7 +114,7 @@ post_process_bind_at_frame(pcintr_coroutine_t co, struct ctxt_for_init *ctxt,
     purc_variant_t exclamation_var;
     exclamation_var = pcintr_get_exclamation_var(frame);
     if (purc_variant_is_object(exclamation_var) == false) {
-        purc_set_error_with_info(PURC_EXCEPT_INTERNAL_FAILURE,
+        purc_set_error_with_info(PURC_ERROR_INTERNAL_FAILURE,
                 "temporary variable on stack frame is not object");
         return -1;
     }
@@ -181,7 +181,7 @@ post_process_src_by_level(pcintr_coroutine_t co,
         struct pcintr_stack_frame *parent;
         parent = pcintr_stack_frame_get_parent(frame);
         if (parent == NULL) {
-            purc_set_error_with_info(PURC_EXCEPT_ENTITY_NOT_FOUND,
+            purc_set_error_with_info(PURC_ERROR_ENTITY_NOT_FOUND,
                     "no frame exists");
             return -1;
         }
@@ -192,7 +192,7 @@ post_process_src_by_level(pcintr_coroutine_t co,
         }
         if (p == NULL) {
             if (!silently) {
-                purc_set_error_with_info(PURC_EXCEPT_ENTITY_NOT_FOUND,
+                purc_set_error_with_info(PURC_ERROR_ENTITY_NOT_FOUND,
                         "no frame exists");
                 return -1;
             }
@@ -207,7 +207,7 @@ post_process_src_by_level(pcintr_coroutine_t co,
             parent = pcvdom_element_parent(p);
 
         if (parent == NULL) {
-            purc_set_error_with_info(PURC_EXCEPT_ENTITY_NOT_FOUND,
+            purc_set_error_with_info(PURC_ERROR_ENTITY_NOT_FOUND,
                     "no vdom element exists");
             return -1;
         }
@@ -218,7 +218,7 @@ post_process_src_by_level(pcintr_coroutine_t co,
         }
         if (p == NULL) {
             if (!silently) {
-                purc_set_error_with_info(PURC_EXCEPT_ENTITY_NOT_FOUND,
+                purc_set_error_with_info(PURC_ERROR_ENTITY_NOT_FOUND,
                         "no vdom element exists");
                 return -1;
             }
@@ -281,7 +281,7 @@ post_process_src_by_id(pcintr_coroutine_t co,
             parent = pcvdom_element_parent(p);
 
         if (parent == NULL) {
-            purc_set_error_with_info(PURC_EXCEPT_ENTITY_NOT_FOUND,
+            purc_set_error_with_info(PURC_ERROR_ENTITY_NOT_FOUND,
                     "no vdom element exists");
             return -1;
         }
@@ -294,13 +294,13 @@ post_process_src_by_id(pcintr_coroutine_t co,
         }
         if (p == NULL) {
             if (!silently) {
-                purc_set_error_with_info(PURC_EXCEPT_ENTITY_NOT_FOUND,
+                purc_set_error_with_info(PURC_ERROR_ENTITY_NOT_FOUND,
                         "no vdom element exists");
                 return -1;
             }
             p = parent;
             if (match_id(co, p, id) == false) {
-                purc_set_error_with_info(PURC_EXCEPT_ENTITY_NOT_FOUND,
+                purc_set_error_with_info(PURC_ERROR_ENTITY_NOT_FOUND,
                         "no vdom element exists");
                 return -1;
             }
@@ -348,7 +348,7 @@ post_process_src_by_atom(pcintr_coroutine_t co,
 
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, _PARENT)) == atom) {
         if (ctxt->temporarily) {
-            purc_set_error_with_info(PURC_EXCEPT_BAD_NAME,
+            purc_set_error_with_info(PURC_ERROR_BAD_NAME,
                     "at = '%s' conflicts with temporarily",
                     purc_atom_to_string(atom));
             return -1;
@@ -358,7 +358,7 @@ post_process_src_by_atom(pcintr_coroutine_t co,
 
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, _GRANDPARENT)) == atom ) {
         if (ctxt->temporarily) {
-            purc_set_error_with_info(PURC_EXCEPT_BAD_NAME,
+            purc_set_error_with_info(PURC_ERROR_BAD_NAME,
                     "at = '%s' conflicts with temporarily",
                     purc_atom_to_string(atom));
             return -1;
@@ -368,7 +368,7 @@ post_process_src_by_atom(pcintr_coroutine_t co,
 
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, _ROOT)) == atom ) {
         if (ctxt->temporarily) {
-            purc_set_error_with_info(PURC_EXCEPT_BAD_NAME,
+            purc_set_error_with_info(PURC_ERROR_BAD_NAME,
                     "at = '%s' conflicts with temporarily",
                     purc_atom_to_string(atom));
             return -1;
@@ -391,7 +391,7 @@ post_process_src_by_atom(pcintr_coroutine_t co,
         return post_process_src_by_topmost(co, frame, src);
     }
 
-    purc_set_error_with_info(PURC_EXCEPT_BAD_NAME,
+    purc_set_error_with_info(PURC_ERROR_BAD_NAME,
             "at = '%s'", purc_atom_to_string(atom));
     return -1;
 }
@@ -416,7 +416,7 @@ post_process_src(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
                 level += 1;
             }
             if (node == NULL) {
-                purc_set_error_with_info(PURC_EXCEPT_INTERNAL_FAILURE,
+                purc_set_error_with_info(PURC_ERROR_INTERNAL_FAILURE,
                         "<init> not under vdom Document");
                 return -1;
             }
@@ -434,7 +434,7 @@ post_process_src(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         else if (s_at[0] == '_') {
             purc_atom_t atom = PCHVML_KEYWORD_ATOM(HVML, s_at);
             if (atom == 0) {
-                purc_set_error_with_info(PURC_EXCEPT_BAD_NAME,
+                purc_set_error_with_info(PURC_ERROR_BAD_NAME,
                         "at = '%s'", s_at);
                 return -1;
             }
@@ -890,6 +890,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         }
     }
 
+    purc_clr_error(); // pcvdom_element_parent
+
     purc_variant_t from = ctxt->from;
     if (from != PURC_VARIANT_INVALID && purc_variant_is_string(from)
             && pcfetcher_is_init()) {
@@ -902,6 +904,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
             ctxt->from_result = v;
         }
         else {
+            PC_ASSERT(0); // TODO: test
             struct fetcher_for_init *fetcher = (struct fetcher_for_init*)
                 malloc(sizeof(struct fetcher_for_init));
             if (!fetcher) {
@@ -919,8 +922,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
                 return NULL;
         }
     }
-
-    purc_clr_error();
 
     if (r)
         return NULL;
@@ -1057,7 +1058,7 @@ on_child_finished(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         return 0;
     }
 
-    purc_set_error_with_info(PURC_EXCEPT_ENTITY_NOT_FOUND,
+    purc_set_error_with_info(PURC_ERROR_ENTITY_NOT_FOUND,
             "no value defined for <init>");
     return -1;
 }

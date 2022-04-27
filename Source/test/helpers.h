@@ -104,7 +104,7 @@ public:
     }
 
     PurCInstance(const char *app = NULL, const char *runner = NULL,
-            bool enable_remote_fetcher = true) {
+            bool enable_remote_fetcher = false) {
         init_ok = -1;
         info = {};
         if (app == NULL)
@@ -112,7 +112,8 @@ public:
         if (runner == NULL)
             runner = RUNNER_NAME;
 
-        unsigned int modules = enable_remote_fetcher ? PURC_MODULE_HVML :
+        unsigned int modules = enable_remote_fetcher ?
+            PURC_MODULE_HVML | PURC_HAVE_FETCHER_R :
             PURC_MODULE_HVML ^ PURC_HAVE_FETCHER;
         if (purc_init_ex (modules, app, runner, &info))
             return;
@@ -126,7 +127,8 @@ public:
         const char *app = APP_NAME;
         const char *runner = RUNNER_NAME;
 
-        unsigned int modules = enable_remote_fetcher ? PURC_MODULE_HVML :
+        unsigned int modules = enable_remote_fetcher ?
+            PURC_MODULE_HVML | PURC_HAVE_FETCHER_R :
             PURC_MODULE_HVML ^ PURC_HAVE_FETCHER;
         if (purc_init_ex (modules, app, runner, &info))
             return;
