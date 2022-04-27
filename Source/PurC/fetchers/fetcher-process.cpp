@@ -49,7 +49,6 @@ PcFetcherProcess::PcFetcherProcess(struct pcfetcher* fetcher,
  : m_fetcher(fetcher)
  , m_alwaysRunsAtBackgroundPriority(alwaysRunsAtBackgroundPriority)
 {
-    m_runloop = &RunLoop::current();
 }
 
 PcFetcherProcess::~PcFetcherProcess()
@@ -74,14 +73,12 @@ void PcFetcherProcess::reset(void)
             pendingMessage.asyncReplyInfo->first(nullptr);
     }
 
-    size_t sz = this->m_asyncSession.size();
+    size_t sz = this->m_asyncSessionWrap.size();
     for (size_t i = 0; i < sz; i++) {
-        delete m_asyncSession[i];
-    }
-
-    sz = this->m_asyncSessionAttach.size();
-    for (size_t i = 0; i < sz; i++) {
-        delete (struct process_async_data*)m_asyncSessionAttach[i];
+        struct process_async_data *data =
+            (struct process_async_data *)m_asyncSessionWrap[i];
+        data->session->stop();
+        delete data;
     }
 }
 
@@ -304,8 +301,7 @@ purc_variant_t PcFetcherProcess::requestAsync(
     data->ctxt = ctxt;
     purc_variant_t ret = session->requestAsync(base_uri, url, method,
             params, timeout, asyncRespHandler, data);
-    m_asyncSession.append(session);
-    m_asyncSessionAttach.append(data);
+    m_asyncSessionWrap.append(data);
     return ret;
 }
 
@@ -314,8 +310,7 @@ void PcFetcherProcess::asyncRespHandler(purc_variant_t request_id, void *ctxt,
         purc_rwstream_t resp)
 {
     struct process_async_data *data = (struct process_async_data*)ctxt;
-    data->process->m_asyncSession.removeFirst(data->session);
-    data->process->m_asyncSessionAttach.removeFirst(data);
+    data->process->m_asyncSessionWrap.removeFirst(data);
     data->handler(request_id, data->ctxt, resp_header, resp);
     delete data;
 }

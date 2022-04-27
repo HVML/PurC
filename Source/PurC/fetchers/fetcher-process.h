@@ -152,7 +152,6 @@ protected:
     const char* connectionName(void) override { return "PcFetcherProcess"; }
 
 private:
-    RunLoop* m_runloop;
     struct pcfetcher* m_fetcher;
 
     Vector<PendingMessage> m_pendingMessages;
@@ -160,8 +159,7 @@ private:
     RefPtr<IPC::Connection> m_connection;
     bool m_alwaysRunsAtBackgroundPriority { false };
     PurCFetcher::ProcessIdentifier m_processIdentifier { PurCFetcher::ProcessIdentifier::generate() };
-    Vector<PcFetcherSession*> m_asyncSession;
-    Vector<void*> m_asyncSessionAttach;
+    Vector<void*> m_asyncSessionWrap;
 };
 
 template<typename T>

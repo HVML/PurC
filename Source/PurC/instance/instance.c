@@ -474,18 +474,19 @@ bool purc_cleanup(void)
             pcexecutor_cleanup_instance(curr_inst);
             pcdvobjs_cleanup_instance(curr_inst);
         }
+
+        if (_modules & PURC_HAVE_FETCHER) {
+            pcfetcher_term();
+        }
+
         pcvariant_cleanup_instance(curr_inst);
         /* VW NOTE: eDOM and HTML modules should work without instance
         pchtml_cleanup_instance(curr_inst);
         pcdom_cleanup_instance(curr_inst); */
 
-        if (_modules & PURC_HAVE_FETCHER) {
-            pcfetcher_term();
-            if (curr_inst->initialized_main_runloop) {
-                purc_runloop_stop_main();
-            }
+        if (curr_inst->initialized_main_runloop) {
+            purc_runloop_stop_main();
         }
-
         cleanup_instance(curr_inst);
     }
 
