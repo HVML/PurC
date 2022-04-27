@@ -22,7 +22,7 @@
 * 按照[HVML 规范 1.0 RC3](https://gitlab.fmsoft.cn/hvml/hvml-docs/-/blob/master/zh/hvml-spec-v1.0-zh.md#rc3-220501)中的描述调整已有实现，主要有：
    1. `init` 等调整 `at` 属性的使用。
    1. `init` 标签 `via` 属性的支持。
-   1. `observe` 和 `forget` 支持使用通配符和正则表达式指定待观察或待遗忘的事件名称。
+   1. ~~`observe` 和 `forget` 支持使用通配符和正则表达式指定待观察或待遗忘的事件名称。~~
    1. `observe` 支持使用 `with` 属性指定已命名的操作组。
    1. `observe` 支持针对操作组定义 `$<` 上下文变量。
 
@@ -55,7 +55,7 @@
 
 ## eJSON 解析和求值
 
-* 支持 `$#myAnchor?` 这种使用锚定位上下文变量的写法。
+* ~~支持 `$#myAnchor?` 这种使用锚定位上下文变量的写法。~~
 * ~~支持 CJSONEE（复杂 JSON 表达式）。~~
 * ~~eJSON 解析模块，可独立于 HVML 执行栈运行，可支持用户自定义的变量获取接口。~~
 * ~~在 eJSON 求值时，增加对可忽略异常的处理~~
