@@ -239,7 +239,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     struct pcintr_stack_frame *parent;
     parent = pcintr_stack_frame_get_parent(frame);
     if (!parent || !parent->pos || parent->pos->tag_id != PCHVML_TAG_TEST) {
-        purc_set_error_with_info(PURC_EXCEPT_ENTITY_NOT_FOUND,
+        purc_set_error_with_info(PURC_ERROR_ENTITY_NOT_FOUND,
                 "no matching <test> for <match>");
         return NULL;
     }

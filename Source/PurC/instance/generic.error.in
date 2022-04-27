@@ -203,3 +203,24 @@ DuplicateName
     except: DuplicateName
     flags: None
     msg: "Duplicate name"
+
+EntityNotFound
+    except: EntityNotFound
+    flags: None
+    msg: "Entity not found"
+
+NoData
+    except: NoData
+    flags: None
+    msg: "No data"
+
+BadName
+    except: BadName
+    flags: None
+    msg: "Bad name"
+
+InternalFailure
+    except: InternalFailure
+    flags: None
+    msg: "Internal failure"
+

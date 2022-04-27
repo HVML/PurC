@@ -112,14 +112,14 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     in = ctxt->in;
     if (in != PURC_VARIANT_INVALID) {
         if (!purc_variant_is_string(in)) {
-            purc_set_error(PURC_EXCEPT_INVALID_VALUE);
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
             return -1;
         }
 
         purc_variant_t elements = pcintr_doc_query(co->stack->vdom,
                 purc_variant_get_string_const(in), frame->silently);
         if (elements == PURC_VARIANT_INVALID) {
-            purc_set_error(PURC_EXCEPT_INVALID_VALUE);
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
             return -1;
         }
 

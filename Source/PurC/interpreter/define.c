@@ -128,7 +128,7 @@ post_process_src_by_level(pcintr_coroutine_t co,
         parent = pcvdom_element_parent(p);
 
     if (parent == NULL) {
-        purc_set_error_with_info(PURC_EXCEPT_ENTITY_NOT_FOUND,
+        purc_set_error_with_info(PURC_ERROR_ENTITY_NOT_FOUND,
                 "no vdom element exists");
         return -1;
     }
@@ -138,7 +138,7 @@ post_process_src_by_level(pcintr_coroutine_t co,
         p = pcvdom_element_parent(p);
     }
     if (p == NULL) {
-        purc_set_error_with_info(PURC_EXCEPT_ENTITY_NOT_FOUND,
+        purc_set_error_with_info(PURC_ERROR_ENTITY_NOT_FOUND,
                 "no vdom element exists");
         return -1;
     }
@@ -189,7 +189,7 @@ post_process_src_by_id(pcintr_coroutine_t co,
         parent = pcvdom_element_parent(p);
 
     if (parent == NULL) {
-        purc_set_error_with_info(PURC_EXCEPT_ENTITY_NOT_FOUND,
+        purc_set_error_with_info(PURC_ERROR_ENTITY_NOT_FOUND,
                 "no vdom element exists");
         return -1;
     }
@@ -201,7 +201,7 @@ post_process_src_by_id(pcintr_coroutine_t co,
         p = pcvdom_element_parent(p);
     }
     if (p == NULL) {
-        purc_set_error_with_info(PURC_EXCEPT_ENTITY_NOT_FOUND,
+        purc_set_error_with_info(PURC_ERROR_ENTITY_NOT_FOUND,
                 "no vdom element exists");
         return -1;
     }
@@ -234,7 +234,7 @@ post_process_src_by_atom(pcintr_coroutine_t co,
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, _ROOT)) == atom )
         return post_process_src_by_topmost(co, frame, src);
 
-    purc_set_error_with_info(PURC_EXCEPT_BAD_NAME,
+    purc_set_error_with_info(PURC_ERROR_BAD_NAME,
             "at = '%s'", purc_atom_to_string(atom));
     return -1;
 }
@@ -259,7 +259,7 @@ post_process_src(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
                 level += 1;
             }
             if (node == NULL) {
-                purc_set_error_with_info(PURC_EXCEPT_INTERNAL_FAILURE,
+                purc_set_error_with_info(PURC_ERROR_INTERNAL_FAILURE,
                         "<define> not under vdom Document");
                 return -1;
             }
@@ -277,7 +277,7 @@ post_process_src(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         else if (s_at[0] == '_') {
             purc_atom_t atom = PCHVML_KEYWORD_ATOM(HVML, s_at);
             if (atom == 0) {
-                purc_set_error_with_info(PURC_EXCEPT_BAD_NAME,
+                purc_set_error_with_info(PURC_ERROR_BAD_NAME,
                         "at = '%s'", s_at);
                 return -1;
             }
@@ -312,7 +312,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     }
 
     if (purc_variant_is_string(ctxt->as) == false) {
-        purc_set_error_with_info(PURC_EXCEPT_INVALID_VALUE,
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
                     "vdom attribute 'with/from' for element <%s> "
                     "is not of string type",
                     frame->pos->tag_name);

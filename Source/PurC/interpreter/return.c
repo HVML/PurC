@@ -81,7 +81,7 @@ post_process_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     }
 
     if (ctxt->back_anchor == NULL) {
-        purc_set_error_with_info(PURC_EXCEPT_ENTITY_NOT_FOUND,
+        purc_set_error_with_info(PURC_ERROR_ENTITY_NOT_FOUND,
                 "no matching <call>/<include> for <return>");
         return -1;
     }
@@ -156,7 +156,7 @@ attr_found_val(struct pcintr_stack_frame *frame,
         return process_attr_with(frame, element, name, val);
     }
 
-    purc_set_error_with_info(PURC_EXCEPT_NOT_IMPLEMENTED,
+    purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
             "vdom attribute '%s' for element <%s>",
             purc_atom_to_string(name), element->tag_name);
 
