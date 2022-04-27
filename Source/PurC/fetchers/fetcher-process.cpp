@@ -37,11 +37,19 @@
 
 using namespace PurCFetcher;
 
+struct process_async_data {
+    PcFetcherProcess *process;
+    PcFetcherSession *session;
+    pcfetcher_response_handler handler;
+    void *ctxt;
+};
+
 PcFetcherProcess::PcFetcherProcess(struct pcfetcher* fetcher,
         bool alwaysRunsAtBackgroundPriority)
  : m_fetcher(fetcher)
  , m_alwaysRunsAtBackgroundPriority(alwaysRunsAtBackgroundPriority)
 {
+    m_runloop = &RunLoop::current();
 }
 
 PcFetcherProcess::~PcFetcherProcess()
@@ -64,6 +72,16 @@ void PcFetcherProcess::reset(void)
     for (auto& pendingMessage : pendingMessages) {
         if (pendingMessage.asyncReplyInfo)
             pendingMessage.asyncReplyInfo->first(nullptr);
+    }
+
+    size_t sz = this->m_asyncSession.size();
+    for (size_t i = 0; i < sz; i++) {
+        delete m_asyncSession[i];
+    }
+
+    sz = this->m_asyncSessionAttach.size();
+    for (size_t i = 0; i < sz; i++) {
+        delete (struct process_async_data*)m_asyncSessionAttach[i];
     }
 }
 
@@ -269,10 +287,39 @@ purc_variant_t PcFetcherProcess::requestAsync(
         void* ctxt)
 {
     PcFetcherSession* session = createSession();
+    if (!session) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return PURC_VARIANT_INVALID;
+    }
+
+    struct process_async_data *data = new struct process_async_data;
+    if (!data) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        delete session;
+        return PURC_VARIANT_INVALID;
+    }
+    data->process = this;
+    data->session = session;
+    data->handler = handler;
+    data->ctxt = ctxt;
     purc_variant_t ret = session->requestAsync(base_uri, url, method,
-            params, timeout, handler, ctxt);
+            params, timeout, asyncRespHandler, data);
+    m_asyncSession.append(session);
+    m_asyncSessionAttach.append(data);
     return ret;
 }
+
+void PcFetcherProcess::asyncRespHandler(purc_variant_t request_id, void *ctxt,
+        const struct pcfetcher_resp_header *resp_header,
+        purc_rwstream_t resp)
+{
+    struct process_async_data *data = (struct process_async_data*)ctxt;
+    data->process->m_asyncSession.removeFirst(data->session);
+    data->process->m_asyncSessionAttach.removeFirst(data);
+    data->handler(request_id, data->ctxt, resp_header, resp);
+    delete data;
+}
+
 
 purc_rwstream_t PcFetcherProcess::requestSync(
         const char* base_uri,

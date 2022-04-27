@@ -131,7 +131,7 @@ purc_variant_t PcFetcherSession::requestAsync(
             Messages::NetworkConnectionToWebProcess::ScheduleResourceLoad(
                 loadParameters), 0);
 
-    m_req_vid = purc_variant_make_ulongint(m_req_id);
+    m_req_vid = purc_variant_make_native(this, NULL);
     return m_req_vid;
 }
 

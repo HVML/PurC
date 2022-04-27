@@ -406,9 +406,7 @@ void Connection::invalidate()
 
     m_isValid = false;
 
-    m_connectionQueue->dispatch([protectedThis = makeRef(*this)]() mutable {
-        protectedThis->platformInvalidate();
-    });
+    platformInvalidate();
 }
 
 void Connection::markCurrentlyDispatchedMessageAsInvalid()
