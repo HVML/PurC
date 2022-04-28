@@ -51,6 +51,7 @@ void
 pcutils_array_list_reset(struct pcutils_array_list *al)
 {
     if (al->nodes) {
+        PC_ASSERT(al->nr == 0);
         free(al->nodes);
         al->nodes = NULL;
         al->sz = 0;
@@ -87,10 +88,20 @@ pcutils_array_list_set(struct pcutils_array_list *al,
         struct pcutils_array_list_node *node,
         struct pcutils_array_list_node **old)
 {
+    PC_ASSERT(node);
+    PC_ASSERT(node->node.prev == NULL);
+    PC_ASSERT(node->node.next == NULL);
+    PC_ASSERT(node->idx == (size_t)-1);
+    PC_ASSERT(old);
+
     if (idx >= al->nr)
         return -1;
 
     PC_ASSERT(al->nodes);
+    struct pcutils_array_list_node *curr = al->nodes[idx];
+    list_del(&curr->node);
+    list_add_tail(&node->node, &al->list);
+
     *old = al->nodes[idx];
     al->nodes[idx] = node;
 
@@ -102,6 +113,11 @@ pcutils_array_list_insert_before(struct pcutils_array_list *al,
         size_t idx,
         struct pcutils_array_list_node *node)
 {
+    PC_ASSERT(node);
+    PC_ASSERT(node->node.prev == NULL);
+    PC_ASSERT(node->node.next == NULL);
+    PC_ASSERT(node->idx == (size_t)-1);
+
     int r;
 
     if (al->nr == al->sz) {
@@ -195,7 +211,7 @@ struct arr_user_data {
 };
 
 #if OS(HURD) || OS(LINUX)
-static int cmp_variant(const void *l, const void *r, void *ud)
+static int cmp_f(const void *l, const void *r, void *ud)
 {
     struct pcutils_array_list_node *l_n, *r_n;
     l_n = *(struct pcutils_array_list_node**)l;
@@ -205,7 +221,7 @@ static int cmp_variant(const void *l, const void *r, void *ud)
     return d->cmp(l_n, r_n, d->ud);
 }
 #elif OS(DARWIN) || OS(FREEBSD) || OS(NETBSD) || OS(OPENBSD) || OS(WINDOWS)
-static int cmp_variant(void *ud, const void *l, const void *r)
+static int cmp_f(void *ud, const void *l, const void *r)
 {
     struct pcutils_array_list_node *l_n, *r_n;
     l_n = *(struct pcutils_array_list_node**)l;
@@ -232,11 +248,11 @@ pcutils_array_list_sort(struct pcutils_array_list *al,
     };
 
 #if OS(HURD) || OS(LINUX)
-    qsort_r(nodes, nr, sizeof(*nodes), cmp_variant, &d);
+    qsort_r(nodes, nr, sizeof(*nodes), cmp_f, &d);
 #elif OS(DARWIN) || OS(FREEBSD) || OS(NETBSD) || OS(OPENBSD)
-    qsort_r(nodes, nr, sizeof(*nodes), &d, cmp_variant);
+    qsort_r(nodes, nr, sizeof(*nodes), &d, cmp_f);
 #elif OS(WINDOWS)
-    qsort_s(nodes, nr, sizeof(*nodes), cmp_variant, &d);
+    qsort_s(nodes, nr, sizeof(*nodes), cmp_f, &d);
 #endif
 
     for (size_t i=0; i<al->nr; ++i) {
