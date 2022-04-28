@@ -131,7 +131,7 @@ purc_variant_t PcFetcherSession::requestAsync(
             Messages::NetworkConnectionToWebProcess::ScheduleResourceLoad(
                 loadParameters), 0);
 
-    m_req_vid = purc_variant_make_ulongint(m_req_id);
+    m_req_vid = purc_variant_make_native(this, NULL);
     return m_req_vid;
 }
 
@@ -193,6 +193,17 @@ purc_rwstream_t PcFetcherSession::requestSync(
     purc_rwstream_t rws = m_resp_rwstream;
     m_resp_rwstream = NULL;
     return rws;
+}
+
+void PcFetcherSession::stop()
+{
+    if (!m_is_async) {
+        return;
+    }
+
+    m_resp_header.ret_code = RESP_CODE_USER_STOP;
+    m_req_handler(m_req_vid, m_req_ctxt, &m_resp_header, NULL);
+    delete this;
 }
 
 void PcFetcherSession::wait(uint32_t timeout)

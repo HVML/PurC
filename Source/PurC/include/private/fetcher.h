@@ -39,6 +39,7 @@ enum pcfetcher_request_method {
     PCFETCHER_REQUEST_METHOD_DELETE,
 };
 
+#define RESP_CODE_USER_STOP         -1
 
 struct pcfetcher_resp_header {
     int ret_code;

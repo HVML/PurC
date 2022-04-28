@@ -78,6 +78,8 @@ public:
         uint32_t timeout,
         struct pcfetcher_resp_header *resp_header);
 
+    void stop();
+
     void wait(uint32_t timeout);
     void wakeUp(void);
 

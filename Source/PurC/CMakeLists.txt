@@ -30,6 +30,7 @@ set(PurC_INSTALLED_HEADERS
     "${PURC_DIR}/include/purc-pcrdr.h"
     "${PURC_DIR}/include/purc-helpers.h"
     "${PURC_DIR}/include/purc-dvobjs.h"
+    "${PURC_DIR}/include/purc-runloop.h"
     "${PURC_DIR}/include/purc.h"
 )
 

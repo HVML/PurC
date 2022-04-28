@@ -133,6 +133,9 @@ protected:
     bool dispatchSyncMessage(IPC::Connection&, IPC::Decoder&, std::unique_ptr<IPC::Encoder>&);
 
     void getLaunchOptions(ProcessLauncher::LaunchOptions&);
+    static void asyncRespHandler(purc_variant_t request_id, void *ctxt,
+        const struct pcfetcher_resp_header *resp_header,
+        purc_rwstream_t resp);
 
     struct PendingMessage {
         std::unique_ptr<IPC::Encoder> encoder;
@@ -156,6 +159,7 @@ private:
     RefPtr<IPC::Connection> m_connection;
     bool m_alwaysRunsAtBackgroundPriority { false };
     PurCFetcher::ProcessIdentifier m_processIdentifier { PurCFetcher::ProcessIdentifier::generate() };
+    Vector<void*> m_asyncSessionWrap;
 };
 
 template<typename T>

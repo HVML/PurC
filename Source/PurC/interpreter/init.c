@@ -772,15 +772,19 @@ static void load_response_handler(purc_variant_t request_id, void *ctxt,
 {
     struct fetcher_for_init *fetcher = (struct fetcher_for_init*)ctxt;
 
-    PC_DEBUG("ret_code=%d\n", resp_header->ret_code);
-    PC_DEBUG("mime_type=%s\n", resp_header->mime_type);
-    PC_DEBUG("sz_resp=%ld\n", resp_header->sz_resp);
+    if (resp_header->ret_code == RESP_CODE_USER_STOP) {
+        goto clean_rws;
+    }
+
     bool has_except = false;
     if (!resp || resp_header->ret_code != 200) {
         has_except = true;
         goto dispatch_except;
     }
 
+    PC_DEBUG("ret_code=%d\n", resp_header->ret_code);
+    PC_DEBUG("mime_type=%s\n", resp_header->mime_type);
+    PC_DEBUG("sz_resp=%ld\n", resp_header->sz_resp);
     size_t sz_content = 0;
     size_t sz_buffer = 0;
     char* buf = (char*)purc_rwstream_get_mem_buffer_ex(resp, &sz_content,
@@ -904,7 +908,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
             ctxt->from_result = v;
         }
         else {
-            PC_ASSERT(0); // TODO: test
+//            PC_ASSERT(0); // TODO: test
             struct fetcher_for_init *fetcher = (struct fetcher_for_init*)
                 malloc(sizeof(struct fetcher_for_init));
             if (!fetcher) {
