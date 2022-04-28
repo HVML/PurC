@@ -52,6 +52,19 @@ hvml_ctrl_props(purc_variant_t root)
 }
 
 static purc_variant_t
+target_getter(purc_variant_t root,
+        size_t nr_args, purc_variant_t *argv, bool silently)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(silently);
+
+    /* TODO */
+    return purc_variant_make_string_static("html", false);
+}
+
+static purc_variant_t
 base_getter(purc_variant_t root,
         size_t nr_args, purc_variant_t *argv, bool silently)
 {
@@ -454,6 +467,7 @@ purc_dvobj_hvml_new(const struct purc_hvml_ctrl_props **ctrl_props)
     };
 
     static const struct purc_dvobj_method method [] = {
+        { "target", target_getter, NULL },
         { "base", base_getter, base_setter },
         { "max_iteration_count",
             max_iteration_count_getter, max_iteration_count_setter },
