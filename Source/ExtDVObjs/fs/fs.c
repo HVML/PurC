@@ -39,6 +39,8 @@
 #include <dirent.h>
 #include <fcntl.h>
 #include <time.h>
+#include <pwd.h>
+#include <errno.h>
 #include <stdlib.h>
 
 #if USE(GLIB)
@@ -172,6 +174,31 @@ static bool remove_dir (char *dir)
         ret = false;
 
     return ret;
+}
+
+void set_purc_error_by_errno (void)
+{
+    switch (errno)
+    {
+        case EACCES:
+            purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+            break;
+
+        case ENOENT:
+            purc_set_error (PURC_ERROR_ENTITY_NOT_FOUND);
+            break;
+
+        case ENAMETOOLONG:
+            purc_set_error (PURC_ERROR_TOO_LONG);
+            break;
+
+        case EIO:
+            purc_set_error (PURC_ERROR_SYSTEM_FAULT);
+            break;
+
+        default:
+            purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+    }
 }
 
 static purc_variant_t
@@ -845,24 +872,46 @@ chgrp_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(silently);
 
     const char *filename = NULL;
+    const char *string_group = NULL;
+    gid_t gid;
+    struct passwd *pwd;
+    char *endptr;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
-    if (nr_args < 1) {
+    if (nr_args < 2) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
-    // get the file name
+    // get the file name and group name (or gid)
     filename = purc_variant_get_string_const (argv[0]);
+    string_group = purc_variant_get_string_const (argv[1]);
+    if (NULL == filename || NULL == string_group) {
+        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+        return PURC_VARIANT_INVALID;
+    }
 
-    // wait for code
-    int uid = 0;
-    int gid = 0;
+    // group : string_name | gid
+    gid = strtol(string_group, &endptr, 10);  /* Allow a numeric string */
 
-    if (0 == chown (filename, uid, gid))
+    if (*endptr != '\0') {              /* Was not pure numeric string */
+        pwd = getpwnam(string_group);   /* Try getting UID for username */
+        if (pwd == NULL) {
+            purc_set_error (PURC_ERROR_BAD_NAME);
+            return PURC_VARIANT_INVALID;
+        }
+
+        gid = pwd->pw_gid;
+    }
+
+    // If the owner or group is specified as -1, then that ID is not changed.
+    if (0 == chown (filename, -1, gid)) {
         ret_var = purc_variant_make_boolean (true);
-    else
+    }
+    else {
+        set_purc_error_by_errno ();
         ret_var = purc_variant_make_boolean (false);
+    }
 
     return ret_var;
 }
@@ -904,24 +953,46 @@ chown_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(silently);
 
     const char *filename = NULL;
+    const char *string_owner = NULL;
+    uid_t uid;
+    struct passwd *pwd;
+    char *endptr;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
-    if (nr_args < 1) {
+    if (nr_args < 2) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
-    // get the file name
+    // get the file name and group name (or gid)
     filename = purc_variant_get_string_const (argv[0]);
+    string_owner = purc_variant_get_string_const (argv[1]);
+    if (NULL == filename || NULL == string_owner) {
+        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+        return PURC_VARIANT_INVALID;
+    }
 
-    // wait for code
-    int uid = 0;
-    int gid = 0;
+    // owner : string_name | uid
+    uid = strtol(string_owner, &endptr, 10);  /* Allow a numeric string */
 
-    if (0 == chown (filename, uid, gid))
+    if (*endptr != '\0') {              /* Was not pure numeric string */
+        pwd = getpwnam(string_owner);   /* Try getting UID for username */
+        if (pwd == NULL) {
+            purc_set_error (PURC_ERROR_BAD_NAME);
+            return PURC_VARIANT_INVALID;
+        }
+
+        uid = pwd->pw_uid;
+    }
+
+    // If the owner or group is specified as -1, then that ID is not changed.
+    if (0 == chown (filename, uid, -1)) {
         ret_var = purc_variant_make_boolean (true);
-    else
+    }
+    else {
+        set_purc_error_by_errno ();
         ret_var = purc_variant_make_boolean (false);
+    }
 
     return ret_var;
 }
