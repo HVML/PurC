@@ -74,11 +74,13 @@ void PcFetcherProcess::reset(void)
     }
 
     size_t sz = this->m_asyncSessionWrap.size();
-    for (size_t i = 0; i < sz; i++) {
-        struct process_async_data *data =
-            (struct process_async_data *)m_asyncSessionWrap[i];
-        data->session->stop();
-        delete data;
+    if (sz) {
+        Vector<void*> tmpVec = m_asyncSessionWrap;
+        for (size_t i = 0; i < sz; i++) {
+            struct process_async_data *data =
+                (struct process_async_data *)tmpVec[i];
+            data->session->stop();
+        }
     }
 }
 
