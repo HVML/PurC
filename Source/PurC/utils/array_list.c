@@ -119,7 +119,7 @@ pcutils_array_list_insert_before(struct pcutils_array_list *al,
     int r;
 
     if (al->nr == al->sz) {
-        r = pcutils_array_list_expand(al, al->sz + 1);
+        r = pcutils_array_list_expand(al, al->sz + 16);
         if (r)
             return -1;
     }
