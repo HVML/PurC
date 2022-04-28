@@ -201,6 +201,16 @@ void set_purc_error_by_errno (void)
     }
 }
 
+// Transmit 
+#define INVALID_MODE  (unsigned int)-1
+unsigned int str_to_mode (const char *string_mode)
+{
+    UNUSED_PARAM(string_mode);
+    
+    // wait for code
+    return INVALID_MODE; // error
+}
+
 static purc_variant_t
 list_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
@@ -895,7 +905,7 @@ chgrp_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     gid = strtol(string_group, &endptr, 10);  /* Allow a numeric string */
 
     if (*endptr != '\0') {              /* Was not pure numeric string */
-        pwd = getpwnam(string_group);   /* Try getting UID for username */
+        pwd = getpwnam(string_group);   /* Try getting GID for username */
         if (pwd == NULL) {
             purc_set_error (PURC_ERROR_BAD_NAME);
             return PURC_VARIANT_INVALID;
@@ -924,23 +934,47 @@ chmod_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(silently);
 
     const char *filename = NULL;
+    const char *string_mode = NULL;
+    mode_t new_mode;
+    char *endptr;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
-    if (nr_args < 1) {
+    if (nr_args < 2) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
-    // get the file name
+    // get the file name and the mode
     filename = purc_variant_get_string_const (argv[0]);
+    string_mode = purc_variant_get_string_const (argv[1]);
+    if (NULL == filename || NULL == string_mode) {
+        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+        return PURC_VARIANT_INVALID;
+    }
 
-    // wait for code
-    int new_mode = 0;
+    // new_mode : string_mode | int (octal | decimal)
+    if ('0' == string_mode[0]) {
+        new_mode = strtol (string_mode, &endptr, 8);  /* Octal number */
+    }
+    else {
+        new_mode = strtol (string_mode, &endptr, 10); /* Decimal */
+    }
 
-    if (0 == chmod (filename, new_mode))
+    if (*endptr != '\0') {              /* Was not pure numeric string */
+        new_mode = str_to_mode (string_mode);
+        if (INVALID_MODE == new_mode) {
+            purc_set_error (PURC_ERROR_BAD_NAME);
+            return PURC_VARIANT_INVALID;
+        }
+    }
+
+    if (0 == chmod (filename, new_mode)) {
         ret_var = purc_variant_make_boolean (true);
-    else
+    }
+    else {
+        set_purc_error_by_errno ();
         ret_var = purc_variant_make_boolean (false);
+    }
 
     return ret_var;
 }
@@ -973,10 +1007,10 @@ chown_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     // owner : string_name | uid
-    uid = strtol(string_owner, &endptr, 10);  /* Allow a numeric string */
+    uid = strtol (string_owner, &endptr, 10);  /* Allow a numeric string */
 
     if (*endptr != '\0') {              /* Was not pure numeric string */
-        pwd = getpwnam(string_owner);   /* Try getting UID for username */
+        pwd = getpwnam (string_owner);   /* Try getting UID for username */
         if (pwd == NULL) {
             purc_set_error (PURC_ERROR_BAD_NAME);
             return PURC_VARIANT_INVALID;
