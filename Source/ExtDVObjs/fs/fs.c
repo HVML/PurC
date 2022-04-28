@@ -188,6 +188,10 @@ void set_purc_error_by_errno (void)
             purc_set_error (PURC_ERROR_ENTITY_NOT_FOUND);
             break;
 
+        case ENOMEM:
+            purc_set_error (PURC_ERROR_OUT_OF_MEMORY);
+            break;
+
         case ENAMETOOLONG:
             purc_set_error (PURC_ERROR_TOO_LONG);
             break;
@@ -201,14 +205,158 @@ void set_purc_error_by_errno (void)
     }
 }
 
-// Transmit 
-#define INVALID_MODE  (unsigned int)-1
-unsigned int str_to_mode (const char *string_mode)
+// Transmit mode string to mode_t
+#define INVALID_MODE       (mode_t)-1
+#define SET_USER_ID        0x01
+#define SET_GROUP_ID       0x02
+#define SET_OTHER_ID       0x04
+#define STAGE_NOT_SET      0
+#define STAGE_TARGET       1
+#define STAGE_OPERATOR     2
+#define STAGE_NEED_VALUE   3
+#define STAGE_VALUE        4
+static inline void set_mode_value (mode_t *ptr_mode, unsigned int op_target,
+        char operator, unsigned int op_value)
 {
-    UNUSED_PARAM(string_mode);
+    unsigned int op_value_mask = 0;
+
+    if (op_target | SET_USER_ID) {
+        op_value_mask |= (op_value << 6);
+    }
+    if (op_target | SET_GROUP_ID) {
+        op_value_mask |= (op_value << 3);
+    }
+    if (op_target | SET_OTHER_ID) {
+        op_value_mask |= op_value;
+    }
+
+    switch (operator)
+    {
+        case '=':
+            *ptr_mode = op_value_mask;
+            break;
+
+        case '+':
+            *ptr_mode |= op_value_mask;
+            break;
+
+        case '-':
+            *ptr_mode &= (~ op_value_mask);
+            break;
+    }
+}
+
+static mode_t str_to_mode (const char *input, mode_t mode)
+{
+    unsigned int op_target = 0;
+    unsigned int op_value = 0;
+    int operator = '\0'; /* =, -, + */
+    int op_stage = STAGE_TARGET;
+
+    while (*input) {
+
+        switch (op_stage)
+        {
+            case STAGE_NOT_SET:
+                op_stage = STAGE_TARGET;
+                break;
+
+            case STAGE_TARGET:
+                {
+                    switch (*input)
+                    {
+                        case 'u':
+                            op_target |= SET_USER_ID;
+                            input ++;
+                            break;
+
+                        case 'g':
+                            op_target |= SET_GROUP_ID;
+                            input ++;
+                            break;
+
+                        case 'o':
+                            op_target |= SET_OTHER_ID;
+                            input ++;
+                            break;
+
+                        case 'a':
+                            op_target = (SET_USER_ID | SET_GROUP_ID | SET_OTHER_ID);
+                            input ++;
+                            break;
+
+                        case ',':
+                            input ++; // Skip redundant commas.
+                            break;
+
+                        default:
+                            op_stage = STAGE_OPERATOR;
+                    }
+                }
+                break;
+
+            case STAGE_OPERATOR:
+                {
+                    switch (*input)
+                    {
+                        case '+':
+                        case '-':
+                        case '=':
+                            operator = *input;
+                            op_stage = STAGE_NEED_VALUE;
+                            input ++;
+                            break;
+
+                        default:
+                            return INVALID_MODE;
+                    }
+                }
+                break;
+
+            case STAGE_NEED_VALUE:
+            case STAGE_VALUE:
+                {
+                    switch (*input)
+                    {
+                        case 'r':
+                            op_value |= 0x04;
+                            input ++;
+                            break;
+
+                        case 'w':
+                            op_value |= 0x02;
+                            input ++;
+                            break;
+
+                        case 'x':
+                            op_value |= 0x01;
+                            input ++;
+                            break;
+
+                        case ',':
+                            set_mode_value (&mode, op_target, operator, op_value);
+                            op_stage = STAGE_NOT_SET;
+                            input ++;
+                            break;
+
+                        default:
+                            return INVALID_MODE; // Error occurred
+                    }
+                }
+                break;
+        }
+    }
     
-    // wait for code
-    return INVALID_MODE; // error
+    if (STAGE_VALUE == op_stage) {
+        set_mode_value (&mode, op_target, operator, op_value);
+        return mode; // Normal return
+    }
+    
+    if (STAGE_NOT_SET == op_stage) {
+        return mode; // Normal return
+    }
+
+    return INVALID_MODE; // Incomplete statement
 }
 
 static purc_variant_t
@@ -937,6 +1085,7 @@ chmod_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     const char *string_mode = NULL;
     mode_t new_mode;
     char *endptr;
+    struct stat filestat;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if (nr_args < 2) {
@@ -961,9 +1110,15 @@ chmod_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     if (*endptr != '\0') {              /* Was not pure numeric string */
-        new_mode = str_to_mode (string_mode);
+
+        if (stat(filename, &filestat) < 0) {
+            set_purc_error_by_errno ();
+            return purc_variant_make_boolean (false);
+        }
+
+        new_mode = str_to_mode (string_mode, filestat.st_mode);
         if (INVALID_MODE == new_mode) {
-            purc_set_error (PURC_ERROR_BAD_NAME);
+            purc_set_error (PURC_ERROR_INVALID_VALUE);
             return PURC_VARIANT_INVALID;
         }
     }
