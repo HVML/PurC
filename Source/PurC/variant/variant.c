@@ -2992,8 +2992,8 @@ cmp_by_set(purc_variant_t l, purc_variant_t r, bool caseless)
         lnode = pcutils_rbtree_next(lnode), rnode = pcutils_rbtree_next(rnode))
     {
         struct set_node *lo, *ro;
-        lo = container_of(lnode, struct set_node, node);
-        ro = container_of(rnode, struct set_node, node);
+        lo = container_of(lnode, struct set_node, rbnode);
+        ro = container_of(rnode, struct set_node, rbnode);
 
         purc_variant_t lv = lo->val;
         purc_variant_t rv = ro->val;

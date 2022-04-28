@@ -38,13 +38,11 @@ align(size_t n)
     return (n + 15) / 16 * 16;
 }
 
-int
+void
 pcutils_array_list_init(struct pcutils_array_list *al)
 {
     memset(al, 0, sizeof(*al));
     INIT_LIST_HEAD(&al->list);
-
-    return 0;
 }
 
 void
@@ -152,8 +150,10 @@ pcutils_array_list_remove(struct pcutils_array_list *al,
         size_t idx,
         struct pcutils_array_list_node **old)
 {
-    if (idx >= al->nr)
+    if (idx >= al->nr) {
+        PC_DEBUGX("idx/nr: %zd/%zd", idx, al->nr);
         return -1;
+    }
 
     struct pcutils_array_list_node *node = al->nodes[idx];
 
@@ -234,7 +234,7 @@ static int cmp_f(void *ud, const void *l, const void *r)
 #error Unsupported operating system.
 #endif
 
-int
+void
 pcutils_array_list_sort(struct pcutils_array_list *al,
         void *ud, int (*cmp)(struct pcutils_array_list_node *l,
                 struct pcutils_array_list_node *r, void *ud))
@@ -259,7 +259,5 @@ pcutils_array_list_sort(struct pcutils_array_list *al,
         struct pcutils_array_list_node *l = al->nodes[i];
         l->idx = i;
     }
-
-    return 0;
 }
 
