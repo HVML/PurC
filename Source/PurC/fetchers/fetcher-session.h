@@ -44,6 +44,15 @@
 
 using namespace PurCFetcher;
 
+struct pcfetcher_callback_info {
+    struct pcfetcher_resp_header header;
+    purc_rwstream_t rws;
+    purc_variant_t req_id;
+
+    pcfetcher_response_handler handler;
+    void *ctxt;
+};
+
 class PcFetcherSession : public IPC::Connection::Client {
     WTF_MAKE_NONCOPYABLE(PcFetcherSession);
 
@@ -80,7 +89,7 @@ public:
 
     void stop();
     void cancel();
-    purc_variant_t getRequestId() { return m_req_vid; }
+    purc_variant_t getRequestId() { return m_callback->req_id; }
 
     void wait(uint32_t timeout);
     void wakeUp(void);
@@ -114,15 +123,9 @@ private:
     RefPtr<IPC::Connection> m_connection;
     IPC::MessageReceiverMap m_messageReceiverMap;
     BinarySemaphore m_waitForSyncReplySemaphore;
-    struct pcfetcher_resp_header m_resp_header;
-
-    pcfetcher_response_handler m_req_handler;
-    void* m_req_ctxt;
-
-    purc_rwstream_t m_resp_rwstream;
-    purc_variant_t m_req_vid;
 
     RunLoop* m_runloop;
+    struct pcfetcher_callback_info *m_callback;
 };
 
 

@@ -41,17 +41,40 @@ using namespace PurCFetcher;
 
 extern "C"  struct pcinst* pcinst_current(void);
 
+struct pcfetcher_callback_info *
+create_callback_info()
+{
+    return (struct pcfetcher_callback_info*) calloc(1,
+            sizeof(struct pcfetcher_callback_info));
+}
+
+
+void destroy_callback_info(struct pcfetcher_callback_info *info)
+{
+    if (!info) {
+        return;
+    }
+    if (info->header.mime_type) {
+        free(info->header.mime_type);
+    }
+    if (info->rws) {
+        purc_rwstream_destroy(info->rws);
+    }
+    free(info);
+}
+
 PcFetcherSession::PcFetcherSession(uint64_t sessionId,
         IPC::Connection::Identifier identifier)
     : m_sessionId(sessionId)
     , m_req_id(0)
     , m_is_async(false)
     , m_connection(IPC::Connection::createClientConnection(identifier, *this))
-    , m_req_handler(NULL)
-    , m_req_ctxt(NULL)
-    , m_resp_rwstream(NULL)
 {
-    memset(&m_resp_header, 0, sizeof(m_resp_header));
+    m_callback = create_callback_info();
+    if (m_callback == NULL) {
+        return;
+    }
+
     m_connection->open();
     m_runloop = &RunLoop::current();
 }
@@ -59,12 +82,7 @@ PcFetcherSession::PcFetcherSession(uint64_t sessionId,
 PcFetcherSession::~PcFetcherSession()
 {
     close();
-    if (m_resp_header.mime_type) {
-        free(m_resp_header.mime_type);
-    }
-    if (m_resp_rwstream) {
-        purc_rwstream_destroy(m_resp_rwstream);
-    }
+    destroy_callback_info(m_callback);
 }
 
 void PcFetcherSession::close()
@@ -105,8 +123,8 @@ purc_variant_t PcFetcherSession::requestAsync(
     // TODO send params with http request
     UNUSED_PARAM(params);
 
-    m_req_handler = handler;
-    m_req_ctxt = ctxt;
+    m_callback->handler = handler;
+    m_callback->ctxt = ctxt;
     m_is_async = true;
 
     String uri;
@@ -134,8 +152,8 @@ purc_variant_t PcFetcherSession::requestAsync(
             Messages::NetworkConnectionToWebProcess::ScheduleResourceLoad(
                 loadParameters), 0);
 
-    m_req_vid = purc_variant_make_native(this, NULL);
-    return m_req_vid;
+    m_callback->req_id = purc_variant_make_native(this, NULL);
+    return m_callback->req_id;
 }
 
 purc_rwstream_t PcFetcherSession::requestSync(
@@ -179,22 +197,22 @@ purc_rwstream_t PcFetcherSession::requestSync(
     wait(timeout);
 
     if (resp_header) {
-        resp_header->ret_code = m_resp_header.ret_code;
-        if (m_resp_header.mime_type) {
-            resp_header->mime_type = strdup(m_resp_header.mime_type);
+        resp_header->ret_code = m_callback->header.ret_code;
+        if (m_callback->header.mime_type) {
+            resp_header->mime_type = strdup(m_callback->header.mime_type);
         }
         else {
             resp_header->mime_type = NULL;
         }
-        resp_header->sz_resp = m_resp_header.sz_resp;
+        resp_header->sz_resp = m_callback->header.sz_resp;
     }
 
-    if (m_resp_rwstream) {
-        purc_rwstream_seek(m_resp_rwstream, 0, SEEK_SET);
+    if (m_callback->rws) {
+        purc_rwstream_seek(m_callback->rws, 0, SEEK_SET);
     }
 
-    purc_rwstream_t rws = m_resp_rwstream;
-    m_resp_rwstream = NULL;
+    purc_rwstream_t rws = m_callback->rws;
+    m_callback->rws = NULL;
     return rws;
 }
 
@@ -205,8 +223,8 @@ void PcFetcherSession::stop()
     }
 
     close();
-    m_resp_header.ret_code = RESP_CODE_USER_STOP;
-    m_req_handler(m_req_vid, m_req_ctxt, &m_resp_header, NULL);
+    m_callback->header.ret_code = RESP_CODE_USER_STOP;
+    m_callback->handler(m_callback->req_id, m_callback->ctxt, &m_callback->header, NULL);
     delete this;
 }
 
@@ -217,8 +235,8 @@ void PcFetcherSession::cancel()
     }
 
     close();
-    m_resp_header.ret_code = RESP_CODE_USER_CANCEL;
-    m_req_handler(m_req_vid, m_req_ctxt, &m_resp_header, NULL);
+    m_callback->header.ret_code = RESP_CODE_USER_CANCEL;
+    m_callback->handler(m_callback->req_id, m_callback->ctxt, &m_callback->header, NULL);
     delete this;
 }
 
@@ -284,25 +302,25 @@ void PcFetcherSession::didReceiveResponse(
         bool needsContinueDidReceiveResponseMessage)
 {
     UNUSED_PARAM(needsContinueDidReceiveResponseMessage);
-    m_resp_header.ret_code = response.httpStatusCode();
-    if (m_resp_header.mime_type) {
-        free(m_resp_header.mime_type);
+    m_callback->header.ret_code = response.httpStatusCode();
+    if (m_callback->header.mime_type) {
+        free(m_callback->header.mime_type);
     }
     const CString &utf8 = response.mimeType().utf8();
-    m_resp_header.mime_type = strdup((const char*)utf8.data());
-    m_resp_header.sz_resp = response.expectedContentLength();
-    if (m_resp_rwstream) {
-        purc_rwstream_destroy(m_resp_rwstream);
+    m_callback->header.mime_type = strdup((const char*)utf8.data());
+    m_callback->header.sz_resp = response.expectedContentLength();
+    if (m_callback->rws) {
+        purc_rwstream_destroy(m_callback->rws);
     }
-    size_t init = m_resp_header.sz_resp ? m_resp_header.sz_resp : DEF_RWS_SIZE;
-    m_resp_rwstream = purc_rwstream_new_buffer(init, INT_MAX);
+    size_t init = m_callback->header.sz_resp ? m_callback->header.sz_resp : DEF_RWS_SIZE;
+    m_callback->rws = purc_rwstream_new_buffer(init, INT_MAX);
 }
 
 void PcFetcherSession::didReceiveSharedBuffer(
         IPC::SharedBufferDataReference&& data, int64_t encodedDataLength)
 {
     UNUSED_PARAM(encodedDataLength);
-    purc_rwstream_write(m_resp_rwstream, data.data(), data.size());
+    purc_rwstream_write(m_callback->rws, data.data(), data.size());
 }
 
 void PcFetcherSession::didFinishResourceLoad(
@@ -311,23 +329,23 @@ void PcFetcherSession::didFinishResourceLoad(
     UNUSED_PARAM(networkLoadMetrics);
 
     if (m_is_async) {
-        if (m_req_handler) {
-            if (!m_resp_header.sz_resp && m_resp_rwstream) {
+        if (m_callback->handler) {
+            if (!m_callback->header.sz_resp && m_callback->rws) {
                 size_t sz_content = 0;
                 size_t sz_buffer = 0;
-                purc_rwstream_get_mem_buffer_ex(m_resp_rwstream, &sz_content,
+                purc_rwstream_get_mem_buffer_ex(m_callback->rws, &sz_content,
                         &sz_buffer, false);
-                m_resp_header.sz_resp = sz_content;
+                m_callback->header.sz_resp = sz_content;
             }
-            if (m_resp_rwstream) {
-                purc_rwstream_seek(m_resp_rwstream, 0, SEEK_SET);
+            if (m_callback->rws) {
+                purc_rwstream_seek(m_callback->rws, 0, SEEK_SET);
             }
             m_runloop->dispatch([session=this] {
-                session->m_req_handler(session->m_req_vid,
-                        session->m_req_ctxt,
-                        &session->m_resp_header,
-                       session->m_resp_rwstream);
-                session->m_resp_rwstream = NULL;
+                session->m_callback->handler(session->m_callback->req_id,
+                        session->m_callback->ctxt,
+                        &session->m_callback->header,
+                       session->m_callback->rws);
+                session->m_callback->rws = NULL;
                 delete session;
             });
         }
@@ -341,26 +359,26 @@ void PcFetcherSession::didFailResourceLoad(const ResourceError& error)
 {
     UNUSED_PARAM(error);
     // TODO : trans error code
-    m_resp_header.ret_code = 408;
+    m_callback->header.ret_code = 408;
 
     if (m_is_async) {
-        if (m_req_handler) {
-            if (!m_resp_header.sz_resp && m_resp_rwstream) {
+        if (m_callback->handler) {
+            if (!m_callback->header.sz_resp && m_callback->rws) {
                 size_t sz_content = 0;
                 size_t sz_buffer = 0;
-                purc_rwstream_get_mem_buffer_ex(m_resp_rwstream, &sz_content,
+                purc_rwstream_get_mem_buffer_ex(m_callback->rws, &sz_content,
                         &sz_buffer, false);
-                m_resp_header.sz_resp = sz_content;
+                m_callback->header.sz_resp = sz_content;
             }
-            if (m_resp_rwstream) {
-                purc_rwstream_seek(m_resp_rwstream, 0, SEEK_SET);
+            if (m_callback->rws) {
+                purc_rwstream_seek(m_callback->rws, 0, SEEK_SET);
             }
             m_runloop->dispatch([session=this] {
-                session->m_req_handler(session->m_req_vid,
-                        session->m_req_ctxt,
-                        &session->m_resp_header,
-                       session->m_resp_rwstream);
-                session->m_resp_rwstream = NULL;
+                session->m_callback->handler(session->m_callback->req_id,
+                        session->m_callback->ctxt,
+                        &session->m_callback->header,
+                       session->m_callback->rws);
+                session->m_callback->rws = NULL;
                 delete session;
             });
         }
