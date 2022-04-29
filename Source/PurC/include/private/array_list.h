@@ -114,7 +114,7 @@ struct pcutils_array_list {
 
 PCA_EXTERN_C_BEGIN
 
-int
+void
 pcutils_array_list_init(struct pcutils_array_list *al);
 
 void
@@ -194,7 +194,7 @@ int
 pcutils_array_list_swap(struct pcutils_array_list *al,
         size_t i, size_t j);
 
-int
+void
 pcutils_array_list_sort(struct pcutils_array_list *al,
         void *ud, int (*cmp)(struct pcutils_array_list_node *l,
                 struct pcutils_array_list_node *r, void *ud));

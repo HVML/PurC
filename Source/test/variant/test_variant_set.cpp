@@ -188,8 +188,13 @@ TEST(variant_set, add_1_str)
     obj = purc_variant_make_object_by_static_ckey(1, "hello", s);
     ASSERT_NE(obj, nullptr);
     ASSERT_EQ(stat->nr_values[PVT(_OBJECT)], 1);
+    size_t sz;
+    purc_variant_set_size(var, &sz);
+    ASSERT_EQ(sz, 0);
     bool t = purc_variant_set_add(var, obj, false);
     ASSERT_EQ(t, true);
+    purc_variant_set_size(var, &sz);
+    ASSERT_EQ(sz, 1);
 
     ASSERT_TRUE(sanity_check(var));
 

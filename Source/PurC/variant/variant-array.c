@@ -652,9 +652,9 @@ make_array(size_t sz)
 
         struct pcutils_array_list *al;
         al = &data->al;
-        if (pcutils_array_list_init(al) ||
-            pcutils_array_list_expand(al, initial_size))
-        {
+        pcutils_array_list_init(al);
+        if (pcutils_array_list_expand(al, initial_size)) {
+            pcutils_array_list_reset(al);
             free(data);
             pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
             break;
@@ -913,10 +913,9 @@ int pcvariant_array_sort(purc_variant_t arr, void *ud,
         d.cmp = vrtcmp;
     }
 
-    int r;
-    r = pcutils_array_list_sort(&data->al, &d, sort_cmp);
+    pcutils_array_list_sort(&data->al, &d, sort_cmp);
 
-    return r ? -1 : 0;
+    return 0;
 }
 
 purc_variant_t
