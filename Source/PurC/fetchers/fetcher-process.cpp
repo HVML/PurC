@@ -215,7 +215,7 @@ void PcFetcherProcess::didFinishLaunching(ProcessLauncher*,
         return;
 
     m_connection = IPC::Connection::createServerConnection(
-            connectionIdentifier, *this);
+            connectionIdentifier, *this, nullptr);
 
     m_connection->open();
 

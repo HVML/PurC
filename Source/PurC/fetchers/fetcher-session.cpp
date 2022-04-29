@@ -68,7 +68,7 @@ PcFetcherSession::PcFetcherSession(uint64_t sessionId,
     : m_sessionId(sessionId)
     , m_req_id(0)
     , m_is_async(false)
-    , m_connection(IPC::Connection::createClientConnection(identifier, *this))
+    , m_connection(IPC::Connection::createClientConnection(identifier, *this, nullptr))
 {
     m_callback = create_callback_info();
     if (m_callback == NULL) {

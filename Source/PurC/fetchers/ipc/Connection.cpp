@@ -213,14 +213,14 @@ struct Connection::PendingSyncReply {
     }
 };
 
-Ref<Connection> Connection::createServerConnection(Identifier identifier, Client& client)
+Ref<Connection> Connection::createServerConnection(Identifier identifier, Client& client, WorkQueue* queue)
 {
-    return adoptRef(*new Connection(identifier, true, client));
+    return adoptRef(*new Connection(identifier, true, client, queue));
 }
 
-Ref<Connection> Connection::createClientConnection(Identifier identifier, Client& client)
+Ref<Connection> Connection::createClientConnection(Identifier identifier, Client& client, WorkQueue* queue)
 {
-    return adoptRef(*new Connection(identifier, false, client));
+    return adoptRef(*new Connection(identifier, false, client, queue));
 }
 
 static HashMap<IPC::Connection::UniqueID, Connection*>& allConnections()
@@ -244,7 +244,7 @@ static HashMap<uintptr_t, HashMap<uint64_t, CompletionHandler<void(Decoder*)>>>&
 
 static void clearAsyncReplyHandlers(const Connection&);
 
-Connection::Connection(Identifier identifier, bool isServer, Client& client)
+Connection::Connection(Identifier identifier, bool isServer, Client& client, WorkQueue* queue)
     : m_client(client)
     , m_uniqueID(UniqueID::generate())
     , m_isServer(isServer)
@@ -253,7 +253,7 @@ Connection::Connection(Identifier identifier, bool isServer, Client& client)
     , m_shouldExitOnSyncMessageSendFailure(false)
     , m_didCloseOnConnectionWorkQueueCallback(0)
     , m_isConnected(false)
-    , m_connectionQueue(WorkQueue::create("com.apple.IPC.ReceiveQueue"))
+    , m_connectionQueue(queue)
     , m_inSendSyncCount(0)
     , m_inDispatchMessageCount(0)
     , m_inDispatchMessageMarkedDispatchWhenWaitingForSyncReplyCount(0)
@@ -262,6 +262,9 @@ Connection::Connection(Identifier identifier, bool isServer, Client& client)
     , m_shouldWaitForMessages(true)
 {
 //    ASSERT(RunLoop::isMain());
+    if (!m_connectionQueue) {
+        m_connectionQueue = WorkQueue::create("com.apple.IPC.ReceiveQueue");
+    }
     allConnections().add(m_uniqueID, this);
 
     platformInitialize(identifier);

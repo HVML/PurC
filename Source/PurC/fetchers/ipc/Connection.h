@@ -136,8 +136,8 @@ public:
     static Connection::SocketPair createPlatformConnection(unsigned options = SetCloexecOnClient | SetCloexecOnServer);
 #endif
 
-    static Ref<Connection> createServerConnection(Identifier, Client&);
-    static Ref<Connection> createClientConnection(Identifier, Client&);
+    static Ref<Connection> createServerConnection(Identifier, Client&, WorkQueue*);
+    static Ref<Connection> createClientConnection(Identifier, Client&, WorkQueue*);
     ~Connection();
 
     Client& client() const { return m_client; }
@@ -231,7 +231,7 @@ public:
     void enableIncomingMessagesThrottling();
 
 private:
-    Connection(Identifier, bool isServer, Client&);
+    Connection(Identifier, bool isServer, Client&, WorkQueue*);
     void platformInitialize(Identifier);
     void platformInvalidate();
 
