@@ -170,8 +170,8 @@ purc_rwstream_t pcfetcher_remote_request_sync(
 void pcfetcher_remote_cancel_async(struct pcfetcher* fetcher,
         purc_variant_t request)
 {
-    UNUSED_PARAM(fetcher);
-    UNUSED_PARAM(request);
+    struct pcfetcher_remote* remote = (struct pcfetcher_remote*)fetcher;
+    remote->process->cancelAsyncRequest(request);
 }
 
 int pcfetcher_remote_check_response(struct pcfetcher* fetcher,

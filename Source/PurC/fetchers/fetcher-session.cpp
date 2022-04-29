@@ -69,8 +69,10 @@ PcFetcherSession::~PcFetcherSession()
 
 void PcFetcherSession::close()
 {
-    m_connection->invalidate();
-    m_connection = nullptr;
+    if (m_connection) {
+        m_connection->invalidate();
+        m_connection = nullptr;
+    }
 }
 
 static const char* transMethod(enum pcfetcher_request_method method)
@@ -202,7 +204,20 @@ void PcFetcherSession::stop()
         return;
     }
 
+    close();
     m_resp_header.ret_code = RESP_CODE_USER_STOP;
+    m_req_handler(m_req_vid, m_req_ctxt, &m_resp_header, NULL);
+    delete this;
+}
+
+void PcFetcherSession::cancel()
+{
+    if (!m_is_async) {
+        return;
+    }
+
+    close();
+    m_resp_header.ret_code = RESP_CODE_USER_CANCEL;
     m_req_handler(m_req_vid, m_req_ctxt, &m_resp_header, NULL);
     delete this;
 }

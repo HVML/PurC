@@ -123,6 +123,8 @@ public:
         uint32_t timeout,
         struct pcfetcher_resp_header *resp_header);
 
+    void cancelAsyncRequest(purc_variant_t request_id);
+
     int checkResponse(uint32_t timeout_ms);
 
 protected:

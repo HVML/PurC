@@ -779,6 +779,7 @@ static void load_response_handler(purc_variant_t request_id, void *ctxt,
         goto clean_rws;
     }
 
+    pcintr_remove_async_request_id(fetcher->stack, request_id);
     bool has_except = false;
     if (!resp || resp_header->ret_code != 200) {
         has_except = true;
@@ -924,6 +925,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
                     load_response_handler, fetcher);
             if (v == PURC_VARIANT_INVALID)
                 return NULL;
+            pcintr_save_async_request_id(stack, v);
         }
     }
 

@@ -79,6 +79,8 @@ public:
         struct pcfetcher_resp_header *resp_header);
 
     void stop();
+    void cancel();
+    purc_variant_t getRequestId() { return m_req_vid; }
 
     void wait(uint32_t timeout);
     void wakeUp(void);

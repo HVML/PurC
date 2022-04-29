@@ -317,7 +317,6 @@ void PcFetcherProcess::asyncRespHandler(purc_variant_t request_id, void *ctxt,
     delete data;
 }
 
-
 purc_rwstream_t PcFetcherProcess::requestSync(
         const char* base_uri,
         const char* url,
@@ -331,6 +330,19 @@ purc_rwstream_t PcFetcherProcess::requestSync(
             params, timeout, resp_header);
     delete session;
     return rws;
+}
+
+void PcFetcherProcess::cancelAsyncRequest(purc_variant_t request_id)
+{
+    size_t sz = m_asyncSessionWrap.size();
+    for (size_t i = 0; i < sz; i++) {
+        struct process_async_data *data =
+            (struct process_async_data *)m_asyncSessionWrap[i];
+        if (data->session->getRequestId() == request_id) {
+            data->session->cancel();
+            break;
+        }
+    }
 }
 
 int PcFetcherProcess::checkResponse(uint32_t timeout_ms)
