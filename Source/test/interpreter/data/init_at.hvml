@@ -1,0 +1,41 @@
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<hvml target="html" lang="en">
+    <body>
+        <!-- 在 `body` 元素上使用对象数组初始化一个集合（唯一性键名是 id） -->
+        <init as="users" uniquely against="id">
+            [
+                { "id": "1", "avatar": "/img/avatars/1.png", "name": "Tom", "region": "en_US" },
+                { "id": "2", "avatar": "/img/avatars/2.png", "name": "Jerry", "region": "zh_CN" }
+            ]
+        </init>
+
+        <div>
+            <!-- 使用 `at` 属性覆盖 `body` 元素上的 `users` 变量 -->
+            <init as="users" at="_grandparent">
+                [
+                    { "id": "3", "avatar": "/img/avatars/3.png", "name": "Vincent", "region": "zh_CN" },
+                    { "id": "4", "avatar": "/img/avatars/4.png", "name": "David", "region": "en_US" }
+                ]
+            </init>
+
+            <!-- 在 `div` 元素上创建一个 `users` 变量，初始化为空数组 -->
+            <init as="users" with="[]" />
+
+            <section id="myAnchor">
+                <div>
+                    <!-- 在 `section` 元素上创建一个 `users` 变量，初始化为空数组 -->
+                    <init as="users" with="[]" at="#myAnchor" />
+
+                    <!-- 在 `section` 元素上创建一个 `emptyUser` 变量，初始化为空对象 -->
+                    <init as="emptyUser" with="{}" at="_grandparent" />
+                </div>
+            </section>
+        </div>
+
+        <!-- 移除 `body` 元素上的 users 变量 -->
+        <init as="users" with=undefined />
+    </body>
+
+</hvml>
+
+

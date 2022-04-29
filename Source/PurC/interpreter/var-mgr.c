@@ -306,6 +306,9 @@ int pcvarmgr_destroy(pcvarmgr_t mgr)
 bool pcvarmgr_add(pcvarmgr_t mgr, const char* name,
         purc_variant_t variant)
 {
+    if (purc_variant_is_undefined(variant))
+        return pcvarmgr_remove(mgr, name);
+
     if (mgr == NULL || mgr->object == PURC_VARIANT_INVALID
             || name == NULL || !variant) {
         purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
