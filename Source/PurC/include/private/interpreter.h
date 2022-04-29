@@ -177,6 +177,8 @@ struct pcintr_stack {
     void                                *ctxt;  // no-owner-ship!!!
 
     pcintr_timer_t                      *event_timer; // 10ms
+
+    purc_variant_t async_request_ids;       // async request ids (array)
 };
 
 enum purc_symbol_var {

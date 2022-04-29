@@ -393,6 +393,15 @@ stack_release(pcintr_stack_t stack)
         pcintr_timer_destroy(stack->event_timer);
         stack->event_timer = NULL;
     }
+
+    size_t sz = purc_variant_array_get_size(stack->async_request_ids);
+    for (size_t i = 0; i < sz; i++) {
+        pcintr_remove_async_request_id(stack,
+                purc_variant_array_get(stack->async_request_ids, i)
+                );
+    }
+    purc_variant_unref(stack->async_request_ids);
+
 }
 
 static void
@@ -1423,6 +1432,13 @@ purc_load_hvml_from_rwstream_ex(purc_rwstream_t stream,
     stack->co.stack = stack;
     stack->co.state = CO_STATE_READY;
 
+    stack->async_request_ids = purc_variant_make_array(0, PURC_VARIANT_INVALID);
+    if (!stack->async_request_ids) {
+        stack_destroy(stack);
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return NULL;
+    }
+
     if (doc_init(stack)) {
         stack_destroy(stack);
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
@@ -1840,6 +1856,26 @@ pcintr_load_from_uri_async(pcintr_stack_t stack, const char* uri,
             10,
             handler,
             ctxt);
+}
+
+bool
+pcintr_save_async_request_id(pcintr_stack_t stack, purc_variant_t req_id)
+{
+    if (!stack || !req_id) {
+        return false;
+    }
+
+    return purc_variant_array_append(stack->async_request_ids, req_id);
+}
+
+bool
+pcintr_remove_async_request_id(pcintr_stack_t stack, purc_variant_t req_id)
+{
+    if (!stack || !req_id) {
+        return false;
+    }
+    pcfetcher_cancel_async(req_id);
+    return true;
 }
 
 purc_variant_t
