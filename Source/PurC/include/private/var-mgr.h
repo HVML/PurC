@@ -48,7 +48,12 @@ bool pcvarmgr_add(pcvarmgr_t mgr, const char* name,
 
 purc_variant_t pcvarmgr_get(pcvarmgr_t mgr, const char* name);
 
-bool pcvarmgr_remove(pcvarmgr_t mgr, const char* name);
+bool pcvarmgr_remove_ex(pcvarmgr_t mgr, const char* name, bool silently);
+
+static inline bool pcvarmgr_remove(pcvarmgr_t mgr, const char* name)
+{
+    return pcvarmgr_remove_ex(mgr, name, false);
+}
 
 bool pcvarmgr_dispatch_except(pcvarmgr_t mgr, const char* name,
         const char* except);

@@ -307,7 +307,7 @@ bool pcvarmgr_add(pcvarmgr_t mgr, const char* name,
         purc_variant_t variant)
 {
     if (purc_variant_is_undefined(variant))
-        return pcvarmgr_remove(mgr, name);
+        return pcvarmgr_remove_ex(mgr, name, true);
 
     if (mgr == NULL || mgr->object == PURC_VARIANT_INVALID
             || name == NULL || !variant) {
@@ -349,11 +349,11 @@ purc_variant_t pcvarmgr_get(pcvarmgr_t mgr, const char* name)
     return PURC_VARIANT_INVALID;
 }
 
-bool pcvarmgr_remove(pcvarmgr_t mgr, const char* name)
+bool pcvarmgr_remove_ex(pcvarmgr_t mgr, const char* name, bool silently)
 {
     if (name) {
         return purc_variant_object_remove_by_static_ckey(mgr->object,
-                name, false);
+                name, silently);
     }
     return false;
 }
