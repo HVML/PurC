@@ -340,13 +340,13 @@ void PcFetcherSession::didFinishResourceLoad(
             if (m_callback->rws) {
                 purc_rwstream_seek(m_callback->rws, 0, SEEK_SET);
             }
-            m_runloop->dispatch([session=this] {
-                session->m_callback->handler(session->m_callback->req_id,
-                        session->m_callback->ctxt,
-                        &session->m_callback->header,
-                       session->m_callback->rws);
-                session->m_callback->rws = NULL;
-                delete session;
+            struct pcfetcher_callback_info *info = m_callback;
+            m_callback = NULL;
+            m_runloop->dispatch([info] {
+                info->handler(info->req_id, info->ctxt, &info->header,
+                        info->rws);
+                info->rws = NULL;
+                destroy_callback_info(info);
             });
         }
     }
