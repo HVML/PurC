@@ -395,9 +395,13 @@ stack_release(pcintr_stack_t stack)
     }
 
     size_t sz = purc_variant_array_get_size(stack->async_request_ids);
-    for (size_t i = 0; i < sz; i++) {
-        pcfetcher_cancel_async(
-                purc_variant_array_get(stack->async_request_ids, i));
+    if (sz) {
+        purc_variant_t ids = purc_variant_container_clone(
+                stack->async_request_ids);
+        for (size_t i = 0; i < sz; i++) {
+            pcfetcher_cancel_async(purc_variant_array_get(ids, i));
+        }
+        purc_variant_unref(ids);
     }
     purc_variant_unref(stack->async_request_ids);
 
