@@ -85,6 +85,7 @@ struct pcfetcher* pcfetcher_local_init(size_t max_conns, size_t cache_quota)
     fetcher->cookie_remove = pcfetcher_cookie_loccal_remove;
     fetcher->request_async = pcfetcher_local_request_async;
     fetcher->request_sync = pcfetcher_local_request_sync;
+    fetcher->cancel_async = pcfetcher_local_cancel_async;
     fetcher->check_response = pcfetcher_local_check_response;
 
     local->base_uri = NULL;
@@ -260,6 +261,12 @@ purc_rwstream_t pcfetcher_local_request_sync(
     return NULL;
 }
 
+void pcfetcher_local_cancel_async(struct pcfetcher* fetcher,
+        purc_variant_t request)
+{
+    UNUSED_PARAM(fetcher);
+    UNUSED_PARAM(request);
+}
 
 int pcfetcher_local_check_response(struct pcfetcher* fetcher,
         uint32_t timeout_ms)

@@ -54,6 +54,7 @@ struct pcfetcher* pcfetcher_remote_init(size_t max_conns, size_t cache_quota)
     fetcher->cookie_remove = pcfetcher_cookie_remote_remove;
     fetcher->request_async = pcfetcher_remote_request_async;
     fetcher->request_sync = pcfetcher_remote_request_sync;
+    fetcher->cancel_async = pcfetcher_remote_cancel_async;
     fetcher->check_response = pcfetcher_remote_check_response;
 
     remote->process = new PcFetcherProcess(fetcher);
@@ -65,6 +66,7 @@ struct pcfetcher* pcfetcher_remote_init(size_t max_conns, size_t cache_quota)
 
 int pcfetcher_remote_term(struct pcfetcher* fetcher)
 {
+    fprintf(stderr, "############################# begin term fetcher\n");
     struct pcfetcher_remote* remote = (struct pcfetcher_remote*)fetcher;
     delete remote->process;
 
@@ -72,6 +74,7 @@ int pcfetcher_remote_term(struct pcfetcher* fetcher)
         free(remote->base_uri);
     }
     free(remote);
+    fprintf(stderr, "############################# end term fetcher\n");
 
     return 0;
 }
@@ -164,6 +167,12 @@ purc_rwstream_t pcfetcher_remote_request_sync(
             url, method, params, timeout, resp_header);
 }
 
+void pcfetcher_remote_cancel_async(struct pcfetcher* fetcher,
+        purc_variant_t request)
+{
+    UNUSED_PARAM(fetcher);
+    UNUSED_PARAM(request);
+}
 
 int pcfetcher_remote_check_response(struct pcfetcher* fetcher,
         uint32_t timeout_ms)

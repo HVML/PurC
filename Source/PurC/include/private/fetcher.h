@@ -92,6 +92,8 @@ purc_rwstream_t pcfetcher_request_sync(
         uint32_t timeout,
         struct pcfetcher_resp_header *resp_header);
 
+void pcfetcher_cancel_async(purc_variant_t request);
+
 int pcfetcher_check_response(uint32_t timeout_ms);
 
 #ifdef __cplusplus

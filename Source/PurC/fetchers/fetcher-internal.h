@@ -69,6 +69,9 @@ typedef purc_rwstream_t (*pcfetcher_request_sync_fn)(
         uint32_t timeout,
         struct pcfetcher_resp_header *resp_header);
 
+typedef void (*pcfetcher_cancel_async_fn)(struct pcfetcher* fetcher,
+        purc_variant_t request);
+
 typedef int (*pcfetcher_check_response_fn)(struct pcfetcher* fetcher,
         uint32_t timeout_ms);
 
@@ -84,6 +87,7 @@ struct pcfetcher {
     pcfetcher_cookie_remove_fn cookie_remove;
     pcfetcher_request_async_fn request_async;
     pcfetcher_request_sync_fn request_sync;
+    pcfetcher_cancel_async_fn cancel_async;
     pcfetcher_check_response_fn check_response;
 };
 
@@ -121,6 +125,9 @@ purc_rwstream_t pcfetcher_local_request_sync(
         purc_variant_t params,
         uint32_t timeout,
         struct pcfetcher_resp_header *resp_header);
+
+void pcfetcher_local_cancel_async(struct pcfetcher* fetcher,
+        purc_variant_t request);
 
 int pcfetcher_local_check_response(struct pcfetcher* fetcher,
         uint32_t timeout_ms);
@@ -162,6 +169,9 @@ purc_rwstream_t pcfetcher_remote_request_sync(
         purc_variant_t params,
         uint32_t timeout,
         struct pcfetcher_resp_header *resp_header);
+
+void pcfetcher_remote_cancel_async(struct pcfetcher* fetcher,
+        purc_variant_t request);
 
 int pcfetcher_remote_check_response(struct pcfetcher* fetcher,
         uint32_t timeout_ms);

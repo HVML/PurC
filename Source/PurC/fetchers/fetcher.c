@@ -142,4 +142,11 @@ int pcfetcher_check_response(uint32_t timeout_ms)
             timeout_ms) : 0;
 }
 
+void pcfetcher_cancel_async(purc_variant_t request)
+{
+    struct pcfetcher* fetcher = get_fetcher();
+    if (fetcher) {
+        fetcher->cancel_async(fetcher, request);
+    }
+}
 
