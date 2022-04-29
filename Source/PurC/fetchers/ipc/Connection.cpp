@@ -263,7 +263,7 @@ Connection::Connection(Identifier identifier, bool isServer, Client& client, Wor
 {
 //    ASSERT(RunLoop::isMain());
     if (!m_connectionQueue) {
-        m_connectionQueue = WorkQueue::create("com.apple.IPC.ReceiveQueue");
+        m_connectionQueue = WorkQueue::create("Connection_ReceiveQueue");
     }
     allConnections().add(m_uniqueID, this);
 

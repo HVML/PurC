@@ -47,6 +47,7 @@ struct process_async_data {
 PcFetcherProcess::PcFetcherProcess(struct pcfetcher* fetcher,
         bool alwaysRunsAtBackgroundPriority)
  : m_fetcher(fetcher)
+ , m_workQueue(WorkQueue::create("PcFetcherProcess_Queue"))
  , m_alwaysRunsAtBackgroundPriority(alwaysRunsAtBackgroundPriority)
 {
 }
@@ -215,7 +216,7 @@ void PcFetcherProcess::didFinishLaunching(ProcessLauncher*,
         return;
 
     m_connection = IPC::Connection::createServerConnection(
-            connectionIdentifier, *this, nullptr);
+            connectionIdentifier, *this, m_workQueue.get());
 
     m_connection->open();
 
@@ -273,7 +274,7 @@ PcFetcherSession* PcFetcherProcess::createSession(void)
         Messages::NetworkProcess::CreateNetworkConnectionToWebProcess::Reply(
             attachment, cookieAcceptPolicy), 0);
     return new PcFetcherSession(sid.toUInt64(),
-            attachment->releaseFileDescriptor());
+            attachment->releaseFileDescriptor(), m_workQueue.get());
 }
 
 purc_variant_t PcFetcherProcess::requestAsync(

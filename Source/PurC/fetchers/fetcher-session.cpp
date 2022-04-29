@@ -64,11 +64,11 @@ void destroy_callback_info(struct pcfetcher_callback_info *info)
 }
 
 PcFetcherSession::PcFetcherSession(uint64_t sessionId,
-        IPC::Connection::Identifier identifier)
+        IPC::Connection::Identifier identifier, WorkQueue *queue)
     : m_sessionId(sessionId)
     , m_req_id(0)
     , m_is_async(false)
-    , m_connection(IPC::Connection::createClientConnection(identifier, *this, nullptr))
+    , m_connection(IPC::Connection::createClientConnection(identifier, *this, queue))
 {
     m_callback = create_callback_info();
     if (m_callback == NULL) {

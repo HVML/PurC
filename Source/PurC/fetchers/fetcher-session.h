@@ -58,7 +58,7 @@ class PcFetcherSession : public IPC::Connection::Client {
 
 public:
     PcFetcherSession(uint64_t sessionId,
-            IPC::Connection::Identifier connectionIdentifier);
+            IPC::Connection::Identifier connectionIdentifier, WorkQueue *queue);
 
     ~PcFetcherSession();
 

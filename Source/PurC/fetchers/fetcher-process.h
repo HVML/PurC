@@ -156,6 +156,8 @@ protected:
 private:
     struct pcfetcher* m_fetcher;
 
+    RefPtr<WorkQueue> m_workQueue;
+
     Vector<PendingMessage> m_pendingMessages;
     RefPtr<ProcessLauncher> m_processLauncher;
     RefPtr<IPC::Connection> m_connection;
