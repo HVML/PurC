@@ -314,6 +314,7 @@ void PcFetcherProcess::asyncRespHandler(purc_variant_t request_id, void *ctxt,
     struct process_async_data *data = (struct process_async_data*)ctxt;
     data->process->m_asyncSessionWrap.removeFirst(data);
     data->handler(request_id, data->ctxt, resp_header, resp);
+    delete data->session;
     delete data;
 }
 
