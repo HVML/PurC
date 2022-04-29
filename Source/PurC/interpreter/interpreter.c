@@ -1874,7 +1874,13 @@ pcintr_remove_async_request_id(pcintr_stack_t stack, purc_variant_t req_id)
     if (!stack || !req_id) {
         return false;
     }
-    pcfetcher_cancel_async(req_id);
+    size_t sz = purc_variant_array_get_size(stack->async_request_ids);
+    for (size_t i = 0; i < sz; i++) {
+        if (req_id == purc_variant_array_get(stack->async_request_ids, i)) {
+            purc_variant_array_remove(stack->async_request_ids, i);
+            break;
+        }
+    }
     return true;
 }
 
