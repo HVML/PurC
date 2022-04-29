@@ -396,9 +396,8 @@ stack_release(pcintr_stack_t stack)
 
     size_t sz = purc_variant_array_get_size(stack->async_request_ids);
     for (size_t i = 0; i < sz; i++) {
-        pcintr_remove_async_request_id(stack,
-                purc_variant_array_get(stack->async_request_ids, i)
-                );
+        pcfetcher_cancel_async(
+                purc_variant_array_get(stack->async_request_ids, i));
     }
     purc_variant_unref(stack->async_request_ids);
 
