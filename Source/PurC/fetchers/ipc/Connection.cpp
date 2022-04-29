@@ -269,6 +269,7 @@ Connection::Connection(Identifier identifier, bool isServer, Client& client)
 
 Connection::~Connection()
 {
+    m_connectionQueue = nullptr;
 //    ASSERT(RunLoop::isMain());
     ASSERT(!isValid());
 

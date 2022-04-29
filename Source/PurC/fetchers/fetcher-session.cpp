@@ -70,6 +70,7 @@ PcFetcherSession::~PcFetcherSession()
 void PcFetcherSession::close()
 {
     m_connection->invalidate();
+    m_connection = nullptr;
 }
 
 static const char* transMethod(enum pcfetcher_request_method method)

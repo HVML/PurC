@@ -39,6 +39,7 @@ void WorkQueue::platformInitialize(const char* name, Type, QOS)
         m_runLoop = &RunLoop::current();
         semaphore.signal();
         m_runLoop->run();
+        m_waitRunLoopExit.signal();
     })->detach();
     semaphore.wait();
 }
@@ -52,6 +53,7 @@ void WorkQueue::platformInvalidate()
             RunLoop::current().stop();
         });
     }
+    m_waitRunLoopExit.wait();
 }
 
 void WorkQueue::dispatch(Function<void()>&& function)

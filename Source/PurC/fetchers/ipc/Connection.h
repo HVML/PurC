@@ -300,7 +300,7 @@ private:
     DidCloseOnConnectionWorkQueueCallback m_didCloseOnConnectionWorkQueueCallback;
 
     bool m_isConnected;
-    Ref<WorkQueue> m_connectionQueue;
+    RefPtr<WorkQueue> m_connectionQueue;
 
     Lock m_workQueueMessageReceiversMutex;
     using WorkQueueMessageReceiverMap = HashMap<ReceiverName, std::pair<RefPtr<WorkQueue>, RefPtr<WorkQueueMessageReceiver>>, WTF::IntHash<ReceiverName>, WTF::StrongEnumHashTraits<ReceiverName>>;

@@ -31,6 +31,7 @@
 #include <wtf/FunctionDispatcher.h>
 #include <wtf/Seconds.h>
 #include <wtf/Threading.h>
+#include <wtf/threads/BinarySemaphore.h>
 
 #if USE(COCOA_EVENT_LOOP)
 #include <dispatch/dispatch.h>
@@ -80,6 +81,7 @@ private:
     dispatch_queue_t m_dispatchQueue;
 #else
     RunLoop* m_runLoop;
+    BinarySemaphore m_waitRunLoopExit;
 #endif
 };
 
