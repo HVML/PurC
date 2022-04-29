@@ -1031,6 +1031,7 @@ chgrp_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     const char *filename = NULL;
     const char *string_group = NULL;
+    uint64_t uint_gid; 
     gid_t gid;
     struct passwd *pwd;
     char *endptr;
@@ -1041,28 +1042,35 @@ chgrp_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         return PURC_VARIANT_INVALID;
     }
 
-    // get the file name and group name (or gid)
+    // Get the file name
     filename = purc_variant_get_string_const (argv[0]);
-    string_group = purc_variant_get_string_const (argv[1]);
-    if (NULL == filename || NULL == string_group) {
-        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+
+    // Get the group name (or gid)
+    if (purc_variant_cast_to_ulongint (argv[1], &uint_gid, false)) {
+        gid = (gid_t)uint_gid;
     }
-
-    // group : string_name | gid
-    gid = strtol(string_group, &endptr, 10);  /* Allow a numeric string */
-
-    if (*endptr != '\0') {              /* Was not pure numeric string */
-        pwd = getpwnam(string_group);   /* Try getting GID for username */
-        if (pwd == NULL) {
-            purc_set_error (PURC_ERROR_BAD_NAME);
+    else {
+        string_group = purc_variant_get_string_const (argv[1]);
+        if (NULL == filename || NULL == string_group) {
+            purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
             return PURC_VARIANT_INVALID;
         }
 
-        gid = pwd->pw_gid;
+        // group : string_name | gid
+        gid = strtol(string_group, &endptr, 10);  /* Allow a numeric string */
+
+        if (*endptr != '\0') {              /* Was not pure numeric string */
+            pwd = getpwnam(string_group);   /* Try getting GID for username */
+            if (pwd == NULL) {
+                purc_set_error (PURC_ERROR_BAD_NAME);
+                return PURC_VARIANT_INVALID;
+            }
+
+            gid = pwd->pw_gid;
+        }
     }
 
-    // If the owner or group is specified as -1, then that ID is not changed.
+    // If the group_id is specified as -1, then that ID is not changed.
     if (0 == chown (filename, -1, gid)) {
         ret_var = purc_variant_make_boolean (true);
     }
@@ -1143,6 +1151,7 @@ chown_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     const char *filename = NULL;
     const char *string_owner = NULL;
+    uint64_t uint_uid;
     uid_t uid;
     struct passwd *pwd;
     char *endptr;
@@ -1153,28 +1162,35 @@ chown_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         return PURC_VARIANT_INVALID;
     }
 
-    // get the file name and group name (or gid)
+    // Get the file name
     filename = purc_variant_get_string_const (argv[0]);
-    string_owner = purc_variant_get_string_const (argv[1]);
-    if (NULL == filename || NULL == string_owner) {
-        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+
+    // Get the user name (or uid)
+    if (purc_variant_cast_to_ulongint (argv[1], &uint_uid, false)) {
+        uid = (gid_t)uint_uid;
     }
-
-    // owner : string_name | uid
-    uid = strtol (string_owner, &endptr, 10);  /* Allow a numeric string */
-
-    if (*endptr != '\0') {              /* Was not pure numeric string */
-        pwd = getpwnam (string_owner);   /* Try getting UID for username */
-        if (pwd == NULL) {
-            purc_set_error (PURC_ERROR_BAD_NAME);
+    else {
+        string_owner = purc_variant_get_string_const (argv[1]);
+        if (NULL == filename || NULL == string_owner) {
+            purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
             return PURC_VARIANT_INVALID;
         }
 
-        uid = pwd->pw_uid;
+        // owner : string_name | uid
+        uid = strtol (string_owner, &endptr, 10);  /* Allow a numeric string */
+
+        if (*endptr != '\0') {               /* Was not pure numeric string */
+            pwd = getpwnam (string_owner);   /* Try getting UID for username */
+            if (pwd == NULL) {
+                purc_set_error (PURC_ERROR_BAD_NAME);
+                return PURC_VARIANT_INVALID;
+            }
+
+            uid = pwd->pw_uid;
+        }
     }
 
-    // If the owner or group is specified as -1, then that ID is not changed.
+    // If the owner_id is specified as -1, then that ID is not changed.
     if (0 == chown (filename, uid, -1)) {
         ret_var = purc_variant_make_boolean (true);
     }
