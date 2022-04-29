@@ -176,7 +176,42 @@ static bool remove_dir (char *dir)
     return ret;
 }
 
-void set_purc_error_by_errno (void)
+static bool filecopy (const char *infile, const char *outfile)
+{
+    #define FLCPY_BFSZ  8192
+
+    char buffer[FLCPY_BFSZ];
+    size_t sz_read = 0;
+    FILE *in  = fopen (infile, "rb");
+    FILE *out = fopen (outfile,"wb");
+
+    if (NULL == in || NULL == out) {
+        if (in)
+            fclose (in);
+        if (out)
+            fclose (out);
+        return false;
+    }
+
+    while ((sz_read = fread (buffer, 1, FLCPY_BFSZ, in)) == FLCPY_BFSZ) {
+        if (sz_read != fwrite (buffer, 1, sz_read, out)) {
+            fclose (out);
+            fclose (in);
+            return false;
+        }
+    }
+    if (sz_read != fwrite (buffer, 1, sz_read, out)) {
+        fclose (out);
+        fclose (in);
+        return false;
+    }
+
+    fclose (out);
+    fclose (in);
+    return true;
+}
+
+static void set_purc_error_by_errno (void)
 {
     switch (errno)
     {
@@ -1209,22 +1244,31 @@ copy_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(root);
     UNUSED_PARAM(silently);
 
-    char filename[PATH_MAX];
-    const char *string_filename = NULL;
+    const char *filename_from = NULL;
+    const char *filename_to = NULL;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
-    if (nr_args < 1) {
+    if (nr_args < 2) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
     // get the file name
-    string_filename = purc_variant_get_string_const (argv[0]);
-    strncpy (filename, string_filename, sizeof(filename));
+    filename_from = purc_variant_get_string_const (argv[0]);
+    filename_to   = purc_variant_get_string_const (argv[1]);
+    if (NULL == filename_from || NULL == filename_to) {
+        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+        return PURC_VARIANT_INVALID;
+    }
 
-    // wait for code
+    if (filecopy (filename_from, filename_to)) {
+        ret_var = purc_variant_make_boolean (true);
+    }
+    else {
+        set_purc_error_by_errno ();
+        ret_var = purc_variant_make_boolean (false);
+    }
 
-    ret_var = purc_variant_make_boolean (true);
     return ret_var;
 }
 
@@ -1235,23 +1279,59 @@ dirname_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(root);
     UNUSED_PARAM(silently);
 
-    char filename[PATH_MAX];
-    const char *string_filename = NULL;
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    // On Linux, slash (/) is used as directory separator character.
+    const char separator = '/';
+    const char *string_path = NULL;
+    const char *string_suffix = NULL;
+    const char *base_begin = NULL;
+    const char *temp_ptr = NULL;
+    const char *base_end = NULL;
+    purc_variant_t ret_string = PURC_VARIANT_INVALID;
 
     if (nr_args < 1) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
-    // get the file name
-    string_filename = purc_variant_get_string_const (argv[0]);
-    strncpy (filename, string_filename, sizeof(filename));
+    // get the parameters
+    string_path = purc_variant_get_string_const (argv[0]);
+    if (NULL == string_path) {
+        ret_string = purc_variant_make_string("", true);
+        return ret_string;
+    }
+    if (nr_args > 1) {
+        string_suffix = purc_variant_get_string_const (argv[1]);
+    }
 
-    // wait for code
+    // Mark out the trailing name component.
+    base_begin = string_path;
+    temp_ptr = base_begin;
+    base_end = base_begin + strlen(string_path);
 
-    ret_var = purc_variant_make_boolean (true);
-    return ret_var;
+    while (base_end > base_begin && separator == *(base_end - 1)) {
+        base_end--;
+    }
+
+    while (temp_ptr < base_end) {
+        if (separator == *temp_ptr) {
+            base_begin = temp_ptr + 1;
+        }
+        temp_ptr ++;
+    }
+
+    // If the name component ends in suffix this will also be cut off.
+    if (string_suffix) {
+        int suffix_len = strlen(string_suffix);
+        temp_ptr = base_end - suffix_len;
+        if (temp_ptr > base_begin &&
+            0 == strncmp(string_suffix, temp_ptr, suffix_len)) {
+            base_end = temp_ptr;
+        }
+    }
+
+    ret_string = purc_variant_make_string_ex(base_begin,
+            (base_end - base_begin), true);
+    return ret_string;
 }
 
 static purc_variant_t
