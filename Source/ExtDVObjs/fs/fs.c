@@ -1282,10 +1282,10 @@ dirname_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     // On Linux, slash (/) is used as directory separator character.
     const char separator = '/';
     const char *string_path = NULL;
-    const char *string_suffix = NULL;
-    const char *base_begin = NULL;
+    uint64_t levels = 0;
+    const char *dir_begin = NULL;
     const char *temp_ptr = NULL;
-    const char *base_end = NULL;
+    const char *dir_end = NULL;
     purc_variant_t ret_string = PURC_VARIANT_INVALID;
 
     if (nr_args < 1) {
@@ -1300,37 +1300,38 @@ dirname_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         return ret_string;
     }
     if (nr_args > 1) {
-        string_suffix = purc_variant_get_string_const (argv[1]);
-    }
-
-    // Mark out the trailing name component.
-    base_begin = string_path;
-    temp_ptr = base_begin;
-    base_end = base_begin + strlen(string_path);
-
-    while (base_end > base_begin && separator == *(base_end - 1)) {
-        base_end--;
-    }
-
-    while (temp_ptr < base_end) {
-        if (separator == *temp_ptr) {
-            base_begin = temp_ptr + 1;
-        }
-        temp_ptr ++;
-    }
-
-    // If the name component ends in suffix this will also be cut off.
-    if (string_suffix) {
-        int suffix_len = strlen(string_suffix);
-        temp_ptr = base_end - suffix_len;
-        if (temp_ptr > base_begin &&
-            0 == strncmp(string_suffix, temp_ptr, suffix_len)) {
-            base_end = temp_ptr;
+        // Get the levels
+        if (! purc_variant_cast_to_ulongint (argv[1], &levels, false)) {
+            purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+            return PURC_VARIANT_INVALID;
         }
     }
 
-    ret_string = purc_variant_make_string_ex(base_begin,
-            (base_end - base_begin), true);
+    dir_begin = string_path;
+    dir_end = dir_begin + strlen(string_path);
+
+    while (separator != *dir_begin && '\0' != *dir_begin) {
+        dir_begin ++;
+    }
+
+    do {
+        temp_ptr = dir_end;
+        while (temp_ptr >= dir_begin && separator == *temp_ptr) {
+            temp_ptr--;
+        }
+        while (temp_ptr >= dir_begin && separator != *temp_ptr) {
+            temp_ptr--;
+        }
+        if (temp_ptr <= dir_begin) {
+            dir_end = dir_begin;
+            break;
+        }
+        dir_end = temp_ptr;
+    }
+    while (levels --);
+
+    ret_string = purc_variant_make_string_ex(string_path,
+            (dir_end - string_path), true);
     return ret_string;
 }
 
