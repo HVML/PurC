@@ -449,13 +449,10 @@ TEST(dvobjs, dvobjs_fs_basename)
     get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
             &nr_reserved_before);
 
-    const char *env;
-    env = "DVOBJS_SO_PATH";
     setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     purc_variant_t fs = purc_variant_load_dvobj_from_so (NULL, "FS");
     ASSERT_NE(fs, nullptr);
     ASSERT_EQ(purc_variant_is_object (fs), true);
-
 
     purc_variant_t dynamic = purc_variant_object_get_by_ckey (fs, "basename");
     ASSERT_NE(dynamic, nullptr);
@@ -464,12 +461,6 @@ TEST(dvobjs, dvobjs_fs_basename)
     purc_dvariant_method func = NULL;
     func = purc_variant_dynamic_get_getter (dynamic);
     ASSERT_NE(func, nullptr);
-
-    char data_path[PATH_MAX+1];
-    env = "DVOBJS_TEST_PATH";
-    test_getpath_from_env_or_rel(data_path, sizeof(data_path),
-        env, "test_files");
-    std::cerr << "env: " << env << "=" << data_path << std::endl;
 
 
     printf ("TEST basenagme: nr_args = 0, param = NULL:\n");
@@ -566,6 +557,46 @@ TEST(dvobjs, dvobjs_fs_basename)
 // chgrp
 TEST(dvobjs, dvobjs_fs_chgrp)
 {
+    //purc_variant_t param[MAX_PARAM_NR];
+    //purc_variant_t ret_var = NULL;
+    size_t sz_total_mem_before = 0;
+    size_t sz_total_values_before = 0;
+    size_t nr_reserved_before = 0;
+    //size_t sz_total_mem_after = 0;
+    //size_t sz_total_values_after = 0;
+    //size_t nr_reserved_after = 0;
+    //const char *func_result = NULL;
+
+    purc_instance_extra_info info = {};
+    int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
+            "dvobjs", &info);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
+            &nr_reserved_before);
+
+    const char *env;
+    env = "DVOBJS_SO_PATH";
+    setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
+    purc_variant_t fs = purc_variant_load_dvobj_from_so (NULL, "FS");
+    ASSERT_NE(fs, nullptr);
+    ASSERT_EQ(purc_variant_is_object (fs), true);
+
+
+    purc_variant_t dynamic = purc_variant_object_get_by_ckey (fs, "chgrp");
+    ASSERT_NE(dynamic, nullptr);
+    ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
+
+    purc_dvariant_method func = NULL;
+    func = purc_variant_dynamic_get_getter (dynamic);
+    ASSERT_NE(func, nullptr);
+
+    char data_path[PATH_MAX+1];
+    env = "DVOBJS_TEST_PATH";
+    test_getpath_from_env_or_rel(data_path, sizeof(data_path),
+        env, "test_files");
+    std::cerr << "env: " << env << "=" << data_path << std::endl;
+
 }
 
 // chmod
