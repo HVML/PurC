@@ -89,7 +89,10 @@ public:
 
     void stop();
     void cancel();
-    purc_variant_t getRequestId() { return m_callback->req_id; }
+    purc_variant_t getRequestId()
+    {
+        return m_callback ? m_callback->req_id : PURC_VARIANT_INVALID;
+    }
 
     void wait(uint32_t timeout);
     void wakeUp(void);
@@ -126,6 +129,7 @@ private:
 
     RunLoop* m_runloop;
     struct pcfetcher_callback_info *m_callback;
+    WorkQueue* m_workQueue;
 };
 
 

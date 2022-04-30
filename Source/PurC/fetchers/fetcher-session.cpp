@@ -69,6 +69,7 @@ PcFetcherSession::PcFetcherSession(uint64_t sessionId,
     , m_req_id(0)
     , m_is_async(false)
     , m_connection(IPC::Connection::createClientConnection(identifier, *this, queue))
+    , m_workQueue(queue)
 {
     m_callback = create_callback_info();
     if (m_callback == NULL) {
@@ -225,6 +226,7 @@ void PcFetcherSession::stop()
     m_callback->header.ret_code = RESP_CODE_USER_STOP;
     m_callback->handler(m_callback->req_id, m_callback->ctxt,
             &m_callback->header, NULL);
+    m_callback->handler = nullptr;
 }
 
 void PcFetcherSession::cancel()
@@ -236,6 +238,7 @@ void PcFetcherSession::cancel()
     m_callback->header.ret_code = RESP_CODE_USER_CANCEL;
     m_callback->handler(m_callback->req_id, m_callback->ctxt,
             &m_callback->header, NULL);
+    m_callback->handler = nullptr;
 }
 
 void PcFetcherSession::wait(uint32_t timeout)
@@ -338,14 +341,24 @@ void PcFetcherSession::didFinishResourceLoad(
             if (m_callback->rws) {
                 purc_rwstream_seek(m_callback->rws, 0, SEEK_SET);
             }
-            struct pcfetcher_callback_info *info = m_callback;
-            m_callback = NULL;
-            m_runloop->dispatch([info] {
-                info->handler(info->req_id, info->ctxt, &info->header,
-                        info->rws);
-                info->rws = NULL;
-                destroy_callback_info(info);
-            });
+            if (m_workQueue) {
+                m_workQueue->dispatch([loop=m_runloop, info=m_callback] {
+                    loop->dispatch([info] {
+                        if (info->handler) {
+                            info->handler(info->req_id, info->ctxt,
+                                    &info->header, info->rws);
+                            info->rws = NULL;
+                        }
+                        });
+                    });
+            }
+            else {
+                m_runloop->dispatch([info=m_callback] {
+                        info->handler(info->req_id, info->ctxt, &info->header,
+                                info->rws);
+                        info->rws = NULL;
+                        });
+            }
         }
     }
     else {
@@ -371,14 +384,24 @@ void PcFetcherSession::didFailResourceLoad(const ResourceError& error)
             if (m_callback->rws) {
                 purc_rwstream_seek(m_callback->rws, 0, SEEK_SET);
             }
-            struct pcfetcher_callback_info *info = m_callback;
-            m_callback = NULL;
-            m_runloop->dispatch([info] {
-                info->handler(info->req_id, info->ctxt, &info->header,
-                        info->rws);
-                info->rws = NULL;
-                destroy_callback_info(info);
-            });
+            if (m_workQueue) {
+                m_workQueue->dispatch([loop=m_runloop, info=m_callback] {
+                    loop->dispatch([info] {
+                        if (info->handler) {
+                            info->handler(info->req_id, info->ctxt,
+                                    &info->header, info->rws);
+                            info->rws = NULL;
+                        }
+                        });
+                    });
+            }
+            else {
+                m_runloop->dispatch([info=m_callback] {
+                        info->handler(info->req_id, info->ctxt, &info->header,
+                                info->rws);
+                        info->rws = NULL;
+                        });
+            }
         }
     }
     else {

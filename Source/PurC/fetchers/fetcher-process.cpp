@@ -54,6 +54,7 @@ PcFetcherProcess::PcFetcherProcess(struct pcfetcher* fetcher,
 
 PcFetcherProcess::~PcFetcherProcess()
 {
+    m_workQueue = nullptr;
     reset();
 }
 
@@ -315,7 +316,9 @@ void PcFetcherProcess::asyncRespHandler(purc_variant_t request_id, void *ctxt,
     struct process_async_data *data = (struct process_async_data*)ctxt;
     data->process->m_asyncSessionWrap.removeFirst(data);
     data->handler(request_id, data->ctxt, resp_header, resp);
-    delete data->session;
+    data->process->m_workQueue->dispatch([session = data->session] {
+        delete session;
+    });
     delete data;
 }
 
@@ -330,7 +333,9 @@ purc_rwstream_t PcFetcherProcess::requestSync(
     PcFetcherSession* session = createSession();
     purc_rwstream_t rws = session->requestSync(base_uri, url, method,
             params, timeout, resp_header);
-    delete session;
+    m_workQueue->dispatch([session] {
+        delete session;
+    });
     return rws;
 }
 

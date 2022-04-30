@@ -66,7 +66,6 @@ struct pcfetcher* pcfetcher_remote_init(size_t max_conns, size_t cache_quota)
 
 int pcfetcher_remote_term(struct pcfetcher* fetcher)
 {
-    fprintf(stderr, "############################# begin term fetcher\n");
     struct pcfetcher_remote* remote = (struct pcfetcher_remote*)fetcher;
     delete remote->process;
 
@@ -74,7 +73,6 @@ int pcfetcher_remote_term(struct pcfetcher* fetcher)
         free(remote->base_uri);
     }
     free(remote);
-    fprintf(stderr, "############################# end term fetcher\n");
 
     return 0;
 }
