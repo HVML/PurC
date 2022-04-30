@@ -617,6 +617,127 @@ TEST(dvobjs, dvobjs_fs_copy)
 // dirname
 TEST(dvobjs, dvobjs_fs_dirname)
 {
+    purc_variant_t param[MAX_PARAM_NR];
+    purc_variant_t ret_var = NULL;
+    size_t sz_total_mem_before = 0;
+    size_t sz_total_values_before = 0;
+    size_t nr_reserved_before = 0;
+    size_t sz_total_mem_after = 0;
+    size_t sz_total_values_after = 0;
+    size_t nr_reserved_after = 0;
+    const char *func_result = NULL;
+
+    purc_instance_extra_info info = {};
+    int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
+            "dvobjs", &info);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
+            &nr_reserved_before);
+
+    setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
+    purc_variant_t fs = purc_variant_load_dvobj_from_so (NULL, "FS");
+    ASSERT_NE(fs, nullptr);
+    ASSERT_EQ(purc_variant_is_object (fs), true);
+
+    purc_variant_t dynamic = purc_variant_object_get_by_ckey (fs, "basename");
+    ASSERT_NE(dynamic, nullptr);
+    ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
+
+    purc_dvariant_method func = NULL;
+    func = purc_variant_dynamic_get_getter (dynamic);
+    ASSERT_NE(func, nullptr);
+
+
+    printf ("TEST basenagme: nr_args = 0, param = NULL:\n");
+    ret_var = func (NULL, 0, param, false);
+    ASSERT_EQ(ret_var, nullptr);
+    printf("\t\tReturn PURC_VARIANT_INVALID\n");
+
+    // 1) basename("/etc/sudoers.d", ".d")
+    // 1) sudoers
+    printf ("TEST basename: nr_args = 2, param[0] = '/etc/sudoers.d', param[1] = '.d':\n");
+    param[0] = purc_variant_make_string ("/etc/sudoers.d", true);
+    param[1] = purc_variant_make_string (".d", true);
+    ret_var = func (NULL, 2, param, false);
+    ASSERT_NE(ret_var, nullptr);
+    func_result = purc_variant_get_string_const(ret_var);
+    ASSERT_NE(func_result, nullptr);
+    ASSERT_STREQ (func_result, "sudoers");
+    purc_variant_unref(param[0]);
+    purc_variant_unref(param[1]);
+    purc_variant_unref(ret_var);
+
+    // 2) basename("/etc/sudoers.d")
+    // 2) sudoers.d
+    printf ("TEST basename: nr_args = 1, param[0] = '/etc/sudoers.d':\n");
+    param[0] = purc_variant_make_string ("/etc/sudoers.d", true);
+    ret_var = func (NULL, 1, param, false);
+    ASSERT_NE(ret_var, nullptr);
+    func_result = purc_variant_get_string_const(ret_var);
+    ASSERT_NE(func_result, nullptr);
+    ASSERT_STREQ (func_result, "sudoers.d");
+    purc_variant_unref(param[0]);
+    purc_variant_unref(ret_var);
+
+    // 3) basename("/etc/passwd")
+    // 3) passwd
+    printf ("TEST basename: nr_args = 1, param[0] = '/etc/passwd':\n");
+    param[0] = purc_variant_make_string ("/etc/passwd", true);
+    ret_var = func (NULL, 1, param, false);
+    ASSERT_NE(ret_var, nullptr);
+    func_result = purc_variant_get_string_const(ret_var);
+    ASSERT_NE(func_result, nullptr);
+    ASSERT_STREQ (func_result, "passwd");
+    purc_variant_unref(param[0]);
+    purc_variant_unref(ret_var);
+
+    // 4) basename("/etc/")
+    // 4) etc
+    printf ("TEST basename: nr_args = 1, param[0] = '/etc/':\n");
+    param[0] = purc_variant_make_string ("/etc/", true);
+    ret_var = func (NULL, 1, param, false);
+    ASSERT_NE(ret_var, nullptr);
+    func_result = purc_variant_get_string_const(ret_var);
+    ASSERT_NE(func_result, nullptr);
+    ASSERT_STREQ (func_result, "etc");
+    purc_variant_unref(param[0]);
+    purc_variant_unref(ret_var);
+
+    // 5) basename(".")
+    // 5) .
+    printf ("TEST basename: nr_args = 1, param[0] = '.':\n");
+    param[0] = purc_variant_make_string (".", true);
+    ret_var = func (NULL, 1, param, false);
+    ASSERT_NE(ret_var, nullptr);
+    func_result = purc_variant_get_string_const(ret_var);
+    ASSERT_NE(func_result, nullptr);
+    ASSERT_STREQ (func_result, ".");
+    purc_variant_unref(param[0]);
+    purc_variant_unref(ret_var);
+
+    // 6) basename("/")
+    // 6) 
+    printf ("TEST basename: nr_args = 1, param[0] = '/':\n");
+    param[0] = purc_variant_make_string ("/", true);
+    ret_var = func (NULL, 1, param, false);
+    ASSERT_NE(ret_var, nullptr);
+    func_result = purc_variant_get_string_const(ret_var);
+    ASSERT_NE(func_result, nullptr);
+    ASSERT_STREQ (func_result, "");
+    purc_variant_unref(param[0]);
+    purc_variant_unref(ret_var);
+
+    // Clean up
+    purc_variant_unload_dvobj (fs);
+
+    get_variant_total_info (&sz_total_mem_after,
+            &sz_total_values_after, &nr_reserved_after);
+    ASSERT_EQ(sz_total_values_before, sz_total_values_after);
+    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
+                nr_reserved_before) * sizeof(purc_variant));
+
+    purc_cleanup ();
 }
 
 // disk_usage
