@@ -1282,7 +1282,7 @@ dirname_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     // On Linux, slash (/) is used as directory separator character.
     const char separator = '/';
     const char *string_path = NULL;
-    uint64_t levels = 0;
+    uint64_t levels = 1;
     const char *dir_begin = NULL;
     const char *temp_ptr = NULL;
     const char *dir_end = NULL;
@@ -1308,13 +1308,13 @@ dirname_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     dir_begin = string_path;
-    dir_end = dir_begin + strlen(string_path);
+    dir_end = dir_begin + strlen(string_path) - 1;
 
     while (separator != *dir_begin && '\0' != *dir_begin) {
         dir_begin ++;
     }
 
-    do {
+    while (levels --) {
         temp_ptr = dir_end;
         while (temp_ptr >= dir_begin && separator == *temp_ptr) {
             temp_ptr--;
@@ -1323,12 +1323,16 @@ dirname_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             temp_ptr--;
         }
         if (temp_ptr <= dir_begin) {
-            dir_end = dir_begin;
+            if (separator == *dir_begin) {
+                dir_end = dir_begin + 1;
+            }
+            else {
+                dir_end = dir_begin;
+            }
             break;
         }
         dir_end = temp_ptr;
     }
-    while (levels --);
 
     ret_string = purc_variant_make_string_ex(string_path,
             (dir_end - string_path), true);

@@ -557,6 +557,7 @@ TEST(dvobjs, dvobjs_fs_basename)
 // chgrp
 TEST(dvobjs, dvobjs_fs_chgrp)
 {
+/*
     //purc_variant_t param[MAX_PARAM_NR];
     //purc_variant_t ret_var = NULL;
     size_t sz_total_mem_before = 0;
@@ -596,7 +597,7 @@ TEST(dvobjs, dvobjs_fs_chgrp)
     test_getpath_from_env_or_rel(data_path, sizeof(data_path),
         env, "test_files");
     std::cerr << "env: " << env << "=" << data_path << std::endl;
-
+*/
 }
 
 // chmod
@@ -640,7 +641,7 @@ TEST(dvobjs, dvobjs_fs_dirname)
     ASSERT_NE(fs, nullptr);
     ASSERT_EQ(purc_variant_is_object (fs), true);
 
-    purc_variant_t dynamic = purc_variant_object_get_by_ckey (fs, "basename");
+    purc_variant_t dynamic = purc_variant_object_get_by_ckey (fs, "dirname");
     ASSERT_NE(dynamic, nullptr);
     ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
 
@@ -654,58 +655,8 @@ TEST(dvobjs, dvobjs_fs_dirname)
     ASSERT_EQ(ret_var, nullptr);
     printf("\t\tReturn PURC_VARIANT_INVALID\n");
 
-    // 1) basename("/etc/sudoers.d", ".d")
-    // 1) sudoers
-    printf ("TEST basename: nr_args = 2, param[0] = '/etc/sudoers.d', param[1] = '.d':\n");
-    param[0] = purc_variant_make_string ("/etc/sudoers.d", true);
-    param[1] = purc_variant_make_string (".d", true);
-    ret_var = func (NULL, 2, param, false);
-    ASSERT_NE(ret_var, nullptr);
-    func_result = purc_variant_get_string_const(ret_var);
-    ASSERT_NE(func_result, nullptr);
-    ASSERT_STREQ (func_result, "sudoers");
-    purc_variant_unref(param[0]);
-    purc_variant_unref(param[1]);
-    purc_variant_unref(ret_var);
-
-    // 2) basename("/etc/sudoers.d")
-    // 2) sudoers.d
-    printf ("TEST basename: nr_args = 1, param[0] = '/etc/sudoers.d':\n");
-    param[0] = purc_variant_make_string ("/etc/sudoers.d", true);
-    ret_var = func (NULL, 1, param, false);
-    ASSERT_NE(ret_var, nullptr);
-    func_result = purc_variant_get_string_const(ret_var);
-    ASSERT_NE(func_result, nullptr);
-    ASSERT_STREQ (func_result, "sudoers.d");
-    purc_variant_unref(param[0]);
-    purc_variant_unref(ret_var);
-
-    // 3) basename("/etc/passwd")
-    // 3) passwd
-    printf ("TEST basename: nr_args = 1, param[0] = '/etc/passwd':\n");
-    param[0] = purc_variant_make_string ("/etc/passwd", true);
-    ret_var = func (NULL, 1, param, false);
-    ASSERT_NE(ret_var, nullptr);
-    func_result = purc_variant_get_string_const(ret_var);
-    ASSERT_NE(func_result, nullptr);
-    ASSERT_STREQ (func_result, "passwd");
-    purc_variant_unref(param[0]);
-    purc_variant_unref(ret_var);
-
-    // 4) basename("/etc/")
-    // 4) etc
-    printf ("TEST basename: nr_args = 1, param[0] = '/etc/':\n");
-    param[0] = purc_variant_make_string ("/etc/", true);
-    ret_var = func (NULL, 1, param, false);
-    ASSERT_NE(ret_var, nullptr);
-    func_result = purc_variant_get_string_const(ret_var);
-    ASSERT_NE(func_result, nullptr);
-    ASSERT_STREQ (func_result, "etc");
-    purc_variant_unref(param[0]);
-    purc_variant_unref(ret_var);
-
-    // 5) basename(".")
-    // 5) .
+    // 1) dirname(".")
+    // 1) .
     printf ("TEST basename: nr_args = 1, param[0] = '.':\n");
     param[0] = purc_variant_make_string (".", true);
     ret_var = func (NULL, 1, param, false);
@@ -716,17 +667,68 @@ TEST(dvobjs, dvobjs_fs_dirname)
     purc_variant_unref(param[0]);
     purc_variant_unref(ret_var);
 
-    // 6) basename("/")
-    // 6) 
+    // 2) dirname("/")
+    // 2) /
     printf ("TEST basename: nr_args = 1, param[0] = '/':\n");
     param[0] = purc_variant_make_string ("/", true);
     ret_var = func (NULL, 1, param, false);
     ASSERT_NE(ret_var, nullptr);
     func_result = purc_variant_get_string_const(ret_var);
     ASSERT_NE(func_result, nullptr);
-    ASSERT_STREQ (func_result, "");
+    ASSERT_STREQ (func_result, "/");
     purc_variant_unref(param[0]);
     purc_variant_unref(ret_var);
+
+    // 3) dirname("/etc/passwd")
+    // 3) /etc
+    printf ("TEST basename: nr_args = 1, param[0] = '/etc/passwd':\n");
+    param[0] = purc_variant_make_string ("/etc/passwd", true);
+    ret_var = func (NULL, 1, param, false);
+    ASSERT_NE(ret_var, nullptr);
+    func_result = purc_variant_get_string_const(ret_var);
+    ASSERT_NE(func_result, nullptr);
+    ASSERT_STREQ (func_result, "/etc");
+    purc_variant_unref(param[0]);
+    purc_variant_unref(ret_var);
+
+    // 4) dirname("/etc/")
+    // 4) /
+    printf ("TEST basename: nr_args = 1, param[0] = '/etc/':\n");
+    param[0] = purc_variant_make_string ("/etc/", true);
+    ret_var = func (NULL, 1, param, false);
+    ASSERT_NE(ret_var, nullptr);
+    func_result = purc_variant_get_string_const(ret_var);
+    ASSERT_NE(func_result, nullptr);
+    ASSERT_STREQ (func_result, "/");
+    purc_variant_unref(param[0]);
+    purc_variant_unref(ret_var);
+
+    // 5) dirname("../hello")
+    // 5) ../
+    printf ("TEST basename: nr_args = 1, param[0] = '../hello':\n");
+    param[0] = purc_variant_make_string ("../hello", true);
+    ret_var = func (NULL, 1, param, false);
+    ASSERT_NE(ret_var, nullptr);
+    func_result = purc_variant_get_string_const(ret_var);
+    ASSERT_NE(func_result, nullptr);
+    ASSERT_STREQ (func_result, "../");
+    purc_variant_unref(param[0]);
+    purc_variant_unref(ret_var);
+
+    // 6) dirname("/usr/local/lib", 2)
+    // 6) /usr
+    printf ("TEST basename: nr_args = 2, param[0] = '/usr/local/lib', param[1] = 2:\n");
+    param[0] = purc_variant_make_string ("/usr/local/lib", true);
+    param[1] = purc_variant_make_ulongint (2);
+    ret_var = func (NULL, 2, param, false);
+    ASSERT_NE(ret_var, nullptr);
+    func_result = purc_variant_get_string_const(ret_var);
+    ASSERT_NE(func_result, nullptr);
+    ASSERT_STREQ (func_result, "/usr");
+    purc_variant_unref(param[0]);
+    purc_variant_unref(param[1]);
+    purc_variant_unref(ret_var);
+
 
     // Clean up
     purc_variant_unload_dvobj (fs);
