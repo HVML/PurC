@@ -4,7 +4,15 @@
 the abbreviation of `Purring Cat`, while Purring Cat is the nickname
 and the mascot of HVML.
 
-- [Introduction to HVML](#introduction-to-hvml)
+**Table of Contents**
+
+[//]:# (START OF TOC)
+
+- [Introduction](#introduction)
+- [What's HVML](#whats-hvml)
+   + [Problems](#problems)
+   + [Our Solution](#our-solution)
+   + [Application Framework](#application-framework)
 - [Source Tree of PurC](#source-tree-of-purc)
 - [Current Status](#current-status)
 - [Building](#building)
@@ -14,6 +22,8 @@ and the mascot of HVML.
 - [Authors and Contributors](#authors-and-contributors)
 - [Copying](#copying)
 - [Tradmarks](#tradmarks)
+
+[//]:# (END OF TOC)
 
 ## Introduction
 
@@ -56,7 +66,7 @@ a programming language to rapidly develop GUI applications based on Web
 front-end technology in the C/C++ runtime environment, but also use HVML
 as a general script language.
 
-### Background
+### Problems
 
 With the development of Internet technology and applications, the Web front-end
 development technology around HTML/CSS/JavaScript has evolved
@@ -73,9 +83,9 @@ In the virtual DOM tree, some process control based on data is realized
 through some special attributes, such as conditions and loops.
 virtual DOM technology provides the following benefits:
 
-1. Because the script does not directly manipulate the real DOM tree. On the one hand,
+1. The script does not directly manipulate the real DOM tree. On the one hand,
    the existing framework simplifies the complexity of front-end development,
-   on the other hand,  it reduces the frequent operations on the DOM tree through
+   on the other hand, it reduces the frequent operations on the DOM tree through
    dynamic modification of page content by optimizing the operation of the real DOM tree,
    thus improving page rendering efficiency and user experience.
 2. With the virtual DOM technology, the modification of a certain data
@@ -107,14 +117,18 @@ achieved great success, but have the following deficiencies and shortcomings:
 </div>
 ```
 
-### Goals
+### Our Solution
 
-HVML is a general purpose dynamic markup language, mainly used to generate
-actual XML/HTML document content. HVML realizes the ability to
-dynamically generate and update XML/HTML documents through
-data-driven action tags and preposition attributes; HVML also provides
-methods to integrate with existing programming languages, such as C/C++,
-Python, Lua, and JavaScript, thus supporting more complex functions.
+HVML is a programmable markup language. Like HTML, HVML uses markups to define
+program structure and data, but unlike HTML, HVML is programmable and dynamic.
+
+HVML realizes the dynamic generation and update function of data and XML/HTML
+documents through a limited number of action tags and dynamic JSON expressions
+that can be used to define attributes and content; HVML also provides mechanisms
+to interact with the runtime of an existing programming language, such as
+C/C++, Python, Lua, etc., so as to provide strong technical support for these
+programming languages to utilize Web front-end technology outside the browser.
+From this perspective, HVML can also be regarded as a glue language.
 
 The classical `helloworld` program in HVML looks like:
 
@@ -122,9 +136,11 @@ The classical `helloworld` program in HVML looks like:
 <!DOCTYPE hvml>
 <hvml target="html">
     <head>
-        <init on="$T.map" to="unite" from="https://foo.bar/messages/$_SYSTEM.locale" />
-
-        <title>Hello, world!</title>
+        <update on="$T.map" to="displace">
+        [
+            { "Hello, world!": "世界，您好！" }
+        ]
+        </update>
     </head>
 
     <body>
@@ -134,40 +150,69 @@ The classical `helloworld` program in HVML looks like:
 </hvml>
 ```
 
-Or,
+In essence, HVML provides a new way of thinking to solve the previous problem:
 
-```html
-<!DOCTYPE hvml>
-<hvml target="html">
-    <head>
-        <title>Hello, world!</title>
+- First, it introduces web front-end technologies (HTML, XML, DOM, CSS, etc.)
+  into other programming languages, rather than replacing other programming
+  languages with JavaScript.
+- Second, it uses an HTML-like markup language to manipulate elements,
+  attributes, and styles in Web pages, rather than JavaScript.
+- In addition, in the design of HVML, we intentionally use the concept of
+  data-driven, so that HVML can be easily combined with other programming
+  languages and various network connection protocols, such as data bus,
+  message protocol, etc. In this way, developers use a programming language
+  with which is familiar by them to develop the non-GUI part of the application,
+  and all the functions of manipulating the GUI are handed over to HVML, and
+  the modules are driven by the data flowing between them. While HVML provides
+  the abstract processing capability of the data flow.
 
-        <init as="messages">
-            {
-              "zh_CN" : "世界，您好！",
-              "en_US" : "Hello, world!"
-            }
-        </init>
-    </head>
+Although HVML was originally designed to improve the efficiency of GUI
+application development, it can actually be used in more general scenarios -
+HVML can be used as long as the output of the program can be abstracted into
+one or more tree structures; even we can use HVML like a normal scripting
+language.
 
-    <body>
-        <p>
-            <choose on="$messages" by="KEY: $_SYSTEM.locale">
-                <update on="$@" textContent="$?" />
-                <except type="KeyError">
-                    No valid locale defined.
-                </except>
-            </choose>
-        </p>
-    </body>
-</hvml>
-```
+Essentially, HVML is a new-style programming language with a higher level of
+abstraction than common script languages such as JavaScript or Python.
+Its main features are:
 
-For more information about HVML, please refer to the documents in the following repository:
+- Simple design. HVML defines the complete set of instructions for operating
+  an abstract stack-based virtual machine using only a dozen tags.
+  Each line of code has clear semantics through verb tags, preposition
+  attributes, and adverb attributes that conform to English expression habits.
+  This will help developers write program code with excellent readability.
+- Data driven. On the one hand, HVML provides methods for implementing
+  functions by manipulating data. For example, we can use the update action to
+  manipulate a field in the timer array to turn a timer on or off without
+  calling the corresponding interface. On the other hand, the HVML language is
+  committed to connecting different modules in the system through a unified data
+  expression, rather than realizing the interoperation between modules through
+  complex interface calls. These two methods can effectively avoid the interface
+  explosion problem existing in traditional programming languages. To achieve
+  the above goals, HVML provides extended data types and flexible expression
+  processing capabilities on top of JSON, a widely used abstract data
+  representation.
+- Inherent event-driven mechanism. Unlike other programming languages, the HVML
+  language provides language-level mechanisms for observing data, events, and
+  even observing changes in the result of an expression. On this basis,
+  developers can easily implement concurrency or asynchronous programming that
+  is difficult to manage in other programming languages without caring about
+  the underlying implementation details.
+- New application framework. Through HVML's unique application framework, we
+  delegate performance-critical data processing to an external program or server,
+  and the interaction with the user is handled by an independent renderer, and
+  the HVML program is responsible for gluing these different system components.
+  On the one hand, HVML solves the problem of difficult and efficient
+  interoperability between system components developed in different programming
+  languages, so that the advantages of each component can be fully utilized and
+  the value of existing software assets can be protected; on the other hand,
+  the application framework provided by HVML is adopted. Develop applications
+  to minimize the coupling problem between different components.
 
-- [HVML Documents](https://gitlab.fmsoft.cn/hvml/hvml-docs)
-
-For more information about HVML, please refer to <https://github.com/HVML>.
+In short, HVML provides a programming model that is different from traditional
+programming languages. On the basis of data-driven, HVML provides a more
+systematic and complete low-code (which means using less code to write programs)
+programming method.
 
 ### Application Framework
 
