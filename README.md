@@ -15,17 +15,56 @@ and the mascot of HVML.
 - [Copying](#copying)
 - [Tradmarks](#tradmarks)
 
-## Introduction to HVML
+## Introduction
+
+During the development of [HybridOS], [Vincent Wei] proposed a new-style,
+general-purpose, and easy-to-learn programming language called `HVML`.
+
+`PurC` is the Prime hVml inteRpreter for C language. It is also
+the abbreviation of `Purring Cat`, while Purring Cat is the nickname
+and the mascot of HVML.
+
+PurC implements all features defined by [HVML Specifiction V1.0] in C language.
+PurC also implements all predefined dynamic variables defined by
+[HVML Predefined Variables V1.0] in C language.
+
+Now, PurC provides support for Linux and macOS. The support for Windows is
+on the way.
+
+You can use PurC to run a HVML program by using the command line tool `purc`, or
+use PurC as a library to build your own HVML interpreter. We release PurC under
+LGPLv3, so it is free for commercial use if you follow the terms of LGPLv3.
+
+For documents or open source tools of HVML, please refer to the following repositories:
+
+- HVML Documents: <https://github.com/HVML/hvml-docs>.
+- PurC (the Prime hVml inteRpreter for C language): <https://github.com/HVML/purc>.
+- PurC Fetcher (the remote data fetcher for PurC): <https://github.com/HVML/purc-fetcher>.
+- PurCMC (an HVML renderer in text-mode): <https://github.com/HVML/purc-midnight-commander>.
+- xGUI Pro (an advanced HVML renderer based on WebKit): <https://github.com/HVML/xgui-pro>.
+
+## What's HVML
+
+The original design goal of HVML is to allow developers who are familiar with
+C/C++, Python, or other programming languages to easily develop GUI applications
+by using web front-end technologies (such as HTML/SVG, DOM and CSS), instead of
+using JavaScript programming language in the browser or Node.js.
+
+We achieved this design goal and also designed HVML as a new-style and
+general-purpose programming language. Now, we can not only use HVML as
+a programming language to rapidly develop GUI applications based on Web
+front-end technology in the C/C++ runtime environment, but also use HVML
+as a general script language.
+
+### Background
 
 With the development of Internet technology and applications, the Web front-end
 development technology around HTML/CSS/JavaScript has evolved
-rapidly, and it can even be described as "thousand miles in a day". Five years ago,
-front-end frameworks based on jQuery and Bootstrap became popular. Since 2019,
-frameworks based on virtual DOM (Document Object Model) technology have been favored
-by front-end developers, such as the famous React.js (https://reactjs.org/),
-Vue.js (https://cn.vuejs.org) etc. It is worth noting that WeChat
-mini-programs and quick-apps etc, also use the virtual DOM technology
-to build application frameworks at the same time.
+rapidly, and it can even be described as "thousand miles in a day".
+Five years ago, front-end frameworks based on jQuery and Bootstrap became popular.
+Since 2019, frameworks based on virtual DOM (Document Object Model) technology
+have been favored by front-end developers, such as the famous [React.js] and
+[Vue.js] etc.
 
 The so-called "virtual DOM" refers to a front-end application that uses
 JavaScript to create and maintain a virtual DOM tree.
@@ -35,7 +74,7 @@ through some special attributes, such as conditions and loops.
 virtual DOM technology provides the following benefits:
 
 1. Because the script does not directly manipulate the real DOM tree. On the one hand,
-   the existing framework    simplifies the complexity of front-end development,
+   the existing framework simplifies the complexity of front-end development,
    on the other hand,  it reduces the frequent operations on the DOM tree through
    dynamic modification of page content by optimizing the operation of the real DOM tree,
    thus improving page rendering efficiency and user experience.
@@ -45,8 +84,8 @@ virtual DOM technology provides the following benefits:
    interface to operate the DOM tree. This technology provides so-called
    "responsive" programming, which greatly reduces the workload of developers.
 
-Front-end frameworks represented by React.js and Vue.js have achieved
-great success, but have the following deficiencies and shortcomings:
+On the other side, front-end frameworks represented by React.js and Vue.js have
+achieved great success, but have the following deficiencies and shortcomings:
 
 1. These technologies are based on mature Web standards and require browsers
    that fully support the relevant front-end specifications to run, so they
@@ -68,10 +107,8 @@ great success, but have the following deficiencies and shortcomings:
 </div>
 ```
 
-During the development of [HybridOS](https://hybridos.fmsoft.cn),
-[Vincent Wei](https://github.com/VincentWei) proposed a complete,
-general purpose, elegant and easy-to-learn markup language, HVML (the
-Hybrid Virtual Markup Language), based on the idea of virtual DOM.
+### Goals
+
 HVML is a general purpose dynamic markup language, mainly used to generate
 actual XML/HTML document content. HVML realizes the ability to
 dynamically generate and update XML/HTML documents through
@@ -85,7 +122,7 @@ The classical `helloworld` program in HVML looks like:
 <!DOCTYPE hvml>
 <hvml target="html">
     <head>
-        <init on="$T.map" to="displace" from="https://foo.bar/messages/$_SYSTEM.locale" />
+        <init on="$T.map" to="unite" from="https://foo.bar/messages/$_SYSTEM.locale" />
 
         <title>Hello, world!</title>
     </head>
@@ -129,6 +166,50 @@ Or,
 For more information about HVML, please refer to the documents in the following repository:
 
 - [HVML Documents](https://gitlab.fmsoft.cn/hvml/hvml-docs)
+
+For more information about HVML, please refer to <https://github.com/HVML>.
+
+### Application Framework
+
+When we used HVML to build the framework for GUI applications,
+we got a totally different framework other than Java, C#, or Swift.
+
+In a complete HVML-based application framework, a standalone UI renderer
+is usually included. Developers write HVML programs to manipulate the page
+content that describes the user interface, and the page content is finally
+processed by the renderer and displayed on the screen. The HVML program runs
+in the HVML interpreter, which can interact easily with the runtime environment
+of other existing programming languages. The HVML program receives data or
+events generated by other foreign programs or the renderer, and converts it
+into the description of the UI or changes of UI according to the instructions
+of the HVML program.
+
+With this design, we separate all applications involving the GUI into two
+loose modules:
+
+- First, a data processing module independent of the user interface, developers
+can use any programming language and development tools they are familiar with
+to develop this module. For example, when it comes to artificial intelligence
+processing, developers choose C++ or Python; in C++ code, apart from loading
+HVML programs, developers do not need to consider anything related to interface
+rendering and interaction, such as creating a button or clicking a menu item.
+Developers only need to prepare the data needed to render the user interface
+in the C++ code, and these data are usually represented by JSON.
+
+- Second, one or more programs written in the HVML language (HVML programs) to
+complete the manipulation of the user interface. The HVML program generates
+the description information of the user interface according to the data provided
+by the data processing module, and updates the user interface according to the
+user's interaction or the calculation results obtained from the data processing
+module, or drives the data processing module to complete certain tasks according
+to the user's interaction.
+
+In this way, the HVML application framework liberates the code for manipulating
+interface elements from the tranditional design pattern of calling interfaces
+such as C/C++, Java, C#  and uses HVML code instead. HVML uses a tag language
+similar to HTML to manipulate interface elements. By hiding a lot of details,
+it reduces the program complexity caused by directly using low-level
+programming languages to manipulate interface elements.
 
 ## Source Tree of PurC
 
@@ -246,6 +327,7 @@ the source directories under `Source/Tools/`.
 [HybridOS Official Site]: https://hybridos.fmsoft.cn
 [HybridOS]: https://hybridos.fmsoft.cn
 
+[HVML]: https://github.com/HVML
 [MiniGUI]: http:/www.minigui.com
 [WebKit]: https://webkit.org
 [HTML 5.3]: https://www.w3.org/TR/html53/
@@ -255,3 +337,7 @@ the source directories under `Source/Tools/`.
 [CSS Box Model Module Level 3]: https://www.w3.org/TR/css-box-3/
 
 [Vincent Wei]: https://github.com/VincentWei
+
+[React.js]: https://reactjs.org
+[Vue.js]: https://vuejs.org
+
