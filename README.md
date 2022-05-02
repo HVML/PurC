@@ -69,19 +69,15 @@ as a general script language.
 ### Problems
 
 With the development of Internet technology and applications, the Web front-end
-development technology around HTML/CSS/JavaScript has evolved
-rapidly, and it can even be described as "thousand miles in a day".
-Five years ago, front-end frameworks based on jQuery and Bootstrap became popular.
+development technology around HTML/CSS/JavaScript has evolved rapidly.
 Since 2019, frameworks based on virtual DOM (Document Object Model) technology
-have been favored by front-end developers, such as the famous [React.js] and
-[Vue.js] etc.
+have been favored by front-end developers, such as [React.js] and [Vue.js].
 
 The so-called "virtual DOM" refers to a front-end application that uses
-JavaScript to create and maintain a virtual DOM tree.
-Application scripts do not directly manipulate the real DOM tree.
-In the virtual DOM tree, some process control based on data is realized
-through some special attributes, such as conditions and loops.
-virtual DOM technology provides the following benefits:
+JavaScript to create and maintain a virtual DOM tree, and the application
+scripts do not directly manipulate the real DOM tree.
+
+The virtual DOM technology provides the following benefits:
 
 1. The script does not directly manipulate the real DOM tree. On the one hand,
    the existing framework simplifies the complexity of front-end development,
@@ -100,13 +96,13 @@ achieved great success, but have the following deficiencies and shortcomings:
 1. These technologies are based on mature Web standards and require browsers
    that fully support the relevant front-end specifications to run, so they
    cannot be applied to other occasions. For example, if you want to use
-   this kind of technology in Python scripts, there is currently no solution;
-   another example is in traditional GUI application programming, you cannot benefit
-   from this technology.
-2. These technologies implement data-based conditions and loop flow controls
-   by introducing virtual attributes such as `v-if`, `v-else`, and `v-for`. However,
-   this method brings a sharp drop in code readability, which in turn brings drop of
-   code maintainability. Below is an example in Vue.js:
+   this kind of technology in Python scripts, there is currently no direct
+   solution; another example is in traditional GUI application programming,
+   the developers cannot benefit from this technology.
+2. These technologies implement data-based condition and loop flow controls
+   by introducing virtual attributes such as `v-if`, `v-else`, and `v-for`.
+   However, this method brings a sharp drop in code readability, which in turn
+   brings drop of code maintainability. Below is an example:
 
 ```html
 <div v-if="Math.random() > 0.5">
@@ -135,18 +131,15 @@ The classical `helloworld` program in HVML looks like:
 ```html
 <!DOCTYPE hvml>
 <hvml target="html">
-    <head>
-        <update on="$T.map" to="displace">
+  <body>
+    <update on="$T.map" to="displace">
         [
             { "Hello, world!": "世界，您好！" }
         ]
-        </update>
-    </head>
+    </update>
 
-    <body>
-        <p>$T.get("Hello, world!")</p>
-    </body>
-
+    <p>$T.get("Hello, world!")</p>
+  </body>
 </hvml>
 ```
 
@@ -258,8 +251,9 @@ programming languages to manipulate interface elements.
 
 ## Source Tree of PurC
 
-PurC implements the parser, the interpreter, and some built-in dynamic variant objects for HVML.
-It is mainly written in C/C++ language and provides bindings for Python.
+PurC implements the parser, the interpreter, and some built-in dynamic variant
+objects for HVML. It is mainly written in C/C++ language and will provide bindings
+for Python and other script languages.
 
 The source tree of PurC contains the following modules:
 
@@ -329,7 +323,7 @@ rm -rf build && cmake -DCMAKE_BUILD_TYPE=Debug -DPORT=Linux -B build && cmake --
 
 ## Copying
 
-Copyright (C) 2021 FMSoft (<https://www.fmsoft.cn>)
+Copyright (C) 2021, 2022 FMSoft (<https://www.fmsoft.cn>)
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -350,19 +344,19 @@ the source directories under `Source/Tools/`.
 
 ## Tradmarks
 
-1) `HVML` is a registered tradmark of Beijing FMSoft Technologies. Co., Ltd. in China and other contries or regions.
+1) `HVML` is a registered tradmark of [FMSoft Technologies] in China and other contries or regions.
 
 ![HVML](https://www.fmsoft.cn/application/files/8116/1931/8777/HVML256132.jpg)
 
-2) `呼噜猫` is a registered tradmark of Beijing FMSoft Technologies. Co., Ltd. in China and other contries or regions.
+2) `呼噜猫` is a registered tradmark of [FMSoft Technologies] in China and other contries or regions.
 
 ![呼噜猫](https://www.fmsoft.cn/application/files/8416/1931/8781/256132.jpg)
 
-3) `Purring Cat` is a tradmark of Beijing FMSoft Technologies. Co., Ltd. in China and other contries or regions.
+3) `Purring Cat` is a tradmark of [FMSoft Technologies] in China and other contries or regions.
 
 ![Purring Cat](https://www.fmsoft.cn/application/files/2816/1931/9258/PurringCat256132.jpg)
 
-4) `PurC` is a tradmark of Beijing FMSoft Technologies. Co., Ltd. in China and other contries or regions.
+4) `PurC` is a tradmark of [FMSoft Technologies] in China and other contries or regions.
 
 ![PurC](https://www.fmsoft.cn/application/files/5716/2813/0470/PurC256132.jpg)
 
