@@ -156,7 +156,7 @@ $STREAM.stdout.writelines('Hello, world!')
 ```
 
 This statement called the `writelines` method of `$STREAM.stdout`, and the
-method print the `Hello, world!` to STDOUT, i.e., your terminal.
+method printed the `Hello, world!` to STDOUT, i.e., your terminal.
 
 Now we rewrite the above program a little more complicated to have the following
 features:
