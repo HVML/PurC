@@ -386,3 +386,6 @@ the source directories under `Source/Tools/`.
 [React.js]: https://reactjs.org
 [Vue.js]: https://vuejs.org
 
+[HVML Specifiction V1.0]: https://github.com/HVML/hvml-docs/blob/master/zh/hvml-spec-v1.0-zh.md
+[HVML Predefined Variables V1.0]: https://github.com/HVML/hvml-docs/blob/master/zh/hvml-spec-predefined-variables-v1.0-zh.md
+
