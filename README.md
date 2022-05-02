@@ -319,11 +319,11 @@ rm -rf build && cmake -DCMAKE_BUILD_TYPE=Debug -DPORT=Linux -B build && cmake --
 
 ## Authors and Contributors
 
-- R&D Team of FMSoft (<https://www.fmsoft.cn>)
+- R&D Team of [FMSoft Technologies]
 
 ## Copying
 
-Copyright (C) 2021, 2022 FMSoft (<https://www.fmsoft.cn>)
+Copyright (C) 2021, 2022 [FMSoft Technologies]
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
