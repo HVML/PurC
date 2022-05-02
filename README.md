@@ -136,18 +136,102 @@ The classical `helloworld` program in HVML looks like:
 
 ```html
 <!DOCTYPE hvml>
-<hvml target="html">
-  <body>
-    <update on="$T.map" to="displace">
-        [
-            { "Hello, world!": "世界，您好！" }
-        ]
-    </update>
+<hvml target="void">
 
-    <p>$T.get("Hello, world!")</p>
+    $STREAM.stdout.writelines('Hello, world!')
+
+</hvml>
+```
+
+The HVML program above will print the following line on your terminal:
+
+```
+Hello, world!
+```
+
+Obviously, the key statement of the above program is
+
+```js
+$STREAM.stdout.writelines('Hello, world!')
+```
+
+This statement called the `writelines` method of `$STREAM.stdout`, and the
+method print the `Hello, world!` to STDOUT, i.e., your terminal.
+
+Now we rewrite the above program a little more complicated to have the following
+features:
+
+- Output a valid HTML document or a simple text line according to
+  a startup option.
+- Support localization according to the current system locale.
+
+Please read the code below and the comments carefully:
+
+```html
+<!DOCTYPE hvml>
+
+<!-- $REQUEST contains the startup options -->
+<hvml target="$REQUEST.target">
+  <body>
+
+    <!--
+        $SYSTEM.locale returns the current system locale like `zh_CN'.
+        This statement load a JSON file which defined the map of
+        localization messages, like:
+        {
+            "Hello, world!": "世界，您好！"
+        }
+    -->
+    <update on="$T.map" from="messages/$SYSTEM.locale" to="merge" />
+
+    <!--
+        This statement defines an operation set, which output
+        an HTML fragment.
+    -->
+    <define as="output_html">
+        <h1>HVML</h1>
+        <p>$?</p>
+    </define>
+
+    <!--
+        This statement defines an operation set, which output
+        a text line to STDOUT.
+    -->
+    <define as="output_void">
+        <choose on=$STREAM.stdout.writelines($?) />
+    </define>
+
+    <!--
+        This statement includes one of the operation sets defined above
+        according to the value of `target` attribute of `hvml` element,
+        and pass the result returned by `$T.get('Hello, world!')`.
+    -->
+    <include with=${output_$HVML.target} on=$T.get('Hello, world!') />
+
   </body>
 </hvml>
 ```
+
+The HVML program above will generate a HTML document if the current system
+locale is `zh_CN` and the value of the startup option `target` is `html`:
+
+```html
+<html>
+  <body>
+        <h1>HVML</h1>
+        <p>世界，您好！</p>
+  </body>
+</html>
+```
+
+But if the value of the startup option `target` is `void`, the HVML program
+above will print the following line on your terminal:
+
+```
+世界，您好！
+```
+
+With the simple samples above, you can see what's interesting about HVML.
 
 In essence, HVML provides a new way of thinking to solve the previous problem:
 
@@ -205,8 +289,8 @@ Its main features are:
   interoperability between system components developed in different programming
   languages, so that the advantages of each component can be fully utilized and
   the value of existing software assets can be protected; on the other hand,
-  the application framework provided by HVML is adopted. Develop applications
-  to minimize the coupling problem between different components.
+  once the application framework provided by HVML is adopted, we can minimize
+  the coupling problem between different components.
 
 In short, HVML provides a programming model that is different from traditional
 programming languages. On the basis of data-driven, HVML provides a more
