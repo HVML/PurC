@@ -27,19 +27,22 @@ and the mascot of HVML.
 
 ## Introduction
 
-During the development of [HybridOS], [Vincent Wei] proposed a new-style,
-general-purpose, and easy-to-learn programming language called `HVML`.
-
 `PurC` is the Prime hVml inteRpreter for C language. It is also
 the abbreviation of `Purring Cat`, while Purring Cat is the nickname
-and the mascot of HVML.
+and the mascot of HVML, which is a new-style programming language proposed
+by [Vincent Wei].
+
+Although we designed HVML originally as a programming language to rapidly
+develop GUI applications based on Web front-end technology in the C/C++
+runtime environment, the developer can also use HVML as a general script
+language in other scenarios.
 
 PurC implements all features defined by [HVML Specifiction V1.0] in C language.
 PurC also implements all predefined dynamic variables defined by
-[HVML Predefined Variables V1.0] in C language.
+[HVML Predefined Variables V1.0].
 
-Now, PurC provides support for Linux and macOS. The support for Windows is
-on the way.
+PurC provides support for Linux and macOS. The support for Windows is
+on the way. We welcome others to port HVML to other platforms.
 
 You can use PurC to run a HVML program by using the command line tool `purc`, or
 use PurC as a library to build your own HVML interpreter. We release PurC under
@@ -115,6 +118,9 @@ achieved great success, but have the following deficiencies and shortcomings:
 
 ### Our Solution
 
+During the development of [HybridOS], [Vincent Wei] proposed a new-style,
+general-purpose, and easy-to-learn programming language called `HVML`.
+
 HVML is a programmable markup language. Like HTML, HVML uses markups to define
 program structure and data, but unlike HTML, HVML is programmable and dynamic.
 
@@ -162,7 +168,7 @@ In essence, HVML provides a new way of thinking to solve the previous problem:
 Although HVML was originally designed to improve the efficiency of GUI
 application development, it can actually be used in more general scenarios -
 HVML can be used as long as the output of the program can be abstracted into
-one or more tree structures; even we can use HVML like a normal scripting
+one or more tree structures; even we can use HVML like a common script
 language.
 
 Essentially, HVML is a new-style programming language with a higher level of
