@@ -198,7 +198,7 @@ Please read the code below and the comments carefully:
         a text line to STDOUT.
     -->
     <define as="output_void">
-        $STREAM.stdout.writelines($?)
+        <choose on=$STREAM.stdout.writelines($?) />
     </define>
 
     <!--
