@@ -198,7 +198,7 @@ Please read the code below and the comments carefully:
         a text line to STDOUT.
     -->
     <define as="output_void">
-        <choose on=$STREAM.stdout.writelines($?) />
+        $STREAM.stdout.writelines($?)
     </define>
 
     <!--
@@ -206,7 +206,7 @@ Please read the code below and the comments carefully:
         according to the value of `target` attribute of `hvml` element,
         and pass the result returned by `$T.get('Hello, world!')`.
     -->
-    <include with=${output_$HVML.target} on=$T.get('Hello, world!') />
+    <include with=${output_$HVML.target} on="$T.get('Hello, world!')" />
 
   </body>
 </hvml>
