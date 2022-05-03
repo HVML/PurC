@@ -185,7 +185,7 @@ Please read the code below and the comments carefully:
 
     <!--
         $SYSTEM.locale returns the current system locale like `zh_CN'.
-        This statement load a JSON file which defined the map of
+        This statement loads a JSON file which defined the map of
         localization messages, like:
         {
             "Hello, world!": "世界，您好！"
@@ -198,7 +198,7 @@ Please read the code below and the comments carefully:
         an HTML fragment.
 
         An operation set of HVML is similiar to a function or a closure
-        in other language.
+        in other languages.
     -->
     <define as="output_html">
         <h1>HVML</h1>
@@ -263,11 +263,10 @@ In essence, HVML provides a new way of thinking to solve the previous problem:
   the modules are driven by the data flowing between them. While HVML provides
   the abstract processing capability of the data flow.
 
-Although HVML was originally designed to improve the efficiency of GUI
-application development, it can actually be used in more general scenarios -
-HVML can be used as long as the output of the program can be abstracted into
-one or more tree structures; even we can use HVML like a common script
-language.
+Although we designed HVML originally as a programming language to rapidly
+develop GUI applications based on Web front-end technology in the C/C++
+runtime environment, the developer can also use HVML as a general script
+language in other scenarios.
 
 Essentially, HVML is a new-style programming language with a higher level of
 abstraction than common script languages such as JavaScript or Python.
