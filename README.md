@@ -27,28 +27,25 @@ and the mascot of HVML.
 
 ## Introduction
 
-`PurC` is the Prime hVml inteRpreter for C language. It is also
+`PurC` is the Prime HVML inteRpreter for C language. It is also
 the abbreviation of `Purring Cat`, while Purring Cat is the nickname
 and the mascot of HVML, which is a new-style programming language proposed
 by [Vincent Wei].
-
-Although we designed HVML originally as a programming language to rapidly
-develop GUI applications based on Web front-end technology in the C/C++
-runtime environment, the developer can also use HVML as a general script
-language in other scenarios.
 
 PurC implements all features defined by [HVML Specifiction V1.0] in C language.
 PurC also implements all predefined dynamic variables defined by
 [HVML Predefined Variables V1.0].
 
 PurC provides support for Linux and macOS. The support for Windows is
-on the way. We welcome others to port HVML to other platforms.
+on the way. We welcome others to port PurC to other platforms.
 
 You can use PurC to run a HVML program by using the command line tool `purc`, or
 use PurC as a library to build your own HVML interpreter. We release PurC under
-LGPLv3, so it is free for commercial use if you follow the terms of LGPLv3.
+LGPLv3, so it is free for commercial use if you follow the conditions and terms
+of LGPLv3.
 
-For documents or open source tools of HVML, please refer to the following repositories:
+For documents or other open source tools of HVML, please refer to the
+following repositories:
 
 - HVML Documents: <https://github.com/HVML/hvml-docs>.
 - PurC (the Prime hVml inteRpreter for C language): <https://github.com/HVML/purc>.
