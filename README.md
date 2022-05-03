@@ -60,7 +60,7 @@ For documents or open source tools of HVML, please refer to the following reposi
 
 The original design goal of HVML is to allow developers who are familiar with
 C/C++, Python, or other programming languages to easily develop GUI applications
-by using web front-end technologies (such as HTML/SVG, DOM and CSS), instead of
+by using Web front-end technologies (such as HTML/SVG, DOM and CSS), instead of
 using JavaScript programming language in the browser or Node.js.
 
 We achieved this design goal and also designed HVML as a new-style and
@@ -87,7 +87,7 @@ The virtual DOM technology provides the following benefits:
    on the other hand, it reduces the frequent operations on the DOM tree through
    dynamic modification of page content by optimizing the operation of the real DOM tree,
    thus improving page rendering efficiency and user experience.
-2. With the virtual DOM technology, the modification of a certain data
+1. With the virtual DOM technology, the modification of a certain data
    by the program can directly be reflected on the content of the data-bound page,
    and the developer does not need to actively or directly call the relevant
    interface to operate the DOM tree. This technology provides so-called
@@ -96,16 +96,28 @@ The virtual DOM technology provides the following benefits:
 On the other side, front-end frameworks represented by React.js and Vue.js have
 achieved great success, but have the following deficiencies and shortcomings:
 
-1. These technologies are based on mature Web standards and require browsers
-   that fully support the relevant front-end specifications to run, so they
-   cannot be applied to other occasions. For example, if you want to use
-   this kind of technology in Python scripts, there is currently no direct
-   solution; another example is in traditional GUI application programming,
-   the developers cannot benefit from this technology.
-2. These technologies implement data-based condition and loop flow controls
-   by introducing virtual attributes such as `v-if`, `v-else`, and `v-for`.
-   However, this method brings a sharp drop in code readability, which in turn
-   brings drop of code maintainability. Below is an example:
+1. These technologies are based on multiple Web standards and require browsers
+   that fully support the standards or specifications to run. Therefore,
+   it is difficult to integrate these technologies with existing modules which
+   are developed based on programming languages such as C/C++.
+1. Due to inherent limitations, the use of JavaScript language in webpages
+   has always been criticized by developers as follows:
+   - Client-side security. The main problem or disadvantage in JavaScript is
+     that the code is always visible to everyone, so anyone can view
+     the source code.
+   - Low source maintainability. It is difficult to develop large applications
+     by using JavaScript. When use JavaScript in a front-end project, the
+     configuration is often a tedious task to the amount of tools that require
+     to figure together to make an environment for such a project.
+   - Negative impact on performance. Running a large amount of JavaScript code
+     related to business logic in the browser will cause page rendering and
+     business logic to compete for processor resources. This is one of
+     the main reasons why the user experiences of web-based UIs are always
+     significantly different from native GUIs.
+1. These technologies implement data-based condition and loop flow controls
+   by introducing some virtual attributes such as `v-if`, `v-else`, and `v-for`.
+   However, this method breaks the logic of the code and reduces the
+   readability of the code. Below is an example:
 
 ```html
 <div v-if="Math.random() > 0.5">
@@ -129,7 +141,7 @@ documents through a limited number of action tags and dynamic JSON expressions
 that can be used to define attributes and content; HVML also provides mechanisms
 to interact with the runtime of an existing programming language, such as
 C/C++, Python, Lua, etc., so as to provide strong technical support for these
-programming languages to utilize Web front-end technology outside the browser.
+programming languages to utilize Web front-end technologies outside the browser.
 From this perspective, HVML can also be regarded as a glue language.
 
 The classical `helloworld` program in HVML looks like:
@@ -187,6 +199,9 @@ Please read the code below and the comments carefully:
     <!--
         This statement defines an operation set, which output
         an HTML fragment.
+
+        An operation set of HVML is similiar to a function or a closure
+        in other language.
     -->
     <define as="output_html">
         <h1>HVML</h1>
@@ -198,7 +213,9 @@ Please read the code below and the comments carefully:
         a text line to STDOUT.
     -->
     <define as="output_void">
-        $STREAM.stdout.writelines($?)
+        <noop>
+            $STREAM.stdout.writelines($?)
+        </noop>
     </define>
 
     <!--
@@ -235,7 +252,7 @@ With the simple samples above, you can see what's interesting about HVML.
 
 In essence, HVML provides a new way of thinking to solve the previous problem:
 
-- First, it introduces web front-end technologies (HTML, XML, DOM, CSS, etc.)
+- First, it introduces Web front-end technologies (HTML, XML, DOM, CSS, etc.)
   into other programming languages, rather than replacing other programming
   languages with JavaScript.
 - Second, it uses an HTML-like markup language to manipulate elements,
