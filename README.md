@@ -58,18 +58,18 @@ following repositories:
 The original design goal of HVML is to allow developers who are familiar with
 C/C++, Python, or other programming languages to easily develop GUI applications
 by using Web front-end technologies (such as HTML/SVG, DOM and CSS), instead of
-using JavaScript programming language in the browser or Node.js.
+using JavaScript programming language in a web browser or Node.js.
 
 We achieved this design goal and also designed HVML as a new-style and
 general-purpose programming language. Now, we can not only use HVML as
 a programming language to rapidly develop GUI applications based on Web
-front-end technology in the C/C++ runtime environment, but also use HVML
+front-end technologies in the C/C++ runtime environment, but also use HVML
 as a general script language.
 
 ### Problems
 
-With the development of Internet technology and applications, the Web front-end
-development technology around HTML/CSS/JavaScript has evolved rapidly.
+With the development of Internet and applications, the Web front-end
+development technologies around HTML/CSS/JavaScript has evolved rapidly.
 Since 2019, frameworks based on virtual DOM (Document Object Model) technology
 have been favored by front-end developers, such as [React.js] and [Vue.js].
 
