@@ -146,11 +146,7 @@ The classical `helloworld` program in HVML looks like:
 ```html
 <!DOCTYPE hvml>
 <hvml target="void">
-  <body>
-
     $STREAM.stdout.writelines('Hello, world!')
-
-  </body>
 </hvml>
 ```
 
