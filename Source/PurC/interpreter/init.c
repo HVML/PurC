@@ -786,14 +786,9 @@ static void load_response_handler(purc_variant_t request_id, void *ctxt,
         goto dispatch_except;
     }
 
-    size_t sz_content = 0;
-    size_t sz_buffer = 0;
-    char* buf = (char*)purc_rwstream_get_mem_buffer_ex(resp, &sz_content,
-            &sz_buffer, false);
-
     bool ok;
     struct pcvdom_element *element = fetcher->element;
-    purc_variant_t ret = purc_variant_make_from_json_string(buf, sz_content);
+    purc_variant_t ret = purc_variant_load_from_json_stream(resp);
     const char *s_name = purc_variant_get_string_const(fetcher->name);
     if (ret != PURC_VARIANT_INVALID) {
         if (fetcher->under_head) {

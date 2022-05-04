@@ -30,6 +30,7 @@
 #include "fetcher-internal.h"
 
 #include <wtf/URL.h>
+#include <wtf/RunLoop.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -188,22 +189,30 @@ purc_variant_t pcfetcher_local_request_async(
     struct pcfetcher_resp_header header;
     purc_rwstream_t rws = pcfetcher_local_request_sync(fetcher, url, method,
             params, timeout, &header);
-
-    if (rws) {
-        purc_variant_t req_id = purc_variant_make_string(url, false);
-        handler(req_id, ctxt, &header, rws);
-        if (header.mime_type) {
-            free(header.mime_type);
-        }
-        return req_id;
-    }
-    else {
+    if (!rws) {
         header.ret_code = 404;
         handler(PURC_VARIANT_INVALID, ctxt, &header, NULL);
         return PURC_VARIANT_INVALID;
     }
 
-    return PURC_VARIANT_INVALID;
+    purc_variant_t req_id = purc_variant_make_string(url, false);
+#if 1
+    handler(req_id, ctxt, &header, rws);
+    if (header.mime_type) {
+        free(header.mime_type);
+    }
+#else // TEST code : local async time out
+    RunLoop *runloop = &RunLoop::current();
+    runloop->dispatchAfter(Seconds(timeout),
+            [req_id, ctxt, header, rws, handler] {
+                handler(req_id, ctxt, &header, rws);
+                if (header.mime_type) {
+                    free(header.mime_type);
+                }
+            });
+#endif
+
+    return req_id;
 }
 
 off_t filesize(const char* filename)
