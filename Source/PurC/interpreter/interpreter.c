@@ -1814,11 +1814,12 @@ pcintr_load_from_uri(pcintr_stack_t stack, const char* uri)
     }
     purc_variant_t ret = PURC_VARIANT_INVALID;
     struct pcfetcher_resp_header resp_header = {0};
+    uint32_t timeout = stack->vdom->hvml_ctrl_props->timeout.tv_sec;
     purc_rwstream_t resp = pcfetcher_request_sync(
             uri,
             PCFETCHER_REQUEST_METHOD_GET,
             NULL,
-            10,
+            timeout,
             &resp_header);
     if (resp_header.ret_code == 200) {
         size_t sz_content = 0;
@@ -1851,11 +1852,12 @@ pcintr_load_from_uri_async(pcintr_stack_t stack, const char* uri,
     if (stack->vdom->hvml_ctrl_props->base_url_string) {
         pcfetcher_set_base_url(stack->vdom->hvml_ctrl_props->base_url_string);
     }
+    uint32_t timeout = stack->vdom->hvml_ctrl_props->timeout.tv_sec;
     return pcfetcher_request_async(
             uri,
             PCFETCHER_REQUEST_METHOD_GET,
             NULL,
-            10,
+            timeout,
             handler,
             ctxt);
 }
@@ -1896,13 +1898,14 @@ pcintr_load_vdom_fragment_from_uri(pcintr_stack_t stack, const char* uri)
     if (stack->vdom->hvml_ctrl_props->base_url_string) {
         pcfetcher_set_base_url(stack->vdom->hvml_ctrl_props->base_url_string);
     }
+    uint32_t timeout = stack->vdom->hvml_ctrl_props->timeout.tv_sec;
     purc_variant_t ret = PURC_VARIANT_INVALID;
     struct pcfetcher_resp_header resp_header = {0};
     purc_rwstream_t resp = pcfetcher_request_sync(
             uri,
             PCFETCHER_REQUEST_METHOD_GET,
             NULL,
-            10,
+            timeout,
             &resp_header);
     if (resp_header.ret_code == 200) {
         size_t sz_content = 0;
