@@ -36,6 +36,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/vfs.h>
 #include <dirent.h>
 #include <fcntl.h>
 #include <time.h>
@@ -1346,8 +1347,12 @@ disk_usage_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(root);
     UNUSED_PARAM(silently);
 
-    char filename[PATH_MAX];
-    const char *string_filename = NULL;
+    const char *string_dir = NULL;
+    struct mntent *mnt;
+    struct statfs fsu;
+    struct statx  stx;
+    FILE *fp;
+    purc_variant_t val = PURC_VARIANT_INVALID;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if (nr_args < 1) {
@@ -1355,13 +1360,61 @@ disk_usage_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         return PURC_VARIANT_INVALID;
     }
 
-    // get the file name
-    string_filename = purc_variant_get_string_const (argv[0]);
-    strncpy (filename, string_filename, sizeof(filename));
+    // get the directory
+    string_dir = purc_variant_get_string_const (argv[0]);
+    if (NULL == string_dir) {
+        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+        return PURC_VARIANT_INVALID;
+    }
 
-    // wait for code
+    if (0 != statfs(string_dir, &stfs)) {
+        set_purc_error_by_errno ();
+        return purc_variant_make_boolean (false);
+    }
 
-    ret_var = purc_variant_make_boolean (true);
+    if (0 != statx(0, string_dir, AT_STATX_SYNC_AS_STAT, STATX_BASIC_STATS, &stx)) {
+        set_purc_error_by_errno ();
+        return purc_variant_make_boolean (false);
+    }
+
+    ret_var = purc_variant_make_object (7,
+            PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+    
+    // free_blocks
+    val = purc_variant_make_ulongint (fsu.f_bfree);
+    purc_variant_object_set_by_static_ckey (ret_var, "free_blocks", val);
+    purc_variant_unref (val);
+
+    // free_inodes
+    val = purc_variant_make_ulongint (fsu.f_ffree);
+    purc_variant_object_set_by_static_ckey (ret_var, "free_inodes", val);
+    purc_variant_unref (val);
+
+    // total_blocks
+    val = purc_variant_make_ulongint (fsu.f_blocks);
+    purc_variant_object_set_by_static_ckey (ret_var, "total_blocks", val);
+    purc_variant_unref (val);
+
+    // total_inodes
+    val = purc_variant_make_ulongint (fsu.f_files);
+    purc_variant_object_set_by_static_ckey (ret_var, "total_inodes", val);
+    purc_variant_unref (val);
+
+    // mount_point
+    val = purc_variant_make_string (stfs->d_name, false);
+    purc_variant_object_set_by_static_ckey (obj_var, "mount_point", val);
+    purc_variant_unref (val);
+
+    // dev_majar
+    val = purc_variant_make_ulongint (stx.stx_dev_major);
+    purc_variant_object_set_by_static_ckey (ret_var, "dev_majar", val);
+    purc_variant_unref (val);
+
+    // dev_minor
+    val = purc_variant_make_ulongint (stx.stx_dev_minor);
+    purc_variant_object_set_by_static_ckey (ret_var, "dev_minor", val);
+    purc_variant_unref (val);
+
     return ret_var;
 }
 
