@@ -975,8 +975,7 @@ TEST(utils, array_list_append)
     int r;
     struct pcutils_array_list arrlist;
 
-    r = pcutils_array_list_init(&arrlist);
-    ASSERT_EQ(r, 0);
+    pcutils_array_list_init(&arrlist);
 
     for (size_t i=0; i<PCA_TABLESIZE(samples); ++i) {
         int sample = samples[i];
@@ -984,6 +983,7 @@ TEST(utils, array_list_append)
         node = (struct array_list_sample_node*)calloc(1, sizeof(*node));
         ASSERT_NE(node, nullptr);
         node->val = sample;
+        node->node.idx = (size_t)-1;
         r = pcutils_array_list_append(&arrlist, &node->node);
         ASSERT_EQ(r, 0);
     }
@@ -1026,8 +1026,7 @@ TEST(utils, array_list_prepend)
     int r;
     struct pcutils_array_list arrlist;
 
-    r = pcutils_array_list_init(&arrlist);
-    ASSERT_EQ(r, 0);
+    pcutils_array_list_init(&arrlist);
 
     for (size_t i=0; i<PCA_TABLESIZE(samples); ++i) {
         int sample = samples[i];
@@ -1035,6 +1034,7 @@ TEST(utils, array_list_prepend)
         node = (struct array_list_sample_node*)calloc(1, sizeof(*node));
         ASSERT_NE(node, nullptr);
         node->val = sample;
+        node->node.idx = (size_t)-1;
         r = pcutils_array_list_prepend(&arrlist, &node->node);
         ASSERT_EQ(r, 0);
     }
@@ -1077,8 +1077,7 @@ TEST(utils, array_list_set)
     int r;
     struct pcutils_array_list arrlist;
 
-    r = pcutils_array_list_init(&arrlist);
-    ASSERT_EQ(r, 0);
+    pcutils_array_list_init(&arrlist);
 
     for (size_t i=0; i<PCA_TABLESIZE(samples); ++i) {
         int sample = samples[i];
@@ -1086,6 +1085,7 @@ TEST(utils, array_list_set)
         node = (struct array_list_sample_node*)calloc(1, sizeof(*node));
         ASSERT_NE(node, nullptr);
         node->val = sample;
+        node->node.idx = (size_t)-1;
         r = pcutils_array_list_insert_before(&arrlist, 5, &node->node);
         ASSERT_EQ(r, 0);
     }
@@ -1128,8 +1128,7 @@ TEST(utils, array_list_append_reverse)
     int r;
     struct pcutils_array_list arrlist;
 
-    r = pcutils_array_list_init(&arrlist);
-    ASSERT_EQ(r, 0);
+    pcutils_array_list_init(&arrlist);
 
     for (size_t i=0; i<PCA_TABLESIZE(samples); ++i) {
         int sample = samples[i];
@@ -1137,6 +1136,7 @@ TEST(utils, array_list_append_reverse)
         node = (struct array_list_sample_node*)calloc(1, sizeof(*node));
         ASSERT_NE(node, nullptr);
         node->val = sample;
+        node->node.idx = (size_t)-1;
         r = pcutils_array_list_append(&arrlist, &node->node);
         ASSERT_EQ(r, 0);
     }
@@ -1179,8 +1179,7 @@ TEST(utils, array_list_append_entry)
     int r;
     struct pcutils_array_list arrlist;
 
-    r = pcutils_array_list_init(&arrlist);
-    ASSERT_EQ(r, 0);
+    pcutils_array_list_init(&arrlist);
 
     for (size_t i=0; i<PCA_TABLESIZE(samples); ++i) {
         int sample = samples[i];
@@ -1188,6 +1187,7 @@ TEST(utils, array_list_append_entry)
         node = (struct array_list_sample_node*)calloc(1, sizeof(*node));
         ASSERT_NE(node, nullptr);
         node->val = sample;
+        node->node.idx = (size_t)-1;
         r = pcutils_array_list_append(&arrlist, &node->node);
         ASSERT_EQ(r, 0);
     }
@@ -1222,8 +1222,7 @@ TEST(utils, array_list_append_entry_reverse)
     int r;
     struct pcutils_array_list arrlist;
 
-    r = pcutils_array_list_init(&arrlist);
-    ASSERT_EQ(r, 0);
+    pcutils_array_list_init(&arrlist);
 
     for (size_t i=0; i<PCA_TABLESIZE(samples); ++i) {
         int sample = samples[i];
@@ -1231,6 +1230,7 @@ TEST(utils, array_list_append_entry_reverse)
         node = (struct array_list_sample_node*)calloc(1, sizeof(*node));
         ASSERT_NE(node, nullptr);
         node->val = sample;
+        node->node.idx = (size_t)-1;
         r = pcutils_array_list_append(&arrlist, &node->node);
         ASSERT_EQ(r, 0);
     }

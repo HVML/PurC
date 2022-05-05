@@ -250,9 +250,9 @@ struct pcvar_rev_update_edge {
 typedef struct variant_set      *variant_set_t;
 
 struct set_node {
-    struct rb_node   node;
+    struct rb_node                       rbnode;
+    struct pcutils_array_list_node       alnode;
     purc_variant_t   val;  // actual variant-element
-    size_t           idx;
 };
 
 struct variant_set {
@@ -260,7 +260,7 @@ struct variant_set {
     const char            **keynames;
     size_t                  nr_keynames;
     struct rb_root          elems;  // multiple-variant-elements stored in set
-    struct pcutils_arrlist *arr;    // also stored in arraylist
+    struct pcutils_array_list al;    // struct set_node
 
     // key: arr_node/obj_node/set_node
     // val: parent
@@ -309,7 +309,6 @@ int pcvariant_array_sort(purc_variant_t value, void *ud,
         int (*cmp)(purc_variant_t l, purc_variant_t r, void *ud));
 int pcvariant_set_sort(purc_variant_t value, void *ud,
         int (*cmp)(purc_variant_t l, purc_variant_t r, void *ud));
-void pcvariant_set_refresh(purc_variant_t set);
 
 int pcvariant_diff(purc_variant_t l, purc_variant_t r);
 
@@ -541,75 +540,71 @@ PCA_EXTERN_C_END
 #define foreach_value_in_variant_set(_set, _val)                        \
     do {                                                                \
         variant_set_t _data;                                            \
-        struct pcutils_arrlist *_arr;                                   \
+        struct pcutils_array_list *_al;                                 \
         _data = (variant_set_t)_set->sz_ptr[1];                         \
-        _arr  = _data->arr;                                             \
-        struct set_node *_p, *_n;                                       \
-        for (_p = (struct set_node*) pcutils_arrlist_get_first(_arr);   \
-             ({ _n = _p ? (struct set_node*)pcutils_arrlist_get_idx(    \
-                                                _arr,  _p->idx+1)       \
-                        : NULL;                                         \
-              _p; });                                                   \
-             _p = _n)                                                   \
+        _al = &_data->al;                                               \
+        struct pcutils_array_list_node *_p;                             \
+        for (_p = pcutils_array_list_get_first(_al);                    \
+             _p;                                                        \
+             _p = pcutils_array_list_get(_al,  _p->idx+1))              \
         {                                                               \
-            _val = _p->val;                                             \
+            struct set_node *_sn;                                       \
+            _sn = container_of(_p, struct set_node, alnode);            \
+            _val = _sn->val;                                            \
      /* } */                                                            \
   /* } while (0) */
 
 #define foreach_value_in_variant_set_reverse(_set, _val)                \
     do {                                                                \
         variant_set_t _data;                                            \
-        struct pcutils_arrlist *_arr;                                   \
+        struct pcutils_array_list *_al;                                 \
         _data = (variant_set_t)_set->sz_ptr[1];                         \
-        _arr  = _data->arr;                                             \
-        struct set_node *_p, *_n;                                       \
-        for (_p = (struct set_node*) pcutils_arrlist_get_last(_arr);    \
-             ({ _n = (_p && _p->idx > 0)                                \
-                        ? (struct set_node*)pcutils_arrlist_get_idx(    \
-                                                _arr,  _p->idx-1)       \
-                        : NULL;                                         \
-              _p; });                                                   \
-             _p = _n)                                                   \
+        _al = &_data->al;                                               \
+        struct pcutils_array_list_node *_p;                             \
+        for (_p = pcutils_array_list_get_last(_al);                     \
+             _p;                                                        \
+             _p = pcutils_array_list_get(_al,  _p->idx-1))              \
         {                                                               \
-            _val = _p->val;                                             \
+            struct set_node *_sn;                                       \
+            _sn = container_of(_p, struct set_node, alnode);            \
+            _val = _sn->val;                                            \
      /* } */                                                            \
   /* } while (0) */
 
-#define foreach_value_in_variant_set_safe(_set, _val)                   \
-    do {                                                                \
-        variant_set_t _data;                                            \
-        struct pcutils_arrlist *_arr;                                   \
-        _data = (variant_set_t)_set->sz_ptr[1];                         \
-        _arr  = _data->arr;                                             \
-        struct set_node *_p, *_n;                                       \
-        for (_p = (struct set_node*) pcutils_arrlist_get_first(_arr);   \
-             ({ _n = _p ? (struct set_node*)pcutils_arrlist_get_idx(    \
-                                                _arr,  _p->idx+1)       \
-                        : NULL;                                         \
-              _p; });                                                   \
-             _p = _n)                                                   \
-        {                                                               \
-            _val = _p->val;                                             \
-     /* } */                                                            \
+#define foreach_value_in_variant_set_safe(_set, _val)                         \
+    do {                                                                      \
+        variant_set_t _data;                                                  \
+        struct pcutils_array_list *_al;                                       \
+        _data = (variant_set_t)_set->sz_ptr[1];                               \
+        _al = &_data->al;                                                     \
+        struct pcutils_array_list_node *_p, *_n;                              \
+        for (_p = pcutils_array_list_get_first(_al);                          \
+             ({ _n = _p ? pcutils_array_list_get(_al,  _p->idx+1) : NULL;     \
+              _p; });                                                         \
+             _p = _n)                                                         \
+        {                                                                     \
+            struct set_node *_sn;                                             \
+            _sn = container_of(_p, struct set_node, alnode);                  \
+            _val = _sn->val;                                                  \
+     /* } */                                                                  \
   /* } while (0) */
 
-#define foreach_value_in_variant_set_reverse_safe(_set, _val)           \
-    do {                                                                \
-        variant_set_t _data;                                            \
-        struct pcutils_arrlist *_arr;                                   \
-        _data = (variant_set_t)_set->sz_ptr[1];                         \
-        _arr  = _data->arr;                                             \
-        struct set_node *_p, *_n;                                       \
-        for (_p = (struct set_node*) pcutils_arrlist_get_last(_arr);    \
-             ({ _n = (_p && _p->idx > 0)                                \
-                        ? (struct set_node*)pcutils_arrlist_get_idx(    \
-                                                _arr,  _p->idx-1)       \
-                        : NULL;                                         \
-              _p; });                                                   \
-             _p = _n)                                                   \
-        {                                                               \
-            _val = _p->val;                                             \
-     /* } */                                                            \
+#define foreach_value_in_variant_set_reverse_safe(_set, _val)                 \
+    do {                                                                      \
+        variant_set_t _data;                                                  \
+        struct pcutils_array_list *_al;                                       \
+        _data = (variant_set_t)_set->sz_ptr[1];                               \
+        _al = &_data->al;                                                     \
+        struct pcutils_array_list_node *_p, *_n;                              \
+        for (_p = pcutils_array_list_get_last(_al);                           \
+             ({ _n = _p ? pcutils_array_list_get(_al,  _p->idx-1) : NULL;     \
+              _p; });                                                         \
+             _p = _n)                                                         \
+        {                                                                     \
+            struct set_node *_sn;                                             \
+            _sn = container_of(_p, struct set_node, alnode);                  \
+            _val = _sn->val;                                                  \
+     /* } */                                                                  \
   /* } while (0) */
 
 #define foreach_value_in_variant_set_order(_set, _val)                  \
@@ -623,9 +618,9 @@ PCA_EXTERN_C_END
         struct rb_node *_p;                                             \
         pcutils_rbtree_for_each(_first, _p)                             \
         {                                                               \
-            struct set_node *_en;                                       \
-            _en = container_of(_p, struct set_node, node);              \
-            _val = _en->val;                                            \
+            struct set_node *_sn;                                       \
+            _sn = container_of(_p, struct set_node, rbnode);            \
+            _val = _sn->val;                                            \
      /* } */                                                            \
   /* } while (0) */
 
@@ -640,9 +635,9 @@ PCA_EXTERN_C_END
         struct rb_node *_p;                                             \
         pcutils_rbtree_for_each_reverse(_first, _p)                     \
         {                                                               \
-            struct set_node *_en;                                       \
-            _en = container_of(_p, struct set_node, node);              \
-            _val = _en->val;                                            \
+            struct set_node *_sn;                                       \
+            _sn = container_of(_p, struct set_node, rbnode);            \
+            _val = _sn->val;                                            \
      /* } */                                                            \
   /* } while (0) */
 
@@ -657,9 +652,9 @@ PCA_EXTERN_C_END
         struct rb_node *_p, *_n;                                        \
         pcutils_rbtree_for_each_safe(_first, _p, _n)                    \
         {                                                               \
-            struct set_node *_en;                                       \
-            _en = container_of(_p, struct set_node, node);              \
-            _val = _en->val;                                            \
+            struct set_node *_sn;                                       \
+            _sn = container_of(_p, struct set_node, rbnode);            \
+            _val = _sn->val;                                            \
      /* } */                                                            \
   /* } while (0) */
 
@@ -674,9 +669,9 @@ PCA_EXTERN_C_END
         struct rb_node *_p, *_n;                                        \
         pcutils_rbtree_for_each_reverse_safe(_first, _p, _n)            \
         {                                                               \
-            struct set_node *_en;                                       \
-            _en = container_of(_p, struct set_node, node);              \
-            _val = _en->val;                                            \
+            struct set_node *_sn;                                       \
+            _sn = container_of(_p, struct set_node, rbnode);            \
+            _val = _sn->val;                                            \
      /* } */                                                            \
   /* } while (0) */
 
