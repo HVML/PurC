@@ -70,6 +70,7 @@ PcFetcherSession::PcFetcherSession(uint64_t sessionId,
     , m_is_async(false)
     , m_connection(IPC::Connection::createClientConnection(identifier, *this, queue))
     , m_workQueue(queue)
+    , m_cancellable(adoptGRef(g_cancellable_new()))
 {
     m_callback = create_callback_info();
     if (m_callback == NULL) {
@@ -83,7 +84,9 @@ PcFetcherSession::PcFetcherSession(uint64_t sessionId,
 PcFetcherSession::~PcFetcherSession()
 {
     close();
-    destroy_callback_info(m_callback);
+    if (m_callback) {
+        destroy_callback_info(m_callback);
+    }
 }
 
 void PcFetcherSession::close()
@@ -222,11 +225,20 @@ void PcFetcherSession::stop()
     if (!m_is_async) {
         return;
     }
+    g_cancellable_cancel(m_cancellable.get());
 
-    m_callback->header.ret_code = RESP_CODE_USER_STOP;
-    m_callback->handler(m_callback->req_id, m_callback->ctxt,
-            &m_callback->header, NULL);
-    m_callback->handler = nullptr;
+    struct pcfetcher_callback_info *info = m_callback;
+    m_callback->cancelled = true;
+    m_callback = nullptr;
+
+    info->header.ret_code = RESP_CODE_USER_STOP;
+    info->handler(info->req_id, info->ctxt,
+            &info->header, NULL);
+    info->handler = nullptr;
+
+    if (!info->dispatched) {
+        destroy_callback_info(info);
+    }
 }
 
 void PcFetcherSession::cancel()
@@ -234,11 +246,17 @@ void PcFetcherSession::cancel()
     if (!m_is_async) {
         return;
     }
+    g_cancellable_cancel(m_cancellable.get());
 
-    m_callback->header.ret_code = RESP_CODE_USER_CANCEL;
-    m_callback->handler(m_callback->req_id, m_callback->ctxt,
-            &m_callback->header, NULL);
-    m_callback->handler = nullptr;
+    struct pcfetcher_callback_info *info = m_callback;
+    m_callback->cancelled = true;
+    m_callback = nullptr;
+
+    info->header.ret_code = RESP_CODE_USER_CANCEL;
+    info->handler(info->req_id, info->ctxt, &info->header, NULL);
+    if (!info->dispatched) {
+        destroy_callback_info(info);
+    }
 }
 
 void PcFetcherSession::wait(uint32_t timeout)
@@ -303,6 +321,11 @@ void PcFetcherSession::didReceiveResponse(
         bool needsContinueDidReceiveResponseMessage)
 {
     UNUSED_PARAM(needsContinueDidReceiveResponseMessage);
+
+    if (g_cancellable_is_cancelled(m_cancellable.get())) {
+        return;
+    }
+
     m_callback->header.ret_code = response.httpStatusCode();
     if (m_callback->header.mime_type) {
         free(m_callback->header.mime_type);
@@ -321,6 +344,9 @@ void PcFetcherSession::didReceiveSharedBuffer(
         IPC::SharedBufferDataReference&& data, int64_t encodedDataLength)
 {
     UNUSED_PARAM(encodedDataLength);
+    if (g_cancellable_is_cancelled(m_cancellable.get())) {
+        return;
+    }
     purc_rwstream_write(m_callback->rws, data.data(), data.size());
 }
 
@@ -328,6 +354,9 @@ void PcFetcherSession::didFinishResourceLoad(
         const NetworkLoadMetrics& networkLoadMetrics)
 {
     UNUSED_PARAM(networkLoadMetrics);
+    if (g_cancellable_is_cancelled(m_cancellable.get())) {
+        return;
+    }
 
     if (m_is_async) {
         if (m_callback->handler) {
@@ -342,9 +371,10 @@ void PcFetcherSession::didFinishResourceLoad(
                 purc_rwstream_seek(m_callback->rws, 0, SEEK_SET);
             }
             if (m_workQueue) {
+                m_callback->dispatched = true;
                 m_workQueue->dispatch([loop=m_runloop, info=m_callback] {
                     loop->dispatch([info] {
-                        if (info->handler) {
+                        if (!info->cancelled) {
                             info->handler(info->req_id, info->ctxt,
                                     &info->header, info->rws);
                             info->rws = NULL;
@@ -369,6 +399,10 @@ void PcFetcherSession::didFinishResourceLoad(
 void PcFetcherSession::didFailResourceLoad(const ResourceError& error)
 {
     UNUSED_PARAM(error);
+    if (g_cancellable_is_cancelled(m_cancellable.get())) {
+        return;
+    }
+
     // TODO : trans error code
     m_callback->header.ret_code = 408;
 
