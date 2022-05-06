@@ -1846,6 +1846,14 @@ BEGIN_STATE(TKZ_STATE_TEXT_CONTENT)
             APPEND_TO_TEMP_BUFFER(character);
             ADVANCE_TO(TKZ_STATE_TEXT_CONTENT);
         }
+        if (is_whitespace(character)) {
+            if (tkz_buffer_equal_to(parser->temp_buffer, "{{", 2)) {
+                ejson_stack_push('C');
+                struct pcvcm_node *node = pcvcm_node_new_cjsonee();
+                UPDATE_VCM_NODE(node);
+                ADVANCE_TO(TKZ_STATE_EJSON_CONTROL);
+            }
+        }
     }
     if (is_whitespace(character)) {
         parser->nr_whitespace++;

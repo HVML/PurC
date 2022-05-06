@@ -1,0 +1,7 @@
+<!DOCTYPE hvml>
+<hvml target="void">
+
+    $STREAM.stdout.writelines('Hello, world!')
+    $STREAM.stdout.writelines('Hello, world!')
+
+</hvml>
