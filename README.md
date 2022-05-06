@@ -9,10 +9,6 @@ and the mascot of HVML.
 [//]:# (START OF TOC)
 
 - [Introduction](#introduction)
-- [What's HVML](#whats-hvml)
-   + [Problems](#problems)
-   + [Our Solution](#our-solution)
-   + [Application Framework](#application-framework)
 - [Source Tree of PurC](#source-tree-of-purc)
 - [Current Status](#current-status)
 - [Building](#building)
