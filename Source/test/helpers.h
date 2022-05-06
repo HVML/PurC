@@ -129,7 +129,7 @@ public:
 
         unsigned int modules = enable_remote_fetcher ?
             PURC_MODULE_HVML | PURC_HAVE_FETCHER_R :
-            PURC_MODULE_HVML ^ PURC_HAVE_FETCHER;
+            PURC_MODULE_HVML;
         if (purc_init_ex (modules, app, runner, &info))
             return;
 

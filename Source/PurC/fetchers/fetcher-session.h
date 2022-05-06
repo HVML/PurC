@@ -44,17 +44,6 @@
 
 using namespace PurCFetcher;
 
-struct pcfetcher_callback_info {
-    struct pcfetcher_resp_header header;
-    purc_rwstream_t rws;
-    purc_variant_t req_id;
-    bool dispatched;
-    bool cancelled;
-
-    pcfetcher_response_handler handler;
-    void *ctxt;
-};
-
 class PcFetcherSession : public IPC::Connection::Client {
     WTF_MAKE_NONCOPYABLE(PcFetcherSession);
 

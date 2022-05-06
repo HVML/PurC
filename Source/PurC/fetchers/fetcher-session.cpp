@@ -41,28 +41,6 @@ using namespace PurCFetcher;
 
 extern "C"  struct pcinst* pcinst_current(void);
 
-struct pcfetcher_callback_info *
-create_callback_info()
-{
-    return (struct pcfetcher_callback_info*) calloc(1,
-            sizeof(struct pcfetcher_callback_info));
-}
-
-
-void destroy_callback_info(struct pcfetcher_callback_info *info)
-{
-    if (!info) {
-        return;
-    }
-    if (info->header.mime_type) {
-        free(info->header.mime_type);
-    }
-    if (info->rws) {
-        purc_rwstream_destroy(info->rws);
-    }
-    free(info);
-}
-
 PcFetcherSession::PcFetcherSession(uint64_t sessionId,
         IPC::Connection::Identifier identifier, WorkQueue *queue)
     : m_sessionId(sessionId)
@@ -72,7 +50,7 @@ PcFetcherSession::PcFetcherSession(uint64_t sessionId,
     , m_workQueue(queue)
     , m_cancellable(adoptGRef(g_cancellable_new()))
 {
-    m_callback = create_callback_info();
+    m_callback = pcfetcher_create_callback_info();
     if (m_callback == NULL) {
         return;
     }
@@ -85,7 +63,7 @@ PcFetcherSession::~PcFetcherSession()
 {
     close();
     if (m_callback) {
-        destroy_callback_info(m_callback);
+        pcfetcher_destroy_callback_info(m_callback);
     }
 }
 
@@ -237,7 +215,7 @@ void PcFetcherSession::stop()
     info->handler = nullptr;
 
     if (!info->dispatched) {
-        destroy_callback_info(info);
+        pcfetcher_destroy_callback_info(info);
     }
 }
 
@@ -255,7 +233,7 @@ void PcFetcherSession::cancel()
     info->header.ret_code = RESP_CODE_USER_CANCEL;
     info->handler(info->req_id, info->ctxt, &info->header, NULL);
     if (!info->dispatched) {
-        destroy_callback_info(info);
+        pcfetcher_destroy_callback_info(info);
     }
 }
 

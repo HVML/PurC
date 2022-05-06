@@ -91,6 +91,17 @@ struct pcfetcher {
     pcfetcher_check_response_fn check_response;
 };
 
+struct pcfetcher_callback_info {
+    struct pcfetcher_resp_header header;
+    purc_rwstream_t rws;
+    purc_variant_t req_id;
+    bool dispatched;
+    bool cancelled;
+
+    pcfetcher_response_handler handler;
+    void *ctxt;
+};
+
 struct pcfetcher* pcfetcher_local_init(size_t max_conns, size_t cache_quota);
 
 int pcfetcher_local_term(struct pcfetcher* fetcher);
@@ -177,6 +188,9 @@ int pcfetcher_remote_check_response(struct pcfetcher* fetcher,
         uint32_t timeout_ms);
 
 #endif // ENABLE(REMOTE_FETCHER)
+
+struct pcfetcher_callback_info *pcfetcher_create_callback_info();
+void pcfetcher_destroy_callback_info(struct pcfetcher_callback_info *info);
 
 #ifdef __cplusplus
 }
