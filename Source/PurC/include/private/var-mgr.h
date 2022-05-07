@@ -31,9 +31,22 @@
 
 #include "private/variant.h"
 #include "private/map.h"
+#include "private/rbtree.h"
 
 struct pcvarmgr;
 typedef struct pcvarmgr*  pcvarmgr_t;
+
+struct pcvarmgr {
+    purc_variant_t object;
+    struct pcvar_listener* grow_listener;
+    struct pcvar_listener* shrink_listener;
+    struct pcvar_listener* change_listener;
+    pcutils_array_t* var_observers;
+
+    struct rb_node            node;
+    struct pcvdom_node       *vdom_node;
+};
+
 
 struct pcintr_stack;
 

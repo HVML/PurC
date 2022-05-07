@@ -182,7 +182,7 @@ void timer_fire_func(const char* id, void* ctxt)
     purc_variant_t sub_type = purc_variant_make_string(id, false);
 
     pcintr_dispatch_message_ex((pcintr_stack_t)ctxt,
-            stack->vdom->timers->timers_var,
+            stack->timers->timers_var,
             type, sub_type, PURC_VARIANT_INVALID);
 
     purc_variant_unref(type);
@@ -237,7 +237,7 @@ get_inner_timer(pcintr_stack_t stack, purc_variant_t timer_var)
     }
 
     const char* idstr = purc_variant_get_string_const(id);
-    pcintr_timer_t timer = find_timer(stack->vdom->timers, idstr);
+    pcintr_timer_t timer = find_timer(stack->timers, idstr);
     if (timer) {
         return timer;
     }
@@ -247,7 +247,7 @@ get_inner_timer(pcintr_stack_t stack, purc_variant_t timer_var)
         return NULL;
     }
 
-    if (!add_timer(stack->vdom->timers, idstr, timer)) {
+    if (!add_timer(stack->timers, idstr, timer)) {
         pcintr_timer_destroy(timer);
         return NULL;
     }
@@ -264,9 +264,9 @@ destroy_inner_timer(pcintr_stack_t stack, purc_variant_t timer_var)
     }
 
     const char* idstr = purc_variant_get_string_const(id);
-    pcintr_timer_t timer = find_timer(stack->vdom->timers, idstr);
+    pcintr_timer_t timer = find_timer(stack->timers, idstr);
     if (timer) {
-        remove_timer(stack->vdom->timers, idstr);
+        remove_timer(stack->timers, idstr);
     }
 }
 
@@ -437,5 +437,5 @@ pcintr_is_timers(pcintr_stack_t stack, purc_variant_t v)
     if (!stack) {
         return false;
     }
-    return (v == stack->vdom->timers->timers_var);
+    return (v == stack->timers->timers_var);
 }

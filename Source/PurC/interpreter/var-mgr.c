@@ -62,14 +62,6 @@ struct var_observe {
     pcintr_stack_t stack;
 };
 
-struct pcvarmgr {
-    purc_variant_t object;
-    struct pcvar_listener* grow_listener;
-    struct pcvar_listener* shrink_listener;
-    struct pcvar_listener* change_listener;
-    pcutils_array_t* var_observers;
-};
-
 static int find_var_observe_idx(struct pcvarmgr* mgr, const char* name,
         enum var_event_type type, pcintr_stack_t stack)
 {
@@ -286,6 +278,7 @@ err_ret:
 int pcvarmgr_destroy(pcvarmgr_t mgr)
 {
     if (mgr) {
+        PC_ASSERT(mgr->node.rb_parent == NULL);
         size_t sz = pcutils_array_length(mgr->var_observers);
         for (size_t i = 0; i < sz; i++) {
             struct var_observe* obs = (struct var_observe*) pcutils_array_get(

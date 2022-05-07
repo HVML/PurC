@@ -344,8 +344,29 @@ free_observer_list(struct list_head *observer_list)
 }
 
 static void
+release_scoped_variables(pcintr_stack_t stack)
+{
+    if (!stack)
+        return;
+
+    struct rb_node *p, *n;
+    struct rb_node *last = pcutils_rbtree_last(&stack->scoped_variables);
+    pcutils_rbtree_for_each_reverse_safe(last, p, n) {
+        pcvarmgr_t mgr = container_of(p, struct pcvarmgr, node);
+        pcutils_rbtree_erase(p, &stack->scoped_variables);
+        PC_ASSERT(p->rb_left == NULL);
+        PC_ASSERT(p->rb_right == NULL);
+        PC_ASSERT(p->rb_parent == NULL);
+        pcvarmgr_destroy(mgr);
+    }
+}
+
+static void
 stack_release(pcintr_stack_t stack)
 {
+    if (!stack)
+        return;
+
     size_t sz = purc_variant_array_get_size(stack->async_request_ids);
     if (sz) {
         purc_variant_t ids = purc_variant_container_clone(
@@ -375,10 +396,14 @@ stack_release(pcintr_stack_t stack)
         PC_ASSERT(stack->nr_frames == 0);
     }
 
+    release_scoped_variables(stack);
+
+    if (stack->timers) {
+        pcintr_timers_destroy(stack->timers);
+        stack->timers = NULL;
+    }
+
     if (stack->vdom) {
-        if (stack->vdom->timers) {
-            pcintr_timers_destroy(stack->vdom->timers);
-        }
         vdom_destroy(stack->vdom);
         stack->vdom = NULL;
     }
@@ -422,6 +447,7 @@ stack_init(pcintr_stack_t stack)
     INIT_LIST_HEAD(&stack->common_variant_observer_list);
     INIT_LIST_HEAD(&stack->dynamic_variant_observer_list);
     INIT_LIST_HEAD(&stack->native_variant_observer_list);
+    stack->scoped_variables = RB_ROOT;
 
     stack->stage = STACK_STAGE_FIRST_ROUND;
     stack->loaded_vars = RB_ROOT;
@@ -1313,8 +1339,8 @@ static bool
 init_buidin_doc_variable(pcintr_stack_t stack)
 {
     // $TIMERS
-    stack->vdom->timers = pcintr_timers_init(stack);
-    if (!stack->vdom->timers) {
+    stack->timers = pcintr_timers_init(stack);
+    if (!stack->timers) {
         return false;
     }
 
@@ -1394,6 +1420,28 @@ purc_load_hvml_from_rwstream(purc_rwstream_t stream)
     return purc_load_hvml_from_rwstream_ex(stream, NULL, NULL);
 }
 
+int
+pcintr_init_vdom_under_stack(pcintr_stack_t stack)
+{
+    PC_ASSERT(stack == pcintr_get_stack());
+
+    stack->async_request_ids = purc_variant_make_array(0, PURC_VARIANT_INVALID);
+    if (!stack->async_request_ids) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return -1;
+    }
+
+    if (doc_init(stack)) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return -1;
+    }
+
+    if(!init_buidin_doc_variable(stack))
+        return -1;
+
+    return 0;
+}
+
 purc_vdom_t
 purc_load_hvml_from_rwstream_ex(purc_rwstream_t stream,
         struct pcintr_supervisor_ops *ops, void *ctxt)
@@ -1433,24 +1481,6 @@ purc_load_hvml_from_rwstream_ex(purc_rwstream_t stream,
     stack->vdom = vdom;
     stack->co.stack = stack;
     stack->co.state = CO_STATE_READY;
-
-    stack->async_request_ids = purc_variant_make_array(0, PURC_VARIANT_INVALID);
-    if (!stack->async_request_ids) {
-        stack_destroy(stack);
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return NULL;
-    }
-
-    if (doc_init(stack)) {
-        stack_destroy(stack);
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return NULL;
-    }
-
-    if(!init_buidin_doc_variable(stack)) {
-        stack_destroy(stack);
-        return NULL;
-    }
 
     struct pcintr_stack_frame *frame;
     frame = push_stack_frame(stack);
@@ -2836,5 +2866,72 @@ pcintr_get_vdom_from_variant(purc_variant_t val)
     }
 
     return (pcvdom_element_t)native;
+}
+
+static int
+cmp_f(struct rb_node *node, void *ud)
+{
+    pcvarmgr_t mgr = container_of(node, struct pcvarmgr, node);
+    PC_ASSERT(mgr->vdom_node);
+    PC_ASSERT(ud);
+    struct pcvdom_node *v = (struct pcvdom_node*)ud;
+    if (mgr->vdom_node < v)
+        return -1;
+    if (mgr->vdom_node > v)
+        return 1;
+    return 0;
+}
+
+struct rb_node*
+new_varmgr(void *ud)
+{
+    PC_ASSERT(ud);
+    struct pcvdom_node *v = (struct pcvdom_node*)ud;
+
+    pcvarmgr_t mgr = pcvarmgr_create();
+    if (!mgr)
+        return NULL;
+
+    mgr->vdom_node = v;
+
+    return &mgr->node;
+}
+
+pcvarmgr_t
+pcintr_create_scoped_variables(struct pcvdom_node *node)
+{
+    PC_ASSERT(node);
+    pcintr_stack_t stack = pcintr_get_stack();
+    PC_ASSERT(stack);
+
+    struct rb_node *p;
+    int r = pcutils_rbtree_insert_or_get(&stack->scoped_variables, node,
+            cmp_f, new_varmgr, &p);
+    if (r) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return NULL;
+    }
+
+    PC_ASSERT(p);
+
+    return container_of(p, struct pcvarmgr, node);
+}
+
+pcvarmgr_t
+pcintr_get_scoped_variables(struct pcvdom_node *node)
+{
+    PC_ASSERT(node);
+    pcintr_stack_t stack = pcintr_get_stack();
+    PC_ASSERT(stack);
+
+    struct rb_node *p;
+    struct rb_node *first = pcutils_rbtree_first(&stack->scoped_variables);
+    pcutils_rbtree_for_each(first, p) {
+        pcvarmgr_t mgr = container_of(p, struct pcvarmgr, node);
+        if (mgr->vdom_node == node)
+            return mgr;
+    }
+
+    return NULL;
 }
 

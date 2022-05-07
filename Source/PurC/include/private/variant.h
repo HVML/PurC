@@ -661,13 +661,13 @@ PCA_EXTERN_C_END
 #define foreach_value_in_variant_set_order_reverse_safe(_set, _val)     \
     do {                                                                \
         variant_set_t _data;                                            \
-        struct rb_node *_first;                                         \
+        struct rb_node *_last;                                          \
         _data = (variant_set_t)_set->sz_ptr[1];                         \
-        _first = pcutils_rbtree_last(&_data->elems);                    \
-        if (!_first)                                                    \
+        _last = pcutils_rbtree_last(&_data->elems);                     \
+        if (!_last)                                                     \
             break;                                                      \
         struct rb_node *_p, *_n;                                        \
-        pcutils_rbtree_for_each_reverse_safe(_first, _p, _n)            \
+        pcutils_rbtree_for_each_reverse_safe(_last, _p, _n)             \
         {                                                               \
             struct set_node *_sn;                                       \
             _sn = container_of(_p, struct set_node, rbnode);            \

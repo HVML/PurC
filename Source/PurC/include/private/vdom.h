@@ -117,10 +117,6 @@ struct pcvdom_document {
     struct pcvdom_element  *head;
     struct pcvdom_element  *body;
 
-    // document-variables
-    // such as `$REQUEST`、`$TIMERS`、`$T` and etc.
-    pcvarmgr_t         variables;
-
     unsigned int            quirks:1;
 };
 
@@ -152,10 +148,6 @@ struct pcvdom_element {
     // val: struct pcvdom_attr*
     struct pcutils_map     *attrs;
 
-    // FIXME: scoped-variables
-    //  for those `defined` in `init`、`bind`、`connect`、`load`、`define`
-    pcvarmgr_t         variables;
-
     unsigned int            self_closing:1;
 };
 
@@ -173,7 +165,6 @@ struct pcvdom_comment {
 
 struct purc_vdom {
     struct pcvdom_document          *document;
-    struct pcintr_timers            *timers;
     const struct purc_hvml_ctrl_props     *hvml_ctrl_props;
     uintptr_t   target_workspace_handle;  /* rdr workspace */
     uintptr_t   target_window_handle;

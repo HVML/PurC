@@ -179,6 +179,10 @@ struct pcintr_stack {
     pcintr_timer_t                      *event_timer; // 10ms
 
     purc_variant_t async_request_ids;       // async request ids (array)
+
+    struct rb_root  scoped_variables; // key: vdom_node
+                                      // val: pcvarmgr_t
+    struct pcintr_timers  *timers;
 };
 
 enum purc_symbol_var {
@@ -497,6 +501,15 @@ purc_load_hvml_from_url_ex(const char* url,
 purc_vdom_t
 purc_load_hvml_from_rwstream_ex(purc_rwstream_t stream,
         struct pcintr_supervisor_ops *ops, void *ctxt);
+
+int
+pcintr_init_vdom_under_stack(pcintr_stack_t stack);
+
+pcvarmgr_t
+pcintr_create_scoped_variables(struct pcvdom_node *node);
+
+pcvarmgr_t
+pcintr_get_scoped_variables(struct pcvdom_node *node);
 
 PCA_EXTERN_C_END
 

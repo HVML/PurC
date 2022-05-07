@@ -286,6 +286,7 @@ void pcutils_rbtree_erase(struct rb_node *node, struct rb_root *root)
 
     node->rb_left = NULL;
     node->rb_right = NULL;
+    node->rb_parent = NULL;
 
  color:
     if (color == RB_BLACK)
@@ -522,4 +523,49 @@ int pcutils_rbtree_insert(struct rb_root *root, void *ud,
 
     return 0;
 }
+
+int pcutils_rbtree_insert_or_get(struct rb_root *root, void *ud,
+        int (*cmp)(struct rb_node *node, void *ud),
+        struct rb_node* (*new_entry)(void *ud),
+        struct rb_node **node)
+{
+    PC_ASSERT(root);
+
+    struct rb_node **pentry;
+    struct rb_node *parent;
+
+    pentry = &root->rb_node;
+    parent = NULL;
+    while (*pentry) {
+        int ret;
+
+        ret = cmp((*pentry), ud);
+
+        parent = *pentry;
+        if (ret < 0)
+            pentry = &((*pentry)->rb_left);
+        else if (ret > 0)
+            pentry = &((*pentry)->rb_right);
+        else {
+            if (node)
+                *node = *pentry;
+            return 0;
+        }
+    }
+
+    PC_ASSERT(*pentry == NULL);
+
+    struct rb_node *entry = new_entry(ud);
+    if (!entry)
+        return -1;
+
+    pcutils_rbtree_link_node(entry, parent, pentry);
+    pcutils_rbtree_insert_color(entry, root);
+
+    if (node)
+        *node = entry;
+
+    return 0;
+}
+
 
