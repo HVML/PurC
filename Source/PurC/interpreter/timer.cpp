@@ -108,7 +108,7 @@ pcintr_timer_start(pcintr_timer_t timer)
 {
     if (timer) {
         PurcTimer* tm = (PurcTimer*)timer;
-        return tm->startRepeating(
+        tm->startRepeating(
                 WTF::Seconds::fromMilliseconds(tm->getInterval()));
     }
 }
@@ -118,7 +118,7 @@ pcintr_timer_start_oneshot(pcintr_timer_t timer)
 {
     if (timer) {
         PurcTimer* tm = (PurcTimer*)timer;
-        return tm->startOneShot(
+        tm->startOneShot(
                 WTF::Seconds::fromMilliseconds(tm->getInterval()));
     }
 }
@@ -127,7 +127,7 @@ void
 pcintr_timer_stop(pcintr_timer_t timer)
 {
     if (timer) {
-        return ((PurcTimer*)timer)->stop();
+        ((PurcTimer*)timer)->stop();
     }
 }
 
