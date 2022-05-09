@@ -40,6 +40,7 @@ enum pcfetcher_request_method {
 };
 
 #define RESP_CODE_USER_STOP         -1
+#define RESP_CODE_USER_CANCEL       -2
 
 struct pcfetcher_resp_header {
     int ret_code;
@@ -91,6 +92,8 @@ purc_rwstream_t pcfetcher_request_sync(
         purc_variant_t params,
         uint32_t timeout,
         struct pcfetcher_resp_header *resp_header);
+
+void pcfetcher_cancel_async(purc_variant_t request);
 
 int pcfetcher_check_response(uint32_t timeout_ms);
 

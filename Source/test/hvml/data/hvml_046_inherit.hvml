@@ -1,0 +1,17 @@
+<hvml target="$REQUEST.target">
+    <body>
+        <inherit>
+            $STREAM.stdout.writelines("Start of 'Hello, world!'");
+        </inherit>
+        <inherit>
+            $STREAM.stdout.writelines($?)
+        </inherit>
+        <inherit>
+            $STREAM.stdout.writelines("End of 'Hello, world!'");
+        </inherit>
+        <init>
+        {{ $STREAM.stdout.writelines("End of 'Hello, world!'"); }}
+        <init>
+    </body>
+</hvml>
+

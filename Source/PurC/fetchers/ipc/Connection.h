@@ -136,8 +136,8 @@ public:
     static Connection::SocketPair createPlatformConnection(unsigned options = SetCloexecOnClient | SetCloexecOnServer);
 #endif
 
-    static Ref<Connection> createServerConnection(Identifier, Client&);
-    static Ref<Connection> createClientConnection(Identifier, Client&);
+    static Ref<Connection> createServerConnection(Identifier, Client&, WorkQueue*);
+    static Ref<Connection> createClientConnection(Identifier, Client&, WorkQueue*);
     ~Connection();
 
     Client& client() const { return m_client; }
@@ -231,7 +231,7 @@ public:
     void enableIncomingMessagesThrottling();
 
 private:
-    Connection(Identifier, bool isServer, Client&);
+    Connection(Identifier, bool isServer, Client&, WorkQueue*);
     void platformInitialize(Identifier);
     void platformInvalidate();
 
@@ -300,7 +300,7 @@ private:
     DidCloseOnConnectionWorkQueueCallback m_didCloseOnConnectionWorkQueueCallback;
 
     bool m_isConnected;
-    Ref<WorkQueue> m_connectionQueue;
+    RefPtr<WorkQueue> m_connectionQueue;
 
     Lock m_workQueueMessageReceiversMutex;
     using WorkQueueMessageReceiverMap = HashMap<ReceiverName, std::pair<RefPtr<WorkQueue>, RefPtr<WorkQueueMessageReceiver>>, WTF::IntHash<ReceiverName>, WTF::StrongEnumHashTraits<ReceiverName>>;

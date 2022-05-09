@@ -1,0 +1,56 @@
+<!DOCTYPE hvml>
+
+<!-- $REQUEST contains the startup options -->
+<hvml target="$REQUEST.target">
+    <body>
+
+        <inherit>
+        $STREAM.stdout.writelines("Start of 'Hello, world!'");
+        </inherit>
+
+        <!--
+            $SYSTEM.locale returns the current system locale like `zh_CN'.
+            This statement loads a JSON file which defined the map of
+            localization messages, like:
+            {
+            "Hello, world!": "世界，您好！"
+            }
+        -->
+        <update on="$T.map" from="messages/$SYSTEM.locale" to="merge" />
+
+        <!--
+            This statement defines an operation set, which output
+            an HTML fragment.
+
+            An operation set of HVML is similiar to a function or a closure
+            in other languages.
+        -->
+        <define as="output_html">
+        <h1>HVML</h1>
+        <p>$?</p>
+        </define>
+
+        <!--
+            This statement defines an operation set, which output
+            a text line to STDOUT.
+        -->
+        <define as="output_void">
+        <inherit>
+        $STREAM.stdout.writelines($?)
+        </inherit>
+        </define>
+
+        <!--
+            This statement includes one of the operation sets defined above
+            according to the value of `target` attribute of `hvml` element,
+            and pass the result returned by `$T.get('Hello, world!')`.
+        -->
+        <include with=${output_$HVML.target} on="$T.get('Hello, world!')" />
+
+        <inherit>
+        $STREAM.stdout.writelines("End of 'Hello, world!'");
+        </inherit>
+
+    </body>
+</hvml>
+

@@ -142,4 +142,31 @@ int pcfetcher_check_response(uint32_t timeout_ms)
             timeout_ms) : 0;
 }
 
+void pcfetcher_cancel_async(purc_variant_t request)
+{
+    struct pcfetcher* fetcher = get_fetcher();
+    if (fetcher) {
+        fetcher->cancel_async(fetcher, request);
+    }
+}
+
+struct pcfetcher_callback_info *pcfetcher_create_callback_info()
+{
+    return (struct pcfetcher_callback_info*) calloc(1,
+            sizeof(struct pcfetcher_callback_info));
+}
+
+void pcfetcher_destroy_callback_info(struct pcfetcher_callback_info *info)
+{
+    if (!info) {
+        return;
+    }
+    if (info->header.mime_type) {
+        free(info->header.mime_type);
+    }
+    if (info->rws) {
+        purc_rwstream_destroy(info->rws);
+    }
+    free(info);
+}
 

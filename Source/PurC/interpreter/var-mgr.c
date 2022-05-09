@@ -62,14 +62,6 @@ struct var_observe {
     pcintr_stack_t stack;
 };
 
-struct pcvarmgr {
-    purc_variant_t object;
-    struct pcvar_listener* grow_listener;
-    struct pcvar_listener* shrink_listener;
-    struct pcvar_listener* change_listener;
-    pcutils_array_t* var_observers;
-};
-
 static int find_var_observe_idx(struct pcvarmgr* mgr, const char* name,
         enum var_event_type type, pcintr_stack_t stack)
 {
@@ -286,6 +278,7 @@ err_ret:
 int pcvarmgr_destroy(pcvarmgr_t mgr)
 {
     if (mgr) {
+        PC_ASSERT(mgr->node.rb_parent == NULL);
         size_t sz = pcutils_array_length(mgr->var_observers);
         for (size_t i = 0; i < sz; i++) {
             struct var_observe* obs = (struct var_observe*) pcutils_array_get(
@@ -307,7 +300,7 @@ bool pcvarmgr_add(pcvarmgr_t mgr, const char* name,
         purc_variant_t variant)
 {
     if (purc_variant_is_undefined(variant))
-        return pcvarmgr_remove(mgr, name);
+        return pcvarmgr_remove_ex(mgr, name, true);
 
     if (mgr == NULL || mgr->object == PURC_VARIANT_INVALID
             || name == NULL || !variant) {
@@ -349,11 +342,11 @@ purc_variant_t pcvarmgr_get(pcvarmgr_t mgr, const char* name)
     return PURC_VARIANT_INVALID;
 }
 
-bool pcvarmgr_remove(pcvarmgr_t mgr, const char* name)
+bool pcvarmgr_remove_ex(pcvarmgr_t mgr, const char* name, bool silently)
 {
     if (name) {
         return purc_variant_object_remove_by_static_ckey(mgr->object,
-                name, false);
+                name, silently);
     }
     return false;
 }

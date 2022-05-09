@@ -30,6 +30,7 @@
 #include "fetcher-internal.h"
 
 #include <wtf/URL.h>
+#include <wtf/RunLoop.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -85,6 +86,7 @@ struct pcfetcher* pcfetcher_local_init(size_t max_conns, size_t cache_quota)
     fetcher->cookie_remove = pcfetcher_cookie_loccal_remove;
     fetcher->request_async = pcfetcher_local_request_async;
     fetcher->request_sync = pcfetcher_local_request_sync;
+    fetcher->cancel_async = pcfetcher_local_cancel_async;
     fetcher->check_response = pcfetcher_local_check_response;
 
     local->base_uri = NULL;
@@ -184,25 +186,51 @@ purc_variant_t pcfetcher_local_request_async(
         return PURC_VARIANT_INVALID;
     }
 
+#ifdef NDEBUG
     struct pcfetcher_resp_header header;
     purc_rwstream_t rws = pcfetcher_local_request_sync(fetcher, url, method,
             params, timeout, &header);
-
-    if (rws) {
-        purc_variant_t req_id = purc_variant_make_string(url, false);
-        handler(req_id, ctxt, &header, rws);
-        if (header.mime_type) {
-            free(header.mime_type);
-        }
-        return req_id;
-    }
-    else {
+    if (!rws) {
         header.ret_code = 404;
         handler(PURC_VARIANT_INVALID, ctxt, &header, NULL);
         return PURC_VARIANT_INVALID;
     }
 
-    return PURC_VARIANT_INVALID;
+    purc_variant_t req_id = purc_variant_make_string(url, false);
+    handler(req_id, ctxt, &header, rws);
+    if (header.mime_type) {
+        free(header.mime_type);
+    }
+    return req_id;
+#else // TEST code : local async time out
+    struct pcfetcher_callback_info *info = pcfetcher_create_callback_info();
+    info->rws = pcfetcher_local_request_sync(fetcher, url, method,
+            params, timeout, &info->header);
+    if (!info->rws) {
+        info->header.ret_code = 404;
+        handler(PURC_VARIANT_INVALID, ctxt, &info->header, NULL);
+        info->rws = NULL;
+        pcfetcher_destroy_callback_info(info);
+        return PURC_VARIANT_INVALID;
+    }
+
+    info->handler = handler;
+    info->ctxt = ctxt;
+    info->req_id = purc_variant_make_native(info, NULL);
+
+    RunLoop *runloop = &RunLoop::current();
+    // random
+    double tm = randomNumber() * 10;
+    runloop->dispatchAfter(Seconds(tm), [info] {
+                if (!info->cancelled) {
+                    info->handler(info->req_id, info->ctxt, &info->header,
+                            info->rws);
+                    info->rws = NULL;
+                }
+                pcfetcher_destroy_callback_info(info);
+            });
+    return info->req_id;
+#endif
 }
 
 off_t filesize(const char* filename)
@@ -260,6 +288,20 @@ purc_rwstream_t pcfetcher_local_request_sync(
     return NULL;
 }
 
+void pcfetcher_local_cancel_async(struct pcfetcher* fetcher,
+        purc_variant_t request)
+{
+    UNUSED_PARAM(fetcher);
+    UNUSED_PARAM(request);
+
+#ifndef NDEBUG
+    struct pcfetcher_callback_info *info = (struct pcfetcher_callback_info *)
+        purc_variant_native_get_entity(request);
+    info->cancelled = true;
+    info->header.ret_code = RESP_CODE_USER_CANCEL;
+    info->handler(info->req_id, info->ctxt, &info->header, NULL);
+#endif
+}
 
 int pcfetcher_local_check_response(struct pcfetcher* fetcher,
         uint32_t timeout_ms)

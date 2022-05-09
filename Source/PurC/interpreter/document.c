@@ -82,6 +82,9 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         return NULL;
 
     int r;
+    r = pcintr_init_vdom_under_stack(stack);
+    if (r)
+        return NULL;
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);

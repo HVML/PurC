@@ -1,0 +1,113 @@
+PCHVML_TOKEN_DOCTYPE|<!DOCTYPE hvml>
+PCHVML_TOKEN_VCM_TREE|"
+
+"
+PCHVML_TOKEN_COMMENT|<!-- $REQUEST contains the startup options -->
+PCHVML_TOKEN_VCM_TREE|"
+"
+PCHVML_TOKEN_START_TAG|<hvml target=concat_string(get_element(get_variable("REQUEST"),"target"))>
+PCHVML_TOKEN_VCM_TREE|"
+    "
+PCHVML_TOKEN_START_TAG|<body>
+PCHVML_TOKEN_VCM_TREE|"
+
+        "
+PCHVML_TOKEN_START_TAG|<inherit>
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_VCM_TREE|call_getter(get_element(get_element(get_variable("STREAM"),"stdout"),"writelines"),"Start of 'Hello, world!'")
+PCHVML_TOKEN_VCM_TREE|";"
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_END_TAG|</inherit>
+PCHVML_TOKEN_VCM_TREE|"
+
+        "
+PCHVML_TOKEN_COMMENT|<!--
+            $SYSTEM.locale returns the current system locale like `zh_CN'.
+            This statement loads a JSON file which defined the map of
+            localization messages, like:
+            {
+            "Hello, world!": "世界，您好！"
+            }
+        -->
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_START_TAG|<update on=get_element(get_variable("T"),"map") from=concat_string("messages/",get_element(get_variable("SYSTEM"),"locale")) to="merge"/>
+PCHVML_TOKEN_VCM_TREE|"
+
+        "
+PCHVML_TOKEN_COMMENT|<!--
+            This statement defines an operation set, which output
+            an HTML fragment.
+
+            An operation set of HVML is similiar to a function or a closure
+            in other languages.
+        -->
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_START_TAG|<define as="output_html">
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_START_TAG|<h1>
+PCHVML_TOKEN_VCM_TREE|"HVML"
+PCHVML_TOKEN_END_TAG|</h1>
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_START_TAG|<p>
+PCHVML_TOKEN_VCM_TREE|get_variable("?")
+PCHVML_TOKEN_END_TAG|</p>
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_END_TAG|</define>
+PCHVML_TOKEN_VCM_TREE|"
+
+        "
+PCHVML_TOKEN_COMMENT|<!--
+            This statement defines an operation set, which output
+            a text line to STDOUT.
+        -->
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_START_TAG|<define as="output_void">
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_START_TAG|<inherit>
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_VCM_TREE|call_getter(get_element(get_element(get_variable("STREAM"),"stdout"),"writelines"),get_variable("?"))
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_END_TAG|</inherit>
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_END_TAG|</define>
+PCHVML_TOKEN_VCM_TREE|"
+
+        "
+PCHVML_TOKEN_COMMENT|<!--
+            This statement includes one of the operation sets defined above
+            according to the value of `target` attribute of `hvml` element,
+            and pass the result returned by `$T.get('Hello, world!')`.
+        -->
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_START_TAG|<include with=get_variable(concat_string("output_",get_element(get_variable("HVML"),"target"))) on=call_getter(get_element(get_variable("T"),"get"),"Hello, world!")/>
+PCHVML_TOKEN_VCM_TREE|"
+
+        "
+PCHVML_TOKEN_START_TAG|<inherit>
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_VCM_TREE|call_getter(get_element(get_element(get_variable("STREAM"),"stdout"),"writelines"),"End of 'Hello, world!'")
+PCHVML_TOKEN_VCM_TREE|";"
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_END_TAG|</inherit>
+PCHVML_TOKEN_VCM_TREE|"
+
+    "
+PCHVML_TOKEN_END_TAG|</body>
+PCHVML_TOKEN_VCM_TREE|"
+"
+PCHVML_TOKEN_END_TAG|</hvml>

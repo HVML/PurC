@@ -770,29 +770,25 @@ static void load_response_handler(purc_variant_t request_id, void *ctxt,
         const struct pcfetcher_resp_header *resp_header,
         purc_rwstream_t resp)
 {
+    PC_DEBUG("load_async|callback|ret_code=%d\n", resp_header->ret_code);
+    PC_DEBUG("load_async|callback|mime_type=%s\n", resp_header->mime_type);
+    PC_DEBUG("load_async|callback|sz_resp=%ld\n", resp_header->sz_resp);
     struct fetcher_for_init *fetcher = (struct fetcher_for_init*)ctxt;
 
     if (resp_header->ret_code == RESP_CODE_USER_STOP) {
         goto clean_rws;
     }
 
+    pcintr_remove_async_request_id(fetcher->stack, request_id);
     bool has_except = false;
     if (!resp || resp_header->ret_code != 200) {
         has_except = true;
         goto dispatch_except;
     }
 
-    PC_DEBUG("ret_code=%d\n", resp_header->ret_code);
-    PC_DEBUG("mime_type=%s\n", resp_header->mime_type);
-    PC_DEBUG("sz_resp=%ld\n", resp_header->sz_resp);
-    size_t sz_content = 0;
-    size_t sz_buffer = 0;
-    char* buf = (char*)purc_rwstream_get_mem_buffer_ex(resp, &sz_content,
-            &sz_buffer, false);
-
     bool ok;
     struct pcvdom_element *element = fetcher->element;
-    purc_variant_t ret = purc_variant_make_from_json_string(buf, sz_content);
+    purc_variant_t ret = purc_variant_load_from_json_stream(resp);
     const char *s_name = purc_variant_get_string_const(fetcher->name);
     if (ret != PURC_VARIANT_INVALID) {
         if (fetcher->under_head) {
@@ -924,6 +920,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
                     load_response_handler, fetcher);
             if (v == PURC_VARIANT_INVALID)
                 return NULL;
+            pcintr_save_async_request_id(stack, v);
         }
     }
 

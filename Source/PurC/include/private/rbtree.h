@@ -116,6 +116,10 @@ int pcutils_rbtree_insert(struct rb_root *root, void *ud,
         int (*cmp)(struct rb_node *node, void *ud),
         struct rb_node* (*new_entry)(void *ud));
 
+int pcutils_rbtree_insert_or_get(struct rb_root *root, void *ud,
+        int (*cmp)(struct rb_node *node, void *ud),
+        struct rb_node* (*new_entry)(void *ud),
+        struct rb_node **node);
 
 /* struct rb_node *_p */
 #define pcutils_rbtree_for_each(_rb_node, _p)                          \

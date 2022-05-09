@@ -49,7 +49,7 @@ class PcFetcherSession : public IPC::Connection::Client {
 
 public:
     PcFetcherSession(uint64_t sessionId,
-            IPC::Connection::Identifier connectionIdentifier);
+            IPC::Connection::Identifier connectionIdentifier, WorkQueue *queue);
 
     ~PcFetcherSession();
 
@@ -79,6 +79,11 @@ public:
         struct pcfetcher_resp_header *resp_header);
 
     void stop();
+    void cancel();
+    purc_variant_t getRequestId()
+    {
+        return m_callback ? m_callback->req_id : PURC_VARIANT_INVALID;
+    }
 
     void wait(uint32_t timeout);
     void wakeUp(void);
@@ -112,15 +117,11 @@ private:
     RefPtr<IPC::Connection> m_connection;
     IPC::MessageReceiverMap m_messageReceiverMap;
     BinarySemaphore m_waitForSyncReplySemaphore;
-    struct pcfetcher_resp_header m_resp_header;
-
-    pcfetcher_response_handler m_req_handler;
-    void* m_req_ctxt;
-
-    purc_rwstream_t m_resp_rwstream;
-    purc_variant_t m_req_vid;
 
     RunLoop* m_runloop;
+    struct pcfetcher_callback_info *m_callback;
+    WorkQueue* m_workQueue;
+    GRefPtr<GCancellable> m_cancellable;
 };
 
 

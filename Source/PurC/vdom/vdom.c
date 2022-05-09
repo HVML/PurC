@@ -333,7 +333,13 @@ pcvdom_document_bind_variable(purc_vdom_t vdom, const char *name,
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         return false;
     }
-    bool b = pcvarmgr_add(vdom->document->variables, name, variant);
+
+    struct pcvdom_node *node = &vdom->document->node;
+    pcvarmgr_t scoped_variables = pcintr_create_scoped_variables(node);
+    if (!scoped_variables)
+        return false;
+
+    bool b = pcvarmgr_add(scoped_variables, name, variant);
     return b;
 }
 
@@ -345,7 +351,12 @@ pcvdom_document_unbind_variable(purc_vdom_t vdom,
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         return false;
     }
-    return pcvarmgr_remove(vdom->document->variables, name);
+
+    pcvarmgr_t scoped_variables = pcvdom_document_get_variables(vdom);
+    if (!scoped_variables)
+        return false;
+
+    return pcvarmgr_remove(scoped_variables, name);
 }
 
 purc_variant_t
@@ -357,7 +368,12 @@ pcvdom_document_get_variable(purc_vdom_t vdom,
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
     }
-    return pcvarmgr_get(vdom->document->variables, name);
+
+    pcvarmgr_t scoped_variables = pcvdom_document_get_variables(vdom);
+    if (!scoped_variables)
+        return false;
+
+    return pcvarmgr_get(scoped_variables, name);
 }
 
 pcvarmgr_t
@@ -367,7 +383,9 @@ pcvdom_document_get_variables(purc_vdom_t vdom)
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         return NULL;
     }
-    return vdom->document->variables;
+
+    struct pcvdom_node *node = &vdom->document->node;
+    return pcintr_get_scoped_variables(node);
 }
 
 int
@@ -463,9 +481,15 @@ pcvdom_element_bind_variable(struct pcvdom_element *elem,
 {
     if (!elem || !name || !variant) {
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
-        return -1;
+        return false;
     }
-    return pcvarmgr_add(elem->variables, name, variant);
+
+    struct pcvdom_node *node = &elem->node;
+    pcvarmgr_t scoped_variables = pcintr_create_scoped_variables(node);
+    if (!scoped_variables)
+        return false;
+
+    return pcvarmgr_add(scoped_variables, name, variant);
 }
 
 bool
@@ -474,9 +498,14 @@ pcvdom_element_unbind_variable(struct pcvdom_element *elem,
 {
     if (!elem || !name) {
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
-        return -1;
+        return false;
     }
-    return pcvarmgr_remove(elem->variables, name);
+
+    pcvarmgr_t scoped_variables = pcvdom_element_get_variables(elem);
+    if (!scoped_variables)
+        return false;
+
+    return pcvarmgr_remove(scoped_variables, name);
 }
 
 purc_variant_t
@@ -487,7 +516,11 @@ pcvdom_element_get_variable(struct pcvdom_element *elem,
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
     }
-    return pcvarmgr_get(elem->variables, name);
+    pcvarmgr_t scoped_variables = pcvdom_element_get_variables(elem);
+    if (!scoped_variables)
+        return PURC_VARIANT_INVALID;
+
+    return pcvarmgr_get(scoped_variables, name);
 }
 
 pcvarmgr_t
@@ -497,7 +530,9 @@ pcvdom_element_get_variables(struct pcvdom_element *elem)
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         return NULL;
     }
-    return elem->variables;
+
+    struct pcvdom_node *node = &elem->node;
+    return pcintr_get_scoped_variables(node);
 }
 
 // accessor api
@@ -998,8 +1033,6 @@ doctype_reset(struct pcvdom_doctype *doctype)
 static void
 document_reset(struct pcvdom_document *doc)
 {
-    int r;
-
     doctype_reset(&doc->doctype);
 
     while (doc->node.node.first_child) {
@@ -1007,12 +1040,6 @@ document_reset(struct pcvdom_document *doc)
         node = container_of(doc->node.node.first_child, struct pcvdom_node, node);
         pctree_node_remove(doc->node.node.first_child);
         pcvdom_node_destroy(node);
-    }
-
-    if (doc->variables) {
-        r = pcvarmgr_destroy(doc->variables);
-        PC_ASSERT(r==0);
-        doc->variables = NULL;
     }
 }
 
@@ -1049,13 +1076,6 @@ document_create(void)
 
     doc->node.type = VDT(DOCUMENT);
     doc->node.remove_child = document_remove_child;
-
-    doc->variables = pcvarmgr_create();
-    if (!doc->variables) {
-        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        document_destroy(doc);
-        return NULL;
-    }
 
     return doc;
 }
@@ -1100,12 +1120,6 @@ element_reset(struct pcvdom_element *elem)
         r = pcutils_map_destroy(elem->attrs);
         PC_ASSERT(r==0);
         elem->attrs = NULL;
-    }
-
-    if (elem->variables) {
-        r = pcvarmgr_destroy(elem->variables);
-        PC_ASSERT(r==0);
-        elem->variables = NULL;
     }
 }
 
@@ -1179,13 +1193,6 @@ element_create(void)
     // FIXME:
     // if (pcintr_get_stack() == NULL)
     //     return elem;
-
-    elem->variables = pcvarmgr_create();
-    if (!elem->variables) {
-        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        element_destroy(elem);
-        return NULL;
-    }
 
     return elem;
 }
