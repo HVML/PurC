@@ -35,7 +35,7 @@
 #include <limits.h>
 #include <unistd.h>
 #include <sys/types.h>
-#include <sys/stat.h>
+//#include <sys/stat.h>
 #include <sys/vfs.h>
 #include <dirent.h>
 #include <fcntl.h>
@@ -43,6 +43,29 @@
 #include <pwd.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <mntent.h>
+
+#include <linux/stat.h>
+#define statx foo
+struct statx;
+#include <sys/stat.h>
+#undef statx
+
+#define AT_STATX_SYNC_TYPE      0x6000
+#define AT_STATX_SYNC_AS_STAT   0x0000
+#define AT_STATX_FORCE_SYNC     0x2000
+#define AT_STATX_DONT_SYNC      0x4000
+
+#ifndef __NR_statx
+#define __NR_statx -1
+#endif
+
+static __attribute__((unused))
+ssize_t statx(int dfd, const char *filename, unsigned flags,
+	      unsigned int mask, struct statx *buffer)
+{
+	return syscall(__NR_statx, dfd, filename, flags, mask, buffer);
+}
 
 #if USE(GLIB)
 #include <glib.h>
@@ -1367,12 +1390,24 @@ disk_usage_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         return PURC_VARIANT_INVALID;
     }
 
-    if (0 != statfs(string_dir, &stfs)) {
+    fp = fopen (string_dir, "rb");
+    if (NULL == fp) {
         set_purc_error_by_errno ();
         return purc_variant_make_boolean (false);
     }
 
-    if (0 != statx(0, string_dir, AT_STATX_SYNC_AS_STAT, STATX_BASIC_STATS, &stx)) {
+    mnt = getmntent (fp);
+    if (NULL == mnt) {
+        set_purc_error_by_errno ();
+        return purc_variant_make_boolean (false);
+    }
+
+    if (0 != statfs (string_dir, &fsu)) {
+        set_purc_error_by_errno ();
+        return purc_variant_make_boolean (false);
+    }
+
+    if (0 != statx (0, string_dir, AT_STATX_SYNC_AS_STAT, STATX_BASIC_STATS, &stx)) {
         set_purc_error_by_errno ();
         return purc_variant_make_boolean (false);
     }
@@ -1401,8 +1436,8 @@ disk_usage_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     purc_variant_unref (val);
 
     // mount_point
-    val = purc_variant_make_string (stfs->d_name, false);
-    purc_variant_object_set_by_static_ckey (obj_var, "mount_point", val);
+    val = purc_variant_make_string (mnt->mnt_dir, false);
+    purc_variant_object_set_by_static_ckey (ret_var, "mount_point", val);
     purc_variant_unref (val);
 
     // dev_majar
