@@ -40,6 +40,7 @@
 
 #include "hvml-attr.h"
 
+#include <pthread.h>
 #include <stdarg.h>
 
 #define EVENT_TIMER_INTRVAL  10
@@ -1871,25 +1872,99 @@ pcintr_load_from_uri(pcintr_stack_t stack, const char* uri)
     return ret;
 }
 
+struct load_async_data {
+    pcfetcher_response_handler handler;
+    void* ctxt;
+    pthread_t                  requesting_thread;
+    pcintr_stack_t             requesting_stack;
+    purc_variant_t             request_id;
+};
+
+static void
+release_load_async_data(struct load_async_data *data)
+{
+    if (data) {
+        PURC_VARIANT_SAFE_CLEAR(data->request_id);
+        data->handler           = NULL;
+        data->ctxt              = NULL;
+        data->requesting_thread = 0;
+        data->requesting_stack  = NULL;
+    }
+}
+
+static void
+destroy_load_async_data(struct load_async_data *data)
+{
+    if (data) {
+        release_load_async_data(data);
+        free(data);
+    }
+}
+
+static void
+on_load_async_done(
+        purc_variant_t request_id, void* ctxt,
+        const struct pcfetcher_resp_header *resp_header,
+        purc_rwstream_t resp)
+{
+    PC_ASSERT(request_id != PURC_VARIANT_INVALID);
+    PC_ASSERT(ctxt);
+    struct load_async_data *data;
+    data = (struct load_async_data*)ctxt;
+    PC_ASSERT(data);
+    PC_ASSERT(data->request_id == request_id);
+    PC_ASSERT(data->handler);
+    PC_ASSERT(data->requesting_thread == pthread_self());
+    pcintr_stack_t stack = pcintr_get_stack();
+    PC_ASSERT(stack);
+    PC_ASSERT(data->requesting_stack == stack);
+
+    data->handler(request_id, data->ctxt, resp_header, resp);
+
+    destroy_load_async_data(data);
+}
+
 purc_variant_t
 pcintr_load_from_uri_async(pcintr_stack_t stack, const char* uri,
         pcfetcher_response_handler handler, void* ctxt)
 {
-    if (uri == NULL || handler == NULL) {
+    PC_ASSERT(stack);
+    PC_ASSERT(uri);
+    PC_ASSERT(handler);
+
+    PC_ASSERT(pcintr_get_stack() == stack);
+
+    struct load_async_data *data;
+    data = (struct load_async_data*)malloc(sizeof(*data));
+    if (!data) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return PURC_VARIANT_INVALID;
     }
+    data->handler              = handler;
+    data->ctxt                 = ctxt;
+    data->requesting_thread    = pthread_self();
+    data->requesting_stack     = stack;
+    data->request_id           = PURC_VARIANT_INVALID;
 
     if (stack->vdom->hvml_ctrl_props->base_url_string) {
         pcfetcher_set_base_url(stack->vdom->hvml_ctrl_props->base_url_string);
     }
+
     uint32_t timeout = stack->vdom->hvml_ctrl_props->timeout.tv_sec;
-    return pcfetcher_request_async(
+    data->request_id = pcfetcher_request_async(
             uri,
             PCFETCHER_REQUEST_METHOD_GET,
             NULL,
             timeout,
-            handler,
-            ctxt);
+            on_load_async_done,
+            data);
+
+    if (data->request_id == PURC_VARIANT_INVALID) {
+        destroy_load_async_data(data);
+        return PURC_VARIANT_INVALID;
+    }
+
+    return data->request_id;
 }
 
 bool

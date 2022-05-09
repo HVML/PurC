@@ -68,6 +68,7 @@ struct fetcher_for_init {
     struct pcvdom_element         *element;
     purc_variant_t                name;
     unsigned int                  under_head:1;
+    pthread_t                     current;
 };
 
 static void
@@ -774,6 +775,8 @@ static void load_response_handler(purc_variant_t request_id, void *ctxt,
     PC_DEBUG("load_async|callback|mime_type=%s\n", resp_header->mime_type);
     PC_DEBUG("load_async|callback|sz_resp=%ld\n", resp_header->sz_resp);
     struct fetcher_for_init *fetcher = (struct fetcher_for_init*)ctxt;
+    pthread_t current = pthread_self();
+    PC_ASSERT(current == fetcher->current);
 
     if (resp_header->ret_code == RESP_CODE_USER_STOP) {
         goto clean_rws;
@@ -914,6 +917,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
             fetcher->stack = stack;
             fetcher->element = element;
             fetcher->name = ctxt->as;
+            fetcher->current = pthread_self();
             purc_variant_ref(fetcher->name);
             fetcher->under_head = ctxt->under_head;
             purc_variant_t v = pcintr_load_from_uri_async(stack, uri,
