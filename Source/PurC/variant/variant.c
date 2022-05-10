@@ -163,8 +163,6 @@ void pcvariant_init_instance(struct pcinst *inst)
     inst->variant_heap->v_true.b = true;
     // INIT_LIST_HEAD(&inst->variant_heap->v_true.listeners);
 
-    inst->variant_heap->gc = NULL;
-
     /* XXX: there are two values of boolean.  */
     struct purc_variant_stat *stat = &(inst->variant_heap->stat);
     stat->nr_values[PURC_VARIANT_TYPE_UNDEFINED] = 0;
@@ -221,62 +219,6 @@ const char* purc_variant_typename(enum purc_variant_type type)
     return typenames[type];
 }
 
-// experiment
-struct gc_slot {
-    purc_variant_t      *vals;
-    size_t               sz;
-    size_t               nr;
-};
-
-struct pcvariant_gc {
-    struct gc_slot *slots;
-    size_t          sz;
-    size_t          nr;
-};
-
-static void
-gc_slot_release(struct gc_slot *slot)
-{
-    if (slot) {
-        for (size_t i=0; i<slot->nr; ++i) {
-            purc_variant_t val = slot->vals[i];
-            if (val != PURC_VARIANT_INVALID) {
-                purc_variant_unref(val);
-            }
-            slot->vals[i] = PURC_VARIANT_INVALID;
-        }
-        free(slot->vals);
-        slot->vals  = NULL;
-        slot->sz    = 0;
-        slot->nr    = 0;
-    }
-}
-
-static void
-gc_release(struct pcvariant_gc *gc)
-{
-    if (gc) {
-        for (size_t i=0; i<gc->sz; ++i) {
-            struct gc_slot *slot;
-            slot = gc->slots + i;
-            gc_slot_release(slot);
-        }
-        free(gc->slots);
-        gc->slots = NULL;
-        gc->sz    = 0;
-        gc->nr    = 0;
-    }
-}
-
-static void
-gc_destroy(struct pcvariant_gc *gc)
-{
-    if (gc) {
-        gc_release(gc);
-        free(gc);
-    }
-}
-
 void pcvariant_cleanup_instance(struct pcinst *inst)
 {
     struct pcvariant_heap *heap = inst->variant_heap;
@@ -308,11 +250,6 @@ void pcvariant_cleanup_instance(struct pcinst *inst)
         pcvariant_free(v);
     }
 #endif
-
-    if (heap->gc) {
-        gc_destroy(heap->gc);
-        heap->gc = NULL;
-    }
 
     assert(heap->v_undefined.refc == 0);
     assert(heap->v_null.refc == 0);
@@ -2508,102 +2445,6 @@ purc_variant_stringify_alloc(char **strp, purc_variant_t value)
     *strp = p;
 
     return sz_content;
-}
-
-// experiment
-static void
-gc_push(struct pcvariant_gc *gc)
-{
-    PC_ASSERT(gc->nr <= gc->sz);
-    if (gc->nr == gc->sz) {
-        gc->sz += 16;
-        gc->slots = (struct gc_slot*)realloc(gc->slots,
-                gc->sz * sizeof(*gc->slots));
-        PC_ASSERT(gc->slots);
-        for (size_t i=gc->nr; i<gc->sz; ++i) {
-            struct gc_slot *slot = &gc->slots[i];
-            slot->vals = NULL;
-            slot->sz   = 0;
-            slot->nr   = 0;
-        }
-    }
-    ++gc->nr;
-}
-
-static void
-gc_pop(struct pcvariant_gc *gc)
-{
-    PC_ASSERT(gc);
-    PC_ASSERT(gc->nr <= gc->sz);
-    PC_ASSERT(gc->nr > 0);
-    struct gc_slot *slot = &gc->slots[--gc->nr];
-    for (size_t i=0; i<slot->nr; ++i) {
-        purc_variant_t val = slot->vals[i];
-        if (val != PURC_VARIANT_INVALID) {
-            purc_variant_unref(val);
-            slot->vals[i] = PURC_VARIANT_INVALID;
-        }
-    }
-    slot->nr = 0;
-}
-
-void pcvariant_push_gc(void)
-{
-    struct pcinst *instance = pcinst_current();
-    struct pcvariant_heap *heap = instance->variant_heap;
-    if (heap->gc == NULL) {
-        heap->gc = (struct pcvariant_gc*)calloc(1, sizeof(*heap->gc));
-        PC_ASSERT(heap->gc);
-    }
-    gc_push(heap->gc);
-}
-
-void pcvariant_pop_gc(void)
-{
-    struct pcinst *instance = pcinst_current();
-    struct pcvariant_heap *heap = instance->variant_heap;
-    PC_ASSERT(heap->gc);
-    gc_pop(heap->gc);
-}
-
-static void
-gc_slot_add_variant(struct gc_slot *slot, purc_variant_t val)
-{
-    PC_ASSERT(slot->nr <= slot->sz);
-    if (slot->nr == slot->sz) {
-        slot->sz += 16;
-        slot->vals = (purc_variant_t*)realloc(slot->vals,
-                slot->sz * sizeof(*slot->vals));
-        PC_ASSERT(slot->vals);
-    }
-    slot->vals[slot->nr++] = val;
-    if (val != PURC_VARIANT_INVALID)
-        purc_variant_ref(val);
-}
-
-static void
-gc_add_variant(struct pcvariant_gc *gc, purc_variant_t val)
-{
-    PC_ASSERT(gc->slots);
-    PC_ASSERT(gc->nr < gc->sz);
-    struct gc_slot *slot = &gc->slots[gc->nr-1];
-    gc_slot_add_variant(slot, val);
-}
-
-void pcvariant_gc_add(purc_variant_t val)
-{
-    PC_ASSERT(val != PURC_VARIANT_INVALID);
-    struct pcinst *instance = pcinst_current();
-    struct pcvariant_heap *heap = instance->variant_heap;
-    PC_ASSERT(heap->gc);
-    gc_add_variant(heap->gc, val);
-}
-
-void pcvariant_gc_mov(purc_variant_t val)
-{
-    PC_ASSERT(val != PURC_VARIANT_INVALID);
-    pcvariant_gc_add(val);
-    purc_variant_unref(val);
 }
 
 ssize_t pcvariant_serialize(char *buf, size_t sz, purc_variant_t val)

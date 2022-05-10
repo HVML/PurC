@@ -201,9 +201,6 @@ struct pcvariant_heap {
 #else
     struct list_head    v_reserved;
 #endif
-
-    // experiment
-    struct pcvariant_gc *gc;
 };
 
 // initialize variant module (once)
@@ -222,12 +219,6 @@ void pcvariant_use_norm_heap(void) WTF_INTERNAL;
 purc_variant *pcvariant_alloc(void) WTF_INTERNAL;
 purc_variant *pcvariant_alloc_0(void) WTF_INTERNAL;
 void pcvariant_free(purc_variant *v) WTF_INTERNAL;
-
-// experiment
-void pcvariant_push_gc(void);
-void pcvariant_pop_gc(void);
-void pcvariant_gc_add(purc_variant_t val);
-void pcvariant_gc_mov(purc_variant_t val);
 
 struct pcinst;
 
