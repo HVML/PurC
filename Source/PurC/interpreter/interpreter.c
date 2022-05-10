@@ -47,14 +47,14 @@
 
 #define MSG_TYPE_CHANGE     "change"
 
-void pcintr_stack_init_once(void)
+void pcintr_init_once(void)
 {
     purc_runloop_t runloop = purc_runloop_get_current();
     PC_ASSERT(runloop);
     init_ops();
 }
 
-void pcintr_stack_init_instance(struct pcinst* inst)
+void pcintr_init_instance(struct pcinst* inst)
 {
     struct pcintr_heap *heap = inst->intr_heap;
     PC_ASSERT(heap == NULL);
@@ -516,7 +516,7 @@ stack_init(pcintr_stack_t stack)
     stack->owning_heap = heap;
 }
 
-void pcintr_stack_cleanup_instance(struct pcinst* inst)
+void pcintr_cleanup_instance(struct pcinst* inst)
 {
     struct pcintr_heap *heap = inst->intr_heap;
     if (!heap)
@@ -3118,12 +3118,12 @@ pcintr_get_scoped_variables(struct pcvdom_node *node)
 }
 
 int
-pcintr_post_action(pcintr_stack_t stack,
+pcintr_post_action(pcintr_stack_t target,
         pcintr_action_f action_cb, void *ctxt)
 {
-    PC_ASSERT(stack);
+    PC_ASSERT(target);
     PC_ASSERT(action_cb);
-    PC_ASSERT(stack->owning_heap);
+    PC_ASSERT(target->owning_heap);
 
     struct pcintr_action *action;
     action = (struct pcintr_action*)calloc(1, sizeof(*action));
@@ -3134,9 +3134,9 @@ pcintr_post_action(pcintr_stack_t stack,
 
     action->action_cb        = action_cb;
     action->ctxt             = ctxt;
-    action->stack            = stack;
+    action->target           = target;
 
-    struct pcintr_heap *heap = stack->owning_heap;
+    struct pcintr_heap *heap = target->owning_heap;
 
     list_add_tail(&action->node, &heap->actions);
 

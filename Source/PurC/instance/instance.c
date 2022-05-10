@@ -215,7 +215,7 @@ static void init_modules_once(void)
 
         if (_modules & PURC_HAVE_HVML) {
             pcexecutor_init_once();
-            pcintr_stack_init_once();
+            pcintr_init_once();
         }
 
         if (_modules & PURC_HAVE_PCRDR) {
@@ -421,7 +421,7 @@ int purc_init_ex(unsigned int modules,
             goto failed;
 
         curr_inst->intr_heap = NULL;
-        pcintr_stack_init_instance(curr_inst);
+        pcintr_init_instance(curr_inst);
         if (curr_inst->intr_heap == NULL)
             goto failed;
     }
@@ -470,7 +470,7 @@ bool purc_cleanup(void)
 
         // TODO: clean up other fields in reverse order
         if (_modules & PURC_HAVE_HVML) {
-            pcintr_stack_cleanup_instance(curr_inst);
+            pcintr_cleanup_instance(curr_inst);
             pcexecutor_cleanup_instance(curr_inst);
             pcdvobjs_cleanup_instance(curr_inst);
         }

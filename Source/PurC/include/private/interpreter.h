@@ -47,12 +47,12 @@ struct pcintr_stack;
 typedef struct pcintr_stack pcintr_stack;
 typedef struct pcintr_stack *pcintr_stack_t;
 
-typedef void (*pcintr_action_f)(void *ctxt);
+typedef void (*pcintr_action_f)(int cancelled, void *ctxt);
 
 struct pcintr_action {
     pcintr_action_f       action_cb;
     void                 *ctxt;
-    pcintr_stack_t        stack;
+    pcintr_stack_t        target;
 
     struct list_head      node;
 };
@@ -70,6 +70,9 @@ struct pcintr_heap {
     purc_runloop_t        running_loop;
     // pthread bounded by this heap
     pthread_t             running_thread;
+
+    pthread_mutex_t       locker;
+    volatile bool         exiting;
 };
 
 struct pcintr_stack_frame_base;
@@ -345,9 +348,9 @@ struct pcintr_timers;
 
 PCA_EXTERN_C_BEGIN
 
-void pcintr_stack_init_once(void) WTF_INTERNAL;
-void pcintr_stack_init_instance(struct pcinst* inst) WTF_INTERNAL;
-void pcintr_stack_cleanup_instance(struct pcinst* inst) WTF_INTERNAL;
+void pcintr_init_once(void) WTF_INTERNAL;
+void pcintr_init_instance(struct pcinst* inst) WTF_INTERNAL;
+void pcintr_cleanup_instance(struct pcinst* inst) WTF_INTERNAL;
 
 pcintr_stack_t pcintr_get_stack(void);
 struct pcintr_stack_frame_base*
@@ -591,7 +594,7 @@ pcvarmgr_t
 pcintr_get_scoped_variables(struct pcvdom_node *node);
 
 int
-pcintr_post_action(pcintr_stack_t stack,
+pcintr_post_action(pcintr_stack_t target,
         pcintr_action_f action_cb, void *ctxt);
 
 PCA_EXTERN_C_END
