@@ -34,9 +34,10 @@
 
 #include <limits.h>
 #include <unistd.h>
-#include <sys/types.h>
-//#include <sys/stat.h>
 #include <sys/vfs.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/sysmacros.h>
 #include <dirent.h>
 #include <fcntl.h>
 #include <time.h>
@@ -45,27 +46,6 @@
 #include <stdlib.h>
 #include <mntent.h>
 
-#include <linux/stat.h>
-#define statx foo
-struct statx;
-#include <sys/stat.h>
-#undef statx
-
-#define AT_STATX_SYNC_TYPE      0x6000
-#define AT_STATX_SYNC_AS_STAT   0x0000
-#define AT_STATX_FORCE_SYNC     0x2000
-#define AT_STATX_DONT_SYNC      0x4000
-
-#ifndef __NR_statx
-#define __NR_statx -1
-#endif
-
-static __attribute__((unused))
-ssize_t statx(int dfd, const char *filename, unsigned flags,
-	      unsigned int mask, struct statx *buffer)
-{
-	return syscall(__NR_statx, dfd, filename, flags, mask, buffer);
-}
 
 #if USE(GLIB)
 #include <glib.h>
@@ -237,8 +217,7 @@ static bool filecopy (const char *infile, const char *outfile)
 
 static void set_purc_error_by_errno (void)
 {
-    switch (errno)
-    {
+    switch (errno) {
         case EACCES:
             purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
             break;
@@ -289,8 +268,7 @@ static inline void set_mode_value (mode_t *ptr_mode, unsigned int op_target,
         op_value_mask |= op_value;
     }
 
-    switch (operator)
-    {
+    switch (operator) {
         case '=':
             *ptr_mode = op_value_mask;
             break;
@@ -314,8 +292,7 @@ static mode_t str_to_mode (const char *input, mode_t mode)
 
     while (*input) {
 
-        switch (op_stage)
-        {
+        switch (op_stage) {
             case STAGE_NOT_SET:
                 op_stage = STAGE_TARGET;
                 break;
@@ -1373,7 +1350,7 @@ disk_usage_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     const char *string_dir = NULL;
     struct mntent *mnt;
     struct statfs fsu;
-    struct statx  stx;
+    struct stat   st;
     FILE *fp;
     purc_variant_t val = PURC_VARIANT_INVALID;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
@@ -1402,12 +1379,12 @@ disk_usage_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         return purc_variant_make_boolean (false);
     }
 
-    if (0 != statfs (string_dir, &fsu)) {
+    if (statfs (string_dir, &fsu) != 0) {
         set_purc_error_by_errno ();
         return purc_variant_make_boolean (false);
     }
 
-    if (0 != statx (0, string_dir, AT_STATX_SYNC_AS_STAT, STATX_BASIC_STATS, &stx)) {
+    if (stat (string_dir, &st) != 0) {
         set_purc_error_by_errno ();
         return purc_variant_make_boolean (false);
     }
@@ -1441,12 +1418,12 @@ disk_usage_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     purc_variant_unref (val);
 
     // dev_majar
-    val = purc_variant_make_ulongint (stx.stx_dev_major);
+    val = purc_variant_make_ulongint ((long) major(st.st_dev));
     purc_variant_object_set_by_static_ckey (ret_var, "dev_majar", val);
     purc_variant_unref (val);
 
     // dev_minor
-    val = purc_variant_make_ulongint (stx.stx_dev_minor);
+    val = purc_variant_make_ulongint ((long) major(st.st_dev));
     purc_variant_object_set_by_static_ckey (ret_var, "dev_minor", val);
     purc_variant_unref (val);
 
@@ -1460,7 +1437,6 @@ file_exists_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(root);
     UNUSED_PARAM(silently);
 
-    char filename[PATH_MAX];
     const char *string_filename = NULL;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
@@ -1469,13 +1445,17 @@ file_exists_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         return PURC_VARIANT_INVALID;
     }
 
-    // get the file name
+    // get the file name or dir name
     string_filename = purc_variant_get_string_const (argv[0]);
-    strncpy (filename, string_filename, sizeof(filename));
 
-    // wait for code
+    if (access(string_filename, F_OK | R_OK) != 0)  {
+            ret_var = purc_variant_make_boolean (true);
+    }
+    else {
+        set_purc_error_by_errno ();
+        ret_var = purc_variant_make_boolean (false);
+    }
 
-    ret_var = purc_variant_make_boolean (true);
     return ret_var;
 }
 
@@ -1486,22 +1466,113 @@ file_is_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(root);
     UNUSED_PARAM(silently);
 
-    char filename[PATH_MAX];
     const char *string_filename = NULL;
+    const char *string_which = NULL;
+    struct stat st;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
-    if (nr_args < 1) {
+    if (nr_args < 2) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
-    // get the file name
+    // get the file name and which type
     string_filename = purc_variant_get_string_const (argv[0]);
-    strncpy (filename, string_filename, sizeof(filename));
+    string_which = purc_variant_get_string_const (argv[1]);
 
-    // wait for code
+    if (NULL == string_filename || NULL == string_which) {
+        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+        return PURC_VARIANT_INVALID;
+    }
 
-    ret_var = purc_variant_make_boolean (true);
+    if (lstat(string_filename, &st) == -1) {
+        purc_set_error (PURC_ERROR_WRONG_STAGE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    switch (string_which[0]) {
+        case 'd':
+            if (strcmp(string_which, "dir") == 0) {
+                if (S_IFDIR == (st.st_mode & S_IFMT)) {
+                    return purc_variant_make_boolean (true);
+                }
+            }
+            break;
+        
+        case 'f':
+            if (strcmp(string_which, "file") == 0) {
+                if (S_IFREG == (st.st_mode & S_IFMT)) {
+                    return purc_variant_make_boolean (true);
+                }
+            }
+            break;
+
+        case 's':
+            if (strcmp(string_which, "symlink") == 0) {
+                if (S_IFLNK == (st.st_mode & S_IFMT)) {
+                    return purc_variant_make_boolean (true);
+                }
+            }
+            if (strcmp(string_which, "socket") == 0) {
+                if (S_IFSOCK == (st.st_mode & S_IFMT)) {
+                    return purc_variant_make_boolean (true);
+                }
+            }
+            break;
+
+        case 'p':
+            if (strcmp(string_which, "pipe") == 0) {
+                if (S_IFIFO == (st.st_mode & S_IFMT)) {
+                    return purc_variant_make_boolean (true);
+                }
+            }
+            break;
+
+        case 'b':
+            if (strcmp(string_which, "block") == 0) {
+                if (S_IFBLK == (st.st_mode & S_IFMT)) {
+                    return purc_variant_make_boolean (true);
+                }
+            }
+            break;
+
+        case 'c':
+            if (strcmp(string_which, "char") == 0) {
+                if (S_IFCHR == (st.st_mode & S_IFMT)) {
+                    return purc_variant_make_boolean (true);
+                }
+            }
+            break;
+
+        case 'e':
+            if (strcmp(string_which, "exe") == 0 ||
+                strcmp(string_which, "executable") == 0) {
+                if (st.st_mode & S_IEXEC) {
+                    return purc_variant_make_boolean (true);
+                }
+            }
+            break;
+
+        case 'r':
+            if (strcmp(string_which, "read") == 0 ||
+                strcmp(string_which, "readable") == 0) {
+                if (st.st_mode & S_IREAD) {
+                    return purc_variant_make_boolean (true);
+                }
+            }
+            break;
+
+        case 'w':
+            if (strcmp(string_which, "write") == 0 ||
+                strcmp(string_which, "writable") == 0) {
+                if (st.st_mode & S_IWRITE) {
+                    return purc_variant_make_boolean (true);
+                }
+            }
+            break;
+    }
+
+    ret_var = purc_variant_make_boolean (false);
     return ret_var;
 }
 
