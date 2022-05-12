@@ -54,6 +54,7 @@ class PurcTimer : public WTF::RunLoop::TimerBase {
 
         ~PurcTimer()
         {
+            stop();
             if (m_id) {
                 free(m_id);
             }

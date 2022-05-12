@@ -417,13 +417,17 @@ int purc_init_ex(unsigned int modules,
 
         curr_inst->executor_heap = NULL;
         pcexecutor_init_instance(curr_inst);
-        if (curr_inst->executor_heap == NULL)
+        if (curr_inst->executor_heap == NULL) {
+            ret = PURC_ERROR_OUT_OF_MEMORY;
             goto failed;
+        }
 
         curr_inst->intr_heap = NULL;
         pcintr_init_instance(curr_inst);
-        if (curr_inst->intr_heap == NULL)
+        if (curr_inst->intr_heap == NULL) {
+            ret = PURC_ERROR_OUT_OF_MEMORY;
             goto failed;
+        }
     }
 
     if (modules & PURC_HAVE_FETCHER) {
@@ -440,6 +444,7 @@ int purc_init_ex(unsigned int modules,
     curr_inst->conn_to_rdr = NULL;
     if ((modules & PURC_HAVE_PCRDR)) {
         if ((ret = pcrdr_init_instance(curr_inst, extra_info))) {
+            ret = PURC_ERROR_OUT_OF_MEMORY;
             goto failed;
         }
     }
@@ -448,6 +453,8 @@ int purc_init_ex(unsigned int modules,
 
 failed:
     purc_cleanup();
+
+    PC_ASSERT(ret);
 
     return ret;
 }

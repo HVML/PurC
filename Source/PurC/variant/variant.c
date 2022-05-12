@@ -361,11 +361,7 @@ unsigned int purc_variant_unref(purc_variant_t value)
 const struct purc_variant_stat *purc_variant_usage_stat(void)
 {
     struct pcinst *inst = pcinst_current();
-    if (inst == NULL) {
-        /* VWNOTE: if you have the instance, directly set the errcode. */
-        inst->errcode = PURC_ERROR_NO_INSTANCE;
-        return NULL;
-    }
+    PC_ASSERT(inst);
 
     purc_variant_t value = &(inst->variant_heap->v_undefined);
     inst->variant_heap->stat.nr_values[PURC_VARIANT_TYPE_UNDEFINED] = value->refc;

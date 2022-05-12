@@ -63,6 +63,14 @@ void pcintr_init_instance(struct pcinst* inst)
     if (!heap)
         return;
 
+    int r;
+    r = pthread_mutex_init(&heap->locker, NULL);
+    if (r) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        free(heap);
+        return;
+    }
+
     inst->intr_heap = heap;
 
     INIT_LIST_HEAD(&heap->coroutines);
@@ -516,22 +524,38 @@ stack_init(pcintr_stack_t stack)
     stack->owning_heap = heap;
 }
 
+void pcintr_heap_lock(struct pcintr_heap *heap)
+{
+    int r = pthread_mutex_lock(&heap->locker);
+    PC_ASSERT(r == 0);
+}
+
+void pcintr_heap_unlock(struct pcintr_heap *heap)
+{
+    int r = pthread_mutex_unlock(&heap->locker);
+    PC_ASSERT(r == 0);
+}
+
 void pcintr_cleanup_instance(struct pcinst* inst)
 {
     struct pcintr_heap *heap = inst->intr_heap;
     if (!heap)
         return;
 
+    PC_ASSERT(heap->exiting == false);
+    heap->exiting = true;
+
     struct list_head *coroutines = &heap->coroutines;
-    if (!list_empty(coroutines)) {
-        struct list_head *p, *n;
-        list_for_each_safe(p, n, coroutines) {
-            pcintr_coroutine_t co;
-            co = container_of(p, struct pcintr_coroutine, node);
-            list_del(p);
-            struct pcintr_stack *stack = co->stack;
-            stack_destroy(stack);
-        }
+    struct list_head *p, *n;
+
+    list_for_each_safe(p, n, coroutines) {
+        pcintr_coroutine_t co;
+        co = container_of(p, struct pcintr_coroutine, node);
+
+        list_del(p);
+
+        struct pcintr_stack *stack = co->stack;
+        stack_destroy(stack);
     }
 
     free(heap);
@@ -1176,53 +1200,52 @@ static int run_coroutines(void *ctxt)
     struct list_head *coroutines = &heap->coroutines;
     size_t readies = 0;
     size_t waits = 0;
-    if (!list_empty(coroutines)) {
-        struct list_head *p, *n;
-        list_for_each_safe(p, n, coroutines) {
-            struct pcintr_coroutine *co;
-            co = container_of(p, struct pcintr_coroutine, node);
-            switch (co->state) {
-                case CO_STATE_READY:
-                    co->state = CO_STATE_RUN;
-                    coroutine_set_current(co);
-                    execute_one_step(co);
-                    //PC_ASSERT(purc_get_last_error() == PURC_ERROR_OK);
-                    if (co->state == CO_STATE_TERMINATED) {
-                        if (co->stack->except) {
-                            dump_c_stack(co->stack->exception.bt);
-                        }
-                        PC_ASSERT(co->stack->back_anchor == NULL);
 
-                        if (co->stack->ops.on_terminated) {
-                            co->stack->ops.on_terminated(co->stack, co->stack->ctxt);
-                            co->stack->ops.on_terminated = NULL;
-                        }
-                        if (co->stack->ops.on_cleanup) {
-                            co->stack->ops.on_cleanup(co->stack, co->stack->ctxt);
-                            co->stack->ops.on_cleanup = NULL;
-                            co->stack->ctxt = NULL;
-                        }
+    struct list_head *p, *n;
+    list_for_each_safe(p, n, coroutines) {
+        struct pcintr_coroutine *co;
+        co = container_of(p, struct pcintr_coroutine, node);
+        switch (co->state) {
+            case CO_STATE_READY:
+                co->state = CO_STATE_RUN;
+                coroutine_set_current(co);
+                execute_one_step(co);
+                //PC_ASSERT(purc_get_last_error() == PURC_ERROR_OK);
+                if (co->state == CO_STATE_TERMINATED) {
+                    if (co->stack->except) {
+                        dump_c_stack(co->stack->exception.bt);
                     }
-                    coroutine_set_current(NULL);
-                    ++readies;
-                    break;
-                case CO_STATE_WAIT:
-                    ++waits;
-                    break;
-                case CO_STATE_RUN:
-                    PC_ASSERT(0);
-                    break;
-                case CO_STATE_TERMINATED:
-                    PC_ASSERT(0);
-                    break;
-                default:
-                    PC_ASSERT(0);
-            }
-            if (co->state == CO_STATE_TERMINATED) {
-                co->stack->stage = STACK_STAGE_TERMINATING;
-                list_del(&co->node);
-                stack_destroy(co->stack);
-            }
+                    PC_ASSERT(co->stack->back_anchor == NULL);
+
+                    if (co->stack->ops.on_terminated) {
+                        co->stack->ops.on_terminated(co->stack, co->stack->ctxt);
+                        co->stack->ops.on_terminated = NULL;
+                    }
+                    if (co->stack->ops.on_cleanup) {
+                        co->stack->ops.on_cleanup(co->stack, co->stack->ctxt);
+                        co->stack->ops.on_cleanup = NULL;
+                        co->stack->ctxt = NULL;
+                    }
+                }
+                coroutine_set_current(NULL);
+                ++readies;
+                break;
+            case CO_STATE_WAIT:
+                ++waits;
+                break;
+            case CO_STATE_RUN:
+                PC_ASSERT(0);
+                break;
+            case CO_STATE_TERMINATED:
+                PC_ASSERT(0);
+                break;
+            default:
+                PC_ASSERT(0);
+        }
+        if (co->state == CO_STATE_TERMINATED) {
+            co->stack->stage = STACK_STAGE_TERMINATING;
+            list_del(&co->node);
+            stack_destroy(co->stack);
         }
     }
 
