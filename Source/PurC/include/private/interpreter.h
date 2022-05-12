@@ -42,20 +42,9 @@ struct pcintr_coroutine;
 typedef struct pcintr_coroutine pcintr_coroutine;
 typedef struct pcintr_coroutine *pcintr_coroutine_t;
 
-struct pcintr_action;
 struct pcintr_stack;
 typedef struct pcintr_stack pcintr_stack;
 typedef struct pcintr_stack *pcintr_stack_t;
-
-typedef void (*pcintr_action_f)(int cancelled, void *ctxt);
-
-struct pcintr_action {
-    pcintr_action_f       action_cb;
-    void                 *ctxt;
-    pcintr_stack_t        target;
-
-    struct list_head      node;
-};
 
 struct pcintr_heap {
     // currently running coroutine
@@ -63,8 +52,6 @@ struct pcintr_heap {
 
     // those running under and managed by this heap
     struct list_head      coroutines;
-    // pending actions to take next time
-    struct list_head      actions;     // struct pcintr_action
 
     // runloop bounded by this heap
     purc_runloop_t        running_loop;
@@ -74,10 +61,6 @@ struct pcintr_heap {
     pthread_mutex_t       locker;
     volatile bool         exiting;
 };
-
-struct pcintr_stack_frame_base;
-typedef struct pcintr_stack_frame_base pcintr_stack_frame_base;
-typedef struct pcintr_stack_frame_base *pcintr_stack_frame_base_t;
 
 struct pcintr_stack_frame_normal;
 typedef struct pcintr_stack_frame_normal pcintr_stack_frame_normal;
@@ -259,18 +242,10 @@ enum pcintr_stack_frame_type {
     STACK_FRAME_TYPE_PSEUDO,
 };
 
-struct pcintr_stack_frame_base {
+struct pcintr_stack_frame {
     enum pcintr_stack_frame_type             type;
     // pointers to sibling frames.
     struct list_head node;
-};
-
-struct pcintr_stack_frame_pseudo {
-    struct pcintr_stack_frame_base          base;
-};
-
-struct pcintr_stack_frame {
-    struct pcintr_stack_frame_base          base;
     // the current scope.
     pcvdom_element_t scope;
     // the current edom element;
@@ -352,47 +327,14 @@ void pcintr_init_once(void) WTF_INTERNAL;
 void pcintr_init_instance(struct pcinst* inst) WTF_INTERNAL;
 void pcintr_cleanup_instance(struct pcinst* inst) WTF_INTERNAL;
 
+struct pcintr_heap* pcintr_get_heap(void);
+bool pcintr_is_current_thread(void);
+
 pcintr_stack_t pcintr_get_stack(void);
-struct pcintr_stack_frame_base*
-pcintr_stack_get_bottom_frame_base(pcintr_stack_t stack);
+struct pcintr_stack_frame*
+pcintr_stack_get_bottom_frame(pcintr_stack_t stack);
 struct pcintr_stack_frame*
 pcintr_stack_frame_get_parent(struct pcintr_stack_frame *frame);
-
-static inline struct pcintr_stack_frame*
-pcintr_stack_frame_from_base(struct pcintr_stack_frame_base *base)
-{
-    if (!base)
-        return NULL;
-
-    return container_of(base, struct pcintr_stack_frame, base);
-}
-
-static inline struct pcintr_stack_frame_pseudo*
-pcintr_stack_frame_pseudo_from_base(struct pcintr_stack_frame_base *base)
-{
-    if (!base)
-        return NULL;
-
-    return container_of(base, struct pcintr_stack_frame_pseudo, base);
-}
-
-static inline struct pcintr_stack_frame*
-pcintr_stack_get_bottom_frame(pcintr_stack_t stack)
-{
-    struct pcintr_stack_frame_base *base;
-    base = pcintr_stack_get_bottom_frame_base(stack);
-
-    return pcintr_stack_frame_from_base(base);
-}
-
-static inline struct pcintr_stack_frame_pseudo*
-pcintr_stack_get_bottom_frame_pseudo(pcintr_stack_t stack)
-{
-    struct pcintr_stack_frame_base *base;
-    base = pcintr_stack_get_bottom_frame_base(stack);
-
-    return pcintr_stack_frame_pseudo_from_base(base);
-}
 
 purc_variant_t
 pcintr_make_object_of_dynamic_variants(size_t nr_args,
@@ -592,10 +534,6 @@ pcintr_create_scoped_variables(struct pcvdom_node *node);
 
 pcvarmgr_t
 pcintr_get_scoped_variables(struct pcvdom_node *node);
-
-int
-pcintr_post_action(pcintr_stack_t target,
-        pcintr_action_f action_cb, void *ctxt);
 
 PCA_EXTERN_C_END
 
