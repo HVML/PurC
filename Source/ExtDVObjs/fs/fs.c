@@ -1583,22 +1583,56 @@ lchgrp_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(root);
     UNUSED_PARAM(silently);
 
-    char filename[PATH_MAX];
-    const char *string_filename = NULL;
+    const char *filename = NULL;
+    const char *string_group = NULL;
+    uint64_t uint_gid; 
+    gid_t gid;
+    struct passwd *pwd;
+    char *endptr;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
-    if (nr_args < 1) {
+    if (nr_args < 2) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
-    // get the file name
-    string_filename = purc_variant_get_string_const (argv[0]);
-    strncpy (filename, string_filename, sizeof(filename));
+    // Get the file name
+    filename = purc_variant_get_string_const (argv[0]);
 
-    // wait for code
+    // Get the group name (or gid)
+    if (purc_variant_cast_to_ulongint (argv[1], &uint_gid, false)) {
+        gid = (gid_t)uint_gid;
+    }
+    else {
+        string_group = purc_variant_get_string_const (argv[1]);
+        if (NULL == filename || NULL == string_group) {
+            purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+            return PURC_VARIANT_INVALID;
+        }
 
-    ret_var = purc_variant_make_boolean (true);
+        // group : string_name | gid
+        gid = strtol(string_group, &endptr, 10);  /* Allow a numeric string */
+
+        if (*endptr != '\0') {              /* Was not pure numeric string */
+            pwd = getpwnam(string_group);   /* Try getting GID for username */
+            if (pwd == NULL) {
+                purc_set_error (PURC_ERROR_BAD_NAME);
+                return PURC_VARIANT_INVALID;
+            }
+
+            gid = pwd->pw_gid;
+        }
+    }
+
+    // If the group_id is specified as -1, then that ID is not changed.
+    if (0 == lchown (filename, -1, gid)) {
+        ret_var = purc_variant_make_boolean (true);
+    }
+    else {
+        set_purc_error_by_errno ();
+        ret_var = purc_variant_make_boolean (false);
+    }
+
     return ret_var;
 }
 
@@ -1609,22 +1643,56 @@ lchown_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(root);
     UNUSED_PARAM(silently);
 
-    char filename[PATH_MAX];
-    const char *string_filename = NULL;
+    const char *filename = NULL;
+    const char *string_owner = NULL;
+    uint64_t uint_uid;
+    uid_t uid;
+    struct passwd *pwd;
+    char *endptr;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
-    if (nr_args < 1) {
+    if (nr_args < 2) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
-    // get the file name
-    string_filename = purc_variant_get_string_const (argv[0]);
-    strncpy (filename, string_filename, sizeof(filename));
+    // Get the file name
+    filename = purc_variant_get_string_const (argv[0]);
 
-    // wait for code
+    // Get the user name (or uid)
+    if (purc_variant_cast_to_ulongint (argv[1], &uint_uid, false)) {
+        uid = (gid_t)uint_uid;
+    }
+    else {
+        string_owner = purc_variant_get_string_const (argv[1]);
+        if (NULL == filename || NULL == string_owner) {
+            purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+            return PURC_VARIANT_INVALID;
+        }
 
-    ret_var = purc_variant_make_boolean (true);
+        // owner : string_name | uid
+        uid = strtol (string_owner, &endptr, 10);  /* Allow a numeric string */
+
+        if (*endptr != '\0') {               /* Was not pure numeric string */
+            pwd = getpwnam (string_owner);   /* Try getting UID for username */
+            if (pwd == NULL) {
+                purc_set_error (PURC_ERROR_BAD_NAME);
+                return PURC_VARIANT_INVALID;
+            }
+
+            uid = pwd->pw_uid;
+        }
+    }
+
+    // If the owner_id is specified as -1, then that ID is not changed.
+    if (0 == lchown (filename, uid, -1)) {
+        ret_var = purc_variant_make_boolean (true);
+    }
+    else {
+        set_purc_error_by_errno ();
+        ret_var = purc_variant_make_boolean (false);
+    }
+
     return ret_var;
 }
 
@@ -1635,8 +1703,8 @@ linkinfo_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(root);
     UNUSED_PARAM(silently);
 
-    char filename[PATH_MAX];
     const char *string_filename = NULL;
+    struct stat st;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if (nr_args < 1) {
@@ -1646,11 +1714,17 @@ linkinfo_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
-    strncpy (filename, string_filename, sizeof(filename));
+    if (NULL == string_filename) {
+        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+        return PURC_VARIANT_INVALID;
+    }
 
-    // wait for code
+    if (lstat(string_filename, &st) == -1) {
+        purc_set_error (PURC_ERROR_WRONG_STAGE);
+        return purc_variant_make_boolean (false);;
+    }
 
-    ret_var = purc_variant_make_boolean (true);
+    ret_var = purc_variant_make_number (st.st_dev);
     return ret_var;
 }
 
