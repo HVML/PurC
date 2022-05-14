@@ -125,7 +125,7 @@ get_source_by_with(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         vcm_content = (struct pcvcm_node*)u64;
         PC_ASSERT(vcm_content);
 
-        pcintr_stack_t stack = co->stack;
+        pcintr_stack_t stack = &co->stack;
         PC_ASSERT(stack);
 
         purc_variant_t v = pcvcm_eval(vcm_content, stack, frame->silently);
@@ -139,7 +139,7 @@ get_source_by_with(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     }
     else if (purc_variant_is_native(with)) {
         struct template_walk_data ud = {
-            .stack        = co->stack,
+            .stack        = &co->stack,
             .r            = 0,
         };
         size_t chunk = 128;
@@ -177,7 +177,7 @@ get_source_by_from(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     PC_ASSERT(with == PURC_VARIANT_INVALID);
 
     const char* uri = purc_variant_get_string_const(from);
-    return pcintr_load_from_uri(co->stack, uri);
+    return pcintr_load_from_uri(&co->stack, uri);
 }
 
 static int
@@ -581,10 +581,10 @@ process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     if (type == PURC_VARIANT_TYPE_NATIVE) {
         // const char *s = purc_variant_get_string_const(src);
         // PC_ASSERT(to != PURC_VARIANT_INVALID);
-        return update_elements(co->stack, on, at, to, src, with_eval);
+        return update_elements(&co->stack, on, at, to, src, with_eval);
     }
     if (type == PURC_VARIANT_TYPE_OBJECT) {
-        return update_object(co->stack, on, at, to, src, with_eval);
+        return update_object(&co->stack, on, at, to, src, with_eval);
     }
     if (type == PURC_VARIANT_TYPE_ARRAY) {
         return update_array(co, frame, src, with_eval);
@@ -595,13 +595,13 @@ process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     if (type == PURC_VARIANT_TYPE_STRING) {
         const char *s = purc_variant_get_string_const(on);
 
-        pchtml_html_document_t *doc = co->stack->doc;
+        pchtml_html_document_t *doc = co->stack.doc;
         purc_variant_t elems = pcdvobjs_elements_by_css(doc, s);
         PC_ASSERT(elems != PURC_VARIANT_INVALID);
         struct pcdom_element *elem;
         elem = pcdvobjs_get_element_from_elements(elems, 0);
         PC_ASSERT(elem);
-        int r = update_elements(co->stack, elems, at, to, src, with_eval);
+        int r = update_elements(&co->stack, elems, at, to, src, with_eval);
         purc_variant_unref(elems);
         return r ? -1 : 0;
     }
@@ -907,7 +907,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
             PC_ASSERT(ctxt->with_op == PCHVML_ATTRIBUTE_OPERATOR);
         }
         purc_variant_t v;
-        v = get_source_by_from(&stack->co, frame, ctxt->from, ctxt->with);
+        v = get_source_by_from(stack->co, frame, ctxt->from, ctxt->with);
         if (v == PURC_VARIANT_INVALID)
             return NULL;
         PURC_VARIANT_SAFE_CLEAR(ctxt->from_result);
@@ -989,7 +989,7 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 
     // NOTE: element is still the owner of vcm_content
     // TODO: silently
-    purc_variant_t v = pcvcm_eval(vcm, co->stack, false);
+    purc_variant_t v = pcvcm_eval(vcm, &co->stack, false);
     if (v == PURC_VARIANT_INVALID)
         return -1;
 
@@ -1065,7 +1065,7 @@ select_child(pcintr_stack_t stack, void* ud)
     PC_ASSERT(stack);
     PC_ASSERT(stack == pcintr_get_stack());
 
-    pcintr_coroutine_t co = &stack->co;
+    pcintr_coroutine_t co = stack->co;
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(ud == frame->ctxt);

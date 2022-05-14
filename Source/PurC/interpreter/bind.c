@@ -88,7 +88,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         struct pcvdom_element *element = frame->pos;
         const char *s_name = purc_variant_get_string_const(name);
         if (ctxt->under_head) {
-            ok = purc_bind_document_variable(co->stack->vdom, s_name, val);
+            ok = purc_bind_document_variable(co->stack.vdom, s_name, val);
         } else {
             element = pcvdom_element_parent(element);
             PC_ASSERT(element);
@@ -332,7 +332,7 @@ select_child(pcintr_stack_t stack, void* ud)
     PC_ASSERT(stack);
     PC_ASSERT(stack == pcintr_get_stack());
 
-    pcintr_coroutine_t co = &stack->co;
+    pcintr_coroutine_t co = stack->co;
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(ud == frame->ctxt);

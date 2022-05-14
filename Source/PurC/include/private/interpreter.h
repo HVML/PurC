@@ -74,23 +74,6 @@ struct pcintr_observer;
 typedef void (*pcintr_on_revoke_observer)(struct pcintr_observer *observer,
         void *data);
 
-enum pcintr_coroutine_state {
-    CO_STATE_READY,            /* ready to run next step */
-    CO_STATE_RUN,              /* is running */
-    CO_STATE_WAIT,             /* is waiting for event */
-    CO_STATE_TERMINATED,       /* can never execute any hvml code */
-    /* STATE_PAUSED, */
-};
-
-struct pcintr_coroutine {
-    struct list_head            node;   /* sibling coroutines */
-
-    struct pcintr_stack        *stack;  /* stack that holds this coroutine */
-
-    enum pcintr_coroutine_state state;
-    int                         waits;  /* FIXME: nr of registered events */
-};
-
 enum pcintr_stack_stage {
     STACK_STAGE_FIRST_ROUND                = 0x00,
     STACK_STAGE_EVENT_LOOP                 = 0x01,
@@ -172,7 +155,7 @@ struct pcintr_stack {
 
     /* coroutine that this stack `owns` */
     /* FIXME: switch owner-ship ? */
-    struct pcintr_coroutine        co;
+    struct pcintr_coroutine       *co;
 
     // for observe
     // struct pcintr_observer
@@ -199,6 +182,23 @@ struct pcintr_stack {
     struct rb_root  scoped_variables; // key: vdom_node
                                       // val: pcvarmgr_t
     struct pcintr_timers  *timers;
+};
+
+enum pcintr_coroutine_state {
+    CO_STATE_READY,            /* ready to run next step */
+    CO_STATE_RUN,              /* is running */
+    CO_STATE_WAIT,             /* is waiting for event */
+    CO_STATE_TERMINATED,       /* can never execute any hvml code */
+    /* STATE_PAUSED, */
+};
+
+struct pcintr_coroutine {
+    struct list_head            node;   /* sibling coroutines */
+
+    struct pcintr_stack         stack;  /* stack that holds this coroutine */
+
+    enum pcintr_coroutine_state state;
+    int                         waits;  /* FIXME: nr of registered events */
 };
 
 enum purc_symbol_var {

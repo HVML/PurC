@@ -93,7 +93,7 @@ post_process_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
             return -1;
     }
 
-    co->stack->back_anchor = ctxt->back_anchor;
+    co->stack.back_anchor = ctxt->back_anchor;
 
     return 0;
 }
@@ -218,7 +218,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (r)
         return NULL;
 
-    r = post_process(&stack->co, frame);
+    r = post_process(stack->co, frame);
     if (r)
         return NULL;
 

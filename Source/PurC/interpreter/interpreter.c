@@ -456,11 +456,19 @@ stack_release(pcintr_stack_t stack)
 }
 
 static void
-stack_destroy(pcintr_stack_t stack)
+coroutine_release(pcintr_coroutine_t co)
 {
-    if (stack) {
-        stack_release(stack);
-        free(stack);
+    if (co) {
+        stack_release(&co->stack);
+    }
+}
+
+static void
+coroutine_destroy(pcintr_coroutine_t co)
+{
+    if (co) {
+        coroutine_release(co);
+        free(co);
     }
 }
 
@@ -513,9 +521,7 @@ void pcintr_cleanup_instance(struct pcinst* inst)
         co = container_of(p, struct pcintr_coroutine, node);
 
         list_del(p);
-
-        struct pcintr_stack *stack = co->stack;
-        stack_destroy(stack);
+        coroutine_destroy(co);
     }
 
     free(heap);
@@ -555,7 +561,7 @@ pcintr_stack_t pcintr_get_stack(void)
     if (!co)
         return NULL;
 
-    return co->stack;
+    return &co->stack;
 }
 
 static void
@@ -969,7 +975,7 @@ static void
 after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
     if (frame->ops.after_pushed) {
-        void *ctxt = frame->ops.after_pushed(co->stack, frame->pos);
+        void *ctxt = frame->ops.after_pushed(&co->stack, frame->pos);
         if (!ctxt) {
             frame->next_step = NEXT_STEP_ON_POPPING;
             return;
@@ -984,11 +990,11 @@ on_popping(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
     bool ok = true;
     if (frame->ops.on_popping) {
-        ok = frame->ops.on_popping(co->stack, frame->ctxt);
+        ok = frame->ops.on_popping(&co->stack, frame->ctxt);
     }
 
     if (ok) {
-        pcintr_stack_t stack = co->stack;
+        pcintr_stack_t stack = &co->stack;
         pop_stack_frame(stack);
     } else {
         frame->next_step = NEXT_STEP_RERUN;
@@ -1000,7 +1006,7 @@ on_rerun(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
     bool ok = false;
     if (frame->ops.rerun) {
-        ok = frame->ops.rerun(co->stack, frame->ctxt);
+        ok = frame->ops.rerun(&co->stack, frame->ctxt);
     }
 
     PC_ASSERT(ok);
@@ -1013,7 +1019,7 @@ on_select_child(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
     struct pcvdom_element *element = NULL;
     if (frame->ops.select_child) {
-        element = frame->ops.select_child(co->stack, frame->ctxt);
+        element = frame->ops.select_child(&co->stack, frame->ctxt);
     }
 
     if (element == NULL) {
@@ -1023,7 +1029,7 @@ on_select_child(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         frame->next_step = NEXT_STEP_SELECT_CHILD;
 
         // push child frame
-        pcintr_stack_t stack = co->stack;
+        pcintr_stack_t stack = &co->stack;
         struct pcintr_stack_frame *child_frame;
         child_frame = push_stack_frame(stack);
         if (!child_frame)
@@ -1066,7 +1072,7 @@ exception_copy(struct pcintr_exception *exception)
 static void
 execute_one_step(pcintr_coroutine_t co)
 {
-    pcintr_stack_t stack = co->stack;
+    pcintr_stack_t stack = &co->stack;
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame);
@@ -1098,35 +1104,34 @@ execute_one_step(pcintr_coroutine_t co)
 
     PC_ASSERT(co->state == CO_STATE_RUN);
     co->state = CO_STATE_READY;
-    PC_ASSERT(co->stack);
 
     struct pcinst *inst = pcinst_current();
     PC_ASSERT(inst);
     if (inst->errcode) {
-        PC_ASSERT(co->stack->except == 0);
-        exception_copy(&co->stack->exception);
-        co->stack->except = 1;
+        PC_ASSERT(co->stack.except == 0);
+        exception_copy(&co->stack.exception);
+        co->stack.except = 1;
         pcinst_clear_error(inst);
         PC_ASSERT(inst->errcode == 0);
 #ifndef NDEBUG                     /* { */
-        dump_stack(co->stack);
+        dump_stack(&co->stack);
 #endif                             /* } */
         PC_ASSERT(inst->errcode == 0);
     }
 
-    bool no_frames = list_empty(&co->stack->frames);
+    bool no_frames = list_empty(&co->stack.frames);
     if (no_frames) {
         /* send doc to rdr */
-        if (co->stack->stage == STACK_STAGE_FIRST_ROUND &&
+        if (co->stack.stage == STACK_STAGE_FIRST_ROUND &&
             !pcintr_rdr_page_control_load(stack)) {
             co->state = CO_STATE_TERMINATED;
             return;
         }
 
         pcintr_dump_document(stack);
-        co->stack->stage = STACK_STAGE_EVENT_LOOP;
+        co->stack.stage = STACK_STAGE_EVENT_LOOP;
         // do not run execute-one-step until event's fired if co->waits > 0
-        if (co->stack->except == 0 && co->waits) { // FIXME:
+        if (co->stack.except == 0 && co->waits) { // FIXME:
             co->state = CO_STATE_WAIT;
             return;
         }
@@ -1164,19 +1169,19 @@ static int run_coroutines(void *ctxt)
                 execute_one_step(co);
                 //PC_ASSERT(purc_get_last_error() == PURC_ERROR_OK);
                 if (co->state == CO_STATE_TERMINATED) {
-                    if (co->stack->except) {
-                        dump_c_stack(co->stack->exception.bt);
+                    if (co->stack.except) {
+                        dump_c_stack(co->stack.exception.bt);
                     }
-                    PC_ASSERT(co->stack->back_anchor == NULL);
+                    PC_ASSERT(co->stack.back_anchor == NULL);
 
-                    if (co->stack->ops.on_terminated) {
-                        co->stack->ops.on_terminated(co->stack, co->stack->ctxt);
-                        co->stack->ops.on_terminated = NULL;
+                    if (co->stack.ops.on_terminated) {
+                        co->stack.ops.on_terminated(&co->stack, co->stack.ctxt);
+                        co->stack.ops.on_terminated = NULL;
                     }
-                    if (co->stack->ops.on_cleanup) {
-                        co->stack->ops.on_cleanup(co->stack, co->stack->ctxt);
-                        co->stack->ops.on_cleanup = NULL;
-                        co->stack->ctxt = NULL;
+                    if (co->stack.ops.on_cleanup) {
+                        co->stack.ops.on_cleanup(&co->stack, co->stack.ctxt);
+                        co->stack.ops.on_cleanup = NULL;
+                        co->stack.ctxt = NULL;
                     }
                 }
                 coroutine_set_current(NULL);
@@ -1195,9 +1200,10 @@ static int run_coroutines(void *ctxt)
                 PC_ASSERT(0);
         }
         if (co->state == CO_STATE_TERMINATED) {
-            co->stack->stage = STACK_STAGE_TERMINATING;
+            co->stack.stage = STACK_STAGE_TERMINATING;
             list_del(&co->node);
-            stack_destroy(co->stack);
+            coroutine_destroy(co);
+            co = NULL;
         }
     }
 
@@ -1513,6 +1519,9 @@ purc_vdom_t
 purc_load_hvml_from_rwstream_ex(purc_rwstream_t stream,
         struct pcintr_supervisor_ops *ops, void *ctxt)
 {
+    pcintr_coroutine_t co = NULL;
+    pcintr_stack_t stack = NULL;
+
     struct pcvdom_document *doc = NULL;
     doc = load_document(stream);
     if (!doc)
@@ -1520,48 +1529,46 @@ purc_load_hvml_from_rwstream_ex(purc_rwstream_t stream,
 
     purc_vdom_t vdom = (purc_vdom_t)calloc(1, sizeof(*vdom));
     if (!vdom) {
-        pcvdom_document_destroy(doc);
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return NULL;
+        goto fail_vdom;
     }
 
     vdom->document = doc;
+    doc = NULL;
 
-    pcintr_stack_t stack = (pcintr_stack_t)calloc(1, sizeof(*stack));
-    if (!stack) {
-        vdom_destroy(vdom);
+    co = (pcintr_coroutine_t)calloc(1, sizeof(*co));
+    if (!co) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return NULL;
+        goto fail_co;
     }
+
+    co->state = CO_STATE_READY;
+
+    stack = &co->stack;
+    stack->co = co;
+    stack->vdom = vdom;
+    vdom = NULL;
     stack_init(stack);
 
     stack->event_timer = pcintr_timer_create(NULL, NULL, stack,
             pcintr_event_timer_fire);
-    if (!stack->event_timer) {
-        vdom_destroy(vdom);
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return NULL;
-    }
+    if (!stack->event_timer)
+        goto fail_timer;
+
     pcintr_timer_set_interval(stack->event_timer, EVENT_TIMER_INTRVAL);
     pcintr_timer_start(stack->event_timer);
 
-    stack->vdom = vdom;
-    stack->co.stack = stack;
-    stack->co.state = CO_STATE_READY;
-
     struct pcintr_stack_frame *frame;
     frame = push_stack_frame(stack);
-    if (!frame) {
-        stack_destroy(stack);
-        return NULL;
-    }
-    // frame->next_step = on_vdom_start;
+    if (!frame)
+        goto fail_frame;
+
     frame->ops = *pcintr_get_document_ops();
 
     struct pcinst *inst = pcinst_current();
     struct pcintr_heap *heap = inst->intr_heap;
     struct list_head *coroutines = &heap->coroutines;
-    list_add_tail(&stack->co.node, coroutines);
+    list_add_tail(&co->node, coroutines);
 
     pcintr_coroutine_ready();
 
@@ -1571,7 +1578,19 @@ purc_load_hvml_from_rwstream_ex(purc_rwstream_t stream,
     }
 
     // FIXME: double-free, potentially!!!
-    return vdom;
+    return stack->vdom;
+
+fail_frame:
+fail_timer:
+    coroutine_destroy(co);
+
+fail_co:
+    vdom_destroy(vdom);
+
+fail_vdom:
+    pcvdom_document_destroy(doc);
+
+    return NULL;
 }
 
 bool
@@ -1593,6 +1612,7 @@ purc_run(purc_variant_t request, purc_event_handler handler)
     }
     else {
         PC_ASSERT(heap->running_loop == runloop);
+        PC_ASSERT(0);
     }
 
     heap->running_thread = pthread_self();
@@ -1654,8 +1674,8 @@ add_observer_into_list(struct list_head *list,
     // TODO:
     pcintr_stack_t stack = pcintr_get_stack();
     PC_ASSERT(stack);
-    PC_ASSERT(stack->co.waits >= 0);
-    stack->co.waits++;
+    PC_ASSERT(stack->co->waits >= 0);
+    stack->co->waits++;
 }
 
 struct pcintr_observer*
@@ -1715,8 +1735,8 @@ pcintr_revoke_observer(struct pcintr_observer* observer)
     // TODO:
     pcintr_stack_t stack = pcintr_get_stack();
     PC_ASSERT(stack);
-    PC_ASSERT(stack->co.waits >= 1);
-    stack->co.waits--;
+    PC_ASSERT(stack->co->waits >= 1);
+    stack->co->waits--;
 }
 
 static struct list_head*
@@ -1861,7 +1881,7 @@ pcintr_handle_message(void *ctxt)
                 frame->edom_element = p->edom_element;
                 frame->next_step = NEXT_STEP_AFTER_PUSHED;
 
-                stack->co.state = CO_STATE_READY;
+                stack->co->state = CO_STATE_READY;
                 // pcintr_coroutine_ready();
                 run_coroutines(NULL);
             }
