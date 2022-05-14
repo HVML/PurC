@@ -57,3 +57,32 @@ set(test_regex_LIBRARIES
 PURC_COMPUTE_SOURCES(test_regex)
 PURC_FRAMEWORK(test_regex)
 GTEST_DISCOVER_TESTS(test_regex DISCOVERY_TIMEOUT 10)
+
+# test_runloop
+PURC_EXECUTABLE_DECLARE(test_runloop)
+
+list(APPEND test_runloop_PRIVATE_INCLUDE_DIRECTORIES
+    ${PURC_DIR}/include
+    ${PurC_DERIVED_SOURCES_DIR}
+    ${PURC_DIR}
+    ${CMAKE_BINARY_DIR}
+    "${GLIB_INCLUDE_DIRS}"
+)
+
+PURC_EXECUTABLE(test_runloop)
+
+set(test_runloop_SOURCES
+    test_runloop.cpp
+)
+
+set(test_runloop_LIBRARIES
+    PurC::PurC
+    gtest_main
+    gtest
+    pthread
+)
+
+PURC_COMPUTE_SOURCES(test_runloop)
+PURC_FRAMEWORK(test_runloop)
+GTEST_DISCOVER_TESTS(test_runloop DISCOVERY_TIMEOUT 10)
+
