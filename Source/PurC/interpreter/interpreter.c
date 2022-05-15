@@ -391,16 +391,18 @@ stack_release(pcintr_stack_t stack)
     if (!stack)
         return;
 
-    size_t sz = purc_variant_array_get_size(stack->async_request_ids);
-    if (sz) {
-        purc_variant_t ids = purc_variant_container_clone(
-                stack->async_request_ids);
-        for (size_t i = 0; i < sz; i++) {
-            pcfetcher_cancel_async(purc_variant_array_get(ids, i));
+    if (stack->async_request_ids != PURC_VARIANT_INVALID) {
+        size_t sz = purc_variant_array_get_size(stack->async_request_ids);
+        if (sz) {
+            purc_variant_t ids = purc_variant_container_clone(
+                    stack->async_request_ids);
+            for (size_t i = 0; i < sz; i++) {
+                pcfetcher_cancel_async(purc_variant_array_get(ids, i));
+            }
+            purc_variant_unref(ids);
         }
-        purc_variant_unref(ids);
+        PURC_VARIANT_SAFE_CLEAR(stack->async_request_ids);
     }
-    PURC_VARIANT_SAFE_CLEAR(stack->async_request_ids);
 
     if (stack->ops.on_cleanup) {
         stack->ops.on_cleanup(stack, stack->ctxt);
@@ -409,16 +411,14 @@ stack_release(pcintr_stack_t stack)
     }
 
     struct list_head *frames = &stack->frames;
-    if (!list_empty(frames)) {
-        struct pcintr_stack_frame *p, *n;
-        list_for_each_entry_reverse_safe(p, n, frames, node) {
-            PC_ASSERT(p->type == STACK_FRAME_TYPE_NORMAL);
-            list_del(&p->node);
-            --stack->nr_frames;
-            stack_frame_destroy(p);
-        }
-        PC_ASSERT(stack->nr_frames == 0);
+    struct pcintr_stack_frame *p, *n;
+    list_for_each_entry_reverse_safe(p, n, frames, node) {
+        PC_ASSERT(p->type == STACK_FRAME_TYPE_NORMAL);
+        list_del(&p->node);
+        --stack->nr_frames;
+        stack_frame_destroy(p);
     }
+    PC_ASSERT(stack->nr_frames == 0);
 
     release_scoped_variables(stack);
 
@@ -455,10 +455,20 @@ stack_release(pcintr_stack_t stack)
     }
 }
 
+struct pcintr_action {
+    pcintr_coroutine_t           target;
+    void                        *ctxt;
+    pcintr_action_f              callback;
+
+    struct list_head             node;
+};
+
 static void
 coroutine_release(pcintr_coroutine_t co)
 {
     if (co) {
+        struct pcintr_heap *heap = pcintr_get_heap();
+        PC_ASSERT(heap && co->heap == heap);
         stack_release(&co->stack);
     }
 }
@@ -1519,6 +1529,10 @@ purc_vdom_t
 purc_load_hvml_from_rwstream_ex(purc_rwstream_t stream,
         struct pcintr_supervisor_ops *ops, void *ctxt)
 {
+    struct pcinst *inst = pcinst_current();
+    struct pcintr_heap *heap = inst->intr_heap;
+    struct list_head *coroutines = &heap->coroutines;
+
     pcintr_coroutine_t co = NULL;
     pcintr_stack_t stack = NULL;
 
@@ -1548,7 +1562,19 @@ purc_load_hvml_from_rwstream_ex(purc_rwstream_t stream,
     stack->co = co;
     stack->vdom = vdom;
     vdom = NULL;
+
+    co->heap = heap;
+    list_add_tail(&co->node, coroutines);
+
     stack_init(stack);
+
+    if (ops) {
+        stack->ops  = *ops;
+        stack->ctxt = ctxt;
+    }
+
+    if (1)
+        goto fail_timer;
 
     stack->event_timer = pcintr_timer_create(NULL, NULL, stack,
             pcintr_event_timer_fire);
@@ -1565,23 +1591,14 @@ purc_load_hvml_from_rwstream_ex(purc_rwstream_t stream,
 
     frame->ops = *pcintr_get_document_ops();
 
-    struct pcinst *inst = pcinst_current();
-    struct pcintr_heap *heap = inst->intr_heap;
-    struct list_head *coroutines = &heap->coroutines;
-    list_add_tail(&co->node, coroutines);
-
     pcintr_coroutine_ready();
-
-    if (ops) {
-        stack->ops  = *ops;
-        stack->ctxt = ctxt;
-    }
 
     // FIXME: double-free, potentially!!!
     return stack->vdom;
 
 fail_frame:
 fail_timer:
+    list_del(&co->node);
     coroutine_destroy(co);
 
 fail_co:

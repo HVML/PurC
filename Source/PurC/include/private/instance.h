@@ -36,6 +36,14 @@
 
 #include <stdio.h>
 
+struct pcinstances;
+typedef struct pcinstances pcinstances;
+typedef struct pcinstances *pcinstances_t;
+
+struct pcinst;
+typedef struct pcinst pcinst;
+typedef struct pcinst *pcinst_t;
+
 struct pcinst {
     int                     errcode;
     purc_variant_t          err_exinfo;

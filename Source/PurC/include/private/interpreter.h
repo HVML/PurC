@@ -38,6 +38,10 @@
 #include "private/vdom.h"
 #include "private/timer.h"
 
+struct pcintr_heap;
+typedef struct pcintr_heap pcintr_heap;
+typedef struct pcintr_heap *pcintr_heap_t;
+
 struct pcintr_coroutine;
 typedef struct pcintr_coroutine pcintr_coroutine;
 typedef struct pcintr_coroutine *pcintr_coroutine_t;
@@ -45,6 +49,10 @@ typedef struct pcintr_coroutine *pcintr_coroutine_t;
 struct pcintr_stack;
 typedef struct pcintr_stack pcintr_stack;
 typedef struct pcintr_stack *pcintr_stack_t;
+
+struct pcintr_action;
+typedef struct pcintr_action pcintr_action;
+typedef struct pcintr_action *pcintr_action_t;
 
 struct pcintr_heap {
     // currently running coroutine
@@ -60,7 +68,12 @@ struct pcintr_heap {
 
     pthread_mutex_t       locker;
     volatile bool         exiting;
+    struct list_head      actions;  // struct pcintr_action
 };
+
+typedef void (*pcintr_action_f)(void *ctxt);
+
+int pcintr_post_action(pcintr_coroutine_t co, void *ctxt, pcintr_action_f cb);
 
 struct pcintr_stack_frame_normal;
 typedef struct pcintr_stack_frame_normal pcintr_stack_frame_normal;
@@ -193,6 +206,7 @@ enum pcintr_coroutine_state {
 };
 
 struct pcintr_coroutine {
+    pcintr_heap_t               heap;   /* owning heap */
     struct list_head            node;   /* sibling coroutines */
 
     struct pcintr_stack         stack;  /* stack that holds this coroutine */
