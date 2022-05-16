@@ -36,11 +36,11 @@
 
 #include <stdio.h>
 
-struct pcprocess;
-typedef struct pcprocess pcprocess;
-typedef struct pcprocess *pcprocess_t;
+struct hvml_app;
+typedef struct hvml_app hvml_app;
+typedef struct hvml_app *hvml_app_t;
 
-pcprocess_t pcprocess_get(void);
+hvml_app_t hvml_app_get(void);
 
 struct pcinst;
 typedef struct pcinst pcinst;

@@ -256,7 +256,7 @@ struct pcmodule* _pc_modules[] = {
     &_module_renderer,
 };
 
-struct pcprocess {
+struct hvml_app {
 #if USE(PTHREADS)          /* { */
     pthread_mutex_t               locker;
 #endif                     /* } */
@@ -265,38 +265,38 @@ struct pcprocess {
     bool                          init_ok;
 };
 
-static struct pcprocess _process;
+static struct hvml_app _app;
 
 static bool _init_ok = false;
 
-static void process_cleanup_once(void)
+static void app_cleanup_once(void)
 {
-    PC_ASSERT(list_empty(&_process.instances));
+    PC_ASSERT(list_empty(&_app.instances));
 #if USE(PTHREADS)          /* { */
-    pthread_mutex_destroy(&_process.locker);
+    pthread_mutex_destroy(&_app.locker);
 #endif                     /* } */
 }
 
-static void _process_init_once(void)
+static void _app_init_once(void)
 {
-    INIT_LIST_HEAD(&_process.instances);
+    INIT_LIST_HEAD(&_app.instances);
     int r;
 #if USE(PTHREADS)          /* { */
-    r = pthread_mutex_init(&_process.locker, NULL);
+    r = pthread_mutex_init(&_app.locker, NULL);
     if (r)
         goto fail_mutex;
 #endif                     /* } */
 
-    r = atexit(process_cleanup_once);
+    r = atexit(app_cleanup_once);
     if (r)
         goto fail_atexit;
 
-    _process.init_ok = true;
+    _app.init_ok = true;
     return;
 
 #if USE(PTHREADS)          /* { */
 fail_atexit:
-    pthread_mutex_destroy(&_process.locker);
+    pthread_mutex_destroy(&_app.locker);
 #endif                     /* } */
 
 fail_mutex:
@@ -310,8 +310,8 @@ static void _init_once(void)
     atexit(free_locale_c);
 #endif
 
-    _process_init_once();
-    if (!_process.init_ok)
+    _app_init_once();
+    if (!_app.init_ok)
         return;
 
     for (size_t i=0; i<PCA_TABLESIZE(_pc_modules); ++i) {
