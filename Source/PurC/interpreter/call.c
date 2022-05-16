@@ -232,7 +232,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (r)
         return NULL;
 
-    r = post_process(&stack->co, frame);
+    r = post_process(stack->co, frame);
     if (r)
         return NULL;
 
@@ -299,7 +299,7 @@ select_child(pcintr_stack_t stack, void* ud)
     PC_ASSERT(stack);
     PC_ASSERT(stack == pcintr_get_stack());
 
-    pcintr_coroutine_t co = &stack->co;
+    pcintr_coroutine_t co = stack->co;
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(ud == frame->ctxt);

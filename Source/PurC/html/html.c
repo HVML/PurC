@@ -37,10 +37,19 @@
 #include "private/atom-buckets.h"
 #include "private/html.h"
 
-void pchtml_init_once(void)
+static int html_init_once(void)
 {
     // initialize others
+    return 0;
 }
+
+struct pcmodule _module_html = {
+    .id              = PURC_HAVE_HTML,
+    .module_inited   = 0,
+
+    .init_once       = html_init_once,
+    .init_instance   = NULL,
+};
 
 /* VW NOTE: HTML module should work without instance
 void pchtml_init_instance(struct pcinst* inst)

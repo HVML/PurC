@@ -189,7 +189,7 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     if (!vcm)
         return;
 
-    pcintr_stack_t stack = co->stack;
+    pcintr_stack_t stack = &co->stack;
     purc_variant_t v = pcvcm_eval(vcm, stack, frame->silently);
     PC_ASSERT(v != PURC_VARIANT_INVALID);
     purc_clr_error();
@@ -228,7 +228,7 @@ select_child(pcintr_stack_t stack, void* ud)
     PC_ASSERT(stack);
     PC_ASSERT(stack == pcintr_get_stack());
 
-    pcintr_coroutine_t co = &stack->co;
+    pcintr_coroutine_t co = stack->co;
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(ud == frame->ctxt);

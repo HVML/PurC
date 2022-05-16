@@ -105,9 +105,6 @@ pcutils_hash_hash(const unsigned char *key, size_t key_size)
 extern "C" {
 #endif
 
-void pcutils_atom_init_once(void) WTF_INTERNAL;
-void pcutils_atom_cleanup_once(void) WTF_INTERNAL;
-
 void *pcutils_calloc_a(size_t len, ...) WTF_INTERNAL;
 
 typedef enum {

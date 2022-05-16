@@ -54,6 +54,7 @@ class PurcTimer : public WTF::RunLoop::TimerBase {
 
         ~PurcTimer()
         {
+            stop();
             if (m_id) {
                 free(m_id);
             }
@@ -178,6 +179,7 @@ static void map_free_val(void* val)
 void timer_fire_func(const char* id, void* ctxt)
 {
     pcintr_stack_t stack = (pcintr_stack_t) ctxt;
+    PC_ASSERT(pcintr_is_current_thread());
     purc_variant_t type = purc_variant_make_string(TIMERS_STR_EXPIRED, false);
     purc_variant_t sub_type = purc_variant_make_string(id, false);
 
@@ -277,6 +279,7 @@ timers_listener_handler(purc_variant_t source, pcvar_op_t msg_type,
     UNUSED_PARAM(source);
     UNUSED_PARAM(nr_args);
     pcintr_stack_t stack = (pcintr_stack_t) ctxt;
+    PC_ASSERT(stack == pcintr_get_stack());
     if (msg_type == PCVAR_OPERATION_GROW) {
         purc_variant_t interval = purc_variant_object_get_by_ckey(argv[0],
                 TIMERS_STR_INTERVAL);

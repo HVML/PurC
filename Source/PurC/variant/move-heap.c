@@ -38,12 +38,30 @@
 static struct purc_mutex        mh_lock;
 static struct pcvariant_heap    move_heap;
 
-void pcvariant_move_heap_init_once(void)
+static void mvheap_cleanup_once(void)
 {
-    purc_mutex_init(&mh_lock);
-    if (mh_lock.native_impl == NULL)
-        PC_ASSERT(0);
+    if (mh_lock.native_impl)
+        purc_mutex_clear(&mh_lock);
 
+    struct purc_variant_stat *stat = &move_heap.stat;
+
+    PC_DEBUG("refc of v_undefined in move heap: %u\n", move_heap.v_undefined.refc);
+    PC_DEBUG("refc of v_null in move heap: %u\n", move_heap.v_null.refc);
+    PC_DEBUG("refc of v_true in move heap: %u\n", move_heap.v_true.refc);
+    PC_DEBUG("refc of v_false in move heap: %u\n", move_heap.v_false.refc);
+    PC_DEBUG("total values in move heap: %u\n", (unsigned int)stat->nr_total_values);
+    PC_DEBUG("total memory used by move heap: %u\n", (unsigned int)stat->sz_total_mem);
+
+    PC_ASSERT(move_heap.v_undefined.refc == 0);
+    PC_ASSERT(move_heap.v_null.refc == 0);
+    PC_ASSERT(move_heap.v_true.refc == 0);
+    PC_ASSERT(move_heap.v_false.refc == 0);
+    PC_ASSERT(stat->nr_total_values == 4);
+    PC_ASSERT(stat->sz_total_mem == 4 * sizeof(purc_variant));
+}
+
+static int mvheap_init_once(void)
+{
     move_heap.v_undefined.type = PURC_VARIANT_TYPE_UNDEFINED;
     move_heap.v_undefined.refc = 0;
     move_heap.v_undefined.flags = PCVARIANT_FLAG_NOFREE;
@@ -77,29 +95,31 @@ void pcvariant_move_heap_init_once(void)
 
     stat->nr_reserved = 0;
     stat->nr_max_reserved = 0;  // no need to reserve variants for move heap.
+
+    purc_mutex_init(&mh_lock);
+    if (mh_lock.native_impl == NULL)
+        return -1;
+
+    int r;
+    r = atexit(mvheap_cleanup_once);
+    if (r)
+        goto fail_atexit;
+
+    return 0;
+
+fail_atexit:
+    purc_mutex_clear(&mh_lock);
+
+    return -1;
 }
 
-void pcvariant_move_heap_cleanup_once(void)
-{
-    if (mh_lock.native_impl)
-        purc_mutex_clear(&mh_lock);
+struct pcmodule _module_mvheap = {
+    .id              = PURC_HAVE_VARIANT,
+    .module_inited   = 0,
 
-    struct purc_variant_stat *stat = &move_heap.stat;
-
-    PC_DEBUG("refc of v_undefined in move heap: %u\n", move_heap.v_undefined.refc);
-    PC_DEBUG("refc of v_null in move heap: %u\n", move_heap.v_null.refc);
-    PC_DEBUG("refc of v_true in move heap: %u\n", move_heap.v_true.refc);
-    PC_DEBUG("refc of v_false in move heap: %u\n", move_heap.v_false.refc);
-    PC_DEBUG("total values in move heap: %u\n", (unsigned int)stat->nr_total_values);
-    PC_DEBUG("total memory used by move heap: %u\n", (unsigned int)stat->sz_total_mem);
-
-    PC_ASSERT(move_heap.v_undefined.refc == 0);
-    PC_ASSERT(move_heap.v_null.refc == 0);
-    PC_ASSERT(move_heap.v_true.refc == 0);
-    PC_ASSERT(move_heap.v_false.refc == 0);
-    PC_ASSERT(stat->nr_total_values == 4);
-    PC_ASSERT(stat->sz_total_mem == 4 * sizeof(purc_variant));
-}
+    .init_once       = mvheap_init_once,
+    .init_instance   = NULL,
+};
 
 static void
 move_variant_in(struct pcinst *inst, purc_variant_t v)

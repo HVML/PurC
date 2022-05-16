@@ -155,7 +155,7 @@ match_id(pcintr_coroutine_t co,
         return false;
 
     bool silently = false;
-    purc_variant_t v = pcvcm_eval(attr->val, co->stack, silently);
+    purc_variant_t v = pcvcm_eval(attr->val, &co->stack, silently);
     purc_clr_error();
     if (v == PURC_VARIANT_INVALID)
         return false;
@@ -217,7 +217,7 @@ post_process_src_by_topmost(pcintr_coroutine_t co,
     if (!s_name)
         return -1;
     bool ok;
-    ok = purc_bind_document_variable(co->stack->vdom, s_name, src);
+    ok = purc_bind_document_variable(co->stack.vdom, s_name, src);
     return ok ? 0 : -1;
 }
 
@@ -254,7 +254,7 @@ post_process_src(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         if (ctxt->under_head) {
             uint64_t level = 0;
             struct pcvdom_node *node = &frame->pos->node;
-            while (node && node != &co->stack->vdom->document->node) {
+            while (node && node != &co->stack.vdom->document->node) {
                 node = pcvdom_node_parent(node);
                 level += 1;
             }
@@ -264,7 +264,7 @@ post_process_src(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
                 return -1;
             }
             bool ok;
-            ok = purc_bind_document_variable(co->stack->vdom, s_name, src);
+            ok = purc_bind_document_variable(co->stack.vdom, s_name, src);
             return ok ? 0 : -1;
         }
         return post_process_src_by_level(co, frame, src, 1);
@@ -329,7 +329,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         }
 
         const char* uri = purc_variant_get_string_const(from);
-        purc_variant_t v = pcintr_load_vdom_fragment_from_uri(co->stack, uri);
+        purc_variant_t v = pcintr_load_vdom_fragment_from_uri(&co->stack, uri);
         if (v != PURC_VARIANT_INVALID) {
             PURC_VARIANT_SAFE_CLEAR(ctxt->from_result);
             ctxt->from_result = v;
@@ -632,7 +632,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     purc_clr_error(); // pcvdom_element_parent
 
-    r = post_process(&stack->co, frame);
+    r = post_process(stack->co, frame);
     if (r)
         return NULL;
 

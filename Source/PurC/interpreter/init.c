@@ -68,6 +68,7 @@ struct fetcher_for_init {
     struct pcvdom_element         *element;
     purc_variant_t                name;
     unsigned int                  under_head:1;
+    pthread_t                     current;
 };
 
 static void
@@ -238,7 +239,7 @@ match_id(pcintr_coroutine_t co,
         return false;
 
     bool silently = false;
-    purc_variant_t v = pcvcm_eval(attr->val, co->stack, silently);
+    purc_variant_t v = pcvcm_eval(attr->val, &co->stack, silently);
     purc_clr_error();
     if (v == PURC_VARIANT_INVALID)
         return false;
@@ -334,7 +335,7 @@ post_process_src_by_topmost(pcintr_coroutine_t co,
         if (!s_name)
             return -1;
         bool ok;
-        ok = purc_bind_document_variable(co->stack->vdom, s_name, src);
+        ok = purc_bind_document_variable(co->stack.vdom, s_name, src);
         return ok ? 0 : -1;
     }
 }
@@ -411,7 +412,7 @@ post_process_src(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         if (ctxt->under_head) {
             uint64_t level = 0;
             struct pcvdom_node *node = &frame->pos->node;
-            while (node && node != &co->stack->vdom->document->node) {
+            while (node && node != &co->stack.vdom->document->node) {
                 node = pcvdom_node_parent(node);
                 level += 1;
             }
@@ -421,7 +422,7 @@ post_process_src(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
                 return -1;
             }
             bool ok;
-            ok = purc_bind_document_variable(co->stack->vdom, s_name, src);
+            ok = purc_bind_document_variable(co->stack.vdom, s_name, src);
             return ok ? 0 : -1;
         }
         return post_process_src_by_level(co, frame, src, 1);
@@ -774,6 +775,8 @@ static void load_response_handler(purc_variant_t request_id, void *ctxt,
     PC_DEBUG("load_async|callback|mime_type=%s\n", resp_header->mime_type);
     PC_DEBUG("load_async|callback|sz_resp=%ld\n", resp_header->sz_resp);
     struct fetcher_for_init *fetcher = (struct fetcher_for_init*)ctxt;
+    pthread_t current = pthread_self();
+    PC_ASSERT(current == fetcher->current);
 
     if (resp_header->ret_code == RESP_CODE_USER_STOP) {
         goto clean_rws;
@@ -914,6 +917,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
             fetcher->stack = stack;
             fetcher->element = element;
             fetcher->name = ctxt->as;
+            fetcher->current = pthread_self();
             purc_variant_ref(fetcher->name);
             fetcher->under_head = ctxt->under_head;
             purc_variant_t v = pcintr_load_from_uri_async(stack, uri,
@@ -1002,7 +1006,7 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     }
 
     // NOTE: element is still the owner of vcm_content
-    purc_variant_t v = pcvcm_eval(vcm, co->stack, frame->silently);
+    purc_variant_t v = pcvcm_eval(vcm, &co->stack, frame->silently);
     if (v == PURC_VARIANT_INVALID)
         return -1;
 
@@ -1070,7 +1074,7 @@ select_child(pcintr_stack_t stack, void* ud)
     PC_ASSERT(stack);
     PC_ASSERT(stack == pcintr_get_stack());
 
-    pcintr_coroutine_t co = &stack->co;
+    pcintr_coroutine_t co = stack->co;
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(ud == frame->ctxt);

@@ -63,9 +63,6 @@ struct purc_exec_inst {
     purc_variant_t              value;
 };
 
-// initialize executor module (once)
-void pcexecutor_init_once(void) WTF_INTERNAL;
-
 struct pcinst;
 
 // initialize the executor module for a PurC instance.

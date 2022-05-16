@@ -69,7 +69,7 @@ post_process_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     ctxt = (struct ctxt_for_catch*)frame->ctxt;
     PC_ASSERT(ctxt);
 
-    pcintr_stack_t stack = co->stack;
+    pcintr_stack_t stack = &co->stack;
     PC_ASSERT(stack->except == 0);
     PC_ASSERT(ctxt->exception);
     PC_ASSERT(ctxt->exception->error_except);
@@ -228,7 +228,7 @@ _after_pushed(pcintr_stack_t stack, pcvdom_element_t pos,
     if (r)
         return NULL;
 
-    r = post_process(&stack->co, frame);
+    r = post_process(stack->co, frame);
     if (r)
         return NULL;
 
@@ -322,7 +322,7 @@ select_child(pcintr_stack_t stack, void* ud)
     PC_ASSERT(stack);
     PC_ASSERT(stack == pcintr_get_stack());
 
-    pcintr_coroutine_t co = &stack->co;
+    pcintr_coroutine_t co = stack->co;
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(ud == frame->ctxt);

@@ -159,18 +159,6 @@ int pcdvobjs_global_keyword_id(const char *keyword, size_t length)
     return -1;
 }
 
-void pcdvobjs_init_once(void)
-{
-    for (size_t i = 0; i < PCA_TABLESIZE(keywords2atoms); i++) {
-        keywords2atoms[i].atom =
-            purc_atom_from_static_string_ex(ATOM_BUCKET_DVOBJ,
-                    keywords2atoms[i].keyword);
-
-        /* We expect the atoms are increasing one by one. */
-        assert(keywords2atoms[i].atom - keywords2atoms[0].atom == i);
-    }
-    // initialize others
-}
 
 void pcdvobjs_init_instance(struct pcinst* inst)
 {
@@ -182,3 +170,27 @@ void pcdvobjs_cleanup_instance(struct pcinst* inst)
 {
     UNUSED_PARAM(inst);
 }
+
+static int dvobjs_init_once(void)
+{
+    for (size_t i = 0; i < PCA_TABLESIZE(keywords2atoms); i++) {
+        keywords2atoms[i].atom =
+            purc_atom_from_static_string_ex(ATOM_BUCKET_DVOBJ,
+                    keywords2atoms[i].keyword);
+
+        /* We expect the atoms are increasing one by one. */
+        if (keywords2atoms[i].atom - keywords2atoms[0].atom != i)
+            return -1;
+    }
+    // initialize others
+    return 0;
+}
+
+struct pcmodule _module_dvobjs = {
+    .id              = PURC_HAVE_VARIANT | PURC_HAVE_EJSON,
+    .module_inited   = 0,
+
+    .init_once       = dvobjs_init_once,
+    .init_instance   = NULL,
+};
+

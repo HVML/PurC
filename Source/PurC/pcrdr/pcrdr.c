@@ -93,7 +93,7 @@ _COMPILE_TIME_ASSERT(ops,
         PCA_TABLESIZE(pcrdr_opatoms) == PCRDR_NR_OPERATIONS);
 #undef _COMPILE_TIME_ASSERT
 
-void pcrdr_init_once(void)
+static int renderer_init_once(void)
 {
     pcinst_register_error_message_segment(&_pcrdr_err_msgs_seg);
 
@@ -102,8 +102,22 @@ void pcrdr_init_once(void)
         pcrdr_opatoms[i].atom =
             purc_atom_from_static_string_ex(ATOM_BUCKET_RDROP,
                     pcrdr_opatoms[i].op);
+
+        if (!pcrdr_opatoms[i].atom)
+            return -1;
     }
+
+    return 0;
 }
+
+struct pcmodule _module_renderer = {
+    .id              = PURC_HAVE_VARIANT | PURC_HAVE_PCRDR,
+    .module_inited   = 0,
+
+    .init_once       = renderer_init_once,
+    .init_instance   = NULL,
+};
+
 
 const char *pcrdr_operation_from_atom(purc_atom_t op_atom, unsigned int *id)
 {

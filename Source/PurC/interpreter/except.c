@@ -207,8 +207,7 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 static int
 on_child_finished(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
-    pcintr_stack_t stack = co->stack;
-    PC_ASSERT(stack);
+    UNUSED_PARAM(co);
 
     struct ctxt_for_except *ctxt;
     ctxt = (struct ctxt_for_except*)frame->ctxt;
@@ -253,7 +252,7 @@ select_child(pcintr_stack_t stack, void* ud)
     PC_ASSERT(stack);
     PC_ASSERT(stack == pcintr_get_stack());
 
-    pcintr_coroutine_t co = &stack->co;
+    pcintr_coroutine_t co = stack->co;
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(ud == frame->ctxt);

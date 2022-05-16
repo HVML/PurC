@@ -176,10 +176,6 @@ pchtml_tag_mraw(pcutils_hash_t *hash)
 }
 
 
-// initialize dom module (once)
-void pcdom_init_once(void) WTF_INTERNAL;
-
-
 /* VW NOTE: eDOM module should work without instance
 struct pcinst;
 // initialize the dom module for a PurC instance.

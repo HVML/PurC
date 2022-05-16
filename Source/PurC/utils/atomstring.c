@@ -31,6 +31,7 @@
 #include "purc-ports.h"
 #include "purc-utils.h"
 #include "purc-errors.h"
+#include "private/instance.h"
 #include "private/kvlist.h"
 #include "private/utils.h"
 
@@ -102,26 +103,6 @@ static inline struct atom_bucket *atom_get_bucket (int bucket)
 
     assert(0);
     return NULL;
-}
-
-void
-pcutils_atom_init_once (void)
-{
-    purc_rwlock_init (&atom_rwlock);
-    if (atom_rwlock.native_impl == NULL)
-        assert (0);
-
-    /* init the default bucket only */
-    atom_get_bucket(0);
-}
-
-void
-pcutils_atom_cleanup_once (void)
-{
-    if (atom_rwlock.native_impl)
-        purc_rwlock_clear (&atom_rwlock);
-    if (atom_block)
-        free(atom_block);
 }
 
 purc_atom_t
@@ -269,4 +250,53 @@ atom_new (struct atom_bucket *bucket, char *string)
 
     return atom;
 }
+
+static void
+atom_cleanup_once (void)
+{
+    if (atom_rwlock.native_impl)
+        purc_rwlock_clear (&atom_rwlock);
+    if (atom_block)
+        free(atom_block);
+}
+
+static int
+atom_init_once (void)
+{
+    int r = 0;
+
+    purc_rwlock_init (&atom_rwlock);
+    if (atom_rwlock.native_impl == NULL)
+        goto fail_lock;
+
+    /* init the default bucket only */
+    if (!atom_get_bucket(0))
+        goto fail_atom;
+
+    r = atexit(atom_cleanup_once);
+    if (r)
+        goto fail_atexit;
+
+    return 0;
+
+fail_atexit:
+    if (atom_block) {
+        free(atom_block);
+        atom_block = NULL;
+    }
+
+fail_atom:
+    purc_rwlock_clear (&atom_rwlock);
+
+fail_lock:
+    return -1;
+}
+
+struct pcmodule _module_atom = {
+    .id              = PURC_HAVE_UTILS,
+    .module_inited   = 0,
+
+    .init_once       = atom_init_once,
+    .init_instance   = NULL,
+};
 
