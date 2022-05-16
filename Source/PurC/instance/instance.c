@@ -222,6 +222,7 @@ extern struct pcmodule _module_rwstream;
 extern struct pcmodule _module_dom;
 extern struct pcmodule _module_html;
 extern struct pcmodule _module_variant;
+extern struct pcmodule _module_mvheap;
 extern struct pcmodule _module_mvbuf;
 extern struct pcmodule _module_ejson;
 extern struct pcmodule _module_dvobjs;
@@ -244,6 +245,7 @@ struct pcmodule* _pc_modules[] = {
     &_module_html,
 
     &_module_variant,
+    &_module_mvheap,
     &_module_mvbuf,
 
     &_module_ejson,
