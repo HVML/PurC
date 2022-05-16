@@ -416,8 +416,7 @@ static inline void init_once(void)
 
 PURC_DEFINE_THREAD_LOCAL(struct pcinst, inst);
 
-static int app_new_inst(struct hvml_app *app,
-        unsigned int modules, const char *runner_name,
+static int app_new_inst(struct hvml_app *app, const char *runner_name,
         struct pcinst **pcurr_inst)
 {
     int r = PURC_ERROR_OK;
@@ -458,8 +457,6 @@ static int app_new_inst(struct hvml_app *app,
             r = PURC_ERROR_OUT_OF_MEMORY;
             break;
         }
-
-        curr_inst->modules = modules;
 
         curr_inst->errcode = PURC_ERROR_OK;
         curr_inst->app_name = app->name;
@@ -504,7 +501,9 @@ static void cleanup_instance(struct hvml_app *app, struct pcinst *curr_inst)
     }
 
     app_lock(app);
-    list_del(&curr_inst->node);
+    if (curr_inst->node.next || curr_inst->node.prev)
+        list_del(&curr_inst->node);
+
     if (curr_inst->runner_name) {
         free(curr_inst->runner_name);
         curr_inst->runner_name = NULL;
@@ -539,10 +538,11 @@ static void enable_log_on_demand(void)
     purc_enable_log(true, use_syslog);
 }
 
-static int instance_init(struct pcinst *curr_inst,
-        const purc_instance_extra_info* extra_info)
+static int instance_init_modules(struct pcinst *curr_inst,
+        unsigned int modules, const purc_instance_extra_info* extra_info)
 {
-    unsigned int modules = curr_inst->modules;
+    curr_inst->modules = modules;
+
     // endpoint_atom
     char endpoint_name [PURC_LEN_ENDPOINT_NAME + 1];
     purc_atom_t endpoint_atom;
@@ -632,6 +632,42 @@ static int instance_init(struct pcinst *curr_inst,
     return PURC_ERROR_OK;
 }
 
+static bool pcinst_cleanup(struct hvml_app *app, struct pcinst *curr_inst)
+{
+    if (curr_inst == NULL || curr_inst->app_name == NULL)
+        return false;
+
+    PURC_VARIANT_SAFE_CLEAR(curr_inst->err_exinfo);
+
+    /* disconnnect from the renderer */
+    if (curr_inst->modules & PURC_HAVE_PCRDR && curr_inst->conn_to_rdr) {
+        pcrdr_cleanup_instance(curr_inst);
+    }
+
+    // TODO: clean up other fields in reverse order
+    if (curr_inst->modules & PURC_HAVE_HVML) {
+        pcintr_cleanup_instance(curr_inst);
+        pcexecutor_cleanup_instance(curr_inst);
+        pcdvobjs_cleanup_instance(curr_inst);
+    }
+
+    if (curr_inst->modules & PURC_HAVE_FETCHER) {
+        pcfetcher_term();
+    }
+
+    pcvariant_cleanup_instance(curr_inst);
+    /* VW NOTE: eDOM and HTML modules should work without instance
+       pchtml_cleanup_instance(curr_inst);
+       pcdom_cleanup_instance(curr_inst); */
+
+    if (curr_inst->initialized_main_runloop) {
+        purc_runloop_stop_main();
+    }
+    cleanup_instance(app, curr_inst);
+
+    return true;
+}
+
 int purc_init_ex(unsigned int modules,
         const char* app_name, const char* runner_name,
         const purc_instance_extra_info* extra_info)
@@ -674,7 +710,7 @@ int purc_init_ex(unsigned int modules,
         if (ret)
             break;
 
-        ret = app_new_inst(app, modules, runner_name, &curr_inst);
+        ret = app_new_inst(app, runner_name, &curr_inst);
         if (ret)
             break;
 
@@ -683,12 +719,16 @@ int purc_init_ex(unsigned int modules,
             break;
         }
 
-        ret = instance_init(curr_inst, extra_info);
+        ret = instance_init_modules(curr_inst, modules, extra_info);
+        if (ret) {
+            list_del(&curr_inst->node);
+            break;
+        }
     } while (0);
     app_unlock(app);
 
     if (ret) {
-        purc_cleanup();
+        pcinst_cleanup(app, curr_inst);
         return ret;
     }
 
@@ -704,38 +744,8 @@ bool purc_cleanup(void)
     struct pcinst* curr_inst;
 
     curr_inst = PURC_GET_THREAD_LOCAL(inst);
-    if (curr_inst == NULL || curr_inst->app_name == NULL)
-        return false;
 
-    PURC_VARIANT_SAFE_CLEAR(curr_inst->err_exinfo);
-
-    /* disconnnect from the renderer */
-    if (curr_inst->modules & PURC_HAVE_PCRDR && curr_inst->conn_to_rdr) {
-        pcrdr_cleanup_instance(curr_inst);
-    }
-
-    // TODO: clean up other fields in reverse order
-    if (curr_inst->modules & PURC_HAVE_HVML) {
-        pcintr_cleanup_instance(curr_inst);
-        pcexecutor_cleanup_instance(curr_inst);
-        pcdvobjs_cleanup_instance(curr_inst);
-    }
-
-    if (curr_inst->modules & PURC_HAVE_FETCHER) {
-        pcfetcher_term();
-    }
-
-    pcvariant_cleanup_instance(curr_inst);
-    /* VW NOTE: eDOM and HTML modules should work without instance
-       pchtml_cleanup_instance(curr_inst);
-       pcdom_cleanup_instance(curr_inst); */
-
-    if (curr_inst->initialized_main_runloop) {
-        purc_runloop_stop_main();
-    }
-    cleanup_instance(app, curr_inst);
-
-    return true;
+    return pcinst_cleanup(app, curr_inst);
 }
 
 bool
