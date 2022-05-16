@@ -561,7 +561,7 @@ static void on_destroy_plain_window(struct pcrdr_prot_data *prot_data,
     result->resultValue = elementHandle;
 }
 
-static void on_create_tabbed_window(struct pcrdr_prot_data *prot_data,
+static void on_reset_page_groups(struct pcrdr_prot_data *prot_data,
         const pcrdr_msg *msg, unsigned int op_id, struct result_info *result)
 {
     UNUSED_PARAM(op_id);
@@ -616,7 +616,7 @@ static void on_create_tabbed_window(struct pcrdr_prot_data *prot_data,
         (uint64_t)(uintptr_t)workspaces[i].tabbed_windows[j].handle;
 }
 
-static void on_update_tabbed_window(struct pcrdr_prot_data *prot_data,
+static void on_add_page_groups(struct pcrdr_prot_data *prot_data,
         const pcrdr_msg *msg, unsigned int op_id, struct result_info *result)
 {
     UNUSED_PARAM(op_id);
@@ -671,7 +671,7 @@ static void on_update_tabbed_window(struct pcrdr_prot_data *prot_data,
     result->resultValue = elementHandle;
 }
 
-static void on_destroy_tabbed_window(struct pcrdr_prot_data *prot_data,
+static void on_remove_page_group(struct pcrdr_prot_data *prot_data,
         const pcrdr_msg *msg, unsigned int op_id, struct result_info *result)
 {
     UNUSED_PARAM(op_id);
@@ -736,7 +736,7 @@ static void on_create_tabpage(struct pcrdr_prot_data *prot_data,
 {
     UNUSED_PARAM(op_id);
 
-    if (msg->target != PCRDR_MSG_TARGET_TABBEDWINDOW) {
+    if (msg->target != PCRDR_MSG_TARGET_WORKSPACE) {
         result->retCode = PCRDR_SC_BAD_REQUEST;
         result->resultValue = 0;
         return;
@@ -795,7 +795,7 @@ static void on_update_tabpage(struct pcrdr_prot_data *prot_data,
 {
     UNUSED_PARAM(op_id);
 
-    if (msg->target != PCRDR_MSG_TARGET_TABBEDWINDOW ||
+    if (msg->target != PCRDR_MSG_TARGET_WORKSPACE ||
             msg->elementType != PCRDR_MSG_ELEMENT_TYPE_HANDLE) {
         result->retCode = PCRDR_SC_BAD_REQUEST;
         result->resultValue = 0;
@@ -854,7 +854,7 @@ static void on_destroy_tabpage(struct pcrdr_prot_data *prot_data,
 {
     UNUSED_PARAM(op_id);
 
-    if (msg->target != PCRDR_MSG_TARGET_TABBEDWINDOW ||
+    if (msg->target != PCRDR_MSG_TARGET_WORKSPACE ||
             msg->elementType != PCRDR_MSG_ELEMENT_TYPE_HANDLE) {
         result->retCode = PCRDR_SC_BAD_REQUEST;
         result->resultValue = 0;
@@ -917,7 +917,7 @@ static void **find_domdoc_ptr(struct pcrdr_prot_data *prot_data,
         const pcrdr_msg *msg, struct result_info *result)
 {
     if (msg->target != PCRDR_MSG_TARGET_PLAINWINDOW &&
-            msg->target != PCRDR_MSG_TARGET_TABPAGE) {
+            msg->target != PCRDR_MSG_TARGET_PAGE) {
     }
 
     if (prot_data->session == 0) {
@@ -950,7 +950,7 @@ found_pw:
 
         domdocs = &workspaces[i].domdocs[j];
     }
-    else if (msg->target == PCRDR_MSG_TARGET_TABPAGE) {
+    else if (msg->target == PCRDR_MSG_TARGET_PAGE) {
         int i, j, k;
         struct workspace_info *workspaces = prot_data->session->workspaces;
         for (i = 0; i < NR_WORKSPACES; i++) {
@@ -1127,9 +1127,9 @@ static request_handler handlers[] = {
     on_create_plain_window,
     on_update_plain_window,
     on_destroy_plain_window,
-    on_create_tabbed_window,
-    on_update_tabbed_window,
-    on_destroy_tabbed_window,
+    on_reset_page_groups,
+    on_add_page_groups,
+    on_remove_page_group,
     on_create_tabpage,
     on_update_tabpage,
     on_destroy_tabpage,
@@ -1137,6 +1137,8 @@ static request_handler handlers[] = {
     on_write_begin,
     on_write_more,
     on_write_end,
+    on_operate_dom,
+    on_operate_dom,
     on_operate_dom,
     on_operate_dom,
     on_operate_dom,

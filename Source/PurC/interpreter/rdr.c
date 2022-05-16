@@ -505,6 +505,7 @@ failed:
     return false;
 }
 
+/* FIXME: the operation createTabbedWindow removed */
 uintptr_t pcintr_rdr_create_tabbed_window(struct pcrdr_conn *conn,
         uintptr_t session, uintptr_t workspace, const char *id,
         const char *title, const char* classes, const char *style,
@@ -513,7 +514,7 @@ uintptr_t pcintr_rdr_create_tabbed_window(struct pcrdr_conn *conn,
     uintptr_t tabbed_window = 0;
     pcrdr_msg *response_msg = NULL;
 
-    const char *operation = PCRDR_OPERATION_CREATETABBEDWINDOW;
+    const char *operation = PCRDR_OPERATION_RESETPAGEGROUPS;
     pcrdr_msg_target target;
     uint64_t target_value;
     pcrdr_msg_element_type element_type = PCRDR_MSG_ELEMENT_TYPE_VOID;
@@ -585,12 +586,13 @@ failed:
     return 0;
 }
 
+/* FIXME: the operation destroyTabbedWindow removed */
 bool pcintr_rdr_destroy_tabbed_window(struct pcrdr_conn *conn,
         uintptr_t session, uintptr_t workspace, uintptr_t tabbed_window)
 {
     pcrdr_msg *response_msg = NULL;
 
-    const char *operation = PCRDR_OPERATION_DESTROYTABBEDWINDOW;
+    const char *operation = PCRDR_OPERATION_REMOVEPAGEGROUP;
     pcrdr_msg_target target;
     uint64_t target_value;
     pcrdr_msg_element_type element_type = PCRDR_MSG_ELEMENT_TYPE_HANDLE;
@@ -648,6 +650,7 @@ failed:
     return false;
 }
 
+/* FIXME: the operation updateTabbedWindow removed */
 // property: title, class, style
 bool pcintr_rdr_update_tabbed_window(struct pcrdr_conn *conn,
         uintptr_t session, uintptr_t workspace, uintptr_t tabbed_window,
@@ -655,7 +658,7 @@ bool pcintr_rdr_update_tabbed_window(struct pcrdr_conn *conn,
 {
     pcrdr_msg *response_msg = NULL;
 
-    const char *operation = PCRDR_OPERATION_UPDATETABBEDWINDOW;
+    const char *operation = PCRDR_OPERATION_ADDPAGEGROUPS;
     pcrdr_msg_target target;
     uint64_t target_value;
     pcrdr_msg_element_type element_type = PCRDR_MSG_ELEMENT_TYPE_HANDLE;
@@ -726,8 +729,8 @@ uintptr_t pcintr_rdr_create_tab_page(struct pcrdr_conn *conn,
     uintptr_t tab_page = 0;
     pcrdr_msg *response_msg = NULL;
 
-    const char *operation = PCRDR_OPERATION_CREATETABPAGE;
-    pcrdr_msg_target target = PCRDR_MSG_TARGET_TABBEDWINDOW;
+    const char *operation = PCRDR_OPERATION_CREATEPAGE;
+    pcrdr_msg_target target = PCRDR_MSG_TARGET_WORKSPACE;
     uint64_t target_value = tabbed_window;
     pcrdr_msg_element_type element_type = PCRDR_MSG_ELEMENT_TYPE_VOID;
     pcrdr_msg_data_type data_type = PCRDR_MSG_DATA_TYPE_EJSON;
@@ -782,8 +785,8 @@ bool pcintr_rdr_destroy_tab_page(struct pcrdr_conn *conn,
 {
     pcrdr_msg *response_msg = NULL;
 
-    const char *operation = PCRDR_OPERATION_DESTROYTABPAGE;
-    pcrdr_msg_target target = PCRDR_MSG_TARGET_TABBEDWINDOW;
+    const char *operation = PCRDR_OPERATION_DESTROYPAGE;
+    pcrdr_msg_target target = PCRDR_MSG_TARGET_WORKSPACE;
     uint64_t target_value = tabbed_window;
     pcrdr_msg_element_type element_type = PCRDR_MSG_ELEMENT_TYPE_HANDLE;
     pcrdr_msg_data_type data_type = PCRDR_MSG_DATA_TYPE_VOID;
@@ -838,8 +841,8 @@ bool pcintr_rdr_update_tab_page(struct pcrdr_conn *conn,
 {
     pcrdr_msg *response_msg = NULL;
 
-    const char *operation = PCRDR_OPERATION_UPDATETABPAGE;
-    pcrdr_msg_target target = PCRDR_MSG_TARGET_TABBEDWINDOW;
+    const char *operation = PCRDR_OPERATION_UPDATEPAGE;
+    pcrdr_msg_target target = PCRDR_MSG_TARGET_WORKSPACE;
     uint64_t target_value = tabbed_window;
     pcrdr_msg_element_type element_type = PCRDR_MSG_ELEMENT_TYPE_HANDLE;
     pcrdr_msg_data_type data_type = PCRDR_MSG_DATA_TYPE_TEXT;
@@ -980,7 +983,7 @@ pcintr_rdr_page_control_load(pcintr_stack_t stack)
     pcrdr_msg *response_msg = NULL;
 
     const char *operation = PCRDR_OPERATION_LOAD;
-    pcrdr_msg_target target = PCRDR_MSG_TARGET_TABPAGE;
+    pcrdr_msg_target target = PCRDR_MSG_TARGET_PAGE;
     uint64_t target_value;
     pcrdr_msg_element_type element_type = PCRDR_MSG_ELEMENT_TYPE_VOID;
     pcrdr_msg_data_type data_type = PCRDR_MSG_DATA_TYPE_TEXT;
