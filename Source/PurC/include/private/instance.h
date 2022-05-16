@@ -41,6 +41,7 @@ typedef struct hvml_app hvml_app;
 typedef struct hvml_app *hvml_app_t;
 
 hvml_app_t hvml_app_get(void);
+const char* hvml_app_name(void);
 
 struct pcinst;
 typedef struct pcinst pcinst;
@@ -92,6 +93,8 @@ struct pcinst {
 
     /* FIXME: enable the fields ONLY when NDEBUG is undefined */
     struct pcdebug_backtrace  *bt;
+
+    struct list_head           node; // hvml_app::instances
 };
 
 /* gets the current instance */

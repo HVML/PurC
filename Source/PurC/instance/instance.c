@@ -263,18 +263,89 @@ struct hvml_app {
     struct list_head              instances;  // struct pcinst
 
     bool                          init_ok;
+
+    char                         *name;
 };
 
 static struct hvml_app _app;
 
 static bool _init_ok = false;
 
+struct hvml_app* hvml_app_get(void)
+{
+    if (!_init_ok)
+        return NULL;
+
+    if (_app.init_ok == false)
+        return NULL;
+
+    return &_app;
+}
+
+const char* hvml_app_name(void)
+{
+    struct hvml_app *app = hvml_app_get();
+    if (!app)
+        return NULL;
+
+    return app->name;
+}
+
+static void app_lock(struct hvml_app *app)
+{
+#if USE(PTHREADS)          /* { */
+    pthread_mutex_lock(&app->locker);
+#endif                     /* }*/
+}
+
+static void app_unlock(struct hvml_app *app)
+{
+#if USE(PTHREADS)          /* { */
+    pthread_mutex_unlock(&app->locker);
+#endif                     /* }*/
+}
+
+static int app_set_name(struct hvml_app *app, const char *app_name)
+{
+    int r = PURC_ERROR_OK;
+
+    do {
+        if (app->name && strcmp(app->name, app_name)) {
+            r = PURC_ERROR_DUPLICATED;
+            break;
+        }
+        if (!app->name) {
+            app->name = strdup(app_name);
+            if (!app->name) {
+                r = PURC_ERROR_OUT_OF_MEMORY;
+                break;
+            }
+        }
+    } while (0);
+
+    return r;
+}
+
 static void app_cleanup_once(void)
 {
+#if 0         /* { */
+    app_lock(&_app);
+    while (!list_empty(&_app.instances)) {
+        app_unlock(&_app);
+        app_lock(&_app);
+    }
+    app_unlock(&_app);
+#endif        /* } */
+
     PC_ASSERT(list_empty(&_app.instances));
 #if USE(PTHREADS)          /* { */
     pthread_mutex_destroy(&_app.locker);
 #endif                     /* } */
+
+    if (_app.name) {
+        free(_app.name);
+        _app.name = NULL;
+    }
 }
 
 static void _app_init_once(void)
@@ -343,6 +414,64 @@ static inline void init_once(void)
 
 PURC_DEFINE_THREAD_LOCAL(struct pcinst, inst);
 
+static int app_new_inst(struct hvml_app *app,
+        unsigned int modules, const char *runner_name,
+        struct pcinst **pcurr_inst)
+{
+    int r = PURC_ERROR_OK;
+
+    do {
+        struct pcinst *curr_inst = PURC_GET_THREAD_LOCAL(inst);
+        if (curr_inst == NULL) {
+            r = PURC_ERROR_OUT_OF_MEMORY;
+            break;
+        }
+
+        if (curr_inst->modules || curr_inst->runner_name) {
+            r = PURC_ERROR_DUPLICATED;
+            break;
+        }
+
+        if (curr_inst->node.prev || curr_inst->node.next) {
+            r = PURC_ERROR_DUPLICATED;
+            break;
+        }
+
+        struct pcinst *p;
+        list_for_each_entry(p, &app->instances, node) {
+            if (p == curr_inst) {
+                r = PURC_ERROR_DUPLICATED;
+                break;
+            }
+            if (0 == strcmp(p->runner_name, runner_name)) {
+                r = PURC_ERROR_DUPLICATED;
+                break;
+            }
+        }
+        if (r)
+            break;
+
+        curr_inst->runner_name = strdup(runner_name);
+        if (!curr_inst->runner_name) {
+            r = PURC_ERROR_OUT_OF_MEMORY;
+            break;
+        }
+
+        curr_inst->modules = modules;
+
+        curr_inst->errcode = PURC_ERROR_OK;
+        curr_inst->app_name = app->name;
+
+        list_add_tail(&curr_inst->node, &app->instances);
+
+        *pcurr_inst = curr_inst;
+        PC_ASSERT(r == 0);
+        PC_ASSERT(r == PURC_ERROR_OK);
+    } while (0);
+
+    return r;
+}
+
 struct pcinst* pcinst_current(void)
 {
     struct pcinst* curr_inst;
@@ -355,21 +484,11 @@ struct pcinst* pcinst_current(void)
     return curr_inst;
 }
 
-static void cleanup_instance(struct pcinst *curr_inst)
+static void cleanup_instance(struct hvml_app *app, struct pcinst *curr_inst)
 {
     if (curr_inst->local_data_map) {
         pcutils_map_destroy(curr_inst->local_data_map);
         curr_inst->local_data_map = NULL;
-    }
-
-    if (curr_inst->app_name) {
-        free(curr_inst->app_name);
-        curr_inst->app_name = NULL;
-    }
-
-    if (curr_inst->runner_name) {
-        free(curr_inst->runner_name);
-        curr_inst->runner_name = NULL;
     }
 
     if (curr_inst->fp_log && curr_inst->fp_log != LOG_FILE_SYSLOG) {
@@ -382,7 +501,18 @@ static void cleanup_instance(struct pcinst *curr_inst)
         curr_inst->bt = NULL;
     }
 
+    app_lock(app);
+    list_del(&curr_inst->node);
+    if (curr_inst->runner_name) {
+        free(curr_inst->runner_name);
+        curr_inst->runner_name = NULL;
+    }
+
+    if (curr_inst->app_name)
+        curr_inst->app_name = NULL;
+
     curr_inst->modules = 0;
+    app_unlock(app);
 }
 
 static void enable_log_on_demand(void)
@@ -407,59 +537,10 @@ static void enable_log_on_demand(void)
     purc_enable_log(true, use_syslog);
 }
 
-int purc_init_ex(unsigned int modules,
-        const char* app_name, const char* runner_name,
+static int instance_init(struct pcinst *curr_inst,
         const purc_instance_extra_info* extra_info)
 {
-    struct pcinst* curr_inst;
-    int ret;
-
-    if (modules == 0) {
-        modules = PURC_MODULE_ALL;
-        if (modules == 0)
-            return PURC_ERROR_NO_INSTANCE;
-    }
-
-    init_once();
-    if (!_init_ok)
-        return PURC_ERROR_NO_INSTANCE;
-
-    curr_inst = PURC_GET_THREAD_LOCAL(inst);
-    if (curr_inst == NULL)
-        return PURC_ERROR_OUT_OF_MEMORY;
-
-    if (curr_inst->modules)
-        return PURC_ERROR_DUPLICATED;
-
-    curr_inst->modules = modules;
-
-    ret = PURC_ERROR_OK;
-    curr_inst->errcode = PURC_ERROR_OK;
-    if (app_name)
-        curr_inst->app_name = strdup(app_name);
-    else {
-        char cmdline[128];
-        size_t len;
-        len = pcutils_get_cmdline_arg(0, cmdline, sizeof(cmdline));
-        if (len > 0)
-            curr_inst->app_name = strdup(cmdline);
-        else
-            curr_inst->app_name = strdup("unknown");
-    }
-    if (!curr_inst->app_name) {
-        ret = PURC_ERROR_OUT_OF_MEMORY;
-        goto failed;
-    }
-
-    if (runner_name)
-        curr_inst->runner_name = strdup(runner_name);
-    else
-        curr_inst->runner_name = strdup("unknown");
-    if (!curr_inst->runner_name) {
-        ret = PURC_ERROR_OUT_OF_MEMORY;
-        goto failed;
-    }
-
+    unsigned int modules = curr_inst->modules;
     // endpoint_atom
     char endpoint_name [PURC_LEN_ENDPOINT_NAME + 1];
     purc_atom_t endpoint_atom;
@@ -467,22 +548,19 @@ int purc_init_ex(unsigned int modules,
     if (purc_assemble_endpoint_name(PCRDR_LOCALHOST,
                 curr_inst->app_name, curr_inst->runner_name,
                 endpoint_name) == 0) {
-        ret = PURC_ERROR_INVALID_VALUE;
-        goto failed;
+        return PURC_ERROR_INVALID_VALUE;
     }
 
     endpoint_atom = purc_atom_try_string_ex(PURC_ATOM_BUCKET_USER,
             endpoint_name);
     if (curr_inst->endpoint_atom == 0 && endpoint_atom) {
-        ret = PURC_ERROR_DUPLICATED;
-        goto failed;
+        return PURC_ERROR_DUPLICATED;
     }
 
     /* check whether app_name or runner_name changed */
     if (curr_inst->endpoint_atom &&
             curr_inst->endpoint_atom != endpoint_atom) {
-        ret = PURC_ERROR_INVALID_VALUE;
-        goto failed;
+        return PURC_ERROR_INVALID_VALUE;
     }
 
     curr_inst->endpoint_atom =
@@ -497,8 +575,7 @@ int purc_init_ex(unsigned int modules,
                 free_key_string, NULL, NULL, comp_key_string, false);
 
     if (curr_inst->endpoint_atom == 0) {
-        ret = PURC_ERROR_OUT_OF_MEMORY;
-        goto failed;
+        return PURC_ERROR_OUT_OF_MEMORY;
     }
 
     /* VW NOTE: eDOM and HTML modules should work without instance
@@ -508,8 +585,7 @@ int purc_init_ex(unsigned int modules,
     if (modules & PURC_HAVE_VARIANT) {
         pcvariant_init_instance(curr_inst);
         if (curr_inst->variant_heap == NULL) {
-            ret = PURC_ERROR_OUT_OF_MEMORY;
-            goto failed;
+            return PURC_ERROR_OUT_OF_MEMORY;
         }
     }
 
@@ -523,15 +599,13 @@ int purc_init_ex(unsigned int modules,
         curr_inst->executor_heap = NULL;
         pcexecutor_init_instance(curr_inst);
         if (curr_inst->executor_heap == NULL) {
-            ret = PURC_ERROR_OUT_OF_MEMORY;
-            goto failed;
+            return PURC_ERROR_OUT_OF_MEMORY;
         }
 
         curr_inst->intr_heap = NULL;
         pcintr_init_instance(curr_inst);
         if (curr_inst->intr_heap == NULL) {
-            ret = PURC_ERROR_OUT_OF_MEMORY;
-            goto failed;
+            return PURC_ERROR_OUT_OF_MEMORY;
         }
     }
 
@@ -548,24 +622,83 @@ int purc_init_ex(unsigned int modules,
     /* connnect to renderer */
     curr_inst->conn_to_rdr = NULL;
     if ((modules & PURC_HAVE_PCRDR)) {
-        if ((ret = pcrdr_init_instance(curr_inst, extra_info))) {
-            ret = PURC_ERROR_OUT_OF_MEMORY;
-            goto failed;
-        }
+        int r = pcrdr_init_instance(curr_inst, extra_info);
+        if (r)
+            return r;
     }
 
     return PURC_ERROR_OK;
+}
 
-failed:
-    purc_cleanup();
+int purc_init_ex(unsigned int modules,
+        const char* app_name, const char* runner_name,
+        const purc_instance_extra_info* extra_info)
+{
+    if (modules == 0) {
+        modules = PURC_MODULE_ALL;
+        if (modules == 0)
+            return PURC_ERROR_NO_INSTANCE;
+    }
 
-    PC_ASSERT(ret);
+    char cmdline[128];
+    cmdline[0] = '\0';
 
-    return ret;
+    if (!app_name) {
+        size_t len;
+        len = pcutils_get_cmdline_arg(0, cmdline, sizeof(cmdline));
+        if (len > 0)
+            app_name = cmdline;
+        else
+            app_name = "unknown";
+    }
+
+    if (!runner_name)
+        runner_name = "unknown";
+
+    init_once();
+    if (!_init_ok)
+        return PURC_ERROR_NO_INSTANCE;
+
+    struct hvml_app *app = hvml_app_get();
+    if (!app)
+        return PURC_ERROR_NO_INSTANCE;
+
+    int ret = PURC_ERROR_OK;
+    struct pcinst* curr_inst = NULL;
+
+    app_lock(app);
+    do {
+        ret = app_set_name(app, app_name);
+        if (ret)
+            break;
+
+        ret = app_new_inst(app, modules, runner_name, &curr_inst);
+        if (ret)
+            break;
+
+        if (curr_inst == NULL) {
+            ret = PURC_ERROR_OUT_OF_MEMORY;
+            break;
+        }
+
+        ret = instance_init(curr_inst, extra_info);
+    } while (0);
+    app_unlock(app);
+
+    if (ret) {
+        purc_cleanup();
+        return ret;
+    }
+
+    return PURC_ERROR_OK;
 }
 
 bool purc_cleanup(void)
 {
+    struct hvml_app *app = hvml_app_get();
+    if (!app)
+        return false;
+
     struct pcinst* curr_inst;
 
     curr_inst = PURC_GET_THREAD_LOCAL(inst);
@@ -598,7 +731,7 @@ bool purc_cleanup(void)
     if (curr_inst->initialized_main_runloop) {
         purc_runloop_stop_main();
     }
-    cleanup_instance(curr_inst);
+    cleanup_instance(app, curr_inst);
 
     return true;
 }

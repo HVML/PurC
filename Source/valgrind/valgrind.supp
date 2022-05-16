@@ -90,7 +90,7 @@
    fun:_ZN3WTF10StringView19setUnderlyingStringEPKNS_10StringImplE
 }
 {
-   <purc_init_ex>
+   <pcfetcher_init>
    Memcheck:Leak
    match-leak-kinds: possible
    fun:calloc
@@ -115,10 +115,9 @@
    fun:_ZN16PcFetcherProcess7connectEv
    fun:pcfetcher_remote_init
    fun:pcfetcher_init
-   fun:purc_init_ex
 }
 {
-   <purc_init_ex>
+   <pcfetcher_init>
    Memcheck:Leak
    match-leak-kinds: possible
    fun:malloc
@@ -141,10 +140,9 @@
    fun:_ZN16PcFetcherProcess7connectEv
    fun:pcfetcher_remote_init
    fun:pcfetcher_init
-   fun:purc_init_ex
 }
 {
-   <purc_init_ex>
+   <pcfetcher_init>
    Memcheck:Leak
    match-leak-kinds: possible
    fun:calloc
@@ -163,10 +161,9 @@
    fun:_ZN16PcFetcherProcess7connectEv
    fun:pcfetcher_remote_init
    fun:pcfetcher_init
-   fun:purc_init_ex
 }
 {
-   <purc_init_ex>
+   <pcfetcher_init>
    Memcheck:Leak
    match-leak-kinds: possible
    fun:calloc
@@ -191,10 +188,9 @@
    fun:_ZN16PcFetcherProcess7connectEv
    fun:pcfetcher_remote_init
    fun:pcfetcher_init
-   fun:purc_init_ex
 }
 {
-   <purc_init_ex>
+   <pcfetcher_init>
    Memcheck:Leak
    match-leak-kinds: possible
    fun:malloc
@@ -217,7 +213,6 @@
    fun:_ZN16PcFetcherProcess7connectEv
    fun:pcfetcher_remote_init
    fun:pcfetcher_init
-   fun:purc_init_ex
 }
 {
    <_ZN3WTF6Thread6createEPKcONS_8FunctionIFvvEEENS_10ThreadTypeE>

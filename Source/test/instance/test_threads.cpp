@@ -29,6 +29,7 @@ static void* general_thread_entry(void* arg)
     // initial purc instance
     int ret = purc_init_ex(PURC_MODULE_VARIANT, "cn.fmsoft.purc.test",
             runner_name, NULL);
+    assert(ret == PURC_ERROR_OK);
 
     if (ret == PURC_ERROR_OK) {
         purc_enable_log(true, false);

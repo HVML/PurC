@@ -5,7 +5,7 @@
 
 #include <gtest/gtest.h>
 
-int _element_count(struct pcvdom_element *top,
+static int _element_count(struct pcvdom_element *top,
     struct pcvdom_element *elem, void *ctx)
 {
     UNUSED_PARAM(top);
@@ -16,7 +16,7 @@ int _element_count(struct pcvdom_element *top,
     return 0;
 }
 
-int _node_count(struct pcvdom_node *top,
+static int _node_count(struct pcvdom_node *top,
     struct pcvdom_node *node, void *ctx)
 {
     UNUSED_PARAM(top);
