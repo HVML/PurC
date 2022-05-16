@@ -1146,7 +1146,6 @@ static request_handler handlers[] = {
     on_operate_dom,
     on_operate_dom,
     on_operate_dom,
-    on_operate_dom,
 };
 
 /* make sure the number of operation handlers matches the enumulators */
