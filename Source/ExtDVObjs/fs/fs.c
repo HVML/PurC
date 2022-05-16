@@ -180,6 +180,21 @@ static bool remove_dir (char *dir)
     return ret;
 }
 
+static inline int strcmp_len (const char *str1, const char *str2, size_t *real_length)
+{
+    (*real_length) = 0;
+    while (*str1 && *str2 && !purc_isspace(*str1) && !purc_isspace(*str2)) {
+        if (*str1 != *str2) {
+            return (*str1 > *str2) ? 1 : -1;
+        }
+        
+        (*real_length) ++;
+        str1 ++;
+        str2 ++;
+    }
+    return 0;
+}
+
 static bool filecopy (const char *infile, const char *outfile)
 {
     #define FLCPY_BFSZ  8192
@@ -1735,9 +1750,12 @@ lstat_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(root);
     UNUSED_PARAM(silently);
 
-    char filename[PATH_MAX];
     const char *string_filename = NULL;
+    const char *string_flags = "type mode_digits uid gid size rdev ctime"; //"default"
+    const char *flag = string_flags;
+    struct stat st;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    purc_variant_t val = PURC_VARIANT_INVALID;
 
     if (nr_args < 1) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
@@ -1746,9 +1764,149 @@ lstat_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
-    strncpy (filename, string_filename, sizeof(filename));
+    if (NULL == string_filename) {
+        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+        return PURC_VARIANT_INVALID;
+    }
+    if (nr_args > 1) {
+        string_flags = purc_variant_get_string_const (argv[1]);
+        if (NULL == string_flags) {
+            purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+            return PURC_VARIANT_INVALID;
+        }
 
-    // wait for code
+        if (strcmp(string_flags, "all") == 0) {
+            string_flags = "dev inode type mode_digits mode_alphas nlink \
+                    uid gid size rdev blksize blocks atime ctime mtime";
+        }
+    }
+
+    if (lstat(string_filename, &st) == -1) {
+        purc_set_error (PURC_ERROR_WRONG_STAGE);
+        return purc_variant_make_boolean (false);
+    }
+
+    ret_var = purc_variant_make_object (0,
+            PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+
+    while (*flag)
+    {
+        size_t flag_len = 0;
+
+        while (purc_isspace(*flag))
+            flag ++;
+        
+        switch (*flag)
+        {
+            case 'd':
+                if (strcmp_len (flag, "dev", &flag_len) == 0) {
+                    // returns ID of device containing the file.
+                    ;
+                }
+                break;
+
+            case 'i':
+                if (strcmp_len (flag, "inode", &flag_len) == 0) {
+                    // returns inode number.
+                    ;
+                }
+                break;
+
+            case 't':
+                if (strcmp_len (flag, "type", &flag_len) == 0) {
+                    // returns file type like 'd', 'b', or 's'.
+                    ;
+                }
+                break;
+
+            case 'm':
+                if (strcmp_len (flag, "mode_digits", &flag_len) == 0) {
+                    // returns file mode like '0644'.
+                    ;
+                }
+                else if (strcmp_len (flag, "mode_alphas", &flag_len) == 0) {
+                    // returns file mode like 'rwxrwxr-x'.
+                    ;
+                }
+                else if (strcmp_len (flag, "mtime", &flag_len) == 0) {
+                    // returns time of last modification.
+                    ;
+                }
+                break;
+
+            case 'n':
+                if (strcmp_len (flag, "nlink", &flag_len) == 0) {
+                    // returns number of hard links.
+                    ;
+                }
+                break;
+
+            case 'u':
+                if (strcmp_len (flag, "uid", &flag_len) == 0) {
+                    // returns the user ID of owner.
+                    ;
+                }
+                break;
+
+            case 'g':
+                if (strcmp_len (flag, "gid", &flag_len) == 0) {
+                    // returns the group ID of owner.
+                    ;
+                }
+                break;
+
+            case 'r':
+                if (strcmp_len (flag, "rdev", &flag_len) == 0) {
+                    // returns the device ID if it is a special file.
+                    ;
+                }
+                break;
+
+            case 's':
+                if (strcmp_len (flag, "size", &flag_len) == 0) {
+                    // returns total size in bytes.
+                    ;
+                }
+                break;
+
+            case 'b':
+                if (strcmp_len (flag, "blksize", &flag_len) == 0) {
+                    // returns block size for filesystem I/O.
+                    ;
+                }
+                else if (strcmp_len (flag, "blocks", &flag_len) == 0) {
+                    // returns number of 512B blocks allocated.
+                    ;
+                }
+                break;
+
+            case 'a':
+                if (strcmp_len (flag, "atime", &flag_len) == 0) {
+                    // returns time of last acces.
+                    ;
+                }
+                break;
+
+            case 'c':
+                if (strcmp_len (flag, "ctime", &flag_len) == 0) {
+                    // returns time of last status change.
+                    val = purc_variant_make_ulongint ((long) major(st.st_dev));
+                    purc_variant_object_set_by_static_ckey (ret_var, "dev_minor", val);
+                    purc_variant_unref (val);
+                }
+                break;
+
+            default:
+                purc_variant_unref (ret_var);
+                purc_set_error (PURC_ERROR_WRONG_STAGE);
+                return purc_variant_make_boolean (false);
+        }
+
+        if (0 == flag_len)
+            break;
+        
+        flag += flag_len;
+    }
 
     ret_var = purc_variant_make_boolean (true);
     return ret_var;
