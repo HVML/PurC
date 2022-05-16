@@ -97,6 +97,19 @@ PCA_EXTERN_C_BEGIN
 #define PURC_HAVE_PCRDR         0x0100
 #define PURC_HAVE_FETCHER       0x0200
 #define PURC_HAVE_FETCHER_R     0x0400
+#define PURC_HAVE_ALL (           \
+        PURC_HAVE_UTILS         | \
+        PURC_HAVE_DOM           | \
+        PURC_HAVE_HTML          | \
+        PURC_HAVE_XML           | \
+        PURC_HAVE_VARIANT       | \
+        PURC_HAVE_EJSON         | \
+        PURC_HAVE_XGML          | \
+        PURC_HAVE_HVML          | \
+        PURC_HAVE_PCRDR         | \
+        PURC_HAVE_FETCHER       | \
+        PURC_HAVE_FETCHER_R)
+
 
 #define PURC_MODULE_UTILS      (PURC_HAVE_UTILS)
 #define PURC_MODULE_DOM        (PURC_MODULE_UTILS    | PURC_HAVE_DOM)

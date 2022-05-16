@@ -116,7 +116,7 @@ purc_atom_t pcvariant_atom_change;
 // purc_atom_t pcvariant_atom_reference;
 // purc_atom_t pcvariant_atom_unreference;
 
-void pcvariant_init_once(void)
+static int variant_init_once(void)
 {
     // register error message
     pcinst_register_error_message_segment(&_variant_err_msgs_seg);
@@ -130,7 +130,18 @@ void pcvariant_init_once(void)
     pcvariant_atom_change = purc_atom_from_static_string("change");
     // pcvariant_atom_reference = purc_atom_from_static_string("reference");
     // pcvariant_atom_unreference = purc_atom_from_static_string("unreference");
+
+    return 0;
 }
+
+struct pcmodule _module_variant = {
+    .id              = PURC_HAVE_VARIANT,
+    .module_inited   = 0,
+
+    .init_once       = variant_init_once,
+    .init_instance   = NULL,
+};
+
 
 void pcvariant_init_instance(struct pcinst *inst)
 {

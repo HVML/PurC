@@ -24,6 +24,8 @@
 
 #include "private/ejson.h"
 #include "private/errors.h"
+#include "private/instance.h"
+
 #include "purc-utils.h"
 #include "purc-errors.h"
 #include "config.h"
@@ -56,9 +58,18 @@ static struct err_msg_seg _ejson_err_msgs_seg = {
 };
 
 
-void pcejson_init_once (void)
+static int ejson_init_once (void)
 {
     pcinst_register_error_message_segment(&_ejson_err_msgs_seg);
+    return 0;
 }
+
+struct pcmodule _module_ejson = {
+    .id              = PURC_HAVE_VARIANT | PURC_HAVE_EJSON,
+    .module_inited   = 0,
+
+    .init_once       = ejson_init_once,
+    .init_instance   = NULL,
+};
 
 

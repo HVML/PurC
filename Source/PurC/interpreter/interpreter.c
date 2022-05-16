@@ -47,12 +47,22 @@
 
 #define MSG_TYPE_CHANGE     "change"
 
-void pcintr_init_once(void)
+static int interpreter_init_once(void)
 {
     purc_runloop_t runloop = purc_runloop_get_current();
     PC_ASSERT(runloop);
     init_ops();
+
+    return 0;
 }
+
+struct pcmodule _module_interpreter = {
+    .id              = PURC_HAVE_VARIANT | PURC_HAVE_HVML,
+    .module_inited   = 0,
+
+    .init_once       = interpreter_init_once,
+    .init_instance   = NULL,
+};
 
 void pcintr_init_instance(struct pcinst* inst)
 {
@@ -1572,9 +1582,6 @@ purc_load_hvml_from_rwstream_ex(purc_rwstream_t stream,
         stack->ops  = *ops;
         stack->ctxt = ctxt;
     }
-
-    if (1)
-        goto fail_timer;
 
     stack->event_timer = pcintr_timer_create(NULL, NULL, stack,
             pcintr_event_timer_fire);

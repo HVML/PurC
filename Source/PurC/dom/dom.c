@@ -37,10 +37,19 @@
 #include "private/dom.h"
 #include "private/stringbuilder.h"
 
-void pcdom_init_once(void)
+static int dom_init_once(void)
 {
     // initialize others
+    return 0;
 }
+
+struct pcmodule _module_dom = {
+    .id              = PURC_HAVE_DOM,
+    .module_inited   = 0,
+
+    .init_once       = dom_init_once,
+    .init_instance   = NULL,
+};
 
 /* VW NOTE: eDOM module should work without instance
 void pcdom_init_instance(struct pcinst* inst)

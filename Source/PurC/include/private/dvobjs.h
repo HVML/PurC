@@ -208,9 +208,6 @@ int pcdvobjs_global_keyword_id(const char *keyword, size_t length);
 bool pcdvobjs_is_valid_timezone(const char *timezone) WTF_INTERNAL;
 bool pcdvobjs_get_current_timezone(char *buff, size_t sz_buff) WTF_INTERNAL;
 
-// initialize dvobjs module (once)
-void pcdvobjs_init_once(void) WTF_INTERNAL;
-
 struct pcinst;
 
 // initialize the dvobjs module for a PurC instance.

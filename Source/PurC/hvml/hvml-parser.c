@@ -71,10 +71,20 @@ static struct err_msg_seg _hvml_err_msgs_seg = {
     hvml_err_msgs
 };
 
-void pchvml_init_once(void)
+static int hvml_init_once(void)
 {
     pcinst_register_error_message_segment(&_hvml_err_msgs_seg);
+    return 0;
 }
+
+struct pcmodule _module_hvml = {
+    .id              = PURC_HAVE_VARIANT | PURC_HAVE_HVML,
+    .module_inited   = 0,
+
+    .init_once       = hvml_init_once,
+    .init_instance   = NULL,
+};
+
 
 #define PURC_HVML_LOG_ENABLE  "PURC_HVML_LOG_ENABLE"
 

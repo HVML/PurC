@@ -42,11 +42,6 @@ extern "C" {
 #endif  /* __cplusplus */
 
 /*
- * Init pcejson
- */
-void pcejson_init_once (void);
-
-/*
  * Create ejson parser.
  */
 struct pcejson* pcejson_create (uint32_t depth, uint32_t flags);

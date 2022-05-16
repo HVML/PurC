@@ -203,9 +203,6 @@ struct pcvariant_heap {
 #endif
 };
 
-// initialize variant module (once)
-void pcvariant_init_once(void) WTF_INTERNAL;
-
 // internal interfaces for moving variant.
 void pcvariant_move_heap_init_once(void) WTF_INTERNAL;
 void pcvariant_move_heap_cleanup_once(void) WTF_INTERNAL;

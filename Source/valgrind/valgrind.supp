@@ -90,40 +90,6 @@
    fun:_ZN3WTF10StringView19setUnderlyingStringEPKNS_10StringImplE
 }
 {
-   <pcdvobjs_init_once>
-   Memcheck:Leak
-   match-leak-kinds: definite
-   fun:malloc
-   fun:atom_init_bucket
-   fun:atom_get_bucket
-   fun:purc_atom_from_static_string_ex
-   fun:pcdvobjs_init_once
-}
-{
-   <purc_init_ex>
-   Memcheck:Leak
-   match-leak-kinds: definite
-   fun:malloc
-   fun:atom_init_bucket
-   fun:atom_get_bucket
-   fun:purc_atom_from_static_string_ex
-   fun:pcexcept_init_once
-   fun:init_modules_once
-   fun:__pthread_once_slow
-   fun:init_once
-   fun:purc_init_ex
-}
-{
-   <purc_atom_from_static_string_ex>
-   Memcheck:Leak
-   match-leak-kinds: definite
-   fun:malloc
-   fun:atom_new
-   fun:atom_from_string
-   fun:atom_from_string_locked
-   fun:purc_atom_from_static_string_ex
-}
-{
    <purc_init_ex>
    Memcheck:Leak
    match-leak-kinds: possible
@@ -267,5 +233,24 @@
    fun:_ZN3WTF9HashTableIPNS_6ThreadES2_NS_17IdentityExtractorENS_7PtrHashIS2_EENS_10HashTraitsIS2_EES7_E3addINS_22IdentityHashTranslatorIS7_S5_EERKS2_S2_EENS_18HashTableAddResultINS_17HashTableIteratorIS2_S2_S3_S5_S7_S7_EEEEOT0_OT1_
    fun:_ZN3WTF9HashTableIPNS_6ThreadES2_NS_17IdentityExtractorENS_7PtrHashIS2_EENS_10HashTraitsIS2_EES7_E3addEOS2_
    fun:_ZN3WTF7HashSetIPNS_6ThreadENS_7PtrHashIS2_EENS_10HashTraitsIS2_EEE3addEOS2_
+}
+{
+   <purc_atom_from_static_string_ex>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:atom_init_bucket
+   fun:atom_get_bucket
+   fun:purc_atom_from_static_string_ex
+}
+{
+   <purc_atom_from_static_string_ex>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:atom_new
+   fun:atom_from_string
+   fun:atom_from_string_locked
+   fun:purc_atom_from_static_string_ex
 }
 
