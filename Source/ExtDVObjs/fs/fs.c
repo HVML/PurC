@@ -1432,9 +1432,9 @@ disk_usage_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     purc_variant_object_set_by_static_ckey (ret_var, "mount_point", val);
     purc_variant_unref (val);
 
-    // dev_majar
+    // dev_major
     val = purc_variant_make_ulongint ((long) major(st.st_dev));
-    purc_variant_object_set_by_static_ckey (ret_var, "dev_majar", val);
+    purc_variant_object_set_by_static_ckey (ret_var, "dev_major", val);
     purc_variant_unref (val);
 
     // dev_minor
@@ -1801,21 +1801,46 @@ lstat_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             case 'd':
                 if (strcmp_len (flag, "dev", &flag_len) == 0) {
                     // returns ID of device containing the file.
-                    ;
+                    // dev_major
+                    val = purc_variant_make_ulongint ((long) major(st.st_dev));
+                    purc_variant_object_set_by_static_ckey (ret_var, "dev_major", val);
+                    purc_variant_unref (val);
+
+                    // dev_minor
+                    val = purc_variant_make_ulongint ((long) major(st.st_dev));
+                    purc_variant_object_set_by_static_ckey (ret_var, "dev_minor", val);
+                    purc_variant_unref (val);
                 }
                 break;
 
             case 'i':
                 if (strcmp_len (flag, "inode", &flag_len) == 0) {
                     // returns inode number.
-                    ;
+                    val = purc_variant_make_ulongint (st.st_ino);
+                    purc_variant_object_set_by_static_ckey (ret_var, "inode", val);
+                    purc_variant_unref (val);
                 }
                 break;
 
             case 't':
                 if (strcmp_len (flag, "type", &flag_len) == 0) {
                     // returns file type like 'd', 'b', or 's'.
-                    ;
+
+                    const char *string_type = NULL;
+                    switch (st.st_mode & S_IFMT) {
+                        case S_IFBLK:  string_type = "block device";        break;
+                        case S_IFCHR:  string_type = "character device";    break;
+                        case S_IFDIR:  string_type = "directory";           break;
+                        case S_IFIFO:  string_type = "FIFO/pipe";           break;
+                        case S_IFLNK:  string_type = "symlink";             break;
+                        case S_IFREG:  string_type = "regular file";        break;
+                        case S_IFSOCK: string_type = "socket";              break;
+                        default:       string_type = "unknown";             break;
+                    }
+
+                    val = purc_variant_make_string (string_type, true);
+                    purc_variant_object_set_by_static_ckey (ret_var, "type", val);
+                    purc_variant_unref (val);
                 }
                 break;
 
@@ -1830,68 +1855,104 @@ lstat_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
                 }
                 else if (strcmp_len (flag, "mtime", &flag_len) == 0) {
                     // returns time of last modification.
-                    ;
+                    val = purc_variant_make_ulongint (st.st_mtim.tv_sec);
+                    purc_variant_object_set_by_static_ckey (ret_var, "mtime_sec", val);
+                    purc_variant_unref (val);
+
+                    val = purc_variant_make_ulongint (st.st_mtim.tv_nsec);
+                    purc_variant_object_set_by_static_ckey (ret_var, "mtime_nsec", val);
+                    purc_variant_unref (val);
                 }
                 break;
 
             case 'n':
                 if (strcmp_len (flag, "nlink", &flag_len) == 0) {
                     // returns number of hard links.
-                    ;
+                    val = purc_variant_make_number (st.st_nlink);
+                    purc_variant_object_set_by_static_ckey (ret_var, "nlink", val);
+                    purc_variant_unref (val);
                 }
                 break;
 
             case 'u':
                 if (strcmp_len (flag, "uid", &flag_len) == 0) {
                     // returns the user ID of owner.
-                    ;
+                    val = purc_variant_make_number (st.st_uid);
+                    purc_variant_object_set_by_static_ckey (ret_var, "uid", val);
+                    purc_variant_unref (val);
                 }
                 break;
 
             case 'g':
                 if (strcmp_len (flag, "gid", &flag_len) == 0) {
                     // returns the group ID of owner.
-                    ;
+                    val = purc_variant_make_number (st.st_gid);
+                    purc_variant_object_set_by_static_ckey (ret_var, "gid", val);
+                    purc_variant_unref (val);
                 }
                 break;
 
             case 'r':
                 if (strcmp_len (flag, "rdev", &flag_len) == 0) {
                     // returns the device ID if it is a special file.
-                    ;
+                    // dev_major
+                    val = purc_variant_make_ulongint ((long) major(st.st_rdev));
+                    purc_variant_object_set_by_static_ckey (ret_var, "rdev_major", val);
+                    purc_variant_unref (val);
+
+                    // dev_minor
+                    val = purc_variant_make_ulongint ((long) major(st.st_rdev));
+                    purc_variant_object_set_by_static_ckey (ret_var, "rdev_minor", val);
+                    purc_variant_unref (val);
                 }
                 break;
 
             case 's':
                 if (strcmp_len (flag, "size", &flag_len) == 0) {
                     // returns total size in bytes.
-                    ;
+                    val = purc_variant_make_ulongint (st.st_size);
+                    purc_variant_object_set_by_static_ckey (ret_var, "size", val);
+                    purc_variant_unref (val);
                 }
                 break;
 
             case 'b':
                 if (strcmp_len (flag, "blksize", &flag_len) == 0) {
                     // returns block size for filesystem I/O.
-                    ;
+                    val = purc_variant_make_ulongint (st.st_blksize);
+                    purc_variant_object_set_by_static_ckey (ret_var, "blksize", val);
+                    purc_variant_unref (val);
                 }
                 else if (strcmp_len (flag, "blocks", &flag_len) == 0) {
                     // returns number of 512B blocks allocated.
-                    ;
+                    val = purc_variant_make_ulongint (st.st_blocks);
+                    purc_variant_object_set_by_static_ckey (ret_var, "blocks", val);
+                    purc_variant_unref (val);
                 }
                 break;
 
             case 'a':
                 if (strcmp_len (flag, "atime", &flag_len) == 0) {
                     // returns time of last acces.
-                    ;
+                    val = purc_variant_make_ulongint (st.st_atim.tv_sec);
+                    purc_variant_object_set_by_static_ckey (ret_var, "atime_sec", val);
+                    purc_variant_unref (val);
+
+                    val = purc_variant_make_ulongint (st.st_atim.tv_nsec);
+                    purc_variant_object_set_by_static_ckey (ret_var, "atime_nsec", val);
+                    purc_variant_unref (val);
                 }
                 break;
 
             case 'c':
                 if (strcmp_len (flag, "ctime", &flag_len) == 0) {
                     // returns time of last status change.
-                    val = purc_variant_make_ulongint ((long) major(st.st_dev));
-                    purc_variant_object_set_by_static_ckey (ret_var, "dev_minor", val);
+                    val = purc_variant_make_ulongint (st.st_ctim.tv_sec);
+                    purc_variant_object_set_by_static_ckey (ret_var, "ctime_sec", val);
+                    purc_variant_unref (val);
+
+                    val = purc_variant_make_ulongint (st.st_ctim.tv_nsec);
+                    purc_variant_object_set_by_static_ckey (ret_var, "ctime_nsec", val);
                     purc_variant_unref (val);
                 }
                 break;
