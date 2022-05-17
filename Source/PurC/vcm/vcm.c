@@ -1433,9 +1433,10 @@ purc_variant_t pcvcm_eval(struct pcvcm_node *tree, struct pcintr_stack *stack,
 purc_variant_t pcvcm_eval_ex(struct pcvcm_node *tree,
         cb_find_var find_var, void *ctxt, bool silently)
 {
-#ifndef NDEBUG
+// #define PRINT_DEBUG
+#ifdef PRINT_DEBUG        /* { */
     PC_DEBUG("pcvcm_eval_ex|begin|silently=%d\n", silently);
-#endif
+#endif                    /* } */
     purc_variant_t ret = PURC_VARIANT_INVALID;
 
     struct pcvcm_node_op ops = {
@@ -1450,10 +1451,11 @@ purc_variant_t pcvcm_eval_ex(struct pcvcm_node *tree,
         ret = purc_variant_make_undefined();
     }
 
-#ifndef NDEBUG
+#ifdef PRINT_DEBUG        /* { */
     PRINT_VARIANT(ret);
     PC_DEBUG("pcvcm_eval_ex|end|silently=%d\n", silently);
-#endif
+#endif                    /* } */
+#undef PRINT_DEBUG
     return ret;
 }
 

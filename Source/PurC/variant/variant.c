@@ -1616,6 +1616,7 @@ purc_variant_t purc_variant_load_from_json_file(const char* file)
 purc_variant_t purc_variant_load_dvobj_from_so (const char *so_name,
         const char *var_name)
 {
+// #define PRINT_DEBUG
     PC_ASSERT(so_name || var_name);
 
     purc_variant_t value = PURC_VARIANT_INVALID;
@@ -1682,7 +1683,9 @@ purc_variant_t purc_variant_load_dvobj_from_so (const char *so_name,
                 PC_ASSERT(n>0 && (size_t)n<sizeof(so));
                 library_handle = dlopen(so, RTLD_LAZY);
                 if (library_handle) {
-                    PC_INFO("Loaded DVObj from %s\n", so);
+#ifdef PRINT_DEBUG        /* { */
+                    PC_DEBUGX("Loaded DVObj from %s\n", so);
+#endif                    /* } */
                     break;
                 }
             }
@@ -1708,7 +1711,9 @@ purc_variant_t purc_variant_load_dvobj_from_so (const char *so_name,
             PC_ASSERT(n>0 && (size_t)n<sizeof(so));
             library_handle = dlopen(so, RTLD_LAZY);
             if (library_handle) {
-                PC_INFO("Loaded DVObj from %s\n", so);
+#ifdef PRINT_DEBUG        /* { */
+                PC_DEBUGX("Loaded DVObj from %s\n", so);
+#endif                    /* } */
                 break;
             }
         }
@@ -1718,10 +1723,11 @@ purc_variant_t purc_variant_load_dvobj_from_so (const char *so_name,
     if (!library_handle) {
         purc_set_error_with_info(PURC_ERROR_BAD_SYSTEM_CALL,
                 "failed to load: %s", so);
-        PC_DEBUGX("failed to load: %s", so);
         return PURC_VARIANT_INVALID;
     }
+#ifdef PRINT_DEBUG        /* { */
     PC_DEBUGX("loaded: %s", so);
+#endif                    /* } */
 
     purc_variant_t (* purcex_load_dynamic_variant)(const char *, int *);
 
@@ -1761,6 +1767,7 @@ purc_variant_t purc_variant_load_dvobj_from_so (const char *so_name,
     PC_ASSERT(0); // Not implemented yet
 #endif
 
+#undef PRINT_DEBUG
     return value;
 }
 

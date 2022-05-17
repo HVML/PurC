@@ -1176,7 +1176,6 @@ execute_one_step(pcintr_coroutine_t co)
         }
 
         co->state = CO_STATE_TERMINATED;
-        PC_DEBUGX("co terminating: %p", co);
         return;
     }
     else {
