@@ -548,10 +548,12 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         ctxt->define = define;
     }
 
+#if 0      /* { */
     purc_variant_t on;
     on = ctxt->on;
     if (on == PURC_VARIANT_INVALID)
         return NULL;
+#endif     /* } */
 
     purc_variant_t for_var;
     for_var = ctxt->for_var;
@@ -579,13 +581,13 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         }
     }
 #endif
-    else if (purc_variant_is_native(ctxt->on)) {
+    else if (ctxt->on && purc_variant_is_native(ctxt->on)) {
         observer = register_native_var_observer(stack, frame, ctxt->on);
     }
-    else if (pcintr_is_timers(stack, ctxt->on)) {
+    else if (ctxt->on && pcintr_is_timers(stack, ctxt->on)) {
         observer = register_timer_observer(stack, frame, ctxt->on);
     }
-    else {
+    else if (ctxt->on) {
         switch(purc_variant_get_type(ctxt->on))
         {
         case PURC_VARIANT_TYPE_OBJECT:
@@ -598,9 +600,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         }
     }
 
-    if (observer == NULL) {
+    if (observer == NULL)
         return NULL;
-    }
 
     if (ctxt->as != PURC_VARIANT_INVALID && purc_variant_is_string(ctxt->as)) {
         const char* name = purc_variant_get_string_const(ctxt->as);
