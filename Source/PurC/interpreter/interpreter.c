@@ -1192,6 +1192,7 @@ static void terminating_co(pcintr_coroutine_t co)
 {
     if (co->stack.except) {
         dump_c_stack(co->stack.exception.bt);
+        co->stack.except = 0;
     }
     PC_ASSERT(co->stack.back_anchor == NULL);
 
@@ -1204,10 +1205,10 @@ static void terminating_co(pcintr_coroutine_t co)
         co->stack.ops.on_cleanup = NULL;
         co->stack.ctxt = NULL;
     }
+
     list_del(&co->node);
     coroutine_destroy(co);
     co = NULL;
-    coroutine_set_current(NULL);
 }
 
 
@@ -1243,6 +1244,7 @@ static int run_coroutines(void *ctxt)
             case CO_STATE_TERMINATED:
                 coroutine_set_current(co);
                 terminating_co(co);
+                coroutine_set_current(NULL);
                 ++readies;
                 break;
             default:
@@ -1590,6 +1592,7 @@ purc_load_hvml_from_rwstream_ex(purc_rwstream_t stream,
     }
 
     co->state = CO_STATE_READY;
+    INIT_LIST_HEAD(&co->children);
 
     stack = &co->stack;
     stack->co = co;

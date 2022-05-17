@@ -207,6 +207,7 @@ enum pcintr_coroutine_state {
 struct pcintr_coroutine {
     pcintr_heap_t               heap;   /* owning heap */
     struct list_head            node;   /* sibling coroutines */
+    struct list_head            children; /* children coroutines */
 
     struct pcintr_stack         stack;  /* stack that holds this coroutine */
 
