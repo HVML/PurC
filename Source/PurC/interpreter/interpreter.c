@@ -1089,21 +1089,19 @@ exception_copy(struct pcintr_exception *exception)
     exception->bt = inst->bt;
 }
 
-#if 0          /* { */
-static bool stack_is_observed(pcintr_stack_t stack)
+static bool co_is_observed(pcintr_coroutine_t co)
 {
-    if (!list_empty(&stack->common_variant_observer_list))
+    if (!list_empty(&co->stack.common_variant_observer_list))
         return true;
 
-    if (!list_empty(&stack->dynamic_variant_observer_list))
+    if (!list_empty(&co->stack.dynamic_variant_observer_list))
         return true;
 
-    if (!list_empty(&stack->native_variant_observer_list))
+    if (!list_empty(&co->stack.native_variant_observer_list))
         return true;
 
     return true;
 }
-#endif         /* } */
 
 // return co if alive, otherwise NULL
 static pcintr_coroutine_t
@@ -1113,6 +1111,12 @@ terminating_co(pcintr_coroutine_t co)
         dump_c_stack(co->stack.exception.bt);
         co->stack.except = 0;
     }
+
+    if (!co_is_observed(co)) {
+        co->state = CO_STATE_WAIT;
+        return co;
+    }
+
     PC_ASSERT(co->stack.back_anchor == NULL);
 
     if (co->stack.ops.on_terminated) {
