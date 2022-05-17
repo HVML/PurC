@@ -90,7 +90,6 @@ typedef void (*pcintr_on_revoke_observer)(struct pcintr_observer *observer,
 enum pcintr_stack_stage {
     STACK_STAGE_FIRST_ROUND                = 0x00,
     STACK_STAGE_EVENT_LOOP                 = 0x01,
-    STACK_STAGE_TERMINATING                = 0x02,
 };
 
 struct pcintr_loaded_var {
