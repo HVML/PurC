@@ -3,7 +3,12 @@
 SHOW_STDERR=${SHOW_STDERR:-0}
 USE_VALGRIND=${USE_VALGRIND:-0}
 TEST_PROGS=`find ${1:-Source/test} -name test_* -perm -0111 -type f`
-VALGRIND="valgrind --leak-check=full --num-callers=100 --exit-on-first-error=yes --error-exitcode=1 --suppressions=/usr/share/glib-2.0/valgrind/glib.supp --suppressions=Source/valgrind/valgrind.supp"
+VALGRIND="valgrind --leak-check=full --num-callers=100 --error-exitcode=1"
+VALGRIND="${VALGRIND} --exit-on-first-error=yes"
+#VALGRIND="${VALGRIND} --suppressions=/usr/lib/x86_64-linux-gnu/valgrind/default.supp"
+VALGRIND="${VALGRIND} --suppressions=/usr/share/glib-2.0/valgrind/glib.supp"
+VALGRIND="${VALGRIND} --suppressions=Source/valgrind/valgrind.supp"
+
 
 total_passed=0
 total_failed=0
