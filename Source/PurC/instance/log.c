@@ -108,9 +108,7 @@ void purc_log_with_tag(const char *tag, const char *msg, va_list ap)
 
             fprintf(fp, "%s %s >> ", ident, tag);
             vfprintf(fp, msg, ap);
-#ifndef NDEBUG
             fflush(fp);
-#endif
         }
     }
     else {
