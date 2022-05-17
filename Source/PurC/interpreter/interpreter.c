@@ -82,6 +82,8 @@ void pcintr_init_instance(struct pcinst* inst)
     }
 
     inst->intr_heap = heap;
+    heap->owner     = inst;
+
 
     INIT_LIST_HEAD(&heap->coroutines);
     heap->running_coroutine = NULL;
@@ -465,10 +467,10 @@ stack_release(pcintr_stack_t stack)
     }
 }
 
-struct pcintr_action {
+struct pcintr_routine {
     pcintr_coroutine_t           target;
     void                        *ctxt;
-    pcintr_action_f              callback;
+    pcintr_routine_f             routine;
 
     struct list_head             node;
 };
@@ -478,7 +480,7 @@ coroutine_release(pcintr_coroutine_t co)
 {
     if (co) {
         struct pcintr_heap *heap = pcintr_get_heap();
-        PC_ASSERT(heap && co->heap == heap);
+        PC_ASSERT(heap && co->owner == heap);
         stack_release(&co->stack);
     }
 }
@@ -1647,7 +1649,7 @@ purc_load_hvml_from_rwstream_ex(purc_rwstream_t stream,
     stack->vdom = vdom;
     vdom = NULL;
 
-    co->heap = heap;
+    co->owner = heap;
     list_add_tail(&co->node, coroutines);
 
     stack_init(stack);
@@ -3214,4 +3216,88 @@ pcintr_get_scoped_variables(struct pcvdom_node *node)
 
     return NULL;
 }
+
+static struct pcintr_heap*
+co_get_owner_heap(pcintr_coroutine_t co)
+{
+    return co ? co->owner : NULL;
+}
+
+static void
+heap_lock(struct pcintr_heap *heap)
+{
+    int r = pthread_mutex_lock(&heap->locker);
+    PC_ASSERT(r==0);
+}
+
+static void
+heap_unlock(struct pcintr_heap *heap)
+{
+    int r = pthread_mutex_unlock(&heap->locker);
+    PC_ASSERT(r==0);
+}
+
+static int wakeup_for_routines(void *ctxt)
+{
+    UNUSED_PARAM(ctxt);
+    static pcintr_coroutine_t co;
+    co = coroutine_get_current();
+    PC_ASSERT(co);
+
+    struct pcintr_heap *heap = co_get_owner_heap(co);
+    PC_ASSERT(heap);
+
+    heap_lock(heap);
+    while (!list_empty(&heap->routines)) {
+        struct pcintr_routine *routine;
+        routine = list_first_entry(&heap->routines,
+                struct pcintr_routine, node);
+        list_del(&routine->node);
+        heap_unlock(heap);
+        routine->routine(routine->ctxt);
+        heap_lock(heap);
+    }
+    heap_unlock(heap);
+
+    return 0;
+}
+
+int pcintr_post_routine(pcintr_coroutine_t target,
+        void *ctxt, pcintr_routine_f cb)
+{
+    struct pcintr_routine *routine;
+    routine = (struct pcintr_routine*)calloc(1,
+            sizeof(*routine));
+    if (!routine) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto fail_calloc;
+    }
+
+    routine->target             = target;
+    routine->ctxt               = ctxt;
+    routine->routine            = cb;
+
+    struct pcintr_heap *target_heap = co_get_owner_heap(target);
+    if (!target_heap) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto fail_owner_heap;
+    }
+    heap_lock(target_heap);
+    int empty = list_empty(&target_heap->routines);
+    list_add_tail(&routine->node, &target_heap->routines);
+    heap_unlock(target_heap);
+    if (empty) {
+        purc_runloop_dispatch(target_heap->running_loop,
+                wakeup_for_routines, NULL);
+    }
+
+    return 0;
+
+fail_owner_heap:
+    free(routine);
+
+fail_calloc:
+    return -1;
+}
+
 

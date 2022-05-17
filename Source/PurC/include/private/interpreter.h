@@ -50,11 +50,14 @@ struct pcintr_stack;
 typedef struct pcintr_stack pcintr_stack;
 typedef struct pcintr_stack *pcintr_stack_t;
 
-struct pcintr_action;
-typedef struct pcintr_action pcintr_action;
-typedef struct pcintr_action *pcintr_action_t;
+struct pcintr_routine;
+typedef struct pcintr_routine pcintr_routine;
+typedef struct pcintr_routine *pcintr_routine_t;
 
 struct pcintr_heap {
+    // owner instance
+    struct pcinst        *owner;
+
     // currently running coroutine
     pcintr_coroutine_t    running_coroutine;
 
@@ -68,12 +71,13 @@ struct pcintr_heap {
 
     pthread_mutex_t       locker;
     volatile bool         exiting;
-    struct list_head      actions;  // struct pcintr_action
+    struct list_head      routines;  // struct pcintr_routine
 };
 
-typedef void (*pcintr_action_f)(void *ctxt);
+typedef void (*pcintr_routine_f)(void *ctxt);
 
-int pcintr_post_action(pcintr_coroutine_t co, void *ctxt, pcintr_action_f cb);
+int pcintr_post_routine(pcintr_coroutine_t target,
+        void *ctxt, pcintr_routine_f cb);
 
 struct pcintr_stack_frame_normal;
 typedef struct pcintr_stack_frame_normal pcintr_stack_frame_normal;
@@ -205,8 +209,8 @@ enum pcintr_coroutine_state {
 };
 
 struct pcintr_coroutine {
-    pcintr_heap_t               heap;   /* owning heap */
-    struct list_head            node;   /* sibling coroutines */
+    pcintr_heap_t               owner;    /* owner heap */
+    struct list_head            node;     /* sibling coroutines */
     struct list_head            children; /* children coroutines */
 
     struct pcintr_stack         stack;  /* stack that holds this coroutine */
