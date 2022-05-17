@@ -1373,10 +1373,13 @@ purc_variant_t pcvcm_node_to_variant(struct pcvcm_node *node,
     }
 
     node->attach = (uintptr_t)ret;
-#ifndef NDEBUG
+
+// #define PRINT_DEBUG
+#ifdef PRINT_DEBUG        /* { */
     PRINT_VCM_NODE(node);
     PRINT_VARIANT(ret);
-#endif
+#endif                    /* } */
+#undef PRINT_DEBUG
     return ret;
 }
 

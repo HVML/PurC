@@ -514,7 +514,6 @@ void pcvariant_put(purc_variant_t value)
 /* securely comparison of floating-point variables */
 static bool equal_doubles(double a, double b)
 {
-    fprintf(stderr, "############################## a=%f|b=%f\n", a, b);
     double max_val = fabs(a) > fabs(b) ? fabs(a) : fabs(b);
     return (fabs(a - b) <= max_val * DBL_EPSILON);
 }

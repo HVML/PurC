@@ -1089,6 +1089,22 @@ exception_copy(struct pcintr_exception *exception)
     exception->bt = inst->bt;
 }
 
+#if 0          /* { */
+static bool stack_is_observed(pcintr_stack_t stack)
+{
+    if (!list_empty(&stack->common_variant_observer_list))
+        return true;
+
+    if (!list_empty(&stack->dynamic_variant_observer_list))
+        return true;
+
+    if (!list_empty(&stack->native_variant_observer_list))
+        return true;
+
+    return true;
+}
+#endif         /* } */
+
 static void
 execute_one_step(pcintr_coroutine_t co)
 {
@@ -1098,6 +1114,7 @@ execute_one_step(pcintr_coroutine_t co)
     PC_ASSERT(frame);
 
     if (frame->preemptor) {
+        PC_ASSERT(0); // Not implemented yet
         preemptor_f preemptor = frame->preemptor;
         frame->preemptor = NULL;
         preemptor(co, frame);
@@ -1140,6 +1157,7 @@ execute_one_step(pcintr_coroutine_t co)
     }
 
     bool no_frames = list_empty(&co->stack.frames);
+
     if (no_frames) {
         /* send doc to rdr */
         if (co->stack.stage == STACK_STAGE_FIRST_ROUND &&
@@ -1150,6 +1168,7 @@ execute_one_step(pcintr_coroutine_t co)
 
         pcintr_dump_document(stack);
         co->stack.stage = STACK_STAGE_EVENT_LOOP;
+
         // do not run execute-one-step until event's fired if co->waits > 0
         if (co->stack.except == 0 && co->waits) { // FIXME:
             co->state = CO_STATE_WAIT;
@@ -1158,6 +1177,7 @@ execute_one_step(pcintr_coroutine_t co)
 
         co->state = CO_STATE_TERMINATED;
         PC_DEBUGX("co terminating: %p", co);
+        return;
     }
     else {
         frame = pcintr_stack_get_bottom_frame(stack);
@@ -1167,6 +1187,29 @@ execute_one_step(pcintr_coroutine_t co)
         // continue coroutine even if it's in wait state
     }
 }
+
+static void terminating_co(pcintr_coroutine_t co)
+{
+    if (co->stack.except) {
+        dump_c_stack(co->stack.exception.bt);
+    }
+    PC_ASSERT(co->stack.back_anchor == NULL);
+
+    if (co->stack.ops.on_terminated) {
+        co->stack.ops.on_terminated(&co->stack, co->stack.ctxt);
+        co->stack.ops.on_terminated = NULL;
+    }
+    if (co->stack.ops.on_cleanup) {
+        co->stack.ops.on_cleanup(&co->stack, co->stack.ctxt);
+        co->stack.ops.on_cleanup = NULL;
+        co->stack.ctxt = NULL;
+    }
+    list_del(&co->node);
+    coroutine_destroy(co);
+    co = NULL;
+    coroutine_set_current(NULL);
+}
+
 
 static int run_coroutines(void *ctxt)
 {
@@ -1188,22 +1231,6 @@ static int run_coroutines(void *ctxt)
                 coroutine_set_current(co);
                 execute_one_step(co);
                 //PC_ASSERT(purc_get_last_error() == PURC_ERROR_OK);
-                if (co->state == CO_STATE_TERMINATED) {
-                    if (co->stack.except) {
-                        dump_c_stack(co->stack.exception.bt);
-                    }
-                    PC_ASSERT(co->stack.back_anchor == NULL);
-
-                    if (co->stack.ops.on_terminated) {
-                        co->stack.ops.on_terminated(&co->stack, co->stack.ctxt);
-                        co->stack.ops.on_terminated = NULL;
-                    }
-                    if (co->stack.ops.on_cleanup) {
-                        co->stack.ops.on_cleanup(&co->stack, co->stack.ctxt);
-                        co->stack.ops.on_cleanup = NULL;
-                        co->stack.ctxt = NULL;
-                    }
-                }
                 coroutine_set_current(NULL);
                 ++readies;
                 break;
@@ -1214,16 +1241,12 @@ static int run_coroutines(void *ctxt)
                 PC_ASSERT(0);
                 break;
             case CO_STATE_TERMINATED:
-                PC_ASSERT(0);
+                coroutine_set_current(co);
+                terminating_co(co);
+                ++readies;
                 break;
             default:
                 PC_ASSERT(0);
-        }
-        if (co->state == CO_STATE_TERMINATED) {
-            co->stack.stage = STACK_STAGE_TERMINATING;
-            list_del(&co->node);
-            coroutine_destroy(co);
-            co = NULL;
         }
     }
 

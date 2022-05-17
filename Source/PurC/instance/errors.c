@@ -269,10 +269,10 @@ static int
 set_error_exinfo_with_debug(int errcode, purc_variant_t exinfo,
         const char *file, int line, const char *func)
 {
-#ifndef NDEBUG                     /* { */
-    if (1 && errcode) {
-        PC_DEBUGX("%s[%d]:%s(): %d",
-                pcutils_basename((char*)file), line, func, errcode);
+// #define PRINT_ERRCODE
+#ifdef PRINT_ERRCODE               /* { */
+    if (errcode) {
+        PC_DEBUGX("errcode: %d[0x%x]", errcode, errcode);
         if (exinfo != PURC_VARIANT_INVALID)
             PRINT_VARIANT(exinfo);
     }
@@ -291,9 +291,8 @@ set_error_exinfo_with_debug(int errcode, purc_variant_t exinfo,
     const struct err_msg_info* info = get_error_info(errcode);
     if (info == NULL ||
             ((info->flags & PURC_EXCEPT_FLAGS_REQUIRED) && !exinfo)) {
-#ifndef NDEBUG                     /* { */
-        PC_DEBUGX("%s[%d]:%s(): %d",
-                pcutils_basename((char*)file), line, func, errcode);
+#ifdef PRINT_ERRCODE               /* { */
+        PC_DEBUGX("errcode: %d[0x%x]", errcode, errcode);
 #endif                             /* } */
     }
     if (info) {
@@ -303,6 +302,7 @@ set_error_exinfo_with_debug(int errcode, purc_variant_t exinfo,
     backtrace_snapshot(inst, file, line, func);
 
     return PURC_ERROR_OK;
+#undef PRINT_ERRCODE
 }
 
 int
