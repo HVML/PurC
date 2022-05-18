@@ -148,7 +148,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
             return -1;
         }
 
-        purc_variant_t elements = pcintr_doc_query(co->stack->vdom,
+        purc_variant_t elements = pcintr_doc_query(co->stack.vdom,
                 purc_variant_get_string_const(in), frame->silently);
         if (elements == PURC_VARIANT_INVALID) {
             purc_set_error(PURC_ERROR_INVALID_VALUE);
@@ -326,7 +326,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     purc_clr_error();
 
-    r = post_process(&stack->co, frame);
+    r = post_process(stack->co, frame);
 
     if (r)
         return NULL;
@@ -395,7 +395,7 @@ select_child(pcintr_stack_t stack, void* ud)
     PC_ASSERT(stack);
     PC_ASSERT(stack == pcintr_get_stack());
 
-    pcintr_coroutine_t co = &stack->co;
+    pcintr_coroutine_t co = stack->co;
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(ud == frame->ctxt);

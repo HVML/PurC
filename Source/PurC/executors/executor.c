@@ -83,13 +83,22 @@ static struct err_msg_seg _executor_err_msgs_seg = {
 };
 
 
-void pcexecutor_init_once(void)
+static int executor_init_once(void)
 {
     // register error message
     pcinst_register_error_message_segment(&_executor_err_msgs_seg);
 
     // initialize others
+    return 0;
 }
+
+struct pcmodule _module_executor = {
+    .id              = PURC_HAVE_VARIANT | PURC_HAVE_HVML,
+    .module_inited   = 0,
+
+    .init_once       = executor_init_once,
+    .init_instance   = NULL,
+};
 
 void pcexecutor_init_instance(struct pcinst *inst)
 {

@@ -15,11 +15,17 @@
 
 using namespace std;
 
+// #define PRINT_DEBUG
+#ifdef PRINT_DEBUG              /* { */
 #define PRINTF(...)                                                       \
     do {                                                                  \
         fprintf(stderr, "\e[0;32m[          ] \e[0m");                    \
         fprintf(stderr, __VA_ARGS__);                                     \
     } while(false)
+#else                           /* }{ */
+#define PRINTF(...)
+#endif                          /* } */
+#undef PRINT_DEBUG
 
 #if OS(LINUX) || OS(UNIX)
 // get path from env or __FILE__/../<rel> otherwise

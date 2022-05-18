@@ -25,7 +25,5 @@
 #ifndef PURC_PRIVATE_RWSTREAM_H
 #define PURC_PRIVATE_RWSTREAM_H
 
-void pcrwstream_init_once(void);
-
 #endif /* not defined PURC_PRIVATE_RWSTREAM_H */
 

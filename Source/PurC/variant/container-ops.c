@@ -406,10 +406,7 @@ set_member_overwrite(void* ctxt, purc_variant_t value,
     purc_variant_t cloned = clone_if_necessary(value);
     if (cloned == PURC_VARIANT_INVALID)
         return false;
-    PRINT_VARIANT((purc_variant_t)ctxt);
-    PRINT_VARIANT(cloned);
     bool ok = purc_variant_set_add((purc_variant_t)ctxt, cloned, true);
-    PRINT_VARIANT((purc_variant_t)ctxt);
     purc_variant_unref(cloned);
     return ok;
 }

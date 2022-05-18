@@ -690,7 +690,7 @@ select_child(pcintr_stack_t stack, void* ud)
         return NULL;
     }
 
-    pcintr_coroutine_t co = &stack->co;
+    pcintr_coroutine_t co = stack->co;
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(ud == frame->ctxt);

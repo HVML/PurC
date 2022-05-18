@@ -74,29 +74,45 @@ _COMPILE_TIME_ASSERT(list_head,
 static struct purc_rwlock      mb_lock;
 static struct sorted_array    *mb_atom2buff_map;
 
-void pcinst_move_buffer_init_once(void)
-{
-    purc_rwlock_init(&mb_lock);
-    if (mb_lock.native_impl == NULL)
-        PC_ASSERT(0);
-
-    mb_atom2buff_map = pcutils_sorted_array_create(SAFLAG_DEFAULT, 0,
-            NULL, NULL);
-    if (mb_atom2buff_map == NULL) {
-        purc_rwlock_clear(&mb_lock);
-        PC_ASSERT(0);
-    }
-}
-
-void pcinst_move_buffer_cleanup_once(void)
+static void mvbuf_cleanup_once(void)
 {
     if (mb_lock.native_impl) {
         purc_rwlock_clear(&mb_lock);
+        mb_lock.native_impl = NULL;
     }
 
     if (mb_atom2buff_map) {
         pcutils_sorted_array_destroy(mb_atom2buff_map);
+        mb_atom2buff_map = NULL;
     }
+}
+
+static int mvbuf_init_once(void)
+{
+    int r = 0;
+    purc_rwlock_init(&mb_lock);
+    if (mb_lock.native_impl == NULL)
+        goto fail_lock;
+
+    mb_atom2buff_map = pcutils_sorted_array_create(SAFLAG_DEFAULT, 0,
+            NULL, NULL);
+    if (mb_atom2buff_map == NULL)
+        goto fail_map;
+
+    r = atexit(mvbuf_cleanup_once);
+    if (r)
+        goto fail_atexit;
+
+    return 0;
+
+fail_atexit:
+    pcutils_sorted_array_destroy(mb_atom2buff_map);
+
+fail_map:
+    purc_rwlock_clear(&mb_lock);
+
+fail_lock:
+    return -1;
 }
 
 pcrdr_msg *
@@ -600,14 +616,10 @@ done:
     #include <gmodule.h>
 #endif
 
-void pcinst_move_buffer_init_once(void)
+static int mvbuf_init_once(void)
 {
     // do nothing.
-}
-
-void pcinst_move_buffer_cleanup_once(void)
-{
-    // do nothing.
+    return 0;
 }
 
 int
@@ -678,4 +690,12 @@ purc_inst_take_away_message(size_t index)
 }
 
 #endif  /* !HAVE(STDATOMIC_H) */
+
+struct pcmodule _module_mvbuf = {
+    .id              = PURC_HAVE_VARIANT,
+    .module_inited   = 0,
+
+    .init_once       = mvbuf_init_once,
+    .init_instance   = NULL,
+};
 

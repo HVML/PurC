@@ -117,8 +117,8 @@ TEST(utils, atom_ex)
     ASSERT_EQ(atom, 0);
 
     for (int bucket = 1; bucket < PURC_ATOM_BUCKETS_NR; bucket++) {
-        /* "except" is a atom of ATOM_BUCKET_MSG  */
-        if (bucket == ATOM_BUCKET_MSG) {
+        /* "except" is a atom of ATOM_BUCKET_EXCEPT */
+        if (bucket != ATOM_BUCKET_EXCEPT) {
             continue;
         }
         for (size_t i = 0; i < sizeof(my_atoms)/sizeof(my_atoms[0]); i++) {

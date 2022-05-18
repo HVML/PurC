@@ -36,10 +36,35 @@
 
 #include <stdio.h>
 
+struct hvml_app;
+typedef struct hvml_app hvml_app;
+typedef struct hvml_app *hvml_app_t;
+
+hvml_app_t hvml_app_get(void);
+const char* hvml_app_name(void);
+
+struct pcinst;
+typedef struct pcinst pcinst;
+typedef struct pcinst *pcinst_t;
+
+typedef int (*module_init_once_f)(void);
+typedef int (*module_init_instance_f)(struct pcinst* inst);
+
+struct pcmodule {
+    // PURC_HAVE_XXXX if !always
+    unsigned int            id;
+    unsigned int            module_inited;
+
+    module_init_once_f      init_once;
+    module_init_instance_f  init_instance;
+};
+
 struct pcinst {
     int                     errcode;
     purc_variant_t          err_exinfo;
     purc_atom_t             error_except;
+
+    unsigned int            modules;
 
     char                   *app_name;
     char                   *runner_name;
@@ -68,14 +93,13 @@ struct pcinst {
 
     /* FIXME: enable the fields ONLY when NDEBUG is undefined */
     struct pcdebug_backtrace  *bt;
+
+    struct list_head           node; // hvml_app::instances
 };
 
 /* gets the current instance */
 struct pcinst* pcinst_current(void) WTF_INTERNAL;
 pcvarmgr_t pcinst_get_variables(void) WTF_INTERNAL;
-
-void pcinst_move_buffer_init_once(void) WTF_INTERNAL;
-void pcinst_move_buffer_cleanup_once(void) WTF_INTERNAL;
 
 struct pcrdr_msg *pcinst_get_message(void) WTF_INTERNAL;
 void pcinst_put_message(struct pcrdr_msg *msg) WTF_INTERNAL;

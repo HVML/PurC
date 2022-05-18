@@ -38,18 +38,46 @@
 #include "private/vdom.h"
 #include "private/timer.h"
 
+struct pcintr_heap;
+typedef struct pcintr_heap pcintr_heap;
+typedef struct pcintr_heap *pcintr_heap_t;
+
 struct pcintr_coroutine;
 typedef struct pcintr_coroutine pcintr_coroutine;
 typedef struct pcintr_coroutine *pcintr_coroutine_t;
 
-struct pcintr_heap {
-    struct list_head      coroutines;
-    pcintr_coroutine_t    running_coroutine;
-};
-
 struct pcintr_stack;
 typedef struct pcintr_stack pcintr_stack;
 typedef struct pcintr_stack *pcintr_stack_t;
+
+struct pcintr_action;
+typedef struct pcintr_action pcintr_action;
+typedef struct pcintr_action *pcintr_action_t;
+
+struct pcintr_heap {
+    // currently running coroutine
+    pcintr_coroutine_t    running_coroutine;
+
+    // those running under and managed by this heap
+    struct list_head      coroutines;
+
+    // runloop bounded by this heap
+    purc_runloop_t        running_loop;
+    // pthread bounded by this heap
+    pthread_t             running_thread;
+
+    pthread_mutex_t       locker;
+    volatile bool         exiting;
+    struct list_head      actions;  // struct pcintr_action
+};
+
+typedef void (*pcintr_action_f)(void *ctxt);
+
+int pcintr_post_action(pcintr_coroutine_t co, void *ctxt, pcintr_action_f cb);
+
+struct pcintr_stack_frame_normal;
+typedef struct pcintr_stack_frame_normal pcintr_stack_frame_normal;
+typedef struct pcintr_stack_frame_normal *pcintr_stack_frame_normal_t;
 
 struct pcintr_stack_frame;
 typedef struct pcintr_stack_frame pcintr_stack_frame;
@@ -59,27 +87,9 @@ struct pcintr_observer;
 typedef void (*pcintr_on_revoke_observer)(struct pcintr_observer *observer,
         void *data);
 
-enum pcintr_coroutine_state {
-    CO_STATE_READY,            /* ready to run next step */
-    CO_STATE_RUN,              /* is running */
-    CO_STATE_WAIT,             /* is waiting for event */
-    CO_STATE_TERMINATED,       /* can never execute any hvml code */
-    /* STATE_PAUSED, */
-};
-
-struct pcintr_coroutine {
-    struct list_head            node;   /* sibling coroutines */
-
-    struct pcintr_stack        *stack;  /* stack that holds this coroutine */
-
-    enum pcintr_coroutine_state state;
-    int                         waits;  /* FIXME: nr of registered events */
-};
-
 enum pcintr_stack_stage {
     STACK_STAGE_FIRST_ROUND                = 0x00,
     STACK_STAGE_EVENT_LOOP                 = 0x01,
-    STACK_STAGE_TERMINATING                = 0x02,
 };
 
 struct pcintr_loaded_var {
@@ -120,6 +130,7 @@ pcintr_exception_move(struct pcintr_exception *dst,
         struct pcintr_exception *src);
 
 struct pcintr_stack {
+    struct pcintr_heap           *owning_heap;
     struct list_head frames;
 
     // the number of stack frames.
@@ -137,6 +148,7 @@ struct pcintr_stack {
     // FIXME: move to struct pcintr_coroutine?
     // uint32_t        error:1;
     uint32_t        except:1;
+    uint32_t        exited:1;
     /* uint32_t        paused:1; */
 
     enum pcintr_stack_stage       stage;
@@ -156,7 +168,7 @@ struct pcintr_stack {
 
     /* coroutine that this stack `owns` */
     /* FIXME: switch owner-ship ? */
-    struct pcintr_coroutine        co;
+    struct pcintr_coroutine       *co;
 
     // for observe
     // struct pcintr_observer
@@ -173,7 +185,7 @@ struct pcintr_stack {
     char* base_uri;
 
     // experimental: currently for test-case-only
-    struct pcintr_supervisor_ops        ops;
+    struct pcintr_supervisor_ops         ops;
     void                                *ctxt;  // no-owner-ship!!!
 
     pcintr_timer_t                      *event_timer; // 10ms
@@ -183,6 +195,24 @@ struct pcintr_stack {
     struct rb_root  scoped_variables; // key: vdom_node
                                       // val: pcvarmgr_t
     struct pcintr_timers  *timers;
+};
+
+enum pcintr_coroutine_state {
+    CO_STATE_READY,            /* ready to run next step */
+    CO_STATE_RUN,              /* is running */
+    CO_STATE_WAIT,             /* is waiting for event */
+    /* STATE_PAUSED, */
+};
+
+struct pcintr_coroutine {
+    pcintr_heap_t               heap;   /* owning heap */
+    struct list_head            node;   /* sibling coroutines */
+    struct list_head            children; /* children coroutines */
+
+    struct pcintr_stack         stack;  /* stack that holds this coroutine */
+
+    enum pcintr_coroutine_state state;
+    int                         waits;  /* FIXME: nr of registered events */
 };
 
 enum purc_symbol_var {
@@ -221,10 +251,15 @@ enum pcintr_stack_frame_next_step {
 typedef void (*preemptor_f) (pcintr_coroutine_t co,
             struct pcintr_stack_frame *frame);
 
+enum pcintr_stack_frame_type {
+    STACK_FRAME_TYPE_NORMAL,
+    STACK_FRAME_TYPE_PSEUDO,
+};
+
 struct pcintr_stack_frame {
+    enum pcintr_stack_frame_type             type;
     // pointers to sibling frames.
     struct list_head node;
-
     // the current scope.
     pcvdom_element_t scope;
     // the current edom element;
@@ -302,9 +337,11 @@ struct pcintr_timers;
 
 PCA_EXTERN_C_BEGIN
 
-void pcintr_stack_init_once(void) WTF_INTERNAL;
-void pcintr_stack_init_instance(struct pcinst* inst) WTF_INTERNAL;
-void pcintr_stack_cleanup_instance(struct pcinst* inst) WTF_INTERNAL;
+void pcintr_init_instance(struct pcinst* inst) WTF_INTERNAL;
+void pcintr_cleanup_instance(struct pcinst* inst) WTF_INTERNAL;
+
+struct pcintr_heap* pcintr_get_heap(void);
+bool pcintr_is_current_thread(void);
 
 pcintr_stack_t pcintr_get_stack(void);
 struct pcintr_stack_frame*

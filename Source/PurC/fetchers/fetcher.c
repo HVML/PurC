@@ -30,7 +30,7 @@
 static struct pcfetcher* s_remote_fetcher = NULL;
 static struct pcfetcher* s_local_fetcher = NULL;
 
-struct pcfetcher* get_fetcher(void)
+static struct pcfetcher* get_fetcher(void)
 {
     return s_remote_fetcher ? s_remote_fetcher : s_local_fetcher;
 }

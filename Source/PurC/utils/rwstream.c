@@ -22,11 +22,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include "config.h"
 #include "purc-rwstream.h"
 #include "purc-errors.h"
 #include "purc-utils.h"
 #include "private/errors.h"
-#include "config.h"
+#include "private/instance.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -60,10 +61,19 @@ static struct err_msg_seg _rwstream_err_msgs_seg = {
     rwstream_err_msgs
 };
 
-void pcrwstream_init_once(void)
+static int rwstream_init_once(void)
 {
     pcinst_register_error_message_segment(&_rwstream_err_msgs_seg);
+    return 0;
 }
+
+struct pcmodule _module_rwstream = {
+    .id              = PURC_HAVE_UTILS,
+    .module_inited   = 0,
+
+    .init_once       = rwstream_init_once,
+    .init_instance   = NULL,
+};
 
 typedef struct rwstream_funcs
 {

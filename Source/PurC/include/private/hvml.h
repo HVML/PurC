@@ -64,8 +64,6 @@ struct pchvml_parser {
 extern "C" {
 #endif  /* __cplusplus */
 
-void pchvml_init_once (void);
-
 struct pchvml_parser* pchvml_create(uint32_t flags, size_t queue_size);
 
 void pchvml_reset(struct pchvml_parser* parser, uint32_t flags,

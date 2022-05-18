@@ -40,20 +40,31 @@
 
 #include "hvml-attr.h"
 
+#include <pthread.h>
 #include <stdarg.h>
 
 #define EVENT_TIMER_INTRVAL  10
 
 #define MSG_TYPE_CHANGE     "change"
 
-void pcintr_stack_init_once(void)
+static int interpreter_init_once(void)
 {
     purc_runloop_t runloop = purc_runloop_get_current();
     PC_ASSERT(runloop);
     init_ops();
+
+    return 0;
 }
 
-void pcintr_stack_init_instance(struct pcinst* inst)
+struct pcmodule _module_interpreter = {
+    .id              = PURC_HAVE_VARIANT | PURC_HAVE_HVML,
+    .module_inited   = 0,
+
+    .init_once       = interpreter_init_once,
+    .init_instance   = NULL,
+};
+
+void pcintr_init_instance(struct pcinst* inst)
 {
     struct pcintr_heap *heap = inst->intr_heap;
     PC_ASSERT(heap == NULL);
@@ -62,15 +73,28 @@ void pcintr_stack_init_instance(struct pcinst* inst)
     if (!heap)
         return;
 
+    int r;
+    r = pthread_mutex_init(&heap->locker, NULL);
+    if (r) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        free(heap);
+        return;
+    }
+
     inst->intr_heap = heap;
 
     INIT_LIST_HEAD(&heap->coroutines);
     heap->running_coroutine = NULL;
+
+    heap->running_loop = NULL;
 }
 
 static void
 stack_frame_release(struct pcintr_stack_frame *frame)
 {
+    if (!frame)
+        return;
+
     frame->scope = NULL;
     frame->edom_element = NULL;
     frame->pos   = NULL;
@@ -88,6 +112,16 @@ stack_frame_release(struct pcintr_stack_frame *frame)
     PURC_VARIANT_SAFE_CLEAR(frame->attr_vars);
     PURC_VARIANT_SAFE_CLEAR(frame->ctnt_var);
     PURC_VARIANT_SAFE_CLEAR(frame->result_from_child);
+}
+
+static void
+stack_frame_destroy(struct pcintr_stack_frame *frame)
+{
+    if (!frame)
+        return;
+
+    stack_frame_release(frame);
+    free(frame);
 }
 
 static void
@@ -367,16 +401,18 @@ stack_release(pcintr_stack_t stack)
     if (!stack)
         return;
 
-    size_t sz = purc_variant_array_get_size(stack->async_request_ids);
-    if (sz) {
-        purc_variant_t ids = purc_variant_container_clone(
-                stack->async_request_ids);
-        for (size_t i = 0; i < sz; i++) {
-            pcfetcher_cancel_async(purc_variant_array_get(ids, i));
+    if (stack->async_request_ids != PURC_VARIANT_INVALID) {
+        size_t sz = purc_variant_array_get_size(stack->async_request_ids);
+        if (sz) {
+            purc_variant_t ids = purc_variant_container_clone(
+                    stack->async_request_ids);
+            for (size_t i = 0; i < sz; i++) {
+                pcfetcher_cancel_async(purc_variant_array_get(ids, i));
+            }
+            purc_variant_unref(ids);
         }
-        purc_variant_unref(ids);
+        PURC_VARIANT_SAFE_CLEAR(stack->async_request_ids);
     }
-    purc_variant_unref(stack->async_request_ids);
 
     if (stack->ops.on_cleanup) {
         stack->ops.on_cleanup(stack, stack->ctxt);
@@ -385,16 +421,14 @@ stack_release(pcintr_stack_t stack)
     }
 
     struct list_head *frames = &stack->frames;
-    if (!list_empty(frames)) {
-        struct pcintr_stack_frame *p, *n;
-        list_for_each_entry_reverse_safe(p, n, frames, node) {
-            list_del(&p->node);
-            --stack->nr_frames;
-            stack_frame_release(p);
-            free(p);
-        }
-        PC_ASSERT(stack->nr_frames == 0);
+    struct pcintr_stack_frame *p, *n;
+    list_for_each_entry_reverse_safe(p, n, frames, node) {
+        PC_ASSERT(p->type == STACK_FRAME_TYPE_NORMAL);
+        list_del(&p->node);
+        --stack->nr_frames;
+        stack_frame_destroy(p);
     }
+    PC_ASSERT(stack->nr_frames == 0);
 
     release_scoped_variables(stack);
 
@@ -431,12 +465,30 @@ stack_release(pcintr_stack_t stack)
     }
 }
 
+struct pcintr_action {
+    pcintr_coroutine_t           target;
+    void                        *ctxt;
+    pcintr_action_f              callback;
+
+    struct list_head             node;
+};
+
 static void
-stack_destroy(pcintr_stack_t stack)
+coroutine_release(pcintr_coroutine_t co)
 {
-    if (stack) {
-        stack_release(stack);
-        free(stack);
+    if (co) {
+        struct pcintr_heap *heap = pcintr_get_heap();
+        PC_ASSERT(heap && co->heap == heap);
+        stack_release(&co->stack);
+    }
+}
+
+static void
+coroutine_destroy(pcintr_coroutine_t co)
+{
+    if (co) {
+        coroutine_release(co);
+        free(co);
     }
 }
 
@@ -452,45 +504,74 @@ stack_init(pcintr_stack_t stack)
     stack->stage = STACK_STAGE_FIRST_ROUND;
     stack->loaded_vars = RB_ROOT;
     stack->mode = STACK_VDOM_BEFORE_HVML;
+
+    struct pcinst *inst = pcinst_current();
+    PC_ASSERT(inst);
+    struct pcintr_heap *heap = inst->intr_heap;
+    PC_ASSERT(heap);
+    stack->owning_heap = heap;
 }
 
-void pcintr_stack_cleanup_instance(struct pcinst* inst)
+void pcintr_heap_lock(struct pcintr_heap *heap)
+{
+    int r = pthread_mutex_lock(&heap->locker);
+    PC_ASSERT(r == 0);
+}
+
+void pcintr_heap_unlock(struct pcintr_heap *heap)
+{
+    int r = pthread_mutex_unlock(&heap->locker);
+    PC_ASSERT(r == 0);
+}
+
+void pcintr_cleanup_instance(struct pcinst* inst)
 {
     struct pcintr_heap *heap = inst->intr_heap;
     if (!heap)
         return;
 
+    PC_ASSERT(heap->exiting == false);
+    heap->exiting = true;
+
     struct list_head *coroutines = &heap->coroutines;
-    if (!list_empty(coroutines)) {
-        struct list_head *p, *n;
-        list_for_each_safe(p, n, coroutines) {
-            pcintr_coroutine_t co;
-            co = container_of(p, struct pcintr_coroutine, node);
-            list_del(p);
-            struct pcintr_stack *stack = co->stack;
-            stack_destroy(stack);
-        }
+    struct list_head *p, *n;
+
+    list_for_each_safe(p, n, coroutines) {
+        pcintr_coroutine_t co;
+        co = container_of(p, struct pcintr_coroutine, node);
+
+        list_del(p);
+        coroutine_destroy(co);
     }
 
     free(heap);
     inst->intr_heap = NULL;
 }
 
+struct pcintr_heap* pcintr_get_heap(void)
+{
+    struct pcinst *inst = pcinst_current();
+
+    return inst ? inst->intr_heap : NULL;
+}
+
+bool pcintr_is_current_thread(void)
+{
+    struct pcintr_heap *heap = pcintr_get_heap();
+    return heap ? (heap->running_thread == pthread_self()) : false;
+}
+
 static pcintr_coroutine_t
 coroutine_get_current(void)
 {
-    struct pcinst *inst = pcinst_current();
-    if (inst && inst->intr_heap)
-        return inst->intr_heap->running_coroutine;
-
-    return NULL;
+    struct pcintr_heap *heap = pcintr_get_heap();
+    return heap ? heap->running_coroutine : NULL;
 }
 
 static void
 coroutine_set_current(struct pcintr_coroutine *co)
 {
-    struct pcinst *inst = pcinst_current();
-    struct pcintr_heap *heap = inst->intr_heap;
+    struct pcintr_heap *heap = pcintr_get_heap();
     heap->running_coroutine = co;
 }
 
@@ -500,7 +581,7 @@ pcintr_stack_t pcintr_get_stack(void)
     if (!co)
         return NULL;
 
-    return co->stack;
+    return &co->stack;
 }
 
 static void
@@ -518,8 +599,7 @@ pop_stack_frame(pcintr_stack_t stack)
     struct pcintr_stack_frame *frame;
     frame = container_of(tail, struct pcintr_stack_frame, node);
 
-    stack_frame_release(frame);
-    free(frame);
+    stack_frame_destroy(frame);
     --stack->nr_frames;
 }
 
@@ -623,28 +703,41 @@ init_symvals_with_vals(struct pcintr_stack_frame *frame)
     return 0;
 }
 
+static int
+init_stack_frame_normal(struct pcintr_stack_frame* frame)
+{
+    frame->type = STACK_FRAME_TYPE_NORMAL;
+
+    if (init_symvals_with_vals(frame))
+        return -1;
+
+    return 0;
+}
+
 static struct pcintr_stack_frame*
 push_stack_frame(pcintr_stack_t stack)
 {
-    PC_ASSERT(stack);
     struct pcintr_stack_frame *frame;
     frame = (struct pcintr_stack_frame*)calloc(1, sizeof(*frame));
     if (!frame) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
     }
-    PC_ASSERT(NULL == pcintr_stack_frame_get_parent(frame));
+
+    frame->owner           = stack;
+    frame->silently        = 0;
 
     list_add_tail(&frame->node, &stack->frames);
     ++stack->nr_frames;
 
-    if (init_symvals_with_vals(frame)) {
+    int r = 0;
+    r = init_stack_frame_normal(frame);
+
+    if (r) {
         pop_stack_frame(stack);
         return NULL;
     }
 
-    frame->owner           = stack;
-    frame->silently        = 0;
     return frame;
 }
 
@@ -902,7 +995,7 @@ static void
 after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
     if (frame->ops.after_pushed) {
-        void *ctxt = frame->ops.after_pushed(co->stack, frame->pos);
+        void *ctxt = frame->ops.after_pushed(&co->stack, frame->pos);
         if (!ctxt) {
             frame->next_step = NEXT_STEP_ON_POPPING;
             return;
@@ -917,11 +1010,11 @@ on_popping(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
     bool ok = true;
     if (frame->ops.on_popping) {
-        ok = frame->ops.on_popping(co->stack, frame->ctxt);
+        ok = frame->ops.on_popping(&co->stack, frame->ctxt);
     }
 
     if (ok) {
-        pcintr_stack_t stack = co->stack;
+        pcintr_stack_t stack = &co->stack;
         pop_stack_frame(stack);
     } else {
         frame->next_step = NEXT_STEP_RERUN;
@@ -933,7 +1026,7 @@ on_rerun(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
     bool ok = false;
     if (frame->ops.rerun) {
-        ok = frame->ops.rerun(co->stack, frame->ctxt);
+        ok = frame->ops.rerun(&co->stack, frame->ctxt);
     }
 
     PC_ASSERT(ok);
@@ -946,7 +1039,7 @@ on_select_child(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
     struct pcvdom_element *element = NULL;
     if (frame->ops.select_child) {
-        element = frame->ops.select_child(co->stack, frame->ctxt);
+        element = frame->ops.select_child(&co->stack, frame->ctxt);
     }
 
     if (element == NULL) {
@@ -956,7 +1049,7 @@ on_select_child(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         frame->next_step = NEXT_STEP_SELECT_CHILD;
 
         // push child frame
-        pcintr_stack_t stack = co->stack;
+        pcintr_stack_t stack = &co->stack;
         struct pcintr_stack_frame *child_frame;
         child_frame = push_stack_frame(stack);
         if (!child_frame)
@@ -996,15 +1089,69 @@ exception_copy(struct pcintr_exception *exception)
     exception->bt = inst->bt;
 }
 
-static void
-execute_one_step(pcintr_coroutine_t co)
+#if 0          /* { */
+static bool stack_is_observed(pcintr_stack_t stack)
 {
-    pcintr_stack_t stack = co->stack;
+    if (!list_empty(&stack->common_variant_observer_list))
+        return true;
+
+    if (!list_empty(&stack->dynamic_variant_observer_list))
+        return true;
+
+    if (!list_empty(&stack->native_variant_observer_list))
+        return true;
+
+    return true;
+}
+#endif         /* } */
+
+// return co if alive, otherwise NULL
+static pcintr_coroutine_t
+terminating_co(pcintr_coroutine_t co)
+{
+    if (co->stack.except) {
+        dump_c_stack(co->stack.exception.bt);
+        co->stack.except = 0;
+    }
+    PC_ASSERT(co->stack.back_anchor == NULL);
+
+    if (co->stack.ops.on_terminated) {
+        co->stack.ops.on_terminated(&co->stack, co->stack.ctxt);
+        co->stack.ops.on_terminated = NULL;
+    }
+    if (co->stack.ops.on_cleanup) {
+        co->stack.ops.on_cleanup(&co->stack, co->stack.ctxt);
+        co->stack.ops.on_cleanup = NULL;
+        co->stack.ctxt = NULL;
+    }
+
+    list_del(&co->node);
+    coroutine_destroy(co);
+    return NULL;
+}
+
+static bool co_is_preemptor_set(pcintr_coroutine_t co)
+{
+    if (!co)
+        return false;
+
+    pcintr_stack_t stack = &co->stack;
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_stack_get_bottom_frame(stack);
+    return frame && frame->preemptor;
+}
+
+// return co if alive, otherwise NULL
+static pcintr_coroutine_t
+execute_one_step_on_frame(pcintr_coroutine_t co)
+{
+    pcintr_stack_t stack = &co->stack;
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame);
 
     if (frame->preemptor) {
+        PC_ASSERT(0); // Not implemented yet
         preemptor_f preemptor = frame->preemptor;
         frame->preemptor = NULL;
         preemptor(co, frame);
@@ -1031,41 +1178,42 @@ execute_one_step(pcintr_coroutine_t co)
 
     PC_ASSERT(co->state == CO_STATE_RUN);
     co->state = CO_STATE_READY;
-    PC_ASSERT(co->stack);
 
     struct pcinst *inst = pcinst_current();
     PC_ASSERT(inst);
     if (inst->errcode) {
-        PC_ASSERT(co->stack->except == 0);
-        exception_copy(&co->stack->exception);
-        co->stack->except = 1;
+        PC_ASSERT(co->stack.except == 0);
+        exception_copy(&co->stack.exception);
+        co->stack.except = 1;
         pcinst_clear_error(inst);
         PC_ASSERT(inst->errcode == 0);
 #ifndef NDEBUG                     /* { */
-        dump_stack(co->stack);
+        dump_stack(&co->stack);
 #endif                             /* } */
         PC_ASSERT(inst->errcode == 0);
     }
 
-    bool no_frames = list_empty(&co->stack->frames);
+    bool no_frames = list_empty(&co->stack.frames);
+
     if (no_frames) {
         /* send doc to rdr */
-        if (co->stack->stage == STACK_STAGE_FIRST_ROUND &&
+        if (co->stack.stage == STACK_STAGE_FIRST_ROUND &&
             !pcintr_rdr_page_control_load(stack)) {
-            co->state = CO_STATE_TERMINATED;
-            return;
+            co->stack.exited = 1;
+            return terminating_co(co);
         }
 
         pcintr_dump_document(stack);
-        co->stack->stage = STACK_STAGE_EVENT_LOOP;
+        co->stack.stage = STACK_STAGE_EVENT_LOOP;
+
         // do not run execute-one-step until event's fired if co->waits > 0
-        if (co->stack->except == 0 && co->waits) { // FIXME:
+        if (co->stack.except == 0 && co->waits) { // FIXME:
             co->state = CO_STATE_WAIT;
-            return;
+            return co;
         }
 
-        co->state = CO_STATE_TERMINATED;
-        PC_DEBUGX("co terminating: %p", co);
+        co->stack.exited = 1;
+        return terminating_co(co);
     }
     else {
         frame = pcintr_stack_get_bottom_frame(stack);
@@ -1073,6 +1221,45 @@ execute_one_step(pcintr_coroutine_t co)
             PC_ASSERT(0); // Not implemented yet
         }
         // continue coroutine even if it's in wait state
+        return co;
+    }
+}
+
+// return co if alive, otherwise NULL
+static pcintr_coroutine_t execute_on_frame(pcintr_coroutine_t co)
+{
+    switch (co->state) {
+        case CO_STATE_READY:
+            co->state = CO_STATE_RUN;
+            // fall-through
+        case CO_STATE_RUN:
+            coroutine_set_current(co);
+            co = execute_one_step_on_frame(co);
+            coroutine_set_current(NULL);
+            break;
+        case CO_STATE_WAIT:
+            break;
+        default:
+            PC_ASSERT(0);
+    }
+    return co;
+}
+
+// return co if alive, otherwise NULL
+static pcintr_coroutine_t run_co(pcintr_coroutine_t co)
+{
+    pcintr_stack_t stack = &co->stack;
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_stack_get_bottom_frame(stack);
+    if (frame) {
+        return execute_on_frame(co);
+    }
+    else if (co->stack.exited) {
+        return terminating_co(co);
+    }
+    else {
+        PC_ASSERT(co->state == CO_STATE_WAIT);
+        return co;
     }
 }
 
@@ -1085,55 +1272,27 @@ static int run_coroutines(void *ctxt)
     struct list_head *coroutines = &heap->coroutines;
     size_t readies = 0;
     size_t waits = 0;
-    if (!list_empty(coroutines)) {
-        struct list_head *p, *n;
-        list_for_each_safe(p, n, coroutines) {
-            struct pcintr_coroutine *co;
-            co = container_of(p, struct pcintr_coroutine, node);
-            switch (co->state) {
-                case CO_STATE_READY:
-                    co->state = CO_STATE_RUN;
-                    coroutine_set_current(co);
-                    pcvariant_push_gc();
-                    execute_one_step(co);
-                    //PC_ASSERT(purc_get_last_error() == PURC_ERROR_OK);
-                    if (co->state == CO_STATE_TERMINATED) {
-                        if (co->stack->except) {
-                            dump_c_stack(co->stack->exception.bt);
-                        }
-                        PC_ASSERT(co->stack->back_anchor == NULL);
 
-                        if (co->stack->ops.on_terminated) {
-                            co->stack->ops.on_terminated(co->stack, co->stack->ctxt);
-                            co->stack->ops.on_terminated = NULL;
-                        }
-                        if (co->stack->ops.on_cleanup) {
-                            co->stack->ops.on_cleanup(co->stack, co->stack->ctxt);
-                            co->stack->ops.on_cleanup = NULL;
-                            co->stack->ctxt = NULL;
-                        }
-                    }
-                    pcvariant_pop_gc();
-                    coroutine_set_current(NULL);
-                    ++readies;
-                    break;
-                case CO_STATE_WAIT:
-                    ++waits;
-                    break;
-                case CO_STATE_RUN:
-                    PC_ASSERT(0);
-                    break;
-                case CO_STATE_TERMINATED:
-                    PC_ASSERT(0);
-                    break;
-                default:
-                    PC_ASSERT(0);
-            }
-            if (co->state == CO_STATE_TERMINATED) {
-                co->stack->stage = STACK_STAGE_TERMINATING;
-                list_del(&co->node);
-                stack_destroy(co->stack);
-            }
+    struct list_head *p, *n;
+    list_for_each_safe(p, n, coroutines) {
+        struct pcintr_coroutine *co;
+        co = container_of(p, struct pcintr_coroutine, node);
+        co = run_co(co);
+        if (co == NULL)
+            continue;
+
+        switch (co->state) {
+            case CO_STATE_READY:
+                ++readies;
+                break;
+            case CO_STATE_WAIT:
+                ++waits;
+                break;
+            case CO_STATE_RUN:
+                PC_ASSERT(co_is_preemptor_set(co));
+                break;
+            default:
+                PC_ASSERT(0);
         }
     }
 
@@ -1173,6 +1332,9 @@ struct pcintr_stack_frame*
 pcintr_stack_frame_get_parent(struct pcintr_stack_frame *frame)
 {
     if (!frame)
+        return NULL;
+
+    if (frame->type == STACK_FRAME_TYPE_PSEUDO)
         return NULL;
 
     if (list_is_first(&frame->node, &frame->owner->frames))
@@ -1446,6 +1608,13 @@ purc_vdom_t
 purc_load_hvml_from_rwstream_ex(purc_rwstream_t stream,
         struct pcintr_supervisor_ops *ops, void *ctxt)
 {
+    struct pcinst *inst = pcinst_current();
+    struct pcintr_heap *heap = inst->intr_heap;
+    struct list_head *coroutines = &heap->coroutines;
+
+    pcintr_coroutine_t co = NULL;
+    pcintr_stack_t stack = NULL;
+
     struct pcvdom_document *doc = NULL;
     doc = load_document(stream);
     if (!doc)
@@ -1453,58 +1622,69 @@ purc_load_hvml_from_rwstream_ex(purc_rwstream_t stream,
 
     purc_vdom_t vdom = (purc_vdom_t)calloc(1, sizeof(*vdom));
     if (!vdom) {
-        pcvdom_document_destroy(doc);
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return NULL;
+        goto fail_vdom;
     }
 
     vdom->document = doc;
+    doc = NULL;
 
-    pcintr_stack_t stack = (pcintr_stack_t)calloc(1, sizeof(*stack));
-    if (!stack) {
-        vdom_destroy(vdom);
+    co = (pcintr_coroutine_t)calloc(1, sizeof(*co));
+    if (!co) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return NULL;
+        goto fail_co;
     }
-    stack_init(stack);
 
-    stack->event_timer = pcintr_timer_create(NULL, NULL, stack,
-            pcintr_event_timer_fire);
-    if (!stack->event_timer) {
-        vdom_destroy(vdom);
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return NULL;
-    }
-    pcintr_timer_set_interval(stack->event_timer, EVENT_TIMER_INTRVAL);
-    pcintr_timer_start(stack->event_timer);
+    co->state = CO_STATE_READY;
+    INIT_LIST_HEAD(&co->children);
 
+    stack = &co->stack;
+    stack->co = co;
     stack->vdom = vdom;
-    stack->co.stack = stack;
-    stack->co.state = CO_STATE_READY;
+    vdom = NULL;
 
-    struct pcintr_stack_frame *frame;
-    frame = push_stack_frame(stack);
-    if (!frame) {
-        stack_destroy(stack);
-        return NULL;
-    }
-    // frame->next_step = on_vdom_start;
-    frame->ops = *pcintr_get_document_ops();
+    co->heap = heap;
+    list_add_tail(&co->node, coroutines);
 
-    struct pcinst *inst = pcinst_current();
-    struct pcintr_heap *heap = inst->intr_heap;
-    struct list_head *coroutines = &heap->coroutines;
-    list_add_tail(&stack->co.node, coroutines);
-
-    pcintr_coroutine_ready();
+    stack_init(stack);
 
     if (ops) {
         stack->ops  = *ops;
         stack->ctxt = ctxt;
     }
 
+    stack->event_timer = pcintr_timer_create(NULL, NULL, stack,
+            pcintr_event_timer_fire);
+    if (!stack->event_timer)
+        goto fail_timer;
+
+    pcintr_timer_set_interval(stack->event_timer, EVENT_TIMER_INTRVAL);
+    pcintr_timer_start(stack->event_timer);
+
+    struct pcintr_stack_frame *frame;
+    frame = push_stack_frame(stack);
+    if (!frame)
+        goto fail_frame;
+
+    frame->ops = *pcintr_get_document_ops();
+
+    pcintr_coroutine_ready();
+
     // FIXME: double-free, potentially!!!
-    return vdom;
+    return stack->vdom;
+
+fail_frame:
+fail_timer:
+    list_del(&co->node);
+    coroutine_destroy(co);
+
+fail_co:
+    vdom_destroy(vdom);
+
+fail_vdom:
+    pcvdom_document_destroy(doc);
+
+    return NULL;
 }
 
 bool
@@ -1513,7 +1693,28 @@ purc_run(purc_variant_t request, purc_event_handler handler)
     UNUSED_PARAM(request);
     UNUSED_PARAM(handler);
 
+    struct pcinst *inst = pcinst_current();
+    PC_ASSERT(inst);
+    struct pcintr_heap *heap = inst->intr_heap;
+    PC_ASSERT(heap);
+
+    purc_runloop_t runloop = purc_runloop_get_current();
+
+    if (heap->running_loop == NULL) {
+        heap->running_loop = runloop;
+        PC_ASSERT(heap->running_loop);
+    }
+    else {
+        PC_ASSERT(heap->running_loop == runloop);
+        PC_ASSERT(0);
+    }
+
+    heap->running_thread = pthread_self();
+
     purc_runloop_run();
+
+    heap->running_thread = 0;
+    heap->running_loop = NULL;
 
     return true;
 }
@@ -1567,8 +1768,8 @@ add_observer_into_list(struct list_head *list,
     // TODO:
     pcintr_stack_t stack = pcintr_get_stack();
     PC_ASSERT(stack);
-    PC_ASSERT(stack->co.waits >= 0);
-    stack->co.waits++;
+    PC_ASSERT(stack->co->waits >= 0);
+    stack->co->waits++;
 }
 
 struct pcintr_observer*
@@ -1628,8 +1829,8 @@ pcintr_revoke_observer(struct pcintr_observer* observer)
     // TODO:
     pcintr_stack_t stack = pcintr_get_stack();
     PC_ASSERT(stack);
-    PC_ASSERT(stack->co.waits >= 1);
-    stack->co.waits--;
+    PC_ASSERT(stack->co->waits >= 1);
+    stack->co->waits--;
 }
 
 static struct list_head*
@@ -1774,7 +1975,7 @@ pcintr_handle_message(void *ctxt)
                 frame->edom_element = p->edom_element;
                 frame->next_step = NEXT_STEP_AFTER_PUSHED;
 
-                stack->co.state = CO_STATE_READY;
+                stack->co->state = CO_STATE_READY;
                 // pcintr_coroutine_ready();
                 run_coroutines(NULL);
             }
@@ -1871,25 +2072,100 @@ pcintr_load_from_uri(pcintr_stack_t stack, const char* uri)
     return ret;
 }
 
+struct load_async_data {
+    pcfetcher_response_handler handler;
+    void* ctxt;
+    pthread_t                  requesting_thread;
+    pcintr_stack_t             requesting_stack;
+    purc_variant_t             request_id;
+};
+
+static void
+release_load_async_data(struct load_async_data *data)
+{
+    if (data) {
+        PURC_VARIANT_SAFE_CLEAR(data->request_id);
+        data->handler           = NULL;
+        data->ctxt              = NULL;
+        data->requesting_thread = 0;
+        data->requesting_stack  = NULL;
+    }
+}
+
+static void
+destroy_load_async_data(struct load_async_data *data)
+{
+    if (data) {
+        release_load_async_data(data);
+        free(data);
+    }
+}
+
+static void
+on_load_async_done(
+        purc_variant_t request_id, void* ctxt,
+        const struct pcfetcher_resp_header *resp_header,
+        purc_rwstream_t resp)
+{
+    PC_ASSERT(request_id != PURC_VARIANT_INVALID);
+    PC_ASSERT(ctxt);
+    PC_ASSERT(pcintr_is_current_thread());
+    struct load_async_data *data;
+    data = (struct load_async_data*)ctxt;
+    PC_ASSERT(data);
+    PC_ASSERT(data->request_id == request_id);
+    PC_ASSERT(data->handler);
+    PC_ASSERT(data->requesting_thread == pthread_self());
+    // pcintr_stack_t stack = pcintr_get_stack();
+    // PC_ASSERT(stack);
+    // PC_ASSERT(data->requesting_stack == stack);
+
+    data->handler(request_id, data->ctxt, resp_header, resp);
+
+    destroy_load_async_data(data);
+}
+
 purc_variant_t
 pcintr_load_from_uri_async(pcintr_stack_t stack, const char* uri,
         pcfetcher_response_handler handler, void* ctxt)
 {
-    if (uri == NULL || handler == NULL) {
+    PC_ASSERT(stack);
+    PC_ASSERT(uri);
+    PC_ASSERT(handler);
+
+    PC_ASSERT(pcintr_get_stack() == stack);
+
+    struct load_async_data *data;
+    data = (struct load_async_data*)malloc(sizeof(*data));
+    if (!data) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return PURC_VARIANT_INVALID;
     }
+    data->handler              = handler;
+    data->ctxt                 = ctxt;
+    data->requesting_thread    = pthread_self();
+    data->requesting_stack     = stack;
+    data->request_id           = PURC_VARIANT_INVALID;
 
     if (stack->vdom->hvml_ctrl_props->base_url_string) {
         pcfetcher_set_base_url(stack->vdom->hvml_ctrl_props->base_url_string);
     }
+
     uint32_t timeout = stack->vdom->hvml_ctrl_props->timeout.tv_sec;
-    return pcfetcher_request_async(
+    data->request_id = pcfetcher_request_async(
             uri,
             PCFETCHER_REQUEST_METHOD_GET,
             NULL,
             timeout,
-            handler,
-            ctxt);
+            on_load_async_done,
+            data);
+
+    if (data->request_id == PURC_VARIANT_INVALID) {
+        destroy_load_async_data(data);
+        return PURC_VARIANT_INVALID;
+    }
+
+    return data->request_id;
 }
 
 bool
