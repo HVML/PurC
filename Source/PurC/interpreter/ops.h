@@ -58,6 +58,7 @@ struct pcintr_element_ops* pcintr_get_define_ops(void);
 struct pcintr_element_ops* pcintr_get_include_ops(void);
 struct pcintr_element_ops* pcintr_get_call_ops(void);
 struct pcintr_element_ops* pcintr_get_return_ops(void);
+struct pcintr_element_ops* pcintr_get_inherit_ops(void);
 
 PCA_EXTERN_C_END
 
