@@ -832,9 +832,6 @@ clean_rws:
         purc_rwstream_destroy(resp);
     }
 
-    if (request_id != PURC_VARIANT_INVALID) {
-        purc_variant_unref(request_id);
-    }
     free(fetcher);
 }
 

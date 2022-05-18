@@ -30,6 +30,9 @@
 #include "fetcher-internal.h"
 #include "fetcher-process.h"
 
+#if 0           /* { */
+#endif          /* } */
+
 #if ENABLE(REMOTE_FETCHER)
 
 struct pcfetcher_remote {
@@ -37,32 +40,6 @@ struct pcfetcher_remote {
     PcFetcherProcess* process;
     char* base_uri;
 };
-
-struct pcfetcher* pcfetcher_remote_init(size_t max_conns, size_t cache_quota)
-{
-    struct pcfetcher_remote* remote = (struct pcfetcher_remote*)malloc(
-            sizeof(struct pcfetcher_remote));
-
-    struct pcfetcher* fetcher = (struct pcfetcher*) remote;
-    fetcher->max_conns = max_conns;
-    fetcher->cache_quota = cache_quota;
-    fetcher->init = pcfetcher_remote_init;
-    fetcher->term = pcfetcher_remote_term;
-    fetcher->set_base_url = pcfetcher_remote_set_base_url;
-    fetcher->cookie_set = pcfetcher_cookie_remote_set;
-    fetcher->cookie_get = pcfetcher_cookie_remote_get;
-    fetcher->cookie_remove = pcfetcher_cookie_remote_remove;
-    fetcher->request_async = pcfetcher_remote_request_async;
-    fetcher->request_sync = pcfetcher_remote_request_sync;
-    fetcher->cancel_async = pcfetcher_remote_cancel_async;
-    fetcher->check_response = pcfetcher_remote_check_response;
-
-    remote->process = new PcFetcherProcess(fetcher);
-    remote->process->connect();
-    remote->base_uri = NULL;
-
-    return (struct pcfetcher*)remote;
-}
 
 int pcfetcher_remote_term(struct pcfetcher* fetcher)
 {
@@ -177,6 +154,66 @@ int pcfetcher_remote_check_response(struct pcfetcher* fetcher,
 {
     struct pcfetcher_remote* remote = (struct pcfetcher_remote*)fetcher;
     return remote->process->checkResponse(timeout_ms);
+}
+
+
+pcfetcher_req_t pcfetcher_remote_make_req(
+        struct pcfetcher* fetcher,
+        const char* url,
+        enum pcfetcher_request_method method,
+        purc_variant_t params,
+        uint32_t timeout,
+        pcfetcher_response_handler handler,
+        void* ctxt)
+{
+    UNUSED_PARAM(fetcher);
+    UNUSED_PARAM(url);
+    UNUSED_PARAM(method);
+    UNUSED_PARAM(params);
+    UNUSED_PARAM(timeout);
+    UNUSED_PARAM(handler);
+    UNUSED_PARAM(ctxt);
+    abort();
+}
+
+void pcfetcher_remote_cancel_req(
+        struct pcfetcher* fetcher,
+        pcfetcher_req_t req)
+{
+    UNUSED_PARAM(fetcher);
+    UNUSED_PARAM(req);
+    abort();
+}
+
+
+
+struct pcfetcher* pcfetcher_remote_init(size_t max_conns, size_t cache_quota)
+{
+    struct pcfetcher_remote* remote = (struct pcfetcher_remote*)calloc(1,
+            sizeof(struct pcfetcher_remote));
+
+    struct pcfetcher* fetcher = (struct pcfetcher*) remote;
+    fetcher->max_conns = max_conns;
+    fetcher->cache_quota = cache_quota;
+    fetcher->init = pcfetcher_remote_init;
+    fetcher->term = pcfetcher_remote_term;
+    fetcher->set_base_url = pcfetcher_remote_set_base_url;
+    fetcher->cookie_set = pcfetcher_cookie_remote_set;
+    fetcher->cookie_get = pcfetcher_cookie_remote_get;
+    fetcher->cookie_remove = pcfetcher_cookie_remote_remove;
+    fetcher->request_async = pcfetcher_remote_request_async;
+    fetcher->request_sync = pcfetcher_remote_request_sync;
+    fetcher->cancel_async = pcfetcher_remote_cancel_async;
+    fetcher->check_response = pcfetcher_remote_check_response;
+
+    fetcher->make_req = pcfetcher_remote_make_req;
+    fetcher->cancel_req = pcfetcher_remote_cancel_req;
+
+    remote->process = new PcFetcherProcess(fetcher);
+    remote->process->connect();
+    remote->base_uri = NULL;
+
+    return (struct pcfetcher*)remote;
 }
 
 

@@ -34,6 +34,10 @@
 #include <assert.h>
 #include <stdbool.h>
 
+#if USE(PTHREADS)          /* { */
+#include <pthread.h>
+#endif                     /* } */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -80,9 +84,16 @@ extern "C" {
 
 #define PC_DEBUG(x, ...)    purc_log_debug(x, ##__VA_ARGS__)
 
+#if USE(PTHREADS)          /* { */
+#define PC_DEBUGX(x, ...)                                                  \
+    purc_log_debug("[p%zx]%s[%d]:%s(): " x "\n",                           \
+            pthread_self(),                                                \
+            pcutils_basename(__FILE__), __LINE__, __func__, ##__VA_ARGS__)
+#else                      /* }{ */
 #define PC_DEBUGX(x, ...)                                                  \
     purc_log_debug("%s[%d]:%s(): " x "\n",                                 \
             pcutils_basename(__FILE__), __LINE__, __func__, ##__VA_ARGS__)
+#endif                     /* } */
 
 #else /* not defined NDEBUG */
 

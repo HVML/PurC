@@ -170,3 +170,24 @@ void pcfetcher_destroy_callback_info(struct pcfetcher_callback_info *info)
     free(info);
 }
 
+pcfetcher_req_t pcfetcher_make_req(
+        const char *url,
+        enum pcfetcher_request_method method,
+        purc_variant_t params,
+        uint32_t timeout,
+        pcfetcher_response_handler handler,
+        void* ctxt)
+{
+    struct pcfetcher* fetcher = get_fetcher();
+    return fetcher ? fetcher->make_req(fetcher, url, method,
+            params, timeout, handler, ctxt) : NULL;
+}
+
+void pcfetcher_cancel_req(pcfetcher_req_t req)
+{
+    struct pcfetcher* fetcher = get_fetcher();
+    if (fetcher) {
+        fetcher->cancel_req(fetcher, req);
+    }
+}
+

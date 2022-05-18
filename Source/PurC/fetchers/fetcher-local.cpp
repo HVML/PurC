@@ -69,7 +69,7 @@ static const char* get_mime(const char* name)
 
 struct pcfetcher* pcfetcher_local_init(size_t max_conns, size_t cache_quota)
 {
-    struct pcfetcher_local* local = (struct pcfetcher_local*)malloc(
+    struct pcfetcher_local* local = (struct pcfetcher_local*)calloc(1,
             sizeof(struct pcfetcher_local));
     if (local == NULL) {
         return NULL;

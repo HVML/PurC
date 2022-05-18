@@ -97,6 +97,21 @@ void pcfetcher_cancel_async(purc_variant_t request);
 
 int pcfetcher_check_response(uint32_t timeout_ms);
 
+
+struct pcfetcher_req;
+typedef struct pcfetcher_req pcfetcher_req;
+typedef struct pcfetcher_req *pcfetcher_req_t;
+
+pcfetcher_req_t pcfetcher_make_req(
+        const char *url,
+        enum pcfetcher_request_method method,
+        purc_variant_t params,
+        uint32_t timeout,
+        pcfetcher_response_handler handler,
+        void* ctxt);
+
+void pcfetcher_cancel_req(pcfetcher_req_t req);
+
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */
