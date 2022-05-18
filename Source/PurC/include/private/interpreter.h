@@ -223,6 +223,7 @@ enum purc_symbol_var {
     PURC_SYMBOL_VAR_COLON,              // :
     PURC_SYMBOL_VAR_EQUAL,              // =
     PURC_SYMBOL_VAR_PERCENT_SIGN,       // %
+    PURC_SYMBOL_VAR_CARET,              // ^
 
     PURC_SYMBOL_VAR_MAX
 };
