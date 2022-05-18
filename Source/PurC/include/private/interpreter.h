@@ -148,6 +148,7 @@ struct pcintr_stack {
     // FIXME: move to struct pcintr_coroutine?
     // uint32_t        error:1;
     uint32_t        except:1;
+    uint32_t        exited:1;
     /* uint32_t        paused:1; */
 
     enum pcintr_stack_stage       stage;
@@ -200,13 +201,13 @@ enum pcintr_coroutine_state {
     CO_STATE_READY,            /* ready to run next step */
     CO_STATE_RUN,              /* is running */
     CO_STATE_WAIT,             /* is waiting for event */
-    CO_STATE_TERMINATED,       /* can never execute any hvml code */
     /* STATE_PAUSED, */
 };
 
 struct pcintr_coroutine {
     pcintr_heap_t               heap;   /* owning heap */
     struct list_head            node;   /* sibling coroutines */
+    struct list_head            children; /* children coroutines */
 
     struct pcintr_stack         stack;  /* stack that holds this coroutine */
 

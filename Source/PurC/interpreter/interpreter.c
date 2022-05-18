@@ -1105,8 +1105,45 @@ static bool stack_is_observed(pcintr_stack_t stack)
 }
 #endif         /* } */
 
-static void
-execute_one_step(pcintr_coroutine_t co)
+// return co if alive, otherwise NULL
+static pcintr_coroutine_t
+terminating_co(pcintr_coroutine_t co)
+{
+    if (co->stack.except) {
+        dump_c_stack(co->stack.exception.bt);
+        co->stack.except = 0;
+    }
+    PC_ASSERT(co->stack.back_anchor == NULL);
+
+    if (co->stack.ops.on_terminated) {
+        co->stack.ops.on_terminated(&co->stack, co->stack.ctxt);
+        co->stack.ops.on_terminated = NULL;
+    }
+    if (co->stack.ops.on_cleanup) {
+        co->stack.ops.on_cleanup(&co->stack, co->stack.ctxt);
+        co->stack.ops.on_cleanup = NULL;
+        co->stack.ctxt = NULL;
+    }
+
+    list_del(&co->node);
+    coroutine_destroy(co);
+    return NULL;
+}
+
+static bool co_is_preemptor_set(pcintr_coroutine_t co)
+{
+    if (!co)
+        return false;
+
+    pcintr_stack_t stack = &co->stack;
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_stack_get_bottom_frame(stack);
+    return frame && frame->preemptor;
+}
+
+// return co if alive, otherwise NULL
+static pcintr_coroutine_t
+execute_one_step_on_frame(pcintr_coroutine_t co)
 {
     pcintr_stack_t stack = &co->stack;
     struct pcintr_stack_frame *frame;
@@ -1162,8 +1199,8 @@ execute_one_step(pcintr_coroutine_t co)
         /* send doc to rdr */
         if (co->stack.stage == STACK_STAGE_FIRST_ROUND &&
             !pcintr_rdr_page_control_load(stack)) {
-            co->state = CO_STATE_TERMINATED;
-            return;
+            co->stack.exited = 1;
+            return terminating_co(co);
         }
 
         pcintr_dump_document(stack);
@@ -1172,12 +1209,11 @@ execute_one_step(pcintr_coroutine_t co)
         // do not run execute-one-step until event's fired if co->waits > 0
         if (co->stack.except == 0 && co->waits) { // FIXME:
             co->state = CO_STATE_WAIT;
-            return;
+            return co;
         }
 
-        co->state = CO_STATE_TERMINATED;
-        PC_DEBUGX("co terminating: %p", co);
-        return;
+        co->stack.exited = 1;
+        return terminating_co(co);
     }
     else {
         frame = pcintr_stack_get_bottom_frame(stack);
@@ -1185,31 +1221,47 @@ execute_one_step(pcintr_coroutine_t co)
             PC_ASSERT(0); // Not implemented yet
         }
         // continue coroutine even if it's in wait state
+        return co;
     }
 }
 
-static void terminating_co(pcintr_coroutine_t co)
+// return co if alive, otherwise NULL
+static pcintr_coroutine_t execute_on_frame(pcintr_coroutine_t co)
 {
-    if (co->stack.except) {
-        dump_c_stack(co->stack.exception.bt);
+    switch (co->state) {
+        case CO_STATE_READY:
+            co->state = CO_STATE_RUN;
+            // fall-through
+        case CO_STATE_RUN:
+            coroutine_set_current(co);
+            co = execute_one_step_on_frame(co);
+            coroutine_set_current(NULL);
+            break;
+        case CO_STATE_WAIT:
+            break;
+        default:
+            PC_ASSERT(0);
     }
-    PC_ASSERT(co->stack.back_anchor == NULL);
-
-    if (co->stack.ops.on_terminated) {
-        co->stack.ops.on_terminated(&co->stack, co->stack.ctxt);
-        co->stack.ops.on_terminated = NULL;
-    }
-    if (co->stack.ops.on_cleanup) {
-        co->stack.ops.on_cleanup(&co->stack, co->stack.ctxt);
-        co->stack.ops.on_cleanup = NULL;
-        co->stack.ctxt = NULL;
-    }
-    list_del(&co->node);
-    coroutine_destroy(co);
-    co = NULL;
-    coroutine_set_current(NULL);
+    return co;
 }
 
+// return co if alive, otherwise NULL
+static pcintr_coroutine_t run_co(pcintr_coroutine_t co)
+{
+    pcintr_stack_t stack = &co->stack;
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_stack_get_bottom_frame(stack);
+    if (frame) {
+        return execute_on_frame(co);
+    }
+    else if (co->stack.exited) {
+        return terminating_co(co);
+    }
+    else {
+        PC_ASSERT(co->state == CO_STATE_WAIT);
+        return co;
+    }
+}
 
 static int run_coroutines(void *ctxt)
 {
@@ -1225,25 +1277,19 @@ static int run_coroutines(void *ctxt)
     list_for_each_safe(p, n, coroutines) {
         struct pcintr_coroutine *co;
         co = container_of(p, struct pcintr_coroutine, node);
+        co = run_co(co);
+        if (co == NULL)
+            continue;
+
         switch (co->state) {
             case CO_STATE_READY:
-                co->state = CO_STATE_RUN;
-                coroutine_set_current(co);
-                execute_one_step(co);
-                //PC_ASSERT(purc_get_last_error() == PURC_ERROR_OK);
-                coroutine_set_current(NULL);
                 ++readies;
                 break;
             case CO_STATE_WAIT:
                 ++waits;
                 break;
             case CO_STATE_RUN:
-                PC_ASSERT(0);
-                break;
-            case CO_STATE_TERMINATED:
-                coroutine_set_current(co);
-                terminating_co(co);
-                ++readies;
+                PC_ASSERT(co_is_preemptor_set(co));
                 break;
             default:
                 PC_ASSERT(0);
@@ -1590,6 +1636,7 @@ purc_load_hvml_from_rwstream_ex(purc_rwstream_t stream,
     }
 
     co->state = CO_STATE_READY;
+    INIT_LIST_HEAD(&co->children);
 
     stack = &co->stack;
     stack->co = co;

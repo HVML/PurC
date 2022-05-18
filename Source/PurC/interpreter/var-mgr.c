@@ -475,14 +475,11 @@ _find_named_scope_var_in_vdom(pcvdom_element_t elem, const char* name, pcvarmgr_
 
 again:
 
-    PC_DEBUGX("finding [$%s] from <%s>...", name, elem->tag_name);
     v = pcintr_get_scope_variable(elem, name);
     if (v) {
         if (mgr) {
             *mgr = pcvdom_element_get_variables(elem);
         }
-        PRINT_VARIANT(v);
-        PC_DEBUGX("found=-==");
         return v;
     }
 
@@ -512,14 +509,11 @@ _find_named_scope_var(struct pcintr_stack_frame *frame, const char* name, pcvarm
 
 again:
 
-    PC_DEBUGX("finding [$%s] from <%s>...", name, elem->tag_name);
     v = pcintr_get_scope_variable(elem, name);
     if (v) {
         if (mgr) {
             *mgr = pcvdom_element_get_variables(elem);
         }
-        PRINT_VARIANT(v);
-        PC_DEBUGX("found=-==");
         return v;
     }
 
@@ -582,8 +576,10 @@ _find_named_temp_var(struct pcintr_stack_frame *frame, const char *name)
 
 again:
 
-    if (p == NULL)
+    if (p == NULL) {
+        purc_set_error(PURC_ERROR_ENTITY_NOT_FOUND);
         return PURC_VARIANT_INVALID;
+    }
 
     do {
         purc_variant_t tmp;
@@ -599,7 +595,6 @@ again:
         if (v == PURC_VARIANT_INVALID)
             break;
 
-        PRINT_VARIANT(v);
         return v;
     } while (0);
 
@@ -678,8 +673,7 @@ pcintr_get_symbolized_var (pcintr_stack_t stack, unsigned int number,
 {
     enum purc_symbol_var symbol_var = _to_symbol(symbol);
     if (symbol_var == PURC_SYMBOL_VAR_MAX) {
-        PC_DEBUGX("symbol: [%c]", symbol);
-        PC_ASSERT(0);
+        purc_set_error(PURC_ERROR_BAD_NAME);
         return PURC_VARIANT_INVALID;
     }
 
@@ -709,8 +703,7 @@ pcintr_find_anchor_symbolized_var(pcintr_stack_t stack, const char *anchor,
     purc_variant_t ret = PURC_VARIANT_INVALID;
     enum purc_symbol_var symbol_var = _to_symbol(symbol);
     if (symbol_var == PURC_SYMBOL_VAR_MAX) {
-        PC_DEBUGX("symbol: [%c]", symbol);
-        PC_ASSERT(0);
+        purc_set_error(PURC_ERROR_BAD_NAME);
         return PURC_VARIANT_INVALID;
     }
 
