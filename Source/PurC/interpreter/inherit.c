@@ -147,11 +147,26 @@ on_element(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 
 static void
 on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
-        struct pcvdom_content *content)
+        struct pcvdom_content *content, bool first_child)
 {
     UNUSED_PARAM(co);
     UNUSED_PARAM(frame);
+    UNUSED_PARAM(first_child);
     PC_ASSERT(content);
+    if (!first_child) {
+        return;
+    }
+
+    struct pcvcm_node *vcm = content->vcm;
+    if (!vcm)
+        return;
+
+    pcintr_stack_t stack = pcintr_get_stack();
+    purc_variant_t v = pcvcm_eval(vcm, stack, frame->silently);
+    PC_ASSERT(v != PURC_VARIANT_INVALID);
+    purc_clr_error();
+
+    pcintr_set_symbol_var(frame, PURC_SYMBOL_VAR_CARET, v);
 }
 
 static void
@@ -187,6 +202,7 @@ select_child(pcintr_stack_t stack, void* ud)
     ctxt = (struct ctxt_for_inherit*)frame->ctxt;
 
     struct pcvdom_node *curr;
+    bool first_child = false;
 
 again:
     curr = ctxt->curr;
@@ -195,10 +211,12 @@ again:
         struct pcvdom_element *element = frame->pos;
         struct pcvdom_node *node = &element->node;
         node = pcvdom_node_first_child(node);
+        first_child = false;
         curr = node;
     }
     else {
         curr = pcvdom_node_next_sibling(curr);
+        first_child = false;
         purc_clr_error();
     }
 
@@ -220,7 +238,7 @@ again:
                 return element;
             }
         case PCVDOM_NODE_CONTENT:
-            on_content(co, frame, PCVDOM_CONTENT_FROM_NODE(curr));
+            on_content(co, frame, PCVDOM_CONTENT_FROM_NODE(curr), first_child);
                 PC_ASSERT(stack->except == 0);
             goto again;
         case PCVDOM_NODE_COMMENT:
