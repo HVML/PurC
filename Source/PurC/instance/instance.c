@@ -617,8 +617,10 @@ static int instance_init_modules(struct pcinst *curr_inst,
             curr_inst->initialized_main_runloop = true;
         }
 
+#ifndef MOCK_ASYNC
         pcfetcher_init(FETCHER_MAX_CONNS, FETCHER_CACHE_QUOTA,
             (modules & PURC_HAVE_FETCHER_R));
+#endif
     }
 
     /* connnect to renderer */
@@ -652,7 +654,9 @@ static bool pcinst_cleanup(struct hvml_app *app, struct pcinst *curr_inst)
     }
 
     if (curr_inst->modules & PURC_HAVE_FETCHER) {
+#ifndef MOCK_ASYNC            /* { */
         pcfetcher_term();
+#endif                        /* } */
     }
 
     pcvariant_cleanup_instance(curr_inst);

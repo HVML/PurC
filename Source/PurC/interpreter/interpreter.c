@@ -89,6 +89,12 @@ void pcintr_init_instance(struct pcinst* inst)
     heap->running_coroutine = NULL;
 
     heap->running_loop = NULL;
+
+    INIT_LIST_HEAD(&heap->routines);
+    INIT_LIST_HEAD(&heap->pending_reqs);
+    INIT_LIST_HEAD(&heap->active_reqs);
+    INIT_LIST_HEAD(&heap->running_reqs);
+    INIT_LIST_HEAD(&heap->routines);
 }
 
 static void
@@ -472,6 +478,15 @@ struct pcintr_routine {
     void                        *ctxt;
     pcintr_routine_f             routine;
 
+    struct list_head             node;
+};
+
+struct pcintr_req {
+    pcintr_coroutine_t           target;
+    void                        *ctxt;
+    struct pcintr_req_ops       *ops;
+
+    int                          refc; // TODO: atomic or thread-safe-lock?
     struct list_head             node;
 };
 
@@ -1718,6 +1733,11 @@ purc_run(purc_variant_t request, purc_event_handler handler)
     heap->running_thread = pthread_self();
 
     purc_runloop_run();
+
+    PC_ASSERT(list_empty(&heap->routines));
+    PC_ASSERT(list_empty(&heap->pending_reqs));
+    PC_ASSERT(list_empty(&heap->active_reqs));
+    PC_ASSERT(list_empty(&heap->running_reqs));
 
     heap->running_thread = 0;
     heap->running_loop = NULL;

@@ -458,5 +458,8 @@ purc_run(purc_variant_t request, purc_event_handler handler);
 
 PCA_EXTERN_C_END
 
+// TODO: deprecate
+#define MOCK_ASYNC
+
 #endif /* not defined PURC_PURC_H */
 

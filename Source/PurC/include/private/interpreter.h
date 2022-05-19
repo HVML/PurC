@@ -54,6 +54,15 @@ struct pcintr_routine;
 typedef struct pcintr_routine pcintr_routine;
 typedef struct pcintr_routine *pcintr_routine_t;
 
+struct pcintr_req;
+typedef struct pcintr_req pcintr_req;
+typedef struct pcintr_req *pcintr_req_t;
+
+struct pcintr_req_ops {
+    int (*callback)(void *ctxt);
+    void (*cancel)(void *ctxt);
+};
+
 struct pcintr_heap {
     // owner instance
     struct pcinst        *owner;
@@ -72,7 +81,15 @@ struct pcintr_heap {
     pthread_mutex_t       locker;
     volatile bool         exiting;
     struct list_head      routines;  // struct pcintr_routine
+
+    struct list_head      pending_reqs; // struct pcintr_req
+    struct list_head      active_reqs;  // struct pcintr_req
+    struct list_head      running_reqs; // struct pcintr_req
 };
+
+int pcintr_post_req(void *ctxt, struct pcintr_req_ops *ops);
+int pcintr_cancel_req(pcintr_req_t req);
+int pcintr_activate_req(pcintr_req_t req);
 
 typedef void (*pcintr_routine_f)(void *ctxt);
 
