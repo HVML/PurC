@@ -75,18 +75,6 @@ typedef void (*pcfetcher_cancel_async_fn)(struct pcfetcher* fetcher,
 typedef int (*pcfetcher_check_response_fn)(struct pcfetcher* fetcher,
         uint32_t timeout_ms);
 
-typedef pcfetcher_req_t (*pcfetcher_make_req_fn)(
-        struct pcfetcher* fetcher,
-        const char* url,
-        enum pcfetcher_request_method method,
-        purc_variant_t params,
-        uint32_t timeout,
-        pcfetcher_response_handler handler,
-        void* ctxt);
-
-typedef void (*pcfetcher_cancel_req_fn)(struct pcfetcher* fetcher,
-        pcfetcher_req_t req);
-
 struct pcfetcher {
     size_t max_conns;
     size_t cache_quota;
@@ -101,9 +89,6 @@ struct pcfetcher {
     pcfetcher_request_sync_fn request_sync;
     pcfetcher_cancel_async_fn cancel_async;
     pcfetcher_check_response_fn check_response;
-
-    pcfetcher_make_req_fn make_req;
-    pcfetcher_cancel_req_fn cancel_req;
 };
 
 struct pcfetcher_callback_info {
@@ -162,7 +147,6 @@ int pcfetcher_local_check_response(struct pcfetcher* fetcher,
 
 struct pcfetcher* pcfetcher_remote_init(size_t max_conns, size_t cache_quota);
 
-#if 0               /* { */
 int pcfetcher_remote_term(struct pcfetcher* fetcher);
 
 const char* pcfetcher_remote_set_base_url(struct pcfetcher* fetcher,
@@ -202,8 +186,6 @@ void pcfetcher_remote_cancel_async(struct pcfetcher* fetcher,
 
 int pcfetcher_remote_check_response(struct pcfetcher* fetcher,
         uint32_t timeout_ms);
-
-#endif              /* } */
 
 #endif // ENABLE(REMOTE_FETCHER)
 
