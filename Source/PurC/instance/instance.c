@@ -461,6 +461,9 @@ static int app_new_inst(struct hvml_app *app, const char *runner_name,
         curr_inst->errcode = PURC_ERROR_OK;
         curr_inst->app_name = app->name;
 
+        curr_inst->running_loop = purc_runloop_get_current();
+        curr_inst->running_thread = pthread_self();
+
         list_add_tail(&curr_inst->node, &app->instances);
 
         *pcurr_inst = curr_inst;

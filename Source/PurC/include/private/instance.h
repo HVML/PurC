@@ -70,6 +70,11 @@ struct pcinst {
     char                   *runner_name;
     purc_atom_t             endpoint_atom;
 
+    // runloop bounded by this runner
+    purc_runloop_t        running_loop;
+    // pthread bounded by this runner
+    pthread_t             running_thread;
+
 #define LOG_FILE_SYSLOG     ((FILE *)-1)
     /* the FILE object for logging (-1: use syslog; NULL: disabled) */
     FILE                   *fp_log;

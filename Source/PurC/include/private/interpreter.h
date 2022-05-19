@@ -59,9 +59,23 @@ typedef struct pcintr_req pcintr_req;
 typedef struct pcintr_req *pcintr_req_t;
 
 struct pcintr_req_ops {
-    int (*callback)(void *ctxt);
-    void (*cancel)(void *ctxt);
+    int (*req)(pcintr_req_t req, void *ctxt);
+    int (*callback)(pcintr_req_t req, void *ctxt);
+    void (*cancel)(pcintr_req_t req, void *ctxt);
+    void (*destroy)(void *ctxt);
 };
+
+enum pcintr_req_type {
+    REQ_TYPE_RAW,     /* raw action, be careful */
+    REQ_TYPE_SYNC,    /* sync */
+    REQ_TYPE_ASYNC,   /* async */
+};
+
+int pcintr_post_req(enum pcintr_req_type req_type,
+        void *ctxt, struct pcintr_req_ops *ops);
+void pcintr_cancel_req(pcintr_req_t req);
+void pcintr_activate_req(pcintr_req_t req);
+void pcintr_hibernate_active_req(pcintr_req_t req);
 
 struct pcintr_heap {
     // owner instance
@@ -73,23 +87,16 @@ struct pcintr_heap {
     // those running under and managed by this heap
     struct list_head      coroutines;
 
-    // runloop bounded by this heap
-    purc_runloop_t        running_loop;
-    // pthread bounded by this heap
-    pthread_t             running_thread;
-
     pthread_mutex_t       locker;
     volatile bool         exiting;
     struct list_head      routines;  // struct pcintr_routine
 
-    struct list_head      pending_reqs; // struct pcintr_req
-    struct list_head      active_reqs;  // struct pcintr_req
-    struct list_head      running_reqs; // struct pcintr_req
+    struct list_head      pending_reqs;      // struct pcintr_req
+    struct list_head      active_reqs;       // struct pcintr_req
+    struct list_head      cancelled_reqs;    // struct pcintr_req
+    struct list_head      hibernating_reqs;  // struct pcintr_req
+    struct list_head      dying_reqs;        // struct pcintr_req
 };
-
-int pcintr_post_req(void *ctxt, struct pcintr_req_ops *ops);
-int pcintr_cancel_req(pcintr_req_t req);
-int pcintr_activate_req(pcintr_req_t req);
 
 typedef void (*pcintr_routine_f)(void *ctxt);
 
