@@ -1,5 +1,5 @@
 /*
- * @file fetcher-session.h
+ * @file fetcher-request.h
  * @author XueShuming
  * @date 2021/11/17
  * @brief The fetcher session class.
@@ -22,8 +22,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef PURC_FETCHER_SESSION_H
-#define PURC_FETCHER_SESSION_H
+#ifndef PURC_FETCHER_REQUEST_H
+#define PURC_FETCHER_REQUEST_H
 
 #if ENABLE(REMOTE_FETCHER)
 
@@ -44,14 +44,14 @@
 
 using namespace PurCFetcher;
 
-class PcFetcherSession : public IPC::Connection::Client {
-    WTF_MAKE_NONCOPYABLE(PcFetcherSession);
+class PcFetcherRequest : public IPC::Connection::Client {
+    WTF_MAKE_NONCOPYABLE(PcFetcherRequest);
 
 public:
-    PcFetcherSession(uint64_t sessionId,
+    PcFetcherRequest(uint64_t sessionId,
             IPC::Connection::Identifier connectionIdentifier, WorkQueue *queue);
 
-    ~PcFetcherSession();
+    ~PcFetcherRequest();
 
     IPC::Connection* connection() const
     {
@@ -95,7 +95,7 @@ protected:
 
     void didClose(IPC::Connection&);
     void didReceiveInvalidMessage(IPC::Connection&, IPC::MessageName);
-    const char* connectionName(void) { return "PcFetcherSession"; }
+    const char* connectionName(void) { return "PcFetcherRequest"; }
 
     void didReceiveMessage(IPC::Connection&, IPC::Decoder&);
     void didReceiveSyncMessage(IPC::Connection&, IPC::Decoder&,
@@ -127,4 +127,4 @@ private:
 
 #endif // ENABLE(REMOTE_FETCHER)
 
-#endif /* not defined PURC_FETCHER_SESSION_H */
+#endif /* not defined PURC_FETCHER_REQUEST_H */

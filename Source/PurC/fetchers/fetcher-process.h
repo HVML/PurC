@@ -27,7 +27,7 @@
 
 #if ENABLE(REMOTE_FETCHER)
 
-#include "fetcher-session.h"
+#include "fetcher-request.h"
 #include "fetcher-messages-basic.h"
 
 #include "Connection.h"
@@ -104,7 +104,7 @@ public:
 
     void setProcessSuppressionEnabled(bool);
 
-    PcFetcherSession* createSession(void);
+    PcFetcherRequest* createSession(void);
 
     purc_variant_t requestAsync(
         const char* base_uri,

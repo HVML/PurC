@@ -1,5 +1,5 @@
 /*
- * @file fetcher-session.cpp
+ * @file fetcher-request.cpp
  * @author XueShuming
  * @date 2021/11/17
  * @brief The impl for fetcher session.
@@ -26,7 +26,7 @@
 
 #if ENABLE(REMOTE_FETCHER)
 
-#include "fetcher-session.h"
+#include "fetcher-request.h"
 #include "fetcher-messages.h"
 
 #include "NetworkResourceLoadParameters.h"
@@ -41,7 +41,7 @@ using namespace PurCFetcher;
 
 extern "C"  struct pcinst* pcinst_current(void);
 
-PcFetcherSession::PcFetcherSession(uint64_t sessionId,
+PcFetcherRequest::PcFetcherRequest(uint64_t sessionId,
         IPC::Connection::Identifier identifier, WorkQueue *queue)
     : m_sessionId(sessionId)
     , m_req_id(0)
@@ -59,7 +59,7 @@ PcFetcherSession::PcFetcherSession(uint64_t sessionId,
     m_runloop = &RunLoop::current();
 }
 
-PcFetcherSession::~PcFetcherSession()
+PcFetcherRequest::~PcFetcherRequest()
 {
     close();
     if (m_callback) {
@@ -67,7 +67,7 @@ PcFetcherSession::~PcFetcherSession()
     }
 }
 
-void PcFetcherSession::close()
+void PcFetcherRequest::close()
 {
     if (m_connection) {
         m_connection->invalidate();
@@ -93,7 +93,7 @@ static const char* transMethod(enum pcfetcher_request_method method)
     }
 }
 
-purc_variant_t PcFetcherSession::requestAsync(
+purc_variant_t PcFetcherRequest::requestAsync(
         const char* base_uri,
         const char* url,
         enum pcfetcher_request_method method,
@@ -138,7 +138,7 @@ purc_variant_t PcFetcherSession::requestAsync(
     return m_callback->req_id;
 }
 
-purc_rwstream_t PcFetcherSession::requestSync(
+purc_rwstream_t PcFetcherRequest::requestSync(
         const char* base_uri,
         const char* url,
         enum pcfetcher_request_method method,
@@ -198,7 +198,7 @@ purc_rwstream_t PcFetcherSession::requestSync(
     return rws;
 }
 
-void PcFetcherSession::stop()
+void PcFetcherRequest::stop()
 {
     if (!m_is_async) {
         return;
@@ -219,7 +219,7 @@ void PcFetcherSession::stop()
     }
 }
 
-void PcFetcherSession::cancel()
+void PcFetcherRequest::cancel()
 {
     if (!m_is_async) {
         return;
@@ -237,56 +237,56 @@ void PcFetcherSession::cancel()
     }
 }
 
-void PcFetcherSession::wait(uint32_t timeout)
+void PcFetcherRequest::wait(uint32_t timeout)
 {
     m_waitForSyncReplySemaphore.waitFor(Seconds(timeout));
 }
 
-void PcFetcherSession::wakeUp(void)
+void PcFetcherRequest::wakeUp(void)
 {
     m_waitForSyncReplySemaphore.signal();
 }
 
-void PcFetcherSession::didClose(IPC::Connection&)
+void PcFetcherRequest::didClose(IPC::Connection&)
 {
 }
 
-void PcFetcherSession::didReceiveInvalidMessage(IPC::Connection&,
+void PcFetcherRequest::didReceiveInvalidMessage(IPC::Connection&,
         IPC::MessageName)
 {
 }
 
-void PcFetcherSession::didReceiveMessage(IPC::Connection&,
+void PcFetcherRequest::didReceiveMessage(IPC::Connection&,
         IPC::Decoder& decoder)
 {
     if (decoder.messageName() == Messages::WebResourceLoader::DidReceiveResponse::name()) {
         IPC::handleMessage<Messages::WebResourceLoader::DidReceiveResponse>(
-                decoder, this, &PcFetcherSession::didReceiveResponse);
+                decoder, this, &PcFetcherRequest::didReceiveResponse);
         return;
     }
     if (decoder.messageName() == Messages::WebResourceLoader::DidReceiveSharedBuffer::name()) {
         IPC::handleMessage<Messages::WebResourceLoader::DidReceiveSharedBuffer>(
-                decoder, this, &PcFetcherSession::didReceiveSharedBuffer);
+                decoder, this, &PcFetcherRequest::didReceiveSharedBuffer);
         return;
     }
     if (decoder.messageName() == Messages::WebResourceLoader::DidFinishResourceLoad::name()) {
         IPC::handleMessage<Messages::WebResourceLoader::DidFinishResourceLoad>(
-                decoder, this, &PcFetcherSession::didFinishResourceLoad);
+                decoder, this, &PcFetcherRequest::didFinishResourceLoad);
         return;
     }
     if (decoder.messageName() == Messages::WebResourceLoader::DidFailResourceLoad::name()) {
         IPC::handleMessage<Messages::WebResourceLoader::DidFailResourceLoad>(
-                decoder, this, &PcFetcherSession::didFailResourceLoad);
+                decoder, this, &PcFetcherRequest::didFailResourceLoad);
         return;
     }
     if (decoder.messageName() == Messages::WebResourceLoader::WillSendRequest::name()) {
         IPC::handleMessage<Messages::WebResourceLoader::WillSendRequest>(
-                decoder, this, &PcFetcherSession::willSendRequest);
+                decoder, this, &PcFetcherRequest::willSendRequest);
         return;
     }
 }
 
-void PcFetcherSession::didReceiveSyncMessage(IPC::Connection& connection,
+void PcFetcherRequest::didReceiveSyncMessage(IPC::Connection& connection,
         IPC::Decoder& decoder, std::unique_ptr<IPC::Encoder>& replyEncoder)
 {
     UNUSED_PARAM(connection);
@@ -294,7 +294,7 @@ void PcFetcherSession::didReceiveSyncMessage(IPC::Connection& connection,
     UNUSED_PARAM(replyEncoder);
 }
 
-void PcFetcherSession::didReceiveResponse(
+void PcFetcherRequest::didReceiveResponse(
         const PurCFetcher::ResourceResponse& response,
         bool needsContinueDidReceiveResponseMessage)
 {
@@ -318,7 +318,7 @@ void PcFetcherSession::didReceiveResponse(
     m_callback->rws = purc_rwstream_new_buffer(init, INT_MAX);
 }
 
-void PcFetcherSession::didReceiveSharedBuffer(
+void PcFetcherRequest::didReceiveSharedBuffer(
         IPC::SharedBufferDataReference&& data, int64_t encodedDataLength)
 {
     UNUSED_PARAM(encodedDataLength);
@@ -328,7 +328,7 @@ void PcFetcherSession::didReceiveSharedBuffer(
     purc_rwstream_write(m_callback->rws, data.data(), data.size());
 }
 
-void PcFetcherSession::didFinishResourceLoad(
+void PcFetcherRequest::didFinishResourceLoad(
         const NetworkLoadMetrics& networkLoadMetrics)
 {
     UNUSED_PARAM(networkLoadMetrics);
@@ -374,7 +374,7 @@ void PcFetcherSession::didFinishResourceLoad(
     }
 }
 
-void PcFetcherSession::didFailResourceLoad(const ResourceError& error)
+void PcFetcherRequest::didFailResourceLoad(const ResourceError& error)
 {
     UNUSED_PARAM(error);
     if (g_cancellable_is_cancelled(m_cancellable.get())) {
@@ -421,7 +421,7 @@ void PcFetcherSession::didFailResourceLoad(const ResourceError& error)
     }
 }
 
-void PcFetcherSession::willSendRequest(ResourceRequest&& proposedRequest,
+void PcFetcherRequest::willSendRequest(ResourceRequest&& proposedRequest,
         IPC::FormDataReference&& proposedRequestBody,
         ResourceResponse&& redirectResponse)
 {

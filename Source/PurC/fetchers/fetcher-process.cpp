@@ -39,7 +39,7 @@ using namespace PurCFetcher;
 
 struct process_async_data {
     PcFetcherProcess *process;
-    PcFetcherSession *session;
+    PcFetcherRequest *session;
     pcfetcher_response_handler handler;
     void *ctxt;
 };
@@ -264,7 +264,7 @@ void PcFetcherProcess::setProcessSuppressionEnabled(bool processSuppressionEnabl
     UNUSED_PARAM(processSuppressionEnabled);
 }
 
-PcFetcherSession* PcFetcherProcess::createSession(void)
+PcFetcherRequest* PcFetcherProcess::createSession(void)
 {
     PurCFetcher::ProcessIdentifier pid = ProcessIdentifier::generate();
     PAL::SessionID sid(1);
@@ -274,7 +274,7 @@ PcFetcherSession* PcFetcherProcess::createSession(void)
         Messages::NetworkProcess::CreateNetworkConnectionToWebProcess { pid, sid },
         Messages::NetworkProcess::CreateNetworkConnectionToWebProcess::Reply(
             attachment, cookieAcceptPolicy), 0);
-    return new PcFetcherSession(sid.toUInt64(),
+    return new PcFetcherRequest(sid.toUInt64(),
             attachment->releaseFileDescriptor(), m_workQueue.get());
 }
 
@@ -287,7 +287,7 @@ purc_variant_t PcFetcherProcess::requestAsync(
         pcfetcher_response_handler handler,
         void* ctxt)
 {
-    PcFetcherSession* session = createSession();
+    PcFetcherRequest* session = createSession();
     if (!session) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return PURC_VARIANT_INVALID;
@@ -330,7 +330,7 @@ purc_rwstream_t PcFetcherProcess::requestSync(
         uint32_t timeout,
         struct pcfetcher_resp_header *resp_header)
 {
-    PcFetcherSession* session = createSession();
+    PcFetcherRequest* session = createSession();
     purc_rwstream_t rws = session->requestSync(base_uri, url, method,
             params, timeout, resp_header);
     m_workQueue->dispatch([session] {
