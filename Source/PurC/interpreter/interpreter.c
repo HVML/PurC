@@ -123,13 +123,31 @@ stack_frame_release(struct pcintr_stack_frame *frame)
 }
 
 static void
-stack_frame_destroy(struct pcintr_stack_frame *frame)
+stack_frame_pseudo_release(struct pcintr_stack_frame_pseudo *frame_pseudo)
 {
-    if (!frame)
+    if (!frame_pseudo)
         return;
 
-    stack_frame_release(frame);
-    free(frame);
+    stack_frame_release(&frame_pseudo->frame);
+}
+
+static void
+stack_frame_normal_release(struct pcintr_stack_frame_normal *frame_normal)
+{
+    if (!frame_normal)
+        return;
+
+    stack_frame_release(&frame_normal->frame);
+}
+
+static void
+stack_frame_normal_destroy(struct pcintr_stack_frame_normal *frame_normal)
+{
+    if (!frame_normal)
+        return;
+
+    stack_frame_normal_release(frame_normal);
+    free(frame_normal);
 }
 
 static void
@@ -404,6 +422,25 @@ release_scoped_variables(pcintr_stack_t stack)
 }
 
 static void
+destroy_stack_frame(struct pcintr_stack_frame *frame)
+{
+    struct pcintr_stack_frame_normal *frame_normal = NULL;
+
+    switch (frame->type) {
+        case STACK_FRAME_TYPE_NORMAL:
+            frame_normal = container_of(frame,
+                    struct pcintr_stack_frame_normal, frame);
+            stack_frame_normal_destroy(frame_normal);
+            break;
+        case STACK_FRAME_TYPE_PSEUDO:
+            PC_ASSERT(0);
+            break;
+        default:
+            PC_ASSERT(0);
+    }
+}
+
+static void
 stack_release(pcintr_stack_t stack)
 {
     if (!stack)
@@ -434,7 +471,7 @@ stack_release(pcintr_stack_t stack)
         PC_ASSERT(p->type == STACK_FRAME_TYPE_NORMAL);
         list_del(&p->node);
         --stack->nr_frames;
-        stack_frame_destroy(p);
+        destroy_stack_frame(p);
     }
     PC_ASSERT(stack->nr_frames == 0);
 
@@ -629,7 +666,24 @@ pop_stack_frame(pcintr_stack_t stack)
     struct pcintr_stack_frame *frame;
     frame = container_of(tail, struct pcintr_stack_frame, node);
 
-    stack_frame_destroy(frame);
+    struct pcintr_stack_frame_normal *frame_normal = NULL;
+    struct pcintr_stack_frame_pseudo *frame_pseudo = NULL;
+
+    switch (frame->type) {
+        case STACK_FRAME_TYPE_NORMAL:
+            frame_normal = container_of(frame,
+                    struct pcintr_stack_frame_normal, frame);
+            stack_frame_normal_destroy(frame_normal);
+            break;
+        case STACK_FRAME_TYPE_PSEUDO:
+            frame_pseudo = container_of(frame,
+                    struct pcintr_stack_frame_pseudo, frame);
+            stack_frame_pseudo_release(frame_pseudo);
+            break;
+        default:
+            PC_ASSERT(0);
+    }
+
     --stack->nr_frames;
 }
 
@@ -782,16 +836,17 @@ push_stack_pseudo_frame(pcintr_stack_t stack)
 }
 #endif            /* } */
 
-static struct pcintr_stack_frame*
-push_stack_frame(pcintr_stack_t stack)
+static struct pcintr_stack_frame_normal*
+push_stack_frame_normal(pcintr_stack_t stack)
 {
-    struct pcintr_stack_frame *frame;
-    frame = (struct pcintr_stack_frame*)calloc(1, sizeof(*frame));
-    if (!frame) {
+    struct pcintr_stack_frame_normal *frame_normal;
+    frame_normal = (struct pcintr_stack_frame_normal*)calloc(1, sizeof(*frame_normal));
+    if (!frame_normal) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
     }
 
+    struct pcintr_stack_frame *frame = &frame_normal->frame;
     frame->type = STACK_FRAME_TYPE_NORMAL;
 
     do {
@@ -804,7 +859,7 @@ push_stack_frame(pcintr_stack_t stack)
         if (init_symvals_with_vals(frame))
             break;
 
-        return frame;
+        return frame_normal;
     } while (0);
 
     pop_stack_frame(stack);
@@ -1120,11 +1175,13 @@ on_select_child(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 
         // push child frame
         pcintr_stack_t stack = &co->stack;
-        struct pcintr_stack_frame *child_frame;
-        child_frame = push_stack_frame(stack);
-        if (!child_frame)
+        struct pcintr_stack_frame_normal *frame_normal;
+        frame_normal = push_stack_frame_normal(stack);
+        if (!frame_normal)
             return;
 
+        struct pcintr_stack_frame *child_frame;
+        child_frame = &frame_normal->frame;
         child_frame->ops = pcintr_get_ops_by_element(element);
         child_frame->pos = element;
         child_frame->silently = pcintr_is_element_silently(child_frame->pos) ?
@@ -1748,10 +1805,13 @@ purc_load_hvml_from_rwstream_ex(purc_rwstream_t stream,
     pcintr_timer_set_interval(stack->event_timer, EVENT_TIMER_INTRVAL);
     pcintr_timer_start(stack->event_timer);
 
-    struct pcintr_stack_frame *frame;
-    frame = push_stack_frame(stack);
-    if (!frame)
+    struct pcintr_stack_frame_normal *frame_normal;
+    frame_normal = push_stack_frame_normal(stack);
+    if (!frame_normal)
         goto fail_frame;
+
+    struct pcintr_stack_frame *frame;
+    frame = &frame_normal->frame;
 
     frame->ops = *pcintr_get_document_ops();
 
@@ -2054,10 +2114,13 @@ pcintr_handle_message(void *ctxt)
             if (is_observer_match(p, observed, msg_type_atom, sub_type)) {
                 // FIXME:
                 // push stack frame
-                struct pcintr_stack_frame *frame;
-                frame = push_stack_frame(stack);
-                if (!frame)
+                struct pcintr_stack_frame_normal *frame_normal;
+                frame_normal = push_stack_frame_normal(stack);
+                if (!frame_normal)
                     return -1;
+
+                struct pcintr_stack_frame *frame;
+                frame = &frame_normal->frame;
 
                 frame->ops = pcintr_get_ops_by_element(p->pos);
                 frame->scope = p->scope;
@@ -3118,10 +3181,13 @@ pcintr_observe_vcm_ev(pcintr_stack_t stack, struct pcintr_observer* observer,
     void *native_entity = purc_variant_native_get_entity(var);
 
     // create virtual frame
-    struct pcintr_stack_frame *frame;
-    frame = push_stack_frame(stack);
-    if (!frame)
+    struct pcintr_stack_frame_normal *frame_normal;
+    frame_normal = push_stack_frame_normal(stack);
+    if (!frame_normal)
         return;
+
+    struct pcintr_stack_frame *frame;
+    frame = &frame_normal->frame;
 
     frame->ops = pcintr_get_ops_by_element(observer->pos);
     frame->scope = observer->scope;

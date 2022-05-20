@@ -103,13 +103,17 @@ typedef void (*pcintr_routine_f)(void *ctxt);
 int pcintr_post_routine(pcintr_coroutine_t target,
         void *ctxt, pcintr_routine_f cb);
 
+struct pcintr_stack_frame;
+typedef struct pcintr_stack_frame pcintr_stack_frame;
+typedef struct pcintr_stack_frame *pcintr_stack_frame_t;
+
 struct pcintr_stack_frame_normal;
 typedef struct pcintr_stack_frame_normal pcintr_stack_frame_normal;
 typedef struct pcintr_stack_frame_normal *pcintr_stack_frame_normal_t;
 
-struct pcintr_stack_frame;
-typedef struct pcintr_stack_frame pcintr_stack_frame;
-typedef struct pcintr_stack_frame *pcintr_stack_frame_t;
+struct pcintr_stack_frame_pseudo;
+typedef struct pcintr_stack_frame_pseudo pcintr_stack_frame_pseudo;
+typedef struct pcintr_stack_frame_pseudo *pcintr_stack_frame_pseudo_t;
 
 struct pcintr_observer;
 typedef void (*pcintr_on_revoke_observer)(struct pcintr_observer *observer,
@@ -326,6 +330,16 @@ struct pcintr_stack_frame {
     pcintr_stack_t     owner;
 
     unsigned int       silently:1;
+};
+
+struct pcintr_stack_frame_normal {
+    int                                 dummy_guard;
+    struct pcintr_stack_frame           frame;
+};
+
+struct pcintr_stack_frame_pseudo {
+    int                                 dummy_guard;
+    struct pcintr_stack_frame           frame;
 };
 
 struct pcintr_dynamic_args {
