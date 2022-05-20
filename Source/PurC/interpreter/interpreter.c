@@ -778,9 +778,6 @@ init_undefined_symvals(struct pcintr_stack_frame *frame)
 static int
 init_symvals_with_vals(struct pcintr_stack_frame *frame)
 {
-    if (init_undefined_symvals(frame))
-        return -1;
-
     if (frame->type == STACK_FRAME_TYPE_PSEUDO)
         return 0;
 
@@ -836,11 +833,29 @@ push_stack_pseudo_frame(pcintr_stack_t stack)
 }
 #endif            /* } */
 
+static int
+init_stack_frame_normal(pcintr_stack_t stack,
+        struct pcintr_stack_frame_normal *frame_normal)
+{
+    do {
+        if (init_stack_frame(stack, &frame_normal->frame))
+            break;
+
+        if (init_undefined_symvals(&frame_normal->frame))
+            break;
+
+        return 0;
+    } while (0);
+
+    return -1;
+}
+
 static struct pcintr_stack_frame_normal*
-push_stack_frame_normal(pcintr_stack_t stack)
+stack_frame_normal_create(pcintr_stack_t stack)
 {
     struct pcintr_stack_frame_normal *frame_normal;
-    frame_normal = (struct pcintr_stack_frame_normal*)calloc(1, sizeof(*frame_normal));
+    frame_normal = (struct pcintr_stack_frame_normal*)calloc(1,
+            sizeof(*frame_normal));
     if (!frame_normal) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
@@ -849,14 +864,33 @@ push_stack_frame_normal(pcintr_stack_t stack)
     struct pcintr_stack_frame *frame = &frame_normal->frame;
     frame->type = STACK_FRAME_TYPE_NORMAL;
 
+    if (init_stack_frame_normal(stack, frame_normal))
+        goto fail_init;
+
+    return frame_normal;
+
+fail_init:
+    stack_frame_normal_destroy(frame_normal);
+
+    return NULL;
+}
+
+static struct pcintr_stack_frame_normal*
+push_stack_frame_normal(pcintr_stack_t stack)
+{
+    struct pcintr_stack_frame_normal *frame_normal;
+    frame_normal = stack_frame_normal_create(stack);
+    if (!frame_normal)
+        return NULL;
+
+    struct pcintr_stack_frame *frame = &frame_normal->frame;
+    frame->type = STACK_FRAME_TYPE_NORMAL;
+
+    list_add_tail(&frame->node, &stack->frames);
+    ++stack->nr_frames;
+
     do {
-        if (init_stack_frame(stack, frame))
-            break;
-
-        list_add_tail(&frame->node, &stack->frames);
-        ++stack->nr_frames;
-
-        if (init_symvals_with_vals(frame))
+        if (init_symvals_with_vals(&frame_normal->frame))
             break;
 
         return frame_normal;
