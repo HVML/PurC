@@ -85,11 +85,13 @@ struct pcintr_heap {
     pcintr_coroutine_t    running_coroutine;
 
     // those running under and managed by this heap
-    struct list_head      coroutines;
+    struct list_head      readies;      // struct pcintr_coroutine
+    struct list_head      waits;        // struct pcintr_coroutine
+    struct list_head      dyings;       // struct pcintr_coroutine
 
     pthread_mutex_t       locker;
     volatile bool         exiting;
-    struct list_head      routines;  // struct pcintr_routine
+    struct list_head      routines;     // struct pcintr_routine
 
     struct list_head      pending_reqs;      // struct pcintr_req
     struct list_head      active_reqs;       // struct pcintr_req

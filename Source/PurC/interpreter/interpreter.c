@@ -84,7 +84,9 @@ void pcintr_init_instance(struct pcinst* inst)
     inst->intr_heap = heap;
     heap->owner     = inst;
 
-    INIT_LIST_HEAD(&heap->coroutines);
+    INIT_LIST_HEAD(&heap->readies);
+    INIT_LIST_HEAD(&heap->waits);
+    INIT_LIST_HEAD(&heap->dyings);
     heap->running_coroutine = NULL;
 
     INIT_LIST_HEAD(&heap->routines);
@@ -599,7 +601,7 @@ void pcintr_cleanup_instance(struct pcinst* inst)
     PC_ASSERT(heap->exiting == false);
     heap->exiting = true;
 
-    struct list_head *coroutines = &heap->coroutines;
+    struct list_head *coroutines = &heap->readies;
     struct list_head *p, *n;
 
     list_for_each_safe(p, n, coroutines) {
@@ -1404,9 +1406,9 @@ static void run_coroutines(void)
 {
     struct pcinst *inst = pcinst_current();
     struct pcintr_heap *heap = inst->intr_heap;
-    struct list_head *coroutines = &heap->coroutines;
-    size_t readies = 0;
-    size_t waits = 0;
+    struct list_head *coroutines = &heap->readies;
+    size_t nr_readies = 0;
+    size_t nr_waits = 0;
 
     struct list_head *p, *n;
     list_for_each_safe(p, n, coroutines) {
@@ -1418,10 +1420,10 @@ static void run_coroutines(void)
 
         switch (co->state) {
             case CO_STATE_READY:
-                ++readies;
+                ++nr_readies;
                 break;
             case CO_STATE_WAIT:
-                ++waits;
+                ++nr_waits;
                 break;
             case CO_STATE_RUN:
                 PC_ASSERT(0);
@@ -1431,10 +1433,10 @@ static void run_coroutines(void)
         }
     }
 
-    if (readies) {
+    if (nr_readies) {
         pcintr_coroutine_ready();
     }
-    else if (waits==0) {
+    else if (nr_waits==0) {
         purc_runloop_t runloop = purc_runloop_get_current();
         PC_ASSERT(runloop);
         purc_runloop_stop(runloop);
@@ -1760,7 +1762,7 @@ purc_load_hvml_from_rwstream_ex(purc_rwstream_t stream,
 {
     struct pcinst *inst = pcinst_current();
     struct pcintr_heap *heap = inst->intr_heap;
-    struct list_head *coroutines = &heap->coroutines;
+    struct list_head *coroutines = &heap->readies;
 
     pcintr_coroutine_t co = NULL;
     pcintr_stack_t stack = NULL;
@@ -2136,8 +2138,8 @@ pcintr_handle_message(void *ctxt)
                 frame->next_step = NEXT_STEP_AFTER_PUSHED;
 
                 stack->co->state = CO_STATE_READY;
-                // pcintr_coroutine_ready();
-                run_coroutines();
+                pcintr_coroutine_ready();
+                // run_coroutines();
             }
         }
     }
