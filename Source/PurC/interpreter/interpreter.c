@@ -1295,17 +1295,6 @@ terminating_co(pcintr_coroutine_t co)
     return NULL;
 }
 
-static bool co_is_preemptor_set(pcintr_coroutine_t co)
-{
-    if (!co)
-        return false;
-
-    pcintr_stack_t stack = &co->stack;
-    struct pcintr_stack_frame *frame;
-    frame = pcintr_stack_get_bottom_frame(stack);
-    return frame && frame->preemptor;
-}
-
 // return co if alive, otherwise NULL
 static pcintr_coroutine_t
 execute_one_step_on_frame(pcintr_coroutine_t co)
@@ -1315,30 +1304,22 @@ execute_one_step_on_frame(pcintr_coroutine_t co)
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame);
 
-    if (frame->preemptor) {
-        PC_ASSERT(0); // Not implemented yet
-        preemptor_f preemptor = frame->preemptor;
-        frame->preemptor = NULL;
-        preemptor(co, frame);
-    }
-    else {
-        switch (frame->next_step) {
-            case NEXT_STEP_AFTER_PUSHED:
-                after_pushed(co, frame);
-                break;
-            case NEXT_STEP_ON_POPPING:
-                on_popping(co, frame);
-                break;
-            case NEXT_STEP_RERUN:
-                on_rerun(co, frame);
-                break;
-            case NEXT_STEP_SELECT_CHILD:
-                on_select_child(co, frame);
-                break;
-            default:
-                PC_ASSERT(0);
-                break;
-        }
+    switch (frame->next_step) {
+        case NEXT_STEP_AFTER_PUSHED:
+            after_pushed(co, frame);
+            break;
+        case NEXT_STEP_ON_POPPING:
+            on_popping(co, frame);
+            break;
+        case NEXT_STEP_RERUN:
+            on_rerun(co, frame);
+            break;
+        case NEXT_STEP_SELECT_CHILD:
+            on_select_child(co, frame);
+            break;
+        default:
+            PC_ASSERT(0);
+            break;
     }
 
     PC_ASSERT(co->state == CO_STATE_RUN);
@@ -1358,36 +1339,27 @@ execute_one_step_on_frame(pcintr_coroutine_t co)
         PC_ASSERT(inst->errcode == 0);
     }
 
-    bool no_frames = list_empty(&co->stack.frames);
+    if (!list_empty(&co->stack.frames))
+        return co;
 
-    if (no_frames) {
-        /* send doc to rdr */
-        if (co->stack.stage == STACK_STAGE_FIRST_ROUND &&
+    /* send doc to rdr */
+    if (co->stack.stage == STACK_STAGE_FIRST_ROUND &&
             !pcintr_rdr_page_control_load(stack)) {
-            co->stack.exited = 1;
-            return terminating_co(co);
-        }
-
-        pcintr_dump_document(stack);
-        co->stack.stage = STACK_STAGE_EVENT_LOOP;
-
-        // do not run execute-one-step until event's fired if co->waits > 0
-        if (co->stack.except == 0 && co->waits) { // FIXME:
-            co->state = CO_STATE_WAIT;
-            return co;
-        }
-
         co->stack.exited = 1;
         return terminating_co(co);
     }
-    else {
-        frame = pcintr_stack_get_bottom_frame(stack);
-        if (frame && frame->preemptor) {
-            PC_ASSERT(0); // Not implemented yet
-        }
-        // continue coroutine even if it's in wait state
+
+    pcintr_dump_document(stack);
+    co->stack.stage = STACK_STAGE_EVENT_LOOP;
+
+    // do not run execute-one-step until event's fired if co->waits > 0
+    if (co->stack.except == 0 && co->waits) { // FIXME:
+        co->state = CO_STATE_WAIT;
         return co;
     }
+
+    co->stack.exited = 1;
+    return terminating_co(co);
 }
 
 // return co if alive, otherwise NULL
@@ -1452,7 +1424,7 @@ static void run_coroutines(void)
                 ++waits;
                 break;
             case CO_STATE_RUN:
-                PC_ASSERT(co_is_preemptor_set(co));
+                PC_ASSERT(0);
                 break;
             default:
                 PC_ASSERT(0);

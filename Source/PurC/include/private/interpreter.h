@@ -281,9 +281,6 @@ enum pcintr_stack_frame_next_step {
     NEXT_STEP_SELECT_CHILD,
 };
 
-typedef void (*preemptor_f) (pcintr_coroutine_t co,
-            struct pcintr_stack_frame *frame);
-
 enum pcintr_stack_frame_type {
     STACK_FRAME_TYPE_NORMAL,
     STACK_FRAME_TYPE_PSEUDO,
@@ -323,9 +320,6 @@ struct pcintr_stack_frame {
 
     // managed by coroutine-coordinator
     enum pcintr_stack_frame_next_step next_step;
-
-    // coordinated between element-implementer and coroutine-coordinator
-    preemptor_f        preemptor;
 
     pcintr_stack_t     owner;
 
