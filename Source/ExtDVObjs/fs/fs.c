@@ -1847,11 +1847,29 @@ lstat_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             case 'm':
                 if (strcmp_len (flag, "mode_digits", &flag_len) == 0) {
                     // returns file mode like '0644'.
-                    ;
+                    char string_mode[] = "0000";
+                    string_mode[1] += (st.st_mode & 0x0F00) >> 8;
+                    string_mode[2] += (st.st_mode & 0x00F0) >> 4;
+                    string_mode[3] += (st.st_mode & 0x000F);
+                    val = purc_variant_make_string (string_mode, true);
+                    purc_variant_object_set_by_static_ckey (ret_var, "type", val);
+                    purc_variant_unref (val);
                 }
                 else if (strcmp_len (flag, "mode_alphas", &flag_len) == 0) {
                     // returns file mode like 'rwxrwxr-x'.
-                    ;
+                    char string_mode[] = "---------";
+                    if (st.st_mode & S_IRUSR) string_mode[0] = 'r';
+                    if (st.st_mode & S_IWUSR) string_mode[1] = 'w';
+                    if (st.st_mode & S_IXUSR) string_mode[2] = 'x';
+                    if (st.st_mode & S_IRGRP) string_mode[3] = 'r';
+                    if (st.st_mode & S_IWGRP) string_mode[4] = 'w';
+                    if (st.st_mode & S_IXGRP) string_mode[5] = 'x';
+                    if (st.st_mode & S_IROTH) string_mode[6] = 'r';
+                    if (st.st_mode & S_IWOTH) string_mode[7] = 'w';
+                    if (st.st_mode & S_IXOTH) string_mode[8] = 'x';
+                    val = purc_variant_make_string (string_mode, true);
+                    purc_variant_object_set_by_static_ckey (ret_var, "type", val);
+                    purc_variant_unref (val);
                 }
                 else if (strcmp_len (flag, "mtime", &flag_len) == 0) {
                     // returns time of last modification.
