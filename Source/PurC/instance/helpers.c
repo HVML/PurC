@@ -262,6 +262,48 @@ char* purc_assemble_endpoint_name_alloc (const char* host_name,
     return endpoint;
 }
 
+#define HVML_SCHEMA "hvml://"
+
+char* purc_assemble_hvml_uri_alloc (const char* host_name,
+        const char* app_name, const char* runner_name, const char *page_name)
+{
+    char* uri;
+    const int schema_len = sizeof(HVML_SCHEMA) - 1;
+    int host_len, app_len, runner_len, page_len = 0;
+
+    if ((host_len = strlen (host_name)) > PURC_LEN_HOST_NAME)
+        return NULL;
+
+    if ((app_len = strlen (app_name)) > PURC_LEN_APP_NAME)
+        return NULL;
+
+    if ((runner_len = strlen (runner_name)) > PURC_LEN_RUNNER_NAME)
+        return NULL;
+
+    if (page_name)
+        page_len = strlen(page_name);
+
+    if ((uri = malloc (schema_len + host_len + app_len + runner_len +
+                    page_len + 8)) == NULL)
+        return NULL;
+
+    strcpy (uri, "hvml://");
+    strcpy (uri + schema_len, host_name);
+    uri [schema_len + host_len] = '/';
+
+    strcpy (uri + schema_len + host_len + 1, app_name);
+    uri [schema_len + host_len + app_len + 2] = '/';
+
+    strcpy (uri + schema_len + host_len + app_len + 3, runner_name);
+    uri [schema_len + host_len + app_len + 3] = '/';
+
+    if (page_len > 0)
+        strcpy (uri + schema_len + host_len + app_len + runner_len + 4,
+            page_name);
+
+    return uri;
+}
+
 bool purc_is_valid_host_name (const char* host_name)
 {
     // TODO

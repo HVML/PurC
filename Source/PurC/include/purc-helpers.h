@@ -87,6 +87,10 @@ PCA_EXPORT char *
 purc_assemble_endpoint_name_alloc(const char *host_name,
         const char *app_name, const char *runner_name);
 
+PCA_EXPORT char *
+purc_assemble_hvml_uri_alloc(const char *host_name,
+        const char *app_name, const char *runner_name, const char *page_name);
+
 /**
  * Check whether a string is a valid token.
  *
