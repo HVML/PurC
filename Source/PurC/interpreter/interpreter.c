@@ -1263,7 +1263,7 @@ static bool co_is_observed(pcintr_coroutine_t co)
     if (!list_empty(&co->stack.native_variant_observer_list))
         return true;
 
-    return true;
+    return false;
 }
 
 // return co if alive, otherwise NULL
@@ -1275,7 +1275,7 @@ terminating_co(pcintr_coroutine_t co)
         co->stack.except = 0;
     }
 
-    if (!co_is_observed(co)) {
+    if (co_is_observed(co)) {
         co->state = CO_STATE_WAIT;
         return co;
     }
@@ -1755,6 +1755,189 @@ pcintr_init_vdom_under_stack(pcintr_stack_t stack)
     return 0;
 }
 
+static void execute_one_step_for_ready_co(pcintr_coroutine_t co)
+{
+    pcintr_stack_t stack = &co->stack;
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_stack_get_bottom_frame(stack);
+    PC_ASSERT(frame);
+
+    switch (frame->next_step) {
+        case NEXT_STEP_AFTER_PUSHED:
+            after_pushed(co, frame);
+            break;
+        case NEXT_STEP_ON_POPPING:
+            on_popping(co, frame);
+            break;
+        case NEXT_STEP_RERUN:
+            on_rerun(co, frame);
+            break;
+        case NEXT_STEP_SELECT_CHILD:
+            on_select_child(co, frame);
+            break;
+        default:
+            PC_ASSERT(0);
+            break;
+    }
+}
+
+static void execute_one_step_for_exiting_co(pcintr_coroutine_t co)
+{
+    pcintr_stack_t stack = &co->stack;
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_stack_get_bottom_frame(stack);
+    PC_ASSERT(frame == NULL);
+    PC_ASSERT(stack->exited);
+
+    PC_ASSERT(co->stack.except == 0);
+
+    // CHECK pending requests
+
+    PC_ASSERT(co->stack.back_anchor == NULL);
+
+    if (co->stack.ops.on_terminated) {
+        co->stack.ops.on_terminated(&co->stack, co->stack.ctxt);
+        co->stack.ops.on_terminated = NULL;
+    }
+    if (co->stack.ops.on_cleanup) {
+        co->stack.ops.on_cleanup(&co->stack, co->stack.ctxt);
+        co->stack.ops.on_cleanup = NULL;
+        co->stack.ctxt = NULL;
+    }
+
+    pcintr_heap_t heap = co->owner;
+    struct pcinst *inst = heap->owner;
+
+    list_del(&co->node);
+    coroutine_destroy(co);
+
+    if (list_empty(&heap->readies))
+        purc_runloop_stop(inst->running_loop);
+
+    return;
+}
+
+static void check_after_execution(pcintr_coroutine_t co);
+
+static void run_exiting_co(void *ctxt)
+{
+    pcintr_coroutine_t co = (pcintr_coroutine_t)ctxt;
+    PC_ASSERT(co);
+    switch (co->state) {
+        case CO_STATE_READY:
+            co->state = CO_STATE_RUN;
+            coroutine_set_current(co);
+            execute_one_step_for_exiting_co(co);
+            coroutine_set_current(NULL);
+            break;
+        case CO_STATE_RUN:
+            PC_ASSERT(0);
+            break;
+        case CO_STATE_WAIT:
+            PC_ASSERT(0);
+            break;
+        default:
+            PC_ASSERT(0);
+    }
+}
+
+static void run_ready_co(void *ctxt);
+
+static void check_after_execution(pcintr_coroutine_t co)
+{
+    struct pcinst *inst = pcinst_current();
+    pcintr_stack_t stack = &co->stack;
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_stack_get_bottom_frame(stack);
+
+    switch (co->state) {
+        case CO_STATE_READY:
+            PC_ASSERT(0);
+            break;
+        case CO_STATE_RUN:
+            break;
+        case CO_STATE_WAIT:
+            PC_ASSERT(frame && frame->type == STACK_FRAME_TYPE_NORMAL);
+            PC_ASSERT(inst->errcode == 0);
+            return;
+        default:
+            PC_ASSERT(0);
+    }
+
+    if (inst->errcode) {
+        PC_ASSERT(stack->except == 0);
+        exception_copy(&stack->exception);
+        stack->except = 1;
+        pcinst_clear_error(inst);
+        PC_ASSERT(inst->errcode == 0);
+#ifndef NDEBUG                     /* { */
+        dump_stack(stack);
+#endif                             /* } */
+        PC_ASSERT(inst->errcode == 0);
+    }
+
+    PC_ASSERT(co->state == CO_STATE_RUN);
+    co->state = CO_STATE_READY;
+
+    if (frame) {
+        purc_runloop_dispatch(inst->running_loop, run_ready_co, co);
+        return;
+    }
+
+    /* send doc to rdr */
+    if (stack->stage == STACK_STAGE_FIRST_ROUND &&
+            !pcintr_rdr_page_control_load(stack))
+    {
+        PC_ASSERT(0); // TODO:
+        // stack->exited = 1;
+        // terminating_co(co);
+        return;
+    }
+
+    pcintr_dump_document(stack);
+    stack->stage = STACK_STAGE_EVENT_LOOP;
+
+    if (co->stack.except) {
+        dump_c_stack(co->stack.exception.bt);
+        co->stack.except = 0;
+        co->stack.exited = 1;
+        PC_ASSERT(0);
+        // purc_runloop_dispatch(inst->running_loop, run_exiting_co, co);
+        return;
+    }
+
+    co->stack.exited = 1;
+    if (co_is_observed(co)) {
+        PC_ASSERT(0); // TODO: cancel and wait;
+        return;
+    }
+
+    purc_runloop_dispatch(inst->running_loop, run_exiting_co, co);
+}
+
+static void run_ready_co(void *ctxt)
+{
+    pcintr_coroutine_t co = (pcintr_coroutine_t)ctxt;
+    PC_ASSERT(co);
+    switch (co->state) {
+        case CO_STATE_READY:
+            co->state = CO_STATE_RUN;
+            coroutine_set_current(co);
+            execute_one_step_for_ready_co(co);
+            check_after_execution(co);
+            coroutine_set_current(NULL);
+            break;
+        case CO_STATE_RUN:
+            PC_ASSERT(0);
+            break;
+        case CO_STATE_WAIT:
+            PC_ASSERT(0);
+            break;
+        default:
+            PC_ASSERT(0);
+    }
+}
+
 purc_vdom_t
 purc_load_hvml_from_rwstream_ex(purc_rwstream_t stream,
         struct pcintr_supervisor_ops *ops, void *ctxt)
@@ -1822,7 +2005,8 @@ purc_load_hvml_from_rwstream_ex(purc_rwstream_t stream,
 
     frame->ops = *pcintr_get_document_ops();
 
-    pcintr_coroutine_ready();
+    // pcintr_coroutine_ready();
+    purc_runloop_dispatch(inst->running_loop, run_ready_co, co);
 
     // FIXME: double-free, potentially!!!
     return stack->vdom;
