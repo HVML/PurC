@@ -1445,11 +1445,10 @@ static void run_coroutines(void)
 
 typedef void (*heap_routine_f)(void);
 
-static int heap_wokenup(void *ctxt)
+static void heap_wokenup(void *ctxt)
 {
     heap_routine_f routine = (heap_routine_f)ctxt;
     routine();
-    return 0;
 }
 
 static void wakeup_heap(pcintr_heap_t heap, heap_routine_f routine)
@@ -2092,7 +2091,7 @@ pcintr_message_destroy(struct pcintr_message* msg)
     }
 }
 
-static int
+static void
 pcintr_handle_message(void *ctxt)
 {
     pcintr_stack_t stack = NULL;
@@ -2125,7 +2124,7 @@ pcintr_handle_message(void *ctxt)
                 struct pcintr_stack_frame_normal *frame_normal;
                 frame_normal = push_stack_frame_normal(stack);
                 if (!frame_normal)
-                    return -1;
+                    return;
 
                 struct pcintr_stack_frame *frame;
                 frame = &frame_normal->frame;
@@ -2145,7 +2144,6 @@ pcintr_handle_message(void *ctxt)
     }
 
     pcintr_message_destroy(msg);
-    return 0;
 }
 
 int

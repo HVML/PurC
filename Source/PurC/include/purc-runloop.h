@@ -126,7 +126,7 @@ void purc_runloop_stop(purc_runloop_t runloop);
 PCA_EXPORT
 void purc_runloop_wakeup(purc_runloop_t runloop);
 
-typedef int (*purc_runloop_func)(void *ctxt);
+typedef void (*purc_runloop_func)(void *ctxt);
 
 /**
  * Dispatch function on the runloop
