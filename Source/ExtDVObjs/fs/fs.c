@@ -410,6 +410,76 @@ static mode_t str_to_mode (const char *input, mode_t mode)
     return INVALID_MODE; // Incomplete statement
 }
 
+static purc_variant_t get_basename_string (const char *string_path,
+        const char *string_suffix)
+{
+    // On Linux, slash (/) is used as directory separator character.
+    const char separator = '/';
+    const char *base_begin = string_path;
+    const char *temp_ptr = string_path;
+    const char *base_end = string_path + strlen (string_path);
+
+    while (base_end > base_begin && separator == *(base_end - 1)) {
+        base_end--;
+    }
+
+    while (temp_ptr < base_end) {
+        if (separator == *temp_ptr) {
+            base_begin = temp_ptr + 1;
+        }
+        temp_ptr ++;
+    }
+
+    // If the name component ends in suffix this will also be cut off.
+    if (string_suffix) {
+        int suffix_len = strlen(string_suffix);
+        temp_ptr = base_end - suffix_len;
+        if (temp_ptr > base_begin &&
+            0 == strncmp(string_suffix, temp_ptr, suffix_len)) {
+            base_end = temp_ptr;
+        }
+    }
+
+    return purc_variant_make_string_ex(base_begin,
+            (base_end - base_begin), true);
+}
+
+static purc_variant_t get_dir_string(const char *string_path, uint64_t levels)
+{
+    // On Linux, slash (/) is used as directory separator character.
+    const char separator = '/';
+    const char *temp_ptr = NULL;
+    const char *dir_begin = string_path;
+    const char *dir_end = dir_begin + strlen(string_path) - 1;
+
+    while (separator != *dir_begin && '\0' != *dir_begin) {
+        dir_begin ++;
+    }
+
+    while (levels --) {
+        temp_ptr = dir_end;
+        while (temp_ptr >= dir_begin && separator == *temp_ptr) {
+            temp_ptr--;
+        }
+        while (temp_ptr >= dir_begin && separator != *temp_ptr) {
+            temp_ptr--;
+        }
+        if (temp_ptr <= dir_begin) {
+            if (separator == *dir_begin) {
+                dir_end = dir_begin + 1;
+            }
+            else {
+                dir_end = dir_begin;
+            }
+            break;
+        }
+        dir_end = temp_ptr;
+    }
+
+    return purc_variant_make_string_ex(string_path,
+            (dir_end - string_path), true);
+}
+
 static purc_variant_t
 list_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
@@ -1018,13 +1088,8 @@ basename_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(root);
     UNUSED_PARAM(silently);
 
-    // On Linux, slash (/) is used as directory separator character.
-    const char separator = '/';
     const char *string_path = NULL;
     const char *string_suffix = NULL;
-    const char *base_begin = NULL;
-    const char *temp_ptr = NULL;
-    const char *base_end = NULL;
     purc_variant_t ret_string = PURC_VARIANT_INVALID;
 
     if (nr_args < 1) {
@@ -1042,34 +1107,7 @@ basename_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         string_suffix = purc_variant_get_string_const (argv[1]);
     }
 
-    // Mark out the trailing name component.
-    base_begin = string_path;
-    temp_ptr = base_begin;
-    base_end = base_begin + strlen(string_path);
-
-    while (base_end > base_begin && separator == *(base_end - 1)) {
-        base_end--;
-    }
-
-    while (temp_ptr < base_end) {
-        if (separator == *temp_ptr) {
-            base_begin = temp_ptr + 1;
-        }
-        temp_ptr ++;
-    }
-
-    // If the name component ends in suffix this will also be cut off.
-    if (string_suffix) {
-        int suffix_len = strlen(string_suffix);
-        temp_ptr = base_end - suffix_len;
-        if (temp_ptr > base_begin &&
-            0 == strncmp(string_suffix, temp_ptr, suffix_len)) {
-            base_end = temp_ptr;
-        }
-    }
-
-    ret_string = purc_variant_make_string_ex(base_begin,
-            (base_end - base_begin), true);
+    ret_string = get_basename_string (string_path, string_suffix);
     return ret_string;
 }
 
@@ -1295,13 +1333,8 @@ dirname_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(root);
     UNUSED_PARAM(silently);
 
-    // On Linux, slash (/) is used as directory separator character.
-    const char separator = '/';
     const char *string_path = NULL;
     uint64_t levels = 1;
-    const char *dir_begin = NULL;
-    const char *temp_ptr = NULL;
-    const char *dir_end = NULL;
     purc_variant_t ret_string = PURC_VARIANT_INVALID;
 
     if (nr_args < 1) {
@@ -1322,36 +1355,8 @@ dirname_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             return PURC_VARIANT_INVALID;
         }
     }
-
-    dir_begin = string_path;
-    dir_end = dir_begin + strlen(string_path) - 1;
-
-    while (separator != *dir_begin && '\0' != *dir_begin) {
-        dir_begin ++;
-    }
-
-    while (levels --) {
-        temp_ptr = dir_end;
-        while (temp_ptr >= dir_begin && separator == *temp_ptr) {
-            temp_ptr--;
-        }
-        while (temp_ptr >= dir_begin && separator != *temp_ptr) {
-            temp_ptr--;
-        }
-        if (temp_ptr <= dir_begin) {
-            if (separator == *dir_begin) {
-                dir_end = dir_begin + 1;
-            }
-            else {
-                dir_end = dir_begin;
-            }
-            break;
-        }
-        dir_end = temp_ptr;
-    }
-
-    ret_string = purc_variant_make_string_ex(string_path,
-            (dir_end - string_path), true);
+    
+    ret_string = get_dir_string (string_path, levels);
     return ret_string;
 }
 
@@ -1751,8 +1756,8 @@ lstat_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(silently);
 
     const char *string_filename = NULL;
-    const char *string_flags = "type mode_digits uid gid size rdev ctime"; //"default"
-    const char *flag = string_flags;
+    const char *string_flags = NULL;
+    const char *flag = NULL;
     struct stat st;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_variant_t val = PURC_VARIANT_INVALID;
@@ -1779,6 +1784,9 @@ lstat_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             string_flags = "dev inode type mode_digits mode_alphas nlink \
                     uid gid size rdev blksize blocks atime ctime mtime";
         }
+        else if (strcmp(string_flags, "default") == 0) {
+            string_flags = "type mode_digits uid gid size rdev ctime";
+        }
     }
 
     if (lstat(string_filename, &st) == -1) {
@@ -1789,6 +1797,7 @@ lstat_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     ret_var = purc_variant_make_object (0,
             PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
 
+    flag = string_flags;
     while (*flag)
     {
         size_t flag_len = 0;
@@ -1987,7 +1996,6 @@ lstat_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         flag += flag_len;
     }
 
-    ret_var = purc_variant_make_boolean (true);
     return ret_var;
 }
 
@@ -1998,20 +2006,27 @@ link_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(root);
     UNUSED_PARAM(silently);
 
-    char filename[PATH_MAX];
-    const char *string_filename = NULL;
+    const char *string_target = NULL;
+    const char *string_link = NULL;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
-    if (nr_args < 1) {
+    if (nr_args < 2) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
-    // get the file name
-    string_filename = purc_variant_get_string_const (argv[0]);
-    strncpy (filename, string_filename, sizeof(filename));
+    // get the parameters
+    string_target = purc_variant_get_string_const (argv[0]);
+    string_link = purc_variant_get_string_const (argv[1]);
+    if (NULL == string_target || NULL == string_link) {
+        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+        return PURC_VARIANT_INVALID;
+    }
 
-    // wait for code
+    if (link(string_target, string_link) == -1) {
+        set_purc_error_by_errno ();
+        return purc_variant_make_boolean (false);
+    }
 
     ret_var = purc_variant_make_boolean (true);
     return ret_var;
@@ -2054,22 +2069,101 @@ pathinfo_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(root);
     UNUSED_PARAM(silently);
 
-    char filename[PATH_MAX];
-    const char *string_filename = NULL;
+    char name[PATH_MAX];
+    const char *string_path = NULL;
+    const char *string_flags = NULL;
+    const char *flag = NULL;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    purc_variant_t val = PURC_VARIANT_INVALID;
 
     if (nr_args < 1) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
-    // get the file name
-    string_filename = purc_variant_get_string_const (argv[0]);
-    strncpy (filename, string_filename, sizeof(filename));
+    // get the parameters
+    string_path = purc_variant_get_string_const (argv[0]);
+    if (NULL == string_path) {
+        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+        return PURC_VARIANT_INVALID;
+    }
+    if (nr_args > 1) {
+        string_flags = purc_variant_get_string_const (argv[1]);
+        if (NULL == string_flags) {
+            purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+            return PURC_VARIANT_INVALID;
+        }
 
-    // wait for code
+        if (strcmp(string_flags, "all") == 0) {
+            string_flags = "dirname basename extension filename";
+        }
+    }
 
-    ret_var = purc_variant_make_boolean (true);
+    ret_var = purc_variant_make_object (0,
+            PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+
+    flag = string_flags;
+    while (*flag)
+    {
+        size_t flag_len = 0;
+
+        while (purc_isspace(*flag))
+            flag ++;
+        
+        switch (*flag)
+        {
+            case 'd':
+                if (strcmp_len (flag, "dirname", &flag_len) == 0) {
+
+                    
+                    val = purc_variant_make_string (name, true);
+                    purc_variant_object_set_by_static_ckey (ret_var, "dirname", val);
+                    purc_variant_unref (val);
+                }
+                break;
+
+            case 'b':
+                if (strcmp_len (flag, "basename", &flag_len) == 0) {
+
+
+                    val = purc_variant_make_string (name, true);
+                    purc_variant_object_set_by_static_ckey (ret_var, "basename", val);
+                    purc_variant_unref (val);
+                }
+                break;
+
+            case 'e':
+                if (strcmp_len (flag, "extension", &flag_len) == 0) {
+
+
+                    val = purc_variant_make_string (name, true);
+                    purc_variant_object_set_by_static_ckey (ret_var, "extension", val);
+                    purc_variant_unref (val);
+                }
+                break;
+
+            case 'f':
+                if (strcmp_len (flag, "filename", &flag_len) == 0) {
+                    
+
+                    val = purc_variant_make_string (name, true);
+                    purc_variant_object_set_by_static_ckey (ret_var, "filename", val);
+                    purc_variant_unref (val);
+                }
+                break;
+
+            default:
+                purc_variant_unref (ret_var);
+                purc_set_error (PURC_ERROR_WRONG_STAGE);
+                return purc_variant_make_boolean (false);
+        }
+
+        if (0 == flag_len)
+            break;
+        
+        flag += flag_len;
+    }
+
     return ret_var;
 }
 
