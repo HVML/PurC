@@ -216,3 +216,14 @@ int purc_runloop_dispatch_message(purc_runloop_t runloop, purc_variant_t source,
     return -1;
 }
 
+void
+pcintr_wakeup_co(pcintr_coroutine_t target, co_routine_f routine)
+{
+    purc_runloop_t target_runloop;
+    target_runloop = pcintr_co_get_runloop(target);
+    PC_ASSERT(target_runloop);
+    ((RunLoop*)target_runloop)->dispatch([target, routine]() {
+        pcintr_apply_routine(routine, target);
+        });
+}
+

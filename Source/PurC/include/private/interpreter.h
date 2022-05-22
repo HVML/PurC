@@ -587,6 +587,17 @@ pcintr_create_scoped_variables(struct pcvdom_node *node);
 pcvarmgr_t
 pcintr_get_scoped_variables(struct pcvdom_node *node);
 
+purc_runloop_t
+pcintr_co_get_runloop(pcintr_coroutine_t co);
+
+typedef void (*co_routine_f)(pcintr_coroutine_t co);
+
+void
+pcintr_wakeup_co(pcintr_coroutine_t target, co_routine_f routine);
+
+void
+pcintr_apply_routine(co_routine_f routine, pcintr_coroutine_t target);
+
 PCA_EXTERN_C_END
 
 #endif  /* PURC_PRIVATE_INTERPRETER_H */
