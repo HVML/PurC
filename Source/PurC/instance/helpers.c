@@ -292,13 +292,13 @@ char* purc_assemble_hvml_uri_alloc (const char* host_name,
     uri [schema_len + host_len] = '/';
 
     strcpy (uri + schema_len + host_len + 1, app_name);
-    uri [schema_len + host_len + app_len + 2] = '/';
+    uri [schema_len + host_len + app_len + 1] = '/';
 
-    strcpy (uri + schema_len + host_len + app_len + 3, runner_name);
-    uri [schema_len + host_len + app_len + 3] = '/';
+    strcpy (uri + schema_len + host_len + app_len + 2, runner_name);
+    uri [schema_len + host_len + app_len + runner_len + 2] = '/';
 
     if (page_len > 0)
-        strcpy (uri + schema_len + host_len + app_len + runner_len + 4,
+        strcpy (uri + schema_len + host_len + app_len + runner_len + 3,
             page_name);
 
     return uri;
