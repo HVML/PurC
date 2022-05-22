@@ -115,7 +115,6 @@ private:
     bool m_is_async;
 
     RefPtr<IPC::Connection> m_connection;
-    IPC::MessageReceiverMap m_messageReceiverMap;
     BinarySemaphore m_waitForSyncReplySemaphore;
 
     RunLoop* m_runloop;

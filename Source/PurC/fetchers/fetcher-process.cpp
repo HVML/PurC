@@ -267,7 +267,7 @@ void PcFetcherProcess::setProcessSuppressionEnabled(bool processSuppressionEnabl
 PcFetcherRequest* PcFetcherProcess::createSession(void)
 {
     PurCFetcher::ProcessIdentifier pid = ProcessIdentifier::generate();
-    PAL::SessionID sid(1);
+    PAL::SessionID sid(ProcessIdentifier::generate().toUInt64());
     Optional<IPC::Attachment> attachment;
     PurCFetcher::HTTPCookieAcceptPolicy cookieAcceptPolicy;
     sendSync(

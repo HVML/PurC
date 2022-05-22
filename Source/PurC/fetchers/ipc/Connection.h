@@ -47,7 +47,6 @@
 
 #if USE(GLIB)
 #include <wtf/glib/GSocketMonitor.h>
-#include <wtf/glib/GFdMonitor.h>
 #endif
 
 namespace IPC {
@@ -358,7 +357,6 @@ private:
     std::unique_ptr<UnixMessage> m_pendingOutputMessage;
 #if USE(GLIB)
     GRefPtr<GSocket> m_socket;
-    //GFdMonitor m_readSocketMonitor;
     GSocketMonitor m_readSocketMonitor;
     GSocketMonitor m_writeSocketMonitor;
 #endif
