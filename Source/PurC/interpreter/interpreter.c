@@ -84,9 +84,7 @@ void pcintr_init_instance(struct pcinst* inst)
     inst->intr_heap = heap;
     heap->owner     = inst;
 
-    INIT_LIST_HEAD(&heap->readies);
-    INIT_LIST_HEAD(&heap->waits);
-    INIT_LIST_HEAD(&heap->dyings);
+    INIT_LIST_HEAD(&heap->coroutines);
     heap->running_coroutine = NULL;
 
     INIT_LIST_HEAD(&heap->routines);
@@ -601,7 +599,7 @@ void pcintr_cleanup_instance(struct pcinst* inst)
     PC_ASSERT(heap->exiting == false);
     heap->exiting = true;
 
-    struct list_head *coroutines = &heap->readies;
+    struct list_head *coroutines = &heap->coroutines;
     struct list_head *p, *n;
 
     list_for_each_safe(p, n, coroutines) {
@@ -1406,7 +1404,7 @@ static void run_coroutines(void)
 {
     struct pcinst *inst = pcinst_current();
     struct pcintr_heap *heap = inst->intr_heap;
-    struct list_head *coroutines = &heap->readies;
+    struct list_head *coroutines = &heap->coroutines;
     size_t nr_readies = 0;
     size_t nr_waits = 0;
 
@@ -1811,7 +1809,7 @@ static void execute_one_step_for_exiting_co(pcintr_coroutine_t co)
     list_del(&co->node);
     coroutine_destroy(co);
 
-    if (list_empty(&heap->readies))
+    if (list_empty(&heap->coroutines))
         purc_runloop_stop(inst->running_loop);
 
     return;
@@ -1994,7 +1992,7 @@ purc_load_hvml_from_rwstream_ex(purc_rwstream_t stream,
 {
     struct pcinst *inst = pcinst_current();
     struct pcintr_heap *heap = inst->intr_heap;
-    struct list_head *coroutines = &heap->readies;
+    struct list_head *coroutines = &heap->coroutines;
 
     pcintr_coroutine_t co = NULL;
     pcintr_stack_t stack = NULL;
