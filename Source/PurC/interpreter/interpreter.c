@@ -3522,6 +3522,16 @@ pcintr_event_timer_fire(const char* id, void* ctxt)
     if (stack->exited)
         return;
 
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_stack_get_bottom_frame(stack);
+    // bypass when there's still stack frame to execute
+    if (frame)
+        return;
+
+    // bypass when there's coroutine is not ready
+    if (stack->co->state != CO_STATE_READY)
+        return;
+
     pcintr_coroutine_t co = stack->co;
     pcintr_wakeup_co(co, on_co_timeup);
 }
