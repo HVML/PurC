@@ -1903,7 +1903,6 @@ static void check_after_execution(pcintr_coroutine_t co)
         co->stack.exited = 1;
         PC_ASSERT(0);
         // purc_runloop_dispatch(inst->running_loop, run_exiting_co, co);
-        return;
     }
 
     if (co_is_observed(co))

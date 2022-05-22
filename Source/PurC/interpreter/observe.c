@@ -134,6 +134,8 @@ is_base_variant_msg(purc_atom_t msg)
             msg == pcvariant_atom_unreference*/) {
         return true;
     }
+    purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+        "unknown msg: %s", purc_atom_to_string(msg));
     return false;
 }
 
@@ -481,8 +483,6 @@ register_mmutable_var_observer(pcintr_stack_t stack,
         purc_variant_t on
         )
 {
-    PC_ASSERT(0);
-
     struct ctxt_for_observe *ctxt;
     ctxt = (struct ctxt_for_observe*)frame->ctxt;
 
@@ -594,6 +594,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         case PURC_VARIANT_TYPE_ARRAY:
         case PURC_VARIANT_TYPE_SET:
             observer = register_mmutable_var_observer(stack, frame, ctxt->on);
+            PC_ASSERT(observer);
             break;
         default:
             break;

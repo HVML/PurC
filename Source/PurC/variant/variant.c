@@ -22,6 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include "private/atom-buckets.h"
 #include "private/variant.h"
 #include "private/instance.h"
 #include "private/ejson.h"
@@ -122,11 +123,12 @@ static int variant_init_once(void)
     pcinst_register_error_message_segment(&_variant_err_msgs_seg);
 
     // initialize others
-    pcvariant_atom_grow = purc_atom_from_static_string("grow");
-    pcvariant_atom_shrink = purc_atom_from_static_string("shrink");
-    pcvariant_atom_change = purc_atom_from_static_string("change");
-    // pcvariant_atom_reference = purc_atom_from_static_string("reference");
-    // pcvariant_atom_unreference = purc_atom_from_static_string("unreference");
+    pcvariant_atom_grow = purc_atom_from_static_string_ex(ATOM_BUCKET_MSG,
+        "grow");
+    pcvariant_atom_shrink = purc_atom_from_static_string_ex(ATOM_BUCKET_MSG,
+        "shrink");
+    pcvariant_atom_change = purc_atom_from_static_string_ex(ATOM_BUCKET_MSG,
+        "change");
 
     return 0;
 }
