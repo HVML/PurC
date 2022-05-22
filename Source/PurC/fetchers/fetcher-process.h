@@ -104,7 +104,7 @@ public:
 
     void setProcessSuppressionEnabled(bool);
 
-    PcFetcherRequest* createSession(void);
+    PcFetcherRequest* createRequest(void);
 
     purc_variant_t requestAsync(
         const char* base_uri,

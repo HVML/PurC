@@ -264,7 +264,7 @@ void PcFetcherProcess::setProcessSuppressionEnabled(bool processSuppressionEnabl
     UNUSED_PARAM(processSuppressionEnabled);
 }
 
-PcFetcherRequest* PcFetcherProcess::createSession(void)
+PcFetcherRequest* PcFetcherProcess::createRequest(void)
 {
     PurCFetcher::ProcessIdentifier pid = ProcessIdentifier::generate();
     PAL::SessionID sid(ProcessIdentifier::generate().toUInt64());
@@ -287,7 +287,7 @@ purc_variant_t PcFetcherProcess::requestAsync(
         pcfetcher_response_handler handler,
         void* ctxt)
 {
-    PcFetcherRequest* session = createSession();
+    PcFetcherRequest* session = createRequest();
     if (!session) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return PURC_VARIANT_INVALID;
@@ -330,7 +330,7 @@ purc_rwstream_t PcFetcherProcess::requestSync(
         uint32_t timeout,
         struct pcfetcher_resp_header *resp_header)
 {
-    PcFetcherRequest* session = createSession();
+    PcFetcherRequest* session = createRequest();
     purc_rwstream_t rws = session->requestSync(base_uri, url, method,
             params, timeout, resp_header);
     m_workQueue->dispatch([session] {
