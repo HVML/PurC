@@ -39,6 +39,8 @@
 #include "UnixMessage.h"
 #endif
 
+#define DISPATCH_ON_RUNLOOP
+
 namespace IPC {
 
 std::atomic<unsigned> UnboundedSynchronousIPCScope::unboundedSynchronousIPCCount = 0;
@@ -141,8 +143,11 @@ bool Connection::SyncMessageState::processIncomingMessage(Connection& connection
     }
 
     if (shouldDispatch) {
-        //RunLoop::main().dispatch([this, protectedConnection = makeRef(connection)]() mutable {
+#ifdef DISPATCH_ON_RUNLOOP
+        connection.m_runloop->dispatch([this, protectedConnection = makeRef(connection)]() mutable {
+#else
         connection.m_connectionQueue->dispatch([this, protectedConnection = makeRef(connection)]() mutable {
+#endif
             dispatchMessagesAndResetDidScheduleDispatchMessagesForConnection(protectedConnection);
         });
     }
@@ -262,6 +267,7 @@ Connection::Connection(Identifier identifier, bool isServer, Client& client, Wor
     , m_shouldWaitForMessages(true)
 {
 //    ASSERT(RunLoop::isMain());
+    m_runloop = &RunLoop::current();
     if (!m_connectionQueue) {
         m_connectionQueue = WorkQueue::create("Connection_ReceiveQueue");
     }
@@ -697,8 +703,11 @@ void Connection::processIncomingMessage(std::unique_ptr<Decoder> message)
     }
 
     if (!WorkQueueMessageReceiverMap::isValidKey(message->messageReceiverName()) || !ThreadMessageReceiverMap::isValidKey(message->messageReceiverName())) {
-        //RunLoop::main().dispatch([protectedThis = makeRef(*this), messageName = message->messageName()]() mutable {
+#ifdef DISPATCH_ON_RUNLOOP
+        m_runloop->dispatch([protectedThis = makeRef(*this), messageName = message->messageName()]() mutable {
+#else
         m_connectionQueue->dispatch([protectedThis = makeRef(*this), messageName = message->messageName()]() mutable {
+#endif
             protectedThis->dispatchDidReceiveInvalidMessage(messageName);
         });
         return;
@@ -830,8 +839,11 @@ void Connection::connectionDidClose()
     if (m_didCloseOnConnectionWorkQueueCallback)
         m_didCloseOnConnectionWorkQueueCallback(this);
 
-    //RunLoop::main().dispatch([protectedThis = makeRef(*this)]() mutable {
+#ifdef DISPATCH_ON_RUNLOOP
+    m_runloop->dispatch([protectedThis = makeRef(*this)]() mutable {
+#else
     m_connectionQueue->dispatch([protectedThis = makeRef(*this)]() mutable {
+#endif
         // If the connection has been explicitly invalidated before dispatchConnectionDidClose was called,
         // then the connection will be invalid here.
         if (!protectedThis->isValid())
@@ -936,8 +948,11 @@ void Connection::enqueueIncomingMessage(std::unique_ptr<Decoder> incomingMessage
             return;
     }
 
-    //RunLoop::main().dispatch([protectedThis = makeRef(*this)]() mutable {
+#ifdef DISPATCH_ON_RUNLOOP
+    m_runloop->dispatch([protectedThis = makeRef(*this)]() mutable {
+#else
     m_connectionQueue->dispatch([protectedThis = makeRef(*this)]() mutable {
+#endif
         if (protectedThis->m_incomingMessagesThrottler)
             protectedThis->dispatchIncomingMessages();
         else
@@ -1053,7 +1068,11 @@ void Connection::dispatchMessage(std::unique_ptr<Decoder> message)
 }
 
 Connection::MessagesThrottler::MessagesThrottler(Connection& connection, DispatchMessagesFunction dispatchMessages)
-    : m_dispatchMessagesTimer(RunLoop::main(), &connection, dispatchMessages)
+#ifdef DISPATCH_ON_RUNLOOP
+    : m_dispatchMessagesTimer(*connection.m_runloop, &connection, dispatchMessages)
+#else
+    : m_dispatchMessagesTimer(connection.m_connectionQueue->RunLoop(), &connection, dispatchMessages)
+#endif
     , m_connection(connection)
     , m_dispatchMessages(dispatchMessages)
 {
@@ -1068,8 +1087,11 @@ void Connection::MessagesThrottler::scheduleMessagesDispatch()
         m_dispatchMessagesTimer.startOneShot(0_s);
         return;
     }
-    //RunLoop::main().dispatch([this, protectedConnection = makeRefPtr(&m_connection)]() mutable {
+#ifdef DISPATCH_ON_RUNLOOP
+    m_connection.m_runloop->dispatch([this, protectedConnection = makeRefPtr(&m_connection)]() mutable {
+#else
     m_connection.m_connectionQueue->dispatch([this, protectedConnection = makeRefPtr(&m_connection)]() mutable {
+#endif
         (protectedConnection.get()->*m_dispatchMessages)();
     });
 }
@@ -1198,7 +1220,11 @@ CompletionHandler<void(Decoder*)> takeAsyncReplyHandler(Connection& connection, 
 
 void Connection::wakeUpRunLoop()
 {
-    RunLoop::main().wakeUp();
+#ifdef DISPATCH_ON_RUNLOOP
+    m_runloop->wakeUp();
+#else
+    m_connectionQueue->runLoop().wakeUp();
+#endif
 }
 
 } // namespace IPC

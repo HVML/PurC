@@ -361,6 +361,7 @@ private:
     GSocketMonitor m_writeSocketMonitor;
 #endif
 #endif
+    RunLoop* m_runloop;
 };
 
 template<typename T>
