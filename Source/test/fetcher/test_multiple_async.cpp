@@ -24,7 +24,7 @@
 class ThreadFetcher
 {
 public:
-    ThreadFetcher(const char *name, const char *url)
+    ThreadFetcher(int idx, const char *name, const char *url) : idx(idx)
     {
         if (url) {
             this->url = strdup(url);
@@ -49,13 +49,12 @@ public:
             purc_rwstream_t resp)
     {
         ThreadFetcher *tf = (ThreadFetcher *)ctxt;
-        fprintf(stderr, "async_handler|begin......\n");
-        fprintf(stderr, "async_handler|name=%s\n", tf->name);
-        fprintf(stderr, "async_handler|url=%s\n", tf->url);
-        fprintf(stderr, "async_handler|ret_code=%d\n", resp_header->ret_code);
-        fprintf(stderr, "async_handler|mime_type=%s\n", resp_header->mime_type);
-        fprintf(stderr, "async_handler|sz_resp=%ld\n", resp_header->sz_resp);
-        fprintf(stderr, "async_handler|end......\n");
+        fprintf(stderr,
+                "res|idx=%d|name=%s|url=%s|ret_code=%d|mime=%s|sz_resp=%ld\n",
+                tf->idx, tf->name, tf->url,
+                resp_header->ret_code,
+                resp_header->mime_type,
+                resp_header->sz_resp);
 
         if (resp) {
             purc_rwstream_destroy(resp);
@@ -69,13 +68,12 @@ public:
 
     void run() {
         isRun = true;
-//        BinarySemaphore semaphore;
         Thread::create(name, [&] {
-                fprintf(stderr, "name=%s|url=%s\n", name, url);
                 runLoop = &RunLoop::current();
-//                semaphore.signal();
                 initPurc();
 
+                fprintf(stderr, "req|idx=%d|name=%s|url=%s\n", idx, name,
+                        url);
                 pcfetcher_request_async(url,
                         PCFETCHER_REQUEST_METHOD_GET,
                         NULL,
@@ -103,6 +101,7 @@ private:
     }
 
 private:
+    int idx;
     bool isRun;
     char *name;
     char *url;
@@ -110,15 +109,70 @@ private:
     BinarySemaphore waitRunLoopExit;
 };
 
+struct testcase {
+    const char *name;
+    const char *url;
+};
+
+struct testcase cases[] {
+    {
+        "fmsoft",
+        "https://www.fmsoft.cn"
+    },
+    {
+        "baidu",
+        "https://www.baidu.com"
+    },
+    {
+        "163",
+        "https://www.163.com"
+    },
+    {
+        "qq",
+        "https://www.qq.com"
+    },
+    {
+        "weibo",
+        "https://www.weibo.com"
+    },
+    {
+        "jd",
+        "https://www.jd.com"
+    },
+    {
+        "csdn",
+        "https://www.csdn.net"
+    },
+    {
+        "sina",
+        "https://www.sina.com"
+    },
+    {
+        "sohu",
+        "https://www.sohu.com"
+    },
+    {
+        "taobao",
+        "https://www.taobao.com"
+    },
+};
+
 int main(int argc, char** argv)
 {
     (void)argc;
     (void)argv;
-    ThreadFetcher tf_0("fmsoft", "http://www.fmsoft.cn");
-    ThreadFetcher tf_1("baidu", "http://www.baidu.com");
-    ThreadFetcher tf_2("163", "http://www.163.com");
-    tf_0.run();
-    tf_1.run();
-    tf_2.run();
+    int sz = PCA_TABLESIZE(cases);
+    ThreadFetcher** tfs = new ThreadFetcher*[sz];
+
+    for (int i = 0; i < sz; i++) {
+        tfs[i] = new ThreadFetcher(i, cases[i].name, cases[i].url);
+        tfs[i]->run();
+    }
+
+    for (int i = 0; i < sz; i++) {
+        delete tfs[i];
+    }
+    delete[] tfs;
+
     return 0;
 }
