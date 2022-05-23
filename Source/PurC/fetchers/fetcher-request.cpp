@@ -188,6 +188,14 @@ purc_rwstream_t PcFetcherRequest::requestSync(
         return NULL;
     }
 
+    if (!m_callback->header.sz_resp && m_callback->rws) {
+        size_t sz_content = 0;
+        size_t sz_buffer = 0;
+        purc_rwstream_get_mem_buffer_ex(m_callback->rws, &sz_content,
+                &sz_buffer, false);
+        m_callback->header.sz_resp = sz_content;
+    }
+
     if (resp_header) {
         resp_header->ret_code = m_callback->header.ret_code;
         if (m_callback->header.mime_type) {
@@ -345,7 +353,7 @@ void PcFetcherRequest::didFinishResourceLoad(
         return;
     }
 
-    if (m_is_async) {
+    if (!m_is_async) {
         wakeUp();
         return;
     }
@@ -385,7 +393,7 @@ void PcFetcherRequest::didFailResourceLoad(const ResourceError& error)
     // TODO : trans error code
     m_callback->header.ret_code = 408;
 
-    if (m_is_async) {
+    if (!m_is_async) {
         wakeUp();
         return;
     }
