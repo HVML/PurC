@@ -127,6 +127,8 @@ public:
 
     void requestFinished(PcFetcherRequest *request);
 
+    bool isReadyToTerm();
+
 protected:
     // ProcessLauncher::Client
     void didFinishLaunching(ProcessLauncher*, IPC::Connection::Identifier) override;

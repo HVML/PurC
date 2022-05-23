@@ -339,6 +339,12 @@ void PcFetcherProcess::requestFinished(PcFetcherRequest *request)
     removeRequest(request);
 }
 
+bool PcFetcherProcess::isReadyToTerm()
+{
+    auto locker = holdLock(m_requestLock);
+    return m_requestVec.isEmpty();
+}
+
 void PcFetcherProcess::didClose(IPC::Connection&)
 {
     reset();

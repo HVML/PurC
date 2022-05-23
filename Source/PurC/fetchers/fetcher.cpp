@@ -60,13 +60,17 @@ int pcfetcher_term(void)
 {
     auto locker = holdLock(s_fetcher_lock);
     if (s_remote_fetcher) {
-        s_remote_fetcher->term(s_remote_fetcher);
-        s_remote_fetcher = NULL;
+        int term = s_remote_fetcher->term(s_remote_fetcher);
+        if (term != PURC_ERROR_NOT_READY) {
+            s_remote_fetcher = NULL;
+        }
     }
 
     if (s_local_fetcher) {
-        s_local_fetcher->term(s_local_fetcher);
-        s_local_fetcher = NULL;
+        int term = s_local_fetcher->term(s_local_fetcher);
+        if (term != PURC_ERROR_NOT_READY) {
+            s_local_fetcher = NULL;
+        }
     }
 
     return 0;
