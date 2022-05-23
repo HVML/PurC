@@ -14,6 +14,10 @@ list(APPEND test_utils_PRIVATE_INCLUDE_DIRECTORIES
     ${CMAKE_BINARY_DIR}
 )
 
+list(APPEND test_utils_SYSTEM_INCLUDE_DIRECTORIES
+    ${GLIB_INCLUDE_DIRS}
+)
+
 PURC_EXECUTABLE(test_utils)
 
 set(test_utils_SOURCES
@@ -21,6 +25,7 @@ set(test_utils_SOURCES
 )
 
 set(test_utils_LIBRARIES
+    ${GLIB_LIBRARIES}
     PurC::PurC
     gtest_main
     gtest

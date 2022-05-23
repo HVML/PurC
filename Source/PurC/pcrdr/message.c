@@ -457,8 +457,7 @@ static const char *target_names[] = {
     "session",
     "workspace",
     "plainwindow",
-    "tabbedwindow",
-    "tabpage",
+    "page",
     "dom",
     "thread",
 };
