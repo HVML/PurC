@@ -262,48 +262,6 @@ char* purc_assemble_endpoint_name_alloc (const char* host_name,
     return endpoint;
 }
 
-#define HVML_SCHEMA "hvml://"
-
-char* purc_assemble_hvml_uri_alloc (const char* host_name,
-        const char* app_name, const char* runner_name, const char *page_name)
-{
-    char* uri;
-    const int schema_len = sizeof(HVML_SCHEMA) - 1;
-    int host_len, app_len, runner_len, page_len = 0;
-
-    if ((host_len = strlen (host_name)) > PURC_LEN_HOST_NAME)
-        return NULL;
-
-    if ((app_len = strlen (app_name)) > PURC_LEN_APP_NAME)
-        return NULL;
-
-    if ((runner_len = strlen (runner_name)) > PURC_LEN_RUNNER_NAME)
-        return NULL;
-
-    if (page_name)
-        page_len = strlen(page_name);
-
-    if ((uri = malloc (schema_len + host_len + app_len + runner_len +
-                    page_len + 8)) == NULL)
-        return NULL;
-
-    strcpy (uri, "hvml://");
-    strcpy (uri + schema_len, host_name);
-    uri [schema_len + host_len] = '/';
-
-    strcpy (uri + schema_len + host_len + 1, app_name);
-    uri [schema_len + host_len + app_len + 1] = '/';
-
-    strcpy (uri + schema_len + host_len + app_len + 2, runner_name);
-    uri [schema_len + host_len + app_len + runner_len + 2] = '/';
-
-    if (page_len > 0)
-        strcpy (uri + schema_len + host_len + app_len + runner_len + 3,
-            page_name);
-
-    return uri;
-}
-
 bool purc_is_valid_host_name (const char* host_name)
 {
     // TODO
@@ -444,5 +402,174 @@ double purc_get_elapsed_seconds (const struct timespec *ts1,
     ds = ts2->tv_sec - ts1->tv_sec;
     dns = ts2->tv_nsec - ts1->tv_nsec;
     return ds + dns * 1.0E-9;
+}
+
+#define HVML_SCHEMA     "hvml://"
+#define COMP_SEPERATOR  '/'
+
+size_t purc_hvml_uri_assmeble(char *uri, const char *host, const char* app,
+        const char* runner, const char *group, const char *page)
+{
+    char *start = uri;
+
+    uri = stpcpy(uri, "hvml://");
+    uri = stpcpy(uri, host);
+    uri[0] = '/';
+    uri++;
+
+    uri = stpcpy(uri, app);
+    uri[0] = '/';
+    uri++;
+
+    uri = stpcpy(uri, runner);
+    uri[0] = '/';
+    uri++;
+
+    if (group) {
+        uri = stpcpy(uri, group);
+        uri[0] = '/';
+        uri++;
+    }
+
+    if (page) {
+        uri = stpcpy(uri, page);
+    }
+
+    uri[0] = '\0';
+    return uri - start;
+}
+
+char* purc_hvml_uri_assemble_alloc(const char* host, const char* app,
+        const char* runner, const char *group, const char *page)
+{
+    char* uri;
+    static const int schema_len = sizeof(HVML_SCHEMA) - 1;
+    int host_len, app_len, runner_len, group_len = 0, page_len = 0;
+
+    if ((host_len = strlen (host)) > PURC_LEN_HOST_NAME)
+        return NULL;
+
+    if ((app_len = strlen (app)) > PURC_LEN_APP_NAME)
+        return NULL;
+
+    if ((runner_len = strlen (runner)) > PURC_LEN_RUNNER_NAME)
+        return NULL;
+
+    if (group) {
+        group_len = strlen(group);
+    }
+    if (page)
+        page_len = strlen(page);
+
+    if ((uri = malloc(schema_len + host_len + app_len + runner_len +
+                    group_len + page_len + 8)) == NULL)
+        return NULL;
+
+
+    purc_hvml_uri_assmeble(uri, host, app, runner, group, page);
+    return uri;
+}
+
+static unsigned int get_comp_len(const char *str)
+{
+    unsigned int len = 0;
+
+    while (*str && *str != COMP_SEPERATOR) {
+        len++;
+        str++;
+    }
+
+    return len;
+}
+
+bool purc_hvml_uri_split(const char *uri,
+        char **host, char **app, char **runner, char **group, char **page)
+{
+    static const unsigned int sz_schema = sizeof(HVML_SCHEMA) - 1;
+    char *my_host = NULL, *my_app = NULL, *my_runner = NULL;
+    char *my_group = NULL, *my_page = NULL;
+    unsigned int len;
+
+    if (strncasecmp(uri, HVML_SCHEMA, sz_schema))
+        return false;
+
+    uri += sz_schema;
+    len = get_comp_len(uri);
+    if (len == 0 || uri[len] != COMP_SEPERATOR)
+        return false;
+    my_host = strndup(uri, len);
+
+    uri += len + 1;
+    len = get_comp_len(uri);
+    if (len == 0 || uri[len] != COMP_SEPERATOR)
+        goto failed;
+    my_app = strndup(uri, len);
+
+    uri += len + 1;
+    len = get_comp_len(uri);
+    if (len == 0 || uri[len] != COMP_SEPERATOR)
+        goto failed;
+    my_runner = strndup(uri, len);
+
+    uri += len + 1;
+    len = get_comp_len(uri);
+    if (len == 0)
+        goto failed;
+
+    if (uri[len] == COMP_SEPERATOR) {
+        /* have group */
+        my_group = strndup(uri, len);
+
+        uri += len + 1;
+        len = get_comp_len(uri);
+        if (len == 0 || uri[len] != '\0')
+            goto failed;
+        my_page = strndup(uri, len);
+    }
+    else {
+        /* no group */
+        my_page = strndup(uri, len);
+    }
+
+    if (host)
+        *host = my_host;
+    else
+        free(my_host);
+
+    if (app)
+        *app = my_app;
+    else
+        free(my_app);
+
+    if (runner)
+        *runner = my_runner;
+    else
+        free(my_runner);
+
+    if (group)
+        *group = my_group;
+    else
+        free(my_group);
+
+    if (page)
+        *page = my_page;
+    else
+        free(my_page);
+
+    return true;
+
+failed:
+    if (my_host)
+        free(my_host);
+    if (my_app)
+        free(my_app);
+    if (my_runner)
+        free(my_runner);
+    if (my_group)
+        free(my_group);
+    if (my_page)
+        free(my_page);
+
+    return false;
 }
 

@@ -92,6 +92,41 @@ purc_assemble_hvml_uri_alloc(const char *host_name,
         const char *app_name, const char *runner_name, const char *page_name);
 
 /**
+ * Assemble an HVML URI from components to the specified buffer:
+ *
+ *      hvml://<host>/<app>/<runner>/[<page>]
+ *
+ * Note the buffer should be large enough to hold the URI.
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT bool
+purc_hvml_uri_assemble(char *uri, const char *host, const char *app,
+        const char *runner, const char* group, const char *page);
+
+/**
+ * Assemble an HVML URI from components to an newly-allocated buffer:
+ *
+ *      hvml://<host>/<app>/<runner>/[<page>]
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT char *
+purc_hvml_uri_assemble_alloc(const char *host, const char *app,
+        const char *runner, const char* group, const char *page);
+
+/**
+ * Break down an HVML URI in the following pattern:
+ *
+ *      hvml://<host>/<app>/<runner>/[<group>/]<page>
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT bool
+purc_hvml_uri_split(const char *uri,
+        char **host, char **app, char **runner, char **group, char **page);
+
+/**
  * Check whether a string is a valid token.
  *
  * @param token: the pointer to the token string.
