@@ -26,9 +26,11 @@
 
 #include "private/fetcher.h"
 #include "fetcher-internal.h"
+#include <wtf/Lock.h>
 
 static struct pcfetcher* s_remote_fetcher = NULL;
 static struct pcfetcher* s_local_fetcher = NULL;
+static Lock s_fetcher_lock;
 
 static struct pcfetcher* get_fetcher(void)
 {
@@ -56,6 +58,7 @@ int pcfetcher_init(size_t max_conns, size_t cache_quota,
 
 int pcfetcher_term(void)
 {
+    auto locker = holdLock(s_fetcher_lock);
     if (s_remote_fetcher) {
         s_remote_fetcher->term(s_remote_fetcher);
         s_remote_fetcher = NULL;
