@@ -1170,6 +1170,8 @@ on_popping(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     bool ok = true;
     if (frame->ops.on_popping) {
         ok = frame->ops.on_popping(&co->stack, frame->ctxt);
+        if (co->stack.exited)
+            PC_ASSERT(ok);
     }
 
     if (ok) {
@@ -1183,6 +1185,8 @@ on_popping(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 static void
 on_rerun(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
+    PC_ASSERT(!co->stack.exited);
+
     bool ok = false;
     if (frame->ops.rerun) {
         ok = frame->ops.rerun(&co->stack, frame->ctxt);
@@ -1197,7 +1201,7 @@ static void
 on_select_child(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
     struct pcvdom_element *element = NULL;
-    if (frame->ops.select_child) {
+    if (!co->stack.exited && frame->ops.select_child) {
         element = frame->ops.select_child(&co->stack, frame->ctxt);
     }
 
@@ -1758,7 +1762,6 @@ static void execute_one_step_for_ready_co(pcintr_coroutine_t co)
     pcintr_stack_t stack = &co->stack;
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
-    PC_ASSERT(frame);
 
     switch (frame->next_step) {
         case NEXT_STEP_AFTER_PUSHED:
@@ -1841,6 +1844,20 @@ static void run_exiting_co(void *ctxt)
 
 static void run_ready_co(void *ctxt);
 
+static void run_co_msg(void *ctxt);
+
+static void
+revoke_all_common_observers(void)
+{
+    pcintr_stack_t stack = pcintr_get_stack();
+    PC_ASSERT(stack);
+    struct list_head *observers = &stack->common_variant_observer_list;
+    struct pcintr_observer *p, *n;
+    list_for_each_entry_safe(p, n, observers, node) {
+        pcintr_revoke_observer(p);
+    }
+}
+
 static void check_after_execution(pcintr_coroutine_t co)
 {
     struct pcinst *inst = pcinst_current();
@@ -1903,6 +1920,22 @@ static void check_after_execution(pcintr_coroutine_t co)
         // purc_runloop_dispatch(inst->running_loop, run_exiting_co, co);
     }
 
+    pcintr_heap_t heap = co->owner;
+    pcintr_heap_lock(heap);
+    if (!list_empty(&co->msgqueue)) {
+        purc_runloop_dispatch(inst->running_loop, run_co_msg, co);
+        pcintr_heap_unlock(heap);
+        return;
+    }
+    pcintr_heap_unlock(heap);
+
+    if (co->stack.exited) {
+        PC_ASSERT(list_empty(&co->stack.dynamic_variant_observer_list));
+        PC_ASSERT(list_empty(&co->stack.native_variant_observer_list));
+        revoke_all_common_observers();
+        PC_ASSERT(list_empty(&co->stack.common_variant_observer_list));
+    }
+
     if (co_is_observed(co))
         return;
 
@@ -1919,6 +1952,39 @@ static void run_ready_co(void *ctxt)
             co->state = CO_STATE_RUN;
             coroutine_set_current(co);
             execute_one_step_for_ready_co(co);
+            check_after_execution(co);
+            coroutine_set_current(NULL);
+            break;
+        case CO_STATE_RUN:
+            PC_ASSERT(0);
+            break;
+        case CO_STATE_WAIT:
+            PC_ASSERT(0);
+            break;
+        default:
+            PC_ASSERT(0);
+    }
+}
+
+static void execute_msg_co(pcintr_coroutine_t co)
+{
+    pcintr_msg_t msg;
+    msg = list_first_entry(&co->msgqueue, struct pcintr_msg, node);
+    PC_ASSERT(msg);
+    list_del(&msg->node);
+    msg->cb(msg->ctxt);
+    free(msg);
+}
+
+static void run_co_msg(void *ctxt)
+{
+    pcintr_coroutine_t co = (pcintr_coroutine_t)ctxt;
+    PC_ASSERT(co);
+    switch (co->state) {
+        case CO_STATE_READY:
+            co->state = CO_STATE_RUN;
+            coroutine_set_current(co);
+            execute_msg_co(co);
             check_after_execution(co);
             coroutine_set_current(NULL);
             break;
@@ -2019,6 +2085,7 @@ purc_load_hvml_from_rwstream_ex(purc_rwstream_t stream,
 
     co->state = CO_STATE_READY;
     INIT_LIST_HEAD(&co->children);
+    INIT_LIST_HEAD(&co->msgqueue);
 
     stack = &co->stack;
     stack->co = co;
@@ -3948,5 +4015,67 @@ void pcintr_hibernate_active_req(pcintr_req_t req)
     }
 
     pcintr_heap_unlock(heap);
+}
+
+static void on_co_msg_posted(pcintr_coroutine_t co)
+{
+    if (co->state != CO_STATE_READY)
+        return;
+
+    pcintr_stack_t stack = &co->stack;
+    PC_ASSERT(stack != pcintr_get_stack());
+
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_stack_get_bottom_frame(stack);
+    if (frame)
+        return;
+
+    co->state = CO_STATE_RUN;
+    coroutine_set_current(co);
+    check_after_execution(co);
+    coroutine_set_current(NULL);
+}
+
+int pcintr_post_msg(pcintr_coroutine_t target,
+        void* ctxt, pcintr_msg_cb cb)
+{
+    pcintr_msg_t msg;
+    msg = (pcintr_msg_t)calloc(1, sizeof(*msg));
+    if (!msg) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return -1;
+    }
+
+    msg->ctxt          = ctxt;
+    msg->cb            = cb;
+
+    pcintr_heap_t target_heap = target->owner;
+    pcintr_heap_lock(target_heap);
+
+    int empty = list_empty(&target->msgqueue);
+
+    list_add_tail(&msg->node, &target->msgqueue);
+
+    do {
+        if (!empty)
+            break;
+
+        if (target->state != CO_STATE_READY)
+            break;
+
+        pcintr_stack_t stack = &target->stack;
+
+        struct pcintr_stack_frame *frame;
+        frame = pcintr_stack_get_bottom_frame(stack);
+        if (frame)
+            break;
+
+        pcintr_wakeup_co(target, on_co_msg_posted);
+    } while (0);
+
+    pcintr_heap_unlock(target_heap);
+
+    free(msg);
+    return -1;
 }
 

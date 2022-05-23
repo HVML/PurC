@@ -58,9 +58,11 @@ struct pcintr_req;
 typedef struct pcintr_req pcintr_req;
 typedef struct pcintr_req *pcintr_req_t;
 
-struct pcintr_msgqueue;
-typedef struct pcintr_msgqueue pcintr_msgqueue;
-typedef struct pcintr_msgqueue *pcintr_msgqueue_t;
+struct pcintr_msg;
+typedef struct pcintr_msg pcintr_msg;
+typedef struct pcintr_msg *pcintr_msg_t;
+
+typedef void (*pcintr_msg_cb)(void *ctxt);
 
 struct pcintr_req_ops {
     int (*req)(pcintr_req_t req, void *ctxt);
@@ -73,6 +75,13 @@ enum pcintr_req_type {
     REQ_TYPE_RAW,     /* raw action, be careful */
     REQ_TYPE_SYNC,    /* sync */
     REQ_TYPE_ASYNC,   /* async */
+};
+
+struct pcintr_msg {
+    void                       *ctxt;
+    pcintr_msg_cb               cb;
+
+    struct list_head            node;
 };
 
 struct pcintr_heap {
@@ -226,6 +235,8 @@ struct pcintr_coroutine {
     pcintr_heap_t               owner;    /* owner heap */
     struct list_head            node;     /* sibling coroutines */
     struct list_head            children; /* children coroutines */
+
+    struct list_head            msgqueue; /* struct pcintr_msg */
 
     struct pcintr_stack         stack;  /* stack that holds this coroutine */
 
@@ -382,6 +393,10 @@ int pcintr_post_req(enum pcintr_req_type req_type,
 void pcintr_cancel_req(pcintr_req_t req);
 void pcintr_activate_req(pcintr_req_t req);
 void pcintr_hibernate_active_req(pcintr_req_t req);
+
+
+int pcintr_post_msg(pcintr_coroutine_t target,
+        void* ctxt, pcintr_msg_cb cb);
 
 void
 pcintr_exception_clear(struct pcintr_exception *exception);
