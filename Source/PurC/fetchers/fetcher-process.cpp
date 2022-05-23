@@ -37,24 +37,19 @@
 
 using namespace PurCFetcher;
 
-struct process_async_data {
-    PcFetcherProcess *process;
-    PcFetcherRequest *session;
-    pcfetcher_response_handler handler;
-    void *ctxt;
-};
-
 PcFetcherProcess::PcFetcherProcess(struct pcfetcher* fetcher,
         bool alwaysRunsAtBackgroundPriority)
  : m_fetcher(fetcher)
  , m_workQueue(WorkQueue::create("PcFetcherProcess_Queue"))
  , m_alwaysRunsAtBackgroundPriority(alwaysRunsAtBackgroundPriority)
 {
+    m_workQueueRunLoop = &m_workQueue->runLoop();
 }
 
 PcFetcherProcess::~PcFetcherProcess()
 {
     m_workQueue = nullptr;
+    m_workQueueRunLoop = nullptr;
     reset();
 }
 
@@ -73,16 +68,6 @@ void PcFetcherProcess::reset(void)
     for (auto& pendingMessage : pendingMessages) {
         if (pendingMessage.asyncReplyInfo)
             pendingMessage.asyncReplyInfo->first(nullptr);
-    }
-
-    size_t sz = this->m_asyncSessionWrap.size();
-    if (sz) {
-        Vector<void*> tmpVec = m_asyncSessionWrap;
-        for (size_t i = 0; i < sz; i++) {
-            struct process_async_data *data =
-                (struct process_async_data *)tmpVec[i];
-            data->session->stop();
-        }
     }
 }
 
@@ -274,8 +259,27 @@ PcFetcherRequest* PcFetcherProcess::createRequest(void)
         Messages::NetworkProcess::CreateNetworkConnectionToWebProcess { pid, sid },
         Messages::NetworkProcess::CreateNetworkConnectionToWebProcess::Reply(
             attachment, cookieAcceptPolicy), 0);
-    return new PcFetcherRequest(sid.toUInt64(),
-            attachment->releaseFileDescriptor(), m_workQueue.get());
+    PcFetcherRequest *request  = new PcFetcherRequest(sid.toUInt64(),
+            attachment->releaseFileDescriptor(), m_workQueue.get(), this);
+    if (!request) {
+        return NULL;
+    }
+    {
+        auto locker = holdLock(m_requestLock);
+        m_requestVec.appendIfNotContains(request);
+    }
+    return request;
+}
+
+void PcFetcherProcess::removeRequest(PcFetcherRequest *request)
+{
+    {
+        auto locker = holdLock(m_requestLock);
+        m_requestVec.removeFirst(request);
+    }
+    request->getRunLoop()->dispatch([request] {
+        delete request;
+    });
 }
 
 purc_variant_t PcFetcherProcess::requestAsync(
@@ -293,33 +297,8 @@ purc_variant_t PcFetcherProcess::requestAsync(
         return PURC_VARIANT_INVALID;
     }
 
-    struct process_async_data *data = new struct process_async_data;
-    if (!data) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        delete session;
-        return PURC_VARIANT_INVALID;
-    }
-    data->process = this;
-    data->session = session;
-    data->handler = handler;
-    data->ctxt = ctxt;
-    purc_variant_t ret = session->requestAsync(base_uri, url, method,
-            params, timeout, asyncRespHandler, data);
-    m_asyncSessionWrap.append(data);
-    return ret;
-}
-
-void PcFetcherProcess::asyncRespHandler(purc_variant_t request_id, void *ctxt,
-        const struct pcfetcher_resp_header *resp_header,
-        purc_rwstream_t resp)
-{
-    struct process_async_data *data = (struct process_async_data*)ctxt;
-    data->process->m_asyncSessionWrap.removeFirst(data);
-    data->handler(request_id, data->ctxt, resp_header, resp);
-    data->process->m_workQueue->dispatch([session = data->session] {
-        delete session;
-    });
-    delete data;
+    return session->requestAsync(base_uri, url, method,
+            params, timeout, handler, ctxt);
 }
 
 purc_rwstream_t PcFetcherProcess::requestSync(
@@ -331,31 +310,33 @@ purc_rwstream_t PcFetcherProcess::requestSync(
         struct pcfetcher_resp_header *resp_header)
 {
     PcFetcherRequest* session = createRequest();
-    purc_rwstream_t rws = session->requestSync(base_uri, url, method,
+    return session->requestSync(base_uri, url, method,
             params, timeout, resp_header);
-    m_workQueue->dispatch([session] {
-        delete session;
-    });
-    return rws;
 }
 
 void PcFetcherProcess::cancelAsyncRequest(purc_variant_t request_id)
 {
-    size_t sz = m_asyncSessionWrap.size();
-    for (size_t i = 0; i < sz; i++) {
-        struct process_async_data *data =
-            (struct process_async_data *)m_asyncSessionWrap[i];
-        if (data->session->getRequestId() == request_id) {
-            data->session->cancel();
-            break;
-        }
+    if (!request_id) {
+        return;
     }
+
+    PcFetcherRequest *request =
+        (PcFetcherRequest *)purc_variant_native_get_entity(request_id);
+    request->cancel();
 }
 
 int PcFetcherProcess::checkResponse(uint32_t timeout_ms)
 {
     UNUSED_PARAM(timeout_ms);
     return 0;
+}
+
+void PcFetcherProcess::requestFinished(PcFetcherRequest *request)
+{
+    if (!request) {
+        return;
+    }
+    removeRequest(request);
 }
 
 void PcFetcherProcess::didClose(IPC::Connection&)

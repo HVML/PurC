@@ -104,8 +104,6 @@ public:
 
     void setProcessSuppressionEnabled(bool);
 
-    PcFetcherRequest* createRequest(void);
-
     purc_variant_t requestAsync(
         const char* base_uri,
         const char* url,
@@ -127,6 +125,8 @@ public:
 
     int checkResponse(uint32_t timeout_ms);
 
+    void requestFinished(PcFetcherRequest *request);
+
 protected:
     // ProcessLauncher::Client
     void didFinishLaunching(ProcessLauncher*, IPC::Connection::Identifier) override;
@@ -135,9 +135,6 @@ protected:
     bool dispatchSyncMessage(IPC::Connection&, IPC::Decoder&, std::unique_ptr<IPC::Encoder>&);
 
     void getLaunchOptions(ProcessLauncher::LaunchOptions&);
-    static void asyncRespHandler(purc_variant_t request_id, void *ctxt,
-        const struct pcfetcher_resp_header *resp_header,
-        purc_rwstream_t resp);
 
     struct PendingMessage {
         std::unique_ptr<IPC::Encoder> encoder;
@@ -154,16 +151,23 @@ protected:
     const char* connectionName(void) override { return "PcFetcherProcess"; }
 
 private:
+    PcFetcherRequest* createRequest(void);
+    void removeRequest(PcFetcherRequest *request);
+
+private:
     struct pcfetcher* m_fetcher;
 
     RefPtr<WorkQueue> m_workQueue;
+    RunLoop *m_workQueueRunLoop;
 
     Vector<PendingMessage> m_pendingMessages;
     RefPtr<ProcessLauncher> m_processLauncher;
     RefPtr<IPC::Connection> m_connection;
     bool m_alwaysRunsAtBackgroundPriority { false };
     PurCFetcher::ProcessIdentifier m_processIdentifier { PurCFetcher::ProcessIdentifier::generate() };
-    Vector<void*> m_asyncSessionWrap;
+
+    Lock m_requestLock;
+    Vector<PcFetcherRequest*> m_requestVec;
 };
 
 template<typename T>

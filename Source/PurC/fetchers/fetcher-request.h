@@ -44,12 +44,14 @@
 
 using namespace PurCFetcher;
 
+class PcFetcherProcess;
 class PcFetcherRequest : public IPC::Connection::Client {
     WTF_MAKE_NONCOPYABLE(PcFetcherRequest);
 
 public:
     PcFetcherRequest(uint64_t sessionId,
-            IPC::Connection::Identifier connectionIdentifier, WorkQueue *queue);
+            IPC::Connection::Identifier connectionIdentifier, WorkQueue *queue,
+            PcFetcherProcess *process);
 
     ~PcFetcherRequest();
 
@@ -88,6 +90,8 @@ public:
     void wait(uint32_t timeout);
     void wakeUp(void);
 
+    RunLoop *getRunLoop() { return m_runloop; }
+
 protected:
     bool dispatchMessage(IPC::Connection&, IPC::Decoder&);
     bool dispatchSyncMessage(IPC::Connection&, IPC::Decoder&,
@@ -118,9 +122,12 @@ private:
     BinarySemaphore m_waitForSyncReplySemaphore;
 
     RunLoop* m_runloop;
-    struct pcfetcher_callback_info *m_callback;
     WorkQueue* m_workQueue;
-    GRefPtr<GCancellable> m_cancellable;
+
+    Lock m_callbackLock;
+    struct pcfetcher_callback_info *m_callback;
+
+    PcFetcherProcess *m_fetcherProcess;
 };
 
 

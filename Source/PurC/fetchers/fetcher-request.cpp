@@ -27,6 +27,7 @@
 #if ENABLE(REMOTE_FETCHER)
 
 #include "fetcher-request.h"
+#include "fetcher-process.h"
 #include "fetcher-messages.h"
 
 #include "NetworkResourceLoadParameters.h"
@@ -42,14 +43,16 @@ using namespace PurCFetcher;
 extern "C"  struct pcinst* pcinst_current(void);
 
 PcFetcherRequest::PcFetcherRequest(uint64_t sessionId,
-        IPC::Connection::Identifier identifier, WorkQueue *queue)
+        IPC::Connection::Identifier identifier,
+        WorkQueue *queue, PcFetcherProcess *process)
     : m_sessionId(sessionId)
     , m_req_id(0)
     , m_is_async(false)
     , m_connection(IPC::Connection::createClientConnection(identifier, *this, queue))
     , m_workQueue(queue)
-    , m_cancellable(adoptGRef(g_cancellable_new()))
+    , m_fetcherProcess(process)
 {
+    auto locker = holdLock(m_callbackLock);
     m_callback = pcfetcher_create_callback_info();
     if (m_callback == NULL) {
         return;
@@ -62,6 +65,7 @@ PcFetcherRequest::PcFetcherRequest(uint64_t sessionId,
 PcFetcherRequest::~PcFetcherRequest()
 {
     close();
+    auto locker = holdLock(m_callbackLock);
     if (m_callback) {
         pcfetcher_destroy_callback_info(m_callback);
     }
@@ -105,6 +109,7 @@ purc_variant_t PcFetcherRequest::requestAsync(
     // TODO send params with http request
     UNUSED_PARAM(params);
 
+    auto locker = holdLock(m_callbackLock);
     m_callback->handler = handler;
     m_callback->ctxt = ctxt;
     m_is_async = true;
@@ -178,6 +183,11 @@ purc_rwstream_t PcFetcherRequest::requestSync(
 
     wait(timeout);
 
+    auto locker = holdLock(m_callbackLock);
+    if (m_callback == NULL) {
+        return NULL;
+    }
+
     if (resp_header) {
         resp_header->ret_code = m_callback->header.ret_code;
         if (m_callback->header.mime_type) {
@@ -195,36 +205,33 @@ purc_rwstream_t PcFetcherRequest::requestSync(
 
     purc_rwstream_t rws = m_callback->rws;
     m_callback->rws = NULL;
+    m_fetcherProcess->requestFinished(this);
     return rws;
 }
 
 void PcFetcherRequest::stop()
 {
-    if (!m_is_async) {
+    auto locker = holdLock(m_callbackLock);
+    if (!m_is_async || m_callback == NULL) {
         return;
     }
-    g_cancellable_cancel(m_cancellable.get());
-
     struct pcfetcher_callback_info *info = m_callback;
     m_callback->cancelled = true;
     m_callback = nullptr;
 
     info->header.ret_code = RESP_CODE_USER_STOP;
-    info->handler(info->req_id, info->ctxt,
-            &info->header, NULL);
+    info->handler(info->req_id, info->ctxt, &info->header, NULL);
     info->handler = nullptr;
-
-    if (!info->dispatched) {
-        pcfetcher_destroy_callback_info(info);
-    }
+    pcfetcher_destroy_callback_info(info);
+    m_fetcherProcess->requestFinished(this);
 }
 
 void PcFetcherRequest::cancel()
 {
-    if (!m_is_async) {
+    auto locker = holdLock(m_callbackLock);
+    if (!m_is_async || m_callback == NULL) {
         return;
     }
-    g_cancellable_cancel(m_cancellable.get());
 
     struct pcfetcher_callback_info *info = m_callback;
     m_callback->cancelled = true;
@@ -232,9 +239,8 @@ void PcFetcherRequest::cancel()
 
     info->header.ret_code = RESP_CODE_USER_CANCEL;
     info->handler(info->req_id, info->ctxt, &info->header, NULL);
-    if (!info->dispatched) {
-        pcfetcher_destroy_callback_info(info);
-    }
+    pcfetcher_destroy_callback_info(info);
+    m_fetcherProcess->requestFinished(this);
 }
 
 void PcFetcherRequest::wait(uint32_t timeout)
@@ -300,7 +306,8 @@ void PcFetcherRequest::didReceiveResponse(
 {
     UNUSED_PARAM(needsContinueDidReceiveResponseMessage);
 
-    if (g_cancellable_is_cancelled(m_cancellable.get())) {
+    auto locker = holdLock(m_callbackLock);
+    if (m_callback == NULL) {
         return;
     }
 
@@ -322,7 +329,8 @@ void PcFetcherRequest::didReceiveSharedBuffer(
         IPC::SharedBufferDataReference&& data, int64_t encodedDataLength)
 {
     UNUSED_PARAM(encodedDataLength);
-    if (g_cancellable_is_cancelled(m_cancellable.get())) {
+    auto locker = holdLock(m_callbackLock);
+    if (m_callback == NULL) {
         return;
     }
     purc_rwstream_write(m_callback->rws, data.data(), data.size());
@@ -332,93 +340,80 @@ void PcFetcherRequest::didFinishResourceLoad(
         const NetworkLoadMetrics& networkLoadMetrics)
 {
     UNUSED_PARAM(networkLoadMetrics);
-    if (g_cancellable_is_cancelled(m_cancellable.get())) {
+    auto locker = holdLock(m_callbackLock);
+    if (m_callback == NULL) {
         return;
     }
 
     if (m_is_async) {
-        if (m_callback->handler) {
-            if (!m_callback->header.sz_resp && m_callback->rws) {
-                size_t sz_content = 0;
-                size_t sz_buffer = 0;
-                purc_rwstream_get_mem_buffer_ex(m_callback->rws, &sz_content,
-                        &sz_buffer, false);
-                m_callback->header.sz_resp = sz_content;
-            }
-            if (m_callback->rws) {
-                purc_rwstream_seek(m_callback->rws, 0, SEEK_SET);
-            }
-            if (m_workQueue) {
-                m_callback->dispatched = true;
-                m_workQueue->dispatch([loop=m_runloop, info=m_callback] {
-                    loop->dispatch([info] {
-                        if (!info->cancelled) {
-                            info->handler(info->req_id, info->ctxt,
-                                    &info->header, info->rws);
-                            info->rws = NULL;
-                        }
-                        });
-                    });
-            }
-            else {
-                m_runloop->dispatch([info=m_callback] {
-                        info->handler(info->req_id, info->ctxt, &info->header,
-                                info->rws);
-                        info->rws = NULL;
-                        });
-            }
-        }
-    }
-    else {
         wakeUp();
+        return;
     }
+
+    if (!m_callback->handler) {
+        return;
+    }
+    if (!m_callback->header.sz_resp && m_callback->rws) {
+        size_t sz_content = 0;
+        size_t sz_buffer = 0;
+        purc_rwstream_get_mem_buffer_ex(m_callback->rws, &sz_content,
+                &sz_buffer, false);
+        m_callback->header.sz_resp = sz_content;
+    }
+    if (m_callback->rws) {
+        purc_rwstream_seek(m_callback->rws, 0, SEEK_SET);
+    }
+    struct pcfetcher_callback_info *info = m_callback;
+    m_callback = NULL;
+    m_runloop->dispatch([info, request=this] {
+            info->handler(info->req_id, info->ctxt, &info->header,
+                    info->rws);
+            info->rws = NULL;
+            pcfetcher_destroy_callback_info(info);
+            request->m_fetcherProcess->requestFinished(request);
+            }
+        );
 }
 
 void PcFetcherRequest::didFailResourceLoad(const ResourceError& error)
 {
     UNUSED_PARAM(error);
-    if (g_cancellable_is_cancelled(m_cancellable.get())) {
+    auto locker = holdLock(m_callbackLock);
+    if (m_callback == NULL) {
         return;
     }
-
     // TODO : trans error code
     m_callback->header.ret_code = 408;
 
     if (m_is_async) {
-        if (m_callback->handler) {
-            if (!m_callback->header.sz_resp && m_callback->rws) {
-                size_t sz_content = 0;
-                size_t sz_buffer = 0;
-                purc_rwstream_get_mem_buffer_ex(m_callback->rws, &sz_content,
-                        &sz_buffer, false);
-                m_callback->header.sz_resp = sz_content;
-            }
-            if (m_callback->rws) {
-                purc_rwstream_seek(m_callback->rws, 0, SEEK_SET);
-            }
-            if (m_workQueue) {
-                m_workQueue->dispatch([loop=m_runloop, info=m_callback] {
-                    loop->dispatch([info] {
-                        if (info->handler) {
-                            info->handler(info->req_id, info->ctxt,
-                                    &info->header, info->rws);
-                            info->rws = NULL;
-                        }
-                        });
-                    });
-            }
-            else {
-                m_runloop->dispatch([info=m_callback] {
-                        info->handler(info->req_id, info->ctxt, &info->header,
-                                info->rws);
-                        info->rws = NULL;
-                        });
-            }
-        }
-    }
-    else {
         wakeUp();
+        return;
     }
+
+    if (!m_callback->handler) {
+        return;
+    }
+
+    if (!m_callback->header.sz_resp && m_callback->rws) {
+        size_t sz_content = 0;
+        size_t sz_buffer = 0;
+        purc_rwstream_get_mem_buffer_ex(m_callback->rws, &sz_content,
+                &sz_buffer, false);
+        m_callback->header.sz_resp = sz_content;
+    }
+    if (m_callback->rws) {
+        purc_rwstream_seek(m_callback->rws, 0, SEEK_SET);
+    }
+    struct pcfetcher_callback_info *info = m_callback;
+    m_callback = NULL;
+    m_runloop->dispatch([info, request=this] {
+            info->handler(info->req_id, info->ctxt, &info->header,
+                    info->rws);
+            info->rws = NULL;
+            pcfetcher_destroy_callback_info(info);
+            request->m_fetcherProcess->requestFinished(request);
+            }
+        );
 }
 
 void PcFetcherRequest::willSendRequest(ResourceRequest&& proposedRequest,
