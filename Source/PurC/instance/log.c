@@ -103,18 +103,14 @@ void purc_log_with_tag(const char *tag, const char *msg, va_list ap)
         else
 #endif
         {
-            const char *ident = purc_atom_to_string(inst->endpoint_atom);
-            assert(ident);
-
-            fprintf(fp, "%s %s >> ", ident, tag);
+            fprintf(fp, "%s >> ", tag);
             vfprintf(fp, msg, ap);
-#ifndef NDEBUG
             fflush(fp);
-#endif
         }
     }
     else {
-        fprintf(stderr, "%s >> ", tag);
+        const char *ident = purc_atom_to_string(inst->endpoint_atom);
+        fprintf(stderr, "%s %s >> ", ident, tag);
         vfprintf(stderr, msg, ap);
 #ifndef NDEBUG
         fflush(stderr);
