@@ -4,8 +4,6 @@
 #include "private/debug.h"
 #include "purc-runloop.h"
 
-#include "../helpers.h"
-
 #include <gtest/gtest.h>
 #include <wtf/RunLoop.h>
 #include <wtf/FileSystem.h>
