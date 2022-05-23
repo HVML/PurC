@@ -168,6 +168,8 @@ private:
     bool m_alwaysRunsAtBackgroundPriority { false };
     PurCFetcher::ProcessIdentifier m_processIdentifier { PurCFetcher::ProcessIdentifier::generate() };
 
+    Lock m_controlLock;
+
     Lock m_requestLock;
     Vector<PcFetcherRequest*> m_requestVec;
 };

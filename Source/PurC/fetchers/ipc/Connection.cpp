@@ -39,7 +39,7 @@
 #include "UnixMessage.h"
 #endif
 
-#define DISPATCH_ON_RUNLOOP
+//#define DISPATCH_ON_RUNLOOP
 
 namespace IPC {
 
@@ -1071,7 +1071,7 @@ Connection::MessagesThrottler::MessagesThrottler(Connection& connection, Dispatc
 #ifdef DISPATCH_ON_RUNLOOP
     : m_dispatchMessagesTimer(*connection.m_runloop, &connection, dispatchMessages)
 #else
-    : m_dispatchMessagesTimer(connection.m_connectionQueue->RunLoop(), &connection, dispatchMessages)
+    : m_dispatchMessagesTimer(connection.m_connectionQueue->runLoop(), &connection, dispatchMessages)
 #endif
     , m_connection(connection)
     , m_dispatchMessages(dispatchMessages)

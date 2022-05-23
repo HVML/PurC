@@ -251,14 +251,17 @@ void PcFetcherProcess::setProcessSuppressionEnabled(bool processSuppressionEnabl
 
 PcFetcherRequest* PcFetcherProcess::createRequest(void)
 {
+    auto clocker = holdLock(m_controlLock);
     PurCFetcher::ProcessIdentifier pid = ProcessIdentifier::generate();
-    PAL::SessionID sid(ProcessIdentifier::generate().toUInt64());
+//    PAL::SessionID sid(ProcessIdentifier::generate().toUInt64());
+    PAL::SessionID sid(1);
+    uint64_t destinationID = ProcessIdentifier::generate().toUInt64();
     Optional<IPC::Attachment> attachment;
     PurCFetcher::HTTPCookieAcceptPolicy cookieAcceptPolicy;
     sendSync(
         Messages::NetworkProcess::CreateNetworkConnectionToWebProcess { pid, sid },
         Messages::NetworkProcess::CreateNetworkConnectionToWebProcess::Reply(
-            attachment, cookieAcceptPolicy), 0);
+            attachment, cookieAcceptPolicy), destinationID);
     PcFetcherRequest *request  = new PcFetcherRequest(sid.toUInt64(),
             attachment->releaseFileDescriptor(), m_workQueue.get(), this);
     if (!request) {
