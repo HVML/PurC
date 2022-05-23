@@ -58,6 +58,10 @@ struct pcintr_req;
 typedef struct pcintr_req pcintr_req;
 typedef struct pcintr_req *pcintr_req_t;
 
+struct pcintr_msgqueue;
+typedef struct pcintr_msgqueue pcintr_msgqueue;
+typedef struct pcintr_msgqueue *pcintr_msgqueue_t;
+
 struct pcintr_req_ops {
     int (*req)(pcintr_req_t req, void *ctxt);
     int (*callback)(pcintr_req_t req, void *ctxt);
@@ -70,12 +74,6 @@ enum pcintr_req_type {
     REQ_TYPE_SYNC,    /* sync */
     REQ_TYPE_ASYNC,   /* async */
 };
-
-int pcintr_post_req(enum pcintr_req_type req_type,
-        void *ctxt, struct pcintr_req_ops *ops);
-void pcintr_cancel_req(pcintr_req_t req);
-void pcintr_activate_req(pcintr_req_t req);
-void pcintr_hibernate_active_req(pcintr_req_t req);
 
 struct pcintr_heap {
     // owner instance
@@ -97,11 +95,6 @@ struct pcintr_heap {
     struct list_head      hibernating_reqs;  // struct pcintr_req
     struct list_head      dying_reqs;        // struct pcintr_req
 };
-
-typedef void (*pcintr_routine_f)(void *ctxt);
-
-int pcintr_post_routine(pcintr_coroutine_t target,
-        void *ctxt, pcintr_routine_f cb);
 
 struct pcintr_stack_frame;
 typedef struct pcintr_stack_frame pcintr_stack_frame;
@@ -153,13 +146,6 @@ struct pcintr_exception {
 
     struct pcdebug_backtrace  *bt;
 };
-
-void
-pcintr_exception_clear(struct pcintr_exception *exception);
-
-void
-pcintr_exception_move(struct pcintr_exception *dst,
-        struct pcintr_exception *src);
 
 struct pcintr_stack {
     struct pcintr_heap           *owning_heap;
@@ -385,6 +371,24 @@ struct pcintr_stack_frame*
 pcintr_stack_get_bottom_frame(pcintr_stack_t stack);
 struct pcintr_stack_frame*
 pcintr_stack_frame_get_parent(struct pcintr_stack_frame *frame);
+
+typedef void (*pcintr_routine_f)(void *ctxt);
+
+int pcintr_post_routine(pcintr_coroutine_t target,
+        void *ctxt, pcintr_routine_f cb);
+
+int pcintr_post_req(enum pcintr_req_type req_type,
+        void *ctxt, struct pcintr_req_ops *ops);
+void pcintr_cancel_req(pcintr_req_t req);
+void pcintr_activate_req(pcintr_req_t req);
+void pcintr_hibernate_active_req(pcintr_req_t req);
+
+void
+pcintr_exception_clear(struct pcintr_exception *exception);
+
+void
+pcintr_exception_move(struct pcintr_exception *dst,
+        struct pcintr_exception *src);
 
 purc_variant_t
 pcintr_make_object_of_dynamic_variants(size_t nr_args,
