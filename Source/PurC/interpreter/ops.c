@@ -62,6 +62,7 @@ const struct tag_id_ops maps[] = {
     {PCHVML_TAG_RETURN,            pcintr_get_return_ops},
     {PCHVML_TAG_INHERIT,           pcintr_get_inherit_ops},
     {PCHVML_TAG_CLEAR,             pcintr_get_clear_ops},
+    {PCHVML_TAG_ERASE,             pcintr_get_erase_ops},
 };
 
 void init_ops(void)

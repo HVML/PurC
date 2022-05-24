@@ -1,5 +1,5 @@
 /**
- * @file clear.c
+ * @file erase.c
  * @author Xue Shuming
  * @date 2022/05/24
  * @brief
@@ -35,16 +35,18 @@
 #include <pthread.h>
 #include <unistd.h>
 
-struct ctxt_for_clear {
+struct ctxt_for_erase {
     struct pcvdom_node           *curr;
     purc_variant_t                on;
+    purc_variant_t                at;
 };
 
 static void
-ctxt_for_clear_destroy(struct ctxt_for_clear *ctxt)
+ctxt_for_erase_destroy(struct ctxt_for_erase *ctxt)
 {
     if (ctxt) {
         PURC_VARIANT_SAFE_CLEAR(ctxt->on);
+        PURC_VARIANT_SAFE_CLEAR(ctxt->at);
         free(ctxt);
     }
 }
@@ -52,7 +54,7 @@ ctxt_for_clear_destroy(struct ctxt_for_clear *ctxt)
 static void
 ctxt_destroy(void *ctxt)
 {
-    ctxt_for_clear_destroy((struct ctxt_for_clear*)ctxt);
+    ctxt_for_erase_destroy((struct ctxt_for_erase*)ctxt);
 }
 
 static int
@@ -60,8 +62,8 @@ process_attr_on(struct pcintr_stack_frame *frame,
         struct pcvdom_element *element,
         purc_atom_t name, purc_variant_t val)
 {
-    struct ctxt_for_clear *ctxt;
-    ctxt = (struct ctxt_for_clear*)frame->ctxt;
+    struct ctxt_for_erase *ctxt;
+    ctxt = (struct ctxt_for_erase*)frame->ctxt;
     if (ctxt->on != PURC_VARIANT_INVALID) {
         purc_set_error_with_info(PURC_ERROR_DUPLICATED,
                 "vdom attribute '%s' for element <%s>",
@@ -75,6 +77,31 @@ process_attr_on(struct pcintr_stack_frame *frame,
         return -1;
     }
     ctxt->on = val;
+    purc_variant_ref(val);
+
+    return 0;
+}
+
+static int
+process_attr_at(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element,
+        purc_atom_t name, purc_variant_t val)
+{
+    struct ctxt_for_erase *ctxt;
+    ctxt = (struct ctxt_for_erase*)frame->ctxt;
+    if (ctxt->at != PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_DUPLICATED,
+                "vdom attribute '%s' for element <%s>",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    if (val == PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "vdom attribute '%s' for element <%s> undefined",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    ctxt->at = val;
     purc_variant_ref(val);
 
     return 0;
@@ -95,6 +122,9 @@ attr_found_val(struct pcintr_stack_frame *frame,
 
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, ON)) == name) {
         return process_attr_on(frame, element, name, val);
+    }
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, AT)) == name) {
+        return process_attr_at(frame, element, name, val);
     }
 
     purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
@@ -125,6 +155,54 @@ attr_found(struct pcintr_stack_frame *frame,
     return r ? -1 : 0;
 }
 
+static purc_variant_t
+element_erase(purc_variant_t on, purc_variant_t at, bool silently)
+{
+    UNUSED_PARAM(on);
+    UNUSED_PARAM(at);
+    UNUSED_PARAM(silently);
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+object_erase(purc_variant_t on, purc_variant_t at, bool silently)
+{
+    UNUSED_PARAM(on);
+    UNUSED_PARAM(at);
+    UNUSED_PARAM(silently);
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+array_erase(purc_variant_t on, purc_variant_t at, bool silently)
+{
+    UNUSED_PARAM(on);
+    UNUSED_PARAM(at);
+    UNUSED_PARAM(silently);
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+set_erase(purc_variant_t on, purc_variant_t at, bool silently)
+{
+    UNUSED_PARAM(on);
+    UNUSED_PARAM(at);
+    UNUSED_PARAM(silently);
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+native_erase(purc_variant_t on, purc_variant_t at, bool silently)
+{
+    UNUSED_PARAM(at);
+    struct purc_native_ops *ops = purc_variant_native_get_ops(on);
+    if (!ops || ops->eraser == NULL) {
+        return purc_variant_make_ulongint(0);
+    }
+    void *entity = purc_variant_native_get_entity(on);
+    return ops->eraser(entity, silently);
+}
+
 
 static void*
 after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
@@ -138,8 +216,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame);
 
-    struct ctxt_for_clear *ctxt;
-    ctxt = (struct ctxt_for_clear*)calloc(1, sizeof(*ctxt));
+    struct ctxt_for_erase *ctxt;
+    ctxt = (struct ctxt_for_erase*)calloc(1, sizeof(*ctxt));
     if (!ctxt) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
@@ -166,45 +244,27 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     enum purc_variant_type type = purc_variant_get_type(ctxt->on);
     switch (type) {
     case PURC_VARIANT_TYPE_STRING:
-        // TODO : element
+        ret = element_erase(ctxt->on, ctxt->at, frame->silently);
         break;
 
     case PURC_VARIANT_TYPE_OBJECT:
-        {
-            bool result = pcvariant_object_clear(ctxt->on, frame->silently);
-            ret = purc_variant_make_boolean(result);
-        }
+        ret = object_erase(ctxt->on, ctxt->at, frame->silently);
         break;
 
     case PURC_VARIANT_TYPE_ARRAY:
-        {
-            bool result = pcvariant_array_clear(ctxt->on, frame->silently);
-            ret = purc_variant_make_boolean(result);
-        }
+        ret = array_erase(ctxt->on, ctxt->at, frame->silently);
         break;
 
     case PURC_VARIANT_TYPE_SET:
-        {
-            bool result = pcvariant_set_clear(ctxt->on, frame->silently);
-            ret = purc_variant_make_boolean(result);
-        }
+        ret = set_erase(ctxt->on, ctxt->at, frame->silently);
         break;
 
     case PURC_VARIANT_TYPE_NATIVE:
-        {
-            struct purc_native_ops *ops = purc_variant_native_get_ops(ctxt->on);
-            if (!ops || ops->cleaner == NULL) {
-                ret = purc_variant_make_boolean(false);
-            }
-            else {
-                void *entity = purc_variant_native_get_entity(ctxt->on);
-                ret = ops->cleaner(entity, frame->silently);
-            }
-        }
+        ret = native_erase(ctxt->on, ctxt->at, frame->silently);
         break;
 
     default:
-        ret = purc_variant_make_boolean(false);
+        ret = purc_variant_make_ulongint(0);
         break;
     }
 
@@ -232,10 +292,10 @@ on_popping(pcintr_stack_t stack, void* ud)
     struct pcvdom_element *element = frame->pos;
     PC_ASSERT(element);
 
-    struct ctxt_for_clear *ctxt;
-    ctxt = (struct ctxt_for_clear*)frame->ctxt;
+    struct ctxt_for_erase *ctxt;
+    ctxt = (struct ctxt_for_erase*)frame->ctxt;
     if (ctxt) {
-        ctxt_for_clear_destroy(ctxt);
+        ctxt_for_erase_destroy(ctxt);
         frame->ctxt = NULL;
     }
 
@@ -250,7 +310,7 @@ ops = {
     .select_child       = NULL,
 };
 
-struct pcintr_element_ops* pcintr_get_clear_ops(void)
+struct pcintr_element_ops* pcintr_get_erase_ops(void)
 {
     return &ops;
 }
