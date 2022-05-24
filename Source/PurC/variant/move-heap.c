@@ -45,15 +45,12 @@ static void mvheap_cleanup_once(void)
 
     struct purc_variant_stat *stat = &move_heap.stat;
 
-    // FIXME: multiple runner
-#if 0
     PC_DEBUG("refc of v_undefined in move heap: %u\n", move_heap.v_undefined.refc);
     PC_DEBUG("refc of v_null in move heap: %u\n", move_heap.v_null.refc);
     PC_DEBUG("refc of v_true in move heap: %u\n", move_heap.v_true.refc);
     PC_DEBUG("refc of v_false in move heap: %u\n", move_heap.v_false.refc);
     PC_DEBUG("total values in move heap: %u\n", (unsigned int)stat->nr_total_values);
     PC_DEBUG("total memory used by move heap: %u\n", (unsigned int)stat->sz_total_mem);
-#endif
 
     PC_ASSERT(move_heap.v_undefined.refc == 0);
     PC_ASSERT(move_heap.v_null.refc == 0);
