@@ -65,12 +65,12 @@ static struct pcrdr_opatom {
     { PCRDR_OPERATION_CREATEPLAINWINDOW,    0 }, // "createPlainWindow"
     { PCRDR_OPERATION_UPDATEPLAINWINDOW,    0 }, // "updatePlainWindow"
     { PCRDR_OPERATION_DESTROYPLAINWINDOW,   0 }, // "destroyPlainWindow"
-    { PCRDR_OPERATION_CREATETABBEDWINDOW,   0 }, // "createTabbedWindow"
-    { PCRDR_OPERATION_UPDATETABBEDWINDOW,   0 }, // "updateTabbedWindow"
-    { PCRDR_OPERATION_DESTROYTABBEDWINDOW,  0 }, // "destroyTabbedWindow"
-    { PCRDR_OPERATION_CREATETABPAGE,        0 }, // "createTabpage"
-    { PCRDR_OPERATION_UPDATETABPAGE,        0 }, // "updateTabpage"
-    { PCRDR_OPERATION_DESTROYTABPAGE,       0 }, // "destroyTabpage"
+    { PCRDR_OPERATION_RESETPAGEGROUPS,      0 }, // "resetPageGroups"
+    { PCRDR_OPERATION_ADDPAGEGROUPS,        0 }, // "addPageGroups"
+    { PCRDR_OPERATION_REMOVEPAGEGROUP,      0 }, // "removePageGroup"
+    { PCRDR_OPERATION_CREATEPAGE,           0 }, // "createTabpage"
+    { PCRDR_OPERATION_UPDATEPAGE,           0 }, // "updateTabpage"
+    { PCRDR_OPERATION_DESTROYPAGE,          0 }, // "destroyTabpage"
     { PCRDR_OPERATION_LOAD,                 0 }, // "load"
     { PCRDR_OPERATION_WRITEBEGIN,           0 }, // "writeBegin"
     { PCRDR_OPERATION_WRITEMORE,            0 }, // "writeMore"
@@ -83,6 +83,7 @@ static struct pcrdr_opatom {
     { PCRDR_OPERATION_UPDATE,               0 }, // "update"
     { PCRDR_OPERATION_ERASE,                0 }, // "erase"
     { PCRDR_OPERATION_CLEAR,                0 }, // "clear"
+    { PCRDR_OPERATION_CALLMETHOD,           0 }, // "callMethod"
 };
 
 /* make sure the number of operations matches the enumulators */
