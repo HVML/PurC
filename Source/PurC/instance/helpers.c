@@ -407,7 +407,7 @@ double purc_get_elapsed_seconds (const struct timespec *ts1,
 #define HVML_SCHEMA     "hvml://"
 #define COMP_SEPERATOR  '/'
 
-size_t purc_hvml_uri_assmeble(char *uri, const char *host, const char* app,
+size_t purc_hvml_uri_assemble(char *uri, const char *host, const char* app,
         const char* runner, const char *group, const char *page)
 {
     char *start = uri;
@@ -466,7 +466,7 @@ char* purc_hvml_uri_assemble_alloc(const char* host, const char* app,
         return NULL;
 
 
-    purc_hvml_uri_assmeble(uri, host, app, runner, group, page);
+    purc_hvml_uri_assemble(uri, host, app, runner, group, page);
     return uri;
 }
 
@@ -483,6 +483,83 @@ static unsigned int get_comp_len(const char *str)
 }
 
 bool purc_hvml_uri_split(const char *uri,
+        char *host, char *app, char *runner, char *group, char *page)
+{
+    static const unsigned int sz_schema = sizeof(HVML_SCHEMA) - 1;
+    unsigned int len;
+
+    if (strncasecmp(uri, HVML_SCHEMA, sz_schema))
+        return false;
+
+    uri += sz_schema;
+    len = get_comp_len(uri);
+    if (len == 0 || uri[len] != COMP_SEPERATOR)
+        return false;
+    if (host) {
+        strncpy(host, uri, len);
+        host[len] = '\0';
+    }
+
+    uri += len + 1;
+    len = get_comp_len(uri);
+    if (len == 0 || uri[len] != COMP_SEPERATOR)
+        goto failed;
+    if (app) {
+        strncpy(app, uri, len);
+        app[len] = '\0';
+    }
+
+    uri += len + 1;
+    len = get_comp_len(uri);
+    if (len == 0 || uri[len] != COMP_SEPERATOR)
+        goto failed;
+    if (runner) {
+        strncpy(runner, uri, len);
+        runner[len] = '\0';
+    }
+
+    if (group) group[0] = 0;
+    if (page) page[0] = 0;
+
+    do {
+        uri += len + 1;
+        len = get_comp_len(uri);
+        if (len == 0)
+            break;
+
+        if (uri[len] == COMP_SEPERATOR) {
+            /* have group */
+            if (group) {
+                strncpy(group, uri, len);
+                group[len] = '\0';
+            }
+
+            uri += len + 1;
+            len = get_comp_len(uri);
+            if (len == 0 || uri[len] != '\0')
+                goto failed;
+            if (page) {
+                strncpy(page, uri, len);
+                page[len] = '\0';
+            }
+        }
+        else {
+            /* no group */
+            if (page) {
+                strncpy(page, uri, len);
+                page[len] = '\0';
+            }
+        }
+    } while (0);
+
+    return true;
+
+failed:
+    return false;
+}
+
+
+bool purc_hvml_uri_split_alloc(const char *uri,
         char **host, char **app, char **runner, char **group, char **page)
 {
     static const unsigned int sz_schema = sizeof(HVML_SCHEMA) - 1;

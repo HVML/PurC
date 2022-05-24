@@ -100,7 +100,7 @@ purc_assemble_hvml_uri_alloc(const char *host_name,
  *
  * Since: 0.1.0
  */
-PCA_EXPORT bool
+PCA_EXPORT size_t
 purc_hvml_uri_assemble(char *uri, const char *host, const char *app,
         const char *runner, const char* group, const char *page);
 
@@ -116,7 +116,7 @@ purc_hvml_uri_assemble_alloc(const char *host, const char *app,
         const char *runner, const char* group, const char *page);
 
 /**
- * Break down an HVML URI in the following pattern:
+ * Break down an HVML URI in the following pattern to component buffers:
  *
  *      hvml://<host>/<app>/<runner>/[<group>/]<page>
  *
@@ -124,6 +124,17 @@ purc_hvml_uri_assemble_alloc(const char *host, const char *app,
  */
 PCA_EXPORT bool
 purc_hvml_uri_split(const char *uri,
+        char *host, char *app, char *runner, char *group, char *page);
+
+/**
+ * Break down an HVML URI in the following pattern:
+ *
+ *      hvml://<host>/<app>/<runner>/[<group>/]<page>
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT bool
+purc_hvml_uri_split_alloc(const char *uri,
         char **host, char **app, char **runner, char **group, char **page);
 
 /**
