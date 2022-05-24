@@ -29,6 +29,9 @@
 #include <stddef.h>
 #include <stdio.h>
 
+// TODO: deprecate
+#define MOCK_ASYNC
+
 #include "purc-macros.h"
 #include "purc-version.h"
 #include "purc-features.h"
@@ -457,9 +460,6 @@ PCA_EXPORT bool
 purc_run(purc_variant_t request, purc_event_handler handler);
 
 PCA_EXTERN_C_END
-
-// TODO: deprecate
-#define MOCK_ASYNC
 
 #endif /* not defined PURC_PURC_H */
 

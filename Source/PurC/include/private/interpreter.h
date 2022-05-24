@@ -54,6 +54,10 @@ struct pcintr_routine;
 typedef struct pcintr_routine pcintr_routine;
 typedef struct pcintr_routine *pcintr_routine_t;
 
+struct pcintr_cancellable;
+typedef struct pcintr_cancellable pcintr_cancellable;
+typedef struct pcintr_cancellable *pcintr_cancellable_t;
+
 struct pcintr_req;
 typedef struct pcintr_req pcintr_req;
 typedef struct pcintr_req *pcintr_req_t;
@@ -65,16 +69,8 @@ typedef struct pcintr_msg *pcintr_msg_t;
 typedef void (*pcintr_msg_cb)(void *ctxt);
 
 struct pcintr_req_ops {
-    int (*req)(pcintr_req_t req, void *ctxt);
-    int (*callback)(pcintr_req_t req, void *ctxt);
     void (*cancel)(pcintr_req_t req, void *ctxt);
     void (*destroy)(void *ctxt);
-};
-
-enum pcintr_req_type {
-    REQ_TYPE_RAW,     /* raw action, be careful */
-    REQ_TYPE_SYNC,    /* sync */
-    REQ_TYPE_ASYNC,   /* async */
 };
 
 struct pcintr_msg {
@@ -97,12 +93,6 @@ struct pcintr_heap {
     pthread_mutex_t       locker;
     volatile bool         exiting;
     struct list_head      routines;     // struct pcintr_routine
-
-    struct list_head      pending_reqs;      // struct pcintr_req
-    struct list_head      active_reqs;       // struct pcintr_req
-    struct list_head      cancelled_reqs;    // struct pcintr_req
-    struct list_head      hibernating_reqs;  // struct pcintr_req
-    struct list_head      dying_reqs;        // struct pcintr_req
 };
 
 struct pcintr_stack_frame;
@@ -242,6 +232,14 @@ struct pcintr_coroutine {
 
     enum pcintr_coroutine_state state;
     int                         waits;  /* FIXME: nr of registered events */
+
+    void                       *yielded_ctxt;
+    void (*continuation)(void *ctxt);
+
+    struct list_head      pending_reqs;      // struct pcintr_req
+    struct list_head      cancelled_reqs;    // struct pcintr_req
+
+    struct list_head      cancellables;      // struct pcintr_cancellable
 };
 
 enum purc_symbol_var {
@@ -388,15 +386,26 @@ typedef void (*pcintr_routine_f)(void *ctxt);
 int pcintr_post_routine(pcintr_coroutine_t target,
         void *ctxt, pcintr_routine_f cb);
 
-int pcintr_post_req(enum pcintr_req_type req_type,
-        void *ctxt, struct pcintr_req_ops *ops);
-void pcintr_cancel_req(pcintr_req_t req);
-void pcintr_activate_req(pcintr_req_t req);
-void pcintr_hibernate_active_req(pcintr_req_t req);
+pcintr_req_t pcintr_make_req(void *ctxt, struct pcintr_req_ops *ops);
+int pcintr_req_ref(pcintr_req_t req);
+int pcintr_req_unref(pcintr_req_t req);
 
+int pcintr_post_req(pcintr_req_t req);
 
 int pcintr_post_msg(pcintr_coroutine_t target,
         void* ctxt, pcintr_msg_cb cb);
+
+int pcintr_yield(void *ctxt, void (*continuation)(void *ctxt));
+void pcintr_consume(void);
+
+pcintr_cancellable_t pcintr_make_cancellable(void *ctxt,
+        void (*cancel)(void *ctxt));
+
+int pcintr_cancellable_ref(pcintr_cancellable_t cancellable);
+int pcintr_cancellable_unref(pcintr_cancellable_t cancellable);
+
+int pcintr_register_cancellable(pcintr_cancellable_t cancellable);
+void pcintr_unregister_cancellable(pcintr_cancellable_t cancellable);
 
 void
 pcintr_exception_clear(struct pcintr_exception *exception);
@@ -614,6 +623,13 @@ pcintr_wakeup_co(pcintr_coroutine_t target, co_routine_f routine);
 
 void
 pcintr_apply_routine(co_routine_f routine, pcintr_coroutine_t target);
+
+int
+pcintr_co_dispatch(pcintr_coroutine_t target, void *ctxt,
+        void (*func)(void *ctxt));
+
+void
+pcintr_append_msg(pcintr_msg_t msg);
 
 PCA_EXTERN_C_END
 

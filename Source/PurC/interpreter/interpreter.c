@@ -88,13 +88,6 @@ void pcintr_init_instance(struct pcinst* inst)
     heap->running_coroutine = NULL;
 
     INIT_LIST_HEAD(&heap->routines);
-
-    INIT_LIST_HEAD(&heap->pending_reqs);
-    INIT_LIST_HEAD(&heap->active_reqs);
-    INIT_LIST_HEAD(&heap->cancelled_reqs);
-    INIT_LIST_HEAD(&heap->hibernating_reqs);
-    INIT_LIST_HEAD(&heap->dying_reqs);
-
 }
 
 static void
@@ -519,23 +512,21 @@ struct pcintr_routine {
 };
 
 enum pcintr_req_state {
+    REQ_STATE_INIT,
     REQ_STATE_PENDING,
-    REQ_STATE_ACTIVATING,
-    REQ_STATE_HIBERNATING,
     REQ_STATE_CANCELLED,
+    REQ_STATE_ACTIVATED,
     REQ_STATE_DYING,
 };
 
 struct pcintr_req {
     pcintr_coroutine_t           owner;
-    enum pcintr_req_type         type;
-    struct pcintr_stack_frame   *frame;
-    struct pcintr_stack_frame   *pseudo_frame;
     void                        *ctxt;
     struct pcintr_req_ops       *ops;
 
     int                          refc; // TODO: atomic or thread-safe-lock?
     enum pcintr_req_state        state;
+    struct list_head            *list;
     struct list_head             node;
 };
 
@@ -1858,6 +1849,51 @@ revoke_all_common_observers(void)
     }
 }
 
+static void cancel_req(pcintr_req_t req)
+{
+    PC_ASSERT(req);
+    PC_ASSERT(req->refc > 0);
+
+    pcintr_coroutine_t co = coroutine_get_current();
+    PC_ASSERT(co);
+    PC_ASSERT(co == req->owner);
+
+    switch (req->state) {
+        case REQ_STATE_PENDING:
+            break;
+        default:
+            PC_ASSERT(0);
+            break;
+    }
+
+    req->state = REQ_STATE_CANCELLED;
+    list_del(&req->node);
+    req->list = &co->cancelled_reqs;
+    list_add_tail(&req->node, &co->cancelled_reqs);
+
+    req->ops->cancel(req, req->ctxt);
+}
+
+static void cancel_pending_reqs(void)
+{
+    pcintr_stack_t stack = pcintr_get_stack();
+    PC_ASSERT(stack);
+    pcintr_coroutine_t co = stack->co;
+    pcintr_heap_t heap = co->owner;
+
+    pcintr_heap_lock(heap);
+
+    struct list_head *pendings = &co->pending_reqs;
+    pcintr_req_t p, n;
+    list_for_each_entry_safe(p, n, pendings, node) {
+        pcintr_heap_unlock(heap);
+        cancel_req(p);
+        pcintr_heap_lock(heap);
+    }
+
+    pcintr_heap_unlock(heap);
+}
+
 static void check_after_execution(pcintr_coroutine_t co)
 {
     struct pcinst *inst = pcinst_current();
@@ -1879,6 +1915,17 @@ static void check_after_execution(pcintr_coroutine_t co)
             PC_ASSERT(0);
     }
 
+    PC_ASSERT(co->state == CO_STATE_RUN);
+
+    if (co->yielded_ctxt) {
+        PC_ASSERT(inst->errcode == 0);
+        struct pcintr_stack_frame *frame;
+        frame = pcintr_stack_get_bottom_frame(stack);
+        PC_ASSERT(frame);
+        co->state = CO_STATE_WAIT;
+        return;
+    }
+
     if (inst->errcode) {
         PC_ASSERT(stack->except == 0);
         exception_copy(&stack->exception);
@@ -1891,7 +1938,6 @@ static void check_after_execution(pcintr_coroutine_t co)
         PC_ASSERT(inst->errcode == 0);
     }
 
-    PC_ASSERT(co->state == CO_STATE_RUN);
     co->state = CO_STATE_READY;
 
     if (frame) {
@@ -1939,6 +1985,16 @@ static void check_after_execution(pcintr_coroutine_t co)
     if (co_is_observed(co))
         return;
 
+    cancel_pending_reqs();
+    if (!list_empty(&co->pending_reqs))
+        return;
+
+    PC_ASSERT(list_empty(&co->pending_reqs));
+    if (!list_empty(&co->cancelled_reqs))
+        return;
+
+    PC_ASSERT(list_empty(&co->cancelled_reqs));
+
     co->stack.exited = 1;
     purc_runloop_dispatch(inst->running_loop, run_exiting_co, co);
 }
@@ -1968,11 +2024,20 @@ static void run_ready_co(void *ctxt)
 
 static void execute_msg_co(pcintr_coroutine_t co)
 {
-    pcintr_msg_t msg;
-    msg = list_first_entry(&co->msgqueue, struct pcintr_msg, node);
-    PC_ASSERT(msg);
-    list_del(&msg->node);
-    msg->cb(msg->ctxt);
+    pcintr_heap_t heap = co->owner;
+    pcintr_heap_lock(heap);
+    pcintr_msg_t msg = NULL;
+    do {
+        if (list_empty(&co->msgqueue))
+            break;
+
+        msg = list_first_entry(&co->msgqueue, struct pcintr_msg, node);
+        PC_ASSERT(msg);
+        list_del(&msg->node);
+        msg->cb(msg->ctxt);
+    } while (0);
+    pcintr_heap_unlock(heap);
+
     free(msg);
 }
 
@@ -2087,6 +2152,11 @@ purc_load_hvml_from_rwstream_ex(purc_rwstream_t stream,
     INIT_LIST_HEAD(&co->children);
     INIT_LIST_HEAD(&co->msgqueue);
 
+    INIT_LIST_HEAD(&co->pending_reqs);
+    INIT_LIST_HEAD(&co->cancelled_reqs);
+
+    INIT_LIST_HEAD(&co->cancellables);
+
     stack = &co->stack;
     stack->co = co;
     stack->vdom = vdom;
@@ -2143,12 +2213,6 @@ purc_run(purc_variant_t request, purc_event_handler handler)
     purc_runloop_run();
 
     PC_ASSERT(list_empty(&heap->routines));
-
-    PC_ASSERT(list_empty(&heap->pending_reqs));
-    PC_ASSERT(list_empty(&heap->active_reqs));
-    PC_ASSERT(list_empty(&heap->cancelled_reqs));
-    PC_ASSERT(list_empty(&heap->hibernating_reqs));
-    PC_ASSERT(list_empty(&heap->dying_reqs));
 
     return true;
 }
@@ -3769,252 +3833,86 @@ fail_calloc:
 }
 
 
-int pcintr_post_req(enum pcintr_req_type req_type,
-        void *ctxt, struct pcintr_req_ops *ops)
+int pcintr_req_ref(pcintr_req_t req)
 {
-    PC_ASSERT(ctxt);
-    PC_ASSERT(ops);
-    PC_ASSERT(ops->req);
-    PC_ASSERT(ops->cancel);
-    PC_ASSERT(ops->callback);
+    PC_ASSERT(req);
+    PC_ASSERT(req->refc > 0);
 
     pcintr_coroutine_t co = coroutine_get_current();
     PC_ASSERT(co);
-    pcintr_heap_t heap = co_get_owner_heap(co);
-    PC_ASSERT(heap);
+    PC_ASSERT(co == req->owner);
 
-    struct pcintr_stack_frame *frame;
-    frame = pcintr_stack_get_bottom_frame(&co->stack);
+    return ++req->refc;
+}
 
-    switch (req_type) {
-        case REQ_TYPE_RAW:
-            break;
-        case REQ_TYPE_SYNC:
-            if (!frame || frame->type != STACK_FRAME_TYPE_NORMAL) {
-                purc_set_error(PURC_ERROR_INVALID_VALUE);
-                return -1;
-            }
-            break;
-        case REQ_TYPE_ASYNC:
-            if (!frame) {
-                purc_set_error(PURC_ERROR_INVALID_VALUE);
-                return -1;
-            }
-            break;
-        default:
-            purc_set_error(PURC_ERROR_INVALID_VALUE);
-            return -1;
-    }
+int pcintr_req_unref(pcintr_req_t req)
+{
+    PC_ASSERT(req);
+    PC_ASSERT(req->refc > 0);
+
+    pcintr_coroutine_t co = coroutine_get_current();
+    PC_ASSERT(co);
+    PC_ASSERT(co == req->owner);
+
+    int refc = --req->refc;
+    if (refc > 0)
+        return refc;
+
+    PC_ASSERT(req->list == NULL);
+    req->ops->destroy(req->ctxt);
+    free(req);
+
+    return 0;
+}
+
+pcintr_req_t pcintr_make_req(void *ctxt, struct pcintr_req_ops *ops)
+{
+    PC_ASSERT(ctxt);
+    PC_ASSERT(ops);
+
+    pcintr_coroutine_t co = coroutine_get_current();
+    PC_ASSERT(co);
 
     pcintr_req_t req = (pcintr_req_t)calloc(1, sizeof(*req));
     if (!req) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return -1;
+        return NULL;
     }
 
-    req->type  = req_type;
-    req->frame = frame;
-    req->ctxt  = ctxt;
-    req->refc  = 1;
     req->owner = co;
+    req->ctxt  = ctxt;
     req->ops   = ops;
 
-    int r = 0;
+    req->refc  = 1;
+    req->state = REQ_STATE_INIT;
 
-    // boundary: vm/c
-    coroutine_set_current(NULL);
-    // thread-safe
-    pcintr_heap_lock(heap);
+    return req;
+}
 
+int pcintr_post_req(pcintr_req_t req)
+{
+    PC_ASSERT(req);
+    PC_ASSERT(req->refc > 0);
+    PC_ASSERT(req->state == REQ_STATE_INIT);
+
+    pcintr_coroutine_t co = coroutine_get_current();
+    PC_ASSERT(co);
+    PC_ASSERT(co == req->owner);
+
+    switch (req->state) {
+        case REQ_STATE_INIT:
+            break;
+        default:
+            PC_ASSERT(0);
+            break;
+    }
+
+    pcintr_req_ref(req);
     req->state = REQ_STATE_PENDING;
-    list_add_tail(&req->node, &heap->pending_reqs);
+    req->list = &co->pending_reqs;
+    list_add_tail(&req->node, &co->pending_reqs);
 
-    pcintr_heap_unlock(heap);
-
-    r = ops->req(req, ctxt);
-
-    coroutine_set_current(co);
-
-    if (r)
-        free(req);
-
-    return r ? -1 : 0;
-}
-
-void pcintr_cancel_req(pcintr_req_t req)
-{
-    PC_ASSERT(req);
-
-    pcintr_coroutine_t co = coroutine_get_current();
-    PC_ASSERT(co);
-    PC_ASSERT(co == req->owner);
-    pcintr_heap_t heap = co_get_owner_heap(co);
-    PC_ASSERT(heap);
-
-    // boundary: vm/c
-    coroutine_set_current(NULL);
-    // thread-safe
-    pcintr_heap_lock(heap);
-
-    switch (req->state) {
-        case REQ_STATE_PENDING:
-            req->state = REQ_STATE_CANCELLED;
-            list_del(&req->node);
-            list_add_tail(&req->node, &heap->cancelled_reqs);
-
-            pcintr_heap_unlock(heap);
-            req->ops->cancel(req, req->ctxt);
-            pcintr_heap_lock(heap);
-
-            --req->refc;
-            PC_ASSERT(req->refc);
-
-            break;
-
-        case REQ_STATE_ACTIVATING:
-            break;
-
-        default:
-            PC_ASSERT(0);
-    }
-
-    pcintr_heap_unlock(heap);
-    coroutine_set_current(co);
-}
-
-static void on_req_activating(void)
-{
-    pcintr_coroutine_t co = coroutine_get_current();
-    PC_ASSERT(co);
-    pcintr_heap_t heap = co_get_owner_heap(co);
-    PC_ASSERT(heap);
-
-    struct list_head *actives = &heap->active_reqs;
-
-    pcintr_heap_lock(heap);
-
-    PC_ASSERT(!list_empty(actives));
-    pcintr_req_t req = list_first_entry(actives, struct pcintr_req, node);
-    list_del(&req->node);
-
-    struct pcintr_stack_frame *frame;
-    frame = pcintr_stack_get_bottom_frame(&co->stack);
-
-    switch (req->type) {
-        case REQ_TYPE_RAW:
-            pcintr_heap_unlock(heap);
-            req->ops->callback(req, req->ctxt);
-            pcintr_heap_lock(heap);
-            break;
-        case REQ_TYPE_SYNC:
-            if (req->frame != frame) {
-                list_del(&req->node);
-                list_add_tail(&req->node, &heap->hibernating_reqs);
-            }
-            else {
-                PC_ASSERT(co->state == CO_STATE_WAIT);
-                pcintr_heap_unlock(heap);
-                req->ops->callback(req, req->ctxt);
-                pcintr_heap_lock(heap);
-            }
-            break;
-        case REQ_TYPE_ASYNC:
-            if (co->state != CO_STATE_READY) {
-                list_del(&req->node);
-                list_add_tail(&req->node, &heap->hibernating_reqs);
-            }
-            break;
-        default:
-            PC_ASSERT(0);
-    }
-
-    req->ops->callback(req, req->ctxt);
-
-    pcintr_heap_unlock(heap);
-}
-
-static void on_req_dying(void)
-{
-    pcintr_coroutine_t co = coroutine_get_current();
-    PC_ASSERT(co);
-}
-
-void pcintr_activate_req(pcintr_req_t req)
-{
-    PC_ASSERT(req);
-
-    pcintr_coroutine_t curr_co = coroutine_get_current();
-
-    pcintr_coroutine_t co = req->owner;
-
-    pcintr_heap_t heap = co_get_owner_heap(co);
-    PC_ASSERT(heap);
-
-    // boundary: vm/c
-    coroutine_set_current(NULL);
-    // thread-safe
-    pcintr_heap_lock(heap);
-
-    switch (req->state) {
-        case REQ_STATE_PENDING:
-            req->state = REQ_STATE_ACTIVATING;
-            list_del(&req->node);
-            list_add_tail(&req->node, &heap->active_reqs);
-
-            pcintr_heap_unlock(heap);
-            wakeup_heap(heap->owner->running_loop, on_req_activating);
-            pcintr_heap_lock(heap);
-
-            --req->refc;
-            PC_ASSERT(req->refc);
-            break;
-
-        case REQ_STATE_CANCELLED:
-            req->state = REQ_STATE_DYING;
-            list_del(&req->node);
-            list_add_tail(&req->node, &heap->dying_reqs);
-
-            pcintr_heap_unlock(heap);
-            wakeup_heap(heap->owner->running_loop, on_req_dying);
-            pcintr_heap_lock(heap);
-
-            break;
-        default:
-            PC_ASSERT(0);
-    }
-
-    pcintr_heap_unlock(heap);
-    coroutine_set_current(curr_co);
-}
-
-void pcintr_hibernate_active_req(pcintr_req_t req)
-{
-    PC_ASSERT(req);
-
-    pcintr_coroutine_t co = coroutine_get_current();
-    PC_ASSERT(co);
-    PC_ASSERT(co == req->owner);
-    pcintr_heap_t heap = co_get_owner_heap(co);
-    PC_ASSERT(heap);
-
-    // thread-safe
-    pcintr_heap_lock(heap);
-
-    switch (req->state) {
-        case REQ_STATE_ACTIVATING:
-            req->state = REQ_STATE_HIBERNATING;
-            list_del(&req->node);
-            list_add_tail(&req->node, &heap->hibernating_reqs);
-
-            PC_ASSERT(req->refc);
-
-            break;
-
-        default:
-            PC_ASSERT(0);
-    }
-
-    pcintr_heap_unlock(heap);
+    return 0;
 }
 
 static void on_co_msg_posted(pcintr_coroutine_t co)
@@ -4023,7 +3921,7 @@ static void on_co_msg_posted(pcintr_coroutine_t co)
         return;
 
     pcintr_stack_t stack = &co->stack;
-    PC_ASSERT(stack != pcintr_get_stack());
+    PC_ASSERT(stack == pcintr_get_stack());
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
@@ -4032,6 +3930,7 @@ static void on_co_msg_posted(pcintr_coroutine_t co)
 
     co->state = CO_STATE_RUN;
     coroutine_set_current(co);
+    execute_msg_co(co);
     check_after_execution(co);
     coroutine_set_current(NULL);
 }
@@ -4054,28 +3953,172 @@ int pcintr_post_msg(pcintr_coroutine_t target,
 
     int empty = list_empty(&target->msgqueue);
 
-    list_add_tail(&msg->node, &target->msgqueue);
-
     do {
-        if (!empty)
-            break;
+        list_add_tail(&msg->node, &target->msgqueue);
 
-        if (target->state != CO_STATE_READY)
-            break;
-
-        pcintr_stack_t stack = &target->stack;
-
-        struct pcintr_stack_frame *frame;
-        frame = pcintr_stack_get_bottom_frame(stack);
-        if (frame)
-            break;
-
-        pcintr_wakeup_co(target, on_co_msg_posted);
+        if (empty) {
+            pcintr_wakeup_co(target, on_co_msg_posted);
+        }
     } while (0);
 
     pcintr_heap_unlock(target_heap);
 
-    free(msg);
-    return -1;
+    return 0;
+}
+
+void
+pcintr_append_msg(pcintr_msg_t msg)
+{
+    PC_ASSERT(msg);
+    PC_ASSERT(msg->node.prev == NULL && msg->node.next == NULL);
+    struct pcintr_coroutine *co = coroutine_get_current();
+    PC_ASSERT(co);
+    list_add_tail(&msg->node, &co->msgqueue);
+}
+
+int pcintr_yield(void *ctxt, void (*continuation)(void *ctxt))
+{
+    PC_ASSERT(ctxt);
+    PC_ASSERT(continuation);
+    pcintr_stack_t stack = pcintr_get_stack();
+    PC_ASSERT(stack);
+    pcintr_coroutine_t co = stack->co;
+    PC_ASSERT(co->yielded_ctxt == NULL);
+    PC_ASSERT(co->continuation == NULL);
+    co->yielded_ctxt = ctxt;
+    co->continuation = continuation;
+
+    return 0;
+}
+
+void pcintr_consume(void)
+{
+    pcintr_stack_t stack = pcintr_get_stack();
+    PC_ASSERT(stack);
+    pcintr_coroutine_t co = stack->co;
+    void *ctxt = co->yielded_ctxt;
+    void (*continuation)(void *ctxt) = co->continuation;
+    PC_ASSERT(ctxt);
+    PC_ASSERT(continuation);
+    co->yielded_ctxt = NULL;
+    co->continuation = NULL;
+    continuation(ctxt);
+}
+
+struct pcintr_cancellable {
+    int                      refc;
+    pcintr_coroutine_t       co;
+
+    void                    *ctxt;
+    void (*cancel)(void *ctxt);
+
+    struct list_head        *list;
+    struct list_head         node;
+};
+
+pcintr_cancellable_t pcintr_make_cancellable(void *ctxt,
+        void (*cancel)(void *ctxt))
+{
+    PC_ASSERT(ctxt);
+    PC_ASSERT(cancel);
+    pcintr_stack_t stack = pcintr_get_stack();
+    PC_ASSERT(stack);
+    pcintr_coroutine_t co = stack->co;
+
+    pcintr_cancellable_t cancellable;
+    cancellable = (struct pcintr_cancellable*)calloc(1, sizeof(*cancellable));
+    if (!cancellable) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return NULL;
+    }
+
+    cancellable->refc            = 1;
+    cancellable->co              = co;
+    cancellable->ctxt            = ctxt;
+    cancellable->cancel          = cancel;
+
+    return cancellable;
+}
+
+int pcintr_cancellable_ref(pcintr_cancellable_t cancellable)
+{
+    PC_ASSERT(cancellable);
+    pcintr_stack_t stack = pcintr_get_stack();
+    PC_ASSERT(stack);
+    pcintr_coroutine_t co = stack->co;
+
+    PC_ASSERT(cancellable->refc > 0);
+    PC_ASSERT(co == cancellable->co);
+
+    return ++cancellable->refc;
+}
+
+int pcintr_cancellable_unref(pcintr_cancellable_t cancellable)
+{
+    PC_ASSERT(cancellable);
+    pcintr_stack_t stack = pcintr_get_stack();
+    PC_ASSERT(stack);
+    pcintr_coroutine_t co = stack->co;
+
+    PC_ASSERT(cancellable->refc > 0);
+    PC_ASSERT(co == cancellable->co);
+
+    if (cancellable->refc > 1)
+        return --cancellable->refc;
+
+    PC_ASSERT(cancellable->list == NULL);
+    free(cancellable);
+    return 0;
+}
+
+int pcintr_register_cancellable(pcintr_cancellable_t cancellable)
+{
+    PC_ASSERT(cancellable);
+    pcintr_stack_t stack = pcintr_get_stack();
+    PC_ASSERT(stack);
+    pcintr_coroutine_t co = stack->co;
+
+    PC_ASSERT(cancellable->refc > 0);
+    PC_ASSERT(co == cancellable->co);
+    PC_ASSERT(cancellable->list == NULL);
+
+    struct list_head *list = &co->cancellables;
+
+    pcintr_cancellable_t p = NULL;
+    list_for_each_entry(p, list, node) {
+        if (p == cancellable) {
+            purc_set_error(PURC_ERROR_EXISTS);
+            return -1;
+        }
+    }
+
+    list_add(&cancellable->node, &co->cancellables);
+    cancellable->list            = list;
+    cancellable->refc += 1;
+
+    return 0;
+}
+
+void pcintr_unregister_cancellable(pcintr_cancellable_t cancellable)
+{
+    PC_ASSERT(cancellable);
+    pcintr_stack_t stack = pcintr_get_stack();
+    PC_ASSERT(stack);
+    pcintr_coroutine_t co = stack->co;
+
+    PC_ASSERT(cancellable->refc > 0);
+    PC_ASSERT(co == cancellable->co);
+    PC_ASSERT(cancellable->list == NULL);
+
+    struct list_head *list = &co->cancellables;
+
+    pcintr_cancellable_t p = NULL;
+    list_for_each_entry(p, list, node) {
+        if (cancellable == p) {
+            list_del(&p->node);
+            p->list = NULL;
+            pcintr_cancellable_unref(p);
+        }
+    }
 }
 

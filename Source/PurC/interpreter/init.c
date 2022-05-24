@@ -767,7 +767,6 @@ attr_found(struct pcintr_stack_frame *frame,
     return r ? -1 : 0;
 }
 
-#ifndef MOCK_ASYNC            /* { */
 static void load_response_handler(purc_variant_t request_id, void *ctxt,
         const struct pcfetcher_resp_header *resp_header,
         purc_rwstream_t resp)
@@ -838,14 +837,12 @@ clean_rws:
     }
     free(fetcher);
 }
-#endif                        /* } */
 
 static void*
 after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 {
     PC_ASSERT(stack && pos);
     PC_ASSERT(stack == pcintr_get_stack());
-
 
     if (stack->except)
         return NULL;
@@ -898,6 +895,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     purc_clr_error(); // pcvdom_element_parent
 
     purc_variant_t from = ctxt->from;
+
     if (from != PURC_VARIANT_INVALID && purc_variant_is_string(from)
             && pcfetcher_is_init()) {
         const char* uri = purc_variant_get_string_const(from);
@@ -909,9 +907,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
             ctxt->from_result = v;
         }
         else {
-#ifdef MOCK_ASYNC               /* { */
-            PC_ASSERT(0);
-#else                           /* }{ */
             struct fetcher_for_init *fetcher = (struct fetcher_for_init*)
                 malloc(sizeof(struct fetcher_for_init));
             if (!fetcher) {
@@ -929,7 +924,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
             if (v == PURC_VARIANT_INVALID)
                 return NULL;
             pcintr_save_async_request_id(stack, v);
-#endif                          /* } */
         }
     }
 

@@ -227,3 +227,21 @@ pcintr_wakeup_co(pcintr_coroutine_t target, co_routine_f routine)
         });
 }
 
+int
+pcintr_co_dispatch(pcintr_coroutine_t target, void *ctxt,
+        void (*func)(void *ctxt))
+{
+    purc_runloop_t target_runloop;
+    target_runloop = pcintr_co_get_runloop(target);
+    PC_ASSERT(target_runloop);
+    // FIXME: try catch ?
+    ((RunLoop*)target_runloop)->dispatch([target, ctxt, func]() {
+            pcintr_heap_t heap = pcintr_get_heap();
+            PC_ASSERT(heap->running_coroutine == NULL);
+            heap->running_coroutine = target;
+            func(ctxt);
+            heap->running_coroutine = NULL;
+        });
+    return 0;
+}
+
