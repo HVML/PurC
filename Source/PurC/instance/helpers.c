@@ -511,25 +511,27 @@ bool purc_hvml_uri_split(const char *uri,
         goto failed;
     my_runner = strndup(uri, len);
 
-    uri += len + 1;
-    len = get_comp_len(uri);
-    if (len == 0)
-        goto failed;
-
-    if (uri[len] == COMP_SEPERATOR) {
-        /* have group */
-        my_group = strndup(uri, len);
-
+    do {
         uri += len + 1;
         len = get_comp_len(uri);
-        if (len == 0 || uri[len] != '\0')
-            goto failed;
-        my_page = strndup(uri, len);
-    }
-    else {
-        /* no group */
-        my_page = strndup(uri, len);
-    }
+        if (len == 0)
+            break;
+
+        if (uri[len] == COMP_SEPERATOR) {
+            /* have group */
+            my_group = strndup(uri, len);
+
+            uri += len + 1;
+            len = get_comp_len(uri);
+            if (len == 0 || uri[len] != '\0')
+                goto failed;
+            my_page = strndup(uri, len);
+        }
+        else {
+            /* no group */
+            my_page = strndup(uri, len);
+        }
+    } while (0);
 
     if (host)
         *host = my_host;
@@ -548,7 +550,7 @@ bool purc_hvml_uri_split(const char *uri,
 
     if (group)
         *group = my_group;
-    else
+    else if (my_group)
         free(my_group);
 
     if (page)
