@@ -150,8 +150,8 @@ end:
     return ret;
 }
 
-static bool
-variant_object_clear(purc_variant_t object, bool silently)
+bool
+pcvariant_object_clear(purc_variant_t object, bool silently)
 {
     bool ret = false;
     if (object == PURC_VARIANT_INVALID) {
@@ -178,8 +178,8 @@ end:
     return ret;
 }
 
-static bool
-variant_array_clear(purc_variant_t array, bool silently)
+bool
+pcvariant_array_clear(purc_variant_t array, bool silently)
 {
     bool ret = false;
     if (array == PURC_VARIANT_INVALID) {
@@ -207,8 +207,8 @@ end:
     return ret;
 }
 
-static bool
-variant_set_clear(purc_variant_t set, bool silently)
+bool
+pcvariant_set_clear(purc_variant_t set, bool silently)
 {
     bool ret = false;
     if (set == PURC_VARIANT_INVALID) {
@@ -473,7 +473,7 @@ object_displace(purc_variant_t dst, purc_variant_t src, bool silently)
         goto end;
     }
 
-    if (!variant_object_clear(dst, silently)) {
+    if (!pcvariant_object_clear(dst, silently)) {
         goto end;
     }
 
@@ -515,7 +515,7 @@ array_displace(purc_variant_t dst, purc_variant_t src, bool silently)
         goto end;
     }
 
-    if (!variant_array_clear(dst, silently)) {
+    if (!pcvariant_array_clear(dst, silently)) {
         goto end;
     }
 
@@ -560,7 +560,7 @@ set_displace(purc_variant_t dst, purc_variant_t src, bool silently)
     enum purc_variant_type type = purc_variant_get_type(src);
     switch (type) {
         case PURC_VARIANT_TYPE_OBJECT:
-            if (!variant_set_clear(dst, silently)) {
+            if (!pcvariant_set_clear(dst, silently)) {
                 goto end;
             }
             if (!purc_variant_set_add(dst, src, silently)) {
@@ -570,7 +570,7 @@ set_displace(purc_variant_t dst, purc_variant_t src, bool silently)
             break;
 
         case PURC_VARIANT_TYPE_ARRAY:
-            if (!variant_set_clear(dst, silently)) {
+            if (!pcvariant_set_clear(dst, silently)) {
                 goto end;
             }
             if (!array_foreach(src, add_set_member, dst, silently)) {
@@ -580,7 +580,7 @@ set_displace(purc_variant_t dst, purc_variant_t src, bool silently)
             break;
 
         case PURC_VARIANT_TYPE_SET:
-            if (!variant_set_clear(dst, silently)) {
+            if (!pcvariant_set_clear(dst, silently)) {
                 goto end;
             }
             if (!set_foreach(src, add_set_member, dst, silently)) {
