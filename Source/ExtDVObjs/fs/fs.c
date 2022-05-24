@@ -2428,20 +2428,27 @@ symlink_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(root);
     UNUSED_PARAM(silently);
 
-    char filename[PATH_MAX];
-    const char *string_filename = NULL;
+    const char *string_target = NULL;
+    const char *string_link = NULL;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
-    if (nr_args < 1) {
+    if (nr_args < 2) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
 
-    // get the file name
-    string_filename = purc_variant_get_string_const (argv[0]);
-    strncpy (filename, string_filename, sizeof(filename));
+    // get the parameters
+    string_target = purc_variant_get_string_const (argv[0]);
+    string_link = purc_variant_get_string_const (argv[1]);
+    if (NULL == string_target || NULL == string_link) {
+        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+        return PURC_VARIANT_INVALID;
+    }
 
-    // wait for code
+    if (symlink(string_target, string_link) == -1) {
+        set_purc_error_by_errno ();
+        return purc_variant_make_boolean (false);
+    }
 
     ret_var = purc_variant_make_boolean (true);
     return ret_var;
