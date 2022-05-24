@@ -50,35 +50,9 @@ struct pcintr_stack;
 typedef struct pcintr_stack pcintr_stack;
 typedef struct pcintr_stack *pcintr_stack_t;
 
-struct pcintr_routine;
-typedef struct pcintr_routine pcintr_routine;
-typedef struct pcintr_routine *pcintr_routine_t;
-
-struct pcintr_cancellable;
-typedef struct pcintr_cancellable pcintr_cancellable;
-typedef struct pcintr_cancellable *pcintr_cancellable_t;
-
-struct pcintr_req;
-typedef struct pcintr_req pcintr_req;
-typedef struct pcintr_req *pcintr_req_t;
-
 struct pcintr_msg;
 typedef struct pcintr_msg pcintr_msg;
 typedef struct pcintr_msg *pcintr_msg_t;
-
-typedef void (*pcintr_msg_cb)(void *ctxt);
-
-struct pcintr_req_ops {
-    void (*cancel)(pcintr_req_t req, void *ctxt);
-    void (*destroy)(void *ctxt);
-};
-
-struct pcintr_msg {
-    void                       *ctxt;
-    pcintr_msg_cb               cb;
-
-    struct list_head            node;
-};
 
 struct pcintr_heap {
     // owner instance
@@ -221,25 +195,26 @@ enum pcintr_coroutine_state {
     /* STATE_PAUSED, */
 };
 
+typedef void (pcintr_msg_callback_f)(void *ctxt);
+
+struct pcintr_msg {
+    void                       *ctxt;
+    void (*on_msg)(void *ctxt);
+
+    struct list_head            node;
+};
+
 struct pcintr_coroutine {
     pcintr_heap_t               owner;    /* owner heap */
     struct list_head            node;     /* sibling coroutines */
     struct list_head            children; /* children coroutines */
-
-    struct list_head            msgqueue; /* struct pcintr_msg */
 
     struct pcintr_stack         stack;  /* stack that holds this coroutine */
 
     enum pcintr_coroutine_state state;
     int                         waits;  /* FIXME: nr of registered events */
 
-    void                       *yielded_ctxt;
-    void (*continuation)(void *ctxt);
-
-    struct list_head      pending_reqs;      // struct pcintr_req
-    struct list_head      cancelled_reqs;    // struct pcintr_req
-
-    struct list_head      cancellables;      // struct pcintr_cancellable
+    struct list_head            msgs;   /* struct pcintr_msg */
 };
 
 enum purc_symbol_var {
@@ -381,31 +356,8 @@ pcintr_stack_get_bottom_frame(pcintr_stack_t stack);
 struct pcintr_stack_frame*
 pcintr_stack_frame_get_parent(struct pcintr_stack_frame *frame);
 
-typedef void (*pcintr_routine_f)(void *ctxt);
-
-int pcintr_post_routine(pcintr_coroutine_t target,
-        void *ctxt, pcintr_routine_f cb);
-
-pcintr_req_t pcintr_make_req(void *ctxt, struct pcintr_req_ops *ops);
-int pcintr_req_ref(pcintr_req_t req);
-int pcintr_req_unref(pcintr_req_t req);
-
-int pcintr_post_req(pcintr_req_t req);
-
-int pcintr_post_msg(pcintr_coroutine_t target,
-        void* ctxt, pcintr_msg_cb cb);
-
 int pcintr_yield(void *ctxt, void (*continuation)(void *ctxt));
 void pcintr_consume(void);
-
-pcintr_cancellable_t pcintr_make_cancellable(void *ctxt,
-        void (*cancel)(void *ctxt));
-
-int pcintr_cancellable_ref(pcintr_cancellable_t cancellable);
-int pcintr_cancellable_unref(pcintr_cancellable_t cancellable);
-
-int pcintr_register_cancellable(pcintr_cancellable_t cancellable);
-void pcintr_unregister_cancellable(pcintr_cancellable_t cancellable);
 
 void
 pcintr_exception_clear(struct pcintr_exception *exception);
@@ -413,6 +365,9 @@ pcintr_exception_clear(struct pcintr_exception *exception);
 void
 pcintr_exception_move(struct pcintr_exception *dst,
         struct pcintr_exception *src);
+
+void
+pcintr_post_msg(void *ctxt, pcintr_msg_callback_f cb);
 
 purc_variant_t
 pcintr_make_object_of_dynamic_variants(size_t nr_args,
@@ -616,7 +571,7 @@ pcintr_get_scoped_variables(struct pcvdom_node *node);
 purc_runloop_t
 pcintr_co_get_runloop(pcintr_coroutine_t co);
 
-typedef void (*co_routine_f)(pcintr_coroutine_t co);
+typedef void (*co_routine_f)(void);
 
 void
 pcintr_wakeup_co(pcintr_coroutine_t target, co_routine_f routine);
@@ -627,9 +582,6 @@ pcintr_apply_routine(co_routine_f routine, pcintr_coroutine_t target);
 int
 pcintr_co_dispatch(pcintr_coroutine_t target, void *ctxt,
         void (*func)(void *ctxt));
-
-void
-pcintr_append_msg(pcintr_msg_t msg);
 
 PCA_EXTERN_C_END
 

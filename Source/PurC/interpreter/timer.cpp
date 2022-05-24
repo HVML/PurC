@@ -176,19 +176,57 @@ static void map_free_val(void* val)
     }
 }
 
-void timer_fire_func(const char* id, void* ctxt)
+static void on_co_timeup(void *ud)
 {
-    pcintr_stack_t stack = (pcintr_stack_t) ctxt;
-    PC_ASSERT(pcintr_is_current_thread());
-    purc_variant_t type = purc_variant_make_string(TIMERS_STR_EXPIRED, false);
-    purc_variant_t sub_type = purc_variant_make_string(id, false);
+    char *id = (char*)ud;
+    PC_ASSERT(id);
 
-    pcintr_dispatch_message_ex((pcintr_stack_t)ctxt,
-            stack->timers->timers_var,
-            type, sub_type, PURC_VARIANT_INVALID);
+    pcintr_stack_t stack = pcintr_get_stack();
+    PC_ASSERT(stack);
 
-    purc_variant_unref(type);
-    purc_variant_unref(sub_type);
+    purc_variant_t type = PURC_VARIANT_INVALID;
+    purc_variant_t sub_type = PURC_VARIANT_INVALID;
+
+    if (stack->exited)
+        goto fail;
+
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_stack_get_bottom_frame(stack);
+    // bypass when there's still stack frame to execute
+    if (frame)
+        goto fail;
+
+    // bypass when there's coroutine is not ready
+    if (stack->co->state != CO_STATE_READY)
+        goto fail;
+
+    type = purc_variant_make_string(TIMERS_STR_EXPIRED, false);
+    sub_type = purc_variant_make_string(id, false);
+
+    if (type && sub_type) {
+        pcintr_dispatch_message_ex(stack,
+                stack->timers->timers_var,
+                type, sub_type, PURC_VARIANT_INVALID);
+    }
+
+    PURC_VARIANT_SAFE_CLEAR(type);
+    PURC_VARIANT_SAFE_CLEAR(sub_type);
+
+fail:
+    free(id);
+}
+
+static void timer_fire_func(const char* id, void* ctxt)
+{
+    char *sid = strdup(id);
+    if (!sid)
+        return;
+
+    pcintr_stack_t stack = (pcintr_stack_t)ctxt;
+    pcintr_coroutine_t co = stack->co;
+    int r;
+    r = pcintr_co_dispatch(co, sid, on_co_timeup);
+    PC_ASSERT(r == 0);
 }
 
 bool

@@ -223,7 +223,11 @@ pcintr_wakeup_co(pcintr_coroutine_t target, co_routine_f routine)
     target_runloop = pcintr_co_get_runloop(target);
     PC_ASSERT(target_runloop);
     ((RunLoop*)target_runloop)->dispatch([target, routine]() {
-        pcintr_apply_routine(routine, target);
+            pcintr_heap_t heap = pcintr_get_heap();
+            PC_ASSERT(heap->running_coroutine == NULL);
+            heap->running_coroutine = target;
+            routine();
+            heap->running_coroutine = NULL;
         });
 }
 
