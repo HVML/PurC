@@ -404,8 +404,12 @@ double purc_get_elapsed_seconds (const struct timespec *ts1,
     return ds + dns * 1.0E-9;
 }
 
-#define HVML_SCHEMA     "hvml://"
-#define COMP_SEPERATOR  '/'
+#define HVML_SCHEMA         "hvml://"
+#define COMP_SEPERATOR      '/'
+#define QUERY_SEPERATOR     '?'
+#define FRAG_SEPERATOR      '#'
+#define PAIR_SEPERATOR      '&'
+#define KV_SEPERATOR        '='
 
 size_t purc_hvml_uri_assemble(char *uri, const char *host, const char* app,
         const char* runner, const char *group, const char *page)
@@ -470,11 +474,23 @@ char* purc_hvml_uri_assemble_alloc(const char* host, const char* app,
     return uri;
 }
 
-static unsigned int get_comp_len(const char *str)
+static unsigned int get_path_comp_len(const char *str)
 {
     unsigned int len = 0;
 
     while (*str && *str != COMP_SEPERATOR) {
+        len++;
+        str++;
+    }
+
+    return len;
+}
+
+static unsigned int get_path_trail_len(const char *str)
+{
+    unsigned int len = 0;
+
+    while (*str && *str != COMP_SEPERATOR && *str != QUERY_SEPERATOR) {
         len++;
         str++;
     }
@@ -492,7 +508,7 @@ bool purc_hvml_uri_split(const char *uri,
         return false;
 
     uri += sz_schema;
-    len = get_comp_len(uri);
+    len = get_path_comp_len(uri);
     if (len == 0 || uri[len] != COMP_SEPERATOR)
         return false;
     if (host) {
@@ -501,7 +517,7 @@ bool purc_hvml_uri_split(const char *uri,
     }
 
     uri += len + 1;
-    len = get_comp_len(uri);
+    len = get_path_comp_len(uri);
     if (len == 0 || uri[len] != COMP_SEPERATOR)
         goto failed;
     if (app) {
@@ -510,7 +526,7 @@ bool purc_hvml_uri_split(const char *uri,
     }
 
     uri += len + 1;
-    len = get_comp_len(uri);
+    len = get_path_comp_len(uri);
     if (len == 0 || uri[len] != COMP_SEPERATOR)
         goto failed;
     if (runner) {
@@ -523,7 +539,7 @@ bool purc_hvml_uri_split(const char *uri,
 
     do {
         uri += len + 1;
-        len = get_comp_len(uri);
+        len = get_path_comp_len(uri);
         if (len == 0)
             break;
 
@@ -535,8 +551,8 @@ bool purc_hvml_uri_split(const char *uri,
             }
 
             uri += len + 1;
-            len = get_comp_len(uri);
-            if (len == 0 || uri[len] != '\0')
+            len = get_path_trail_len(uri);
+            if (len == 0 || (uri[len] != 0 && uri[len] != QUERY_SEPERATOR))
                 goto failed;
             if (page) {
                 strncpy(page, uri, len);
@@ -546,6 +562,9 @@ bool purc_hvml_uri_split(const char *uri,
         else {
             /* no group */
             if (page) {
+                len = get_path_trail_len(uri);
+                if (len == 0 || (uri[len] != 0 && uri[len] != QUERY_SEPERATOR))
+                    goto failed;
                 strncpy(page, uri, len);
                 page[len] = '\0';
             }
@@ -571,26 +590,26 @@ bool purc_hvml_uri_split_alloc(const char *uri,
         return false;
 
     uri += sz_schema;
-    len = get_comp_len(uri);
+    len = get_path_comp_len(uri);
     if (len == 0 || uri[len] != COMP_SEPERATOR)
         return false;
     my_host = strndup(uri, len);
 
     uri += len + 1;
-    len = get_comp_len(uri);
+    len = get_path_comp_len(uri);
     if (len == 0 || uri[len] != COMP_SEPERATOR)
         goto failed;
     my_app = strndup(uri, len);
 
     uri += len + 1;
-    len = get_comp_len(uri);
+    len = get_path_comp_len(uri);
     if (len == 0 || uri[len] != COMP_SEPERATOR)
         goto failed;
     my_runner = strndup(uri, len);
 
     do {
         uri += len + 1;
-        len = get_comp_len(uri);
+        len = get_path_comp_len(uri);
         if (len == 0)
             break;
 
@@ -599,13 +618,16 @@ bool purc_hvml_uri_split_alloc(const char *uri,
             my_group = strndup(uri, len);
 
             uri += len + 1;
-            len = get_comp_len(uri);
-            if (len == 0 || uri[len] != '\0')
+            len = get_path_trail_len(uri);
+            if (len == 0 || (uri[len] != 0 && uri[len] != QUERY_SEPERATOR))
                 goto failed;
             my_page = strndup(uri, len);
         }
         else {
             /* no group */
+            len = get_path_trail_len(uri);
+            if (len == 0 || (uri[len] != 0 && uri[len] != QUERY_SEPERATOR))
+                goto failed;
             my_page = strndup(uri, len);
         }
     } while (0);
@@ -650,5 +672,105 @@ failed:
         free(my_page);
 
     return false;
+}
+
+static size_t get_key_len(const char *str)
+{
+    size_t len = 0;
+
+    while (*str && *str != KV_SEPERATOR && *str != FRAG_SEPERATOR) {
+        len++;
+        str++;
+    }
+
+    return len;
+}
+
+static size_t get_value_len(const char *str)
+{
+    size_t len = 0;
+
+    while (*str && *str != PAIR_SEPERATOR && *str != FRAG_SEPERATOR) {
+        len++;
+        str++;
+    }
+
+    return len;
+}
+
+static const char *locate_query_value(const char *uri, const char *key)
+{
+    size_t key_len = strlen(key);
+    if (key_len == 0)
+        return NULL;
+
+    while (*uri && *uri != QUERY_SEPERATOR) {
+        uri++;
+    }
+
+    if (uri[0] == 0)
+        return NULL;
+
+    char my_key[key_len + 2];
+    strcpy(my_key, key);
+    my_key[key_len] = KV_SEPERATOR;
+    key_len++;
+    my_key[key_len] = 0;
+
+    const char *left = uri + 1;
+    while (*left) {
+        if (strncasecmp(left, my_key, key_len) == 0) {
+            return left + key_len;
+        }
+        else {
+            const char *value = left + get_key_len(left);
+            unsigned int value_len = get_value_len(value);
+            left = value + value_len;
+            if (*left == PAIR_SEPERATOR)
+                left++;
+
+            if (*left == FRAG_SEPERATOR)
+                break;
+        }
+    }
+
+    return NULL;
+}
+
+bool purc_hvml_uri_get_query_value(const char *uri, const char *key,
+        char *value_buff)
+{
+    const char *value = locate_query_value(uri, key);
+
+    if (value == NULL) {
+        return false;
+    }
+
+    size_t value_len = get_value_len(value);
+    if (value_len == 0) {
+        return false;
+    }
+
+    strncpy(value_buff, value, value_len);
+    value_buff[value_len] = 0;
+    return true;
+}
+
+bool purc_hvml_uri_get_query_value_alloc(const char *uri, const char *key,
+        char **value_buff)
+{
+    const char *value = locate_query_value(uri, key);
+
+    if (value == NULL) {
+        return false;
+    }
+
+    size_t value_len = get_value_len(value);
+    if (value_len == 0) {
+        return false;
+    }
+
+    *value_buff = strndup(value, value_len);
+    return true;
 }
 

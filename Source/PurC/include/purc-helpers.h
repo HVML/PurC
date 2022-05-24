@@ -118,7 +118,7 @@ purc_hvml_uri_assemble_alloc(const char *host, const char *app,
 /**
  * Break down an HVML URI in the following pattern to component buffers:
  *
- *      hvml://<host>/<app>/<runner>/[<group>/]<page>
+ *  hvml://<host>/<app>/<runner>/[<group>/]<page>[?key1=value1&key2=value2]
  *
  * Since: 0.1.0
  */
@@ -129,13 +129,31 @@ purc_hvml_uri_split(const char *uri,
 /**
  * Break down an HVML URI in the following pattern:
  *
- *      hvml://<host>/<app>/<runner>/[<group>/]<page>
+ *  hvml://<host>/<app>/<runner>/[<group>/]<page>[?key1=value1&key2=value2]
  *
  * Since: 0.1.0
  */
 PCA_EXPORT bool
 purc_hvml_uri_split_alloc(const char *uri,
         char **host, char **app, char **runner, char **group, char **page);
+
+/**
+ * Copy the value of the specified key in a HVML URI to the bufffer if found.
+ * Since: 0.1.0
+ */
+PCA_EXPORT bool
+purc_hvml_uri_get_query_value(const char *uri, const char *key,
+        char *value_buff);
+
+/**
+ * Copy the value of the specified key in a HVML URI to the newly allocated
+ * buffer if found.
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT bool
+purc_hvml_uri_get_query_value_alloc(const char *uri, const char *key,
+        char **value_buff);
 
 /**
  * Check whether a string is a valid token.
