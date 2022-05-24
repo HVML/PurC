@@ -401,6 +401,15 @@ pcvariant_is_in_set (purc_variant_t set, purc_variant_t value)
 purc_variant_t
 pcvariant_object_shallow_copy(purc_variant_t obj);
 
+bool
+pcvariant_object_clear(purc_variant_t object, bool silently);
+
+bool
+pcvariant_array_clear(purc_variant_t array, bool silently);
+
+bool
+pcvariant_set_clear(purc_variant_t set, bool silently);
+
 PCA_EXTERN_C_END
 
 /* VWNOTE (WARN)
