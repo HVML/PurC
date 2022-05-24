@@ -303,11 +303,15 @@ private:
 
     Lock m_workQueueMessageReceiversMutex;
     using WorkQueueMessageReceiverMap = HashMap<ReceiverName, std::pair<RefPtr<WorkQueue>, RefPtr<WorkQueueMessageReceiver>>, WTF::IntHash<ReceiverName>, WTF::StrongEnumHashTraits<ReceiverName>>;
+#if 0
     WorkQueueMessageReceiverMap m_workQueueMessageReceivers;
+#endif
 
     Lock m_threadMessageReceiversLock;
     using ThreadMessageReceiverMap = HashMap<ReceiverName, RefPtr<ThreadMessageReceiver>, WTF::IntHash<ReceiverName>, WTF::StrongEnumHashTraits<ReceiverName>>;
+#if 0
     ThreadMessageReceiverMap m_threadMessageReceivers;
+#endif
 
     unsigned m_inSendSyncCount;
     unsigned m_inDispatchMessageCount;

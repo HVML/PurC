@@ -280,9 +280,15 @@ void PcFetcherProcess::removeRequest(PcFetcherRequest *request)
         auto locker = holdLock(m_requestLock);
         m_requestVec.removeFirst(request);
     }
-    request->getRunLoop()->dispatch([request] {
+    RunLoop *runloop = &RunLoop::current();
+    if (runloop == request->getRunLoop()) {
         delete request;
-    });
+    }
+    else {
+        request->getRunLoop()->dispatch([request] {
+            delete request;
+        });
+    }
 }
 
 purc_variant_t PcFetcherProcess::requestAsync(

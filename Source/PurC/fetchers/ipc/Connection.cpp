@@ -310,20 +310,28 @@ void Connection::setShouldExitOnSyncMessageSendFailure(bool shouldExitOnSyncMess
 void Connection::addWorkQueueMessageReceiver(ReceiverName messageReceiverName, WorkQueue& workQueue, WorkQueueMessageReceiver* workQueueMessageReceiver)
 {
 //    ASSERT(RunLoop::isMain());
+    UNUSED_PARAM(messageReceiverName);
+    UNUSED_PARAM(workQueue);
+    UNUSED_PARAM(workQueueMessageReceiver);
 
+#if 0
     auto locker = holdLock(m_workQueueMessageReceiversMutex);
     ASSERT(!m_workQueueMessageReceivers.contains(messageReceiverName));
 
     m_workQueueMessageReceivers.add(messageReceiverName, std::make_pair(&workQueue, workQueueMessageReceiver));
+#endif
 }
 
 void Connection::removeWorkQueueMessageReceiver(ReceiverName messageReceiverName)
 {
 //    ASSERT(RunLoop::isMain());
 
+    UNUSED_PARAM(messageReceiverName);
+#if 0
     auto locker = holdLock(m_workQueueMessageReceiversMutex);
     ASSERT(m_workQueueMessageReceivers.contains(messageReceiverName));
     m_workQueueMessageReceivers.remove(messageReceiverName);
+#endif
 }
 
 void Connection::dispatchWorkQueueMessageReceiverMessage(WorkQueueMessageReceiver& workQueueMessageReceiver, Decoder& decoder)
@@ -356,21 +364,27 @@ void Connection::dispatchWorkQueueMessageReceiverMessage(WorkQueueMessageReceive
 void Connection::addThreadMessageReceiver(ReceiverName messageReceiverName, ThreadMessageReceiver* threadMessageReceiver)
 {
 //    ASSERT(RunLoop::isMain());
-
+    UNUSED_PARAM(messageReceiverName);
+    UNUSED_PARAM(threadMessageReceiver);
+#if 0
     auto locker = holdLock(m_threadMessageReceiversLock);
     ASSERT(!m_threadMessageReceivers.contains(messageReceiverName));
 
     m_threadMessageReceivers.add(messageReceiverName, threadMessageReceiver);
+#endif
 }
 
 void Connection::removeThreadMessageReceiver(ReceiverName messageReceiverName)
 {
 //    ASSERT(RunLoop::isMain());
+    UNUSED_PARAM(messageReceiverName);
 
+#if 0
     auto locker = holdLock(m_threadMessageReceiversLock);
     ASSERT(m_threadMessageReceivers.contains(messageReceiverName));
 
     m_threadMessageReceivers.remove(messageReceiverName);
+#endif
 }
 
 void Connection::dispatchThreadMessageReceiverMessage(ThreadMessageReceiver& threadMessageReceiver, Decoder& decoder)
@@ -984,6 +998,8 @@ void Connection::dispatchMessage(Decoder& decoder)
 
 bool Connection::dispatchMessageToWorkQueueReceiver(std::unique_ptr<Decoder>& message)
 {
+    UNUSED_PARAM(message);
+#if 0
     auto locker = holdLock(m_workQueueMessageReceiversMutex);
     auto it = m_workQueueMessageReceivers.find(message->messageReceiverName());
     if (it != m_workQueueMessageReceivers.end()) {
@@ -992,11 +1008,14 @@ bool Connection::dispatchMessageToWorkQueueReceiver(std::unique_ptr<Decoder>& me
         });
         return true;
     }
+#endif
     return false;
 }
 
 bool Connection::dispatchMessageToThreadReceiver(std::unique_ptr<Decoder>& message)
 {
+    UNUSED_PARAM(message);
+#if 0
     RefPtr<ThreadMessageReceiver> protectedThreadMessageReceiver;
     {
         auto locker = holdLock(m_threadMessageReceiversLock);
@@ -1009,6 +1028,7 @@ bool Connection::dispatchMessageToThreadReceiver(std::unique_ptr<Decoder>& messa
         });
         return true;
     }
+#endif
     return false;
 }
 
