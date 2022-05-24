@@ -410,8 +410,8 @@ static mode_t str_to_mode (const char *input, mode_t mode)
     return INVALID_MODE; // Incomplete statement
 }
 
-static purc_variant_t get_basename_string (const char *string_path,
-        const char *string_suffix)
+static const char *get_basename (const char *string_path,
+        const char *string_suffix, size_t *length)
 {
     // On Linux, slash (/) is used as directory separator character.
     const char separator = '/';
@@ -440,11 +440,47 @@ static purc_variant_t get_basename_string (const char *string_path,
         }
     }
 
-    return purc_variant_make_string_ex(base_begin,
-            (base_end - base_begin), true);
+    (*length) = (base_end - base_begin);
+    return base_begin;
 }
 
-static purc_variant_t get_dir_string(const char *string_path, uint64_t levels)
+static const char *get_basename_ex (const char *string_path,
+        const char **ext_begin,
+        size_t *base_length,
+        size_t *fname_length,
+        size_t *ext_length)
+{
+    // On Linux, slash (/) is used as directory separator character.
+    const char separator = '/';
+    const char *base_begin = string_path;
+    const char *temp_ptr = string_path;
+    const char *base_end = string_path + strlen (string_path);
+
+    while (temp_ptr < base_end) {
+        if (separator == *temp_ptr) {
+            base_begin = temp_ptr + 1;
+        }
+        temp_ptr ++;
+    }
+
+    temp_ptr = base_begin;
+    while (temp_ptr < base_end) {
+        if ('.' == *temp_ptr) {
+            (*ext_begin) = temp_ptr + 1;
+            (*fname_length) = (base_begin - temp_ptr);
+        }
+        temp_ptr ++;
+    }
+
+    (*base_length) = (base_end - base_begin);
+    if ((*ext_begin) != NULL) {
+        (*ext_length) = (base_end - (*ext_begin));
+    }
+    return base_begin;
+}
+
+static const char *get_dir_path (const char *string_path,
+        uint64_t levels, size_t *length)
 {
     // On Linux, slash (/) is used as directory separator character.
     const char separator = '/';
@@ -476,8 +512,8 @@ static purc_variant_t get_dir_string(const char *string_path, uint64_t levels)
         dir_end = temp_ptr;
     }
 
-    return purc_variant_make_string_ex(string_path,
-            (dir_end - string_path), true);
+    (*length) = (dir_end - string_path);
+    return string_path;
 }
 
 static purc_variant_t
@@ -1090,6 +1126,8 @@ basename_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     const char *string_path = NULL;
     const char *string_suffix = NULL;
+    const char *base_begin;
+    size_t length;
     purc_variant_t ret_string = PURC_VARIANT_INVALID;
 
     if (nr_args < 1) {
@@ -1107,7 +1145,8 @@ basename_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         string_suffix = purc_variant_get_string_const (argv[1]);
     }
 
-    ret_string = get_basename_string (string_path, string_suffix);
+    base_begin = get_basename (string_path, string_suffix, &length);
+    ret_string = purc_variant_make_string_ex(base_begin, length, true);
     return ret_string;
 }
 
@@ -1334,7 +1373,9 @@ dirname_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(silently);
 
     const char *string_path = NULL;
+    const char *dir_begin = NULL;
     uint64_t levels = 1;
+    size_t length;
     purc_variant_t ret_string = PURC_VARIANT_INVALID;
 
     if (nr_args < 1) {
@@ -1356,7 +1397,8 @@ dirname_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         }
     }
     
-    ret_string = get_dir_string (string_path, levels);
+    dir_begin = get_dir_path (string_path, levels, &length);
+    ret_string = purc_variant_make_string_ex(dir_begin, length, true);
     return ret_string;
 }
 
@@ -2069,10 +2111,16 @@ pathinfo_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(root);
     UNUSED_PARAM(silently);
 
-    char name[PATH_MAX];
     const char *string_path = NULL;
     const char *string_flags = NULL;
+    const char *dir_begin = NULL;
+    const char *base_begin = NULL;
+    const char *ext_begin = NULL;
     const char *flag = NULL;
+    size_t dir_length = 0;
+    size_t base_length = 0;
+    size_t fname_length = 0;
+    size_t ext_length = 0;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_variant_t val = PURC_VARIANT_INVALID;
 
@@ -2114,41 +2162,40 @@ pathinfo_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         {
             case 'd':
                 if (strcmp_len (flag, "dirname", &flag_len) == 0) {
-
-                    
-                    val = purc_variant_make_string (name, true);
+                    dir_begin = get_dir_path (string_path, 1, &dir_length);
+                    val = purc_variant_make_string_ex(dir_begin, dir_length, true);
                     purc_variant_object_set_by_static_ckey (ret_var, "dirname", val);
                     purc_variant_unref (val);
                 }
                 break;
 
             case 'b':
+            case 'e':
+            case 'f':
+                if (NULL == base_begin) {
+                    base_begin = get_basename_ex (string_path, &ext_begin,
+                            &base_length, &fname_length, &ext_length);
+                }
+
                 if (strcmp_len (flag, "basename", &flag_len) == 0) {
-
-
-                    val = purc_variant_make_string (name, true);
+                    val = purc_variant_make_string_ex (base_begin, base_length, true);
                     purc_variant_object_set_by_static_ckey (ret_var, "basename", val);
                     purc_variant_unref (val);
+                    break;
                 }
-                break;
 
-            case 'e':
                 if (strcmp_len (flag, "extension", &flag_len) == 0) {
-
-
-                    val = purc_variant_make_string (name, true);
+                    val = purc_variant_make_string_ex (ext_begin, ext_length, true);
                     purc_variant_object_set_by_static_ckey (ret_var, "extension", val);
                     purc_variant_unref (val);
+                    break;
                 }
-                break;
 
-            case 'f':
                 if (strcmp_len (flag, "filename", &flag_len) == 0) {
-                    
-
-                    val = purc_variant_make_string (name, true);
+                    val = purc_variant_make_string_ex (base_begin, fname_length, true);
                     purc_variant_object_set_by_static_ckey (ret_var, "filename", val);
                     purc_variant_unref (val);
+                    break;
                 }
                 break;
 
