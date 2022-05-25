@@ -314,3 +314,30 @@ PURC_COMPUTE_SOURCES(test_samples)
 PURC_FRAMEWORK(test_samples)
 GTEST_DISCOVER_TESTS(test_samples DISCOVERY_TIMEOUT 10)
 
+# test_hvml_tag
+PURC_EXECUTABLE_DECLARE(test_hvml_tag)
+
+list(APPEND test_hvml_tag_PRIVATE_INCLUDE_DIRECTORIES
+    ${PURC_DIR}/include
+    ${PurC_DERIVED_SOURCES_DIR}
+    ${PURC_DIR}
+    ${CMAKE_BINARY_DIR}
+    ${WTF_DIR}
+)
+
+PURC_EXECUTABLE(test_hvml_tag)
+
+set(test_hvml_tag_SOURCES
+    test_hvml_tag.cpp
+)
+
+set(test_hvml_tag_LIBRARIES
+    PurC::PurC
+    gtest_main
+    gtest
+    pthread
+)
+
+PURC_COMPUTE_SOURCES(test_hvml_tag)
+PURC_FRAMEWORK(test_hvml_tag)
+GTEST_DISCOVER_TESTS(test_hvml_tag DISCOVERY_TIMEOUT 10)

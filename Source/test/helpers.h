@@ -16,6 +16,12 @@
             pcutils_basename(__FILE__), __LINE__, __func__, ##__VA_ARGS__)
 #endif                /* } */
 
+#define PRINTF(...)                                                       \
+    do {                                                                  \
+        fprintf(stderr, "\e[0;32m[          ] \e[0m");                    \
+        fprintf(stderr, __VA_ARGS__);                                     \
+    } while(false)
+
 #if OS(LINUX) || OS(UNIX)
 
 // get path from env or __FILE__/../<rel> otherwise

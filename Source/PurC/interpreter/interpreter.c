@@ -175,7 +175,9 @@ pcintr_util_dump_document_ex(pchtml_html_document_t *doc, char **dump_buff,
     opt |= PCHTML_HTML_SERIALIZE_OPT_SKIP_WS_NODES;
     opt |= PCHTML_HTML_SERIALIZE_OPT_WITHOUT_TEXT_INDENT;
     opt |= PCHTML_HTML_SERIALIZE_OPT_FULL_DOCTYPE;
-    opt |= PCHTML_HTML_SERIALIZE_OPT_WITH_HVML_HANDLE;
+    if (!dump_buff) {
+        opt |= PCHTML_HTML_SERIALIZE_OPT_WITH_HVML_HANDLE;
+    }
     char *p = pchtml_doc_snprintf_ex(doc,
             (enum pchtml_html_serialize_opt)opt, buf, &nr, "");
     if (!p)
@@ -198,8 +200,10 @@ pcintr_util_dump_document_ex(pchtml_html_document_t *doc, char **dump_buff,
         }
         *dump_buff = strdup(p);
     }
-    fprintf(stderr, "%s[%d]:%s(): #document %p\n%s\n",
-            pcutils_basename((char*)file), line, func, doc, p);
+    else {
+        fprintf(stderr, "%s[%d]:%s(): #document %p\n%s\n",
+                pcutils_basename((char*)file), line, func, doc, p);
+    }
     if (p != buf)
         free(p);
 }
