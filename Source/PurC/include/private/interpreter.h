@@ -54,6 +54,18 @@ struct pcintr_msg;
 typedef struct pcintr_msg pcintr_msg;
 typedef struct pcintr_msg *pcintr_msg_t;
 
+struct pcintr_cancel;
+typedef struct pcintr_cancel pcintr_cancel;
+typedef struct pcintr_cancel *pcintr_cancel_t;
+
+struct pcintr_cancel {
+    void                        *ctxt;
+    void (*cancel)(void *ctxt);
+
+    struct list_head            *list;
+    struct list_head             node;
+};
+
 struct pcintr_heap {
     // owner instance
     struct pcinst        *owner;
@@ -140,6 +152,8 @@ struct pcintr_stack {
     // uint32_t        error:1;
     uint32_t        except:1;
     uint32_t        exited:1;
+    uint32_t volatile       last_msg_sent:1;
+    uint32_t volatile       last_msg_read:1;
     /* uint32_t        paused:1; */
 
     enum pcintr_stack_stage       stage;
@@ -214,7 +228,10 @@ struct pcintr_coroutine {
     enum pcintr_coroutine_state state;
     int                         waits;  /* FIXME: nr of registered events */
 
+    struct list_head            registered_cancels;
+
     struct list_head            msgs;   /* struct pcintr_msg */
+    unsigned int volatile       msg_pending:1;
 };
 
 enum purc_symbol_var {
@@ -351,6 +368,18 @@ struct pcintr_heap* pcintr_get_heap(void);
 bool pcintr_is_current_thread(void);
 
 pcintr_stack_t pcintr_get_stack(void);
+pcintr_coroutine_t pcintr_get_coroutine(void);
+// NOTE: null if current thread not initialized with purc_init
+purc_runloop_t pcintr_get_runloop(void);
+
+void pcintr_check_after_execution(void);
+void pcintr_set_current_co(pcintr_coroutine_t co);
+
+bool pcintr_is_ready_for_event(void);
+
+void pcintr_register_cancel(pcintr_cancel_t cancel);
+void pcintr_unregister_cancel(pcintr_cancel_t cancel);
+
 struct pcintr_stack_frame*
 pcintr_stack_get_bottom_frame(pcintr_stack_t stack);
 struct pcintr_stack_frame*
@@ -574,13 +603,13 @@ pcintr_co_get_runloop(pcintr_coroutine_t co);
 typedef void (*co_routine_f)(void);
 
 void
-pcintr_wakeup_co(pcintr_coroutine_t target, co_routine_f routine);
+pcintr_wakeup_target(pcintr_coroutine_t target, co_routine_f routine);
 
 void
 pcintr_apply_routine(co_routine_f routine, pcintr_coroutine_t target);
 
-int
-pcintr_co_dispatch(pcintr_coroutine_t target, void *ctxt,
+void
+pcintr_wakeup_target_with(pcintr_coroutine_t target, void *ctxt,
         void (*func)(void *ctxt));
 
 PCA_EXTERN_C_END

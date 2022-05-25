@@ -39,21 +39,59 @@
 #include <stdlib.h>
 #include <string.h>
 
+struct event_timer_data {
+    pcintr_timer_t            timer;
+    const char               *id;
+    void                     *ctxt;
+    pcintr_timer_fire_func    func;
+};
+
+static void on_event_fire(void *ud)
+{
+    struct event_timer_data *data;
+    data = (struct event_timer_data*)ud;
+    pcintr_timer_processed(data->timer);
+    data->func(data->timer, data->id, data->ctxt);
+}
+
+static void cancel_timer(void *ctxt)
+{
+    pcintr_timer_t timer = (pcintr_timer_t)ctxt;
+    PC_ASSERT(timer);
+    pcintr_timer_stop(timer);
+}
 
 class PurcTimer : public WTF::RunLoop::TimerBase {
     public:
         PurcTimer(const char* id, void* ctxt, pcintr_timer_fire_func func,
                 RunLoop& runLoop)
             : TimerBase(runLoop)
-            , m_id(NULL)
+            , m_id(id ? strdup(id) : NULL)
             , m_ctxt(ctxt)
             , m_func(func)
+            , m_coroutine(pcintr_get_coroutine())
+            , m_fired(0)
         {
-            m_id = id ? strdup(id) : NULL;
+            m_cancel = {};
+            m_cancel.ctxt = this;
+            m_cancel.cancel = cancel_timer;
+            m_cancel.list = NULL;
+
+            PC_ASSERT(m_coroutine);
+            PC_ASSERT(!id || m_id);
+
+            m_data.timer = this;
+            m_data.id    = m_id;
+            m_data.ctxt  = m_ctxt;
+            m_data.func  = m_func;
+
+            pcintr_register_cancel(&m_cancel);
         }
 
         ~PurcTimer()
         {
+            PC_ASSERT(m_fired == 0);
+            pcintr_unregister_cancel(&m_cancel);
             stop();
             if (m_id) {
                 free(m_id);
@@ -62,16 +100,53 @@ class PurcTimer : public WTF::RunLoop::TimerBase {
 
         void setInterval(uint32_t interval) { m_interval = interval; }
         uint32_t getInterval() { return m_interval; }
+        void processed(void) {
+            --m_fired;
+            PC_ASSERT(m_fired >= 0);
+        }
 
     private:
-        void fired() final { m_func(m_id, m_ctxt); }
+        void fired() final {
+            if (m_fired)
+                return;
+
+            if (m_coroutine->stack.exited) {
+                pcintr_unregister_cancel(&m_cancel);
+                stop();
+                return;
+            }
+
+            ++m_fired;
+
+            PC_ASSERT(pcintr_get_coroutine() == NULL);
+
+            pcintr_heap_t heap = pcintr_get_heap();
+            PC_ASSERT(heap);
+            PC_ASSERT(m_coroutine);
+
+            pcintr_coroutine_t co = m_coroutine;
+            PC_ASSERT(co->state == CO_STATE_READY);
+
+            pcintr_set_current_co(m_coroutine);
+
+            co->state = CO_STATE_RUN;
+            pcintr_post_msg(&m_data, on_event_fire);
+            pcintr_check_after_execution();
+
+            pcintr_set_current_co(NULL);
+        }
 
     private:
         char* m_id;
         void* m_ctxt;
         pcintr_timer_fire_func m_func;
+        pcintr_coroutine_t     m_coroutine;
 
         uint32_t m_interval;
+
+        int m_fired;
+        struct event_timer_data         m_data;
+        struct pcintr_cancel            m_cancel;
 };
 
 pcintr_timer_t
@@ -93,6 +168,13 @@ pcintr_timer_set_interval(pcintr_timer_t timer, uint32_t interval)
     if (timer) {
         ((PurcTimer*)timer)->setInterval(interval);
     }
+}
+
+void
+pcintr_timer_processed(pcintr_timer_t timer)
+{
+    PurcTimer *p = (PurcTimer*)timer;
+    p->processed();
 }
 
 uint32_t
@@ -176,29 +258,28 @@ static void map_free_val(void* val)
     }
 }
 
-static void on_co_timeup(void *ud)
+static void timer_fire_func(pcintr_timer_t timer, const char* id, void* ctxt)
 {
-    char *id = (char*)ud;
-    PC_ASSERT(id);
+    UNUSED_PARAM(timer);
+    UNUSED_PARAM(ctxt);
 
-    pcintr_stack_t stack = pcintr_get_stack();
-    PC_ASSERT(stack);
+    PC_ASSERT(pcintr_get_heap());
+
+    pcintr_coroutine_t co = pcintr_get_coroutine();
+    PC_ASSERT(co);
+    PC_ASSERT(co->state == CO_STATE_RUN);
+
+    pcintr_stack_t stack = &co->stack;
 
     purc_variant_t type = PURC_VARIANT_INVALID;
     purc_variant_t sub_type = PURC_VARIANT_INVALID;
 
     if (stack->exited)
-        goto fail;
+        return;
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
-    // bypass when there's still stack frame to execute
-    if (frame)
-        goto fail;
-
-    // bypass when there's coroutine is not ready
-    if (stack->co->state != CO_STATE_READY)
-        goto fail;
+    PC_ASSERT(frame == NULL);
 
     type = purc_variant_make_string(TIMERS_STR_EXPIRED, false);
     sub_type = purc_variant_make_string(id, false);
@@ -211,22 +292,6 @@ static void on_co_timeup(void *ud)
 
     PURC_VARIANT_SAFE_CLEAR(type);
     PURC_VARIANT_SAFE_CLEAR(sub_type);
-
-fail:
-    free(id);
-}
-
-static void timer_fire_func(const char* id, void* ctxt)
-{
-    char *sid = strdup(id);
-    if (!sid)
-        return;
-
-    pcintr_stack_t stack = (pcintr_stack_t)ctxt;
-    pcintr_coroutine_t co = stack->co;
-    int r;
-    r = pcintr_co_dispatch(co, sid, on_co_timeup);
-    PC_ASSERT(r == 0);
 }
 
 bool
