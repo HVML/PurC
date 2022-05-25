@@ -42,7 +42,6 @@
 struct event_timer_data {
     pcintr_timer_t            timer;
     const char               *id;
-    void                     *ctxt;
     pcintr_timer_fire_func    func;
 };
 
@@ -51,7 +50,7 @@ static void on_event_fire(void *ud)
     struct event_timer_data *data;
     data = (struct event_timer_data*)ud;
     pcintr_timer_processed(data->timer);
-    data->func(data->timer, data->id, data->ctxt);
+    data->func(data->timer, data->id);
 }
 
 static void cancel_timer(void *ctxt)
@@ -63,11 +62,10 @@ static void cancel_timer(void *ctxt)
 
 class PurcTimer : public WTF::RunLoop::TimerBase {
     public:
-        PurcTimer(const char* id, void* ctxt, pcintr_timer_fire_func func,
+        PurcTimer(const char* id, pcintr_timer_fire_func func,
                 RunLoop& runLoop)
             : TimerBase(runLoop)
             , m_id(id ? strdup(id) : NULL)
-            , m_ctxt(ctxt)
             , m_func(func)
             , m_coroutine(pcintr_get_coroutine())
             , m_fired(0)
@@ -82,7 +80,6 @@ class PurcTimer : public WTF::RunLoop::TimerBase {
 
             m_data.timer = this;
             m_data.id    = m_id;
-            m_data.ctxt  = m_ctxt;
             m_data.func  = m_func;
 
             pcintr_register_cancel(&m_cancel);
@@ -138,7 +135,6 @@ class PurcTimer : public WTF::RunLoop::TimerBase {
 
     private:
         char* m_id;
-        void* m_ctxt;
         pcintr_timer_fire_func m_func;
         pcintr_coroutine_t     m_coroutine;
 
@@ -150,11 +146,11 @@ class PurcTimer : public WTF::RunLoop::TimerBase {
 };
 
 pcintr_timer_t
-pcintr_timer_create(purc_runloop_t runloop, const char* id, void* ctxt,
+pcintr_timer_create(purc_runloop_t runloop, const char* id,
         pcintr_timer_fire_func func)
 {
     RunLoop* loop = runloop ? (RunLoop*)runloop : &RunLoop::current(); 
-    PurcTimer* timer = new PurcTimer(id, ctxt, func, *loop);
+    PurcTimer* timer = new PurcTimer(id, func, *loop);
     if (!timer) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
@@ -258,10 +254,9 @@ static void map_free_val(void* val)
     }
 }
 
-static void timer_fire_func(pcintr_timer_t timer, const char* id, void* ctxt)
+static void timer_fire_func(pcintr_timer_t timer, const char* id)
 {
     UNUSED_PARAM(timer);
-    UNUSED_PARAM(ctxt);
 
     PC_ASSERT(pcintr_get_heap());
 
@@ -334,6 +329,7 @@ remove_timer(struct pcintr_timers* timers, const char* id)
 static pcintr_timer_t
 get_inner_timer(pcintr_stack_t stack, purc_variant_t timer_var)
 {
+    PC_ASSERT(pcintr_get_stack());
     purc_variant_t id;
     id = purc_variant_object_get_by_ckey(timer_var, TIMERS_STR_ID);
     if (!id) {
@@ -347,7 +343,7 @@ get_inner_timer(pcintr_stack_t stack, purc_variant_t timer_var)
         return timer;
     }
 
-    timer = pcintr_timer_create(NULL, idstr, stack, timer_fire_func);
+    timer = pcintr_timer_create(NULL, idstr, timer_fire_func);
     if (timer == NULL) {
         return NULL;
     }
@@ -381,8 +377,8 @@ timers_listener_handler(purc_variant_t source, pcvar_op_t msg_type,
 {
     UNUSED_PARAM(source);
     UNUSED_PARAM(nr_args);
-    pcintr_stack_t stack = (pcintr_stack_t) ctxt;
-    PC_ASSERT(stack == pcintr_get_stack());
+    UNUSED_PARAM(ctxt);
+    pcintr_stack_t stack = pcintr_get_stack();
     if (msg_type == PCVAR_OPERATION_GROW) {
         purc_variant_t interval = purc_variant_object_get_by_ckey(argv[0],
                 TIMERS_STR_INTERVAL);
@@ -475,19 +471,19 @@ pcintr_timers_init(pcintr_stack_t stack)
     }
 
     timers->grow_listener = purc_variant_register_post_listener(ret,
-            PCVAR_OPERATION_GROW, timers_listener_handler, stack);
+            PCVAR_OPERATION_GROW, timers_listener_handler, NULL);
     if (!timers->grow_listener) {
         goto failure;
     }
 
     timers->shrink_listener = purc_variant_register_post_listener(ret,
-            PCVAR_OPERATION_SHRINK, timers_listener_handler, stack);
+            PCVAR_OPERATION_SHRINK, timers_listener_handler, NULL);
     if (!timers->shrink_listener) {
         goto failure;
     }
 
     timers->change_listener = purc_variant_register_post_listener(ret,
-            PCVAR_OPERATION_CHANGE, timers_listener_handler, stack);
+            PCVAR_OPERATION_CHANGE, timers_listener_handler, NULL);
     if (!timers->change_listener) {
         goto failure;
     }

@@ -1923,7 +1923,7 @@ static void run_ready_co(void)
 }
 
 static void
-event_timer_fire(pcintr_timer_t timer, const char* id, void* ctxt);
+event_timer_fire(pcintr_timer_t timer, const char* id);
 
 static void execute_main_for_ready_co(pcintr_coroutine_t co)
 {
@@ -1937,8 +1937,7 @@ static void execute_main_for_ready_co(pcintr_coroutine_t co)
 
     PC_ASSERT(stack);
     PC_ASSERT(stack == pcintr_get_stack());
-    stack->event_timer = pcintr_timer_create(NULL, NULL, stack,
-            event_timer_fire);
+    stack->event_timer = pcintr_timer_create(NULL, NULL, event_timer_fire);
     if (!stack->event_timer)
         return;
 
@@ -3529,11 +3528,10 @@ struct timer_data {
 };
 
 static void
-event_timer_fire(pcintr_timer_t timer, const char* id, void* ctxt)
+event_timer_fire(pcintr_timer_t timer, const char* id)
 {
     UNUSED_PARAM(timer);
     UNUSED_PARAM(id);
-    UNUSED_PARAM(ctxt);
 
     PC_ASSERT(pcintr_get_heap());
 
