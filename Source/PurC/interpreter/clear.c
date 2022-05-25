@@ -28,6 +28,7 @@
 #include "internal.h"
 
 #include "private/debug.h"
+#include "private/dvobjs.h"
 #include "purc-runloop.h"
 
 #include "ops.h"
@@ -166,7 +167,25 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     enum purc_variant_type type = purc_variant_get_type(ctxt->on);
     switch (type) {
     case PURC_VARIANT_TYPE_STRING:
-        // TODO : element
+        {
+            const char *s = purc_variant_get_string_const(ctxt->on);
+            pchtml_html_document_t *doc = stack->doc;
+            purc_variant_t elems = pcdvobjs_elements_by_css(doc, s);
+            if (!elems) {
+                ret = purc_variant_make_boolean(false);
+                break;
+            }
+
+            struct purc_native_ops *ops = purc_variant_native_get_ops(elems);
+            if (!ops || ops->cleaner == NULL) {
+                ret = purc_variant_make_boolean(false);
+            }
+            else {
+                void *entity = purc_variant_native_get_entity(elems);
+                ret = ops->cleaner(entity, frame->silently);
+            }
+            purc_variant_unref(elems);
+        }
         break;
 
     case PURC_VARIANT_TYPE_OBJECT:
