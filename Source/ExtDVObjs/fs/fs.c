@@ -2462,7 +2462,8 @@ tempname_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(silently);
 
     char filename[PATH_MAX];
-    const char *string_filename = NULL;
+    const char *string_directory = NULL;
+    const char *string_prefix = NULL;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if (nr_args < 1) {
@@ -2470,13 +2471,25 @@ tempname_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         return PURC_VARIANT_INVALID;
     }
 
-    // get the file name
-    string_filename = purc_variant_get_string_const (argv[0]);
-    strncpy (filename, string_filename, sizeof(filename));
+    // get the parameters
+    string_directory = purc_variant_get_string_const (argv[0]);
+    if (NULL == string_directory) {
+        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+        return PURC_VARIANT_INVALID;
+    }
+    if (nr_args > 1) {
+        string_prefix = purc_variant_get_string_const (argv[1]);
+        if (NULL == string_prefix) {
+            purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+            return PURC_VARIANT_INVALID;
+        }
+    }
+    strncpy (filename, string_directory, sizeof(filename));
 
     // wait for code
 
-    ret_var = purc_variant_make_boolean (true);
+    //ret_var = purc_variant_make_boolean (true);
+    ret_var = purc_variant_make_string (filename, true);
     return ret_var;
 }
 
@@ -2488,6 +2501,8 @@ touch_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(silently);
 
     const char *filename = NULL;
+    //uint64_t mtime = 0;
+    //uint64_t atime = 0;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if (nr_args < 1) {
@@ -2500,6 +2515,9 @@ touch_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     if (NULL == filename) {
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
+    }
+    if (nr_args > 1) {
+        //mtime = purc_variant_get_number (argv[1]);
     }
 
     // file not exist, create it
