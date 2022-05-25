@@ -166,6 +166,7 @@ struct pcvdom_comment {
 struct purc_vdom {
     struct pcvdom_document          *document;
     const struct purc_hvml_ctrl_props     *hvml_ctrl_props;
+    char **dump_buff;
     uintptr_t   target_workspace_handle;  /* rdr workspace */
     uintptr_t   target_window_handle;
     uintptr_t   target_tabpage_handle;
@@ -291,6 +292,12 @@ PCA_INLINE bool
 pcvdom_document_is_attached_rdr(purc_vdom_t vdom)
 {
     return (vdom->target_tabpage_handle || vdom->target_window_handle);
+}
+
+PCA_INLINE void
+pcvdom_document_set_dump_buff(purc_vdom_t vdom, char **dump_buff)
+{
+    vdom->dump_buff = dump_buff;
 }
 
 int

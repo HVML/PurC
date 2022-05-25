@@ -162,10 +162,11 @@ vdom_destroy(purc_vdom_t vdom)
 }
 
 void
-pcintr_util_dump_document_ex(pchtml_html_document_t *doc,
+pcintr_util_dump_document_ex(pchtml_html_document_t *doc, char **dump_buff,
     const char *file, int line, const char *func)
 {
     PC_ASSERT(doc);
+    UNUSED_PARAM(dump_buff);
 
     char buf[1024];
     size_t nr = sizeof(buf);
@@ -191,6 +192,12 @@ pcintr_util_dump_document_ex(pchtml_html_document_t *doc,
     if (!p)
         return;
 
+    if (dump_buff) {
+        if (*dump_buff) {
+            free(*dump_buff);
+        }
+        *dump_buff = strdup(p);
+    }
     fprintf(stderr, "%s[%d]:%s(): #document %p\n%s\n",
             pcutils_basename((char*)file), line, func, doc, p);
     if (p != buf)
