@@ -2322,7 +2322,6 @@ static void on_observer_matched(void *ud)
     frame->next_step = NEXT_STEP_AFTER_PUSHED;
 
     execute_one_step_for_ready_co(co);
-    // check_after_execution(co);
 
     free(p);
 }
@@ -2388,7 +2387,6 @@ handle_message(void *ctxt)
     pcintr_message_destroy(msg);
 
     PC_ASSERT(co->state == CO_STATE_RUN);
-    // check_after_execution(co);
 }
 
 int
