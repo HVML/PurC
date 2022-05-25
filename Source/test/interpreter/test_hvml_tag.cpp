@@ -85,6 +85,9 @@ TEST_P(TestHVMLTag, hvml_tags)
     purc_run(PURC_VARIANT_INVALID, NULL);
 
     ASSERT_STREQ(trim(dump_buff), test_case.comp);
+    FILE* fp = fopen("/tmp/test_hvml_tag", "w");
+    fprintf(fp, "%s", dump_buff);
+    fclose(fp);
 }
 
 char *read_file(const char *file)
