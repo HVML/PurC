@@ -189,7 +189,12 @@ std::vector<test_case> load_test_case()
             char *name = basename((char *)globbuf.gl_pathv[i]);
             strcpy(serial_path, base_path);
             strcat(serial_path, "/");
-            strncat(serial_path, name, strlen(name) - 5);
+
+            char *suffix = strrchr(name, '.');
+            if (suffix == NULL)
+                continue;
+
+            strncat(serial_path, name, suffix - name);
             strcat(serial_path, ".serial");
 
             char *json  = read_file(globbuf.gl_pathv[i]);
