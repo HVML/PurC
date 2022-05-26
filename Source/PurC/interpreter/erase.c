@@ -287,22 +287,32 @@ set_erase(purc_variant_t on, purc_variant_t at, bool silently)
 {
     purc_variant_t ret;
     if (at) {
-        if (!purc_variant_is_array(at)) {
+        if (!purc_variant_is_string(at)) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            ret = PURC_VARIANT_INVALID;
+            goto out;
+        }
+
+        size_t nr_s = 0;
+        const char *s = purc_variant_get_string_const_ex(at, &nr_s);
+        if (nr_s <= 2 || s[0] != '[' || s[nr_s-1] != ']') {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            ret = PURC_VARIANT_INVALID;
+            goto out;
+        }
+
+        errno = 0;
+        long long index = strtoll(s + 1, NULL, 10);
+        if (errno != 0 || index < 0) {
             purc_set_error(PURC_ERROR_INVALID_VALUE);
             ret = PURC_VARIANT_INVALID;
             goto out;
         }
 
         size_t nr_on = purc_variant_set_get_size(on);
-        ssize_t nr = purc_variant_array_get_size(at);
-        if (nr == 1) {
-            purc_variant_t idx = purc_variant_array_get(at, 0);
-            uint64_t index;
-            if(purc_variant_cast_to_ulongint(idx, &index, false)
-                    && (index < nr_on)
-                    && purc_variant_set_remove_by_index(on, index)) {
-                ret = purc_variant_make_ulongint(0);
-            }
+        if (((size_t)index < nr_on) && purc_variant_set_remove_by_index(on,
+                    index)) {
+            ret = purc_variant_make_ulongint(0);
         }
         else {
             purc_set_error(PURC_ERROR_INVALID_VALUE);

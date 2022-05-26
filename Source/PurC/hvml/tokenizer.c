@@ -2243,11 +2243,13 @@ BEGIN_STATE(TKZ_STATE_EJSON_CONTROL)
         RECONSUME_IN(TKZ_STATE_EJSON_LEFT_BRACKET);
     }
     if (character == ']') {
+#if 0
         if (parser->vcm_node->type ==
                 PCVCM_NODE_TYPE_FUNC_CONCAT_STRING
                 && (uc == '"' || uc == '\'' || uc == 'U')) {
             RECONSUME_IN(TKZ_STATE_EJSON_AFTER_JSONEE_STRING);
         }
+#endif
         RECONSUME_IN(TKZ_STATE_EJSON_RIGHT_BRACKET);
     }
     if (character == '<' || character == '>') {
