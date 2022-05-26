@@ -73,9 +73,7 @@ class PurcTimer : public WTF::RunLoop::TimerBase {
         {
             if (!m_for_yielded) {
                 m_cancel = {};
-                m_cancel.ctxt = this;
-                m_cancel.cancel = cancel_timer;
-                m_cancel.list = NULL;
+                pcintr_cancel_init(&m_cancel, this, cancel_timer);
 
                 m_data.timer = this;
                 m_data.id    = m_id;

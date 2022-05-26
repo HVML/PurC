@@ -381,6 +381,9 @@ void pcintr_set_current_co_with_location(pcintr_coroutine_t co,
 
 bool pcintr_is_ready_for_event(void);
 
+void pcintr_cancel_init(pcintr_cancel_t cancel,
+        void *ctxt, void (*cancel_routine)(void *ctxt));
+
 void pcintr_register_cancel(pcintr_cancel_t cancel);
 void pcintr_unregister_cancel(pcintr_cancel_t cancel);
 

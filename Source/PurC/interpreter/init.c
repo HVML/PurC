@@ -1003,6 +1003,143 @@ process_from_sync(pcintr_coroutine_t co, pcintr_stack_frame_t frame)
     return 0;
 }
 
+struct load_data {
+    pcintr_coroutine_t        co;
+    struct pcvdom_element    *vdom_element;
+    purc_variant_t            as;
+    purc_variant_t            async_id;
+
+    struct pcintr_cancel      cancel;
+
+    int                           ret_code;
+    int                           err;
+    purc_rwstream_t               resp;
+
+    unsigned int              under_head:1;
+};
+
+static void load_data_release(struct load_data *data)
+{
+    if (data) {
+        PC_ASSERT(data->async_id == PURC_VARIANT_INVALID);
+        data->co = NULL;
+        data->vdom_element = NULL;
+        PURC_VARIANT_SAFE_CLEAR(data->as);
+        if (data->resp) {
+            purc_rwstream_destroy(data->resp);
+            data->resp = NULL;
+        }
+    }
+}
+
+static void load_data_destroy(struct load_data *data)
+{
+    if (data) {
+        load_data_release(data);
+        free(data);
+    }
+}
+
+static void on_async_resume(void *ud)
+{
+    struct load_data *data;
+    data = (struct load_data*)ud;
+    PC_ASSERT(data);
+
+    PC_ASSERT(0);
+    // pcintr_push_stack_frame_for_vdom_element(data->vdom_element);
+}
+
+static void on_async_complete_on_frame(struct load_data *data,
+        const struct pcfetcher_resp_header *resp_header,
+        purc_rwstream_t resp)
+{
+    UNUSED_PARAM(resp_header);
+    UNUSED_PARAM(resp);
+
+    PC_DEBUG("load_async|callback|ret_code=%d\n", resp_header->ret_code);
+    PC_DEBUG("load_async|callback|mime_type=%s\n", resp_header->mime_type);
+    PC_DEBUG("load_async|callback|sz_resp=%ld\n", resp_header->sz_resp);
+
+    data->ret_code = resp_header->ret_code;
+    data->resp = resp;
+    PC_ASSERT(purc_get_last_error() == PURC_ERROR_OK);
+
+    pcintr_post_msg(data, on_async_resume);
+    pcintr_check_after_execution();
+}
+
+static void on_async_complete(purc_variant_t request_id, void *ud,
+        const struct pcfetcher_resp_header *resp_header,
+        purc_rwstream_t resp)
+{
+    UNUSED_PARAM(ud);
+    UNUSED_PARAM(resp_header);
+    UNUSED_PARAM(resp);
+
+    pcintr_heap_t heap = pcintr_get_heap();
+    PC_ASSERT(heap);
+    PC_ASSERT(pcintr_get_coroutine() == NULL);
+
+    struct load_data *data;
+    data = (struct load_data*)ud;
+    PC_ASSERT(data);
+
+    pcintr_coroutine_t co = data->co;
+    PC_ASSERT(co);
+    PC_ASSERT(co->owner == heap);
+    PC_ASSERT(data->async_id == request_id);
+
+    pcintr_set_current_co(co);
+    pcintr_unregister_cancel(&data->cancel);
+    on_async_complete_on_frame(data, resp_header, resp);
+    pcintr_set_current_co(NULL);
+}
+
+static void load_data_cancel(void *ud)
+{
+    struct load_data *data;
+    data = (struct load_data*)ud;
+    PC_ASSERT(data);
+
+    PC_ASSERT(0);
+}
+
+static int
+process_from_async(pcintr_coroutine_t co, pcintr_stack_frame_t frame)
+{
+    pcintr_stack_t stack = &co->stack;
+
+    struct ctxt_for_init *ctxt;
+    ctxt = (struct ctxt_for_init*)frame->ctxt;
+    PC_ASSERT(ctxt);
+
+    struct load_data *data;
+    data = (struct load_data*)calloc(1, sizeof(*data));
+    if (!data) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return -1;
+    }
+    pcintr_cancel_init(&data->cancel, data, load_data_cancel);
+
+    pcintr_register_cancel(&data->cancel);
+
+    data->co            = co;
+    data->vdom_element  = frame->pos;
+    data->as            = purc_variant_ref(ctxt->as);
+    data->under_head    = ctxt->under_head;
+
+    data->async_id = pcintr_load_from_uri_async(stack, ctxt->from_uri,
+            on_async_complete, frame);
+    if (data->async_id == PURC_VARIANT_INVALID) {
+        pcintr_unregister_cancel(&data->cancel);
+        load_data_destroy(data);
+        return -1;
+    }
+
+    return 0;
+}
+
 static int
 process_from(pcintr_coroutine_t co)
 {
@@ -1015,8 +1152,7 @@ process_from(pcintr_coroutine_t co)
     ctxt = (struct ctxt_for_init*)frame->ctxt;
 
     if (ctxt->async) {
-        PC_ASSERT(0);
-        // return process_from_async(co, frame);
+        return process_from_async(co, frame);
     }
     else {
         return process_from_sync(co, frame);
@@ -1079,7 +1215,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     purc_clr_error(); // pcvdom_element_parent
 
-    if (ctxt->from_uri) {
+    if (0 && ctxt->from_uri) {
         r = process_from(stack->co);
         return r ? NULL : ctxt;
     }

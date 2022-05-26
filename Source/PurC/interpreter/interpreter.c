@@ -3750,6 +3750,19 @@ pcintr_post_msg(void *ctxt, pcintr_msg_callback_f cb)
     list_add_tail(&msg->node, &co->msgs);
 }
 
+void pcintr_cancel_init(pcintr_cancel_t cancel,
+        void *ctxt, void (*cancel_routine)(void *ctxt))
+{
+    PC_ASSERT(ctxt);
+    PC_ASSERT(cancel_routine);
+    PC_ASSERT(cancel->ctxt   == NULL);
+    PC_ASSERT(cancel->cancel == NULL);
+    PC_ASSERT(cancel->list == NULL);
+
+    cancel->ctxt   = ctxt;
+    cancel->cancel = cancel_routine;
+}
+
 void pcintr_register_cancel(pcintr_cancel_t cancel)
 {
     PC_ASSERT(cancel);
