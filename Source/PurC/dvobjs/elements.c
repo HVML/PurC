@@ -383,6 +383,21 @@ eraser(void* native_entity, bool silently)
 {
     UNUSED_PARAM(native_entity);
     UNUSED_PARAM(silently);
+    struct pcdvobjs_elements *elements;
+    elements = (struct pcdvobjs_elements*)native_entity;
+    pcutils_array_t *arr = elements->elements;
+    PC_ASSERT(arr);
+
+    struct pcdom_element *elem = NULL;
+    size_t len = pcutils_array_length(arr);
+    fprintf(stderr, "############################## eraser len=%ld\n", len);
+    for (size_t i = 0; i < len; i++) {
+        elem = (struct pcdom_element*)pcutils_array_get(elements->elements, i);
+        if (elem) {
+            pcdom_node_remove(pcdom_interface_node(elem));
+        }
+    }
+
     return purc_variant_make_ulongint(0);
 }
 
