@@ -22,5 +22,11 @@
         <div>
             $buttons[0].class
         </div>
+        <div>
+            $buttons[1].letters
+        </div>
+        <div>
+            $buttons[1].class
+        </div>
     </body>
 </hvml>

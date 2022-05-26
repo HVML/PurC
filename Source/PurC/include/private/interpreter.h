@@ -553,6 +553,9 @@ pcintr_util_set_attribute(pcdom_element_t *elem,
         const char *key, const char *val);
 
 int
+pcintr_util_remove_attribute(pcdom_element_t *elem, const char *key);
+
+int
 pcintr_util_add_child_chunk(pcdom_element_t *parent, const char *chunk);
 
 int
