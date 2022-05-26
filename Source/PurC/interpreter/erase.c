@@ -219,6 +219,7 @@ element_erase(pcintr_stack_t stack, purc_variant_t on, purc_variant_t at,
         ret = purc_variant_make_ulongint(nr_remove);
     }
 out:
+    PURC_VARIANT_SAFE_CLEAR(elems);
     return ret;
 }
 
@@ -364,6 +365,7 @@ out:
 static purc_variant_t
 native_erase(purc_variant_t on, purc_variant_t at, bool silently)
 {
+    PC_ASSERT(0);
     UNUSED_PARAM(at);
     struct purc_native_ops *ops = purc_variant_native_get_ops(on);
     if (!ops || ops->eraser == NULL) {
