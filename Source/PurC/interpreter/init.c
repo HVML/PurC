@@ -54,6 +54,14 @@ struct ctxt_for_init {
 
     purc_variant_t                literal;
 
+    const char                   *from_uri;
+    purc_variant_t                sync_id;
+    pcintr_coroutine_t            co;
+
+    int                           ret_code;
+    int                           err;
+    purc_rwstream_t               resp;
+
     enum VIA                      via;
 
     unsigned int                  under_head:1;
@@ -82,6 +90,11 @@ ctxt_for_init_destroy(struct ctxt_for_init *ctxt)
         PURC_VARIANT_SAFE_CLEAR(ctxt->with);
         PURC_VARIANT_SAFE_CLEAR(ctxt->against);
         PURC_VARIANT_SAFE_CLEAR(ctxt->literal);
+        PURC_VARIANT_SAFE_CLEAR(ctxt->sync_id);
+        if (ctxt->resp) {
+            purc_rwstream_destroy(ctxt->resp);
+            ctxt->resp = NULL;
+        }
         free(ctxt);
     }
 }
@@ -560,8 +573,14 @@ process_attr_from(struct pcintr_stack_frame *frame,
                 purc_atom_to_string(name), element->tag_name);
         return -1;
     }
-    ctxt->from = val;
-    purc_variant_ref(val);
+    if (!purc_variant_is_string(val)) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "vdom attribute '%s' for element <%s> is not string",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    ctxt->from = purc_variant_ref(val);
+    ctxt->from_uri = purc_variant_get_string_const(ctxt->from);
 
     return 0;
 }
@@ -838,6 +857,152 @@ clean_rws:
     free(fetcher);
 }
 
+static void on_sync_complete_on_frame(struct ctxt_for_init *ctxt,
+        const struct pcfetcher_resp_header *resp_header,
+        purc_rwstream_t resp)
+{
+    UNUSED_PARAM(resp_header);
+    UNUSED_PARAM(resp);
+
+    PC_DEBUG("load_async|callback|ret_code=%d\n", resp_header->ret_code);
+    PC_DEBUG("load_async|callback|mime_type=%s\n", resp_header->mime_type);
+    PC_DEBUG("load_async|callback|sz_resp=%ld\n", resp_header->sz_resp);
+
+    ctxt->ret_code = resp_header->ret_code;
+    ctxt->resp = resp;
+    PC_ASSERT(purc_get_last_error() == PURC_ERROR_OK);
+
+    pcintr_resume();
+}
+
+static void on_sync_complete(purc_variant_t request_id, void *ud,
+        const struct pcfetcher_resp_header *resp_header,
+        purc_rwstream_t resp)
+{
+    UNUSED_PARAM(ud);
+    UNUSED_PARAM(resp_header);
+    UNUSED_PARAM(resp);
+
+    pcintr_heap_t heap = pcintr_get_heap();
+    PC_ASSERT(heap);
+    PC_ASSERT(pcintr_get_coroutine() == NULL);
+
+    pcintr_stack_frame_t frame;
+    frame = (pcintr_stack_frame_t)ud;
+    PC_ASSERT(frame);
+    struct ctxt_for_init *ctxt;
+    ctxt = (struct ctxt_for_init*)frame->ctxt;
+    PC_ASSERT(ctxt);
+
+    pcintr_coroutine_t co = ctxt->co;
+    PC_ASSERT(co);
+    PC_ASSERT(co->owner == heap);
+    PC_ASSERT(ctxt->sync_id == request_id);
+
+    pcintr_set_current_co(co);
+    on_sync_complete_on_frame(ctxt, resp_header, resp);
+    pcintr_set_current_co(NULL);
+}
+
+static void on_sync_continuation(void *ud)
+{
+    struct pcintr_stack_frame *frame;
+    frame = (struct pcintr_stack_frame*)ud;
+    PC_ASSERT(frame);
+
+    pcintr_coroutine_t co = pcintr_get_coroutine();
+    PC_ASSERT(co);
+    PC_ASSERT(co->state == CO_STATE_RUN);
+    pcintr_stack_t stack = &co->stack;
+    PC_ASSERT(frame == pcintr_stack_get_bottom_frame(stack));
+
+    struct ctxt_for_init *ctxt;
+    ctxt = (struct ctxt_for_init*)frame->ctxt;
+    PC_ASSERT(ctxt);
+    PC_ASSERT(ctxt->co == co);
+
+    if (ctxt->ret_code == RESP_CODE_USER_STOP) {
+        goto clean_rws;
+    }
+
+    bool has_except = false;
+    if (!ctxt->resp || ctxt->ret_code != 200) {
+        has_except = true;
+        goto dispatch_except;
+    }
+
+    bool ok;
+    struct pcvdom_element *element = frame->pos;
+    purc_variant_t ret = purc_variant_load_from_json_stream(ctxt->resp);
+    PRINT_VARIANT(ret);
+    const char *s_name = purc_variant_get_string_const(ctxt->as);
+    if (ret != PURC_VARIANT_INVALID) {
+        if (ctxt->under_head) {
+            ok = purc_bind_document_variable(stack->vdom, s_name, ret);
+        } else {
+            element = pcvdom_element_parent(element);
+            ok = pcintr_bind_scope_variable(element, s_name, ret);
+        }
+        purc_variant_unref(ret);
+        if (ok) {
+            goto clean_rws;
+        }
+        has_except = true;
+        goto dispatch_except;
+    }
+    else {
+        has_except = true;
+        goto dispatch_except;
+    }
+
+dispatch_except:
+    if (0 && has_except) {
+        purc_atom_t atom = purc_get_error_exception(ctxt->err);
+        pcvarmgr_t varmgr;
+        if (ctxt->under_head) {
+            varmgr = pcvdom_document_get_variables(stack->vdom);
+        }
+        else {
+            element = pcvdom_element_parent(element);
+            varmgr = pcvdom_element_get_variables(element);
+        }
+        pcvarmgr_dispatch_except(varmgr, s_name, purc_atom_to_string(atom));
+    }
+    if (has_except) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+    }
+
+clean_rws:
+    if (ctxt->resp) {
+        purc_rwstream_destroy(ctxt->resp);
+        ctxt->resp = NULL;
+    }
+}
+
+static int
+process_from_sync(pcintr_coroutine_t co, pcintr_stack_frame_t frame)
+{
+    pcintr_stack_t stack = &co->stack;
+
+    struct ctxt_for_init *ctxt;
+    ctxt = (struct ctxt_for_init*)frame->ctxt;
+    PC_ASSERT(ctxt);
+
+    ctxt->co = co;
+    purc_variant_t v = pcintr_load_from_uri_async(stack, ctxt->from_uri,
+            on_sync_complete, frame);
+    if (v == PURC_VARIANT_INVALID)
+        return -1;
+
+    ctxt->sync_id = purc_variant_ref(v);
+
+    pcintr_yield(frame, on_sync_continuation);
+
+    purc_clr_error();
+
+    return 0;
+}
+
 static int
 process_from(pcintr_coroutine_t co)
 {
@@ -846,22 +1011,16 @@ process_from(pcintr_coroutine_t co)
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
 
-    struct pcvdom_element *element = frame->pos;
-
     struct ctxt_for_init *ctxt;
     ctxt = (struct ctxt_for_init*)frame->ctxt;
 
-    if (ctxt->from == PURC_VARIANT_INVALID)
-        return 0;
-
-    if (!purc_variant_is_string(ctxt->from)) {
-        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
-                "vdom attribute 'from' for element <%s> not a valid string",
-                element->tag_name);
-        return -1;
+    if (ctxt->async) {
+        PC_ASSERT(0);
+        // return process_from_async(co, frame);
     }
-
-    PC_ASSERT(0);
+    else {
+        return process_from_sync(co, frame);
+    }
 }
 
 static void*
@@ -920,7 +1079,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     purc_clr_error(); // pcvdom_element_parent
 
-    if (0) {
+    if (ctxt->from_uri) {
         r = process_from(stack->co);
         return r ? NULL : ctxt;
     }

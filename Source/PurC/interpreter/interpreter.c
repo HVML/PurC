@@ -1884,9 +1884,10 @@ static void check_after_execution(pcintr_coroutine_t co)
     if (co->stack.except) {
         dump_c_stack(co->stack.exception.bt);
         co->stack.except = 0;
-        co->stack.exited = 1;
-        PC_ASSERT(0);
-        // purc_runloop_dispatch(inst->running_loop, run_exiting_co, co);
+        if (!co->stack.exited) {
+            co->stack.exited = 1;
+            notify_to_stop(co);
+        }
     }
 
     if (co->stack.exited) {
