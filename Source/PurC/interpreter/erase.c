@@ -310,14 +310,17 @@ set_erase(purc_variant_t on, purc_variant_t at, bool silently)
         }
 
         size_t nr_on = purc_variant_set_get_size(on);
-        if (((size_t)index < nr_on) && purc_variant_set_remove_by_index(on,
-                    index)) {
+        purc_variant_t v_removed = PURC_VARIANT_INVALID;
+        if (((size_t)index < nr_on) &&
+                (v_removed=purc_variant_set_remove_by_index(on, index)))
+        {
             ret = purc_variant_make_ulongint(0);
         }
         else {
             purc_set_error(PURC_ERROR_INVALID_VALUE);
             ret = PURC_VARIANT_INVALID;
         }
+        PURC_VARIANT_SAFE_CLEAR(v_removed);
     }
     else {
         bool result = pcvariant_set_clear(on, silently);
