@@ -181,7 +181,7 @@ std::vector<TestCase> read_test_cases()
 
 end:
     if (test_cases.empty()) {
-        add_test_case(test_cases, "base", "<hvml></hvml>", "<html>\n  <head>\n  </head>\n  <body>\n  </body>\n</html>\n");
+        add_test_case(test_cases, "base", "<hvml></hvml>", "<html>\n  <head>\n  </head>\n  <body>\n  </body>\n</html>");
     }
     return test_cases;
 }

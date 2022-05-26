@@ -207,7 +207,7 @@ TEST_P(hvml_parser_next_token, parse_and_serialize)
         struct tkz_buffer* token_buff = pchvml_token_to_string(token);
         if (token_buff) {
             const char* type_name = pchvml_token_get_type_name(token);
-            PRINTF("%s:%s\n", type_name, tkz_buffer_get_bytes(token_buff));
+            //PRINTF("%s:%s\n", type_name, tkz_buffer_get_bytes(token_buff));
             tkz_buffer_append_bytes(buffer, type_name, strlen(type_name));
             tkz_buffer_append_bytes(buffer, "|", 1);
             tkz_buffer_append_another(buffer, token_buff);
