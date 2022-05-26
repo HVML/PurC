@@ -184,7 +184,6 @@ element_erase(pcintr_stack_t stack, purc_variant_t on, purc_variant_t at,
         }
     }
     else {
-        // TODO erase attr
         if (!purc_variant_is_string(at)) {
             purc_set_error(PURC_ERROR_INVALID_VALUE);
             ret = PURC_VARIANT_INVALID;
