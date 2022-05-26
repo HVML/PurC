@@ -42,6 +42,7 @@
 
 #include <pthread.h>
 #include <stdarg.h>
+#include <libgen.h>
 
 #define EVENT_TIMER_INTRVAL  10
 
@@ -626,20 +627,33 @@ pcintr_get_runloop(void)
 }
 
 static void
-coroutine_set_current(struct pcintr_coroutine *co)
+coroutine_set_current_with_location(struct pcintr_coroutine *co,
+        const char *file, int line, const char *func)
 {
     struct pcintr_heap *heap = pcintr_get_heap();
-    if (co)
+    if (co) {
+        fprintf(stderr, "%s[%d]: %s(): %s\n",
+            basename((char*)file), line, func,
+            ">>>>>>>>>>>>>start>>>>>>>>>>>>>>>>>>>>>>>>>>");
         PC_ASSERT(heap->running_coroutine == NULL);
-    else
+    }
+    else {
+        fprintf(stderr, "%s[%d]: %s(): %s\n",
+            basename((char*)file), line, func,
+            "<<<<<<<<<<<<<stop<<<<<<<<<<<<<<<<<<<<<<<<<<<");
         PC_ASSERT(heap->running_coroutine);
+    }
 
     heap->running_coroutine = co;
 }
 
-void pcintr_set_current_co(pcintr_coroutine_t co)
+#define coroutine_set_current(co) \
+    coroutine_set_current_with_location(co, __FILE__, __LINE__, __func__)
+
+void pcintr_set_current_co_with_location(pcintr_coroutine_t co,
+        const char *file, int line, const char *func)
 {
-    coroutine_set_current(co);
+    coroutine_set_current_with_location(co, file, line, func);
 }
 
 pcintr_stack_t pcintr_get_stack(void)
@@ -1075,11 +1089,11 @@ dump_stack(pcintr_stack_t stack)
     PC_ASSERT(stack);
     struct pcintr_exception *exception = &stack->exception;
     struct pcdebug_backtrace *bt = exception->bt;
-    if (!bt)
-        return;
 
-    fprintf(stderr, "error_except: generated @%s[%d]:%s()\n",
-            pcutils_basename((char*)bt->file), bt->line, bt->func);
+    if (bt) {
+        fprintf(stderr, "error_except: generated @%s[%d]:%s()\n",
+                pcutils_basename((char*)bt->file), bt->line, bt->func);
+    }
     purc_atom_t     error_except = exception->error_except;
     purc_variant_t  err_except_info = exception->exinfo;
     if (error_except) {
@@ -1155,6 +1169,10 @@ after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
     if (frame->ops.after_pushed) {
         void *ctxt = frame->ops.after_pushed(&co->stack, frame->pos);
+        if (co->state == CO_STATE_WAIT) {
+            PC_ASSERT(co->yielded_ctxt);
+            PC_ASSERT(co->continuation);
+        }
         if (!ctxt) {
             frame->next_step = NEXT_STEP_ON_POPPING;
             return;
@@ -1793,7 +1811,8 @@ static void check_after_execution(pcintr_coroutine_t co)
         case CO_STATE_WAIT:
             PC_ASSERT(frame && frame->type == STACK_FRAME_TYPE_NORMAL);
             PC_ASSERT(inst->errcode == 0);
-            PC_ASSERT(0);
+            PC_ASSERT(co->yielded_ctxt);
+            PC_ASSERT(co->continuation);
             return;
         default:
             PC_ASSERT(0);
@@ -1813,13 +1832,22 @@ static void check_after_execution(pcintr_coroutine_t co)
         PC_ASSERT(inst->errcode == 0);
     }
 
-    co->state = CO_STATE_READY;
 
     if (frame) {
-        // purc_runloop_dispatch(inst->running_loop, run_ready_co, co);
-        pcintr_wakeup_target(co, run_ready_co);
+        PC_ASSERT(co->state == CO_STATE_RUN);
+        co->state = CO_STATE_READY;
+        dump_stack(&co->stack);
+        if (co->execution_pending == 0) {
+            co->execution_pending = 1;
+            pcintr_wakeup_target(co, run_ready_co);
+        }
         return;
     }
+
+    PC_ASSERT(co->state == CO_STATE_RUN);
+    co->state = CO_STATE_READY;
+    PC_ASSERT(co->yielded_ctxt == NULL);
+    PC_ASSERT(co->continuation == NULL);
 
     /* send doc to rdr */
     if (stack->stage == STACK_STAGE_FIRST_ROUND &&
@@ -1904,6 +1932,8 @@ static void run_ready_co(void)
     PC_ASSERT(stack);
     pcintr_coroutine_t co = stack->co;
     PC_ASSERT(co);
+    PC_ASSERT(co->execution_pending == 1);
+    co->execution_pending = 0;
 
     switch (co->state) {
         case CO_STATE_READY:
@@ -1937,7 +1967,9 @@ static void execute_main_for_ready_co(pcintr_coroutine_t co)
 
     PC_ASSERT(stack);
     PC_ASSERT(stack == pcintr_get_stack());
-    stack->event_timer = pcintr_timer_create(NULL, NULL, event_timer_fire);
+    bool for_yielded = false;
+    stack->event_timer = pcintr_timer_create(NULL, for_yielded,
+            NULL, event_timer_fire);
     if (!stack->event_timer)
         return;
 
@@ -3712,4 +3744,44 @@ void pcintr_unregister_cancel(pcintr_cancel_t cancel)
     cancel->list = NULL;
 }
 
+void pcintr_yield(void *ctxt, void (*continuation)(void *ctxt))
+{
+    PC_ASSERT(ctxt);
+    PC_ASSERT(continuation);
+    pcintr_coroutine_t co = pcintr_get_coroutine();
+    PC_ASSERT(co);
+    PC_ASSERT(co->state == CO_STATE_RUN);
+    PC_ASSERT(co->yielded_ctxt == NULL);
+    PC_ASSERT(co->continuation == NULL);
+    pcintr_stack_t stack = &co->stack;
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_stack_get_bottom_frame(stack);
+    PC_ASSERT(frame);
+
+    co->state = CO_STATE_WAIT;
+    co->yielded_ctxt = ctxt;
+    co->continuation = continuation;
+}
+
+void pcintr_resume(void)
+{
+    pcintr_coroutine_t co = pcintr_get_coroutine();
+    PC_ASSERT(co);
+    PC_ASSERT(co->state == CO_STATE_WAIT);
+    PC_ASSERT(co->yielded_ctxt);
+    PC_ASSERT(co->continuation);
+    pcintr_stack_t stack = &co->stack;
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_stack_get_bottom_frame(stack);
+    PC_ASSERT(frame);
+
+    void *ctxt = co->yielded_ctxt;
+    void (*continuation)(void *ctxt) = co->continuation;
+
+    co->state = CO_STATE_RUN;
+    co->yielded_ctxt = NULL;
+    co->continuation = NULL;
+    continuation(ctxt);
+    check_after_execution(co);
+}
 

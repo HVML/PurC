@@ -229,9 +229,12 @@ struct pcintr_coroutine {
     int                         waits;  /* FIXME: nr of registered events */
 
     struct list_head            registered_cancels;
+    void                       *yielded_ctxt;
+    void (*continuation)(void *ctxt);
 
     struct list_head            msgs;   /* struct pcintr_msg */
     unsigned int volatile       msg_pending:1;
+    unsigned int volatile       execution_pending:1;
 };
 
 enum purc_symbol_var {
@@ -373,7 +376,11 @@ pcintr_coroutine_t pcintr_get_coroutine(void);
 purc_runloop_t pcintr_get_runloop(void);
 
 void pcintr_check_after_execution(void);
-void pcintr_set_current_co(pcintr_coroutine_t co);
+void pcintr_set_current_co_with_location(pcintr_coroutine_t co,
+        const char *file, int line, const char *func);
+
+#define pcintr_set_current_co(co) \
+    pcintr_set_current_co_with_location(co, __FILE__, __LINE__, __func__)
 
 bool pcintr_is_ready_for_event(void);
 
@@ -385,8 +392,8 @@ pcintr_stack_get_bottom_frame(pcintr_stack_t stack);
 struct pcintr_stack_frame*
 pcintr_stack_frame_get_parent(struct pcintr_stack_frame *frame);
 
-int pcintr_yield(void *ctxt, void (*continuation)(void *ctxt));
-void pcintr_consume(void);
+void pcintr_yield(void *ctxt, void (*continuation)(void *ctxt));
+void pcintr_resume(void);
 
 void
 pcintr_exception_clear(struct pcintr_exception *exception);

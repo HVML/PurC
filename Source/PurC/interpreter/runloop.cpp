@@ -275,11 +275,10 @@ pcintr_wakeup_target_with(pcintr_coroutine_t target, void *ctxt,
     PC_ASSERT(target_runloop);
     // FIXME: try catch ?
     ((RunLoop*)target_runloop)->dispatch([target, ctxt, func]() {
-            pcintr_heap_t heap = pcintr_get_heap();
-            PC_ASSERT(heap->running_coroutine == NULL);
-            heap->running_coroutine = target;
+            PC_ASSERT(pcintr_get_heap());
+            pcintr_set_current_co(target);
             func(ctxt);
-            heap->running_coroutine = NULL;
+            pcintr_set_current_co(NULL);
         });
 }
 

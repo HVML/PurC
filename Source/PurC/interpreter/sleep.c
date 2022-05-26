@@ -28,6 +28,7 @@
 #include "internal.h"
 
 #include "private/debug.h"
+#include "private/timer.h"
 
 #include "ops.h"
 
@@ -36,6 +37,7 @@ struct ctxt_for_sleep {
     purc_variant_t                with;
 
     int64_t                       with_secs;
+    pcintr_timer_t                timer;
 };
 
 static void
@@ -43,6 +45,10 @@ ctxt_for_sleep_destroy(struct ctxt_for_sleep *ctxt)
 {
     if (ctxt) {
         PURC_VARIANT_SAFE_CLEAR(ctxt->with);
+        if (ctxt->timer) {
+            pcintr_timer_destroy(ctxt->timer);
+            ctxt->timer = NULL;
+        }
 
         free(ctxt);
     }
@@ -134,6 +140,25 @@ attr_found(struct pcintr_stack_frame *frame,
     return r ? -1 : 0;
 }
 
+static void on_continuation(void *ud)
+{
+    struct pcintr_stack_frame *frame;
+    frame = (struct pcintr_stack_frame*)ud;
+    PC_ASSERT(frame);
+
+    pcintr_coroutine_t co = pcintr_get_coroutine();
+    PC_ASSERT(co);
+    PC_ASSERT(co->state == CO_STATE_RUN);
+    pcintr_stack_t stack = &co->stack;
+    PC_ASSERT(frame == pcintr_stack_get_bottom_frame(stack));
+
+    struct ctxt_for_sleep *ctxt;
+    ctxt = (struct ctxt_for_sleep*)frame->ctxt;
+    PC_ASSERT(ctxt);
+    PC_ASSERT(ctxt->timer);
+    pcintr_timer_processed(ctxt->timer);
+}
+
 static void*
 after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 {
@@ -169,9 +194,19 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (r)
         return NULL;
 
+    bool for_yielded = true;
+    ctxt->timer = pcintr_timer_create(NULL, for_yielded, NULL, NULL);
+    if (!ctxt->timer)
+        return NULL;
+
+    pcintr_timer_set_interval(ctxt->timer, ctxt->with_secs * 1000);
+    pcintr_timer_start_oneshot(ctxt->timer);
+
+    pcintr_yield(frame, on_continuation);
+
     purc_clr_error();
 
-    return ctxt;
+    return NULL;
 }
 
 static bool
