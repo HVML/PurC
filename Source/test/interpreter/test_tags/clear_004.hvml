@@ -1,0 +1,15 @@
+<hvml>
+    <head>
+    </head>
+    <body>
+        <div id="the-user-stats">
+            <h2>User regions (totally <span class="none"></span> users):</h2>
+            <dl>
+                <dt>zh_CN</dt>
+                <dd>1</dd>
+                <dt>en_US</dt>
+                <dd>2</dd>
+            </dl>
+        </div>
+    </body>
+</hvml>
