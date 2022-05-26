@@ -28,6 +28,7 @@
 #include "internal.h"
 
 #include "private/debug.h"
+#include "private/dvobjs.h"
 #include "purc-runloop.h"
 
 #include "ops.h"
@@ -156,39 +157,154 @@ attr_found(struct pcintr_stack_frame *frame,
 }
 
 static purc_variant_t
-element_erase(purc_variant_t on, purc_variant_t at, bool silently)
+element_erase(pcintr_stack_t stack, purc_variant_t on, purc_variant_t at,
+        bool silently)
 {
     UNUSED_PARAM(on);
     UNUSED_PARAM(at);
     UNUSED_PARAM(silently);
-    return PURC_VARIANT_INVALID;
+    purc_variant_t ret = PURC_VARIANT_INVALID;
+    const char *s = purc_variant_get_string_const(on);
+    pchtml_html_document_t *doc = stack->doc;
+    purc_variant_t elems = pcdvobjs_elements_by_css(doc, s);
+    if (!elems) {
+        ret = purc_variant_make_ulongint(0);
+        goto end;
+    }
+
+    if (at == PURC_VARIANT_INVALID) {
+        struct purc_native_ops *ops = purc_variant_native_get_ops(elems);
+        if (!ops || ops->cleaner == NULL) {
+            ret = purc_variant_make_ulongint(0);
+        }
+        else {
+            void *entity = purc_variant_native_get_entity(elems);
+            ret = ops->cleaner(entity, silently);
+        }
+    }
+    else {
+        // TODO erase attr
+        ret = purc_variant_make_ulongint(0);
+    }
+end:
+    return ret;
 }
 
 static purc_variant_t
 object_erase(purc_variant_t on, purc_variant_t at, bool silently)
 {
-    UNUSED_PARAM(on);
-    UNUSED_PARAM(at);
-    UNUSED_PARAM(silently);
-    return PURC_VARIANT_INVALID;
+    purc_variant_t ret;
+    if (at) {
+        if (!purc_variant_is_string(at)) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            ret = PURC_VARIANT_INVALID;
+            goto out;
+        }
+        const char *s_at = purc_variant_get_string_const(at);
+        char *names = strdup(s_at);
+        if (!names) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            ret = PURC_VARIANT_INVALID;
+            goto out;
+        }
+
+        int nr_remove = 0;
+        char *ctxt = names;
+        char *token;
+        while ((token = strtok_r(ctxt, " ", &ctxt))) {
+            if (strlen(token) > 0 && token[0] == '.'
+                    && purc_variant_object_remove_by_static_ckey(on, token + 1,
+                        silently)) {
+                    nr_remove++;
+            }
+        }
+        free(names);
+        ret = purc_variant_make_ulongint(nr_remove);
+    }
+    else {
+        size_t sz = 0;
+        if (purc_variant_object_size(on, &sz)
+                && sz > 0
+                && pcvariant_object_clear(on, silently)
+                ) {
+            ret = purc_variant_make_ulongint(sz);
+        }
+        else {
+            ret = purc_variant_make_ulongint(0);
+        }
+    }
+out:
+    return ret;
 }
 
 static purc_variant_t
 array_erase(purc_variant_t on, purc_variant_t at, bool silently)
 {
-    UNUSED_PARAM(on);
-    UNUSED_PARAM(at);
-    UNUSED_PARAM(silently);
-    return PURC_VARIANT_INVALID;
+    purc_variant_t ret;
+    if (at) {
+        if (!purc_variant_is_array(at)) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            ret = PURC_VARIANT_INVALID;
+            goto out;
+        }
+
+        size_t nr_on = purc_variant_array_get_size(on);
+        ssize_t nr = purc_variant_array_get_size(at);
+        if (nr == 1) {
+            purc_variant_t idx = purc_variant_array_get(at, 0);
+            uint64_t index;
+            if(purc_variant_cast_to_ulongint(idx, &index, false)
+                    && (index < nr_on)
+                    && purc_variant_array_remove(on, index)) {
+                ret = purc_variant_make_ulongint(0);
+            }
+        }
+        else {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            ret = PURC_VARIANT_INVALID;
+        }
+    }
+    else {
+        bool result = pcvariant_array_clear(on, silently);
+        ret = purc_variant_make_boolean(result);
+    }
+out:
+    return ret;
 }
 
 static purc_variant_t
 set_erase(purc_variant_t on, purc_variant_t at, bool silently)
 {
-    UNUSED_PARAM(on);
-    UNUSED_PARAM(at);
-    UNUSED_PARAM(silently);
-    return PURC_VARIANT_INVALID;
+    purc_variant_t ret;
+    if (at) {
+        if (!purc_variant_is_array(at)) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            ret = PURC_VARIANT_INVALID;
+            goto out;
+        }
+
+        size_t nr_on = purc_variant_set_get_size(on);
+        ssize_t nr = purc_variant_array_get_size(at);
+        if (nr == 1) {
+            purc_variant_t idx = purc_variant_array_get(at, 0);
+            uint64_t index;
+            if(purc_variant_cast_to_ulongint(idx, &index, false)
+                    && (index < nr_on)
+                    && purc_variant_set_remove_by_index(on, index)) {
+                ret = purc_variant_make_ulongint(0);
+            }
+        }
+        else {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            ret = PURC_VARIANT_INVALID;
+        }
+    }
+    else {
+        bool result = pcvariant_set_clear(on, silently);
+        ret = purc_variant_make_boolean(result);
+    }
+out:
+    return ret;
 }
 
 static purc_variant_t
@@ -244,7 +360,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     enum purc_variant_type type = purc_variant_get_type(ctxt->on);
     switch (type) {
     case PURC_VARIANT_TYPE_STRING:
-        ret = element_erase(ctxt->on, ctxt->at, frame->silently);
+        ret = element_erase(stack, ctxt->on, ctxt->at, frame->silently);
         break;
 
     case PURC_VARIANT_TYPE_OBJECT:

@@ -163,10 +163,11 @@ vdom_destroy(purc_vdom_t vdom)
 }
 
 void
-pcintr_util_dump_document_ex(pchtml_html_document_t *doc,
+pcintr_util_dump_document_ex(pchtml_html_document_t *doc, char **dump_buff,
     const char *file, int line, const char *func)
 {
     PC_ASSERT(doc);
+    UNUSED_PARAM(dump_buff);
 
     char buf[1024];
     size_t nr = sizeof(buf);
@@ -175,7 +176,9 @@ pcintr_util_dump_document_ex(pchtml_html_document_t *doc,
     opt |= PCHTML_HTML_SERIALIZE_OPT_SKIP_WS_NODES;
     opt |= PCHTML_HTML_SERIALIZE_OPT_WITHOUT_TEXT_INDENT;
     opt |= PCHTML_HTML_SERIALIZE_OPT_FULL_DOCTYPE;
-    opt |= PCHTML_HTML_SERIALIZE_OPT_WITH_HVML_HANDLE;
+    if (!dump_buff) {
+        opt |= PCHTML_HTML_SERIALIZE_OPT_WITH_HVML_HANDLE;
+    }
     char *p = pchtml_doc_snprintf_ex(doc,
             (enum pchtml_html_serialize_opt)opt, buf, &nr, "");
     if (!p)
@@ -192,8 +195,16 @@ pcintr_util_dump_document_ex(pchtml_html_document_t *doc,
     if (!p)
         return;
 
-    fprintf(stderr, "%s[%d]:%s(): #document %p\n%s\n",
-            pcutils_basename((char*)file), line, func, doc, p);
+    if (dump_buff) {
+        if (*dump_buff) {
+            free(*dump_buff);
+        }
+        *dump_buff = strdup(p);
+    }
+    else {
+        fprintf(stderr, "%s[%d]:%s(): #document %p\n%s\n",
+                pcutils_basename((char*)file), line, func, doc, p);
+    }
     if (p != buf)
         free(p);
 }

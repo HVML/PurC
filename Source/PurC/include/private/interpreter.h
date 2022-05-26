@@ -519,7 +519,7 @@ pcintr_load_dynamic_variant(pcintr_stack_t stack,
 
 // utilities
 void
-pcintr_util_dump_document_ex(pchtml_html_document_t *doc,
+pcintr_util_dump_document_ex(pchtml_html_document_t *doc, char **dump_buff,
     const char *file, int line, const char *func);
 
 void
@@ -527,13 +527,14 @@ pcintr_util_dump_edom_node_ex(pcdom_node_t *node,
     const char *file, int line, const char *func);
 
 #define pcintr_util_dump_document(_doc)          \
-    pcintr_util_dump_document_ex(_doc, __FILE__, __LINE__, __func__)
+    pcintr_util_dump_document_ex(_doc, NULL, __FILE__, __LINE__, __func__)
 
 #define pcintr_util_dump_edom_node(_node)        \
     pcintr_util_dump_edom_node_ex(_node, __FILE__, __LINE__, __func__)
 
 #define pcintr_dump_document(_stack)             \
-    pcintr_util_dump_document_ex(_stack->doc, __FILE__, __LINE__, __func__)
+    pcintr_util_dump_document_ex(_stack->doc, _stack->vdom->dump_buff, \
+            __FILE__, __LINE__, __func__)
 
 #define pcintr_dump_edom_node(_stack, _node)      \
     pcintr_util_dump_edom_node_ex(_node, __FILE__, __LINE__, __func__)
