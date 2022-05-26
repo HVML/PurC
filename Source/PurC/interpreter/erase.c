@@ -170,7 +170,7 @@ element_erase(pcintr_stack_t stack, purc_variant_t on, purc_variant_t at,
     purc_variant_t elems = pcdvobjs_elements_by_css(doc, s);
     if (!elems) {
         ret = purc_variant_make_ulongint(0);
-        goto end;
+        goto out;
     }
 
     if (at == PURC_VARIANT_INVALID) {
@@ -185,9 +185,41 @@ element_erase(pcintr_stack_t stack, purc_variant_t on, purc_variant_t at,
     }
     else {
         // TODO erase attr
-        ret = purc_variant_make_ulongint(0);
+        if (!purc_variant_is_string(at)) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            ret = PURC_VARIANT_INVALID;
+            goto out;
+        }
+        const char *s_at = purc_variant_get_string_const(at);
+        if (!s_at) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            ret = PURC_VARIANT_INVALID;
+            goto out;
+        }
+
+        if (!strncmp(s_at, "attr.", 5) == 0) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            ret = PURC_VARIANT_INVALID;
+            goto out;
+        }
+        s_at += 5;
+        int nr_remove = 0;
+        size_t idx = 0;
+        while (1) {
+            struct pcdom_element *target;
+            target = pcdvobjs_get_element_from_elements(elems, idx++);
+            if (!target) {
+                break;
+            }
+
+            int r = pcintr_util_remove_attribute(target, s_at);
+            if (r == PURC_ERROR_OK) {
+                nr_remove++;
+            }
+        }
+        ret = purc_variant_make_ulongint(nr_remove);
     }
-end:
+out:
     return ret;
 }
 
