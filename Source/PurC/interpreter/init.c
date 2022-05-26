@@ -1083,6 +1083,7 @@ on_child_finished(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     }
 
     if (ctxt->literal != PURC_VARIANT_INVALID) {
+        PURC_VARIANT_SAFE_CLEAR(frame->ctnt_var);
         frame->ctnt_var = ctxt->literal;
         purc_variant_ref(ctxt->literal);
         return post_process(co, frame);
