@@ -364,9 +364,6 @@ struct pcintr_timers;
 
 PCA_EXTERN_C_BEGIN
 
-void pcintr_init_instance(struct pcinst* inst) WTF_INTERNAL;
-void pcintr_cleanup_instance(struct pcinst* inst) WTF_INTERNAL;
-
 struct pcintr_heap* pcintr_get_heap(void);
 bool pcintr_is_current_thread(void);
 

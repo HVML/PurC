@@ -838,6 +838,32 @@ clean_rws:
     free(fetcher);
 }
 
+static int
+process_from(pcintr_coroutine_t co)
+{
+    pcintr_stack_t stack = &co->stack;
+
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_stack_get_bottom_frame(stack);
+
+    struct pcvdom_element *element = frame->pos;
+
+    struct ctxt_for_init *ctxt;
+    ctxt = (struct ctxt_for_init*)frame->ctxt;
+
+    if (ctxt->from == PURC_VARIANT_INVALID)
+        return 0;
+
+    if (!purc_variant_is_string(ctxt->from)) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "vdom attribute 'from' for element <%s> not a valid string",
+                element->tag_name);
+        return -1;
+    }
+
+    PC_ASSERT(0);
+}
+
 static void*
 after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 {
@@ -893,6 +919,11 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     }
 
     purc_clr_error(); // pcvdom_element_parent
+
+    if (0) {
+        r = process_from(stack->co);
+        return r ? NULL : ctxt;
+    }
 
     purc_variant_t from = ctxt->from;
 

@@ -29,6 +29,7 @@
 #include "purc-runloop.h"
 #include "private/errors.h"
 #include "private/interpreter.h"
+#include "private/instance.h"
 
 #include <wtf/Threading.h>
 #include <wtf/RunLoop.h>
@@ -281,4 +282,40 @@ pcintr_wakeup_target_with(pcintr_coroutine_t target, void *ctxt,
             pcintr_set_current_co(NULL);
         });
 }
+
+static int _init_once(void)
+{
+    return 0;
+}
+
+static int _init_instance(struct pcinst* curr_inst,
+        const purc_instance_extra_info* extra_info)
+{
+    UNUSED_PARAM(extra_info);
+
+    curr_inst->initialized_main_runloop = false;
+
+    if (!purc_runloop_is_main_initialized()) {
+        purc_runloop_init_main();
+        curr_inst->initialized_main_runloop = true;
+    }
+
+    return 0;
+}
+
+static void _cleanup_instance(struct pcinst* curr_inst)
+{
+    if (curr_inst->initialized_main_runloop) {
+        purc_runloop_stop_main();
+    }
+}
+
+struct pcmodule _module_runloop = {
+    .id              = PURC_HAVE_ALL,
+    .module_inited   = 0,
+
+    .init_once              = _init_once,
+    .init_instance          = _init_instance,
+    .cleanup_instance       = _cleanup_instance,
+};
 

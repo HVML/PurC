@@ -34,7 +34,7 @@
 
 TEST(local_fetcher, sync)
 {
-#ifndef MOCK_ASYNC            /* { */
+#if 0                         /* { */
     purc_instance_extra_info info = {};
     purc_init_ex (PURC_MODULE_HVML,"cn.fmsoft.hybridos.sample",
             "pcfetcher", &info);
@@ -125,7 +125,7 @@ void async_response_handler(
 
 TEST(local_fetcher, async)
 {
-#ifndef MOCK_ASYNC            /* { */
+#if 0                         /* { */
     purc_instance_extra_info info = {};
     purc_init_ex (PURC_MODULE_HVML,"cn.fmsoft.hybridos.sample",
             "pcfetcher", &info);

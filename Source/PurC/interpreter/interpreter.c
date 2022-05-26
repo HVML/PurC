@@ -48,47 +48,6 @@
 
 #define MSG_TYPE_CHANGE     "change"
 
-static int interpreter_init_once(void)
-{
-    purc_runloop_t runloop = purc_runloop_get_current();
-    PC_ASSERT(runloop);
-    init_ops();
-
-    return 0;
-}
-
-struct pcmodule _module_interpreter = {
-    .id              = PURC_HAVE_VARIANT | PURC_HAVE_HVML,
-    .module_inited   = 0,
-
-    .init_once       = interpreter_init_once,
-    .init_instance   = NULL,
-};
-
-void pcintr_init_instance(struct pcinst* inst)
-{
-    struct pcintr_heap *heap = inst->intr_heap;
-    PC_ASSERT(heap == NULL);
-
-    heap = (struct pcintr_heap*)calloc(1, sizeof(*heap));
-    if (!heap)
-        return;
-
-    int r;
-    r = pthread_mutex_init(&heap->locker, NULL);
-    if (r) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        free(heap);
-        return;
-    }
-
-    inst->intr_heap = heap;
-    heap->owner     = inst;
-
-    INIT_LIST_HEAD(&heap->coroutines);
-    heap->running_coroutine = NULL;
-}
-
 static void
 stack_frame_release(struct pcintr_stack_frame *frame)
 {
@@ -583,7 +542,7 @@ void pcintr_heap_unlock(struct pcintr_heap *heap)
     PC_ASSERT(r == 0);
 }
 
-void pcintr_cleanup_instance(struct pcinst* inst)
+static void _cleanup_instance(struct pcinst* inst)
 {
     struct pcintr_heap *heap = inst->intr_heap;
     if (!heap)
@@ -606,6 +565,54 @@ void pcintr_cleanup_instance(struct pcinst* inst)
     free(heap);
     inst->intr_heap = NULL;
 }
+
+static int _init_instance(struct pcinst* inst,
+        const purc_instance_extra_info* extra_info)
+{
+    UNUSED_PARAM(extra_info);
+    inst->intr_heap = NULL;
+
+    struct pcintr_heap *heap = inst->intr_heap;
+    PC_ASSERT(heap == NULL);
+
+    heap = (struct pcintr_heap*)calloc(1, sizeof(*heap));
+    if (!heap)
+        return PURC_ERROR_OUT_OF_MEMORY;
+
+    int r;
+    r = pthread_mutex_init(&heap->locker, NULL);
+    if (r) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        free(heap);
+        return PURC_ERROR_OUT_OF_MEMORY;
+    }
+
+    inst->intr_heap = heap;
+    heap->owner     = inst;
+
+    INIT_LIST_HEAD(&heap->coroutines);
+    heap->running_coroutine = NULL;
+
+    return 0;
+}
+
+static int _init_once(void)
+{
+    purc_runloop_t runloop = purc_runloop_get_current();
+    PC_ASSERT(runloop);
+    init_ops();
+
+    return 0;
+}
+
+struct pcmodule _module_interpreter = {
+    .id              = PURC_HAVE_VARIANT | PURC_HAVE_HVML,
+    .module_inited   = 0,
+
+    .init_once              = _init_once,
+    .init_instance          = _init_instance,
+    .cleanup_instance       = _cleanup_instance,
+};
 
 struct pcintr_heap* pcintr_get_heap(void)
 {

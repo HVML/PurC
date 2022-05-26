@@ -210,12 +210,6 @@ bool pcdvobjs_get_current_timezone(char *buff, size_t sz_buff) WTF_INTERNAL;
 
 struct pcinst;
 
-// initialize the dvobjs module for a PurC instance.
-void pcdvobjs_init_instance(struct pcinst* inst) WTF_INTERNAL;
-
-// clean up the dvobjs module for a PurC instance.
-void pcdvobjs_cleanup_instance(struct pcinst* inst) WTF_INTERNAL;
-
 struct wildcard_list {
     char * wildcard;
     struct wildcard_list *next;

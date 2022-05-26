@@ -29,9 +29,6 @@
 #include <stddef.h>
 #include <stdio.h>
 
-// TODO: deprecate
-#define MOCK_ASYNC
-
 #include "purc-macros.h"
 #include "purc-version.h"
 #include "purc-features.h"

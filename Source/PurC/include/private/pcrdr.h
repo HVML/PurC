@@ -73,11 +73,6 @@ struct renderer_capabilities {
 extern "C" {
 #endif  /* __cplusplus */
 
-int pcrdr_init_instance(struct pcinst* inst,
-        const purc_instance_extra_info *extra_info) WTF_INTERNAL;
-
-void pcrdr_cleanup_instance(struct pcinst* inst) WTF_INTERNAL;
-
 struct renderer_capabilities *
 pcrdr_parse_renderer_capabilities(const char *data) WTF_INTERNAL;
 

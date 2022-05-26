@@ -216,11 +216,6 @@ void pcvariant_free(purc_variant *v) WTF_INTERNAL;
 
 struct pcinst;
 
-// initialize the variant module for a PurC instance.
-void pcvariant_init_instance(struct pcinst* inst) WTF_INTERNAL;
-// clean up the variant module for a PurC instance.
-void pcvariant_cleanup_instance(struct pcinst* inst) WTF_INTERNAL;
-
 struct pcvar_rev_update_edge {
     purc_variant_t                   parent;
     union {

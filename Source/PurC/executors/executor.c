@@ -83,7 +83,7 @@ static struct err_msg_seg _executor_err_msgs_seg = {
 };
 
 
-static int executor_init_once(void)
+static int _init_once(void)
 {
     // register error message
     pcinst_register_error_message_segment(&_executor_err_msgs_seg);
@@ -92,21 +92,16 @@ static int executor_init_once(void)
     return 0;
 }
 
-struct pcmodule _module_executor = {
-    .id              = PURC_HAVE_VARIANT | PURC_HAVE_HVML,
-    .module_inited   = 0,
-
-    .init_once       = executor_init_once,
-    .init_instance   = NULL,
-};
-
-void pcexecutor_init_instance(struct pcinst *inst)
+static int _init_instance(struct pcinst *inst,
+        const purc_instance_extra_info* extra_info)
 {
+    UNUSED_PARAM(extra_info);
+
     struct pcexecutor_heap *heap = inst->executor_heap;
     PC_ASSERT(heap == NULL);
     heap = (struct pcexecutor_heap*)calloc(1, sizeof(*heap));
     if (!heap)
-        return;
+        return PURC_ERROR_OUT_OF_MEMORY;
 
     inst->executor_heap = heap;
 
@@ -126,9 +121,11 @@ void pcexecutor_init_instance(struct pcinst *inst)
     pcexec_exe_objformula_register();
     pcexec_exe_sql_register();
     pcexec_exe_travel_register();
+
+    return 0;
 }
 
-void pcexecutor_cleanup_instance(struct pcinst *inst)
+static void _cleanup_instance(struct pcinst *inst)
 {
     struct pcexecutor_heap *heap = inst->executor_heap;
 
@@ -143,6 +140,15 @@ void pcexecutor_cleanup_instance(struct pcinst *inst)
     free(heap);
     inst->executor_heap = NULL;
 }
+
+struct pcmodule _module_executor = {
+    .id              = PURC_HAVE_VARIANT | PURC_HAVE_HVML,
+    .module_inited   = 0,
+
+    .init_once                = _init_once,
+    .init_instance            = _init_instance,
+    .cleanup_instance         = _cleanup_instance,
+};
 
 void pcexecutor_set_debug(int debug_flex, int debug_bison)
 {

@@ -58,13 +58,6 @@ typedef void (*pcfetcher_response_handler)(
 extern "C" {
 #endif  /* __cplusplus */
 
-#ifndef MOCK_ASYNC            /* { */
-int pcfetcher_init(size_t max_conns, size_t cache_quota,
-        bool enable_remote_fetcher);
-
-int pcfetcher_term(void);
-#endif                        /* } */
-
 bool pcfetcher_is_init(void);
 
 const char* pcfetcher_set_base_url(const char* base_url);
