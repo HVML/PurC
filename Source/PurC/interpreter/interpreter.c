@@ -648,17 +648,25 @@ static void
 coroutine_set_current_with_location(struct pcintr_coroutine *co,
         const char *file, int line, const char *func)
 {
+    UNUSED_PARAM(file);
+    UNUSED_PARAM(line);
+    UNUSED_PARAM(func);
+
     struct pcintr_heap *heap = pcintr_get_heap();
     if (co) {
+#if 0           /* { */
         fprintf(stderr, "%s[%d]: %s(): %s\n",
             basename((char*)file), line, func,
             ">>>>>>>>>>>>>start>>>>>>>>>>>>>>>>>>>>>>>>>>");
+#endif          /* } */
         PC_ASSERT(heap->running_coroutine == NULL);
     }
     else {
+#if 0           /* { */
         fprintf(stderr, "%s[%d]: %s(): %s\n",
             basename((char*)file), line, func,
             "<<<<<<<<<<<<<stop<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+#endif          /* } */
         PC_ASSERT(heap->running_coroutine);
     }
 
@@ -1778,11 +1786,6 @@ static void on_msg(void *ctxt)
     PC_ASSERT(co->state == CO_STATE_READY);
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
-    if (frame) {
-        dump_stack(stack);
-    }
-    PC_ASSERT(frame == NULL);
-
     PC_ASSERT(frame == NULL);
 
     co->state = CO_STATE_RUN;
@@ -1854,7 +1857,6 @@ static void check_after_execution(pcintr_coroutine_t co)
     if (frame) {
         PC_ASSERT(co->state == CO_STATE_RUN);
         co->state = CO_STATE_READY;
-        dump_stack(&co->stack);
         if (co->execution_pending == 0) {
             co->execution_pending = 1;
             pcintr_wakeup_target(co, run_ready_co);
