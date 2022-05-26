@@ -2870,6 +2870,16 @@ pcintr_util_set_attribute(pcdom_element_t *elem,
     return 0;
 }
 
+int
+pcintr_util_remove_attribute(pcdom_element_t *elem, const char *key)
+{
+    unsigned int ret = pcdom_element_remove_attribute(elem,
+            (const unsigned char *)key, strlen(key));
+
+    //TODO: send to rdr
+    return ret;
+}
+
 pchtml_html_document_t*
 pcintr_util_load_document(const char *html)
 {
