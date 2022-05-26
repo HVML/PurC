@@ -375,7 +375,26 @@ cleaner(void *native_entity, bool silently)
 {
     UNUSED_PARAM(native_entity);
     UNUSED_PARAM(silently);
-    return purc_variant_make_boolean(false);
+    struct pcdvobjs_elements *elements;
+    elements = (struct pcdvobjs_elements*)native_entity;
+    pcutils_array_t *arr = elements->elements;
+    PC_ASSERT(arr);
+
+    struct pcdom_element *elem = NULL;
+    size_t len = pcutils_array_length(arr);
+    for (size_t i = 0; i < len; i++) {
+        elem = (struct pcdom_element*)pcutils_array_get(elements->elements, i);
+        if (!elem) {
+            continue;
+        }
+        pcdom_node_t *node = pcdom_interface_node(elem);
+        while(node->first_child) {
+            pcdom_node_t *child = node->first_child;
+            pcdom_node_remove(child);
+        }
+    }
+
+    return purc_variant_make_boolean(true);
 }
 
 purc_variant_t
@@ -390,15 +409,16 @@ eraser(void* native_entity, bool silently)
 
     struct pcdom_element *elem = NULL;
     size_t len = pcutils_array_length(arr);
-    fprintf(stderr, "############################## eraser len=%ld\n", len);
+    size_t nr_erase = 0;
     for (size_t i = 0; i < len; i++) {
         elem = (struct pcdom_element*)pcutils_array_get(elements->elements, i);
         if (elem) {
             pcdom_node_remove(pcdom_interface_node(elem));
+            nr_erase++;
         }
     }
 
-    return purc_variant_make_ulongint(0);
+    return purc_variant_make_ulongint(nr_erase);
 }
 
 

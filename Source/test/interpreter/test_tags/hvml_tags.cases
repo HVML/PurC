@@ -2,8 +2,9 @@ hvml_001
 clear_001
 clear_002
 clear_003
+clear_004
 erase_001
-rase_002
+erase_002
 erase_003
 erase_004
 erase_005
@@ -12,4 +13,4 @@ erase_007
 erase_008
 erase_009
 erase_010
-#erase_011
+erase_011
