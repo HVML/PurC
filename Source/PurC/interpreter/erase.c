@@ -175,12 +175,12 @@ element_erase(pcintr_stack_t stack, purc_variant_t on, purc_variant_t at,
 
     if (at == PURC_VARIANT_INVALID) {
         struct purc_native_ops *ops = purc_variant_native_get_ops(elems);
-        if (!ops || ops->cleaner == NULL) {
+        if (!ops || ops->eraser == NULL) {
             ret = purc_variant_make_ulongint(0);
         }
         else {
             void *entity = purc_variant_native_get_entity(elems);
-            ret = ops->cleaner(entity, silently);
+            ret = ops->eraser(entity, silently);
         }
     }
     else {
