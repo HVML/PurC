@@ -370,6 +370,23 @@ property_cleaner(const char* key_name)
     return NULL;
 }
 
+purc_variant_t
+cleaner(void *native_entity, bool silently)
+{
+    UNUSED_PARAM(native_entity);
+    UNUSED_PARAM(silently);
+    return purc_variant_make_boolean(false);
+}
+
+purc_variant_t
+eraser(void* native_entity, bool silently)
+{
+    UNUSED_PARAM(native_entity);
+    UNUSED_PARAM(silently);
+    return purc_variant_make_ulongint(0);
+}
+
+
 // the callback to release the native entity.
 static void
 on_release(void* native_entity)
@@ -392,8 +409,8 @@ make_elements(void)
         .property_cleaner           = property_cleaner,
 
         .updater                    = NULL,
-        .cleaner                    = NULL,
-        .eraser                     = NULL,
+        .cleaner                    = cleaner,
+        .eraser                     = eraser,
 
         .on_observe                = NULL,
         .on_release                = on_release,
