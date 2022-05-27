@@ -63,6 +63,7 @@ struct pcintr_element_ops* pcintr_get_exit_ops(void);
 struct pcintr_element_ops* pcintr_get_clear_ops(void);
 struct pcintr_element_ops* pcintr_get_erase_ops(void);
 struct pcintr_element_ops* pcintr_get_sleep_ops(void);
+struct pcintr_element_ops* pcintr_get_error_ops(void);
 
 PCA_EXTERN_C_END
 
