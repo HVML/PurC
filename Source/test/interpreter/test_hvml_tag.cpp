@@ -133,7 +133,7 @@ std::vector<TestCase> read_test_cases()
 
     strcpy(file_path, data_path);
     strcat(file_path, "/");
-    strcat(file_path, "hvml_tags.cases");
+    strcat(file_path, "tags.cases");
 
     FILE *fp = fopen(file_path, "r");
     if (fp == NULL) {
