@@ -115,9 +115,13 @@ enum {
 #define PCRDR_OPERATION_CLEAR               "clear"
     PCRDR_K_OPERATION_CALLMETHOD,
 #define PCRDR_OPERATION_CALLMETHOD          "callMethod"
+    PCRDR_K_OPERATION_GETPROPERTY,
+#define PCRDR_OPERATION_GETPROPERTY         "getProperty"
+    PCRDR_K_OPERATION_SETPROPERTY,
+#define PCRDR_OPERATION_SETPROPERTY         "setProperty"
 
     /* XXX: change this when you append a new operation */
-    PCRDR_K_OPERATION_LAST = PCRDR_K_OPERATION_CALLMETHOD,
+    PCRDR_K_OPERATION_LAST = PCRDR_K_OPERATION_SETPROPERTY,
 };
 
 #define PCRDR_NR_OPERATIONS \
