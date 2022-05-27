@@ -42,10 +42,13 @@ struct ctxt_for_test {
     purc_variant_t on;
     purc_variant_t by;
     purc_variant_t in;
+    purc_variant_t with;
 
     struct purc_exec_ops          ops;
     purc_exec_inst_t              exec_inst;
     purc_exec_iter_t              it;
+
+    bool handle_differ;
 };
 
 static void
@@ -60,6 +63,7 @@ ctxt_for_test_destroy(struct ctxt_for_test *ctxt)
         PURC_VARIANT_SAFE_CLEAR(ctxt->by);
         PURC_VARIANT_SAFE_CLEAR(ctxt->on);
         PURC_VARIANT_SAFE_CLEAR(ctxt->in);
+        PURC_VARIANT_SAFE_CLEAR(ctxt->with);
 
         free(ctxt);
     }
@@ -206,6 +210,31 @@ process_attr_by(struct pcintr_stack_frame *frame,
 }
 
 static int
+process_attr_with(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element,
+        purc_atom_t name, purc_variant_t val)
+{
+    struct ctxt_for_test *ctxt;
+    ctxt = (struct ctxt_for_test*)frame->ctxt;
+    if (ctxt->with != PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_DUPLICATED,
+                "vdom attribute '%s' for element <%s>",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    if (val == PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "vdom attribute '%s' for element <%s> undefined",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    ctxt->with = val;
+    purc_variant_ref(val);
+
+    return 0;
+}
+
+static int
 attr_found_val(struct pcintr_stack_frame *frame,
         struct pcvdom_element *element,
         purc_atom_t name, purc_variant_t val,
@@ -225,6 +254,9 @@ attr_found_val(struct pcintr_stack_frame *frame,
     }
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, BY)) == name) {
         return process_attr_by(frame, element, name, val);
+    }
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, WITH)) == name) {
+        return process_attr_with(frame, element, name, val);
     }
 
     purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
@@ -294,6 +326,12 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     r = pcintr_vdom_walk_attrs(frame, element, NULL, attr_found);
     if (r)
         return NULL;
+
+    if (ctxt->on == PURC_VARIANT_INVALID
+            && ctxt->with != PURC_VARIANT_INVALID
+            && purc_variant_booleanize(ctxt->with)) {
+        ctxt->handle_differ = true;
+    }
 
     purc_clr_error();
 
@@ -419,7 +457,15 @@ again:
                 pcvdom_element_t element = PCVDOM_ELEMENT_FROM_NODE(curr);
                 on_element(co, frame, element);
                 PC_ASSERT(stack->except == 0);
-                return element;
+                if (!ctxt->handle_differ) {
+                    return element;
+                }
+                else if (element->tag_id == PCHVML_TAG_DIFFER) {
+                    return element;
+                }
+                else {
+                    goto again;
+                }
             }
         case PCVDOM_NODE_CONTENT:
             on_content(co, frame, PCVDOM_CONTENT_FROM_NODE(curr));
