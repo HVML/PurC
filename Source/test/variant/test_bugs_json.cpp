@@ -48,8 +48,11 @@ char *variant_to_string(purc_variant_t v)
 {
     purc_rwstream_t my_rws = purc_rwstream_new_buffer(MIN_BUFFER, MAX_BUFFER);
     size_t len_expected = 0;
-    purc_variant_serialize(v, my_rws,
+    ssize_t ret = purc_variant_serialize(v, my_rws,
             0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);
+    if (ret == -1) {
+        return NULL;
+    }
     char *buf = (char*)purc_rwstream_get_mem_buffer_ex(my_rws, NULL, NULL, true);
     purc_rwstream_destroy(my_rws);
     return buf;
@@ -75,16 +78,25 @@ struct test_case {
     char *name;
     char *json;
     char *serial;
+    char *serial_path;
 };
 
 static inline void
 add_test_case(std::vector<test_case> &test_cases,
-        const char *name, const char *json, const char *serial)
+        const char *name, const char *json, const char *serial,
+        const char *serial_path)
 {
     struct test_case test;
     test.name = MemCollector::strdup(name);
     test.json = MemCollector::strdup(json);
-    test.serial = MemCollector::strdup(serial);
+    if (serial) {
+        test.serial = MemCollector::strdup(serial);
+        test.serial_path = NULL;
+    }
+    else {
+        test.serial = NULL;
+        test.serial_path = MemCollector::strdup(serial_path);
+    }
     test_cases.push_back(test);
 }
 
@@ -136,9 +148,20 @@ TEST_P(TestCaseData, bugs_json)
     ASSERT_NE(vt, PURC_VARIANT_INVALID);
 
     char *result = variant_to_string(vt);
-    PRINTF("src=%s\n", result);
-    PRINTF("cmp=%s\n", data.serial);
-    ASSERT_STREQ(trim(result), trim(data.serial));
+    ASSERT_NE(result, nullptr);
+
+    if (data.serial) {
+//        PRINTF("src=%s\n", result);
+//        PRINTF("cmp=%s\n", data.serial);
+        ASSERT_STREQ(trim(result), trim(data.serial));
+    }
+    else {
+        FILE *fp = fopen(data.serial_path, "w");
+        if (fp) {
+            fwrite(result, 1, strlen(result), fp);
+            fclose(fp);
+        }
+    }
 
     // clear
     free(result);
@@ -198,19 +221,18 @@ std::vector<test_case> load_test_case()
             }
 
             char *serial  = read_file(serial_path);
-            if (serial == NULL) {
-                free(json);
-                continue;
-            }
-            add_test_case(test_cases, name, json, serial);
+            add_test_case(test_cases, name, json, serial, serial_path);
             free(json);
-            free(serial);
+
+            if (serial) {
+                free(serial);
+            }
         }
     }
     globfree(&globbuf);
 
     if (test_cases.empty()) {
-        add_test_case(test_cases, "inner_test", "[123]", "[123]");
+        add_test_case(test_cases, "inner_test", "[123]", "[123]", NULL);
     }
 
 end:
