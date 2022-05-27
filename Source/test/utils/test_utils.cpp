@@ -1297,21 +1297,35 @@ TEST(utils, hvml_uri)
         "hvml://host/app/runner/group/page/trail",
     };
 
-    const char *good_hvml_uri[] = {
-        "hvml://host/app/runner/page",
-        "hvml://host/app/runner/group/page",
-        "HVML://HOST/APP/RUNNER/GROUP/PAGE",
+    static const struct {
+        const char *uri;
+        const char *expected;
+    } good_hvml_uri [] = {
+        { "hvml://host/app/runner/page",
+            "hvml://host/app/runner/page", },
+        { "hvml://host/app/runner/group/page",
+            "hvml://host/app/runner/group/page" },
+        { "HVML://HOST/APP/RUNNER/GROUP/PAGE",
+            "HVML://HOST/APP/RUNNER/GROUP/PAGE" },
+        { "hvml://host/app/runner/page?key=value",
+            "hvml://host/app/runner/page" },
+        { "hvml://host/app/runner/group/page?key=value",
+            "hvml://host/app/runner/group/page" },
     };
 
     for (size_t i = 0; i < sizeof(bad_hvml_uri)/sizeof(const char*); i++) {
-        bool ret = purc_hvml_uri_split(bad_hvml_uri[i],
+        printf("splitting: %s\n", bad_hvml_uri[i]);
+        bool ret = purc_hvml_uri_split_alloc(bad_hvml_uri[i],
                 NULL, NULL, NULL, NULL, NULL);
         ASSERT_EQ(ret, false);
     }
 
-    for (size_t i = 0; i < sizeof(good_hvml_uri)/sizeof(const char*); i++) {
+    for (size_t i = 0; i < sizeof(good_hvml_uri)/sizeof(good_hvml_uri[0]); i++) {
         char *host, *app, *runner, *group, *page;
-        bool ret = purc_hvml_uri_split(good_hvml_uri[i],
+
+        printf("splitting: %s\n", good_hvml_uri[i].uri);
+
+        bool ret = purc_hvml_uri_split_alloc(good_hvml_uri[i].uri,
                 &host, &app, &runner, &group, &page);
         ASSERT_EQ(ret, true);
 
@@ -1320,12 +1334,16 @@ TEST(utils, hvml_uri)
             my_uri = g_strdup_printf("hvml://%s/%s/%s/%s",
                     host, app, runner, page);
         }
+        else if (page == NULL) {
+            my_uri = g_strdup_printf("hvml://%s/%s/%s/%s/",
+                    host, app, runner, group);
+        }
         else {
             my_uri = g_strdup_printf("hvml://%s/%s/%s/%s/%s",
                     host, app, runner, group, page);
         }
 
-        ASSERT_STRCASEEQ(good_hvml_uri[i], my_uri);
+        ASSERT_STRCASEEQ(good_hvml_uri[i].expected, my_uri);
         g_free(my_uri);
 
         free(host);
@@ -1334,6 +1352,28 @@ TEST(utils, hvml_uri)
         if (group)
             free(group);
         free(page);
+    }
+
+    const char *hvml_uri_prefix[] = {
+        "hvml://host/app/runner/",
+        "hvml://host/app/runner/group",
+        "hvml://host/app/runner/group/page",
+        "HVML://HOST/APP/RUNNER/GROUP/PAGE",
+    };
+
+    for (size_t i = 0; i < sizeof(hvml_uri_prefix)/sizeof(const char*); i++) {
+        char *host, *app, *runner;
+        bool ret = purc_hvml_uri_split_alloc(hvml_uri_prefix[i],
+                &host, &app, &runner, NULL, NULL);
+        ASSERT_EQ(ret, true);
+
+        ASSERT_STRCASEEQ(host, "host");
+        ASSERT_STRCASEEQ(app, "app");
+        ASSERT_STRCASEEQ(runner, "runner");
+
+        free(host);
+        free(app);
+        free(runner);
     }
 
     static struct {
@@ -1355,6 +1395,120 @@ TEST(utils, hvml_uri)
         ASSERT_STREQ(uri, comps[i].uri_expected);
 
         free(uri);
+    }
+
+    /* non-alloc versions */
+    for (size_t i = 0; i < sizeof(bad_hvml_uri)/sizeof(const char*); i++) {
+        printf("splitting: %s\n", bad_hvml_uri[i]);
+        bool ret = purc_hvml_uri_split(bad_hvml_uri[i],
+                NULL, NULL, NULL, NULL, NULL);
+        ASSERT_EQ(ret, false);
+    }
+
+    for (size_t i = 0; i < sizeof(good_hvml_uri)/sizeof(good_hvml_uri[0]); i++) {
+        char host[PURC_LEN_HOST_NAME + 1];
+        char app[PURC_LEN_APP_NAME + 1];
+        char runner[PURC_LEN_RUNNER_NAME + 1];
+        char group[PURC_LEN_IDENTIFIER + 1];
+        char page[PURC_LEN_IDENTIFIER + 1];
+
+        printf("splitting: %s\n", good_hvml_uri[i].uri);
+
+        bool ret = purc_hvml_uri_split(good_hvml_uri[i].uri,
+                host, app, runner, group, page);
+        ASSERT_EQ(ret, true);
+
+        char *my_uri;
+        if (group[0] == 0) {
+            my_uri = g_strdup_printf("hvml://%s/%s/%s/%s",
+                    host, app, runner, page);
+        }
+        else if (page[0] == 0) {
+            my_uri = g_strdup_printf("hvml://%s/%s/%s/%s/",
+                    host, app, runner, group);
+        }
+        else {
+            my_uri = g_strdup_printf("hvml://%s/%s/%s/%s/%s",
+                    host, app, runner, group, page);
+        }
+
+        ASSERT_STRCASEEQ(good_hvml_uri[i].expected, my_uri);
+        g_free(my_uri);
+    }
+
+    for (size_t i = 0; i < sizeof(hvml_uri_prefix)/sizeof(const char*); i++) {
+        char host[PURC_LEN_HOST_NAME + 1];
+        char app[PURC_LEN_APP_NAME + 1];
+        char runner[PURC_LEN_RUNNER_NAME + 1];
+        bool ret = purc_hvml_uri_split(hvml_uri_prefix[i],
+                host, app, runner, NULL, NULL);
+        ASSERT_EQ(ret, true);
+
+        ASSERT_STRCASEEQ(host, "host");
+        ASSERT_STRCASEEQ(app, "app");
+        ASSERT_STRCASEEQ(runner, "runner");
+    }
+
+    for (size_t i = 0; i < sizeof(comps)/sizeof(comps[0]); i++) {
+        char uri[PURC_LEN_ENDPOINT_NAME + 1];
+
+        purc_hvml_uri_assemble(uri, "host", "app", "runner",
+                comps[i].group, comps[i].page);
+        ASSERT_STREQ(uri, comps[i].uri_expected);
+    }
+
+    static const struct {
+        const char *uri;
+        const char *expected;
+    } query_cases[] = {
+        { "hvml://host/app/runner/page",
+            NULL },
+        { "hvml://host/app/runner/page?key1",
+            NULL },
+        { "hvml://host/app/runner/page?key1=",
+            NULL },
+        { "hvml://host/app/runner/page?key2=value2",
+            NULL },
+        { "hvml://host/app/runner/page?key11=value11",
+            NULL },
+        { "hvml://host/app/runner/page?key1=value1",
+            "value1" },
+        { "hvml://host/app/runner/group/page?key=value&key1=value1",
+            "value1" },
+        { "HVML://HOST/APP/RUNNER/GROUP/PAGE?KEY=VALUE&KEY1=value1&KEY2=VALUE2",
+            "VALUE1" },
+        { "hvml://host/app/runner/page?key=value&key2=value2&key1=value1",
+            "value1" },
+        { "hvml://host/app/runner/group/page?key=&key1=value1", "value1" },
+        { "hvml://host/app/runner/group/page?#asdf", NULL },
+        { "hvml://host/app/runner/group/page?key1=value1#asdf", "value1" },
+        { "hvml://host/app/runner/group/page?key=value&key1=#asdf", NULL },
+        { "hvml://host/app/runner/group/page?key1=#asdf", NULL },
+    };
+
+    for (size_t i = 0; i < sizeof(query_cases)/sizeof(query_cases[0]); i++) {
+        printf("get value in uri: %s\n", query_cases[i].uri);
+
+        char buf[16];
+        bool ret = purc_hvml_uri_get_query_value(query_cases[i].uri,
+                "key1", buf);
+        if (query_cases[i].expected == NULL) {
+            ASSERT_EQ(ret, false);
+        }
+        else {
+            ASSERT_STREQ(buf, "value1");
+        }
+
+        char *value;
+        ret = purc_hvml_uri_get_query_value_alloc(query_cases[i].uri,
+                "key1", &value);
+        if (query_cases[i].expected == NULL) {
+            ASSERT_EQ(ret, false);
+        }
+        else {
+            ASSERT_STREQ(value, "value1");
+            free(value);
+        }
     }
 }
 

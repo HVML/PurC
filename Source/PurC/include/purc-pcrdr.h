@@ -55,6 +55,9 @@
 #define PCRDR_LOCALHOST                 "localhost"
 #define PCRDR_NOT_AVAILABLE             "<N/A>"
 
+#define PCRDR_REQUESTID_INITIAL         "0"
+#define PCRDR_REQUESTID_NORETURN        "-"
+
 /* operations */
 enum {
     PCRDR_K_OPERATION_FIRST = 0,
@@ -122,6 +125,8 @@ enum {
 
 /* Status Codes */
 #define PCRDR_SC_IOERR                  1
+#define PCRDR_SC_WRONG_MSG              2
+#define PCRDR_SC_NOT_READY              3
 #define PCRDR_SC_OK                     200
 #define PCRDR_SC_CREATED                201
 #define PCRDR_SC_ACCEPTED               202

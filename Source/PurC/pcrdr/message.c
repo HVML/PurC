@@ -645,6 +645,7 @@ typedef bool (*key_op)(pcrdr_msg *msg, char *value);
 
 #define STR_KEY_TYPE        "type"
 #define STR_KEY_TARGET      "target"
+#define STR_KEY_SOURCE      "source"
 #define STR_KEY_OPERATION   "operation"
 #define STR_KEY_ELEMENT     "element"
 #define STR_KEY_PROPERTY    "property"
@@ -666,6 +667,7 @@ static struct key_op_pair {
     { STR_KEY_PROPERTY,     on_property },
     { STR_KEY_REQUEST_ID,   on_request_id },
     { STR_KEY_RESULT,       on_result },
+    { STR_KEY_SOURCE,       on_target },
     { STR_KEY_TARGET,       on_target },
     { STR_KEY_TYPE,         on_type },
 };
@@ -964,8 +966,8 @@ int pcrdr_serialize_message(const pcrdr_msg *msg, pcrdr_cb_write fn, void *ctxt)
         n = serialize_message_data(msg, fn, ctxt);
     }
     else if (msg->type == PCRDR_MSG_TYPE_EVENT) {
-        /* target: <session | window | tab | dom>/<handle> */
-        fn(ctxt, STR_KEY_TARGET, sizeof(STR_KEY_TARGET) - 1);
+        /* source: <session | window | tab | dom>/<handle> */
+        fn(ctxt, STR_KEY_SOURCE, sizeof(STR_KEY_SOURCE) - 1);
         fn(ctxt, STR_PAIR_SEPARATOR, sizeof(STR_PAIR_SEPARATOR) - 1);
         fn(ctxt, target_names[msg->target], strlen(target_names[msg->target]));
         fn(ctxt, STR_VALUE_SEPARATOR, sizeof(STR_VALUE_SEPARATOR) - 1);
