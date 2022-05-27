@@ -1046,36 +1046,24 @@ static void on_async_resume(void *ud)
     data = (struct load_data*)ud;
     PC_ASSERT(data);
 
-    PC_ASSERT(0);
+    pcintr_coroutine_t co = pcintr_get_coroutine();
+    PC_ASSERT(co == data->co);
+    PC_ASSERT(co->state == CO_STATE_RUN);
+    pcintr_stack_t stack = &co->stack;
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_stack_get_bottom_frame(stack);
+    PC_ASSERT(frame == NULL);
+
     // pcintr_push_stack_frame_for_vdom_element(data->vdom_element);
-}
-
-static void on_async_complete_on_frame(struct load_data *data,
-        const struct pcfetcher_resp_header *resp_header,
-        purc_rwstream_t resp)
-{
-    UNUSED_PARAM(resp_header);
-    UNUSED_PARAM(resp);
-
-    PC_DEBUG("load_async|callback|ret_code=%d\n", resp_header->ret_code);
-    PC_DEBUG("load_async|callback|mime_type=%s\n", resp_header->mime_type);
-    PC_DEBUG("load_async|callback|sz_resp=%ld\n", resp_header->sz_resp);
-
-    data->ret_code = resp_header->ret_code;
-    data->resp = resp;
-    PC_ASSERT(purc_get_last_error() == PURC_ERROR_OK);
-
-    pcintr_post_msg(data, on_async_resume);
-    pcintr_check_after_execution();
 }
 
 static void on_async_complete(purc_variant_t request_id, void *ud,
         const struct pcfetcher_resp_header *resp_header,
         purc_rwstream_t resp)
 {
-    UNUSED_PARAM(ud);
-    UNUSED_PARAM(resp_header);
-    UNUSED_PARAM(resp);
+    PC_DEBUG("load_async|callback|ret_code=%d\n", resp_header->ret_code);
+    PC_DEBUG("load_async|callback|mime_type=%s\n", resp_header->mime_type);
+    PC_DEBUG("load_async|callback|sz_resp=%ld\n", resp_header->sz_resp);
 
     pcintr_heap_t heap = pcintr_get_heap();
     PC_ASSERT(heap);
@@ -1091,8 +1079,16 @@ static void on_async_complete(purc_variant_t request_id, void *ud,
     PC_ASSERT(data->async_id == request_id);
 
     pcintr_set_current_co(co);
+
+    data->ret_code = resp_header->ret_code;
+    data->resp = resp;
+    PC_ASSERT(purc_get_last_error() == PURC_ERROR_OK);
+
     pcintr_unregister_cancel(&data->cancel);
-    on_async_complete_on_frame(data, resp_header, resp);
+    pcintr_post_msg(data, on_async_resume);
+
+    pcintr_check_after_execution();
+
     pcintr_set_current_co(NULL);
 }
 
@@ -1130,7 +1126,7 @@ process_from_async(pcintr_coroutine_t co, pcintr_stack_frame_t frame)
     data->under_head    = ctxt->under_head;
 
     data->async_id = pcintr_load_from_uri_async(stack, ctxt->from_uri,
-            on_async_complete, frame);
+            on_async_complete, data);
     if (data->async_id == PURC_VARIANT_INVALID) {
         pcintr_unregister_cancel(&data->cancel);
         load_data_destroy(data);

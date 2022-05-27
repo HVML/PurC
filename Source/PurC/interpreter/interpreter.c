@@ -1825,9 +1825,9 @@ static void check_after_execution(pcintr_coroutine_t co)
 
     switch (co->state) {
         case CO_STATE_READY:
-            PC_ASSERT(0);
             break;
         case CO_STATE_RUN:
+            co->state = CO_STATE_READY;
             break;
         case CO_STATE_WAIT:
             PC_ASSERT(frame && frame->type == STACK_FRAME_TYPE_NORMAL);
@@ -1838,8 +1838,6 @@ static void check_after_execution(pcintr_coroutine_t co)
         default:
             PC_ASSERT(0);
     }
-
-    PC_ASSERT(co->state == CO_STATE_RUN);
 
     if (inst->errcode) {
         PC_ASSERT(stack->except == 0);
@@ -1853,10 +1851,7 @@ static void check_after_execution(pcintr_coroutine_t co)
         PC_ASSERT(inst->errcode == 0);
     }
 
-
     if (frame) {
-        PC_ASSERT(co->state == CO_STATE_RUN);
-        co->state = CO_STATE_READY;
         if (co->execution_pending == 0) {
             co->execution_pending = 1;
             pcintr_wakeup_target(co, run_ready_co);
@@ -1864,8 +1859,6 @@ static void check_after_execution(pcintr_coroutine_t co)
         return;
     }
 
-    PC_ASSERT(co->state == CO_STATE_RUN);
-    co->state = CO_STATE_READY;
     PC_ASSERT(co->yielded_ctxt == NULL);
     PC_ASSERT(co->continuation == NULL);
 
