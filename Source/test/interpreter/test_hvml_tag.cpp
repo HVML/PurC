@@ -19,18 +19,28 @@ using namespace std;
 struct TestCase {
     char *name;
     char *hvml;
-    char *comp;
+    char *html;
+    char *html_path;
 };
 
 static inline void
 add_test_case(std::vector<TestCase> &test_cases,
-        const char *name, const char *hvml, const char *comp)
+        const char *name, const char *hvml,
+        const char *html, const char *html_path)
 {
     TestCase data;
     memset(&data, 0, sizeof(data));
     data.name = MemCollector::strdup(name);
     data.hvml = MemCollector::strdup(hvml);
-    data.comp = MemCollector::strdup(comp);
+
+    if (html) {
+        data.html = MemCollector::strdup(html);
+        data.html_path = NULL;
+    }
+    else {
+        data.html = NULL;
+        data.html_path = MemCollector::strdup(html_path);
+    }
 
     test_cases.push_back(data);
 }
@@ -86,11 +96,15 @@ TEST_P(TestHVMLTag, hvml_tags)
 
     ASSERT_NE(dump_buff, nullptr);
 
-    FILE* fp = fopen("/tmp/test_hvml_tag", "w");
-    fprintf(fp, "%s", dump_buff);
-    fclose(fp);
+    if (test_case.html) {
+        ASSERT_STREQ(trim(dump_buff), trim(test_case.html));
+    }
+    else {
+        FILE* fp = fopen(test_case.html_path, "w");
+        fprintf(fp, "%s", dump_buff);
+        fclose(fp);
+    }
 
-    ASSERT_STREQ(trim(dump_buff), test_case.comp);
     free(dump_buff);
 }
 
@@ -154,8 +168,8 @@ std::vector<TestCase> read_test_cases()
                 ;
             }
 
-            char *buf = read_file(file);
-            if (!buf) {
+            char *hvml = read_file(file);
+            if (!hvml) {
                 continue;
             }
 
@@ -164,16 +178,11 @@ std::vector<TestCase> read_test_cases()
                 // to circumvent format-truncation warning
                 ;
             }
-            char *comp_buf = read_file(file);
-            if (!comp_buf) {
-                free (buf);
-                continue;
-            }
+            char *html = read_file(file);
+            add_test_case(test_cases, name, hvml, html, file);
 
-            add_test_case(test_cases, name, buf, trim(comp_buf));
-
-            free (buf);
-            free (comp_buf);
+            free (hvml);
+            free (html);
         }
     }
     free (line);
@@ -181,7 +190,11 @@ std::vector<TestCase> read_test_cases()
 
 end:
     if (test_cases.empty()) {
-        add_test_case(test_cases, "base", "<hvml></hvml>", "<html>\n  <head>\n  </head>\n  <body>\n  </body>\n</html>");
+        add_test_case(test_cases, "base",
+                "<hvml></hvml>",
+                "<html>\n  <head>\n  </head>\n  <body>\n  </body>\n</html>",
+                NULL
+                );
     }
     return test_cases;
 }
