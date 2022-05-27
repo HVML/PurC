@@ -327,17 +327,19 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (r)
         return NULL;
 
+    purc_clr_error();
+
+
     if (ctxt->on == PURC_VARIANT_INVALID
             && ctxt->with != PURC_VARIANT_INVALID
             && purc_variant_booleanize(ctxt->with)) {
         ctxt->handle_differ = true;
     }
-
-    purc_clr_error();
-
-    r = post_process(stack->co, frame);
-    if (r)
-        return NULL;
+    else {
+        r = post_process(stack->co, frame);
+        if (r)
+            return NULL;
+    }
 
     return ctxt;
 }
