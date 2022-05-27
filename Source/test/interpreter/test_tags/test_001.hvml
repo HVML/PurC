@@ -1,0 +1,40 @@
+<hvml>
+    <head>
+        <init as="global">
+        {
+            "locale":"zh_CN"
+        }
+        </init>
+    </head>
+    <body>
+        <archetype name="footer_cn">
+            <p><a href="http://www.baidu.com" title="百度">Baidu</a></p>
+        </archetype>
+
+        <archetype name="footer_tw">
+            <p><a href="http://www.bing.com" title="必應">Bing</a></p>
+        </archetype>
+
+        <archetype name="footer_en">
+            <p><a href="http://www.google.com" title="Google">Google</a></p>
+        </archetype>
+
+        <archetype name="footer_def">
+            <p><a href="http://www.google.com" title="Google">Google</a></p>
+        </archetype>
+
+        <footer id="the-footer">
+            <test on="$global.locale" in='#the-footer'>
+                <match for="AS 'zh_CN'" exclusively>
+                    <update on="$@" to="displace" with="$footer_cn" />
+                </match>
+                <match for="AS 'zh_TW'" to="displace" with="$footer_tw" exclusively>
+                    <update on="$@" to="displace" with="$footer_tw" />
+                </match>
+                <match for="LIKE '*'" to="displace" with="$footer_def">
+                    <update on="$@" to="displace" with="$footer_def" />
+                </match>
+            </test>
+        </footer>
+    </body>
+</hvml>
