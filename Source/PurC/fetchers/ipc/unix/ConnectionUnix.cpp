@@ -363,7 +363,7 @@ bool Connection::open()
 
         ASSERT_NOT_REACHED();
         return G_SOURCE_REMOVE;
-    });
+    }, false);
 #endif
 
     // Schedule a call to readyReadHandler. Data may have arrived before installation of the signal handler.
@@ -508,7 +508,7 @@ bool Connection::sendOutputMessage(UnixMessage& outputMessage)
                     });
                 }
                 return G_SOURCE_REMOVE;
-            });
+            },  false);
             return false;
 #else
             struct pollfd pollfd;
