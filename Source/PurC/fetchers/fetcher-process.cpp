@@ -140,6 +140,7 @@ bool PcFetcherProcess::sendMessage(std::unique_ptr<IPC::Encoder> encoder,
         Optional<std::pair<CompletionHandler<void(IPC::Decoder*)>, uint64_t>>&& asyncReplyInfo,
         ShouldStartProcessThrottlerActivity shouldStartProcessThrottlerActivity)
 {
+    auto clocker = holdLock(m_controlLock);
     if (asyncReplyInfo && canSendMessage() &&
             shouldStartProcessThrottlerActivity == ShouldStartProcessThrottlerActivity::Yes) {
         auto completionHandler = std::exchange(asyncReplyInfo->first, nullptr);
@@ -251,7 +252,6 @@ void PcFetcherProcess::setProcessSuppressionEnabled(bool processSuppressionEnabl
 
 PcFetcherRequest* PcFetcherProcess::createRequest(void)
 {
-    auto clocker = holdLock(m_controlLock);
     PurCFetcher::ProcessIdentifier pid = ProcessIdentifier::generate();
 //    PAL::SessionID sid(ProcessIdentifier::generate().toUInt64());
     PAL::SessionID sid(1);

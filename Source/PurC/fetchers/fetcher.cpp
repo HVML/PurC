@@ -31,6 +31,7 @@
 static struct pcfetcher* s_remote_fetcher = NULL;
 static struct pcfetcher* s_local_fetcher = NULL;
 static Lock s_fetcher_lock;
+static int s_fetcher_count = 0;
 
 static struct pcfetcher* get_fetcher(void)
 {
@@ -40,6 +41,8 @@ static struct pcfetcher* get_fetcher(void)
 int pcfetcher_init(size_t max_conns, size_t cache_quota,
         bool enable_remote_fetcher)
 {
+    auto locker = holdLock(s_fetcher_lock);
+    s_fetcher_count++;
     struct pcfetcher* fetcher = get_fetcher();
     if (fetcher) {
         return 0;
@@ -59,18 +62,17 @@ int pcfetcher_init(size_t max_conns, size_t cache_quota,
 int pcfetcher_term(void)
 {
     auto locker = holdLock(s_fetcher_lock);
-    if (s_remote_fetcher) {
-        int term = s_remote_fetcher->term(s_remote_fetcher);
-        if (term != PURC_ERROR_NOT_READY) {
-            s_remote_fetcher = NULL;
-        }
+    s_fetcher_count--;
+
+    if (s_fetcher_count > 0) {
+        return PURC_ERROR_NOT_READY;
     }
 
-    if (s_local_fetcher) {
-        int term = s_local_fetcher->term(s_local_fetcher);
-        if (term != PURC_ERROR_NOT_READY) {
-            s_local_fetcher = NULL;
-        }
+    struct pcfetcher* fetcher = get_fetcher();
+    if (fetcher) {
+        fetcher->term(fetcher);
+        s_remote_fetcher = NULL;
+        s_local_fetcher = NULL;
     }
 
     return 0;

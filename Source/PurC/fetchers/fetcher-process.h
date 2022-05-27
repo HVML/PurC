@@ -188,6 +188,7 @@ bool PcFetcherProcess::send(T&& message, uint64_t destinationID, OptionSet<IPC::
 template<typename U>
 bool PcFetcherProcess::sendSync(U&& message, typename U::Reply&& reply, uint64_t destinationID, Seconds timeout, OptionSet<IPC::SendSyncOption> sendSyncOptions)
 {
+    auto clocker = holdLock(m_controlLock);
     COMPILE_ASSERT(U::isSync, SyncMessageExpected);
 
     if (!m_connection)
@@ -201,6 +202,7 @@ bool PcFetcherProcess::sendSync(U&& message, typename U::Reply&& reply, uint64_t
 template<typename T, typename C>
 void PcFetcherProcess::sendWithAsyncReply(T&& message, C&& completionHandler, uint64_t destinationID, OptionSet<IPC::SendOption> sendOptions, ShouldStartProcessThrottlerActivity shouldStartProcessThrottlerActivity)
 {
+    auto clocker = holdLock(m_controlLock);
     COMPILE_ASSERT(!T::isSync, AsyncMessageExpected);
 
     auto encoder = makeUnique<IPC::Encoder>(T::name(), destinationID);
