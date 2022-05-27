@@ -505,8 +505,12 @@ match_by_class(struct pcdom_element *element, struct visit_args *args)
     size_t len;
     s = pcdom_element_class(element, &len);
 
-    if (s && s[len]=='\0' && strncmp((const char*)s, args->css+1, len)==0)
+    if (s && s[len]=='\0' &&
+            strncmp((const char*)s, args->css+1, len)==0 &&
+            args->css[1+len]=='\0')
+    {
         return true;
+    }
 
     return false;
 }
@@ -518,8 +522,12 @@ match_by_id(struct pcdom_element *element, struct visit_args *args)
     size_t len;
     s = pcdom_element_id(element, &len);
 
-    if (s && s[len]=='\0' && strncmp((const char*)s, args->css+1, len)==0)
+    if (s && s[len]=='\0' &&
+            strncmp((const char*)s, args->css+1, len)==0 &&
+            args->css[1+len]=='\0')
+    {
         return true;
+    }
 
     return false;
 }
