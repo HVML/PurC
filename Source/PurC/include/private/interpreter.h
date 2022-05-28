@@ -387,6 +387,8 @@ void pcintr_cancel_init(pcintr_cancel_t cancel,
 void pcintr_register_cancel(pcintr_cancel_t cancel);
 void pcintr_unregister_cancel(pcintr_cancel_t cancel);
 
+void pcintr_set_exit(void);
+
 struct pcintr_stack_frame*
 pcintr_stack_get_bottom_frame(pcintr_stack_t stack);
 struct pcintr_stack_frame*

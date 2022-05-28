@@ -129,7 +129,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (stack->exited)
         return NULL;
 
-    stack->exited = 1;
+    pcintr_set_exit();
 
     if (stack->except)
         return NULL;

@@ -1928,6 +1928,7 @@ static void check_after_execution(pcintr_coroutine_t co)
 
     if (co->stack.last_msg_sent == 0) {
         co->stack.last_msg_sent = 1;
+        PC_DEBUGX("last msg was sent");
         pcintr_wakeup_target_with(co, &last_msg, on_last_msg);
         return;
     }
@@ -1935,9 +1936,21 @@ static void check_after_execution(pcintr_coroutine_t co)
     if (co->stack.last_msg_read == 0)
         return;
 
+    PC_DEBUGX("last msg was processed");
+
     PC_ASSERT(co);
     PC_ASSERT(co->state == CO_STATE_READY);
     purc_runloop_dispatch(inst->running_loop, run_exiting_co, co);
+}
+
+void pcintr_set_exit(void)
+{
+    pcintr_coroutine_t co = pcintr_get_coroutine();
+    PC_ASSERT(co);
+    if (co->stack.exited == 0) {
+        co->stack.exited = 1;
+        notify_to_stop(co);
+    }
 }
 
 static void run_ready_co(void)
