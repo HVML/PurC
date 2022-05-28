@@ -560,39 +560,6 @@ bool purc_hvml_uri_split(const char *uri,
 
     return true;
 
-#if 0
-    if (group) group[0] = 0;
-    if (page) page[0] = 0;
-
-    do {
-        uri += len + 1;
-        len = get_path_comp_len(uri);
-        if (len == 0)
-            break;
-
-        if (uri[len] == COMP_SEPERATOR) {
-            /* have group */
-            if (group) {
-                strncpy(group, uri, len);
-                group[len] = '\0';
-            }
-
-        }
-        else {
-            /* no group */
-            if (page) {
-                len = get_path_trail_len(uri);
-                if (len == 0 || (uri[len] != 0 && uri[len] != QUERY_SEPERATOR))
-                    goto failed;
-                strncpy(page, uri, len);
-                page[len] = '\0';
-            }
-        }
-    } while (0);
-
-    return true;
-#endif
-
 failed:
     return false;
 }
@@ -643,33 +610,6 @@ bool purc_hvml_uri_split_alloc(const char *uri,
     if (len == 0 || uri[0] == COMP_SEPERATOR)
         goto failed;
     my_page = strndup(uri, len);
-
-#if 0
-    do {
-        uri += len + 1;
-        len = get_path_comp_len(uri);
-        if (len == 0)
-            break;
-
-        if (uri[len] == COMP_SEPERATOR) {
-            /* have group */
-            my_group = strndup(uri, len);
-
-            uri += len + 1;
-            len = get_path_trail_len(uri);
-            if (len == 0 || (uri[len] != 0 && uri[len] != QUERY_SEPERATOR))
-                goto failed;
-            my_page = strndup(uri, len);
-        }
-        else {
-            /* no group */
-            len = get_path_trail_len(uri);
-            if (len == 0 || (uri[len] != 0 && uri[len] != QUERY_SEPERATOR))
-                goto failed;
-            my_page = strndup(uri, len);
-        }
-    } while (0);
-#endif
 
 done:
     if (host)

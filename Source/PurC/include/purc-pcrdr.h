@@ -52,8 +52,13 @@
 
 #define PCRDR_HEADLESS_LOGFILE_PATH_FORMAT      "/var/tmp/purc-%s-%s-msg.log"
 
-#define PCRDR_LOCALHOST                 "localhost"
 #define PCRDR_NOT_AVAILABLE             "<N/A>"
+
+#define PCRDR_LOCALHOST                 "localhost"
+#define PCRDR_APP_RENDERER              "_renderer"
+#define PCRDR_RUNNER_BUILTIN            "_builtin"
+#define PCRDR_GROUP_NULL                "-"
+#define PCRDR_PAGE_NULL                 "-"
 
 #define PCRDR_REQUESTID_INITIAL         "0"
 #define PCRDR_REQUESTID_NORETURN        "-"
