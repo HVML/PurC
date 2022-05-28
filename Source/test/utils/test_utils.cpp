@@ -1292,32 +1292,49 @@ TEST(utils, hvml_uri)
         "hvml://host",
         "hvml://host/app",
         "hvml://host/app/runner",
-        "hvml://host/app/runner/group/",
-        "hvml://host/app/runner/group/page/",
-        "hvml://host/app/runner/group/page/trail",
+        "hvml://host/app/runner/group",
+        "hvml://host/app/runner/group//",
     };
 
     static const struct {
         const char *uri;
         const char *expected;
     } good_hvml_uri [] = {
-        { "hvml://host/app/runner/page",
-            "hvml://host/app/runner/page", },
         { "hvml://host/app/runner/group/page",
             "hvml://host/app/runner/group/page" },
+        { "hvml://host/app/runner/-/page",
+            "hvml://host/app/runner/-/page", },
         { "HVML://HOST/APP/RUNNER/GROUP/PAGE",
             "HVML://HOST/APP/RUNNER/GROUP/PAGE" },
-        { "hvml://host/app/runner/page?key=value",
-            "hvml://host/app/runner/page" },
+        { "hvml://host/app/runner/-/page?key=value",
+            "hvml://host/app/runner/-/page" },
         { "hvml://host/app/runner/group/page?key=value",
             "hvml://host/app/runner/group/page" },
+        { "hvml://host/app/runner/group/page/",
+            "hvml://host/app/runner/group/page/", },
+        { "hvml://host/app/runner/group/page/trail",
+            "hvml://host/app/runner/group/page/trail", },
+        { "hvml://host/app/runner/-/page/trail?key=vaasdf",
+            "hvml://host/app/runner/-/page/trail", },
+        { "hvml://host/app/runner/-/page/trail#asdfasdf",
+            "hvml://host/app/runner/-/page/trail", },
+        { "hvml://host/app/runner/-/page/trail?key=value#asdfasdf",
+            "hvml://host/app/runner/-/page/trail", },
     };
 
     for (size_t i = 0; i < sizeof(bad_hvml_uri)/sizeof(const char*); i++) {
+        char *host = NULL, *app = NULL, *runner = NULL, *group = NULL, *page = NULL;
+
         printf("splitting: %s\n", bad_hvml_uri[i]);
         bool ret = purc_hvml_uri_split_alloc(bad_hvml_uri[i],
-                NULL, NULL, NULL, NULL, NULL);
+                &host, &app, &runner, &group, &page);
         ASSERT_EQ(ret, false);
+
+        if (host) free(host);
+        if (app) free(app);
+        if (runner) free(runner);
+        if (group) free(group);
+        if (page) free(page);
     }
 
     for (size_t i = 0; i < sizeof(good_hvml_uri)/sizeof(good_hvml_uri[0]); i++) {
@@ -1349,15 +1366,16 @@ TEST(utils, hvml_uri)
         free(host);
         free(app);
         free(runner);
-        if (group)
-            free(group);
+        free(group);
         free(page);
     }
 
     const char *hvml_uri_prefix[] = {
         "hvml://host/app/runner/",
+        "hvml://host/app/runner/-",
         "hvml://host/app/runner/group",
         "hvml://host/app/runner/group/page",
+        "hvml://host/app/runner/-/page",
         "HVML://HOST/APP/RUNNER/GROUP/PAGE",
     };
 
@@ -1383,7 +1401,7 @@ TEST(utils, hvml_uri)
     } comps[] = {
         { "group", "page", "hvml://host/app/runner/group/page" },
         { "group", NULL, "hvml://host/app/runner/group/" },
-        { NULL, "page", "hvml://host/app/runner/page" },
+        { NULL, "page", "hvml://host/app/runner/" },
         { NULL, NULL, "hvml://host/app/runner/" },
     };
 
@@ -1399,9 +1417,15 @@ TEST(utils, hvml_uri)
 
     /* non-alloc versions */
     for (size_t i = 0; i < sizeof(bad_hvml_uri)/sizeof(const char*); i++) {
+        char host[PURC_LEN_HOST_NAME + 1];
+        char app[PURC_LEN_APP_NAME + 1];
+        char runner[PURC_LEN_RUNNER_NAME + 1];
+        char group[PURC_LEN_IDENTIFIER + 1];
+        char page[PURC_LEN_IDENTIFIER + 1];
+
         printf("splitting: %s\n", bad_hvml_uri[i]);
         bool ret = purc_hvml_uri_split(bad_hvml_uri[i],
-                NULL, NULL, NULL, NULL, NULL);
+                host, app, runner, group, page);
         ASSERT_EQ(ret, false);
     }
 
@@ -1461,29 +1485,34 @@ TEST(utils, hvml_uri)
         const char *uri;
         const char *expected;
     } query_cases[] = {
-        { "hvml://host/app/runner/page",
+        { "hvml://host/app/runner/-/page",
             NULL },
-        { "hvml://host/app/runner/page?key1",
+        { "hvml://host/app/runner/-/page?key1",
             NULL },
-        { "hvml://host/app/runner/page?key1=",
+        { "hvml://host/app/runner/-/page?key1=",
             NULL },
-        { "hvml://host/app/runner/page?key2=value2",
+        { "hvml://host/app/runner/-/page?key2=value2",
             NULL },
-        { "hvml://host/app/runner/page?key11=value11",
+        { "hvml://host/app/runner/-/page?key11=value11",
             NULL },
-        { "hvml://host/app/runner/page?key1=value1",
+        { "hvml://host/app/runner/-/page?key1=value1",
             "value1" },
         { "hvml://host/app/runner/group/page?key=value&key1=value1",
             "value1" },
         { "HVML://HOST/APP/RUNNER/GROUP/PAGE?KEY=VALUE&KEY1=value1&KEY2=VALUE2",
             "VALUE1" },
-        { "hvml://host/app/runner/page?key=value&key2=value2&key1=value1",
+        { "hvml://host/app/runner/-/page?key=value&key2=value2&key1=value1",
             "value1" },
         { "hvml://host/app/runner/group/page?key=&key1=value1", "value1" },
         { "hvml://host/app/runner/group/page?#asdf", NULL },
         { "hvml://host/app/runner/group/page?key1=value1#asdf", "value1" },
         { "hvml://host/app/runner/group/page?key=value&key1=#asdf", NULL },
         { "hvml://host/app/runner/group/page?key1=#asdf", NULL },
+        { "hvml://host/app/runner/-/page?key=&key1=value1", "value1" },
+        { "hvml://host/app/runner/-/page?#asdf", NULL },
+        { "hvml://host/app/runner/-/page?key1=value1#asdf", "value1" },
+        { "hvml://host/app/runner/-/page?key=value&key1=#asdf", NULL },
+        { "hvml://host/app/runner/-/page?key1=#asdf", NULL },
     };
 
     for (size_t i = 0; i < sizeof(query_cases)/sizeof(query_cases[0]); i++) {
