@@ -1026,6 +1026,7 @@ struct load_data {
 static void load_data_release(struct load_data *data)
 {
     if (data) {
+        PURC_VARIANT_SAFE_CLEAR(data->async_id);
         PC_ASSERT(data->async_id == PURC_VARIANT_INVALID);
         data->co = NULL;
         data->vdom_element = NULL;
@@ -1045,6 +1046,75 @@ static void load_data_destroy(struct load_data *data)
     }
 }
 
+static void on_async_resume_on_frame_pseudo(pcintr_coroutine_t co,
+        struct load_data *data)
+{
+    pcintr_stack_t stack = &co->stack;
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_stack_get_bottom_frame(stack);
+    PC_ASSERT(frame->type == STACK_FRAME_TYPE_PSEUDO);
+    PC_ASSERT(data->vdom_element == frame->pos);
+
+    struct pcvdom_element *element = frame->pos;
+
+    if (data->ret_code == RESP_CODE_USER_STOP) {
+        goto clean_rws;
+    }
+
+    bool has_except = false;
+    if (!data->resp || data->ret_code != 200) {
+        has_except = true;
+        goto dispatch_except;
+    }
+
+    bool ok;
+    purc_variant_t ret = purc_variant_load_from_json_stream(data->resp);
+    PRINT_VARIANT(ret);
+    const char *s_name = purc_variant_get_string_const(data->as);
+    if (ret != PURC_VARIANT_INVALID) {
+        if (data->under_head) {
+            ok = purc_bind_document_variable(stack->vdom, s_name, ret);
+        } else {
+            element = pcvdom_element_parent(element);
+            ok = pcintr_bind_scope_variable(element, s_name, ret);
+        }
+        purc_variant_unref(ret);
+        if (ok) {
+            PC_ASSERT(purc_get_last_error()==0);
+            goto clean_rws;
+        }
+        has_except = true;
+        goto dispatch_except;
+    }
+    else {
+        has_except = true;
+        goto dispatch_except;
+    }
+
+dispatch_except:
+    if (0 && has_except) {
+        purc_atom_t atom = purc_get_error_exception(data->err);
+        pcvarmgr_t varmgr;
+        if (data->under_head) {
+            varmgr = pcvdom_document_get_variables(stack->vdom);
+        }
+        else {
+            element = pcvdom_element_parent(element);
+            varmgr = pcvdom_element_get_variables(element);
+        }
+        pcvarmgr_dispatch_except(varmgr, s_name, purc_atom_to_string(atom));
+    }
+    if (has_except) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+    }
+
+clean_rws:
+    if (data->resp) {
+        purc_rwstream_destroy(data->resp);
+        data->resp = NULL;
+    }
+}
+
 static void on_async_resume(void *ud)
 {
     struct load_data *data;
@@ -1055,11 +1125,16 @@ static void on_async_resume(void *ud)
     PC_ASSERT(co == data->co);
     PC_ASSERT(co->state == CO_STATE_RUN);
     pcintr_stack_t stack = &co->stack;
+    PC_ASSERT(stack == pcintr_get_stack());
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame == NULL);
 
-    // pcintr_push_stack_frame_for_vdom_element(data->vdom_element);
+    pcintr_push_stack_frame_pseudo(data->vdom_element);
+    on_async_resume_on_frame_pseudo(co, data);
+    pcintr_pop_stack_frame_pseudo();
+
+    load_data_destroy(data);
 }
 
 static void on_async_complete(purc_variant_t request_id, void *ud,
@@ -1103,7 +1178,7 @@ static void load_data_cancel(void *ud)
     data = (struct load_data*)ud;
     PC_ASSERT(data);
 
-    PC_ASSERT(0);
+    pcfetcher_cancel_async(data->async_id);
 }
 
 static int
@@ -1123,8 +1198,6 @@ process_from_async(pcintr_coroutine_t co, pcintr_stack_frame_t frame)
     }
     pcintr_cancel_init(&data->cancel, data, load_data_cancel);
 
-    pcintr_register_cancel(&data->cancel);
-
     data->co            = co;
     data->vdom_element  = frame->pos;
     data->as            = purc_variant_ref(ctxt->as);
@@ -1133,10 +1206,14 @@ process_from_async(pcintr_coroutine_t co, pcintr_stack_frame_t frame)
     data->async_id = pcintr_load_from_uri_async(stack, ctxt->from_uri,
             on_async_complete, data);
     if (data->async_id == PURC_VARIANT_INVALID) {
-        pcintr_unregister_cancel(&data->cancel);
         load_data_destroy(data);
         return -1;
     }
+
+    data->async_id = purc_variant_ref(data->async_id);
+
+    pcintr_register_cancel(&data->cancel);
+    PC_ASSERT(co->state == CO_STATE_RUN);
 
     return 0;
 }

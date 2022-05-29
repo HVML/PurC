@@ -83,6 +83,16 @@ stack_frame_pseudo_release(struct pcintr_stack_frame_pseudo *frame_pseudo)
 }
 
 static void
+stack_frame_pseudo_destroy(struct pcintr_stack_frame_pseudo *frame_pseudo)
+{
+    if (!frame_pseudo)
+        return;
+
+    stack_frame_pseudo_release(frame_pseudo);
+    free(frame_pseudo);
+}
+
+static void
 stack_frame_normal_release(struct pcintr_stack_frame_normal *frame_normal)
 {
     if (!frame_normal)
@@ -718,7 +728,7 @@ pop_stack_frame(pcintr_stack_t stack)
         case STACK_FRAME_TYPE_PSEUDO:
             frame_pseudo = container_of(frame,
                     struct pcintr_stack_frame_pseudo, frame);
-            stack_frame_pseudo_release(frame_pseudo);
+            stack_frame_pseudo_destroy(frame_pseudo);
             break;
         default:
             PC_ASSERT(0);
@@ -845,33 +855,114 @@ init_stack_frame(pcintr_stack_t stack, struct pcintr_stack_frame* frame)
     return 0;
 }
 
-#if 0             /* { */
-static struct pcintr_stack_frame*
-push_stack_pseudo_frame(pcintr_stack_t stack)
+static int
+init_stack_frame_pseudo(pcintr_stack_t stack,
+        struct pcintr_stack_frame_pseudo *frame_pseudo)
 {
-    struct pcintr_stack_frame *frame;
-    frame = (struct pcintr_stack_frame*)calloc(1, sizeof(*frame));
-    if (!frame) {
+    do {
+        if (init_stack_frame(stack, &frame_pseudo->frame))
+            break;
+
+        if (init_undefined_symvals(&frame_pseudo->frame))
+            break;
+
+        return 0;
+    } while (0);
+
+    return -1;
+}
+
+static struct pcintr_stack_frame_pseudo*
+stack_frame_pseudo_create(pcintr_stack_t stack)
+{
+    struct pcintr_stack_frame_pseudo *frame_pseudo;
+    frame_pseudo = (struct pcintr_stack_frame_pseudo*)calloc(1,
+            sizeof(*frame_pseudo));
+    if (!frame_pseudo) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
     }
 
+    struct pcintr_stack_frame *frame = &frame_pseudo->frame;
     frame->type = STACK_FRAME_TYPE_PSEUDO;
 
+    if (init_stack_frame_pseudo(stack, frame_pseudo))
+        goto fail_init;
+
+    return frame_pseudo;
+
+fail_init:
+    stack_frame_pseudo_destroy(frame_pseudo);
+
+    return NULL;
+}
+
+static struct pcintr_stack_frame_pseudo*
+push_stack_frame_pseudo(pcintr_stack_t stack,
+        pcvdom_element_t vdom_element)
+{
+    PC_ASSERT(list_empty(&stack->frames));
+    PC_ASSERT(stack->nr_frames == 0);
+
+    PC_ASSERT(vdom_element);
+
+    struct pcintr_stack_frame_pseudo *frame_pseudo;
+    frame_pseudo = stack_frame_pseudo_create(stack);
+    if (!frame_pseudo)
+        return NULL;
+
+    struct pcintr_stack_frame *frame = &frame_pseudo->frame;
+
     do {
-        if (init_stack_frame(stack, frame))
-            break;
+        struct pcintr_element_ops ops = {};
 
-        if (init_symvals_with_vals(frame))
-            break;
+        struct pcintr_stack_frame *child_frame;
+        child_frame = &frame_pseudo->frame;
+        child_frame->ops = ops;
+        child_frame->pos = vdom_element;
+        child_frame->edom_element = NULL;
+        child_frame->scope = NULL;
 
-        return frame;
+        child_frame->next_step = NEXT_STEP_AFTER_PUSHED;
+
+        list_add_tail(&frame->node, &stack->frames);
+        ++stack->nr_frames;
+
+        return frame_pseudo;
     } while (0);
 
     pop_stack_frame(stack);
     return NULL;
 }
-#endif            /* } */
+
+void
+pcintr_push_stack_frame_pseudo(pcvdom_element_t vdom_element)
+{
+    pcintr_stack_t stack = pcintr_get_stack();
+    PC_ASSERT(stack);
+
+    struct pcintr_stack_frame_pseudo *frame_pseudo;
+    frame_pseudo = push_stack_frame_pseudo(stack, vdom_element);
+
+    PC_ASSERT(frame_pseudo);
+    PC_ASSERT(frame_pseudo->frame.type == STACK_FRAME_TYPE_PSEUDO);
+}
+
+void
+pcintr_pop_stack_frame_pseudo(void)
+{
+    pcintr_stack_t stack = pcintr_get_stack();
+    PC_ASSERT(stack);
+    PC_ASSERT(stack->nr_frames == 1);
+
+    struct list_head *frames = &stack->frames;
+    struct pcintr_stack_frame *frame;
+    frame = list_last_entry(frames, struct pcintr_stack_frame, node);
+    PC_ASSERT(frame);
+    PC_ASSERT(frame->type == STACK_FRAME_TYPE_PSEUDO);
+
+    pop_stack_frame(stack);
+}
 
 static int
 init_stack_frame_normal(pcintr_stack_t stack,
@@ -1994,6 +2085,7 @@ static void execute_main_for_ready_co(pcintr_coroutine_t co)
 
     PC_ASSERT(stack);
     PC_ASSERT(stack == pcintr_get_stack());
+
     bool for_yielded = false;
     stack->event_timer = pcintr_timer_create(NULL, for_yielded,
             NULL, event_timer_fire);
