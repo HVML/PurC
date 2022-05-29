@@ -1145,7 +1145,9 @@ static request_handler handlers[] = {
     on_operate_dom,
     on_operate_dom,
     on_operate_dom,
-    on_operate_dom,
+    on_operate_dom, /* TODO: for callMethod */
+    on_operate_dom, /* TODO: for getProperty */
+    on_operate_dom, /* TODO: for setProperty */
 };
 
 /* make sure the number of operation handlers matches the enumulators */

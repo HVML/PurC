@@ -52,8 +52,13 @@
 
 #define PCRDR_HEADLESS_LOGFILE_PATH_FORMAT      "/var/tmp/purc-%s-%s-msg.log"
 
-#define PCRDR_LOCALHOST                 "localhost"
 #define PCRDR_NOT_AVAILABLE             "<N/A>"
+
+#define PCRDR_LOCALHOST                 "localhost"
+#define PCRDR_APP_RENDERER              "_renderer"
+#define PCRDR_RUNNER_BUILTIN            "_builtin"
+#define PCRDR_GROUP_NULL                "-"
+#define PCRDR_PAGE_NULL                 "-"
 
 #define PCRDR_REQUESTID_INITIAL         "0"
 #define PCRDR_REQUESTID_NORETURN        "-"
@@ -115,9 +120,13 @@ enum {
 #define PCRDR_OPERATION_CLEAR               "clear"
     PCRDR_K_OPERATION_CALLMETHOD,
 #define PCRDR_OPERATION_CALLMETHOD          "callMethod"
+    PCRDR_K_OPERATION_GETPROPERTY,
+#define PCRDR_OPERATION_GETPROPERTY         "getProperty"
+    PCRDR_K_OPERATION_SETPROPERTY,
+#define PCRDR_OPERATION_SETPROPERTY         "setProperty"
 
     /* XXX: change this when you append a new operation */
-    PCRDR_K_OPERATION_LAST = PCRDR_K_OPERATION_CALLMETHOD,
+    PCRDR_K_OPERATION_LAST = PCRDR_K_OPERATION_SETPROPERTY,
 };
 
 #define PCRDR_NR_OPERATIONS \
