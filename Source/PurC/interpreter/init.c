@@ -921,7 +921,10 @@ static void on_sync_continuation(void *ud)
     PC_ASSERT(ctxt);
     PC_ASSERT(ctxt->co == co);
 
+    struct pcvdom_element *element = frame->pos;
+
     if (ctxt->ret_code == RESP_CODE_USER_STOP) {
+        frame->next_step = NEXT_STEP_ON_POPPING;
         goto clean_rws;
     }
 
@@ -932,7 +935,6 @@ static void on_sync_continuation(void *ud)
     }
 
     bool ok;
-    struct pcvdom_element *element = frame->pos;
     purc_variant_t ret = purc_variant_load_from_json_stream(ctxt->resp);
     PRINT_VARIANT(ret);
     const char *s_name = purc_variant_get_string_const(ctxt->as);
@@ -945,6 +947,7 @@ static void on_sync_continuation(void *ud)
         }
         purc_variant_unref(ret);
         if (ok) {
+            PC_ASSERT(purc_get_last_error()==0);
             goto clean_rws;
         }
         has_except = true;
@@ -977,6 +980,8 @@ clean_rws:
         purc_rwstream_destroy(ctxt->resp);
         ctxt->resp = NULL;
     }
+    // TODO: NEXT_STEP_SELECT_CHILD in some failure cases
+    frame->next_step = NEXT_STEP_ON_POPPING;
 }
 
 static int
@@ -1211,7 +1216,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     purc_clr_error(); // pcvdom_element_parent
 
-    if (0 && ctxt->from_uri) {
+    if (ctxt->from_uri) {
         r = process_from(stack->co);
         return r ? NULL : ctxt;
     }

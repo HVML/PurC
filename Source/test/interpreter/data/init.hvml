@@ -1,7 +1,6 @@
 <!DOCTYPE hvml SYSTEM 'v: MATH'>
 <hvml target="html" lang="en">
     <head>
-        <!--
         <base href="$HVML.base(! 'https://gitlab.fmsoft.cn/hvml/hvml-docs/raw/master/samples/calculator/' )" />
         <init as="buttons" from="assets/buttons.json" />
         <init as="fibonacci" temp>
@@ -32,6 +31,7 @@
             [0, 222, ]
         </init>
 
+        <!--
         <init as="math" from="purc_dvobj_math" via="LOAD" />
 
         <init as="locales" from="http://foo.bar.com/locales" with="{ from: 'foo' }" via="POST" />
@@ -39,11 +39,9 @@
     </head>
 
     <body>
-        <!--
         <div>
             <update on="$@" at="attr.foo" to="displace" with = "$fibonacci[1]"/>
         </div>
-        -->
     </body>
 
 </hvml>
