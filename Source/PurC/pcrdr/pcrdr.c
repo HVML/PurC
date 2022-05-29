@@ -84,6 +84,8 @@ static struct pcrdr_opatom {
     { PCRDR_OPERATION_ERASE,                0 }, // "erase"
     { PCRDR_OPERATION_CLEAR,                0 }, // "clear"
     { PCRDR_OPERATION_CALLMETHOD,           0 }, // "callMethod"
+    { PCRDR_OPERATION_GETPROPERTY,          0 }, // "getProperty"
+    { PCRDR_OPERATION_SETPROPERTY,          0 }, // "setProperty"
 };
 
 /* make sure the number of operations matches the enumulators */

@@ -67,8 +67,11 @@ struct pcfetcher* pcfetcher_remote_init(size_t max_conns, size_t cache_quota)
 int pcfetcher_remote_term(struct pcfetcher* fetcher)
 {
     struct pcfetcher_remote* remote = (struct pcfetcher_remote*)fetcher;
-    delete remote->process;
+    if (!remote->process->isReadyToTerm()) {
+        return PURC_ERROR_NOT_READY;
+    }
 
+    delete remote->process;
     if (remote->base_uri) {
         free(remote->base_uri);
     }

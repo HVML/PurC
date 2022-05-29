@@ -43,12 +43,14 @@ gboolean GSocketMonitor::socketSourceCallback(GSocket*, GIOCondition condition, 
     return monitor->m_callback(condition);
 }
 
-void GSocketMonitor::start(GSocket* socket, GIOCondition condition, RunLoop& runLoop, Function<gboolean(GIOCondition)>&& callback)
+void GSocketMonitor::start(GSocket* socket, GIOCondition condition, RunLoop& runLoop, Function<gboolean(GIOCondition)>&& callback, bool attachCancelable)
 {
     stop();
 
     m_cancellable = adoptGRef(g_cancellable_new());
-    m_source = adoptGRef(g_socket_create_source(socket, condition, m_cancellable.get()));
+
+    GCancellable *cancelable = attachCancelable ? m_cancellable.get() : nullptr;
+    m_source = adoptGRef(g_socket_create_source(socket, condition, cancelable));
     g_source_set_name(m_source.get(), "[PurCFetcher] Socket monitor");
     m_callback = WTFMove(callback);
     g_source_set_callback(m_source.get(), reinterpret_cast<GSourceFunc>(reinterpret_cast<GCallback>(socketSourceCallback)), this, nullptr);

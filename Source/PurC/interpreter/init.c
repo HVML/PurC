@@ -1222,6 +1222,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
             && pcfetcher_is_init()) {
         const char* uri = purc_variant_get_string_const(from);
         if (!ctxt->async) {
+            PC_ASSERT(0);
             purc_variant_t v = pcintr_load_from_uri(stack, uri);
             if (v == PURC_VARIANT_INVALID)
                 return NULL;
