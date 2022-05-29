@@ -1,5 +1,5 @@
 /*
- * @file fetcher-session.h
+ * @file fetcher-request.h
  * @author XueShuming
  * @date 2021/11/17
  * @brief The fetcher session class.
@@ -22,8 +22,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef PURC_FETCHER_SESSION_H
-#define PURC_FETCHER_SESSION_H
+#ifndef PURC_FETCHER_REQUEST_H
+#define PURC_FETCHER_REQUEST_H
 
 #if ENABLE(REMOTE_FETCHER)
 
@@ -44,14 +44,16 @@
 
 using namespace PurCFetcher;
 
-class PcFetcherSession : public IPC::Connection::Client {
-    WTF_MAKE_NONCOPYABLE(PcFetcherSession);
+class PcFetcherProcess;
+class PcFetcherRequest : public IPC::Connection::Client {
+    WTF_MAKE_NONCOPYABLE(PcFetcherRequest);
 
 public:
-    PcFetcherSession(uint64_t sessionId,
-            IPC::Connection::Identifier connectionIdentifier, WorkQueue *queue);
+    PcFetcherRequest(uint64_t sessionId,
+            IPC::Connection::Identifier connectionIdentifier, WorkQueue *queue,
+            PcFetcherProcess *process);
 
-    ~PcFetcherSession();
+    ~PcFetcherRequest();
 
     IPC::Connection* connection() const
     {
@@ -88,6 +90,8 @@ public:
     void wait(uint32_t timeout);
     void wakeUp(void);
 
+    RunLoop *getRunLoop() { return m_runloop; }
+
 protected:
     bool dispatchMessage(IPC::Connection&, IPC::Decoder&);
     bool dispatchSyncMessage(IPC::Connection&, IPC::Decoder&,
@@ -95,7 +99,7 @@ protected:
 
     void didClose(IPC::Connection&);
     void didReceiveInvalidMessage(IPC::Connection&, IPC::MessageName);
-    const char* connectionName(void) { return "PcFetcherSession"; }
+    const char* connectionName(void) { return "PcFetcherRequest"; }
 
     void didReceiveMessage(IPC::Connection&, IPC::Decoder&);
     void didReceiveSyncMessage(IPC::Connection&, IPC::Decoder&,
@@ -115,16 +119,18 @@ private:
     bool m_is_async;
 
     RefPtr<IPC::Connection> m_connection;
-    IPC::MessageReceiverMap m_messageReceiverMap;
     BinarySemaphore m_waitForSyncReplySemaphore;
 
     RunLoop* m_runloop;
-    struct pcfetcher_callback_info *m_callback;
     WorkQueue* m_workQueue;
-    GRefPtr<GCancellable> m_cancellable;
+
+    Lock m_callbackLock;
+    struct pcfetcher_callback_info *m_callback;
+
+    PcFetcherProcess *m_fetcherProcess;
 };
 
 
 #endif // ENABLE(REMOTE_FETCHER)
 
-#endif /* not defined PURC_FETCHER_SESSION_H */
+#endif /* not defined PURC_FETCHER_REQUEST_H */

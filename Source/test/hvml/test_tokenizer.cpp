@@ -15,18 +15,6 @@
 
 using namespace std;
 
-// #define PRINT_DEBUG
-#ifdef PRINT_DEBUG              /* { */
-#define PRINTF(...)                                                       \
-    do {                                                                  \
-        fprintf(stderr, "\e[0;32m[          ] \e[0m");                    \
-        fprintf(stderr, __VA_ARGS__);                                     \
-    } while(false)
-#else                           /* }{ */
-#define PRINTF(...)
-#endif                          /* } */
-#undef PRINT_DEBUG
-
 #if OS(LINUX) || OS(UNIX)
 // get path from env or __FILE__/../<rel> otherwise
 #define getpath_from_env_or_rel(_path, _len, _env, _rel) do {  \
@@ -219,7 +207,7 @@ TEST_P(hvml_parser_next_token, parse_and_serialize)
         struct tkz_buffer* token_buff = pchvml_token_to_string(token);
         if (token_buff) {
             const char* type_name = pchvml_token_get_type_name(token);
-            PRINTF("%s:%s\n", type_name, tkz_buffer_get_bytes(token_buff));
+            //PRINTF("%s:%s\n", type_name, tkz_buffer_get_bytes(token_buff));
             tkz_buffer_append_bytes(buffer, type_name, strlen(type_name));
             tkz_buffer_append_bytes(buffer, "|", 1);
             tkz_buffer_append_another(buffer, token_buff);

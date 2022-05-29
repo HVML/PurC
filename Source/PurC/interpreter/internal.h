@@ -97,8 +97,6 @@ pcintr_set_edom_attribute(pcintr_stack_t stack, struct pcvdom_attr *attr);
 purc_variant_t
 pcintr_eval_vdom_attr(pcintr_stack_t stack, struct pcvdom_attr *attr);
 
-void pcintr_coroutine_ready(void);
-
 purc_variant_t
 pcintr_load_from_uri(pcintr_stack_t stack, const char* uri);
 
@@ -265,9 +263,6 @@ pcintr_rdr_dom_append_child(pcintr_stack_t stack, pcdom_element_t *element,
 bool
 pcintr_rdr_dom_displace_child(pcintr_stack_t stack, pcdom_element_t *element,
         pcdom_node_t *child);
-
-void
-pcintr_event_timer_fire(const char* id, void* ctxt);
 
 purc_variant_t
 pcintr_wrap_vdom(pcvdom_element_t vdom);

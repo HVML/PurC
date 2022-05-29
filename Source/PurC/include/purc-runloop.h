@@ -126,7 +126,7 @@ void purc_runloop_stop(purc_runloop_t runloop);
 PCA_EXPORT
 void purc_runloop_wakeup(purc_runloop_t runloop);
 
-typedef int (*purc_runloop_func)(void *ctxt);
+typedef void (*purc_runloop_func)(void *ctxt);
 
 /**
  * Dispatch function on the runloop
@@ -159,7 +159,7 @@ void purc_runloop_set_idle_func(purc_runloop_t runloop, purc_runloop_func func,
         void *ctxt);
 
 typedef bool (*purc_runloop_io_callback)(int fd,
-        purc_runloop_io_event event, void *ctxt, void *stack);
+        purc_runloop_io_event event, void *ctxt);
 
 /**
  * Add file descriptors monitor on the runloop

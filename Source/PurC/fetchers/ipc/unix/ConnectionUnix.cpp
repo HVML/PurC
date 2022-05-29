@@ -32,7 +32,6 @@
 #include "SharedMemory.h"
 #include "UnixMessage.h"
 #include <sys/socket.h>
-#include <sys/types.h>
 #include <unistd.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -351,7 +350,6 @@ bool Connection::open()
     RefPtr<Connection> protectedThis(this);
     m_isConnected = true;
 #if USE(GLIB)
-    //m_readSocketMonitor.start(m_socketDescriptor, G_IO_IN, m_connectionQueue->runLoop().mainContext(), [protectedThis] (gint fd, GIOCondition condition) -> gboolean {
     m_readSocketMonitor.start(m_socket.get(), G_IO_IN, m_connectionQueue->runLoop(), [protectedThis] (GIOCondition condition) -> gboolean {
         if (condition & G_IO_HUP || condition & G_IO_ERR || condition & G_IO_NVAL) {
             protectedThis->connectionDidClose();
@@ -365,7 +363,7 @@ bool Connection::open()
 
         ASSERT_NOT_REACHED();
         return G_SOURCE_REMOVE;
-    });
+    }, false);
 #endif
 
     // Schedule a call to readyReadHandler. Data may have arrived before installation of the signal handler.
@@ -510,7 +508,7 @@ bool Connection::sendOutputMessage(UnixMessage& outputMessage)
                     });
                 }
                 return G_SOURCE_REMOVE;
-            });
+            },  false);
             return false;
 #else
             struct pollfd pollfd;

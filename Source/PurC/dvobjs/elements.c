@@ -370,6 +370,58 @@ property_cleaner(const char* key_name)
     return NULL;
 }
 
+purc_variant_t
+cleaner(void *native_entity, bool silently)
+{
+    UNUSED_PARAM(native_entity);
+    UNUSED_PARAM(silently);
+    struct pcdvobjs_elements *elements;
+    elements = (struct pcdvobjs_elements*)native_entity;
+    pcutils_array_t *arr = elements->elements;
+    PC_ASSERT(arr);
+
+    struct pcdom_element *elem = NULL;
+    size_t len = pcutils_array_length(arr);
+    for (size_t i = 0; i < len; i++) {
+        elem = (struct pcdom_element*)pcutils_array_get(elements->elements, i);
+        if (!elem) {
+            continue;
+        }
+        pcdom_node_t *node = pcdom_interface_node(elem);
+        while(node->first_child) {
+            pcdom_node_t *child = node->first_child;
+            pcdom_node_remove(child);
+        }
+    }
+
+    return purc_variant_make_boolean(true);
+}
+
+purc_variant_t
+eraser(void* native_entity, bool silently)
+{
+    UNUSED_PARAM(native_entity);
+    UNUSED_PARAM(silently);
+    struct pcdvobjs_elements *elements;
+    elements = (struct pcdvobjs_elements*)native_entity;
+    pcutils_array_t *arr = elements->elements;
+    PC_ASSERT(arr);
+
+    struct pcdom_element *elem = NULL;
+    size_t len = pcutils_array_length(arr);
+    size_t nr_erase = 0;
+    for (size_t i = 0; i < len; i++) {
+        elem = (struct pcdom_element*)pcutils_array_get(elements->elements, i);
+        if (elem) {
+            pcdom_node_remove(pcdom_interface_node(elem));
+            nr_erase++;
+        }
+    }
+
+    return purc_variant_make_ulongint(nr_erase);
+}
+
+
 // the callback to release the native entity.
 static void
 on_release(void* native_entity)
@@ -392,8 +444,8 @@ make_elements(void)
         .property_cleaner           = property_cleaner,
 
         .updater                    = NULL,
-        .cleaner                    = NULL,
-        .eraser                     = NULL,
+        .cleaner                    = cleaner,
+        .eraser                     = eraser,
 
         .on_observe                = NULL,
         .on_release                = on_release,
@@ -453,8 +505,12 @@ match_by_class(struct pcdom_element *element, struct visit_args *args)
     size_t len;
     s = pcdom_element_class(element, &len);
 
-    if (s && s[len]=='\0' && strncmp((const char*)s, args->css+1, len)==0)
+    if (s && s[len]=='\0' &&
+            strncmp((const char*)s, args->css+1, len)==0 &&
+            args->css[1+len]=='\0')
+    {
         return true;
+    }
 
     return false;
 }
@@ -466,8 +522,12 @@ match_by_id(struct pcdom_element *element, struct visit_args *args)
     size_t len;
     s = pcdom_element_id(element, &len);
 
-    if (s && s[len]=='\0' && strncmp((const char*)s, args->css+1, len)==0)
+    if (s && s[len]=='\0' &&
+            strncmp((const char*)s, args->css+1, len)==0 &&
+            args->css[1+len]=='\0')
+    {
         return true;
+    }
 
     return false;
 }
