@@ -78,7 +78,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     if (define == NULL)
         return -1;
 
-    if (pcvdom_element_first_child_element(define) == NULL) {
+    if (0 && pcvdom_element_first_child_element(define) == NULL) {
         purc_set_error(PURC_ERROR_NO_DATA);
         return -1;
     }
