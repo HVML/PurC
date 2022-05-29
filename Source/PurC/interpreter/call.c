@@ -220,6 +220,9 @@ attr_found_val(struct pcintr_stack_frame *frame,
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, WITHIN)) == name) {
         return process_attr_within(frame, element, name, val);
     }
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, AS)) == name) {
+        return process_attr_as(frame, element, name, val);
+    }
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CONCURRENTLY)) == name) {
         ctxt->concurrently = 1;
         return 0;
