@@ -228,10 +228,13 @@ void PcFetcherRequest::stop()
     m_callback = nullptr;
 
     info->header.ret_code = RESP_CODE_USER_STOP;
-    info->handler(info->req_id, info->ctxt, &info->header, NULL);
-    info->handler = nullptr;
-    pcfetcher_destroy_callback_info(info);
-    m_fetcherProcess->requestFinished(this);
+    m_runloop->dispatch([info, request=this] {
+            info->handler(info->req_id, info->ctxt, &info->header, NULL);
+            info->handler = nullptr;
+            pcfetcher_destroy_callback_info(info);
+            request->m_fetcherProcess->requestFinished(request);
+            }
+        );
 }
 
 void PcFetcherRequest::cancel()
@@ -246,9 +249,13 @@ void PcFetcherRequest::cancel()
     m_callback = nullptr;
 
     info->header.ret_code = RESP_CODE_USER_CANCEL;
-    info->handler(info->req_id, info->ctxt, &info->header, NULL);
-    pcfetcher_destroy_callback_info(info);
-    m_fetcherProcess->requestFinished(this);
+    m_runloop->dispatch([info, request=this] {
+            info->handler(info->req_id, info->ctxt, &info->header, NULL);
+            info->handler = nullptr;
+            pcfetcher_destroy_callback_info(info);
+            request->m_fetcherProcess->requestFinished(request);
+            }
+        );
 }
 
 void PcFetcherRequest::wait(uint32_t timeout)
