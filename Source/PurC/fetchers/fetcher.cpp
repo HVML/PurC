@@ -165,7 +165,7 @@ static void _local_cleanup_instance(struct pcinst* curr_inst)
 }
 
 struct pcmodule _module_fetcher_local = {
-    .id              = PURC_HAVE_FETCHER | PURC_HAVE_FETCHER_R,
+    .id              = PURC_HAVE_FETCHER,
     .module_inited   = 0,
 
     .init_once              = _local_init_once,
