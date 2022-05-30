@@ -174,12 +174,12 @@ bool pcintr_rdr_update_plain_window(struct pcrdr_conn *conn,
 
 
 
-uintptr_t pcintr_rdr_create_tabbed_window(struct pcrdr_conn *conn,
+uintptr_t pcintr_rdr_create_page_groups(struct pcrdr_conn *conn,
         uintptr_t session, uintptr_t workspace, const char *id,
         const char *title, const char* classes, const char *style,
         const char* level);
 
-bool pcintr_rdr_destroy_tabbed_window(struct pcrdr_conn *conn,
+bool pcintr_rdr_destroy_page_groups(struct pcrdr_conn *conn,
         uintptr_t session, uintptr_t workspace, uintptr_t tabbed_window);
 
 // property: title, class, style
