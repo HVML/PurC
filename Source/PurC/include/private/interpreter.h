@@ -79,6 +79,9 @@ struct pcintr_heap {
     pthread_mutex_t       locker;
     volatile bool         exiting;
     struct list_head      routines;     // struct pcintr_routine
+
+
+    int64_t               next_coroutine_id;
 };
 
 struct pcintr_stack_frame;
@@ -220,8 +223,12 @@ struct pcintr_msg {
 
 struct pcintr_coroutine {
     pcintr_heap_t               owner;    /* owner heap */
-    struct list_head            node;     /* sibling coroutines */
+    char                       *name;
+    struct list_head            node;     /* heap::coroutines */
+
+    pcintr_coroutine_t          parent;
     struct list_head            children; /* children coroutines */
+    struct list_head            sibling;  /* parent::children */
 
     struct pcintr_stack         stack;  /* stack that holds this coroutine */
 
@@ -401,6 +408,9 @@ void
 pcintr_push_stack_frame_pseudo(pcvdom_element_t vdom_element);
 void
 pcintr_pop_stack_frame_pseudo(void);
+
+pcintr_coroutine_t
+pcintr_create_child_co(pcvdom_element_t vdom_element);
 
 void
 pcintr_exception_clear(struct pcintr_exception *exception);

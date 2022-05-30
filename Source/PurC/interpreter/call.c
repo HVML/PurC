@@ -75,6 +75,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 
     struct ctxt_for_call *ctxt;
     ctxt = (struct ctxt_for_call*)frame->ctxt;
+
     if (ctxt->on == PURC_VARIANT_INVALID) {
         purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
                 "lack of vdom attribute 'on' for element <%s>",
@@ -97,10 +98,19 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
             return -1;
     }
 
-    ctxt->define = define;
-    frame->scope = define;
+    if (ctxt->concurrently == 0) {
+        ctxt->define = define;
+        frame->scope = define;
+        return 0;
+    }
 
-    return 0;
+    pcintr_coroutine_t child;
+    child = pcintr_create_child_co(define);
+    if (!child)
+        return -1;
+
+    PC_ASSERT(0);
+    return -1;
 }
 
 static int

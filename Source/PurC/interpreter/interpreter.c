@@ -508,6 +508,10 @@ coroutine_release(pcintr_coroutine_t co)
         struct pcintr_heap *heap = pcintr_get_heap();
         PC_ASSERT(heap && co->owner == heap);
         stack_release(&co->stack);
+        if (co->name) {
+            free(co->name);
+            co->name = NULL;
+        }
     }
 }
 
@@ -602,6 +606,7 @@ static int _init_instance(struct pcinst* inst,
 
     INIT_LIST_HEAD(&heap->coroutines);
     heap->running_coroutine = NULL;
+    heap->next_coroutine_id = 1;
 
     return 0;
 }
@@ -1746,6 +1751,12 @@ static void execute_one_step_for_exiting_co(pcintr_coroutine_t co)
     pcintr_heap_t heap = co->owner;
     struct pcinst *inst = heap->owner;
 
+    if (co->parent) {
+        list_del(&co->sibling);
+        // post message to parent
+        co->parent = NULL;
+    }
+
     list_del(&co->node);
     coroutine_destroy(co);
 
@@ -2129,8 +2140,56 @@ static void run_co_main(void)
     }
 }
 
-purc_vdom_t
-purc_load_hvml_from_rwstream_ex(purc_rwstream_t stream,
+static pcintr_coroutine_t coroutine_by_name(const char *name)
+{
+    pcintr_heap_t heap = pcintr_get_heap();
+
+    pcintr_coroutine_t p;
+    list_for_each_entry(p, &heap->coroutines, node) {
+        if (strcmp(name, p->name)==0)
+            return p;
+    }
+
+    return NULL;
+}
+
+static int set_coroutine_id(pcintr_coroutine_t coroutine, const char *name)
+{
+    PC_ASSERT(coroutine->name == NULL);
+
+    pcintr_heap_t heap = pcintr_get_heap();
+
+    char buf[64];
+
+    if (!name) {
+again:
+        if (heap->next_coroutine_id == 0) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            return -1;
+        }
+
+        snprintf(buf, sizeof(buf), "_%zd", heap->next_coroutine_id++);
+        pcintr_coroutine_t p = coroutine_by_name(buf);
+        if (p)
+            goto again;
+
+        name = buf;
+    }
+
+    char *p = strdup(name);
+    if (!p) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return -1;
+    }
+
+    coroutine->name = p;
+    return 0;
+}
+
+static purc_vdom_t
+load_hvml_from_rwstream(const char *name,
+        pcintr_coroutine_t parent,
+        purc_rwstream_t stream,
         struct pcintr_supervisor_ops *ops, void *ctxt)
 {
     struct pcinst *inst = pcinst_current();
@@ -2160,11 +2219,18 @@ purc_load_hvml_from_rwstream_ex(purc_rwstream_t stream,
         goto fail_co;
     }
 
+    if (set_coroutine_id(co, name))
+        goto fail_name;
+
     co->state = CO_STATE_READY;
     INIT_LIST_HEAD(&co->children);
     INIT_LIST_HEAD(&co->registered_cancels);
     INIT_LIST_HEAD(&co->msgs);
     co->msg_pending = 0;
+
+    co->parent = parent;
+    if (parent)
+        list_add_tail(&co->sibling, &parent->children);
 
     stack = &co->stack;
     stack->co = co;
@@ -2186,6 +2252,9 @@ purc_load_hvml_from_rwstream_ex(purc_rwstream_t stream,
     // FIXME: double-free, potentially!!!
     return stack->vdom;
 
+fail_name:
+    free(co);
+
 fail_co:
     vdom_destroy(vdom);
 
@@ -2193,6 +2262,15 @@ fail_vdom:
     pcvdom_document_destroy(doc);
 
     return NULL;
+}
+
+purc_vdom_t
+purc_load_hvml_from_rwstream_ex(purc_rwstream_t stream,
+        struct pcintr_supervisor_ops *ops, void *ctxt)
+{
+    pcintr_coroutine_t co = pcintr_get_coroutine();
+    PC_ASSERT(co == NULL);
+    return load_hvml_from_rwstream(NULL, NULL, stream, ops, ctxt);
 }
 
 bool
@@ -3925,5 +4003,13 @@ void pcintr_resume(void)
     co->continuation = NULL;
     continuation(ctxt);
     check_after_execution(co);
+}
+
+pcintr_coroutine_t
+pcintr_create_child_co(pcvdom_element_t vdom_element)
+{
+    PC_ASSERT(vdom_element);
+    purc_set_error(PURC_ERROR_NOT_IMPLEMENTED);
+    return NULL;
 }
 
