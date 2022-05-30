@@ -1116,14 +1116,14 @@ failed:
     return false;
 }
 
-bool
-pcintr_rdr_send_dom_request(pcintr_stack_t stack, const char *operation,
-        pcdom_element_t *element, const char *property,
+pcrdr_msg *
+pcintr_rdr_send_dom_req(pcintr_stack_t stack, const char *operation,
+        pcdom_element_t *element, const char* property,
         pcrdr_msg_data_type data_type, purc_variant_t data)
 {
     if (!stack || !pcvdom_document_is_attached_rdr(stack->vdom)
             || stack->stage != STACK_STAGE_EVENT_LOOP) {
-        return true;
+        return NULL;
     }
 
     pcrdr_msg *response_msg = NULL;
@@ -1160,26 +1160,26 @@ pcintr_rdr_send_dom_request(pcintr_stack_t stack, const char *operation,
         goto failed;
     }
 
-    pcrdr_release_message(response_msg);
-    return true;
+    return response_msg;
 
 failed:
     if (response_msg != NULL) {
         pcrdr_release_message(response_msg);
     }
-    return false;
+    return NULL;
 }
 
-bool
-pcintr_rdr_send_dom_request_ex(pcintr_stack_t stack, const char *operation,
-        pcdom_element_t *element, const char *property,
+pcrdr_msg *
+pcintr_rdr_send_dom_req_raw(pcintr_stack_t stack, const char *operation,
+        pcdom_element_t *element, const char* property,
         pcrdr_msg_data_type data_type, const char *data)
 {
     if (!stack || !pcvdom_document_is_attached_rdr(stack->vdom)
             || stack->stage != STACK_STAGE_EVENT_LOOP) {
-        return true;
+        return NULL;
     }
 
+    pcrdr_msg *ret = NULL;
     purc_variant_t req_data = PURC_VARIANT_INVALID;
     if (data_type == PCRDR_MSG_DATA_TYPE_TEXT) {
         req_data = purc_variant_make_string(data, false);
@@ -1196,12 +1196,40 @@ pcintr_rdr_send_dom_request_ex(pcintr_stack_t stack, const char *operation,
         }
     }
 
-    return pcintr_rdr_send_dom_request(stack, operation, element,
+    ret = pcintr_rdr_send_dom_req(stack, operation, element,
             property, data_type, req_data);
 
 failed:
     if (req_data != PURC_VARIANT_INVALID) {
         purc_variant_unref(req_data);
+    }
+    return ret;
+}
+
+bool
+pcintr_rdr_send_dom_req_simple(pcintr_stack_t stack, const char *operation,
+        pcdom_element_t *element, const char *property,
+        pcrdr_msg_data_type data_type, purc_variant_t data)
+{
+    pcrdr_msg *response_msg = pcintr_rdr_send_dom_req(stack, operation,
+            element, property, data_type, data);
+    if (response_msg != NULL) {
+        pcrdr_release_message(response_msg);
+        return true;
+    }
+    return false;
+}
+
+bool
+pcintr_rdr_send_dom_req_simple_raw(pcintr_stack_t stack,
+        const char *operation, pcdom_element_t *element,
+        const char *property, pcrdr_msg_data_type data_type, const char *data)
+{
+    pcrdr_msg *response_msg = pcintr_rdr_send_dom_req_raw(stack, operation,
+            element, property, data_type, data);
+    if (response_msg != NULL) {
+        pcrdr_release_message(response_msg);
+        return true;
     }
     return false;
 }
@@ -1256,7 +1284,7 @@ pcintr_rdr_dom_append_child(pcintr_stack_t stack, pcdom_element_t *element,
         return false;
     }
 
-    return pcintr_rdr_send_dom_request(stack, PCRDR_OPERATION_APPEND,
+    return pcintr_rdr_send_dom_req_simple(stack, PCRDR_OPERATION_APPEND,
             element, NULL, PCRDR_MSG_DATA_TYPE_TEXT, data);
 }
 
@@ -1274,7 +1302,7 @@ pcintr_rdr_dom_displace_child(pcintr_stack_t stack, pcdom_element_t *element,
         return false;
     }
 
-    return pcintr_rdr_send_dom_request(stack, PCRDR_OPERATION_DISPLACE,
+    return pcintr_rdr_send_dom_req_simple(stack, PCRDR_OPERATION_DISPLACE,
             element, NULL, PCRDR_MSG_DATA_TYPE_TEXT, data);
 }
 
