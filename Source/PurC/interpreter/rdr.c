@@ -505,7 +505,6 @@ failed:
     return false;
 }
 
-/* FIXME: the operation createTabbedWindow removed */
 uintptr_t pcintr_rdr_create_page_groups(struct pcrdr_conn *conn,
         uintptr_t session, uintptr_t workspace, const char *id,
         const char *title, const char* classes, const char *style,
@@ -586,7 +585,6 @@ failed:
     return 0;
 }
 
-/* FIXME: the operation destroyTabbedWindow removed */
 bool pcintr_rdr_destroy_page_groups(struct pcrdr_conn *conn,
         uintptr_t session, uintptr_t workspace, uintptr_t tabbed_window)
 {
@@ -650,9 +648,8 @@ failed:
     return false;
 }
 
-/* FIXME: the operation updateTabbedWindow removed */
 // property: title, class, style
-bool pcintr_rdr_update_tabbed_window(struct pcrdr_conn *conn,
+bool pcintr_rdr_update_page_groups(struct pcrdr_conn *conn,
         uintptr_t session, uintptr_t workspace, uintptr_t tabbed_window,
         const char *property, const char *value)
 {

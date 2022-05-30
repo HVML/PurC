@@ -183,7 +183,7 @@ bool pcintr_rdr_destroy_page_groups(struct pcrdr_conn *conn,
         uintptr_t session, uintptr_t workspace, uintptr_t tabbed_window);
 
 // property: title, class, style
-bool pcintr_rdr_update_tabbed_window(struct pcrdr_conn *conn,
+bool pcintr_rdr_update_page_groups(struct pcrdr_conn *conn,
         uintptr_t session, uintptr_t workspace, uintptr_t tabbed_window,
         const char *property, const char *value);
 
