@@ -398,6 +398,11 @@ void pcintr_yield(void *ctxt, void (*continuation)(void *ctxt));
 void pcintr_resume(void);
 
 void
+pcintr_push_stack_frame_pseudo(pcvdom_element_t vdom_element);
+void
+pcintr_pop_stack_frame_pseudo(void);
+
+void
 pcintr_exception_clear(struct pcintr_exception *exception);
 
 void
