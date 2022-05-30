@@ -566,7 +566,7 @@ uintptr_t pcintr_rdr_add_page_groups(struct pcrdr_conn *conn,
         const char *title, const char* classes, const char *style,
         const char* level)
 {
-    uintptr_t tabbed_window = 0;
+    uintptr_t page_group = 0;
     pcrdr_msg *response_msg = NULL;
 
     const char *operation = PCRDR_OPERATION_RESETPAGEGROUPS;
@@ -621,7 +621,7 @@ uintptr_t pcintr_rdr_add_page_groups(struct pcrdr_conn *conn,
 
     int ret_code = response_msg->retCode;
     if (ret_code == PCRDR_SC_OK) {
-        tabbed_window = response_msg->resultValue;
+        page_group = response_msg->resultValue;
     }
 
     pcrdr_release_message(response_msg);
@@ -631,7 +631,7 @@ uintptr_t pcintr_rdr_add_page_groups(struct pcrdr_conn *conn,
         goto failed;
     }
 
-    return tabbed_window;
+    return page_group;
 
 failed:
     if (data != PURC_VARIANT_INVALID) {
@@ -642,7 +642,7 @@ failed:
 }
 
 bool pcintr_rdr_destroy_page_groups(struct pcrdr_conn *conn,
-        uintptr_t session, uintptr_t workspace, uintptr_t tabbed_window)
+        uintptr_t session, uintptr_t workspace, uintptr_t page_group)
 {
     pcrdr_msg *response_msg = NULL;
 
@@ -664,7 +664,7 @@ bool pcintr_rdr_destroy_page_groups(struct pcrdr_conn *conn,
 
     char element[LEN_BUFF_LONGLONGINT];
     int n = snprintf(element, sizeof(element),
-            "%llx", (unsigned long long int)tabbed_window);
+            "%llx", (unsigned long long int)page_group);
     if (n < 0) {
         purc_set_error(PURC_ERROR_BAD_STDC_CALL);
         goto failed;
@@ -706,7 +706,7 @@ failed:
 
 // property: title, class, style
 bool pcintr_rdr_update_page_groups(struct pcrdr_conn *conn,
-        uintptr_t session, uintptr_t workspace, uintptr_t tabbed_window,
+        uintptr_t session, uintptr_t workspace, uintptr_t page_group,
         const char *property, const char *value)
 {
     pcrdr_msg *response_msg = NULL;
@@ -735,7 +735,7 @@ bool pcintr_rdr_update_page_groups(struct pcrdr_conn *conn,
 
     char element[LEN_BUFF_LONGLONGINT];
     int n = snprintf(element, sizeof(element),
-            "%llx", (unsigned long long int)tabbed_window);
+            "%llx", (unsigned long long int)page_group);
     if (n < 0) {
         purc_set_error(PURC_ERROR_BAD_STDC_CALL);
         goto failed;
@@ -775,8 +775,8 @@ failed:
     return false;
 }
 
-uintptr_t pcintr_rdr_create_tab_page(struct pcrdr_conn *conn,
-        uintptr_t tabbed_window, const char *id, const char *title
+uintptr_t pcintr_rdr_create_page(struct pcrdr_conn *conn,
+        uintptr_t page_group, const char *id, const char *title
         )
 {
     uintptr_t tab_page = 0;
@@ -784,7 +784,7 @@ uintptr_t pcintr_rdr_create_tab_page(struct pcrdr_conn *conn,
 
     const char *operation = PCRDR_OPERATION_CREATEPAGE;
     pcrdr_msg_target target = PCRDR_MSG_TARGET_WORKSPACE;
-    uint64_t target_value = tabbed_window;
+    uint64_t target_value = page_group;
     pcrdr_msg_element_type element_type = PCRDR_MSG_ELEMENT_TYPE_VOID;
     pcrdr_msg_data_type data_type = PCRDR_MSG_DATA_TYPE_EJSON;
     purc_variant_t data = PURC_VARIANT_INVALID;
@@ -833,14 +833,14 @@ failed:
     return 0;
 }
 
-bool pcintr_rdr_destroy_tab_page(struct pcrdr_conn *conn,
-        uintptr_t tabbed_window, uintptr_t tab_page)
+bool pcintr_rdr_destroy_page(struct pcrdr_conn *conn,
+        uintptr_t page_group, uintptr_t tab_page)
 {
     pcrdr_msg *response_msg = NULL;
 
     const char *operation = PCRDR_OPERATION_DESTROYPAGE;
     pcrdr_msg_target target = PCRDR_MSG_TARGET_WORKSPACE;
-    uint64_t target_value = tabbed_window;
+    uint64_t target_value = page_group;
     pcrdr_msg_element_type element_type = PCRDR_MSG_ELEMENT_TYPE_HANDLE;
     pcrdr_msg_data_type data_type = PCRDR_MSG_DATA_TYPE_VOID;
     purc_variant_t data = PURC_VARIANT_INVALID;
@@ -888,15 +888,15 @@ failed:
 }
 
 // property: title, class, style
-bool pcintr_rdr_update_tab_page(struct pcrdr_conn *conn,
-        uintptr_t tabbed_window, uintptr_t tab_page,
+bool pcintr_rdr_update_page(struct pcrdr_conn *conn,
+        uintptr_t page_group, uintptr_t tab_page,
         const char *property, const char *value)
 {
     pcrdr_msg *response_msg = NULL;
 
     const char *operation = PCRDR_OPERATION_UPDATEPAGE;
     pcrdr_msg_target target = PCRDR_MSG_TARGET_WORKSPACE;
-    uint64_t target_value = tabbed_window;
+    uint64_t target_value = page_group;
     pcrdr_msg_element_type element_type = PCRDR_MSG_ELEMENT_TYPE_HANDLE;
     pcrdr_msg_data_type data_type = PCRDR_MSG_DATA_TYPE_TEXT;
     purc_variant_t data = PURC_VARIANT_INVALID;
@@ -999,7 +999,7 @@ purc_attach_vdom_to_renderer(purc_vdom_t vdom,
             return false;
         }
 
-        tabpage = pcintr_rdr_create_tab_page(conn_to_rdr, window,
+        tabpage = pcintr_rdr_create_page(conn_to_rdr, window,
                 target_tabpage, extra_info->tabpage_title);
         if (!tabpage) {
             purc_set_error(PCRDR_ERROR_SERVER_REFUSED);

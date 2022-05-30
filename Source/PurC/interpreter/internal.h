@@ -190,14 +190,14 @@ bool pcintr_rdr_update_page_groups(struct pcrdr_conn *conn,
         const char *property, const char *value);
 
 
-uintptr_t pcintr_rdr_create_tab_page(struct pcrdr_conn *conn,
+uintptr_t pcintr_rdr_create_page(struct pcrdr_conn *conn,
         uintptr_t tabbed_window, const char *id, const char *title);
 
-bool pcintr_rdr_destroy_tab_page(struct pcrdr_conn *conn,
+bool pcintr_rdr_destroy_page(struct pcrdr_conn *conn,
         uintptr_t tabbed_window, uintptr_t tab_page);
 
 // property: title, class, style
-bool pcintr_rdr_update_tab_page(struct pcrdr_conn *conn,
+bool pcintr_rdr_update_page(struct pcrdr_conn *conn,
         uintptr_t tabbed_window, uintptr_t tab_page,
         const char *property, const char *value);
 
