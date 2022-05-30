@@ -505,6 +505,62 @@ failed:
     return false;
 }
 
+bool pcintr_rdr_reset_page_groups(struct pcrdr_conn *conn,
+        uintptr_t session, uintptr_t workspace, const char *html)
+{
+    pcrdr_msg *response_msg = NULL;
+
+    const char *operation = PCRDR_OPERATION_RESETPAGEGROUPS;
+    pcrdr_msg_target target;
+    uint64_t target_value;
+    pcrdr_msg_element_type element_type = PCRDR_MSG_ELEMENT_TYPE_VOID;
+    pcrdr_msg_data_type data_type = PCRDR_MSG_DATA_TYPE_TEXT;
+    purc_variant_t data = PURC_VARIANT_INVALID;
+
+    if (workspace) {
+        target = PCRDR_MSG_TARGET_WORKSPACE;
+        target_value = workspace;
+    }
+    else {
+        target = PCRDR_MSG_TARGET_SESSION;
+        target_value = session;
+    }
+
+    data = purc_variant_make_string(html, false);
+    if (data == PURC_VARIANT_INVALID) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto failed;
+    }
+
+    response_msg = pcintr_rdr_send_request_and_wait_response(conn, target,
+            target_value, operation, element_type, NULL, NULL,
+            data_type, data);
+
+    if (response_msg == NULL) {
+        goto failed;
+    }
+
+    int ret_code = response_msg->retCode;
+    if (ret_code != PCRDR_SC_OK) {
+        purc_set_error(PCRDR_ERROR_SERVER_REFUSED);
+        goto failed;
+    }
+
+    pcrdr_release_message(response_msg);
+    return true;
+
+failed:
+    if (data != PURC_VARIANT_INVALID) {
+        purc_variant_unref(data);
+    }
+
+    if (response_msg) {
+        pcrdr_release_message(response_msg);
+    }
+
+    return false;
+}
+
 uintptr_t pcintr_rdr_create_page_groups(struct pcrdr_conn *conn,
         uintptr_t session, uintptr_t workspace, const char *id,
         const char *title, const char* classes, const char *style,

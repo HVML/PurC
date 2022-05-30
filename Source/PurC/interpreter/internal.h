@@ -172,7 +172,9 @@ bool pcintr_rdr_update_plain_window(struct pcrdr_conn *conn,
         uintptr_t session, uintptr_t workspace, uintptr_t plain_window,
         const char *property, const char *value);
 
-
+bool pcintr_rdr_reset_page_groups(struct pcrdr_conn *conn,
+        uintptr_t session, uintptr_t workspace, const char *data
+        );
 
 uintptr_t pcintr_rdr_create_page_groups(struct pcrdr_conn *conn,
         uintptr_t session, uintptr_t workspace, const char *id,
