@@ -561,7 +561,7 @@ failed:
     return false;
 }
 
-uintptr_t pcintr_rdr_create_page_groups(struct pcrdr_conn *conn,
+uintptr_t pcintr_rdr_add_page_groups(struct pcrdr_conn *conn,
         uintptr_t session, uintptr_t workspace, const char *id,
         const char *title, const char* classes, const char *style,
         const char* level)
@@ -988,7 +988,7 @@ purc_attach_vdom_to_renderer(purc_vdom_t vdom,
     uintptr_t window = 0;
     uintptr_t tabpage = 0;
     if (target_tabpage) {
-        window = pcintr_rdr_create_page_groups(conn_to_rdr,
+        window = pcintr_rdr_add_page_groups(conn_to_rdr,
             session_handle, workspace, target_window,
             extra_info->title,
             extra_info->classes,

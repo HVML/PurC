@@ -176,7 +176,7 @@ bool pcintr_rdr_reset_page_groups(struct pcrdr_conn *conn,
         uintptr_t session, uintptr_t workspace, const char *data
         );
 
-uintptr_t pcintr_rdr_create_page_groups(struct pcrdr_conn *conn,
+uintptr_t pcintr_rdr_add_page_groups(struct pcrdr_conn *conn,
         uintptr_t session, uintptr_t workspace, const char *id,
         const char *title, const char* classes, const char *style,
         const char* level);
