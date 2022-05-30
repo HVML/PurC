@@ -79,9 +79,6 @@ pcrdr_parse_renderer_capabilities(const char *data) WTF_INTERNAL;
 void pcrdr_release_renderer_capabilities(
         struct renderer_capabilities *rdr_caps) WTF_INTERNAL;
 
-const char *
-pcrdr_operation_from_atom(purc_atom_t atom, unsigned int *id) WTF_INTERNAL;
-
 static inline purc_atom_t
 pcrdr_check_operation(const char *op)
 {

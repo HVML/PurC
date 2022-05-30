@@ -595,6 +595,30 @@ struct pcrdr_msg
 };
 
 /**
+ * Try to get the atom value of an operation.
+ *
+ * @param op: The pointer to the operation name.
+ *
+ * Returns: The atom value of the operation, 0 for invalid operation.
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT purc_atom_t
+pcrdr_try_operation_atom(const char *op);
+
+/**
+ * Get the operation id from the atom value.
+ *
+ * @param atom: The atom value return by `pcrdr_operation_atom()`.
+ * @param id: The buffer used to return the identifier of the operation.
+
+ * Returns: The pointer to the operation, NULL for invalid atom.
+ * Since: 0.1.0
+ */
+const char *
+pcrdr_operation_from_atom(purc_atom_t atom, unsigned int *id);
+
+/**
  * Make a void message.
  *
  * Returns: The pointer to message structure; NULL on error.
