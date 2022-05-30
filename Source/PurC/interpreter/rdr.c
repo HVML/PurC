@@ -45,7 +45,7 @@
 #define LEN_BUFF_LONGLONGINT    128
 
 static bool
-object_set(purc_variant_t object, const char* key, const char* value)
+object_set(purc_variant_t object, const char *key, const char *value)
 {
     purc_variant_t k = purc_variant_make_string_static(key, false);
     if (k == PURC_VARIANT_INVALID) {
@@ -73,7 +73,7 @@ pcrdr_msg *pcintr_rdr_send_request_and_wait_response(struct pcrdr_conn *conn,
         purc_variant_t data)
 {
     pcrdr_msg *response_msg = NULL;
-    pcrdr_msg* msg = pcrdr_make_request_message(
+    pcrdr_msg *msg = pcrdr_make_request_message(
             target,                             /* target */
             target_value,                       /* target_value */
             operation,                          /* operation */
@@ -112,7 +112,7 @@ failed:
 
 uintptr_t pcintr_rdr_create_workspace(struct pcrdr_conn *conn,
         uintptr_t session, const char *id, const char *title,
-        const char* classes, const char *style)
+        const char *classes, const char *style)
 {
     uintptr_t workspace = 0;
     pcrdr_msg *response_msg = NULL;
@@ -293,8 +293,8 @@ failed:
 
 uintptr_t pcintr_rdr_create_plain_window(struct pcrdr_conn *conn,
         uintptr_t session, uintptr_t workspace, const char *id,
-        const char *title, const char* classes, const char *style,
-        const char* level)
+        const char *title, const char *classes, const char *style,
+        const char *level)
 {
     uintptr_t plain_window = 0;
     pcrdr_msg *response_msg = NULL;
@@ -563,8 +563,8 @@ failed:
 
 uintptr_t pcintr_rdr_add_page_groups(struct pcrdr_conn *conn,
         uintptr_t session, uintptr_t workspace, const char *id,
-        const char *title, const char* classes, const char *style,
-        const char* level)
+        const char *title, const char *classes, const char *style,
+        const char *level)
 {
     uintptr_t page_group = 0;
     pcrdr_msg *response_msg = NULL;
@@ -1070,7 +1070,7 @@ pcintr_rdr_page_control_load(pcintr_stack_t stack)
 
     size_t sz_content = 0;
     size_t sz_buff = 0;
-    char* p = (char*)purc_rwstream_get_mem_buffer_ex(out, &sz_content,
+    char *p = (char*)purc_rwstream_get_mem_buffer_ex(out, &sz_content,
             &sz_buff,true);
     req_data = purc_variant_make_string_reuse_buff(p, sz_content, false);
     if (req_data == PURC_VARIANT_INVALID) {
@@ -1118,7 +1118,7 @@ failed:
 
 bool
 pcintr_rdr_send_dom_request(pcintr_stack_t stack, const char *operation,
-        pcdom_element_t *element, const char* property,
+        pcdom_element_t *element, const char *property,
         pcrdr_msg_data_type data_type, purc_variant_t data)
 {
     if (!stack || !pcvdom_document_is_attached_rdr(stack->vdom)
@@ -1172,8 +1172,8 @@ failed:
 
 bool
 pcintr_rdr_send_dom_request_ex(pcintr_stack_t stack, const char *operation,
-        pcdom_element_t *element, const char* property,
-        pcrdr_msg_data_type data_type, const char* data)
+        pcdom_element_t *element, const char *property,
+        pcrdr_msg_data_type data_type, const char *data)
 {
     if (!stack || !pcvdom_document_is_attached_rdr(stack->vdom)
             || stack->stage != STACK_STAGE_EVENT_LOOP) {
@@ -1227,7 +1227,7 @@ serialize_node(pcdom_node_t *node)
 
     size_t sz_content = 0;
     size_t sz_buff = 0;
-    char* p = (char*)purc_rwstream_get_mem_buffer_ex(out, &sz_content,
+    char *p = (char*)purc_rwstream_get_mem_buffer_ex(out, &sz_content,
             &sz_buff,true);
     purc_variant_t v = purc_variant_make_string_reuse_buff(p,
             sz_content, false);
