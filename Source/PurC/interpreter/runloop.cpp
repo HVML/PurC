@@ -273,8 +273,10 @@ static void _runloop_stop_main(void)
 
 static int _init_once(void)
 {
-    _runloop_init_main();
-    atexit(_runloop_stop_main);
+    if (0) {
+        _runloop_init_main();
+        atexit(_runloop_stop_main);
+    }
     return 0;
 }
 
@@ -293,7 +295,7 @@ static void _cleanup_instance(struct pcinst* curr_inst)
 }
 
 struct pcmodule _module_runloop = {
-    .id              = PURC_HAVE_ALL,
+    .id              = PURC_MODULE_HVML,
     .module_inited   = 0,
 
     .init_once              = _init_once,
