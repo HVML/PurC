@@ -38,51 +38,12 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
-
-#define MAIN_RUNLOOP_THREAD_NAME    "__purc_main_runloop_thread"
-
-void purc_runloop_init_main(void)
-{
-    if (purc_runloop_is_main_initialized()) {
-        return;
-    }
-    BinarySemaphore semaphore;
-    Thread::create(MAIN_RUNLOOP_THREAD_NAME, [&] {
-        RunLoop::initializeMain();
-        RunLoop& runloop = RunLoop::main();
-        semaphore.signal();
-        runloop.run();
-    })->detach();
-    semaphore.wait();
-}
-
-void purc_runloop_stop_main(void)
-{
-    if (purc_runloop_is_main_initialized()) {
-        BinarySemaphore semaphore;
-        RunLoop& runloop = RunLoop::main();
-        runloop.dispatch([&] {
-            RunLoop::stopMain();
-            semaphore.signal();
-        });
-        semaphore.wait();
-    }
-}
-
-bool purc_runloop_is_main_initialized(void)
-{
-    return RunLoop::isMainInitizlized();
-}
 
 purc_runloop_t purc_runloop_get_current(void)
 {
     return (purc_runloop_t)&RunLoop::current();
-}
-
-bool purc_runloop_is_on_main(void)
-{
-    return RunLoop::isMain();
 }
 
 void purc_runloop_run(void)
@@ -283,31 +244,52 @@ pcintr_wakeup_target_with(pcintr_coroutine_t target, void *ctxt,
         });
 }
 
+#define MAIN_RUNLOOP_THREAD_NAME    "__purc_main_runloop_thread"
+
+static RefPtr<Thread> _main_thread;
+
+static void _runloop_init_main(void)
+{
+    BinarySemaphore semaphore;
+    _main_thread = Thread::create(MAIN_RUNLOOP_THREAD_NAME, [&] {
+            PC_ASSERT(RunLoop::isMainInitizlized() == false);
+            RunLoop::initializeMain();
+            RunLoop& runloop = RunLoop::main();
+            PC_ASSERT(&runloop == &RunLoop::current());
+            semaphore.signal();
+            runloop.run();
+            });
+    semaphore.wait();
+}
+
+static void _runloop_stop_main(void)
+{
+    RunLoop& runloop = RunLoop::main();
+    runloop.dispatch([&] {
+            RunLoop::stopMain();
+            });
+    _main_thread->waitForCompletion();
+}
+
 static int _init_once(void)
 {
+    _runloop_init_main();
+    atexit(_runloop_stop_main);
     return 0;
 }
 
 static int _init_instance(struct pcinst* curr_inst,
         const purc_instance_extra_info* extra_info)
 {
+    UNUSED_PARAM(curr_inst);
     UNUSED_PARAM(extra_info);
-
-    curr_inst->initialized_main_runloop = false;
-
-    if (!purc_runloop_is_main_initialized()) {
-        purc_runloop_init_main();
-        curr_inst->initialized_main_runloop = true;
-    }
 
     return 0;
 }
 
 static void _cleanup_instance(struct pcinst* curr_inst)
 {
-    if (curr_inst->initialized_main_runloop) {
-        purc_runloop_stop_main();
-    }
+    UNUSED_PARAM(curr_inst);
 }
 
 struct pcmodule _module_runloop = {

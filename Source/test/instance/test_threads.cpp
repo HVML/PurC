@@ -13,6 +13,7 @@
 
 static volatile purc_atom_t other_inst[NR_THREADS];
 static volatile purc_atom_t main_inst;
+static volatile pthread_t other_threads[NR_THREADS];
 
 struct thread_arg {
     sem_t  *wait;
@@ -93,7 +94,7 @@ ALLOW_DEPRECATED_DECLARATIONS_BEGIN
         purc_log_error("failed to create semaphore: %s\n", strerror(errno));
         return -1;
     }
-    ret = pthread_create(&th, &attr, general_thread_entry, &arg);
+    ret = pthread_create(&th, NULL, general_thread_entry, &arg);
     if (ret) {
         sem_close(arg.wait);
         purc_log_error("failed to create thread: %d\n", nr);
@@ -104,6 +105,8 @@ ALLOW_DEPRECATED_DECLARATIONS_BEGIN
     sem_wait(arg.wait);
     sem_close(arg.wait);
 ALLOW_DEPRECATED_DECLARATIONS_END
+
+    other_threads[nr] = th;
 
     return ret;
 }
@@ -165,6 +168,8 @@ TEST(instance, thread)
 
     n = purc_inst_destroy_move_buffer();
     purc_log_info("move buffer destroyed, %d messages discarded\n", (int)n);
+
+    pthread_join(other_threads[0], NULL);
 
     purc_cleanup();
 }
@@ -232,6 +237,10 @@ TEST(instance, threads)
 
     n = purc_inst_destroy_move_buffer();
     purc_log_info("move buffer destroyed, %d messages discarded\n", (int)n);
+
+    for (int i = 1; i < NR_THREADS; i++) {
+        pthread_join(other_threads[i], NULL);
+    }
 
     purc_cleanup();
 }

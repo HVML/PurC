@@ -41,37 +41,6 @@ typedef enum purc_runloop_io_event
 PCA_EXTERN_C_BEGIN
 
 /**
- * Init main runloop
- *
- * Return: void
- *
- * Since: 0.1.1
- */
-PCA_EXPORT
-void purc_runloop_init_main(void);
-
-/**
- * Stop main runloop
- *
- * Return: void
- *
- * Since: 0.1.1
- */
-PCA_EXPORT
-void purc_runloop_stop_main(void);
-
-/**
- * Check if the man runloop is initialized.
- *
- * Returns: The function returns a boolean indicating whether main RunLoop
- *  is initialized.
- *
- * Since: 0.1.1
- */
-PCA_EXPORT
-bool purc_runloop_is_main_initialized(void);
-
-/**
  * Get the runloop of current thread
  *
  * Returns: The runloop of current thread
@@ -80,17 +49,6 @@ bool purc_runloop_is_main_initialized(void);
  */
 PCA_EXPORT
 purc_runloop_t purc_runloop_get_current(void);
-
-/**
- * Check if current is on main runloop.
- *
- * Returns: The function returns a boolean indicating whether current is on main
- *  runloop.
- *
- * Since: 0.1.1
- */
-PCA_EXPORT
-bool purc_runloop_is_on_main(void);
 
 /**
  * Start the current runloop

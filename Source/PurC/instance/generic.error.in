@@ -224,3 +224,8 @@ InternalFailure
     flags: None
     msg: "Internal failure"
 
+Unknown
+    except: NULL
+    flags: None
+    msg: "Unknown"
+
