@@ -247,6 +247,7 @@ pcintr_wakeup_target_with(pcintr_coroutine_t target, void *ctxt,
 #define MAIN_RUNLOOP_THREAD_NAME    "__purc_main_runloop_thread"
 
 static RefPtr<Thread> _main_thread;
+static pthread_once_t _once_control = PTHREAD_ONCE_INIT;
 
 static void _runloop_init_main(void)
 {
@@ -264,19 +265,18 @@ static void _runloop_init_main(void)
 
 static void _runloop_stop_main(void)
 {
-    RunLoop& runloop = RunLoop::main();
-    runloop.dispatch([&] {
-            RunLoop::stopMain();
-            });
-    _main_thread->waitForCompletion();
+    if (_main_thread) {
+        RunLoop& runloop = RunLoop::main();
+        runloop.dispatch([&] {
+                RunLoop::stopMain();
+                });
+        _main_thread->waitForCompletion();
+    }
 }
 
 static int _init_once(void)
 {
-    if (0) {
-        _runloop_init_main();
-        atexit(_runloop_stop_main);
-    }
+    atexit(_runloop_stop_main);
     return 0;
 }
 
@@ -285,6 +285,10 @@ static int _init_instance(struct pcinst* curr_inst,
 {
     UNUSED_PARAM(curr_inst);
     UNUSED_PARAM(extra_info);
+
+    int r;
+    r = pthread_once(&_once_control, _runloop_init_main);
+    PC_ASSERT(r == 0);
 
     return 0;
 }
@@ -295,7 +299,7 @@ static void _cleanup_instance(struct pcinst* curr_inst)
 }
 
 struct pcmodule _module_runloop = {
-    .id              = PURC_MODULE_HVML,
+    .id              = PURC_HAVE_HVML,
     .module_inited   = 0,
 
     .init_once              = _init_once,

@@ -621,7 +621,7 @@ static int _init_once(void)
 }
 
 struct pcmodule _module_interpreter = {
-    .id              = PURC_HAVE_VARIANT | PURC_HAVE_HVML,
+    .id              = PURC_HAVE_HVML,
     .module_inited   = 0,
 
     .init_once              = _init_once,
@@ -2158,6 +2158,7 @@ static int set_coroutine_id(pcintr_coroutine_t coroutine, const char *name)
     PC_ASSERT(coroutine->name == NULL);
 
     pcintr_heap_t heap = pcintr_get_heap();
+    PC_ASSERT(heap);
 
     char buf[64];
 

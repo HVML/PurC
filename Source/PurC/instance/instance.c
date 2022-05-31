@@ -397,6 +397,9 @@ static void _init_once(void)
 
     for (size_t i=0; i<PCA_TABLESIZE(_pc_modules); ++i) {
         struct pcmodule *m = _pc_modules[i];
+        if (!m->init_once)
+            continue;
+
         if (m->init_once())
             return;
 
@@ -532,7 +535,7 @@ static int _init_instance(struct pcinst *curr_inst,
 {
     for (size_t i=0; i<PCA_TABLESIZE(_pc_modules); ++i) {
         struct pcmodule *m = _pc_modules[i];
-        if ((m->id & modules) == 0)
+        if ((m->id & modules) != m->id)
             continue;
         if (m->init_instance == NULL)
             continue;
