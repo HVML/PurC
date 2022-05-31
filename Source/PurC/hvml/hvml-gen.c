@@ -1209,7 +1209,6 @@ again:
             break;
         case VGIM(_IN_BODY):
             r = on_mode_in_body(gen, token);
-            PC_ASSERT(r == 0);
             break;
         case VGIM(_AFTER_BODY):
             r = on_mode_after_body(gen, token);

@@ -104,13 +104,25 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         return 0;
     }
 
+    if (ctxt->synchronously) {
+        if (ctxt->as == PURC_VARIANT_INVALID) {
+            purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                    "vdom attribute 'as' for element <call> undefined");
+            return -1;
+        }
+        if (!purc_variant_is_string(ctxt->as)) {
+            purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                    "vdom attribute 'as' for element <call> is not string");
+            return -1;
+        }
+    }
+
     pcintr_coroutine_t child;
-    child = pcintr_create_child_co(define);
+    child = pcintr_create_child_co(define, ctxt->as);
     if (!child)
         return -1;
 
-    PC_ASSERT(0);
-    return -1;
+    return 0;
 }
 
 static int

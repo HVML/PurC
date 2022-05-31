@@ -71,6 +71,10 @@ post_process_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 
     struct pcintr_stack_frame *p = pcintr_stack_frame_get_parent(frame);
     for(; p; p = pcintr_stack_frame_get_parent(p)) {
+        if (co->stack.entry && p->pos->tag_id == PCHVML_TAG_BODY) {
+            ctxt->back_anchor = p;
+            break;
+        }
         pcvdom_element_t pos = p->pos;
         if (pos->tag_id == PCHVML_TAG_CALL ||
             pos->tag_id == PCHVML_TAG_INCLUDE)
@@ -87,10 +91,18 @@ post_process_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     }
 
     if (ctxt->with != PURC_VARIANT_INVALID) {
-        struct pcintr_stack_frame *back_anchor = ctxt->back_anchor;
-        int r = pcintr_set_question_var(back_anchor, ctxt->with);
-        if (r)
-            return -1;
+        if (co->stack.entry) {
+            PC_ASSERT(co->result);
+            PC_ASSERT(co->owner && co->parent->owner);
+            PURC_VARIANT_SAFE_CLEAR(co->result->result);
+            co->result->result = purc_variant_ref(ctxt->with);
+        }
+        else {
+            struct pcintr_stack_frame *back_anchor = ctxt->back_anchor;
+            int r = pcintr_set_question_var(back_anchor, ctxt->with);
+            if (r)
+                return -1;
+        }
     }
 
     co->stack.back_anchor = ctxt->back_anchor;
