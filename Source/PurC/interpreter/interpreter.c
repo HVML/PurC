@@ -1562,6 +1562,22 @@ end:
     return doc;
 }
 
+static struct pcvdom_document*
+load_document_by_string(const char *hvml)
+{
+    purc_rwstream_t rws;
+    rws = purc_rwstream_new_from_mem((char*)hvml, strlen(hvml));
+    if (!rws)
+        return NULL;
+
+    struct pcvdom_document *doc = NULL;
+    doc = load_document(rws);
+
+    purc_rwstream_destroy(rws);
+
+    return doc;
+}
+
 #define BUILDIN_VAR_HVML        "HVML"
 #define BUILDIN_VAR_SYSTEM      "SYSTEM"
 #define BUILDIN_VAR_DATETIME    "DATETIME"
@@ -2187,8 +2203,8 @@ again:
     return 0;
 }
 
-static purc_vdom_t
-load_hvml_from_rwstream(const char *name,
+static pcintr_coroutine_t
+coroutine_create(const char *name,
         pcintr_coroutine_t parent,
         purc_rwstream_t stream,
         struct pcintr_supervisor_ops *ops, void *ctxt)
@@ -2235,10 +2251,8 @@ load_hvml_from_rwstream(const char *name,
 
     stack = &co->stack;
     stack->co = co;
-    stack->vdom = vdom;
-    vdom = NULL;
-
     co->owner = heap;
+
     list_add_tail(&co->node, coroutines);
 
     stack_init(stack);
@@ -2248,10 +2262,14 @@ load_hvml_from_rwstream(const char *name,
         stack->ctxt = ctxt;
     }
 
-    pcintr_wakeup_target(co, run_co_main);
+    stack->vdom = vdom;
+    vdom = NULL;
+
+    // pcintr_wakeup_target(co, run_co_main);
 
     // FIXME: double-free, potentially!!!
-    return stack->vdom;
+    // return stack->vdom;
+    return co;
 
 fail_name:
     free(co);
@@ -2271,7 +2289,15 @@ purc_load_hvml_from_rwstream_ex(purc_rwstream_t stream,
 {
     pcintr_coroutine_t co = pcintr_get_coroutine();
     PC_ASSERT(co == NULL);
-    return load_hvml_from_rwstream(NULL, NULL, stream, ops, ctxt);
+    co = coroutine_create(NULL, NULL, stream, ops, ctxt);
+    if (!co)
+        return NULL;
+
+    PC_ASSERT(co->stack.vdom);
+
+    pcintr_wakeup_target(co, run_co_main);
+
+    return co->stack.vdom;
 }
 
 bool
@@ -2293,7 +2319,6 @@ purc_run(purc_variant_t request, purc_event_handler handler)
         purc_set_error(PURC_ERROR_NOT_SUPPORTED);
         return false;
     }
-
 
     heap->owner->running_thread = pthread_self();
 
@@ -4010,6 +4035,10 @@ pcintr_coroutine_t
 pcintr_create_child_co(pcvdom_element_t vdom_element)
 {
     PC_ASSERT(vdom_element);
+    struct pcvdom_document *vdom;
+    vdom = load_document_by_string("<hvml/>");
+    pcvdom_document_destroy(vdom);
+
     purc_set_error(PURC_ERROR_NOT_IMPLEMENTED);
     return NULL;
 }
