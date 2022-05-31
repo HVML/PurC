@@ -947,7 +947,27 @@ failed:
 }
 
 static
-purc_vdom_t find_vdom(uintptr_t handle, pcintr_stack_t *pstack)
+purc_vdom_t find_vdom_by_target_window(uintptr_t handle, pcintr_stack_t *pstack)
+{
+    pcintr_heap_t heap = pcintr_get_heap();
+    if (heap == NULL) {
+        return NULL;
+    }
+
+    pcintr_coroutine_t p;
+    list_for_each_entry(p, &heap->coroutines, node) {
+        if (handle == pcvdom_document_get_target_window(p->stack.vdom)) {
+            if (pstack) {
+                *pstack = &(p->stack);
+            }
+            return p->stack.vdom;
+        }
+    }
+    return NULL;
+}
+
+static
+purc_vdom_t find_vdom_by_target_vdom(uintptr_t handle, pcintr_stack_t *pstack)
 {
     pcintr_heap_t heap = pcintr_get_heap();
     if (heap == NULL) {
@@ -1000,7 +1020,11 @@ void pcintr_rdr_event_handler(pcrdr_conn *conn, const pcrdr_msg *msg)
         break;
 
     case PCRDR_MSG_TARGET_PLAINWINDOW:
-        //TODO
+        {
+            purc_vdom_t vdom = find_vdom_by_target_window(
+                    (uintptr_t)msg->targetValue, &stack);
+            source = purc_variant_make_native(vdom, NULL);
+        }
         break;
 
     case PCRDR_MSG_TARGET_PAGE:
@@ -1009,7 +1033,8 @@ void pcintr_rdr_event_handler(pcrdr_conn *conn, const pcrdr_msg *msg)
 
     case PCRDR_MSG_TARGET_DOM:
         {
-            purc_vdom_t vdom = find_vdom((uintptr_t) msg->targetValue, &stack);
+            purc_vdom_t vdom = find_vdom_by_target_vdom(
+                    (uintptr_t)msg->targetValue, &stack);
             source = purc_variant_make_native(vdom, NULL);
         }
         break;
