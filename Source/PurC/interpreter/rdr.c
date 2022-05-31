@@ -946,6 +946,26 @@ failed:
     return false;
 }
 
+static
+purc_vdom_t find_vdom(uintptr_t handle, pcintr_stack_t *pstack)
+{
+    pcintr_heap_t heap = pcintr_get_heap();
+    if (heap == NULL) {
+        return NULL;
+    }
+
+    pcintr_coroutine_t p;
+    list_for_each_entry(p, &heap->coroutines, node) {
+        if (handle == pcvdom_document_get_target_dom(p->stack.vdom)) {
+            if (pstack) {
+                *pstack = &(p->stack);
+            }
+            return p->stack.vdom;
+        }
+    }
+    return NULL;
+}
+
 #define MSG_TYPE_EVENT          "event"
 static
 void pcintr_rdr_event_handler(pcrdr_conn *conn, const pcrdr_msg *msg)
@@ -968,13 +988,48 @@ void pcintr_rdr_event_handler(pcrdr_conn *conn, const pcrdr_msg *msg)
     }
     purc_variant_t sub_type = msg->event;
 
+    pcintr_stack_t stack = NULL;
+    purc_variant_t source = PURC_VARIANT_INVALID;
+    switch (msg->target) {
+    case PCRDR_MSG_TARGET_SESSION:
+        //TODO
+        break;
 
-#if 0
-    pcintr_dispatch_message_ex(pcintr_stack_t stack, purc_variant_t source,
-        purc_variant_t type, purc_variant_t sub_type, purc_variant_t extra);
-#endif
+    case PCRDR_MSG_TARGET_WORKSPACE:
+        //TODO
+        break;
+
+    case PCRDR_MSG_TARGET_PLAINWINDOW:
+        //TODO
+        break;
+
+    case PCRDR_MSG_TARGET_PAGE:
+        //TODO
+        break;
+
+    case PCRDR_MSG_TARGET_DOM:
+        {
+            purc_vdom_t vdom = find_vdom((uintptr_t) msg->targetValue, &stack);
+            source = purc_variant_make_native(vdom, NULL);
+        }
+        break;
+
+    case PCRDR_MSG_TARGET_THREAD:
+        //TODO
+        break;
+
+    default:
+        goto out;
+    }
+
+
+    pcintr_dispatch_message_ex(stack, source, type, sub_type, msg->data);
 
 out:
+    if (source) {
+        purc_variant_unref(source);
+    }
+
     if (type) {
         purc_variant_unref(type);
     }
