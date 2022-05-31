@@ -28,6 +28,7 @@
 #include "internal.h"
 
 #include "private/debug.h"
+#include "private/dvobjs.h"
 #include "purc-runloop.h"
 
 #include "ops.h"
@@ -571,16 +572,15 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (ctxt->at != PURC_VARIANT_INVALID && purc_variant_is_string(ctxt->at)) {
         observer = register_named_var_observer(stack, frame, ctxt->at);
     }
-#if 0
-    else if (purc_variant_is_string(ctxt->on)) {
-// TODO : css selector
-        if (purc_variant_is_string(ctxt->on)) {
-            const char* at_str = purc_variant_get_string_const(ctxt->on);
-            if (at_str[0] == '#') {
-            }
+    else if (ctxt->on && purc_variant_is_string(ctxt->on)) {
+        const char *s = purc_variant_get_string_const(ctxt->on);
+        pchtml_html_document_t *doc = stack->doc;
+        purc_variant_t elems = pcdvobjs_elements_by_css(doc, s);
+        if (elems) {
+            observer = register_native_var_observer(stack, frame, ctxt->on);
+            purc_variant_unref(elems);
         }
     }
-#endif
     else if (ctxt->on && purc_variant_is_native(ctxt->on)) {
         observer = register_native_var_observer(stack, frame, ctxt->on);
     }
