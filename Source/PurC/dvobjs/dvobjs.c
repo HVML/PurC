@@ -191,7 +191,7 @@ static int _init_once(void)
 }
 
 struct pcmodule _module_dvobjs = {
-    .id              = PURC_HAVE_VARIANT | PURC_HAVE_EJSON,
+    .id              = PURC_HAVE_EJSON,
     .module_inited   = 0,
 
     .init_once          = _init_once,

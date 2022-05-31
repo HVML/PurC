@@ -116,3 +116,59 @@ PURC_COMPUTE_SOURCES(test_threads)
 PURC_FRAMEWORK(test_threads)
 GTEST_DISCOVER_TESTS(test_threads DISCOVERY_TIMEOUT 10)
 
+# test_init
+PURC_EXECUTABLE_DECLARE(test_init)
+
+list(APPEND test_init_PRIVATE_INCLUDE_DIRECTORIES
+    ${PURC_DIR}/include
+    ${PurC_DERIVED_SOURCES_DIR}
+    ${PURC_DIR}
+    ${CMAKE_BINARY_DIR}
+    ${WTF_DIR}
+)
+
+PURC_EXECUTABLE(test_init)
+
+set(test_init_SOURCES
+    test_init.cpp
+)
+
+set(test_init_LIBRARIES
+    PurC::PurC
+    gtest_main
+    gtest
+    pthread
+)
+
+PURC_COMPUTE_SOURCES(test_init)
+PURC_FRAMEWORK(test_init)
+GTEST_DISCOVER_TESTS(test_init DISCOVERY_TIMEOUT 10)
+
+# test_pcrdr_init
+PURC_EXECUTABLE_DECLARE(test_pcrdr_init)
+
+list(APPEND test_pcrdr_init_PRIVATE_INCLUDE_DIRECTORIES
+    ${PURC_DIR}/include
+    ${PurC_DERIVED_SOURCES_DIR}
+    ${PURC_DIR}
+    ${CMAKE_BINARY_DIR}
+    ${WTF_DIR}
+)
+
+PURC_EXECUTABLE(test_pcrdr_init)
+
+set(test_pcrdr_init_SOURCES
+    test_pcrdr_init.cpp
+)
+
+set(test_pcrdr_init_LIBRARIES
+    PurC::PurC
+    gtest_main
+    gtest
+    pthread
+)
+
+PURC_COMPUTE_SOURCES(test_pcrdr_init)
+PURC_FRAMEWORK(test_pcrdr_init)
+GTEST_DISCOVER_TESTS(test_pcrdr_init DISCOVERY_TIMEOUT 10)
+

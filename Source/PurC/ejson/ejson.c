@@ -65,7 +65,7 @@ static int ejson_init_once (void)
 }
 
 struct pcmodule _module_ejson = {
-    .id              = PURC_HAVE_VARIANT | PURC_HAVE_EJSON,
+    .id              = PURC_HAVE_EJSON,
     .module_inited   = 0,
 
     .init_once       = ejson_init_once,
