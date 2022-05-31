@@ -244,6 +244,61 @@ pcintr_wakeup_target_with(pcintr_coroutine_t target, void *ctxt,
         });
 }
 
+void
+pcintr_post_msg_to_target(pcintr_coroutine_t target, void *ctxt,
+        pcintr_msg_callback_f cb)
+{
+    pcintr_heap_t heap = pcintr_get_heap();
+    pcintr_coroutine_t co = pcintr_get_coroutine();
+    if (heap)
+        PC_ASSERT(co);
+
+    if (target == NULL) {
+        target = pcintr_get_coroutine();
+        PC_ASSERT(target);
+    }
+
+    if (co == target) {
+        pcintr_msg_t msg;
+        msg = (pcintr_msg_t)calloc(1, sizeof(*msg));
+        PC_ASSERT(msg);
+
+        msg->ctxt        = ctxt;
+        msg->on_msg      = cb;
+
+        list_add_tail(&msg->node, &target->msgs);
+
+        return;
+    }
+
+    pcintr_heap_t heap_target = target->owner;
+    PC_ASSERT(heap_target == heap);
+
+    purc_runloop_t target_runloop;
+    target_runloop = pcintr_co_get_runloop(target);
+    PC_ASSERT(target_runloop);
+
+    // FIXME: try catch ?
+    ((RunLoop*)target_runloop)->dispatch([target, ctxt, cb]() {
+            PC_ASSERT(pcintr_get_heap());
+            PC_ASSERT(pcintr_get_coroutine() == NULL);
+
+            pcintr_msg_t msg;
+            msg = (pcintr_msg_t)calloc(1, sizeof(*msg));
+            PC_ASSERT(msg);
+
+            msg->ctxt        = ctxt;
+            msg->on_msg      = cb;
+
+            list_add_tail(&msg->node, &target->msgs);
+
+            pcintr_set_current_co(target);
+            pcintr_check_after_execution();
+            pcintr_set_current_co(NULL);
+        });
+}
+
+
 #define MAIN_RUNLOOP_THREAD_NAME    "__purc_main_runloop_thread"
 
 static RefPtr<Thread> _main_thread;

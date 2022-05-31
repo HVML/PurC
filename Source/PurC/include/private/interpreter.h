@@ -434,6 +434,10 @@ pcintr_exception_move(struct pcintr_exception *dst,
 void
 pcintr_post_msg(void *ctxt, pcintr_msg_callback_f cb);
 
+void
+pcintr_post_msg_to_target(pcintr_coroutine_t target, void *ctxt,
+        pcintr_msg_callback_f cb);
+
 purc_variant_t
 pcintr_make_object_of_dynamic_variants(size_t nr_args,
     struct pcintr_dynamic_args *args);

@@ -4002,6 +4002,10 @@ pcintr_post_msg(void *ctxt, pcintr_msg_callback_f cb)
     PC_ASSERT(stack);
     pcintr_coroutine_t co = stack->co;
     PC_ASSERT(co);
+    if (1) {
+        pcintr_post_msg_to_target(co, ctxt, cb);
+        return;
+    }
 
     pcintr_msg_t msg;
     msg = (pcintr_msg_t)calloc(1, sizeof(*msg));
