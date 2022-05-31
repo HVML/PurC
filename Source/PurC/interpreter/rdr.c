@@ -292,10 +292,11 @@ failed:
 }
 
 uintptr_t pcintr_rdr_create_plain_window(struct pcrdr_conn *conn,
-        uintptr_t session, uintptr_t workspace, const char *id,
-        const char *title, const char *classes, const char *style,
-        const char *level)
+        uintptr_t session, uintptr_t workspace,
+        pcrdr_page_type page_type, const char *id,
+        const char *title, const char *classes, const char *style)
 {
+    UNUSED_PARAM(page_type);
     uintptr_t plain_window = 0;
     pcrdr_msg *response_msg = NULL;
 
@@ -334,10 +335,6 @@ uintptr_t pcintr_rdr_create_plain_window(struct pcrdr_conn *conn,
     }
 
     if (style && !object_set(data, STYLE_KEY, style)) {
-        goto failed;
-    }
-
-    if (level && !object_set(data, LEVEL_KEY, level)) {
         goto failed;
     }
 
@@ -949,12 +946,11 @@ failed:
     return false;
 }
 
-bool
+PCA_EXPORT bool
 purc_attach_vdom_to_renderer(purc_vdom_t vdom,
+        pcrdr_page_type page_type,
         const char *target_workspace,
-        const char *target_window,
-        const char *target_tabpage,
-        const char *target_level,
+        const char *target_group,
         purc_renderer_extra_info *extra_info)
 {
     if (!vdom) {
@@ -963,7 +959,7 @@ purc_attach_vdom_to_renderer(purc_vdom_t vdom,
     }
 
     struct pcinst *inst = pcinst_current();
-    if (inst == NULL || inst->rdr_caps == NULL || target_window == NULL) {
+    if (inst == NULL || inst->rdr_caps == NULL) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         return false;
     }
@@ -977,7 +973,7 @@ purc_attach_vdom_to_renderer(purc_vdom_t vdom,
         workspace = pcintr_rdr_create_workspace(conn_to_rdr, session_handle,
             target_workspace,
             extra_info->workspace_title,
-            extra_info->workspace_classes,
+            extra_info->workspace_classe,
             extra_info->workspace_styles);
         if (!workspace) {
             purc_set_error(PCRDR_ERROR_SERVER_REFUSED);
@@ -985,47 +981,26 @@ purc_attach_vdom_to_renderer(purc_vdom_t vdom,
         }
     }
 
-    uintptr_t window = 0;
-    uintptr_t tabpage = 0;
-    if (target_tabpage) {
-        window = pcintr_rdr_add_page_groups(conn_to_rdr,
-            session_handle, workspace, target_window,
-            extra_info->title,
-            extra_info->classes,
-            extra_info->styles,
-            target_level);
-        if (!window) {
-            purc_set_error(PCRDR_ERROR_SERVER_REFUSED);
-            return false;
-        }
+    // TODO target_group
+    UNUSED_PARAM(target_group);
 
-        tabpage = pcintr_rdr_create_page(conn_to_rdr, window,
-                target_tabpage, extra_info->tabpage_title);
-        if (!tabpage) {
-            purc_set_error(PCRDR_ERROR_SERVER_REFUSED);
-            return false;
-        }
-    }
-    else {
-        window = pcintr_rdr_create_plain_window(conn_to_rdr,
-            session_handle, workspace, target_window,
-            extra_info->title,
-            extra_info->classes,
-            extra_info->styles,
-            target_level);
-        if (!window) {
-            purc_set_error(PCRDR_ERROR_SERVER_REFUSED);
-            return false;
-        }
+    uintptr_t window = pcintr_rdr_create_plain_window(conn_to_rdr,
+        session_handle, workspace, page_type,
+        extra_info->id,
+        extra_info->title,
+        extra_info->classes,
+        extra_info->style);
+    if (!window) {
+        purc_set_error(PCRDR_ERROR_SERVER_REFUSED);
+        return false;
     }
 
     pcvdom_document_set_target_workspace(vdom, workspace);
     pcvdom_document_set_target_window(vdom, window);
-    pcvdom_document_set_target_tabpage(vdom, tabpage);
+    pcvdom_document_set_target_tabpage(vdom, 0);
 
     return true;
 }
-
 
 bool
 pcintr_rdr_page_control_load(pcintr_stack_t stack)

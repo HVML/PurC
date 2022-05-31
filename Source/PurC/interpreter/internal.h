@@ -160,9 +160,9 @@ bool pcintr_rdr_update_workspace(struct pcrdr_conn *conn,
 
 
 uintptr_t pcintr_rdr_create_plain_window(struct pcrdr_conn *conn,
-        uintptr_t session, uintptr_t workspace, const char *id,
-        const char *title, const char* classes, const char *style,
-        const char* level);
+        uintptr_t session, uintptr_t workspace,
+        pcrdr_page_type page_type, const char *id,
+        const char *title, const char *classes, const char *style);
 
 bool pcintr_rdr_destroy_plain_window(struct pcrdr_conn *conn,
         uintptr_t session, uintptr_t workspace, uintptr_t plain_window);
