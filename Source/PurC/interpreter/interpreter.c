@@ -2434,10 +2434,27 @@ get_observer_list(pcintr_stack_t stack, purc_variant_t observed)
     return list;
 }
 
+static
+bool is_variant_match_observe(purc_variant_t observed, purc_variant_t val)
+{
+    if (observed == val) {
+        return true;
+    }
+    if (purc_variant_is_native(observed)) {
+        struct purc_native_ops *ops = purc_variant_native_get_ops(observed);
+        if (ops == NULL || ops->match_observe == NULL) {
+            return false;
+        }
+        return ops->match_observe(observed, val);
+    }
+    return false;
+}
+
+
 bool is_observer_match(struct pcintr_observer *observer,
         purc_variant_t observed, purc_atom_t type_atom, const char *sub_type)
 {
-    if ((observer->observed == observed) &&
+    if ((is_variant_match_observe(observer->observed, observed)) &&
                 (observer->msg_type_atom == type_atom)) {
         if (observer->sub_type == sub_type ||
                 pcregex_is_match(observer->sub_type, sub_type)) {

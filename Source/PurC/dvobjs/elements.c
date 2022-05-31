@@ -421,6 +421,30 @@ eraser(void* native_entity, bool silently)
     return purc_variant_make_ulongint(nr_erase);
 }
 
+static bool
+match_observe(void* native_entity, purc_variant_t val)
+{
+    if (!purc_variant_is_native(val)) {
+        return false;
+    }
+
+    struct pcdvobjs_elements *elements;
+    elements = (struct pcdvobjs_elements*)native_entity;
+
+    void *comp = purc_variant_native_get_entity(val);
+    pcutils_array_t *arr = elements->elements;
+    PC_ASSERT(arr);
+
+    struct pcdom_element *elem = NULL;
+    size_t len = pcutils_array_length(arr);
+    for (size_t i = 0; i < len; i++) {
+        elem = (struct pcdom_element*)pcutils_array_get(elements->elements, i);
+        if (elem == comp) {
+            return true;
+        }
+    }
+    return false;
+}
 
 // the callback to release the native entity.
 static void
@@ -446,6 +470,7 @@ make_elements(void)
         .updater                    = NULL,
         .cleaner                    = cleaner,
         .eraser                     = eraser,
+        .match_observe              = match_observe,
 
         .on_observe                = NULL,
         .on_release                = on_release,
