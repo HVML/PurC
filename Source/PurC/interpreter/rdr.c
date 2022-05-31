@@ -946,6 +946,40 @@ failed:
     return false;
 }
 
+#define MSG_TYPE_EVENT          "event"
+static
+void pcintr_rdr_event_handler(pcrdr_conn *conn, const pcrdr_msg *msg)
+{
+    UNUSED_PARAM(conn);
+    UNUSED_PARAM(msg);
+    struct pcinst *inst = pcinst_current();
+    if (inst == NULL || inst->rdr_caps == NULL || msg == NULL) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        return;
+    }
+
+    if (!purc_variant_is_string(msg->event)) {
+        return;
+    }
+
+    purc_variant_t type = purc_variant_make_string(MSG_TYPE_EVENT, false);
+    if (type == PURC_VARIANT_INVALID) {
+        return;
+    }
+    purc_variant_t sub_type = msg->event;
+
+
+#if 0
+    pcintr_dispatch_message_ex(pcintr_stack_t stack, purc_variant_t source,
+        purc_variant_t type, purc_variant_t sub_type, purc_variant_t extra);
+#endif
+
+out:
+    if (type) {
+        purc_variant_unref(type);
+    }
+}
+
 PCA_EXPORT bool
 purc_attach_vdom_to_renderer(purc_vdom_t vdom,
         pcrdr_page_type page_type,
@@ -995,6 +1029,7 @@ purc_attach_vdom_to_renderer(purc_vdom_t vdom,
         return false;
     }
 
+    pcrdr_conn_set_event_handler(conn_to_rdr, pcintr_rdr_event_handler);
     pcvdom_document_set_target_workspace(vdom, workspace);
     pcvdom_document_set_target_window(vdom, window);
     pcvdom_document_set_target_tabpage(vdom, 0);
