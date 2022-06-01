@@ -507,7 +507,7 @@ done:
 }
 
 const pcrdr_msg *
-purc_inst_retrieve_messages(size_t index)
+purc_inst_retrieve_message(size_t index)
 {
     struct pcinst* inst = pcinst_current();
     if (inst == NULL)
@@ -674,7 +674,7 @@ purc_inst_holding_messages_count(size_t *nr)
 }
 
 const pcrdr_msg *
-purc_inst_retrieve_messages(size_t index)
+purc_inst_retrieve_message(size_t index)
 {
     UNUSED_PARAM(index);
     purc_set_error(PURC_ERROR_NOT_SUPPORTED);
