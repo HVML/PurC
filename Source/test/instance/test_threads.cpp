@@ -56,8 +56,10 @@ static void* general_thread_entry(void* arg)
             purc_log_info("    type:        %d\n", msg->type);
             purc_log_info("    target:      %d\n", msg->target);
             purc_log_info("    targetValue: %d\n", (int)msg->targetValue);
-            purc_log_info("    event:       %s\n",
-                    purc_variant_get_string_const(msg->event));
+            purc_log_info("    eventName:   %s\n",
+                    purc_variant_get_string_const(msg->eventName));
+            purc_log_info("    eventSource: %s\n",
+                    purc_variant_get_string_const(msg->eventSource));
 
             purc_inst_move_message(main_inst, msg);
             pcrdr_release_message(msg);
@@ -133,7 +135,7 @@ TEST(instance, thread)
     event = pcrdr_make_event_message(
             PCRDR_MSG_TARGET_THREAD,
             1,
-            "test",
+            "test", NULL,
             PCRDR_MSG_ELEMENT_TYPE_VOID, NULL, NULL,
             PCRDR_MSG_DATA_TYPE_VOID, NULL, 0);
 
@@ -155,7 +157,7 @@ TEST(instance, thread)
 
             ASSERT_EQ(msg->target, PCRDR_MSG_TARGET_THREAD);
             ASSERT_EQ(msg->targetValue, 1);
-            ASSERT_STREQ(purc_variant_get_string_const(msg->event), "test");
+            ASSERT_STREQ(purc_variant_get_string_const(msg->eventName), "test");
 
             pcrdr_release_message(msg);
             break;
@@ -198,7 +200,7 @@ TEST(instance, threads)
     event = pcrdr_make_event_message(
             PCRDR_MSG_TARGET_THREAD,
             1,
-            "test",
+            "test", NULL,
             PCRDR_MSG_ELEMENT_TYPE_VOID, NULL, NULL,
             PCRDR_MSG_DATA_TYPE_VOID, NULL, 0);
 
@@ -221,7 +223,7 @@ TEST(instance, threads)
 
             ASSERT_EQ(msg->target, PCRDR_MSG_TARGET_THREAD);
             ASSERT_EQ(msg->targetValue, 1);
-            ASSERT_STREQ(purc_variant_get_string_const(msg->event), "test");
+            ASSERT_STREQ(purc_variant_get_string_const(msg->eventName), "test");
 
             pcrdr_release_message(msg);
 

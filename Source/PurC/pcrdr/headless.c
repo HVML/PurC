@@ -482,7 +482,7 @@ static void on_update_plain_window(struct pcrdr_prot_data *prot_data,
     }
 
     uint64_t elementHandle = (uint64_t)strtoull(
-            purc_variant_get_string_const(msg->element), NULL, 16);
+            purc_variant_get_string_const(msg->elementValue), NULL, 16);
 
     int j;
     for (j = 0; j < NR_PLAINWINDOWS; j++) {
@@ -536,7 +536,7 @@ static void on_destroy_plain_window(struct pcrdr_prot_data *prot_data,
     }
 
     uint64_t elementHandle = (uint64_t)strtoull(
-            purc_variant_get_string_const(msg->element), NULL, 16);
+            purc_variant_get_string_const(msg->elementValue), NULL, 16);
 
     int j;
     for (j = 0; j < NR_PLAINWINDOWS; j++) {
@@ -650,7 +650,7 @@ static void on_add_page_groups(struct pcrdr_prot_data *prot_data,
     }
 
     uint64_t elementHandle = (uint64_t)strtoull(
-            purc_variant_get_string_const(msg->element), NULL, 16);
+            purc_variant_get_string_const(msg->elementValue), NULL, 16);
 
     int j;
     for (j = 0; j < NR_TABBEDWINDOWS; j++) {
@@ -705,7 +705,7 @@ static void on_remove_page_group(struct pcrdr_prot_data *prot_data,
     }
 
     uint64_t elementHandle = (uint64_t)strtoull(
-            purc_variant_get_string_const(msg->element), NULL, 16);
+            purc_variant_get_string_const(msg->elementValue), NULL, 16);
 
     int j;
     for (j = 0; j < NR_TABBEDWINDOWS; j++) {
@@ -828,7 +828,7 @@ found:
     }
 
     uint64_t elementHandle = (uint64_t)strtoull(
-            purc_variant_get_string_const(msg->element), NULL, 16);
+            purc_variant_get_string_const(msg->elementValue), NULL, 16);
 
     int k;
     for (k = 0; k < NR_TABPAGES; k++) {
@@ -887,7 +887,7 @@ found:
     }
 
     uint64_t elementHandle = (uint64_t)strtoull(
-            purc_variant_get_string_const(msg->element), NULL, 16);
+            purc_variant_get_string_const(msg->elementValue), NULL, 16);
 
     int k;
     for (k = 0; k < NR_TABPAGES; k++) {

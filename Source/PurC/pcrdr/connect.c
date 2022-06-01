@@ -330,7 +330,7 @@ int pcrdr_read_and_dispatch_message(pcrdr_conn *conn)
         }
         else {
             PC_WARN("Got an event (%s) but not event handler set.\n",
-                    purc_variant_get_string_const(msg->event));
+                    purc_variant_get_string_const(msg->eventName));
         }
         break;
 
