@@ -3891,7 +3891,6 @@ event_timer_fire(pcintr_timer_t timer, const char* id)
 
     struct pcinst *inst = pcinst_current();
     if (inst != NULL && inst->rdr_caps != NULL) {
-        PC_ASSERT(0);
         pcrdr_wait_and_dispatch_message(inst->conn_to_rdr, 1);
         purc_clr_error();
     }
