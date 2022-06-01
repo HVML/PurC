@@ -58,6 +58,38 @@ ctxt_destroy(void *ctxt)
     ctxt_for_return_destroy((struct ctxt_for_return*)ctxt);
 }
 
+static void
+post_callstate_success_event(pcintr_coroutine_t co, purc_variant_t with)
+{
+    PC_ASSERT(co->stack.entry);
+    PC_ASSERT(co->result);
+    PC_ASSERT(co->owner && co->parent->owner);
+    PURC_VARIANT_SAFE_CLEAR(co->result->result);
+    co->result->result = purc_variant_ref(with);
+
+    pcintr_coroutine_t target = co->parent;
+
+    purc_atom_t msg_type;
+    msg_type = pchvml_keyword(PCHVML_KEYWORD_ENUM(MSG, CALLSTATE));
+
+    purc_variant_t msg_sub_type;
+    msg_sub_type = purc_variant_make_string_static("success", false);
+    PC_ASSERT(msg_sub_type);
+
+    purc_variant_t src;
+    src = purc_variant_make_undefined();
+    PC_ASSERT(src);
+
+    purc_variant_t payload = purc_variant_ref(with);
+    PC_ASSERT(payload);
+
+    pcintr_fire_event_to_target(target, msg_type, msg_sub_type, src, payload);
+
+    PURC_VARIANT_SAFE_CLEAR(msg_sub_type);
+    PURC_VARIANT_SAFE_CLEAR(src);
+    PURC_VARIANT_SAFE_CLEAR(payload);
+}
+
 static int
 post_process_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
@@ -71,6 +103,10 @@ post_process_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 
     struct pcintr_stack_frame *p = pcintr_stack_frame_get_parent(frame);
     for(; p; p = pcintr_stack_frame_get_parent(p)) {
+        if (co->stack.entry && p->pos->tag_id == PCHVML_TAG_BODY) {
+            ctxt->back_anchor = p;
+            break;
+        }
         pcvdom_element_t pos = p->pos;
         if (pos->tag_id == PCHVML_TAG_CALL ||
             pos->tag_id == PCHVML_TAG_INCLUDE)
@@ -86,11 +122,16 @@ post_process_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         return -1;
     }
 
-    if (ctxt->with != PURC_VARIANT_INVALID) {
-        struct pcintr_stack_frame *back_anchor = ctxt->back_anchor;
-        int r = pcintr_set_question_var(back_anchor, ctxt->with);
-        if (r)
-            return -1;
+    if (co->stack.entry) {
+        post_callstate_success_event(co, ctxt->with);
+    }
+    else {
+        if (ctxt->with != PURC_VARIANT_INVALID) {
+            struct pcintr_stack_frame *back_anchor = ctxt->back_anchor;
+            int r = pcintr_set_question_var(back_anchor, ctxt->with);
+            if (r)
+                return -1;
+        }
     }
 
     co->stack.back_anchor = ctxt->back_anchor;
@@ -217,6 +258,14 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     r = pcintr_vdom_walk_attrs(frame, element, NULL, attr_found);
     if (r)
         return NULL;
+
+    if (ctxt->with == PURC_VARIANT_INVALID) {
+        ctxt->with = purc_variant_make_undefined();
+        if (ctxt->with == PURC_VARIANT_INVALID) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            return NULL;
+        }
+    }
 
     r = post_process(stack->co, frame);
     if (r)

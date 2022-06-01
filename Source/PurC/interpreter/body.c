@@ -251,7 +251,13 @@ again:
     curr = ctxt->curr;
 
     if (curr == NULL) {
-        struct pcvdom_element *element = frame->pos;
+        struct pcvdom_element *element;
+        if (co->stack.entry == NULL) {
+            element = frame->pos;
+        }
+        else {
+            element = co->stack.entry;
+        }
         struct pcvdom_node *node = &element->node;
         node = pcvdom_node_first_child(node);
         curr = node;
@@ -275,7 +281,6 @@ again:
             {
                 pcvdom_element_t element = PCVDOM_ELEMENT_FROM_NODE(curr);
                 on_element(co, frame, element);
-                PC_ASSERT(stack->except == 0);
                 return element;
             }
         case PCVDOM_NODE_CONTENT:

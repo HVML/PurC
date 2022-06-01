@@ -42,6 +42,10 @@ struct ctxt_for_call {
     purc_variant_t                with;
     purc_variant_t                within;
     purc_variant_t                as;
+    const char                   *s_as;
+
+    purc_variant_t                at;
+    const char                   *s_at;
 
     pcvdom_element_t              define;
 
@@ -58,6 +62,7 @@ ctxt_for_call_destroy(struct ctxt_for_call *ctxt)
         PURC_VARIANT_SAFE_CLEAR(ctxt->with);
         PURC_VARIANT_SAFE_CLEAR(ctxt->within);
         PURC_VARIANT_SAFE_CLEAR(ctxt->as);
+        PURC_VARIANT_SAFE_CLEAR(ctxt->at);
         free(ctxt);
     }
 }
@@ -104,13 +109,25 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         return 0;
     }
 
+    if (ctxt->synchronously) {
+        if (ctxt->as == PURC_VARIANT_INVALID) {
+            purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                    "vdom attribute 'as' for element <call> undefined");
+            return -1;
+        }
+        if (!purc_variant_is_string(ctxt->as)) {
+            purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                    "vdom attribute 'as' for element <call> is not string");
+            return -1;
+        }
+    }
+
     pcintr_coroutine_t child;
-    child = pcintr_create_child_co(define);
+    child = pcintr_create_child_co(define, ctxt->as);
     if (!child)
         return -1;
 
-    PC_ASSERT(0);
-    return -1;
+    return 0;
 }
 
 static int
@@ -207,6 +224,32 @@ process_attr_as(struct pcintr_stack_frame *frame,
         return -1;
     }
     ctxt->as = purc_variant_ref(val);
+    ctxt->s_as = purc_variant_get_string_const(ctxt->as);
+
+    return 0;
+}
+
+static int
+process_attr_at(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element,
+        purc_atom_t name, purc_variant_t val)
+{
+    struct ctxt_for_call *ctxt;
+    ctxt = (struct ctxt_for_call*)frame->ctxt;
+    if (ctxt->at != PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_DUPLICATED,
+                "vdom attribute '%s' for element <%s>",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    if (val == PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "vdom attribute '%s' for element <%s> undefined",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    ctxt->at = purc_variant_ref(val);
+    ctxt->s_at = purc_variant_get_string_const(ctxt->at);
 
     return 0;
 }
@@ -232,6 +275,9 @@ attr_found_val(struct pcintr_stack_frame *frame,
     }
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, AS)) == name) {
         return process_attr_as(frame, element, name, val);
+    }
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, AT)) == name) {
+        return process_attr_at(frame, element, name, val);
     }
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CONCURRENTLY)) == name) {
         ctxt->concurrently = 1;

@@ -54,9 +54,17 @@ struct pcintr_msg;
 typedef struct pcintr_msg pcintr_msg;
 typedef struct pcintr_msg *pcintr_msg_t;
 
+struct pcintr_event;
+typedef struct pcintr_event pcintr_event;
+typedef struct pcintr_event *pcintr_event_t;
+
 struct pcintr_cancel;
 typedef struct pcintr_cancel pcintr_cancel;
 typedef struct pcintr_cancel *pcintr_cancel_t;
+
+struct pcintr_coroutine_result;
+typedef struct pcintr_coroutine_result pcintr_coroutine_result;
+typedef struct pcintr_coroutine_result *pcintr_coroutine_result_t;
 
 struct pcintr_cancel {
     void                        *ctxt;
@@ -79,7 +87,6 @@ struct pcintr_heap {
     pthread_mutex_t       locker;
     volatile bool         exiting;
     struct list_head      routines;     // struct pcintr_routine
-
 
     int64_t               next_coroutine_id;
 };
@@ -144,6 +151,7 @@ struct pcintr_stack {
 
     // the pointer to the vDOM tree.
     purc_vdom_t vdom;
+    struct pcvdom_element         *entry;
 
     enum pcintr_stack_vdom_insertion_mode        mode;
 
@@ -221,14 +229,28 @@ struct pcintr_msg {
     struct list_head            node;
 };
 
+struct pcintr_event {
+    purc_atom_t msg_type;
+    purc_variant_t msg_sub_type;
+    purc_variant_t src;
+    purc_variant_t payload;
+};
+
+struct pcintr_coroutine_result {
+    purc_variant_t              as;
+    purc_variant_t              result;
+    struct list_head            node;     /* parent:children */
+};
+
 struct pcintr_coroutine {
     pcintr_heap_t               owner;    /* owner heap */
     char                       *name;
     struct list_head            node;     /* heap::coroutines */
 
     pcintr_coroutine_t          parent;
-    struct list_head            children; /* children coroutines */
-    struct list_head            sibling;  /* parent::children */
+    struct list_head            children; /* struct pcintr_coroutine_result */
+
+    pcintr_coroutine_result_t   result;
 
     struct pcintr_stack         stack;  /* stack that holds this coroutine */
 
@@ -410,7 +432,8 @@ void
 pcintr_pop_stack_frame_pseudo(void);
 
 pcintr_coroutine_t
-pcintr_create_child_co(pcvdom_element_t vdom_element);
+pcintr_create_child_co(pcvdom_element_t vdom_element,
+        purc_variant_t as);
 
 void
 pcintr_exception_clear(struct pcintr_exception *exception);
@@ -421,6 +444,10 @@ pcintr_exception_move(struct pcintr_exception *dst,
 
 void
 pcintr_post_msg(void *ctxt, pcintr_msg_callback_f cb);
+
+void
+pcintr_post_msg_to_target(pcintr_coroutine_t target, void *ctxt,
+        pcintr_msg_callback_f cb);
 
 purc_variant_t
 pcintr_make_object_of_dynamic_variants(size_t nr_args,
@@ -519,6 +546,16 @@ pcintr_revoke_observer(struct pcintr_observer* observer);
 void
 pcintr_revoke_observer_ex(purc_variant_t observed,
         purc_atom_t msg_type_atom, const char *sub_type);
+
+void
+pcintr_on_event(pcintr_event_t event);
+
+void
+pcintr_fire_event_to_target(pcintr_coroutine_t target,
+        purc_atom_t msg_type,
+        purc_variant_t msg_sub_type,
+        purc_variant_t src,
+        purc_variant_t payload);
 
 int
 pcintr_dispatch_message(pcintr_stack_t stack, purc_variant_t source,

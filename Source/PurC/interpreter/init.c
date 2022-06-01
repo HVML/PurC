@@ -1063,6 +1063,8 @@ static void on_async_resume_on_frame_pseudo(pcintr_coroutine_t co,
 
     bool has_except = false;
     if (!data->resp || data->ret_code != 200) {
+        // FIXME: what error to set?
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         has_except = true;
         goto dispatch_except;
     }
@@ -1105,7 +1107,7 @@ dispatch_except:
         pcvarmgr_dispatch_except(varmgr, s_name, purc_atom_to_string(atom));
     }
     if (has_except) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        // purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
     }
 
 clean_rws:
@@ -1453,7 +1455,7 @@ on_child_finished(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     }
 
     if (ctxt->literal == PURC_VARIANT_INVALID) {
-        ctxt->literal = purc_variant_make_undefined();
+        ctxt->literal = purc_variant_make_null();
     }
 
     if (ctxt->literal != PURC_VARIANT_INVALID) {
