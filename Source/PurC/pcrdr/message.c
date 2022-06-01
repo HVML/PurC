@@ -460,7 +460,7 @@ static const char *target_names[] = {
     "page",
     "dom",
     "thread",
-    "variant",
+    "user",
 };
 
 /* make sure number of target_names matches the enums */
