@@ -304,47 +304,41 @@ uintptr_t pcintr_rdr_create_plain_window(struct pcrdr_conn *conn,
     pcrdr_msg_element_type element_type = PCRDR_MSG_ELEMENT_TYPE_VOID;
     pcrdr_msg_data_type data_type = PCRDR_MSG_DATA_TYPE_JSON;
     purc_variant_t data = PURC_VARIANT_INVALID;
-    pcrdr_msg_target target;
-    uint64_t target_value;
-
-    target = PCRDR_MSG_TARGET_WORKSPACE;
-    target_value = workspace;
+    pcrdr_msg_target target = PCRDR_MSG_TARGET_WORKSPACE;
+    uint64_t target_value = workspace;
 
     data = purc_variant_make_object(0, NULL, NULL);
     if (data == PURC_VARIANT_INVALID) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        goto failed;
+        goto out_unref_data;
     }
 
     if (!object_set(data, ID_KEY, id)) {
-        goto failed;
+        goto out_unref_data;
     }
 
     if (!object_set(data, NAME_KEY, id)) {
-        goto failed;
+        goto out_unref_data;
     }
 
     if (title && !object_set(data, TITLE_KEY, title)) {
-        goto failed;
+        goto out_unref_data;
     }
 
     if (classes && !object_set(data, CLASS_KEY, classes)) {
-        goto failed;
+        goto out_unref_data;
     }
 
     if (style && !object_set(data, STYLE_KEY, style)) {
-        goto failed;
+        goto out_unref_data;
     }
 
-    if (data) {
-        purc_variant_ref(data);
-    }
     response_msg = pcintr_rdr_send_request_and_wait_response(conn, target,
             target_value, operation, element_type, NULL, NULL, data_type,
             data);
-
     if (response_msg == NULL) {
-        goto failed;
+        // pcintr_rdr_send_request_and_wait_response unref data
+        goto out;
     }
 
     int ret_code = response_msg->retCode;
@@ -356,16 +350,17 @@ uintptr_t pcintr_rdr_create_plain_window(struct pcrdr_conn *conn,
 
     if (ret_code != PCRDR_SC_OK) {
         purc_set_error(PCRDR_ERROR_SERVER_REFUSED);
-        goto failed;
+        goto out;
     }
 
     return plain_window;
 
-failed:
+out_unref_data:
     if (data != PURC_VARIANT_INVALID) {
         purc_variant_unref(data);
     }
 
+out:
     return 0;
 }
 
