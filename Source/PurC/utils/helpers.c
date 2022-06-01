@@ -38,7 +38,7 @@ bool purc_is_valid_token (const char* token, int max_len)
 {
     int i;
 
-    if (!purc_isalpha (token [0]))
+    if (token[0] != '_' && !purc_isalpha (token [0]))
         return false;
 
     i = 1;
@@ -60,7 +60,7 @@ bool purc_is_valid_loose_token (const char* token, int max_len)
 {
     int i;
 
-    if (!purc_isalpha (token [0]))
+    if (token[0] != '_' && !purc_isalpha (token [0]))
         return false;
 
     i = 1;

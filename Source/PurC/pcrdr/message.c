@@ -994,8 +994,8 @@ int pcrdr_serialize_message(const pcrdr_msg *msg, pcrdr_cb_write fn, void *ctxt)
             /* element: <css | xpath | handle | handles>/<element> */
             fn(ctxt, STR_KEY_ELEMENT, sizeof(STR_KEY_ELEMENT) - 1);
             fn(ctxt, STR_PAIR_SEPARATOR, sizeof(STR_PAIR_SEPARATOR) - 1);
-            fn(ctxt, element_type_names[msg->target],
-                    strlen(element_type_names[msg->target]));
+            fn(ctxt, element_type_names[msg->elementType],
+                    strlen(element_type_names[msg->elementType]));
             fn(ctxt, STR_VALUE_SEPARATOR, sizeof(STR_VALUE_SEPARATOR) - 1);
             value = purc_variant_get_string_const(msg->element);
             fn(ctxt, value, strlen(value));
