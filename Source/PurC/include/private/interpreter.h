@@ -89,6 +89,7 @@ struct pcintr_heap {
     struct list_head      routines;     // struct pcintr_routine
 
     int64_t               next_coroutine_id;
+    purc_atom_t           move_buff;
 };
 
 struct pcintr_stack_frame;

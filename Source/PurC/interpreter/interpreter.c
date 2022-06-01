@@ -576,6 +576,12 @@ static void _cleanup_instance(struct pcinst* inst)
         coroutine_destroy(co);
     }
 
+    if (heap->move_buff) {
+        PC_ASSERT(pthread_equal(pthread_self(), inst->running_thread));
+        purc_inst_destroy_move_buffer();
+        heap->move_buff = 0;
+    }
+
     free(heap);
     inst->intr_heap = NULL;
 }
@@ -593,10 +599,18 @@ static int _init_instance(struct pcinst* inst,
     if (!heap)
         return PURC_ERROR_OUT_OF_MEMORY;
 
+    heap->move_buff = purc_inst_create_move_buffer(
+            PCINST_MOVE_BUFFER_FLAG_NONE, 64);
+    if (!heap->move_buff) {
+        free(heap);
+        return PURC_ERROR_OUT_OF_MEMORY;
+    }
+
     int r;
     r = pthread_mutex_init(&heap->locker, NULL);
     if (r) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        purc_inst_destroy_move_buffer();
+        heap->move_buff = 0;
         free(heap);
         return PURC_ERROR_OUT_OF_MEMORY;
     }
@@ -3877,6 +3891,7 @@ event_timer_fire(pcintr_timer_t timer, const char* id)
 
     struct pcinst *inst = pcinst_current();
     if (inst != NULL && inst->rdr_caps != NULL) {
+        PC_ASSERT(0);
         pcrdr_wait_and_dispatch_message(inst->conn_to_rdr, 1);
         purc_clr_error();
     }
