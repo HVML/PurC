@@ -121,7 +121,7 @@ uintptr_t pcintr_rdr_create_workspace(struct pcrdr_conn *conn,
     pcrdr_msg_target target = PCRDR_MSG_TARGET_SESSION;
     uint64_t target_value = session;
     pcrdr_msg_element_type element_type = PCRDR_MSG_ELEMENT_TYPE_VOID;
-    pcrdr_msg_data_type data_type = PCRDR_MSG_DATA_TYPE_EJSON;
+    pcrdr_msg_data_type data_type = PCRDR_MSG_DATA_TYPE_JSON;
     purc_variant_t data = PURC_VARIANT_INVALID;
 
     data = purc_variant_make_object(0, NULL, NULL);
@@ -303,7 +303,7 @@ uintptr_t pcintr_rdr_create_plain_window(struct pcrdr_conn *conn,
     pcrdr_msg_target target;
     uint64_t target_value;
     pcrdr_msg_element_type element_type = PCRDR_MSG_ELEMENT_TYPE_VOID;
-    pcrdr_msg_data_type data_type = PCRDR_MSG_DATA_TYPE_EJSON;
+    pcrdr_msg_data_type data_type = PCRDR_MSG_DATA_TYPE_JSON;
     purc_variant_t data = PURC_VARIANT_INVALID;
 
     if (workspace) {
@@ -518,7 +518,7 @@ uintptr_t pcintr_rdr_create_tabbed_window(struct pcrdr_conn *conn,
     pcrdr_msg_target target;
     uint64_t target_value;
     pcrdr_msg_element_type element_type = PCRDR_MSG_ELEMENT_TYPE_VOID;
-    pcrdr_msg_data_type data_type = PCRDR_MSG_DATA_TYPE_EJSON;
+    pcrdr_msg_data_type data_type = PCRDR_MSG_DATA_TYPE_JSON;
     purc_variant_t data = PURC_VARIANT_INVALID;
 
     if (workspace) {
@@ -733,7 +733,7 @@ uintptr_t pcintr_rdr_create_tab_page(struct pcrdr_conn *conn,
     pcrdr_msg_target target = PCRDR_MSG_TARGET_WORKSPACE;
     uint64_t target_value = tabbed_window;
     pcrdr_msg_element_type element_type = PCRDR_MSG_ELEMENT_TYPE_VOID;
-    pcrdr_msg_data_type data_type = PCRDR_MSG_DATA_TYPE_EJSON;
+    pcrdr_msg_data_type data_type = PCRDR_MSG_DATA_TYPE_JSON;
     purc_variant_t data = PURC_VARIANT_INVALID;
 
     data = purc_variant_make_object(0, NULL, NULL);
@@ -1135,7 +1135,7 @@ pcintr_rdr_send_dom_request_ex(pcintr_stack_t stack, const char *operation,
             goto failed;
         }
     }
-    else if (data_type == PCRDR_MSG_DATA_TYPE_EJSON) {
+    else if (data_type == PCRDR_MSG_DATA_TYPE_JSON) {
         req_data = purc_variant_make_from_json_string(data, strlen(data));
         if (req_data == PURC_VARIANT_INVALID) {
             purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
