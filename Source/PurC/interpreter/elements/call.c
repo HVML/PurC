@@ -73,6 +73,60 @@ ctxt_destroy(void *ctxt)
     ctxt_for_call_destroy((struct ctxt_for_call*)ctxt);
 }
 
+static void
+event_release(pcintr_event_t event)
+{
+    if (event) {
+        PURC_VARIANT_SAFE_CLEAR(event->msg_sub_type);
+        PURC_VARIANT_SAFE_CLEAR(event->src);
+        PURC_VARIANT_SAFE_CLEAR(event->payload);
+    }
+}
+
+static void
+event_destroy(pcintr_event_t event)
+{
+    if (event) {
+        event_release(event);
+        free(event);
+    }
+}
+
+static void
+on_continuation(void *ud, void *extra)
+{
+    pcintr_coroutine_t co = pcintr_get_coroutine();
+    PC_ASSERT(co);
+    pcintr_stack_frame_t frame = (pcintr_stack_frame_t)ud;
+    PC_ASSERT(frame);
+
+    struct ctxt_for_call *ctxt;
+    ctxt = (struct ctxt_for_call*)frame->ctxt;
+    PC_ASSERT(ctxt);
+
+    pcintr_event_t event = (pcintr_event_t)extra;
+    PC_ASSERT(event);
+    PC_ASSERT(event->msg_type == pchvml_keyword(
+                PCHVML_KEYWORD_ENUM(MSG, CALLSTATE)));
+
+    purc_variant_t msg_sub_type = event->msg_sub_type;
+    PC_ASSERT(msg_sub_type != PURC_VARIANT_INVALID);
+    const char *s_msg_sub_type = purc_variant_get_string_const(msg_sub_type);
+    PC_ASSERT(0 == strcmp(s_msg_sub_type, "success"));
+
+    purc_variant_t src = event->src;
+    PC_ASSERT(src != PURC_VARIANT_INVALID);
+    PC_ASSERT(purc_variant_is_undefined(src));
+
+    purc_variant_t payload = event->payload;
+    PC_ASSERT(payload != PURC_VARIANT_INVALID);
+
+    int r = pcintr_set_question_var(frame, payload);
+    PC_ASSERT(r == 0);
+
+    event_destroy(event);
+}
+
 static int
 post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
@@ -127,7 +181,12 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     if (!child)
         return -1;
 
-    return 0;
+    if (ctxt->synchronously) {
+        pcintr_yield(frame, on_continuation);
+        return 0;
+    }
+
+    PC_ASSERT(0);
 }
 
 static int

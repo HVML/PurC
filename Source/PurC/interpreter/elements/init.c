@@ -872,7 +872,7 @@ static void on_sync_complete_on_frame(struct ctxt_for_init *ctxt,
     ctxt->resp = resp;
     PC_ASSERT(purc_get_last_error() == PURC_ERROR_OK);
 
-    pcintr_resume();
+    pcintr_resume(NULL);
 }
 
 static void on_sync_complete(purc_variant_t request_id, void *ud,
@@ -904,8 +904,10 @@ static void on_sync_complete(purc_variant_t request_id, void *ud,
     pcintr_set_current_co(NULL);
 }
 
-static void on_sync_continuation(void *ud)
+static void on_sync_continuation(void *ud, void *extra)
 {
+    UNUSED_PARAM(extra);
+
     struct pcintr_stack_frame *frame;
     frame = (struct pcintr_stack_frame*)ud;
     PC_ASSERT(frame);

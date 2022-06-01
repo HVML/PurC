@@ -260,7 +260,7 @@ struct pcintr_coroutine {
 
     struct list_head            registered_cancels;
     void                       *yielded_ctxt;
-    void (*continuation)(void *ctxt);
+    void (*continuation)(void *ctxt, void *extra);
 
     struct list_head            msgs;   /* struct pcintr_msg */
     unsigned int volatile       msg_pending:1;
@@ -424,8 +424,8 @@ pcintr_stack_get_bottom_frame(pcintr_stack_t stack);
 struct pcintr_stack_frame*
 pcintr_stack_frame_get_parent(struct pcintr_stack_frame *frame);
 
-void pcintr_yield(void *ctxt, void (*continuation)(void *ctxt));
-void pcintr_resume(void);
+void pcintr_yield(void *ctxt, void (*continuation)(void *ctxt, void *extra));
+void pcintr_resume(void *extra);
 
 void
 pcintr_push_stack_frame_pseudo(pcvdom_element_t vdom_element);
@@ -549,7 +549,8 @@ pcintr_revoke_observer_ex(purc_variant_t observed,
         purc_atom_t msg_type_atom, const char *sub_type);
 
 void
-pcintr_on_event(pcintr_event_t event);
+pcintr_on_event(purc_atom_t msg_type, purc_variant_t msg_sub_type,
+        purc_variant_t src, purc_variant_t payload);
 
 void
 pcintr_fire_event_to_target(pcintr_coroutine_t target,
