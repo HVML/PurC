@@ -250,7 +250,7 @@ pcintr_rdr_send_dom_request_ex(pcintr_stack_t stack, const char *operation,
 
 #define pcintr_rdr_dom_update_element_content_ejson(stack, element, data)     \
     pcintr_rdr_send_dom_request(stack, PCRDR_OPERATION_UPDATE,                \
-            element, NULL, PCRDR_MSG_DATA_TYPE_EJSON, data)
+            element, NULL, PCRDR_MSG_DATA_TYPE_JSON, data)
 
 #define pcintr_rdr_dom_update_element_property(stack, element, prop, content) \
     pcintr_rdr_send_dom_request_ex(stack, PCRDR_OPERATION_UPDATE,             \

@@ -104,7 +104,7 @@ pcrdr_msg *pcrdr_make_request_message(
             goto failed;
         }
     }
-    else if (data_type == PCRDR_MSG_DATA_TYPE_EJSON) {
+    else if (data_type == PCRDR_MSG_DATA_TYPE_JSON) {
         assert(data);
         msg->data = purc_variant_make_from_json_string(data, data_len);
 
@@ -144,7 +144,7 @@ pcrdr_msg *pcrdr_make_response_message(
             goto failed;
         }
     }
-    else if (data_type == PCRDR_MSG_DATA_TYPE_EJSON) {
+    else if (data_type == PCRDR_MSG_DATA_TYPE_JSON) {
         assert(data);
         msg->data = purc_variant_make_from_json_string(data, data_len);
 
@@ -209,7 +209,7 @@ pcrdr_msg *pcrdr_make_event_message(
             goto failed;
         }
     }
-    else if (data_type == PCRDR_MSG_DATA_TYPE_EJSON) {
+    else if (data_type == PCRDR_MSG_DATA_TYPE_JSON) {
         assert(data);
         msg->data = purc_variant_make_from_json_string(data, data_len);
 
@@ -460,6 +460,7 @@ static const char *target_names[] = {
     "page",
     "dom",
     "thread",
+    "variant",
 };
 
 /* make sure number of target_names matches the enums */
@@ -608,7 +609,7 @@ static bool on_result(pcrdr_msg *msg, char *value)
 
 static const char *data_type_names [] = {
     "void",
-    "ejson",
+    "json",
     "text",
 };
 
@@ -758,7 +759,7 @@ int pcrdr_parse_packet(char *packet, size_t sz_packet, pcrdr_msg **msg_out)
             goto failed;
         }
     }
-    else if (msg->dataType == PCRDR_MSG_DATA_TYPE_EJSON) {
+    else if (msg->dataType == PCRDR_MSG_DATA_TYPE_JSON) {
         assert(data != NULL && msg->__data_len > 0);
         msg->data = purc_variant_make_from_json_string(data, msg->__data_len);
 
@@ -809,11 +810,12 @@ serialize_message_data(const pcrdr_msg *msg, pcrdr_cb_write fn, void *ctxt)
         assert(msg->data != NULL);
         text_len = strlen(text);
     }
-    else if (msg->dataType == PCRDR_MSG_DATA_TYPE_EJSON) {
+    else if (msg->dataType == PCRDR_MSG_DATA_TYPE_JSON) {
         purc_rwstream_t buffer = NULL;
         buffer = purc_rwstream_new_buffer(PCRDR_MIN_PACKET_BUFF_SIZE,
                 PCRDR_MAX_INMEM_PAYLOAD_SIZE);
 
+        /* always serialize as a standard JSON */
         if (purc_variant_serialize(msg->data, buffer, 0,
                 PCVARIANT_SERIALIZE_OPT_PLAIN, NULL) < 0) {
             errcode = purc_get_last_error();
@@ -826,7 +828,7 @@ serialize_message_data(const pcrdr_msg *msg, pcrdr_cb_write fn, void *ctxt)
         purc_rwstream_destroy(buffer);
     }
 
-    /* dataType: <void | ejson | text> */
+    /* dataType: <void | json | text> */
     fn(ctxt, STR_KEY_DATA_TYPE, sizeof(STR_KEY_DATA_TYPE) - 1);
     fn(ctxt, STR_PAIR_SEPARATOR, sizeof(STR_PAIR_SEPARATOR) - 1);
     fn(ctxt, data_type_names[msg->dataType],
