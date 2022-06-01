@@ -1,8 +1,8 @@
 /**
- * @file sleep.c
+ * @file exit.c
  * @author Xu Xiaohong
- * @date 2022/05/26
- * @brief The ops for <sleep>
+ * @date 2022/05/23
+ * @brief The ops for <exit>
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -25,30 +25,22 @@
 
 #include "purc.h"
 
-#include "internal.h"
+#include "../internal.h"
 
 #include "private/debug.h"
-#include "private/timer.h"
 
-#include "ops.h"
+#include "../ops.h"
 
-struct ctxt_for_sleep {
+struct ctxt_for_exit {
     struct pcvdom_node           *curr;
     purc_variant_t                with;
-
-    int64_t                       with_secs;
-    pcintr_timer_t                timer;
 };
 
 static void
-ctxt_for_sleep_destroy(struct ctxt_for_sleep *ctxt)
+ctxt_for_exit_destroy(struct ctxt_for_exit *ctxt)
 {
     if (ctxt) {
         PURC_VARIANT_SAFE_CLEAR(ctxt->with);
-        if (ctxt->timer) {
-            pcintr_timer_destroy(ctxt->timer);
-            ctxt->timer = NULL;
-        }
 
         free(ctxt);
     }
@@ -57,7 +49,7 @@ ctxt_for_sleep_destroy(struct ctxt_for_sleep *ctxt)
 static void
 ctxt_destroy(void *ctxt)
 {
-    ctxt_for_sleep_destroy((struct ctxt_for_sleep*)ctxt);
+    ctxt_for_exit_destroy((struct ctxt_for_exit*)ctxt);
 }
 
 static int
@@ -65,8 +57,8 @@ process_attr_with(struct pcintr_stack_frame *frame,
         struct pcvdom_element *element,
         purc_atom_t name, purc_variant_t val)
 {
-    struct ctxt_for_sleep *ctxt;
-    ctxt = (struct ctxt_for_sleep*)frame->ctxt;
+    struct ctxt_for_exit *ctxt;
+    ctxt = (struct ctxt_for_exit*)frame->ctxt;
     if (ctxt->with != PURC_VARIANT_INVALID) {
         purc_set_error_with_info(PURC_ERROR_DUPLICATED,
                 "vdom attribute '%s' for element <%s>",
@@ -79,20 +71,8 @@ process_attr_with(struct pcintr_stack_frame *frame,
                 purc_atom_to_string(name), element->tag_name);
         return -1;
     }
-    bool force = true;
-    if (!purc_variant_cast_to_longint(val, &ctxt->with_secs, force)) {
-        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
-                "vdom attribute '%s' for element <%s> is not longint",
-                purc_atom_to_string(name), element->tag_name);
-        return -1;
-    }
-    if (ctxt->with_secs <= 0) {
-        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
-                "vdom attribute '%s' for element <%s> is not positive integer",
-                purc_atom_to_string(name), element->tag_name);
-        return -1;
-    }
-    ctxt->with = purc_variant_ref(val);
+    ctxt->with = val;
+    purc_variant_ref(val);
 
     return 0;
 }
@@ -140,30 +120,16 @@ attr_found(struct pcintr_stack_frame *frame,
     return r ? -1 : 0;
 }
 
-static void on_continuation(void *ud)
-{
-    struct pcintr_stack_frame *frame;
-    frame = (struct pcintr_stack_frame*)ud;
-    PC_ASSERT(frame);
-
-    pcintr_coroutine_t co = pcintr_get_coroutine();
-    PC_ASSERT(co);
-    PC_ASSERT(co->state == CO_STATE_RUN);
-    pcintr_stack_t stack = &co->stack;
-    PC_ASSERT(frame == pcintr_stack_get_bottom_frame(stack));
-
-    struct ctxt_for_sleep *ctxt;
-    ctxt = (struct ctxt_for_sleep*)frame->ctxt;
-    PC_ASSERT(ctxt);
-    PC_ASSERT(ctxt->timer);
-    pcintr_timer_processed(ctxt->timer);
-}
-
 static void*
 after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 {
     PC_ASSERT(stack && pos);
     PC_ASSERT(stack == pcintr_get_stack());
+
+    if (stack->exited)
+        return NULL;
+
+    pcintr_set_exit();
 
     if (stack->except)
         return NULL;
@@ -174,8 +140,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
 
-    struct ctxt_for_sleep *ctxt;
-    ctxt = (struct ctxt_for_sleep*)calloc(1, sizeof(*ctxt));
+    struct ctxt_for_exit *ctxt;
+    ctxt = (struct ctxt_for_exit*)calloc(1, sizeof(*ctxt));
     if (!ctxt) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
@@ -194,19 +160,9 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (r)
         return NULL;
 
-    bool for_yielded = true;
-    ctxt->timer = pcintr_timer_create(NULL, for_yielded, NULL, NULL);
-    if (!ctxt->timer)
-        return NULL;
-
-    pcintr_timer_set_interval(ctxt->timer, ctxt->with_secs * 1000);
-    pcintr_timer_start_oneshot(ctxt->timer);
-
-    pcintr_yield(frame, on_continuation);
-
     purc_clr_error();
 
-    return NULL;
+    return ctxt;
 }
 
 static bool
@@ -226,10 +182,10 @@ on_popping(pcintr_stack_t stack, void* ud)
     struct pcvdom_element *element = frame->pos;
     PC_ASSERT(element);
 
-    struct ctxt_for_sleep *ctxt;
-    ctxt = (struct ctxt_for_sleep*)frame->ctxt;
+    struct ctxt_for_exit *ctxt;
+    ctxt = (struct ctxt_for_exit*)frame->ctxt;
     if (ctxt) {
-        ctxt_for_sleep_destroy(ctxt);
+        ctxt_for_exit_destroy(ctxt);
         frame->ctxt = NULL;
     }
 
@@ -244,7 +200,7 @@ ops = {
     .select_child       = NULL,
 };
 
-struct pcintr_element_ops* pcintr_get_sleep_ops(void)
+struct pcintr_element_ops* pcintr_get_exit_ops(void)
 {
     return &ops;
 }

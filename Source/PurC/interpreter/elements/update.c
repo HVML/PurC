@@ -25,7 +25,7 @@
 
 #include "purc.h"
 
-#include "internal.h"
+#include "../internal.h"
 
 #include "private/debug.h"
 #include "private/dvobjs.h"
@@ -34,7 +34,7 @@
 
 #include "html/interfaces/document.h"
 
-#include "ops.h"
+#include "../ops.h"
 
 #include <pthread.h>
 #include <unistd.h>

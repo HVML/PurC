@@ -25,13 +25,13 @@
 
 #include "purc.h"
 
-#include "internal.h"
+#include "../internal.h"
 
 #include "private/debug.h"
 #include "purc-runloop.h"
 #include "private/stringbuilder.h"
 
-#include "ops.h"
+#include "../ops.h"
 
 #include <pthread.h>
 #include <unistd.h>

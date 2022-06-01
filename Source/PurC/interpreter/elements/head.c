@@ -1,5 +1,5 @@
 /**
- * @file document.c
+ * @file head.c
  * @author Xu Xiaohong
  * @date 2021/12/06
  * @brief
@@ -25,25 +25,22 @@
 
 #include "purc.h"
 
-#include "internal.h"
+#include "../internal.h"
 
 #include "private/debug.h"
 #include "purc-runloop.h"
 
-#include "private/stringbuilder.h"
-
-#include "ops.h"
+#include "../ops.h"
 
 #include <pthread.h>
 #include <unistd.h>
-#include <limits.h>
 
-struct ctxt_for_document {
+struct ctxt_for_head {
     struct pcvdom_node           *curr;
 };
 
 static void
-ctxt_for_document_destroy(struct ctxt_for_document *ctxt)
+ctxt_for_head_destroy(struct ctxt_for_head *ctxt)
 {
     if (ctxt) {
         free(ctxt);
@@ -53,45 +50,48 @@ ctxt_for_document_destroy(struct ctxt_for_document *ctxt)
 static void
 ctxt_destroy(void *ctxt)
 {
-    ctxt_for_document_destroy((struct ctxt_for_document*)ctxt);
+    ctxt_for_head_destroy((struct ctxt_for_head*)ctxt);
 }
 
 static int
-token_found(const char *start, const char *end, void *ud)
+attr_found(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element,
+        purc_atom_t name,
+        struct pcvdom_attr *attr,
+        void *ud)
 {
-    pcintr_stack_t stack = (pcintr_stack_t)ud;
-    (void)stack;
+    UNUSED_PARAM(frame);
+    UNUSED_PARAM(element);
+    UNUSED_PARAM(name);
+    UNUSED_PARAM(ud);
 
-    if (start == end)
-        return 0;
+    PC_ASSERT(attr->op == PCHVML_ATTRIBUTE_OPERATOR);
+    PC_ASSERT(attr->key);
 
-    bool ok;
-    ok = pcintr_load_dynamic_variant(stack, start, end-start);
+    pcintr_stack_t stack = pcintr_get_stack();
+    PC_ASSERT(stack);
+    int r = pcintr_set_edom_attribute(stack, attr);
 
-    return ok ? 0 : -1;
+    return r ? -1 : 0;
 }
 
 static void*
 after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 {
-    PC_ASSERT(stack);
+    PC_ASSERT(stack && pos);
     PC_ASSERT(stack == pcintr_get_stack());
-    PC_ASSERT(stack->mode == STACK_VDOM_BEFORE_HVML);
+    PC_ASSERT(stack->mode == STACK_VDOM_BEFORE_HEAD);
+    stack->mode = STACK_VDOM_IN_HEAD;
 
     if (stack->except)
-        return NULL;
-
-    int r;
-    r = pcintr_init_vdom_under_stack(stack);
-    if (r)
         return NULL;
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame);
 
-    struct ctxt_for_document *ctxt;
-    ctxt = (struct ctxt_for_document*)calloc(1, sizeof(*ctxt));
+    struct ctxt_for_head *ctxt;
+    ctxt = (struct ctxt_for_head*)calloc(1, sizeof(*ctxt));
     if (!ctxt) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
@@ -101,24 +101,18 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     frame->ctxt_destroy = ctxt_destroy;
 
     frame->pos = pos; // ATTENTION!!
-    frame->edom_element = NULL;
+    frame->edom_element = pchtml_doc_get_head(stack->doc);
+    int r;
+    r = pcintr_refresh_at_var(frame);
+    if (r)
+        return NULL;
 
-    struct pcvdom_document *document;
-    document = stack->vdom->document;
-    PC_ASSERT(document);
-    struct pcvdom_doctype  *doctype = &document->doctype;
-    const char *system_info = doctype->system_info;
-    if (system_info) {
-        const char *p = strchr(system_info, ':');
-        if (p) {
-            ++p;
-            r = pcutils_token_by_delim(p, p + strlen(p),
-                    ' ', stack, token_found);
-            if (r) {
-                return NULL;
-            }
-        }
-    }
+    struct pcvdom_element *element = frame->pos;
+    PC_ASSERT(element);
+
+    r = pcintr_vdom_walk_attrs(frame, element, NULL, attr_found);
+    if (r)
+        return NULL;
 
     purc_clr_error();
 
@@ -130,43 +124,24 @@ on_popping(pcintr_stack_t stack, void* ud)
 {
     PC_ASSERT(stack);
     PC_ASSERT(stack == pcintr_get_stack());
-    switch (stack->mode) {
-        case STACK_VDOM_BEFORE_HVML:
-            stack->mode = STACK_VDOM_AFTER_HVML;
-            break;
-        case STACK_VDOM_BEFORE_HEAD:
-            stack->mode = STACK_VDOM_AFTER_HVML;
-            break;
-        case STACK_VDOM_IN_HEAD:
-            PC_ASSERT(0);
-            break;
-        case STACK_VDOM_AFTER_HEAD:
-            stack->mode = STACK_VDOM_AFTER_HVML;
-            break;
-        case STACK_VDOM_IN_BODY:
-            PC_ASSERT(0);
-            break;
-        case STACK_VDOM_AFTER_BODY:
-            stack->mode = STACK_VDOM_AFTER_HVML;
-            break;
-        case STACK_VDOM_AFTER_HVML:
-            break;
-        default:
-            PC_ASSERT(0);
-            break;
-    }
+    PC_ASSERT(stack->mode == STACK_VDOM_IN_HEAD);
+    stack->mode = STACK_VDOM_AFTER_HEAD;
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
+    PC_ASSERT(frame);
     PC_ASSERT(ud == frame->ctxt);
 
     if (frame->ctxt == NULL)
         return true;
 
-    struct ctxt_for_document *ctxt;
-    ctxt = (struct ctxt_for_document*)frame->ctxt;
+    struct pcvdom_element *element = frame->pos;
+    PC_ASSERT(element);
+
+    struct ctxt_for_head *ctxt;
+    ctxt = (struct ctxt_for_head*)frame->ctxt;
     if (ctxt) {
-        ctxt_for_document_destroy(ctxt);
+        ctxt_for_head_destroy(ctxt);
         frame->ctxt = NULL;
     }
 
@@ -220,8 +195,8 @@ select_child(pcintr_stack_t stack, void* ud)
     if (stack->back_anchor)
         return NULL;
 
-    struct ctxt_for_document *ctxt;
-    ctxt = (struct ctxt_for_document*)frame->ctxt;
+    struct ctxt_for_head *ctxt;
+    ctxt = (struct ctxt_for_head*)frame->ctxt;
 
     struct pcvdom_node *curr;
 
@@ -229,18 +204,19 @@ again:
     curr = ctxt->curr;
 
     if (curr == NULL) {
-        struct pcvdom_document *document = stack->vdom->document;
-        curr = pcvdom_node_first_child(&document->node);
-        purc_clr_error();
+        struct pcvdom_element *element = frame->pos;
+        struct pcvdom_node *node = &element->node;
+        node = pcvdom_node_first_child(node);
+        curr = node;
     }
     else {
         curr = pcvdom_node_next_sibling(curr);
-        purc_clr_error();
     }
 
     ctxt->curr = curr;
 
     if (curr == NULL) {
+        purc_clr_error();
         return NULL;
     }
 
@@ -252,9 +228,8 @@ again:
             {
                 pcvdom_element_t element = PCVDOM_ELEMENT_FROM_NODE(curr);
                 on_element(co, frame, element);
-                if (element->tag_id == PCHVML_TAG_HVML)
-                    return element;
-                goto again;
+                PC_ASSERT(stack->except == 0);
+                return element;
             }
         case PCVDOM_NODE_CONTENT:
             on_content(co, frame, PCVDOM_CONTENT_FROM_NODE(curr));
@@ -278,7 +253,7 @@ ops = {
     .select_child       = select_child,
 };
 
-struct pcintr_element_ops* pcintr_get_document_ops(void)
+struct pcintr_element_ops* pcintr_get_head_ops(void)
 {
     return &ops;
 }
