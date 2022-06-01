@@ -2592,7 +2592,8 @@ bool is_variant_match_observe(purc_variant_t observed, purc_variant_t val)
         if (ops == NULL || ops->match_observe == NULL) {
             return false;
         }
-        return ops->match_observe(observed, val);
+        return ops->match_observe(purc_variant_native_get_entity(observed),
+                val);
     }
     return false;
 }

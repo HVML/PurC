@@ -446,6 +446,17 @@ match_observe(void* native_entity, purc_variant_t val)
     return false;
 }
 
+static bool
+on_observe(void* native_entity,
+        const char *event_name, const char *event_subname)
+{
+    UNUSED_PARAM(native_entity);
+    UNUSED_PARAM(event_name);
+    UNUSED_PARAM(event_subname);
+    return true;
+}
+
+
 // the callback to release the native entity.
 static void
 on_release(void* native_entity)
@@ -472,7 +483,7 @@ make_elements(void)
         .eraser                     = eraser,
         .match_observe              = match_observe,
 
-        .on_observe                = NULL,
+        .on_observe                = on_observe,
         .on_release                = on_release,
     };
 

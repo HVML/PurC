@@ -1031,9 +1031,17 @@ void pcintr_rdr_event_handler(pcrdr_conn *conn, const pcrdr_msg *msg)
 
     case PCRDR_MSG_TARGET_DOM:
         {
-            purc_vdom_t vdom = find_vdom_by_target_vdom(
-                    (uintptr_t)msg->targetValue, &stack);
-            source = purc_variant_make_native(vdom, NULL);
+            const char *element = purc_variant_get_string_const(
+                    msg->elementValue);
+            if (element == NULL) {
+                goto out;
+            }
+
+            if (msg->elementType == PCRDR_MSG_ELEMENT_TYPE_HANDLE) {
+                unsigned long long int p = strtoull(element, NULL, 16);
+                find_vdom_by_target_vdom((uintptr_t)msg->targetValue, &stack);
+                source = purc_variant_make_native((void*)(uintptr_t)p, NULL);
+            }
         }
         break;
 
