@@ -2705,6 +2705,7 @@ static void handle_vdom_event(pcintr_stack_t stack, purc_vdom_t vdom,
     {
         const char *sub_type = purc_variant_get_string_const(sub);
         if (strcmp(sub_type, MSG_SUB_TYPE_CLOSE) == 0) {
+            // TODO : quit runner
             fprintf(stderr, "## event msg not handle : %s\n", sub_type);
         }
         break;
