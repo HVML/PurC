@@ -106,6 +106,11 @@ const char *pcrdr_operation_from_atom(purc_atom_t op_atom, unsigned int *id)
     return NULL;
 }
 
+purc_atom_t pcrdr_try_operation_atom(const char *op)
+{
+    return purc_atom_try_string_ex(ATOM_BUCKET_RDROP, op);
+}
+
 static const char *prot_names[] = {
     PURC_RDRPROT_NAME_HEADLESS,
     PURC_RDRPROT_NAME_THREAD,
