@@ -1739,10 +1739,9 @@ static void on_sub_exit_event(void *ctxt)
     PRINT_VARIANT(child_result->result);
 
     list_del(&child_result->node);
+    PURC_VARIANT_SAFE_CLEAR(child_result->as);
     PURC_VARIANT_SAFE_CLEAR(child_result->result);
     free(child_result);
-
-    PC_ASSERT(0);
 }
 
 static void check_after_execution(pcintr_coroutine_t co);
@@ -4129,5 +4128,43 @@ pcintr_create_child_co(pcvdom_element_t vdom_element,
     purc_rwstream_destroy(rws);
 
     return child;
+}
+
+static void
+event_release(pcintr_event_t event)
+{
+    if (event) {
+        PURC_VARIANT_SAFE_CLEAR(event->msg_sub_type);
+        PURC_VARIANT_SAFE_CLEAR(event->src);
+        PURC_VARIANT_SAFE_CLEAR(event->payload);
+    }
+}
+
+static void
+event_destroy(pcintr_event_t event)
+{
+    if (event) {
+        event_release(event);
+        free(event);
+    }
+}
+
+void
+pcintr_on_event(pcintr_event_t event)
+{
+    PC_ASSERT(event);
+
+    purc_atom_t msg_type = event->msg_type;
+
+    if (msg_type == pchvml_keyword(PCHVML_KEYWORD_ENUM(MSG, CALLSTATE))) {
+        if (0)
+            PC_ASSERT(0);
+    }
+    else {
+        if (0)
+            PC_ASSERT(0);
+    }
+
+    event_destroy(event);
 }
 

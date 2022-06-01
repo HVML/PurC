@@ -844,7 +844,10 @@ attr_found(struct pcintr_stack_frame *frame,
         struct pcvdom_attr *attr,
         void *ud)
 {
-    PC_ASSERT(name);
+    if (!name) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        return -1;
+    }
 
     purc_variant_t val = pcintr_eval_vdom_attr(pcintr_get_stack(), attr);
     if (val == PURC_VARIANT_INVALID)
@@ -894,7 +897,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     int r;
     r = pcintr_vdom_walk_attrs(frame, element, NULL, attr_found);
-    PC_ASSERT(r == 0);
     if (r)
         return NULL;
 
