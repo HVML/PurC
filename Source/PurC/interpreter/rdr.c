@@ -994,7 +994,7 @@ void pcintr_rdr_event_handler(pcrdr_conn *conn, const pcrdr_msg *msg)
         return;
     }
 
-    if (!purc_variant_is_string(msg->event)) {
+    if (!purc_variant_is_string(msg->eventName)) {
         return;
     }
 
@@ -1002,7 +1002,7 @@ void pcintr_rdr_event_handler(pcrdr_conn *conn, const pcrdr_msg *msg)
     if (type == PURC_VARIANT_INVALID) {
         return;
     }
-    purc_variant_t sub_type = msg->event;
+    purc_variant_t sub_type = msg->eventName;
 
     pcintr_stack_t stack = NULL;
     purc_variant_t source = PURC_VARIANT_INVALID;
