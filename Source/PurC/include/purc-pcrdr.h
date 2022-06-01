@@ -62,6 +62,7 @@
 
 #define PCRDR_REQUESTID_INITIAL         "0"
 #define PCRDR_REQUESTID_NORETURN        "-"
+#define PCRDR_EVENTSOURCE_ANONYMOUS     "-"
 
 /* operations */
 enum {
@@ -586,12 +587,15 @@ struct pcrdr_msg
     uint64_t        targetValue;
     uint64_t        resultValue;
 
+    purc_variant_t  requestId;
     purc_variant_t  operation;
-    purc_variant_t  event;
-    purc_variant_t  element;
+
+    purc_variant_t  eventName;
+    purc_variant_t  eventSource;
+
+    purc_variant_t  elementValue;
     purc_variant_t  property;
 
-    purc_variant_t  requestId;
     purc_variant_t  data;
 };
 
@@ -636,7 +640,7 @@ pcrdr_make_void_message(void);
  * @param target_value: the value of the target object
  * @param operation: the request operation string.
  * @param element_type: the element type of the request
- * @param element: the pointer to the element(s) (nullable).
+ * @param element_value: the element value string (nullable).
  * @param property: the property (nullable).
  * @param data_type: the data type of the request.
  * @param data: the pointer to the data (nullable)
@@ -648,9 +652,8 @@ pcrdr_make_void_message(void);
 PCA_EXPORT pcrdr_msg *
 pcrdr_make_request_message(
         pcrdr_msg_target target, uint64_t target_value,
-        const char *operation,
-        const char *request_id,
-        pcrdr_msg_element_type element_type, const char *element,
+        const char *operation, const char *request_id,
+        pcrdr_msg_element_type element_type, const char *element_value,
         const char *property,
         pcrdr_msg_data_type data_type, const char* data, size_t data_len);
 
@@ -677,12 +680,15 @@ pcrdr_make_response_message(
  *
  * @param target: the target of the message.
  * @param target_value: the value of the target object
- * @param event: the event name string.
+ * @param event_name: the event name string.
+ * @param event_source: the event source string (nullable).
+ *      If it is NULL, the system use `-` as the event source.
  * @param element_type: the element type.
- * @param element: the pointer to the element(s) (nullable).
+ * @param element_value: the element value string.
  * @param property: the property (nullable)
  * @param data_type: the data type of the event.
- * @param data: the pointer to the data (nullable)
+ * @param data: the pointer to the data (nullable).
+ * @param data_len: the length of the data.
  *
  * Returns: The pointer to the event message structure; NULL on error.
  *
@@ -691,8 +697,8 @@ pcrdr_make_response_message(
 PCA_EXPORT pcrdr_msg *
 pcrdr_make_event_message(
         pcrdr_msg_target target, uint64_t target_value,
-        const char *event,
-        pcrdr_msg_element_type element_type, const char *element,
+        const char *event_name, const char *event_source,
+        pcrdr_msg_element_type element_type, const char *element_value,
         const char *property,
         pcrdr_msg_data_type data_type, const char* data, size_t data_len);
 
