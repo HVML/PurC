@@ -1004,6 +1004,8 @@ void pcintr_rdr_event_handler(pcrdr_conn *conn, const pcrdr_msg *msg)
     }
     purc_variant_t sub_type = msg->eventName;
 
+    const char *es = purc_variant_get_string_const(sub_type);
+    PC_DEBUG("Rdr event handle : %s\n", es);
     pcintr_stack_t stack = NULL;
     purc_variant_t source = PURC_VARIANT_INVALID;
     switch (msg->target) {

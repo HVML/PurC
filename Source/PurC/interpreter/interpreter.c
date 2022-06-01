@@ -47,6 +47,7 @@
 #define EVENT_TIMER_INTRVAL  10
 
 #define MSG_TYPE_CHANGE     "change"
+#define MSG_SUB_TYPE_CLOSE  "close"
 
 static void
 stack_frame_release(struct pcintr_stack_frame *frame)
@@ -137,6 +138,9 @@ pcintr_util_dump_document_ex(pchtml_html_document_t *doc, char **dump_buff,
 {
     PC_ASSERT(doc);
     UNUSED_PARAM(dump_buff);
+    UNUSED_PARAM(file);
+    UNUSED_PARAM(line);
+    UNUSED_PARAM(func);
 
     char buf[1024];
     size_t nr = sizeof(buf);
@@ -2689,6 +2693,27 @@ static void observer_matched(struct pcintr_observer *p)
     pcintr_post_msg(data, on_observer_matched);
 }
 
+static void handle_vdom_event(pcintr_stack_t stack, purc_vdom_t vdom,
+        purc_variant_t sub, purc_variant_t data)
+{
+    UNUSED_PARAM(stack);
+    UNUSED_PARAM(vdom);
+    UNUSED_PARAM(data);
+    enum purc_variant_type type = purc_variant_get_type(sub);
+    switch (type) {
+    case PURC_VARIANT_TYPE_STRING:
+    {
+        const char *sub_type = purc_variant_get_string_const(sub);
+        if (strcmp(sub_type, MSG_SUB_TYPE_CLOSE) == 0) {
+            fprintf(stderr, "## event msg not handle : %s\n", sub_type);
+        }
+        break;
+    }
+    default:
+        break;
+    }
+}
+
 static void
 handle_message(void *ctxt)
 {
@@ -2721,11 +2746,25 @@ handle_message(void *ctxt)
 
     purc_variant_t observed = msg->source;
 
+    bool handle = false;
     struct list_head* list = get_observer_list(stack, observed); {
         struct pcintr_observer *p, *n;
         list_for_each_entry_safe(p, n, list, node) {
             if (is_observer_match(p, observed, msg_type_atom, sub_type)) {
+                handle = true;
                 observer_matched(p);
+            }
+        }
+    }
+
+    if (!handle && purc_variant_is_native(observed)) {
+        void *dest = purc_variant_native_get_entity(observed);
+        // window close event dispatch to vdom
+        if (dest == stack->vdom) {
+            if (pchvml_keyword(PCHVML_KEYWORD_ENUM(MSG, EVENT)) ==
+                    msg_type_atom) {
+                handle_vdom_event(stack, stack->vdom, msg->sub_type,
+                        msg->extra);
             }
         }
     }
