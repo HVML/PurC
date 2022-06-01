@@ -35,6 +35,7 @@
 #include <string.h>
 
 #define ID_KEY                  "id"
+#define NAME_KEY                "name"
 #define TITLE_KEY               "title"
 #define STYLE_KEY               "style"
 #define LEVEL_KEY               "level"
@@ -292,8 +293,7 @@ failed:
 }
 
 uintptr_t pcintr_rdr_create_plain_window(struct pcrdr_conn *conn,
-        uintptr_t session, uintptr_t workspace,
-        pcrdr_page_type page_type, const char *id,
+        uintptr_t workspace, pcrdr_page_type page_type, const char *id,
         const char *title, const char *classes, const char *style)
 {
     UNUSED_PARAM(page_type);
@@ -301,20 +301,14 @@ uintptr_t pcintr_rdr_create_plain_window(struct pcrdr_conn *conn,
     pcrdr_msg *response_msg = NULL;
 
     const char *operation = PCRDR_OPERATION_CREATEPLAINWINDOW;
-    pcrdr_msg_target target;
-    uint64_t target_value;
     pcrdr_msg_element_type element_type = PCRDR_MSG_ELEMENT_TYPE_VOID;
     pcrdr_msg_data_type data_type = PCRDR_MSG_DATA_TYPE_EJSON;
     purc_variant_t data = PURC_VARIANT_INVALID;
+    pcrdr_msg_target target;
+    uint64_t target_value;
 
-    if (workspace) {
-        target = PCRDR_MSG_TARGET_WORKSPACE;
-        target_value = workspace;
-    }
-    else {
-        target = PCRDR_MSG_TARGET_SESSION;
-        target_value = session;
-    }
+    target = PCRDR_MSG_TARGET_WORKSPACE;
+    target_value = workspace;
 
     data = purc_variant_make_object(0, NULL, NULL);
     if (data == PURC_VARIANT_INVALID) {
@@ -323,6 +317,10 @@ uintptr_t pcintr_rdr_create_plain_window(struct pcrdr_conn *conn,
     }
 
     if (!object_set(data, ID_KEY, id)) {
+        goto failed;
+    }
+
+    if (!object_set(data, NAME_KEY, id)) {
         goto failed;
     }
 
@@ -338,6 +336,9 @@ uintptr_t pcintr_rdr_create_plain_window(struct pcrdr_conn *conn,
         goto failed;
     }
 
+    if (data) {
+        purc_variant_ref(data);
+    }
     response_msg = pcintr_rdr_send_request_and_wait_response(conn, target,
             target_value, operation, element_type, NULL, NULL, data_type,
             data);
@@ -1099,7 +1100,7 @@ purc_attach_vdom_to_renderer(purc_vdom_t vdom,
     UNUSED_PARAM(target_group);
 
     uintptr_t window = pcintr_rdr_create_plain_window(conn_to_rdr,
-        session_handle, workspace, page_type,
+        workspace, page_type,
         extra_info->id,
         extra_info->title,
         extra_info->classes,

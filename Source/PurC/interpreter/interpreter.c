@@ -3790,6 +3790,12 @@ event_timer_fire(pcintr_timer_t timer, const char* id)
 
     PC_ASSERT(pcintr_get_heap());
 
+    struct pcinst *inst = pcinst_current();
+    if (inst != NULL && inst->rdr_caps != NULL) {
+        pcrdr_wait_and_dispatch_message(inst->conn_to_rdr, 1);
+        purc_clr_error();
+    }
+
     pcintr_coroutine_t co = pcintr_get_coroutine();
     PC_ASSERT(co);
     PC_ASSERT(co->state == CO_STATE_RUN);
