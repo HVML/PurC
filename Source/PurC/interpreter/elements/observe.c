@@ -689,6 +689,7 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         purc_variant_unref(v);
     }
     else {
+        // FIXME: copy from undefined.c
         char *sv = pcvariant_to_string(v);
         PC_ASSERT(sv);
         int r;
