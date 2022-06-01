@@ -69,7 +69,7 @@ pcrdr_msg *pcrdr_make_request_message(
         msg->elementValue = NULL;
     }
     else {
-        assert(elementValue);
+        assert(msg->elementValue == NULL);
         msg->elementValue = purc_variant_make_string(element_value, true);
         if (msg->elementValue == NULL)
             goto failed;
