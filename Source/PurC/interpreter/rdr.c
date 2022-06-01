@@ -997,15 +997,15 @@ void pcintr_rdr_event_handler(pcrdr_conn *conn, const pcrdr_msg *msg)
     if (!purc_variant_is_string(msg->eventName)) {
         return;
     }
+    const char *event = purc_variant_get_string_const(msg->eventName);
+    PC_DEBUG("Rdr event handle : %s\n", event);
 
-    purc_variant_t type = purc_variant_make_string(MSG_TYPE_EVENT, false);
-    if (type == PURC_VARIANT_INVALID) {
+    purc_variant_t msg_type = PURC_VARIANT_INVALID;
+    purc_variant_t msg_sub_type = PURC_VARIANT_INVALID;
+    if (!pcintr_parse_event(event, &msg_type, &msg_sub_type)) {
         return;
     }
-    purc_variant_t sub_type = msg->eventName;
 
-    const char *es = purc_variant_get_string_const(sub_type);
-    PC_DEBUG("Rdr event handle : %s\n", es);
     pcintr_stack_t stack = NULL;
     purc_variant_t source = PURC_VARIANT_INVALID;
     switch (msg->target) {
@@ -1046,15 +1046,19 @@ void pcintr_rdr_event_handler(pcrdr_conn *conn, const pcrdr_msg *msg)
     }
 
 
-    pcintr_dispatch_message_ex(stack, source, type, sub_type, msg->data);
+    pcintr_dispatch_message_ex(stack, source, msg_type, msg_sub_type, msg->data);
 
 out:
-    if (source) {
-        purc_variant_unref(source);
+    if (msg_sub_type) {
+        purc_variant_unref(msg_sub_type);
     }
 
-    if (type) {
-        purc_variant_unref(type);
+    if (msg_type) {
+        purc_variant_unref(msg_type);
+    }
+
+    if (source) {
+        purc_variant_unref(source);
     }
 }
 

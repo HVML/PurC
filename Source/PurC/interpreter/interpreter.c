@@ -46,6 +46,7 @@
 
 #define EVENT_TIMER_INTRVAL  10
 
+#define EVENT_SEPARATOR      ':'
 #define MSG_TYPE_CHANGE     "change"
 #define MSG_SUB_TYPE_CLOSE  "close"
 
@@ -174,10 +175,12 @@ pcintr_util_dump_document_ex(pchtml_html_document_t *doc, char **dump_buff,
         }
         *dump_buff = strdup(p);
     }
+#if 0
     else {
         fprintf(stderr, "%s[%d]:%s(): #document %p\n%s\n",
                 pcutils_basename((char*)file), line, func, doc, p);
     }
+#endif
     if (p != buf)
         free(p);
 }
@@ -2456,6 +2459,47 @@ add_observer_into_list(struct list_head *list,
     PC_ASSERT(stack);
     PC_ASSERT(stack->co->waits >= 0);
     stack->co->waits++;
+}
+
+// type:sub_type
+bool
+pcintr_parse_event(const char *event, purc_variant_t *type,
+        purc_variant_t *sub_type)
+{
+    if (event == NULL || type == NULL) {
+        goto out;
+    }
+
+    const char *p = strchr(event, EVENT_SEPARATOR);
+    if (p) {
+        *type = purc_variant_make_string_ex(event, p - event, true);
+        if (*type == PURC_VARIANT_INVALID) {
+            goto out;
+        }
+        if (sub_type) {
+            *sub_type = purc_variant_make_string(p + 1, true);
+            if (*sub_type == PURC_VARIANT_INVALID) {
+                goto out_unref_type;
+            }
+        }
+    }
+    else {
+        *type = purc_variant_make_string(event, true);
+        if (*type == PURC_VARIANT_INVALID) {
+            goto out;
+        }
+    }
+
+    return true;
+
+out_unref_type:
+    if (*type) {
+        purc_variant_unref(*type);
+        *type = NULL;
+    }
+
+out:
+    return false;
 }
 
 struct pcintr_observer*

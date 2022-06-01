@@ -530,6 +530,11 @@ pcintr_timers_destroy(struct pcintr_timers* timers);
 bool
 pcintr_is_timers(pcintr_stack_t stack, purc_variant_t v);
 
+// type:sub_type
+bool
+pcintr_parse_event(const char *event, purc_variant_t *type,
+        purc_variant_t *sub_type);
+
 struct pcintr_observer*
 pcintr_register_observer(purc_variant_t observed,
         purc_variant_t for_value,
