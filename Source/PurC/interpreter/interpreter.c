@@ -2738,24 +2738,15 @@ static void observer_matched(struct pcintr_observer *p)
 }
 
 static void handle_vdom_event(pcintr_stack_t stack, purc_vdom_t vdom,
-        purc_variant_t sub, purc_variant_t data)
+        purc_atom_t type, purc_variant_t sub_type, purc_variant_t data)
 {
     UNUSED_PARAM(stack);
     UNUSED_PARAM(vdom);
+    UNUSED_PARAM(sub_type);
     UNUSED_PARAM(data);
-    enum purc_variant_type type = purc_variant_get_type(sub);
-    switch (type) {
-    case PURC_VARIANT_TYPE_STRING:
-    {
-        const char *sub_type = purc_variant_get_string_const(sub);
-        if (strcmp(sub_type, MSG_SUB_TYPE_CLOSE) == 0) {
-            // TODO : quit runner
-            fprintf(stderr, "## event msg not handle : %s\n", sub_type);
-        }
-        break;
-    }
-    default:
-        break;
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(MSG, CLOSE)) == type) {
+        // TODO : quit runner
+        fprintf(stderr, "## event msg not handle : close\n");
     }
 }
 
@@ -2806,11 +2797,8 @@ handle_message(void *ctxt)
         void *dest = purc_variant_native_get_entity(observed);
         // window close event dispatch to vdom
         if (dest == stack->vdom) {
-            if (pchvml_keyword(PCHVML_KEYWORD_ENUM(MSG, EVENT)) ==
-                    msg_type_atom) {
-                handle_vdom_event(stack, stack->vdom, msg->sub_type,
-                        msg->extra);
-            }
+            handle_vdom_event(stack, stack->vdom, msg_type_atom,
+                    msg->sub_type, msg->extra);
         }
     }
 
