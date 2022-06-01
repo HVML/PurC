@@ -216,7 +216,7 @@ static int _init_instance(struct pcinst *curr_inst,
         purc_variant_unref(vs[i * 2 + 1]);
     }
 
-    msg->dataType = PCRDR_MSG_DATA_TYPE_EJSON;
+    msg->dataType = PCRDR_MSG_DATA_TYPE_JSON;
     msg->data = session_data;
 
     if (pcrdr_send_request_and_wait_response(inst->conn_to_rdr,

@@ -529,9 +529,10 @@ typedef enum {
     PCRDR_MSG_TARGET_PAGE,
     PCRDR_MSG_TARGET_DOM,
     PCRDR_MSG_TARGET_THREAD,
+    PCRDR_MSG_TARGET_USER,
 
     /* XXX: change this if you append a new enumerator */
-    PCRDR_MSG_TARGET_LAST = PCRDR_MSG_TARGET_THREAD,
+    PCRDR_MSG_TARGET_LAST = PCRDR_MSG_TARGET_USER,
 } pcrdr_msg_target;
 
 #define PCRDR_MSG_TARGET_NR     \
@@ -558,7 +559,7 @@ typedef enum {
     PCRDR_MSG_DATA_TYPE_FIRST = 0,
 
     PCRDR_MSG_DATA_TYPE_VOID = PCRDR_MSG_DATA_TYPE_FIRST,
-    PCRDR_MSG_DATA_TYPE_EJSON,
+    PCRDR_MSG_DATA_TYPE_JSON,
     PCRDR_MSG_DATA_TYPE_TEXT,
 
     /* XXX: change this if you append a new enumerator */
