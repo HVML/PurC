@@ -3261,7 +3261,13 @@ pcintr_util_set_attribute(pcdom_element_t *elem,
     if (!attr) {
         return -1;
     }
-    pcintr_rdr_dom_update_element_property(pcintr_get_stack(), elem, key, val);
+    if (!val) {
+        pcintr_rdr_dom_erase_element_property(pcintr_get_stack(), elem, key);
+    }
+    else {
+        pcintr_rdr_dom_update_element_property(pcintr_get_stack(), elem, key,
+                val);
+    }
     return 0;
 }
 
