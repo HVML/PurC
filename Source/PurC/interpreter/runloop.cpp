@@ -298,15 +298,6 @@ pcintr_post_msg_to_target(pcintr_coroutine_t target, void *ctxt,
         });
 }
 
-static void on_event(void *ud)
-{
-    pcintr_event_t event;
-    event = (pcintr_event_t)ud;
-    PC_ASSERT(event);
-
-    pcintr_on_event(event);
-}
-
 void
 pcintr_fire_event_to_target(pcintr_coroutine_t target,
         purc_atom_t msg_type,
@@ -314,10 +305,6 @@ pcintr_fire_event_to_target(pcintr_coroutine_t target,
         purc_variant_t src,
         purc_variant_t payload)
 {
-    pcintr_event_t event;
-    event = (pcintr_event_t)calloc(1, sizeof(*event));
-    PC_ASSERT(event);
-
     pcintr_heap_t heap = pcintr_get_heap();
     pcintr_coroutine_t co = pcintr_get_coroutine();
     if (heap)
@@ -331,35 +318,30 @@ pcintr_fire_event_to_target(pcintr_coroutine_t target,
     pcintr_heap_t heap_target = target->owner;
     PC_ASSERT(heap_target == heap);
 
+    PC_ASSERT(co != target);
+
+    pcintr_event_t event;
+    event = (pcintr_event_t)calloc(1, sizeof(*event));
+    PC_ASSERT(event);
+
     event->msg_type             = msg_type;
     event->msg_sub_type         = purc_variant_ref(msg_sub_type);
     event->src                  = purc_variant_ref(src);
     event->payload              = purc_variant_ref(payload);
-
-    pcintr_msg_t msg;
-    msg = (pcintr_msg_t)calloc(1, sizeof(*msg));
-    PC_ASSERT(msg);
-
-    msg->ctxt        = event;
-    msg->on_msg      = on_event;
-
-    if (co == target) {
-        list_add_tail(&msg->node, &target->msgs);
-        return;
-    }
 
     purc_runloop_t target_runloop;
     target_runloop = pcintr_co_get_runloop(target);
     PC_ASSERT(target_runloop);
 
     // FIXME: try catch ?
-    ((RunLoop*)target_runloop)->dispatch([target, msg]() {
-            PC_ASSERT(pcintr_get_heap());
-            PC_ASSERT(pcintr_get_coroutine() == NULL);
-
-            list_add_tail(&msg->node, &target->msgs);
-
+    ((RunLoop*)target_runloop)->dispatch([target, event]() {
             pcintr_set_current_co(target);
+            if (target->continuation) {
+                pcintr_resume(event);
+            }
+            else {
+                PC_ASSERT(0);
+            }
             pcintr_check_after_execution();
             pcintr_set_current_co(NULL);
         });
