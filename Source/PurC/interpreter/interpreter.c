@@ -1856,6 +1856,30 @@ static void run_exiting_co(void *ctxt)
 static void run_ready_co(void);
 
 static void
+revoke_all_dynamic_observers(void)
+{
+    pcintr_stack_t stack = pcintr_get_stack();
+    PC_ASSERT(stack);
+    struct list_head *observers = &stack->dynamic_variant_observer_list;
+    struct pcintr_observer *p, *n;
+    list_for_each_entry_safe(p, n, observers, node) {
+        pcintr_revoke_observer(p);
+    }
+}
+
+static void
+revoke_all_native_observers(void)
+{
+    pcintr_stack_t stack = pcintr_get_stack();
+    PC_ASSERT(stack);
+    struct list_head *observers = &stack->native_variant_observer_list;
+    struct pcintr_observer *p, *n;
+    list_for_each_entry_safe(p, n, observers, node) {
+        pcintr_revoke_observer(p);
+    }
+}
+
+static void
 revoke_all_common_observers(void)
 {
     pcintr_stack_t stack = pcintr_get_stack();
@@ -2061,7 +2085,9 @@ static void check_after_execution(pcintr_coroutine_t co)
         return;
 
     if (co->stack.exited) {
+        revoke_all_dynamic_observers();
         PC_ASSERT(list_empty(&co->stack.dynamic_variant_observer_list));
+        revoke_all_native_observers();
         PC_ASSERT(list_empty(&co->stack.native_variant_observer_list));
         revoke_all_common_observers();
         PC_ASSERT(list_empty(&co->stack.common_variant_observer_list));
