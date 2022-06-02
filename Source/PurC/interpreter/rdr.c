@@ -1298,6 +1298,7 @@ pcintr_rdr_send_dom_req_raw(pcintr_stack_t stack, const char *operation,
 
     ret = pcintr_rdr_send_dom_req(stack, operation, element,
             property, data_type, req_data);
+    return ret;
 
 failed:
     if (req_data != PURC_VARIANT_INVALID) {
@@ -1325,8 +1326,21 @@ pcintr_rdr_send_dom_req_simple_raw(pcintr_stack_t stack,
         const char *operation, pcdom_element_t *element,
         const char *property, pcrdr_msg_data_type data_type, const char *data)
 {
+    char *attr = NULL;
+    if (property) {
+
+        attr = (char*)malloc(strlen(property) + 10);
+        strcpy(attr, "attr.");
+        strcat(attr, property);
+    }
+
     pcrdr_msg *response_msg = pcintr_rdr_send_dom_req_raw(stack, operation,
-            element, property, data_type, data);
+            element, attr, data_type, data);
+
+    if (attr) {
+        free(attr);
+    }
+
     if (response_msg != NULL) {
         pcrdr_release_message(response_msg);
         return true;
