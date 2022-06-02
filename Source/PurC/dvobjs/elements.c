@@ -537,6 +537,11 @@ struct visit_args {
 static inline bool
 match_by_class(struct pcdom_element *element, struct visit_args *args)
 {
+#if 1
+    bool has = false;
+    pcdom_element_has_class(element, args->css+1, &has);
+    return has;
+#else
     const unsigned char *s;
     size_t len;
     s = pcdom_element_class(element, &len);
@@ -547,8 +552,8 @@ match_by_class(struct pcdom_element *element, struct visit_args *args)
     {
         return true;
     }
-
     return false;
+#endif
 }
 
 static inline bool
