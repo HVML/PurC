@@ -27,6 +27,9 @@
 #include "purc-runloop.h"
 #include "purc-dvobjs.h"
 
+#include "private/debug.h"
+#include "private/interpreter.h"
+
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -807,12 +810,25 @@ close_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
     return purc_variant_make_boolean(true);
 }
 
-static bool
-stream_io_callback(int fd, purc_runloop_io_event event, void *ctxt, void *stack)
+struct io_callback_data {
+    int                           fd;
+    purc_runloop_io_event         io_event;
+    struct pcdvobjs_stream       *stream;
+};
+
+static void on_stream_io_callback(void *ctxt)
 {
-    UNUSED_PARAM(fd);
-    // dispatch event
-    struct pcdvobjs_stream *stream = (struct pcdvobjs_stream*) ctxt;
+    pcintr_coroutine_t co = pcintr_get_coroutine();
+    PC_ASSERT(co);
+    pcintr_stack_t stack = &co->stack;
+
+    struct io_callback_data *data;
+    data = (struct io_callback_data*)ctxt;
+    PC_ASSERT(data);
+
+    purc_runloop_io_event event = data->io_event;
+    struct pcdvobjs_stream *stream = data->stream;
+
     const char* sub = NULL;
     if (event & PCRUNLOOP_IO_IN) {
         sub = STREAM_SUB_EVENT_READ;
@@ -830,6 +846,29 @@ stream_io_callback(int fd, purc_runloop_io_event event, void *ctxt, void *stack)
         purc_variant_unref(type);
         purc_variant_unref(sub_type);
     }
+
+    free(data);
+}
+
+static bool
+stream_io_callback(int fd, purc_runloop_io_event event, void *ctxt)
+{
+    pcintr_coroutine_t co = pcintr_get_coroutine();
+    PC_ASSERT(co);
+
+    struct pcdvobjs_stream *stream = (struct pcdvobjs_stream*) ctxt;
+    PC_ASSERT(stream);
+
+    struct io_callback_data *data;
+    data = (struct io_callback_data*)calloc(1, sizeof(*data));
+    PC_ASSERT(data);
+
+    data->fd = fd;
+    data->io_event = event;
+    data->stream = stream;
+
+    pcintr_post_msg(data, on_stream_io_callback);
+
     return true;
 }
 

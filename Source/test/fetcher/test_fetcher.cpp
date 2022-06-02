@@ -128,21 +128,6 @@ TEST(fetcher, init_pcrdr_cleanup)
     } while (0);
 }
 
-TEST(fetcher, runloop)
-{
-    do {
-        purc_runloop_init_main();
-    } while (0);
-}
-
-TEST(fetcher, runloop_stop)
-{
-    do {
-        purc_runloop_init_main();
-        purc_runloop_stop_main();
-    } while (0);
-}
-
 TEST(fetcher, g_slice)
 {
     gpointer p = g_slice_alloc0(128);

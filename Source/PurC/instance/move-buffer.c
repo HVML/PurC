@@ -158,17 +158,20 @@ pcinst_put_message(pcrdr_msg *msg)
         if (msg->operation)
             purc_variant_unref(msg->operation);
 
-        if (msg->element)
-            purc_variant_unref(msg->element);
+        if (msg->requestId)
+            purc_variant_unref(msg->requestId);
+
+        if (msg->eventName)
+            purc_variant_unref(msg->eventName);
+
+        if (msg->eventSource)
+            purc_variant_unref(msg->eventSource);
+
+        if (msg->elementValue)
+            purc_variant_unref(msg->elementValue);
 
         if (msg->property)
             purc_variant_unref(msg->property);
-
-        if (msg->event)
-            purc_variant_unref(msg->event);
-
-        if (msg->requestId)
-            purc_variant_unref(msg->requestId);
 
         if (msg->data)
             purc_variant_unref(msg->data);
@@ -257,17 +260,20 @@ pcinst_grind_message(pcrdr_msg *msg)
         if (msg->operation)
             purc_variant_unref(msg->operation);
 
-        if (msg->element)
-            purc_variant_unref(msg->element);
+        if (msg->requestId)
+            purc_variant_unref(msg->requestId);
+
+        if (msg->eventName)
+            purc_variant_unref(msg->eventName);
+
+        if (msg->eventSource)
+            purc_variant_unref(msg->eventSource);
+
+        if (msg->elementValue)
+            purc_variant_unref(msg->elementValue);
 
         if (msg->property)
             purc_variant_unref(msg->property);
-
-        if (msg->event)
-            purc_variant_unref(msg->event);
-
-        if (msg->requestId)
-            purc_variant_unref(msg->requestId);
 
         if (msg->data)
             purc_variant_unref(msg->data);
@@ -346,14 +352,16 @@ do_move_message(struct pcinst* inst, pcrdr_msg *msg)
 
         if (msg->operation)
             msg->operation = pcvariant_move_heap_in(msg->operation);
-        if (msg->element)
-            msg->element = pcvariant_move_heap_in(msg->element);
-        if (msg->property)
-            msg->property = pcvariant_move_heap_in(msg->property);
-        if (msg->event)
-            msg->event = pcvariant_move_heap_in(msg->event);
         if (msg->requestId)
             msg->requestId = pcvariant_move_heap_in(msg->requestId);
+        if (msg->eventName)
+            msg->eventName = pcvariant_move_heap_in(msg->eventName);
+        if (msg->eventSource)
+            msg->eventSource = pcvariant_move_heap_in(msg->eventSource);
+        if (msg->elementValue)
+            msg->elementValue = pcvariant_move_heap_in(msg->elementValue);
+        if (msg->property)
+            msg->property = pcvariant_move_heap_in(msg->property);
         if (msg->data)
             msg->data = pcvariant_move_heap_in(msg->data);
     }
@@ -372,14 +380,16 @@ do_take_message(struct pcinst* inst, pcrdr_msg *msg)
                 inst->endpoint_atom)) {
         if (msg->operation)
             msg->operation = pcvariant_move_heap_out(msg->operation);
-        if (msg->element)
-            msg->element = pcvariant_move_heap_out(msg->element);
-        if (msg->property)
-            msg->property = pcvariant_move_heap_out(msg->property);
-        if (msg->event)
-            msg->event = pcvariant_move_heap_out(msg->event);
         if (msg->requestId)
             msg->requestId = pcvariant_move_heap_out(msg->requestId);
+        if (msg->eventName)
+            msg->eventName = pcvariant_move_heap_out(msg->eventName);
+        if (msg->eventSource)
+            msg->eventSource = pcvariant_move_heap_out(msg->eventSource);
+        if (msg->elementValue)
+            msg->elementValue = pcvariant_move_heap_out(msg->elementValue);
+        if (msg->property)
+            msg->property = pcvariant_move_heap_out(msg->property);
         if (msg->data)
             msg->data = pcvariant_move_heap_out(msg->data);
     }
@@ -507,7 +517,7 @@ done:
 }
 
 const pcrdr_msg *
-purc_inst_retrieve_messages(size_t index)
+purc_inst_retrieve_message(size_t index)
 {
     struct pcinst* inst = pcinst_current();
     if (inst == NULL)
@@ -674,7 +684,7 @@ purc_inst_holding_messages_count(size_t *nr)
 }
 
 const pcrdr_msg *
-purc_inst_retrieve_messages(size_t index)
+purc_inst_retrieve_message(size_t index)
 {
     UNUSED_PARAM(index);
     purc_set_error(PURC_ERROR_NOT_SUPPORTED);

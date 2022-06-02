@@ -78,7 +78,7 @@ static int hvml_init_once(void)
 }
 
 struct pcmodule _module_hvml = {
-    .id              = PURC_HAVE_VARIANT | PURC_HAVE_HVML,
+    .id              = PURC_HAVE_HVML,
     .module_inited   = 0,
 
     .init_once       = hvml_init_once,

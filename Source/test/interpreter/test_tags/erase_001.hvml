@@ -1,0 +1,21 @@
+<hvml>
+    <head>
+        <init as="buttons" uniquely>
+        [
+            { "letters": "7", "class": "number" },
+            { "letters": ".", "class": "number" },
+            { "letters": "%", "class": "c_blue percent" },
+            { "letters": "=", "class": "c_yellow equal" },
+        ]
+        </init>
+    </head>
+    <body>
+        <div>
+            $buttons[0].letters
+        </div>
+        <erase on="$buttons[0]"/>
+        <div>
+            $buttons[0]
+        </div>
+    </body>
+</hvml>

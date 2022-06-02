@@ -29,6 +29,7 @@
 #include "purc-runloop.h"
 #include "private/errors.h"
 #include "private/interpreter.h"
+#include "private/instance.h"
 
 #include <wtf/Threading.h>
 #include <wtf/RunLoop.h>
@@ -37,51 +38,12 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
-
-#define MAIN_RUNLOOP_THREAD_NAME    "__purc_main_runloop_thread"
-
-void purc_runloop_init_main(void)
-{
-    if (purc_runloop_is_main_initialized()) {
-        return;
-    }
-    BinarySemaphore semaphore;
-    Thread::create(MAIN_RUNLOOP_THREAD_NAME, [&] {
-        RunLoop::initializeMain();
-        RunLoop& runloop = RunLoop::main();
-        semaphore.signal();
-        runloop.run();
-    })->detach();
-    semaphore.wait();
-}
-
-void purc_runloop_stop_main(void)
-{
-    if (purc_runloop_is_main_initialized()) {
-        BinarySemaphore semaphore;
-        RunLoop& runloop = RunLoop::main();
-        runloop.dispatch([&] {
-            RunLoop::stopMain();
-            semaphore.signal();
-        });
-        semaphore.wait();
-    }
-}
-
-bool purc_runloop_is_main_initialized(void)
-{
-    return RunLoop::isMainInitizlized();
-}
 
 purc_runloop_t purc_runloop_get_current(void)
 {
     return (purc_runloop_t)&RunLoop::current();
-}
-
-bool purc_runloop_is_on_main(void)
-{
-    return RunLoop::isMain();
 }
 
 void purc_runloop_run(void)
@@ -173,19 +135,57 @@ to_gio_condition(purc_runloop_io_event event)
     return (GIOCondition)condition;
 }
 
+struct fd_monitor_data {
+    pcintr_coroutine_t                  co;
+    int                                 fd;
+    purc_runloop_io_event               io_event;
+    purc_runloop_io_callback            callback;
+    void                               *ctxt;
+};
+
+static void on_io_event(void *ud)
+{
+    struct fd_monitor_data *data;
+    data = (struct fd_monitor_data*)ud;
+    data->callback(data->fd, data->io_event, data->ctxt);
+    free(data);
+}
 
 uintptr_t purc_runloop_add_fd_monitor(purc_runloop_t runloop, int fd,
         purc_runloop_io_event event, purc_runloop_io_callback callback,
         void *ctxt)
 {
-    if (!runloop) {
-        runloop = purc_runloop_get_current();
-    }
+    pcintr_coroutine_t co = pcintr_get_coroutine();
+    PC_ASSERT(co);
+    PC_ASSERT(pcintr_get_runloop() == runloop);
 
-    void *stack = pcintr_get_stack();
-    return ((RunLoop*)runloop)->addFdMonitor(fd, to_gio_condition(event),
-            [callback, ctxt, stack] (gint fd, GIOCondition condition) -> gboolean {
-            return callback(fd, to_runloop_io_event(condition), ctxt, stack);
+    RunLoop *runLoop = (RunLoop*)runloop;
+
+    return runLoop->addFdMonitor(fd, to_gio_condition(event),
+            [callback, ctxt, runLoop, co] (gint fd, GIOCondition condition) -> gboolean {
+            PC_ASSERT(pcintr_get_runloop()==NULL);
+            purc_runloop_io_event io_event;
+            io_event = to_runloop_io_event(condition);
+            runLoop->dispatch([fd, io_event, ctxt, co, callback] {
+                    PC_ASSERT(pcintr_get_heap());
+                    PC_ASSERT(co);
+                    PC_ASSERT(co->state == CO_STATE_READY);
+
+                    struct fd_monitor_data *data;
+                    data = (struct fd_monitor_data*)calloc(1, sizeof(*data));
+                    PC_ASSERT(data);
+                    data->co = co;
+                    data->fd = fd;
+                    data->callback = callback;
+                    data->ctxt = ctxt;
+
+                    pcintr_set_current_co(co);
+                    co->state = CO_STATE_RUN;
+                    pcintr_post_msg(data, on_io_event);
+                    pcintr_check_after_execution();
+                    pcintr_set_current_co(NULL);
+            });
+            return true;
         });
 }
 
@@ -215,4 +215,95 @@ int purc_runloop_dispatch_message(purc_runloop_t runloop, purc_variant_t source,
     }
     return -1;
 }
+
+static void apply_none(void *ctxt)
+{
+    co_routine_f routine = (co_routine_f)ctxt;
+    routine();
+}
+
+void
+pcintr_wakeup_target(pcintr_coroutine_t target, co_routine_f routine)
+{
+    pcintr_wakeup_target_with(target, (void*)routine, apply_none);
+}
+
+void
+pcintr_wakeup_target_with(pcintr_coroutine_t target, void *ctxt,
+        void (*func)(void *ctxt))
+{
+    purc_runloop_t target_runloop;
+    target_runloop = pcintr_co_get_runloop(target);
+    PC_ASSERT(target_runloop);
+    // FIXME: try catch ?
+    ((RunLoop*)target_runloop)->dispatch([target, ctxt, func]() {
+            PC_ASSERT(pcintr_get_heap());
+            pcintr_set_current_co(target);
+            func(ctxt);
+            pcintr_set_current_co(NULL);
+        });
+}
+
+#define MAIN_RUNLOOP_THREAD_NAME    "__purc_main_runloop_thread"
+
+static RefPtr<Thread> _main_thread;
+static pthread_once_t _once_control = PTHREAD_ONCE_INIT;
+
+static void _runloop_init_main(void)
+{
+    BinarySemaphore semaphore;
+    _main_thread = Thread::create(MAIN_RUNLOOP_THREAD_NAME, [&] {
+            PC_ASSERT(RunLoop::isMainInitizlized() == false);
+            RunLoop::initializeMain();
+            RunLoop& runloop = RunLoop::main();
+            PC_ASSERT(&runloop == &RunLoop::current());
+            semaphore.signal();
+            runloop.run();
+            });
+    semaphore.wait();
+}
+
+static void _runloop_stop_main(void)
+{
+    if (_main_thread) {
+        RunLoop& runloop = RunLoop::main();
+        runloop.dispatch([&] {
+                RunLoop::stopMain();
+                });
+        _main_thread->waitForCompletion();
+    }
+}
+
+static int _init_once(void)
+{
+    atexit(_runloop_stop_main);
+    return 0;
+}
+
+static int _init_instance(struct pcinst* curr_inst,
+        const purc_instance_extra_info* extra_info)
+{
+    UNUSED_PARAM(curr_inst);
+    UNUSED_PARAM(extra_info);
+
+    int r;
+    r = pthread_once(&_once_control, _runloop_init_main);
+    PC_ASSERT(r == 0);
+
+    return 0;
+}
+
+static void _cleanup_instance(struct pcinst* curr_inst)
+{
+    UNUSED_PARAM(curr_inst);
+}
+
+struct pcmodule _module_runloop = {
+    .id              = PURC_HAVE_HVML,
+    .module_inited   = 0,
+
+    .init_once              = _init_once,
+    .init_instance          = _init_instance,
+    .cleanup_instance       = _cleanup_instance,
+};
 

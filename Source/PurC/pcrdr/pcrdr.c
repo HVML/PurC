@@ -84,6 +84,8 @@ static struct pcrdr_opatom {
     { PCRDR_OPERATION_ERASE,                0 }, // "erase"
     { PCRDR_OPERATION_CLEAR,                0 }, // "clear"
     { PCRDR_OPERATION_CALLMETHOD,           0 }, // "callMethod"
+    { PCRDR_OPERATION_GETPROPERTY,          0 }, // "getProperty"
+    { PCRDR_OPERATION_SETPROPERTY,          0 }, // "setProperty"
 };
 
 /* make sure the number of operations matches the enumulators */
@@ -92,32 +94,6 @@ static struct pcrdr_opatom {
 _COMPILE_TIME_ASSERT(ops,
         PCA_TABLESIZE(pcrdr_opatoms) == PCRDR_NR_OPERATIONS);
 #undef _COMPILE_TIME_ASSERT
-
-static int renderer_init_once(void)
-{
-    pcinst_register_error_message_segment(&_pcrdr_err_msgs_seg);
-
-    // put the operations into ATOM_BUCKET_RDROP bucket
-    for (size_t i = 0; i < PCA_TABLESIZE(pcrdr_opatoms); i++) {
-        pcrdr_opatoms[i].atom =
-            purc_atom_from_static_string_ex(ATOM_BUCKET_RDROP,
-                    pcrdr_opatoms[i].op);
-
-        if (!pcrdr_opatoms[i].atom)
-            return -1;
-    }
-
-    return 0;
-}
-
-struct pcmodule _module_renderer = {
-    .id              = PURC_HAVE_VARIANT | PURC_HAVE_PCRDR,
-    .module_inited   = 0,
-
-    .init_once       = renderer_init_once,
-    .init_instance   = NULL,
-};
-
 
 const char *pcrdr_operation_from_atom(purc_atom_t op_atom, unsigned int *id)
 {
@@ -128,6 +104,11 @@ const char *pcrdr_operation_from_atom(purc_atom_t op_atom, unsigned int *id)
     }
 
     return NULL;
+}
+
+purc_atom_t pcrdr_try_operation_atom(const char *op)
+{
+    return purc_atom_try_string_ex(ATOM_BUCKET_RDROP, op);
 }
 
 static const char *prot_names[] = {
@@ -144,9 +125,27 @@ static const int prot_vers[] = {
     PURC_RDRPROT_VERSION_HIBUS,
 };
 
-int pcrdr_init_instance(struct pcinst* inst,
-        const purc_instance_extra_info *extra_info)
+static int _init_once(void)
 {
+    pcinst_register_error_message_segment(&_pcrdr_err_msgs_seg);
+
+    // put the operations into ATOM_BUCKET_RDROP bucket
+    for (size_t i = 0; i < PCA_TABLESIZE(pcrdr_opatoms); i++) {
+        pcrdr_opatoms[i].atom =
+            purc_atom_from_static_string_ex(ATOM_BUCKET_RDROP,
+                    pcrdr_opatoms[i].op);
+
+        if (!pcrdr_opatoms[i].atom)
+            return -1;
+    }
+
+    return 0;
+}
+
+static int _init_instance(struct pcinst *curr_inst,
+        const purc_instance_extra_info* extra_info)
+{
+    struct pcinst *inst = curr_inst;
     pcrdr_msg *msg = NULL, *response_msg = NULL;
     purc_variant_t session_data;
     purc_rdrprot_t rdr_prot;
@@ -217,7 +216,7 @@ int pcrdr_init_instance(struct pcinst* inst,
         purc_variant_unref(vs[i * 2 + 1]);
     }
 
-    msg->dataType = PCRDR_MSG_DATA_TYPE_EJSON;
+    msg->dataType = PCRDR_MSG_DATA_TYPE_JSON;
     msg->data = session_data;
 
     if (pcrdr_send_request_and_wait_response(inst->conn_to_rdr,
@@ -253,7 +252,7 @@ failed:
     return purc_get_last_error();
 }
 
-void pcrdr_cleanup_instance(struct pcinst* inst)
+static void _cleanup_instance(struct pcinst* inst)
 {
     if (inst->rdr_caps) {
         pcrdr_release_renderer_capabilities(inst->rdr_caps);
@@ -265,4 +264,14 @@ void pcrdr_cleanup_instance(struct pcinst* inst)
         inst->conn_to_rdr = NULL;
     }
 }
+
+struct pcmodule _module_renderer = {
+    .id              = PURC_HAVE_PCRDR,
+    .module_inited   = 0,
+
+    .init_once                   = _init_once,
+    .init_instance               = _init_instance,
+    .cleanup_instance            = _cleanup_instance,
+};
+
 

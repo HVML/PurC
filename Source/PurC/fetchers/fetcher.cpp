@@ -25,6 +25,8 @@
 #include "config.h"
 
 #include "private/fetcher.h"
+#include "private/instance.h"
+
 #include "fetcher-internal.h"
 
 static struct pcfetcher* s_remote_fetcher = NULL;
@@ -33,40 +35,6 @@ static struct pcfetcher* s_local_fetcher = NULL;
 static struct pcfetcher* get_fetcher(void)
 {
     return s_remote_fetcher ? s_remote_fetcher : s_local_fetcher;
-}
-
-int pcfetcher_init(size_t max_conns, size_t cache_quota,
-        bool enable_remote_fetcher)
-{
-    struct pcfetcher* fetcher = get_fetcher();
-    if (fetcher) {
-        return 0;
-    }
-
-    s_local_fetcher = pcfetcher_local_init(max_conns, cache_quota);
-
-#if ENABLE(REMOTE_FETCHER)
-    if (enable_remote_fetcher) {
-        s_remote_fetcher = pcfetcher_remote_init(max_conns, cache_quota);
-    }
-#endif
-
-    return 0;
-}
-
-int pcfetcher_term(void)
-{
-    if (s_remote_fetcher) {
-        s_remote_fetcher->term(s_remote_fetcher);
-        s_remote_fetcher = NULL;
-    }
-
-    if (s_local_fetcher) {
-        s_local_fetcher->term(s_local_fetcher);
-        s_local_fetcher = NULL;
-    }
-
-    return 0;
 }
 
 bool pcfetcher_is_init(void)
@@ -169,4 +137,80 @@ void pcfetcher_destroy_callback_info(struct pcfetcher_callback_info *info)
     }
     free(info);
 }
+
+static int _local_init_once(void)
+{
+    return 0;
+}
+
+static int _local_init_instance(struct pcinst* curr_inst,
+        const purc_instance_extra_info* extra_info)
+{
+    UNUSED_PARAM(extra_info);
+
+    s_local_fetcher = pcfetcher_local_init(curr_inst->max_conns,
+            curr_inst->cache_quota);
+
+    return 0;
+}
+
+static void _local_cleanup_instance(struct pcinst* curr_inst)
+{
+    UNUSED_PARAM(curr_inst);
+
+    if (s_local_fetcher) {
+        s_local_fetcher->term(s_local_fetcher);
+        s_local_fetcher = NULL;
+    }
+}
+
+struct pcmodule _module_fetcher_local = {
+    .id              = PURC_HAVE_FETCHER,
+    .module_inited   = 0,
+
+    .init_once              = _local_init_once,
+    .init_instance          = _local_init_instance,
+    .cleanup_instance       = _local_cleanup_instance,
+};
+
+static int _remote_init_once(void)
+{
+    return 0;
+}
+
+static int _remote_init_instance(struct pcinst* curr_inst,
+        const purc_instance_extra_info* extra_info)
+{
+    UNUSED_PARAM(extra_info);
+
+#if ENABLE(REMOTE_FETCHER)                /* { */
+    if (curr_inst->enable_remote_fetcher) {
+        s_remote_fetcher = pcfetcher_remote_init(curr_inst->max_conns,
+                curr_inst->cache_quota);
+        if (!s_remote_fetcher)
+            return PURC_ERROR_OUT_OF_MEMORY;
+    }
+#endif                                    /* } */
+
+    return 0;
+}
+
+static void _remote_cleanup_instance(struct pcinst* curr_inst)
+{
+    UNUSED_PARAM(curr_inst);
+
+    if (s_remote_fetcher) {
+        s_remote_fetcher->term(s_remote_fetcher);
+        s_remote_fetcher = NULL;
+    }
+}
+
+struct pcmodule _module_fetcher_remote = {
+    .id              = PURC_HAVE_FETCHER_R,
+    .module_inited   = 0,
+
+    .init_once              = _remote_init_once,
+    .init_instance          = _remote_init_instance,
+    .cleanup_instance       = _remote_cleanup_instance,
+};
 

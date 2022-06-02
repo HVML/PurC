@@ -52,8 +52,17 @@
 
 #define PCRDR_HEADLESS_LOGFILE_PATH_FORMAT      "/var/tmp/purc-%s-%s-msg.log"
 
-#define PCRDR_LOCALHOST                 "localhost"
 #define PCRDR_NOT_AVAILABLE             "<N/A>"
+
+#define PCRDR_LOCALHOST                 "localhost"
+#define PCRDR_APP_RENDERER              "_renderer"
+#define PCRDR_RUNNER_BUILTIN            "_builtin"
+#define PCRDR_GROUP_NULL                "-"
+#define PCRDR_PAGE_NULL                 "-"
+
+#define PCRDR_REQUESTID_INITIAL         "0"
+#define PCRDR_REQUESTID_NORETURN        "-"
+#define PCRDR_EVENTSOURCE_ANONYMOUS     "-"
 
 /* operations */
 enum {
@@ -112,9 +121,13 @@ enum {
 #define PCRDR_OPERATION_CLEAR               "clear"
     PCRDR_K_OPERATION_CALLMETHOD,
 #define PCRDR_OPERATION_CALLMETHOD          "callMethod"
+    PCRDR_K_OPERATION_GETPROPERTY,
+#define PCRDR_OPERATION_GETPROPERTY         "getProperty"
+    PCRDR_K_OPERATION_SETPROPERTY,
+#define PCRDR_OPERATION_SETPROPERTY         "setProperty"
 
     /* XXX: change this when you append a new operation */
-    PCRDR_K_OPERATION_LAST = PCRDR_K_OPERATION_CALLMETHOD,
+    PCRDR_K_OPERATION_LAST = PCRDR_K_OPERATION_SETPROPERTY,
 };
 
 #define PCRDR_NR_OPERATIONS \
@@ -122,6 +135,8 @@ enum {
 
 /* Status Codes */
 #define PCRDR_SC_IOERR                  1
+#define PCRDR_SC_WRONG_MSG              2
+#define PCRDR_SC_NOT_READY              3
 #define PCRDR_SC_OK                     200
 #define PCRDR_SC_CREATED                201
 #define PCRDR_SC_ACCEPTED               202
@@ -515,9 +530,10 @@ typedef enum {
     PCRDR_MSG_TARGET_PAGE,
     PCRDR_MSG_TARGET_DOM,
     PCRDR_MSG_TARGET_THREAD,
+    PCRDR_MSG_TARGET_USER,
 
     /* XXX: change this if you append a new enumerator */
-    PCRDR_MSG_TARGET_LAST = PCRDR_MSG_TARGET_THREAD,
+    PCRDR_MSG_TARGET_LAST = PCRDR_MSG_TARGET_USER,
 } pcrdr_msg_target;
 
 #define PCRDR_MSG_TARGET_NR     \
@@ -544,7 +560,7 @@ typedef enum {
     PCRDR_MSG_DATA_TYPE_FIRST = 0,
 
     PCRDR_MSG_DATA_TYPE_VOID = PCRDR_MSG_DATA_TYPE_FIRST,
-    PCRDR_MSG_DATA_TYPE_EJSON,
+    PCRDR_MSG_DATA_TYPE_JSON,
     PCRDR_MSG_DATA_TYPE_TEXT,
 
     /* XXX: change this if you append a new enumerator */
@@ -571,14 +587,41 @@ struct pcrdr_msg
     uint64_t        targetValue;
     uint64_t        resultValue;
 
+    purc_variant_t  requestId;
     purc_variant_t  operation;
-    purc_variant_t  event;
-    purc_variant_t  element;
+
+    purc_variant_t  eventName;
+    purc_variant_t  eventSource;
+
+    purc_variant_t  elementValue;
     purc_variant_t  property;
 
-    purc_variant_t  requestId;
     purc_variant_t  data;
 };
+
+/**
+ * Try to get the atom value of an operation.
+ *
+ * @param op: The pointer to the operation name.
+ *
+ * Returns: The atom value of the operation, 0 for invalid operation.
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT purc_atom_t
+pcrdr_try_operation_atom(const char *op);
+
+/**
+ * Get the operation id from the atom value.
+ *
+ * @param atom: The atom value return by `pcrdr_operation_atom()`.
+ * @param id: The buffer used to return the identifier of the operation.
+
+ * Returns: The pointer to the operation, NULL for invalid atom.
+ * Since: 0.1.0
+ */
+const char *
+pcrdr_operation_from_atom(purc_atom_t atom, unsigned int *id);
 
 /**
  * Make a void message.
@@ -597,7 +640,7 @@ pcrdr_make_void_message(void);
  * @param target_value: the value of the target object
  * @param operation: the request operation string.
  * @param element_type: the element type of the request
- * @param element: the pointer to the element(s) (nullable).
+ * @param element_value: the element value string (nullable).
  * @param property: the property (nullable).
  * @param data_type: the data type of the request.
  * @param data: the pointer to the data (nullable)
@@ -609,9 +652,8 @@ pcrdr_make_void_message(void);
 PCA_EXPORT pcrdr_msg *
 pcrdr_make_request_message(
         pcrdr_msg_target target, uint64_t target_value,
-        const char *operation,
-        const char *request_id,
-        pcrdr_msg_element_type element_type, const char *element,
+        const char *operation, const char *request_id,
+        pcrdr_msg_element_type element_type, const char *element_value,
         const char *property,
         pcrdr_msg_data_type data_type, const char* data, size_t data_len);
 
@@ -638,12 +680,15 @@ pcrdr_make_response_message(
  *
  * @param target: the target of the message.
  * @param target_value: the value of the target object
- * @param event: the event name string.
+ * @param event_name: the event name string.
+ * @param event_source: the event source string (nullable).
+ *      If it is NULL, the system use `-` as the event source.
  * @param element_type: the element type.
- * @param element: the pointer to the element(s) (nullable).
+ * @param element_value: the element value string.
  * @param property: the property (nullable)
  * @param data_type: the data type of the event.
- * @param data: the pointer to the data (nullable)
+ * @param data: the pointer to the data (nullable).
+ * @param data_len: the length of the data.
  *
  * Returns: The pointer to the event message structure; NULL on error.
  *
@@ -652,8 +697,8 @@ pcrdr_make_response_message(
 PCA_EXPORT pcrdr_msg *
 pcrdr_make_event_message(
         pcrdr_msg_target target, uint64_t target_value,
-        const char *event,
-        pcrdr_msg_element_type element_type, const char *element,
+        const char *event_name, const char *event_source,
+        pcrdr_msg_element_type element_type, const char *element_value,
         const char *property,
         pcrdr_msg_data_type data_type, const char* data, size_t data_len);
 

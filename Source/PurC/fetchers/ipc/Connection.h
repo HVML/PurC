@@ -47,7 +47,6 @@
 
 #if USE(GLIB)
 #include <wtf/glib/GSocketMonitor.h>
-#include <wtf/glib/GFdMonitor.h>
 #endif
 
 namespace IPC {
@@ -304,11 +303,15 @@ private:
 
     Lock m_workQueueMessageReceiversMutex;
     using WorkQueueMessageReceiverMap = HashMap<ReceiverName, std::pair<RefPtr<WorkQueue>, RefPtr<WorkQueueMessageReceiver>>, WTF::IntHash<ReceiverName>, WTF::StrongEnumHashTraits<ReceiverName>>;
+#if 0
     WorkQueueMessageReceiverMap m_workQueueMessageReceivers;
+#endif
 
     Lock m_threadMessageReceiversLock;
     using ThreadMessageReceiverMap = HashMap<ReceiverName, RefPtr<ThreadMessageReceiver>, WTF::IntHash<ReceiverName>, WTF::StrongEnumHashTraits<ReceiverName>>;
+#if 0
     ThreadMessageReceiverMap m_threadMessageReceivers;
+#endif
 
     unsigned m_inSendSyncCount;
     unsigned m_inDispatchMessageCount;
@@ -358,11 +361,11 @@ private:
     std::unique_ptr<UnixMessage> m_pendingOutputMessage;
 #if USE(GLIB)
     GRefPtr<GSocket> m_socket;
-    //GFdMonitor m_readSocketMonitor;
     GSocketMonitor m_readSocketMonitor;
     GSocketMonitor m_writeSocketMonitor;
 #endif
 #endif
+    RunLoop* m_runloop;
 };
 
 template<typename T>

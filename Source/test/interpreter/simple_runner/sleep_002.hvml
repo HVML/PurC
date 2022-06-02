@@ -1,0 +1,11 @@
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<hvml target="html" lang="en">
+    <head>
+    </head>
+
+    <body>
+        <sleep with=1/>
+        <sleep with=2/>
+    </body>
+</hvml>
+

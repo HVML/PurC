@@ -179,8 +179,6 @@ int pcrdr_send_request(pcrdr_conn* conn, pcrdr_msg *request_msg,
         int seconds_expected,
         void *context, pcrdr_response_handler response_handler)
 {
-    struct pending_request *pr;
-
     if (request_msg == NULL ||
             request_msg->type != PCRDR_MSG_TYPE_REQUEST ||
             request_msg->requestId == NULL) {
@@ -188,13 +186,19 @@ int pcrdr_send_request(pcrdr_conn* conn, pcrdr_msg *request_msg,
         return -1;
     }
 
-    if ((pr = malloc(sizeof(*pr))) == NULL) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+    if (conn->send_message(conn, request_msg) < 0) {
         return -1;
     }
 
-    if (conn->send_message(conn, request_msg) < 0) {
-        free(pr);
+    if (strcmp(PCRDR_REQUESTID_NORETURN,
+                purc_variant_get_string_const(request_msg->requestId)) == 0) {
+        /* for request without return */
+        return 0;
+    }
+
+    struct pending_request *pr;
+    if ((pr = malloc(sizeof(*pr))) == NULL) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return -1;
     }
 
@@ -284,6 +288,12 @@ send_default_response_msg(pcrdr_conn *conn, purc_variant_t request_id)
     int retval = 0;
     pcrdr_msg msg;
 
+    if (strcmp(PCRDR_REQUESTID_NORETURN,
+                purc_variant_get_string_const(request_id)) == 0) {
+        /* for request without return */
+        return 0;
+    }
+
     msg.type = PCRDR_MSG_TYPE_RESPONSE;
     msg.requestId = request_id;
     msg.retCode = PCRDR_SC_SERVICE_UNAVAILABLE;
@@ -318,6 +328,10 @@ int pcrdr_read_and_dispatch_message(pcrdr_conn *conn)
         if (conn->event_handler) {
             conn->event_handler (conn, msg);
         }
+        else {
+            PC_WARN("Got an event (%s) but not event handler set.\n",
+                    purc_variant_get_string_const(msg->eventName));
+        }
         break;
 
     case PCRDR_MSG_TYPE_REQUEST:
@@ -325,6 +339,8 @@ int pcrdr_read_and_dispatch_message(pcrdr_conn *conn)
             conn->request_handler (conn, msg);
         }
         else {
+            PC_WARN("Got a request (%s) but not request handler set.\n",
+                    purc_variant_get_string_const(msg->operation));
             retval = send_default_response_msg(conn, msg->requestId);
         }
         break;

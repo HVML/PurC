@@ -90,9 +90,9 @@ extern "C" {
     if (0)                              \
         purc_log_debug(x, ##__VA_ARGS__)
 
-#define PC_DEBUGX(x, ...)                                                      \
-    if (0)                                                                     \
-        purc_log_debug("%s[%d]:%s(): " x "\n",                                 \
+#define PC_DEBUGX(x, ...)                                                   \
+    if (0)                                                                  \
+        purc_log_debug("%s[%d]:%s(): " x "\n",                              \
                 pcutils_basename(__FILE__), __LINE__, __func__, ##__VA_ARGS__)
 
 #endif /* defined NDEBUG */

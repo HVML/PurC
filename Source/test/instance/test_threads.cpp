@@ -13,6 +13,7 @@
 
 static volatile purc_atom_t other_inst[NR_THREADS];
 static volatile purc_atom_t main_inst;
+static volatile pthread_t other_threads[NR_THREADS];
 
 struct thread_arg {
     sem_t  *wait;
@@ -55,8 +56,10 @@ static void* general_thread_entry(void* arg)
             purc_log_info("    type:        %d\n", msg->type);
             purc_log_info("    target:      %d\n", msg->target);
             purc_log_info("    targetValue: %d\n", (int)msg->targetValue);
-            purc_log_info("    event:       %s\n",
-                    purc_variant_get_string_const(msg->event));
+            purc_log_info("    eventName:   %s\n",
+                    purc_variant_get_string_const(msg->eventName));
+            purc_log_info("    eventSource: %s\n",
+                    purc_variant_get_string_const(msg->eventSource));
 
             purc_inst_move_message(main_inst, msg);
             pcrdr_release_message(msg);
@@ -93,7 +96,7 @@ ALLOW_DEPRECATED_DECLARATIONS_BEGIN
         purc_log_error("failed to create semaphore: %s\n", strerror(errno));
         return -1;
     }
-    ret = pthread_create(&th, &attr, general_thread_entry, &arg);
+    ret = pthread_create(&th, NULL, general_thread_entry, &arg);
     if (ret) {
         sem_close(arg.wait);
         purc_log_error("failed to create thread: %d\n", nr);
@@ -104,6 +107,8 @@ ALLOW_DEPRECATED_DECLARATIONS_BEGIN
     sem_wait(arg.wait);
     sem_close(arg.wait);
 ALLOW_DEPRECATED_DECLARATIONS_END
+
+    other_threads[nr] = th;
 
     return ret;
 }
@@ -130,7 +135,7 @@ TEST(instance, thread)
     event = pcrdr_make_event_message(
             PCRDR_MSG_TARGET_THREAD,
             1,
-            "test",
+            "test", NULL,
             PCRDR_MSG_ELEMENT_TYPE_VOID, NULL, NULL,
             PCRDR_MSG_DATA_TYPE_VOID, NULL, 0);
 
@@ -152,7 +157,7 @@ TEST(instance, thread)
 
             ASSERT_EQ(msg->target, PCRDR_MSG_TARGET_THREAD);
             ASSERT_EQ(msg->targetValue, 1);
-            ASSERT_STREQ(purc_variant_get_string_const(msg->event), "test");
+            ASSERT_STREQ(purc_variant_get_string_const(msg->eventName), "test");
 
             pcrdr_release_message(msg);
             break;
@@ -165,6 +170,8 @@ TEST(instance, thread)
 
     n = purc_inst_destroy_move_buffer();
     purc_log_info("move buffer destroyed, %d messages discarded\n", (int)n);
+
+    pthread_join(other_threads[0], NULL);
 
     purc_cleanup();
 }
@@ -193,7 +200,7 @@ TEST(instance, threads)
     event = pcrdr_make_event_message(
             PCRDR_MSG_TARGET_THREAD,
             1,
-            "test",
+            "test", NULL,
             PCRDR_MSG_ELEMENT_TYPE_VOID, NULL, NULL,
             PCRDR_MSG_DATA_TYPE_VOID, NULL, 0);
 
@@ -216,7 +223,7 @@ TEST(instance, threads)
 
             ASSERT_EQ(msg->target, PCRDR_MSG_TARGET_THREAD);
             ASSERT_EQ(msg->targetValue, 1);
-            ASSERT_STREQ(purc_variant_get_string_const(msg->event), "test");
+            ASSERT_STREQ(purc_variant_get_string_const(msg->eventName), "test");
 
             pcrdr_release_message(msg);
 
@@ -232,6 +239,10 @@ TEST(instance, threads)
 
     n = purc_inst_destroy_move_buffer();
     purc_log_info("move buffer destroyed, %d messages discarded\n", (int)n);
+
+    for (int i = 1; i < NR_THREADS; i++) {
+        pthread_join(other_threads[i], NULL);
+    }
 
     purc_cleanup();
 }

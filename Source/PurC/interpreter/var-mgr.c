@@ -660,6 +660,8 @@ enum purc_symbol_var _to_symbol(char symbol)
         return PURC_SYMBOL_VAR_EQUAL;
     case '%':
         return PURC_SYMBOL_VAR_PERCENT_SIGN;
+    case '^':
+        return PURC_SYMBOL_VAR_CARET;
     default:
         // FIXME: NotFound???
         purc_set_error_with_info(PCVARIANT_ERROR_NOT_FOUND, "symbol:%c", symbol);

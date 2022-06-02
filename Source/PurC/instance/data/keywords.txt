@@ -15,6 +15,7 @@
 hvml on
 hvml to
 hvml with
+hvml within
 hvml from
 hvml at
 hvml in
@@ -31,6 +32,7 @@ hvml raw
 hvml type
 hvml onlyif
 hvml while
+hvml concurrently
 hvml synchronously sync
 hvml asynchronously async
 hvml rel

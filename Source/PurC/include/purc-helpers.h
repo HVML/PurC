@@ -44,6 +44,7 @@
 #define PURC_LEN_ENDPOINT_NAME         \
     (PURC_LEN_HOST_NAME + PURC_LEN_APP_NAME + PURC_LEN_RUNNER_NAME + 3)
 #define PURC_LEN_UNIQUE_ID             63
+#define PURC_LEN_PROPERTY_NAME         255
 
 PCA_EXTERN_C_BEGIN
 
@@ -100,7 +101,7 @@ purc_assemble_hvml_uri_alloc(const char *host_name,
  *
  * Since: 0.1.0
  */
-PCA_EXPORT bool
+PCA_EXPORT size_t
 purc_hvml_uri_assemble(char *uri, const char *host, const char *app,
         const char *runner, const char* group, const char *page);
 
@@ -116,15 +117,48 @@ purc_hvml_uri_assemble_alloc(const char *host, const char *app,
         const char *runner, const char* group, const char *page);
 
 /**
- * Break down an HVML URI in the following pattern:
+ * Break down an HVML URI in the following pattern to component buffers:
  *
- *      hvml://<host>/<app>/<runner>/[<group>/]<page>
+ *  hvml://<host>/<app>/<runner>/<group>/<page>[?key1=value1&key2=value2]
+ *
+ * Note that we use `-` for `<group>` when there is no group name.
  *
  * Since: 0.1.0
  */
 PCA_EXPORT bool
 purc_hvml_uri_split(const char *uri,
+        char *host, char *app, char *runner, char *group, char *page);
+
+/**
+ * Break down an HVML URI in the following pattern:
+ *
+ *  hvml://<host>/<app>/<runner>/<group>/<page>[?key1=value1&key2=value2]
+ *
+ * Note that we use `-` for `<group>` when there is no group name.
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT bool
+purc_hvml_uri_split_alloc(const char *uri,
         char **host, char **app, char **runner, char **group, char **page);
+
+/**
+ * Copy the value of the specified key in a HVML URI to the bufffer if found.
+ * Since: 0.1.0
+ */
+PCA_EXPORT bool
+purc_hvml_uri_get_query_value(const char *uri, const char *key,
+        char *value_buff);
+
+/**
+ * Copy the value of the specified key in a HVML URI to the newly allocated
+ * buffer if found.
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT bool
+purc_hvml_uri_get_query_value_alloc(const char *uri, const char *key,
+        char **value_buff);
 
 /**
  * Check whether a string is a valid token.

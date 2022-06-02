@@ -1,0 +1,8 @@
+<!DOCTYPE hvml>
+<hvml target="void">
+    <body>
+        <load>
+            $<
+        </load>
+    </body>
+</hvml>

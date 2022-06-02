@@ -47,16 +47,23 @@ struct pcinst;
 typedef struct pcinst pcinst;
 typedef struct pcinst *pcinst_t;
 
+struct pcmodule;
+typedef struct pcmodule pcmodule;
+typedef struct pcmodule *pcmodule_t;
+
 typedef int (*module_init_once_f)(void);
-typedef int (*module_init_instance_f)(struct pcinst* inst);
+typedef int (*module_init_instance_f)(struct pcinst *curr_inst,
+        const purc_instance_extra_info* extra_info);
+typedef void (*module_cleanup_instance_f)(struct pcinst *curr_inst);
 
 struct pcmodule {
     // PURC_HAVE_XXXX if !always
-    unsigned int            id;
-    unsigned int            module_inited;
+    unsigned int               id;
+    unsigned int               module_inited;
 
-    module_init_once_f      init_once;
-    module_init_instance_f  init_instance;
+    module_init_once_f         init_once;
+    module_init_instance_f     init_instance;
+    module_cleanup_instance_f  cleanup_instance;
 };
 
 struct pcinst {
@@ -69,6 +76,16 @@ struct pcinst {
     char                   *app_name;
     char                   *runner_name;
     purc_atom_t             endpoint_atom;
+
+    // fetcher related
+    size_t                  max_conns;
+    size_t                  cache_quota;
+    bool                    enable_remote_fetcher;
+
+    // runloop bounded by this runner
+    purc_runloop_t        running_loop;
+    // pthread bounded by this runner
+    pthread_t             running_thread;
 
 #define LOG_FILE_SYSLOG     ((FILE *)-1)
     /* the FILE object for logging (-1: use syslog; NULL: disabled) */
@@ -88,8 +105,6 @@ struct pcinst {
 
     struct pcexecutor_heap *executor_heap;
     struct pcintr_heap     *intr_heap;
-
-    bool initialized_main_runloop;
 
     /* FIXME: enable the fields ONLY when NDEBUG is undefined */
     struct pcdebug_backtrace  *bt;

@@ -27,7 +27,7 @@
 
 #if ENABLE(REMOTE_FETCHER)
 
-#include "fetcher-session.h"
+#include "fetcher-request.h"
 #include "fetcher-messages-basic.h"
 
 #include "Connection.h"
@@ -104,8 +104,6 @@ public:
 
     void setProcessSuppressionEnabled(bool);
 
-    PcFetcherSession* createSession(void);
-
     purc_variant_t requestAsync(
         const char* base_uri,
         const char* url,
@@ -127,6 +125,10 @@ public:
 
     int checkResponse(uint32_t timeout_ms);
 
+    void requestFinished(PcFetcherRequest *request);
+
+    bool isReadyToTerm();
+
 protected:
     // ProcessLauncher::Client
     void didFinishLaunching(ProcessLauncher*, IPC::Connection::Identifier) override;
@@ -135,9 +137,6 @@ protected:
     bool dispatchSyncMessage(IPC::Connection&, IPC::Decoder&, std::unique_ptr<IPC::Encoder>&);
 
     void getLaunchOptions(ProcessLauncher::LaunchOptions&);
-    static void asyncRespHandler(purc_variant_t request_id, void *ctxt,
-        const struct pcfetcher_resp_header *resp_header,
-        purc_rwstream_t resp);
 
     struct PendingMessage {
         std::unique_ptr<IPC::Encoder> encoder;
@@ -154,16 +153,25 @@ protected:
     const char* connectionName(void) override { return "PcFetcherProcess"; }
 
 private:
+    PcFetcherRequest* createRequest(void);
+    void removeRequest(PcFetcherRequest *request);
+
+private:
     struct pcfetcher* m_fetcher;
 
     RefPtr<WorkQueue> m_workQueue;
+    RunLoop *m_workQueueRunLoop;
 
     Vector<PendingMessage> m_pendingMessages;
     RefPtr<ProcessLauncher> m_processLauncher;
     RefPtr<IPC::Connection> m_connection;
     bool m_alwaysRunsAtBackgroundPriority { false };
     PurCFetcher::ProcessIdentifier m_processIdentifier { PurCFetcher::ProcessIdentifier::generate() };
-    Vector<void*> m_asyncSessionWrap;
+
+    Lock m_controlLock;
+
+    Lock m_requestLock;
+    Vector<PcFetcherRequest*> m_requestVec;
 };
 
 template<typename T>
@@ -180,6 +188,7 @@ bool PcFetcherProcess::send(T&& message, uint64_t destinationID, OptionSet<IPC::
 template<typename U>
 bool PcFetcherProcess::sendSync(U&& message, typename U::Reply&& reply, uint64_t destinationID, Seconds timeout, OptionSet<IPC::SendSyncOption> sendSyncOptions)
 {
+    auto clocker = holdLock(m_controlLock);
     COMPILE_ASSERT(U::isSync, SyncMessageExpected);
 
     if (!m_connection)
@@ -193,6 +202,7 @@ bool PcFetcherProcess::sendSync(U&& message, typename U::Reply&& reply, uint64_t
 template<typename T, typename C>
 void PcFetcherProcess::sendWithAsyncReply(T&& message, C&& completionHandler, uint64_t destinationID, OptionSet<IPC::SendOption> sendOptions, ShouldStartProcessThrottlerActivity shouldStartProcessThrottlerActivity)
 {
+    auto clocker = holdLock(m_controlLock);
     COMPILE_ASSERT(!T::isSync, AsyncMessageExpected);
 
     auto encoder = makeUnique<IPC::Encoder>(T::name(), destinationID);

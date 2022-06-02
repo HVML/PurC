@@ -54,6 +54,7 @@
 #include <string.h>
 #include <math.h>
 #include <float.h>
+#include <assert.h>
 
 static const char *hex_chars = "0123456789abcdefABCDEF";
 
@@ -852,9 +853,10 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
 
                 // key
                 MY_WRITE(rws, "\"", 1);
-                const char *ks = purc_variant_get_string_const(key);
-                n = serialize_string(rws, ks, strlen(ks),
-                        flags, len_expected);
+                size_t len;
+                const char *ks = purc_variant_get_string_const_ex(key, &len);
+                assert(ks != NULL);
+                n = serialize_string(rws, ks, len, flags, len_expected);
                 MY_CHECK(n);
                 MY_WRITE(rws, "\"", 1);
 

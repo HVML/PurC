@@ -41,7 +41,7 @@ public:
     GSocketMonitor() = default;
     WTF_EXPORT_PRIVATE ~GSocketMonitor();
 
-    WTF_EXPORT_PRIVATE void start(GSocket*, GIOCondition, RunLoop&, Function<gboolean(GIOCondition)>&&);
+    WTF_EXPORT_PRIVATE void start(GSocket*, GIOCondition, RunLoop&, Function<gboolean(GIOCondition)>&&, bool attachCancelable=true);
     WTF_EXPORT_PRIVATE void stop();
     bool isActive() const { return !!m_source; }
 

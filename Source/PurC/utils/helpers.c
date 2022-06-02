@@ -38,7 +38,7 @@ bool purc_is_valid_token (const char* token, int max_len)
 {
     int i;
 
-    if (!purc_isalpha (token [0]))
+    if (token[0] != '_' && !purc_isalpha (token [0]))
         return false;
 
     i = 1;
@@ -60,7 +60,7 @@ bool purc_is_valid_loose_token (const char* token, int max_len)
 {
     int i;
 
-    if (!purc_isalpha (token [0]))
+    if (token[0] != '_' && !purc_isalpha (token [0]))
         return false;
 
     i = 1;
@@ -404,10 +404,14 @@ double purc_get_elapsed_seconds (const struct timespec *ts1,
     return ds + dns * 1.0E-9;
 }
 
-#define HVML_SCHEMA     "hvml://"
-#define COMP_SEPERATOR  '/'
+#define HVML_SCHEMA         "hvml://"
+#define COMP_SEPERATOR      '/'
+#define QUERY_SEPERATOR     '?'
+#define FRAG_SEPERATOR      '#'
+#define PAIR_SEPERATOR      '&'
+#define KV_SEPERATOR        '='
 
-size_t purc_hvml_uri_assmeble(char *uri, const char *host, const char* app,
+size_t purc_hvml_uri_assemble(char *uri, const char *host, const char* app,
         const char* runner, const char *group, const char *page)
 {
     char *start = uri;
@@ -429,10 +433,10 @@ size_t purc_hvml_uri_assmeble(char *uri, const char *host, const char* app,
         uri = stpcpy(uri, group);
         uri[0] = '/';
         uri++;
-    }
 
-    if (page) {
-        uri = stpcpy(uri, page);
+        if (page) {
+            uri = stpcpy(uri, page);
+        }
     }
 
     uri[0] = '\0';
@@ -466,11 +470,11 @@ char* purc_hvml_uri_assemble_alloc(const char* host, const char* app,
         return NULL;
 
 
-    purc_hvml_uri_assmeble(uri, host, app, runner, group, page);
+    purc_hvml_uri_assemble(uri, host, app, runner, group, page);
     return uri;
 }
 
-static unsigned int get_comp_len(const char *str)
+static unsigned int get_path_comp_len(const char *str)
 {
     unsigned int len = 0;
 
@@ -482,7 +486,86 @@ static unsigned int get_comp_len(const char *str)
     return len;
 }
 
+static unsigned int get_path_trail_len(const char *str)
+{
+    unsigned int len = 0;
+
+    while (*str && *str != QUERY_SEPERATOR && *str != FRAG_SEPERATOR) {
+        len++;
+        str++;
+    }
+
+    return len;
+}
+
 bool purc_hvml_uri_split(const char *uri,
+        char *host, char *app, char *runner, char *group, char *page)
+{
+    static const unsigned int sz_schema = sizeof(HVML_SCHEMA) - 1;
+    unsigned int len;
+
+    if (strncasecmp(uri, HVML_SCHEMA, sz_schema))
+        return false;
+
+    uri += sz_schema;
+    len = get_path_comp_len(uri);
+    if (len == 0 || uri[len] != COMP_SEPERATOR)
+        return false;
+    if (host) {
+        strncpy(host, uri, len);
+        host[len] = '\0';
+    }
+
+    uri += len + 1;
+    len = get_path_comp_len(uri);
+    if (len == 0 || uri[len] != COMP_SEPERATOR)
+        goto failed;
+    if (app) {
+        strncpy(app, uri, len);
+        app[len] = '\0';
+    }
+
+    uri += len + 1;
+    len = get_path_comp_len(uri);
+    if (len == 0 || uri[len] != COMP_SEPERATOR)
+        goto failed;
+    if (runner) {
+        strncpy(runner, uri, len);
+        runner[len] = '\0';
+    }
+
+    if (group == NULL && page == NULL) {
+        /* stop splitting if the caller was not insterested in group and page */
+        return true;
+    }
+
+    uri += len + 1;
+    len = get_path_comp_len(uri);
+    if (len == 0 || uri[len] != COMP_SEPERATOR)
+        goto failed;
+    if (group) {
+        strncpy(group, uri, len);
+        group[len] = '\0';
+    }
+
+    uri += len + 1;
+    len = get_path_trail_len(uri);
+    if (len == 0 || uri[0] == COMP_SEPERATOR)
+        goto failed;
+
+    if (page) {
+        strncpy(page, uri, len);
+        page[len] = '\0';
+    }
+
+    return true;
+
+failed:
+    return false;
+}
+
+
+bool purc_hvml_uri_split_alloc(const char *uri,
         char **host, char **app, char **runner, char **group, char **page)
 {
     static const unsigned int sz_schema = sizeof(HVML_SCHEMA) - 1;
@@ -494,43 +577,41 @@ bool purc_hvml_uri_split(const char *uri,
         return false;
 
     uri += sz_schema;
-    len = get_comp_len(uri);
+    len = get_path_comp_len(uri);
     if (len == 0 || uri[len] != COMP_SEPERATOR)
         return false;
     my_host = strndup(uri, len);
 
     uri += len + 1;
-    len = get_comp_len(uri);
+    len = get_path_comp_len(uri);
     if (len == 0 || uri[len] != COMP_SEPERATOR)
         goto failed;
     my_app = strndup(uri, len);
 
     uri += len + 1;
-    len = get_comp_len(uri);
+    len = get_path_comp_len(uri);
     if (len == 0 || uri[len] != COMP_SEPERATOR)
         goto failed;
     my_runner = strndup(uri, len);
 
+    if (group == NULL && page == NULL) {
+        /* stop splitting if the caller was not insterested in group and page */
+        goto done;
+    }
+
     uri += len + 1;
-    len = get_comp_len(uri);
-    if (len == 0)
+    len = get_path_comp_len(uri);
+    if (len == 0 || uri[len] != COMP_SEPERATOR)
         goto failed;
+    my_group = strndup(uri, len);
 
-    if (uri[len] == COMP_SEPERATOR) {
-        /* have group */
-        my_group = strndup(uri, len);
+    uri += len + 1;
+    len = get_path_trail_len(uri);
+    if (len == 0 || uri[0] == COMP_SEPERATOR)
+        goto failed;
+    my_page = strndup(uri, len);
 
-        uri += len + 1;
-        len = get_comp_len(uri);
-        if (len == 0 || uri[len] != '\0')
-            goto failed;
-        my_page = strndup(uri, len);
-    }
-    else {
-        /* no group */
-        my_page = strndup(uri, len);
-    }
-
+done:
     if (host)
         *host = my_host;
     else
@@ -548,7 +629,7 @@ bool purc_hvml_uri_split(const char *uri,
 
     if (group)
         *group = my_group;
-    else
+    else if (my_group)
         free(my_group);
 
     if (page)
@@ -571,5 +652,105 @@ failed:
         free(my_page);
 
     return false;
+}
+
+static size_t get_key_len(const char *str)
+{
+    size_t len = 0;
+
+    while (*str && *str != KV_SEPERATOR && *str != FRAG_SEPERATOR) {
+        len++;
+        str++;
+    }
+
+    return len;
+}
+
+static size_t get_value_len(const char *str)
+{
+    size_t len = 0;
+
+    while (*str && *str != PAIR_SEPERATOR && *str != FRAG_SEPERATOR) {
+        len++;
+        str++;
+    }
+
+    return len;
+}
+
+static const char *locate_query_value(const char *uri, const char *key)
+{
+    size_t key_len = strlen(key);
+    if (key_len == 0)
+        return NULL;
+
+    while (*uri && *uri != QUERY_SEPERATOR) {
+        uri++;
+    }
+
+    if (uri[0] == 0)
+        return NULL;
+
+    char my_key[key_len + 2];
+    strcpy(my_key, key);
+    my_key[key_len] = KV_SEPERATOR;
+    key_len++;
+    my_key[key_len] = 0;
+
+    const char *left = uri + 1;
+    while (*left) {
+        if (strncasecmp(left, my_key, key_len) == 0) {
+            return left + key_len;
+        }
+        else {
+            const char *value = left + get_key_len(left);
+            unsigned int value_len = get_value_len(value);
+            left = value + value_len;
+            if (*left == PAIR_SEPERATOR)
+                left++;
+
+            if (*left == FRAG_SEPERATOR)
+                break;
+        }
+    }
+
+    return NULL;
+}
+
+bool purc_hvml_uri_get_query_value(const char *uri, const char *key,
+        char *value_buff)
+{
+    const char *value = locate_query_value(uri, key);
+
+    if (value == NULL) {
+        return false;
+    }
+
+    size_t value_len = get_value_len(value);
+    if (value_len == 0) {
+        return false;
+    }
+
+    strncpy(value_buff, value, value_len);
+    value_buff[value_len] = 0;
+    return true;
+}
+
+bool purc_hvml_uri_get_query_value_alloc(const char *uri, const char *key,
+        char **value_buff)
+{
+    const char *value = locate_query_value(uri, key);
+
+    if (value == NULL) {
+        return false;
+    }
+
+    size_t value_len = get_value_len(value);
+    if (value_len == 0) {
+        return false;
+    }
+
+    *value_buff = strndup(value, value_len);
+    return true;
 }
 
