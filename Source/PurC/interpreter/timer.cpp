@@ -133,7 +133,7 @@ class PurcTimer : public WTF::RunLoop::TimerBase {
                     ++m_fired;
                     stop();
                     pcintr_set_current_co(m_coroutine);
-                    pcintr_resume();
+                    pcintr_resume(NULL);
                     pcintr_set_current_co(NULL);
                     return;
                 }

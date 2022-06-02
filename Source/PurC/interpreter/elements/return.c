@@ -101,10 +101,12 @@ post_process_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 
     PC_ASSERT(ctxt->back_anchor == NULL);
 
+    bool outmost = false;
     struct pcintr_stack_frame *p = pcintr_stack_frame_get_parent(frame);
     for(; p; p = pcintr_stack_frame_get_parent(p)) {
         if (co->stack.entry && p->pos->tag_id == PCHVML_TAG_BODY) {
             ctxt->back_anchor = p;
+            outmost = true;
             break;
         }
         pcvdom_element_t pos = p->pos;
@@ -122,7 +124,7 @@ post_process_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         return -1;
     }
 
-    if (co->stack.entry) {
+    if (co->stack.entry && outmost) {
         post_callstate_success_event(co, ctxt->with);
     }
     else {

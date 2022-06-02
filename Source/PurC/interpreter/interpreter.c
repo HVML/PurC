@@ -1863,6 +1863,30 @@ static void run_exiting_co(void *ctxt)
 static void run_ready_co(void);
 
 static void
+revoke_all_dynamic_observers(void)
+{
+    pcintr_stack_t stack = pcintr_get_stack();
+    PC_ASSERT(stack);
+    struct list_head *observers = &stack->dynamic_variant_observer_list;
+    struct pcintr_observer *p, *n;
+    list_for_each_entry_safe(p, n, observers, node) {
+        pcintr_revoke_observer(p);
+    }
+}
+
+static void
+revoke_all_native_observers(void)
+{
+    pcintr_stack_t stack = pcintr_get_stack();
+    PC_ASSERT(stack);
+    struct list_head *observers = &stack->native_variant_observer_list;
+    struct pcintr_observer *p, *n;
+    list_for_each_entry_safe(p, n, observers, node) {
+        pcintr_revoke_observer(p);
+    }
+}
+
+static void
 revoke_all_common_observers(void)
 {
     pcintr_stack_t stack = pcintr_get_stack();
@@ -2068,7 +2092,9 @@ static void check_after_execution(pcintr_coroutine_t co)
         return;
 
     if (co->stack.exited) {
+        revoke_all_dynamic_observers();
         PC_ASSERT(list_empty(&co->stack.dynamic_variant_observer_list));
+        revoke_all_native_observers();
         PC_ASSERT(list_empty(&co->stack.native_variant_observer_list));
         revoke_all_common_observers();
         PC_ASSERT(list_empty(&co->stack.common_variant_observer_list));
@@ -3957,6 +3983,8 @@ struct timer_data {
 static void
 check_and_dispatch_msg(void)
 {
+    PC_ASSERT(pcintr_get_coroutine());
+
     int r;
     size_t n;
     r = purc_inst_holding_messages_count(&n);
@@ -4186,7 +4214,7 @@ void pcintr_unregister_cancel(pcintr_cancel_t cancel)
     cancel->list = NULL;
 }
 
-void pcintr_yield(void *ctxt, void (*continuation)(void *ctxt))
+void pcintr_yield(void *ctxt, void (*continuation)(void *ctxt, void *extra))
 {
     PC_ASSERT(ctxt);
     PC_ASSERT(continuation);
@@ -4205,7 +4233,7 @@ void pcintr_yield(void *ctxt, void (*continuation)(void *ctxt))
     co->continuation = continuation;
 }
 
-void pcintr_resume(void)
+void pcintr_resume(void *extra)
 {
     pcintr_coroutine_t co = pcintr_get_coroutine();
     PC_ASSERT(co);
@@ -4218,12 +4246,12 @@ void pcintr_resume(void)
     PC_ASSERT(frame);
 
     void *ctxt = co->yielded_ctxt;
-    void (*continuation)(void *ctxt) = co->continuation;
+    void (*continuation)(void *ctxt, void *extra) = co->continuation;
 
     co->state = CO_STATE_RUN;
     co->yielded_ctxt = NULL;
     co->continuation = NULL;
-    continuation(ctxt);
+    continuation(ctxt, extra);
     check_after_execution(co);
 }
 
@@ -4262,31 +4290,14 @@ pcintr_create_child_co(pcvdom_element_t vdom_element,
     return child;
 }
 
-static void
-event_release(pcintr_event_t event)
-{
-    if (event) {
-        PURC_VARIANT_SAFE_CLEAR(event->msg_sub_type);
-        PURC_VARIANT_SAFE_CLEAR(event->src);
-        PURC_VARIANT_SAFE_CLEAR(event->payload);
-    }
-}
-
-static void
-event_destroy(pcintr_event_t event)
-{
-    if (event) {
-        event_release(event);
-        free(event);
-    }
-}
-
 void
-pcintr_on_event(pcintr_event_t event)
+pcintr_on_event(purc_atom_t msg_type, purc_variant_t msg_sub_type,
+        purc_variant_t src, purc_variant_t payload)
 {
-    PC_ASSERT(event);
-
-    purc_atom_t msg_type = event->msg_type;
+    PC_ASSERT(0);
+    UNUSED_PARAM(msg_sub_type);
+    UNUSED_PARAM(src);
+    UNUSED_PARAM(payload);
 
     if (msg_type == pchvml_keyword(PCHVML_KEYWORD_ENUM(MSG, CALLSTATE))) {
         if (0)
@@ -4296,7 +4307,5 @@ pcintr_on_event(pcintr_event_t event)
         if (0)
             PC_ASSERT(0);
     }
-
-    event_destroy(event);
 }
 
