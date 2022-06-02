@@ -186,7 +186,7 @@ statement:
   exp         { SET(param, $1); }
 ;
 
-exp: 
+exp:
   term
 | exp '+' exp   { ADD($$, $1, $3); }
 | exp '-' exp   { SUB($$, $1, $3); }
