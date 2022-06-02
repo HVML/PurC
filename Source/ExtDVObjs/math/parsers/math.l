@@ -89,7 +89,7 @@ do {                                              \
 [-+*/()^;]   { C(); R(); return *yytext; }
 
 0                { C(); yylval->str = strdup(yytext); R(); return MKT(NUMBER); }
-[1-9][0-9]*      { C(); yylval->str = strdup(yytext); R(); return MKT(NUMBER); }
+[0-9][0-9]*      { C(); yylval->str = strdup(yytext); R(); return MKT(NUMBER); }
 "0."[0-9]*       { C(); yylval->str = strdup(yytext); R(); return MKT(NUMBER); }
 [0-9]+"."[0-9]*  { C(); yylval->str = strdup(yytext); R(); return MKT(NUMBER); }
 [0-9]+("."[0-9]*)?[eE][+-]?[0-9]+ { C(); yylval->str = strdup(yytext); R(); return MKT(NUMBER); }
