@@ -78,6 +78,9 @@ struct pcintr_heap {
     // owner instance
     struct pcinst        *owner;
 
+    struct list_head     *owning_heaps;
+    struct list_head      sibling;         // struct pcintr_heap
+
     // currently running coroutine
     pcintr_coroutine_t    running_coroutine;
 
@@ -396,6 +399,9 @@ PCA_EXTERN_C_BEGIN
 
 struct pcintr_heap* pcintr_get_heap(void);
 bool pcintr_is_current_thread(void);
+
+void pcintr_add_heap(struct list_head *all_heaps);
+void pcintr_remove_heap(struct list_head *all_heaps);
 
 pcintr_stack_t pcintr_get_stack(void);
 pcintr_coroutine_t pcintr_get_coroutine(void);
