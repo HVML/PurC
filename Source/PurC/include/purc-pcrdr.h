@@ -529,7 +529,8 @@ typedef enum {
     PCRDR_MSG_TARGET_PLAINWINDOW,
     PCRDR_MSG_TARGET_PAGE,
     PCRDR_MSG_TARGET_DOM,
-    PCRDR_MSG_TARGET_THREAD,
+    PCRDR_MSG_TARGET_INSTANCE,
+    PCRDR_MSG_TARGET_COROUTINE,
     PCRDR_MSG_TARGET_USER,
 
     /* XXX: change this if you append a new enumerator */
