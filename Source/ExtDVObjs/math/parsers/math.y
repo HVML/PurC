@@ -67,6 +67,11 @@
         unsigned int   divide_by_zero:1;
     };
 
+    struct math_token {
+        const char      *text;
+        size_t           leng;
+    };
+
     #ifndef YY_TYPEDEF_YY_SCANNER_T
     #define YY_TYPEDEF_YY_SCANNER_T
     typedef void* yyscan_t;
@@ -117,16 +122,24 @@
 
     #define SET_BY_NUM(_r, _a) do {                                 \
             /* TODO: strtod sort of func */                         \
+            char *_s = (char*)_a.text;                              \
+            const char _c = _s[_a.leng];                            \
             char *endptr = NULL;                                    \
-            _r.d = STRTOD(_a, &endptr);                             \
+            _s[_a.leng] = '\0';                                     \
+            _r.d = STRTOD(_s, &endptr);                             \
+            _s[_a.leng] = _c;                                       \
             if (endptr && *endptr)                                  \
                 YYABORT;                                            \
     } while (0)
 
     #define SET_BY_VAR(_r, _a) do {                                      \
+        char *_s = (char*)_a.text;                                       \
+        const char _c = _s[_a.leng];                                     \
         if (param->variables) {                                          \
             purc_variant_t _v;                                           \
-            _v = purc_variant_object_get_by_ckey(param->variables, _a);  \
+            _s[_a.leng] = '\0';                                          \
+            _v = purc_variant_object_get_by_ckey(param->variables, _s);  \
+            _s[_a.leng] = _c;                                            \
             if (_v) {                                                    \
                 bool ok = CAST_TO_NUMBER(_v, &_r.d, false);              \
                 if (ok)                                                  \
@@ -137,7 +150,9 @@
         if (!param->param || !purc_variant_is_object(param->param))      \
             YYABORT;                                                     \
                                                                          \
-        _v = purc_variant_object_get_by_ckey(param->param, _a);          \
+        _s[_a.leng] = '\0';                                              \
+        _v = purc_variant_object_get_by_ckey(param->param, _s);          \
+        _s[_a.leng] = _c;                                                \
         if (!_v)                                                         \
             YYABORT;                                                     \
                                                                          \
@@ -168,10 +183,8 @@
 %param { yyscan_t arg }
 %parse-param { struct internal_param *param }
 
-%union { char *str; }
+%union { struct math_token token; }
 %union { struct internal_value v; }
-
-%destructor { free($$); } <str>
 
 %precedence '='
 %left '-' '+'
@@ -179,7 +192,7 @@
 %precedence NEG /* negation--unary minus */
 %right '^'      /* exponentiation */
 
-%token <str> NUMBER VAR
+%token <token> NUMBER VAR
 %nterm <v> exp term
 
 
@@ -205,8 +218,8 @@ exp:
 ;
 
 term:
-  NUMBER      { SET_BY_NUM($$, $1); free($1); }
-| VAR         { SET_BY_VAR($$, $1); free($1); }
+  NUMBER      { SET_BY_NUM($$, $1); }
+| VAR         { SET_BY_VAR($$, $1); }
 | '(' exp ')' { $$ = $2; }
 ;
 
