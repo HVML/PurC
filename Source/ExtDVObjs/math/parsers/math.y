@@ -64,6 +64,7 @@
         purc_variant_t param;
         purc_variant_t variables;
         VALUE_TYPE     d;
+        unsigned int   divide_by_zero:1;
     };
 
     #ifndef YY_TYPEDEF_YY_SCANNER_T
@@ -79,13 +80,6 @@
     // generated header from flex
     // introduce yylex decl for later use
     #include <math.h>
-
-    static void yyerror(
-        YYLTYPE *yylloc,                   // match %define locations
-        yyscan_t arg,                      // match %param
-        struct internal_param *param,      // match %parse-param
-        const char *errsg
-    );
 
     #define SET(_r, _a) do {                           \
             _r->d = _a.d;                              \
@@ -107,8 +101,14 @@
             _r.d = _a.d * _b.d;                        \
     } while (0)
 
-    #define DIV(_r, _a, _b) do {                       \
-            _r.d = _a.d / _b.d;                        \
+    #define DIV(_r, _a, _b, _loc) do {                        \
+            int f = fpclassify(_b.d);                         \
+            if (f & FP_ZERO) {                                \
+                param->divide_by_zero = 1;                    \
+                yyerror(_loc,arg,param,"Divide by zero");     \
+                YYERROR;                                      \
+            }                                                 \
+            _r.d = _a.d / _b.d;                               \
     } while (0)
 
     #define EXP(_r, _a, _b) do {                       \
@@ -145,6 +145,14 @@
         if (!ok)                                                         \
             YYABORT;                                                     \
     } while (0)
+
+    static void yyerror(
+        YYLTYPE *yylloc,                   // match %define locations
+        yyscan_t arg,                      // match %param
+        struct internal_param *param,      // match %parse-param
+        const char *errsg
+    );
+
 }
 
 /* Bison declarations. */
@@ -191,7 +199,7 @@ exp:
 | exp '+' exp   { ADD($$, $1, $3); }
 | exp '-' exp   { SUB($$, $1, $3); }
 | exp '*' exp   { MUL($$, $1, $3); }
-| exp '/' exp   { DIV($$, $1, $3); }
+| exp '/' exp   { DIV($$, $1, $3, &(@3)); }
 | exp '^' exp   { EXP($$, $1, $3); }
 | '-' exp %prec NEG { NEG($$, $2); }
 ;
@@ -243,6 +251,14 @@ int FUNC_NAME(const char *input, VALUE_TYPE *d, purc_variant_t param)
     yylex_destroy(arg);
     if (ret==0 && d) {
         *d = ud.d;
+    }
+    else {
+        if (ud.divide_by_zero) {
+            purc_set_error(PURC_ERROR_OVERFLOW);
+        }
+        else {
+            purc_set_error(PURC_ERROR_INTERNAL_FAILURE);
+        }
     }
     return ret ? 1 : 0;
 }
