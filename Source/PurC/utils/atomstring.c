@@ -43,7 +43,7 @@ static struct atom_bucket {
     purc_atom_t     bucket_bits;
     purc_atom_t     atom_seq_id;
 
-    struct kvlist   atom_ht;
+    struct kvlist   atom_kv;
     char**          quarks;
 } atom_buckets[PURC_ATOM_BUCKETS_NR];
 
@@ -64,37 +64,32 @@ static struct atom_bucket {
 #define ATOM_BLOCK_SIZE         (1024 >> PURC_ATOM_BUCKET_BITS)
 #define ATOM_STRING_BLOCK_SIZE  (4096 - sizeof (size_t))
 
-static inline purc_atom_t atom_new (struct atom_bucket *bucket, char *string);
-
-// static KVLIST (atom_ht, NULL);
-// static char **quarks = NULL;
-// static uintptr_t atom_seq_id = 0;
+static inline purc_atom_t atom_new(struct atom_bucket *bucket, char *string);
 
 static purc_rwlock atom_rwlock;
 static char *atom_block = NULL;
 static int  atom_block_offset = 0;
 
-static void atom_init_bucket (struct atom_bucket *bucket)
+static void atom_init_bucket(struct atom_bucket *bucket)
 {
     assert (bucket->atom_seq_id == 0);
 
-    pcutils_kvlist_init(&bucket->atom_ht, NULL);
-    bucket->quarks = (char **) malloc (sizeof (char *) * ATOM_BLOCK_SIZE);
+    pcutils_kvlist_init(&bucket->atom_kv, NULL);
+    bucket->quarks = (char **)malloc(sizeof(char *) * ATOM_BLOCK_SIZE);
     bucket->quarks[0] = NULL;
     bucket->atom_seq_id = 1;
 
-    if (bucket->quarks == NULL)
-        assert (0);
+    assert(bucket->quarks != NULL);
 }
 
-static inline struct atom_bucket *atom_get_bucket (int bucket)
+static inline struct atom_bucket *atom_get_bucket(int bucket)
 {
     struct atom_bucket *atom_bucket;
 
     if (LIKELY(bucket >= 0 && bucket < PURC_ATOM_BUCKETS_NR)) {
         atom_bucket = atom_buckets + bucket;
         if (UNLIKELY(atom_bucket->atom_seq_id == 0)) {
-            atom_init_bucket (atom_bucket);
+            atom_init_bucket(atom_bucket);
             atom_bucket->bucket_bits = BUCKET_BITS (bucket);
         }
 
@@ -106,7 +101,7 @@ static inline struct atom_bucket *atom_get_bucket (int bucket)
 }
 
 purc_atom_t
-purc_atom_try_string_ex (int bucket, const char *string)
+purc_atom_try_string_ex(int bucket, const char *string)
 {
     struct atom_bucket *atom_bucket = atom_get_bucket(bucket);
     purc_atom_t *data;
@@ -115,39 +110,54 @@ purc_atom_try_string_ex (int bucket, const char *string)
     if (string == NULL || atom_bucket == NULL)
         return 0;
 
-    purc_rwlock_reader_lock (&atom_rwlock);
-    data = pcutils_kvlist_get (&atom_bucket->atom_ht, string);
+    purc_rwlock_reader_lock(&atom_rwlock);
+    data = pcutils_kvlist_get(&atom_bucket->atom_kv, string);
     if (data)
         atom = *data;
-    // memcpy (&atom, data, sizeof(purc_atom_t));
-    //atom = (uint32_t)(uintptr_t)pcutils_kvlist_get (&atom_ht, string);
-    purc_rwlock_reader_unlock (&atom_rwlock);
+    purc_rwlock_reader_unlock(&atom_rwlock);
 
     return atom;
 }
 
+bool
+purc_atom_remove_string_ex(int bucket, const char *string)
+{
+    struct atom_bucket *atom_bucket = atom_get_bucket(bucket);
+
+    if (string == NULL || atom_bucket == NULL)
+        return false;
+
+    bool ret;
+    purc_rwlock_reader_lock(&atom_rwlock);
+    ret = pcutils_kvlist_delete(&atom_bucket->atom_kv, string);
+    purc_rwlock_reader_unlock(&atom_rwlock);
+
+    return ret;
+}
+
 /* HOLDS: atom_rwlock_lock */
 static char *
-atom_strdup (const char *string)
+atom_strdup(const char *string)
 {
     char *copy;
     size_t len;
 
-    len = strlen (string) + 1;
+    len = strlen(string) + 1;
 
     /* For strings longer than half the block size, fall back
        to strdup so that we fill our blocks at least 50%. */
     if (len > ATOM_STRING_BLOCK_SIZE / 2)
-        return strdup (string);
+        return strdup(string);  /* XXX: the space will be leaked definitely */
 
     if (atom_block == NULL ||
             ATOM_STRING_BLOCK_SIZE - atom_block_offset < len) {
-        atom_block = malloc (ATOM_STRING_BLOCK_SIZE);
-        atom_block_offset = 0;
+        atom_block = realloc(atom_block,
+                (atom_block_offset + len > ATOM_STRING_BLOCK_SIZE) ?
+                (atom_block_offset + len) : ATOM_STRING_BLOCK_SIZE);
     }
 
     copy = atom_block + atom_block_offset;
-    memcpy (copy, string, len);
+    memcpy(copy, string, len);
     atom_block_offset += len;
 
     return copy;
@@ -155,50 +165,50 @@ atom_strdup (const char *string)
 
 /* HOLDS: purc_atom_rwlock_writer_lock */
 static inline purc_atom_t
-atom_from_string (struct atom_bucket *bucket,
+atom_from_string(struct atom_bucket *bucket,
         const char *string, bool duplicate)
 {
     purc_atom_t *data;
     purc_atom_t atom = 0;
 
-    data = pcutils_kvlist_get (&bucket->atom_ht, string);
+    data = pcutils_kvlist_get(&bucket->atom_kv, string);
     if (data) {
         atom = *data;
         assert (atom);
     }
     else {
-        atom = atom_new (bucket,
-                duplicate ? atom_strdup (string) : (char *)string);
+        atom = atom_new(bucket,
+                duplicate ? atom_strdup(string) : (char *)string);
     }
 
     return atom;
 }
 
 static inline purc_atom_t
-atom_from_string_locked (struct atom_bucket *bucket,
+atom_from_string_locked(struct atom_bucket *bucket,
         const char *string, bool duplicate)
 {
     purc_atom_t atom = 0;
     if (!string)
         return 0;
 
-    purc_rwlock_writer_lock (&atom_rwlock);
-    atom = atom_from_string (bucket, string, duplicate);
-    purc_rwlock_writer_unlock (&atom_rwlock);
+    purc_rwlock_writer_lock(&atom_rwlock);
+    atom = atom_from_string(bucket, string, duplicate);
+    purc_rwlock_writer_unlock(&atom_rwlock);
 
     return atom;
 }
 
 purc_atom_t
-purc_atom_from_string_ex (int bucket, const char *string)
+purc_atom_from_string_ex(int bucket, const char *string)
 {
-    return atom_from_string_locked (atom_get_bucket(bucket), string, true);
+    return atom_from_string_locked(atom_get_bucket(bucket), string, true);
 }
 
 purc_atom_t
-purc_atom_from_static_string_ex (int bucket, const char *string)
+purc_atom_from_static_string_ex(int bucket, const char *string)
 {
-    return atom_from_string_locked (atom_get_bucket(bucket), string, false);
+    return atom_from_string_locked(atom_get_bucket(bucket), string, false);
 }
 
 const char *
@@ -214,23 +224,23 @@ purc_atom_to_string(purc_atom_t atom)
     struct atom_bucket *atom_bucket = atom_get_bucket(bucket);
     atom = ATOM_TO_SEQUENCE(atom);
 
-    purc_rwlock_reader_lock (&atom_rwlock);
+    purc_rwlock_reader_lock(&atom_rwlock);
     if (atom < atom_bucket->atom_seq_id)
         result = atom_bucket->quarks[atom];
-    purc_rwlock_reader_unlock (&atom_rwlock);
+    purc_rwlock_reader_unlock(&atom_rwlock);
 
     return result;
 }
 
 /* HOLDS: purc_atom_rwlock_writer_lock */
 static inline purc_atom_t
-atom_new (struct atom_bucket *bucket, char *string)
+atom_new(struct atom_bucket *bucket, char *string)
 {
     purc_atom_t atom;
     char **atoms_new;
 
     if (bucket->atom_seq_id % ATOM_BLOCK_SIZE == 0) {
-        atoms_new = (char **)malloc (sizeof (char *) *
+        atoms_new = (char **)malloc(sizeof (char *) *
                 (bucket->atom_seq_id + ATOM_BLOCK_SIZE));
         if (bucket->atom_seq_id != 0)
             memcpy (atoms_new, bucket->quarks,
@@ -243,7 +253,7 @@ atom_new (struct atom_bucket *bucket, char *string)
     atom = bucket->atom_seq_id;
     bucket->quarks[atom] = string;
     atom |= bucket->bucket_bits;
-    pcutils_kvlist_set (&bucket->atom_ht, string, &atom);
+    pcutils_kvlist_set (&bucket->atom_kv, string, &atom);
     bucket->atom_seq_id++;
 
     assert(IS_VALID_SEQ_ID(bucket->atom_seq_id));
@@ -252,20 +262,30 @@ atom_new (struct atom_bucket *bucket, char *string)
 }
 
 static void
-atom_cleanup_once (void)
+atom_cleanup_once(void)
 {
+    int bucket;
+
+    for (bucket = 0; bucket < PURC_ATOM_BUCKETS_NR; bucket++) {
+        struct atom_bucket *atom_bucket = atom_buckets + bucket;
+        if (LIKELY(atom_bucket->atom_seq_id != 0)) {
+            pcutils_kvlist_free(&atom_bucket->atom_kv);
+            free(atom_bucket->quarks);
+        }
+    }
+
     if (atom_rwlock.native_impl)
-        purc_rwlock_clear (&atom_rwlock);
+        purc_rwlock_clear(&atom_rwlock);
     if (atom_block)
         free(atom_block);
 }
 
 static int
-atom_init_once (void)
+atom_init_once(void)
 {
     int r = 0;
 
-    purc_rwlock_init (&atom_rwlock);
+    purc_rwlock_init(&atom_rwlock);
     if (atom_rwlock.native_impl == NULL)
         goto fail_lock;
 
@@ -286,7 +306,7 @@ fail_atexit:
     }
 
 fail_atom:
-    purc_rwlock_clear (&atom_rwlock);
+    purc_rwlock_clear(&atom_rwlock);
 
 fail_lock:
     return -1;
