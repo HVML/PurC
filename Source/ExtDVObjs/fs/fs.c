@@ -2525,8 +2525,8 @@ touch_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(silently);
 
     const char *filename = NULL;
-    //uint64_t mtime = 0;
-    //uint64_t atime = 0;
+    uint64_t mtime = UTIME_NOW;
+    uint64_t atime = UTIME_NOW;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if (nr_args < 1) {
@@ -2541,7 +2541,23 @@ touch_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         return PURC_VARIANT_INVALID;
     }
     if (nr_args > 1) {
-        //mtime = purc_variant_get_number (argv[1]);
+        if (PURC_VARIANT_TYPE_ULONGINT == argv[1]->type) {
+            mtime = argv[1]->u64;
+            atime = argv[1]->u64;
+        }
+        else {
+            purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+            return PURC_VARIANT_INVALID;
+        }
+    }
+    if (nr_args > 2) {
+        if (PURC_VARIANT_TYPE_ULONGINT == argv[2]->type) {
+            atime = argv[2]->u64;
+        }
+        else {
+            purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+            return PURC_VARIANT_INVALID;
+        }
     }
 
     // file not exist, create it
@@ -2559,8 +2575,8 @@ touch_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
     else {      // change time
         struct timespec newtime[2];
-        newtime[0].tv_nsec = UTIME_NOW;
-        newtime[1].tv_nsec = UTIME_NOW;
+        newtime[0].tv_nsec = atime;
+        newtime[1].tv_nsec = mtime;
         if (utimensat(AT_FDCWD, filename, newtime, 0) == 0) {
             ret_var = purc_variant_make_boolean (true);
         }
@@ -2579,22 +2595,35 @@ umask_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(root);
     UNUSED_PARAM(silently);
 
-    char filename[PATH_MAX];
-    const char *string_filename = NULL;
+    mode_t mask;
+    mode_t old_mask;
+    char *endptr;
+    char umask_octal[5];
+    const char *string_mask = NULL;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if (nr_args < 1) {
-        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+        // get the current umask
+        old_mask = umask (0777);
+        mask = umask (old_mask);
+    }
+    else {
+        string_mask = purc_variant_get_string_const (argv[0]);
+        if (NULL == string_mask) {
+            purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+            return PURC_VARIANT_INVALID;
+        }
+
+        if ('0' == string_mask[0]) {
+            mask = strtol (string_mask, &endptr, 8);  /* Octal number */
+        }
+        else {
+            mask = strtol (string_mask, &endptr, 10); /* Decimal */
+        }
     }
 
-    // get the file name
-    string_filename = purc_variant_get_string_const (argv[0]);
-    strncpy (filename, string_filename, sizeof(filename));
-
-    // wait for code
-
-    ret_var = purc_variant_make_boolean (true);
+    snprintf (umask_octal, sizeof(umask_octal), "0%o", mask);
+    ret_var = purc_variant_make_string (umask_octal, true);
     return ret_var;
 }
 
