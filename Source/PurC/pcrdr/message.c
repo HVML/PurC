@@ -479,7 +479,8 @@ static const char *target_names[] = {
     "plainwindow",
     "page",
     "dom",
-    "thread",
+    "instance",
+    "coroutine",
     "user",
 };
 
