@@ -2464,6 +2464,8 @@ tempname_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     char filename[PATH_MAX];
     const char *string_directory = NULL;
     const char *string_prefix = NULL;
+    size_t dir_length = 0;
+    size_t prefix_length = 0;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if (nr_args < 1) {
@@ -2477,18 +2479,40 @@ tempname_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
+    dir_length = strlen (string_directory);
+
     if (nr_args > 1) {
         string_prefix = purc_variant_get_string_const (argv[1]);
         if (NULL == string_prefix) {
             purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
             return PURC_VARIANT_INVALID;
         }
+        prefix_length = strlen (string_prefix);
     }
+
+    if ((dir_length + prefix_length + L_tmpnam + 1) >= PATH_MAX) {
+        purc_set_error (PURC_ERROR_TOO_LONG);
+        return purc_variant_make_boolean (false);
+    }
+    
     strncpy (filename, string_directory, sizeof(filename));
+    if (filename[dir_length - 1] != '\\' &&
+        filename[dir_length - 1] != '/') {
+            filename[dir_length] = '/';
+            filename[dir_length + 1] = '\0';
+            dir_length += 1;
+    }
+    if ((dir_length + prefix_length + L_tmpnam + 1) >= PATH_MAX) {
+        purc_set_error (PURC_ERROR_TOO_LONG);
+        return purc_variant_make_boolean (false);
+    }
+    strncat (filename, string_prefix, sizeof(filename));
 
-    // wait for code
+    if (NULL == tmpnam (filename + dir_length + prefix_length)) {
+        set_purc_error_by_errno ();
+        return purc_variant_make_boolean (false);
+    }
 
-    //ret_var = purc_variant_make_boolean (true);
     ret_var = purc_variant_make_string (filename, true);
     return ret_var;
 }
