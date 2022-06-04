@@ -48,7 +48,7 @@ TEST(instance, messages)
 
     pcrdr_msg *msg;
     msg = pcrdr_make_request_message(PCRDR_MSG_TARGET_SESSION,
-            random(), "to_do_something", NULL, NULL,
+            random(), "to_do_something", NULL, "request-id",
             PCRDR_MSG_ELEMENT_TYPE_VOID, NULL, NULL,
             PCRDR_MSG_DATA_TYPE_TEXT, "The data", 0);
 

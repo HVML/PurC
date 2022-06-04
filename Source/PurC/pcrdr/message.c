@@ -66,12 +66,9 @@ pcrdr_msg *pcrdr_make_request_message(
 
     if (source_uri) {
         msg->sourceURI = purc_variant_make_string(source_uri, true);
+        if (msg->sourceURI == NULL)
+            goto failed;
     }
-    else
-        msg->sourceURI = purc_variant_make_string_static(
-                PCRDR_SOURCEURI_ANONYMOUS, false);
-    if (msg->sourceURI == NULL)
-        goto failed;
 
     msg->elementType = element_type;
     if (element_type == PCRDR_MSG_ELEMENT_TYPE_VOID) {
@@ -145,13 +142,9 @@ pcrdr_msg *pcrdr_make_response_message(
 
     if (source_uri) {
         msg->sourceURI = purc_variant_make_string(source_uri, true);
+        if (msg->sourceURI == NULL)
+            goto failed;
     }
-    else
-        msg->sourceURI = purc_variant_make_string_static(
-                PCRDR_SOURCEURI_ANONYMOUS, false);
-    if (msg->sourceURI == NULL)
-        goto failed;
-
 
     msg->dataType = data_type;
     if (data_type == PCRDR_MSG_DATA_TYPE_TEXT) {
@@ -201,13 +194,11 @@ pcrdr_msg *pcrdr_make_event_message(
     if (msg->eventName == NULL)
         goto failed;
 
-    if (source_uri)
+    if (source_uri) {
         msg->sourceURI = purc_variant_make_string(source_uri, true);
-    else
-        msg->sourceURI = purc_variant_make_string_static(
-                PCRDR_SOURCEURI_ANONYMOUS, false);
-    if (msg->sourceURI == NULL)
-        goto failed;
+        if (msg->sourceURI == NULL)
+            goto failed;
+    }
 
     msg->elementType = element_type;
     if (element_type == PCRDR_MSG_ELEMENT_TYPE_VOID) {
@@ -908,7 +899,10 @@ int pcrdr_serialize_message(const pcrdr_msg *msg, pcrdr_cb_write fn, void *ctxt)
         /* sourceURI: <event> */
         fn(ctxt, STR_KEY_SOURCEURI, sizeof(STR_KEY_SOURCEURI) - 1);
         fn(ctxt, STR_PAIR_SEPARATOR, sizeof(STR_PAIR_SEPARATOR) - 1);
-        value = purc_variant_get_string_const(msg->sourceURI);
+        if (msg->sourceURI)
+            value = purc_variant_get_string_const(msg->sourceURI);
+        else
+            value = PCRDR_SOURCEURI_ANONYMOUS;
         fn(ctxt, value, strlen(value));
         fn(ctxt, STR_LINE_SEPARATOR, sizeof(STR_LINE_SEPARATOR) - 1);
 
@@ -925,7 +919,10 @@ int pcrdr_serialize_message(const pcrdr_msg *msg, pcrdr_cb_write fn, void *ctxt)
         /* sourceURI: <event> */
         fn(ctxt, STR_KEY_SOURCEURI, sizeof(STR_KEY_SOURCEURI) - 1);
         fn(ctxt, STR_PAIR_SEPARATOR, sizeof(STR_PAIR_SEPARATOR) - 1);
-        value = purc_variant_get_string_const(msg->sourceURI);
+        if (msg->sourceURI)
+            value = purc_variant_get_string_const(msg->sourceURI);
+        else
+            value = PCRDR_SOURCEURI_ANONYMOUS;
         fn(ctxt, value, strlen(value));
         fn(ctxt, STR_LINE_SEPARATOR, sizeof(STR_LINE_SEPARATOR) - 1);
 
@@ -982,7 +979,10 @@ int pcrdr_serialize_message(const pcrdr_msg *msg, pcrdr_cb_write fn, void *ctxt)
         /* sourceURI: <event> */
         fn(ctxt, STR_KEY_SOURCEURI, sizeof(STR_KEY_SOURCEURI) - 1);
         fn(ctxt, STR_PAIR_SEPARATOR, sizeof(STR_PAIR_SEPARATOR) - 1);
-        value = purc_variant_get_string_const(msg->sourceURI);
+        if (msg->sourceURI)
+            value = purc_variant_get_string_const(msg->sourceURI);
+        else
+            value = PCRDR_SOURCEURI_ANONYMOUS;
         fn(ctxt, value, strlen(value));
         fn(ctxt, STR_LINE_SEPARATOR, sizeof(STR_LINE_SEPARATOR) - 1);
 
