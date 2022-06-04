@@ -129,9 +129,21 @@ purc_atom_remove_string_ex(int bucket, const char *string)
     if (string == NULL || atom_bucket == NULL)
         return false;
 
+    const pcutils_map_entry* entry;
     bool ret;
+    purc_atom_t atom;
+
     purc_rwlock_writer_lock(&atom_rwlock);
-    ret = pcutils_map_erase(atom_bucket->atom_map, (void *)string) == 0;
+    if ((entry = pcutils_map_find(atom_bucket->atom_map, string))) {
+        atom = (purc_atom_t)(uintptr_t)entry->val;
+        pcutils_map_erase(atom_bucket->atom_map, (void *)string);
+        atom = ATOM_TO_SEQUENCE(atom);
+        atom_bucket->quarks[atom] = NULL;
+        ret = true;
+    }
+    else {
+        ret = false;
+    }
     purc_rwlock_writer_unlock(&atom_rwlock);
 
     return ret;
@@ -228,7 +240,6 @@ purc_atom_to_string(purc_atom_t atom)
     bucket = ATOM_TO_BUCKET(atom);
     struct atom_bucket *atom_bucket = atom_get_bucket(bucket);
     atom = ATOM_TO_SEQUENCE(atom);
-
     purc_rwlock_reader_lock(&atom_rwlock);
     if (atom < atom_bucket->atom_seq_id)
         result = atom_bucket->quarks[atom];
