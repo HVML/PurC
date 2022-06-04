@@ -22,6 +22,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#undef NDEBUG
+
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -151,9 +153,15 @@ atom_strdup(const char *string)
 
     if (atom_block == NULL ||
             ATOM_STRING_BLOCK_SIZE - atom_block_offset < len) {
-        atom_block = realloc(atom_block,
-                (atom_block_offset + len > ATOM_STRING_BLOCK_SIZE) ?
-                (atom_block_offset + len) : ATOM_STRING_BLOCK_SIZE);
+
+        size_t sz_space;
+        if (atom_block_offset + len > ATOM_STRING_BLOCK_SIZE) {
+            sz_space = atom_block_offset + len;
+        }
+        else
+            sz_space = ATOM_STRING_BLOCK_SIZE;
+
+        atom_block = realloc(atom_block, sz_space);
     }
 
     copy = atom_block + atom_block_offset;
@@ -243,9 +251,9 @@ atom_new(struct atom_bucket *bucket, char *string)
         atoms_new = (char **)malloc(sizeof (char *) *
                 (bucket->atom_seq_id + ATOM_BLOCK_SIZE));
         if (bucket->atom_seq_id != 0)
-            memcpy (atoms_new, bucket->quarks,
+            memcpy(atoms_new, bucket->quarks,
                     sizeof (char *) * bucket->atom_seq_id);
-        memset (atoms_new + bucket->atom_seq_id, 0,
+        memset(atoms_new + bucket->atom_seq_id, 0,
                 sizeof (char *) * ATOM_BLOCK_SIZE);
         bucket->quarks = atoms_new;
     }
@@ -269,6 +277,20 @@ atom_cleanup_once(void)
     for (bucket = 0; bucket < PURC_ATOM_BUCKETS_NR; bucket++) {
         struct atom_bucket *atom_bucket = atom_buckets + bucket;
         if (LIKELY(atom_bucket->atom_seq_id != 0)) {
+
+#if 0
+            const char *name;
+            void **value;
+            kvlist_for_each(&atom_bucket->atom_kv, name, value) {
+                if (name) {
+                    printf("name: %p\n", name);
+                    size_t len = strlen(name) + 1;
+                    if (len > ATOM_STRING_BLOCK_SIZE / 2) {
+                        free((char *)name);
+                    }
+                }
+            }
+#endif
             pcutils_kvlist_free(&atom_bucket->atom_kv);
             free(atom_bucket->quarks);
         }
