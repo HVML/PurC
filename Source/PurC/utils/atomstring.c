@@ -22,8 +22,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#undef NDEBUG
-
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -64,7 +62,7 @@ static struct atom_bucket {
     (seq < ((purc_atom_t)1 << (ATOM_BITS_NR - PURC_ATOM_BUCKET_BITS)))
 
 #define ATOM_BLOCK_SIZE         (1024 >> PURC_ATOM_BUCKET_BITS)
-#define ATOM_STRING_BLOCK_SIZE  (128 - sizeof (size_t))
+#define ATOM_STRING_BLOCK_SIZE  (4096 - sizeof (size_t))
 
 static inline purc_atom_t
 atom_new(struct atom_bucket *bucket, char *string, bool need_free);
