@@ -58,8 +58,8 @@ static void* general_thread_entry(void* arg)
             purc_log_info("    targetValue: %d\n", (int)msg->targetValue);
             purc_log_info("    eventName:   %s\n",
                     purc_variant_get_string_const(msg->eventName));
-            purc_log_info("    eventSource: %s\n",
-                    purc_variant_get_string_const(msg->eventSource));
+            purc_log_info("    sourceURI: %s\n",
+                    purc_variant_get_string_const(msg->sourceURI));
 
             purc_inst_move_message(main_inst, msg);
             pcrdr_release_message(msg);
