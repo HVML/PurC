@@ -30,13 +30,16 @@
 #include "private/debug.h"
 #include "private/interpreter.h"
 
+#include <errno.h>
+
 #include <unistd.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <sys/stat.h>
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <fcntl.h>
-#include <errno.h>
+#include <signal.h>
 
 #define BUFFER_SIZE                 1024
 
@@ -111,6 +114,8 @@ enum {
     K_KW_writebytes,
 #define _KW_writeeof                "writeeof"
     K_KW_writeeof,
+#define _KW_wait                    "wait"
+    K_KW_wait,
 #define _KW_seek                    "seek"
     K_KW_seek,
 #define _KW_close                   "close"
@@ -145,6 +150,7 @@ static struct keyword_to_atom {
     { _KW_readbytes, 0},            // readbytes
     { _KW_writebytes, 0},           // writebytes
     { _KW_writeeof, 0},             // writeeof
+    { _KW_wait, 0},                 // wait
     { _KW_seek, 0},                 // seek
     { _KW_close, 0},                // close
 };
@@ -171,6 +177,8 @@ struct pcdvobjs_stream {
     purc_variant_t observed;    /* not inc ref */
     uintptr_t monitor4r, monitor4w;
     int fd4r, fd4w;
+
+    pid_t cpid;                 /* only for pipe, the pid of child */
 };
 
 
@@ -235,6 +243,11 @@ static void native_stream_close(struct pcdvobjs_stream *stream)
     }
     stream->fd4r = -1;
     stream->fd4w = -1;
+
+    if (stream->type == STREAM_TYPE_PIPE && stream->cpid > 0) {
+        kill(stream->cpid, SIGKILL);
+        stream->cpid = -1;
+    }
 }
 
 static void native_stream_destroy(struct pcdvobjs_stream *stream)
@@ -742,6 +755,58 @@ out:
 }
 
 static purc_variant_t
+wait_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
+                bool silently)
+{
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+
+    struct pcdvobjs_stream *stream;
+
+    if (native_entity == NULL) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto out;
+    }
+
+    stream = get_stream(native_entity);
+    if (stream->type != STREAM_TYPE_PIPE) {
+        purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+        goto out;
+    }
+
+    int wstatus;
+    if (waitpid(stream->cpid, &wstatus, 0) == -1) {
+        purc_set_error(purc_error_from_errno(errno));
+        goto out;
+    }
+
+    const char *state;
+    int value;
+    if (WIFEXITED(wstatus)) {
+        state = "exited";
+        value = WEXITSTATUS(wstatus);
+    }
+    else if (WIFSIGNALED(wstatus)) {
+        value = WEXITSTATUS(wstatus);
+        if (WCOREDUMP(wstatus)) {
+            state = "signaled-coredump";
+        }
+        else {
+            state = "signaled";
+        }
+    }
+
+    return purc_variant_make_array(2,
+            purc_variant_make_string_static(state, false),
+            purc_variant_make_longint(value));
+
+out:
+    if (silently)
+        return purc_variant_make_boolean(false);
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
 seek_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
                 bool silently)
 {
@@ -1002,6 +1067,9 @@ property_getter(const char *name)
     }
     else if (atom == keywords2atoms[K_KW_writeeof].atom) {
         return writeeof_getter;
+    }
+    else if (atom == keywords2atoms[K_KW_wait].atom) {
+        return wait_getter;
     }
     else if (atom == keywords2atoms[K_KW_seek].atom) {
         return seek_getter;
@@ -1315,11 +1383,16 @@ struct pcdvobjs_stream *create_pipe_stream(struct purc_broken_down_url *url,
         if (execv(url->path, argv) == -1)
             _exit(EXIT_FAILURE);
     }
-    else {
-        for (unsigned n = 0; n < nr_args; n++) {
-            free(argv[n]);
-        }
-        free(argv);
+
+    for (unsigned n = 0; n < nr_args; n++) {
+        free(argv[n]);
+    }
+    free(argv);
+
+    int status;
+    /* if the child has exited */
+    if (waitpid(cpid, &status, WNOHANG) == -1) {
+        goto out_close_fd;
     }
 
     struct pcdvobjs_stream* stream;
