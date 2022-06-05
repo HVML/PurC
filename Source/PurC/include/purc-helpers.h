@@ -44,6 +44,7 @@
 #define PURC_LEN_ENDPOINT_NAME         \
     (PURC_LEN_HOST_NAME + PURC_LEN_APP_NAME + PURC_LEN_RUNNER_NAME + 3)
 #define PURC_LEN_UNIQUE_ID             63
+#define PURC_LEN_PROPERTY_NAME         255
 
 PCA_EXTERN_C_BEGIN
 
@@ -118,7 +119,9 @@ purc_hvml_uri_assemble_alloc(const char *host, const char *app,
 /**
  * Break down an HVML URI in the following pattern to component buffers:
  *
- *  hvml://<host>/<app>/<runner>/[<group>/]<page>[?key1=value1&key2=value2]
+ *  hvml://<host>/<app>/<runner>/<group>/<page>[?key1=value1&key2=value2]
+ *
+ * Note that we use `-` for `<group>` when there is no group name.
  *
  * Since: 0.1.0
  */
@@ -129,7 +132,9 @@ purc_hvml_uri_split(const char *uri,
 /**
  * Break down an HVML URI in the following pattern:
  *
- *  hvml://<host>/<app>/<runner>/[<group>/]<page>[?key1=value1&key2=value2]
+ *  hvml://<host>/<app>/<runner>/<group>/<page>[?key1=value1&key2=value2]
+ *
+ * Note that we use `-` for `<group>` when there is no group name.
  *
  * Since: 0.1.0
  */

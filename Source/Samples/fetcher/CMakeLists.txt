@@ -53,3 +53,33 @@ set(async_req_LIBRARIES
 
 PURC_COMPUTE_SOURCES(async_req)
 PURC_FRAMEWORK(async_req)
+
+# multiple_async
+PURC_EXECUTABLE_DECLARE(multiple_async)
+
+list(APPEND multiple_async_PRIVATE_INCLUDE_DIRECTORIES
+    ${PURC_DIR}/include
+    ${PurC_DERIVED_SOURCES_DIR}
+    ${PURC_DIR}
+    ${CMAKE_BINARY_DIR}
+    ${WTF_DIR}
+    "${FORWARDING_HEADERS_DIR}"
+    "${GIO_UNIX_INCLUDE_DIRS}"
+    "${GLIB_INCLUDE_DIRS}"
+)
+
+PURC_EXECUTABLE(multiple_async)
+
+set(multiple_async_SOURCES
+    multiple_async.cpp
+)
+
+set(multiple_async_LIBRARIES
+    PurC::PurC
+    gtest_main
+    gtest
+    pthread
+)
+
+PURC_COMPUTE_SOURCES(multiple_async)
+PURC_FRAMEWORK(multiple_async)

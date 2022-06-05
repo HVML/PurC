@@ -50,38 +50,51 @@ struct pcintr_stack;
 typedef struct pcintr_stack pcintr_stack;
 typedef struct pcintr_stack *pcintr_stack_t;
 
-struct pcintr_action;
-typedef struct pcintr_action pcintr_action;
-typedef struct pcintr_action *pcintr_action_t;
+struct pcintr_msg;
+typedef struct pcintr_msg pcintr_msg;
+typedef struct pcintr_msg *pcintr_msg_t;
+
+struct pcintr_cancel;
+typedef struct pcintr_cancel pcintr_cancel;
+typedef struct pcintr_cancel *pcintr_cancel_t;
+
+struct pcintr_cancel {
+    void                        *ctxt;
+    void (*cancel)(void *ctxt);
+
+    struct list_head            *list;
+    struct list_head             node;
+};
 
 struct pcintr_heap {
+    // owner instance
+    struct pcinst        *owner;
+
     // currently running coroutine
     pcintr_coroutine_t    running_coroutine;
 
     // those running under and managed by this heap
-    struct list_head      coroutines;
-
-    // runloop bounded by this heap
-    purc_runloop_t        running_loop;
-    // pthread bounded by this heap
-    pthread_t             running_thread;
+    struct list_head      coroutines;      // struct pcintr_coroutine
 
     pthread_mutex_t       locker;
     volatile bool         exiting;
-    struct list_head      actions;  // struct pcintr_action
+    struct list_head      routines;     // struct pcintr_routine
+
+
+    int64_t               next_coroutine_id;
 };
 
-typedef void (*pcintr_action_f)(void *ctxt);
-
-int pcintr_post_action(pcintr_coroutine_t co, void *ctxt, pcintr_action_f cb);
+struct pcintr_stack_frame;
+typedef struct pcintr_stack_frame pcintr_stack_frame;
+typedef struct pcintr_stack_frame *pcintr_stack_frame_t;
 
 struct pcintr_stack_frame_normal;
 typedef struct pcintr_stack_frame_normal pcintr_stack_frame_normal;
 typedef struct pcintr_stack_frame_normal *pcintr_stack_frame_normal_t;
 
-struct pcintr_stack_frame;
-typedef struct pcintr_stack_frame pcintr_stack_frame;
-typedef struct pcintr_stack_frame *pcintr_stack_frame_t;
+struct pcintr_stack_frame_pseudo;
+typedef struct pcintr_stack_frame_pseudo pcintr_stack_frame_pseudo;
+typedef struct pcintr_stack_frame_pseudo *pcintr_stack_frame_pseudo_t;
 
 struct pcintr_observer;
 typedef void (*pcintr_on_revoke_observer)(struct pcintr_observer *observer,
@@ -122,13 +135,6 @@ struct pcintr_exception {
     struct pcdebug_backtrace  *bt;
 };
 
-void
-pcintr_exception_clear(struct pcintr_exception *exception);
-
-void
-pcintr_exception_move(struct pcintr_exception *dst,
-        struct pcintr_exception *src);
-
 struct pcintr_stack {
     struct pcintr_heap           *owning_heap;
     struct list_head frames;
@@ -149,6 +155,8 @@ struct pcintr_stack {
     // uint32_t        error:1;
     uint32_t        except:1;
     uint32_t        exited:1;
+    uint32_t volatile       last_msg_sent:1;
+    uint32_t volatile       last_msg_read:1;
     /* uint32_t        paused:1; */
 
     enum pcintr_stack_stage       stage;
@@ -204,15 +212,36 @@ enum pcintr_coroutine_state {
     /* STATE_PAUSED, */
 };
 
+typedef void (pcintr_msg_callback_f)(void *ctxt);
+
+struct pcintr_msg {
+    void                       *ctxt;
+    void (*on_msg)(void *ctxt);
+
+    struct list_head            node;
+};
+
 struct pcintr_coroutine {
-    pcintr_heap_t               heap;   /* owning heap */
-    struct list_head            node;   /* sibling coroutines */
+    pcintr_heap_t               owner;    /* owner heap */
+    char                       *name;
+    struct list_head            node;     /* heap::coroutines */
+
+    pcintr_coroutine_t          parent;
     struct list_head            children; /* children coroutines */
+    struct list_head            sibling;  /* parent::children */
 
     struct pcintr_stack         stack;  /* stack that holds this coroutine */
 
     enum pcintr_coroutine_state state;
     int                         waits;  /* FIXME: nr of registered events */
+
+    struct list_head            registered_cancels;
+    void                       *yielded_ctxt;
+    void (*continuation)(void *ctxt);
+
+    struct list_head            msgs;   /* struct pcintr_msg */
+    unsigned int volatile       msg_pending:1;
+    unsigned int volatile       execution_pending:1;
 };
 
 enum purc_symbol_var {
@@ -223,6 +252,7 @@ enum purc_symbol_var {
     PURC_SYMBOL_VAR_COLON,              // :
     PURC_SYMBOL_VAR_EQUAL,              // =
     PURC_SYMBOL_VAR_PERCENT_SIGN,       // %
+    PURC_SYMBOL_VAR_CARET,              // ^
 
     PURC_SYMBOL_VAR_MAX
 };
@@ -247,9 +277,6 @@ enum pcintr_stack_frame_next_step {
     NEXT_STEP_RERUN,
     NEXT_STEP_SELECT_CHILD,
 };
-
-typedef void (*preemptor_f) (pcintr_coroutine_t co,
-            struct pcintr_stack_frame *frame);
 
 enum pcintr_stack_frame_type {
     STACK_FRAME_TYPE_NORMAL,
@@ -291,12 +318,19 @@ struct pcintr_stack_frame {
     // managed by coroutine-coordinator
     enum pcintr_stack_frame_next_step next_step;
 
-    // coordinated between element-implementer and coroutine-coordinator
-    preemptor_f        preemptor;
-
     pcintr_stack_t     owner;
 
     unsigned int       silently:1;
+};
+
+struct pcintr_stack_frame_normal {
+    int                                 dummy_guard;
+    struct pcintr_stack_frame           frame;
+};
+
+struct pcintr_stack_frame_pseudo {
+    int                                 dummy_guard;
+    struct pcintr_stack_frame           frame;
 };
 
 struct pcintr_dynamic_args {
@@ -337,17 +371,56 @@ struct pcintr_timers;
 
 PCA_EXTERN_C_BEGIN
 
-void pcintr_init_instance(struct pcinst* inst) WTF_INTERNAL;
-void pcintr_cleanup_instance(struct pcinst* inst) WTF_INTERNAL;
-
 struct pcintr_heap* pcintr_get_heap(void);
 bool pcintr_is_current_thread(void);
 
 pcintr_stack_t pcintr_get_stack(void);
+pcintr_coroutine_t pcintr_get_coroutine(void);
+// NOTE: null if current thread not initialized with purc_init
+purc_runloop_t pcintr_get_runloop(void);
+
+void pcintr_check_after_execution(void);
+void pcintr_set_current_co_with_location(pcintr_coroutine_t co,
+        const char *file, int line, const char *func);
+
+#define pcintr_set_current_co(co) \
+    pcintr_set_current_co_with_location(co, __FILE__, __LINE__, __func__)
+
+bool pcintr_is_ready_for_event(void);
+
+void pcintr_cancel_init(pcintr_cancel_t cancel,
+        void *ctxt, void (*cancel_routine)(void *ctxt));
+
+void pcintr_register_cancel(pcintr_cancel_t cancel);
+void pcintr_unregister_cancel(pcintr_cancel_t cancel);
+
+void pcintr_set_exit(void);
+
 struct pcintr_stack_frame*
 pcintr_stack_get_bottom_frame(pcintr_stack_t stack);
 struct pcintr_stack_frame*
 pcintr_stack_frame_get_parent(struct pcintr_stack_frame *frame);
+
+void pcintr_yield(void *ctxt, void (*continuation)(void *ctxt));
+void pcintr_resume(void);
+
+void
+pcintr_push_stack_frame_pseudo(pcvdom_element_t vdom_element);
+void
+pcintr_pop_stack_frame_pseudo(void);
+
+pcintr_coroutine_t
+pcintr_create_child_co(pcvdom_element_t vdom_element);
+
+void
+pcintr_exception_clear(struct pcintr_exception *exception);
+
+void
+pcintr_exception_move(struct pcintr_exception *dst,
+        struct pcintr_exception *src);
+
+void
+pcintr_post_msg(void *ctxt, pcintr_msg_callback_f cb);
 
 purc_variant_t
 pcintr_make_object_of_dynamic_variants(size_t nr_args,
@@ -463,7 +536,7 @@ pcintr_load_dynamic_variant(pcintr_stack_t stack,
 
 // utilities
 void
-pcintr_util_dump_document_ex(pchtml_html_document_t *doc,
+pcintr_util_dump_document_ex(pchtml_html_document_t *doc, char **dump_buff,
     const char *file, int line, const char *func);
 
 void
@@ -471,13 +544,14 @@ pcintr_util_dump_edom_node_ex(pcdom_node_t *node,
     const char *file, int line, const char *func);
 
 #define pcintr_util_dump_document(_doc)          \
-    pcintr_util_dump_document_ex(_doc, __FILE__, __LINE__, __func__)
+    pcintr_util_dump_document_ex(_doc, NULL, __FILE__, __LINE__, __func__)
 
 #define pcintr_util_dump_edom_node(_node)        \
     pcintr_util_dump_edom_node_ex(_node, __FILE__, __LINE__, __func__)
 
 #define pcintr_dump_document(_stack)             \
-    pcintr_util_dump_document_ex(_stack->doc, __FILE__, __LINE__, __func__)
+    pcintr_util_dump_document_ex(_stack->doc, _stack->vdom->dump_buff, \
+            __FILE__, __LINE__, __func__)
 
 #define pcintr_dump_edom_node(_stack, _node)      \
     pcintr_util_dump_edom_node_ex(_node, __FILE__, __LINE__, __func__)
@@ -497,6 +571,9 @@ pcintr_util_displace_content(pcdom_element_t* parent, const char *txt);
 int
 pcintr_util_set_attribute(pcdom_element_t *elem,
         const char *key, const char *val);
+
+int
+pcintr_util_remove_attribute(pcdom_element_t *elem, const char *key);
 
 int
 pcintr_util_add_child_chunk(pcdom_element_t *parent, const char *chunk);
@@ -547,6 +624,21 @@ pcintr_create_scoped_variables(struct pcvdom_node *node);
 
 pcvarmgr_t
 pcintr_get_scoped_variables(struct pcvdom_node *node);
+
+purc_runloop_t
+pcintr_co_get_runloop(pcintr_coroutine_t co);
+
+typedef void (*co_routine_f)(void);
+
+void
+pcintr_wakeup_target(pcintr_coroutine_t target, co_routine_f routine);
+
+void
+pcintr_apply_routine(co_routine_f routine, pcintr_coroutine_t target);
+
+void
+pcintr_wakeup_target_with(pcintr_coroutine_t target, void *ctxt,
+        void (*func)(void *ctxt));
 
 PCA_EXTERN_C_END
 

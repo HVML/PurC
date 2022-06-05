@@ -22,6 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include "private/atom-buckets.h"
 #include "private/variant.h"
 #include "private/instance.h"
 #include "private/ejson.h"
@@ -116,35 +117,75 @@ purc_atom_t pcvariant_atom_change;
 // purc_atom_t pcvariant_atom_reference;
 // purc_atom_t pcvariant_atom_unreference;
 
-static int variant_init_once(void)
+static int _init_once(void)
 {
     // register error message
     pcinst_register_error_message_segment(&_variant_err_msgs_seg);
 
     // initialize others
-    pcvariant_atom_grow = purc_atom_from_static_string("grow");
-    pcvariant_atom_shrink = purc_atom_from_static_string("shrink");
-    pcvariant_atom_change = purc_atom_from_static_string("change");
-    // pcvariant_atom_reference = purc_atom_from_static_string("reference");
-    // pcvariant_atom_unreference = purc_atom_from_static_string("unreference");
+    pcvariant_atom_grow = purc_atom_from_static_string_ex(ATOM_BUCKET_MSG,
+        "grow");
+    pcvariant_atom_shrink = purc_atom_from_static_string_ex(ATOM_BUCKET_MSG,
+        "shrink");
+    pcvariant_atom_change = purc_atom_from_static_string_ex(ATOM_BUCKET_MSG,
+        "change");
 
     return 0;
 }
 
-struct pcmodule _module_variant = {
-    .id              = PURC_HAVE_VARIANT,
-    .module_inited   = 0,
-
-    .init_once       = variant_init_once,
-    .init_instance   = NULL,
-};
-
-
-void pcvariant_init_instance(struct pcinst *inst)
+static void _cleanup_instance(struct pcinst *inst)
 {
-    inst->variant_heap = calloc(1, sizeof(*inst->variant_heap));
-    if (inst->variant_heap == NULL)
+    struct pcvariant_heap *heap = inst->variant_heap;
+
+    if (inst->variables) {
+        pcvarmgr_destroy(inst->variables);
+        inst->variables = NULL;
+    }
+
+    if (heap == NULL)
         return;
+
+    /* VWNOTE: do not try to release the extra memory here. */
+#if USE(LOOP_BUFFER_FOR_RESERVED)
+    for (int i = 0; i < MAX_RESERVED_VARIANTS; i++) {
+        if (heap->v_reserved[i]) {
+            pcvariant_free(heap->v_reserved[i]);
+            heap->v_reserved[i] = NULL;
+        }
+    }
+    heap->headpos = 0;
+    heap->tailpos = 0;
+#else
+    struct list_head *p, *n;
+    list_for_each_safe(p, n, &heap->v_reserved) {
+        purc_variant_t v = list_entry(p, struct purc_variant, reserved);
+
+        list_del(p);
+        pcvariant_free(v);
+    }
+#endif
+
+    assert(heap->v_undefined.refc == 0);
+    assert(heap->v_null.refc == 0);
+    assert(heap->v_true.refc == 0);
+    assert(heap->v_false.refc == 0);
+
+    free(heap);
+    inst->variant_heap = NULL;
+    inst->org_vrt_heap = NULL;
+}
+
+static int _init_instance(struct pcinst *curr_inst,
+        const purc_instance_extra_info* extra_info)
+{
+    UNUSED_PARAM(extra_info);
+
+    struct pcinst *inst = curr_inst;
+
+    inst->variant_heap = calloc(1, sizeof(*inst->variant_heap));
+    if (inst->variant_heap == NULL) {
+        return PURC_ERROR_OUT_OF_MEMORY;
+    }
 
     inst->org_vrt_heap = inst->variant_heap;
 
@@ -188,7 +229,19 @@ void pcvariant_init_instance(struct pcinst *inst)
 #if !USE(LOOP_BUFFER_FOR_RESERVED)
     INIT_LIST_HEAD(&inst->variant_heap->v_reserved);
 #endif
+
+    return PURC_ERROR_OK;
 }
+
+struct pcmodule _module_variant = {
+    .id              = PURC_HAVE_VARIANT,
+    .module_inited   = 0,
+
+    .init_once          = _init_once,
+    .init_instance      = _init_instance,
+    .cleanup_instance   = _cleanup_instance,
+};
+
 
 static const char *typenames[] = {
     PURC_VARIANT_TYPE_NAME_UNDEFINED,
@@ -225,48 +278,6 @@ const char* purc_variant_typename(enum purc_variant_type type)
 {
     assert(type >= 0 && type < PURC_VARIANT_TYPE_NR);
     return typenames[type];
-}
-
-void pcvariant_cleanup_instance(struct pcinst *inst)
-{
-    struct pcvariant_heap *heap = inst->variant_heap;
-
-    if (inst->variables) {
-        pcvarmgr_destroy(inst->variables);
-        inst->variables = NULL;
-    }
-
-    if (heap == NULL)
-        return;
-
-    /* VWNOTE: do not try to release the extra memory here. */
-#if USE(LOOP_BUFFER_FOR_RESERVED)
-    for (int i = 0; i < MAX_RESERVED_VARIANTS; i++) {
-        if (heap->v_reserved[i]) {
-            pcvariant_free(heap->v_reserved[i]);
-            heap->v_reserved[i] = NULL;
-        }
-    }
-    heap->headpos = 0;
-    heap->tailpos = 0;
-#else
-    struct list_head *p, *n;
-    list_for_each_safe(p, n, &heap->v_reserved) {
-        purc_variant_t v = list_entry(p, struct purc_variant, reserved);
-
-        list_del(p);
-        pcvariant_free(v);
-    }
-#endif
-
-    assert(heap->v_undefined.refc == 0);
-    assert(heap->v_null.refc == 0);
-    assert(heap->v_true.refc == 0);
-    assert(heap->v_false.refc == 0);
-
-    free(heap);
-    inst->variant_heap = NULL;
-    inst->org_vrt_heap = NULL;
 }
 
 bool purc_variant_is_type(purc_variant_t value, enum purc_variant_type type)

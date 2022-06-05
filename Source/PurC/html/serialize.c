@@ -1218,7 +1218,7 @@ pchtml_html_serialize_pretty_element_cb(pcdom_element_t *element,
             PC_DEBUG ("Too small buffer to serialize message.\n");
             return PCRDR_ERROR_TOO_SMALL_BUFF;
         }
-        pchtml_html_serialize_send(" hvml:handle=", 13, ctx);
+        pchtml_html_serialize_send(" hvml-handle=", 13, ctx);
         pchtml_html_serialize_send(buff, n, ctx);
     }
 

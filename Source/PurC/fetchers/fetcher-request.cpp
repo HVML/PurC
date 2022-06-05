@@ -1,5 +1,5 @@
 /*
- * @file fetcher-session.cpp
+ * @file fetcher-request.cpp
  * @author XueShuming
  * @date 2021/11/17
  * @brief The impl for fetcher session.
@@ -26,7 +26,8 @@
 
 #if ENABLE(REMOTE_FETCHER)
 
-#include "fetcher-session.h"
+#include "fetcher-request.h"
+#include "fetcher-process.h"
 #include "fetcher-messages.h"
 
 #include "NetworkResourceLoadParameters.h"
@@ -41,15 +42,17 @@ using namespace PurCFetcher;
 
 extern "C"  struct pcinst* pcinst_current(void);
 
-PcFetcherSession::PcFetcherSession(uint64_t sessionId,
-        IPC::Connection::Identifier identifier, WorkQueue *queue)
+PcFetcherRequest::PcFetcherRequest(uint64_t sessionId,
+        IPC::Connection::Identifier identifier,
+        WorkQueue *queue, PcFetcherProcess *process)
     : m_sessionId(sessionId)
     , m_req_id(0)
     , m_is_async(false)
     , m_connection(IPC::Connection::createClientConnection(identifier, *this, queue))
     , m_workQueue(queue)
-    , m_cancellable(adoptGRef(g_cancellable_new()))
+    , m_fetcherProcess(process)
 {
+    auto locker = holdLock(m_callbackLock);
     m_callback = pcfetcher_create_callback_info();
     if (m_callback == NULL) {
         return;
@@ -59,15 +62,16 @@ PcFetcherSession::PcFetcherSession(uint64_t sessionId,
     m_runloop = &RunLoop::current();
 }
 
-PcFetcherSession::~PcFetcherSession()
+PcFetcherRequest::~PcFetcherRequest()
 {
     close();
+    auto locker = holdLock(m_callbackLock);
     if (m_callback) {
         pcfetcher_destroy_callback_info(m_callback);
     }
 }
 
-void PcFetcherSession::close()
+void PcFetcherRequest::close()
 {
     if (m_connection) {
         m_connection->invalidate();
@@ -93,7 +97,7 @@ static const char* transMethod(enum pcfetcher_request_method method)
     }
 }
 
-purc_variant_t PcFetcherSession::requestAsync(
+purc_variant_t PcFetcherRequest::requestAsync(
         const char* base_uri,
         const char* url,
         enum pcfetcher_request_method method,
@@ -105,6 +109,7 @@ purc_variant_t PcFetcherSession::requestAsync(
     // TODO send params with http request
     UNUSED_PARAM(params);
 
+    auto locker = holdLock(m_callbackLock);
     m_callback->handler = handler;
     m_callback->ctxt = ctxt;
     m_is_async = true;
@@ -138,7 +143,7 @@ purc_variant_t PcFetcherSession::requestAsync(
     return m_callback->req_id;
 }
 
-purc_rwstream_t PcFetcherSession::requestSync(
+purc_rwstream_t PcFetcherRequest::requestSync(
         const char* base_uri,
         const char* url,
         enum pcfetcher_request_method method,
@@ -178,6 +183,19 @@ purc_rwstream_t PcFetcherSession::requestSync(
 
     wait(timeout);
 
+    auto locker = holdLock(m_callbackLock);
+    if (m_callback == NULL) {
+        return NULL;
+    }
+
+    if (!m_callback->header.sz_resp && m_callback->rws) {
+        size_t sz_content = 0;
+        size_t sz_buffer = 0;
+        purc_rwstream_get_mem_buffer_ex(m_callback->rws, &sz_content,
+                &sz_buffer, false);
+        m_callback->header.sz_resp = sz_content;
+    }
+
     if (resp_header) {
         resp_header->ret_code = m_callback->header.ret_code;
         if (m_callback->header.mime_type) {
@@ -195,98 +213,101 @@ purc_rwstream_t PcFetcherSession::requestSync(
 
     purc_rwstream_t rws = m_callback->rws;
     m_callback->rws = NULL;
+    m_fetcherProcess->requestFinished(this);
     return rws;
 }
 
-void PcFetcherSession::stop()
+void PcFetcherRequest::stop()
 {
-    if (!m_is_async) {
+    auto locker = holdLock(m_callbackLock);
+    if (!m_is_async || m_callback == NULL) {
         return;
     }
-    g_cancellable_cancel(m_cancellable.get());
-
     struct pcfetcher_callback_info *info = m_callback;
     m_callback->cancelled = true;
     m_callback = nullptr;
 
     info->header.ret_code = RESP_CODE_USER_STOP;
-    info->handler(info->req_id, info->ctxt,
-            &info->header, NULL);
-    info->handler = nullptr;
-
-    if (!info->dispatched) {
-        pcfetcher_destroy_callback_info(info);
-    }
+    m_runloop->dispatch([info, request=this] {
+            info->handler(info->req_id, info->ctxt, &info->header, NULL);
+            info->handler = nullptr;
+            pcfetcher_destroy_callback_info(info);
+            request->m_fetcherProcess->requestFinished(request);
+            }
+        );
 }
 
-void PcFetcherSession::cancel()
+void PcFetcherRequest::cancel()
 {
-    if (!m_is_async) {
+    auto locker = holdLock(m_callbackLock);
+    if (!m_is_async || m_callback == NULL) {
         return;
     }
-    g_cancellable_cancel(m_cancellable.get());
 
     struct pcfetcher_callback_info *info = m_callback;
     m_callback->cancelled = true;
     m_callback = nullptr;
 
     info->header.ret_code = RESP_CODE_USER_CANCEL;
-    info->handler(info->req_id, info->ctxt, &info->header, NULL);
-    if (!info->dispatched) {
-        pcfetcher_destroy_callback_info(info);
-    }
+    m_runloop->dispatch([info, request=this] {
+            info->handler(info->req_id, info->ctxt, &info->header, NULL);
+            info->handler = nullptr;
+            pcfetcher_destroy_callback_info(info);
+            request->m_fetcherProcess->requestFinished(request);
+            }
+        );
 }
 
-void PcFetcherSession::wait(uint32_t timeout)
+void PcFetcherRequest::wait(uint32_t timeout)
 {
     m_waitForSyncReplySemaphore.waitFor(Seconds(timeout));
 }
 
-void PcFetcherSession::wakeUp(void)
+void PcFetcherRequest::wakeUp(void)
 {
     m_waitForSyncReplySemaphore.signal();
 }
 
-void PcFetcherSession::didClose(IPC::Connection&)
+void PcFetcherRequest::didClose(IPC::Connection&)
 {
 }
 
-void PcFetcherSession::didReceiveInvalidMessage(IPC::Connection&,
+void PcFetcherRequest::didReceiveInvalidMessage(IPC::Connection&,
         IPC::MessageName)
 {
 }
 
-void PcFetcherSession::didReceiveMessage(IPC::Connection&,
+void PcFetcherRequest::didReceiveMessage(IPC::Connection&,
         IPC::Decoder& decoder)
 {
     if (decoder.messageName() == Messages::WebResourceLoader::DidReceiveResponse::name()) {
         IPC::handleMessage<Messages::WebResourceLoader::DidReceiveResponse>(
-                decoder, this, &PcFetcherSession::didReceiveResponse);
+                decoder, this, &PcFetcherRequest::didReceiveResponse);
         return;
     }
     if (decoder.messageName() == Messages::WebResourceLoader::DidReceiveSharedBuffer::name()) {
         IPC::handleMessage<Messages::WebResourceLoader::DidReceiveSharedBuffer>(
-                decoder, this, &PcFetcherSession::didReceiveSharedBuffer);
+                decoder, this, &PcFetcherRequest::didReceiveSharedBuffer);
         return;
     }
     if (decoder.messageName() == Messages::WebResourceLoader::DidFinishResourceLoad::name()) {
         IPC::handleMessage<Messages::WebResourceLoader::DidFinishResourceLoad>(
-                decoder, this, &PcFetcherSession::didFinishResourceLoad);
+                decoder, this, &PcFetcherRequest::didFinishResourceLoad);
         return;
     }
     if (decoder.messageName() == Messages::WebResourceLoader::DidFailResourceLoad::name()) {
         IPC::handleMessage<Messages::WebResourceLoader::DidFailResourceLoad>(
-                decoder, this, &PcFetcherSession::didFailResourceLoad);
+                decoder, this, &PcFetcherRequest::didFailResourceLoad);
         return;
     }
     if (decoder.messageName() == Messages::WebResourceLoader::WillSendRequest::name()) {
         IPC::handleMessage<Messages::WebResourceLoader::WillSendRequest>(
-                decoder, this, &PcFetcherSession::willSendRequest);
+                decoder, this, &PcFetcherRequest::willSendRequest);
         return;
     }
 }
 
-void PcFetcherSession::didReceiveSyncMessage(IPC::Connection& connection,
+void PcFetcherRequest::didReceiveSyncMessage(IPC::Connection& connection,
         IPC::Decoder& decoder, std::unique_ptr<IPC::Encoder>& replyEncoder)
 {
     UNUSED_PARAM(connection);
@@ -294,13 +315,14 @@ void PcFetcherSession::didReceiveSyncMessage(IPC::Connection& connection,
     UNUSED_PARAM(replyEncoder);
 }
 
-void PcFetcherSession::didReceiveResponse(
+void PcFetcherRequest::didReceiveResponse(
         const PurCFetcher::ResourceResponse& response,
         bool needsContinueDidReceiveResponseMessage)
 {
     UNUSED_PARAM(needsContinueDidReceiveResponseMessage);
 
-    if (g_cancellable_is_cancelled(m_cancellable.get())) {
+    auto locker = holdLock(m_callbackLock);
+    if (m_callback == NULL) {
         return;
     }
 
@@ -318,110 +340,98 @@ void PcFetcherSession::didReceiveResponse(
     m_callback->rws = purc_rwstream_new_buffer(init, INT_MAX);
 }
 
-void PcFetcherSession::didReceiveSharedBuffer(
+void PcFetcherRequest::didReceiveSharedBuffer(
         IPC::SharedBufferDataReference&& data, int64_t encodedDataLength)
 {
     UNUSED_PARAM(encodedDataLength);
-    if (g_cancellable_is_cancelled(m_cancellable.get())) {
+    auto locker = holdLock(m_callbackLock);
+    if (m_callback == NULL) {
         return;
     }
     purc_rwstream_write(m_callback->rws, data.data(), data.size());
 }
 
-void PcFetcherSession::didFinishResourceLoad(
+void PcFetcherRequest::didFinishResourceLoad(
         const NetworkLoadMetrics& networkLoadMetrics)
 {
     UNUSED_PARAM(networkLoadMetrics);
-    if (g_cancellable_is_cancelled(m_cancellable.get())) {
+    auto locker = holdLock(m_callbackLock);
+    if (m_callback == NULL) {
         return;
     }
 
-    if (m_is_async) {
-        if (m_callback->handler) {
-            if (!m_callback->header.sz_resp && m_callback->rws) {
-                size_t sz_content = 0;
-                size_t sz_buffer = 0;
-                purc_rwstream_get_mem_buffer_ex(m_callback->rws, &sz_content,
-                        &sz_buffer, false);
-                m_callback->header.sz_resp = sz_content;
-            }
-            if (m_callback->rws) {
-                purc_rwstream_seek(m_callback->rws, 0, SEEK_SET);
-            }
-            if (m_workQueue) {
-                m_callback->dispatched = true;
-                m_workQueue->dispatch([loop=m_runloop, info=m_callback] {
-                    loop->dispatch([info] {
-                        if (!info->cancelled) {
-                            info->handler(info->req_id, info->ctxt,
-                                    &info->header, info->rws);
-                            info->rws = NULL;
-                        }
-                        });
-                    });
-            }
-            else {
-                m_runloop->dispatch([info=m_callback] {
-                        info->handler(info->req_id, info->ctxt, &info->header,
-                                info->rws);
-                        info->rws = NULL;
-                        });
-            }
-        }
-    }
-    else {
+    if (!m_is_async) {
         wakeUp();
+        return;
     }
+
+    if (!m_callback->handler) {
+        return;
+    }
+    if (!m_callback->header.sz_resp && m_callback->rws) {
+        size_t sz_content = 0;
+        size_t sz_buffer = 0;
+        purc_rwstream_get_mem_buffer_ex(m_callback->rws, &sz_content,
+                &sz_buffer, false);
+        m_callback->header.sz_resp = sz_content;
+    }
+    if (m_callback->rws) {
+        purc_rwstream_seek(m_callback->rws, 0, SEEK_SET);
+    }
+    struct pcfetcher_callback_info *info = m_callback;
+    m_callback = NULL;
+    m_runloop->dispatch([info, request=this] {
+            info->handler(info->req_id, info->ctxt, &info->header,
+                    info->rws);
+            info->rws = NULL;
+            pcfetcher_destroy_callback_info(info);
+            request->m_fetcherProcess->requestFinished(request);
+            }
+        );
 }
 
-void PcFetcherSession::didFailResourceLoad(const ResourceError& error)
+void PcFetcherRequest::didFailResourceLoad(const ResourceError& error)
 {
     UNUSED_PARAM(error);
-    if (g_cancellable_is_cancelled(m_cancellable.get())) {
+    auto locker = holdLock(m_callbackLock);
+    if (m_callback == NULL) {
         return;
     }
-
     // TODO : trans error code
     m_callback->header.ret_code = 408;
 
-    if (m_is_async) {
-        if (m_callback->handler) {
-            if (!m_callback->header.sz_resp && m_callback->rws) {
-                size_t sz_content = 0;
-                size_t sz_buffer = 0;
-                purc_rwstream_get_mem_buffer_ex(m_callback->rws, &sz_content,
-                        &sz_buffer, false);
-                m_callback->header.sz_resp = sz_content;
-            }
-            if (m_callback->rws) {
-                purc_rwstream_seek(m_callback->rws, 0, SEEK_SET);
-            }
-            if (m_workQueue) {
-                m_workQueue->dispatch([loop=m_runloop, info=m_callback] {
-                    loop->dispatch([info] {
-                        if (info->handler) {
-                            info->handler(info->req_id, info->ctxt,
-                                    &info->header, info->rws);
-                            info->rws = NULL;
-                        }
-                        });
-                    });
-            }
-            else {
-                m_runloop->dispatch([info=m_callback] {
-                        info->handler(info->req_id, info->ctxt, &info->header,
-                                info->rws);
-                        info->rws = NULL;
-                        });
-            }
-        }
-    }
-    else {
+    if (!m_is_async) {
         wakeUp();
+        return;
     }
+
+    if (!m_callback->handler) {
+        return;
+    }
+
+    if (!m_callback->header.sz_resp && m_callback->rws) {
+        size_t sz_content = 0;
+        size_t sz_buffer = 0;
+        purc_rwstream_get_mem_buffer_ex(m_callback->rws, &sz_content,
+                &sz_buffer, false);
+        m_callback->header.sz_resp = sz_content;
+    }
+    if (m_callback->rws) {
+        purc_rwstream_seek(m_callback->rws, 0, SEEK_SET);
+    }
+    struct pcfetcher_callback_info *info = m_callback;
+    m_callback = NULL;
+    m_runloop->dispatch([info, request=this] {
+            info->handler(info->req_id, info->ctxt, &info->header,
+                    info->rws);
+            info->rws = NULL;
+            pcfetcher_destroy_callback_info(info);
+            request->m_fetcherProcess->requestFinished(request);
+            }
+        );
 }
 
-void PcFetcherSession::willSendRequest(ResourceRequest&& proposedRequest,
+void PcFetcherRequest::willSendRequest(ResourceRequest&& proposedRequest,
         IPC::FormDataReference&& proposedRequestBody,
         ResourceResponse&& redirectResponse)
 {

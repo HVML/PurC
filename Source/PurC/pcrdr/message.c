@@ -46,9 +46,8 @@ pcrdr_msg *pcrdr_make_void_message(void)
 
 pcrdr_msg *pcrdr_make_request_message(
         pcrdr_msg_target target, uint64_t target_value,
-        const char *operation,
-        const char *request_id,
-        pcrdr_msg_element_type element_type, const char *element,
+        const char *operation, const char *request_id,
+        pcrdr_msg_element_type element_type, const char *element_value,
         const char *property,
         pcrdr_msg_data_type data_type, const char* data, size_t data_len)
 {
@@ -67,12 +66,12 @@ pcrdr_msg *pcrdr_make_request_message(
 
     msg->elementType = element_type;
     if (element_type == PCRDR_MSG_ELEMENT_TYPE_VOID) {
-        msg->element = NULL;
+        msg->elementValue = NULL;
     }
     else {
-        assert(element);
-        msg->element = purc_variant_make_string(element, true);
-        if (msg->element == NULL)
+        assert(element_value);
+        msg->elementValue = purc_variant_make_string(element_value, true);
+        if (msg->elementValue == NULL)
             goto failed;
     }
 
@@ -104,7 +103,7 @@ pcrdr_msg *pcrdr_make_request_message(
             goto failed;
         }
     }
-    else if (data_type == PCRDR_MSG_DATA_TYPE_EJSON) {
+    else if (data_type == PCRDR_MSG_DATA_TYPE_JSON) {
         assert(data);
         msg->data = purc_variant_make_from_json_string(data, data_len);
 
@@ -144,7 +143,7 @@ pcrdr_msg *pcrdr_make_response_message(
             goto failed;
         }
     }
-    else if (data_type == PCRDR_MSG_DATA_TYPE_EJSON) {
+    else if (data_type == PCRDR_MSG_DATA_TYPE_JSON) {
         assert(data);
         msg->data = purc_variant_make_from_json_string(data, data_len);
 
@@ -165,8 +164,8 @@ failed:
 
 pcrdr_msg *pcrdr_make_event_message(
         pcrdr_msg_target target, uint64_t target_value,
-        const char *event,
-        pcrdr_msg_element_type element_type, const char *element,
+        const char *event_name, const char *event_source,
+        pcrdr_msg_element_type element_type, const char *element_value,
         const char *property,
         pcrdr_msg_data_type data_type, const char* data, size_t data_len)
 {
@@ -178,19 +177,27 @@ pcrdr_msg *pcrdr_make_event_message(
     msg->target = target;
     msg->targetValue = target_value;
 
-    assert(event);
-    msg->event = purc_variant_make_string(event, true);
-    if (msg->event == NULL)
+    assert(event_name);
+    msg->eventName = purc_variant_make_string(event_name, true);
+    if (msg->eventName == NULL)
+        goto failed;
+
+    if (event_source)
+        msg->eventSource = purc_variant_make_string(event_source, true);
+    else
+        msg->eventSource = purc_variant_make_string_static(
+                PCRDR_EVENTSOURCE_ANONYMOUS, false);
+    if (msg->eventSource == NULL)
         goto failed;
 
     msg->elementType = element_type;
     if (element_type == PCRDR_MSG_ELEMENT_TYPE_VOID) {
-        msg->element = NULL;
+        msg->elementValue = NULL;
     }
     else {
-        assert(element);
-        msg->element = purc_variant_make_string(element, true);
-        if (msg->element == NULL)
+        assert(element_value);
+        msg->elementValue = purc_variant_make_string(element_value, true);
+        if (msg->elementValue == NULL)
             goto failed;
     }
 
@@ -209,7 +216,7 @@ pcrdr_msg *pcrdr_make_event_message(
             goto failed;
         }
     }
-    else if (data_type == PCRDR_MSG_DATA_TYPE_EJSON) {
+    else if (data_type == PCRDR_MSG_DATA_TYPE_JSON) {
         assert(data);
         msg->data = purc_variant_make_from_json_string(data, data_len);
 
@@ -285,14 +292,14 @@ int pcrdr_compare_messages(const pcrdr_msg *msg_a, const pcrdr_msg *msg_b)
         return -1;
     }
 
-    if (msg_a->element && msg_b->element) {
-        int ret = variant_strcmp(msg_a->element, msg_b->element);
+    if (msg_a->elementValue && msg_b->elementValue) {
+        int ret = variant_strcmp(msg_a->elementValue, msg_b->elementValue);
         if (ret) return ret;
     }
-    else if (msg_a->element) {
+    else if (msg_a->elementValue) {
         return 1;
     }
-    else if (msg_b->element) {
+    else if (msg_b->elementValue) {
         return -1;
     }
 
@@ -307,14 +314,25 @@ int pcrdr_compare_messages(const pcrdr_msg *msg_a, const pcrdr_msg *msg_b)
         return -1;
     }
 
-    if (msg_a->event && msg_b->event) {
-        int ret = variant_strcmp(msg_a->event, msg_b->event);
+    if (msg_a->eventName && msg_b->eventName) {
+        int ret = variant_strcmp(msg_a->eventName, msg_b->eventName);
         if (ret) return ret;
     }
-    else if (msg_a->event) {
+    else if (msg_a->eventName) {
         return 1;
     }
-    else if (msg_b->event) {
+    else if (msg_b->eventName) {
+        return -1;
+    }
+
+    if (msg_a->eventSource && msg_b->eventSource) {
+        int ret = variant_strcmp(msg_a->eventSource, msg_b->eventSource);
+        if (ret) return ret;
+    }
+    else if (msg_a->eventSource) {
+        return 1;
+    }
+    else if (msg_b->eventSource) {
         return -1;
     }
 
@@ -371,12 +389,14 @@ pcrdr_msg *pcrdr_clone_message(const pcrdr_msg *src)
         msg->requestId = purc_variant_ref(src->requestId);
     }
     else if (msg->type == PCRDR_MSG_TYPE_EVENT) {
-        assert(src->event);
-        msg->event = purc_variant_ref(src->event);
+        assert(src->eventName);
+        msg->eventName = purc_variant_ref(src->eventName);
+        assert(src->eventSource);
+        msg->eventSource = purc_variant_ref(src->eventSource);
     }
 
-    if (msg->element) {
-        msg->element = purc_variant_ref(src->element);
+    if (msg->elementValue) {
+        msg->elementValue = purc_variant_ref(src->elementValue);
     }
 
     if (msg->property) {
@@ -459,7 +479,9 @@ static const char *target_names[] = {
     "plainwindow",
     "page",
     "dom",
-    "thread",
+    "instance",
+    "coroutine",
+    "user",
 };
 
 /* make sure number of target_names matches the enums */
@@ -510,10 +532,18 @@ static bool on_operation(pcrdr_msg *msg, char *value)
     return false;
 }
 
-static bool on_event(pcrdr_msg *msg, char *value)
+static bool on_event_name(pcrdr_msg *msg, char *value)
 {
-    msg->event = purc_variant_make_string(value, true);
-    if (msg->event)
+    msg->eventName = purc_variant_make_string(value, true);
+    if (msg->eventName)
+        return true;
+    return false;
+}
+
+static bool on_event_source(pcrdr_msg *msg, char *value)
+{
+    msg->eventSource = purc_variant_make_string(value, true);
+    if (msg->eventSource)
         return true;
     return false;
 }
@@ -554,12 +584,12 @@ static bool on_element(pcrdr_msg *msg, char *value)
         return false;
     }
 
-    char *element = strtok_r(NULL, STR_VALUE_SEPARATOR, &saveptr);
-    if (element == NULL)
+    char *element_value = strtok_r(NULL, STR_VALUE_SEPARATOR, &saveptr);
+    if (element_value == NULL)
         return false;
 
-    msg->element = purc_variant_make_string(element, true);
-    if (msg->element)
+    msg->elementValue = purc_variant_make_string(element_value, true);
+    if (msg->elementValue)
         return true;
     return false;
 }
@@ -608,7 +638,7 @@ static bool on_result(pcrdr_msg *msg, char *value)
 
 static const char *data_type_names [] = {
     "void",
-    "ejson",
+    "json",
     "text",
 };
 
@@ -645,12 +675,12 @@ typedef bool (*key_op)(pcrdr_msg *msg, char *value);
 
 #define STR_KEY_TYPE        "type"
 #define STR_KEY_TARGET      "target"
-#define STR_KEY_SOURCE      "source"
 #define STR_KEY_OPERATION   "operation"
+#define STR_KEY_REQUEST_ID  "requestId"
 #define STR_KEY_ELEMENT     "element"
 #define STR_KEY_PROPERTY    "property"
-#define STR_KEY_EVENT       "event"
-#define STR_KEY_REQUEST_ID  "requestId"
+#define STR_KEY_EVENTNAME   "eventName"
+#define STR_KEY_EVENTSOURCE "eventSource"
 #define STR_KEY_RESULT      "result"
 #define STR_KEY_DATA_TYPE   "dataType"
 #define STR_KEY_DATA_LEN    "dataLen"
@@ -662,12 +692,12 @@ static struct key_op_pair {
     { STR_KEY_DATA_LEN,     on_data_len },
     { STR_KEY_DATA_TYPE,    on_data_type },
     { STR_KEY_ELEMENT,      on_element },
-    { STR_KEY_EVENT,        on_event },
+    { STR_KEY_EVENTNAME,    on_event_name },
+    { STR_KEY_EVENTSOURCE,  on_event_source },
     { STR_KEY_OPERATION,    on_operation },
     { STR_KEY_PROPERTY,     on_property },
     { STR_KEY_REQUEST_ID,   on_request_id },
     { STR_KEY_RESULT,       on_result },
-    { STR_KEY_SOURCE,       on_target },
     { STR_KEY_TARGET,       on_target },
     { STR_KEY_TYPE,         on_type },
 };
@@ -758,7 +788,7 @@ int pcrdr_parse_packet(char *packet, size_t sz_packet, pcrdr_msg **msg_out)
             goto failed;
         }
     }
-    else if (msg->dataType == PCRDR_MSG_DATA_TYPE_EJSON) {
+    else if (msg->dataType == PCRDR_MSG_DATA_TYPE_JSON) {
         assert(data != NULL && msg->__data_len > 0);
         msg->data = purc_variant_make_from_json_string(data, msg->__data_len);
 
@@ -774,17 +804,20 @@ failed:
     if (msg->operation)
         purc_variant_unref(msg->operation);
 
-    if (msg->element)
-        purc_variant_unref(msg->element);
+    if (msg->requestId)
+        purc_variant_unref(msg->requestId);
+
+    if (msg->eventName)
+        purc_variant_unref(msg->eventName);
+
+    if (msg->eventSource)
+        purc_variant_unref(msg->eventSource);
+
+    if (msg->elementValue)
+        purc_variant_unref(msg->elementValue);
 
     if (msg->property)
         purc_variant_unref(msg->property);
-
-    if (msg->event)
-        purc_variant_unref(msg->event);
-
-    if (msg->requestId)
-        purc_variant_unref(msg->requestId);
 
     if (msg->data)
         purc_variant_unref(msg->data);
@@ -809,11 +842,12 @@ serialize_message_data(const pcrdr_msg *msg, pcrdr_cb_write fn, void *ctxt)
         assert(msg->data != NULL);
         text_len = strlen(text);
     }
-    else if (msg->dataType == PCRDR_MSG_DATA_TYPE_EJSON) {
+    else if (msg->dataType == PCRDR_MSG_DATA_TYPE_JSON) {
         purc_rwstream_t buffer = NULL;
         buffer = purc_rwstream_new_buffer(PCRDR_MIN_PACKET_BUFF_SIZE,
                 PCRDR_MAX_INMEM_PAYLOAD_SIZE);
 
+        /* always serialize as a standard JSON */
         if (purc_variant_serialize(msg->data, buffer, 0,
                 PCVARIANT_SERIALIZE_OPT_PLAIN, NULL) < 0) {
             errcode = purc_get_last_error();
@@ -826,7 +860,7 @@ serialize_message_data(const pcrdr_msg *msg, pcrdr_cb_write fn, void *ctxt)
         purc_rwstream_destroy(buffer);
     }
 
-    /* dataType: <void | ejson | text> */
+    /* dataType: <void | json | text> */
     fn(ctxt, STR_KEY_DATA_TYPE, sizeof(STR_KEY_DATA_TYPE) - 1);
     fn(ctxt, STR_PAIR_SEPARATOR, sizeof(STR_PAIR_SEPARATOR) - 1);
     fn(ctxt, data_type_names[msg->dataType],
@@ -903,13 +937,13 @@ int pcrdr_serialize_message(const pcrdr_msg *msg, pcrdr_cb_write fn, void *ctxt)
         fn(ctxt, STR_LINE_SEPARATOR, sizeof(STR_LINE_SEPARATOR) - 1);
 
         if (msg->elementType != PCRDR_MSG_ELEMENT_TYPE_VOID) {
-            /* element: <css | xpath | handle | handles>/<element> */
+            /* element: <css | xpath | handle | handles>/<elementValue> */
             fn(ctxt, STR_KEY_ELEMENT, sizeof(STR_KEY_ELEMENT) - 1);
             fn(ctxt, STR_PAIR_SEPARATOR, sizeof(STR_PAIR_SEPARATOR) - 1);
             fn(ctxt, element_type_names[msg->elementType],
                     strlen(element_type_names[msg->elementType]));
             fn(ctxt, STR_VALUE_SEPARATOR, sizeof(STR_VALUE_SEPARATOR) - 1);
-            value = purc_variant_get_string_const(msg->element);
+            value = purc_variant_get_string_const(msg->elementValue);
             fn(ctxt, value, strlen(value));
             fn(ctxt, STR_LINE_SEPARATOR, sizeof(STR_LINE_SEPARATOR) - 1);
         }
@@ -966,8 +1000,8 @@ int pcrdr_serialize_message(const pcrdr_msg *msg, pcrdr_cb_write fn, void *ctxt)
         n = serialize_message_data(msg, fn, ctxt);
     }
     else if (msg->type == PCRDR_MSG_TYPE_EVENT) {
-        /* source: <session | window | tab | dom>/<handle> */
-        fn(ctxt, STR_KEY_SOURCE, sizeof(STR_KEY_SOURCE) - 1);
+        /* target: <session | window | tab | dom>/<handle> */
+        fn(ctxt, STR_KEY_TARGET, sizeof(STR_KEY_TARGET) - 1);
         fn(ctxt, STR_PAIR_SEPARATOR, sizeof(STR_PAIR_SEPARATOR) - 1);
         fn(ctxt, target_names[msg->target], strlen(target_names[msg->target]));
         fn(ctxt, STR_VALUE_SEPARATOR, sizeof(STR_VALUE_SEPARATOR) - 1);
@@ -983,21 +1017,28 @@ int pcrdr_serialize_message(const pcrdr_msg *msg, pcrdr_cb_write fn, void *ctxt)
         fn(ctxt, buff, n);
         fn(ctxt, STR_LINE_SEPARATOR, sizeof(STR_LINE_SEPARATOR) - 1);
 
-        /* event: <event> */
-        fn(ctxt, STR_KEY_EVENT, sizeof(STR_KEY_EVENT) - 1);
+        /* eventName: <event> */
+        fn(ctxt, STR_KEY_EVENTNAME, sizeof(STR_KEY_EVENTNAME) - 1);
         fn(ctxt, STR_PAIR_SEPARATOR, sizeof(STR_PAIR_SEPARATOR) - 1);
-        value = purc_variant_get_string_const(msg->event);
+        value = purc_variant_get_string_const(msg->eventName);
+        fn(ctxt, value, strlen(value));
+        fn(ctxt, STR_LINE_SEPARATOR, sizeof(STR_LINE_SEPARATOR) - 1);
+
+        /* eventSource: <event> */
+        fn(ctxt, STR_KEY_EVENTSOURCE, sizeof(STR_KEY_EVENTSOURCE) - 1);
+        fn(ctxt, STR_PAIR_SEPARATOR, sizeof(STR_PAIR_SEPARATOR) - 1);
+        value = purc_variant_get_string_const(msg->eventSource);
         fn(ctxt, value, strlen(value));
         fn(ctxt, STR_LINE_SEPARATOR, sizeof(STR_LINE_SEPARATOR) - 1);
 
         if (msg->elementType != PCRDR_MSG_ELEMENT_TYPE_VOID) {
-            /* element: <css | xpath | handle | handles>/<element> */
+            /* element: <css | xpath | handle | handles>/<elementValue> */
             fn(ctxt, STR_KEY_ELEMENT, sizeof(STR_KEY_ELEMENT) - 1);
             fn(ctxt, STR_PAIR_SEPARATOR, sizeof(STR_PAIR_SEPARATOR) - 1);
-            fn(ctxt, element_type_names[msg->target],
-                    strlen(element_type_names[msg->target]));
+            fn(ctxt, element_type_names[msg->elementType],
+                    strlen(element_type_names[msg->elementType]));
             fn(ctxt, STR_VALUE_SEPARATOR, sizeof(STR_VALUE_SEPARATOR) - 1);
-            value = purc_variant_get_string_const(msg->element);
+            value = purc_variant_get_string_const(msg->elementValue);
             fn(ctxt, value, strlen(value));
             fn(ctxt, STR_LINE_SEPARATOR, sizeof(STR_LINE_SEPARATOR) - 1);
         }

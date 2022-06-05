@@ -65,11 +65,6 @@ struct purc_exec_inst {
 
 struct pcinst;
 
-// initialize the executor module for a PurC instance.
-void pcexecutor_init_instance(struct pcinst* inst) WTF_INTERNAL;
-// clean up the executor module for a PurC instance.
-void pcexecutor_cleanup_instance(struct pcinst* inst) WTF_INTERNAL;
-
 void pcexecutor_set_debug(int debug_flex, int debug_bison);
 void pcexecutor_get_debug(int *debug_flex, int *debug_bison);
 

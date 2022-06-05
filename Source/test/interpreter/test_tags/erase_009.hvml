@@ -1,0 +1,32 @@
+<hvml>
+    <head>
+        <init as="buttons">
+        [
+            { "letters": "7", "class": "number" },
+            { "letters": ".", "class": "number" },
+            { "letters": "%", "class": "c_blue percent" },
+            { "letters": "=", "class": "c_yellow equal" },
+        ]
+        </init>
+    </head>
+    <body>
+        <div>
+            $EJSON.count($buttons)
+        </div>
+        <iterate on="$EJSON.count($buttons)" by="SUB: GE 0 BY 2">
+            <erase on="$buttons" at="[$?]" />
+        </iterate>
+        <div>
+            $buttons[0].letters
+        </div>
+        <div>
+            $buttons[0].class
+        </div>
+        <div>
+            $buttons[1].letters
+        </div>
+        <div>
+            $buttons[1].class
+        </div>
+    </body>
+</hvml>

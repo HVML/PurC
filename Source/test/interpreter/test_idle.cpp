@@ -6,7 +6,7 @@
 #include <gtest/gtest.h>
 
 
-int on_idle_callback(void* ctxt)
+static void  on_idle_callback(void* ctxt)
 {
     UNUSED_PARAM(ctxt);
     static int i = 0;
@@ -14,7 +14,6 @@ int on_idle_callback(void* ctxt)
         purc_runloop_stop(purc_runloop_get_current());
     }
     i++;
-    return 0;
 }
 
 TEST(idle, idle)

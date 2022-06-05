@@ -1,0 +1,9 @@
+<hvml>
+    <head>
+    </head>
+    <body>
+        <div id="test-erase-attr" class="text-info">
+        </div>
+        <erase on="#test-erase-attr" at="attr.class" />
+    </body>
+</hvml>

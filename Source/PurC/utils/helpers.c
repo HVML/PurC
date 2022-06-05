@@ -38,7 +38,7 @@ bool purc_is_valid_token (const char* token, int max_len)
 {
     int i;
 
-    if (!purc_isalpha (token [0]))
+    if (token[0] != '_' && !purc_isalpha (token [0]))
         return false;
 
     i = 1;
@@ -60,7 +60,7 @@ bool purc_is_valid_loose_token (const char* token, int max_len)
 {
     int i;
 
-    if (!purc_isalpha (token [0]))
+    if (token[0] != '_' && !purc_isalpha (token [0]))
         return false;
 
     i = 1;
@@ -433,10 +433,10 @@ size_t purc_hvml_uri_assemble(char *uri, const char *host, const char* app,
         uri = stpcpy(uri, group);
         uri[0] = '/';
         uri++;
-    }
 
-    if (page) {
-        uri = stpcpy(uri, page);
+        if (page) {
+            uri = stpcpy(uri, page);
+        }
     }
 
     uri[0] = '\0';
@@ -490,7 +490,7 @@ static unsigned int get_path_trail_len(const char *str)
 {
     unsigned int len = 0;
 
-    while (*str && *str != COMP_SEPERATOR && *str != QUERY_SEPERATOR) {
+    while (*str && *str != QUERY_SEPERATOR && *str != FRAG_SEPERATOR) {
         len++;
         str++;
     }
@@ -534,42 +534,29 @@ bool purc_hvml_uri_split(const char *uri,
         runner[len] = '\0';
     }
 
-    if (group) group[0] = 0;
-    if (page) page[0] = 0;
+    if (group == NULL && page == NULL) {
+        /* stop splitting if the caller was not insterested in group and page */
+        return true;
+    }
 
-    do {
-        uri += len + 1;
-        len = get_path_comp_len(uri);
-        if (len == 0)
-            break;
+    uri += len + 1;
+    len = get_path_comp_len(uri);
+    if (len == 0 || uri[len] != COMP_SEPERATOR)
+        goto failed;
+    if (group) {
+        strncpy(group, uri, len);
+        group[len] = '\0';
+    }
 
-        if (uri[len] == COMP_SEPERATOR) {
-            /* have group */
-            if (group) {
-                strncpy(group, uri, len);
-                group[len] = '\0';
-            }
+    uri += len + 1;
+    len = get_path_trail_len(uri);
+    if (len == 0 || uri[0] == COMP_SEPERATOR)
+        goto failed;
 
-            uri += len + 1;
-            len = get_path_trail_len(uri);
-            if (len == 0 || (uri[len] != 0 && uri[len] != QUERY_SEPERATOR))
-                goto failed;
-            if (page) {
-                strncpy(page, uri, len);
-                page[len] = '\0';
-            }
-        }
-        else {
-            /* no group */
-            if (page) {
-                len = get_path_trail_len(uri);
-                if (len == 0 || (uri[len] != 0 && uri[len] != QUERY_SEPERATOR))
-                    goto failed;
-                strncpy(page, uri, len);
-                page[len] = '\0';
-            }
-        }
-    } while (0);
+    if (page) {
+        strncpy(page, uri, len);
+        page[len] = '\0';
+    }
 
     return true;
 
@@ -607,31 +594,24 @@ bool purc_hvml_uri_split_alloc(const char *uri,
         goto failed;
     my_runner = strndup(uri, len);
 
-    do {
-        uri += len + 1;
-        len = get_path_comp_len(uri);
-        if (len == 0)
-            break;
+    if (group == NULL && page == NULL) {
+        /* stop splitting if the caller was not insterested in group and page */
+        goto done;
+    }
 
-        if (uri[len] == COMP_SEPERATOR) {
-            /* have group */
-            my_group = strndup(uri, len);
+    uri += len + 1;
+    len = get_path_comp_len(uri);
+    if (len == 0 || uri[len] != COMP_SEPERATOR)
+        goto failed;
+    my_group = strndup(uri, len);
 
-            uri += len + 1;
-            len = get_path_trail_len(uri);
-            if (len == 0 || (uri[len] != 0 && uri[len] != QUERY_SEPERATOR))
-                goto failed;
-            my_page = strndup(uri, len);
-        }
-        else {
-            /* no group */
-            len = get_path_trail_len(uri);
-            if (len == 0 || (uri[len] != 0 && uri[len] != QUERY_SEPERATOR))
-                goto failed;
-            my_page = strndup(uri, len);
-        }
-    } while (0);
+    uri += len + 1;
+    len = get_path_trail_len(uri);
+    if (len == 0 || uri[0] == COMP_SEPERATOR)
+        goto failed;
+    my_page = strndup(uri, len);
 
+done:
     if (host)
         *host = my_host;
     else
