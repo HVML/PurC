@@ -86,20 +86,27 @@ static void atom_init_bucket(struct atom_bucket *bucket)
 
 static inline struct atom_bucket *atom_get_bucket(int bucket)
 {
-    struct atom_bucket *atom_bucket;
+    assert(bucket >= 0 && bucket < PURC_ATOM_BUCKETS_NR);
 
-    if (LIKELY(bucket >= 0 && bucket < PURC_ATOM_BUCKETS_NR)) {
-        atom_bucket = atom_buckets + bucket;
-        if (UNLIKELY(atom_bucket->atom_seq_id == 0)) {
-            atom_init_bucket(atom_bucket);
-            atom_bucket->bucket_bits = BUCKET_BITS (bucket);
-        }
-
-        return atom_bucket;
+    struct atom_bucket *atom_bucket = atom_buckets + bucket;
+    if (UNLIKELY(atom_bucket->atom_seq_id == 0)) {
+        atom_init_bucket(atom_bucket);
+        atom_bucket->bucket_bits = BUCKET_BITS(bucket);
     }
 
-    assert(0);
-    return NULL;
+    return atom_bucket;
+}
+
+static inline void atom_put_bucket(int bucket)
+{
+    assert(bucket >= 0 && bucket < PURC_ATOM_BUCKETS_NR);
+
+    struct atom_bucket *atom_bucket = atom_buckets + bucket;
+    if (LIKELY(atom_bucket->atom_map)) {
+        pcutils_map_destroy(atom_bucket->atom_map);
+        free(atom_bucket->quarks);
+        memset(atom_bucket, 0, sizeof(*atom_bucket));
+    }
 }
 
 purc_atom_t
@@ -270,6 +277,17 @@ atom_new(struct atom_bucket *bucket, char *string, bool need_free)
                     sizeof (char *) * bucket->atom_seq_id);
         memset(atoms_new + bucket->atom_seq_id, 0,
                 sizeof (char *) * ATOM_BLOCK_SIZE);
+
+        /*
+         * The implementation in glib did not free the old quarks array.
+         * The author said: `This leaks the old quarks array. Its unfortunate,
+         * but it allows us to do lockless lookup of the arrays, and there
+         * shouldn't be that many quarks in an app`.
+         *
+         * In our implementation, we do free the old quarks.
+         * Indeed, we can use realloc() instead of malloc() and memcpy()
+         */
+        free(bucket->quarks);
         bucket->quarks = atoms_new;
     }
 
@@ -292,11 +310,7 @@ atom_cleanup_once(void)
     int bucket;
 
     for (bucket = 0; bucket < PURC_ATOM_BUCKETS_NR; bucket++) {
-        struct atom_bucket *atom_bucket = atom_buckets + bucket;
-        if (LIKELY(atom_bucket->atom_map)) {
-            pcutils_map_destroy(atom_bucket->atom_map);
-            free(atom_bucket->quarks);
-        }
+        atom_put_bucket(bucket);
     }
 
     if (atom_rwlock.native_impl)
@@ -325,6 +339,7 @@ atom_init_once(void)
     return 0;
 
 fail_atexit:
+    atom_put_bucket(0);
     if (atom_block) {
         free(atom_block);
         atom_block = NULL;
