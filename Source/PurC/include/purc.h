@@ -212,7 +212,7 @@ purc_cleanup(void);
 #define PURC_LDNAME_FORMAT_DOUBLE   "format-double"
 #define PURC_LDNAME_FORMAT_LDOUBLE  "format-long-double"
 
-typedef void (*cb_free_local_data) (void *local_data);
+typedef void (*cb_free_local_data) (void *key, void *local_data);
 
 /**
  * purc_set_local_data:

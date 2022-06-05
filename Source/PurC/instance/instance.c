@@ -746,7 +746,7 @@ purc_set_local_data(const char* data_name, uintptr_t local_data,
         return false;
 
     if (pcutils_map_find_replace_or_insert(inst->local_data_map,
-                data_name, (void *)local_data, (free_val_fn)cb_free)) {
+                data_name, (void *)local_data, (free_kv_fn)cb_free)) {
         inst->errcode = PURC_ERROR_OUT_OF_MEMORY;
         return false;
     }
@@ -762,7 +762,7 @@ purc_remove_local_data(const char* data_name)
         return -1;
 
     if (data_name) {
-        if (pcutils_map_erase (inst->local_data_map, (void*)data_name))
+        if (pcutils_map_erase (inst->local_data_map, (void*)data_name) == 0)
             return 1;
     }
     else {
@@ -794,7 +794,7 @@ purc_get_local_data(const char* data_name, uintptr_t *local_data,
             *local_data = (uintptr_t)entry->val;
 
         if (cb_free)
-            *cb_free = (cb_free_local_data)entry->free_val_alt;
+            *cb_free = (cb_free_local_data)entry->free_kv_alt;
 
         return 1;
     }
