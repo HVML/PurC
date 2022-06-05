@@ -1599,7 +1599,8 @@ struct local_random_data {
 
 static void cb_free_local_random_data(void *key, void *local_data)
 {
-    UNUSED_PARAM(key);
+    if (key)
+        free_key_string(key);
     free(local_data);
 }
 #else
