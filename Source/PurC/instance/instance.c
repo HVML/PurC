@@ -266,6 +266,16 @@ struct pcmodule* _pc_modules[] = {
     &_module_renderer,
 };
 
+/* FIXME:
+   1. We use atoms to identify the runners, and use move heaps to exchange
+      messages among runners, so there is no need to maintain the runners
+      or PurC instances by using `struct hvml_app`.
+   2. By using the atom and move heaps, one PurC instance will not have
+      any chance to visit the public data which should be protected by a lock.
+      As a good result, the most code of PurC will be lockless.
+   3. Placing a prerequisite that all runners should have the same app name
+      is an unnecessary restriction.
+ */
 struct hvml_app {
 #if USE(PTHREADS)          /* { */
     pthread_mutex_t               locker;
@@ -762,7 +772,7 @@ purc_remove_local_data(const char* data_name)
         return -1;
 
     if (data_name) {
-        if (pcutils_map_erase (inst->local_data_map, (void*)data_name) == 0)
+        if (pcutils_map_erase(inst->local_data_map, (void*)data_name) == 0)
             return 1;
     }
     else {
