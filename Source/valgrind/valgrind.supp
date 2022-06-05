@@ -318,4 +318,12 @@
    fun:atom_from_string_locked
    fun:purc_atom_from_static_string_ex
 }
+{
+   <purc_atom_from_static_string_ex>
+   Memcheck:Cond
+   fun:atom_new
+   fun:atom_from_string
+   fun:atom_from_string_locked
+   fun:purc_atom_from_static_string_ex
+}
 

@@ -25,9 +25,12 @@ struct thread_arg {
 static void* general_thread_entry(void* arg)
 {
     struct thread_arg *my_arg = (struct thread_arg *)arg;
+    sem_t *sw = my_arg->wait;
+    int    nr = my_arg->nr;
+
     char runner_name[32];
 
-    sprintf(runner_name, "requester%d", my_arg->nr);
+    sprintf(runner_name, "requester%d", nr);
 
     // initial purc instance
     int ret = purc_init_ex(PURC_MODULE_VARIANT, APP_NAME,
@@ -36,12 +39,12 @@ static void* general_thread_entry(void* arg)
 
     if (ret == PURC_ERROR_OK) {
         purc_enable_log(true, false);
-        inst_requesters[my_arg->nr] =
+        inst_requesters[nr] =
             purc_inst_create_move_buffer(PCINST_MOVE_BUFFER_BROADCAST, 16);
         purc_log_info("purc_inst_create_move_buffer returns: %x\n",
-                inst_requesters[my_arg->nr]);
+                inst_requesters[nr]);
     }
-    sem_post(my_arg->wait);
+    sem_post(sw);
 
     size_t n;
     do {
@@ -92,7 +95,7 @@ static void* general_thread_entry(void* arg)
 
                 int64_t i64;
                 purc_variant_cast_to_longint(msg->data, &i64, false);
-                if ((int)i64 == my_arg->nr) {
+                if ((int)i64 == nr) {
                     purc_log_error("data in response not matched\n");
                 }
             }
@@ -110,7 +113,7 @@ static void* general_thread_entry(void* arg)
                 PCRDR_MSG_DATA_TYPE_VOID, NULL, 0);
 
             request->dataType = PCRDR_MSG_DATA_TYPE_JSON;
-            request->data = purc_variant_make_longint((int64_t)my_arg->nr);
+            request->data = purc_variant_make_longint((int64_t)nr);
             purc_inst_move_message(inst_responser, request);
             pcrdr_release_message(request);
         }
