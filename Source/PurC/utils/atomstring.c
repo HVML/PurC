@@ -202,6 +202,8 @@ atom_from_string(struct atom_bucket *bucket,
         bool need_free;
         if (duplicate)
             string = atom_strdup(string, &need_free);
+        else
+            need_free = false;
         atom = atom_new(bucket, (char *)string, need_free);
     }
 
