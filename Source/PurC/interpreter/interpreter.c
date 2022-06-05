@@ -519,6 +519,12 @@ coroutine_release(pcintr_coroutine_t co)
             free(co->name);
             co->name = NULL;
         }
+        if (co->ident) {
+            PC_ASSERT(co->full_name);
+            purc_atom_remove_string(co->full_name);
+            free(co->full_name);
+            co->full_name = NULL;
+        }
     }
 }
 
@@ -2280,8 +2286,11 @@ static int set_coroutine_id(pcintr_coroutine_t coroutine, const char *name)
 
     pcintr_heap_t heap = pcintr_get_heap();
     PC_ASSERT(heap);
+    struct pcinst *inst = pcinst_current();
+    PC_ASSERT(inst && inst == heap->owner);
+    PC_ASSERT(inst->runner_name);
 
-    char buf[64];
+    char buf[128];
 
     if (!name) {
 again:
@@ -2290,7 +2299,8 @@ again:
             return -1;
         }
 
-        snprintf(buf, sizeof(buf), "_%zd", heap->next_coroutine_id++);
+        int n = snprintf(buf, sizeof(buf), "_%zd", heap->next_coroutine_id++);
+        PC_ASSERT(n >= 0 && (size_t)n < sizeof(buf));
         pcintr_coroutine_t p = coroutine_by_name(buf);
         if (p)
             goto again;
@@ -2305,6 +2315,21 @@ again:
     }
 
     coroutine->name = p;
+
+    size_t len = strlen(inst->runner_name) + 1 + strlen(coroutine->name);
+    p = (char*)malloc(len + 1);
+    if (!p) {
+        free(coroutine->name);
+        coroutine->name = NULL;
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return -1;
+    }
+
+    snprintf(p, len+1, "%s/%s", inst->runner_name, coroutine->name);
+    coroutine->full_name = p;
+
+    coroutine->ident = purc_atom_from_string(coroutine->full_name);
+
     return 0;
 }
 

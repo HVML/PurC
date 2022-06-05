@@ -248,7 +248,10 @@ struct pcintr_coroutine_result {
 
 struct pcintr_coroutine {
     pcintr_heap_t               owner;    /* owner heap */
-    char                       *name;
+    char                       *name;     /* name only */
+    char                       *full_name;   /* prefixed with runnerName/ */
+    purc_atom_t                 ident;
+
     struct list_head            node;     /* heap::coroutines */
 
     pcintr_coroutine_t          parent;
