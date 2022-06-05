@@ -876,6 +876,25 @@ struct purc_broken_down_url {
 };
 
 /**
+ * Allocate an empty broken-down URL.
+ *
+ * Returns: The pointer to the newly allocated empty broken-down URL structure.
+ */
+static inline struct purc_broken_down_url *
+pcutils_broken_down_url_new(void) {
+    return (struct purc_broken_down_url *)calloc(1,
+            sizeof(struct purc_broken_down_url));
+}
+
+/**
+ * Delete a broken-down URL.
+ *
+ * @param broken_down The pointer to a broken-down URL structure.
+ */
+PCA_EXPORT void
+pcutils_broken_down_url_delete(struct purc_broken_down_url *broken_down);
+
+/**
  * Assemble a broken-down URL.
  *
  * @param broken_down The pointer to a broken-down URL structure.
@@ -898,6 +917,44 @@ pcutils_url_assemble(const struct purc_broken_down_url *broken_down);
 PCA_EXPORT bool
 pcutils_url_break_down(struct purc_broken_down_url *broken_down,
         const char *url);
+
+/**
+ * Copy the value of the specified key from a broken down URL to the specified
+ * bufffer if found.
+ *
+ * @param broken_down The broken down URL.
+ * @param key The pointer to the key string.
+ *
+ * Returns: @true on success, @false not found.
+ *
+ * Note that the buffer should be large enough for the value.
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT bool
+pcutils_url_get_query_value(const struct purc_broken_down_url *broken_down,
+        const char *key, char *value_buff);
+
+/**
+ * Copy the value of the specified key from a broken down URL to a newly
+ * allocated buffer if found.
+ *
+ * @param broken_down The broken down URL.
+ * @param key The pointer to the key string.
+ * @param value_buff The pointer to a pointer to a string to receive
+ *      the buffer allocated for the value. The caller will own the buffer,
+ *      and should call free() to release the buffer after using it.
+ *
+ * Returns: @true on success, @false not found.
+ *
+ * Note that the buffer should be large enough for the value.
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT bool
+pcutils_url_get_query_value_alloc(
+        const struct purc_broken_down_url *broken_down,
+        const char *key, char **value_buff);
 
 PCA_EXTERN_C_END
 
