@@ -41,7 +41,6 @@ typedef struct hvml_app hvml_app;
 typedef struct hvml_app *hvml_app_t;
 
 hvml_app_t hvml_app_get(void);
-const char* hvml_app_name(void);
 
 struct pcinst;
 typedef struct pcinst pcinst;

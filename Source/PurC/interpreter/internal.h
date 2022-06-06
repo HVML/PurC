@@ -44,6 +44,9 @@ struct pcvdom_template {
 
 PCA_EXTERN_C_BEGIN
 
+void
+pcintr_synchronize(void *ctxt, void (*routine)(void *ctxt));
+
 int
 pcintr_check_insertion_mode_for_normal_element(pcintr_stack_t stack);
 

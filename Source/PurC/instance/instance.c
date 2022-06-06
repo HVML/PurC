@@ -43,6 +43,8 @@
 #include "private/pcrdr.h"
 #include "purc-runloop.h"
 
+#include "../interpreter/internal.h"
+
 #include <locale.h>
 #if USE(PTHREADS)          /* { */
 #include <pthread.h>
@@ -277,14 +279,9 @@ struct pcmodule* _pc_modules[] = {
       is an unnecessary restriction.
  */
 struct hvml_app {
-#if USE(PTHREADS)          /* { */
-    pthread_mutex_t               locker;
-#endif                     /* } */
     struct list_head              instances;  // struct pcinst
 
     bool                          init_ok;
-
-    char                         *name;
 };
 
 static struct hvml_app _app;
@@ -302,81 +299,15 @@ struct hvml_app* hvml_app_get(void)
     return &_app;
 }
 
-const char* hvml_app_name(void)
-{
-    struct hvml_app *app = hvml_app_get();
-    if (!app)
-        return NULL;
-
-    return app->name;
-}
-
-static void app_lock(struct hvml_app *app)
-{
-#if USE(PTHREADS)          /* { */
-    pthread_mutex_lock(&app->locker);
-#endif                     /* }*/
-}
-
-static void app_unlock(struct hvml_app *app)
-{
-#if USE(PTHREADS)          /* { */
-    pthread_mutex_unlock(&app->locker);
-#endif                     /* }*/
-}
-
-static int app_set_name(struct hvml_app *app, const char *app_name)
-{
-    int r = PURC_ERROR_OK;
-
-    do {
-        if (app->name && strcmp(app->name, app_name)) {
-            r = PURC_ERROR_DUPLICATED;
-            break;
-        }
-        if (!app->name) {
-            app->name = strdup(app_name);
-            if (!app->name) {
-                r = PURC_ERROR_OUT_OF_MEMORY;
-                break;
-            }
-        }
-    } while (0);
-
-    return r;
-}
-
 static void app_cleanup_once(void)
 {
-#if 0         /* { */
-    app_lock(&_app);
-    while (!list_empty(&_app.instances)) {
-        app_unlock(&_app);
-        app_lock(&_app);
-    }
-    app_unlock(&_app);
-#endif        /* } */
-
     PC_ASSERT(list_empty(&_app.instances));
-#if USE(PTHREADS)          /* { */
-    pthread_mutex_destroy(&_app.locker);
-#endif                     /* } */
-
-    if (_app.name) {
-        free(_app.name);
-        _app.name = NULL;
-    }
 }
 
 static void _app_init_once(void)
 {
     INIT_LIST_HEAD(&_app.instances);
     int r;
-#if USE(PTHREADS)          /* { */
-    r = pthread_mutex_init(&_app.locker, NULL);
-    if (r)
-        goto fail_mutex;
-#endif                     /* } */
 
     r = atexit(app_cleanup_once);
     if (r)
@@ -385,12 +316,7 @@ static void _app_init_once(void)
     _app.init_ok = true;
     return;
 
-#if USE(PTHREADS)          /* { */
 fail_atexit:
-    pthread_mutex_destroy(&_app.locker);
-#endif                     /* } */
-
-fail_mutex:
     return;
 }
 
@@ -437,10 +363,52 @@ static inline void init_once(void)
 
 PURC_DEFINE_THREAD_LOCAL(struct pcinst, inst);
 
-static int app_new_inst(struct hvml_app *app, const char *runner_name,
+struct append_inst_d {
+    struct hvml_app              *app;
+    struct pcinst                *curr_inst;
+    const char                   *runner_name;
+
+    int                           r;
+};
+
+static void append_inst(void *ud)
+{
+    struct append_inst_d  *data          = (struct append_inst_d*)ud;
+    struct hvml_app       *app           = data->app;
+    struct pcinst         *curr_inst     = data->curr_inst;
+    const char            *runner_name   = data->runner_name;
+
+    struct pcinst *p;
+    list_for_each_entry(p, &app->instances, node) {
+        if (p == curr_inst) {
+            data->r = PURC_ERROR_DUPLICATED;
+            return;
+        }
+        if (0 == strcmp(p->runner_name, runner_name)) {
+            data->r = PURC_ERROR_DUPLICATED;
+            return;
+        }
+    }
+
+    curr_inst->runner_name = strdup(runner_name);
+    if (!curr_inst->runner_name) {
+        data->r = PURC_ERROR_OUT_OF_MEMORY;
+    }
+
+    list_add_tail(&curr_inst->node, &app->instances);
+
+    data->r = 0;
+}
+
+static int app_new_inst(struct hvml_app *app,
+        const char *app_name, const char *runner_name,
         struct pcinst **pcurr_inst)
 {
     int r = PURC_ERROR_OK;
+
+    char *an = strdup(app_name);
+    if (!an)
+        return -1;
 
     do {
         struct pcinst *curr_inst = PURC_GET_THREAD_LOCAL(inst);
@@ -459,38 +427,30 @@ static int app_new_inst(struct hvml_app *app, const char *runner_name,
             break;
         }
 
-        struct pcinst *p;
-        list_for_each_entry(p, &app->instances, node) {
-            if (p == curr_inst) {
-                r = PURC_ERROR_DUPLICATED;
-                break;
-            }
-            if (0 == strcmp(p->runner_name, runner_name)) {
-                r = PURC_ERROR_DUPLICATED;
-                break;
-            }
-        }
-        if (r)
-            break;
-
-        curr_inst->runner_name = strdup(runner_name);
-        if (!curr_inst->runner_name) {
-            r = PURC_ERROR_OUT_OF_MEMORY;
-            break;
-        }
-
         curr_inst->errcode = PURC_ERROR_OK;
-        curr_inst->app_name = app->name;
+        curr_inst->app_name = an;
+        an = NULL;
 
         curr_inst->running_loop = purc_runloop_get_current();
         curr_inst->running_thread = pthread_self();
 
-        list_add_tail(&curr_inst->node, &app->instances);
+        struct append_inst_d data = {
+            .app             = app,
+            .curr_inst       = curr_inst,
+            .runner_name     = runner_name,
+            .r               = 0,
+        };
+        pcintr_synchronize(&data, append_inst);
+        r = data.r;
+        if (r)
+            break;
 
         *pcurr_inst = curr_inst;
         PC_ASSERT(r == 0);
         PC_ASSERT(r == PURC_ERROR_OK);
     } while (0);
+
+    free(an);
 
     return r;
 }
@@ -507,8 +467,23 @@ struct pcinst* pcinst_current(void)
     return curr_inst;
 }
 
+struct remove_inst_d {
+    struct pcinst                *curr_inst;
+};
+
+static void remove_inst(void *ud)
+{
+    struct remove_inst_d       *data = (struct remove_inst_d*)ud;
+    struct pcinst *curr_inst = data->curr_inst;
+
+    if (curr_inst->node.next || curr_inst->node.prev)
+        list_del(&curr_inst->node);
+}
+
 static void cleanup_instance(struct hvml_app *app, struct pcinst *curr_inst)
 {
+    UNUSED_PARAM(app);
+
     if (curr_inst->local_data_map) {
         pcutils_map_destroy(curr_inst->local_data_map);
         curr_inst->local_data_map = NULL;
@@ -524,9 +499,15 @@ static void cleanup_instance(struct hvml_app *app, struct pcinst *curr_inst)
         curr_inst->bt = NULL;
     }
 
-    app_lock(app);
-    if (curr_inst->node.next || curr_inst->node.prev)
-        list_del(&curr_inst->node);
+    struct remove_inst_d data = {
+        .curr_inst       = curr_inst,
+    };
+    pcintr_synchronize(&data, remove_inst);
+
+    if (curr_inst->app_name) {
+        free(curr_inst->app_name);
+        curr_inst->app_name = NULL;
+    }
 
     if (curr_inst->runner_name) {
         free(curr_inst->runner_name);
@@ -537,7 +518,6 @@ static void cleanup_instance(struct hvml_app *app, struct pcinst *curr_inst)
         curr_inst->app_name = NULL;
 
     curr_inst->modules = 0;
-    app_unlock(app);
 }
 
 static int _init_instance(struct pcinst *curr_inst,
@@ -703,13 +683,8 @@ int purc_init_ex(unsigned int modules,
     int ret = PURC_ERROR_OK;
     struct pcinst* curr_inst = NULL;
 
-    app_lock(app);
     do {
-        ret = app_set_name(app, app_name);
-        if (ret)
-            break;
-
-        ret = app_new_inst(app, runner_name, &curr_inst);
+        ret = app_new_inst(app, app_name, runner_name, &curr_inst);
         if (ret)
             break;
 
@@ -724,7 +699,6 @@ int purc_init_ex(unsigned int modules,
             break;
         }
     } while (0);
-    app_unlock(app);
 
     if (ret) {
         pcinst_cleanup(app, curr_inst);

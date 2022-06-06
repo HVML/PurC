@@ -30,6 +30,7 @@
 #include "private/errors.h"
 #include "private/interpreter.h"
 #include "private/instance.h"
+#include "internal.h"
 
 #include <wtf/Threading.h>
 #include <wtf/RunLoop.h>
@@ -380,6 +381,21 @@ static void _runloop_stop_main(void)
 
 static RefPtr<Thread> _sync_thread;
 static RunLoop *_sync_runloop = nullptr;
+
+void
+pcintr_synchronize(void *ctxt, void (*routine)(void *ctxt))
+{
+    PC_ASSERT(_sync_runloop);
+    BinarySemaphore semaphore;
+    _sync_runloop->dispatch([&] () {
+        if (routine == NULL)
+            return;
+
+        routine(ctxt);
+        semaphore.signal();
+    });
+    semaphore.wait();
+}
 
 static void _runloop_init_sync(void)
 {
