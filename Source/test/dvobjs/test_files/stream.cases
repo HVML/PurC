@@ -282,3 +282,15 @@ positive:
     {{ $SESSION.user(! "bcPipe", $STREAM.open('pipe:///usr/bin/bc?ARG1=--quiet')) && $SESSION.user_obj.bcPipe.writelines(['scale=20', '2/3']) && $SESSION.user_obj.bcPipe.writeeof() && $SESSION.user_obj.bcPipe.readlines(1); $STERAM.close($SESSION.user_obj.bcPipe); $SESSION.user(! 'bcPipe', undefined) }}
     true
 
+positive:
+    {{ $SESSION.user(! "bcPipe", $STREAM.open('pipe:///usr/bin/bc?ARG1=--quiet')) && $SESSION.user_obj.bcPipe.status }}
+    ['running',0L]
+
+positive:
+    {{ $SESSION.user_obj.bcPipe.writeeof(); $SYSTEM.sleep(0.3); $SESSION.user_obj.bcPipe.status }}
+    ['exited',0L]
+
+positive:
+    {{ $STERAM.close($SESSION.user_obj.bcPipe); $SESSION.user(! 'bcPipe', undefined) }}
+    true
+

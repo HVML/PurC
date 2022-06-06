@@ -790,7 +790,13 @@ status_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
 
     const char *status;
     int value, wstatus;
-    if (waitpid(stream->cpid, &wstatus, WNOHANG) == -1) {
+    int ret = waitpid(stream->cpid, &wstatus, WNOHANG);
+
+    if (ret == 0) {
+        status = "running";
+        value = 0;
+    }
+    else if (ret == -1) {
         if (errno == ECHILD) {
             status = "not-exist";
             value = 0;
@@ -800,18 +806,20 @@ status_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
             goto out;
         }
     }
+    else {
 
-    if (WIFEXITED(wstatus)) {
-        status = "exited";
-        value = WEXITSTATUS(wstatus);
-    }
-    else if (WIFSIGNALED(wstatus)) {
-        value = WEXITSTATUS(wstatus);
-        if (WCOREDUMP(wstatus)) {
-            status = "signaled-coredump";
+        if (WIFEXITED(wstatus)) {
+            status = "exited";
+            value = WEXITSTATUS(wstatus);
         }
-        else {
-            status = "signaled";
+        else if (WIFSIGNALED(wstatus)) {
+            value = WEXITSTATUS(wstatus);
+            if (WCOREDUMP(wstatus)) {
+                status = "signaled-coredump";
+            }
+            else {
+                status = "signaled";
+            }
         }
     }
 
@@ -1454,6 +1462,7 @@ struct pcdvobjs_stream *create_pipe_stream(struct purc_broken_down_url *url,
     }
     stream->fd4r = pipefd_stdout[0];
     close(pipefd_stdout[1]);
+    stream->cpid = cpid;
 
     return stream;
 
