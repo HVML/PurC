@@ -411,6 +411,9 @@ pcintr_coroutine_t pcintr_get_coroutine(void);
 // NOTE: null if current thread not initialized with purc_init
 purc_runloop_t pcintr_get_runloop(void);
 
+const char*
+pcintr_get_first_app_name(void);
+
 void pcintr_check_after_execution(void);
 void pcintr_set_current_co_with_location(pcintr_coroutine_t co,
         const char *file, int line, const char *func);

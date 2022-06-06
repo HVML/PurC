@@ -281,6 +281,8 @@ struct pcmodule* _pc_modules[] = {
 struct hvml_app {
     struct list_head              instances;  // struct pcinst
 
+    char                         *first_app_name;
+
     bool                          init_ok;
 };
 
@@ -367,6 +369,8 @@ struct endpoint_get_d {
     const char                   *endpoint_name;
     purc_atom_t                   endpoint_atom;
 
+    const char                   *app_name;
+
     int                           r;
 };
 
@@ -390,6 +394,17 @@ static void endpoint_get(void *ud)
         return;
     }
 
+    if (_app.first_app_name == NULL) {
+        PC_ASSERT(data->app_name);
+        _app.first_app_name = strdup(data->app_name);
+        if (_app.first_app_name == NULL) {
+            data->r = PURC_ERROR_DUPLICATED;
+            PC_ASSERT(purc_atom_remove_string_ex(PURC_ATOM_BUCKET_USER,
+                        data->endpoint_name));
+            return;
+        }
+    }
+
     data->endpoint_atom = endpoint_atom;
     data->r = 0;
 }
@@ -399,6 +414,7 @@ pcinst_endpoint_get(char *endpoint_name, size_t sz,
         const char *app_name, const char *runner_name)
 {
     PC_ASSERT(app_name && runner_name);
+
     // TODO: more precisely
     if (strchr(app_name, '/')) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
@@ -430,6 +446,7 @@ pcinst_endpoint_get(char *endpoint_name, size_t sz,
     struct endpoint_get_d data = {
         .endpoint_name      = endpoint_name,
         .endpoint_atom      = 0,
+        .app_name           = app_name,
 
         .r                  = 0,
     };
@@ -788,6 +805,15 @@ bool purc_cleanup(void)
     curr_inst = PURC_GET_THREAD_LOCAL(inst);
 
     return pcinst_cleanup(app, curr_inst);
+}
+
+const char*
+pcintr_get_first_app_name(void)
+{
+    struct hvml_app *app = hvml_app_get();
+    PC_ASSERT(app);
+    PC_ASSERT(app->first_app_name);
+    return app->first_app_name;
 }
 
 bool
