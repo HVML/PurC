@@ -1597,8 +1597,10 @@ struct local_random_data {
     struct random_data  data;
 };
 
-static void cb_free_local_random_data(void *local_data)
+static void cb_free_local_random_data(void *key, void *local_data)
 {
+    if (key)
+        free_key_string(key);
     free(local_data);
 }
 #else

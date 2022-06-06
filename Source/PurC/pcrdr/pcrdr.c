@@ -184,7 +184,7 @@ static int _init_instance(struct pcinst *curr_inst,
 
     /* send startSession request and wait for the response */
     msg = pcrdr_make_request_message(PCRDR_MSG_TARGET_SESSION, 0,
-            PCRDR_OPERATION_STARTSESSION, NULL,
+            PCRDR_OPERATION_STARTSESSION, NULL, NULL,
             PCRDR_MSG_ELEMENT_TYPE_VOID, NULL, NULL,
             PCRDR_MSG_DATA_TYPE_VOID, NULL, 0);
     if (msg == NULL) {

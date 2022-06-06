@@ -171,7 +171,7 @@ static pcrdr_msg *my_read_message(pcrdr_conn* conn)
     if (data) {
         struct result_info *result = *data;
         msg = pcrdr_make_response_message(
-                purc_variant_get_string_const(pr->request_id),
+                purc_variant_get_string_const(pr->request_id), NULL,
                 result->retCode, (uint64_t)(uintptr_t)result->resultValue,
                 PCRDR_MSG_DATA_TYPE_VOID, NULL, 0);
 
@@ -1290,7 +1290,7 @@ pcrdr_msg *pcrdr_headless_connect(const char* renderer_uri,
 
     pcutils_kvlist_init(&(*conn)->prot_data->results, NULL);
 
-    msg = pcrdr_make_response_message("0",
+    msg = pcrdr_make_response_message("0", NULL,
             PCRDR_SC_OK, 0,
             PCRDR_MSG_DATA_TYPE_TEXT, RENDERER_FEATURES,
             sizeof (RENDERER_FEATURES) - 1);

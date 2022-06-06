@@ -333,7 +333,7 @@ purc_atom_try_string_ex(int bucket, const char* string);
  * Returns: the #purc_atom_t associated with the string, or 0 if @string is
  *     %NULL or there is no #purc_atom_t associated with it
  */
-static inline bool purc_atom_try_string(const char* string) {
+static inline purc_atom_t purc_atom_try_string(const char* string) {
     return purc_atom_try_string_ex(0, string);
 }
 
@@ -346,8 +346,9 @@ static inline bool purc_atom_try_string(const char* string) {
  * to purc_atom_try_string_ex() will return 0 on the same string. If you
  * use purc_atom_from_string_ex() or purc_atom_from_static_string_ex() on the
  * same string in the same bucket after calling this function, you will get
- * another atom value. Note that the old atom value is still valid, i.e.,
- * you can get the string by calling purc_atom_to_string().
+ * another atom value. Note that the old atom value will be invalid, i.e.,
+ * you cannot get the string by calling purc_atom_to_string() by using the
+ * old atom value.
  *
  * This function must not be used before library constructors have finished
  * running.
@@ -366,8 +367,9 @@ purc_atom_remove_string_ex(int bucket, const char* string);
  * to purc_atom_try_string() will return 0 on the same string. If you
  * use purc_atom_from_string() or purc_atom_from_static_string() on the
  * same string after calling this function, you will get
- * another atom value. Note that the old atom value is still valid, i.e.,
- * you can get the string by calling purc_atom_to_string().
+ * another atom value. Note that the old atom value will be invalid, i.e.,
+ * you cannot get the string by calling purc_atom_to_string() by using the
+ * old atom value.
  *
  * This function must not be used before library constructors have finished
  * running.

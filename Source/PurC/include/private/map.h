@@ -41,6 +41,7 @@ typedef void  (*free_key_fn) (void *key);
 typedef void *(*copy_val_fn) (const void *val);
 typedef int   (*comp_key_fn) (const void *key1, const void *key2);
 typedef void  (*free_val_fn) (void *val);
+typedef void  (*free_kv_fn) (void *key, void *val);
 
 /* common functions for string key */
 static inline void* copy_key_string (const void *key)
@@ -63,7 +64,7 @@ typedef struct pcutils_map_entry {
     struct rb_node  node;
     void*           key;
     void*           val;
-    free_val_fn     free_val_alt;   // alternative free function per entry
+    free_kv_fn      free_kv_alt;   // alternative free function per entry
 } pcutils_map_entry;
 
 pcutils_map* pcutils_map_create (copy_key_fn copy_key, free_key_fn free_key,
@@ -76,7 +77,7 @@ size_t pcutils_map_get_size (pcutils_map* map);
 pcutils_map_entry* pcutils_map_find (pcutils_map* map, const void* key);
 
 int pcutils_map_insert_ex (pcutils_map* map, const void* key,
-        const void* val, free_val_fn free_val_alt);
+        const void* val, free_kv_fn free_kv_alt);
 static inline int  pcutils_map_insert (pcutils_map* map, const void* key,
         const void* val)
 {
@@ -84,10 +85,10 @@ static inline int  pcutils_map_insert (pcutils_map* map, const void* key,
 }
 
 int pcutils_map_find_replace_or_insert (pcutils_map* map, const void* key,
-        const void* val, free_val_fn free_val_alt);
+        const void* val, free_kv_fn free_kv_alt);
 
 int pcutils_map_replace (pcutils_map* map, const void* key,
-        const void* val, free_val_fn free_val_alt);
+        const void* val, free_kv_fn free_kv_alt);
 
 int pcutils_map_erase (pcutils_map* map, void* key);
 

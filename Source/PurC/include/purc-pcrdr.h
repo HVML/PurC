@@ -62,7 +62,7 @@
 
 #define PCRDR_REQUESTID_INITIAL         "0"
 #define PCRDR_REQUESTID_NORETURN        "-"
-#define PCRDR_EVENTSOURCE_ANONYMOUS     "-"
+#define PCRDR_SOURCEURI_ANONYMOUS       "-"
 
 /* operations */
 enum {
@@ -588,15 +588,52 @@ struct pcrdr_msg
     uint64_t        targetValue;
     uint64_t        resultValue;
 
+#define PCRDR_NR_MSG_VARIANTS   6
+    /* The aliase for managing the variants easily, totally 6 now.
+       make sure `PCRDR_NR_MSG_VARIANTS` has the correct value. */
+    purc_variant_t  variants[0];
+
+    union {
+        /**
+         * The operation of a request message. Usually it is a string.
+         */
+        purc_variant_t  operation;
+
+        /**
+         * The event name of an event message. Usually it is a string.
+         */
+        purc_variant_t  eventName;
+    };
+
+    /**
+     * The request identifier to track the response at the peer
+     * sending the request messages. Usually it is a string.
+     */
     purc_variant_t  requestId;
-    purc_variant_t  operation;
 
-    purc_variant_t  eventName;
-    purc_variant_t  eventSource;
+    /**
+     * The URI of the source generating this message.
+     * Usually it is a string.
+     */
+    purc_variant_t  sourceURI;
 
+    /**
+     * An argument for request or event message, indicating an element of
+     * the target (nullable). The type of the value depends on
+     * `elementType` field.
+     */
     purc_variant_t  elementValue;
+
+    /**
+     * An argument for request or event message, indicating a property of
+     * the element of the target (nullable).
+     */
     purc_variant_t  property;
 
+    /**
+     * The attached data for a request or an event message.
+     * The type of the value depends on `dataType` field.
+     */
     purc_variant_t  data;
 };
 
@@ -653,7 +690,7 @@ pcrdr_make_void_message(void);
 PCA_EXPORT pcrdr_msg *
 pcrdr_make_request_message(
         pcrdr_msg_target target, uint64_t target_value,
-        const char *operation, const char *request_id,
+        const char *operation, const char *request_id, const char *source_uri,
         pcrdr_msg_element_type element_type, const char *element_value,
         const char *property,
         pcrdr_msg_data_type data_type, const char* data, size_t data_len);
@@ -672,7 +709,7 @@ pcrdr_make_request_message(
  */
 PCA_EXPORT pcrdr_msg *
 pcrdr_make_response_message(
-        const char *request_id,
+        const char *request_id, const char *source_uri,
         unsigned int ret_code, uint64_t result_value,
         pcrdr_msg_data_type data_type, const char* data, size_t data_len);
 
@@ -682,7 +719,7 @@ pcrdr_make_response_message(
  * @param target: the target of the message.
  * @param target_value: the value of the target object
  * @param event_name: the event name string.
- * @param event_source: the event source string (nullable).
+ * @param source_uri: the event source string (nullable).
  *      If it is NULL, the system use `-` as the event source.
  * @param element_type: the element type.
  * @param element_value: the element value string.
@@ -698,7 +735,7 @@ pcrdr_make_response_message(
 PCA_EXPORT pcrdr_msg *
 pcrdr_make_event_message(
         pcrdr_msg_target target, uint64_t target_value,
-        const char *event_name, const char *event_source,
+        const char *event_name, const char *source_uri,
         pcrdr_msg_element_type element_type, const char *element_value,
         const char *property,
         pcrdr_msg_data_type data_type, const char* data, size_t data_len);

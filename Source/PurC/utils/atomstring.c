@@ -32,7 +32,7 @@
 #include "purc-utils.h"
 #include "purc-errors.h"
 #include "private/instance.h"
-#include "private/kvlist.h"
+#include "private/map.h"
 #include "private/utils.h"
 
 #if PURC_ATOM_BUCKET_BITS > 16
@@ -43,7 +43,7 @@ static struct atom_bucket {
     purc_atom_t     bucket_bits;
     purc_atom_t     atom_seq_id;
 
-    struct kvlist   atom_kv;
+    pcutils_map    *atom_map;
     char**          quarks;
 } atom_buckets[PURC_ATOM_BUCKETS_NR];
 
@@ -64,7 +64,8 @@ static struct atom_bucket {
 #define ATOM_BLOCK_SIZE         (1024 >> PURC_ATOM_BUCKET_BITS)
 #define ATOM_STRING_BLOCK_SIZE  (4096 - sizeof (size_t))
 
-static inline purc_atom_t atom_new(struct atom_bucket *bucket, char *string);
+static inline purc_atom_t
+atom_new(struct atom_bucket *bucket, char *string, bool need_free);
 
 static purc_rwlock atom_rwlock;
 static char *atom_block = NULL;
@@ -74,7 +75,8 @@ static void atom_init_bucket(struct atom_bucket *bucket)
 {
     assert (bucket->atom_seq_id == 0);
 
-    pcutils_kvlist_init(&bucket->atom_kv, NULL);
+    bucket->atom_map = pcutils_map_create(NULL, NULL, NULL, NULL,
+            comp_key_string, false);
     bucket->quarks = (char **)malloc(sizeof(char *) * ATOM_BLOCK_SIZE);
     bucket->quarks[0] = NULL;
     bucket->atom_seq_id = 1;
@@ -84,36 +86,43 @@ static void atom_init_bucket(struct atom_bucket *bucket)
 
 static inline struct atom_bucket *atom_get_bucket(int bucket)
 {
-    struct atom_bucket *atom_bucket;
+    assert(bucket >= 0 && bucket < PURC_ATOM_BUCKETS_NR);
 
-    if (LIKELY(bucket >= 0 && bucket < PURC_ATOM_BUCKETS_NR)) {
-        atom_bucket = atom_buckets + bucket;
-        if (UNLIKELY(atom_bucket->atom_seq_id == 0)) {
-            atom_init_bucket(atom_bucket);
-            atom_bucket->bucket_bits = BUCKET_BITS (bucket);
-        }
-
-        return atom_bucket;
+    struct atom_bucket *atom_bucket = atom_buckets + bucket;
+    if (UNLIKELY(atom_bucket->atom_seq_id == 0)) {
+        atom_init_bucket(atom_bucket);
+        atom_bucket->bucket_bits = BUCKET_BITS(bucket);
     }
 
-    assert(0);
-    return NULL;
+    return atom_bucket;
+}
+
+static inline void atom_put_bucket(int bucket)
+{
+    assert(bucket >= 0 && bucket < PURC_ATOM_BUCKETS_NR);
+
+    struct atom_bucket *atom_bucket = atom_buckets + bucket;
+    if (LIKELY(atom_bucket->atom_map)) {
+        pcutils_map_destroy(atom_bucket->atom_map);
+        free(atom_bucket->quarks);
+        memset(atom_bucket, 0, sizeof(*atom_bucket));
+    }
 }
 
 purc_atom_t
 purc_atom_try_string_ex(int bucket, const char *string)
 {
     struct atom_bucket *atom_bucket = atom_get_bucket(bucket);
-    purc_atom_t *data;
+    const pcutils_map_entry* entry = NULL;
     purc_atom_t atom = 0;
 
     if (string == NULL || atom_bucket == NULL)
         return 0;
 
     purc_rwlock_reader_lock(&atom_rwlock);
-    data = pcutils_kvlist_get(&atom_bucket->atom_kv, string);
-    if (data)
-        atom = *data;
+    if ((entry = pcutils_map_find(atom_bucket->atom_map, string))) {
+        atom = (purc_atom_t)(uintptr_t)entry->val;
+    }
     purc_rwlock_reader_unlock(&atom_rwlock);
 
     return atom;
@@ -127,17 +136,29 @@ purc_atom_remove_string_ex(int bucket, const char *string)
     if (string == NULL || atom_bucket == NULL)
         return false;
 
+    const pcutils_map_entry* entry;
     bool ret;
-    purc_rwlock_reader_lock(&atom_rwlock);
-    ret = pcutils_kvlist_delete(&atom_bucket->atom_kv, string);
-    purc_rwlock_reader_unlock(&atom_rwlock);
+    purc_atom_t atom;
+
+    purc_rwlock_writer_lock(&atom_rwlock);
+    if ((entry = pcutils_map_find(atom_bucket->atom_map, string))) {
+        atom = (purc_atom_t)(uintptr_t)entry->val;
+        pcutils_map_erase(atom_bucket->atom_map, (void *)string);
+        atom = ATOM_TO_SEQUENCE(atom);
+        atom_bucket->quarks[atom] = NULL;
+        ret = true;
+    }
+    else {
+        ret = false;
+    }
+    purc_rwlock_writer_unlock(&atom_rwlock);
 
     return ret;
 }
 
 /* HOLDS: atom_rwlock_lock */
 static char *
-atom_strdup(const char *string)
+atom_strdup(const char *string, bool *need_free)
 {
     char *copy;
     size_t len;
@@ -146,14 +167,15 @@ atom_strdup(const char *string)
 
     /* For strings longer than half the block size, fall back
        to strdup so that we fill our blocks at least 50%. */
-    if (len > ATOM_STRING_BLOCK_SIZE / 2)
-        return strdup(string);  /* XXX: the space will be leaked definitely */
+    if (len > ATOM_STRING_BLOCK_SIZE / 2 ||
+            atom_block_offset + len > ATOM_STRING_BLOCK_SIZE) {
+        *need_free = true;
+        return strdup(string);
+    }
 
-    if (atom_block == NULL ||
-            ATOM_STRING_BLOCK_SIZE - atom_block_offset < len) {
-        atom_block = realloc(atom_block,
-                (atom_block_offset + len > ATOM_STRING_BLOCK_SIZE) ?
-                (atom_block_offset + len) : ATOM_STRING_BLOCK_SIZE);
+    *need_free = false;
+    if (atom_block == NULL) {
+        atom_block = malloc(ATOM_STRING_BLOCK_SIZE);
     }
 
     copy = atom_block + atom_block_offset;
@@ -168,17 +190,21 @@ static inline purc_atom_t
 atom_from_string(struct atom_bucket *bucket,
         const char *string, bool duplicate)
 {
-    purc_atom_t *data;
     purc_atom_t atom = 0;
+    pcutils_map_entry* entry;
 
-    data = pcutils_kvlist_get(&bucket->atom_kv, string);
-    if (data) {
-        atom = *data;
-        assert (atom);
+    entry = pcutils_map_find(bucket->atom_map, string);
+    if (entry) {
+        atom = (purc_atom_t)(uintptr_t)entry->val;
+        assert(atom);
     }
     else {
-        atom = atom_new(bucket,
-                duplicate ? atom_strdup(string) : (char *)string);
+        bool need_free;
+        if (duplicate)
+            string = atom_strdup(string, &need_free);
+        else
+            need_free = false;
+        atom = atom_new(bucket, (char *)string, need_free);
     }
 
     return atom;
@@ -223,7 +249,6 @@ purc_atom_to_string(purc_atom_t atom)
     bucket = ATOM_TO_BUCKET(atom);
     struct atom_bucket *atom_bucket = atom_get_bucket(bucket);
     atom = ATOM_TO_SEQUENCE(atom);
-
     purc_rwlock_reader_lock(&atom_rwlock);
     if (atom < atom_bucket->atom_seq_id)
         result = atom_bucket->quarks[atom];
@@ -232,9 +257,16 @@ purc_atom_to_string(purc_atom_t atom)
     return result;
 }
 
+static void free_dup_key(void *key, void *data)
+{
+    UNUSED_PARAM(data);
+    if (key)
+        free(key);
+}
+
 /* HOLDS: purc_atom_rwlock_writer_lock */
 static inline purc_atom_t
-atom_new(struct atom_bucket *bucket, char *string)
+atom_new(struct atom_bucket *bucket, char *string, bool need_free)
 {
     purc_atom_t atom;
     char **atoms_new;
@@ -243,17 +275,30 @@ atom_new(struct atom_bucket *bucket, char *string)
         atoms_new = (char **)malloc(sizeof (char *) *
                 (bucket->atom_seq_id + ATOM_BLOCK_SIZE));
         if (bucket->atom_seq_id != 0)
-            memcpy (atoms_new, bucket->quarks,
+            memcpy(atoms_new, bucket->quarks,
                     sizeof (char *) * bucket->atom_seq_id);
-        memset (atoms_new + bucket->atom_seq_id, 0,
+        memset(atoms_new + bucket->atom_seq_id, 0,
                 sizeof (char *) * ATOM_BLOCK_SIZE);
+
+        /*
+         * The implementation in glib did not free the old quarks array.
+         * The author said: `This leaks the old quarks array. Its unfortunate,
+         * but it allows us to do lockless lookup of the arrays, and there
+         * shouldn't be that many quarks in an app`.
+         *
+         * In our implementation, we do free the old quarks.
+         * Indeed, we can use realloc() instead of malloc() and memcpy()
+         */
+        free(bucket->quarks);
         bucket->quarks = atoms_new;
     }
 
     atom = bucket->atom_seq_id;
     bucket->quarks[atom] = string;
     atom |= bucket->bucket_bits;
-    pcutils_kvlist_set (&bucket->atom_kv, string, &atom);
+    pcutils_map_insert_ex(bucket->atom_map,
+                string, (void *)(uintptr_t)atom,
+                need_free ? free_dup_key : NULL);
     bucket->atom_seq_id++;
 
     assert(IS_VALID_SEQ_ID(bucket->atom_seq_id));
@@ -267,11 +312,7 @@ atom_cleanup_once(void)
     int bucket;
 
     for (bucket = 0; bucket < PURC_ATOM_BUCKETS_NR; bucket++) {
-        struct atom_bucket *atom_bucket = atom_buckets + bucket;
-        if (LIKELY(atom_bucket->atom_seq_id != 0)) {
-            pcutils_kvlist_free(&atom_bucket->atom_kv);
-            free(atom_bucket->quarks);
-        }
+        atom_put_bucket(bucket);
     }
 
     if (atom_rwlock.native_impl)
@@ -300,6 +341,7 @@ atom_init_once(void)
     return 0;
 
 fail_atexit:
+    atom_put_bucket(0);
     if (atom_block) {
         free(atom_block);
         atom_block = NULL;
