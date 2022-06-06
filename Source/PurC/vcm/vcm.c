@@ -996,9 +996,12 @@ is_inner_native_wrapper(purc_variant_t val)
         return false;
     }
 
+    // FIXME: keep last error
+    int err = purc_get_last_error();
     if (purc_variant_object_get_by_ckey(val, KEY_INNER_HANDLER)) {
         return true;
     }
+    purc_set_error(err);
     return false;
 }
 
@@ -1047,6 +1050,19 @@ purc_variant_t pcvcm_node_get_element_to_variant(struct pcvcm_node *node,
     }
     else if (!purc_variant_cast_to_longint(param_var, &index, false)) {
         has_index = false;
+    }
+
+    // FIXME: {{ $SESSION.myobj.bcPipe.status[0] }}
+    if (is_inner_native_wrapper(caller_var)) {
+        purc_variant_t inner_caller = inner_native_wrapper_get_caller(caller_var);
+        purc_variant_t inner_param = inner_native_wrapper_get_param(caller_var);
+        purc_variant_t inner_ret = call_nvariant_method(inner_caller,
+                purc_variant_get_string_const(inner_param), 0, NULL,
+                GETTER_METHOD, silently);
+        if (inner_ret) {
+            purc_variant_unref(caller_var);
+            caller_var = inner_ret;
+        }
     }
 
     if (purc_variant_is_object(caller_var)) {
