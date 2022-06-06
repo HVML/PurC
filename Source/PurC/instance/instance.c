@@ -366,7 +366,6 @@ PURC_DEFINE_THREAD_LOCAL(struct pcinst, inst);
 struct append_inst_d {
     struct hvml_app              *app;
     struct pcinst                *curr_inst;
-    const char                   *runner_name;
 
     int                           r;
 };
@@ -376,23 +375,34 @@ static void append_inst(void *ud)
     struct append_inst_d  *data          = (struct append_inst_d*)ud;
     struct hvml_app       *app           = data->app;
     struct pcinst         *curr_inst     = data->curr_inst;
-    const char            *runner_name   = data->runner_name;
 
-    struct pcinst *p;
-    list_for_each_entry(p, &app->instances, node) {
-        if (p == curr_inst) {
-            data->r = PURC_ERROR_DUPLICATED;
-            return;
-        }
-        if (0 == strcmp(p->runner_name, runner_name)) {
-            data->r = PURC_ERROR_DUPLICATED;
-            return;
-        }
+    // endpoint_atom
+    purc_atom_t endpoint_atom;
+
+    if (purc_assemble_endpoint_name(PCRDR_LOCALHOST,
+                curr_inst->app_name, curr_inst->runner_name,
+                curr_inst->endpoint_name) == 0)
+    {
+        data->r = PURC_ERROR_INVALID_VALUE;
+        return;
     }
 
-    curr_inst->runner_name = strdup(runner_name);
-    if (!curr_inst->runner_name) {
-        data->r = PURC_ERROR_OUT_OF_MEMORY;
+    endpoint_atom = purc_atom_try_string_ex(PURC_ATOM_BUCKET_USER,
+            curr_inst->endpoint_name);
+    if (endpoint_atom) {
+        data->r = PURC_ERROR_DUPLICATED;
+        return;
+    }
+
+    curr_inst->endpoint_atom = purc_atom_from_string_ex(PURC_ATOM_BUCKET_USER,
+                curr_inst->endpoint_name);
+    PC_ASSERT(curr_inst->endpoint_atom);
+
+    // sanity-check for the moment
+    struct pcinst *p;
+    list_for_each_entry(p, &app->instances, node) {
+        PC_ASSERT(p != curr_inst);
+        PC_ASSERT(p->endpoint_atom != curr_inst->endpoint_atom);
     }
 
     list_add_tail(&curr_inst->node, &app->instances);
@@ -431,13 +441,18 @@ static int app_new_inst(struct hvml_app *app,
         curr_inst->app_name = an;
         an = NULL;
 
+        curr_inst->runner_name = strdup(runner_name);
+        if (!curr_inst->runner_name) {
+            r = PURC_ERROR_OUT_OF_MEMORY;
+            break;
+        }
+
         curr_inst->running_loop = purc_runloop_get_current();
         curr_inst->running_thread = pthread_self();
 
         struct append_inst_d data = {
             .app             = app,
             .curr_inst       = curr_inst,
-            .runner_name     = runner_name,
             .r               = 0,
         };
         pcintr_synchronize(&data, append_inst);
@@ -478,6 +493,12 @@ static void remove_inst(void *ud)
 
     if (curr_inst->node.next || curr_inst->node.prev)
         list_del(&curr_inst->node);
+
+    if (curr_inst->endpoint_atom) {
+        PC_ASSERT(purc_atom_remove_string_ex(PURC_ATOM_BUCKET_USER,
+                    curr_inst->endpoint_name));
+        curr_inst->endpoint_atom = 0;
+    }
 }
 
 static void cleanup_instance(struct hvml_app *app, struct pcinst *curr_inst)
@@ -572,32 +593,6 @@ static int instance_init_modules(struct pcinst *curr_inst,
         unsigned int modules, const purc_instance_extra_info* extra_info)
 {
     curr_inst->modules = modules;
-
-    // endpoint_atom
-    char endpoint_name [PURC_LEN_ENDPOINT_NAME + 1];
-    purc_atom_t endpoint_atom;
-
-    if (purc_assemble_endpoint_name(PCRDR_LOCALHOST,
-                curr_inst->app_name, curr_inst->runner_name,
-                endpoint_name) == 0) {
-        return PURC_ERROR_INVALID_VALUE;
-    }
-
-    endpoint_atom = purc_atom_try_string_ex(PURC_ATOM_BUCKET_USER,
-            endpoint_name);
-    if (curr_inst->endpoint_atom == 0 && endpoint_atom) {
-        return PURC_ERROR_DUPLICATED;
-    }
-
-    /* check whether app_name or runner_name changed */
-    if (curr_inst->endpoint_atom &&
-            curr_inst->endpoint_atom != endpoint_atom) {
-        return PURC_ERROR_INVALID_VALUE;
-    }
-
-    curr_inst->endpoint_atom =
-        purc_atom_from_string_ex(PURC_ATOM_BUCKET_USER, endpoint_name);
-    assert(curr_inst->endpoint_atom);
 
     enable_log_on_demand();
 
