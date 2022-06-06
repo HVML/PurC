@@ -253,7 +253,7 @@ positive:
     {{ {{ $STREAM.stderr.writelines('first line') || $STREAM.stderr.writelines('second line') }} || "End Infos" }}
     11UL
 
-# test cases for pipe:///
+# test cases for pipe stream
 positive:
     $STREAM.open('pipe:///bin/echo?ARG1=This%20will%20be%20echoed').readlines(1)
     ["This will be echoed"]
@@ -285,6 +285,14 @@ positive:
 positive:
     {{ $SESSION.user(! "bcPipe", $STREAM.open('pipe:///usr/bin/bc?ARG1=--quiet')) && $SESSION.user_obj.bcPipe.status }}
     ['running',0L]
+
+#positive:
+#    {{ $SESSION.user_obj.bcPipe.status()[0] }}
+#    'running'
+
+#positive:
+#    {{ $SESSION.user_obj.bcPipe.status[0] }}
+#    'running'
 
 positive:
     {{ $SESSION.user_obj.bcPipe.writeeof(); $SYSTEM.sleep(0.3); $SESSION.user_obj.bcPipe.status }}
