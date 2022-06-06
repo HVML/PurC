@@ -826,8 +826,7 @@ bool purc_variant_array_set (purc_variant_t arr, int idx,
         purc_variant_t value)
 {
     PCVARIANT_CHECK_FAIL_RET(arr && arr->type==PVT(_ARRAY) &&
-        idx>=0 && value && arr != value,
-        PURC_VARIANT_INVALID);
+        idx>=0 && value && arr != value, false);
 
     bool check = true;
     int r = variant_arr_set(arr, idx, value, check);
@@ -838,7 +837,7 @@ bool purc_variant_array_set (purc_variant_t arr, int idx,
 bool purc_variant_array_remove (purc_variant_t arr, int idx)
 {
     PCVARIANT_CHECK_FAIL_RET(arr && arr->type==PVT(_ARRAY) && idx>=0,
-        PURC_VARIANT_INVALID);
+        false);
 
     bool check = true;
     int r = variant_arr_remove(arr, idx, check);
@@ -850,8 +849,7 @@ bool purc_variant_array_insert_before (purc_variant_t arr, int idx,
         purc_variant_t value)
 {
     PCVARIANT_CHECK_FAIL_RET(arr && arr->type==PVT(_ARRAY) &&
-        idx>=0 && value && arr != value,
-        PURC_VARIANT_INVALID);
+        idx>=0 && value && arr != value, false);
 
     bool check = true;
     int r = variant_arr_insert_before(arr, idx, value, check);

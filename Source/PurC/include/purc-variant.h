@@ -1395,6 +1395,96 @@ purc_variant_set_iterator_prev(struct purc_variant_set_iterator* it);
 PCA_EXPORT purc_variant_t
 purc_variant_set_iterator_get_value(struct purc_variant_set_iterator* it);
 
+/**
+ * Creates a doublet variant from two variants.
+ *
+ * @param first: the first variant.
+ * @param second: the second variant
+ *
+ * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_make_doublet(purc_variant_t first, purc_variant_t second);
+
+/**
+ * Gets a member from a doublet by index.
+ *
+ * @param dobule: the doublet variant.
+ * @param idx: the index of wanted member; the value must be 0 or 1.
+ *
+ * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_doublet_get(purc_variant_t doublet, int idx);
+
+/**
+ * Sets a member in a doublet by index.
+ *
+ * @param double: the doublet variant.
+ * @param idx: the index of the member to replace; the value must be 0 or 1.
+ * @param value: the new value of the member.
+ *
+ * Returns: @true on success, otherwise @false.
+ *
+ * Since: 0.0.1
+ */
+PCA_EXPORT bool
+purc_variant_doublet_set(purc_variant_t doublet, int idx, purc_variant_t value);
+
+/**
+ * Gets the size of a linear container variant.
+ *
+ * @param container: the linear container variant, must be one of array,
+ *      set, or doublet.
+ * @param sz: the buffer receiving the number of members in the container.
+ *
+ * Returns: @true on success, otherwise @false.
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT bool
+purc_variant_linear_container_size(purc_variant_t container, size_t *sz);
+
+/**
+ * Get the number of elements in a linear container variant.
+ *
+ * @param container: the linear container variant, must be one of array,
+ *      set, or doublet.
+ *
+ * Returns: The number of elements in the container;
+ *  \PURC_VARIANT_BADSIZE (-1) if the variant is not a linear container.
+ *
+ * Note: This function is deprecated, use
+ *  \purc_variant_linear_container_size() instead.
+ *
+ * Since: 0.0.1
+ */
+static inline ssize_t
+purc_variant_linear_container_get_size(purc_variant_t container)
+{
+    size_t sz;
+    if (!purc_variant_linear_container_size(container, &sz))
+        return PURC_VARIANT_BADSIZE;
+    return sz;
+}
+
+/**
+ * Gets a member from a linear container by index.
+ *
+ * @param container: the linear container variant, must be one of array,
+ *      set, or doublet.
+ * @param idx: the index of wanted member.
+ *
+ * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_linear_container_get(purc_variant_t container, int idx);
 
 /**
  * Creates a variant value from a string which contains JSON data.
@@ -1815,9 +1905,11 @@ typedef enum purc_variant_type
     PURC_VARIANT_TYPE_ARRAY,
 #define PURC_VARIANT_TYPE_NAME_SET          "set"
     PURC_VARIANT_TYPE_SET,
+#define PURC_VARIANT_TYPE_NAME_DOUBLET      "doublet"
+    PURC_VARIANT_TYPE_DOUBLET,
 
     /* XXX: change this if you append a new type. */
-    PURC_VARIANT_TYPE_LAST = PURC_VARIANT_TYPE_SET,
+    PURC_VARIANT_TYPE_LAST = PURC_VARIANT_TYPE_DOUBLET,
 } purc_variant_type;
 
 #define PURC_VARIANT_TYPE_NR \

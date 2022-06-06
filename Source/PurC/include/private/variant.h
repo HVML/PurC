@@ -161,18 +161,21 @@ struct purc_variant {
            such entity. */
         void*       ptr_ptr[2];
 
-        /* For long byte sequence, array, object, and set,
+        /* for long byte sequence, array, object, and set,
               - `sz_ptr[0]` stores the size in bytes;
               - `sz_ptr[1]` stores the pointer.
 
-           For long string,
+           for long string,
               - `sz_ptr[0]` stores the length in characters;
               - `sz_ptr[1]` stores the pointer.
 
-           For exception and atom string,
+           for exception and atom string,
              - `sz_ptr[0]` should always be 0.
              - `sz_ptr[1]` stores the atom. */
         uintptr_t   sz_ptr[2];
+
+        /* for doublet: */
+        purc_variant_t doublet[2];
 
         /* for short string and byte sequence; the real space size of `bytes`
            is `max(sizeof(long double), sizeof(void*) * 2)` */
