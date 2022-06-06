@@ -110,6 +110,8 @@ struct pcinst {
     struct pcdebug_backtrace  *bt;
 
     struct list_head           node; // hvml_app::instances
+
+    unsigned int               keep_alive:1;
 };
 
 /* gets the current instance */

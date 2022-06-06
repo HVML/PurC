@@ -1843,8 +1843,9 @@ static void execute_one_step_for_exiting_co(pcintr_coroutine_t co)
     list_del(&co->node);
     coroutine_destroy(co);
 
-    if (list_empty(&heap->coroutines))
+    if (inst->keep_alive == 0 && list_empty(&heap->coroutines)) {
         purc_runloop_stop(inst->running_loop);
+    }
 
     return;
 }

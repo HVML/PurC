@@ -472,6 +472,7 @@ static void append_inst(void *ud)
 
 static int app_new_inst(struct hvml_app *app,
         const char *app_name, const char *runner_name,
+        unsigned int keep_alive,
         struct pcinst **pcurr_inst)
 {
     int r = PURC_ERROR_OK;
@@ -486,6 +487,8 @@ static int app_new_inst(struct hvml_app *app,
             r = PURC_ERROR_OUT_OF_MEMORY;
             break;
         }
+
+        curr_inst->keep_alive = keep_alive;
 
         if (curr_inst->modules || curr_inst->runner_name) {
             r = PURC_ERROR_DUPLICATED;
@@ -749,7 +752,8 @@ int purc_init_ex(unsigned int modules,
     struct pcinst* curr_inst = NULL;
 
     do {
-        ret = app_new_inst(app, app_name, runner_name, &curr_inst);
+        unsigned int keep_alive = 0;
+        ret = app_new_inst(app, app_name, runner_name, keep_alive, &curr_inst);
         if (ret)
             break;
 
