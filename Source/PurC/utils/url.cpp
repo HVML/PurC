@@ -29,6 +29,47 @@
 #include "wtf/text/StringBuilder.h"
 
 void
+pcutils_broken_down_url_clear(struct purc_broken_down_url *broken_down)
+{
+    if (broken_down->schema) {
+        free(broken_down->schema);
+        broken_down->schema = NULL;
+    }
+
+    if (broken_down->user) {
+        free(broken_down->user);
+        broken_down->user = NULL;
+    }
+
+    if (broken_down->passwd) {
+        free(broken_down->passwd);
+        broken_down->passwd = NULL;
+    }
+
+    if (broken_down->host) {
+        free(broken_down->host);
+        broken_down->host = NULL;
+    }
+
+    if (broken_down->path) {
+        free(broken_down->path);
+        broken_down->path = NULL;
+    }
+
+    if (broken_down->query) {
+        free(broken_down->query);
+        broken_down->query = NULL;
+    }
+
+    if (broken_down->fragment) {
+        free(broken_down->fragment);
+        broken_down->fragment = NULL;
+    }
+
+    broken_down->port = 0;
+}
+
+void
 pcutils_broken_down_url_delete(struct purc_broken_down_url *broken_down)
 {
     assert(broken_down != NULL);
@@ -271,9 +312,9 @@ static const char *locate_query_value(const char *query, const char *key)
     key_len++;
     my_key[key_len] = 0;
 
-    const char *left = query + 1;
+    const char *left = query;
     while (*left) {
-        if (pcutils_strncasecmp(left, my_key, key_len) == 0) {
+        if (strncasecmp(left, my_key, key_len) == 0) {
             return left + key_len;
         }
         else {

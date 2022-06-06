@@ -1553,3 +1553,137 @@ TEST(utils, hvml_uri)
     }
 }
 
+TEST(utils, url)
+{
+    const char *bad_url[] = {
+        "http://",
+        "file",
+    };
+
+    static const struct {
+        const char *url;
+        const char *expected;
+    } good_url [] = {
+        { "http://user:passwd@host/path",
+            "http://user:passwd@host/path" },
+        { "file://host/app/runner/-/page",
+            "file://host/app/runner/-/page", },
+        { "HVML://HOST/APP/RUNNER/GROUP/PAGE",
+            "HVML://HOST/APP/RUNNER/GROUP/PAGE" },
+        { "file://host/app/runner/-/page?key=value",
+            "file://host/app/runner/-/page?key=value" },
+        { "file://host/app/runner/group/page?key=value",
+            "file://host/app/runner/group/page?key=value" },
+        { "file://host/app/runner/group/page/",
+            "file://host/app/runner/group/page/", },
+        { "file://host/app/runner/group/page/trail",
+            "file://host/app/runner/group/page/trail", },
+        { "file://host/app/runner/-/page/trail?key=vaasdf",
+            "file://host/app/runner/-/page/trail?key=vaasdf", },
+        { "file://host/app/runner/-/page/trail#asdfasdf",
+            "file://host/app/runner/-/page/trail#asdfasdf", },
+        { "http://host:80/app/runner/-/page/trail?key=value#asdfasdf",
+            "http://host/app/runner/-/page/trail?key=value#asdfasdf", },
+        { "http://host:81/app/runner/-/page/trail?key=value#asdfasdf",
+            "http://host:81/app/runner/-/page/trail?key=value#asdfasdf", },
+        { "hvml://host:80/app/runner/-/page/trail?key=value#asdfasdf",
+            "hvml://host:80/app/runner/-/page/trail?key=value#asdfasdf", },
+    };
+
+    for (size_t i = 0; i < sizeof(bad_url)/sizeof(const char*); i++) {
+        struct purc_broken_down_url broken_down;
+
+        memset(&broken_down, 0, sizeof(broken_down));
+
+        printf("breaking down: %s\n", bad_url[i]);
+        bool ret = pcutils_url_break_down(&broken_down, bad_url[i]);
+        ASSERT_EQ(ret, false);
+
+        pcutils_broken_down_url_clear(&broken_down);
+    }
+
+    for (size_t i = 0; i < sizeof(good_url)/sizeof(good_url[0]); i++) {
+        struct purc_broken_down_url broken_down;
+
+        printf("breaking down: %s\n", good_url[i].url);
+
+        bool ret = pcutils_url_break_down(&broken_down, good_url[i].url);
+        ASSERT_EQ(ret, true);
+
+        char *my_url = pcutils_url_assemble(&broken_down);
+        ASSERT_STRCASEEQ(good_url[i].expected, my_url);
+        g_free(my_url);
+
+        pcutils_broken_down_url_clear(&broken_down);
+    }
+
+    static const struct {
+        const char *url;
+        const char *expected;
+    } query_cases[] = {
+        { "hvml://host/app/runner/-/page",
+            NULL },
+        { "hvml://host/app/runner/-/page?key1",
+            NULL },
+        { "hvml://host/app/runner/-/page?key1=",
+            NULL },
+        { "hvml://host/app/runner/-/page?key2=value2",
+            NULL },
+        { "hvml://host/app/runner/-/page?key11=value11",
+            NULL },
+        { "hvml://host/app/runner/-/page?key1=value1",
+            "value1" },
+        { "hvml://host/app/runner/group/page?key=value&key1=value1",
+            "value1" },
+        { "HVML://HOST/APP/RUNNER/GROUP/PAGE?KEY=VALUE&KEY1=value1&KEY2=VALUE2",
+            "VALUE1" },
+        { "hvml://host/app/runner/-/page?key=value&key2=value2&key1=value1",
+            "value1" },
+        { "hvml://host/app/runner/group/page?key=&key1=value1", "value1" },
+        { "hvml://host/app/runner/group/page?#asdf", NULL },
+        { "hvml://host/app/runner/group/page?key1=value1#asdf", "value1" },
+        { "hvml://host/app/runner/group/page?key=value&key1=#asdf", NULL },
+        { "hvml://host/app/runner/group/page?key1=#asdf", NULL },
+        { "hvml://host/app/runner/-/page?key=&key1=value1", "value1" },
+        { "hvml://host/app/runner/-/page?#asdf", NULL },
+        { "hvml://host/app/runner/-/page?key1=value1#asdf", "value1" },
+        { "hvml://host/app/runner/-/page?key=value&key1=#asdf", NULL },
+        { "hvml://host/app/runner/-/page?key1=#asdf", NULL },
+    };
+
+    for (size_t i = 0; i < sizeof(query_cases)/sizeof(query_cases[0]); i++) {
+        struct purc_broken_down_url *broken_down;
+
+        printf("getting value in url: %s\n", query_cases[i].url);
+
+        broken_down = pcutils_broken_down_url_new();
+        bool ret = pcutils_url_break_down(broken_down, query_cases[i].url);
+        ASSERT_EQ(ret, true);
+
+        char buf[16];
+        ret = pcutils_url_get_query_value(broken_down, "key1", buf);
+
+        if (query_cases[i].expected == NULL) {
+            ASSERT_EQ(ret, false);
+        }
+        else {
+            ASSERT_EQ(ret, true);
+            ASSERT_STREQ(buf, "value1");
+        }
+
+        char *value;
+        ret = pcutils_url_get_query_value_alloc(broken_down,
+                "key1", &value);
+        if (query_cases[i].expected == NULL) {
+            ASSERT_EQ(ret, false);
+        }
+        else {
+            ASSERT_EQ(ret, true);
+            ASSERT_STREQ(value, "value1");
+            free(value);
+        }
+
+        pcutils_broken_down_url_delete(broken_down);
+    }
+}
+

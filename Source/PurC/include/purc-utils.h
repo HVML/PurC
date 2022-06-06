@@ -881,7 +881,8 @@ struct purc_broken_down_url {
  * Returns: The pointer to the newly allocated empty broken-down URL structure.
  */
 static inline struct purc_broken_down_url *
-pcutils_broken_down_url_new(void) {
+pcutils_broken_down_url_new(void)
+{
     return (struct purc_broken_down_url *)calloc(1,
             sizeof(struct purc_broken_down_url));
 }
@@ -893,6 +894,12 @@ pcutils_broken_down_url_new(void) {
  */
 PCA_EXPORT void
 pcutils_broken_down_url_delete(struct purc_broken_down_url *broken_down);
+
+/**
+ * Clear a broken-down URL for reuse.
+ */
+PCA_EXPORT  void
+pcutils_broken_down_url_clear(struct purc_broken_down_url *broken_down);
 
 /**
  * Assemble a broken-down URL.
