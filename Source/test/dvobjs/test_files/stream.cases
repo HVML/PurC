@@ -286,9 +286,9 @@ positive:
     {{ $SESSION.user(! "bcPipe", $STREAM.open('pipe:///usr/bin/bc?ARG1=--quiet')) && $SESSION.myobj.bcPipe.status }}
     ['running',0L]
 
-#positive:
-#    {{ $SESSION.myobj.bcPipe.status()[0] }}
-#    'running'
+positive:
+    {{ $SESSION.myobj.bcPipe.status()[0] }}
+    'running'
 
 #positive:
 #    {{ $SESSION.myobj.bcPipe.status[0] }}
