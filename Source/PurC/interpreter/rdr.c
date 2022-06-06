@@ -1046,10 +1046,6 @@ void pcintr_rdr_event_handler(pcrdr_conn *conn, const pcrdr_msg *msg)
         }
         break;
 
-    case PCRDR_MSG_TARGET_THREAD:
-        //TODO
-        break;
-
     default:
         goto out;
     }
