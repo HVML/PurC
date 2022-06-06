@@ -121,5 +121,10 @@ void pcinst_put_message(struct pcrdr_msg *msg) WTF_INTERNAL;
 
 void pcinst_clear_error(struct pcinst *inst) WTF_INTERNAL;
 
+purc_atom_t
+pcinst_endpoint_get(char *endpoint_name, size_t sz,
+        const char *app_name, const char *runner_name);
+
+
 #endif /* not defined PURC_PRIVATE_INSTANCE_H */
 

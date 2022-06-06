@@ -49,6 +49,8 @@ struct ctxt_for_call {
 
     pcvdom_element_t              define;
 
+    char               endpoint_name_within[PURC_LEN_ENDPOINT_NAME + 1];
+    purc_atom_t        endpoint_atom_within;
 
     unsigned int                  concurrently:1;
     unsigned int                  synchronously:1;
@@ -255,6 +257,21 @@ process_attr_within(struct pcintr_stack_frame *frame,
     if (val == PURC_VARIANT_INVALID) {
         purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
                 "vdom attribute '%s' for element <%s> undefined",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    if (!purc_variant_is_string(val)) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "vdom attribute '%s' for element <%s> is not string",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    const char *s = purc_variant_get_string_const(val);
+    PC_ASSERT(s);
+    const char *t = strchr(s, '/');
+    if (!t) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "vdom attribute '%s' for element <%s> is not valid",
                 purc_atom_to_string(name), element->tag_name);
         return -1;
     }

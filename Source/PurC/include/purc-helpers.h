@@ -81,6 +81,10 @@ PCA_EXPORT char *
 purc_extract_runner_name_alloc(const char *endpoint);
 
 PCA_EXPORT int
+purc_assemble_endpoint_name_ex(const char *host_name, const char *app_name,
+        const char *runner_name, char *buff, size_t sz);
+
+PCA_EXPORT int
 purc_assemble_endpoint_name(const char *host_name, const char *app_name,
         const char *runner_name, char *buff);
 

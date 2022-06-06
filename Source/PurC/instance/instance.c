@@ -363,6 +363,88 @@ static inline void init_once(void)
 
 PURC_DEFINE_THREAD_LOCAL(struct pcinst, inst);
 
+struct endpoint_get_d {
+    const char                   *endpoint_name;
+    purc_atom_t                   endpoint_atom;
+
+    int                           r;
+};
+
+static void endpoint_get(void *ud)
+{
+    struct endpoint_get_d *data = (struct endpoint_get_d*)ud;
+    PC_ASSERT(data->endpoint_name);
+    purc_atom_t endpoint_atom;
+    endpoint_atom = purc_atom_try_string_ex(PURC_ATOM_BUCKET_USER,
+            data->endpoint_name);
+    if (endpoint_atom) {
+        data->r = PURC_ERROR_DUPLICATED;
+        return;
+    }
+    // FIXME: not atomic in between!!!
+    endpoint_atom = purc_atom_from_string_ex(PURC_ATOM_BUCKET_USER,
+            data->endpoint_name);
+    if (!endpoint_atom) {
+        data->r = purc_get_last_error();
+        PC_ASSERT(data->r);
+        return;
+    }
+
+    data->endpoint_atom = endpoint_atom;
+    data->r = 0;
+}
+
+purc_atom_t
+pcinst_endpoint_get(char *endpoint_name, size_t sz,
+        const char *app_name, const char *runner_name)
+{
+    PC_ASSERT(app_name && runner_name);
+    // TODO: more precisely
+    if (strchr(app_name, '/')) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        return 0;
+    }
+    if (strchr(runner_name, '/')) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        return 0;
+    }
+
+    if (sz < PURC_LEN_ENDPOINT_NAME + 1) {
+        purc_set_error(PURC_ERROR_TOO_SMALL_BUFF);
+        return 0;
+    }
+
+    int n;
+    n = purc_assemble_endpoint_name_ex(PCRDR_LOCALHOST,
+            app_name, runner_name, endpoint_name, sz);
+    if (n == 0) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        return 0;
+    }
+    PC_ASSERT(n > 0);
+    if ((size_t)n >= sz) {
+        purc_set_error(PURC_ERROR_TOO_SMALL_BUFF);
+        return 0;
+    }
+
+    struct endpoint_get_d data = {
+        .endpoint_name      = endpoint_name,
+        .endpoint_atom      = 0,
+
+        .r                  = 0,
+    };
+
+    pcintr_synchronize(&data, endpoint_get);
+    int r = data.r;
+    if (r) {
+        purc_set_error(r);
+        return 0;
+    }
+
+    PC_ASSERT(data.endpoint_atom);
+    return data.endpoint_atom;
+}
+
 struct append_inst_d {
     struct hvml_app              *app;
     struct pcinst                *curr_inst;
@@ -375,28 +457,6 @@ static void append_inst(void *ud)
     struct append_inst_d  *data          = (struct append_inst_d*)ud;
     struct hvml_app       *app           = data->app;
     struct pcinst         *curr_inst     = data->curr_inst;
-
-    // endpoint_atom
-    purc_atom_t endpoint_atom;
-
-    if (purc_assemble_endpoint_name(PCRDR_LOCALHOST,
-                curr_inst->app_name, curr_inst->runner_name,
-                curr_inst->endpoint_name) == 0)
-    {
-        data->r = PURC_ERROR_INVALID_VALUE;
-        return;
-    }
-
-    endpoint_atom = purc_atom_try_string_ex(PURC_ATOM_BUCKET_USER,
-            curr_inst->endpoint_name);
-    if (endpoint_atom) {
-        data->r = PURC_ERROR_DUPLICATED;
-        return;
-    }
-
-    curr_inst->endpoint_atom = purc_atom_from_string_ex(PURC_ATOM_BUCKET_USER,
-                curr_inst->endpoint_name);
-    PC_ASSERT(curr_inst->endpoint_atom);
 
     // sanity-check for the moment
     struct pcinst *p;
@@ -450,6 +510,14 @@ static int app_new_inst(struct hvml_app *app,
         curr_inst->running_loop = purc_runloop_get_current();
         curr_inst->running_thread = pthread_self();
 
+        curr_inst->endpoint_atom = pcinst_endpoint_get(curr_inst->endpoint_name,
+                sizeof(curr_inst->endpoint_name),
+                curr_inst->app_name, curr_inst->runner_name);
+        if (curr_inst->endpoint_atom == 0) {
+            r = purc_get_last_error();
+            break;
+        }
+
         struct append_inst_d data = {
             .app             = app,
             .curr_inst       = curr_inst,
@@ -457,8 +525,10 @@ static int app_new_inst(struct hvml_app *app,
         };
         pcintr_synchronize(&data, append_inst);
         r = data.r;
-        if (r)
+        if (r) {
+            purc_set_error(r);
             break;
+        }
 
         *pcurr_inst = curr_inst;
         PC_ASSERT(r == 0);
