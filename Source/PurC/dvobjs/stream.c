@@ -22,24 +22,26 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#define _GNU_SOURCE
 #include "config.h"
 #include "purc-variant.h"
 #include "purc-runloop.h"
 #include "purc-dvobjs.h"
 
 #include "private/debug.h"
+#include "private/dvobjs.h"
 #include "private/interpreter.h"
 
 #include <errno.h>
 
 #include <unistd.h>
+#include <fcntl.h>
+#include <signal.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <sys/stat.h>
 #include <sys/socket.h>
 #include <sys/un.h>
-#include <fcntl.h>
-#include <signal.h>
 
 #define BUFFER_SIZE                 1024
 
@@ -114,8 +116,8 @@ enum {
     K_KW_writebytes,
 #define _KW_writeeof                "writeeof"
     K_KW_writeeof,
-#define _KW_wait                    "wait"
-    K_KW_wait,
+#define _KW_status                  "status"
+    K_KW_status,
 #define _KW_seek                    "seek"
     K_KW_seek,
 #define _KW_close                   "close"
@@ -150,7 +152,7 @@ static struct keyword_to_atom {
     { _KW_readbytes, 0},            // readbytes
     { _KW_writebytes, 0},           // writebytes
     { _KW_writeeof, 0},             // writeeof
-    { _KW_wait, 0},                 // wait
+    { _KW_status, 0},               // status
     { _KW_seek, 0},                 // seek
     { _KW_close, 0},                // close
 };
@@ -245,7 +247,19 @@ static void native_stream_close(struct pcdvobjs_stream *stream)
     stream->fd4w = -1;
 
     if (stream->type == STREAM_TYPE_PIPE && stream->cpid > 0) {
-        kill(stream->cpid, SIGKILL);
+        int status;
+        if (waitpid(stream->cpid, &status, WNOHANG) == 0) {
+            if (kill(stream->cpid, SIGKILL) == -1) {
+                if (errno == ESRCH) {
+                    /* wait agian to avoid zombie */
+                    waitpid(stream->cpid, &status, WNOHANG);
+                }
+                else if (errno == EPERM) {
+                    purc_log_error("Failed to kill child process: %d\n",
+                            stream->cpid);
+                }
+            }
+        }
         stream->cpid = -1;
     }
 }
@@ -755,7 +769,7 @@ out:
 }
 
 static purc_variant_t
-wait_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
+status_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
                 bool silently)
 {
     UNUSED_PARAM(nr_args);
@@ -774,30 +788,35 @@ wait_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
         goto out;
     }
 
-    int wstatus;
-    if (waitpid(stream->cpid, &wstatus, 0) == -1) {
-        purc_set_error(purc_error_from_errno(errno));
-        goto out;
+    const char *status;
+    int value, wstatus;
+    if (waitpid(stream->cpid, &wstatus, WNOHANG) == -1) {
+        if (errno == ECHILD) {
+            status = "not-exist";
+            value = 0;
+        }
+        else {
+            purc_set_error(purc_error_from_errno(errno));
+            goto out;
+        }
     }
 
-    const char *state;
-    int value;
     if (WIFEXITED(wstatus)) {
-        state = "exited";
+        status = "exited";
         value = WEXITSTATUS(wstatus);
     }
     else if (WIFSIGNALED(wstatus)) {
         value = WEXITSTATUS(wstatus);
         if (WCOREDUMP(wstatus)) {
-            state = "signaled-coredump";
+            status = "signaled-coredump";
         }
         else {
-            state = "signaled";
+            status = "signaled";
         }
     }
 
     return purc_variant_make_array(2,
-            purc_variant_make_string_static(state, false),
+            purc_variant_make_string_static(status, false),
             purc_variant_make_longint(value));
 
 out:
@@ -1068,8 +1087,8 @@ property_getter(const char *name)
     else if (atom == keywords2atoms[K_KW_writeeof].atom) {
         return writeeof_getter;
     }
-    else if (atom == keywords2atoms[K_KW_wait].atom) {
-        return wait_getter;
+    else if (atom == keywords2atoms[K_KW_status].atom) {
+        return status_getter;
     }
     else if (atom == keywords2atoms[K_KW_seek].atom) {
         return seek_getter;
@@ -1312,6 +1331,12 @@ struct pcdvobjs_stream *create_pipe_stream(struct purc_broken_down_url *url,
     unsigned nr_args = 0;
     char **argv = NULL;
 
+    int flags = parse_open_option(option);
+    if (flags == -1) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        return NULL;
+    }
+
     if (!file_exists_and_is_executable(url->path)) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         return NULL;
@@ -1333,6 +1358,13 @@ struct pcdvobjs_stream *create_pipe_stream(struct purc_broken_down_url *url,
                 break;
             }
         }
+        else {
+            if (pcdvobj_url_decode_in_place(argv[nr_args],
+                        strlen(argv[nr_args]), PURC_K_KW_rfc3986)) {
+                purc_log_warn("Failed to decode argument (%s)\n",
+                        argv[nr_args]);
+            }
+        }
 
         if (nr_args > MAX_NR_ARGS)
             break;
@@ -1349,10 +1381,16 @@ struct pcdvobjs_stream *create_pipe_stream(struct purc_broken_down_url *url,
     /* make sure the argument array is null terminated */
     argv[nr_args] = NULL;
 
-    int pipefd[2];
+    int pipefd_stdin[2];
+    int pipefd_stdout[2];
     pid_t cpid;
 
-    if (pipe(pipefd) == -1) {
+    if (pipe2(pipefd_stdin, (flags & O_NONBLOCK) ? O_NONBLOCK : 0) == -1) {
+         purc_set_error(purc_error_from_errno(errno));
+         return NULL;
+    }
+
+    if (pipe2(pipefd_stdout, (flags & O_NONBLOCK) ? O_NONBLOCK : 0) == -1) {
          purc_set_error(purc_error_from_errno(errno));
          return NULL;
     }
@@ -1364,21 +1402,21 @@ struct pcdvobjs_stream *create_pipe_stream(struct purc_broken_down_url *url,
     }
 
     if (cpid == 0) {    /* Child reads from pipe */
-        /* redirect the pipefd[0] as the stdin */
-        if (dup2(pipefd[0], 0) == -1)
+        /* redirect the pipefd_stdin[0] as the stdin */
+        if (dup2(pipefd_stdin[0], 0) == -1)
             _exit(EXIT_FAILURE);
+        close(pipefd_stdin[0]);
+        close(pipefd_stdin[1]);
 
-        /* redirect the pipefd[1] as the stdout */
-        if (dup2(pipefd[1], 1) == -1)
+        /* redirect the pipefd_stdout[1] as the stdout */
+        if (dup2(pipefd_stdout[1], 1) == -1)
             _exit(EXIT_FAILURE);
+        close(pipefd_stdout[0]);
+        close(pipefd_stdout[1]);
 
         int nullfd = open("/dev/null", O_WRONLY);
         /* redirect nulfd as the stderr */
         dup2(nullfd, 2);
-
-        close(pipefd[0]);
-        close(pipefd[1]);
-        close(nullfd);
 
         if (execv(url->path, argv) == -1)
             _exit(EXIT_FAILURE);
@@ -1403,17 +1441,19 @@ struct pcdvobjs_stream *create_pipe_stream(struct purc_broken_down_url *url,
         goto out_close_fd;
     }
 
-    stream->stm4r = purc_rwstream_new_from_unix_fd(pipefd[0]);
-    if (stream->stm4r == NULL) {
-        goto out_free_stream;
-    }
-    stream->fd4r = pipefd[0];
-
-    stream->stm4w = purc_rwstream_new_from_unix_fd(pipefd[1]);
+    stream->stm4w = purc_rwstream_new_from_unix_fd(pipefd_stdin[1]);
     if (stream->stm4w == NULL) {
         goto out_free_stream;
     }
-    stream->fd4w = pipefd[1];
+    stream->fd4w = pipefd_stdin[1];
+    close(pipefd_stdin[0]);
+
+    stream->stm4r = purc_rwstream_new_from_unix_fd(pipefd_stdout[0]);
+    if (stream->stm4r == NULL) {
+        goto out_free_stream;
+    }
+    stream->fd4r = pipefd_stdout[0];
+    close(pipefd_stdout[1]);
 
     return stream;
 
@@ -1421,8 +1461,10 @@ out_free_stream:
     native_stream_destroy(stream);
 
 out_close_fd:
-    close(pipefd[0]);
-    close(pipefd[1]);
+    close(pipefd_stdin[0]);
+    close(pipefd_stdin[1]);
+    close(pipefd_stdout[0]);
+    close(pipefd_stdout[1]);
     return NULL;
 }
 

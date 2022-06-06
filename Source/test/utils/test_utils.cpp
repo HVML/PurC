@@ -1511,7 +1511,7 @@ TEST(utils, hvml_uri)
             "value1" },
         { "hvml://host/app/runner/group/page?key=value&key1=value1",
             "value1" },
-        { "HVML://HOST/APP/RUNNER/GROUP/PAGE?KEY=VALUE&KEY1=value1&KEY2=VALUE2",
+        { "HVML://HOST/APP/RUNNER/GROUP/PAGE?KEY=VALUE&KEY1=VALUE1&KEY2=VALUE2",
             "VALUE1" },
         { "hvml://host/app/runner/-/page?key=value&key2=value2&key1=value1",
             "value1" },
@@ -1537,7 +1537,8 @@ TEST(utils, hvml_uri)
             ASSERT_EQ(ret, false);
         }
         else {
-            ASSERT_STREQ(buf, "value1");
+            ASSERT_EQ(ret, true);
+            ASSERT_STREQ(buf, query_cases[i].expected);
         }
 
         char *value;
@@ -1547,7 +1548,8 @@ TEST(utils, hvml_uri)
             ASSERT_EQ(ret, false);
         }
         else {
-            ASSERT_STREQ(value, "value1");
+            ASSERT_EQ(ret, true);
+            ASSERT_STREQ(value, query_cases[i].expected);
             free(value);
         }
     }
@@ -1635,7 +1637,7 @@ TEST(utils, url)
             "value1" },
         { "hvml://host/app/runner/group/page?key=value&key1=value1",
             "value1" },
-        { "HVML://HOST/APP/RUNNER/GROUP/PAGE?KEY=VALUE&KEY1=value1&KEY2=VALUE2",
+        { "HVML://HOST/APP/RUNNER/GROUP/PAGE?KEY=VALUE&KEY1=VALUE1&KEY2=VALUE2",
             "VALUE1" },
         { "hvml://host/app/runner/-/page?key=value&key2=value2&key1=value1",
             "value1" },
@@ -1649,6 +1651,7 @@ TEST(utils, url)
         { "hvml://host/app/runner/-/page?key1=value1#asdf", "value1" },
         { "hvml://host/app/runner/-/page?key=value&key1=#asdf", NULL },
         { "hvml://host/app/runner/-/page?key1=#asdf", NULL },
+        { "hvml://host/app/runner/-/page?key1=hello%20world", "hello%20world" },
     };
 
     for (size_t i = 0; i < sizeof(query_cases)/sizeof(query_cases[0]); i++) {
@@ -1668,7 +1671,7 @@ TEST(utils, url)
         }
         else {
             ASSERT_EQ(ret, true);
-            ASSERT_STREQ(buf, "value1");
+            ASSERT_STREQ(buf, query_cases[i].expected);
         }
 
         char *value;
@@ -1679,7 +1682,7 @@ TEST(utils, url)
         }
         else {
             ASSERT_EQ(ret, true);
-            ASSERT_STREQ(value, "value1");
+            ASSERT_STREQ(value, query_cases[i].expected);
             free(value);
         }
 
