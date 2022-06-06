@@ -263,8 +263,11 @@ static bool time_prt_vrtcmp(purc_variant_t result, purc_variant_t expected)
     t2 = purc_variant_get_string_const(expected);
 
     if (t1 && t2) {
-        purc_log_info("result: %s <-> expected: %s\n", t1, t2);
-        return strcmp(t1, t2) == 0;
+        int diff = strcmp(t1, t2);
+        if (diff) {
+            purc_log_info("result: %s <-> expected: %s\n", t1, t2);
+        }
+        return (diff == 0);
     }
 
     return false;
@@ -278,8 +281,11 @@ static bool time_prt_vrtcmp_ex(purc_variant_t result, purc_variant_t expected)
     t2 = purc_variant_get_string_const(expected);
 
     if (t1 && t2) {
-        purc_log_info("result: %s <-> expected: %s\n", t1, t2);
-        return strncmp(t1, t2, 10) == 0;
+        int diff = strncmp(t1, t2, 10);
+        if (diff) {
+            purc_log_info("result: %s <-> expected: %s\n", t1, t2);
+        }
+        return (diff == 0);
     }
 
     return false;

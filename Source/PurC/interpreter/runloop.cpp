@@ -163,7 +163,7 @@ uintptr_t purc_runloop_add_fd_monitor(purc_runloop_t runloop, int fd,
 
     return runLoop->addFdMonitor(fd, to_gio_condition(event),
             [callback, ctxt, runLoop, co] (gint fd, GIOCondition condition) -> gboolean {
-            PC_ASSERT(pcintr_get_runloop()==NULL);
+            PC_ASSERT(pcintr_get_runloop()==nullptr);
             purc_runloop_io_event io_event;
             io_event = to_runloop_io_event(condition);
             runLoop->dispatch([fd, io_event, ctxt, co, callback] {
@@ -183,7 +183,7 @@ uintptr_t purc_runloop_add_fd_monitor(purc_runloop_t runloop, int fd,
                     co->state = CO_STATE_RUN;
                     pcintr_post_msg(data, on_io_event);
                     pcintr_check_after_execution();
-                    pcintr_set_current_co(NULL);
+                    pcintr_set_current_co(nullptr);
             });
             return true;
         });
@@ -240,7 +240,7 @@ pcintr_wakeup_target_with(pcintr_coroutine_t target, void *ctxt,
             PC_ASSERT(pcintr_get_heap());
             pcintr_set_current_co(target);
             func(ctxt);
-            pcintr_set_current_co(NULL);
+            pcintr_set_current_co(nullptr);
         });
 }
 
@@ -253,7 +253,7 @@ pcintr_post_msg_to_target(pcintr_coroutine_t target, void *ctxt,
     if (heap)
         PC_ASSERT(co);
 
-    if (target == NULL) {
+    if (target == nullptr) {
         target = pcintr_get_coroutine();
         PC_ASSERT(target);
     }
@@ -281,7 +281,7 @@ pcintr_post_msg_to_target(pcintr_coroutine_t target, void *ctxt,
     // FIXME: try catch ?
     ((RunLoop*)target_runloop)->dispatch([target, ctxt, cb]() {
             PC_ASSERT(pcintr_get_heap());
-            PC_ASSERT(pcintr_get_coroutine() == NULL);
+            PC_ASSERT(pcintr_get_coroutine() == nullptr);
 
             pcintr_msg_t msg;
             msg = (pcintr_msg_t)calloc(1, sizeof(*msg));
@@ -294,7 +294,7 @@ pcintr_post_msg_to_target(pcintr_coroutine_t target, void *ctxt,
 
             pcintr_set_current_co(target);
             pcintr_check_after_execution();
-            pcintr_set_current_co(NULL);
+            pcintr_set_current_co(nullptr);
         });
 }
 
@@ -310,7 +310,7 @@ pcintr_fire_event_to_target(pcintr_coroutine_t target,
     if (heap)
         PC_ASSERT(co);
 
-    if (target == NULL) {
+    if (target == nullptr) {
         target = pcintr_get_coroutine();
         PC_ASSERT(target);
     }
@@ -343,7 +343,7 @@ pcintr_fire_event_to_target(pcintr_coroutine_t target,
                 PC_ASSERT(0);
             }
             pcintr_check_after_execution();
-            pcintr_set_current_co(NULL);
+            pcintr_set_current_co(nullptr);
         });
 }
 
@@ -351,7 +351,7 @@ pcintr_fire_event_to_target(pcintr_coroutine_t target,
 #define MAIN_RUNLOOP_THREAD_NAME    "__purc_main_runloop_thread"
 
 static RefPtr<Thread> _main_thread;
-static pthread_once_t _once_control = PTHREAD_ONCE_INIT;
+static pthread_once_t _main_once_control = PTHREAD_ONCE_INIT;
 
 static void _runloop_init_main(void)
 {
@@ -378,8 +378,71 @@ static void _runloop_stop_main(void)
     }
 }
 
+static RefPtr<Thread> _sync_thread;
+static RunLoop *_sync_runloop = nullptr;
+
+static void _runloop_init_sync(void)
+{
+    BinarySemaphore semaphore;
+    _sync_thread = Thread::create("_sync_runloop", [&] {
+            RunLoop& runloop = RunLoop::current();
+            _sync_runloop = &runloop;
+            semaphore.signal();
+            runloop.run();
+            });
+    semaphore.wait();
+}
+
+static void _runloop_stop_sync(void)
+{
+    if (_sync_runloop) {
+        _sync_runloop->dispatch([&] {
+                if (_sync_runloop) {
+                    _sync_runloop->stop();
+                }
+                });
+        _sync_thread->waitForCompletion();
+        _sync_runloop = nullptr;
+    }
+}
+
+void pcintr_add_heap(struct list_head *all_heaps)
+{
+    pcintr_heap_t heap = pcintr_get_heap();
+    PC_ASSERT(heap);
+    PC_ASSERT(heap->owning_heaps == nullptr);
+    PC_ASSERT(_sync_runloop);
+    BinarySemaphore sema;
+    _sync_runloop->dispatch([heap, all_heaps, &sema]() {
+            PC_ASSERT(heap->owning_heaps == nullptr);
+            list_add_tail(&heap->sibling, all_heaps);
+            heap->owning_heaps = all_heaps;
+            sema.signal();
+    });
+    sema.wait();
+}
+
+void pcintr_remove_heap(struct list_head *all_heaps)
+{
+    pcintr_heap_t heap = pcintr_get_heap();
+    PC_ASSERT(heap);
+    PC_ASSERT(heap->owning_heaps == all_heaps);
+    PC_ASSERT(_sync_runloop);
+    BinarySemaphore sema;
+    _sync_runloop->dispatch([heap, all_heaps, &sema]() {
+            PC_ASSERT(heap->owning_heaps == all_heaps);
+            list_del(&heap->sibling);
+            heap->owning_heaps = nullptr;
+            sema.signal();
+    });
+    sema.wait();
+}
+
 static int _init_once(void)
 {
+    _runloop_init_sync();
+    atexit(_runloop_stop_sync);
+
     atexit(_runloop_stop_main);
     return 0;
 }
@@ -391,7 +454,7 @@ static int _init_instance(struct pcinst* curr_inst,
     UNUSED_PARAM(extra_info);
 
     int r;
-    r = pthread_once(&_once_control, _runloop_init_main);
+    r = pthread_once(&_main_once_control, _runloop_init_main);
     PC_ASSERT(r == 0);
 
     return 0;
