@@ -263,42 +263,42 @@ positive:
     true
 
 positive:
-    $SESSION.user_obj.bcPipe.writelines(['scale=20', '2/3'])
+    $SESSION.myobj.bcPipe.writelines(['scale=20', '2/3'])
     13UL
 
 positive:
-    $SESSION.user_obj.bcPipe.writeeof()
+    $SESSION.myobj.bcPipe.writeeof()
     true
 
 positive:
-    $SESSION.user_obj.bcPipe.readlines(2)
+    $SESSION.myobj.bcPipe.readlines(2)
     [".66666666666666666666"]
 
 positive:
-    {{ $STERAM.close($SESSION.user_obj.bcPipe); $SESSION.user(! 'bcPipe', undefined) }}
+    {{ $STERAM.close($SESSION.myobj.bcPipe); $SESSION.user(! 'bcPipe', undefined) }}
     true
 
 positive:
-    {{ $SESSION.user(! "bcPipe", $STREAM.open('pipe:///usr/bin/bc?ARG1=--quiet')) && $SESSION.user_obj.bcPipe.writelines(['scale=20', '2/3']) && $SESSION.user_obj.bcPipe.writeeof() && $SESSION.user_obj.bcPipe.readlines(1); $STERAM.close($SESSION.user_obj.bcPipe); $SESSION.user(! 'bcPipe', undefined) }}
+    {{ $SESSION.user(! "bcPipe", $STREAM.open('pipe:///usr/bin/bc?ARG1=--quiet')) && $SESSION.myobj.bcPipe.writelines(['scale=20', '2/3']) && $SESSION.myobj.bcPipe.writeeof() && $SESSION.myobj.bcPipe.readlines(1); $STERAM.close($SESSION.myobj.bcPipe); $SESSION.user(! 'bcPipe', undefined) }}
     true
 
 positive:
-    {{ $SESSION.user(! "bcPipe", $STREAM.open('pipe:///usr/bin/bc?ARG1=--quiet')) && $SESSION.user_obj.bcPipe.status }}
+    {{ $SESSION.user(! "bcPipe", $STREAM.open('pipe:///usr/bin/bc?ARG1=--quiet')) && $SESSION.myobj.bcPipe.status }}
     ['running',0L]
 
 #positive:
-#    {{ $SESSION.user_obj.bcPipe.status()[0] }}
+#    {{ $SESSION.myobj.bcPipe.status()[0] }}
 #    'running'
 
 #positive:
-#    {{ $SESSION.user_obj.bcPipe.status[0] }}
+#    {{ $SESSION.myobj.bcPipe.status[0] }}
 #    'running'
 
 positive:
-    {{ $SESSION.user_obj.bcPipe.writeeof(); $SYSTEM.sleep(0.3); $SESSION.user_obj.bcPipe.status }}
+    {{ $SESSION.myobj.bcPipe.writeeof(); $SYSTEM.sleep(0.3); $SESSION.myobj.bcPipe.status }}
     ['exited',0L]
 
 positive:
-    {{ $STERAM.close($SESSION.user_obj.bcPipe); $SESSION.user(! 'bcPipe', undefined) }}
+    {{ $STERAM.close($SESSION.myobj.bcPipe); $SESSION.user(! 'bcPipe', undefined) }}
     true
 

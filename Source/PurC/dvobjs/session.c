@@ -37,21 +37,21 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#define KN_USER_OBJ     "user_obj"
+#define KN_USER_OBJ     "myobj"
 
 static purc_variant_t
 user_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
-    purc_variant_t user_obj = purc_variant_object_get_by_ckey(root,
+    purc_variant_t myobj = purc_variant_object_get_by_ckey(root,
             KN_USER_OBJ);
-    if (user_obj == PURC_VARIANT_INVALID) {
+    if (myobj == PURC_VARIANT_INVALID) {
         pcinst_set_error(PURC_ERROR_NOT_DESIRED_ENTITY);
         goto failed;
     }
 
     if (nr_args < 1) {
-        return purc_variant_ref(user_obj);
+        return purc_variant_ref(myobj);
     }
 
     const char *keyname;
@@ -61,7 +61,7 @@ user_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto failed;
     }
 
-    purc_variant_t var = purc_variant_object_get(user_obj, argv[0]);
+    purc_variant_t var = purc_variant_object_get(myobj, argv[0]);
     if (var != PURC_VARIANT_INVALID) {
         return purc_variant_ref(var);
     }
@@ -77,9 +77,9 @@ static purc_variant_t
 user_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
-    purc_variant_t user_obj = purc_variant_object_get_by_ckey(root,
+    purc_variant_t myobj = purc_variant_object_get_by_ckey(root,
             KN_USER_OBJ);
-    if (user_obj == PURC_VARIANT_INVALID) {
+    if (myobj == PURC_VARIANT_INVALID) {
         pcinst_set_error(PURC_ERROR_NOT_DESIRED_ENTITY);
         goto failed;
     }
@@ -95,11 +95,11 @@ user_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     if (purc_variant_is_undefined(argv[1])) {
-        if (!purc_variant_object_remove(user_obj, argv[0], false))
+        if (!purc_variant_object_remove(myobj, argv[0], false))
             goto failed;
     }
     else {
-        if (!purc_variant_object_set(user_obj, argv[0], argv[1]))
+        if (!purc_variant_object_set(myobj, argv[0], argv[1]))
             goto failed;
     }
 
@@ -127,16 +127,16 @@ purc_dvobj_session_new(void)
         return PURC_VARIANT_INVALID;
     }
 
-    purc_variant_t user_obj = purc_variant_make_object(0,
+    purc_variant_t myobj = purc_variant_make_object(0,
             PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
-    if (user_obj == PURC_VARIANT_INVALID) {
+    if (myobj == PURC_VARIANT_INVALID) {
         purc_variant_unref(retv);
         return PURC_VARIANT_INVALID;
     }
 
-    // TODO: set a pre-listener to avoid remove the user_obj property.
-    purc_variant_object_set_by_static_ckey(retv, KN_USER_OBJ, user_obj);
-    purc_variant_unref(user_obj);
+    // TODO: set a pre-listener to avoid remove the myobj property.
+    purc_variant_object_set_by_static_ckey(retv, KN_USER_OBJ, myobj);
+    purc_variant_unref(myobj);
 
     return retv;
 }
