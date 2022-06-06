@@ -1,5 +1,4 @@
 # test cases for $STREAM.open
-# TODO: more cases for case-insensitive.
 #negative:
 #    $STREAM.open('file:///tmp/test_stream_not_exist')
 #    EntityNotFound
@@ -184,7 +183,7 @@ positive:
     ["This is the string to write, Second line", 99L]
 
 positive:
-    $STREAM.open('file:///tmp/test_stream_readstring', 'read write create truncate').close()
+    $STREAM.close($STREAM.open('file:///tmp/test_stream_readstring', 'read write create truncate'))
     true
 
 #positive:
@@ -253,3 +252,53 @@ positive:
 positive:
     {{ {{ $STREAM.stderr.writelines('first line') || $STREAM.stderr.writelines('second line') }} || "End Infos" }}
     11UL
+
+# test cases for pipe stream
+positive:
+    $STREAM.open('pipe:///bin/echo?ARG1=This%20will%20be%20echoed').readlines(1)
+    ["This will be echoed"]
+
+positive:
+    $SESSION.user(! "bcPipe", $STREAM.open('pipe:///usr/bin/bc?ARG1=--quiet'))
+    true
+
+positive:
+    $SESSION.myobj.bcPipe.writelines(['scale=20', '2/3'])
+    13UL
+
+positive:
+    $SESSION.myobj.bcPipe.writeeof()
+    true
+
+positive:
+    $SESSION.myobj.bcPipe.readlines(2)
+    [".66666666666666666666"]
+
+positive:
+    {{ $STERAM.close($SESSION.myobj.bcPipe); $SESSION.user(! 'bcPipe', undefined) }}
+    true
+
+positive:
+    {{ $SESSION.user(! "bcPipe", $STREAM.open('pipe:///usr/bin/bc?ARG1=--quiet')) && $SESSION.myobj.bcPipe.writelines(['scale=20', '2/3']) && $SESSION.myobj.bcPipe.writeeof() && $SESSION.myobj.bcPipe.readlines(1); $STERAM.close($SESSION.myobj.bcPipe); $SESSION.user(! 'bcPipe', undefined) }}
+    true
+
+positive:
+    {{ $SESSION.user(! "bcPipe", $STREAM.open('pipe:///usr/bin/bc?ARG1=--quiet')) && $SESSION.myobj.bcPipe.status }}
+    ['running',0L]
+
+positive:
+    {{ $SESSION.myobj.bcPipe.status()[0] }}
+    'running'
+
+positive:
+    {{ $SESSION.myobj.bcPipe.status[0] }}
+    'running'
+
+positive:
+    {{ $SESSION.myobj.bcPipe.writeeof(); $SYSTEM.sleep(0.3); $SESSION.myobj.bcPipe.status }}
+    ['exited',0L]
+
+positive:
+    {{ $STERAM.close($SESSION.myobj.bcPipe); $SESSION.user(! 'bcPipe', undefined) }}
+    true
+
