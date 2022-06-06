@@ -25,12 +25,13 @@
 
 #include "purc.h"
 
-#include "internal.h"
+#include "../internal.h"
 
 #include "private/debug.h"
+#include "private/dvobjs.h"
 #include "purc-runloop.h"
 
-#include "ops.h"
+#include "../ops.h"
 
 #include <pthread.h>
 #include <unistd.h>
@@ -571,16 +572,15 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (ctxt->at != PURC_VARIANT_INVALID && purc_variant_is_string(ctxt->at)) {
         observer = register_named_var_observer(stack, frame, ctxt->at);
     }
-#if 0
-    else if (purc_variant_is_string(ctxt->on)) {
-// TODO : css selector
-        if (purc_variant_is_string(ctxt->on)) {
-            const char* at_str = purc_variant_get_string_const(ctxt->on);
-            if (at_str[0] == '#') {
-            }
+    else if (ctxt->on && purc_variant_is_string(ctxt->on)) {
+        const char *s = purc_variant_get_string_const(ctxt->on);
+        pchtml_html_document_t *doc = stack->doc;
+        purc_variant_t elems = pcdvobjs_elements_by_css(doc, s);
+        if (elems) {
+            observer = register_native_var_observer(stack, frame, elems);
+            purc_variant_unref(elems);
         }
     }
-#endif
     else if (ctxt->on && purc_variant_is_native(ctxt->on)) {
         observer = register_native_var_observer(stack, frame, ctxt->on);
     }
@@ -670,6 +670,34 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     UNUSED_PARAM(co);
     UNUSED_PARAM(frame);
     PC_ASSERT(content);
+
+    // int r;
+    struct pcvcm_node *vcm = content->vcm;
+    if (!vcm)
+        return;
+
+    pcintr_stack_t stack = pcintr_get_stack();
+    purc_variant_t v = pcvcm_eval(vcm, stack, frame->silently);
+    PC_ASSERT(v != PURC_VARIANT_INVALID);
+    purc_clr_error();
+
+    if (purc_variant_is_string(v)) {
+        const char *text = purc_variant_get_string_const(v);
+        pcdom_text_t *content;
+        content = pcintr_util_append_content(frame->edom_element, text);
+        PC_ASSERT(content);
+        purc_variant_unref(v);
+    }
+    else {
+        // FIXME: copy from undefined.c
+        char *sv = pcvariant_to_string(v);
+        PC_ASSERT(sv);
+        int r;
+        r = pcintr_util_add_child_chunk(frame->edom_element, sv);
+        PC_ASSERT(r == 0);
+        free(sv);
+        purc_variant_unref(v);
+    }
 }
 
 static void

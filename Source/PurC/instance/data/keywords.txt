@@ -52,4 +52,8 @@ msg detached
 msg expired
 msg readable
 msg writable
+msg callState
+msg corState
+msg click
+msg close
 

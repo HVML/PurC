@@ -133,7 +133,7 @@ class PurcTimer : public WTF::RunLoop::TimerBase {
                     ++m_fired;
                     stop();
                     pcintr_set_current_co(m_coroutine);
-                    pcintr_resume();
+                    pcintr_resume(NULL);
                     pcintr_set_current_co(NULL);
                     return;
                 }
@@ -141,7 +141,7 @@ class PurcTimer : public WTF::RunLoop::TimerBase {
                 ++m_fired;
 
                 pcintr_set_current_co(m_coroutine);
-                pcintr_post_msg(&m_data, on_event_fire);
+                pcintr_post_msg_to_target(co, &m_data, on_event_fire);
                 PC_ASSERT(co->state == CO_STATE_WAIT);
                 pcintr_set_current_co(NULL);
                 return;
@@ -153,10 +153,9 @@ class PurcTimer : public WTF::RunLoop::TimerBase {
 
             pcintr_set_current_co(m_coroutine);
 
-            co->state = CO_STATE_RUN;
-            pcintr_post_msg(&m_data, on_event_fire);
-            PC_ASSERT(co->state == CO_STATE_RUN);
+            pcintr_post_msg_to_target(m_coroutine, &m_data, on_event_fire);
             pcintr_check_after_execution();
+
             PC_ASSERT(co->state == CO_STATE_READY);
 
             pcintr_set_current_co(NULL);

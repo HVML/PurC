@@ -44,6 +44,9 @@ struct pcvdom_template {
 
 PCA_EXTERN_C_BEGIN
 
+void
+pcintr_synchronize(void *ctxt, void (*routine)(void *ctxt));
+
 int
 pcintr_check_insertion_mode_for_normal_element(pcintr_stack_t stack);
 
@@ -160,9 +163,8 @@ bool pcintr_rdr_update_workspace(struct pcrdr_conn *conn,
 
 
 uintptr_t pcintr_rdr_create_plain_window(struct pcrdr_conn *conn,
-        uintptr_t session, uintptr_t workspace, const char *id,
-        const char *title, const char* classes, const char *style,
-        const char* level);
+        uintptr_t workspace, pcrdr_page_type page_type, const char *id,
+        const char *title, const char *classes, const char *style);
 
 bool pcintr_rdr_destroy_plain_window(struct pcrdr_conn *conn,
         uintptr_t session, uintptr_t workspace, uintptr_t plain_window);
@@ -172,88 +174,101 @@ bool pcintr_rdr_update_plain_window(struct pcrdr_conn *conn,
         uintptr_t session, uintptr_t workspace, uintptr_t plain_window,
         const char *property, const char *value);
 
+bool pcintr_rdr_reset_page_groups(struct pcrdr_conn *conn,
+        uintptr_t session, uintptr_t workspace, const char *data
+        );
 
-
-uintptr_t pcintr_rdr_create_tabbed_window(struct pcrdr_conn *conn,
+uintptr_t pcintr_rdr_add_page_groups(struct pcrdr_conn *conn,
         uintptr_t session, uintptr_t workspace, const char *id,
         const char *title, const char* classes, const char *style,
         const char* level);
 
-bool pcintr_rdr_destroy_tabbed_window(struct pcrdr_conn *conn,
+bool pcintr_rdr_destroy_page_groups(struct pcrdr_conn *conn,
         uintptr_t session, uintptr_t workspace, uintptr_t tabbed_window);
 
 // property: title, class, style
-bool pcintr_rdr_update_tabbed_window(struct pcrdr_conn *conn,
+bool pcintr_rdr_update_page_groups(struct pcrdr_conn *conn,
         uintptr_t session, uintptr_t workspace, uintptr_t tabbed_window,
         const char *property, const char *value);
 
 
-uintptr_t pcintr_rdr_create_tab_page(struct pcrdr_conn *conn,
+uintptr_t pcintr_rdr_create_page(struct pcrdr_conn *conn,
         uintptr_t tabbed_window, const char *id, const char *title);
 
-bool pcintr_rdr_destroy_tab_page(struct pcrdr_conn *conn,
+bool pcintr_rdr_destroy_page(struct pcrdr_conn *conn,
         uintptr_t tabbed_window, uintptr_t tab_page);
 
 // property: title, class, style
-bool pcintr_rdr_update_tab_page(struct pcrdr_conn *conn,
+bool pcintr_rdr_update_page(struct pcrdr_conn *conn,
         uintptr_t tabbed_window, uintptr_t tab_page,
         const char *property, const char *value);
 
 bool
 pcintr_rdr_page_control_load(pcintr_stack_t stack);
 
-bool
-pcintr_rdr_send_dom_request(pcintr_stack_t stack, const char *operation,
+pcrdr_msg *
+pcintr_rdr_send_dom_req(pcintr_stack_t stack, const char *operation,
         pcdom_element_t *element, const char* property,
         pcrdr_msg_data_type data_type, purc_variant_t data);
-bool
-pcintr_rdr_send_dom_request_ex(pcintr_stack_t stack, const char *operation,
+
+pcrdr_msg *
+pcintr_rdr_send_dom_req_raw(pcintr_stack_t stack, const char *operation,
         pcdom_element_t *element, const char* property,
-        pcrdr_msg_data_type data_type, const char* data);
+        pcrdr_msg_data_type data_type, const char *data);
+
+bool
+pcintr_rdr_send_dom_req_simple(pcintr_stack_t stack, const char *operation,
+        pcdom_element_t *element, const char* property,
+        pcrdr_msg_data_type data_type, purc_variant_t data);
+
+bool
+pcintr_rdr_send_dom_req_simple_raw(pcintr_stack_t stack,
+        const char *operation, pcdom_element_t *element,
+        const char *property, pcrdr_msg_data_type data_type, const char *data);
 
 
 #define pcintr_rdr_dom_append_content(stack, element, content)                \
-    pcintr_rdr_send_dom_request_ex(stack, PCRDR_OPERATION_APPEND,             \
+    pcintr_rdr_send_dom_req_simple_raw(stack, PCRDR_OPERATION_APPEND,         \
             element, NULL, PCRDR_MSG_DATA_TYPE_TEXT, content)
 
 #define pcintr_rdr_dom_prepend_content(stack, element, content)               \
-    pcintr_rdr_send_dom_request_ex(stack, PCRDR_OPERATION_PREPEND,            \
+    pcintr_rdr_send_dom_req_simple_raw(stack, PCRDR_OPERATION_PREPEND,        \
             element, NULL, PCRDR_MSG_DATA_TYPE_TEXT, content)
 
 #define pcintr_rdr_dom_insert_before_element(stack, element, content)         \
-    pcintr_rdr_send_dom_request_ex(stack, PCRDR_OPERATION_INSERTBEFORE,       \
+    pcintr_rdr_send_dom_req_simple_raw(stack, PCRDR_OPERATION_INSERTBEFORE,   \
             element, NULL, PCRDR_MSG_DATA_TYPE_TEXT, content)
 
 #define pcintr_rdr_dom_insert_after_element(stack, element, content)          \
-    pcintr_rdr_send_dom_request_ex(stack, PCRDR_OPERATION_INSERTAFTER,        \
+    pcintr_rdr_send_dom_req_simple_raw(stack, PCRDR_OPERATION_INSERTAFTER,    \
             element, NULL, PCRDR_MSG_DATA_TYPE_TEXT, content)
 
 #define pcintr_rdr_dom_displace_content(stack, element, content)              \
-    pcintr_rdr_send_dom_request_ex(stack, PCRDR_OPERATION_DISPLACE,           \
+    pcintr_rdr_send_dom_req_simple_raw(stack, PCRDR_OPERATION_DISPLACE,       \
             element, NULL, PCRDR_MSG_DATA_TYPE_TEXT, content)
 
 #define pcintr_rdr_dom_clear_element_content(stack, element)                  \
-    pcintr_rdr_send_dom_request(stack, PCRDR_OPERATION_CLEAR,                 \
+    pcintr_rdr_send_dom_req_simple(stack, PCRDR_OPERATION_CLEAR,              \
             element, NULL, PCRDR_MSG_DATA_TYPE_VOID, PURC_VARIANT_INVALID)
 
 #define pcintr_rdr_dom_erase_element(stack, element)                          \
-    pcintr_rdr_send_dom_request(stack, PCRDR_OPERATION_ERASE,                 \
+    pcintr_rdr_send_dom_req_simple(stack, PCRDR_OPERATION_ERASE,              \
             element, NULL, PCRDR_MSG_DATA_TYPE_VOID, PURC_VARIANT_INVALID)
 
 #define pcintr_rdr_dom_erase_element_property(stack, element, prop)           \
-    pcintr_rdr_send_dom_request(stack, PCRDR_OPERATION_ERASE,                 \
+    pcintr_rdr_send_dom_req_simple(stack, PCRDR_OPERATION_ERASE,              \
             element, prop, PCRDR_MSG_DATA_TYPE_VOID, PURC_VARIANT_INVALID)
 
 #define pcintr_rdr_dom_update_element_content_text(stack, element, content)   \
-    pcintr_rdr_send_dom_request_ex(stack, PCRDR_OPERATION_UPDATE,             \
+    pcintr_rdr_send_dom_req_simple_raw(stack, PCRDR_OPERATION_UPDATE,         \
             element, NULL, PCRDR_MSG_DATA_TYPE_TEXT, content)
 
 #define pcintr_rdr_dom_update_element_content_ejson(stack, element, data)     \
-    pcintr_rdr_send_dom_request(stack, PCRDR_OPERATION_UPDATE,                \
-            element, NULL, PCRDR_MSG_DATA_TYPE_JSON, data)
+    pcintr_rdr_send_dom_req_simple(stack, PCRDR_OPERATION_UPDATE,             \
+            element, NULL, PCRDR_MSG_DATA_TYPE_EJSON, data)
 
 #define pcintr_rdr_dom_update_element_property(stack, element, prop, content) \
-    pcintr_rdr_send_dom_request_ex(stack, PCRDR_OPERATION_UPDATE,             \
+    pcintr_rdr_send_dom_req_simple_raw(stack, PCRDR_OPERATION_UPDATE,         \
             element, prop, PCRDR_MSG_DATA_TYPE_TEXT, content)
 
 bool

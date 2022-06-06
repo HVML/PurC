@@ -68,6 +68,11 @@ do {                                              \
     yylloc->first_line   = yylloc->last_line;     \
 } while (0)
 
+#define SET_TOKEN() do {                          \
+    yylval->token.text = yytext;                  \
+    yylval->token.leng = yyleng;                  \
+} while (0)
+
 %}
 
     /* %option prefix="math_yy" */
@@ -88,13 +93,13 @@ do {                                              \
 
 [-+*/()^;]   { C(); R(); return *yytext; }
 
-0                { C(); yylval->str = strdup(yytext); R(); return MKT(NUMBER); }
-[1-9][0-9]*      { C(); yylval->str = strdup(yytext); R(); return MKT(NUMBER); }
-"0."[0-9]*       { C(); yylval->str = strdup(yytext); R(); return MKT(NUMBER); }
-[0-9]+"."[0-9]*  { C(); yylval->str = strdup(yytext); R(); return MKT(NUMBER); }
-[0-9]+("."[0-9]*)?[eE][+-]?[0-9]+ { C(); yylval->str = strdup(yytext); R(); return MKT(NUMBER); }
+0                { C(); SET_TOKEN(); R(); return MKT(NUMBER); }
+[0-9][0-9]*      { C(); SET_TOKEN(); R(); return MKT(NUMBER); }
+"0."[0-9]*       { C(); SET_TOKEN(); R(); return MKT(NUMBER); }
+[0-9]+"."[0-9]*  { C(); SET_TOKEN(); R(); return MKT(NUMBER); }
+[0-9]+("."[0-9]*)?[eE][+-]?[0-9]+ { C(); SET_TOKEN(); R(); return MKT(NUMBER); }
 
-[_[:alpha:]][[:alnum:]]*  { C(); yylval->str = strdup(yytext); R(); return MKT(VAR); }
+[_[:alpha:]][[:alnum:]]*  { C(); SET_TOKEN(); R(); return MKT(VAR); }
 
 [ \t\r\n]   { C(); R(); /* ignore white space */ }
 

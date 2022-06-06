@@ -600,11 +600,12 @@ TEST(interpreter, basic)
         ASSERT_NE(vdom, nullptr);
 
         purc_renderer_extra_info extra_info = {};
+        extra_info.id = "def_page";
+        extra_info.title = "def_page_title";
         bool ret = purc_attach_vdom_to_renderer(vdom,
+                PCRDR_PAGE_TYPE_PLAINWIN,
                 "blank",           /* target_workspace */
-                "blank",           /* target_window */
-                NULL,               /* target_tabpage */
-                NULL,               /* target_level */
+                "blank",           /* target_group*/
                 &extra_info);
         ASSERT_EQ(ret, true);
     }

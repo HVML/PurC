@@ -397,31 +397,36 @@ purc_get_conn_to_renderer(void);
 /** The extra renderer information */
 typedef struct purc_renderer_extra_info {
     /** the workspace classes if creating a new workspace */
-    const char *workspace_classes;
+    const char *workspace_classe;
     /** the workspace styles if creating a new workspace */
     const char *workspace_styles;
     /** the workspace title if creating a new workspace */
     const char *workspace_title;
-    /** the window classes if creating a new window */
+
+    /* the identifier of the page */
+    const char *id;
+    /* the extra class of the page */
     const char *classes;
-    /** the window styles if creating a new window */
-    const char *styles;
-    /** the window title if creating a new window */
+    /* the style of the page */
+    const char *style;
+    /* the title of the page */
     const char *title;
-    /** the tabpage title if creating a new tabpage */
-    const char *tabpage_title;
 } purc_renderer_extra_info;
+
+typedef enum pcrdr_page_type {
+    PCRDR_PAGE_TYPE_PLAINWIN = 0,
+    PCRDR_PAGE_TYPE_PANEL,
+    PCRDR_PAGE_TYPE_TAB,
+} pcrdr_page_type;
 
 /**
  * purc_attach_vdom_to_renderer:
  *
  * @vdom: The vDOM entity returned by @purc_load_hvml_from_rwstream or
  *      its brother functions.
+ * @page_type: the target page type.
  * @target_workspace: The identifier of the target workspace.
- * @target_window: The identifier of the target plain window or tabbed window.
- * @target_tabpage: The identifier of the target tabpage. If it is NULL,
- *      @target_window means a plain window.
- * @target_level: the identifier of the target window level.
+ * @target_group: The identifier of the target group.
  *
  * Attaches a vDOM tree to a plain window or a tabpage in a tabbed window in
  * the connected renderer.
@@ -432,10 +437,9 @@ typedef struct purc_renderer_extra_info {
  */
 PCA_EXPORT bool
 purc_attach_vdom_to_renderer(purc_vdom_t vdom,
+        pcrdr_page_type page_type,
         const char *target_workspace,
-        const char *target_window,
-        const char *target_tabpage,
-        const char *target_level,
+        const char *target_group,
         purc_renderer_extra_info *extra_info);
 
 typedef int (*purc_event_handler)(purc_vdom_t vdom, purc_variant_t event);

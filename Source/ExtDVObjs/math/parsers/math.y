@@ -64,6 +64,12 @@
         purc_variant_t param;
         purc_variant_t variables;
         VALUE_TYPE     d;
+        unsigned int   divide_by_zero:1;
+    };
+
+    struct math_token {
+        const char      *text;
+        size_t           leng;
     };
 
     #ifndef YY_TYPEDEF_YY_SCANNER_T
@@ -79,13 +85,6 @@
     // generated header from flex
     // introduce yylex decl for later use
     #include <math.h>
-
-    static void yyerror(
-        YYLTYPE *yylloc,                   // match %define locations
-        yyscan_t arg,                      // match %param
-        struct internal_param *param,      // match %parse-param
-        const char *errsg
-    );
 
     #define SET(_r, _a) do {                           \
             _r->d = _a.d;                              \
@@ -107,8 +106,14 @@
             _r.d = _a.d * _b.d;                        \
     } while (0)
 
-    #define DIV(_r, _a, _b) do {                       \
-            _r.d = _a.d / _b.d;                        \
+    #define DIV(_r, _a, _b, _loc) do {                        \
+            int f = fpclassify(_b.d);                         \
+            if (f & FP_ZERO) {                                \
+                param->divide_by_zero = 1;                    \
+                yyerror(_loc,arg,param,"Divide by zero");     \
+                YYERROR;                                      \
+            }                                                 \
+            _r.d = _a.d / _b.d;                               \
     } while (0)
 
     #define EXP(_r, _a, _b) do {                       \
@@ -117,16 +122,24 @@
 
     #define SET_BY_NUM(_r, _a) do {                                 \
             /* TODO: strtod sort of func */                         \
+            char *_s = (char*)_a.text;                              \
+            const char _c = _s[_a.leng];                            \
             char *endptr = NULL;                                    \
-            _r.d = STRTOD(_a, &endptr);                             \
+            _s[_a.leng] = '\0';                                     \
+            _r.d = STRTOD(_s, &endptr);                             \
+            _s[_a.leng] = _c;                                       \
             if (endptr && *endptr)                                  \
                 YYABORT;                                            \
     } while (0)
 
     #define SET_BY_VAR(_r, _a) do {                                      \
+        char *_s = (char*)_a.text;                                       \
+        const char _c = _s[_a.leng];                                     \
         if (param->variables) {                                          \
             purc_variant_t _v;                                           \
-            _v = purc_variant_object_get_by_ckey(param->variables, _a);  \
+            _s[_a.leng] = '\0';                                          \
+            _v = purc_variant_object_get_by_ckey(param->variables, _s);  \
+            _s[_a.leng] = _c;                                            \
             if (_v) {                                                    \
                 bool ok = CAST_TO_NUMBER(_v, &_r.d, false);              \
                 if (ok)                                                  \
@@ -137,7 +150,9 @@
         if (!param->param || !purc_variant_is_object(param->param))      \
             YYABORT;                                                     \
                                                                          \
-        _v = purc_variant_object_get_by_ckey(param->param, _a);          \
+        _s[_a.leng] = '\0';                                              \
+        _v = purc_variant_object_get_by_ckey(param->param, _s);          \
+        _s[_a.leng] = _c;                                                \
         if (!_v)                                                         \
             YYABORT;                                                     \
                                                                          \
@@ -145,6 +160,14 @@
         if (!ok)                                                         \
             YYABORT;                                                     \
     } while (0)
+
+    static void yyerror(
+        YYLTYPE *yylloc,                   // match %define locations
+        yyscan_t arg,                      // match %param
+        struct internal_param *param,      // match %parse-param
+        const char *errsg
+    );
+
 }
 
 /* Bison declarations. */
@@ -160,10 +183,8 @@
 %param { yyscan_t arg }
 %parse-param { struct internal_param *param }
 
-%union { char *str; }
+%union { struct math_token token; }
 %union { struct internal_value v; }
-
-%destructor { free($$); } <str>
 
 %precedence '='
 %left '-' '+'
@@ -171,7 +192,7 @@
 %precedence NEG /* negation--unary minus */
 %right '^'      /* exponentiation */
 
-%token <str> NUMBER VAR
+%token <token> NUMBER VAR
 %nterm <v> exp term
 
 
@@ -186,19 +207,19 @@ statement:
   exp         { SET(param, $1); }
 ;
 
-exp: 
+exp:
   term
 | exp '+' exp   { ADD($$, $1, $3); }
 | exp '-' exp   { SUB($$, $1, $3); }
 | exp '*' exp   { MUL($$, $1, $3); }
-| exp '/' exp   { DIV($$, $1, $3); }
+| exp '/' exp   { DIV($$, $1, $3, &(@3)); }
 | exp '^' exp   { EXP($$, $1, $3); }
 | '-' exp %prec NEG { NEG($$, $2); }
 ;
 
 term:
-  NUMBER      { SET_BY_NUM($$, $1); free($1); }
-| VAR         { SET_BY_VAR($$, $1); free($1); }
+  NUMBER      { SET_BY_NUM($$, $1); }
+| VAR         { SET_BY_VAR($$, $1); }
 | '(' exp ')' { $$ = $2; }
 ;
 
@@ -243,6 +264,14 @@ int FUNC_NAME(const char *input, VALUE_TYPE *d, purc_variant_t param)
     yylex_destroy(arg);
     if (ret==0 && d) {
         *d = ud.d;
+    }
+    else {
+        if (ud.divide_by_zero) {
+            purc_set_error(PURC_ERROR_OVERFLOW);
+        }
+        else {
+            purc_set_error(PURC_ERROR_INTERNAL_FAILURE);
+        }
     }
     return ret ? 1 : 0;
 }

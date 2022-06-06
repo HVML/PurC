@@ -41,7 +41,6 @@ typedef struct hvml_app hvml_app;
 typedef struct hvml_app *hvml_app_t;
 
 hvml_app_t hvml_app_get(void);
-const char* hvml_app_name(void);
 
 struct pcinst;
 typedef struct pcinst pcinst;
@@ -75,6 +74,7 @@ struct pcinst {
 
     char                   *app_name;
     char                   *runner_name;
+    char                    endpoint_name[PURC_LEN_ENDPOINT_NAME + 1];
     purc_atom_t             endpoint_atom;
 
     // fetcher related
@@ -110,6 +110,8 @@ struct pcinst {
     struct pcdebug_backtrace  *bt;
 
     struct list_head           node; // hvml_app::instances
+
+    unsigned int               keep_alive:1;
 };
 
 /* gets the current instance */
@@ -120,6 +122,11 @@ struct pcrdr_msg *pcinst_get_message(void) WTF_INTERNAL;
 void pcinst_put_message(struct pcrdr_msg *msg) WTF_INTERNAL;
 
 void pcinst_clear_error(struct pcinst *inst) WTF_INTERNAL;
+
+purc_atom_t
+pcinst_endpoint_get(char *endpoint_name, size_t sz,
+        const char *app_name, const char *runner_name);
+
 
 #endif /* not defined PURC_PRIVATE_INSTANCE_H */
 

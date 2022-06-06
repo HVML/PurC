@@ -1,8 +1,8 @@
 /**
- * @file clear.c
- * @author Xue Shuming
- * @date 2022/05/24
- * @brief
+ * @file exit.c
+ * @author Xu Xiaohong
+ * @date 2022/05/23
+ * @brief The ops for <exit>
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -25,27 +25,23 @@
 
 #include "purc.h"
 
-#include "internal.h"
+#include "../internal.h"
 
 #include "private/debug.h"
-#include "private/dvobjs.h"
-#include "purc-runloop.h"
 
-#include "ops.h"
+#include "../ops.h"
 
-#include <pthread.h>
-#include <unistd.h>
-
-struct ctxt_for_clear {
+struct ctxt_for_exit {
     struct pcvdom_node           *curr;
-    purc_variant_t                on;
+    purc_variant_t                with;
 };
 
 static void
-ctxt_for_clear_destroy(struct ctxt_for_clear *ctxt)
+ctxt_for_exit_destroy(struct ctxt_for_exit *ctxt)
 {
     if (ctxt) {
-        PURC_VARIANT_SAFE_CLEAR(ctxt->on);
+        PURC_VARIANT_SAFE_CLEAR(ctxt->with);
+
         free(ctxt);
     }
 }
@@ -53,17 +49,17 @@ ctxt_for_clear_destroy(struct ctxt_for_clear *ctxt)
 static void
 ctxt_destroy(void *ctxt)
 {
-    ctxt_for_clear_destroy((struct ctxt_for_clear*)ctxt);
+    ctxt_for_exit_destroy((struct ctxt_for_exit*)ctxt);
 }
 
 static int
-process_attr_on(struct pcintr_stack_frame *frame,
+process_attr_with(struct pcintr_stack_frame *frame,
         struct pcvdom_element *element,
         purc_atom_t name, purc_variant_t val)
 {
-    struct ctxt_for_clear *ctxt;
-    ctxt = (struct ctxt_for_clear*)frame->ctxt;
-    if (ctxt->on != PURC_VARIANT_INVALID) {
+    struct ctxt_for_exit *ctxt;
+    ctxt = (struct ctxt_for_exit*)frame->ctxt;
+    if (ctxt->with != PURC_VARIANT_INVALID) {
         purc_set_error_with_info(PURC_ERROR_DUPLICATED,
                 "vdom attribute '%s' for element <%s>",
                 purc_atom_to_string(name), element->tag_name);
@@ -75,12 +71,11 @@ process_attr_on(struct pcintr_stack_frame *frame,
                 purc_atom_to_string(name), element->tag_name);
         return -1;
     }
-    ctxt->on = val;
+    ctxt->with = val;
     purc_variant_ref(val);
 
     return 0;
 }
-
 
 static int
 attr_found_val(struct pcintr_stack_frame *frame,
@@ -94,8 +89,8 @@ attr_found_val(struct pcintr_stack_frame *frame,
     PC_ASSERT(name);
     PC_ASSERT(attr->op == PCHVML_ATTRIBUTE_OPERATOR);
 
-    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, ON)) == name) {
-        return process_attr_on(frame, element, name, val);
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, WITH)) == name) {
+        return process_attr_with(frame, element, name, val);
     }
 
     purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
@@ -104,7 +99,6 @@ attr_found_val(struct pcintr_stack_frame *frame,
 
     return -1;
 }
-
 
 static int
 attr_found(struct pcintr_stack_frame *frame,
@@ -126,21 +120,28 @@ attr_found(struct pcintr_stack_frame *frame,
     return r ? -1 : 0;
 }
 
-
 static void*
 after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 {
     PC_ASSERT(stack && pos);
     PC_ASSERT(stack == pcintr_get_stack());
+
+    if (stack->exited)
+        return NULL;
+
+    pcintr_set_exit();
+
     if (stack->except)
+        return NULL;
+
+    if (pcintr_check_insertion_mode_for_normal_element(stack))
         return NULL;
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
-    PC_ASSERT(frame);
 
-    struct ctxt_for_clear *ctxt;
-    ctxt = (struct ctxt_for_clear*)calloc(1, sizeof(*ctxt));
+    struct ctxt_for_exit *ctxt;
+    ctxt = (struct ctxt_for_exit*)calloc(1, sizeof(*ctxt));
     if (!ctxt) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
@@ -159,76 +160,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (r)
         return NULL;
 
-    if (ctxt->on == PURC_VARIANT_INVALID) {
-        return NULL;
-    }
-
-    purc_variant_t ret;
-    enum purc_variant_type type = purc_variant_get_type(ctxt->on);
-    switch (type) {
-    case PURC_VARIANT_TYPE_STRING:
-        {
-            const char *s = purc_variant_get_string_const(ctxt->on);
-            pchtml_html_document_t *doc = stack->doc;
-            purc_variant_t elems = pcdvobjs_elements_by_css(doc, s);
-            if (!elems) {
-                ret = purc_variant_make_boolean(false);
-                break;
-            }
-
-            struct purc_native_ops *ops = purc_variant_native_get_ops(elems);
-            if (!ops || ops->cleaner == NULL) {
-                ret = purc_variant_make_boolean(false);
-            }
-            else {
-                void *entity = purc_variant_native_get_entity(elems);
-                ret = ops->cleaner(entity, frame->silently);
-            }
-            purc_variant_unref(elems);
-        }
-        break;
-
-    case PURC_VARIANT_TYPE_OBJECT:
-        {
-            bool result = pcvariant_object_clear(ctxt->on, frame->silently);
-            ret = purc_variant_make_boolean(result);
-        }
-        break;
-
-    case PURC_VARIANT_TYPE_ARRAY:
-        {
-            bool result = pcvariant_array_clear(ctxt->on, frame->silently);
-            ret = purc_variant_make_boolean(result);
-        }
-        break;
-
-    case PURC_VARIANT_TYPE_SET:
-        {
-            bool result = pcvariant_set_clear(ctxt->on, frame->silently);
-            ret = purc_variant_make_boolean(result);
-        }
-        break;
-
-    case PURC_VARIANT_TYPE_NATIVE:
-        {
-            struct purc_native_ops *ops = purc_variant_native_get_ops(ctxt->on);
-            if (!ops || ops->cleaner == NULL) {
-                ret = purc_variant_make_boolean(false);
-            }
-            else {
-                void *entity = purc_variant_native_get_entity(ctxt->on);
-                ret = ops->cleaner(entity, frame->silently);
-            }
-        }
-        break;
-
-    default:
-        ret = purc_variant_make_boolean(false);
-        break;
-    }
-
-    // TODO : set ret as result data
-    purc_variant_unref(ret);
     purc_clr_error();
 
     return ctxt;
@@ -251,10 +182,10 @@ on_popping(pcintr_stack_t stack, void* ud)
     struct pcvdom_element *element = frame->pos;
     PC_ASSERT(element);
 
-    struct ctxt_for_clear *ctxt;
-    ctxt = (struct ctxt_for_clear*)frame->ctxt;
+    struct ctxt_for_exit *ctxt;
+    ctxt = (struct ctxt_for_exit*)frame->ctxt;
     if (ctxt) {
-        ctxt_for_clear_destroy(ctxt);
+        ctxt_for_exit_destroy(ctxt);
         frame->ctxt = NULL;
     }
 
@@ -269,7 +200,7 @@ ops = {
     .select_child       = NULL,
 };
 
-struct pcintr_element_ops* pcintr_get_clear_ops(void)
+struct pcintr_element_ops* pcintr_get_exit_ops(void)
 {
     return &ops;
 }
