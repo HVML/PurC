@@ -2750,6 +2750,7 @@ struct observer_matched_data {
     pcvdom_element_t              pos;
     pcvdom_element_t              scope;
     struct pcdom_element         *edom_element;
+    purc_variant_t               payload;
 };
 
 static void on_observer_matched(void *ud)
@@ -2781,12 +2782,17 @@ static void on_observer_matched(void *ud)
     frame->edom_element = p->edom_element;
     frame->next_step = NEXT_STEP_AFTER_PUSHED;
 
+    if (p->payload) {
+        pcintr_set_question_var(frame, p->payload);
+        purc_variant_unref(p->payload);
+    }
+
     execute_one_step_for_ready_co(co);
 
     free(p);
 }
 
-static void observer_matched(struct pcintr_observer *p)
+static void observer_matched(struct pcintr_observer *p, purc_variant_t payload)
 {
     pcintr_stack_t stack = pcintr_get_stack();
     PC_ASSERT(stack);
@@ -2799,6 +2805,10 @@ static void observer_matched(struct pcintr_observer *p)
     data->pos = p->pos;
     data->scope = p->scope;
     data->edom_element = p->edom_element;
+    if (payload) {
+        data->payload = payload;
+        purc_variant_ref(data->payload);
+    }
 
     pcintr_post_msg(data, on_observer_matched);
 }
@@ -2854,7 +2864,7 @@ handle_message(void *ctxt)
         list_for_each_entry_safe(p, n, list, node) {
             if (is_observer_match(p, observed, msg_type_atom, sub_type)) {
                 handle = true;
-                observer_matched(p);
+                observer_matched(p, msg->extra);
             }
         }
     }
