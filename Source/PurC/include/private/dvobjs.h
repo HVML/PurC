@@ -32,6 +32,8 @@
 #include "purc-variant.h"
 #include "purc-dvobjs.h"
 
+#include "private/utils.h"
+
 #include <assert.h>
 #include <time.h>
 
@@ -225,6 +227,14 @@ pcdvobjs_elements_by_css(pchtml_html_document_t *doc, const char *css);
 
 struct pcdom_element*
 pcdvobjs_get_element_from_elements(purc_variant_t elems, size_t idx);
+
+/* return the number of left characters cannot be decoded */
+size_t pcdvobj_url_decode_in_place(char *string, size_t length, int rfc);
+
+int pcdvobj_url_encode(struct pcutils_mystring *mystr,
+        const unsigned char *bytes, size_t nr_bytes, int rfc);
+int pcdvobj_url_decode(struct pcutils_mystring *mystr,
+        const char *string, size_t length, int rfc, bool silently);
 
 #ifdef __cplusplus
 }

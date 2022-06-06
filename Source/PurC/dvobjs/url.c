@@ -23,10 +23,59 @@
  */
 
 #include "purc-variant.h"
+#include "purc-helpers.h"
+
 #include "private/utils.h"
 #include "private/dvobjs.h"
 
-static int pcdvobj_url_encode(struct pcutils_mystring *mystr,
+size_t pcdvobj_url_decode_in_place(char *string, size_t length, int rfc)
+{
+    size_t nr_decoded = 0;
+    size_t left = length;
+    unsigned char *dest = (unsigned char *)string;
+
+    while (left > 0) {
+        unsigned char decoded;
+
+        if (rfc == PURC_K_KW_rfc1738 && *string == '+') {
+            decoded = ' ';
+        }
+        else if (purc_isalnum(*string) ||
+                *string == '-' || *string == '_' || *string == '.') {
+            decoded = (unsigned char)*string;
+        }
+        else {
+            if (*string == '%') {
+                if (left > 2) {
+                    if (pcutils_hex2byte(string + 1, &decoded)) {
+                        goto bad_encoding;
+                    }
+
+                    string += 2;
+                    left -= 2;
+                }
+                else {
+                    goto bad_encoding;
+                }
+            }
+            else {
+                goto bad_encoding;
+            }
+        }
+
+        dest[nr_decoded] = decoded;
+        nr_decoded++;
+
+        left--;
+        string++;
+    }
+
+bad_encoding:
+    dest[nr_decoded] = 0;
+    return left;
+}
+
+int pcdvobj_url_encode(struct pcutils_mystring *mystr,
         const unsigned char *bytes, size_t nr_bytes, int rfc)
 {
     for (size_t i = 0; i < nr_bytes; i++) {
@@ -55,7 +104,7 @@ static int pcdvobj_url_encode(struct pcutils_mystring *mystr,
     return 0;
 }
 
-static int pcdvobj_url_decode(struct pcutils_mystring *mystr,
+int pcdvobj_url_decode(struct pcutils_mystring *mystr,
         const char *string, size_t length, int rfc, bool silently)
 {
     size_t left = length;
