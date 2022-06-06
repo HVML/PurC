@@ -141,7 +141,7 @@ static inline void free_entry(pcutils_map_entry *v) {
 #endif
 
 static pcutils_map_entry* new_entry (pcutils_map* map, const void* key,
-        const void* val, free_val_fn free_val_alt)
+        const void* val, free_kv_fn free_kv_alt)
 {
     pcutils_map_entry* entry;
 
@@ -159,7 +159,7 @@ static pcutils_map_entry* new_entry (pcutils_map* map, const void* key,
         else
             entry->val = (void*)val;
 
-        entry->free_val_alt = free_val_alt;
+        entry->free_kv_alt = free_kv_alt;
     }
 
     return entry;
@@ -170,15 +170,17 @@ static void clear_node (pcutils_map* map, struct rb_node* node)
     if (node) {
         pcutils_map_entry *entry = (pcutils_map_entry*)node;
 
-        if (map->free_key) {
-            map->free_key (entry->key);
+        if (entry->free_kv_alt) {
+            entry->free_kv_alt (entry->key, entry->val);
         }
+        else {
+            if (map->free_key) {
+                map->free_key (entry->key);
+            }
 
-        if (entry->free_val_alt) {
-            entry->free_val_alt (entry->val);
-        }
-        else if (map->free_val) {
-            map->free_val (entry->val);
+            if (map->free_val) {
+                map->free_val (entry->val);
+            }
         }
 
         clear_node (map, node->rb_left);
@@ -272,7 +274,7 @@ int pcutils_map_erase (pcutils_map* map, void* key)
 }
 
 int pcutils_map_replace (pcutils_map* map, const void* key,
-        const void* val, free_val_fn free_val_alt)
+        const void* val, free_kv_fn free_kv_alt)
 {
     int retval = -1;
     pcutils_map_entry* entry = NULL;
@@ -285,13 +287,15 @@ int pcutils_map_replace (pcutils_map* map, const void* key,
     }
 
     retval = 0;
+#if 0
     /* XXX: is this reasonable? */
     if (val == entry->val) {
         goto ret;
     }
+#endif
 
-    if (entry->free_val_alt) {
-        entry->free_val_alt (entry->val);
+    if (entry->free_kv_alt) {
+        entry->free_kv_alt (NULL, entry->val);
     }
     else if (map->free_val) {
         map->free_val (entry->val);
@@ -303,7 +307,7 @@ int pcutils_map_replace (pcutils_map* map, const void* key,
     else
         entry->val = (void*)val;
 
-    entry->free_val_alt = free_val_alt;
+    entry->free_kv_alt = free_kv_alt;
 
 ret:
     WRUNLOCK_MAP (map);
@@ -311,7 +315,7 @@ ret:
 }
 
 int pcutils_map_insert_ex (pcutils_map* map, const void* key,
-        const void* val, free_val_fn free_val_alt)
+        const void* val, free_kv_fn free_kv_alt)
 {
     pcutils_map_entry **pentry;
     pcutils_map_entry *entry;
@@ -347,7 +351,7 @@ int pcutils_map_insert_ex (pcutils_map* map, const void* key,
 
     int r = -1;
     if (!entry) {
-        entry = new_entry (map, key, val, free_val_alt);
+        entry = new_entry (map, key, val, free_kv_alt);
         pcutils_rbtree_link_node (&entry->node,
                 (struct rb_node*)parent, (struct rb_node**)pentry);
         pcutils_rbtree_insert_color (&entry->node, &map->root);
@@ -360,7 +364,7 @@ int pcutils_map_insert_ex (pcutils_map* map, const void* key,
 }
 
 int pcutils_map_find_replace_or_insert (pcutils_map* map, const void* key,
-        const void* val, free_val_fn free_val_alt)
+        const void* val, free_kv_fn free_kv_alt)
 {
     pcutils_map_entry **pentry;
     pcutils_map_entry *entry;
@@ -395,8 +399,7 @@ int pcutils_map_find_replace_or_insert (pcutils_map* map, const void* key,
     }
 
     if (entry == NULL) {
-        entry = new_entry (map, key, val, free_val_alt);
-
+        entry = new_entry (map, key, val, free_kv_alt);
         pcutils_rbtree_link_node (&entry->node,
                 (struct rb_node*)parent, (struct rb_node**)pentry);
         pcutils_rbtree_insert_color (&entry->node, &map->root);
@@ -404,8 +407,8 @@ int pcutils_map_find_replace_or_insert (pcutils_map* map, const void* key,
         map->size++;
     }
     else {
-        if (entry->free_val_alt) {
-            entry->free_val_alt (entry->val);
+        if (entry->free_kv_alt) {
+            entry->free_kv_alt (NULL, entry->val);
         }
         else if (map->free_val) {
             map->free_val (entry->val);
@@ -417,7 +420,7 @@ int pcutils_map_find_replace_or_insert (pcutils_map* map, const void* key,
         else
             entry->val = (void*)val;
 
-        entry->free_val_alt = free_val_alt;
+        entry->free_kv_alt = free_kv_alt;
     }
 
     WRUNLOCK_MAP (map);

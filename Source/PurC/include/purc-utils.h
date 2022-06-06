@@ -338,6 +338,50 @@ static inline purc_atom_t purc_atom_try_string(const char* string) {
 }
 
 /**
+ * purc_atom_remove_string_ex:
+ * @bucket: the identifier of the atom bucket.
+ * @string: (nullable): a string
+ *
+ * Removes the given string in the specified bucket, so that the next call
+ * to purc_atom_try_string_ex() will return 0 on the same string. If you
+ * use purc_atom_from_string_ex() or purc_atom_from_static_string_ex() on the
+ * same string in the same bucket after calling this function, you will get
+ * another atom value. Note that the old atom value will be invalid, i.e.,
+ * you cannot get the string by calling purc_atom_to_string() by using the
+ * old atom value.
+ *
+ * This function must not be used before library constructors have finished
+ * running.
+ *
+ * Returns: %TRUE if @string is removed from the specified bucekt;
+ *      %FALSE there is no atom associated with the string.
+ */
+PCA_EXPORT bool
+purc_atom_remove_string_ex(int bucket, const char* string);
+
+/**
+ * purc_atom_remove_string:
+ * @string: (nullable): a string
+ *
+ * Removes the given string in the default bucket, so that the next call
+ * to purc_atom_try_string() will return 0 on the same string. If you
+ * use purc_atom_from_string() or purc_atom_from_static_string() on the
+ * same string after calling this function, you will get
+ * another atom value. Note that the old atom value will be invalid, i.e.,
+ * you cannot get the string by calling purc_atom_to_string() by using the
+ * old atom value.
+ *
+ * This function must not be used before library constructors have finished
+ * running.
+ *
+ * Returns: %TRUE if @string is removed from the default bucekt;
+ *      %FALSE there is no atom associated with the string.
+ */
+static inline bool purc_atom_remove_string(const char* string) {
+    return purc_atom_remove_string_ex(0, string);
+}
+
+/**
  * purc_atom_to_string:
  * @quark: a #purc_atom_t.
  *

@@ -79,6 +79,7 @@ pcrdr_msg *pcintr_rdr_send_request_and_wait_response(struct pcrdr_conn *conn,
             target_value,                       /* target_value */
             operation,                          /* operation */
             NULL,                               /* request_id */
+            NULL,                               /* source_uri */
             element_type,                       /* element_type */
             element,                            /* element */
             property,                           /* property */

@@ -100,6 +100,18 @@ TEST(utils, atom_basic)
         ASSERT_EQ(cmp, 0);
     }
 
+    purc_atom_t old_atom = purc_atom_try_string("displace");
+    ASSERT_NE(old_atom, 0);
+    ASSERT_STREQ(purc_atom_to_string(old_atom), "displace");
+
+    bool found = purc_atom_remove_string("displace");
+    ASSERT_EQ(found, true);
+    ASSERT_EQ(purc_atom_try_string("displace"), 0);
+    ASSERT_EQ(purc_atom_to_string(old_atom), nullptr);
+
+    purc_atom_t new_atom = purc_atom_from_string("displace");
+    ASSERT_GT(new_atom, old_atom);
+
     purc_cleanup ();
 }
 
