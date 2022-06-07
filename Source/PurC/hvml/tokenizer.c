@@ -138,6 +138,7 @@ next_state:                                                             \
 #define vcm_stack_is_empty() pcvcm_stack_is_empty(parser->vcm_stack)
 #define vcm_stack_push(c) pcvcm_stack_push(parser->vcm_stack, c)
 #define vcm_stack_pop() pcvcm_stack_pop(parser->vcm_stack)
+#define vcm_stack_parent() pcvcm_stack_bottommost(parser->vcm_stack)
 
 #define BEGIN_STATE(state_name)                                             \
     case state_name:                                                        \
@@ -2755,6 +2756,15 @@ BEGIN_STATE(TKZ_STATE_EJSON_RIGHT_PARENTHESIS)
     if (character == '.' || character == '[') {
         if (uc == '(' || uc == '<') {
             ejson_stack_pop();
+#if 0
+            struct pcvcm_node *parent = vcm_stack_parent();
+            if (!vcm_stack_is_empty() && (
+                        parent->type == PCVCM_NODE_TYPE_FUNC_CALL_GETTER ||
+                        parent->type == PCVCM_NODE_TYPE_FUNC_CALL_SETTER
+                    )) {
+                POP_AS_VCM_PARENT_AND_UPDATE_VCM();
+            }
+#endif
             RECONSUME_IN(TKZ_STATE_EJSON_CONTROL);
         }
         if (ejson_stack_is_empty()) {

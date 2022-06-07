@@ -175,7 +175,7 @@ pcintr_util_dump_document_ex(pchtml_html_document_t *doc, char **dump_buff,
         }
         *dump_buff = strdup(p);
     }
-#if 1
+#if 0
     else {
         fprintf(stderr, "%s[%d]:%s(): #document %p\n%s\n",
                 pcutils_basename((char*)file), line, func, doc, p);

@@ -1,0 +1,1 @@
+$MATH.eval($DOC.query('#expression').attr('value'))
