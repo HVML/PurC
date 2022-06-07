@@ -25,12 +25,13 @@
 
 #include "purc.h"
 
-#include "internal.h"
+#include "../internal.h"
 
 #include "private/debug.h"
+#include "private/instance.h"
 #include "purc-runloop.h"
 
-#include "ops.h"
+#include "../ops.h"
 
 #include <pthread.h>
 #include <unistd.h>
@@ -42,9 +43,15 @@ struct ctxt_for_call {
     purc_variant_t                with;
     purc_variant_t                within;
     purc_variant_t                as;
+    const char                   *s_as;
+
+    purc_variant_t                at;
+    const char                   *s_at;
 
     pcvdom_element_t              define;
 
+    char               endpoint_name_within[PURC_LEN_ENDPOINT_NAME + 1];
+    purc_atom_t        endpoint_atom_within;
 
     unsigned int                  concurrently:1;
     unsigned int                  synchronously:1;
@@ -58,6 +65,12 @@ ctxt_for_call_destroy(struct ctxt_for_call *ctxt)
         PURC_VARIANT_SAFE_CLEAR(ctxt->with);
         PURC_VARIANT_SAFE_CLEAR(ctxt->within);
         PURC_VARIANT_SAFE_CLEAR(ctxt->as);
+        PURC_VARIANT_SAFE_CLEAR(ctxt->at);
+        if (ctxt->endpoint_atom_within) {
+            PC_ASSERT(purc_atom_remove_string_ex(PURC_ATOM_BUCKET_USER,
+                    ctxt->endpoint_name_within));
+            ctxt->endpoint_atom_within = 0;
+        }
         free(ctxt);
     }
 }
@@ -66,6 +79,60 @@ static void
 ctxt_destroy(void *ctxt)
 {
     ctxt_for_call_destroy((struct ctxt_for_call*)ctxt);
+}
+
+static void
+event_release(pcintr_event_t event)
+{
+    if (event) {
+        PURC_VARIANT_SAFE_CLEAR(event->msg_sub_type);
+        PURC_VARIANT_SAFE_CLEAR(event->src);
+        PURC_VARIANT_SAFE_CLEAR(event->payload);
+    }
+}
+
+static void
+event_destroy(pcintr_event_t event)
+{
+    if (event) {
+        event_release(event);
+        free(event);
+    }
+}
+
+static void
+on_continuation(void *ud, void *extra)
+{
+    pcintr_coroutine_t co = pcintr_get_coroutine();
+    PC_ASSERT(co);
+    pcintr_stack_frame_t frame = (pcintr_stack_frame_t)ud;
+    PC_ASSERT(frame);
+
+    struct ctxt_for_call *ctxt;
+    ctxt = (struct ctxt_for_call*)frame->ctxt;
+    PC_ASSERT(ctxt);
+
+    pcintr_event_t event = (pcintr_event_t)extra;
+    PC_ASSERT(event);
+    PC_ASSERT(event->msg_type == pchvml_keyword(
+                PCHVML_KEYWORD_ENUM(MSG, CALLSTATE)));
+
+    purc_variant_t msg_sub_type = event->msg_sub_type;
+    PC_ASSERT(msg_sub_type != PURC_VARIANT_INVALID);
+    const char *s_msg_sub_type = purc_variant_get_string_const(msg_sub_type);
+    PC_ASSERT(0 == strcmp(s_msg_sub_type, "success"));
+
+    purc_variant_t src = event->src;
+    PC_ASSERT(src != PURC_VARIANT_INVALID);
+    PC_ASSERT(purc_variant_is_undefined(src));
+
+    purc_variant_t payload = event->payload;
+    PC_ASSERT(payload != PURC_VARIANT_INVALID);
+
+    int r = pcintr_set_question_var(frame, payload);
+    PC_ASSERT(r == 0);
+
+    event_destroy(event);
 }
 
 static int
@@ -104,13 +171,30 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         return 0;
     }
 
+    if (ctxt->synchronously) {
+        if (ctxt->as == PURC_VARIANT_INVALID) {
+            purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                    "vdom attribute 'as' for element <call> undefined");
+            return -1;
+        }
+        if (!purc_variant_is_string(ctxt->as)) {
+            purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                    "vdom attribute 'as' for element <call> is not string");
+            return -1;
+        }
+    }
+
     pcintr_coroutine_t child;
-    child = pcintr_create_child_co(define);
+    child = pcintr_create_child_co(define, ctxt->as);
     if (!child)
         return -1;
 
+    if (ctxt->synchronously) {
+        pcintr_yield(frame, on_continuation);
+        return 0;
+    }
+
     PC_ASSERT(0);
-    return -1;
 }
 
 static int
@@ -182,6 +266,33 @@ process_attr_within(struct pcintr_stack_frame *frame,
                 purc_atom_to_string(name), element->tag_name);
         return -1;
     }
+    if (!purc_variant_is_string(val)) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "vdom attribute '%s' for element <%s> is not string",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    const char *s = purc_variant_get_string_const(val);
+    PC_ASSERT(s);
+    char *t = (char*)strchr(s, '/');
+    if (!t) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "vdom attribute '%s' for element <%s> is not valid",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+
+    char c = *t;
+    *t = '\0';
+    ctxt->endpoint_atom_within = pcinst_endpoint_get(
+            ctxt->endpoint_name_within, sizeof(ctxt->endpoint_name_within),
+            "_", s);
+    *t = c;
+    if (ctxt->endpoint_atom_within == 0) {
+        PC_ASSERT(purc_get_last_error());
+        return -1;
+    }
+
     ctxt->within = purc_variant_ref(val);
 
     return 0;
@@ -207,6 +318,32 @@ process_attr_as(struct pcintr_stack_frame *frame,
         return -1;
     }
     ctxt->as = purc_variant_ref(val);
+    ctxt->s_as = purc_variant_get_string_const(ctxt->as);
+
+    return 0;
+}
+
+static int
+process_attr_at(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element,
+        purc_atom_t name, purc_variant_t val)
+{
+    struct ctxt_for_call *ctxt;
+    ctxt = (struct ctxt_for_call*)frame->ctxt;
+    if (ctxt->at != PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_DUPLICATED,
+                "vdom attribute '%s' for element <%s>",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    if (val == PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "vdom attribute '%s' for element <%s> undefined",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    ctxt->at = purc_variant_ref(val);
+    ctxt->s_at = purc_variant_get_string_const(ctxt->at);
 
     return 0;
 }
@@ -232,6 +369,9 @@ attr_found_val(struct pcintr_stack_frame *frame,
     }
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, AS)) == name) {
         return process_attr_as(frame, element, name, val);
+    }
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, AT)) == name) {
+        return process_attr_at(frame, element, name, val);
     }
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CONCURRENTLY)) == name) {
         ctxt->concurrently = 1;

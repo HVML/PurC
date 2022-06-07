@@ -1,0 +1,36 @@
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<hvml target="html" lang="en">
+    <head>
+        <update on="$TIMERS" to="unite">
+            [
+                { "id" : "clock", "interval" : 1000, "active" : "yes" },
+            ]
+        </update>
+    </head>
+
+    <body>
+        <!--
+        <define as="updating">
+            <sleep with = 2/>
+            <return with = "yes, i am here" />
+        </define>
+        <div>
+            <call as="my_task" on="$updating" with="can you see me?" concurrently>
+                <update on="$@" to="append" with = "$?"/>
+            </call>
+            <sleep with = 1/>
+        </div>
+        -->
+        <div id="foo">
+            <observe on="$TIMERS" for="expired:clock">
+                <update on="#foo" to="append" with = "yes"/>
+            </observe>
+            <observe on="$TIMERS" for="expired:clock">
+                <update on="#foo" to="append" with = "no"/>
+                <exit />
+            </observe>
+        </div>
+    </body>
+
+</hvml>
+

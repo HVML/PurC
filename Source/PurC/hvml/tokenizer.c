@@ -2631,6 +2631,19 @@ BEGIN_STATE(TKZ_STATE_EJSON_LEFT_BRACKET)
             ADVANCE_TO(TKZ_STATE_EJSON_CONTROL);
         }
         uint32_t uc = ejson_stack_top();
+        if (uc != '('  && uc != '<' && parser->vcm_node && (
+                parser->vcm_node->type ==
+                PCVCM_NODE_TYPE_FUNC_CALL_GETTER ||
+                parser->vcm_node->type ==
+                PCVCM_NODE_TYPE_FUNC_CALL_SETTER
+                    )) {
+            ejson_stack_push('.');
+            struct pcvcm_node *node = pcvcm_node_new_get_element(NULL,
+                    NULL);
+            APPEND_CHILD(node, parser->vcm_node);
+            UPDATE_VCM_NODE(node);
+            ADVANCE_TO(TKZ_STATE_EJSON_CONTROL);
+        }
         if (uc == '(' || uc == '<' || uc == '[' || uc == ':' || uc == 0
                 || uc == '"' || uc == 'U') {
             ejson_stack_push('[');
@@ -2739,7 +2752,7 @@ END_STATE()
 
 BEGIN_STATE(TKZ_STATE_EJSON_RIGHT_PARENTHESIS)
     uint32_t uc = ejson_stack_top();
-    if (character == '.') {
+    if (character == '.' || character == '[') {
         if (uc == '(' || uc == '<') {
             ejson_stack_pop();
             RECONSUME_IN(TKZ_STATE_EJSON_CONTROL);

@@ -1,5 +1,5 @@
 /**
- * @file hvml.c
+ * @file undefined.c
  * @author Xu Xiaohong
  * @date 2021/12/06
  * @brief
@@ -25,24 +25,26 @@
 
 #include "purc.h"
 
-#include "internal.h"
+#include "../internal.h"
 
 #include "private/debug.h"
 #include "purc-runloop.h"
 
-#include "ops.h"
+#include "../ops.h"
 
 #include <pthread.h>
 #include <unistd.h>
 
-struct ctxt_for_hvml {
+struct ctxt_for_undefined {
     struct pcvdom_node           *curr;
+    purc_variant_t                href;
 };
 
 static void
-ctxt_for_hvml_destroy(struct ctxt_for_hvml *ctxt)
+ctxt_for_undefined_destroy(struct ctxt_for_undefined *ctxt)
 {
     if (ctxt) {
+        PURC_VARIANT_SAFE_CLEAR(ctxt->href);
         free(ctxt);
     }
 }
@@ -50,7 +52,32 @@ ctxt_for_hvml_destroy(struct ctxt_for_hvml *ctxt)
 static void
 ctxt_destroy(void *ctxt)
 {
-    ctxt_for_hvml_destroy((struct ctxt_for_hvml*)ctxt);
+    ctxt_for_undefined_destroy((struct ctxt_for_undefined*)ctxt);
+}
+
+static int
+process_attr_href(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element,
+        purc_atom_t name, purc_variant_t val)
+{
+    struct ctxt_for_undefined *ctxt;
+    ctxt = (struct ctxt_for_undefined*)frame->ctxt;
+    if (ctxt->href != PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_DUPLICATED,
+                "vdom attribute '%s' for element <%s>",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    if (val == PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "vdom attribute '%s' for element <%s> undefined",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    ctxt->href = val;
+    purc_variant_ref(val);
+
+    return 0;
 }
 
 static int
@@ -60,18 +87,43 @@ attr_found_val(struct pcintr_stack_frame *frame,
         struct pcvdom_attr *attr,
         void *ud)
 {
-    UNUSED_PARAM(element);
-    UNUSED_PARAM(name);
     UNUSED_PARAM(ud);
 
     PC_ASSERT(attr->op == PCHVML_ATTRIBUTE_OPERATOR);
     PC_ASSERT(attr->key);
-    PC_ASSERT(purc_variant_is_string(val));
-    const char *sv = purc_variant_get_string_const(val);
-    PC_ASSERT(sv);
+    const char *sv = "";
+
+    if (purc_variant_is_string(val)) {
+        sv = purc_variant_get_string_const(val);
+        PC_ASSERT(sv);
+    }
+    else if (purc_variant_is_undefined(val)) {
+        /* no action to take */
+    }
+    else {
+        PC_ASSERT(0);
+    }
 
     int r = pcintr_util_set_attribute(frame->edom_element, attr->key, sv);
     PC_ASSERT(r == 0);
+
+    if (name) {
+        if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, HREF)) == name) {
+            return process_attr_href(frame, element, name, val);
+        }
+        if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, TYPE)) == name) {
+            return 0;
+        }
+        if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, REL)) == name) {
+            return 0;
+        }
+        if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, NAME)) == name) {
+            return 0;
+        }
+        PC_DEBUGX("name: %s", purc_atom_to_string(name));
+        PC_ASSERT(0);
+        return -1;
+    }
 
     return 0;
 }
@@ -100,8 +152,30 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 {
     PC_ASSERT(stack && pos);
     PC_ASSERT(stack == pcintr_get_stack());
-    PC_ASSERT(stack->mode == STACK_VDOM_BEFORE_HVML);
-    stack->mode = STACK_VDOM_BEFORE_HEAD;
+    switch (stack->mode) {
+        case STACK_VDOM_BEFORE_HVML:
+            PC_ASSERT(0);
+            break;
+        case STACK_VDOM_BEFORE_HEAD:
+            stack->mode = STACK_VDOM_IN_BODY;
+            break;
+        case STACK_VDOM_IN_HEAD:
+            break;
+        case STACK_VDOM_AFTER_HEAD:
+            stack->mode = STACK_VDOM_IN_BODY;
+            break;
+        case STACK_VDOM_IN_BODY:
+            break;
+        case STACK_VDOM_AFTER_BODY:
+            PC_ASSERT(0);
+            break;
+        case STACK_VDOM_AFTER_HVML:
+            PC_ASSERT(0);
+            break;
+        default:
+            PC_ASSERT(0);
+            break;
+    }
 
     if (stack->except)
         return NULL;
@@ -110,8 +184,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame);
 
-    struct ctxt_for_hvml *ctxt;
-    ctxt = (struct ctxt_for_hvml*)calloc(1, sizeof(*ctxt));
+    struct ctxt_for_undefined *ctxt;
+    ctxt = (struct ctxt_for_undefined*)calloc(1, sizeof(*ctxt));
     if (!ctxt) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
@@ -121,18 +195,54 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     frame->ctxt_destroy = ctxt_destroy;
 
     frame->pos = pos; // ATTENTION!!
-    frame->edom_element = pcdom_interface_document(stack->doc)->element;
+
+    struct pcvdom_element *element = frame->pos;
+    PC_ASSERT(element);
+
+    PC_ASSERT(frame->edom_element);
+    pcdom_element_t *child;
+    child = pcintr_util_append_element(frame->edom_element,
+            frame->pos->tag_name);
+    PC_ASSERT(child);
+    frame->edom_element = child;
     int r;
     r = pcintr_refresh_at_var(frame);
     if (r)
         return NULL;
 
-    struct pcvdom_element *element = frame->pos;
-    PC_ASSERT(element);
-
     r = pcintr_vdom_walk_attrs(frame, element, NULL, attr_found);
     if (r)
         return NULL;
+
+    purc_variant_t with = frame->ctnt_var;
+    if (with != PURC_VARIANT_INVALID) {
+        // FIXME: unify
+        PC_ASSERT(purc_variant_is_type(with, PURC_VARIANT_TYPE_ULONGINT));
+        bool ok;
+        uint64_t u64;
+        ok = purc_variant_cast_to_ulongint(with, &u64, false);
+        PC_ASSERT(ok);
+        struct pcvcm_node *vcm_content;
+        vcm_content = (struct pcvcm_node*)u64;
+        PC_ASSERT(vcm_content);
+
+        purc_variant_t v = pcvcm_eval(vcm_content, stack, frame->silently);
+        PC_ASSERT(v != PURC_VARIANT_INVALID);
+        if (purc_variant_is_string(v)) {
+            const char *sv = purc_variant_get_string_const(v);
+            int r = pcintr_util_set_child_chunk(frame->edom_element, sv);
+            PC_ASSERT(r == 0);
+        }
+        else {
+            char *sv = pcvariant_to_string(v);
+            PC_ASSERT(sv);
+            int r;
+            r = pcintr_util_set_child_chunk(frame->edom_element, sv);
+            PC_ASSERT(r == 0);
+            free(sv);
+        }
+        purc_variant_unref(v);
+    }
 
     purc_clr_error();
 
@@ -144,32 +254,6 @@ on_popping(pcintr_stack_t stack, void* ud)
 {
     PC_ASSERT(stack);
     PC_ASSERT(stack == pcintr_get_stack());
-    switch (stack->mode) {
-        case STACK_VDOM_BEFORE_HVML:
-            PC_ASSERT(0);
-            break;
-        case STACK_VDOM_BEFORE_HEAD:
-            stack->mode = STACK_VDOM_AFTER_HVML;
-            break;
-        case STACK_VDOM_IN_HEAD:
-            PC_ASSERT(0);
-            break;
-        case STACK_VDOM_AFTER_HEAD:
-            stack->mode = STACK_VDOM_AFTER_HVML;
-            break;
-        case STACK_VDOM_IN_BODY:
-            PC_ASSERT(0);
-            break;
-        case STACK_VDOM_AFTER_BODY:
-            stack->mode = STACK_VDOM_AFTER_HVML;
-            break;
-        case STACK_VDOM_AFTER_HVML:
-            PC_ASSERT(0);
-            break;
-        default:
-            PC_ASSERT(0);
-            break;
-    }
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
@@ -182,10 +266,10 @@ on_popping(pcintr_stack_t stack, void* ud)
     struct pcvdom_element *element = frame->pos;
     PC_ASSERT(element);
 
-    struct ctxt_for_hvml *ctxt;
-    ctxt = (struct ctxt_for_hvml*)frame->ctxt;
+    struct ctxt_for_undefined *ctxt;
+    ctxt = (struct ctxt_for_undefined*)frame->ctxt;
     if (ctxt) {
-        ctxt_for_hvml_destroy(ctxt);
+        ctxt_for_undefined_destroy(ctxt);
         frame->ctxt = NULL;
     }
 
@@ -208,6 +292,32 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     UNUSED_PARAM(co);
     UNUSED_PARAM(frame);
     PC_ASSERT(content);
+    // int r;
+    struct pcvcm_node *vcm = content->vcm;
+    if (!vcm)
+        return;
+
+    pcintr_stack_t stack = pcintr_get_stack();
+    purc_variant_t v = pcvcm_eval(vcm, stack, frame->silently);
+    PC_ASSERT(v != PURC_VARIANT_INVALID);
+    purc_clr_error();
+
+    if (purc_variant_is_string(v)) {
+        const char *text = purc_variant_get_string_const(v);
+        pcdom_text_t *content;
+        content = pcintr_util_append_content(frame->edom_element, text);
+        PC_ASSERT(content);
+        purc_variant_unref(v);
+    }
+    else {
+        char *sv = pcvariant_to_string(v);
+        PC_ASSERT(sv);
+        int r;
+        r = pcintr_util_add_child_chunk(frame->edom_element, sv);
+        PC_ASSERT(r == 0);
+        free(sv);
+        purc_variant_unref(v);
+    }
 }
 
 static void
@@ -216,7 +326,7 @@ on_comment(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 {
     UNUSED_PARAM(co);
     UNUSED_PARAM(frame);
-    UNUSED_PARAM(comment);
+    PC_ASSERT(comment);
 }
 
 static pcvdom_element_t
@@ -239,8 +349,8 @@ select_child(pcintr_stack_t stack, void* ud)
     if (stack->back_anchor)
         return NULL;
 
-    struct ctxt_for_hvml *ctxt;
-    ctxt = (struct ctxt_for_hvml*)frame->ctxt;
+    struct ctxt_for_undefined *ctxt;
+    ctxt = (struct ctxt_for_undefined*)frame->ctxt;
 
     struct pcvdom_node *curr;
 
@@ -255,6 +365,7 @@ again:
     }
     else {
         curr = pcvdom_node_next_sibling(curr);
+        purc_clr_error();
     }
 
     ctxt->curr = curr;
@@ -276,9 +387,11 @@ again:
             }
         case PCVDOM_NODE_CONTENT:
             on_content(co, frame, PCVDOM_CONTENT_FROM_NODE(curr));
+                PC_ASSERT(stack->except == 0);
             goto again;
         case PCVDOM_NODE_COMMENT:
             on_comment(co, frame, PCVDOM_COMMENT_FROM_NODE(curr));
+                PC_ASSERT(stack->except == 0);
             goto again;
         default:
             PC_ASSERT(0); // Not implemented yet
@@ -296,7 +409,7 @@ ops = {
     .select_child       = select_child,
 };
 
-struct pcintr_element_ops* pcintr_get_hvml_ops(void)
+struct pcintr_element_ops* pcintr_get_undefined_ops(void)
 {
     return &ops;
 }
