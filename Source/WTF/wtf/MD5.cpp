@@ -53,7 +53,7 @@
 #include <wtf/Assertions.h>
 #include <wtf/StdLibExtras.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 #if PLATFORM(COCOA)
 
@@ -288,4 +288,4 @@ void MD5::checksum(Digest& digest)
 
 #endif
 
-} // namespace WTF
+} // namespace PurCWTF

@@ -27,14 +27,14 @@
 
 #include <wtf/StdLibExtras.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 typedef uint64_t GlobalVersion;
 
 GlobalVersion newGlobalVersion();
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::GlobalVersion;
-using WTF::newGlobalVersion;
+using PurCWTF::GlobalVersion;
+using PurCWTF::newGlobalVersion;
 

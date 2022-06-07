@@ -33,7 +33,7 @@
 #include <time.h>
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 
 GregorianDateTime::GregorianDateTime(double ms, LocalTimeOffset localTime)
 {
@@ -50,7 +50,7 @@ GregorianDateTime::GregorianDateTime(double ms, LocalTimeOffset localTime)
         int64_t integer = static_cast<int64_t>(ms);
         if (static_cast<double>(integer) == ms && integer <= maxECMAScriptTime) {
             // Positive integer fast path.
-            WTF::TimeClippedPositiveMilliseconds timeClipped(integer);
+            PurCWTF::TimeClippedPositiveMilliseconds timeClipped(integer);
             const int year = msToYear(ms);
             setSecond(msToSeconds(timeClipped));
             setMinute(msToMinutes(timeClipped));
@@ -63,7 +63,7 @@ GregorianDateTime::GregorianDateTime(double ms, LocalTimeOffset localTime)
             setMonth(monthFromDayInYear(yearDay, leapYear));
             setYear(year);
             setIsDST(localTime.isDST);
-            setUTCOffsetInMinute(localTime.offset / WTF::msPerMinute);
+            setUTCOffsetInMinute(localTime.offset / PurCWTF::msPerMinute);
             return;
         }
     }
@@ -79,7 +79,7 @@ GregorianDateTime::GregorianDateTime(double ms, LocalTimeOffset localTime)
     setMonth(monthFromDayInYear(yearDay, leapYear));
     setYear(year);
     setIsDST(localTime.isDST);
-    setUTCOffsetInMinute(localTime.offset / WTF::msPerMinute);
+    setUTCOffsetInMinute(localTime.offset / PurCWTF::msPerMinute);
 }
 
 void GregorianDateTime::setToCurrentLocalTime()
@@ -137,4 +137,4 @@ void GregorianDateTime::setToCurrentLocalTime()
 #endif
 }
 
-} // namespace WTF
+} // namespace PurCWTF

@@ -31,7 +31,7 @@
 #include <wtf/PrintStream.h>
 #include <wtf/Lock.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 TimeWithDynamicClockType TimeWithDynamicClockType::now(ClockType type)
 {
@@ -140,6 +140,6 @@ bool hasElapsed(const TimeWithDynamicClockType& time)
     return time <= time.nowWithSameClock();
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
 

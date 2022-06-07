@@ -27,7 +27,7 @@
 #include <wtf/FastMalloc.h>
 #include <wtf/Ref.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename T, typename PtrTraits> class RefPtr;
 template<typename T, typename PtrTraits = DumbPtrTraits<T>> RefPtr<T, PtrTraits> adoptRef(T*);
@@ -272,9 +272,9 @@ inline bool is(const RefPtr<ArgType, PtrTraits>& source)
     return is<ExpectedType>(source.get());
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::RefPtr;
-using WTF::adoptRef;
-using WTF::makeRefPtr;
-using WTF::static_pointer_cast;
+using PurCWTF::RefPtr;
+using PurCWTF::adoptRef;
+using PurCWTF::makeRefPtr;
+using PurCWTF::static_pointer_cast;

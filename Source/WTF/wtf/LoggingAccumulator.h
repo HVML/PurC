@@ -27,12 +27,12 @@
 
 #include <wtf/text/WTFString.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 WTF_EXPORT_PRIVATE void resetAccumulatedLogs();
 WTF_EXPORT_PRIVATE String getAndResetAccumulatedLogs();
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::resetAccumulatedLogs;
-using WTF::getAndResetAccumulatedLogs;
+using PurCWTF::resetAccumulatedLogs;
+using PurCWTF::getAndResetAccumulatedLogs;

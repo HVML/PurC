@@ -27,7 +27,7 @@
 
 #include <type_traits>
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename KeyTypeArg, typename ValueTypeArg>
 struct KeyValuePair {
@@ -66,4 +66,4 @@ inline KeyValuePair<typename std::decay<K>::type, typename std::decay<V>::type> 
 
 }
 
-using WTF::KeyValuePair;
+using PurCWTF::KeyValuePair;

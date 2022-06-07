@@ -25,7 +25,7 @@
 
 #pragma once
 
-namespace WTF {
+namespace PurCWTF {
 
 typedef enum {
     LenientConversion,
@@ -33,9 +33,9 @@ typedef enum {
     StrictConversionReplacingUnpairedSurrogatesWithFFFD,
 } ConversionMode;
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::ConversionMode;
-using WTF::LenientConversion;
-using WTF::StrictConversion;
-using WTF::StrictConversionReplacingUnpairedSurrogatesWithFFFD;
+using PurCWTF::ConversionMode;
+using PurCWTF::LenientConversion;
+using PurCWTF::StrictConversion;
+using PurCWTF::StrictConversionReplacingUnpairedSurrogatesWithFFFD;

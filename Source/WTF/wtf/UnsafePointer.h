@@ -25,7 +25,7 @@
 
 #pragma once
 
-namespace WTF {
+namespace PurCWTF {
 
 // A UnsafePointer<> can be used to hold a pointer whose lifetime is not guaranteed
 // and where the dereferencing of that pointer is therefore unsafe. Once assigned
@@ -60,6 +60,6 @@ bool operator!=(typename UnsafePointer<T>::PtrType barePointer, const UnsafePoin
     return unsafePointer != barePointer;
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::UnsafePointer;
+using PurCWTF::UnsafePointer;

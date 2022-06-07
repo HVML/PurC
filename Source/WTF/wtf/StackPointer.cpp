@@ -26,7 +26,7 @@
 #include "config.h"
 #include "StackPointer.h"
 
-namespace WTF {
+namespace PurCWTF {
 
 #if USE(GENERIC_CURRENT_STACK_POINTER)
 constexpr size_t sizeOfFrameHeader = 2 * sizeof(void*);
@@ -44,4 +44,4 @@ void* currentStackPointer()
 }
 #endif // USE(GENERIC_CURRENT_STACK_POINTER)
 
-} // namespace WTF
+} // namespace PurCWTF

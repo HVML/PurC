@@ -43,7 +43,7 @@ public:
     PurCFetcher::PageIdentifier webPageID;
     PurCFetcher::FrameIdentifier webFrameID;
     RefPtr<PurCFetcher::SecurityOrigin> topOrigin;
-    WTF::ProcessID parentPID { 0 };
+    PurCWTF::ProcessID parentPID { 0 };
 #if HAVE(AUDIT_TOKEN)
     Optional<audit_token_t> networkProcessAuditToken;
 #endif

@@ -35,7 +35,7 @@
 #include <wtf/unicode/CharacterNames.h>
 #include <wtf/unicode/UTF8Conversion.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 using namespace Unicode;
 
@@ -1096,7 +1096,7 @@ const String& nullString()
     return nullString;
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
 #ifndef NDEBUG
 

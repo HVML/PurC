@@ -52,7 +52,7 @@ extern "C" {
 #include <wtf/Threading.h>
 #include <wtf/WTFConfig.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 #if HAVE(MACH_EXCEPTIONS)
 static exception_mask_t toMachMask(Signal);
@@ -415,11 +415,11 @@ void SignalHandlers::initialize()
     // installations will always trigger this initialization. However, in debugging
     // configurations, we may end up disabling the use of all signal handlers but
     // we still need this to be initialized. Hence, we need to initialize it
-    // eagerly to ensure that it is done before we freeze the WTF::Config.
+    // eagerly to ensure that it is done before we freeze the PurCWTF::Config.
     activeThreads();
 #endif
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
 #endif // OS(UNIX)

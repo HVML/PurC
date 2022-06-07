@@ -30,7 +30,7 @@
 
 #include <wtf/dtoa/utils.h>
 
-namespace WTF {
+namespace PurCWTF {
 namespace double_conversion {
 
 class DoubleToStringConverter {
@@ -415,6 +415,6 @@ class StringToDoubleConverter {
 };
 
 }  // namespace double_conversion
-}  // namespace WTF
+}  // namespace PurCWTF
 
 #endif  // DOUBLE_CONVERSION_DOUBLE_CONVERSION_H_

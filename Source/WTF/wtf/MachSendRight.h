@@ -29,7 +29,7 @@
 
 #include <mach/mach_port.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 class MachSendRight {
     WTF_MAKE_FAST_ALLOCATED;
@@ -60,7 +60,7 @@ WTF_EXPORT_PRIVATE void deallocateSendRightSafely(mach_port_t);
 
 }
 
-using WTF::MachSendRight;
-using WTF::deallocateSendRightSafely;
+using PurCWTF::MachSendRight;
+using PurCWTF::deallocateSendRightSafely;
 
 #endif

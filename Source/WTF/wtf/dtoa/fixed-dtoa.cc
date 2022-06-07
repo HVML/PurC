@@ -32,7 +32,7 @@
 #include <wtf/dtoa/fixed-dtoa.h>
 #include <wtf/dtoa/ieee.h>
 
-namespace WTF {
+namespace PurCWTF {
 namespace double_conversion {
 
 // Represents a 128bit type. This class should be replaced by a native type on
@@ -406,4 +406,4 @@ bool FastFixedDtoa(double v,
 }
 
 }  // namespace double_conversion
-}  // namespace WTF
+}  // namespace PurCWTF

@@ -63,7 +63,7 @@
  *
  */
 
-namespace WTF {
+namespace PurCWTF {
 
 enum class CheckedState {
     DidOverflow,
@@ -1084,23 +1084,23 @@ template<typename T, typename... Args> bool productOverflows(Args... args)
 
 }
 
-using WTF::AssertNoOverflow;
-using WTF::Checked;
-using WTF::CheckedState;
-using WTF::CheckedInt8;
-using WTF::CheckedUint8;
-using WTF::CheckedInt16;
-using WTF::CheckedUint16;
-using WTF::CheckedInt32;
-using WTF::CheckedUint32;
-using WTF::CheckedInt64;
-using WTF::CheckedUint64;
-using WTF::CheckedSize;
-using WTF::ConditionalCrashOnOverflow;
-using WTF::CrashOnOverflow;
-using WTF::RecordOverflow;
-using WTF::checkedSum;
-using WTF::differenceOverflows;
-using WTF::isInBounds;
-using WTF::productOverflows;
-using WTF::sumOverflows;
+using PurCWTF::AssertNoOverflow;
+using PurCWTF::Checked;
+using PurCWTF::CheckedState;
+using PurCWTF::CheckedInt8;
+using PurCWTF::CheckedUint8;
+using PurCWTF::CheckedInt16;
+using PurCWTF::CheckedUint16;
+using PurCWTF::CheckedInt32;
+using PurCWTF::CheckedUint32;
+using PurCWTF::CheckedInt64;
+using PurCWTF::CheckedUint64;
+using PurCWTF::CheckedSize;
+using PurCWTF::ConditionalCrashOnOverflow;
+using PurCWTF::CrashOnOverflow;
+using PurCWTF::RecordOverflow;
+using PurCWTF::checkedSum;
+using PurCWTF::differenceOverflows;
+using PurCWTF::isInBounds;
+using PurCWTF::productOverflows;
+using PurCWTF::sumOverflows;

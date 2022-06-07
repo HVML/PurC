@@ -27,7 +27,7 @@
 
 #include <type_traits>
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename T>
 struct SystemFree {
@@ -49,4 +49,4 @@ struct SystemFree<T[]> {
     }
 };
 
-} // namespace WTF
+} // namespace PurCWTF

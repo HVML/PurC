@@ -41,7 +41,7 @@
 #include <wtf/DataLog.h>
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 
 using namespace Unicode;
 
@@ -943,8 +943,8 @@ float StringImpl::toFloat(bool* ok)
 size_t StringImpl::find(CodeUnitMatchFunction matchFunction, unsigned start)
 {
     if (is8Bit())
-        return WTF::find(characters8(), m_length, matchFunction, start);
-    return WTF::find(characters16(), m_length, matchFunction, start);
+        return PurCWTF::find(characters8(), m_length, matchFunction, start);
+    return PurCWTF::find(characters16(), m_length, matchFunction, start);
 }
 
 size_t StringImpl::find(const LChar* matchString, unsigned index)
@@ -962,8 +962,8 @@ size_t StringImpl::find(const LChar* matchString, unsigned index)
     // Optimization 1: fast case for strings of length 1.
     if (matchLength == 1) {
         if (is8Bit())
-            return WTF::find(characters8(), length(), matchString[0], index);
-        return WTF::find(characters16(), length(), *matchString, index);
+            return PurCWTF::find(characters8(), length(), matchString[0], index);
+        return PurCWTF::find(characters16(), length(), *matchString, index);
     }
 
     // Check index & matchLength are in range.
@@ -1030,12 +1030,12 @@ size_t StringImpl::find(StringImpl* matchString)
     if (matchLength == 1) {
         if (is8Bit()) {
             if (matchString->is8Bit())
-                return WTF::find(characters8(), length(), matchString->characters8()[0]);
-            return WTF::find(characters8(), length(), matchString->characters16()[0]);
+                return PurCWTF::find(characters8(), length(), matchString->characters8()[0]);
+            return PurCWTF::find(characters8(), length(), matchString->characters16()[0]);
         }
         if (matchString->is8Bit())
-            return WTF::find(characters16(), length(), matchString->characters8()[0]);
-        return WTF::find(characters16(), length(), matchString->characters16()[0]);
+            return PurCWTF::find(characters16(), length(), matchString->characters8()[0]);
+        return PurCWTF::find(characters16(), length(), matchString->characters16()[0]);
     }
 
     // Check matchLength is in range.
@@ -1069,33 +1069,33 @@ size_t StringImpl::find(StringImpl* matchString, unsigned index)
 
 size_t StringImpl::findIgnoringASCIICase(const StringImpl& matchString) const
 {
-    return ::WTF::findIgnoringASCIICase(*this, matchString, 0);
+    return ::PurCWTF::findIgnoringASCIICase(*this, matchString, 0);
 }
 
 size_t StringImpl::findIgnoringASCIICase(const StringImpl& matchString, unsigned startOffset) const
 {
-    return ::WTF::findIgnoringASCIICase(*this, matchString, startOffset);
+    return ::PurCWTF::findIgnoringASCIICase(*this, matchString, startOffset);
 }
 
 size_t StringImpl::findIgnoringASCIICase(const StringImpl* matchString) const
 {
     if (!matchString)
         return notFound;
-    return ::WTF::findIgnoringASCIICase(*this, *matchString, 0);
+    return ::PurCWTF::findIgnoringASCIICase(*this, *matchString, 0);
 }
 
 size_t StringImpl::findIgnoringASCIICase(const StringImpl* matchString, unsigned startOffset) const
 {
     if (!matchString)
         return notFound;
-    return ::WTF::findIgnoringASCIICase(*this, *matchString, startOffset);
+    return ::PurCWTF::findIgnoringASCIICase(*this, *matchString, startOffset);
 }
 
 size_t StringImpl::reverseFind(UChar character, unsigned index)
 {
     if (is8Bit())
-        return WTF::reverseFind(characters8(), m_length, character, index);
-    return WTF::reverseFind(characters16(), m_length, character, index);
+        return PurCWTF::reverseFind(characters8(), m_length, character, index);
+    return PurCWTF::reverseFind(characters16(), m_length, character, index);
 }
 
 template <typename SearchCharacterType, typename MatchCharacterType>
@@ -1138,8 +1138,8 @@ size_t StringImpl::reverseFind(StringImpl* matchString, unsigned index)
     // Optimization 1: fast case for strings of length 1.
     if (matchLength == 1) {
         if (is8Bit())
-            return WTF::reverseFind(characters8(), ourLength, (*matchString)[0], index);
-        return WTF::reverseFind(characters16(), ourLength, (*matchString)[0], index);
+            return PurCWTF::reverseFind(characters8(), ourLength, (*matchString)[0], index);
+        return PurCWTF::reverseFind(characters16(), ourLength, (*matchString)[0], index);
     }
 
     // Check index & matchLength are in range.
@@ -1189,22 +1189,22 @@ ALWAYS_INLINE static bool equalInner(const StringImpl& string, unsigned startOff
 
 bool StringImpl::startsWith(const StringImpl* string) const
 {
-    return !string || ::WTF::startsWith(*this, *string);
+    return !string || ::PurCWTF::startsWith(*this, *string);
 }
 
 bool StringImpl::startsWith(const StringImpl& string) const
 {
-    return ::WTF::startsWith(*this, string);
+    return ::PurCWTF::startsWith(*this, string);
 }
 
 bool StringImpl::startsWithIgnoringASCIICase(const StringImpl* prefix) const
 {
-    return prefix && ::WTF::startsWithIgnoringASCIICase(*this, *prefix);
+    return prefix && ::PurCWTF::startsWithIgnoringASCIICase(*this, *prefix);
 }
 
 bool StringImpl::startsWithIgnoringASCIICase(const StringImpl& prefix) const
 {
-    return ::WTF::startsWithIgnoringASCIICase(*this, prefix);
+    return ::PurCWTF::startsWithIgnoringASCIICase(*this, prefix);
 }
 
 bool StringImpl::startsWith(UChar character) const
@@ -1224,22 +1224,22 @@ bool StringImpl::hasInfixStartingAt(const StringImpl& matchString, unsigned star
 
 bool StringImpl::endsWith(StringImpl* suffix)
 {
-    return suffix && ::WTF::endsWith(*this, *suffix);
+    return suffix && ::PurCWTF::endsWith(*this, *suffix);
 }
 
 bool StringImpl::endsWith(StringImpl& suffix)
 {
-    return ::WTF::endsWith(*this, suffix);
+    return ::PurCWTF::endsWith(*this, suffix);
 }
 
 bool StringImpl::endsWithIgnoringASCIICase(const StringImpl* suffix) const
 {
-    return suffix && ::WTF::endsWithIgnoringASCIICase(*this, *suffix);
+    return suffix && ::PurCWTF::endsWithIgnoringASCIICase(*this, *suffix);
 }
 
 bool StringImpl::endsWithIgnoringASCIICase(const StringImpl& suffix) const
 {
-    return ::WTF::endsWithIgnoringASCIICase(*this, suffix);
+    return ::PurCWTF::endsWithIgnoringASCIICase(*this, suffix);
 }
 
 bool StringImpl::endsWith(UChar character) const
@@ -1935,4 +1935,4 @@ bool equalIgnoringNullity(const UChar* a, size_t aLength, StringImpl* b)
     return !memcmp(a, b->characters16(), b->length() * sizeof(UChar));
 }
 
-} // namespace WTF
+} // namespace PurCWTF

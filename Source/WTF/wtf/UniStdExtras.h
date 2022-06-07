@@ -29,7 +29,7 @@
 #include <errno.h>
 #include <unistd.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 WTF_EXPORT_PRIVATE bool setCloseOnExec(int fileDescriptor);
 WTF_EXPORT_PRIVATE int dupCloseOnExec(int fileDescriptor);
@@ -52,11 +52,11 @@ inline int closeWithRetry(int fileDescriptor)
 
 WTF_EXPORT_PRIVATE bool setNonBlock(int fileDescriptor);
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::closeWithRetry;
-using WTF::dupCloseOnExec;
-using WTF::setCloseOnExec;
-using WTF::setNonBlock;
+using PurCWTF::closeWithRetry;
+using PurCWTF::dupCloseOnExec;
+using PurCWTF::setCloseOnExec;
+using PurCWTF::setNonBlock;
 
 #endif // UniStdExtras_h

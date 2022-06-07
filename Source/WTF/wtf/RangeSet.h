@@ -30,7 +30,7 @@
 #include <wtf/StdLibExtras.h>
 #include <wtf/Vector.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 // A RangeSet is a set of numerical ranges. A value belongs to the set if it is within any of the
 // ranges. A range belongs to the set if every value in the range belongs to the set. A range overlaps
@@ -209,6 +209,6 @@ private:
     bool m_isCompact { true };
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::RangeSet;
+using PurCWTF::RangeSet;

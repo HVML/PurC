@@ -29,7 +29,7 @@
 #include <wtf/MonotonicTime.h>
 #include <wtf/WallTime.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 class PrintStream;
 
@@ -136,27 +136,27 @@ WTF_EXPORT_PRIVATE void sleep(const TimeWithDynamicClockType&);
 
 WTF_EXPORT_PRIVATE bool hasElapsed(const TimeWithDynamicClockType&);
 
-} // namespace WTF
+} // namespace PurCWTF
 
 namespace std {
 
-inline bool isnan(WTF::TimeWithDynamicClockType time)
+inline bool isnan(PurCWTF::TimeWithDynamicClockType time)
 {
     return std::isnan(time.secondsSinceEpoch().value());
 }
 
-inline bool isinf(WTF::TimeWithDynamicClockType time)
+inline bool isinf(PurCWTF::TimeWithDynamicClockType time)
 {
     return std::isinf(time.secondsSinceEpoch().value());
 }
 
-inline bool isfinite(WTF::TimeWithDynamicClockType time)
+inline bool isfinite(PurCWTF::TimeWithDynamicClockType time)
 {
     return std::isfinite(time.secondsSinceEpoch().value());
 }
 
 } // namespace std
 
-using WTF::TimeWithDynamicClockType;
-using WTF::hasElapsed;
-using WTF::sleep;
+using PurCWTF::TimeWithDynamicClockType;
+using PurCWTF::hasElapsed;
+using PurCWTF::sleep;

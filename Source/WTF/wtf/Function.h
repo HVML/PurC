@@ -28,7 +28,7 @@
 #include <memory>
 #include <wtf/FastMalloc.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 namespace Detail {
 
@@ -115,6 +115,6 @@ private:
     std::unique_ptr<Impl> m_callableWrapper;
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::Function;
+using PurCWTF::Function;

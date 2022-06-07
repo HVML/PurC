@@ -61,102 +61,102 @@ Optional<NetworkSessionCreationParameters> NetworkSessionCreationParameters::dec
     Optional<PAL::SessionID> sessionID;
     decoder >> sessionID;
     if (!sessionID)
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
 
     Optional<String> boundInterfaceIdentifier;
     decoder >> boundInterfaceIdentifier;
     if (!boundInterfaceIdentifier)
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
 
     Optional<AllowsCellularAccess> allowsCellularAccess;
     decoder >> allowsCellularAccess;
     if (!allowsCellularAccess)
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
 
     Optional<String> cookiePersistentStoragePath;
     decoder >> cookiePersistentStoragePath;
     if (!cookiePersistentStoragePath)
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
 
     Optional<CookiePersistentStorageType> cookiePersistentStorageType;
     decoder >> cookiePersistentStorageType;
     if (!cookiePersistentStorageType)
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
 
     Optional<String> networkCacheDirectory;
     decoder >> networkCacheDirectory;
     if (!networkCacheDirectory)
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
 
     Optional<SandboxExtension::Handle> networkCacheDirectoryExtensionHandle;
     decoder >> networkCacheDirectoryExtensionHandle;
     if (!networkCacheDirectoryExtensionHandle)
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
 
     Optional<bool> deviceManagementRestrictionsEnabled;
     decoder >> deviceManagementRestrictionsEnabled;
     if (!deviceManagementRestrictionsEnabled)
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
 
     Optional<bool> allLoadsBlockedByDeviceManagementRestrictionsForTesting;
     decoder >> allLoadsBlockedByDeviceManagementRestrictionsForTesting;
     if (!allLoadsBlockedByDeviceManagementRestrictionsForTesting)
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
 
     Optional<String> dataConnectionServiceType;
     decoder >> dataConnectionServiceType;
     if (!dataConnectionServiceType)
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
 
     Optional<bool> fastServerTrustEvaluationEnabled;
     decoder >> fastServerTrustEvaluationEnabled;
     if (!fastServerTrustEvaluationEnabled)
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
 
     Optional<bool> networkCacheSpeculativeValidationEnabled;
     decoder >> networkCacheSpeculativeValidationEnabled;
     if (!networkCacheSpeculativeValidationEnabled)
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
 
     Optional<bool> shouldUseTestingNetworkSession;
     decoder >> shouldUseTestingNetworkSession;
     if (!shouldUseTestingNetworkSession)
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
 
     Optional<bool> staleWhileRevalidateEnabled;
     decoder >> staleWhileRevalidateEnabled;
     if (!staleWhileRevalidateEnabled)
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
 
     Optional<unsigned> testSpeedMultiplier;
     decoder >> testSpeedMultiplier;
     if (!testSpeedMultiplier)
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
 
     Optional<bool> suppressesConnectionTerminationOnSystemChange;
     decoder >> suppressesConnectionTerminationOnSystemChange;
     if (!suppressesConnectionTerminationOnSystemChange)
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
 
     Optional<bool> allowsServerPreconnect;
     decoder >> allowsServerPreconnect;
     if (!allowsServerPreconnect)
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
 
     Optional<bool> requiresSecureHTTPSProxyConnection;
     decoder >> requiresSecureHTTPSProxyConnection;
     if (!requiresSecureHTTPSProxyConnection)
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
 
     Optional<bool> preventsSystemHTTPProxyAuthentication;
     decoder >> preventsSystemHTTPProxyAuthentication;
     if (!preventsSystemHTTPProxyAuthentication)
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
 
     Optional<ResourceLoadStatisticsParameters> resourceLoadStatisticsParameters;
     decoder >> resourceLoadStatisticsParameters;
     if (!resourceLoadStatisticsParameters)
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
 
     return {{
         *sessionID

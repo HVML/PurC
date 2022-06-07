@@ -26,8 +26,8 @@
 #include "config.h"
 #include <wtf/SmallPtrSet.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 DEFINE_ALLOCATOR_WITH_HEAP_IDENTIFIER(SmallPtrSet);
 
-} // namespace WTF
+} // namespace PurCWTF

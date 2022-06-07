@@ -32,7 +32,7 @@
 #include <wtf/spi/cocoa/MachVMSPI.h>
 #include <wtf/text/StringConcatenateNumbers.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 size_t vmPageSize()
 {

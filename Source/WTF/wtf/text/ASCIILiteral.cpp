@@ -28,11 +28,11 @@
 
 #include <wtf/PrintStream.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 void ASCIILiteral::dump(PrintStream& out) const
 {
     out.print(m_characters);
 }
 
-} // namespace WTF
+} // namespace PurCWTF

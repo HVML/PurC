@@ -30,7 +30,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 static inline size_t systemPageSize()
 {
@@ -70,4 +70,4 @@ void currentProcessMemoryStatus(ProcessMemoryStatus& memoryStatus)
     memoryStatus.dt = intValue * pageSize;
 }
 
-} // namespace WTF
+} // namespace PurCWTF

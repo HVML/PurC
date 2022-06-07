@@ -29,7 +29,7 @@
 #include <wtf/ScopedLambda.h>
 #include <wtf/TimeWithDynamicClockType.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 class Thread;
 
@@ -127,11 +127,11 @@ public:
     // a good time to do fair unlocking. The callback returns an intptr_t token, which is returned
     // to the unparked thread via ParkResult::token.
     //
-    // WTF::Lock and WTF::Condition both use this form of unparkOne() because it allows them to use
+    // PurCWTF::Lock and PurCWTF::Condition both use this form of unparkOne() because it allows them to use
     // the ParkingLot's internal queue lock to serialize some decision-making. For example, if
     // UnparkResult::mayHaveMoreThreads is false inside the callback, then we know that at that
     // moment nobody can add any threads to the queue because the queue lock is still held. Also,
-    // WTF::Lock uses the timeToBeFair and token mechanism to implement eventual fairness.
+    // PurCWTF::Lock uses the timeToBeFair and token mechanism to implement eventual fairness.
     template<typename Callback>
     static void unparkOne(const void* address, const Callback& callback)
     {
@@ -175,6 +175,6 @@ private:
     WTF_EXPORT_PRIVATE static void forEachImpl(const ScopedLambda<void(Thread&, const void*)>&);
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::ParkingLot;
+using PurCWTF::ParkingLot;

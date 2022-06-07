@@ -35,7 +35,7 @@
 
 #include <wtf/text/StringBuilder.h>
 
-namespace WTF {
+namespace PurCWTF {
 namespace JSONImpl {
 
 namespace {
@@ -858,4 +858,4 @@ size_t ArrayBase::memoryCost() const
 }
 
 } // namespace JSONImpl
-} // namespace WTF
+} // namespace PurCWTF

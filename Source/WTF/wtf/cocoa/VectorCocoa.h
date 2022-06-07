@@ -30,7 +30,7 @@
 
 #include <wtf/Forward.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 // Specialize the behavior of these functions by overloading the makeNSArrayElement
 // functions and makeVectorElement functions. The makeNSArrayElement function takes
@@ -91,7 +91,7 @@ template<typename VectorElementType> Vector<VectorElementType> makeVector(NSArra
     return vector;
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::createNSArray;
-using WTF::makeVector;
+using PurCWTF::createNSArray;
+using PurCWTF::makeVector;

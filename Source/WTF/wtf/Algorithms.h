@@ -25,7 +25,7 @@
 
 #pragma once
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename ContainerType, typename ForEachFunction>
 void forEach(ContainerType&& container, ForEachFunction forEachFunction)

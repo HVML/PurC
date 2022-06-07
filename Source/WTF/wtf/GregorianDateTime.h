@@ -30,7 +30,7 @@
 #include <wtf/Noncopyable.h>
 #include <wtf/StdLibExtras.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 class GregorianDateTime final {
     WTF_MAKE_FAST_ALLOCATED;
@@ -108,6 +108,6 @@ private:
     int m_isDST { 0 };
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::GregorianDateTime;
+using PurCWTF::GregorianDateTime;

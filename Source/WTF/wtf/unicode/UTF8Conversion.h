@@ -31,7 +31,7 @@
 #include <wtf/text/LChar.h>
 #include <wtf/text/UChar.h>
 
-namespace WTF {
+namespace PurCWTF {
 namespace Unicode {
 
 enum ConversionResult {
@@ -58,4 +58,4 @@ bool equalUTF16WithUTF8(const UChar* stringInUTF16, const char* stringInUTF8, co
 bool equalLatin1WithUTF8(const LChar* stringInLatin1, const char* stringInUTF8, const char* stringInUTF8End);
 
 } // namespace Unicode
-} // namespace WTF
+} // namespace PurCWTF

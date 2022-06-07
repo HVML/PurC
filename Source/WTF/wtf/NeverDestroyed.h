@@ -41,7 +41,7 @@
 //   return myGlobal;
 // }
 
-namespace WTF {
+namespace PurCWTF {
 
 struct AnyThreadsAccessTraits {
     static void assertAccess()
@@ -190,12 +190,12 @@ using MainThreadNeverDestroyed = NeverDestroyed<T, MainThreadAccessTraits>;
 template<typename T>
 using MainThreadLazyNeverDestroyed = LazyNeverDestroyed<T, MainThreadAccessTraits>;
 
-} // namespace WTF;
+} // namespace PurCWTF;
 
-using WTF::LazyNeverDestroyed;
-using WTF::NeverDestroyed;
-using WTF::makeNeverDestroyed;
-using WTF::MainThreadNeverDestroyed;
-using WTF::MainThreadLazyNeverDestroyed;
-using WTF::AnyThreadsAccessTraits;
-using WTF::MainThreadAccessTraits;
+using PurCWTF::LazyNeverDestroyed;
+using PurCWTF::NeverDestroyed;
+using PurCWTF::makeNeverDestroyed;
+using PurCWTF::MainThreadNeverDestroyed;
+using PurCWTF::MainThreadLazyNeverDestroyed;
+using PurCWTF::AnyThreadsAccessTraits;
+using PurCWTF::MainThreadAccessTraits;

@@ -30,7 +30,7 @@
 // This contains the values with which to compare the return value of applicationSDKVersion().
 #include <wtf/spi/darwin/dyldSPI.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 // dyld_get_program_sdk_version() gives you the wrong answer in any process other than the UI process.
 // These functions are hooked up to give you the right answer.
@@ -39,5 +39,5 @@ WTF_EXPORT_PRIVATE uint32_t applicationSDKVersion();
 
 }
 
-using WTF::setApplicationSDKVersion;
-using WTF::applicationSDKVersion;
+using PurCWTF::setApplicationSDKVersion;
+using PurCWTF::applicationSDKVersion;

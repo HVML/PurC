@@ -28,9 +28,9 @@
 #include <wtf/Atomics.h>
 #include <wtf/Compiler.h>
 
-namespace WTF {
+namespace PurCWTF {
 
-// This is the algorithm used by WTF::Lock. You can use it to project one lock onto any atomic
+// This is the algorithm used by PurCWTF::Lock. You can use it to project one lock onto any atomic
 // field. The limit of one lock is due to the use of the field's address as a key to find the lock's
 // queue.
 
@@ -115,7 +115,7 @@ public:
     
     static bool safepointFast(const Atomic<LockType>& lock)
     {
-        WTF::compilerFence();
+        PurCWTF::compilerFence();
         return !(lock.load(std::memory_order_relaxed) & hasParkedBit);
     }
     
@@ -151,6 +151,6 @@ private:
     };
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::LockAlgorithm;
+using PurCWTF::LockAlgorithm;

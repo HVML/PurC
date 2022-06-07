@@ -119,7 +119,7 @@ purc_variant_t PcFetcherRequest::requestAsync(
         uri.append(base_uri);
     }
     uri.append(url);
-    std::unique_ptr<WTF::URL> wurl = makeUnique<URL>(URL(), uri);
+    std::unique_ptr<PurCWTF::URL> wurl = makeUnique<URL>(URL(), uri);
 
     ResourceRequest request;
     request.setURL(*wurl);
@@ -161,7 +161,7 @@ purc_rwstream_t PcFetcherRequest::requestSync(
         uri.append(base_uri);
     }
     uri.append(url);
-    std::unique_ptr<WTF::URL> wurl = makeUnique<URL>(URL(), uri);
+    std::unique_ptr<PurCWTF::URL> wurl = makeUnique<URL>(URL(), uri);
 
     ResourceRequest request;
     request.setURL(*wurl);

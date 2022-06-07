@@ -22,7 +22,7 @@
 
 #include <memory>
 
-namespace WTF {
+namespace PurCWTF {
 
 enum HashTableDeletedValueType { HashTableDeletedValue };
 enum HashTableEmptyValueType { HashTableEmptyValue };
@@ -76,4 +76,4 @@ struct GetPtrHelper<std::unique_ptr<T, Deleter>> {
     static T* getPtr(const std::unique_ptr<T, Deleter>& p) { return p.get(); }
 };
 
-} // namespace WTF
+} // namespace PurCWTF

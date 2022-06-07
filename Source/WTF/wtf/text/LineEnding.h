@@ -33,7 +33,7 @@
 
 #include <wtf/Forward.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 // Normalize all line-endings in the given string.
 WTF_EXPORT_PRIVATE Vector<uint8_t> normalizeLineEndingsToLF(Vector<uint8_t>&&);
@@ -42,8 +42,8 @@ WTF_EXPORT_PRIVATE Vector<uint8_t> normalizeLineEndingsToCRLF(Vector<uint8_t>&&)
 // Normalize all line-endings to CRLF on Windows, to LF on all other platforms.
 WTF_EXPORT_PRIVATE Vector<uint8_t> normalizeLineEndingsToNative(Vector<uint8_t>&&);
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::normalizeLineEndingsToCRLF;
-using WTF::normalizeLineEndingsToLF;
-using WTF::normalizeLineEndingsToNative;
+using PurCWTF::normalizeLineEndingsToCRLF;
+using PurCWTF::normalizeLineEndingsToLF;
+using PurCWTF::normalizeLineEndingsToNative;

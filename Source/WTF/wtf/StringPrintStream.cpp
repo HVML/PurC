@@ -30,7 +30,7 @@
 #include <stdio.h>
 #include <wtf/FastMalloc.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 StringPrintStream::StringPrintStream()
     : m_buffer(m_inlineBuffer)
@@ -125,5 +125,5 @@ void StringPrintStream::increaseSize(size_t newSize)
     m_buffer = newBuffer;
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 

@@ -47,7 +47,7 @@
 #define CHECK_STRINGVIEW_LIFETIME 1
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 
 // StringView is a non-owning reference to a string, similar to the proposed std::string_view.
 
@@ -256,7 +256,7 @@ WTF_EXPORT_PRIVATE Optional<uint16_t> parseUInt16(StringView);
 #include <wtf/text/AtomString.h>
 #include <wtf/text/WTFString.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 struct StringViewWithUnderlyingString {
     WTF_MAKE_STRUCT_FAST_ALLOCATED;
@@ -520,8 +520,8 @@ inline bool StringView::contains(CodeUnitMatchFunction function) const
 template<bool isSpecialCharacter(UChar)> inline bool StringView::isAllSpecialCharacters() const
 {
     if (is8Bit())
-        return WTF::isAllSpecialCharacters<isSpecialCharacter>(characters8(), length());
-    return WTF::isAllSpecialCharacters<isSpecialCharacter>(characters16(), length());
+        return PurCWTF::isAllSpecialCharacters<isSpecialCharacter>(characters8(), length());
+    return PurCWTF::isAllSpecialCharacters<isSpecialCharacter>(characters16(), length());
 }
 
 inline void StringView::getCharactersWithUpconvert(LChar* destination) const
@@ -605,7 +605,7 @@ inline Optional<uint64_t> StringView::toUInt64Strict() const
 {
     bool isValid;
     uint64_t result = is8Bit() ? charactersToUInt64Strict(characters8(), m_length, &isValid) : charactersToUInt64Strict(characters16(), m_length, &isValid);
-    return isValid ? makeOptional(result) : WTF::nullopt;
+    return isValid ? makeOptional(result) : PurCWTF::nullopt;
 }
 
 inline String StringView::toStringWithoutCopying() const
@@ -618,22 +618,22 @@ inline String StringView::toStringWithoutCopying() const
 inline size_t StringView::find(UChar character, unsigned start) const
 {
     if (is8Bit())
-        return WTF::find(characters8(), m_length, character, start);
-    return WTF::find(characters16(), m_length, character, start);
+        return PurCWTF::find(characters8(), m_length, character, start);
+    return PurCWTF::find(characters16(), m_length, character, start);
 }
 
 inline size_t StringView::find(CodeUnitMatchFunction matchFunction, unsigned start) const
 {
     if (is8Bit())
-        return WTF::find(characters8(), m_length, matchFunction, start);
-    return WTF::find(characters16(), m_length, matchFunction, start);
+        return PurCWTF::find(characters8(), m_length, matchFunction, start);
+    return PurCWTF::find(characters16(), m_length, matchFunction, start);
 }
 
 inline size_t StringView::reverseFind(UChar character, unsigned index) const
 {
     if (is8Bit())
-        return WTF::reverseFind(characters8(), m_length, character, index);
-    return WTF::reverseFind(characters16(), m_length, character, index);
+        return PurCWTF::reverseFind(characters8(), m_length, character, index);
+    return PurCWTF::reverseFind(characters16(), m_length, character, index);
 }
 
 #if !CHECK_STRINGVIEW_LIFETIME
@@ -892,7 +892,7 @@ inline auto StringView::CodePoints::Iterator::operator++() -> Iterator&
 {
     ASSERT(m_nextCodePointOffset);
     if (m_nextCodePointOffset.value() == m_stringView.get().length()) {
-        m_nextCodePointOffset = WTF::nullopt;
+        m_nextCodePointOffset = PurCWTF::nullopt;
         return *this;
     }
     if (m_stringView.get().is8Bit())
@@ -1081,9 +1081,9 @@ inline bool equalIgnoringNullity(StringView a, StringView b)
     return equal(a, b);
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::append;
-using WTF::equal;
-using WTF::StringView;
-using WTF::StringViewWithUnderlyingString;
+using PurCWTF::append;
+using PurCWTF::equal;
+using PurCWTF::StringView;
+using PurCWTF::StringViewWithUnderlyingString;

@@ -28,7 +28,7 @@
 #include <wtf/MonotonicTime.h>
 #include <wtf/Seconds.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 struct CPUTime {
     WTF_MAKE_STRUCT_FAST_ALLOCATED;
@@ -47,6 +47,6 @@ struct CPUTime {
     WTF_EXPORT_PRIVATE static Seconds forCurrentThread();
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::CPUTime;
+using PurCWTF::CPUTime;

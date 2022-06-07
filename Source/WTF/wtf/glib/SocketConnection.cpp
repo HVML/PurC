@@ -27,7 +27,7 @@
 #include <wtf/FastMalloc.h>
 #include <wtf/RunLoop.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 static const unsigned defaultBufferSize = 4096;
 
@@ -276,4 +276,4 @@ void SocketConnection::didClose()
     m_messageHandlers.get("DidClose").second(*this, nullptr, m_userData);
 }
 
-} // namespace WTF
+} // namespace PurCWTF

@@ -28,7 +28,7 @@
 #include <wtf/Function.h>
 #include <wtf/ThreadSafeRefCounted.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 // FunctionDispatcher is an abstract representation of something that functions can be
 // dispatched to. This can for example be a run loop or a work queue.
@@ -43,6 +43,6 @@ protected:
     WTF_EXPORT_PRIVATE FunctionDispatcher();
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::FunctionDispatcher;
+using PurCWTF::FunctionDispatcher;

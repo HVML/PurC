@@ -62,7 +62,7 @@ ALLOW_DEPRECATED_DECLARATIONS_BEGIN
 
 #if !COMPILER(CLANG) || WTF_CPP_STD_VER >= 14
 
-namespace WTF {
+namespace PurCWTF {
 
 #if COMPILER_SUPPORTS(EXCEPTIONS)
 #define __THROW_EXCEPTION(__exception) throw __exception;
@@ -2048,33 +2048,33 @@ struct __hash_visitor{
 // -- xGUI Additions --
 
 template<class V, class... F>
-auto switchOn(V&& v, F&&... f) -> decltype(WTF::visit(makeVisitor(std::forward<F>(f)...), std::forward<V>(v)))
+auto switchOn(V&& v, F&&... f) -> decltype(PurCWTF::visit(makeVisitor(std::forward<F>(f)...), std::forward<V>(v)))
 {
-    return WTF::visit(makeVisitor(std::forward<F>(f)...), std::forward<V>(v));
+    return PurCWTF::visit(makeVisitor(std::forward<F>(f)...), std::forward<V>(v));
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
 namespace std {
 
 template<>
-struct hash<WTF::Monostate>{
-    size_t operator()(WTF::Monostate) __NOEXCEPT{
+struct hash<PurCWTF::Monostate>{
+    size_t operator()(PurCWTF::Monostate) __NOEXCEPT{
         return 42;
     }
 };
 
 template<typename ... _Types>
-struct hash<WTF::Variant<_Types...>>{
-    size_t operator()(WTF::Variant<_Types...> const &v) __NOEXCEPT {
-        return std::hash<ptrdiff_t>()(v.index()) ^ WTF::visit(WTF::__hash_visitor(), v);
+struct hash<PurCWTF::Variant<_Types...>>{
+    size_t operator()(PurCWTF::Variant<_Types...> const &v) __NOEXCEPT {
+        return std::hash<ptrdiff_t>()(v.index()) ^ PurCWTF::visit(PurCWTF::__hash_visitor(), v);
     }
 };
 
 } // namespace std
 
-using WTF::Monostate;
-using WTF::Variant;
+using PurCWTF::Monostate;
+using PurCWTF::Variant;
 
 #endif // !COMPILER(CLANG) || WTF_CPP_STD_VER >= 14
 

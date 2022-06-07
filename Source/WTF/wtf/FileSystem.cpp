@@ -43,7 +43,7 @@
 #include <gio/gio.h>
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 
 namespace FileSystemImpl {
 
@@ -219,7 +219,7 @@ bool appendFileContentsToFileHandle(const String& path, PlatformFileHandle& targ
     static int bufferSize = 1 << 19;
     Vector<char> buffer(bufferSize);
 
-    auto fileCloser = WTF::makeScopeExit([source]() {
+    auto fileCloser = PurCWTF::makeScopeExit([source]() {
         PlatformFileHandle handle = source;
         closeFile(handle);
     });
@@ -314,7 +314,7 @@ bool MappedFileData::mapFileHandle(PlatformFileHandle handle, FileOpenMode openM
     }
 
     unsigned size;
-    if (!WTF::convertSafely(fileStat.st_size, size)) {
+    if (!PurCWTF::convertSafely(fileStat.st_size, size)) {
         return false;
     }
 
@@ -407,4 +407,4 @@ String createTemporaryZipArchive(const String&)
 }
 
 } // namespace FileSystemImpl
-} // namespace WTF
+} // namespace PurCWTF

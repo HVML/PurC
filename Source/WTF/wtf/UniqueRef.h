@@ -28,7 +28,7 @@
 #include <memory>
 #include <wtf/Assertions.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename T> class UniqueRef;
 
@@ -82,8 +82,8 @@ private:
     std::unique_ptr<T> m_ref;
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::UniqueRef;
-using WTF::makeUniqueRef;
-using WTF::makeUniqueRefWithoutFastMallocCheck;
+using PurCWTF::UniqueRef;
+using PurCWTF::makeUniqueRef;
+using PurCWTF::makeUniqueRefWithoutFastMallocCheck;

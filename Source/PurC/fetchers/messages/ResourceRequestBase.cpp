@@ -156,7 +156,7 @@ ResourceRequest ResourceRequestBase::redirectedRequest(const ResourceResponse& r
 
     request.redirectAsGETIfNeeded(*this, redirectResponse);
 
-    if (shouldClearReferrerOnHTTPSToHTTPRedirect && !request.url().protocolIs("https") && WTF::protocolIs(request.httpReferrer(), "https"))
+    if (shouldClearReferrerOnHTTPSToHTTPRedirect && !request.url().protocolIs("https") && PurCWTF::protocolIs(request.httpReferrer(), "https"))
         request.clearHTTPReferrer();
 
     if (!protocolHostAndPortAreEqual(request.url(), redirectResponse.url()))
@@ -492,7 +492,7 @@ bool ResourceRequestBase::hasUpload() const
 {
     if (auto* body = httpBody()) {
         for (auto& element : body->elements()) {
-            if (WTF::holds_alternative<PurCFetcher::FormDataElement::EncodedFileData>(element.data) || WTF::holds_alternative<PurCFetcher::FormDataElement::EncodedBlobData>(element.data))
+            if (PurCWTF::holds_alternative<PurCFetcher::FormDataElement::EncodedFileData>(element.data) || PurCWTF::holds_alternative<PurCFetcher::FormDataElement::EncodedBlobData>(element.data))
                 return true;
         }
     }

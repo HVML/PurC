@@ -43,7 +43,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <wtf/text/TextBreakIterator.h>
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 
 bool StringView::containsIgnoringASCIICase(const StringView& matchString) const
 {
@@ -57,12 +57,12 @@ bool StringView::containsIgnoringASCIICase(const StringView& matchString, unsign
 
 size_t StringView::findIgnoringASCIICase(const StringView& matchString) const
 {
-    return ::WTF::findIgnoringASCIICase(*this, matchString, 0);
+    return ::PurCWTF::findIgnoringASCIICase(*this, matchString, 0);
 }
 
 size_t StringView::findIgnoringASCIICase(const StringView& matchString, unsigned startOffset) const
 {
-    return ::WTF::findIgnoringASCIICase(*this, matchString, startOffset);
+    return ::PurCWTF::findIgnoringASCIICase(*this, matchString, startOffset);
 }
 
 bool StringView::startsWith(UChar character) const
@@ -72,12 +72,12 @@ bool StringView::startsWith(UChar character) const
 
 bool StringView::startsWith(const StringView& prefix) const
 {
-    return ::WTF::startsWith(*this, prefix);
+    return ::PurCWTF::startsWith(*this, prefix);
 }
 
 bool StringView::startsWithIgnoringASCIICase(const StringView& prefix) const
 {
-    return ::WTF::startsWithIgnoringASCIICase(*this, prefix);
+    return ::PurCWTF::startsWithIgnoringASCIICase(*this, prefix);
 }
 
 bool StringView::endsWith(UChar character) const
@@ -87,12 +87,12 @@ bool StringView::endsWith(UChar character) const
 
 bool StringView::endsWith(const StringView& suffix) const
 {
-    return ::WTF::endsWith(*this, suffix);
+    return ::PurCWTF::endsWith(*this, suffix);
 }
 
 bool StringView::endsWithIgnoringASCIICase(const StringView& suffix) const
 {
-    return ::WTF::endsWithIgnoringASCIICase(*this, suffix);
+    return ::PurCWTF::endsWithIgnoringASCIICase(*this, suffix);
 }
 
 Expected<CString, UTF8ConversionError> StringView::tryGetUtf8(ConversionMode mode) const
@@ -192,7 +192,7 @@ private:
 };
 
 StringView::GraphemeClusters::Iterator::Iterator(const StringView& stringView, unsigned index)
-    : m_impl(makeUnique<Impl>(stringView, stringView.isNull() ? WTF::nullopt : Optional<NonSharedCharacterBreakIterator>(NonSharedCharacterBreakIterator(stringView)), index))
+    : m_impl(makeUnique<Impl>(stringView, stringView.isNull() ? PurCWTF::nullopt : Optional<NonSharedCharacterBreakIterator>(NonSharedCharacterBreakIterator(stringView)), index))
 {
 }
 
@@ -328,7 +328,7 @@ Optional<uint16_t> parseUInt16(StringView string)
     bool ok = false;
     auto number = toIntegralType<uint16_t>(string, &ok);
     if (!ok)
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
     return number;
 }
 
@@ -440,4 +440,4 @@ void StringView::setUnderlyingString(const StringView& otherString)
 
 #endif // CHECK_STRINGVIEW_LIFETIME
 
-} // namespace WTF
+} // namespace PurCWTF

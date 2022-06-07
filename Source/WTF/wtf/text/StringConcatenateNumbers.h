@@ -29,7 +29,7 @@
 #include <wtf/text/IntegerToStringConversion.h>
 #include <wtf/text/StringConcatenate.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename SignedInt>
 class StringTypeAdapter<SignedInt, typename std::enable_if_t<std::is_integral<SignedInt>::value && std::is_signed<SignedInt>::value>> {
@@ -127,4 +127,4 @@ private:
 
 }
 
-using WTF::FormattedNumber;
+using PurCWTF::FormattedNumber;

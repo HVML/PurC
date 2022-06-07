@@ -29,7 +29,7 @@
 #include <wtf/CommaPrinter.h>
 #include <wtf/IndexKeyType.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 // This is a set for things that have an index(). It's super efficient for BasicBlocks. It's only
 // efficient for Values if you don't create too many of these sets, since Values can have very sparse
@@ -162,6 +162,6 @@ private:
     BitVector m_set;
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::IndexSet;
+using PurCWTF::IndexSet;

@@ -27,7 +27,7 @@
 #include <wtf/text/LChar.h>
 #include <wtf/text/UChar.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 // Paul Hsieh's SuperFastHash
 // http://www.azillionmonkeys.com/qed/hash.html
@@ -349,6 +349,6 @@ private:
     bool m_hasPendingCharacter { false };
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::StringHasher;
+using PurCWTF::StringHasher;

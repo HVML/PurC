@@ -51,7 +51,7 @@
 
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 
 #if !defined(NDEBUG)
 namespace {
@@ -106,7 +106,7 @@ TryMallocReturnValue tryFastZeroedMalloc(size_t n)
     return result;
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
 #if defined(USE_SYSTEM_MALLOC) && USE_SYSTEM_MALLOC
 
@@ -116,7 +116,7 @@ TryMallocReturnValue tryFastZeroedMalloc(size_t n)
 #include <malloc.h>
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 
 bool isFastMallocEnabled()
 {
@@ -286,13 +286,13 @@ void fastDisableScavenger() { }
 
 void fastMallocDumpMallocStats() { }
 
-} // namespace WTF
+} // namespace PurCWTF
 
 #else // defined(USE_SYSTEM_MALLOC) && USE_SYSTEM_MALLOC
 
 #include <bmalloc/bmalloc.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 #define TRACK_MALLOC_CALLSTACK 0
 
@@ -647,6 +647,6 @@ void fastDisableScavenger()
     bmalloc::api::disableScavenger();
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
 #endif // defined(USE_SYSTEM_MALLOC) && USE_SYSTEM_MALLOC

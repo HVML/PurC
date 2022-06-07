@@ -27,7 +27,7 @@
 #include <string.h>
 #include <type_traits>
 
-namespace WTF {
+namespace PurCWTF {
 
 template<size_t size>
 using BitmapWordType = std::conditional_t<(size <= 32 && sizeof(UCPURegister) > sizeof(uint32_t)), uint32_t, UCPURegister>;
@@ -291,7 +291,7 @@ inline size_t Bitmap<bitmapSize, WordType>::count(size_t start) const
             ++result;
     }
     for (size_t i = start / bitsInWord; i < numberOfWords; ++i)
-        result += WTF::bitCount(bits[i]);
+        result += PurCWTF::bitCount(bits[i]);
     return result;
 }
 
@@ -511,6 +511,6 @@ inline unsigned Bitmap<bitmapSize, WordType>::hash() const
     return result;
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::Bitmap;
+using PurCWTF::Bitmap;

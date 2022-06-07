@@ -38,7 +38,7 @@
 
 #include <wtf/Packed.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 enum SentinelTag { Sentinel };
 
@@ -274,6 +274,6 @@ using PackedRawSentinelNode = BasicRawSentinelNode<T, PackedPtrTraits<T>>;
 
 }
 
-using WTF::BasicRawSentinelNode;
-using WTF::PackedRawSentinelNode;
-using WTF::SentinelLinkedList;
+using PurCWTF::BasicRawSentinelNode;
+using PurCWTF::PackedRawSentinelNode;
+using PurCWTF::SentinelLinkedList;

@@ -25,7 +25,7 @@
 
 #pragma once
 
-namespace WTF {
+namespace PurCWTF {
 
 #if defined(NDEBUG) && COMPILER(GCC_COMPATIBLE) \
     && (CPU(X86_64) || CPU(X86) || CPU(ARM64) || CPU(ARM_THUMB2) || CPU(ARM_TRADITIONAL))
@@ -56,6 +56,6 @@ WTF_EXPORT_PRIVATE void* currentStackPointer();
 
 #endif
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::currentStackPointer;
+using PurCWTF::currentStackPointer;

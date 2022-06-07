@@ -32,7 +32,7 @@
 #include <wtf/Vector.h>
 #include <wtf/text/WTFString.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 class WorkerPool : public ThreadSafeRefCounted<WorkerPool> {
 public:
@@ -41,7 +41,7 @@ public:
     WTF_EXPORT_PRIVATE ~WorkerPool();
 
     // If timeout is infinity, it means AutomaticThread will be never automatically destroyed.
-    static Ref<WorkerPool> create(ASCIILiteral name, unsigned numberOfWorkers  = WTF::numberOfProcessorCores(), Seconds timeout = Seconds::infinity())
+    static Ref<WorkerPool> create(ASCIILiteral name, unsigned numberOfWorkers  = PurCWTF::numberOfProcessorCores(), Seconds timeout = Seconds::infinity())
     {
         ASSERT(numberOfWorkers >= 1);
         return adoptRef(*new WorkerPool(name, numberOfWorkers, timeout));
@@ -69,4 +69,4 @@ private:
 
 }
 
-using WTF::WorkerPool;
+using PurCWTF::WorkerPool;

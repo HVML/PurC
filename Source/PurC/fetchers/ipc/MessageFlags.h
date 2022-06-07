@@ -42,7 +42,7 @@ enum class ShouldDispatchWhenWaitingForSyncReply : uint8_t {
 
 } // namespace IPC
 
-namespace WTF {
+namespace PurCWTF {
 
 template<> struct EnumTraits<IPC::MessageFlags> {
     using values = EnumValues<
@@ -54,4 +54,4 @@ template<> struct EnumTraits<IPC::MessageFlags> {
     >;
 };
 
-} // namespace WTF
+} // namespace PurCWTF

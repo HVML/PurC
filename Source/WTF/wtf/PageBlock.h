@@ -27,11 +27,11 @@
 
 #include <wtf/StdLibExtras.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 // We attempt to guess a value that is *AT LEAST* as large as the system's actual page size.
 // This is impossible to do correctly at build time, but JSC really needs it at build time, so
-// we have a RELEASE_ASSERT() inside WTF::pageSize to make sure it is set properly at runtime.
+// we have a RELEASE_ASSERT() inside PurCWTF::pageSize to make sure it is set properly at runtime.
 // All of these values are going to be incorrect on systems configured to use larger than normal
 // page size, so on such systems it is expected that xGUI will crash until this value is changed
 // and recompiled. Sorry.
@@ -93,9 +93,9 @@ inline PageBlock::PageBlock(void* base, size_t size, bool hasGuardPages)
 {
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::CeilingOnPageSize;
-using WTF::pageSize;
-using WTF::isPageAligned;
-using WTF::isPowerOfTwo;
+using PurCWTF::CeilingOnPageSize;
+using PurCWTF::pageSize;
+using PurCWTF::isPageAligned;
+using PurCWTF::isPowerOfTwo;

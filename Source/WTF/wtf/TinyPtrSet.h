@@ -32,7 +32,7 @@ namespace JSC { namespace DFG {
 class StructureAbstractValue;
 } } // namespace JSC::DFG
 
-namespace WTF {
+namespace PurCWTF {
 
 // FIXME: This currently only works for types that are pointer-like: they should have the size
 // of a pointer and like a pointer they should not have assignment operators, copy constructors,
@@ -523,6 +523,6 @@ private:
     uintptr_t m_pointer;
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::TinyPtrSet;
+using PurCWTF::TinyPtrSet;

@@ -131,7 +131,7 @@ template<> struct ArgumentCoder<PurCFetcher::DOMCacheEngine::Record> {
 
 } // namespace IPC
 
-namespace WTF {
+namespace PurCWTF {
 
 template<> struct EnumTraits<PurCFetcher::NetworkLoadPriority> {
     using values = EnumValues<
@@ -152,4 +152,4 @@ template<> struct EnumTraits<PurCFetcher::StoredCredentialsPolicy> {
     >;
 };
 
-} // namespace WTF
+} // namespace PurCWTF

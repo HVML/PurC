@@ -28,7 +28,7 @@
 
 #include <wtf/PtrTag.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 #if USE(PLATFORM_REGISTERS_WITH_PROFILE) && CPU(ARM64E)
 
@@ -70,4 +70,4 @@ void* threadStatePCInternal(PlatformRegisters& regs)
 
 #endif // USE(PLATFORM_REGISTERS_WITH_PROFILE) && CPU(ARM64E)
 
-} // namespace WTF
+} // namespace PurCWTF

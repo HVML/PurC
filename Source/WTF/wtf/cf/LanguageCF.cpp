@@ -38,7 +38,7 @@
 #include <wtf/spi/cf/CFBundleSPI.h>
 #include <wtf/text/WTFString.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 static Lock preferredLanguagesMutex;
 
@@ -128,4 +128,4 @@ Vector<String> platformUserPreferredLanguages()
     return Vector<String>();
 }
 
-} // namespace WTF
+} // namespace PurCWTF

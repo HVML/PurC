@@ -46,7 +46,7 @@ namespace JSC {
 class LLIntOffsetsExtractor;
 }
 
-namespace WTF {
+namespace PurCWTF {
 
 DECLARE_ALLOCATOR_WITH_HEAP_IDENTIFIER(Vector);
 
@@ -668,7 +668,7 @@ public:
         return result;
     }
 
-    Vector(WTF::HashTableDeletedValueType)
+    Vector(PurCWTF::HashTableDeletedValueType)
         : Base(0, std::numeric_limits<decltype(m_size)>::max())
     {
     }
@@ -1723,7 +1723,7 @@ inline auto copyToVectorSpecialization(const Collection& collection) -> Destinat
 template<typename DestinationItemType, typename Collection>
 inline auto copyToVectorOf(const Collection& collection) -> Vector<DestinationItemType>
 {
-    return WTF::map(collection, [] (const auto& v) -> DestinationItemType { return v; });
+    return PurCWTF::map(collection, [] (const auto& v) -> DestinationItemType { return v; });
 }
 
 template<typename Collection>
@@ -1737,13 +1737,13 @@ inline auto copyToVector(const Collection& collection) -> Vector<typename CopyTo
     return copyToVectorOf<typename CopyToVectorResult<Collection>::Type>(collection);
 }
 
-} // namespace WTF
+} // namespace PurCWTF
  
 ALLOW_DEPRECATED_DECLARATIONS_END
 
-using WTF::UnsafeVectorOverflow;
-using WTF::Vector;
-using WTF::copyToVector;
-using WTF::copyToVectorOf;
-using WTF::copyToVectorSpecialization;
-using WTF::removeRepeatedElements;
+using PurCWTF::UnsafeVectorOverflow;
+using PurCWTF::Vector;
+using PurCWTF::copyToVector;
+using PurCWTF::copyToVectorOf;
+using PurCWTF::copyToVectorSpecialization;
+using PurCWTF::removeRepeatedElements;

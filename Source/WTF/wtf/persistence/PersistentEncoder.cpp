@@ -28,7 +28,7 @@
 
 #include <wtf/SHA1.h>
 
-namespace WTF {
+namespace PurCWTF {
 namespace Persistence {
 
 Encoder::Encoder()

@@ -29,7 +29,7 @@
 #include <wtf/FastMalloc.h>
 #include <wtf/Noncopyable.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 // A variant of RefCounted that allows reference counting to be deferred,
 // and can tell you if that has happened. You can think of a deferral as
@@ -115,6 +115,6 @@ protected:
     ~DeferrableRefCounted() { }
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::DeferrableRefCounted;
+using PurCWTF::DeferrableRefCounted;

@@ -25,7 +25,7 @@
 
 #pragma once
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename T>
 struct IndexKeyType {
@@ -37,5 +37,5 @@ struct IndexKeyType<T*> {
     static size_t index(T* key) { return key->index(); }
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 

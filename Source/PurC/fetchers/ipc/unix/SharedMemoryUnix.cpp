@@ -137,7 +137,7 @@ static int createSharedMemory()
 
     CString tempName;
     for (int tries = 0; fileDescriptor == -1 && tries < 10; ++tries) {
-        String name = String("/WK2SharedMemory.") + String::number(static_cast<unsigned>(WTF::randomNumber() * (std::numeric_limits<unsigned>::max() + 1.0)));
+        String name = String("/WK2SharedMemory.") + String::number(static_cast<unsigned>(PurCWTF::randomNumber() * (std::numeric_limits<unsigned>::max() + 1.0)));
         tempName = name.utf8();
 
         do {
@@ -190,7 +190,7 @@ RefPtr<SharedMemory> SharedMemory::map(const Handle& handle, Protection protecti
         return nullptr;
 
     RefPtr<SharedMemory> instance = wrapMap(data, handle.m_attachment.size(), -1);
-    instance->m_fileDescriptor = WTF::nullopt;
+    instance->m_fileDescriptor = PurCWTF::nullopt;
     instance->m_isWrappingMap = false;
     return instance;
 }

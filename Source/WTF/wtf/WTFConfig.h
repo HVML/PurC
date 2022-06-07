@@ -49,7 +49,7 @@ extern "C" WTF_EXPORT_PRIVATE Slot g_config[];
 
 } // namespace WebConfig
 
-namespace WTF {
+namespace PurCWTF {
 
 constexpr size_t ConfigSizeToProtect = CeilingOnPageSize;
 
@@ -78,14 +78,14 @@ struct Config {
 constexpr size_t startSlotOfWTFConfig = Gigacage::reservedSlotsForGigacageConfig;
 constexpr size_t startOffsetOfWTFConfig = startSlotOfWTFConfig * sizeof(WebConfig::Slot);
 
-constexpr size_t offsetOfWTFConfigExtension = startOffsetOfWTFConfig + offsetof(WTF::Config, spaceForExtensions);
+constexpr size_t offsetOfWTFConfigExtension = startOffsetOfWTFConfig + offsetof(PurCWTF::Config, spaceForExtensions);
 
-constexpr size_t alignmentOfWTFConfig = std::alignment_of<WTF::Config>::value;
+constexpr size_t alignmentOfWTFConfig = std::alignment_of<PurCWTF::Config>::value;
 
-static_assert(Gigacage::reservedBytesForGigacageConfig + sizeof(WTF::Config) <= ConfigSizeToProtect);
+static_assert(Gigacage::reservedBytesForGigacageConfig + sizeof(PurCWTF::Config) <= ConfigSizeToProtect);
 static_assert(roundUpToMultipleOf<alignmentOfWTFConfig>(startOffsetOfWTFConfig) == startOffsetOfWTFConfig);
 
-#define g_wtfConfig (*bitwise_cast<WTF::Config*>(&WebConfig::g_config[WTF::startSlotOfWTFConfig]))
+#define g_wtfConfig (*bitwise_cast<PurCWTF::Config*>(&WebConfig::g_config[PurCWTF::startSlotOfWTFConfig]))
 
 ALWAYS_INLINE Config::AssertNotFrozenScope::AssertNotFrozenScope()
 {
@@ -99,4 +99,4 @@ ALWAYS_INLINE Config::AssertNotFrozenScope::~AssertNotFrozenScope()
     RELEASE_ASSERT(!g_wtfConfig.isPermanentlyFrozen);
 };
 
-} // namespace WTF
+} // namespace PurCWTF

@@ -34,7 +34,7 @@
 #include <emmintrin.h>
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 
 template <uintptr_t mask>
 inline bool isAlignedTo(const void* pointer)
@@ -195,6 +195,6 @@ inline void copyLCharsFromUCharSource(LChar* destination, const UChar* source, s
 #endif
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::charactersAreAllASCII;
+using PurCWTF::charactersAreAllASCII;

@@ -46,7 +46,7 @@
 
 #define LOG_CHANNEL_PREFIX Log
 
-namespace WTF {
+namespace PurCWTF {
 
 #if RELEASE_LOG_DISABLED
 WTFLogChannel LogThreading = { WTFLogChannelState::On, "Threading", WTFLogLevel::Error };
@@ -167,4 +167,4 @@ bool isMainThread()
 
 #endif // USE(WEB_THREAD)
 
-} // namespace WTF
+} // namespace PurCWTF

@@ -28,7 +28,7 @@
 
 #import <wtf/RetainPtr.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 RetainPtr<NSString> StringView::createNSString() const
 {

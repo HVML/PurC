@@ -35,7 +35,7 @@
 #include <mach/vm_types.h>
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 
 namespace {
 struct DummyStruct { };
@@ -53,5 +53,5 @@ static_assert(sizeof(RefCountedArray<DummyStruct>) == sizeof(void*), "");
 static_assert(MACH_VM_MAX_ADDRESS <= ((1ULL << OS_CONSTANT(EFFECTIVE_ADDRESS_WIDTH)) - 1));
 #endif
 
-} // namespace WTF
+} // namespace PurCWTF
 

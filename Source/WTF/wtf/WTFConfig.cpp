@@ -38,11 +38,11 @@
 
 namespace WebConfig {
 
-alignas(WTF::ConfigSizeToProtect) Slot g_config[WTF::ConfigSizeToProtect / sizeof(Slot)];
+alignas(PurCWTF::ConfigSizeToProtect) Slot g_config[PurCWTF::ConfigSizeToProtect / sizeof(Slot)];
 
 } // namespace WebConfig
 
-namespace WTF {
+namespace PurCWTF {
 
 void Config::permanentlyFreeze()
 {
@@ -77,4 +77,4 @@ void Config::permanentlyFreeze()
     RELEASE_ASSERT(g_wtfConfig.isPermanentlyFrozen);
 }
 
-} // namespace WTF
+} // namespace PurCWTF

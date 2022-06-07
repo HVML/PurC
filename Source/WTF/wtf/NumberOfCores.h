@@ -20,7 +20,7 @@
 
 #pragma once
 
-namespace WTF {
+namespace PurCWTF {
 
 WTF_EXPORT_PRIVATE int numberOfProcessorCores();
 

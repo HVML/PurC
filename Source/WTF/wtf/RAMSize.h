@@ -25,10 +25,10 @@
 
 #pragma once
 
-namespace WTF {
+namespace PurCWTF {
 
 WTF_EXPORT_PRIVATE size_t ramSize();
 
 }
 
-using WTF::ramSize;
+using PurCWTF::ramSize;

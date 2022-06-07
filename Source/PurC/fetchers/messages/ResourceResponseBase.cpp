@@ -559,8 +559,8 @@ static Optional<WallTime> parseDateValueInHeader(const HTTPHeaderMap& headers, H
 {
     String headerValue = headers.get(headerName);
     if (headerValue.isEmpty())
-        return WTF::nullopt;
-    return WTF::nullopt;
+        return PurCWTF::nullopt;
+    return PurCWTF::nullopt;
 }
 
 Optional<WallTime> ResourceResponseBase::date() const

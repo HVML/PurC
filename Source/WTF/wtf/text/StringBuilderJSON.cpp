@@ -14,7 +14,7 @@
 
 #include <wtf/text/WTFString.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 // This table driven escaping is ported from SpiderMonkey.
 static const constexpr LChar escapedFormsForJSON[0x100] = {
@@ -153,4 +153,4 @@ void StringBuilder::appendQuotedJSONString(const String& string)
     ASSERT(m_buffer->length() >= m_length.unsafeGet<unsigned>());
 }
 
-} // namespace WTF
+} // namespace PurCWTF

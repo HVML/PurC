@@ -29,7 +29,7 @@
 #include "config.h"
 #include <wtf/MetaAllocator.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 DEFINE_ALLOCATOR_WITH_HEAP_IDENTIFIER(MetaAllocatorHandle);
 
@@ -488,6 +488,6 @@ void MetaAllocator::dumpProfile()
 }
 #endif
 
-} // namespace WTF
+} // namespace PurCWTF
 
 

@@ -23,7 +23,7 @@
 #include <wtf/Lock.h>
 #include <wtf/Threading.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 // By default invalid access checks are only done in Debug builds.
 #if !defined(ENABLE_DATA_MUTEX_CHECKS)
@@ -131,7 +131,7 @@ public:
         // Used to avoid excessive brace scoping when only small parts of the code need to be run unlocked.
         // Please be mindful that accessing the wrapped data from the callback is unsafe and will fail on assertions.
         // It's helpful to use a minimal lambda capture to be conscious of what data you're having access to in these sections.
-        void runUnlocked(WTF::Function<void()> callback)
+        void runUnlocked(PurCWTF::Function<void()> callback)
         {
             m_mutex.unlock();
             callback();
@@ -149,4 +149,4 @@ private:
     T m_data;
 };
 
-} // namespace WTF
+} // namespace PurCWTF

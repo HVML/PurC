@@ -26,7 +26,7 @@
 #include "config.h"
 #include <wtf/LockedPrintStream.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 LockedPrintStream::LockedPrintStream(std::unique_ptr<PrintStream> target)
     : m_target(WTFMove(target))
@@ -60,5 +60,5 @@ void LockedPrintStream::end()
     m_lock.unlock();
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 

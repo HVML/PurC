@@ -31,7 +31,7 @@
 #include <wtf/StdLibExtras.h>
 #include <wtf/StringPrintStream.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 template <typename Graph>
 class SingleRootGraphNode {
@@ -305,6 +305,6 @@ private:
     typename Graph::Set m_rootSuccessorSet;
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::SingleRootGraph;
+using PurCWTF::SingleRootGraph;

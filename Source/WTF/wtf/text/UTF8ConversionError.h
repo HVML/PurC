@@ -25,7 +25,7 @@
 
 #pragma once
 
-namespace WTF {
+namespace PurCWTF {
 
 enum class UTF8ConversionError {
     None,
@@ -34,6 +34,6 @@ enum class UTF8ConversionError {
     SourceExhausted
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::UTF8ConversionError;
+using PurCWTF::UTF8ConversionError;

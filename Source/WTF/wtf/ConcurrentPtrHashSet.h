@@ -32,7 +32,7 @@
 #include <wtf/Noncopyable.h>
 #include <wtf/Vector.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 // This is a concurrent hash-based set for pointers. It's optimized for:
 //
@@ -164,6 +164,6 @@ private:
     Lock m_lock; // We just use this to control resize races.
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::ConcurrentPtrHashSet;
+using PurCWTF::ConcurrentPtrHashSet;

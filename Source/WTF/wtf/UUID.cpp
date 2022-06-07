@@ -40,7 +40,7 @@
 #include <sys/sysctl.h>
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 
 String createCanonicalUUIDString()
 {
@@ -111,4 +111,4 @@ bool isVersion4UUID(StringView value)
     return true;
 }
 
-} // namespace WTF
+} // namespace PurCWTF

@@ -25,7 +25,7 @@
 
 #pragma once
 
-namespace WTF {
+namespace PurCWTF {
 
 inline bool needToFlipBytesIfLittleEndian(bool littleEndian)
 {
@@ -106,8 +106,8 @@ inline T flipBytesIfLittleEndian(T value, bool littleEndian)
     return value;
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::needToFlipBytesIfLittleEndian;
-using WTF::flipBytes;
-using WTF::flipBytesIfLittleEndian;
+using PurCWTF::needToFlipBytesIfLittleEndian;
+using PurCWTF::flipBytes;
+using PurCWTF::flipBytesIfLittleEndian;

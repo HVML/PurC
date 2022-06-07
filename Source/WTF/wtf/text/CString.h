@@ -30,7 +30,7 @@
 #include <wtf/Ref.h>
 #include <wtf/RefCounted.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 DECLARE_ALLOCATOR_WITH_HEAP_IDENTIFIER(CStringBuffer);
 
@@ -113,6 +113,6 @@ template<> struct DefaultHash<CString> {
 template<typename T> struct HashTraits;
 template<> struct HashTraits<CString> : SimpleClassHashTraits<CString> { };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::CString;
+using PurCWTF::CString;

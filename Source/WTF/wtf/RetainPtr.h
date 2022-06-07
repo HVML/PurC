@@ -52,7 +52,7 @@
 typedef struct objc_object *id;
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 
 // Unlike most most of our smart pointers, RetainPtr can take either the pointer type or the pointed-to type,
 // so both RetainPtr<NSDictionary> and RetainPtr<CFDictionaryRef> will work.
@@ -393,15 +393,15 @@ template<typename T> T* dynamic_objc_cast(id object)
 }
 #endif
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::RetainPtr;
-using WTF::adoptCF;
-using WTF::retainPtr;
+using PurCWTF::RetainPtr;
+using PurCWTF::adoptCF;
+using PurCWTF::retainPtr;
 
 #ifdef __OBJC__
-using WTF::adoptNS;
-using WTF::dynamic_objc_cast;
+using PurCWTF::adoptNS;
+using PurCWTF::dynamic_objc_cast;
 #endif
 
 #endif // USE(CF) || defined(__OBJC__)

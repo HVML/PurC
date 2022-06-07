@@ -23,7 +23,7 @@
 
 #include <wtf/text/WTFString.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename StringType1, typename StringType2> class StringAppend {
 public:
@@ -182,4 +182,4 @@ StringAppend<StringAppend<U, V>, W> operator+(const StringAppend<U, V>& string1,
     return StringAppend<StringAppend<U, V>, W>(string1, string2);
 }
 
-} // namespace WTF
+} // namespace PurCWTF

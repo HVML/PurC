@@ -28,7 +28,7 @@
 #include <wtf/Ref.h>
 #include <wtf/ThreadSafeRefCounted.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 // SharedTask is a replacement for std::function for cases where:
 //
@@ -122,8 +122,8 @@ Ref<SharedTask<FunctionType>> createSharedTask(Functor&& functor)
     return adoptRef(*new SharedTaskFunctor<FunctionType, Functor>(WTFMove(functor)));
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::createSharedTask;
-using WTF::SharedTask;
-using WTF::SharedTaskFunctor;
+using PurCWTF::createSharedTask;
+using PurCWTF::SharedTask;
+using PurCWTF::SharedTaskFunctor;

@@ -120,7 +120,7 @@ Optional<RefPtr<SharedBuffer>> ArgumentCoder<RefPtr<PurCFetcher::SharedBuffer>>:
 {
     RefPtr<SharedBuffer> buffer;
     if (!decodeSharedBuffer(decoder, buffer))
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
 
     return buffer;
 }
@@ -134,7 +134,7 @@ Optional<Ref<SharedBuffer>> ArgumentCoder<Ref<PurCFetcher::SharedBuffer>>::decod
 {
     RefPtr<SharedBuffer> buffer;
     if (!decodeSharedBuffer(decoder, buffer) || !buffer)
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
 
     return buffer.releaseNonNull();
 }

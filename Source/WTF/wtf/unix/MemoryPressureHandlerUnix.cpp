@@ -44,7 +44,7 @@
 
 #define LOG_CHANNEL_PREFIX Log
 
-namespace WTF {
+namespace PurCWTF {
 
 // Disable memory event reception for a minimum of s_minimumHoldOffTime
 // seconds after receiving an event. Don't let events fire any sooner than
@@ -162,4 +162,4 @@ Optional<MemoryPressureHandler::ReliefLogger::MemoryUsage> MemoryPressureHandler
     return MemoryUsage {processMemoryUsage(), memoryFootprint()};
 }
 
-} // namespace WTF
+} // namespace PurCWTF

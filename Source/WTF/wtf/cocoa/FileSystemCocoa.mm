@@ -58,7 +58,7 @@ SOFT_LINK(Bom, BOMCopierCopyWithOptions, int, (BOMCopier copier, const char* fro
 
 @end
 
-namespace WTF {
+namespace PurCWTF {
 
 namespace FileSystemImpl {
 
@@ -208,4 +208,4 @@ void makeSafeToUseMemoryMapForPath(const String& path)
 #endif
 
 } // namespace FileSystemImpl
-} // namespace WTF
+} // namespace PurCWTF

@@ -26,7 +26,7 @@
 #include "config.h"
 #include <wtf/WorkerPool.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 class WorkerPool::Worker final : public AutomaticThread {
 public:

@@ -34,7 +34,7 @@ struct crashreporter_annotations_t gCRAnnotations
     __attribute__((section("__DATA," CRASHREPORTER_ANNOTATIONS_SECTION)))
     = { CRASHREPORTER_ANNOTATIONS_VERSION, 0, 0, 0, 0, 0, 0, 0 };
 
-namespace WTF {
+namespace PurCWTF {
 void setCrashLogMessage(const char* message)
 {
     // We have to copy the string because CRSetCrashLogMessage doesn't.

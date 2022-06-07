@@ -29,7 +29,7 @@
 #include <wtf/SHA1.h>
 #include <wtf/persistence/PersistentCoder.h>
 
-namespace WTF {
+namespace PurCWTF {
 namespace Persistence {
 
 class Decoder {

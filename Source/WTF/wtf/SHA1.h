@@ -38,7 +38,7 @@
 #include <CommonCrypto/CommonDigest.h>
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 
 class SHA1 {
     WTF_MAKE_FAST_ALLOCATED;
@@ -85,6 +85,6 @@ private:
 #endif
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::SHA1;
+using PurCWTF::SHA1;

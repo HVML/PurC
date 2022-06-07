@@ -28,7 +28,7 @@
 #include <wtf/MathExtras.h>
 #include <wtf/StdLibExtras.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 // Simple and cheap way of tracking statistics if you're not worried about chopping on
 // the sum of squares (i.e. the sum of squares is unlikely to exceed 2^52).
@@ -108,6 +108,6 @@ private:
     double m_sumOfSquares;
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::SimpleStats;
+using PurCWTF::SimpleStats;
