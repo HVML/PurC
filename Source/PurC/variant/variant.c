@@ -66,7 +66,7 @@ static pcvariant_release_fn variant_releasers[PURC_VARIANT_TYPE_NR] = {
     pcvariant_object_release,       // PURC_VARIANT_TYPE_OBJECT
     pcvariant_array_release,        // PURC_VARIANT_TYPE_ARRAY
     pcvariant_set_release,          // PURC_VARIANT_TYPE_SET
-    pcvariant_doublet_release,      // PURC_VARIANT_TYPE_DOUBLET
+    pcvariant_tuple_release,        // PURC_VARIANT_TYPE_TUPLE
 };
 
 
@@ -261,7 +261,7 @@ static const char *typenames[] = {
     PURC_VARIANT_TYPE_NAME_OBJECT,
     PURC_VARIANT_TYPE_NAME_ARRAY,
     PURC_VARIANT_TYPE_NAME_SET,
-    PURC_VARIANT_TYPE_NAME_DOUBLET,
+    PURC_VARIANT_TYPE_NAME_TUPLE,
 };
 
 /* Make sure the number of variant types matches the size of `type_names` */
@@ -298,7 +298,7 @@ bool pcvariant_is_mutable(purc_variant_t val)
         case PURC_VARIANT_TYPE_ARRAY:
         case PURC_VARIANT_TYPE_OBJECT:
         case PURC_VARIANT_TYPE_SET:
-        case PURC_VARIANT_TYPE_DOUBLET:
+        case PURC_VARIANT_TYPE_TUPLE:
             return true;
         default:
             return false;
@@ -609,13 +609,22 @@ not_equal:
     return false;
 }
 
-static bool equal_doublets(purc_variant_t v1, purc_variant_t v2)
+static bool equal_tuples(purc_variant_t v1, purc_variant_t v2)
 {
-    if (!purc_variant_is_equal_to(v1->doublet[0], v2->doublet[0]))
+    purc_variant_t *members1, *members2;
+    size_t sz1, sz2;
+
+    members1 = tuple_members(v1, &sz1);
+    members2 = tuple_members(v2, &sz2);
+    assert(members1 && members2);
+
+    if (sz1 != sz2)
         return false;
 
-    if (!purc_variant_is_equal_to(v1->doublet[1], v2->doublet[1]))
-        return false;
+    for (size_t n = 0; n < sz1; n++) {
+        if (!purc_variant_is_equal_to(members1[n], members2[n]))
+            return false;
+    }
 
     return true;
 }
@@ -705,8 +714,8 @@ bool purc_variant_is_equal_to(purc_variant_t v1, purc_variant_t v2)
         case PURC_VARIANT_TYPE_SET:
             return equal_sets(v1, v2);
 
-        case PURC_VARIANT_TYPE_DOUBLET:
-            return equal_doublets(v1, v2);
+        case PURC_VARIANT_TYPE_TUPLE:
+            return equal_tuples(v1, v2);
     }
 
     return false;
@@ -754,7 +763,7 @@ bool purc_variant_is_equal_to(purc_variant_t v1, purc_variant_t v2)
             "<native>",         // PURC_VARIANT_TYPE_NATIVE
             "{}",               // PURC_VARIANT_TYPE_OBJECT
             "[]",               // PURC_VARIANT_TYPE_ARRAY
-            "[]",               // PURC_VARIANT_TYPE_DOUBLET
+            "[]",               // PURC_VARIANT_TYPE_TUPLE
             "[<set>]",          // PURC_VARIANT_TYPE_SET
         };
 
@@ -1490,7 +1499,7 @@ compare_stringify (purc_variant_t v, char *stackbuffer, size_t size)
         case PURC_VARIANT_TYPE_OBJECT:
         case PURC_VARIANT_TYPE_ARRAY:
         case PURC_VARIANT_TYPE_SET:
-        case PURC_VARIANT_TYPE_DOUBLET:
+        case PURC_VARIANT_TYPE_TUPLE:
             num_write = purc_variant_stringify_alloc (&buffer, v);
             if (num_write < 0) {
                 buffer = 0;
@@ -1971,12 +1980,18 @@ numberify_set(purc_variant_t value)
 }
 
 static double
-numberify_doublet(purc_variant_t value)
+numberify_tuple(purc_variant_t value)
 {
-    double d;
+    purc_variant_t *members;
+    size_t sz;
 
-    d = purc_variant_numberify(value->doublet[0]);
-    d += purc_variant_numberify(value->doublet[1]);
+    members = tuple_members(value, &sz);
+    assert(members);
+
+    double d = 0;
+    for (size_t n = 0; n < sz; n++) {
+        d += purc_variant_numberify(members[n]);
+    }
 
     return d;
 }
@@ -2028,8 +2043,8 @@ purc_variant_numberify(purc_variant_t value)
             return numberify_array(value);
         case PURC_VARIANT_TYPE_SET:
             return numberify_set(value);
-        case PURC_VARIANT_TYPE_DOUBLET:
-            return numberify_doublet(value);
+        case PURC_VARIANT_TYPE_TUPLE:
+            return numberify_tuple(value);
         default:
             PC_ASSERT(0);
             break;
@@ -2150,7 +2165,7 @@ purc_variant_booleanize(purc_variant_t value)
         return purc_variant_set_get_size(value) != 0;
         // return numberify_set(value) != 0.0 ? true : false;
 
-    case PURC_VARIANT_TYPE_DOUBLET:
+    case PURC_VARIANT_TYPE_TUPLE:
         return true;
 
     case PURC_VARIANT_TYPE_DYNAMIC:
@@ -2243,12 +2258,19 @@ stringify_set(struct stringify_arg *arg, purc_variant_t value)
 }
 
 static void
-stringify_doublet(struct stringify_arg *arg, purc_variant_t value)
+stringify_tuple(struct stringify_arg *arg, purc_variant_t value)
 {
-    variant_stringify(arg, value->doublet[0]);
-    arg->cb(arg->arg, "\n", 0);
-    variant_stringify(arg, value->doublet[1]);
-    arg->cb(arg->arg, "\n", 0);
+    purc_variant_t *members;
+    size_t sz;
+
+    members = tuple_members(value, &sz);
+    assert(members);
+
+    for (size_t n = 0; n < sz; n++) {
+        variant_stringify(arg, members[n]);
+        arg->cb(arg->arg, "\n", 0);
+    }
+
     arg->cb(arg->arg, "", 0);
 }
 
@@ -2374,8 +2396,8 @@ variant_stringify(struct stringify_arg *arg, purc_variant_t value)
     case PURC_VARIANT_TYPE_SET:
         stringify_set(arg, value);
         break;
-    case PURC_VARIANT_TYPE_DOUBLET:
-        stringify_doublet(arg, value);
+    case PURC_VARIANT_TYPE_TUPLE:
+        stringify_tuple(arg, value);
         break;
     default:
         PC_ASSERT(0);
@@ -2695,8 +2717,8 @@ pcvariant_container_clone(purc_variant_t ctnr, bool recursively)
             return pcvariant_object_clone(ctnr, recursively);
         case PURC_VARIANT_TYPE_SET:
             return pcvariant_set_clone(ctnr, recursively);
-        case PURC_VARIANT_TYPE_DOUBLET:
-            return pcvariant_doublet_clone(ctnr, recursively);
+        case PURC_VARIANT_TYPE_TUPLE:
+            return pcvariant_tuple_clone(ctnr, recursively);
         default:
             return purc_variant_ref(ctnr);
     }
@@ -2926,27 +2948,30 @@ cmp_by_set(purc_variant_t l, purc_variant_t r, bool caseless)
 }
 
 static int
-cmp_by_doublet(purc_variant_t l, purc_variant_t r, bool caseless)
+cmp_by_tuple(purc_variant_t l, purc_variant_t r, bool caseless)
 {
     int diff;
 
-    purc_variant_t lv = l->doublet[0];
-    purc_variant_t rv = r->doublet[0];
-    PC_ASSERT(lv != PURC_VARIANT_INVALID);
-    PC_ASSERT(rv != PURC_VARIANT_INVALID);
+    purc_variant_t *members1, *members2;
+    size_t sz1, sz2;
 
-    diff = pcvar_compare_exactly(lv, rv, caseless);
-    if (diff)
-        return diff;
+    members1 = tuple_members(l, &sz1);
+    members2 = tuple_members(r, &sz2);
+    assert(members1 && members2);
 
-    lv = l->doublet[1];
-    rv = r->doublet[1];
-    PC_ASSERT(lv != PURC_VARIANT_INVALID);
-    PC_ASSERT(rv != PURC_VARIANT_INVALID);
+    for (size_t n = 0; n < MIN(sz1, sz2); n++) {
+        purc_variant_t lv = members1[n];
+        purc_variant_t rv = members2[n];
 
-    diff = pcvar_compare_exactly(lv, rv, caseless);
-    if (diff)
-        return diff;
+        diff = pcvar_compare_exactly(lv, rv, caseless);
+        if (diff)
+            return diff;
+    }
+
+    if (sz1 > sz2)
+        return 1;
+    else if (sz1 < sz2)
+        return -1;
 
     return 0;
 }
@@ -3048,8 +3073,8 @@ pcvar_compare_exactly(purc_variant_t l, purc_variant_t r, bool caseless)
         case PURC_VARIANT_TYPE_SET:
             return cmp_by_set(l, r, caseless);
 
-        case PURC_VARIANT_TYPE_DOUBLET:
-            return cmp_by_doublet(l, r, caseless);
+        case PURC_VARIANT_TYPE_TUPLE:
+            return cmp_by_tuple(l, r, caseless);
 
         default:
             PC_ASSERT(0);
@@ -3069,9 +3094,8 @@ purc_variant_linear_container_size(purc_variant_t container, size_t *sz)
     else if (container->type == PURC_VARIANT_TYPE_SET) {
         return purc_variant_set_size(container, sz);
     }
-    else if (container->type == PURC_VARIANT_TYPE_DOUBLET) {
-        *sz = 2;
-        return true;
+    else if (container->type == PURC_VARIANT_TYPE_TUPLE) {
+        return purc_variant_tuple_size(container, sz);
     }
 
     return false;
@@ -3089,11 +3113,30 @@ purc_variant_linear_container_get(purc_variant_t container, int idx)
     else if (container->type == PURC_VARIANT_TYPE_SET) {
         return purc_variant_set_get_by_index(container, idx);
     }
-    else if (container->type == PURC_VARIANT_TYPE_DOUBLET) {
-        if (idx == 0 || idx == 1)
-            return container->doublet[idx];
+    else if (container->type == PURC_VARIANT_TYPE_TUPLE) {
+        return purc_variant_tuple_get(container, idx);
     }
 
     return PURC_VARIANT_INVALID;
+}
+
+bool
+purc_variant_linear_container_set(purc_variant_t container,
+        int idx, purc_variant_t value)
+{
+    if (container == PURC_VARIANT_INVALID)
+        return false;
+
+    if (container->type == PURC_VARIANT_TYPE_ARRAY) {
+        return purc_variant_array_set(container, idx, value);
+    }
+    else if (container->type == PURC_VARIANT_TYPE_SET) {
+        return purc_variant_set_set_by_index(container, idx, value);
+    }
+    else if (container->type == PURC_VARIANT_TYPE_TUPLE) {
+        return purc_variant_tuple_set(container, idx, value);
+    }
+
+    return false;
 }
 

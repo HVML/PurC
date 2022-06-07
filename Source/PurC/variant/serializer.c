@@ -668,13 +668,12 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
     ssize_t nr_written = 0, n;
     const char* content = NULL;
     size_t sz_content = 0;
-    int i;
+    size_t i, idx;
     char buff [256];
     purc_variant_t member = NULL;
     purc_variant_t key;
     char* format_double = NULL;
     char* format_long_double = NULL;
-    size_t idx;
     variant_set_t data;
 
     purc_get_local_data(PURC_LDNAME_FORMAT_DOUBLE,
@@ -994,6 +993,63 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
 
             MY_WRITE(rws, "]", 1);
             break;
+
+        case PURC_VARIANT_TYPE_TUPLE:
+        {
+            content = NULL;
+
+            n = print_indent(rws, level, flags, len_expected);
+            MY_CHECK(n);
+
+            /* TODO: might use '(' in the future. */
+            MY_WRITE(rws, "[", 1);
+            n = print_newline(rws, flags, len_expected);
+            MY_CHECK(n);
+
+            i = 0;
+
+            purc_variant_t *members;
+            size_t sz;
+            members = tuple_members(value, &sz);
+            assert(members);
+
+            for (idx = 0; idx < sz; idx++) {
+
+                if (i > 0) {
+                    MY_WRITE(rws, ",", 1);
+                    n = print_newline(rws, flags, len_expected);
+                    MY_CHECK(n);
+                }
+
+                n = print_space_no_pretty(rws, flags, len_expected);
+                MY_CHECK(n);
+
+                n = print_indent(rws, level + 1, flags, len_expected);
+                MY_CHECK(n);
+
+                // member
+                n = purc_variant_serialize(members[idx],
+                        rws, level + 1, flags, len_expected);
+                MY_CHECK(n);
+
+                i++;
+            }
+
+            if (i > 0) {
+                n = print_newline(rws, flags, len_expected);
+                MY_CHECK(n);
+            }
+
+            n = print_indent(rws, level, flags, len_expected);
+            MY_CHECK(n);
+
+            n = print_space_no_pretty(rws, flags, len_expected);
+            MY_CHECK(n);
+
+            /* TODO: might use ']' in the future. */
+            MY_WRITE(rws, "]", 1);
+            break;
+        }
 
         default:
             break;

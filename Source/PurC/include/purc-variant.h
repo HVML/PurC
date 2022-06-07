@@ -1399,36 +1399,70 @@ PCA_EXPORT purc_variant_t
 purc_variant_set_iterator_get_value(struct purc_variant_set_iterator* it);
 
 /**
- * Creates a doublet variant from two variants.
+ * Creates a tuple variant from two variants.
  *
- * @param first: the first variant.
- * @param second: the second variant
+ * @param sz: the size of the tuple, i.e., the number of members in the tuple.
+ * @param members: the array of the members. 
  *
- * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
+ * The function will stop setting the members in the tuple once
+ * it encountered an invalud variant (%PURC_VARIANT_INVALID). You must
+ * call purc_variant_tuple_set() to set the left members with valid variants
+ * before using the tuple variant.
  *
- * Since: 0.1.0
- */
-PCA_EXPORT purc_variant_t
-purc_variant_make_doublet(purc_variant_t first, purc_variant_t second);
-
-/**
- * Gets a member from a doublet by index.
- *
- * @param dobule: the doublet variant.
- * @param idx: the index of wanted member; the value must be 0 or 1.
+ * Note that if \members is %NULL, all members in the tuple will be invalid
+ * initially.
  *
  * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.1.0
  */
 PCA_EXPORT purc_variant_t
-purc_variant_doublet_get(purc_variant_t doublet, int idx);
+purc_variant_make_tuple(size_t sz, purc_variant_t *members);
 
 /**
- * Sets a member in a doublet by index.
+ * Gets the size of a tuple variant.
  *
- * @param double: the doublet variant.
- * @param idx: the index of the member to replace; the value must be 0 or 1.
+ * @param tuple: the tuple variant.
+ * @param sz: the buffer to receive the size of the tuple.
+ *
+ * Returns: @true when success, or @false on failure.
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT bool
+purc_variant_tuple_size(purc_variant_t tuple, size_t *sz);
+
+/**
+ * Gets the size of a tuple variant.
+ *
+ * @param tuple: the tuple variant.
+ *
+ * Returns: The number of elements in the tuple;
+ *  \PURC_VARIANT_BADSIZE (-1) if the variant is not a tuple.
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT size_t
+purc_variant_tuple_get_size(purc_variant_t tuple);
+
+/**
+ * Gets a member from a tuple by index.
+ *
+ * @param dobule: the tuple variant.
+ * @param idx: the index of wanted member.
+ *
+ * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_tuple_get(purc_variant_t tuple, size_t idx);
+
+/**
+ * Sets a member in a tuple by index.
+ *
+ * @param double: the tuple variant.
+ * @param idx: the index of the member to replace.
  * @param value: the new value of the member.
  *
  * Returns: @true on success, otherwise @false.
@@ -1436,13 +1470,13 @@ purc_variant_doublet_get(purc_variant_t doublet, int idx);
  * Since: 0.0.1
  */
 PCA_EXPORT bool
-purc_variant_doublet_set(purc_variant_t doublet, int idx, purc_variant_t value);
+purc_variant_tuple_set(purc_variant_t tuple, size_t idx, purc_variant_t value);
 
 /**
  * Gets the size of a linear container variant.
  *
  * @param container: the linear container variant, must be one of array,
- *      set, or doublet.
+ *      set, or tuple.
  * @param sz: the buffer receiving the number of members in the container.
  *
  * Returns: @true on success, otherwise @false.
@@ -1456,7 +1490,7 @@ purc_variant_linear_container_size(purc_variant_t container, size_t *sz);
  * Get the number of elements in a linear container variant.
  *
  * @param container: the linear container variant, must be one of array,
- *      set, or doublet.
+ *      set, or tuple.
  *
  * Returns: The number of elements in the container;
  *  \PURC_VARIANT_BADSIZE (-1) if the variant is not a linear container.
@@ -1479,7 +1513,7 @@ purc_variant_linear_container_get_size(purc_variant_t container)
  * Gets a member from a linear container by index.
  *
  * @param container: the linear container variant, must be one of array,
- *      set, or doublet.
+ *      set, or tuple.
  * @param idx: the index of wanted member.
  *
  * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
@@ -1488,6 +1522,22 @@ purc_variant_linear_container_get_size(purc_variant_t container)
  */
 PCA_EXPORT purc_variant_t
 purc_variant_linear_container_get(purc_variant_t container, int idx);
+
+/**
+ * Sets a member in a linear container by index.
+ *
+ * @param container: the linear container variant, must be one of array,
+ *      set, or tuple.
+ * @param idx: the index of wanted member.
+ * @param value: the new value.
+ *
+ * Returns: @true on success, otherwise @false.
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT bool
+purc_variant_linear_container_set(purc_variant_t container,
+        int idx, purc_variant_t value);
 
 /**
  * Creates a variant value from a string which contains JSON data.
@@ -1908,11 +1958,11 @@ typedef enum purc_variant_type
     PURC_VARIANT_TYPE_ARRAY,
 #define PURC_VARIANT_TYPE_NAME_SET          "set"
     PURC_VARIANT_TYPE_SET,
-#define PURC_VARIANT_TYPE_NAME_DOUBLET      "doublet"
-    PURC_VARIANT_TYPE_DOUBLET,
+#define PURC_VARIANT_TYPE_NAME_TUPLE      "tuple"
+    PURC_VARIANT_TYPE_TUPLE,
 
     /* XXX: change this if you append a new type. */
-    PURC_VARIANT_TYPE_LAST = PURC_VARIANT_TYPE_DOUBLET,
+    PURC_VARIANT_TYPE_LAST = PURC_VARIANT_TYPE_TUPLE,
 } purc_variant_type;
 
 #define PURC_VARIANT_TYPE_NR \

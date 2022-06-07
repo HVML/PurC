@@ -70,7 +70,7 @@ void pcvariant_native_release  (purc_variant_t value)    WTF_INTERNAL;
 void pcvariant_object_release  (purc_variant_t value)    WTF_INTERNAL;
 void pcvariant_array_release   (purc_variant_t value)    WTF_INTERNAL;
 void pcvariant_set_release     (purc_variant_t value)    WTF_INTERNAL;
-void pcvariant_doublet_release (purc_variant_t value)    WTF_INTERNAL;
+void pcvariant_tuple_release (purc_variant_t value)    WTF_INTERNAL;
 
 variant_arr_t
 pcvar_arr_get_data(purc_variant_t arr) WTF_INTERNAL;
@@ -108,7 +108,7 @@ pcvariant_object_clone(purc_variant_t obj, bool recursively) WTF_INTERNAL;
 purc_variant_t
 pcvariant_set_clone(purc_variant_t set, bool recursively) WTF_INTERNAL;
 purc_variant_t
-pcvariant_doublet_clone(purc_variant_t doublet, bool recursively) WTF_INTERNAL;
+pcvariant_tuple_clone(purc_variant_t tuple, bool recursively) WTF_INTERNAL;
 
 purc_variant_t
 pcvar_variant_from_rev_update_edge(struct pcvar_rev_update_edge *edge);

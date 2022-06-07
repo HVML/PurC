@@ -103,7 +103,7 @@ count_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             count = purc_variant_set_get_size(argv[0]);
             break;
 
-        case PURC_VARIANT_TYPE_DOUBLET:
+        case PURC_VARIANT_TYPE_TUPLE:
             count = 2;
             break;
         }
@@ -190,7 +190,7 @@ stringify_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         case PURC_VARIANT_TYPE_OBJECT:
         case PURC_VARIANT_TYPE_ARRAY:
         case PURC_VARIANT_TYPE_SET:
-        case PURC_VARIANT_TYPE_DOUBLET:
+        case PURC_VARIANT_TYPE_TUPLE:
             n = purc_variant_stringify_alloc(&buff, argv[0]);
             if (n == (size_t)-1) {
                 // Keep the error code set by purc_variant_stringify_alloc.
