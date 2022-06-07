@@ -34,7 +34,7 @@ namespace TestxGUIAPI {
 struct LockInspector;
 };
 
-namespace WTF {
+namespace PurCWTF {
 
 // A WordLock is a fully adaptive mutex that uses sizeof(void*) storage. It has a fast path that is
 // similar to a spinlock, and a slow path that is similar to std::mutex. In most cases, you should use
@@ -102,7 +102,7 @@ protected:
 
 using WordLockHolder = Locker<WordLock>;
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::WordLock;
-using WTF::WordLockHolder;
+using PurCWTF::WordLock;
+using PurCWTF::WordLockHolder;

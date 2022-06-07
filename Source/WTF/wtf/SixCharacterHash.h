@@ -27,7 +27,7 @@
 
 #include <array>
 
-namespace WTF {
+namespace PurCWTF {
 
 // Takes a six-character string that encodes a 32-bit integer, and returns that
 // integer. RELEASE_ASSERT's that the string represents a valid six-character
@@ -38,7 +38,7 @@ WTF_EXPORT_PRIVATE unsigned sixCharacterHashStringToInteger(const char*);
 // the character hash.
 WTF_EXPORT_PRIVATE std::array<char, 7> integerToSixCharacterHashString(unsigned);
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::sixCharacterHashStringToInteger;
-using WTF::integerToSixCharacterHashString;
+using PurCWTF::sixCharacterHashStringToInteger;
+using PurCWTF::integerToSixCharacterHashString;

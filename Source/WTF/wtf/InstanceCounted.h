@@ -29,7 +29,7 @@
 // Since it adds runtime overhead to manage the count variable, the actual
 // functionality of the class is limited to debug builds.
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename T> class InstanceCounted {
 public:
@@ -74,7 +74,7 @@ private:
 template<typename T> std::atomic_size_t InstanceCounted<T>::s_instanceCount;
 #endif
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::InstanceCounted;
+using PurCWTF::InstanceCounted;
 

@@ -51,7 +51,7 @@ public:
         Optional<RefPtr<PurCFetcher::ImageData>> imageData;
         decoder >> imageData;
         if (!imageData)
-            return WTF::nullopt;
+            return PurCWTF::nullopt;
         return { WTFMove(*imageData) };
     }
 

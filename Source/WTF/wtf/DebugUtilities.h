@@ -41,7 +41,7 @@ do { \
     WTFBreakpointTrap(); \
 } while (0)
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename StringType>
 const char* debugString(StringType string)
@@ -65,6 +65,6 @@ const char* debugString(StringTypes... strings)
     return cStringData;
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::debugString;
+using PurCWTF::debugString;

@@ -24,7 +24,7 @@
 #include <glib-object.h>
 #include <glib.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 template <> GHashTable* refGPtr(GHashTable* ptr)
 {
@@ -182,6 +182,6 @@ template <> void derefGPtr(GMappedFile* ptr)
         g_mapped_file_unref(ptr);
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
 #endif // USE(GLIB)

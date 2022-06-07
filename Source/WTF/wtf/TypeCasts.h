@@ -27,7 +27,7 @@
 
 #include <type_traits>
 
-namespace WTF {
+namespace PurCWTF {
 
 template <typename ExpectedType, typename ArgType, bool isBaseType = std::is_base_of_v<ExpectedType, ArgType>>
 struct TypeCastTraits {
@@ -90,7 +90,7 @@ inline match_constness_t<Source, Target>* downcast(Source* source)
 
 // Add support for type checking / casting using is<>() / downcast<>() helpers for a specific class.
 #define SPECIALIZE_TYPE_TRAITS_BEGIN(ClassName) \
-namespace WTF { \
+namespace PurCWTF { \
 template <typename ArgType> \
 class TypeCastTraits<const ClassName, ArgType, false /* isBaseType */> { \
 public: \
@@ -101,8 +101,8 @@ private:
 }; \
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::TypeCastTraits;
-using WTF::is;
-using WTF::downcast;
+using PurCWTF::TypeCastTraits;
+using PurCWTF::is;
+using PurCWTF::downcast;

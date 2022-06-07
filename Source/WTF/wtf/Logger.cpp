@@ -29,7 +29,7 @@
 #include <wtf/HexNumber.h>
 #include <wtf/text/WTFString.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 String Logger::LogSiteIdentifier::toString() const
 {
@@ -43,4 +43,4 @@ String LogArgument<const void*>::toString(const void* argument)
     return makeString('(', hex(reinterpret_cast<uintptr_t>(argument)), ')');
 }
 
-} // namespace WTF
+} // namespace PurCWTF

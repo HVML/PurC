@@ -30,7 +30,7 @@
 #include <wtf/Lock.h>
 #include <wtf/ThreadSafeRefCounted.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename T, size_t BufferSize>
 class SynchronizedFixedQueue final : public ThreadSafeRefCounted<SynchronizedFixedQueue<T, BufferSize>> {
@@ -122,4 +122,4 @@ private:
 
 }
 
-using WTF::SynchronizedFixedQueue;
+using PurCWTF::SynchronizedFixedQueue;

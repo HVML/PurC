@@ -25,7 +25,7 @@
 
 #pragma once
 
-namespace WTF {
+namespace PurCWTF {
 
 // This class allows nodes to share code without dictating data member layout.
 template<typename T> class DoublyLinkedListNode {
@@ -212,7 +212,7 @@ template<typename T> inline void DoublyLinkedList<T>::append(DoublyLinkedList<T>
     m_tail = otherTail;
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::DoublyLinkedListNode;
-using WTF::DoublyLinkedList;
+using PurCWTF::DoublyLinkedListNode;
+using PurCWTF::DoublyLinkedList;

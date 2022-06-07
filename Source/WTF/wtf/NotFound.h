@@ -25,10 +25,10 @@
 
 #pragma once
 
-namespace WTF {
+namespace PurCWTF {
 
 constexpr size_t notFound = static_cast<size_t>(-1);
 
 }
 
-using WTF::notFound;
+using PurCWTF::notFound;

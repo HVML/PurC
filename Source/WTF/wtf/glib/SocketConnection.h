@@ -30,7 +30,7 @@
 
 typedef struct _GSocketConnection GSocketConnection;
 
-namespace WTF {
+namespace PurCWTF {
 
 class SocketConnection : public RefCounted<SocketConnection> {
 public:
@@ -65,6 +65,6 @@ private:
     GSocketMonitor m_writeMonitor;
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::SocketConnection;
+using PurCWTF::SocketConnection;

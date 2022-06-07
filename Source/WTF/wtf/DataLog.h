@@ -30,7 +30,7 @@
 #include <wtf/PrintStream.h>
 #include <wtf/StdLibExtras.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 WTF_EXPORT_PRIVATE PrintStream& dataFile();
 WTF_EXPORT_PRIVATE void setDataFile(const char* path);
@@ -66,11 +66,11 @@ ALWAYS_INLINE void dataLogLnIf(bool shouldLog, const Types&... values)
         dataLogLn(values...);
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::dataLog;
-using WTF::dataLogLn;
-using WTF::dataLogIf;
-using WTF::dataLogLnIf;
-using WTF::dataLogF;
-using WTF::dataLogFString;
+using PurCWTF::dataLog;
+using PurCWTF::dataLogLn;
+using PurCWTF::dataLogIf;
+using PurCWTF::dataLogLnIf;
+using PurCWTF::dataLogF;
+using PurCWTF::dataLogFString;

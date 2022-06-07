@@ -35,7 +35,7 @@
 #include <wtf/dtoa/ieee.h>
 #include <wtf/dtoa/strtod.h>
 
-namespace WTF {
+namespace PurCWTF {
 namespace double_conversion {
 
 #if defined(DOUBLE_CONVERSION_CORRECT_DOUBLE_OPERATIONS)
@@ -588,4 +588,4 @@ float Strtof(BufferReference<const char> buffer, int exponent) {
 }
 
 }  // namespace double_conversion
-}  // namespace WTF
+}  // namespace PurCWTF

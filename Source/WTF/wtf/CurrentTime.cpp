@@ -64,7 +64,7 @@
 #include <glib.h>
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 
 #if OS(WINDOWS)
 
@@ -281,4 +281,4 @@ MonotonicTime MonotonicTime::now()
 #endif
 }
 
-} // namespace WTF
+} // namespace PurCWTF

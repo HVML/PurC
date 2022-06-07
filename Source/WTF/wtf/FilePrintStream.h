@@ -28,7 +28,7 @@
 #include <stdio.h>
 #include <wtf/PrintStream.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 class FilePrintStream final : public PrintStream {
 public:
@@ -52,6 +52,6 @@ private:
     AdoptionMode m_adoptionMode;
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::FilePrintStream;
+using PurCWTF::FilePrintStream;

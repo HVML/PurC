@@ -26,9 +26,9 @@
 #include "config.h"
 #include <wtf/ConcurrentBuffer.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 DEFINE_ALLOCATOR_WITH_HEAP_IDENTIFIER(ConcurrentBuffer);
 
-} // namespace WTF
+} // namespace PurCWTF
 

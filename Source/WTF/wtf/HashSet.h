@@ -25,7 +25,7 @@
 #include <wtf/GetPtr.h>
 #include <wtf/HashTable.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 struct IdentityExtractor;
 
@@ -414,6 +414,6 @@ inline void HashSet<T, U, V>::checkConsistency() const
     m_impl.checkTableConsistency();
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::HashSet;
+using PurCWTF::HashSet;

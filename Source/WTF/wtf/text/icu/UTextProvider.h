@@ -30,7 +30,7 @@
 #endif
 #include <wtf/text/UChar.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 enum class UTextProviderContext {
     NoContext,
@@ -108,4 +108,4 @@ inline bool uTextAccessInChunkOrOutOfRange(UText* text, int64_t nativeIndex, int
     return false;
 }
 
-} // namespace WTF
+} // namespace PurCWTF

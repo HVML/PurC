@@ -30,7 +30,7 @@
 
 #include <wtf/dtoa/utils.h>
 
-namespace WTF {
+namespace PurCWTF {
 namespace double_conversion {
 
 enum BignumDtoaMode {
@@ -81,6 +81,6 @@ void BignumDtoa(double v, BignumDtoaMode mode, int requested_digits,
                 BufferReference<char> buffer, int* length, int* point);
 
 }  // namespace double_conversion
-}  // namespace WTF
+}  // namespace PurCWTF
 
 #endif  // DOUBLE_CONVERSION_BIGNUM_DTOA_H_

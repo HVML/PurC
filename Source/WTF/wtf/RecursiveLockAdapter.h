@@ -28,7 +28,7 @@
 #include <wtf/Lock.h>
 #include <wtf/Threading.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename LockType>
 class RecursiveLockAdapter {
@@ -89,6 +89,6 @@ private:
 
 using RecursiveLock = RecursiveLockAdapter<Lock>;
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::RecursiveLock;
+using PurCWTF::RecursiveLock;

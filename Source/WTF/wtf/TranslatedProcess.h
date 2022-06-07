@@ -32,7 +32,7 @@
 #define WKkIsTranslated           0x4000000000000000ULL
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 
 inline bool isX86BinaryRunningOnARM()
 {

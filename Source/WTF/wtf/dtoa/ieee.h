@@ -30,7 +30,7 @@
 
 #include <wtf/dtoa/diy-fp.h>
 
-namespace WTF {
+namespace PurCWTF {
 namespace double_conversion {
 
 // We assume that doubles and uint64_t have the same endianness.
@@ -399,6 +399,6 @@ class Single {
 };
 
 }  // namespace double_conversion
-}  // namespace WTF
+}  // namespace PurCWTF
 
 #endif  // DOUBLE_CONVERSION_DOUBLE_H_

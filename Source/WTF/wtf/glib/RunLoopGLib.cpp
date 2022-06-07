@@ -32,7 +32,7 @@
 #include <wtf/MainThread.h>
 #include <wtf/glib/RunLoopSourcePriority.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 static GSourceFuncs runLoopSourceFunctions = {
     nullptr, // prepare
@@ -96,7 +96,7 @@ RunLoop::~RunLoop()
     }
 }
 
-void RunLoop::setIdleCallback(WTF::Function<void()>&& function)
+void RunLoop::setIdleCallback(PurCWTF::Function<void()>&& function)
 {
     RunLoop& runloop = RunLoop::current();
     runloop.m_idleCallback = WTFMove(function);
@@ -286,4 +286,4 @@ Seconds RunLoop::TimerBase::secondsUntilFire() const
     return 0_s;
 }
 
-} // namespace WTF
+} // namespace PurCWTF

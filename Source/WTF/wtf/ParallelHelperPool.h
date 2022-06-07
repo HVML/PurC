@@ -36,7 +36,7 @@
 #include <wtf/WeakRandom.h>
 #include <wtf/text/CString.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 class AutomaticThread;
 class AutomaticThreadCondition;
@@ -212,7 +212,7 @@ private:
     bool m_isDying { false };
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::ParallelHelperClient;
-using WTF::ParallelHelperPool;
+using PurCWTF::ParallelHelperClient;
+using PurCWTF::ParallelHelperPool;

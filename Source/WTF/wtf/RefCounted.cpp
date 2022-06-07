@@ -21,7 +21,7 @@
 #include "config.h"
 #include <wtf/RefCounted.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 bool RefCountedBase::areThreadingChecksEnabledGlobally { false };
 

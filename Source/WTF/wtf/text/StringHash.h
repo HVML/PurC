@@ -25,7 +25,7 @@
 #include <wtf/text/AtomString.h>
 #include <wtf/text/StringHasher.h>
 
-namespace WTF {
+namespace PurCWTF {
 
     inline bool HashTraits<String>::isEmptyValue(const String& value)
     {
@@ -52,7 +52,7 @@ namespace WTF {
         static unsigned hash(StringImpl* key) { return key->hash(); }
         static inline bool equal(const StringImpl* a, const StringImpl* b)
         {
-            return WTF::equal(*a, *b);
+            return PurCWTF::equal(*a, *b);
         }
 
         static unsigned hash(const RefPtr<StringImpl>& key) { return key->hash(); }
@@ -219,7 +219,7 @@ namespace WTF {
 
 }
 
-using WTF::ASCIICaseInsensitiveHash;
-using WTF::ASCIICaseInsensitiveStringViewHashTranslator;
-using WTF::AlreadyHashed;
-using WTF::StringHash;
+using PurCWTF::ASCIICaseInsensitiveHash;
+using PurCWTF::ASCIICaseInsensitiveStringViewHashTranslator;
+using PurCWTF::AlreadyHashed;
+using PurCWTF::StringHash;

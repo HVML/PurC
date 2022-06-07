@@ -25,7 +25,7 @@
 
 #include <wtf/HashSet.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 AtomStringTable::~AtomStringTable()
 {

@@ -29,7 +29,7 @@
 #include <wtf/LockAlgorithmInlines.h>
 #include <wtf/StackShotProfiler.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 static constexpr bool profileLockContention = false;
 
@@ -55,5 +55,5 @@ void Lock::safepointSlow()
     DefaultLockAlgorithm::safepointSlow(m_byte);
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 

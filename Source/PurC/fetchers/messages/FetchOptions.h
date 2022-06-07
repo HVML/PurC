@@ -98,7 +98,7 @@ inline bool isScriptLikeDestination(FetchOptions::Destination destination)
 
 }
 
-namespace WTF {
+namespace PurCWTF {
 
 template<> struct EnumTraits<PurCFetcher::FetchOptions::Destination> {
     using values = EnumValues<
@@ -248,12 +248,12 @@ inline Optional<FetchOptions> FetchOptions::decode(Decoder& decoder)
 {
     FetchOptions options;
     if (!decodePersistent(decoder, options))
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
 
     Optional<Optional<DocumentIdentifier>> clientIdentifier;
     decoder >> clientIdentifier;
     if (!clientIdentifier)
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
     options.clientIdentifier = WTFMove(clientIdentifier.value());
 
     return options;

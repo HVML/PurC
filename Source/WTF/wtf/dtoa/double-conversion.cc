@@ -42,7 +42,7 @@
 
 #include <wtf/ASCIICType.h>
 
-namespace WTF {
+namespace PurCWTF {
 namespace double_conversion {
 
 const DoubleToStringConverter& DoubleToStringConverter::EcmaScriptConverter() {
@@ -664,4 +664,4 @@ float StringToDoubleConverter::StringToFloat(
 }
 
 }  // namespace double_conversion
-}  // namespace WTF
+}  // namespace PurCWTF

@@ -34,7 +34,7 @@
 
 #include <wtf/Noncopyable.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 // This class allows non-Objective-C C++ code to create an autorelease pool.
 // It cannot be used in Objective-C++ code, won't be compiled; instead @autoreleasepool should be used.
@@ -59,6 +59,6 @@ private:
 #endif
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::AutodrainedPool;
+using PurCWTF::AutodrainedPool;

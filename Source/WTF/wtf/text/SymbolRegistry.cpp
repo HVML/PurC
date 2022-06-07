@@ -26,7 +26,7 @@
 #include "config.h"
 #include <wtf/text/SymbolRegistry.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 SymbolRegistry::~SymbolRegistry()
 {

@@ -39,7 +39,7 @@
 #include <bmalloc/bmalloc.h>
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 
 static Optional<size_t> stackSize(ThreadType threadType)
 {
@@ -60,7 +60,7 @@ static Optional<size_t> stackSize(ThreadType threadType)
     return DEFAULT_THREAD_STACK_SIZE_IN_KB * 1024;
 #else
     // Use the platform's default stack size
-    return WTF::nullopt;
+    return PurCWTF::nullopt;
 #endif
 }
 
@@ -169,7 +169,7 @@ void Thread::entryPoint(NewThreadContext* newThreadContext)
 
 Ref<Thread> Thread::create(const char* name, Function<void()>&& entryPoint, ThreadType threadType)
 {
-    WTF::initializeThreading();
+    PurCWTF::initializeThreading();
     Ref<Thread> thread = adoptRef(*new Thread());
     Ref<NewThreadContext> context = adoptRef(*new NewThreadContext { name, WTFMove(entryPoint), thread.copyRef() });
     // Increment the context ref on behalf of the created thread. We do not just use a unique_ptr and leak it to the created thread because both the creator and created thread has a need to keep the context alive:
@@ -217,7 +217,7 @@ static bool shouldRemoveThreadFromThreadGroup()
     // forever for the thread group lock when exiting, if the sampling
     // profiler thread was terminated by the system while holding the
     // thread group lock.
-    if (WTF::isMainThread())
+    if (PurCWTF::isMainThread())
         return false;
 #endif
     return true;
@@ -369,4 +369,4 @@ void initializeThreading()
     });
 }
 
-} // namespace WTF
+} // namespace PurCWTF

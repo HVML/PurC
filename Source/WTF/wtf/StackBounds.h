@@ -30,7 +30,7 @@
 #include <wtf/StackPointer.h>
 #include <wtf/ThreadingPrimitives.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 class StackBounds {
     WTF_MAKE_FAST_ALLOCATED;
@@ -141,6 +141,6 @@ private:
     friend class StackStats;
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::StackBounds;
+using PurCWTF::StackBounds;

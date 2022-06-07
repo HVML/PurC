@@ -30,7 +30,7 @@
 #import <wtf/RetainPtr.h>
 #import <wtf/spi/cocoa/SecuritySPI.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 static bool hasEntitlement(SecTaskRef task, const char* entitlement)
 {
@@ -57,4 +57,4 @@ bool processHasEntitlement(const char* entitlement)
     return hasEntitlement(adoptCF(SecTaskCreateFromSelf(kCFAllocatorDefault)).get(), entitlement);
 }
 
-} // namespace WTF
+} // namespace PurCWTF

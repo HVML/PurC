@@ -109,7 +109,7 @@ char *pcutils_url_assemble(const struct purc_broken_down_url *url_struct)
 {
     char * url_string = NULL;
     String string = "";
-    WTF::URL url(WTF::URL(), string);
+    PurCWTF::URL url(PurCWTF::URL(), string);
 
     if (url_struct->schema)
         url.setProtocol(url_struct->schema);
@@ -138,7 +138,7 @@ char *pcutils_url_assemble(const struct purc_broken_down_url *url_struct)
     if (url.isValid()) {
         String tempstring = url.string();
 // if you wana decode URL, use the line below
-// String tempstring = WTF::decodeEscapeSequencesFromParsedURL(url.string());
+// String tempstring = PurCWTF::decodeEscapeSequencesFromParsedURL(url.string());
         url_string = strdup(tempstring.latin1().data());
     }
 
@@ -157,7 +157,7 @@ static bool shouldEncode(unsigned char c)
 
 static String percentEncodeCharacters(const unsigned char * data)
 {
-    WTF::StringBuilder builder;
+    PurCWTF::StringBuilder builder;
     auto length = strlen ((char *)data);
     for (unsigned j = 0; j < length; j++) {
         auto c = data[j];
@@ -174,9 +174,9 @@ static String percentEncodeCharacters(const unsigned char * data)
 bool pcutils_url_break_down(struct purc_broken_down_url *url_struct,
         const char *url_string)
 {
-    // std::unique_ptr<WTF::URL> url = makeUnique<URL>(URL(), url_string);
+    // std::unique_ptr<PurCWTF::URL> url = makeUnique<URL>(URL(), url_string);
     String encode_url = percentEncodeCharacters((const unsigned char *)url_string);
-    WTF::URL url(URL(), encode_url);
+    PurCWTF::URL url(URL(), encode_url);
 
     bool valid = url.isValid();
     size_t length = 0;

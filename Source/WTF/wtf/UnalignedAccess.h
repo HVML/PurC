@@ -29,7 +29,7 @@
 #include <wtf/Platform.h>
 #include <wtf/StdLibExtras.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename Type>
 inline Type unalignedLoad(const void* pointer)
@@ -47,4 +47,4 @@ inline void unalignedStore(void* pointer, Type value)
     memcpy(pointer, &value, sizeof(Type));
 }
 
-} // namespace WTF
+} // namespace PurCWTF

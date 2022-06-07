@@ -46,7 +46,7 @@ void* tryRealloc(Kind, void* pointer, size_t size)
 
 void* tryAllocateZeroedVirtualPages(Kind, size_t requestedSize)
 {
-    size_t size = roundUpToMultipleOf(WTF::pageSize(), requestedSize);
+    size_t size = roundUpToMultipleOf(PurCWTF::pageSize(), requestedSize);
     RELEASE_ASSERT(size >= requestedSize);
     void* result = OSAllocator::reserveAndCommit(size);
 #if ENABLE_ASSERTS
@@ -76,7 +76,7 @@ namespace Gigacage {
 void* tryAlignedMalloc(Kind kind, size_t alignment, size_t size)
 {
     void* result = bmalloc::api::tryMemalign(alignment, size, bmalloc::heapKind(kind));
-    WTF::compilerFence();
+    PurCWTF::compilerFence();
     return result;
 }
 
@@ -86,20 +86,20 @@ void alignedFree(Kind kind, void* p)
         return;
     RELEASE_ASSERT(isCaged(kind, p));
     bmalloc::api::free(p, bmalloc::heapKind(kind));
-    WTF::compilerFence();
+    PurCWTF::compilerFence();
 }
 
 void* tryMalloc(Kind kind, size_t size)
 {
     void* result = bmalloc::api::tryMalloc(size, bmalloc::heapKind(kind));
-    WTF::compilerFence();
+    PurCWTF::compilerFence();
     return result;
 }
 
 void* tryRealloc(Kind kind, void* pointer, size_t size)
 {
     void* result = bmalloc::api::tryRealloc(pointer, size, bmalloc::heapKind(kind));
-    WTF::compilerFence();
+    PurCWTF::compilerFence();
     return result;
 }
 
@@ -109,13 +109,13 @@ void free(Kind kind, void* p)
         return;
     RELEASE_ASSERT(isCaged(kind, p));
     bmalloc::api::free(p, bmalloc::heapKind(kind));
-    WTF::compilerFence();
+    PurCWTF::compilerFence();
 }
 
 void* tryAllocateZeroedVirtualPages(Kind kind, size_t size)
 {
-    void* result = bmalloc::api::tryLargeZeroedMemalignVirtual(WTF::pageSize(), size, bmalloc::heapKind(kind));
-    WTF::compilerFence();
+    void* result = bmalloc::api::tryLargeZeroedMemalignVirtual(PurCWTF::pageSize(), size, bmalloc::heapKind(kind));
+    PurCWTF::compilerFence();
     return result;
 }
 
@@ -125,7 +125,7 @@ void freeVirtualPages(Kind kind, void* basePtr, size_t size)
         return;
     RELEASE_ASSERT(isCaged(kind, basePtr));
     bmalloc::api::freeLargeVirtual(basePtr, size, bmalloc::heapKind(kind));
-    WTF::compilerFence();
+    PurCWTF::compilerFence();
 }
 
 } // namespace Gigacage

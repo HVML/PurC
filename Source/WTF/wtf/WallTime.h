@@ -28,7 +28,7 @@
 #include <wtf/ClockType.h>
 #include <wtf/Seconds.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 class MonotonicTime;
 class PrintStream;
@@ -47,7 +47,7 @@ public:
     constexpr WallTime() { }
     
     // Call this if you know for sure that the double represents time according to
-    // WTF::currentTime(). It must be in seconds and it must be from the same time source.
+    // PurCWTF::currentTime(). It must be in seconds and it must be from the same time source.
     static constexpr WallTime fromRawSeconds(double value)
     {
         return WallTime(value);
@@ -159,25 +159,25 @@ struct WallTime::MarkableTraits {
 
 WTF_EXPORT_PRIVATE void sleep(WallTime);
 
-} // namespace WTF
+} // namespace PurCWTF
 
 namespace std {
 
-inline bool isnan(WTF::WallTime time)
+inline bool isnan(PurCWTF::WallTime time)
 {
     return std::isnan(time.secondsSinceEpoch().value());
 }
 
-inline bool isinf(WTF::WallTime time)
+inline bool isinf(PurCWTF::WallTime time)
 {
     return std::isinf(time.secondsSinceEpoch().value());
 }
 
-inline bool isfinite(WTF::WallTime time)
+inline bool isfinite(PurCWTF::WallTime time)
 {
     return std::isfinite(time.secondsSinceEpoch().value());
 }
 
 } // namespace std
 
-using WTF::WallTime;
+using PurCWTF::WallTime;

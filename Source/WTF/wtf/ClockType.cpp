@@ -28,7 +28,7 @@
 
 #include <wtf/PrintStream.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 void printInternal(PrintStream& out, ClockType type)
 {
@@ -43,5 +43,5 @@ void printInternal(PrintStream& out, ClockType type)
     RELEASE_ASSERT_NOT_REACHED();
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 

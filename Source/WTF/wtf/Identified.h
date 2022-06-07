@@ -28,7 +28,7 @@
 #include <atomic>
 #include <wtf/NeverDestroyed.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 template <typename IdentifierType, typename ClassType>
 class IdentifiedBase {
@@ -103,7 +103,7 @@ private:
     }
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::Identified;
-using WTF::ThreadSafeIdentified;
+using PurCWTF::Identified;
+using PurCWTF::ThreadSafeIdentified;

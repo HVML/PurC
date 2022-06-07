@@ -27,7 +27,7 @@
 #include <limits.h>
 #include <wtf/text/WTFString.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 const char nonAlphabet = -1;
 
@@ -330,4 +330,4 @@ bool base64URLDecode(const char* data, unsigned len, SignedOrUnsignedCharVectorA
     return base64DecodeInternal(reinterpret_cast<const LChar*>(data), len, out, Base64Default, base64URLDecMap);
 }
 
-} // namespace WTF
+} // namespace PurCWTF

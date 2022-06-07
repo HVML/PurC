@@ -28,7 +28,7 @@
 #include <cstdint>
 #include <utility>
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename T>
 struct DumbValueTraits {
@@ -43,6 +43,6 @@ struct DumbValueTraits {
     static ALWAYS_INLINE T unwrap(const StorageType& val) { return val; }
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::DumbValueTraits;
+using PurCWTF::DumbValueTraits;

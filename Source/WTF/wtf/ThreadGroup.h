@@ -30,7 +30,7 @@
 #include <wtf/Lock.h>
 #include <wtf/Threading.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 enum class ThreadGroupAddResult { NewlyAdded, AlreadyAdded, NotAdded };
 
@@ -70,5 +70,5 @@ private:
 
 }
 
-using WTF::ThreadGroup;
-using WTF::ThreadGroupAddResult;
+using PurCWTF::ThreadGroup;
+using PurCWTF::ThreadGroupAddResult;

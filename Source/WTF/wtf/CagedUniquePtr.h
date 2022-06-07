@@ -27,7 +27,7 @@
 
 #include <wtf/CagedPtr.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 template<Gigacage::Kind kind, typename T, bool shouldTag = false>
 class CagedUniquePtr : public CagedPtr<kind, T, shouldTag> {
@@ -92,7 +92,7 @@ private:
     }
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::CagedUniquePtr;
+using PurCWTF::CagedUniquePtr;
 

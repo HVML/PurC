@@ -37,7 +37,7 @@ namespace JSC {
 class CachedBitVector;
 }
 
-namespace WTF {
+namespace PurCWTF {
 
 // This is a space-efficient, resizeable bitvector class. In the common case it
 // occupies one word, but if necessary, it will inflate this one word to point
@@ -382,8 +382,8 @@ private:
     static size_t bitCount(uintptr_t bits)
     {
         if (sizeof(uintptr_t) == 4)
-            return WTF::bitCount(static_cast<unsigned>(bits));
-        return WTF::bitCount(static_cast<uint64_t>(bits));
+            return PurCWTF::bitCount(static_cast<unsigned>(bits));
+        return PurCWTF::bitCount(static_cast<uint64_t>(bits));
     }
     
     size_t findBitFast(size_t startIndex, bool value) const
@@ -499,6 +499,6 @@ template<> struct DefaultHash<BitVector> {
 
 template<> struct HashTraits<BitVector> : public CustomHashTraits<BitVector> { };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::BitVector;
+using PurCWTF::BitVector;

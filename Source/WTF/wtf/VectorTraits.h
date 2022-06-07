@@ -26,7 +26,7 @@
 #include <memory>
 #include <type_traits>
 
-namespace WTF {
+namespace PurCWTF {
 
     class AtomString;
 
@@ -87,7 +87,7 @@ namespace WTF {
         static constexpr bool canCompareWithMemcmp = FirstTraits::canCompareWithMemcmp && SecondTraits::canCompareWithMemcmp;
     };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::VectorTraits;
-using WTF::SimpleClassVectorTraits;
+using PurCWTF::VectorTraits;
+using PurCWTF::SimpleClassVectorTraits;

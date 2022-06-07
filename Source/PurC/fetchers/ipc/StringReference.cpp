@@ -36,7 +36,7 @@ namespace IPC {
 
 CString StringReference::toString() const
 {
-    return WTF::CString(m_data, m_size);
+    return PurCWTF::CString(m_data, m_size);
 }
 
 void StringReference::encode(Encoder& encoder) const

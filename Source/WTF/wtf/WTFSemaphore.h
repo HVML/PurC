@@ -29,7 +29,7 @@
 #include <wtf/Lock.h>
 #include <wtf/Noncopyable.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 class Semaphore final {
     WTF_MAKE_NONCOPYABLE(Semaphore);
@@ -76,6 +76,6 @@ private:
 };
 
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::Semaphore;
+using PurCWTF::Semaphore;

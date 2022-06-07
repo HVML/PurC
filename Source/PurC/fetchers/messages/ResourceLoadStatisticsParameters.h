@@ -78,69 +78,69 @@ struct ResourceLoadStatisticsParameters {
         Optional<String> directory;
         decoder >> directory;
         if (!directory)
-            return WTF::nullopt;
+            return PurCWTF::nullopt;
         
         Optional<SandboxExtension::Handle> directoryExtensionHandle;
         decoder >> directoryExtensionHandle;
         if (!directoryExtensionHandle)
-            return WTF::nullopt;
+            return PurCWTF::nullopt;
         
         Optional<bool> enabled;
         decoder >> enabled;
         if (!enabled)
-            return WTF::nullopt;
+            return PurCWTF::nullopt;
 
         Optional<bool> isItpStateExplicitlySet;
         decoder >> isItpStateExplicitlySet;
         if (!isItpStateExplicitlySet)
-            return WTF::nullopt;
+            return PurCWTF::nullopt;
 
         Optional<bool> enableLogTestingEvent;
         decoder >> enableLogTestingEvent;
         if (!enableLogTestingEvent)
-            return WTF::nullopt;
+            return PurCWTF::nullopt;
 
         Optional<bool> shouldIncludeLocalhost;
         decoder >> shouldIncludeLocalhost;
         if (!shouldIncludeLocalhost)
-            return WTF::nullopt;
+            return PurCWTF::nullopt;
 
         Optional<bool> enableDebugMode;
         decoder >> enableDebugMode;
         if (!enableDebugMode)
-            return WTF::nullopt;
+            return PurCWTF::nullopt;
 
 #if ENABLE(RESOURCE_LOAD_STATISTICS)
         Optional<PurCFetcher::ThirdPartyCookieBlockingMode> thirdPartyCookieBlockingMode;
         decoder >> thirdPartyCookieBlockingMode;
         if (!thirdPartyCookieBlockingMode)
-            return WTF::nullopt;
+            return PurCWTF::nullopt;
 
         Optional<PurCFetcher::SameSiteStrictEnforcementEnabled> sameSiteStrictEnforcementEnabled;
         decoder >> sameSiteStrictEnforcementEnabled;
         if (!sameSiteStrictEnforcementEnabled)
-            return WTF::nullopt;
+            return PurCWTF::nullopt;
 #endif
 
         Optional<PurCFetcher::FirstPartyWebsiteDataRemovalMode> firstPartyWebsiteDataRemovalMode;
         decoder >> firstPartyWebsiteDataRemovalMode;
         if (!firstPartyWebsiteDataRemovalMode)
-            return WTF::nullopt;
+            return PurCWTF::nullopt;
 
         Optional<PurCFetcher::RegistrableDomain> standaloneApplicationDomain;
         decoder >> standaloneApplicationDomain;
         if (!standaloneApplicationDomain)
-            return WTF::nullopt;
+            return PurCWTF::nullopt;
 
         Optional<HashSet<PurCFetcher::RegistrableDomain>> appBoundDomains;
         decoder >> appBoundDomains;
         if (!appBoundDomains)
-            return WTF::nullopt;
+            return PurCWTF::nullopt;
 
         Optional<PurCFetcher::RegistrableDomain> manualPrevalentResource;
         decoder >> manualPrevalentResource;
         if (!manualPrevalentResource)
-            return WTF::nullopt;
+            return PurCWTF::nullopt;
 
         return {{
             WTFMove(*directory),

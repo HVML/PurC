@@ -28,7 +28,7 @@
 #include <wtf/Function.h>
 #include <wtf/text/StringImpl.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 class ExternalStringImpl;
 
@@ -53,6 +53,6 @@ private:
     ExternalStringImplFreeFunction m_free;
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::ExternalStringImpl;
+using PurCWTF::ExternalStringImpl;

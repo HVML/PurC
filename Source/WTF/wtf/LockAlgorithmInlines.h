@@ -34,7 +34,7 @@
 // the lock algorithm slow path without recompiling the world. Right now this should be included in two
 // places (Lock.cpp and JSCell.cpp).
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename LockType, LockType isHeldBit, LockType hasParkedBit, typename Hooks>
 void LockAlgorithm<LockType, isHeldBit, hasParkedBit, Hooks>::lockSlow(Atomic<LockType>& lock)
@@ -162,5 +162,5 @@ void LockAlgorithm<LockType, isHeldBit, hasParkedBit, Hooks>::unlockSlow(Atomic<
     }
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 

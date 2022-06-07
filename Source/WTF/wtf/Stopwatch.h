@@ -29,7 +29,7 @@
 #include <wtf/Ref.h>
 #include <wtf/RefCounted.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 class Stopwatch : public RefCounted<Stopwatch> {
 public:
@@ -90,6 +90,6 @@ inline Seconds Stopwatch::elapsedTimeSince(MonotonicTime timeStamp) const
     return m_elapsedTime + (timeStamp - m_lastStartTime);
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::Stopwatch;
+using PurCWTF::Stopwatch;

@@ -44,7 +44,7 @@
 // This path won't work on Windows, make sure to change to something like C:\\Users\\<more path>\\log.txt.
 #define DATA_LOG_FILENAME "/tmp/WTFLog"
 
-namespace WTF {
+namespace PurCWTF {
 
 static constexpr size_t maxPathLength = 1024;
 
@@ -187,5 +187,5 @@ void dataLogFString(const char* str)
     dataFile().printf("%s", str);
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 

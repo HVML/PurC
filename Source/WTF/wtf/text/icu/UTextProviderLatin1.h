@@ -31,7 +31,7 @@
 #include <wtf/text/LChar.h>
 #include <wtf/text/UChar.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 const int UTextWithBufferInlineCapacity = 16;
 
@@ -44,4 +44,4 @@ struct UTextWithBuffer {
 WTF_EXPORT_PRIVATE UText* openLatin1UTextProvider(UTextWithBuffer* utWithBuffer, const LChar* string, unsigned length, UErrorCode* status);
 UText* openLatin1ContextAwareUTextProvider(UTextWithBuffer* utWithBuffer, const LChar* string, unsigned length, const UChar* priorContext, int priorContextLength, UErrorCode* status);
 
-} // namespace WTF
+} // namespace PurCWTF

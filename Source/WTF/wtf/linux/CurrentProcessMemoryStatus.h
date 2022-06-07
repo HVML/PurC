@@ -25,7 +25,7 @@
 
 #pragma once
 
-namespace WTF {
+namespace PurCWTF {
 
 struct ProcessMemoryStatus {
     WTF_MAKE_STRUCT_FAST_ALLOCATED;
@@ -40,7 +40,7 @@ struct ProcessMemoryStatus {
 
 WTF_EXPORT_PRIVATE void currentProcessMemoryStatus(ProcessMemoryStatus&);
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::ProcessMemoryStatus;
-using WTF::currentProcessMemoryStatus;
+using PurCWTF::ProcessMemoryStatus;
+using PurCWTF::currentProcessMemoryStatus;

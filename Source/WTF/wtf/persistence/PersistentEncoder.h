@@ -30,7 +30,7 @@
 #include <wtf/Vector.h>
 #include <wtf/persistence/PersistentCoder.h>
 
-namespace WTF {
+namespace PurCWTF {
 namespace Persistence {
 
 class Encoder;

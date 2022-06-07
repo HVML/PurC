@@ -29,7 +29,7 @@
 #include <wtf/text/StringImpl.h>
 #include <wtf/text/icu/UTextProvider.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 // Latin1 provider
 
@@ -392,4 +392,4 @@ UText* openLatin1ContextAwareUTextProvider(UTextWithBuffer* utWithBuffer, const 
     return text;
 }
 
-} // namespace WTF
+} // namespace PurCWTF

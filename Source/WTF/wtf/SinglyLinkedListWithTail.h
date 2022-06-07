@@ -28,7 +28,7 @@
 #include <wtf/Assertions.h>
 #include <wtf/StdLibExtras.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename T>
 class SinglyLinkedListWithTail {
@@ -57,7 +57,7 @@ private:
     T* m_last { nullptr };
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::SinglyLinkedListWithTail;
+using PurCWTF::SinglyLinkedListWithTail;
 

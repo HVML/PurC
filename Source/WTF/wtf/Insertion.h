@@ -25,7 +25,7 @@
 
 #pragma once
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename T>
 class Insertion {
@@ -77,7 +77,7 @@ size_t executeInsertions(TargetVectorType& target, InsertionVectorType& insertio
     return numInsertions;
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::Insertion;
-using WTF::executeInsertions;
+using PurCWTF::Insertion;
+using PurCWTF::executeInsertions;

@@ -28,7 +28,7 @@
 #include <algorithm>
 #include <wtf/VMTags.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 class OSAllocator {
     WTF_MAKE_FAST_ALLOCATED;
@@ -94,6 +94,6 @@ inline T* OSAllocator::reallocateCommitted(T* oldBase, size_t oldSize, size_t ne
     return static_cast<T*>(newBase);
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::OSAllocator;
+using PurCWTF::OSAllocator;

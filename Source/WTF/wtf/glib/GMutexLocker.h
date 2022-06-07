@@ -25,7 +25,7 @@
 #include <glib.h>
 #include <wtf/Noncopyable.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename T>
 struct MutexWrapper;
@@ -96,7 +96,7 @@ private:
     bool m_locked;
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
 #endif // USE(GLIB)
 

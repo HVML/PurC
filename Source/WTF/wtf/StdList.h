@@ -28,11 +28,11 @@
 #include <list>
 #include <wtf/FastMalloc.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename T, typename Allocator = FastAllocator<T>>
 using StdList = std::list<T, Allocator>;
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::StdList;
+using PurCWTF::StdList;

@@ -32,7 +32,7 @@
 #include <wtf/Noncopyable.h>
 #include <wtf/Vector.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 // This implements a red-black tree with the following properties:
 // - The allocation of nodes in the tree is entirely up to the user.

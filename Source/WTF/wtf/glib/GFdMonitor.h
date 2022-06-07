@@ -30,7 +30,7 @@
 #include <wtf/RefCounted.h>
 #include <wtf/glib/GRefPtr.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 class GFdMonitor : public RefCounted<GFdMonitor> {
     WTF_MAKE_NONCOPYABLE(GFdMonitor);
@@ -51,6 +51,6 @@ private:
     Function<gboolean(gint, GIOCondition)> m_callback;
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::GFdMonitor;
+using PurCWTF::GFdMonitor;

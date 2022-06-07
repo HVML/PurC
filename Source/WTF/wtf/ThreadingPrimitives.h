@@ -48,7 +48,7 @@
 #endif
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 
 using ThreadFunction = void (*)(void* argument);
 
@@ -141,8 +141,8 @@ inline void* threadSpecificGet(ThreadSpecificKey key)
 
 #endif
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::Mutex;
-using WTF::MutexLocker;
-using WTF::ThreadCondition;
+using PurCWTF::Mutex;
+using PurCWTF::MutexLocker;
+using PurCWTF::ThreadCondition;

@@ -30,7 +30,7 @@
 #include <wtf/text/StringHash.h>
 #include <wtf/text/WTFString.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 struct URLHash {
     static unsigned hash(const URL& key)
@@ -53,6 +53,6 @@ template<> struct DefaultHash<URL> {
 
 template<> struct HashTraits<URL> : SimpleClassHashTraits<URL> { };
 
-} // namespace WTF
+} // namespace PurCWTF
 
 #endif // URLHash_h

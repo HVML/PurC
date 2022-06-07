@@ -29,15 +29,15 @@
 #include <wtf/ParkingLot.h>
 #include <wtf/TimeWithDynamicClockType.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 // This is a condition variable that is suitable for use with any lock-like object, including
-// our own WTF::Lock. It features standard wait()/notifyOne()/notifyAll() methods in addition to
-// a variety of wait-with-timeout methods. This includes methods that use WTF's own notion of
+// our own PurCWTF::Lock. It features standard wait()/notifyOne()/notifyAll() methods in addition to
+// a variety of wait-with-timeout methods. This includes methods that use PurCWTF's own notion of
 // time, like wall-clock time (i.e. WallTime) and monotonic time (i.e. MonotonicTime). This is
 // a very efficient condition variable. It only requires one byte of memory. notifyOne() and
 // notifyAll() require just a load and branch for the fast case where no thread is waiting.
-// This condition variable, when used with WTF::Lock, can outperform a system condition variable
+// This condition variable, when used with PurCWTF::Lock, can outperform a system condition variable
 // and lock by up to 58x.
 class Condition final {
     WTF_MAKE_NONCOPYABLE(Condition);
@@ -174,7 +174,7 @@ private:
 
 using StaticCondition = Condition;
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::Condition;
-using WTF::StaticCondition;
+using PurCWTF::Condition;
+using PurCWTF::StaticCondition;

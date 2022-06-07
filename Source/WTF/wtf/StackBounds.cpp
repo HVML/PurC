@@ -38,7 +38,7 @@
 
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 
 #if OS(DARWIN)
 
@@ -165,4 +165,4 @@ StackBounds StackBounds::currentThreadStackBoundsInternal()
 #error Need a way to get the stack bounds on this platform
 #endif
 
-} // namespace WTF
+} // namespace PurCWTF

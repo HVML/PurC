@@ -29,7 +29,7 @@
 #include <wtf/text/icu/UTextProviderLatin1.h>
 #include <wtf/text/UChar.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 class TextBreakIteratorICU {
     WTF_MAKE_FAST_ALLOCATED;

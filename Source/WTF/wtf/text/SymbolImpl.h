@@ -27,7 +27,7 @@
 
 #include <wtf/text/UniquedStringImpl.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 class RegisteredSymbolImpl;
 
@@ -216,8 +216,8 @@ ValueCheck<const SymbolImpl*> {
 };
 #endif // ENABLE_ASSERTS
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::SymbolImpl;
-using WTF::PrivateSymbolImpl;
-using WTF::RegisteredSymbolImpl;
+using PurCWTF::SymbolImpl;
+using PurCWTF::PrivateSymbolImpl;
+using PurCWTF::RegisteredSymbolImpl;

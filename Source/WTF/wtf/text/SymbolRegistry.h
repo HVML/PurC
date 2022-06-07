@@ -31,7 +31,7 @@
 #include <wtf/text/SymbolImpl.h>
 #include <wtf/text/WTFString.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 // Since StringImpl* used for Symbol uid doesn't have a hash value reflecting the string content,
 // to compare with an external string in string contents, introduce SymbolRegistryKey.
@@ -40,7 +40,7 @@ class SymbolRegistryKey {
 public:
     SymbolRegistryKey() = default;
     explicit SymbolRegistryKey(StringImpl* uid);
-    SymbolRegistryKey(WTF::HashTableDeletedValueType);
+    SymbolRegistryKey(PurCWTF::HashTableDeletedValueType);
 
     unsigned hash() const { return m_hash; }
     StringImpl* impl() const { return m_impl; }
@@ -103,7 +103,7 @@ inline SymbolRegistryKey::SymbolRegistryKey(StringImpl* uid)
         m_hash = uid->hash();
 }
 
-inline SymbolRegistryKey::SymbolRegistryKey(WTF::HashTableDeletedValueType)
+inline SymbolRegistryKey::SymbolRegistryKey(PurCWTF::HashTableDeletedValueType)
     : m_impl(hashTableDeletedValue())
 {
 }

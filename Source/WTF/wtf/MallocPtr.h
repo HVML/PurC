@@ -32,7 +32,7 @@
 // It is intended to be used for pointers where the C++ lifetime semantics
 // (calling constructors and destructors) is not desired. 
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename T, typename Malloc = FastMalloc> class MallocPtr {
     WTF_MAKE_NONCOPYABLE(MallocPtr);
@@ -148,7 +148,7 @@ template<typename U, typename OtherMalloc> MallocPtr<U, OtherMalloc> adoptMalloc
     return MallocPtr<U, OtherMalloc>(ptr);
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::MallocPtr;
-using WTF::adoptMallocPtr;
+using PurCWTF::MallocPtr;
+using PurCWTF::adoptMallocPtr;

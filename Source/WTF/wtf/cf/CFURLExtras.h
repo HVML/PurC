@@ -29,7 +29,7 @@
 #include <wtf/RetainPtr.h>
 #include <wtf/Vector.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 class URL;
 typedef Vector<char, 512> URLCharBuffer;

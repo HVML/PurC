@@ -305,7 +305,7 @@ template<class Decoder> inline RefPtr<SecurityOrigin> SecurityOrigin::decode(Dec
 
 } // namespace PurCFetcher
 
-namespace WTF {
+namespace PurCWTF {
 
 template<> struct EnumTraits<PurCFetcher::SecurityOrigin::StorageBlockingPolicy> {
     using values = EnumValues<
@@ -317,4 +317,4 @@ template<> struct EnumTraits<PurCFetcher::SecurityOrigin::StorageBlockingPolicy>
 };
 
 
-} // namespace WTF
+} // namespace PurCWTF

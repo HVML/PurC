@@ -38,7 +38,7 @@
 #include <wtf/win/Win32Handle.h>
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 
 enum class MemoryUsagePolicy : uint8_t {
     Unrestricted, // Allocate as much as you want
@@ -54,11 +54,11 @@ enum class WebsamProcessState : uint8_t {
 enum class Critical { No, Yes };
 enum class Synchronous { No, Yes };
 
-typedef WTF::Function<void(Critical, Synchronous)> LowMemoryHandler;
+typedef PurCWTF::Function<void(Critical, Synchronous)> LowMemoryHandler;
 
 class MemoryPressureHandler {
     WTF_MAKE_FAST_ALLOCATED;
-    friend class WTF::NeverDestroyed<MemoryPressureHandler>;
+    friend class PurCWTF::NeverDestroyed<MemoryPressureHandler>;
 public:
     WTF_EXPORT_PRIVATE static MemoryPressureHandler& singleton();
 
@@ -70,9 +70,9 @@ public:
     WTF_EXPORT_PRIVATE void triggerMemoryPressureEvent(bool isCritical);
 #endif
 
-    void setMemoryKillCallback(WTF::Function<void()>&& function) { m_memoryKillCallback = WTFMove(function); }
-    void setMemoryPressureStatusChangedCallback(WTF::Function<void(bool)>&& function) { m_memoryPressureStatusChangedCallback = WTFMove(function); }
-    void setDidExceedInactiveLimitWhileActiveCallback(WTF::Function<void()>&& function) { m_didExceedInactiveLimitWhileActiveCallback = WTFMove(function); }
+    void setMemoryKillCallback(PurCWTF::Function<void()>&& function) { m_memoryKillCallback = WTFMove(function); }
+    void setMemoryPressureStatusChangedCallback(PurCWTF::Function<void(bool)>&& function) { m_memoryPressureStatusChangedCallback = WTFMove(function); }
+    void setDidExceedInactiveLimitWhileActiveCallback(PurCWTF::Function<void()>&& function) { m_didExceedInactiveLimitWhileActiveCallback = WTFMove(function); }
 
     void setLowMemoryHandler(LowMemoryHandler&& handler)
     {
@@ -189,9 +189,9 @@ private:
     MemoryUsagePolicy m_memoryUsagePolicy { MemoryUsagePolicy::Unrestricted };
 
     std::unique_ptr<RunLoop::Timer<MemoryPressureHandler>> m_measurementTimer;
-    WTF::Function<void()> m_memoryKillCallback;
-    WTF::Function<void(bool)> m_memoryPressureStatusChangedCallback;
-    WTF::Function<void()> m_didExceedInactiveLimitWhileActiveCallback;
+    PurCWTF::Function<void()> m_memoryKillCallback;
+    PurCWTF::Function<void(bool)> m_memoryPressureStatusChangedCallback;
+    PurCWTF::Function<void()> m_didExceedInactiveLimitWhileActiveCallback;
     LowMemoryHandler m_lowMemoryHandler;
 
 #if OS(WINDOWS)
@@ -212,9 +212,9 @@ private:
 
 extern WTFLogChannel LogMemoryPressure;
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::Critical;
-using WTF::MemoryPressureHandler;
-using WTF::Synchronous;
-using WTF::WebsamProcessState;
+using PurCWTF::Critical;
+using PurCWTF::MemoryPressureHandler;
+using PurCWTF::Synchronous;
+using PurCWTF::WebsamProcessState;

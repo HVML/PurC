@@ -20,7 +20,7 @@
 #include "config.h"
 #include "HexNumber.h"
 
-namespace WTF {
+namespace PurCWTF {
 
 namespace Internal {
 
@@ -43,4 +43,4 @@ std::pair<LChar*, unsigned> appendHex(LChar* buffer, unsigned bufferSize, std::u
 
 }
 
-} // namespace WTF
+} // namespace PurCWTF

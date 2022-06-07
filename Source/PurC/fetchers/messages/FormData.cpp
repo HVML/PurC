@@ -141,9 +141,9 @@ FormDataElement FormDataElement::isolatedCopy() const
 
 void FormData::appendData(const void* data, size_t size)
 {
-    m_lengthInBytes = WTF::nullopt;
+    m_lengthInBytes = PurCWTF::nullopt;
     if (!m_elements.isEmpty()) {
-        if (auto* vector = WTF::get_if<Vector<char>>(m_elements.last().data)) {
+        if (auto* vector = PurCWTF::get_if<Vector<char>>(m_elements.last().data)) {
             vector->append(reinterpret_cast<const char*>(data), size);
             return;
         }
@@ -155,20 +155,20 @@ void FormData::appendData(const void* data, size_t size)
 
 void FormData::appendFile(const String& filename)
 {
-    m_elements.append(FormDataElement(filename, 0, -1, WTF::nullopt));
-    m_lengthInBytes = WTF::nullopt;
+    m_elements.append(FormDataElement(filename, 0, -1, PurCWTF::nullopt));
+    m_lengthInBytes = PurCWTF::nullopt;
 }
 
 void FormData::appendFileRange(const String& filename, long long start, long long length, Optional<WallTime> expectedModificationTime)
 {
     m_elements.append(FormDataElement(filename, start, length, expectedModificationTime));
-    m_lengthInBytes = WTF::nullopt;
+    m_lengthInBytes = PurCWTF::nullopt;
 }
 
 void FormData::appendBlob(const URL& blobURL)
 {
     m_elements.append(FormDataElement(blobURL));
-    m_lengthInBytes = WTF::nullopt;
+    m_lengthInBytes = PurCWTF::nullopt;
 }
 
 void FormData::appendMultiPartStringValue(const String&, Vector<char>&, TextEncoding&)
@@ -180,7 +180,7 @@ Vector<char> FormData::flatten() const
     // Concatenate all the byte arrays, but omit any files.
     Vector<char> data;
     for (auto& element : m_elements) {
-        if (auto* vector = WTF::get_if<Vector<char>>(element.data))
+        if (auto* vector = PurCWTF::get_if<Vector<char>>(element.data))
             data.append(vector->data(), vector->size());
     }
     return data;
@@ -197,7 +197,7 @@ FormDataForUpload FormData::prepareForUpload()
 {
     Vector<String> generatedFiles;
     for (auto& element : m_elements) {
-        auto* fileData = WTF::get_if<FormDataElement::EncodedFileData>(element.data);
+        auto* fileData = PurCWTF::get_if<FormDataElement::EncodedFileData>(element.data);
         if (!fileData)
             continue;
         if (!FileSystem::fileIsDirectory(fileData->filename, FileSystem::ShouldFollowSymbolicLinks::Yes))
@@ -244,7 +244,7 @@ uint64_t FormData::lengthInBytes() const
 RefPtr<SharedBuffer> FormData::asSharedBuffer() const
 {
     for (auto& element : m_elements) {
-        if (!WTF::holds_alternative<Vector<char>>(element.data))
+        if (!PurCWTF::holds_alternative<Vector<char>>(element.data))
             return nullptr;
     }
     return SharedBuffer::create(flatten());
@@ -255,7 +255,7 @@ URL FormData::asBlobURL() const
     if (m_elements.size() != 1)
         return { };
 
-    if (auto* blobData = WTF::get_if<FormDataElement::EncodedBlobData>(m_elements.first().data))
+    if (auto* blobData = PurCWTF::get_if<FormDataElement::EncodedBlobData>(m_elements.first().data))
         return blobData->url;
     return { };
 }

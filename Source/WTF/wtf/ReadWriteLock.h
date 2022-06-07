@@ -28,7 +28,7 @@
 #include <wtf/Condition.h>
 #include <wtf/Lock.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 // This is a traditional read-write lock implementation that enables concurrency between readers so long as
 // the read critical section is long. Concurrent readers will experience contention on read().lock() and
@@ -85,6 +85,6 @@ public:
 inline ReadWriteLock::ReadLock& ReadWriteLock::read() { return *static_cast<ReadLock*>(this); }
 inline ReadWriteLock::WriteLock& ReadWriteLock::write() { return *static_cast<WriteLock*>(this); }
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::ReadWriteLock;
+using PurCWTF::ReadWriteLock;

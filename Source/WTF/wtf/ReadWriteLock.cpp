@@ -28,7 +28,7 @@
 
 #include <wtf/Locker.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 void ReadWriteLock::readLock()
 {
@@ -64,5 +64,5 @@ void ReadWriteLock::writeUnlock()
     m_cond.notifyAll();
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 

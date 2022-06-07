@@ -33,7 +33,7 @@
 #include <windows.h>
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 
 #if OS(WINDOWS)
 using ProcessID = int;
@@ -50,7 +50,7 @@ inline ProcessID getCurrentProcessID()
 #endif
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::getCurrentProcessID;
-using WTF::ProcessID;
+using PurCWTF::getCurrentProcessID;
+using PurCWTF::ProcessID;

@@ -36,7 +36,7 @@
 #include <wtf/WeakRandom.h>
 #include <wtf/WordLock.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 namespace {
 
@@ -253,7 +253,7 @@ const unsigned growthFactor = 2;
 
 unsigned hashAddress(const void* address)
 {
-    return WTF::PtrHash<const void*>::hash(address);
+    return PurCWTF::PtrHash<const void*>::hash(address);
 }
 
 Hashtable* ensureHashtable()
@@ -807,5 +807,5 @@ NEVER_INLINE void ParkingLot::forEachImpl(const ScopedLambda<void(Thread&, const
     unlockHashtable(bucketsToUnlock);
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 

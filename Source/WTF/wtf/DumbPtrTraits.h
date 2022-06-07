@@ -28,7 +28,7 @@
 #include <cstdint>
 #include <utility>
 
-namespace WTF {
+namespace PurCWTF {
     
 template<typename T>
 struct DumbPtrTraits {
@@ -46,6 +46,6 @@ struct DumbPtrTraits {
     static ALWAYS_INLINE bool isHashTableDeletedValue(const StorageType& ptr) { return ptr == hashTableDeletedValue(); }
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::DumbPtrTraits;
+using PurCWTF::DumbPtrTraits;

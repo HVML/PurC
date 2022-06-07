@@ -32,7 +32,7 @@
 
 #include <wtf/Deque.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 template <typename T, size_t BlockSize>
 class StreamBuffer {
@@ -110,6 +110,6 @@ private:
     Deque<std::unique_ptr<Block>> m_buffer;
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::StreamBuffer;
+using PurCWTF::StreamBuffer;

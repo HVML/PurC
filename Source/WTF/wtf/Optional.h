@@ -131,7 +131,7 @@
 #define __NOEXCEPT_(...)
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 namespace detail_ {
 
 // NOTE: All our target compilers support is_trivially_destructible.
@@ -1003,15 +1003,15 @@ constexpr Optional<X&> makeOptional(std::reference_wrapper<X> v)
   return Optional<X&>(v.get());
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
 namespace std
 {
   template <typename T>
-  struct hash<WTF::Optional<T>>
+  struct hash<PurCWTF::Optional<T>>
   {
     typedef typename hash<T>::result_type result_type;
-    typedef WTF::Optional<T> argument_type;
+    typedef PurCWTF::Optional<T> argument_type;
 
     constexpr result_type operator()(argument_type const& arg) const {
       return arg ? std::hash<T>{}(*arg) : result_type{};
@@ -1019,10 +1019,10 @@ namespace std
   };
 
   template <typename T>
-  struct hash<WTF::Optional<T&>>
+  struct hash<PurCWTF::Optional<T&>>
   {
     typedef typename hash<T>::result_type result_type;
-    typedef WTF::Optional<T&> argument_type;
+    typedef PurCWTF::Optional<T&> argument_type;
 
     constexpr result_type operator()(argument_type const& arg) const {
       return arg ? std::hash<T>{}(*arg) : result_type{};
@@ -1032,7 +1032,7 @@ namespace std
 
 # undef TR2_OPTIONAL_REQUIRES
 
-namespace WTF {
+namespace PurCWTF {
 
 // -- xGUI Additions --
 template <class OptionalType, class Callback>
@@ -1044,8 +1044,8 @@ auto valueOrCompute(OptionalType Optional, Callback callback) -> typename Option
     return callback();
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::Optional;
-using WTF::makeOptional;
-using WTF::valueOrCompute;
+using PurCWTF::Optional;
+using PurCWTF::makeOptional;
+using PurCWTF::valueOrCompute;

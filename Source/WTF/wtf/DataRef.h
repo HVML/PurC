@@ -22,7 +22,7 @@
 
 #include <wtf/Ref.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 template <typename T>
 class DataRef {
@@ -97,6 +97,6 @@ private:
     Ref<T> m_data;
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::DataRef;
+using PurCWTF::DataRef;

@@ -30,7 +30,7 @@
 #include <wtf/Lock.h>
 #include <wtf/Threading.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 class RegistrationStore;
 class SQLiteDatabase;
@@ -65,7 +65,7 @@ private:
     Function<void ()> m_completionCallback;
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::CrossThreadTaskHandler;
+using PurCWTF::CrossThreadTaskHandler;
 

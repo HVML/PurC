@@ -30,7 +30,7 @@
 #import <wtf/cocoa/RuntimeApplicationChecksCocoa.h>
 #import <wtf/spi/cocoa/NSLocaleSPI.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 bool canMinimizeLanguages()
 {

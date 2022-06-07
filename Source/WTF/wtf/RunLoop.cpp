@@ -31,7 +31,7 @@
 #include <wtf/StdLibExtras.h>
 #include <wtf/ThreadSpecific.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 static RunLoop* s_mainRunLoop;
 #if USE(WEB_THREAD)
@@ -183,4 +183,4 @@ void RunLoop::suspendFunctionDispatchForCurrentCycle()
     wakeUp();
 }
 
-} // namespace WTF
+} // namespace PurCWTF

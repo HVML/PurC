@@ -35,7 +35,7 @@
 const HWND HWND_MESSAGE = 0;
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 
 inline HRESULT getRegistryValue(HKEY hkey, LPCWSTR pszSubKey, LPCWSTR pszValue, LPDWORD pdwType, LPVOID pvData, LPDWORD pcbData)
 {
@@ -52,11 +52,11 @@ inline void* setWindowPointer(HWND hWnd, int index, void* value)
     return reinterpret_cast<void*>(::SetWindowLongPtr(hWnd, index, reinterpret_cast<LONG_PTR>(value)));
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::getRegistryValue;
-using WTF::getWindowPointer;
-using WTF::setWindowPointer;
+using PurCWTF::getRegistryValue;
+using PurCWTF::getWindowPointer;
+using PurCWTF::setWindowPointer;
 
 #endif // OS(WINDOWS)
 

@@ -28,7 +28,7 @@
 
 #include <fcntl.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 bool setCloseOnExec(int fileDescriptor)
 {
@@ -74,4 +74,4 @@ bool setNonBlock(int fileDescriptor)
     return returnValue != -1;
 }
 
-} // namespace WTF
+} // namespace PurCWTF

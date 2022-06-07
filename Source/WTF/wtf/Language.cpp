@@ -34,7 +34,7 @@
 #include <CoreFoundation/CoreFoundation.h>
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 
 static Lock userPreferredLanguagesMutex;
 

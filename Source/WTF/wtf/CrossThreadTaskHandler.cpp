@@ -28,7 +28,7 @@
 
 #include <wtf/AutodrainedPool.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 CrossThreadTaskHandler::CrossThreadTaskHandler(const char* threadName, AutodrainedPoolForRunLoop useAutodrainedPool)
     : m_useAutodrainedPool(useAutodrainedPool)
@@ -103,4 +103,4 @@ void CrossThreadTaskHandler::kill()
     m_taskReplyQueue.kill();
 }
 
-} // namespace WTF
+} // namespace PurCWTF

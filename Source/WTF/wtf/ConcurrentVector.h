@@ -31,7 +31,7 @@
 #include <wtf/ConcurrentBuffer.h>
 #include <wtf/Noncopyable.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 // An iterator for ConcurrentVector. It supports only the pre ++ operator
 template <typename T, size_t SegmentSize = 8> class ConcurrentVector;
@@ -262,6 +262,6 @@ private:
     size_t m_numSegments { 0 };
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::ConcurrentVector;
+using PurCWTF::ConcurrentVector;

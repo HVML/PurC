@@ -25,7 +25,7 @@
 
 #pragma once
 
-namespace WTF {
+namespace PurCWTF {
 
 // Why would you want to use bubble sort? When you know that your input is already mostly
 // sorted! This sort is guaranteed stable (it won't reorder elements that were equal), it
@@ -93,6 +93,6 @@ void bubbleSort(IteratorType begin, IteratorType end)
         });
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::bubbleSort;
+using PurCWTF::bubbleSort;

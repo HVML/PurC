@@ -30,7 +30,7 @@
 
 #include <wtf/dtoa/utils.h>
 
-namespace WTF {
+namespace PurCWTF {
 namespace double_conversion {
 
 enum FastDtoaMode {
@@ -85,6 +85,6 @@ bool FastDtoa(double d,
               int* decimal_point);
 
 }  // namespace double_conversion
-}  // namespace WTF
+}  // namespace PurCWTF
 
 #endif  // DOUBLE_CONVERSION_FAST_DTOA_H_

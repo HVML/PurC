@@ -35,7 +35,7 @@
 
 #include <os/log.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 class WTF_EXPORT_PRIVATE OSLogPrintStream final : public PrintStream {
 public:
@@ -55,8 +55,8 @@ private:
     size_t m_offset { 0 };
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::OSLogPrintStream;
+using PurCWTF::OSLogPrintStream;
 
 #endif

@@ -25,7 +25,7 @@
 #include <wtf/Vector.h>
 #include <wtf/text/WTFString.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 // Using pango_language_get_default() here is not an option, because
 // it doesn't support changing the locale in runtime, so it returns
@@ -47,4 +47,4 @@ Vector<String> platformUserPreferredLanguages()
     return { platformLanguage() };
 }
 
-} // namespace WTF
+} // namespace PurCWTF

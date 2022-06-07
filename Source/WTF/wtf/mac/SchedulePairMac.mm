@@ -29,7 +29,7 @@
 #import "config.h"
 #import <wtf/SchedulePair.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 SchedulePair::SchedulePair(NSRunLoop* runLoop, CFStringRef mode)
     : m_nsRunLoop(runLoop)

@@ -38,7 +38,7 @@
 #include <bmalloc/bmalloc.h>
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 
 #if OS(WINDOWS)
 static constexpr size_t ramSizeGuess = 512 * MB;
@@ -108,4 +108,4 @@ size_t ramSize()
     return ramSize;
 }
 
-} // namespace WTF
+} // namespace PurCWTF

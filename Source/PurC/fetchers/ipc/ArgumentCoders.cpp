@@ -52,7 +52,7 @@ WARN_UNUSED_RETURN Optional<WallTime> ArgumentCoder<WallTime>::decode(Decoder& d
     Optional<double> time;
     decoder >> time;
     if (!time)
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
     return WallTime::fromRawSeconds(*time);
 }
 
@@ -137,13 +137,13 @@ static inline Optional<String> decodeStringText(Decoder& decoder, uint32_t lengt
     // Before allocating the string, make sure that the decoder buffer is big enough.
     if (!decoder.bufferIsLargeEnoughToContain<CharacterType>(length)) {
         decoder.markInvalid();
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
     }
     
     CharacterType* buffer;
     String string = String::createUninitialized(length, buffer);
     if (!decoder.decodeFixedLengthData(reinterpret_cast<uint8_t*>(buffer), length * sizeof(CharacterType), alignof(CharacterType)))
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
     
     return string;
 }
@@ -152,7 +152,7 @@ WARN_UNUSED_RETURN Optional<String> ArgumentCoder<String>::decode(Decoder& decod
 {
     uint32_t length;
     if (!decoder.decode(length))
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
     
     if (length == std::numeric_limits<uint32_t>::max()) {
         // This is the null string.
@@ -161,7 +161,7 @@ WARN_UNUSED_RETURN Optional<String> ArgumentCoder<String>::decode(Decoder& decod
     
     bool is8Bit;
     if (!decoder.decode(is8Bit))
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
     
     if (is8Bit)
         return decodeStringText<LChar>(decoder, length);

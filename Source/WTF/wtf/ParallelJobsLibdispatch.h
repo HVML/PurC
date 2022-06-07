@@ -31,7 +31,7 @@
 
 #include <dispatch/dispatch.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 class ParallelEnvironment {
     WTF_MAKE_FAST_ALLOCATED;
@@ -65,6 +65,6 @@ private:
     int m_numberOfJobs;
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
 #endif // ENABLE(THREADING_LIBDISPATCH)

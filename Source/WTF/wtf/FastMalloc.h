@@ -25,7 +25,7 @@
 #include <wtf/DebugHeap.h>
 #include <wtf/StdLibExtras.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 // There are several malloc-related macros to annotate class / struct. If these annotations are attached,
 // allocation is handled by bmalloc if bmalloc is available.
@@ -56,7 +56,7 @@ namespace WTF {
 //     When the MallocHeapBreakdown debugging feature is enabled, these macros act differently. bmalloc is switched
 //     to using system malloc internally, and bmalloc creates a named MallocZone per this annotation. MallocZone allows us to track heap usage
 //     per this annotation, offering quick way of breaking down memory usage.
-//     To enable MallocHeapBreakdown, set ENABLE_MALLOC_HEAP_BREAKDOWN in WTF and BENABLE_MALLOC_HEAP_BREAKDOWN in bmalloc.
+//     To enable MallocHeapBreakdown, set ENABLE_MALLOC_HEAP_BREAKDOWN in PurCWTF and BENABLE_MALLOC_HEAP_BREAKDOWN in bmalloc.
 //     For the details of MallocHeapBreakdown, please look at ChangeLog of https://trac.webkit.org/changeset/253987/webkit.
 //
 // - WTF_MAKE_ISO_ALLOCATED(ClassName)
@@ -293,30 +293,30 @@ struct FastFree<T[]> {
     }
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
 #if !defined(NDEBUG)
-using WTF::fastSetMaxSingleAllocationSize;
+using PurCWTF::fastSetMaxSingleAllocationSize;
 #endif
 
-using WTF::FastAllocator;
-using WTF::FastMalloc;
-using WTF::FastFree;
-using WTF::isFastMallocEnabled;
-using WTF::fastCalloc;
-using WTF::fastFree;
-using WTF::fastMalloc;
-using WTF::fastMallocGoodSize;
-using WTF::fastMallocSize;
-using WTF::fastRealloc;
-using WTF::fastStrDup;
-using WTF::fastZeroedMalloc;
-using WTF::tryFastAlignedMalloc;
-using WTF::tryFastCalloc;
-using WTF::tryFastMalloc;
-using WTF::tryFastZeroedMalloc;
-using WTF::fastAlignedMalloc;
-using WTF::fastAlignedFree;
+using PurCWTF::FastAllocator;
+using PurCWTF::FastMalloc;
+using PurCWTF::FastFree;
+using PurCWTF::isFastMallocEnabled;
+using PurCWTF::fastCalloc;
+using PurCWTF::fastFree;
+using PurCWTF::fastMalloc;
+using PurCWTF::fastMallocGoodSize;
+using PurCWTF::fastMallocSize;
+using PurCWTF::fastRealloc;
+using PurCWTF::fastStrDup;
+using PurCWTF::fastZeroedMalloc;
+using PurCWTF::tryFastAlignedMalloc;
+using PurCWTF::tryFastCalloc;
+using PurCWTF::tryFastMalloc;
+using PurCWTF::tryFastZeroedMalloc;
+using PurCWTF::fastAlignedMalloc;
+using PurCWTF::fastAlignedFree;
 
 #if COMPILER(GCC_COMPATIBLE) && OS(DARWIN)
 #define WTF_PRIVATE_INLINE __private_extern__ inline __attribute__((always_inline))
@@ -334,22 +334,22 @@ using WTF::fastAlignedFree;
     \
     void* operator new(size_t size) \
     { \
-        return ::WTF::fastMalloc(size); \
+        return ::PurCWTF::fastMalloc(size); \
     } \
     \
     void operator delete(void* p) \
     { \
-        ::WTF::fastFree(p); \
+        ::PurCWTF::fastFree(p); \
     } \
     \
     void* operator new[](size_t size) \
     { \
-        return ::WTF::fastMalloc(size); \
+        return ::PurCWTF::fastMalloc(size); \
     } \
     \
     void operator delete[](void* p) \
     { \
-        ::WTF::fastFree(p); \
+        ::PurCWTF::fastFree(p); \
     } \
     void* operator new(size_t, NotNullTag, void* location) \
     { \
@@ -406,12 +406,12 @@ using __thisIsHereToForceASemicolonAfterThisMacro = int
 public: \
     WTF_MAKE_FAST_ALLOCATED_WITH_HEAP_IDENTIFIER_IMPL(classname) \
 private: \
-    WTF_EXPORT_PRIVATE static WTF::DebugHeap& debugHeap(const char*); \
+    WTF_EXPORT_PRIVATE static PurCWTF::DebugHeap& debugHeap(const char*); \
 using __thisIsHereToForceASemicolonAfterThisMacro = int
 
 #define WTF_MAKE_STRUCT_FAST_ALLOCATED_WITH_HEAP_IDENTIFIER(className) \
 private: \
-    WTF_EXPORT_PRIVATE static WTF::DebugHeap& debugHeap(const char*); \
+    WTF_EXPORT_PRIVATE static PurCWTF::DebugHeap& debugHeap(const char*); \
 public: \
     WTF_MAKE_FAST_ALLOCATED_WITH_HEAP_IDENTIFIER_IMPL(className) \
 using __thisIsHereToForceASemicolonAfterThisMacro = int
