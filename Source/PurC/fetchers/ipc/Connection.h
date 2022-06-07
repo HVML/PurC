@@ -98,7 +98,7 @@ template<typename AsyncReplyResult> struct AsyncReplyError {
 class MachMessage;
 class UnixMessage;
 
-class Connection : public ThreadSafeRefCounted<Connection, WTF::DestructionThread::Any> {
+class Connection : public ThreadSafeRefCounted<Connection, PurCWTF::DestructionThread::Any> {
 public:
     class Client : public MessageReceiver {
     public:
@@ -115,7 +115,7 @@ public:
 
     class ThreadMessageReceiver : public MessageReceiver, public ThreadSafeRefCounted<ThreadMessageReceiver> {
     public:
-        virtual void dispatchToThread(WTF::Function<void()>&&) { };
+        virtual void dispatchToThread(PurCWTF::Function<void()>&&) { };
     };
 
 #if USE(UNIX_DOMAIN_SOCKETS)
@@ -219,7 +219,7 @@ public:
 
     bool isValid() const { return m_isValid; }
 
-    uint64_t installIncomingSyncMessageCallback(WTF::Function<void()>&&);
+    uint64_t installIncomingSyncMessageCallback(PurCWTF::Function<void()>&&);
     void uninstallIncomingSyncMessageCallback(uint64_t);
     bool hasIncomingSyncMessage();
 
@@ -302,13 +302,13 @@ private:
     RefPtr<WorkQueue> m_connectionQueue;
 
     Lock m_workQueueMessageReceiversMutex;
-    using WorkQueueMessageReceiverMap = HashMap<ReceiverName, std::pair<RefPtr<WorkQueue>, RefPtr<WorkQueueMessageReceiver>>, WTF::IntHash<ReceiverName>, WTF::StrongEnumHashTraits<ReceiverName>>;
+    using WorkQueueMessageReceiverMap = HashMap<ReceiverName, std::pair<RefPtr<WorkQueue>, RefPtr<WorkQueueMessageReceiver>>, PurCWTF::IntHash<ReceiverName>, PurCWTF::StrongEnumHashTraits<ReceiverName>>;
 #if 0
     WorkQueueMessageReceiverMap m_workQueueMessageReceivers;
 #endif
 
     Lock m_threadMessageReceiversLock;
-    using ThreadMessageReceiverMap = HashMap<ReceiverName, RefPtr<ThreadMessageReceiver>, WTF::IntHash<ReceiverName>, WTF::StrongEnumHashTraits<ReceiverName>>;
+    using ThreadMessageReceiverMap = HashMap<ReceiverName, RefPtr<ThreadMessageReceiver>, PurCWTF::IntHash<ReceiverName>, PurCWTF::StrongEnumHashTraits<ReceiverName>>;
 #if 0
     ThreadMessageReceiverMap m_threadMessageReceivers;
 #endif
@@ -345,7 +345,7 @@ private:
     Vector<PendingSyncReply> m_pendingSyncReplies;
 
     Lock m_incomingSyncMessageCallbackMutex;
-    HashMap<uint64_t, WTF::Function<void()>> m_incomingSyncMessageCallbacks;
+    HashMap<uint64_t, PurCWTF::Function<void()>> m_incomingSyncMessageCallbacks;
     RefPtr<WorkQueue> m_incomingSyncMessageCallbackQueue;
     uint64_t m_nextIncomingSyncMessageCallbackID { 0 };
 

@@ -26,7 +26,7 @@
 #include <wtf/Packed.h>
 #include <wtf/text/StringImpl.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 class StringImpl;
 
@@ -42,4 +42,4 @@ private:
 };
 
 }
-using WTF::AtomStringTable;
+using PurCWTF::AtomStringTable;

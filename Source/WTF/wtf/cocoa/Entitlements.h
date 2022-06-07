@@ -29,12 +29,12 @@
 
 #include <wtf/spi/darwin/XPCSPI.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 WTF_EXPORT_PRIVATE bool hasEntitlement(audit_token_t, const char* entitlement);
 WTF_EXPORT_PRIVATE bool hasEntitlement(xpc_connection_t, const char* entitlement);
 WTF_EXPORT_PRIVATE bool processHasEntitlement(const char* entitlement);
 
-} // namespace WTF
+} // namespace PurCWTF
 
 #endif

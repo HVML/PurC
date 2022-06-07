@@ -746,11 +746,7 @@ TEST(dvobjs, dvobjs_math_eval)
     exp = "(3 + 7) / (2 - 2)";
     param[0] = purc_variant_make_string (exp, false);
     ret_var = func (NULL, 1, param, false);
-    ASSERT_NE(ret_var, nullptr);
-    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_NUMBER), true);
-    purc_variant_cast_to_number (ret_var, &number, false);
-    printf("TEST eval: param is \"%s\" = %f\n", exp, number);
-    purc_variant_unref(ret_var);
+    ASSERT_EQ(ret_var, nullptr);
     purc_variant_unref(param[0]);
 
     param[0] = purc_variant_make_string ("pi * r * r", false);
@@ -790,7 +786,7 @@ TEST(dvobjs, dvobjs_math_eval)
     purc_variant_unref(ret_var);
     purc_variant_unref(param[0]);
 
-    exp = "(3 + 7) / (2 - 2)";
+    exp = "(3 + 7) / (2 - 1)";
     param[0] = purc_variant_make_string (exp, false);
     ret_var = func (NULL, 1, param, false);
     ASSERT_NE(ret_var, nullptr);
@@ -986,7 +982,7 @@ _trim_tail_spaces(char *dest, size_t n)
     }
 }
 
-static void
+static int
 _eval(purc_dvariant_method func, const char *fn,
         const char *expr, long double *v, std::stringstream &ss)
 {
@@ -997,9 +993,10 @@ _eval(purc_dvariant_method func, const char *fn,
     purc_variant_unref(param[0]);
 
     if (!ret_var) {
+        const char *errmsg = purc_get_error_message(purc_get_last_error());
         EXPECT_NE(ret_var, nullptr) << "eval failed: ["
-            << expr << "]@" << fn << std::endl;
-        return;
+            << expr << "][" << errmsg << "]@" << fn << std::endl;
+        return -1;
     }
 
     if (purc_variant_is_number(ret_var)) {
@@ -1011,6 +1008,7 @@ _eval(purc_dvariant_method func, const char *fn,
     }
 
     purc_variant_unref(ret_var);
+    return 0;
 }
 
 static void
@@ -1045,7 +1043,7 @@ _eval_bc(const char *fn, long double *v,
         pclose(fin);
 }
 
-static void
+static int
 _process_file(purc_dvariant_method func, const char *fn, long double *v,
     std::stringstream &ss)
 {
@@ -1053,6 +1051,8 @@ _process_file(purc_dvariant_method func, const char *fn, long double *v,
     size_t sz = 0;
     char buf[8192];
     buf[0] = '\0';
+
+    int r = -1;
 
     fin = fopen(fn, "r");
     if (!fin) {
@@ -1065,11 +1065,13 @@ _process_file(purc_dvariant_method func, const char *fn, long double *v,
     sz = fread(buf, 1, sizeof(buf)-1, fin);
     buf[sz] = '\0';
 
-    _eval(func, fn, buf, v, ss);
+    r = _eval(func, fn, buf, v, ss);
 
 end:
     if (fin)
         fclose(fin);
+
+    return r ? -1 : 0;
 }
 
 static inline bool
@@ -1134,16 +1136,22 @@ TEST(dvobjs, dvobjs_math_bc)
                 std::stringstream ss;
                 ss << "bc file:[" << dir->d_name << "][";
                 long double l, r;
-                _process_file(func, dir->d_name, &l, ss);
+                int ret = _process_file(func, dir->d_name, &l, ss);
                 ss << "]-[";
                 _eval_bc(dir->d_name, &r, ss);
                 ss << "]";
-                ss << "==?==[" << fabsl(l-r) << "]";
-                std::cout << ss.str() << std::endl;
-                EXPECT_TRUE(long_double_eq(l, r))
-                    << "Failed to parse bc file: ["
-                    << dir->d_name << "]"
-                    << std::endl;
+                if (ret == 0) {
+                    ss << "==?==[" << fabsl(l-r) << "]";
+                    std::cout << ss.str() << std::endl;
+                    EXPECT_TRUE(long_double_eq(l, r))
+                        << "Failed to parse bc file: ["
+                        << dir->d_name << "]"
+                        << std::endl;
+                }
+                else {
+                    ss << "==?==[" << "eval failed" << "]";
+                    std::cout << ss.str() << std::endl;
+                }
             }
         }
         closedir(d);

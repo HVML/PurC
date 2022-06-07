@@ -30,7 +30,7 @@
 #include <wtf/LoggingHashID.h>
 #include <wtf/LoggingHashTraits.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 template<
     const char* typeArguments,
@@ -42,7 +42,7 @@ class LoggingHashMap final {
     WTF_MAKE_FAST_ALLOCATED;
 
 public:
-    typedef WTF::HashMap<KeyArg, MappedArg, HashArg, KeyTraitsArg, MappedTraitsArg> HashMap;
+    typedef PurCWTF::HashMap<KeyArg, MappedArg, HashArg, KeyTraitsArg, MappedTraitsArg> HashMap;
     
     typedef typename HashMap::KeyType KeyType;
     typedef typename HashMap::MappedType MappedType;
@@ -311,6 +311,6 @@ private:
     LoggingHashID m_id;
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::LoggingHashMap;
+using PurCWTF::LoggingHashMap;

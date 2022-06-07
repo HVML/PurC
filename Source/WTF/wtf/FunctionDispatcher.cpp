@@ -26,7 +26,7 @@
 #include "config.h"
 #include <wtf/FunctionDispatcher.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 FunctionDispatcher::FunctionDispatcher()
 {
@@ -36,4 +36,4 @@ FunctionDispatcher::~FunctionDispatcher()
 {
 }
 
-} // namespace WTF
+} // namespace PurCWTF

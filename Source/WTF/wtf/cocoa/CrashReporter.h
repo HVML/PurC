@@ -25,8 +25,8 @@
 
 #pragma once
 
-namespace WTF {
+namespace PurCWTF {
 
 WTF_EXPORT_PRIVATE void setCrashLogMessage(const char*);
 
-} // namespace WTF
+} // namespace PurCWTF

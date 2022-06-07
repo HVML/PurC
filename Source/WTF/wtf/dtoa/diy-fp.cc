@@ -30,7 +30,7 @@
 #include <wtf/dtoa/diy-fp.h>
 #include <wtf/dtoa/utils.h>
 
-namespace WTF {
+namespace PurCWTF {
 namespace double_conversion {
 
 void DiyFp::Multiply(const DiyFp& other) {
@@ -57,4 +57,4 @@ void DiyFp::Multiply(const DiyFp& other) {
 }
 
 }  // namespace double_conversion
-}  // namespace WTF
+}  // namespace PurCWTF

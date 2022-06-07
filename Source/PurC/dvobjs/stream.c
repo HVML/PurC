@@ -823,10 +823,13 @@ status_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
         }
     }
 
-    return purc_variant_make_array(2,
-            purc_variant_make_string_static(status, false),
-            purc_variant_make_longint(value));
+    purc_variant_t status_val = purc_variant_make_string_static(status, false);
+    purc_variant_t value_val = purc_variant_make_longint(value);
+    purc_variant_t val = purc_variant_make_array(2, status_val, value_val);
+    purc_variant_unref(status_val);
+    purc_variant_unref(value_val);
 
+    return val;
 out:
     if (silently)
         return purc_variant_make_boolean(false);

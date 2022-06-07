@@ -28,7 +28,7 @@
 #include <wtf/MonotonicTime.h>
 #include <wtf/Noncopyable.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 // TimingScope is intended for microbenchmarking sections of code.
 //
@@ -60,7 +60,7 @@ private:
     unsigned m_logIterationInterval;
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::TimingScope;
+using PurCWTF::TimingScope;
 

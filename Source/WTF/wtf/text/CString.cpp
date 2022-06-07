@@ -31,7 +31,7 @@
 #include <wtf/CheckedArithmetic.h>
 #include <wtf/text/StringHasher.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 DEFINE_ALLOCATOR_WITH_HEAP_IDENTIFIER(CStringBuffer);
 
@@ -159,4 +159,4 @@ bool CStringHash::equal(const CString& a, const CString& b)
     return a == b;
 }
 
-} // namespace WTF
+} // namespace PurCWTF

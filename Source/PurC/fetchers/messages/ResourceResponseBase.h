@@ -423,7 +423,7 @@ bool ResourceResponseBase::decode(Decoder& decoder, ResourceResponseBase& respon
 
 } // namespace PurCFetcher
 
-namespace WTF {
+namespace PurCWTF {
 
 template<> struct EnumTraits<PurCFetcher::ResourceResponseBase::Type> {
     using values = EnumValues<
@@ -464,4 +464,4 @@ template<> struct EnumTraits<PurCFetcher::ResourceResponseBase::Source> {
     >;
 };
 
-} // namespace WTF
+} // namespace PurCWTF

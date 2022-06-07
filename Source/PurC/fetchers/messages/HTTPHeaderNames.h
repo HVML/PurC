@@ -129,7 +129,7 @@ PURC_EXPORT StringView httpHeaderNameString(HTTPHeaderName);
 
 } // namespace PurCFetcher
 
-namespace WTF {
+namespace PurCWTF {
 
 template<> struct EnumTraits<PurCFetcher::HTTPHeaderName> {
     using values = EnumValues<
@@ -221,6 +221,6 @@ template<> struct EnumTraits<PurCFetcher::HTTPHeaderName> {
     >;
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
 #endif // HTTPHeaderNames_h

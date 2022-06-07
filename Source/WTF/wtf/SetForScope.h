@@ -29,7 +29,7 @@
 #include <wtf/Noncopyable.h>
 #include <wtf/StdLibExtras.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 // SetForScope<> is useful for setting a variable to a new value only within a
 // particular scope. An SetForScope<> object changes a variable to its original
@@ -69,4 +69,4 @@ private:
 
 }
 
-using WTF::SetForScope;
+using PurCWTF::SetForScope;

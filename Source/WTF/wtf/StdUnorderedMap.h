@@ -28,11 +28,11 @@
 #include <unordered_map>
 #include <wtf/FastMalloc.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename Key, typename Value, typename Hash = std::hash<Key>, typename Predicate = std::equal_to<Key>, typename Allocator = FastAllocator<std::pair<const Key, Value>>>
 using StdUnorderedMap = std::unordered_map<Key, Value, Hash, Predicate, Allocator>;
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::StdUnorderedMap;
+using PurCWTF::StdUnorderedMap;

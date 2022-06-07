@@ -27,7 +27,7 @@
 
 #include <type_traits>
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename> struct EnumTraits;
 
@@ -75,4 +75,4 @@ constexpr auto enumToUnderlyingType(E e)
 
 }
 
-using WTF::isValidEnum;
+using PurCWTF::isValidEnum;

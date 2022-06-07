@@ -36,7 +36,7 @@
 #include <windows.h>
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 
 int numberOfProcessorCores()
 {

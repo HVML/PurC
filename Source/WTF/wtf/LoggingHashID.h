@@ -29,7 +29,7 @@
 #include <wtf/Noncopyable.h>
 #include <wtf/PrintStream.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 class LoggingHashID {
     WTF_MAKE_FAST_ALLOCATED;
@@ -49,5 +49,5 @@ private:
     GlobalVersion m_version;
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 

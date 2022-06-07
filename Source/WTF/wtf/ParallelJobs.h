@@ -60,7 +60,7 @@
 
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename Type>
 class ParallelJobs {
@@ -95,6 +95,6 @@ private:
     Vector<Type> m_parameters;
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::ParallelJobs;
+using PurCWTF::ParallelJobs;

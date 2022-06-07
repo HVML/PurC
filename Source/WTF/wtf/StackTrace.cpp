@@ -56,7 +56,7 @@ void WTFGetBacktrace(void** stack, int* size)
 #endif
 }
 
-namespace WTF {
+namespace PurCWTF {
 
 ALWAYS_INLINE size_t StackTrace::instanceSize(int capacity)
 {
@@ -104,7 +104,7 @@ auto StackTrace::demangle(void* pc) -> Optional<DemangleEntry>
 #else
     UNUSED_PARAM(pc);
 #endif
-    return WTF::nullopt;
+    return PurCWTF::nullopt;
 }
 
 void StackTrace::dump(PrintStream& out, const char* indentString) const
@@ -151,4 +151,4 @@ void StackTrace::dump(PrintStream& out, const char* indentString) const
 #endif
 }
 
-} // namespace WTF
+} // namespace PurCWTF

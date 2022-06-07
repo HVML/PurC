@@ -47,7 +47,7 @@
 #define WTF_ISA_POINTER_QUALIFIER
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 
 extern "C" void* _NSConcreteMallocBlock[32];
 
@@ -220,5 +220,5 @@ inline auto makeBlockPtr(F&& function)
 
 }
 
-using WTF::BlockPtr;
-using WTF::makeBlockPtr;
+using PurCWTF::BlockPtr;
+using PurCWTF::makeBlockPtr;

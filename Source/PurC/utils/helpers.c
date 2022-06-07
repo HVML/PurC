@@ -33,6 +33,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include <time.h>
+#include <assert.h>
 
 bool purc_is_valid_token (const char* token, int max_len)
 {
@@ -200,6 +201,39 @@ char* purc_extract_runner_name_alloc (const char* endpoint)
     return NULL;
 }
 
+int purc_assemble_endpoint_name_ex (const char* host_name,
+        const char* app_name, const char* runner_name, char* buff, size_t sz)
+{
+    int host_len, app_len, runner_len;
+
+    if ((host_len = strlen (host_name)) > PURC_LEN_HOST_NAME)
+        return 0;
+
+    if ((app_len = strlen (app_name)) > PURC_LEN_APP_NAME)
+        return 0;
+
+    if ((runner_len = strlen (runner_name)) > PURC_LEN_RUNNER_NAME)
+        return 0;
+
+    size_t len = 1 + host_len + 1 + app_len + 1 + runner_len;
+    if (len >= sz)
+        return len;
+
+    buff [0] = '@';
+    buff [1] = '\0';
+    strcat (buff, host_name);
+    buff [host_len + 1] = '/';
+    buff [host_len + 2] = '\0';
+
+    strcat (buff, app_name);
+    buff [host_len + app_len + 2] = '/';
+    buff [host_len + app_len + 3] = '\0';
+
+    strcat (buff, runner_name);
+
+    return len;
+}
+
 int purc_assemble_endpoint_name (const char* host_name, const char* app_name,
         const char* runner_name, char* buff)
 {
@@ -272,34 +306,39 @@ bool purc_is_valid_host_name (const char* host_name)
 /* cn.fmsoft.hybridos.aaa */
 bool purc_is_valid_app_name (const char* app_name)
 {
-    int len, max_len = PURC_LEN_APP_NAME;
+    size_t len, left = strlen(app_name);
     const char *start;
-    char *end;
+    const char *end;
+
+    if (left > PURC_LEN_APP_NAME)
+        return false;
 
     start = app_name;
     while (*start) {
-        char saved;
         end = strchr (start, '.');
         if (end == NULL) {
-            saved = 0;
-            end += strlen (start);
+            end += left;
+            len = left;
         }
         else {
-            saved = '.';
-            *end = 0;
+            len = end - start;
         }
 
-        if (end == start)
+        if (end == start || len == 0)
             return false;
 
-        if ((len = purc_is_valid_token (start, max_len)) <= 0)
+        char token[len + 1];
+        strncpy(token, start, len);
+        token[len] = 0;
+        if (!purc_is_valid_token (token, 0)) {
             return false;
+        }
 
-        max_len -= len;
-        if (saved) {
+        assert(left >= len);
+        left -= len;
+        if (left > 0 && *end) {
             start = end + 1;
-            *end = saved;
-            max_len--;
+            left--;
         }
         else {
             break;

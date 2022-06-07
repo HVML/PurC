@@ -35,7 +35,7 @@
 - (BOOL)_web_looksLikeIPAddress;
 @end
 
-namespace WTF {
+namespace PurCWTF {
 
 URL::URL(NSURL *url)
 {
@@ -46,7 +46,7 @@ URL::URL(NSURL *url)
 
     // FIXME: Why is it OK to ignore base URL here?
     CString urlBytes;
-    WTF::getURLBytes((__bridge CFURLRef)url, urlBytes);
+    PurCWTF::getURLBytes((__bridge CFURLRef)url, urlBytes);
     URLParser parser(urlBytes.data());
     *this = parser.result();
 }
@@ -76,7 +76,7 @@ RetainPtr<CFURLRef> URL::createCFURL() const
         cfURL = adoptCF(CFURLCreateAbsoluteURLWithBytes(nullptr, reinterpret_cast<const UInt8*>(utf8.data()), utf8.length(), kCFStringEncodingUTF8, nullptr, true));
     }
 
-    if (protocolIsInHTTPFamily() && !WTF::isCFURLSameOrigin(cfURL.get(), *this))
+    if (protocolIsInHTTPFamily() && !PurCWTF::isCFURLSameOrigin(cfURL.get(), *this))
         return nullptr;
 
     return cfURL;
@@ -98,7 +98,7 @@ RetainPtr<id> makeNSArrayElement(const URL& vectorElement)
 Optional<URL> makeVectorElement(const URL*, id arrayElement)
 {
     if (![arrayElement isKindOfClass:NSURL.class])
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
     return { { arrayElement } };
 }
 

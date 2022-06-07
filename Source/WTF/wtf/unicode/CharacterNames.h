@@ -30,7 +30,7 @@
 #endif
 #include <wtf/text/UChar.h>
 
-namespace WTF {
+namespace PurCWTF {
 namespace Unicode {
 
 // Names here are taken from the Unicode standard.
@@ -108,69 +108,69 @@ const UChar zeroWidthNonJoiner = 0x200C;
 const UChar zeroWidthSpace = 0x200B;
 
 } // namespace Unicode
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::Unicode::AppleLogo;
-using WTF::Unicode::HiraganaLetterSmallA;
-using WTF::Unicode::aegeanWordSeparatorDot;
-using WTF::Unicode::aegeanWordSeparatorLine;
-using WTF::Unicode::blackCircle;
-using WTF::Unicode::blackSquare;
-using WTF::Unicode::blackUpPointingTriangle;
-using WTF::Unicode::bullet;
-using WTF::Unicode::bullseye;
-using WTF::Unicode::carriageReturn;
-using WTF::Unicode::combiningEnclosingKeycap;
-using WTF::Unicode::ethiopicPrefaceColon;
-using WTF::Unicode::ethiopicWordspace;
-using WTF::Unicode::firstStrongIsolate;
-using WTF::Unicode::fisheye;
-using WTF::Unicode::hebrewPunctuationGeresh;
-using WTF::Unicode::hebrewPunctuationGershayim;
-using WTF::Unicode::horizontalEllipsis;
-using WTF::Unicode::hyphen;
-using WTF::Unicode::hyphenMinus;
-using WTF::Unicode::ideographicComma;
-using WTF::Unicode::ideographicFullStop;
-using WTF::Unicode::ideographicSpace;
-using WTF::Unicode::leftDoubleQuotationMark;
-using WTF::Unicode::leftLowDoubleQuotationMark;
-using WTF::Unicode::leftSingleQuotationMark;
-using WTF::Unicode::leftLowSingleQuotationMark;
-using WTF::Unicode::leftToRightEmbed;
-using WTF::Unicode::leftToRightIsolate;
-using WTF::Unicode::leftToRightMark;
-using WTF::Unicode::leftToRightOverride;
-using WTF::Unicode::minusSign;
-using WTF::Unicode::narrowNoBreakSpace;
-using WTF::Unicode::narrowNonBreakingSpace;
-using WTF::Unicode::newlineCharacter;
-using WTF::Unicode::noBreakSpace;
-using WTF::Unicode::objectReplacementCharacter;
-using WTF::Unicode::popDirectionalFormatting;
-using WTF::Unicode::popDirectionalIsolate;
-using WTF::Unicode::replacementCharacter;
-using WTF::Unicode::rightDoubleQuotationMark;
-using WTF::Unicode::rightSingleQuotationMark;
-using WTF::Unicode::rightToLeftEmbed;
-using WTF::Unicode::rightToLeftIsolate;
-using WTF::Unicode::rightToLeftMark;
-using WTF::Unicode::rightToLeftOverride;
-using WTF::Unicode::sesameDot;
-using WTF::Unicode::softHyphen;
-using WTF::Unicode::space;
-using WTF::Unicode::tabCharacter;
-using WTF::Unicode::tibetanMarkDelimiterTshegBstar;
-using WTF::Unicode::tibetanMarkIntersyllabicTsheg;
-using WTF::Unicode::ugariticWordDivider;
-using WTF::Unicode::upArrowhead;
-using WTF::Unicode::whiteBullet;
-using WTF::Unicode::whiteCircle;
-using WTF::Unicode::whiteSesameDot;
-using WTF::Unicode::whiteUpPointingTriangle;
-using WTF::Unicode::wordJoiner;
-using WTF::Unicode::yenSign;
-using WTF::Unicode::zeroWidthJoiner;
-using WTF::Unicode::zeroWidthNoBreakSpace;
-using WTF::Unicode::zeroWidthNonJoiner;
-using WTF::Unicode::zeroWidthSpace;
+using PurCWTF::Unicode::AppleLogo;
+using PurCWTF::Unicode::HiraganaLetterSmallA;
+using PurCWTF::Unicode::aegeanWordSeparatorDot;
+using PurCWTF::Unicode::aegeanWordSeparatorLine;
+using PurCWTF::Unicode::blackCircle;
+using PurCWTF::Unicode::blackSquare;
+using PurCWTF::Unicode::blackUpPointingTriangle;
+using PurCWTF::Unicode::bullet;
+using PurCWTF::Unicode::bullseye;
+using PurCWTF::Unicode::carriageReturn;
+using PurCWTF::Unicode::combiningEnclosingKeycap;
+using PurCWTF::Unicode::ethiopicPrefaceColon;
+using PurCWTF::Unicode::ethiopicWordspace;
+using PurCWTF::Unicode::firstStrongIsolate;
+using PurCWTF::Unicode::fisheye;
+using PurCWTF::Unicode::hebrewPunctuationGeresh;
+using PurCWTF::Unicode::hebrewPunctuationGershayim;
+using PurCWTF::Unicode::horizontalEllipsis;
+using PurCWTF::Unicode::hyphen;
+using PurCWTF::Unicode::hyphenMinus;
+using PurCWTF::Unicode::ideographicComma;
+using PurCWTF::Unicode::ideographicFullStop;
+using PurCWTF::Unicode::ideographicSpace;
+using PurCWTF::Unicode::leftDoubleQuotationMark;
+using PurCWTF::Unicode::leftLowDoubleQuotationMark;
+using PurCWTF::Unicode::leftSingleQuotationMark;
+using PurCWTF::Unicode::leftLowSingleQuotationMark;
+using PurCWTF::Unicode::leftToRightEmbed;
+using PurCWTF::Unicode::leftToRightIsolate;
+using PurCWTF::Unicode::leftToRightMark;
+using PurCWTF::Unicode::leftToRightOverride;
+using PurCWTF::Unicode::minusSign;
+using PurCWTF::Unicode::narrowNoBreakSpace;
+using PurCWTF::Unicode::narrowNonBreakingSpace;
+using PurCWTF::Unicode::newlineCharacter;
+using PurCWTF::Unicode::noBreakSpace;
+using PurCWTF::Unicode::objectReplacementCharacter;
+using PurCWTF::Unicode::popDirectionalFormatting;
+using PurCWTF::Unicode::popDirectionalIsolate;
+using PurCWTF::Unicode::replacementCharacter;
+using PurCWTF::Unicode::rightDoubleQuotationMark;
+using PurCWTF::Unicode::rightSingleQuotationMark;
+using PurCWTF::Unicode::rightToLeftEmbed;
+using PurCWTF::Unicode::rightToLeftIsolate;
+using PurCWTF::Unicode::rightToLeftMark;
+using PurCWTF::Unicode::rightToLeftOverride;
+using PurCWTF::Unicode::sesameDot;
+using PurCWTF::Unicode::softHyphen;
+using PurCWTF::Unicode::space;
+using PurCWTF::Unicode::tabCharacter;
+using PurCWTF::Unicode::tibetanMarkDelimiterTshegBstar;
+using PurCWTF::Unicode::tibetanMarkIntersyllabicTsheg;
+using PurCWTF::Unicode::ugariticWordDivider;
+using PurCWTF::Unicode::upArrowhead;
+using PurCWTF::Unicode::whiteBullet;
+using PurCWTF::Unicode::whiteCircle;
+using PurCWTF::Unicode::whiteSesameDot;
+using PurCWTF::Unicode::whiteUpPointingTriangle;
+using PurCWTF::Unicode::wordJoiner;
+using PurCWTF::Unicode::yenSign;
+using PurCWTF::Unicode::zeroWidthJoiner;
+using PurCWTF::Unicode::zeroWidthNoBreakSpace;
+using PurCWTF::Unicode::zeroWidthNonJoiner;
+using PurCWTF::Unicode::zeroWidthSpace;

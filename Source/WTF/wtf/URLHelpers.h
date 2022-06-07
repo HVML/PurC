@@ -31,7 +31,7 @@
 
 #include <wtf/Forward.h>
 
-namespace WTF {
+namespace PurCWTF {
 namespace URLHelpers {
 
 using URLDecodeFunction = String(*)(const String&);
@@ -46,4 +46,4 @@ Optional<String> mapHostName(const String&, URLDecodeFunction);
 String mapHostNames(const String&, URLDecodeFunction);
 
 } // namespace URLHelpers
-} // namespace WTF
+} // namespace PurCWTF

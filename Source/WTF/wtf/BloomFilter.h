@@ -28,7 +28,7 @@
 #include <array>
 #include <wtf/text/AtomString.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 // Bloom filter with k=2. Uses 2^keyBits/8 bytes of memory.
 // False positive rate is approximately (1-e^(-2n/m))^2, where n is the number of unique 
@@ -258,7 +258,7 @@ bool CountingBloomFilter<keyBits>::isClear() const
 }
 #endif // ENABLE_ASSERTS
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::BloomFilter;
-using WTF::CountingBloomFilter;
+using PurCWTF::BloomFilter;
+using PurCWTF::CountingBloomFilter;

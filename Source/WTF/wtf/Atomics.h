@@ -38,7 +38,7 @@ extern "C" void _ReadWriteBarrier(void);
 #include <intrin.h>
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 
 ALWAYS_INLINE bool hasFence(std::memory_order order)
 {
@@ -449,11 +449,11 @@ ALWAYS_INLINE T& ensurePointer(Atomic<T*>& pointer, const Func& func)
     }
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::Atomic;
-using WTF::Dependency;
-using WTF::InputAndValue;
-using WTF::inputAndValue;
-using WTF::ensurePointer;
-using WTF::opaqueMixture;
+using PurCWTF::Atomic;
+using PurCWTF::Dependency;
+using PurCWTF::InputAndValue;
+using PurCWTF::inputAndValue;
+using PurCWTF::ensurePointer;
+using PurCWTF::opaqueMixture;

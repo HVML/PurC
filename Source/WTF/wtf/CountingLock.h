@@ -28,9 +28,9 @@
 #include <wtf/DataLog.h>
 #include <wtf/LockAlgorithm.h>
 
-namespace WTF {
+namespace PurCWTF {
 
-// This is mostly just a word-sized WTF::Lock. It supports basically everything that lock supports. But as
+// This is mostly just a word-sized PurCWTF::Lock. It supports basically everything that lock supports. But as
 // a bonus, it atomically counts lock() calls and allows you to perform an optimistic read transaction by
 // comparing the count before and after the transaction. If at the start of the transaction the lock is
 // not held and the count remains the same throughout the transaction, then you know that nobody could
@@ -161,7 +161,7 @@ public:
     
     bool validate(Count count)
     {
-        WTF::loadLoadFence();
+        PurCWTF::loadLoadFence();
         LockType currentValue = m_word.loadRelaxed();
         return getCount(currentValue) == count;
     }
@@ -264,7 +264,7 @@ private:
     Atomic<LockType> m_word { 0 };
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::CountingLock;
+using PurCWTF::CountingLock;
 

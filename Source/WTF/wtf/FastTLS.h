@@ -31,9 +31,9 @@
 #include <System/pthread_machdep.h>
 #include <wtf/Platform.h>
 
-namespace WTF {
+namespace PurCWTF {
 
-// __PTK_FRAMEWORK_JAVASCRIPTCORE_KEY0-1 is taken by bmalloc, so WTF's KEY0 maps to the
+// __PTK_FRAMEWORK_JAVASCRIPTCORE_KEY0-1 is taken by bmalloc, so PurCWTF's KEY0 maps to the
 // system's KEY2.
 #define WTF_FAST_TLS_KEY0 __PTK_FRAMEWORK_JAVASCRIPTCORE_KEY2
 #define WTF_FAST_TLS_KEY1 __PTK_FRAMEWORK_JAVASCRIPTCORE_KEY3
@@ -55,10 +55,10 @@ inline unsigned fastTLSOffsetForKey(unsigned long slot)
 }
 #endif
 
-} // namespace WTF
+} // namespace PurCWTF
 
 #if ENABLE(FAST_TLS_JIT)
-using WTF::fastTLSOffsetForKey;
+using PurCWTF::fastTLSOffsetForKey;
 #endif
 
 #endif // HAVE(FAST_TLS)

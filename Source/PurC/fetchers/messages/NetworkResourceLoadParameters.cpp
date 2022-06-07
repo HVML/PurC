@@ -47,7 +47,7 @@ void NetworkResourceLoadParameters::encode(IPC::Encoder& encoder) const
         const Vector<FormDataElement>& elements = request.httpBody()->elements();
         size_t fileCount = 0;
         for (size_t i = 0, count = elements.size(); i < count; ++i) {
-            if (WTF::holds_alternative<FormDataElement::EncodedFileData>(elements[i].data))
+            if (PurCWTF::holds_alternative<FormDataElement::EncodedFileData>(elements[i].data))
                 ++fileCount;
         }
 
@@ -56,7 +56,7 @@ void NetworkResourceLoadParameters::encode(IPC::Encoder& encoder) const
         size_t extensionIndex = 0;
         for (size_t i = 0, count = elements.size(); i < count; ++i) {
             const FormDataElement& element = elements[i];
-            if (auto* fileData = WTF::get_if<FormDataElement::EncodedFileData>(element.data)) {
+            if (auto* fileData = PurCWTF::get_if<FormDataElement::EncodedFileData>(element.data)) {
                 const String& path = fileData->filename;
                 SandboxExtension::createHandle(path, SandboxExtension::Type::ReadOnly, requestBodySandboxExtensions[extensionIndex++]);
             }
@@ -119,43 +119,43 @@ Optional<NetworkResourceLoadParameters> NetworkResourceLoadParameters::decode(IP
     NetworkResourceLoadParameters result;
 
     if (!decoder.decode(result.identifier))
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
 
     Optional<WebPageProxyIdentifier> webPageProxyID;
     decoder >> webPageProxyID;
     if (!webPageProxyID)
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
     result.webPageProxyID = *webPageProxyID;
 
     Optional<PageIdentifier> webPageID;
     decoder >> webPageID;
     if (!webPageID)
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
     result.webPageID = *webPageID;
 
     if (!decoder.decode(result.webFrameID))
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
 
     if (!decoder.decode(result.parentPID))
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
 
     if (!decoder.decode(result.request))
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
 
     bool hasHTTPBody;
     if (!decoder.decode(hasHTTPBody))
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
 
     if (hasHTTPBody) {
         RefPtr<FormData> formData = FormData::decode(decoder);
         if (!formData)
-            return WTF::nullopt;
+            return PurCWTF::nullopt;
         result.request.setHTTPBody(WTFMove(formData));
 
         Optional<SandboxExtension::HandleArray> requestBodySandboxExtensionHandles;
         decoder >> requestBodySandboxExtensionHandles;
         if (!requestBodySandboxExtensionHandles)
-            return WTF::nullopt;
+            return PurCWTF::nullopt;
         for (size_t i = 0; i < requestBodySandboxExtensionHandles->size(); ++i) {
             if (auto extension = SandboxExtension::create(WTFMove(requestBodySandboxExtensionHandles->at(i))))
                 result.requestBodySandboxExtensions.append(WTFMove(extension));
@@ -166,108 +166,108 @@ Optional<NetworkResourceLoadParameters> NetworkResourceLoadParameters::decode(IP
         Optional<SandboxExtension::Handle> resourceSandboxExtensionHandle;
         decoder >> resourceSandboxExtensionHandle;
         if (!resourceSandboxExtensionHandle)
-            return WTF::nullopt;
+            return PurCWTF::nullopt;
         result.resourceSandboxExtension = SandboxExtension::create(WTFMove(*resourceSandboxExtensionHandle));
     }
 
     if (!decoder.decode(result.contentSniffingPolicy))
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
     if (!decoder.decode(result.contentEncodingSniffingPolicy))
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
     if (!decoder.decode(result.storedCredentialsPolicy))
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
     if (!decoder.decode(result.clientCredentialPolicy))
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
     if (!decoder.decode(result.shouldPreconnectOnly))
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
     if (!decoder.decode(result.shouldClearReferrerOnHTTPSToHTTPRedirect))
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
     if (!decoder.decode(result.needsCertificateInfo))
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
     if (!decoder.decode(result.isMainFrameNavigation))
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
     if (!decoder.decode(result.isMainResourceNavigationForAnyFrame))
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
     if (!decoder.decode(result.shouldRelaxThirdPartyCookieBlocking))
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
     if (!decoder.decode(result.maximumBufferingTime))
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
 
     bool hasSourceOrigin;
     if (!decoder.decode(hasSourceOrigin))
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
     if (hasSourceOrigin) {
         result.sourceOrigin = SecurityOrigin::decode(decoder);
         if (!result.sourceOrigin)
-            return WTF::nullopt;
+            return PurCWTF::nullopt;
     }
 
     bool hasTopOrigin;
     if (!decoder.decode(hasTopOrigin))
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
     if (hasTopOrigin) {
         result.topOrigin = SecurityOrigin::decode(decoder);
         if (!result.topOrigin)
-            return WTF::nullopt;
+            return PurCWTF::nullopt;
     }
 
     Optional<FetchOptions> options;
     decoder >> options;
     if (!options)
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
     result.options = *options;
 
     if (!decoder.decode(result.cspResponseHeaders))
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
     if (!decoder.decode(result.originalRequestHeaders))
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
 
     Optional<bool> shouldRestrictHTTPResponseAccess;
     decoder >> shouldRestrictHTTPResponseAccess;
     if (!shouldRestrictHTTPResponseAccess)
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
     result.shouldRestrictHTTPResponseAccess = *shouldRestrictHTTPResponseAccess;
 
     if (!decoder.decode(result.preflightPolicy))
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
 
     Optional<bool> shouldEnableCrossOriginResourcePolicy;
     decoder >> shouldEnableCrossOriginResourcePolicy;
     if (!shouldEnableCrossOriginResourcePolicy)
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
     result.shouldEnableCrossOriginResourcePolicy = *shouldEnableCrossOriginResourcePolicy;
 
     if (!decoder.decode(result.frameAncestorOrigins))
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
 
     Optional<bool> isHTTPSUpgradeEnabled;
     decoder >> isHTTPSUpgradeEnabled;
     if (!isHTTPSUpgradeEnabled)
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
     result.isHTTPSUpgradeEnabled = *isHTTPSUpgradeEnabled;
 
     Optional<bool> pageHasResourceLoadClient;
     decoder >> pageHasResourceLoadClient;
     if (!pageHasResourceLoadClient)
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
     result.pageHasResourceLoadClient = *pageHasResourceLoadClient;
 
     Optional<Optional<FrameIdentifier>> parentFrameID;
     decoder >> parentFrameID;
     if (!parentFrameID)
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
     result.parentFrameID = WTFMove(*parentFrameID);
 
     Optional<bool> crossOriginAccessControlCheckEnabled;
     decoder >> crossOriginAccessControlCheckEnabled;
     if (!crossOriginAccessControlCheckEnabled)
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
     result.crossOriginAccessControlCheckEnabled = *crossOriginAccessControlCheckEnabled;
 
     Optional<Optional<NavigatingToAppBoundDomain>> isNavigatingToAppBoundDomain;
     decoder >> isNavigatingToAppBoundDomain;
     if (!isNavigatingToAppBoundDomain)
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
     result.isNavigatingToAppBoundDomain = *isNavigatingToAppBoundDomain;
 
     return result;

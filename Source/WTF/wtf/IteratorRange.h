@@ -27,7 +27,7 @@
 
 #include <iterator>
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename Iterator>
 class IteratorRange {
@@ -93,4 +93,4 @@ SizedIteratorRange<Container, Iterator> makeSizedIteratorRange(const Container& 
     return SizedIteratorRange<Container, Iterator>(container, std::forward<Iterator>(begin), std::forward<Iterator>(end));
 }
 
-} // namespace WTF
+} // namespace PurCWTF

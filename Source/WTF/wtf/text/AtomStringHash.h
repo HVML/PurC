@@ -31,7 +31,7 @@
 #include <wtf/text/AtomString.h>
 #include <wtf/HashTraits.h>
 
-namespace WTF {
+namespace PurCWTF {
 
     struct AtomStringHash {
         static unsigned hash(const AtomString& key)
@@ -47,7 +47,7 @@ namespace WTF {
         static constexpr bool safeToCompareToEmptyOrDeleted = false;
     };
 
-    template<> struct HashTraits<WTF::AtomString> : SimpleClassHashTraits<WTF::AtomString> {
+    template<> struct HashTraits<PurCWTF::AtomString> : SimpleClassHashTraits<PurCWTF::AtomString> {
         static constexpr bool hasIsEmptyValueFunction = true;
         static bool isEmptyValue(const AtomString& value)
         {
@@ -65,4 +65,4 @@ namespace WTF {
 
 }
 
-using WTF::AtomStringHash;
+using PurCWTF::AtomStringHash;

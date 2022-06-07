@@ -30,7 +30,7 @@
 #include <wtf/RetainPtr.h>
 #include <wtf/spi/cocoa/objcSPI.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename T> class WeakObjCPtr {
 public:
@@ -110,6 +110,6 @@ private:
 #endif
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::WeakObjCPtr;
+using PurCWTF::WeakObjCPtr;

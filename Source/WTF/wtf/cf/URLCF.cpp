@@ -31,7 +31,7 @@
 #include <wtf/cf/CFURLExtras.h>
 #include <wtf/text/CString.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 URL::URL(CFURLRef url)
 {

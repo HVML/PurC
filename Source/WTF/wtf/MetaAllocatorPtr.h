@@ -29,7 +29,7 @@
 #include <wtf/PtrTag.h>
 #include <wtf/StdLibExtras.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 template<PtrTag tag>
 class MetaAllocatorPtr {
@@ -116,6 +116,6 @@ template<PtrTag tag> struct DefaultHash<MetaAllocatorPtr<tag>> {
 
 template<PtrTag tag> struct HashTraits<MetaAllocatorPtr<tag>> : public CustomHashTraits<MetaAllocatorPtr<tag>> { };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::MetaAllocatorPtr;
+using PurCWTF::MetaAllocatorPtr;

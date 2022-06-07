@@ -27,7 +27,7 @@
 
 #include <cstdint>
 
-namespace WTF {
+namespace PurCWTF {
 
 #if CPU(REGISTER64)
 using CPURegister = int64_t;
@@ -37,7 +37,7 @@ using CPURegister = int32_t;
 using UCPURegister = uint32_t;
 #endif
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::CPURegister;
-using WTF::UCPURegister;
+using PurCWTF::CPURegister;
+using PurCWTF::UCPURegister;

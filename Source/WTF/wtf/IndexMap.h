@@ -28,7 +28,7 @@
 #include <wtf/IndexKeyType.h>
 #include <wtf/Vector.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 // This is a map for keys that have an index(). It's super efficient for BasicBlocks. It's only
 // efficient for Values if you don't create too many of these maps, since Values can have very
@@ -100,6 +100,6 @@ private:
     Vector<Value, 0, UnsafeVectorOverflow> m_vector;
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::IndexMap;
+using PurCWTF::IndexMap;

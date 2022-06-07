@@ -28,7 +28,7 @@
 #include <os/object.h>
 #include <wtf/StdLibExtras.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename> class OSObjectPtr;
 template<typename T> OSObjectPtr<T> adoptOSObject(T);
@@ -145,7 +145,7 @@ template<typename T> inline OSObjectPtr<T> adoptOSObject(T ptr)
     return OSObjectPtr<T> { typename OSObjectPtr<T>::AdoptOSObject { }, WTFMove(ptr) };
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::OSObjectPtr;
-using WTF::adoptOSObject;
+using PurCWTF::OSObjectPtr;
+using PurCWTF::adoptOSObject;

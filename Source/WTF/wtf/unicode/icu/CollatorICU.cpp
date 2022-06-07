@@ -46,7 +46,7 @@
 #include <wtf/RetainPtr.h>
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 
 static UCollator* cachedCollator;
 static char* cachedCollatorLocale;
@@ -273,6 +273,6 @@ int Collator::collateUTF8(const char* a, const char* b) const
     return result;
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
 #endif

@@ -29,7 +29,7 @@
 #include <wtf/HashTraits.h>
 #include <wtf/UniqueArray.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 class StackShot {
     WTF_MAKE_FAST_ALLOCATED;
@@ -50,7 +50,7 @@ public:
         }
     }
     
-    StackShot(WTF::HashTableDeletedValueType)
+    StackShot(PurCWTF::HashTableDeletedValueType)
         : m_array(deletedValueArray())
         , m_size(0)
     {
@@ -127,5 +127,5 @@ template<> struct DefaultHash<StackShot> {
 
 template<> struct HashTraits<StackShot> : SimpleClassHashTraits<StackShot> { };
 
-} // namespace WTF
+} // namespace PurCWTF
 

@@ -34,7 +34,7 @@
 #include <wtf/text/CString.h>
 #include <wtf/text/WTFString.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 CString FileSystem::fileSystemRepresentation(const String& path)
 {
@@ -71,4 +71,4 @@ RetainPtr<CFURLRef> FileSystem::pathAsURL(const String& path)
     return adoptCF(CFURLCreateWithFileSystemPath(nullptr, path.createCFString().get(), pathStyle, FALSE));
 }
 
-} // namespace WTF
+} // namespace PurCWTF

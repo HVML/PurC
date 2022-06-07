@@ -37,7 +37,7 @@
 #endif
 #include <wtf/text/UChar.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 class LineBreakIteratorPool {
     WTF_MAKE_NONCOPYABLE(LineBreakIteratorPool);
@@ -47,7 +47,7 @@ public:
 
     static LineBreakIteratorPool& sharedPool()
     {
-        static NeverDestroyed<WTF::ThreadSpecific<LineBreakIteratorPool>> pool;
+        static NeverDestroyed<PurCWTF::ThreadSpecific<LineBreakIteratorPool>> pool;
         return *pool.get();
     }
 
@@ -132,7 +132,7 @@ private:
     Vector<std::pair<AtomString, UBreakIterator*>, capacity> m_pool;
     HashMap<UBreakIterator*, AtomString> m_vendedIterators;
 
-    friend WTF::ThreadSpecific<LineBreakIteratorPool>::operator LineBreakIteratorPool*();
+    friend PurCWTF::ThreadSpecific<LineBreakIteratorPool>::operator LineBreakIteratorPool*();
 };
 
 }

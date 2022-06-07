@@ -29,7 +29,7 @@
 #include <wtf/PrintStream.h>
 #include <wtf/StringPrintStream.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename T>
 class ListDump {
@@ -173,11 +173,11 @@ ListDumpInContext<T, U> listDumpInContext(
     return ListDumpInContext<T, U>(list, context, comma);
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::listDump;
-using WTF::listDumpInContext;
-using WTF::mapDump;
-using WTF::pointerListDump;
-using WTF::sortedListDump;
-using WTF::sortedMapDump;
+using PurCWTF::listDump;
+using PurCWTF::listDumpInContext;
+using PurCWTF::mapDump;
+using PurCWTF::pointerListDump;
+using PurCWTF::sortedListDump;
+using PurCWTF::sortedMapDump;

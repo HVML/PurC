@@ -27,7 +27,7 @@
 
 #include <wtf/PrintStream.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 // This is a boolean type that is part of an abstract value lattice. It's useful for inferring what
 // the boolean value of something is by exploring all boolean values we encounter.
@@ -90,8 +90,8 @@ inline void printInternal(PrintStream& out, BooleanLattice value)
     RELEASE_ASSERT_NOT_REACHED();
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::BooleanLattice;
-using WTF::leastUpperBoundOfBooleanLattices;
+using PurCWTF::BooleanLattice;
+using PurCWTF::leastUpperBoundOfBooleanLattices;
 

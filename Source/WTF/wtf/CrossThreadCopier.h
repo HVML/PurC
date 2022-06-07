@@ -39,7 +39,7 @@
 #include <wtf/ThreadSafeRefCounted.h>
 #include <wtf/text/WTFString.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 struct CrossThreadCopierBaseHelper {
     template<typename T> struct RemovePointer {
@@ -96,8 +96,8 @@ template<typename T> struct CrossThreadCopierBase<false, true, T> {
     }
 };
 
-template<> struct CrossThreadCopierBase<false, false, WTF::ASCIILiteral> {
-    typedef WTF::ASCIILiteral Type;
+template<> struct CrossThreadCopierBase<false, false, PurCWTF::ASCIILiteral> {
+    typedef PurCWTF::ASCIILiteral Type;
     static Type copy(const Type& source)
     {
         return source;
@@ -159,7 +159,7 @@ template<typename T> struct CrossThreadCopierBase<false, false, Optional<T>> {
     template<typename U> static Optional<T> copy(U&& source)
     {
         if (!source)
-            return WTF::nullopt;
+            return PurCWTF::nullopt;
         return CrossThreadCopier<T>::copy(std::forward<U>(source).value());
     }
 };
@@ -169,9 +169,9 @@ template<typename T> auto crossThreadCopy(T&& source)
     return CrossThreadCopier<std::remove_cv_t<std::remove_reference_t<T>>>::copy(std::forward<T>(source));
 }
     
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::CrossThreadCopierBaseHelper;
-using WTF::CrossThreadCopierBase;
-using WTF::CrossThreadCopier;
-using WTF::crossThreadCopy;
+using PurCWTF::CrossThreadCopierBaseHelper;
+using PurCWTF::CrossThreadCopierBase;
+using PurCWTF::CrossThreadCopier;
+using PurCWTF::crossThreadCopy;

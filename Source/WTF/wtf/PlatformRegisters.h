@@ -38,7 +38,7 @@
 #include <ucontext.h>
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 
 #if OS(DARWIN)
 
@@ -90,20 +90,20 @@ struct PlatformRegisters {
 
 #endif
 
-} // namespace WTF
+} // namespace PurCWTF
 
 #if USE(PLATFORM_REGISTERS_WITH_PROFILE)
 #if CPU(ARM64E)
 
-namespace WTF {
+namespace PurCWTF {
 
 extern void* threadStateLRInternal(PlatformRegisters&);
 extern void* threadStatePCInternal(PlatformRegisters&);
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::threadStateLRInternal;
-using WTF::threadStatePCInternal;
+using PurCWTF::threadStateLRInternal;
+using PurCWTF::threadStatePCInternal;
 
 #else // not CPU(ARM64E)
 
@@ -159,4 +159,4 @@ using WTF::threadStatePCInternal;
 
 #endif // USE(PLATFORM_REGISTERS_WITH_PROFILE)
 
-using WTF::PlatformRegisters;
+using PurCWTF::PlatformRegisters;

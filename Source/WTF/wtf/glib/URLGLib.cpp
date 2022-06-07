@@ -31,13 +31,13 @@
 #include <glib.h>
 #include <wtf/text/CString.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 bool URL::hostIsIPAddress(StringView host)
 {
     return !host.isEmpty() && g_hostname_is_ip_address(host.utf8().data());
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
 #endif // USE(GLIB)

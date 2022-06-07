@@ -27,7 +27,7 @@
 #include "ObjectIdentifier.h"
 
 
-namespace WTF {
+namespace PurCWTF {
 
 uint64_t ObjectIdentifierBase::generateIdentifierInternal()
 {
@@ -45,4 +45,4 @@ uint64_t ObjectIdentifierBase::generateThreadSafeIdentifierInternal()
     return ++current.get();
 }
 
-} // namespace WTF
+} // namespace PurCWTF

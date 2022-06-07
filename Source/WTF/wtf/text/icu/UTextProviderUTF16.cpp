@@ -29,7 +29,7 @@
 #include <algorithm>
 #include <wtf/text/icu/UTextProvider.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 // UTF16ContextAware provider
 
@@ -181,4 +181,4 @@ UText* openUTF16ContextAwareUTextProvider(UText* text, const UChar* string, unsi
     return text;
 }
 
-} // namespace WTF
+} // namespace PurCWTF

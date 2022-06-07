@@ -39,7 +39,7 @@
 #include <wtf/StdLibExtras.h>
 #include <wtf/Threading.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 static bool callbacksPaused; // This global variable is only accessed from main thread.
 static Lock mainThreadFunctionQueueMutex;
@@ -158,7 +158,7 @@ enum class MainStyle : bool {
     RunLoop
 };
 
-static void callOnMainAndWait(WTF::Function<void()>&& function, MainStyle mainStyle)
+static void callOnMainAndWait(PurCWTF::Function<void()>&& function, MainStyle mainStyle)
 {
 
     if (mainStyle == MainStyle::Thread ? isMainThread() : isMainRunLoop()) {
@@ -193,14 +193,14 @@ static void callOnMainAndWait(WTF::Function<void()>&& function, MainStyle mainSt
     });
 }
 
-void callOnMainRunLoopAndWait(WTF::Function<void()>&& function)
+void callOnMainRunLoopAndWait(PurCWTF::Function<void()>&& function)
 {
     callOnMainAndWait(WTFMove(function), MainStyle::RunLoop);
 }
 
-void callOnMainThreadAndWait(WTF::Function<void()>&& function)
+void callOnMainThreadAndWait(PurCWTF::Function<void()>&& function)
 {
     callOnMainAndWait(WTFMove(function), MainStyle::Thread);
 }
 
-} // namespace WTF
+} // namespace PurCWTF

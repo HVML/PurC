@@ -25,7 +25,7 @@
 #include <wtf/dtoa/double-conversion.h>
 #include <wtf/text/StringView.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 using NumberToStringBuffer = std::array<char, 123>;
 
@@ -68,10 +68,10 @@ inline double parseDouble(StringView string, size_t& parsedLength)
     return parseDouble(string.characters16(), string.length(), parsedLength);
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::NumberToStringBuffer;
-using WTF::numberToString;
-using WTF::numberToFixedPrecisionString;
-using WTF::numberToFixedWidthString;
-using WTF::parseDouble;
+using PurCWTF::NumberToStringBuffer;
+using PurCWTF::numberToString;
+using PurCWTF::numberToFixedPrecisionString;
+using PurCWTF::numberToFixedWidthString;
+using PurCWTF::parseDouble;

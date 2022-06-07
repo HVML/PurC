@@ -94,7 +94,7 @@ inline bool StringReference::Hash::equal(const StringReference& a, const StringR
 
 } // namespace IPC
 
-namespace WTF {
+namespace PurCWTF {
 template<typename T> struct DefaultHash;
 
 template<> struct DefaultHash<IPC::StringReference> {
@@ -107,6 +107,6 @@ template<> struct HashTraits<IPC::StringReference> : GenericHashTraits<IPC::Stri
     static bool isDeletedValue(const IPC::StringReference& stringReference) { return stringReference.size() == std::numeric_limits<size_t>::max(); }
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
 #endif // StringReference_h

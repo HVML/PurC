@@ -36,7 +36,7 @@
 #include <iterator>
 #include <wtf/Vector.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename T, size_t inlineCapacity> class DequeIteratorBase;
 template<typename T, size_t inlineCapacity> class DequeIterator;
@@ -784,6 +784,6 @@ inline T* DequeIteratorBase<T, inlineCapacity>::before() const
     return std::addressof(m_deque->m_buffer.buffer()[m_index - 1]);
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::Deque;
+using PurCWTF::Deque;

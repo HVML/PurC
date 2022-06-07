@@ -28,7 +28,7 @@
 #include <wtf/Atomics.h>
 #include <wtf/Noncopyable.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 // This a simple single consumer, multiple producer Bag data structure.
 
@@ -109,4 +109,4 @@ private:
     Atomic<Node*> m_head;
 };
     
-} // namespace WTF
+} // namespace PurCWTF

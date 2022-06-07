@@ -38,7 +38,7 @@ typedef const struct __CFURL* CFURLRef;
 OBJC_CLASS NSURL;
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 
 class PrintStream;
 class TextStream;
@@ -239,8 +239,8 @@ WTF_EXPORT_PRIVATE const URL& aboutSrcDocURL();
 
 // Functions to do URL operations on strings.
 // These are operations that aren't faster on a parsed URL.
-// These are also different from the WTF::URL functions in that they don't require the string to be a valid and parsable URL.
-// This is especially important because valid javascript URLs are not necessarily considered valid by WTF::URL.
+// These are also different from the PurCWTF::URL functions in that they don't require the string to be a valid and parsable URL.
+// This is especially important because valid javascript URLs are not necessarily considered valid by PurCWTF::URL.
 
 WTF_EXPORT_PRIVATE bool protocolIs(StringView url, const char* protocol);
 WTF_EXPORT_PRIVATE bool protocolIsJavaScript(StringView url);
@@ -292,7 +292,7 @@ template<typename Decoder> Optional<URL> URL::decode(Decoder& decoder)
     Optional<String> string;
     decoder >> string;
     if (!string)
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
     return URL(URL(), WTFMove(*string));
 }
 
@@ -386,7 +386,7 @@ inline unsigned URL::pathAfterLastSlash() const
     return m_pathAfterLastSlash;
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::aboutBlankURL;
-using WTF::aboutSrcDocURL;
+using PurCWTF::aboutBlankURL;
+using PurCWTF::aboutSrcDocURL;

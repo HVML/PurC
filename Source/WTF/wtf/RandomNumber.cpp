@@ -33,7 +33,7 @@
 #include <wtf/CryptographicallyRandomNumber.h>
 #include <wtf/WeakRandom.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 double randomNumber()
 {

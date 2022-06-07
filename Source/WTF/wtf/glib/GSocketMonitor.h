@@ -33,7 +33,7 @@
 
 typedef struct _GSocket GSocket;
 
-namespace WTF {
+namespace PurCWTF {
 
 class GSocketMonitor {
     WTF_MAKE_NONCOPYABLE(GSocketMonitor);
@@ -53,6 +53,6 @@ private:
     Function<gboolean(GIOCondition)> m_callback;
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::GSocketMonitor;
+using PurCWTF::GSocketMonitor;

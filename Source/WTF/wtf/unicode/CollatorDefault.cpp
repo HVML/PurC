@@ -31,7 +31,7 @@
 
 #if UCONFIG_NO_COLLATION
 
-namespace WTF {
+namespace PurCWTF {
 
 int Collator::collate(StringView a, StringView b) const
 {

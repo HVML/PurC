@@ -30,7 +30,7 @@
 
 #include <wtf/dtoa/utils.h>
 
-namespace WTF {
+namespace PurCWTF {
 namespace double_conversion {
 
 // Produces digits necessary to print a given number with
@@ -53,6 +53,6 @@ bool FastFixedDtoa(double v, int fractional_count,
                    BufferReference<char> buffer, int* length, int* decimal_point);
 
 }  // namespace double_conversion
-}  // namespace WTF
+}  // namespace PurCWTF
 
 #endif  // DOUBLE_CONVERSION_FIXED_DTOA_H_

@@ -46,7 +46,9 @@
 
 #define EVENT_TIMER_INTRVAL  10
 
+#define EVENT_SEPARATOR      ':'
 #define MSG_TYPE_CHANGE     "change"
+#define MSG_SUB_TYPE_CLOSE  "close"
 
 static void
 stack_frame_release(struct pcintr_stack_frame *frame)
@@ -137,6 +139,9 @@ pcintr_util_dump_document_ex(pchtml_html_document_t *doc, char **dump_buff,
 {
     PC_ASSERT(doc);
     UNUSED_PARAM(dump_buff);
+    UNUSED_PARAM(file);
+    UNUSED_PARAM(line);
+    UNUSED_PARAM(func);
 
     char buf[1024];
     size_t nr = sizeof(buf);
@@ -170,10 +175,12 @@ pcintr_util_dump_document_ex(pchtml_html_document_t *doc, char **dump_buff,
         }
         *dump_buff = strdup(p);
     }
+#if 1
     else {
         fprintf(stderr, "%s[%d]:%s(): #document %p\n%s\n",
                 pcutils_basename((char*)file), line, func, doc, p);
     }
+#endif
     if (p != buf)
         free(p);
 }
@@ -512,6 +519,12 @@ coroutine_release(pcintr_coroutine_t co)
             free(co->name);
             co->name = NULL;
         }
+        if (co->ident) {
+            PC_ASSERT(co->full_name);
+            purc_atom_remove_string(co->full_name);
+            free(co->full_name);
+            co->full_name = NULL;
+        }
     }
 }
 
@@ -556,11 +569,18 @@ void pcintr_heap_unlock(struct pcintr_heap *heap)
     PC_ASSERT(r == 0);
 }
 
+static struct list_head                       _all_heaps;
+
 static void _cleanup_instance(struct pcinst* inst)
 {
     struct pcintr_heap *heap = inst->intr_heap;
     if (!heap)
         return;
+
+    if (heap->owning_heaps) {
+        pcintr_remove_heap(&_all_heaps);
+        PC_ASSERT(heap->owning_heaps == NULL);
+    }
 
     PC_ASSERT(heap->exiting == false);
     heap->exiting = true;
@@ -574,6 +594,12 @@ static void _cleanup_instance(struct pcinst* inst)
 
         list_del(p);
         coroutine_destroy(co);
+    }
+
+    if (heap->move_buff) {
+        // VW PC_ASSERT(pthread_equal(pthread_self(), inst->running_thread));
+        purc_inst_destroy_move_buffer();
+        heap->move_buff = 0;
     }
 
     free(heap);
@@ -593,20 +619,32 @@ static int _init_instance(struct pcinst* inst,
     if (!heap)
         return PURC_ERROR_OUT_OF_MEMORY;
 
-    int r;
-    r = pthread_mutex_init(&heap->locker, NULL);
-    if (r) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+    heap->move_buff = purc_inst_create_move_buffer(
+            PCINST_MOVE_BUFFER_FLAG_NONE, 64);
+    if (!heap->move_buff) {
         free(heap);
         return PURC_ERROR_OUT_OF_MEMORY;
     }
 
+    int r;
+    r = pthread_mutex_init(&heap->locker, NULL);
+    if (r) {
+        purc_inst_destroy_move_buffer();
+        heap->move_buff = 0;
+        free(heap);
+        return PURC_ERROR_OUT_OF_MEMORY;
+    }
+
+    inst->running_loop = purc_runloop_get_current();
     inst->intr_heap = heap;
     heap->owner     = inst;
 
     INIT_LIST_HEAD(&heap->coroutines);
     heap->running_coroutine = NULL;
     heap->next_coroutine_id = 1;
+
+    PC_ASSERT(pcintr_get_heap());
+    pcintr_add_heap(&_all_heaps);
 
     return 0;
 }
@@ -616,6 +654,8 @@ static int _init_once(void)
     purc_runloop_t runloop = purc_runloop_get_current();
     PC_ASSERT(runloop);
     init_ops();
+
+    INIT_LIST_HEAD(&_all_heaps);
 
     return 0;
 }
@@ -636,12 +676,14 @@ struct pcintr_heap* pcintr_get_heap(void)
     return inst ? inst->intr_heap : NULL;
 }
 
+#if 0 // VW
 bool pcintr_is_current_thread(void)
 {
     struct pcintr_heap *heap = pcintr_get_heap();
     struct pcinst *inst = heap ? heap->owner : NULL;
     return inst ? (inst->running_thread == pthread_self()) : false;
 }
+#endif
 
 pcintr_coroutine_t
 pcintr_get_coroutine(void)
@@ -1362,6 +1404,7 @@ on_select_child(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         child_frame = &frame_normal->frame;
         child_frame->ops = pcintr_get_ops_by_element(element);
         child_frame->pos = element;
+        PC_ASSERT(element);
         child_frame->silently = pcintr_is_element_silently(child_frame->pos) ?
             1 : 0;
         child_frame->edom_element = frame->edom_element;
@@ -1724,6 +1767,43 @@ static void execute_one_step_for_ready_co(pcintr_coroutine_t co)
     }
 }
 
+static void on_sub_exit_event(void *ctxt)
+{
+    pcintr_coroutine_result_t child_result;
+    child_result = (pcintr_coroutine_result_t)ctxt;
+    PC_ASSERT(child_result);
+
+    pcintr_coroutine_t co;
+    co = pcintr_get_coroutine();
+    PC_ASSERT(co);
+
+    PRINT_VARIANT(child_result->as);
+    PRINT_VARIANT(child_result->result);
+
+    list_del(&child_result->node);
+    PURC_VARIANT_SAFE_CLEAR(child_result->as);
+    PURC_VARIANT_SAFE_CLEAR(child_result->result);
+    free(child_result);
+}
+
+static void check_after_execution(pcintr_coroutine_t co);
+
+static void on_sub_exit(void *ctxt)
+{
+    pcintr_coroutine_result_t child_result;
+    child_result = (pcintr_coroutine_result_t)ctxt;
+    PC_ASSERT(child_result);
+
+    pcintr_coroutine_t co;
+    co = pcintr_get_coroutine();
+    PC_ASSERT(co);
+
+    PRINT_VARIANT(child_result->result);
+
+    pcintr_post_msg(ctxt, on_sub_exit_event);
+    check_after_execution(co);
+}
+
 static void execute_one_step_for_exiting_co(pcintr_coroutine_t co)
 {
     pcintr_stack_t stack = &co->stack;
@@ -1752,21 +1832,26 @@ static void execute_one_step_for_exiting_co(pcintr_coroutine_t co)
     struct pcinst *inst = heap->owner;
 
     if (co->parent) {
-        list_del(&co->sibling);
-        // post message to parent
+        PC_ASSERT(co->parent->owner == co->owner);
+        pcintr_coroutine_t parent = co->parent;
         co->parent = NULL;
+        pcintr_coroutine_result_t co_result;
+        co_result = co->result;
+        co->result = NULL;
+        PC_ASSERT(parent);
+        PC_ASSERT(co_result);
+        pcintr_wakeup_target_with(parent, co_result, on_sub_exit);
     }
 
     list_del(&co->node);
     coroutine_destroy(co);
 
-    if (list_empty(&heap->coroutines))
+    if (inst->keep_alive == 0 && list_empty(&heap->coroutines)) {
         purc_runloop_stop(inst->running_loop);
+    }
 
     return;
 }
-
-static void check_after_execution(pcintr_coroutine_t co);
 
 void pcintr_check_after_execution(void)
 {
@@ -1798,6 +1883,30 @@ static void run_exiting_co(void *ctxt)
 }
 
 static void run_ready_co(void);
+
+static void
+revoke_all_dynamic_observers(void)
+{
+    pcintr_stack_t stack = pcintr_get_stack();
+    PC_ASSERT(stack);
+    struct list_head *observers = &stack->dynamic_variant_observer_list;
+    struct pcintr_observer *p, *n;
+    list_for_each_entry_safe(p, n, observers, node) {
+        pcintr_revoke_observer(p);
+    }
+}
+
+static void
+revoke_all_native_observers(void)
+{
+    pcintr_stack_t stack = pcintr_get_stack();
+    PC_ASSERT(stack);
+    struct list_head *observers = &stack->native_variant_observer_list;
+    struct pcintr_observer *p, *n;
+    list_for_each_entry_safe(p, n, observers, node) {
+        pcintr_revoke_observer(p);
+    }
+}
 
 static void
 revoke_all_common_observers(void)
@@ -1979,14 +2088,35 @@ static void check_after_execution(pcintr_coroutine_t co)
     if (co->stack.except) {
         dump_c_stack(co->stack.exception.bt);
         co->stack.except = 0;
+        if (!list_empty(&co->children))
+            return;
+
         if (!co->stack.exited) {
             co->stack.exited = 1;
             notify_to_stop(co);
         }
     }
 
+    if (!list_empty(&co->msgs) && co->msg_pending == 0) {
+        PC_ASSERT(co->state == CO_STATE_READY);
+        struct pcintr_stack_frame *frame;
+        frame = pcintr_stack_get_bottom_frame(stack);
+        PC_ASSERT(frame == NULL);
+        pcintr_msg_t msg;
+        msg = list_first_entry(&co->msgs, struct pcintr_msg, node);
+        list_del(&msg->node);
+        co->msg_pending = 1;
+        pcintr_wakeup_target_with(co, msg, on_msg);
+        return;
+    }
+
+    if (!list_empty(&co->children))
+        return;
+
     if (co->stack.exited) {
+        revoke_all_dynamic_observers();
         PC_ASSERT(list_empty(&co->stack.dynamic_variant_observer_list));
+        revoke_all_native_observers();
         PC_ASSERT(list_empty(&co->stack.native_variant_observer_list));
         revoke_all_common_observers();
         PC_ASSERT(list_empty(&co->stack.common_variant_observer_list));
@@ -2021,9 +2151,8 @@ static void check_after_execution(pcintr_coroutine_t co)
         notify_to_stop(co);
     }
 
-    if (!list_empty(&co->msgs)) {
+    if (!list_empty(&co->msgs))
         return;
-    }
 
     if (co->msg_pending)
         return;
@@ -2051,6 +2180,8 @@ void pcintr_set_exit(void)
     PC_ASSERT(co);
     if (co->stack.exited == 0) {
         co->stack.exited = 1;
+        PC_ASSERT(pcintr_get_heap());
+        pcintr_remove_heap(&_all_heaps);
         notify_to_stop(co);
     }
 }
@@ -2159,8 +2290,11 @@ static int set_coroutine_id(pcintr_coroutine_t coroutine, const char *name)
 
     pcintr_heap_t heap = pcintr_get_heap();
     PC_ASSERT(heap);
+    struct pcinst *inst = pcinst_current();
+    PC_ASSERT(inst && inst == heap->owner);
+    PC_ASSERT(inst->runner_name);
 
-    char buf[64];
+    char buf[128];
 
     if (!name) {
 again:
@@ -2169,7 +2303,8 @@ again:
             return -1;
         }
 
-        snprintf(buf, sizeof(buf), "_%zd", heap->next_coroutine_id++);
+        int n = snprintf(buf, sizeof(buf), "_%zd", heap->next_coroutine_id++);
+        PC_ASSERT(n >= 0 && (size_t)n < sizeof(buf));
         pcintr_coroutine_t p = coroutine_by_name(buf);
         if (p)
             goto again;
@@ -2184,11 +2319,27 @@ again:
     }
 
     coroutine->name = p;
+
+    size_t len = strlen(inst->runner_name) + 1 + strlen(coroutine->name);
+    p = (char*)malloc(len + 1);
+    if (!p) {
+        free(coroutine->name);
+        coroutine->name = NULL;
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return -1;
+    }
+
+    snprintf(p, len+1, "%s/%s", inst->runner_name, coroutine->name);
+    coroutine->full_name = p;
+
+    coroutine->ident = purc_atom_from_string(coroutine->full_name);
+
     return 0;
 }
 
-static purc_vdom_t
-load_hvml_from_rwstream(const char *name,
+static pcintr_coroutine_t
+coroutine_create(const char *name,
+        purc_variant_t as,
         pcintr_coroutine_t parent,
         purc_rwstream_t stream,
         struct pcintr_supervisor_ops *ops, void *ctxt)
@@ -2200,10 +2351,19 @@ load_hvml_from_rwstream(const char *name,
     pcintr_coroutine_t co = NULL;
     pcintr_stack_t stack = NULL;
 
+    pcintr_coroutine_result_t co_result = NULL;
+    if (parent) {
+        co_result = (pcintr_coroutine_result_t)calloc(1, sizeof(*co_result));
+        if (!co_result) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            return NULL;
+        }
+    }
+
     struct pcvdom_document *doc = NULL;
     doc = load_document(stream);
     if (!doc)
-        return NULL;
+        goto fail_doc;
 
     purc_vdom_t vdom = (purc_vdom_t)calloc(1, sizeof(*vdom));
     if (!vdom) {
@@ -2230,15 +2390,18 @@ load_hvml_from_rwstream(const char *name,
     co->msg_pending = 0;
 
     co->parent = parent;
-    if (parent)
-        list_add_tail(&co->sibling, &parent->children);
+    if (parent) {
+        if (as != PURC_VARIANT_INVALID)
+            co_result->as = purc_variant_ref(as);
+        list_add_tail(&co_result->node, &parent->children);
+        co->result = co_result;
+        co_result = NULL;
+    }
 
     stack = &co->stack;
     stack->co = co;
-    stack->vdom = vdom;
-    vdom = NULL;
-
     co->owner = heap;
+
     list_add_tail(&co->node, coroutines);
 
     stack_init(stack);
@@ -2248,10 +2411,12 @@ load_hvml_from_rwstream(const char *name,
         stack->ctxt = ctxt;
     }
 
-    pcintr_wakeup_target(co, run_co_main);
+    stack->vdom = vdom;
+    vdom = NULL;
 
     // FIXME: double-free, potentially!!!
-    return stack->vdom;
+    // return stack->vdom;
+    return co;
 
 fail_name:
     free(co);
@@ -2262,6 +2427,9 @@ fail_co:
 fail_vdom:
     pcvdom_document_destroy(doc);
 
+fail_doc:
+    free(co_result);
+
     return NULL;
 }
 
@@ -2271,7 +2439,15 @@ purc_load_hvml_from_rwstream_ex(purc_rwstream_t stream,
 {
     pcintr_coroutine_t co = pcintr_get_coroutine();
     PC_ASSERT(co == NULL);
-    return load_hvml_from_rwstream(NULL, NULL, stream, ops, ctxt);
+    co = coroutine_create(NULL, NULL, NULL, stream, ops, ctxt);
+    if (!co)
+        return NULL;
+
+    PC_ASSERT(co->stack.vdom);
+
+    pcintr_wakeup_target(co, run_co_main);
+
+    return co->stack.vdom;
 }
 
 bool
@@ -2294,8 +2470,7 @@ purc_run(purc_variant_t request, purc_event_handler handler)
         return false;
     }
 
-
-    heap->owner->running_thread = pthread_self();
+    // VW: heap->owner->running_thread = pthread_self();
 
     purc_runloop_run();
 
@@ -2353,6 +2528,47 @@ add_observer_into_list(struct list_head *list,
     PC_ASSERT(stack);
     PC_ASSERT(stack->co->waits >= 0);
     stack->co->waits++;
+}
+
+// type:sub_type
+bool
+pcintr_parse_event(const char *event, purc_variant_t *type,
+        purc_variant_t *sub_type)
+{
+    if (event == NULL || type == NULL) {
+        goto out;
+    }
+
+    const char *p = strchr(event, EVENT_SEPARATOR);
+    if (p) {
+        *type = purc_variant_make_string_ex(event, p - event, true);
+        if (*type == PURC_VARIANT_INVALID) {
+            goto out;
+        }
+        if (sub_type) {
+            *sub_type = purc_variant_make_string(p + 1, true);
+            if (*sub_type == PURC_VARIANT_INVALID) {
+                goto out_unref_type;
+            }
+        }
+    }
+    else {
+        *type = purc_variant_make_string(event, true);
+        if (*type == PURC_VARIANT_INVALID) {
+            goto out;
+        }
+    }
+
+    return true;
+
+out_unref_type:
+    if (*type) {
+        purc_variant_unref(*type);
+        *type = NULL;
+    }
+
+out:
+    return false;
 }
 
 struct pcintr_observer*
@@ -2434,10 +2650,28 @@ get_observer_list(pcintr_stack_t stack, purc_variant_t observed)
     return list;
 }
 
+static
+bool is_variant_match_observe(purc_variant_t observed, purc_variant_t val)
+{
+    if (observed == val) {
+        return true;
+    }
+    if (purc_variant_is_native(observed)) {
+        struct purc_native_ops *ops = purc_variant_native_get_ops(observed);
+        if (ops == NULL || ops->match_observe == NULL) {
+            return false;
+        }
+        return ops->match_observe(purc_variant_native_get_entity(observed),
+                val);
+    }
+    return false;
+}
+
+
 bool is_observer_match(struct pcintr_observer *observer,
         purc_variant_t observed, purc_atom_t type_atom, const char *sub_type)
 {
-    if ((observer->observed == observed) &&
+    if ((is_variant_match_observe(observer->observed, observed)) &&
                 (observer->msg_type_atom == type_atom)) {
         if (observer->sub_type == sub_type ||
                 pcregex_is_match(observer->sub_type, sub_type)) {
@@ -2573,6 +2807,19 @@ static void observer_matched(struct pcintr_observer *p)
     pcintr_post_msg(data, on_observer_matched);
 }
 
+static void handle_vdom_event(pcintr_stack_t stack, purc_vdom_t vdom,
+        purc_atom_t type, purc_variant_t sub_type, purc_variant_t data)
+{
+    UNUSED_PARAM(stack);
+    UNUSED_PARAM(vdom);
+    UNUSED_PARAM(sub_type);
+    UNUSED_PARAM(data);
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(MSG, CLOSE)) == type) {
+        // TODO : quit runner
+        fprintf(stderr, "## event msg not handle : close\n");
+    }
+}
+
 static void
 handle_message(void *ctxt)
 {
@@ -2605,12 +2852,23 @@ handle_message(void *ctxt)
 
     purc_variant_t observed = msg->source;
 
+    bool handle = false;
     struct list_head* list = get_observer_list(stack, observed); {
         struct pcintr_observer *p, *n;
         list_for_each_entry_safe(p, n, list, node) {
             if (is_observer_match(p, observed, msg_type_atom, sub_type)) {
+                handle = true;
                 observer_matched(p);
             }
+        }
+    }
+
+    if (!handle && purc_variant_is_native(observed)) {
+        void *dest = purc_variant_native_get_entity(observed);
+        // window close event dispatch to vdom
+        if (dest == stack->vdom) {
+            handle_vdom_event(stack, stack->vdom, msg_type_atom,
+                    msg->sub_type, msg->extra);
         }
     }
 
@@ -2747,7 +3005,7 @@ on_load_async_done(
 {
     PC_ASSERT(request_id != PURC_VARIANT_INVALID);
     PC_ASSERT(ctxt);
-    PC_ASSERT(pcintr_is_current_thread());
+    // VW PC_ASSERT(pcintr_is_current_thread());
     struct load_async_data *data;
     data = (struct load_async_data*)ctxt;
     PC_ASSERT(data);
@@ -3766,12 +4024,42 @@ struct timer_data {
 };
 
 static void
+check_and_dispatch_msg(void)
+{
+    PC_ASSERT(pcintr_get_coroutine());
+
+    int r;
+    size_t n;
+    r = purc_inst_holding_messages_count(&n);
+    PC_ASSERT(r == 0);
+    if (n <= 0)
+        return;
+
+    pcrdr_msg *msg;
+    msg = purc_inst_take_away_message(0);
+    if (msg == NULL) {
+        PC_ASSERT(purc_get_last_error() == 0);
+        return;
+    }
+
+    PC_ASSERT(0);
+}
+
+static void
 event_timer_fire(pcintr_timer_t timer, const char* id)
 {
     UNUSED_PARAM(timer);
     UNUSED_PARAM(id);
 
     PC_ASSERT(pcintr_get_heap());
+
+    struct pcinst *inst = pcinst_current();
+    check_and_dispatch_msg();
+
+    if (inst != NULL && inst->rdr_caps != NULL) {
+        pcrdr_wait_and_dispatch_message(inst->conn_to_rdr, 1);
+        purc_clr_error();
+    }
 
     pcintr_coroutine_t co = pcintr_get_coroutine();
     PC_ASSERT(co);
@@ -3916,6 +4204,10 @@ pcintr_post_msg(void *ctxt, pcintr_msg_callback_f cb)
     PC_ASSERT(stack);
     pcintr_coroutine_t co = stack->co;
     PC_ASSERT(co);
+    if (1) {
+        pcintr_post_msg_to_target(co, ctxt, cb);
+        return;
+    }
 
     pcintr_msg_t msg;
     msg = (pcintr_msg_t)calloc(1, sizeof(*msg));
@@ -3965,7 +4257,7 @@ void pcintr_unregister_cancel(pcintr_cancel_t cancel)
     cancel->list = NULL;
 }
 
-void pcintr_yield(void *ctxt, void (*continuation)(void *ctxt))
+void pcintr_yield(void *ctxt, void (*continuation)(void *ctxt, void *extra))
 {
     PC_ASSERT(ctxt);
     PC_ASSERT(continuation);
@@ -3984,7 +4276,7 @@ void pcintr_yield(void *ctxt, void (*continuation)(void *ctxt))
     co->continuation = continuation;
 }
 
-void pcintr_resume(void)
+void pcintr_resume(void *extra)
 {
     pcintr_coroutine_t co = pcintr_get_coroutine();
     PC_ASSERT(co);
@@ -3997,20 +4289,66 @@ void pcintr_resume(void)
     PC_ASSERT(frame);
 
     void *ctxt = co->yielded_ctxt;
-    void (*continuation)(void *ctxt) = co->continuation;
+    void (*continuation)(void *ctxt, void *extra) = co->continuation;
 
     co->state = CO_STATE_RUN;
     co->yielded_ctxt = NULL;
     co->continuation = NULL;
-    continuation(ctxt);
+    continuation(ctxt, extra);
     check_after_execution(co);
 }
 
 pcintr_coroutine_t
-pcintr_create_child_co(pcvdom_element_t vdom_element)
+pcintr_create_child_co(pcvdom_element_t vdom_element,
+        purc_variant_t as)
 {
+    pcintr_coroutine_t co = pcintr_get_coroutine();
+    PC_ASSERT(co);
+
     PC_ASSERT(vdom_element);
-    purc_set_error(PURC_ERROR_NOT_IMPLEMENTED);
-    return NULL;
+    const char *hvml = "<hvml><body/></hvml>";
+
+    purc_rwstream_t rws;
+    rws = purc_rwstream_new_from_mem((char*)hvml, strlen(hvml));
+    if (!rws)
+        return NULL;
+
+    pcintr_coroutine_t child;
+    child = coroutine_create(NULL, as, co, rws, NULL, NULL);
+    do {
+        if (!child)
+            break;
+
+        PC_ASSERT(co->stack.vdom);
+
+        child->stack.entry = vdom_element;
+
+        PC_DEBUGX("running parent/child: %p/%p", co, child);
+        PRINT_VDOM_NODE(&vdom_element->node);
+        pcintr_wakeup_target(child, run_co_main);
+    } while (0);
+
+    purc_rwstream_destroy(rws);
+
+    return child;
+}
+
+void
+pcintr_on_event(purc_atom_t msg_type, purc_variant_t msg_sub_type,
+        purc_variant_t src, purc_variant_t payload)
+{
+    PC_ASSERT(0);
+    UNUSED_PARAM(msg_sub_type);
+    UNUSED_PARAM(src);
+    UNUSED_PARAM(payload);
+
+    if (msg_type == pchvml_keyword(PCHVML_KEYWORD_ENUM(MSG, CALLSTATE))) {
+        if (0)
+            PC_ASSERT(0);
+    }
+    else {
+        if (0)
+            PC_ASSERT(0);
+    }
 }
 

@@ -28,7 +28,7 @@
 #include <wtf/RefPtr.h>
 #include <wtf/ThreadSafeRefCounted.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 // Box<T> is a reference-counted pointer to T that allocates T using FastMalloc and prepends a reference
 // count to it.
@@ -76,6 +76,6 @@ private:
     RefPtr<Data> m_data;
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::Box;
+using PurCWTF::Box;

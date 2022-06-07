@@ -54,7 +54,7 @@ namespace LLInt { class Data; }
 class LLIntOffsetsExtractor;
 }
 
-namespace WTF {
+namespace PurCWTF {
 
 class SymbolImpl;
 class SymbolRegistry;
@@ -178,14 +178,14 @@ class StringImpl : private StringImplShape {
     friend class SymbolImpl;
     friend class ExternalStringImpl;
 
-    friend struct WTF::CStringTranslator;
-    friend struct WTF::HashAndUTF8CharactersTranslator;
-    friend struct WTF::LCharBufferTranslator;
-    friend struct WTF::SubstringTranslator;
-    friend struct WTF::UCharBufferTranslator;
+    friend struct PurCWTF::CStringTranslator;
+    friend struct PurCWTF::HashAndUTF8CharactersTranslator;
+    friend struct PurCWTF::LCharBufferTranslator;
+    friend struct PurCWTF::SubstringTranslator;
+    friend struct PurCWTF::UCharBufferTranslator;
 
-    template<typename> friend struct WTF::BufferFromStaticDataTranslator;
-    template<typename> friend struct WTF::HashAndCharactersTranslator;
+    template<typename> friend struct PurCWTF::BufferFromStaticDataTranslator;
+    template<typename> friend struct PurCWTF::HashAndCharactersTranslator;
 
 public:
     enum BufferOwnership { BufferInternal, BufferOwned, BufferSubstring, BufferExternal };
@@ -723,8 +723,8 @@ inline size_t reverseFind(const LChar* characters, unsigned length, UChar matchC
 inline size_t StringImpl::find(LChar character, unsigned start)
 {
     if (is8Bit())
-        return WTF::find(characters8(), m_length, character, start);
-    return WTF::find(characters16(), m_length, character, start);
+        return PurCWTF::find(characters8(), m_length, character, start);
+    return PurCWTF::find(characters16(), m_length, character, start);
 }
 
 ALWAYS_INLINE size_t StringImpl::find(char character, unsigned start)
@@ -735,8 +735,8 @@ ALWAYS_INLINE size_t StringImpl::find(char character, unsigned start)
 inline size_t StringImpl::find(UChar character, unsigned start)
 {
     if (is8Bit())
-        return WTF::find(characters8(), m_length, character, start);
-    return WTF::find(characters16(), m_length, character, start);
+        return PurCWTF::find(characters8(), m_length, character, start);
+    return PurCWTF::find(characters16(), m_length, character, start);
 }
 
 template<size_t inlineCapacity> inline bool equalIgnoringNullity(const Vector<UChar, inlineCapacity>& a, StringImpl* b)
@@ -879,8 +879,8 @@ template<bool isSpecialCharacter(UChar), typename CharacterType> inline bool isA
 template<bool isSpecialCharacter(UChar)> inline bool StringImpl::isAllSpecialCharacters() const
 {
     if (is8Bit())
-        return WTF::isAllSpecialCharacters<isSpecialCharacter>(characters8(), length());
-    return WTF::isAllSpecialCharacters<isSpecialCharacter>(characters16(), length());
+        return PurCWTF::isAllSpecialCharacters<isSpecialCharacter>(characters8(), length());
+    return PurCWTF::isAllSpecialCharacters<isSpecialCharacter>(characters16(), length());
 }
 
 inline StringImpl::StringImpl(unsigned length, Force8Bit)
@@ -1301,8 +1301,8 @@ template<unsigned length> inline bool equalLettersIgnoringASCIICase(const String
     return string && equalLettersIgnoringASCIICase(*string, lowercaseLetters);
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::StaticStringImpl;
-using WTF::StringImpl;
-using WTF::equal;
+using PurCWTF::StaticStringImpl;
+using PurCWTF::StringImpl;
+using PurCWTF::equal;

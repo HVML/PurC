@@ -28,7 +28,7 @@
 
 #include <wtf/ASCIICType.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 unsigned sixCharacterHashStringToInteger(const char* string)
 {
@@ -68,5 +68,5 @@ std::array<char, 7> integerToSixCharacterHashString(unsigned hash)
     return buffer;
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 

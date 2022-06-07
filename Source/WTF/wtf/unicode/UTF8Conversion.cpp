@@ -31,7 +31,7 @@
 #include <wtf/text/StringHasher.h>
 #include <wtf/unicode/CharacterNames.h>
 
-namespace WTF {
+namespace PurCWTF {
 namespace Unicode {
 
 bool convertLatin1ToUTF8(const LChar** sourceStart, const LChar* sourceEnd, char** targetStart, char* targetEnd)
@@ -193,4 +193,4 @@ bool equalLatin1WithUTF8(const LChar* a, const char* b, const char* bEnd)
 }
 
 } // namespace Unicode
-} // namespace WTF
+} // namespace PurCWTF

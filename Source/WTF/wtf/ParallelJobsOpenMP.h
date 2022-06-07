@@ -32,7 +32,7 @@
 
 #include <omp.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 class ParallelEnvironment {
     WTF_MAKE_NONCOPYABLE(ParallelEnvironment);
@@ -75,7 +75,7 @@ private:
     int m_numberOfJobs;
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
 #endif // ENABLE(THREADING_OPENMP)
 

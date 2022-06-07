@@ -30,7 +30,7 @@
 #include <wtf/RefPtr.h>
 #include <wtf/SetForScope.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 enum class RefCounterEvent { Decrement, Increment };
 
@@ -63,7 +63,7 @@ class RefCounter {
 
 public:
     using Token = RefPtr<Count>;
-    using ValueChangeFunction = WTF::Function<void (RefCounterEvent)>;
+    using ValueChangeFunction = PurCWTF::Function<void (RefCounterEvent)>;
 
     RefCounter(ValueChangeFunction&& = nullptr);
     ~RefCounter();
@@ -142,7 +142,7 @@ inline RefCounter<T>::~RefCounter()
 
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::RefCounter;
-using WTF::RefCounterEvent;
+using PurCWTF::RefCounter;
+using PurCWTF::RefCounterEvent;

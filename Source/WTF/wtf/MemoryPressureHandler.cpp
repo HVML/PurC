@@ -32,7 +32,7 @@
 
 #define LOG_CHANNEL_PREFIX Log
 
-namespace WTF {
+namespace PurCWTF {
 
 #if RELEASE_LOG_DISABLED
 WTFLogChannel LogMemoryPressure = { WTFLogChannelState::On, "MemoryPressure", WTFLogLevel::Error };

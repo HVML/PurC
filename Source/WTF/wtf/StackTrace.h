@@ -29,7 +29,7 @@
 #include <wtf/Optional.h>
 #include <wtf/SystemFree.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 class PrintStream;
 
@@ -101,6 +101,6 @@ private:
     };
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::StackTrace;
+using PurCWTF::StackTrace;

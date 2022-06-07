@@ -1,5 +1,5 @@
 /**
- * @file archetype.c
+ * @file except.c
  * @author Xu Xiaohong
  * @date 2021/12/06
  * @brief
@@ -25,29 +25,26 @@
 
 #include "purc.h"
 
-#include "internal.h"
+#include "../internal.h"
 
 #include "private/debug.h"
 #include "purc-runloop.h"
-#include "private/stringbuilder.h"
 
-#include "ops.h"
+#include "../ops.h"
 
 #include <pthread.h>
 #include <unistd.h>
 
-struct ctxt_for_archetype {
+struct ctxt_for_except {
     struct pcvdom_node           *curr;
-    purc_variant_t                name;
 
     purc_variant_t                contents;
 };
 
 static void
-ctxt_for_archetype_destroy(struct ctxt_for_archetype *ctxt)
+ctxt_for_except_destroy(struct ctxt_for_except *ctxt)
 {
     if (ctxt) {
-        PURC_VARIANT_SAFE_CLEAR(ctxt->name);
         PURC_VARIANT_SAFE_CLEAR(ctxt->contents);
         free(ctxt);
     }
@@ -56,32 +53,7 @@ ctxt_for_archetype_destroy(struct ctxt_for_archetype *ctxt)
 static void
 ctxt_destroy(void *ctxt)
 {
-    ctxt_for_archetype_destroy((struct ctxt_for_archetype*)ctxt);
-}
-
-static int
-process_attr_name(struct pcintr_stack_frame *frame,
-        struct pcvdom_element *element,
-        purc_atom_t name, purc_variant_t val)
-{
-    struct ctxt_for_archetype *ctxt;
-    ctxt = (struct ctxt_for_archetype*)frame->ctxt;
-    if (ctxt->name != PURC_VARIANT_INVALID) {
-        purc_set_error_with_info(PURC_ERROR_DUPLICATED,
-                "vdom attribute '%s' for element <%s>",
-                purc_atom_to_string(name), element->tag_name);
-        return -1;
-    }
-    if (val == PURC_VARIANT_INVALID) {
-        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
-                "vdom attribute '%s' for element <%s> undefined",
-                purc_atom_to_string(name), element->tag_name);
-        return -1;
-    }
-    ctxt->name = val;
-    purc_variant_ref(val);
-
-    return 0;
+    ctxt_for_except_destroy((struct ctxt_for_except*)ctxt);
 }
 
 static int
@@ -91,17 +63,29 @@ attr_found_val(struct pcintr_stack_frame *frame,
         struct pcvdom_attr *attr,
         void *ud)
 {
-    UNUSED_PARAM(attr);
+    UNUSED_PARAM(frame);
+    UNUSED_PARAM(element);
+    UNUSED_PARAM(val);
     UNUSED_PARAM(ud);
 
-    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, NAME)) == name) {
-        return process_attr_name(frame, element, name, val);
+    PC_ASSERT(attr);
+
+    PC_ASSERT(attr->op == PCHVML_ATTRIBUTE_OPERATOR);
+
+    if (name) {
+        if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, RAW)) == name) {
+            return 0;
+        }
+        if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, TYPE)) == name) {
+            return 0;
+        }
+        PC_DEBUGX("name: %s", purc_atom_to_string(name));
+        PC_ASSERT(0);
+        return -1;
     }
 
-    purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
-            "vdom attribute '%s' for element <%s>",
-            purc_atom_to_string(name), element->tag_name);
-
+    PC_DEBUGX("name: %s", attr->key);
+    PC_ASSERT(0);
     return -1;
 }
 
@@ -140,10 +124,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
 
-    PC_ASSERT(frame->ctnt_var == PURC_VARIANT_INVALID);
-
-    struct ctxt_for_archetype *ctxt;
-    ctxt = (struct ctxt_for_archetype*)calloc(1, sizeof(*ctxt));
+    struct ctxt_for_except *ctxt;
+    ctxt = (struct ctxt_for_except*)calloc(1, sizeof(*ctxt));
     if (!ctxt) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
@@ -153,11 +135,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     frame->ctxt_destroy = ctxt_destroy;
 
     frame->pos = pos; // ATTENTION!!
-
-    frame->attr_vars = purc_variant_make_object(0,
-            PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
-    if (frame->attr_vars == PURC_VARIANT_INVALID)
-        return NULL;
 
     ctxt->contents = pcintr_template_make();
     if (!ctxt->contents)
@@ -172,8 +149,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         return NULL;
 
     purc_clr_error();
-
-    PC_ASSERT(frame->ctnt_var == PURC_VARIANT_INVALID);
 
     return ctxt;
 }
@@ -195,10 +170,10 @@ on_popping(pcintr_stack_t stack, void* ud)
     struct pcvdom_element *element = frame->pos;
     PC_ASSERT(element);
 
-    struct ctxt_for_archetype *ctxt;
-    ctxt = (struct ctxt_for_archetype*)frame->ctxt;
+    struct ctxt_for_except *ctxt;
+    ctxt = (struct ctxt_for_except*)frame->ctxt;
     if (ctxt) {
-        ctxt_for_archetype_destroy(ctxt);
+        ctxt_for_except_destroy(ctxt);
         frame->ctxt = NULL;
     }
 
@@ -216,8 +191,8 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     struct pcvdom_element *element = frame->pos;
     PC_ASSERT(element);
 
-    struct ctxt_for_archetype *ctxt;
-    ctxt = (struct ctxt_for_archetype*)frame->ctxt;
+    struct ctxt_for_except *ctxt;
+    ctxt = (struct ctxt_for_except*)frame->ctxt;
     PC_ASSERT(ctxt);
 
     struct pcvcm_node *vcm = content->vcm;
@@ -234,13 +209,17 @@ on_child_finished(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
     UNUSED_PARAM(co);
 
-    struct ctxt_for_archetype *ctxt;
-    ctxt = (struct ctxt_for_archetype*)frame->ctxt;
+    struct ctxt_for_except *ctxt;
+    ctxt = (struct ctxt_for_except*)frame->ctxt;
 
     purc_variant_t contents = ctxt->contents;
     if (!contents)
         return -1;
 
+    return 0;
+
+#if 0
+    // TODO:
     PURC_VARIANT_SAFE_CLEAR(frame->ctnt_var);
     frame->ctnt_var = contents;
     purc_variant_ref(contents);
@@ -254,14 +233,17 @@ on_child_finished(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     if (s_name == NULL)
         return -1;
 
-    struct pcvdom_element *parent = pcvdom_element_parent(frame->pos);
+    struct pcvdom_element *scope = frame->scope;
+    PC_ASSERT(scope);
 
     bool ok;
-    ok = pcintr_bind_scope_variable(parent, s_name, frame->ctnt_var);
+    ok = pcintr_bind_scope_variable(scope, s_name, frame->ctnt_var);
     if (!ok)
         return -1;
 
+    D("[%s] bounded", s_name);
     return 0;
+#endif
 }
 
 static pcvdom_element_t
@@ -284,8 +266,8 @@ select_child(pcintr_stack_t stack, void* ud)
     if (stack->back_anchor)
         return NULL;
 
-    struct ctxt_for_archetype *ctxt;
-    ctxt = (struct ctxt_for_archetype*)frame->ctxt;
+    struct ctxt_for_except *ctxt;
+    ctxt = (struct ctxt_for_except*)frame->ctxt;
 
     struct pcvdom_node *curr;
 
@@ -331,7 +313,6 @@ again:
     PC_ASSERT(0);
     return NULL; // NOTE: never reached here!!!
 }
-
 static struct pcintr_element_ops
 ops = {
     .after_pushed       = after_pushed,
@@ -340,7 +321,7 @@ ops = {
     .select_child       = select_child,
 };
 
-struct pcintr_element_ops* pcintr_get_archetype_ops(void)
+struct pcintr_element_ops* pcintr_get_except_ops(void)
 {
     return &ops;
 }

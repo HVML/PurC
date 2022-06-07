@@ -29,7 +29,7 @@
 #include <wtf/Vector.h>
 #include <algorithm>
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename T, typename CounterType = unsigned>
 class Spectrum {
@@ -127,6 +127,6 @@ private:
     HashMap<T, CounterType> m_map;
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::Spectrum;
+using PurCWTF::Spectrum;

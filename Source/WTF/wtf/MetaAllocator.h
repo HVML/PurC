@@ -37,7 +37,7 @@
 #include <wtf/RedBlackTree.h>
 #include <wtf/RefPtr.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 #define ENABLE_META_ALLOCATOR_PROFILE 0
 
@@ -64,7 +64,7 @@ class MetaAllocator {
 public:
     using FreeSpacePtr = MetaAllocatorPtr<FreeSpacePtrTag>;
 
-    WTF_EXPORT_PRIVATE MetaAllocator(Lock&, size_t allocationGranule, size_t pageSize = WTF::pageSize());
+    WTF_EXPORT_PRIVATE MetaAllocator(Lock&, size_t allocationGranule, size_t pageSize = PurCWTF::pageSize());
     
     WTF_EXPORT_PRIVATE virtual ~MetaAllocator();
     
@@ -215,4 +215,4 @@ private:
 #endif
 };
 
-} // namespace WTF
+} // namespace PurCWTF

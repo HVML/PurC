@@ -32,7 +32,7 @@
 #include <wtf/Forward.h>
 #include <wtf/text/UChar.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 constexpr bool needsToGrowToProduceBuffer(UErrorCode);
 constexpr bool needsToGrowToProduceCString(UErrorCode);
@@ -112,6 +112,6 @@ template<typename FunctionType, typename ...ArgumentTypes> UErrorCode callBuffer
 
 }
 
-using WTF::callBufferProducingFunction;
-using WTF::needsToGrowToProduceCString;
-using WTF::needsToGrowToProduceBuffer;
+using PurCWTF::callBufferProducingFunction;
+using PurCWTF::needsToGrowToProduceCString;
+using PurCWTF::needsToGrowToProduceBuffer;

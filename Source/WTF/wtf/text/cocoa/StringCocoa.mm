@@ -23,7 +23,7 @@
 
 #import <CoreFoundation/CFString.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 String::String(NSString *str)
 {
@@ -59,7 +59,7 @@ RetainPtr<id> makeNSArrayElement(const String& vectorElement)
 Optional<String> makeVectorElement(const String*, id arrayElement)
 {
     if (![arrayElement isKindOfClass:NSString.class])
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
     return { { arrayElement } };
 }
 

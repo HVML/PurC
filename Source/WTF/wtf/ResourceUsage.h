@@ -27,7 +27,7 @@
 
 #include <array>
 
-namespace WTF {
+namespace PurCWTF {
 
 #if PLATFORM(COCOA)
 
@@ -48,8 +48,8 @@ WTF_EXPORT_PRIVATE void logFootprintComparison(const std::array<TagInfo, 256>&, 
 }
 
 #if PLATFORM(COCOA)
-using WTF::TagInfo;
-using WTF::displayNameForVMTag;
-using WTF::vmPageSize;
-using WTF::pagesPerVMTag;
+using PurCWTF::TagInfo;
+using PurCWTF::displayNameForVMTag;
+using PurCWTF::vmPageSize;
+using PurCWTF::pagesPerVMTag;
 #endif

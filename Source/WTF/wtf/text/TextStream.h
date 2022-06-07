@@ -31,7 +31,7 @@
 #include <wtf/WeakPtr.h>
 #include <wtf/text/StringBuilder.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 class TextStream {
     WTF_MAKE_FAST_ALLOCATED;
@@ -286,8 +286,8 @@ TextStream& operator<<(TextStream& ts, const OptionSet<Option>& options)
 // Deprecated. Use TextStream::writeIndent() instead.
 WTF_EXPORT_PRIVATE void writeIndent(TextStream&, int indent);
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::TextStream;
-using WTF::ValueOrNull;
-using WTF::indent;
+using PurCWTF::TextStream;
+using PurCWTF::ValueOrNull;
+using PurCWTF::indent;

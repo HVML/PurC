@@ -35,7 +35,7 @@
 #include <wtf/RefCounted.h>
 #include <wtf/Threading.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 class ParallelEnvironment {
     WTF_MAKE_FAST_ALLOCATED;
@@ -85,7 +85,7 @@ private:
     static Vector< RefPtr<ThreadPrivate> >* s_threadPool;
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
 #endif // ENABLE(THREADING_GENERIC)
 

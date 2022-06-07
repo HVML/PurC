@@ -30,8 +30,8 @@
 #endif
 #include <wtf/text/UChar.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 UText* openUTF16ContextAwareUTextProvider(UText*, const UChar*, unsigned length, const UChar* priorContext, int priorContextLength, UErrorCode*);
 
-} // namespace WTF
+} // namespace PurCWTF

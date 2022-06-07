@@ -555,6 +555,9 @@ struct purc_native_ops {
       * the native entity (nullable). */
     purc_variant_t (*eraser)(void* native_entity, bool silently);
 
+    /** verify if the val is match the observer */
+    bool (*match_observe)(void* native_entity, purc_variant_t val);
+
     /** the callback when the variant was observed (nullable). */
     bool (*on_observe)(void* native_entity,
             const char *event_name, const char *event_subname);

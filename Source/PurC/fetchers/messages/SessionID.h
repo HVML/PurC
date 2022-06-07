@@ -45,12 +45,12 @@ public:
     static SessionID defaultSessionID() { return SessionID(DefaultSessionID); }
     static SessionID legacyPrivateSessionID() { return SessionID(LegacyPrivateSessionID); }
 
-    explicit SessionID(WTF::HashTableDeletedValueType)
+    explicit SessionID(PurCWTF::HashTableDeletedValueType)
         : m_identifier(HashTableDeletedValueID)
     {
     }
 
-    explicit SessionID(WTF::HashTableEmptyValueType)
+    explicit SessionID(PurCWTF::HashTableEmptyValueType)
         : m_identifier(HashTableEmptyValueID)
     {
     }
@@ -99,13 +99,13 @@ Optional<SessionID> SessionID::decode(Decoder& decoder)
     Optional<uint64_t> sessionID;
     decoder >> sessionID;
     if (!sessionID || !isValidSessionIDValue(*sessionID))
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
     return SessionID { *sessionID };
 }
 
 } // namespace PAL
 
-namespace WTF {
+namespace PurCWTF {
 
 struct SessionIDHash {
     static unsigned hash(const PAL::SessionID& p) { return intHash(p.toUInt64()); }
@@ -123,4 +123,4 @@ template<> struct DefaultHash<PAL::SessionID> {
     typedef SessionIDHash Hash;
 };
 
-} // namespace WTF
+} // namespace PurCWTF

@@ -22,7 +22,7 @@
 
 #if USE(GLIB)
 
-namespace WTF {
+namespace PurCWTF {
 
 #if PLATFORM(GTK) || PLATFORM(LINUX)
 
@@ -110,8 +110,8 @@ enum RunLoopSourcePriority {
 
 #endif
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::RunLoopSourcePriority;
+using PurCWTF::RunLoopSourcePriority;
 
 #endif // USE(GLIB)

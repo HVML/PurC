@@ -46,7 +46,7 @@
 #include <wtf/StdLibExtras.h>
 #include <wtf/Threading.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 enum class CanBeGCThread {
     False,
@@ -214,6 +214,6 @@ inline T& ThreadSpecific<T, canBeGCThread>::operator*()
     return *operator T*();
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::ThreadSpecific;
+using PurCWTF::ThreadSpecific;

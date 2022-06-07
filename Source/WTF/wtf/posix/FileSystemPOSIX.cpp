@@ -44,7 +44,7 @@
 #include <wtf/text/StringBuilder.h>
 #include <wtf/text/WTFString.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 namespace FileSystemImpl {
 
@@ -171,9 +171,9 @@ int readFromFile(PlatformFileHandle handle, char* data, int length)
 #if USE(FILE_LOCK)
 bool lockFile(PlatformFileHandle handle, OptionSet<FileLockMode> lockMode)
 {
-    COMPILE_ASSERT(LOCK_SH == WTF::enumToUnderlyingType(FileLockMode::Shared), LockSharedEncodingIsAsExpected);
-    COMPILE_ASSERT(LOCK_EX == WTF::enumToUnderlyingType(FileLockMode::Exclusive), LockExclusiveEncodingIsAsExpected);
-    COMPILE_ASSERT(LOCK_NB == WTF::enumToUnderlyingType(FileLockMode::Nonblocking), LockNonblockingEncodingIsAsExpected);
+    COMPILE_ASSERT(LOCK_SH == PurCWTF::enumToUnderlyingType(FileLockMode::Shared), LockSharedEncodingIsAsExpected);
+    COMPILE_ASSERT(LOCK_EX == PurCWTF::enumToUnderlyingType(FileLockMode::Exclusive), LockExclusiveEncodingIsAsExpected);
+    COMPILE_ASSERT(LOCK_NB == PurCWTF::enumToUnderlyingType(FileLockMode::Nonblocking), LockNonblockingEncodingIsAsExpected);
     int result = flock(handle, lockMode.toRaw());
     return (result != -1);
 }
@@ -230,17 +230,17 @@ Optional<WallTime> getFileCreationTime(const String& path)
     CString fsRep = fileSystemRepresentation(path);
 
     if (!fsRep.data() || fsRep.data()[0] == '\0')
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
 
     struct stat fileInfo;
 
     if (stat(fsRep.data(), &fileInfo))
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
 
     return WallTime::fromRawSeconds(fileInfo.st_birthtime);
 #else
     UNUSED_PARAM(path);
-    return WTF::nullopt;
+    return PurCWTF::nullopt;
 #endif
 }
 
@@ -249,12 +249,12 @@ Optional<WallTime> getFileModificationTime(const String& path)
     CString fsRep = fileSystemRepresentation(path);
 
     if (!fsRep.data() || fsRep.data()[0] == '\0')
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
 
     struct stat fileInfo;
 
     if (stat(fsRep.data(), &fileInfo))
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
 
     return WallTime::fromRawSeconds(fileInfo.st_mtime);
 }
@@ -273,11 +273,11 @@ static Optional<FileMetadata> fileMetadataUsingFunction(const String& path, int 
     CString fsRep = fileSystemRepresentation(path);
 
     if (!fsRep.data() || fsRep.data()[0] == '\0')
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
 
     struct stat fileInfo;
     if (statFunc(fsRep.data(), &fileInfo))
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
 
     String filename = pathGetFileName(path);
     bool isHidden = !filename.isEmpty() && filename[0] == '.';
@@ -515,7 +515,7 @@ Optional<int32_t> getFileDeviceId(const CString& fsFile)
 {
     struct stat fileStat;
     if (stat(fsFile.data(), &fileStat) == -1)
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
 
     return fileStat.st_dev;
 }
@@ -529,4 +529,4 @@ String realPath(const String& filePath)
 }
 
 } // namespace FileSystemImpl
-} // namespace WTF
+} // namespace PurCWTF

@@ -194,21 +194,21 @@ bool SharedBuffer::internallyConsistent() const
 
 const char* SharedBuffer::DataSegment::data() const
 {
-    auto visitor = WTF::makeVisitor(
+    auto visitor = PurCWTF::makeVisitor(
         [](const Vector<char>& data) { return data.data(); },
 #if USE(GLIB)
         [](const GRefPtr<GBytes>& data) { return reinterpret_cast<const char*>(g_bytes_get_data(data.get(), nullptr)); },
 #endif
         [](const FileSystem::MappedFileData& data) { return reinterpret_cast<const char*>(data.data()); }
     );
-    return WTF::visit(visitor, m_immutableData);
+    return PurCWTF::visit(visitor, m_immutableData);
 }
 
 void SharedBuffer::hintMemoryNotNeededSoon() const
 {
 }
 
-WTF::Persistence::Decoder SharedBuffer::decoder() const
+PurCWTF::Persistence::Decoder SharedBuffer::decoder() const
 {
     return { reinterpret_cast<const uint8_t*>(data()), size() };
 }
@@ -264,14 +264,14 @@ bool SharedBuffer::operator==(const SharedBuffer& other) const
 
 size_t SharedBuffer::DataSegment::size() const
 {
-    auto visitor = WTF::makeVisitor(
+    auto visitor = PurCWTF::makeVisitor(
         [](const Vector<char>& data) { return data.size(); },
 #if USE(GLIB)
         [](const GRefPtr<GBytes>& data) { return g_bytes_get_size(data.get()); },
 #endif
         [](const FileSystem::MappedFileData& data) { return data.size(); }
     );
-    return WTF::visit(visitor, m_immutableData);
+    return PurCWTF::visit(visitor, m_immutableData);
 }
 
 SharedBufferDataView::SharedBufferDataView(Ref<SharedBuffer::DataSegment>&& segment, size_t positionWithinSegment)
@@ -302,11 +302,11 @@ RefPtr<SharedBuffer> utf8Buffer(const String& string)
     if (length) {
         if (string.is8Bit()) {
             const LChar* d = string.characters8();
-            if (!WTF::Unicode::convertLatin1ToUTF8(&d, d + length, &p, p + buffer.size()))
+            if (!PurCWTF::Unicode::convertLatin1ToUTF8(&d, d + length, &p, p + buffer.size()))
                 return nullptr;
         } else {
             const UChar* d = string.characters16();
-            if (WTF::Unicode::convertUTF16ToUTF8(&d, d + length, &p, p + buffer.size()) != WTF::Unicode::ConversionOK)
+            if (PurCWTF::Unicode::convertUTF16ToUTF8(&d, d + length, &p, p + buffer.size()) != PurCWTF::Unicode::ConversionOK)
                 return nullptr;
         }
     }

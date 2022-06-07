@@ -27,7 +27,7 @@
 
 #include <wtf/PtrTag.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename PtrType>
 class TaggedArrayStoragePtr {
@@ -56,4 +56,4 @@ private:
 
 }
 
-using WTF::TaggedArrayStoragePtr;
+using PurCWTF::TaggedArrayStoragePtr;

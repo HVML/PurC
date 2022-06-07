@@ -32,7 +32,7 @@
 #include <wtf/text/NullTextBreakIterator.h>
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 
 #if PLATFORM(COCOA)
 typedef TextBreakIteratorCF TextBreakIteratorPlatform;
@@ -352,10 +352,10 @@ WTF_EXPORT_PRIVATE unsigned numCodeUnitsInGraphemeClusters(StringView, unsigned)
 
 }
 
-using WTF::CachedTextBreakIterator;
-using WTF::LazyLineBreakIterator;
-using WTF::LineBreakIteratorMode;
-using WTF::NonSharedCharacterBreakIterator;
-using WTF::TextBreakIterator;
-using WTF::TextBreakIteratorCache;
-using WTF::isWordTextBreak;
+using PurCWTF::CachedTextBreakIterator;
+using PurCWTF::LazyLineBreakIterator;
+using PurCWTF::LineBreakIteratorMode;
+using PurCWTF::NonSharedCharacterBreakIterator;
+using PurCWTF::TextBreakIterator;
+using PurCWTF::TextBreakIteratorCache;
+using PurCWTF::isWordTextBreak;

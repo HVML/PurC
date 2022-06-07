@@ -27,7 +27,7 @@
 
 #include <wtf/PrintStream.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 class CommaPrinter final {
     WTF_MAKE_FAST_ALLOCATED;
@@ -58,6 +58,6 @@ private:
     mutable bool m_didPrint;
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::CommaPrinter;
+using PurCWTF::CommaPrinter;

@@ -32,7 +32,7 @@
 #include <wtf/text/TextStream.h>
 #include <wtf/text/WTFString.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 class ObjectIdentifierBase {
 protected:
@@ -75,7 +75,7 @@ public:
         Optional<uint64_t> identifier;
         decoder >> identifier;
         if (!identifier || !isValidIdentifier(*identifier))
-            return WTF::nullopt;
+            return PurCWTF::nullopt;
         return ObjectIdentifier { *identifier };
     }
 
@@ -150,7 +150,7 @@ TextStream& operator<<(TextStream& ts, const ObjectIdentifier<T>& identifier)
     return ts;
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::ObjectIdentifier;
-using WTF::makeObjectIdentifier;
+using PurCWTF::ObjectIdentifier;
+using PurCWTF::makeObjectIdentifier;

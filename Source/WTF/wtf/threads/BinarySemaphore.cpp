@@ -26,7 +26,7 @@
 #include "config.h"
 #include <wtf/threads/BinarySemaphore.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 void BinarySemaphore::signal()
 {
@@ -44,4 +44,4 @@ bool BinarySemaphore::waitUntil(const TimeWithDynamicClockType& absoluteTime)
     return satisfied;
 }
 
-} // namespace WTF
+} // namespace PurCWTF

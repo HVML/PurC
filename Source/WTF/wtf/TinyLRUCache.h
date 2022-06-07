@@ -28,7 +28,7 @@
 #include <wtf/NeverDestroyed.h>
 #include <wtf/Vector.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename KeyType, typename ValueType>
 struct TinyLRUCachePolicy {
@@ -78,5 +78,5 @@ private:
 
 }
 
-using WTF::TinyLRUCache;
-using WTF::TinyLRUCachePolicy;
+using PurCWTF::TinyLRUCache;
+using PurCWTF::TinyLRUCachePolicy;

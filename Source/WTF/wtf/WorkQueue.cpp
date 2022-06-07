@@ -37,7 +37,7 @@
 #include <wtf/Ref.h>
 #include <wtf/Threading.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 Ref<WorkQueue> WorkQueue::create(const char* name, Type type, QOS qos)
 {
@@ -55,7 +55,7 @@ WorkQueue::~WorkQueue()
 }
 
 #if !PLATFORM(COCOA)
-void WorkQueue::concurrentApply(size_t iterations, WTF::Function<void (size_t index)>&& function)
+void WorkQueue::concurrentApply(size_t iterations, PurCWTF::Function<void (size_t index)>&& function)
 {
     if (!iterations)
         return;
@@ -82,7 +82,7 @@ void WorkQueue::concurrentApply(size_t iterations, WTF::Function<void (size_t in
 
         size_t workerCount() const { return m_workers.size(); }
 
-        void dispatch(const WTF::Function<void ()>* function)
+        void dispatch(const PurCWTF::Function<void ()>* function)
         {
             LockHolder holder(m_lock);
 
@@ -94,7 +94,7 @@ void WorkQueue::concurrentApply(size_t iterations, WTF::Function<void (size_t in
         NO_RETURN void threadBody()
         {
             while (true) {
-                const WTF::Function<void ()>* function;
+                const PurCWTF::Function<void ()>* function;
 
                 {
                     LockHolder holder(m_lock);
@@ -112,7 +112,7 @@ void WorkQueue::concurrentApply(size_t iterations, WTF::Function<void (size_t in
 
         Lock m_lock;
         Condition m_condition;
-        Deque<const WTF::Function<void ()>*> m_queue;
+        Deque<const PurCWTF::Function<void ()>*> m_queue;
 
         Vector<Ref<Thread>> m_workers;
     };
@@ -132,7 +132,7 @@ void WorkQueue::concurrentApply(size_t iterations, WTF::Function<void (size_t in
     Condition condition;
     Lock lock;
 
-    WTF::Function<void ()> applier = [&, function = WTFMove(function)] {
+    PurCWTF::Function<void ()> applier = [&, function = WTFMove(function)] {
         size_t index;
 
         // Call the function for as long as there are iterations left.

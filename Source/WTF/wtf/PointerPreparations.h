@@ -29,7 +29,7 @@
 #include <ptrauth.h>
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 
 #if COMPILER_HAS_CLANG_BUILTIN(__builtin_get_vtable_pointer)
 
@@ -48,6 +48,6 @@ ALWAYS_INLINE const void* getVTablePointer(T* o) { return (*(reinterpret_cast<vo
 
 #endif // not COMPILER_HAS_CLANG_BUILTIN(__builtin_get_vtable_pointer)
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::getVTablePointer;
+using PurCWTF::getVTablePointer;

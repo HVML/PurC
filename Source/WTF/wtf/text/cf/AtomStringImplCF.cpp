@@ -31,7 +31,7 @@
 #include <CoreFoundation/CoreFoundation.h>
 #include <wtf/text/CString.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 RefPtr<AtomStringImpl> AtomStringImpl::add(CFStringRef string)
 {
@@ -51,6 +51,6 @@ RefPtr<AtomStringImpl> AtomStringImpl::add(CFStringRef string)
     return add(reinterpret_cast<const UChar*>(ucharBuffer.data()), length);
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
 #endif // USE(CF)

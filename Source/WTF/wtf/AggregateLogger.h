@@ -31,7 +31,7 @@
 #include <wtf/Ref.h>
 #include <wtf/RefPtr.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 class AggregateLogger : public Logger {
     WTF_MAKE_NONCOPYABLE(AggregateLogger);
@@ -116,6 +116,6 @@ private:
     HashSet<RefPtr<const Logger>> m_loggers;
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::AggregateLogger;
+using PurCWTF::AggregateLogger;

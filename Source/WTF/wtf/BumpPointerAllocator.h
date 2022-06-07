@@ -29,7 +29,7 @@
 #include <wtf/PageAllocation.h>
 #include <wtf/PageBlock.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 #define MINIMUM_BUMP_POOL_SIZE 0x1000
 
@@ -112,7 +112,7 @@ private:
         if (minimumCapacity < sizeof(BumpPointerPool))
             return nullptr;
 
-        size_t poolSize = std::max(static_cast<size_t>(MINIMUM_BUMP_POOL_SIZE), WTF::pageSize());
+        size_t poolSize = std::max(static_cast<size_t>(MINIMUM_BUMP_POOL_SIZE), PurCWTF::pageSize());
         while (poolSize < minimumCapacity) {
             poolSize <<= 1;
             // The following if check relies on MINIMUM_BUMP_POOL_SIZE being a power of 2!
@@ -251,4 +251,4 @@ private:
 
 }
 
-using WTF::BumpPointerAllocator;
+using PurCWTF::BumpPointerAllocator;

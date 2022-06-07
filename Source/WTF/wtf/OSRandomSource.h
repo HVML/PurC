@@ -25,7 +25,7 @@
 
 #pragma once
 
-namespace WTF {
+namespace PurCWTF {
 
 // This function attempts to fill buffer with randomness from the operating
 // system.  If insufficient randomness is available, the buffer will be

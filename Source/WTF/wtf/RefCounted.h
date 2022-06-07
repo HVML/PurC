@@ -25,7 +25,7 @@
 #include <wtf/MainThread.h>
 #include <wtf/Noncopyable.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 #if ENABLE_ASSERTS || ENABLE(SECURITY_ASSERTIONS)
 #define CHECK_REF_COUNTED_LIFECYCLE 1
@@ -197,6 +197,6 @@ protected:
     }
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::RefCounted;
+using PurCWTF::RefCounted;

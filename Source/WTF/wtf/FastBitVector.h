@@ -31,7 +31,7 @@
 #include <wtf/PrintStream.h>
 #include <wtf/StdLibExtras.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 class PrintStream;
 
@@ -313,7 +313,7 @@ public:
     {
         size_t result = 0;
         for (size_t index = arrayLength(); index--;)
-            result += WTF::bitCount(m_words.word(index));
+            result += PurCWTF::bitCount(m_words.word(index));
         return result;
     }
     
@@ -596,7 +596,7 @@ public:
     }
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::FastBitReference;
-using WTF::FastBitVector;
+using PurCWTF::FastBitReference;
+using PurCWTF::FastBitVector;

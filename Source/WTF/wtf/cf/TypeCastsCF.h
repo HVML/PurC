@@ -32,13 +32,13 @@
 #define CF_BRIDGED_TYPE(T)
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 
 template <typename> struct CFTypeTrait;
 
 #define WTF_DECLARE_CF_TYPE_TRAIT(ClassName) \
 template <> \
-struct WTF::CFTypeTrait<ClassName##Ref> { \
+struct PurCWTF::CFTypeTrait<ClassName##Ref> { \
     static inline CFTypeID typeID(void) { return ClassName##GetTypeID(); } \
 };
 
@@ -51,7 +51,7 @@ WTF_DECLARE_CF_TYPE_TRAIT(CFString);
 
 #define WTF_DECLARE_CF_MUTABLE_TYPE_TRAIT(ClassName, MutableClassName) \
 template <> \
-struct WTF::CFTypeTrait<MutableClassName##Ref> { \
+struct PurCWTF::CFTypeTrait<MutableClassName##Ref> { \
     static inline CFTypeID typeID(void) { return ClassName##GetTypeID(); } \
 };
 
@@ -84,7 +84,7 @@ template<typename T> T checked_cf_cast(CFTypeRef object)
     return static_cast<T>(const_cast<CF_BRIDGED_TYPE(id) void*>(object));
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::checked_cf_cast;
-using WTF::dynamic_cf_cast;
+using PurCWTF::checked_cf_cast;
+using PurCWTF::dynamic_cf_cast;

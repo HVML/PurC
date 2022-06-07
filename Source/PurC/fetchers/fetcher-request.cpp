@@ -119,7 +119,7 @@ purc_variant_t PcFetcherRequest::requestAsync(
         uri.append(base_uri);
     }
     uri.append(url);
-    std::unique_ptr<WTF::URL> wurl = makeUnique<URL>(URL(), uri);
+    std::unique_ptr<PurCWTF::URL> wurl = makeUnique<URL>(URL(), uri);
 
     ResourceRequest request;
     request.setURL(*wurl);
@@ -161,7 +161,7 @@ purc_rwstream_t PcFetcherRequest::requestSync(
         uri.append(base_uri);
     }
     uri.append(url);
-    std::unique_ptr<WTF::URL> wurl = makeUnique<URL>(URL(), uri);
+    std::unique_ptr<PurCWTF::URL> wurl = makeUnique<URL>(URL(), uri);
 
     ResourceRequest request;
     request.setURL(*wurl);
@@ -183,36 +183,39 @@ purc_rwstream_t PcFetcherRequest::requestSync(
 
     wait(timeout);
 
-    auto locker = holdLock(m_callbackLock);
-    if (m_callback == NULL) {
-        return NULL;
-    }
-
-    if (!m_callback->header.sz_resp && m_callback->rws) {
-        size_t sz_content = 0;
-        size_t sz_buffer = 0;
-        purc_rwstream_get_mem_buffer_ex(m_callback->rws, &sz_content,
-                &sz_buffer, false);
-        m_callback->header.sz_resp = sz_content;
-    }
-
-    if (resp_header) {
-        resp_header->ret_code = m_callback->header.ret_code;
-        if (m_callback->header.mime_type) {
-            resp_header->mime_type = strdup(m_callback->header.mime_type);
+    purc_rwstream_t rws = NULL;
+    {
+        auto locker = holdLock(m_callbackLock);
+        if (m_callback == NULL) {
+            return NULL;
         }
-        else {
-            resp_header->mime_type = NULL;
+
+        if (!m_callback->header.sz_resp && m_callback->rws) {
+            size_t sz_content = 0;
+            size_t sz_buffer = 0;
+            purc_rwstream_get_mem_buffer_ex(m_callback->rws, &sz_content,
+                    &sz_buffer, false);
+            m_callback->header.sz_resp = sz_content;
         }
-        resp_header->sz_resp = m_callback->header.sz_resp;
-    }
 
-    if (m_callback->rws) {
-        purc_rwstream_seek(m_callback->rws, 0, SEEK_SET);
-    }
+        if (resp_header) {
+            resp_header->ret_code = m_callback->header.ret_code;
+            if (m_callback->header.mime_type) {
+                resp_header->mime_type = strdup(m_callback->header.mime_type);
+            }
+            else {
+                resp_header->mime_type = NULL;
+            }
+            resp_header->sz_resp = m_callback->header.sz_resp;
+        }
 
-    purc_rwstream_t rws = m_callback->rws;
-    m_callback->rws = NULL;
+        if (m_callback->rws) {
+            purc_rwstream_seek(m_callback->rws, 0, SEEK_SET);
+        }
+
+        rws = m_callback->rws;
+        m_callback->rws = NULL;
+    }
     m_fetcherProcess->requestFinished(this);
     return rws;
 }

@@ -32,7 +32,7 @@
 #import <wtf/spi/mac/MetadataSPI.h>
 #import <wtf/text/WTFString.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 bool FileSystem::deleteEmptyDirectory(const String& path)
 {
@@ -52,7 +52,7 @@ void FileSystem::setMetadataURL(const String& path, const String& metadataURLStr
 {
     String urlString;
     if (NSURL *url = URLWithUserTypedString(metadataURLString, nil))
-        urlString = WTF::userVisibleString(WTF::URLByRemovingUserInfo(url));
+        urlString = PurCWTF::userVisibleString(PurCWTF::URLByRemovingUserInfo(url));
     else
         urlString = metadataURLString;
 
@@ -83,6 +83,6 @@ bool FileSystem::excludeFromBackup(const String& path)
     return true;
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
 #endif // PLATFORM(MAC)

@@ -32,7 +32,7 @@
 #include <CoreFoundation/CoreFoundation.h>
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 
 template<bool isInteger, typename T> struct GenericHashTraitsBase;
 
@@ -215,7 +215,7 @@ template<typename P> struct RefHashTraits : SimpleClassHashTraits<Ref<P>> {
     static PeekType peek(P* value) { return value; }
 
     typedef Optional<Ref<P>> TakeType;
-    static TakeType take(Ref<P>&& value) { return isEmptyValue(value) ? WTF::nullopt : Optional<Ref<P>>(WTFMove(value)); }
+    static TakeType take(Ref<P>&& value) { return isEmptyValue(value) ? PurCWTF::nullopt : Optional<Ref<P>>(WTFMove(value)); }
 };
 
 template<typename P> struct HashTraits<Ref<P>> : RefHashTraits<P> { };
@@ -378,7 +378,7 @@ template<typename T, size_t inlineCapacity>
 struct HashTraits<Vector<T, inlineCapacity>> : GenericHashTraits<Vector<T, inlineCapacity>> {
     static constexpr bool emptyValueIsZero = !inlineCapacity;
 
-    static void constructDeletedValue(Vector<T, inlineCapacity>& slot) { new (NotNull, std::addressof(slot)) Vector<T, inlineCapacity>(WTF::HashTableDeletedValue); }
+    static void constructDeletedValue(Vector<T, inlineCapacity>& slot) { new (NotNull, std::addressof(slot)) Vector<T, inlineCapacity>(PurCWTF::HashTableDeletedValue); }
     static bool isDeletedValue(const Vector<T, inlineCapacity>& value) { return value.isHashTableDeletedValue(); }
 };
 
@@ -410,10 +410,10 @@ struct CustomHashTraits : public GenericHashTraits<T> {
     }
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::HashTraits;
-using WTF::KeyValuePair;
-using WTF::PairHashTraits;
-using WTF::NullableHashTraits;
-using WTF::SimpleClassHashTraits;
+using PurCWTF::HashTraits;
+using PurCWTF::KeyValuePair;
+using PurCWTF::PairHashTraits;
+using PurCWTF::NullableHashTraits;
+using PurCWTF::SimpleClassHashTraits;

@@ -32,7 +32,7 @@
 
 #include <wtf/NumberOfCores.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 Vector< RefPtr<ParallelEnvironment::ThreadPrivate> >* ParallelEnvironment::s_threadPool = nullptr;
 
@@ -133,5 +133,5 @@ void ParallelEnvironment::ThreadPrivate::waitForFinish()
         m_threadCondition.wait(m_mutex);
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 #endif // ENABLE(THREADING_GENERIC)

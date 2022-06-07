@@ -28,7 +28,7 @@
 #include <wtf/HashTraits.h>
 #include <wtf/OptionSet.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename T> struct DefaultHash<OptionSet<T>> {
     struct Hash {
@@ -67,4 +67,4 @@ template<typename T> struct HashTraits<OptionSet<T>> : GenericHashTraits<OptionS
     }
 };
 
-} // namespace WTF
+} // namespace PurCWTF

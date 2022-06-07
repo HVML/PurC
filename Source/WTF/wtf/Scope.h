@@ -30,7 +30,7 @@
 
 // Based on http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0052r2.pdf
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename ExitFunction>
 class ScopeExit final {
@@ -77,5 +77,5 @@ ScopeExit<ExitFunction> makeScopeExit(ExitFunction&& exitFunction)
 
 }
 
-using WTF::ScopeExit;
-using WTF::makeScopeExit;
+using PurCWTF::ScopeExit;
+using PurCWTF::makeScopeExit;

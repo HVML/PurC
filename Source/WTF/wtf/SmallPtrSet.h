@@ -30,7 +30,7 @@
 #include <wtf/HashFunctions.h>
 #include <wtf/Noncopyable.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 DECLARE_ALLOCATOR_WITH_HEAP_IDENTIFIER(SmallPtrSet);
 
@@ -142,7 +142,7 @@ public:
         bool operator!=(const iterator& other) const { ASSERT(m_buffer == other.m_buffer); return !(*this == other); }
 
     private:
-        template<typename U, unsigned S> friend class WTF::SmallPtrSet;
+        template<typename U, unsigned S> friend class PurCWTF::SmallPtrSet;
         unsigned m_index;
         unsigned m_capacity;
         void** m_buffer;
@@ -249,6 +249,6 @@ private:
     void* m_smallStorage[SmallArraySize];
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::SmallPtrSet;
+using PurCWTF::SmallPtrSet;

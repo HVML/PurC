@@ -29,7 +29,7 @@
 #include <wtf/Noncopyable.h>
 #include <wtf/RefPtr.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename T, typename Type>
 class CompactRefPtrTuple final {
@@ -65,6 +65,6 @@ private:
     CompactPointerTuple<T*, Type> m_data;
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::CompactRefPtrTuple;
+using PurCWTF::CompactRefPtrTuple;

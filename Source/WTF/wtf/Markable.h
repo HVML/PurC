@@ -38,7 +38,7 @@
 #include <wtf/Optional.h>
 #include <wtf/StdLibExtras.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 // Example:
 //     enum class Type { Value1, Value2, Value3 };
@@ -78,7 +78,7 @@ struct IntegralMarkableTraits {
 // The goal of Markable is offering Optional without sacrificing storage efficiency.
 // Markable takes Traits, which should have isEmptyValue and emptyValue functions. By using
 // one value of T as an empty value, we can remove bool flag in Optional. This strategy is
-// similar to WTF::HashTable, which uses two values of T as an empty value and a deleted value.
+// similar to PurCWTF::HashTable, which uses two values of T as an empty value and a deleted value.
 // This class is intended to be used as a member of a class to compact the size of the class.
 // Otherwise, you should use Optional.
 template<typename T, typename Traits>
@@ -89,7 +89,7 @@ public:
         : m_value(Traits::emptyValue())
     { }
 
-    constexpr Markable(WTF::nullopt_t)
+    constexpr Markable(PurCWTF::nullopt_t)
         : Markable()
     { }
 
@@ -132,14 +132,14 @@ public:
     {
         if (bool(*this))
             return WTFMove(m_value);
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
     }
 
     operator Optional<T>() const&
     {
         if (bool(*this))
             return m_value;
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
     }
 
     Optional<T> asOptional() const
@@ -166,8 +166,8 @@ template <typename T, typename Traits> constexpr bool operator!=(const Markable<
 template <typename T, typename Traits> constexpr bool operator!=(const Markable<T, Traits>& x, const T& v) { return !(x == v); }
 template <typename T, typename Traits> constexpr bool operator!=(const T& v, const Markable<T, Traits>& x) { return !(v == x); }
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::Markable;
-using WTF::IntegralMarkableTraits;
-using WTF::EnumMarkableTraits;
+using PurCWTF::Markable;
+using PurCWTF::IntegralMarkableTraits;
+using PurCWTF::EnumMarkableTraits;

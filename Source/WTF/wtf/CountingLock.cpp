@@ -28,7 +28,7 @@
 
 #include <wtf/LockAlgorithmInlines.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 void CountingLock::lockSlow()
 {
@@ -40,5 +40,5 @@ void CountingLock::unlockSlow()
     ExclusiveAlgorithm::unlockSlow(m_word);
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 

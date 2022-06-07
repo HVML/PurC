@@ -32,7 +32,7 @@
 #include <wtf/Noncopyable.h>
 #include <wtf/Vector.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 DECLARE_ALLOCATOR_WITH_HEAP_IDENTIFIER(ConcurrentBuffer);
 
@@ -71,9 +71,9 @@ public:
             memcpy(static_cast<void*>(newArray->data), array->data, sizeof(T) * array->size);
         for (size_t i = array ? array->size : 0; i < newSize; ++i)
             new (newArray->data + i) T();
-        WTF::storeStoreFence();
+        PurCWTF::storeStoreFence();
         m_array = newArray;
-        WTF::storeStoreFence();
+        PurCWTF::storeStoreFence();
         m_allArrays.append(newArray);
     }
     
@@ -110,5 +110,5 @@ private:
     Vector<Array*> m_allArrays;
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 

@@ -28,7 +28,7 @@
 #include <wtf/Function.h>
 #include <wtf/MainThread.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename> class CompletionHandler;
 
@@ -154,8 +154,8 @@ private:
     CompletionHandler<void()> m_completionHandler;
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::CompletionHandler;
-using WTF::CompletionHandlerCallingScope;
-using WTF::CompletionHandlerWithFinalizer;
+using PurCWTF::CompletionHandler;
+using PurCWTF::CompletionHandlerCallingScope;
+using PurCWTF::CompletionHandlerWithFinalizer;

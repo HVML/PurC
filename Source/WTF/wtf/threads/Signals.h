@@ -38,7 +38,7 @@
 #include <mach/exception_types.h>
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 
 // Note that SIGUSR1 is used in Pthread-based ports except for Darwin to suspend and resume threads.
 enum class Signal {
@@ -63,12 +63,12 @@ inline std::tuple<int, Optional<int>> toSystemSignal(Signal signal)
 {
     switch (signal) {
     case Signal::AccessFault: return std::make_tuple(SIGSEGV, SIGBUS);
-    case Signal::IllegalInstruction: return std::make_tuple(SIGILL, WTF::nullopt);
-    case Signal::Usr: return std::make_tuple(SIGILL, WTF::nullopt);
-    case Signal::FloatingPoint: return std::make_tuple(SIGFPE, WTF::nullopt);
-    case Signal::Breakpoint: return std::make_tuple(SIGTRAP, WTF::nullopt);
+    case Signal::IllegalInstruction: return std::make_tuple(SIGILL, PurCWTF::nullopt);
+    case Signal::Usr: return std::make_tuple(SIGILL, PurCWTF::nullopt);
+    case Signal::FloatingPoint: return std::make_tuple(SIGFPE, PurCWTF::nullopt);
+    case Signal::Breakpoint: return std::make_tuple(SIGTRAP, PurCWTF::nullopt);
 #if !OS(DARWIN)
-    case Signal::Abort: return std::make_tuple(SIGABRT, WTF::nullopt);
+    case Signal::Abort: return std::make_tuple(SIGABRT, PurCWTF::nullopt);
 #endif
     default: break;
     }
@@ -147,20 +147,20 @@ void startMachExceptionHandlerThread();
 void handleSignalsWithMach();
 #endif // HAVE(MACH_EXCEPTIONS)
 
-} // namespace WTF
+} // namespace PurCWTF
 
 #if HAVE(MACH_EXCEPTIONS)
-using WTF::registerThreadForMachExceptionHandling;
-using WTF::handleSignalsWithMach;
+using PurCWTF::registerThreadForMachExceptionHandling;
+using PurCWTF::handleSignalsWithMach;
 #endif // HAVE(MACH_EXCEPTIONS)
 
-using WTF::Signal;
-using WTF::SigInfo;
-using WTF::toSystemSignal;
-using WTF::fromSystemSignal;
-using WTF::SignalAction;
-using WTF::SignalHandler;
-using WTF::addSignalHandler;
-using WTF::activateSignalHandlersFor;
+using PurCWTF::Signal;
+using PurCWTF::SigInfo;
+using PurCWTF::toSystemSignal;
+using PurCWTF::fromSystemSignal;
+using PurCWTF::SignalAction;
+using PurCWTF::SignalHandler;
+using PurCWTF::addSignalHandler;
+using PurCWTF::activateSignalHandlersFor;
 
 #endif // OS(UNIX)

@@ -34,7 +34,7 @@
 #include <wtf/WallTime.h>
 #include <wtf/text/TextStream.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 WallTime Seconds::operator+(WallTime other) const
 {
@@ -90,5 +90,5 @@ void sleep(Seconds value)
     fakeCondition.waitFor(fakeLock, value);
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 

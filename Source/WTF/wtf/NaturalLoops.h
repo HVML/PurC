@@ -27,7 +27,7 @@
 
 #include <wtf/Dominators.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename Graph>
 class NaturalLoops;
@@ -130,7 +130,7 @@ public:
     
         if (verbose) {
             dataLog("Dominators:\n");
-            dominators.dump(WTF::dataFile());
+            dominators.dump(PurCWTF::dataFile());
         }
     
         m_loops.shrink(0);
@@ -359,7 +359,7 @@ private:
     typename Graph::template Map<InnerMostLoopIndices> m_innerMostLoopIndices;
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::NaturalLoop;
-using WTF::NaturalLoops;
+using PurCWTF::NaturalLoop;
+using PurCWTF::NaturalLoops;

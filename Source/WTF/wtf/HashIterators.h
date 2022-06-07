@@ -29,7 +29,7 @@ ALLOW_DEPRECATED_DECLARATIONS_BEGIN
 
 #include <iterator>
 
-namespace WTF {
+namespace PurCWTF {
 
     template<typename KeyTypeArg, typename ValueTypeArg>
     struct KeyValuePair;
@@ -221,6 +221,6 @@ namespace WTF {
         return a.m_impl != b.m_impl;
     }
 
-} // namespace WTF
+} // namespace PurCWTF
 
 ALLOW_DEPRECATED_DECLARATIONS_END

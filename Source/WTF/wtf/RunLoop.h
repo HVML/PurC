@@ -47,7 +47,7 @@
 #include <wtf/glib/GFdMonitor.h>
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 
 #if USE(CF)
 using RunLoopMode = CFStringRef;
@@ -95,7 +95,7 @@ public:
 
 #if USE(GLIB_EVENT_LOOP)
     WTF_EXPORT_PRIVATE GMainContext* mainContext() const { return m_mainContext.get(); }
-    WTF_EXPORT_PRIVATE void setIdleCallback(WTF::Function<void()>&& function);
+    WTF_EXPORT_PRIVATE void setIdleCallback(PurCWTF::Function<void()>&& function);
     WTF_EXPORT_PRIVATE uintptr_t addFdMonitor(gint fd, GIOCondition condition,
             Function<gboolean(gint, GIOCondition)>&& callback);
     WTF_EXPORT_PRIVATE void removeFdMonitor(uintptr_t handle);
@@ -104,7 +104,7 @@ public:
 #if USE(GENERIC_EVENT_LOOP) || USE(WINDOWS_EVENT_LOOP)
     // Run the single iteration of the RunLoop. It consumes the pending tasks and expired timers, but it won't be blocked.
     WTF_EXPORT_PRIVATE static void iterate();
-    WTF_EXPORT_PRIVATE static void setWakeUpCallback(WTF::Function<void()>&&);
+    WTF_EXPORT_PRIVATE static void setWakeUpCallback(PurCWTF::Function<void()>&&);
 #endif
 
 #if USE(WINDOWS_EVENT_LOOP)
@@ -275,7 +275,7 @@ private:
 #endif
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::RunLoop;
-using WTF::RunLoopMode;
+using PurCWTF::RunLoop;
+using PurCWTF::RunLoopMode;

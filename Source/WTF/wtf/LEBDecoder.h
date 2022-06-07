@@ -33,7 +33,7 @@
 // See https://en.wikipedia.org/wiki/LEB128 for more information about the
 // LEB format.
 
-namespace WTF { namespace LEBDecoder {
+namespace PurCWTF { namespace LEBDecoder {
 
 template<typename T>
 constexpr size_t maxByteLength()
@@ -109,4 +109,4 @@ inline bool WARN_UNUSED_RETURN decodeInt64(const uint8_t* bytes, size_t length, 
     return decodeInt<int64_t>(bytes, length, offset, result);
 }
 
-} } // WTF::LEBDecoder
+} } // PurCWTF::LEBDecoder

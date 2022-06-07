@@ -25,7 +25,7 @@
 #include <wtf/GetPtr.h>
 #include <wtf/RefPtr.h>
 
-namespace WTF {
+namespace PurCWTF {
 
     template<size_t size> struct IntTypes;
     template<> struct IntTypes<1> { typedef int8_t SignedType; typedef uint8_t UnsignedType; };
@@ -270,8 +270,8 @@ namespace WTF {
     template<typename T, typename U> struct DefaultHash<std::pair<T, U>> { typedef PairHash<T, U> Hash; };
     template<typename... Types> struct DefaultHash<std::tuple<Types...>> { typedef TupleHash<Types...> Hash; };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::DefaultHash;
-using WTF::IntHash;
-using WTF::PtrHash;
+using PurCWTF::DefaultHash;
+using PurCWTF::IntHash;
+using PurCWTF::PtrHash;

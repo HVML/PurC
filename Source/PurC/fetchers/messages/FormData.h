@@ -61,7 +61,7 @@ struct FormDataElement {
         Optional<Data> data;
         decoder >> data;
         if (!data)
-            return WTF::nullopt;
+            return PurCWTF::nullopt;
         return FormDataElement(WTFMove(*data));
     }
 
@@ -94,22 +94,22 @@ struct FormDataElement {
             Optional<String> filename;
             decoder >> filename;
             if (!filename)
-                return WTF::nullopt;
+                return PurCWTF::nullopt;
 
             Optional<int64_t> fileStart;
             decoder >> fileStart;
             if (!fileStart)
-                return WTF::nullopt;
+                return PurCWTF::nullopt;
 
             Optional<int64_t> fileLength;
             decoder >> fileLength;
             if (!fileLength)
-                return WTF::nullopt;
+                return PurCWTF::nullopt;
 
             Optional<Optional<WallTime>> expectedFileModificationTime;
             decoder >> expectedFileModificationTime;
             if (!expectedFileModificationTime)
-                return WTF::nullopt;
+                return PurCWTF::nullopt;
 
             return {{
                 WTFMove(*filename),
@@ -137,7 +137,7 @@ struct FormDataElement {
             Optional<URL> url;
             decoder >> url;
             if (!url)
-                return WTF::nullopt;
+                return PurCWTF::nullopt;
 
             return {{ WTFMove(*url) }};
         }
@@ -150,10 +150,10 @@ struct FormDataElement {
         if (data.index() != other.data.index())
             return false;
         if (!data.index())
-            return WTF::get<0>(data) == WTF::get<0>(other.data);
+            return PurCWTF::get<0>(data) == PurCWTF::get<0>(other.data);
         if (data.index() == 1)
-            return WTF::get<1>(data) == WTF::get<1>(other.data);
-        return WTF::get<2>(data) == WTF::get<2>(other.data);
+            return PurCWTF::get<1>(data) == PurCWTF::get<1>(other.data);
+        return PurCWTF::get<2>(data) == PurCWTF::get<2>(other.data);
     }
     bool operator!=(const FormDataElement& other) const
     {

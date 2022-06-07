@@ -29,7 +29,7 @@
 #include <wtf/Lock.h>
 #include <wtf/Locker.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 MessageStatus sendMessageScoped(Thread& thread, const ThreadMessage& message)
 {
@@ -49,4 +49,4 @@ MessageStatus sendMessageScoped(Thread& thread, const ThreadMessage& message)
     return MessageStatus::MessageRan;
 }
 
-} // namespace WTF
+} // namespace PurCWTF

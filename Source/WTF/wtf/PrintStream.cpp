@@ -29,7 +29,7 @@
 #include <wtf/text/CString.h>
 #include <wtf/text/WTFString.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 PrintStream::PrintStream() { }
 PrintStream::~PrintStream() { } // Force the vtable to be in this module
@@ -188,5 +188,5 @@ void dumpCharacter(PrintStream& out, char value)
     out.printf("%c", value);
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 

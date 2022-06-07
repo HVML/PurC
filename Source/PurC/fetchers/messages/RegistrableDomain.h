@@ -41,8 +41,8 @@ public:
     bool operator==(const RegistrableDomain& other) const { return m_registrableDomain == other.m_registrableDomain; }
     bool operator==(const char* other) const { return m_registrableDomain == other; }
 
-    RegistrableDomain(WTF::HashTableDeletedValueType)
-        : m_registrableDomain(WTF::HashTableDeletedValue) { }
+    RegistrableDomain(PurCWTF::HashTableDeletedValueType)
+        : m_registrableDomain(PurCWTF::HashTableDeletedValue) { }
     bool isHashTableDeletedValue() const { return m_registrableDomain.isHashTableDeletedValue(); }
     unsigned hash() const { return m_registrableDomain.hash(); }
 
@@ -71,7 +71,7 @@ Optional<RegistrableDomain> RegistrableDomain::decode(Decoder& decoder)
     Optional<String> domain;
     decoder >> domain;
     if (!domain)
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
 
     RegistrableDomain registrableDomain;
     registrableDomain.m_registrableDomain = WTFMove(*domain);
@@ -80,7 +80,7 @@ Optional<RegistrableDomain> RegistrableDomain::decode(Decoder& decoder)
 
 } // namespace PurCFetcher
 
-namespace WTF {
+namespace PurCWTF {
 template<> struct DefaultHash<PurCFetcher::RegistrableDomain> {
     using Hash = PurCFetcher::RegistrableDomain::RegistrableDomainHash;
 };

@@ -30,7 +30,7 @@
 #include <wtf/MainThread.h>
 #include <wtf/Noncopyable.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 #if defined(NDEBUG) && !ENABLE(SECURITY_ASSERTIONS)
 #define CHECK_THREAD_SAFE_REF_COUNTED_LIFECYCLE 0
@@ -139,6 +139,6 @@ protected:
     ThreadSafeRefCounted() = default;
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::ThreadSafeRefCounted;
+using PurCWTF::ThreadSafeRefCounted;

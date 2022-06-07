@@ -30,7 +30,7 @@
 
 #include <wtf/dtoa/diy-fp.h>
 
-namespace WTF {
+namespace PurCWTF {
 namespace double_conversion {
 
 class PowersOfTenCache {
@@ -61,6 +61,6 @@ class PowersOfTenCache {
 };
 
 }  // namespace double_conversion
-}  // namespace WTF
+}  // namespace PurCWTF
 
 #endif  // DOUBLE_CONVERSION_CACHED_POWERS_H_

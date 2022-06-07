@@ -28,11 +28,11 @@
 #include <wtf/Packed.h>
 #include <wtf/RefPtr.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename T>
 using PackedRefPtr = RefPtr<T, PackedPtrTraits<T>>;
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::PackedRefPtr;
+using PurCWTF::PackedRefPtr;

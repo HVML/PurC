@@ -48,7 +48,7 @@
 #include <zircon/syscalls.h>
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 
 #if !OS(DARWIN) && !OS(FUCHSIA) && OS(UNIX)
 NEVER_INLINE NO_RETURN_DUE_TO_CRASH static void crashUnableToOpenURandom()

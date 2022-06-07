@@ -31,7 +31,7 @@
 #include <wtf/Noncopyable.h>
 #include <wtf/Vector.h>
 
-namespace WTF {
+namespace PurCWTF {
 
     DECLARE_ALLOCATOR_WITH_HEAP_IDENTIFIER(SegmentedVector);
 
@@ -272,6 +272,6 @@ namespace WTF {
         Vector<Segment*> m_segments;
     };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::SegmentedVector;
+using PurCWTF::SegmentedVector;

@@ -28,11 +28,11 @@
 #include <set>
 #include <wtf/FastMalloc.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename Key, typename Compare = std::less<Key>, typename Allocator = FastAllocator<Key>>
 using StdSet = std::set<Key, Compare, Allocator>;
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::StdSet;
+using PurCWTF::StdSet;

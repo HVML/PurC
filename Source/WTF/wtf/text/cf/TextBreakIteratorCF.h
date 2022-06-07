@@ -25,7 +25,7 @@
 #include <wtf/spi/cf/CFStringSPI.h>
 #include <wtf/text/StringView.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 class TextBreakIteratorCF {
     WTF_MAKE_FAST_ALLOCATED;

@@ -29,7 +29,7 @@
 #include <utility>
 #include <wtf/Noncopyable.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename T>
 struct GPtrDeleter {
@@ -119,10 +119,10 @@ private:
     T* m_ptr;
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::GUniquePtr;
-using WTF::GUniqueOutPtr;
+using PurCWTF::GUniquePtr;
+using PurCWTF::GUniqueOutPtr;
 
 #endif // USE(GLIB)
 

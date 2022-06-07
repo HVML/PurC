@@ -26,9 +26,9 @@
 #include "config.h"
 #include <wtf/UniqueArray.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 DEFINE_ALLOCATOR_WITH_HEAP_IDENTIFIER(UniqueArray);
 DEFINE_ALLOCATOR_WITH_HEAP_IDENTIFIER(UniqueArrayElement);
 
-} // namespace WTF
+} // namespace PurCWTF

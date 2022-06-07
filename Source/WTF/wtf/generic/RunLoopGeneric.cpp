@@ -27,7 +27,7 @@
 #include "config.h"
 #include <wtf/RunLoop.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 class RunLoop::TimerBase::ScheduledTask : public ThreadSafeRefCounted<ScheduledTask> {
 WTF_MAKE_NONCOPYABLE(ScheduledTask);
@@ -189,7 +189,7 @@ void RunLoop::iterate()
     RunLoop::current().runImpl(RunMode::Iterate);
 }
 
-void RunLoop::setWakeUpCallback(WTF::Function<void()>&& function)
+void RunLoop::setWakeUpCallback(PurCWTF::Function<void()>&& function)
 {
     RunLoop::current().m_wakeUpCallback = WTFMove(function);
 }
@@ -315,4 +315,4 @@ Seconds RunLoop::TimerBase::secondsUntilFire() const
     return 0_s;
 }
 
-} // namespace WTF
+} // namespace PurCWTF

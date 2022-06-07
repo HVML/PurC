@@ -37,7 +37,7 @@
 // that is outside the range 0-7F. So they can be used on Unicode strings or
 // characters if the intent is to do processing only if the character is ASCII.
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename CharacterType> constexpr bool isASCII(CharacterType);
 template<typename CharacterType> bool isASCIIAlpha(CharacterType);
@@ -232,24 +232,24 @@ template<typename CharacterType> inline bool isASCIIDigitOrPunctuation(Character
 
 }
 
-using WTF::isASCII;
-using WTF::isASCIIAlpha;
-using WTF::isASCIIAlphaCaselessEqual;
-using WTF::isASCIIAlphanumeric;
-using WTF::isASCIIBinaryDigit;
-using WTF::isASCIIDigit;
-using WTF::isASCIIDigitOrPunctuation;
-using WTF::isASCIIHexDigit;
-using WTF::isASCIILower;
-using WTF::isASCIIOctalDigit;
-using WTF::isASCIIPrintable;
-using WTF::isASCIISpace;
-using WTF::isASCIIUpper;
-using WTF::lowerNibbleToASCIIHexDigit;
-using WTF::lowerNibbleToLowercaseASCIIHexDigit;
-using WTF::toASCIIHexValue;
-using WTF::toASCIILower;
-using WTF::toASCIILowerUnchecked;
-using WTF::toASCIIUpper;
-using WTF::upperNibbleToASCIIHexDigit;
-using WTF::upperNibbleToLowercaseASCIIHexDigit;
+using PurCWTF::isASCII;
+using PurCWTF::isASCIIAlpha;
+using PurCWTF::isASCIIAlphaCaselessEqual;
+using PurCWTF::isASCIIAlphanumeric;
+using PurCWTF::isASCIIBinaryDigit;
+using PurCWTF::isASCIIDigit;
+using PurCWTF::isASCIIDigitOrPunctuation;
+using PurCWTF::isASCIIHexDigit;
+using PurCWTF::isASCIILower;
+using PurCWTF::isASCIIOctalDigit;
+using PurCWTF::isASCIIPrintable;
+using PurCWTF::isASCIISpace;
+using PurCWTF::isASCIIUpper;
+using PurCWTF::lowerNibbleToASCIIHexDigit;
+using PurCWTF::lowerNibbleToLowercaseASCIIHexDigit;
+using PurCWTF::toASCIIHexValue;
+using PurCWTF::toASCIILower;
+using PurCWTF::toASCIILowerUnchecked;
+using PurCWTF::toASCIIUpper;
+using PurCWTF::upperNibbleToASCIIHexDigit;
+using PurCWTF::upperNibbleToLowercaseASCIIHexDigit;
