@@ -187,8 +187,8 @@ atom_strdup(const char *string, bool *need_free)
 
 /* HOLDS: purc_atom_rwlock_writer_lock */
 static inline purc_atom_t
-atom_from_string(struct atom_bucket *bucket,
-        const char *string, bool duplicate)
+atom_from_string(struct atom_bucket *bucket, const char *string,
+        bool duplicate, bool *newly_created)
 {
     purc_atom_t atom = 0;
     pcutils_map_entry* entry;
@@ -197,6 +197,9 @@ atom_from_string(struct atom_bucket *bucket,
     if (entry) {
         atom = (purc_atom_t)(uintptr_t)entry->val;
         assert(atom);
+
+        if (newly_created)
+            *newly_created = false;
     }
     else {
         bool need_free;
@@ -205,36 +208,45 @@ atom_from_string(struct atom_bucket *bucket,
         else
             need_free = false;
         atom = atom_new(bucket, (char *)string, need_free);
+
+        if (newly_created)
+            *newly_created = true;
     }
 
     return atom;
 }
 
 static inline purc_atom_t
-atom_from_string_locked(struct atom_bucket *bucket,
-        const char *string, bool duplicate)
+atom_from_string_locked(struct atom_bucket *bucket, const char *string,
+        bool duplicate, bool *newly_created)
 {
     purc_atom_t atom = 0;
-    if (!string)
-        return 0;
-
     purc_rwlock_writer_lock(&atom_rwlock);
-    atom = atom_from_string(bucket, string, duplicate);
+    atom = atom_from_string(bucket, string, duplicate, newly_created);
     purc_rwlock_writer_unlock(&atom_rwlock);
 
     return atom;
 }
 
 purc_atom_t
-purc_atom_from_string_ex(int bucket, const char *string)
+purc_atom_from_string_ex2(int bucket, const char *string, bool *newly_created)
 {
-    return atom_from_string_locked(atom_get_bucket(bucket), string, true);
+    if (!string)
+        return 0;
+
+    return atom_from_string_locked(atom_get_bucket(bucket), string,
+            true, newly_created);
 }
 
 purc_atom_t
-purc_atom_from_static_string_ex(int bucket, const char *string)
+purc_atom_from_static_string_ex2(int bucket, const char *string,
+        bool *newly_created)
 {
-    return atom_from_string_locked(atom_get_bucket(bucket), string, false);
+    if (!string)
+        return 0;
+
+    return atom_from_string_locked(atom_get_bucket(bucket), string,
+            false, newly_created);
 }
 
 const char *
