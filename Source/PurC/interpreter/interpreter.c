@@ -175,7 +175,7 @@ pcintr_util_dump_document_ex(pchtml_html_document_t *doc, char **dump_buff,
         }
         *dump_buff = strdup(p);
     }
-#if 0
+#if 1
     else {
         fprintf(stderr, "%s[%d]:%s(): #document %p\n%s\n",
                 pcutils_basename((char*)file), line, func, doc, p);
@@ -1843,8 +1843,9 @@ static void execute_one_step_for_exiting_co(pcintr_coroutine_t co)
     list_del(&co->node);
     coroutine_destroy(co);
 
-    if (list_empty(&heap->coroutines))
+    if (inst->keep_alive == 0 && list_empty(&heap->coroutines)) {
         purc_runloop_stop(inst->running_loop);
+    }
 
     return;
 }

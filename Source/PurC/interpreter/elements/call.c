@@ -28,6 +28,7 @@
 #include "../internal.h"
 
 #include "private/debug.h"
+#include "private/instance.h"
 #include "purc-runloop.h"
 
 #include "../ops.h"
@@ -49,6 +50,8 @@ struct ctxt_for_call {
 
     pcvdom_element_t              define;
 
+    char               endpoint_name_within[PURC_LEN_ENDPOINT_NAME + 1];
+    purc_atom_t        endpoint_atom_within;
 
     unsigned int                  concurrently:1;
     unsigned int                  synchronously:1;
@@ -63,6 +66,11 @@ ctxt_for_call_destroy(struct ctxt_for_call *ctxt)
         PURC_VARIANT_SAFE_CLEAR(ctxt->within);
         PURC_VARIANT_SAFE_CLEAR(ctxt->as);
         PURC_VARIANT_SAFE_CLEAR(ctxt->at);
+        if (ctxt->endpoint_atom_within) {
+            PC_ASSERT(purc_atom_remove_string_ex(PURC_ATOM_BUCKET_USER,
+                    ctxt->endpoint_name_within));
+            ctxt->endpoint_atom_within = 0;
+        }
         free(ctxt);
     }
 }
@@ -258,6 +266,33 @@ process_attr_within(struct pcintr_stack_frame *frame,
                 purc_atom_to_string(name), element->tag_name);
         return -1;
     }
+    if (!purc_variant_is_string(val)) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "vdom attribute '%s' for element <%s> is not string",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    const char *s = purc_variant_get_string_const(val);
+    PC_ASSERT(s);
+    char *t = (char*)strchr(s, '/');
+    if (!t) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "vdom attribute '%s' for element <%s> is not valid",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+
+    char c = *t;
+    *t = '\0';
+    ctxt->endpoint_atom_within = pcinst_endpoint_get(
+            ctxt->endpoint_name_within, sizeof(ctxt->endpoint_name_within),
+            "_", s);
+    *t = c;
+    if (ctxt->endpoint_atom_within == 0) {
+        PC_ASSERT(purc_get_last_error());
+        return -1;
+    }
+
     ctxt->within = purc_variant_ref(val);
 
     return 0;

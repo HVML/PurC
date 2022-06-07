@@ -200,6 +200,39 @@ char* purc_extract_runner_name_alloc (const char* endpoint)
     return NULL;
 }
 
+int purc_assemble_endpoint_name_ex (const char* host_name,
+        const char* app_name, const char* runner_name, char* buff, size_t sz)
+{
+    int host_len, app_len, runner_len;
+
+    if ((host_len = strlen (host_name)) > PURC_LEN_HOST_NAME)
+        return 0;
+
+    if ((app_len = strlen (app_name)) > PURC_LEN_APP_NAME)
+        return 0;
+
+    if ((runner_len = strlen (runner_name)) > PURC_LEN_RUNNER_NAME)
+        return 0;
+
+    size_t len = 1 + host_len + 1 + app_len + 1 + runner_len;
+    if (len >= sz)
+        return len;
+
+    buff [0] = '@';
+    buff [1] = '\0';
+    strcat (buff, host_name);
+    buff [host_len + 1] = '/';
+    buff [host_len + 2] = '\0';
+
+    strcat (buff, app_name);
+    buff [host_len + app_len + 2] = '/';
+    buff [host_len + app_len + 3] = '\0';
+
+    strcat (buff, runner_name);
+
+    return len;
+}
+
 int purc_assemble_endpoint_name (const char* host_name, const char* app_name,
         const char* runner_name, char* buff)
 {
