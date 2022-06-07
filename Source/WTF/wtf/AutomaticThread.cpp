@@ -29,7 +29,7 @@
 #include <wtf/DataLog.h>
 #include <wtf/Threading.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 static constexpr bool verbose = false;
 
@@ -244,5 +244,5 @@ void AutomaticThread::threadIsStopping(const AbstractLocker&)
 {
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 

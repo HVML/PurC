@@ -56,7 +56,7 @@
 #include <array>
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 
 class AbstractLocker;
 class ThreadMessageData;
@@ -106,7 +106,7 @@ public:
     // Returns Thread object.
     static Thread& current();
 
-    // Set of all WTF::Thread created threads.
+    // Set of all PurCWTF::Thread created threads.
     WTF_EXPORT_PRIVATE static HashSet<Thread*>& allThreads(const LockHolder&);
     WTF_EXPORT_PRIVATE static Lock& allThreadsMutex();
 
@@ -381,15 +381,15 @@ inline Thread& Thread::current()
     //    this is initially called in a std::call_once locked context.
 #if !HAVE(FAST_TLS) && !OS(WINDOWS)
     if (UNLIKELY(Thread::s_key == InvalidThreadSpecificKey))
-        WTF::initializeThreading();
+        PurCWTF::initializeThreading();
 #endif
     if (auto* thread = currentMayBeNull())
         return *thread;
     return initializeCurrentTLS();
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::Thread;
-using WTF::ThreadType;
-using WTF::GCThreadType;
+using PurCWTF::Thread;
+using PurCWTF::ThreadType;
+using PurCWTF::GCThreadType;

@@ -109,7 +109,7 @@ inline bool isPointerTypeAlignmentOkay(Type*)
 #define reinterpret_cast_ptr reinterpret_cast
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 
 enum CheckMoveParameterTag { CheckMoveParameter };
 
@@ -170,7 +170,7 @@ template<typename T, size_t Size> char (&ArrayLengthHelperFunction(T (&)[Size]))
 #if COMPILER(GCC_COMPATIBLE)
 template<typename T> char (&ArrayLengthHelperFunction(T (&)[0]))[0];
 #endif
-#define WTF_ARRAY_LENGTH(array) sizeof(::WTF::ArrayLengthHelperFunction(array))
+#define WTF_ARRAY_LENGTH(array) sizeof(::PurCWTF::ArrayLengthHelperFunction(array))
 
 ALWAYS_INLINE constexpr size_t roundUpToMultipleOfImpl(size_t divisor, size_t x)
 {
@@ -462,8 +462,8 @@ IteratorTypeDst mergeDeduplicatedSorted(IteratorTypeLeft leftBegin, IteratorType
     return dstIter;
 }
 
-// libstdc++5 does not have constexpr std::tie. Since we cannot redefine std::tie with constexpr, we define WTF::tie instead.
-// This workaround can be removed after 2019-04 and all users of WTF::tie can be converted to std::tie
+// libstdc++5 does not have constexpr std::tie. Since we cannot redefine std::tie with constexpr, we define PurCWTF::tie instead.
+// This workaround can be removed after 2019-04 and all users of PurCWTF::tie can be converted to std::tie
 // For more info see: https://bugs.webkit.org/show_bug.cgi?id=180692 and https://gcc.gnu.org/bugzilla/show_bug.cgi?id=65978
 template <class ...Args>
 constexpr std::tuple<Args&...> tie(Args&... values)
@@ -471,7 +471,7 @@ constexpr std::tuple<Args&...> tie(Args&... values)
     return std::tuple<Args&...>(values...);
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
 // This version of placement new omits a 0 check.
 enum NotNullTag { NotNull };
@@ -483,7 +483,7 @@ inline void* operator new(size_t, NotNullTag, void* location)
 
 namespace std {
 
-template<WTF::CheckMoveParameterTag, typename T>
+template<PurCWTF::CheckMoveParameterTag, typename T>
 ALWAYS_INLINE constexpr typename remove_reference<T>::type&& move(T&& value)
 {
     static_assert(is_lvalue_reference<T>::value, "T is not an lvalue reference; move() is unnecessary.");
@@ -496,7 +496,7 @@ ALWAYS_INLINE constexpr typename remove_reference<T>::type&& move(T&& value)
 
 } // namespace std
 
-namespace WTF {
+namespace PurCWTF {
 
 template<class T, class... Args>
 ALWAYS_INLINE decltype(auto) makeUnique(Args&&... args)
@@ -525,28 +525,28 @@ constexpr auto constructFixedSizeArrayWithArguments(Args&&... args) -> decltype(
     return constructFixedSizeArrayWithArgumentsImpl<ResultType>(tuple, std::forward<Args>(args)...);
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
-#define WTFMove(value) std::move<WTF::CheckMoveParameter>(value)
+#define WTFMove(value) std::move<PurCWTF::CheckMoveParameter>(value)
 
-using WTF::KB;
-using WTF::MB;
-using WTF::GB;
-using WTF::approximateBinarySearch;
-using WTF::binarySearch;
-using WTF::bitwise_cast;
-using WTF::callStatelessLambda;
-using WTF::checkAndSet;
-using WTF::findBitInWord;
-using WTF::insertIntoBoundedVector;
-using WTF::isCompilationThread;
-using WTF::isPointerAligned;
-using WTF::isStatelessLambda;
-using WTF::is8ByteAligned;
-using WTF::mergeDeduplicatedSorted;
-using WTF::roundUpToMultipleOf;
-using WTF::safeCast;
-using WTF::tryBinarySearch;
-using WTF::makeUnique;
-using WTF::makeUniqueWithoutFastMallocCheck;
-using WTF::constructFixedSizeArrayWithArguments;
+using PurCWTF::KB;
+using PurCWTF::MB;
+using PurCWTF::GB;
+using PurCWTF::approximateBinarySearch;
+using PurCWTF::binarySearch;
+using PurCWTF::bitwise_cast;
+using PurCWTF::callStatelessLambda;
+using PurCWTF::checkAndSet;
+using PurCWTF::findBitInWord;
+using PurCWTF::insertIntoBoundedVector;
+using PurCWTF::isCompilationThread;
+using PurCWTF::isPointerAligned;
+using PurCWTF::isStatelessLambda;
+using PurCWTF::is8ByteAligned;
+using PurCWTF::mergeDeduplicatedSorted;
+using PurCWTF::roundUpToMultipleOf;
+using PurCWTF::safeCast;
+using PurCWTF::tryBinarySearch;
+using PurCWTF::makeUnique;
+using PurCWTF::makeUniqueWithoutFastMallocCheck;
+using PurCWTF::constructFixedSizeArrayWithArguments;

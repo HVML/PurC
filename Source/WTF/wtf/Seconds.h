@@ -28,7 +28,7 @@
 #include <wtf/MathExtras.h>
 #include <wtf/Optional.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 class MonotonicTime;
 class PrintStream;
@@ -233,7 +233,7 @@ public:
         Optional<double> seconds;
         decoder >> seconds;
         if (!seconds)
-            return WTF::nullopt;
+            return PurCWTF::nullopt;
         return Seconds(*seconds);
     }
 
@@ -344,28 +344,28 @@ inline Seconds operator/(double scalar, Seconds seconds)
 
 WTF_EXPORT_PRIVATE TextStream& operator<<(TextStream&, Seconds);
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::sleep;
+using PurCWTF::sleep;
 
 namespace std {
 
-inline bool isnan(WTF::Seconds seconds)
+inline bool isnan(PurCWTF::Seconds seconds)
 {
     return std::isnan(seconds.value());
 }
 
-inline bool isinf(WTF::Seconds seconds)
+inline bool isinf(PurCWTF::Seconds seconds)
 {
     return std::isinf(seconds.value());
 }
 
-inline bool isfinite(WTF::Seconds seconds)
+inline bool isfinite(PurCWTF::Seconds seconds)
 {
     return std::isfinite(seconds.value());
 }
 
 } // namespace std
 
-using namespace WTF::seconds_literals;
-using WTF::Seconds;
+using namespace PurCWTF::seconds_literals;
+using PurCWTF::Seconds;

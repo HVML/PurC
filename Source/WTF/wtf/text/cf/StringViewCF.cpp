@@ -31,7 +31,7 @@
 #include <CoreFoundation/CoreFoundation.h>
 #include <wtf/RetainPtr.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 RetainPtr<CFStringRef> StringView::createCFString() const
 {

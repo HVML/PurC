@@ -30,7 +30,7 @@
 #include <wtf/FastMalloc.h>
 #include <wtf/StdLibExtras.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 // The goal of this class is folding a pointer and 2 bytes value into 8 bytes in both 32bit and 64bit architectures.
 // 32bit architecture just has a pair of byte and pointer, which should be 8 bytes.
@@ -119,6 +119,6 @@ private:
 #endif
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::CompactPointerTuple;
+using PurCWTF::CompactPointerTuple;

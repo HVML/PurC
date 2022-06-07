@@ -69,7 +69,7 @@ struct NetworkProxySettings {
 
 } // namespace PurCFetcher
 
-namespace WTF {
+namespace PurCWTF {
 
 template<> struct EnumTraits<PurCFetcher::NetworkProxySettings::Mode> {
     using values = EnumValues<
@@ -80,4 +80,4 @@ template<> struct EnumTraits<PurCFetcher::NetworkProxySettings::Mode> {
     >;
 };
 
-} // namespace WTF
+} // namespace PurCWTF

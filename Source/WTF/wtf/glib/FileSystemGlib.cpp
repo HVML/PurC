@@ -39,7 +39,7 @@
 #include <wtf/text/StringBuilder.h>
 #include <wtf/text/WTFString.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 namespace FileSystemImpl {
 
@@ -61,7 +61,7 @@ String stringFromFileSystemRepresentation(const char* representation)
 
     ASSERT(filenameCharsets);
     // FIXME: If possible, we'd want to convert directly to UTF-16 and construct
-    // WTF::String object with resulting data.
+    // PurCWTF::String object with resulting data.
     size_t utf8Length = 0;
     GUniquePtr<gchar> utf8(g_convert(representation, representationLength,
         "UTF-8", filenameCharsets[0], nullptr, &utf8Length, nullptr));
@@ -85,7 +85,7 @@ CString fileSystemRepresentation(const String& path)
         return utf8;
 
     ASSERT(filenameCharsets);
-    // FIXME: If possible, we'd want to convert directly from WTF::String's UTF-16 data.
+    // FIXME: If possible, we'd want to convert directly from PurCWTF::String's UTF-16 data.
     size_t representationLength = 0;
     GUniquePtr<gchar> representation(g_convert(utf8.data(), utf8.length(),
         filenameCharsets[0], "UTF-8", nullptr, &representationLength, nullptr));
@@ -177,14 +177,14 @@ bool getFileSize(PlatformFileHandle handle, long long& resultSize)
 Optional<WallTime> getFileCreationTime(const String&)
 {
     // FIXME: Is there a way to retrieve file creation time with Gtk on platforms that support it?
-    return WTF::nullopt;
+    return PurCWTF::nullopt;
 }
 
 Optional<WallTime> getFileModificationTime(const String& path)
 {
     GStatBuf statResult;
     if (!getFileStat(path, &statResult))
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
 
     return WallTime::fromRawSeconds(statResult.st_mtime);
 }
@@ -202,7 +202,7 @@ static Optional<FileMetadata> fileMetadataUsingFunction(const String& path, bool
 {
     GStatBuf statResult;
     if (!statFunc(path, &statResult))
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
 
     String filename = pathGetFileName(path);
     bool isHidden = !filename.isEmpty() && filename[0] == '.';
@@ -487,7 +487,7 @@ Optional<int32_t> getFileDeviceId(const CString& fsFile)
     GRefPtr<GFile> file = adoptGRef(g_file_new_for_path(fsFile.data()));
     GRefPtr<GFileInfo> fileInfo = adoptGRef(g_file_query_filesystem_info(file.get(), G_FILE_ATTRIBUTE_UNIX_DEVICE, nullptr, nullptr));
     if (!fileInfo)
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
 
     return g_file_info_get_attribute_uint32(fileInfo.get(), G_FILE_ATTRIBUTE_UNIX_DEVICE);
 }
@@ -495,9 +495,9 @@ Optional<int32_t> getFileDeviceId(const CString& fsFile)
 #if USE(FILE_LOCK)
 bool lockFile(PlatformFileHandle handle, OptionSet<FileLockMode> lockMode)
 {
-    COMPILE_ASSERT(LOCK_SH == WTF::enumToUnderlyingType(FileLockMode::Shared), LockSharedEncodingIsAsExpected);
-    COMPILE_ASSERT(LOCK_EX == WTF::enumToUnderlyingType(FileLockMode::Exclusive), LockExclusiveEncodingIsAsExpected);
-    COMPILE_ASSERT(LOCK_NB == WTF::enumToUnderlyingType(FileLockMode::Nonblocking), LockNonblockingEncodingIsAsExpected);
+    COMPILE_ASSERT(LOCK_SH == PurCWTF::enumToUnderlyingType(FileLockMode::Shared), LockSharedEncodingIsAsExpected);
+    COMPILE_ASSERT(LOCK_EX == PurCWTF::enumToUnderlyingType(FileLockMode::Exclusive), LockExclusiveEncodingIsAsExpected);
+    COMPILE_ASSERT(LOCK_NB == PurCWTF::enumToUnderlyingType(FileLockMode::Nonblocking), LockNonblockingEncodingIsAsExpected);
     auto* inputStream = g_io_stream_get_input_stream(G_IO_STREAM(handle));
     int result = flock(g_file_descriptor_based_get_fd(G_FILE_DESCRIPTOR_BASED(inputStream)), lockMode.toRaw());
     return result != -1;
@@ -520,4 +520,4 @@ String realPath(const String& filePath)
 }
 
 } // namespace FileSystemImpl
-} // namespace WTF
+} // namespace PurCWTF

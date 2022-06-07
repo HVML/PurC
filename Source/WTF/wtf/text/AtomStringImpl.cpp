@@ -34,7 +34,7 @@
 #include <wtf/Lock.h>
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 
 using namespace Unicode;
 
@@ -97,7 +97,7 @@ struct CStringTranslator {
 
     static inline bool equal(PackedPtr<StringImpl> str, const LChar* characters)
     {
-        return WTF::equal(str.get(), characters);
+        return PurCWTF::equal(str.get(), characters);
     }
 
     static void translate(PackedPtr<StringImpl>& location, const LChar* const& characters, unsigned hash)
@@ -128,7 +128,7 @@ struct UCharBufferTranslator {
 
     static bool equal(PackedPtr<StringImpl> const& str, const UCharBuffer& buf)
     {
-        return WTF::equal(str.get(), buf.characters, buf.length);
+        return PurCWTF::equal(str.get(), buf.characters, buf.length);
     }
 
     static void translate(PackedPtr<StringImpl>& location, const UCharBuffer& buf, unsigned hash)
@@ -262,7 +262,7 @@ struct SubstringTranslator8 : SubstringTranslator {
 
     static bool equal(PackedPtr<StringImpl> const& string, const SubstringLocation& buffer)
     {
-        return WTF::equal(string.get(), buffer.baseString->characters8() + buffer.start, buffer.length);
+        return PurCWTF::equal(string.get(), buffer.baseString->characters8() + buffer.start, buffer.length);
     }
 };
 
@@ -274,7 +274,7 @@ struct SubstringTranslator16 : SubstringTranslator {
 
     static bool equal(PackedPtr<StringImpl> const& string, const SubstringLocation& buffer)
     {
-        return WTF::equal(string.get(), buffer.baseString->characters16() + buffer.start, buffer.length);
+        return PurCWTF::equal(string.get(), buffer.baseString->characters16() + buffer.start, buffer.length);
     }
 };
 
@@ -308,7 +308,7 @@ struct LCharBufferTranslator {
 
     static bool equal(PackedPtr<StringImpl> const& str, const LCharBuffer& buf)
     {
-        return WTF::equal(str.get(), buf.characters, buf.length);
+        return PurCWTF::equal(str.get(), buf.characters, buf.length);
     }
 
     static void translate(PackedPtr<StringImpl>& location, const LCharBuffer& buf, unsigned hash)
@@ -330,7 +330,7 @@ struct BufferFromStaticDataTranslator {
 
     static bool equal(PackedPtr<StringImpl> const& str, const Buffer& buf)
     {
-        return WTF::equal(str.get(), buf.characters, buf.length);
+        return PurCWTF::equal(str.get(), buf.characters, buf.length);
     }
 
     static void translate(PackedPtr<StringImpl>& location, const Buffer& buf, unsigned hash)
@@ -532,4 +532,4 @@ bool AtomStringImpl::isInAtomStringTable(StringImpl* string)
 }
 #endif
 
-} // namespace WTF
+} // namespace PurCWTF

@@ -34,7 +34,7 @@
 #include <wtf/CryptographicallyRandomNumber.h>
 #include <wtf/StdLibExtras.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 // The code used to generate random numbers are inlined manually in JIT code.
 // So it needs to stay in sync with the JIT one.
@@ -121,6 +121,6 @@ private:
     uint64_t m_high;
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::WeakRandom;
+using PurCWTF::WeakRandom;

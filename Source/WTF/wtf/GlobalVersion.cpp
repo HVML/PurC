@@ -28,7 +28,7 @@
 
 #include <wtf/Atomics.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 GlobalVersion newGlobalVersion()
 {
@@ -36,6 +36,6 @@ GlobalVersion newGlobalVersion()
     return counter.exchangeAdd(1);
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
 

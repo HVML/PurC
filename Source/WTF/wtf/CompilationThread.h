@@ -27,7 +27,7 @@
 
 #include <wtf/Threading.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 class CompilationScope final {
     WTF_MAKE_FAST_ALLOCATED;
@@ -50,6 +50,6 @@ private:
     bool m_oldValue;
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::CompilationScope;
+using PurCWTF::CompilationScope;

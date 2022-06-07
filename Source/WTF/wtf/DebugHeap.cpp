@@ -31,7 +31,7 @@
 #include <cstdlib>
 #include <thread>
 
-namespace WTF {
+namespace PurCWTF {
 
 DebugHeap::DebugHeap(const char* heapName)
     : m_zone(malloc_create_zone(0, 0))
@@ -76,6 +76,6 @@ void DebugHeap::free(void* object)
     malloc_zone_free(m_zone, object);
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
 #endif // ENABLE(MALLOC_HEAP_BREAKDOWN)

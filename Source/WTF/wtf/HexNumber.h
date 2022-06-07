@@ -24,7 +24,7 @@
 #include <wtf/text/StringBuilder.h>
 #include <wtf/text/StringConcatenate.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 enum HexConversionMode { Lowercase, Uppercase };
 
@@ -88,7 +88,7 @@ private:
     const HexNumberBuffer& m_buffer;
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::hex;
-using WTF::Lowercase;
+using PurCWTF::hex;
+using PurCWTF::Lowercase;

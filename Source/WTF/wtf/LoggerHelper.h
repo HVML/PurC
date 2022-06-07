@@ -28,7 +28,7 @@
 #include <wtf/CryptographicallyRandomNumber.h>
 #include <wtf/Logger.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 class LoggerHelper {
 public:
@@ -41,7 +41,7 @@ public:
 
 #if !RELEASE_LOG_DISABLED
 
-#define LOGIDENTIFIER WTF::Logger::LogSiteIdentifier(logClassName(), __func__, logIdentifier())
+#define LOGIDENTIFIER PurCWTF::Logger::LogSiteIdentifier(logClassName(), __func__, logIdentifier())
 
 #if VERBOSE_RELEASE_LOG
 #define ALWAYS_LOG(...)     logger().logAlwaysVerbose(logChannel(), __FILE__, __func__, __LINE__, __VA_ARGS__)
@@ -87,7 +87,7 @@ public:
     }
 #else // RELEASE_LOG_DISABLED
 
-#define LOGIDENTIFIER (WTF::nullopt)
+#define LOGIDENTIFIER (PurCWTF::nullopt)
 
 #define ALWAYS_LOG(channelName, ...)  (UNUSED_PARAM(channelName))
 #define ERROR_LOG(channelName, ...)   (UNUSED_PARAM(channelName))
@@ -114,7 +114,7 @@ public:
 
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::LoggerHelper;
+using PurCWTF::LoggerHelper;
 

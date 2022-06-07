@@ -37,7 +37,7 @@
 struct UCharIterator;
 struct UCollator;
 
-namespace WTF {
+namespace PurCWTF {
 
 class StringView;
 
@@ -78,4 +78,4 @@ WTF_EXPORT_PRIVATE UCharIterator createIterator(StringView);
 
 }
 
-using WTF::Collator;
+using PurCWTF::Collator;

@@ -49,7 +49,7 @@
 #include <unistd.h>
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 
 /*
     PageAllocation
@@ -107,6 +107,6 @@ private:
     }
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::PageAllocation;
+using PurCWTF::PageAllocation;

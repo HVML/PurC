@@ -27,7 +27,7 @@
 
 #include <wtf/FastMalloc.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 WTF_EXPORT_PRIVATE void* tryJSValueMalloc(size_t);
 WTF_EXPORT_PRIVATE void* jsValueMalloc(size_t);
@@ -41,22 +41,22 @@ public: \
     \
     void* operator new(size_t size) \
     { \
-        return ::WTF::jsValueMalloc(size); \
+        return ::PurCWTF::jsValueMalloc(size); \
     } \
     \
     void operator delete(void* p) \
     { \
-        ::WTF::jsValueFree(p); \
+        ::PurCWTF::jsValueFree(p); \
     } \
     \
     void* operator new[](size_t size) \
     { \
-        return ::WTF::jsValueMalloc(size); \
+        return ::PurCWTF::jsValueMalloc(size); \
     } \
     \
     void operator delete[](void* p) \
     { \
-        ::WTF::jsValueFree(p); \
+        ::PurCWTF::jsValueFree(p); \
     } \
     void* operator new(size_t, NotNullTag, void* location) \
     { \
@@ -74,10 +74,10 @@ struct JSValueMalloc {
     static void free(void* p) { jsValueFree(p); }
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::JSValueMalloc;
-using WTF::jsValueMalloc;
-using WTF::jsValueRealloc;
-using WTF::jsValueFree;
-using WTF::tryJSValueMalloc;
+using PurCWTF::JSValueMalloc;
+using PurCWTF::jsValueMalloc;
+using PurCWTF::jsValueRealloc;
+using PurCWTF::jsValueFree;
+using PurCWTF::tryJSValueMalloc;

@@ -25,7 +25,7 @@
 #include <wtf/HashTable.h>
 #include <wtf/IteratorRange.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename T> struct KeyValuePairKeyExtractor {
     static const typename T::KeyType& extract(const T& p) { return p.key; }
@@ -590,6 +590,6 @@ inline bool operator!=(const HashMap<T, U, V, W, X>& a, const HashMap<T, U, V, W
     return !(a == b);
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::HashMap;
+using PurCWTF::HashMap;

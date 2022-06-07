@@ -34,7 +34,7 @@
 #include <systemd/sd-journal.h>
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename T>
 struct LogArgument {
@@ -383,7 +383,7 @@ template<> struct LogArgument<const void*> {
     WTF_EXPORT_PRIVATE static String toString(const void*);
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::Logger;
-using WTF::JSONLogValue;
+using PurCWTF::Logger;
+using PurCWTF::JSONLogValue;

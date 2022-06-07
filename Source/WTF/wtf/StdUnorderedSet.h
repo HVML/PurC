@@ -28,11 +28,11 @@
 #include <unordered_set>
 #include <wtf/FastMalloc.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename Key, typename Hash = std::hash<Key>, typename Predicate = std::equal_to<Key>, typename Allocator = FastAllocator<Key>>
 using StdUnorderedSet = std::unordered_set<Key, Hash, Predicate, Allocator>;
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::StdUnorderedSet;
+using PurCWTF::StdUnorderedSet;

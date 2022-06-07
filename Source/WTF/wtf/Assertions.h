@@ -114,7 +114,7 @@ extern "C" void _ReadWriteBarrier(void);
 /* By default MinGW emits warnings when C99 format attributes are used, even if __USE_MINGW_ANSI_STDIO is defined */
 #define WTF_ATTRIBUTE_PRINTF(formatStringArgument, extraArguments) __attribute__((__format__(gnu_printf, formatStringArgument, extraArguments)))
 #elif COMPILER(GCC_COMPATIBLE) && !defined(__OBJC__)
-/* WTF logging functions can process %@ in the format string to log a NSObject* but the printf format attribute
+/* PurCWTF logging functions can process %@ in the format string to log a NSObject* but the printf format attribute
    emits a warning when %@ is used in the format string.  Until <rdar://problem/5195437> is resolved we can't include
    the attribute when being used from Objective-C code in case it decides to use %@. */
 #define WTF_ATTRIBUTE_PRINTF(formatStringArgument, extraArguments) __attribute__((__format__(printf, formatStringArgument, extraArguments)))
@@ -123,7 +123,7 @@ extern "C" void _ReadWriteBarrier(void);
 #endif
 
 #if PLATFORM(IOS_FAMILY)
-/* For a project that uses WTF but has no config.h, we need to explicitly set the export defines here. */
+/* For a project that uses PurCWTF but has no config.h, we need to explicitly set the export defines here. */
 #ifndef WTF_EXPORT_PRIVATE
 #define WTF_EXPORT_PRIVATE
 #endif
@@ -673,7 +673,7 @@ inline void WTFCrashWithInfo(int, const char*, const char*, int)
     CRASH();
 }
 
-namespace WTF {
+namespace PurCWTF {
 inline void isIntegralOrPointerType() { }
 
 template<typename T, typename... Types>
@@ -698,7 +698,7 @@ inline void compilerFenceForCrash()
 // crashWithInfo functions below.
 #if COMPILER(CLANG) || COMPILER(MSVC)
 #define CRASH_WITH_INFO(...) do { \
-        WTF::isIntegralOrPointerType(__VA_ARGS__); \
+        PurCWTF::isIntegralOrPointerType(__VA_ARGS__); \
         compilerFenceForCrash(); \
         WTFCrashWithInfo(__LINE__, __FILE__, WTF_PRETTY_FUNCTION, __COUNTER__, ##__VA_ARGS__); \
     } while (false)

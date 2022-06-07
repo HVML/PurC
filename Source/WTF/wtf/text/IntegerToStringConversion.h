@@ -23,7 +23,7 @@
 
 #include <wtf/text/LChar.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 enum PositiveOrNegativeNumber { PositiveNumber, NegativeNumber };
 
@@ -125,4 +125,4 @@ inline unsigned lengthOfNumberAsStringUnsigned(UnsignedIntegerType number)
     return lengthOfNumberAsStringImpl<UnsignedIntegerType, PositiveNumber>(number);
 }
 
-} // namespace WTF
+} // namespace PurCWTF

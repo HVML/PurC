@@ -264,7 +264,7 @@ purc_rwstream_t pcfetcher_local_request_sync(
         uri.append(local->base_uri);
     }
     uri.append(url);
-    WTF::URL wurl(URL(), uri);
+    PurCWTF::URL wurl(URL(), uri);
     if (!wurl.isLocalFile()) {
         resp_header->ret_code = 404;
         resp_header->sz_resp = 0;

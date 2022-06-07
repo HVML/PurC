@@ -124,7 +124,7 @@ enum class SameSiteStrictEnforcementEnabled : bool { Yes, No };
 
 } // namespace PurCFetcher
 
-namespace WTF {
+namespace PurCWTF {
 
 template<> struct EnumTraits<PurCFetcher::CacheModel> {
     using values = EnumValues<
@@ -191,7 +191,7 @@ template<> struct EnumTraits<PurCFetcher::ResourceLoadPriority> {
     >;
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
 #endif /* not defined PURC_FETCHER_MESSAGES_BASIC_H */
 

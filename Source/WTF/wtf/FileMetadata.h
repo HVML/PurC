@@ -32,7 +32,7 @@
 
 #include <wtf/WallTime.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 struct FileMetadata {
     WTF_MAKE_STRUCT_FAST_ALLOCATED;
@@ -49,6 +49,6 @@ struct FileMetadata {
     Type type;
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::FileMetadata;
+using PurCWTF::FileMetadata;

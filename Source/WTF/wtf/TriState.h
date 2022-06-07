@@ -25,7 +25,7 @@
 
 #pragma once
 
-namespace WTF {
+namespace PurCWTF {
 
 enum class TriState : uint8_t {
     False,
@@ -40,5 +40,5 @@ inline TriState triState(bool boolean)
 
 }
 
-using WTF::TriState;
-using WTF::triState;
+using PurCWTF::TriState;
+using PurCWTF::triState;

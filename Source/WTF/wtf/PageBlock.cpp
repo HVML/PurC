@@ -35,7 +35,7 @@
 #include <windows.h>
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 
 static size_t s_pageSize;
 static size_t s_pageMask;
@@ -77,4 +77,4 @@ size_t pageMask()
     return s_pageMask;
 }
 
-} // namespace WTF
+} // namespace PurCWTF

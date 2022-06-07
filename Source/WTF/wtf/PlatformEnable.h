@@ -50,7 +50,7 @@
  * Keep the file sorted by the name of the defines. As an exception you can change the order
  * to allow interdependencies between the default values.
  *
- * Below are a few potential commands to take advantage of this file running from the Source/WTF directory
+ * Below are a few potential commands to take advantage of this file running from the Source/PurCWTF directory
  *
  * Get the list of feature defines: grep -o "ENABLE_\(\w\+\)" wtf/PlatformEnable.h | sort | uniq
  * Get the list of features enabled by default for a PLATFORM(XXX): gcc -E -dM -I. -DWTF_PLATFORM_XXX "wtf/Platform.h" | grep "ENABLE_\w\+ 1" | cut -d' ' -f2 | sort

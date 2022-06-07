@@ -33,7 +33,7 @@
 #include <wtf/RedBlackTree.h>
 #include <wtf/ThreadSafeRefCounted.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 class MetaAllocator;
 class PrintStream;

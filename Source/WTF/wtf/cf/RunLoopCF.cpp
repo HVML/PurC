@@ -30,7 +30,7 @@
 #include <dispatch/dispatch.h>
 #include <wtf/AutodrainedPool.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 void RunLoop::performWork(void* context)
 {
@@ -133,4 +133,4 @@ Seconds RunLoop::TimerBase::secondsUntilFire() const
     return 0_s;
 }
 
-} // namespace WTF
+} // namespace PurCWTF

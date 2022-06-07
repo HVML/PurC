@@ -30,7 +30,7 @@
 
 #import <Foundation/Foundation.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 WTF_EXPORT_PRIVATE NSString *userVisibleString(NSURL *);
 WTF_EXPORT_PRIVATE NSURL *URLWithUserTypedString(NSString *, NSURL *baseURL); // Return value of nil means error.
@@ -47,4 +47,4 @@ NSRange rangeOfURLScheme(NSString *);
 WTF_EXPORT_PRIVATE BOOL isUserVisibleURL(NSString *);
 WTF_EXPORT_PRIVATE BOOL looksLikeAbsoluteURL(NSString *);
 
-} // namespace WTF
+} // namespace PurCWTF

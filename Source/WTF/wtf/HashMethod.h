@@ -27,7 +27,7 @@
 
 #include <wtf/StdLibExtras.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename T>
 struct HashMethod {
@@ -37,6 +37,6 @@ struct HashMethod {
     }
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::HashMethod;
+using PurCWTF::HashMethod;

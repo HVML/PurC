@@ -27,7 +27,7 @@
 
 #include <wtf/PrintStream.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename T>
 struct LoggingHashKeyTraits {
@@ -49,5 +49,5 @@ struct LoggingHashValueTraits {
     }
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 

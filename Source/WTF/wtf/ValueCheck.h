@@ -27,7 +27,7 @@
 
 #include <wtf/FastMalloc.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename T> struct ValueCheck {
     typedef T TraitType;

@@ -38,7 +38,7 @@
 #include <unistd.h>
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 
 inline void initializeRandomNumberGenerator()
 {

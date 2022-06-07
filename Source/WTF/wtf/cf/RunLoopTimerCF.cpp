@@ -34,7 +34,7 @@
 
 #include <wtf/AutodrainedPool.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 RunLoopTimerBase::RunLoopTimerBase() = default;
 
@@ -89,6 +89,6 @@ bool RunLoopTimerBase::isActive() const
     return m_timer && CFRunLoopTimerIsValid(m_timer.get());
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
 #endif // PLATFORM(COCOA) && HAVE(RUNLOOP_TIMER)

@@ -26,7 +26,7 @@
 #include "config.h"
 #include <wtf/text/SymbolImpl.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 // In addition to the normal hash value, store specialized hash value for
 // symbolized StringImpl*. And don't use the normal hash value for symbolized
@@ -79,4 +79,4 @@ Ref<RegisteredSymbolImpl> RegisteredSymbolImpl::create(StringImpl& rep, SymbolRe
     return adoptRef(*new RegisteredSymbolImpl(rep.m_data16, rep.length(), *ownerRep, symbolRegistry));
 }
 
-} // namespace WTF
+} // namespace PurCWTF

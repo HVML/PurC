@@ -36,7 +36,7 @@
 #include <wtf/RefPtr.h>
 #include <wtf/StdLibExtras.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 inline const char* boolForPrinting(bool value)
 {
@@ -334,14 +334,14 @@ void printInternal(PrintStream& out, const Optional<T>& value)
         out.print("<nullopt>");
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::boolForPrinting;
-using WTF::CharacterDump;
-using WTF::PointerDump;
-using WTF::PrintStream;
-using WTF::format;
-using WTF::ignoringContext;
-using WTF::inContext;
-using WTF::pointerDump;
-using WTF::pointerDumpInContext;
+using PurCWTF::boolForPrinting;
+using PurCWTF::CharacterDump;
+using PurCWTF::PointerDump;
+using PurCWTF::PrintStream;
+using PurCWTF::format;
+using PurCWTF::ignoringContext;
+using PurCWTF::inContext;
+using PurCWTF::pointerDump;
+using PurCWTF::pointerDumpInContext;

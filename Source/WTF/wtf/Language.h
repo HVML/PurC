@@ -33,7 +33,7 @@
 #import <wtf/RetainPtr.h>
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 
 WTF_EXPORT_PRIVATE String defaultLanguage(); // Thread-safe.
 WTF_EXPORT_PRIVATE Vector<String> userPreferredLanguages(); // Thread-safe, returns BCP 47 language tags.
@@ -57,13 +57,13 @@ RetainPtr<CFArrayRef> minimizedLanguagesFromLanguages(CFArrayRef);
 
 }
 
-using WTF::defaultLanguage;
-using WTF::userPreferredLanguages;
-using WTF::userPreferredLanguagesOverride;
-using WTF::overrideUserPreferredLanguages;
-using WTF::indexOfBestMatchingLanguageInList;
-using WTF::platformUserPreferredLanguages;
-using WTF::addLanguageChangeObserver;
-using WTF::removeLanguageChangeObserver;
-using WTF::displayNameForLanguageLocale;
+using PurCWTF::defaultLanguage;
+using PurCWTF::userPreferredLanguages;
+using PurCWTF::userPreferredLanguagesOverride;
+using PurCWTF::overrideUserPreferredLanguages;
+using PurCWTF::indexOfBestMatchingLanguageInList;
+using PurCWTF::platformUserPreferredLanguages;
+using PurCWTF::addLanguageChangeObserver;
+using PurCWTF::removeLanguageChangeObserver;
+using PurCWTF::displayNameForLanguageLocale;
 

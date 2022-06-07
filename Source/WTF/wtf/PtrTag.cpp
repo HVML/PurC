@@ -28,7 +28,7 @@
 
 #include <wtf/WTFConfig.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 #if CPU(ARM64E)
 
@@ -89,4 +89,4 @@ void reportBadTag(const void* ptr, PtrTag expectedTag)
 
 #endif // CPU(ARM64E)
 
-} // namespace WTF
+} // namespace PurCWTF

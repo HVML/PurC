@@ -27,7 +27,7 @@
 
 #include <wtf/PageAllocation.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 /*
     PageReservation
@@ -142,4 +142,4 @@ private:
 
 }
 
-using WTF::PageReservation;
+using PurCWTF::PageReservation;

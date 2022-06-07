@@ -3314,7 +3314,7 @@ bool isValidMessageName(MessageName);
 
 } // namespace IPC
 
-namespace WTF {
+namespace PurCWTF {
 
 template<>
 class HasCustomIsValidEnum<IPC::MessageName> : public std::true_type { };
@@ -3325,4 +3325,4 @@ bool isValidEnum(T messageName)
     return IPC::isValidMessageName(static_cast<E>(messageName));
 };
 
-} // namespace WTF
+} // namespace PurCWTF

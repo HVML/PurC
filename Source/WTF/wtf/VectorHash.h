@@ -29,7 +29,7 @@
 #include "HashTraits.h"
 #include "Hasher.h"
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename T, size_t inlineCapacity>
 struct VectorHash {

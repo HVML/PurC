@@ -29,7 +29,7 @@
 #include <mach/mach.h>
 #include <mach/task_info.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 size_t memoryFootprint()
 {

@@ -29,7 +29,7 @@
 #include <glib-unix.h>
 #include <wtf/glib/RunLoopSourcePriority.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 GFdMonitor::~GFdMonitor()
 {
@@ -67,4 +67,4 @@ void GFdMonitor::stop()
     m_callback = nullptr;
 }
 
-} // namespace WTF
+} // namespace PurCWTF

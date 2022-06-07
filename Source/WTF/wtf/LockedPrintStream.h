@@ -29,7 +29,7 @@
 #include <wtf/RecursiveLockAdapter.h>
 #include <wtf/WordLock.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 // Makes every call to print() atomic.
 class LockedPrintStream final : public PrintStream {
@@ -51,7 +51,7 @@ private:
     std::unique_ptr<PrintStream> m_target;
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::LockedPrintStream;
+using PurCWTF::LockedPrintStream;
 

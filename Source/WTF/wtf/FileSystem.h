@@ -56,7 +56,7 @@ typedef void *HANDLE;
 typedef struct _GFileIOStream GFileIOStream;
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 
 struct FileMetadata;
 
@@ -253,6 +253,6 @@ inline MappedFileData& MappedFileData::operator=(MappedFileData&& other)
 }
 
 } // namespace FileSystemImpl
-} // namespace WTF
+} // namespace PurCWTF
 
-namespace FileSystem = WTF::FileSystemImpl;
+namespace FileSystem = PurCWTF::FileSystemImpl;

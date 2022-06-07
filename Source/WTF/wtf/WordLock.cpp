@@ -30,7 +30,7 @@
 #include <mutex>
 #include <wtf/Threading.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 namespace {
 
@@ -246,5 +246,5 @@ NEVER_INLINE void WordLock::unlockSlow()
     // The old queue head can now contend for the lock again. We're done!
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 

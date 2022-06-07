@@ -29,7 +29,7 @@
 #include <wtf/MonotonicTime.h>
 #include <wtf/PrintStream.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 MonotonicTime WallTime::approximateMonotonicTime() const
 {
@@ -41,6 +41,6 @@ void WallTime::dump(PrintStream& out) const
     out.print("Wall(", m_value, " sec)");
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
 

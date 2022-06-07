@@ -26,7 +26,7 @@
 #include "config.h"
 #include <wtf/ConcurrentPtrHashSet.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 ConcurrentPtrHashSet::ConcurrentPtrHashSet()
 {
@@ -143,5 +143,5 @@ std::unique_ptr<ConcurrentPtrHashSet::Table> ConcurrentPtrHashSet::Table::create
     return result;
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 

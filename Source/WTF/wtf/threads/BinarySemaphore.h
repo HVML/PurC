@@ -30,7 +30,7 @@
 #include <wtf/Noncopyable.h>
 #include <wtf/TimeWithDynamicClockType.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 class BinarySemaphore final {
     WTF_MAKE_NONCOPYABLE(BinarySemaphore);
@@ -57,6 +57,6 @@ private:
     Condition m_condition;
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::BinarySemaphore;
+using PurCWTF::BinarySemaphore;

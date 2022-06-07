@@ -65,7 +65,7 @@ public:
 
     bool containsNonRootSHA1SignedCertificate() const { return false; }
 
-    Optional<SummaryInfo> summaryInfo() const { return WTF::nullopt; }
+    Optional<SummaryInfo> summaryInfo() const { return PurCWTF::nullopt; }
 
     bool isEmpty() const { return !m_certificate; }
 
@@ -76,7 +76,7 @@ private:
 
 } // namespace PurCFetcher
 
-namespace WTF {
+namespace PurCWTF {
 namespace Persistence {
 
 template<> struct Coder<GRefPtr<GByteArray>> {
@@ -91,12 +91,12 @@ template<> struct Coder<GRefPtr<GByteArray>> {
         Optional<uint32_t> size;
         decoder >> size;
         if (!size)
-            return WTF::nullopt;
+            return PurCWTF::nullopt;
 
         GRefPtr<GByteArray> byteArray = adoptGRef(g_byte_array_sized_new(*size));
         g_byte_array_set_size(byteArray.get(), *size);
         if (!decoder.decodeFixedLengthData(byteArray->data, *size))
-            return WTF::nullopt;
+            return PurCWTF::nullopt;
         return byteArray;
     }
 };
@@ -157,7 +157,7 @@ template<> struct Coder<PurCFetcher::CertificateInfo> {
         Optional<Vector<GRefPtr<GByteArray>>> certificatesDataList;
         decoder >> certificatesDataList;
         if (!certificatesDataList)
-            return WTF::nullopt;
+            return PurCWTF::nullopt;
 
         PurCFetcher::CertificateInfo certificateInfo;
         if (certificatesDataList->isEmpty())
@@ -165,18 +165,18 @@ template<> struct Coder<PurCFetcher::CertificateInfo> {
 
         auto certificate = certificateFromCertificatesDataList(certificatesDataList.value());
         if (!certificate)
-            return WTF::nullopt;
+            return PurCWTF::nullopt;
         certificateInfo.setCertificate(certificate.get());
 
         Optional<uint32_t> tlsErrors;
         decoder >> tlsErrors;
         if (!tlsErrors)
-            return WTF::nullopt;
+            return PurCWTF::nullopt;
         certificateInfo.setTLSErrors(static_cast<GTlsCertificateFlags>(*tlsErrors));
 
         return certificateInfo;
     }
 };
 
-} // namespace WTF::Persistence
-} // namespace WTF
+} // namespace PurCWTF::Persistence
+} // namespace PurCWTF

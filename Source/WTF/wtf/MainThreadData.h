@@ -23,7 +23,7 @@
 #include <wtf/RunLoop.h>
 #include <wtf/StdLibExtras.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename T>
 class MainThreadData {
@@ -50,4 +50,4 @@ private:
     T m_data;
 };
 
-} // namespace WTF
+} // namespace PurCWTF

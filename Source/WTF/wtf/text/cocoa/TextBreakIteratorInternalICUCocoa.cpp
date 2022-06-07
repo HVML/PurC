@@ -25,7 +25,7 @@
 #include <wtf/RetainPtr.h>
 #include <wtf/text/TextBreakIterator.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 // Buffer sized to hold ASCII locale ID strings up to 32 characters long.
 using LocaleIDBuffer = std::array<char, 33>;

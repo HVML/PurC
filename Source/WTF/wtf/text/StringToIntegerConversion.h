@@ -31,7 +31,7 @@
 #include <wtf/ASCIICType.h>
 #include <wtf/text/UChar.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 inline bool isCharacterAllowedInBase(UChar c, int base)
 {
@@ -134,4 +134,4 @@ inline IntegralType toIntegralType(const StringOrStringView& stringView, bool* o
 
 }
 
-using WTF::toIntegralType;
+using PurCWTF::toIntegralType;

@@ -39,7 +39,7 @@
 typedef struct _GBytes GBytes;
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 namespace Persistence {
 class Decoder;
 }
@@ -132,7 +132,7 @@ public:
 
     void hintMemoryNotNeededSoon() const;
 
-    WTF::Persistence::Decoder decoder() const;
+    PurCWTF::Persistence::Decoder decoder() const;
 
     bool operator==(const SharedBuffer&) const;
     bool operator!=(const SharedBuffer& other) const { return !operator==(other); }

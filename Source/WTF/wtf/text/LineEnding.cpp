@@ -34,7 +34,7 @@
 
 #include <wtf/Vector.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 Vector<uint8_t> normalizeLineEndingsToLF(Vector<uint8_t>&& vector)
 {
@@ -109,4 +109,4 @@ Vector<uint8_t> normalizeLineEndingsToNative(Vector<uint8_t>&& from)
 #endif
 }
 
-} // namespace WTF
+} // namespace PurCWTF

@@ -32,7 +32,7 @@
 #include <wtf/SpanningTree.h>
 #include <wtf/StdLibExtras.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename Graph>
 class BackwardsGraph {
@@ -181,6 +181,6 @@ private:
     typename Graph::Set m_rootSuccessorSet;
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::BackwardsGraph;
+using PurCWTF::BackwardsGraph;

@@ -25,7 +25,7 @@
 
 #pragma once
 
-namespace WTF {
+namespace PurCWTF {
 
 // Returns a cryptographically secure pseudo-random number in the range [0, 1).
 WTF_EXPORT_PRIVATE double randomNumber();
@@ -35,5 +35,5 @@ WTF_EXPORT_PRIVATE unsigned weakRandomUint32();
 
 }
 
-using WTF::randomNumber;
-using WTF::weakRandomUint32;
+using PurCWTF::randomNumber;
+using PurCWTF::weakRandomUint32;

@@ -126,7 +126,7 @@ enum TracePointCode {
 
 #ifdef __cplusplus
 
-namespace WTF {
+namespace PurCWTF {
 
 inline void tracePoint(TracePointCode code, uint64_t data1 = 0, uint64_t data2 = 0, uint64_t data3 = 0, uint64_t data4 = 0)
 {
@@ -160,10 +160,10 @@ private:
     TracePointCode m_exitCode;
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::TraceScope;
-using WTF::tracePoint;
+using PurCWTF::TraceScope;
+using PurCWTF::tracePoint;
 
 #endif // __cplusplus
 

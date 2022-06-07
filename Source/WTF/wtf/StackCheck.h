@@ -28,7 +28,7 @@
 #include <wtf/StackBounds.h>
 #include <wtf/Threading.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 // We only enable the reserved zone size check by default on ENABLE_ASSERTS
 // builds (which usually mean Debug builds). However, it is more valuable to
@@ -111,6 +111,6 @@ private:
     friend class Scope;
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::StackCheck;
+using PurCWTF::StackCheck;

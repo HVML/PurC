@@ -27,7 +27,7 @@
 
 #include <type_traits>
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename T>
 struct FunctionTraits;
@@ -80,6 +80,6 @@ template<typename Result, typename... Args>
 struct FunctionTraits<Result(*)(Args...)> : public FunctionTraits<Result(Args...)> {
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::FunctionTraits;
+using PurCWTF::FunctionTraits;

@@ -26,8 +26,8 @@
 #include "config.h"
 #include <wtf/Bag.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 DEFINE_ALLOCATOR_WITH_HEAP_IDENTIFIER(BagNode);
 
-} // namespace WTF
+} // namespace PurCWTF

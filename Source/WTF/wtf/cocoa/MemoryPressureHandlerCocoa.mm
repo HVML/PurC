@@ -37,7 +37,7 @@
 
 extern "C" void cache_simulate_memory_warning_event(uint64_t);
 
-namespace WTF {
+namespace PurCWTF {
 
 void MemoryPressureHandler::platformReleaseMemory(Critical critical)
 {
@@ -116,7 +116,7 @@ void MemoryPressureHandler::install()
 #endif
         beginSimulatedMemoryPressure();
 
-        WTF::releaseFastMallocFreeMemory();
+        PurCWTF::releaseFastMallocFreeMemory();
         malloc_zone_pressure_relief(nullptr, 0);
 
 #if ENABLE(FMW_FOOTPRINT_COMPARISON)
@@ -204,9 +204,9 @@ Optional<MemoryPressureHandler::ReliefLogger::MemoryUsage> MemoryPressureHandler
     mach_msg_type_number_t count = TASK_VM_INFO_COUNT;
     kern_return_t err = task_info(mach_task_self(), TASK_VM_INFO, (task_info_t) &vmInfo, &count);
     if (err != KERN_SUCCESS)
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
 
     return MemoryUsage {static_cast<size_t>(vmInfo.internal), static_cast<size_t>(vmInfo.phys_footprint)};
 }
 
-} // namespace WTF
+} // namespace PurCWTF

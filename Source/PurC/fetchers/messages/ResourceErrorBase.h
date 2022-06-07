@@ -101,7 +101,7 @@ inline bool operator!=(const ResourceError& a, const ResourceError& b) { return 
 
 } // namespace PurCFetcher
 
-namespace WTF {
+namespace PurCWTF {
 
 template<> struct EnumTraits<PurCFetcher::ResourceErrorBase::Type> {
     using values = EnumValues<
@@ -114,4 +114,4 @@ template<> struct EnumTraits<PurCFetcher::ResourceErrorBase::Type> {
     >;
 };
 
-} // namespace WTF
+} // namespace PurCWTF

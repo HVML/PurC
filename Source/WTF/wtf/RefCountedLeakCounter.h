@@ -23,7 +23,7 @@
 #include <atomic>
 #include <wtf/Assertions.h>
 
-namespace WTF {
+namespace PurCWTF {
     
 struct RefCountedLeakCounter {
     WTF_EXPORT_PRIVATE static void suppressMessages(const char*);
@@ -42,4 +42,4 @@ private:
 #endif
 };
 
-}  // namespace WTF
+}  // namespace PurCWTF

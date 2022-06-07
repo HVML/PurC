@@ -28,7 +28,7 @@
 
 #include <wtf/dtoa.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 #if ENABLE(ICU)
 template<AtomString::CaseConvertType type>
@@ -162,4 +162,4 @@ void AtomString::init()
     });
 }
 
-} // namespace WTF
+} // namespace PurCWTF

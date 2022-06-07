@@ -29,7 +29,7 @@
 #include <wtf/HashMap.h>
 #include <wtf/Lock.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 namespace {
 

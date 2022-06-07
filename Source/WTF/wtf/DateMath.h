@@ -49,7 +49,7 @@
 #include <wtf/WallTime.h>
 #include <wtf/text/WTFString.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 enum TimeType {
     UTCTime = 0,
@@ -392,27 +392,27 @@ inline int dayInMonthFromDayInYear(int dayInYear, bool leapYear)
 // Returns combined offset in millisecond (UTC + DST).
 WTF_EXPORT_PRIVATE LocalTimeOffset calculateLocalTimeOffset(double utcInMilliseconds, TimeType = UTCTime);
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::isLeapYear;
-using WTF::dateToDaysFrom1970;
-using WTF::dayInMonthFromDayInYear;
-using WTF::dayInYear;
-using WTF::minutesPerHour;
-using WTF::monthFromDayInYear;
-using WTF::msPerDay;
-using WTF::msPerHour;
-using WTF::msPerMinute;
-using WTF::msPerSecond;
-using WTF::msToYear;
-using WTF::msToDays;
-using WTF::msToMinutes;
-using WTF::msToHours;
-using WTF::secondsPerDay;
-using WTF::secondsPerMinute;
-using WTF::parseDateFromNullTerminatedCharacters;
-using WTF::makeRFC2822DateString;
-using WTF::LocalTimeOffset;
-using WTF::calculateLocalTimeOffset;
-using WTF::timeClip;
-using WTF::jsCurrentTime;
+using PurCWTF::isLeapYear;
+using PurCWTF::dateToDaysFrom1970;
+using PurCWTF::dayInMonthFromDayInYear;
+using PurCWTF::dayInYear;
+using PurCWTF::minutesPerHour;
+using PurCWTF::monthFromDayInYear;
+using PurCWTF::msPerDay;
+using PurCWTF::msPerHour;
+using PurCWTF::msPerMinute;
+using PurCWTF::msPerSecond;
+using PurCWTF::msToYear;
+using PurCWTF::msToDays;
+using PurCWTF::msToMinutes;
+using PurCWTF::msToHours;
+using PurCWTF::secondsPerDay;
+using PurCWTF::secondsPerMinute;
+using PurCWTF::parseDateFromNullTerminatedCharacters;
+using PurCWTF::makeRFC2822DateString;
+using PurCWTF::LocalTimeOffset;
+using PurCWTF::calculateLocalTimeOffset;
+using PurCWTF::timeClip;
+using PurCWTF::jsCurrentTime;

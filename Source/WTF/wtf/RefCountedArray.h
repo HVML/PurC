@@ -41,7 +41,7 @@
 //    it's used for things that aren't quite POD according to the official
 //    defintion, such as JSC::Instruction.
 
-namespace WTF {
+namespace PurCWTF {
 
 DECLARE_ALLOCATOR_WITH_HEAP_IDENTIFIER(RefCountedArray);
 
@@ -282,6 +282,6 @@ private:
     typename PtrTraits::StorageType m_data { nullptr };
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::RefCountedArray;
+using PurCWTF::RefCountedArray;

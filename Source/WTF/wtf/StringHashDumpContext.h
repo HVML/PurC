@@ -31,7 +31,7 @@
 #include <wtf/StringPrintStream.h>
 #include <wtf/text/CString.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename T>
 class StringHashDumpContext {
@@ -113,6 +113,6 @@ public:
     HashMap<CString, const T*> m_backwardMap;
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::StringHashDumpContext;
+using PurCWTF::StringHashDumpContext;

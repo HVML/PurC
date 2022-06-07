@@ -33,7 +33,7 @@
 #include <wtf/text/StringView.h>
 #include <wtf/text/WTFString.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 // StringBuilder currently uses a Checked<int32_t, ConditionalCrashOnOverflow> for m_length.
 // Ideally, we would want to make StringBuilder a template with an OverflowHandler parameter, and
@@ -462,6 +462,6 @@ template<> struct IntegerToStringConversionTrait<StringBuilder> {
     static void flush(LChar* characters, unsigned length, StringBuilder* stringBuilder) { stringBuilder->appendCharacters(characters, length); }
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::StringBuilder;
+using PurCWTF::StringBuilder;

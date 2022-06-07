@@ -25,7 +25,7 @@
 
 #pragma once
 
-namespace WTF {
+namespace PurCWTF {
 
 class RawPointer {
 public:
@@ -50,6 +50,6 @@ private:
     const void* m_value;
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::RawPointer;
+using PurCWTF::RawPointer;

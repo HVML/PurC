@@ -33,7 +33,7 @@
 #include <wtf/dtoa/diy-fp.h>
 #include <wtf/dtoa/ieee.h>
 
-namespace WTF {
+namespace PurCWTF {
 namespace double_conversion {
 
 // The minimal and maximal target exponent define the range of w's binary
@@ -666,4 +666,4 @@ bool FastDtoa(double v,
 }
 
 }  // namespace double_conversion
-}  // namespace WTF
+}  // namespace PurCWTF

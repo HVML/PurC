@@ -26,8 +26,8 @@
 #include "config.h"
 #include <wtf/RefCountedArray.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 DEFINE_ALLOCATOR_WITH_HEAP_IDENTIFIER(RefCountedArray);
 
-} // namespace WTF
+} // namespace PurCWTF

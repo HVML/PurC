@@ -27,7 +27,7 @@
 
 #include <type_traits>
 
-namespace WTF {
+namespace PurCWTF {
 
 template<class Container>
 class IndexedContainerIterator {
@@ -79,4 +79,4 @@ private:
     unsigned m_index;
 };
 
-} // namespace WTF
+} // namespace PurCWTF

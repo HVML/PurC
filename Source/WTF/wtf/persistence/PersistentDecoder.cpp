@@ -28,7 +28,7 @@
 
 #include <wtf/persistence/PersistentEncoder.h>
 
-namespace WTF {
+namespace PurCWTF {
 namespace Persistence {
 
 Decoder::Decoder(const uint8_t* buffer, size_t bufferSize)

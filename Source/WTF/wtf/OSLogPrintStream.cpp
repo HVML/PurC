@@ -26,7 +26,7 @@
 #include "config.h"
 #include <wtf/OSLogPrintStream.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 #if OS(DARWIN)
 
@@ -85,5 +85,5 @@ void OSLogPrintStream::vprintf(const char* format, va_list argList)
 
 #endif
 
-} // namespace WTF
+} // namespace PurCWTF
 

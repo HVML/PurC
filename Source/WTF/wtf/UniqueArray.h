@@ -29,7 +29,7 @@
 #include <wtf/FastMalloc.h>
 #include <wtf/Vector.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 DECLARE_ALLOCATOR_WITH_HEAP_IDENTIFIER(UniqueArray);
 DECLARE_ALLOCATOR_WITH_HEAP_IDENTIFIER(UniqueArrayElement);
@@ -119,7 +119,7 @@ UniqueArray<T> makeUniqueArray(size_t size)
     return UniqueArrayMaker<std::is_trivially_destructible<T>::value, T>::make(size);
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::UniqueArray;
-using WTF::makeUniqueArray;
+using PurCWTF::UniqueArray;
+using PurCWTF::makeUniqueArray;

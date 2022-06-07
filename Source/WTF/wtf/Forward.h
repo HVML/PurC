@@ -23,7 +23,7 @@
 #include <stddef.h>
 #include <wtf/Platform.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 class AtomString;
 class AtomStringImpl;
@@ -96,39 +96,39 @@ template<class, class> class expected;
 template<class> class unexpected;
 }}} // namespace std::experimental::fundamentals_v3
 
-using WTF::AtomString;
-using WTF::AtomStringImpl;
-using WTF::BinarySemaphore;
-using WTF::CString;
-using WTF::CompletionHandler;
-using WTF::DumbPtrTraits;
-using WTF::DumbValueTraits;
-using WTF::Function;
-using WTF::FunctionDispatcher;
-using WTF::HashCountedSet;
-using WTF::HashMap;
-using WTF::HashSet;
-using WTF::Hasher;
-using WTF::LazyNeverDestroyed;
-using WTF::NeverDestroyed;
-using WTF::OptionSet;
-using WTF::Optional;
-using WTF::OrdinalNumber;
-using WTF::PrintStream;
-using WTF::Ref;
-using WTF::RefPtr;
-using WTF::SHA1;
-using WTF::String;
-using WTF::StringBuffer;
-using WTF::StringBuilder;
-using WTF::StringImpl;
-using WTF::StringView;
-using WTF::TextPosition;
-using WTF::TextStream;
-using WTF::URL;
-using WTF::UniqueRef;
-using WTF::Variant;
-using WTF::Vector;
+using PurCWTF::AtomString;
+using PurCWTF::AtomStringImpl;
+using PurCWTF::BinarySemaphore;
+using PurCWTF::CString;
+using PurCWTF::CompletionHandler;
+using PurCWTF::DumbPtrTraits;
+using PurCWTF::DumbValueTraits;
+using PurCWTF::Function;
+using PurCWTF::FunctionDispatcher;
+using PurCWTF::HashCountedSet;
+using PurCWTF::HashMap;
+using PurCWTF::HashSet;
+using PurCWTF::Hasher;
+using PurCWTF::LazyNeverDestroyed;
+using PurCWTF::NeverDestroyed;
+using PurCWTF::OptionSet;
+using PurCWTF::Optional;
+using PurCWTF::OrdinalNumber;
+using PurCWTF::PrintStream;
+using PurCWTF::Ref;
+using PurCWTF::RefPtr;
+using PurCWTF::SHA1;
+using PurCWTF::String;
+using PurCWTF::StringBuffer;
+using PurCWTF::StringBuilder;
+using PurCWTF::StringImpl;
+using PurCWTF::StringView;
+using PurCWTF::TextPosition;
+using PurCWTF::TextStream;
+using PurCWTF::URL;
+using PurCWTF::UniqueRef;
+using PurCWTF::Variant;
+using PurCWTF::Vector;
 
 template<class T, class E> using Expected = std::experimental::expected<T, E>;
 template<class E> using Unexpected = std::experimental::unexpected<E>;

@@ -26,7 +26,7 @@
 #include "config.h"
 #include <wtf/FilePrintStream.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 FilePrintStream::FilePrintStream(FILE* file, AdoptionMode adoptionMode)
     : m_file(file)
@@ -60,5 +60,5 @@ void FilePrintStream::flush()
     fflush(m_file);
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 

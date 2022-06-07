@@ -29,7 +29,7 @@
 #include "config.h"
 #include <wtf/SchedulePair.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 bool SchedulePair::operator==(const SchedulePair& other) const
 {

@@ -30,7 +30,7 @@
 #include <glib.h>
 #include <glib-object.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 enum GRefPtrAdoptType { GRefPtrAdopt };
 template <typename T> inline T* refGPtr(T*);
@@ -271,10 +271,10 @@ template<typename P> struct HashTraits<GRefPtr<P>> : SimpleClassHashTraits<GRefP
     }
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::GRefPtr;
-using WTF::adoptGRef;
+using PurCWTF::GRefPtr;
+using PurCWTF::adoptGRef;
 
 #endif // USE(GLIB)
 

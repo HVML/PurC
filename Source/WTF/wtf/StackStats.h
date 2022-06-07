@@ -42,7 +42,7 @@
 #define ENABLE_STACK_STATS 0
 
 
-namespace WTF {
+namespace PurCWTF {
 
 #if !ENABLE(STACK_STATS) 
 
@@ -141,6 +141,6 @@ private:
 
 #endif // ENABLE(STACK_STATS) 
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::StackStats;
+using PurCWTF::StackStats;

@@ -28,7 +28,7 @@
 
 #include <wtf/Threading.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename, typename> class WeakHashSet;
 template<typename, typename> class WeakPtrFactory;
@@ -277,10 +277,10 @@ template<typename T, typename U, typename Counter> inline bool operator!=(T* a, 
     return a != b.get();
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::CanMakeWeakPtr;
-using WTF::WeakPtr;
-using WTF::WeakPtrFactory;
-using WTF::WeakPtrFactoryInitialization;
-using WTF::makeWeakPtr;
+using PurCWTF::CanMakeWeakPtr;
+using PurCWTF::WeakPtr;
+using PurCWTF::WeakPtrFactory;
+using PurCWTF::WeakPtrFactoryInitialization;
+using PurCWTF::makeWeakPtr;

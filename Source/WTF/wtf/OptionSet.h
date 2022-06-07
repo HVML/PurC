@@ -33,7 +33,7 @@
 #include <wtf/MathExtras.h>
 #include <wtf/Optional.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 // Detecting in C++ whether a type is defined, part 3: SFINAE and incomplete types
 // <https://devblogs.microsoft.com/oldnewthing/20190710-00/?p=102678>
@@ -208,7 +208,7 @@ public:
 
     constexpr Optional<E> toSingleValue() const
     {
-        return hasExactlyOneBitSet() ? Optional<E>(static_cast<E>(m_storage)) : WTF::nullopt;
+        return hasExactlyOneBitSet() ? Optional<E>(static_cast<E>(m_storage)) : PurCWTF::nullopt;
     }
 
     constexpr friend bool operator==(OptionSet lhs, OptionSet rhs)
@@ -257,6 +257,6 @@ WARN_UNUSED_RETURN constexpr bool isValidOptionSet(OptionSet<E> optionSet)
     return (optionSet.toRaw() | allValidBitsValue) == allValidBitsValue;
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::OptionSet;
+using PurCWTF::OptionSet;

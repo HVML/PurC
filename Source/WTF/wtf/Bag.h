@@ -30,7 +30,7 @@
 #include <wtf/Noncopyable.h>
 #include <wtf/Packed.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 DECLARE_ALLOCATOR_WITH_HEAP_IDENTIFIER(BagNode);
 template<typename T, typename PassedPtrTraits = DumbPtrTraits<T>>
@@ -121,7 +121,7 @@ public:
         }
 
     private:
-        template<typename, typename> friend class WTF::Bag;
+        template<typename, typename> friend class PurCWTF::Bag;
         Node* m_node;
     };
     
@@ -153,7 +153,7 @@ private:
 template<typename T>
 using PackedBag = Bag<T, PackedPtrTraits<T>>;
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::Bag;
-using WTF::PackedBag;
+using PurCWTF::Bag;
+using PurCWTF::PackedBag;

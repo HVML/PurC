@@ -241,8 +241,8 @@ bool NetworkLoadMetrics::decode(Decoder& decoder, NetworkLoadMetrics& metrics)
 
 } // namespace PurCFetcher
 
-// NetworkLoadMetrics should not be stored by the WTF::Persistence::Decoder.
-namespace WTF {
+// NetworkLoadMetrics should not be stored by the PurCWTF::Persistence::Decoder.
+namespace PurCWTF {
 namespace Persistence {
 
 template<> struct Coder<Optional<PurCFetcher::NetworkLoadPriority>> {
@@ -258,4 +258,4 @@ template<> struct Coder<Optional<PurCFetcher::NetworkLoadPriority>> {
     }
 };
 
-}} // namespace WTF::Persistence
+}} // namespace PurCWTF::Persistence

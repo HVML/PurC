@@ -31,7 +31,7 @@
 #include <wtf/Assertions.h>
 #include <wtf/PageBlock.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 void* OSAllocator::reserveUncommitted(size_t bytes, Usage usage, bool writable, bool executable, bool includesGuardPages)
 {
@@ -179,4 +179,4 @@ void OSAllocator::releaseDecommitted(void* address, size_t bytes)
         CRASH();
 }
 
-} // namespace WTF
+} // namespace PurCWTF

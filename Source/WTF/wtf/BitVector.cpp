@@ -31,7 +31,7 @@
 #include <wtf/Assertions.h>
 #include <wtf/MathExtras.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 
 DECLARE_ALLOCATOR_WITH_HEAP_IDENTIFIER(BitVector);
@@ -269,4 +269,4 @@ void BitVector::dump(PrintStream& out) const
     }
 }
 
-} // namespace WTF
+} // namespace PurCWTF

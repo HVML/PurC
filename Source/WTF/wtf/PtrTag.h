@@ -28,7 +28,7 @@
 #include <wtf/Assertions.h>
 #include <wtf/DataLog.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 #define FOR_EACH_BASE_WTF_PTRTAG(v) \
     v(NoPtrTag) \
@@ -63,7 +63,7 @@ constexpr uintptr_t makePtrTagHash(const char (&str)[N])
     return result & 0xffff;
 }
 
-#define WTF_PTRTAG_HASH(tag) WTF::makePtrTagHash(#tag)
+#define WTF_PTRTAG_HASH(tag) PurCWTF::makePtrTagHash(#tag)
 #endif // not CPU(ARM64E)
 
 #define WTF_DECLARE_PTRTAG(tag) \
@@ -126,7 +126,7 @@ constexpr bool enablePtrTagDebugAssert = false;
 #define WTF_PTRTAG_ASSERT(action, ptr, expectedTag, assertion) \
     do { \
         if (action == PtrTagAction::ReleaseAssert \
-            || (WTF::enablePtrTagDebugAssert && action == PtrTagAction::DebugAssert)) { \
+            || (PurCWTF::enablePtrTagDebugAssert && action == PtrTagAction::DebugAssert)) { \
             bool passed = (assertion); \
             REPORT_BAD_TAG(passed, ptr, expectedTag); \
             RELEASE_ASSERT(passed && #assertion); \
@@ -594,36 +594,36 @@ inline bool usesPointerTagging() { return false; }
 
 #endif // CPU(ARM64E)
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::CFunctionPtrTag;
-using WTF::NoPtrTag;
-using WTF::PlatformRegistersLRPtrTag;
-using WTF::PlatformRegistersPCPtrTag;
-using WTF::PtrTag;
+using PurCWTF::CFunctionPtrTag;
+using PurCWTF::NoPtrTag;
+using PurCWTF::PlatformRegistersLRPtrTag;
+using PurCWTF::PlatformRegistersPCPtrTag;
+using PurCWTF::PtrTag;
 
-using WTF::reportBadTag;
+using PurCWTF::reportBadTag;
 
-using WTF::tagArrayPtr;
-using WTF::untagArrayPtr;
-using WTF::retagArrayPtr;
-using WTF::removeArrayPtrTag;
+using PurCWTF::tagArrayPtr;
+using PurCWTF::untagArrayPtr;
+using PurCWTF::retagArrayPtr;
+using PurCWTF::removeArrayPtrTag;
 
-using WTF::tagCodePtr;
-using WTF::untagCodePtr;
-using WTF::retagCodePtr;
-using WTF::removeCodePtrTag;
-using WTF::tagCFunction;
-using WTF::tagCFunctionPtr;
-using WTF::untagCFunctionPtr;
-using WTF::tagInt;
+using PurCWTF::tagCodePtr;
+using PurCWTF::untagCodePtr;
+using PurCWTF::retagCodePtr;
+using PurCWTF::removeCodePtrTag;
+using PurCWTF::tagCFunction;
+using PurCWTF::tagCFunctionPtr;
+using PurCWTF::untagCFunctionPtr;
+using PurCWTF::tagInt;
 
-using WTF::assertIsCFunctionPtr;
-using WTF::assertIsNullOrCFunctionPtr;
-using WTF::assertIsNotTagged;
-using WTF::assertIsTagged;
-using WTF::assertIsNullOrTagged;
-using WTF::isTaggedWith;
-using WTF::assertIsTaggedWith;
-using WTF::assertIsNullOrTaggedWith;
-using WTF::usesPointerTagging;
+using PurCWTF::assertIsCFunctionPtr;
+using PurCWTF::assertIsNullOrCFunctionPtr;
+using PurCWTF::assertIsNotTagged;
+using PurCWTF::assertIsTagged;
+using PurCWTF::assertIsNullOrTagged;
+using PurCWTF::isTaggedWith;
+using PurCWTF::assertIsTaggedWith;
+using PurCWTF::assertIsNullOrTaggedWith;
+using PurCWTF::usesPointerTagging;

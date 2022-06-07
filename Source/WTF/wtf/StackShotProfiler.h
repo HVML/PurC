@@ -34,7 +34,7 @@
 #include <wtf/Threading.h>
 #include <wtf/WordLock.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 class StackShotProfiler {
     WTF_MAKE_FAST_ALLOCATED;
@@ -88,5 +88,5 @@ private:
     stackShotProfiler->profile(); \
 } while (false)
 
-} // namespace WTF
+} // namespace PurCWTF
 

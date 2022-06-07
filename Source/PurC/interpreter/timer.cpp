@@ -60,7 +60,7 @@ static void cancel_timer(void *ctxt)
     pcintr_timer_stop(timer);
 }
 
-class PurcTimer : public WTF::RunLoop::TimerBase {
+class PurcTimer : public PurCWTF::RunLoop::TimerBase {
     public:
         PurcTimer(bool for_yielded, const char* id, pcintr_timer_fire_func func,
                 RunLoop& runLoop)
@@ -217,7 +217,7 @@ pcintr_timer_start(pcintr_timer_t timer)
     if (timer) {
         PurcTimer* tm = (PurcTimer*)timer;
         tm->startRepeating(
-                WTF::Seconds::fromMilliseconds(tm->getInterval()));
+                PurCWTF::Seconds::fromMilliseconds(tm->getInterval()));
     }
 }
 
@@ -227,7 +227,7 @@ pcintr_timer_start_oneshot(pcintr_timer_t timer)
     if (timer) {
         PurcTimer* tm = (PurcTimer*)timer;
         tm->startOneShot(
-                WTF::Seconds::fromMilliseconds(tm->getInterval()));
+                PurCWTF::Seconds::fromMilliseconds(tm->getInterval()));
     }
 }
 

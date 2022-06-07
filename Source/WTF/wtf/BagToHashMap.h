@@ -28,7 +28,7 @@
 #include <wtf/Bag.h>
 #include <wtf/HashMap.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename ElementType, typename BagPtrTraits, typename KeyType, typename HashArg, typename KeyGetterFunctor>
 void toHashMap(Bag<ElementType, BagPtrTraits>& bag, KeyGetterFunctor& getKey, HashMap<KeyType, ElementType*, HashArg>& result)
@@ -40,6 +40,6 @@ void toHashMap(Bag<ElementType, BagPtrTraits>& bag, KeyGetterFunctor& getKey, Ha
     }
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::toHashMap;
+using PurCWTF::toHashMap;

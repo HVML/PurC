@@ -24,7 +24,7 @@
 
 #pragma once
 
-namespace WTF {
+namespace PurCWTF {
 
 // An abstract number of element in a sequence. The sequence has a first element.
 // This type should be used instead of integer because 2 contradicting traditions can
@@ -52,4 +52,4 @@ private:
 
 }
 
-using WTF::OrdinalNumber;
+using PurCWTF::OrdinalNumber;

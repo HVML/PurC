@@ -30,7 +30,7 @@
 #include <wtf/Noncopyable.h>
 #include <wtf/SentinelLinkedList.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 // This is a collection that is meant to be used for building up lists in a certain order. It's
 // not an efficient data structure for storing lists, but if you need to build a list by doing
@@ -135,6 +135,6 @@ private:
     SentinelLinkedList<Node> m_list;
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::OrderMaker;
+using PurCWTF::OrderMaker;

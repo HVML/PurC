@@ -38,7 +38,7 @@
 #include <wtf/Noncopyable.h>
 #include <wtf/text/UChar.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 DECLARE_ALLOCATOR_WITH_HEAP_IDENTIFIER(StringBuffer);
 
@@ -91,6 +91,6 @@ private:
     CharType* m_data;
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::StringBuffer;
+using PurCWTF::StringBuffer;

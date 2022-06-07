@@ -39,8 +39,8 @@ struct SecurityOriginData {
         , port(port)
     {
     }
-    SecurityOriginData(WTF::HashTableDeletedValueType)
-        : protocol(WTF::HashTableDeletedValue)
+    SecurityOriginData(PurCWTF::HashTableDeletedValueType)
+        : protocol(PurCWTF::HashTableDeletedValue)
     {
     }
 
@@ -74,7 +74,7 @@ struct SecurityOriginData {
 
     bool isEmpty() const
     {
-        return protocol.isNull() && host.isNull() && port == WTF::nullopt;
+        return protocol.isNull() && host.isNull() && port == PurCWTF::nullopt;
     }
     
     bool isHashTableDeletedValue() const
@@ -106,26 +106,26 @@ Optional<SecurityOriginData> SecurityOriginData::decode(Decoder& decoder)
     Optional<String> protocol;
     decoder >> protocol;
     if (!protocol)
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
     
     Optional<String> host;
     decoder >> host;
     if (!host)
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
     
     Optional<Optional<uint16_t>> port;
     decoder >> port;
     if (!port)
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
     
     SecurityOriginData data { WTFMove(*protocol), WTFMove(*host), WTFMove(*port) };
     if (data.isHashTableDeletedValue())
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
 
     return data;
 }
 
-struct SecurityOriginDataHashTraits : WTF::SimpleClassHashTraits<SecurityOriginData> {
+struct SecurityOriginDataHashTraits : PurCWTF::SimpleClassHashTraits<SecurityOriginData> {
     static const bool hasIsEmptyValueFunction = true;
     static const bool emptyValueIsZero = false;
     static bool isEmptyValue(const SecurityOriginData& data) { return data.isEmpty(); }
@@ -147,11 +147,11 @@ struct SecurityOriginDataHash {
 
 } // namespace PurCFetcher
 
-namespace WTF {
+namespace PurCWTF {
 
 template<> struct HashTraits<PurCFetcher::SecurityOriginData> : PurCFetcher::SecurityOriginDataHashTraits { };
 template<> struct DefaultHash<PurCFetcher::SecurityOriginData> {
     typedef PurCFetcher::SecurityOriginDataHash Hash;
 };
 
-} // namespace WTF
+} // namespace PurCWTF

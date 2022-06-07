@@ -38,7 +38,7 @@
 #include <wtf/text/win/WCharStringExtras.h>
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 
 // Declarations of string operations
 
@@ -274,7 +274,7 @@ public:
     static String createUninitialized(unsigned length, UChar*& data) { return StringImpl::createUninitialized(length, data); }
     static String createUninitialized(unsigned length, LChar*& data) { return StringImpl::createUninitialized(length, data); }
 
-    using SplitFunctor = WTF::Function<void(const StringView&)>;
+    using SplitFunctor = PurCWTF::Function<void(const StringView&)>;
 
     WTF_EXPORT_PRIVATE void split(UChar separator, const SplitFunctor&) const;
     WTF_EXPORT_PRIVATE Vector<String> split(UChar separator) const;
@@ -370,7 +370,7 @@ public:
     template<bool isSpecialCharacter(UChar)> bool isAllSpecialCharacters() const { return !m_impl || m_impl->isAllSpecialCharacters<isSpecialCharacter>(); }
 
     // Hash table deleted values, which are only constructed and never copied or destroyed.
-    String(WTF::HashTableDeletedValueType) : m_impl(WTF::HashTableDeletedValue) { }
+    String(PurCWTF::HashTableDeletedValueType) : m_impl(PurCWTF::HashTableDeletedValue) { }
     bool isHashTableDeletedValue() const { return m_impl.isHashTableDeletedValue(); }
 
     unsigned hash() const { return isNull() ? 0 : impl()->hash(); }
@@ -670,29 +670,29 @@ inline String operator"" _str(const char* characters, size_t)
 
 } // inline StringLiterals
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::KeepTrailingZeros;
-using WTF::String;
-using WTF::appendNumber;
-using WTF::charactersToDouble;
-using WTF::charactersToFloat;
-using WTF::charactersToInt64;
-using WTF::charactersToInt64Strict;
-using WTF::charactersToInt;
-using WTF::charactersToIntPtr;
-using WTF::charactersToIntPtrStrict;
-using WTF::charactersToIntStrict;
-using WTF::charactersToUInt64;
-using WTF::charactersToUInt64Strict;
-using WTF::charactersToUInt;
-using WTF::charactersToUIntStrict;
-using WTF::emptyString;
-using WTF::nullString;
-using WTF::equal;
-using WTF::find;
-using WTF::isAllSpecialCharacters;
-using WTF::isSpaceOrNewline;
-using WTF::reverseFind;
+using PurCWTF::KeepTrailingZeros;
+using PurCWTF::String;
+using PurCWTF::appendNumber;
+using PurCWTF::charactersToDouble;
+using PurCWTF::charactersToFloat;
+using PurCWTF::charactersToInt64;
+using PurCWTF::charactersToInt64Strict;
+using PurCWTF::charactersToInt;
+using PurCWTF::charactersToIntPtr;
+using PurCWTF::charactersToIntPtrStrict;
+using PurCWTF::charactersToIntStrict;
+using PurCWTF::charactersToUInt64;
+using PurCWTF::charactersToUInt64Strict;
+using PurCWTF::charactersToUInt;
+using PurCWTF::charactersToUIntStrict;
+using PurCWTF::emptyString;
+using PurCWTF::nullString;
+using PurCWTF::equal;
+using PurCWTF::find;
+using PurCWTF::isAllSpecialCharacters;
+using PurCWTF::isSpaceOrNewline;
+using PurCWTF::reverseFind;
 
 #include <wtf/text/AtomString.h>

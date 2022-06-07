@@ -90,7 +90,7 @@ public:
         std::underlying_type_t<E> value;
         if (!decode(value))
             return false;
-        if (!WTF::isValidEnum<E>(value))
+        if (!PurCWTF::isValidEnum<E>(value))
             return false;
 
         enumValue = static_cast<E>(value);
@@ -102,7 +102,7 @@ public:
     {
         Optional<std::underlying_type_t<E>> value;
         *this >> value;
-        if (value && WTF::isValidEnum<E>(*value))
+        if (value && PurCWTF::isValidEnum<E>(*value))
             optional = static_cast<E>(*value);
         return *this;
     }
@@ -150,7 +150,7 @@ public:
             optional = WTFMove(t);
             return *this;
         }
-        optional = WTF::nullopt;
+        optional = PurCWTF::nullopt;
         return *this;
     }
 

@@ -34,7 +34,7 @@
 #include <wtf/UnalignedAccess.h>
 #include <wtf/text/UChar.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename CharacterType> inline bool isLatin1(CharacterType character)
 {
@@ -569,8 +569,8 @@ size_t findCommon(const StringClass& haystack, const StringClass& needle, unsign
 
     if (needleLength == 1) {
         if (haystack.is8Bit())
-            return WTF::find(haystack.characters8(), haystack.length(), needle[0], start);
-        return WTF::find(haystack.characters16(), haystack.length(), needle[0], start);
+            return PurCWTF::find(haystack.characters8(), haystack.length(), needle[0], start);
+        return PurCWTF::find(haystack.characters16(), haystack.length(), needle[0], start);
     }
 
     if (start > haystack.length())
@@ -674,6 +674,6 @@ template<unsigned lowercaseLettersLength> inline bool equalLettersIgnoringASCIIC
 
 }
 
-using WTF::equalIgnoringASCIICase;
-using WTF::equalLettersIgnoringASCIICase;
-using WTF::isLatin1;
+using PurCWTF::equalIgnoringASCIICase;
+using PurCWTF::equalLettersIgnoringASCIICase;
+using PurCWTF::isLatin1;

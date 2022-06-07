@@ -31,7 +31,7 @@
 #include <wtf/StdLibExtras.h>
 #include <wtf/ThreadSafeRefCounted.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 class CrossThreadTask {
     WTF_MAKE_FAST_ALLOCATED;
@@ -101,7 +101,7 @@ CrossThreadTask createCrossThreadTask(T& callee, void (T::*method)(Parameters...
     });
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::CrossThreadTask;
-using WTF::createCrossThreadTask;
+using PurCWTF::CrossThreadTask;
+using PurCWTF::createCrossThreadTask;

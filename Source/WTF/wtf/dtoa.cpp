@@ -21,7 +21,7 @@
 #include "config.h"
 #include <wtf/dtoa.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 const char* numberToString(float number, NumberToStringBuffer& buffer)
 {
@@ -131,4 +131,4 @@ double parseDoubleFromLongString(const UChar* string, size_t length, size_t& par
 
 } // namespace Internal
 
-} // namespace WTF
+} // namespace PurCWTF

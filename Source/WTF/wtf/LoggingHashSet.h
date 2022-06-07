@@ -30,7 +30,7 @@
 #include <wtf/LoggingHashID.h>
 #include <wtf/LoggingHashTraits.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 template<
     const char* typeArguments,
@@ -44,7 +44,7 @@ class LoggingHashSet final {
     typedef typename ValueTraits::TakeType TakeType;
     
 public:
-    typedef WTF::HashSet<ValueArg, HashArg, TraitsArg> HashSet;
+    typedef PurCWTF::HashSet<ValueArg, HashArg, TraitsArg> HashSet;
     
     typedef typename HashSet::ValueType ValueType;
     typedef typename HashSet::iterator iterator;
@@ -246,6 +246,6 @@ private:
     LoggingHashID m_id;
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::LoggingHashSet;
+using PurCWTF::LoggingHashSet;

@@ -27,7 +27,7 @@
 
 #include <wtf/HashSet.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename Node, typename Set = HashSet<Node>>
 class GraphNodeWorklist {
@@ -216,11 +216,11 @@ private:
     ExtendedGraphNodeWorklist<Node, GraphVisitOrder, Set> m_worklist;
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::GraphNodeWorklist;
-using WTF::GraphNodeWith;
-using WTF::ExtendedGraphNodeWorklist;
-using WTF::GraphVisitOrder;
-using WTF::GraphNodeWithOrder;
-using WTF::PostOrderGraphNodeWorklist;
+using PurCWTF::GraphNodeWorklist;
+using PurCWTF::GraphNodeWith;
+using PurCWTF::ExtendedGraphNodeWorklist;
+using PurCWTF::GraphVisitOrder;
+using PurCWTF::GraphNodeWithOrder;
+using PurCWTF::PostOrderGraphNodeWorklist;

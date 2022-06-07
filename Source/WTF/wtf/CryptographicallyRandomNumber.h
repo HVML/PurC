@@ -27,12 +27,12 @@
 
 #include <stdint.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 WTF_EXPORT_PRIVATE uint32_t cryptographicallyRandomNumber();
 WTF_EXPORT_PRIVATE void cryptographicallyRandomValues(void* buffer, size_t length);
 
 }
 
-using WTF::cryptographicallyRandomNumber;
-using WTF::cryptographicallyRandomValues;
+using PurCWTF::cryptographicallyRandomNumber;
+using PurCWTF::cryptographicallyRandomValues;

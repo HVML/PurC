@@ -25,13 +25,13 @@
 
 #pragma once
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename T> inline bool arePointingToEqualData(const T& a, const T& b)
 { 
     return a == b || (a && b && *a == *b);
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::arePointingToEqualData;
+using PurCWTF::arePointingToEqualData;

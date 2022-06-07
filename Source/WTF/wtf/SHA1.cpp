@@ -35,7 +35,7 @@
 #include <wtf/Assertions.h>
 #include <wtf/text/CString.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 #if PLATFORM(COCOA)
 
@@ -221,4 +221,4 @@ CString SHA1::computeHexDigest()
     return hexDigest(digest);
 }
 
-} // namespace WTF
+} // namespace PurCWTF

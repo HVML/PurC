@@ -35,7 +35,7 @@
 #endif
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 
 #if ENABLE(MALLOC_HEAP_BREAKDOWN)
 
@@ -57,7 +57,7 @@ private:
 
 #define DECLARE_ALLOCATOR_WITH_HEAP_IDENTIFIER(Type) \
     struct Type##Malloc { \
-        static WTF_EXPORT_PRIVATE WTF::DebugHeap& debugHeap(); \
+        static WTF_EXPORT_PRIVATE PurCWTF::DebugHeap& debugHeap(); \
 \
         static void* malloc(size_t size) { return debugHeap().malloc(size); } \
 \
@@ -75,9 +75,9 @@ private:
     }
 
 #define DEFINE_ALLOCATOR_WITH_HEAP_IDENTIFIER(Type) \
-    WTF::DebugHeap& Type##Malloc::debugHeap() \
+    PurCWTF::DebugHeap& Type##Malloc::debugHeap() \
     { \
-        static LazyNeverDestroyed<WTF::DebugHeap> heap; \
+        static LazyNeverDestroyed<PurCWTF::DebugHeap> heap; \
         static std::once_flag onceKey; \
         std::call_once(onceKey, [&] { \
             heap.construct(#Type); \
@@ -96,4 +96,4 @@ private:
 
 #endif
 
-} // namespace WTF
+} // namespace PurCWTF

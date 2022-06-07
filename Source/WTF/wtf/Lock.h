@@ -33,7 +33,7 @@ namespace TestxGUIAPI {
 struct LockInspector;
 }
 
-namespace WTF {
+namespace PurCWTF {
 
 typedef LockAlgorithm<uint8_t, 1, 2> DefaultLockAlgorithm;
 
@@ -133,7 +133,7 @@ private:
 
 using LockHolder = Locker<Lock>;
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::Lock;
-using WTF::LockHolder;
+using PurCWTF::Lock;
+using PurCWTF::LockHolder;

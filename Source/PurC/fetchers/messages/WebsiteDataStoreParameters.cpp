@@ -53,61 +53,61 @@ Optional<WebsiteDataStoreParameters> WebsiteDataStoreParameters::decode(IPC::Dec
     Optional<NetworkSessionCreationParameters> networkSessionParameters;
     decoder >> networkSessionParameters;
     if (!networkSessionParameters)
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
     parameters.networkSessionParameters = WTFMove(*networkSessionParameters);
 
     Optional<Vector<uint8_t>> uiProcessCookieStorageIdentifier;
     decoder >> uiProcessCookieStorageIdentifier;
     if (!uiProcessCookieStorageIdentifier)
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
     parameters.uiProcessCookieStorageIdentifier = WTFMove(*uiProcessCookieStorageIdentifier);
 
     Optional<SandboxExtension::Handle> cookieStoragePathExtensionHandle;
     decoder >> cookieStoragePathExtensionHandle;
     if (!cookieStoragePathExtensionHandle)
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
     parameters.cookieStoragePathExtensionHandle = WTFMove(*cookieStoragePathExtensionHandle);
 
     Optional<Vector<PurCFetcher::Cookie>> pendingCookies;
     decoder >> pendingCookies;
     if (!pendingCookies)
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
     parameters.pendingCookies = WTFMove(*pendingCookies);
 
     Optional<String> localStorageDirectory;
     decoder >> localStorageDirectory;
     if (!localStorageDirectory)
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
     parameters.localStorageDirectory = WTFMove(*localStorageDirectory);
 
     Optional<SandboxExtension::Handle> localStorageDirectoryExtensionHandle;
     decoder >> localStorageDirectoryExtensionHandle;
     if (!localStorageDirectoryExtensionHandle)
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
     parameters.localStorageDirectoryExtensionHandle = WTFMove(*localStorageDirectoryExtensionHandle);
 
     Optional<String> cacheStorageDirectory;
     decoder >> cacheStorageDirectory;
     if (!cacheStorageDirectory)
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
     parameters.cacheStorageDirectory = WTFMove(*cacheStorageDirectory);
 
     Optional<SandboxExtension::Handle> cacheStorageDirectoryExtensionHandle;
     decoder >> cacheStorageDirectoryExtensionHandle;
     if (!cacheStorageDirectoryExtensionHandle)
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
     parameters.cacheStorageDirectoryExtensionHandle = WTFMove(*cacheStorageDirectoryExtensionHandle);
 
     Optional<uint64_t> perOriginStorageQuota;
     decoder >> perOriginStorageQuota;
     if (!perOriginStorageQuota)
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
     parameters.perOriginStorageQuota = *perOriginStorageQuota;
 
     Optional<uint64_t> perThirdPartyOriginStorageQuota;
     decoder >> perThirdPartyOriginStorageQuota;
     if (!perThirdPartyOriginStorageQuota)
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
     parameters.perThirdPartyOriginStorageQuota = *perThirdPartyOriginStorageQuota;
 
     return parameters;

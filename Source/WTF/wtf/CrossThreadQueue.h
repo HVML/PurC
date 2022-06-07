@@ -33,7 +33,7 @@
 #include <wtf/Noncopyable.h>
 #include <wtf/Optional.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename DataType>
 class CrossThreadQueue final {
@@ -117,6 +117,6 @@ bool CrossThreadQueue<DataType>::isEmpty() const
     return m_queue.isEmpty();
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::CrossThreadQueue;
+using PurCWTF::CrossThreadQueue;

@@ -26,7 +26,7 @@
 #include "config.h"
 #include <wtf/CryptographicUtilities.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 // FIXME: Use platform APIs where available. See <rdar://problem/12685603> for Mac/iOS.
 NEVER_INLINE int constantTimeMemcmp(const void* voidA, const void* voidB, size_t length)

@@ -36,7 +36,7 @@
 #import <wtf/Vector.h>
 #import <wtf/cf/CFURLExtras.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 using namespace URLHelpers;
 

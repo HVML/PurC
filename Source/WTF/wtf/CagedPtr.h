@@ -31,7 +31,7 @@
 
 #include <climits>
 
-namespace WTF {
+namespace PurCWTF {
 
 constexpr bool tagCagedPtr = true;
 
@@ -147,8 +147,8 @@ protected:
     typename PtrTraits::StorageType m_ptr;
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::CagedPtr;
-using WTF::tagCagedPtr;
+using PurCWTF::CagedPtr;
+using PurCWTF::tagCagedPtr;
 

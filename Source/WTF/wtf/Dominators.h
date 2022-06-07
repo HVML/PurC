@@ -30,7 +30,7 @@
 #include <wtf/GraphNodeWorklist.h>
 #include <wtf/Vector.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 // This is a utility for finding the dominators of a graph. Dominators are almost universally used
 // for control flow graph analysis, so this code will refer to the graph's "nodes" as "blocks". In
@@ -663,7 +663,7 @@ private:
             dataLog(dominators);
             dataLog("\n");
             dataLog("Naive Dominators:\n");
-            naiveDominators.dump(WTF::dataFile());
+            naiveDominators.dump(PurCWTF::dataFile());
             dataLog("\n");
             dataLog("Graph at time of failure:\n");
             dataLog(graph);
@@ -756,6 +756,6 @@ private:
     typename Graph::template Map<BlockData> m_data;
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::Dominators;
+using PurCWTF::Dominators;

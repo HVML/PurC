@@ -37,7 +37,7 @@
 #include <CommonCrypto/CommonDigest.h>
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 
 class MD5 {
     WTF_MAKE_FAST_ALLOCATED;
@@ -69,6 +69,6 @@ private:
 #endif
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::MD5;
+using PurCWTF::MD5;

@@ -39,7 +39,7 @@
 #include <wtf/RunLoop.h>
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 
 class WorkQueue final : public FunctionDispatcher {
 
@@ -62,7 +62,7 @@ public:
     WTF_EXPORT_PRIVATE void dispatch(Function<void()>&&) final;
     WTF_EXPORT_PRIVATE void dispatchAfter(Seconds, Function<void()>&&);
 
-    WTF_EXPORT_PRIVATE static void concurrentApply(size_t iterations, WTF::Function<void(size_t index)>&&);
+    WTF_EXPORT_PRIVATE static void concurrentApply(size_t iterations, PurCWTF::Function<void(size_t index)>&&);
 
 #if USE(COCOA_EVENT_LOOP)
     dispatch_queue_t dispatchQueue() const { return m_dispatchQueue; }
@@ -87,4 +87,4 @@ private:
 
 }
 
-using WTF::WorkQueue;
+using PurCWTF::WorkQueue;

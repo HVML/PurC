@@ -116,8 +116,8 @@ SecurityOrigin::SecurityOrigin(const URL& url)
     // document.domain starts as m_data.host, but can be set by the DOM.
     m_domain = m_data.host;
 
-    if (m_data.port && WTF::isDefaultPortForProtocol(m_data.port.value(), m_data.protocol))
-        m_data.port = WTF::nullopt;
+    if (m_data.port && PurCWTF::isDefaultPortForProtocol(m_data.port.value(), m_data.protocol))
+        m_data.port = PurCWTF::nullopt;
 
     // By default, only local SecurityOrigins can load local resources.
     m_canLoadLocalResources = isLocal();
@@ -129,7 +129,7 @@ SecurityOrigin::SecurityOrigin(const URL& url)
 }
 
 SecurityOrigin::SecurityOrigin()
-    : m_data { emptyString(), emptyString(), WTF::nullopt }
+    : m_data { emptyString(), emptyString(), PurCWTF::nullopt }
     , m_domain { emptyString() }
     , m_isUnique { true }
     , m_isPotentiallyTrustworthy { false }
@@ -423,7 +423,7 @@ Ref<SecurityOrigin> SecurityOrigin::createFromString(const String& originString)
 Ref<SecurityOrigin> SecurityOrigin::create(const String& protocol, const String& host, Optional<uint16_t> port)
 {
     auto origin = create(URL(URL(), protocol + "://" + host + "/"));
-    if (port && !WTF::isDefaultPortForProtocol(*port, protocol))
+    if (port && !PurCWTF::isDefaultPortForProtocol(*port, protocol))
         origin->m_data.port = port;
     return origin;
 }

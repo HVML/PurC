@@ -28,7 +28,7 @@
 #include <wtf/ClockType.h>
 #include <wtf/Seconds.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 class WallTime;
 class PrintStream;
@@ -150,7 +150,7 @@ public:
         Optional<double> time;
         decoder >> time;
         if (!time)
-            return WTF::nullopt;
+            return PurCWTF::nullopt;
         return MonotonicTime::fromRawSeconds(*time);
     }
 
@@ -188,25 +188,25 @@ struct MonotonicTime::MarkableTraits {
     }
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
 namespace std {
 
-inline bool isnan(WTF::MonotonicTime time)
+inline bool isnan(PurCWTF::MonotonicTime time)
 {
     return std::isnan(time.secondsSinceEpoch().value());
 }
 
-inline bool isinf(WTF::MonotonicTime time)
+inline bool isinf(PurCWTF::MonotonicTime time)
 {
     return std::isinf(time.secondsSinceEpoch().value());
 }
 
-inline bool isfinite(WTF::MonotonicTime time)
+inline bool isfinite(PurCWTF::MonotonicTime time)
 {
     return std::isfinite(time.secondsSinceEpoch().value());
 }
 
 } // namespace std
 
-using WTF::MonotonicTime;
+using PurCWTF::MonotonicTime;

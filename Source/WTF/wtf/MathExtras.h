@@ -379,7 +379,7 @@ inline void decomposeDouble(double number, bool& sign, int32_t& exponent, uint64
 
     sign = std::signbit(number);
 
-    uint64_t bits = WTF::bitwise_cast<uint64_t>(number);
+    uint64_t bits = PurCWTF::bitwise_cast<uint64_t>(number);
     exponent = (static_cast<int32_t>(bits >> 52) & 0x7ff) - 0x3ff;
     mantissa = bits & 0xFFFFFFFFFFFFFull;
 
@@ -427,7 +427,7 @@ inline void doubleToInteger(double d, unsigned long long& value)
     }
 }
 
-namespace WTF {
+namespace PurCWTF {
 
 // From http://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
 constexpr uint32_t roundUpToPowerOfTwo(uint32_t v)
@@ -711,10 +711,10 @@ constexpr unsigned getMSBSetConstexpr(T t)
 template<typename T> unsigned log2(T value) { return getMSBSet(value); }
 template<typename T> constexpr unsigned log2Constexpr(T value) { return getMSBSetConstexpr(value); }
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::shuffleVector;
-using WTF::clz;
-using WTF::ctz;
-using WTF::getLSBSet;
-using WTF::getMSBSet;
+using PurCWTF::shuffleVector;
+using PurCWTF::clz;
+using PurCWTF::ctz;
+using PurCWTF::getLSBSet;
+using PurCWTF::getMSBSet;

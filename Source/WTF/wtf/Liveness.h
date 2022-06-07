@@ -29,7 +29,7 @@
 #include <wtf/IndexSparseSet.h>
 #include <wtf/StdLibExtras.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 // HEADS UP: The algorithm here is duplicated in AirRegLiveness.h. That one uses sets rather
 // than fancy vectors, because that's better for register liveness analysis.
@@ -372,5 +372,5 @@ private:
     typename CFG::template Map<IndexVector> m_liveAtTail;
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 

@@ -26,7 +26,7 @@
 #include "config.h"
 #include <wtf/ThreadGroup.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 ThreadGroup::~ThreadGroup()
 {
@@ -53,4 +53,4 @@ ThreadGroupAddResult ThreadGroup::addCurrentThread()
     return result;
 }
 
-} // namespace WTF
+} // namespace PurCWTF
