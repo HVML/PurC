@@ -22,6 +22,9 @@ uniq
     type: adverb
     alias: uniquely
 
+nosetotail
+    type: adverb
+
 as
     type: prep
 
