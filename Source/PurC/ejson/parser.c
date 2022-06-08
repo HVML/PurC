@@ -900,7 +900,7 @@ END_STATE()
 BEGIN_STATE(TKZ_STATE_EJSON_LEFT_BRACKET)
     if (character == '[') {
         if (parser->vcm_node && ejson_stack_is_empty()) {
-            ejson_stack_push('[');
+            ejson_stack_push('.');
             struct pcvcm_node *node = pcvcm_node_new_get_element(NULL,
                     NULL);
             APPEND_CHILD(node, parser->vcm_node);
@@ -972,6 +972,11 @@ BEGIN_STATE(TKZ_STATE_EJSON_RIGHT_BRACKET)
             ejson_stack_pop();
             uc = ejson_stack_top();
             if (uc == '"' || uc == 'U') {
+                struct pcvcm_node *parent = vcm_stack_parent();
+                if (parent &&
+                        parent->type == PCVCM_NODE_TYPE_FUNC_GET_ELEMENT) {
+                    POP_AS_VCM_PARENT_AND_UPDATE_VCM();
+                }
                 ADVANCE_TO(TKZ_STATE_EJSON_AFTER_VALUE);
             }
             POP_AS_VCM_PARENT_AND_UPDATE_VCM();
