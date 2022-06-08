@@ -801,9 +801,9 @@ bool purc_variant_array_prepend (purc_variant_t arr, purc_variant_t value)
     return r ? false : true;
 }
 
-purc_variant_t purc_variant_array_get (purc_variant_t arr, int idx)
+purc_variant_t purc_variant_array_get (purc_variant_t arr, size_t idx)
 {
-    PCVARIANT_CHECK_FAIL_RET(arr && arr->type==PVT(_ARRAY) && idx>=0,
+    PCVARIANT_CHECK_FAIL_RET(arr && arr->type==PVT(_ARRAY),
         PURC_VARIANT_INVALID);
 
     variant_arr_t data = pcvar_arr_get_data(arr);
@@ -822,11 +822,11 @@ bool purc_variant_array_size(purc_variant_t arr, size_t *sz)
     return true;
 }
 
-bool purc_variant_array_set (purc_variant_t arr, int idx,
+bool purc_variant_array_set(purc_variant_t arr, size_t idx,
         purc_variant_t value)
 {
     PCVARIANT_CHECK_FAIL_RET(arr && arr->type==PVT(_ARRAY) &&
-        idx>=0 && value && arr != value, false);
+        value && arr != value, false);
 
     bool check = true;
     int r = variant_arr_set(arr, idx, value, check);

@@ -3102,7 +3102,7 @@ purc_variant_linear_container_size(purc_variant_t container, size_t *sz)
 }
 
 purc_variant_t
-purc_variant_linear_container_get(purc_variant_t container, int idx)
+purc_variant_linear_container_get(purc_variant_t container, size_t idx)
 {
     if (container == PURC_VARIANT_INVALID)
         return PURC_VARIANT_INVALID;
@@ -3122,7 +3122,7 @@ purc_variant_linear_container_get(purc_variant_t container, int idx)
 
 bool
 purc_variant_linear_container_set(purc_variant_t container,
-        int idx, purc_variant_t value)
+        size_t idx, purc_variant_t value)
 {
     if (container == PURC_VARIANT_INVALID)
         return false;

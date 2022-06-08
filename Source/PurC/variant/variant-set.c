@@ -1173,14 +1173,14 @@ purc_variant_set_size(purc_variant_t set, size_t *sz)
 }
 
 purc_variant_t
-purc_variant_set_get_by_index(purc_variant_t set, int idx)
+purc_variant_set_get_by_index(purc_variant_t set, size_t idx)
 {
     PC_ASSERT(set);
 
     variant_set_t data = pcvar_set_get_data(set);
     size_t count = pcutils_array_list_length(&data->al);
 
-    if (idx < 0 || (size_t)idx >= count)
+    if (idx >= count)
         return PURC_VARIANT_INVALID;
 
     struct pcutils_array_list_node *alnode;
@@ -1195,14 +1195,14 @@ purc_variant_set_get_by_index(purc_variant_t set, int idx)
 }
 
 PCA_EXPORT purc_variant_t
-purc_variant_set_remove_by_index(purc_variant_t set, int idx)
+purc_variant_set_remove_by_index(purc_variant_t set, size_t idx)
 {
     PC_ASSERT(set);
 
     variant_set_t data = pcvar_set_get_data(set);
     size_t count = pcutils_array_list_length(&data->al);
 
-    if (idx < 0 || (size_t)idx >= count) {
+    if (idx >= count) {
         pcinst_set_error(PCVARIANT_ERROR_OUT_OF_BOUNDS);
         return PURC_VARIANT_INVALID;
     }
@@ -1232,14 +1232,15 @@ purc_variant_set_remove_by_index(purc_variant_t set, int idx)
 }
 
 PCA_EXPORT bool
-purc_variant_set_set_by_index(purc_variant_t set, int idx, purc_variant_t val)
+purc_variant_set_set_by_index(purc_variant_t set,
+        size_t idx, purc_variant_t val)
 {
     PC_ASSERT(set);
 
     variant_set_t data = pcvar_set_get_data(set);
     size_t count = pcutils_array_list_length(&data->al);
 
-    if (idx < 0 || (size_t)idx >= count) {
+    if (idx >= count) {
         pcinst_set_error(PCVARIANT_ERROR_OUT_OF_BOUNDS);
         return false;
     }

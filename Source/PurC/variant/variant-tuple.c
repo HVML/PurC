@@ -57,13 +57,22 @@ purc_variant_t purc_variant_make_tuple(size_t argc, purc_variant_t *argv)
         return PURC_VARIANT_INVALID;
     }
 
+    size_t inited = 0;
     if (argv) {
         for (size_t n = 0; n < argc; n++) {
-            if (argv[n])
+            if (argv[n]) {
                 members[n] = purc_variant_ref(argv[n]);
-            else
+                inited = n + 1;
+            }
+            else {
                 break;
+            }
         }
+    }
+
+    /* initialize left members as null variants. */
+    for (size_t n = inited; n < argc; n++) {
+        members[n] = purc_variant_make_null();
     }
 
     return vrt;
@@ -103,8 +112,7 @@ bool purc_variant_tuple_set(purc_variant_t tuple,
     if (value == members[idx])
         return true;
 
-    if (members[idx])
-        purc_variant_unref(members[idx]);
+    purc_variant_unref(members[idx]);
     members[idx] = purc_variant_ref(value);
     return true;
 }

@@ -665,7 +665,7 @@ purc_variant_array_prepend(purc_variant_t array, purc_variant_t value);
  * Since: 0.0.1
  */
 PCA_EXPORT purc_variant_t
-purc_variant_array_get(purc_variant_t array, int idx);
+purc_variant_array_get(purc_variant_t array, size_t idx);
 
 
 /**
@@ -684,7 +684,7 @@ purc_variant_array_get(purc_variant_t array, int idx);
  * Since: 0.0.1
  */
 PCA_EXPORT bool
-purc_variant_array_set(purc_variant_t array, int idx, purc_variant_t value);
+purc_variant_array_set(purc_variant_t array, size_t idx, purc_variant_t value);
 
 
 /**
@@ -1259,7 +1259,7 @@ static inline ssize_t purc_variant_set_get_size(purc_variant_t set)
  * Since: 0.0.1
  */
 PCA_EXPORT purc_variant_t
-purc_variant_set_get_by_index(purc_variant_t set, int idx);
+purc_variant_set_get_by_index(purc_variant_t set, size_t idx);
 
 /**
  * Remove the element in set by index and return
@@ -1272,7 +1272,7 @@ purc_variant_set_get_by_index(purc_variant_t set, int idx);
  * Since: 0.0.1
  */
 PCA_EXPORT purc_variant_t
-purc_variant_set_remove_by_index(purc_variant_t set, int idx);
+purc_variant_set_remove_by_index(purc_variant_t set, size_t idx);
 
 /**
  * Set an element in set by index.
@@ -1286,7 +1286,8 @@ purc_variant_set_remove_by_index(purc_variant_t set, int idx);
  * Since: 0.0.1
  */
 PCA_EXPORT bool
-purc_variant_set_set_by_index(purc_variant_t set, int idx, purc_variant_t val);
+purc_variant_set_set_by_index(purc_variant_t set,
+        size_t idx, purc_variant_t val);
 
 /**
  * set iterator usage example:
@@ -1402,15 +1403,15 @@ purc_variant_set_iterator_get_value(struct purc_variant_set_iterator* it);
  * Creates a tuple variant from two variants.
  *
  * @param sz: the size of the tuple, i.e., the number of members in the tuple.
- * @param members: the array of the members. 
+ * @param members: a C array of the members to put into the tuple.
  *
- * The function will stop setting the members in the tuple once
- * it encountered an invalud variant (%PURC_VARIANT_INVALID). You must
- * call purc_variant_tuple_set() to set the left members with valid variants
- * before using the tuple variant.
+ * The function will setting the left members as null variants after
+ * it encountered an invalud variant (%PURC_VARIANT_INVALID) in \members.
+ * You can call purc_variant_tuple_set() to set the left members with other
+ * variants.
  *
- * Note that if \members is %NULL, all members in the tuple will be invalid
- * initially.
+ * Note that if \members is %NULL, all members in the tuple will be
+ * null variants initially.
  *
  * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
  *
@@ -1521,7 +1522,7 @@ purc_variant_linear_container_get_size(purc_variant_t container)
  * Since: 0.1.0
  */
 PCA_EXPORT purc_variant_t
-purc_variant_linear_container_get(purc_variant_t container, int idx);
+purc_variant_linear_container_get(purc_variant_t container, size_t idx);
 
 /**
  * Sets a member in a linear container by index.
@@ -1537,7 +1538,7 @@ purc_variant_linear_container_get(purc_variant_t container, int idx);
  */
 PCA_EXPORT bool
 purc_variant_linear_container_set(purc_variant_t container,
-        int idx, purc_variant_t value);
+        size_t idx, purc_variant_t value);
 
 /**
  * Creates a variant value from a string which contains JSON data.
