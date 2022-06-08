@@ -565,6 +565,20 @@ bool purc_cleanup(void)
     return true;
 }
 
+const char *purc_get_endpoint(purc_atom_t *atom)
+{
+    struct pcinst* curr_inst;
+
+    curr_inst = PURC_GET_THREAD_LOCAL(inst);
+    if (curr_inst == NULL || curr_inst->app_name == NULL
+            || curr_inst->endpoint_atom == 0)
+        return NULL;
+
+    if (atom)
+        *atom = curr_inst->endpoint_atom;
+    return curr_inst->endpoint_name;
+}
+
 bool
 purc_set_local_data(const char* data_name, uintptr_t local_data,
         cb_free_local_data cb_free)
