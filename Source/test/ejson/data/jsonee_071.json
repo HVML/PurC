@@ -1,0 +1,1 @@
+{{ $SESSION.myObj.bcPipe.status()[0] }}

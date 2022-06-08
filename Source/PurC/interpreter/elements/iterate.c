@@ -455,6 +455,10 @@ attr_found_val(struct pcintr_stack_frame *frame,
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, WITH)) == name) {
         return process_attr_with(frame, element, name, val, attr);
     }
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, NOSETOTAIL)) == name) {
+        // TODO
+        return 0;
+    }
 
     purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
             "vdom attribute '%s' for element <%s>",
@@ -802,7 +806,6 @@ again:
             {
                 pcvdom_element_t element = PCVDOM_ELEMENT_FROM_NODE(curr);
                 on_element(co, frame, element);
-                PC_ASSERT(stack->except == 0);
                 return element;
             }
         case PCVDOM_NODE_CONTENT:
