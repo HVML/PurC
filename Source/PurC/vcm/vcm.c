@@ -1048,7 +1048,7 @@ purc_variant_t pcvcm_node_get_element_to_variant(struct pcvcm_node *node,
             has_index = false;
         }
     }
-    else if (!purc_variant_cast_to_longint(param_var, &index, false)) {
+    else if (!purc_variant_cast_to_longint(param_var, &index, true)) {
         has_index = false;
     }
 

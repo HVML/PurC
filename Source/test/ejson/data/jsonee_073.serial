@@ -1,0 +1,2 @@
+call_getter(get_element(get_variable("MATH"),"eval"),call_getter(get_element(call_getter(get_element(get_variable("DOC"),"query"),"#expression"),"attr"),"value"))
+

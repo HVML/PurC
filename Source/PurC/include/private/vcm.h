@@ -71,6 +71,7 @@ struct pcvcm_node {
     enum pcvcm_node_type type;
     uint32_t extra;
     uintptr_t attach;
+    bool is_closed;
     union {
         bool        b;
         double      d;
@@ -141,6 +142,18 @@ struct pcvcm_node *pcvcm_node_new_cjsonee_op_or();
 
 struct pcvcm_node *pcvcm_node_new_cjsonee_op_semicolon();
 
+static inline bool
+pcvcm_node_is_closed(struct pcvcm_node *node) {
+    return node && node->is_closed;
+}
+
+static inline void
+pcvcm_node_set_closed(struct pcvcm_node *node, bool closed)
+{
+    if (node) {
+        node->is_closed = closed;
+    }
+}
 
 char *pcvcm_node_to_string(struct pcvcm_node *node, size_t *nr_bytes);
 

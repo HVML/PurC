@@ -1335,6 +1335,9 @@ pcintr_rdr_send_dom_req_simple_raw(pcintr_stack_t stack,
         strcat(attr, property);
     }
 
+    if (data && strlen(data) == 0) {
+        data = " ";
+    }
     pcrdr_msg *response_msg = pcintr_rdr_send_dom_req_raw(stack, operation,
             element, attr, data_type, data);
 

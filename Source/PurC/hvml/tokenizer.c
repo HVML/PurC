@@ -51,13 +51,15 @@
 
 #define PRINT_STATE(state_name)                                             \
     if (parser->enable_log) {                                               \
+        size_t len;                                                         \
+        char *s = pcvcm_node_to_string(parser->vcm_node, &len);             \
         PC_DEBUG(                                                           \
             "in %s|uc=%c|hex=0x%X|stack_is_empty=%d"                        \
-            "|stack_top=%c|stack_size=%ld|vcm_node->type=%d\n",             \
+            "|stack_top=%c|stack_size=%ld|vcm_node=%s\n",                   \
             curr_state_name, character, character,                          \
             ejson_stack_is_empty(), (char)ejson_stack_top(),                \
-            ejson_stack_size(),                                             \
-            (parser->vcm_node != NULL ? (int)parser->vcm_node->type : -1)); \
+            ejson_stack_size(), s);                                         \
+        free(s); \
     }
 
 #define SET_ERR(err)    do {                                                \
@@ -138,6 +140,7 @@ next_state:                                                             \
 #define vcm_stack_is_empty() pcvcm_stack_is_empty(parser->vcm_stack)
 #define vcm_stack_push(c) pcvcm_stack_push(parser->vcm_stack, c)
 #define vcm_stack_pop() pcvcm_stack_pop(parser->vcm_stack)
+#define vcm_stack_parent() pcvcm_stack_bottommost(parser->vcm_stack)
 
 #define BEGIN_STATE(state_name)                                             \
     case state_name:                                                        \
@@ -2237,6 +2240,9 @@ BEGIN_STATE(TKZ_STATE_EJSON_CONTROL)
                 && (uc == '"' || uc == '\'' || uc == 'U')) {
             RECONSUME_IN(TKZ_STATE_EJSON_AFTER_JSONEE_STRING);
         }
+        if (parser->vcm_node && pcvcm_node_is_closed(parser->vcm_node)) {
+            POP_AS_VCM_PARENT_AND_UPDATE_VCM();
+        }
         RECONSUME_IN(TKZ_STATE_EJSON_RIGHT_BRACE);
     }
     if (character == '[') {
@@ -2277,7 +2283,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_CONTROL)
         if (uc == '"' || uc == '\'' || uc == 'U') {
             RECONSUME_IN(TKZ_STATE_EJSON_AFTER_JSONEE_STRING);
         }
-        ADVANCE_TO(TKZ_STATE_EJSON_RIGHT_PARENTHESIS);
+        RECONSUME_IN(TKZ_STATE_EJSON_RIGHT_PARENTHESIS);
     }
     if (character == '$') {
         RECONSUME_IN(TKZ_STATE_EJSON_DOLLAR);
@@ -2344,6 +2350,9 @@ BEGIN_STATE(TKZ_STATE_EJSON_CONTROL)
             ADVANCE_TO(TKZ_STATE_EJSON_BEFORE_NAME);
         }
         if (uc == '[' || uc == '(' || uc == '<') {
+            if (parser->vcm_node && pcvcm_node_is_closed(parser->vcm_node)) {
+                POP_AS_VCM_PARENT_AND_UPDATE_VCM();
+            }
             ADVANCE_TO(TKZ_STATE_EJSON_CONTROL);
         }
         if (uc == ':') {
@@ -2432,24 +2441,29 @@ BEGIN_STATE(TKZ_STATE_EJSON_DOLLAR)
 END_STATE()
 
 BEGIN_STATE(TKZ_STATE_EJSON_JSONEE_FULL_STOP_SIGN)
-    if (character == '.' &&
-        (parser->vcm_node->type ==
+    if (parser->vcm_node->type ==
                 PCVCM_NODE_TYPE_FUNC_GET_VARIABLE ||
                 parser->vcm_node->type ==
-                PCVCM_NODE_TYPE_FUNC_GET_ELEMENT ||
-                parser->vcm_node->type ==
-                PCVCM_NODE_TYPE_FUNC_CALL_GETTER ||
-                parser->vcm_node->type ==
-                PCVCM_NODE_TYPE_FUNC_CALL_SETTER
-                )) {
+                PCVCM_NODE_TYPE_FUNC_GET_ELEMENT) {
         ejson_stack_push('.');
-        struct pcvcm_node* node = pcvcm_node_new_get_element(NULL,
+        struct pcvcm_node *node = pcvcm_node_new_get_element(NULL,
                 NULL);
         APPEND_CHILD(node, parser->vcm_node);
         UPDATE_VCM_NODE(node);
         ADVANCE_TO(TKZ_STATE_EJSON_JSONEE_KEYWORD);
     }
-    SET_ERR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
+    else if (parser->vcm_node->type ==
+                PCVCM_NODE_TYPE_FUNC_CALL_GETTER ||
+                parser->vcm_node->type ==
+                PCVCM_NODE_TYPE_FUNC_CALL_SETTER) {
+        ejson_stack_push('.');
+        struct pcvcm_node *node = pcvcm_node_new_get_element(NULL,
+                NULL);
+        APPEND_CHILD(node, parser->vcm_node);
+        UPDATE_VCM_NODE(node);
+        ADVANCE_TO(TKZ_STATE_EJSON_JSONEE_KEYWORD);
+    }
+    SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
     RETURN_AND_STOP_PARSE();
 END_STATE()
 
@@ -2612,7 +2626,7 @@ END_STATE()
 BEGIN_STATE(TKZ_STATE_EJSON_LEFT_BRACKET)
     if (character == '[') {
         if (parser->vcm_node && ejson_stack_is_empty()) {
-            ejson_stack_push('[');
+            ejson_stack_push('.');
             struct pcvcm_node* node = pcvcm_node_new_get_element(NULL,
                     NULL);
             APPEND_CHILD(node, parser->vcm_node);
@@ -2679,6 +2693,11 @@ BEGIN_STATE(TKZ_STATE_EJSON_RIGHT_BRACKET)
             ejson_stack_pop();
             uc = ejson_stack_top();
             if (uc == '"' || uc == 'U') {
+                struct pcvcm_node *parent = vcm_stack_parent();
+                if (parent &&
+                        parent->type == PCVCM_NODE_TYPE_FUNC_GET_ELEMENT) {
+                    POP_AS_VCM_PARENT_AND_UPDATE_VCM();
+                }
                 ADVANCE_TO(TKZ_STATE_EJSON_AFTER_VALUE);
             }
             POP_AS_VCM_PARENT_AND_UPDATE_VCM();
@@ -2751,10 +2770,20 @@ BEGIN_STATE(TKZ_STATE_EJSON_LEFT_PARENTHESIS)
 END_STATE()
 
 BEGIN_STATE(TKZ_STATE_EJSON_RIGHT_PARENTHESIS)
+#if 0
     uint32_t uc = ejson_stack_top();
     if (character == '.' || character == '[') {
         if (uc == '(' || uc == '<') {
             ejson_stack_pop();
+#if 0
+            struct pcvcm_node *parent = vcm_stack_parent();
+            if (!vcm_stack_is_empty() && (
+                        parent->type == PCVCM_NODE_TYPE_FUNC_CALL_GETTER ||
+                        parent->type == PCVCM_NODE_TYPE_FUNC_CALL_SETTER
+                    )) {
+                POP_AS_VCM_PARENT_AND_UPDATE_VCM();
+            }
+#endif
             RECONSUME_IN(TKZ_STATE_EJSON_CONTROL);
         }
         if (ejson_stack_is_empty()) {
@@ -2777,6 +2806,35 @@ BEGIN_STATE(TKZ_STATE_EJSON_RIGHT_PARENTHESIS)
         }
         RECONSUME_IN(TKZ_STATE_EJSON_CONTROL);
     }
+#else
+    uint32_t uc = ejson_stack_top();
+    if (uc == '(' || uc == '<') {
+        ejson_stack_pop();
+
+        PRINT_VCM_NODE(parser->vcm_node);
+
+        if (parser->vcm_node->type == PCVCM_NODE_TYPE_FUNC_CALL_GETTER
+                || parser->vcm_node->type == PCVCM_NODE_TYPE_FUNC_CALL_SETTER) {
+            if (!pcvcm_node_is_closed(parser->vcm_node)) {
+                pcvcm_node_set_closed(parser->vcm_node, true);
+                PRINT_VCM_NODE(parser->vcm_node);
+                ADVANCE_TO(TKZ_STATE_EJSON_CONTROL);
+            }
+        }
+
+        if (!vcm_stack_is_empty()) {
+            POP_AS_VCM_PARENT_AND_UPDATE_VCM();
+            pcvcm_node_set_closed(parser->vcm_node, true);
+        PRINT_VCM_NODE(parser->vcm_node);
+        }
+        ADVANCE_TO(TKZ_STATE_EJSON_CONTROL);
+    }
+    if (ejson_stack_is_empty()) {
+        SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
+        RETURN_AND_STOP_PARSE();
+    }
+    ADVANCE_TO(TKZ_STATE_EJSON_CONTROL);
+#endif
 END_STATE()
 
 BEGIN_STATE(TKZ_STATE_EJSON_AFTER_VALUE)
@@ -2813,7 +2871,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_AFTER_VALUE)
         RECONSUME_IN(TKZ_STATE_EJSON_RIGHT_BRACKET);
     }
     if (character == ')') {
-        ADVANCE_TO(TKZ_STATE_EJSON_RIGHT_PARENTHESIS);
+        RECONSUME_IN(TKZ_STATE_EJSON_RIGHT_PARENTHESIS);
     }
     if (character == ',') {
         if (uc == '{') {
