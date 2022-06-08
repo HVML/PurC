@@ -55,6 +55,7 @@ struct ctxt_for_iterate {
     unsigned int                  stop:1;
     unsigned int                  with_set:1;
     unsigned int                  by_set:1;
+    unsigned int                  nosetotail:1;
 };
 
 static void
@@ -160,9 +161,6 @@ re_eval_with(struct pcintr_stack_frame *frame,
 
     int r;
     r = pcintr_set_question_var(frame, val);
-    if (r == 0) {
-        pcintr_set_input_var(pcintr_get_stack(), val);
-    }
     purc_variant_unref(val);
 
     return r ? -1 : 0;
@@ -202,9 +200,6 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 
     int r;
     r = re_eval_with(frame, ctxt->with_attr, &stop);
-    if (r == 0) {
-        r = pcintr_set_question_var(frame, on);
-    }
     PC_ASSERT(r == 0);
 
     if (stop) {
@@ -437,6 +432,9 @@ attr_found_val(struct pcintr_stack_frame *frame,
 {
     UNUSED_PARAM(ud);
 
+    struct ctxt_for_iterate *ctxt;
+    ctxt = (struct ctxt_for_iterate*)frame->ctxt;
+
     PC_ASSERT(name);
     PC_ASSERT(attr->op == PCHVML_ATTRIBUTE_OPERATOR);
 
@@ -456,7 +454,7 @@ attr_found_val(struct pcintr_stack_frame *frame,
         return process_attr_with(frame, element, name, val, attr);
     }
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, NOSETOTAIL)) == name) {
-        // TODO
+        ctxt->nosetotail = 1;
         return 0;
     }
 
@@ -567,6 +565,9 @@ on_popping_with(pcintr_stack_t stack)
 
     PC_ASSERT(ctxt->with_attr);
 
+    int r = pcintr_inc_percent_var(frame);
+    PC_ASSERT(r == 0);
+
     return false;
 }
 
@@ -650,13 +651,9 @@ rerun_with(pcintr_stack_t stack)
     bool stop;
 
     int r;
-    r = re_eval_with(frame, ctxt->with_attr, &stop);
-    PC_ASSERT(r == 0);
-
-    if (stop) {
-        ctxt->stop = 1;
-        PC_ASSERT(0);
-        return false;
+    if (ctxt->nosetotail) {
+        purc_variant_t v = pcintr_get_question_var(frame);
+        pcintr_set_input_var(stack, v);
     }
 
     if (ctxt->onlyif_attr) {
@@ -670,9 +667,14 @@ rerun_with(pcintr_stack_t stack)
         }
     }
 
-    r = pcintr_inc_percent_var(frame);
-    if (r)
+    r = re_eval_with(frame, ctxt->with_attr, &stop);
+    PC_ASSERT(r == 0);
+
+    if (stop) {
+        ctxt->stop = 1;
+        PC_ASSERT(0);
         return false;
+    }
 
     return true;
 }
