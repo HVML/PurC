@@ -17,7 +17,7 @@
                 <init as="last_one" with=0 temporarily />
                 <init as="last_two" with=1 temporarily />
 
-                <iterate on 1 onlyif=$L.lt($0<, 2000) with=$MATH.add($0<, $!.last_one)>
+                <iterate on 1 onlyif=$L.lt($0<, 2000) with=$MATH.add($0<, $!.last_one) nosetotail>
                     <init as="last_one" at=2 with="$2!.last_two" temporarily />
                     <init as="last_two" at=2 with="$?" temporarily />
 
