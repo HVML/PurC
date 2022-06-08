@@ -375,7 +375,7 @@ int pcrdr_wait_and_dispatch_message (pcrdr_conn* conn, int timeout_ms)
         purc_set_error(PCRDR_ERROR_BAD_SYSTEM_CALL);
     }
     else if (retval > 0) {
-        retval = pcrdr_read_and_dispatch_message (conn);
+        retval = pcrdr_read_and_dispatch_message(conn);
     }
     else {
         retval = -1;
