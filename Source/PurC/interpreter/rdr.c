@@ -42,7 +42,7 @@
 #define CLASS_KEY               "class"
 
 #define BUFF_MIN                1024
-#define BUFF_MAX                1024 * 4
+#define BUFF_MAX                1024 * 1024 * 4
 #define LEN_BUFF_LONGLONGINT    128
 
 static bool
