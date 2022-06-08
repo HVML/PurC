@@ -33,6 +33,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include <time.h>
+#include <assert.h>
 
 bool purc_is_valid_token (const char* token, int max_len)
 {
@@ -305,34 +306,39 @@ bool purc_is_valid_host_name (const char* host_name)
 /* cn.fmsoft.hybridos.aaa */
 bool purc_is_valid_app_name (const char* app_name)
 {
-    int len, max_len = PURC_LEN_APP_NAME;
+    size_t len, left = strlen(app_name);
     const char *start;
-    char *end;
+    const char *end;
+
+    if (left > PURC_LEN_APP_NAME)
+        return false;
 
     start = app_name;
     while (*start) {
-        char saved;
         end = strchr (start, '.');
         if (end == NULL) {
-            saved = 0;
-            end += strlen (start);
+            end += left;
+            len = left;
         }
         else {
-            saved = '.';
-            *end = 0;
+            len = end - start;
         }
 
-        if (end == start)
+        if (end == start || len == 0)
             return false;
 
-        if ((len = purc_is_valid_token (start, max_len)) <= 0)
+        char token[len + 1];
+        strncpy(token, start, len);
+        token[len] = 0;
+        if (!purc_is_valid_token (token, 0)) {
             return false;
+        }
 
-        max_len -= len;
-        if (saved) {
+        assert(left >= len);
+        left -= len;
+        if (left > 0 && *end) {
             start = end + 1;
-            *end = saved;
-            max_len--;
+            left--;
         }
         else {
             break;

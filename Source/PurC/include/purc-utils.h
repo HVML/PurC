@@ -207,6 +207,26 @@ typedef unsigned int purc_atom_t;
 PCA_EXTERN_C_BEGIN
 
 /**
+ * purc_atom_from_string_ex2:
+ * @bucket: the identifier of the atom bucket.
+ * @string: a string (nullable).
+ * @newly_created: a boolean buffer to receive the state that the atom is
+ *  newly created or it is an old one created by other (nullable).
+ *
+ * Gets the #purc_atom_t identifying the given string in the specified
+ * atom bucket. If the string does not currently have an associated
+ * #purc_atom_t a new #purc_atom_t is created, using a copy of the string.
+ *
+ * This function must not be used before library constructors have finished
+ * running. In particular, this means it cannot be used to initialize global
+ * variables in C++.
+ *
+ * Returns: the #purc_atom_t identifying the string, or 0 if @string is %NULL.
+ */
+PCA_EXPORT purc_atom_t
+purc_atom_from_string_ex2(int bucket, const char* string, bool *newly_created);
+
+/**
  * purc_atom_from_string_ex:
  * @bucket: the identifier of the atom bucket.
  * @string: (nullable), a string
@@ -221,8 +241,11 @@ PCA_EXTERN_C_BEGIN
  *
  * Returns: the #purc_atom_t identifying the string, or 0 if @string is %NULL
  */
-PCA_EXPORT purc_atom_t
-purc_atom_from_string_ex(int bucket, const char* string);
+static inline purc_atom_t
+purc_atom_from_string_ex(int bucket, const char* string)
+{
+    return purc_atom_from_string_ex2(bucket, string, NULL);
+}
 
 /**
  * purc_atom_from_string:
@@ -239,8 +262,37 @@ purc_atom_from_string_ex(int bucket, const char* string);
  * Returns: the #purc_atom_t identifying the string, or 0 if @string is %NULL
  */
 static inline purc_atom_t purc_atom_from_string(const char* string) {
-    return purc_atom_from_string_ex(0, string);
+    return purc_atom_from_string_ex2(0, string, NULL);
 }
+
+/**
+ * purc_atom_from_static_string_ex2:
+ * @bucket: the identifier of the atom bucket.
+ * @string: a string (nullable).
+ * @newly_created: a boolean buffer to receive the state that the atom is
+ *  newly created or it is an old one created by other (nullable).
+ *
+ * Gets the #purc_atom_t identifying the given (static) string in the specified
+ * atom bucket. If the string does not currently have an associated
+ * #purc_atom_t, a new #purc_atom_t is created, linked to the given string.
+ *
+ * Note that this function is identical to purc_atom_from_string_ex() except
+ * that if a new #purc_atom_t is created the string itself is used rather
+ * than a copy. This saves memory, but can only be used if the string
+ * will continue to exist until the program terminates. It can be used
+ * with statically allocated strings in the main program, but not with
+ * statically allocated memory in dynamically loaded modules, if you
+ * expect to ever unload the module again.
+ *
+ * This function must not be used before library constructors have finished
+ * running. In particular, this means it cannot be used to initialize global
+ * variables in C++.
+ *
+ * Returns: the #purc_atom_t identifying the string, or 0 if @string is %NULL
+ */
+PCA_EXPORT purc_atom_t
+purc_atom_from_static_string_ex2(int bucket, const char* string,
+        bool *newly_created);
 
 /**
  * purc_atom_from_static_string_ex:
@@ -266,8 +318,10 @@ static inline purc_atom_t purc_atom_from_string(const char* string) {
  *
  * Returns: the #purc_atom_t identifying the string, or 0 if @string is %NULL
  */
-PCA_EXPORT purc_atom_t
-purc_atom_from_static_string_ex(int bucket, const char* string);
+static inline purc_atom_t
+purc_atom_from_static_string_ex(int bucket, const char* string) {
+    return purc_atom_from_static_string_ex2(bucket, string, NULL);
+}
 
 /**
  * purc_atom_from_static_string:
@@ -293,7 +347,7 @@ purc_atom_from_static_string_ex(int bucket, const char* string);
  * Returns: the #purc_atom_t identifying the string, or 0 if @string is %NULL
  */
 static inline purc_atom_t purc_atom_from_static_string(const char* string) {
-    return purc_atom_from_static_string_ex(0, string);
+    return purc_atom_from_static_string_ex2(0, string, NULL);
 }
 
 /**

@@ -597,7 +597,7 @@ static void _cleanup_instance(struct pcinst* inst)
     }
 
     if (heap->move_buff) {
-        PC_ASSERT(pthread_equal(pthread_self(), inst->running_thread));
+        // VW PC_ASSERT(pthread_equal(pthread_self(), inst->running_thread));
         purc_inst_destroy_move_buffer();
         heap->move_buff = 0;
     }
@@ -635,6 +635,7 @@ static int _init_instance(struct pcinst* inst,
         return PURC_ERROR_OUT_OF_MEMORY;
     }
 
+    inst->running_loop = purc_runloop_get_current();
     inst->intr_heap = heap;
     heap->owner     = inst;
 
@@ -675,12 +676,14 @@ struct pcintr_heap* pcintr_get_heap(void)
     return inst ? inst->intr_heap : NULL;
 }
 
+#if 0 // VW
 bool pcintr_is_current_thread(void)
 {
     struct pcintr_heap *heap = pcintr_get_heap();
     struct pcinst *inst = heap ? heap->owner : NULL;
     return inst ? (inst->running_thread == pthread_self()) : false;
 }
+#endif
 
 pcintr_coroutine_t
 pcintr_get_coroutine(void)
@@ -2467,7 +2470,7 @@ purc_run(purc_variant_t request, purc_event_handler handler)
         return false;
     }
 
-    heap->owner->running_thread = pthread_self();
+    // VW: heap->owner->running_thread = pthread_self();
 
     purc_runloop_run();
 
@@ -3012,7 +3015,7 @@ on_load_async_done(
 {
     PC_ASSERT(request_id != PURC_VARIANT_INVALID);
     PC_ASSERT(ctxt);
-    PC_ASSERT(pcintr_is_current_thread());
+    // VW PC_ASSERT(pcintr_is_current_thread());
     struct load_async_data *data;
     data = (struct load_async_data*)ctxt;
     PC_ASSERT(data);

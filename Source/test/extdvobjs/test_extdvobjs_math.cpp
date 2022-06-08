@@ -786,7 +786,7 @@ TEST(dvobjs, dvobjs_math_eval)
     purc_variant_unref(ret_var);
     purc_variant_unref(param[0]);
 
-    exp = "(3 + 7) / (2 - 2)";
+    exp = "(3 + 7) / (2 - 1)";
     param[0] = purc_variant_make_string (exp, false);
     ret_var = func (NULL, 1, param, false);
     ASSERT_NE(ret_var, nullptr);
