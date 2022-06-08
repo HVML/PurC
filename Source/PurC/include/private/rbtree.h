@@ -128,6 +128,10 @@ int pcutils_rbtree_insert_only(struct rb_root *root, void *ud,
         int (*cmp)(struct rb_node *node, void *ud),
         struct rb_node *node);
 
+void pcutils_rbtree_insert_or_replace(struct rb_root *root, void *ud,
+        int (*cmp)(struct rb_node *node, void *ud),
+        struct rb_node *node, struct rb_node **old);
+
 /* struct rb_node *_p */
 #define pcutils_rbtree_for_each(_rb_node, _p)                          \
     for (_p = _rb_node;                                                \
