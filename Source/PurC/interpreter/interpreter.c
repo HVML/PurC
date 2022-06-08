@@ -2180,8 +2180,6 @@ void pcintr_set_exit(void)
     PC_ASSERT(co);
     if (co->stack.exited == 0) {
         co->stack.exited = 1;
-        PC_ASSERT(pcintr_get_heap());
-        pcintr_remove_heap(&_all_heaps);
         notify_to_stop(co);
     }
 }
