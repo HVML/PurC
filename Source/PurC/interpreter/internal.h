@@ -45,6 +45,12 @@ struct pcvdom_template {
 PCA_EXTERN_C_BEGIN
 
 void
+pcintr_check_and_dispatch_msg(void);
+
+int
+pcintr_post_event(pcintr_coroutine_t target, const char *event);
+
+void
 pcintr_synchronize(void *ctxt, void (*routine)(void *ctxt));
 
 int

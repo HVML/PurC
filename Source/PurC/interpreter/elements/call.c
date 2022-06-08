@@ -185,7 +185,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     }
 
     pcintr_coroutine_t child;
-    child = pcintr_create_child_co(define, ctxt->as);
+    child = pcintr_create_child_co(define, ctxt->as, ctxt->within);
     if (!child)
         return -1;
 
@@ -272,26 +272,35 @@ process_attr_within(struct pcintr_stack_frame *frame,
                 purc_atom_to_string(name), element->tag_name);
         return -1;
     }
+
+    char app_name[PURC_LEN_APP_NAME + 1];
+    char runner_name[PURC_LEN_RUNNER_NAME + 1];
+
     const char *s = purc_variant_get_string_const(val);
-    PC_ASSERT(s);
-    char *t = (char*)strchr(s, '/');
-    if (!t) {
+
+    int r;
+    r = purc_extract_app_name(s, app_name) &&
+        purc_extract_runner_name(s, runner_name);
+
+    if (r == 0) {
         purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
                 "vdom attribute '%s' for element <%s> is not valid",
                 purc_atom_to_string(name), element->tag_name);
         return -1;
     }
 
-    char c = *t;
-    *t = '\0';
-    ctxt->endpoint_atom_within = pcinst_endpoint_get(
-            ctxt->endpoint_name_within, sizeof(ctxt->endpoint_name_within),
-            "_", s);
-    *t = c;
-    if (ctxt->endpoint_atom_within == 0) {
-        PC_ASSERT(purc_get_last_error());
-        return -1;
-    }
+    PC_ASSERT(purc_is_valid_app_name(app_name));
+    PC_ASSERT(purc_is_valid_runner_name(runner_name));
+
+    // // FIXME: still not atomic!!!
+    // ctxt->endpoint_atom_within = pcinst_endpoint_get(
+    //         ctxt->endpoint_name_within, sizeof(ctxt->endpoint_name_within),
+    //         app_name, runner_name);
+
+    // if (ctxt->endpoint_atom_within == 0) {
+    //     PC_ASSERT(purc_get_last_error());
+    //     return -1;
+    // }
 
     ctxt->within = purc_variant_ref(val);
 

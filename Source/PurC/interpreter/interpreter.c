@@ -4024,28 +4024,6 @@ struct timer_data {
 };
 
 static void
-check_and_dispatch_msg(void)
-{
-    PC_ASSERT(pcintr_get_coroutine());
-
-    int r;
-    size_t n;
-    r = purc_inst_holding_messages_count(&n);
-    PC_ASSERT(r == 0);
-    if (n <= 0)
-        return;
-
-    pcrdr_msg *msg;
-    msg = purc_inst_take_away_message(0);
-    if (msg == NULL) {
-        PC_ASSERT(purc_get_last_error() == 0);
-        return;
-    }
-
-    PC_ASSERT(0);
-}
-
-static void
 event_timer_fire(pcintr_timer_t timer, const char* id)
 {
     UNUSED_PARAM(timer);
@@ -4054,7 +4032,7 @@ event_timer_fire(pcintr_timer_t timer, const char* id)
     PC_ASSERT(pcintr_get_heap());
 
     struct pcinst *inst = pcinst_current();
-    check_and_dispatch_msg();
+    pcintr_check_and_dispatch_msg();
 
     if (inst != NULL && inst->rdr_caps != NULL) {
         pcrdr_wait_and_dispatch_message(inst->conn_to_rdr, 1);
@@ -4300,8 +4278,10 @@ void pcintr_resume(void *extra)
 
 pcintr_coroutine_t
 pcintr_create_child_co(pcvdom_element_t vdom_element,
-        purc_variant_t as)
+        purc_variant_t as, purc_variant_t within)
 {
+    UNUSED_PARAM(within);
+
     pcintr_coroutine_t co = pcintr_get_coroutine();
     PC_ASSERT(co);
 

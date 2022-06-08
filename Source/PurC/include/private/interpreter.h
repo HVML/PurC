@@ -446,7 +446,7 @@ pcintr_pop_stack_frame_pseudo(void);
 
 pcintr_coroutine_t
 pcintr_create_child_co(pcvdom_element_t vdom_element,
-        purc_variant_t as);
+        purc_variant_t as, purc_variant_t within);
 
 void
 pcintr_exception_clear(struct pcintr_exception *exception);
