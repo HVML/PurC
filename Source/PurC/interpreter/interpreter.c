@@ -585,14 +585,15 @@ static void _cleanup_instance(struct pcinst* inst)
     PC_ASSERT(heap->exiting == false);
     heap->exiting = true;
 
-    struct list_head *coroutines = &heap->coroutines;
-    struct list_head *p, *n;
+    struct rb_root *coroutines = &heap->coroutines;
 
-    list_for_each_safe(p, n, coroutines) {
+    struct rb_node *p, *n;
+    struct rb_node *first = pcutils_rbtree_first(coroutines);
+    pcutils_rbtree_for_each_safe(first, p, n) {
         pcintr_coroutine_t co;
         co = container_of(p, struct pcintr_coroutine, node);
 
-        list_del(p);
+        pcutils_rbtree_erase(p, coroutines);
         coroutine_destroy(co);
     }
 
@@ -639,7 +640,7 @@ static int _init_instance(struct pcinst* inst,
     inst->intr_heap = heap;
     heap->owner     = inst;
 
-    INIT_LIST_HEAD(&heap->coroutines);
+    heap->coroutines = RB_ROOT;
     heap->running_coroutine = NULL;
     heap->next_coroutine_id = 1;
 
@@ -1843,10 +1844,12 @@ static void execute_one_step_for_exiting_co(pcintr_coroutine_t co)
         pcintr_wakeup_target_with(parent, co_result, on_sub_exit);
     }
 
-    list_del(&co->node);
+    pcutils_rbtree_erase(&co->node, &heap->coroutines);
     coroutine_destroy(co);
 
-    if (inst->keep_alive == 0 && list_empty(&heap->coroutines)) {
+    if (inst->keep_alive == 0 &&
+            pcutils_rbtree_first(&heap->coroutines) == NULL)
+    {
         purc_runloop_stop(inst->running_loop);
     }
 
@@ -2273,10 +2276,15 @@ static pcintr_coroutine_t coroutine_by_name(const char *name)
 {
     pcintr_heap_t heap = pcintr_get_heap();
 
-    pcintr_coroutine_t p;
-    list_for_each_entry(p, &heap->coroutines, node) {
-        if (strcmp(name, p->name)==0)
-            return p;
+    struct rb_node *p;
+
+    struct rb_node *first = pcutils_rbtree_first(&heap->coroutines);
+    pcutils_rbtree_for_each(first, p) {
+        pcintr_coroutine_t co;
+        co = container_of(p, struct pcintr_coroutine, node);
+
+        if (strcmp(name, co->name)==0)
+            return co;
     }
 
     return NULL;
@@ -2335,6 +2343,15 @@ again:
     return 0;
 }
 
+static int
+cmp_by_atom(struct rb_node *node, void *ud)
+{
+    purc_atom_t *atom = (purc_atom_t*)ud;
+    pcintr_coroutine_t co;
+    co = container_of(node, struct pcintr_coroutine, node);
+    return (*atom) - co->ident;
+}
+
 static pcintr_coroutine_t
 coroutine_create(const char *name,
         purc_variant_t as,
@@ -2344,7 +2361,7 @@ coroutine_create(const char *name,
 {
     struct pcinst *inst = pcinst_current();
     struct pcintr_heap *heap = inst->intr_heap;
-    struct list_head *coroutines = &heap->coroutines;
+    struct rb_root *coroutines = &heap->coroutines;
 
     pcintr_coroutine_t co = NULL;
     pcintr_stack_t stack = NULL;
@@ -2400,7 +2417,10 @@ coroutine_create(const char *name,
     stack->co = co;
     co->owner = heap;
 
-    list_add_tail(&co->node, coroutines);
+    int r;
+    r = pcutils_rbtree_insert_only(coroutines, &co->ident,
+            cmp_by_atom, &co->node);
+    PC_ASSERT(r == 0);
 
     stack_init(stack);
 

@@ -85,7 +85,8 @@ struct pcintr_heap {
     pcintr_coroutine_t    running_coroutine;
 
     // those running under and managed by this heap
-    struct list_head      coroutines;      // struct pcintr_coroutine
+    // key as atom, val as struct pcintr_coroutine
+    struct rb_root        coroutines;
 
     pthread_mutex_t       locker;
     volatile bool         exiting;
@@ -252,7 +253,7 @@ struct pcintr_coroutine {
     char                       *full_name;   /* prefixed with runnerName/ */
     purc_atom_t                 ident;
 
-    struct list_head            node;     /* heap::coroutines */
+    struct rb_node              node;     /* heap::coroutines */
 
     pcintr_coroutine_t          parent;
     struct list_head            children; /* struct pcintr_coroutine_result */
