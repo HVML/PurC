@@ -55,13 +55,15 @@
 
 #define PRINT_STATE(state_name)                                             \
     if (parser->enable_log) {                                               \
+        size_t len;                                                         \
+        char *s = pcvcm_node_to_string(parser->vcm_node, &len);             \
         PC_DEBUG(                                                           \
             "in %s|uc=%c|hex=0x%X|stack_is_empty=%d"                        \
-            "|stack_top=%c|stack_size=%ld|vcm_node->type=%d\n",             \
+            "|stack_top=%c|stack_size=%ld|vcm_node=%s\n",                   \
             curr_state_name, character, character,                          \
             ejson_stack_is_empty(), (char)ejson_stack_top(),                \
-            ejson_stack_size(),                                             \
-            (parser->vcm_node != NULL ? (int)parser->vcm_node->type : -1)); \
+            ejson_stack_size(), s);                                         \
+        free(s); \
     }
 
 #define SET_ERR(err)    do {                                                \
