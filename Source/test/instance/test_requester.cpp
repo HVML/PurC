@@ -1074,7 +1074,9 @@ static int on_call_method_handler(pcrdr_conn* conn,
 
             char inst_endpoint[PURC_LEN_ENDPOINT_NAME + 1];
             const char *last_slash = strrchr(source_uri, '/');
-            strncpy(inst_endpoint, source_uri, last_slash - source_uri);
+            // strncpy(inst_endpoint, source_uri, last_slash - source_uri);
+            snprintf(inst_endpoint, sizeof(inst_endpoint),
+                    "%.*s", (int)(last_slash - source_uri), source_uri);
             purc_log_info("The instance URI: %s\n", inst_endpoint);
 
             purc_atom_t inst_atom = purc_atom_try_string_ex(
