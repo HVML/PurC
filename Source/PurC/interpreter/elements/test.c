@@ -461,15 +461,16 @@ again:
                 pcvdom_element_t element = PCVDOM_ELEMENT_FROM_NODE(curr);
                 on_element(co, frame, element);
                 PC_ASSERT(stack->except == 0);
-                if (!ctxt->handle_differ) {
-                    return element;
-                }
-                else if (element->tag_id == PCHVML_TAG_DIFFER) {
-                    return element;
-                }
-                else {
+                if (ctxt->handle_differ) {
+                    if (element->tag_id == PCHVML_TAG_DIFFER) {
+                        return element;
+                    }
                     goto again;
                 }
+                else if (element->tag_id != PCHVML_TAG_DIFFER) {
+                    return element;
+                }
+                goto again;
             }
         case PCVDOM_NODE_CONTENT:
             on_content(co, frame, PCVDOM_CONTENT_FROM_NODE(curr));
