@@ -395,6 +395,7 @@ update_target_child(pcintr_stack_t stack, pcdom_element_t *target,
         pcintr_attribute_op with_eval)
 {
     UNUSED_PARAM(stack);
+    char *t = NULL;
     const char *s = "undefined";
     if (purc_variant_is_undefined(src)) {
         s = "undefined";
@@ -403,20 +404,31 @@ update_target_child(pcintr_stack_t stack, pcdom_element_t *target,
         s = purc_variant_get_string_const(src);
     }
     else {
-        PRINT_VARIANT(src);
-        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
-                "variant type is not undefined or string");
-        return -1;
+        ssize_t n = purc_variant_stringify_alloc(&t, src);
+        if (n<=0) {
+            PC_ASSERT(purc_get_last_error());
+            return -1;
+        }
+        s = t;
     }
 
     if (strcmp(to, "append") == 0) {
         UNUSED_PARAM(with_eval);
-        return pcintr_util_add_child_chunk(target, s);
+        int r = pcintr_util_add_child_chunk(target, s);
+        if (t)
+            free(t);
+        return r;
     }
     if (strcmp(to, "displace") == 0) {
         UNUSED_PARAM(with_eval);
-        return pcintr_util_set_child_chunk(target, s);
+        int r = pcintr_util_set_child_chunk(target, s);
+        if (t)
+            free(t);
+        return r;
     }
+    if (t)
+        free(t);
+
     PC_DEBUGX("to: %s", to);
     PC_ASSERT(0);
     return -1;
