@@ -409,6 +409,11 @@ next_state:                                                             \
 #define POP_AS_VCM_PARENT_AND_UPDATE_VCM()                                  \
     do {                                                                    \
         struct pcvcm_node* parent = pcvcm_stack_pop(parser->vcm_stack);     \
+        if (parent && pcvcm_node_is_closed(parent)) {                       \
+            struct pcvcm_node* gp = pcvcm_stack_pop(parser->vcm_stack);     \
+            APPEND_CHILD(gp, parent);                                       \
+            parent = gp;                                                    \
+        }                                                                   \
         struct pcvcm_node* child = parser->vcm_node;                        \
         APPEND_CHILD(parent, child);                                        \
         UPDATE_VCM_NODE(parent);                                            \
@@ -2811,10 +2816,12 @@ BEGIN_STATE(TKZ_STATE_EJSON_RIGHT_PARENTHESIS)
     if (uc == '(' || uc == '<') {
         ejson_stack_pop();
 
+        PRINT_VCM_NODE(parser->vcm_node);
         if (parser->vcm_node->type == PCVCM_NODE_TYPE_FUNC_CALL_GETTER
                 || parser->vcm_node->type == PCVCM_NODE_TYPE_FUNC_CALL_SETTER) {
             if (!pcvcm_node_is_closed(parser->vcm_node)) {
                 pcvcm_node_set_closed(parser->vcm_node, true);
+                PRINT_VCM_NODE(parser->vcm_node);
                 ADVANCE_TO(TKZ_STATE_EJSON_CONTROL);
             }
         }
@@ -2822,6 +2829,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_RIGHT_PARENTHESIS)
         if (!vcm_stack_is_empty()) {
             POP_AS_VCM_PARENT_AND_UPDATE_VCM();
             pcvcm_node_set_closed(parser->vcm_node, true);
+        PRINT_VCM_NODE(parser->vcm_node);
         }
         ADVANCE_TO(TKZ_STATE_EJSON_CONTROL);
     }
