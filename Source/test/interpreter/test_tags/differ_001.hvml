@@ -3,7 +3,7 @@
         <init as="global">
         {
             "locale":"zh_CN",
-            "differ":true
+            "differ":false
         }
         </init>
     </head>
