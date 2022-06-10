@@ -398,7 +398,8 @@ static int dispatch_message(pcrdr_conn *conn, pcrdr_msg *msg)
         break;
     }
 
-    pcrdr_release_message(msg);
+    if (msg->__padding1)    /* this message is reserved by upper layer */
+        pcrdr_release_message(msg);
     return retval;
 }
 

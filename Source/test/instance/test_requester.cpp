@@ -337,6 +337,7 @@ static void* general_instance_entry(void* arg)
                     }
                     else if (strcmp(op, "shutdown") == 0) {
                         shutdown_instance(&info, msg, response);
+                        pcrdr_release_message(response);
                         break;
                     }
                 }
@@ -695,6 +696,7 @@ static void* instance_manager_entry(void* arg)
 
                 /* we ignore target and targetValue */
                 if (strcmp(op, "quit") == 0) {
+                    pcrdr_release_message(response);
                     break;
                 }
 
@@ -785,6 +787,7 @@ static void* instance_manager_entry(void* arg)
                     NULL,
                     PCRDR_MSG_DATA_TYPE_VOID, NULL, 0);
             purc_inst_move_message(inst_atom, request);
+            pcrdr_release_message(request);
         }
         else {
             purc_log_info("wrong instance atom: %u (%u)\n",
