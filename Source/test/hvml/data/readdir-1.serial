@@ -60,7 +60,7 @@ PCHVML_TOKEN_VCM_TREE|"
                             "
 PCHVML_TOKEN_START_TAG|<except raw>
 PCHVML_TOKEN_VCM_TREE|concat_string("
-                                <li>Exception when calling '",call_getter(get_element(get_variable("FS"),"opendir"),get_element(get_variable("REQUEST"),"dir")),"'","</li>
+                                <li>Exception when calling '$FS.opendir($REQUEST.dir)'","</li>
                             ")
 PCHVML_TOKEN_END_TAG|</except>
 PCHVML_TOKEN_VCM_TREE|"
@@ -116,7 +116,7 @@ PCHVML_TOKEN_VCM_TREE|"
                 "
 PCHVML_TOKEN_START_TAG|<except raw>
 PCHVML_TOKEN_VCM_TREE|concat_string("
-                    <p>Exception on calling ",call_getter(get_element(get_variable("FS"),"file_is"),get_element(get_variable("REQUEST"),"dir"),"dir readable"),"</p>
+                    <p>Exception on calling $FS.file_is($REQUEST.dir, 'dir readable')","</p>
                 ")
 PCHVML_TOKEN_END_TAG|</except>
 PCHVML_TOKEN_VCM_TREE|"
