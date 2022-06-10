@@ -337,6 +337,7 @@ static void* general_instance_entry(void* arg)
                     }
                     else if (strcmp(op, "shutdown") == 0) {
                         shutdown_instance(&info, msg, response);
+                        pcrdr_release_message(msg);
                         pcrdr_release_message(response);
                         break;
                     }
@@ -696,6 +697,7 @@ static void* instance_manager_entry(void* arg)
 
                 /* we ignore target and targetValue */
                 if (strcmp(op, "quit") == 0) {
+                    pcrdr_release_message(msg);
                     pcrdr_release_message(response);
                     break;
                 }
@@ -1024,6 +1026,7 @@ static void wait_response_for_specific_request(struct main_inst_info *info,
                 response_handler(NULL,
                         purc_variant_get_string_const(request_id),
                         PCRDR_RESPONSE_RESULT, context, msg);
+                pcrdr_release_message(msg);
                 break;
             }
             else {
