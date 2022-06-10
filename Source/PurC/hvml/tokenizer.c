@@ -4336,7 +4336,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_TEMPLATE_DATA)
         SET_ERR(PCHVML_ERROR_EOF_IN_TAG);
         RETURN_AND_STOP_PARSE();
     }
-    if (character == '$') {
+    if (character == '$' && !parser->tag_has_raw_attr) {
         if (!tkz_buffer_is_empty(parser->temp_buffer)) {
             struct pcvcm_node* node = pcvcm_node_new_string(
                     tkz_buffer_get_bytes(parser->temp_buffer)
