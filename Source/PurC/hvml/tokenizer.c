@@ -4303,7 +4303,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_JSONEE_STRING)
         struct pcvcm_node* node = pcvcm_node_new_string(
                 tkz_buffer_get_bytes(parser->temp_buffer));
         RESET_TEMP_BUFFER();
-        if (parser->vcm_node && 
+        if (parser->vcm_node &&
                 parser->vcm_node->type != PCVCM_NODE_TYPE_FUNC_CONCAT_STRING) {
             POP_AS_VCM_PARENT_AND_UPDATE_VCM();
             vcm_stack_push(parser->vcm_node);
