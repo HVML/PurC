@@ -24,7 +24,7 @@ end:
     if (gen)
         pcvdom_gen_destroy(gen);
     if (doc)
-        pcvdom_document_destroy(doc);
+        pcvdom_document_unref(doc);
 }
 
 static int
@@ -75,7 +75,7 @@ _process_file(const char *fn)
         std::cerr << buf << std::endl;
     }
     else {
-        PRINT_VDOM_NODE(&doc->node);
+        PRINT_VDOM_NODE(pcvdom_node_from_document(doc));
     }
     int r = 0;
     if (doc && neg) {
@@ -88,7 +88,7 @@ _process_file(const char *fn)
     }
 
     if (doc)
-        pcvdom_document_destroy(doc);
+        pcvdom_document_unref(doc);
 
     if (rin)
         purc_rwstream_destroy(rin);

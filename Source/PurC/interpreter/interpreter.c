@@ -117,7 +117,7 @@ static void
 vdom_release(purc_vdom_t vdom)
 {
     if (vdom->document) {
-        pcvdom_document_destroy(vdom->document);
+        pcvdom_document_unref(vdom->document);
         vdom->document = NULL;
     }
 }
@@ -486,6 +486,14 @@ stack_release(pcintr_stack_t stack)
     if (stack->event_timer) {
         pcintr_timer_destroy(stack->event_timer);
         stack->event_timer = NULL;
+    }
+
+    if (stack->entry) {
+        struct pcvdom_document *vdom_document;
+        vdom_document = pcvdom_document_from_node(&stack->entry->node);
+        PC_ASSERT(vdom_document);
+        pcvdom_document_unref(vdom_document);
+        stack->entry = NULL;
     }
 }
 
@@ -1589,7 +1597,7 @@ again:
 error:
     doc = pcvdom_gen_end(gen);
     if (doc) {
-        pcvdom_document_destroy(doc);
+        pcvdom_document_unref(doc);
         doc = NULL;
     }
 
@@ -2443,7 +2451,7 @@ fail_co:
     vdom_destroy(vdom);
 
 fail_vdom:
-    pcvdom_document_destroy(doc);
+    pcvdom_document_unref(doc);
 
 fail_doc:
     free(co_result);
@@ -4320,6 +4328,10 @@ pcintr_create_child_co(pcvdom_element_t vdom_element,
     PC_ASSERT(co);
 
     PC_ASSERT(vdom_element);
+    struct pcvdom_document *vdom_document;
+    vdom_document = pcvdom_document_from_node(&vdom_element->node);
+    PC_ASSERT(vdom_document);
+
     const char *hvml = "<hvml><body/></hvml>";
 
     purc_rwstream_t rws;
@@ -4336,6 +4348,7 @@ pcintr_create_child_co(pcvdom_element_t vdom_element,
         PC_ASSERT(co->stack.vdom);
 
         child->stack.entry = vdom_element;
+        pcvdom_document_ref(vdom_document);
 
         PC_DEBUGX("running parent/child: %p/%p", co, child);
         PRINT_VDOM_NODE(&vdom_element->node);

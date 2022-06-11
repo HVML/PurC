@@ -32,6 +32,8 @@
 
 #include "hvml-attr.h"
 
+#include "vdom-internal.h"
+
 #include <math.h>
 #include <regex.h>
 
@@ -111,14 +113,27 @@ attr_create(void);
 static void
 vdom_node_destroy(struct pcvdom_node *node);
 
-// creating and destroying api
-void
-pcvdom_document_destroy(struct pcvdom_document *doc)
+struct pcvdom_document*
+pcvdom_document_ref(struct pcvdom_document *doc)
 {
     if (!doc)
-        return;
+        return NULL;
 
-    document_destroy(doc);
+    int refc = atomic_fetch_add(&doc->refc, 1);
+    PC_ASSERT(refc > 0);
+
+    return doc;
+}
+
+void
+pcvdom_document_unref(struct pcvdom_document *doc)
+{
+    PC_ASSERT(doc);
+
+    int refc = atomic_fetch_sub(&doc->refc, 1);
+    if (refc == 1) {
+        document_destroy(doc);
+    }
 }
 
 struct pcvdom_document*
@@ -309,6 +324,12 @@ pcvdom_document_set_root(struct pcvdom_document *doc,
     return 0;
 }
 
+struct pcvdom_element*
+pcvdom_document_get_root(struct pcvdom_document *doc)
+{
+    PC_ASSERT(doc);
+    return doc->root;
+}
 
 int
 pcvdom_document_append_comment(struct pcvdom_document *doc,
@@ -540,7 +561,6 @@ struct pcvdom_node*
 pcvdom_node_parent(struct pcvdom_node *node)
 {
     if (!node || !node->node.parent) {
-        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         return NULL;
     }
 
@@ -684,6 +704,8 @@ pcvdom_node_destroy(struct pcvdom_node *node)
 {
     if (!node)
         return;
+
+    PC_ASSERT(node->type != VDT(DOCUMENT));
 
     vdom_node_destroy(node);
 }
@@ -1076,6 +1098,8 @@ document_create(void)
 
     doc->node.type = VDT(DOCUMENT);
     doc->node.remove_child = document_remove_child;
+
+    doc->refc = 1;
 
     return doc;
 }
@@ -2239,5 +2263,200 @@ pcvdom_tokenwised_eval_attr(enum pchvml_attr_operator op,
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
     }
+}
+
+void
+pcvdom_document_set_target_workspace(purc_vdom_t vdom, uintptr_t workspace)
+{
+    vdom->target_workspace_handle = workspace;
+}
+
+uintptr_t
+pcvdom_document_get_target_workspace(purc_vdom_t vdom)
+{
+    return vdom->target_workspace_handle;
+}
+
+void
+pcvdom_document_set_target_window(purc_vdom_t vdom, uintptr_t window)
+{
+    vdom->target_window_handle = window;
+}
+
+uintptr_t
+pcvdom_document_get_target_window(purc_vdom_t vdom)
+{
+    return vdom->target_window_handle;
+}
+
+void
+pcvdom_document_set_target_tabpage(purc_vdom_t vdom, uintptr_t tabpage)
+{
+    vdom->target_tabpage_handle = tabpage;
+}
+
+uintptr_t
+pcvdom_document_get_target_tabpage(purc_vdom_t vdom)
+{
+    return vdom->target_tabpage_handle;
+}
+
+void
+pcvdom_document_set_target_dom(purc_vdom_t vdom, uintptr_t dom)
+{
+    vdom->target_dom_handle = dom;
+}
+
+uintptr_t
+pcvdom_document_get_target_dom(purc_vdom_t vdom)
+{
+    return vdom->target_dom_handle;
+}
+
+bool
+pcvdom_document_is_attached_rdr(purc_vdom_t vdom)
+{
+    return (vdom->target_tabpage_handle || vdom->target_window_handle);
+}
+
+void
+pcvdom_document_set_dump_buff(purc_vdom_t vdom, char **dump_buff)
+{
+    vdom->dump_buff = dump_buff;
+}
+
+struct pcvdom_element*
+pcvdom_element_first_child_element(struct pcvdom_element *elem)
+{
+    if (!elem)
+        return NULL;
+    struct pcvdom_node *node = pcvdom_node_first_child(&elem->node);
+
+    while (node && !PCVDOM_NODE_IS_ELEMENT(node)) {
+        node = pcvdom_node_next_sibling(node);
+    }
+
+    if (!node)
+        return NULL;
+
+    return container_of(node, struct pcvdom_element, node);
+}
+
+struct pcvdom_element*
+pcvdom_element_last_child_element(struct pcvdom_element *elem)
+{
+    if (!elem)
+        return NULL;
+    struct pcvdom_node *node = pcvdom_node_last_child(&elem->node);
+
+    while (node && !PCVDOM_NODE_IS_ELEMENT(node)) {
+        node = pcvdom_node_prev_sibling(node);
+    }
+
+    if (!node)
+        return NULL;
+
+    return container_of(node, struct pcvdom_element, node);
+}
+
+struct pcvdom_element*
+pcvdom_element_next_sibling_element(struct pcvdom_element *elem)
+{
+    if (!elem)
+        return NULL;
+    struct pcvdom_node *node = pcvdom_node_next_sibling(&elem->node);
+
+    while (node && !PCVDOM_NODE_IS_ELEMENT(node)) {
+        node = pcvdom_node_next_sibling(node);
+    }
+
+    if (!node)
+        return NULL;
+
+    return container_of(node, struct pcvdom_element, node);
+}
+
+struct pcvdom_element*
+pcvdom_element_prev_sibling_element(struct pcvdom_element *elem)
+{
+    if (!elem)
+        return NULL;
+    struct pcvdom_node *node = pcvdom_node_prev_sibling(&elem->node);
+
+    while (node && !PCVDOM_NODE_IS_ELEMENT(node)) {
+        node = pcvdom_node_prev_sibling(node);
+    }
+
+    if (!node)
+        return NULL;
+
+    return container_of(node, struct pcvdom_element, node);
+}
+
+void
+pcvdom_util_node_serialize(struct pcvdom_node *node,
+        pcvdom_util_node_serialize_cb cb)
+{
+    enum pcvdom_util_node_serialize_opt opt;
+    opt = PCVDOM_UTIL_NODE_SERIALIZE_INDENT;
+    pcvdom_util_node_serialize_ex(node, opt, cb);
+}
+
+int
+pcvdom_util_fprintf(const char *buf, size_t len)
+{
+    fprintf(stderr, "%.*s", (int)len, buf);
+    return 0;
+}
+
+struct pcvdom_attr*
+pcvdom_attr_create_simple(const char *key, struct pcvcm_node *vcm)
+{
+    return pcvdom_attr_create(key, PCHVML_ATTRIBUTE_OPERATOR, vcm);
+}
+
+struct pcvdom_node*
+pcvdom_node_from_document(struct pcvdom_document *doc)
+{
+    PC_ASSERT(doc);
+    return &doc->node;
+}
+
+struct pcvdom_node*
+pcvdom_node_from_element(struct pcvdom_element *elem)
+{
+    PC_ASSERT(elem);
+    return &elem->node;
+}
+
+struct pcvdom_node*
+pcvdom_node_from_content(struct pcvdom_content *content)
+{
+    PC_ASSERT(content);
+    return &content->node;
+}
+
+struct pcvdom_node*
+pcvdom_node_from_comment(struct pcvdom_comment *comment)
+{
+    PC_ASSERT(comment);
+    return &comment->node;
+}
+
+struct pcvdom_document*
+pcvdom_document_from_node(struct pcvdom_node *node)
+{
+    while (node) {
+        struct pcvdom_node *parent;
+        parent = pcvdom_node_parent(node);
+        if (parent) {
+            node = parent;
+            continue;
+        }
+        PC_ASSERT(node->type == VDT(DOCUMENT));
+        return container_of(node, struct pcvdom_document, node);
+    }
+
+    return NULL;
 }
 
