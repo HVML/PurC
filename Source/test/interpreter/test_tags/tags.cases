@@ -1,39 +1,41 @@
+##
+#hvml_001
+#hvml_002
+#hvml_003
+#hvml_004
+##
+#head_001
 #
-hvml_001
-hvml_002
-hvml_003
-hvml_004
+##
+#body_001
+## multiple body element
+####### body_002
 #
-head_001
+##
+#archetype_001
+#archetype_002
+####### archetype_003
+#
+##
+#archedata_001
+#archedata_002
+archedata_003
 
 #
-body_001
-# multiple body element
-###### body_002
-
-#
-archetype_001
-archetype_002
-###### archetype_003
-
-#
-archedata_001
-archedata_002
-
-clear_001
-clear_002
-clear_003
-clear_004
-erase_001
-erase_002
-erase_003
-erase_004
-erase_005
-erase_006
-erase_007
-erase_008
-erase_009
-erase_010
-erase_011
-test_001
-differ_001
+#clear_001
+#clear_002
+#clear_003
+#clear_004
+#erase_001
+#erase_002
+#erase_003
+#erase_004
+#erase_005
+#erase_006
+#erase_007
+#erase_008
+#erase_009
+#erase_010
+#erase_011
+#test_001
+#differ_001
