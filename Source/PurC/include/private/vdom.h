@@ -63,28 +63,6 @@ enum pchvml_attr_operator {
     PCHVML_ATTRIBUTE_MAX,
 };
 
-#define PCVDOM_NODE_IS_DOCUMENT(_n) \
-    (((_n) && (_n)->type==PCVDOM_NODE_DOCUMENT))
-#define PCVDOM_NODE_IS_ELEMENT(_n) \
-    (((_n) && (_n)->type==PCVDOM_NODE_ELEMENT))
-#define PCVDOM_NODE_IS_CONTENT(_n) \
-    (((_n) && (_n)->type==PCVDOM_NODE_CONTENT))
-#define PCVDOM_NODE_IS_COMMENT(_n) \
-    (((_n) && (_n)->type==PCVDOM_NODE_COMMENT))
-
-#define PCVDOM_DOCUMENT_FROM_NODE(_node) \
-    (PCVDOM_NODE_IS_DOCUMENT(_node) ? \
-        container_of(_node, struct pcvdom_document, node) : NULL)
-#define PCVDOM_ELEMENT_FROM_NODE(_node) \
-    (PCVDOM_NODE_IS_ELEMENT(_node) ? \
-        container_of(_node, struct pcvdom_element, node) : NULL)
-#define PCVDOM_CONTENT_FROM_NODE(_node) \
-    (PCVDOM_NODE_IS_CONTENT(_node) ? \
-        container_of(_node, struct pcvdom_content, node) : NULL)
-#define PCVDOM_COMMENT_FROM_NODE(_node) \
-    (PCVDOM_NODE_IS_COMMENT(_node) ? \
-        container_of(_node, struct pcvdom_comment, node) : NULL)
-
 struct pcvdom_node;
 struct pcvdom_document;
 struct pcvdom_element;
@@ -95,87 +73,11 @@ struct pcvdom_comment;
 typedef enum pchvml_tag_id   pcvdom_tag_id;
 struct pcvdom_attr;
 
-struct pcvdom_node {
-    struct pctree_node     node;
-    enum pcvdom_nodetype   type;
-    void (*remove_child)(struct pcvdom_node *me, struct pcvdom_node *child);
-};
+struct pcvdom_document*
+pcvdom_document_ref(struct pcvdom_document *doc);
 
-struct pcvdom_doctype {
-    char                   *name;
-    char                   *tag_prefix;
-    char                   *system_info;
-};
-
-struct pcvdom_document {
-    struct pcvdom_node      node;
-
-    struct pcvdom_doctype   doctype;
-
-    // redundant, for fast access
-    struct pcvdom_element  *root;
-    struct pcvdom_element  *head;
-    struct pcvdom_element  *body;
-
-    unsigned int            quirks:1;
-};
-
-struct pcvdom_attr {
-    struct pcvdom_element    *parent;
-
-    // NOTE for key:
-    //   for those pre-defined attrs, static char * in pre_defined
-    //   for others, need to be free'd afterwards
-    const struct pchvml_attr_entry  *pre_defined;
-    char                     *key;
-
-    // operator
-    enum pchvml_attr_operator       op;
-
-    // text/jsonnee/no-value
-    struct pcvcm_node        *val;
-};
-
-struct pcvdom_element {
-    struct pcvdom_node      node;
-
-    // for those non-pre-defined tags(UNDEF)
-    // tag_name shall be free'd afterwards in case when tag_id is tag(UNDEF)
-    pcvdom_tag_id           tag_id;
-    char                   *tag_name;
-
-    // key: char *, the same as struct pcvdom_attr:key
-    // val: struct pcvdom_attr*
-    struct pcutils_map     *attrs;
-
-    unsigned int            self_closing:1;
-};
-
-struct pcvdom_content {
-    struct pcvdom_node      node;
-
-    struct pcvcm_node      *vcm;
-};
-
-struct pcvdom_comment {
-    struct pcvdom_node      node;
-
-    char                   *text;
-};
-
-struct purc_vdom {
-    struct pcvdom_document          *document;
-    const struct purc_hvml_ctrl_props     *hvml_ctrl_props;
-    char **dump_buff;
-    uintptr_t   target_workspace_handle;  /* rdr workspace */
-    uintptr_t   target_window_handle;
-    uintptr_t   target_tabpage_handle;
-    uintptr_t   target_dom_handle;
-};
-
-// creating and destroying api
 void
-pcvdom_document_destroy(struct pcvdom_document *doc);
+pcvdom_document_unref(struct pcvdom_document *doc);
 
 struct pcvdom_document*
 pcvdom_document_create(void);
@@ -200,11 +102,8 @@ pcvdom_attr_create(const char *key, enum pchvml_attr_operator op,
 // key = vcm
 // or
 // key,    in case when vcm == NULL
-static inline struct pcvdom_attr*
-pcvdom_attr_create_simple(const char *key, struct pcvcm_node *vcm)
-{
-    return pcvdom_attr_create(key, PCHVML_ATTRIBUTE_OPERATOR, vcm);
-}
+struct pcvdom_attr*
+pcvdom_attr_create_simple(const char *key, struct pcvcm_node *vcm);
 
 void
 pcvdom_attr_destroy(struct pcvdom_attr *attr);
@@ -221,6 +120,9 @@ pcvdom_document_append_content(struct pcvdom_document *doc,
 int
 pcvdom_document_set_root(struct pcvdom_document *doc,
         struct pcvdom_element *root);
+
+struct pcvdom_element*
+pcvdom_document_get_root(struct pcvdom_document *doc);
 
 int
 pcvdom_document_append_comment(struct pcvdom_document *doc,
@@ -240,65 +142,35 @@ pcvdom_document_get_variable(purc_vdom_t vdom, const char *name);
 pcvarmgr_t
 pcvdom_document_get_variables(purc_vdom_t vdom);
 
-PCA_INLINE void
-pcvdom_document_set_target_workspace(purc_vdom_t vdom, uintptr_t workspace)
-{
-    vdom->target_workspace_handle = workspace;
-}
+void
+pcvdom_document_set_target_workspace(purc_vdom_t vdom, uintptr_t workspace);
 
-PCA_INLINE uintptr_t
-pcvdom_document_get_target_workspace(purc_vdom_t vdom)
-{
-    return vdom->target_workspace_handle;
-}
+uintptr_t
+pcvdom_document_get_target_workspace(purc_vdom_t vdom);
 
-PCA_INLINE void
-pcvdom_document_set_target_window(purc_vdom_t vdom, uintptr_t window)
-{
-    vdom->target_window_handle = window;
-}
+void
+pcvdom_document_set_target_window(purc_vdom_t vdom, uintptr_t window);
 
-PCA_INLINE uintptr_t
-pcvdom_document_get_target_window(purc_vdom_t vdom)
-{
-    return vdom->target_window_handle;
-}
+uintptr_t
+pcvdom_document_get_target_window(purc_vdom_t vdom);
 
-PCA_INLINE void
-pcvdom_document_set_target_tabpage(purc_vdom_t vdom, uintptr_t tabpage)
-{
-    vdom->target_tabpage_handle = tabpage;
-}
+void
+pcvdom_document_set_target_tabpage(purc_vdom_t vdom, uintptr_t tabpage);
 
-PCA_INLINE uintptr_t
-pcvdom_document_get_target_tabpage(purc_vdom_t vdom)
-{
-    return vdom->target_tabpage_handle;
-}
+uintptr_t
+pcvdom_document_get_target_tabpage(purc_vdom_t vdom);
 
-PCA_INLINE void
-pcvdom_document_set_target_dom(purc_vdom_t vdom, uintptr_t dom)
-{
-    vdom->target_dom_handle = dom;
-}
+void
+pcvdom_document_set_target_dom(purc_vdom_t vdom, uintptr_t dom);
 
-PCA_INLINE uintptr_t
-pcvdom_document_get_target_dom(purc_vdom_t vdom)
-{
-    return vdom->target_dom_handle;
-}
+uintptr_t
+pcvdom_document_get_target_dom(purc_vdom_t vdom);
 
-PCA_INLINE bool
-pcvdom_document_is_attached_rdr(purc_vdom_t vdom)
-{
-    return (vdom->target_tabpage_handle || vdom->target_window_handle);
-}
+bool
+pcvdom_document_is_attached_rdr(purc_vdom_t vdom);
 
-PCA_INLINE void
-pcvdom_document_set_dump_buff(purc_vdom_t vdom, char **dump_buff)
-{
-    vdom->dump_buff = dump_buff;
-}
+void
+pcvdom_document_set_dump_buff(purc_vdom_t vdom, char **dump_buff);
 
 int
 pcvdom_element_append_attr(struct pcvdom_element *elem,
@@ -337,6 +209,21 @@ pcvarmgr_t pcvdom_element_get_variables(struct pcvdom_element *elem);
 
 // accessor api
 struct pcvdom_node*
+pcvdom_node_from_document(struct pcvdom_document *doc);
+
+struct pcvdom_node*
+pcvdom_node_from_element(struct pcvdom_element *elem);
+
+struct pcvdom_node*
+pcvdom_node_from_content(struct pcvdom_content *content);
+
+struct pcvdom_node*
+pcvdom_node_from_comment(struct pcvdom_comment *comment);
+
+struct pcvdom_document*
+pcvdom_document_from_node(struct pcvdom_node *node);
+
+struct pcvdom_node*
 pcvdom_node_parent(struct pcvdom_node *node);
 
 struct pcvdom_node*
@@ -354,73 +241,17 @@ pcvdom_node_prev_sibling(struct pcvdom_node *node);
 struct pcvdom_element*
 pcvdom_element_parent(struct pcvdom_element *elem);
 
-static inline struct pcvdom_element*
-pcvdom_element_first_child_element(struct pcvdom_element *elem)
-{
-    if (!elem)
-        return NULL;
-    struct pcvdom_node *node = pcvdom_node_first_child(&elem->node);
+struct pcvdom_element*
+pcvdom_element_first_child_element(struct pcvdom_element *elem);
 
-    while (node && !PCVDOM_NODE_IS_ELEMENT(node)) {
-        node = pcvdom_node_next_sibling(node);
-    }
+struct pcvdom_element*
+pcvdom_element_last_child_element(struct pcvdom_element *elem);
 
-    if (!node)
-        return NULL;
+struct pcvdom_element*
+pcvdom_element_next_sibling_element(struct pcvdom_element *elem);
 
-    return container_of(node, struct pcvdom_element, node);
-}
-
-static inline struct pcvdom_element*
-pcvdom_element_last_child_element(struct pcvdom_element *elem)
-{
-    if (!elem)
-        return NULL;
-    struct pcvdom_node *node = pcvdom_node_last_child(&elem->node);
-
-    while (node && !PCVDOM_NODE_IS_ELEMENT(node)) {
-        node = pcvdom_node_prev_sibling(node);
-    }
-
-    if (!node)
-        return NULL;
-
-    return container_of(node, struct pcvdom_element, node);
-}
-
-static inline struct pcvdom_element*
-pcvdom_element_next_sibling_element(struct pcvdom_element *elem)
-{
-    if (!elem)
-        return NULL;
-    struct pcvdom_node *node = pcvdom_node_next_sibling(&elem->node);
-
-    while (node && !PCVDOM_NODE_IS_ELEMENT(node)) {
-        node = pcvdom_node_next_sibling(node);
-    }
-
-    if (!node)
-        return NULL;
-
-    return container_of(node, struct pcvdom_element, node);
-}
-
-static inline struct pcvdom_element*
-pcvdom_element_prev_sibling_element(struct pcvdom_element *elem)
-{
-    if (!elem)
-        return NULL;
-    struct pcvdom_node *node = pcvdom_node_prev_sibling(&elem->node);
-
-    while (node && !PCVDOM_NODE_IS_ELEMENT(node)) {
-        node = pcvdom_node_prev_sibling(node);
-    }
-
-    if (!node)
-        return NULL;
-
-    return container_of(node, struct pcvdom_element, node);
-}
+struct pcvdom_element*
+pcvdom_element_prev_sibling_element(struct pcvdom_element *elem);
 
 bool
 pcvdom_element_is_foreign(struct pcvdom_element *element);
@@ -467,8 +298,8 @@ int pcvdom_element_traverse(struct pcvdom_element *elem, void *ctx,
 #define pcvdom_document_create_with_doctype(name, doctype) ({     \
     struct pcvdom_document *doc = pcvdom_document_create();       \
     if (doc) {                                                    \
-        if (pcvdom_document_set_doctype(doc,name, doctype)) {     \
-            pcvdom_document_destroy(doc);                         \
+        if (pcvdom_document_set_doctype(doc, name, doctype)) {    \
+            pcvdom_document_unref(doc);                           \
             doc = NULL;                                           \
         }                                                         \
     }                                                             \
@@ -513,21 +344,12 @@ pcvdom_util_node_serialize_ex(struct pcvdom_node *node,
         enum pcvdom_util_node_serialize_opt opt,
         pcvdom_util_node_serialize_cb cb);
 
-static inline void
+void
 pcvdom_util_node_serialize(struct pcvdom_node *node,
-        pcvdom_util_node_serialize_cb cb)
-{
-    enum pcvdom_util_node_serialize_opt opt;
-    opt = PCVDOM_UTIL_NODE_SERIALIZE_INDENT;
-    pcvdom_util_node_serialize_ex(node, opt, cb);
-}
+        pcvdom_util_node_serialize_cb cb);
 
-static inline int
-pcvdom_util_fprintf(const char *buf, size_t len)
-{
-    fprintf(stderr, "%.*s", (int)len, buf);
-    return 0;
-}
+int
+pcvdom_util_fprintf(const char *buf, size_t len);
 
 purc_variant_t
 pcvdom_tokenwised_eval_attr(enum pchvml_attr_operator op,
