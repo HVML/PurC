@@ -1,5 +1,16 @@
 # TODO 清单
 
+## HVML 标签
+
+* 检测标签的实现:
+  1. `hvml` 标签： `target` 属性
+  1. `body` 标签：一个HVML中，支持多个 `body` 标签
+  1. `archetype` 标签：`src`、`param` 和 `method` 属性的支持
+  1. `archedata` 标签：`src`、`param` 和 `method` 属性的支持
+  1. `error` 标签：`type`、`src`、`param` 和 `method` 属性的支持
+  1. `except` 标签：`type`、`src`、`param` 和 `method` 属性的支持
+  1. `init` 标签：
+
 ## 预定义变量
 
 * 按照[预定义变量规范](https://gitlab.fmsoft.cn/hvml/hvml-docs/-/blob/master/zh/hvml-spec-predefined-variables-v1.0-zh.md)要求调整已有的实现。主要涉及：
