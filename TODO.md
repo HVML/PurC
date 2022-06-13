@@ -10,6 +10,32 @@
   1. `error` 标签：`type`、`src`、`param` 和 `method` 属性的支持
   1. `except` 标签：`type`、`src`、`param` 和 `method` 属性的支持
   1. `init` 标签：
+  1. `update` 标签：
+  1. `erase` 标签：
+  1. `clear` 标签：
+  1. `test` 标签：
+  1. `match` 标签：
+  1. `differ` 标签：
+  1. `choose` 标签：
+  1. `iterate` 标签：
+  1. `reduce` 标签：
+  1. `sort` 标签：
+  1. `define` 标签：
+  1. `include` 标签：
+  1. `observe` 标签：
+  1. `forget` 标签：
+  1. `fire` 标签：
+  1. `call` 标签：
+  1. `return` 标签：
+  1. `bind` 标签：
+  1. `catch` 标签：
+  1. `back` 标签：
+  1. `request` 标签：
+  1. `load` 标签：
+  1. `exit` 标签：
+  1. `inherit` 标签：
+  1. `sleep` 标签：
+
 
 ## 预定义变量
 
