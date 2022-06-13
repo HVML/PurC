@@ -26,7 +26,7 @@
   1. `match` 标签：考虑能否放在 `inherit` 标签下
   1. `differ` 标签：考虑能否放在 `inherit` 标签下
   1. ~~`choose` 标签~~
-  1. `iterate` 标签：
+  1. ~~`iterate` 标签~~
   1. `reduce` 标签：未实现
   1. `sort` 标签：未实现
   1. `define` 标签：
