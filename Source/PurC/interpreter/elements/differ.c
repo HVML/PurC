@@ -76,6 +76,13 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         return NULL;
     }
 
+    if (parent) {
+        for (int i = 0; i < PURC_SYMBOL_VAR_MAX; i++) {
+            purc_variant_t v = pcintr_get_symbol_var(parent, i);
+            pcintr_set_symbol_var(frame, i, v);
+        }
+    }
+
     struct ctxt_for_differ *ctxt;
     ctxt = (struct ctxt_for_differ*)calloc(1, sizeof(*ctxt));
     if (!ctxt) {
@@ -146,22 +153,8 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     PC_ASSERT(v != PURC_VARIANT_INVALID);
     purc_clr_error();
 
-    if (purc_variant_is_string(v)) {
-        const char *text = purc_variant_get_string_const(v);
-        pcdom_text_t *content;
-        content = pcintr_util_append_content(frame->edom_element, text);
-        PC_ASSERT(content);
-        purc_variant_unref(v);
-    }
-    else {
-        char *sv = pcvariant_to_string(v);
-        PC_ASSERT(sv);
-        int r;
-        r = pcintr_util_add_child_chunk(frame->edom_element, sv);
-        PC_ASSERT(r == 0);
-        free(sv);
-        purc_variant_unref(v);
-    }
+    pcintr_set_symbol_var(frame, PURC_SYMBOL_VAR_CARET, v);
+    purc_variant_unref(v);
 }
 
 static void

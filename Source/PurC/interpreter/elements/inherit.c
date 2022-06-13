@@ -167,6 +167,7 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     purc_clr_error();
 
     pcintr_set_symbol_var(frame, PURC_SYMBOL_VAR_CARET, v);
+    purc_variant_unref(v);
 }
 
 static void
