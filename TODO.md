@@ -22,10 +22,10 @@
      - 目标数据(`on`属性)为元素汇集时，目前支持通过`class` 和 `id` 两种CSS选择，还需支持通过标签名称来选择。
   1. ~~`erase` 标签~~
   1. ~~`clear` 标签~~
-  1. `test` 标签：
-  1. `match` 标签：
-  1. `differ` 标签：
-  1. `choose` 标签：
+  1. `test` 标签： 支持 `by` 属性
+  1. `match` 标签：考虑能否放在 `inherit` 标签下
+  1. `differ` 标签：考虑能否放在 `inherit` 标签下
+  1. ~~`choose` 标签~~
   1. `iterate` 标签：
   1. `reduce` 标签：
   1. `sort` 标签：
