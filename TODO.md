@@ -10,10 +10,15 @@
   1. `error` 标签：`type`、`src`、`param` 和 `method` 属性的支持
   1. `except` 标签：`type`、`src`、`param` 和 `method` 属性的支持
   1. `init` 标签：
-    - http 请求支持使用 `with` 参数定义请求参数，使用 `via` 属性定义请求方法
-    - 支持 `via` == `LOAD` 加载外部模块(`from` 属性指定外部模块名，`for` 指定动态对象名)
-    - 支持 `casesensitively` 属性 和 `caseinsensitively` 属性
+     - http 请求支持使用 `with` 参数定义请求参数，使用 `via` 属性定义请求方法
+     - 支持 `via` == `LOAD` 加载外部模块(`from` 属性指定外部模块名，`for` 指定动态对象名)
+     - 支持 `casesensitively` 属性 和 `caseinsensitively` 属性
   1. `update` 标签：
+     - `to` 属性支持 `prepend` 、`remove` 、`insertBefore` 、`insertAfter` 、`insertAfter` 、`intersect` 、`subtract` 、`xor` 、`call`
+     - `from` 支持 http 请求支持使用 `with` 参数定义请求参数，使用 `via` 属性定义请求方法
+     - `at` 属性支持 `jsonContent`、`content` 和 `style.<style_name>`
+     - 支持同时修改多个数据项
+     - 支持 `individually` 副词
   1. `erase` 标签：
   1. `clear` 标签：
   1. `test` 标签：
