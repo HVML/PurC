@@ -30,7 +30,8 @@
   1. `reduce` 标签：未实现
   1. `sort` 标签：未实现
   1. `define` 标签：
-  1. `include` 标签：
+     - `from` 支持 http 请求支持使用 `with` 参数定义请求参数，使用 `via` 属性定义请求方法
+  1. ~~`include` 标签~~
   1. `observe` 标签：
   1. `forget` 标签：
   1. `fire` 标签：
