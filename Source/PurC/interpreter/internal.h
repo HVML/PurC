@@ -33,6 +33,11 @@
 
 #include "keywords.h"
 
+
+#ifndef __cplusplus                        /* { */
+#include "../vdom/vdom-internal.h"
+#endif                                    /* } */
+
 struct pcvdom_template_node {
     struct list_head              node;
     struct pcvcm_node            *vcm;
