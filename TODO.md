@@ -28,7 +28,7 @@
   1. `call` 标签：
   1. `return` 标签：
   1. `bind` 标签：
-  1. `catch` 标签：
+  1. ~~`catch` 标签：~~
   1. ~~`back` 标签：`to` 属性的支持~~
   1. `request` 标签：
   1. `load` 标签：
