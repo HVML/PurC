@@ -29,12 +29,12 @@
   1. `return` 标签：
   1. `bind` 标签：
   1. `catch` 标签：
-  1. `back` 标签：
+  1. `back` 标签：`to` 属性的支持
   1. `request` 标签：
   1. `load` 标签：
-  1. `exit` 标签：
+  1. `exit` 标签：`with` 属性的支持，需要依赖协程间消息传递机制
   1. `inherit` 标签：
-  1. `sleep` 标签：
+  1. `sleep` 标签：`for` 属性的支持
 
 
 ## 预定义变量
