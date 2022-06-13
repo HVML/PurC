@@ -78,8 +78,8 @@ ctxt_destroy(void *ctxt)
 struct template_walk_data {
     pcintr_stack_t               stack;
 
-    struct pcutils_stringbuilder sb;
     int                          r;
+    purc_variant_t               val;
 };
 
 static int
@@ -95,16 +95,31 @@ template_walker(struct pcvcm_node *vcm, void *ctxt)
     // TODO: silently
     purc_variant_t v = pcvcm_eval(vcm, stack, false);
     PC_ASSERT(v != PURC_VARIANT_INVALID);
-    PC_ASSERT(purc_variant_is_string(v));
-    const char *s = purc_variant_get_string_const(v);
 
-    int n;
-    n = pcutils_stringbuilder_snprintf(&ud->sb, "%s", s);
+    if (purc_variant_is_string(v)) {
+        const char *s = purc_variant_get_string_const(v);
 
-    if (n < 0 || (size_t)n != strlen(s)) {
-        purc_variant_unref(v);
-        ud->r = -1;
-        return -1;
+        size_t chunk = 128;
+        struct pcutils_stringbuilder sb;
+        pcutils_stringbuilder_init(&sb, chunk);
+        int n = pcutils_stringbuilder_snprintf(&sb, "%s", s);
+        if (n < 0 || (size_t)n != strlen(s)) {
+            pcutils_stringbuilder_reset(&sb);
+            purc_variant_unref(v);
+            ud->r = -1;
+            return -1;
+        }
+
+        char *ssv = pcutils_stringbuilder_build(&sb);
+        if (ssv) {
+            ud->val = purc_variant_make_string_reuse_buff(ssv, strlen(ssv), true);
+            PC_ASSERT(v);
+        }
+        pcutils_stringbuilder_reset(&sb);
+    }
+    else {
+        ud->val = v;
+        purc_variant_ref(ud->val);
     }
 
     purc_variant_unref(v);
@@ -141,9 +156,8 @@ get_source_by_with(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         struct template_walk_data ud = {
             .stack        = &co->stack,
             .r            = 0,
+            .val          = PURC_VARIANT_INVALID,
         };
-        size_t chunk = 128;
-        pcutils_stringbuilder_init(&ud.sb, chunk);
 
         pcintr_template_walk(with, &ud, template_walker);
 
@@ -151,16 +165,9 @@ get_source_by_with(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         purc_variant_t v = PURC_VARIANT_INVALID;
 
         if (r == 0) {
-            r = -1;
-            char *s = pcutils_stringbuilder_build(&ud.sb);
-            if (s) {
-                v = purc_variant_make_string_reuse_buff(s, strlen(s), true);
-                PC_ASSERT(v);
-                r = 0;
-            }
+            v = ud.val;
+            PC_ASSERT(v);
         }
-
-        pcutils_stringbuilder_reset(&ud.sb);
         return v;
     }
     else {

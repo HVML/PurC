@@ -1,0 +1,17 @@
+<!DOCTYPE hvml>
+<hvml target="html" lang="en">
+    <head>
+    </head>
+
+    <body>
+        <archedata name="item_user">
+            {
+                "id": "$?.attr[data-value]", "avatar": "$?.children[0].attr.src",
+                "name": "$?.children[1].children[0].textContent", "region": "$?.attr[data-region]"
+            }
+        </archedata>
+    </body>
+
+</hvml>
+
+
