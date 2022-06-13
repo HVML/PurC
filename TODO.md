@@ -19,6 +19,7 @@
      - `at` 属性支持 `jsonContent`、`content` 和 `style.<style_name>`
      - 支持同时修改多个数据项
      - 支持 `individually` 副词
+     - 目标数据(`on`属性)为元素汇集时，目前支持通过`class` 和 `id` 两种CSS选择，还需支持通过标签名称来选择。
   1. `erase` 标签：
   1. `clear` 标签：
   1. `test` 标签：
