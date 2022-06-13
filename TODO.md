@@ -10,6 +10,9 @@
   1. `error` 标签：`type`、`src`、`param` 和 `method` 属性的支持
   1. `except` 标签：`type`、`src`、`param` 和 `method` 属性的支持
   1. `init` 标签：
+    - http 请求支持使用 `with` 参数定义请求参数，使用 `via` 属性定义请求方法
+    - 支持 `via` == `LOAD` 加载外部模块(`from` 属性指定外部模块名，`for` 指定动态对象名)
+    - 支持 `casesensitively` 属性 和 `caseinsensitively` 属性
   1. `update` 标签：
   1. `erase` 标签：
   1. `clear` 标签：
