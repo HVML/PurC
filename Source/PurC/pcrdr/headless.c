@@ -1308,6 +1308,7 @@ pcrdr_msg *pcrdr_headless_connect(const char* renderer_uri,
     (*conn)->prot = PURC_RDRPROT_HEADLESS;
     (*conn)->type = CT_PLAIN_FILE;
     (*conn)->fd = -1;
+    (*conn)->timeout_ms = 10;   /* 10 milliseconds */
     (*conn)->srv_host_name = NULL;
     (*conn)->own_host_name = strdup(PCRDR_LOCALHOST);
     (*conn)->app_name = app_name;

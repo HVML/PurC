@@ -440,8 +440,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         break;
     }
 
-    // TODO : set ret as result data
     if (ret) {
+        pcintr_set_question_var(frame, ret);
         purc_variant_unref(ret);
     }
     purc_clr_error();

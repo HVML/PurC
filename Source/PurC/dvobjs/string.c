@@ -27,6 +27,7 @@
 #include "private/errors.h"
 #include "private/dvobjs.h"
 #include "private/utils.h"
+#include "private/variant.h"
 #include "purc-variant.h"
 #include "helper.h"
 
@@ -1135,7 +1136,8 @@ substr_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     purc_variant_string_bytes (argv[0], &str_len);
     const char * src = purc_variant_get_string_const (argv[0]);
 
-    if (argv[1] == NULL || !purc_variant_is_longint (argv[1])) {
+    if (argv[1] == NULL || !(purc_variant_is_longint (argv[1])
+            || purc_variant_is_number (argv[1]))) {
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
@@ -1157,7 +1159,8 @@ substr_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     // get the length
     int64_t length = 0;
     if (nr_args > 2) {
-        if(argv[2] == NULL || !purc_variant_is_longint (argv[2])) {
+        if(argv[2] == NULL || !(purc_variant_is_longint (argv[2])
+                    || purc_variant_is_number (argv[2]))) {
             purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
             return PURC_VARIANT_INVALID;
         }

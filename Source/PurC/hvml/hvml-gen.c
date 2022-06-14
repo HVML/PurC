@@ -30,6 +30,8 @@
 #include "private/tkz-helper.h"
 #include "hvml-gen.h"
 
+#include "../vdom/vdom-internal.h"
+
 #ifndef VTT
 #define VTT(x)         PCHVML_TOKEN##x
 #define VTT_S(x)       #x
@@ -401,7 +403,7 @@ void
 pcvdom_gen_destroy(struct pcvdom_gen *gen)
 {
     if (gen->doc) {
-        pcvdom_document_destroy(gen->doc);
+        pcvdom_document_unref(gen->doc);
         gen->doc = NULL;
     }
 
@@ -1182,7 +1184,8 @@ pcvdom_gen_push_token(struct pcvdom_gen *gen,
         if (!gen->doc)
             FAIL_RET();
         if (push_node(gen, &gen->doc->node)) {
-            pcvdom_document_destroy(gen->doc);
+            pcvdom_document_unref(gen->doc);
+            gen->doc = NULL;
             FAIL_RET();
         }
         PC_ASSERT(is_doc_node(gen, top_node(gen)));
@@ -1380,7 +1383,7 @@ parse_fragment(purc_rwstream_t in, struct pcvdom_pos *pos)
     pcvdom_node_remove(&elem->node);
 
     doc->body = NULL;
-    pcvdom_document_destroy(doc);
+    pcvdom_document_unref(doc);
 
     return elem;
 }

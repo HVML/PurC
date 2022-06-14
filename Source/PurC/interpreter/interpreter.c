@@ -117,7 +117,7 @@ static void
 vdom_release(purc_vdom_t vdom)
 {
     if (vdom->document) {
-        pcvdom_document_destroy(vdom->document);
+        pcvdom_document_unref(vdom->document);
         vdom->document = NULL;
     }
 }
@@ -175,7 +175,7 @@ pcintr_util_dump_document_ex(pchtml_html_document_t *doc, char **dump_buff,
         }
         *dump_buff = strdup(p);
     }
-#if 1
+#if 0
     else {
         fprintf(stderr, "%s[%d]:%s(): #document %p\n%s\n",
                 pcutils_basename((char*)file), line, func, doc, p);
@@ -487,6 +487,14 @@ stack_release(pcintr_stack_t stack)
         pcintr_timer_destroy(stack->event_timer);
         stack->event_timer = NULL;
     }
+
+    if (stack->entry) {
+        struct pcvdom_document *vdom_document;
+        vdom_document = pcvdom_document_from_node(&stack->entry->node);
+        PC_ASSERT(vdom_document);
+        pcvdom_document_unref(vdom_document);
+        stack->entry = NULL;
+    }
 }
 
 enum pcintr_req_state {
@@ -585,14 +593,15 @@ static void _cleanup_instance(struct pcinst* inst)
     PC_ASSERT(heap->exiting == false);
     heap->exiting = true;
 
-    struct list_head *coroutines = &heap->coroutines;
-    struct list_head *p, *n;
+    struct rb_root *coroutines = &heap->coroutines;
 
-    list_for_each_safe(p, n, coroutines) {
+    struct rb_node *p, *n;
+    struct rb_node *first = pcutils_rbtree_first(coroutines);
+    pcutils_rbtree_for_each_safe(first, p, n) {
         pcintr_coroutine_t co;
         co = container_of(p, struct pcintr_coroutine, node);
 
-        list_del(p);
+        pcutils_rbtree_erase(p, coroutines);
         coroutine_destroy(co);
     }
 
@@ -639,7 +648,7 @@ static int _init_instance(struct pcinst* inst,
     inst->intr_heap = heap;
     heap->owner     = inst;
 
-    INIT_LIST_HEAD(&heap->coroutines);
+    heap->coroutines = RB_ROOT;
     heap->running_coroutine = NULL;
     heap->next_coroutine_id = 1;
 
@@ -1588,7 +1597,7 @@ again:
 error:
     doc = pcvdom_gen_end(gen);
     if (doc) {
-        pcvdom_document_destroy(doc);
+        pcvdom_document_unref(doc);
         doc = NULL;
     }
 
@@ -1843,10 +1852,12 @@ static void execute_one_step_for_exiting_co(pcintr_coroutine_t co)
         pcintr_wakeup_target_with(parent, co_result, on_sub_exit);
     }
 
-    list_del(&co->node);
+    pcutils_rbtree_erase(&co->node, &heap->coroutines);
     coroutine_destroy(co);
 
-    if (inst->keep_alive == 0 && list_empty(&heap->coroutines)) {
+    if (inst->keep_alive == 0 &&
+            pcutils_rbtree_first(&heap->coroutines) == NULL)
+    {
         purc_runloop_stop(inst->running_loop);
     }
 
@@ -2180,8 +2191,6 @@ void pcintr_set_exit(void)
     PC_ASSERT(co);
     if (co->stack.exited == 0) {
         co->stack.exited = 1;
-        PC_ASSERT(pcintr_get_heap());
-        pcintr_remove_heap(&_all_heaps);
         notify_to_stop(co);
     }
 }
@@ -2275,10 +2284,15 @@ static pcintr_coroutine_t coroutine_by_name(const char *name)
 {
     pcintr_heap_t heap = pcintr_get_heap();
 
-    pcintr_coroutine_t p;
-    list_for_each_entry(p, &heap->coroutines, node) {
-        if (strcmp(name, p->name)==0)
-            return p;
+    struct rb_node *p;
+
+    struct rb_node *first = pcutils_rbtree_first(&heap->coroutines);
+    pcutils_rbtree_for_each(first, p) {
+        pcintr_coroutine_t co;
+        co = container_of(p, struct pcintr_coroutine, node);
+
+        if (strcmp(name, co->name)==0)
+            return co;
     }
 
     return NULL;
@@ -2337,6 +2351,15 @@ again:
     return 0;
 }
 
+static int
+cmp_by_atom(struct rb_node *node, void *ud)
+{
+    purc_atom_t *atom = (purc_atom_t*)ud;
+    pcintr_coroutine_t co;
+    co = container_of(node, struct pcintr_coroutine, node);
+    return (*atom) - co->ident;
+}
+
 static pcintr_coroutine_t
 coroutine_create(const char *name,
         purc_variant_t as,
@@ -2346,7 +2369,7 @@ coroutine_create(const char *name,
 {
     struct pcinst *inst = pcinst_current();
     struct pcintr_heap *heap = inst->intr_heap;
-    struct list_head *coroutines = &heap->coroutines;
+    struct rb_root *coroutines = &heap->coroutines;
 
     pcintr_coroutine_t co = NULL;
     pcintr_stack_t stack = NULL;
@@ -2402,7 +2425,10 @@ coroutine_create(const char *name,
     stack->co = co;
     co->owner = heap;
 
-    list_add_tail(&co->node, coroutines);
+    int r;
+    r = pcutils_rbtree_insert_only(coroutines, &co->ident,
+            cmp_by_atom, &co->node);
+    PC_ASSERT(r == 0);
 
     stack_init(stack);
 
@@ -2425,7 +2451,7 @@ fail_co:
     vdom_destroy(vdom);
 
 fail_vdom:
-    pcvdom_document_destroy(doc);
+    pcvdom_document_unref(doc);
 
 fail_doc:
     free(co_result);
@@ -2754,6 +2780,7 @@ struct observer_matched_data {
     pcvdom_element_t              pos;
     pcvdom_element_t              scope;
     struct pcdom_element         *edom_element;
+    purc_variant_t               payload;
 };
 
 static void on_observer_matched(void *ud)
@@ -2785,12 +2812,17 @@ static void on_observer_matched(void *ud)
     frame->edom_element = p->edom_element;
     frame->next_step = NEXT_STEP_AFTER_PUSHED;
 
+    if (p->payload) {
+        pcintr_set_question_var(frame, p->payload);
+        purc_variant_unref(p->payload);
+    }
+
     execute_one_step_for_ready_co(co);
 
     free(p);
 }
 
-static void observer_matched(struct pcintr_observer *p)
+static void observer_matched(struct pcintr_observer *p, purc_variant_t payload)
 {
     pcintr_stack_t stack = pcintr_get_stack();
     PC_ASSERT(stack);
@@ -2803,6 +2835,10 @@ static void observer_matched(struct pcintr_observer *p)
     data->pos = p->pos;
     data->scope = p->scope;
     data->edom_element = p->edom_element;
+    if (payload) {
+        data->payload = payload;
+        purc_variant_ref(data->payload);
+    }
 
     pcintr_post_msg(data, on_observer_matched);
 }
@@ -2858,7 +2894,7 @@ handle_message(void *ctxt)
         list_for_each_entry_safe(p, n, list, node) {
             if (is_observer_match(p, observed, msg_type_atom, sub_type)) {
                 handle = true;
-                observer_matched(p);
+                observer_matched(p, msg->extra);
             }
         }
     }
@@ -3304,7 +3340,13 @@ pcintr_util_set_attribute(pcdom_element_t *elem,
     if (!attr) {
         return -1;
     }
-    pcintr_rdr_dom_update_element_property(pcintr_get_stack(), elem, key, val);
+    if (!val) {
+        pcintr_rdr_dom_erase_element_property(pcintr_get_stack(), elem, key);
+    }
+    else {
+        pcintr_rdr_dom_update_element_property(pcintr_get_stack(), elem, key,
+                val);
+    }
     return 0;
 }
 
@@ -4024,28 +4066,6 @@ struct timer_data {
 };
 
 static void
-check_and_dispatch_msg(void)
-{
-    PC_ASSERT(pcintr_get_coroutine());
-
-    int r;
-    size_t n;
-    r = purc_inst_holding_messages_count(&n);
-    PC_ASSERT(r == 0);
-    if (n <= 0)
-        return;
-
-    pcrdr_msg *msg;
-    msg = purc_inst_take_away_message(0);
-    if (msg == NULL) {
-        PC_ASSERT(purc_get_last_error() == 0);
-        return;
-    }
-
-    PC_ASSERT(0);
-}
-
-static void
 event_timer_fire(pcintr_timer_t timer, const char* id)
 {
     UNUSED_PARAM(timer);
@@ -4054,7 +4074,7 @@ event_timer_fire(pcintr_timer_t timer, const char* id)
     PC_ASSERT(pcintr_get_heap());
 
     struct pcinst *inst = pcinst_current();
-    check_and_dispatch_msg();
+    pcintr_check_and_dispatch_msg();
 
     if (inst != NULL && inst->rdr_caps != NULL) {
         pcrdr_wait_and_dispatch_message(inst->conn_to_rdr, 1);
@@ -4300,12 +4320,18 @@ void pcintr_resume(void *extra)
 
 pcintr_coroutine_t
 pcintr_create_child_co(pcvdom_element_t vdom_element,
-        purc_variant_t as)
+        purc_variant_t as, purc_variant_t within)
 {
+    UNUSED_PARAM(within);
+
     pcintr_coroutine_t co = pcintr_get_coroutine();
     PC_ASSERT(co);
 
     PC_ASSERT(vdom_element);
+    struct pcvdom_document *vdom_document;
+    vdom_document = pcvdom_document_from_node(&vdom_element->node);
+    PC_ASSERT(vdom_document);
+
     const char *hvml = "<hvml><body/></hvml>";
 
     purc_rwstream_t rws;
@@ -4322,6 +4348,7 @@ pcintr_create_child_co(pcvdom_element_t vdom_element,
         PC_ASSERT(co->stack.vdom);
 
         child->stack.entry = vdom_element;
+        pcvdom_document_ref(vdom_document);
 
         PC_DEBUGX("running parent/child: %p/%p", co, child);
         PRINT_VDOM_NODE(&vdom_element->node);

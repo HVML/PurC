@@ -208,6 +208,22 @@ static inline int purc_init(const char* app_name, const char* runner_name,
 PCA_EXPORT bool
 purc_cleanup(void);
 
+/**
+ * purc_get_endpoint:
+ *
+ * @atom: a buffer (nullable) to receive the endpoint atom of the current
+ *      PurC instance.
+
+ * Gets the endpoint name and its atom value of the current PurC instance.
+ *
+ * Returns: The endpoint name for success; @NULL for no PurC instance for
+ *      the current thread.
+ *
+ * Since 0.2.0
+ */
+PCA_EXPORT const char *
+purc_get_endpoint(purc_atom_t *atom);
+
 #define PURC_LDNAME_RANDOM_DATA     "random_data"
 #define PURC_LDNAME_FORMAT_DOUBLE   "format-double"
 #define PURC_LDNAME_FORMAT_LDOUBLE  "format-long-double"

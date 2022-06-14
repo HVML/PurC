@@ -486,12 +486,11 @@ int pcutils_rbtree_traverse(struct rb_root *root, void *ud,
     return rbtree_traverse(node, ud, cb);
 }
 
-int pcutils_rbtree_insert(struct rb_root *root, void *ud,
+static struct rb_node**
+rbtree_find(struct rb_root *root, void *ud,
         int (*cmp)(struct rb_node *node, void *ud),
-        struct rb_node* (*new_entry)(void *ud))
+        struct rb_node **pparent)
 {
-    PC_ASSERT(root);
-
     struct rb_node **pentry;
     struct rb_node *parent;
 
@@ -508,9 +507,27 @@ int pcutils_rbtree_insert(struct rb_root *root, void *ud,
         else if (ret > 0)
             pentry = &((*pentry)->rb_right);
         else {
-            return -1;
+            break;
         }
     }
+
+    *pparent = parent;
+    return pentry;
+}
+
+int pcutils_rbtree_insert(struct rb_root *root, void *ud,
+        int (*cmp)(struct rb_node *node, void *ud),
+        struct rb_node* (*new_entry)(void *ud))
+{
+    PC_ASSERT(root);
+
+    struct rb_node **pentry;
+    struct rb_node *parent;
+
+    pentry = rbtree_find(root, ud, cmp, &parent);
+
+    if (*pentry)
+        return -1;
 
     PC_ASSERT(*pentry == NULL);
 
@@ -534,23 +551,12 @@ int pcutils_rbtree_insert_or_get(struct rb_root *root, void *ud,
     struct rb_node **pentry;
     struct rb_node *parent;
 
-    pentry = &root->rb_node;
-    parent = NULL;
-    while (*pentry) {
-        int ret;
+    pentry = rbtree_find(root, ud, cmp, &parent);
 
-        ret = cmp((*pentry), ud);
-
-        parent = *pentry;
-        if (ret < 0)
-            pentry = &((*pentry)->rb_left);
-        else if (ret > 0)
-            pentry = &((*pentry)->rb_right);
-        else {
-            if (node)
-                *node = *pentry;
-            return 0;
-        }
+    if (*pentry) {
+        if (node)
+            *node = *pentry;
+        return 0;
     }
 
     PC_ASSERT(*pentry == NULL);
@@ -568,4 +574,77 @@ int pcutils_rbtree_insert_or_get(struct rb_root *root, void *ud,
     return 0;
 }
 
+struct rb_node* pcutils_rbtree_find(struct rb_root *root, void *ud,
+        int (*cmp)(struct rb_node *node, void *ud))
+{
+    PC_ASSERT(root);
+
+    struct rb_node **pentry;
+    struct rb_node *parent;
+
+    pentry = rbtree_find(root, ud, cmp, &parent);
+
+    return *pentry;
+}
+
+int pcutils_rbtree_insert_only(struct rb_root *root, void *ud,
+        int (*cmp)(struct rb_node *node, void *ud),
+        struct rb_node *node)
+{
+    PC_ASSERT(root);
+
+    struct rb_node **pentry;
+    struct rb_node *parent;
+
+    pentry = rbtree_find(root, ud, cmp, &parent);
+
+    if (*pentry)
+        return -1;
+
+    pcutils_rbtree_link_node(node, parent, pentry);
+    pcutils_rbtree_insert_color(node, root);
+
+    return 0;
+}
+
+void pcutils_rbtree_insert_or_replace(struct rb_root *root, void *ud,
+        int (*cmp)(struct rb_node *node, void *ud),
+        struct rb_node *node, struct rb_node **old)
+{
+    PC_ASSERT(root);
+
+    struct rb_node **pentry;
+    struct rb_node *parent;
+
+    pentry = rbtree_find(root, ud, cmp, &parent);
+
+    if (*pentry) {
+        struct rb_node *p = *pentry;
+        node->rb_parent = p->rb_parent;
+        if (node->rb_parent) {
+            if (node->rb_parent->rb_left == p) {
+                node->rb_parent->rb_left = node;
+            }
+            else if (node->rb_parent->rb_right == p) {
+                node->rb_parent->rb_right = node;
+            }
+            p->rb_parent = NULL;
+        }
+
+        node->rb_left = p->rb_left;
+        node->rb_left->rb_parent = node;
+        p->rb_left = NULL;
+
+        node->rb_right = p->rb_right;
+        node->rb_right->rb_parent = node;
+        p->rb_right = NULL;
+
+        *old = p;
+    }
+    else {
+        pcutils_rbtree_link_node(node, parent, pentry);
+        pcutils_rbtree_insert_color(node, root);
+        *old = NULL;
+    }
+}
 

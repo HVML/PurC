@@ -292,11 +292,13 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     PC_ASSERT(stack && pos);
     PC_ASSERT(stack == pcintr_get_stack());
 
-    if (stack->except)
+    if (stack->except) {
         return NULL;
+    }
 
-    if (pcintr_check_insertion_mode_for_normal_element(stack))
+    if (pcintr_check_insertion_mode_for_normal_element(stack)) {
         return NULL;
+    }
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
@@ -324,16 +326,16 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     int r;
     r = pcintr_vdom_walk_attrs(frame, element, NULL, attr_found);
-    if (r)
+    if (r) {
         return NULL;
+    }
 
     purc_clr_error();
 
 
     if (ctxt->on == PURC_VARIANT_INVALID
-            && ctxt->with != PURC_VARIANT_INVALID
-            && purc_variant_booleanize(ctxt->with)) {
-        ctxt->handle_differ = true;
+            && ctxt->with != PURC_VARIANT_INVALID) {
+        ctxt->handle_differ = !purc_variant_booleanize(ctxt->with);
     }
     else {
         r = post_process(stack->co, frame);
@@ -459,15 +461,16 @@ again:
                 pcvdom_element_t element = PCVDOM_ELEMENT_FROM_NODE(curr);
                 on_element(co, frame, element);
                 PC_ASSERT(stack->except == 0);
-                if (!ctxt->handle_differ) {
-                    return element;
-                }
-                else if (element->tag_id == PCHVML_TAG_DIFFER) {
-                    return element;
-                }
-                else {
+                if (ctxt->handle_differ) {
+                    if (element->tag_id == PCHVML_TAG_DIFFER) {
+                        return element;
+                    }
                     goto again;
                 }
+                else if (element->tag_id != PCHVML_TAG_DIFFER) {
+                    return element;
+                }
+                goto again;
             }
         case PCVDOM_NODE_CONTENT:
             on_content(co, frame, PCVDOM_CONTENT_FROM_NODE(curr));

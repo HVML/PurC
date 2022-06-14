@@ -286,6 +286,7 @@ static int purcmc_connect_via_unix_socket (const char* path_to_socket,
     (*conn)->prot = PURC_RDRPROT_PURCMC;
     (*conn)->type = CT_UNIX_SOCKET;
     (*conn)->fd = fd;
+    (*conn)->timeout_ms = 10;   /* 10 milliseconds */
     (*conn)->srv_host_name = NULL;
     (*conn)->own_host_name = strdup (PCRDR_LOCALHOST);
     (*conn)->app_name = app_name;

@@ -42,7 +42,7 @@
 #define CLASS_KEY               "class"
 
 #define BUFF_MIN                1024
-#define BUFF_MAX                1024 * 4
+#define BUFF_MAX                1024 * 1024 * 4
 #define LEN_BUFF_LONGLONGINT    128
 
 static bool
@@ -951,13 +951,17 @@ purc_vdom_t find_vdom_by_target_window(uintptr_t handle, pcintr_stack_t *pstack)
         return NULL;
     }
 
-    pcintr_coroutine_t p;
-    list_for_each_entry(p, &heap->coroutines, node) {
-        if (handle == pcvdom_document_get_target_window(p->stack.vdom)) {
+    struct rb_node *p, *n;
+    struct rb_node *first = pcutils_rbtree_first(&heap->coroutines);
+    pcutils_rbtree_for_each_safe(first, p, n) {
+        pcintr_coroutine_t co;
+        co = container_of(p, struct pcintr_coroutine, node);
+
+        if (handle == pcvdom_document_get_target_window(co->stack.vdom)) {
             if (pstack) {
-                *pstack = &(p->stack);
+                *pstack = &(co->stack);
             }
-            return p->stack.vdom;
+            return co->stack.vdom;
         }
     }
     return NULL;
@@ -971,13 +975,17 @@ purc_vdom_t find_vdom_by_target_vdom(uintptr_t handle, pcintr_stack_t *pstack)
         return NULL;
     }
 
-    pcintr_coroutine_t p;
-    list_for_each_entry(p, &heap->coroutines, node) {
-        if (handle == pcvdom_document_get_target_dom(p->stack.vdom)) {
+    struct rb_node *p, *n;
+    struct rb_node *first = pcutils_rbtree_first(&heap->coroutines);
+    pcutils_rbtree_for_each_safe(first, p, n) {
+        pcintr_coroutine_t co;
+        co = container_of(p, struct pcintr_coroutine, node);
+
+        if (handle == pcvdom_document_get_target_dom(co->stack.vdom)) {
             if (pstack) {
-                *pstack = &(p->stack);
+                *pstack = &(co->stack);
             }
-            return p->stack.vdom;
+            return co->stack.vdom;
         }
     }
     return NULL;
@@ -1335,6 +1343,9 @@ pcintr_rdr_send_dom_req_simple_raw(pcintr_stack_t stack,
         strcat(attr, property);
     }
 
+    if (data && strlen(data) == 0) {
+        data = " ";
+    }
     pcrdr_msg *response_msg = pcintr_rdr_send_dom_req_raw(stack, operation,
             element, attr, data_type, data);
 

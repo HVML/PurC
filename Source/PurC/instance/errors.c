@@ -256,6 +256,11 @@ backtrace_snapshot(struct pcinst *inst, const char *file, int line,
 #ifndef NDEBUG                     /* { */
 #if OS(LINUX)                      /* { */
         bt->nr_stacks = backtrace(bt->c_stacks, PCA_TABLESIZE(bt->c_stacks));
+// #define PRINT_ERRCODE
+#ifdef PRINT_ERRCODE               /* { */
+        pcdebug_backtrace_dump(bt);
+#endif                             /* } */
+#undef PRINT_ERRCODE
 #endif                             /* } */
 #endif                             /* } */
         bt->refc = 1;
