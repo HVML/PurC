@@ -593,7 +593,7 @@ variant_set_create_elem_node(purc_variant_t set, purc_variant_t val)
         return NULL;
     }
 
-    pcvariant_md5(_new->md5, val);
+    pcvariant_md5_by_set(_new->md5, val, set);
 
     _new->alnode.idx = (size_t)-1;
     _new->val = val;

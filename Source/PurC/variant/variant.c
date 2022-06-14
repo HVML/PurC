@@ -2234,14 +2234,21 @@ stringify_array(struct stringify_arg *arg, purc_variant_t value)
 }
 
 static void
+stringify_kv(struct stringify_arg *arg, const char *key, purc_variant_t val)
+{
+    arg->cb(arg->arg, key, strlen(key));
+    arg->cb(arg->arg, ":", 0);
+    variant_stringify(arg, val);
+    arg->cb(arg->arg, "\n", 0);
+}
+
+static void
 stringify_object(struct stringify_arg *arg, purc_variant_t value)
 {
     purc_variant_t k, v;
     foreach_key_value_in_variant_object(value, k, v)
-        variant_stringify(arg, k);
-        arg->cb(arg->arg, ":", 0);
-        variant_stringify(arg, v);
-        arg->cb(arg->arg, "\n", 0);
+        const char *sk = purc_variant_get_string_const(k);
+        stringify_kv(arg, sk, v);
     end_foreach;
     arg->cb(arg->arg, "", 0);
 }
@@ -3176,5 +3183,69 @@ void pcvariant_md5_ex(char *md5, purc_variant_t val, const char *salt,
 
     bool uppercase = true;
     pcutils_bin2hex(md5_digest, MD5_DIGEST_SIZE, md5, uppercase);
+}
+
+void
+pcvariant_md5_by_set(char *md5, purc_variant_t val, purc_variant_t set)
+{
+    PC_ASSERT(md5);
+    PC_ASSERT(val != PURC_VARIANT_INVALID);
+    PC_ASSERT(set != PURC_VARIANT_INVALID);
+
+    variant_set_t data = pcvar_set_get_data(set);
+    PC_ASSERT(data);
+
+    if (data->unique_key == NULL) {
+        pcvariant_md5(md5, val);
+        return;
+    }
+
+    purc_variant_t undefined = purc_variant_make_undefined();
+    PC_ASSERT(undefined);
+
+    if (val->type != PVT(_OBJECT)) {
+        pcvariant_md5(md5, undefined);
+        purc_variant_unref(undefined);
+        return;
+    }
+
+    pcutils_md5_ctxt ud;
+
+    pcutils_md5_begin(&ud);
+
+    struct stringify_arg arg;
+    arg.cb    = do_stringify_md5;
+    arg.arg   = &ud;
+    arg.flags = 0;
+
+    for (size_t i=0; i<data->nr_keynames; ++i) {
+        purc_variant_t v;
+        v = purc_variant_object_get_by_ckey(val, data->keynames[i]);
+        if (v == PURC_VARIANT_INVALID) {
+            v = undefined;
+        }
+        stringify_kv(&arg, data->keynames[i], v);
+    }
+    arg.cb(arg.arg, "", 0);
+
+    unsigned char md5_digest[MD5_DIGEST_SIZE];
+    pcutils_md5_end(&ud, md5_digest);
+
+    bool uppercase = true;
+    pcutils_bin2hex(md5_digest, MD5_DIGEST_SIZE, md5, uppercase);
+
+    purc_variant_unref(undefined);
+}
+
+int
+pcvariant_diff_ex(const char *md5l, purc_variant_t l,
+        const char *md5r, purc_variant_t r)
+{
+    int diff;
+    diff = strcmp(md5l, md5r);
+    if (diff)
+        return diff;
+
+    return pcvariant_diff(l, r);
 }
 

@@ -440,6 +440,15 @@ pcvariant_md5(char *md5, purc_variant_t val)
     pcvariant_md5_ex(md5, val, salt, serialize_flags);
 }
 
+// md5 shall be at least 33 bytes long
+void
+pcvariant_md5_by_set(char *md5, purc_variant_t val,
+        purc_variant_t set) WTF_INTERNAL;
+
+int
+pcvariant_diff_ex(const char *md5l, purc_variant_t l,
+        const char *md5r, purc_variant_t r);
+
 PCA_EXTERN_C_END
 
 /* VWNOTE (WARN)
