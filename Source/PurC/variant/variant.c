@@ -3140,29 +3140,45 @@ purc_variant_linear_container_set(purc_variant_t container,
     return false;
 }
 
-int pcvariant_md5(char *md5, purc_variant_t val, const char *salt)
+static void
+do_stringify_md5(void *arg, const void *src, size_t len)
 {
-    ssize_t r;
-    char *s = NULL;
-    PRINT_VARIANT(val);
-    r = purc_variant_stringify_alloc(&s, val);
-    if (r < 0)
+    pcutils_md5_ctxt *ud;
+    ud = (pcutils_md5_ctxt*)arg;
+
+    if (len == 0)
+        len = strlen(src);
+
+    pcutils_md5_hash(ud, src, len);
+}
+
+int pcvariant_md5_ex(char *md5, purc_variant_t val, const char *salt,
+    unsigned int serialize_flags)
+{
+    if (val == PURC_VARIANT_INVALID) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
         return -1;
+    }
+
+    pcutils_md5_ctxt ud;
+
+    pcutils_md5_begin(&ud);
+
+    struct stringify_arg arg;
+    arg.cb    = do_stringify_md5;
+    arg.arg   = &ud;
+    arg.flags = serialize_flags;
+
+    variant_stringify(&arg, val);
+
+    if (salt)
+        pcutils_md5_hash(&ud, salt, strlen(salt));
 
     unsigned char md5_digest[MD5_DIGEST_SIZE];
-
-    pcutils_md5_ctxt ctx;
-
-    pcutils_md5_begin(&ctx);
-    pcutils_md5_hash(&ctx, s, strlen(s));
-    if (salt)
-        pcutils_md5_hash(&ctx, salt, strlen(salt));
-    pcutils_md5_end(&ctx, md5_digest);
+    pcutils_md5_end(&ud, md5_digest);
 
     bool uppercase = true;
     pcutils_bin2hex(md5_digest, MD5_DIGEST_SIZE, md5, uppercase);
-
-    free(s);
 
     return 0;
 }

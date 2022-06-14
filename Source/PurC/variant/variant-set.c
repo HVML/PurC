@@ -593,7 +593,7 @@ variant_set_create_elem_node(purc_variant_t set, purc_variant_t val)
         return NULL;
     }
 
-    if (pcvariant_md5(_new->md5, val, NULL)) {
+    if (pcvariant_md5(_new->md5, val)) {
         free(_new);
         return NULL;
     }
