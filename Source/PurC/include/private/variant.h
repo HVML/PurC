@@ -240,6 +240,7 @@ struct set_node {
     struct rb_node                       rbnode;
     struct pcutils_array_list_node       alnode;
     purc_variant_t   val;  // actual variant-element
+    char             md5[33];
 };
 
 struct variant_set {
@@ -426,6 +427,9 @@ purc_variant_t *tuple_members(purc_variant_t tuple, size_t *sz)
     *sz = (size_t)tuple->size;
     return tuple->vrt_vrt;
 }
+
+// md5 shall be at least 33 bytes long
+int pcvariant_md5(char *md5, purc_variant_t val, const char *salt);
 
 PCA_EXTERN_C_END
 

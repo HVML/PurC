@@ -3140,3 +3140,30 @@ purc_variant_linear_container_set(purc_variant_t container,
     return false;
 }
 
+int pcvariant_md5(char *md5, purc_variant_t val, const char *salt)
+{
+    ssize_t r;
+    char *s = NULL;
+    PRINT_VARIANT(val);
+    r = purc_variant_stringify_alloc(&s, val);
+    if (r < 0)
+        return -1;
+
+    unsigned char md5_digest[MD5_DIGEST_SIZE];
+
+    pcutils_md5_ctxt ctx;
+
+    pcutils_md5_begin(&ctx);
+    pcutils_md5_hash(&ctx, s, strlen(s));
+    if (salt)
+        pcutils_md5_hash(&ctx, salt, strlen(salt));
+    pcutils_md5_end(&ctx, md5_digest);
+
+    bool uppercase = true;
+    pcutils_bin2hex(md5_digest, MD5_DIGEST_SIZE, md5, uppercase);
+
+    free(s);
+
+    return 0;
+}
+
