@@ -3152,13 +3152,10 @@ do_stringify_md5(void *arg, const void *src, size_t len)
     pcutils_md5_hash(ud, src, len);
 }
 
-int pcvariant_md5_ex(char *md5, purc_variant_t val, const char *salt,
+void pcvariant_md5_ex(char *md5, purc_variant_t val, const char *salt,
     unsigned int serialize_flags)
 {
-    if (val == PURC_VARIANT_INVALID) {
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
-        return -1;
-    }
+    PC_ASSERT(val != PURC_VARIANT_INVALID);
 
     pcutils_md5_ctxt ud;
 
@@ -3179,7 +3176,5 @@ int pcvariant_md5_ex(char *md5, purc_variant_t val, const char *salt,
 
     bool uppercase = true;
     pcutils_bin2hex(md5_digest, MD5_DIGEST_SIZE, md5, uppercase);
-
-    return 0;
 }
 
