@@ -939,3 +939,77 @@ TEST(set, undefined)
     purc_variant_unref(set2);
 }
 
+#define SAFE_FREE(_p)            do {             \
+    if (_p) {                                     \
+        free(_p);                                 \
+        _p = nullptr;                             \
+    }                                             \
+} while (0)
+
+TEST(variant, stringify)
+{
+    PurCInstance purc;
+
+    const char *s;
+    purc_variant_t v;
+    char *buf = nullptr;
+    ssize_t n;
+
+    do {
+        s = "[!'name', {name:[{first:xiaohong,last:xu}]}, {name:undefined}, {name:[{first:shuming, last:xue}]}, {name:undefined}]";
+        v = pcejson_parser_parse_string(s, 0, 0);
+        if (v == PURC_VARIANT_INVALID) {
+            ADD_FAILURE() << "failed to parse: " << s << std::endl;
+            break;
+        }
+
+        n = purc_variant_stringify_alloc(&buf, v);
+        if (n <= 0) {
+            ADD_FAILURE() << "failed to stringify" << std::endl;
+            break;
+        }
+        PC_DEBUGX("buf: %s", buf);
+    } while (0);
+
+    SAFE_FREE(buf);
+    PURC_VARIANT_SAFE_CLEAR(v);
+
+    do {
+        s = "undefined";
+        v = pcejson_parser_parse_string(s, 0, 0);
+        if (v == PURC_VARIANT_INVALID) {
+            ADD_FAILURE() << "failed to parse: " << s << std::endl;
+            break;
+        }
+
+        n = purc_variant_stringify_alloc(&buf, v);
+        if (n <= 0) {
+            ADD_FAILURE() << "failed to stringify" << std::endl;
+            break;
+        }
+        PC_DEBUGX("buf: %s", buf);
+    } while (0);
+
+    SAFE_FREE(buf);
+    PURC_VARIANT_SAFE_CLEAR(v);
+
+    do {
+        s = "'undefined'";
+        v = pcejson_parser_parse_string(s, 0, 0);
+        if (v == PURC_VARIANT_INVALID) {
+            ADD_FAILURE() << "failed to parse: " << s << std::endl;
+            break;
+        }
+
+        n = purc_variant_stringify_alloc(&buf, v);
+        if (n <= 0) {
+            ADD_FAILURE() << "failed to stringify" << std::endl;
+            break;
+        }
+        PC_DEBUGX("buf: %s", buf);
+    } while (0);
+
+    SAFE_FREE(buf);
+    PURC_VARIANT_SAFE_CLEAR(v);
+}
+
