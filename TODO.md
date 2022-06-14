@@ -10,28 +10,41 @@
   1. `error` 标签：`type`、`src`、`param` 和 `method` 属性的支持
   1. `except` 标签：`type`、`src`、`param` 和 `method` 属性的支持
   1. `init` 标签：
+     - http 请求支持使用 `with` 参数定义请求参数，使用 `via` 属性定义请求方法
+     - 支持 `via` == `LOAD` 加载外部模块(`from` 属性指定外部模块名，`for` 指定动态对象名)
+     - 支持 `casesensitively` 属性 和 `caseinsensitively` 属性
   1. `update` 标签：
-  1. `erase` 标签：
-  1. `clear` 标签：
-  1. `test` 标签：
-  1. `match` 标签：
-  1. `differ` 标签：
-  1. `choose` 标签：
-  1. `iterate` 标签：
-  1. `reduce` 标签：
-  1. `sort` 标签：
+     - `to` 属性支持 `prepend` 、`remove` 、`insertBefore` 、`insertAfter` 、`insertAfter` 、`intersect` 、`subtract` 、`xor` 、`call`
+     - `from` 支持 http 请求支持使用 `with` 参数定义请求参数，使用 `via` 属性定义请求方法
+     - `at` 属性支持 `jsonContent`、`content` 和 `style.<style_name>`
+     - 支持同时修改多个数据项
+     - 支持 `individually` 副词
+     - 目标数据(`on`属性)为元素汇集时，目前支持通过`class` 和 `id` 两种CSS选择，还需支持通过标签名称来选择。
+  1. ~~`erase` 标签~~
+  1. ~~`clear` 标签~~
+  1. `test` 标签： 支持 `by` 属性
+  1. `match` 标签：考虑能否放在 `inherit` 标签下
+  1. `differ` 标签：考虑能否放在 `inherit` 标签下
+  1. ~~`choose` 标签~~
+  1. ~~`iterate` 标签~~
+  1. `reduce` 标签：未实现
+  1. `sort` 标签：未实现
   1. `define` 标签：
-  1. `include` 标签：
+     - `from` 支持 http 请求支持使用 `with` 参数定义请求参数，使用 `via` 属性定义请求方法
+  1. ~~`include` 标签~~
   1. `observe` 标签：
+     - 支持上下文变量: $!, $@
   1. `forget` 标签：
+     - 支持元素汇集
   1. `fire` 标签：
+     - 支持元素汇集
   1. `call` 标签：
   1. `return` 标签：
   1. `bind` 标签：
   1. ~~`catch` 标签：~~
   1. ~~`back` 标签：`to` 属性的支持~~
-  1. `request` 标签：
-  1. `load` 标签：
+  1. `request` 标签： 未实现
+  1. `load` 标签： 未实现
   1. `exit` 标签：`with` 属性的支持，需要依赖协程间消息传递机制
   1. `inherit` 标签：
   1. ~~`sleep` 标签：`for` 属性的支持~~
