@@ -42,6 +42,8 @@ hvml caseinsensitively
 hvml _parent _grandparent _root
 hvml _last _nexttolast _topmost
 hvml nosetotail
+hvml ascendingly asc
+hvml descendingly desc
 
 # msg
 msg event
