@@ -244,7 +244,7 @@ variant_set_init(variant_set_t data, const char *unique_key)
         return -1;
     }
 
-    strcpy(data->unique_key, unique_key);
+    // strcpy(data->unique_key, unique_key);
     char *ctx = data->unique_key;
     char *tok = strtok_r(ctx, " ", &ctx);
     size_t idx = 0;
