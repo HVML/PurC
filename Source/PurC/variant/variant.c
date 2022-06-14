@@ -2180,7 +2180,6 @@ stringify_array(struct stringify_arg *arg, purc_variant_t value)
         variant_stringify(arg, v);
         arg->cb(arg->arg, "\n", 0);
     }
-    arg->cb(arg->arg, "", 0);
 }
 
 static void
@@ -2193,7 +2192,6 @@ stringify_object(struct stringify_arg *arg, purc_variant_t value)
         variant_stringify(arg, v);
         arg->cb(arg->arg, "\n", 0);
     end_foreach;
-    arg->cb(arg->arg, "", 0);
 }
 
 static void
@@ -2204,7 +2202,6 @@ stringify_set(struct stringify_arg *arg, purc_variant_t value)
         variant_stringify(arg, v);
         arg->cb(arg->arg, "\n", 0);
     end_foreach;
-    arg->cb(arg->arg, "", 0);
 }
 
 static void
@@ -2216,6 +2213,7 @@ stringify_dynamic(struct stringify_arg *arg, purc_variant_t value)
     char buf[128];
     snprintf(buf, sizeof(buf), "<dynamic: %p, %p>", getter, setter);
     arg->cb(arg->arg, buf, 0);
+    arg->cb(arg->arg, "\n", 0);
 }
 
 static void
@@ -2226,6 +2224,7 @@ stringify_native(struct stringify_arg *arg, purc_variant_t value)
     char buf[128];
     snprintf(buf, sizeof(buf), "<native: %p>", native);
     arg->cb(arg->arg, buf, 0);
+    arg->cb(arg->arg, "\n", 0);
 }
 
 static void
