@@ -68,6 +68,7 @@ const struct tag_id_ops maps[] = {
     {PCHVML_TAG_ERROR,             pcintr_get_error_ops},
     {PCHVML_TAG_DIFFER,            pcintr_get_differ_ops},
     {PCHVML_TAG_ARCHEDATA,         pcintr_get_archedata_ops},
+    {PCHVML_TAG_REDUCE,            pcintr_get_reduce_ops},
 };
 
 void init_ops(void)
