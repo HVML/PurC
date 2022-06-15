@@ -420,13 +420,8 @@ sort_as_number(purc_variant_t val)
 
 static void
 sort_array(struct ctxt_for_sort *ctxt, purc_variant_t array,
-        purc_variant_t against, int ascendingly, int casesensitively)
+        purc_variant_t against)
 {
-    UNUSED_PARAM(ctxt);
-    UNUSED_PARAM(array);
-    UNUSED_PARAM(against);
-    UNUSED_PARAM(ascendingly);
-    UNUSED_PARAM(casesensitively);
     ssize_t nr = purc_variant_array_get_size(array);
     if (nr <= 1) {
         return;
@@ -478,14 +473,8 @@ sort_array(struct ctxt_for_sort *ctxt, purc_variant_t array,
 
 
 static void
-sort_set(struct ctxt_for_sort *ctxt, purc_variant_t set,
-        purc_variant_t against, int ascendingly, int casesensitively)
+sort_set(struct ctxt_for_sort *ctxt, purc_variant_t set, purc_variant_t against)
 {
-    UNUSED_PARAM(ctxt);
-    UNUSED_PARAM(set);
-    UNUSED_PARAM(against);
-    UNUSED_PARAM(ascendingly);
-    UNUSED_PARAM(casesensitively);
     ssize_t nr = purc_variant_set_get_size(set);
     if (nr <= 1) {
         return;
@@ -581,13 +570,11 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         enum purc_variant_type type = purc_variant_get_type(ctxt->on);
         switch (type) {
         case PURC_VARIANT_TYPE_ARRAY:
-            sort_array(ctxt, ctxt->on, ctxt->against, ctxt->ascendingly,
-                    ctxt->casesensitively);
+            sort_array(ctxt, ctxt->on, ctxt->against);
             break;
 
         case PURC_VARIANT_TYPE_SET:
-            sort_set(ctxt, ctxt->on, ctxt->against, ctxt->ascendingly,
-                    ctxt->casesensitively);
+            sort_set(ctxt, ctxt->on, ctxt->against);
             break;
 
         default:
