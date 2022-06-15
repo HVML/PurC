@@ -3263,7 +3263,7 @@ pcvariant_diff_by_set(const char *md5l, purc_variant_t l,
 
         if (l->type == PVT(_OBJECT))
             vl = purc_variant_object_get_by_ckey(l, data->keynames[i]);
-        if (r->type == PVT(_OBJECT)) {
+        if (r->type == PVT(_OBJECT))
             vr = purc_variant_object_get_by_ckey(r, data->keynames[i]);
 
         if (vl == PURC_VARIANT_INVALID)
