@@ -809,19 +809,6 @@ purc_variant_make_object(size_t nr_kv_pairs,
         purc_variant_t key0, purc_variant_t value0, ...);
 
 /**
- * Gets the value by key from an object with key as another variant
- *
- * @param obj: the variant value of obj type
- * @param key: the key of key-value pair
- *
- * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
- *
- * Since: 0.0.1
- */
-PCA_EXPORT purc_variant_t
-purc_variant_object_get(purc_variant_t obj, purc_variant_t key);
-
-/**
  * Gets the value by key from an object with key as c string
  *
  * @param obj: the variant value of obj type
@@ -831,18 +818,8 @@ purc_variant_object_get(purc_variant_t obj, purc_variant_t key);
  *
  * Since: 0.0.1
  */
-static inline purc_variant_t
-purc_variant_object_get_by_ckey(purc_variant_t obj, const char* key)
-{
-    purc_variant_t k = purc_variant_make_string_static(key, true);
-    if (k==PURC_VARIANT_INVALID) {
-        return PURC_VARIANT_INVALID;
-    }
-    purc_variant_t v = purc_variant_object_get(obj, k);
-    purc_variant_unref(k);
-    return v;
-}
-
+PCA_EXPORT purc_variant_t
+purc_variant_object_get_by_ckey(purc_variant_t obj, const char* key);
 
 /**
  * Sets the value by key in an object with key as another variant
@@ -884,22 +861,6 @@ purc_variant_object_set_by_static_ckey(purc_variant_t obj, const char* key,
 }
 
 /**
- * Remove a key-value pair from an object by key with key as another variant
- *
- * @param obj: the variant value of obj type
- * @param key: the key of key-value pair
- * @param silently: @true means ignoring the following errors:
- *      - PCVARIANT_ERROR_NOT_FOUND (return @true)
- *
- * Returns: @true on success, otherwise @false.
- *
- * Since: 0.0.1
- */
-PCA_EXPORT bool
-purc_variant_object_remove(purc_variant_t obj, purc_variant_t key,
-        bool silently);
-
-/**
  * Remove a key-value pair from an object by key with key as c string
  *
  * @param obj: the variant value of obj type
@@ -911,18 +872,9 @@ purc_variant_object_remove(purc_variant_t obj, purc_variant_t key,
  *
  * Since: 0.0.1
  */
-static inline bool
+PCA_EXPORT bool
 purc_variant_object_remove_by_static_ckey(purc_variant_t obj, const char* key,
-        bool silently)
-{
-    purc_variant_t k = purc_variant_make_string_static(key, true);
-    if (k==PURC_VARIANT_INVALID) {
-        return false;
-    }
-    bool b = purc_variant_object_remove(obj, k, silently);
-    purc_variant_unref(k);
-    return b;
-}
+        bool silently);
 
 /**
  * Get the number of key-value pairs in an object variant value.
@@ -1966,6 +1918,50 @@ purc_variant_is_true(purc_variant_t v);
 /** Check whether the value is a boolean and having value of false. */
 PCA_EXPORT bool
 purc_variant_is_false(purc_variant_t v);
+
+/**
+ * Gets the value by key from an object with key as another variant
+ *
+ * @param obj: the variant value of obj type
+ * @param key: the key of key-value pair
+ *
+ * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.0.1
+ */
+PCA_INLINE purc_variant_t
+purc_variant_object_get(purc_variant_t obj, purc_variant_t key)
+{
+    const char *sk = NULL;
+    if (key && purc_variant_is_string(key))
+        sk = purc_variant_get_string_const(key);
+
+    return purc_variant_object_get_by_ckey(obj, sk);
+}
+
+/**
+ * Remove a key-value pair from an object by key with key as another variant
+ *
+ * @param obj: the variant value of obj type
+ * @param key: the key of key-value pair
+ * @param silently: @true means ignoring the following errors:
+ *      - PCVARIANT_ERROR_NOT_FOUND (return @true)
+ *
+ * Returns: @true on success, otherwise @false.
+ *
+ * Since: 0.0.1
+ */
+PCA_INLINE bool
+purc_variant_object_remove(purc_variant_t obj, purc_variant_t key,
+        bool silently)
+{
+    const char *sk = NULL;
+    if (key && purc_variant_is_string(key))
+        sk = purc_variant_get_string_const(key);
+
+    return purc_variant_object_remove_by_static_ckey(obj, sk, silently);
+}
+
 
 struct purc_variant_stat {
     size_t nr_values[PURC_VARIANT_TYPE_NR];

@@ -206,6 +206,11 @@ obj_node_destroy(purc_variant_t obj, struct obj_node *node)
 static struct obj_node*
 obj_node_create(purc_variant_t k, purc_variant_t v)
 {
+    if (k->type != PVT(_STRING)) {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        return NULL;
+    }
+
     struct obj_node *node;
     node = (struct obj_node*)calloc(1, sizeof(*node));
     if (!node) {
@@ -286,7 +291,7 @@ check_shrink(purc_variant_t obj, struct obj_node *node)
 }
 
 static int
-v_object_remove(purc_variant_t obj, purc_variant_t key, bool silently,
+v_object_remove(purc_variant_t obj, const char *key, bool silently,
         bool check)
 {
     variant_obj_t data = pcvar_obj_get_data(obj);
@@ -297,8 +302,8 @@ v_object_remove(purc_variant_t obj, purc_variant_t key, bool silently,
     while (*pnode) {
         struct obj_node *node;
         node = container_of(*pnode, struct obj_node, node);
-        int ret = purc_variant_compare_ex(key, node->key,
-                PCVARIANT_COMPARE_OPT_AUTO);
+        const char *sk = purc_variant_get_string_const(node->key);
+        int ret = strcmp(key, sk);
 
         parent = *pnode;
 
@@ -453,10 +458,17 @@ v_object_set(purc_variant_t obj, purc_variant_t key, purc_variant_t val,
         return -1;
     }
 
+    const char *sk = purc_variant_get_string_const(key);
+
     if (purc_variant_is_undefined(val)) {
         bool silently = true;
-        v_object_remove(obj, key, silently, check);
+        v_object_remove(obj, sk, silently, check);
         return 0;
+    }
+
+    if (key->type != PVT(_STRING)) {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        return -1;
     }
 
     variant_obj_t data = pcvar_obj_get_data(obj);
@@ -469,8 +481,8 @@ v_object_set(purc_variant_t obj, purc_variant_t key, purc_variant_t val,
     while (*pnode) {
         struct obj_node *node;
         node = container_of(*pnode, struct obj_node, node);
-        int ret = purc_variant_compare_ex(key, node->key,
-                PCVARIANT_COMPARE_OPT_AUTO);
+        const char *sko = purc_variant_get_string_const(node->key);
+        int ret = strcmp(sk, sko);
 
         parent = *pnode;
 
@@ -785,7 +797,8 @@ int pcvariant_object_compare (purc_variant_t lv, purc_variant_t rv)
 }
 */
 
-purc_variant_t purc_variant_object_get(purc_variant_t obj, purc_variant_t key)
+purc_variant_t
+purc_variant_object_get_by_ckey(purc_variant_t obj, const char* key)
 {
     PCVARIANT_CHECK_FAIL_RET((obj && obj->type==PVT(_OBJECT) &&
         obj->sz_ptr[1] && key),
@@ -800,8 +813,9 @@ purc_variant_t purc_variant_object_get(purc_variant_t obj, purc_variant_t key)
     while (*pnode) {
         struct obj_node *node;
         node = container_of(*pnode, struct obj_node, node);
-        int ret = purc_variant_compare_ex(key, node->key,
-                PCVARIANT_COMPARE_OPT_AUTO);
+        const char *sk = purc_variant_get_string_const(node->key);
+
+        int ret = strcmp(key, sk);
 
         parent = *pnode;
 
@@ -839,7 +853,8 @@ bool purc_variant_object_set (purc_variant_t obj,
     return r ? false : true;
 }
 
-bool purc_variant_object_remove(purc_variant_t obj, purc_variant_t key,
+bool
+purc_variant_object_remove_by_static_ckey(purc_variant_t obj, const char* key,
         bool silently)
 {
     PCVARIANT_CHECK_FAIL_RET(obj && obj->type==PVT(_OBJECT) &&
