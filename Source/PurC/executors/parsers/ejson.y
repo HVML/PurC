@@ -612,6 +612,33 @@
             YYABORT;                                      \
         }                                                 \
     } while (0)
+
+    #define MK_EMPTY_TUPLE(_r) do {                                       \
+        _r = purc_variant_make_tuple(0, NULL);                            \
+        if (_r == PURC_VARIANT_INVALID)                                   \
+            YYABORT;                                                      \
+    } while (0)
+
+    #define MK_TUPLE(_r, _a) do {                                         \
+        _r = purc_variant_make_tuple(0, NULL);                            \
+        if (_r == PURC_VARIANT_INVALID)                                   \
+            YYABORT;                                                      \
+        if (_a == PURC_VARIANT_INVALID)                                   \
+            break;                                                        \
+        bool ok = true;                                                   \
+        purc_variant_t _v;                                                \
+        size_t _idx;                                                      \
+        foreach_value_in_variant_array(_a, _v, _idx)                      \
+            ok = purc_variant_tuple_set(_r, _idx, _v);                    \
+            if (!ok)                                                      \
+                break;                                                    \
+        end_foreach;                                                      \
+        purc_variant_unref(_a);                                           \
+        if (!ok) {                                                        \
+            purc_variant_unref(_r);                                       \
+            YYABORT;                                                      \
+        }                                                                 \
+    } while (0)                                                           \
 }
 
 /* Bison declarations. */
@@ -646,6 +673,7 @@
 
 %nterm <v>   var str
 %nterm <v>   obj
+%nterm <v>   tuple
 %nterm <kvs> kvs
 %nterm <kv>  kv
 %nterm <v>   arr vars
@@ -672,6 +700,7 @@ var:
 | obj                { $$ = $1; }
 | arr                { $$ = $1; }
 | set                { $$ = $1; }
+| tuple              { $$ = $1; }
 ;
 
 str:
@@ -729,6 +758,11 @@ set:
 set_key:
   ID                            { MK_STRING($$, $1); }
 | '"' string '"'                { COLLECT_STR($$, $2); }
+;
+
+tuple:
+  '(' ')'                       { MK_EMPTY_TUPLE($$); }
+| '(' vars ')'                  { MK_TUPLE($$, $2); }
 ;
 
 %%
