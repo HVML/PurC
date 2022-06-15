@@ -351,11 +351,19 @@ find_element_rb_node(struct element_rb_node *node,
     struct rb_node **pnode = &root->rb_node;
     struct rb_node *parent = NULL;
     struct rb_node *entry = NULL;
+    char md5[33];
+    pcvariant_md5_by_set(md5, kvs, set);
+
     while (*pnode) {
         struct set_node *on;
         on = container_of(*pnode, struct set_node, rbnode);
         int diff;
-        diff = variant_set_compare_by_set_keys(set, kvs, on->val);
+        if (0) {
+            diff = variant_set_compare_by_set_keys(set, kvs, on->val);
+        }
+        else {
+            diff = pcvariant_diff_by_set(md5, kvs, on->md5, on->val, set);
+        }
 
         parent = *pnode;
 

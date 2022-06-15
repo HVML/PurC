@@ -3236,6 +3236,8 @@ int
 pcvariant_diff_by_set(const char *md5l, purc_variant_t l,
         const char *md5r, purc_variant_t r, purc_variant_t set)
 {
+    // TODO: https://gitlab.fmsoft.cn/hvml/hvml-docs/-/blob/master/zh/hvml-spec-v1.0-zh.md#21610-%E9%9B%86%E5%90%88%E5%8F%98%E9%87%8F
+
     PC_ASSERT(md5l);
     PC_ASSERT(l != PURC_VARIANT_INVALID);
     PC_ASSERT(md5r);
