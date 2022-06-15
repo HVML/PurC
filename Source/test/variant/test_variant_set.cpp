@@ -1040,6 +1040,26 @@ TEST(variant, set)
             "[!, undefined,true,false,null,1,'a',{},[],[!],undefined,true,false,null,1,'a',{},[],[!]]",
             "[[],undefined,true,false,null,1,'a',{},[!]]",
         },
+        {
+            "[! hello, world, foo, bar]",
+            "[bar]",
+        },
+        {
+            "[!, 1.0, 1]",
+            "[1]",
+        },
+        {
+            "[!, 1, 1.0]",
+            "[1]",
+        },
+        {
+            "[!, 1, 1.0]",
+            "[1.0]",
+        },
+        { // duplicates removed
+            "[!, undefined,true,false,null,1,'a',{},[],[!],undefined,true,false,null,1,'a',{},[],[!]]",
+            "[[],true,false,null,1,'a',{},[!]]",
+        },
     };
 
     for (size_t i=0; i<PCA_TABLESIZE(records); ++i) {
