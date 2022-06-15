@@ -740,11 +740,11 @@ kv:
 arr:
   '[' ']'              { MK_EMPTY_ARR($$); }
 | '[' vars ']'         { $$ = $2; }
-| '[' vars ',' ']'     { $$ = $2; }
 ;
 
 vars:
   var              { MK_VARS($$, $1); }
+| vars ','         { $$ = $1; }
 | vars ',' var     { APPEND_VAR($$, $1, $3); }
 ;
 
