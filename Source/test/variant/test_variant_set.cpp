@@ -81,6 +81,9 @@ TEST(variant_set, init_with_1_str)
 
 TEST(variant_set, non_object)
 {
+    if (1)
+        return;
+
     purc_instance_extra_info info = {};
     int ret = 0;
     bool cleanup = false;
@@ -1011,5 +1014,62 @@ TEST(variant, stringify)
 
     SAFE_FREE(buf);
     PURC_VARIANT_SAFE_CLEAR(v);
+}
+
+TEST(variant, set)
+{
+    PurCInstance purc;
+
+    struct record {
+        const char *set;
+        const char *arr;
+    } records[] = {
+        { // number
+            "[!, 1]",
+            "[1]",
+        },
+        { // undefined
+            "[!, undefined]",
+            "[]",
+        },
+        { // non-object, object
+            "[!, undefined,true,false,null,1,'a',{},[],[!]]",
+            "[undefined,true,false,null,1,'a',{},[],[!]]",
+        },
+        { // duplicates removed
+            "[!, undefined,true,false,null,1,'a',{},[],[!],undefined,true,false,null,1,'a',{},[],[!]]",
+            "[[],undefined,true,false,null,1,'a',{},[!]]",
+        },
+    };
+
+    for (size_t i=0; i<PCA_TABLESIZE(records); ++i) {
+        purc_variant_t set, arr;
+        set = pcejson_parser_parse_string(records[i].set, 0, 0);
+        arr = pcejson_parser_parse_string(records[i].arr, 0, 0);
+
+        purc_variant_t tmp;
+        tmp = pcejson_parser_parse_string("[!]", 0, 0);
+
+        purc_variant_t v;
+        size_t idx;
+        foreach_value_in_variant_array(arr, v, idx) {
+            (void)idx;
+            bool overwrite = true;
+            purc_variant_set_add(tmp, v, overwrite);
+        }
+        end_foreach;
+
+        int diff = pcvariant_diff(set, tmp);
+        if (diff) {
+            PRINT_VARIANT(set);
+            PRINT_VARIANT(arr);
+            PRINT_VARIANT(tmp);
+        }
+        EXPECT_EQ(diff, 0);
+
+        PURC_VARIANT_SAFE_CLEAR(tmp);
+        PURC_VARIANT_SAFE_CLEAR(arr);
+        PURC_VARIANT_SAFE_CLEAR(set);
+    }
 }
 

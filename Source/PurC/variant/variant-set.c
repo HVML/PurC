@@ -300,27 +300,43 @@ pcv_set_new(void)
 static void
 break_rev_update_chain(purc_variant_t set, struct set_node *node)
 {
+    PC_ASSERT(node);
+    PC_ASSERT(node->val);
+
+    if (!pcvariant_is_mutable(node->val))
+        return;
+
     struct pcvar_rev_update_edge edge = {
         .parent        = set,
         .set_me        = node,
     };
     pcvar_break_edge_to_parent(node->val, &edge);
 
-    struct kv_iterator it;
-    it = pcvar_kv_it_first(set, node->val);
-    while (1) {
-        struct obj_node *on = it.it.curr;
-        if (on == NULL)
-            break;
-        if (pcvariant_is_mutable(on->val)) {
-            struct pcvar_rev_update_edge edge = {
-                .parent        = node->val,
-                .obj_me        = on,
-            };
-            pcvar_break_edge_to_parent(on->val, &edge);
-            pcvar_break_rue_downward(on->val);
+    if (node->val->type == PVT(_OBJECT)) {
+        struct kv_iterator it;
+        it = pcvar_kv_it_first(set, node->val);
+        while (1) {
+            struct obj_node *on = it.it.curr;
+            if (on == NULL)
+                break;
+            if (pcvariant_is_mutable(on->val)) {
+                struct pcvar_rev_update_edge edge = {
+                    .parent        = node->val,
+                    .obj_me        = on,
+                };
+                pcvar_break_edge_to_parent(on->val, &edge);
+                pcvar_break_rue_downward(on->val);
+            }
+            pcvar_kv_it_next(&it);
         }
-        pcvar_kv_it_next(&it);
+    }
+    else if (node->val->type == PVT(_ARRAY) ||
+            node->val->type == PVT(_SET))
+    {
+        pcvar_break_rue_downward(node->val);
+    }
+    else {
+        PC_ASSERT(0);
     }
 }
 
@@ -399,6 +415,12 @@ find_element(purc_variant_t set, purc_variant_t kvs)
 static int
 build_rev_update_chain(purc_variant_t set, struct set_node *node)
 {
+    PC_ASSERT(node);
+    PC_ASSERT(node->val);
+
+    if (!pcvariant_is_mutable(node->val))
+        return 0;
+
     struct pcvar_rev_update_edge edge = {
         .parent        = set,
         .set_me        = node,
@@ -407,26 +429,39 @@ build_rev_update_chain(purc_variant_t set, struct set_node *node)
     if (r)
         return -1;
 
-    struct kv_iterator it;
-    it = pcvar_kv_it_first(set, node->val);
-    while (1) {
-        struct obj_node *on = it.it.curr;
-        if (on == NULL)
-            break;
-        if (pcvariant_is_mutable(on->val)) {
-            struct pcvar_rev_update_edge edge = {
-                .parent        = node->val,
-                .obj_me        = on,
-            };
-            int r;
-            r = pcvar_build_edge_to_parent(on->val, &edge);
-            if (r == 0) {
-                r = pcvar_build_rue_downward(on->val);
+    if (node->val->type == PVT(_OBJECT)) {
+        struct kv_iterator it;
+        it = pcvar_kv_it_first(set, node->val);
+        while (1) {
+            struct obj_node *on = it.it.curr;
+            if (on == NULL)
+                break;
+            if (pcvariant_is_mutable(on->val)) {
+                struct pcvar_rev_update_edge edge = {
+                    .parent        = node->val,
+                    .obj_me        = on,
+                };
+                int r;
+                r = pcvar_build_edge_to_parent(on->val, &edge);
+                if (r == 0) {
+                    r = pcvar_build_rue_downward(on->val);
+                }
+                if (r)
+                    return -1;
             }
-            if (r)
-                return -1;
+            pcvar_kv_it_next(&it);
         }
-        pcvar_kv_it_next(&it);
+    }
+    else if (node->val->type == PVT(_ARRAY) ||
+            node->val->type == PVT(_SET))
+    {
+        int r;
+        r = pcvar_build_rue_downward(node->val);
+        if (r)
+            return -1;
+    }
+    else {
+        PC_ASSERT(0);
     }
 
     return 0;
@@ -440,7 +475,6 @@ elem_node_setup_constraints(purc_variant_t set, struct set_node *node)
 
     purc_variant_t elem = node->val;
     PC_ASSERT(elem != PURC_VARIANT_INVALID);
-    PC_ASSERT(purc_variant_is_object(elem));
 
     int r;
     r = build_rev_update_chain(set, node);
@@ -899,11 +933,6 @@ variant_set_add_val(purc_variant_t set,
         return -1;
     }
 
-    if (purc_variant_is_object(val) == false) {
-        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
-        return -1;
-    }
-
     if (insert_or_replace(set, data, val, overwrite, check))
         return -1;
 
@@ -1053,8 +1082,7 @@ purc_variant_make_set(size_t sz, purc_variant_t unique_key,
 bool
 purc_variant_set_add(purc_variant_t set, purc_variant_t value, bool overwrite)
 {
-    PCVARIANT_CHECK_FAIL_RET(set && set->type==PVT(_SET) &&
-        value && value->type==PVT(_OBJECT),
+    PCVARIANT_CHECK_FAIL_RET(set && set->type==PVT(_SET) && value,
         PURC_VARIANT_INVALID);
 
     variant_set_t data = pcvar_set_get_data(set);

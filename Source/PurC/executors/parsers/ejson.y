@@ -644,12 +644,12 @@
 %token <sval>  STR UNI INTEGER NUMBER ID
 %token <c>     CHR
 
-%nterm <v>   variant str
+%nterm <v>   var str
 %nterm <v>   obj
 %nterm <kvs> kvs
 %nterm <kv>  kv
-%nterm <v>   arr variants
-%nterm <v>   set set_key objs
+%nterm <v>   arr vars
+%nterm <v>   set set_key
 %nterm <ss>  string
 
 
@@ -657,10 +657,10 @@
 
 input:
   %empty             { SET_NULL(); }
-| variant            { param->var = $1; }
+| var                { param->var = $1; }
 ;
 
-variant:
+var:
   T_UNDEFINED        { MK_UNDEFINED($$); }
 | T_NULL             { MK_NULL($$); }
 | T_TRUE             { MK_TRUE($$); }
@@ -704,37 +704,31 @@ kvs:
 ;
 
 kv:
-  ID ':' variant                   { INIT_KV_ID(&$$, $1, $3); }
-| '"' string '"' ':' variant       { INIT_KV_STR(&$$, $2, $5); }
+  ID ':' var                   { INIT_KV_ID(&$$, $1, $3); }
+| '"' string '"' ':' var       { INIT_KV_STR(&$$, $2, $5); }
 ;
 
 arr:
-  '[' ']'                  { MK_EMPTY_ARR($$); }
-| '[' variants ']'         { $$ = $2; }
-| '[' variants ',' ']'     { $$ = $2; }
+  '[' ']'              { MK_EMPTY_ARR($$); }
+| '[' vars ']'         { $$ = $2; }
+| '[' vars ',' ']'     { $$ = $2; }
 ;
 
-variants:
-  variant                  { MK_VARS($$, $1); }
-| variants ',' variant     { APPEND_VAR($$, $1, $3); }
+vars:
+  var              { MK_VARS($$, $1); }
+| vars ',' var     { APPEND_VAR($$, $1, $3); }
 ;
 
 set:
   '[' '!' ']'                   { MK_EMPTY_SET($$); }
-| '[' '!' ',' objs ']'          { MK_SET($$, PURC_VARIANT_INVALID, $4); }
+| '[' '!' ',' vars ']'          { MK_SET($$, PURC_VARIANT_INVALID, $4); }
 | '[' '!' set_key  ']'          { MK_SET($$, $3, PURC_VARIANT_INVALID); }
-| '[' '!' set_key ',' objs ']'  { MK_SET($$, $3, $5); }
+| '[' '!' set_key ',' vars ']'  { MK_SET($$, $3, $5); }
 ;
 
 set_key:
   ID                            { MK_STRING($$, $1); }
 | '"' string '"'                { COLLECT_STR($$, $2); }
-;
-
-objs:
-  obj                { MK_OBJS($$, $1); }
-| objs ','           { $$ = $1; }
-| objs ',' obj       { OBJS_APPEND($$, $1, $3); }
 ;
 
 %%
