@@ -37,8 +37,8 @@
 #include <unistd.h>
 #include <errno.h>
 
-struct sort_agaist {
-    const char *key;
+struct sort_key {
+    char *key;
     bool by_number;
 };
 
@@ -50,7 +50,24 @@ struct ctxt_for_sort {
     purc_variant_t                against;
     unsigned int                  casesensitively:1;
     unsigned int                  ascendingly:1;
+
+    struct pcutils_arrlist        *keys;
 };
+
+typedef void(array_list_free_fn)(void *data);
+
+static void
+sort_key_free_fn(void *data)
+{
+    if (!data) {
+        return;
+    }
+    struct sort_key *key = data;
+    if (key->key) {
+        free(key->key);
+    }
+    free(key);
+}
 
 static void
 ctxt_for_sort_destroy(struct ctxt_for_sort *ctxt)
@@ -60,6 +77,9 @@ ctxt_for_sort_destroy(struct ctxt_for_sort *ctxt)
         PURC_VARIANT_SAFE_CLEAR(ctxt->by);
         PURC_VARIANT_SAFE_CLEAR(ctxt->with);
         PURC_VARIANT_SAFE_CLEAR(ctxt->against);
+        if (ctxt->keys) {
+            pcutils_arrlist_free(ctxt->keys);
+        }
         free(ctxt);
     }
 }
@@ -246,24 +266,173 @@ attr_found(struct pcintr_stack_frame *frame,
     return r ? -1 : 0;
 }
 
-static void
-sort_array(purc_variant_t array, purc_variant_t against, int ascendingly,
-        int casesensitively)
+struct pcutils_arrlist  *
+split_key(const char *key)
 {
-    UNUSED_PARAM(array);
-    UNUSED_PARAM(against);
-    UNUSED_PARAM(ascendingly);
-    UNUSED_PARAM(casesensitively);
+    if (key == NULL) {
+        return NULL;
+    }
+
+    struct pcutils_arrlist *keys = pcutils_arrlist_new(sort_key_free_fn);
+    if (keys == NULL) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return NULL;
+    }
+
+    char *key_cp = strdup(key);
+    char *ctxt = key_cp;
+    char *token;
+    while ((token = strtok_r(ctxt, " ", &ctxt))) {
+        struct sort_key *skey = (struct sort_key*)calloc(1,
+                sizeof(struct sort_key));
+        if (skey == NULL) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            break;
+        }
+
+        skey->key = strdup(token);
+        if (!skey->key) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            break;
+        }
+        if (pcutils_arrlist_append(keys, skey) != 0) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            break;
+        }
+    }
+    free(key_cp);
+    return keys;
+}
+
+static bool
+sort_as_number(purc_variant_t val)
+{
+    enum purc_variant_type type = purc_variant_get_type(val);
+    switch (type) {
+    case PURC_VARIANT_TYPE_NUMBER:
+    case PURC_VARIANT_TYPE_LONGINT:
+    case PURC_VARIANT_TYPE_ULONGINT:
+    case PURC_VARIANT_TYPE_LONGDOUBLE:
+        return true;
+
+    default:
+        return false;
+    }
 }
 
 static void
-sort_set(purc_variant_t array, purc_variant_t against, int ascendingly,
-        int casesensitively)
+sort_array(struct ctxt_for_sort *ctxt, purc_variant_t array,
+        purc_variant_t against, int ascendingly, int casesensitively)
 {
+    UNUSED_PARAM(ctxt);
     UNUSED_PARAM(array);
     UNUSED_PARAM(against);
     UNUSED_PARAM(ascendingly);
     UNUSED_PARAM(casesensitively);
+    ssize_t nr = purc_variant_array_get_size(array);
+    if (nr <= 1) {
+        return;
+    }
+
+    if (against && purc_variant_is_string(against)) {
+        ctxt->keys = split_key(purc_variant_get_string_const(against));
+    }
+
+    if (ctxt->keys == NULL) {
+        struct pcutils_arrlist *keys = pcutils_arrlist_new(sort_key_free_fn);
+        if (keys == NULL) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            return;
+        }
+        ctxt->keys = keys;
+        struct sort_key *key = (struct sort_key*)calloc(1,
+                sizeof(struct sort_key));
+        if (key == NULL) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            return;
+        }
+
+        purc_variant_t val = purc_variant_array_get(array, 0);
+        key->by_number = sort_as_number(val);
+        if (pcutils_arrlist_append(keys, key) != 0) {
+            free(key);
+        }
+    }
+    else {
+        size_t key_idx = 0;
+        size_t nr_keys = pcutils_arrlist_length(ctxt->keys);
+        for (ssize_t i = 0 ; i < nr && key_idx < nr_keys; i++) {
+            purc_variant_t val = purc_variant_array_get(array, i);
+            if (purc_variant_is_object(val)) {
+                for (size_t j = key_idx; j < nr_keys; j++) {
+                    struct sort_key *k = pcutils_arrlist_get_idx(ctxt->keys, j);
+                    purc_variant_t v = purc_variant_object_get_by_ckey(val, k->key);
+                    if (v) {
+                        k->by_number = sort_as_number(v);
+                        key_idx++;
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+static void
+sort_set(struct ctxt_for_sort *ctxt, purc_variant_t set,
+        purc_variant_t against, int ascendingly, int casesensitively)
+{
+    UNUSED_PARAM(ctxt);
+    UNUSED_PARAM(set);
+    UNUSED_PARAM(against);
+    UNUSED_PARAM(ascendingly);
+    UNUSED_PARAM(casesensitively);
+    ssize_t nr = purc_variant_set_get_size(set);
+    if (nr <= 1) {
+        return;
+    }
+
+    if (against && purc_variant_is_string(against)) {
+        ctxt->keys = split_key(purc_variant_get_string_const(against));
+    }
+
+    if (ctxt->keys == NULL) {
+        struct pcutils_arrlist *keys = pcutils_arrlist_new(sort_key_free_fn);
+        if (keys == NULL) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            return;
+        }
+        ctxt->keys = keys;
+        struct sort_key *key = (struct sort_key*)calloc(1,
+                sizeof(struct sort_key));
+        if (key == NULL) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            return;
+        }
+
+        purc_variant_t val = purc_variant_set_get_by_index(set, 0);
+        key->by_number = sort_as_number(val);
+        if (pcutils_arrlist_append(keys, key) != 0) {
+            free(key);
+        }
+    }
+    else {
+        size_t key_idx = 0;
+        size_t nr_keys = pcutils_arrlist_length(ctxt->keys);
+        for (ssize_t i = 0 ; i < nr && key_idx < nr_keys; i++) {
+            purc_variant_t val = purc_variant_set_get_by_index(set, i);
+            if (purc_variant_is_object(val)) {
+                for (size_t j = key_idx; j < nr_keys; j++) {
+                    struct sort_key *k = pcutils_arrlist_get_idx(ctxt->keys, j);
+                    purc_variant_t v = purc_variant_object_get_by_ckey(val, k->key);
+                    if (v) {
+                        k->by_number = sort_as_number(v);
+                        key_idx++;
+                    }
+                }
+            }
+        }
+    }
 }
 
 static void*
@@ -312,12 +481,12 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         enum purc_variant_type type = purc_variant_get_type(ctxt->on);
         switch (type) {
         case PURC_VARIANT_TYPE_ARRAY:
-            sort_array(ctxt->on, ctxt->against, ctxt->ascendingly,
+            sort_array(ctxt, ctxt->on, ctxt->against, ctxt->ascendingly,
                     ctxt->casesensitively);
             break;
 
         case PURC_VARIANT_TYPE_SET:
-            sort_set(ctxt->on, ctxt->against, ctxt->ascendingly,
+            sort_set(ctxt, ctxt->on, ctxt->against, ctxt->ascendingly,
                     ctxt->casesensitively);
             break;
 
