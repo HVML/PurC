@@ -446,8 +446,8 @@ pcvariant_md5_by_set(char *md5, purc_variant_t val,
         purc_variant_t set) WTF_INTERNAL;
 
 int
-pcvariant_diff_ex(const char *md5l, purc_variant_t l,
-        const char *md5r, purc_variant_t r);
+pcvariant_diff_by_set(const char *md5l, purc_variant_t l,
+        const char *md5r, purc_variant_t r, purc_variant_t set);
 
 PCA_EXTERN_C_END
 

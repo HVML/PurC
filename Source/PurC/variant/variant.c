@@ -3233,14 +3233,51 @@ pcvariant_md5_by_set(char *md5, purc_variant_t val, purc_variant_t set)
 }
 
 int
-pcvariant_diff_ex(const char *md5l, purc_variant_t l,
-        const char *md5r, purc_variant_t r)
+pcvariant_diff_by_set(const char *md5l, purc_variant_t l,
+        const char *md5r, purc_variant_t r, purc_variant_t set)
 {
+    PC_ASSERT(md5l);
+    PC_ASSERT(l != PURC_VARIANT_INVALID);
+    PC_ASSERT(md5r);
+    PC_ASSERT(r != PURC_VARIANT_INVALID);
+
+    PC_ASSERT(set != PURC_VARIANT_INVALID);
+
     int diff;
     diff = strcmp(md5l, md5r);
     if (diff)
         return diff;
 
-    return pcvariant_diff(l, r);
+    variant_set_t data = pcvar_set_get_data(set);
+    PC_ASSERT(data);
+
+    if (data->unique_key == NULL)
+        return pcvariant_diff(l, r);
+
+    purc_variant_t undefined = purc_variant_make_undefined();
+    PC_ASSERT(undefined);
+
+    for (size_t i=0; i<data->nr_keynames; ++i) {
+        purc_variant_t vl = PURC_VARIANT_INVALID;
+        purc_variant_t vr = PURC_VARIANT_INVALID;
+
+        if (l->type == PVT(_OBJECT))
+            vl = purc_variant_object_get_by_ckey(l, data->keynames[i]);
+        if (r->type == PVT(_OBJECT)) {
+            vr = purc_variant_object_get_by_ckey(r, data->keynames[i]);
+
+        if (vl == PURC_VARIANT_INVALID)
+            vl = undefined;
+        if (vr == PURC_VARIANT_INVALID)
+            vr = undefined;
+
+        diff = pcvariant_diff(vl, vr);
+        if (diff)
+            break;
+    }
+
+    purc_variant_unref(undefined);
+
+    return diff;
 }
 
