@@ -1599,6 +1599,9 @@ int purc_variant_compare_ex (purc_variant_t v1,
         else
             compare = compare_string_method (v1, v2, opt);
     }
+    else {
+        PC_ASSERT(0);
+    }
 
     return compare;
 }
@@ -2494,11 +2497,16 @@ purc_variant_stringify(purc_rwstream_t stream, purc_variant_t value,
 
     PC_ASSERT(ud.err == 0);
 
-    if (ud.err)
-        return -1;
-
     if (len_expected)
         *len_expected = ud.accu;
+
+    if (ud.err) {
+        if (flags & PCVARIANT_STRINGIFY_OPT_IGNORE_ERRORS) {
+            purc_clr_error();
+            return ud.written;
+        }
+        return -1;
+    }
 
     return ud.written;
 }
