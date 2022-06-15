@@ -37,6 +37,11 @@
 #include <unistd.h>
 #include <errno.h>
 
+struct sort_agaist {
+    const char *key;
+    bool by_number;
+};
+
 struct ctxt_for_sort {
     struct pcvdom_node           *curr;
     purc_variant_t                on;
@@ -241,6 +246,26 @@ attr_found(struct pcintr_stack_frame *frame,
     return r ? -1 : 0;
 }
 
+static void
+sort_array(purc_variant_t array, purc_variant_t against, int ascendingly,
+        int casesensitively)
+{
+    UNUSED_PARAM(array);
+    UNUSED_PARAM(against);
+    UNUSED_PARAM(ascendingly);
+    UNUSED_PARAM(casesensitively);
+}
+
+static void
+sort_set(purc_variant_t array, purc_variant_t against, int ascendingly,
+        int casesensitively)
+{
+    UNUSED_PARAM(array);
+    UNUSED_PARAM(against);
+    UNUSED_PARAM(ascendingly);
+    UNUSED_PARAM(casesensitively);
+}
+
 static void*
 after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 {
@@ -280,6 +305,27 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         return NULL;
     }
 
+    if (ctxt->by != PURC_VARIANT_INVALID) {
+        // TODO:
+    }
+    else {
+        enum purc_variant_type type = purc_variant_get_type(ctxt->on);
+        switch (type) {
+        case PURC_VARIANT_TYPE_ARRAY:
+            sort_array(ctxt->on, ctxt->against, ctxt->ascendingly,
+                    ctxt->casesensitively);
+            break;
+
+        case PURC_VARIANT_TYPE_SET:
+            sort_set(ctxt->on, ctxt->against, ctxt->ascendingly,
+                    ctxt->casesensitively);
+            break;
+
+        default:
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            return NULL;
+        }
+    }
     purc_clr_error();
 
     return ctxt;
