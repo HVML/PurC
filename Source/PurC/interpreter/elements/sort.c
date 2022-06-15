@@ -304,6 +304,104 @@ split_key(const char *key)
     return keys;
 }
 
+static int
+comp_number(double l, double r, bool ascendingly)
+{
+    if (ascendingly) {
+        return (l > r) ? 1 : (l < r ? -1 : 0);
+    }
+    return (l > r) ? -1 : (l < r ? 1 : 0);
+}
+
+static int
+comp_string(const char *l, const char *r, bool ascendingly, bool casesensitively)
+{
+    if (!l || !r) {
+        return 0;
+    }
+    int ret = casesensitively ? strcmp(l, r) : strcasecmp(l, r);
+    return ascendingly ? ret : -ret;
+}
+
+#define UNDEFINED_STR       "undefined"
+
+static char *
+variant_to_string(purc_variant_t v)
+{
+    if (!v) {
+        return strdup(UNDEFINED_STR);
+    }
+
+    char *buf = NULL;
+    int total = purc_variant_stringify_alloc(&buf, v);
+    if (total < 0) {
+        return NULL;
+    }
+    return buf;
+}
+
+static int
+comp_raw(purc_variant_t l, purc_variant_t r, bool by_number,
+        bool ascendingly, bool casesensitively)
+{
+    if (by_number) {
+        double dl = l ? purc_variant_numberify(l) : 0.0f;
+        double dr = r ? purc_variant_numberify(r) : 0.0f;
+        return comp_number(dl, dr, ascendingly);
+    }
+
+    char *buf_l = variant_to_string(l);
+    char *buf_r = variant_to_string(r);
+    int ret = comp_string(buf_l, buf_r, ascendingly, casesensitively);
+    if (buf_l) {
+        free(buf_l);
+    }
+    if (buf_r) {
+        free(buf_r);
+    }
+    return ret;
+}
+
+static int
+comp_by_key(purc_variant_t l, purc_variant_t r, const char *key, bool by_number,
+        bool ascendingly, bool casesensitively)
+{
+    purc_variant_t lv = PURC_VARIANT_INVALID;
+    purc_variant_t rv = PURC_VARIANT_INVALID;
+    if (purc_variant_is_object(l)) {
+        lv = purc_variant_object_get_by_ckey(l, key);
+    }
+
+    if (purc_variant_is_object(r)) {
+        rv = purc_variant_object_get_by_ckey(r, key);
+    }
+
+    return comp_raw(lv, rv, by_number, ascendingly, casesensitively);
+}
+
+static int
+sort_cmp(purc_variant_t l, purc_variant_t r, void *data)
+{
+    struct ctxt_for_sort *ctxt = data;
+    size_t nr_keys = pcutils_arrlist_length(ctxt->keys);
+    for (size_t i = 0; i < nr_keys; i++) {
+        struct sort_key *key = pcutils_arrlist_get_idx(ctxt->keys, i);
+        int ret = 0;
+        if (key->key == NULL) {
+            ret = comp_raw(l, r, key->by_number, ctxt->ascendingly,
+                    ctxt->casesensitively);
+        }
+        else {
+            ret = comp_by_key(l, r, key->key, key->by_number,
+                    ctxt->ascendingly, ctxt->casesensitively);
+        }
+        if (ret != 0) {
+            return ret;
+        }
+    }
+    return 0;
+}
+
 static bool
 sort_as_number(purc_variant_t val)
 {
@@ -375,6 +473,7 @@ sort_array(struct ctxt_for_sort *ctxt, purc_variant_t array,
             }
         }
     }
+    pcvariant_array_sort(array, ctxt, sort_cmp);
 }
 
 
@@ -433,6 +532,7 @@ sort_set(struct ctxt_for_sort *ctxt, purc_variant_t set,
             }
         }
     }
+    pcvariant_set_sort(set, ctxt, sort_cmp);
 }
 
 static void*
