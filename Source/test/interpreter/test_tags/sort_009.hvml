@@ -1,0 +1,21 @@
+<!DOCTYPE hvml>
+<hvml target="html" lang="en">
+    <head>
+        <init as="buttons">
+            ["a", "x", 9, 9, 10]
+        </init>
+    </head>
+
+    <body>
+        <sort on="$buttons" descendingly />
+
+        <div id="calculator">
+            <div id="c_value">
+                $buttons
+            </div>
+        </div>
+    </body>
+
+</hvml>
+
+
