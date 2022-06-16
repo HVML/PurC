@@ -1,0 +1,43 @@
+<!DOCTYPE hvml>
+<hvml target="html" lang="en">
+    <head>
+        <init as="buttons">
+            [
+                { "id":9, "letters": "9", "class": "9" },
+                { "letters": "7", "class": "7", "id":7 },
+                { "letters": "8", "class": "8", "id":8 },
+                { "letters": "1", "class": ""         },
+                { "letters": "3", "class": "3", "id":3 },
+                { "letters": "8", "class": "8", "id":8 },
+                { "letters": "4", "class": "4", "id":4 },
+                { "letters": "9", "class": "",        },
+                { "letters": "0", "class": "0", "id":0 },
+                { "letters": "1", "class": "",        },
+            ]
+        </init>
+    </head>
+
+    <body>
+        <sort on="$buttons" descendingly />
+
+        <div id="calculator">
+            <div id="c_value">
+                <archetype name="button">
+                    <li class="$?.class">$?.letters</li>
+                </archetype>
+
+                <ul>
+                    <iterate on="$buttons">
+                        <update on="$@" to="append" with="$button" />
+                        <except type="NoData" raw>
+                            <p>Bad data!</p>
+                        </except>
+                    </iterate>
+                </ul>
+            </div>
+        </div>
+    </body>
+
+</hvml>
+
+
