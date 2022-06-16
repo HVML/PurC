@@ -322,7 +322,6 @@ comp_string(const char *l, const char *r, bool ascendingly, bool casesensitively
         return 0;
     }
     int ret = casesensitively ? strcmp(l, r) : strcasecmp(l, r);
-    fprintf(stderr, "######################3 casesensitively=%d|l=%s|r=%s|ret=%d\n", casesensitively, l, r, ret);
     return ascendingly ? ret : -ret;
 }
 
@@ -425,7 +424,6 @@ static void
 sort_array(struct ctxt_for_sort *ctxt, purc_variant_t array,
         purc_variant_t against)
 {
-    fprintf(stderr, "################################ sort array\n");
     ssize_t nr = purc_variant_array_get_size(array);
     if (nr <= 1) {
         return;
@@ -479,7 +477,6 @@ sort_array(struct ctxt_for_sort *ctxt, purc_variant_t array,
 static void
 sort_set(struct ctxt_for_sort *ctxt, purc_variant_t set, purc_variant_t against)
 {
-    fprintf(stderr, "################################ sort set\n");
     ssize_t nr = purc_variant_set_get_size(set);
     if (nr <= 1) {
         return;
