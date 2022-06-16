@@ -3262,7 +3262,6 @@ pcvariant_md5_by_set(char *md5, purc_variant_t val, purc_variant_t set)
         }
         stringify_kv(&arg, data->keynames[i], v);
     }
-    arg.cb(arg.arg, "", 0);
 
     unsigned char md5_digest[MD5_DIGEST_SIZE];
     pcutils_md5_end(&ud, md5_digest);

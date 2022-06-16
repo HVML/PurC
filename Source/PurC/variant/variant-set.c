@@ -1101,8 +1101,7 @@ bool
 purc_variant_set_remove(purc_variant_t set, purc_variant_t value,
         bool silently)
 {
-    PCVARIANT_CHECK_FAIL_RET(set && set->type==PVT(_SET) &&
-            value && value->type==PVT(_OBJECT),
+    PCVARIANT_CHECK_FAIL_RET(set && set->type==PVT(_SET) && value,
             PURC_VARIANT_INVALID);
 
     variant_set_t data = pcvar_set_get_data(set);
@@ -1544,8 +1543,7 @@ int pcvariant_set_sort(purc_variant_t value, void *ud,
 purc_variant_t
 pcvariant_set_find(purc_variant_t set, purc_variant_t value)
 {
-    PCVARIANT_CHECK_FAIL_RET(set && set->type==PVT(_SET) &&
-            value && value->type==PVT(_OBJECT),
+    PCVARIANT_CHECK_FAIL_RET(set && set->type==PVT(_SET) && value,
             PURC_VARIANT_INVALID);
 
     variant_set_t data = pcvar_set_get_data(set);
