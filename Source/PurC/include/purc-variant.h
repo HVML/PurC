@@ -625,6 +625,18 @@ purc_variant_native_get_ops(purc_variant_t native);
 PCA_EXPORT purc_variant_t
 purc_variant_make_array(size_t sz, purc_variant_t value0, ...);
 
+/**
+ * Creates an empty array variant.
+ *
+ * Returns: An empty array variant or PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.2.0
+ */
+static inline purc_variant_t
+purc_variant_make_array_0(void)
+{
+    return purc_variant_make_array(0, PURC_VARIANT_INVALID);
+}
 
 /**
  * Appends a variant value to the tail of an array.
@@ -807,6 +819,20 @@ purc_variant_make_object_by_static_ckey(size_t nr_kv_pairs,
 PCA_EXPORT purc_variant_t
 purc_variant_make_object(size_t nr_kv_pairs,
         purc_variant_t key0, purc_variant_t value0, ...);
+
+/**
+ * Creates an empty object variant
+ *
+ * Returns: An empty object variant or PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.2.0
+ */
+static inline purc_variant_t
+purc_variant_make_object_0(void)
+{
+    return purc_variant_make_object(0,
+            PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+}
 
 /**
  * Gets the value by key from an object with key as c string
@@ -1090,6 +1116,22 @@ purc_variant_make_set(size_t sz, purc_variant_t unique_key,
         purc_variant_t value0, ...);
 
 /**
+ * Creates an empty set variant.
+ *
+ * @param unique_key: the unique keys specified in a variant. If the unique key
+ *      is PURC_VARIANT_INVALID, the set is a generic one.
+ *
+ * Returns: An empty set variant on success, or PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.2.0
+ */
+static inline purc_variant_t
+purc_variant_make_set_0(purc_variant_t unique_key)
+{
+    return purc_variant_make_set(0, unique_key, PURC_VARIANT_INVALID);
+}
+
+/**
  * Adds a variant value to a set.
  *
  * @param set: the variant value of the set type.
@@ -1352,7 +1394,7 @@ PCA_EXPORT purc_variant_t
 purc_variant_set_iterator_get_value(struct purc_variant_set_iterator* it);
 
 /**
- * Creates a tuple variant from two variants.
+ * Creates a tuple variant from variants.
  *
  * @param sz: the size of the tuple, i.e., the number of members in the tuple.
  * @param members: a C array of the members to put into the tuple.
@@ -1371,6 +1413,19 @@ purc_variant_set_iterator_get_value(struct purc_variant_set_iterator* it);
  */
 PCA_EXPORT purc_variant_t
 purc_variant_make_tuple(size_t sz, purc_variant_t *members);
+
+/**
+ * Creates an empty tuple variant.
+ *
+ * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.2.0
+ */
+static inline purc_variant_t
+purc_variant_make_tuple_0(void)
+{
+    return purc_variant_make_tuple(0, NULL);
+}
 
 /**
  * Gets the size of a tuple variant.
