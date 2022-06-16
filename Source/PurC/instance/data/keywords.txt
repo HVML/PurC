@@ -37,8 +37,8 @@ hvml synchronously sync
 hvml asynchronously async
 hvml rel
 hvml temporarily temp
-hvml casesensitively
-hvml caseinsensitively
+hvml casesensitively case
+hvml caseinsensitively caseless
 hvml _parent _grandparent _root
 hvml _last _nexttolast _topmost
 hvml nosetotail
