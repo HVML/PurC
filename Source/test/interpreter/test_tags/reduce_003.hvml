@@ -20,7 +20,7 @@
                 </archetype>
 
                 <ul>
-                    <reduce on=$regionStats by="KEY: AS 'zh_PP'">
+                    <reduce on=$regionStats by="KEY: LIKE 'zh_*'">
                         <update on="$@" to="append" with="$regionList" />
                     </reduce>
                 </ul>
