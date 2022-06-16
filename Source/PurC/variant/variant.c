@@ -2760,7 +2760,8 @@ int
 pcvariant_diff(purc_variant_t l, purc_variant_t r)
 {
     bool caseless = false;
-    return pcvar_compare_exactly(l, r, caseless);
+    bool unify_number = true;
+    return pcvar_compare_ex(l, r, caseless, unify_number);
 }
 
 struct purc_ejson_parse_tree *
@@ -2823,7 +2824,8 @@ purc_variant_ejson_parse_tree_destroy(struct purc_ejson_parse_tree *parse_tree)
 }
 
 static int
-cmp_by_obj(purc_variant_t l, purc_variant_t r, bool caseless)
+cmp_by_obj(purc_variant_t l, purc_variant_t r,
+        bool caseless, bool unify_number)
 {
     int diff;
 
@@ -2860,7 +2862,7 @@ cmp_by_obj(purc_variant_t l, purc_variant_t r, bool caseless)
         PC_ASSERT(lv != PURC_VARIANT_INVALID);
         PC_ASSERT(rv != PURC_VARIANT_INVALID);
 
-        diff = pcvar_compare_exactly(lv, rv, caseless);
+        diff = pcvar_compare_ex(lv, rv, caseless, unify_number);
         if (diff)
             return diff;
     }
@@ -2874,7 +2876,8 @@ cmp_by_obj(purc_variant_t l, purc_variant_t r, bool caseless)
 }
 
 static int
-cmp_by_arr(purc_variant_t l, purc_variant_t r, bool caseless)
+cmp_by_arr(purc_variant_t l, purc_variant_t r,
+        bool caseless, bool unify_number)
 {
     int diff;
 
@@ -2904,7 +2907,7 @@ cmp_by_arr(purc_variant_t l, purc_variant_t r, bool caseless)
         PC_ASSERT(lv != PURC_VARIANT_INVALID);
         PC_ASSERT(rv != PURC_VARIANT_INVALID);
 
-        diff = pcvar_compare_exactly(lv, rv, caseless);
+        diff = pcvar_compare_ex(lv, rv, caseless, unify_number);
         if (diff)
             return diff;
     }
@@ -2918,7 +2921,8 @@ cmp_by_arr(purc_variant_t l, purc_variant_t r, bool caseless)
 }
 
 static int
-cmp_by_set(purc_variant_t l, purc_variant_t r, bool caseless)
+cmp_by_set(purc_variant_t l, purc_variant_t r,
+        bool caseless, bool unify_number)
 {
     int diff;
 
@@ -2944,7 +2948,7 @@ cmp_by_set(purc_variant_t l, purc_variant_t r, bool caseless)
         PC_ASSERT(lv != PURC_VARIANT_INVALID);
         PC_ASSERT(rv != PURC_VARIANT_INVALID);
 
-        diff = pcvar_compare_exactly(lv, rv, caseless);
+        diff = pcvar_compare_ex(lv, rv, caseless, unify_number);
         if (diff)
             return diff;
     }
@@ -2958,7 +2962,8 @@ cmp_by_set(purc_variant_t l, purc_variant_t r, bool caseless)
 }
 
 static int
-cmp_by_tuple(purc_variant_t l, purc_variant_t r, bool caseless)
+cmp_by_tuple(purc_variant_t l, purc_variant_t r,
+        bool caseless, bool unify_number)
 {
     int diff;
 
@@ -2973,7 +2978,7 @@ cmp_by_tuple(purc_variant_t l, purc_variant_t r, bool caseless)
         purc_variant_t lv = members1[n];
         purc_variant_t rv = members2[n];
 
-        diff = pcvar_compare_exactly(lv, rv, caseless);
+        diff = pcvar_compare_ex(lv, rv, caseless, unify_number);
         if (diff)
             return diff;
     }
@@ -2987,7 +2992,8 @@ cmp_by_tuple(purc_variant_t l, purc_variant_t r, bool caseless)
 }
 
 int
-pcvar_compare_exactly(purc_variant_t l, purc_variant_t r, bool caseless)
+pcvar_compare_ex(purc_variant_t l, purc_variant_t r,
+        bool caseless, bool unify_number)
 {
     if (l == r)
         return 0;
@@ -2995,6 +3001,33 @@ pcvar_compare_exactly(purc_variant_t l, purc_variant_t r, bool caseless)
         return -1;
     else if (r == PURC_VARIANT_INVALID)
         return 1;
+
+    if (unify_number &&
+            pcvariant_is_of_number(l) &&
+            pcvariant_is_of_number(r))
+    {
+        bool ok;
+        bool force = false;
+        long double ldl, ldr;
+        ok = purc_variant_cast_to_longdouble(l, &ldl, force);
+        PC_ASSERT(ok);
+        ok = purc_variant_cast_to_longdouble(r, &ldr, force);
+        PC_ASSERT(ok);
+
+        // FIXME: Inifinity/NaN
+        PC_ASSERT(!isnan(ldl) && !isinf(ldl));
+        PC_ASSERT(!isnan(ldr) && !isinf(ldr));
+
+        if (equal_long_doubles(ldl, ldr))
+            return 0;
+
+        if (ldl < ldr)
+            return -1;
+        if (ldl > ldr)
+            return 1;
+
+        PC_ASSERT(0);
+    }
 
     int diff;
     const char *ls, *rs;
@@ -3075,16 +3108,16 @@ pcvar_compare_exactly(purc_variant_t l, purc_variant_t r, bool caseless)
             return memcmp(l->ptr_ptr, r->ptr_ptr, sizeof(void *) * 2) == 0;
 
         case PURC_VARIANT_TYPE_OBJECT:
-            return cmp_by_obj(l, r, caseless);
+            return cmp_by_obj(l, r, caseless, unify_number);
 
         case PURC_VARIANT_TYPE_ARRAY:
-            return cmp_by_arr(l, r, caseless);
+            return cmp_by_arr(l, r, caseless, unify_number);
 
         case PURC_VARIANT_TYPE_SET:
-            return cmp_by_set(l, r, caseless);
+            return cmp_by_set(l, r, caseless, unify_number);
 
         case PURC_VARIANT_TYPE_TUPLE:
-            return cmp_by_tuple(l, r, caseless);
+            return cmp_by_tuple(l, r, caseless, unify_number);
 
         default:
             PC_ASSERT(0);
@@ -3254,15 +3287,17 @@ pcvariant_diff_by_set(const char *md5l, purc_variant_t l,
     PC_ASSERT(set != PURC_VARIANT_INVALID);
 
     int diff;
-    diff = strcmp(md5l, md5r);
-    if (diff)
-        return diff;
 
     variant_set_t data = pcvar_set_get_data(set);
     PC_ASSERT(data);
 
-    if (data->unique_key == NULL)
+    if (data->unique_key == NULL) {
         return pcvariant_diff(l, r);
+    }
+
+    diff = strcmp(md5l, md5r);
+    if (diff)
+        return diff;
 
     purc_variant_t undefined = purc_variant_make_undefined();
     PC_ASSERT(undefined);

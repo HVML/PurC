@@ -548,12 +548,13 @@ static void cmp_against(purc_variant_t set, const char *cmp)
     PURC_VARIANT_SAFE_CLEAR(to);
 }
 
-TEST(constraint, array)
+TEST(constraint, basic)
 {
     PurCInstance purc;
 
     const char *s;
     purc_variant_t set, v, one, a;
+    bool ok;
 
     if (1) {
         s = "[!, [a],[]]";
@@ -584,6 +585,48 @@ TEST(constraint, array)
         cmp_against(set, s);
 
         PURC_VARIANT_SAFE_CLEAR(one);
+        PURC_VARIANT_SAFE_CLEAR(set);
+    }
+
+    if (1) {
+        s = "[!, [!, a],[!]]";
+        set = pcejson_parser_parse_string(s, 0, 0);
+
+        v = purc_variant_set_get_by_index(set, 1);
+
+        a = purc_variant_make_string("a", false);
+
+        PRINT_VARIANT(set);
+        PRINT_VARIANT(v);
+        bool overwrite = true;
+        ok = purc_variant_set_add(v, a, overwrite);
+        PC_DEBUGX("ok: %s", ok ? "true" : "false");
+        PRINT_VARIANT(v);
+        PRINT_VARIANT(set);
+
+        cmp_against(set, s);
+
+        PURC_VARIANT_SAFE_CLEAR(a);
+        PURC_VARIANT_SAFE_CLEAR(set);
+    }
+
+    if (1) {
+        // number but different type internally
+        s = "[!, 123L, 123.0]";
+        set = pcejson_parser_parse_string(s, 0, 0);
+
+        PRINT_VARIANT(set);
+
+        const char *against;
+        against = "[!, 123L]";
+        cmp_against(set, against);
+
+        against = "[!, 123]";
+        cmp_against(set, against);
+
+        against = "[!, 123.0]";
+        cmp_against(set, against);
+
         PURC_VARIANT_SAFE_CLEAR(set);
     }
 }

@@ -273,8 +273,12 @@ pcvar_readjust_set(purc_variant_t set, struct set_node *node);
 // compare both variant-type and variant-value
 // recursive-implementation, thus caller's responsible for enough stack space
 // except stack space, no extra memory is required
+// when `caseless` is set, use strcasecmp rather than strcmp internally
+// when `unify_number` is set, convert both number-variants into long doubles
+// before doing actuall comparison
 int
-pcvar_compare_exactly(purc_variant_t l, purc_variant_t r, bool caseless);
+pcvar_compare_ex(purc_variant_t l, purc_variant_t r,
+        bool caseless, bool unify_number);
 
 #ifdef __cplusplus
 }
