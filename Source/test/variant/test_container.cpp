@@ -19,28 +19,6 @@
 
 using namespace std;
 
-#define PRINTF(...)                                                       \
-    do {                                                                  \
-        fprintf(stderr, "\e[0;32m[          ] \e[0m");                    \
-        fprintf(stderr, __VA_ARGS__);                                     \
-    } while(false)
-
-#if OS(LINUX) || OS(UNIX)
-// get path from env or __FILE__/../<rel> otherwise
-#define getpath_from_env_or_rel(_path, _len, _env, _rel) do {  \
-    const char *p = getenv(_env);                                      \
-    if (p) {                                                           \
-        snprintf(_path, _len, "%s", p);                                \
-    } else {                                                           \
-        char tmp[PATH_MAX+1];                                          \
-        snprintf(tmp, sizeof(tmp), __FILE__);                          \
-        const char *folder = dirname(tmp);                             \
-        snprintf(_path, _len, "%s/%s", folder, _rel);                  \
-    }                                                                  \
-} while (0)
-
-#endif // OS(LINUX) || OS(UNIX)
-
 #define MIN_BUFFER     512
 #define MAX_BUFFER     1024 * 1024 * 1024
 
@@ -248,13 +226,30 @@ purc_variant_t build_test_src(purc_variant_t test_case_variant)
     return src;
 }
 
-void compare_result(purc_variant_t dst, purc_variant_t cmp)
+static inline int
+cmp(purc_variant_t l, purc_variant_t r, void *ud)
 {
+    (void)ud;
+    double dl = purc_variant_numberify(l);
+    double dr = purc_variant_numberify(r);
+
+    if (dl < dr)
+        return -1;
+    if (dl == dr)
+        return 0;
+    return 1;
+}
+
+void compare_result(purc_variant_t dst, purc_variant_t cmp,
+        purc_variant_t cmp_option)
+{
+    UNUSED_PARAM(cmp_option);
     char* cmp_result = variant_to_string(cmp);
     PRINTF("orig=%s\n", cmp_result);
 
     purc_variant_t tmp_val = purc_variant_make_from_json_string(
             cmp_result, strlen(cmp_result));
+    free(cmp_result);
 
     if (purc_variant_is_set(dst)) {
         purc_variant_t val = to_variant_set(NULL, tmp_val);
@@ -262,18 +257,19 @@ void compare_result(purc_variant_t dst, purc_variant_t cmp)
         tmp_val = val;
     }
 
-    free(cmp_result);
+#if 0
     cmp_result = variant_to_string(tmp_val);
-
     char* dst_result = variant_to_string(dst);
-
     PRINTF("comp=%s\n", cmp_result);
     PRINTF("dest=%s\n", dst_result);
     ASSERT_STREQ(dst_result, cmp_result);
-
-    // clear
     free(dst_result);
     free(cmp_result);
+#else
+    int diff = pcvariant_diff(dst, tmp_val);
+    ASSERT_EQ(diff, 0);
+#endif
+
     purc_variant_unref(tmp_val);
 }
 
@@ -379,7 +375,9 @@ TEST_P(TestCaseData, container_ops)
     }
     ASSERT_EQ(result, true);
 
-    compare_result(dst, cmp);
+    purc_variant_t cmp_option = purc_variant_object_get_by_ckey(test_case_variant,
+                "cmp_option");
+    compare_result(dst, cmp, cmp_option);
 
     purc_variant_unref(src);
     purc_variant_unref(dst);
@@ -438,7 +436,7 @@ std::vector<test_case> load_test_case()
 
     char path[PATH_MAX+1];
     const char* env = "VARIANT_TEST_CONTAINER_OPS_PATH";
-    getpath_from_env_or_rel(path, sizeof(path), env, "/data/*.json");
+    test_getpath_from_env_or_rel(path, sizeof(path), env, "/data/*.json");
 
     if (!path[0])
         goto end;
