@@ -18,7 +18,7 @@
     </head>
 
     <body>
-        <sort on="$buttons" descendingly against="letters" />
+        <sort on="$buttons" ascendingly against="letters" />
 
         <div id="calculator">
             <div id="c_value">
