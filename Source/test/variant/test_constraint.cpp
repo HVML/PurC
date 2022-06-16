@@ -490,7 +490,7 @@ TEST(constraint, perf)
 
     const char *env = getenv("IS_EQUAL_TO");
 
-    size_t nr = 1024 * 8;
+    size_t nr = 1024 * 8 * 8;
 
     if (!env) {
         for (size_t i=0; i<nr; ++i) {
@@ -507,5 +507,127 @@ TEST(constraint, perf)
 
     PURC_VARIANT_SAFE_CLEAR(v1);
     PURC_VARIANT_SAFE_CLEAR(v2);
+}
+
+TEST(constraint, object)
+{
+    PurCInstance purc;
+
+    const char *s;
+    purc_variant_t set;
+
+    s = "[!, {name:xu},{}]";
+    set = pcejson_parser_parse_string(s, 0, 0);
+    PRINT_VARIANT(set);
+
+    purc_variant_t v = purc_variant_set_get_by_index(set, 1);
+    PRINT_VARIANT(v);
+
+    purc_variant_t name = purc_variant_make_string("xu", false);
+    PRINT_VARIANT(name);
+
+    bool ok;
+    ok = purc_variant_object_set_by_static_ckey(v, "name", name);
+    PC_DEBUGX("ok: %s", ok ? "true" : "false");
+    PRINT_VARIANT(v);
+    PRINT_VARIANT(set);
+
+    PURC_VARIANT_SAFE_CLEAR(name);
+    PURC_VARIANT_SAFE_CLEAR(set);
+}
+
+static void cmp_against(purc_variant_t set, const char *cmp)
+{
+    purc_variant_t to = pcejson_parser_parse_string(cmp, 0, 0);
+    int diff = pcvariant_diff(set, to);
+    if (diff) {
+        PRINT_VARIANT(set);
+        PC_DEBUGX("cmp: %s", cmp);
+        EXPECT_EQ(0, diff);
+    }
+    PURC_VARIANT_SAFE_CLEAR(to);
+}
+
+TEST(constraint, basic)
+{
+    PurCInstance purc;
+
+    const char *s;
+    purc_variant_t set, v, one, a;
+    bool ok;
+
+    if (1) {
+        s = "[!, [a],[]]";
+        set = pcejson_parser_parse_string(s, 0, 0);
+
+        v = purc_variant_set_get_by_index(set, 1);
+
+        a = purc_variant_make_string("a", false);
+
+        purc_variant_array_append(v, a);
+
+        cmp_against(set, s);
+
+        PURC_VARIANT_SAFE_CLEAR(a);
+        PURC_VARIANT_SAFE_CLEAR(set);
+    }
+
+    if (1) {
+        s = "[!, [1],[]]";
+        set = pcejson_parser_parse_string(s, 0, 0);
+
+        v = purc_variant_set_get_by_index(set, 1);
+
+        one = purc_variant_make_longdouble(1);
+
+        purc_variant_array_append(v, one);
+
+        cmp_against(set, s);
+
+        PURC_VARIANT_SAFE_CLEAR(one);
+        PURC_VARIANT_SAFE_CLEAR(set);
+    }
+
+    if (1) {
+        s = "[!, [!, a],[!]]";
+        set = pcejson_parser_parse_string(s, 0, 0);
+
+        v = purc_variant_set_get_by_index(set, 1);
+
+        a = purc_variant_make_string("a", false);
+
+        PRINT_VARIANT(set);
+        PRINT_VARIANT(v);
+        bool overwrite = true;
+        ok = purc_variant_set_add(v, a, overwrite);
+        PC_DEBUGX("ok: %s", ok ? "true" : "false");
+        PRINT_VARIANT(v);
+        PRINT_VARIANT(set);
+
+        cmp_against(set, s);
+
+        PURC_VARIANT_SAFE_CLEAR(a);
+        PURC_VARIANT_SAFE_CLEAR(set);
+    }
+
+    if (1) {
+        // number but different type internally
+        s = "[!, 123L, 123.0]";
+        set = pcejson_parser_parse_string(s, 0, 0);
+
+        PRINT_VARIANT(set);
+
+        const char *against;
+        against = "[!, 123L]";
+        cmp_against(set, against);
+
+        against = "[!, 123]";
+        cmp_against(set, against);
+
+        against = "[!, 123.0]";
+        cmp_against(set, against);
+
+        PURC_VARIANT_SAFE_CLEAR(set);
+    }
 }
 

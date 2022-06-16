@@ -81,6 +81,9 @@ TEST(variant_set, init_with_1_str)
 
 TEST(variant_set, non_object)
 {
+    if (1)
+        return;
+
     purc_instance_extra_info info = {};
     int ret = 0;
     bool cleanup = false;
@@ -937,5 +940,156 @@ TEST(set, undefined)
     }
     purc_variant_unref(set1);
     purc_variant_unref(set2);
+}
+
+#define SAFE_FREE(_p)            do {             \
+    if (_p) {                                     \
+        free(_p);                                 \
+        _p = nullptr;                             \
+    }                                             \
+} while (0)
+
+TEST(variant, stringify)
+{
+    PurCInstance purc;
+
+    const char *s;
+    purc_variant_t v;
+    char *buf = nullptr;
+    ssize_t n;
+
+    do {
+        s = "[!'name', {name:[{first:xiaohong,last:xu}]}, {name:undefined}, {name:[{first:shuming, last:xue}]}, {name:undefined}]";
+        v = pcejson_parser_parse_string(s, 0, 0);
+        if (v == PURC_VARIANT_INVALID) {
+            ADD_FAILURE() << "failed to parse: " << s << std::endl;
+            break;
+        }
+
+        n = purc_variant_stringify_alloc(&buf, v);
+        if (n <= 0) {
+            ADD_FAILURE() << "failed to stringify" << std::endl;
+            break;
+        }
+        PC_DEBUGX("buf: %s", buf);
+    } while (0);
+
+    SAFE_FREE(buf);
+    PURC_VARIANT_SAFE_CLEAR(v);
+
+    do {
+        s = "undefined";
+        v = pcejson_parser_parse_string(s, 0, 0);
+        if (v == PURC_VARIANT_INVALID) {
+            ADD_FAILURE() << "failed to parse: " << s << std::endl;
+            break;
+        }
+
+        n = purc_variant_stringify_alloc(&buf, v);
+        if (n <= 0) {
+            ADD_FAILURE() << "failed to stringify" << std::endl;
+            break;
+        }
+        PC_DEBUGX("buf: %s", buf);
+    } while (0);
+
+    SAFE_FREE(buf);
+    PURC_VARIANT_SAFE_CLEAR(v);
+
+    do {
+        s = "'undefined'";
+        v = pcejson_parser_parse_string(s, 0, 0);
+        if (v == PURC_VARIANT_INVALID) {
+            ADD_FAILURE() << "failed to parse: " << s << std::endl;
+            break;
+        }
+
+        n = purc_variant_stringify_alloc(&buf, v);
+        if (n <= 0) {
+            ADD_FAILURE() << "failed to stringify" << std::endl;
+            break;
+        }
+        PC_DEBUGX("buf: %s", buf);
+    } while (0);
+
+    SAFE_FREE(buf);
+    PURC_VARIANT_SAFE_CLEAR(v);
+}
+
+TEST(variant, set)
+{
+    PurCInstance purc;
+
+    struct record {
+        const char *set;
+        const char *arr;
+    } records[] = {
+        { // number
+            "[!, 1]",
+            "[1]",
+        },
+        { // undefined
+            "[!, undefined]",
+            "[]",
+        },
+        { // non-object, object
+            "[!, undefined,true,false,null,1,'a',{},[],[!]]",
+            "[undefined,true,false,null,1,'a',{},[],[!]]",
+        },
+        { // duplicates removed
+            "[!, undefined,true,false,null,1,'a',{},[],[!],undefined,true,false,null,1,'a',{},[],[!]]",
+            "[[],undefined,true,false,null,1,'a',{},[!]]",
+        },
+        {
+            "[! hello, world, foo, bar]",
+            "[bar]",
+        },
+        {
+            "[!, 1.0, 1]",
+            "[1]",
+        },
+        {
+            "[!, 1, 1.0]",
+            "[1]",
+        },
+        {
+            "[!, 1, 1.0]",
+            "[1.0]",
+        },
+        { // duplicates removed
+            "[!, undefined,true,false,null,1,'a',{},[],[!],undefined,true,false,null,1,'a',{},[],[!]]",
+            "[[],true,false,null,1,'a',{},[!]]",
+        },
+    };
+
+    for (size_t i=0; i<PCA_TABLESIZE(records); ++i) {
+        purc_variant_t set, arr;
+        set = pcejson_parser_parse_string(records[i].set, 0, 0);
+        arr = pcejson_parser_parse_string(records[i].arr, 0, 0);
+
+        purc_variant_t tmp;
+        tmp = pcejson_parser_parse_string("[!]", 0, 0);
+
+        purc_variant_t v;
+        size_t idx;
+        foreach_value_in_variant_array(arr, v, idx) {
+            (void)idx;
+            bool overwrite = true;
+            purc_variant_set_add(tmp, v, overwrite);
+        }
+        end_foreach;
+
+        int diff = pcvariant_diff(set, tmp);
+        if (diff) {
+            PRINT_VARIANT(set);
+            PRINT_VARIANT(arr);
+            PRINT_VARIANT(tmp);
+        }
+        EXPECT_EQ(diff, 0);
+
+        PURC_VARIANT_SAFE_CLEAR(tmp);
+        PURC_VARIANT_SAFE_CLEAR(arr);
+        PURC_VARIANT_SAFE_CLEAR(set);
+    }
 }
 
