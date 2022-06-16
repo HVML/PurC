@@ -226,6 +226,36 @@ purc_variant_t build_test_src(purc_variant_t test_case_variant)
     return src;
 }
 
+purc_variant_t build_test_cmp(purc_variant_t test_case_variant)
+{
+    const char* cmp_unique_key = NULL;
+    purc_variant_t cmp_unique_key_var = purc_variant_object_get_by_ckey(
+            test_case_variant, "cmp_unique_key");
+    if (cmp_unique_key_var != PURC_VARIANT_INVALID) {
+        cmp_unique_key = purc_variant_get_string_const(cmp_unique_key_var);
+    }
+
+    const char* cmp_type = "array";
+    purc_variant_t cmp_type_var = purc_variant_object_get_by_ckey(
+            test_case_variant, "cmp_type");
+    if (cmp_type_var != PURC_VARIANT_INVALID) {
+        cmp_type = purc_variant_get_string_const(cmp_type_var);
+    }
+
+    purc_variant_t cmp = purc_variant_object_get_by_ckey(test_case_variant,
+                "cmp");
+    if (cmp == PURC_VARIANT_INVALID) {
+        return PURC_VARIANT_INVALID;
+    }
+
+    enum purc_variant_type type = to_variant_type(cmp_type);
+    if (type == PURC_VARIANT_TYPE_SET) {
+        return to_variant_set(cmp_unique_key, cmp);
+    }
+    purc_variant_ref(cmp);
+    return cmp;
+}
+
 static inline int
 cmp(purc_variant_t l, purc_variant_t r, void *ud)
 {
@@ -240,37 +270,32 @@ cmp(purc_variant_t l, purc_variant_t r, void *ud)
     return 1;
 }
 
-void compare_result(purc_variant_t dst, purc_variant_t cmp,
-        purc_variant_t cmp_option)
+void compare_result(purc_variant_t dst, purc_variant_t cmp)
 {
-    UNUSED_PARAM(cmp_option);
-    char* cmp_result = variant_to_string(cmp);
-    PRINTF("orig=%s\n", cmp_result);
-
-    purc_variant_t tmp_val = purc_variant_make_from_json_string(
-            cmp_result, strlen(cmp_result));
-    free(cmp_result);
-
-    if (purc_variant_is_set(dst)) {
-        purc_variant_t val = to_variant_set(NULL, tmp_val);
-        purc_variant_unref(tmp_val);
-        tmp_val = val;
-    }
-
-#if 0
-    cmp_result = variant_to_string(tmp_val);
     char* dst_result = variant_to_string(dst);
-    PRINTF("comp=%s\n", cmp_result);
-    PRINTF("dest=%s\n", dst_result);
-    ASSERT_STREQ(dst_result, cmp_result);
-    free(dst_result);
+    char* cmp_result = variant_to_string(cmp);
+    PRINTF("dst=%s\n", dst_result);
+    PRINTF("cmp=%s\n", cmp_result);
+    PRINTF("orig=%s\n", cmp_result);
     free(cmp_result);
-#else
-    int diff = pcvariant_diff(dst, tmp_val);
-    ASSERT_EQ(diff, 0);
-#endif
+    free(dst_result);
 
-    purc_variant_unref(tmp_val);
+    PRINT_VARIANT(dst);
+    PRINT_VARIANT(cmp);
+    if (dst->type == PVT(_ARRAY) && cmp->type == PVT(_SET)) {
+        const char* unique_key = NULL;
+        purc_variant_t v = to_variant_set(unique_key, dst);
+        ASSERT_NE(v, nullptr);
+        dst = v;
+    }
+    else {
+        dst = purc_variant_ref(dst);
+    }
+    cmp = purc_variant_ref(cmp);
+    int diff = pcvariant_diff(dst, cmp);
+    PURC_VARIANT_SAFE_CLEAR(dst);
+    PURC_VARIANT_SAFE_CLEAR(cmp);
+    ASSERT_EQ(diff, 0);
 }
 
 TEST_P(TestCaseData, container_ops)
@@ -295,8 +320,10 @@ TEST_P(TestCaseData, container_ops)
     purc_variant_t src = build_test_src(test_case_variant);
     ASSERT_NE(src, PURC_VARIANT_INVALID);
 
-    purc_variant_t cmp = purc_variant_object_get_by_ckey(test_case_variant,
-                "cmp");
+    // purc_variant_t cmp = purc_variant_object_get_by_ckey(test_case_variant,
+    //             "cmp");
+    // ASSERT_NE(cmp, PURC_VARIANT_INVALID);
+    purc_variant_t cmp = build_test_cmp(test_case_variant);
     ASSERT_NE(cmp, PURC_VARIANT_INVALID);
 
     //  do container ops
@@ -375,12 +402,11 @@ TEST_P(TestCaseData, container_ops)
     }
     ASSERT_EQ(result, true);
 
-    purc_variant_t cmp_option = purc_variant_object_get_by_ckey(test_case_variant,
-                "cmp_option");
-    compare_result(dst, cmp, cmp_option);
+    compare_result(dst, cmp);
 
     purc_variant_unref(src);
     purc_variant_unref(dst);
+    purc_variant_unref(cmp);
     purc_variant_unref(test_case_variant);
 }
 

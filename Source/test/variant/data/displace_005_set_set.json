@@ -27,6 +27,8 @@
             "id":3,"name":"3_name"
         }
     ],
+    "cmp_type" : "set",
+    "cmp_unique_key" : null,
     "cmp" :
     [
         {
