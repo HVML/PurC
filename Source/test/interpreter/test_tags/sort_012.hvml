@@ -1,0 +1,40 @@
+<!DOCTYPE hvml>
+<hvml target="html" lang="en">
+    <head>
+        <init as="users" uniquely against="id">
+        [
+            { "id": 3, "avatar": "/img/avatars/3.png", "name": "David", "region": "en_US" },
+            { "id": 1, "avatar": "/img/avatars/1.png", "name": "Tom", "region": "en_US" },
+            { "id": 2, "avatar": "/img/avatars/2.png", "name": "Jerry", "region": "zh_CN" },
+            { "id": 4, "avatar": "/img/avatars/4.png", "name": "David 4", "region": "en_US" },
+            { "id": 5, "avatar": "/img/avatars/5.png", "name": "David 5", "region": "en_US" },
+        ]
+        </init>
+
+    </head>
+
+    <body>
+        <sort on="$users" asc/>
+
+        <div id="calculator">
+            <div>
+                $users[0].id
+            </div>
+            <div>
+                $users[1].id
+            </div>
+            <div>
+                $users[2].id
+            </div>
+            <div>
+                $users[3].id
+            </div>
+            <div>
+                $users[4].id
+            </div>
+        </div>
+    </body>
+
+</hvml>
+
+
