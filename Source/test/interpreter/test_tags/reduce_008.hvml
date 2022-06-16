@@ -1,0 +1,33 @@
+<!DOCTYPE hvml>
+<hvml target="html" lang="en">
+    <head>
+        <init as="regionStats">
+            [ 100, 95, 80, 30, 55, 20 ]
+        </init>
+
+
+    </head>
+
+    <body>
+        <div>
+            <div id="c_value">
+                <archetype name="regionList">
+                    <div>count: $?.count</div>
+                    <div>sum: $?.sum</div>
+                    <div>avg: $?.avg</div>
+                    <div>max: $?.max</div>
+                    <div>min: $?.min</div>
+                </archetype>
+
+                <ul>
+                    <reduce on=$regionStats by="FILTER: GE 80">
+                        <update on="$@" to="append" with="$regionList" />
+                    </reduce>
+                </ul>
+            </div>
+        </div>
+    </body>
+
+</hvml>
+
+
