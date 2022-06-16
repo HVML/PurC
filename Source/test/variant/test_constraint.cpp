@@ -736,5 +736,22 @@ TEST(constraint, object_order)
         }
         PURC_VARIANT_SAFE_CLEAR(v0);
     }
+
+    if (1) {
+        struct record {
+            const char *s;
+        } records[] = {
+            "[!,{name:[{first:xiaohong,last:xu},[]], extra:foo},{name:[{first:shuming,last:xue},[]], extra:bar}]",
+            "[!,{extra:foo, name:[{first:xiaohong,last:xu},[]]},{extra:bar, name:[{first:shuming,last:xue},[]]}]",
+            "[!,{extra:bar,name:[{first:shuming,last:xue},[]]},{extra:foo,name:[{first:xiaohong,last:xu},[]]}]",
+            "[!,{name:[{first:xiaohong,last:xu},[]], extra:foo},{name:[{first:shuming,last:xue},[]], extra:bar}]",
+        };
+
+        purc_variant_t v0 = pcejson_parser_parse_string(records[0].s, 0, 0);
+        for (size_t i=1; i<PCA_TABLESIZE(records); ++i) {
+            ASSERT_EQ(0, var_diff(v0, records[i].s));
+        }
+        PURC_VARIANT_SAFE_CLEAR(v0);
+    }
 }
 
