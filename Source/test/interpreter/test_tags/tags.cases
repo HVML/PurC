@@ -50,6 +50,7 @@ erase_011
 test_001
 differ_001
 
+# sort
 sort_001
 sort_002
 sort_003
@@ -75,3 +76,7 @@ sort_022
 sort_023
 sort_024
 sort_025
+
+# reduce
+reduce_001
+reduce_002

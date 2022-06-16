@@ -351,6 +351,10 @@ exe_div_reduce(purc_exec_inst_t inst, const char* rule)
         }
     }
 
+    if (count > 0) {
+        avg = sum / count;
+    }
+
     purc_variant_t obj = purc_variant_make_object(0,
             PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
 

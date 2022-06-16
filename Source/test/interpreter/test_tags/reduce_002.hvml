@@ -1,0 +1,29 @@
+<!DOCTYPE hvml>
+<hvml target="html" lang="en">
+    <head>
+        <init as="regionStats">
+            { "zh_CN" : 100, "zh_TW" : 90, "zh_HK": 90, "zh_SG": 90, "zh_MO": 80, "en_US": 70, "en_UK": 80 }
+        </init>
+
+
+    </head>
+
+    <body>
+        <div>
+            <div id="c_value">
+                <archetype name="regionList">
+                    <div>$?</div>
+                </archetype>
+
+                <ul>
+                    <reduce on=$regionStats by="KEY: AS 'zh_PP'">
+                        <update on="$@" to="append" with="$regionList" />
+                    </reduce>
+                </ul>
+            </div>
+        </div>
+    </body>
+
+</hvml>
+
+
