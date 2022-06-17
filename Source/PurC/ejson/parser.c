@@ -1245,7 +1245,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_BEFORE_NAME)
     if (character == '$') {
         RECONSUME_IN(TKZ_STATE_EJSON_CONTROL);
     }
-    if (is_ascii_alpha(character)) {
+    if (is_ascii_alpha(character) || character == '_') {
         RESET_TEMP_BUFFER();
         if (uc == '{') {
             ejson_stack_push(':');
