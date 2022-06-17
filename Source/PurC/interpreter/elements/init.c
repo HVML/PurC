@@ -472,9 +472,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 
     purc_variant_t src = frame->ctnt_var;
 
-    if (ctxt->against != PURC_VARIANT_INVALID) {
-        PC_ASSERT(purc_variant_is_string(ctxt->against));
-
+    if (ctxt->uniquely) {
         purc_variant_t set;
         set = purc_variant_make_set(0, ctxt->against, PURC_VARIANT_INVALID);
         if (set == PURC_VARIANT_INVALID)
