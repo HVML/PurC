@@ -127,30 +127,32 @@ done:
 
 static int my_send_message (pcrdr_conn* conn, pcrdr_msg *msg)
 {
+    int retv = -1;
     purc_rwstream_t buffer = NULL;
+
     buffer = purc_rwstream_new_buffer (PCRDR_MIN_PACKET_BUFF_SIZE,
             PCRDR_MAX_INMEM_PAYLOAD_SIZE);
 
     if (pcrdr_serialize_message (msg,
                 (pcrdr_cb_write)purc_rwstream_write, buffer) < 0) {
-        goto failed;
+        goto done;
     }
 
     size_t packet_len;
     const char * packet = purc_rwstream_get_mem_buffer (buffer, &packet_len);
 
     if (pcrdr_purcmc_send_text_packet (conn, packet, packet_len) < 0) {
-        goto failed;
+        goto done;
     }
 
-    return 0;
+    retv = 0;
 
-failed:
+done:
     if (buffer) {
         purc_rwstream_destroy(buffer);
     }
 
-    return -1;
+    return retv;
 }
 
 static int my_ping_peer (pcrdr_conn* conn)
