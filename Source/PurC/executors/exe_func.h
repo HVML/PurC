@@ -1,8 +1,8 @@
 /*
- * @file exe_external.h
+ * @file exe_func.h
  * @author Xu Xiaohong
  * @date 2022/06/16
- * @brief The implementation of public part for EXTERNAL executor.
+ * @brief The implementation of public part for FUNC executor.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -23,8 +23,8 @@
  */
 
 
-#ifndef PURC_EXECUTOR_EXTERNAL_H
-#define PURC_EXECUTOR_EXTERNAL_H
+#ifndef PURC_EXECUTOR_FUNC_H
+#define PURC_EXECUTOR_FUNC_H
 
 #include "config.h"
 
@@ -34,36 +34,30 @@
 
 #include "pcexe-helper.h"
 
-enum external_rule_type {
-    EXTERNAL_RULE_FUNC,
-    EXTERNAL_RULE_CLASS,
-};
-
-struct external_rule
+struct func_rule
 {
-    enum external_rule_type             type;
     char                               *name;
     char                               *module_name;
 };
 
-struct exe_external_param {
+struct exe_func_param {
     char *err_msg;
     int debug_flex;
     int debug_bison;
 
-    struct external_rule   rule;
-    unsigned int           rule_valid:1;
+    struct func_rule   rule;
+    unsigned int       rule_valid:1;
 };
 
 PCA_EXTERN_C_BEGIN
 
-int pcexec_exe_external_register(void);
+int pcexec_exe_func_register(void);
 
-int exe_external_parse(const char *input, size_t len,
-        struct exe_external_param *param);
+int exe_func_parse(const char *input, size_t len,
+        struct exe_func_param *param);
 
 static inline void
-external_rule_release(struct external_rule *rule)
+func_rule_release(struct func_rule *rule)
 {
     if (rule->name) {
         free(rule->name);
@@ -76,7 +70,7 @@ external_rule_release(struct external_rule *rule)
 }
 
 static inline void
-exe_external_param_reset(struct exe_external_param *param)
+exe_func_param_reset(struct exe_func_param *param)
 {
     if (!param)
         return;
@@ -86,10 +80,10 @@ exe_external_param_reset(struct exe_external_param *param)
         param->err_msg = NULL;
     }
 
-    external_rule_release(&param->rule);
+    func_rule_release(&param->rule);
 }
 
 PCA_EXTERN_C_END
 
-#endif // PURC_EXECUTOR_EXTERNAL_H
+#endif // PURC_EXECUTOR_FUNC_H
 

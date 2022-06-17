@@ -1,8 +1,8 @@
 /*
- * @file exe_external_tab.c
+ * @file exe_func_tab.c
  * @author Xu Xiaohong
  * @date 2022/06/16
- * @brief The implementation of public part for EXTERNAL parser.
+ * @brief The implementation of public part for FUNC parser.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -30,14 +30,14 @@
 #include "purc-errors.h"
 
 #include "../pcexe-helper.h"
-#include "../exe_external.h"
+#include "../exe_func.h"
 #include "../tab.h"
 
-#include "exe_external.tab.h"
-#include "exe_external.lex.c"
+#include "exe_func.tab.h"
+#include "exe_func.lex.c"
 
-#include "exe_external.lex.h"
+#include "exe_func.lex.h"
 #undef yylloc
 #undef yylval
-#include "exe_external.tab.c"
+#include "exe_func.tab.c"
 

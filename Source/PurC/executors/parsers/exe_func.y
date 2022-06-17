@@ -1,9 +1,9 @@
 %code top {
 /*
- * @file exe_external.y
+ * @file exe_func.y
  * @author
  * @date
- * @brief The implementation of public part for external.
+ * @brief The implementation of public part for func.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -26,17 +26,17 @@
 }
 
 %code top {
-    // here to include header files required for generated exe_external.tab.c
+    // here to include header files required for generated exe_func.tab.c
 }
 
 %code requires {
-    struct exe_external_token {
+    struct exe_func_token {
         const char      *text;
         size_t           leng;
     };
 
-    #define YYSTYPE       EXE_EXTERNAL_YYSTYPE
-    #define YYLTYPE       EXE_EXTERNAL_YYLTYPE
+    #define YYSTYPE       EXE_FUNC_YYSTYPE
+    #define YYLTYPE       EXE_FUNC_YYLTYPE
     #ifndef YY_TYPEDEF_YY_SCANNER_T
     #define YY_TYPEDEF_YY_SCANNER_T
     typedef void* yyscan_t;
@@ -52,7 +52,7 @@
     static void yyerror(
         YYLTYPE *yylloc,                   // match %define locations
         yyscan_t arg,                      // match %param
-        struct exe_external_param *param,           // match %parse-param
+        struct exe_func_param *param,      // match %parse-param
         const char *errsg
     );
 
@@ -60,24 +60,23 @@
         if (param) {                                        \
             param->rule = _rule;                            \
         } else {                                            \
-            external_rule_release(&_rule);                  \
+            func_rule_release(&_rule);                      \
         }                                                   \
     } while (0)
 
-    #define SET_NAME(_r, _t, _name) do {                         \
-        _r.type = _t;                                            \
+    #define SET_NAME(_r, _name) do {                             \
         _r.name = strndup(_name.text, _name.leng);               \
         if (!_r.name) {                                          \
-            external_rule_release(&_r);                          \
+            func_rule_release(&_r);                              \
             YYABORT;                                             \
         }                                                        \
     } while (0)
 
-    #define SET_NAMES(_r, _t, _name, _module) do {               \
-        SET_NAME(_r, _t, _name);                                 \
+    #define SET_NAMES(_r, _name, _module) do {                   \
+        SET_NAME(_r, _name);                                     \
         _r.module_name = strndup(_module.text, _module.leng);    \
         if (!_r.module_name) {                                   \
-            external_rule_release(&_r);                          \
+            func_rule_release(&_r);                              \
             YYABORT;                                             \
         }                                                        \
     } while (0)
@@ -86,7 +85,7 @@
 /* Bison declarations. */
 %require "3.0.4"
 %define api.pure full
-%define api.token.prefix {TOK_EXE_EXTERNAL_}
+%define api.token.prefix {TOK_EXE_FUNC_}
 %define locations
 %define parse.error verbose
 %define parse.lac full
@@ -95,19 +94,19 @@
 %verbose
 
 %param { yyscan_t arg }
-%parse-param { struct exe_external_param *param }
+%parse-param { struct exe_func_param *param }
 
 // union members
-%union { struct exe_external_token token; }
+%union { struct exe_func_token token; }
 %union { char *str; }
-%union { struct external_rule rule; }
+%union { struct func_rule rule; }
 
-%destructor { external_rule_release(&$$); } <rule>
+%destructor { func_rule_release(&$$); } <rule>
 
 %token FUNC CLASS
 %token <token> NAME
 
-%nterm <rule>  external_rule;
+%nterm <rule>  func_rule;
 
 
 
@@ -117,14 +116,12 @@
 %% /* The grammar follows. */
 
 input:
-  external_rule  { SET_RULE($1); }
+  func_rule  { SET_RULE($1); }
 ;
 
-external_rule:
-  FUNC  ':' NAME          { SET_NAME($$, EXTERNAL_RULE_FUNC, $3); }
-| FUNC  ':' NAME '@' NAME { SET_NAMES($$, EXTERNAL_RULE_FUNC, $3, $5); }
-| CLASS ':' NAME          { SET_NAME($$, EXTERNAL_RULE_CLASS, $3); }
-| CLASS ':' NAME '@' NAME { SET_NAMES($$, EXTERNAL_RULE_CLASS, $3, $5); }
+func_rule:
+  FUNC  ':' NAME          { SET_NAME($$, $3); }
+| FUNC  ':' NAME '@' NAME { SET_NAMES($$, $3, $5); }
 ;
 
 %%
@@ -134,7 +131,7 @@ static void
 yyerror(
     YYLTYPE *yylloc,                   // match %define locations
     yyscan_t arg,                      // match %param
-    struct exe_external_param *param,           // match %parse-param
+    struct exe_func_param *param,      // match %parse-param
     const char *errsg
 )
 {
@@ -151,8 +148,8 @@ yyerror(
     (void)r;
 }
 
-int exe_external_parse(const char *input, size_t len,
-        struct exe_external_param *param)
+int exe_func_parse(const char *input, size_t len,
+        struct exe_func_param *param)
 {
     yyscan_t arg = {0};
     yylex_init(&arg);

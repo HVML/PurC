@@ -1,9 +1,9 @@
 %{
 /*
- * @file exe_external.l
+ * @file exe_func.l
  * @author
  * @date
- * @brief The implementation of public part for exe_external.
+ * @brief The implementation of public part for exe_func.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -27,7 +27,7 @@
 
 
 %{
-#define MKT(x)    TOK_EXE_EXTERNAL_##x
+#define MKT(x)    TOK_EXE_FUNC_##x
 
 #define PUSH(state)      yy_push_state(state, yyscanner)
 #define POP()            yy_pop_state(yyscanner)
@@ -93,7 +93,6 @@ NAME     [_[:alnum]][[:alnum:]]*
           yyterminate(); }
 
 FUNC/[ \t]*:    { R(); C(); return MKT(FUNC); }
-CLASS/[ \t]*:   { R(); C(); return MKT(CLASS); }
 {NAME}/@{NAME}  { R(); SET_STR(); C(); return MKT(NAME); }
 {NAME}          { R(); SET_STR(); C(); return MKT(NAME); }
 {SP}            { R(); C(); } /* eat */
