@@ -60,7 +60,19 @@
         if (param) {                                        \
             param->rule = _rule;                            \
         } else {                                            \
-            external_rule_release(&_rule);                       \
+            external_rule_release(&_rule);                  \
+        }                                                   \
+    } while (0)
+
+    #define PARSE(_r, _t, _f) do {                          \
+        _r.type = _t;                                       \
+        const char *p = strchr(_f.text, '@');               \
+        PC_ASSERT(p);                                       \
+        _r.name = strndup(_f.text, p - _f.text);            \
+        _r.module_name = strdup(p + 1);                     \
+        if (!_r.name || !_r.module_name) {                  \
+            external_rule_release(&_r);                     \
+            YYABORT;                                        \
         }                                                   \
     } while (0)
 }
@@ -82,30 +94,13 @@
 // union members
 %union { struct exe_external_token token; }
 %union { char *str; }
-%union { char c; }
-%union { double nexp; }
-%union { struct number_comparing_condition ncc; }
-%union { struct number_comparing_logical_expression *ncle; }
 %union { struct external_rule rule; }
 
-%destructor { number_comparing_logical_expression_destroy($$); } <ncle>
 %destructor { external_rule_release(&$$); } <rule>
 
-%token EXTERNAL BY
-%token LT GT LE GE NE EQ NOT
-%token <token> INTEGER NUMBER
+%token FUNC CLASS
+%token <token> FULLNAME
 
-%left '-' '+'
-%left '*' '/'
-%precedence UMINUS
-
-%left AND OR XOR
-%precedence NEG
-
-
-%nterm <nexp>  exp
-%nterm <ncc>   number_comparing_condition
-%nterm <ncle>  number_comparing_logical_expression
 %nterm <rule>  external_rule;
 
 
@@ -120,36 +115,8 @@ input:
 ;
 
 external_rule:
-  EXTERNAL ':' number_comparing_logical_expression BY exp     { $$.ncle = $3; $$.nexp = $5; }
-;
-
-number_comparing_logical_expression:
-  number_comparing_condition   { NCLE_INIT($$, $1); }
-| number_comparing_logical_expression AND number_comparing_logical_expression { NCLE_AND($$, $1, $3); }
-| number_comparing_logical_expression OR number_comparing_logical_expression  { NCLE_OR($$, $1, $3); }
-| number_comparing_logical_expression XOR number_comparing_logical_expression { NCLE_XOR($$, $1, $3); }
-| NOT number_comparing_logical_expression %prec NEG  { NCLE_NOT($$, $2); }
-| '(' number_comparing_logical_expression ')'   { $$ = $2; }
-;
-
-number_comparing_condition:
-  LT exp           { $$.op_type = NUMBER_COMPARING_LT; $$.nexp = $2; }
-| GT exp           { $$.op_type = NUMBER_COMPARING_GT; $$.nexp = $2; }
-| LE exp           { $$.op_type = NUMBER_COMPARING_LE; $$.nexp = $2; }
-| GE exp           { $$.op_type = NUMBER_COMPARING_GE; $$.nexp = $2; }
-| NE exp           { $$.op_type = NUMBER_COMPARING_NE; $$.nexp = $2; }
-| EQ exp           { $$.op_type = NUMBER_COMPARING_EQ; $$.nexp = $2; }
-;
-
-exp:
-  INTEGER               { NUMERIC_EXP_INIT_I64($$, $1); }
-| NUMBER                { NUMERIC_EXP_INIT_LD($$, $1); }
-| exp '+' exp           { NUMERIC_EXP_ADD($$, $1, $3); }
-| exp '-' exp           { NUMERIC_EXP_SUB($$, $1, $3); }
-| exp '*' exp           { NUMERIC_EXP_MUL($$, $1, $3); }
-| exp '/' exp           { NUMERIC_EXP_DIV($$, $1, $3); }
-| '-' exp %prec UMINUS  { NUMERIC_EXP_UMINUS($$, $2); }
-| '(' exp ')'           { $$ = $2; }
+  FUNC  ':' FULLNAME { PARSE($$, EXTERNAL_RULE_TYPE_FUNC, $3); }
+| CLASS ':' FULLNAME { PARSE($$, EXTERNAL_RULE_TYPE_FUNC, $3); }
 ;
 
 %%

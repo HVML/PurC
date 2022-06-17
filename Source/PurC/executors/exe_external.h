@@ -34,10 +34,16 @@
 
 #include "pcexe-helper.h"
 
+enum external_rule_type {
+    EXTERNAL_RULE_TYPE_FUNC,
+    EXTERNAL_RULE_TYPE_CLASS,
+};
+
 struct external_rule
 {
-    struct number_comparing_logical_expression *ncle;
-    double                                      nexp;
+    enum external_rule_type             type;
+    char                               *name;
+    char                               *module_name;
 };
 
 struct exe_external_param {
@@ -59,9 +65,13 @@ int exe_external_parse(const char *input, size_t len,
 static inline void
 external_rule_release(struct external_rule *rule)
 {
-    if (rule->ncle) {
-        number_comparing_logical_expression_destroy(rule->ncle);
-        rule->ncle = NULL;
+    if (rule->name) {
+        free(rule->name);
+        rule->name = NULL;
+    }
+    if (rule->module_name) {
+        free(rule->module_name);
+        rule->module_name = NULL;
     }
 }
 

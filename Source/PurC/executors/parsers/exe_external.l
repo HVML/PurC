@@ -84,8 +84,7 @@ do {                                              \
 
 SP       [ \t]
 LN       [\r\n]|[\f\r\n]
-INTEGER  [0-9]+
-NUMBER   ([.][0-9]+(e[-+][0-9]+)?)|([0-9]+[.][0-9]*(e[-+][0-9]+)?)
+NAME     [_[:alnum]][[:alnum:]]*
 
 %%
 
@@ -93,36 +92,12 @@ NUMBER   ([.][0-9]+(e[-+][0-9]+)?)|([0-9]+[.][0-9]*(e[-+][0-9]+)?)
           if (state != INITIAL) return -1;
           yyterminate(); }
 
-EXTERNAL/[ \t]*:    { R(); C(); return MKT(EXTERNAL); }
-BY        { R(); PUSH(KW); C(); return MKT(BY); }
-LT        { R(); PUSH(KW); C(); return MKT(LT); }
-GT        { R(); PUSH(KW); C(); return MKT(GT); }
-LE        { R(); PUSH(KW); C(); return MKT(LE); }
-GE        { R(); PUSH(KW); C(); return MKT(GE); }
-NE        { R(); PUSH(KW); C(); return MKT(NE); }
-EQ        { R(); PUSH(KW); C(); return MKT(EQ); }
-AND       { R(); PUSH(KW); C(); return MKT(AND); }
-OR        { R(); PUSH(KW); C(); return MKT(OR); }
-XOR       { R(); PUSH(KW); C(); return MKT(XOR); }
-NOT       { R(); PUSH(KW); C(); return MKT(NOT); }
-{INTEGER} { R(); PUSH(AFTER_NUM); SET_STR(); C(); return MKT(INTEGER); }
-{NUMBER}  { R(); PUSH(AFTER_NUM); SET_STR(); C(); return MKT(NUMBER); }
-{SP}      { R(); C(); } /* eat */
-{LN}      { R(); L(); } /* eat */
-.         { R(); C(); return *yytext; } /* let bison to handle */
-
-<KW>{
-{SP}      { R(); POP(); C(); } /* eat */
-{LN}      { R(); POP(); L(); } /* eat */
-.         { R(); C(); return *yytext; } /* let bison to handle */
-}
-
-<AFTER_NUM>{
-[-+*/)]   { R(); POP(); C(); yyless(0); }
-{SP}      { R(); POP(); C(); } /* eat */
-{LN}      { R(); POP(); L(); } /* eat */
-.         { R(); C(); return *yytext; } /* let bison to handle */
-}
+FUNC/[ \t]*:  { R(); C(); return MKT(FUNC); }
+CLASS/[ \t]*: { R(); C(); return MKT(CLASS); }
+{NAME}@{NAME} { R(); SET_STR(); C(); return MKT(FULLNAME); }
+{SP}          { R(); C(); } /* eat */
+{LN}          { R(); L(); } /* eat */
+.             { R(); C(); return *yytext; } /* let bison to handle */
 
 %%
 
