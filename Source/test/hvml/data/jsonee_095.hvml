@@ -1,0 +1,9 @@
+<hvml>
+    <init as="button">
+        {
+            name: "xyz",
+            value: 123,
+            _inner: "inner data"
+        }
+    </init>
+</hvml>

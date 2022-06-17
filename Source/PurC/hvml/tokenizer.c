@@ -2444,15 +2444,12 @@ BEGIN_STATE(TKZ_STATE_EJSON_DOLLAR)
     if (character == '$') {
         if (pchvml_parser_is_in_raw_template(parser)) {
             uint32_t uc = ejson_stack_top();
-            fprintf(stderr, "#############################a\n");
             if (uc == '"' || uc == 'U') {
-            fprintf(stderr, "#############################b\n");
                 RESET_TEMP_BUFFER();
                 APPEND_TO_TEMP_BUFFER(character);
                 ADVANCE_TO(TKZ_STATE_EJSON_JSONEE_STRING);
             }
             else {
-            fprintf(stderr, "#############################c\n");
                 if (parser->vcm_node) {
                     vcm_stack_push(parser->vcm_node);
                 }
@@ -2998,7 +2995,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_BEFORE_NAME)
     if (character == '$') {
         RECONSUME_IN(TKZ_STATE_EJSON_CONTROL);
     }
-    if (is_ascii_alpha(character)) {
+    if (is_ascii_alpha(character) || character == '_') {
         RESET_TEMP_BUFFER();
         if (uc == '{') {
             ejson_stack_push(':');
