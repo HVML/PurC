@@ -35,8 +35,8 @@
 #include "pcexe-helper.h"
 
 enum external_rule_type {
-    EXTERNAL_RULE_TYPE_FUNC,
-    EXTERNAL_RULE_TYPE_CLASS,
+    EXTERNAL_RULE_FUNC,
+    EXTERNAL_RULE_CLASS,
 };
 
 struct external_rule

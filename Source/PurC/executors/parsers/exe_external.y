@@ -64,16 +64,22 @@
         }                                                   \
     } while (0)
 
-    #define PARSE(_r, _t, _f) do {                          \
-        _r.type = _t;                                       \
-        const char *p = strchr(_f.text, '@');               \
-        PC_ASSERT(p);                                       \
-        _r.name = strndup(_f.text, p - _f.text);            \
-        _r.module_name = strdup(p + 1);                     \
-        if (!_r.name || !_r.module_name) {                  \
-            external_rule_release(&_r);                     \
-            YYABORT;                                        \
-        }                                                   \
+    #define SET_NAME(_r, _t, _name) do {                         \
+        _r.type = _t;                                            \
+        _r.name = strndup(_name.text, _name.leng);               \
+        if (!_r.name) {                                          \
+            external_rule_release(&_r);                          \
+            YYABORT;                                             \
+        }                                                        \
+    } while (0)
+
+    #define SET_NAMES(_r, _t, _name, _module) do {               \
+        SET_NAME(_r, _t, _name);                                 \
+        _r.module_name = strndup(_module.text, _module.leng);    \
+        if (!_r.module_name) {                                   \
+            external_rule_release(&_r);                          \
+            YYABORT;                                             \
+        }                                                        \
     } while (0)
 }
 
@@ -99,7 +105,7 @@
 %destructor { external_rule_release(&$$); } <rule>
 
 %token FUNC CLASS
-%token <token> FULLNAME
+%token <token> NAME
 
 %nterm <rule>  external_rule;
 
@@ -115,8 +121,10 @@ input:
 ;
 
 external_rule:
-  FUNC  ':' FULLNAME { PARSE($$, EXTERNAL_RULE_TYPE_FUNC, $3); }
-| CLASS ':' FULLNAME { PARSE($$, EXTERNAL_RULE_TYPE_FUNC, $3); }
+  FUNC  ':' NAME          { SET_NAME($$, EXTERNAL_RULE_FUNC, $3); }
+| FUNC  ':' NAME '@' NAME { SET_NAMES($$, EXTERNAL_RULE_FUNC, $3, $5); }
+| CLASS ':' NAME          { SET_NAME($$, EXTERNAL_RULE_CLASS, $3); }
+| CLASS ':' NAME '@' NAME { SET_NAMES($$, EXTERNAL_RULE_CLASS, $3, $5); }
 ;
 
 %%
@@ -157,6 +165,7 @@ int exe_external_parse(const char *input, size_t len,
     yy_scan_bytes(input ? input : "", input ? len : 0, arg);
     int ret =yyparse(arg, param);
     yylex_destroy(arg);
+    PC_ASSERT(0);
     return ret ? -1 : 0;
 }
 

@@ -92,12 +92,13 @@ NAME     [_[:alnum]][[:alnum:]]*
           if (state != INITIAL) return -1;
           yyterminate(); }
 
-FUNC/[ \t]*:  { R(); C(); return MKT(FUNC); }
-CLASS/[ \t]*: { R(); C(); return MKT(CLASS); }
-{NAME}@{NAME} { R(); SET_STR(); C(); return MKT(FULLNAME); }
-{SP}          { R(); C(); } /* eat */
-{LN}          { R(); L(); } /* eat */
-.             { R(); C(); return *yytext; } /* let bison to handle */
+FUNC/[ \t]*:    { R(); C(); return MKT(FUNC); }
+CLASS/[ \t]*:   { R(); C(); return MKT(CLASS); }
+{NAME}/@{NAME}  { R(); SET_STR(); C(); return MKT(NAME); }
+{NAME}          { R(); SET_STR(); C(); return MKT(NAME); }
+{SP}            { R(); C(); } /* eat */
+{LN}            { R(); L(); } /* eat */
+.               { R(); C(); return *yytext; } /* let bison to handle */
 
 %%
 
