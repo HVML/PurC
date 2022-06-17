@@ -478,7 +478,11 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         if (set == PURC_VARIANT_INVALID)
             return -1;
 
-        if (!purc_variant_container_displace(set, src, frame->silently)) {
+        bool silently = frame->silently;
+        if (ctxt->against != PURC_VARIANT_INVALID && !silently) {
+            silently = true;
+        }
+        if (!purc_variant_container_displace(set, src, silently)) {
             purc_variant_unref(set);
             return -1;
         }
