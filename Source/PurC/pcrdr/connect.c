@@ -398,7 +398,8 @@ static int dispatch_message(pcrdr_conn *conn, pcrdr_msg *msg)
         break;
     }
 
-    if (msg->__padding1)    /* this message is reserved by upper layer */
+    /* when the message is not reserved by upper layer */
+    if (msg->__padding1 == NULL)
         pcrdr_release_message(msg);
     return retval;
 }
@@ -469,8 +470,11 @@ my_sync_response_handler(pcrdr_conn* conn,
     (void)state;
     (void)request_id;
 
-    if (state == PCRDR_RESPONSE_RESULT)
-        *msg_buff = (pcrdr_msg *)response_msg;
+    if (state == PCRDR_RESPONSE_RESULT) {
+        pcrdr_msg *tmp;
+        *msg_buff = tmp = (pcrdr_msg *)response_msg;
+        tmp->__padding1 = (void *)response_msg;   /* mark as reserved */
+    }
     else
         *msg_buff = MSG_POINTER_INVALID;
 

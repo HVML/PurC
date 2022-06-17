@@ -770,9 +770,10 @@ serialize_message_data(const pcrdr_msg *msg, pcrdr_cb_write fn, void *ctxt)
     char *text_alloc = NULL;
 
     if (msg->dataType == PCRDR_MSG_DATA_TYPE_TEXT) {
-        text = purc_variant_get_string_const(msg->data);
+        text = purc_variant_get_string_const_ex(msg->data, &text_len);
         assert(msg->data != NULL);
-        text_len = strlen(text);
+        if (msg->textLen > 0)   /* override by textLen */
+            text_len = msg->textLen;
     }
     else if (msg->dataType == PCRDR_MSG_DATA_TYPE_JSON) {
         purc_rwstream_t buffer = NULL;
