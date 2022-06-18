@@ -63,13 +63,16 @@ static void cancel_timer(void *ctxt)
 class PurcTimer : public PurCWTF::RunLoop::TimerBase {
     public:
         PurcTimer(bool for_yielded, const char* id, pcintr_timer_fire_func func,
-                RunLoop& runLoop)
+                RunLoop& runLoop, void *attach,
+                pcintr_timer_attach_destroy_func attach_destroy_func)
             : TimerBase(runLoop)
             , m_id(id ? strdup(id) : NULL)
             , m_func(func)
             , m_coroutine(pcintr_get_coroutine())
             , m_fired(0)
             , m_for_yielded(for_yielded)
+            , m_attach(attach)
+            , m_attach_destroy_func(attach_destroy_func)
         {
             if (!m_for_yielded) {
                 m_cancel = {};
@@ -93,6 +96,9 @@ class PurcTimer : public PurCWTF::RunLoop::TimerBase {
         ~PurcTimer()
         {
             PC_ASSERT(m_fired == 0);
+            if (m_attach_destroy_func) {
+                m_attach_destroy_func(m_attach);
+            }
             if (!m_for_yielded) {
                 pcintr_unregister_cancel(&m_cancel);
                 stop();
@@ -172,14 +178,18 @@ class PurcTimer : public PurCWTF::RunLoop::TimerBase {
         struct event_timer_data         m_data;
         struct pcintr_cancel            m_cancel;
         bool                            m_for_yielded;
+        void                            *m_attach;
+        pcintr_timer_attach_destroy_func m_attach_destroy_func;
 };
 
 pcintr_timer_t
-pcintr_timer_create(purc_runloop_t runloop, bool for_yielded, const char* id,
-        pcintr_timer_fire_func func)
+pcintr_timer_create_ex(purc_runloop_t runloop, bool for_yielded, const char* id,
+        pcintr_timer_fire_func func, void *attach,
+        pcintr_timer_attach_destroy_func attach_destroy)
 {
-    RunLoop* loop = runloop ? (RunLoop*)runloop : &RunLoop::current(); 
-    PurcTimer* timer = new PurcTimer(for_yielded, id, func, *loop);
+    RunLoop* loop = runloop ? (RunLoop*)runloop : &RunLoop::current();
+    PurcTimer* timer = new PurcTimer(for_yielded, id, func, *loop,
+            attach, attach_destroy);
     if (!timer) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
