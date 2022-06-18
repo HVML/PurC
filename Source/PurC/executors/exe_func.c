@@ -252,11 +252,7 @@ check_curr(struct pcexec_exe_func_inst *exe_func_inst, const size_t curr)
         return false;
     }
 
-
-    purc_variant_t v = purc_variant_make_number(curr);
-    if (v == PURC_VARIANT_INVALID)
-        return false;
-
+    PURC_VARIANT_SAFE_CLEAR(inst->value);
     inst->value = purc_variant_ref(purc_variant_array_get(results, curr));
     return true;
 }
@@ -285,10 +281,8 @@ fetch_begin(struct pcexec_exe_func_inst *exe_func_inst)
     purc_variant_t results;
     results = exe_func_inst->chooser(input, with);
     PC_ASSERT(results != PURC_VARIANT_INVALID);
-    PC_ASSERT(purc_variant_is_array(results));
-    PC_ASSERT(purc_variant_array_get(results, 0) == input);
-    PC_ASSERT(purc_variant_array_get(results, 1) == with);
-    exe_func_inst->results = results;
+    purc_variant_t array = purc_variant_make_array(1, results);
+    exe_func_inst->results = array;
     PRINT_VARIANT(results);
 
     size_t curr = 0;
