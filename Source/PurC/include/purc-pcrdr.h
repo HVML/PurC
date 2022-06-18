@@ -83,8 +83,8 @@ enum {
 #define PCRDR_OPERATION_UPDATEPLAINWINDOW   "updatePlainWindow"
     PCRDR_K_OPERATION_DESTROYPLAINWINDOW,
 #define PCRDR_OPERATION_DESTROYPLAINWINDOW  "destroyPlainWindow"
-    PCRDR_K_OPERATION_RESETPAGEGROUPS,
-#define PCRDR_OPERATION_RESETPAGEGROUPS     "resetPageGroups"
+    PCRDR_K_OPERATION_SETPAGEGROUPS,
+#define PCRDR_OPERATION_SETPAGEGROUPS       "setPageGroups"
     PCRDR_K_OPERATION_ADDPAGEGROUPS,
 #define PCRDR_OPERATION_ADDPAGEGROUPS       "addPageGroups"
     PCRDR_K_OPERATION_REMOVEPAGEGROUP,
@@ -625,7 +625,10 @@ struct pcrdr_msg
     pcrdr_msg_element_type  elementType;
     pcrdr_msg_data_type     dataType;
     unsigned int            retCode;
-    unsigned int            __data_len;  // internal use only
+    union {
+        unsigned int        __data_len; // internal use only
+        unsigned int        textLen;    // set this only if dataType is TEXT
+    };
 
     uint64_t        targetValue;
     uint64_t        resultValue;

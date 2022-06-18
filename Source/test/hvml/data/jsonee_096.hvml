@@ -1,0 +1,19 @@
+<hvml>
+    <init as="button">
+        {
+            name: "xyz",
+            value: 123,
+            _inner:  {
+                na : 123,
+                ba : 456,
+                _ca : {
+                    _caa : {
+                        _cab : {
+                            value: 999
+                        }
+                    }
+                }
+            }
+        }
+    </init>
+</hvml>
