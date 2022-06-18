@@ -70,12 +70,13 @@
             func_rule_release(&_r);                              \
             YYABORT;                                             \
         }                                                        \
+        _r.module = NULL;                                        \
     } while (0)
 
     #define SET_NAMES(_r, _name, _module) do {                   \
         SET_NAME(_r, _name);                                     \
-        _r.module_name = strndup(_module.text, _module.leng);    \
-        if (!_r.module_name) {                                   \
+        _r.module = strndup(_module.text, _module.leng);         \
+        if (!_r.module) {                                        \
             func_rule_release(&_r);                              \
             YYABORT;                                             \
         }                                                        \
@@ -162,7 +163,6 @@ int exe_func_parse(const char *input, size_t len,
     yy_scan_bytes(input ? input : "", input ? len : 0, arg);
     int ret =yyparse(arg, param);
     yylex_destroy(arg);
-    PC_ASSERT(0);
     return ret ? -1 : 0;
 }
 

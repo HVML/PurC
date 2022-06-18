@@ -44,6 +44,7 @@
 #include "exe_objformula.h"
 #include "exe_sql.h"
 #include "exe_travel.h"
+#include "exe_func.h"
 
 #include "executor_err_msgs.inc"
 
@@ -121,6 +122,7 @@ static int _init_instance(struct pcinst *inst,
     pcexec_exe_objformula_register();
     pcexec_exe_sql_register();
     pcexec_exe_travel_register();
+    pcexec_exe_func_register();
 
     return 0;
 }

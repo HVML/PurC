@@ -1,0 +1,19 @@
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<hvml target="html" lang="en">
+    <head>
+        <update on="$TIMERS" to="unite">
+            [
+                { "id" : "foo", "interval" : 1000, "active" : "no" },
+                { "id" : "bar", "interval" : 2000, "active" : "no" },
+            ]
+        </update>
+    </head>
+
+    <body>
+        <choose on='$TIMERS' by="FUNC:ChooseTimer@CHOOSETIMER" with="foo">
+            <update on="$?" at=".active" with="yes" />
+        </choose>
+    </body>
+</hvml>
+
+

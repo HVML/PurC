@@ -84,7 +84,7 @@ do {                                              \
 
 SP       [ \t]
 LN       [\r\n]|[\f\r\n]
-NAME     [_[:alnum]][[:alnum:]]*
+NAME     [_[:alnum:]][[:alnum:]]*
 
 %%
 

@@ -37,7 +37,7 @@
 struct func_rule
 {
     char                               *name;
-    char                               *module_name;
+    char                               *module;
 };
 
 struct exe_func_param {
@@ -63,9 +63,9 @@ func_rule_release(struct func_rule *rule)
         free(rule->name);
         rule->name = NULL;
     }
-    if (rule->module_name) {
-        free(rule->module_name);
-        rule->module_name = NULL;
+    if (rule->module) {
+        free(rule->module);
+        rule->module = NULL;
     }
 }
 
