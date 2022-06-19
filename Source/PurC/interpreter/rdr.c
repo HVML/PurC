@@ -504,7 +504,7 @@ bool pcintr_rdr_reset_page_groups(struct pcrdr_conn *conn,
 {
     pcrdr_msg *response_msg = NULL;
 
-    const char *operation = PCRDR_OPERATION_RESETPAGEGROUPS;
+    const char *operation = PCRDR_OPERATION_SETPAGEGROUPS;
     pcrdr_msg_target target;
     uint64_t target_value;
     pcrdr_msg_element_type element_type = PCRDR_MSG_ELEMENT_TYPE_VOID;
@@ -563,7 +563,7 @@ uintptr_t pcintr_rdr_add_page_groups(struct pcrdr_conn *conn,
     uintptr_t page_group = 0;
     pcrdr_msg *response_msg = NULL;
 
-    const char *operation = PCRDR_OPERATION_RESETPAGEGROUPS;
+    const char *operation = PCRDR_OPERATION_SETPAGEGROUPS;
     pcrdr_msg_target target;
     uint64_t target_value;
     pcrdr_msg_element_type element_type = PCRDR_MSG_ELEMENT_TYPE_VOID;
