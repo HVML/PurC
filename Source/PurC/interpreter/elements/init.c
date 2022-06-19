@@ -247,6 +247,7 @@ match_id(pcintr_coroutine_t co,
         struct pcvdom_element *elem, const char *id)
 {
     struct pcvdom_attr *attr;
+    fprintf(stderr, "#############################elem=%p(%s)\n", elem, pcvdom_element_get_tagname(elem));
     attr = pcvdom_element_find_attr(elem, "id");
     if (!attr)
         return false;

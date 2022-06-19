@@ -32,6 +32,30 @@ init_002
 init_003
 init_004
 init_005
+init_006
+init_007
+init_008
+init_009
+init_010
+init_011
+init_012
+
+#### #id not found crash
+######init_013
+init_014
+init_015
+init_016
+init_017
+init_018
+
+### at="N" N not exists(silently)
+#####init_019
+#####init_020
+init_021
+init_022
+init_023
+init_024
+
 
 clear_001
 clear_002

@@ -1440,7 +1440,7 @@ purc_variant_t pcvcm_node_to_variant(struct pcvcm_node *node,
 
     node->attach = (uintptr_t)ret;
 
-// #define PRINT_DEBUG
+ #define PRINT_DEBUG
 #ifdef PRINT_DEBUG        /* { */
     PRINT_VCM_NODE(node);
     PRINT_VARIANT(ret);
@@ -1457,6 +1457,7 @@ static inline bool is_digit(char c)
 static
 purc_variant_t find_stack_var(void *ctxt, const char *name)
 {
+    fprintf(stderr, "####################### %s:%d find %s \n", __FILE__, __LINE__, name);
     struct pcintr_stack *stack = (struct pcintr_stack*)ctxt;
     size_t nr_name = strlen(name);
     char last = name[nr_name - 1];
@@ -1472,6 +1473,7 @@ purc_variant_t find_stack_var(void *ctxt, const char *name)
         return pcintr_get_symbolized_var(stack, 1, last);
     }
 
+    fprintf(stderr, "####################### %s:%d find %s \n", __FILE__, __LINE__, name);
     // # + anchor + symbol
     if (name[0] == '#') {
         char* anchor = strndup(name + 1, nr_name - 2);
@@ -1484,6 +1486,7 @@ purc_variant_t find_stack_var(void *ctxt, const char *name)
         return var;
     }
 
+    fprintf(stderr, "####################### %s:%d find %s \n", __FILE__, __LINE__, name);
     return pcintr_find_named_var(ctxt, name);
 }
 
@@ -1499,7 +1502,7 @@ purc_variant_t pcvcm_eval(struct pcvcm_node *tree, struct pcintr_stack *stack,
 purc_variant_t pcvcm_eval_ex(struct pcvcm_node *tree,
         cb_find_var find_var, void *ctxt, bool silently)
 {
-//#define PRINT_DEBUG
+#define PRINT_DEBUG
 #ifdef PRINT_DEBUG        /* { */
     PC_DEBUG("pcvcm_eval_ex|begin|silently=%d\n", silently);
 #endif                    /* } */

@@ -1,0 +1,27 @@
+<!DOCTYPE hvml>
+<hvml target="html" lang="en">
+    <head>
+    </head>
+
+    <body>
+        <div id="grandparent">
+            <div id="temp">
+                <init as="buttons" temporarily at="_last">
+                    [
+                        { "letters": "7", "class": "number" },
+                        { "letters": "7", "class": "number" },
+                        { "letters": "7", "class": "number" },
+                        { "letters": "8", "class": "number" },
+                        { "letters": "9", "class": "number" },
+                    ]
+                </init>
+                <div>
+                    $EJSON.count($buttons)
+                </div>
+            </div>
+        </div>
+    </body>
+
+</hvml>
+
+
