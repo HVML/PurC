@@ -458,6 +458,18 @@ PCA_EXPORT int
 pcrdr_conn_set_poll_timeout(pcrdr_conn* conn, int timeout_ms);
 
 /**
+ * Get the number of pending requests.
+ *
+ * @param conn: the pointer to the renderer connection.
+ *
+ * Returns the number of current pending requests.
+ *
+ * Since: 0.2.0
+ */
+PCA_EXPORT size_t
+pcrdr_conn_pending_requests_count(pcrdr_conn* conn);
+
+/**
  * Get the server host name of a connection.
  *
  * @param conn: the pointer to the renderer connection.
