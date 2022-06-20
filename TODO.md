@@ -33,10 +33,10 @@
 
 * 按照[HVML 规范](https://gitlab.fmsoft.cn/hvml/hvml-docs/-/blob/master/zh/hvml-spec-v1.0-zh.md) 要求调整已有的实现。主要涉及:
   1. 外部 URL 中获得数据时，支持请求参数和请求方法：
-     - `archetype` 标签：支持 `src`、`param` 和 `method` 属性
-     - `archedata` 标签
-     - `error` 标签
-     - `except` 标签
+     - `archetype` 标签：`src` 指定URL, `param`定义请示参数， `method` 定义请求方法
+     - `archedata` 标签：`src` 指定URL, `param`定义请示参数， `method` 定义请求方法
+     - `error` 标签：`src` 指定URL, `param`定义请示参数， `method` 定义请求方法
+     - `except` 标签：`src` 指定URL, `param`定义请示参数， `method` 定义请求方法
      - `init` 标签：使用 `with` 参数定义请求参数，使用 `via` 属性定义请求方法
      - `update` 标签 : 使用 `with` 参数定义请求参数，使用 `via` 属性定义请求方法
      - `define` 标签 : 使用 `with` 参数定义请求参数，使用 `via` 属性定义请求方法
