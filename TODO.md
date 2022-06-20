@@ -7,6 +7,7 @@
 * 容器子孙成员变化后在容器变体上产生 `change` 事件。
 * 使用线性容器封装接口。
 * 新的容器类型：元组（tuple）。
+* 容器类操作优化：针对集合成员的 overwrite、displace 等操作，用新的数据覆盖或者替换已有的数据，不能简单构建一个新成员，然后移除老成员再添加新成员
 
 ### eDOM
 
@@ -30,54 +31,56 @@
 
 ### 解释器
 
-* 检查所有动作标签的实现，确保和规范要求一致。
-  1. `hvml` 标签： `target` 属性
-  1. `body` 标签：一个HVML中，支持多个 `body` 标签
-  1. `archetype` 标签：`src`、`param` 和 `method` 属性的支持
-  1. `archedata` 标签：`src`、`param` 和 `method` 属性的支持
-  1. `error` 标签：`type`、`src`、`param` 和 `method` 属性的支持
-  1. `except` 标签：`type`、`src`、`param` 和 `method` 属性的支持
-  1. `init` 标签：
-     - http 请求支持使用 `with` 参数定义请求参数，使用 `via` 属性定义请求方法
-     - 支持 `via` == `LOAD` 加载外部模块(`from` 属性指定外部模块名，`for` 指定动态对象名)
-     - 支持 `casesensitively` 属性 和 `caseinsensitively` 属性
-  1. `update` 标签：
+* 按照[HVML 规范](https://gitlab.fmsoft.cn/hvml/hvml-docs/-/blob/master/zh/hvml-spec-v1.0-zh.md) 要求调整已有的实现。主要涉及:
+  1. 外部 URL 中获得数据时，支持请求参数和请求方法：
+     - `archetype` 标签：支持 `src`、`param` 和 `method` 属性
+     - `archedata` 标签
+     - `error` 标签
+     - `except` 标签
+     - `init` 标签：使用 `with` 参数定义请求参数，使用 `via` 属性定义请求方法
+     - `update` 标签 : 使用 `with` 参数定义请求参数，使用 `via` 属性定义请求方法
+     - `define` 标签 : 使用 `with` 参数定义请求参数，使用 `via` 属性定义请求方法
+  1. `hvml` 标签
+     - `target` 属性
+  1. `body` 标签
+     - 一个HVML中，支持多个 `body` 标签
+  1. `error` 标签
+     - `type` 属性
+  1. `except` 标签
+     - `type` 属性
+  1. `init` 标签
+     - `via` 属性值为 `LOAD` 装载一个外部程序模块
+     - `casesensitively` 属性
+     - `caseinsensitively` 属性
+     - 未找到匹配的祖先元素或者前置栈帧的处理
+  1. `update` 标签
      - `to` 属性支持 `prepend` 、`remove` 、`insertBefore` 、`insertAfter` 、`insertAfter` 、`intersect` 、`subtract` 、`xor` 、`call`
-     - `from` 支持 http 请求支持使用 `with` 参数定义请求参数，使用 `via` 属性定义请求方法
      - `at` 属性支持 `jsonContent`、`content` 和 `style.<style_name>`
      - 支持同时修改多个数据项
      - 支持 `individually` 副词
      - 目标数据(`on`属性)为元素汇集时，目前支持通过`class` 和 `id` 两种CSS选择，还需支持通过标签名称来选择。
-  1. ~~`erase` 标签~~
-  1. ~~`clear` 标签~~
-  1. `test` 标签： 支持 `by` 属性
-  1. `match` 标签：考虑能否放在 `inherit` 标签下
-  1. `differ` 标签：考虑能否放在 `inherit` 标签下
-  1. ~~`choose` 标签~~
-  1. ~~`iterate` 标签~~
-  1. `reduce` 标签：未实现
-  1. `sort` 标签：未实现
-  1. `define` 标签：
-     - `from` 支持 http 请求支持使用 `with` 参数定义请求参数，使用 `via` 属性定义请求方法
-  1. ~~`include` 标签~~
-  1. `observe` 标签：
+  1. `test` 标签
+     - `by` 属性
+  1. `reduce` 标签
+     - 外部执行器
+  1. `sort` 标签
+     - 外部执行器
+  1. `observe` 标签
      - 支持上下文变量: $!, $@
-  1. `forget` 标签：
+  1. `forget` 标签
      - 支持元素汇集
-  1. `fire` 标签：
+  1. `fire` 标签
      - 支持元素汇集
-  1. `call` 标签：
+  1. `call` 标签
   1. `return` 标签：
   1. `bind` 标签：
      - 支持 `at` 属性
-  1. ~~`catch` 标签：~~
-  1. ~~`back` 标签：`to` 属性的支持~~
   1. `request` 标签： 未实现
   1. `load` 标签： 未实现
-  1. `exit` 标签：`with` 属性的支持，需要依赖协程间消息传递机制
-  1. ~~`inherit` 标签~~
-  1. ~~`sleep` 标签：`for` 属性的支持~~
-  1. `sleep` 标签：sleep 的结果数据是剩余的休眠时间（秒数，数值类型），若未被打断，则为 0。
+  1. `exit` 标签：
+     - `with` 属性的支持，需要依赖协程间消息传递机制
+  1. `sleep` 标签：
+     - sleep 的结果数据是剩余的休眠时间（秒数，数值类型），若未被打断，则为 0。
 
 ## 202205
 
