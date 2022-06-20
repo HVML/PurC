@@ -123,7 +123,7 @@
    1. ~~`observe` 支持 `as` 属性命名一个观察者。~~
    1. ~~`fire` 标签。~~
    1. ~~`bind` 标签。~~
-   1. ~~`define` 和 `include` 标签。
+   1. ~~`define` 和 `include` 标签。~~
    1. `call` 和 `return` 标签。
    1. `load` 和 `exit` 标签。
    1. `request` 标签。
