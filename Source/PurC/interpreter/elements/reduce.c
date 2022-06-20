@@ -106,7 +106,7 @@ post_process_dest_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         PC_ASSERT(ctxt->ops.destroy);
 
         purc_exec_inst_t exec_inst;
-        exec_inst = ctxt->ops.create(PURC_EXEC_TYPE_CHOOSE, on, false);
+        exec_inst = ctxt->ops.create(PURC_EXEC_TYPE_REDUCE, on, false);
         if (!exec_inst)
             return -1;
 
