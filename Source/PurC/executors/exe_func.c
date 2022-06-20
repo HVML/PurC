@@ -45,23 +45,24 @@ struct pcexec_exe_func_inst {
     size_t                      curr;
 
     void                       *handle;
+    void                       *symbol;
 
-    // 选择器，可用于 `choose` 和 `test` 动作元素
-    purc_variant_t (*chooser)(purc_variant_t on_value,
-            purc_variant_t with_value);
+    // // 选择器，可用于 `choose` 和 `test` 动作元素
+    // purc_variant_t (*chooser)(purc_variant_t on_value,
+    //         purc_variant_t with_value);
 
-    // 迭代器，仅用于 `iterate` 动作元素。
-    purc_variant_t (*iterator)(purc_variant_t on_value,
-            purc_variant_t with_value);
+    // // 迭代器，仅用于 `iterate` 动作元素。
+    // purc_variant_t (*iterator)(purc_variant_t on_value,
+    //         purc_variant_t with_value);
 
-    // 规约器，仅用于 `reduce` 动作元素。
-    purc_variant_t (*reducer)(purc_variant_t on_value,
-            purc_variant_t with_value);
+    // // 规约器，仅用于 `reduce` 动作元素。
+    // purc_variant_t (*reducer)(purc_variant_t on_value,
+    //         purc_variant_t with_value);
 
-    // 排序器，仅用于 `sort` 动作元素。
-    purc_variant_t (*sorter)(purc_variant_t on_value,
-            purc_variant_t with_value,
-            purc_variant_t against_value, bool desc, bool caseless);
+    // // 排序器，仅用于 `sort` 动作元素。
+    // purc_variant_t (*sorter)(purc_variant_t on_value,
+    //         purc_variant_t with_value,
+    //         purc_variant_t against_value, bool desc, bool caseless);
 
     unsigned int                loaded:1;
 };
@@ -231,7 +232,7 @@ parse_rule(struct pcexec_exe_func_inst *exe_func_inst,
         pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
         return false;
     }
-    exe_func_inst->chooser = symbol;
+    exe_func_inst->symbol = symbol;
 
     return true;
 }
@@ -265,21 +266,16 @@ fetch_begin(struct pcexec_exe_func_inst *exe_func_inst)
     purc_variant_t input = inst->input;
     purc_variant_t with = inst->with;
 
-    if (exe_func_inst->chooser == NULL) {
+    if (exe_func_inst->symbol == NULL) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         return NULL;
     }
 
-    PRINT_VARIANT(input);
-    PRINT_VARIANT(with);
-    PC_ASSERT(purc_variant_is_set(input));
-    PC_ASSERT(purc_variant_is_string(with));
-    purc_variant_t v;
-    v = purc_variant_set_get_member_by_key_values(input, with);
-    PRINT_VARIANT(v);
+    purc_variant_t (*chooser)(purc_variant_t on_value,
+            purc_variant_t with_value) = exe_func_inst->symbol;
 
     purc_variant_t results;
-    results = exe_func_inst->chooser(input, with);
+    results = chooser(input, with);
     PC_ASSERT(results != PURC_VARIANT_INVALID);
     purc_variant_t array = purc_variant_make_array(1, results);
     exe_func_inst->results = array;
