@@ -149,6 +149,17 @@ int pcrdr_conn_set_poll_timeout(pcrdr_conn* conn, int timeout_ms)
     return old;
 }
 
+size_t pcrdr_conn_pending_requests_count(pcrdr_conn* conn)
+{
+    size_t n = 0;
+    struct pending_request *pr;
+    list_for_each_entry(pr, &conn->pending_requests, list) {
+        n++;
+    }
+
+    return n;
+}
+
 int pcrdr_free_connection(pcrdr_conn* conn)
 {
     assert(conn);
