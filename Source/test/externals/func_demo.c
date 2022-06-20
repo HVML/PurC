@@ -12,6 +12,22 @@ get_member(purc_variant_t on_value, purc_variant_t with_value)
         return PURC_VARIANT_INVALID;
     }
 
-    return purc_variant_object_get(on_value, with_value);
+    purc_variant_t v = purc_variant_object_get(on_value, with_value);
+    if (v == PURC_VARIANT_INVALID)
+        v = purc_variant_make_undefined();
+    else
+        purc_variant_ref(v);
+
+    return v;
+}
+
+extern purc_variant_t
+to_array(purc_variant_t on_value, purc_variant_t with_value)
+{
+    purc_variant_t v = purc_variant_make_array(2, on_value, with_value);
+    if (v == PURC_VARIANT_INVALID)
+        v = purc_variant_make_undefined();
+
+    return v;
 }
 

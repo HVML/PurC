@@ -12,6 +12,11 @@
                 <update on="$@" to="append" with="$?" />
             </choose>
         </div>
+        <div>
+            <iterate on="$foo" by="FUNC:to_array@FUNC_DEMO" with="name">
+                <update on="$@" to="append" with="$?" />
+            </iterate>
+        </div>
     </body>
 </hvml>
 
