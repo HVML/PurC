@@ -5,28 +5,25 @@
 ### 变体
 
 * 容器子孙成员变化后在容器变体上产生 `change` 事件。
-* 使用线性容器封装接口。
-* 新的容器类型：元组（tuple）。
+* 在预定义变量的实现中，使用线性容器封装接口获取容器大小及其成员。
+* 长期：实现容器类型：元组（tuple）。
 
 ### eDOM
 
-* 实现 `void` 目标文档类型。
-* 跟踪 eDOM 的变化，使之可以动态更新已有的元素汇集，防止后续操作删除已有元素汇集中的特定元素后导致操作错误。
-* 按照 CSS Selector Level 3 的规范要求实现选择器，用于增强 `$DOC.query()` 方法。
+* 实现 `void` 目标文档类型并实现 `$HVML.target` 获取器。
+* 长期：优化元素汇集原生实体的实现，使之可以处理 eDOM 变化的情形，并符合 CSS Selector Level 3 的规范要求。
 
 ### 预定义变量
 
 * 按照[预定义变量规范](https://gitlab.fmsoft.cn/hvml/hvml-docs/-/blob/master/zh/hvml-spec-predefined-variables-v1.0-zh.md)要求调整已有的实现。主要涉及：
-   1. `$HVML`
-      - `$HVML.target` 方法
-   1. `$STREAM`
-      - ~~`pipe://` 的支持~~
+  1. `$REQUEST`
+  1. `$RDR`
 
 * 按照[预定义变量规范](https://gitlab.fmsoft.cn/hvml/hvml-docs/-/blob/master/zh/hvml-spec-predefined-variables-v1.0-zh.md)要求调整或增强预定义变量的实现。主要涉及：
-   1. `$URL`
-   1. `$FS`
-   1. `$FILE`
-   1. `$STR`
+  1. `$URL`
+  1. `$FS`
+  1. `$FILE`
+  1. `$STR`
 
 ### 解释器
 
