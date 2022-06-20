@@ -54,6 +54,7 @@ struct purc_exec_inst {
     struct purc_exec_iter       it; // FIXME: one `it` for one `exec_inst`
 
     purc_variant_t              input;
+    purc_variant_t              with;         // for FUNC/CLASS only
     bool                        asc_desc;
 
     purc_variant_t              selected_keys;

@@ -28,6 +28,7 @@
 #include "../internal.h"
 
 #include "private/debug.h"
+#include "private/executor.h"
 #include "purc-runloop.h"
 
 #include "../ops.h"
@@ -47,6 +48,7 @@ struct ctxt_for_iterate {
     struct pcvdom_attr           *with_attr;
 
     struct pcvdom_attr           *rule_attr;
+    purc_variant_t                with;
 
     struct purc_exec_ops          ops;
     purc_exec_inst_t              exec_inst;
@@ -68,6 +70,7 @@ ctxt_for_iterate_destroy(struct ctxt_for_iterate *ctxt)
             ctxt->exec_inst = NULL;
         }
         PURC_VARIANT_SAFE_CLEAR(ctxt->on);
+        PURC_VARIANT_SAFE_CLEAR(ctxt->with);
 
         free(ctxt);
     }
@@ -174,6 +177,8 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     ctxt = (struct ctxt_for_iterate*)frame->ctxt;
     PC_ASSERT(ctxt);
 
+    PC_ASSERT(ctxt->by_set == 0);
+
     purc_variant_t on;
     on = ctxt->on;
     if (on == PURC_VARIANT_INVALID)
@@ -224,6 +229,20 @@ post_process_by_rule(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     if (on == PURC_VARIANT_INVALID)
         return -1;
 
+    purc_variant_t with;
+    if (ctxt->with_attr) {
+        with = pcintr_eval_vdom_attr(pcintr_get_stack(), ctxt->with_attr);
+    }
+    else {
+        with = purc_variant_make_undefined();
+    }
+
+    if (with == PURC_VARIANT_INVALID)
+        return -1;
+
+    PURC_VARIANT_SAFE_CLEAR(ctxt->with);
+    ctxt->with = with;
+
     purc_variant_t val = PURC_VARIANT_INVALID;
 
     const char *rule = "RANGE: FROM 0";
@@ -257,6 +276,8 @@ post_process_by_rule(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         PURC_VARIANT_SAFE_CLEAR(val);
         return -1;
     }
+
+    exec_inst->with = with;
 
     ctxt->exec_inst = exec_inst;
 
@@ -404,13 +425,6 @@ process_attr_with(struct pcintr_stack_frame *frame,
 
     struct ctxt_for_iterate *ctxt;
     ctxt = (struct ctxt_for_iterate*)frame->ctxt;
-    if (ctxt->by_set) {
-        purc_set_error_with_info(PURC_ERROR_NOT_SUPPORTED,
-                "vdom attribute '%s' for element <%s> conflicts with"
-                "vdom attribute 'by'",
-                purc_atom_to_string(name), element->tag_name);
-        return -1;
-    }
     if (ctxt->with_attr) {
         purc_set_error_with_info(PURC_ERROR_DUPLICATED,
                 "vdom attribute '%s' for element <%s>",
@@ -527,13 +541,17 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     purc_clr_error();
 
-    if (ctxt->with_set) {
-        r = post_process(stack->co, frame);
+    if (ctxt->by_set == 0 && ctxt->with_set == 0) {
+        ctxt->by_set = 1;
     }
-    else {
+
+    if (ctxt->by_set) {
         r = post_process_by_rule(stack->co, frame);
         if (r)
             return NULL;
+    }
+    else {
+        r = post_process(stack->co, frame);
     }
 
     return ctxt;
@@ -588,7 +606,7 @@ on_popping(pcintr_stack_t stack, void* ud)
     struct ctxt_for_iterate *ctxt;
     ctxt = (struct ctxt_for_iterate*)frame->ctxt;
 
-    if (ctxt->with_set) {
+    if (!ctxt->by_set) {
         return on_popping_with(stack);
     }
 
