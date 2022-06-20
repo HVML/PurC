@@ -487,60 +487,25 @@ exe_func_reduce(purc_exec_inst_t inst, const char* rule)
     struct pcexec_exe_func_inst *exe_func_inst;
     exe_func_inst = (struct pcexec_exe_func_inst*)inst;
 
-    size_t count = 0;
-    double sum   = 0;
-    double avg   = 0;
-    double max   = NAN;
-    double min   = NAN;
-
-    purc_exec_iter_t it = it_begin(exe_func_inst, rule);
-    if (!it && inst->err_msg) {
-        return false;
-    }
-
-    for(; it; it = it_next(exe_func_inst, NULL)) {
-        purc_variant_t v = it_value(exe_func_inst);
-        double d = purc_variant_numberify(v);
-        ++count;
-        if (isnan(d))
-            continue;
-        sum += d;
-        if (isnan(max)) {
-            max = d;
-        }
-        else if (d > max) {
-            max = d;
-        }
-        if (isnan(min)) {
-            min = d;
-        }
-        else if (d < min) {
-            min = d;
-        }
-    }
-
-    if (count > 0) {
-        avg = sum / count;
-    }
-
-    purc_variant_t obj = purc_variant_make_object(0,
-            PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
-
-    if (obj == PURC_VARIANT_INVALID)
+    bool ok = true;
+    ok = parse_rule(exe_func_inst, rule);
+    if (!ok) {
+        PC_ASSERT(purc_get_last_error());
         return PURC_VARIANT_INVALID;
+    }
 
-    do {
-        SET_KEY_AND_NUM(obj, "count", count);
-        SET_KEY_AND_NUM(obj, "sum", sum);
-        SET_KEY_AND_NUM(obj, "avg", avg);
-        SET_KEY_AND_NUM(obj, "max", max);
-        SET_KEY_AND_NUM(obj, "min", min);
+    if (exe_func_inst->symbol == NULL) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        return PURC_VARIANT_INVALID;
+    }
 
-        return obj;
-    } while (0);
+    purc_variant_t input = inst->input;
+    purc_variant_t with = inst->with;
+    purc_variant_t (*iterator)(purc_variant_t on_value,
+            purc_variant_t with_value) = exe_func_inst->symbol;
 
-    purc_variant_unref(obj);
-    return PURC_VARIANT_INVALID;
+    purc_variant_t result = iterator(input, with);
+    return result;
 }
 
 // 销毁一个执行器实例
