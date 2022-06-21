@@ -1,84 +1,124 @@
-# TODO 清单
+# TODO List
+
+## 长期
+
+### 变体
+
+* 实现新的线性容器类型元组（tuple）。
+
+### eDOM
+
+* 优化元素汇集原生实体的实现，使之可以处理 eDOM 变化的情形，并符合 CSS Selector Level 3 的规范要求。
+
+### eJSON 解析和求值
+
+* 支持元组。
+
+### 解释器
+
+## 202207
+
+### 变体
+
+* 在预定义变量的实现中，使用线性容器封装接口获取容器类参数的大小及其成员。
+
+### 预定义变量
+
+* 增加、调整或补充预定义变量的实现：
+  1. `$RDR`
+  1. `$URL`
+  1. `$FS`
+  1. `$FILE`
+  1. `$STR`
+
+### eDOM
+
+* 实现 `void` 目标文档类型。
+
+### 解释器
+
+* 支持 `request` 标签。
+* 支持多个 `body` 标签。
+* `call`、`load` 标签支持创建新行者。
+* `exit` 标签支持 `with` 属性。
+* 完善如下标签从外部数据源获取数据的功能：
+  1. `init` 标签：支持 `from`、`with` 及 `via` 属性定义的请求参数及方法。
+  1. `archetype` 标签：`src`、`param` 和 `method` 属性的支持。
+  1. `archedata` 标签：`src`、`param` 和 `method` 属性的支持。
+  1. `error` 标签：`src`、`param` 和 `method` 属性的支持。
+  1. `except` 标签：`src`、`param` 和 `method` 属性的支持。
+  1. `define` 标签： 支持 `from`、`with` 及 `via` 属性定义的请求参数及方法。
+  1. `update` 标签： 支持 `from`、`with` 及 `via` 属性定义的请求参数及方法。
+* `update` 标签。
+  1. `to` 属性支持 `prepend` 、`remove` 、`insertBefore` 、`insertAfter` 、`insertAfter` 、`intersect` 、`subtract` 、`xor`。
+  1. `at` 属性支持 `content`。
+  1.  支持同时修改多个数据项，支持 `individually` 副词。
+* `sleep` 标签在调度器检查到有针对休眠协程的事件时，可由调度器唤醒。
+* `observe` 标签支持上下文变量: `$!` 和 `$@`。
 
 ## 202206
 
 ### 变体
 
 * 容器子孙成员变化后在容器变体上产生 `change` 事件。
-* 使用线性容器封装接口。
-* 新的容器类型：元组（tuple）。
-* 容器类操作优化：针对集合成员的 overwrite、displace 等操作，用新的数据覆盖或者替换已有的数据，不能简单构建一个新成员，然后移除老成员再添加新成员
+* 优化集合的 `overwrite` 等处理，在已经根据给定的唯一性键键值定位要更新的成员后，逐个更新该成员的其他字段，而不是先移除老的成员再构建一个新成员插入。
 
 ### eDOM
 
-* 实现 `void` 目标文档类型。
-* 跟踪 eDOM 的变化，使之可以动态更新已有的元素汇集，防止后续操作删除已有元素汇集中的特定元素后导致操作错误。
-* 按照 CSS Selector Level 3 的规范要求实现选择器，用于增强 `$DOC.query()` 方法。
-
 ### 预定义变量
 
-* 按照[预定义变量规范](https://gitlab.fmsoft.cn/hvml/hvml-docs/-/blob/master/zh/hvml-spec-predefined-variables-v1.0-zh.md)要求调整已有的实现。主要涉及：
-   1. `$HVML`
-      - `$HVML.target` 方法
-   1. `$STREAM`
-      - ~~`pipe://` 的支持~~
+* 实现 `$HVML.target` 获取器。
+* 实现 `$REQUEST` 预定义变量，将该变量和 `purc_run` 函数中的 `request` 参数关联。
 
-* 按照[预定义变量规范](https://gitlab.fmsoft.cn/hvml/hvml-docs/-/blob/master/zh/hvml-spec-predefined-variables-v1.0-zh.md)要求调整或增强预定义变量的实现。主要涉及：
-   1. `$URL`
-   1. `$FS`
-   1. `$FILE`
-   1. `$STR`
+### vDOM 解析器
+
+* `body` 标签：一个 HVML 中，支持多个 `body` 标签。
+* vDOM 构建规则
+   1. `match`、`differ` 元素必须作为 `test` 元素的直接子元素。
 
 ### 解释器
 
-* 按照[HVML 规范](https://gitlab.fmsoft.cn/hvml/hvml-docs/-/blob/master/zh/hvml-spec-v1.0-zh.md) 要求调整已有的实现。主要涉及:
-  1. 外部 URL 中获得数据时，支持请求参数和请求方法：
-     - `archetype` 标签：`src` 指定URL, `param`定义请示参数， `method` 定义请求方法
-     - `archedata` 标签：`src` 指定URL, `param`定义请示参数， `method` 定义请求方法
-     - `error` 标签：`src` 指定URL, `param`定义请示参数， `method` 定义请求方法
-     - `except` 标签：`src` 指定URL, `param`定义请示参数， `method` 定义请求方法
-     - `init` 标签：使用 `with` 参数定义请求参数，使用 `via` 属性定义请求方法
-     - `update` 标签 : 使用 `with` 参数定义请求参数，使用 `via` 属性定义请求方法
-     - `define` 标签 : 使用 `with` 参数定义请求参数，使用 `via` 属性定义请求方法
-  1. `hvml` 标签
-     - `target` 属性
-  1. `body` 标签
-     - 一个HVML中，支持多个 `body` 标签
-  1. `error` 标签
-     - `type` 属性
-  1. `except` 标签
-     - `type` 属性
-  1. `init` 标签
-     - `via` 属性值为 `LOAD` 装载一个外部程序模块
-     - `casesensitively` 属性
-     - `caseinsensitively` 属性
-     - 未找到匹配的祖先元素或者前置栈帧的处理
-  1. `update` 标签
+* 检查所有动作标签的实现，确保和规范要求一致：
+  1. `hvml` 标签支持 `target` 属性，其他属性原样放入目标文档的根节点。
+  1. `error` 标签支持 `type` 属性。
+  1. `except` 标签支持 `type` 属性。
+  1. `init` 标签支持使用 `via` 属性值 `LOAD` 从外部模块中加载自定义变量：`from` 属性指定外部模块名，`for` 指定模块中的动态对象名。
+  1. `init` 标签初始化集合时，支持 `casesensitively` 属性和 `caseinsensitively` 属性。
+  1. `forget` 标签支持元素汇集。
+  1. `fire` 标签支持元素汇集。
+  1. `call` 标签。
+  1. `return` 标签。
+  1. `bind` 标签支持 `at` 属性
+  1. `load` 标签。
+  1. `exit` 标签（不含对 `with` 属性的支持）。
+  1. `test` 标签支持 `by` 属性。
+  1. `reduce` 标签。
+  1. `sort` 标签。
+  1. `iterate` 标签支持外部类执行器。
+  1. ~~`include` 标签~~
+  1. ~~`catch` 标签：~~
+  1. ~~`back` 标签 `to` 属性的支持~~
+  1. ~~`erase` 标签~~
+  1. ~~`clear` 标签~~
+  1. ~~`choose` 标签~~
+  1. ~~`iterate` 标签~~
+  1. ~~`inherit` 标签~~
+  1. ~~`sleep` 标签：`for` 属性的支持~~
+* 延后处理：
+  1. `archetype` 标签：`src`、`param` 和 `method` 属性的支持
+  1. `archedata` 标签：`src`、`param` 和 `method` 属性的支持
+  1. `error` 标签：`src`、`param` 和 `method` 属性的支持
+  1. `except` 标签：`src`、`param` 和 `method` 属性的支持
+  1. `init` 标签支持使用 `with` 参数定义请求参数，使用 `via` 属性定义请求方法
+  1. `define` 标签支持使用 `with` 参数定义请求参数，使用 `via` 属性定义请求方法
+  1. `update` 标签：
      - `to` 属性支持 `prepend` 、`remove` 、`insertBefore` 、`insertAfter` 、`insertAfter` 、`intersect` 、`subtract` 、`xor` 、`call`
-     - `at` 属性支持 `jsonContent`、`content` 和 `style.<style_name>`
+     - `from` 支持 http 请求支持使用 `with` 参数定义请求参数，使用 `via` 属性定义请求方法
+     - `at` 属性支持 `content`。
      - 支持同时修改多个数据项
      - 支持 `individually` 副词
-     - 目标数据(`on`属性)为元素汇集时，目前支持通过`class` 和 `id` 两种CSS选择，还需支持通过标签名称来选择。
-  1. `test` 标签
-     - `by` 属性
-  1. `sort` 标签
-     - 外部执行器
-  1. `observe` 标签
-     - 支持上下文变量: $!, $@
-  1. `forget` 标签
-     - 支持元素汇集
-  1. `fire` 标签
-     - 支持元素汇集
-  1. `call` 标签
-  1. `return` 标签：
-  1. `bind` 标签：
-     - 支持 `at` 属性
-  1. `request` 标签： 未实现
-  1. `load` 标签： 未实现
-  1. `exit` 标签：
-     - `with` 属性的支持，需要依赖协程间消息传递机制
-  1. `sleep` 标签：
-     - sleep 的结果数据是剩余的休眠时间（秒数，数值类型），若未被打断，则为 0。
+  1. `observe` 标签支持上下文变量: `$!` 和 `$@`
+  1. `request` 标签。
 
 ## 202205
 
@@ -147,9 +187,9 @@
 
 ### 变体
 
-* 增加从集合或集合中按照索引值获取成员的接口，以方便代码同时处理数组或集合。
+* ~~增加从集合或集合中按照索引值获取成员的接口，以方便代码同时处理数组或集合。~~
 * ~~为方便监听变量的状态变化，增加一个新的变体类型：异常（exception）。~~
-* 调整变体数据结构使用上的一些细节：
+* ~~调整变体数据结构使用上的一些细节：~~
    1. ~~使用监听器链表头字段的别名 `reserved` 管理保留的变体封装结构，取代当前的循环缓冲区。~~
    1. ~~针对原子字符串和异常，增加一个新的联合字段：`purc_atom_t atom`。~~
    1. ~~仅保留一个监听器链表头结构：将前置监听器放到链表头，后置监听器放到链表尾；遍历时，使用监听器结构中的标志区别监听器类型。~~
