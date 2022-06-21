@@ -2,7 +2,8 @@
     <head>
         <init as="global">
         {
-            "locale":"zh_CN"
+            "locale":"zh_CN",
+            "data":0
         }
         </init>
     </head>
@@ -24,7 +25,7 @@
         </archetype>
 
         <footer id="the-footer">
-            <test on="$global.locale" in='#the-footer'>
+            <test with="$global.data" in='#the-footer'>
                 <match for="AS 'zh_CN'" exclusively>
                     <update on="$@" to="displace" with="$footer_cn" />
                 </match>
@@ -34,6 +35,9 @@
                 <match for="LIKE '*'" exclusively>
                     <update on="$@" to="displace" with="$footer_def" />
                 </match>
+                <differ>
+                    <update on="$@" to="displace" with="$footer_def" />
+                </differ>
             </test>
         </footer>
     </body>
