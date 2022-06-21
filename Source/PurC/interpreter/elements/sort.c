@@ -51,7 +51,7 @@ struct ctxt_for_sort {
     unsigned int                  casesensitively:1;
     unsigned int                  ascendingly:1;
 
-    struct pcutils_arrlist        *keys;
+    struct pcutils_arrlist       *keys;
 };
 
 typedef void(array_list_free_fn)(void *data);

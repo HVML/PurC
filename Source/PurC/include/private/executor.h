@@ -72,6 +72,18 @@ void pcexecutor_get_debug(int *debug_flex, int *debug_bison);
 void pcexecutor_inst_reset(struct purc_exec_inst *inst);
 
 
+enum pcexecutor_type {
+    PCEXECUTOR_INTERNAL,
+    PCEXECUTOR_EXTERNAL,
+};
+
+int pcexecutor_register(const char* name,
+        enum pcexecutor_type type, purc_exec_ops_t ops);
+
+int pcexecutor_get_by_rule(const char *rule,
+        enum pcexecutor_type *type, purc_exec_ops_t ops);
+
+
 PCA_EXTERN_C_END
 
 #endif // PURC_PRIVATE_EXECUTOR_H
