@@ -20,7 +20,7 @@
 
 ### 变体
 
-* 在预定义变量的实现中，使用线性容器封装接口获取容器大小及其成员。
+* 在预定义变量的实现中，使用线性容器封装接口获取容器类参数的大小及其成员。
 
 ### 预定义变量
 
@@ -42,17 +42,19 @@
 * `call`、`load` 标签支持创建新行者。
 * `exit` 标签支持 `with` 属性。
 * 完善如下标签从外部数据源获取数据的功能：
-  1. `init` 标签：支持使用 `with` 参数定义请求参数，使用 `via` 属性定义请求方法。
+  1. `init` 标签：支持 `from`、`with` 及 `via` 属性定义的请求参数及方法。
   1. `archetype` 标签：`src`、`param` 和 `method` 属性的支持。
   1. `archedata` 标签：`src`、`param` 和 `method` 属性的支持。
-  1. `error` 标签：`type`、`src`、`param` 和 `method` 属性的支持。
-  1. `except` 标签：`type`、`src`、`param` 和 `method` 属性的支持。
-  1. `define` 标签： `from` 支持 http 请求支持使用 `with` 参数定义请求参数，使用 `via` 属性定义请求方法。
+  1. `error` 标签：`src`、`param` 和 `method` 属性的支持。
+  1. `except` 标签：`src`、`param` 和 `method` 属性的支持。
+  1. `define` 标签： 支持 `from`、`with` 及 `via` 属性定义的请求参数及方法。
+  1. `update` 标签： 支持 `from`、`with` 及 `via` 属性定义的请求参数及方法。
 * `update` 标签。
-  1. `to` 属性支持 `prepend` 、`remove` 、`insertBefore` 、`insertAfter` 、`insertAfter` 、`intersect` 、`subtract` 、`xor`
-  1. `from` 支持 http 请求支持使用 `with` 参数定义请求参数，使用 `via` 属性定义请求方法
+  1. `to` 属性支持 `prepend` 、`remove` 、`insertBefore` 、`insertAfter` 、`insertAfter` 、`intersect` 、`subtract` 、`xor`。
   1. `at` 属性支持 `jsonContent`、`content`。
-  1.  支持同时修改多个数据项，支持 `individually` 副词
+  1.  支持同时修改多个数据项，支持 `individually` 副词。
+* `sleep` 标签在调度器检查到有针对休眠协程的事件时，可由调度器唤醒。
+* `observe` 标签支持上下文变量: `$!` 和 `$@`。
 
 ## 202206
 
@@ -63,64 +65,61 @@
 
 ### eDOM
 
-* 实现 `void` 目标文档类型并实现 `$HVML.target` 获取器。
-
 ### 预定义变量
 
-* 按照[预定义变量规范](https://gitlab.fmsoft.cn/hvml/hvml-docs/-/blob/master/zh/hvml-spec-predefined-variables-v1.0-zh.md)要求调整已有的实现。主要涉及：
-  1. `$REQUEST`
-* 按照[预定义变量规范](https://gitlab.fmsoft.cn/hvml/hvml-docs/-/blob/master/zh/hvml-spec-predefined-variables-v1.0-zh.md)要求调整或增强预定义变量的实现。主要涉及：
+* 实现 `$HVML.target` 获取器。
+* 实现 `$REQUEST` 预定义变量，将该变量和 `purc_run` 函数中的 `request` 参数关联。
+
+### vDOM 解析器
+
+* `body` 标签：一个 HVML 中，支持多个 `body` 标签。
+* vDOM 构建规则
+   1. `match`、`differ` 元素必须作为 `test` 元素的直接子元素。
 
 ### 解释器
 
-* 检查所有动作标签的实现，确保和规范要求一致。
-  1. `hvml` 标签： `target` 属性
-  1. `body` 标签：一个HVML中，支持多个 `body` 标签
-  1. `archetype` 标签：`src`、`param` 和 `method` 属性的支持
-  1. `archedata` 标签：`src`、`param` 和 `method` 属性的支持
-  1. `error` 标签：`type`、`src`、`param` 和 `method` 属性的支持
-  1. `except` 标签：`type`、`src`、`param` 和 `method` 属性的支持
-  1. `init` 标签：
-     - http 请求支持使用 `with` 参数定义请求参数，使用 `via` 属性定义请求方法
-     - 支持 `via` == `LOAD` 加载外部模块(`from` 属性指定外部模块名，`for` 指定动态对象名)
-     - 支持 `casesensitively` 属性 和 `caseinsensitively` 属性
-  1. `update` 标签：
-     - `to` 属性支持 `prepend` 、`remove` 、`insertBefore` 、`insertAfter` 、`insertAfter` 、`intersect` 、`subtract` 、`xor` 、`call`
-     - `from` 支持 http 请求支持使用 `with` 参数定义请求参数，使用 `via` 属性定义请求方法
-     - `at` 属性支持 `jsonContent`、`content`。
-     - 支持同时修改多个数据项
-     - 支持 `individually` 副词
-     - 目标数据(`on`属性)为元素汇集时，目前支持通过`class` 和 `id` 两种CSS选择，还需支持通过标签名称来选择。
-  1. ~~`erase` 标签~~
-  1. ~~`clear` 标签~~
-  1. `test` 标签： 支持 `by` 属性
-  1. `match` 标签：考虑能否放在 `inherit` 标签下
-  1. `differ` 标签：考虑能否放在 `inherit` 标签下
-  1. ~~`choose` 标签~~
-  1. ~~`iterate` 标签~~
-  1. `reduce` 标签：未实现
-  1. `sort` 标签：未实现
-  1. `define` 标签：
-     - `from` 支持 http 请求支持使用 `with` 参数定义请求参数，使用 `via` 属性定义请求方法
-  1. ~~`include` 标签~~
-  1. `observe` 标签：
-     - 支持上下文变量: $!, $@
+* 检查所有动作标签的实现，确保和规范要求一致：
+  1. `hvml` 标签支持 `target` 属性，其他属性原样放入目标文档的根节点。
+  1. `error` 标签支持 `type` 属性。
+  1. `except` 标签支持 `type` 属性。
+  1. `init` 标签支持使用 `via` 属性值 `LOAD` 从外部模块中加载自定义变量：`from` 属性指定外部模块名，`for` 指定模块中的动态对象名。
+  1. `init` 标签初始化集合时，支持 `casesensitively` 属性和 `caseinsensitively` 属性。
   1. `forget` 标签：
      - 支持元素汇集
   1. `fire` 标签：
      - 支持元素汇集
-  1. `call` 标签：
-  1. `return` 标签：
-  1. `bind` 标签：
-     - 支持 `at` 属性
+  1. `call` 标签。
+  1. `return` 标签。
+  1. `bind` 标签支持 `at` 属性
+  1. `load` 标签。
+  1. `exit` 标签（不含对 `with` 属性的支持）。
+  1. `test` 标签支持 `by` 属性。
+  1. `reduce` 标签。
+  1. `sort` 标签。
+  1. ~~`include` 标签~~
   1. ~~`catch` 标签：~~
-  1. ~~`back` 标签：`to` 属性的支持~~
-  1. `request` 标签： 未实现
-  1. `load` 标签： 未实现
-  1. `exit` 标签：`with` 属性的支持，需要依赖协程间消息传递机制
+  1. ~~`back` 标签 `to` 属性的支持~~
+  1. ~~`erase` 标签~~
+  1. ~~`clear` 标签~~
+  1. ~~`choose` 标签~~
+  1. ~~`iterate` 标签~~
   1. ~~`inherit` 标签~~
   1. ~~`sleep` 标签：`for` 属性的支持~~
-  1. `sleep` 标签：sleep 的结果数据是剩余的休眠时间（秒数，数值类型），若未被打断，则为 0。
+* 延后处理：
+  1. `archetype` 标签：`src`、`param` 和 `method` 属性的支持
+  1. `archedata` 标签：`src`、`param` 和 `method` 属性的支持
+  1. `error` 标签：`src`、`param` 和 `method` 属性的支持
+  1. `except` 标签：`src`、`param` 和 `method` 属性的支持
+  1. `init` 标签支持使用 `with` 参数定义请求参数，使用 `via` 属性定义请求方法
+  1. `define` 标签支持使用 `with` 参数定义请求参数，使用 `via` 属性定义请求方法
+  1. `update` 标签：
+     - `to` 属性支持 `prepend` 、`remove` 、`insertBefore` 、`insertAfter` 、`insertAfter` 、`intersect` 、`subtract` 、`xor` 、`call`
+     - `from` 支持 http 请求支持使用 `with` 参数定义请求参数，使用 `via` 属性定义请求方法
+     - `at` 属性支持 `content`。
+     - 支持同时修改多个数据项
+     - 支持 `individually` 副词
+  1. `observe` 标签支持上下文变量: `$!` 和 `$@`
+  1. `request` 标签。
 
 ## 202205
 
