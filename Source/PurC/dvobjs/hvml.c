@@ -33,6 +33,7 @@
 #include <limits.h>
 
 #define DEFAULT_HVML_BASE           "file:///"
+#define DEFAULT_HVML_TARGET         "void"
 #define DEFAULT_HVML_TIMEOUT        10.0
 #define DVOBJ_HVML_DATA_NAME        "__handle_ctrl_props"
 
@@ -60,8 +61,10 @@ target_getter(purc_variant_t root,
     UNUSED_PARAM(argv);
     UNUSED_PARAM(silently);
 
-    /* TODO */
-    return purc_variant_make_string_static("html", false);
+    struct purc_hvml_ctrl_props *ctrl_props = hvml_ctrl_props(root);
+    assert(ctrl_props);
+
+    return purc_variant_make_string_static(ctrl_props->target, false);
 }
 
 static purc_variant_t
@@ -439,6 +442,9 @@ on_release(void* native_entity)
     if (url->fragment)
         free(url->fragment);
 
+    if (ctrl_props->target)
+        free(ctrl_props->target);
+
     if (ctrl_props->base_url_string)
         free(ctrl_props->base_url_string);
 
@@ -486,6 +492,12 @@ purc_dvobj_hvml_new(const struct purc_hvml_ctrl_props **ctrl_props)
 
     my_props = calloc(1, sizeof(struct purc_hvml_ctrl_props));
     if (my_props == NULL) {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto failed;
+    }
+
+    my_props->target = strdup(DEFAULT_HVML_TARGET);
+    if (my_props->target == NULL) {
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto failed;
     }
