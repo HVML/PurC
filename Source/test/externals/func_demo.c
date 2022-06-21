@@ -49,6 +49,7 @@ statsUserRegion(purc_variant_t on_value, purc_variant_t with_value)
     purc_variant_t regions = purc_variant_make_object(0, PURC_VARIANT_INVALID,
             PURC_VARIANT_INVALID);
     if (regions == PURC_VARIANT_INVALID) {
+        purc_variant_unref(result);
         return purc_variant_make_undefined();
     }
 
@@ -63,6 +64,7 @@ statsUserRegion(purc_variant_t on_value, purc_variant_t with_value)
     purc_variant_t regions_key = purc_variant_make_string("regions", false);
     purc_variant_object_set(result, regions_key, regions);
     purc_variant_unref(regions_key);
+    purc_variant_unref(regions);
 
     purc_variant_t unknown_key = purc_variant_make_string("unknown", false);
 
