@@ -1,28 +1,75 @@
-# TODO 清单
+# TODO List
+
+## 长期
+
+### 变体
+
+* 实现新的线性容器类型元组（tuple）。
+
+### eDOM
+
+* 优化元素汇集原生实体的实现，使之可以处理 eDOM 变化的情形，并符合 CSS Selector Level 3 的规范要求。
+
+### eJSON 解析和求值
+
+* 支持元组。
+
+### 解释器
+
+## 202207
+
+### 变体
+
+* 在预定义变量的实现中，使用线性容器封装接口获取容器大小及其成员。
+
+### 预定义变量
+
+* 增加、调整或补充预定义变量的实现：
+  1. `$RDR`
+  1. `$URL`
+  1. `$FS`
+  1. `$FILE`
+  1. `$STR`
+
+### eDOM
+
+* 实现 `void` 目标文档类型。
+
+### 解释器
+
+* 支持 `request` 标签。
+* 支持多个 `body` 标签。
+* `call`、`load` 标签支持创建新行者。
+* `exit` 标签支持 `with` 属性。
+* 完善如下标签从外部数据源获取数据的功能：
+  1. `init` 标签：支持使用 `with` 参数定义请求参数，使用 `via` 属性定义请求方法。
+  1. `archetype` 标签：`src`、`param` 和 `method` 属性的支持。
+  1. `archedata` 标签：`src`、`param` 和 `method` 属性的支持。
+  1. `error` 标签：`type`、`src`、`param` 和 `method` 属性的支持。
+  1. `except` 标签：`type`、`src`、`param` 和 `method` 属性的支持。
+  1. `define` 标签： `from` 支持 http 请求支持使用 `with` 参数定义请求参数，使用 `via` 属性定义请求方法。
+* `update` 标签。
+  1. `to` 属性支持 `prepend` 、`remove` 、`insertBefore` 、`insertAfter` 、`insertAfter` 、`intersect` 、`subtract` 、`xor`
+  1. `from` 支持 http 请求支持使用 `with` 参数定义请求参数，使用 `via` 属性定义请求方法
+  1. `at` 属性支持 `jsonContent`、`content`。
+  1.  支持同时修改多个数据项，支持 `individually` 副词
 
 ## 202206
 
 ### 变体
 
 * 容器子孙成员变化后在容器变体上产生 `change` 事件。
-* 在预定义变量的实现中，使用线性容器封装接口获取容器大小及其成员。
-* 长期：实现容器类型：元组（tuple）。
+* 优化集合的 `overwrite` 等处理，在已经根据给定的唯一性键键值定位要更新的成员后，逐个更新该成员的其他字段，而不是先移除老的成员再构建一个新成员插入。
 
 ### eDOM
 
 * 实现 `void` 目标文档类型并实现 `$HVML.target` 获取器。
-* 长期：优化元素汇集原生实体的实现，使之可以处理 eDOM 变化的情形，并符合 CSS Selector Level 3 的规范要求。
 
 ### 预定义变量
 
 * 按照[预定义变量规范](https://gitlab.fmsoft.cn/hvml/hvml-docs/-/blob/master/zh/hvml-spec-predefined-variables-v1.0-zh.md)要求调整已有的实现。主要涉及：
   1. `$REQUEST`
-  1. `$RDR`
 * 按照[预定义变量规范](https://gitlab.fmsoft.cn/hvml/hvml-docs/-/blob/master/zh/hvml-spec-predefined-variables-v1.0-zh.md)要求调整或增强预定义变量的实现。主要涉及：
-  1. `$URL`
-  1. `$FS`
-  1. `$FILE`
-  1. `$STR`
 
 ### 解释器
 
@@ -40,7 +87,7 @@
   1. `update` 标签：
      - `to` 属性支持 `prepend` 、`remove` 、`insertBefore` 、`insertAfter` 、`insertAfter` 、`intersect` 、`subtract` 、`xor` 、`call`
      - `from` 支持 http 请求支持使用 `with` 参数定义请求参数，使用 `via` 属性定义请求方法
-     - `at` 属性支持 `jsonContent`、`content` 和 `style.<style_name>`
+     - `at` 属性支持 `jsonContent`、`content`。
      - 支持同时修改多个数据项
      - 支持 `individually` 副词
      - 目标数据(`on`属性)为元素汇集时，目前支持通过`class` 和 `id` 两种CSS选择，还需支持通过标签名称来选择。
@@ -142,9 +189,9 @@
 
 ### 变体
 
-* 增加从集合或集合中按照索引值获取成员的接口，以方便代码同时处理数组或集合。
+* ~~增加从集合或集合中按照索引值获取成员的接口，以方便代码同时处理数组或集合。~~
 * ~~为方便监听变量的状态变化，增加一个新的变体类型：异常（exception）。~~
-* 调整变体数据结构使用上的一些细节：
+* ~~调整变体数据结构使用上的一些细节：~~
    1. ~~使用监听器链表头字段的别名 `reserved` 管理保留的变体封装结构，取代当前的循环缓冲区。~~
    1. ~~针对原子字符串和异常，增加一个新的联合字段：`purc_atom_t atom`。~~
    1. ~~仅保留一个监听器链表头结构：将前置监听器放到链表头，后置监听器放到链表尾；遍历时，使用监听器结构中的标志区别监听器类型。~~
