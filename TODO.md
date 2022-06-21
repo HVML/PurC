@@ -92,9 +92,9 @@
   1. `load` 标签。
   1. `exit` 标签（不含对 `with` 属性的支持）。
   1. `test` 标签支持 `by` 属性。
-  1. `reduce` 标签。
   1. `sort` 标签。
   1. `iterate` 标签支持外部类执行器。
+  1. ~~`reduce` 标签~~
   1. ~~`include` 标签~~
   1. ~~`catch` 标签：~~
   1. ~~`back` 标签 `to` 属性的支持~~
