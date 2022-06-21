@@ -51,7 +51,7 @@
   1. `update` 标签： 支持 `from`、`with` 及 `via` 属性定义的请求参数及方法。
 * `update` 标签。
   1. `to` 属性支持 `prepend` 、`remove` 、`insertBefore` 、`insertAfter` 、`insertAfter` 、`intersect` 、`subtract` 、`xor`。
-  1. `at` 属性支持 `jsonContent`、`content`。
+  1. `at` 属性支持 `content`。
   1.  支持同时修改多个数据项，支持 `individually` 副词。
 * `sleep` 标签在调度器检查到有针对休眠协程的事件时，可由调度器唤醒。
 * `observe` 标签支持上下文变量: `$!` 和 `$@`。
