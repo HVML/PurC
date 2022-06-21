@@ -28,6 +28,7 @@
 #include "../internal.h"
 
 #include "private/debug.h"
+#include "private/executor.h"
 #include "purc-runloop.h"
 
 #include "../ops.h"
@@ -87,12 +88,49 @@ post_process_dest_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     purc_variant_t on;
     on = ctxt->on;
     PC_ASSERT(on != PURC_VARIANT_INVALID);
-    if (on == PURC_VARIANT_INVALID)
-        return -1;
-    PURC_VARIANT_SAFE_CLEAR(ctxt->on);
-    ctxt->on = on;
-    purc_variant_ref(on);
 
+    purc_variant_t by;
+    by = ctxt->by;
+
+    purc_variant_t with;
+    with = ctxt->with;
+
+    if (by != PURC_VARIANT_INVALID) {
+        const char *rule = purc_variant_get_string_const(by);
+        PC_ASSERT(rule);
+        bool ok = purc_get_executor(rule, &ctxt->ops);
+        if (!ok)
+            return -1;
+
+        PC_ASSERT(ctxt->ops.create);
+        PC_ASSERT(ctxt->ops.choose);
+        PC_ASSERT(ctxt->ops.destroy);
+
+        purc_exec_inst_t exec_inst;
+        exec_inst = ctxt->ops.create(PURC_EXEC_TYPE_CHOOSE, on, false);
+        if (!exec_inst)
+            return -1;
+
+        exec_inst->with = with;
+
+        ctxt->exec_inst = exec_inst;
+
+        int r = -1;
+        purc_variant_t value;
+        value = ctxt->ops.choose(exec_inst, rule);
+        if (value != PURC_VARIANT_INVALID) {
+            r = pcintr_set_question_var(frame, value);
+            purc_variant_unref(value);
+            if (r == 0)
+                purc_clr_error();
+        }
+        ok = ctxt->ops.destroy(ctxt->exec_inst);
+        PC_ASSERT(ok);
+        ctxt->exec_inst = NULL;
+        return r ? -1 : 0;
+    }
+
+    PC_ASSERT(on != PURC_VARIANT_INVALID);
     int r;
     r = pcintr_set_question_var(frame, on);
 
