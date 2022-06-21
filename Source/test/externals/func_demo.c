@@ -109,3 +109,68 @@ statsUserRegion(purc_variant_t on_value, purc_variant_t with_value)
     return result;
 }
 
+extern purc_variant_t
+to_sort(purc_variant_t on_value, purc_variant_t with_value,
+        purc_variant_t against_value, bool desc, bool caseless)
+{
+    // TODO: check arguments and pay attention to the whole outcome
+    // after dlclose
+
+    // if (on_value == PURC_VARIANT_INVALID ||
+    //         purc_variant_is_array(on_value))
+    // {
+    //     purc_set_error(PURC_ERROR_INVALID_VALUE);
+    //     return PURC_VARIANT_INVALID;
+    // }
+
+    // if (with_value == PURC_VARIANT_INVALID ||
+    //         purc_variant_is_array(with_value))
+    // {
+    //     purc_set_error(PURC_ERROR_INVALID_VALUE);
+    //     return PURC_VARIANT_INVALID;
+    // }
+
+    // if (against_value == PURC_VARIANT_INVALID ||
+    //         purc_variant_is_array(against_value))
+    // {
+    //     purc_set_error(PURC_ERROR_INVALID_VALUE);
+    //     return PURC_VARIANT_INVALID;
+    // }
+
+    // this is just to demonstrate how to use external sorter
+    // so we just intentionally return an array containing
+    // on_value/with_value/against_value/desc/caseless
+    // all together
+
+    if (with_value == PURC_VARIANT_INVALID) {
+        with_value = purc_variant_make_undefined();
+    }
+    else {
+        with_value = purc_variant_ref(with_value);
+    }
+
+    if (against_value == PURC_VARIANT_INVALID) {
+        against_value = purc_variant_make_undefined();
+    }
+    else {
+        against_value = purc_variant_ref(against_value);
+    }
+
+    purc_variant_t d = purc_variant_make_boolean(desc);
+    purc_variant_t c = purc_variant_make_boolean(caseless);
+
+    purc_variant_t v = PURC_VARIANT_INVALID;
+
+    if (d != PURC_VARIANT_INVALID && c != PURC_VARIANT_INVALID) {
+        v = purc_variant_make_array(5, on_value, with_value, against_value,
+                d, c);
+    }
+
+    PURC_VARIANT_SAFE_CLEAR(c);
+    PURC_VARIANT_SAFE_CLEAR(d);
+    PURC_VARIANT_SAFE_CLEAR(against_value);
+    PURC_VARIANT_SAFE_CLEAR(with_value);
+
+    return v;
+}
+

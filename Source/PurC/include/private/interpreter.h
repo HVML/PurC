@@ -697,6 +697,13 @@ void
 pcintr_wakeup_target_with(pcintr_coroutine_t target, void *ctxt,
         void (*func)(void *ctxt));
 
+void*
+pcintr_load_module(const char *module,
+        const char *env_name, const char *prefix);
+
+void
+pcintr_unload_module(void *handle);
+
 PCA_EXTERN_C_END
 
 #endif  /* PURC_PRIVATE_INTERPRETER_H */

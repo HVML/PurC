@@ -45,6 +45,22 @@ hvml nosetotail
 hvml ascendingly asc
 hvml descendingly desc
 
+# executor
+hvml FORMULA
+hvml SQL
+hvml TRAVEL
+hvml KEY
+hvml MUL
+hvml SUB
+hvml DIV
+hvml RANGE
+hvml FUNC
+hvml OBJFORMULA
+hvml ADD
+hvml TOKEN
+hvml CHAR
+hvml FILTER
+
 # msg
 msg event
 msg change

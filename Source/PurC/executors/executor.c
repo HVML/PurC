@@ -26,6 +26,7 @@
 #include "private/debug.h"
 #include "private/errors.h"
 #include "private/instance.h"
+#include "keywords.h"
 
 #include "purc-utils.h"
 
@@ -316,4 +317,42 @@ pcexecutor_inst_reset(struct purc_exec_inst *inst)
         inst->err_msg = NULL;
     }
 }
+
+purc_atom_t
+pcexecutor_get_rule_name(const char *rule)
+{
+    if (!rule) {
+        pcinst_set_error(PCEXECUTOR_ERROR_BAD_ARG);
+        return 0;
+    }
+
+    const char *h = rule;
+    while (*h && purc_isspace(*h))
+        ++h;
+
+    if (!*h) {
+        pcinst_set_error(PCEXECUTOR_ERROR_BAD_ARG);
+        return 0;
+    }
+
+    const char *t = h + 1;
+    while (*t && !purc_isspace(*t) && *t != ':')
+        ++t;
+
+    char buf[128];
+
+    int n = snprintf(buf, sizeof(buf), "%.*s", (int)(t-h), h);
+    if (n < 0 || (size_t)n >= sizeof(buf)) {
+        pcinst_set_error(PCEXECUTOR_ERROR_BAD_ARG);
+        return 0;
+    }
+
+    purc_atom_t atom = PCHVML_KEYWORD_ATOM(HVML, buf);
+    if (atom == 0) {
+        purc_set_error_with_info(PCEXECUTOR_ERROR_BAD_ARG,
+                "unknown atom: %s", buf);
+    }
+    return atom;
+}
+
 

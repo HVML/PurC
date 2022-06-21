@@ -83,6 +83,9 @@ int pcexecutor_register(const char* name,
 int pcexecutor_get_by_rule(const char *rule,
         enum pcexecutor_type *type, purc_exec_ops_t ops);
 
+purc_atom_t
+pcexecutor_get_rule_name(const char *rule);
+
 
 PCA_EXTERN_C_END
 
