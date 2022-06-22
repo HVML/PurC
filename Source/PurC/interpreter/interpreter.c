@@ -2671,6 +2671,18 @@ get_observer_list(pcintr_stack_t stack, purc_variant_t observed)
     else if (purc_variant_is_type(observed, PURC_VARIANT_TYPE_NATIVE)) {
         list = &stack->native_variant_observer_list;
     }
+    else if (purc_variant_is_string(observed)) {
+        // XXX: optimization
+        // CSS selector used string
+        // handle by elements.c match_observe
+        const char *s = purc_variant_get_string_const(observed);
+        if (strlen(s) > 0 && (s[0] == '#' || s[0] == '.')) {
+            list = &stack->native_variant_observer_list;
+        }
+        else {
+            list = &stack->common_variant_observer_list;
+        }
+    }
     else {
         list = &stack->common_variant_observer_list;
     }

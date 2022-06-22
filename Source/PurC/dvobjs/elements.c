@@ -432,7 +432,7 @@ eraser(void* native_entity, bool silently)
 static bool
 match_observe(void* native_entity, purc_variant_t val)
 {
-    if (!purc_variant_is_native(val)) {
+    if (!purc_variant_is_native(val) && !purc_variant_is_string(val)) {
         return false;
     }
 
