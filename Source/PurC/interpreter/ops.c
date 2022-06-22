@@ -70,6 +70,7 @@ const struct tag_id_ops maps[] = {
     {PCHVML_TAG_ARCHEDATA,         pcintr_get_archedata_ops},
     {PCHVML_TAG_REDUCE,            pcintr_get_reduce_ops},
     {PCHVML_TAG_SORT,              pcintr_get_sort_ops},
+    {PCHVML_TAG_BIND,              pcintr_get_bind_ops},
 };
 
 void init_ops(void)

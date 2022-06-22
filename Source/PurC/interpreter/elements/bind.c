@@ -538,10 +538,6 @@ attr_found_val(struct pcintr_stack_frame *frame,
     struct ctxt_for_bind *ctxt;
     ctxt = (struct ctxt_for_bind*)frame->ctxt;
 
-    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, ON)) == name) {
-        ctxt->vcm_ev = attr->val;
-        return 0;
-    }
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, AS)) == name) {
         return process_attr_as(frame, element, name, val);
     }
@@ -574,6 +570,13 @@ attr_found(struct pcintr_stack_frame *frame,
                 "unknown vdom attribute '%s' for element <%s>",
                 attr->key, element->tag_name);
         return -1;
+    }
+
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, ON)) == name) {
+        struct ctxt_for_bind *ctxt;
+        ctxt = (struct ctxt_for_bind*)frame->ctxt;
+        ctxt->vcm_ev = attr->val;
+        return 0;
     }
 
     purc_variant_t val = pcintr_eval_vdom_attr(pcintr_get_stack(), attr);
