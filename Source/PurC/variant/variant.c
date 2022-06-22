@@ -1695,6 +1695,9 @@ purc_variant_t purc_variant_load_dvobj_from_so (const char *so_name,
                     so_name ? so_name : var_name, ext);
             PC_ASSERT(n>0 && (size_t)n<sizeof(so));
         }
+#ifdef PRINT_DEBUG        /* { */
+        PC_DEBUGX("generated so: %s\n", so);
+#endif                    /* } */
 
         /* XXX: the order of searching directories:
          *

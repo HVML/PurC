@@ -4391,6 +4391,9 @@ pcintr_load_module(const char *module,
     ext = ".dylib";
 #endif
 
+    if (!prefix)
+        prefix = "";
+
     void *library_handle = NULL;
 
     char so[PATH_MAX+1];
@@ -4406,7 +4409,10 @@ pcintr_load_module(const char *module,
          */
 
         // step1: search in directories defined by the env var
-        const char *env = getenv(env_name);
+        const char *env = NULL;
+        if (env_name)
+            env = getenv(env_name);
+
         if (env) {
             char *path = strdup(env);
             char *str1;

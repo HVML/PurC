@@ -32,10 +32,12 @@
 
 #include "../ops.h"
 
+#include <dlfcn.h>
 #include <pthread.h>
 #include <unistd.h>
 
 enum VIA {
+    VIA_UNDEFINED,
     VIA_LOAD,
     VIA_GET,
     VIA_POST,
@@ -63,6 +65,7 @@ struct ctxt_for_init {
     purc_rwstream_t               resp;
 
     enum VIA                      via;
+    purc_variant_t                v_for;
 
     unsigned int                  under_head:1;
     unsigned int                  temporarily:1;
@@ -588,6 +591,36 @@ process_attr_from(struct pcintr_stack_frame *frame,
 }
 
 static int
+process_attr_for(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element,
+        purc_atom_t name, purc_variant_t val)
+{
+    struct ctxt_for_init *ctxt;
+    ctxt = (struct ctxt_for_init*)frame->ctxt;
+    if (ctxt->v_for != PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_DUPLICATED,
+                "vdom attribute '%s' for element <%s>",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    if (val == PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "vdom attribute '%s' for element <%s> undefined",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    if (!purc_variant_is_string(val)) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "vdom attribute '%s' for element <%s> is not string",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    ctxt->v_for = purc_variant_ref(val);
+
+    return 0;
+}
+
+static int
 process_attr_with(struct pcintr_stack_frame *frame,
         struct pcvdom_element *element,
         purc_atom_t name, purc_variant_t val)
@@ -727,6 +760,9 @@ attr_found_val(struct pcintr_stack_frame *frame,
     }
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, VIA)) == name) {
         return process_attr_via(frame, element, name, val);
+    }
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, FOR)) == name) {
+        return process_attr_for(frame, element, name, val);
     }
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, TEMPORARILY)) == name ||
             pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, TEMP)) == name)
@@ -1225,6 +1261,69 @@ process_from_async(pcintr_coroutine_t co, pcintr_stack_frame_t frame)
 }
 
 static int
+process_via(pcintr_coroutine_t co)
+{
+    pcintr_stack_t stack = &co->stack;
+
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_stack_get_bottom_frame(stack);
+
+    struct ctxt_for_init *ctxt;
+    ctxt = (struct ctxt_for_init*)frame->ctxt;
+
+    const char *s_from = NULL;
+    const char *s_for = NULL;
+
+    if (ctxt->from != PURC_VARIANT_INVALID &&
+            purc_variant_is_string(ctxt->from))
+    {
+        s_from = purc_variant_get_string_const(ctxt->from);
+    }
+
+    if (ctxt->v_for != PURC_VARIANT_INVALID &&
+            purc_variant_is_string(ctxt->v_for))
+    {
+        s_for = purc_variant_get_string_const(ctxt->v_for);
+    }
+
+    purc_variant_t v;
+    if (0) {
+        v = purc_variant_load_dvobj_from_so (s_from, s_for);
+    }
+    else {
+        void *handle = NULL;
+        if (s_from) {
+            handle = pcintr_load_module(s_from, NULL, "lib");
+            if (!handle)
+                return -1;
+        }
+
+        purc_variant_t (*load)(const char *, int *);
+
+        load = dlsym(handle, EXOBJ_LOAD_ENTRY);
+        if (dlerror() != NULL) {
+            if (handle)
+                pcintr_unload_module(handle);
+            pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+            return -1;
+        }
+
+        int ver_code;
+        v = load(s_for, &ver_code);
+        // TODO: check ver_code;
+    }
+
+    if (v == PURC_VARIANT_INVALID)
+        return -1;
+
+    int r;
+    PRINT_VARIANT(v);
+    r = post_process_src(co, frame, v);
+    purc_variant_unref(v);
+    return r ? -1 : 0;
+}
+
+static int
 process_from(pcintr_coroutine_t co)
 {
     pcintr_stack_t stack = &co->stack;
@@ -1298,6 +1397,11 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     }
 
     purc_clr_error(); // pcvdom_element_parent
+
+    if (ctxt->via == VIA_LOAD) {
+        r = process_via(stack->co);
+        return r ? NULL : ctxt;
+    }
 
     if (ctxt->from_uri) {
         r = process_from(stack->co);
@@ -1512,6 +1616,9 @@ select_child(pcintr_stack_t stack, void* ud)
     ctxt = (struct ctxt_for_init*)frame->ctxt;
 
     struct pcvdom_node *curr;
+
+    if (ctxt->via == VIA_LOAD)
+        return NULL;
 
 again:
     curr = ctxt->curr;
