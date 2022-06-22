@@ -279,15 +279,14 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     }
     else {
         purc_variant_t on = ctxt->on;
-// TODO : css selector
-#if 0
         if (purc_variant_is_string(ctxt->on)) {
-            const char* at_str = purc_variant_get_string_const(ctxt->on);
-            if (at_str[0] == '#') {
-            }
+            // XXX: optimization
+            // CSS selector used string
+            // handle by elements.c match_observe
+            pcintr_revoke_observer_ex(on,
+                ctxt->msg_type_atom, ctxt->sub_type);
         }
         else
-#endif
         {
             pcintr_revoke_observer_ex(on,
                 ctxt->msg_type_atom, ctxt->sub_type);
