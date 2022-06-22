@@ -1302,8 +1302,7 @@ process_via(pcintr_coroutine_t co)
 
         load = dlsym(handle, EXOBJ_LOAD_ENTRY);
         if (dlerror() != NULL) {
-            if (handle)
-                pcintr_unload_module(handle);
+            pcintr_unload_module(handle);
             pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
             return -1;
         }
@@ -1311,6 +1310,8 @@ process_via(pcintr_coroutine_t co)
         int ver_code;
         v = load(s_for, &ver_code);
         // TODO: check ver_code;
+
+        pcintr_unload_module(handle);
     }
 
     if (v == PURC_VARIANT_INVALID)
