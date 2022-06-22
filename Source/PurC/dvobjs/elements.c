@@ -43,9 +43,17 @@ elements_init(struct pcdvobjs_elements *elements)
 static void
 elements_release(struct pcdvobjs_elements *elements)
 {
-    if (elements && elements->elements) {
+    if (!elements) {
+        return;
+    }
+
+    if (elements->elements) {
         pcutils_array_destroy(elements->elements, true);
         elements->elements = NULL;
+    }
+    if (elements->css) {
+        free(elements->css);
+        elements->css = NULL;
     }
 }
 
@@ -641,6 +649,14 @@ pcdvobjs_query_elements(struct pcdom_element *root, const char *css)
     PC_ASSERT(purc_variant_is_type(elements, PURC_VARIANT_TYPE_NATIVE));
     void *entity = purc_variant_native_get_entity(elements);
     PC_ASSERT(entity);
+
+    struct pcdvobjs_elements* elems = (struct pcdvobjs_elements*)entity;
+    elems->css = strdup(css);
+    if (elems->css == NULL) {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        purc_variant_unref(elements);
+        return PURC_VARIANT_INVALID;
+    }
 
     struct visit_args args;
     args.elements = (struct pcdvobjs_elements*)entity;
