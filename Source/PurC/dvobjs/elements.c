@@ -439,16 +439,25 @@ match_observe(void* native_entity, purc_variant_t val)
     struct pcdvobjs_elements *elements;
     elements = (struct pcdvobjs_elements*)native_entity;
 
-    void *comp = purc_variant_native_get_entity(val);
-    pcutils_array_t *arr = elements->elements;
-    PC_ASSERT(arr);
-
-    struct pcdom_element *elem = NULL;
-    size_t len = pcutils_array_length(arr);
-    for (size_t i = 0; i < len; i++) {
-        elem = (struct pcdom_element*)pcutils_array_get(elements->elements, i);
-        if (elem == comp) {
+    if (purc_variant_is_string(val)) {
+        const char *s = purc_variant_get_string_const(val);
+        if (elements->css && strcmp(elements->css, s) == 0) {
             return true;
+        }
+    }
+    else if (purc_variant_is_native(val)) {
+        void *comp = purc_variant_native_get_entity(val);
+        pcutils_array_t *arr = elements->elements;
+        PC_ASSERT(arr);
+
+        struct pcdom_element *elem = NULL;
+        size_t len = pcutils_array_length(arr);
+        for (size_t i = 0; i < len; i++) {
+            elem = (struct pcdom_element*)pcutils_array_get(elements->elements,
+                    i);
+            if (elem == comp) {
+                return true;
+            }
         }
     }
     return false;
