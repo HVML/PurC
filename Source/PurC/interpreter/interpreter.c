@@ -3060,6 +3060,7 @@ on_load_async_done(
 
 purc_variant_t
 pcintr_load_from_uri_async(pcintr_stack_t stack, const char* uri,
+        enum pcfetcher_request_method method, purc_variant_t params,
         pcfetcher_response_handler handler, void* ctxt)
 {
     PC_ASSERT(stack);
@@ -3087,8 +3088,8 @@ pcintr_load_from_uri_async(pcintr_stack_t stack, const char* uri,
     uint32_t timeout = stack->vdom->hvml_ctrl_props->timeout.tv_sec;
     data->request_id = pcfetcher_request_async(
             uri,
-            PCFETCHER_REQUEST_METHOD_GET,
-            NULL,
+            method,
+            params,
             timeout,
             on_load_async_done,
             data);

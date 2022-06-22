@@ -66,6 +66,7 @@ struct ctxt_for_init {
 
     enum VIA                      via;
     purc_variant_t                v_for;
+    purc_variant_t                params;
 
     unsigned int                  under_head:1;
     unsigned int                  temporarily:1;
@@ -94,6 +95,8 @@ ctxt_for_init_destroy(struct ctxt_for_init *ctxt)
         PURC_VARIANT_SAFE_CLEAR(ctxt->against);
         PURC_VARIANT_SAFE_CLEAR(ctxt->literal);
         PURC_VARIANT_SAFE_CLEAR(ctxt->sync_id);
+        PURC_VARIANT_SAFE_CLEAR(ctxt->v_for);
+        PURC_VARIANT_SAFE_CLEAR(ctxt->params);
         if (ctxt->resp) {
             purc_rwstream_destroy(ctxt->resp);
             ctxt->resp = NULL;
@@ -1024,6 +1027,52 @@ clean_rws:
     frame->next_step = NEXT_STEP_ON_POPPING;
 }
 
+static enum pcfetcher_request_method
+method_from_via(enum VIA via)
+{
+    enum pcfetcher_request_method method;
+    switch (via) {
+        case VIA_GET:
+            method = PCFETCHER_REQUEST_METHOD_GET;
+            break;
+        case VIA_POST:
+            method = PCFETCHER_REQUEST_METHOD_POST;
+            break;
+        case VIA_DELETE:
+            method = PCFETCHER_REQUEST_METHOD_DELETE;
+            break;
+        case VIA_UNDEFINED:
+            method = PCFETCHER_REQUEST_METHOD_GET;
+            break;
+        default:
+            PC_ASSERT(0);
+    }
+
+    return method;
+}
+
+static purc_variant_t
+params_from_with(struct ctxt_for_init *ctxt)
+{
+    purc_variant_t with = ctxt->with;
+
+    purc_variant_t params;
+    if (with == PURC_VARIANT_INVALID) {
+        params = purc_variant_make_object_0();
+    }
+    else if (purc_variant_is_object(with)) {
+        params = purc_variant_ref(with);
+    }
+    else {
+        PC_ASSERT(0);
+    }
+
+    PURC_VARIANT_SAFE_CLEAR(ctxt->params);
+    ctxt->params = params;
+
+    return params;
+}
+
 static int
 process_from_sync(pcintr_coroutine_t co, pcintr_stack_frame_t frame)
 {
@@ -1033,9 +1082,15 @@ process_from_sync(pcintr_coroutine_t co, pcintr_stack_frame_t frame)
     ctxt = (struct ctxt_for_init*)frame->ctxt;
     PC_ASSERT(ctxt);
 
+    enum pcfetcher_request_method method;
+    method = method_from_via(ctxt->via);
+
+    purc_variant_t params;
+    params = params_from_with(ctxt);
+
     ctxt->co = co;
     purc_variant_t v = pcintr_load_from_uri_async(stack, ctxt->from_uri,
-            on_sync_complete, frame);
+            method, params, on_sync_complete, frame);
     if (v == PURC_VARIANT_INVALID)
         return -1;
 
@@ -1245,8 +1300,14 @@ process_from_async(pcintr_coroutine_t co, pcintr_stack_frame_t frame)
     data->as            = purc_variant_ref(ctxt->as);
     data->under_head    = ctxt->under_head;
 
+    enum pcfetcher_request_method method;
+    method = method_from_via(ctxt->via);
+
+    purc_variant_t params;
+    params = params_from_with(ctxt);
+
     data->async_id = pcintr_load_from_uri_async(stack, ctxt->from_uri,
-            on_async_complete, data);
+            method, params, on_async_complete, data);
     if (data->async_id == PURC_VARIANT_INVALID) {
         load_data_destroy(data);
         return -1;
@@ -1441,8 +1502,15 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
             fetcher->current = pthread_self();
             purc_variant_ref(fetcher->name);
             fetcher->under_head = ctxt->under_head;
+
+            enum pcfetcher_request_method method;
+            method = method_from_via(ctxt->via);
+
+            purc_variant_t params;
+            params = params_from_with(ctxt);
+
             purc_variant_t v = pcintr_load_from_uri_async(stack, uri,
-                    load_response_handler, fetcher);
+                    method, params, load_response_handler, fetcher);
             if (v == PURC_VARIANT_INVALID)
                 return NULL;
             pcintr_save_async_request_id(stack, v);

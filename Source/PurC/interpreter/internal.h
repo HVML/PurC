@@ -116,6 +116,7 @@ pcintr_load_from_uri(pcintr_stack_t stack, const char* uri);
 
 purc_variant_t
 pcintr_load_from_uri_async(pcintr_stack_t stack, const char* uri,
+        enum pcfetcher_request_method method, purc_variant_t params,
         pcfetcher_response_handler handler, void* ctxt);
 
 bool
