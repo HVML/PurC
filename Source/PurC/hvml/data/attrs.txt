@@ -85,3 +85,5 @@ array
 key
     type: update
 
+target
+    type: prep

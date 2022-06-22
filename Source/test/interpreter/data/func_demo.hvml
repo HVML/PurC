@@ -1,0 +1,39 @@
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<hvml target="html" lang="en">
+    <head>
+        <init as='foo'>
+            { "id" : "foo", "name" : "bar" }
+        </init>
+        <init as='arr'>
+            [2, 3, 1, 9, 5]
+        </init>
+    </head>
+
+    <body>
+        <div>
+            <choose on="$foo" by="FUNC:get_member@FUNC_DEMO" with="name">
+                <update on="$@" to="append" with="$?" />
+            </choose>
+        </div>
+        <div>
+            <iterate on="$foo" by="FUNC:to_array@FUNC_DEMO" with="name">
+                <update on="$@" to="append" with="$?" />
+            </iterate>
+        </div>
+        <div>
+            <sort on="$arr" by="FUNC:to_sort@FUNC_DEMO" with="foobar">
+            </sort>
+        </div>
+        <div>
+            <sort on="$arr" by="RANGE: FROM 0" with="foobar">
+            </sort>
+        </div>
+        <div>
+            <sort on="$arr" with="foobar">
+            </sort>
+        </div>
+    </body>
+</hvml>
+
+
+

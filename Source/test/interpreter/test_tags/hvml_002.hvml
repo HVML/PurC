@@ -1,2 +1,5 @@
 <hvml lang="en">
+    <body>
+        <div>$HVML.target</div>
+    </body>
 </hvml>

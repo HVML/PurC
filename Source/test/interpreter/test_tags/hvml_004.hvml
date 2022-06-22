@@ -1,2 +1,5 @@
 <hvml target="html" id="ab" value="test" custom="cust">
+    <body>
+        <div>$HVML.target</div>
+    </body>
 </hvml>

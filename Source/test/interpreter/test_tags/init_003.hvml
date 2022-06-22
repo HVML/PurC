@@ -1,7 +1,7 @@
 <!DOCTYPE hvml>
 <hvml target="html" lang="en">
     <head>
-        <init as="buttons" uniquely>
+        <init as="buttons">
             [
                 { "letters": "7", "class": "number" },
                 { "letters": "7", "class": "number" },

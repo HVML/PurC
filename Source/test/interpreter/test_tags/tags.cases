@@ -30,7 +30,32 @@ archedata_003
 init_001
 init_002
 init_003
-#####init_004
+init_004
+init_005
+init_006
+init_007
+init_008
+init_009
+init_010
+init_011
+init_012
+
+#### #id not found crash
+######init_013
+init_014
+init_015
+init_016
+init_017
+init_018
+
+### at="N" N not exists(silently)
+#####init_019
+#####init_020
+init_021
+init_022
+init_023
+init_024
+
 
 clear_001
 clear_002
@@ -47,8 +72,21 @@ erase_008
 erase_009
 erase_010
 erase_011
+
+#test
 test_001
+test_002
+test_003
+test_004
+ FILTER: like
+####test_005
+
+
 differ_001
+differ_002
+differ_003
+differ_004
+differ_005
 
 # sort
 sort_001
@@ -93,3 +131,4 @@ reduce_012
 reduce_013
 reduce_014
 #####reduce_015
+reduce_016

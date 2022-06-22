@@ -29,10 +29,14 @@
 
 #include "private/debug.h"
 #include "private/dvobjs.h"
+#include "private/executor.h"
 #include "purc-runloop.h"
+
+#include "../executors/exe_func.h"
 
 #include "../ops.h"
 
+#include <dlfcn.h>
 #include <pthread.h>
 #include <unistd.h>
 #include <errno.h>
@@ -51,7 +55,14 @@ struct ctxt_for_sort {
     unsigned int                  casesensitively:1;
     unsigned int                  ascendingly:1;
 
-    struct pcutils_arrlist        *keys;
+    struct pcutils_arrlist       *keys;
+
+    void                         *handle;
+    void                         *symbol;
+
+    struct purc_exec_ops          ops;
+    purc_exec_inst_t              exec_inst;
+    purc_exec_iter_t              it;
 };
 
 typedef void(array_list_free_fn)(void *data);
@@ -73,12 +84,20 @@ static void
 ctxt_for_sort_destroy(struct ctxt_for_sort *ctxt)
 {
     if (ctxt) {
+        PC_ASSERT(ctxt->exec_inst == NULL);
         PURC_VARIANT_SAFE_CLEAR(ctxt->on);
         PURC_VARIANT_SAFE_CLEAR(ctxt->by);
         PURC_VARIANT_SAFE_CLEAR(ctxt->with);
         PURC_VARIANT_SAFE_CLEAR(ctxt->against);
         if (ctxt->keys) {
             pcutils_arrlist_free(ctxt->keys);
+        }
+        if (ctxt->symbol) {
+            ctxt->symbol = NULL;
+        }
+        if (ctxt->handle) {
+            pcintr_unload_module(ctxt->handle);
+            ctxt->handle = NULL;
         }
         free(ctxt);
     }
@@ -372,10 +391,12 @@ comp_by_key(purc_variant_t l, purc_variant_t r, const char *key, bool by_number,
     purc_variant_t rv = PURC_VARIANT_INVALID;
     if (purc_variant_is_object(l)) {
         lv = purc_variant_object_get_by_ckey(l, key);
+        purc_clr_error();
     }
 
     if (purc_variant_is_object(r)) {
         rv = purc_variant_object_get_by_ckey(r, key);
+        purc_clr_error();
     }
 
     return comp_raw(lv, rv, by_number, ascendingly, casesensitively);
@@ -526,6 +547,133 @@ sort_set(struct ctxt_for_sort *ctxt, purc_variant_t set, purc_variant_t against)
     pcvariant_set_sort(set, ctxt, sort_cmp);
 }
 
+static int
+post_process_by_func(pcintr_stack_t stack, const char *s_by,
+        struct exe_func_param *param)
+{
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_stack_get_bottom_frame(stack);
+    PC_ASSERT(frame);
+
+    struct ctxt_for_sort *ctxt;
+    ctxt = (struct ctxt_for_sort*)frame->ctxt;
+
+    int r;
+    r = exe_func_parse(s_by, strlen(s_by), param);
+    if (r)
+        return -1;
+
+    if (param->rule.module) {
+        ctxt->handle = pcintr_load_module(param->rule.module,
+                "PURC_EXECUTOR_PATH", "libpurc-executor-");
+        if (!ctxt->handle)
+            return -1;
+    }
+    ctxt->symbol = dlsym(ctxt->handle, param->rule.name);
+    if (dlerror() != NULL) {
+        pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+        return -1;
+    }
+
+    purc_variant_t (*sorter)(purc_variant_t on_value,
+            purc_variant_t with_value, purc_variant_t against_value,
+            bool desc, bool caseless);
+    sorter = ctxt->symbol;
+
+    purc_variant_t on      = ctxt->on;
+    purc_variant_t with    = ctxt->with;
+    purc_variant_t against = ctxt->against;
+    bool desc      = ctxt->ascendingly ? false : true;
+    bool caseless  = ctxt->casesensitively ? false : true;
+
+    purc_variant_t v;
+    v = sorter(on, with, against, desc, caseless);
+    if (v == PURC_VARIANT_INVALID)
+        return -1;
+
+    r = pcintr_set_question_var(frame, v);
+    purc_variant_unref(v);
+
+    return r ? -1 : 0;
+}
+
+static int
+sort_val(pcintr_stack_t stack, purc_variant_t val)
+{
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_stack_get_bottom_frame(stack);
+    PC_ASSERT(frame);
+
+    struct ctxt_for_sort *ctxt;
+    ctxt = (struct ctxt_for_sort*)frame->ctxt;
+
+    enum purc_variant_type type = purc_variant_get_type(val);
+    switch (type) {
+        case PURC_VARIANT_TYPE_ARRAY:
+            sort_array(ctxt, val, ctxt->against);
+            break;
+
+        case PURC_VARIANT_TYPE_SET:
+            sort_set(ctxt, val, ctxt->against);
+            break;
+
+        default:
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            return -1;
+    }
+
+    return 0;
+}
+
+static int
+post_process_by_internal(pcintr_stack_t stack, const char *s_by)
+{
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_stack_get_bottom_frame(stack);
+    PC_ASSERT(frame);
+
+    struct ctxt_for_sort *ctxt;
+    ctxt = (struct ctxt_for_sort*)frame->ctxt;
+
+    const char *rule = s_by;
+    bool ok = purc_get_executor(rule, &ctxt->ops);
+    if (!ok)
+        return -1;
+
+    PC_ASSERT(ctxt->ops.create);
+    PC_ASSERT(ctxt->ops.choose);
+    PC_ASSERT(ctxt->ops.destroy);
+
+    purc_exec_inst_t exec_inst;
+    exec_inst = ctxt->ops.create(PURC_EXEC_TYPE_CHOOSE, ctxt->on, false);
+    if (!exec_inst)
+        return -1;
+
+    ctxt->exec_inst = exec_inst;
+
+    int r = -1;
+    purc_variant_t value;
+    value = ctxt->ops.choose(exec_inst, rule);
+    ok = ctxt->ops.destroy(ctxt->exec_inst);
+    PC_ASSERT(ok);
+    ctxt->exec_inst = NULL;
+
+    if (value == PURC_VARIANT_INVALID)
+        return -1;
+
+    r = sort_val(stack, value);
+    if (r == 0) {
+        r = pcintr_set_question_var(frame, value);
+    }
+
+    purc_variant_unref(value);
+
+    if (r == 0)
+        purc_clr_error();
+
+    return r ? -1 : 0;
+}
+
 static void*
 after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 {
@@ -567,22 +715,29 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     if (ctxt->by != PURC_VARIANT_INVALID) {
         // TODO:
+        const char *s_by = purc_variant_get_string_const(ctxt->by);
+        purc_atom_t name;
+        name = pcexecutor_get_rule_name(s_by);
+        if (name == 0)
+            return NULL;
+
+        if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, FUNC)) == name) {
+            struct exe_func_param param = {};
+            r = post_process_by_func(stack, s_by, &param);
+            exe_func_param_reset(&param);
+        }
+        else {
+            r = post_process_by_internal(stack, s_by);
+        }
+
+        return r ? NULL : ctxt;
     }
     else {
-        enum purc_variant_type type = purc_variant_get_type(ctxt->on);
-        switch (type) {
-        case PURC_VARIANT_TYPE_ARRAY:
-            sort_array(ctxt, ctxt->on, ctxt->against);
-            break;
-
-        case PURC_VARIANT_TYPE_SET:
-            sort_set(ctxt, ctxt->on, ctxt->against);
-            break;
-
-        default:
-            purc_set_error(PURC_ERROR_INVALID_VALUE);
-            return NULL;
+        r = sort_val(stack, ctxt->on);
+        if (r == 0) {
+            r = pcintr_set_question_var(frame, ctxt->on);
         }
+        return r ? NULL : ctxt;
     }
     purc_clr_error();
 

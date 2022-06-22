@@ -54,6 +54,7 @@ struct purc_exec_inst {
     struct purc_exec_iter       it; // FIXME: one `it` for one `exec_inst`
 
     purc_variant_t              input;
+    purc_variant_t              with;         // for FUNC/CLASS only
     bool                        asc_desc;
 
     purc_variant_t              selected_keys;
@@ -69,6 +70,21 @@ void pcexecutor_set_debug(int debug_flex, int debug_bison);
 void pcexecutor_get_debug(int *debug_flex, int *debug_bison);
 
 void pcexecutor_inst_reset(struct purc_exec_inst *inst);
+
+
+enum pcexecutor_type {
+    PCEXECUTOR_INTERNAL,
+    PCEXECUTOR_EXTERNAL,
+};
+
+int pcexecutor_register(const char* name,
+        enum pcexecutor_type type, purc_exec_ops_t ops);
+
+int pcexecutor_get_by_rule(const char *rule,
+        enum pcexecutor_type *type, purc_exec_ops_t ops);
+
+purc_atom_t
+pcexecutor_get_rule_name(const char *rule);
 
 
 PCA_EXTERN_C_END

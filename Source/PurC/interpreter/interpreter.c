@@ -40,6 +40,7 @@
 
 #include "hvml-attr.h"
 
+#include <dlfcn.h>
 #include <pthread.h>
 #include <stdarg.h>
 #include <libgen.h>
@@ -4377,5 +4378,125 @@ pcintr_on_event(purc_atom_t msg_type, purc_variant_t msg_sub_type,
         if (0)
             PC_ASSERT(0);
     }
+}
+
+void*
+pcintr_load_module(const char *module,
+        const char *env_name, const char *prefix)
+{
+#define PRINT_DEBUG
+#if OS(LINUX) || OS(UNIX) || OS(MAC_OS_X)             /* { */
+    const char *ext = ".so";
+#if OS(MAC_OS_X)
+    ext = ".dylib";
+#endif
+
+    void *library_handle = NULL;
+
+    char so[PATH_MAX+1];
+    int n;
+    do {
+        /* XXX: the order of searching directories:
+         *
+         * 1. the valid directories contains in the environment variable:
+         *      $(env_name)
+         * 2. /usr/local/lib/purc-<purc-api-version>/
+         * 3. /usr/lib/purc-<purc-api-version>/
+         * 4. /lib/purc-<purc-api-version>/
+         */
+
+        // step1: search in directories defined by the env var
+        const char *env = getenv(env_name);
+        if (env) {
+            char *path = strdup(env);
+            char *str1;
+            char *saveptr1;
+            char *dir;
+
+            for (str1 = path; ; str1 = NULL) {
+                dir = strtok_r(str1, ":;", &saveptr1);
+                if (dir == NULL || dir[0] != '/') {
+                    break;
+                }
+
+                n = snprintf(so, sizeof(so),
+                        "%s/%s%s%s", dir, prefix, module, ext);
+                PC_ASSERT(n>0 && (size_t)n<sizeof(so));
+                library_handle = dlopen(so, RTLD_LAZY);
+                if (library_handle) {
+#ifdef PRINT_DEBUG        /* { */
+                    PC_DEBUGX("Loaded from %s\n", so);
+#endif                    /* } */
+                    break;
+                }
+            }
+
+            free(path);
+
+            if (library_handle)
+                break;
+        }
+
+        static const char *ver = PURC_API_VERSION_STRING;
+
+        // try in system directories.
+        static const char *other_tries[] = {
+            "/usr/local/lib/purc-%s/%s%s%s",
+            "/usr/lib/purc-%s/%s%s%s",
+            "/lib/purc-%s/%s%s%s",
+        };
+
+        for (size_t i = 0; i < PCA_TABLESIZE(other_tries); i++) {
+            n = snprintf(so, sizeof(so), other_tries[i], ver,
+                    prefix, module, ext);
+            PC_ASSERT(n>0 && (size_t)n<sizeof(so));
+            library_handle = dlopen(so, RTLD_LAZY);
+            if (library_handle) {
+#ifdef PRINT_DEBUG        /* { */
+                PC_DEBUGX("Loaded from %s\n", so);
+#endif                    /* } */
+                break;
+            }
+        }
+
+    } while (0);
+
+    if (!library_handle) {
+        purc_set_error_with_info(PURC_ERROR_BAD_SYSTEM_CALL,
+                "failed to load: %s", so);
+        return NULL;
+    }
+#ifdef PRINT_DEBUG        /* { */
+    PC_DEBUGX("loaded: %s", so);
+#endif                    /* } */
+
+    return library_handle;
+
+#else                                                 /* }{ */
+    UNUSED_PARAM(module);
+    UNUSED_PARAM(env_name);
+    UNUSED_PARAM(prefix);
+
+    // TODO: Add codes for other OS.
+    pcinst_set_error (PURC_ERROR_NOT_SUPPORTED);
+    PC_ASSERT(0); // Not implemented yet
+#endif                                                /* } */
+#undef PRINT_DEBUG
+}
+
+void
+pcintr_unload_module(void *handle)
+{
+    if (!handle)
+        return;
+
+    if (1)
+        return;
+
+    // FIXME: we don't close for the moment
+    int r;
+    r = dlclose(handle);
+
+    PC_ASSERT(r == 0);
 }
 

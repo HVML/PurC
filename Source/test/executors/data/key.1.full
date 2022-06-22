@@ -61,22 +61,22 @@ I: # input json value
 R: # rule to use
 KEY: ALL;
 O: # output value to compare, can be predefined-error-code or json
-['world'];
+'world';
 
 R: # rule to use
 KEY: ALL FOR VALUE;
 O: # output value to compare, can be predefined-error-code or json
-['world'];
+'world';
 
 R: # rule to use
 KEY: ALL FOR KEY;
 O: # output value to compare, can be predefined-error-code or json
-['hello'];
+'hello';
 
 R: # rule to use
 KEY: ALL FOR KV;
 O: # output value to compare, can be predefined-error-code or json
-[{'k':'hello', 'v':'world'}];
+{'k':'hello', 'v':'world'};
 
 I:
 { 'hello': 'world',
@@ -87,47 +87,47 @@ I:
 R:
 KEY: AS 'foo';
 O:
-['bar'];
+'bar';
 
 R:
 KEY: AS 'gReat'i;
 O:
-['wall'];
+'wall';
 
 R:
 KEY: LIKE 'gR*'i;
 O:
-['wall'];
+'wall';
 
 R:
 KEY: LIKE 'gR??t'i;
 O:
-['wall'];
+'wall';
 
 R:
 KEY: LIKE /great/;
 O:
-['wall'];
+'wall';
 
 R:
 KEY: LIKE /gr..t/m;
 O:
-['wall'];
+'wall';
 
 R:
 KEY: LIKE /^great$/;
 O:
-['wall'];
+'wall';
 
 R:
 KEY: LIKE /name/;
 O:
-['li/3'];
+'li/3';
 
 R:
 KEY: LIKE /name\/age/;
 O:
-['li/3'];
+'li/3';
 
 I:
 [ "zh_CN", 100, "zh_TW", 90, "zh_HK", 90, "zh_SG", 90,

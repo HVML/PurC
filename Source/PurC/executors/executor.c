@@ -26,6 +26,7 @@
 #include "private/debug.h"
 #include "private/errors.h"
 #include "private/instance.h"
+#include "keywords.h"
 
 #include "purc-utils.h"
 
@@ -44,12 +45,14 @@
 #include "exe_objformula.h"
 #include "exe_sql.h"
 #include "exe_travel.h"
+#include "exe_func.h"
 
 #include "executor_err_msgs.inc"
 
 struct pcexec_record {
     char                      *name;
     struct purc_exec_ops       ops;
+    enum pcexecutor_type       type;
 };
 
 static int comp_pcexec_key(const void *key1, const void *key2)
@@ -121,6 +124,7 @@ static int _init_instance(struct pcinst *inst,
     pcexec_exe_objformula_register();
     pcexec_exe_sql_register();
     pcexec_exe_travel_register();
+    pcexec_exe_func_register();
 
     return 0;
 }
@@ -170,11 +174,12 @@ void pcexecutor_get_debug(int *debug_flex, int *debug_bison)
         *debug_bison = heap->debug_bison;
 }
 
-bool purc_register_executor(const char* name, purc_exec_ops_t ops)
+int pcexecutor_register(const char* name,
+        enum pcexecutor_type type, purc_exec_ops_t ops)
 {
     if (!name || !ops) {
         pcinst_set_error(PCEXECUTOR_ERROR_BAD_ARG);
-        return false;
+        return -1;
     }
 
     pcutils_map_entry *entry = NULL;
@@ -211,6 +216,7 @@ bool purc_register_executor(const char* name, purc_exec_ops_t ops)
         goto failure;
     }
     record->ops  = *ops;
+    record->type = type;
 
     r = pcutils_map_find_replace_or_insert(heap->executors, name, record, NULL);
     if (r) {
@@ -218,18 +224,25 @@ bool purc_register_executor(const char* name, purc_exec_ops_t ops)
         goto failure;
     }
 
-    return true;
+    return 0;
 
 failure:
     if (record) {
         free_pcexec_val(record);
     }
 
-    return false;
+    return -1;
+}
+
+bool purc_register_executor(const char* name, purc_exec_ops_t ops)
+{
+    int r;
+    r = pcexecutor_register(name, PCEXECUTOR_INTERNAL, ops);
+    return r ? false : true;
 }
 
 static inline bool
-get_executor(const char* name, purc_exec_ops_t ops)
+get_executor(const char* name, enum pcexecutor_type *type, purc_exec_ops_t ops)
 {
     pcutils_map_entry *entry = NULL;
 
@@ -251,22 +264,33 @@ get_executor(const char* name, purc_exec_ops_t ops)
     if (ops)
         *ops = record->ops;
 
+    if (type)
+        *type = record->type;
+
     return true;
 }
 
 bool purc_get_executor(const char* name, purc_exec_ops_t ops)
 {
-    if (!name) {
+    int r;
+    r = pcexecutor_get_by_rule(name, NULL, ops);
+    return r ? false : true;
+}
+
+int pcexecutor_get_by_rule(const char *rule,
+        enum pcexecutor_type *type, purc_exec_ops_t ops)
+{
+    if (!rule) {
         pcinst_set_error(PCEXECUTOR_ERROR_BAD_ARG);
-        return false;
+        return -1;
     }
 
-    const char *h = name;
+    const char *h = rule;
     while (*h && purc_isspace(*h))
         ++h;
 
     if (!*h)
-        return false;
+        return -1;
 
     const char *t = h + 1;
     while (*t && !purc_isspace(*t) && *t != ':')
@@ -275,10 +299,10 @@ bool purc_get_executor(const char* name, purc_exec_ops_t ops)
     char *s = strndup(h, t-h);
     PC_ASSERT(s);
 
-    bool ok = get_executor(s, ops);
+    bool ok = get_executor(s, type, ops);
     free(s);
 
-    return ok;
+    return ok ? 0 : -1;
 }
 
 void
@@ -293,4 +317,42 @@ pcexecutor_inst_reset(struct purc_exec_inst *inst)
         inst->err_msg = NULL;
     }
 }
+
+purc_atom_t
+pcexecutor_get_rule_name(const char *rule)
+{
+    if (!rule) {
+        pcinst_set_error(PCEXECUTOR_ERROR_BAD_ARG);
+        return 0;
+    }
+
+    const char *h = rule;
+    while (*h && purc_isspace(*h))
+        ++h;
+
+    if (!*h) {
+        pcinst_set_error(PCEXECUTOR_ERROR_BAD_ARG);
+        return 0;
+    }
+
+    const char *t = h + 1;
+    while (*t && !purc_isspace(*t) && *t != ':')
+        ++t;
+
+    char buf[128];
+
+    int n = snprintf(buf, sizeof(buf), "%.*s", (int)(t-h), h);
+    if (n < 0 || (size_t)n >= sizeof(buf)) {
+        pcinst_set_error(PCEXECUTOR_ERROR_BAD_ARG);
+        return 0;
+    }
+
+    purc_atom_t atom = PCHVML_KEYWORD_ATOM(HVML, buf);
+    if (atom == 0) {
+        purc_set_error_with_info(PCEXECUTOR_ERROR_BAD_ARG,
+                "unknown atom: %s", buf);
+    }
+    return atom;
+}
+
 

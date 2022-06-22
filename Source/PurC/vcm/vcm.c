@@ -1440,7 +1440,7 @@ purc_variant_t pcvcm_node_to_variant(struct pcvcm_node *node,
 
     node->attach = (uintptr_t)ret;
 
-// #define PRINT_DEBUG
+ #define PRINT_DEBUG
 #ifdef PRINT_DEBUG        /* { */
     PRINT_VCM_NODE(node);
     PRINT_VARIANT(ret);
@@ -1499,7 +1499,7 @@ purc_variant_t pcvcm_eval(struct pcvcm_node *tree, struct pcintr_stack *stack,
 purc_variant_t pcvcm_eval_ex(struct pcvcm_node *tree,
         cb_find_var find_var, void *ctxt, bool silently)
 {
-//#define PRINT_DEBUG
+#define PRINT_DEBUG
 #ifdef PRINT_DEBUG        /* { */
     PC_DEBUG("pcvcm_eval_ex|begin|silently=%d\n", silently);
 #endif                    /* } */

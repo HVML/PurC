@@ -83,8 +83,8 @@ enum {
 #define PCRDR_OPERATION_UPDATEPLAINWINDOW   "updatePlainWindow"
     PCRDR_K_OPERATION_DESTROYPLAINWINDOW,
 #define PCRDR_OPERATION_DESTROYPLAINWINDOW  "destroyPlainWindow"
-    PCRDR_K_OPERATION_RESETPAGEGROUPS,
-#define PCRDR_OPERATION_RESETPAGEGROUPS     "resetPageGroups"
+    PCRDR_K_OPERATION_SETPAGEGROUPS,
+#define PCRDR_OPERATION_SETPAGEGROUPS       "setPageGroups"
     PCRDR_K_OPERATION_ADDPAGEGROUPS,
 #define PCRDR_OPERATION_ADDPAGEGROUPS       "addPageGroups"
     PCRDR_K_OPERATION_REMOVEPAGEGROUP,
@@ -456,6 +456,18 @@ pcrdr_conn_set_user_data(pcrdr_conn* conn, void* user_data);
  */
 PCA_EXPORT int
 pcrdr_conn_set_poll_timeout(pcrdr_conn* conn, int timeout_ms);
+
+/**
+ * Get the number of pending requests.
+ *
+ * @param conn: the pointer to the renderer connection.
+ *
+ * Returns the number of current pending requests.
+ *
+ * Since: 0.2.0
+ */
+PCA_EXPORT size_t
+pcrdr_conn_pending_requests_count(pcrdr_conn* conn);
 
 /**
  * Get the server host name of a connection.
