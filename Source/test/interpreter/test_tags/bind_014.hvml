@@ -1,0 +1,40 @@
+<!DOCTYPE hvml>
+<hvml target="html" lang="en">
+    <head>
+        <init as="buttons">
+            [
+                { "letters": "7", "class": "number" },
+                { "letters": "7", "class": "number" },
+                { "letters": "7", "class": "number" },
+                { "letters": "8", "class": "number" },
+                { "letters": "9", "class": "number" },
+            ]
+        </init>
+        <init as="data">
+            [
+                { "letters": "7", "class": "number" },
+            ]
+        </init>
+    </head>
+
+    <body>
+        <bind on="$data" as="btns" />
+        <div>
+            $EJSON.count($btns.eval)
+        </div>
+        <div id="grandparent">
+            <div id="temp">
+                <bind on="$buttons" as="btns" at="1"/>
+                <div>
+                    $EJSON.count($btns.eval)
+                </div>
+            </div>
+        </div>
+        <div>
+            $EJSON.count($btns.eval)
+        </div>
+    </body>
+
+</hvml>
+
+
