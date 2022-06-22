@@ -4,6 +4,9 @@
         <init as='foo'>
             { "id" : "foo", "name" : "bar" }
         </init>
+        <init as='arr'>
+            [2, 3, 1, 9, 5]
+        </init>
     </head>
 
     <body>
@@ -16,6 +19,10 @@
             <iterate on="$foo" by="FUNC:to_array@FUNC_DEMO" with="name">
                 <update on="$@" to="append" with="$?" />
             </iterate>
+        </div>
+        <div>
+            <sort on="$arr" by="FUNC:to_sort@FUNC_DEMO" with="foobar">
+            </sort>
         </div>
     </body>
 </hvml>

@@ -536,7 +536,7 @@ static struct purc_exec_ops exe_func_ops = {
 
 int pcexec_exe_func_register(void)
 {
-    bool ok = purc_register_executor("FUNC", &exe_func_ops);
+    bool ok = pcexecutor_register("FUNC", PCEXECUTOR_EXTERNAL, &exe_func_ops);
     return ok ? 0 : -1;
 }
 
