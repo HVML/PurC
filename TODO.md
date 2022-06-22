@@ -42,7 +42,7 @@
 * `call`、`load` 标签支持创建新行者。
 * `exit` 标签支持 `with` 属性。
 * 完善如下标签从外部数据源获取数据的功能：
-  1. `init` 标签：支持 `from`、`with` 及 `via` 属性定义的请求参数及方法。
+  1. ~~`init` 标签：支持 `from`、`with` 及 `via` 属性定义的请求参数及方法。~~
   1. `archetype` 标签：`src`、`param` 和 `method` 属性的支持。
   1. `archedata` 标签：`src`、`param` 和 `method` 属性的支持。
   1. `error` 标签：`src`、`param` 和 `method` 属性的支持。
