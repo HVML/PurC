@@ -44,6 +44,7 @@ hvml _last _nexttolast _topmost
 hvml nosetotail
 hvml ascendingly asc
 hvml descendingly desc
+hvml target
 
 # executor
 hvml FORMULA
