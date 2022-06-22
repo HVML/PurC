@@ -391,10 +391,12 @@ comp_by_key(purc_variant_t l, purc_variant_t r, const char *key, bool by_number,
     purc_variant_t rv = PURC_VARIANT_INVALID;
     if (purc_variant_is_object(l)) {
         lv = purc_variant_object_get_by_ckey(l, key);
+        purc_clr_error();
     }
 
     if (purc_variant_is_object(r)) {
         rv = purc_variant_object_get_by_ckey(r, key);
+        purc_clr_error();
     }
 
     return comp_raw(lv, rv, by_number, ascendingly, casesensitively);
