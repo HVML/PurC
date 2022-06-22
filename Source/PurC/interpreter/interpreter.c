@@ -4490,6 +4490,10 @@ pcintr_unload_module(void *handle)
     if (!handle)
         return;
 
+    if (1)
+        return;
+
+    // FIXME: we don't close for the moment
     int r;
     r = dlclose(handle);
 
