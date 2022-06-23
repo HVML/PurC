@@ -319,13 +319,23 @@ bool pcvarmgr_add(pcvarmgr_t mgr, const char* name,
         purc_clr_error();
         ret = purc_variant_object_set(mgr->object, k, variant);
     }
-    else if (purc_variant_is_null(v)) {
-        ret = purc_variant_object_set(mgr->object, k, variant);
-    }
     else {
-        // observe on=$name
-        ret = purc_variant_container_displace(v, variant, false);
+        enum purc_variant_type type = purc_variant_get_type(v);
+        switch (type) {
+        case PURC_VARIANT_TYPE_OBJECT:
+        case PURC_VARIANT_TYPE_ARRAY:
+        case PURC_VARIANT_TYPE_SET:
+            // XXX: observe on=$name
+            ret = purc_variant_container_displace(v, variant, false);
+            break;
+
+        default:
+            // XXX: observe on=$name
+            ret = purc_variant_object_set(mgr->object, k, variant);
+            break;
+        }
     }
+
     purc_variant_unref(k);
     return ret;
 }
