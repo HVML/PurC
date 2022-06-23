@@ -32,10 +32,12 @@
 
 #include "../ops.h"
 
+#include <dlfcn.h>
 #include <pthread.h>
 #include <unistd.h>
 
 enum VIA {
+    VIA_UNDEFINED,
     VIA_LOAD,
     VIA_GET,
     VIA_POST,
@@ -63,6 +65,8 @@ struct ctxt_for_init {
     purc_rwstream_t               resp;
 
     enum VIA                      via;
+    purc_variant_t                v_for;
+    purc_variant_t                params;
 
     unsigned int                  under_head:1;
     unsigned int                  temporarily:1;
@@ -91,6 +95,8 @@ ctxt_for_init_destroy(struct ctxt_for_init *ctxt)
         PURC_VARIANT_SAFE_CLEAR(ctxt->against);
         PURC_VARIANT_SAFE_CLEAR(ctxt->literal);
         PURC_VARIANT_SAFE_CLEAR(ctxt->sync_id);
+        PURC_VARIANT_SAFE_CLEAR(ctxt->v_for);
+        PURC_VARIANT_SAFE_CLEAR(ctxt->params);
         if (ctxt->resp) {
             purc_rwstream_destroy(ctxt->resp);
             ctxt->resp = NULL;
@@ -588,6 +594,36 @@ process_attr_from(struct pcintr_stack_frame *frame,
 }
 
 static int
+process_attr_for(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element,
+        purc_atom_t name, purc_variant_t val)
+{
+    struct ctxt_for_init *ctxt;
+    ctxt = (struct ctxt_for_init*)frame->ctxt;
+    if (ctxt->v_for != PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_DUPLICATED,
+                "vdom attribute '%s' for element <%s>",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    if (val == PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "vdom attribute '%s' for element <%s> undefined",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    if (!purc_variant_is_string(val)) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "vdom attribute '%s' for element <%s> is not string",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    ctxt->v_for = purc_variant_ref(val);
+
+    return 0;
+}
+
+static int
 process_attr_with(struct pcintr_stack_frame *frame,
         struct pcvdom_element *element,
         purc_atom_t name, purc_variant_t val)
@@ -727,6 +763,9 @@ attr_found_val(struct pcintr_stack_frame *frame,
     }
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, VIA)) == name) {
         return process_attr_via(frame, element, name, val);
+    }
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, FOR)) == name) {
+        return process_attr_for(frame, element, name, val);
     }
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, TEMPORARILY)) == name ||
             pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, TEMP)) == name)
@@ -988,6 +1027,52 @@ clean_rws:
     frame->next_step = NEXT_STEP_ON_POPPING;
 }
 
+static enum pcfetcher_request_method
+method_from_via(enum VIA via)
+{
+    enum pcfetcher_request_method method;
+    switch (via) {
+        case VIA_GET:
+            method = PCFETCHER_REQUEST_METHOD_GET;
+            break;
+        case VIA_POST:
+            method = PCFETCHER_REQUEST_METHOD_POST;
+            break;
+        case VIA_DELETE:
+            method = PCFETCHER_REQUEST_METHOD_DELETE;
+            break;
+        case VIA_UNDEFINED:
+            method = PCFETCHER_REQUEST_METHOD_GET;
+            break;
+        default:
+            PC_ASSERT(0);
+    }
+
+    return method;
+}
+
+static purc_variant_t
+params_from_with(struct ctxt_for_init *ctxt)
+{
+    purc_variant_t with = ctxt->with;
+
+    purc_variant_t params;
+    if (with == PURC_VARIANT_INVALID) {
+        params = purc_variant_make_object_0();
+    }
+    else if (purc_variant_is_object(with)) {
+        params = purc_variant_ref(with);
+    }
+    else {
+        PC_ASSERT(0);
+    }
+
+    PURC_VARIANT_SAFE_CLEAR(ctxt->params);
+    ctxt->params = params;
+
+    return params;
+}
+
 static int
 process_from_sync(pcintr_coroutine_t co, pcintr_stack_frame_t frame)
 {
@@ -997,9 +1082,15 @@ process_from_sync(pcintr_coroutine_t co, pcintr_stack_frame_t frame)
     ctxt = (struct ctxt_for_init*)frame->ctxt;
     PC_ASSERT(ctxt);
 
+    enum pcfetcher_request_method method;
+    method = method_from_via(ctxt->via);
+
+    purc_variant_t params;
+    params = params_from_with(ctxt);
+
     ctxt->co = co;
     purc_variant_t v = pcintr_load_from_uri_async(stack, ctxt->from_uri,
-            on_sync_complete, frame);
+            method, params, on_sync_complete, frame);
     if (v == PURC_VARIANT_INVALID)
         return -1;
 
@@ -1209,8 +1300,14 @@ process_from_async(pcintr_coroutine_t co, pcintr_stack_frame_t frame)
     data->as            = purc_variant_ref(ctxt->as);
     data->under_head    = ctxt->under_head;
 
+    enum pcfetcher_request_method method;
+    method = method_from_via(ctxt->via);
+
+    purc_variant_t params;
+    params = params_from_with(ctxt);
+
     data->async_id = pcintr_load_from_uri_async(stack, ctxt->from_uri,
-            on_async_complete, data);
+            method, params, on_async_complete, data);
     if (data->async_id == PURC_VARIANT_INVALID) {
         load_data_destroy(data);
         return -1;
@@ -1222,6 +1319,70 @@ process_from_async(pcintr_coroutine_t co, pcintr_stack_frame_t frame)
     PC_ASSERT(co->state == CO_STATE_RUN);
 
     return 0;
+}
+
+static int
+process_via(pcintr_coroutine_t co)
+{
+    pcintr_stack_t stack = &co->stack;
+
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_stack_get_bottom_frame(stack);
+
+    struct ctxt_for_init *ctxt;
+    ctxt = (struct ctxt_for_init*)frame->ctxt;
+
+    const char *s_from = NULL;
+    const char *s_for = NULL;
+
+    if (ctxt->from != PURC_VARIANT_INVALID &&
+            purc_variant_is_string(ctxt->from))
+    {
+        s_from = purc_variant_get_string_const(ctxt->from);
+    }
+
+    if (ctxt->v_for != PURC_VARIANT_INVALID &&
+            purc_variant_is_string(ctxt->v_for))
+    {
+        s_for = purc_variant_get_string_const(ctxt->v_for);
+    }
+
+    purc_variant_t v;
+    if (0) {
+        v = purc_variant_load_dvobj_from_so (s_from, s_for);
+    }
+    else {
+        void *handle = NULL;
+        if (s_from) {
+            handle = pcintr_load_module(s_from, NULL, "lib");
+            if (!handle)
+                return -1;
+        }
+
+        purc_variant_t (*load)(const char *, int *);
+
+        load = dlsym(handle, EXOBJ_LOAD_ENTRY);
+        if (dlerror() != NULL) {
+            pcintr_unload_module(handle);
+            pcinst_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+            return -1;
+        }
+
+        int ver_code;
+        v = load(s_for, &ver_code);
+        // TODO: check ver_code;
+
+        pcintr_unload_module(handle);
+    }
+
+    if (v == PURC_VARIANT_INVALID)
+        return -1;
+
+    int r;
+    PRINT_VARIANT(v);
+    r = post_process_src(co, frame, v);
+    purc_variant_unref(v);
+    return r ? -1 : 0;
 }
 
 static int
@@ -1299,6 +1460,11 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     purc_clr_error(); // pcvdom_element_parent
 
+    if (ctxt->via == VIA_LOAD) {
+        r = process_via(stack->co);
+        return r ? NULL : ctxt;
+    }
+
     if (ctxt->from_uri) {
         r = process_from(stack->co);
         return r ? NULL : ctxt;
@@ -1336,8 +1502,15 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
             fetcher->current = pthread_self();
             purc_variant_ref(fetcher->name);
             fetcher->under_head = ctxt->under_head;
+
+            enum pcfetcher_request_method method;
+            method = method_from_via(ctxt->via);
+
+            purc_variant_t params;
+            params = params_from_with(ctxt);
+
             purc_variant_t v = pcintr_load_from_uri_async(stack, uri,
-                    load_response_handler, fetcher);
+                    method, params, load_response_handler, fetcher);
             if (v == PURC_VARIANT_INVALID)
                 return NULL;
             pcintr_save_async_request_id(stack, v);
@@ -1512,6 +1685,9 @@ select_child(pcintr_stack_t stack, void* ud)
     ctxt = (struct ctxt_for_init*)frame->ctxt;
 
     struct pcvdom_node *curr;
+
+    if (ctxt->via == VIA_LOAD)
+        return NULL;
 
 again:
     curr = ctxt->curr;

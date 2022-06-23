@@ -116,6 +116,7 @@ pcintr_load_from_uri(pcintr_stack_t stack, const char* uri);
 
 purc_variant_t
 pcintr_load_from_uri_async(pcintr_stack_t stack, const char* uri,
+        enum pcfetcher_request_method method, purc_variant_t params,
         pcfetcher_response_handler handler, void* ctxt);
 
 bool
@@ -295,6 +296,10 @@ pcintr_wrap_vdom(pcvdom_element_t vdom);
 
 pcvdom_element_t
 pcintr_get_vdom_from_variant(purc_variant_t val);
+
+int
+pcintr_bind_template(purc_variant_t templates,
+        purc_variant_t type, purc_variant_t contents);
 
 PCA_EXTERN_C_END
 

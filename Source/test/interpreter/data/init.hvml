@@ -36,6 +36,8 @@
 
         <init as="locales" from="http://foo.bar.com/locales" with="{ from: 'foo' }" via="POST" />
         -->
+
+        <init as="xmath" from="purc-dvobj-MATH" via="LOAD" />
     </head>
 
     <body>

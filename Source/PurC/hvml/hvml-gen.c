@@ -340,19 +340,31 @@ create_body(struct pcvdom_gen *gen, struct pchvml_token *token)
     int r = 0;
     struct pcvdom_element *elem = NULL;
 
-    if (gen->doc->body)
-        return -1;
+    struct pcvdom_element *top;
+    top = top_element(gen);
+
+    if (gen->doc->body) {
+        pcvdom_node_remove(&gen->doc->body->node);
+        gen->doc->body = NULL;
+    }
 
     elem = pcvdom_element_create_c("body");
 
     if (!elem)
         FAIL_RET();
 
-    struct pcvdom_element *top;
-    top = top_element(gen);
+    size_t nr;
+    nr = pcutils_arrlist_length(gen->doc->bodies);
+
+    r = pcutils_arrlist_put_idx(gen->doc->bodies, nr, elem);
+    if (r) {
+        pcvdom_node_destroy(&elem->node);
+        FAIL_RET();
+    }
 
     r = pcvdom_element_append_element(top, elem);
     if (r) {
+        pcutils_arrlist_del_idx(gen->doc->bodies, nr, 1);
         pcvdom_node_destroy(&elem->node);
         FAIL_RET();
     }
@@ -360,6 +372,7 @@ create_body(struct pcvdom_gen *gen, struct pchvml_token *token)
     if (!token || !pchvml_token_is_self_closing(token)) {
         r = push_node(gen, &elem->node);
         if (r) {
+            pcutils_arrlist_del_idx(gen->doc->bodies, nr, 1);
             pcvdom_node_destroy(&elem->node);
             FAIL_RET();
         }
@@ -395,6 +408,20 @@ pcvdom_gen_end(struct pcvdom_gen *gen)
     gen->eof = 1;
 
     gen->parser = NULL;
+
+    if (doc) {
+        size_t nr;
+        nr = pcutils_arrlist_length(doc->bodies);
+        if (nr > 1) {
+            void *p = pcutils_arrlist_get_idx(doc->bodies, 0);
+            struct pcvdom_element *body;
+            body = (struct pcvdom_element*)p;
+            pcvdom_node_remove(&doc->body->node);
+            doc->body = body;
+            int r = pcvdom_element_append_element(doc->root, doc->body);
+            PC_ASSERT(r == 0);
+        }
+    }
 
     return doc;
 }
@@ -1111,7 +1138,6 @@ on_mode_after_body(struct pcvdom_gen *gen, struct pchvml_token *token)
     else if (type==VTT(_START_TAG)) {
         PC_ASSERT(gen->doc);
         PC_ASSERT(gen->doc->body);
-        gen->doc->body = NULL;
 
         gen->insertion_mode = VGIM(_AFTER_HEAD);
         gen->reprocess = 1;
@@ -1379,6 +1405,18 @@ parse_fragment(purc_rwstream_t in, struct pcvdom_pos *pos)
 
     struct pcvdom_element *elem = doc->body;
     PC_ASSERT(elem);
+
+    size_t nr;
+    nr = pcutils_arrlist_length(doc->bodies);
+    for (size_t i=0; i<nr; ++i) {
+        void *p = pcutils_arrlist_get_idx(doc->bodies, i);
+        struct pcvdom_element *body;
+        body = (struct pcvdom_element*)p;
+        if (body == doc->body) {
+            pcutils_arrlist_del_idx(doc->bodies, i, 1);
+            break;
+        }
+    }
 
     pcvdom_node_remove(&elem->node);
 

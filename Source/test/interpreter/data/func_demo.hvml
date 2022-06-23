@@ -24,6 +24,14 @@
             <sort on="$arr" by="FUNC:to_sort@FUNC_DEMO" with="foobar">
             </sort>
         </div>
+        <div>
+            <sort on="$arr" by="RANGE: FROM 0" with="foobar">
+            </sort>
+        </div>
+        <div>
+            <sort on="$arr" with="foobar">
+            </sort>
+        </div>
     </body>
 </hvml>
 

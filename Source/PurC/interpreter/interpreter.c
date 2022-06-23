@@ -74,6 +74,8 @@ stack_frame_release(struct pcintr_stack_frame *frame)
     PURC_VARIANT_SAFE_CLEAR(frame->attr_vars);
     PURC_VARIANT_SAFE_CLEAR(frame->ctnt_var);
     PURC_VARIANT_SAFE_CLEAR(frame->result_from_child);
+    PURC_VARIANT_SAFE_CLEAR(frame->except_templates);
+    PURC_VARIANT_SAFE_CLEAR(frame->error_templates);
 }
 
 static void
@@ -908,6 +910,15 @@ init_stack_frame(pcintr_stack_t stack, struct pcintr_stack_frame* frame)
 {
     frame->owner           = stack;
     frame->silently        = 0;
+
+    frame->except_templates = purc_variant_make_object_0();
+    frame->error_templates  = purc_variant_make_object_0();
+
+    if (frame->except_templates == PURC_VARIANT_INVALID ||
+            frame->error_templates == PURC_VARIANT_INVALID)
+    {
+        return -1;
+    }
 
     return 0;
 }
@@ -3072,6 +3083,7 @@ on_load_async_done(
 
 purc_variant_t
 pcintr_load_from_uri_async(pcintr_stack_t stack, const char* uri,
+        enum pcfetcher_request_method method, purc_variant_t params,
         pcfetcher_response_handler handler, void* ctxt)
 {
     PC_ASSERT(stack);
@@ -3099,8 +3111,8 @@ pcintr_load_from_uri_async(pcintr_stack_t stack, const char* uri,
     uint32_t timeout = stack->vdom->hvml_ctrl_props->timeout.tv_sec;
     data->request_id = pcfetcher_request_async(
             uri,
-            PCFETCHER_REQUEST_METHOD_GET,
-            NULL,
+            method,
+            params,
             timeout,
             on_load_async_done,
             data);
@@ -4403,6 +4415,9 @@ pcintr_load_module(const char *module,
     ext = ".dylib";
 #endif
 
+    if (!prefix)
+        prefix = "";
+
     void *library_handle = NULL;
 
     char so[PATH_MAX+1];
@@ -4418,7 +4433,10 @@ pcintr_load_module(const char *module,
          */
 
         // step1: search in directories defined by the env var
-        const char *env = getenv(env_name);
+        const char *env = NULL;
+        if (env_name)
+            env = getenv(env_name);
+
         if (env) {
             char *path = strdup(env);
             char *str1;
@@ -4502,9 +4520,28 @@ pcintr_unload_module(void *handle)
     if (!handle)
         return;
 
+    if (1)
+        return;
+
+    // FIXME: we don't close for the moment
     int r;
     r = dlclose(handle);
 
     PC_ASSERT(r == 0);
 }
+
+int
+pcintr_bind_template(purc_variant_t templates,
+        purc_variant_t type, purc_variant_t contents)
+{
+    PC_ASSERT(templates != PURC_VARIANT_INVALID);
+    PC_ASSERT(type != PURC_VARIANT_INVALID);
+    PC_ASSERT(contents != PURC_VARIANT_INVALID);
+
+    bool ok;
+    ok = purc_variant_object_set(templates, type, contents);
+
+    return ok ? 0 : -1;
+}
+
 
