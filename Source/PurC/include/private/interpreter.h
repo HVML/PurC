@@ -350,6 +350,9 @@ struct pcintr_stack_frame {
 
     pcintr_stack_t     owner;
 
+    purc_variant_t     except_templates;
+    purc_variant_t     error_templates;
+
     unsigned int       silently:1;
 };
 

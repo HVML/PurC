@@ -74,6 +74,8 @@ stack_frame_release(struct pcintr_stack_frame *frame)
     PURC_VARIANT_SAFE_CLEAR(frame->attr_vars);
     PURC_VARIANT_SAFE_CLEAR(frame->ctnt_var);
     PURC_VARIANT_SAFE_CLEAR(frame->result_from_child);
+    PURC_VARIANT_SAFE_CLEAR(frame->except_templates);
+    PURC_VARIANT_SAFE_CLEAR(frame->error_templates);
 }
 
 static void
@@ -909,6 +911,15 @@ init_stack_frame(pcintr_stack_t stack, struct pcintr_stack_frame* frame)
     frame->owner           = stack;
     frame->silently        = 0;
 
+    frame->except_templates = purc_variant_make_object_0();
+    frame->error_templates  = purc_variant_make_object_0();
+
+    if (frame->except_templates == PURC_VARIANT_INVALID ||
+            frame->error_templates == PURC_VARIANT_INVALID)
+    {
+        return -1;
+    }
+
     return 0;
 }
 
@@ -1615,8 +1626,6 @@ end:
     return doc;
 }
 
-#define BUILDIN_VAR_EXCEPT      "EXCEPT"
-#define BUILDIN_VAR_ERROR       "ERROR"
 #define BUILDIN_VAR_HVML        "HVML"
 #define BUILDIN_VAR_SYSTEM      "SYSTEM"
 #define BUILDIN_VAR_DATETIME    "DATETIME"
@@ -1648,20 +1657,6 @@ bind_doc_named_variable(pcintr_stack_t stack, const char* name,
 static bool
 init_buidin_doc_variable(pcintr_stack_t stack)
 {
-    // $EXCEPT
-    if (!bind_doc_named_variable(stack, BUILDIN_VAR_EXCEPT,
-            purc_variant_make_object_0()))
-    {
-        return false;
-    }
-
-    // $ERROR
-    if (!bind_doc_named_variable(stack, BUILDIN_VAR_ERROR,
-            purc_variant_make_object_0()))
-    {
-        return false;
-    }
-
     // $TIMERS
     stack->timers = pcintr_timers_init(stack);
     if (!stack->timers) {
