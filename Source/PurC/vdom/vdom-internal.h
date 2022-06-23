@@ -77,6 +77,8 @@ struct pcvdom_document {
     struct pcvdom_element  *head;
     struct pcvdom_element  *body;
 
+    struct pcutils_arrlist *bodies;
+
     atomic_int              refc;
 
     unsigned int            quirks:1;

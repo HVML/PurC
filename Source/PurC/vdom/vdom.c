@@ -1057,6 +1057,20 @@ document_reset(struct pcvdom_document *doc)
 {
     doctype_reset(&doc->doctype);
 
+    size_t nr;
+    nr = pcutils_arrlist_length(doc->bodies);
+    for (size_t i=0; i<nr; ++i) {
+        void *p = pcutils_arrlist_get_idx(doc->bodies, i);
+        struct pcvdom_element *body;
+        body = (struct pcvdom_element*)p;
+        if (body != doc->body) {
+            pcvdom_node_destroy(&body->node);
+        }
+        pcutils_arrlist_put_idx(doc->bodies, i, NULL);
+    }
+    pcutils_arrlist_free(doc->bodies);
+    doc->bodies = NULL;
+
     while (doc->node.node.first_child) {
         struct pcvdom_node *node;
         node = container_of(doc->node.node.first_child, struct pcvdom_node, node);
@@ -1092,6 +1106,13 @@ document_create(void)
     struct pcvdom_document *doc;
     doc = (struct pcvdom_document*)calloc(1, sizeof(*doc));
     if (!doc) {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return NULL;
+    }
+
+    doc->bodies = pcutils_arrlist_new_ex(NULL, 4);
+    if (!doc->bodies) {
+        free(doc);
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
     }
