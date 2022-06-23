@@ -4518,3 +4518,18 @@ pcintr_unload_module(void *handle)
     PC_ASSERT(r == 0);
 }
 
+int
+pcintr_bind_template(purc_variant_t templates,
+        purc_variant_t type, purc_variant_t contents)
+{
+    PC_ASSERT(templates != PURC_VARIANT_INVALID);
+    PC_ASSERT(type != PURC_VARIANT_INVALID);
+    PC_ASSERT(contents != PURC_VARIANT_INVALID);
+
+    bool ok;
+    ok = purc_variant_object_set(templates, type, contents);
+
+    return ok ? 0 : -1;
+}
+
+
