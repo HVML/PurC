@@ -35,7 +35,7 @@
 #include <wtf/RetainPtr.h>
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 
 // Time intervals are all in seconds.
 
@@ -80,6 +80,6 @@ private:
     TimerFiredFunction m_function;
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::RunLoopTimer;
+using PurCWTF::RunLoopTimer;

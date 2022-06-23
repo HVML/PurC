@@ -29,12 +29,12 @@
 #include <wtf/StdLibExtras.h>
 #include <wtf/Threading.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 bool isCompilationThread()
 {
     return Thread::current().isCompilationThread();
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 

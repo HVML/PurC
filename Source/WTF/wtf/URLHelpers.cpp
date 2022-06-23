@@ -40,7 +40,7 @@
 #include <wtf/text/WTFString.h>
 #include <wtf/text/UChar.h>
 
-namespace WTF {
+namespace PurCWTF {
 namespace URLHelpers {
 
 // Needs to be big enough to hold an IDN-encoded name.
@@ -901,4 +901,4 @@ String userVisibleURL(const CString& url)
 #endif
 
 } // namespace URLHelpers
-} // namespace WTF
+} // namespace PurCWTF

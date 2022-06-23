@@ -32,7 +32,7 @@
 #endif
 #include <wtf/text/UChar.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 #if !PLATFORM(MAC) && !PLATFORM(IOS_FAMILY)
 
@@ -314,4 +314,4 @@ unsigned numCodeUnitsInGraphemeClusters(StringView string, unsigned numGraphemeC
     return ubrk_current(iterator);
 }
 
-} // namespace WTF
+} // namespace PurCWTF

@@ -28,6 +28,7 @@
 #include "../internal.h"
 
 #include "private/debug.h"
+#include "private/executor.h"
 #include "purc-runloop.h"
 
 #include "../ops.h"
@@ -87,12 +88,49 @@ post_process_dest_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     purc_variant_t on;
     on = ctxt->on;
     PC_ASSERT(on != PURC_VARIANT_INVALID);
-    if (on == PURC_VARIANT_INVALID)
-        return -1;
-    PURC_VARIANT_SAFE_CLEAR(ctxt->on);
-    ctxt->on = on;
-    purc_variant_ref(on);
 
+    purc_variant_t by;
+    by = ctxt->by;
+
+    purc_variant_t with;
+    with = ctxt->with;
+
+    if (by != PURC_VARIANT_INVALID) {
+        const char *rule = purc_variant_get_string_const(by);
+        PC_ASSERT(rule);
+        bool ok = purc_get_executor(rule, &ctxt->ops);
+        if (!ok)
+            return -1;
+
+        PC_ASSERT(ctxt->ops.create);
+        PC_ASSERT(ctxt->ops.choose);
+        PC_ASSERT(ctxt->ops.destroy);
+
+        purc_exec_inst_t exec_inst;
+        exec_inst = ctxt->ops.create(PURC_EXEC_TYPE_CHOOSE, on, false);
+        if (!exec_inst)
+            return -1;
+
+        exec_inst->with = with;
+
+        ctxt->exec_inst = exec_inst;
+
+        int r = -1;
+        purc_variant_t value;
+        value = ctxt->ops.choose(exec_inst, rule);
+        if (value != PURC_VARIANT_INVALID) {
+            r = pcintr_set_question_var(frame, value);
+            purc_variant_unref(value);
+            if (r == 0)
+                purc_clr_error();
+        }
+        ok = ctxt->ops.destroy(ctxt->exec_inst);
+        PC_ASSERT(ok);
+        ctxt->exec_inst = NULL;
+        return r ? -1 : 0;
+    }
+
+    PC_ASSERT(on != PURC_VARIANT_INVALID);
     int r;
     r = pcintr_set_question_var(frame, on);
 
@@ -292,11 +330,13 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     PC_ASSERT(stack && pos);
     PC_ASSERT(stack == pcintr_get_stack());
 
-    if (stack->except)
+    if (stack->except) {
         return NULL;
+    }
 
-    if (pcintr_check_insertion_mode_for_normal_element(stack))
+    if (pcintr_check_insertion_mode_for_normal_element(stack)) {
         return NULL;
+    }
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
@@ -324,16 +364,16 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     int r;
     r = pcintr_vdom_walk_attrs(frame, element, NULL, attr_found);
-    if (r)
+    if (r) {
         return NULL;
+    }
 
     purc_clr_error();
 
 
     if (ctxt->on == PURC_VARIANT_INVALID
-            && ctxt->with != PURC_VARIANT_INVALID
-            && purc_variant_booleanize(ctxt->with)) {
-        ctxt->handle_differ = true;
+            && ctxt->with != PURC_VARIANT_INVALID) {
+        ctxt->handle_differ = !purc_variant_booleanize(ctxt->with);
     }
     else {
         r = post_process(stack->co, frame);
@@ -459,15 +499,16 @@ again:
                 pcvdom_element_t element = PCVDOM_ELEMENT_FROM_NODE(curr);
                 on_element(co, frame, element);
                 PC_ASSERT(stack->except == 0);
-                if (!ctxt->handle_differ) {
-                    return element;
-                }
-                else if (element->tag_id == PCHVML_TAG_DIFFER) {
-                    return element;
-                }
-                else {
+                if (ctxt->handle_differ) {
+                    if (element->tag_id == PCHVML_TAG_DIFFER) {
+                        return element;
+                    }
                     goto again;
                 }
+                else if (element->tag_id != PCHVML_TAG_DIFFER) {
+                    return element;
+                }
+                goto again;
             }
         case PCVDOM_NODE_CONTENT:
             on_content(co, frame, PCVDOM_CONTENT_FROM_NODE(curr));

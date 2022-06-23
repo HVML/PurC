@@ -26,7 +26,7 @@
 #include <wtf/HashMap.h>
 #include <wtf/Vector.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename Value, typename HashFunctions, typename Traits>
 class HashCountedSet final {
@@ -314,6 +314,6 @@ inline auto HashCountedSet<Value, HashFunctions, Traits>::remove(typename GetPtr
     return remove(find(value));
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::HashCountedSet;
+using PurCWTF::HashCountedSet;

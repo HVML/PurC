@@ -32,11 +32,16 @@
 
 #include "../ops.h"
 
+#include <errno.h>
+#include <limits.h>
+
 struct ctxt_for_sleep {
     struct pcvdom_node           *curr;
     purc_variant_t                with;
+    purc_variant_t                v_for;
 
-    int64_t                       with_secs;
+    int64_t                       for_ns;
+
     pcintr_timer_t                timer;
 };
 
@@ -45,6 +50,7 @@ ctxt_for_sleep_destroy(struct ctxt_for_sleep *ctxt)
 {
     if (ctxt) {
         PURC_VARIANT_SAFE_CLEAR(ctxt->with);
+        PURC_VARIANT_SAFE_CLEAR(ctxt->v_for);
         if (ctxt->timer) {
             pcintr_timer_destroy(ctxt->timer);
             ctxt->timer = NULL;
@@ -80,19 +86,102 @@ process_attr_with(struct pcintr_stack_frame *frame,
         return -1;
     }
     bool force = true;
-    if (!purc_variant_cast_to_longint(val, &ctxt->with_secs, force)) {
+    int64_t secs;
+    if (!purc_variant_cast_to_longint(val, &secs, force)) {
         purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
                 "vdom attribute '%s' for element <%s> is not longint",
                 purc_atom_to_string(name), element->tag_name);
         return -1;
     }
-    if (ctxt->with_secs <= 0) {
+    if (secs <= 0) {
+        secs = 0;
+    }
+
+    ctxt->with = purc_variant_ref(val);
+    ctxt->for_ns = secs * 1000 * 1000 * 1000;
+
+    return 0;
+}
+
+static int
+process_attr_for(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element,
+        purc_atom_t name, purc_variant_t val)
+{
+    struct ctxt_for_sleep *ctxt;
+    ctxt = (struct ctxt_for_sleep*)frame->ctxt;
+    if (val == PURC_VARIANT_INVALID) {
         purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
-                "vdom attribute '%s' for element <%s> is not positive integer",
+                "vdom attribute '%s' for element <%s> undefined",
                 purc_atom_to_string(name), element->tag_name);
         return -1;
     }
-    ctxt->with = purc_variant_ref(val);
+    if (!purc_variant_is_string(val)) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "vdom attribute '%s' for element <%s> is not string",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+
+    const char *s = purc_variant_get_string_const(val);
+    if (!s || !*s) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "vdom attribute '%s' for element <%s> is empty string",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    long int n;
+    char *end;
+    errno = 0;
+    n = strtol(s, &end, 0);
+    if (n == LONG_MIN || n == LONG_MAX) {
+        if (errno == ERANGE) {
+            purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                    "vdom attribute '%s' for element <%s> "
+                    "is overflow/underflow",
+                    purc_atom_to_string(name), element->tag_name);
+            return -1;
+        }
+    }
+    if (n < 0)
+        n = 0;
+
+    if (!end) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "vdom attribute '%s' for element <%s> no unit specified",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+
+    if (strcmp(end, "ns") == 0) {
+        ctxt->for_ns = n;
+    }
+    else if (strcmp(end, "us") == 0) {
+        ctxt->for_ns = n * 1000;
+    }
+    else if (strcmp(end, "ms") == 0) {
+        ctxt->for_ns = n * 1000 * 1000;
+    }
+    else if (strcmp(end, "s") == 0) {
+        ctxt->for_ns = n * 1000 * 1000 * 1000;
+    }
+    else if (strcmp(end, "m") == 0) {
+        ctxt->for_ns = n * 1000 * 1000 * 1000 * 60;
+    }
+    else if (strcmp(end, "h") == 0) {
+        ctxt->for_ns = n * 1000 * 1000 * 1000 * 60 * 60;
+    }
+    else if (strcmp(end, "d") == 0) {
+        ctxt->for_ns = n * 1000 * 1000 * 1000 * 60 * 60 * 24;
+    }
+    else {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "vdom attribute '%s' for element <%s> unknown unit",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+
+    ctxt->v_for = purc_variant_ref(val);
 
     return 0;
 }
@@ -111,6 +200,9 @@ attr_found_val(struct pcintr_stack_frame *frame,
 
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, WITH)) == name) {
         return process_attr_with(frame, element, name, val);
+    }
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, FOR)) == name) {
+        return process_attr_for(frame, element, name, val);
     }
 
     purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
@@ -159,6 +251,13 @@ static void on_continuation(void *ud, void *extra)
     PC_ASSERT(ctxt);
     PC_ASSERT(ctxt->timer);
     pcintr_timer_processed(ctxt->timer);
+
+    // NOTE: not interrupted
+    purc_variant_t result = purc_variant_make_ulongint(0);
+    if (result != PURC_VARIANT_INVALID) {
+        pcintr_set_question_var(frame, result);
+        purc_variant_unref(result);
+    }
 }
 
 static void*
@@ -196,12 +295,18 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (r)
         return NULL;
 
+    if (ctxt->for_ns < 1 * 1000 * 1000) {
+        // less than 1ms
+        // FIXME: nanosleep or round-up to 1 ms?
+        ctxt->for_ns = 1 * 1000 * 1000;
+    }
+
     bool for_yielded = true;
     ctxt->timer = pcintr_timer_create(NULL, for_yielded, NULL, NULL);
     if (!ctxt->timer)
         return NULL;
 
-    pcintr_timer_set_interval(ctxt->timer, ctxt->with_secs * 1000);
+    pcintr_timer_set_interval(ctxt->timer, ctxt->for_ns / (1000 * 1000));
     pcintr_timer_start_oneshot(ctxt->timer);
 
     pcintr_yield(frame, on_continuation);

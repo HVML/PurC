@@ -25,7 +25,7 @@
 
 #pragma once
 
-namespace WTF {
+namespace PurCWTF {
 
 class PrintStream;
 
@@ -36,6 +36,6 @@ enum class ClockType {
 
 WTF_EXPORT_PRIVATE void printInternal(PrintStream&, ClockType);
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::ClockType;
+using PurCWTF::ClockType;

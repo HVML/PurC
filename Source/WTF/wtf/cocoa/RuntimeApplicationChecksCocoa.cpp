@@ -29,7 +29,7 @@
 #include <wtf/NeverDestroyed.h>
 #include <wtf/Optional.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 static Optional<uint32_t>& applicationSDKVersionOverride()
 {

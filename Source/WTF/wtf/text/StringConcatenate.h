@@ -36,7 +36,7 @@
 #define WTF_STRINGTYPEADAPTER_COPIED_WTF_STRING() ((void)0)
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 
 template<> class StringTypeAdapter<char, void> {
 public:
@@ -391,14 +391,14 @@ String makeString(StringTypes... strings)
     return result;
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::Indentation;
-using WTF::IndentationScope;
-using WTF::makeString;
-using WTF::pad;
-using WTF::lowercase;
-using WTF::tryMakeString;
-using WTF::uppercase;
+using PurCWTF::Indentation;
+using PurCWTF::IndentationScope;
+using PurCWTF::makeString;
+using PurCWTF::pad;
+using PurCWTF::lowercase;
+using PurCWTF::tryMakeString;
+using PurCWTF::uppercase;
 
 #include <wtf/text/StringOperators.h>

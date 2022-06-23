@@ -1,4 +1,62 @@
+# hvml
 hvml_001
+hvml_002
+hvml_003
+hvml_004
+
+# head
+head_001
+
+# body
+body_001
+# multiple body element
+###### body_002
+
+# archetype
+archetype_001
+archetype_002
+######archetype_003
+
+# archdata
+archedata_001
+archedata_002
+archedata_003
+
+# error
+
+# except
+
+# init
+init_001
+init_002
+init_003
+init_004
+init_005
+init_006
+init_007
+init_008
+init_009
+init_010
+init_011
+init_012
+
+#### #id not found crash
+######init_013
+init_014
+init_015
+init_016
+init_017
+init_018
+
+### at="N" N not exists(silently)
+#####init_019
+#####init_020
+init_021
+init_022
+init_023
+init_024
+
+
 clear_001
 clear_002
 clear_003
@@ -14,5 +72,63 @@ erase_008
 erase_009
 erase_010
 erase_011
+
+#test
 test_001
+test_002
+test_003
+test_004
+ FILTER: like
+####test_005
+
+
 differ_001
+differ_002
+differ_003
+differ_004
+differ_005
+
+# sort
+sort_001
+sort_002
+sort_003
+sort_004
+sort_005
+sort_006
+sort_007
+sort_008
+sort_009
+sort_010
+sort_011
+sort_012
+sort_013
+sort_014
+sort_015
+sort_016
+sort_017
+sort_018
+sort_019
+sort_020
+sort_021
+sort_022
+sort_023
+sort_024
+sort_025
+
+# reduce
+reduce_001
+reduce_002
+reduce_003
+reduce_004
+reduce_005
+reduce_006
+reduce_007
+reduce_008
+##### reduce_009
+reduce_010
+reduce_011
+reduce_012
+reduce_013
+reduce_014
+#####reduce_015
+reduce_016

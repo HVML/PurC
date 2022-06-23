@@ -32,7 +32,7 @@
 
 #include <wtf/text/WTFString.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 class StringView;
 
@@ -52,5 +52,5 @@ WTF_EXPORT_PRIVATE bool isVersion4UUID(StringView);
 
 }
 
-using WTF::createCanonicalUUIDString;
-using WTF::bootSessionUUIDString;
+using PurCWTF::createCanonicalUUIDString;
+using PurCWTF::bootSessionUUIDString;

@@ -32,7 +32,7 @@
 #include <wtf/Threading.h>
 #include <wtf/Vector.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 // Often, we create threads that have this as their body:
 //
@@ -126,7 +126,7 @@ public:
 
     void join();
 
-    virtual const char* name() const { return "WTF::AutomaticThread"; }
+    virtual const char* name() const { return "PurCWTF::AutomaticThread"; }
 
 protected:
     // This logically creates the thread, but in reality the thread won't be created until someone
@@ -194,7 +194,7 @@ private:
     Condition m_isRunningCondition;
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::AutomaticThread;
-using WTF::AutomaticThreadCondition;
+using PurCWTF::AutomaticThread;
+using PurCWTF::AutomaticThreadCondition;

@@ -30,7 +30,7 @@
 #include <wtf/NeverDestroyed.h>
 #include <wtf/RandomDevice.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 void cryptographicallyRandomValuesFromOS(unsigned char* buffer, size_t length)
 {

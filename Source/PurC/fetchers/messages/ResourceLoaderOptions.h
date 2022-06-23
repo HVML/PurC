@@ -252,7 +252,7 @@ struct ResourceLoaderOptions : public FetchOptions {
 
 } // namespace PurCFetcher
 
-namespace WTF {
+namespace PurCWTF {
 
 template<> struct EnumTraits<PurCFetcher::PreflightPolicy> {
     using values = EnumValues<
@@ -283,4 +283,4 @@ template<> struct EnumTraits<PurCFetcher::HTTPHeadersToKeepFromCleaning> {
     >;
 };
 
-} // namespace WTF
+} // namespace PurCWTF

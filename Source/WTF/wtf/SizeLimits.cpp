@@ -38,7 +38,7 @@
 #include <wtf/RefPtr.h>
 #include <wtf/Vector.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 #if ENABLE_ASSERTS || ENABLE(SECURITY_ASSERTIONS)
 struct SameSizeAsRefCounted {

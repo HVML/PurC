@@ -7,6 +7,20 @@
 
 #include <gtest/gtest.h>
 
+static int
+var_diff(purc_variant_t val, const char *s)
+{
+    purc_variant_t v = pcejson_parser_parse_string(s, 0, 0);
+    int diff = pcvariant_diff(val, v);
+    if (diff) {
+        PRINT_VARIANT(val);
+        PRINT_VARIANT(v);
+        PC_DEBUGX("%s", s);
+    }
+    purc_variant_unref(v);
+    return diff;
+}
+
 TEST(constraint, set_modify_children_of_uniqkey_from_outside)
 {
     PurCInstance purc;
@@ -160,15 +174,6 @@ TEST(constraint, set_shrink_children_of_uniqkey_from_outside)
     PURC_VARIANT_SAFE_CLEAR(xue);
     PURC_VARIANT_SAFE_CLEAR(xu);
     PURC_VARIANT_SAFE_CLEAR(set);
-}
-
-static int
-var_diff(purc_variant_t val, const char *s)
-{
-    purc_variant_t v = pcejson_parser_parse_string(s, 0, 0);
-    int diff = pcvariant_diff(val, v);
-    purc_variant_unref(v);
-    return diff;
 }
 
 TEST(constraint, set_modify_children_of_uniqkey_from_outside_arr)
@@ -490,7 +495,7 @@ TEST(constraint, perf)
 
     const char *env = getenv("IS_EQUAL_TO");
 
-    size_t nr = 1024 * 8;
+    size_t nr = 1024 * 8 * 8;
 
     if (!env) {
         for (size_t i=0; i<nr; ++i) {
@@ -507,5 +512,246 @@ TEST(constraint, perf)
 
     PURC_VARIANT_SAFE_CLEAR(v1);
     PURC_VARIANT_SAFE_CLEAR(v2);
+}
+
+TEST(constraint, object)
+{
+    PurCInstance purc;
+
+    const char *s;
+    purc_variant_t set;
+
+    s = "[!, {name:xu},{}]";
+    set = pcejson_parser_parse_string(s, 0, 0);
+    PRINT_VARIANT(set);
+
+    purc_variant_t v = purc_variant_set_get_by_index(set, 1);
+    PRINT_VARIANT(v);
+
+    purc_variant_t name = purc_variant_make_string("xu", false);
+    PRINT_VARIANT(name);
+
+    bool ok;
+    ok = purc_variant_object_set_by_static_ckey(v, "name", name);
+    PC_DEBUGX("ok: %s", ok ? "true" : "false");
+    PRINT_VARIANT(v);
+    PRINT_VARIANT(set);
+
+    PURC_VARIANT_SAFE_CLEAR(name);
+    PURC_VARIANT_SAFE_CLEAR(set);
+}
+
+TEST(constraint, basic)
+{
+    PurCInstance purc;
+
+    const char *s;
+    purc_variant_t set, v, one, a;
+    bool ok;
+
+    if (1) {
+        s = "[!, [a],[]]";
+        set = pcejson_parser_parse_string(s, 0, 0);
+
+        v = purc_variant_set_get_by_index(set, 1);
+
+        a = purc_variant_make_string("a", false);
+
+        purc_variant_array_append(v, a);
+
+        EXPECT_EQ(0, var_diff(set, s));
+
+        PURC_VARIANT_SAFE_CLEAR(a);
+        PURC_VARIANT_SAFE_CLEAR(set);
+    }
+
+    if (1) {
+        s = "[!, [1],[]]";
+        set = pcejson_parser_parse_string(s, 0, 0);
+
+        v = purc_variant_set_get_by_index(set, 1);
+
+        one = purc_variant_make_longdouble(1);
+
+        purc_variant_array_append(v, one);
+
+        EXPECT_EQ(0, var_diff(set, s));
+
+        PURC_VARIANT_SAFE_CLEAR(one);
+        PURC_VARIANT_SAFE_CLEAR(set);
+    }
+
+    if (1) {
+        s = "[!, [!, a],[!]]";
+        set = pcejson_parser_parse_string(s, 0, 0);
+
+        v = purc_variant_set_get_by_index(set, 1);
+
+        a = purc_variant_make_string("a", false);
+
+        PRINT_VARIANT(set);
+        PRINT_VARIANT(v);
+        bool overwrite = true;
+        ok = purc_variant_set_add(v, a, overwrite);
+        PC_DEBUGX("ok: %s", ok ? "true" : "false");
+        PRINT_VARIANT(v);
+        PRINT_VARIANT(set);
+
+        EXPECT_EQ(0, var_diff(set, s));
+
+        PURC_VARIANT_SAFE_CLEAR(a);
+        PURC_VARIANT_SAFE_CLEAR(set);
+    }
+
+    if (1) {
+        // number but different type internally
+        s = "[!, 123L, 123.0]";
+        set = pcejson_parser_parse_string(s, 0, 0);
+
+        PRINT_VARIANT(set);
+
+        const char *against;
+        against = "[!, 123L]";
+        EXPECT_EQ(0, var_diff(set, against));
+
+        against = "[!, 123]";
+        EXPECT_EQ(0, var_diff(set, against));
+
+        against = "[!, 123.0]";
+        EXPECT_EQ(0, var_diff(set, against));
+
+        PURC_VARIANT_SAFE_CLEAR(set);
+    }
+}
+
+TEST(constraint, change_order)
+{
+    PurCInstance purc;
+
+    const char *s;
+    purc_variant_t set, v;
+    bool overwrite, silently;
+
+    s = "[!, 2, 1, 3]";
+    if (1) {
+        set = pcejson_parser_parse_string(s, 0, 0);
+        v = purc_variant_set_get_by_index(set, 0);
+
+        purc_variant_ref(v);
+        silently = true;
+        purc_variant_set_remove(set, v, silently);
+        overwrite = true;
+        purc_variant_set_add(set, v, overwrite);
+        PURC_VARIANT_SAFE_CLEAR(v);
+
+        PRINT_VARIANT(set);
+        ASSERT_EQ(0, var_diff(set, s));
+
+        PURC_VARIANT_SAFE_CLEAR(set);
+    }
+
+    if (1) {
+        set = pcejson_parser_parse_string(s, 0, 0);
+        v = purc_variant_set_get_by_index(set, 1);
+
+        purc_variant_ref(v);
+        silently = true;
+        purc_variant_set_remove(set, v, silently);
+        overwrite = true;
+        purc_variant_set_add(set, v, overwrite);
+        PURC_VARIANT_SAFE_CLEAR(v);
+
+        PRINT_VARIANT(set);
+        ASSERT_EQ(0, var_diff(set, s));
+
+        PURC_VARIANT_SAFE_CLEAR(set);
+    }
+
+    if (1) {
+        set = pcejson_parser_parse_string(s, 0, 0);
+        PRINT_VARIANT(set);
+        v = purc_variant_set_get_by_index(set, 2);
+
+        purc_variant_ref(v);
+        silently = true;
+        purc_variant_set_remove(set, v, silently);
+        overwrite = true;
+        purc_variant_set_add(set, v, overwrite);
+        PURC_VARIANT_SAFE_CLEAR(v);
+
+        PRINT_VARIANT(set);
+        ASSERT_EQ(0, var_diff(set, s));
+
+        PURC_VARIANT_SAFE_CLEAR(set);
+    }
+}
+
+TEST(constraint, object_order)
+{
+    PurCInstance purc;
+
+    if (1) {
+        struct record {
+            const char *s;
+        } records[] = {
+            "{first:xiaohong,last:xu}",
+            "{last:xu,first:xiaohong}",
+        };
+
+        purc_variant_t v0 = pcejson_parser_parse_string(records[0].s, 0, 0);
+        for (size_t i=1; i<PCA_TABLESIZE(records); ++i) {
+            ASSERT_EQ(0, var_diff(v0, records[i].s));
+        }
+        PURC_VARIANT_SAFE_CLEAR(v0);
+    }
+
+    if (1) {
+        struct record {
+            const char *s;
+        } records[] = {
+            "{name:[{first:xiaohong,last:xu}], extra:foo}",
+            "{extra:foo, name:[{first:xiaohong,last:xu}]}",
+        };
+
+        purc_variant_t v0 = pcejson_parser_parse_string(records[0].s, 0, 0);
+        for (size_t i=1; i<PCA_TABLESIZE(records); ++i) {
+            ASSERT_EQ(0, var_diff(v0, records[i].s));
+        }
+        PURC_VARIANT_SAFE_CLEAR(v0);
+    }
+
+    if (1) {
+        struct record {
+            const char *s;
+        } records[] = {
+            "[!name,{name:[{first:xiaohong,last:xu},[]], extra:foo},{name:[{first:shuming,last:xue},[]], extra:bar}]",
+            "[!name,{extra:foo, name:[{first:xiaohong,last:xu},[]]},{extra:bar, name:[{first:shuming,last:xue},[]]}]",
+            "[!name,{extra:bar,name:[{first:shuming,last:xue},[]]},{extra:foo,name:[{first:xiaohong,last:xu},[]]}]",
+            "[!name,{name:[{first:xiaohong,last:xu},[]], extra:foo},{name:[{first:shuming,last:xue},[]], extra:bar}]",
+        };
+
+        purc_variant_t v0 = pcejson_parser_parse_string(records[0].s, 0, 0);
+        for (size_t i=1; i<PCA_TABLESIZE(records); ++i) {
+            ASSERT_EQ(0, var_diff(v0, records[i].s));
+        }
+        PURC_VARIANT_SAFE_CLEAR(v0);
+    }
+
+    if (1) {
+        struct record {
+            const char *s;
+        } records[] = {
+            "[!,{name:[{first:xiaohong,last:xu},[]], extra:foo},{name:[{first:shuming,last:xue},[]], extra:bar}]",
+            "[!,{extra:foo, name:[{first:xiaohong,last:xu},[]]},{extra:bar, name:[{first:shuming,last:xue},[]]}]",
+            "[!,{extra:bar,name:[{first:shuming,last:xue},[]]},{extra:foo,name:[{first:xiaohong,last:xu},[]]}]",
+            "[!,{name:[{first:xiaohong,last:xu},[]], extra:foo},{name:[{first:shuming,last:xue},[]], extra:bar}]",
+        };
+
+        purc_variant_t v0 = pcejson_parser_parse_string(records[0].s, 0, 0);
+        for (size_t i=1; i<PCA_TABLESIZE(records); ++i) {
+            ASSERT_EQ(0, var_diff(v0, records[i].s));
+        }
+        PURC_VARIANT_SAFE_CLEAR(v0);
+    }
 }
 

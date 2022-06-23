@@ -268,60 +268,7 @@ struct pcmodule* _pc_modules[] = {
     &_module_renderer,
 };
 
-/* FIXME:
-   1. We use atoms to identify the runners, and use move heaps to exchange
-      messages among runners, so there is no need to maintain the runners
-      or PurC instances by using `struct hvml_app`.
-   2. By using the atom and move heaps, one PurC instance will not have
-      any chance to visit the public data which should be protected by a lock.
-      As a good result, the most code of PurC will be lockless.
-   3. Placing a prerequisite that all runners should have the same app name
-      is an unnecessary restriction.
- */
-struct hvml_app {
-    struct list_head              instances;  // struct pcinst
-
-    char                         *first_app_name;
-
-    bool                          init_ok;
-};
-
-static struct hvml_app _app;
-
 static bool _init_ok = false;
-
-struct hvml_app* hvml_app_get(void)
-{
-    if (!_init_ok)
-        return NULL;
-
-    if (_app.init_ok == false)
-        return NULL;
-
-    return &_app;
-}
-
-static void app_cleanup_once(void)
-{
-    PC_ASSERT(list_empty(&_app.instances));
-}
-
-static void _app_init_once(void)
-{
-    INIT_LIST_HEAD(&_app.instances);
-    int r;
-
-    r = atexit(app_cleanup_once);
-    if (r)
-        goto fail_atexit;
-
-    _app.init_ok = true;
-    return;
-
-fail_atexit:
-    return;
-}
-
 static void _init_once(void)
 {
 #if 0
@@ -329,11 +276,8 @@ static void _init_once(void)
     atexit(free_locale_c);
 #endif
 
-    _app_init_once();
-    if (!_app.init_ok)
-        return;
-
-    for (size_t i=0; i<PCA_TABLESIZE(_pc_modules); ++i) {
+    /* call once initializers of modules */
+    for (size_t i = 0; i < PCA_TABLESIZE(_pc_modules); ++i) {
         struct pcmodule *m = _pc_modules[i];
         if (!m->init_once)
             continue;
@@ -365,201 +309,6 @@ static inline void init_once(void)
 
 PURC_DEFINE_THREAD_LOCAL(struct pcinst, inst);
 
-struct endpoint_get_d {
-    const char                   *endpoint_name;
-    purc_atom_t                   endpoint_atom;
-
-    const char                   *app_name;
-
-    int                           r;
-};
-
-static void endpoint_get(void *ud)
-{
-    struct endpoint_get_d *data = (struct endpoint_get_d*)ud;
-    PC_ASSERT(data->endpoint_name);
-    purc_atom_t endpoint_atom;
-    endpoint_atom = purc_atom_try_string_ex(PURC_ATOM_BUCKET_USER,
-            data->endpoint_name);
-    if (endpoint_atom) {
-        data->r = PURC_ERROR_DUPLICATED;
-        return;
-    }
-    // FIXME: not atomic in between!!!
-    endpoint_atom = purc_atom_from_string_ex(PURC_ATOM_BUCKET_USER,
-            data->endpoint_name);
-    if (!endpoint_atom) {
-        data->r = purc_get_last_error();
-        PC_ASSERT(data->r);
-        return;
-    }
-
-    if (_app.first_app_name == NULL) {
-        PC_ASSERT(data->app_name);
-        _app.first_app_name = strdup(data->app_name);
-        if (_app.first_app_name == NULL) {
-            data->r = PURC_ERROR_DUPLICATED;
-            PC_ASSERT(purc_atom_remove_string_ex(PURC_ATOM_BUCKET_USER,
-                        data->endpoint_name));
-            return;
-        }
-    }
-
-    data->endpoint_atom = endpoint_atom;
-    data->r = 0;
-}
-
-purc_atom_t
-pcinst_endpoint_get(char *endpoint_name, size_t sz,
-        const char *app_name, const char *runner_name)
-{
-    PC_ASSERT(app_name && runner_name);
-
-    // TODO: more precisely
-    if (strchr(app_name, '/')) {
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
-        return 0;
-    }
-    if (strchr(runner_name, '/')) {
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
-        return 0;
-    }
-
-    if (sz < PURC_LEN_ENDPOINT_NAME + 1) {
-        purc_set_error(PURC_ERROR_TOO_SMALL_BUFF);
-        return 0;
-    }
-
-    int n;
-    n = purc_assemble_endpoint_name_ex(PCRDR_LOCALHOST,
-            app_name, runner_name, endpoint_name, sz);
-    if (n == 0) {
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
-        return 0;
-    }
-    PC_ASSERT(n > 0);
-    if ((size_t)n >= sz) {
-        purc_set_error(PURC_ERROR_TOO_SMALL_BUFF);
-        return 0;
-    }
-
-    struct endpoint_get_d data = {
-        .endpoint_name      = endpoint_name,
-        .endpoint_atom      = 0,
-        .app_name           = app_name,
-
-        .r                  = 0,
-    };
-
-    pcintr_synchronize(&data, endpoint_get);
-    int r = data.r;
-    if (r) {
-        purc_set_error(r);
-        return 0;
-    }
-
-    PC_ASSERT(data.endpoint_atom);
-    return data.endpoint_atom;
-}
-
-struct append_inst_d {
-    struct hvml_app              *app;
-    struct pcinst                *curr_inst;
-
-    int                           r;
-};
-
-static void append_inst(void *ud)
-{
-    struct append_inst_d  *data          = (struct append_inst_d*)ud;
-    struct hvml_app       *app           = data->app;
-    struct pcinst         *curr_inst     = data->curr_inst;
-
-    // sanity-check for the moment
-    struct pcinst *p;
-    list_for_each_entry(p, &app->instances, node) {
-        PC_ASSERT(p != curr_inst);
-        PC_ASSERT(p->endpoint_atom != curr_inst->endpoint_atom);
-    }
-
-    list_add_tail(&curr_inst->node, &app->instances);
-
-    data->r = 0;
-}
-
-static int app_new_inst(struct hvml_app *app,
-        const char *app_name, const char *runner_name,
-        unsigned int keep_alive,
-        struct pcinst **pcurr_inst)
-{
-    int r = PURC_ERROR_OK;
-
-    char *an = strdup(app_name);
-    if (!an)
-        return -1;
-
-    do {
-        struct pcinst *curr_inst = PURC_GET_THREAD_LOCAL(inst);
-        if (curr_inst == NULL) {
-            r = PURC_ERROR_OUT_OF_MEMORY;
-            break;
-        }
-
-        curr_inst->keep_alive = keep_alive;
-
-        if (curr_inst->modules || curr_inst->runner_name) {
-            r = PURC_ERROR_DUPLICATED;
-            break;
-        }
-
-        if (curr_inst->node.prev || curr_inst->node.next) {
-            r = PURC_ERROR_DUPLICATED;
-            break;
-        }
-
-        curr_inst->errcode = PURC_ERROR_OK;
-        curr_inst->app_name = an;
-        an = NULL;
-
-        curr_inst->runner_name = strdup(runner_name);
-        if (!curr_inst->runner_name) {
-            r = PURC_ERROR_OUT_OF_MEMORY;
-            break;
-        }
-
-        curr_inst->running_loop = purc_runloop_get_current();
-        curr_inst->running_thread = pthread_self();
-
-        curr_inst->endpoint_atom = pcinst_endpoint_get(curr_inst->endpoint_name,
-                sizeof(curr_inst->endpoint_name),
-                curr_inst->app_name, curr_inst->runner_name);
-        if (curr_inst->endpoint_atom == 0) {
-            r = purc_get_last_error();
-            break;
-        }
-
-        struct append_inst_d data = {
-            .app             = app,
-            .curr_inst       = curr_inst,
-            .r               = 0,
-        };
-        pcintr_synchronize(&data, append_inst);
-        r = data.r;
-        if (r) {
-            purc_set_error(r);
-            break;
-        }
-
-        *pcurr_inst = curr_inst;
-        PC_ASSERT(r == 0);
-        PC_ASSERT(r == PURC_ERROR_OK);
-    } while (0);
-
-    free(an);
-
-    return r;
-}
-
 struct pcinst* pcinst_current(void)
 {
     struct pcinst* curr_inst;
@@ -570,91 +319,6 @@ struct pcinst* pcinst_current(void)
     }
 
     return curr_inst;
-}
-
-struct remove_inst_d {
-    struct pcinst                *curr_inst;
-};
-
-static void remove_inst(void *ud)
-{
-    struct remove_inst_d       *data = (struct remove_inst_d*)ud;
-    struct pcinst *curr_inst = data->curr_inst;
-
-    if (curr_inst->node.next || curr_inst->node.prev)
-        list_del(&curr_inst->node);
-
-    if (curr_inst->endpoint_atom) {
-        PC_ASSERT(purc_atom_remove_string_ex(PURC_ATOM_BUCKET_USER,
-                    curr_inst->endpoint_name));
-        curr_inst->endpoint_atom = 0;
-    }
-}
-
-static void cleanup_instance(struct hvml_app *app, struct pcinst *curr_inst)
-{
-    UNUSED_PARAM(app);
-
-    if (curr_inst->local_data_map) {
-        pcutils_map_destroy(curr_inst->local_data_map);
-        curr_inst->local_data_map = NULL;
-    }
-
-    if (curr_inst->fp_log && curr_inst->fp_log != LOG_FILE_SYSLOG) {
-        fclose(curr_inst->fp_log);
-        curr_inst->fp_log = NULL;
-    }
-
-    if (curr_inst->bt) {
-        pcdebug_backtrace_unref(curr_inst->bt);
-        curr_inst->bt = NULL;
-    }
-
-    struct remove_inst_d data = {
-        .curr_inst       = curr_inst,
-    };
-    pcintr_synchronize(&data, remove_inst);
-
-    if (curr_inst->app_name) {
-        free(curr_inst->app_name);
-        curr_inst->app_name = NULL;
-    }
-
-    if (curr_inst->runner_name) {
-        free(curr_inst->runner_name);
-        curr_inst->runner_name = NULL;
-    }
-
-    if (curr_inst->app_name)
-        curr_inst->app_name = NULL;
-
-    curr_inst->modules = 0;
-}
-
-static int _init_instance(struct pcinst *curr_inst,
-        unsigned int modules, const purc_instance_extra_info* extra_info)
-{
-    for (size_t i=0; i<PCA_TABLESIZE(_pc_modules); ++i) {
-        struct pcmodule *m = _pc_modules[i];
-        if ((m->id & modules) != m->id)
-            continue;
-        if (m->init_instance == NULL)
-            continue;
-        if( m->init_instance(curr_inst, extra_info))
-            return -1;
-    }
-
-    return 0;
-}
-
-static void _cleanup_instance(struct pcinst *curr_inst)
-{
-    for (size_t i=PCA_TABLESIZE(_pc_modules); i>0; ) {
-        struct pcmodule *m = _pc_modules[--i];
-        if (m->cleanup_instance == NULL)
-            continue;
-        m->cleanup_instance(curr_inst);
-    }
 }
 
 static void enable_log_on_demand(void)
@@ -679,57 +343,117 @@ static void enable_log_on_demand(void)
     purc_enable_log(true, use_syslog);
 }
 
-static int instance_init_modules(struct pcinst *curr_inst,
+static int init_modules(struct pcinst *curr_inst,
         unsigned int modules, const purc_instance_extra_info* extra_info)
 {
     curr_inst->modules = modules;
-
-    enable_log_on_demand();
-
-    // map for local data
-    curr_inst->local_data_map =
-        pcutils_map_create(copy_key_string,
-                free_key_string, NULL, NULL, comp_key_string, false);
-
-    if (curr_inst->endpoint_atom == 0) {
-        return PURC_ERROR_OUT_OF_MEMORY;
-    }
+    curr_inst->modules_inited = 0;
 
     curr_inst->max_conns                  = FETCHER_MAX_CONNS;
     curr_inst->cache_quota                = FETCHER_CACHE_QUOTA;
     curr_inst->enable_remote_fetcher      = modules & PURC_HAVE_FETCHER_R;
 
-    _init_instance(curr_inst, modules, extra_info);
+    // call mdule initializers
+    for (size_t i = 0; i < PCA_TABLESIZE(_pc_modules); ++i) {
+        struct pcmodule *m = _pc_modules[i];
+        if ((m->id & modules) != m->id)
+            continue;
+        if (m->init_instance == NULL)
+            continue;
+        if (m->init_instance(curr_inst, extra_info))
+            return PURC_ERROR_OUT_OF_MEMORY;
 
-    /* VW NOTE: eDOM and HTML modules should work without instance
-    pcdom_init_instance(curr_inst);
-    pchtml_init_instance(curr_inst); */
-
-    // TODO: init XML modules here
-
-    // TODO: init XGML modules here
+        curr_inst->modules_inited |= m->id;
+    }
 
     return PURC_ERROR_OK;
 }
 
-static bool pcinst_cleanup(struct hvml_app *app, struct pcinst *curr_inst)
+static void cleanup_modules(struct pcinst *curr_inst)
 {
-    if (curr_inst == NULL || curr_inst->app_name == NULL)
-        return false;
-
     PURC_VARIANT_SAFE_CLEAR(curr_inst->err_exinfo);
 
-    // TODO: clean up other fields in reverse order
+    // cleanup modules
+    for (size_t i = PCA_TABLESIZE(_pc_modules); i > 0; ) {
+        struct pcmodule *m = _pc_modules[--i];
+        if (m->cleanup_instance &&
+                (m->id & curr_inst->modules_inited) == m->id) {
+            m->cleanup_instance(curr_inst);
+        }
+    }
+}
 
-    _cleanup_instance(curr_inst);
+static void cleanup_instance(struct pcinst *curr_inst)
+{
+    if (curr_inst->local_data_map) {
+        pcutils_map_destroy(curr_inst->local_data_map);
+        curr_inst->local_data_map = NULL;
+    }
 
-    /* VW NOTE: eDOM and HTML modules should work without instance
-       pchtml_cleanup_instance(curr_inst);
-       pcdom_cleanup_instance(curr_inst); */
+    if (curr_inst->fp_log && curr_inst->fp_log != LOG_FILE_SYSLOG) {
+        fclose(curr_inst->fp_log);
+        curr_inst->fp_log = NULL;
+    }
 
-    cleanup_instance(app, curr_inst);
+    if (curr_inst->bt) {
+        pcdebug_backtrace_unref(curr_inst->bt);
+        curr_inst->bt = NULL;
+    }
 
-    return true;
+    bool ret;
+    ret = purc_atom_remove_string_ex(PURC_ATOM_BUCKET_USER,
+            curr_inst->endpoint_name);
+    assert(ret);
+
+    if (curr_inst->app_name) {
+        free(curr_inst->app_name);
+        curr_inst->app_name = NULL;
+    }
+
+    if (curr_inst->runner_name) {
+        free(curr_inst->runner_name);
+        curr_inst->runner_name = NULL;
+    }
+
+    curr_inst->modules = 0;
+    curr_inst->modules_inited = 0;
+}
+
+purc_atom_t
+pcinst_endpoint_get(char *endpoint_name, size_t sz,
+        const char *app_name, const char *runner_name)
+{
+    PC_ASSERT(app_name && runner_name);
+
+    if (!purc_is_valid_app_name(app_name) ||
+            !purc_is_valid_runner_name(runner_name)) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        return 0;
+    }
+
+    int n;
+    n = purc_assemble_endpoint_name_ex(PCRDR_LOCALHOST,
+            app_name, runner_name, endpoint_name, sz);
+    if (n == 0) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        return 0;
+    }
+    PC_ASSERT(n > 0);
+    if ((size_t)n >= sz) {
+        purc_set_error(PURC_ERROR_TOO_SMALL_BUFF);
+        return 0;
+    }
+
+    bool is_mine;
+    purc_atom_t atom;
+    atom = purc_atom_from_string_ex2(PURC_ATOM_BUCKET_USER,
+        endpoint_name, &is_mine);
+    if (!is_mine) {
+        purc_set_error(PURC_ERROR_DUPLICATED);
+        return 0;
+    }
+
+    return atom;
 }
 
 int purc_init_ex(unsigned int modules,
@@ -761,59 +485,91 @@ int purc_init_ex(unsigned int modules,
     if (!_init_ok)
         return PURC_ERROR_NO_INSTANCE;
 
-    struct hvml_app *app = hvml_app_get();
-    if (!app)
-        return PURC_ERROR_NO_INSTANCE;
+    struct pcinst *curr_inst = PURC_GET_THREAD_LOCAL(inst);
+    if (curr_inst == NULL) {
+        return PURC_ERROR_OUT_OF_MEMORY;
+    }
 
-    int ret = PURC_ERROR_OK;
-    struct pcinst* curr_inst = NULL;
+    if (curr_inst->modules || curr_inst->app_name ||
+            curr_inst->runner_name) {
+        return PURC_ERROR_DUPLICATED;
+    }
 
-    do {
-        unsigned int keep_alive = 0;
-        ret = app_new_inst(app, app_name, runner_name, keep_alive, &curr_inst);
-        if (ret)
-            break;
+    if (!purc_is_valid_app_name(app_name) ||
+            !purc_is_valid_runner_name(runner_name)) {
+        purc_log_info("invalid app or runner name: %s/%s\n", app_name,
+                runner_name);
+        return PURC_ERROR_INVALID_VALUE;
+    }
 
-        if (curr_inst == NULL) {
-            ret = PURC_ERROR_OUT_OF_MEMORY;
-            break;
-        }
+    int n;
+    n = purc_assemble_endpoint_name_ex(PCRDR_LOCALHOST, app_name, runner_name,
+            curr_inst->endpoint_name, sizeof(curr_inst->endpoint_name));
+    if (n == 0) {
+        return PURC_ERROR_INVALID_VALUE;
+    }
 
-        ret = instance_init_modules(curr_inst, modules, extra_info);
-        if (ret) {
-            list_del(&curr_inst->node);
-            break;
-        }
-    } while (0);
+    if ((size_t)n >= sizeof(curr_inst->endpoint_name)) {
+        return PURC_ERROR_TOO_SMALL_BUFF;
+    }
 
+    bool is_mine;
+    purc_atom_t atom;
+    atom = purc_atom_from_string_ex2(PURC_ATOM_BUCKET_USER,
+        curr_inst->endpoint_name, &is_mine);
+    if (!is_mine) {
+        return PURC_ERROR_DUPLICATED;
+    }
+
+    curr_inst->app_name = strdup(app_name);
+    curr_inst->runner_name = strdup(runner_name);
+    curr_inst->endpoint_atom = atom;
+
+    enable_log_on_demand();
+
+    // map for local data
+    curr_inst->local_data_map =
+        pcutils_map_create(copy_key_string,
+                free_key_string, NULL, NULL, comp_key_string, false);
+
+    int ret = init_modules(curr_inst, modules, extra_info);
     if (ret) {
-        pcinst_cleanup(app, curr_inst);
+        cleanup_modules(curr_inst);
+        cleanup_instance(curr_inst);
         return ret;
     }
+
+    /* it is ready now */
+    curr_inst->errcode = PURC_ERROR_OK;
 
     return PURC_ERROR_OK;
 }
 
 bool purc_cleanup(void)
 {
-    struct hvml_app *app = hvml_app_get();
-    if (!app)
-        return false;
-
     struct pcinst* curr_inst;
 
     curr_inst = PURC_GET_THREAD_LOCAL(inst);
+    if (curr_inst == NULL || curr_inst->app_name == NULL)
+        return false;
 
-    return pcinst_cleanup(app, curr_inst);
+    cleanup_modules(curr_inst);
+    cleanup_instance(curr_inst);
+    return true;
 }
 
-const char*
-pcintr_get_first_app_name(void)
+const char *purc_get_endpoint(purc_atom_t *atom)
 {
-    struct hvml_app *app = hvml_app_get();
-    PC_ASSERT(app);
-    PC_ASSERT(app->first_app_name);
-    return app->first_app_name;
+    struct pcinst* curr_inst;
+
+    curr_inst = PURC_GET_THREAD_LOCAL(inst);
+    if (curr_inst == NULL || curr_inst->app_name == NULL
+            || curr_inst->endpoint_atom == 0)
+        return NULL;
+
+    if (atom)
+        *atom = curr_inst->endpoint_atom;
+    return curr_inst->endpoint_name;
 }
 
 bool
@@ -926,23 +682,6 @@ purc_get_conn_to_renderer(void)
 
     return inst->conn_to_rdr;
 }
-
-#if 0
-bool purc_unbind_variable(const char* name)
-{
-    struct pcinst* inst = pcinst_current();
-    if (inst == NULL)
-        return false;
-
-    return pcvarmgr_remove(inst->variables, name);
-}
-
-bool
-purc_unbind_document_variable(purc_vdom_t vdom, const char* name)
-{
-    return pcvdom_document_unbind_variable(vdom, name);
-}
-#endif
 
 void pcinst_clear_error(struct pcinst *inst)
 {

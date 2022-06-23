@@ -247,7 +247,8 @@ destroy(struct pcexec_exe_formula_inst *exe_formula_inst)
 
 // 创建一个执行器实例
 static purc_exec_inst_t
-exe_formula_create(enum purc_exec_type type, purc_variant_t input, bool asc_desc)
+exe_formula_create(enum purc_exec_type type,
+        purc_variant_t input, bool asc_desc)
 {
     struct pcexec_exe_formula_inst *inst;
     inst = calloc(1, sizeof(*inst));
@@ -290,6 +291,17 @@ exe_formula_choose(purc_exec_inst_t inst, const char* rule)
         ok = purc_variant_array_append(vals, v);
         if (!ok)
             break;
+    }
+
+    if (ok) {
+        size_t n;
+        purc_variant_array_size(vals, &n);
+        if (n == 1) {
+            purc_variant_t v = purc_variant_array_get(vals, 0);
+            purc_variant_ref(v);
+            purc_variant_unref(vals);
+            vals = v;
+        }
     }
 
     if (!ok) {
@@ -408,6 +420,10 @@ exe_formula_reduce(purc_exec_inst_t inst, const char* rule)
         else if (d < min) {
             min = d;
         }
+    }
+
+    if (count > 0) {
+        avg = sum / count;
     }
 
     purc_variant_t obj = purc_variant_make_object(0,

@@ -1,0 +1,41 @@
+<!DOCTYPE hvml>
+<hvml target="html" lang="en">
+    <head>
+        <init as="regionStats">
+        [
+            { "locale" : "zh_CN", "rank" : 100 },
+            { "locale" : "zh_CN", "rank" : 100 },
+            { "locale" : "zh_CN", "rank" : 100 },
+            { "locale" : "zh_TW", "rank" : 90 },
+            { "locale" : "zh_TW", "rank" : 90 },
+            { "locale" : "zh_TW", "rank" : 90 },
+            { "locale" : "zh_HK", "rank" : 90 },
+            { "locale" : "zh_SG", "rank" : 90 },
+            { "locale" : "zh_MO", "rank" : 80 },
+            { "locale" : "en_US", "rank" : 30 },
+            { "locale" : "en_UK", "rank" : 20 },
+        ]
+        </init>
+
+
+    </head>
+
+    <body>
+        <div>
+            <div id="c_value">
+                <archetype name="regionList">
+                    <div>$?</div>
+                </archetype>
+
+                <ul>
+                    <reduce on=$regionStats by="FUNC: statsUserRegion@FUNC_DEMO" with="locale">
+                        <update on="$@" to="append" with="$regionList" />
+                    </reduce>
+                </ul>
+            </div>
+        </div>
+    </body>
+
+</hvml>
+
+

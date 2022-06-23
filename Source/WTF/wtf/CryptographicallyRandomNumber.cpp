@@ -35,7 +35,7 @@
 #include <wtf/NeverDestroyed.h>
 #include <wtf/OSRandomSource.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 namespace {
 

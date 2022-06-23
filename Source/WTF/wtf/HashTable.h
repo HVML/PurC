@@ -46,11 +46,11 @@ ALLOW_DEPRECATED_DECLARATIONS_BEGIN
 #include <wtf/DataLog.h>
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 
 DECLARE_ALLOCATOR_WITH_HEAP_IDENTIFIER(HashTable);
 
-// Enables internal WTF consistency checks that are invoked automatically. Non-WTF callers can call checkTableConsistency() even if internal checks are disabled.
+// Enables internal PurCWTF consistency checks that are invoked automatically. Non-PurCWTF callers can call checkTableConsistency() even if internal checks are disabled.
 #define CHECK_HASHTABLE_CONSISTENCY 0
 
 #ifdef NDEBUG
@@ -1249,7 +1249,7 @@ DECLARE_ALLOCATOR_WITH_HEAP_IDENTIFIER(HashTable);
     template<typename Key, typename Value, typename Extractor, typename HashFunctions, typename Traits, typename KeyTraits>
     constexpr unsigned HashTable<Key, Value, Extractor, HashFunctions, Traits, KeyTraits>::computeBestTableSize(unsigned keyCount)
     {
-        unsigned bestTableSize = WTF::roundUpToPowerOfTwo(keyCount);
+        unsigned bestTableSize = PurCWTF::roundUpToPowerOfTwo(keyCount);
 
         if (HashTableSizePolicy::shouldExpand(keyCount, bestTableSize))
             bestTableSize *= 2;
@@ -1644,7 +1644,7 @@ DECLARE_ALLOCATOR_WITH_HEAP_IDENTIFIER(HashTable);
         return a.m_impl != b.m_impl;
     }
 
-} // namespace WTF
+} // namespace PurCWTF
 
 ALLOW_DEPRECATED_DECLARATIONS_END
 

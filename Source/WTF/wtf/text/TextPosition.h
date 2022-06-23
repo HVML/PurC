@@ -26,7 +26,7 @@
 
 #include <wtf/text/OrdinalNumber.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 // TextPosition structure specifies coordinates within an text resource. It is used mostly
 // for saving script source position.
@@ -52,4 +52,4 @@ public:
 
 }
 
-using WTF::TextPosition;
+using PurCWTF::TextPosition;

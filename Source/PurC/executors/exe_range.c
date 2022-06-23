@@ -382,6 +382,17 @@ exe_range_choose(purc_exec_inst_t inst, const char* rule)
             break;
     }
 
+    if (ok) {
+        size_t n;
+        purc_variant_array_size(vals, &n);
+        if (n == 1) {
+            purc_variant_t v = purc_variant_array_get(vals, 0);
+            purc_variant_ref(v);
+            purc_variant_unref(vals);
+            vals = v;
+        }
+    }
+
     if (!ok) {
         purc_variant_unref(vals);
         return PURC_VARIANT_INVALID;
@@ -508,6 +519,10 @@ exe_range_reduce(purc_exec_inst_t inst, const char* rule)
         else if (d < min) {
             min = d;
         }
+    }
+
+    if (count > 0) {
+        avg = sum / count;
     }
 
     purc_variant_t obj = purc_variant_make_object(0,

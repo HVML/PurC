@@ -52,14 +52,14 @@ public:
 
         auto& elements = m_data->elements();
         size_t fileCount = std::count_if(elements.begin(), elements.end(), [](auto& element) {
-            return WTF::holds_alternative<PurCFetcher::FormDataElement::EncodedFileData>(element.data);
+            return PurCWTF::holds_alternative<PurCFetcher::FormDataElement::EncodedFileData>(element.data);
         });
 
         PurCFetcher::SandboxExtension::HandleArray sandboxExtensionHandles;
         sandboxExtensionHandles.allocate(fileCount);
         size_t extensionIndex = 0;
         for (auto& element : elements) {
-            if (auto* fileData = WTF::get_if<PurCFetcher::FormDataElement::EncodedFileData>(element.data)) {
+            if (auto* fileData = PurCWTF::get_if<PurCFetcher::FormDataElement::EncodedFileData>(element.data)) {
                 const String& path = fileData->filename;
                 PurCFetcher::SandboxExtension::createHandle(path, PurCFetcher::SandboxExtension::Type::ReadOnly, sandboxExtensionHandles[extensionIndex++]);
             }
@@ -72,18 +72,18 @@ public:
         Optional<bool> hasFormData;
         decoder >> hasFormData;
         if (!hasFormData)
-            return WTF::nullopt;
+            return PurCWTF::nullopt;
         if (!hasFormData.value())
             return FormDataReference { };
 
         auto formData = PurCFetcher::FormData::decode(decoder);
         if (!formData)
-            return WTF::nullopt;
+            return PurCWTF::nullopt;
 
         Optional<PurCFetcher::SandboxExtension::HandleArray> sandboxExtensionHandles;
         decoder >> sandboxExtensionHandles;
         if (!sandboxExtensionHandles)
-            return WTF::nullopt;
+            return PurCWTF::nullopt;
 
         PurCFetcher::SandboxExtension::consumePermanently(*sandboxExtensionHandles);
 

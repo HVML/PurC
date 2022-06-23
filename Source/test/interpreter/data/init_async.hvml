@@ -1,0 +1,15 @@
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<hvml target="html" lang="en">
+<head>
+    <base href="$HVML.base(! 'http://files.fmsoft.cn/calculator/' )" />
+
+    <init as="buttons" from="assets/buttons.json" async />
+</head>
+
+<body>
+    <observe at="buttons" for="change:displaced">
+        <exit/>
+    </observe>
+</body>
+</hvml>
+

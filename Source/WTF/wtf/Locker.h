@@ -33,7 +33,7 @@
 #include <wtf/Compiler.h>
 #include <wtf/Noncopyable.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 enum NoLockingNecessaryTag { NoLockingNecessary };
 
@@ -145,9 +145,9 @@ Locker<LockType> tryHoldLock(LockType& lock)
 
 }
 
-using WTF::AbstractLocker;
-using WTF::Locker;
-using WTF::NoLockingNecessaryTag;
-using WTF::NoLockingNecessary;
-using WTF::holdLock;
-using WTF::holdLockIf;
+using PurCWTF::AbstractLocker;
+using PurCWTF::Locker;
+using PurCWTF::NoLockingNecessaryTag;
+using PurCWTF::NoLockingNecessary;
+using PurCWTF::holdLock;
+using PurCWTF::holdLockIf;

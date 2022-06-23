@@ -21,7 +21,7 @@
 #import "config.h"
 #import <wtf/text/TextStream.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 TextStream& TextStream::operator<<(id<NSObject> object)
 {

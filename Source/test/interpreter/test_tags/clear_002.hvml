@@ -11,11 +11,11 @@
     </head>
     <body>
         <div>
-            $buttons
+            $EJSON.count($buttons)
         </div>
         <clear on="$buttons"/>
         <div>
-            $buttons
+            $EJSON.count($buttons)
         </div>
     </body>
 </hvml>

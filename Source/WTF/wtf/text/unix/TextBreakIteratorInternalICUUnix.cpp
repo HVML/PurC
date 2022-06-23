@@ -22,7 +22,7 @@
 
 #include <locale.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 const char* currentSearchLocaleID()
 {

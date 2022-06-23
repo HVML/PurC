@@ -85,7 +85,8 @@ struct pcintr_heap {
     pcintr_coroutine_t    running_coroutine;
 
     // those running under and managed by this heap
-    struct list_head      coroutines;      // struct pcintr_coroutine
+    // key as atom, val as struct pcintr_coroutine
+    struct rb_root        coroutines;
 
     pthread_mutex_t       locker;
     volatile bool         exiting;
@@ -252,7 +253,7 @@ struct pcintr_coroutine {
     char                       *full_name;   /* prefixed with runnerName/ */
     purc_atom_t                 ident;
 
-    struct list_head            node;     /* heap::coroutines */
+    struct rb_node              node;     /* heap::coroutines */
 
     pcintr_coroutine_t          parent;
     struct list_head            children; /* struct pcintr_coroutine_result */
@@ -446,7 +447,7 @@ pcintr_pop_stack_frame_pseudo(void);
 
 pcintr_coroutine_t
 pcintr_create_child_co(pcvdom_element_t vdom_element,
-        purc_variant_t as);
+        purc_variant_t as, purc_variant_t within);
 
 void
 pcintr_exception_clear(struct pcintr_exception *exception);
@@ -695,6 +696,13 @@ pcintr_apply_routine(co_routine_f routine, pcintr_coroutine_t target);
 void
 pcintr_wakeup_target_with(pcintr_coroutine_t target, void *ctxt,
         void (*func)(void *ctxt));
+
+void*
+pcintr_load_module(const char *module,
+        const char *env_name, const char *prefix);
+
+void
+pcintr_unload_module(void *handle);
 
 PCA_EXTERN_C_END
 

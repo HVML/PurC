@@ -26,7 +26,7 @@
 #include "config.h"
 #include <wtf/FastBitVector.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 DEFINE_ALLOCATOR_WITH_HEAP_IDENTIFIER(FastBitVector);
 
@@ -76,5 +76,5 @@ void FastBitVector::clearRange(size_t begin, size_t end)
         m_words.word(i) = 0;
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 

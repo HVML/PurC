@@ -29,7 +29,7 @@
 #include <wtf/URL.h>
 #include <wtf/text/CString.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 void getURLBytes(CFURLRef url, URLCharBuffer& result)
 {

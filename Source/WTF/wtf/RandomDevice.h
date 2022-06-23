@@ -29,7 +29,7 @@
 #include <wtf/Noncopyable.h>
 #include <wtf/StdLibExtras.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 class RandomDevice {
     WTF_MAKE_NONCOPYABLE(RandomDevice);

@@ -26,7 +26,7 @@
 #include <CoreFoundation/CoreFoundation.h>
 #include <wtf/RetainPtr.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 String::String(CFStringRef str)
 {

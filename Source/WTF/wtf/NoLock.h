@@ -27,7 +27,7 @@
 
 #include <wtf/Locker.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 class NoLock {
     WTF_MAKE_FAST_ALLOCATED;
@@ -39,7 +39,7 @@ public:
 
 typedef Locker<NoLock> NoLockLocker;
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::NoLock;
-using WTF::NoLockLocker;
+using PurCWTF::NoLock;
+using PurCWTF::NoLockLocker;

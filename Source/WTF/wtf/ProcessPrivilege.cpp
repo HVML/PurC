@@ -28,7 +28,7 @@
 
 #include <wtf/OptionSet.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 OptionSet<ProcessPrivilege> allPrivileges()
 {
@@ -65,4 +65,4 @@ void removeProcessPrivilege(ProcessPrivilege privilege)
     processPrivileges().remove(privilege);
 }
 
-} // namespace WTF
+} // namespace PurCWTF

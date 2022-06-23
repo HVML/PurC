@@ -26,8 +26,8 @@
 #include "config.h"
 #include <wtf/text/StringBuffer.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 DEFINE_ALLOCATOR_WITH_HEAP_IDENTIFIER(StringBuffer);
 
-} // namespace WTF
+} // namespace PurCWTF

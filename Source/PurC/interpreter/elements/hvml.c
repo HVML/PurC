@@ -70,6 +70,21 @@ attr_found_val(struct pcintr_stack_frame *frame,
     const char *sv = purc_variant_get_string_const(val);
     PC_ASSERT(sv);
 
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, TARGET)) == name) {
+        pcintr_stack_t stack = pcintr_get_stack();
+        if (stack->vdom->hvml_ctrl_props->target) {
+            char *target = strdup(sv);
+            if (!target) {
+                purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+                return -1;
+            }
+            struct purc_hvml_ctrl_props *props =
+                (struct purc_hvml_ctrl_props *)stack->vdom->hvml_ctrl_props;
+            free(props->target);
+            props->target = target;
+        }
+    }
+
     int r = pcintr_util_set_attribute(frame->edom_element, attr->key, sv);
     PC_ASSERT(r == 0);
 

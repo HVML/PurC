@@ -28,11 +28,11 @@
 #include <map>
 #include <wtf/FastMalloc.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename Key, typename Value, typename Compare = std::less<Key>, typename Allocator = FastAllocator<std::pair<const Key, Value>>>
 using StdMap = std::map<Key, Value, Compare, Allocator>;
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::StdMap;
+using PurCWTF::StdMap;

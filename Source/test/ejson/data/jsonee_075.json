@@ -1,0 +1,5 @@
+{
+    name: "xyz",
+    value: 123,
+    _inner: "inner data"
+}

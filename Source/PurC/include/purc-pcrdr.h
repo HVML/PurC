@@ -83,8 +83,8 @@ enum {
 #define PCRDR_OPERATION_UPDATEPLAINWINDOW   "updatePlainWindow"
     PCRDR_K_OPERATION_DESTROYPLAINWINDOW,
 #define PCRDR_OPERATION_DESTROYPLAINWINDOW  "destroyPlainWindow"
-    PCRDR_K_OPERATION_RESETPAGEGROUPS,
-#define PCRDR_OPERATION_RESETPAGEGROUPS     "resetPageGroups"
+    PCRDR_K_OPERATION_SETPAGEGROUPS,
+#define PCRDR_OPERATION_SETPAGEGROUPS       "setPageGroups"
     PCRDR_K_OPERATION_ADDPAGEGROUPS,
 #define PCRDR_OPERATION_ADDPAGEGROUPS       "addPageGroups"
     PCRDR_K_OPERATION_REMOVEPAGEGROUP,
@@ -309,6 +309,47 @@ PCA_EXPORT int
 pcrdr_free_connection(pcrdr_conn* conn);
 
 /**
+ * The prototype of an extra message source.
+ *
+ * @param conn: the pointer to the renderer connection.
+ * @param ctxt: the context for the extra message source.
+ *
+ * Since: 0.2.0
+ */
+typedef pcrdr_msg *(*pcrdr_extra_message_source)(pcrdr_conn* conn, void *ctxt);
+
+/**
+ * pcrdr_conn_get_extra_message_source:
+ *
+ * @param conn: the pointer to the renderer connection.
+ * @param ctxt: the buffer to receive the context for the extra message source
+ *  (nullable).
+ *
+ * Returns the current extra message source of the renderer connection.
+ *
+ * Since: 0.2.0
+ */
+PCA_EXPORT pcrdr_extra_message_source
+pcrdr_conn_get_extra_message_source(pcrdr_conn* conn, void **ctxt);
+
+/**
+ * Set the extra message source of the connection.
+ *
+ * @param conn: the pointer to the renderer connection.
+ * @param source_fn: the founction to get the extra messages.
+ * @param ctxt: the buffer to receive the context for the old extra message
+ *  source (nullable).
+ *
+ * Sets the extra message source of the renderer connection, and returns
+ * the old one.
+ *
+ * Since: 0.2.0
+ */
+PCA_EXPORT pcrdr_extra_message_source
+pcrdr_conn_set_extra_message_source(pcrdr_conn* conn,
+        pcrdr_extra_message_source source_fn, void *ctxt, void **old_ctxt);
+
+/**
  * The prototype of a request handler.
  *
  * @param conn: the pointer to the renderer connection.
@@ -404,16 +445,29 @@ PCA_EXPORT void *
 pcrdr_conn_set_user_data(pcrdr_conn* conn, void* user_data);
 
 /**
- * Get the last return code from the renderer.
+ * Set the default timeout value when polling the connection.
+ *
+ * @param conn: the pointer to the renderer connection.
+ * @param timeout_ms: the timeout value in milliseconds.
+ *
+ * Returns the old tiemout value; -1 means error.
+ *
+ * Since: 0.2.0
+ */
+PCA_EXPORT int
+pcrdr_conn_set_poll_timeout(pcrdr_conn* conn, int timeout_ms);
+
+/**
+ * Get the number of pending requests.
  *
  * @param conn: the pointer to the renderer connection.
  *
- * Returns the last return code.
+ * Returns the number of current pending requests.
  *
- * Since: 0.1.0
+ * Since: 0.2.0
  */
-PCA_EXPORT int
-pcrdr_conn_get_last_ret_code(pcrdr_conn* conn);
+PCA_EXPORT size_t
+pcrdr_conn_pending_requests_count(pcrdr_conn* conn);
 
 /**
  * Get the server host name of a connection.
@@ -583,7 +637,10 @@ struct pcrdr_msg
     pcrdr_msg_element_type  elementType;
     pcrdr_msg_data_type     dataType;
     unsigned int            retCode;
-    unsigned int            __data_len;  // internal use only
+    union {
+        unsigned int        __data_len; // internal use only
+        unsigned int        textLen;    // set this only if dataType is TEXT
+    };
 
     uint64_t        targetValue;
     uint64_t        resultValue;
@@ -856,6 +913,31 @@ typedef int (*pcrdr_response_handler)(pcrdr_conn* conn,
         void *context, const pcrdr_msg *response_msg);
 
 /**
+ * Set the response handler for a response message which will come from
+ * the extra message source.
+ *
+ * @param conn: the pointer to the renderer connection.
+ * @param request_id: the string variant containing the request identifier.
+ * @param seconds_expected: the expected return time in seconds.
+ * @param context: the context will be passed to the response handler.
+ * @param response_handler: the response handler.
+ *
+ * This function stores a pending request record in the connection and
+ * returns immediately. The response handler will be called
+ * in subsequent calls of pcrdr_read_and_dispatch_message() if you
+ * have set the extra message source for the connection by calling
+ * pcrdr_conn_set_extra_message_source().
+ *
+ * Returns: -1 for error; zero means everything is ok.
+ *
+ * Since: 0.2.0
+ */
+PCA_EXPORT int
+pcrdr_set_handler_for_response_from_extra_source(pcrdr_conn* conn,
+        purc_variant_t request_id, int seconds_expected, void *context,
+        pcrdr_response_handler response_handler);
+
+/**
  * Send a request and handle the response in a callback.
  *
  * @param conn: the pointer to the renderer connection.
@@ -896,6 +978,7 @@ pcrdr_read_and_dispatch_message(pcrdr_conn* conn);
  * Wait and dispatch the message from the renderer connection.
  *
  * @param conn: the pointer to the renderer connection.
+ * @param timeout_ms: the timeout value in milliseconds to poll the connection.
  *
  * This function wait for the new message within a timeout time,
  * if there is a new message, it dispatches the message to the handlers.
@@ -906,6 +989,25 @@ pcrdr_read_and_dispatch_message(pcrdr_conn* conn);
  */
 PCA_EXPORT int
 pcrdr_wait_and_dispatch_message(pcrdr_conn* conn, int timeout_ms);
+
+/**
+ * Wait the response for the specified request identifier.
+ *
+ * @param conn: the pointer to the renderer connection.
+ * @param request_id: the string variant of the request identifier.
+ * @param seconds_expected: the expected return time in seconds.
+ * @param response_msg: the pointer to a pointer to return the response message.
+ *
+ * This function send a request to the renderer and wait for the response.
+ *
+ * Returns: -1 for error; zero means everything is ok.
+ *
+ * Since: 0.2.0
+ */
+PCA_EXPORT int
+pcrdr_wait_response_for_specific_request(pcrdr_conn* conn,
+        purc_variant_t request_id, int seconds_expected,
+        pcrdr_msg **response_msg);
 
 /**
  * Send a request to the renderer and wait the response.

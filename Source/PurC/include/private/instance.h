@@ -36,12 +36,6 @@
 
 #include <stdio.h>
 
-struct hvml_app;
-typedef struct hvml_app hvml_app;
-typedef struct hvml_app *hvml_app_t;
-
-hvml_app_t hvml_app_get(void);
-
 struct pcinst;
 typedef struct pcinst pcinst;
 typedef struct pcinst *pcinst_t;
@@ -71,6 +65,7 @@ struct pcinst {
     purc_atom_t             error_except;
 
     unsigned int            modules;
+    unsigned int            modules_inited;
 
     char                   *app_name;
     char                   *runner_name;
@@ -81,11 +76,6 @@ struct pcinst {
     size_t                  max_conns;
     size_t                  cache_quota;
     bool                    enable_remote_fetcher;
-
-    // runloop bounded by this runner
-    purc_runloop_t        running_loop;
-    // pthread bounded by this runner
-    pthread_t             running_thread;
 
 #define LOG_FILE_SYSLOG     ((FILE *)-1)
     /* the FILE object for logging (-1: use syslog; NULL: disabled) */
@@ -105,11 +95,10 @@ struct pcinst {
 
     struct pcexecutor_heap *executor_heap;
     struct pcintr_heap     *intr_heap;
+    purc_runloop_t          running_loop;
 
     /* FIXME: enable the fields ONLY when NDEBUG is undefined */
     struct pcdebug_backtrace  *bt;
-
-    struct list_head           node; // hvml_app::instances
 
     unsigned int               keep_alive:1;
 };
@@ -125,8 +114,7 @@ void pcinst_clear_error(struct pcinst *inst) WTF_INTERNAL;
 
 purc_atom_t
 pcinst_endpoint_get(char *endpoint_name, size_t sz,
-        const char *app_name, const char *runner_name);
-
+        const char *app_name, const char *runner_name) WTF_INTERNAL;
 
 #endif /* not defined PURC_PRIVATE_INSTANCE_H */
 

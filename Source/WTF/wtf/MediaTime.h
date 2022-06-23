@@ -37,7 +37,7 @@
 #include <math.h>
 #include <stdint.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 class PrintStream;
 
@@ -208,6 +208,6 @@ WTF_EXPORT_PRIVATE TextStream& operator<<(TextStream&, const MediaTime&);
 
 }
 
-using WTF::MediaTime;
-using WTF::MediaTimeRange;
-using WTF::abs;
+using PurCWTF::MediaTime;
+using PurCWTF::MediaTimeRange;
+using PurCWTF::abs;

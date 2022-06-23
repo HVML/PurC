@@ -31,7 +31,7 @@
 
 #import <wtf/spi/cocoa/objcSPI.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 AutodrainedPool::AutodrainedPool()
     : m_autoreleasePool { objc_autoreleasePoolPush() }
@@ -43,4 +43,4 @@ AutodrainedPool::~AutodrainedPool()
     objc_autoreleasePoolPop(m_autoreleasePool);
 }
 
-} // namespace WTF
+} // namespace PurCWTF

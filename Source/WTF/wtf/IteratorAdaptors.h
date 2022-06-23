@@ -27,7 +27,7 @@
 
 #include <type_traits>
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename Predicate, typename Iterator>
 class FilterIterator {
@@ -109,4 +109,4 @@ inline TransformIterator<Transform, Iterator> makeTransformIterator(Transform&& 
     return TransformIterator<Transform, Iterator>(WTFMove(transform), WTFMove(iter));
 }
 
-} // namespace WTF
+} // namespace PurCWTF

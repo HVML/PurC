@@ -30,7 +30,7 @@
 #include <wtf/RetainPtr.h>
 #include <wtf/Threading.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 namespace StringWrapperCFAllocator {
 
@@ -52,7 +52,7 @@ namespace StringWrapperCFAllocator {
 
     static CFStringRef copyDescription(const void*)
     {
-        return CFSTR("WTF::String-based allocator");
+        return CFSTR("PurCWTF::String-based allocator");
     }
 
     static void* allocate(CFIndex size, CFOptionFlags, void*)

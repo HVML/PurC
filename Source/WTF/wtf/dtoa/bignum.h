@@ -30,7 +30,7 @@
 
 #include <wtf/dtoa/utils.h>
 
-namespace WTF {
+namespace PurCWTF {
 namespace double_conversion {
 
 class Bignum {
@@ -141,6 +141,6 @@ class Bignum {
 };
 
 }  // namespace double_conversion
-}  // namespace WTF
+}  // namespace PurCWTF
 
 #endif  // DOUBLE_CONVERSION_BIGNUM_H_

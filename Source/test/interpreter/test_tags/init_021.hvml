@@ -1,0 +1,20 @@
+<!DOCTYPE hvml>
+<hvml target="html" lang="en">
+    <head>
+    </head>
+
+    <body>
+        <div id="grandparent">
+            <div id="temp">
+                <init as="evenNumbers" with=[0,] >
+                </init>
+                <div>
+                    $EJSON.count($evenNumbers)
+                </div>
+            </div>
+        </div>
+    </body>
+
+</hvml>
+
+

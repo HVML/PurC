@@ -26,7 +26,7 @@
 #include "config.h"
 #include <wtf/text/ExternalStringImpl.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 WTF_EXPORT_PRIVATE Ref<ExternalStringImpl> ExternalStringImpl::create(const LChar* characters, unsigned length, ExternalStringImplFreeFunction&& free)
 {
@@ -54,4 +54,4 @@ ExternalStringImpl::ExternalStringImpl(const UChar* characters, unsigned length,
     m_hashAndFlags = (m_hashAndFlags & ~s_hashMaskBufferOwnership) | BufferExternal;
 }
 
-} // namespace WTF
+} // namespace PurCWTF

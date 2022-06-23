@@ -118,22 +118,6 @@ struct purc_variant {
         struct list_head    reserved;
     };
 
-    union {
-        /* union fields for extra information of the variant. */
-        size_t              extra_size;
-        uintptr_t           extra_uintptr;
-        intptr_t            extra_intptr;
-        void*               extra_data;
-
-        /* other aliases */
-        /* the real length of `extra_bytes` is `sizeof(void*)` */
-        uint8_t             extra_bytes[0];
-        /* the real length of `extra_words` is `sizeof(void*) / 2` */
-        uint16_t            extra_words[0];
-        /* the real length of `extra_dwords` is `sizeof(void*) / 4` */
-        uint32_t            extra_dwords[0];
-    };
-
     /* value */
     union {
         /* for boolean */
@@ -161,23 +145,46 @@ struct purc_variant {
            such entity. */
         void*       ptr_ptr[2];
 
-        /* For long byte sequence, array, object, and set,
+        /* for long byte sequence, array, object, and set,
               - `sz_ptr[0]` stores the size in bytes;
               - `sz_ptr[1]` stores the pointer.
 
-           For long string,
+           for long string,
               - `sz_ptr[0]` stores the length in characters;
               - `sz_ptr[1]` stores the pointer.
 
-           For exception and atom string,
+           for exception and atom string,
              - `sz_ptr[0]` should always be 0.
              - `sz_ptr[1]` stores the atom. */
         uintptr_t   sz_ptr[2];
+
+#define PCVARIANT_MIN_TUPLE_SIZE_USING_EXTRA_SPACE  4
+        /* for tuple with members less than 4. */
+        purc_variant_t vrt_vrt[2];
 
         /* for short string and byte sequence; the real space size of `bytes`
            is `max(sizeof(long double), sizeof(void*) * 2)` */
         uint8_t     bytes[0];
     };
+
+    /* XXX: Keep the order, so that we can use the variant structure
+       to store a tuple with 3 or less elements without any extra space.  */
+    union {
+        /* union fields for extra information of the variant. */
+        uintptr_t           extra_uintptr;
+        intptr_t            extra_intptr;
+        void*               extra_data;
+        size_t              extra_size;
+
+        /* other aliases */
+        /* the real length of `extra_bytes` is `sizeof(void*)` */
+        uint8_t             extra_bytes[0];
+        /* the real length of `extra_words` is `sizeof(void*) / 2` */
+        uint16_t            extra_words[0];
+        /* the real length of `extra_dwords` is `sizeof(void*) / 4` */
+        uint32_t            extra_dwords[0];
+    };
+
 };
 
 #define MAX_RESERVED_VARIANTS           32
@@ -233,6 +240,7 @@ struct set_node {
     struct rb_node                       rbnode;
     struct pcutils_array_list_node       alnode;
     purc_variant_t   val;  // actual variant-element
+    char             md5[33];
 };
 
 struct variant_set {
@@ -404,6 +412,42 @@ pcvariant_array_clear(purc_variant_t array, bool silently);
 
 bool
 pcvariant_set_clear(purc_variant_t set, bool silently);
+
+static inline
+purc_variant_t *tuple_members(purc_variant_t tuple, size_t *sz)
+{
+    if (UNLIKELY(!(tuple && tuple->type == PVT(_TUPLE))))
+        return NULL;
+
+    if (tuple->size >= PCVARIANT_MIN_TUPLE_SIZE_USING_EXTRA_SPACE) {
+        *sz = (size_t)tuple->sz_ptr[0];
+        return (purc_variant_t *)tuple->sz_ptr[1];
+    }
+
+    *sz = (size_t)tuple->size;
+    return tuple->vrt_vrt;
+}
+
+// md5 shall be at least 33 bytes long
+void pcvariant_md5_ex(char *md5, purc_variant_t val, const char *salt,
+    unsigned int serialize_flags) WTF_INTERNAL;
+
+PCA_INLINE void
+pcvariant_md5(char *md5, purc_variant_t val)
+{
+    const char *salt = NULL;
+    unsigned int serialize_flags = 0;
+    pcvariant_md5_ex(md5, val, salt, serialize_flags);
+}
+
+// md5 shall be at least 33 bytes long
+void
+pcvariant_md5_by_set(char *md5, purc_variant_t val,
+        purc_variant_t set) WTF_INTERNAL;
+
+int
+pcvariant_diff_by_set(const char *md5l, purc_variant_t l,
+        const char *md5r, purc_variant_t r, purc_variant_t set);
 
 PCA_EXTERN_C_END
 

@@ -27,7 +27,7 @@
 
 #include <wtf/ForbidHeapAllocation.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 // You can use ScopedLambda to efficiently pass lambdas without allocating memory or requiring
 // template specialization of the callee. The callee should be declared as:
@@ -189,8 +189,8 @@ ScopedLambdaRefFunctor<FunctionType, Functor> scopedLambdaRef(const Functor& fun
     return ScopedLambdaRefFunctor<FunctionType, Functor>(functor);
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::ScopedLambda;
-using WTF::scopedLambda;
-using WTF::scopedLambdaRef;
+using PurCWTF::ScopedLambda;
+using PurCWTF::scopedLambda;
+using PurCWTF::scopedLambdaRef;

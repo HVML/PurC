@@ -27,7 +27,7 @@
 
 #include <wtf/ASCIICType.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 class PrintStream;
 
@@ -70,7 +70,7 @@ constexpr ASCIILiteral operator"" _s(const char* characters, size_t n)
 
 } // inline StringLiterals
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using namespace WTF::StringLiterals;
-using WTF::ASCIILiteral;
+using namespace PurCWTF::StringLiterals;
+using PurCWTF::ASCIILiteral;

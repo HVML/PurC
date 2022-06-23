@@ -26,7 +26,7 @@
 #include "config.h"
 #include <wtf/MemoryPressureHandler.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 void MemoryPressureHandler::platformReleaseMemory(Critical)
 {
@@ -50,7 +50,7 @@ void MemoryPressureHandler::respondToMemoryPressure(Critical, Synchronous)
 
 Optional<MemoryPressureHandler::ReliefLogger::MemoryUsage> MemoryPressureHandler::ReliefLogger::platformMemoryUsage()
 {
-    return WTF::nullopt;
+    return PurCWTF::nullopt;
 }
 
-} // namespace WTF
+} // namespace PurCWTF

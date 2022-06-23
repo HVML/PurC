@@ -25,11 +25,11 @@
 
 #pragma once
 
-namespace WTF {
+namespace PurCWTF {
 
 WTF_EXPORT_PRIVATE size_t memoryFootprint();
 
 }
 
-using WTF::memoryFootprint;
+using PurCWTF::memoryFootprint;
 

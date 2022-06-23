@@ -24,13 +24,15 @@
             "id":4
         }
     ],
+    "cmp_type" : "set",
+    "cmp_unique_key" : null,
     "cmp" :
     [
         {
-            "id":3
+            "id":4
         },
         {
-            "id":4
+            "id":3
         }
     ]
 }

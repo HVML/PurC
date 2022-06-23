@@ -29,7 +29,7 @@
 #include <wtf/BlockPtr.h>
 #include <wtf/Ref.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 void WorkQueue::dispatch(Function<void()>&& function)
 {
@@ -89,7 +89,7 @@ void WorkQueue::platformInvalidate()
     dispatch_release(m_dispatchQueue);
 }
 
-void WorkQueue::concurrentApply(size_t iterations, WTF::Function<void(size_t index)>&& function)
+void WorkQueue::concurrentApply(size_t iterations, PurCWTF::Function<void(size_t index)>&& function)
 {
     dispatch_apply(iterations, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), makeBlockPtr([function = WTFMove(function)](size_t index) {
         function(index);

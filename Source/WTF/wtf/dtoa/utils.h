@@ -163,7 +163,7 @@ typedef uint16_t uc16;
   DC_DISALLOW_COPY_AND_ASSIGN(TypeName)
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 namespace double_conversion {
 
 static const int kCharSize = sizeof(char);
@@ -361,6 +361,6 @@ inline Dest BitCast(Source* source) {
 }
 
 }  // namespace double_conversion
-}  // namespace WTF
+}  // namespace PurCWTF
 
 #endif  // DOUBLE_CONVERSION_UTILS_H_

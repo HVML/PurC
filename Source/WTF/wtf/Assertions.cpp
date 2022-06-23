@@ -67,7 +67,7 @@
 #import <wtf/spi/cocoa/OSLogSPI.h>
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 
 WTF_ATTRIBUTE_PRINTF(1, 0) static String createWithFormatAndArguments(const char* format, va_list args)
 {
@@ -440,7 +440,7 @@ static void WTFLogVaList(WTFLogChannel* channel, const char* format, va_list arg
     ASSERT(channel->state == WTFLogChannelState::OnWithAccumulation);
 
     ALLOW_NONLITERAL_FORMAT_BEGIN
-    String loggingString = WTF::createWithFormatAndArguments(format, args);
+    String loggingString = PurCWTF::createWithFormatAndArguments(format, args);
     ALLOW_NONLITERAL_FORMAT_END
 
     if (!loggingString.endsWith('\n'))
@@ -580,12 +580,12 @@ void WTFInitializeLogChannelStatesFromString(WTFLogChannel* channels[], size_t c
 #if !RELEASE_LOG_DISABLED
 void WTFReleaseLogStackTrace(WTFLogChannel* channel)
 {
-    auto stackTrace = WTF::StackTrace::captureStackTrace(30, 0);
+    auto stackTrace = PurCWTF::StackTrace::captureStackTrace(30, 0);
     if (stackTrace && stackTrace->stack()) {
         auto stack = stackTrace->stack();
         for (int frameNumber = 1; frameNumber < stackTrace->size(); ++frameNumber) {
             auto stackFrame = stack[frameNumber];
-            auto demangled = WTF::StackTrace::demangle(stackFrame);
+            auto demangled = PurCWTF::StackTrace::demangle(stackFrame);
 #if USE(OS_LOG)
             if (demangled && demangled->demangledName())
                 os_log(channel->osLogChannel, "%-3d %p %{public}s", frameNumber, stackFrame, demangled->demangledName());
@@ -723,7 +723,7 @@ void WTFCrashWithInfoImpl(int, const char*, const char*, int, uint64_t) { CRASH(
 
 #endif // OS(DARWIN) && (CPU(X64_64) || CPU(ARM64))
 
-namespace WTF {
+namespace PurCWTF {
 
 void resetAccumulatedLogs()
 {
@@ -735,4 +735,4 @@ String getAndResetAccumulatedLogs()
     return loggingAccumulator().getAndResetAccumulatedLogs();
 }
 
-} // namespace WTF
+} // namespace PurCWTF

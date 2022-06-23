@@ -104,18 +104,25 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 static int
 process_back_level(struct pcintr_stack_frame *frame,
         struct pcvdom_element *element,
-        purc_atom_t name, uint64_t back_level)
+        purc_atom_t name, int64_t back_level)
 {
     struct ctxt_for_back *ctxt;
     ctxt = (struct ctxt_for_back*)frame->ctxt;
 
-    PC_ASSERT(back_level > 0);
     PC_ASSERT(ctxt->back_anchor == NULL);
 
     struct pcintr_stack_frame *p = frame;
-    while (frame && back_level > 0) {
-        p = pcintr_stack_frame_get_parent(p);
-        back_level -= 1;
+    while (p && (back_level == -1 || back_level > 0)) {
+        struct pcintr_stack_frame *parent = pcintr_stack_frame_get_parent(p);
+        if (back_level != -1) {
+            --back_level;
+        }
+
+        if (back_level == -1) {
+            if (parent == NULL)
+                break;
+        }
+        p = parent;
     }
 
     if (p == NULL) {
@@ -127,6 +134,65 @@ process_back_level(struct pcintr_stack_frame *frame,
 
     ctxt->back_anchor = p;
     return 0;
+}
+
+static int
+post_process_to_by_id(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element,
+        purc_atom_t name, const char *id)
+{
+    struct ctxt_for_back *ctxt;
+    ctxt = (struct ctxt_for_back*)frame->ctxt;
+
+    PC_ASSERT(ctxt->back_anchor == NULL);
+
+    struct pcintr_stack_frame *p = pcintr_stack_frame_get_parent(frame);
+    while (p) {
+        pcdom_element_t *edom_element;
+        edom_element = p->edom_element;
+        if (edom_element) {
+            const char *s;
+            size_t len;
+            s = (const char*)pcdom_element_id(edom_element, &len);
+            if (s && strncmp(s, id, len)==0 && id[len] == '\0') {
+                break;
+            }
+        }
+        struct pcintr_stack_frame *parent = pcintr_stack_frame_get_parent(p);
+        p = parent;
+    }
+
+    if (p == NULL) {
+        purc_set_error_with_info(PURC_ERROR_ENTITY_NOT_FOUND,
+                "vdom attribute '%s' for element <%s>",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+
+    ctxt->back_anchor = p;
+    return 0;
+}
+
+static int
+post_process_to_by_atom(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element,
+        purc_atom_t name, purc_atom_t atom)
+{
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, _LAST)) == atom) {
+        return process_back_level(frame, element, name, 1);
+    }
+
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, _NEXTTOLAST)) == atom ) {
+        return process_back_level(frame, element, name, 2);
+    }
+
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, _TOPMOST)) == atom ) {
+        return process_back_level(frame, element, name, -1);
+    }
+
+    purc_set_error_with_info(PURC_ERROR_BAD_NAME,
+            "to = '%s'", purc_atom_to_string(atom));
+    return -1;
 }
 
 static int
@@ -152,26 +218,17 @@ process_attr_to(struct pcintr_stack_frame *frame,
     if (purc_variant_is_string(val)) {
         const char *s_to = purc_variant_get_string_const(val);
         if (s_to[0] == '#') {
-            purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
-                    "<%s to = %s>", element->tag_name, s_to);
-            return -1;
+            return post_process_to_by_id(frame, element, name, s_to+1);
         }
 
         if (s_to[0] == '_') {
-            if (strcmp(s_to+1, "parent") == 0) {
-                return process_back_level(frame, element, name, 1);
-            }
-            else if (strcmp(s_to+1, "grandparent") == 0) {
-                return process_back_level(frame, element, name, 2);
-            }
-            else if (strcmp(s_to+1, "ancestor") == 0) {
-                return process_back_level(frame, element, name, 3);
-            }
-            else {
-                purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
+            purc_atom_t atom = PCHVML_KEYWORD_ATOM(HVML, s_to);
+            if (atom == 0) {
+                purc_set_error_with_info(PURC_ERROR_BAD_NAME,
                         "<%s to = %s>", element->tag_name, s_to);
                 return -1;
             }
+            return post_process_to_by_atom(frame, element, name, atom);
         }
     }
     else if (purc_variant_is_ulongint(val)) {
@@ -184,7 +241,7 @@ process_attr_to(struct pcintr_stack_frame *frame,
                     "<%s to = %zd>", element->tag_name, back_level);
             return -1;
         }
-        return process_back_level(frame, element, name, (uint64_t)back_level);
+        return process_back_level(frame, element, name, back_level);
     }
 
     purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,

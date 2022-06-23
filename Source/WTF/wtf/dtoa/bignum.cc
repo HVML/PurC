@@ -32,7 +32,7 @@
 #include <wtf/dtoa/utils.h>
 #include <wtf/ASCIICType.h>
 
-namespace WTF {
+namespace PurCWTF {
 namespace double_conversion {
 
 Bignum::Bignum()
@@ -762,4 +762,4 @@ void Bignum::SubtractTimes(const Bignum& other, int factor) {
 
 
 }  // namespace double_conversion
-}  // namespace WTF
+}  // namespace PurCWTF

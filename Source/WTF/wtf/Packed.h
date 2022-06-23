@@ -33,7 +33,7 @@
 #include <wtf/StdLibExtras.h>
 #include <wtf/UnalignedAccess.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename T>
 class Packed {
@@ -259,8 +259,8 @@ struct PackedPtrTraits {
 
 template<typename P> struct DefaultHash<PackedPtr<P>> { using Hash = PtrHash<PackedPtr<P>>; };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::Packed;
-using WTF::PackedAlignedPtr;
-using WTF::PackedPtr;
+using PurCWTF::Packed;
+using PurCWTF::PackedAlignedPtr;
+using PurCWTF::PackedPtr;

@@ -118,9 +118,9 @@ PCA_EXTERN_C_BEGIN
 #define PURC_MODULE_VARIANT    (PURC_MODULE_UTILS    | PURC_HAVE_VARIANT)
 #define PURC_MODULE_EJSON      (PURC_MODULE_VARIANT  | PURC_HAVE_EJSON)
 #define PURC_MODULE_XGML       (PURC_MODULE_EJSON    | PURC_HAVE_XGML)
-#define PURC_MODULE_HVML       (PURC_MODULE_EJSON    | PURC_HAVE_HVML | \
-    PURC_HAVE_FETCHER)
 #define PURC_MODULE_PCRDR      (PURC_MODULE_EJSON    | PURC_HAVE_PCRDR)
+#define PURC_MODULE_HVML       (PURC_MODULE_PCRDR    | PURC_HAVE_HVML | \
+    PURC_HAVE_FETCHER)
 #define PURC_MODULE_ALL         0xFFFF
 
 /**
@@ -207,6 +207,22 @@ static inline int purc_init(const char* app_name, const char* runner_name,
  */
 PCA_EXPORT bool
 purc_cleanup(void);
+
+/**
+ * purc_get_endpoint:
+ *
+ * @atom: a buffer (nullable) to receive the endpoint atom of the current
+ *      PurC instance.
+
+ * Gets the endpoint name and its atom value of the current PurC instance.
+ *
+ * Returns: The endpoint name for success; @NULL for no PurC instance for
+ *      the current thread.
+ *
+ * Since 0.2.0
+ */
+PCA_EXPORT const char *
+purc_get_endpoint(purc_atom_t *atom);
 
 #define PURC_LDNAME_RANDOM_DATA     "random_data"
 #define PURC_LDNAME_FORMAT_DOUBLE   "format-double"

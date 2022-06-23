@@ -29,7 +29,7 @@
 #include <gio/gio.h>
 #include <wtf/glib/RunLoopSourcePriority.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 GSocketMonitor::~GSocketMonitor()
 {
@@ -70,4 +70,4 @@ void GSocketMonitor::stop()
     m_callback = nullptr;
 }
 
-} // namespace WTF
+} // namespace PurCWTF

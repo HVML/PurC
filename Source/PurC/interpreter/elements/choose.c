@@ -28,6 +28,7 @@
 #include "../internal.h"
 
 #include "private/debug.h"
+#include "private/executor.h"
 #include "purc-runloop.h"
 
 #include "../ops.h"
@@ -42,6 +43,7 @@ struct ctxt_for_choose {
     purc_variant_t on;
     purc_variant_t by;
     purc_variant_t in;
+    purc_variant_t with;
 
     struct purc_exec_ops          ops;
     purc_exec_inst_t              exec_inst;
@@ -60,6 +62,7 @@ ctxt_for_choose_destroy(struct ctxt_for_choose *ctxt)
         PURC_VARIANT_SAFE_CLEAR(ctxt->by);
         PURC_VARIANT_SAFE_CLEAR(ctxt->on);
         PURC_VARIANT_SAFE_CLEAR(ctxt->in);
+        PURC_VARIANT_SAFE_CLEAR(ctxt->with);
 
         free(ctxt);
     }
@@ -87,6 +90,10 @@ post_process_dest_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     purc_variant_t by;
     by = ctxt->by;
 
+    purc_variant_t with;
+    with = ctxt->with;
+
+
     if (by != PURC_VARIANT_INVALID) {
         const char *rule = purc_variant_get_string_const(by);
         PC_ASSERT(rule);
@@ -102,6 +109,8 @@ post_process_dest_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         exec_inst = ctxt->ops.create(PURC_EXEC_TYPE_CHOOSE, on, false);
         if (!exec_inst)
             return -1;
+
+        exec_inst->with = with;
 
         ctxt->exec_inst = exec_inst;
 
@@ -240,6 +249,30 @@ process_attr_by(struct pcintr_stack_frame *frame,
 }
 
 static int
+process_attr_with(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element,
+        purc_atom_t name, purc_variant_t val)
+{
+    struct ctxt_for_choose *ctxt;
+    ctxt = (struct ctxt_for_choose*)frame->ctxt;
+    if (ctxt->with != PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_DUPLICATED,
+                "vdom attribute '%s' for element <%s>",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    if (val == PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "vdom attribute '%s' for element <%s> undefined",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    ctxt->with = purc_variant_ref(val);
+
+    return 0;
+}
+
+static int
 attr_found_val(struct pcintr_stack_frame *frame,
         struct pcvdom_element *element,
         purc_atom_t name, purc_variant_t val,
@@ -259,6 +292,9 @@ attr_found_val(struct pcintr_stack_frame *frame,
     }
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, BY)) == name) {
         return process_attr_by(frame, element, name, val);
+    }
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, WITH)) == name) {
+        return process_attr_with(frame, element, name, val);
     }
 
     purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,

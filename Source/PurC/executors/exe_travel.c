@@ -35,7 +35,8 @@ struct pcexec_exe_travel_inst {
 
 // 创建一个执行器实例
 static purc_exec_inst_t
-exe_travel_create(enum purc_exec_type type, purc_variant_t input, bool asc_desc)
+exe_travel_create(enum purc_exec_type type,
+        purc_variant_t input, bool asc_desc)
 {
     if (!purc_variant_is_object(input))
         return NULL;
@@ -109,6 +110,17 @@ exe_travel_choose(purc_exec_inst_t inst, const char* rule)
         ok = purc_variant_array_append(vals, v);
         if (!ok)
             break;
+    }
+
+    if (ok) {
+        size_t n;
+        purc_variant_array_size(vals, &n);
+        if (n == 1) {
+            purc_variant_t v = purc_variant_array_get(vals, 0);
+            purc_variant_ref(v);
+            purc_variant_unref(vals);
+            vals = v;
+        }
     }
 
     if (ok)

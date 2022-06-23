@@ -27,7 +27,7 @@
 
 #include <wtf/Atomics.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 struct NoTailCalls {
     ~NoTailCalls()
@@ -36,7 +36,7 @@ struct NoTailCalls {
     }
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
 // Use this macro when you don't want to perform any tail calls from within a given scope.
 // For example, if you don't want the function foo to do a tail call to bar or baz, you'd do:
@@ -50,4 +50,4 @@ struct NoTailCalls {
 //
 // This is helpful when bar or baz have other callers that are allowed to tail call it.
 
-#define NO_TAIL_CALLS() WTF::NoTailCalls _noTailCalls_
+#define NO_TAIL_CALLS() PurCWTF::NoTailCalls _noTailCalls_

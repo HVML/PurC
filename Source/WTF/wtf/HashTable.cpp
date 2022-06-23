@@ -20,7 +20,7 @@
 #include "config.h"
 #include <wtf/HashTable.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 DEFINE_ALLOCATOR_WITH_HEAP_IDENTIFIER(HashTable);
 
@@ -64,4 +64,4 @@ void HashTableStats::dumpStats()
 
 #endif
 
-} // namespace WTF
+} // namespace PurCWTF

@@ -28,6 +28,7 @@
 #include "../internal.h"
 
 #include "private/debug.h"
+#include "private/executor.h"
 #include "purc-runloop.h"
 
 #include "../ops.h"
@@ -47,6 +48,7 @@ struct ctxt_for_iterate {
     struct pcvdom_attr           *with_attr;
 
     struct pcvdom_attr           *rule_attr;
+    purc_variant_t                with;
 
     struct purc_exec_ops          ops;
     purc_exec_inst_t              exec_inst;
@@ -55,6 +57,7 @@ struct ctxt_for_iterate {
     unsigned int                  stop:1;
     unsigned int                  with_set:1;
     unsigned int                  by_set:1;
+    unsigned int                  nosetotail:1;
 };
 
 static void
@@ -67,6 +70,7 @@ ctxt_for_iterate_destroy(struct ctxt_for_iterate *ctxt)
             ctxt->exec_inst = NULL;
         }
         PURC_VARIANT_SAFE_CLEAR(ctxt->on);
+        PURC_VARIANT_SAFE_CLEAR(ctxt->with);
 
         free(ctxt);
     }
@@ -160,9 +164,6 @@ re_eval_with(struct pcintr_stack_frame *frame,
 
     int r;
     r = pcintr_set_question_var(frame, val);
-    if (r == 0) {
-        pcintr_set_input_var(pcintr_get_stack(), val);
-    }
     purc_variant_unref(val);
 
     return r ? -1 : 0;
@@ -175,6 +176,8 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     struct ctxt_for_iterate *ctxt;
     ctxt = (struct ctxt_for_iterate*)frame->ctxt;
     PC_ASSERT(ctxt);
+
+    PC_ASSERT(ctxt->by_set == 0);
 
     purc_variant_t on;
     on = ctxt->on;
@@ -202,9 +205,6 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 
     int r;
     r = re_eval_with(frame, ctxt->with_attr, &stop);
-    if (r == 0) {
-        r = pcintr_set_question_var(frame, on);
-    }
     PC_ASSERT(r == 0);
 
     if (stop) {
@@ -228,6 +228,20 @@ post_process_by_rule(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     on = ctxt->on;
     if (on == PURC_VARIANT_INVALID)
         return -1;
+
+    purc_variant_t with;
+    if (ctxt->with_attr) {
+        with = pcintr_eval_vdom_attr(pcintr_get_stack(), ctxt->with_attr);
+    }
+    else {
+        with = purc_variant_make_undefined();
+    }
+
+    if (with == PURC_VARIANT_INVALID)
+        return -1;
+
+    PURC_VARIANT_SAFE_CLEAR(ctxt->with);
+    ctxt->with = with;
 
     purc_variant_t val = PURC_VARIANT_INVALID;
 
@@ -262,6 +276,8 @@ post_process_by_rule(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         PURC_VARIANT_SAFE_CLEAR(val);
         return -1;
     }
+
+    exec_inst->with = with;
 
     ctxt->exec_inst = exec_inst;
 
@@ -409,13 +425,6 @@ process_attr_with(struct pcintr_stack_frame *frame,
 
     struct ctxt_for_iterate *ctxt;
     ctxt = (struct ctxt_for_iterate*)frame->ctxt;
-    if (ctxt->by_set) {
-        purc_set_error_with_info(PURC_ERROR_NOT_SUPPORTED,
-                "vdom attribute '%s' for element <%s> conflicts with"
-                "vdom attribute 'by'",
-                purc_atom_to_string(name), element->tag_name);
-        return -1;
-    }
     if (ctxt->with_attr) {
         purc_set_error_with_info(PURC_ERROR_DUPLICATED,
                 "vdom attribute '%s' for element <%s>",
@@ -437,6 +446,9 @@ attr_found_val(struct pcintr_stack_frame *frame,
 {
     UNUSED_PARAM(ud);
 
+    struct ctxt_for_iterate *ctxt;
+    ctxt = (struct ctxt_for_iterate*)frame->ctxt;
+
     PC_ASSERT(name);
     PC_ASSERT(attr->op == PCHVML_ATTRIBUTE_OPERATOR);
 
@@ -454,6 +466,10 @@ attr_found_val(struct pcintr_stack_frame *frame,
     }
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, WITH)) == name) {
         return process_attr_with(frame, element, name, val, attr);
+    }
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, NOSETOTAIL)) == name) {
+        ctxt->nosetotail = 1;
+        return 0;
     }
 
     purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
@@ -525,13 +541,17 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     purc_clr_error();
 
-    if (ctxt->with_set) {
-        r = post_process(stack->co, frame);
+    if (ctxt->by_set == 0 && ctxt->with_set == 0) {
+        ctxt->by_set = 1;
     }
-    else {
+
+    if (ctxt->by_set) {
         r = post_process_by_rule(stack->co, frame);
         if (r)
             return NULL;
+    }
+    else {
+        r = post_process(stack->co, frame);
     }
 
     return ctxt;
@@ -563,6 +583,9 @@ on_popping_with(pcintr_stack_t stack)
 
     PC_ASSERT(ctxt->with_attr);
 
+    int r = pcintr_inc_percent_var(frame);
+    PC_ASSERT(r == 0);
+
     return false;
 }
 
@@ -583,7 +606,7 @@ on_popping(pcintr_stack_t stack, void* ud)
     struct ctxt_for_iterate *ctxt;
     ctxt = (struct ctxt_for_iterate*)frame->ctxt;
 
-    if (ctxt->with_set) {
+    if (!ctxt->by_set) {
         return on_popping_with(stack);
     }
 
@@ -646,13 +669,9 @@ rerun_with(pcintr_stack_t stack)
     bool stop;
 
     int r;
-    r = re_eval_with(frame, ctxt->with_attr, &stop);
-    PC_ASSERT(r == 0);
-
-    if (stop) {
-        ctxt->stop = 1;
-        PC_ASSERT(0);
-        return false;
+    if (ctxt->nosetotail) {
+        purc_variant_t v = pcintr_get_question_var(frame);
+        pcintr_set_input_var(stack, v);
     }
 
     if (ctxt->onlyif_attr) {
@@ -666,9 +685,14 @@ rerun_with(pcintr_stack_t stack)
         }
     }
 
-    r = pcintr_inc_percent_var(frame);
-    if (r)
+    r = re_eval_with(frame, ctxt->with_attr, &stop);
+    PC_ASSERT(r == 0);
+
+    if (stop) {
+        ctxt->stop = 1;
+        PC_ASSERT(0);
         return false;
+    }
 
     return true;
 }
@@ -802,7 +826,6 @@ again:
             {
                 pcvdom_element_t element = PCVDOM_ELEMENT_FROM_NODE(curr);
                 on_element(co, frame, element);
-                PC_ASSERT(stack->except == 0);
                 return element;
             }
         case PCVDOM_NODE_CONTENT:

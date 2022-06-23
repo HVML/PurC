@@ -36,12 +36,12 @@
 #include <wtf/text/StringHash.h>
 #include <wtf/text/WTFString.h>
 
-namespace WTF {
+namespace PurCWTF {
 
-// Make sure compiled symbols contain the WTF namespace prefix, but
+// Make sure compiled symbols contain the PurCWTF namespace prefix, but
 // use a different inner namespace name so that JSON::Value is not ambigious.
-// Otherwise, the compiler would have both WTF::JSON::Value and JSON::Value
-// in scope and client code would have to use WTF::JSON::Value, which is tedious.
+// Otherwise, the compiler would have both PurCWTF::JSON::Value and JSON::Value
+// in scope and client code would have to use PurCWTF::JSON::Value, which is tedious.
 namespace JSONImpl {
 
 class Array;
@@ -222,11 +222,11 @@ protected:
     {
         RefPtr<Value> value;
         if (!getValue(name, value))
-            return WTF::nullopt;
+            return PurCWTF::nullopt;
 
         T result;
         if (!value->asDouble(result))
-            return WTF::nullopt;
+            return PurCWTF::nullopt;
 
         return result;
     }
@@ -482,9 +482,9 @@ public:
 
 } // namespace JSONImpl
 
-} // namespace WTF
+} // namespace PurCWTF
 
 namespace JSON {
-using namespace WTF::JSONImpl;
+using namespace PurCWTF::JSONImpl;
 }
 

@@ -26,7 +26,7 @@
 #include "config.h"
 #include <wtf/CPUTime.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 double CPUTime::percentageCPUUsageSince(const CPUTime& reference) const
 {

@@ -33,6 +33,11 @@
 
 #include "keywords.h"
 
+
+#ifndef __cplusplus                        /* { */
+#include "../vdom/vdom-internal.h"
+#endif                                    /* } */
+
 struct pcvdom_template_node {
     struct list_head              node;
     struct pcvcm_node            *vcm;
@@ -43,6 +48,12 @@ struct pcvdom_template {
 };
 
 PCA_EXTERN_C_BEGIN
+
+void
+pcintr_check_and_dispatch_msg(void);
+
+int
+pcintr_post_event(pcintr_coroutine_t target, const char *event);
 
 void
 pcintr_synchronize(void *ctxt, void (*routine)(void *ctxt));
@@ -105,6 +116,7 @@ pcintr_load_from_uri(pcintr_stack_t stack, const char* uri);
 
 purc_variant_t
 pcintr_load_from_uri_async(pcintr_stack_t stack, const char* uri,
+        enum pcfetcher_request_method method, purc_variant_t params,
         pcfetcher_response_handler handler, void* ctxt);
 
 bool

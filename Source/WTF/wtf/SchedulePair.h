@@ -37,7 +37,7 @@
 OBJC_CLASS NSRunLoop;
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 
 class SchedulePair : public ThreadSafeRefCounted<SchedulePair> {
 public:
@@ -84,7 +84,7 @@ struct SchedulePairHash {
 
 typedef HashSet<RefPtr<SchedulePair>, SchedulePairHash> SchedulePairHashSet;
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::SchedulePair;
-using WTF::SchedulePairHashSet;
+using PurCWTF::SchedulePair;
+using PurCWTF::SchedulePairHashSet;

@@ -121,7 +121,7 @@ public:
             if (it == m_table.uncommonHeaders().end())
                 return false;
             m_keyValue.key = it->key;
-            m_keyValue.keyAsHTTPHeaderName = WTF::nullopt;
+            m_keyValue.keyAsHTTPHeaderName = PurCWTF::nullopt;
             m_keyValue.value = it->value;
             return true;
         }
@@ -224,10 +224,10 @@ auto HTTPHeaderMap::CommonHeader::decode(Decoder& decoder) -> Optional<CommonHea
 {
     HTTPHeaderName name;
     if (!decoder.decode(name))
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
     String value;
     if (!decoder.decode(value))
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
 
     return CommonHeader { name, WTFMove(value) };
 }
@@ -244,10 +244,10 @@ auto HTTPHeaderMap::UncommonHeader::decode(Decoder& decoder) -> Optional<Uncommo
 {
     String name;
     if (!decoder.decode(name))
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
     String value;
     if (!decoder.decode(value))
-        return WTF::nullopt;
+        return PurCWTF::nullopt;
 
     return UncommonHeader { WTFMove(name), WTFMove(value) };
 }

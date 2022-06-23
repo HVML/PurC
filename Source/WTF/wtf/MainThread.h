@@ -34,7 +34,7 @@
 #include <wtf/Function.h>
 #include <wtf/ThreadingPrimitives.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 class PrintStream;
 class Thread;
@@ -77,23 +77,23 @@ void initializeMainThreadPlatform();
 void scheduleDispatchFunctionsOnMainThread();
 void dispatchFunctionsFromMainThread();
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::callOnMainThread;
-using WTF::callOnMainThreadAndWait;
-using WTF::callOnMainRunLoop;
-using WTF::callOnMainRunLoopAndWait;
-using WTF::canCurrentThreadAccessThreadLocalData;
-using WTF::isMainThread;
-using WTF::isMainThreadOrGCThread;
-using WTF::isUIThread;
-using WTF::isWebThread;
-using WTF::setMainThreadCallbacksPaused;
+using PurCWTF::callOnMainThread;
+using PurCWTF::callOnMainThreadAndWait;
+using PurCWTF::callOnMainRunLoop;
+using PurCWTF::callOnMainRunLoopAndWait;
+using PurCWTF::canCurrentThreadAccessThreadLocalData;
+using PurCWTF::isMainThread;
+using PurCWTF::isMainThreadOrGCThread;
+using PurCWTF::isUIThread;
+using PurCWTF::isWebThread;
+using PurCWTF::setMainThreadCallbacksPaused;
 #if PLATFORM(COCOA)
-using WTF::dispatchAsyncOnMainThreadWithWebThreadLockIfNeeded;
-using WTF::callOnWebThreadOrDispatchAsyncOnMainThread;
+using PurCWTF::dispatchAsyncOnMainThreadWithWebThreadLockIfNeeded;
+using PurCWTF::callOnWebThreadOrDispatchAsyncOnMainThread;
 #endif
 #if USE(WEB_THREAD)
-using WTF::initializeWebThread;
-using WTF::initializeApplicationUIThread;
+using PurCWTF::initializeWebThread;
+using PurCWTF::initializeApplicationUIThread;
 #endif

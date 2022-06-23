@@ -25,11 +25,11 @@
 
 #pragma once
 
-namespace WTF {
+namespace PurCWTF {
 
 // Returns zero if arrays are equal, and non-zero otherwise. Execution time does not depend on array contents.
 WTF_EXPORT_PRIVATE int constantTimeMemcmp(const void*, const void*, size_t length);
 
 }
 
-using WTF::constantTimeMemcmp;
+using PurCWTF::constantTimeMemcmp;

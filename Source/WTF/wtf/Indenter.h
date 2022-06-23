@@ -28,7 +28,7 @@
 #include <wtf/PrintStream.h>
 #include <wtf/text/WTFString.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 class Indenter {
     WTF_MAKE_FAST_ALLOCATED;
@@ -60,6 +60,6 @@ private:
     String m_string;
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::Indenter;
+using PurCWTF::Indenter;

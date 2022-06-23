@@ -42,7 +42,7 @@
 #include <wtf/glib/RunLoopSourcePriority.h>
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 
 #if !HAVE(PTHREAD_MAIN_NP)
 static pthread_t mainThread;
@@ -97,4 +97,4 @@ void scheduleDispatchFunctionsOnMainThread()
     dispatcher.get().schedule();
 }
 
-} // namespace WTF
+} // namespace PurCWTF

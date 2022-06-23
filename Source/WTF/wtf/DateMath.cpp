@@ -84,7 +84,7 @@
 #include <windows.h>
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 
 // FIXME: Should this function go into StringCommon.h or some other header?
 template<unsigned length> inline bool startsWithLettersIgnoringASCIICase(const char* string, const char (&lowercaseLetters)[length])
@@ -819,7 +819,7 @@ double parseDateFromNullTerminatedCharacters(const char* dateString, bool& isLoc
             if (*newPosStr != ':')
                 return std::numeric_limits<double>::quiet_NaN();
             // There was no year; the number was the hour.
-            year = WTF::nullopt;
+            year = PurCWTF::nullopt;
         } else {
             // in the normal case (we parsed the year), advance to the next number
             dateString = ++newPosStr;
@@ -1019,4 +1019,4 @@ String makeRFC2822DateString(unsigned dayOfWeek, unsigned day, unsigned month, u
     return stringBuilder.toString();
 }
 
-} // namespace WTF
+} // namespace PurCWTF

@@ -27,7 +27,7 @@
 
 #include <wtf/Vector.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename KeyTypeArg, typename ValueTypeArg>
 struct KeyValuePair;
@@ -229,7 +229,7 @@ auto IndexSparseSet<EntryType, EntryTypeTraits, OverflowHandler>::end() const ->
     return m_values.end();
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::DefaultIndexSparseSetTraits;
-using WTF::IndexSparseSet;
+using PurCWTF::DefaultIndexSparseSetTraits;
+using PurCWTF::IndexSparseSet;

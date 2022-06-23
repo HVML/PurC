@@ -384,7 +384,7 @@ bool ResourceRequestBase::decodeWithoutPlatformData(Decoder& decoder)
 
 } // namespace PurCFetcher
 
-namespace WTF {
+namespace PurCWTF {
 
 template<> struct EnumTraits<PurCFetcher::ResourceRequestCachePolicy> {
     using values = EnumValues<
@@ -421,4 +421,4 @@ template<> struct EnumTraits<PurCFetcher::ResourceRequestBase::Requester> {
     >;
 };
 
-} // namespace WTF
+} // namespace PurCWTF

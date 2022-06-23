@@ -29,7 +29,7 @@
 #include <wtf/Lock.h>
 #include <wtf/Noncopyable.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename VectorType>
 class ParallelVectorIterator {
@@ -73,6 +73,6 @@ private:
     size_t m_next { 0 };
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::ParallelVectorIterator;
+using PurCWTF::ParallelVectorIterator;

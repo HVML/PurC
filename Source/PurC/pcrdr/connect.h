@@ -33,13 +33,14 @@
 #include "private/list.h"
 
 struct pending_request {
-    struct list_head list;
+    struct list_head        list;
 
-    purc_variant_t      request_id;
-    pcrdr_response_handler response_handler;
-    void *context;
+    purc_variant_t          request_id;
+    pcrdr_response_handler  response_handler;
+    void   *context;
 
-    time_t time_expected;
+    time_t  time_expected;
+    bool    in_heap;    /* this struct is allocated in heap */
 };
 
 struct pcrdr_prot_data;
@@ -48,7 +49,7 @@ struct pcrdr_conn {
     int prot;
     int type;
     int fd;
-    int last_ret_code;
+    int timeout_ms;
 
     char* srv_host_name;
     char* own_host_name;
@@ -57,6 +58,9 @@ struct pcrdr_conn {
 
     void *user_data;
     struct pcrdr_prot_data *prot_data;
+
+    pcrdr_extra_message_source source_fn;
+    void *source_ctxt; /* context for extra message source */
 
     pcrdr_request_handler request_handler;
     pcrdr_event_handler event_handler;

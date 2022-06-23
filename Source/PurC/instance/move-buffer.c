@@ -543,6 +543,7 @@ purc_inst_take_away_message(size_t index)
             if (i == index) {
                 msg = (pcrdr_msg *)hdr;
                 list_del(p);
+                hdr->ln.next = hdr->ln.prev = NULL; /* mark as not linked */
                 mb->nr_msgs--;
                 break;
             }

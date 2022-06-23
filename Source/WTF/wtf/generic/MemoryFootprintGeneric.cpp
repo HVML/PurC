@@ -31,7 +31,7 @@
 #include <bmalloc/bmalloc.h>
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 
 size_t memoryFootprint()
 {
@@ -42,4 +42,4 @@ size_t memoryFootprint()
 #endif
 }
 
-} // namespace WTF
+} // namespace PurCWTF

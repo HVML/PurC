@@ -318,7 +318,11 @@ bool pcvarmgr_add(pcvarmgr_t mgr, const char* name,
         purc_clr_error();
         ret = purc_variant_object_set(mgr->object, k, variant);
     }
+    else if (purc_variant_is_null(v)) {
+        ret = purc_variant_object_set(mgr->object, k, variant);
+    }
     else {
+        // observe on=$name
         ret = purc_variant_container_displace(v, variant, false);
     }
     purc_variant_unref(k);

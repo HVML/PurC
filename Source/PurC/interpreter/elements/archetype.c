@@ -85,6 +85,18 @@ process_attr_name(struct pcintr_stack_frame *frame,
 }
 
 static int
+process_attr_raw(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element,
+        purc_atom_t name, purc_variant_t val)
+{
+    UNUSED_PARAM(frame);
+    UNUSED_PARAM(element);
+    UNUSED_PARAM(name);
+    UNUSED_PARAM(val);
+    return 0;
+}
+
+static int
 attr_found_val(struct pcintr_stack_frame *frame,
         struct pcvdom_element *element,
         purc_atom_t name, purc_variant_t val,
@@ -96,6 +108,10 @@ attr_found_val(struct pcintr_stack_frame *frame,
 
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, NAME)) == name) {
         return process_attr_name(frame, element, name, val);
+    }
+
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, RAW)) == name) {
+        return process_attr_raw(frame, element, name, val);
     }
 
     purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,

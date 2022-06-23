@@ -25,7 +25,7 @@
 
 #pragma once
 
-namespace WTF {
+namespace PurCWTF {
 
 template <typename Node>
 class SinglyLinkedList {
@@ -67,4 +67,4 @@ template <typename Node> inline Node* SinglyLinkedList<Node>::pop()
 
 }
 
-using WTF::SinglyLinkedList;
+using PurCWTF::SinglyLinkedList;

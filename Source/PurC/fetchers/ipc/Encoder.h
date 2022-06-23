@@ -71,8 +71,8 @@ public:
     template<typename E, std::enable_if_t<std::is_enum<E>::value>* = nullptr>
     Encoder& operator<<(E&& enumValue)
     {
-        ASSERT(WTF::isValidEnum<E>(WTF::enumToUnderlyingType<E>(enumValue)));
-        encode(WTF::enumToUnderlyingType<E>(enumValue));
+        ASSERT(PurCWTF::isValidEnum<E>(PurCWTF::enumToUnderlyingType<E>(enumValue)));
+        encode(PurCWTF::enumToUnderlyingType<E>(enumValue));
         return *this;
     }
 
@@ -105,8 +105,8 @@ private:
     template<typename E, std::enable_if_t<std::is_enum<E>::value>* = nullptr>
     void encode(E enumValue)
     {
-        ASSERT(WTF::isValidEnum<E>(WTF::enumToUnderlyingType<E>(enumValue)));
-        encode(WTF::enumToUnderlyingType<E>(enumValue));
+        ASSERT(PurCWTF::isValidEnum<E>(PurCWTF::enumToUnderlyingType<E>(enumValue)));
+        encode(PurCWTF::enumToUnderlyingType<E>(enumValue));
     }
 
     void encodeHeader();

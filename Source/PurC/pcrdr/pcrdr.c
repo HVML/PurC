@@ -65,7 +65,7 @@ static struct pcrdr_opatom {
     { PCRDR_OPERATION_CREATEPLAINWINDOW,    0 }, // "createPlainWindow"
     { PCRDR_OPERATION_UPDATEPLAINWINDOW,    0 }, // "updatePlainWindow"
     { PCRDR_OPERATION_DESTROYPLAINWINDOW,   0 }, // "destroyPlainWindow"
-    { PCRDR_OPERATION_RESETPAGEGROUPS,      0 }, // "resetPageGroups"
+    { PCRDR_OPERATION_SETPAGEGROUPS,        0 }, // "setPageGroups"
     { PCRDR_OPERATION_ADDPAGEGROUPS,        0 }, // "addPageGroups"
     { PCRDR_OPERATION_REMOVEPAGEGROUP,      0 }, // "removePageGroup"
     { PCRDR_OPERATION_CREATEPAGE,           0 }, // "createTabpage"

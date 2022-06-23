@@ -777,7 +777,7 @@ void Connection::processIncomingMessage(std::unique_ptr<Decoder> message)
     enqueueIncomingMessage(WTFMove(message));
 }
 
-uint64_t Connection::installIncomingSyncMessageCallback(WTF::Function<void ()>&& callback)
+uint64_t Connection::installIncomingSyncMessageCallback(PurCWTF::Function<void ()>&& callback)
 {
     auto locker = holdLock(m_incomingSyncMessageCallbackMutex);
 

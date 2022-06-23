@@ -37,10 +37,30 @@ hvml synchronously sync
 hvml asynchronously async
 hvml rel
 hvml temporarily temp
-hvml casesensitively
-hvml caseinsensitively
+hvml casesensitively case
+hvml caseinsensitively caseless
 hvml _parent _grandparent _root
 hvml _last _nexttolast _topmost
+hvml nosetotail
+hvml ascendingly asc
+hvml descendingly desc
+hvml target
+
+# executor
+hvml FORMULA
+hvml SQL
+hvml TRAVEL
+hvml KEY
+hvml MUL
+hvml SUB
+hvml DIV
+hvml RANGE
+hvml FUNC
+hvml OBJFORMULA
+hvml ADD
+hvml TOKEN
+hvml CHAR
+hvml FILTER
 
 # msg
 msg event

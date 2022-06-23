@@ -30,7 +30,7 @@
 #include <wtf/Ref.h>
 #include <wtf/ThreadSafeRefCounted.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 class CallbackAggregator : public ThreadSafeRefCounted<CallbackAggregator> {
 public:
@@ -58,6 +58,6 @@ private:
 #endif
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::CallbackAggregator;
+using PurCWTF::CallbackAggregator;

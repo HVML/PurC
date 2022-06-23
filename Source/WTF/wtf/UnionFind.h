@@ -27,7 +27,7 @@
 
 #include <wtf/Assertions.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 // A UnionFind class can be used to compute disjoint sets using the
 // disjoint-set forest data structure. Each UnionFind instance is a
@@ -104,6 +104,6 @@ private:
     T* m_parent;
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::UnionFind;
+using PurCWTF::UnionFind;

@@ -37,7 +37,7 @@
 #include <wtf/MonotonicTime.h>
 #include <wtf/Noncopyable.h>
 
-namespace WTF {
+namespace PurCWTF {
 
     enum MessageQueueWaitResult {
         MessageQueueTerminated,       // Queue was destroyed while waiting for message.
@@ -245,11 +245,11 @@ namespace WTF {
         LockHolder lock(m_mutex);
         return m_killed;
     }
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::MessageQueue;
+using PurCWTF::MessageQueue;
 // MessageQueueWaitResult enum and all its values.
-using WTF::MessageQueueWaitResult;
-using WTF::MessageQueueTerminated;
-using WTF::MessageQueueTimeout;
-using WTF::MessageQueueMessageReceived;
+using PurCWTF::MessageQueueWaitResult;
+using PurCWTF::MessageQueueTerminated;
+using PurCWTF::MessageQueueTimeout;
+using PurCWTF::MessageQueueMessageReceived;

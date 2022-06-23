@@ -29,7 +29,7 @@
 #include <wtf/HashSet.h>
 #include <wtf/WeakPtr.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename Counter> struct HashTraits<Ref<WeakPtrImpl<Counter>>> : RefHashTraits<WeakPtrImpl<Counter>> {
     static constexpr bool hasIsReleasedWeakValueFunction = true;
@@ -128,7 +128,7 @@ public:
 
     bool hasNullReferences() const
     {
-        return WTF::anyOf(m_set, [] (auto& value) { return !value.get(); });
+        return PurCWTF::anyOf(m_set, [] (auto& value) { return !value.get(); });
     }
 
     unsigned computeSize() const
@@ -173,10 +173,10 @@ struct Mapper<MapFunction, const WeakHashSet<T> &, void> {
 template<typename T>
 inline auto copyToVector(const WeakHashSet<T>& collection) -> Vector<WeakPtr<T>>
 {
-    return WTF::map(collection, [] (auto& v) -> WeakPtr<T> { return makeWeakPtr<T>(v); });
+    return PurCWTF::map(collection, [] (auto& v) -> WeakPtr<T> { return makeWeakPtr<T>(v); });
 }
 
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::WeakHashSet;
+using PurCWTF::WeakHashSet;

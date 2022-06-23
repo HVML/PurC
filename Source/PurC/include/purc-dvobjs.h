@@ -43,6 +43,9 @@
 
 /** The structure defining the control properties of a HVML program */
 struct purc_hvml_ctrl_props {
+    /** The target as a null-terminated string. */
+    char *target;
+
     /** The base URL as a null-terminated string. */
     char *base_url_string;
 

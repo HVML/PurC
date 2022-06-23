@@ -33,6 +33,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include <time.h>
+#include <assert.h>
 
 bool purc_is_valid_token (const char* token, int max_len)
 {
@@ -305,34 +306,39 @@ bool purc_is_valid_host_name (const char* host_name)
 /* cn.fmsoft.hybridos.aaa */
 bool purc_is_valid_app_name (const char* app_name)
 {
-    int len, max_len = PURC_LEN_APP_NAME;
+    size_t len, left = strlen(app_name);
     const char *start;
-    char *end;
+    const char *end;
+
+    if (left > PURC_LEN_APP_NAME)
+        return false;
 
     start = app_name;
     while (*start) {
-        char saved;
         end = strchr (start, '.');
         if (end == NULL) {
-            saved = 0;
-            end += strlen (start);
+            end += left;
+            len = left;
         }
         else {
-            saved = '.';
-            *end = 0;
+            len = end - start;
         }
 
-        if (end == start)
+        if (end == start || len == 0)
             return false;
 
-        if ((len = purc_is_valid_token (start, max_len)) <= 0)
+        char token[len + 1];
+        strncpy(token, start, len);
+        token[len] = 0;
+        if (!purc_is_valid_token (token, 0)) {
             return false;
+        }
 
-        max_len -= len;
-        if (saved) {
+        assert(left >= len);
+        left -= len;
+        if (left > 0 && *end) {
             start = end + 1;
-            *end = saved;
-            max_len--;
+            left--;
         }
         else {
             break;
@@ -340,29 +346,6 @@ bool purc_is_valid_app_name (const char* app_name)
     }
 
     return true;
-}
-
-void purc_generate_unique_id (char* id_buff, const char* prefix)
-{
-    static unsigned long accumulator;
-    struct timespec tp;
-    int i, n = strlen (prefix);
-    char my_prefix [9];
-
-    for (i = 0; i < 8; i++) {
-        if (i < n) {
-            my_prefix [i] = purc_toupper (prefix [i]);
-        }
-        else
-            my_prefix [i] = 'X';
-    }
-    my_prefix [8] = '\0';
-
-    clock_gettime (CLOCK_REALTIME, &tp);
-    snprintf (id_buff, PURC_LEN_UNIQUE_ID + 1,
-            "%s-%016lX-%016lX-%016lX",
-            my_prefix, tp.tv_sec, tp.tv_nsec, accumulator);
-    accumulator++;
 }
 
 void purc_generate_md5_id (char* id_buff, const char* prefix)
@@ -786,4 +769,60 @@ bool purc_hvml_uri_get_query_value_alloc(const char *uri, const char *key,
     *value_buff = strndup(value, value_len);
     return true;
 }
+
+#if HAVE(STDATOMIC_H)
+
+#include <stdatomic.h>
+
+void purc_generate_unique_id (char* id_buff, const char* prefix)
+{
+    static atomic_ullong atomic_accumulator;
+    struct timespec tp;
+    int i, n = strlen (prefix);
+    char my_prefix [9];
+
+    for (i = 0; i < 8; i++) {
+        if (i < n) {
+            my_prefix [i] = purc_toupper (prefix [i]);
+        }
+        else
+            my_prefix [i] = 'X';
+    }
+    my_prefix [8] = '\0';
+
+    clock_gettime (CLOCK_REALTIME, &tp);
+
+    unsigned long long accumulator = atomic_fetch_add(&atomic_accumulator, 1);
+    snprintf (id_buff, PURC_LEN_UNIQUE_ID + 1,
+            "%s-%016lX-%016lX-%016llX",
+            my_prefix, tp.tv_sec, tp.tv_nsec, accumulator);
+}
+
+#else /* HAVE(STDATOMIC_H) */
+
+/* see the atomic version at the end of this file */
+void purc_generate_unique_id (char* id_buff, const char* prefix)
+{
+    static unsigned long long accumulator;
+    struct timespec tp;
+    int i, n = strlen (prefix);
+    char my_prefix [9];
+
+    for (i = 0; i < 8; i++) {
+        if (i < n) {
+            my_prefix [i] = purc_toupper (prefix [i]);
+        }
+        else
+            my_prefix [i] = 'X';
+    }
+    my_prefix [8] = '\0';
+
+    clock_gettime (CLOCK_REALTIME, &tp);
+    snprintf (id_buff, PURC_LEN_UNIQUE_ID + 1,
+            "%s-%016lX-%016lX-%016llX",
+            my_prefix, tp.tv_sec, tp.tv_nsec, accumulator);
+    accumulator++;
+}
+
+#endif  /* !HAVE(STDATOMIC_H) */
 

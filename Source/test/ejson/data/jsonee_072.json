@@ -1,0 +1,1 @@
+$DOC.query($STR.join('#', $?.targetId)).attr('value')

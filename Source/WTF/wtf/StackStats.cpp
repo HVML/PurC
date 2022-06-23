@@ -38,7 +38,7 @@
 #define ENABLE_VERBOSE_STACK_STATS 1
 
 
-namespace WTF {
+namespace PurCWTF {
 
 // CheckPoint management:
 Lock StackStats::s_sharedMutex;
@@ -272,7 +272,7 @@ StackStats::LayoutCheckPoint::~LayoutCheckPoint()
         StackStats::s_firstLayoutCheckPoint = 0;
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
 #endif // ENABLE(STACK_STATS)
 

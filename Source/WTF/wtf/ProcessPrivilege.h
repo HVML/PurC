@@ -27,7 +27,7 @@
 
 #include <wtf/OptionSet.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 enum class ProcessPrivilege {
     CanAccessRawCookies            = 1 << 0,
@@ -41,10 +41,10 @@ WTF_EXPORT_PRIVATE void removeProcessPrivilege(ProcessPrivilege);
 WTF_EXPORT_PRIVATE bool hasProcessPrivilege(ProcessPrivilege);
 WTF_EXPORT_PRIVATE OptionSet<ProcessPrivilege> allPrivileges();
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::ProcessPrivilege;
-using WTF::allPrivileges;
-using WTF::hasProcessPrivilege;
-using WTF::setProcessPrivileges;
+using PurCWTF::ProcessPrivilege;
+using PurCWTF::allPrivileges;
+using PurCWTF::hasProcessPrivilege;
+using PurCWTF::setProcessPrivileges;
 

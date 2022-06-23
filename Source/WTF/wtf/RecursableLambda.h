@@ -27,7 +27,7 @@
 
 #include <type_traits>
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename Functor>
 class RecursableLambda {
@@ -54,6 +54,6 @@ decltype(auto) recursableLambda(Functor&& f)
     return RecursableLambda<std::decay_t<Functor>>(std::forward<Functor>(f));
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::recursableLambda;
+using PurCWTF::recursableLambda;

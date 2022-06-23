@@ -61,9 +61,27 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (stack->except)
         return NULL;
 
+    if (pcintr_check_insertion_mode_for_normal_element(stack))
+        return NULL;
+
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame);
+
+    struct pcintr_stack_frame *parent;
+    parent = pcintr_stack_frame_get_parent(frame);
+    if (!parent || !parent->pos || parent->pos->tag_id != PCHVML_TAG_TEST) {
+        purc_set_error_with_info(PURC_ERROR_ENTITY_NOT_FOUND,
+                "no matching <test> for <match>");
+        return NULL;
+    }
+
+    if (parent) {
+        for (int i = 0; i < PURC_SYMBOL_VAR_MAX; i++) {
+            purc_variant_t v = pcintr_get_symbol_var(parent, i);
+            pcintr_set_symbol_var(frame, i, v);
+        }
+    }
 
     struct ctxt_for_differ *ctxt;
     ctxt = (struct ctxt_for_differ*)calloc(1, sizeof(*ctxt));
@@ -135,22 +153,8 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     PC_ASSERT(v != PURC_VARIANT_INVALID);
     purc_clr_error();
 
-    if (purc_variant_is_string(v)) {
-        const char *text = purc_variant_get_string_const(v);
-        pcdom_text_t *content;
-        content = pcintr_util_append_content(frame->edom_element, text);
-        PC_ASSERT(content);
-        purc_variant_unref(v);
-    }
-    else {
-        char *sv = pcvariant_to_string(v);
-        PC_ASSERT(sv);
-        int r;
-        r = pcintr_util_add_child_chunk(frame->edom_element, sv);
-        PC_ASSERT(r == 0);
-        free(sv);
-        purc_variant_unref(v);
-    }
+    pcintr_set_symbol_var(frame, PURC_SYMBOL_VAR_CARET, v);
+    purc_variant_unref(v);
 }
 
 static void

@@ -1,0 +1,11 @@
+<!DOCTYPE hvml>
+<hvml>
+    <body>
+        <archetype name="unknown_user_item" raw>
+            <li class="user-item">
+                <img class="avatar" src="/def-avatar.png">
+                <span>Test $VAR</span>
+            </li>
+        </archetype>
+    </body>
+</hvml>

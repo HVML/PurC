@@ -29,7 +29,7 @@
 
 #include <wtf/dtoa.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 static constexpr unsigned maxCapacity = String::MaxLength;
 
@@ -465,4 +465,4 @@ bool StringBuilder::isAllASCII() const
     return charactersAreAllASCII(characters16(), length);
 }
 
-} // namespace WTF
+} // namespace PurCWTF

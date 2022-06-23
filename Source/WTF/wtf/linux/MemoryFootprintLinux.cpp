@@ -31,7 +31,7 @@
 #include <wtf/StdLibExtras.h>
 #include <wtf/text/StringView.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 static const Seconds s_memoryFootprintUpdateInterval = 1_s;
 
@@ -99,4 +99,4 @@ size_t memoryFootprint()
     return footprint;
 }
 
-} // namespace WTF
+} // namespace PurCWTF

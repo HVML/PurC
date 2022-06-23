@@ -28,7 +28,7 @@
 #include <wtf/ScopedLambda.h>
 #include <wtf/Threading.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 using ThreadMessage = ScopedLambda<void(PlatformRegisters&)>;
 
@@ -49,6 +49,6 @@ MessageStatus sendMessage(Thread& targetThread, const Functor& func)
     return sendMessageScoped(targetThread, lambda);
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::sendMessage;
+using PurCWTF::sendMessage;

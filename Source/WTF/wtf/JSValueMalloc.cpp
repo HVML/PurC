@@ -33,7 +33,7 @@
 #include <bmalloc/bmalloc.h>
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 
 #if defined(USE_SYSTEM_MALLOC) && USE_SYSTEM_MALLOC
 void* tryJSValueMalloc(size_t size)
@@ -83,4 +83,4 @@ void jsValueFree(void* p)
 }
 #endif
 
-} // namespace WTF
+} // namespace PurCWTF

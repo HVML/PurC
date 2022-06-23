@@ -29,7 +29,7 @@
 #include <wtf/MathExtras.h>
 #include <wtf/PrintStream.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 // Note that the 'begin' is inclusive, while the 'end' is exclusive. These two ranges are non-
 // overlapping:
@@ -107,7 +107,7 @@ public:
 
     bool overlaps(const Range& other) const
     {
-        return WTF::rangesOverlap(m_begin, m_end, other.m_begin, other.m_end);
+        return PurCWTF::rangesOverlap(m_begin, m_end, other.m_begin, other.m_end);
     }
 
     bool contains(Type point) const
@@ -137,4 +137,4 @@ private:
     Type m_end;
 };
 
-} // namespace WTF
+} // namespace PurCWTF

@@ -38,7 +38,7 @@ extern "C" void __asan_unpoison_memory_region(void const volatile *addr, size_t 
 extern "C" int __asan_address_is_poisoned(void const volatile *addr);
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 
 inline void adopted(const void*) { }
 
@@ -300,9 +300,9 @@ inline bool is(const Ref<ArgType, PtrTraits>& source)
     return is<ExpectedType>(source.get());
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::Ref;
-using WTF::adoptRef;
-using WTF::makeRef;
-using WTF::static_reference_cast;
+using PurCWTF::Ref;
+using PurCWTF::adoptRef;
+using PurCWTF::makeRef;
+using PurCWTF::static_reference_cast;

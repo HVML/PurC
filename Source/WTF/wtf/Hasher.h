@@ -25,7 +25,7 @@
 #include <wtf/StdLibExtras.h>
 #include <wtf/text/StringHasher.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 // Deprecated. Use Hasher instead.
 class IntegerHasher {
@@ -170,8 +170,8 @@ template<typename T> void add(Hasher& hasher, std::initializer_list<T> values)
         add(hasher, value);
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::computeHash;
-using WTF::Hasher;
-using WTF::IntegerHasher;
+using PurCWTF::computeHash;
+using PurCWTF::Hasher;
+using PurCWTF::IntegerHasher;

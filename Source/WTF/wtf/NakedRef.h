@@ -28,7 +28,7 @@
 #include <wtf/DumbPtrTraits.h>
 #include <wtf/FastMalloc.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 // The purpose of this class is to ensure that the wrapped pointer will never be
 // used uninitialized.
@@ -116,6 +116,6 @@ template<class T, class U> inline void swap(NakedRef<T>& a, NakedRef<U>& b)
     a.swap(b);
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::NakedRef;
+using PurCWTF::NakedRef;

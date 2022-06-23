@@ -63,7 +63,7 @@
 
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 
 static Lock globalSuspendLock;
 
@@ -286,7 +286,7 @@ void Thread::detach()
 
 Thread& Thread::initializeCurrentTLS()
 {
-    // Not a WTF-created thread, Thread is not established yet.
+    // Not a PurCWTF-created thread, Thread is not established yet.
     Ref<Thread> thread = adoptRef(*new Thread());
     thread->establishPlatformSpecificHandle(pthread_self());
     thread->initializeInThread();
@@ -558,6 +558,6 @@ void Thread::yield()
     sched_yield();
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
 #endif // USE(PTHREADS)

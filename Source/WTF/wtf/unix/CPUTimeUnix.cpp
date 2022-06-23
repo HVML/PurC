@@ -31,7 +31,7 @@
 #include <time.h>
 #include <wtf/Optional.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 static Seconds timevalToSeconds(const struct timeval& value)
 {

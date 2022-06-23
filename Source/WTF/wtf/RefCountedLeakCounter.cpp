@@ -22,7 +22,7 @@
 #include <wtf/RefCountedLeakCounter.h>
 
 #ifdef NDEBUG
-namespace WTF {
+namespace PurCWTF {
 
 void RefCountedLeakCounter::suppressMessages(const char*) { }
 void RefCountedLeakCounter::cancelMessageSuppression(const char*) { }
@@ -33,11 +33,11 @@ RefCountedLeakCounter::~RefCountedLeakCounter() { }
 void RefCountedLeakCounter::increment() { }
 void RefCountedLeakCounter::decrement() { }
 
-} // namespace WTF
+} // namespace PurCWTF
 #else
 #include <wtf/HashCountedSet.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 #define LOG_CHANNEL_PREFIX Log
 #if RELEASE_LOG_DISABLED
@@ -96,5 +96,5 @@ void RefCountedLeakCounter::decrement()
     --m_count;
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 #endif

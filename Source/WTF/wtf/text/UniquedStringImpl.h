@@ -27,7 +27,7 @@
 
 #include <wtf/text/StringImpl.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 // It represents that the string impl is uniqued in some ways.
 // When the given 2 string impls are both uniqued string impls, we can compare it just using pointer comparison.
@@ -57,6 +57,6 @@ ValueCheck<const UniquedStringImpl*> {
 };
 #endif // ENABLE_ASSERTS
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::UniquedStringImpl;
+using PurCWTF::UniquedStringImpl;

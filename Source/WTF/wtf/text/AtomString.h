@@ -30,7 +30,7 @@
 #include <wtf/text/win/WCharStringExtras.h>
 #endif
 
-namespace WTF {
+namespace PurCWTF {
 
 struct AtomStringHash;
 
@@ -83,7 +83,7 @@ public:
     AtomString& operator=(AtomString&& other) { m_string = WTFMove(other.m_string); return *this; }
 
     // Hash table deleted values, which are only constructed and never copied or destroyed.
-    AtomString(WTF::HashTableDeletedValueType) : m_string(WTF::HashTableDeletedValue) { }
+    AtomString(PurCWTF::HashTableDeletedValueType) : m_string(PurCWTF::HashTableDeletedValue) { }
     bool isHashTableDeletedValue() const { return m_string.isHashTableDeletedValue(); }
 
     unsigned existingHash() const { return isNull() ? 0 : impl()->existingHash(); }
@@ -187,7 +187,7 @@ static_assert(sizeof(AtomString) == sizeof(String), "AtomString and String must 
 
 inline bool operator==(const AtomString& a, const AtomString& b) { return a.impl() == b.impl(); }
 bool operator==(const AtomString&, const LChar*);
-inline bool operator==(const AtomString& a, const char* b) { return WTF::equal(a.impl(), reinterpret_cast<const LChar*>(b)); }
+inline bool operator==(const AtomString& a, const char* b) { return PurCWTF::equal(a.impl(), reinterpret_cast<const LChar*>(b)); }
 inline bool operator==(const AtomString& a, const Vector<UChar>& b) { return a.impl() && equal(a.impl(), b.data(), b.size()); }    
 inline bool operator==(const AtomString& a, const String& b) { return equal(a.impl(), b.impl()); }
 inline bool operator==(const LChar* a, const AtomString& b) { return b == a; }
@@ -363,13 +363,13 @@ template<> struct IntegerToStringConversionTrait<AtomString> {
     static AtomString flush(LChar* characters, unsigned length, void*) { return { characters, length }; }
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::AtomString;
-using WTF::nullAtom;
-using WTF::emptyAtom;
-using WTF::starAtom;
-using WTF::xmlAtom;
-using WTF::xmlnsAtom;
+using PurCWTF::AtomString;
+using PurCWTF::nullAtom;
+using PurCWTF::emptyAtom;
+using PurCWTF::starAtom;
+using PurCWTF::xmlAtom;
+using PurCWTF::xmlnsAtom;
 
 #include <wtf/text/StringConcatenate.h>

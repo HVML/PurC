@@ -30,7 +30,7 @@
 
 #include <wtf/dtoa/utils.h>
 
-namespace WTF {
+namespace PurCWTF {
 namespace double_conversion {
 
 // This "Do It Yourself Floating Point" class implements a floating-point number
@@ -115,6 +115,6 @@ class DiyFp {
 };
 
 }  // namespace double_conversion
-}  // namespace WTF
+}  // namespace PurCWTF
 
 #endif  // DOUBLE_CONVERSION_DIY_FP_H_

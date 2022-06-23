@@ -22,7 +22,7 @@
 
 #include <wtf/text/UniquedStringImpl.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 class AtomStringTable;
 
@@ -119,4 +119,4 @@ template<> struct ValueCheck<const AtomStringImpl*> {
 
 }
 
-using WTF::AtomStringImpl;
+using PurCWTF::AtomStringImpl;

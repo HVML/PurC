@@ -22,6 +22,17 @@ uniq
     type: adverb
     alias: uniquely
 
+case
+    type: adverb
+    alias: casesensitively
+
+caseless
+    type: adverb
+    alias: caseinsensitively
+
+nosetotail
+    type: adverb
+
 as
     type: prep
 
@@ -74,3 +85,5 @@ array
 key
     type: update
 
+target
+    type: prep

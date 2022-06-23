@@ -97,15 +97,17 @@ TEST(vdom, basic)
     // EXPECT_EQ(pcvdom_content_parent(content41), elem4);
 
     int elems = 0;
-    EXPECT_EQ(0, pcvdom_element_traverse(doc->root, &elems, _element_count));
+    struct pcvdom_element *elem_root = pcvdom_document_get_root(doc);
+    EXPECT_EQ(0, pcvdom_element_traverse(elem_root, &elems, _element_count));
     EXPECT_EQ(elems, 7);
 
     int nodes = 0;
-    EXPECT_EQ(0, pcvdom_node_traverse(&doc->node,
+    struct pcvdom_node *node = pcvdom_node_from_document(doc);
+    EXPECT_EQ(0, pcvdom_node_traverse(node,
         &nodes, _node_count));
     EXPECT_EQ(nodes, 10);
 
-    pcvdom_document_destroy(doc);
+    pcvdom_document_unref(doc);
 }
 
 TEST(vdom, fragment)
@@ -117,8 +119,8 @@ TEST(vdom, fragment)
     elem = pcvdom_util_document_parse_fragment_buf((const unsigned char*)buf, strlen(buf), NULL);
     EXPECT_NE(elem, nullptr);
     if (elem) {
-        PRINT_VDOM_NODE(&elem->node);
-        pcvdom_node_destroy(&elem->node);
+        PRINT_VDOM_NODE(pcvdom_node_from_element(elem));
+        pcvdom_node_destroy(pcvdom_node_from_element(elem));
     }
 }
 

@@ -31,7 +31,7 @@
 
 struct UIDNA;
 
-namespace WTF {
+namespace PurCWTF {
 
 template<typename CharacterType> class CodePointIterator;
 
@@ -41,7 +41,7 @@ public:
     WTF_EXPORT_PRIVATE static bool allValuesEqual(const URL&, const URL&);
     WTF_EXPORT_PRIVATE static bool internalValuesConsistent(const URL&);
     
-    using URLEncodedForm = Vector<WTF::KeyValuePair<String, String>>;
+    using URLEncodedForm = Vector<PurCWTF::KeyValuePair<String, String>>;
     WTF_EXPORT_PRIVATE static URLEncodedForm parseURLEncodedForm(StringView);
     WTF_EXPORT_PRIVATE static String serialize(const URLEncodedForm&);
 

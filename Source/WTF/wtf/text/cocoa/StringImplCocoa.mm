@@ -23,7 +23,7 @@
 
 #import "RetainPtr.h"
 
-namespace WTF {
+namespace PurCWTF {
 
 StringImpl::operator NSString *()
 {

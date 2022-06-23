@@ -28,7 +28,7 @@
 #include <wtf/MathExtras.h>
 #include <wtf/Vector.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 // This class implements a basic priority queue. The class is backed as a binary heap, like std::priority_queue.
 // PriorityQueue has a couple of advantages over std::priority_queue:
@@ -137,6 +137,6 @@ protected:
     Vector<T, inlineCapacity> m_buffer;
 };
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::PriorityQueue;
+using PurCWTF::PriorityQueue;

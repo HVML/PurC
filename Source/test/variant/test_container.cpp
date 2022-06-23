@@ -19,28 +19,6 @@
 
 using namespace std;
 
-#define PRINTF(...)                                                       \
-    do {                                                                  \
-        fprintf(stderr, "\e[0;32m[          ] \e[0m");                    \
-        fprintf(stderr, __VA_ARGS__);                                     \
-    } while(false)
-
-#if OS(LINUX) || OS(UNIX)
-// get path from env or __FILE__/../<rel> otherwise
-#define getpath_from_env_or_rel(_path, _len, _env, _rel) do {  \
-    const char *p = getenv(_env);                                      \
-    if (p) {                                                           \
-        snprintf(_path, _len, "%s", p);                                \
-    } else {                                                           \
-        char tmp[PATH_MAX+1];                                          \
-        snprintf(tmp, sizeof(tmp), __FILE__);                          \
-        const char *folder = dirname(tmp);                             \
-        snprintf(_path, _len, "%s/%s", folder, _rel);                  \
-    }                                                                  \
-} while (0)
-
-#endif // OS(LINUX) || OS(UNIX)
-
 #define MIN_BUFFER     512
 #define MAX_BUFFER     1024 * 1024 * 1024
 
@@ -248,6 +226,78 @@ purc_variant_t build_test_src(purc_variant_t test_case_variant)
     return src;
 }
 
+purc_variant_t build_test_cmp(purc_variant_t test_case_variant)
+{
+    const char* cmp_unique_key = NULL;
+    purc_variant_t cmp_unique_key_var = purc_variant_object_get_by_ckey(
+            test_case_variant, "cmp_unique_key");
+    if (cmp_unique_key_var != PURC_VARIANT_INVALID) {
+        cmp_unique_key = purc_variant_get_string_const(cmp_unique_key_var);
+    }
+
+    const char* cmp_type = "array";
+    purc_variant_t cmp_type_var = purc_variant_object_get_by_ckey(
+            test_case_variant, "cmp_type");
+    if (cmp_type_var != PURC_VARIANT_INVALID) {
+        cmp_type = purc_variant_get_string_const(cmp_type_var);
+    }
+
+    purc_variant_t cmp = purc_variant_object_get_by_ckey(test_case_variant,
+                "cmp");
+    if (cmp == PURC_VARIANT_INVALID) {
+        return PURC_VARIANT_INVALID;
+    }
+
+    enum purc_variant_type type = to_variant_type(cmp_type);
+    if (type == PURC_VARIANT_TYPE_SET) {
+        return to_variant_set(cmp_unique_key, cmp);
+    }
+    purc_variant_ref(cmp);
+    return cmp;
+}
+
+static inline int
+cmp(purc_variant_t l, purc_variant_t r, void *ud)
+{
+    (void)ud;
+    double dl = purc_variant_numberify(l);
+    double dr = purc_variant_numberify(r);
+
+    if (dl < dr)
+        return -1;
+    if (dl == dr)
+        return 0;
+    return 1;
+}
+
+void compare_result(purc_variant_t dst, purc_variant_t cmp)
+{
+    char* dst_result = variant_to_string(dst);
+    char* cmp_result = variant_to_string(cmp);
+    PRINTF("dst=%s\n", dst_result);
+    PRINTF("cmp=%s\n", cmp_result);
+    PRINTF("orig=%s\n", cmp_result);
+    free(cmp_result);
+    free(dst_result);
+
+    PRINT_VARIANT(dst);
+    PRINT_VARIANT(cmp);
+    if (dst->type == PVT(_ARRAY) && cmp->type == PVT(_SET)) {
+        const char* unique_key = NULL;
+        purc_variant_t v = to_variant_set(unique_key, dst);
+        ASSERT_NE(v, nullptr);
+        dst = v;
+    }
+    else {
+        dst = purc_variant_ref(dst);
+    }
+    cmp = purc_variant_ref(cmp);
+    int diff = pcvariant_diff(dst, cmp);
+    PURC_VARIANT_SAFE_CLEAR(dst);
+    PURC_VARIANT_SAFE_CLEAR(cmp);
+    ASSERT_EQ(diff, 0);
+}
+
 TEST_P(TestCaseData, container_ops)
 {
     const struct test_case data = get_data();
@@ -270,8 +320,10 @@ TEST_P(TestCaseData, container_ops)
     purc_variant_t src = build_test_src(test_case_variant);
     ASSERT_NE(src, PURC_VARIANT_INVALID);
 
-    purc_variant_t cmp = purc_variant_object_get_by_ckey(test_case_variant,
-                "cmp");
+    // purc_variant_t cmp = purc_variant_object_get_by_ckey(test_case_variant,
+    //             "cmp");
+    // ASSERT_NE(cmp, PURC_VARIANT_INVALID);
+    purc_variant_t cmp = build_test_cmp(test_case_variant);
     ASSERT_NE(cmp, PURC_VARIANT_INVALID);
 
     //  do container ops
@@ -350,18 +402,11 @@ TEST_P(TestCaseData, container_ops)
     }
     ASSERT_EQ(result, true);
 
-    char* dst_result = variant_to_string(dst);
-    char* cmp_result = variant_to_string(cmp);
-    PRINTF("dst=%s\n", dst_result);
-    PRINTF("cmp=%s\n", cmp_result);
-    ASSERT_STREQ(dst_result, cmp_result);
-
-    // clear
-    free(dst_result);
-    free(cmp_result);
+    compare_result(dst, cmp);
 
     purc_variant_unref(src);
     purc_variant_unref(dst);
+    purc_variant_unref(cmp);
     purc_variant_unref(test_case_variant);
 }
 
@@ -417,7 +462,7 @@ std::vector<test_case> load_test_case()
 
     char path[PATH_MAX+1];
     const char* env = "VARIANT_TEST_CONTAINER_OPS_PATH";
-    getpath_from_env_or_rel(path, sizeof(path), env, "/data/*.json");
+    test_getpath_from_env_or_rel(path, sizeof(path), env, "/data/*.json");
 
     if (!path[0])
         goto end;

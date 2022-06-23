@@ -31,7 +31,7 @@
 #include <wtf/text/CString.h>
 #include <wtf/text/WTFString.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 enum Base64EncodePolicy {
     Base64DoNotInsertLFs,
@@ -219,15 +219,15 @@ template<typename CharacterType> static inline bool isBase64OrBase64URLCharacter
     return isASCIIAlphanumeric(c) || c == '+' || c == '/' || c == '-' || c == '_';
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::Base64EncodePolicy;
-using WTF::Base64DoNotInsertLFs;
-using WTF::Base64InsertLFs;
-using WTF::Base64ValidatePadding;
-using WTF::Base64IgnoreSpacesAndNewLines;
-using WTF::Base64DiscardVerticalTab;
-using WTF::base64Encode;
-using WTF::base64Decode;
-using WTF::base64URLDecode;
-using WTF::isBase64OrBase64URLCharacter;
+using PurCWTF::Base64EncodePolicy;
+using PurCWTF::Base64DoNotInsertLFs;
+using PurCWTF::Base64InsertLFs;
+using PurCWTF::Base64ValidatePadding;
+using PurCWTF::Base64IgnoreSpacesAndNewLines;
+using PurCWTF::Base64DiscardVerticalTab;
+using PurCWTF::base64Encode;
+using PurCWTF::base64Decode;
+using PurCWTF::base64URLDecode;
+using PurCWTF::isBase64OrBase64URLCharacter;

@@ -144,6 +144,34 @@ PURC_COMPUTE_SOURCES(test_responser)
 PURC_FRAMEWORK(test_responser)
 GTEST_DISCOVER_TESTS(test_responser DISCOVERY_TIMEOUT 10)
 
+# test_requester
+PURC_EXECUTABLE_DECLARE(test_requester)
+
+list(APPEND test_requester_PRIVATE_INCLUDE_DIRECTORIES
+    ${PURC_DIR}/include
+    ${PurC_DERIVED_SOURCES_DIR}
+    ${PURC_DIR}
+    ${CMAKE_BINARY_DIR}
+    ${WTF_DIR}
+)
+
+PURC_EXECUTABLE(test_requester)
+
+set(test_requester_SOURCES
+    test_requester.cpp
+)
+
+set(test_requester_LIBRARIES
+    PurC::PurC
+    gtest_main
+    gtest
+    pthread
+)
+
+PURC_COMPUTE_SOURCES(test_requester)
+PURC_FRAMEWORK(test_requester)
+GTEST_DISCOVER_TESTS(test_requester DISCOVERY_TIMEOUT 10)
+
 # test_init
 PURC_EXECUTABLE_DECLARE(test_init)
 

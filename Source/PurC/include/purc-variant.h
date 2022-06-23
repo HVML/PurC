@@ -625,6 +625,18 @@ purc_variant_native_get_ops(purc_variant_t native);
 PCA_EXPORT purc_variant_t
 purc_variant_make_array(size_t sz, purc_variant_t value0, ...);
 
+/**
+ * Creates an empty array variant.
+ *
+ * Returns: An empty array variant or PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.2.0
+ */
+static inline purc_variant_t
+purc_variant_make_array_0(void)
+{
+    return purc_variant_make_array(0, PURC_VARIANT_INVALID);
+}
 
 /**
  * Appends a variant value to the tail of an array.
@@ -665,7 +677,7 @@ purc_variant_array_prepend(purc_variant_t array, purc_variant_t value);
  * Since: 0.0.1
  */
 PCA_EXPORT purc_variant_t
-purc_variant_array_get(purc_variant_t array, int idx);
+purc_variant_array_get(purc_variant_t array, size_t idx);
 
 
 /**
@@ -684,7 +696,7 @@ purc_variant_array_get(purc_variant_t array, int idx);
  * Since: 0.0.1
  */
 PCA_EXPORT bool
-purc_variant_array_set(purc_variant_t array, int idx, purc_variant_t value);
+purc_variant_array_set(purc_variant_t array, size_t idx, purc_variant_t value);
 
 
 /**
@@ -809,17 +821,18 @@ purc_variant_make_object(size_t nr_kv_pairs,
         purc_variant_t key0, purc_variant_t value0, ...);
 
 /**
- * Gets the value by key from an object with key as another variant
+ * Creates an empty object variant
  *
- * @param obj: the variant value of obj type
- * @param key: the key of key-value pair
+ * Returns: An empty object variant or PURC_VARIANT_INVALID on failure.
  *
- * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
- *
- * Since: 0.0.1
+ * Since: 0.2.0
  */
-PCA_EXPORT purc_variant_t
-purc_variant_object_get(purc_variant_t obj, purc_variant_t key);
+static inline purc_variant_t
+purc_variant_make_object_0(void)
+{
+    return purc_variant_make_object(0,
+            PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+}
 
 /**
  * Gets the value by key from an object with key as c string
@@ -831,18 +844,8 @@ purc_variant_object_get(purc_variant_t obj, purc_variant_t key);
  *
  * Since: 0.0.1
  */
-static inline purc_variant_t
-purc_variant_object_get_by_ckey(purc_variant_t obj, const char* key)
-{
-    purc_variant_t k = purc_variant_make_string_static(key, true);
-    if (k==PURC_VARIANT_INVALID) {
-        return PURC_VARIANT_INVALID;
-    }
-    purc_variant_t v = purc_variant_object_get(obj, k);
-    purc_variant_unref(k);
-    return v;
-}
-
+PCA_EXPORT purc_variant_t
+purc_variant_object_get_by_ckey(purc_variant_t obj, const char* key);
 
 /**
  * Sets the value by key in an object with key as another variant
@@ -884,22 +887,6 @@ purc_variant_object_set_by_static_ckey(purc_variant_t obj, const char* key,
 }
 
 /**
- * Remove a key-value pair from an object by key with key as another variant
- *
- * @param obj: the variant value of obj type
- * @param key: the key of key-value pair
- * @param silently: @true means ignoring the following errors:
- *      - PCVARIANT_ERROR_NOT_FOUND (return @true)
- *
- * Returns: @true on success, otherwise @false.
- *
- * Since: 0.0.1
- */
-PCA_EXPORT bool
-purc_variant_object_remove(purc_variant_t obj, purc_variant_t key,
-        bool silently);
-
-/**
  * Remove a key-value pair from an object by key with key as c string
  *
  * @param obj: the variant value of obj type
@@ -911,18 +898,9 @@ purc_variant_object_remove(purc_variant_t obj, purc_variant_t key,
  *
  * Since: 0.0.1
  */
-static inline bool
+PCA_EXPORT bool
 purc_variant_object_remove_by_static_ckey(purc_variant_t obj, const char* key,
-        bool silently)
-{
-    purc_variant_t k = purc_variant_make_string_static(key, true);
-    if (k==PURC_VARIANT_INVALID) {
-        return false;
-    }
-    bool b = purc_variant_object_remove(obj, k, silently);
-    purc_variant_unref(k);
-    return b;
-}
+        bool silently);
 
 /**
  * Get the number of key-value pairs in an object variant value.
@@ -1138,6 +1116,22 @@ purc_variant_make_set(size_t sz, purc_variant_t unique_key,
         purc_variant_t value0, ...);
 
 /**
+ * Creates an empty set variant.
+ *
+ * @param unique_key: the unique keys specified in a variant. If the unique key
+ *      is PURC_VARIANT_INVALID, the set is a generic one.
+ *
+ * Returns: An empty set variant on success, or PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.2.0
+ */
+static inline purc_variant_t
+purc_variant_make_set_0(purc_variant_t unique_key)
+{
+    return purc_variant_make_set(0, unique_key, PURC_VARIANT_INVALID);
+}
+
+/**
  * Adds a variant value to a set.
  *
  * @param set: the variant value of the set type.
@@ -1259,7 +1253,7 @@ static inline ssize_t purc_variant_set_get_size(purc_variant_t set)
  * Since: 0.0.1
  */
 PCA_EXPORT purc_variant_t
-purc_variant_set_get_by_index(purc_variant_t set, int idx);
+purc_variant_set_get_by_index(purc_variant_t set, size_t idx);
 
 /**
  * Remove the element in set by index and return
@@ -1272,7 +1266,7 @@ purc_variant_set_get_by_index(purc_variant_t set, int idx);
  * Since: 0.0.1
  */
 PCA_EXPORT purc_variant_t
-purc_variant_set_remove_by_index(purc_variant_t set, int idx);
+purc_variant_set_remove_by_index(purc_variant_t set, size_t idx);
 
 /**
  * Set an element in set by index.
@@ -1286,7 +1280,8 @@ purc_variant_set_remove_by_index(purc_variant_t set, int idx);
  * Since: 0.0.1
  */
 PCA_EXPORT bool
-purc_variant_set_set_by_index(purc_variant_t set, int idx, purc_variant_t val);
+purc_variant_set_set_by_index(purc_variant_t set,
+        size_t idx, purc_variant_t val);
 
 /**
  * set iterator usage example:
@@ -1398,6 +1393,159 @@ purc_variant_set_iterator_prev(struct purc_variant_set_iterator* it);
 PCA_EXPORT purc_variant_t
 purc_variant_set_iterator_get_value(struct purc_variant_set_iterator* it);
 
+/**
+ * Creates a tuple variant from variants.
+ *
+ * @param sz: the size of the tuple, i.e., the number of members in the tuple.
+ * @param members: a C array of the members to put into the tuple.
+ *
+ * The function will setting the left members as null variants after
+ * it encountered an invalud variant (%PURC_VARIANT_INVALID) in \members.
+ * You can call purc_variant_tuple_set() to set the left members with other
+ * variants.
+ *
+ * Note that if \members is %NULL, all members in the tuple will be
+ * null variants initially.
+ *
+ * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_make_tuple(size_t sz, purc_variant_t *members);
+
+/**
+ * Creates an empty tuple variant.
+ *
+ * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.2.0
+ */
+static inline purc_variant_t
+purc_variant_make_tuple_0(void)
+{
+    return purc_variant_make_tuple(0, NULL);
+}
+
+/**
+ * Gets the size of a tuple variant.
+ *
+ * @param tuple: the tuple variant.
+ * @param sz: the buffer to receive the size of the tuple.
+ *
+ * Returns: @true when success, or @false on failure.
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT bool
+purc_variant_tuple_size(purc_variant_t tuple, size_t *sz);
+
+/**
+ * Gets the size of a tuple variant.
+ *
+ * @param tuple: the tuple variant.
+ *
+ * Returns: The number of elements in the tuple;
+ *  \PURC_VARIANT_BADSIZE (-1) if the variant is not a tuple.
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT size_t
+purc_variant_tuple_get_size(purc_variant_t tuple);
+
+/**
+ * Gets a member from a tuple by index.
+ *
+ * @param dobule: the tuple variant.
+ * @param idx: the index of wanted member.
+ *
+ * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_tuple_get(purc_variant_t tuple, size_t idx);
+
+/**
+ * Sets a member in a tuple by index.
+ *
+ * @param double: the tuple variant.
+ * @param idx: the index of the member to replace.
+ * @param value: the new value of the member.
+ *
+ * Returns: @true on success, otherwise @false.
+ *
+ * Since: 0.0.1
+ */
+PCA_EXPORT bool
+purc_variant_tuple_set(purc_variant_t tuple, size_t idx, purc_variant_t value);
+
+/**
+ * Gets the size of a linear container variant.
+ *
+ * @param container: the linear container variant, must be one of array,
+ *      set, or tuple.
+ * @param sz: the buffer receiving the number of members in the container.
+ *
+ * Returns: @true on success, otherwise @false.
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT bool
+purc_variant_linear_container_size(purc_variant_t container, size_t *sz);
+
+/**
+ * Get the number of elements in a linear container variant.
+ *
+ * @param container: the linear container variant, must be one of array,
+ *      set, or tuple.
+ *
+ * Returns: The number of elements in the container;
+ *  \PURC_VARIANT_BADSIZE (-1) if the variant is not a linear container.
+ *
+ * Note: This function is deprecated, use
+ *  \purc_variant_linear_container_size() instead.
+ *
+ * Since: 0.0.1
+ */
+static inline ssize_t
+purc_variant_linear_container_get_size(purc_variant_t container)
+{
+    size_t sz;
+    if (!purc_variant_linear_container_size(container, &sz))
+        return PURC_VARIANT_BADSIZE;
+    return sz;
+}
+
+/**
+ * Gets a member from a linear container by index.
+ *
+ * @param container: the linear container variant, must be one of array,
+ *      set, or tuple.
+ * @param idx: the index of wanted member.
+ *
+ * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_linear_container_get(purc_variant_t container, size_t idx);
+
+/**
+ * Sets a member in a linear container by index.
+ *
+ * @param container: the linear container variant, must be one of array,
+ *      set, or tuple.
+ * @param idx: the index of wanted member.
+ * @param value: the new value.
+ *
+ * Returns: @true on success, otherwise @false.
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT bool
+purc_variant_linear_container_set(purc_variant_t container,
+        size_t idx, purc_variant_t value);
 
 /**
  * Creates a variant value from a string which contains JSON data.
@@ -1818,9 +1966,11 @@ typedef enum purc_variant_type
     PURC_VARIANT_TYPE_ARRAY,
 #define PURC_VARIANT_TYPE_NAME_SET          "set"
     PURC_VARIANT_TYPE_SET,
+#define PURC_VARIANT_TYPE_NAME_TUPLE      "tuple"
+    PURC_VARIANT_TYPE_TUPLE,
 
     /* XXX: change this if you append a new type. */
-    PURC_VARIANT_TYPE_LAST = PURC_VARIANT_TYPE_SET,
+    PURC_VARIANT_TYPE_LAST = PURC_VARIANT_TYPE_TUPLE,
 } purc_variant_type;
 
 #define PURC_VARIANT_TYPE_NR \
@@ -1966,6 +2116,50 @@ purc_variant_is_true(purc_variant_t v);
 /** Check whether the value is a boolean and having value of false. */
 PCA_EXPORT bool
 purc_variant_is_false(purc_variant_t v);
+
+/**
+ * Gets the value by key from an object with key as another variant
+ *
+ * @param obj: the variant value of obj type
+ * @param key: the key of key-value pair
+ *
+ * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.0.1
+ */
+PCA_INLINE purc_variant_t
+purc_variant_object_get(purc_variant_t obj, purc_variant_t key)
+{
+    const char *sk = NULL;
+    if (key && purc_variant_is_string(key))
+        sk = purc_variant_get_string_const(key);
+
+    return purc_variant_object_get_by_ckey(obj, sk);
+}
+
+/**
+ * Remove a key-value pair from an object by key with key as another variant
+ *
+ * @param obj: the variant value of obj type
+ * @param key: the key of key-value pair
+ * @param silently: @true means ignoring the following errors:
+ *      - PCVARIANT_ERROR_NOT_FOUND (return @true)
+ *
+ * Returns: @true on success, otherwise @false.
+ *
+ * Since: 0.0.1
+ */
+PCA_INLINE bool
+purc_variant_object_remove(purc_variant_t obj, purc_variant_t key,
+        bool silently)
+{
+    const char *sk = NULL;
+    if (key && purc_variant_is_string(key))
+        sk = purc_variant_get_string_const(key);
+
+    return purc_variant_object_remove_by_static_ckey(obj, sk, silently);
+}
+
 
 struct purc_variant_stat {
     size_t nr_values[PURC_VARIANT_TYPE_NR];

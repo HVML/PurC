@@ -35,12 +35,22 @@
 
 typedef void* pcintr_timer_t;
 typedef void (*pcintr_timer_fire_func)(pcintr_timer_t timer, const char* id);
+typedef void (*pcintr_timer_attach_destroy_func)(void *attach);
 
 PCA_EXTERN_C_BEGIN
 
 pcintr_timer_t
+pcintr_timer_create_ex(purc_runloop_t runloop, bool for_yielded, const char* id,
+        pcintr_timer_fire_func func, void *attach,
+        pcintr_timer_attach_destroy_func attach_destroy_func);
+
+static inline pcintr_timer_t
 pcintr_timer_create(purc_runloop_t runloop, bool for_yielded, const char* id,
-        pcintr_timer_fire_func func);
+        pcintr_timer_fire_func func)
+{
+    return pcintr_timer_create_ex(runloop, for_yielded, id, func, NULL, NULL);
+}
+
 
 void
 pcintr_timer_processed(pcintr_timer_t timer);

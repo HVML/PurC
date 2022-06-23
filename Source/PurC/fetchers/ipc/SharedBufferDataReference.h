@@ -57,7 +57,7 @@ public:
         Optional<RefPtr<PurCFetcher::SharedBuffer>> buffer;
         decoder >> buffer;
         if (!buffer)
-            return WTF::nullopt;
+            return PurCWTF::nullopt;
         return { WTFMove(*buffer) };
     }
 

@@ -29,7 +29,7 @@
 #include <wtf/text/CString.h>
 #include <wtf/text/WTFString.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 class StringPrintStream final : public PrintStream {
 public:
@@ -54,7 +54,7 @@ private:
     char m_inlineBuffer[128];
 };
 
-// Stringify any type T that has a WTF::printInternal(PrintStream&, const T&)
+// Stringify any type T that has a PurCWTF::printInternal(PrintStream&, const T&)
 
 template<typename... Types>
 CString toCString(const Types&... values)
@@ -72,8 +72,8 @@ String toString(const Types&... values)
     return stream.toString();
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
-using WTF::StringPrintStream;
-using WTF::toCString;
-using WTF::toString;
+using PurCWTF::StringPrintStream;
+using PurCWTF::toCString;
+using PurCWTF::toString;

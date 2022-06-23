@@ -28,7 +28,7 @@
 
 #include <wtf/AutomaticThread.h>
 
-namespace WTF {
+namespace PurCWTF {
 
 ParallelHelperClient::ParallelHelperClient(RefPtr<ParallelHelperPool>&& pool)
     : m_pool(WTFMove(pool))
@@ -236,5 +236,5 @@ ParallelHelperClient* ParallelHelperPool::getClientWithTask(const AbstractLocker
     return nullptr;
 }
 
-} // namespace WTF
+} // namespace PurCWTF
 
