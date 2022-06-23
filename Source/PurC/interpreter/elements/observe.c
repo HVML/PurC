@@ -501,6 +501,86 @@ register_mmutable_var_observer(pcintr_stack_t stack,
             on_revoke_mmutable_var_observer, listener);
 }
 
+static bool
+is_css_select(const char *s)
+{
+    if (s && strlen(s) && (s[0] == '.' || s[0] == '#')) {
+        return true;
+    }
+    return false;
+}
+
+static struct pcintr_observer *
+register_elements_observer(pcintr_stack_t stack,
+        struct pcintr_stack_frame *frame,
+        purc_variant_t observed)
+{
+    struct pcintr_observer *observer = NULL;
+    const char *s = purc_variant_get_string_const(observed);
+    pchtml_html_document_t *doc = stack->doc;
+    purc_variant_t elems = pcdvobjs_elements_by_css(doc, s);
+    if (elems) {
+        observer = register_native_var_observer(stack, frame, elems);
+        purc_variant_unref(elems);
+    }
+    return observer;
+}
+
+static struct pcintr_observer *
+register_default_observer(pcintr_stack_t stack,
+        struct pcintr_stack_frame *frame,
+        purc_variant_t observed)
+{
+    UNUSED_PARAM(stack);
+    struct ctxt_for_observe *ctxt;
+    ctxt = (struct ctxt_for_observe*)frame->ctxt;
+    return pcintr_register_observer(observed,
+            ctxt->for_var, ctxt->msg_type_atom, ctxt->sub_type,
+            frame->pos, frame->edom_element, frame->pos, NULL, NULL);
+}
+
+static struct pcintr_observer *
+process_named_var_observer(pcintr_stack_t stack,
+        struct pcintr_stack_frame *frame, purc_variant_t name)
+{
+    if (purc_variant_is_string(name)) {
+        return register_named_var_observer(stack, frame, name);
+    }
+    return NULL;
+}
+
+static struct pcintr_observer *
+process_variant_observer(pcintr_stack_t stack,
+        struct pcintr_stack_frame *frame, purc_variant_t observed)
+{
+    if (pcintr_is_timers(stack, observed)) {
+        return register_timer_observer(stack, frame, observed);
+    }
+
+    enum purc_variant_type type = purc_variant_get_type(observed);
+    switch (type) {
+    case PURC_VARIANT_TYPE_NATIVE:
+        return register_native_var_observer(stack, frame, observed);
+
+    case PURC_VARIANT_TYPE_OBJECT:
+    case PURC_VARIANT_TYPE_ARRAY:
+    case PURC_VARIANT_TYPE_SET:
+        return register_mmutable_var_observer(stack, frame, observed);
+
+    case PURC_VARIANT_TYPE_STRING:
+        if (is_css_select(purc_variant_get_string_const(observed))) {
+            return register_elements_observer(stack, frame, observed);
+        }
+        return register_default_observer(stack, frame, observed);
+
+    default:
+        return register_default_observer(stack, frame, observed);
+    }
+
+     // NOTE: never reached here!!!
+    return NULL;
+}
+
 static void*
 after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 {
@@ -569,36 +649,12 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     }
 
     struct pcintr_observer* observer = NULL;
-    if (ctxt->at != PURC_VARIANT_INVALID && purc_variant_is_string(ctxt->at)) {
-        observer = register_named_var_observer(stack, frame, ctxt->at);
-    }
-    else if (ctxt->on && purc_variant_is_string(ctxt->on)) {
-        const char *s = purc_variant_get_string_const(ctxt->on);
-        pchtml_html_document_t *doc = stack->doc;
-        purc_variant_t elems = pcdvobjs_elements_by_css(doc, s);
-        if (elems) {
-            observer = register_native_var_observer(stack, frame, elems);
-            purc_variant_unref(elems);
-        }
-    }
-    else if (ctxt->on && purc_variant_is_native(ctxt->on)) {
-        observer = register_native_var_observer(stack, frame, ctxt->on);
-    }
-    else if (ctxt->on && pcintr_is_timers(stack, ctxt->on)) {
-        observer = register_timer_observer(stack, frame, ctxt->on);
+
+    if (ctxt->at) {
+        observer = process_named_var_observer(stack, frame, ctxt->at);
     }
     else if (ctxt->on) {
-        switch(purc_variant_get_type(ctxt->on))
-        {
-        case PURC_VARIANT_TYPE_OBJECT:
-        case PURC_VARIANT_TYPE_ARRAY:
-        case PURC_VARIANT_TYPE_SET:
-            observer = register_mmutable_var_observer(stack, frame, ctxt->on);
-            PC_ASSERT(observer);
-            break;
-        default:
-            break;
-        }
+        observer = process_variant_observer(stack, frame, ctxt->on);
     }
 
     if (observer == NULL)
