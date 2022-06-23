@@ -1615,6 +1615,8 @@ end:
     return doc;
 }
 
+#define BUILDIN_VAR_EXCEPT      "EXCEPT"
+#define BUILDIN_VAR_ERROR       "ERROR"
 #define BUILDIN_VAR_HVML        "HVML"
 #define BUILDIN_VAR_SYSTEM      "SYSTEM"
 #define BUILDIN_VAR_DATETIME    "DATETIME"
@@ -1646,6 +1648,20 @@ bind_doc_named_variable(pcintr_stack_t stack, const char* name,
 static bool
 init_buidin_doc_variable(pcintr_stack_t stack)
 {
+    // $EXCEPT
+    if (!bind_doc_named_variable(stack, BUILDIN_VAR_EXCEPT,
+            purc_variant_make_object_0()))
+    {
+        return false;
+    }
+
+    // $ERROR
+    if (!bind_doc_named_variable(stack, BUILDIN_VAR_ERROR,
+            purc_variant_make_object_0()))
+    {
+        return false;
+    }
+
     // $TIMERS
     stack->timers = pcintr_timers_init(stack);
     if (!stack->timers) {
