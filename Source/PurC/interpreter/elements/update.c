@@ -909,7 +909,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     frame->attr_vars = purc_variant_make_object(0,
             PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
     if (frame->attr_vars == PURC_VARIANT_INVALID)
-        return NULL;
+        return ctxt;
 
     struct pcvdom_element *element = frame->pos;
     PC_ASSERT(element);
@@ -917,14 +917,14 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     int r;
     r = pcintr_vdom_walk_attrs(frame, element, NULL, attr_found);
     if (r)
-        return NULL;
+        return ctxt;
 
     if (ctxt->on == PURC_VARIANT_INVALID) {
         PC_ASSERT(0);
         purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
                 "lack of vdom attribute 'on' for element <%s>",
                 element->tag_name);
-        return NULL;
+        return ctxt;
     }
 
     // FIXME
@@ -937,8 +937,10 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         }
         purc_variant_t v;
         v = get_source_by_from(stack->co, frame, ctxt->from, ctxt->with);
-        if (v == PURC_VARIANT_INVALID)
+        if (v == PURC_VARIANT_INVALID) {
+            PC_ASSERT(purc_get_last_error());
             return NULL;
+        }
         PURC_VARIANT_SAFE_CLEAR(ctxt->from_result);
         ctxt->from_result = v;
     }

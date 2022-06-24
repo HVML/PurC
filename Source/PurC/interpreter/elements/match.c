@@ -240,7 +240,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (!parent || !parent->pos || parent->pos->tag_id != PCHVML_TAG_TEST) {
         purc_set_error_with_info(PURC_ERROR_ENTITY_NOT_FOUND,
                 "no matching <test> for <match>");
-        return NULL;
+        // FIXME: shall not happen!!!
+        PC_ASSERT(0);
     }
 
     struct ctxt_for_match *ctxt;
@@ -261,15 +262,13 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     int r;
     r = pcintr_vdom_walk_attrs(frame, element, NULL, attr_found);
     if (r)
-        return NULL;
+        return ctxt;
 
     purc_clr_error();
 
     r = post_process(stack->co, frame);
     if (r)
-        PC_ASSERT(0);
-    if (r)
-        return NULL;
+        return ctxt;
 
     return ctxt;
 }

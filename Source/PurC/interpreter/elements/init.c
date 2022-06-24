@@ -1437,7 +1437,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     frame->attr_vars = purc_variant_make_object(0,
             PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
     if (frame->attr_vars == PURC_VARIANT_INVALID)
-        return NULL;
+        return ctxt;
 
     struct pcvdom_element *element = frame->pos;
     PC_ASSERT(element);
@@ -1445,7 +1445,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     int r;
     r = pcintr_vdom_walk_attrs(frame, element, NULL, attr_found);
     if (r)
-        return NULL;
+        return ctxt;
 
     if (ctxt->temporarily) {
         ctxt->async = 0;
@@ -1461,12 +1461,12 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     if (ctxt->via == VIA_LOAD) {
         r = process_via(stack->co);
-        return r ? NULL : ctxt;
+        return ctxt;
     }
 
     if (ctxt->from_uri) {
         r = process_from(stack->co);
-        return r ? NULL : ctxt;
+        return ctxt;
     }
 
     purc_variant_t from = ctxt->from;
@@ -1474,7 +1474,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (ctxt->with && !ctxt->from) {
         r = pcintr_set_question_var(frame, ctxt->with);
         if (r)
-            return NULL;
+            return ctxt;
     }
 
     if (from != PURC_VARIANT_INVALID && purc_variant_is_string(from)
@@ -1484,7 +1484,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
             PC_ASSERT(0);
             purc_variant_t v = pcintr_load_from_uri(stack, uri);
             if (v == PURC_VARIANT_INVALID)
-                return NULL;
+                return ctxt;
             PURC_VARIANT_SAFE_CLEAR(ctxt->from_result);
             ctxt->from_result = v;
         }
@@ -1493,7 +1493,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
                 malloc(sizeof(struct fetcher_for_init));
             if (!fetcher) {
                 purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-                return NULL;
+                return ctxt;
             }
             fetcher->stack = stack;
             fetcher->element = element;
@@ -1511,13 +1511,13 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
             purc_variant_t v = pcintr_load_from_uri_async(stack, uri,
                     method, params, load_response_handler, fetcher);
             if (v == PURC_VARIANT_INVALID)
-                return NULL;
+                return ctxt;
             pcintr_save_async_request_id(stack, v);
         }
     }
 
     if (r)
-        return NULL;
+        return ctxt;
 
     return ctxt;
 }

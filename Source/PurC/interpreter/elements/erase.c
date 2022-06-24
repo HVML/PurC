@@ -406,10 +406,12 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     int r;
     r = pcintr_vdom_walk_attrs(frame, element, NULL, attr_found);
     if (r)
-        return NULL;
+        return ctxt;
 
     if (ctxt->on == PURC_VARIANT_INVALID) {
-        return NULL;
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "`on` not specified");
+        return ctxt;
     }
 
     purc_variant_t ret;

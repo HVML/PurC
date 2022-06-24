@@ -225,11 +225,11 @@ _after_pushed(pcintr_stack_t stack, pcvdom_element_t pos,
 
     r = pcintr_vdom_walk_attrs(frame, element, NULL, attr_found);
     if (r)
-        return NULL;
+        return ctxt;
 
     r = post_process(stack->co, frame);
     if (r)
-        return NULL;
+        return ctxt;
 
     return ctxt;
 }

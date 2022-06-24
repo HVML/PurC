@@ -260,19 +260,19 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     r = pcintr_vdom_walk_attrs(frame, element, NULL, attr_found);
     if (r)
-        return NULL;
+        return ctxt;
 
     if (ctxt->with == PURC_VARIANT_INVALID) {
         ctxt->with = purc_variant_make_undefined();
         if (ctxt->with == PURC_VARIANT_INVALID) {
             purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-            return NULL;
+            return ctxt;
         }
     }
 
     r = post_process(stack->co, frame);
     if (r)
-        return NULL;
+        return ctxt;
 
     return ctxt;
 }

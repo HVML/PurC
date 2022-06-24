@@ -82,6 +82,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         return NULL;
 
     int r;
+    // TODO: catch/except/error if failed???
     r = pcintr_init_vdom_under_stack(stack);
     if (r)
         return NULL;
@@ -115,7 +116,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
             r = pcutils_token_by_delim(p, p + strlen(p),
                     ' ', stack, token_found);
             if (r) {
-                return NULL;
+                return ctxt;
             }
         }
     }

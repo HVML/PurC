@@ -292,7 +292,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     int r;
     r = pcintr_vdom_walk_attrs(frame, element, NULL, attr_found);
     if (r)
-        return NULL;
+        return ctxt;
 
     if (ctxt->for_ns < 1 * 1000 * 1000) {
         // less than 1ms
@@ -303,7 +303,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     bool for_yielded = true;
     ctxt->timer = pcintr_timer_create(NULL, for_yielded, NULL, NULL);
     if (!ctxt->timer)
-        return NULL;
+        return ctxt;
 
     pcintr_timer_set_interval(ctxt->timer, ctxt->for_ns / (1000 * 1000));
     pcintr_timer_start_oneshot(ctxt->timer);
@@ -312,7 +312,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     purc_clr_error();
 
-    return NULL;
+    return ctxt;
 }
 
 static bool

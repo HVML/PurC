@@ -256,16 +256,21 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     int r;
     r = pcintr_vdom_walk_attrs(frame, element, NULL, attr_found);
     if (r)
-        return NULL;
-
+        return ctxt;
 
     purc_variant_t for_var = ctxt->for_var;
-    if (for_var == PURC_VARIANT_INVALID)
-        return NULL;
+    if (for_var == PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "`for` not specified");
+        return ctxt;
+    }
 
     if (ctxt->on == PURC_VARIANT_INVALID &&
-            ctxt->at == PURC_VARIANT_INVALID) {
-        return NULL;
+            ctxt->at == PURC_VARIANT_INVALID)
+    {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "neither `on` nor `at` is specified");
+        return ctxt;
     }
 
     if (ctxt->at != PURC_VARIANT_INVALID && purc_variant_is_string(ctxt->at)) {

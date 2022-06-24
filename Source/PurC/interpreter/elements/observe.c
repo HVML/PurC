@@ -613,16 +613,19 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     int r;
     r = pcintr_vdom_walk_attrs(frame, element, NULL, attr_found);
     if (r)
-        return NULL;
+        return ctxt;
 
     if (ctxt->with != PURC_VARIANT_INVALID) {
         pcvdom_element_t define = pcintr_get_vdom_from_variant(ctxt->with);
-        if (define == NULL)
-            return NULL;
+        if (define == NULL) {
+            purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                    "no vdom element was found for `with`");
+            return ctxt;
+        }
 
         if (pcvdom_element_first_child_element(define) == NULL) {
             purc_set_error(PURC_ERROR_NO_DATA);
-            return NULL;
+            return ctxt;
         }
 
         ctxt->define = define;
@@ -639,7 +642,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     for_var = ctxt->for_var;
     if (for_var == PURC_VARIANT_INVALID || !purc_variant_is_string(for_var)) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
-        return NULL;
+        return ctxt;
     }
 
     if (stack->stage != STACK_STAGE_FIRST_ROUND) {
@@ -656,8 +659,10 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         observer = process_variant_observer(stack, frame, ctxt->on);
     }
 
-    if (observer == NULL)
-        return NULL;
+    if (observer == NULL) {
+        PC_ASSERT(purc_get_last_error());
+        return ctxt;
+    }
 
     if (ctxt->as != PURC_VARIANT_INVALID && purc_variant_is_string(ctxt->as)) {
         const char* name = purc_variant_get_string_const(ctxt->as);
@@ -668,11 +673,11 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         purc_variant_t v = purc_variant_make_native(observer, &ops);
         if (v == PURC_VARIANT_INVALID) {
             pcintr_revoke_observer(observer);
-            return NULL;
+            return ctxt;
         }
         if(!pcintr_bind_document_variable(stack->vdom, name, v)) {
             purc_variant_unref(v); // on_release
-            return NULL;
+            return ctxt;
         }
         purc_variant_unref(v);
     }

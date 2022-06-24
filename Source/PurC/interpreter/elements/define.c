@@ -613,7 +613,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     frame->attr_vars = purc_variant_make_object(0,
             PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
     if (frame->attr_vars == PURC_VARIANT_INVALID)
-        return NULL;
+        return ctxt;
 
     struct pcvdom_element *element = frame->pos;
     PC_ASSERT(element);
@@ -621,7 +621,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     int r;
     r = pcintr_vdom_walk_attrs(frame, element, NULL, attr_found);
     if (r)
-        return NULL;
+        return ctxt;
 
     while ((element=pcvdom_element_parent(element))) {
         if (element->tag_id == PCHVML_TAG_HEAD) {
@@ -633,7 +633,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     r = post_process(stack->co, frame);
     if (r)
-        return NULL;
+        return ctxt;
 
     return ctxt;
 }

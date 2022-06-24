@@ -707,9 +707,11 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     int r;
     r = pcintr_vdom_walk_attrs(frame, element, NULL, attr_found);
     if (r)
-        return NULL;
+        return ctxt;
 
     if (ctxt->on == PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "`on` not specified");
         return NULL;
     }
 
@@ -719,7 +721,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         purc_atom_t name;
         name = pcexecutor_get_rule_name(s_by);
         if (name == 0)
-            return NULL;
+            return ctxt;
 
         if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, FUNC)) == name) {
             struct exe_func_param param = {};
@@ -730,15 +732,16 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
             r = post_process_by_internal(stack, s_by);
         }
 
-        return r ? NULL : ctxt;
+        return ctxt;
     }
     else {
         r = sort_val(stack, ctxt->on);
         if (r == 0) {
             r = pcintr_set_question_var(frame, ctxt->on);
         }
-        return r ? NULL : ctxt;
+        return ctxt;
     }
+
     purc_clr_error();
 
     return ctxt;
