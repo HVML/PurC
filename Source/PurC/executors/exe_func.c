@@ -220,8 +220,6 @@ parse_rule(struct pcexec_exe_func_inst *exe_func_inst,
 
     const char *name = exe_func_inst->param.rule.name;
     const char *module = exe_func_inst->param.rule.module;
-    PC_DEBUGX("name: %s", name);
-    PC_DEBUGX("module: %s", module);
     if (module) {
         if (load_module(exe_func_inst, module))
             return false;
@@ -247,7 +245,6 @@ check_curr(struct pcexec_exe_func_inst *exe_func_inst, const size_t curr)
     if (!purc_variant_array_size(results, &sz) ||
         curr >= sz)
     {
-        PC_DEBUGX("curr/sz: %zd/%zd", curr, sz);
         return false;
     }
 
@@ -291,7 +288,6 @@ fetch_begin(struct pcexec_exe_func_inst *exe_func_inst)
 static inline purc_variant_t
 fetch_value(struct pcexec_exe_func_inst *exe_func_inst)
 {
-    PC_DEBUGX("curr: %zd", exe_func_inst->curr);
     purc_exec_inst_t inst = &exe_func_inst->super;
     return inst->value;
 }

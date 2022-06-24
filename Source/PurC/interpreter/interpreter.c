@@ -2184,9 +2184,13 @@ static void check_after_execution(pcintr_coroutine_t co)
     if (co->msg_pending)
         return;
 
+// #define PRINT_DEBUG
     if (co->stack.last_msg_sent == 0) {
         co->stack.last_msg_sent = 1;
+
+#ifdef PRINT_DEBUG              /* { */
         PC_DEBUGX("last msg was sent");
+#endif                          /* } */
         pcintr_wakeup_target_with(co, &last_msg, on_last_msg);
         return;
     }
@@ -2194,7 +2198,9 @@ static void check_after_execution(pcintr_coroutine_t co)
     if (co->stack.last_msg_read == 0)
         return;
 
+#ifdef PRINT_DEBUG              /* { */
     PC_DEBUGX("last msg was processed");
+#endif                          /* } */
 
     PC_ASSERT(co);
     PC_ASSERT(co->state == CO_STATE_READY);
