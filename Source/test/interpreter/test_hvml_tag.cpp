@@ -109,6 +109,8 @@ TEST_P(TestHVMLTag, hvml_tags)
         FILE* fp = fopen(test_case.html_path, "w");
         fprintf(fp, "%s", dump_buff);
         fclose(fp);
+        fprintf(stderr, "html written to `%s`\n", test_case.html_path);
+        fprintf(stderr, "html:\n%s\n", dump_buff);
     }
 
     free(dump_buff);
