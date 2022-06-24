@@ -41,7 +41,6 @@ struct pcvarmgr {
     struct pcvar_listener* grow_listener;
     struct pcvar_listener* shrink_listener;
     struct pcvar_listener* change_listener;
-    pcutils_array_t* var_observers;
 
     struct rb_node            node;
     struct pcvdom_node       *vdom_node;

@@ -302,11 +302,12 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     // named var
     if (ctxt->at != PURC_VARIANT_INVALID && purc_variant_is_string(ctxt->at)) {
         const char* name = purc_variant_get_string_const(ctxt->at);
-        purc_variant_t observed = pcintr_get_named_var_observed(stack, name);
+        purc_variant_t observed = pcintr_get_named_var_for_event(stack, name);
         if (observed) {
             int ret = pcintr_dispatch_message(stack, observed,
                     ctxt->for_var, ctxt->msg_type_atom, ctxt->sub_type,
                     ctxt->with);
+            purc_variant_unref(observed);
             if (ret != PURC_ERROR_OK) {
                 return NULL;
             }

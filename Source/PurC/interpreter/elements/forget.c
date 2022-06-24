@@ -271,11 +271,9 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     if (ctxt->at != PURC_VARIANT_INVALID && purc_variant_is_string(ctxt->at)) {
         const char* name = purc_variant_get_string_const(ctxt->at);
-        const char* event = purc_variant_get_string_const(for_var);
-        purc_variant_t v;
-        v = pcintr_remove_named_var_observer(stack, name, event);
-        pcintr_revoke_observer_ex(v,
-                ctxt->msg_type_atom, ctxt->sub_type);
+        purc_variant_t v = pcintr_get_named_var_for_event(stack, name);
+        pcintr_revoke_observer_ex(v, ctxt->msg_type_atom, ctxt->sub_type);
+        purc_variant_unref(v);
     }
     else {
         purc_variant_t on = ctxt->on;

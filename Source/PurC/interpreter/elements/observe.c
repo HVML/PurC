@@ -409,16 +409,20 @@ register_named_var_observer(pcintr_stack_t stack,
     struct ctxt_for_observe *ctxt;
     ctxt = (struct ctxt_for_observe*)frame->ctxt;
 
+    struct pcvdom_element *element = frame->pos;
     const char* name = purc_variant_get_string_const(at_var);
-    const char* event = purc_variant_get_string_const(ctxt->for_var);
-    purc_variant_t observed = pcintr_add_named_var_observer(stack, name, event);
+    purc_variant_t observed = pcintr_get_named_var_for_observed(stack, name,
+            pcvdom_element_parent(element));
+
     if (observed == PURC_VARIANT_INVALID) {
         return NULL;
     }
-    return pcintr_register_observer(observed,
+
+    struct pcintr_observer *result = pcintr_register_observer(observed,
             ctxt->for_var, ctxt->msg_type_atom, ctxt->sub_type,
-            frame->pos,
-            frame->edom_element, frame->pos, NULL, NULL);
+            frame->pos, frame->edom_element, frame->pos, NULL, NULL);
+    purc_variant_unref(observed);
+    return result;
 }
 
 static struct pcintr_observer *
