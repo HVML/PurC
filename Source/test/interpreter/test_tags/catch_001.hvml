@@ -1,0 +1,70 @@
+<!DOCTYPE hvml>
+<hvml target="html" lang="en">
+    <head>
+    </head>
+
+    <body>
+        <div class="ab" id="abC">
+            <update on="$@" at="attr.class" to="displace">
+                <!-- this would be bypassed -->
+                <catch for="EntityNotFound">
+                    <update on="$@" at="attr.entity_not_found" to="displace" with="ill_implemented" />
+                </catch>
+            </update>
+            <catch for="InvalidValue">
+                <!-- this would be bypassed -->
+                <update on="$@" at="attr.invalid_value" to="displace" with="matched" />
+            </catch>
+            <catch for="EntityNotFound">
+                <update on="$@" at="attr.entity_not_found" to="displace" with="matched" />
+            </catch>
+            <catch for="*">
+                <!-- this would be bypassed -->
+                <update on="$@" at="attr.star" to="displace" with="matched" />
+            </catch>
+        </div>
+        <div class="ab" id="abC">
+            <update on="$@" at="attr.class" to="displace" />
+            <catch for="InvalidValue">
+                <!-- this would be bypassed -->
+                <update on="$@" at="attr.invalid_value" to="displace" with="matched" />
+            </catch>
+            <catch for="BadName">
+                <!-- this would be bypassed -->
+                <update on="$@" at="attr.entity_not_found" to="displace" with="matched" />
+            </catch>
+            <catch for="*">
+                <update on="$@" at="attr.star" to="displace" with="matched" />
+            </catch>
+        </div>
+        <div class="ab" id="abC">
+            <update on="$@" at="attr.class" to="displace" />
+            <catch for="InvalidValue">
+                <!-- this would be bypassed -->
+                <update on="$@" at="attr.invalid_value" to="displace" with="matched" />
+            </catch>
+            <catch for="BadName EntityNotFound">
+                <update on="$@" at="attr.entity_not_found" to="displace" with="matched" />
+            </catch>
+            <catch for="*">
+                <!-- this would be bypassed -->
+                <update on="$@" at="attr.star" to="displace" with="matched" />
+            </catch>
+        </div>
+        <div class="ab" id="abC">
+            <update on="$@" at="attr.class" to="displace" />
+            <catch for="InvalidValue">
+                <!-- this would be bypassed -->
+                <update on="$@" at="attr.invalid_value" to="displace" with="matched" />
+            </catch>
+            <catch for="BadNameX EntityNotFoundX">
+                <!-- this would be bypassed -->
+                <update on="$@" at="attr.entity_not_found" to="displace" with="matched" />
+            </catch>
+            <catch for="*">
+                <update on="$@" at="attr.star" to="displace" with="matched" />
+            </catch>
+        </div>
+    </body>
+</hvml>
+
