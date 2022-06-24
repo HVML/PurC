@@ -49,6 +49,10 @@
 
 #define ATTR_KEY_ID             "id"
 
+#define KEY_OBSERVE             "__observe"
+#define KEY_NAME                "name"
+#define KEY_MGR                 "mgr"
+
 enum var_event_type {
     VAR_EVENT_TYPE_ATTACHED,
     VAR_EVENT_TYPE_DETACHED,
@@ -67,6 +71,55 @@ struct pcvarmgr_named_variables_observe {
     pcintr_stack_t stack;
     pcvdom_element_t elem;
 };
+
+static purc_variant_t
+pcvarmgr_build_event_observed(const char *name, pcvarmgr_t mgr)
+{
+    purc_variant_t v = purc_variant_make_object(0, PURC_VARIANT_INVALID,
+            PURC_VARIANT_INVALID);
+    if (!v) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return PURC_VARIANT_INVALID;
+    }
+
+    purc_variant_t flag = purc_variant_make_boolean(true);
+    if (!v) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto failed;
+    }
+
+    if (!purc_variant_object_set_by_static_ckey(v, KEY_OBSERVE, flag)) {
+        goto failed;
+    }
+    purc_variant_unref(flag);
+
+    purc_variant_t name_val = purc_variant_make_string(name, true);
+    if (!name_val) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto failed;
+    }
+    if (!purc_variant_object_set_by_static_ckey(v, KEY_NAME, name_val)) {
+        goto failed;
+    }
+    purc_variant_unref(name_val);
+
+    purc_variant_t mgr_val = purc_variant_make_native(mgr, NULL);
+    if (!mgr_val) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto failed;
+    }
+    if (!purc_variant_object_set_by_static_ckey(v, KEY_NAME, mgr_val)) {
+        goto failed;
+    }
+    purc_variant_unref(mgr_val);
+
+    return v;
+
+failed:
+    purc_variant_unref(v);
+
+    return PURC_VARIANT_INVALID;
+}
 
 static int find_var_observe_idx(struct pcvarmgr* mgr, const char* name,
         enum var_event_type type, pcintr_stack_t stack)
@@ -998,3 +1051,11 @@ pcintr_build_named_var_observed(pcintr_stack_t stack, const char *name,
 
     return v;
 }
+
+purc_variant_t
+pcintr_get_named_var_for_event(pcintr_stack_t stack, const char *name)
+{
+    pcvarmgr_t mgr = pcvdom_document_get_variables(stack->vdom);
+    return pcvarmgr_build_event_observed(name, mgr);
+}
+
