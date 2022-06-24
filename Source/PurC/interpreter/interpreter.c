@@ -1317,13 +1317,13 @@ dump_c_stack(struct pcdebug_backtrace *bt)
     pcdebug_backtrace_dump(bt);
 }
 
-int
+void
 pcintr_check_insertion_mode_for_normal_element(pcintr_stack_t stack)
 {
     PC_ASSERT(stack);
 
     if (stack->stage != STACK_STAGE_FIRST_ROUND)
-        return 0;
+        return;
 
     switch (stack->mode) {
         case STACK_VDOM_BEFORE_HVML:
@@ -1349,8 +1349,6 @@ pcintr_check_insertion_mode_for_normal_element(pcintr_stack_t stack)
             PC_ASSERT(0);
             break;
     }
-
-    return 0;
 }
 
 static void

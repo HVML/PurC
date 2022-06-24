@@ -235,8 +235,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (stack->except)
         return NULL;
 
-    int r = pcintr_check_insertion_mode_for_normal_element(stack);
-    PC_ASSERT(r == 0);
+    pcintr_check_insertion_mode_for_normal_element(stack);
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
@@ -256,6 +255,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     struct pcvdom_element *element = frame->pos;
     PC_ASSERT(element);
+
+    int r;
 
     r = pcintr_vdom_walk_attrs(frame, element, NULL, attr_found);
     if (r)

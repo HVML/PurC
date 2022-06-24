@@ -200,9 +200,6 @@ static void*
 _after_pushed(pcintr_stack_t stack, pcvdom_element_t pos,
         struct pcintr_exception *exception)
 {
-    int r = pcintr_check_insertion_mode_for_normal_element(stack);
-    PC_ASSERT(r == 0);
-
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame);
@@ -224,6 +221,8 @@ _after_pushed(pcintr_stack_t stack, pcvdom_element_t pos,
     struct pcvdom_element *element = frame->pos;
     PC_ASSERT(element);
 
+    int r;
+
     r = pcintr_vdom_walk_attrs(frame, element, NULL, attr_found);
     if (r)
         return NULL;
@@ -243,6 +242,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     if (stack->except == 0)
         return NULL;
+
+    pcintr_check_insertion_mode_for_normal_element(stack);
 
     struct pcintr_exception cache = {};
     pcintr_exception_move(&cache, &stack->exception);

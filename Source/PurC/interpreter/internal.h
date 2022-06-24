@@ -58,7 +58,7 @@ pcintr_post_event(pcintr_coroutine_t target, const char *event);
 void
 pcintr_synchronize(void *ctxt, void (*routine)(void *ctxt));
 
-int
+void
 pcintr_check_insertion_mode_for_normal_element(pcintr_stack_t stack);
 
 typedef int (*pcintr_attr_f)(struct pcintr_stack_frame *frame,

@@ -590,8 +590,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (stack->except)
         return NULL;
 
-    if (pcintr_check_insertion_mode_for_normal_element(stack))
-        return NULL;
+    pcintr_check_insertion_mode_for_normal_element(stack);
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
