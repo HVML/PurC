@@ -49,7 +49,7 @@
 
 #define ATTR_KEY_ID             "id"
 
-#define KEY_OBSERVE             "__observe"
+#define KEY_FLAG                "__name_observe"
 #define KEY_NAME                "name"
 #define KEY_MGR                 "mgr"
 
@@ -88,7 +88,7 @@ pcvarmgr_build_event_observed(const char *name, pcvarmgr_t mgr)
         goto failed;
     }
 
-    if (!purc_variant_object_set_by_static_ckey(v, KEY_OBSERVE, flag)) {
+    if (!purc_variant_object_set_by_static_ckey(v, KEY_FLAG, flag)) {
         goto failed;
     }
     purc_variant_unref(flag);
@@ -971,6 +971,50 @@ match_observe(void *native_entity, purc_variant_t val)
 {
     UNUSED_PARAM(native_entity);
     UNUSED_PARAM(val);
+    if (!purc_variant_is_object(val)) {
+        return false;
+    }
+
+    purc_variant_t flag = purc_variant_object_get_by_ckey(val, KEY_FLAG);
+    if (!flag) {
+        purc_clr_error();
+        return false;
+    }
+
+    struct pcvarmgr_named_variables_observe *obs =
+        (struct pcvarmgr_named_variables_observe*)native_entity;
+
+    purc_variant_t name_val = purc_variant_object_get_by_ckey(val, KEY_NAME);
+    if (!name_val) {
+        purc_clr_error();
+        return false;
+    }
+
+    if (strcmp(obs->name, purc_variant_get_string_const(name_val)) != 0) {
+        return false;
+    }
+
+    purc_variant_t mgr_val = purc_variant_object_get_by_ckey(val, KEY_MGR);
+    if (!mgr_val || purc_variant_is_native(mgr_val)) {
+        purc_clr_error();
+        return false;
+    }
+
+    void *comp = purc_variant_native_get_entity(mgr_val);
+
+    pcvdom_element_t elem = obs->elem;
+    while (elem) {
+        pcvarmgr_t varmgr = pcvdom_element_get_variables(obs->elem);
+        if (varmgr == comp) {
+            return true;
+        }
+        elem  = pcvdom_element_parent(elem);
+    }
+
+    pcvarmgr_t mgr = pcvdom_document_get_variables(obs->stack->vdom);
+    if (mgr == comp) {
+        return true;
+    }
     return false;
 }
 
