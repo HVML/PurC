@@ -1335,6 +1335,8 @@ out:
 
 #define MAX_NR_ARGS 1024
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wclobbered"
 static
 struct pcdvobjs_stream *create_pipe_stream(struct purc_broken_down_url *url,
         purc_variant_t option)
@@ -1479,6 +1481,7 @@ out_close_fd:
     close(pipefd_stdout[1]);
     return NULL;
 }
+#pragma GCC diagnostic pop
 
 static
 struct pcdvobjs_stream *create_fifo_stream(struct purc_broken_down_url *url,
