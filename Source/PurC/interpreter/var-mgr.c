@@ -1006,7 +1006,7 @@ on_release(void *native_entity)
 }
 
 purc_variant_t
-pcintr_build_named_var_observed(pcintr_stack_t stack, const char *name,
+pcintr_get_named_var_for_observed(pcintr_stack_t stack, const char *name,
         pcvdom_element_t elem)
 {
     UNUSED_PARAM(stack);
