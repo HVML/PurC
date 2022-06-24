@@ -306,6 +306,7 @@ pcintr_exception_clear(struct pcintr_exception *exception)
         exception->bt = NULL;
     }
     exception->error_except = 0;
+    exception->err_element  = NULL;
 }
 
 void
@@ -330,6 +331,9 @@ pcintr_exception_move(struct pcintr_exception *dst,
 
     dst->error_except = src->error_except;
     src->error_except = 0;
+
+    dst->err_element = src->err_element;
+    src->err_element = NULL;
 }
 
 static void
@@ -1444,6 +1448,7 @@ exception_copy(struct pcintr_exception *exception)
     const struct pcinst *inst = pcinst_current();
     exception->errcode        = inst->errcode;
     exception->error_except   = inst->error_except;
+    exception->err_element    = inst->err_element;
 
     if (inst->err_exinfo)
         purc_variant_ref(inst->err_exinfo);
