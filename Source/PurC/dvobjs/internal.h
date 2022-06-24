@@ -40,6 +40,7 @@ struct pcdvobjs_element
 
 struct pcdvobjs_elements {
     pcutils_array_t          *elements; // struct pcdvobjs_element *
+    char                     *css;
 };
 
 struct native_property_cfg {

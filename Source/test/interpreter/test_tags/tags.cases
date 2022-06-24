@@ -133,6 +133,42 @@ reduce_014
 #####reduce_015
 reduce_016
 
+# bind
+bind_000
+bind_001
+bind_002
+bind_003
+bind_004
+bind_005
+bind_006
+bind_007
+bind_008
+bind_009
+bind_010
+bind_011
+bind_012
+
+#### #id not found crash
+#####bind_013
+bind_014
+bind_015
+bind_016
+bind_017
+bind_018
+
+### at="N" N not exists(silently)
+#####bind_019
+
+observe_001
+observe_002
+observe_003
+observe_004
+observe_005
+
+fire_001
+fire_002
+fire_003
+
 # catch
 catch_001
 

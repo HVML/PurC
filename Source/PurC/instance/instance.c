@@ -400,10 +400,8 @@ static void cleanup_instance(struct pcinst *curr_inst)
         curr_inst->bt = NULL;
     }
 
-    bool ret;
-    ret = purc_atom_remove_string_ex(PURC_ATOM_BUCKET_USER,
+    purc_atom_remove_string_ex(PURC_ATOM_BUCKET_USER,
             curr_inst->endpoint_name);
-    assert(ret);
 
     if (curr_inst->app_name) {
         free(curr_inst->app_name);

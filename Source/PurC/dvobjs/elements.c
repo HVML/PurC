@@ -43,9 +43,17 @@ elements_init(struct pcdvobjs_elements *elements)
 static void
 elements_release(struct pcdvobjs_elements *elements)
 {
-    if (elements && elements->elements) {
+    if (!elements) {
+        return;
+    }
+
+    if (elements->elements) {
         pcutils_array_destroy(elements->elements, true);
         elements->elements = NULL;
+    }
+    if (elements->css) {
+        free(elements->css);
+        elements->css = NULL;
     }
 }
 
@@ -424,23 +432,32 @@ eraser(void* native_entity, bool silently)
 static bool
 match_observe(void* native_entity, purc_variant_t val)
 {
-    if (!purc_variant_is_native(val)) {
+    if (!purc_variant_is_native(val) && !purc_variant_is_string(val)) {
         return false;
     }
 
     struct pcdvobjs_elements *elements;
     elements = (struct pcdvobjs_elements*)native_entity;
 
-    void *comp = purc_variant_native_get_entity(val);
-    pcutils_array_t *arr = elements->elements;
-    PC_ASSERT(arr);
-
-    struct pcdom_element *elem = NULL;
-    size_t len = pcutils_array_length(arr);
-    for (size_t i = 0; i < len; i++) {
-        elem = (struct pcdom_element*)pcutils_array_get(elements->elements, i);
-        if (elem == comp) {
+    if (purc_variant_is_string(val)) {
+        const char *s = purc_variant_get_string_const(val);
+        if (elements->css && strcmp(elements->css, s) == 0) {
             return true;
+        }
+    }
+    else if (purc_variant_is_native(val)) {
+        void *comp = purc_variant_native_get_entity(val);
+        pcutils_array_t *arr = elements->elements;
+        PC_ASSERT(arr);
+
+        struct pcdom_element *elem = NULL;
+        size_t len = pcutils_array_length(arr);
+        for (size_t i = 0; i < len; i++) {
+            elem = (struct pcdom_element*)pcutils_array_get(elements->elements,
+                    i);
+            if (elem == comp) {
+                return true;
+            }
         }
     }
     return false;
@@ -488,7 +505,7 @@ make_elements(void)
     };
 
     struct pcdvobjs_elements *elements;
-    elements = (struct pcdvobjs_elements*)calloc(1, sizeof(elements));
+    elements = (struct pcdvobjs_elements*)calloc(1, sizeof(*elements));
     if (!elements) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return PURC_VARIANT_INVALID;
@@ -641,6 +658,14 @@ pcdvobjs_query_elements(struct pcdom_element *root, const char *css)
     PC_ASSERT(purc_variant_is_type(elements, PURC_VARIANT_TYPE_NATIVE));
     void *entity = purc_variant_native_get_entity(elements);
     PC_ASSERT(entity);
+
+    struct pcdvobjs_elements* elems = (struct pcdvobjs_elements*)entity;
+    elems->css = strdup(css);
+    if (elems->css == NULL) {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        purc_variant_unref(elements);
+        return PURC_VARIANT_INVALID;
+    }
 
     struct visit_args args;
     args.elements = (struct pcdvobjs_elements*)entity;

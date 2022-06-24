@@ -83,15 +83,15 @@
   1. `except` 标签支持 `type` 属性。
   1. `init` 标签支持使用 `via` 属性值 `LOAD` 从外部模块中加载自定义变量：`from` 属性指定外部模块名，`for` 指定模块中的动态对象名。
   1. `init` 标签初始化集合时，支持 `casesensitively` 属性和 `caseinsensitively` 属性。
-  1. `forget` 标签支持元素汇集。
-  1. `fire` 标签支持元素汇集。
   1. `call` 标签。
   1. `return` 标签。
-  1. `bind` 标签支持 `at` 属性
   1. `load` 标签。
   1. `exit` 标签（不含对 `with` 属性的支持）。
-  1. ~~`sort` 标签。~~
   1. `iterate` 标签支持外部类执行器。
+  1. ~~`forget` 标签支持元素汇集。~~
+  1. ~~`fire` 标签支持元素汇集。~~
+  1. ~~`sort` 标签。~~
+  1. ~~`bind` 标签支持 `at` 属性~~
   1. ~~`test` 标签支持 `by` 属性。~~
   1. ~~`hvml` 标签支持 `target` 属性，其他属性原样放入目标文档的根节点。~~
   1. ~~`reduce` 标签~~

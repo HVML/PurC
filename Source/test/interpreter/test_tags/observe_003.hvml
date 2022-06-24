@@ -1,0 +1,38 @@
+<!DOCTYPE hvml>
+<hvml target="html" lang="en">
+    <head>
+        <link rel="stylesheet" type="text/css" href="calculator.css" />
+
+        <init as="vs" with="vs string"/>
+
+        <update on="$TIMERS" to="displace">
+            [
+                { "id" : "clock", "interval" : 1000, "active" : "yes" },
+            ]
+        </update>
+    </head>
+
+    <body>
+        <div id="calculator">
+
+            <div id="c_title">
+                <h2 id="c_title">Test Observe<br/>
+                    <span id="clock">00:00</span>
+                </h2>
+                <observe at="vs" for="change:detached">
+                    <update on="#clock" at="textContent" with="$TIMERS[0].active" />
+                    <forget at="vs" for="change:detached"/>
+                </observe>
+                <observe on="$TIMERS" for="expired:clock">
+                    <update on="#clock" at="textContent" with="$TIMERS[0].id" />
+                    <update on="$TIMERS" to="overwrite">
+                       { "id" : "clock", "active" : "no" }
+                    </update>
+                    <forget on="$TIMERS" for="expired:clock"/>
+                    <init as="vs" at="_root" with=undefined />
+                </observe>
+                <p>this is after observe</p>
+            </div>
+        </div>
+    </body>
+</hvml>
