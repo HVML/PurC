@@ -55,6 +55,7 @@ struct ctxt_for_define {
 
     unsigned int                  under_head:1;
     unsigned int                  async:1;
+    unsigned int                  fail_after_pushed:1;
 };
 
 static void
@@ -304,8 +305,8 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     PC_ASSERT(ctxt);
 
     if (ctxt->as == PURC_VARIANT_INVALID) {
-        purc_set_error_with_info(PURC_EXCEPT_ARGUMENT_MISSED,
-                    "lack of vdom attribute 'with/from' for element <%s>",
+        purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
+                    "lack of vdom attribute 'as' for element <%s>",
                     frame->pos->tag_name);
 
         return -1;
@@ -313,7 +314,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 
     if (purc_variant_is_string(ctxt->as) == false) {
         purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
-                    "vdom attribute 'with/from' for element <%s> "
+                    "vdom attribute 'as' for element <%s> "
                     "is not of string type",
                     frame->pos->tag_name);
 
@@ -603,6 +604,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         return NULL;
     }
 
+    ctxt->fail_after_pushed = 1;
+
     ctxt->via = VIA_GET;
 
     frame->ctxt = ctxt;
@@ -635,6 +638,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (r)
         return ctxt;
 
+    ctxt->fail_after_pushed = 0;
     return ctxt;
 }
 
@@ -665,12 +669,145 @@ on_popping(pcintr_stack_t stack, void* ud)
     return true;
 }
 
+static int
+on_element(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element)
+{
+    UNUSED_PARAM(co);
+    UNUSED_PARAM(element);
+
+    struct ctxt_for_define *ctxt;
+    ctxt = (struct ctxt_for_define*)frame->ctxt;
+    PC_ASSERT(ctxt);
+
+    PC_ASSERT(ctxt->fail_after_pushed == 1);
+
+    return 0;
+}
+
+static int
+on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
+        struct pcvdom_content *content)
+{
+    PC_ASSERT(co);
+    PC_ASSERT(content);
+
+    struct ctxt_for_define *ctxt;
+    ctxt = (struct ctxt_for_define*)frame->ctxt;
+    PC_ASSERT(ctxt);
+
+    PC_ASSERT(ctxt->fail_after_pushed == 1);
+
+    return 0;
+}
+
+static int
+on_comment(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
+        struct pcvdom_comment *comment)
+{
+    UNUSED_PARAM(co);
+    UNUSED_PARAM(frame);
+    PC_ASSERT(comment);
+    return 0;
+}
+
+static int
+on_child_finished(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
+{
+    UNUSED_PARAM(co);
+
+    struct ctxt_for_define *ctxt;
+    ctxt = (struct ctxt_for_define*)frame->ctxt;
+    PC_ASSERT(ctxt);
+
+    PC_ASSERT(ctxt->fail_after_pushed);
+
+    return 0;
+}
+
+static pcvdom_element_t
+select_child(pcintr_stack_t stack, void* ud)
+{
+    PC_ASSERT(stack);
+    PC_ASSERT(stack == pcintr_get_stack());
+
+    pcintr_coroutine_t co = stack->co;
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_stack_get_bottom_frame(stack);
+    PC_ASSERT(ud == frame->ctxt);
+
+    if (stack->back_anchor == frame)
+        stack->back_anchor = NULL;
+
+    if (frame->ctxt == NULL)
+        return NULL;
+
+    if (stack->back_anchor)
+        return NULL;
+
+    struct ctxt_for_define *ctxt;
+    ctxt = (struct ctxt_for_define*)frame->ctxt;
+
+    if (ctxt->fail_after_pushed == 0)
+        return NULL;
+
+    struct pcvdom_node *curr;
+
+again:
+    curr = ctxt->curr;
+
+    if (curr == NULL) {
+        struct pcvdom_element *element = frame->pos;
+        struct pcvdom_node *node = &element->node;
+        node = pcvdom_node_first_child(node);
+        curr = node;
+        purc_clr_error();
+    }
+    else {
+        curr = pcvdom_node_next_sibling(curr);
+        purc_clr_error();
+    }
+
+    ctxt->curr = curr;
+
+    if (curr == NULL) {
+        on_child_finished(co, frame);
+        return NULL;
+    }
+
+    switch (curr->type) {
+        case PCVDOM_NODE_DOCUMENT:
+            PC_ASSERT(0); // Not implemented yet
+            break;
+        case PCVDOM_NODE_ELEMENT:
+            {
+                pcvdom_element_t element = PCVDOM_ELEMENT_FROM_NODE(curr);
+                if (on_element(co, frame, element))
+                    return NULL;
+                return element;
+            }
+        case PCVDOM_NODE_CONTENT:
+            if (on_content(co, frame, PCVDOM_CONTENT_FROM_NODE(curr)))
+                return NULL;
+            goto again;
+        case PCVDOM_NODE_COMMENT:
+            if (on_comment(co, frame, PCVDOM_COMMENT_FROM_NODE(curr)))
+                return NULL;
+            goto again;
+        default:
+            PC_ASSERT(0); // Not implemented yet
+    }
+
+    PC_ASSERT(0);
+    return NULL; // NOTE: never reached here!!!
+}
+
 static struct pcintr_element_ops
 ops = {
     .after_pushed       = after_pushed,
     .on_popping         = on_popping,
     .rerun              = NULL,
-    .select_child       = NULL,
+    .select_child       = select_child,
 };
 
 struct pcintr_element_ops* pcintr_get_define_ops(void)

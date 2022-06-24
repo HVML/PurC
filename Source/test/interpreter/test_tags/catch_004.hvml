@@ -1,0 +1,21 @@
+<!DOCTYPE hvml>
+<hvml target="html" lang="en">
+    <head>
+    </head>
+
+    <body>
+        <div>
+            <define>
+                <catch for="EntityNotFound">
+                    <update on="$@" at="attr.argumentmissed" to="displace" with="matched" />
+                </catch>
+            </define>
+        </div>
+        <catch for="ArgumentMissed">
+            <update on="$@" at="attr.argumentmissed" to="displace" with="matched" />
+        </catch>
+    </body>
+</hvml>
+
+
+
