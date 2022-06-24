@@ -1,0 +1,29 @@
+<!DOCTYPE hvml>
+<hvml target="html" lang="en">
+    <head>
+    </head>
+
+    <body>
+        <div class="ab" id="abC">
+            <update at="attr.class" to="displace">
+                <catch for="ArgumentMissed">
+                    <update on="$@" at="attr.ArgumentMissed" to="displace" with="catched" />
+                </catch>
+            </update>
+            <catch for="ArgumentMissed">
+                <!-- this would be bypassed -->
+                <update on="$@" at="attr.ArgumentMissed" to="displace" with="shall not be catched" />
+            </catch>
+            <catch for="EntityNotFound">
+                <!-- this would be bypassed -->
+                <update on="$@" at="attr.EntityNotFound" to="displace" with="shall not be catched" />
+            </catch>
+            <catch for="*">
+                <!-- this would be bypassed -->
+                <update on="$@" at="attr.star" to="displace" with="shall not be catched" />
+            </catch>
+        </div>
+    </body>
+</hvml>
+
+

@@ -52,6 +52,8 @@ struct ctxt_for_update {
     pcintr_attribute_op           with_eval;
 
     purc_variant_t                literal;
+
+    unsigned int                  fail_after_pushed:1;
 };
 
 static void
@@ -657,7 +659,6 @@ process_attr_on(struct pcintr_stack_frame *frame,
     }
     ctxt->on = val;
     purc_variant_ref(val);
-    PRINT_VARIANT(ctxt->on);
 
     return 0;
 }
@@ -901,6 +902,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     }
     ctxt->with_op = PCHVML_ATTRIBUTE_OPERATOR;
 
+    ctxt->fail_after_pushed = 1;
+
     frame->ctxt = ctxt;
     frame->ctxt_destroy = ctxt_destroy;
 
@@ -920,7 +923,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         return ctxt;
 
     if (ctxt->on == PURC_VARIANT_INVALID) {
-        PC_ASSERT(0);
         purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
                 "lack of vdom attribute 'on' for element <%s>",
                 element->tag_name);
@@ -939,12 +941,13 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         v = get_source_by_from(stack->co, frame, ctxt->from, ctxt->with);
         if (v == PURC_VARIANT_INVALID) {
             PC_ASSERT(purc_get_last_error());
-            return NULL;
+            return ctxt;
         }
         PURC_VARIANT_SAFE_CLEAR(ctxt->from_result);
         ctxt->from_result = v;
     }
 
+    ctxt->fail_after_pushed = 0;
     return ctxt;
 }
 
@@ -986,6 +989,9 @@ on_element(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     ctxt = (struct ctxt_for_update*)frame->ctxt;
     PC_ASSERT(ctxt);
 
+    if (ctxt->fail_after_pushed)
+        return 0;
+
     if (ctxt->from || ctxt->with) {
         purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
                 "no element is permitted "
@@ -1000,12 +1006,15 @@ static int
 on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         struct pcvdom_content *content)
 {
-    UNUSED_PARAM(co);
+    PC_ASSERT(co);
     PC_ASSERT(content);
 
     struct ctxt_for_update *ctxt;
     ctxt = (struct ctxt_for_update*)frame->ctxt;
     PC_ASSERT(ctxt);
+
+    if (ctxt->fail_after_pushed)
+        return 0;
 
     struct pcvcm_node *vcm = content->vcm;
     if (!vcm)
@@ -1047,6 +1056,9 @@ on_child_finished(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     ctxt = (struct ctxt_for_update*)frame->ctxt;
     PC_ASSERT(ctxt);
 
+    if (ctxt->fail_after_pushed)
+        return 0;
+
     if (ctxt->from) {
         if (ctxt->from_result != PURC_VARIANT_INVALID) {
             PURC_VARIANT_SAFE_CLEAR(frame->ctnt_var);
@@ -1087,6 +1099,7 @@ on_child_finished(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     purc_set_error_with_info(PURC_EXCEPT_ARGUMENT_MISSED,
                 "lack of vdom attribute 'with/from' for element <%s>",
                 element->tag_name);
+
     return -1;
 }
 

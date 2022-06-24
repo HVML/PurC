@@ -78,6 +78,8 @@ post_process_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     purc_variant_t for_var = ctxt->for_var;
     if (for_var != PURC_VARIANT_INVALID) {
         if (!purc_variant_is_string(for_var)) {
+            // FIXME: throw exception in catch block
+            PC_ASSERT(0);
             return -1;
         }
 
@@ -93,6 +95,8 @@ post_process_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     if (!except_msg) {
         ctxt->match = false;
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        // FIXME: throw exception in catch block
+        PC_ASSERT(0);
         return -1;
     }
 
@@ -340,9 +344,8 @@ select_child(pcintr_stack_t stack, void* ud)
     struct ctxt_for_catch *ctxt;
     ctxt = (struct ctxt_for_catch*)frame->ctxt;
 
-    if (!ctxt->match) {
+    if (!ctxt->match)
         return NULL;
-    }
 
     struct pcvdom_node *curr;
 
