@@ -505,7 +505,7 @@ make_elements(void)
     };
 
     struct pcdvobjs_elements *elements;
-    elements = (struct pcdvobjs_elements*)calloc(1, sizeof(elements));
+    elements = (struct pcdvobjs_elements*)calloc(1, sizeof(*elements));
     if (!elements) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return PURC_VARIANT_INVALID;
