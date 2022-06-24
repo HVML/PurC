@@ -6,11 +6,11 @@
     <body>
         <div>
             <div class="ab" id="abC">
-                <update on="$@" at="attr.class" to="displace" />
+                <update/>
             </div>
         </div>
-        <catch for="EntityNotFound">
-            <update on="$@" at="attr.entity_not_found" to="displace" with="matched" />
+        <catch for="ArgumentMissed">
+            <update on="$@" at="attr.argumentmissed" to="displace" with="matched" />
         </catch>
     </body>
 </hvml>

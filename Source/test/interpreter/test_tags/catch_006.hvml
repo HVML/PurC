@@ -5,17 +5,18 @@
 
     <body>
         <div>
-            <define>
+            <observe>
                 <catch for="ArgumentMissed">
                     <update on="$@" at="attr.argumentmissed" to="displace" with="matched" />
                 </catch>
-            </define>
+            </observe>
         </div>
-        <catch for="EntityNotFound">
-            <update on="$@" at="attr.entity_not_found" to="displace" with="matched" />
+        <catch for="InvalidValue">
+            <update on="$@" at="attr.invalid_value" to="displace" with="matched" />
         </catch>
     </body>
 </hvml>
+
 
 
 

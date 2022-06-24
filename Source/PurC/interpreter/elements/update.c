@@ -1096,7 +1096,7 @@ on_child_finished(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     struct pcvdom_element *element = frame->pos;
     PC_ASSERT(element);
 
-    purc_set_error_with_info(PURC_EXCEPT_ARGUMENT_MISSED,
+    purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
                 "lack of vdom attribute 'with/from' for element <%s>",
                 element->tag_name);
 

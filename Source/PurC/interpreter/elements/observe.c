@@ -51,6 +51,8 @@ struct ctxt_for_observe {
     char                         *msg_type;
     char                         *sub_type;
     purc_atom_t                   msg_type_atom;
+
+    unsigned int                  fail_after_pushed:1;
 };
 
 static void
@@ -602,6 +604,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         return NULL;
     }
 
+    ctxt->fail_after_pushed = 1;
+
     frame->ctxt = ctxt;
     frame->ctxt_destroy = ctxt_destroy;
 
@@ -684,6 +688,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     purc_clr_error();
 
+    ctxt->fail_after_pushed = 0;
+
     return ctxt;
 }
 
@@ -730,6 +736,12 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     UNUSED_PARAM(co);
     UNUSED_PARAM(frame);
     PC_ASSERT(content);
+
+    struct ctxt_for_observe *ctxt;
+    ctxt = (struct ctxt_for_observe*)frame->ctxt;
+
+    if (ctxt->fail_after_pushed)
+        return;
 
     // int r;
     struct pcvcm_node *vcm = content->vcm;
