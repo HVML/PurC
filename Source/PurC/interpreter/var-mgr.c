@@ -62,6 +62,12 @@ struct var_observe {
     pcintr_stack_t stack;
 };
 
+struct pcvarmgr_named_variables_observe {
+    char *name;
+    pcintr_stack_t stack;
+    pcvdom_element_t elem;
+};
+
 static int find_var_observe_idx(struct pcvarmgr* mgr, const char* name,
         enum var_event_type type, pcintr_stack_t stack)
 {
@@ -907,3 +913,88 @@ pcintr_remove_named_var_observer(pcintr_stack_t stack, const char* name,
     return PURC_VARIANT_INVALID;
 }
 
+static bool
+match_observe(void *native_entity, purc_variant_t val)
+{
+    UNUSED_PARAM(native_entity);
+    UNUSED_PARAM(val);
+    return false;
+}
+
+static bool
+on_observe(void *native_entity,
+        const char *event_name, const char *event_subname)
+{
+    UNUSED_PARAM(native_entity);
+    UNUSED_PARAM(event_name);
+    UNUSED_PARAM(event_subname);
+    return true;
+}
+
+
+static void
+named_destroy(struct pcvarmgr_named_variables_observe *named)
+{
+    if (named->name) {
+        free(named->name);
+    }
+    free(named);
+}
+
+static void
+on_release(void *native_entity)
+{
+    UNUSED_PARAM(native_entity);
+
+    PC_ASSERT(native_entity);
+    struct pcvarmgr_named_variables_observe *named =
+        (struct pcvarmgr_named_variables_observe*)native_entity;
+    named_destroy(named);
+}
+
+purc_variant_t
+pcintr_build_named_var_observed(pcintr_stack_t stack, const char *name,
+        pcvdom_element_t elem)
+{
+    UNUSED_PARAM(stack);
+    UNUSED_PARAM(name);
+    UNUSED_PARAM(elem);
+    static struct purc_native_ops ops = {
+        .property_getter            = NULL,
+        .property_setter            = NULL,
+        .property_eraser            = NULL,
+        .property_cleaner           = NULL,
+
+        .updater                    = NULL,
+        .cleaner                    = NULL,
+        .eraser                     = NULL,
+        .match_observe              = match_observe,
+
+        .on_observe                = on_observe,
+        .on_release                = on_release,
+    };
+
+    struct pcvarmgr_named_variables_observe *named =
+        (struct pcvarmgr_named_variables_observe*)calloc(1, sizeof(*named));
+    if (!named) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return PURC_VARIANT_INVALID;
+    }
+
+    named->name = strdup(name);
+    if (!named->name) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return PURC_VARIANT_INVALID;
+    }
+
+    named->stack = stack;
+    named->elem = elem;
+
+    purc_variant_t v = purc_variant_make_native(named, &ops);
+    if (v == PURC_VARIANT_INVALID) {
+        named_destroy(named);
+        return PURC_VARIANT_INVALID;
+    }
+
+    return v;
+}
