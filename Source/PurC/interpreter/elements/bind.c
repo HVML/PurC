@@ -44,6 +44,8 @@ struct ctxt_for_bind {
 
     unsigned int                  under_head:1;
     unsigned int                  temporarily:1;
+
+    unsigned int                  fail_after_pushed:1;
 };
 
 static void
@@ -611,6 +613,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         return NULL;
     }
 
+    ctxt->fail_after_pushed = 1;
+
     frame->ctxt = ctxt;
     frame->ctxt_destroy = ctxt_destroy;
 
@@ -624,8 +628,10 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (r)
         return ctxt;
 
-
     if (ctxt->as == PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
+                "lack of vdom attribute 'as' for element <%s>",
+                element->tag_name);
         return ctxt;
     }
 
@@ -636,6 +642,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     }
 
     purc_clr_error();
+
+    ctxt->fail_after_pushed = 0;
 
     return ctxt;
 }
@@ -672,11 +680,17 @@ on_element(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         struct pcvdom_element *element)
 {
     UNUSED_PARAM(co);
-    UNUSED_PARAM(frame);
     UNUSED_PARAM(element);
 
-    return 0;
+    struct ctxt_for_bind *ctxt;
+    ctxt = (struct ctxt_for_bind*)frame->ctxt;
 
+    PC_ASSERT(element->tag_id == PCHVML_TAG_CATCH);
+
+    if (ctxt->fail_after_pushed)
+        return 0;
+
+    return 0;
 }
 
 static int
@@ -689,6 +703,9 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     struct ctxt_for_bind *ctxt;
     ctxt = (struct ctxt_for_bind*)frame->ctxt;
     PC_ASSERT(ctxt);
+
+    if (ctxt->fail_after_pushed)
+        return 0;
 
     struct pcvcm_node *vcm = content->vcm;
     if (!vcm)
@@ -721,6 +738,9 @@ on_child_finished(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     struct ctxt_for_bind *ctxt;
     ctxt = (struct ctxt_for_bind*)frame->ctxt;
     PC_ASSERT(ctxt);
+
+    if (ctxt->fail_after_pushed)
+        return 0;
 
     if (ctxt->vcm_ev) {
         return post_process(co, frame);
