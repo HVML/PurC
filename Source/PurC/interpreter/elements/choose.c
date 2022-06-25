@@ -85,7 +85,13 @@ post_process_dest_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 
     purc_variant_t on;
     on = ctxt->on;
-    PC_ASSERT(on != PURC_VARIANT_INVALID);
+    if (on == PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
+                    "lack of vdom attribute 'on' for element <%s>",
+                    frame->pos->tag_name);
+
+        return -1;
+    }
 
     purc_variant_t by;
     by = ctxt->by;
@@ -423,7 +429,6 @@ on_comment(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     PC_ASSERT(comment);
 }
 
-
 static pcvdom_element_t
 select_child(pcintr_stack_t stack, void* ud)
 {
@@ -479,7 +484,6 @@ again:
             {
                 pcvdom_element_t element = PCVDOM_ELEMENT_FROM_NODE(curr);
                 on_element(co, frame, element);
-                PC_ASSERT(stack->except == 0);
                 return element;
             }
         case PCVDOM_NODE_CONTENT:
