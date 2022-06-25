@@ -1594,8 +1594,6 @@ again:
         pchvml_token_destroy(token);
 
     token = pchvml_next_token(parser, in);
-    if (!token)
-        PC_ASSERT(0);
 
     if (!token)
         goto error;

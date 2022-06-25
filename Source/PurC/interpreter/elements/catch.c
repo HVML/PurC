@@ -38,10 +38,10 @@
 #include <unistd.h>
 
 struct ctxt_for_catch {
-    struct pcvdom_node *curr;
-    purc_variant_t for_var;
-    struct pcintr_exception *exception;
-    bool match;
+    struct pcvdom_node           *curr;
+    purc_variant_t                for_var;
+    struct pcintr_exception      *exception;
+    bool                          match;
 };
 
 static void
