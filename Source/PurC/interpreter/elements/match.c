@@ -235,15 +235,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame);
 
-    struct pcintr_stack_frame *parent;
-    parent = pcintr_stack_frame_get_parent(frame);
-    if (!parent || !parent->pos || parent->pos->tag_id != PCHVML_TAG_TEST) {
-        purc_set_error_with_info(PURC_ERROR_ENTITY_NOT_FOUND,
-                "no matching <test> for <match>");
-        // FIXME: shall not happen!!!
-        PC_ASSERT(0);
-    }
-
     struct ctxt_for_match *ctxt;
     ctxt = (struct ctxt_for_match*)calloc(1, sizeof(*ctxt));
     if (!ctxt) {
@@ -255,6 +246,15 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     frame->ctxt_destroy = ctxt_destroy;
 
     frame->pos = pos; // ATTENTION!!
+
+    struct pcintr_stack_frame *parent;
+    parent = pcintr_stack_frame_get_parent(frame);
+    if (!parent || !parent->pos || parent->pos->tag_id != PCHVML_TAG_TEST) {
+        purc_set_error_with_info(PURC_ERROR_ENTITY_NOT_FOUND,
+                "no matching <test> for <match>");
+        // FIXME: shall not happen!!!
+        return ctxt;
+    }
 
     struct pcvdom_element *element = frame->pos;
     PC_ASSERT(element);
@@ -363,8 +363,10 @@ select_child(pcintr_stack_t stack, void* ud)
 
     struct pcvdom_node *curr;
 
-    if (!ctxt->matched)
-        return NULL;
+    if (!ctxt->matched) {
+        if (stack->except == 0)
+            return NULL;
+    }
 
 again:
     curr = ctxt->curr;
@@ -394,7 +396,6 @@ again:
             {
                 pcvdom_element_t element = PCVDOM_ELEMENT_FROM_NODE(curr);
                 on_element(co, frame, element);
-                PC_ASSERT(stack->except == 0);
                 return element;
             }
         case PCVDOM_NODE_CONTENT:

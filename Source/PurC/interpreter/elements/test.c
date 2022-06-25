@@ -87,7 +87,11 @@ post_process_dest_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 
     purc_variant_t on;
     on = ctxt->on;
-    PC_ASSERT(on != PURC_VARIANT_INVALID);
+    if (on == PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
+                "vdom attribute 'on' for element <test> undefined");
+        return -1;
+    }
 
     purc_variant_t by;
     by = ctxt->by;
@@ -496,7 +500,6 @@ again:
             {
                 pcvdom_element_t element = PCVDOM_ELEMENT_FROM_NODE(curr);
                 on_element(co, frame, element);
-                PC_ASSERT(stack->except == 0);
                 if (ctxt->handle_differ) {
                     if (element->tag_id == PCHVML_TAG_DIFFER) {
                         return element;

@@ -181,8 +181,11 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 
     purc_variant_t on;
     on = ctxt->on;
-    if (on == PURC_VARIANT_INVALID)
+    if (on == PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
+                "lack of vdom attribute 'on' for element <iterate>");
         return -1;
+    }
 
     if (ctxt->onlyif_attr) {
         bool stop;
@@ -226,8 +229,11 @@ post_process_by_rule(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 
     purc_variant_t on;
     on = ctxt->on;
-    if (on == PURC_VARIANT_INVALID)
+    if (on == PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
+                "lack of vdom attribute 'on' for element <iterate>");
         return -1;
+    }
 
     purc_variant_t with;
     if (ctxt->with_attr) {

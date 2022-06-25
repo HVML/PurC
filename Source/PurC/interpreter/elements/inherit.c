@@ -148,10 +148,13 @@ static void
 on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         struct pcvdom_content *content, bool first_child)
 {
-    UNUSED_PARAM(co);
     UNUSED_PARAM(frame);
-    UNUSED_PARAM(first_child);
     PC_ASSERT(content);
+
+    pcintr_stack_t stack = &co->stack;
+    if (stack->except)
+        return;
+
     if (!first_child) {
         return;
     }
@@ -160,7 +163,6 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     if (!vcm)
         return;
 
-    pcintr_stack_t stack = pcintr_get_stack();
     purc_variant_t v = pcvcm_eval(vcm, stack, frame->silently);
     PC_ASSERT(v != PURC_VARIANT_INVALID);
     purc_clr_error();

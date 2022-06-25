@@ -1459,6 +1459,14 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     purc_clr_error(); // pcvdom_element_parent
 
+    if (ctxt->as == PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
+                    "lack of vdom attribute 'as' for element <%s>",
+                    frame->pos->tag_name);
+
+        return ctxt;
+    }
+
     if (ctxt->via == VIA_LOAD) {
         r = process_via(stack->co);
         return ctxt;
@@ -1553,8 +1561,11 @@ static int
 on_element(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         struct pcvdom_element *element)
 {
-    UNUSED_PARAM(co);
     UNUSED_PARAM(element);
+
+    pcintr_stack_t stack = &co->stack;
+    if (stack->except)
+        return 0;
 
     struct ctxt_for_init *ctxt;
     ctxt = (struct ctxt_for_init*)frame->ctxt;
@@ -1577,8 +1588,11 @@ static int
 on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         struct pcvdom_content *content)
 {
-    UNUSED_PARAM(co);
     PC_ASSERT(content);
+
+    pcintr_stack_t stack = &co->stack;
+    if (stack->except)
+        return 0;
 
     struct ctxt_for_init *ctxt;
     ctxt = (struct ctxt_for_init*)frame->ctxt;
@@ -1620,6 +1634,10 @@ on_comment(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 static int
 on_child_finished(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
+    pcintr_stack_t stack = &co->stack;
+    if (stack->except)
+        return 0;
+
     struct ctxt_for_init *ctxt;
     ctxt = (struct ctxt_for_init*)frame->ctxt;
     PC_ASSERT(ctxt);

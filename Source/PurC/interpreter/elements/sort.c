@@ -710,9 +710,9 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         return ctxt;
 
     if (ctxt->on == PURC_VARIANT_INVALID) {
-        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+        purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
                 "`on` not specified");
-        return NULL;
+        return ctxt;
     }
 
     if (ctxt->by != PURC_VARIANT_INVALID) {
@@ -857,7 +857,6 @@ again:
             {
                 pcvdom_element_t element = PCVDOM_ELEMENT_FROM_NODE(curr);
                 on_element(co, frame, element);
-                PC_ASSERT(stack->except == 0);
                 return element;
             }
         case PCVDOM_NODE_CONTENT:
