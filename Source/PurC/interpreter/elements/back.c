@@ -42,8 +42,6 @@ struct ctxt_for_back {
 
     struct pcintr_stack_frame    *back_anchor;
     purc_variant_t                with;
-
-    unsigned int                  fail_after_pushed:1;
 };
 
 static void
@@ -350,8 +348,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         return NULL;
     }
 
-    ctxt->fail_after_pushed = 1;
-
     frame->ctxt = ctxt;
     frame->ctxt_destroy = ctxt_destroy;
 
@@ -367,8 +363,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     r = post_process(stack->co, frame);
     if (r)
         return ctxt;
-
-    ctxt->fail_after_pushed = 0;
 
     // NOTE: no element to process if succeeds
     return NULL;
@@ -405,14 +399,12 @@ static int
 on_element(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         struct pcvdom_element *element)
 {
-    UNUSED_PARAM(co);
+    UNUSED_PARAM(frame);
     UNUSED_PARAM(element);
 
-    struct ctxt_for_back *ctxt;
-    ctxt = (struct ctxt_for_back*)frame->ctxt;
-    PC_ASSERT(ctxt);
+    pcintr_stack_t stack = &co->stack;
 
-    if (ctxt->fail_after_pushed)
+    if (stack->except)
         return 0;
 
     PC_ASSERT(0);
@@ -422,14 +414,12 @@ static int
 on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         struct pcvdom_content *content)
 {
-    PC_ASSERT(co);
+    UNUSED_PARAM(frame);
     PC_ASSERT(content);
 
-    struct ctxt_for_back *ctxt;
-    ctxt = (struct ctxt_for_back*)frame->ctxt;
-    PC_ASSERT(ctxt);
+    pcintr_stack_t stack = &co->stack;
 
-    if (ctxt->fail_after_pushed)
+    if (stack->except)
         return 0;
 
     PC_ASSERT(0);
@@ -448,16 +438,14 @@ on_comment(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 static int
 on_child_finished(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
-    UNUSED_PARAM(co);
+    UNUSED_PARAM(frame);
 
-    struct ctxt_for_back *ctxt;
-    ctxt = (struct ctxt_for_back*)frame->ctxt;
-    PC_ASSERT(ctxt);
+    pcintr_stack_t stack = &co->stack;
 
-    if (ctxt->fail_after_pushed)
+    if (stack->except)
         return 0;
 
-    PC_ASSERT(0);
+    return 0;
 }
 
 static pcvdom_element_t

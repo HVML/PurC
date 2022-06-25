@@ -11,8 +11,7 @@
                 </catch>
             </update>
             <catch for="ArgumentMissed">
-                <!-- this would be bypassed -->
-                <update on="$@" at="attr.ArgumentMissed" to="displace" with="shall not be catched" />
+                <update on="$@" at="attr.ArgumentMissed" to="displace" with="catched for 2nd time" />
             </catch>
             <catch for="EntityNotFound">
                 <!-- this would be bypassed -->

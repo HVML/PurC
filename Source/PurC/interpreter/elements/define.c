@@ -55,7 +55,6 @@ struct ctxt_for_define {
 
     unsigned int                  under_head:1;
     unsigned int                  async:1;
-    unsigned int                  fail_after_pushed:1;
 };
 
 static void
@@ -604,8 +603,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         return NULL;
     }
 
-    ctxt->fail_after_pushed = 1;
-
     ctxt->via = VIA_GET;
 
     frame->ctxt = ctxt;
@@ -638,7 +635,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (r)
         return ctxt;
 
-    ctxt->fail_after_pushed = 0;
     return ctxt;
 }
 
@@ -673,14 +669,12 @@ static int
 on_element(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         struct pcvdom_element *element)
 {
-    UNUSED_PARAM(co);
+    UNUSED_PARAM(frame);
     UNUSED_PARAM(element);
 
-    struct ctxt_for_define *ctxt;
-    ctxt = (struct ctxt_for_define*)frame->ctxt;
-    PC_ASSERT(ctxt);
+    pcintr_stack_t stack = &co->stack;
 
-    PC_ASSERT(ctxt->fail_after_pushed == 1);
+    PC_ASSERT(stack->except);
 
     return 0;
 }
@@ -689,14 +683,12 @@ static int
 on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         struct pcvdom_content *content)
 {
-    PC_ASSERT(co);
+    PC_ASSERT(frame);
     PC_ASSERT(content);
 
-    struct ctxt_for_define *ctxt;
-    ctxt = (struct ctxt_for_define*)frame->ctxt;
-    PC_ASSERT(ctxt);
+    pcintr_stack_t stack = &co->stack;
 
-    PC_ASSERT(ctxt->fail_after_pushed == 1);
+    PC_ASSERT(stack->except);
 
     return 0;
 }
@@ -714,13 +706,11 @@ on_comment(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 static int
 on_child_finished(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
-    UNUSED_PARAM(co);
+    UNUSED_PARAM(frame);
 
-    struct ctxt_for_define *ctxt;
-    ctxt = (struct ctxt_for_define*)frame->ctxt;
-    PC_ASSERT(ctxt);
+    pcintr_stack_t stack = &co->stack;
 
-    PC_ASSERT(ctxt->fail_after_pushed);
+    PC_ASSERT(stack->except);
 
     return 0;
 }
@@ -745,11 +735,11 @@ select_child(pcintr_stack_t stack, void* ud)
     if (stack->back_anchor)
         return NULL;
 
+    if (stack->except == 0)
+        return NULL;
+
     struct ctxt_for_define *ctxt;
     ctxt = (struct ctxt_for_define*)frame->ctxt;
-
-    if (ctxt->fail_after_pushed == 0)
-        return NULL;
 
     struct pcvdom_node *curr;
 

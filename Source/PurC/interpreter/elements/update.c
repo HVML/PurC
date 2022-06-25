@@ -52,8 +52,6 @@ struct ctxt_for_update {
     pcintr_attribute_op           with_eval;
 
     purc_variant_t                literal;
-
-    unsigned int                  fail_after_pushed:1;
 };
 
 static void
@@ -902,8 +900,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     }
     ctxt->with_op = PCHVML_ATTRIBUTE_OPERATOR;
 
-    ctxt->fail_after_pushed = 1;
-
     frame->ctxt = ctxt;
     frame->ctxt_destroy = ctxt_destroy;
 
@@ -947,7 +943,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         ctxt->from_result = v;
     }
 
-    ctxt->fail_after_pushed = 0;
     return ctxt;
 }
 
@@ -982,15 +977,16 @@ static int
 on_element(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         struct pcvdom_element *element)
 {
-    UNUSED_PARAM(co);
     UNUSED_PARAM(element);
+
+    pcintr_stack_t stack = &co->stack;
+
+    if (stack->except)
+        return 0;
 
     struct ctxt_for_update *ctxt;
     ctxt = (struct ctxt_for_update*)frame->ctxt;
     PC_ASSERT(ctxt);
-
-    if (ctxt->fail_after_pushed)
-        return 0;
 
     if (ctxt->from || ctxt->with) {
         purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
@@ -1006,15 +1002,16 @@ static int
 on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         struct pcvdom_content *content)
 {
-    PC_ASSERT(co);
     PC_ASSERT(content);
+
+    pcintr_stack_t stack = &co->stack;
+
+    if (stack->except)
+        return 0;
 
     struct ctxt_for_update *ctxt;
     ctxt = (struct ctxt_for_update*)frame->ctxt;
     PC_ASSERT(ctxt);
-
-    if (ctxt->fail_after_pushed)
-        return 0;
 
     struct pcvcm_node *vcm = content->vcm;
     if (!vcm)
@@ -1052,12 +1049,14 @@ on_comment(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 static int
 on_child_finished(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
+    pcintr_stack_t stack = &co->stack;
+
+    if (stack->except)
+        return 0;
+
     struct ctxt_for_update *ctxt;
     ctxt = (struct ctxt_for_update*)frame->ctxt;
     PC_ASSERT(ctxt);
-
-    if (ctxt->fail_after_pushed)
-        return 0;
 
     if (ctxt->from) {
         if (ctxt->from_result != PURC_VARIANT_INVALID) {

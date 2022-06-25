@@ -55,8 +55,6 @@ struct ctxt_for_call {
 
     unsigned int                  concurrently:1;
     unsigned int                  synchronously:1;
-
-    unsigned int                  fail_after_pushed:1;
 };
 
 static void
@@ -458,7 +456,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         return NULL;
     }
 
-    ctxt->fail_after_pushed = 1;
     ctxt->synchronously = 1;
 
     frame->ctxt = ctxt;
@@ -482,8 +479,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     r = post_process(stack->co, frame);
     if (r)
         return ctxt;
-
-    ctxt->fail_after_pushed = 0;
 
     return ctxt;
 }
