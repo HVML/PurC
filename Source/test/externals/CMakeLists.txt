@@ -1,80 +1,53 @@
-# choose_timer
-set(CHOOSETIMER_LIBRARY_TYPE SHARED)
-
-set(CHOOSETIMER_PUBLIC_HEADERS
+set(PurCExternalExecutor_INCLUDE_DIRECTORIES
+    ${CMAKE_BINARY_DIR}
+    ${PURC_DIR}/include
+    ${PurC_DERIVED_SOURCES_DIR}
+    ${PURC_DIR}
+    ${WTF_DIR}
 )
+
+set(PurCExternalExecutor_SYSTEM_INCLUDE_DIRECTORIES
+    ${PURC_INCLUDE_DIRS}
+)
+
+set(PurCExternalExecutor_DEFINITIONS
+    USE_STDOUT_WHEN_LOG_DISABLED
+)
+
+set(PurCExternalExecutor_LIBRARIES
+    PurC::PurC
+)
+
+macro(ADD_EXTERNAL_EXECUTOR extension_name)
+    add_library(${extension_name} MODULE ${ARGN})
+    add_dependencies(${extension_name} PurC)
+    set_property(
+        TARGET ${extension_name}
+        APPEND
+        PROPERTY COMPILE_DEFINITIONS WEBEXT_COMPILATION
+    )
+    set_target_properties(${extension_name} PROPERTIES
+        OUTPUT_NAME "purc-executor-${extension_name}"
+    )
+    set_target_properties(${extension_name} PROPERTIES
+        LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+    )
+    target_compile_definitions(${extension_name} PUBLIC ${PurCExternalExecutor_DEFINITIONS})
+    target_include_directories(${extension_name} PUBLIC ${PurCExternalExecutor_INCLUDE_DIRECTORIES})
+    target_include_directories(${extension_name} SYSTEM PUBLIC ${PurCExternalExecutor_SYSTEM_INCLUDE_DIRECTORIES})
+    target_link_libraries(${extension_name} ${PurCExternalExecutor_LIBRARIES})
+endmacro()
+
+# choose_timer
 
 set(CHOOSETIMER_SOURCES
     choose_timer.c
 )
 
-set(CHOOSETIMER_PRIVATE_INCLUDE_DIRECTORIES
-    "${CMAKE_BINARY_DIR}"
-    "${GLIB_INCLUDE_DIRS}"
-    "${FORWARDING_HEADERS_DIR}"
-    "${PURC_DIR}"
-    "${PurC_DERIVED_SOURCES_DIR}"
-    "${PURC_DIR}/include"
-)
-
-set(CHOOSETIMER_LIBRARIES
-    ${CMAKE_DL_LIBS}
-)
-
-link_directories (${CMAKE_BINARY_DIR}/Source/PurC)
-list(APPEND CHOOSETIMER_LIBRARIES PurC::PurC)
-
-PURC_FRAMEWORK_DECLARE(CHOOSETIMER)
-
-set_target_properties(CHOOSETIMER PROPERTIES OUTPUT_NAME "purc-executor-CHOOSETIMER")
-
-PURC_WRAP_SOURCELIST(${CHOOSETIMER_SOURCES})
-PURC_FRAMEWORK(CHOOSETIMER)
-
-install(TARGETS CHOOSETIMER DESTINATION "${LIB_INSTALL_DIR}/purc-${PURC_API_VERSION}")
-
-if (MSVC)
-    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /SUBSYSTEM:WINDOWS")
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS")
-endif ()
-
-# func_demo
-set(FUNC_DEMO_LIBRARY_TYPE SHARED)
-
-set(FUNC_DEMO_PUBLIC_HEADERS
-)
+ADD_EXTERNAL_EXECUTOR(CHOOSETIMER ${CHOOSETIMER_SOURCES})
 
 set(FUNC_DEMO_SOURCES
     func_demo.c
 )
 
-set(FUNC_DEMO_PRIVATE_INCLUDE_DIRECTORIES
-    "${CMAKE_BINARY_DIR}"
-    "${GLIB_INCLUDE_DIRS}"
-    "${FORWARDING_HEADERS_DIR}"
-    "${PURC_DIR}"
-    "${PurC_DERIVED_SOURCES_DIR}"
-    "${PURC_DIR}/include"
-)
-
-set(FUNC_DEMO_LIBRARIES
-    ${CMAKE_DL_LIBS}
-)
-
-link_directories (${CMAKE_BINARY_DIR}/Source/PurC)
-list(APPEND FUNC_DEMO_LIBRARIES PurC::PurC)
-
-PURC_FRAMEWORK_DECLARE(FUNC_DEMO)
-
-set_target_properties(FUNC_DEMO PROPERTIES OUTPUT_NAME "purc-executor-FUNC_DEMO")
-
-PURC_WRAP_SOURCELIST(${FUNC_DEMO_SOURCES})
-PURC_FRAMEWORK(FUNC_DEMO)
-
-install(TARGETS FUNC_DEMO DESTINATION "${LIB_INSTALL_DIR}/purc-${PURC_API_VERSION}")
-
-if (MSVC)
-    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /SUBSYSTEM:WINDOWS")
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS")
-endif ()
-
+ADD_EXTERNAL_EXECUTOR(FUNC_DEMO ${FUNC_DEMO_SOURCES})
