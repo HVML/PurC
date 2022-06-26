@@ -1413,8 +1413,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (stack->except)
         return NULL;
 
-    if (pcintr_check_insertion_mode_for_normal_element(stack))
-        return NULL;
+    pcintr_check_insertion_mode_for_normal_element(stack);
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
@@ -1438,7 +1437,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     frame->attr_vars = purc_variant_make_object(0,
             PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
     if (frame->attr_vars == PURC_VARIANT_INVALID)
-        return NULL;
+        return ctxt;
 
     struct pcvdom_element *element = frame->pos;
     PC_ASSERT(element);
@@ -1446,7 +1445,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     int r;
     r = pcintr_vdom_walk_attrs(frame, element, NULL, attr_found);
     if (r)
-        return NULL;
+        return ctxt;
 
     if (ctxt->temporarily) {
         ctxt->async = 0;
@@ -1460,14 +1459,22 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     purc_clr_error(); // pcvdom_element_parent
 
+    if (ctxt->as == PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
+                    "lack of vdom attribute 'as' for element <%s>",
+                    frame->pos->tag_name);
+
+        return ctxt;
+    }
+
     if (ctxt->via == VIA_LOAD) {
         r = process_via(stack->co);
-        return r ? NULL : ctxt;
+        return ctxt;
     }
 
     if (ctxt->from_uri) {
         r = process_from(stack->co);
-        return r ? NULL : ctxt;
+        return ctxt;
     }
 
     purc_variant_t from = ctxt->from;
@@ -1475,7 +1482,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (ctxt->with && !ctxt->from) {
         r = pcintr_set_question_var(frame, ctxt->with);
         if (r)
-            return NULL;
+            return ctxt;
     }
 
     if (from != PURC_VARIANT_INVALID && purc_variant_is_string(from)
@@ -1485,7 +1492,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
             PC_ASSERT(0);
             purc_variant_t v = pcintr_load_from_uri(stack, uri);
             if (v == PURC_VARIANT_INVALID)
-                return NULL;
+                return ctxt;
             PURC_VARIANT_SAFE_CLEAR(ctxt->from_result);
             ctxt->from_result = v;
         }
@@ -1494,7 +1501,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
                 malloc(sizeof(struct fetcher_for_init));
             if (!fetcher) {
                 purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-                return NULL;
+                return ctxt;
             }
             fetcher->stack = stack;
             fetcher->element = element;
@@ -1512,13 +1519,13 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
             purc_variant_t v = pcintr_load_from_uri_async(stack, uri,
                     method, params, load_response_handler, fetcher);
             if (v == PURC_VARIANT_INVALID)
-                return NULL;
+                return ctxt;
             pcintr_save_async_request_id(stack, v);
         }
     }
 
     if (r)
-        return NULL;
+        return ctxt;
 
     return ctxt;
 }
@@ -1554,8 +1561,11 @@ static int
 on_element(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         struct pcvdom_element *element)
 {
-    UNUSED_PARAM(co);
     UNUSED_PARAM(element);
+
+    pcintr_stack_t stack = &co->stack;
+    if (stack->except)
+        return 0;
 
     struct ctxt_for_init *ctxt;
     ctxt = (struct ctxt_for_init*)frame->ctxt;
@@ -1578,8 +1588,11 @@ static int
 on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         struct pcvdom_content *content)
 {
-    UNUSED_PARAM(co);
     PC_ASSERT(content);
+
+    pcintr_stack_t stack = &co->stack;
+    if (stack->except)
+        return 0;
 
     struct ctxt_for_init *ctxt;
     ctxt = (struct ctxt_for_init*)frame->ctxt;
@@ -1621,6 +1634,10 @@ on_comment(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 static int
 on_child_finished(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
+    pcintr_stack_t stack = &co->stack;
+    if (stack->except)
+        return 0;
+
     struct ctxt_for_init *ctxt;
     ctxt = (struct ctxt_for_init*)frame->ctxt;
     PC_ASSERT(ctxt);

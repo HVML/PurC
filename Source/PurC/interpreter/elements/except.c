@@ -151,8 +151,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (stack->except)
         return NULL;
 
-    if (pcintr_check_insertion_mode_for_normal_element(stack))
-        return NULL;
+    pcintr_check_insertion_mode_for_normal_element(stack);
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
@@ -171,7 +170,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     ctxt->contents = pcintr_template_make();
     if (!ctxt->contents)
-        return NULL;
+        return ctxt;
 
     struct pcvdom_element *element = frame->pos;
     PC_ASSERT(element);
@@ -179,7 +178,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     int r;
     r = pcintr_vdom_walk_attrs(frame, element, NULL, attr_found);
     if (r)
-        return NULL;
+        return ctxt;
 
     purc_clr_error();
 
@@ -188,7 +187,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     }
 
     if (ctxt->type == PURC_VARIANT_INVALID)
-        return NULL;
+        return ctxt;
 
     return ctxt;
 }
@@ -225,8 +224,6 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         struct pcvdom_content *content)
 {
     UNUSED_PARAM(co);
-    UNUSED_PARAM(frame);
-    PC_ASSERT(content);
 
     struct pcvdom_element *element = frame->pos;
     PC_ASSERT(element);
@@ -241,7 +238,13 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 
     // NOTE: element is still the owner of vcm_content
     PC_ASSERT(ctxt->contents);
-    return pcintr_template_append(ctxt->contents, vcm);
+    int r;
+    bool to_free = false;
+    r = pcintr_template_append(ctxt->contents, vcm, to_free);
+    // FIXME: exception in catch???
+    PC_ASSERT(r == 0);
+
+    return r ? -1 : 0;
 }
 
 static int
@@ -254,41 +257,16 @@ on_child_finished(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 
     purc_variant_t contents = ctxt->contents;
     if (!contents)
-        return -1;
+        return 0;
 
     PC_ASSERT(ctxt->type != PURC_VARIANT_INVALID);
     int r;
     r = pcintr_bind_template(frame->except_templates,
             ctxt->type, ctxt->contents);
+    // FIXME: exception in catch???
+    PC_ASSERT(r == 0);
 
     return r ? -1 : 0;
-
-#if 0
-    // TODO:
-    PURC_VARIANT_SAFE_CLEAR(frame->ctnt_var);
-    frame->ctnt_var = contents;
-    purc_variant_ref(contents);
-
-    purc_variant_t name;
-    name = ctxt->name;
-    if (name == PURC_VARIANT_INVALID)
-        return -1;
-
-    const char *s_name = purc_variant_get_string_const(name);
-    if (s_name == NULL)
-        return -1;
-
-    struct pcvdom_element *scope = frame->scope;
-    PC_ASSERT(scope);
-
-    bool ok;
-    ok = pcintr_bind_scope_variable(scope, s_name, frame->ctnt_var);
-    if (!ok)
-        return -1;
-
-    D("[%s] bounded", s_name);
-    return 0;
-#endif
 }
 
 static pcvdom_element_t

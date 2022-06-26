@@ -981,8 +981,8 @@ on_mode_in_body(struct pcvdom_gen *gen, struct pchvml_token *token)
         else if (tag_id == PCHVML_TAG_ERROR ||
             tag_id == PCHVML_TAG_EXCEPT)
         {
-            if (!is_top_node_of_hvml_verb_cat(gen))
-                FAIL_RET();
+            // if (!is_top_node_of_hvml_verb_cat(gen))
+            //     FAIL_RET();
             // fall through
         }
         else if (tag_id == PCHVML_TAG__UNDEF) {

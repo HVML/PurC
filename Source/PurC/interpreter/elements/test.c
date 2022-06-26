@@ -87,7 +87,11 @@ post_process_dest_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 
     purc_variant_t on;
     on = ctxt->on;
-    PC_ASSERT(on != PURC_VARIANT_INVALID);
+    if (on == PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
+                "vdom attribute 'on' for element <test> undefined");
+        return -1;
+    }
 
     purc_variant_t by;
     by = ctxt->by;
@@ -334,9 +338,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         return NULL;
     }
 
-    if (pcintr_check_insertion_mode_for_normal_element(stack)) {
-        return NULL;
-    }
+    pcintr_check_insertion_mode_for_normal_element(stack);
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
@@ -357,7 +359,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     frame->attr_vars = purc_variant_make_object(0,
             PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
     if (frame->attr_vars == PURC_VARIANT_INVALID)
-        return NULL;
+        return ctxt;
 
     struct pcvdom_element *element = frame->pos;
     PC_ASSERT(element);
@@ -365,7 +367,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     int r;
     r = pcintr_vdom_walk_attrs(frame, element, NULL, attr_found);
     if (r) {
-        return NULL;
+        return ctxt;
     }
 
     purc_clr_error();
@@ -378,7 +380,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     else {
         r = post_process(stack->co, frame);
         if (r)
-            return NULL;
+            return ctxt;
     }
 
     return ctxt;
@@ -498,7 +500,6 @@ again:
             {
                 pcvdom_element_t element = PCVDOM_ELEMENT_FROM_NODE(curr);
                 on_element(co, frame, element);
-                PC_ASSERT(stack->except == 0);
                 if (ctxt->handle_differ) {
                     if (element->tag_id == PCHVML_TAG_DIFFER) {
                         return element;

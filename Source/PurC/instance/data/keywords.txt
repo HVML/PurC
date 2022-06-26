@@ -45,6 +45,9 @@ hvml nosetotail
 hvml ascendingly asc
 hvml descendingly desc
 hvml target
+hvml src
+hvml param
+hvml method
 
 # executor
 hvml FORMULA

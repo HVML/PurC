@@ -97,12 +97,20 @@ TEST_P(TestHVMLTag, hvml_tags)
     ASSERT_NE(dump_buff, nullptr);
 
     if (test_case.html) {
+        if (strcmp(trim(dump_buff), trim(test_case.html))) {
+            fprintf(stderr, "============================\n");
+            fprintf(stderr, "dump:\n%s\n", trim(dump_buff));
+            fprintf(stderr, "html:\n%s\n", trim(test_case.html));
+            fprintf(stderr, "============================\n");
+        }
         ASSERT_STREQ(trim(dump_buff), trim(test_case.html));
     }
     else {
         FILE* fp = fopen(test_case.html_path, "w");
         fprintf(fp, "%s", dump_buff);
         fclose(fp);
+        fprintf(stderr, "html written to `%s`\n", test_case.html_path);
+        fprintf(stderr, "html:\n%s\n", dump_buff);
     }
 
     free(dump_buff);

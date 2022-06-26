@@ -712,10 +712,18 @@ int pcrdr_parse_packet(char *packet, size_t sz_packet, pcrdr_msg **msg_out)
             goto failed;
         }
 
+#if 0
         value = strtok_r(NULL, STR_PAIR_SEPARATOR, &saveptr2);
         if (value == NULL) {
             goto failed;
         }
+#else
+        /* XXX: to support pattern: `eventName:create:tabbedwindow` */
+        value = line + strlen(key) + 1;
+        if (value[0] == '\0') {
+            goto failed;
+        }
+#endif
 
         key_op op = find_key_op(key);
         if (op == NULL) {

@@ -229,20 +229,11 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (stack->except)
         return NULL;
 
-    if (pcintr_check_insertion_mode_for_normal_element(stack))
-        return NULL;
+    pcintr_check_insertion_mode_for_normal_element(stack);
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame);
-
-    struct pcintr_stack_frame *parent;
-    parent = pcintr_stack_frame_get_parent(frame);
-    if (!parent || !parent->pos || parent->pos->tag_id != PCHVML_TAG_TEST) {
-        purc_set_error_with_info(PURC_ERROR_ENTITY_NOT_FOUND,
-                "no matching <test> for <match>");
-        return NULL;
-    }
 
     struct ctxt_for_match *ctxt;
     ctxt = (struct ctxt_for_match*)calloc(1, sizeof(*ctxt));
@@ -256,21 +247,28 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     frame->pos = pos; // ATTENTION!!
 
+    struct pcintr_stack_frame *parent;
+    parent = pcintr_stack_frame_get_parent(frame);
+    if (!parent || !parent->pos || parent->pos->tag_id != PCHVML_TAG_TEST) {
+        purc_set_error_with_info(PURC_ERROR_ENTITY_NOT_FOUND,
+                "no matching <test> for <match>");
+        // FIXME: shall not happen!!!
+        return ctxt;
+    }
+
     struct pcvdom_element *element = frame->pos;
     PC_ASSERT(element);
 
     int r;
     r = pcintr_vdom_walk_attrs(frame, element, NULL, attr_found);
     if (r)
-        return NULL;
+        return ctxt;
 
     purc_clr_error();
 
     r = post_process(stack->co, frame);
     if (r)
-        PC_ASSERT(0);
-    if (r)
-        return NULL;
+        return ctxt;
 
     return ctxt;
 }
@@ -365,8 +363,10 @@ select_child(pcintr_stack_t stack, void* ud)
 
     struct pcvdom_node *curr;
 
-    if (!ctxt->matched)
-        return NULL;
+    if (!ctxt->matched) {
+        if (stack->except == 0)
+            return NULL;
+    }
 
 again:
     curr = ctxt->curr;
@@ -396,7 +396,6 @@ again:
             {
                 pcvdom_element_t element = PCVDOM_ELEMENT_FROM_NODE(curr);
                 on_element(co, frame, element);
-                PC_ASSERT(stack->except == 0);
                 return element;
             }
         case PCVDOM_NODE_CONTENT:

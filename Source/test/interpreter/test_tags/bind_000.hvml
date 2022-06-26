@@ -3,7 +3,9 @@
     </head>
     <body>
         <init as="btnName" with="firstName" />
-        <bind on="$btnName" as="bindName" />
+        <bind on="$btnName" as="bindName">
+            <!-- -->
+        </bind>
         <p>The initial btnName: $btnName</p>
         <p>The current bindName: $bindName.eval</p>
         <div>

@@ -41,6 +41,7 @@
 struct pcvdom_template_node {
     struct list_head              node;
     struct pcvcm_node            *vcm;
+    bool                          to_free;
 };
 
 struct pcvdom_template {
@@ -58,7 +59,7 @@ pcintr_post_event(pcintr_coroutine_t target, const char *event);
 void
 pcintr_synchronize(void *ctxt, void (*routine)(void *ctxt));
 
-int
+void
 pcintr_check_insertion_mode_for_normal_element(pcintr_stack_t stack);
 
 typedef int (*pcintr_attr_f)(struct pcintr_stack_frame *frame,
@@ -137,7 +138,8 @@ purc_variant_t
 pcintr_template_make(void);
 
 int
-pcintr_template_append(purc_variant_t val, struct pcvcm_node *vcm);
+pcintr_template_append(purc_variant_t val, struct pcvcm_node *vcm,
+        bool to_free);
 
 
 typedef int

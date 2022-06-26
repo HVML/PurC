@@ -1,0 +1,23 @@
+<!DOCTYPE hvml>
+<hvml target="html" lang="en">
+    <head>
+    </head>
+
+    <body>
+        <div>
+            <observe>
+                <catch for="ArgumentMissed">
+                    <update on="$@" at="attr.argumentmissed" to="displace" with="matched" />
+                </catch>
+            </observe>
+        </div>
+        <catch for="InvalidValue">
+            <update on="$@" at="attr.invalid_value" to="displace" with="matched" />
+        </catch>
+    </body>
+</hvml>
+
+
+
+
+

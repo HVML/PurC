@@ -1,0 +1,17 @@
+<!DOCTYPE hvml>
+<hvml target="html" lang="en">
+    <head>
+    </head>
+
+    <body>
+        <div class="ab" id="abC">
+            <except>
+            </except>
+            <catch for="*">
+                <update on="$@" at="attr.invalid_value" to="displace" with="ill_implemented" />
+            </catch>
+        </div>
+    </body>
+</hvml>
+
+

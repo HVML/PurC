@@ -306,6 +306,7 @@ pcintr_exception_clear(struct pcintr_exception *exception)
         exception->bt = NULL;
     }
     exception->error_except = 0;
+    exception->err_element  = NULL;
 }
 
 void
@@ -330,6 +331,9 @@ pcintr_exception_move(struct pcintr_exception *dst,
 
     dst->error_except = src->error_except;
     src->error_except = 0;
+
+    dst->err_element = src->err_element;
+    src->err_element = NULL;
 }
 
 static void
@@ -1313,13 +1317,13 @@ dump_c_stack(struct pcdebug_backtrace *bt)
     pcdebug_backtrace_dump(bt);
 }
 
-int
+void
 pcintr_check_insertion_mode_for_normal_element(pcintr_stack_t stack)
 {
     PC_ASSERT(stack);
 
     if (stack->stage != STACK_STAGE_FIRST_ROUND)
-        return 0;
+        return;
 
     switch (stack->mode) {
         case STACK_VDOM_BEFORE_HVML:
@@ -1345,8 +1349,6 @@ pcintr_check_insertion_mode_for_normal_element(pcintr_stack_t stack)
             PC_ASSERT(0);
             break;
     }
-
-    return 0;
 }
 
 static void
@@ -1359,6 +1361,7 @@ after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
             PC_ASSERT(co->continuation);
         }
         if (!ctxt) {
+            PC_ASSERT(purc_get_last_error() == 0);
             frame->next_step = NEXT_STEP_ON_POPPING;
             return;
         }
@@ -1444,6 +1447,7 @@ exception_copy(struct pcintr_exception *exception)
     const struct pcinst *inst = pcinst_current();
     exception->errcode        = inst->errcode;
     exception->error_except   = inst->error_except;
+    exception->err_element    = inst->err_element;
 
     if (inst->err_exinfo)
         purc_variant_ref(inst->err_exinfo);
@@ -1590,8 +1594,6 @@ again:
         pchvml_token_destroy(token);
 
     token = pchvml_next_token(parser, in);
-    if (!token)
-        PC_ASSERT(0);
 
     if (!token)
         goto error;
@@ -2180,9 +2182,13 @@ static void check_after_execution(pcintr_coroutine_t co)
     if (co->msg_pending)
         return;
 
+// #define PRINT_DEBUG
     if (co->stack.last_msg_sent == 0) {
         co->stack.last_msg_sent = 1;
+
+#ifdef PRINT_DEBUG              /* { */
         PC_DEBUGX("last msg was sent");
+#endif                          /* } */
         pcintr_wakeup_target_with(co, &last_msg, on_last_msg);
         return;
     }
@@ -2190,7 +2196,9 @@ static void check_after_execution(pcintr_coroutine_t co)
     if (co->stack.last_msg_read == 0)
         return;
 
+#ifdef PRINT_DEBUG              /* { */
     PC_DEBUGX("last msg was processed");
+#endif                          /* } */
 
     PC_ASSERT(co);
     PC_ASSERT(co->state == CO_STATE_READY);
@@ -3446,7 +3454,7 @@ pcintr_util_is_ancestor(pcdom_node_t *ancestor, pcdom_node_t *descendant)
 }
 
 static struct pcvdom_template_node*
-template_node_create(struct pcvcm_node *vcm)
+template_node_create(struct pcvcm_node *vcm, bool to_free)
 {
     PC_ASSERT(vcm);
 
@@ -3456,13 +3464,17 @@ template_node_create(struct pcvcm_node *vcm)
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
     }
-    node->vcm = vcm;
+    node->vcm     = vcm;
+    node->to_free = to_free;
     return node;
 }
 
 static void
 template_node_destroy(struct pcvdom_template_node *node)
 {
+    if (node->vcm && node->to_free) {
+        pcvcm_node_destroy(node->vcm);
+    }
     node->vcm = NULL;
     free(node);
 }
@@ -3507,7 +3519,8 @@ template_destroy(struct pcvdom_template *tpl)
 }
 
 static int
-template_append(struct pcvdom_template *tpl, struct pcvcm_node *vcm)
+template_append(struct pcvdom_template *tpl, struct pcvcm_node *vcm,
+        bool to_free)
 {
     struct pcvdom_template_node *p;
     list_for_each_entry(p, &tpl->list, node) {
@@ -3518,11 +3531,10 @@ template_append(struct pcvdom_template *tpl, struct pcvcm_node *vcm)
         }
     }
 
-    p = template_node_create(vcm);
+    p = template_node_create(vcm, to_free);
     if (!p)
         return -1;
 
-    p->vcm = vcm;
     list_add_tail(&p->node, &tpl->list);
     return 0;
 }
@@ -3594,7 +3606,8 @@ is_template_variant(purc_variant_t val)
 }
 
 int
-pcintr_template_append(purc_variant_t val, struct pcvcm_node *vcm)
+pcintr_template_append(purc_variant_t val, struct pcvcm_node *vcm,
+        bool to_free)
 {
     PC_ASSERT(val);
     PC_ASSERT(vcm);
@@ -3609,7 +3622,7 @@ pcintr_template_append(purc_variant_t val, struct pcvcm_node *vcm)
     struct pcvdom_template *tpl;
     tpl = (struct pcvdom_template*)native_entity;
 
-    return template_append(tpl, vcm);
+    return template_append(tpl, vcm, to_free);
 }
 
 void

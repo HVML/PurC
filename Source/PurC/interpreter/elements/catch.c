@@ -38,10 +38,10 @@
 #include <unistd.h>
 
 struct ctxt_for_catch {
-    struct pcvdom_node *curr;
-    purc_variant_t for_var;
-    struct pcintr_exception *exception;
-    bool match;
+    struct pcvdom_node           *curr;
+    purc_variant_t                for_var;
+    struct pcintr_exception      *exception;
+    bool                          match;
 };
 
 static void
@@ -78,6 +78,8 @@ post_process_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     purc_variant_t for_var = ctxt->for_var;
     if (for_var != PURC_VARIANT_INVALID) {
         if (!purc_variant_is_string(for_var)) {
+            // FIXME: throw exception in catch block
+            PC_ASSERT(0);
             return -1;
         }
 
@@ -93,6 +95,8 @@ post_process_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     if (!except_msg) {
         ctxt->match = false;
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        // FIXME: throw exception in catch block
+        PC_ASSERT(0);
         return -1;
     }
 
@@ -200,9 +204,6 @@ static void*
 _after_pushed(pcintr_stack_t stack, pcvdom_element_t pos,
         struct pcintr_exception *exception)
 {
-    int r = pcintr_check_insertion_mode_for_normal_element(stack);
-    PC_ASSERT(r == 0);
-
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame);
@@ -224,13 +225,15 @@ _after_pushed(pcintr_stack_t stack, pcvdom_element_t pos,
     struct pcvdom_element *element = frame->pos;
     PC_ASSERT(element);
 
+    int r;
+
     r = pcintr_vdom_walk_attrs(frame, element, NULL, attr_found);
     if (r)
-        return NULL;
+        return ctxt;
 
     r = post_process(stack->co, frame);
     if (r)
-        return NULL;
+        return ctxt;
 
     return ctxt;
 }
@@ -243,6 +246,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     if (stack->except == 0)
         return NULL;
+
+    pcintr_check_insertion_mode_for_normal_element(stack);
 
     struct pcintr_exception cache = {};
     pcintr_exception_move(&cache, &stack->exception);
@@ -339,9 +344,8 @@ select_child(pcintr_stack_t stack, void* ud)
     struct ctxt_for_catch *ctxt;
     ctxt = (struct ctxt_for_catch*)frame->ctxt;
 
-    if (!ctxt->match) {
+    if (!ctxt->match)
         return NULL;
-    }
 
     struct pcvdom_node *curr;
 

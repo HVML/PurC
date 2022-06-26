@@ -143,6 +143,7 @@ struct pcintr_exception {
     int                      errcode;
     purc_atom_t              error_except;
     purc_variant_t           exinfo;
+    struct pcvdom_element   *err_element;
 
     struct pcdebug_backtrace  *bt;
 };

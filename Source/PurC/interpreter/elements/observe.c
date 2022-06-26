@@ -594,8 +594,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (stack->except)
         return NULL;
 
-    if (pcintr_check_insertion_mode_for_normal_element(stack))
-        return NULL;
+    pcintr_check_insertion_mode_for_normal_element(stack);
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
@@ -618,16 +617,19 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     int r;
     r = pcintr_vdom_walk_attrs(frame, element, NULL, attr_found);
     if (r)
-        return NULL;
+        return ctxt;
 
     if (ctxt->with != PURC_VARIANT_INVALID) {
         pcvdom_element_t define = pcintr_get_vdom_from_variant(ctxt->with);
-        if (define == NULL)
-            return NULL;
+        if (define == NULL) {
+            purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                    "no vdom element was found for `with`");
+            return ctxt;
+        }
 
         if (pcvdom_element_first_child_element(define) == NULL) {
             purc_set_error(PURC_ERROR_NO_DATA);
-            return NULL;
+            return ctxt;
         }
 
         ctxt->define = define;
@@ -644,7 +646,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     for_var = ctxt->for_var;
     if (for_var == PURC_VARIANT_INVALID || !purc_variant_is_string(for_var)) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
-        return NULL;
+        return ctxt;
     }
 
     if (stack->stage != STACK_STAGE_FIRST_ROUND) {
@@ -661,8 +663,10 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         observer = process_variant_observer(stack, frame, ctxt->on);
     }
 
-    if (observer == NULL)
-        return NULL;
+    if (observer == NULL) {
+        PC_ASSERT(purc_get_last_error());
+        return ctxt;
+    }
 
     if (ctxt->as != PURC_VARIANT_INVALID && purc_variant_is_string(ctxt->as)) {
         const char* name = purc_variant_get_string_const(ctxt->as);
@@ -673,11 +677,11 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         purc_variant_t v = purc_variant_make_native(observer, &ops);
         if (v == PURC_VARIANT_INVALID) {
             pcintr_revoke_observer(observer);
-            return NULL;
+            return ctxt;
         }
         if(!pcintr_bind_document_variable(stack->vdom, name, v)) {
             purc_variant_unref(v); // on_release
-            return NULL;
+            return ctxt;
         }
         purc_variant_unref(v);
     }
@@ -727,16 +731,16 @@ static void
 on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         struct pcvdom_content *content)
 {
-    UNUSED_PARAM(co);
-    UNUSED_PARAM(frame);
-    PC_ASSERT(content);
+    pcintr_stack_t stack = &co->stack;
+
+    if (stack->except)
+        return;
 
     // int r;
     struct pcvcm_node *vcm = content->vcm;
     if (!vcm)
         return;
 
-    pcintr_stack_t stack = pcintr_get_stack();
     purc_variant_t v = pcvcm_eval(vcm, stack, frame->silently);
     PC_ASSERT(v != PURC_VARIANT_INVALID);
     purc_clr_error();

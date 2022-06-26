@@ -1,0 +1,20 @@
+<!DOCTYPE hvml>
+<hvml target="html" lang="en">
+    <head>
+    </head>
+
+    <body>
+        <div>
+            <choose>
+                <catch for="ArgumentMissed">
+                    <update on="$@" at="attr.argumentmissed" to="displace" with="matched" />
+                </catch>
+            </choose>
+        </div>
+        <catch for="InvalidValue">
+            <update on="$@" at="attr.invalid_value" to="displace" with="matched" />
+        </catch>
+    </body>
+</hvml>
+
+
