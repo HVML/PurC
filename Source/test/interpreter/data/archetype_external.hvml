@@ -1,0 +1,39 @@
+<!DOCTYPE hvml>
+<hvml target="html" lang="en">
+    <head>
+        <base href="$HVML.base(! 'http://files.fmsoft.cn/calculator/' )" />
+
+        <init as="buttons">
+            [
+                { "letters": "7", "class": "number" },
+                { "letters": "8", "class": "number" },
+                { "letters": "9", "class": "number" },
+            ]
+        </init>
+    </head>
+
+    <body>
+        <div id="calculator">
+            <div id="c_value">
+                <!--
+                http://files.fmsoft.cn/calculator/assets/buttons.json
+                -->
+                <archetype name="button" src="assets/buttons.json">
+                </archetype>
+
+                <ul>
+                    <iterate on="$buttons">
+                        <update on="$@" to="append" with="$button" />
+                        <except type="NoData" raw>
+                            <p>Bad data!</p>
+                        </except>
+                    </iterate>
+                </ul>
+            </div>
+        </div>
+    </body>
+
+</hvml>
+
+
+

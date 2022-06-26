@@ -3451,7 +3451,7 @@ pcintr_util_is_ancestor(pcdom_node_t *ancestor, pcdom_node_t *descendant)
 }
 
 static struct pcvdom_template_node*
-template_node_create(struct pcvcm_node *vcm)
+template_node_create(struct pcvcm_node *vcm, bool to_free)
 {
     PC_ASSERT(vcm);
 
@@ -3461,13 +3461,17 @@ template_node_create(struct pcvcm_node *vcm)
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
     }
-    node->vcm = vcm;
+    node->vcm     = vcm;
+    node->to_free = to_free;
     return node;
 }
 
 static void
 template_node_destroy(struct pcvdom_template_node *node)
 {
+    if (node->vcm && node->to_free) {
+        pcvcm_node_destroy(node->vcm);
+    }
     node->vcm = NULL;
     free(node);
 }
@@ -3512,7 +3516,8 @@ template_destroy(struct pcvdom_template *tpl)
 }
 
 static int
-template_append(struct pcvdom_template *tpl, struct pcvcm_node *vcm)
+template_append(struct pcvdom_template *tpl, struct pcvcm_node *vcm,
+        bool to_free)
 {
     struct pcvdom_template_node *p;
     list_for_each_entry(p, &tpl->list, node) {
@@ -3523,11 +3528,10 @@ template_append(struct pcvdom_template *tpl, struct pcvcm_node *vcm)
         }
     }
 
-    p = template_node_create(vcm);
+    p = template_node_create(vcm, to_free);
     if (!p)
         return -1;
 
-    p->vcm = vcm;
     list_add_tail(&p->node, &tpl->list);
     return 0;
 }
@@ -3599,7 +3603,8 @@ is_template_variant(purc_variant_t val)
 }
 
 int
-pcintr_template_append(purc_variant_t val, struct pcvcm_node *vcm)
+pcintr_template_append(purc_variant_t val, struct pcvcm_node *vcm,
+        bool to_free)
 {
     PC_ASSERT(val);
     PC_ASSERT(vcm);
@@ -3614,7 +3619,7 @@ pcintr_template_append(purc_variant_t val, struct pcvcm_node *vcm)
     struct pcvdom_template *tpl;
     tpl = (struct pcvdom_template*)native_entity;
 
-    return template_append(tpl, vcm);
+    return template_append(tpl, vcm, to_free);
 }
 
 void

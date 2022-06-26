@@ -51,9 +51,9 @@ struct ctxt_for_archetype {
     int                           err;
     purc_rwstream_t               resp;
 
-    purc_variant_t                contents;
+    purc_variant_t                stringify_from_src;
 
-    unsigned int                  under_head:1;
+    purc_variant_t                contents;
 };
 
 static void
@@ -66,6 +66,7 @@ ctxt_for_archetype_destroy(struct ctxt_for_archetype *ctxt)
         PURC_VARIANT_SAFE_CLEAR(ctxt->method);
         PURC_VARIANT_SAFE_CLEAR(ctxt->sync_id);
         PURC_VARIANT_SAFE_CLEAR(ctxt->contents);
+        PURC_VARIANT_SAFE_CLEAR(ctxt->stringify_from_src);
         if (ctxt->resp) {
             purc_rwstream_destroy(ctxt->resp);
             ctxt->resp = NULL;
@@ -351,46 +352,51 @@ static void on_sync_continuation(void *ud, void *extra)
     PC_ASSERT(ctxt);
     PC_ASSERT(ctxt->co == co);
 
-    struct pcvdom_element *element = frame->pos;
+    // struct pcvdom_element *element = frame->pos;
 
     if (ctxt->ret_code == RESP_CODE_USER_STOP) {
         frame->next_step = NEXT_STEP_ON_POPPING;
         goto clean_rws;
     }
 
-    bool has_except = false;
+    bool has_except = true;
+
     if (!ctxt->resp || ctxt->ret_code != 200) {
-        has_except = true;
         purc_set_error(PURC_ERROR_NO_DATA);
         goto dispatch_except;
     }
 
-    bool ok;
     purc_variant_t ret = purc_variant_load_from_json_stream(ctxt->resp);
+    if (ret == PURC_VARIANT_INVALID)
+        goto dispatch_except;
+
     PRINT_VARIANT(ret);
-    PC_ASSERT(0); // Not implemented yet
-    const char *s_name = purc_variant_get_string_const(ctxt->src);
-    if (ret != PURC_VARIANT_INVALID) {
-        if (ctxt->under_head) {
-            ok = purc_bind_document_variable(stack->vdom, s_name, ret);
-        } else {
-            element = pcvdom_element_parent(element);
-            ok = pcintr_bind_scope_variable(element, s_name, ret);
-            PC_ASSERT(ok);
-            PC_ASSERT(0);
+    if (!purc_variant_is_string(ret)) {
+        ssize_t sz;
+        char *s = NULL;
+        sz = purc_variant_stringify_alloc(&s, ret);
+        if (sz <= 0)
+            goto dispatch_except;
+
+        PC_ASSERT(s[sz] == '\0');
+        purc_variant_t v;
+        bool check_encoding = true;
+        v = purc_variant_make_string_reuse_buff(s, sz, check_encoding);
+        if (v == PURC_VARIANT_INVALID) {
+            free(s);
+            goto dispatch_except;
         }
-        purc_variant_unref(ret);
-        if (ok) {
-            PC_ASSERT(purc_get_last_error()==0);
-            goto clean_rws;
-        }
-        has_except = true;
-        goto dispatch_except;
+        PURC_VARIANT_SAFE_CLEAR(ret);
+        ret = v;
     }
-    else {
-        has_except = true;
-        goto dispatch_except;
-    }
+
+    PC_ASSERT(purc_variant_is_string(ret));
+    PC_ASSERT(ctxt->stringify_from_src == PURC_VARIANT_INVALID);
+    ctxt->stringify_from_src = ret;
+    ret = PURC_VARIANT_INVALID;
+
+    PC_ASSERT(purc_get_last_error()==0);
+    has_except = false;
 
 dispatch_except:
     if (has_except) {
@@ -402,8 +408,9 @@ clean_rws:
         purc_rwstream_destroy(ctxt->resp);
         ctxt->resp = NULL;
     }
-    // TODO: NEXT_STEP_SELECT_CHILD in some failure cases
-    frame->next_step = NEXT_STEP_ON_POPPING;
+    PURC_VARIANT_SAFE_CLEAR(ret);
+
+    frame->next_step = NEXT_STEP_SELECT_CHILD;
 }
 
 static void
@@ -496,14 +503,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (r)
         return ctxt;
 
-    while ((element=pcvdom_element_parent(element))) {
-        if (element->tag_id == PCHVML_TAG_HEAD) {
-            ctxt->under_head = 1;
-        }
-    }
-
-    purc_clr_error();
-
     if (ctxt->name == PURC_VARIANT_INVALID) {
         purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
                     "lack of vdom attribute 'name' for element <%s>",
@@ -565,13 +564,18 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     ctxt = (struct ctxt_for_archetype*)frame->ctxt;
     PC_ASSERT(ctxt);
 
+    // successfully loading from external src
+    if (ctxt->stringify_from_src)
+        return 0;
+
     struct pcvcm_node *vcm = content->vcm;
     if (!vcm)
         return 0;
 
     // NOTE: element is still the owner of vcm_content
     PC_ASSERT(ctxt->contents);
-    return pcintr_template_append(ctxt->contents, vcm);
+    bool to_free = false;
+    return pcintr_template_append(ctxt->contents, vcm, to_free);
 }
 
 static int
@@ -585,6 +589,23 @@ on_child_finished(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     purc_variant_t contents = ctxt->contents;
     if (!contents)
         return -1;
+
+    if (ctxt->stringify_from_src) {
+        const char *s;
+        s = purc_variant_get_string_const(ctxt->stringify_from_src);
+
+        struct pcvcm_node *vcm;
+        vcm = pcvcm_node_new_string(s);
+        if (!vcm)
+            return -1;
+
+        bool to_free = true;
+        int r = pcintr_template_append(ctxt->contents, vcm, to_free);
+        if (r) {
+            pcvcm_node_destroy(vcm);
+            return -1;
+        }
+    }
 
     PURC_VARIANT_SAFE_CLEAR(frame->ctnt_var);
     frame->ctnt_var = contents;

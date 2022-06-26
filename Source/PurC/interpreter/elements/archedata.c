@@ -241,7 +241,8 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 
     // NOTE: element is still the owner of vcm_content
     PC_ASSERT(ctxt->contents);
-    return pcintr_template_append(ctxt->contents, vcm);
+    bool to_free = false;
+    return pcintr_template_append(ctxt->contents, vcm, to_free);
 }
 
 static int
