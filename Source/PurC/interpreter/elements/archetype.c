@@ -40,7 +40,20 @@ struct ctxt_for_archetype {
     struct pcvdom_node           *curr;
     purc_variant_t                name;
 
+    purc_variant_t                src;
+    purc_variant_t                param;
+    purc_variant_t                method;
+
+    purc_variant_t                sync_id;
+    pcintr_coroutine_t            co;
+
+    int                           ret_code;
+    int                           err;
+    purc_rwstream_t               resp;
+
     purc_variant_t                contents;
+
+    unsigned int                  under_head:1;
 };
 
 static void
@@ -48,7 +61,15 @@ ctxt_for_archetype_destroy(struct ctxt_for_archetype *ctxt)
 {
     if (ctxt) {
         PURC_VARIANT_SAFE_CLEAR(ctxt->name);
+        PURC_VARIANT_SAFE_CLEAR(ctxt->src);
+        PURC_VARIANT_SAFE_CLEAR(ctxt->param);
+        PURC_VARIANT_SAFE_CLEAR(ctxt->method);
+        PURC_VARIANT_SAFE_CLEAR(ctxt->sync_id);
         PURC_VARIANT_SAFE_CLEAR(ctxt->contents);
+        if (ctxt->resp) {
+            purc_rwstream_destroy(ctxt->resp);
+            ctxt->resp = NULL;
+        }
         free(ctxt);
     }
 }
@@ -85,6 +106,96 @@ process_attr_name(struct pcintr_stack_frame *frame,
 }
 
 static int
+process_attr_src(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element,
+        purc_atom_t name, purc_variant_t val)
+{
+    struct ctxt_for_archetype *ctxt;
+    ctxt = (struct ctxt_for_archetype*)frame->ctxt;
+    if (ctxt->src != PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_DUPLICATED,
+                "vdom attribute '%s' for element <%s>",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    if (val == PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "vdom attribute '%s' for element <%s> undefined",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    if (!purc_variant_is_string(val)) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "vdom attribute '%s' for element <%s> is not string",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    ctxt->src = purc_variant_ref(val);
+
+    return 0;
+}
+
+static int
+process_attr_param(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element,
+        purc_atom_t name, purc_variant_t val)
+{
+    struct ctxt_for_archetype *ctxt;
+    ctxt = (struct ctxt_for_archetype*)frame->ctxt;
+    if (ctxt->param != PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_DUPLICATED,
+                "vdom attribute '%s' for element <%s>",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    if (val == PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "vdom attribute '%s' for element <%s> undefined",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    if (!purc_variant_is_object(val)) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "vdom attribute '%s' for element <%s> is not object",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    ctxt->param = purc_variant_ref(val);
+
+    return 0;
+}
+
+static int
+process_attr_method(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element,
+        purc_atom_t name, purc_variant_t val)
+{
+    struct ctxt_for_archetype *ctxt;
+    ctxt = (struct ctxt_for_archetype*)frame->ctxt;
+    if (ctxt->method != PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_DUPLICATED,
+                "vdom attribute '%s' for element <%s>",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    if (val == PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "vdom attribute '%s' for element <%s> undefined",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    if (!purc_variant_is_string(val)) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "vdom attribute '%s' for element <%s> is not string",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    ctxt->method = purc_variant_ref(val);
+
+    return 0;
+}
+
+static int
 process_attr_raw(struct pcintr_stack_frame *frame,
         struct pcvdom_element *element,
         purc_atom_t name, purc_variant_t val)
@@ -108,6 +219,18 @@ attr_found_val(struct pcintr_stack_frame *frame,
 
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, NAME)) == name) {
         return process_attr_name(frame, element, name, val);
+    }
+
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, SRC)) == name) {
+        return process_attr_src(frame, element, name, val);
+    }
+
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, PARAM)) == name) {
+        return process_attr_param(frame, element, name, val);
+    }
+
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, METHOD)) == name) {
+        return process_attr_method(frame, element, name, val);
     }
 
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, RAW)) == name) {
@@ -139,6 +262,193 @@ attr_found(struct pcintr_stack_frame *frame,
     purc_variant_unref(val);
 
     return r ? -1 : 0;
+}
+
+static int
+method_by_method(const char *s_method, enum pcfetcher_request_method *method)
+{
+    if (strcmp(s_method, "GET") == 0) {
+        *method = PCFETCHER_REQUEST_METHOD_GET;
+    }
+    else if (strcmp(s_method, "POST") == 0) {
+        *method = PCFETCHER_REQUEST_METHOD_POST;
+    }
+    else if (strcmp(s_method, "DELETE") == 0) {
+        *method = PCFETCHER_REQUEST_METHOD_DELETE;
+    }
+    else {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "unknown method `%s`", s_method);
+        return -1;
+    }
+
+    return 0;
+}
+
+static void on_sync_complete_on_frame(struct ctxt_for_archetype *ctxt,
+        const struct pcfetcher_resp_header *resp_header,
+        purc_rwstream_t resp)
+{
+    UNUSED_PARAM(resp_header);
+    UNUSED_PARAM(resp);
+
+    PC_DEBUG("load_async|callback|ret_code=%d\n", resp_header->ret_code);
+    PC_DEBUG("load_async|callback|mime_type=%s\n", resp_header->mime_type);
+    PC_DEBUG("load_async|callback|sz_resp=%ld\n", resp_header->sz_resp);
+
+    ctxt->ret_code = resp_header->ret_code;
+    ctxt->resp = resp;
+    PC_ASSERT(purc_get_last_error() == PURC_ERROR_OK);
+
+    pcintr_resume(NULL);
+}
+
+static void on_sync_complete(purc_variant_t request_id, void *ud,
+        const struct pcfetcher_resp_header *resp_header,
+        purc_rwstream_t resp)
+{
+    UNUSED_PARAM(ud);
+    UNUSED_PARAM(resp_header);
+    UNUSED_PARAM(resp);
+
+    pcintr_heap_t heap = pcintr_get_heap();
+    PC_ASSERT(heap);
+    PC_ASSERT(pcintr_get_coroutine() == NULL);
+
+    pcintr_stack_frame_t frame;
+    frame = (pcintr_stack_frame_t)ud;
+    PC_ASSERT(frame);
+    struct ctxt_for_archetype *ctxt;
+    ctxt = (struct ctxt_for_archetype*)frame->ctxt;
+    PC_ASSERT(ctxt);
+
+    pcintr_coroutine_t co = ctxt->co;
+    PC_ASSERT(co);
+    PC_ASSERT(co->owner == heap);
+    PC_ASSERT(ctxt->sync_id == request_id);
+
+    pcintr_set_current_co(co);
+    on_sync_complete_on_frame(ctxt, resp_header, resp);
+    pcintr_set_current_co(NULL);
+}
+
+static void on_sync_continuation(void *ud, void *extra)
+{
+    UNUSED_PARAM(extra);
+
+    struct pcintr_stack_frame *frame;
+    frame = (struct pcintr_stack_frame*)ud;
+    PC_ASSERT(frame);
+
+    pcintr_coroutine_t co = pcintr_get_coroutine();
+    PC_ASSERT(co);
+    PC_ASSERT(co->state == CO_STATE_RUN);
+    pcintr_stack_t stack = &co->stack;
+    PC_ASSERT(frame == pcintr_stack_get_bottom_frame(stack));
+
+    struct ctxt_for_archetype *ctxt;
+    ctxt = (struct ctxt_for_archetype*)frame->ctxt;
+    PC_ASSERT(ctxt);
+    PC_ASSERT(ctxt->co == co);
+
+    struct pcvdom_element *element = frame->pos;
+
+    if (ctxt->ret_code == RESP_CODE_USER_STOP) {
+        frame->next_step = NEXT_STEP_ON_POPPING;
+        goto clean_rws;
+    }
+
+    bool has_except = false;
+    if (!ctxt->resp || ctxt->ret_code != 200) {
+        has_except = true;
+        purc_set_error(PURC_ERROR_NO_DATA);
+        goto dispatch_except;
+    }
+
+    bool ok;
+    purc_variant_t ret = purc_variant_load_from_json_stream(ctxt->resp);
+    PRINT_VARIANT(ret);
+    PC_ASSERT(0); // Not implemented yet
+    const char *s_name = purc_variant_get_string_const(ctxt->src);
+    if (ret != PURC_VARIANT_INVALID) {
+        if (ctxt->under_head) {
+            ok = purc_bind_document_variable(stack->vdom, s_name, ret);
+        } else {
+            element = pcvdom_element_parent(element);
+            ok = pcintr_bind_scope_variable(element, s_name, ret);
+            PC_ASSERT(ok);
+            PC_ASSERT(0);
+        }
+        purc_variant_unref(ret);
+        if (ok) {
+            PC_ASSERT(purc_get_last_error()==0);
+            goto clean_rws;
+        }
+        has_except = true;
+        goto dispatch_except;
+    }
+    else {
+        has_except = true;
+        goto dispatch_except;
+    }
+
+dispatch_except:
+    if (has_except) {
+        PC_ASSERT(purc_get_last_error());
+    }
+
+clean_rws:
+    if (ctxt->resp) {
+        purc_rwstream_destroy(ctxt->resp);
+        ctxt->resp = NULL;
+    }
+    // TODO: NEXT_STEP_SELECT_CHILD in some failure cases
+    frame->next_step = NEXT_STEP_ON_POPPING;
+}
+
+static void
+process_by_src(pcintr_stack_t stack, struct pcintr_stack_frame *frame)
+{
+    struct ctxt_for_archetype *ctxt;
+    ctxt = (struct ctxt_for_archetype*)frame->ctxt;
+
+    const char *s_src = purc_variant_get_string_const(ctxt->src);
+    PC_ASSERT(s_src);
+
+    const char *s_method = "GET";
+    if (ctxt->method != PURC_VARIANT_INVALID) {
+        s_method = purc_variant_get_string_const(ctxt->method);
+    }
+
+    int r;
+
+    enum pcfetcher_request_method method;
+    r = method_by_method(s_method, &method);
+    if (r)
+        return;
+
+    purc_variant_t param;
+    if (ctxt->param == PURC_VARIANT_INVALID) {
+        param = purc_variant_make_object_0();
+        if (param == PURC_VARIANT_INVALID)
+            return;
+    }
+    else {
+        param = purc_variant_ref(ctxt->param);
+    }
+
+    ctxt->co = stack->co;
+    purc_variant_t v;
+    v = pcintr_load_from_uri_async(stack, s_src, method, param,
+            on_sync_complete, frame);
+    purc_variant_unref(param);
+
+    if (v == PURC_VARIANT_INVALID)
+        return;
+
+    ctxt->sync_id = purc_variant_ref(v);
+
+    pcintr_yield(frame, on_sync_continuation);
 }
 
 static void*
@@ -186,7 +496,27 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (r)
         return ctxt;
 
+    while ((element=pcvdom_element_parent(element))) {
+        if (element->tag_id == PCHVML_TAG_HEAD) {
+            ctxt->under_head = 1;
+        }
+    }
+
     purc_clr_error();
+
+    if (ctxt->name == PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
+                    "lack of vdom attribute 'name' for element <%s>",
+                    frame->pos->tag_name);
+
+        return ctxt;
+    }
+
+    if (ctxt->src != PURC_VARIANT_INVALID) {
+        process_by_src(stack, frame);
+        PC_ASSERT(purc_get_last_error() == 0);
+        return ctxt;
+    }
 
     PC_ASSERT(frame->ctnt_var == PURC_VARIANT_INVALID);
 
