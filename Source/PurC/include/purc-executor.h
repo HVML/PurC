@@ -31,12 +31,10 @@
 
 PCA_EXTERN_C_BEGIN
 
-// 执行器实例
 struct purc_exec_inst;
 typedef struct purc_exec_inst purc_exec_inst;
 typedef struct purc_exec_inst* purc_exec_inst_t;
 
-// 用于迭代的迭代器
 struct purc_exec_iter;
 typedef struct purc_exec_iter purc_exec_iter;
 typedef struct purc_exec_iter* purc_exec_iter_t;
@@ -47,39 +45,38 @@ enum purc_exec_type {
     PURC_EXEC_TYPE_REDUCE,
 };
 
-// 内置执行器操作集
+/** The operation set for the built-in executors */
 typedef struct purc_exec_ops {
-    // 创建一个执行器实例
+    /** the operation to create a instance of the built-in executor */
     purc_exec_inst_t (*create) (enum purc_exec_type type,
             purc_variant_t input, bool asc_desc);
 
-    // 用于执行选择
+    /** the operation for `choose` tag. */
     purc_variant_t (*choose) (purc_exec_inst_t inst, const char* rule);
 
-    // 获得用于迭代的初始迭代子
+    /** the operation to get the iterator */
     purc_exec_iter_t (*it_begin) (purc_exec_inst_t inst, const char* rule);
 
-    // 根据迭代子获得对应的变体值
+    /** the operation to get the value of an interator */
     purc_variant_t (*it_value) (purc_exec_inst_t inst, purc_exec_iter_t it);
 
-    // 获得下一个迭代子
-    // 注意: 规则字符串可能在前后两次迭代中发生变化，比如在规则中引用了变量的情形下。
-    // 如果规则并没有发生变化，则对 `rule` 参数传递 NULL。
+    /** the operation to forward the iterator to the next item */
     purc_exec_iter_t (*it_next) (purc_exec_inst_t inst, purc_exec_iter_t it,
              const char* rule);
 
-    // 用于执行规约
+    /** the operation for `reduce` tag. */
     purc_variant_t (*reduce) (purc_exec_inst_t inst, const char* rule);
 
-    // 销毁一个执行器实例
+    /** the operation to destroy the instance of the built-in executor. */
     bool (*destroy) (purc_exec_inst_t inst);
 } purc_exec_ops;
 typedef struct purc_exec_ops* purc_exec_ops_t;
 
-// 注册一个执行器的操作集
+/** Register a built-in executor */
 bool purc_register_executor(const char* name, purc_exec_ops_t ops);
-bool purc_get_executor(const char* name, purc_exec_ops_t ops);
 
+/** Retrieve the operation set of a built-in executor */
+bool purc_get_executor(const char* name, purc_exec_ops_t ops);
 
 PCA_EXTERN_C_END
 
