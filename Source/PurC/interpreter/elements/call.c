@@ -124,19 +124,44 @@ on_continuation(void *ud, void *extra)
     purc_variant_t msg_sub_type = event->msg_sub_type;
     PC_ASSERT(msg_sub_type != PURC_VARIANT_INVALID);
     const char *s_msg_sub_type = purc_variant_get_string_const(msg_sub_type);
-    PC_ASSERT(0 == strcmp(s_msg_sub_type, "success"));
 
-    purc_variant_t src = event->src;
-    PC_ASSERT(src != PURC_VARIANT_INVALID);
-    PC_ASSERT(purc_variant_is_undefined(src));
+    if (0 == strcmp(s_msg_sub_type, "success")) {
+        purc_variant_t src = event->src;
+        PC_ASSERT(src != PURC_VARIANT_INVALID);
+        PC_ASSERT(purc_variant_is_undefined(src));
 
-    purc_variant_t payload = event->payload;
-    PC_ASSERT(payload != PURC_VARIANT_INVALID);
+        purc_variant_t payload = event->payload;
+        PC_ASSERT(payload != PURC_VARIANT_INVALID);
 
-    int r = pcintr_set_question_var(frame, payload);
-    PC_ASSERT(r == 0);
+        int r = pcintr_set_question_var(frame, payload);
+        PC_ASSERT(r == 0);
 
-    event_destroy(event);
+        event_destroy(event);
+        return;
+    }
+
+    if (0 == strcmp(s_msg_sub_type, "except")) {
+        purc_variant_t src = event->src;
+        PC_ASSERT(src != PURC_VARIANT_INVALID);
+        PC_ASSERT(purc_variant_is_undefined(src));
+
+        purc_variant_t payload = event->payload;
+        PC_ASSERT(payload != PURC_VARIANT_INVALID);
+
+        PRINT_VARIANT(payload);
+        PC_ASSERT(purc_variant_is_string(payload));
+        const char *s = purc_variant_get_string_const(payload);
+        purc_set_error_with_info(PURC_ERROR_UNKNOWN,
+                "sub coroutine failed with except: %s", s);
+
+        // int r = pcintr_set_question_var(frame, payload);
+        // PC_ASSERT(r == 0);
+
+        event_destroy(event);
+        return;
+    }
+
+    PC_ASSERT(0);
 }
 
 static int

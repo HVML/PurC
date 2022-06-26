@@ -2087,6 +2087,35 @@ post_callstate_success_event(pcintr_coroutine_t co, purc_variant_t with)
     PURC_VARIANT_SAFE_CLEAR(payload);
 }
 
+static void
+post_callstate_except_event(pcintr_coroutine_t co, const char *error_except)
+{
+    if (!co->parent)
+        return;
+
+    pcintr_coroutine_t target = co->parent;
+
+    purc_atom_t msg_type;
+    msg_type = pchvml_keyword(PCHVML_KEYWORD_ENUM(MSG, CALLSTATE));
+
+    purc_variant_t msg_sub_type;
+    msg_sub_type = purc_variant_make_string_static("except", false);
+    PC_ASSERT(msg_sub_type);
+
+    purc_variant_t src;
+    src = purc_variant_make_undefined();
+    PC_ASSERT(src);
+
+    purc_variant_t payload = purc_variant_make_string(error_except, false);
+    PC_ASSERT(payload);
+
+    pcintr_fire_event_to_target(target, msg_type, msg_sub_type, src, payload);
+
+    PURC_VARIANT_SAFE_CLEAR(msg_sub_type);
+    PURC_VARIANT_SAFE_CLEAR(src);
+    PURC_VARIANT_SAFE_CLEAR(payload);
+}
+
 static void check_after_execution(pcintr_coroutine_t co)
 {
     struct pcinst *inst = pcinst_current();
@@ -2158,8 +2187,6 @@ static void check_after_execution(pcintr_coroutine_t co)
 
         dump_c_stack(co->stack.exception.bt);
         co->stack.except = 0;
-        if (!list_empty(&co->children))
-            return;
 
         if (!co->stack.exited) {
             co->stack.exited = 1;
@@ -2180,8 +2207,9 @@ static void check_after_execution(pcintr_coroutine_t co)
         return;
     }
 
-    if (!list_empty(&co->children))
+    if (!list_empty(&co->children)) {
         return;
+    }
 
     if (co->stack.exited) {
         revoke_all_dynamic_observers();
@@ -2213,19 +2241,22 @@ static void check_after_execution(pcintr_coroutine_t co)
         return;
     }
 
-    if (still_observed)
+    if (still_observed) {
         return;
+    }
 
     if (!co->stack.exited) {
         co->stack.exited = 1;
         notify_to_stop(co);
     }
 
-    if (!list_empty(&co->msgs))
+    if (!list_empty(&co->msgs)) {
         return;
+    }
 
-    if (co->msg_pending)
+    if (co->msg_pending) {
         return;
+    }
 
 // #define PRINT_DEBUG
     if (co->stack.last_msg_sent == 0) {
@@ -2238,8 +2269,10 @@ static void check_after_execution(pcintr_coroutine_t co)
         return;
     }
 
-    if (co->stack.last_msg_read == 0)
+    if (co->stack.last_msg_read == 0) {
         return;
+    }
+
 
 #ifdef PRINT_DEBUG              /* { */
     PC_DEBUGX("last msg was processed");
@@ -2249,12 +2282,13 @@ static void check_after_execution(pcintr_coroutine_t co)
         if (co->error_except) {
             // TODO: which is error, which is except?
             // currently, we treat all as except
-            PC_ASSERT(0);
+            post_callstate_except_event(co, co->error_except);
         }
-        PC_ASSERT(co->val_from_return_or_exit);
-        post_callstate_success_event(co, co->val_from_return_or_exit);
+        else {
+            PC_ASSERT(co->val_from_return_or_exit);
+            post_callstate_success_event(co, co->val_from_return_or_exit);
+        }
     }
-
 
     PC_ASSERT(co);
     PC_ASSERT(co->state == CO_STATE_READY);
