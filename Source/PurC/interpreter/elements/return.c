@@ -106,7 +106,7 @@ post_process_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     bool outmost = false;
     struct pcintr_stack_frame *p = pcintr_stack_frame_get_parent(frame);
     for(; p; p = pcintr_stack_frame_get_parent(p)) {
-        if (co->stack.entry && p->pos->tag_id == PCHVML_TAG_BODY) {
+        if (p->pos->tag_id == PCHVML_TAG_HVML) {
             ctxt->back_anchor = p;
             outmost = true;
             break;
@@ -130,6 +130,8 @@ post_process_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 
     if (outmost) {
         post_callstate_success_event(co, ctxt->with);
+        // PURC_VARIANT_SAFE_CLEAR(co->result->result);
+        // co->result->result = purc_variant_ref(ctxt->with);
     }
     else {
         if (ctxt->with != PURC_VARIANT_INVALID) {
