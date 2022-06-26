@@ -100,9 +100,6 @@ load_module(struct pcexec_exe_func_inst *exe_func_inst, const char *module)
     char so[PATH_MAX+1];
     int n;
     do {
-        const char *path = getenv("PURC_EXECUTOR_PATH");
-        PC_ASSERT(!path); // TODO:
-
         /* XXX: the order of searching directories:
          *
          * 1. the valid directories contains in the environment variable:
