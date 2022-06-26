@@ -67,7 +67,7 @@
 
 ### 预定义变量
 
-* 实现 `$HVML.target` 获取器。
+* ~~实现 `$HVML.target` 获取器。~~
 * 实现 `$REQUEST` 预定义变量，将该变量和 `purc_run` 函数中的 `request` 参数关联。
 
 ### vDOM 解析器
