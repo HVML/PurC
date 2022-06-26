@@ -261,6 +261,9 @@ struct pcintr_coroutine {
 
     pcintr_coroutine_result_t   result;
 
+    purc_variant_t              val_from_return_or_exit;
+    const char                 *error_except;
+
     struct pcintr_stack         stack;  /* stack that holds this coroutine */
 
     enum pcintr_coroutine_state state;
@@ -434,7 +437,7 @@ void pcintr_cancel_init(pcintr_cancel_t cancel,
 void pcintr_register_cancel(pcintr_cancel_t cancel);
 void pcintr_unregister_cancel(pcintr_cancel_t cancel);
 
-void pcintr_set_exit(void);
+void pcintr_set_exit(purc_variant_t val);
 
 struct pcintr_stack_frame*
 pcintr_stack_get_bottom_frame(pcintr_stack_t stack);

@@ -540,6 +540,7 @@ coroutine_release(pcintr_coroutine_t co)
             free(co->full_name);
             co->full_name = NULL;
         }
+        PURC_VARIANT_SAFE_CLEAR(co->val_from_return_or_exit);
     }
 }
 
@@ -2052,6 +2053,40 @@ static void on_last_msg(void *ctxt)
     check_after_execution(co);
 }
 
+static void
+post_callstate_success_event(pcintr_coroutine_t co, purc_variant_t with)
+{
+    if (!co->parent)
+        return;
+
+    PC_ASSERT(co->result);
+    PC_ASSERT(co->owner && co->parent->owner);
+    PURC_VARIANT_SAFE_CLEAR(co->result->result);
+    co->result->result = purc_variant_ref(with);
+
+    pcintr_coroutine_t target = co->parent;
+
+    purc_atom_t msg_type;
+    msg_type = pchvml_keyword(PCHVML_KEYWORD_ENUM(MSG, CALLSTATE));
+
+    purc_variant_t msg_sub_type;
+    msg_sub_type = purc_variant_make_string_static("success", false);
+    PC_ASSERT(msg_sub_type);
+
+    purc_variant_t src;
+    src = purc_variant_make_undefined();
+    PC_ASSERT(src);
+
+    purc_variant_t payload = purc_variant_ref(with);
+    PC_ASSERT(payload);
+
+    pcintr_fire_event_to_target(target, msg_type, msg_sub_type, src, payload);
+
+    PURC_VARIANT_SAFE_CLEAR(msg_sub_type);
+    PURC_VARIANT_SAFE_CLEAR(src);
+    PURC_VARIANT_SAFE_CLEAR(payload);
+}
+
 static void check_after_execution(pcintr_coroutine_t co)
 {
     struct pcinst *inst = pcinst_current();
@@ -2110,7 +2145,17 @@ static void check_after_execution(pcintr_coroutine_t co)
     pcintr_dump_document(stack);
     stack->stage = STACK_STAGE_EVENT_LOOP;
 
+
     if (co->stack.except) {
+        const char *error_except = NULL;
+        purc_atom_t atom;
+        atom = co->stack.exception.error_except;
+        PC_ASSERT(atom);
+        error_except = purc_atom_to_string(atom);
+
+        PC_ASSERT(co->error_except == NULL);
+        co->error_except = error_except;
+
         dump_c_stack(co->stack.exception.bt);
         co->stack.except = 0;
         if (!list_empty(&co->children))
@@ -2200,15 +2245,32 @@ static void check_after_execution(pcintr_coroutine_t co)
     PC_DEBUGX("last msg was processed");
 #endif                          /* } */
 
+    if (co->parent) {
+        if (co->error_except) {
+            // TODO: which is error, which is except?
+            // currently, we treat all as except
+            PC_ASSERT(0);
+        }
+        PC_ASSERT(co->val_from_return_or_exit);
+        post_callstate_success_event(co, co->val_from_return_or_exit);
+    }
+
+
     PC_ASSERT(co);
     PC_ASSERT(co->state == CO_STATE_READY);
     purc_runloop_dispatch(inst->running_loop, run_exiting_co, co);
 }
 
-void pcintr_set_exit(void)
+void pcintr_set_exit(purc_variant_t val)
 {
+    PC_ASSERT(val != PURC_VARIANT_INVALID);
+
     pcintr_coroutine_t co = pcintr_get_coroutine();
     PC_ASSERT(co);
+
+    PURC_VARIANT_SAFE_CLEAR(co->val_from_return_or_exit);
+    co->val_from_return_or_exit = purc_variant_ref(val);
+
     if (co->stack.exited == 0) {
         co->stack.exited = 1;
         notify_to_stop(co);
@@ -2422,6 +2484,8 @@ coroutine_create(const char *name,
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto fail_co;
     }
+    co->val_from_return_or_exit = purc_variant_make_undefined();
+    PC_ASSERT(co->val_from_return_or_exit != PURC_VARIANT_INVALID);
 
     if (set_coroutine_id(co, name))
         goto fail_name;
@@ -4589,5 +4653,4 @@ pcintr_bind_template(purc_variant_t templates,
 
     return ok ? 0 : -1;
 }
-
 
