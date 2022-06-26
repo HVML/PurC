@@ -2800,6 +2800,9 @@ get_observer_list(pcintr_stack_t stack, purc_variant_t observed)
             list = &stack->common_variant_observer_list;
         }
     }
+    else if (pcintr_is_named_var_for_event(observed)) {
+        list = &stack->native_variant_observer_list;
+    }
     else {
         list = &stack->common_variant_observer_list;
     }

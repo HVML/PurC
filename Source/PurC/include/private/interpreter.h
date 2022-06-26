@@ -530,19 +530,15 @@ pcintr_find_anchor_symbolized_var(pcintr_stack_t stack, const char *anchor,
 int
 pcintr_unbind_named_var(pcintr_stack_t stack, const char *name);
 
-// return observed variant
 purc_variant_t
-pcintr_get_named_var_observed(pcintr_stack_t stack, const char* name);
+pcintr_get_named_var_for_observed(pcintr_stack_t stack, const char *name,
+        pcvdom_element_t elem);
 
-// return observed variant
 purc_variant_t
-pcintr_add_named_var_observer(pcintr_stack_t stack, const char* name,
-        const char* event);
+pcintr_get_named_var_for_event(pcintr_stack_t stack, const char *name);
 
-// return observed variant
-purc_variant_t
-pcintr_remove_named_var_observer(pcintr_stack_t stack, const char* name,
-        const char* event);
+bool
+pcintr_is_named_var_for_event(purc_variant_t val);
 
 // $TIMERS
 struct pcintr_timers*

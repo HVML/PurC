@@ -52,35 +52,35 @@ following repositories:
 - HVML Documents: <https://github.com/HVML/hvml-docs>.
 - PurC (the Prime hVml inteRpreter for C language): <https://github.com/HVML/purc>.
 - PurC Fetcher (the remote data fetcher for PurC): <https://github.com/HVML/purc-fetcher>.
-- PurCMC (an HVML renderer in text-mode): <https://github.com/HVML/purc-midnight-commander>.
 - xGUI Pro (an advanced HVML renderer based on WebKit): <https://github.com/HVML/xgui-pro>.
+- PurCMC (an HVML renderer in text-mode): <https://github.com/HVML/purc-midnight-commander>.
 
 ## Source Tree of PurC
 
 PurC implements the parser, the interpreter, and some built-in dynamic variant
 objects for HVML. It is mainly written in C/C++ language and will provide bindings
-for Python and other script languages.
+for Python and other script languages in the future.
 
 The source tree of PurC contains the following modules:
 
 - `Source/PurC/include/`: The global header files.
 - `Source/PurC/include/private`: The internal common header files.
 - `Source/PurC/utils/`: Some basic and common utilities.
-- `Source/PurC/instance/`: The operations of PurC instances and sessions.
-- `Source/PurC/variant/`: The operations of variant.
+- `Source/PurC/variant/`: The implementation of variant.
 - `Source/PurC/vcm/`: The operations of variant creation model tree.
-- `Source/PurC/dvobjs/`: The dynamic variant objects.
-- `Source/PurC/ejson/`: The eJSON parser. The eJSON parser reads an eJSON and constructs a variant creation model tree.
-- `Source/PurC/dom/`: The operations of the DOM tree.
-- `Source/PurC/vdom/`: The operations of the virtual DOM tree.
-- `Source/PurC/html/`: The HTML parser. The HTML parser reads an HTML document or document fragements and constructs an eDOM tree.
-- `Source/PurC/hvml/`: The HVML parser. The HTML parser reads an HVML document and constructs a vDOM tree.
-- `Source/PurC/xgml/`: The XGML parser. The XGML parser reads an XGML document or document fragements and constructs an eDOM tree.
-- `Source/PurC/xml/`: The XML parser. The XML parser parses an XML document or document fragements and constructs an eDOM tree.
-- `Source/PurC/fetchers/`: The data fetchers to fetch data from various data sources (HTTP, FTP, and so on).
-- `Source/PurC/listeners/`: The data listeners to listen events and/or send requests on various long-time connnection (hiDataBus, MQTT, WebSocket, and so on).
-- `Source/PurC/executors/`: The internal/external executors.
+- `Source/PurC/dvobjs/`: The built-in dynamic variant objects.
+- `Source/PurC/ejson/`: The implementation of the eJSON parser. The eJSON parser reads an eJSON and constructs a variant creation model tree.
+- `Source/PurC/dom/`: The implentation of the DOM tree.
+- `Source/PurC/vdom/`: The implementation of the virtual DOM tree.
+- `Source/PurC/html/`: The implementation of the HTML parser. The HTML parser reads an HTML document or document fragements and constructs an eDOM tree.
+- `Source/PurC/hvml/`: The implementation of the HVML parser. The HTML parser reads an HVML document and constructs a vDOM tree.
+- `Source/PurC/xgml/`: The implementation of the XGML parser (Not implemented so far). The XGML parser reads an XGML document or document fragements and constructs an eDOM tree.
+- `Source/PurC/xml/`: The XML parser (Not implemented so far). The XML parser parses an XML document or document fragements and constructs an eDOM tree.
+- `Source/PurC/instance/`: The operations of PurC instances and sessions.
+- `Source/PurC/fetchers/`: The data fetchers to fetch data from various data sources (FILE, HTTP, FTP, and so on).
+- `Source/PurC/executors/`: The implementation of internal executors.
 - `Source/PurC/interpreter/`: The vDOM interpreter.
+- `Source/PurC/pcrdr/`: The management of connection to the renderer.
 - `Source/PurC/ports/`: The ports for different operating systems, such as a POSIX-compliant system or Windows.
 - `Source/PurC/bindings/`: The bindings for Python, Lua, and other programming languages.
 - `Source/WTF/`: The simplified WTF (Web Template Framework) from WebKit.
@@ -99,15 +99,33 @@ Note that the HTML parser and DOM operations of PurC are derived from:
 
 ## Current Status
 
-This project was launched in June. 2021.
+This project was launched in June. 2021. This is the version 0.9 of PurC.
+
+After one year development, the current version implements all features
+defined by [HVML Specifiction V1.0] in C language, and also implements all
+predefined dynamic variables defined by [HVML Predefined Variables V1.0].
 
 We welcome anybody to take part in the development and contribute your effort!
+
+### TODO List
+
+1. More tests or test cases.
+1. More samples.
+1. Port PurC to Windows.
 
 For the community conduct, please refer to [Code of Conduct](CODE_OF_CONDUCT.md).
 
 For the coding style, please refer to [HybridOS-Code-and-Development-Convention](https://gitlab.fmsoft.cn/hybridos/hybridos/blob/master/docs/specs/HybridOS-Code-and-Development-Convention.md).
 
 ## Building
+
+### Prerequistes
+
+To build PurC, make sure that the following tools are available on Linux or macOS:
+
+1. `cmake`
+1. GCC 8.0 or later.
+1. glib 2.9.0
 
 ### Commands
 
@@ -117,7 +135,10 @@ To build:
 rm -rf build && cmake -DCMAKE_BUILD_TYPE=Debug -DPORT=Linux -B build && cmake --build build
 ```
 
-### Using the test samples
+### Running test programs
+
+
+### Using `purc`
 
 
 ### Other documents
@@ -125,7 +146,9 @@ rm -rf build && cmake -DCMAKE_BUILD_TYPE=Debug -DPORT=Linux -B build && cmake --
 
 ## Authors and Contributors
 
-- R&D Team of [FMSoft Technologies]
+- Vincent Wei
+- Nine Xue
+- XU Xiaohong
 
 ## Copying
 
