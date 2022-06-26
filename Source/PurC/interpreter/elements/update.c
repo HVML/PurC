@@ -88,6 +88,7 @@ template_walker(struct pcvcm_node *vcm, void *ctxt)
     struct template_walk_data *ud;
     ud = (struct template_walk_data*)ctxt;
     PC_ASSERT(ud);
+    PC_ASSERT(ud->val == PURC_VARIANT_INVALID);
 
     pcintr_stack_t stack = ud->stack;
     PC_ASSERT(stack);
