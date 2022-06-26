@@ -128,7 +128,7 @@ post_process_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         return -1;
     }
 
-    if (co->stack.entry && outmost) {
+    if (outmost) {
         post_callstate_success_event(co, ctxt->with);
     }
     else {
@@ -274,6 +274,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         }
     }
 
+    PRINT_VARIANT(ctxt->with);
     r = post_process(stack->co, frame);
     if (r)
         return ctxt;

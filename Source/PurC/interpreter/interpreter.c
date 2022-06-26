@@ -4398,6 +4398,39 @@ pcintr_create_child_co(pcvdom_element_t vdom_element,
     return child;
 }
 
+pcintr_coroutine_t
+pcintr_load_child_co(const char *hvml,
+        purc_variant_t as, purc_variant_t within)
+{
+    UNUSED_PARAM(within);
+
+    pcintr_coroutine_t co = pcintr_get_coroutine();
+    PC_ASSERT(co);
+
+    PC_ASSERT(hvml);
+
+    purc_rwstream_t rws;
+    rws = purc_rwstream_new_from_mem((char*)hvml, strlen(hvml));
+    if (!rws)
+        return NULL;
+
+    pcintr_coroutine_t child;
+    child = coroutine_create(NULL, as, co, rws, NULL, NULL);
+    do {
+        if (!child)
+            break;
+
+        PC_ASSERT(co->stack.vdom);
+
+        PC_DEBUGX("running parent/child: %p/%p", co, child);
+        pcintr_wakeup_target(child, run_co_main);
+    } while (0);
+
+    purc_rwstream_destroy(rws);
+
+    return child;
+}
+
 void
 pcintr_on_event(purc_atom_t msg_type, purc_variant_t msg_sub_type,
         purc_variant_t src, purc_variant_t payload)
