@@ -63,7 +63,9 @@ ctxt_destroy(void *ctxt)
 static void
 post_callstate_success_event(pcintr_coroutine_t co, purc_variant_t with)
 {
-    PC_ASSERT(co->stack.entry);
+    if (!co->parent)
+        return;
+
     PC_ASSERT(co->result);
     PC_ASSERT(co->owner && co->parent->owner);
     PURC_VARIANT_SAFE_CLEAR(co->result->result);
@@ -106,7 +108,7 @@ post_process_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     bool outmost = false;
     struct pcintr_stack_frame *p = pcintr_stack_frame_get_parent(frame);
     for(; p; p = pcintr_stack_frame_get_parent(p)) {
-        if (p->pos->tag_id == PCHVML_TAG_HVML) {
+        if (co->parent && p->pos->tag_id == PCHVML_TAG_HVML) {
             ctxt->back_anchor = p;
             outmost = true;
             break;
