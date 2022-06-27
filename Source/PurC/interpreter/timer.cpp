@@ -267,7 +267,45 @@ struct pcintr_timers {
     purc_variant_t timers_var;
     struct pcvar_listener* timer_listener;
     pcutils_map* timers_map; // id : pcintr_timer_t
+    pcutils_map* listener_map; // variant : struct pcvar_listener
 };
+
+int
+listener_map_comp_by_key(const void *key1, const void *key2)
+{
+    uintptr_t k1 = (uintptr_t)key1;
+    uintptr_t k2 = (uintptr_t)key2;
+    return k1 - k2;
+}
+
+int
+listener_map_set_listener(pcutils_map *map, purc_variant_t obj,
+        struct pcvar_listener *listener)
+{
+    pcutils_map_entry *entry = pcutils_map_find(map, obj);
+    if (entry) {
+        return -1;
+    }
+
+    return pcutils_map_insert(map, obj, listener);
+}
+
+void
+listener_map_remove_listener(pcutils_map *map, purc_variant_t obj)
+{
+    pcutils_map_entry *entry = pcutils_map_find(map, obj);
+    if (entry == NULL) {
+        return;
+    }
+
+    struct pcvar_listener *listener = (struct pcvar_listener*)(entry->val);
+
+    pcutils_map_erase(map, obj);
+
+    purc_variant_revoke_listener(obj, listener);
+}
+
+
 
 static void* map_copy_val(const void* val)
 {
@@ -315,10 +353,6 @@ static void timer_fire_func(pcintr_timer_t timer, const char* id)
     PURC_VARIANT_SAFE_CLEAR(type);
     PURC_VARIANT_SAFE_CLEAR(sub_type);
 }
-
-bool
-timer_listener_handler(purc_variant_t source, pcvar_op_t msg_type,
-        void* ctxt, size_t nr_args, purc_variant_t* argv);
 
 static bool
 is_euqal(purc_variant_t var, const char* comp)
@@ -400,6 +434,52 @@ destroy_inner_timer(pcintr_stack_t stack, purc_variant_t timer_var)
 }
 
 bool
+timer_listener_handler(purc_variant_t source, pcvar_op_t msg_type,
+        void* ctxt, size_t nr_args, purc_variant_t* argv)
+{
+    UNUSED_PARAM(source);
+    UNUSED_PARAM(msg_type);
+    UNUSED_PARAM(ctxt);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    purc_variant_t nv = source;
+    pcintr_timer_t timer = (pcintr_timer_t)ctxt;
+
+    purc_variant_t interval = purc_variant_object_get_by_ckey(nv,
+            TIMERS_STR_INTERVAL);
+    purc_variant_t active = purc_variant_object_get_by_ckey(nv,
+            TIMERS_STR_ACTIVE);
+    if (interval != PURC_VARIANT_INVALID) {
+        uint64_t ret = 0;
+        purc_variant_cast_to_ulongint(interval, &ret, false);
+        uint32_t oval = pcintr_timer_get_interval(timer);
+        if (oval != ret) {
+            pcintr_timer_set_interval(timer, ret);
+        }
+    }
+    else {
+        purc_clr_error();
+    }
+    bool next_active = pcintr_timer_is_active(timer);
+    if (active != PURC_VARIANT_INVALID) {
+        if (is_euqal(active, TIMERS_STR_YES)) {
+            next_active = true;
+        }
+        else {
+            next_active = false;
+        }
+    }
+
+    if (next_active) {
+        pcintr_timer_start(timer);
+    }
+    else {
+        pcintr_timer_stop(timer);
+    }
+    return true;
+}
+
+bool
 timers_set_grow(purc_variant_t source, pcvar_op_t msg_type,
         void* ctxt, size_t nr_args, purc_variant_t* argv)
 {
@@ -407,6 +487,8 @@ timers_set_grow(purc_variant_t source, pcvar_op_t msg_type,
     UNUSED_PARAM(msg_type);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(ctxt);
+
+    struct pcvar_listener *listener = NULL;
     pcintr_stack_t stack = pcintr_get_stack();
     purc_variant_t interval = purc_variant_object_get_by_ckey(argv[0],
             TIMERS_STR_INTERVAL);
@@ -416,6 +498,14 @@ timers_set_grow(purc_variant_t source, pcvar_op_t msg_type,
     if (!timer) {
         return false;
     }
+
+    listener = purc_variant_register_post_listener(argv[0],
+            PCVAR_OPERATION_CHANGE, timer_listener_handler, timer);
+    if (!listener) {
+        return false;
+    }
+    listener_map_set_listener(stack->timers->listener_map, argv[0], listener);
+
     uint64_t ret = 0;
     purc_variant_cast_to_ulongint(interval, &ret, false);
     pcintr_timer_set_interval(timer, ret);
@@ -434,6 +524,7 @@ timers_set_shrink(purc_variant_t source, pcvar_op_t msg_type,
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(ctxt);
     pcintr_stack_t stack = pcintr_get_stack();
+    listener_map_remove_listener(stack->timers->listener_map, argv[0]);
     destroy_inner_timer(stack, argv[0]);
     return true;
 }
@@ -446,12 +537,23 @@ timers_set_change(purc_variant_t source, pcvar_op_t msg_type,
     UNUSED_PARAM(msg_type);
     UNUSED_PARAM(ctxt);
     UNUSED_PARAM(nr_args);
+
+    struct pcvar_listener *listener = NULL;
     pcintr_stack_t stack = pcintr_get_stack();
     purc_variant_t nv = argv[1];
     pcintr_timer_t timer = get_inner_timer(stack, nv);
     if (!timer) {
         return false;
     }
+
+    listener_map_remove_listener(stack->timers->listener_map, argv[0]);
+    listener = purc_variant_register_post_listener(nv,
+            PCVAR_OPERATION_CHANGE, timer_listener_handler, timer);
+    if (!listener) {
+        return false;
+    }
+    listener_map_set_listener(stack->timers->listener_map, nv, listener);
+
     purc_variant_t interval = purc_variant_object_get_by_ckey(nv,
             TIMERS_STR_INTERVAL);
     purc_variant_t active = purc_variant_object_get_by_ckey(nv,
@@ -539,6 +641,13 @@ pcintr_timers_init(pcintr_stack_t stack)
         goto failure;
     }
 
+    timers->listener_map = pcutils_map_create (NULL, NULL, NULL, NULL,
+            listener_map_comp_by_key, false);
+    if (!timers->listener_map) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto failure;
+    }
+
     timers->timer_listener = purc_variant_register_post_listener(ret,
             (pcvar_op_t)op, timers_set_listener_handler, NULL);
     if (!timers->timer_listener) {
@@ -560,6 +669,17 @@ void
 pcintr_timers_destroy(struct pcintr_timers* timers)
 {
     if (timers) {
+        // remove set member -> remove object listener
+        while (1) {
+            ssize_t nr = purc_variant_set_get_size(timers->timers_var);
+            if (nr == 0) {
+                break;
+            }
+            purc_variant_t obj = purc_variant_set_remove_by_index(
+                    timers->timers_var, 0);
+            PURC_VARIANT_SAFE_CLEAR(obj);
+        }
+
         if (timers->timer_listener) {
             PC_ASSERT(timers->timers_var);
             purc_variant_revoke_listener(timers->timers_var,
@@ -571,6 +691,11 @@ pcintr_timers_destroy(struct pcintr_timers* timers)
         if (timers->timers_map) {
             pcutils_map_destroy(timers->timers_map);
             timers->timers_map = NULL;
+        }
+
+        if (timers->listener_map) {
+            pcutils_map_destroy(timers->listener_map);
+            timers->listener_map = NULL;
         }
 
         PURC_VARIANT_SAFE_CLEAR(timers->timers_var);
