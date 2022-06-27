@@ -60,38 +60,6 @@ ctxt_destroy(void *ctxt)
     ctxt_for_return_destroy((struct ctxt_for_return*)ctxt);
 }
 
-static void
-post_callstate_success_event(pcintr_coroutine_t co, purc_variant_t with)
-{
-    PC_ASSERT(co->stack.entry);
-    PC_ASSERT(co->result);
-    PC_ASSERT(co->owner && co->parent->owner);
-    PURC_VARIANT_SAFE_CLEAR(co->result->result);
-    co->result->result = purc_variant_ref(with);
-
-    pcintr_coroutine_t target = co->parent;
-
-    purc_atom_t msg_type;
-    msg_type = pchvml_keyword(PCHVML_KEYWORD_ENUM(MSG, CALLSTATE));
-
-    purc_variant_t msg_sub_type;
-    msg_sub_type = purc_variant_make_string_static("success", false);
-    PC_ASSERT(msg_sub_type);
-
-    purc_variant_t src;
-    src = purc_variant_make_undefined();
-    PC_ASSERT(src);
-
-    purc_variant_t payload = purc_variant_ref(with);
-    PC_ASSERT(payload);
-
-    pcintr_fire_event_to_target(target, msg_type, msg_sub_type, src, payload);
-
-    PURC_VARIANT_SAFE_CLEAR(msg_sub_type);
-    PURC_VARIANT_SAFE_CLEAR(src);
-    PURC_VARIANT_SAFE_CLEAR(payload);
-}
-
 static int
 post_process_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
@@ -106,7 +74,7 @@ post_process_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     bool outmost = false;
     struct pcintr_stack_frame *p = pcintr_stack_frame_get_parent(frame);
     for(; p; p = pcintr_stack_frame_get_parent(p)) {
-        if (co->stack.entry && p->pos->tag_id == PCHVML_TAG_BODY) {
+        if (co->parent && p->pos->tag_id == PCHVML_TAG_HVML) {
             ctxt->back_anchor = p;
             outmost = true;
             break;
@@ -128,8 +96,9 @@ post_process_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         return -1;
     }
 
-    if (co->stack.entry && outmost) {
-        post_callstate_success_event(co, ctxt->with);
+    if (outmost) {
+        PURC_VARIANT_SAFE_CLEAR(co->val_from_return_or_exit);
+        co->val_from_return_or_exit = purc_variant_ref(ctxt->with);
     }
     else {
         if (ctxt->with != PURC_VARIANT_INVALID) {
@@ -274,6 +243,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         }
     }
 
+    PRINT_VARIANT(ctxt->with);
     r = post_process(stack->co, frame);
     if (r)
         return ctxt;

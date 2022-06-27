@@ -216,8 +216,10 @@ variant_set_compare_by_set_keys(purc_variant_t set,
 }
 
 static int
-variant_set_init(variant_set_t data, const char *unique_key)
+variant_set_init(variant_set_t data, const char *unique_key, bool caseless)
 {
+    data->caseless = caseless;
+
     data->elems = RB_ROOT;
     pcutils_array_list_init(&data->al);
 
@@ -899,9 +901,11 @@ insert_or_replace(purc_variant_t set,
     if (curr->val == val)
         return 0;
 
+    purc_variant_t _old = purc_variant_ref(curr->val);
+
     do {
         if (check) {
-            if (!change(set, curr->val, val, check))
+            if (!change(set, _old, val, check))
                 break;
 
             if (check_change(set, curr, val))
@@ -914,11 +918,15 @@ insert_or_replace(purc_variant_t set,
         if (check) {
             pcvar_adjust_set_by_descendant(set);
 
-            changed(set, curr->val, val, check);
+            changed(set, _old, val, check);
         }
+
+        PURC_VARIANT_SAFE_CLEAR(_old);
 
         return 0;
     } while (0);
+
+    PURC_VARIANT_SAFE_CLEAR(_old);
 
     return -1;
 }
@@ -961,7 +969,7 @@ variant_set_add_valsn(purc_variant_t set, variant_set_t data, bool overwrite,
 }
 
 static purc_variant_t
-make_set_0(const char *unique_key)
+make_set_0(const char *unique_key, bool caseless)
 {
     purc_variant_t set = pcv_set_new();
     if (set==PURC_VARIANT_INVALID) {
@@ -970,7 +978,7 @@ make_set_0(const char *unique_key)
 
     do {
         variant_set_t data = pcvar_set_get_data(set);
-        if (variant_set_init(data, unique_key))
+        if (variant_set_init(data, unique_key, caseless))
             break;
 
         size_t extra = variant_set_get_extra_size(data);
@@ -986,9 +994,9 @@ make_set_0(const char *unique_key)
 
 static purc_variant_t
 make_set_c(bool check, size_t sz, const char *unique_key,
-    purc_variant_t value0, va_list ap)
+    bool caseless, purc_variant_t value0, va_list ap)
 {
-    purc_variant_t set = make_set_0(unique_key);
+    purc_variant_t set = make_set_0(unique_key, caseless);
     if (set==PURC_VARIANT_INVALID) {
         return PURC_VARIANT_INVALID;
     }
@@ -1019,9 +1027,9 @@ make_set_c(bool check, size_t sz, const char *unique_key,
 
 static purc_variant_t
 pv_make_set_by_ckey_n(bool check, size_t sz, const char* unique_key,
-    purc_variant_t value0, va_list ap)
+    bool caseless, purc_variant_t value0, va_list ap)
 {
-    purc_variant_t v = make_set_c(check, sz, unique_key, value0, ap);
+    purc_variant_t v = make_set_c(check, sz, unique_key, caseless, value0, ap);
 
     return v;
 }
@@ -1033,11 +1041,12 @@ purc_variant_make_set_by_ckey(size_t sz, const char* unique_key,
     PCVARIANT_CHECK_FAIL_RET((sz==0 && value0==NULL) || (sz>0 && value0),
         PURC_VARIANT_INVALID);
 
+    bool caseless = false;
     bool check = true;
     purc_variant_t v;
     va_list ap;
     va_start(ap, value0);
-    v = pv_make_set_by_ckey_n(check, sz, unique_key, value0, ap);
+    v = pv_make_set_by_ckey_n(check, sz, unique_key, caseless, value0, ap);
     va_end(ap);
 
     return v;
@@ -1045,7 +1054,7 @@ purc_variant_make_set_by_ckey(size_t sz, const char* unique_key,
 
 static purc_variant_t
 pv_make_set_n(bool check, size_t sz, purc_variant_t unique_key,
-    purc_variant_t value0, va_list ap)
+    bool caseless, purc_variant_t value0, va_list ap)
 {
     const char *uk = NULL;
     if (unique_key) {
@@ -1053,7 +1062,7 @@ pv_make_set_n(bool check, size_t sz, purc_variant_t unique_key,
         PC_ASSERT(uk);
     }
 
-    purc_variant_t v = make_set_c(check, sz, uk, value0, ap);
+    purc_variant_t v = make_set_c(check, sz, uk, caseless, value0, ap);
 
     return v;
 }
@@ -1069,11 +1078,12 @@ purc_variant_make_set(size_t sz, purc_variant_t unique_key,
     PCVARIANT_CHECK_FAIL_RET(!unique_key || unique_key->type==PVT(_STRING),
         PURC_VARIANT_INVALID);
 
+    bool caseless = false;
     bool check = true;
     purc_variant_t v;
     va_list ap;
     va_start(ap, value0);
-    v = pv_make_set_n(check, sz, unique_key, value0, ap);
+    v = pv_make_set_n(check, sz, unique_key, caseless, value0, ap);
     va_end(ap);
 
     return v;
@@ -1880,9 +1890,17 @@ pcvar_kv_it_first(purc_variant_t set, purc_variant_t obj)
         const char *sk = purc_variant_get_string_const(key);
         for (size_t i=0; i<data->nr_keynames; ++i) {
             const char *s = data->keynames[i];
-            if (strcmp(s, sk) == 0) {
-                it.accu = 1;
-                return it;
+            if (data->caseless) {
+                if (pcutils_strcasecmp(s, sk) == 0) {
+                    it.accu = 1;
+                    return it;
+                }
+            }
+            else {
+                if (strcmp(s, sk) == 0) {
+                    it.accu = 1;
+                    return it;
+                }
             }
         }
         pcvar_obj_it_next(&it.it);
@@ -1920,9 +1938,17 @@ pcvar_kv_it_next(struct kv_iterator *it)
         const char *sk = purc_variant_get_string_const(key);
         for (size_t i=0; i<data->nr_keynames; ++i) {
             const char *s = data->keynames[i];
-            if (strcmp(s, sk) == 0) {
-                it->accu += 1;
-                return;
+            if (data->caseless) {
+                if (pcutils_strcasecmp(s, sk) == 0) {
+                    it->accu += 1;
+                    return;
+                }
+            }
+            else {
+                if (strcmp(s, sk) == 0) {
+                    it->accu += 1;
+                    return;
+                }
             }
         }
     }
@@ -1973,6 +1999,9 @@ pcvar_make_set(variant_set_t data)
     int r;
     struct pcutils_string str;
     pcutils_string_init(&str, 32);
+
+    bool caseless = data->caseless;
+
     if (data->keynames) {
         r = 0;
         for (size_t i=0; i<data->nr_keynames; ++i) {
@@ -1996,7 +2025,7 @@ pcvar_make_set(variant_set_t data)
     }
 
     purc_variant_t var;
-    var = make_set_0(str.abuf);
+    var = make_set_0(str.abuf, caseless);
     pcutils_string_reset(&str);
 
     return var;

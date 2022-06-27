@@ -60,20 +60,14 @@ process_attr_with(struct pcintr_stack_frame *frame,
 {
     struct ctxt_for_exit *ctxt;
     ctxt = (struct ctxt_for_exit*)frame->ctxt;
-    if (ctxt->with != PURC_VARIANT_INVALID) {
-        purc_set_error_with_info(PURC_ERROR_DUPLICATED,
-                "vdom attribute '%s' for element <%s>",
-                purc_atom_to_string(name), element->tag_name);
-        return -1;
-    }
     if (val == PURC_VARIANT_INVALID) {
         purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
                 "vdom attribute '%s' for element <%s> undefined",
                 purc_atom_to_string(name), element->tag_name);
         return -1;
     }
-    ctxt->with = val;
-    purc_variant_ref(val);
+    PURC_VARIANT_SAFE_CLEAR(ctxt->with);
+    ctxt->with = purc_variant_ref(val);
 
     return 0;
 }
@@ -130,8 +124,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (stack->exited)
         return NULL;
 
-    pcintr_set_exit();
-
     if (stack->except)
         return NULL;
 
@@ -161,6 +153,19 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         return ctxt;
 
     purc_clr_error();
+
+    purc_variant_t with;
+    if (ctxt->with == PURC_VARIANT_INVALID) {
+        with = purc_variant_make_undefined();
+    }
+    else {
+        with = purc_variant_ref(ctxt->with);
+    }
+    PC_ASSERT(with != PURC_VARIANT_INVALID);
+
+    pcintr_set_exit(with);
+
+    PURC_VARIANT_SAFE_CLEAR(with);
 
     // NOTE: no element to process if succeeds
     return NULL;

@@ -1,0 +1,23 @@
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<hvml target="html" lang="en">
+    <head>
+        <init as="fibonacci">
+            [0, 1, ]
+        </init>
+    </head>
+
+    <body>
+        <define as="updating">
+            <return with = "bar" />
+        </define>
+        <div>
+            <call on="$updating" with="can you see me?" concurrently>
+                <update on="$@" to="append" with = "$?"/>
+            </call>
+        </div>
+    </body>
+
+</hvml>
+
+
+

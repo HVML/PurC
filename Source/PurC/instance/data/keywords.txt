@@ -48,6 +48,7 @@ hvml target
 hvml src
 hvml param
 hvml method
+hvml onto
 
 # executor
 hvml FORMULA
