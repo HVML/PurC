@@ -37,7 +37,7 @@
 
 #define DEF_WORKSPACE_ID       "purc_def_workspace"
 #define DEF_PAGE_GROUP         "main"
-#define DEF_PAGE_ID            "main_page"
+#define DEF_PAGE_NAME          "main_page"
 #define DEF_PAGE_TITLE         "main_page_title"
 
 struct purc_run_info {
@@ -267,14 +267,11 @@ int main(int argc, char** argv)
 
     pcrdr_page_type type = PCRDR_PAGE_TYPE_PLAINWIN;
     purc_renderer_extra_info rdr_extra_info = {
-        .id = DEF_PAGE_ID,
         .title = DEF_PAGE_TITLE
     };
     ret = purc_attach_vdom_to_renderer(vdom,
-            type,
-            DEF_WORKSPACE_ID,
-            DEF_PAGE_GROUP,
-            &rdr_extra_info);
+            type, DEF_WORKSPACE_ID,
+            DEF_PAGE_GROUP, DEF_PAGE_NAME, &rdr_extra_info);
     if (!ret) {
         fprintf(stderr, "Failed to attach renderer : %s\n",
                 purc_get_error_message(purc_get_last_error()));

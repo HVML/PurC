@@ -425,7 +425,7 @@ static const char *target_names[] = {
     "session",
     "workspace",
     "plainwindow",
-    "page",
+    "widget",
     "dom",
     "instance",
     "coroutine",
@@ -1182,14 +1182,11 @@ pcrdr_parse_renderer_capabilities(const char *data)
                 else if (pcutils_strcasecmp(cap, "tabbedWindow") == 0) {
                     rdr_caps->tabbedWindow = strtol(limit, NULL, 10);
                 }
-                else if (pcutils_strcasecmp(cap, "tabbedPage") == 0) {
-                    rdr_caps->tabbedPage = strtol(limit, NULL, 10);
+                else if (pcutils_strcasecmp(cap, "widgetInTabbedWindow") == 0) {
+                    rdr_caps->widgetInTabbedWindow = strtol(limit, NULL, 10);
                 }
                 else if (pcutils_strcasecmp(cap, "plainWindow") == 0) {
                     rdr_caps->plainWindow = strtol(limit, NULL, 10);
-                }
-                else if (pcutils_strcasecmp(cap, "windowLevel") == 0) {
-                    rdr_caps->windowLevel = strtol(limit, NULL, 10);
                 }
             }
         }
@@ -1207,6 +1204,7 @@ pcrdr_parse_renderer_capabilities(const char *data)
                 break;
             }
 
+#if 0
             if (pcutils_strcasecmp(cap, "windowLevels") == 0) {
                 if (rdr_caps->windowLevel <= 0) {
                     PC_WARN("Found windowLevels but windowLevel is <= 0");
@@ -1246,6 +1244,9 @@ pcrdr_parse_renderer_capabilities(const char *data)
                 PC_WARN("windowLevels does not match windowLevel\n");
                 rdr_caps->windowLevel = 0;
             }
+#endif
+            PC_WARN("Unknown renderer capability: %s\n", cap);
+            break;
         }
 
         line_no++;
@@ -1278,6 +1279,7 @@ void pcrdr_release_renderer_capabilities(
     if (rdr_caps->xml_version)
         free(rdr_caps->xml_version);
 
+#if 0
     if (rdr_caps->windowLevel > 0) {
         assert(rdr_caps->window_levels);
 
@@ -1287,6 +1289,7 @@ void pcrdr_release_renderer_capabilities(
         }
         free(rdr_caps->window_levels);
     }
+#endif
 
     free(rdr_caps);
 }
