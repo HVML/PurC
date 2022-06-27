@@ -901,9 +901,11 @@ insert_or_replace(purc_variant_t set,
     if (curr->val == val)
         return 0;
 
+    purc_variant_t _old = purc_variant_ref(curr->val);
+
     do {
         if (check) {
-            if (!change(set, curr->val, val, check))
+            if (!change(set, _old, val, check))
                 break;
 
             if (check_change(set, curr, val))
@@ -916,11 +918,15 @@ insert_or_replace(purc_variant_t set,
         if (check) {
             pcvar_adjust_set_by_descendant(set);
 
-            changed(set, curr->val, val, check);
+            changed(set, _old, val, check);
         }
+
+        PURC_VARIANT_SAFE_CLEAR(_old);
 
         return 0;
     } while (0);
+
+    PURC_VARIANT_SAFE_CLEAR(_old);
 
     return -1;
 }
