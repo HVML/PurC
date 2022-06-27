@@ -68,9 +68,9 @@ static struct pcrdr_opatom {
     { PCRDR_OPERATION_SETPAGEGROUPS,        0 }, // "setPageGroups"
     { PCRDR_OPERATION_ADDPAGEGROUPS,        0 }, // "addPageGroups"
     { PCRDR_OPERATION_REMOVEPAGEGROUP,      0 }, // "removePageGroup"
-    { PCRDR_OPERATION_CREATEPAGE,           0 }, // "createTabpage"
-    { PCRDR_OPERATION_UPDATEPAGE,           0 }, // "updateTabpage"
-    { PCRDR_OPERATION_DESTROYPAGE,          0 }, // "destroyTabpage"
+    { PCRDR_OPERATION_CREATEWIDGET,         0 }, // "createWidget"
+    { PCRDR_OPERATION_UPDATEWIDGET,         0 }, // "updateWidget"
+    { PCRDR_OPERATION_DESTROYWIDGET,        0 }, // "destroyWidget"
     { PCRDR_OPERATION_LOAD,                 0 }, // "load"
     { PCRDR_OPERATION_WRITEBEGIN,           0 }, // "writeBegin"
     { PCRDR_OPERATION_WRITEMORE,            0 }, // "writeMore"
@@ -232,15 +232,112 @@ static int _init_instance(struct pcinst *curr_inst,
     }
 
     pcrdr_release_message(response_msg);
+    response_msg = NULL;
 
     if (ret_code != PCRDR_SC_OK) {
         purc_set_error(PCRDR_ERROR_SERVER_REFUSED);
         goto failed;
     }
 
+    bool set_page_groups = (inst->rdr_caps->workspace == 0);
+    if (extra_info && extra_info->workspace_name &&
+            inst->rdr_caps->workspace != 0) {
+        /* send `createWorkspace` */
+        msg = pcrdr_make_request_message(PCRDR_MSG_TARGET_SESSION, 0,
+                PCRDR_OPERATION_CREATEWORKSPACE, NULL, NULL,
+                PCRDR_MSG_ELEMENT_TYPE_VOID, NULL, NULL,
+                PCRDR_MSG_DATA_TYPE_VOID, NULL, 0);
+        if (msg == NULL) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            goto failed;
+        }
+
+        msg->data = purc_variant_make_object_0();
+        purc_variant_t value = purc_variant_make_string_static(
+                extra_info->workspace_name, true);
+        if (value == PURC_VARIANT_INVALID) {
+            goto failed;
+        }
+        purc_variant_object_set_by_static_ckey(msg->data, "name", value);
+        purc_variant_unref(value);
+
+        if (extra_info->workspace_title) {
+            value = purc_variant_make_string_static(
+                    extra_info->workspace_title, true);
+            if (value == PURC_VARIANT_INVALID) {
+                goto failed;
+            }
+            purc_variant_object_set_by_static_ckey(msg->data, "title", value);
+            purc_variant_unref(value);
+        }
+
+        msg->dataType = PCRDR_MSG_DATA_TYPE_JSON;
+
+        if (pcrdr_send_request_and_wait_response(inst->conn_to_rdr,
+                msg, PCRDR_TIME_DEF_EXPECTED, &response_msg) < 0) {
+            goto failed;
+        }
+        pcrdr_release_message(msg);
+        msg = NULL;
+
+        if (response_msg->retCode == PCRDR_SC_OK ||
+                response_msg->retCode == PCRDR_SC_CONFLICT) {
+            inst->rdr_caps->workspace_handle = response_msg->resultValue;
+            if (response_msg->retCode == PCRDR_SC_OK)
+                set_page_groups = true;
+        }
+        else {
+            purc_set_error(PCRDR_ERROR_SERVER_REFUSED);
+            goto failed;
+        }
+        pcrdr_release_message(response_msg);
+        response_msg = NULL;
+    }
+    else {
+        inst->rdr_caps->workspace_handle = 0;   /* default workspace */
+    }
+
+    if (set_page_groups && extra_info && extra_info->workspace_layout) {
+        /* send `setPageGroups` request */
+        msg = pcrdr_make_request_message(PCRDR_MSG_TARGET_WORKSPACE,
+                inst->rdr_caps->workspace_handle,
+                PCRDR_OPERATION_SETPAGEGROUPS, NULL, NULL,
+                PCRDR_MSG_ELEMENT_TYPE_VOID, NULL, NULL,
+                PCRDR_MSG_DATA_TYPE_VOID, NULL, 0);
+        if (msg == NULL) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            goto failed;
+        }
+
+        msg->data = purc_variant_make_string_static(
+                extra_info->workspace_layout, true);
+        if (msg->data == PURC_VARIANT_INVALID) {
+            goto failed;
+        }
+        msg->dataType = PCRDR_MSG_DATA_TYPE_TEXT;
+
+        if (pcrdr_send_request_and_wait_response(inst->conn_to_rdr,
+                msg, PCRDR_TIME_DEF_EXPECTED, &response_msg) < 0) {
+            goto failed;
+        }
+        pcrdr_release_message(msg);
+        msg = NULL;
+
+        if (response_msg->retCode != PCRDR_SC_OK &&
+                response_msg->retCode != PCRDR_SC_CONFLICT) {
+            purc_set_error(PCRDR_ERROR_SERVER_REFUSED);
+            goto failed;
+        }
+        pcrdr_release_message(response_msg);
+        response_msg = NULL;
+    }
+
     return PURC_ERROR_OK;
 
 failed:
+    if (response_msg)
+        pcrdr_release_message(response_msg);
+
     if (msg)
         pcrdr_release_message(msg);
 

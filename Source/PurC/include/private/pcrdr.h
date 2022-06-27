@@ -53,20 +53,17 @@ struct renderer_capabilities {
     /* the max number of tabbed windows;
        0 for not supported, -1 for unlimited */
     long int    tabbedWindow;
-    /* the max number of tabbed pages in one tabbed window;
+    /* the max number of widgets in one tabbed window;
        0 for not supported, -1 for unlimited */
-    long int    tabbedPage;
+    long int    widgetInTabbedWindow;
     /* the max number of plain windows;
        0 for not supported, -1 for unlimited */
     long int    plainWindow;
-    /* the max number of window levels; 0 or <0 for not supported */
-    long int    windowLevel;
-
-    /* the names of window levels */
-    char  **window_levels;
 
     /* the session handle */
-    uintptr_t   session_handle;
+    uint64_t    session_handle;
+    /* the default workspace handle */
+    uint64_t    workspace_handle;
 };
 
 #ifdef __cplusplus

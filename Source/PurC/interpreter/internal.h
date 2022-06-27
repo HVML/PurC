@@ -127,8 +127,6 @@ pcintr_load_vdom_fragment_from_uri(pcintr_stack_t stack, const char* uri);
 purc_variant_t
 pcintr_doc_query(purc_vdom_t vdom, const char* css, bool silently);
 
-
-
 purc_variant_t
 pcintr_template_make(void);
 
@@ -157,60 +155,96 @@ pcrdr_msg *pcintr_rdr_send_request_and_wait_response(struct pcrdr_conn *conn,
         const char *property, pcrdr_msg_data_type data_type,
         purc_variant_t data);
 
-uintptr_t pcintr_rdr_create_workspace(struct pcrdr_conn *conn,
-        uintptr_t session, const char *id, const char *title,
-        const char* classes, const char *style);
+/* retrieve handle of workspace according to the name */
+uint64_t pcintr_rdr_retrieve_workspace(struct pcrdr_conn *conn,
+        uint64_t session, const char *workspace_name);
+
+uint64_t pcintr_rdr_create_workspace(struct pcrdr_conn *conn,
+        uint64_t session, const char *name, const char *title);
 
 bool pcintr_rdr_destroy_workspace(struct pcrdr_conn *conn,
-        uintptr_t session, uintptr_t workspace);
+        uint64_t session, uint64_t workspace);
 
 // property: title, class, style
 bool pcintr_rdr_update_workspace(struct pcrdr_conn *conn,
-        uintptr_t session, uintptr_t workspace,
+        uint64_t session, uint64_t workspace,
         const char *property, const char *value);
 
+uint64_t pcintr_rdr_create_page(struct pcrdr_conn *conn, uint64_t workspace,
+        pcrdr_page_type page_type, const char *target_group,
+        const char *pag_name, const char *title, const char *classes,
+        const char *layout_style, purc_variant_t toolkit_style);
 
+bool pcintr_rdr_destroy_page(struct pcrdr_conn *conn, uint64_t workspace,
+        pcrdr_page_type page_type, uint64_t page_handle);
 
-uintptr_t pcintr_rdr_create_plain_window(struct pcrdr_conn *conn,
-        uintptr_t workspace, pcrdr_page_type page_type, const char *id,
-        const char *title, const char *classes, const char *style);
+bool
+pcintr_rdr_update_page(struct pcrdr_conn *conn, uint64_t workspace,
+        pcrdr_page_type page_type, uint64_t page_handle,
+        const char *property, purc_variant_t value);
 
-bool pcintr_rdr_destroy_plain_window(struct pcrdr_conn *conn,
-        uintptr_t session, uintptr_t workspace, uintptr_t plain_window);
+static inline uint64_t
+pcintr_rdr_create_plain_window(struct pcrdr_conn *conn, uint64_t workspace,
+        const char *target_group, const char *pag_name,
+        const char *title, const char *classes,
+        const char *layout_style, purc_variant_t toolkit_style)
+{
+    return pcintr_rdr_create_page(conn, workspace,
+        PCRDR_PAGE_TYPE_PLAINWIN, target_group, pag_name, title, classes,
+        layout_style, toolkit_style);
+}
 
-// property: title, class, style
-bool pcintr_rdr_update_plain_window(struct pcrdr_conn *conn,
-        uintptr_t session, uintptr_t workspace, uintptr_t plain_window,
-        const char *property, const char *value);
+static inline bool
+pcintr_rdr_destroy_plain_window(struct pcrdr_conn *conn,
+        uint64_t workspace, uint64_t plain_window)
+{
+    return pcintr_rdr_destroy_page(conn, workspace,
+        PCRDR_PAGE_TYPE_PLAINWIN, plain_window);
+}
 
-bool pcintr_rdr_reset_page_groups(struct pcrdr_conn *conn,
-        uintptr_t session, uintptr_t workspace, const char *data
-        );
+static inline bool
+pcintr_rdr_update_plain_window(struct pcrdr_conn *conn, uint64_t workspace,
+        uint64_t plain_window, const char *property, purc_variant_t value)
+{
+    return pcintr_rdr_update_page(conn, workspace,
+        PCRDR_PAGE_TYPE_PLAINWIN, plain_window, property, value);
+}
 
-uintptr_t pcintr_rdr_add_page_groups(struct pcrdr_conn *conn,
-        uintptr_t session, uintptr_t workspace, const char *id,
-        const char *title, const char* classes, const char *style,
-        const char* level);
+bool pcintr_rdr_set_page_groups(struct pcrdr_conn *conn,
+        uint64_t workspace, const char *data);
 
-bool pcintr_rdr_destroy_page_groups(struct pcrdr_conn *conn,
-        uintptr_t session, uintptr_t workspace, uintptr_t tabbed_window);
+bool pcintr_rdr_add_page_groups(struct pcrdr_conn *conn,
+        uint64_t workspace, const char* page_groups);
 
-// property: title, class, style
-bool pcintr_rdr_update_page_groups(struct pcrdr_conn *conn,
-        uintptr_t session, uintptr_t workspace, uintptr_t tabbed_window,
-        const char *property, const char *value);
+bool pcintr_rdr_remove_page_group(struct pcrdr_conn *conn,
+        uint64_t workspace, const char* page_group_id);
 
+static inline uint64_t
+pcintr_rdr_create_widget(struct pcrdr_conn *conn, uint64_t workspace,
+        const char *target_group, const char *page_name,
+        const char *title, const char *classes,
+        const char *layout_style, purc_variant_t toolkit_style)
+{
+    return pcintr_rdr_create_page(conn, workspace,
+        PCRDR_PAGE_TYPE_WIDGET, target_group, page_name, title, classes,
+        layout_style, toolkit_style);
+}
 
-uintptr_t pcintr_rdr_create_page(struct pcrdr_conn *conn,
-        uintptr_t tabbed_window, const char *id, const char *title);
+static inline bool
+pcintr_rdr_destroy_widget(struct pcrdr_conn *conn,
+        uint64_t workspace, uint64_t widget)
+{
+    return pcintr_rdr_destroy_page(conn, workspace,
+        PCRDR_PAGE_TYPE_WIDGET, widget);
+}
 
-bool pcintr_rdr_destroy_page(struct pcrdr_conn *conn,
-        uintptr_t tabbed_window, uintptr_t tab_page);
-
-// property: title, class, style
-bool pcintr_rdr_update_page(struct pcrdr_conn *conn,
-        uintptr_t tabbed_window, uintptr_t tab_page,
-        const char *property, const char *value);
+static inline bool
+pcintr_rdr_update_widget(struct pcrdr_conn *conn, uint64_t workspace,
+        uint64_t widget, const char *property, purc_variant_t value)
+{
+    return pcintr_rdr_update_page(conn, workspace,
+        PCRDR_PAGE_TYPE_WIDGET, widget, property, value);
+}
 
 bool
 pcintr_rdr_page_control_load(pcintr_stack_t stack);

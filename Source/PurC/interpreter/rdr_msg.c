@@ -43,7 +43,7 @@ process_rdr_msg_by_event(pcrdr_msg *msg)
             // NOTE: not implemented yet
             PC_ASSERT(0);
             break;
-        case PCRDR_MSG_TARGET_PAGE:
+        case PCRDR_MSG_TARGET_WIDGET:
             // NOTE: not implemented yet
             PC_ASSERT(0);
             break;

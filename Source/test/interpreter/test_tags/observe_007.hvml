@@ -18,17 +18,12 @@
                 <h2 id="c_title">Test Observe<br/>
                     <span id="clock">00:00</span>
                 </h2>
-                <observe against="vs" for="change:displaced">
-                    <update on="#clock" at="textContent" with="$vs" />
-                    <forget at="vs" for="change:displaced"/>
-                </observe>
-                <observe on="$TIMERS" for="expired:clock">
+                <observe on="$TIMERS" for="expired:clock" as="timerObserve" at="_root">
                     <update on="#clock" at="textContent" with="$TIMERS[0].id" />
                     <update on="$TIMERS" to="overwrite">
                        { "id" : "clock", "active" : "no" }
                     </update>
-                    <forget on="$TIMERS" for="expired:clock"/>
-                    <init as="vs" at="_root" with="vs end" />
+                    <init as="timerObserve" at="_root" with=undefined />
                 </observe>
                 <p>this is after observe</p>
             </div>
