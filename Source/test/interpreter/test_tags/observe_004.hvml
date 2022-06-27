@@ -17,7 +17,7 @@
                 <h2 id="c_title">Test Observe<br/>
                     <span id="clock">00:00</span>
                 </h2>
-                <observe at="vs" for="change:attached">
+                <observe against="vs" for="change:attached">
                     <update on="#clock" at="textContent" with="$TIMERS[0].active" />
                     <forget at="vs" for="change:attached"/>
                 </observe>

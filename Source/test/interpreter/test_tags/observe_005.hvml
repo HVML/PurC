@@ -18,7 +18,7 @@
                 <h2 id="c_title">Test Observe<br/>
                     <span id="clock">00:00</span>
                 </h2>
-                <observe at="vs" for="change:displaced">
+                <observe against="vs" for="change:displaced">
                     <update on="#clock" at="textContent" with="$vs" />
                     <forget at="vs" for="change:displaced"/>
                 </observe>

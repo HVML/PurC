@@ -45,6 +45,7 @@ struct ctxt_for_observe {
     purc_variant_t                at;
     purc_variant_t                as;
     purc_variant_t                with;
+    purc_variant_t                against;
 
     pcvdom_element_t              define;
 
@@ -62,6 +63,7 @@ ctxt_for_observe_destroy(struct ctxt_for_observe *ctxt)
         PURC_VARIANT_SAFE_CLEAR(ctxt->at);
         PURC_VARIANT_SAFE_CLEAR(ctxt->as);
         PURC_VARIANT_SAFE_CLEAR(ctxt->with);
+        PURC_VARIANT_SAFE_CLEAR(ctxt->against);
 
         if (ctxt->msg_type) {
             free(ctxt->msg_type);
@@ -339,6 +341,31 @@ process_attr_for(struct pcintr_stack_frame *frame,
 }
 
 static int
+process_attr_against(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element,
+        purc_atom_t name, purc_variant_t val)
+{
+    struct ctxt_for_observe *ctxt;
+    ctxt = (struct ctxt_for_observe*)frame->ctxt;
+    if (ctxt->against != PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_DUPLICATED,
+                "vdom attribute '%s' for element <%s>",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    if (val == PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "vdom attribute '%s' for element <%s> undefined",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    ctxt->against = val;
+    purc_variant_ref(val);
+
+    return 0;
+}
+
+static int
 attr_found_val(struct pcintr_stack_frame *frame,
         struct pcvdom_element *element,
         purc_atom_t name, purc_variant_t val,
@@ -364,6 +391,9 @@ attr_found_val(struct pcintr_stack_frame *frame,
     }
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, WITH)) == name) {
         return process_attr_with(frame, element, name, val);
+    }
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, AGAINST)) == name) {
+        return process_attr_against(frame, element, name, val);
     }
 
     purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
@@ -656,8 +686,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     struct pcintr_observer* observer = NULL;
 
-    if (ctxt->at) {
-        observer = process_named_var_observer(stack, frame, ctxt->at);
+    if (ctxt->against) {
+        observer = process_named_var_observer(stack, frame, ctxt->against);
     }
     else if (ctxt->on) {
         observer = process_variant_observer(stack, frame, ctxt->on);
