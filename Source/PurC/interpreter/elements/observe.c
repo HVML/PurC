@@ -703,6 +703,13 @@ bind_by_level(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
 }
 
 static int
+bind_at_default(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
+        const char *name, purc_variant_t val)
+{
+    return bind_by_level(stack, frame, name, val, 1);
+}
+
+static int
 process_bind_by_elem_id(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
         const char *id, const char *name, purc_variant_t val)
 {
@@ -721,7 +728,7 @@ process_bind_by_elem_id(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
     }
 
     if (frame->silently) {
-        return bind_at_vdom(stack->vdom, name, val);
+        return bind_at_default(stack, frame, name, val);
     }
 
     purc_set_error_with_info(PURC_ERROR_ENTITY_NOT_FOUND,
@@ -765,7 +772,7 @@ process_bind_by_name_space(pcintr_stack_t stack,
 
 not_found:
     if (frame->silently) {
-        return bind_at_vdom(stack->vdom, name, val);
+        return bind_at_default(stack, frame, name, val);
     }
     purc_set_error_with_info(PURC_ERROR_BAD_NAME,
             "at = '%s'", name);
@@ -903,7 +910,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
             }
         }
         else {
-            bind_ret = bind_at_vdom(stack->vdom, name, v);
+            bind_ret = bind_at_default(stack, frame, name, v);
         }
 
         if (bind_ret != 0) {

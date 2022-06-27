@@ -23,7 +23,7 @@
                     <update on="$TIMERS" to="overwrite">
                        { "id" : "clock", "active" : "no" }
                     </update>
-                    <init as="timerObserve" at="_root" with=undefined />
+                    <init as="timerObserve" at="2" with=undefined />
                 </observe>
                 <p>this is after observe</p>
             </div>
