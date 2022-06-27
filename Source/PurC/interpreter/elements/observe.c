@@ -868,15 +868,38 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         }
 
         int bind_ret = -1;
-        if (ctxt->at && purc_variant_is_string(ctxt->at)) {
-            const char *s_at = purc_variant_get_string_const(ctxt->at);
-            if (s_at[0] == '#') {
-                bind_ret = process_bind_by_elem_id(stack, frame, s_at + 1,
-                        name, v);
+        if (ctxt->at) {
+            if (purc_variant_is_string(ctxt->at)) {
+                const char *s_at = purc_variant_get_string_const(ctxt->at);
+                if (s_at[0] == '#') {
+                    bind_ret = process_bind_by_elem_id(stack, frame, s_at + 1,
+                            name, v);
+                }
+                else if (s_at[0] == '_') {
+                    bind_ret = process_bind_by_name_space(stack, frame, s_at,
+                            name, v);
+                }
+                else {
+                    uint64_t level;
+                    bool ok = purc_variant_cast_to_ulongint(ctxt->at, &level,
+                            true);
+                    if (ok) {
+                        bind_ret = bind_by_level(stack, frame, name, v, level);
+                    }
+                    else {
+                        bind_ret = bind_at_vdom(stack->vdom, name, v);
+                    }
+                }
             }
             else {
-                bind_ret = process_bind_by_name_space(stack, frame, s_at,
-                        name, v);
+                uint64_t level;
+                bool ok = purc_variant_cast_to_ulongint(ctxt->at, &level, true);
+                if (ok) {
+                    bind_ret = bind_by_level(stack, frame, name, v, level);
+                }
+                else {
+                    bind_ret = bind_at_vdom(stack->vdom, name, v);
+                }
             }
         }
         else {
