@@ -805,20 +805,6 @@ map_destroy(void)
     obj_to_listener = nullptr;
 }
 
-// static struct pcvar_listener*
-// map_get_listener(purc_variant_t obj)
-// {
-//     map_generate();
-//     pcutils_map *map = obj_to_listener;
-//     if (!map)
-//         return nullptr;
-// 
-//     pcutils_map_entry *entry;
-//     entry = pcutils_map_find(map, obj);
-// 
-//     return entry ? (struct pcvar_listener*)(entry->val) : nullptr;
-// }
-
 static int
 map_set_listener(purc_variant_t obj, struct pcvar_listener *listener)
 {
