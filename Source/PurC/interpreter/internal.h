@@ -131,7 +131,7 @@ purc_variant_t
 pcintr_template_make(void);
 
 int
-pcintr_template_append(purc_variant_t val, struct pcvcm_node *vcm,
+pcintr_template_set(purc_variant_t val, struct pcvcm_node *vcm,
         bool to_free);
 
 

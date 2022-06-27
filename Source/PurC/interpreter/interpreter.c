@@ -3597,17 +3597,6 @@ template_destroy(struct pcvdom_template *tpl)
     free(tpl);
 }
 
-static int
-template_append(struct pcvdom_template *tpl, struct pcvcm_node *vcm,
-        bool to_free)
-{
-    PC_ASSERT(tpl->vcm == NULL);
-    tpl->vcm = vcm;
-    tpl->to_free = to_free;
-
-    return 0;
-}
-
 // the cleaner to clear the content represented by the native entity.
 static purc_variant_t
 cleaner(void* native_entity, bool silently)
@@ -3653,8 +3642,8 @@ pcintr_template_make(void)
     return v;
 }
 
-int
-is_template_variant(purc_variant_t val)
+static int
+check_template_variant(purc_variant_t val)
 {
     if (val == PURC_VARIANT_INVALID ||
             purc_variant_is_native(val) == false)
@@ -3675,14 +3664,14 @@ is_template_variant(purc_variant_t val)
 }
 
 int
-pcintr_template_append(purc_variant_t val, struct pcvcm_node *vcm,
+pcintr_template_set(purc_variant_t val, struct pcvcm_node *vcm,
         bool to_free)
 {
     PC_ASSERT(val);
     PC_ASSERT(vcm);
 
     int r;
-    r = is_template_variant(val);
+    r = check_template_variant(val);
     if (r)
         return -1;
 
@@ -3691,7 +3680,11 @@ pcintr_template_append(purc_variant_t val, struct pcvcm_node *vcm,
     struct pcvdom_template *tpl;
     tpl = (struct pcvdom_template*)native_entity;
 
-    return template_append(tpl, vcm, to_free);
+    PC_ASSERT(tpl->vcm == NULL);
+    tpl->vcm = vcm;
+    tpl->to_free = to_free;
+
+    return 0;
 }
 
 void
@@ -3699,7 +3692,7 @@ pcintr_template_walk(purc_variant_t val, void *ctxt,
         pcintr_template_walk_cb cb)
 {
     int r;
-    r = is_template_variant(val);
+    r = check_template_variant(val);
     // FIXME: modify pcintr_template_walk function-signature
     PC_ASSERT(r == 0);
 
