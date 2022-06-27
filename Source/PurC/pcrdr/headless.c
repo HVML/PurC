@@ -41,13 +41,12 @@
 #include <errno.h>
 #include <assert.h>
 
+#define LEN_BUFF_LONGLONGINT    128
+
 #define NR_WORKSPACES           8
 #define NR_TABBEDWINDOWS        8
-#define NR_TABPAGES             32
+#define NR_WIDGETS              32
 #define NR_PLAINWINDOWS         256
-#define NR_WINDOWLEVELS         2
-#define NAME_WINDOW_LEVEL_0     "normal"
-#define NAME_WINDOW_LEVEL_1     "topmost"
 
 #define __STRING(x) #x
 
@@ -56,28 +55,29 @@
     "HTML:5.3/XGML:1.0/XML:1.0\n"                   \
     "workspace:" __STRING(8)                        \
     "/tabbedWindow:" __STRING(8)                    \
-    "/tabbedPage:" __STRING(32)                     \
-    "/plainWindow:" __STRING(256)                   \
-    "/windowLevel:" __STRING(2) "\n"                \
-    "windowLevels:" "normal" "," "topmost"
+    "/widgetInTabbedWindow:" __STRING(32)           \
+    "/plainWindow:" __STRING(256)
 
 struct tabbed_window_info {
     // handle of this tabbedWindow; NULL for not used slot.
     void *handle;
 
     // number of tabpages in this tabbedWindow
-    int nr_tabpages;
+    int nr_widgets;
 
     // handles of all tabpages in this tabbedWindow
-    void *tabpages[NR_TABPAGES];
+    void *tabpages[NR_WIDGETS];
 
     // handles of all DOM documents in all tabpages.
-    void *domdocs[NR_TABPAGES];
+    void *domdocs[NR_WIDGETS];
 };
 
 struct workspace_info {
     // handle of this workspace; NULL for not used slot
     void *handle;
+
+    // name of the workspace
+    char *name;
 
     // number of tabbed windows in this workspace
     int nr_tabbed_windows;
@@ -106,6 +106,8 @@ struct session_info {
 struct result_info {
     int         retCode;
     uint64_t    resultValue;
+    pcrdr_msg_data_type data_type;
+    purc_variant_t data;
 };
 
 struct pcrdr_prot_data {
@@ -174,6 +176,8 @@ static pcrdr_msg *my_read_message(pcrdr_conn* conn)
                 purc_variant_get_string_const(pr->request_id), NULL,
                 result->retCode, (uint64_t)(uintptr_t)result->resultValue,
                 PCRDR_MSG_DATA_TYPE_VOID, NULL, 0);
+        msg->dataType = result->data_type;
+        msg->data = result->data;
 
         pcutils_kvlist_delete(&conn->prot_data->results, request_id);
         free(result);
@@ -252,6 +256,13 @@ static void on_end_session(struct pcrdr_prot_data *prot_data,
         return;
     }
 
+    struct workspace_info *workspaces = prot_data->session->workspaces;
+    for (int i = 0; i < NR_WORKSPACES; i++) {
+        if (workspaces[i].handle) {
+            free(workspaces[i].name);
+        }
+    }
+
     free(prot_data->session);
     prot_data->session = NULL;
 
@@ -289,11 +300,41 @@ static void on_create_workspace(struct pcrdr_prot_data *prot_data,
         return;
     }
 
+    if (msg->dataType != PCRDR_MSG_DATA_TYPE_JSON ||
+            !purc_variant_is_object(msg->data)) {
+        result->retCode = PCRDR_SC_BAD_REQUEST;
+        result->resultValue = 0;
+        return;
+    }
+
+    const char *name = NULL;
+    purc_variant_t tmp = purc_variant_object_get_by_ckey(msg->data, "name");
+    if (tmp) {
+        name = purc_variant_get_string_const(tmp);
+    }
+
+    if (name == NULL) {
+        result->retCode = PCRDR_SC_BAD_REQUEST;
+        result->resultValue = 0;
+        return;
+    }
+
     int i;
     struct workspace_info *workspaces = prot_data->session->workspaces;
     for (i = 0; i < NR_WORKSPACES; i++) {
+        if (workspaces[i].handle) {
+            if (strcmp(workspaces[i].name, name) == 0) {
+                result->retCode = PCRDR_SC_CONFLICT;
+                result->resultValue = 0;
+                return;
+            }
+        }
+    }
+
+    for (i = 0; i < NR_WORKSPACES; i++) {
         if (workspaces[i].handle == NULL) {
             workspaces[i].handle = &workspaces[i].handle;
+            workspaces[i].name = strdup(name);
             break;
         }
     }
@@ -388,6 +429,7 @@ static void on_destroy_workspace(struct pcrdr_prot_data *prot_data,
     }
 
     /* TODO: generate window and/or tabpage destroyed events */
+    free(workspaces[i].name);
     memset(workspaces + i, 0, sizeof(struct workspace_info));
     prot_data->session->nr_workspaces--;
 
@@ -731,7 +773,7 @@ static void on_remove_page_group(struct pcrdr_prot_data *prot_data,
     result->resultValue = elementHandle;
 }
 
-static void on_create_tabpage(struct pcrdr_prot_data *prot_data,
+static void on_create_widget(struct pcrdr_prot_data *prot_data,
         const pcrdr_msg *msg, unsigned int op_id, struct result_info *result)
 {
     UNUSED_PARAM(op_id);
@@ -767,14 +809,14 @@ found:
         return;
     }
 
-    if (workspaces[i].tabbed_windows[j].nr_tabpages >= NR_TABPAGES) {
+    if (workspaces[i].tabbed_windows[j].nr_widgets >= NR_WIDGETS) {
         result->retCode = PCRDR_SC_SERVICE_UNAVAILABLE;
         result->resultValue = msg->targetValue;
         return;
     }
 
     int k;
-    for (k = 0; k < NR_TABPAGES; k++) {
+    for (k = 0; k < NR_WIDGETS; k++) {
         if (workspaces[i].tabbed_windows[j].tabpages[k] == NULL) {
             workspaces[i].tabbed_windows[j].tabpages[k] =
                 &workspaces[i].tabbed_windows[j].tabpages[k];
@@ -782,15 +824,15 @@ found:
         }
     }
 
-    assert(k < NR_TABPAGES);
+    assert(k < NR_WIDGETS);
 
-    workspaces[i].tabbed_windows[j].nr_tabpages++;
+    workspaces[i].tabbed_windows[j].nr_widgets++;
     result->retCode = PCRDR_SC_OK;
     result->resultValue =
         (uint64_t)(uintptr_t)workspaces[i].tabbed_windows[j].tabpages[k];
 }
 
-static void on_update_tabpage(struct pcrdr_prot_data *prot_data,
+static void on_update_widget(struct pcrdr_prot_data *prot_data,
         const pcrdr_msg *msg, unsigned int op_id, struct result_info *result)
 {
     UNUSED_PARAM(op_id);
@@ -831,7 +873,7 @@ found:
             purc_variant_get_string_const(msg->elementValue), NULL, 16);
 
     int k;
-    for (k = 0; k < NR_TABPAGES; k++) {
+    for (k = 0; k < NR_WIDGETS; k++) {
         uint64_t handle =
             (uint64_t)(uintptr_t)workspaces[i].tabbed_windows[j].tabpages[k];
         if (handle == elementHandle) {
@@ -839,7 +881,7 @@ found:
         }
     }
 
-    if (k >= NR_TABPAGES) {
+    if (k >= NR_WIDGETS) {
         result->retCode = PCRDR_SC_NOT_FOUND;
         result->resultValue = elementHandle;
         return;
@@ -849,7 +891,7 @@ found:
     result->resultValue = elementHandle;
 }
 
-static void on_destroy_tabpage(struct pcrdr_prot_data *prot_data,
+static void on_destroy_widget(struct pcrdr_prot_data *prot_data,
         const pcrdr_msg *msg, unsigned int op_id, struct result_info *result)
 {
     UNUSED_PARAM(op_id);
@@ -890,7 +932,7 @@ found:
             purc_variant_get_string_const(msg->elementValue), NULL, 16);
 
     int k;
-    for (k = 0; k < NR_TABPAGES; k++) {
+    for (k = 0; k < NR_WIDGETS; k++) {
         uint64_t handle =
             (uint64_t)(uintptr_t)workspaces[i].tabbed_windows[j].tabpages[k];
         if (handle == elementHandle) {
@@ -898,7 +940,7 @@ found:
         }
     }
 
-    if (k >= NR_TABPAGES) {
+    if (k >= NR_WIDGETS) {
         result->retCode = PCRDR_SC_NOT_FOUND;
         result->resultValue = elementHandle;
         return;
@@ -907,7 +949,7 @@ found:
     /* TODO: generate DOM document and/or tabpage destroyed events */
     workspaces[i].tabbed_windows[j].tabpages[k] = NULL;
     workspaces[i].tabbed_windows[j].domdocs[k] = NULL;
-    workspaces[i].tabbed_windows[j].nr_tabpages--;
+    workspaces[i].tabbed_windows[j].nr_widgets--;
 
     result->retCode = PCRDR_SC_OK;
     result->resultValue = elementHandle;
@@ -917,7 +959,7 @@ static void **find_domdoc_ptr(struct pcrdr_prot_data *prot_data,
         const pcrdr_msg *msg, struct result_info *result)
 {
     if (msg->target != PCRDR_MSG_TARGET_PLAINWINDOW &&
-            msg->target != PCRDR_MSG_TARGET_PAGE) {
+            msg->target != PCRDR_MSG_TARGET_WIDGET) {
     }
 
     if (prot_data->session == 0) {
@@ -950,12 +992,12 @@ found_pw:
 
         domdocs = &workspaces[i].domdocs[j];
     }
-    else if (msg->target == PCRDR_MSG_TARGET_PAGE) {
+    else if (msg->target == PCRDR_MSG_TARGET_WIDGET) {
         int i, j, k;
         struct workspace_info *workspaces = prot_data->session->workspaces;
         for (i = 0; i < NR_WORKSPACES; i++) {
             for (j = 0; j < NR_TABBEDWINDOWS; j++) {
-                for (k = 0; k < NR_TABPAGES; k++) {
+                for (k = 0; k < NR_WIDGETS; k++) {
                     uint64_t handle =
                         (uint64_t)(uintptr_t)
                         &workspaces[i].tabbed_windows[j].tabpages[k];
@@ -967,7 +1009,7 @@ found_pw:
         }
 
 found_tp:
-        if (i >= NR_WORKSPACES || j >= NR_TABBEDWINDOWS || k >= NR_TABPAGES) {
+        if (i >= NR_WORKSPACES || j >= NR_TABBEDWINDOWS || k >= NR_WIDGETS) {
             result->retCode = PCRDR_SC_NOT_FOUND;
             result->resultValue = msg->targetValue;
             return NULL;
@@ -1095,7 +1137,7 @@ static void on_operate_dom(struct pcrdr_prot_data *prot_data,
             if (workspaces[i].tabbed_windows[j].handle == NULL)
                 continue;
 
-            for (int k = 0; k < NR_TABPAGES; k++) {
+            for (int k = 0; k < NR_WIDGETS; k++) {
                 uint64_t handle =
                     (uint64_t)(uintptr_t)
                     &workspaces[i].tabbed_windows[j].domdocs[k];
@@ -1118,6 +1160,97 @@ found:
     result->resultValue = msg->targetValue;
 }
 
+static void on_call_method(struct pcrdr_prot_data *prot_data,
+        const pcrdr_msg *msg, unsigned int op_id, struct result_info *result)
+{
+    UNUSED_PARAM(prot_data);
+    UNUSED_PARAM(msg);
+    UNUSED_PARAM(op_id);
+
+    result->retCode = PCRDR_SC_NOT_IMPLEMENTED;
+    result->resultValue = 0;
+}
+
+static void on_get_property(struct pcrdr_prot_data *prot_data,
+        const pcrdr_msg *msg, unsigned int op_id, struct result_info *result)
+{
+    UNUSED_PARAM(op_id);
+
+    if (msg->target != PCRDR_MSG_TARGET_SESSION) {
+        result->retCode = PCRDR_SC_BAD_REQUEST;
+        result->resultValue = 0;
+        return;
+    }
+
+    if (prot_data->session == 0) {
+        result->retCode = PCRDR_SC_TOO_EARLY;
+        result->resultValue = 0;
+        return;
+    }
+
+    if (msg->targetValue != 0 &&
+            msg->targetValue != (uint64_t)(uintptr_t)prot_data->session) {
+        result->retCode = PCRDR_SC_BAD_REQUEST;
+        result->resultValue = 0;
+        return;
+    }
+
+    const char *property = NULL;
+    if (msg->property) {
+       property = purc_variant_get_string_const(msg->property);
+    }
+
+    if (property == NULL) {
+        result->retCode = PCRDR_SC_BAD_REQUEST;
+        result->resultValue = 0;
+        return;
+    }
+
+    /* only support `workspaceList` on session */
+    if (strcmp(property, "workspaceList")) {
+        result->retCode = PCRDR_SC_NOT_FOUND;
+        result->resultValue = 0;
+        return;
+    }
+
+    result->data = purc_variant_make_object_0();
+    int i;
+    struct workspace_info *workspaces = prot_data->session->workspaces;
+    for (i = 0; i < NR_WORKSPACES; i++) {
+        if (workspaces[i].handle) {
+
+            purc_variant_t value = purc_variant_make_object_0();
+            purc_variant_t handle;
+            char buff[LEN_BUFF_LONGLONGINT];
+            snprintf(buff, sizeof(buff), "%llx",
+                    (unsigned long long)(uintptr_t)workspaces[i].handle);
+
+            handle = purc_variant_make_string(buff, false);
+            purc_variant_object_set_by_static_ckey(value,
+                    "handle", handle);
+            purc_variant_unref(handle);
+
+            purc_variant_object_set_by_static_ckey(result->data,
+                    workspaces[i].name, value);
+            purc_variant_unref(value);
+        }
+    }
+
+    result->retCode = PCRDR_SC_OK;
+    result->data_type = PCRDR_MSG_DATA_TYPE_JSON;
+}
+
+static void on_set_property(struct pcrdr_prot_data *prot_data,
+        const pcrdr_msg *msg, unsigned int op_id, struct result_info *result)
+{
+    UNUSED_PARAM(prot_data);
+    UNUSED_PARAM(msg);
+    UNUSED_PARAM(op_id);
+
+    result->retCode = PCRDR_SC_NOT_IMPLEMENTED;
+    result->resultValue = 0;
+}
+
 static request_handler handlers[] = {
     on_start_session,
     on_end_session,
@@ -1130,9 +1263,9 @@ static request_handler handlers[] = {
     on_reset_page_groups,
     on_add_page_groups,
     on_remove_page_group,
-    on_create_tabpage,
-    on_update_tabpage,
-    on_destroy_tabpage,
+    on_create_widget,
+    on_update_widget,
+    on_destroy_widget,
     on_load,
     on_write_begin,
     on_write_more,
@@ -1145,9 +1278,9 @@ static request_handler handlers[] = {
     on_operate_dom,
     on_operate_dom,
     on_operate_dom,
-    on_operate_dom, /* TODO: for callMethod */
-    on_operate_dom, /* TODO: for getProperty */
-    on_operate_dom, /* TODO: for setProperty */
+    on_call_method,
+    on_get_property,
+    on_set_property,
 };
 
 /* make sure the number of operation handlers matches the enumulators */
@@ -1163,7 +1296,7 @@ static int evaluate_result(struct pcrdr_prot_data *prot_data,
     purc_atom_t op_atom;
     struct result_info *result;
 
-    result = malloc(sizeof(*result));
+    result = calloc(1, sizeof(*result));
 
     op_atom = pcrdr_check_operation(
             purc_variant_get_string_const(msg->operation));

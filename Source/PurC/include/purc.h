@@ -64,7 +64,7 @@ typedef struct purc_instance_extra_info {
      * or a named pipe, like `file:///var/tmp/purc-foo-bar-msgs.log`.
      *
      * When using a THREAD renderer, you should specify the endpoint name
-     * of the renderer like `@<app_name>/<runner_name>`. The endpoint name
+     * of the renderer like `//-/<app_name>/<runner_name>`. The endpoint name
      * will be used to distinguish renderers and interperter instances.
      *
      * When using a PURCMC renderer, you can specify a UNIX domain socket
@@ -76,11 +76,23 @@ typedef struct purc_instance_extra_info {
      */
     const char      *renderer_uri;
 
-    /** the SSL certification if using Secured WebSocket. */
+    /** The SSL certification if using Secured WebSocket. */
     const char      *ssl_cert;
 
-    /** the SSL key if using Secured WebSocket. */
+    /** The SSL key if using Secured WebSocket. */
     const char      *ssl_key;
+
+    /** The default workspace of this instance. */
+    const char      *workspace_name;
+
+    /** The title of the workspace. */
+    const char      *workspace_title;
+
+    /**
+     * The HTML contents defining the layout of the windows or widgets which
+     * will render the uDOMs in the default workspace.
+     */
+    const char      *workspace_layout;
 
 } purc_instance_extra_info;
 
@@ -412,27 +424,22 @@ purc_get_conn_to_renderer(void);
 
 /** The extra renderer information */
 typedef struct purc_renderer_extra_info {
-    /** the workspace classes if creating a new workspace */
-    const char *workspace_classe;
-    /** the workspace styles if creating a new workspace */
-    const char *workspace_styles;
-    /** the workspace title if creating a new workspace */
-    const char *workspace_title;
-
-    /* the identifier of the page */
-    const char *id;
-    /* the extra class of the page */
-    const char *classes;
-    /* the style of the page */
-    const char *style;
-    /* the title of the page */
+    /** the class for layout of the widget */
+    const char *klass;
+    /** the title of the widget */
     const char *title;
+    /** the layout style of the page (like `width:100px`) */
+    const char *layoutStyle;
+    /** the toolkit style of the page (an object variant) */
+    purc_variant_t toolkitStyle;
+
+    /** The page groups to add to the layout DOM */
+    const char *page_groups;
 } purc_renderer_extra_info;
 
 typedef enum pcrdr_page_type {
     PCRDR_PAGE_TYPE_PLAINWIN = 0,
-    PCRDR_PAGE_TYPE_PANEL,
-    PCRDR_PAGE_TYPE_TAB,
+    PCRDR_PAGE_TYPE_WIDGET,
 } pcrdr_page_type;
 
 /**
@@ -441,11 +448,15 @@ typedef enum pcrdr_page_type {
  * @vdom: The vDOM entity returned by @purc_load_hvml_from_rwstream or
  *      its brother functions.
  * @page_type: the target page type.
- * @target_workspace: The identifier of the target workspace.
- * @target_group: The identifier of the target group.
+ * @target_workspace: The name of the target workspace.
+ * @target_group: The identifier of the target group (nullable) in the layout
+ *  HTML contents. When @NULL given, the renderer will create an ungrouped
+ *  plainw window for this vDOM.
+ * @page_name: The page name (nullable). When @NULL given, the page will be
+ *  assigned with an auto-generated page name like `page-10`.
  *
- * Attaches a vDOM tree to a plain window or a tabpage in a tabbed window in
- * the connected renderer.
+ * Attaches a vDOM tree to a plain window or a widget in the specified
+ * workspace in the connected renderer.
  *
  * Returns: @true on success; otherwise @false.
  *
@@ -453,9 +464,8 @@ typedef enum pcrdr_page_type {
  */
 PCA_EXPORT bool
 purc_attach_vdom_to_renderer(purc_vdom_t vdom,
-        pcrdr_page_type page_type,
-        const char *target_workspace,
-        const char *target_group,
+        pcrdr_page_type page_type, const char *target_workspace,
+        const char *target_group, const char *page_name,
         purc_renderer_extra_info *extra_info);
 
 typedef int (*purc_event_handler)(purc_vdom_t vdom, purc_variant_t event);
