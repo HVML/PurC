@@ -1,3 +1,4 @@
+#undef NDEBUG
 #include "purc.h"
 #include "private/debug.h"
 #include "private/ejson-parser.h"
