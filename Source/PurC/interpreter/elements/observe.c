@@ -410,8 +410,18 @@ attr_found(struct pcintr_stack_frame *frame,
         struct pcvdom_attr *attr,
         void *ud)
 {
-    PC_ASSERT(name);
+//    PC_ASSERT(name);
     PC_ASSERT(attr->op == PCHVML_ATTRIBUTE_OPERATOR);
+    if (!name) {
+        // FIXME: unknown attribute
+#if 0
+        purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
+                "unknown vdom attribute '%s' for element <%s>",
+                attr->key, element->tag_name);
+        return -1;
+#endif
+        return 0;
+    }
 
     purc_variant_t val = pcintr_eval_vdom_attr(pcintr_get_stack(), attr);
     if (val == PURC_VARIANT_INVALID)
@@ -618,6 +628,9 @@ process_variant_observer(pcintr_stack_t stack,
 static bool
 match_id(pcintr_stack_t stack, struct pcvdom_element *elem, const char *id)
 {
+    if (elem->node.type == PCVDOM_NODE_DOCUMENT) {
+        return false;
+    }
     struct pcvdom_attr *attr = pcvdom_element_find_attr(elem, "id");
     if (!attr) {
         return false;
@@ -677,7 +690,7 @@ bind_by_level(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
         p = pcvdom_element_parent(p);
     }
 
-    if (p) {
+    if (p && p->node.type != PCVDOM_NODE_DOCUMENT) {
         return bind_at_element(p, name, val);
     }
 
@@ -703,7 +716,7 @@ process_bind_by_elem_id(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
         p = pcvdom_element_parent(p);
     }
 
-    if (dest) {
+    if (dest && dest->node.type != PCVDOM_NODE_DOCUMENT) {
         return bind_at_element(dest, name, val);
     }
 
@@ -858,7 +871,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         if (ctxt->at && purc_variant_is_string(ctxt->at)) {
             const char *s_at = purc_variant_get_string_const(ctxt->at);
             if (s_at[0] == '#') {
-                bind_ret = process_bind_by_elem_id(stack, frame, s_at,
+                bind_ret = process_bind_by_elem_id(stack, frame, s_at + 1,
                         name, v);
             }
             else {
