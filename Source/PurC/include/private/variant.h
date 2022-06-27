@@ -247,6 +247,7 @@ struct variant_set {
     char                   *unique_key; // unique-key duplicated
     const char            **keynames;
     size_t                  nr_keynames;
+    bool                    caseless;
     struct rb_root          elems;  // multiple-variant-elements stored in set
     struct pcutils_array_list al;    // struct set_node
 
