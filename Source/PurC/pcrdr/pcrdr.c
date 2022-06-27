@@ -232,13 +232,14 @@ static int _init_instance(struct pcinst *curr_inst,
     }
 
     pcrdr_release_message(response_msg);
+    response_msg = NULL;
 
     if (ret_code != PCRDR_SC_OK) {
         purc_set_error(PCRDR_ERROR_SERVER_REFUSED);
         goto failed;
     }
 
-    bool set_page_groups = false;
+    bool set_page_groups = (inst->rdr_caps->workspace == 0);
     if (extra_info && extra_info->workspace_name &&
             inst->rdr_caps->workspace != 0) {
         /* send `createWorkspace` */
@@ -290,6 +291,7 @@ static int _init_instance(struct pcinst *curr_inst,
             goto failed;
         }
         pcrdr_release_message(response_msg);
+        response_msg = NULL;
     }
     else {
         inst->rdr_caps->workspace_handle = 0;   /* default workspace */
@@ -321,16 +323,21 @@ static int _init_instance(struct pcinst *curr_inst,
         pcrdr_release_message(msg);
         msg = NULL;
 
-        if (response_msg->retCode != PCRDR_SC_OK) {
+        if (response_msg->retCode != PCRDR_SC_OK &&
+                response_msg->retCode != PCRDR_SC_CONFLICT) {
             purc_set_error(PCRDR_ERROR_SERVER_REFUSED);
             goto failed;
         }
         pcrdr_release_message(response_msg);
+        response_msg = NULL;
     }
 
     return PURC_ERROR_OK;
 
 failed:
+    if (response_msg)
+        pcrdr_release_message(response_msg);
+
     if (msg)
         pcrdr_release_message(msg);
 

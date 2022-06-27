@@ -7,7 +7,7 @@
 </head>
 
 <body>
-    <observe at="buttons" for="change:displaced">
+    <observe against="buttons" for="change:displaced">
         <exit/>
     </observe>
 </body>
