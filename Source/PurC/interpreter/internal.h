@@ -38,14 +38,9 @@
 #include "../vdom/vdom-internal.h"
 #endif                                    /* } */
 
-struct pcvdom_template_node {
-    struct list_head              node;
+struct pcvdom_template {
     struct pcvcm_node            *vcm;
     bool                          to_free;
-};
-
-struct pcvdom_template {
-    struct list_head             list;
 };
 
 PCA_EXTERN_C_BEGIN

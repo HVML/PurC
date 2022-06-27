@@ -263,8 +263,6 @@ on_child_finished(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     int r;
     r = pcintr_bind_template(frame->except_templates,
             ctxt->type, ctxt->contents);
-    // FIXME: exception in catch???
-    PC_ASSERT(r == 0);
 
     return r ? -1 : 0;
 }
