@@ -1025,65 +1025,18 @@ make_set_c(bool check, size_t sz, const char *unique_key,
     return PURC_VARIANT_INVALID;
 }
 
-static purc_variant_t
-pv_make_set_by_ckey_n(bool check, size_t sz, const char* unique_key,
-    bool caseless, purc_variant_t value0, va_list ap)
-{
-    purc_variant_t v = make_set_c(check, sz, unique_key, caseless, value0, ap);
-
-    return v;
-}
-
 purc_variant_t
-purc_variant_make_set_by_ckey(size_t sz, const char* unique_key,
-    purc_variant_t value0, ...)
+purc_variant_make_set_by_ckey_ex(size_t sz, const char* unique_key,
+    bool caseless, purc_variant_t value0, ...)
 {
     PCVARIANT_CHECK_FAIL_RET((sz==0 && value0==NULL) || (sz>0 && value0),
         PURC_VARIANT_INVALID);
 
-    bool caseless = false;
     bool check = true;
     purc_variant_t v;
     va_list ap;
     va_start(ap, value0);
-    v = pv_make_set_by_ckey_n(check, sz, unique_key, caseless, value0, ap);
-    va_end(ap);
-
-    return v;
-}
-
-static purc_variant_t
-pv_make_set_n(bool check, size_t sz, purc_variant_t unique_key,
-    bool caseless, purc_variant_t value0, va_list ap)
-{
-    const char *uk = NULL;
-    if (unique_key) {
-        uk = purc_variant_get_string_const(unique_key);
-        PC_ASSERT(uk);
-    }
-
-    purc_variant_t v = make_set_c(check, sz, uk, caseless, value0, ap);
-
-    return v;
-}
-
-purc_variant_t
-purc_variant_make_set(size_t sz, purc_variant_t unique_key,
-    purc_variant_t value0, ...)
-{
-    PCVARIANT_CHECK_FAIL_RET((sz==0 && value0==NULL) ||
-        (sz>0 && value0),
-        PURC_VARIANT_INVALID);
-
-    PCVARIANT_CHECK_FAIL_RET(!unique_key || unique_key->type==PVT(_STRING),
-        PURC_VARIANT_INVALID);
-
-    bool caseless = false;
-    bool check = true;
-    purc_variant_t v;
-    va_list ap;
-    va_start(ap, value0);
-    v = pv_make_set_n(check, sz, unique_key, caseless, value0, ap);
+    v = make_set_c(check, sz, unique_key, caseless, value0, ap);
     va_end(ap);
 
     return v;

@@ -479,8 +479,14 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     purc_variant_t src = frame->ctnt_var;
 
     if (ctxt->uniquely) {
+        const char *s_against = NULL;
+        if (ctxt->against != PURC_VARIANT_INVALID) {
+            s_against = purc_variant_get_string_const(ctxt->against);
+        }
         purc_variant_t set;
-        set = purc_variant_make_set(0, ctxt->against, PURC_VARIANT_INVALID);
+        bool caseless = ctxt->casesensitively ? false : true;
+        set = purc_variant_make_set_by_ckey_ex(0, s_against, caseless,
+                PURC_VARIANT_INVALID);
         if (set == PURC_VARIANT_INVALID)
             return -1;
 
@@ -667,8 +673,13 @@ process_attr_against(struct pcintr_stack_frame *frame,
                 purc_atom_to_string(name), element->tag_name);
         return -1;
     }
-    ctxt->against = val;
-    purc_variant_ref(val);
+    if (!purc_variant_is_string(val)) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "vdom attribute '%s' for element <%s> is not string",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    ctxt->against = purc_variant_ref(val);
 
     return 0;
 }

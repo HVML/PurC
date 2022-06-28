@@ -2188,7 +2188,7 @@ purc_variant_booleanize(purc_variant_t value)
 
 struct stringify_arg
 {
-    void (*cb)(void *arg, const void *src, size_t len);
+    void (*cb)(struct stringify_arg *arg, const void *src, size_t len);
     void *arg;
     unsigned int flags;
 };
@@ -2211,14 +2211,14 @@ stringify_bs(struct stringify_arg *arg, const unsigned char *bs, size_t nr)
         *p++ = chars[l];
         if (p == end) {
             *p = '\0';
-            arg->cb(arg->arg, buffer, 0);
+            arg->cb(arg, buffer, 0);
             p = buffer;
         }
     }
 
     if (p>buffer) {
         *p = '\0';
-        arg->cb(arg->arg, buffer, 0);
+        arg->cb(arg, buffer, 0);
     }
 }
 
@@ -2234,17 +2234,17 @@ stringify_array(struct stringify_arg *arg, purc_variant_t value)
     for (size_t i=0; i<sz; ++i) {
         purc_variant_t v = purc_variant_array_get(value, i);
         variant_stringify(arg, v);
-        arg->cb(arg->arg, "\n", 0);
+        arg->cb(arg, "\n", 0);
     }
 }
 
 static void
 stringify_kv(struct stringify_arg *arg, const char *key, purc_variant_t val)
 {
-    arg->cb(arg->arg, key, strlen(key));
-    arg->cb(arg->arg, ":", 0);
+    arg->cb(arg, key, strlen(key));
+    arg->cb(arg, ":", 0);
     variant_stringify(arg, val);
-    arg->cb(arg->arg, "\n", 0);
+    arg->cb(arg, "\n", 0);
 }
 
 static void
@@ -2263,7 +2263,7 @@ stringify_set(struct stringify_arg *arg, purc_variant_t value)
     purc_variant_t v;
     foreach_value_in_variant_set_order(value, v)
         variant_stringify(arg, v);
-        arg->cb(arg->arg, "\n", 0);
+        arg->cb(arg, "\n", 0);
     end_foreach;
 }
 
@@ -2278,7 +2278,7 @@ stringify_tuple(struct stringify_arg *arg, purc_variant_t value)
 
     for (size_t n = 0; n < sz; n++) {
         variant_stringify(arg, members[n]);
-        arg->cb(arg->arg, "\n", 0);
+        arg->cb(arg, "\n", 0);
     }
 }
 
@@ -2290,7 +2290,7 @@ stringify_dynamic(struct stringify_arg *arg, purc_variant_t value)
 
     char buf[128];
     snprintf(buf, sizeof(buf), "<dynamic: %p, %p>", getter, setter);
-    arg->cb(arg->arg, buf, 0);
+    arg->cb(arg, buf, 0);
 }
 
 static void
@@ -2300,7 +2300,7 @@ stringify_native(struct stringify_arg *arg, purc_variant_t value)
 
     char buf[128];
     snprintf(buf, sizeof(buf), "<native: %p>", native);
-    arg->cb(arg->arg, buf, 0);
+    arg->cb(arg, buf, 0);
 }
 
 static void
@@ -2311,54 +2311,54 @@ variant_stringify(struct stringify_arg *arg, purc_variant_t value)
 
     switch (type) {
     case PURC_VARIANT_TYPE_UNDEFINED:
-        arg->cb(arg->arg, "undefined", 0);
+        arg->cb(arg, "undefined", 0);
         break;
     case PURC_VARIANT_TYPE_NULL:
-        arg->cb(arg->arg, "null", 0);
+        arg->cb(arg, "null", 0);
         break;
     case PURC_VARIANT_TYPE_BOOLEAN:
         if (value->b) {
-            arg->cb(arg->arg, "true", 0);
+            arg->cb(arg, "true", 0);
         } else {
-            arg->cb(arg->arg, "false", 0);
+            arg->cb(arg, "false", 0);
         }
         break;
     case PURC_VARIANT_TYPE_NUMBER:
         if (arg->flags & PCVARIANT_STRINGIFY_OPT_REAL_BAREBYTES) {
-            arg->cb(arg->arg, &value->d, sizeof(double));
+            arg->cb(arg, &value->d, sizeof(double));
         }
         else {
             snprintf(buf, sizeof(buf), "%g", value->d);
-            arg->cb(arg->arg, buf, 0);
+            arg->cb(arg, buf, 0);
         }
         break;
     case PURC_VARIANT_TYPE_LONGINT:
         if (arg->flags & PCVARIANT_STRINGIFY_OPT_REAL_BAREBYTES) {
-            arg->cb(arg->arg, &value->i64, sizeof(int64_t));
+            arg->cb(arg, &value->i64, sizeof(int64_t));
         }
         else {
             snprintf(buf, sizeof(buf), "%" PRId64 "", value->i64);
-            arg->cb(arg->arg, buf, 0);
+            arg->cb(arg, buf, 0);
         }
         break;
 
     case PURC_VARIANT_TYPE_ULONGINT:
         if (arg->flags & PCVARIANT_STRINGIFY_OPT_REAL_BAREBYTES) {
-            arg->cb(arg->arg, &value->u64, sizeof(uint64_t));
+            arg->cb(arg, &value->u64, sizeof(uint64_t));
         }
         else {
             snprintf(buf, sizeof(buf), "%" PRIu64 "", value->u64);
-            arg->cb(arg->arg, buf, 0);
+            arg->cb(arg, buf, 0);
         }
         break;
 
     case PURC_VARIANT_TYPE_LONGDOUBLE:
         if (arg->flags & PCVARIANT_STRINGIFY_OPT_REAL_BAREBYTES) {
-            arg->cb(arg->arg, &value->ld, sizeof(long double));
+            arg->cb(arg, &value->ld, sizeof(long double));
         }
         else {
             snprintf(buf, sizeof(buf), "%Lg", value->ld);
-            arg->cb(arg->arg, buf, 0);
+            arg->cb(arg, buf, 0);
         }
         break;
 
@@ -2370,7 +2370,7 @@ variant_stringify(struct stringify_arg *arg, purc_variant_t value)
         size_t len;
 
         str = purc_variant_get_string_const_ex(value, &len);
-        arg->cb(arg->arg, str, len);
+        arg->cb(arg, str, len);
         break;
     }
 
@@ -2381,7 +2381,7 @@ variant_stringify(struct stringify_arg *arg, purc_variant_t value)
 
         bs = purc_variant_get_bytes_const(value, &nr);
         if (arg->flags & PCVARIANT_STRINGIFY_OPT_BSEQUENCE_BAREBYTES) {
-            arg->cb(arg->arg, bs, nr);
+            arg->cb(arg, bs, nr);
         }
         else {
             stringify_bs(arg, bs, nr);
@@ -2451,10 +2451,10 @@ struct stringify_stream {
 };
 
 static void
-do_stringify_stream(void *arg, const void *src, size_t len)
+do_stringify_stream(struct stringify_arg *arg, const void *src, size_t len)
 {
     struct stringify_stream *ud;
-    ud = (struct stringify_stream*)arg;
+    ud = (struct stringify_stream*)(arg->arg);
 
     if (len == 0)
         len = strlen(src);
@@ -3188,10 +3188,10 @@ purc_variant_linear_container_set(purc_variant_t container,
 }
 
 static void
-do_stringify_md5(void *arg, const void *src, size_t len)
+do_stringify_md5(struct stringify_arg *arg, const void *src, size_t len)
 {
     pcutils_md5_ctxt *ud;
-    ud = (pcutils_md5_ctxt*)arg;
+    ud = (pcutils_md5_ctxt*)(arg->arg);
 
     if (len == 0)
         len = strlen(src);
@@ -3200,8 +3200,10 @@ do_stringify_md5(void *arg, const void *src, size_t len)
 }
 
 void pcvariant_md5_ex(char *md5, purc_variant_t val, const char *salt,
-    unsigned int serialize_flags)
+    bool caseless, unsigned int serialize_flags)
 {
+    PC_ASSERT(caseless == false);
+
     PC_ASSERT(val != PURC_VARIANT_INVALID);
 
     pcutils_md5_ctxt ud;

@@ -1,0 +1,21 @@
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<hvml target="html" lang="en">
+    <head>
+        <init as="kvs" against="id" uniquely casesensitively>
+            [
+                {"id":"foo", "val":"foo"},
+                {"id":"bar", "val":"bar"},
+                {"id":"fOo", "val":"foobar"},
+            ]
+        </init>
+    </head>
+
+    <body>
+        <iterate on="$kvs">
+            <update on="$@" to="append" with="$?"/>
+        </iterate>
+    </body>
+
+</hvml>
+
+
