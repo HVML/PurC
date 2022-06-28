@@ -74,7 +74,7 @@
 
 ### vDOM 解析器
 
-* `body` 标签：一个 HVML 中，支持多个 `body` 标签。
+* ~~`body` 标签：一个 HVML 中，支持多个 `body` 标签。~~
 * vDOM 构建规则
    1. ~~`match`、`differ` 元素必须作为 `test` 元素的直接子元素。~~
 
