@@ -280,6 +280,10 @@ int
 pcvar_compare_ex(purc_variant_t l, purc_variant_t r,
         bool caseless, bool unify_number);
 
+void
+pcvar_parallel_walk(purc_variant_t l, purc_variant_t r, void *ctxt,
+        int (*cb)(purc_variant_t l, purc_variant_t r, void *ctxt));
+
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */
