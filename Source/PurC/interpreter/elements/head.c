@@ -105,14 +105,14 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     int r;
     r = pcintr_refresh_at_var(frame);
     if (r)
-        return NULL;
+        return ctxt;
 
     struct pcvdom_element *element = frame->pos;
     PC_ASSERT(element);
 
     r = pcintr_vdom_walk_attrs(frame, element, NULL, attr_found);
     if (r)
-        return NULL;
+        return ctxt;
 
     purc_clr_error();
 

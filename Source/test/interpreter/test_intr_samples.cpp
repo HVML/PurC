@@ -243,7 +243,7 @@ TEST(samples, files)
             }
             if (r)
                 break;
-            purc_run(PURC_VARIANT_INVALID, NULL);
+            purc_run(NULL);
         } while (0);
         globfree(&globbuf);
     }

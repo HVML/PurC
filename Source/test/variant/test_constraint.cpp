@@ -1,3 +1,4 @@
+#undef NDEBUG
 #include "purc.h"
 #include "private/debug.h"
 #include "private/ejson-parser.h"
@@ -753,5 +754,346 @@ TEST(constraint, object_order)
         }
         PURC_VARIANT_SAFE_CLEAR(v0);
     }
+}
+
+static pcutils_map       *obj_to_listener;
+
+static int comp_by_key (const void *key1, const void *key2)
+{
+    uintptr_t k1 = (uintptr_t)key1;
+    uintptr_t k2 = (uintptr_t)key2;
+    return k1 - k2;
+}
+
+static int
+map_generate(void)
+{
+    if (obj_to_listener)
+        return 0;
+
+    copy_key_fn copy_key = nullptr;
+    free_key_fn free_key = nullptr;
+    copy_val_fn copy_val = nullptr;
+    free_val_fn free_val = nullptr;
+    comp_key_fn comp_key = comp_by_key;
+    bool threads = false;
+
+    pcutils_map *map;
+    map = pcutils_map_create(copy_key, free_key,
+        copy_val, free_val,
+        comp_key, threads);
+
+    if (!map)
+        return -1;
+
+    obj_to_listener = map;
+
+    return 0;
+}
+
+static void
+map_destroy(void)
+{
+    if (!obj_to_listener)
+        return;
+
+    pcutils_map *map = obj_to_listener;
+    size_t nr = pcutils_map_get_size(map);
+    ASSERT_EQ(nr, 0);
+
+    pcutils_map_destroy(map);
+
+    obj_to_listener = nullptr;
+}
+
+static int
+map_set_listener(purc_variant_t obj, struct pcvar_listener *listener)
+{
+    map_generate();
+    pcutils_map *map = obj_to_listener;
+    if (!map)
+        return -1;
+
+    pcutils_map_entry *entry;
+    entry = pcutils_map_find(map, obj);
+    if (entry)
+        return -1;
+
+    return pcutils_map_insert(map, obj, listener);
+}
+
+static void
+map_remove_listener(purc_variant_t obj)
+{
+    map_generate();
+    pcutils_map *map = obj_to_listener;
+    if (!map)
+        return;
+
+    pcutils_map_entry *entry;
+    entry = pcutils_map_find(map, obj);
+    if (entry == nullptr)
+        return;
+
+    struct pcvar_listener *listener;
+    listener = (struct pcvar_listener*)(entry->val);
+
+    pcutils_map_erase(map, obj);
+
+    purc_variant_revoke_listener(obj, listener);
+}
+
+static bool set_on_obj_grown(purc_variant_t set, purc_variant_t obj,
+        purc_variant_t k, purc_variant_t v)
+{
+    PRINT_VARIANT(set);
+    PRINT_VARIANT(obj);
+    PRINT_VARIANT(k);
+    PRINT_VARIANT(v);
+
+    return true;
+}
+
+static bool set_on_obj_changed(purc_variant_t set, purc_variant_t obj,
+        purc_variant_t ko, purc_variant_t vo,
+        purc_variant_t kn, purc_variant_t vn)
+{
+    PRINT_VARIANT(set);
+    PRINT_VARIANT(obj);
+    PRINT_VARIANT(ko);
+    PRINT_VARIANT(vo);
+    PRINT_VARIANT(kn);
+    PRINT_VARIANT(vn);
+    PC_DEBUGX("dddddddddddddddddddddddddddddddddddddd");
+
+    return true;
+}
+
+static bool set_on_obj_shrunk(purc_variant_t set, purc_variant_t obj,
+        purc_variant_t k, purc_variant_t v)
+{
+    PRINT_VARIANT(set);
+    PRINT_VARIANT(obj);
+    PRINT_VARIANT(k);
+    PRINT_VARIANT(v);
+
+    return true;
+}
+
+
+static bool obj_post_handler (
+        purc_variant_t src,  // the source variant.
+        pcvar_op_t op,       // the operation identifier.
+        void *ctxt,          // the context stored when registering the handler.
+        size_t nr_args,      // the number of the relevant child variants.
+        purc_variant_t *argv // the array of all relevant child variants.
+        )
+{
+    UNUSED_PARAM(src);
+    UNUSED_PARAM(op);
+    UNUSED_PARAM(ctxt);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+
+    purc_variant_t set = (purc_variant_t)ctxt;
+    PC_ASSERT(set);
+
+    switch (op) {
+        case PCVAR_OPERATION_GROW:
+            PC_ASSERT(nr_args == 2);
+            PC_ASSERT(argv);
+            return set_on_obj_grown(set, src, argv[0], argv[1]);
+
+        case PCVAR_OPERATION_CHANGE:
+            PC_ASSERT(nr_args == 4);
+            PC_ASSERT(argv);
+            return set_on_obj_changed(set, src, argv[0], argv[1], argv[2], argv[3]);
+
+        case PCVAR_OPERATION_SHRINK:
+            PC_ASSERT(nr_args == 2);
+            PC_ASSERT(argv);
+            return set_on_obj_shrunk(set, src, argv[0], argv[1]);
+
+        default:
+            PC_ASSERT(0);
+    }
+
+    return true;
+}
+
+static bool set_on_grown(purc_variant_t set, purc_variant_t obj)
+{
+    PRINT_VARIANT(set);
+    PRINT_VARIANT(obj);
+
+    struct pcvar_listener *listener;
+
+    int op = PCVAR_OPERATION_GROW |
+        PCVAR_OPERATION_SHRINK |
+        PCVAR_OPERATION_CHANGE;
+    listener = purc_variant_register_post_listener(obj, (pcvar_op_t)op,
+            obj_post_handler, set);
+    EXPECT_NE(listener, nullptr);
+
+    int r = map_set_listener(obj, listener);
+    assert(r == 0);
+
+    return true;
+}
+
+static bool set_on_changed(purc_variant_t set,
+        purc_variant_t _old, purc_variant_t _new)
+{
+    PRINT_VARIANT(set);
+    PRINT_VARIANT(_old);
+    PRINT_VARIANT(_new);
+
+    map_remove_listener(_old);
+
+    struct pcvar_listener *listener;
+
+    int op = PCVAR_OPERATION_GROW |
+        PCVAR_OPERATION_SHRINK |
+        PCVAR_OPERATION_CHANGE;
+    listener = purc_variant_register_post_listener(_new, (pcvar_op_t)op,
+            obj_post_handler, set);
+    EXPECT_NE(listener, nullptr);
+
+    int r = map_set_listener(_new, listener);
+    assert(r == 0);
+
+    return true;
+}
+
+static bool set_on_shrunk(purc_variant_t set, purc_variant_t obj)
+{
+    PRINT_VARIANT(set);
+    PRINT_VARIANT(obj);
+
+    map_remove_listener(obj);
+    return true;
+}
+
+static bool set_post_handler (
+        purc_variant_t src,  // the source variant.
+        pcvar_op_t op,       // the operation identifier.
+        void *ctxt,          // the context stored when registering the handler.
+        size_t nr_args,      // the number of the relevant child variants.
+        purc_variant_t *argv // the array of all relevant child variants.
+        )
+{
+    UNUSED_PARAM(src);
+    UNUSED_PARAM(op);
+    UNUSED_PARAM(ctxt);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+
+    switch (op) {
+        case PCVAR_OPERATION_GROW:
+            PC_ASSERT(nr_args == 1);
+            PC_ASSERT(argv);
+            PC_ASSERT(src == ctxt);
+            return set_on_grown(src, argv[0]);
+
+        case PCVAR_OPERATION_CHANGE:
+            PC_ASSERT(nr_args == 2);
+            PC_ASSERT(argv);
+            PC_ASSERT(src == ctxt);
+            return set_on_changed(src, argv[0], argv[1]);
+
+        case PCVAR_OPERATION_SHRINK:
+            PC_ASSERT(nr_args == 1);
+            PC_ASSERT(argv);
+            PC_ASSERT(src == ctxt);
+            return set_on_shrunk(src, argv[0]);
+
+        default:
+            PC_ASSERT(0);
+    }
+
+    return true;
+}
+
+TEST(constraint, set_change)
+{
+    PurCInstance purc;
+
+    bool overwrite = true;
+    bool ok;
+    const char *s;
+    purc_variant_t set, obj;
+
+    // s = "[!id,{id:foo,val:yes},{id:bar,val:no}]";
+    s = "[!id]";
+    set = pcejson_parser_parse_string(s, 0, 0);
+    PRINT_VARIANT(set);
+    EXPECT_NE(set, nullptr);
+
+    struct pcvar_listener *listener;
+    int op = PCVAR_OPERATION_GROW |
+        PCVAR_OPERATION_SHRINK |
+        PCVAR_OPERATION_CHANGE;
+
+    listener = purc_variant_register_post_listener(set, (pcvar_op_t)op,
+            set_post_handler, set);
+    EXPECT_NE(listener, nullptr);
+
+
+    s = "{id:foo,val:yes}";
+    obj = pcejson_parser_parse_string(s, 0, 0);
+    EXPECT_NE(obj, nullptr);
+
+    ok = purc_variant_set_add(set, obj, overwrite);
+    EXPECT_TRUE(ok);
+    PURC_VARIANT_SAFE_CLEAR(obj);
+    PRINT_VARIANT(set);
+
+
+    s = "{id:bar,val:yes}";
+    obj = pcejson_parser_parse_string(s, 0, 0);
+    EXPECT_NE(obj, nullptr);
+
+    ok = purc_variant_set_add(set, obj, overwrite);
+    EXPECT_TRUE(ok);
+    PRINT_VARIANT(set);
+    PURC_VARIANT_SAFE_CLEAR(obj);
+
+
+    s = "{id:foo,val:no}";
+    obj = pcejson_parser_parse_string(s, 0, 0);
+    EXPECT_NE(obj, nullptr);
+
+    ok = purc_variant_set_add(set, obj, overwrite);
+    EXPECT_TRUE(ok);
+    PRINT_VARIANT(set);
+
+    PC_DEBUGX("");
+    purc_variant_t v = purc_variant_make_string("foobar", false);
+    ok = purc_variant_object_set_by_static_ckey(obj, "val", v);
+    EXPECT_TRUE(ok);
+    PRINT_VARIANT(set);
+    PC_DEBUGX("");
+    PURC_VARIANT_SAFE_CLEAR(v);
+    PURC_VARIANT_SAFE_CLEAR(obj);
+
+    // intentionally remove set elements to trigger removing of bounded listeners
+    while (1) {
+        ssize_t nr;
+        nr = purc_variant_set_get_size(set);
+        if (nr == 0)
+            break;
+        purc_variant_t obj;
+        obj = purc_variant_set_remove_by_index(set, 0);
+        PURC_VARIANT_SAFE_CLEAR(obj);
+    }
+
+    // now, it's safe to remove set's own listener
+    if (listener)
+        purc_variant_revoke_listener(set, listener);
+
+    PURC_VARIANT_SAFE_CLEAR(set);
+
+    // remove map to satisfy valgrind
+    map_destroy();
 }
 

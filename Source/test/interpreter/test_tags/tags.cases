@@ -12,6 +12,9 @@ body_001
 # multiple body element
 ###### body_002
 
+# bodies
+bodies_001
+
 # archetype
 archetype_001
 archetype_002
@@ -25,6 +28,8 @@ archedata_003
 # error
 
 # except
+except_001
+except_002
 
 # init
 init_001
@@ -55,6 +60,7 @@ init_021
 init_022
 init_023
 init_024
+init_025
 
 
 clear_001
@@ -132,3 +138,80 @@ reduce_013
 reduce_014
 #####reduce_015
 reduce_016
+
+# bind
+bind_000
+bind_001
+bind_002
+bind_003
+bind_004
+bind_005
+bind_006
+bind_007
+bind_008
+bind_009
+bind_010
+bind_011
+bind_012
+
+#### #id not found crash
+#####bind_013
+bind_014
+bind_015
+bind_016
+bind_017
+bind_018
+
+### at="N" N not exists(silently)
+#####bind_019
+
+observe_001
+observe_002
+observe_003
+observe_004
+observe_005
+observe_006
+observe_007
+observe_008
+observe_009
+observe_010
+observe_011
+observe_012
+observe_013
+observe_014
+observe_015
+observe_016
+
+fire_001
+fire_002
+fire_003
+
+# catch
+catch_001
+catch_002
+catch_003
+catch_004
+catch_005
+catch_006
+catch_007
+catch_008
+catch_009
+catch_010
+catch_011
+catch_012
+catch_013
+catch_014
+catch_015
+catch_016
+catch_017
+catch_018
+catch_019
+catch_020
+catch_021
+catch_022
+catch_023
+catch_024
+catch_025
+catch_026
+catch_027
+

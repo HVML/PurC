@@ -63,6 +63,7 @@ struct pcinst {
     int                     errcode;
     purc_variant_t          err_exinfo;
     purc_atom_t             error_except;
+    struct pcvdom_element  *err_element;
 
     unsigned int            modules;
     unsigned int            modules_inited;

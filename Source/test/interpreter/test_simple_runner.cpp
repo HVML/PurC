@@ -87,6 +87,6 @@ TEST(runner, simple)
     fclose (fp);
 
     if (nr_loaded)
-        purc_run(PURC_VARIANT_INVALID, NULL);
+        purc_run(NULL);
 }
 

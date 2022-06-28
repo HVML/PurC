@@ -263,8 +263,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (stack->except)
         return NULL;
 
-    if (pcintr_check_insertion_mode_for_normal_element(stack))
-        return NULL;
+    pcintr_check_insertion_mode_for_normal_element(stack);
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
@@ -287,55 +286,65 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     int r;
     r = pcintr_vdom_walk_attrs(frame, element, NULL, attr_found);
     if (r)
-        return NULL;
-
+        return ctxt;
 
     purc_variant_t for_var = ctxt->for_var;
-    if (for_var == PURC_VARIANT_INVALID)
-        return NULL;
+    if (for_var == PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
+                "`for` not specified");
+        return ctxt;
+    }
 
     if (ctxt->on == PURC_VARIANT_INVALID &&
-            ctxt->at == PURC_VARIANT_INVALID) {
-        return NULL;
+            ctxt->at == PURC_VARIANT_INVALID)
+    {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "neither `on` nor `at` is specified");
+        return ctxt;
     }
 
     // named var
     if (ctxt->at != PURC_VARIANT_INVALID && purc_variant_is_string(ctxt->at)) {
         const char* name = purc_variant_get_string_const(ctxt->at);
-        purc_variant_t observed = pcintr_get_named_var_observed(stack, name);
+        purc_variant_t observed = pcintr_get_named_var_for_event(stack, name);
         if (observed) {
             int ret = pcintr_dispatch_message(stack, observed,
                     ctxt->for_var, ctxt->msg_type_atom, ctxt->sub_type,
                     ctxt->with);
+            purc_variant_unref(observed);
             if (ret != PURC_ERROR_OK) {
-                return NULL;
+                return ctxt;
             }
         }
     }
     else {
         purc_variant_t on = ctxt->on;
-// TODO : css selector
-#if 0
         if (purc_variant_is_string(ctxt->on)) {
-            const char* at_str = purc_variant_get_string_const(ctxt->on);
-            if (at_str[0] == '#') {
+            // XXX: optimization
+            // CSS selector used string
+            // handle by elements.c match_observe
+            int ret = pcintr_dispatch_message(stack, on,
+                    ctxt->for_var, ctxt->msg_type_atom, ctxt->sub_type,
+                    ctxt->with);
+            if (ret != PURC_ERROR_OK) {
+                return ctxt;
             }
         }
         else
-#endif
         {
             int ret = pcintr_dispatch_message(stack, on,
                     ctxt->for_var, ctxt->msg_type_atom, ctxt->sub_type,
                     ctxt->with);
             if (ret != PURC_ERROR_OK) {
-                return NULL;
+                return ctxt;
             }
         }
     }
 
     purc_clr_error();
 
-    return ctxt;
+    // NOTE: no element to process if succeeds
+    return NULL;
 }
 
 static bool
@@ -365,12 +374,139 @@ on_popping(pcintr_stack_t stack, void* ud)
     return true;
 }
 
+static int
+on_element(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element)
+{
+    UNUSED_PARAM(frame);
+    UNUSED_PARAM(element);
+
+    pcintr_stack_t stack = &co->stack;
+
+    if (stack->except)
+        return 0;
+
+    PC_ASSERT(0);
+}
+
+static int
+on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
+        struct pcvdom_content *content)
+{
+    UNUSED_PARAM(frame);
+    PC_ASSERT(content);
+
+    pcintr_stack_t stack = &co->stack;
+
+    if (stack->except)
+        return 0;
+
+    PC_ASSERT(0);
+}
+
+static int
+on_comment(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
+        struct pcvdom_comment *comment)
+{
+    UNUSED_PARAM(co);
+    UNUSED_PARAM(frame);
+    PC_ASSERT(comment);
+    return 0;
+}
+
+static int
+on_child_finished(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
+{
+    UNUSED_PARAM(frame);
+
+    pcintr_stack_t stack = &co->stack;
+
+    if (stack->except)
+        return 0;
+
+    return 0;
+}
+
+static pcvdom_element_t
+select_child(pcintr_stack_t stack, void* ud)
+{
+    PC_ASSERT(stack);
+    PC_ASSERT(stack == pcintr_get_stack());
+
+    pcintr_coroutine_t co = stack->co;
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_stack_get_bottom_frame(stack);
+    PC_ASSERT(ud == frame->ctxt);
+
+    if (stack->back_anchor == frame)
+        stack->back_anchor = NULL;
+
+    if (frame->ctxt == NULL)
+        return NULL;
+
+    if (stack->back_anchor)
+        return NULL;
+
+    struct ctxt_for_fire *ctxt;
+    ctxt = (struct ctxt_for_fire*)frame->ctxt;
+
+    struct pcvdom_node *curr;
+
+again:
+    curr = ctxt->curr;
+
+    if (curr == NULL) {
+        struct pcvdom_element *element = frame->pos;
+        struct pcvdom_node *node = &element->node;
+        node = pcvdom_node_first_child(node);
+        curr = node;
+        purc_clr_error();
+    }
+    else {
+        curr = pcvdom_node_next_sibling(curr);
+        purc_clr_error();
+    }
+
+    ctxt->curr = curr;
+
+    if (curr == NULL) {
+        on_child_finished(co, frame);
+        return NULL;
+    }
+
+    switch (curr->type) {
+        case PCVDOM_NODE_DOCUMENT:
+            PC_ASSERT(0); // Not implemented yet
+            break;
+        case PCVDOM_NODE_ELEMENT:
+            {
+                pcvdom_element_t element = PCVDOM_ELEMENT_FROM_NODE(curr);
+                if (on_element(co, frame, element))
+                    return NULL;
+                return element;
+            }
+        case PCVDOM_NODE_CONTENT:
+            if (on_content(co, frame, PCVDOM_CONTENT_FROM_NODE(curr)))
+                return NULL;
+            goto again;
+        case PCVDOM_NODE_COMMENT:
+            if (on_comment(co, frame, PCVDOM_COMMENT_FROM_NODE(curr)))
+                return NULL;
+            goto again;
+        default:
+            PC_ASSERT(0); // Not implemented yet
+    }
+
+    PC_ASSERT(0);
+    return NULL; // NOTE: never reached here!!!
+}
+
 static struct pcintr_element_ops
 ops = {
     .after_pushed       = after_pushed,
     .on_popping         = on_popping,
     .rerun              = NULL,
-    .select_child       = NULL,
+    .select_child       = select_child,
 };
 
 struct pcintr_element_ops* pcintr_get_fire_ops(void)

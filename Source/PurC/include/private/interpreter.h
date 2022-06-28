@@ -143,6 +143,7 @@ struct pcintr_exception {
     int                      errcode;
     purc_atom_t              error_except;
     purc_variant_t           exinfo;
+    struct pcvdom_element   *err_element;
 
     struct pcdebug_backtrace  *bt;
 };
@@ -260,6 +261,9 @@ struct pcintr_coroutine {
 
     pcintr_coroutine_result_t   result;
 
+    purc_variant_t              val_from_return_or_exit;
+    const char                 *error_except;
+
     struct pcintr_stack         stack;  /* stack that holds this coroutine */
 
     enum pcintr_coroutine_state state;
@@ -350,6 +354,9 @@ struct pcintr_stack_frame {
 
     pcintr_stack_t     owner;
 
+    purc_variant_t     except_templates;
+    purc_variant_t     error_templates;
+
     unsigned int       silently:1;
 };
 
@@ -430,7 +437,7 @@ void pcintr_cancel_init(pcintr_cancel_t cancel,
 void pcintr_register_cancel(pcintr_cancel_t cancel);
 void pcintr_unregister_cancel(pcintr_cancel_t cancel);
 
-void pcintr_set_exit(void);
+void pcintr_set_exit(purc_variant_t val);
 
 struct pcintr_stack_frame*
 pcintr_stack_get_bottom_frame(pcintr_stack_t stack);
@@ -447,6 +454,10 @@ pcintr_pop_stack_frame_pseudo(void);
 
 pcintr_coroutine_t
 pcintr_create_child_co(pcvdom_element_t vdom_element,
+        purc_variant_t as, purc_variant_t within);
+
+pcintr_coroutine_t
+pcintr_load_child_co(const char *hvml,
         purc_variant_t as, purc_variant_t within);
 
 void
@@ -519,19 +530,15 @@ pcintr_find_anchor_symbolized_var(pcintr_stack_t stack, const char *anchor,
 int
 pcintr_unbind_named_var(pcintr_stack_t stack, const char *name);
 
-// return observed variant
 purc_variant_t
-pcintr_get_named_var_observed(pcintr_stack_t stack, const char* name);
+pcintr_get_named_var_for_observed(pcintr_stack_t stack, const char *name,
+        pcvdom_element_t elem);
 
-// return observed variant
 purc_variant_t
-pcintr_add_named_var_observer(pcintr_stack_t stack, const char* name,
-        const char* event);
+pcintr_get_named_var_for_event(pcintr_stack_t stack, const char *name);
 
-// return observed variant
-purc_variant_t
-pcintr_remove_named_var_observer(pcintr_stack_t stack, const char* name,
-        const char* event);
+bool
+pcintr_is_named_var_for_event(purc_variant_t val);
 
 // $TIMERS
 struct pcintr_timers*

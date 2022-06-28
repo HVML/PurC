@@ -1,0 +1,45 @@
+<!DOCTYPE hvml>
+<hvml target="html" lang="en">
+    <head>
+        <init as="buttons">
+        [
+            { "letters": "7", "class": "number" },
+            { "letters": "8", "class": "number" },
+            { "letters": "9", "class": "number" },
+        ]
+        </init>
+
+        <init as="buttons2">
+            [
+                { "letters": "7", "class": "number" },
+                { "letters": "7", "class": "number" },
+                { "letters": "7", "class": "number" },
+                { "letters": "8", "class": "number" },
+                { "letters": "9", "class": "number" },
+            ]
+        </init>
+        <bind on="$buttons" as="btns" />
+    </head>
+
+    <body>
+        <div id="showCount">
+            <div>
+                $EJSON.count($btns.eval)
+            </div>
+        </div>
+        <div id="temp">
+            <bind on="$buttons2" as="btns" temporarily />
+            <div>
+                $EJSON.count($btns.eval)
+            </div>
+        </div>
+        <div id="showCountMain">
+            <div>
+                $EJSON.count($btns.eval)
+            </div>
+        </div>
+    </body>
+
+</hvml>
+
+

@@ -1,0 +1,37 @@
+<!DOCTYPE hvml>
+<hvml target="html" lang="en">
+    <head>
+        <link rel="stylesheet" type="text/css" href="calculator.css" />
+        <init as="buttons" with="['init buttons string']" />
+
+        <update on="$TIMERS" to="displace">
+            [
+                { "id" : "clock", "interval" : 1000, "active" : "yes" },
+            ]
+        </update>
+    </head>
+
+    <body>
+        <div id="calculator">
+
+            <div id="c_title">
+                <h2 id="c_title">Test Observe<br/>
+                    <span id="msg">00:00</span>
+                </h2>
+                <observe on="$buttons" for="change">
+                    <update on="#msg" at="textContent" with="$buttons[0]" />
+                    <forget on="$buttons" for="change"/>
+                </observe>
+                <observe on="$TIMERS" for="expired:clock">
+                    <update on="#msg" at="textContent" with="$TIMERS[0].id" />
+                    <update on="$TIMERS" to="overwrite">
+                       { "id" : "clock", "active" : "no" }
+                    </update>
+                    <forget on="$TIMERS" for="expired:clock"/>
+                    <fire on="$buttons" for="change" />
+                </observe>
+                <p>this is after observe</p>
+            </div>
+        </div>
+    </body>
+</hvml>

@@ -75,57 +75,6 @@ ctxt_destroy(void *ctxt)
     ctxt_for_update_destroy((struct ctxt_for_update*)ctxt);
 }
 
-struct template_walk_data {
-    pcintr_stack_t               stack;
-
-    int                          r;
-    purc_variant_t               val;
-};
-
-static int
-template_walker(struct pcvcm_node *vcm, void *ctxt)
-{
-    struct template_walk_data *ud;
-    ud = (struct template_walk_data*)ctxt;
-    PC_ASSERT(ud);
-
-    pcintr_stack_t stack = ud->stack;
-    PC_ASSERT(stack);
-
-    // TODO: silently
-    purc_variant_t v = pcvcm_eval(vcm, stack, false);
-    PC_ASSERT(v != PURC_VARIANT_INVALID);
-
-    if (purc_variant_is_string(v)) {
-        const char *s = purc_variant_get_string_const(v);
-
-        size_t chunk = 128;
-        struct pcutils_stringbuilder sb;
-        pcutils_stringbuilder_init(&sb, chunk);
-        int n = pcutils_stringbuilder_snprintf(&sb, "%s", s);
-        if (n < 0 || (size_t)n != strlen(s)) {
-            pcutils_stringbuilder_reset(&sb);
-            purc_variant_unref(v);
-            ud->r = -1;
-            return -1;
-        }
-
-        char *ssv = pcutils_stringbuilder_build(&sb);
-        if (ssv) {
-            ud->val = purc_variant_make_string_reuse_buff(ssv, strlen(ssv), true);
-            PC_ASSERT(v);
-        }
-        pcutils_stringbuilder_reset(&sb);
-    }
-    else {
-        ud->val = v;
-        purc_variant_ref(ud->val);
-    }
-
-    purc_variant_unref(v);
-    return 0;
-}
-
 static purc_variant_t
 get_source_by_with(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     purc_variant_t with)
@@ -153,22 +102,7 @@ get_source_by_with(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         return with;
     }
     else if (purc_variant_is_native(with)) {
-        struct template_walk_data ud = {
-            .stack        = &co->stack,
-            .r            = 0,
-            .val          = PURC_VARIANT_INVALID,
-        };
-
-        pcintr_template_walk(with, &ud, template_walker);
-
-        int r = ud.r;
-        purc_variant_t v = PURC_VARIANT_INVALID;
-
-        if (r == 0) {
-            v = ud.val;
-            PC_ASSERT(v);
-        }
-        return v;
+        return pcintr_template_expansion(with);
     }
     else {
         purc_variant_ref(with);
@@ -657,7 +591,6 @@ process_attr_on(struct pcintr_stack_frame *frame,
     }
     ctxt->on = val;
     purc_variant_ref(val);
-    PRINT_VARIANT(ctxt->on);
 
     return 0;
 }
@@ -888,8 +821,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (stack->except)
         return NULL;
 
-    if (pcintr_check_insertion_mode_for_normal_element(stack))
-        return NULL;
+    pcintr_check_insertion_mode_for_normal_element(stack);
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
@@ -910,7 +842,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     frame->attr_vars = purc_variant_make_object(0,
             PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
     if (frame->attr_vars == PURC_VARIANT_INVALID)
-        return NULL;
+        return ctxt;
 
     struct pcvdom_element *element = frame->pos;
     PC_ASSERT(element);
@@ -918,14 +850,13 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     int r;
     r = pcintr_vdom_walk_attrs(frame, element, NULL, attr_found);
     if (r)
-        return NULL;
+        return ctxt;
 
     if (ctxt->on == PURC_VARIANT_INVALID) {
-        PC_ASSERT(0);
         purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
                 "lack of vdom attribute 'on' for element <%s>",
                 element->tag_name);
-        return NULL;
+        return ctxt;
     }
 
     // FIXME
@@ -938,8 +869,10 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         }
         purc_variant_t v;
         v = get_source_by_from(stack->co, frame, ctxt->from, ctxt->with);
-        if (v == PURC_VARIANT_INVALID)
-            return NULL;
+        if (v == PURC_VARIANT_INVALID) {
+            PC_ASSERT(purc_get_last_error());
+            return ctxt;
+        }
         PURC_VARIANT_SAFE_CLEAR(ctxt->from_result);
         ctxt->from_result = v;
     }
@@ -978,8 +911,12 @@ static int
 on_element(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         struct pcvdom_element *element)
 {
-    UNUSED_PARAM(co);
     UNUSED_PARAM(element);
+
+    pcintr_stack_t stack = &co->stack;
+
+    if (stack->except)
+        return 0;
 
     struct ctxt_for_update *ctxt;
     ctxt = (struct ctxt_for_update*)frame->ctxt;
@@ -999,8 +936,12 @@ static int
 on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         struct pcvdom_content *content)
 {
-    UNUSED_PARAM(co);
     PC_ASSERT(content);
+
+    pcintr_stack_t stack = &co->stack;
+
+    if (stack->except)
+        return 0;
 
     struct ctxt_for_update *ctxt;
     ctxt = (struct ctxt_for_update*)frame->ctxt;
@@ -1042,6 +983,11 @@ on_comment(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 static int
 on_child_finished(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
+    pcintr_stack_t stack = &co->stack;
+
+    if (stack->except)
+        return 0;
+
     struct ctxt_for_update *ctxt;
     ctxt = (struct ctxt_for_update*)frame->ctxt;
     PC_ASSERT(ctxt);
@@ -1083,9 +1029,10 @@ on_child_finished(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     struct pcvdom_element *element = frame->pos;
     PC_ASSERT(element);
 
-    purc_set_error_with_info(PURC_EXCEPT_ARGUMENT_MISSED,
+    purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
                 "lack of vdom attribute 'with/from' for element <%s>",
                 element->tag_name);
+
     return -1;
 }
 

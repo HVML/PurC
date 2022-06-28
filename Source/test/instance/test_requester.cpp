@@ -499,11 +499,9 @@ static void get_instance(struct instmgr_info *info,
         return;
     }
 
-    int n;
-    n = purc_assemble_endpoint_name_ex(PCRDR_LOCALHOST,
+    purc_assemble_endpoint_name_ex(PCRDR_LOCALHOST,
             TEST_APP_NAME, runner_name,
             endpoint_name, sizeof(endpoint_name) - 1);
-    assert(n > 0 && n < (int)sizeof(endpoint_name));
 
     purc_atom_t atom = purc_atom_try_string_ex(PURC_ATOM_BUCKET_USER,
             endpoint_name);
@@ -556,11 +554,9 @@ static void cancel_instance(struct instmgr_info *info,
     response->dataType = PCRDR_MSG_DATA_TYPE_VOID;
     response->data = PURC_VARIANT_INVALID;
 
-    int n;
-    n = purc_assemble_endpoint_name_ex(PCRDR_LOCALHOST,
+    purc_assemble_endpoint_name_ex(PCRDR_LOCALHOST,
             TEST_APP_NAME, runner_name,
             endpoint_name, sizeof(endpoint_name) - 1);
-    assert(n > 0 && n < (int)sizeof(endpoint_name));
 
     purc_atom_t atom = purc_atom_try_string_ex(PURC_ATOM_BUCKET_USER,
             endpoint_name);
@@ -607,11 +603,9 @@ static void kill_instance(struct instmgr_info *info,
     response->dataType = PCRDR_MSG_DATA_TYPE_VOID;
     response->data = PURC_VARIANT_INVALID;
 
-    int n;
-    n = purc_assemble_endpoint_name_ex(PCRDR_LOCALHOST,
+    purc_assemble_endpoint_name_ex(PCRDR_LOCALHOST,
             TEST_APP_NAME, runner_name,
             endpoint_name, sizeof(endpoint_name) - 1);
-    assert(n > 0 && n < (int)sizeof(endpoint_name));
 
     purc_atom_t atom = purc_atom_try_string_ex(PURC_ATOM_BUCKET_USER,
             endpoint_name);

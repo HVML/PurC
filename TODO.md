@@ -16,6 +16,9 @@
 
 ### 解释器
 
+* 不可捕获错误的产生及处理机制：
+  1. `error` 标签支持 `type` 属性。
+
 ## 202207
 
 ### 变体
@@ -43,7 +46,7 @@
 * `exit` 标签支持 `with` 属性。
 * 完善如下标签从外部数据源获取数据的功能：
   1. ~~`init` 标签：支持 `from`、`with` 及 `via` 属性定义的请求参数及方法。~~
-  1. `archetype` 标签：`src`、`param` 和 `method` 属性的支持。
+  1. ~~`archetype` 标签：`src`、`param` 和 `method` 属性的支持。~~
   1. `archedata` 标签：`src`、`param` 和 `method` 属性的支持。
   1. `error` 标签：`src`、`param` 和 `method` 属性的支持。
   1. `except` 标签：`src`、`param` 和 `method` 属性的支持。
@@ -54,44 +57,44 @@
   1. `at` 属性支持 `content`。
   1.  支持同时修改多个数据项，支持 `individually` 副词。
 * `sleep` 标签在调度器检查到有针对休眠协程的事件时，可由调度器唤醒。
-* `observe` 标签支持上下文变量: `$!` 和 `$@`。
 
 ## 202206
 
 ### 变体
 
 * 容器子孙成员变化后在容器变体上产生 `change` 事件。
-* 优化集合的 `overwrite` 等处理，在已经根据给定的唯一性键键值定位要更新的成员后，逐个更新该成员的其他字段，而不是先移除老的成员再构建一个新成员插入。
+* ~~优化集合的 `overwrite` 等处理，在已经根据给定的唯一性键键值定位要更新的成员后，逐个更新该成员的其他字段，而不是先移除老的成员再构建一个新成员插入。~~
 
 ### eDOM
 
 ### 预定义变量
 
-* 实现 `$HVML.target` 获取器。
-* 实现 `$REQUEST` 预定义变量，将该变量和 `purc_run` 函数中的 `request` 参数关联。
+* ~~实现 `$HVML.target` 获取器。~~
+* 实现文档级 `$REQUEST` 预定义变量，将该变量和 `purc_schedule_vdom` 函数中的 `request` 参数关联。
 
 ### vDOM 解析器
 
-* `body` 标签：一个 HVML 中，支持多个 `body` 标签。
+* ~~`body` 标签：一个 HVML 中，支持多个 `body` 标签。~~
 * vDOM 构建规则
    1. ~~`match`、`differ` 元素必须作为 `test` 元素的直接子元素。~~
 
 ### 解释器
 
 * 检查所有动作标签的实现，确保和规范要求一致：
-  1. `error` 标签支持 `type` 属性。
-  1. `except` 标签支持 `type` 属性。
-  1. `init` 标签支持使用 `via` 属性值 `LOAD` 从外部模块中加载自定义变量：`from` 属性指定外部模块名，`for` 指定模块中的动态对象名。
+  1. ~~`except` 标签支持 `type` 属性。~~
+  1. ~~`init` 标签支持使用 `via` 属性值 `LOAD` 从外部模块中加载自定义变量：`from` 属性指定外部模块名，`for` 指定模块中的动态对象名。~~
   1. `init` 标签初始化集合时，支持 `casesensitively` 属性和 `caseinsensitively` 属性。
-  1. `forget` 标签支持元素汇集。
-  1. `fire` 标签支持元素汇集。
   1. `call` 标签。
   1. `return` 标签。
-  1. `bind` 标签支持 `at` 属性
   1. `load` 标签。
   1. `exit` 标签（不含对 `with` 属性的支持）。
-  1. ~~`sort` 标签。~~
   1. `iterate` 标签支持外部类执行器。
+  1. `observe` 标签支持上下文变量: `$!` 和 `$@`。
+  1. ~~`observe` 标签支持 `against` 属性。~~
+  1. ~~`forget` 标签支持元素汇集。~~
+  1. ~~`fire` 标签支持元素汇集。~~
+  1. ~~`sort` 标签。~~
+  1. ~~`bind` 标签支持 `at` 属性~~
   1. ~~`test` 标签支持 `by` 属性。~~
   1. ~~`hvml` 标签支持 `target` 属性，其他属性原样放入目标文档的根节点。~~
   1. ~~`reduce` 标签~~
@@ -117,7 +120,6 @@
      - `at` 属性支持 `content`。
      - 支持同时修改多个数据项
      - 支持 `individually` 副词
-  1. `observe` 标签支持上下文变量: `$!` 和 `$@`
   1. `request` 标签。
 
 ## 202205

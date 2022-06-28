@@ -38,6 +38,7 @@
 struct ctxt_for_error {
     struct pcvdom_node           *curr;
 
+    purc_variant_t                type;
     purc_variant_t                contents;
 };
 
@@ -45,6 +46,7 @@ static void
 ctxt_for_error_destroy(struct ctxt_for_error *ctxt)
 {
     if (ctxt) {
+        PURC_VARIANT_SAFE_CLEAR(ctxt->type);
         PURC_VARIANT_SAFE_CLEAR(ctxt->contents);
         free(ctxt);
     }
@@ -54,6 +56,37 @@ static void
 ctxt_destroy(void *ctxt)
 {
     ctxt_for_error_destroy((struct ctxt_for_error*)ctxt);
+}
+
+static int
+process_attr_type(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element,
+        purc_atom_t name, purc_variant_t val)
+{
+    struct ctxt_for_error *ctxt;
+    ctxt = (struct ctxt_for_error*)frame->ctxt;
+    if (ctxt->type != PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_DUPLICATED,
+                "vdom attribute '%s' for element <%s>",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    if (val == PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "vdom attribute '%s' for element <%s> undefined",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    if (!purc_variant_is_string(val)) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "vdom attribute '%s' for element <%s> is not string",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+
+    ctxt->type = purc_variant_ref(val);
+
+    return 0;
 }
 
 static int
@@ -77,7 +110,7 @@ attr_found_val(struct pcintr_stack_frame *frame,
             return 0;
         }
         if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, TYPE)) == name) {
-            return 0;
+            return process_attr_type(frame, element, name, val);
         }
         PC_DEBUGX("name: %s", purc_atom_to_string(name));
         PC_ASSERT(0);
@@ -118,8 +151,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (stack->except)
         return NULL;
 
-    if (pcintr_check_insertion_mode_for_normal_element(stack))
-        return NULL;
+    pcintr_check_insertion_mode_for_normal_element(stack);
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
@@ -138,7 +170,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     ctxt->contents = pcintr_template_make();
     if (!ctxt->contents)
-        return NULL;
+        return ctxt;
 
     struct pcvdom_element *element = frame->pos;
     PC_ASSERT(element);
@@ -146,9 +178,16 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     int r;
     r = pcintr_vdom_walk_attrs(frame, element, NULL, attr_found);
     if (r)
-        return NULL;
+        return ctxt;
 
     purc_clr_error();
+
+    if (ctxt->type == PURC_VARIANT_INVALID) {
+        ctxt->type = purc_variant_make_string("*", false);
+    }
+
+    if (ctxt->type == PURC_VARIANT_INVALID)
+        return ctxt;
 
     return ctxt;
 }
@@ -201,7 +240,8 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 
     // NOTE: element is still the owner of vcm_content
     PC_ASSERT(ctxt->contents);
-    return pcintr_template_append(ctxt->contents, vcm);
+    bool to_free = false;
+    return pcintr_template_set(ctxt->contents, vcm, to_free);
 }
 
 static int
@@ -216,7 +256,12 @@ on_child_finished(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     if (!contents)
         return -1;
 
-    return 0;
+    PC_ASSERT(ctxt->type != PURC_VARIANT_INVALID);
+    int r;
+    r = pcintr_bind_template(frame->error_templates,
+            ctxt->type, ctxt->contents);
+
+    return r ? -1 : 0;
 
 #if 0
     // TODO:

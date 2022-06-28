@@ -538,10 +538,6 @@ attr_found_val(struct pcintr_stack_frame *frame,
     struct ctxt_for_bind *ctxt;
     ctxt = (struct ctxt_for_bind*)frame->ctxt;
 
-    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, ON)) == name) {
-        ctxt->vcm_ev = attr->val;
-        return 0;
-    }
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, AS)) == name) {
         return process_attr_as(frame, element, name, val);
     }
@@ -576,6 +572,13 @@ attr_found(struct pcintr_stack_frame *frame,
         return -1;
     }
 
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, ON)) == name) {
+        struct ctxt_for_bind *ctxt;
+        ctxt = (struct ctxt_for_bind*)frame->ctxt;
+        ctxt->vcm_ev = attr->val;
+        return 0;
+    }
+
     purc_variant_t val = pcintr_eval_vdom_attr(pcintr_get_stack(), attr);
     if (val == PURC_VARIANT_INVALID) {
         return -1;
@@ -596,8 +599,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (stack->except)
         return NULL;
 
-    if (pcintr_check_insertion_mode_for_normal_element(stack))
-        return NULL;
+    pcintr_check_insertion_mode_for_normal_element(stack);
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
@@ -620,11 +622,13 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     int r;
     r = pcintr_vdom_walk_attrs(frame, element, NULL, attr_found);
     if (r)
-        return NULL;
-
+        return ctxt;
 
     if (ctxt->as == PURC_VARIANT_INVALID) {
-        return NULL;
+        purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
+                "lack of vdom attribute 'as' for element <%s>",
+                element->tag_name);
+        return ctxt;
     }
 
     while ((element=pcvdom_element_parent(element))) {
@@ -669,20 +673,29 @@ static int
 on_element(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         struct pcvdom_element *element)
 {
-    UNUSED_PARAM(co);
     UNUSED_PARAM(frame);
     UNUSED_PARAM(element);
 
-    return 0;
+    PC_ASSERT(element->tag_id == PCHVML_TAG_CATCH);
 
+    pcintr_stack_t stack = &co->stack;
+
+    if (stack->except)
+        return 0;
+
+    return 0;
 }
 
 static int
 on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         struct pcvdom_content *content)
 {
-    UNUSED_PARAM(co);
     PC_ASSERT(content);
+
+    pcintr_stack_t stack = &co->stack;
+
+    if (stack->except)
+        return 0;
 
     struct ctxt_for_bind *ctxt;
     ctxt = (struct ctxt_for_bind*)frame->ctxt;
@@ -720,10 +733,16 @@ on_child_finished(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     ctxt = (struct ctxt_for_bind*)frame->ctxt;
     PC_ASSERT(ctxt);
 
+    pcintr_stack_t stack = &co->stack;
+
+    if (stack->except)
+        return 0;
+
     if (ctxt->vcm_ev) {
         return post_process(co, frame);
     }
-    return -1;
+
+    return 0;
 }
 
 static pcvdom_element_t

@@ -2934,6 +2934,7 @@ cmp_by_set(purc_variant_t l, purc_variant_t r,
     rd = (variant_set_t)r->sz_ptr[1];
     PC_ASSERT(ld);
     PC_ASSERT(rd);
+
     struct rb_root *lroot = &ld->elems;
     struct rb_root *rroot = &rd->elems;
     struct rb_node *lnode = pcutils_rbtree_first(lroot);

@@ -1,0 +1,15 @@
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<hvml target="html" lang="en">
+    <head>
+    </head>
+
+    <body>
+        <except type="*">
+            you shall not see me
+        </except>
+        <init as="pi" from="purc-dvobj-MATH" via="LOAD" for="pi"/>
+        <update on="$@" to="append" with="$pi"/>
+    </body>
+
+</hvml>
+

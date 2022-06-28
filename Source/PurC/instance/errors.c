@@ -293,6 +293,17 @@ set_error_exinfo_with_debug(int errcode, purc_variant_t exinfo,
     PURC_VARIANT_SAFE_CLEAR(inst->err_exinfo);
     inst->err_exinfo = exinfo;
 
+    inst->err_element = NULL;
+
+    pcintr_stack_t stack = pcintr_get_stack();
+    if (stack) {
+        struct pcintr_stack_frame *frame;
+        frame = pcintr_stack_get_bottom_frame(stack);
+        if (frame) {
+            inst->err_element = frame->pos;
+        }
+    }
+
     const struct err_msg_info* info = get_error_info(errcode);
     if (info == NULL ||
             ((info->flags & PURC_EXCEPT_FLAGS_REQUIRED) && !exinfo)) {

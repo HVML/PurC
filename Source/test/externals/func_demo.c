@@ -170,7 +170,6 @@ to_sort(purc_variant_t on_value, purc_variant_t with_value,
     PURC_VARIANT_SAFE_CLEAR(d);
     PURC_VARIANT_SAFE_CLEAR(against_value);
     PURC_VARIANT_SAFE_CLEAR(with_value);
-
     return v;
 }
 

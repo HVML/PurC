@@ -1,5 +1,7 @@
 #!/bin/sh
 
+export PURC_EXECUTOR_PATH=`pwd`/lib
+
 SHOW_STDERR=${SHOW_STDERR:-0}
 USE_VALGRIND=${USE_VALGRIND:-0}
 TEST_PROGS=`find ${1:-Source/test} -name test_* -perm -0111 -type f`

@@ -586,8 +586,12 @@ TEST(interpreter, basic)
 
     unsigned int modules = (PURC_MODULE_HVML | PURC_MODULE_PCRDR) & ~PURC_HAVE_FETCHER;
 
+    struct purc_instance_extra_info info = { };
+    info.renderer_prot = PURC_RDRPROT_HEADLESS;
+    info.workspace_name = "main";
+
     PurCInstance purc(modules, "cn.fmsoft.hybridos.test", "test_attach_rdr",
-            NULL);
+            &info);
     ASSERT_TRUE(purc);
 
     // get statitics information
@@ -600,16 +604,16 @@ TEST(interpreter, basic)
         ASSERT_NE(vdom, nullptr);
 
         purc_renderer_extra_info extra_info = {};
-        extra_info.id = "def_page";
         extra_info.title = "def_page_title";
         bool ret = purc_attach_vdom_to_renderer(vdom,
                 PCRDR_PAGE_TYPE_PLAINWIN,
-                "blank",           /* target_workspace */
-                "blank",           /* target_group*/
+                "main",         /* target_workspace */
+                NULL,           /* target_group */
+                "def_page",     /* page_name */
                 &extra_info);
         ASSERT_EQ(ret, true);
     }
 
-    purc_run(PURC_VARIANT_INVALID, NULL);
+    purc_run(NULL);
 }
 

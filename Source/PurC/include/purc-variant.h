@@ -1084,6 +1084,26 @@ purc_variant_object_iterator_get_value(
  * @param sz: the initial number of elements in a set.
  * @param unique_key: the unique keys specified in a C string (nullable).
  *      If the unique keyis NULL, the set is a generic one.
+ * @param caseless: if compare caselessly or not
+ *
+ * @param value0 ..... valuen: the values.
+ *
+ * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
+ *
+ * Note: The key is legal, only when the value is object type.
+ *
+ * Since: 0.0.1
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_make_set_by_ckey_ex(size_t sz, const char* unique_key,
+        bool caseless, purc_variant_t value0, ...);
+
+/**
+ * Creates a variant value of set type.
+ *
+ * @param sz: the initial number of elements in a set.
+ * @param unique_key: the unique keys specified in a C string (nullable).
+ *      If the unique keyis NULL, the set is a generic one.
  *
  * @param value0 ..... valuen: the values.
  *

@@ -30,7 +30,7 @@ TEST(idle, idle)
 
     purc_runloop_set_idle_func(purc_runloop_get_current(), on_idle_callback, NULL);
 
-    purc_run(PURC_VARIANT_INVALID, NULL);
+    purc_run(NULL);
 
     cleanup = purc_cleanup ();
     ASSERT_EQ (cleanup, true);

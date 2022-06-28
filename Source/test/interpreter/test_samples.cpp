@@ -167,7 +167,7 @@ TEST(samples, basic)
 
     add_sample(&sample);
 
-    purc_run(PURC_VARIANT_INVALID, NULL);
+    purc_run(NULL);
 }
 
 static void
@@ -177,11 +177,11 @@ run_tests(struct sample_data *samples, size_t nr, int parallel)
         const struct sample_data *sample = samples + i;
         add_sample(sample);
         if (!parallel)
-            purc_run(PURC_VARIANT_INVALID, NULL);
+            purc_run(NULL);
     }
 
     if (parallel)
-        purc_run(PURC_VARIANT_INVALID, NULL);
+        purc_run(NULL);
 }
 
 TEST(samples, samples)

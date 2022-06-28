@@ -304,8 +304,8 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     PC_ASSERT(ctxt);
 
     if (ctxt->as == PURC_VARIANT_INVALID) {
-        purc_set_error_with_info(PURC_EXCEPT_ARGUMENT_MISSED,
-                    "lack of vdom attribute 'with/from' for element <%s>",
+        purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
+                    "lack of vdom attribute 'as' for element <%s>",
                     frame->pos->tag_name);
 
         return -1;
@@ -313,7 +313,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 
     if (purc_variant_is_string(ctxt->as) == false) {
         purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
-                    "vdom attribute 'with/from' for element <%s> "
+                    "vdom attribute 'as' for element <%s> "
                     "is not of string type",
                     frame->pos->tag_name);
 
@@ -591,8 +591,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (stack->except)
         return NULL;
 
-    if (pcintr_check_insertion_mode_for_normal_element(stack))
-        return NULL;
+    pcintr_check_insertion_mode_for_normal_element(stack);
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
@@ -614,7 +613,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     frame->attr_vars = purc_variant_make_object(0,
             PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
     if (frame->attr_vars == PURC_VARIANT_INVALID)
-        return NULL;
+        return ctxt;
 
     struct pcvdom_element *element = frame->pos;
     PC_ASSERT(element);
@@ -622,7 +621,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     int r;
     r = pcintr_vdom_walk_attrs(frame, element, NULL, attr_found);
     if (r)
-        return NULL;
+        return ctxt;
 
     while ((element=pcvdom_element_parent(element))) {
         if (element->tag_id == PCHVML_TAG_HEAD) {
@@ -634,7 +633,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     r = post_process(stack->co, frame);
     if (r)
-        return NULL;
+        return ctxt;
 
     return ctxt;
 }
@@ -666,12 +665,139 @@ on_popping(pcintr_stack_t stack, void* ud)
     return true;
 }
 
+static int
+on_element(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element)
+{
+    UNUSED_PARAM(frame);
+    UNUSED_PARAM(element);
+
+    pcintr_stack_t stack = &co->stack;
+
+    PC_ASSERT(stack->except);
+
+    return 0;
+}
+
+static int
+on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
+        struct pcvdom_content *content)
+{
+    PC_ASSERT(frame);
+    PC_ASSERT(content);
+
+    pcintr_stack_t stack = &co->stack;
+
+    PC_ASSERT(stack->except);
+
+    return 0;
+}
+
+static int
+on_comment(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
+        struct pcvdom_comment *comment)
+{
+    UNUSED_PARAM(co);
+    UNUSED_PARAM(frame);
+    PC_ASSERT(comment);
+    return 0;
+}
+
+static int
+on_child_finished(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
+{
+    UNUSED_PARAM(frame);
+
+    pcintr_stack_t stack = &co->stack;
+
+    PC_ASSERT(stack->except);
+
+    return 0;
+}
+
+static pcvdom_element_t
+select_child(pcintr_stack_t stack, void* ud)
+{
+    PC_ASSERT(stack);
+    PC_ASSERT(stack == pcintr_get_stack());
+
+    pcintr_coroutine_t co = stack->co;
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_stack_get_bottom_frame(stack);
+    PC_ASSERT(ud == frame->ctxt);
+
+    if (stack->back_anchor == frame)
+        stack->back_anchor = NULL;
+
+    if (frame->ctxt == NULL)
+        return NULL;
+
+    if (stack->back_anchor)
+        return NULL;
+
+    if (stack->except == 0)
+        return NULL;
+
+    struct ctxt_for_define *ctxt;
+    ctxt = (struct ctxt_for_define*)frame->ctxt;
+
+    struct pcvdom_node *curr;
+
+again:
+    curr = ctxt->curr;
+
+    if (curr == NULL) {
+        struct pcvdom_element *element = frame->pos;
+        struct pcvdom_node *node = &element->node;
+        node = pcvdom_node_first_child(node);
+        curr = node;
+        purc_clr_error();
+    }
+    else {
+        curr = pcvdom_node_next_sibling(curr);
+        purc_clr_error();
+    }
+
+    ctxt->curr = curr;
+
+    if (curr == NULL) {
+        on_child_finished(co, frame);
+        return NULL;
+    }
+
+    switch (curr->type) {
+        case PCVDOM_NODE_DOCUMENT:
+            PC_ASSERT(0); // Not implemented yet
+            break;
+        case PCVDOM_NODE_ELEMENT:
+            {
+                pcvdom_element_t element = PCVDOM_ELEMENT_FROM_NODE(curr);
+                if (on_element(co, frame, element))
+                    return NULL;
+                return element;
+            }
+        case PCVDOM_NODE_CONTENT:
+            if (on_content(co, frame, PCVDOM_CONTENT_FROM_NODE(curr)))
+                return NULL;
+            goto again;
+        case PCVDOM_NODE_COMMENT:
+            if (on_comment(co, frame, PCVDOM_COMMENT_FROM_NODE(curr)))
+                return NULL;
+            goto again;
+        default:
+            PC_ASSERT(0); // Not implemented yet
+    }
+
+    PC_ASSERT(0);
+    return NULL; // NOTE: never reached here!!!
+}
+
 static struct pcintr_element_ops
 ops = {
     .after_pushed       = after_pushed,
     .on_popping         = on_popping,
     .rerun              = NULL,
-    .select_child       = NULL,
+    .select_child       = select_child,
 };
 
 struct pcintr_element_ops* pcintr_get_define_ops(void)

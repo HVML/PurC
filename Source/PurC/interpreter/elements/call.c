@@ -37,22 +37,26 @@
 #include <unistd.h>
 
 struct ctxt_for_call {
-    struct pcvdom_node           *curr;
+    struct pcvdom_node    *curr;
 
-    purc_variant_t                on;
-    purc_variant_t                with;
-    purc_variant_t                within;
-    purc_variant_t                as;
-    const char                   *s_as;
+    purc_variant_t         on;
+    purc_variant_t         with;
+    purc_variant_t         within;
+    char                   within_app_name[PURC_LEN_APP_NAME + 1];
+    char                   within_runner_name[PURC_LEN_RUNNER_NAME + 1];
 
-    purc_variant_t                at;
-    const char                   *s_at;
+    purc_variant_t         as;
+    const char            *s_as;
 
-    pcvdom_element_t              define;
+    purc_variant_t         at;
+    const char            *s_at;
+
+    pcvdom_element_t       define;
 
     char               endpoint_name_within[PURC_LEN_ENDPOINT_NAME + 1];
     purc_atom_t        endpoint_atom_within;
 
+    unsigned int                  within_self:1;
     unsigned int                  concurrently:1;
     unsigned int                  synchronously:1;
 };
@@ -120,19 +124,44 @@ on_continuation(void *ud, void *extra)
     purc_variant_t msg_sub_type = event->msg_sub_type;
     PC_ASSERT(msg_sub_type != PURC_VARIANT_INVALID);
     const char *s_msg_sub_type = purc_variant_get_string_const(msg_sub_type);
-    PC_ASSERT(0 == strcmp(s_msg_sub_type, "success"));
 
-    purc_variant_t src = event->src;
-    PC_ASSERT(src != PURC_VARIANT_INVALID);
-    PC_ASSERT(purc_variant_is_undefined(src));
+    if (0 == strcmp(s_msg_sub_type, "success")) {
+        purc_variant_t src = event->src;
+        PC_ASSERT(src != PURC_VARIANT_INVALID);
+        PC_ASSERT(purc_variant_is_undefined(src));
 
-    purc_variant_t payload = event->payload;
-    PC_ASSERT(payload != PURC_VARIANT_INVALID);
+        purc_variant_t payload = event->payload;
+        PC_ASSERT(payload != PURC_VARIANT_INVALID);
 
-    int r = pcintr_set_question_var(frame, payload);
-    PC_ASSERT(r == 0);
+        int r = pcintr_set_question_var(frame, payload);
+        PC_ASSERT(r == 0);
 
-    event_destroy(event);
+        event_destroy(event);
+        return;
+    }
+
+    if (0 == strcmp(s_msg_sub_type, "except")) {
+        purc_variant_t src = event->src;
+        PC_ASSERT(src != PURC_VARIANT_INVALID);
+        PC_ASSERT(purc_variant_is_undefined(src));
+
+        purc_variant_t payload = event->payload;
+        PC_ASSERT(payload != PURC_VARIANT_INVALID);
+
+        PRINT_VARIANT(payload);
+        PC_ASSERT(purc_variant_is_string(payload));
+        const char *s = purc_variant_get_string_const(payload);
+        purc_set_error_with_info(PURC_ERROR_UNKNOWN,
+                "sub coroutine failed with except: %s", s);
+
+        // int r = pcintr_set_question_var(frame, payload);
+        // PC_ASSERT(r == 0);
+
+        event_destroy(event);
+        return;
+    }
+
+    PC_ASSERT(0);
 }
 
 static int
@@ -165,13 +194,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
             return -1;
     }
 
-    if (ctxt->concurrently == 0) {
-        ctxt->define = define;
-        frame->scope = define;
-        return 0;
-    }
-
-    if (ctxt->synchronously) {
+    if (!ctxt->synchronously) {
         if (ctxt->as == PURC_VARIANT_INVALID) {
             purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
                     "vdom attribute 'as' for element <call> undefined");
@@ -183,6 +206,36 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
             return -1;
         }
     }
+
+    if (ctxt->within == PURC_VARIANT_INVALID) {
+        ctxt->within_self = 1;
+    }
+
+    if (ctxt->within_self) {
+        if (ctxt->concurrently == 0) {
+            if (ctxt->synchronously) {
+                ctxt->define = define;
+                frame->scope = define;
+                return 0;
+            }
+            purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                    "can not call directly in asynchronous mode");
+            return -1;
+        }
+
+        pcintr_coroutine_t child;
+        child = pcintr_create_child_co(define, ctxt->as, ctxt->within);
+        if (!child)
+            return -1;
+
+        if (ctxt->synchronously) {
+            pcintr_yield(frame, on_continuation);
+            return 0;
+        }
+        PC_ASSERT(0); // Not implemented yet
+    }
+
+    PC_ASSERT(0); // Not implemented yet
 
     pcintr_coroutine_t child;
     child = pcintr_create_child_co(define, ctxt->as, ctxt->within);
@@ -254,12 +307,6 @@ process_attr_within(struct pcintr_stack_frame *frame,
 {
     struct ctxt_for_call *ctxt;
     ctxt = (struct ctxt_for_call*)frame->ctxt;
-    if (ctxt->within != PURC_VARIANT_INVALID) {
-        purc_set_error_with_info(PURC_ERROR_DUPLICATED,
-                "vdom attribute '%s' for element <%s>",
-                purc_atom_to_string(name), element->tag_name);
-        return -1;
-    }
     if (val == PURC_VARIANT_INVALID) {
         purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
                 "vdom attribute '%s' for element <%s> undefined",
@@ -273,35 +320,29 @@ process_attr_within(struct pcintr_stack_frame *frame,
         return -1;
     }
 
-    char app_name[PURC_LEN_APP_NAME + 1];
-    char runner_name[PURC_LEN_RUNNER_NAME + 1];
-
     const char *s = purc_variant_get_string_const(val);
 
-    int r;
-    r = purc_extract_app_name(s, app_name) &&
-        purc_extract_runner_name(s, runner_name);
+    if (strcmp(s, "_self")) {
+        int r;
+        r = purc_extract_app_name(s, ctxt->within_app_name) &&
+            purc_extract_runner_name(s, ctxt->within_runner_name);
 
-    if (r == 0) {
-        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
-                "vdom attribute '%s' for element <%s> is not valid",
-                purc_atom_to_string(name), element->tag_name);
-        return -1;
+        if (r == 0) {
+            purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                    "vdom attribute '%s' for element <%s> is not valid",
+                    purc_atom_to_string(name), element->tag_name);
+            return -1;
+        }
+
+        PC_ASSERT(purc_is_valid_app_name(ctxt->within_app_name));
+        PC_ASSERT(purc_is_valid_runner_name(ctxt->within_runner_name));
+        ctxt->within_self = 0;
+    }
+    else {
+        ctxt->within_self = 1;
     }
 
-    PC_ASSERT(purc_is_valid_app_name(app_name));
-    PC_ASSERT(purc_is_valid_runner_name(runner_name));
-
-    // // FIXME: still not atomic!!!
-    // ctxt->endpoint_atom_within = pcinst_endpoint_get(
-    //         ctxt->endpoint_name_within, sizeof(ctxt->endpoint_name_within),
-    //         app_name, runner_name);
-
-    // if (ctxt->endpoint_atom_within == 0) {
-    //     PC_ASSERT(purc_get_last_error());
-    //     return -1;
-    // }
-
+    PURC_VARIANT_SAFE_CLEAR(ctxt->within);
     ctxt->within = purc_variant_ref(val);
 
     return 0;
@@ -444,8 +485,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (stack->except)
         return NULL;
 
-    if (pcintr_check_insertion_mode_for_normal_element(stack))
-        return NULL;
+    pcintr_check_insertion_mode_for_normal_element(stack);
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
@@ -467,7 +507,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     frame->attr_vars = purc_variant_make_object(0,
             PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
     if (frame->attr_vars == PURC_VARIANT_INVALID)
-        return NULL;
+        return ctxt;
 
     struct pcvdom_element *element = frame->pos;
     PC_ASSERT(element);
@@ -475,11 +515,11 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     int r;
     r = pcintr_vdom_walk_attrs(frame, element, NULL, attr_found);
     if (r)
-        return NULL;
+        return ctxt;
 
     r = post_process(stack->co, frame);
     if (r)
-        return NULL;
+        return ctxt;
 
     return ctxt;
 }
