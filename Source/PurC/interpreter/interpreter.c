@@ -33,6 +33,7 @@
 #include "private/dvobjs.h"
 #include "private/fetcher.h"
 #include "private/regex.h"
+#include "private/stringbuilder.h"
 
 #include "ops.h"
 #include "../hvml/hvml-gen.h"
@@ -1379,12 +1380,38 @@ on_popping(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     do {
         if (!stack->except)
             break;
+
         purc_variant_t except_templates = frame->except_templates;
         if (except_templates == PURC_VARIANT_INVALID)
             break;
 
-        // purc_atom_t error_except = stack->exception.error_except;
+        purc_atom_t error_except = stack->exception.error_except;
+
+        purc_variant_t v = PURC_VARIANT_INVALID;
+        pcintr_match_template(except_templates, error_except, &v);
+
+        if (v == PURC_VARIANT_INVALID)
+            break;
+
+        purc_variant_t content;
+        content = pcintr_template_expansion(v);
+        PURC_VARIANT_SAFE_CLEAR(v);
+
+        pcintr_exception_clear(&stack->exception);
+        stack->except = 0;
+
+        pcdom_element_t *target;
+        target = frame->edom_element;
+        const char *s = purc_variant_get_string_const(content);
+        pcdom_text_t *txt;
+        txt = pcintr_util_append_content(target, s);
+        PURC_VARIANT_SAFE_CLEAR(content);
+
+        if (txt == NULL) {
+            // FIXME: continue or abortion?
+        }
     } while (0);
+
     if (frame->ops.on_popping) {
         ok = frame->ops.on_popping(&co->stack, frame->ctxt);
         if (co->stack.exited)
@@ -3625,23 +3652,6 @@ static struct purc_native_ops ops_tpl = {
     .on_release                   = on_release,
 };
 
-purc_variant_t
-pcintr_template_make(void)
-{
-    struct pcvdom_template *tpl;
-    tpl = template_create();
-    if (!tpl)
-        return PURC_VARIANT_INVALID;
-
-    purc_variant_t v = purc_variant_make_native(tpl, &ops_tpl);
-    if (!v) {
-        template_destroy(tpl);
-        return PURC_VARIANT_INVALID;
-    }
-
-    return v;
-}
-
 static int
 check_template_variant(purc_variant_t val)
 {
@@ -3661,6 +3671,24 @@ check_template_variant(purc_variant_t val)
     }
 
     return 0;
+}
+
+purc_variant_t
+pcintr_template_make(void)
+{
+    struct pcvdom_template *tpl;
+    tpl = template_create();
+    if (!tpl)
+        return PURC_VARIANT_INVALID;
+
+    purc_variant_t v = purc_variant_make_native(tpl, &ops_tpl);
+    if (!v) {
+        template_destroy(tpl);
+        return PURC_VARIANT_INVALID;
+    }
+
+    PC_ASSERT(0 == check_template_variant(v));
+    return v;
 }
 
 int
@@ -4651,15 +4679,15 @@ pcintr_bind_template(purc_variant_t templates,
     return ok ? 0 : -1;
 }
 
-int
+void
 pcintr_match_template(purc_variant_t templates,
-        purc_atom_t type, purc_variant_t *contents)
+        purc_atom_t type, purc_variant_t *content)
 {
-    PC_ASSERT(contents);
-    *contents = PURC_VARIANT_INVALID;
+    PC_ASSERT(content);
+    *content = NULL;
 
     if (templates == PURC_VARIANT_INVALID)
-        return 0;
+        return;
 
     PC_ASSERT(purc_variant_is_object(templates));
 
@@ -4673,9 +4701,103 @@ pcintr_match_template(purc_variant_t templates,
         PC_ASSERT(k != PURC_VARIANT_INVALID);
         PC_ASSERT(purc_variant_is_string(k));
         PC_ASSERT(v != PURC_VARIANT_INVALID);
+
+        const char *sk = purc_variant_get_string_const(k);
+        int wild = 1;
+        if (strcmp(sk, "*")) {
+            wild = 0;
+            if (strcmp(sk, s_type)) {
+                continue;
+            }
+        }
+
+        PC_ASSERT(0 == check_template_variant(v));
+
+        PURC_VARIANT_SAFE_CLEAR(*content);
+        *content = purc_variant_ref(v);
+
+        if (wild)
+            continue;
+
+        break;
     }
     end_foreach;
+}
 
+struct template_walk_data {
+    pcintr_stack_t               stack;
+
+    int                          r;
+    purc_variant_t               val;
+};
+
+static int
+template_walker(struct pcvcm_node *vcm, void *ctxt)
+{
+    struct template_walk_data *ud;
+    ud = (struct template_walk_data*)ctxt;
+    PC_ASSERT(ud);
+    PC_ASSERT(ud->val == PURC_VARIANT_INVALID);
+
+    pcintr_stack_t stack = ud->stack;
+    PC_ASSERT(stack);
+
+    // TODO: silently
+    purc_variant_t v = pcvcm_eval(vcm, stack, false);
+    PC_ASSERT(v != PURC_VARIANT_INVALID);
+
+    if (purc_variant_is_string(v)) {
+        const char *s = purc_variant_get_string_const(v);
+
+        size_t chunk = 128;
+        struct pcutils_stringbuilder sb;
+        pcutils_stringbuilder_init(&sb, chunk);
+        int n = pcutils_stringbuilder_snprintf(&sb, "%s", s);
+        if (n < 0 || (size_t)n != strlen(s)) {
+            pcutils_stringbuilder_reset(&sb);
+            purc_variant_unref(v);
+            ud->r = -1;
+            return -1;
+        }
+
+        char *ssv = pcutils_stringbuilder_build(&sb);
+        if (ssv) {
+            ud->val = purc_variant_make_string_reuse_buff(ssv, strlen(ssv), true);
+            PC_ASSERT(v);
+        }
+        pcutils_stringbuilder_reset(&sb);
+    }
+    else {
+        ud->val = v;
+        purc_variant_ref(ud->val);
+    }
+
+    purc_variant_unref(v);
     return 0;
+}
+
+purc_variant_t
+pcintr_template_expansion(purc_variant_t val)
+{
+    pcintr_stack_t stack = pcintr_get_stack();
+    PC_ASSERT(stack);
+
+    struct template_walk_data ud = {
+        .stack        = stack,
+        .r            = 0,
+        .val          = PURC_VARIANT_INVALID,
+    };
+
+    pcintr_template_walk(val, &ud, template_walker);
+
+    int r = ud.r;
+    purc_variant_t v = PURC_VARIANT_INVALID;
+
+    if (r == 0) {
+        v = ud.val;
+        PC_ASSERT(v);
+    }
+
+    return v;
 }
 

@@ -142,6 +142,9 @@ void
 pcintr_template_walk(purc_variant_t val, void *ctxt,
         pcintr_template_walk_cb cb);
 
+void
+pcintr_match_template(purc_variant_t val,
+        purc_atom_t type, purc_variant_t *content);
 
 typedef purc_variant_t
 (*pcintr_attribute_op)(purc_variant_t left, purc_variant_t right);
@@ -331,6 +334,9 @@ pcintr_get_vdom_from_variant(purc_variant_t val);
 int
 pcintr_bind_template(purc_variant_t templates,
         purc_variant_t type, purc_variant_t contents);
+
+purc_variant_t
+pcintr_template_expansion(purc_variant_t val);
 
 PCA_EXTERN_C_END
 

@@ -112,13 +112,16 @@ attr_found_val(struct pcintr_stack_frame *frame,
         if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, TYPE)) == name) {
             return process_attr_type(frame, element, name, val);
         }
-        PC_DEBUGX("name: %s", purc_atom_to_string(name));
-        PC_ASSERT(0);
+
+        purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
+                "vdom attribute '%s' for element <%s>",
+                purc_atom_to_string(name), element->tag_name);
         return -1;
     }
 
-    PC_DEBUGX("name: %s", attr->key);
-    PC_ASSERT(0);
+    purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
+            "vdom attribute '%s' for element <%s> unknown",
+            purc_atom_to_string(name), element->tag_name);
     return -1;
 }
 
@@ -259,9 +262,12 @@ on_child_finished(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     if (!contents)
         return 0;
 
+    struct pcintr_stack_frame *parent_frame;
+    parent_frame = pcintr_stack_frame_get_parent(frame);
+
     PC_ASSERT(ctxt->type != PURC_VARIANT_INVALID);
     int r;
-    r = pcintr_bind_template(frame->except_templates,
+    r = pcintr_bind_template(parent_frame->except_templates,
             ctxt->type, ctxt->contents);
 
     return r ? -1 : 0;

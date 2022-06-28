@@ -75,58 +75,6 @@ ctxt_destroy(void *ctxt)
     ctxt_for_update_destroy((struct ctxt_for_update*)ctxt);
 }
 
-struct template_walk_data {
-    pcintr_stack_t               stack;
-
-    int                          r;
-    purc_variant_t               val;
-};
-
-static int
-template_walker(struct pcvcm_node *vcm, void *ctxt)
-{
-    struct template_walk_data *ud;
-    ud = (struct template_walk_data*)ctxt;
-    PC_ASSERT(ud);
-    PC_ASSERT(ud->val == PURC_VARIANT_INVALID);
-
-    pcintr_stack_t stack = ud->stack;
-    PC_ASSERT(stack);
-
-    // TODO: silently
-    purc_variant_t v = pcvcm_eval(vcm, stack, false);
-    PC_ASSERT(v != PURC_VARIANT_INVALID);
-
-    if (purc_variant_is_string(v)) {
-        const char *s = purc_variant_get_string_const(v);
-
-        size_t chunk = 128;
-        struct pcutils_stringbuilder sb;
-        pcutils_stringbuilder_init(&sb, chunk);
-        int n = pcutils_stringbuilder_snprintf(&sb, "%s", s);
-        if (n < 0 || (size_t)n != strlen(s)) {
-            pcutils_stringbuilder_reset(&sb);
-            purc_variant_unref(v);
-            ud->r = -1;
-            return -1;
-        }
-
-        char *ssv = pcutils_stringbuilder_build(&sb);
-        if (ssv) {
-            ud->val = purc_variant_make_string_reuse_buff(ssv, strlen(ssv), true);
-            PC_ASSERT(v);
-        }
-        pcutils_stringbuilder_reset(&sb);
-    }
-    else {
-        ud->val = v;
-        purc_variant_ref(ud->val);
-    }
-
-    purc_variant_unref(v);
-    return 0;
-}
-
 static purc_variant_t
 get_source_by_with(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     purc_variant_t with)
@@ -154,22 +102,7 @@ get_source_by_with(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         return with;
     }
     else if (purc_variant_is_native(with)) {
-        struct template_walk_data ud = {
-            .stack        = &co->stack,
-            .r            = 0,
-            .val          = PURC_VARIANT_INVALID,
-        };
-
-        pcintr_template_walk(with, &ud, template_walker);
-
-        int r = ud.r;
-        purc_variant_t v = PURC_VARIANT_INVALID;
-
-        if (r == 0) {
-            v = ud.val;
-            PC_ASSERT(v);
-        }
-        return v;
+        return pcintr_template_expansion(with);
     }
     else {
         purc_variant_ref(with);
