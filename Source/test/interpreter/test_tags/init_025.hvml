@@ -7,7 +7,8 @@
         <except type="*">
             you shall not see me
         </except>
-        <init as="xmath" from="purc-dvobj-MATH" via="LOAD" />
+        <init as="pi" from="purc-dvobj-MATH" via="LOAD" for="pi"/>
+        <update on="$@" to="append" with="$pi"/>
     </body>
 
 </hvml>

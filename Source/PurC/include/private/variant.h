@@ -431,14 +431,15 @@ purc_variant_t *tuple_members(purc_variant_t tuple, size_t *sz)
 
 // md5 shall be at least 33 bytes long
 void pcvariant_md5_ex(char *md5, purc_variant_t val, const char *salt,
-    unsigned int serialize_flags) WTF_INTERNAL;
+    bool caseless, unsigned int serialize_flags) WTF_INTERNAL;
 
 PCA_INLINE void
 pcvariant_md5(char *md5, purc_variant_t val)
 {
     const char *salt = NULL;
     unsigned int serialize_flags = 0;
-    pcvariant_md5_ex(md5, val, salt, serialize_flags);
+    bool caseless = false;
+    pcvariant_md5_ex(md5, val, salt, caseless, serialize_flags);
 }
 
 // md5 shall be at least 33 bytes long

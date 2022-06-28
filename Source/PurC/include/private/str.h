@@ -202,6 +202,11 @@ const unsigned char *
 pcutils_str_data_find_uppercase(const unsigned char *data, 
                 size_t len) WTF_INTERNAL;
 
+unsigned char
+pcutils_unsigned_char_to_uppercase(unsigned char from) WTF_INTERNAL;
+
+unsigned char
+pcutils_unsigned_char_to_lowercase(unsigned char from) WTF_INTERNAL;
 
 /*
  * Inline functions
