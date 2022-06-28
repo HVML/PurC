@@ -38,5 +38,42 @@ struct pcinst_msg_hdr {
     struct list_head        ln;
 };
 
+struct pcinst_msg_queue {
+    struct purc_rwlock  lock;
+    struct list_head    msgs;
+
+    uint64_t            state;
+    size_t              nr_msgs;
+};
+
+/* Make sure the size of `struct list_head` is two times of sizeof(void *) */
+#define _COMPILE_TIME_ASSERT(name, x)               \
+       typedef int _dummy_ ## name[(x) * 2 - 1]
+_COMPILE_TIME_ASSERT(onwer_atom,
+        sizeof(atomic_uint) == sizeof(purc_atom_t));
+_COMPILE_TIME_ASSERT(list_head,
+        sizeof(struct list_head) == (sizeof(void *) * 2));
+#undef _COMPILE_TIME_ASSERT
+
+PCA_EXTERN_C_BEGIN
+
+struct pcinst_msg_queue *
+pcinst_msg_queue_create(void);
+
+ssize_t
+pcinst_msg_queue_destroy(struct pcinst_msg_queue *queue);
+
+int
+pcinst_msg_queue_append(struct pcinst_msg_queue *queue, pcinst_msg *msg);
+
+int
+pcinst_msg_queue_prepend(struct pcinst_msg_queue *queue, pcinst_msg *msg);
+
+pcinst_msg *
+pcinst_msg_get_msg(struct pcinst_msg_queue *queue);
+
+
+PCA_EXTERN_C_END
+
 #endif /* not defined PURC_PRIVATE_MSG_QUEUE_H */
 
