@@ -138,8 +138,8 @@ To run this HVML program, you can use `purc` in the following way:
     $ purc hello.hvml
 ```
 
-You will see your first HVML program prints `Hello, world!` on you terminal
-and quit:
+You will see that your first HVML program prints `Hello, world!`
+on your terminal and quit:
 
 ```
     Hello, world!
@@ -302,7 +302,7 @@ You can see the all options supported by `purc` when you run `purc` with `-h` op
 $ purc -h
 purc (0.2.0) - a standalone HVML interpreter/debugger based-on PurC.
 
-Usage: purc [ options ... ] [ file | url] ... | [ app_desc_json | app_desc_ejson ] >
+Usage: purc [ options ... ] [ file | url ] ... | [ app_desc_json | app_desc_ejson ]
 
 The following options can be supplied to the command:
 
@@ -312,20 +312,20 @@ The following options can be supplied to the command:
   -r --run=<runner_name>
         Run with the specified runner name (default value is `main`).
 
-  -d --data-fetcher=<fetcher>
+  -d --data-fetcher=< local | remote >
         The data fetcher; use `local` or `remote`.
             - `local`: use the built-in data fetcher, and only `file://` URIs
                supported.
             - `remote`: use the remote data fetcher to support more URI schemas,
                such as `http`, `https`, `ftp` and so on.
 
-  -p --rdr-prot=<renderer protocol>
+  -p --rdr-prot=< headless | purcmc >
         The renderer protocol; use `headless` (default) or `purcmc`.
             - `headless`: use the built-in HEADLESS renderer.
             - `purcmc`: use the remote PURCMC renderer;
               `purc` connects to the renderer via Unix Socket or WebSocket.
 
-  -p --rdr-uri=<renderer protocol>
+  -p --rdr-uri=<renderer_uri>
         The renderer uri:
             - For the renderer protocol `headleass`,
               default value is not specified (nil).
@@ -357,7 +357,7 @@ the initial HVML programs to run in different runners.
                 { "uri": "cn.fmsoft.hvml.sample/productlist.hvml", "request": {},
                    "renderer": { "pageType": "widget", "pageName": "productlist", "pageGroupId": "theProductsArea" }
                 },
-                { "uri": "cn.fmsoft.hvml.sample/productinfo.hvml", "request": { productId: 0 },
+                { "uri": "cn.fmsoft.hvml.sample/productinfo.hvml", "request": { "productId": 0 },
                    "renderer": { "pageType": "widget", "pageName": "productinfo", "pageGroupId": "theProductsArea" }
                 }
             ]
@@ -370,7 +370,7 @@ the initial HVML programs to run in different runners.
                 { "uri": "cn.fmsoft.hvml.sample/customerlist.hvml", "request": {},
                    "renderer": { "pageType": "widget", "pageName": "customerlist", "pageGroupId": "theCustomersArea" }
                 },
-                { "uri": "cn.fmsoft.hvml.sample/customerlist.hvml", "request": { customerId: 0 },
+                { "uri": "cn.fmsoft.hvml.sample/customerlist.hvml", "request": { "customerId": 0 },
                    "renderer": { "pageType": "widget", "pageName": "customerinfo", "pageGroupId": "theCustomersArea" }
                 }
             ]
@@ -378,8 +378,8 @@ the initial HVML programs to run in different runners.
         {
             "name": "Daemons",
             "coroutines": [
-                { "uri": "cn.fmsoft.hvml.sample/check-customers.hvml", "request": { interval: 10 } },
-                { "uri": "cn.fmsoft.hvml.sample/check-products.hvml", "request": { interval: 30 } }
+                { "uri": "cn.fmsoft.hvml.sample/check-customers.hvml", "request": { "interval": 10 } },
+                { "uri": "cn.fmsoft.hvml.sample/check-products.hvml", "request": { "interval": 30 } }
             ]
         },
     ]
@@ -420,7 +420,7 @@ We can access the option specified by `--app` in `my_app.ejson`:
                 { "uri": "cn.fmsoft.hvml.sample/productlist.hvml", "request": {},
                    "renderer": { "pageType": "widget", "pageName": "productlist", "pageGroupId": "theProductsArea" }
                 },
-                { "uri": "cn.fmsoft.hvml.sample/productinfo.hvml", "request": { productId: 0 },
+                { "uri": "cn.fmsoft.hvml.sample/productinfo.hvml", "request": { "productId": 0 },
                    "renderer": { "pageType": "widget", "pageName": "productinfo", "pageGroupId": "theProductsArea" }
                 },
             ]
@@ -448,6 +448,11 @@ If the firewall refused to connect to the URL, use the following URL:
 ```bash
 $ purc https://gitlab.fmsoft.cn/hvml/hvml-docs/-/raw/master/samples/fibonacci/fibonacci-6.hvml
 ```
+
+When `purc` try to load a HVML program from the remote URL, it will enable
+the remote data fetcher by default. Please refer to
+[PurC Fetcher](https://github.com/HVML/purc-fetcher) for detailed instructions
+to build and install PurC Fetcher to your system.
 
 ## Hacking PurC
 
