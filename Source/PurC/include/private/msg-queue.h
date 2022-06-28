@@ -32,6 +32,15 @@
 #include "private/list.h"
 #include "purc-pcrdr.h"
 
+#define MSG_QS_REQ      0x10000000
+#define MSG_QS_RES      0x20000000
+#define MSG_QS_EVENT    0x40000000
+#define MSG_QS_TIMER    0x80000000
+#define MSG_QS_VOID     0x01000000
+
+
+#define MSG_SOURCE_TIMER  "__msg_source_timer"
+
 typedef struct pcrdr_msg pcinst_msg;
 struct pcinst_msg_hdr {
     atomic_uint             owner;
@@ -44,7 +53,7 @@ struct pcinst_msg_queue {
     struct list_head    res_msgs;
     struct list_head    event_msgs;
     struct list_head    timer_msgs;
-    struct list_head    msgs;
+    struct list_head    void_msgs;
 
     uint64_t            state;
     size_t              nr_msgs;
@@ -74,7 +83,7 @@ int
 pcinst_msg_queue_prepend(struct pcinst_msg_queue *queue, pcinst_msg *msg);
 
 pcinst_msg *
-pcinst_msg_get_msg(struct pcinst_msg_queue *queue);
+pcinst_msg_queue_get_msg(struct pcinst_msg_queue *queue);
 
 
 PCA_EXTERN_C_END

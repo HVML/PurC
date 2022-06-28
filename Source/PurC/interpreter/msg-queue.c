@@ -59,7 +59,7 @@ pcinst_msg_queue_create(void)
     list_head_init(&queue->res_msgs);
     list_head_init(&queue->event_msgs);
     list_head_init(&queue->timer_msgs);
-    list_head_init(&queue->msgs);
+    list_head_init(&queue->void_msgs);
 
 done:
 
@@ -118,7 +118,7 @@ pcinst_msg_queue_destroy(struct pcinst_msg_queue *queue)
     nr += grind_msg_list(&queue->res_msgs);
     nr += grind_msg_list(&queue->event_msgs);
     nr += grind_msg_list(&queue->timer_msgs);
-    nr += grind_msg_list(&queue->msgs);
+    nr += grind_msg_list(&queue->void_msgs);
     queue->nr_msgs -= nr;
 
     purc_rwlock_writer_unlock(&queue->lock);
@@ -133,6 +133,12 @@ static bool
 is_timer_event_msg(pcinst_msg *msg)
 {
     UNUSED_PARAM(msg);
+    if (msg->eventName && purc_variant_is_string(msg->sourceURI)) {
+        const char *source = purc_variant_get_string_const(msg->sourceURI);
+        if (strcmp(source, MSG_SOURCE_TIMER) == 0) {
+            return true;
+        }
+    }
     return false;
 }
 
@@ -147,28 +153,34 @@ pcinst_msg_queue_append(struct pcinst_msg_queue *queue, pcinst_msg *msg)
     struct list_head *msgs = NULL;
     switch (msg->type) {
     case PCRDR_MSG_TYPE_VOID:
-        msgs = &queue->msgs;
+        msgs = &queue->void_msgs;
+        queue->state |= MSG_QS_VOID;
         break;
 
     case PCRDR_MSG_TYPE_REQUEST:
         msgs = &queue->req_msgs;
+        queue->state |= MSG_QS_REQ;
         break;
 
     case PCRDR_MSG_TYPE_RESPONSE:
         msgs = &queue->res_msgs;
+        queue->state |= MSG_QS_RES;
         break;
 
     case PCRDR_MSG_TYPE_EVENT:
         if (is_timer_event_msg(msg)) {
             msgs = &queue->timer_msgs;
+            queue->state |= MSG_QS_TIMER;
         }
         else {
             msgs = &queue->event_msgs;
+            queue->state |= MSG_QS_EVENT;
         }
         break;
 
     default:
-        msgs = &queue->msgs;
+        msgs = &queue->void_msgs;
+        queue->state |= MSG_QS_VOID;
         break;
     }
 
@@ -188,28 +200,34 @@ pcinst_msg_queue_prepend(struct pcinst_msg_queue *queue, pcinst_msg *msg)
     struct list_head *msgs = NULL;
     switch (msg->type) {
     case PCRDR_MSG_TYPE_VOID:
-        msgs = &queue->msgs;
+        msgs = &queue->void_msgs;
+        queue->state |= MSG_QS_VOID;
         break;
 
     case PCRDR_MSG_TYPE_REQUEST:
         msgs = &queue->req_msgs;
+        queue->state |= MSG_QS_REQ;
         break;
 
     case PCRDR_MSG_TYPE_RESPONSE:
         msgs = &queue->res_msgs;
+        queue->state |= MSG_QS_RES;
         break;
 
     case PCRDR_MSG_TYPE_EVENT:
         if (is_timer_event_msg(msg)) {
             msgs = &queue->timer_msgs;
+            queue->state |= MSG_QS_TIMER;
         }
         else {
             msgs = &queue->event_msgs;
+            queue->state |= MSG_QS_EVENT;
         }
         break;
 
     default:
-        msgs = &queue->msgs;
+        msgs = &queue->void_msgs;
+        queue->state |= MSG_QS_VOID;
         break;
     }
 
@@ -220,13 +238,62 @@ pcinst_msg_queue_prepend(struct pcinst_msg_queue *queue, pcinst_msg *msg)
     return 0;
 }
 
-pcinst_msg *
-pcinst_msg_get_msg(struct pcinst_msg_queue *queue)
+static pcinst_msg *
+get_msg(struct pcinst_msg_queue *queue, struct list_head *msgs)
 {
-    if (list_empty(&queue->msgs)) {
+    if (list_empty(msgs)) {
         return NULL;
     }
-    struct pcinst_msg_hdr *hdr = list_first_entry(&queue->msgs,
+    struct pcinst_msg_hdr *hdr = list_first_entry(&queue->void_msgs,
             struct pcinst_msg_hdr, ln);
-    return (pcinst_msg *)hdr;
+    pcinst_msg *msg = (pcinst_msg *)hdr;
+    list_del(&hdr->ln);
+    if (list_empty(msgs)) {
+        queue->state &= ~MSG_QS_RES;
+    }
+    return msg;
 }
+
+pcinst_msg *
+pcinst_msg_queue_get_msg(struct pcinst_msg_queue *queue)
+{
+    pcinst_msg *msg = NULL;
+    if (queue->state & MSG_QS_RES) {
+        msg = get_msg(queue, &queue->res_msgs);
+        if (msg) {
+            goto done;
+        }
+    }
+
+    if (queue->state & MSG_QS_REQ) {
+        msg = get_msg(queue, &queue->req_msgs);
+        if (msg) {
+            goto done;
+        }
+    }
+
+    if (queue->state & MSG_QS_EVENT) {
+        msg = get_msg(queue, &queue->event_msgs);
+        if (msg) {
+            goto done;
+        }
+    }
+
+    if (queue->state & MSG_QS_TIMER) {
+        msg = get_msg(queue, &queue->timer_msgs);
+        if (msg) {
+            goto done;
+        }
+    }
+
+    if (queue->state & MSG_QS_VOID) {
+        msg = get_msg(queue, &queue->timer_msgs);
+        if (msg) {
+            goto done;
+        }
+    }
+
+done:
+    return msg;
+}
+
