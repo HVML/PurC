@@ -40,6 +40,10 @@ struct pcinst_msg_hdr {
 
 struct pcinst_msg_queue {
     struct purc_rwlock  lock;
+    struct list_head    req_msgs;
+    struct list_head    res_msgs;
+    struct list_head    event_msgs;
+    struct list_head    timer_msgs;
     struct list_head    msgs;
 
     uint64_t            state;

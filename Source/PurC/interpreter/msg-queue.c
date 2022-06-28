@@ -55,6 +55,10 @@ pcinst_msg_queue_create(void)
 
     queue->state = 0;
     queue->nr_msgs = 0;
+    list_head_init(&queue->req_msgs);
+    list_head_init(&queue->res_msgs);
+    list_head_init(&queue->event_msgs);
+    list_head_init(&queue->timer_msgs);
     list_head_init(&queue->msgs);
 
 done:
@@ -89,32 +93,47 @@ grind_message(pcinst_msg *msg)
 #endif
 }
 
+static ssize_t
+grind_msg_list(struct list_head *msgs)
+{
+    ssize_t nr = 0;
+    struct list_head *p, *n;
+    list_for_each_safe(p, n, msgs) {
+        struct pcinst_msg_hdr *hdr;
+        hdr = list_entry(p, struct pcinst_msg_hdr, ln);
+        list_del(p);
+        grind_message((pcinst_msg *)hdr);
+        nr++;
+    }
+    return nr;
+}
+
 ssize_t
 pcinst_msg_queue_destroy(struct pcinst_msg_queue *queue)
 {
     ssize_t nr = 0;
-    struct list_head *p, *n;
     purc_rwlock_writer_lock(&queue->lock);
-    pcvariant_use_move_heap();
-    list_for_each_safe(p, n, &queue->msgs) {
 
-        struct pcinst_msg_hdr *hdr;
+    nr += grind_msg_list(&queue->req_msgs);
+    nr += grind_msg_list(&queue->res_msgs);
+    nr += grind_msg_list(&queue->event_msgs);
+    nr += grind_msg_list(&queue->timer_msgs);
+    nr += grind_msg_list(&queue->msgs);
+    queue->nr_msgs -= nr;
 
-        hdr = list_entry(p, struct pcinst_msg_hdr, ln);
-
-        list_del(p);
-        queue->nr_msgs--;
-
-        grind_message((pcinst_msg *)hdr);
-        nr++;
-    }
-    pcvariant_use_norm_heap();
     purc_rwlock_writer_unlock(&queue->lock);
 
     purc_rwlock_clear(&queue->lock);
     free(queue);
 
     return nr;
+}
+
+static bool
+is_timer_event_msg(pcinst_msg *msg)
+{
+    UNUSED_PARAM(msg);
+    return false;
 }
 
 int
@@ -124,8 +143,37 @@ pcinst_msg_queue_append(struct pcinst_msg_queue *queue, pcinst_msg *msg)
     UNUSED_PARAM(msg);
 
     purc_rwlock_writer_lock(&queue->lock);
+
+    struct list_head *msgs = NULL;
+    switch (msg->type) {
+    case PCRDR_MSG_TYPE_VOID:
+        msgs = &queue->msgs;
+        break;
+
+    case PCRDR_MSG_TYPE_REQUEST:
+        msgs = &queue->req_msgs;
+        break;
+
+    case PCRDR_MSG_TYPE_RESPONSE:
+        msgs = &queue->res_msgs;
+        break;
+
+    case PCRDR_MSG_TYPE_EVENT:
+        if (is_timer_event_msg(msg)) {
+            msgs = &queue->timer_msgs;
+        }
+        else {
+            msgs = &queue->event_msgs;
+        }
+        break;
+
+    default:
+        msgs = &queue->msgs;
+        break;
+    }
+
     struct pcinst_msg_hdr *hdr = (struct pcinst_msg_hdr *)msg;
-    list_add_tail(&hdr->ln, &queue->msgs);
+    list_add_tail(&hdr->ln, msgs);
     queue->nr_msgs++;
     purc_rwlock_writer_unlock(&queue->lock);
     return 0;
@@ -137,8 +185,36 @@ pcinst_msg_queue_prepend(struct pcinst_msg_queue *queue, pcinst_msg *msg)
     UNUSED_PARAM(queue);
     UNUSED_PARAM(msg);
     purc_rwlock_writer_lock(&queue->lock);
+    struct list_head *msgs = NULL;
+    switch (msg->type) {
+    case PCRDR_MSG_TYPE_VOID:
+        msgs = &queue->msgs;
+        break;
+
+    case PCRDR_MSG_TYPE_REQUEST:
+        msgs = &queue->req_msgs;
+        break;
+
+    case PCRDR_MSG_TYPE_RESPONSE:
+        msgs = &queue->res_msgs;
+        break;
+
+    case PCRDR_MSG_TYPE_EVENT:
+        if (is_timer_event_msg(msg)) {
+            msgs = &queue->timer_msgs;
+        }
+        else {
+            msgs = &queue->event_msgs;
+        }
+        break;
+
+    default:
+        msgs = &queue->msgs;
+        break;
+    }
+
     struct pcinst_msg_hdr *hdr = (struct pcinst_msg_hdr *)msg;
-    list_add(&hdr->ln, &queue->msgs);
+    list_add(&hdr->ln, msgs);
     queue->nr_msgs++;
     purc_rwlock_writer_unlock(&queue->lock);
     return 0;
