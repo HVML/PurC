@@ -355,10 +355,10 @@ the initial HVML programs to run in different runners.
             "workspace": { "name": "default", "layout": "cn.fmsoft.hvml.sample/layout.html" },
             "coroutines": [
                 { "uri": "cn.fmsoft.hvml.sample/productlist.hvml", "request": {},
-                   "renderer: { "pageType": "widget", "pageName": "productlist", "pageGroupId": "theProductsArea" }
+                   "renderer": { "pageType": "widget", "pageName": "productlist", "pageGroupId": "theProductsArea" }
                 },
                 { "uri": "cn.fmsoft.hvml.sample/productinfo.hvml", "request": { productId: 0 },
-                   "renderer: { "pageType": "widget", "pageName": "productinfo", "pageGroupId": "theProductsArea" }
+                   "renderer": { "pageType": "widget", "pageName": "productinfo", "pageGroupId": "theProductsArea" }
                 }
             ]
         },
@@ -368,10 +368,10 @@ the initial HVML programs to run in different runners.
             "workspace": { "name": "default", "layout": "cn.fmsoft.hvml.sample/layout.html" },
             "coroutines": [
                 { "uri": "cn.fmsoft.hvml.sample/customerlist.hvml", "request": {},
-                   "renderer: { "pageType": "widget", "pageName": "customerlist", "pageGroupId": "theCustomersArea" }
+                   "renderer": { "pageType": "widget", "pageName": "customerlist", "pageGroupId": "theCustomersArea" }
                 },
                 { "uri": "cn.fmsoft.hvml.sample/customerlist.hvml", "request": { customerId: 0 },
-                   "renderer: { "pageType": "widget", "pageName": "customerinfo", "pageGroupId": "theCustomersArea" }
+                   "renderer": { "pageType": "widget", "pageName": "customerinfo", "pageGroupId": "theCustomersArea" }
                 }
             ]
         },
@@ -418,10 +418,10 @@ We can access the option specified by `--app` in `my_app.ejson`:
             "workspace": { "name": "default", "layout": "$OPTS.app/layout.html" },
             "coroutines": [
                 { "uri": "cn.fmsoft.hvml.sample/productlist.hvml", "request": {},
-                   "renderer: { "pageType": "widget", "pageName": "productlist", "pageGroupId": "theProductsArea" }
+                   "renderer": { "pageType": "widget", "pageName": "productlist", "pageGroupId": "theProductsArea" }
                 },
                 { "uri": "cn.fmsoft.hvml.sample/productinfo.hvml", "request": { productId: 0 },
-                   "renderer: { "pageType": "widget", "pageName": "productinfo", "pageGroupId": "theProductsArea" }
+                   "renderer": { "pageType": "widget", "pageName": "productinfo", "pageGroupId": "theProductsArea" }
                 },
             ]
         },
