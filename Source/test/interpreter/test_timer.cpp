@@ -48,7 +48,7 @@ TEST(timer, oneShot)
     pcintr_timer_set_interval(timer, 200);
     pcintr_timer_start_oneshot(timer);
 
-    purc_run(PURC_VARIANT_INVALID, NULL);
+    purc_run(NULL);
 
     pcintr_timer_destroy(timer);
 
@@ -75,7 +75,7 @@ TEST(timer, interval)
     pcintr_timer_set_interval(timer, 100);
     pcintr_timer_start(timer);
 
-    purc_run(PURC_VARIANT_INVALID, NULL);
+    purc_run(NULL);
 
     pcintr_timer_destroy(timer);
 
@@ -109,7 +109,7 @@ TEST(TIMER, init)
     bool init = pcintr_init_timers(vdom);
     ASSERT_EQ(init, true);
 
-    purc_run(PURC_VARIANT_INVALID, NULL);
+    purc_run(NULL);
 
     cleanup = purc_cleanup ();
     ASSERT_EQ (cleanup, true);

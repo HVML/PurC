@@ -278,7 +278,7 @@ int main(int argc, char** argv)
         goto failed;
     }
 
-    purc_run(PURC_VARIANT_INVALID, NULL);
+    purc_run(NULL);
 
 failed:
     if (run_info.doc_content)

@@ -468,23 +468,40 @@ purc_attach_vdom_to_renderer(purc_vdom_t vdom,
         const char *target_group, const char *page_name,
         purc_renderer_extra_info *extra_info);
 
-typedef int (*purc_event_handler)(purc_vdom_t vdom, purc_variant_t event);
+/**
+ * purc_schedule_vdom:
+ *
+ * @vdom: The vDOM entity returned by @purc_load_hvml_from_rwstream or
+ *      its brother functions.
+ * @request: The variant which will be used as the request data.
+ *
+ * Creates a new coroutine to run the specified vDOM.
+ * If success, the new coroutine will be in READY state.
+ *
+ * Returns: A native entity variant representing the coroutine,
+ *      @PURC_VARIANT_INVALID for error.
+ *
+ * Since 0.2.0
+ */
+PCA_EXPORT purc_variant_t
+purc_schedule_vdom(purc_vdom_t vdom, purc_variant_t request);
+
+typedef int (*purc_event_handler)(const struct pcrdr_msg *event);
 
 /**
  * purc_run:
  *
- * @request: The variant which will be used as the request data.
  * @handler: The pointer to a call-back function which handles
  *      the session events.
  *
- * Runs all HVML programs which are ready in the current PurC instance.
+ * Runs all HVML coroutines which are ready in the current PurC instance.
  *
  * Returns: @true for success; @false for failure.
  *
  * Since 0.0.1
  */
 PCA_EXPORT bool
-purc_run(purc_variant_t request, purc_event_handler handler);
+purc_run(purc_event_handler handler);
 
 PCA_EXTERN_C_END
 

@@ -127,7 +127,7 @@ TEST(doc_var, basic)
         ASSERT_NE(vdom, nullptr);
     }
 
-    purc_run(PURC_VARIANT_INVALID, NULL);
+    purc_run(NULL);
 
     cleanup = purc_cleanup ();
     ASSERT_EQ (cleanup, true);

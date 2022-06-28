@@ -871,6 +871,6 @@ TEST(interpreter, basic)
         ASSERT_NE(vdom, nullptr);
     }
 
-    purc_run(PURC_VARIANT_INVALID, NULL);
+    purc_run(NULL);
 }
 

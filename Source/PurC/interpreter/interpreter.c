@@ -2632,9 +2632,8 @@ purc_load_hvml_from_rwstream_ex(purc_rwstream_t stream,
 }
 
 bool
-purc_run(purc_variant_t request, purc_event_handler handler)
+purc_run(purc_event_handler handler)
 {
-    UNUSED_PARAM(request);
     UNUSED_PARAM(handler);
 
     struct pcinst *inst = pcinst_current();

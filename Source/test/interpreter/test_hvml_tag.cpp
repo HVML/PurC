@@ -92,7 +92,7 @@ TEST_P(TestHVMLTag, hvml_tags)
 
     pcvdom_document_set_dump_buff(vdom, &dump_buff);
 
-    purc_run(PURC_VARIANT_INVALID, NULL);
+    purc_run(NULL);
 
     ASSERT_NE(dump_buff, nullptr);
 

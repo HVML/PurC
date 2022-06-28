@@ -614,6 +614,6 @@ TEST(interpreter, basic)
         ASSERT_EQ(ret, true);
     }
 
-    purc_run(PURC_VARIANT_INVALID, NULL);
+    purc_run(NULL);
 }
 
