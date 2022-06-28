@@ -81,39 +81,50 @@ protected:
     }
 };
 
+struct buffer {
+    char                   *dump_buff;
+
+    ~buffer() {
+        if (dump_buff) {
+            free(dump_buff);
+            dump_buff = nullptr;
+        }
+    }
+};
+
 TEST_P(TestHVMLTag, hvml_tags)
 {
     TestCase test_case = GetParam();
     PRINTF("test case : %s\n", test_case.name);
 
-    char *dump_buff = NULL;
+    struct buffer buf;
+    buf.dump_buff = nullptr;
+
     purc_vdom_t vdom = purc_load_hvml_from_string(test_case.hvml);
     ASSERT_NE(vdom, nullptr);
 
-    pcvdom_document_set_dump_buff(vdom, &dump_buff);
+    pcvdom_document_set_dump_buff(vdom, &buf.dump_buff);
 
     purc_run(PURC_VARIANT_INVALID, NULL);
 
-    ASSERT_NE(dump_buff, nullptr);
+    ASSERT_NE(buf.dump_buff, nullptr);
 
     if (test_case.html) {
-        if (strcmp(trim(dump_buff), trim(test_case.html))) {
+        if (strcmp(trim(buf.dump_buff), trim(test_case.html))) {
             fprintf(stderr, "============================\n");
-            fprintf(stderr, "dump:\n%s\n", trim(dump_buff));
+            fprintf(stderr, "dump:\n%s\n", trim(buf.dump_buff));
             fprintf(stderr, "html:\n%s\n", trim(test_case.html));
             fprintf(stderr, "============================\n");
         }
-        ASSERT_STREQ(trim(dump_buff), trim(test_case.html));
+        ASSERT_STREQ(trim(buf.dump_buff), trim(test_case.html));
     }
     else {
         FILE* fp = fopen(test_case.html_path, "w");
-        fprintf(fp, "%s", dump_buff);
+        fprintf(fp, "%s", buf.dump_buff);
         fclose(fp);
         fprintf(stderr, "html written to `%s`\n", test_case.html_path);
-        fprintf(stderr, "html:\n%s\n", dump_buff);
+        fprintf(stderr, "html:\n%s\n", buf.dump_buff);
     }
-
-    free(dump_buff);
 }
 
 char *read_file(const char *file)
