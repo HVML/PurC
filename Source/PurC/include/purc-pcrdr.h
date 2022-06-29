@@ -1313,6 +1313,20 @@ purc_inst_retrieve_message(size_t index);
 PCA_EXPORT pcrdr_msg *
 purc_inst_take_away_message(size_t index);
 
+/**
+ * Post the message to the instance.
+ *
+ * @param inst: the instance.
+ * @param msg: the message structure.
+ *
+ * Returns: -1 for error; zero means everything is ok.
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT int
+purc_inst_post_message(uint64_t inst, pcrdr_msg *msg);
+
+
 /**@}*/
 
 PCA_EXTERN_C_END
