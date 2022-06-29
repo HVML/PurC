@@ -53,6 +53,8 @@
 
 #define FS_DVOBJ_VERSION    0
 
+#define CKEY_DIR        "DIR"
+
 purc_variant_t pcdvobjs_create_file (void);
 typedef purc_variant_t (*pcdvobjs_create) (void);
 
@@ -2728,53 +2730,82 @@ file_contents_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 }
 
 
-typedef struct dir_stream_funcs
-{
-    struct dirent *(*read) (purc_dir_stream_t dirs);
-    ssize_t (*rewind) (purc_dir_stream_t dirs);
-} dir_stream_funcs;
-
-struct purc_dir_stream
-{
-    dir_stream_funcs* funcs;
-};
-typedef struct purc_dir_stream  purc_dir_stream;
-typedef struct purc_dir_stream* purc_dir_stream_t;
-
-struct stdio_dir_stream
-{
-    purc_dir_stream dir_stream;
-    DIR* dirp;
-};
-
-
-
-
-
-struct pcdvobjs_dir_stream {
-    enum pcdvobjs_stream_type type;
-    struct purc_broken_down_url *url;
-    purc_rwstream_t stm4r;      /* stream for read */
-    purc_rwstream_t stm4w;      /* stream for write */
-    purc_variant_t option;
-    purc_variant_t observed;    /* not inc ref */
-    uintptr_t monitor4r, monitor4w;
-    int fd4r, fd4w;
-
-    pid_t cpid;                 /* only for pipe, the pid of child */
-};
-
-static inline
-struct pcdvobjs_dir_stream *get_dir_stream(void *native_entity)
-{
-    return (struct pcdvobjs_dir_stream*)native_entity;
-}
 static purc_variant_t
 dir_read_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently);
+        bool silently)
+{
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(silently);
+
+    DIR *dirp;
+    struct dirent *dp;
+    purc_variant_t dir_var;
+
+    dir_var = purc_variant_object_get_by_ckey(root, CKEY_DIR);
+    if (dir_var == PURC_VARIANT_INVALID) {
+        return PURC_VARIANT_INVALID;
+    }
+
+    dirp = (DIR *)dir_var->ptr_ptr[0];
+    if (NULL == dirp) {
+        return PURC_VARIANT_INVALID;
+    }
+
+    while ((dp = readdir(dirp)) != NULL) {
+        if ((strcmp(dp->d_name, ".") == 0)
+                || (strcmp(dp->d_name, "..") == 0))
+            continue;
+
+        //sprintf(dir_name, "%s/%s", dir, dp->d_name);
+        return purc_variant_make_string (dp->d_name, true);
+    }
+
+    return purc_variant_make_boolean (false);
+}
+
 static purc_variant_t
 dir_rewind_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently);
+        bool silently)
+{
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(silently);
+
+    DIR *dirp;
+    purc_variant_t dir_var;
+
+    dir_var = purc_variant_object_get_by_ckey(root, CKEY_DIR);
+    if (dir_var == PURC_VARIANT_INVALID) {
+        return PURC_VARIANT_INVALID;
+    }
+
+    dirp = (DIR *)dir_var->ptr_ptr[0];
+    if (NULL == dirp) {
+        return PURC_VARIANT_INVALID;
+    }
+
+    rewinddir(dirp);
+
+    return purc_variant_make_boolean (true);
+}
+
+static bool add_dir_native(purc_variant_t v, void *native_entity)
+{
+    purc_variant_t var = purc_variant_make_native(native_entity, NULL);
+    if (var == PURC_VARIANT_INVALID) {
+        return false;
+    }
+
+    if (! purc_variant_object_set_by_static_ckey(v, CKEY_DIR, var)) {
+        purc_variant_unref(var);
+        return false;
+    }
+
+    purc_variant_unref(var);
+    return true;
+}
+
 static purc_variant_t
 opendir_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
@@ -2784,7 +2815,6 @@ opendir_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     const char *string_pathname = NULL;
     DIR *dirp;
-    struct dirent *dp;
     struct stat dir_stat;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
@@ -2808,23 +2838,14 @@ opendir_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     if (S_ISDIR(dir_stat.st_mode)) {
         dirp = opendir (string_pathname);
-
-        while ((dp = readdir(dirp)) != NULL) {
-            if ((strcmp(dp->d_name, ".") == 0)
-                    || (strcmp(dp->d_name, "..") == 0))
-                continue;
-            //sprintf(dir_name, "%s/%s", dir, dp->d_name);
-            //remove_dir(dir_name);
-        }
-        closedir(dir);
     }
     else {
         return purc_variant_make_boolean (false);
     }
 
     static struct purc_dvobj_method dirStream[] = {
-        { "read",    dir_read_getter,      NULL },
-        { "rewind",  dir_rewind_getter,    NULL },
+        {"read",    dir_read_getter,      NULL},
+        {"rewind",  dir_rewind_getter,    NULL},
     };
 
     ret_var = purc_dvobj_make_from_methods(dirStream,
@@ -2833,18 +2854,12 @@ opendir_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         return PURC_VARIANT_INVALID;
     }
 
-    // setup a callback for `on_release` to destroy the stream automatically
-    static const struct purc_native_ops ops = {
-        .property_getter = property_getter,
-        .on_observe = on_observe,
-        .on_forget = on_forget,
-        .on_release = on_release,
-    };
-    ret_var = purc_variant_make_native(stream, &ops);
-    if (ret_var) {
-        stream->observed = ret_var;
+    if (add_dir_native(ret_var, (void *)dirp)) {
+        return ret_var;
     }
-    return ret_var;
+
+    purc_variant_unref(ret_var);
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
@@ -2853,13 +2868,36 @@ closedir_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(silently);
-    UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(argv);
 
+    DIR *dirp;
+    purc_variant_t dir_var;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
+
+    if (nr_args < 1) {
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        return PURC_VARIANT_INVALID;
+    }
+
+    dir_var = purc_variant_object_get_by_ckey(argv[0], CKEY_DIR);
+    if (dir_var == PURC_VARIANT_INVALID) {
+        return PURC_VARIANT_INVALID;
+    }
+
+    dirp = (DIR *)dir_var->ptr_ptr[0];
+    if (NULL == dirp) {
+        return PURC_VARIANT_INVALID;
+    }
+    
+    if (0 == closedir(dirp))
+        ret_var = purc_variant_make_boolean (true);
+    else
+        ret_var = purc_variant_make_boolean (false);
+
+    purc_variant_object_remove_by_static_ckey(argv[0], CKEY_DIR, true);
     return ret_var;
 }
 
+#if 0
 static purc_variant_t
 dir_read_getter (void *native_entity, size_t nr_args, purc_variant_t *argv,
         bool silently)
@@ -2967,6 +3005,7 @@ out:
 
     return PURC_VARIANT_INVALID;
 }
+#endif
 
 static purc_variant_t pcdvobjs_create_fs(void)
 {
@@ -3022,9 +3061,6 @@ static struct pcdvobjs_dvobjs_object dynamic_objects [] = {
 
 purc_variant_t __purcex_load_dynamic_variant (const char *name, int *ver_code)
 {
-    if (name == NULL)
-        return purc_variant_make_undefined();
-
     size_t i = 0;
     for (i = 0; i < PCA_TABLESIZE(dynamic_objects); i++) {
         if (pcutils_strncasecmp (name, dynamic_objects[i].name, strlen (name)) == 0)
