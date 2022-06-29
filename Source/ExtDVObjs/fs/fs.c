@@ -1030,6 +1030,9 @@ static struct pcdvobjs_dvobjs_object dynamic_objects [] = {
 
 purc_variant_t __purcex_load_dynamic_variant (const char *name, int *ver_code)
 {
+    if (name == NULL)
+        return purc_variant_make_undefined();
+
     size_t i = 0;
     for (i = 0; i < PCA_TABLESIZE(dynamic_objects); i++) {
         if (pcutils_strncasecmp (name, dynamic_objects[i].name, strlen (name)) == 0)

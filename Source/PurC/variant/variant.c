@@ -284,6 +284,7 @@ const char* purc_variant_typename(enum purc_variant_type type)
 
 bool purc_variant_is_type(purc_variant_t value, enum purc_variant_type type)
 {
+    PC_ASSERT(value);
     return (value->type == type);
 }
 
@@ -2188,7 +2189,7 @@ purc_variant_booleanize(purc_variant_t value)
 
 struct stringify_arg
 {
-    void (*cb)(void *arg, const void *src, size_t len);
+    void (*cb)(struct stringify_arg *arg, const void *src, size_t len);
     void *arg;
     unsigned int flags;
 };
@@ -2211,14 +2212,14 @@ stringify_bs(struct stringify_arg *arg, const unsigned char *bs, size_t nr)
         *p++ = chars[l];
         if (p == end) {
             *p = '\0';
-            arg->cb(arg->arg, buffer, 0);
+            arg->cb(arg, buffer, 0);
             p = buffer;
         }
     }
 
     if (p>buffer) {
         *p = '\0';
-        arg->cb(arg->arg, buffer, 0);
+        arg->cb(arg, buffer, 0);
     }
 }
 
@@ -2234,17 +2235,17 @@ stringify_array(struct stringify_arg *arg, purc_variant_t value)
     for (size_t i=0; i<sz; ++i) {
         purc_variant_t v = purc_variant_array_get(value, i);
         variant_stringify(arg, v);
-        arg->cb(arg->arg, "\n", 0);
+        arg->cb(arg, "\n", 0);
     }
 }
 
 static void
 stringify_kv(struct stringify_arg *arg, const char *key, purc_variant_t val)
 {
-    arg->cb(arg->arg, key, strlen(key));
-    arg->cb(arg->arg, ":", 0);
+    arg->cb(arg, key, strlen(key));
+    arg->cb(arg, ":", 0);
     variant_stringify(arg, val);
-    arg->cb(arg->arg, "\n", 0);
+    arg->cb(arg, "\n", 0);
 }
 
 static void
@@ -2263,7 +2264,7 @@ stringify_set(struct stringify_arg *arg, purc_variant_t value)
     purc_variant_t v;
     foreach_value_in_variant_set_order(value, v)
         variant_stringify(arg, v);
-        arg->cb(arg->arg, "\n", 0);
+        arg->cb(arg, "\n", 0);
     end_foreach;
 }
 
@@ -2278,7 +2279,7 @@ stringify_tuple(struct stringify_arg *arg, purc_variant_t value)
 
     for (size_t n = 0; n < sz; n++) {
         variant_stringify(arg, members[n]);
-        arg->cb(arg->arg, "\n", 0);
+        arg->cb(arg, "\n", 0);
     }
 }
 
@@ -2290,7 +2291,7 @@ stringify_dynamic(struct stringify_arg *arg, purc_variant_t value)
 
     char buf[128];
     snprintf(buf, sizeof(buf), "<dynamic: %p, %p>", getter, setter);
-    arg->cb(arg->arg, buf, 0);
+    arg->cb(arg, buf, 0);
 }
 
 static void
@@ -2300,7 +2301,7 @@ stringify_native(struct stringify_arg *arg, purc_variant_t value)
 
     char buf[128];
     snprintf(buf, sizeof(buf), "<native: %p>", native);
-    arg->cb(arg->arg, buf, 0);
+    arg->cb(arg, buf, 0);
 }
 
 static void
@@ -2311,54 +2312,54 @@ variant_stringify(struct stringify_arg *arg, purc_variant_t value)
 
     switch (type) {
     case PURC_VARIANT_TYPE_UNDEFINED:
-        arg->cb(arg->arg, "undefined", 0);
+        arg->cb(arg, "undefined", 0);
         break;
     case PURC_VARIANT_TYPE_NULL:
-        arg->cb(arg->arg, "null", 0);
+        arg->cb(arg, "null", 0);
         break;
     case PURC_VARIANT_TYPE_BOOLEAN:
         if (value->b) {
-            arg->cb(arg->arg, "true", 0);
+            arg->cb(arg, "true", 0);
         } else {
-            arg->cb(arg->arg, "false", 0);
+            arg->cb(arg, "false", 0);
         }
         break;
     case PURC_VARIANT_TYPE_NUMBER:
         if (arg->flags & PCVARIANT_STRINGIFY_OPT_REAL_BAREBYTES) {
-            arg->cb(arg->arg, &value->d, sizeof(double));
+            arg->cb(arg, &value->d, sizeof(double));
         }
         else {
             snprintf(buf, sizeof(buf), "%g", value->d);
-            arg->cb(arg->arg, buf, 0);
+            arg->cb(arg, buf, 0);
         }
         break;
     case PURC_VARIANT_TYPE_LONGINT:
         if (arg->flags & PCVARIANT_STRINGIFY_OPT_REAL_BAREBYTES) {
-            arg->cb(arg->arg, &value->i64, sizeof(int64_t));
+            arg->cb(arg, &value->i64, sizeof(int64_t));
         }
         else {
             snprintf(buf, sizeof(buf), "%" PRId64 "", value->i64);
-            arg->cb(arg->arg, buf, 0);
+            arg->cb(arg, buf, 0);
         }
         break;
 
     case PURC_VARIANT_TYPE_ULONGINT:
         if (arg->flags & PCVARIANT_STRINGIFY_OPT_REAL_BAREBYTES) {
-            arg->cb(arg->arg, &value->u64, sizeof(uint64_t));
+            arg->cb(arg, &value->u64, sizeof(uint64_t));
         }
         else {
             snprintf(buf, sizeof(buf), "%" PRIu64 "", value->u64);
-            arg->cb(arg->arg, buf, 0);
+            arg->cb(arg, buf, 0);
         }
         break;
 
     case PURC_VARIANT_TYPE_LONGDOUBLE:
         if (arg->flags & PCVARIANT_STRINGIFY_OPT_REAL_BAREBYTES) {
-            arg->cb(arg->arg, &value->ld, sizeof(long double));
+            arg->cb(arg, &value->ld, sizeof(long double));
         }
         else {
             snprintf(buf, sizeof(buf), "%Lg", value->ld);
-            arg->cb(arg->arg, buf, 0);
+            arg->cb(arg, buf, 0);
         }
         break;
 
@@ -2370,7 +2371,7 @@ variant_stringify(struct stringify_arg *arg, purc_variant_t value)
         size_t len;
 
         str = purc_variant_get_string_const_ex(value, &len);
-        arg->cb(arg->arg, str, len);
+        arg->cb(arg, str, len);
         break;
     }
 
@@ -2381,7 +2382,7 @@ variant_stringify(struct stringify_arg *arg, purc_variant_t value)
 
         bs = purc_variant_get_bytes_const(value, &nr);
         if (arg->flags & PCVARIANT_STRINGIFY_OPT_BSEQUENCE_BAREBYTES) {
-            arg->cb(arg->arg, bs, nr);
+            arg->cb(arg, bs, nr);
         }
         else {
             stringify_bs(arg, bs, nr);
@@ -2451,10 +2452,10 @@ struct stringify_stream {
 };
 
 static void
-do_stringify_stream(void *arg, const void *src, size_t len)
+do_stringify_stream(struct stringify_arg *arg, const void *src, size_t len)
 {
     struct stringify_stream *ud;
-    ud = (struct stringify_stream*)arg;
+    ud = (struct stringify_stream*)(arg->arg);
 
     if (len == 0)
         len = strlen(src);
@@ -2762,9 +2763,17 @@ purc_variant_container_clone_recursively(purc_variant_t ctnr)
 int
 pcvariant_diff(purc_variant_t l, purc_variant_t r)
 {
-    bool caseless = false;
-    bool unify_number = true;
-    return pcvar_compare_ex(l, r, caseless, unify_number);
+    if (0) {
+        bool caseless = false;
+        bool unify_number = true;
+        return pcvar_compare_ex(l, r, caseless, unify_number);
+    }
+    else {
+        enum purc_variant_compare_opt opt;
+        opt = PCVARIANT_COMPARE_OPT_CASE;
+
+        return pcvariant_diff_ex(l, r, opt);
+    }
 }
 
 struct purc_ejson_parse_tree *
@@ -2995,6 +3004,365 @@ cmp_by_tuple(purc_variant_t l, purc_variant_t r,
     return 0;
 }
 
+struct comp_ex_data {
+    enum purc_variant_compare_opt        opt;
+
+    int  diff;
+};
+
+static int
+number_diff(double l, double r)
+{
+    // FIXME: delta compare??? NaN/Inf??? fpclassify???
+
+    if (l < r)
+        return -1;
+
+    if (l > r)
+        return 1;
+
+    return 0;
+}
+
+static int
+ld_diff(long double l, long double r)
+{
+    // FIXME: delta compare??? NaN/Inf??? fpclassify???
+
+    if (l < r)
+        return -1;
+
+    if (l > r)
+        return 1;
+
+    return 0;
+}
+
+static int
+i64_diff(int64_t l, int64_t r)
+{
+    if (l == r)
+        return 0;
+
+    return (l < r) ? -1 : 1;
+};
+
+static int
+u64_diff(uint64_t l, uint64_t r)
+{
+    if (l == r)
+        return 0;
+
+    return (l < r) ? -1 : 1;
+};
+
+static int
+str_numberify_diff(const char *l, const char *r)
+{
+    double ld = numberify_str(l);
+    double rd = numberify_str(r);
+
+    return number_diff(ld, rd);
+}
+
+static int
+str_diff(const char *l, const char *r, struct comp_ex_data *data)
+{
+    const char *ls, *rs;
+    ls = l;
+    rs = r;
+
+    switch (data->opt) {
+        case PCVARIANT_COMPARE_OPT_AUTO:
+            return strcmp(ls, rs);
+
+        case PCVARIANT_COMPARE_OPT_NUMBER:
+            return str_numberify_diff(ls, rs);
+
+        case PCVARIANT_COMPARE_OPT_CASE:
+            return strcmp(ls, rs);
+
+        case PCVARIANT_COMPARE_OPT_CASELESS:
+            return pcutils_strcasecmp(ls, rs);
+
+        default:
+            PC_ASSERT(0);
+    }
+}
+
+static int
+atom_diff(purc_variant_t l, purc_variant_t r, struct comp_ex_data *data)
+{
+    const char *ls, *rs;
+
+    switch (data->opt) {
+        case PCVARIANT_COMPARE_OPT_AUTO:
+            // FIXME: what if same string in differen BUCKET???
+            return l->atom - r->atom;
+
+        case PCVARIANT_COMPARE_OPT_NUMBER:
+            ls = purc_atom_to_string(l->atom);
+            rs = purc_atom_to_string(r->atom);
+            return str_numberify_diff(ls, rs);
+
+        case PCVARIANT_COMPARE_OPT_CASE:
+            ls = purc_atom_to_string(l->atom);
+            rs = purc_atom_to_string(r->atom);
+            return strcmp(ls, rs);
+
+        case PCVARIANT_COMPARE_OPT_CASELESS:
+            ls = purc_atom_to_string(l->atom);
+            rs = purc_atom_to_string(r->atom);
+            return pcutils_strcasecmp(ls, rs);
+
+        default:
+            PC_ASSERT(0);
+    }
+}
+
+static int
+bs_diff(purc_variant_t l, purc_variant_t r)
+{
+    const unsigned char *lb = (const unsigned char*)l->sz_ptr[1];
+    const unsigned char *rb = (const unsigned char*)r->sz_ptr[1];
+    size_t ln = l->sz_ptr[0];
+    size_t rn = r->sz_ptr[0];
+
+    size_t n = ln < rn ? ln : rn;
+
+    int diff = memcmp(lb, rb, n);
+    if (diff)
+        return diff;
+
+    if (ln == rn)
+        return 0;
+
+    return (ln < rn) ? -1 : 1;
+}
+
+static int
+dynamic_diff(purc_variant_t l, purc_variant_t r)
+{
+    // NOTE: compare by addresses
+    return memcmp(l->ptr_ptr, r->ptr_ptr, sizeof(void *) * 2);
+}
+
+static int
+native_diff(purc_variant_t l, purc_variant_t r)
+{
+    // NOTE: compare by addresses
+    return memcmp(l->ptr_ptr, r->ptr_ptr, sizeof(void *) * 2);
+}
+
+static int
+homo_scalar_diff(purc_variant_t l, purc_variant_t r, struct comp_ex_data *data)
+{
+    switch(l->type) {
+        case PURC_VARIANT_TYPE_UNDEFINED:
+            return 0;
+
+        case PURC_VARIANT_TYPE_NULL:
+            return 0;
+
+        case PURC_VARIANT_TYPE_BOOLEAN:
+            return l->b - r->b;
+
+        case PURC_VARIANT_TYPE_EXCEPTION:
+            return atom_diff(l, r, data);
+
+        case PURC_VARIANT_TYPE_NUMBER:
+            return number_diff(l->d, r->d);
+
+        case PURC_VARIANT_TYPE_LONGINT:
+            return i64_diff(l->i64, r->i64);
+
+        case PURC_VARIANT_TYPE_ULONGINT:
+            return u64_diff(l->u64, r->u64);
+
+        case PURC_VARIANT_TYPE_LONGDOUBLE:
+            return ld_diff(l->ld, r->ld);
+
+        case PURC_VARIANT_TYPE_ATOMSTRING:
+            return atom_diff(l, r, data);
+
+        case PURC_VARIANT_TYPE_STRING:
+            return str_diff(purc_variant_get_string_const(l),
+                    purc_variant_get_string_const(r), data);
+
+        case PURC_VARIANT_TYPE_BSEQUENCE:
+            return bs_diff(l, r);
+
+        case PURC_VARIANT_TYPE_DYNAMIC:
+            return dynamic_diff(l, r);
+
+        case PURC_VARIANT_TYPE_NATIVE:
+            return native_diff(l, r);
+
+        default:
+            PC_ASSERT(0);
+    }
+}
+
+static int
+numberify_diff(purc_variant_t l, purc_variant_t r)
+{
+    double ld = purc_variant_numberify(l);
+    double rd = purc_variant_numberify(r);
+
+    return number_diff(ld, rd);
+}
+
+static const char*
+stringify(char *buf, size_t len, purc_variant_t v)
+{
+    ssize_t nr = 0;
+
+    switch (v->type) {
+        case PURC_VARIANT_TYPE_UNDEFINED:
+            nr = snprintf(buf, len, "undefined");
+            break;
+
+        case PURC_VARIANT_TYPE_NULL:
+            nr = snprintf(buf, len, "null");
+            break;
+
+        case PURC_VARIANT_TYPE_BOOLEAN:
+            nr = snprintf(buf, len, "%s", v->b ? "true" : "false");
+            break;
+
+        case PURC_VARIANT_TYPE_EXCEPTION:
+            return purc_atom_to_string(v->atom);
+            break;
+
+        case PURC_VARIANT_TYPE_NUMBER:
+            nr = snprintf(buf, len, "%g", v->d);
+            break;
+
+        case PURC_VARIANT_TYPE_LONGINT:
+            nr = snprintf(buf, len, "%" PRId64 "", v->i64);
+            break;
+
+        case PURC_VARIANT_TYPE_ULONGINT:
+            nr = snprintf(buf, len, "%" PRIu64 "", v->u64);
+            break;
+
+        case PURC_VARIANT_TYPE_LONGDOUBLE:
+            nr = snprintf(buf, len, "%Lg", v->ld);
+            break;
+
+        case PURC_VARIANT_TYPE_ATOMSTRING:
+            return purc_atom_to_string(v->atom);
+
+        case PURC_VARIANT_TYPE_STRING:
+            return purc_variant_get_string_const(v);
+
+        case PURC_VARIANT_TYPE_BSEQUENCE:
+            // NOTE: we need not to alloc
+            PC_ASSERT(0);
+            break;
+
+        case PURC_VARIANT_TYPE_DYNAMIC:
+            nr = snprintf(buf, len, "<dynamic: %p, %p>",
+                    v->ptr_ptr[0], v->ptr_ptr[1]);
+            break;
+
+        case PURC_VARIANT_TYPE_NATIVE:
+            nr = snprintf(buf, len, "<native: %p>", v->ptr_ptr[0]);
+            break;
+
+        default:
+            PC_ASSERT(0);
+    }
+
+    PC_ASSERT(nr >= 0 && (size_t)nr < len);
+    return buf;
+}
+
+static int
+stringify_diff(purc_variant_t l, purc_variant_t r, bool caseless)
+{
+    char lbuf[128], rbuf[128];
+    const char *ls, *rs;
+    ls = stringify(lbuf, sizeof(lbuf), l);
+    rs = stringify(rbuf, sizeof(rbuf), r);
+
+    if (caseless)
+        return pcutils_strcasecmp(ls, rs);
+    else
+        return strcmp(ls, rs);
+}
+
+static int
+scalar_diff(purc_variant_t l, purc_variant_t r, void *ctxt)
+{
+    struct comp_ex_data *data;
+    data = (struct comp_ex_data*)ctxt;
+
+    if (l == r) {
+        data->diff = 0;
+        return data->diff;
+    }
+
+    if (l == PURC_VARIANT_INVALID) {
+        data->diff = -1;
+        return data->diff;
+    }
+
+    if (r == PURC_VARIANT_INVALID) {
+        data->diff = 1;
+        return data->diff;
+    }
+
+    if (!pcvariant_is_scalar(l) && !pcvariant_is_scalar(r)) {
+        data->diff = l->type - r->type;
+        PC_ASSERT(data->diff);
+        return data->diff;
+    }
+
+    if (pcvariant_is_scalar(l) && pcvariant_is_scalar(r)) {
+        if (l->type == r->type) {
+            data->diff = homo_scalar_diff(l, r, data);
+            return data->diff;
+        }
+
+        switch (data->opt) {
+            case PCVARIANT_COMPARE_OPT_AUTO:
+                data->diff = l->type - r->type;
+                return data->diff;
+
+            case PCVARIANT_COMPARE_OPT_NUMBER:
+                data->diff = numberify_diff(l, r);
+                return data->diff;
+
+            case PCVARIANT_COMPARE_OPT_CASE:
+                data->diff = stringify_diff(l, r, false);
+                return data->diff;
+
+            case PCVARIANT_COMPARE_OPT_CASELESS:
+                data->diff = stringify_diff(l, r, true);
+                return data->diff;
+
+            default:
+                PC_ASSERT(0);
+        }
+    }
+
+    data->diff = l->type - r->type;
+    return data->diff;
+}
+
+int pcvariant_diff_ex(purc_variant_t l, purc_variant_t r,
+        enum purc_variant_compare_opt opt)
+{
+    struct comp_ex_data data = {
+        .opt           = opt,
+        .diff          = 0,
+    };
+
+    pcvar_parallel_walk(l, r, &data, scalar_diff);
+    return data.diff;
+}
+
 int
 pcvar_compare_ex(purc_variant_t l, purc_variant_t r,
         bool caseless, bool unify_number)
@@ -3188,10 +3556,10 @@ purc_variant_linear_container_set(purc_variant_t container,
 }
 
 static void
-do_stringify_md5(void *arg, const void *src, size_t len)
+do_stringify_md5(struct stringify_arg *arg, const void *src, size_t len)
 {
     pcutils_md5_ctxt *ud;
-    ud = (pcutils_md5_ctxt*)arg;
+    ud = (pcutils_md5_ctxt*)(arg->arg);
 
     if (len == 0)
         len = strlen(src);
@@ -3200,8 +3568,10 @@ do_stringify_md5(void *arg, const void *src, size_t len)
 }
 
 void pcvariant_md5_ex(char *md5, purc_variant_t val, const char *salt,
-    unsigned int serialize_flags)
+    bool caseless, unsigned int serialize_flags)
 {
+    PC_ASSERT(caseless == false);
+
     PC_ASSERT(val != PURC_VARIANT_INVALID);
 
     pcutils_md5_ctxt ud;
@@ -3327,5 +3697,102 @@ pcvariant_diff_by_set(const char *md5l, purc_variant_t l,
     purc_variant_unref(undefined);
 
     return diff;
+}
+
+bool pcvariant_is_scalar(purc_variant_t v)
+{
+    switch (v->type) {
+        case PURC_VARIANT_TYPE_UNDEFINED:
+        case PURC_VARIANT_TYPE_NULL:
+        case PURC_VARIANT_TYPE_BOOLEAN:
+        case PURC_VARIANT_TYPE_EXCEPTION:
+        case PURC_VARIANT_TYPE_NUMBER:
+        case PURC_VARIANT_TYPE_LONGINT:
+        case PURC_VARIANT_TYPE_ULONGINT:
+        case PURC_VARIANT_TYPE_LONGDOUBLE:
+        case PURC_VARIANT_TYPE_ATOMSTRING:
+        case PURC_VARIANT_TYPE_STRING:
+        case PURC_VARIANT_TYPE_BSEQUENCE:
+        case PURC_VARIANT_TYPE_DYNAMIC:
+        case PURC_VARIANT_TYPE_NATIVE:
+            return true;
+
+        case PURC_VARIANT_TYPE_OBJECT:
+        case PURC_VARIANT_TYPE_ARRAY:
+        case PURC_VARIANT_TYPE_SET:
+        case PURC_VARIANT_TYPE_TUPLE:
+            return false;
+
+        default:
+            PC_ASSERT(0);
+    }
+}
+
+bool pcvariant_is_of_number(purc_variant_t v)
+{
+    switch (v->type) {
+        case PURC_VARIANT_TYPE_UNDEFINED:
+        case PURC_VARIANT_TYPE_NULL:
+        case PURC_VARIANT_TYPE_BOOLEAN:
+        case PURC_VARIANT_TYPE_EXCEPTION:
+            return false;
+
+        case PURC_VARIANT_TYPE_NUMBER:
+        case PURC_VARIANT_TYPE_LONGINT:
+        case PURC_VARIANT_TYPE_ULONGINT:
+        case PURC_VARIANT_TYPE_LONGDOUBLE:
+            return true;
+
+        case PURC_VARIANT_TYPE_ATOMSTRING:
+        case PURC_VARIANT_TYPE_STRING:
+        case PURC_VARIANT_TYPE_BSEQUENCE:
+        case PURC_VARIANT_TYPE_DYNAMIC:
+        case PURC_VARIANT_TYPE_NATIVE:
+        case PURC_VARIANT_TYPE_OBJECT:
+        case PURC_VARIANT_TYPE_ARRAY:
+        case PURC_VARIANT_TYPE_SET:
+        case PURC_VARIANT_TYPE_TUPLE:
+            return false;
+
+        default:
+            PC_ASSERT(0);
+    }
+}
+
+bool pcvariant_is_of_string(purc_variant_t v)
+{
+    switch (v->type) {
+        case PURC_VARIANT_TYPE_UNDEFINED:
+        case PURC_VARIANT_TYPE_NULL:
+        case PURC_VARIANT_TYPE_BOOLEAN:
+        case PURC_VARIANT_TYPE_EXCEPTION:
+            return true;
+
+        case PURC_VARIANT_TYPE_NUMBER:
+            return false;
+
+        case PURC_VARIANT_TYPE_LONGINT:
+        case PURC_VARIANT_TYPE_ULONGINT:
+            return true;
+
+        case PURC_VARIANT_TYPE_LONGDOUBLE:
+            return false;
+
+        case PURC_VARIANT_TYPE_ATOMSTRING:
+        case PURC_VARIANT_TYPE_STRING:
+        case PURC_VARIANT_TYPE_BSEQUENCE:
+            return true;
+
+        case PURC_VARIANT_TYPE_DYNAMIC:
+        case PURC_VARIANT_TYPE_NATIVE:
+        case PURC_VARIANT_TYPE_OBJECT:
+        case PURC_VARIANT_TYPE_ARRAY:
+        case PURC_VARIANT_TYPE_SET:
+        case PURC_VARIANT_TYPE_TUPLE:
+            return false;
+
+        default:
+            PC_ASSERT(0);
+    }
 }
 

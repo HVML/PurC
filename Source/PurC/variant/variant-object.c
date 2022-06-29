@@ -436,7 +436,6 @@ check_change(purc_variant_t obj, struct obj_node *node,
             break;
 
         int r = pcvar_reverse_check(obj, _new);
-        PC_DEBUGX("r: %d", r);
         if (r)
             break;
 
