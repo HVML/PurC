@@ -44,6 +44,8 @@ struct pcmodule;
 typedef struct pcmodule pcmodule;
 typedef struct pcmodule *pcmodule_t;
 
+struct pcinst_msg_queue;
+
 typedef int (*module_init_once_f)(void);
 typedef int (*module_init_instance_f)(struct pcinst *curr_inst,
         const purc_instance_extra_info* extra_info);
@@ -100,6 +102,8 @@ struct pcinst {
 
     /* FIXME: enable the fields ONLY when NDEBUG is undefined */
     struct pcdebug_backtrace  *bt;
+
+    struct pcinst_msg_queue   *mq;
 
     unsigned int               keep_alive:1;
 };
