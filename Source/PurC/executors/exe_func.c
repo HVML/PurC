@@ -30,6 +30,9 @@
 
 #include "private/debug.h"
 #include "private/errors.h"
+
+#include "keywords.h"
+
 #include "purc.h"
 
 #include <dlfcn.h>
@@ -527,9 +530,29 @@ static struct purc_exec_ops exe_func_ops = {
     exe_func_destroy,
 };
 
+static struct pcexec_ops ops = {
+    .type                    = PCEXEC_TYPE_EXTERNAL_FUNC,
+    .external_func_ops       = {},
+};
+
 int pcexec_exe_func_register(void)
 {
-    bool ok = pcexecutor_register("FUNC", PCEXECUTOR_EXTERNAL, &exe_func_ops);
-    return ok ? 0 : -1;
+    UNUSED_PARAM(exe_func_ops);
+
+    const char *name = "FUNC";
+
+    if (ops.atom == 0) {
+        ops.atom = PCHVML_KEYWORD_ATOM(HVML, name);
+        if (ops.atom == 0) {
+            purc_set_error_with_info(PCEXECUTOR_ERROR_BAD_ARG,
+                    "unknown atom: %s", name);
+            return -1;
+        }
+
+        bool ok = pcexecutor_register(&ops);
+        return ok ? 0 : -1;
+    }
+
+    return false;
 }
 
