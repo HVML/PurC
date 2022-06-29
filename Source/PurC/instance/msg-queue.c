@@ -327,3 +327,25 @@ done:
     return msg;
 }
 
+int
+purc_inst_post_message(uint64_t inst, pcrdr_msg *msg)
+{
+    if (!msg) {
+        return -1;
+    }
+    if (inst) {
+        struct pcinst *dest_inst = (struct pcinst *) inst;
+        struct pcinst *curr_inst = pcinst_current();
+        if (dest_inst == curr_inst) {
+            pcinst_msg_queue_append(dest_inst->mq, msg);
+        }
+        else {
+            purc_atom_t atom = dest_inst->endpoint_atom;
+            purc_inst_move_message(atom, msg);
+        }
+    }
+    else {
+        purc_inst_move_message(0, msg);
+    }
+    return 0;
+}
