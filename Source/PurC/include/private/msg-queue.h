@@ -29,6 +29,8 @@
 
 #include "config.h"
 
+#include <stdatomic.h>
+
 #include "private/list.h"
 #include "purc-pcrdr.h"
 

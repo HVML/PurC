@@ -24,7 +24,6 @@
 
 #include "purc.h"
 #include "config.h"
-#include "internal.h"
 
 #include "private/errors.h"
 #include "private/instance.h"
