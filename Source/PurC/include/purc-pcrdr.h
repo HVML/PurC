@@ -626,6 +626,21 @@ typedef enum {
 #define PCRDR_MSG_DATA_TYPE_NR     \
     (PCRDR_MSG_DATA_TYPE_LAST - PCRDR_MSG_DATA_TYPE_FIRST + 1)
 
+typedef enum
+{
+    PCRDR_MSG_EVENT_REDUCE_OPT_FIRST = 0,
+
+    PCRDR_MSG_EVENT_REDUCE_OPT_KEEP = PCRDR_MSG_EVENT_REDUCE_OPT_FIRST,
+    PCRDR_MSG_EVENT_REDUCE_OPT_IGNORE,
+    PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
+
+    /* XXX: change this if you append a new enumerator */
+    PCRDR_MSG_EVENT_REDUCE_OPT_LAST = PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
+} pcrdr_msg_event_reduce_opt;
+
+#define PCRDR_MSG_EVENT_REDUCE_OPT_NR     \
+    (PCRDR_MSG_EVENT_REDUCE_OPT_LAST - PCRDR_MSG_EVENT_REDUCE_OPT_FIRST + 1)
+
 /** the renderer message structure */
 struct pcrdr_msg
 {
@@ -663,11 +678,18 @@ struct pcrdr_msg
         purc_variant_t  eventName;
     };
 
-    /**
-     * The request identifier to track the response at the peer
-     * sending the request messages. Usually it is a string.
-     */
-    purc_variant_t  requestId;
+    union {
+        /**
+         * The request identifier to track the response at the peer
+         * sending the request messages. Usually it is a string.
+         */
+        purc_variant_t  requestId;
+
+        /**
+         * The event reduce option
+         */
+        pcrdr_msg_event_reduce_opt reduceOpt;
+    };
 
     /**
      * The URI of the source generating this message.
