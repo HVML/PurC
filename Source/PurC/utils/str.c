@@ -584,6 +584,18 @@ pcutils_str_data_to_uppercase(unsigned char *to, const unsigned char *from, size
     }
 }
 
+unsigned char
+pcutils_unsigned_char_to_uppercase(unsigned char from)
+{
+    return pcutils_str_res_map_uppercase[from];
+}
+
+unsigned char
+pcutils_unsigned_char_to_lowercase(unsigned char from)
+{
+    return pcutils_str_res_map_lowercase[from];
+}
+
 const unsigned char *
 pcutils_str_data_find_lowercase(const unsigned char *data, size_t len)
 {
