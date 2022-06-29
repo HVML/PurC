@@ -41,6 +41,7 @@
 #include "private/atom-buckets.h"
 #include "private/fetcher.h"
 #include "private/pcrdr.h"
+#include "private/msg-queue.h"
 #include "purc-runloop.h"
 
 #include "../interpreter/internal.h"
@@ -415,6 +416,9 @@ static void cleanup_instance(struct pcinst *curr_inst)
 
     curr_inst->modules = 0;
     curr_inst->modules_inited = 0;
+    if (curr_inst->mq) {
+        pcinst_msg_queue_destroy(curr_inst->mq);
+    }
 }
 
 purc_atom_t
@@ -522,6 +526,11 @@ int purc_init_ex(unsigned int modules,
     curr_inst->app_name = strdup(app_name);
     curr_inst->runner_name = strdup(runner_name);
     curr_inst->endpoint_atom = atom;
+    curr_inst->mq = pcinst_msg_queue_create();
+    if (!curr_inst->mq) {
+        cleanup_instance(curr_inst);
+        return PURC_ERROR_OUT_OF_MEMORY;
+    }
 
     enable_log_on_demand();
 
