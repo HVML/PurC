@@ -44,21 +44,12 @@ struct ctxt_for_reduce {
     purc_variant_t by;
     purc_variant_t in;
     purc_variant_t with;
-
-    struct purc_exec_ops          ops;
-    purc_exec_inst_t              exec_inst;
-    purc_exec_iter_t              it;
 };
 
 static void
 ctxt_for_reduce_destroy(struct ctxt_for_reduce *ctxt)
 {
     if (ctxt) {
-        if (ctxt->exec_inst) {
-            bool ok = ctxt->ops.destroy(ctxt->exec_inst);
-            PC_ASSERT(ok);
-            ctxt->exec_inst = NULL;
-        }
         PURC_VARIANT_SAFE_CLEAR(ctxt->by);
         PURC_VARIANT_SAFE_CLEAR(ctxt->on);
         PURC_VARIANT_SAFE_CLEAR(ctxt->in);
@@ -101,35 +92,34 @@ post_process_dest_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     if (by != PURC_VARIANT_INVALID) {
         const char *rule = purc_variant_get_string_const(by);
         PC_ASSERT(rule);
-        bool ok = purc_get_executor(rule, &ctxt->ops);
+        struct purc_exec_ops ops;
+        bool ok = purc_get_executor(rule, &ops);
         if (!ok)
             return -1;
 
-        PC_ASSERT(ctxt->ops.create);
-        PC_ASSERT(ctxt->ops.reduce);
-        PC_ASSERT(ctxt->ops.destroy);
+        PC_ASSERT(ops.create);
+        PC_ASSERT(ops.reduce);
+        PC_ASSERT(ops.destroy);
 
         purc_exec_inst_t exec_inst;
-        exec_inst = ctxt->ops.create(PURC_EXEC_TYPE_REDUCE, on, false);
+        exec_inst = ops.create(PURC_EXEC_TYPE_REDUCE, on, false);
         if (!exec_inst)
             return -1;
 
         exec_inst->with = with;
 
-        ctxt->exec_inst = exec_inst;
-
         int r = -1;
         purc_variant_t value;
-        value = ctxt->ops.reduce(exec_inst, rule);
+        value = ops.reduce(exec_inst, rule);
         if (value != PURC_VARIANT_INVALID) {
             r = pcintr_set_question_var(frame, value);
             purc_variant_unref(value);
             if (r == 0)
                 purc_clr_error();
         }
-        ok = ctxt->ops.destroy(ctxt->exec_inst);
+        ok = ops.destroy(exec_inst);
         PC_ASSERT(ok);
-        ctxt->exec_inst = NULL;
+        exec_inst = NULL;
         return r ? -1 : 0;
     }
 

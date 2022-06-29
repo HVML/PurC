@@ -59,10 +59,6 @@ struct ctxt_for_sort {
 
     void                         *handle;
     void                         *symbol;
-
-    struct purc_exec_ops          ops;
-    purc_exec_inst_t              exec_inst;
-    purc_exec_iter_t              it;
 };
 
 typedef void(array_list_free_fn)(void *data);
@@ -84,7 +80,6 @@ static void
 ctxt_for_sort_destroy(struct ctxt_for_sort *ctxt)
 {
     if (ctxt) {
-        PC_ASSERT(ctxt->exec_inst == NULL);
         PURC_VARIANT_SAFE_CLEAR(ctxt->on);
         PURC_VARIANT_SAFE_CLEAR(ctxt->by);
         PURC_VARIANT_SAFE_CLEAR(ctxt->with);
@@ -635,28 +630,27 @@ post_process_by_internal(pcintr_stack_t stack, const char *s_by)
     struct ctxt_for_sort *ctxt;
     ctxt = (struct ctxt_for_sort*)frame->ctxt;
 
+    struct purc_exec_ops ops;
     const char *rule = s_by;
-    bool ok = purc_get_executor(rule, &ctxt->ops);
+    bool ok = purc_get_executor(rule, &ops);
     if (!ok)
         return -1;
 
-    PC_ASSERT(ctxt->ops.create);
-    PC_ASSERT(ctxt->ops.choose);
-    PC_ASSERT(ctxt->ops.destroy);
+    PC_ASSERT(ops.create);
+    PC_ASSERT(ops.choose);
+    PC_ASSERT(ops.destroy);
 
     purc_exec_inst_t exec_inst;
-    exec_inst = ctxt->ops.create(PURC_EXEC_TYPE_CHOOSE, ctxt->on, false);
+    exec_inst = ops.create(PURC_EXEC_TYPE_CHOOSE, ctxt->on, false);
     if (!exec_inst)
         return -1;
 
-    ctxt->exec_inst = exec_inst;
-
     int r = -1;
     purc_variant_t value;
-    value = ctxt->ops.choose(exec_inst, rule);
-    ok = ctxt->ops.destroy(ctxt->exec_inst);
+    value = ops.choose(exec_inst, rule);
+    ok = ops.destroy(exec_inst);
     PC_ASSERT(ok);
-    ctxt->exec_inst = NULL;
+    exec_inst = NULL;
 
     if (value == PURC_VARIANT_INVALID)
         return -1;
