@@ -279,6 +279,20 @@ PCA_EXPORT double
 purc_get_elapsed_seconds(const struct timespec *ts1,
         const struct timespec *ts2);
 
+/**
+ * Loads the whole contents from a file.
+ *
+ * @param file: the file name.
+ * @param ts2 (nullable): the length of the contents in bytes.
+ *
+ * Loads the whole contents from the specific file.
+ *
+ * Returns: The pointer to the loaded contents, @NULL for error.
+ *
+ * Since: 0.2.0
+ */
+char *purc_load_file_contents(const char *file, size_t *length);
+
 #define PURC_ENVV_LOG_ENABLE        "PURC_LOG_ENABLE"
 #define PURC_ENVV_LOG_SYSLOG        "PURC_LOG_SYSLOG"
 

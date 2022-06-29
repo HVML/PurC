@@ -61,7 +61,7 @@ typedef struct purc_instance_extra_info {
 
     /**
      * When using a HEADLESS renderer, you should specify a file
-     * or a named pipe, like `file:///var/tmp/purc-foo-bar-msgs.log`.
+     * or a named pipe (FIFO), like `file:///var/tmp/purc-foo-bar-msgs.log`.
      *
      * When using a THREAD renderer, you should specify the endpoint name
      * of the renderer like `//-/<app_name>/<runner_name>`. The endpoint name

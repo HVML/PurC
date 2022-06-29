@@ -826,3 +826,36 @@ void purc_generate_unique_id (char* id_buff, const char* prefix)
 
 #endif  /* !HAVE(STDATOMIC_H) */
 
+char *purc_load_file_contents(const char *file, size_t *length)
+{
+    FILE *f = fopen(file, "r");
+    char *buf = NULL;
+
+    if (f) {
+        if (fseek(f, 0, SEEK_END))
+            goto failed;
+
+        long len = ftell(f);
+        if (len < 0)
+            goto failed;
+
+        buf = malloc(len + 1);
+        if (buf == NULL)
+            goto failed;
+
+        fseek(f, 0, SEEK_SET);
+        if (fread(buf, 1, len, f) < (size_t)len) {
+            free(buf);
+            buf = NULL;
+        }
+        buf[len] = '\0';
+
+        if (length)
+            *length = (size_t)len;
+failed:
+        fclose(f);
+    }
+
+    return buf;
+}
+
