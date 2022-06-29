@@ -126,6 +126,57 @@ pcinst_msg_queue_destroy(struct pcinst_msg_queue *queue)
     return nr;
 }
 
+bool
+is_event_match(pcrdr_msg *left, pcrdr_msg *right)
+{
+    if ((left->target == right->target) &&
+            (left->targetValue == right->targetValue) &&
+            (purc_variant_is_equal_to(left->eventName, right->eventName)) &&
+            (purc_variant_is_equal_to(left->elementValue, right->elementValue))
+            ) {
+        return true;
+    }
+    return false;
+}
+
+int
+reduce_event(struct pcinst_msg_queue *queue, pcrdr_msg *msg, bool tail)
+{
+    struct pcinst_msg_hdr *hdr;
+    struct list_head *p, *n;
+    list_for_each_safe(p, n, &queue->event_msgs) {
+        hdr = list_entry(p, struct pcinst_msg_hdr, ln);
+        pcrdr_msg *orig = (pcrdr_msg*) hdr;
+        if (is_event_match(orig, msg)) {
+            if (msg->reduceOpt == PCRDR_MSG_EVENT_REDUCE_OPT_IGNORE) {
+                return 0;
+            }
+            // OVERLAY : data
+            if (orig->data) {
+                purc_variant_unref(orig->data);
+                orig->data = PURC_VARIANT_INVALID;
+            }
+            if (msg->data) {
+                orig->data = msg->data;
+                purc_variant_ref(orig->data);
+            }
+            return 0;
+        }
+    }
+
+    hdr = (struct pcinst_msg_hdr *)msg;
+    if (tail) {
+        list_add_tail(&hdr->ln, &queue->event_msgs);
+    }
+    else {
+        list_add(&hdr->ln, &queue->event_msgs);
+    }
+    queue->state |= MSG_QS_EVENT;
+    queue->nr_msgs++;
+
+    return 0;
+}
+
 int
 pcinst_msg_queue_append(struct pcinst_msg_queue *queue, pcrdr_msg *msg)
 {
@@ -154,6 +205,14 @@ pcinst_msg_queue_append(struct pcinst_msg_queue *queue, pcrdr_msg *msg)
 
     case PCRDR_MSG_TYPE_EVENT:
         queue->state |= MSG_QS_EVENT;
+        if (msg->reduceOpt == PCRDR_MSG_EVENT_REDUCE_OPT_KEEP) {
+            list_add_tail(&hdr->ln, &queue->event_msgs);
+            queue->state |= MSG_QS_EVENT;
+            queue->nr_msgs++;
+        }
+        else {
+            reduce_event(queue, msg, true);
+        }
         break;
 
     default:
@@ -195,6 +254,14 @@ pcinst_msg_queue_prepend(struct pcinst_msg_queue *queue, pcrdr_msg *msg)
 
     case PCRDR_MSG_TYPE_EVENT:
         queue->state |= MSG_QS_EVENT;
+        if (msg->reduceOpt == PCRDR_MSG_EVENT_REDUCE_OPT_KEEP) {
+            list_add(&hdr->ln, &queue->event_msgs);
+            queue->state |= MSG_QS_EVENT;
+            queue->nr_msgs++;
+        }
+        else {
+            reduce_event(queue, msg, false);
+        }
         break;
 
     default:
