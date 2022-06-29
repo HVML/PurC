@@ -42,6 +42,7 @@
 #include "purc-helpers.h"
 #include "purc-pcrdr.h"
 #include "purc-dvobjs.h"
+#include "purc-executor.h"
 #include "purc-runloop.h"
 
 /** The structure defining the extra information for a new PurC instance. */

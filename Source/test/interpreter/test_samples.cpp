@@ -190,6 +190,9 @@ TEST(samples, samples)
 
     ASSERT_TRUE(purc);
 
+    setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
+    setenv(PURC_ENVV_EXECUTOR_PATH, SOPATH, 1);
+
     struct sample_data samples[] = {
         {
             "<!DOCTYPE hvml>"

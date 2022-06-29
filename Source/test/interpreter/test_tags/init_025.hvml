@@ -7,7 +7,7 @@
         <except type="*">
             you shall not see me
         </except>
-        <init as="file" from="purc-dvobj-FS" via="LOAD" for="file"/>
+        <init as="file" from="FS" via="LOAD" for="file"/>
         <update on="$@" to="append" with="$EJSON.type($?)"/>
     </body>
 
