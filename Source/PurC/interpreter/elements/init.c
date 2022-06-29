@@ -1388,7 +1388,8 @@ process_via(pcintr_coroutine_t co)
     else {
         void *handle = NULL;
         if (s_from) {
-            handle = pcintr_load_module(s_from, NULL, "lib");
+            handle = pcintr_load_module(s_from,
+                    PURC_ENVV_DVOBJS_PATH, "libpurc-dvobj-");
             if (!handle)
                 return -1;
         }
