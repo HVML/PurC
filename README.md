@@ -307,10 +307,10 @@ Usage: purc [ options ... ] [ file | url ] ... | [ app_desc_json | app_desc_ejso
 The following options can be supplied to the command:
 
   -a --app=<app_name>
-        Run with the specified app name (default value is `cn.fmsoft.html.purc`).
+        Execute with the specified app name (default value is `cn.fmsoft.html.purc`).
 
-  -r --run=<runner_name>
-        Run with the specified runner name (default value is `main`).
+  -r --runner=<runner_name>
+        Execute with the specified runner name (default value is `main`).
 
   -d --data-fetcher=< local | remote >
         The data fetcher; use `local` or `remote`.
@@ -325,12 +325,18 @@ The following options can be supplied to the command:
             - `purcmc`: use the remote PURCMC renderer;
               `purc` connects to the renderer via Unix Socket or WebSocket.
 
-  -p --rdr-uri=<renderer_uri>
+  -u --rdr-uri=<renderer_uri>
         The renderer uri:
             - For the renderer protocol `headleass`,
               default value is not specified (nil).
             - For the renderer protocol `purcmc`,
               default value is `unix:///var/tmp/purcmc.sock`.
+
+  -q --quiet
+        Execute the program quietly (without redundant output).
+
+  -c --copying
+        Display detailed copying information and exit.
 
   -v --version
         Display version information and exit.
