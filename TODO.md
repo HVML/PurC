@@ -83,7 +83,7 @@
 * 检查所有动作标签的实现，确保和规范要求一致：
   1. ~~`except` 标签支持 `type` 属性。~~
   1. ~~`init` 标签支持使用 `via` 属性值 `LOAD` 从外部模块中加载自定义变量：`from` 属性指定外部模块名，`for` 指定模块中的动态对象名。~~
-  1. `init` 标签初始化集合时，支持 `casesensitively` 属性和 `caseinsensitively` 属性。
+  1. ~~`init` 标签初始化集合时，支持 `casesensitively` 属性和 `caseinsensitively` 属性。~~
   1. `call` 标签。
   1. `return` 标签。
   1. `load` 标签。
