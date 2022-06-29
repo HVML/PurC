@@ -46,19 +46,12 @@ struct ctxt_for_choose {
     purc_variant_t with;
 
     struct purc_exec_ops          ops;
-    purc_exec_inst_t              exec_inst;
-    purc_exec_iter_t              it;
 };
 
 static void
 ctxt_for_choose_destroy(struct ctxt_for_choose *ctxt)
 {
     if (ctxt) {
-        if (ctxt->exec_inst) {
-            bool ok = ctxt->ops.destroy(ctxt->exec_inst);
-            PC_ASSERT(ok);
-            ctxt->exec_inst = NULL;
-        }
         PURC_VARIANT_SAFE_CLEAR(ctxt->by);
         PURC_VARIANT_SAFE_CLEAR(ctxt->on);
         PURC_VARIANT_SAFE_CLEAR(ctxt->in);
@@ -118,8 +111,6 @@ post_process_dest_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 
         exec_inst->with = with;
 
-        ctxt->exec_inst = exec_inst;
-
         int r = -1;
         purc_variant_t value;
         value = ctxt->ops.choose(exec_inst, rule);
@@ -129,9 +120,9 @@ post_process_dest_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
             if (r == 0)
                 purc_clr_error();
         }
-        ok = ctxt->ops.destroy(ctxt->exec_inst);
+        ok = ctxt->ops.destroy(exec_inst);
         PC_ASSERT(ok);
-        ctxt->exec_inst = NULL;
+        exec_inst = NULL;
         return r ? -1 : 0;
     }
 
