@@ -1669,49 +1669,12 @@ static purc_variant_t pcdvobjs_create_math (void)
     return purc_dvobj_make_from_methods (method, PCA_TABLESIZE(method));
 }
 
-static purc_variant_t
-get_member(purc_variant_t val, const char *name)
-{
-    purc_variant_t item;
-    item = purc_variant_object_get_by_ckey(val, name);
-    if (item == PURC_VARIANT_INVALID)
-        return purc_variant_make_undefined();
-
-    purc_dvariant_method getter;
-    getter = purc_variant_dynamic_get_getter(item);
-    if (!getter)
-        return PURC_VARIANT_INVALID;
-
-    purc_variant_t v_name = purc_variant_make_string_static(name, true);
-    if (v_name == PURC_VARIANT_INVALID)
-        return PURC_VARIANT_INVALID;
-
-    bool silently = false;
-    purc_variant_t v;
-    v = getter(item, 1, &v_name, silently);
-    PURC_VARIANT_SAFE_CLEAR(v_name);
-
-    return v;
-}
-
 purc_variant_t __purcex_load_dynamic_variant (const char *name, int *ver_code)
 {
+    UNUSED_PARAM(name);
     *ver_code = MATH_DVOBJ_VERSION;
 
-    purc_variant_t v = pcdvobjs_create_math ();
-    if (v == PURC_VARIANT_INVALID)
-        return v;
-
-    if (name == NULL)
-        return v;
-
-    if (strcmp(name, "MATH") == 0)
-        return v;
-
-    purc_variant_t m = get_member(v, name);
-    PURC_VARIANT_SAFE_CLEAR(v);
-
-    return m;
+    return pcdvobjs_create_math ();
 }
 
 size_t __purcex_get_number_of_dynamic_variants (void)
