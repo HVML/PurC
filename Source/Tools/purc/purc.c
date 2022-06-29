@@ -54,9 +54,10 @@
 
 struct purc_run_info {
     purc_variant_t opts;
+    purc_variant_t app_info;
 };
 
-struct purc_run_info run_info;
+static struct purc_run_info run_info;
 
 static void print_version(FILE *fp)
 {
@@ -158,6 +159,7 @@ struct my_opts {
     const char *rdr_prot;
     char *rdr_uri;
     pcutils_array_t *urls;
+    char *app_info;
 
     bool quiet;
 };
@@ -177,17 +179,41 @@ static void my_opts_delete(struct my_opts *opts, bool deep)
             free(opts->app);
         if (opts->run)
             free(opts->run);
-        if (opts->urls) {
-            for (size_t i = 0; i < opts->urls->length; i++) {
-                free(opts->urls->list[i]);
-            }
+
+        for (size_t i = 0; i < opts->urls->length; i++) {
+            free(opts->urls->list[i]);
         }
     }
 
-    if (opts->urls)
-        pcutils_array_destroy(opts->urls, true);
+    if (opts->app_info)
+        free(opts->app_info);
+
+    pcutils_array_destroy(opts->urls, true);
 
     free(opts);
+}
+
+static bool is_json_or_ejson_file(const char *file)
+{
+    const char *suffix;
+
+    if ((suffix = strrchr(file, '.'))) {
+        if (strcmp(suffix, ".json") == 0 ||
+                strcmp(suffix, ".ejson") == 0) {
+
+            FILE *fp = fopen(file, "r");
+            if (fp == NULL) {
+                goto done;
+            }
+
+            fclose(fp);
+
+            return true;
+        }
+    }
+
+done:
+    return false;
 }
 
 static bool validate_url(struct my_opts *opts, const char *url)
@@ -320,11 +346,16 @@ static int read_option_args(struct my_opts *opts, int argc, char **argv)
     }
 
     if (optind < argc) {
-        for (int i = optind; i < argc; i++) {
-            if (!validate_url(opts, argv[i])) {
-                if (!opts->quiet)
-                    fprintf(stdout, "Got a bad file or URL: %s\n", argv[i]);
-                return -1;
+        if (is_json_or_ejson_file(argv[optind])) {
+            opts->app_info = strdup(argv[optind]);
+        }
+        else {
+            for (int i = optind; i < argc; i++) {
+                if (!validate_url(opts, argv[i])) {
+                    if (!opts->quiet)
+                        fprintf(stdout, "Got a bad file or URL: %s\n", argv[i]);
+                    return -1;
+                }
             }
         }
     }
@@ -409,6 +440,12 @@ static ssize_t cb_stdio_write(void *ctxt, const void *buf, size_t count)
     return fwrite(buf, 1, count, fp);
 }
 
+static bool evalute_app_info(const char *app_info)
+{
+    (void)app_info;
+    return false;
+}
+
 int main(int argc, char** argv)
 {
     int ret;
@@ -419,7 +456,8 @@ int main(int argc, char** argv)
         return EXIT_FAILURE;
     }
 
-    if (opts->urls == NULL || opts->urls->length == 0) {
+    if (opts->app_info == NULL &&
+            (opts->urls == NULL || opts->urls->length == 0)) {
         if (!opts->quiet) {
             fprintf(stdout, "No valid HVML program specified\n");
             print_usage(stdout);
@@ -469,12 +507,22 @@ int main(int argc, char** argv)
     ret = purc_init_ex(modules, opts->app ? opts->app : DEF_APP_NAME,
             opts->run ? opts->run : DEF_RUN_NAME, &extra_info);
     if (ret != PURC_ERROR_OK) {
-        fprintf(stderr, "Failed to initialize the PurC instance: %s\n",
+        if (!opts->quiet)
+            fprintf(stderr, "Failed to initialize the PurC instance: %s\n",
                 purc_get_error_message(ret));
         return EXIT_FAILURE;
     }
 
     transfer_opts_to_variant(opts);
+    if (opts->app_info) {
+        if (!evalute_app_info(opts->app_info)) {
+            if (!opts->quiet)
+                fprintf(stderr, "Failed to evalute the app info from %s\n",
+                        opts->app_info);
+            return EXIT_FAILURE;
+        }
+    }
+
     my_opts_delete(opts, false);
 
     purc_rwstream_t rws = purc_rwstream_new_for_dump(stdout, cb_stdio_write);

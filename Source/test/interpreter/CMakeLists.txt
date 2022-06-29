@@ -338,6 +338,8 @@ set(test_hvml_tag_LIBRARIES
     pthread
 )
 
+target_compile_definitions(test_hvml_tag PRIVATE SOPATH="${CMAKE_BINARY_DIR}/lib")
+
 PURC_COMPUTE_SOURCES(test_hvml_tag)
 PURC_FRAMEWORK(test_hvml_tag)
 GTEST_DISCOVER_TESTS(test_hvml_tag DISCOVERY_TIMEOUT 10)

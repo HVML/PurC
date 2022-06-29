@@ -110,7 +110,7 @@ load_module(struct pcexec_exe_func_inst *exe_func_inst, const char *module)
          */
 
         // step1: search in directories defined by the env var
-        const char *env = getenv("PURC_EXECUTOR_PATH");
+        const char *env = getenv(PURC_ENVV_EXECUTOR_PATH);
         if (env) {
             char *path = strdup(env);
             char *str1;

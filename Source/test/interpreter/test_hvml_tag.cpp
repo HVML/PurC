@@ -97,6 +97,9 @@ TEST_P(TestHVMLTag, hvml_tags)
     TestCase test_case = GetParam();
     PRINTF("test case : %s\n", test_case.name);
 
+    setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
+    setenv(PURC_ENVV_EXECUTOR_PATH, SOPATH, 1);
+
     struct buffer buf;
     buf.dump_buff = nullptr;
 
