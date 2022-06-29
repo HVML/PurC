@@ -280,6 +280,76 @@ int
 pcvar_compare_ex(purc_variant_t l, purc_variant_t r,
         bool caseless, bool unify_number);
 
+void
+pcvar_parallel_walk(purc_variant_t l, purc_variant_t r, void *ctxt,
+        int (*cb)(purc_variant_t l, purc_variant_t r, void *ctxt));
+
+double
+pcvar_str_numberify(purc_variant_t val);
+
+double
+pcvar_atom_numberify(purc_variant_t val);
+
+double
+pcvar_bs_numberify(purc_variant_t val);
+
+double
+pcvar_dynamic_numberify(purc_variant_t val);
+
+double
+pcvar_native_numberify(purc_variant_t val);
+
+double
+pcvar_obj_numberify(purc_variant_t val);
+
+double
+pcvar_arr_numberify(purc_variant_t val);
+
+double
+pcvar_set_numberify(purc_variant_t val);
+
+double
+pcvar_tuple_numberify(purc_variant_t val);
+
+double
+pcvar_numberify(purc_variant_t val);
+
+int
+pcvar_diff_numberify(purc_variant_t l, purc_variant_t r);
+
+
+typedef int (*stringify_f)(const unsigned char *s, size_t len, void *ctxt);
+
+int
+pcvar_str_stringify(purc_variant_t val, void *ctxt, stringify_f cb);
+
+int
+pcvar_atom_stringify(purc_variant_t val, void *ctxt, stringify_f cb);
+
+int
+pcvar_bs_stringify(purc_variant_t val, void *ctxt, stringify_f cb);
+
+int
+pcvar_dynamic_stringify(purc_variant_t val, void *ctxt, stringify_f cb);
+
+int
+pcvar_native_stringify(purc_variant_t val, void *ctxt, stringify_f cb);
+
+int
+pcvar_obj_stringify(purc_variant_t val, void *ctxt, stringify_f cb);
+
+int
+pcvar_arr_stringify(purc_variant_t val, void *ctxt, stringify_f cb);
+
+int
+pcvar_set_stringify(purc_variant_t val, void *ctxt, stringify_f cb);
+
+int
+pcvar_tuple_stringify(purc_variant_t val, void *ctxt, stringify_f cb);
+
+int
+pcvar_stringify(purc_variant_t val, void *ctxt, stringify_f cb);
+
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */

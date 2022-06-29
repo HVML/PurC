@@ -471,6 +471,33 @@ post_process_src(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 }
 
 static int
+_init_set_with(purc_variant_t set, purc_variant_t arr)
+{
+    if (!purc_variant_is_array(arr)) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "array is required to initialize uniq-set");
+        return -1;
+    }
+
+    purc_variant_t v;
+    size_t idx;
+    foreach_value_in_variant_array(arr, v, idx) {
+        UNUSED_PARAM(idx);
+
+        bool overwrite = true;
+        bool ok;
+        ok = purc_variant_set_add(set, v, overwrite);
+        if (!ok) {
+            PC_ASSERT(purc_get_last_error());
+            return -1;
+        }
+    }
+    end_foreach;
+
+    return 0;
+}
+
+static int
 post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
     struct ctxt_for_init *ctxt;
@@ -490,11 +517,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         if (set == PURC_VARIANT_INVALID)
             return -1;
 
-        bool silently = frame->silently;
-        if (ctxt->against != PURC_VARIANT_INVALID && !silently) {
-            silently = true;
-        }
-        if (!purc_variant_container_displace(set, src, silently)) {
+        if (_init_set_with(set, src)) {
             purc_variant_unref(set);
             return -1;
         }

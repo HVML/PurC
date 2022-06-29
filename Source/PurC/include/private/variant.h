@@ -300,6 +300,8 @@ int pcvariant_set_sort(purc_variant_t value, void *ud,
         int (*cmp)(purc_variant_t l, purc_variant_t r, void *ud));
 
 int pcvariant_diff(purc_variant_t l, purc_variant_t r);
+int pcvariant_diff_ex(purc_variant_t l, purc_variant_t r,
+        enum purc_variant_compare_opt opt);
 
 static inline const char*
 pcvariant_typename(purc_variant_t v)
@@ -327,31 +329,14 @@ pcvariant_is_false(purc_variant_t v)
     return false;
 }
 
-static inline bool
-pcvariant_is_of_string(purc_variant_t v)
-{
-    switch (v->type) {
-        case PURC_VARIANT_TYPE_STRING:
-        case PURC_VARIANT_TYPE_ATOMSTRING:
-            return true;
-        default:
-            return false;
-    }
-}
+bool
+pcvariant_is_scalar(purc_variant_t v);
 
-static inline bool
-pcvariant_is_of_number(purc_variant_t v)
-{
-    switch (v->type) {
-        case PURC_VARIANT_TYPE_NUMBER:
-        case PURC_VARIANT_TYPE_LONGINT:
-        case PURC_VARIANT_TYPE_ULONGINT:
-        case PURC_VARIANT_TYPE_LONGDOUBLE:
-            return true;
-        default:
-            return false;
-    }
-}
+bool
+pcvariant_is_of_string(purc_variant_t v);
+
+bool
+pcvariant_is_of_number(purc_variant_t v);
 
 // return -1 if not valid set
 // on return:
