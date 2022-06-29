@@ -172,11 +172,11 @@ PurC can run multiple HVML programs as coroutines at the same time.
 For example, we enhance the first HVML program to print `Hello, world!` 10 times:
 
 ```html
-<!DOCTYPE hvml>
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
 <hvml target="void">
     <iterate on 0 onlyif=$L.lt($0<, 10) with=$MATH.add($0<, 1) >
         $STREAM.stdout.writelines(
-                $STR.join($0<, ") Hello, world! --from ", $HVML.corToken))
+                $STR.join($0<, ") Hello, world! --from COROUTINE-", $HVML.cid))
     </iterate>
 </hvml>
 ```
@@ -191,32 +191,32 @@ the program in two coroutines at the same time:
 You will see the following output on your terminal:
 
 ```
+0) Hello, world! -- from COROUTINE-01
+0) Hello, world! -- from COROUTINE-02
 1) Hello, world! -- from COROUTINE-01
+1) Hello, world! -- from COROUTINE-02
+2) Hello, world! -- from COROUTINE-01
 2) Hello, world! -- from COROUTINE-02
 3) Hello, world! -- from COROUTINE-01
+3) Hello, world! -- from COROUTINE-02
+4) Hello, world! -- from COROUTINE-01
 4) Hello, world! -- from COROUTINE-02
 5) Hello, world! -- from COROUTINE-01
+5) Hello, world! -- from COROUTINE-02
+6) Hello, world! -- from COROUTINE-01
 6) Hello, world! -- from COROUTINE-02
 7) Hello, world! -- from COROUTINE-01
+7) Hello, world! -- from COROUTINE-02
+8) Hello, world! -- from COROUTINE-01
 8) Hello, world! -- from COROUTINE-02
 9) Hello, world! -- from COROUTINE-01
-10) Hello, world! -- from COROUTINE-02
-11) Hello, world! -- from COROUTINE-01
-12) Hello, world! -- from COROUTINE-02
-13) Hello, world! -- from COROUTINE-01
-14) Hello, world! -- from COROUTINE-02
-15) Hello, world! -- from COROUTINE-01
-16) Hello, world! -- from COROUTINE-02
-17) Hello, world! -- from COROUTINE-01
-18) Hello, world! -- from COROUTINE-02
-19) Hello, world! -- from COROUTINE-01
-20) Hello, world! -- from COROUTINE-02
+9) Hello, world! -- from COROUTINE-02
 ```
 
-In the above output, `COROUTINE-01` and `COROUTINE-02` are the tokens
-allocated by PurC for two running instances of the program. You see that
-PurC runs the two running instances alternately, i.e., in the manner of
-coroutines.
+In the above output, `COROUTINE-01` and `COROUTINE-02` are the coroutine
+identifier allocated by PurC for two running instances of the program.
+You see that PurC runs the two running instances alternately, i.e.,
+in the manner of coroutines.
 
 ### Use HVML renderer
 
@@ -226,7 +226,7 @@ the terminal. So we can open the genenrated HTML file in a web browser.
 Therefore, we enhance `hello-10.hvml` once more:
 
 ```html
-<!DOCTYPE hvml>
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
 <hvml target="html">
     <head>
         <title>Hello, world!</title>
@@ -235,7 +235,7 @@ Therefore, we enhance `hello-10.hvml` once more:
     <body>
         <ul>
             <iterate on 0 onlyif=$L.lt($0<, 10) with=$MATH.add($0<, 1) >
-                <li>$< Hello, world! --from $HVML.corToken</li>
+                <li>$< Hello, world! --from COROUTINE-$HVML.cid</li>
             </iterate>
         </ul>
     </body>
