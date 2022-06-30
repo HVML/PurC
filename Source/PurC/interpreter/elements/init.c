@@ -1409,8 +1409,12 @@ process_via(pcintr_coroutine_t co)
         pcintr_unload_module(handle);
     }
 
-    if (v == PURC_VARIANT_INVALID)
+    if (v == PURC_VARIANT_INVALID) {
+        // FIXME: who's responsible for error code
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "failed to load external variant");
         return -1;
+    }
 
     int r;
     PRINT_VARIANT(v);

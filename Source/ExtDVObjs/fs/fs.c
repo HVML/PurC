@@ -816,7 +816,7 @@ list_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
-    strncpy (dir_name, string_filename, sizeof(dir_name));
+    strncpy (dir_name, string_filename, sizeof(dir_name)-1);
 
     if (access(dir_name, F_OK | R_OK) != 0) {
         purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
@@ -890,7 +890,7 @@ list_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         obj_var = purc_variant_make_object (0, PURC_VARIANT_INVALID,
                 PURC_VARIANT_INVALID);
 
-        strncpy (filename, dir_name, sizeof(filename));
+        strncpy (filename, dir_name, sizeof(filename)-1);
         strcat (filename, "/");
         strcat (filename, ptr->d_name);
 
@@ -1095,7 +1095,7 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
-    strncpy (dir_name, string_filename, sizeof(dir_name));
+    strncpy (dir_name, string_filename, sizeof(dir_name)-1);
 
     if (access(dir_name, F_OK | R_OK) != 0) {
         purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
@@ -1271,7 +1271,7 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         if (wildcard && (temp_wildcard == NULL))
             continue;
 
-        strncpy (filename, dir_name, sizeof(filename));
+        strncpy (filename, dir_name, sizeof(filename)-1);
         strcat (filename, "/");
         strcat (filename, ptr->d_name);
 
@@ -2496,8 +2496,8 @@ tempname_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         purc_set_error (PURC_ERROR_TOO_LONG);
         return purc_variant_make_boolean (false);
     }
-    
-    strncpy (filename, string_directory, sizeof(filename));
+
+    strncpy (filename, string_directory, sizeof(filename)-1);
     if (filename[dir_length - 1] != '\\' &&
         filename[dir_length - 1] != '/') {
             filename[dir_length] = '/';
@@ -2700,7 +2700,6 @@ rm_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         ret_var = purc_variant_make_boolean (true);
 
     return ret_var;
-
 }
 
 static purc_variant_t
@@ -2710,8 +2709,131 @@ file_contents_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(root);
     UNUSED_PARAM(silently);
 
-    char filename[PATH_MAX];
     const char *string_filename = NULL;
+    const char *string_flags = NULL;
+    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    bool flag_binary = false;
+    bool flag_strict = false;
+    int64_t  offset = 0;
+    size_t   length = SIZE_MAX;
+    struct stat filestat;
+    size_t      filesize;
+    size_t      readsize;
+    FILE       *fp = NULL;
+    uint8_t    *bsequence = NULL;
+
+    if (nr_args < 1) {
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        return PURC_VARIANT_INVALID;
+    }
+
+    // get the file name
+    string_filename = purc_variant_get_string_const (argv[0]);
+    if (NULL == string_filename) {
+        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    if (nr_args > 1) {
+        string_flags = purc_variant_get_string_const (argv[1]);
+        if (NULL == string_flags) {
+            purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+            return PURC_VARIANT_INVALID;
+        }
+    }
+
+    if (nr_args > 2) {
+        // Get the offset
+        if (! purc_variant_cast_to_longint (argv[2], &offset, false)) {
+            purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+            return PURC_VARIANT_INVALID;
+        }
+    }
+
+    if (nr_args > 3) {
+        // Get the offset
+        if (! purc_variant_cast_to_ulongint (argv[3], &length, false)) {
+            purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+            return PURC_VARIANT_INVALID;
+        }
+    }
+
+    // Get whole file size
+    if (stat(string_filename, &filestat) < 0) {
+        set_purc_error_by_errno ();
+        return purc_variant_make_boolean (false);
+    }
+    filesize = filestat.st_size;
+
+    if (flag_binary)
+        fp = fopen (string_filename, "rb");
+    else
+        fp = fopen (string_filename, "r");
+    
+    if (NULL == fp) {
+        set_purc_error_by_errno ();
+        return purc_variant_make_boolean (false);
+    }
+
+    if (offset < 0) {
+        offset = filesize + offset;// offset < 0 !!!
+    }
+    if (offset < 0 || (size_t)offset >= filesize) {
+        purc_set_error (PURC_ERROR_WRONG_STAGE);
+        goto err;
+    }
+
+    if ((filesize - offset) < length)
+        length = filesize - offset;
+
+    if (length <= 0) {
+        purc_set_error (PURC_ERROR_WRONG_STAGE);
+        goto err;
+    }
+
+    bsequence = malloc (length + 1);
+    bsequence[length] = 0x0;
+
+    if (offset > 0)
+        fseek (fp, offset, SEEK_SET);
+
+    readsize = fread (bsequence, 1, length, fp);
+    if (readsize != length && flag_strict) {
+        free (bsequence);
+        fclose (fp);
+        // FIXME: throw `BadEncoding` exception
+    }
+
+    if (flag_binary)
+        ret_var = purc_variant_make_byte_sequence(bsequence, readsize);
+    else
+        ret_var = purc_variant_make_string_ex((const char *)bsequence, readsize, true);
+
+    free (bsequence);
+    fclose (fp);
+    return ret_var;
+
+err:
+    if (bsequence)
+        free (bsequence);
+
+    if (fp)
+        fclose (fp);
+
+    return purc_variant_make_boolean (false);
+}
+
+static purc_variant_t
+file_contents_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(silently);
+
+    const char *string_filename = NULL;
+    const char *string_flags = NULL;
+    const uint8_t *bsequence = NULL;
+    size_t         sz_bseq;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if (nr_args < 1) {
@@ -2721,7 +2843,27 @@ file_contents_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
-    strncpy (filename, string_filename, sizeof(filename));
+    if (NULL == string_filename) {
+        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    if (nr_args > 1) {
+        if (! purc_variant_cast_to_byte_sequence(argv[1],
+                (const void **)&bsequence, &sz_bseq))
+        {
+            purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+            return PURC_VARIANT_INVALID;
+        }
+    }
+
+    if (nr_args > 2) {
+        string_flags = purc_variant_get_string_const (argv[2]);
+        if (NULL == string_flags) {
+            purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+            return PURC_VARIANT_INVALID;
+        }
+    }
 
     // wait for code
 
@@ -2729,6 +2871,10 @@ file_contents_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     return ret_var;
 }
 
+struct pcdvobjs_dir_stream {
+    DIR* dirp;
+    char dirpath[PATH_MAX];
+};
 
 static purc_variant_t
 dir_read_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
@@ -2738,16 +2884,24 @@ dir_read_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(argv);
     UNUSED_PARAM(silently);
 
+    struct pcdvobjs_dir_stream *dir_stream;
     DIR *dirp;
+    char fullpath[PATH_MAX + NAME_MAX + 1];
     struct dirent *dp;
     purc_variant_t dir_var;
 
     dir_var = purc_variant_object_get_by_ckey(root, CKEY_DIR);
     if (dir_var == PURC_VARIANT_INVALID) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
 
-    dirp = (DIR *)dir_var->ptr_ptr[0];
+    dir_stream = (struct pcdvobjs_dir_stream *)(dir_var->ptr_ptr[0]);
+    if (NULL == dir_stream) {
+        return PURC_VARIANT_INVALID;
+    }
+
+    dirp = dir_stream->dirp;
     if (NULL == dirp) {
         return PURC_VARIANT_INVALID;
     }
@@ -2757,8 +2911,10 @@ dir_read_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
                 || (strcmp(dp->d_name, "..") == 0))
             continue;
 
-        //sprintf(dir_name, "%s/%s", dir, dp->d_name);
-        return purc_variant_make_string (dp->d_name, true);
+        snprintf(fullpath, sizeof(fullpath), "%s/%s",
+                dir_stream->dirpath,
+                dp->d_name);
+        return purc_variant_make_string (fullpath, true);
     }
 
     return purc_variant_make_boolean (false);
@@ -2772,15 +2928,22 @@ dir_rewind_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(argv);
     UNUSED_PARAM(silently);
 
+    struct pcdvobjs_dir_stream *dir_stream;
     DIR *dirp;
     purc_variant_t dir_var;
 
     dir_var = purc_variant_object_get_by_ckey(root, CKEY_DIR);
     if (dir_var == PURC_VARIANT_INVALID) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
 
-    dirp = (DIR *)dir_var->ptr_ptr[0];
+    dir_stream = (struct pcdvobjs_dir_stream *)(dir_var->ptr_ptr[0]);
+    if (NULL == dir_stream) {
+        return PURC_VARIANT_INVALID;
+    }
+
+    dirp = dir_stream->dirp;
     if (NULL == dirp) {
         return PURC_VARIANT_INVALID;
     }
@@ -2790,9 +2953,15 @@ dir_rewind_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     return purc_variant_make_boolean (true);
 }
 
-static bool add_dir_native(purc_variant_t v, void *native_entity)
+static bool add_dir_native(purc_variant_t v, DIR *dirp,
+        const char *string_pathname)
 {
-    purc_variant_t var = purc_variant_make_native(native_entity, NULL);
+    struct pcdvobjs_dir_stream *dir_stream = calloc(1,
+            sizeof(struct pcdvobjs_dir_stream));
+    dir_stream->dirp = dirp;
+    strncpy(dir_stream->dirpath, string_pathname, sizeof(dir_stream->dirpath)-1);
+
+    purc_variant_t var = purc_variant_make_native((void *)dir_stream, NULL);
     if (var == PURC_VARIANT_INVALID) {
         return false;
     }
@@ -2854,7 +3023,7 @@ opendir_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         return PURC_VARIANT_INVALID;
     }
 
-    if (add_dir_native(ret_var, (void *)dirp)) {
+    if (add_dir_native(ret_var, dirp, string_pathname)) {
         return ret_var;
     }
 
@@ -2869,6 +3038,7 @@ closedir_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(root);
     UNUSED_PARAM(silently);
 
+    struct pcdvobjs_dir_stream *dir_stream;
     DIR *dirp;
     purc_variant_t dir_var;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
@@ -2883,7 +3053,12 @@ closedir_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         return PURC_VARIANT_INVALID;
     }
 
-    dirp = (DIR *)dir_var->ptr_ptr[0];
+    dir_stream = (struct pcdvobjs_dir_stream *)(dir_var->ptr_ptr[0]);
+    if (NULL == dir_stream) {
+        return PURC_VARIANT_INVALID;
+    }
+
+    dirp = dir_stream->dirp;
     if (NULL == dirp) {
         return PURC_VARIANT_INVALID;
     }
@@ -2894,118 +3069,9 @@ closedir_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         ret_var = purc_variant_make_boolean (false);
 
     purc_variant_object_remove_by_static_ckey(argv[0], CKEY_DIR, true);
+    free (dir_stream);
     return ret_var;
 }
-
-#if 0
-static purc_variant_t
-dir_read_getter (void *native_entity, size_t nr_args, purc_variant_t *argv,
-        bool silently)
-{
-    struct pcdvobjs_stream *stream;
-    purc_rwstream_t rwstream;
-    const char *formats = NULL;
-    size_t formats_left = 0;
-
-    if (native_entity == NULL) {
-        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        goto out;
-    }
-
-    stream = get_dir_stream(native_entity);
-    rwstream = stream->stm4r;
-    if (rwstream == NULL) {
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
-        goto out;
-    }
-
-    if (nr_args < 1) {
-        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
-        goto out;
-    }
-
-    if (argv[0] == PURC_VARIANT_INVALID ||
-            (!purc_variant_is_string(argv[0]))) {
-        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        goto out;
-    }
-
-    formats = purc_variant_get_string_const_ex(argv[0], &formats_left);
-    if (formats == NULL) {
-        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        goto out;
-    }
-
-    formats = pcutils_trim_spaces(formats, &formats_left);
-    if (formats_left == 0) {
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
-        goto out;
-    }
-
-    return purc_dvobj_read_struct(rwstream, formats, formats_left, silently);
-
-out:
-    if (silently) {
-        return purc_variant_make_array(0, PURC_VARIANT_INVALID);
-    }
-
-    return PURC_VARIANT_INVALID;
-}
-
-static purc_variant_t
-dir_rewind_getter (void *native_entity, size_t nr_args, purc_variant_t *argv,
-        bool silently)
-{
-    struct pcdvobjs_stream *stream;
-    purc_rwstream_t rwstream;
-    const char *formats = NULL;
-    size_t formats_left = 0;
-
-    if (native_entity == NULL) {
-        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        goto out;
-    }
-
-    stream = get_dir_stream(native_entity);
-    rwstream = stream->stm4r;
-    if (rwstream == NULL) {
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
-        goto out;
-    }
-
-    if (nr_args < 1) {
-        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
-        goto out;
-    }
-
-    if (argv[0] == PURC_VARIANT_INVALID ||
-            (!purc_variant_is_string(argv[0]))) {
-        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        goto out;
-    }
-
-    formats = purc_variant_get_string_const_ex(argv[0], &formats_left);
-    if (formats == NULL) {
-        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        goto out;
-    }
-
-    formats = pcutils_trim_spaces(formats, &formats_left);
-    if (formats_left == 0) {
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
-        goto out;
-    }
-
-    return purc_dvobj_read_struct(rwstream, formats, formats_left, silently);
-
-out:
-    if (silently) {
-        return purc_variant_make_array(0, PURC_VARIANT_INVALID);
-    }
-
-    return PURC_VARIANT_INVALID;
-}
-#endif
 
 static purc_variant_t pcdvobjs_create_fs(void)
 {
@@ -3039,9 +3105,10 @@ static purc_variant_t pcdvobjs_create_fs(void)
         {"umask",         umask_getter, NULL},
         {"unlink",        unlink_getter, NULL},
         {"rm",            rm_getter, NULL},// beyond documentation
-        {"file_contents", file_contents_getter, NULL},
+        {"file_contents", file_contents_getter, file_contents_setter},
         {"opendir",       opendir_getter, NULL},
-        {"closedir",      closedir_getter, NULL} };
+        {"closedir",      closedir_getter, NULL}
+    };
 
     return purc_dvobj_make_from_methods (method, PCA_TABLESIZE(method));
 }
