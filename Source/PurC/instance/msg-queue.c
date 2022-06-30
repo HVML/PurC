@@ -76,21 +76,6 @@ done:
     return queue;
 }
 
-static void
-grind_message(pcrdr_msg *msg)
-{
-    for (int i = 0; i < PCRDR_NR_MSG_VARIANTS; i++) {
-        if (msg->variants[i])
-            purc_variant_unref(msg->variants[i]);
-    }
-
-#if HAVE(GLIB)
-    g_slice_free1(sizeof(pcrdr_msg), (gpointer)msg);
-#else
-    free(msg);
-#endif
-}
-
 static ssize_t
 grind_msg_list(struct list_head *msgs)
 {
@@ -100,7 +85,7 @@ grind_msg_list(struct list_head *msgs)
         struct pcinst_msg_hdr *hdr;
         hdr = list_entry(p, struct pcinst_msg_hdr, ln);
         list_del(p);
-        grind_message((pcrdr_msg *)hdr);
+        pcinst_put_message((pcrdr_msg *)hdr);
         nr++;
     }
     return nr;
