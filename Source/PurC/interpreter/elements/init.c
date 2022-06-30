@@ -471,6 +471,33 @@ post_process_src(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 }
 
 static int
+_init_set_with(purc_variant_t set, purc_variant_t arr)
+{
+    if (!purc_variant_is_array(arr)) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "array is required to initialize uniq-set");
+        return -1;
+    }
+
+    purc_variant_t v;
+    size_t idx;
+    foreach_value_in_variant_array(arr, v, idx) {
+        UNUSED_PARAM(idx);
+
+        bool overwrite = true;
+        bool ok;
+        ok = purc_variant_set_add(set, v, overwrite);
+        if (!ok) {
+            PC_ASSERT(purc_get_last_error());
+            return -1;
+        }
+    }
+    end_foreach;
+
+    return 0;
+}
+
+static int
 post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
     struct ctxt_for_init *ctxt;
@@ -479,16 +506,18 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     purc_variant_t src = frame->ctnt_var;
 
     if (ctxt->uniquely) {
+        const char *s_against = NULL;
+        if (ctxt->against != PURC_VARIANT_INVALID) {
+            s_against = purc_variant_get_string_const(ctxt->against);
+        }
         purc_variant_t set;
-        set = purc_variant_make_set(0, ctxt->against, PURC_VARIANT_INVALID);
+        bool caseless = ctxt->casesensitively ? false : true;
+        set = purc_variant_make_set_by_ckey_ex(0, s_against, caseless,
+                PURC_VARIANT_INVALID);
         if (set == PURC_VARIANT_INVALID)
             return -1;
 
-        bool silently = frame->silently;
-        if (ctxt->against != PURC_VARIANT_INVALID && !silently) {
-            silently = true;
-        }
-        if (!purc_variant_container_displace(set, src, silently)) {
+        if (_init_set_with(set, src)) {
             purc_variant_unref(set);
             return -1;
         }
@@ -667,8 +696,13 @@ process_attr_against(struct pcintr_stack_frame *frame,
                 purc_atom_to_string(name), element->tag_name);
         return -1;
     }
-    ctxt->against = val;
-    purc_variant_ref(val);
+    if (!purc_variant_is_string(val)) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "vdom attribute '%s' for element <%s> is not string",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    ctxt->against = purc_variant_ref(val);
 
     return 0;
 }
@@ -1375,8 +1409,12 @@ process_via(pcintr_coroutine_t co)
         pcintr_unload_module(handle);
     }
 
-    if (v == PURC_VARIANT_INVALID)
+    if (v == PURC_VARIANT_INVALID) {
+        // FIXME: who's responsible for error code
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "failed to load external variant");
         return -1;
+    }
 
     int r;
     PRINT_VARIANT(v);

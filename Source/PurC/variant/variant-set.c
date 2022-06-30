@@ -360,6 +360,81 @@ struct element_rb_node {
     struct rb_node      *entry;
 };
 
+static int
+_compare_generic(purc_variant_t _new, purc_variant_t _old, bool caseless)
+{
+    purc_vrtcmp_opt_t opt = PCVARIANT_COMPARE_OPT_CASE;
+    if (caseless)
+        opt = PCVARIANT_COMPARE_OPT_CASELESS;
+
+    int diff;
+    diff = purc_variant_compare_ex(_new, _old, opt);
+
+    // FIXME: what if allocation failed internally in purc_variant_compare_ex?
+
+    return diff;
+}
+
+static purc_variant_t
+_get_by_key(purc_variant_t val, const char *key)
+{
+    purc_variant_t v = PURC_VARIANT_INVALID;
+
+    if (purc_variant_is_object(val)) {
+        v = purc_variant_object_get_by_ckey(val, key);
+
+        if (v == PURC_VARIANT_INVALID) {
+            PC_ASSERT(purc_get_last_error() != PURC_ERROR_OUT_OF_MEMORY);
+            purc_clr_error();
+        }
+    }
+
+    if (v != PURC_VARIANT_INVALID)
+        return purc_variant_ref(v);
+
+    return purc_variant_make_undefined();
+}
+
+static int
+_compare_by_unique_keys(purc_variant_t _new, purc_variant_t _old,
+        variant_set_t data)
+{
+    int diff = 0;
+
+    for (size_t i=0; i<data->nr_keynames; ++i) {
+        const char *key = data->keynames[i];
+
+        purc_variant_t _new_v = _get_by_key(_new, key);
+        purc_variant_t _old_v = _get_by_key(_old, key);
+
+        PC_ASSERT(_new_v != PURC_VARIANT_INVALID);
+        PC_ASSERT(_old_v != PURC_VARIANT_INVALID);
+
+        diff = _compare_generic(_new_v, _old_v, data->caseless);
+        PURC_VARIANT_SAFE_CLEAR(_new_v);
+        PURC_VARIANT_SAFE_CLEAR(_old_v);
+
+        if (diff)
+            break;
+    }
+
+    return diff;
+}
+
+static int
+_compare(purc_variant_t _new, purc_variant_t _old,
+        variant_set_t data)
+{
+    PC_ASSERT(_new != PURC_VARIANT_INVALID);
+    PC_ASSERT(_old != PURC_VARIANT_INVALID);
+    if (data->unique_key == NULL) {
+        // generic set
+        return _compare_generic(_new, _old, data->caseless);
+    }
+
+    return _compare_by_unique_keys(_new, _old, data);
+}
+
 static void
 find_element_rb_node(struct element_rb_node *node,
         purc_variant_t set, purc_variant_t kvs)
@@ -379,8 +454,11 @@ find_element_rb_node(struct element_rb_node *node,
         if (0) {
             diff = variant_set_compare_by_set_keys(set, kvs, on->val);
         }
-        else {
+        else if (0) {
             diff = pcvariant_diff_by_set(md5, kvs, on->md5, on->val, set);
+        }
+        else {
+            diff = _compare(kvs, on->val, data);
         }
 
         parent = *pnode;
@@ -891,6 +969,8 @@ insert_or_replace(purc_variant_t set,
     }
 
     if (!overwrite) {
+        PRINT_VARIANT(set);
+        PRINT_VARIANT(val);
         purc_set_error(PURC_ERROR_NOT_SUPPORTED);
         return -1;
     }
@@ -1025,65 +1105,18 @@ make_set_c(bool check, size_t sz, const char *unique_key,
     return PURC_VARIANT_INVALID;
 }
 
-static purc_variant_t
-pv_make_set_by_ckey_n(bool check, size_t sz, const char* unique_key,
-    bool caseless, purc_variant_t value0, va_list ap)
-{
-    purc_variant_t v = make_set_c(check, sz, unique_key, caseless, value0, ap);
-
-    return v;
-}
-
 purc_variant_t
-purc_variant_make_set_by_ckey(size_t sz, const char* unique_key,
-    purc_variant_t value0, ...)
+purc_variant_make_set_by_ckey_ex(size_t sz, const char* unique_key,
+    bool caseless, purc_variant_t value0, ...)
 {
     PCVARIANT_CHECK_FAIL_RET((sz==0 && value0==NULL) || (sz>0 && value0),
         PURC_VARIANT_INVALID);
 
-    bool caseless = false;
     bool check = true;
     purc_variant_t v;
     va_list ap;
     va_start(ap, value0);
-    v = pv_make_set_by_ckey_n(check, sz, unique_key, caseless, value0, ap);
-    va_end(ap);
-
-    return v;
-}
-
-static purc_variant_t
-pv_make_set_n(bool check, size_t sz, purc_variant_t unique_key,
-    bool caseless, purc_variant_t value0, va_list ap)
-{
-    const char *uk = NULL;
-    if (unique_key) {
-        uk = purc_variant_get_string_const(unique_key);
-        PC_ASSERT(uk);
-    }
-
-    purc_variant_t v = make_set_c(check, sz, uk, caseless, value0, ap);
-
-    return v;
-}
-
-purc_variant_t
-purc_variant_make_set(size_t sz, purc_variant_t unique_key,
-    purc_variant_t value0, ...)
-{
-    PCVARIANT_CHECK_FAIL_RET((sz==0 && value0==NULL) ||
-        (sz>0 && value0),
-        PURC_VARIANT_INVALID);
-
-    PCVARIANT_CHECK_FAIL_RET(!unique_key || unique_key->type==PVT(_STRING),
-        PURC_VARIANT_INVALID);
-
-    bool caseless = false;
-    bool check = true;
-    purc_variant_t v;
-    va_list ap;
-    va_start(ap, value0);
-    v = pv_make_set_n(check, sz, unique_key, caseless, value0, ap);
+    v = make_set_c(check, sz, unique_key, caseless, value0, ap);
     va_end(ap);
 
     return v;
@@ -1094,6 +1127,9 @@ purc_variant_set_add(purc_variant_t set, purc_variant_t value, bool overwrite)
 {
     PCVARIANT_CHECK_FAIL_RET(set && set->type==PVT(_SET) && value,
         PURC_VARIANT_INVALID);
+
+    // FIXME: shall clear error here???
+    purc_clr_error();
 
     variant_set_t data = pcvar_set_get_data(set);
     PC_ASSERT(data);

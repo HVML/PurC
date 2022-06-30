@@ -1113,9 +1113,10 @@ purc_variant_make_set_by_ckey_ex(size_t sz, const char* unique_key,
  *
  * Since: 0.0.1
  */
-PCA_EXPORT purc_variant_t
-purc_variant_make_set_by_ckey(size_t sz, const char* unique_key,
-        purc_variant_t value0, ...);
+#define purc_variant_make_set_by_ckey(sz, unique_key, v0, ...)     \
+    purc_variant_make_set_by_ckey_ex(sz,                           \
+            unique_key, false,                                     \
+            v0, ##__VA_ARGS__)
 
 /**
  * Creates a variant value of set type.
@@ -1131,9 +1132,10 @@ purc_variant_make_set_by_ckey(size_t sz, const char* unique_key,
  *
  * Since: 0.0.1
  */
-PCA_EXPORT purc_variant_t
-purc_variant_make_set(size_t sz, purc_variant_t unique_key,
-        purc_variant_t value0, ...);
+#define purc_variant_make_set(sz, unique_key, v0, ...)             \
+    purc_variant_make_set_by_ckey_ex(sz,                           \
+            purc_variant_get_string_const(unique_key), false,      \
+            v0, ##__VA_ARGS__)
 
 /**
  * Creates an empty set variant.
@@ -1145,11 +1147,10 @@ purc_variant_make_set(size_t sz, purc_variant_t unique_key,
  *
  * Since: 0.2.0
  */
-static inline purc_variant_t
-purc_variant_make_set_0(purc_variant_t unique_key)
-{
-    return purc_variant_make_set(0, unique_key, PURC_VARIANT_INVALID);
-}
+#define purc_variant_make_set_0(unique_key)                        \
+    purc_variant_make_set_by_ckey_ex(0,                            \
+            purc_variant_get_string_const(unique_key), false,      \
+            PURC_VARIANT_INVALID)
 
 /**
  * Adds a variant value to a set.
