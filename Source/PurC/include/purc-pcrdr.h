@@ -1313,6 +1313,10 @@ purc_inst_retrieve_message(size_t index);
 PCA_EXPORT pcrdr_msg *
 purc_inst_take_away_message(size_t index);
 
+
+#define PURC_INST_ATOM_SELF           0
+#define PURC_INST_ATOM_BROADCAST     -1
+
 /**
  * Post the message to the instance.
  *
@@ -1324,7 +1328,7 @@ purc_inst_take_away_message(size_t index);
  * Since: 0.1.0
  */
 PCA_EXPORT int
-purc_inst_post_message(uint64_t inst, pcrdr_msg *msg);
+purc_inst_post_message(purc_atom_t inst_to, pcrdr_msg *msg);
 
 
 /**@}*/
