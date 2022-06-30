@@ -330,7 +330,7 @@ done:
 int
 purc_inst_post_event(purc_atom_t inst_to, pcrdr_msg *msg)
 {
-    if (!msg) {
+    if (!msg || msg->type != PCRDR_MSG_TYPE_EVENT) {
         return -1;
     }
 
