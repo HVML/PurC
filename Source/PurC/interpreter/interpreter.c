@@ -34,6 +34,7 @@
 #include "private/fetcher.h"
 #include "private/regex.h"
 #include "private/stringbuilder.h"
+#include "private/msg-queue.h"
 
 #include "ops.h"
 #include "../hvml/hvml-gen.h"
@@ -540,6 +541,9 @@ coroutine_release(pcintr_coroutine_t co)
             purc_atom_remove_string(co->full_name);
             free(co->full_name);
             co->full_name = NULL;
+        }
+        if (co->mq) {
+            pcinst_msg_queue_destroy(co->mq);
         }
         PURC_VARIANT_SAFE_CLEAR(co->val_from_return_or_exit);
     }
@@ -2570,6 +2574,11 @@ coroutine_create(const char *name,
     INIT_LIST_HEAD(&co->registered_cancels);
     INIT_LIST_HEAD(&co->msgs);
     co->msg_pending = 0;
+
+    co->mq = pcinst_msg_queue_create();
+    if (!co->mq) {
+        goto fail_name;
+    }
 
     co->parent = parent;
     if (parent) {

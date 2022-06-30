@@ -274,6 +274,8 @@ struct pcintr_coroutine {
     void (*continuation)(void *ctxt, void *extra);
 
     struct list_head            msgs;   /* struct pcintr_msg */
+
+    struct pcinst_msg_queue    *mq;     /* message queue */
     unsigned int volatile       msg_pending:1;
     unsigned int volatile       execution_pending:1;
 };
