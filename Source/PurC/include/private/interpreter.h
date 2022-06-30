@@ -94,6 +94,7 @@ struct pcintr_heap {
 
     int64_t               next_coroutine_id;
     purc_atom_t           move_buff;
+    pcintr_timer_t        *event_timer; // 10ms
 };
 
 struct pcintr_stack_frame;
