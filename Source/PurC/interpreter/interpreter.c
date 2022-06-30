@@ -2631,7 +2631,7 @@ purc_load_hvml_from_rwstream_ex(purc_rwstream_t stream,
     return co->stack.vdom;
 }
 
-bool
+int
 purc_run(purc_event_handler handler)
 {
     UNUSED_PARAM(handler);
@@ -2641,20 +2641,20 @@ purc_run(purc_event_handler handler)
     struct pcintr_heap *heap = inst->intr_heap;
     if (!heap) {
         purc_set_error(PURC_ERROR_NOT_SUPPORTED);
-        return false;
+        return -1;
     }
 
     purc_runloop_t runloop = purc_runloop_get_current();
     if (inst->running_loop != runloop) {
         purc_set_error(PURC_ERROR_NOT_SUPPORTED);
-        return false;
+        return -1;
     }
 
     // VW: heap->owner->running_thread = pthread_self();
 
     purc_runloop_run();
 
-    return true;
+    return 0;
 }
 
 static bool
