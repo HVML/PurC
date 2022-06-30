@@ -2487,8 +2487,8 @@ again:
 
     coroutine->name = p;
 
-    size_t len = strlen(inst->runner_name) + 1 + strlen(coroutine->name);
-    p = (char*)malloc(len + 1);
+    size_t len = PURC_LEN_ENDPOINT_NAME + PURC_LEN_UNIQUE_ID + 4;
+    p = (char*)malloc(len);
     if (!p) {
         free(coroutine->name);
         coroutine->name = NULL;
@@ -2496,10 +2496,14 @@ again:
         return -1;
     }
 
-    snprintf(p, len+1, "%s/%s", inst->runner_name, coroutine->name);
+    char id_buf[PURC_LEN_UNIQUE_ID + 1];
+    purc_generate_unique_id(id_buf, coroutine->name);
+
+    sprintf(p, "%s/%s", inst->endpoint_name, id_buf);
     coroutine->full_name = p;
 
-    coroutine->ident = purc_atom_from_string(coroutine->full_name);
+    coroutine->ident = purc_atom_from_string_ex(PURC_ATOM_BUCKET_USER,
+            coroutine->full_name);
 
     return 0;
 }
