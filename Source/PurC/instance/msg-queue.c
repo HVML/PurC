@@ -339,9 +339,6 @@ purc_inst_post_event(purc_atom_t inst_to, pcrdr_msg *msg)
             return 0;
         }
 
-        // dispatch to coroutine
-//        pcintr_get_heap
-#if 0
         struct pcintr_heap *heap = pcintr_get_heap();
         if (!heap) {
             return 0;
@@ -353,10 +350,9 @@ purc_inst_post_event(purc_atom_t inst_to, pcrdr_msg *msg)
             pcintr_coroutine_t co = container_of(p, struct pcintr_coroutine,
                     node);
             if (co->ident == msg->targetValue) {
-                return 0;
+                return pcinst_msg_queue_append(co->mq, msg);
             }
         }
-#endif
 
         return 0;
     }
