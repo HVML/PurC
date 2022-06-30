@@ -335,7 +335,29 @@ purc_inst_post_message(purc_atom_t inst_to, pcrdr_msg *msg)
     }
 
     if (inst_to == PURC_INST_ATOM_SELF) {
+        if (msg->target != PCRDR_MSG_TARGET_COROUTINE) {
+            return 0;
+        }
+
         // dispatch to coroutine
+//        pcintr_get_heap
+#if 0
+        struct pcintr_heap *heap = pcintr_get_heap();
+        if (!heap) {
+            return 0;
+        }
+        struct rb_root *coroutines = &heap->coroutines;
+        struct rb_node *p, *n;
+        struct rb_node *first = pcutils_rbtree_first(coroutines);
+        pcutils_rbtree_for_each_safe(first, p, n) {
+            pcintr_coroutine_t co = container_of(p, struct pcintr_coroutine,
+                    node);
+            if (co->ident == msg->targetValue) {
+                return 0;
+            }
+        }
+#endif
+
         return 0;
     }
 
