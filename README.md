@@ -316,14 +316,14 @@ The following options can be supplied to the command:
         The data fetcher; use `local` or `remote`.
             - `local`: use the built-in data fetcher, and only `file://` URIs
                supported.
-            - `remote`: use the remote data fetcher to support more URI schemas,
+            - `remote`: use the remote data fetcher to support more URL schemas,
                such as `http`, `https`, `ftp` and so on.
 
   -p --rdr-prot=< headless | purcmc >
         The renderer protocol; use `headless` (default) or `purcmc`.
             - `headless`: use the built-in HEADLESS renderer.
             - `purcmc`: use the remote PURCMC renderer;
-              `purc` connects to the renderer via Unix Socket or WebSocket.
+              `purc` will connect to the renderer via Unix Socket or WebSocket.
 
   -u --rdr-uri=<renderer_uri>
         The renderer uri:
@@ -331,6 +331,11 @@ The following options can be supplied to the command:
               default value is not specified (nil).
             - For the renderer protocol `purcmc`,
               default value is `unix:///var/tmp/purcmc.sock`.
+
+  -t --request=< json_file | - >
+        The JSON file contains the request data which will be passed to
+        the HVML programs; use `-` if the JSON data will be given through
+        stdin stream.
 
   -q --quiet
         Execute the program quietly (without redundant output).

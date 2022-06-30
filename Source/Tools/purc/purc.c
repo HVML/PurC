@@ -48,7 +48,9 @@
 #define DEF_RDR_URI_HEADLESS    "file:///dev/null"
 #define DEF_RDR_URI_PURCMC      ("unix://" PCRDR_PURCMC_US_PATH)
 
-#define KEY_URLS               "urls"
+#define KEY_FLAG_REQUEST        "request"
+
+#define KEY_URLS                "urls"
 
 #define KEY_FLAG_QUIET          "quiet"
 
@@ -112,31 +114,36 @@ static void print_usage(FILE *fp)
         "\n"
         "The following options can be supplied to the command:\n"
         "\n"
-        "  -a --app=<app_name>\n"
+        "  -a --app=< app_name >\n"
         "        Run with the specified app name (default value is `cn.fmsoft.html.purc`).\n"
         "\n"
-        "  -r --runner=<runner_name>\n"
+        "  -r --runner=< runner_name >\n"
         "        Run with the specified runner name (default value is `main`).\n"
         "\n"
         "  -d --data-fetcher=< local | remote >\n"
         "        The data fetcher; use `local` or `remote`.\n"
         "            - `local`: use the built-in data fetcher, and only `file://` URIs\n"
         "               supported.\n"
-        "            - `remote`: use the remote data fetcher to support more URI schemas,\n"
+        "            - `remote`: use the remote data fetcher to support more URL schemas,\n"
         "               such as `http`, `https`, `ftp` and so on.\n"
         "\n"
         "  -p --rdr-prot=< headless | purcmc >\n"
         "        The renderer protocol; use `headless` (default) or `purcmc`.\n"
         "            - `headless`: use the built-in HEADLESS renderer.\n"
         "            - `purcmc`: use the remote PURCMC renderer;\n"
-        "              `purc` connects to the renderer via Unix Socket or WebSocket.\n"
+        "              `purc` will connect to the renderer via Unix Socket or WebSocket.\n"
 
-        "  -u --rdr-uri=<renderer_uri>\n"
+        "  -u --rdr-uri=< renderer_uri >\n"
         "        The renderer uri:\n"
         "            - For the renderer protocol `headleass`,\n"
         "              default value is not specified (nil).\n"
         "            - For the renderer protocol `purcmc`,\n"
         "              default value is `unix:///var/tmp/purcmc.sock`.\n"
+        "\n"
+        "  -t --request=< json_file | - >\n"
+        "        The JSON file contains the request data which will be passed to\n"
+        "        the HVML programs; use `-` if the JSON data will be given through\n"
+        "        stdin stream.\n"
         "\n"
         "  -q --quiet\n"
         "        Execute the program quietly (without redundant output).\n"
@@ -158,6 +165,8 @@ struct my_opts {
     const char *data_fetcher;
     const char *rdr_prot;
     char *rdr_uri;
+    char *request;
+
     pcutils_array_t *urls;
     char *app_info;
 
@@ -184,6 +193,9 @@ static void my_opts_delete(struct my_opts *opts, bool deep)
             free(opts->urls->list[i]);
         }
     }
+
+    if (opts->request)
+        free(opts->request);
 
     if (opts->app_info)
         free(opts->app_info);
@@ -241,13 +253,14 @@ static bool validate_url(struct my_opts *opts, const char *url)
 
 static int read_option_args(struct my_opts *opts, int argc, char **argv)
 {
-    static const char short_options[] = "a:r:d:p:u:qcvh";
+    static const char short_options[] = "a:r:d:p:u:t:qcvh";
     static const struct option long_opts[] = {
         { "app"            , required_argument , NULL , 'a' },
         { "runner"         , required_argument , NULL , 'r' },
         { "data-fetcher"   , required_argument , NULL , 'd' },
         { "rdr-prot"       , required_argument , NULL , 'p' },
         { "rdr-uri"        , required_argument , NULL , 'u' },
+        { "request"        , required_argument , NULL , 't' },
         { "quiet"          , no_argument       , NULL , 'q' },
         { "copying"        , no_argument       , NULL , 'c' },
         { "version"        , no_argument       , NULL , 'v' },
@@ -333,6 +346,18 @@ static int read_option_args(struct my_opts *opts, int argc, char **argv)
 
             break;
 
+        case 't':
+            if (strcmp(optarg, "-") == 0 ||
+                    is_json_or_ejson_file(optarg)) {
+                opts->request = strdup(optarg);
+            }
+            else {
+                goto bad_arg;
+            }
+
+            break;
+
+
         case 'q':
             opts->quiet = true;
             break;
@@ -368,7 +393,8 @@ bad_arg:
     return -1;
 }
 
-static void transfer_opts_to_variant(struct my_opts *opts)
+static void
+transfer_opts_to_variant(struct my_opts *opts, purc_variant_t request)
 {
     run_info.opts = purc_variant_make_object_0();
     purc_variant_t tmp;
@@ -432,12 +458,45 @@ static void transfer_opts_to_variant(struct my_opts *opts)
     purc_variant_object_set_by_static_ckey(run_info.opts,
             KEY_FLAG_QUIET, tmp);
     purc_variant_unref(tmp);
+
+    if (request) {
+        purc_variant_object_set_by_static_ckey(run_info.opts,
+                KEY_FLAG_REQUEST, request);
+        purc_variant_unref(request);
+    }
 }
 
 static ssize_t cb_stdio_write(void *ctxt, const void *buf, size_t count)
 {
     FILE *fp = ctxt;
     return fwrite(buf, 1, count, fp);
+}
+
+static ssize_t cb_stdio_read(void *ctxt, void *buf, size_t count)
+{
+    FILE *fp = ctxt;
+    return fread(buf, 1, count, fp);
+}
+
+static purc_variant_t get_request_data(struct my_opts *opts)
+{
+    purc_variant_t v = PURC_VARIANT_INVALID;
+    purc_rwstream_t stm;
+
+    if (strcmp(opts->request, "-") == 0) {
+        // read from stdin stream
+        stm = purc_rwstream_new_for_read(stdin, cb_stdio_read);
+    }
+    else {
+        stm = purc_rwstream_new_from_file(opts->request, "r");
+    }
+
+    if (stm) {
+        v = purc_variant_load_from_json_stream(stm);
+        purc_rwstream_destroy(stm);
+    }
+
+    return v;
 }
 
 static bool evalute_app_info(const char *app_info)
@@ -513,13 +572,25 @@ int main(int argc, char** argv)
         return EXIT_FAILURE;
     }
 
-    transfer_opts_to_variant(opts);
+    purc_variant_t request = PURC_VARIANT_INVALID;
+    if (opts->request) {
+        if ((request = get_request_data(opts)) == PURC_VARIANT_INVALID) {
+            if (!opts->quiet)
+                fprintf(stderr, "Failed to get the request data from %s\n",
+                    opts->request);
+            my_opts_delete(opts, true);
+            goto failed;
+        }
+    }
+
+    transfer_opts_to_variant(opts, request);
     if (opts->app_info) {
         if (!evalute_app_info(opts->app_info)) {
             if (!opts->quiet)
                 fprintf(stderr, "Failed to evalute the app info from %s\n",
                         opts->app_info);
-            return EXIT_FAILURE;
+            my_opts_delete(opts, false);
+            goto failed;
         }
     }
 
@@ -573,4 +644,9 @@ failed:
     purc_cleanup();
 
     return EXIT_SUCCESS;
+
+failed:
+    purc_cleanup();
+    return EXIT_FAILURE;
+
 }
