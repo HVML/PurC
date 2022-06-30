@@ -156,8 +156,12 @@ to_sort(purc_variant_t on_value, purc_variant_t with_value,
         against_value = purc_variant_ref(against_value);
     }
 
-    purc_variant_t d = purc_variant_make_boolean(desc);
-    purc_variant_t c = purc_variant_make_boolean(caseless);
+    char buf1[16], buf2[16];
+    snprintf(buf1, sizeof(buf1), "%s", desc ? "desc" : "asc");
+    snprintf(buf2, sizeof(buf2), "%s", caseless ? "caseless" : "casesensitive");
+
+    purc_variant_t d = purc_variant_make_string(buf1, false);
+    purc_variant_t c = purc_variant_make_string(buf2, false);
 
     purc_variant_t v = PURC_VARIANT_INVALID;
 

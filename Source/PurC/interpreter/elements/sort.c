@@ -714,7 +714,8 @@ do_internal(struct pcintr_stack_frame *frame, purc_exec_ops_t ops,
 
 static int
 do_external_func(struct pcintr_stack_frame *frame, pcexec_func_ops_t ops,
-        const char *rule, purc_variant_t on, purc_variant_t with)
+        const char *rule, purc_variant_t on, purc_variant_t with,
+        purc_variant_t against, bool desc, bool caseless)
 {
     PC_ASSERT(ops->chooser);
     PC_ASSERT(ops->iterator);
@@ -722,7 +723,7 @@ do_external_func(struct pcintr_stack_frame *frame, pcexec_func_ops_t ops,
     PC_ASSERT(ops->sorter);
 
     purc_variant_t value;
-    value = ops->chooser(rule, on, with);
+    value = ops->sorter(rule, on, with, against, desc, caseless);
 
     if (value == PURC_VARIANT_INVALID) {
         PC_ASSERT(purc_get_last_error());
@@ -796,6 +797,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
             purc_variant_t on   = ctxt->on;
             purc_variant_t with = ctxt->with;
+            purc_variant_t against = ctxt->against;
 
             pcexec_ops ops;
             int r;
@@ -810,7 +812,9 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
                 case PCEXEC_TYPE_EXTERNAL_FUNC:
                     do_external_func(frame, &ops.external_func_ops, rule,
-                            on, with);
+                            on, with, against,
+                            !ctxt->ascendingly,
+                            !ctxt->casesensitively);
                     return ctxt;
 
                 case PCEXEC_TYPE_EXTERNAL_CLASS:
