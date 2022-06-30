@@ -328,13 +328,13 @@ done:
 }
 
 int
-purc_inst_post_message(purc_atom_t inst_to, pcrdr_msg *msg)
+purc_inst_post_event(purc_atom_t inst_to, pcrdr_msg *msg)
 {
     if (!msg) {
         return -1;
     }
 
-    if (inst_to == PURC_INST_ATOM_SELF) {
+    if (inst_to == PURC_POST_EVENT_SELF) {
         if (msg->target != PCRDR_MSG_TARGET_COROUTINE) {
             return 0;
         }
