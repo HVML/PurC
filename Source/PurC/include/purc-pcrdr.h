@@ -1314,23 +1314,6 @@ PCA_EXPORT pcrdr_msg *
 purc_inst_take_away_message(size_t index);
 
 
-#define PURC_POST_EVENT_SELF           0
-#define PURC_POST_EVENT_BROADCAST     -1
-
-/**
- * Post the message to the instance.
- *
- * @param inst: the instance.
- * @param msg: the message structure.
- *
- * Returns: -1 for error; zero means everything is ok.
- *
- * Since: 0.1.0
- */
-PCA_EXPORT int
-purc_inst_post_event(purc_atom_t inst_to, pcrdr_msg *msg);
-
-
 /**@}*/
 
 PCA_EXTERN_C_END
