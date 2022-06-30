@@ -65,8 +65,8 @@ ctxt_destroy(void *ctxt)
     ctxt_for_reduce_destroy((struct ctxt_for_reduce*)ctxt);
 }
 
-static int
-do_internal(struct pcintr_stack_frame *frame, purc_exec_ops_t ops,
+static purc_variant_t
+do_internal(purc_exec_ops_t ops,
         const char *rule, purc_variant_t on, purc_variant_t with)
 {
     PC_ASSERT(ops->create);
@@ -76,28 +76,22 @@ do_internal(struct pcintr_stack_frame *frame, purc_exec_ops_t ops,
     purc_exec_inst_t exec_inst;
     exec_inst = ops->create(PURC_EXEC_TYPE_REDUCE, on, false);
     if (!exec_inst)
-        return -1;
+        return PURC_VARIANT_INVALID;
 
     exec_inst->with = with;
 
-    int r = -1;
     purc_variant_t value;
     value = ops->reduce(exec_inst, rule);
-    if (value != PURC_VARIANT_INVALID) {
-        r = pcintr_set_question_var(frame, value);
-        purc_variant_unref(value);
-        if (r == 0)
-            purc_clr_error();
-    }
+
     bool ok;
     ok = ops->destroy(exec_inst);
     PC_ASSERT(ok);
     exec_inst = NULL;
-    return r ? -1 : 0;
+    return value;
 }
 
-static int
-do_external_func(struct pcintr_stack_frame *frame, pcexec_func_ops_t ops,
+static purc_variant_t
+do_external_func(pcexec_func_ops_t ops,
         const char *rule, purc_variant_t on, purc_variant_t with)
 {
     PC_ASSERT(ops->chooser);
@@ -105,19 +99,7 @@ do_external_func(struct pcintr_stack_frame *frame, pcexec_func_ops_t ops,
     PC_ASSERT(ops->reducer);
     PC_ASSERT(ops->sorter);
 
-    purc_variant_t value;
-    value = ops->reducer(rule, on, with);
-
-    int r = -1;
-
-    if (value != PURC_VARIANT_INVALID) {
-        r = pcintr_set_question_var(frame, value);
-        purc_variant_unref(value);
-        if (r == 0)
-            purc_clr_error();
-    }
-
-    return r ? -1 : 0;
+    return ops->reducer(rule, on, with);
 }
 
 
@@ -155,13 +137,17 @@ post_process_dest_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         if (r)
             return -1;
 
+        purc_variant_t v = PURC_VARIANT_INVALID;
+
         switch (ops.type) {
             case PCEXEC_TYPE_INTERNAL:
-                return do_internal(frame, &ops.internal_ops, rule, on, with);
+                v = do_internal(&ops.internal_ops, rule, on, with);
+                break;
 
             case PCEXEC_TYPE_EXTERNAL_FUNC:
-                return do_external_func(frame, &ops.external_func_ops, rule,
+                v = do_external_func(&ops.external_func_ops, rule,
                         on, with);
+                break;
 
             case PCEXEC_TYPE_EXTERNAL_CLASS:
                 purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
@@ -170,6 +156,17 @@ post_process_dest_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
             default:
                 PC_ASSERT(0);
         }
+
+        if (v == PURC_VARIANT_INVALID)
+            return -1;
+
+        r = pcintr_set_question_var(frame, v);
+        purc_variant_unref(v);
+
+        if (r == 0)
+            purc_clr_error();
+
+        return r ? -1 : 0;
     }
 
     PC_ASSERT(on != PURC_VARIANT_INVALID);

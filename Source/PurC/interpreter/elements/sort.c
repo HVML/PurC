@@ -730,19 +730,10 @@ do_external_func(struct pcintr_stack_frame *frame, pcexec_func_ops_t ops,
         return -1;
     }
 
-    int r = -1;
+    int r;
 
-    pcintr_stack_t stack = pcintr_get_stack();
-
-    r = sort_val(stack, value);
-    if (r == 0) {
-        r = pcintr_set_question_var(frame, value);
-    }
-
+    r = pcintr_set_question_var(frame, value);
     purc_variant_unref(value);
-
-    if (r == 0)
-        purc_clr_error();
 
     return r ? -1 : 0;
 }
