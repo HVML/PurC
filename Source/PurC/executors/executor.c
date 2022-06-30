@@ -49,6 +49,8 @@
 
 #include "executor_err_msgs.inc"
 
+#include <pthread.h>
+
 static int comp_pcexec_key(const void *key1, const void *key2)
 {
     purc_atom_t la = (purc_atom_t)(uint64_t)key1;
@@ -92,19 +94,9 @@ static void executors_cleanup(void)
 
 typedef int (*register_f)(void);
 
-static int _init_once(void)
+static int
+_do_registers(void)
 {
-    // register error message
-    pcinst_register_error_message_segment(&_executor_err_msgs_seg);
-
-    atexit(executors_cleanup);
-
-    _executors = pcutils_map_create(NULL, NULL, NULL, free_pcexec_val,
-            comp_pcexec_key, false);
-    if (!_executors)
-        return -1;
-
-    // initialize others
     register_f regs[] = {
         pcexec_exe_key_register,
         pcexec_exe_range_register,
@@ -119,19 +111,38 @@ static int _init_once(void)
         pcexec_exe_objformula_register,
         pcexec_exe_sql_register,
         pcexec_exe_travel_register,
-        // pcexec_exe_func_register,
+        pcexec_exe_func_register,
     };
 
     for (size_t i=0; i<PCA_TABLESIZE(regs); ++i) {
         int r;
         r = regs[i]();
-        if (r) {
-            fprintf(stderr, "failed to initialize executor #%zd\n", i+1);
+        if (r)
             return -1;
-        }
     }
 
     return 0;
+}
+
+static int _init_once(void)
+{
+    // register error message
+    pcinst_register_error_message_segment(&_executor_err_msgs_seg);
+
+    atexit(executors_cleanup);
+
+    _executors = pcutils_map_create(NULL, NULL, NULL, free_pcexec_val,
+            comp_pcexec_key, false);
+    if (!_executors)
+        return -1;
+
+    // initialize others
+    return 0;
+}
+
+static void _init_registers_once(void)
+{
+    _do_registers();
 }
 
 static int _init_instance(struct pcinst *inst,
@@ -141,6 +152,19 @@ static int _init_instance(struct pcinst *inst,
 
     if (!_executors) {
         pcinst_set_error(PCEXECUTOR_ERROR_OOM);
+        return -1;
+    }
+
+    // NOTE: although we can initialize in _init_once for the simplicity,
+    // we can NOT use purc_set_error internally because of module-dependance
+    // Thus, we prefer lazy-load with pthread_once
+    static pthread_once_t once = PTHREAD_ONCE_INIT;
+    pthread_once(&once, _init_registers_once);
+    if (purc_get_last_error()) {
+        pcinst_dump_err_info();
+        struct pcdebug_backtrace *bt = inst->bt;
+        if (bt)
+            pcdebug_backtrace_dump(bt);
         return -1;
     }
 
@@ -154,6 +178,7 @@ static int _init_instance(struct pcinst *inst,
     inst->executor_heap->debug_flex = 0;
     inst->executor_heap->debug_bison = 0;
 
+    PC_ASSERT(purc_get_last_error() == 0);
     return 0;
 }
 
@@ -217,7 +242,8 @@ int pcexecutor_register(pcexec_ops_t ops)
 
     entry = pcutils_map_find(_executors, key);
     if (entry) {
-        pcinst_set_error(PCEXECUTOR_ERROR_ALREAD_EXISTS);
+        purc_set_error_with_info(PCEXECUTOR_ERROR_ALREAD_EXISTS,
+                "executor `%s` already registered", name);
         goto failure;
     }
 
@@ -292,7 +318,6 @@ get_executor(const char* name, pcexec_ops_t ops)
 
     pcexec_ops_t record = NULL;
     record = (pcexec_ops_t)entry->val;
-    PC_ASSERT(record->type == PCEXEC_TYPE_INTERNAL);
     if (ops)
         *ops = *record;
 

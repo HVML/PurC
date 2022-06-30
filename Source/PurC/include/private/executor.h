@@ -38,21 +38,25 @@ PCA_EXTERN_C_BEGIN
 typedef struct pcexec_func_ops   pcexec_func_ops;
 typedef struct pcexec_func_ops  *pcexec_func_ops_t;
 
+// NOTE: this is the original ops wrapper!!!
+// we prefer to parse `rule` internally to gain the implementation consistency
+// for `operational elements`, such as <choose>/<iterate>/<reduce>/<sort>
 struct pcexec_func_ops {
     // 选择器，可用于 `choose` 和 `test` 动作元素
-    purc_variant_t (*chooser)(purc_variant_t on_value,
+    purc_variant_t (*chooser)(const char *rule, purc_variant_t on_value,
             purc_variant_t with_value);
 
     // 迭代器，仅用于 `iterate` 动作元素。
-    purc_variant_t (*iterator)(purc_variant_t on_value,
+    purc_variant_t (*iterator)(const char *rule, purc_variant_t on_value,
             purc_variant_t with_value);
 
     // 规约器，仅用于 `reduce` 动作元素。
-    purc_variant_t (*reducer)(purc_variant_t on_value,
+    purc_variant_t (*reducer)(const char *rule, purc_variant_t on_value,
             purc_variant_t with_value);
 
     // 排序器，仅用于 `sort` 动作元素。
-    purc_variant_t (*sorter)(purc_variant_t on_value, purc_variant_t with_value,
+    purc_variant_t (*sorter)(const char *rule, purc_variant_t on_value,
+            purc_variant_t with_value,
             purc_variant_t against_value, bool desc, bool caseless);
 };
 
