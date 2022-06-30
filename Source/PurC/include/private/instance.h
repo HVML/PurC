@@ -103,8 +103,6 @@ struct pcinst {
     /* FIXME: enable the fields ONLY when NDEBUG is undefined */
     struct pcdebug_backtrace  *bt;
 
-    struct pcinst_msg_queue   *mq;
-
     unsigned int               keep_alive:1;
 };
 
