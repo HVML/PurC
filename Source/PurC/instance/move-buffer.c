@@ -371,13 +371,13 @@ purc_inst_move_message(purc_atom_t inst_to, pcrdr_msg *msg)
         return 0;
     }
 
-    if (inst_to == (purc_atom_t)PURC_POST_EVENT_SELF) {
+    if (inst_to == (purc_atom_t)PURC_INST_SELF) {
         return 0;
     }
 
     purc_rwlock_reader_lock(&mb_lock);
 
-    if (inst_to != (purc_atom_t)PURC_POST_EVENT_BROADCAST) {
+    if (inst_to != (purc_atom_t)PURC_INST_BROADCAST) {
         if (!pcutils_sorted_array_find(mb_atom2buff_map,
                     (void *)(uintptr_t)inst_to, (void **)&mb)) {
             errcode = PURC_ERROR_NOT_EXISTS;

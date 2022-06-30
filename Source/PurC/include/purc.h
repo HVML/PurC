@@ -486,8 +486,8 @@ purc_attach_vdom_to_renderer(purc_vdom_t vdom,
 PCA_EXPORT purc_variant_t
 purc_schedule_vdom(purc_vdom_t vdom, purc_variant_t request);
 
-#define PURC_POST_EVENT_SELF           0
-#define PURC_POST_EVENT_BROADCAST     -1
+#define PURC_INST_SELF           0
+#define PURC_INST_BROADCAST     -1
 
 /**
  * Post the message to the instance.
