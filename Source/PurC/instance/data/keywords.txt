@@ -60,6 +60,7 @@ hvml SUB
 hvml DIV
 hvml RANGE
 hvml FUNC
+hvml CLASS
 hvml OBJFORMULA
 hvml ADD
 hvml TOKEN

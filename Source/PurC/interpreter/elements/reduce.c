@@ -44,21 +44,12 @@ struct ctxt_for_reduce {
     purc_variant_t by;
     purc_variant_t in;
     purc_variant_t with;
-
-    struct purc_exec_ops          ops;
-    purc_exec_inst_t              exec_inst;
-    purc_exec_iter_t              it;
 };
 
 static void
 ctxt_for_reduce_destroy(struct ctxt_for_reduce *ctxt)
 {
     if (ctxt) {
-        if (ctxt->exec_inst) {
-            bool ok = ctxt->ops.destroy(ctxt->exec_inst);
-            PC_ASSERT(ok);
-            ctxt->exec_inst = NULL;
-        }
         PURC_VARIANT_SAFE_CLEAR(ctxt->by);
         PURC_VARIANT_SAFE_CLEAR(ctxt->on);
         PURC_VARIANT_SAFE_CLEAR(ctxt->in);
@@ -73,6 +64,44 @@ ctxt_destroy(void *ctxt)
 {
     ctxt_for_reduce_destroy((struct ctxt_for_reduce*)ctxt);
 }
+
+static purc_variant_t
+do_internal(purc_exec_ops_t ops,
+        const char *rule, purc_variant_t on, purc_variant_t with)
+{
+    PC_ASSERT(ops->create);
+    PC_ASSERT(ops->reduce);
+    PC_ASSERT(ops->destroy);
+
+    purc_exec_inst_t exec_inst;
+    exec_inst = ops->create(PURC_EXEC_TYPE_REDUCE, on, false);
+    if (!exec_inst)
+        return PURC_VARIANT_INVALID;
+
+    exec_inst->with = with;
+
+    purc_variant_t value;
+    value = ops->reduce(exec_inst, rule);
+
+    bool ok;
+    ok = ops->destroy(exec_inst);
+    PC_ASSERT(ok);
+    exec_inst = NULL;
+    return value;
+}
+
+static purc_variant_t
+do_external_func(pcexec_func_ops_t ops,
+        const char *rule, purc_variant_t on, purc_variant_t with)
+{
+    PC_ASSERT(ops->chooser);
+    PC_ASSERT(ops->iterator);
+    PC_ASSERT(ops->reducer);
+    PC_ASSERT(ops->sorter);
+
+    return ops->reducer(rule, on, with);
+}
+
 
 static int
 post_process_dest_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
@@ -101,35 +130,42 @@ post_process_dest_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     if (by != PURC_VARIANT_INVALID) {
         const char *rule = purc_variant_get_string_const(by);
         PC_ASSERT(rule);
-        bool ok = purc_get_executor(rule, &ctxt->ops);
-        if (!ok)
+
+        pcexec_ops ops;
+        int r;
+        r = pcexecutor_get_by_rule(rule, &ops);
+        if (r)
             return -1;
 
-        PC_ASSERT(ctxt->ops.create);
-        PC_ASSERT(ctxt->ops.reduce);
-        PC_ASSERT(ctxt->ops.destroy);
+        purc_variant_t v = PURC_VARIANT_INVALID;
 
-        purc_exec_inst_t exec_inst;
-        exec_inst = ctxt->ops.create(PURC_EXEC_TYPE_REDUCE, on, false);
-        if (!exec_inst)
-            return -1;
+        switch (ops.type) {
+            case PCEXEC_TYPE_INTERNAL:
+                v = do_internal(&ops.internal_ops, rule, on, with);
+                break;
 
-        exec_inst->with = with;
+            case PCEXEC_TYPE_EXTERNAL_FUNC:
+                v = do_external_func(&ops.external_func_ops, rule,
+                        on, with);
+                break;
 
-        ctxt->exec_inst = exec_inst;
-
-        int r = -1;
-        purc_variant_t value;
-        value = ctxt->ops.reduce(exec_inst, rule);
-        if (value != PURC_VARIANT_INVALID) {
-            r = pcintr_set_question_var(frame, value);
-            purc_variant_unref(value);
-            if (r == 0)
-                purc_clr_error();
+            case PCEXEC_TYPE_EXTERNAL_CLASS:
+                purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                        "<choose> does NOT support CLASS executor");
+                return -1;
+            default:
+                PC_ASSERT(0);
         }
-        ok = ctxt->ops.destroy(ctxt->exec_inst);
-        PC_ASSERT(ok);
-        ctxt->exec_inst = NULL;
+
+        if (v == PURC_VARIANT_INVALID)
+            return -1;
+
+        r = pcintr_set_question_var(frame, v);
+        purc_variant_unref(v);
+
+        if (r == 0)
+            purc_clr_error();
+
         return r ? -1 : 0;
     }
 

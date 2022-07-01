@@ -1,5 +1,7 @@
 #include <purc.h>
 
+#include <purc-executor.h>
+
 extern purc_variant_t
 get_member(purc_variant_t on_value, purc_variant_t with_value)
 {
@@ -156,8 +158,12 @@ to_sort(purc_variant_t on_value, purc_variant_t with_value,
         against_value = purc_variant_ref(against_value);
     }
 
-    purc_variant_t d = purc_variant_make_boolean(desc);
-    purc_variant_t c = purc_variant_make_boolean(caseless);
+    char buf1[16], buf2[16];
+    snprintf(buf1, sizeof(buf1), "%s", desc ? "desc" : "asc");
+    snprintf(buf2, sizeof(buf2), "%s", caseless ? "caseless" : "casesensitive");
+
+    purc_variant_t d = purc_variant_make_string(buf1, false);
+    purc_variant_t c = purc_variant_make_string(buf2, false);
 
     purc_variant_t v = PURC_VARIANT_INVALID;
 
@@ -171,5 +177,145 @@ to_sort(purc_variant_t on_value, purc_variant_t with_value,
     PURC_VARIANT_SAFE_CLEAR(against_value);
     PURC_VARIANT_SAFE_CLEAR(with_value);
     return v;
+}
+
+struct fibo_ctxt {
+    int64_t                stop;
+    int64_t                a;
+    int64_t                b;
+
+    int64_t               *curr;
+};
+
+static void
+fibo_ctxt_release(struct fibo_ctxt *ctxt)
+{
+    if (!ctxt)
+        return;
+}
+
+static void
+fibo_ctxt_destroy(struct fibo_ctxt *ctxt)
+{
+    if (!ctxt)
+        return;
+
+    fibo_ctxt_release(ctxt);
+    free(ctxt);
+}
+
+static void
+on_fibo_release(void *native)
+{
+    struct fibo_ctxt *ctxt;
+    ctxt = (struct fibo_ctxt*)native;
+    fibo_ctxt_destroy(ctxt);
+}
+
+static struct purc_native_ops _fibo_ops = {
+    .on_release        = on_fibo_release,
+};
+
+static purc_variant_t
+fibo_begin(purc_variant_t on_value, purc_variant_t with_value)
+{
+    (void)on_value;
+
+    int64_t stop = 0;
+    bool ok;
+    bool force = true;
+    ok = purc_variant_cast_to_longint(with_value, &stop, force);
+    if (!ok)
+        return PURC_VARIANT_INVALID;
+
+    if (stop < 0)
+        return PURC_VARIANT_INVALID;
+
+    struct fibo_ctxt *ctxt;
+    ctxt = (struct fibo_ctxt*)calloc(1, sizeof(*ctxt));
+    if (!ctxt) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return PURC_VARIANT_INVALID;
+    }
+
+    ctxt->stop  = stop;
+    ctxt->a     = 0;
+    ctxt->b     = 1;
+    ctxt->curr  = &ctxt->a;
+
+    purc_variant_t v;
+    v = purc_variant_make_native(ctxt, &_fibo_ops);
+    if (v == PURC_VARIANT_INVALID) {
+        fibo_ctxt_destroy(ctxt);
+        return PURC_VARIANT_INVALID;
+    }
+
+    return v;
+}
+
+static purc_variant_t
+fibo_value(purc_variant_t it)
+{
+    struct purc_native_ops *ops;
+    ops = purc_variant_native_get_ops(it);
+    if (ops != &_fibo_ops) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "not a valid fibo-iterator");
+        return PURC_VARIANT_INVALID;
+    }
+
+    struct fibo_ctxt *ctxt;
+    ctxt = (struct fibo_ctxt*)purc_variant_native_get_entity(it);
+
+    return purc_variant_make_longint(*ctxt->curr);
+}
+
+static purc_variant_t
+fibo_next(purc_variant_t it)
+{
+    struct purc_native_ops *ops;
+    ops = purc_variant_native_get_ops(it);
+    if (ops != &_fibo_ops) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "not a valid fibo-iterator");
+        return PURC_VARIANT_INVALID;
+    }
+
+    struct fibo_ctxt *ctxt;
+    ctxt = (struct fibo_ctxt*)purc_variant_native_get_entity(it);
+
+    if (ctxt->curr == &ctxt->a) {
+        if (ctxt->b > ctxt->stop)
+            return PURC_VARIANT_INVALID;
+
+        ctxt->curr = &ctxt->b;
+
+        return purc_variant_ref(it);
+    }
+
+    if (ctxt->curr == &ctxt->b) {
+        int64_t c = ctxt->a + ctxt->b;
+        if (c > ctxt->stop)
+            return PURC_VARIANT_INVALID;
+        ctxt->a = ctxt->b;
+        ctxt->b = c;
+        ctxt->curr = &ctxt->b;
+
+        return purc_variant_ref(it);
+    }
+
+    abort();
+}
+
+struct purc_iterator_ops _fibo_it_ops = {
+    .begin           = fibo_begin,
+    .value           = fibo_value,
+    .next            = fibo_next,
+};
+
+extern purc_iterator_ops_t
+fibonacci_instantiate(void)
+{
+    return &_fibo_it_ops;
 }
 

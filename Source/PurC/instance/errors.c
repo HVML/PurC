@@ -802,3 +802,53 @@ purc_error_from_errno (int err_no)
     }
     return PURC_ERROR_OK;
 }
+
+void
+pcinst_dump_err_except_info(purc_variant_t err_except_info)
+{
+    // FIXME: do NOT forget to check if VARIANT module has been initialized!!!
+
+    if (purc_variant_is_type(err_except_info, PURC_VARIANT_TYPE_STRING)) {
+        fprintf(stderr, "err_except_info: %s\n",
+                purc_variant_get_string_const(err_except_info));
+    }
+    else {
+        char buf[1024];
+        buf[0] = '\0';
+        int r = pcvariant_serialize(buf, sizeof(buf), err_except_info);
+        PC_ASSERT(r >= 0);
+        if ((size_t)r>=sizeof(buf)) {
+            buf[sizeof(buf)-1] = '\0';
+            buf[sizeof(buf)-2] = '.';
+            buf[sizeof(buf)-3] = '.';
+            buf[sizeof(buf)-4] = '.';
+        }
+        fprintf(stderr, "err_except_info: %s\n", buf);
+    }
+}
+
+void
+pcinst_dump_err_info(void)
+{
+    const struct pcinst* inst = pcinst_current();
+    if (!inst) {
+        fprintf(stderr, "warning: NO instance at all\n");
+        return;
+    }
+
+    purc_atom_t     error_except    = inst->error_except;
+    purc_variant_t  err_except_info = inst->err_exinfo;
+    struct pcdebug_backtrace *bt    = inst->bt;
+
+    if (bt) {
+        fprintf(stderr, "error_except: generated @%s[%d]:%s()\n",
+                pcutils_basename((char*)bt->file), bt->line, bt->func);
+    }
+    if (error_except) {
+        fprintf(stderr, "error_except: %s\n",
+                purc_atom_to_string(error_except));
+    }
+    if (err_except_info) {
+        pcinst_dump_err_except_info(err_except_info);
+    }
+}
