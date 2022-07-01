@@ -51,6 +51,7 @@
 #define EVENT_SEPARATOR      ':'
 #define MSG_TYPE_CHANGE     "change"
 #define MSG_SUB_TYPE_CLOSE  "close"
+#define COROUTINE_PREFIX    "COROUTINE"
 
 static void
 stack_frame_release(struct pcintr_stack_frame *frame)
@@ -531,10 +532,6 @@ coroutine_release(pcintr_coroutine_t co)
         struct pcintr_heap *heap = pcintr_get_heap();
         PC_ASSERT(heap && co->owner == heap);
         stack_release(&co->stack);
-        if (co->name) {
-            free(co->name);
-            co->name = NULL;
-        }
         if (co->ident) {
             PC_ASSERT(co->full_name);
             purc_atom_remove_string(co->full_name);
@@ -2433,27 +2430,9 @@ static void run_co_main(void)
     }
 }
 
-static pcintr_coroutine_t coroutine_by_name(const char *name)
-{
-    pcintr_heap_t heap = pcintr_get_heap();
-
-    struct rb_node *p;
-
-    struct rb_node *first = pcutils_rbtree_first(&heap->coroutines);
-    pcutils_rbtree_for_each(first, p) {
-        pcintr_coroutine_t co;
-        co = container_of(p, struct pcintr_coroutine, node);
-
-        if (strcmp(name, co->name)==0)
-            return co;
-    }
-
-    return NULL;
-}
-
 static int set_coroutine_id(pcintr_coroutine_t coroutine, const char *name)
 {
-    PC_ASSERT(coroutine->name == NULL);
+    UNUSED_PARAM(name);
 
     pcintr_heap_t heap = pcintr_get_heap();
     PC_ASSERT(heap);
@@ -2461,45 +2440,21 @@ static int set_coroutine_id(pcintr_coroutine_t coroutine, const char *name)
     PC_ASSERT(inst && inst == heap->owner);
     PC_ASSERT(inst->runner_name);
 
-    char buf[128];
-
-    if (!name) {
-again:
-        if (heap->next_coroutine_id == 0) {
-            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-            return -1;
-        }
-
-        int n = snprintf(buf, sizeof(buf), "_%zd", heap->next_coroutine_id++);
-        PC_ASSERT(n >= 0 && (size_t)n < sizeof(buf));
-        pcintr_coroutine_t p = coroutine_by_name(buf);
-        if (p)
-            goto again;
-
-        name = buf;
-    }
-
-    char *p = strdup(name);
+    size_t len = PURC_LEN_ENDPOINT_NAME + PURC_LEN_UNIQUE_ID + 4;
+    char *p = (char*)malloc(len);
     if (!p) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return -1;
     }
 
-    coroutine->name = p;
+    char id_buf[PURC_LEN_UNIQUE_ID + 1];
+    purc_generate_unique_id(id_buf, COROUTINE_PREFIX);
 
-    size_t len = strlen(inst->runner_name) + 1 + strlen(coroutine->name);
-    p = (char*)malloc(len + 1);
-    if (!p) {
-        free(coroutine->name);
-        coroutine->name = NULL;
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return -1;
-    }
-
-    snprintf(p, len+1, "%s/%s", inst->runner_name, coroutine->name);
+    sprintf(p, "%s/%s", inst->endpoint_name, id_buf);
     coroutine->full_name = p;
 
-    coroutine->ident = purc_atom_from_string(coroutine->full_name);
+    coroutine->ident = purc_atom_from_string_ex(PURC_ATOM_BUCKET_USER,
+            coroutine->full_name);
 
     return 0;
 }
@@ -2558,8 +2513,9 @@ coroutine_create(const char *name,
     co->val_from_return_or_exit = purc_variant_make_undefined();
     PC_ASSERT(co->val_from_return_or_exit != PURC_VARIANT_INVALID);
 
-    if (set_coroutine_id(co, name))
+    if (set_coroutine_id(co, name)) {
         goto fail_name;
+    }
 
     co->state = CO_STATE_READY;
     INIT_LIST_HEAD(&co->children);
