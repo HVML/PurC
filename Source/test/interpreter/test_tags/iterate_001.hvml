@@ -1,0 +1,27 @@
+<!DOCTYPE hvml>
+<hvml target="html" lang="en">
+    <head>
+    </head>
+
+    <body>
+        <init as="numbers">
+            [
+                2, 3, 1
+            ]
+        </init>
+        <div id="calculator">
+            <div id="c_value">
+                <ul>
+                    <iterate on="$numbers">
+                        <update on="$@" to="append" with="$?" />
+                        <except type="NoData" raw>
+                            <p>Bad data!</p>
+                        </except>
+                    </iterate>
+                </ul>
+            </div>
+        </div>
+    </body>
+
+</hvml>
+
