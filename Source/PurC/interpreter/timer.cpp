@@ -82,7 +82,12 @@ class Timer : public PurCWTF::RunLoop::TimerBase {
         uint32_t getInterval() { return m_interval; }
         const char *getId() { return m_id; }
 
-        virtual void fired() { m_func(m_id, m_id); }
+        virtual void fired()
+        {
+            m_func(m_id, m_id);
+        }
+
+        virtual void processed(void) {}
 
     private:
         char* m_id;
@@ -193,11 +198,17 @@ class PurcTimer : public Timer {
 };
 
 pcintr_timer_t
-pcintr_timer_create(purc_runloop_t runloop, bool for_yielded, const char* id,
-        pcintr_timer_fire_func func)
+pcintr_timer_create(purc_runloop_t runloop, bool for_yielded, bool raw,
+        const char* id, pcintr_timer_fire_func func)
 {
     RunLoop* loop = runloop ? (RunLoop*)runloop : &RunLoop::current();
-    PurcTimer* timer = new PurcTimer(for_yielded, id, func, *loop);
+    Timer* timer = NULL;
+    if (raw) {
+        timer = new Timer(id, func, *loop);
+    }
+    else {
+        timer = new PurcTimer(for_yielded, id, func, *loop);
+    }
     if (!timer) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
@@ -209,14 +220,14 @@ void
 pcintr_timer_set_interval(pcintr_timer_t timer, uint32_t interval)
 {
     if (timer) {
-        ((PurcTimer*)timer)->setInterval(interval);
+        ((Timer*)timer)->setInterval(interval);
     }
 }
 
 void
 pcintr_timer_processed(pcintr_timer_t timer)
 {
-    PurcTimer *p = (PurcTimer*)timer;
+    Timer *p = (Timer*)timer;
     p->processed();
 }
 
@@ -224,7 +235,7 @@ uint32_t
 pcintr_timer_get_interval(pcintr_timer_t timer)
 {
     if (timer) {
-        return ((PurcTimer*)timer)->getInterval();
+        return ((Timer*)timer)->getInterval();
     }
     return 0;
 }
@@ -233,7 +244,7 @@ void
 pcintr_timer_start(pcintr_timer_t timer)
 {
     if (timer) {
-        PurcTimer* tm = (PurcTimer*)timer;
+        Timer* tm = (Timer*)timer;
         tm->startRepeating(
                 PurCWTF::Seconds::fromMilliseconds(tm->getInterval()));
     }
@@ -243,7 +254,7 @@ void
 pcintr_timer_start_oneshot(pcintr_timer_t timer)
 {
     if (timer) {
-        PurcTimer* tm = (PurcTimer*)timer;
+        Timer* tm = (Timer*)timer;
         tm->startOneShot(
                 PurCWTF::Seconds::fromMilliseconds(tm->getInterval()));
     }
@@ -253,21 +264,21 @@ void
 pcintr_timer_stop(pcintr_timer_t timer)
 {
     if (timer) {
-        ((PurcTimer*)timer)->stop();
+        ((Timer*)timer)->stop();
     }
 }
 
 bool
 pcintr_timer_is_active(pcintr_timer_t timer)
 {
-    return timer ? ((PurcTimer*)timer)->isActive() : false;
+    return timer ? ((Timer*)timer)->isActive() : false;
 }
 
 void
 pcintr_timer_destroy(pcintr_timer_t timer)
 {
     if (timer) {
-        PurcTimer* tm = (PurcTimer*)timer;
+        Timer* tm = (Timer*)timer;
         delete tm;
     }
 }
@@ -423,7 +434,7 @@ get_inner_timer(pcintr_stack_t stack, purc_variant_t timer_var)
     }
 
     bool for_yielded = false;
-    timer = pcintr_timer_create(NULL, for_yielded, idstr, timer_fire_func);
+    timer = pcintr_timer_create(NULL, for_yielded, false, idstr, timer_fire_func);
     if (timer == NULL) {
         return NULL;
     }

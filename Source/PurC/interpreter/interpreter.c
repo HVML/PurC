@@ -2415,7 +2415,7 @@ static void execute_main_for_ready_co(pcintr_coroutine_t co)
 
 #if 1
     bool for_yielded = false;
-    stack->event_timer = pcintr_timer_create(NULL, for_yielded,
+    stack->event_timer = pcintr_timer_create(NULL, for_yielded, false,
             NULL, event_timer_fire);
     if (!stack->event_timer)
         return;

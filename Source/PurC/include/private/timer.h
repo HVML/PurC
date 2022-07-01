@@ -40,8 +40,8 @@ typedef void (*pcintr_timer_attach_destroy_func)(void *attach);
 PCA_EXTERN_C_BEGIN
 
 pcintr_timer_t
-pcintr_timer_create(purc_runloop_t runloop, bool for_yielded, const char* id,
-        pcintr_timer_fire_func func);
+pcintr_timer_create(purc_runloop_t runloop, bool for_yielded, bool raw,
+        const char* id, pcintr_timer_fire_func func);
 
 void
 pcintr_timer_processed(pcintr_timer_t timer);
