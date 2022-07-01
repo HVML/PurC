@@ -86,6 +86,36 @@ dispatch_move_buffer_msg(struct pcinst *inst, pcrdr_msg *msg)
     return 0;
 }
 
+int
+dispatch_coroutine_msg(pcintr_coroutine_t co, pcrdr_msg *msg)
+{
+    if (!co || !msg) {
+        return 0;
+    }
+
+    switch (msg->type) {
+    case PCRDR_MSG_TYPE_EVENT:
+        break;
+
+    case PCRDR_MSG_TYPE_VOID:
+        PC_ASSERT(0);
+        break;
+
+    case PCRDR_MSG_TYPE_REQUEST:
+        PC_ASSERT(0);
+        break;
+
+    case PCRDR_MSG_TYPE_RESPONSE:
+        PC_ASSERT(0);
+        break;
+
+    default:
+        // NOTE: shouldn't happen, no way to recover gracefully, fail-fast
+        PC_ASSERT(0);
+    }
+    return 0;
+}
+
 void
 handle_move_buffer_msg(void)
 {
@@ -116,6 +146,15 @@ void
 handle_coroutine_msg(pcintr_coroutine_t co)
 {
     UNUSED_PARAM(co);
+    if (co == NULL || co->state == CO_STATE_WAIT) {
+        return;
+    }
+
+    struct pcinst_msg_queue *queue = co->mq;
+    pcrdr_msg *msg = pcinst_msg_queue_get_msg(queue);
+    while (msg) {
+        dispatch_coroutine_msg(co, msg);
+    }
 }
 
 void
