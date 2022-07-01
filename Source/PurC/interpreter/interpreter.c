@@ -4169,6 +4169,8 @@ event_timer_fire(pcintr_timer_t timer, const char* id)
     PC_ASSERT(pcintr_get_heap());
 
     struct pcinst *inst = pcinst_current();
+    pcintr_dispatch_msg();
+
     pcintr_check_and_dispatch_msg();
 
     if (inst != NULL && inst->rdr_caps != NULL) {
