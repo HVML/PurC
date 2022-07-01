@@ -493,13 +493,6 @@ stack_release(pcintr_stack_t stack)
 
     pcintr_exception_clear(&stack->exception);
 
-#if 1
-    if (stack->event_timer) {
-        pcintr_timer_destroy(stack->event_timer);
-        stack->event_timer = NULL;
-    }
-#endif
-
     if (stack->entry) {
         struct pcvdom_document *vdom_document;
         vdom_document = pcvdom_document_from_node(&stack->entry->node);
@@ -673,8 +666,7 @@ static int _init_instance(struct pcinst* inst,
     heap->running_coroutine = NULL;
     heap->next_coroutine_id = 1;
 
-#if 0
-    heap->event_timer = pcintr_timer_create(NULL, false,
+    heap->event_timer = pcintr_timer_create(NULL, false, true,
             NULL, event_timer_fire);
     if (!heap->event_timer) {
         purc_inst_destroy_move_buffer();
@@ -685,7 +677,6 @@ static int _init_instance(struct pcinst* inst,
 
     pcintr_timer_set_interval(heap->event_timer, EVENT_TIMER_INTRVAL);
     pcintr_timer_start(heap->event_timer);
-#endif
 
     PC_ASSERT(pcintr_get_heap());
     pcintr_add_heap(&_all_heaps);
@@ -2412,17 +2403,6 @@ static void execute_main_for_ready_co(pcintr_coroutine_t co)
 
     PC_ASSERT(stack);
     PC_ASSERT(stack == pcintr_get_stack());
-
-#if 1
-    bool for_yielded = false;
-    stack->event_timer = pcintr_timer_create(NULL, for_yielded, false,
-            NULL, event_timer_fire);
-    if (!stack->event_timer)
-        return;
-
-    pcintr_timer_set_interval(stack->event_timer, EVENT_TIMER_INTRVAL);
-    pcintr_timer_start(stack->event_timer);
-#endif
 
     struct pcintr_stack_frame_normal *frame_normal;
     frame_normal = push_stack_frame_normal(stack);
@@ -4197,7 +4177,9 @@ event_timer_fire(pcintr_timer_t timer, const char* id)
     }
 
     pcintr_coroutine_t co = pcintr_get_coroutine();
-    PC_ASSERT(co);
+    if (co == NULL) {
+        return;
+    }
     PC_ASSERT(co->state == CO_STATE_RUN);
 
     pcintr_stack_t stack = &co->stack;

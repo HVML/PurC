@@ -76,7 +76,10 @@ process_rdr_msg_by_event(pcrdr_msg *msg)
 void
 pcintr_check_and_dispatch_msg(void)
 {
-    PC_ASSERT(pcintr_get_coroutine());
+    pcintr_coroutine_t co = pcintr_get_coroutine();
+    if (!co) {
+        return;
+    }
 
     int r;
     size_t n;
