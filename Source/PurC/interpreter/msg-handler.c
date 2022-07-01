@@ -39,54 +39,6 @@
 
 
 int
-dispatch_move_buffer_msg(struct pcinst *inst, pcrdr_msg *msg)
-{
-    UNUSED_PARAM(inst);
-    struct pcintr_heap *heap = inst->intr_heap;
-    if (!heap) {
-        return 0;
-    }
-
-    switch (msg->type) {
-    case PCRDR_MSG_TYPE_EVENT:
-    {
-        // add msg to coroutine message queue
-        struct rb_root *coroutines = &heap->coroutines;
-        struct rb_node *p, *n;
-        struct rb_node *first = pcutils_rbtree_first(coroutines);
-        pcutils_rbtree_for_each_safe(first, p, n) {
-            pcintr_coroutine_t co = container_of(p, struct pcintr_coroutine,
-                    node);
-            if (co->ident == msg->targetValue) {
-                return pcinst_msg_queue_append(co->mq, msg);
-            }
-        }
-    }
-        break;
-
-    case PCRDR_MSG_TYPE_VOID:
-        // NOTE: not implemented yet
-        PC_ASSERT(0);
-        break;
-
-    case PCRDR_MSG_TYPE_REQUEST:
-        // NOTE: not implemented yet
-        PC_ASSERT(0);
-        break;
-
-    case PCRDR_MSG_TYPE_RESPONSE:
-        // NOTE: not implemented yet
-        PC_ASSERT(0);
-        break;
-
-    default:
-        // NOTE: shouldn't happen, no way to recover gracefully, fail-fast
-        PC_ASSERT(0);
-    }
-    return 0;
-}
-
-int
 dispatch_coroutine_msg(pcintr_coroutine_t co, pcrdr_msg *msg)
 {
     if (!co || !msg) {
@@ -115,6 +67,52 @@ dispatch_coroutine_msg(pcintr_coroutine_t co, pcrdr_msg *msg)
     }
     return 0;
 }
+
+int
+dispatch_move_buffer_msg(struct pcinst *inst, pcrdr_msg *msg)
+{
+    UNUSED_PARAM(inst);
+    struct pcintr_heap *heap = inst->intr_heap;
+    if (!heap) {
+        return 0;
+    }
+
+    switch (msg->type) {
+    case PCRDR_MSG_TYPE_EVENT:
+    {
+        // add msg to coroutine message queue
+        struct rb_root *coroutines = &heap->coroutines;
+        struct rb_node *p, *n;
+        struct rb_node *first = pcutils_rbtree_first(coroutines);
+        pcutils_rbtree_for_each_safe(first, p, n) {
+            pcintr_coroutine_t co = container_of(p, struct pcintr_coroutine,
+                    node);
+            if (co->ident == msg->targetValue) {
+                return pcinst_msg_queue_append(co->mq, msg);
+            }
+        }
+    }
+        break;
+
+    case PCRDR_MSG_TYPE_VOID:
+        PC_ASSERT(0);
+        break;
+
+    case PCRDR_MSG_TYPE_REQUEST:
+        PC_ASSERT(0);
+        break;
+
+    case PCRDR_MSG_TYPE_RESPONSE:
+        PC_ASSERT(0);
+        break;
+
+    default:
+        // NOTE: shouldn't happen, no way to recover gracefully, fail-fast
+        PC_ASSERT(0);
+    }
+    return 0;
+}
+
 
 void
 handle_move_buffer_msg(void)
