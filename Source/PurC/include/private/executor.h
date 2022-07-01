@@ -63,20 +63,16 @@ struct pcexec_func_ops {
 typedef struct pcexec_class_ops   pcexec_class_ops;
 typedef struct pcexec_class_ops  *pcexec_class_ops_t;
 
-typedef struct pcexe_iterator_ops  pcexe_iterator_ops;
-typedef struct pcexe_iterator_ops *pcexe_iterator_ops_t;
+typedef struct pcexec_class_iter   pcexec_class_iter;
+typedef struct pcexec_class_iter  *pcexec_class_iter_t;
 
 struct pcexec_class_ops {
-    pcexe_iterator_ops_t (*instantiate)(void);
-    void (*destroy)(pcexe_iterator_ops_t it);
+    pcexec_class_iter_t (*it_begin)(const char* rule, purc_variant_t on,
+            purc_variant_t with);
+    purc_variant_t (*it_value)(pcexec_class_iter_t it);
+    pcexec_class_iter_t (*it_next)(pcexec_class_iter_t it);
+    void (*it_destroy)(pcexec_class_iter_t it);
 };
-
-// 外部迭代器操作集
-struct purc_iterator_ops {
-    purc_variant_t (*begin)(purc_variant_t on_value, purc_variant_t with_value);
-    purc_variant_t (*next) (purc_variant_t it);
-};
-
 
 enum pcexec_type {
     PCEXEC_TYPE_INTERNAL,

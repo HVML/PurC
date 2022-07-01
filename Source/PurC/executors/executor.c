@@ -46,6 +46,7 @@
 #include "exe_sql.h"
 #include "exe_travel.h"
 #include "exe_func.h"
+#include "exe_class.h"
 
 #include "executor_err_msgs.inc"
 
@@ -112,6 +113,7 @@ _do_registers(void)
         pcexec_exe_sql_register,
         pcexec_exe_travel_register,
         pcexec_exe_func_register,
+        pcexec_exe_class_register,
     };
 
     for (size_t i=0; i<PCA_TABLESIZE(regs); ++i) {

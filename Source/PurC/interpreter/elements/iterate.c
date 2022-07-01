@@ -53,7 +53,10 @@ struct ctxt_for_iterate {
 
     pcexec_ops                    ops;
     purc_exec_inst_t              exec_inst;
-    purc_exec_iter_t              it;
+    union {
+        purc_exec_iter_t          it;
+        pcexec_class_iter_t       it_class;
+    };
 
     purc_variant_t                val_from_func;
     size_t                        sz;
@@ -287,6 +290,33 @@ post_process_by_internal_rule(struct ctxt_for_iterate *ctxt,
 }
 
 static void
+post_process_by_external_class(struct ctxt_for_iterate *ctxt,
+        struct pcintr_stack_frame *frame, const char *rule,
+        purc_variant_t on, purc_variant_t with)
+{
+    pcexec_class_ops_t ops = &ctxt->ops.external_class_ops;
+
+    PC_ASSERT(ops->it_begin);
+    PC_ASSERT(ops->it_next);
+    PC_ASSERT(ops->it_value);
+    PC_ASSERT(ops->it_destroy);
+
+    pcexec_class_iter_t it;
+    it = ops->it_begin(rule, on, with);
+    if (!it)
+        return;
+
+    ctxt->it_class = it;
+
+    purc_variant_t value;
+    value = ops->it_value(ctxt->it_class);
+    if (value == PURC_VARIANT_INVALID)
+        return;
+
+    pcintr_set_question_var(frame, value);
+}
+
+static void
 post_process_by_external_func(struct ctxt_for_iterate *ctxt,
         struct pcintr_stack_frame *frame, const char *rule,
         purc_variant_t on, purc_variant_t with)
@@ -371,7 +401,7 @@ post_process_by_rule(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
             break;
 
         case PCEXEC_TYPE_EXTERNAL_CLASS:
-            PC_ASSERT(0);
+            post_process_by_external_class(ctxt, frame, rule, on, with);
             break;
 
         default:
@@ -634,6 +664,29 @@ on_popping_internal_rule(struct ctxt_for_iterate *ctxt)
 }
 
 static bool
+on_popping_external_class(struct ctxt_for_iterate *ctxt)
+{
+    pcexec_class_iter_t it = ctxt->it_class;
+    if (!it)
+        return true;
+
+    pcexec_class_ops_t ops = &ctxt->ops.external_class_ops;
+
+    it = ops->it_next(it);
+
+    ctxt->it_class = it;
+    if (!it) {
+        int err = purc_get_last_error();
+        if (err == PURC_ERROR_NOT_EXISTS) {
+            purc_clr_error();
+        }
+        return true;
+    }
+
+    return false;
+}
+
+static bool
 on_popping_external_func(struct ctxt_for_iterate *ctxt)
 {
     if (ctxt->sz == 0)
@@ -680,7 +733,7 @@ on_popping(pcintr_stack_t stack, void* ud)
             break;
 
         case PCEXEC_TYPE_EXTERNAL_CLASS:
-            PC_ASSERT(0);
+            return on_popping_external_class(ctxt);
             break;
 
         default:
@@ -765,6 +818,29 @@ rerun_internal_rule(struct ctxt_for_iterate *ctxt,
 }
 
 static bool
+rerun_external_class(struct ctxt_for_iterate *ctxt,
+        struct pcintr_stack_frame *frame)
+{
+    pcexec_class_iter_t it = ctxt->it_class;
+    PC_ASSERT(it);
+
+    pcexec_class_ops_t ops = &ctxt->ops.external_class_ops;
+
+    purc_variant_t value;
+    value = ops->it_value(it);
+    if (value == PURC_VARIANT_INVALID)
+        return false;
+
+    int r;
+    r = pcintr_set_question_var(frame, value);
+    if (r == 0) {
+        pcintr_set_input_var(pcintr_get_stack(), value);
+    }
+
+    return r ? false : true;
+}
+
+static bool
 rerun_external_func(struct ctxt_for_iterate *ctxt,
         struct pcintr_stack_frame *frame)
 {
@@ -819,7 +895,7 @@ rerun(pcintr_stack_t stack, void* ud)
             break;
 
         case PCEXEC_TYPE_EXTERNAL_CLASS:
-            PC_ASSERT(0);
+            return rerun_external_class(ctxt, frame);
             break;
 
         default:
