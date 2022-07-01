@@ -60,13 +60,41 @@ static void cancel_timer(void *ctxt)
     pcintr_timer_stop(timer);
 }
 
-class PurcTimer : public PurCWTF::RunLoop::TimerBase {
+class Timer : public PurCWTF::RunLoop::TimerBase {
+    public:
+        Timer(const char *id, pcintr_timer_fire_func func, RunLoop& runLoop)
+            : TimerBase(runLoop)
+            , m_id(NULL)
+            , m_func(func)
+        {
+            m_id = id ? strdup(id) : NULL;
+        }
+
+        ~Timer()
+        {
+            stop();
+            if (m_id) {
+                free(m_id);
+            }
+        }
+
+        void setInterval(uint32_t interval) { m_interval = interval; }
+        uint32_t getInterval() { return m_interval; }
+        const char *getId() { return m_id; }
+
+        virtual void fired() { m_func(m_id, m_id); }
+
+    private:
+        char* m_id;
+        pcintr_timer_fire_func m_func;
+        uint32_t m_interval;
+};
+
+class PurcTimer : public Timer {
     public:
         PurcTimer(bool for_yielded, const char* id, pcintr_timer_fire_func func,
                 RunLoop& runLoop)
-            : TimerBase(runLoop)
-            , m_id(id ? strdup(id) : NULL)
-            , m_func(func)
+            : Timer(id, func, runLoop)
             , m_coroutine(pcintr_get_coroutine())
             , m_fired(0)
             , m_for_yielded(for_yielded)
@@ -76,8 +104,8 @@ class PurcTimer : public PurCWTF::RunLoop::TimerBase {
                 pcintr_cancel_init(&m_cancel, this, cancel_timer);
 
                 m_data.timer = this;
-                m_data.id    = m_id;
-                m_data.func  = m_func;
+                m_data.id    = getId();
+                m_data.func  = func;
 
                 pcintr_register_cancel(&m_cancel);
             }
@@ -87,7 +115,6 @@ class PurcTimer : public PurCWTF::RunLoop::TimerBase {
             }
 
             PC_ASSERT(m_coroutine);
-            PC_ASSERT(!id || m_id);
         }
 
         ~PurcTimer()
@@ -97,13 +124,8 @@ class PurcTimer : public PurCWTF::RunLoop::TimerBase {
                 pcintr_unregister_cancel(&m_cancel);
                 stop();
             }
-            if (m_id) {
-                free(m_id);
-            }
         }
 
-        void setInterval(uint32_t interval) { m_interval = interval; }
-        uint32_t getInterval() { return m_interval; }
         void processed(void) {
             --m_fired;
             PC_ASSERT(m_fired >= 0);
@@ -162,11 +184,7 @@ class PurcTimer : public PurCWTF::RunLoop::TimerBase {
         }
 
     private:
-        char* m_id;
-        pcintr_timer_fire_func m_func;
         pcintr_coroutine_t     m_coroutine;
-
-        uint32_t m_interval;
 
         int m_fired;
         struct event_timer_data         m_data;
