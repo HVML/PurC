@@ -46,6 +46,9 @@ struct pcvdom_template {
 PCA_EXTERN_C_BEGIN
 
 void
+pcintr_dispatch_msg(void);
+
+void
 pcintr_check_and_dispatch_msg(void);
 
 void
