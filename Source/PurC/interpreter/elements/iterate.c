@@ -104,7 +104,6 @@ check_onlyif(struct pcvdom_attr *onlyif, bool *stop)
 {
     purc_variant_t val;
     val = pcintr_eval_vdom_attr(pcintr_get_stack(), onlyif);
-    PC_ASSERT(val != PURC_VARIANT_INVALID);
     if (val == PURC_VARIANT_INVALID)
         return -1;
 
@@ -155,7 +154,6 @@ re_eval_with(struct pcintr_stack_frame *frame,
 
     if (check_stop(val)) {
         *stop = true;
-        PC_ASSERT(0);
         return 0;
     }
 
@@ -168,7 +166,7 @@ re_eval_with(struct pcintr_stack_frame *frame,
     return r ? -1 : 0;
 }
 
-static int
+static void
 post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
     UNUSED_PARAM(co);
@@ -183,42 +181,39 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     if (on == PURC_VARIANT_INVALID) {
         purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
                 "lack of vdom attribute 'on' for element <iterate>");
-        return -1;
+        return;
     }
 
     if (ctxt->onlyif_attr) {
         bool stop;
         int r = check_onlyif(ctxt->onlyif_attr, &stop);
-        PC_ASSERT(r == 0);
+        if (r)
+            return;
 
         if (stop) {
             ctxt->stop = 1;
-            return 0;
+            return;
         }
     }
 
     if (ctxt->with_attr == NULL) {
         ctxt->stop = 1;
-        PC_ASSERT(0);
-        return 0;
+        return;
     }
 
     bool stop;
 
     int r;
     r = re_eval_with(frame, ctxt->with_attr, &stop);
-    PC_ASSERT(r == 0);
+    if (r)
+        return;
 
     if (stop) {
         ctxt->stop = 1;
-        PC_ASSERT(0);
-        return 0;
     }
-
-    return 0;
 }
 
-static int
+static void
 post_process_by_rule(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
     UNUSED_PARAM(co);
@@ -231,7 +226,7 @@ post_process_by_rule(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     if (on == PURC_VARIANT_INVALID) {
         purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
                 "lack of vdom attribute 'on' for element <iterate>");
-        return -1;
+        return;
     }
 
     purc_variant_t with;
@@ -243,7 +238,7 @@ post_process_by_rule(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     }
 
     if (with == PURC_VARIANT_INVALID)
-        return -1;
+        return;
 
     PURC_VARIANT_SAFE_CLEAR(ctxt->with);
     ctxt->with = with;
@@ -254,12 +249,12 @@ post_process_by_rule(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     if (ctxt->rule_attr) {
         val = pcintr_eval_vdom_attr(pcintr_get_stack(), ctxt->rule_attr);
         if (val == PURC_VARIANT_INVALID)
-            return -1;
+            return;
         if (!purc_variant_is_string(val)) {
             purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
                     "rule is not of string type");
             purc_variant_unref(val);
-            return -1;
+            return;
         }
         rule = purc_variant_get_string_const(val);
         PC_ASSERT(rule);
@@ -269,7 +264,7 @@ post_process_by_rule(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 
     if (!ok) {
         PURC_VARIANT_SAFE_CLEAR(val);
-        return -1;
+        return;
     }
 
     PC_ASSERT(ctxt->ops.create);
@@ -282,7 +277,7 @@ post_process_by_rule(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     exec_inst = ctxt->ops.create(PURC_EXEC_TYPE_ITERATE, on, false);
     if (!exec_inst) {
         PURC_VARIANT_SAFE_CLEAR(val);
-        return -1;
+        return;
     }
 
     exec_inst->with = with;
@@ -293,19 +288,16 @@ post_process_by_rule(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     it = ctxt->ops.it_begin(exec_inst, rule);
     PURC_VARIANT_SAFE_CLEAR(val);
     if (!it)
-        return -1;
+        return;
 
     ctxt->it = it;
 
     purc_variant_t value;
     value = ctxt->ops.it_value(exec_inst, it);
     if (value == PURC_VARIANT_INVALID)
-        return -1;
+        return;
 
-    int r;
-    r = pcintr_set_question_var(frame, value);
-
-    return r ? -1 : 0;
+    pcintr_set_question_var(frame, value);
 }
 
 static int
@@ -486,12 +478,10 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     }
 
     if (ctxt->by_rule) {
-        r = post_process_by_rule(stack->co, frame);
-        if (r)
-            return ctxt;
+        post_process_by_rule(stack->co, frame);
     }
     else {
-        r = post_process(stack->co, frame);
+        post_process(stack->co, frame);
     }
 
     return ctxt;
@@ -567,11 +557,11 @@ on_popping(pcintr_stack_t stack, void* ud)
     if (ctxt->rule_attr) {
         val = pcintr_eval_vdom_attr(pcintr_get_stack(), ctxt->rule_attr);
         if (val == PURC_VARIANT_INVALID)
-            return -1;
+            return true;
         rule = purc_variant_get_string_const(val);
         if (!rule) {
             purc_variant_unref(val);
-            return -1;
+            return true;
         }
     }
 
@@ -620,20 +610,20 @@ rerun_with(pcintr_stack_t stack)
     if (ctxt->onlyif_attr) {
         bool stop;
         int r = check_onlyif(ctxt->onlyif_attr, &stop);
-        PC_ASSERT(r == 0);
-
-        if (stop) {
+        if (r || stop) {
             ctxt->stop = 1;
             return true;
         }
     }
 
     r = re_eval_with(frame, ctxt->with_attr, &stop);
-    PC_ASSERT(r == 0);
+    if (r) {
+        // FIXME: let catch to effect afterward???
+        return true;
+    }
 
     if (stop) {
         ctxt->stop = 1;
-        PC_ASSERT(0);
         return false;
     }
 
