@@ -213,9 +213,9 @@ You will see the following output on your terminal:
 9) Hello, world! -- from COROUTINE-02
 ```
 
-In the above output, `COROUTINE-01` and `COROUTINE-02` are the coroutine
+In the above output, `COROUTINE-01` and `COROUTINE-02` contain the coroutine
 identifier allocated by PurC for two running instances of the program.
-You see that PurC runs the two running instances alternately, i.e.,
+You see that PurC schedules the running instances to execute alternately, i.e.,
 in the manner of coroutines.
 
 ### Use HVML renderer
