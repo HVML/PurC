@@ -132,6 +132,7 @@ observer_matched(pcintr_stack_t stack, struct pcintr_observer *p,
     }
 
     pcintr_post_msg(data, on_observer_matched);
+    pcintr_check_after_execution();
     if (!cco) {
         pcintr_set_current_co(NULL);
     }
@@ -204,7 +205,7 @@ pcintr_handle_message(void *ctxt)
 
     pcintr_message_destroy(msg);
 
-    PC_ASSERT(co->state == CO_STATE_RUN);
+//    PC_ASSERT(co->state == CO_STATE_RUN);
 }
 
 
@@ -213,10 +214,16 @@ process_coroutine_event(pcintr_coroutine_t co, pcrdr_msg *msg)
 {
     pcintr_stack_t stack = &co->stack;
     PC_ASSERT(stack);
+    pcintr_coroutine_t cco = pcintr_get_coroutine();
+    if (!cco) {
+        pcintr_set_current_co(co);
+    }
 
+#if 0
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame == NULL);
+#endif
 
     purc_variant_t msg_type = PURC_VARIANT_INVALID;
     purc_variant_t msg_sub_type = PURC_VARIANT_INVALID;
@@ -265,6 +272,9 @@ process_coroutine_event(pcintr_coroutine_t co, pcrdr_msg *msg)
         purc_variant_unref(msg_sub_type);
     }
 
+    if (!cco) {
+        pcintr_set_current_co(NULL);
+    }
     return 0;
 }
 
