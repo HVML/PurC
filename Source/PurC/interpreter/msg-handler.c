@@ -98,13 +98,14 @@ on_observer_matched(void *ud)
 }
 
 void
-observer_matched(struct pcintr_observer *p, purc_variant_t payload,
-        purc_variant_t source, purc_variant_t event_name)
+observer_matched(pcintr_stack_t stack, struct pcintr_observer *p,
+        purc_variant_t payload, purc_variant_t source, purc_variant_t event_name)
 {
-    pcintr_stack_t stack = pcintr_get_stack();
     PC_ASSERT(stack);
     pcintr_coroutine_t co = stack->co;
     PC_ASSERT(&co->stack == stack);
+
+    pcintr_set_current_co(co);
 
     struct pcintr_observer_matched_data *data;
     data = (struct pcintr_observer_matched_data*)calloc(1, sizeof(*data));
@@ -128,6 +129,7 @@ observer_matched(struct pcintr_observer *p, purc_variant_t payload,
     }
 
     pcintr_post_msg(data, on_observer_matched);
+    pcintr_set_current_co(NULL);
 }
 
 static void handle_vdom_event(pcintr_stack_t stack, purc_vdom_t vdom,
@@ -181,7 +183,7 @@ pcintr_handle_message(void *ctxt)
     list_for_each_entry_safe(p, n, list, node) {
         if (pcintr_is_observer_match(p, observed, msg_type_atom, sub_type)) {
             handle = true;
-            observer_matched(p, msg->extra, PURC_VARIANT_INVALID,
+            observer_matched(stack, p, msg->extra, PURC_VARIANT_INVALID,
                     PURC_VARIANT_INVALID);
         }
     }
@@ -239,7 +241,7 @@ process_coroutine_event(pcintr_coroutine_t co, pcrdr_msg *msg)
     list_for_each_entry_safe(p, n, list, node) {
         if (pcintr_is_observer_match(p, observed, msg_type_atom, sub_type_s)) {
             handle = true;
-            observer_matched(p, msg->data, msg->sourceURI, msg->eventName);
+            observer_matched(stack, p, msg->data, msg->sourceURI, msg->eventName);
         }
     }
 
@@ -392,7 +394,15 @@ pcintr_dispatch_msg(void)
     handle_move_buffer_msg();
 
     // handle msg from message queue of the current co
-    handle_coroutine_msg(pcintr_get_coroutine());
+    struct pcintr_heap *heap = pcintr_get_heap();
+    struct rb_root *coroutines = &heap->coroutines;
+    struct rb_node *p, *n;
+    struct rb_node *first = pcutils_rbtree_first(coroutines);
+    pcutils_rbtree_for_each_safe(first, p, n) {
+        pcintr_coroutine_t co;
+        co = container_of(p, struct pcintr_coroutine, node);
+        handle_coroutine_msg(co);
+    }
 }
 
 int
