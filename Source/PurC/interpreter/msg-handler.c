@@ -38,6 +38,10 @@
     fclose(fp);                                                               \
 } while (0)
 
+
+#define EXCLAMATION_EVENT_NAME     "_eventName"
+#define EXCLAMATION_EVENT_SOURCE   "_eventSource"
+
 static void
 on_observer_matched(void *ud)
 {
@@ -73,13 +77,29 @@ on_observer_matched(void *ud)
         purc_variant_unref(p->payload);
     }
 
+    purc_variant_t exclamation_var = pcintr_get_exclamation_var(frame);
+    // set $! _eventName
+    if (p->event_name) {
+        purc_variant_object_set_by_static_ckey(exclamation_var,
+                EXCLAMATION_EVENT_NAME, p->event_name);
+        purc_variant_unref(p->event_name);
+    }
+
+    // set $! _eventSource
+    if (p->source) {
+        purc_variant_object_set_by_static_ckey(exclamation_var,
+                EXCLAMATION_EVENT_SOURCE, p->source);
+        purc_variant_unref(p->source);
+    }
+
     pcintr_execute_one_step_for_ready_co(co);
 
     free(p);
 }
 
 void
-observer_matched(struct pcintr_observer *p, purc_variant_t payload)
+observer_matched(struct pcintr_observer *p, purc_variant_t payload,
+        purc_variant_t source, purc_variant_t event_name)
 {
     pcintr_stack_t stack = pcintr_get_stack();
     PC_ASSERT(stack);
@@ -92,6 +112,16 @@ observer_matched(struct pcintr_observer *p, purc_variant_t payload)
     data->pos = p->pos;
     data->scope = p->scope;
     data->edom_element = p->edom_element;
+
+    if (event_name) {
+        data->event_name = event_name;
+        purc_variant_ref(data->event_name);
+    }
+
+    if (source) {
+        data->source = source;
+        purc_variant_ref(data->source);
+    }
     if (payload) {
         data->payload = payload;
         purc_variant_ref(data->payload);
@@ -151,7 +181,8 @@ pcintr_handle_message(void *ctxt)
     list_for_each_entry_safe(p, n, list, node) {
         if (pcintr_is_observer_match(p, observed, msg_type_atom, sub_type)) {
             handle = true;
-            observer_matched(p, msg->extra);
+            observer_matched(p, msg->extra, PURC_VARIANT_INVALID,
+                    PURC_VARIANT_INVALID);
         }
     }
 
@@ -170,13 +201,66 @@ pcintr_handle_message(void *ctxt)
 }
 
 
-
 int
 process_coroutine_event(pcintr_coroutine_t co, pcrdr_msg *msg)
 {
-    UNUSED_PARAM(co);
-    UNUSED_PARAM(msg);
-    //pcintr_stack_t stack = &co->stack;
+    pcintr_stack_t stack = &co->stack;
+    PC_ASSERT(stack);
+    PC_ASSERT(co->state == CO_STATE_RUN);
+
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_stack_get_bottom_frame(stack);
+    PC_ASSERT(frame == NULL);
+
+    purc_variant_t msg_type = PURC_VARIANT_INVALID;
+    purc_variant_t msg_sub_type = PURC_VARIANT_INVALID;
+    const char *event = purc_variant_get_string_const(msg->eventName);
+    if (!pcintr_parse_event(event, &msg_type, &msg_sub_type)) {
+        return -1;
+    }
+
+    const char *msg_type_s = purc_variant_get_string_const(msg_type);
+    PC_ASSERT(msg_type_s);
+
+    const char *sub_type_s = NULL;
+    if (msg_sub_type != PURC_VARIANT_INVALID) {
+        sub_type_s = purc_variant_get_string_const(msg_sub_type);
+    }
+
+    purc_atom_t msg_type_atom = purc_atom_try_string_ex(ATOM_BUCKET_MSG,
+            msg_type_s);
+    PC_ASSERT(msg_type_atom);
+
+    purc_variant_t observed = msg->elementValue;
+
+    bool handle = false;
+    struct list_head* list = pcintr_get_observer_list(stack, observed);
+    struct pcintr_observer *p, *n;
+    list_for_each_entry_safe(p, n, list, node) {
+        if (pcintr_is_observer_match(p, observed, msg_type_atom, sub_type_s)) {
+            handle = true;
+            observer_matched(p, msg->data, msg->sourceURI, msg->eventName);
+        }
+    }
+
+    if (!handle && purc_variant_is_native(observed)) {
+        void *dest = purc_variant_native_get_entity(observed);
+        // window close event dispatch to vdom
+        if (dest == stack->vdom) {
+            handle_vdom_event(stack, stack->vdom, msg_type_atom,
+                    msg_sub_type, msg->data);
+        }
+    }
+
+    pcinst_put_message(msg);
+    if (msg_type) {
+        purc_variant_unref(msg_type);
+    }
+    if (msg_sub_type) {
+        purc_variant_unref(msg_sub_type);
+    }
+
+    PC_ASSERT(co->state == CO_STATE_RUN);
 
     return 0;
 }

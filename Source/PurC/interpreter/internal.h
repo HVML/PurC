@@ -56,6 +56,8 @@ struct pcintr_observer_matched_data {
     pcvdom_element_t              scope;
     struct pcdom_element         *edom_element;
     purc_variant_t               payload;
+    purc_variant_t               event_name;
+    purc_variant_t               source;
 };
 
 
