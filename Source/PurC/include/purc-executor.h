@@ -74,6 +74,19 @@ typedef struct purc_exec_ops {
 } purc_exec_ops;
 typedef struct purc_exec_ops* purc_exec_ops_t;
 
+struct purc_iterator_ops {
+    purc_variant_t (*begin)(purc_variant_t on_value, purc_variant_t with_value);
+    // @return:
+    // PURC_INVALID_VALUE and no purc-error: no further iteration is available
+    // PURC_INVALID_VALUE otherwise: exception: internal failure
+    // otherwise: current value, and it moves forward
+    purc_variant_t (*next)(purc_variant_t it);
+};
+typedef struct purc_iterator_ops  purc_iterator_ops;
+typedef struct purc_iterator_ops* purc_iterator_ops_t;
+
+// typedef purc_iterator_ops_t (*iterator_instantiate)(void);
+
 /** Register a built-in executor */
 bool purc_register_executor(const char* name, purc_exec_ops_t ops);
 

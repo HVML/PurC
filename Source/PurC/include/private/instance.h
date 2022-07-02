@@ -117,5 +117,11 @@ purc_atom_t
 pcinst_endpoint_get(char *endpoint_name, size_t sz,
         const char *app_name, const char *runner_name) WTF_INTERNAL;
 
+void
+pcinst_dump_err_except_info(purc_variant_t err_except_info) WTF_INTERNAL;
+
+void
+pcinst_dump_err_info(void) WTF_INTERNAL;
+
 #endif /* not defined PURC_PRIVATE_INSTANCE_H */
 

@@ -1,0 +1,24 @@
+<!DOCTYPE hvml>
+<hvml target="html" lang="en">
+    <head>
+    </head>
+
+    <body>
+        <div>
+            <div id="c_value">
+                <archetype name="regionList">
+                    <div>$?</div>
+                </archetype>
+
+                <ul>
+                    <sort on="hello" with="world" desc against="foo" caseless by="FUNC: to_sort@FUNC_DEMO">
+                        <update on="$@" to="append" with="$?" />
+                    </sort>
+                </ul>
+            </div>
+        </div>
+    </body>
+
+</hvml>
+
+

@@ -1,0 +1,25 @@
+<!DOCTYPE hvml>
+<hvml target="html" lang="en">
+    <head>
+        <init as="regionStats">
+            { "zh_CN" : 100, "zh_TW" : 90, "zh_HK": 90, "zh_SG": 90, "zh_MO": 80, "en_US": 70, "en_UK": 80 }
+        </init>
+
+
+    </head>
+
+    <body>
+        <div>
+            <div id="c_value">
+                <ul>
+                    <choose on=$regionStats by="KEY: ALL">
+                        <update on="$@" to="append" with="$?" />
+                    </choose>
+                </ul>
+            </div>
+        </div>
+    </body>
+
+</hvml>
+
+

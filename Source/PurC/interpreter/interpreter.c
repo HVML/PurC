@@ -1249,28 +1249,6 @@ dump_stack_frame(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
 }
 
 static void
-dump_err_except_info(purc_variant_t err_except_info)
-{
-    if (purc_variant_is_type(err_except_info, PURC_VARIANT_TYPE_STRING)) {
-        fprintf(stderr, "err_except_info: %s\n",
-                purc_variant_get_string_const(err_except_info));
-    }
-    else {
-        char buf[1024];
-        buf[0] = '\0';
-        int r = pcvariant_serialize(buf, sizeof(buf), err_except_info);
-        PC_ASSERT(r >= 0);
-        if ((size_t)r>=sizeof(buf)) {
-            buf[sizeof(buf)-1] = '\0';
-            buf[sizeof(buf)-2] = '.';
-            buf[sizeof(buf)-3] = '.';
-            buf[sizeof(buf)-4] = '.';
-        }
-        fprintf(stderr, "err_except_info: %s\n", buf);
-    }
-}
-
-static void
 dump_stack(pcintr_stack_t stack)
 {
     fprintf(stderr, "dumping stacks of corroutine [%p] ......\n", &stack->co);
@@ -1289,7 +1267,7 @@ dump_stack(pcintr_stack_t stack)
                 purc_atom_to_string(error_except));
     }
     if (err_except_info) {
-        dump_err_except_info(err_except_info);
+        pcinst_dump_err_except_info(err_except_info);
     }
     fprintf(stderr, "nr_frames: %zd\n", stack->nr_frames);
     struct list_head *frames = &stack->frames;
@@ -1360,9 +1338,10 @@ after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
             PC_ASSERT(co->continuation);
         }
         if (!ctxt) {
-            PC_ASSERT(purc_get_last_error() == 0);
-            frame->next_step = NEXT_STEP_ON_POPPING;
-            return;
+            if (purc_get_last_error() == 0) {
+                frame->next_step = NEXT_STEP_ON_POPPING;
+                return;
+            }
         }
     }
 

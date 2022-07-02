@@ -124,6 +124,12 @@ sort_022
 sort_023
 sort_024
 sort_025
+sort_026
+sort_027
+
+# choose
+choose_001
+choose_002
 
 # reduce
 reduce_001
@@ -218,4 +224,14 @@ catch_024
 catch_025
 catch_026
 catch_027
+catch_028
+
+# iterate
+iterate_001
+iterate_002
+iterate_003
+iterate_004
+
+# func_demo
+func_demo
 

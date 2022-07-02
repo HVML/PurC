@@ -102,7 +102,7 @@ set(_parsers
         exe_char exe_token
         exe_add exe_sub exe_mul exe_div exe_formula exe_objformula
         exe_sql exe_travel
-        exe_func
+        exe_func exe_class
         match_for
         ejson)
 PURC_PARSERS_GEN_IN(executors/parsers "${_parsers}" "")

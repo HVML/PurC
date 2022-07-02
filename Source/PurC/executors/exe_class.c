@@ -1,8 +1,8 @@
 /*
- * @file exe_func.c
+ * @file exe_class.c
  * @author Xu Xiaohong
  * @date 2022/06/17
- * @brief The implementation of public part for FUNC executor.
+ * @brief The implementation of public part for CLASS executor.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -23,13 +23,14 @@
  */
 
 #define _GNU_SOURCE
-#include "exe_func.h"
+#include "exe_class.h"
 
 #include "private/executor.h"
 #include "private/variant.h"
 
 #include "private/debug.h"
 #include "private/errors.h"
+#include "private/stringbuilder.h"
 
 #include "keywords.h"
 
@@ -64,7 +65,7 @@ _load_module(const char *module)
          */
 
         // step1: search in directories defined by the env var
-        const char *env = getenv(PURC_ENVV_EXECUTOR_PATH);
+        const char *env = getenv("PURC_EXECUTOR_PATH");
         if (env) {
             char *path = strdup(env);
             char *str1;
@@ -140,7 +141,7 @@ _load_module(const char *module)
     return library_handle;
 
 #else                                                 /* }{ */
-    UNUSED_PARAM(exe_func_inst);
+    UNUSED_PARAM(exe_class_inst);
     UNUSED_PARAM(module);
 
     // TODO: Add codes for other OS.
@@ -153,25 +154,33 @@ _load_module(const char *module)
 static int
 _get_symbol_by_rule(const char *rule, void **handle, void **symbol)
 {
-    struct exe_func_param param = {0};
+    struct exe_class_param param = {0};
     param.debug_flex = 1;
     param.debug_bison = 0;
 
-    int r = exe_func_parse(rule, strlen(rule), &param);
+    int r = exe_class_parse(rule, strlen(rule), &param);
     if (r) {
         PC_DEBUGX(
                 "failed parsing rule: %s\n"
                 "err_msg: %s",
                 rule, param.err_msg);
-        exe_func_param_reset(&param);
+        exe_class_param_reset(&param);
         PC_ASSERT(purc_get_last_error());
         return -1;
     }
 
     const char *module = param.rule.module;
-    const char *name   = param.rule.name;
+
+    struct pcutils_string name;
+    pcutils_string_init(&name, 64);
 
     do {
+        r = pcutils_string_append(&name, "%s_instantiate", param.rule.name);
+        if (r) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            break;
+        }
+
         void *library_handle = NULL;
         library_handle = _load_module(module);
         if (!library_handle) {
@@ -179,12 +188,13 @@ _get_symbol_by_rule(const char *rule, void **handle, void **symbol)
             break;
         }
 
-        void *p = dlsym(library_handle, name);
+        const char *s = pcutils_string_get(&name);
+        void *p = dlsym(library_handle, s);
         if (dlerror() != NULL) {
             dlclose(library_handle);
             purc_set_error_with_info(PURC_ERROR_BAD_SYSTEM_CALL,
                     "failed to locate symbol `%s` from `%s`",
-                    name, module);
+                    s, module);
             break;
         }
         PC_ASSERT(p);
@@ -192,140 +202,153 @@ _get_symbol_by_rule(const char *rule, void **handle, void **symbol)
         *handle = library_handle;
         *symbol = p;
 
-        exe_func_param_reset(&param);
+        pcutils_string_reset(&name);
+        exe_class_param_reset(&param);
 
         return 0;
     } while (0);
 
-    exe_func_param_reset(&param);
+    pcutils_string_reset(&name);
+    exe_class_param_reset(&param);
     return -1;
 }
 
-static purc_variant_t
-exe_func_chooser(const char *rule,
-        purc_variant_t on_value, purc_variant_t with_value)
+struct pcexec_class_iter {
+    void                      *handle;
+    struct purc_iterator_ops   ops;
+
+    purc_variant_t             it;
+
+    purc_variant_t             val;
+};
+
+static void
+it_release(pcexec_class_iter_t it)
+{
+    if (it) {
+        PURC_VARIANT_SAFE_CLEAR(it->val);
+        PURC_VARIANT_SAFE_CLEAR(it->it);
+        if (it->handle) {
+            dlclose(it->handle);
+            it->handle = NULL;
+        }
+    }
+}
+
+static void
+it_destroy(pcexec_class_iter_t it)
+{
+    if (it) {
+        it_release(it);
+        free(it);
+    }
+}
+
+static pcexec_class_iter_t
+exe_class_it_begin(const char* rule, purc_variant_t on,
+        purc_variant_t with)
 {
     void *handle, *symbol;
 
-    int r;
-    r = _get_symbol_by_rule(rule, &handle, &symbol);
-    if (r)
-        return PURC_VARIANT_INVALID;
+    pcexec_class_iter_t it;
+    it = (pcexec_class_iter_t)calloc(1, sizeof(*it));
+    if (!it) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return NULL;
+    }
 
-    PC_ASSERT(handle);
-    PC_ASSERT(symbol);
+    do {
+        int r;
+        r = _get_symbol_by_rule(rule, &handle, &symbol);
+        if (r)
+            break;
 
-    purc_variant_t (*chooser)(purc_variant_t on_value,
-            purc_variant_t with_value);
+        PC_ASSERT(handle);
+        PC_ASSERT(symbol);
 
-    chooser = symbol;
+        it->handle = handle;
 
-    purc_variant_t v = chooser(on_value, with_value);
+        struct purc_iterator_ops* (*instantiate)(void);
+        instantiate = symbol;
 
-    dlclose(handle);
+        struct purc_iterator_ops  *ops;
+        ops = instantiate();
 
-    return v;
+        if (!ops) {
+            PC_ASSERT(purc_get_last_error());
+            break;
+        }
+
+        it->ops = *ops;
+
+        if (!it->ops.begin || !it->ops.next) {
+            purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                    "bad ops from external class executor");
+            break;
+        }
+
+        it->it = it->ops.begin(on, with);
+        if (it->it == PURC_VARIANT_INVALID) {
+            break;
+        }
+        else {
+            PURC_VARIANT_SAFE_CLEAR(it->val);
+            it->val = it->ops.next(it->it);
+            if (it->val == PURC_VARIANT_INVALID)
+                break;
+        }
+
+        return it;
+    } while (0);
+
+    it_destroy(it);
+    return NULL;
 }
 
-// 迭代器，仅用于 `iterate` 动作元素。
 static purc_variant_t
-exe_func_iterator(const char *rule,
-        purc_variant_t on_value, purc_variant_t with_value)
+exe_class_it_value(pcexec_class_iter_t it)
 {
-    void *handle, *symbol;
-
-    int r;
-    r = _get_symbol_by_rule(rule, &handle, &symbol);
-    if (r)
-        return PURC_VARIANT_INVALID;
-
-    PC_ASSERT(handle);
-    PC_ASSERT(symbol);
-
-    purc_variant_t (*iterator)(purc_variant_t on_value,
-            purc_variant_t with_value);
-
-    iterator = symbol;
-
-    purc_variant_t v = iterator(on_value, with_value);
-
-    dlclose(handle);
-
-    return v;
+    PC_ASSERT(it);
+    PC_ASSERT(it->val != PURC_VARIANT_INVALID);
+    return it->val;
 }
 
-// 规约器，仅用于 `reduce` 动作元素。
-static purc_variant_t
-exe_func_reducer(const char *rule,
-        purc_variant_t on_value, purc_variant_t with_value)
+static pcexec_class_iter_t
+exe_class_it_next(pcexec_class_iter_t it)
 {
-    void *handle, *symbol;
+    PC_ASSERT(it);
+    PC_ASSERT(it->ops.next);
+    PURC_VARIANT_SAFE_CLEAR(it->val);
+    it->val = it->ops.next(it->it);
+    if (it->val == PURC_VARIANT_INVALID) {
+        it_destroy(it);
+        return NULL;
+    }
 
-    int r;
-    r = _get_symbol_by_rule(rule, &handle, &symbol);
-    if (r)
-        return PURC_VARIANT_INVALID;
-
-    PC_ASSERT(handle);
-    PC_ASSERT(symbol);
-
-    purc_variant_t (*reducer)(purc_variant_t on_value,
-            purc_variant_t with_value);
-
-    reducer = symbol;
-
-    purc_variant_t v = reducer(on_value, with_value);
-
-    dlclose(handle);
-
-    return v;
+    return it;
 }
 
-// 排序器，仅用于 `sort` 动作元素。
-static purc_variant_t
-exe_func_sorter(const char *rule,
-        purc_variant_t on_value, purc_variant_t with_value,
-        purc_variant_t against_value, bool desc, bool caseless)
+static void
+exe_class_it_destroy(pcexec_class_iter_t it)
 {
-    void *handle, *symbol;
-
-    int r;
-    r = _get_symbol_by_rule(rule, &handle, &symbol);
-    if (r)
-        return PURC_VARIANT_INVALID;
-
-    PC_ASSERT(handle);
-    PC_ASSERT(symbol);
-
-    purc_variant_t (*sorter)(purc_variant_t on_value,
-            purc_variant_t with_value, purc_variant_t against_value,
-            bool desc, bool caseless);
-
-    sorter = symbol;
-
-    purc_variant_t v = sorter(on_value, with_value, against_value,
-            desc, caseless);
-
-    dlclose(handle);
-
-    return v;
+    it_destroy(it);
 }
 
-static struct pcexec_func_ops const exe_func_ops = {
-    exe_func_chooser,
-    exe_func_iterator,
-    exe_func_reducer,
-    exe_func_sorter,
+static struct pcexec_class_ops const exe_class_ops = {
+    exe_class_it_begin,
+    exe_class_it_value,
+    exe_class_it_next,
+    exe_class_it_destroy,
 };
 
 static struct pcexec_ops ops = {
-    .type                    = PCEXEC_TYPE_EXTERNAL_FUNC,
-    .external_func_ops       = exe_func_ops,
+    .type                    = PCEXEC_TYPE_EXTERNAL_CLASS,
+    .external_class_ops      = exe_class_ops,
 };
 
-int pcexec_exe_func_register(void)
+int pcexec_exe_class_register(void)
 {
-    const char *name = "FUNC";
+    const char *name = "CLASS";
 
     if (ops.atom == 0) {
         ops.atom = PCHVML_KEYWORD_ATOM(HVML, name);
