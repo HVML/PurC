@@ -585,12 +585,6 @@ pcintr_fire_event_to_target(pcintr_coroutine_t target,
         purc_variant_t payload);
 
 int
-pcintr_dispatch_message(pcintr_stack_t stack, purc_variant_t source,
-        purc_variant_t for_value,
-        purc_atom_t msg_type_atom, const char *sub_type,
-        purc_variant_t extra);
-
-int
 pcintr_dispatch_message_ex(pcintr_stack_t stack, purc_variant_t source,
         purc_variant_t type, purc_variant_t sub_type, purc_variant_t extra);
 

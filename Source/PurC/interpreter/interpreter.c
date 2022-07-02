@@ -2676,37 +2676,6 @@ pcintr_message_destroy(struct pcintr_message* msg)
 }
 
 int
-pcintr_dispatch_message(pcintr_stack_t stack, purc_variant_t source,
-        purc_variant_t for_value,
-        purc_atom_t msg_type_atom, const char *sub_type,
-        purc_variant_t extra)
-{
-    UNUSED_PARAM(for_value);
-
-    const char *s_type = purc_atom_to_string(msg_type_atom);
-    PC_ASSERT(s_type);
-
-    purc_variant_t v_type = purc_variant_make_string(s_type, true);
-    if (v_type == PURC_VARIANT_INVALID)
-        return -1;
-
-    purc_variant_t v_sub_type = PURC_VARIANT_INVALID;
-    if (sub_type) {
-        v_sub_type = purc_variant_make_string(sub_type, true);
-        if (v_sub_type == PURC_VARIANT_INVALID) {
-            PURC_VARIANT_SAFE_CLEAR(v_type);
-            return -1;
-        }
-    }
-
-    int r = pcintr_dispatch_message_ex(stack, source, v_type, v_sub_type, extra);
-    PURC_VARIANT_SAFE_CLEAR(v_sub_type);
-    PURC_VARIANT_SAFE_CLEAR(v_type);
-
-    return r;
-}
-
-int
 pcintr_dispatch_message_ex(pcintr_stack_t stack, purc_variant_t source,
         purc_variant_t type, purc_variant_t sub_type, purc_variant_t extra)
 {
