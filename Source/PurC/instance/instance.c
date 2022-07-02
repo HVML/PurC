@@ -552,6 +552,9 @@ bool purc_cleanup(void)
     if (curr_inst == NULL || curr_inst->app_name == NULL)
         return false;
 
+    // FIXME: shall we clear error here???
+    purc_clr_error();
+
     cleanup_modules(curr_inst);
     cleanup_instance(curr_inst);
     return true;

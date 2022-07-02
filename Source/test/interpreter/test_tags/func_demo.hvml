@@ -1,0 +1,22 @@
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<hvml target="html" lang="en">
+    <head>
+        <init as='foo'>
+            { "id" : "foo", "name" : "bar" }
+        </init>
+        <init as='arr'>
+            [2, 3, 1, 9, 5]
+        </init>
+    </head>
+
+    <body>
+        <div>
+            <iterate on="$foo" by="FUNC:to_array@FUNC_DEMO" with="name">
+                <update on="$@" to="append" with="$?" />
+            </iterate>
+        </div>
+    </body>
+</hvml>
+
+
+
