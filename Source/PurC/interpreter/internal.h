@@ -95,7 +95,15 @@ void
 pcintr_check_and_dispatch_coroutine_event(pcintr_coroutine_t co);
 
 int
-pcintr_post_event(pcintr_coroutine_t target, const char *event);
+pcintr_post_event(pcintr_coroutine_t co, purc_variant_t source_uri,
+        pcrdr_msg_element_type  element_type, purc_variant_t element_value,
+        purc_variant_t event_name, purc_variant_t data);
+
+int
+pcintr_post_event_by_ctype(pcintr_coroutine_t co, purc_variant_t source_uri,
+        pcrdr_msg_element_type  element_type, purc_variant_t element_value,
+        const char *event_type, const char *event_sub_type,
+        purc_variant_t data);
 
 void
 pcintr_synchronize(void *ctxt, void (*routine)(void *ctxt));

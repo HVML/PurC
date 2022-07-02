@@ -395,3 +395,89 @@ pcintr_dispatch_msg(void)
     handle_coroutine_msg(pcintr_get_coroutine());
 }
 
+int
+pcintr_post_event(pcintr_coroutine_t co, purc_variant_t source_uri,
+        pcrdr_msg_element_type  element_type, purc_variant_t element_value,
+        purc_variant_t event_name, purc_variant_t data)
+{
+    UNUSED_PARAM(co);
+    UNUSED_PARAM(source_uri);
+    UNUSED_PARAM(element_type);
+    UNUSED_PARAM(element_value);
+    UNUSED_PARAM(event_name);
+    UNUSED_PARAM(data);
+
+    if (!event_name) {
+        return -1;
+    }
+
+    pcintr_stack_t stack = &co->stack;
+    struct pcintr_heap *heap = stack->owning_heap;
+    struct pcinst *inst = heap->owner;
+
+    pcrdr_msg *msg = pcinst_get_message();
+    if (msg == NULL) {
+        return -1;
+    }
+
+    msg->type = PCRDR_MSG_TYPE_EVENT;
+    msg->target = PCRDR_MSG_TARGET_COROUTINE;
+    msg->targetValue = co->ident;
+
+    if (source_uri) {
+        msg->sourceURI = source_uri;
+        purc_variant_ref(msg->sourceURI);
+    }
+
+    msg->eventName = event_name;
+    purc_variant_ref(msg->eventName);
+
+    msg->elementType = element_type;
+    msg->elementValue = element_value;
+    purc_variant_ref(msg->elementValue);
+
+    return purc_inst_post_event(inst->endpoint_atom, msg);
+}
+
+int
+pcintr_post_event_by_ctype(pcintr_coroutine_t co, purc_variant_t source_uri,
+        pcrdr_msg_element_type  element_type, purc_variant_t element_value,
+        const char *event_type, const char *event_sub_type,
+        purc_variant_t data)
+{
+    if (!event_type) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        return -1;
+    }
+    size_t n = strlen(event_type) + 1;
+    if (event_sub_type) {
+        n = n +  strlen(event_sub_type) + 2;
+    }
+
+    char *p = (char*)malloc(n);
+    if (!p) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return -1;
+    }
+    if (event_sub_type) {
+        sprintf(p, "%s:%s", event_type, event_sub_type);
+    }
+    else {
+        sprintf(p, "%s", event_type);
+    }
+
+    purc_variant_t event_name = purc_variant_make_string_reuse_buff(p,
+            strlen(p), true);
+    if (!event_name) {
+        free(p);
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return -1;
+    }
+    int ret = pcintr_post_event(co, source_uri, element_type, element_value,
+            event_name, data);
+
+    purc_variant_unref(event_name);
+
+    return ret;
+}
+
