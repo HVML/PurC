@@ -183,8 +183,6 @@ struct fibo_ctxt {
     int64_t                stop;
     int64_t                a;
     int64_t                b;
-
-    int64_t               *curr;
 };
 
 static void
@@ -241,7 +239,6 @@ fibo_begin(purc_variant_t on_value, purc_variant_t with_value)
     ctxt->stop  = stop;
     ctxt->a     = 0;
     ctxt->b     = 1;
-    ctxt->curr  = &ctxt->a;
 
     purc_variant_t v;
     v = purc_variant_make_native(ctxt, &_fibo_ops);
@@ -267,7 +264,7 @@ fibo_value(purc_variant_t it)
     struct fibo_ctxt *ctxt;
     ctxt = (struct fibo_ctxt*)purc_variant_native_get_entity(it);
 
-    return purc_variant_make_longint(*ctxt->curr);
+    return purc_variant_make_longint(ctxt->a);
 }
 
 static purc_variant_t
@@ -284,27 +281,14 @@ fibo_next(purc_variant_t it)
     struct fibo_ctxt *ctxt;
     ctxt = (struct fibo_ctxt*)purc_variant_native_get_entity(it);
 
-    if (ctxt->curr == &ctxt->a) {
-        if (ctxt->b > ctxt->stop)
-            return PURC_VARIANT_INVALID;
+    if (ctxt->b > ctxt->stop)
+        return PURC_VARIANT_INVALID;
 
-        ctxt->curr = &ctxt->b;
+    int64_t c = ctxt->a + ctxt->b;
+    ctxt->a = ctxt->b;
+    ctxt->b = c;
 
-        return purc_variant_ref(it);
-    }
-
-    if (ctxt->curr == &ctxt->b) {
-        int64_t c = ctxt->a + ctxt->b;
-        if (c > ctxt->stop)
-            return PURC_VARIANT_INVALID;
-        ctxt->a = ctxt->b;
-        ctxt->b = c;
-        ctxt->curr = &ctxt->b;
-
-        return purc_variant_ref(it);
-    }
-
-    abort();
+    return purc_variant_ref(it);
 }
 
 struct purc_iterator_ops _fibo_it_ops = {
