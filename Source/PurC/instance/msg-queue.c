@@ -266,7 +266,7 @@ get_msg(struct pcinst_msg_queue *queue, struct list_head *msgs)
     if (list_empty(msgs)) {
         return NULL;
     }
-    struct pcinst_msg_hdr *hdr = list_first_entry(&queue->void_msgs,
+    struct pcinst_msg_hdr *hdr = list_first_entry(msgs,
             struct pcinst_msg_hdr, ln);
     pcrdr_msg *msg = (pcrdr_msg *)hdr;
     list_del(&hdr->ln);
