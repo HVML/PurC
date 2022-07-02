@@ -359,10 +359,6 @@ static void timer_fire_func(pcintr_timer_t timer, const char* id)
     PC_ASSERT(co->state == CO_STATE_RUN);
 
     pcintr_stack_t stack = &co->stack;
-
-    purc_variant_t type = PURC_VARIANT_INVALID;
-    purc_variant_t sub_type = PURC_VARIANT_INVALID;
-
     if (stack->exited)
         return;
 
@@ -370,17 +366,14 @@ static void timer_fire_func(pcintr_timer_t timer, const char* id)
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame == NULL);
 
-    type = purc_variant_make_string(TIMERS_STR_EXPIRED, false);
-    sub_type = purc_variant_make_string(id, false);
+    purc_variant_t source_uri = purc_variant_make_string(co->full_name, false);
 
-    if (type && sub_type) {
-        pcintr_dispatch_message_ex(stack,
-                stack->timers->timers_var,
-                type, sub_type, PURC_VARIANT_INVALID);
-    }
+    pcintr_post_event_by_ctype(co,
+        PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY, source_uri,
+        stack->timers->timers_var, TIMERS_STR_EXPIRED, id,
+        PURC_VARIANT_INVALID);
 
-    PURC_VARIANT_SAFE_CLEAR(type);
-    PURC_VARIANT_SAFE_CLEAR(sub_type);
+    PURC_VARIANT_SAFE_CLEAR(source_uri);
 }
 
 static bool
