@@ -460,6 +460,11 @@ pcintr_post_event(pcintr_coroutine_t co,
     msg->elementValue = observed;
     purc_variant_ref(msg->elementValue);
 
+    if (data) {
+        msg->data = data;
+        purc_variant_ref(msg->data);
+    }
+
     return purc_inst_post_event(PURC_INST_SELF, msg);
 }
 
