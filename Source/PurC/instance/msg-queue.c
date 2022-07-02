@@ -342,5 +342,5 @@ purc_inst_post_event(purc_atom_t inst_to, pcrdr_msg *msg)
         return 0;
     }
 
-    return (purc_inst_move_message(0, msg) != 0) ? 0 : -1;
+    return (purc_inst_move_message(inst_to, msg) != 0) ? 0 : -1;
 }
