@@ -37,6 +37,15 @@
     fclose(fp);                                                               \
 } while (0)
 
+int
+process_coroutine_event(pcintr_coroutine_t co, pcrdr_msg *msg)
+{
+    UNUSED_PARAM(co);
+    UNUSED_PARAM(msg);
+    //pcintr_stack_t stack = &co->stack;
+
+    return 0;
+}
 
 int
 dispatch_coroutine_msg(pcintr_coroutine_t co, pcrdr_msg *msg)
@@ -47,7 +56,7 @@ dispatch_coroutine_msg(pcintr_coroutine_t co, pcrdr_msg *msg)
 
     switch (msg->type) {
     case PCRDR_MSG_TYPE_EVENT:
-        break;
+        return process_coroutine_event(co, msg);
 
     case PCRDR_MSG_TYPE_VOID:
         PC_ASSERT(0);
@@ -144,7 +153,9 @@ void
 handle_coroutine_msg(pcintr_coroutine_t co)
 {
     UNUSED_PARAM(co);
-    if (co == NULL || co->state == CO_STATE_WAIT) {
+    if (co == NULL
+            || co->state == CO_STATE_WAIT
+            || co->state == CO_STATE_RUN) {
         return;
     }
 
@@ -152,6 +163,7 @@ handle_coroutine_msg(pcintr_coroutine_t co)
     pcrdr_msg *msg = pcinst_msg_queue_get_msg(queue);
     while (msg) {
         dispatch_coroutine_msg(co, msg);
+        pcinst_put_message(msg);
     }
 }
 
