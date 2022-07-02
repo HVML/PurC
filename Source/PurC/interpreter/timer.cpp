@@ -43,6 +43,7 @@ struct event_timer_data {
     pcintr_timer_t            timer;
     const char               *id;
     pcintr_timer_fire_func    func;
+    void                     *data;
 };
 
 static void on_event_fire(void *ud)
@@ -50,7 +51,7 @@ static void on_event_fire(void *ud)
     struct event_timer_data *data;
     data = (struct event_timer_data*)ud;
     pcintr_timer_processed(data->timer);
-    data->func(data->timer, data->id);
+    data->func(data->timer, data->id, data->data);
 }
 
 static void cancel_timer(void *ctxt)
@@ -62,10 +63,12 @@ static void cancel_timer(void *ctxt)
 
 class Timer : public PurCWTF::RunLoop::TimerBase {
     public:
-        Timer(const char *id, pcintr_timer_fire_func func, RunLoop& runLoop)
+        Timer(const char *id, pcintr_timer_fire_func func, RunLoop& runLoop,
+                void *data)
             : TimerBase(runLoop)
             , m_id(NULL)
             , m_func(func)
+            , m_data(data)
         {
             m_id = id ? strdup(id) : NULL;
         }
@@ -81,25 +84,27 @@ class Timer : public PurCWTF::RunLoop::TimerBase {
         void setInterval(uint32_t interval) { m_interval = interval; }
         uint32_t getInterval() { return m_interval; }
         const char *getId() { return m_id; }
+        void *getData() { return m_data; }
 
         virtual void fired()
         {
-            m_func(m_id, m_id);
+            m_func(this, m_id, m_data);
         }
 
         virtual void processed(void) {}
 
     private:
-        char* m_id;
+        char *m_id;
         pcintr_timer_fire_func m_func;
+        void *m_data;
         uint32_t m_interval;
 };
 
 class PurcTimer : public Timer {
     public:
         PurcTimer(bool for_yielded, const char* id, pcintr_timer_fire_func func,
-                RunLoop& runLoop)
-            : Timer(id, func, runLoop)
+                RunLoop& runLoop, void *data)
+            : Timer(id, func, runLoop, data)
             , m_coroutine(pcintr_get_coroutine())
             , m_fired(0)
             , m_for_yielded(for_yielded)
@@ -111,6 +116,7 @@ class PurcTimer : public Timer {
                 m_data.timer = this;
                 m_data.id    = getId();
                 m_data.func  = func;
+                m_data.data = getData();
 
                 pcintr_register_cancel(&m_cancel);
             }
@@ -199,15 +205,15 @@ class PurcTimer : public Timer {
 
 pcintr_timer_t
 pcintr_timer_create(purc_runloop_t runloop, bool for_yielded, bool raw,
-        const char* id, pcintr_timer_fire_func func)
+        const char* id, pcintr_timer_fire_func func, void *data)
 {
     RunLoop* loop = runloop ? (RunLoop*)runloop : &RunLoop::current();
     Timer* timer = NULL;
     if (raw) {
-        timer = new Timer(id, func, *loop);
+        timer = new Timer(id, func, *loop, data);
     }
     else {
-        timer = new PurcTimer(for_yielded, id, func, *loop);
+        timer = new PurcTimer(for_yielded, id, func, *loop, data);
     }
     if (!timer) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
@@ -348,19 +354,20 @@ static void map_free_val(void* val)
     }
 }
 
-static void timer_fire_func(pcintr_timer_t timer, const char* id)
+static void timer_fire_func(pcintr_timer_t timer, const char* id, void* data)
 {
     UNUSED_PARAM(timer);
 
     PC_ASSERT(pcintr_get_heap());
 
-    pcintr_coroutine_t co = pcintr_get_coroutine();
+    pcintr_stack_t stack = (pcintr_stack_t)data;
+    if (stack->exited)
+        return;
+
+    pcintr_coroutine_t co = stack->co;
     PC_ASSERT(co);
     PC_ASSERT(co->state == CO_STATE_RUN);
 
-    pcintr_stack_t stack = &co->stack;
-    if (stack->exited)
-        return;
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
@@ -427,7 +434,8 @@ get_inner_timer(pcintr_stack_t stack, purc_variant_t timer_var)
     }
 
     bool for_yielded = false;
-    timer = pcintr_timer_create(NULL, for_yielded, false, idstr, timer_fire_func);
+    timer = pcintr_timer_create(NULL, for_yielded, false, idstr,
+            timer_fire_func, stack);
     if (timer == NULL) {
         return NULL;
     }

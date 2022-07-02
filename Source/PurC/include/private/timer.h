@@ -34,14 +34,14 @@
 #include "purc-runloop.h"
 
 typedef void* pcintr_timer_t;
-typedef void (*pcintr_timer_fire_func)(pcintr_timer_t timer, const char* id);
-typedef void (*pcintr_timer_attach_destroy_func)(void *attach);
+typedef void (*pcintr_timer_fire_func)(pcintr_timer_t timer, const char* id,
+        void *data);
 
 PCA_EXTERN_C_BEGIN
 
 pcintr_timer_t
 pcintr_timer_create(purc_runloop_t runloop, bool for_yielded, bool raw,
-        const char* id, pcintr_timer_fire_func func);
+        const char* id, pcintr_timer_fire_func func, void *data);
 
 void
 pcintr_timer_processed(pcintr_timer_t timer);

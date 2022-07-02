@@ -574,7 +574,7 @@ static void _cleanup_instance(struct pcinst* inst)
 
 
 static void
-event_timer_fire(pcintr_timer_t timer, const char* id);
+event_timer_fire(pcintr_timer_t timer, const char* id, void* data);
 
 static int _init_instance(struct pcinst* inst,
         const purc_instance_extra_info* extra_info)
@@ -614,7 +614,7 @@ static int _init_instance(struct pcinst* inst,
     heap->next_coroutine_id = 1;
 
     heap->event_timer = pcintr_timer_create(NULL, false, true,
-            NULL, event_timer_fire);
+            NULL, event_timer_fire, inst);
     if (!heap->event_timer) {
         purc_inst_destroy_move_buffer();
         heap->move_buff = 0;
@@ -3785,14 +3785,14 @@ struct timer_data {
 };
 
 static void
-event_timer_fire(pcintr_timer_t timer, const char* id)
+event_timer_fire(pcintr_timer_t timer, const char* id, void* data)
 {
     UNUSED_PARAM(timer);
     UNUSED_PARAM(id);
 
     PC_ASSERT(pcintr_get_heap());
 
-    struct pcinst *inst = pcinst_current();
+    struct pcinst *inst = (struct pcinst *)data;
     pcintr_dispatch_msg();
 
     pcintr_check_and_dispatch_msg();
