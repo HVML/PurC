@@ -251,23 +251,6 @@ fibo_begin(purc_variant_t on_value, purc_variant_t with_value)
 }
 
 static purc_variant_t
-fibo_value(purc_variant_t it)
-{
-    struct purc_native_ops *ops;
-    ops = purc_variant_native_get_ops(it);
-    if (ops != &_fibo_ops) {
-        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
-                "not a valid fibo-iterator");
-        return PURC_VARIANT_INVALID;
-    }
-
-    struct fibo_ctxt *ctxt;
-    ctxt = (struct fibo_ctxt*)purc_variant_native_get_entity(it);
-
-    return purc_variant_make_longint(ctxt->a);
-}
-
-static purc_variant_t
 fibo_next(purc_variant_t it)
 {
     struct purc_native_ops *ops;
@@ -281,19 +264,22 @@ fibo_next(purc_variant_t it)
     struct fibo_ctxt *ctxt;
     ctxt = (struct fibo_ctxt*)purc_variant_native_get_entity(it);
 
-    if (ctxt->b > ctxt->stop)
+    if (ctxt->a > ctxt->stop)
+        return PURC_VARIANT_INVALID;
+
+    purc_variant_t v = purc_variant_make_longint(ctxt->a);
+    if (v == PURC_VARIANT_INVALID)
         return PURC_VARIANT_INVALID;
 
     int64_t c = ctxt->a + ctxt->b;
     ctxt->a = ctxt->b;
     ctxt->b = c;
 
-    return purc_variant_ref(it);
+    return v;
 }
 
 struct purc_iterator_ops _fibo_it_ops = {
     .begin           = fibo_begin,
-    .value           = fibo_value,
     .next            = fibo_next,
 };
 
