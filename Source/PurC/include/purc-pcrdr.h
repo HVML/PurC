@@ -652,6 +652,12 @@ struct pcrdr_msg
     pcrdr_msg_target        target;
     pcrdr_msg_element_type  elementType;
     pcrdr_msg_data_type     dataType;
+
+    /**
+     * The event reduce option
+     */
+    pcrdr_msg_event_reduce_opt reduceOpt;
+
     unsigned int            retCode;
     union {
         unsigned int        __data_len; // internal use only
@@ -678,18 +684,11 @@ struct pcrdr_msg
         purc_variant_t  eventName;
     };
 
-    union {
-        /**
-         * The request identifier to track the response at the peer
-         * sending the request messages. Usually it is a string.
-         */
-        purc_variant_t  requestId;
-
-        /**
-         * The event reduce option
-         */
-        pcrdr_msg_event_reduce_opt reduceOpt;
-    };
+    /**
+     * The request identifier to track the response at the peer
+     * sending the request messages. Usually it is a string.
+     */
+    purc_variant_t  requestId;
 
     /**
      * The URI of the source generating this message.

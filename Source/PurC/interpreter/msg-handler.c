@@ -105,7 +105,10 @@ observer_matched(pcintr_stack_t stack, struct pcintr_observer *p,
     pcintr_coroutine_t co = stack->co;
     PC_ASSERT(&co->stack == stack);
 
-    pcintr_set_current_co(co);
+    pcintr_coroutine_t cco = pcintr_get_coroutine();
+    if (!cco) {
+        pcintr_set_current_co(co);
+    }
 
     struct pcintr_observer_matched_data *data;
     data = (struct pcintr_observer_matched_data*)calloc(1, sizeof(*data));
@@ -129,7 +132,9 @@ observer_matched(pcintr_stack_t stack, struct pcintr_observer *p,
     }
 
     pcintr_post_msg(data, on_observer_matched);
-    pcintr_set_current_co(NULL);
+    if (!cco) {
+        pcintr_set_current_co(NULL);
+    }
 }
 
 static void handle_vdom_event(pcintr_stack_t stack, purc_vdom_t vdom,
@@ -208,7 +213,6 @@ process_coroutine_event(pcintr_coroutine_t co, pcrdr_msg *msg)
 {
     pcintr_stack_t stack = &co->stack;
     PC_ASSERT(stack);
-    PC_ASSERT(co->state == CO_STATE_RUN);
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
@@ -254,15 +258,12 @@ process_coroutine_event(pcintr_coroutine_t co, pcrdr_msg *msg)
         }
     }
 
-    pcinst_put_message(msg);
     if (msg_type) {
         purc_variant_unref(msg_type);
     }
     if (msg_sub_type) {
         purc_variant_unref(msg_sub_type);
     }
-
-    PC_ASSERT(co->state == CO_STATE_RUN);
 
     return 0;
 }
@@ -384,6 +385,7 @@ handle_coroutine_msg(pcintr_coroutine_t co)
     while (msg) {
         dispatch_coroutine_msg(co, msg);
         pcinst_put_message(msg);
+        msg = pcinst_msg_queue_get_msg(queue);
     }
 }
 
@@ -420,9 +422,11 @@ pcintr_post_event(pcintr_coroutine_t co,
         return -1;
     }
 
+#if 0
     pcintr_stack_t stack = &co->stack;
     struct pcintr_heap *heap = stack->owning_heap;
     struct pcinst *inst = heap->owner;
+#endif
 
     pcrdr_msg *msg = pcinst_get_message();
     if (msg == NULL) {
@@ -446,7 +450,7 @@ pcintr_post_event(pcintr_coroutine_t co,
     msg->elementValue = observed;
     purc_variant_ref(msg->elementValue);
 
-    return purc_inst_post_event(inst->endpoint_atom, msg);
+    return purc_inst_post_event(PURC_INST_SELF, msg);
 }
 
 int
