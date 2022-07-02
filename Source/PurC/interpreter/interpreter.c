@@ -1305,9 +1305,10 @@ after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
             PC_ASSERT(co->continuation);
         }
         if (!ctxt) {
-            PC_ASSERT(purc_get_last_error() == 0);
-            frame->next_step = NEXT_STEP_ON_POPPING;
-            return;
+            if (purc_get_last_error() == 0) {
+                frame->next_step = NEXT_STEP_ON_POPPING;
+                return;
+            }
         }
     }
 
