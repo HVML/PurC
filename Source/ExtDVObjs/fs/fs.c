@@ -36,6 +36,7 @@
 #include <unistd.h>
 #include <sys/vfs.h>
 #include <sys/stat.h>
+#include <sys/file.h>
 #include <sys/types.h>
 #include <sys/sysmacros.h>
 #include <dirent.h>
@@ -2386,7 +2387,7 @@ rmdir_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     if (S_ISDIR(dir_stat.st_mode)) {
         dirp = opendir(filename);
 
-        while ((dp=readdir(dirp)) != NULL) {
+        while ((dp = readdir(dirp)) != NULL) {
             if ((strcmp(dp->d_name, ".") == 0) ||
                     (strcmp(dp->d_name, "..") == 0))
                 continue;
@@ -2711,11 +2712,12 @@ file_contents_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     const char *string_filename = NULL;
     const char *string_flags = NULL;
+    const char *flag;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
-    bool flag_binary = false;
-    bool flag_strict = false;
-    int64_t  offset = 0;
-    size_t   length = SIZE_MAX;
+    bool        flag_binary = false;
+    bool        flag_strict = false;
+    int64_t     offset = 0;
+    size_t      length = SIZE_MAX;
     struct stat filestat;
     size_t      filesize;
     size_t      readsize;
@@ -2756,6 +2758,39 @@ file_contents_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
             return PURC_VARIANT_INVALID;
         }
+    }
+
+    // Parse flags
+    flag = string_flags;
+    while (*flag)
+    {
+        size_t flag_len = 0;
+
+        while (purc_isspace(*flag))
+            flag ++;
+        
+        if (strcmp_len (flag, "binary", &flag_len) == 0) {
+            flag_binary = true;
+        }
+        else if (strcmp_len (flag, "string", &flag_len) == 0) {
+            flag_binary = false;
+        }
+        else if (strcmp_len (flag, "strict", &flag_len) == 0) {
+            flag_strict = true;
+        }
+        else if (strcmp_len (flag, "silent", &flag_len) == 0) {
+            flag_strict = false;
+        }
+        else {
+            purc_variant_unref (ret_var);
+            purc_set_error (PURC_ERROR_WRONG_STAGE);
+            return purc_variant_make_boolean (false);
+        }
+
+        if (0 == flag_len)
+            break;
+        
+        flag += flag_len;
     }
 
     // Get whole file size
@@ -2799,9 +2834,8 @@ file_contents_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     readsize = fread (bsequence, 1, length, fp);
     if (readsize != length && flag_strict) {
-        free (bsequence);
-        fclose (fp);
         // FIXME: throw `BadEncoding` exception
+        goto err;
     }
 
     if (flag_binary)
@@ -2832,8 +2866,15 @@ file_contents_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     const char *string_filename = NULL;
     const char *string_flags = NULL;
+    const char *flag;
+    const char *string_content;
+    FILE       *fp = NULL;
     const uint8_t *bsequence = NULL;
-    size_t         sz_bseq;
+    size_t      sz_bseq;
+    size_t      writesize;
+    bool        flag_lock = false;
+    bool        flag_append = false;
+    bool        flag_binary = false;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if (nr_args < 1) {
@@ -2849,11 +2890,17 @@ file_contents_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     if (nr_args > 1) {
-        if (! purc_variant_cast_to_byte_sequence(argv[1],
-                (const void **)&bsequence, &sz_bseq))
-        {
-            purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-            return PURC_VARIANT_INVALID;
+        string_content = purc_variant_get_string_const (argv[1]);
+
+        if (NULL == string_content) {
+            if (! purc_variant_cast_to_byte_sequence(argv[1],
+                    (const void **)&bsequence, &sz_bseq))
+            {
+                purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+                return PURC_VARIANT_INVALID;
+            }
+
+            flag_binary = true;
         }
     }
 
@@ -2865,9 +2912,78 @@ file_contents_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         }
     }
 
-    // wait for code
+    // Parse flags
+    flag = string_flags;
+    while (*flag)
+    {
+        size_t flag_len = 0;
 
-    ret_var = purc_variant_make_boolean (true);
+        while (purc_isspace(*flag))
+            flag ++;
+        
+        if (strcmp_len (flag, "lock", &flag_len) == 0) {
+            flag_lock = true;
+        }
+        else if (strcmp_len (flag, "append", &flag_len) == 0) {
+            flag_append = true;
+        }
+        else {
+            purc_variant_unref (ret_var);
+            purc_set_error (PURC_ERROR_WRONG_STAGE);
+            return purc_variant_make_boolean (false);
+        }
+
+        if (0 == flag_len)
+            break;
+        
+        flag += flag_len;
+    }
+
+    if (flag_binary) {
+        if (flag_append)
+            fp = fopen (string_filename, "ab");
+        else
+            fp = fopen (string_filename, "wb");
+    }
+    else {
+        if (flag_append)
+            fp = fopen (string_filename, "a");
+        else
+            fp = fopen (string_filename, "w");
+    }
+    
+    if (NULL == fp) {
+        set_purc_error_by_errno ();
+        return purc_variant_make_boolean (false);
+    }
+
+    if (-1 == flock (fileno(fp), LOCK_SH | LOCK_NB)) {
+        // File locked.
+        purc_set_error (PURC_ERROR_ACCESS_DENIED);
+        return purc_variant_make_boolean (false);
+    }
+
+    flock(fileno(fp), LOCK_UN);
+
+    if (flag_lock) {
+        if (flock (fileno(fp), LOCK_EX) != 0) {
+            set_purc_error_by_errno();
+            fclose (fp);
+            return purc_variant_make_boolean (false);
+        }
+    }
+
+    if (flag_binary)
+        writesize = fwrite (string_content, 1, strlen(string_content), fp);
+    else
+        writesize = fwrite (bsequence, 1, sz_bseq, fp);
+
+    if (flag_lock) {
+        flock (fileno(fp), LOCK_UN);
+    }
+    fclose (fp);
+
+    ret_var = purc_variant_make_ulongint (writesize);
     return ret_var;
 }
 
