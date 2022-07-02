@@ -1044,8 +1044,8 @@ fail_init:
     return NULL;
 }
 
-static struct pcintr_stack_frame_normal*
-push_stack_frame_normal(pcintr_stack_t stack)
+struct pcintr_stack_frame_normal *
+pcintr_push_stack_frame_normal(pcintr_stack_t stack)
 {
     struct pcintr_stack_frame_normal *frame_normal;
     frame_normal = stack_frame_normal_create(stack);
@@ -1400,7 +1400,7 @@ on_select_child(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         // push child frame
         pcintr_stack_t stack = &co->stack;
         struct pcintr_stack_frame_normal *frame_normal;
-        frame_normal = push_stack_frame_normal(stack);
+        frame_normal = pcintr_push_stack_frame_normal(stack);
         if (!frame_normal)
             return;
 
@@ -1743,7 +1743,7 @@ pcintr_init_vdom_under_stack(pcintr_stack_t stack)
     return 0;
 }
 
-static void execute_one_step_for_ready_co(pcintr_coroutine_t co)
+void pcintr_execute_one_step_for_ready_co(pcintr_coroutine_t co)
 {
     pcintr_stack_t stack = &co->stack;
     struct pcintr_stack_frame *frame;
@@ -2302,7 +2302,7 @@ static void run_ready_co(void)
     switch (co->state) {
         case CO_STATE_READY:
             co->state = CO_STATE_RUN;
-            execute_one_step_for_ready_co(co);
+            pcintr_execute_one_step_for_ready_co(co);
             check_after_execution(co);
             break;
         case CO_STATE_RUN:
@@ -2330,7 +2330,7 @@ static void execute_main_for_ready_co(pcintr_coroutine_t co)
     PC_ASSERT(stack == pcintr_get_stack());
 
     struct pcintr_stack_frame_normal *frame_normal;
-    frame_normal = push_stack_frame_normal(stack);
+    frame_normal = pcintr_push_stack_frame_normal(stack);
     if (!frame_normal)
         return;
 
@@ -2631,14 +2631,6 @@ out:
     return false;
 }
 
-struct pcintr_message {
-    pcintr_stack_t stack;
-    purc_variant_t source;
-    purc_variant_t type;
-    purc_variant_t sub_type;
-    purc_variant_t extra;
-};
-
 struct pcintr_message*
 pcintr_message_create(pcintr_stack_t stack, purc_variant_t source,
         purc_variant_t type, purc_variant_t sub_type, purc_variant_t extra)
@@ -2680,142 +2672,6 @@ pcintr_message_destroy(struct pcintr_message* msg)
         PURC_VARIANT_SAFE_CLEAR(msg->extra);
         free(msg);
     }
-}
-
-struct observer_matched_data {
-    pcvdom_element_t              pos;
-    pcvdom_element_t              scope;
-    struct pcdom_element         *edom_element;
-    purc_variant_t               payload;
-};
-
-static void on_observer_matched(void *ud)
-{
-    struct observer_matched_data *p;
-    p = (struct observer_matched_data*)ud;
-    PC_ASSERT(p);
-
-    pcintr_stack_t stack = pcintr_get_stack();
-    PC_ASSERT(stack);
-    pcintr_coroutine_t co = stack->co;
-
-    PC_ASSERT(co->state == CO_STATE_RUN);
-    co->state = CO_STATE_RUN;
-
-    // FIXME:
-    // push stack frame
-    struct pcintr_stack_frame_normal *frame_normal;
-    frame_normal = push_stack_frame_normal(stack);
-    PC_ASSERT(frame_normal);
-
-    struct pcintr_stack_frame *frame;
-    frame = &frame_normal->frame;
-
-    frame->ops = pcintr_get_ops_by_element(p->pos);
-    frame->scope = p->scope;
-    frame->pos = p->pos;
-    frame->silently = pcintr_is_element_silently(frame->pos) ? 1 : 0;
-    frame->edom_element = p->edom_element;
-    frame->next_step = NEXT_STEP_AFTER_PUSHED;
-
-    if (p->payload) {
-        pcintr_set_question_var(frame, p->payload);
-        purc_variant_unref(p->payload);
-    }
-
-    execute_one_step_for_ready_co(co);
-
-    free(p);
-}
-
-static void observer_matched(struct pcintr_observer *p, purc_variant_t payload)
-{
-    pcintr_stack_t stack = pcintr_get_stack();
-    PC_ASSERT(stack);
-    pcintr_coroutine_t co = stack->co;
-    PC_ASSERT(&co->stack == stack);
-
-    struct observer_matched_data *data;
-    data = (struct observer_matched_data*)calloc(1, sizeof(*data));
-    PC_ASSERT(data);
-    data->pos = p->pos;
-    data->scope = p->scope;
-    data->edom_element = p->edom_element;
-    if (payload) {
-        data->payload = payload;
-        purc_variant_ref(data->payload);
-    }
-
-    pcintr_post_msg(data, on_observer_matched);
-}
-
-static void handle_vdom_event(pcintr_stack_t stack, purc_vdom_t vdom,
-        purc_atom_t type, purc_variant_t sub_type, purc_variant_t data)
-{
-    UNUSED_PARAM(stack);
-    UNUSED_PARAM(vdom);
-    UNUSED_PARAM(sub_type);
-    UNUSED_PARAM(data);
-    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(MSG, CLOSE)) == type) {
-        // TODO : quit runner
-        fprintf(stderr, "## event msg not handle : close\n");
-    }
-}
-
-static void
-handle_message(void *ctxt)
-{
-    pcintr_stack_t stack = pcintr_get_stack();
-    PC_ASSERT(stack);
-    pcintr_coroutine_t co = stack->co;
-    PC_ASSERT(co);
-
-    PC_ASSERT(co->state == CO_STATE_RUN);
-
-    struct pcintr_stack_frame *frame;
-    frame = pcintr_stack_get_bottom_frame(stack);
-    PC_ASSERT(frame == NULL);
-
-    struct pcintr_message* msg = (struct pcintr_message*) ctxt;
-    PC_ASSERT(msg);
-
-    PC_ASSERT(stack == msg->stack);
-
-    const char *msg_type = purc_variant_get_string_const(msg->type);
-    PC_ASSERT(msg_type);
-
-    const char *sub_type = NULL;
-    if (msg->sub_type != PURC_VARIANT_INVALID)
-        sub_type = purc_variant_get_string_const(msg->sub_type);
-
-    purc_atom_t msg_type_atom = purc_atom_try_string_ex(ATOM_BUCKET_MSG,
-            msg_type);
-    PC_ASSERT(msg_type_atom);
-
-    purc_variant_t observed = msg->source;
-
-    bool handle = false;
-    struct list_head* list = pcintr_get_observer_list(stack, observed);
-    struct pcintr_observer *p, *n;
-    list_for_each_entry_safe(p, n, list, node) {
-        if (pcintr_is_observer_match(p, observed, msg_type_atom, sub_type)) {
-            handle = true;
-            observer_matched(p, msg->extra);
-        }
-    }
-
-    if (!handle && purc_variant_is_native(observed)) {
-        void *dest = purc_variant_native_get_entity(observed);
-        // window close event dispatch to vdom
-        if (dest == stack->vdom) {
-            handle_vdom_event(stack, stack->vdom, msg_type_atom,
-                    msg->sub_type, msg->extra);
-        }
-    }
-
-    pcintr_message_destroy(msg);
-
-    PC_ASSERT(co->state == CO_STATE_RUN);
 }
 
 int
@@ -2865,7 +2721,7 @@ pcintr_dispatch_message_ex(pcintr_stack_t stack, purc_variant_t source,
         return PURC_ERROR_OUT_OF_MEMORY;
     }
 
-    pcintr_post_msg(msg, handle_message);
+    pcintr_post_msg(msg, pcintr_handle_message);
 
     return PURC_ERROR_OK;
 }
@@ -3838,7 +3694,7 @@ pcintr_observe_vcm_ev(pcintr_stack_t stack, struct pcintr_observer* observer,
 
     // create virtual frame
     struct pcintr_stack_frame_normal *frame_normal;
-    frame_normal = push_stack_frame_normal(stack);
+    frame_normal = pcintr_push_stack_frame_normal(stack);
     if (!frame_normal)
         return;
 
