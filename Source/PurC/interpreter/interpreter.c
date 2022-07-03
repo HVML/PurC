@@ -2632,49 +2632,6 @@ out:
     return false;
 }
 
-struct pcintr_message*
-pcintr_message_create(pcintr_stack_t stack, purc_variant_t source,
-        purc_variant_t type, purc_variant_t sub_type, purc_variant_t extra)
-{
-    struct pcintr_message* msg = (struct pcintr_message*)malloc(
-            sizeof(struct pcintr_message));
-    if (!msg) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return NULL;
-    }
-
-    msg->stack = stack;
-
-    msg->source = source;
-    purc_variant_ref(msg->source);
-
-    msg->type = type;
-    purc_variant_ref(msg->type);
-
-    msg->sub_type = sub_type;
-    if (sub_type != PURC_VARIANT_INVALID) {
-        purc_variant_ref(msg->sub_type);
-    }
-
-    msg->extra = extra;
-    if (extra != PURC_VARIANT_INVALID) {
-        purc_variant_ref(msg->extra);
-    }
-    return msg;
-}
-
-void
-pcintr_message_destroy(struct pcintr_message* msg)
-{
-    if (msg) {
-        PURC_VARIANT_SAFE_CLEAR(msg->source);
-        PURC_VARIANT_SAFE_CLEAR(msg->type);
-        PURC_VARIANT_SAFE_CLEAR(msg->sub_type);
-        PURC_VARIANT_SAFE_CLEAR(msg->extra);
-        free(msg);
-    }
-}
-
 purc_variant_t
 pcintr_load_from_uri(pcintr_stack_t stack, const char* uri)
 {

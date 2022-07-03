@@ -43,14 +43,6 @@ struct pcvdom_template {
     bool                          to_free;
 };
 
-struct pcintr_message {
-    pcintr_stack_t stack;
-    purc_variant_t source;
-    purc_variant_t type;
-    purc_variant_t sub_type;
-    purc_variant_t extra;
-};
-
 struct pcintr_observer_matched_data {
     pcvdom_element_t              pos;
     pcvdom_element_t              scope;
@@ -78,12 +70,6 @@ pcintr_push_stack_frame_normal(pcintr_stack_t stack);
 
 void
 pcintr_execute_one_step_for_ready_co(pcintr_coroutine_t co);
-
-void
-pcintr_handle_message(void *ctxt);
-
-void
-pcintr_message_destroy(struct pcintr_message* msg);
 
 void
 pcintr_dispatch_msg(void);

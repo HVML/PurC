@@ -151,64 +151,6 @@ static void handle_vdom_event(pcintr_stack_t stack, purc_vdom_t vdom,
     }
 }
 
-void
-pcintr_handle_message(void *ctxt)
-{
-    pcintr_stack_t stack = pcintr_get_stack();
-    PC_ASSERT(stack);
-    pcintr_coroutine_t co = stack->co;
-    PC_ASSERT(co);
-
-    PC_ASSERT(co->state == CO_STATE_RUN);
-
-    struct pcintr_stack_frame *frame;
-    frame = pcintr_stack_get_bottom_frame(stack);
-    PC_ASSERT(frame == NULL);
-
-    struct pcintr_message* msg = (struct pcintr_message*) ctxt;
-    PC_ASSERT(msg);
-
-    PC_ASSERT(stack == msg->stack);
-
-    const char *msg_type = purc_variant_get_string_const(msg->type);
-    PC_ASSERT(msg_type);
-
-    const char *sub_type = NULL;
-    if (msg->sub_type != PURC_VARIANT_INVALID)
-        sub_type = purc_variant_get_string_const(msg->sub_type);
-
-    purc_atom_t msg_type_atom = purc_atom_try_string_ex(ATOM_BUCKET_MSG,
-            msg_type);
-    PC_ASSERT(msg_type_atom);
-
-    purc_variant_t observed = msg->source;
-
-    bool handle = false;
-    struct list_head* list = pcintr_get_observer_list(stack, observed);
-    struct pcintr_observer *p, *n;
-    list_for_each_entry_safe(p, n, list, node) {
-        if (pcintr_is_observer_match(p, observed, msg_type_atom, sub_type)) {
-            handle = true;
-            observer_matched(stack, p, msg->extra, PURC_VARIANT_INVALID,
-                    PURC_VARIANT_INVALID);
-        }
-    }
-
-    if (!handle && purc_variant_is_native(observed)) {
-        void *dest = purc_variant_native_get_entity(observed);
-        // window close event dispatch to vdom
-        if (dest == stack->vdom) {
-            handle_vdom_event(stack, stack->vdom, msg_type_atom,
-                    msg->sub_type, msg->extra);
-        }
-    }
-
-    pcintr_message_destroy(msg);
-
-//    PC_ASSERT(co->state == CO_STATE_RUN);
-}
-
-
 int
 process_coroutine_event(pcintr_coroutine_t co, pcrdr_msg *msg)
 {
