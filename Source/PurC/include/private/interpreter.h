@@ -705,6 +705,19 @@ pcintr_load_module(const char *module,
 void
 pcintr_unload_module(void *handle);
 
+int
+pcintr_post_event(pcintr_coroutine_t co,
+        pcrdr_msg_event_reduce_opt reduce_op, purc_variant_t source_uri,
+        purc_variant_t observed, purc_variant_t event_name,
+        purc_variant_t data);
+
+int
+pcintr_post_event_by_ctype(pcintr_coroutine_t co,
+        pcrdr_msg_event_reduce_opt reduce_op, purc_variant_t source_uri,
+        purc_variant_t observed, const char *event_type,
+        const char *event_sub_type, purc_variant_t data);
+
+
 PCA_EXTERN_C_END
 
 #endif  /* PURC_PRIVATE_INTERPRETER_H */
