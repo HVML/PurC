@@ -405,6 +405,8 @@ purc_load_hvml_from_rwstream(purc_rwstream_t stream);
  *
  * Returns: @true for success; @false for failure.
  *
+ * XXX: will be removed, use purc_bind_coroutine_variable() instead.
+ *
  * Since 0.0.1
  */
 PCA_EXPORT bool
@@ -438,8 +440,13 @@ typedef struct purc_renderer_extra_info {
     const char *page_groups;
 } purc_renderer_extra_info;
 
+/** The rendere page type */
 typedef enum pcrdr_page_type {
-    PCRDR_PAGE_TYPE_PLAINWIN = 0,
+    /** Do not create any page for the HVML coroutine. */
+    PCRDR_PAGE_TYPE_NULL = 0,
+    /** Create a plain window for the HVML coroutine. */
+    PCRDR_PAGE_TYPE_PLAINWIN,
+    /** Create a widget in the specified page group for the HVML coroutine. */
     PCRDR_PAGE_TYPE_WIDGET,
 } pcrdr_page_type;
 
@@ -455,12 +462,14 @@ typedef enum pcrdr_page_type {
  *  plainw window for this vDOM.
  * @page_name: The page name (nullable). When @NULL given, the page will be
  *  assigned with an auto-generated page name like `page-10`.
- * @extra_info: The extra renderer information.
+ * @extra_rdr_info: The extra renderer information.
  *
  * Attaches a vDOM tree to a plain window or a widget in the specified
  * workspace in the connected renderer.
  *
  * Returns: @true on success; otherwise @false.
+ *
+ * XXX: This function will be substituted by `purc_schedule_vdom`.
  *
  * Since 0.1.0
  */
@@ -468,18 +477,22 @@ PCA_EXPORT bool
 purc_attach_vdom_to_renderer(purc_vdom_t vdom,
         pcrdr_page_type page_type, const char *target_workspace,
         const char *target_group, const char *page_name,
-        purc_renderer_extra_info *extra_info);
-
-struct purc_vdom_entry;
-typedef struct purc_vdom_entry* purc_vdom_entry_t;
+        purc_renderer_extra_info *extra_rdr_info);
 
 /**
  * purc_schedule_vdom:
  *
  * @vdom: The vDOM entity returned by @purc_load_hvml_from_rwstream or
  *      its brother functions.
- * @entry: The `define` or `body` element representing the entry in @vdom.
- * @request: The variant which will be used as the request data.
+ * @page_type: the target renderer page type.
+ * @target_workspace: The name of the target renderer workspace.
+ * @target_group: The identifier of the target group (nullable) in the layout
+ *  HTML contents. When @NULL given, the renderer will create an ungrouped
+ *  plainw window for this coroutine.
+ * @page_name: The page name (nullable). When @NULL given, the page will be
+ *  assigned with an auto-generated page name like `page-10`.
+ * @extra_info: The extra renderer information.
+ * @entry: The identifier of the `body` element as the entry in @vdom.
  *
  * Creates a new coroutine to run the specified vDOM.
  * If success, the new coroutine will be in READY state.
@@ -489,8 +502,27 @@ typedef struct purc_vdom_entry* purc_vdom_entry_t;
  * Since 0.2.0
  */
 PCA_EXPORT purc_atom_t
-purc_schedule_vdom(purc_vdom_t vdom, purc_vdom_entry_t entry,
-        purc_variant_t request);
+purc_schedule_vdom(purc_vdom_t vdom,
+        pcrdr_page_type page_type, const char *target_workspace,
+        const char *target_group, const char *page_name,
+        purc_renderer_extra_info *extra_info, const char *entry);
+
+/**
+ * purc_bind_coroutine_variable:
+ *
+ * @cid: The coroutine identifier.
+ * @name: The pointer to the string contains the name for the variable.
+ * @variant: The variant.
+ *
+ * Binds a variant value as the document-level variable of the specified vDOM.
+ *
+ * Returns: @true for success; @false for failure.
+ *
+ * Since 0.0.1
+ */
+PCA_EXPORT bool
+purc_bind_coroutine_variable(purc_atom_t cid, const char* name,
+        purc_variant_t variant);
 
 typedef int (*purc_event_handler)(const struct pcrdr_msg *event);
 
@@ -529,21 +561,26 @@ purc_inst_new(const char *app_name, const char *runner_name,
         const purc_instance_extra_info* extra_info);
 
 /**
- * purc_inst_load_hvml:
+ * purc_inst_schedule_vdom:
  *
  * @inst: The atom representing the target PurC instance differs
  *      from the current instance.
- * @url: The URL of the HVML program.
- * @page_type: the target page type.
- * @target_workspace: The name of the target workspace.
+ * @vdom: The vDOM entity returned by @purc_load_hvml_from_rwstream or
+ *      its brother functions.
+ * @page_type: the target renderer page type.
+ * @target_workspace: The name of the target renderer workspace.
  * @target_group: The identifier of the target group (nullable) in the layout
  *  HTML contents. When @NULL given, the renderer will create an ungrouped
- *  plainw window for this vDOM.
- * @page_name: The page name (nullable). When @NULL given, the page will be
+ *  plainw window for this coroutine.
+ * @page_name: The page name (nullable). When @NULL is given, the page will be
  *  assigned with an auto-generated page name like `page-10`.
  * @extra_rdr_info: The extra renderer information.
+ * @entry: The identifier of the `body` element as the entry in @vdom.
+ *         When @NULL is given, use the first `body` element as the entry.
+ * @request: The variant which will be used as the request data.
  *
- * Loads and executes a HVML program in the specific PurC instance.
+ * Creates a new coroutine to run the specified vDOM in the specific instances.
+ * If success, the new coroutine will be in READY state.
  *
  * Returns: The atom representing the new coroutine in the PurC instance,
  *      0 for error.
@@ -551,54 +588,11 @@ purc_inst_new(const char *app_name, const char *runner_name,
  * Since 0.2.0
  */
 PCA_EXPORT purc_atom_t
-purc_inst_load_hvml(purc_atom_t inst, const char *url,
+purc_inst_schedule_vdom(purc_atom_t inst, purc_vdom_t vdom,
         pcrdr_page_type page_type, const char *target_workspace,
         const char *target_group, const char *page_name,
-        purc_renderer_extra_info *extra_rdr_info);
-
-/**
- * purc_inst_call_ops:
- *
- * @inst: The atom representing the target PurC instance differs
- *      from the current instance.
- * @vdom: The vDOM entity returned by @purc_load_hvml_from_rwstream or
- *      its brother functions.
- * @entry: The `define` or `body` element representing the entry in @vdom.
- * @arg: The argument will be passed to the operation set.
- * @status: The location to return the call status.
- *
- * Calls the specified operation set in another PurC instance, and
- * wait for the result.
- *
- * Returns: The result variant; @PURC_VARIANT_INVALID for error.
- *
- * Since 0.2.0
- */
-PCA_EXPORT purc_variant_t
-purc_inst_call_ops(purc_atom_t inst, purc_vdom_t vdom,
-        purc_vdom_entry_t *entry, purc_variant_t arg, int *status);
-
-/**
- * purc_inst_call_ops_async:
- *
- * @inst: The atom representing the target PurC instance differs
- *      from the current instance.
- * @vdom: The vDOM entity returned by @purc_load_hvml_from_rwstream or
- *      its brother functions.
- * @ops: The `define` element representing the operation set in @vdom.
- * @arg: The argument will be passed to the operation set.
- *
- * Calls the specified operation set in another PurC instance, and
- * wait for the result.
- *
- * Returns: The atom representing the new coroutine in the PurC instance,
- *      0 for error.
- *
- * Since 0.2.0
- */
-PCA_EXPORT purc_atom_t
-purc_inst_call_ops_async(purc_atom_t inst, purc_vdom_t vdom, void *ops,
-        purc_variant_t arg);
+        purc_renderer_extra_info *extra_rdr_info,
+        const char *entry, purc_variant_t request);
 
 typedef enum {
     PURC_INST_SIGNAL_CANCEL,
