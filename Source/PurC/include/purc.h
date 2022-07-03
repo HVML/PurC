@@ -335,9 +335,8 @@ purc_get_local_data(const char* data_name, uintptr_t *local_data,
 PCA_EXPORT bool
 purc_bind_variable(const char* name, purc_variant_t variant);
 
-struct purc_vdom;
-typedef struct purc_vdom  purc_vdom;
-typedef struct purc_vdom* purc_vdom_t;
+struct pcvdom_document;
+typedef struct pcvdom_document* purc_vdom_t;
 
 /**
  * purc_load_hvml_from_string:
@@ -394,24 +393,6 @@ purc_load_hvml_from_url(const char* url);
  */
 PCA_EXPORT purc_vdom_t
 purc_load_hvml_from_rwstream(purc_rwstream_t stream);
-
-/**
- * purc_bind_document_variable:
- *
- * @name: The pointer to the string contains the name for the variable.
- * @variant: The variant.
- *
- * Binds a variant value as the document-level variable of the specified vDOM.
- *
- * Returns: @true for success; @false for failure.
- *
- * XXX: will be removed, use purc_bind_coroutine_variable() instead.
- *
- * Since 0.0.1
- */
-PCA_EXPORT bool
-purc_bind_document_variable(purc_vdom_t vdom, const char* name,
-        purc_variant_t variant);
 
 /**
  * purc_get_conn_to_renderer:
@@ -479,11 +460,16 @@ purc_attach_vdom_to_renderer(purc_vdom_t vdom,
         const char *target_group, const char *page_name,
         purc_renderer_extra_info *extra_rdr_info);
 
+struct pcintr_coroutine;
+typedef struct pcintr_coroutine *purc_coroutine_t;
+
 /**
  * purc_schedule_vdom:
  *
  * @vdom: The vDOM entity returned by @purc_load_hvml_from_rwstream or
- *      its brother functions.
+ *  its brother functions.
+ * @curator: The curator of the new coroutine, i.e., the coroutine which is
+ *  waiting for the the execute result of the new coroutine; 0 for no curator.
  * @page_type: the target renderer page type.
  * @target_workspace: The name of the target renderer workspace.
  * @target_group: The identifier of the target group (nullable) in the layout
@@ -497,32 +483,63 @@ purc_attach_vdom_to_renderer(purc_vdom_t vdom,
  * Creates a new coroutine to run the specified vDOM.
  * If success, the new coroutine will be in READY state.
  *
- * Returns: The atom representing the new coroutine, 0 for error.
+ * Returns: The pointer to the new coroutine, 0 for error.
  *
  * Since 0.2.0
  */
-PCA_EXPORT purc_atom_t
-purc_schedule_vdom(purc_vdom_t vdom,
+PCA_EXPORT purc_coroutine_t
+purc_schedule_vdom(purc_vdom_t vdom, purc_coroutine_t curator,
         pcrdr_page_type page_type, const char *target_workspace,
         const char *target_group, const char *page_name,
         purc_renderer_extra_info *extra_info, const char *entry);
 
 /**
- * purc_bind_coroutine_variable:
+ * purc_coroutine_bind_variable:
  *
- * @cid: The coroutine identifier.
+ * @cor: The pointer to a coroutine structure which representing a coroutine.
  * @name: The pointer to the string contains the name for the variable.
  * @variant: The variant.
  *
- * Binds a variant value as the document-level variable of the specified vDOM.
+ * Binds a variant as the coroutine-level variable of the specified
+ * coroutine.
  *
  * Returns: @true for success; @false for failure.
  *
- * Since 0.0.1
+ * Since 0.2.0
  */
 PCA_EXPORT bool
-purc_bind_coroutine_variable(purc_atom_t cid, const char* name,
+purc_coroutine_bind_variable(purc_coroutine_t cor, const char* name,
         purc_variant_t variant);
+
+/**
+ * purc_coroutine_unbind_variable:
+ *
+ * @cor: The pointer to a coroutine structure which representing a coroutine.
+ * @name: The pointer to the string contains the name for the variable.
+ *
+ * Unbinds a coroutine-level variable from the specified coroutine.
+ *
+ * Returns: @true for success; @false for failure.
+ *
+ * Since 0.2.0
+ */
+PCA_EXPORT bool
+purc_coroutine_unbind_variable(purc_coroutine_t cor, const char *name);
+
+/**
+ * purc_coroutine_get_variable:
+ *
+ * @cor: The pointer to a coroutine structure which representing a coroutine.
+ * @name: The pointer to the string contains the name for the variable.
+ *
+ * Retrieves a coroutine-level variable from the specified coroutine.
+ *
+ * Returns: The variant value on success; PURC_VARIANT_INVALID for failure.
+ *
+ * Since 0.2.0
+ */
+PCA_EXPORT purc_variant_t
+purc_coroutine_get_variable(purc_coroutine_t cor, const char *name);
 
 typedef int (*purc_event_handler)(const struct pcrdr_msg *event);
 
@@ -564,9 +581,11 @@ purc_inst_new(const char *app_name, const char *runner_name,
  * purc_inst_schedule_vdom:
  *
  * @inst: The atom representing the target PurC instance differs
- *      from the current instance.
+ *  from the current instance.
  * @vdom: The vDOM entity returned by @purc_load_hvml_from_rwstream or
- *      its brother functions.
+ *  its brother functions.
+ * @curator: The curator of the new coroutine, i.e., the coroutine which is
+ *  waiting for the the execute result of the new coroutine; 0 for no curator.
  * @page_type: the target renderer page type.
  * @target_workspace: The name of the target renderer workspace.
  * @target_group: The identifier of the target group (nullable) in the layout
@@ -588,7 +607,7 @@ purc_inst_new(const char *app_name, const char *runner_name,
  * Since 0.2.0
  */
 PCA_EXPORT purc_atom_t
-purc_inst_schedule_vdom(purc_atom_t inst, purc_vdom_t vdom,
+purc_inst_schedule_vdom(purc_atom_t inst, purc_vdom_t vdom, purc_atom_t curator,
         pcrdr_page_type page_type, const char *target_workspace,
         const char *target_group, const char *page_name,
         purc_renderer_extra_info *extra_rdr_info,

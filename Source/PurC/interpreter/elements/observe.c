@@ -664,16 +664,16 @@ match_id(pcintr_stack_t stack, struct pcvdom_element *elem, const char *id)
 }
 
 static int
-bind_at_element(struct pcvdom_element *elem, const char *name,
+bind_at_element(purc_coroutine_t cor, struct pcvdom_element *elem, const char *name,
         purc_variant_t val)
 {
-    return pcintr_bind_scope_variable(elem, name, val) ? 0 : -1 ;
+    return pcintr_bind_scope_variable(cor, elem, name, val) ? 0 : -1 ;
 }
 
 static int
-bind_at_vdom(purc_vdom_t vdom, const char *name, purc_variant_t val)
+bind_at_coroutine(purc_coroutine_t cor, const char *name, purc_variant_t val)
 {
-    return purc_bind_document_variable(vdom, name, val) ? 0 : -1;
+    return purc_coroutine_bind_variable(cor, name, val) ? 0 : -1;
 }
 
 static int
@@ -691,11 +691,11 @@ bind_by_level(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
     }
 
     if (p && p->node.type != PCVDOM_NODE_DOCUMENT) {
-        return bind_at_element(p, name, val);
+        return bind_at_element(stack->co, p, name, val);
     }
 
     if (silently) {
-        return bind_at_vdom(stack->vdom, name, val);
+        return bind_at_coroutine(stack->co, name, val);
     }
     purc_set_error_with_info(PURC_ERROR_ENTITY_NOT_FOUND,
             "no vdom element exists");
@@ -724,7 +724,7 @@ process_bind_by_elem_id(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
     }
 
     if (dest && dest->node.type != PCVDOM_NODE_DOCUMENT) {
-        return bind_at_element(dest, name, val);
+        return bind_at_element(stack->co, dest, name, val);
     }
 
     if (frame->silently) {
@@ -755,7 +755,7 @@ process_bind_by_name_space(pcintr_stack_t stack,
     }
 
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, _ROOT)) == atom ) {
-        return bind_at_vdom(stack->vdom, name, val);
+        return bind_at_coroutine(stack->co, name, val);
     }
 
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, _LAST)) == atom) {
@@ -767,7 +767,7 @@ process_bind_by_name_space(pcintr_stack_t stack,
     }
 
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, _TOPMOST)) == atom) {
-        return bind_at_vdom(stack->vdom, name, val);
+        return bind_at_coroutine(stack->co, name, val);
     }
 
 not_found:
@@ -894,7 +894,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
                         bind_ret = bind_by_level(stack, frame, name, v, level);
                     }
                     else {
-                        bind_ret = bind_at_vdom(stack->vdom, name, v);
+                        bind_ret = bind_at_coroutine(stack->co, name, v);
                     }
                 }
             }
@@ -905,7 +905,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
                     bind_ret = bind_by_level(stack, frame, name, v, level);
                 }
                 else {
-                    bind_ret = bind_at_vdom(stack->vdom, name, v);
+                    bind_ret = bind_at_coroutine(stack->co, name, v);
                 }
             }
         }

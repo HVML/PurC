@@ -403,6 +403,14 @@ bool purc_is_valid_md5_id (const char* id)
     return true;
 }
 
+time_t purc_monotonic_time_after(time_t seconds)
+{
+    struct timespec ts_curr;
+
+    clock_gettime(CLOCK_MONOTONIC, &ts_curr);
+    return ts_curr.tv_sec + seconds;
+}
+
 double purc_get_elapsed_seconds (const struct timespec *ts1,
         const struct timespec *ts2)
 {

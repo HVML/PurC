@@ -715,7 +715,7 @@ purc_vdom_t find_vdom_by_target_window(uint64_t handle, pcintr_stack_t *pstack)
         pcintr_coroutine_t co;
         co = container_of(p, struct pcintr_coroutine, node);
 
-        if (handle == pcvdom_document_get_target_window(co->stack.vdom)) {
+        if (handle == co->target_page_handle) {
             if (pstack) {
                 *pstack = &(co->stack);
             }
@@ -739,7 +739,7 @@ purc_vdom_t find_vdom_by_target_vdom(uint64_t handle, pcintr_stack_t *pstack)
         pcintr_coroutine_t co;
         co = container_of(p, struct pcintr_coroutine, node);
 
-        if (handle == pcvdom_document_get_target_dom(co->stack.vdom)) {
+        if (handle == co->target_dom_handle) {
             if (pstack) {
                 *pstack = &(co->stack);
             }
@@ -838,16 +838,11 @@ out:
 }
 
 bool
-purc_attach_vdom_to_renderer(purc_vdom_t vdom,
+pcintr_attach_to_renderer(pcintr_coroutine_t cor,
         pcrdr_page_type page_type, const char *target_workspace,
         const char *target_group, const char *page_name,
         purc_renderer_extra_info *extra_info)
 {
-    if (!vdom) {
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
-        return false;
-    }
-
     struct pcinst *inst = pcinst_current();
     if (inst == NULL || inst->rdr_caps == NULL) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
@@ -899,9 +894,15 @@ purc_attach_vdom_to_renderer(purc_vdom_t vdom,
     }
 
     pcrdr_conn_set_event_handler(conn_to_rdr, pcintr_rdr_event_handler);
+    cor->target_workspace_handle = workspace;
+    cor->target_page_type = page_type;
+    cor->target_page_handle = page;
+
+#if 0 // VW
     pcvdom_document_set_target_workspace(vdom, workspace);
     pcvdom_document_set_target_window(vdom, page);
     pcvdom_document_set_target_tabpage(vdom, 0);
+#endif
 
     return true;
 }
@@ -909,28 +910,24 @@ purc_attach_vdom_to_renderer(purc_vdom_t vdom,
 bool
 pcintr_rdr_page_control_load(pcintr_stack_t stack)
 {
-    if (!pcvdom_document_is_attached_rdr(stack->vdom)) {
+    if (stack->co->target_page_handle == 0) {
         return true;
     }
     pcrdr_msg *response_msg = NULL;
 
     const char *operation = PCRDR_OPERATION_LOAD;
-    pcrdr_msg_target target = PCRDR_MSG_TARGET_WIDGET;
+    pcrdr_msg_target target;
     uint64_t target_value;
     pcrdr_msg_element_type element_type = PCRDR_MSG_ELEMENT_TYPE_VOID;
     pcrdr_msg_data_type data_type = PCRDR_MSG_DATA_TYPE_TEXT;
     purc_variant_t req_data = PURC_VARIANT_INVALID;
 
-    purc_vdom_t vdom = stack->vdom;
     pchtml_html_document_t *doc = stack->doc;
     int opt = 0;
     purc_rwstream_t out = NULL;
 
-    target_value = pcvdom_document_get_target_tabpage(vdom);
-    if (target_value == 0) {
-        target = PCRDR_MSG_TARGET_PLAINWINDOW;
-        target_value = pcvdom_document_get_target_window(vdom);
-    }
+    target = stack->co->target_page_type;
+    target_value = stack->co->target_page_handle;
 
     out = purc_rwstream_new_buffer(BUFF_MIN, BUFF_MAX);
     if (out == NULL) {
@@ -969,7 +966,7 @@ pcintr_rdr_page_control_load(pcintr_stack_t stack)
 
     int ret_code = response_msg->retCode;
     if (ret_code == PCRDR_SC_OK) {
-        pcvdom_document_set_target_dom(vdom, response_msg->resultValue);
+        stack->co->target_dom_handle = response_msg->resultValue;
     }
 
     pcrdr_release_message(response_msg);
@@ -1000,7 +997,7 @@ pcintr_rdr_send_dom_req(pcintr_stack_t stack, const char *operation,
         pcdom_element_t *element, const char* property,
         pcrdr_msg_data_type data_type, purc_variant_t data)
 {
-    if (!stack || !pcvdom_document_is_attached_rdr(stack->vdom)
+    if (!stack || stack->co->target_page_handle == 0
             || stack->stage != STACK_STAGE_EVENT_LOOP) {
         return NULL;
     }
@@ -1008,7 +1005,7 @@ pcintr_rdr_send_dom_req(pcintr_stack_t stack, const char *operation,
     pcrdr_msg *response_msg = NULL;
 
     pcrdr_msg_target target = PCRDR_MSG_TARGET_DOM;
-    uint64_t target_value = pcvdom_document_get_target_dom(stack->vdom);
+    uint64_t target_value = stack->co->target_dom_handle;
     pcrdr_msg_element_type element_type = PCRDR_MSG_ELEMENT_TYPE_HANDLE;
 
     char elem[LEN_BUFF_LONGLONGINT];
@@ -1053,7 +1050,7 @@ pcintr_rdr_send_dom_req_raw(pcintr_stack_t stack, const char *operation,
         pcdom_element_t *element, const char* property,
         pcrdr_msg_data_type data_type, const char *data)
 {
-    if (!stack || !pcvdom_document_is_attached_rdr(stack->vdom)
+    if (!stack || stack->co->target_page_handle == 0
             || stack->stage != STACK_STAGE_EVENT_LOOP) {
         return NULL;
     }
@@ -1171,7 +1168,7 @@ bool
 pcintr_rdr_dom_append_child(pcintr_stack_t stack, pcdom_element_t *element,
         pcdom_node_t *child)
 {
-    if (!stack || !pcvdom_document_is_attached_rdr(stack->vdom)
+    if (!stack || stack->co->target_page_handle == 0
             || stack->stage != STACK_STAGE_EVENT_LOOP) {
         return true;
     }
@@ -1188,7 +1185,7 @@ bool
 pcintr_rdr_dom_displace_child(pcintr_stack_t stack, pcdom_element_t *element,
         pcdom_node_t *child)
 {
-    if (!stack || !pcvdom_document_is_attached_rdr(stack->vdom)
+    if (!stack || stack->co->target_page_handle == 0
             || stack->stage != STACK_STAGE_EVENT_LOOP) {
         return true;
     }

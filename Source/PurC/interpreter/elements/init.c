@@ -181,7 +181,7 @@ post_process_bind_at_vdom(pcintr_coroutine_t co,
         return -1;
 
     bool ok;
-    ok = pcintr_bind_scope_variable(elem, s_name, src);
+    ok = pcintr_bind_scope_variable(co, elem, s_name, src);
     return ok ? 0 : -1;
 }
 
@@ -354,7 +354,7 @@ post_process_src_by_topmost(pcintr_coroutine_t co,
         if (!s_name)
             return -1;
         bool ok;
-        ok = purc_bind_document_variable(co->stack.vdom, s_name, src);
+        ok = purc_coroutine_bind_variable(co, s_name, src);
         return ok ? 0 : -1;
     }
 }
@@ -431,7 +431,7 @@ post_process_src(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         if (ctxt->under_head) {
             uint64_t level = 0;
             struct pcvdom_node *node = &frame->pos->node;
-            while (node && node != &co->stack.vdom->document->node) {
+            while (node && node != &co->stack.vdom->node) {
                 node = pcvdom_node_parent(node);
                 level += 1;
             }
@@ -441,7 +441,7 @@ post_process_src(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
                 return -1;
             }
             bool ok;
-            ok = purc_bind_document_variable(co->stack.vdom, s_name, src);
+            ok = purc_coroutine_bind_variable(co, s_name, src);
             return ok ? 0 : -1;
         }
         return post_process_src_by_level(co, frame, src, 1);
@@ -889,11 +889,12 @@ static void load_response_handler(purc_variant_t request_id, void *ctxt,
     const char *s_name = purc_variant_get_string_const(fetcher->name);
     if (ret != PURC_VARIANT_INVALID) {
         if (fetcher->under_head) {
-            ok = purc_bind_document_variable(fetcher->stack->vdom, s_name,
+            ok = purc_coroutine_bind_variable(fetcher->stack->co, s_name,
                     ret);
         } else {
             element = pcvdom_element_parent(element);
-            ok = pcintr_bind_scope_variable(element, s_name, ret);
+            ok = pcintr_bind_scope_variable(fetcher->stack->co, element,
+                    s_name, ret);
         }
         purc_variant_unref(ret);
         if (ok) {
@@ -912,11 +913,11 @@ dispatch_except:
         purc_atom_t atom = purc_get_error_exception(purc_get_last_error());
         pcvarmgr_t varmgr;
         if (fetcher->under_head) {
-            varmgr = pcvdom_document_get_variables(fetcher->stack->vdom);
+            varmgr = pcintr_get_coroutine_variables(fetcher->stack->co);
         }
         else {
             element = pcvdom_element_parent(element);
-            varmgr = pcvdom_element_get_variables(element);
+            varmgr = pcintr_get_scope_variables(fetcher->stack->co, element);
         }
         pcvarmgr_dispatch_except(varmgr, s_name, purc_atom_to_string(atom));
     }
@@ -1017,10 +1018,10 @@ static void on_sync_continuation(void *ud, void *extra)
     const char *s_name = purc_variant_get_string_const(ctxt->as);
     if (ret != PURC_VARIANT_INVALID) {
         if (ctxt->under_head) {
-            ok = purc_bind_document_variable(stack->vdom, s_name, ret);
+            ok = purc_coroutine_bind_variable(stack->co, s_name, ret);
         } else {
             element = pcvdom_element_parent(element);
-            ok = pcintr_bind_scope_variable(element, s_name, ret);
+            ok = pcintr_bind_scope_variable(stack->co, element, s_name, ret);
         }
         purc_variant_unref(ret);
         if (ok) {
@@ -1040,11 +1041,11 @@ dispatch_except:
         purc_atom_t atom = purc_get_error_exception(ctxt->err);
         pcvarmgr_t varmgr;
         if (ctxt->under_head) {
-            varmgr = pcvdom_document_get_variables(stack->vdom);
+            varmgr = pcintr_get_coroutine_variables(stack->co);
         }
         else {
             element = pcvdom_element_parent(element);
-            varmgr = pcvdom_element_get_variables(element);
+            varmgr = pcintr_get_scope_variables(stack->co, element);
         }
         pcvarmgr_dispatch_except(varmgr, s_name, purc_atom_to_string(atom));
     }
@@ -1204,10 +1205,10 @@ static void on_async_resume_on_frame_pseudo(pcintr_coroutine_t co,
     const char *s_name = purc_variant_get_string_const(data->as);
     if (ret != PURC_VARIANT_INVALID) {
         if (data->under_head) {
-            ok = purc_bind_document_variable(stack->vdom, s_name, ret);
+            ok = purc_coroutine_bind_variable(stack->co, s_name, ret);
         } else {
             element = pcvdom_element_parent(element);
-            ok = pcintr_bind_scope_variable(element, s_name, ret);
+            ok = pcintr_bind_scope_variable(stack->co, element, s_name, ret);
         }
         purc_variant_unref(ret);
         if (ok) {
@@ -1227,11 +1228,11 @@ dispatch_except:
         purc_atom_t atom = purc_get_error_exception(data->err);
         pcvarmgr_t varmgr;
         if (data->under_head) {
-            varmgr = pcvdom_document_get_variables(stack->vdom);
+            varmgr = pcintr_get_coroutine_variables(stack->co);
         }
         else {
             element = pcvdom_element_parent(element);
-            varmgr = pcvdom_element_get_variables(element);
+            varmgr = pcintr_get_scope_variables(stack->co, element);
         }
         pcvarmgr_dispatch_except(varmgr, s_name, purc_atom_to_string(atom));
     }

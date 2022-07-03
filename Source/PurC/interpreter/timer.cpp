@@ -617,7 +617,7 @@ pcintr_timers_init(pcintr_stack_t stack)
         return NULL;
     }
 
-    if (!pcintr_bind_document_variable(stack->vdom, TIMERS_STR_TIMERS, ret)) {
+    if (!pcintr_bind_coroutine_variable(stack->co, TIMERS_STR_TIMERS, ret)) {
         purc_variant_unref(ret);
         return NULL;
     }
@@ -660,7 +660,7 @@ pcintr_timers_init(pcintr_stack_t stack)
 failure:
     if (timers)
         pcintr_timers_destroy(timers);
-    pcintr_unbind_document_variable(stack->vdom, TIMERS_STR_TIMERS);
+    pcintr_unbind_coroutine_variable(stack->co, TIMERS_STR_TIMERS);
     purc_variant_unref(ret);
     return NULL;
 }

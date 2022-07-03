@@ -263,6 +263,20 @@ PCA_EXPORT bool
 purc_is_valid_md5_id(const char *id);
 
 /**
+ * Get monotomic time after the specific seconds.
+ *
+ * @param seconds: the number of seconds.
+ *
+ * Calculates monotomic time after the specific seconds.
+ *
+ * Returns: the monotomic time after the specific seconds.
+ *
+ * Since: 0.2.0
+ */
+PCA_EXPORT time_t
+purc_monotonic_time_after(time_t seconds);
+
+/**
  * Get the elapsed seconds.
  *
  * @param ts1: the earlier time.

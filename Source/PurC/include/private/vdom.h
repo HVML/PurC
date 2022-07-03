@@ -73,6 +73,18 @@ struct pcvdom_comment;
 typedef enum pchvml_tag_id   pcvdom_tag_id;
 struct pcvdom_attr;
 
+static inline struct pcvdom_node *
+pcvdom_doc_cast_to_node(struct pcvdom_document *doc)
+{
+    return (struct pcvdom_node *)doc;
+}
+
+static inline struct pcvdom_node *
+pcvdom_ele_cast_to_node(struct pcvdom_element *doc)
+{
+    return (struct pcvdom_node *)doc;
+}
+
 struct pcvdom_document*
 pcvdom_document_ref(struct pcvdom_document *doc);
 
@@ -128,50 +140,6 @@ int
 pcvdom_document_append_comment(struct pcvdom_document *doc,
         struct pcvdom_comment *comment);
 
-// build-in variable : DOC, TIMERS
-bool
-pcvdom_document_bind_variable(purc_vdom_t vdom, const char *name,
-        purc_variant_t variant);
-
-bool
-pcvdom_document_unbind_variable(purc_vdom_t vdom, const char *name);
-
-purc_variant_t
-pcvdom_document_get_variable(purc_vdom_t vdom, const char *name);
-
-pcvarmgr_t
-pcvdom_document_get_variables(purc_vdom_t vdom);
-
-void
-pcvdom_document_set_target_workspace(purc_vdom_t vdom, uintptr_t workspace);
-
-uintptr_t
-pcvdom_document_get_target_workspace(purc_vdom_t vdom);
-
-void
-pcvdom_document_set_target_window(purc_vdom_t vdom, uintptr_t window);
-
-uintptr_t
-pcvdom_document_get_target_window(purc_vdom_t vdom);
-
-void
-pcvdom_document_set_target_tabpage(purc_vdom_t vdom, uintptr_t tabpage);
-
-uintptr_t
-pcvdom_document_get_target_tabpage(purc_vdom_t vdom);
-
-void
-pcvdom_document_set_target_dom(purc_vdom_t vdom, uintptr_t dom);
-
-uintptr_t
-pcvdom_document_get_target_dom(purc_vdom_t vdom);
-
-bool
-pcvdom_document_is_attached_rdr(purc_vdom_t vdom);
-
-void
-pcvdom_document_set_dump_buff(purc_vdom_t vdom, char **dump_buff);
-
 int
 pcvdom_element_append_attr(struct pcvdom_element *elem,
         struct pcvdom_attr *attr);
@@ -191,21 +159,6 @@ pcvdom_element_append_comment(struct pcvdom_element *elem,
 int
 pcvdom_element_set_vcm_content(struct pcvdom_element *elem,
         struct pcvcm_node *vcm_content);
-
-// custom variable : init、bind、connect、load、define
-bool
-pcvdom_element_bind_variable(struct pcvdom_element *elem,
-        const char *name, purc_variant_t variant);
-
-bool
-pcvdom_element_unbind_variable(struct pcvdom_element *elem,
-        const char *name);
-
-purc_variant_t
-pcvdom_element_get_variable(struct pcvdom_element *elem,
-        const char *name);
-
-pcvarmgr_t pcvdom_element_get_variables(struct pcvdom_element *elem);
 
 // accessor api
 struct pcvdom_node*
@@ -362,3 +315,64 @@ PCA_EXTERN_C_END
 
 #endif  /* PURC_PRIVATE_VDOM_H */
 
+#if 0 // VW: deprected
+// build-in variable : DOC, TIMERS
+bool
+pcvdom_document_bind_variable(purc_vdom_t vdom, const char *name,
+        purc_variant_t variant);
+
+bool
+pcvdom_document_unbind_variable(purc_vdom_t vdom, const char *name);
+
+purc_variant_t
+pcvdom_document_get_variable(purc_vdom_t vdom, const char *name);
+
+pcvarmgr_t
+pcvdom_document_get_variables(purc_vdom_t vdom);
+
+void
+pcvdom_document_set_target_workspace(purc_vdom_t vdom, uintptr_t workspace);
+
+uintptr_t
+pcvdom_document_get_target_workspace(purc_vdom_t vdom);
+
+void
+pcvdom_document_set_target_window(purc_vdom_t vdom, uintptr_t window);
+
+uintptr_t
+pcvdom_document_get_target_window(purc_vdom_t vdom);
+
+void
+pcvdom_document_set_target_tabpage(purc_vdom_t vdom, uintptr_t tabpage);
+
+uintptr_t
+pcvdom_document_get_target_tabpage(purc_vdom_t vdom);
+
+void
+pcvdom_document_set_target_dom(purc_vdom_t vdom, uintptr_t dom);
+
+uintptr_t
+pcvdom_document_get_target_dom(purc_vdom_t vdom);
+
+bool
+pcvdom_document_is_attached_rdr(purc_vdom_t vdom);
+
+void
+pcvdom_document_set_dump_buff(purc_vdom_t vdom, char **dump_buff);
+
+// custom variable : init、bind、connect、load、define
+bool
+pcvdom_element_bind_variable(struct pcvdom_element *elem,
+        const char *name, purc_variant_t variant);
+
+bool
+pcvdom_element_unbind_variable(struct pcvdom_element *elem,
+        const char *name);
+
+purc_variant_t
+pcvdom_element_get_variable(struct pcvdom_element *elem,
+        const char *name);
+
+pcvarmgr_t pcvdom_element_get_variables(struct pcvdom_element *elem);
+
+#endif

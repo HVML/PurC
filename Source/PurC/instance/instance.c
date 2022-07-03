@@ -667,13 +667,6 @@ purc_variant_t purc_get_variable(const char* name)
     return pcvarmgr_get(varmgr, name);
 }
 
-bool
-purc_bind_document_variable(purc_vdom_t vdom, const char* name,
-        purc_variant_t variant)
-{
-    return pcvdom_document_bind_variable(vdom, name, variant);
-}
-
 struct pcrdr_conn *
 purc_get_conn_to_renderer(void)
 {
