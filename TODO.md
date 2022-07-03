@@ -18,11 +18,13 @@
 
 * 不可捕获错误的产生及处理机制：
   1. `error` 标签支持 `type` 属性。
+* `update` 元素支持同时修改多个数据项，支持 `individually` 副词。
 
 ## 202207
 
 ### 变体
 
+* 容器子孙成员变化后在容器变体上产生 `change` 事件。
 * 在预定义变量的实现中，使用线性容器封装接口获取容器类参数的大小及其成员。
 
 ### 预定义变量
@@ -33,6 +35,7 @@
   1. `$FS`
   1. `$FILE`
   1. `$STR`
+  1. `$MATH.eval` 和 `$MATH.eval_l` 支持函数（如 `sin` 、`log` 等）。
 
 ### eDOM
 
@@ -40,10 +43,20 @@
 
 ### 解释器
 
-* 支持 `request` 标签。
-* 支持多个 `body` 标签。
-* `call`、`load` 标签支持创建新行者。
-* `exit` 标签支持 `with` 属性。
+* 统一使用协程消息队列处理来自变体变化、渲染器以及其他实例的事件、请求或者响应消息。
+  1. `observe` 元素支持隐含的临时变量 `_eventName` 和 `_eventSource`。
+* 实现 `purc_schedule_vdom()`：可指定不同的 `body` 作为入口，并传递 `request` 变体，将其绑定到协程级 `$REQUEST` 变量上。
+* 调整 `purc_bind_document_variable()` 为 `purc_bind_coroutine_variable()`。
+* 调整对动作元素内容数据的处理逻辑：
+  1. 在对动作元素的属性值求值时，若定义有内容，则一并完成求值，并将其绑定到上下文变量 `$^` 上。
+  1. 当动作元素需要 `with` 属性值但未定义时，使用内容数据。
+* 实现支持多实例相关的接口。
+* 遗留的标签：
+  1. `call` 标签。
+  1. `return` 标签。
+  1. `load` 标签。
+  1. `exit` 标签。
+  1. `request` 标签。
 * 完善如下标签从外部数据源获取数据的功能：
   1. ~~`init` 标签：支持 `from`、`with` 及 `via` 属性定义的请求参数及方法。~~
   1. ~~`archetype` 标签：`src`、`param` 和 `method` 属性的支持。~~
@@ -53,16 +66,14 @@
   1. `define` 标签： 支持 `from`、`with` 及 `via` 属性定义的请求参数及方法。
   1. `update` 标签： 支持 `from`、`with` 及 `via` 属性定义的请求参数及方法。
 * `update` 标签。
-  1. `to` 属性支持 `prepend` 、`remove` 、`insertBefore` 、`insertAfter` 、`insertAfter` 、`intersect` 、`subtract` 、`xor`。
+  1. `to` 属性支持 `prepend`、 `remove`、 `insertBefore`、 `insertAfter`、 `intersect`、 `subtract`、 `xor`。
   1. `at` 属性支持 `content`。
-  1.  支持同时修改多个数据项，支持 `individually` 副词。
 * `sleep` 标签在调度器检查到有针对休眠协程的事件时，可由调度器唤醒。
 
 ## 202206
 
 ### 变体
 
-* 容器子孙成员变化后在容器变体上产生 `change` 事件。
 * ~~优化集合的 `overwrite` 等处理，在已经根据给定的唯一性键键值定位要更新的成员后，逐个更新该成员的其他字段，而不是先移除老的成员再构建一个新成员插入。~~
 
 ### eDOM
@@ -70,7 +81,6 @@
 ### 预定义变量
 
 * ~~实现 `$HVML.target` 获取器。~~
-* 实现文档级 `$REQUEST` 预定义变量，将该变量和 `purc_schedule_vdom` 函数中的 `request` 参数关联。
 
 ### vDOM 解析器
 
@@ -84,12 +94,7 @@
   1. ~~`except` 标签支持 `type` 属性。~~
   1. ~~`init` 标签支持使用 `via` 属性值 `LOAD` 从外部模块中加载自定义变量：`from` 属性指定外部模块名，`for` 指定模块中的动态对象名。~~
   1. ~~`init` 标签初始化集合时，支持 `casesensitively` 属性和 `caseinsensitively` 属性。~~
-  1. `call` 标签。
-  1. `return` 标签。
-  1. `load` 标签。
-  1. `exit` 标签（不含对 `with` 属性的支持）。
   1. ~~`iterate` 标签支持外部类执行器。~~
-  1. `observe` 标签支持上下文变量: `$!` 和 `$@`。
   1. ~~`observe` 标签支持 `against` 属性。~~
   1. ~~`forget` 标签支持元素汇集。~~
   1. ~~`fire` 标签支持元素汇集。~~
