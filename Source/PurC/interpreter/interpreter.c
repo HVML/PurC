@@ -2675,27 +2675,6 @@ pcintr_message_destroy(struct pcintr_message* msg)
     }
 }
 
-int
-pcintr_dispatch_message_ex(pcintr_stack_t stack, purc_variant_t source,
-        purc_variant_t type, purc_variant_t sub_type, purc_variant_t extra)
-{
-    PC_ASSERT(stack);
-    PC_ASSERT(stack == pcintr_get_stack());
-    pcintr_coroutine_t co = stack->co;
-    PC_ASSERT(co);
-    PC_ASSERT(co->state == CO_STATE_RUN);
-
-    struct pcintr_message* msg = pcintr_message_create(stack, source, type,
-            sub_type, extra);
-    if (!msg) {
-        return PURC_ERROR_OUT_OF_MEMORY;
-    }
-
-    pcintr_post_msg(msg, pcintr_handle_message);
-
-    return PURC_ERROR_OK;
-}
-
 purc_variant_t
 pcintr_load_from_uri(pcintr_stack_t stack, const char* uri)
 {
@@ -3706,12 +3685,13 @@ pcintr_observe_vcm_ev(pcintr_stack_t stack, struct pcintr_observer* observer,
             frame->silently ? true : false);
 
     // dispatch change event
-    purc_variant_t type = purc_variant_make_string(MSG_TYPE_CHANGE, false);
-    purc_variant_t sub_type = PURC_VARIANT_INVALID;
-
-    pcintr_dispatch_message_ex(stack, var, type, sub_type, PURC_VARIANT_INVALID);
-
-    purc_variant_unref(type);
+    purc_variant_t source_uri = purc_variant_make_string(
+            stack->co->full_name, false);
+    pcintr_post_event_by_ctype(stack->co,
+            PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY, source_uri,
+            var, MSG_TYPE_CHANGE, NULL,
+            PURC_VARIANT_INVALID);
+    purc_variant_unref(source_uri);
 }
 
 purc_runloop_t

@@ -198,25 +198,6 @@ void purc_runloop_remove_fd_monitor(purc_runloop_t runloop, uintptr_t handle)
     ((RunLoop*)runloop)->removeFdMonitor(handle);
 }
 
-int purc_runloop_dispatch_message(purc_runloop_t runloop, purc_variant_t source,
-        purc_variant_t type, purc_variant_t sub_type, purc_variant_t extra,
-        void *stack)
-{
-    if (!runloop) {
-        runloop = purc_runloop_get_current();
-    }
-    if (!stack) {
-        stack = pcintr_get_stack();
-        return -1;
-    }
-
-    if (stack) {
-        return pcintr_dispatch_message_ex((struct pcintr_stack *)stack, source,
-                type, sub_type, extra);
-    }
-    return -1;
-}
-
 static void apply_none(void *ctxt)
 {
     co_routine_f routine = (co_routine_f)ctxt;

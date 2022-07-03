@@ -584,10 +584,6 @@ pcintr_fire_event_to_target(pcintr_coroutine_t target,
         purc_variant_t src,
         purc_variant_t payload);
 
-int
-pcintr_dispatch_message_ex(pcintr_stack_t stack, purc_variant_t source,
-        purc_variant_t type, purc_variant_t sub_type, purc_variant_t extra);
-
 bool
 pcintr_load_dynamic_variant(pcintr_stack_t stack,
     const char *name, size_t len);
