@@ -17,10 +17,10 @@
 ### 0.4) 解释器
 
 1. 不可捕获错误的产生及处理机制：
-  - `error` 标签支持 `type` 属性。
+   - `error` 标签支持 `type` 属性。
 1. `update` 元素支持同时修改多个数据项，支持 `individually` 副词。
 
-## 1) 202207
+## 1) 当前（202207）
 
 ### 1.1) 变体
 
@@ -29,14 +29,14 @@
 ### 1.2) 预定义变量
 
 1. 增加、调整或补充预定义变量的实现：
-  - `$HVML`
-  - `$RDR`
-  - `$URL`
-  - `$STR`
-  - `$MATH.eval` 和 `$MATH.eval_l` 支持函数（如 `sin` 、`log` 等）。
+   - `$HVML`
+   - `$RDR`
+   - `$URL`
+   - `$STR`
+   - `$MATH.eval` 和 `$MATH.eval_l` 支持函数（如 `sin` 、`log` 等）。
 1. 评估并合并如下预定义变量的实现：
-  - `$FS`
-  - `$FILE`
+   - `$FS`
+   - `$FILE`
 1. 在预定义变量的实现中，使用线性容器封装接口获取容器类参数的大小及其成员。
 
 ### 1.3) eDOM
@@ -46,38 +46,38 @@
 ### 1.4) 解释器
 
 1. 统一使用协程消息队列处理来自变体变化、渲染器以及其他实例的事件、请求或者响应消息。
-  - `observe` 元素支持隐含的临时变量 `_eventName` 和 `_eventSource`。
-  - `observe` 元素 `in` 属性的处理。
+   - `observe` 元素支持隐含的临时变量 `_eventName` 和 `_eventSource`。
+   - `observe` 元素 `in` 属性的处理。
 1. 接口调整：
-  - 实现 `purc_schedule_vdom()` 替代 `purc_attach_vdom_to_renderer()`。
-  - 调整 `purc_bind_document_variable()` 为 `purc_bind_coroutine_variable()`。
-  - 将请求参数绑定到协程级 `$REQUEST` 变量上。
+   - 实现 `purc_schedule_vdom()` 替代 `purc_attach_vdom_to_renderer()`。
+   - 调整 `purc_bind_document_variable()` 为 `purc_bind_coroutine_variable()`。
+   - 将请求参数绑定到协程级 `$REQUEST` 变量上。
 1. 实现支持多实例相关的接口：
-  - `purc_inst_new()`
-  - `purc_inst_schedule_vdom()`
+   - `purc_inst_new()`
+   - `purc_inst_schedule_vdom()`
 1. 调整对动作元素内容数据的处理逻辑：
-  - 在对动作元素的属性值求值时，若改动作元素定义有内容，则一并完成求值，并将其绑定当前栈帧的上下文变量 `$^` 上。
-  - 当动作元素需要 `with` 属性值但未定义时，尝试使用内容数据。
+   - 在对动作元素的属性值求值时，若改动作元素定义有内容，则一并完成求值，并将其绑定当前栈帧的上下文变量 `$^` 上。
+   - 当动作元素需要 `with` 属性值但未定义时，尝试使用内容数据。
 1. 完善如下标签的实现：
-  - `call` 标签。
-  - `return` 标签。
-  - `load` 标签。
-  - `exit` 标签。
-  - `request` 标签。
+   - `call` 标签。
+   - `return` 标签。
+   - `load` 标签。
+   - `exit` 标签。
+   - `request` 标签。
 1. 完善如下标签从外部数据源获取数据的功能：
-  - ~~`init` 标签：支持 `from`、`with` 及 `via` 属性定义的请求参数及方法。~~
-  - ~~`archetype` 标签：`src`、`param` 和 `method` 属性的支持。~~
-  - `archedata` 标签：`src`、`param` 和 `method` 属性的支持。
-  - `error` 标签：`src`、`param` 和 `method` 属性的支持。
-  - `except` 标签：`src`、`param` 和 `method` 属性的支持。
-  - `define` 标签： 支持 `from`、`with` 及 `via` 属性定义的请求参数及方法。
-  - `update` 标签： 支持 `from`、`with` 及 `via` 属性定义的请求参数及方法。
+   - ~~`init` 标签：支持 `from`、`with` 及 `via` 属性定义的请求参数及方法。~~
+   - ~~`archetype` 标签：`src`、`param` 和 `method` 属性的支持。~~
+   - `archedata` 标签：`src`、`param` 和 `method` 属性的支持。
+   - `error` 标签：`src`、`param` 和 `method` 属性的支持。
+   - `except` 标签：`src`、`param` 和 `method` 属性的支持。
+   - `define` 标签： 支持 `from`、`with` 及 `via` 属性定义的请求参数及方法。
+   - `update` 标签： 支持 `from`、`with` 及 `via` 属性定义的请求参数及方法。
 1. `update` 标签。
-  - `to` 属性支持 `prepend`、 `remove`、 `insertBefore`、 `insertAfter`、 `intersect`、 `subtract`、 `xor`。
-  - `at` 属性支持 `content`。
+   - `to` 属性支持 `prepend`、 `remove`、 `insertBefore`、 `insertAfter`、 `intersect`、 `subtract`、 `xor`。
+   - `at` 属性支持 `content`。
 1. `sleep` 标签在调度器检查到有针对休眠协程的事件时，可由调度器唤醒。
 
-## 202206
+## 过往（202206）
 
 ### 变体
 
@@ -134,7 +134,7 @@
      - 支持 `individually` 副词
   1. `request` 标签。
 
-## 202205
+## 过往（202205）
 
 ### 预定义变量
 
