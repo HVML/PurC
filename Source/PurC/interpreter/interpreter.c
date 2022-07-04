@@ -423,6 +423,7 @@ stack_release(pcintr_stack_t stack)
 
     pcintr_exception_clear(&stack->exception);
 
+#if 0 // VW
     if (stack->entry) {
         struct pcvdom_document *vdom_document;
         vdom_document = pcvdom_document_from_node(&stack->entry->node);
@@ -430,6 +431,7 @@ stack_release(pcintr_stack_t stack)
         pcvdom_document_unref(vdom_document);
         stack->entry = NULL;
     }
+#endif
 }
 
 enum pcintr_req_state {
@@ -3773,6 +3775,8 @@ pcintr_load_child_co(const char *hvml,
             break;
 
         PC_ASSERT(co->stack.vdom);
+
+        pcvdom_document_ref(co->vdom);
 
         PC_DEBUGX("running parent/child: %p/%p", co, child);
         pcintr_wakeup_target(child, run_co_main);
