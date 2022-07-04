@@ -882,7 +882,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
             return ctxt;
         }
 
-        purc_variant_t elements = pcintr_doc_query(stack->vdom,
+        purc_variant_t elements = pcintr_doc_query(stack->co,
                 purc_variant_get_string_const(in), frame->silently);
         if (elements == PURC_VARIANT_INVALID) {
             purc_set_error(PURC_ERROR_INVALID_VALUE);
