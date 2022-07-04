@@ -59,11 +59,10 @@ TEST(observe, basic)
     const struct purc_variant_stat * stat = purc_variant_usage_stat ();
     ASSERT_NE(stat, nullptr);
 
-    char *dump_buff = NULL;
     for (size_t i=0; i<PCA_TABLESIZE(hvmls); ++i) {
         const char *hvml = hvmls[i];
         purc_vdom_t vdom = purc_load_hvml_from_string(hvml);
-        pcvdom_document_set_dump_buff(vdom, &dump_buff);
+        purc_schedule_vdom_0(vdom);
         ASSERT_NE(vdom, nullptr);
     }
 
@@ -71,10 +70,6 @@ TEST(observe, basic)
 
     cleanup = purc_cleanup ();
 
-    if (dump_buff) {
-        fprintf(stderr, "dump_buff:\n%s\n", dump_buff);
-        free(dump_buff);
-    }
     ASSERT_EQ (cleanup, true);
 }
 

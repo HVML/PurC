@@ -34,6 +34,7 @@
 #include "private/debug.h"
 #include "private/errors.h"
 #include "private/html.h"
+#include "private/utils.h"
 #include "private/list.h"
 #include "private/vdom.h"
 #include "private/timer.h"
@@ -251,6 +252,17 @@ struct pcintr_coroutine {
     pcintr_heap_t               owner;    /* owner heap */
     char                       *full_name;   /* prefixed with runnerName/ */
     purc_atom_t                 ident;
+
+    purc_vdom_t                 vdom;
+
+    const struct purc_hvml_ctrl_props     *hvml_ctrl_props;
+    char **dump_buff;
+
+    /* fields for renderer */
+    pcrdr_page_type target_page_type;
+    uint64_t        target_workspace_handle;
+    uint64_t        target_page_handle;
+    uint64_t        target_dom_handle;
 
     struct rb_node              node;     /* heap::coroutines */
 
@@ -479,42 +491,50 @@ pcintr_make_object_of_dynamic_variants(size_t nr_args,
     struct pcintr_dynamic_args *args);
 
 static inline bool
-pcintr_bind_document_variable(purc_vdom_t vdom, const char* name,
+pcintr_bind_coroutine_variable(purc_coroutine_t cor, const char* name,
         purc_variant_t variant)
 {
-    return pcvdom_document_bind_variable(vdom, name, variant);
+    return purc_coroutine_bind_variable(cor, name, variant);
 }
 
 static inline bool
-pcintr_unbind_document_variable(purc_vdom_t vdom, const char* name)
+pcintr_unbind_coroutine_variable(purc_coroutine_t cor, const char* name)
 {
-    return pcvdom_document_unbind_variable(vdom, name);
+    return purc_coroutine_unbind_variable(cor, name);
 }
 
 static inline purc_variant_t
-pcintr_get_document_variable(purc_vdom_t vdom, const char* name)
+pcintr_get_coroutine_variable(purc_coroutine_t cor, const char* name)
 {
-    return pcvdom_document_get_variable(vdom, name);
+    return purc_coroutine_get_variable(cor, name);
 }
 
-static inline bool
-pcintr_bind_scope_variable(pcvdom_element_t elem, const char* name,
-        purc_variant_t variant)
+pcvarmgr_t
+pcintr_get_scoped_variables(purc_coroutine_t cor, struct pcvdom_node *node);
+
+static inline pcvarmgr_t
+pcintr_get_coroutine_variables(purc_coroutine_t cor)
 {
-    return pcvdom_element_bind_variable(elem, name, variant);
+    return pcintr_get_scoped_variables(cor, pcvdom_doc_cast_to_node(cor->vdom));
 }
 
-static inline bool
-pcintr_unbind_scope_variable(pcvdom_element_t elem, const char* name)
+static inline pcvarmgr_t
+pcintr_get_scope_variables(purc_coroutine_t cor, pcvdom_element_t elem)
 {
-    return pcvdom_element_unbind_variable(elem, name);
+    return pcintr_get_scoped_variables(cor, pcvdom_ele_cast_to_node(elem));
 }
 
-static inline purc_variant_t
-pcintr_get_scope_variable(pcvdom_element_t elem, const char* name)
-{
-    return pcvdom_element_get_variable(elem, name);
-}
+bool
+pcintr_bind_scope_variable(purc_coroutine_t cor, pcvdom_element_t elem,
+        const char* name, purc_variant_t variant);
+
+bool
+pcintr_unbind_scope_variable(purc_coroutine_t cor, pcvdom_element_t elem,
+        const char* name);
+
+purc_variant_t
+pcintr_get_scope_variable(purc_coroutine_t cor, pcvdom_element_t elem,
+        const char* name);
 
 purc_variant_t
 pcintr_find_named_var(pcintr_stack_t stack, const char* name);
@@ -604,7 +624,7 @@ pcintr_util_dump_edom_node_ex(pcdom_node_t *node,
     pcintr_util_dump_edom_node_ex(_node, __FILE__, __LINE__, __func__)
 
 #define pcintr_dump_document(_stack)             \
-    pcintr_util_dump_document_ex(_stack->doc, _stack->vdom->dump_buff, \
+    pcintr_util_dump_document_ex(_stack->doc, _stack->co->dump_buff, \
             __FILE__, __LINE__, __func__)
 
 #define pcintr_dump_edom_node(_stack, _node)      \
@@ -676,9 +696,6 @@ pcintr_init_vdom_under_stack(pcintr_stack_t stack);
 pcvarmgr_t
 pcintr_create_scoped_variables(struct pcvdom_node *node);
 
-pcvarmgr_t
-pcintr_get_scoped_variables(struct pcvdom_node *node);
-
 purc_runloop_t
 pcintr_co_get_runloop(pcintr_coroutine_t co);
 
@@ -702,6 +719,21 @@ void
 pcintr_unload_module(void *handle);
 
 int
+pcintr_init_loader_once(void);
+
+static inline void
+pcintr_coroutine_set_dump_buff(purc_coroutine_t co, char **dump_buff)
+{
+    co->dump_buff = dump_buff;
+}
+
+bool
+pcintr_attach_to_renderer(pcintr_coroutine_t cor,
+        pcrdr_page_type page_type, const char *target_workspace,
+        const char *target_group, const char *page_name,
+        purc_renderer_extra_info *extra_info);
+
+int
 pcintr_post_event(pcintr_coroutine_t co,
         pcrdr_msg_event_reduce_opt reduce_op, purc_variant_t source_uri,
         purc_variant_t observed, purc_variant_t event_name,
@@ -712,7 +744,6 @@ pcintr_post_event_by_ctype(pcintr_coroutine_t co,
         pcrdr_msg_event_reduce_opt reduce_op, purc_variant_t source_uri,
         purc_variant_t observed, const char *event_type,
         const char *event_sub_type, purc_variant_t data);
-
 
 PCA_EXTERN_C_END
 

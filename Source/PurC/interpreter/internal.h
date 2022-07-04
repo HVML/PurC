@@ -151,7 +151,7 @@ purc_variant_t
 pcintr_load_vdom_fragment_from_uri(pcintr_stack_t stack, const char* uri);
 
 purc_variant_t
-pcintr_doc_query(purc_vdom_t vdom, const char* css, bool silently);
+pcintr_doc_query(purc_coroutine_t cor, const char* css, bool silently);
 
 purc_variant_t
 pcintr_template_make(void);

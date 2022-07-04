@@ -162,7 +162,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
             return -1;
         }
 
-        purc_variant_t elements = pcintr_doc_query(co->stack.vdom,
+        purc_variant_t elements = pcintr_doc_query(co,
                 purc_variant_get_string_const(in), frame->silently);
         if (elements == PURC_VARIANT_INVALID) {
             purc_set_error(PURC_ERROR_INVALID_VALUE);

@@ -52,6 +52,7 @@ sample_destroy(struct sample_ctxt *ud)
     free(ud);
 }
 
+#if 0 // VW: use event handler instead
 static void
 on_terminated(pcintr_stack_t stack, void *ctxt)
 {
@@ -94,6 +95,7 @@ on_cleanup(pcintr_stack_t stack, void *ctxt)
     struct sample_ctxt *ud = (struct sample_ctxt*)ctxt;
     sample_destroy(ud);
 }
+#endif
 
 static int
 add_sample(const struct sample_data *sample)
@@ -135,12 +137,14 @@ add_sample(const struct sample_data *sample)
         return -1;
     }
 
+#if 0 // VW: use event handler instead
     struct pcintr_supervisor_ops ops = {};
     ops.on_terminated = on_terminated;
     ops.on_cleanup    = on_cleanup;
+#endif
 
     purc_vdom_t vdom;
-    vdom = purc_load_hvml_from_string_ex(sample->input_hvml, &ops, ud);
+    vdom = purc_load_hvml_from_string(sample->input_hvml);
 
     if (vdom == NULL) {
         ADD_FAILURE()
@@ -148,6 +152,9 @@ add_sample(const struct sample_data *sample)
             << sample->input_hvml << std::endl;
         sample_destroy(ud);
         return -1;
+    }
+    else {
+        purc_schedule_vdom_0(vdom);
     }
 
     return 0;
@@ -189,6 +196,9 @@ TEST(samples, samples)
     PurCInstance purc;
 
     ASSERT_TRUE(purc);
+
+    setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
+    setenv(PURC_ENVV_EXECUTOR_PATH, SOPATH, 1);
 
     struct sample_data samples[] = {
         {
