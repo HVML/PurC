@@ -169,8 +169,8 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
             return -1;
         }
 
-        PURC_VARIANT_SAFE_CLEAR(frame->symbol_vars[PURC_SYMBOL_VAR_AT_SIGN]);
-        frame->symbol_vars[PURC_SYMBOL_VAR_AT_SIGN] = elements;
+        pcintr_set_at_var(frame, elements);
+        purc_variant_unref(elements);
     }
 
     return 0;

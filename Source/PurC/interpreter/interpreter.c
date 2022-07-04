@@ -3741,6 +3741,7 @@ pcintr_create_child_co(pcvdom_element_t vdom_element,
         PC_ASSERT(co->stack.vdom);
 
         child->stack.entry = vdom_element;
+        pcvdom_document_ref(co->vdom);
 
         purc_log_debug("running parent/child: %p/%p", co, child);
         PRINT_VDOM_NODE(&vdom_element->node);

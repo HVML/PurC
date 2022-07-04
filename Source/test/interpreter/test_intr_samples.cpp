@@ -99,6 +99,9 @@ static void my_event_handler(purc_coroutine_t cor,
         pccor_event_t event, void *data)
 {
     void *user_data = purc_coroutine_get_user_data(cor);
+    if (!user_data) {
+        return;
+    }
     struct sample_ctxt *ud = (struct sample_ctxt*)user_data;
 
     if (event == PCCOR_EVENT_EXIT) {
