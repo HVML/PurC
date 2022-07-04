@@ -33,7 +33,7 @@
    - `$RDR`
    - `$URL`
    - `$STR`
-   - `$MATH.eval` 和 `$MATH.eval_l` 支持函数（如 `sin` 、`log` 等）。
+   - ~~`$MATH.eval` 和 `$MATH.eval_l` 支持函数（如 `sin` 、`log` 等）。~~
 1. 评估并合并如下预定义变量的实现：
    - `$FS`
    - `$FILE`

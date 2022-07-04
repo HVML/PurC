@@ -302,7 +302,9 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         return;
 
     purc_variant_t v = pcvcm_eval(vcm, stack, frame->silently);
-    PC_ASSERT(v != PURC_VARIANT_INVALID);
+    if (v == PURC_VARIANT_INVALID)
+        return;
+
     purc_clr_error();
 
     if (purc_variant_is_string(v)) {
