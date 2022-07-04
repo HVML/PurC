@@ -886,12 +886,6 @@ pcintr_attach_to_renderer(pcintr_coroutine_t cor,
     cor->target_page_type = page_type;
     cor->target_page_handle = page;
 
-#if 0 // VW
-    pcvdom_document_set_target_workspace(vdom, workspace);
-    pcvdom_document_set_target_window(vdom, page);
-    pcvdom_document_set_target_tabpage(vdom, 0);
-#endif
-
     return true;
 }
 
@@ -973,9 +967,10 @@ failed:
         purc_rwstream_destroy(out);
     }
 
+    /* VW: double free here
     if (req_data != PURC_VARIANT_INVALID) {
         purc_variant_unref(req_data);
-    }
+    } */
 
     return false;
 }

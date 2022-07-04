@@ -718,7 +718,14 @@ pcintr_load_module(const char *module,
 void
 pcintr_unload_module(void *handle);
 
-int pcintr_init_loader_once(void);
+int
+pcintr_init_loader_once(void);
+
+static inline void
+pcintr_coroutine_set_dump_buff(purc_coroutine_t co, char **dump_buff)
+{
+    co->dump_buff = dump_buff;
+}
 
 bool
 pcintr_attach_to_renderer(pcintr_coroutine_t cor,

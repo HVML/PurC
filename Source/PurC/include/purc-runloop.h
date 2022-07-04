@@ -25,6 +25,8 @@
 #ifndef PURC_RUNLOOP_H
 #define PURC_RUNLOOP_H
 
+#include "purc-macros.h"
+
 #include <stdint.h>
 
 typedef void* purc_runloop_t;

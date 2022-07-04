@@ -6,6 +6,7 @@
 #include "purc-variant.h"
 #include "hvml/hvml-token.h"
 #include "private/dvobjs.h"
+#include "private/interpreter.h"
 
 #include "../helpers.h"
 
@@ -103,13 +104,15 @@ TEST_P(TestHVMLTag, hvml_tags)
     struct buffer buf;
     buf.dump_buff = nullptr;
 
+    purc_enable_log(true, false);
+
     purc_vdom_t vdom = purc_load_hvml_from_string(test_case.hvml);
     ASSERT_NE(vdom, nullptr);
 
     purc_coroutine_t co = purc_schedule_vdom_0(vdom);
     ASSERT_NE(co, nullptr);
 
-    // VW pcvdom_document_set_dump_buff(vdom, &buf.dump_buff);
+    pcintr_coroutine_set_dump_buff(co, &buf.dump_buff);
 
     purc_run(NULL);
 

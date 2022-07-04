@@ -173,7 +173,7 @@ cache_vdom(unsigned char *md5, unsigned expire_after, size_t length,
     entry->length = length;
     entry->vdom = vdom;
 
-    if (pcutils_map_insert_ex(md5_vdom_map, md5, entry, NULL))
+    if (pcutils_map_find_replace_or_insert(md5_vdom_map, md5, entry, NULL))
         return false;
 
     pcvdom_document_ref(vdom);
@@ -191,8 +191,8 @@ static purc_vdom_t find_vdom_in_cache(unsigned char *md5)
             pcutils_map_erase_entry(md5_vdom_map, entry);
         }
         else {
-            purc_vdom_t vdom = entry->val;
-            return vdom;
+            struct vdom_entry *vdom_entry = entry->val;
+            return vdom_entry->vdom;
         }
     }
 

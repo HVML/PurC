@@ -594,6 +594,8 @@ TEST(interpreter, basic)
             &info);
     ASSERT_TRUE(purc);
 
+    purc_enable_log(true, false);
+
     // get statitics information
     const struct purc_variant_stat *stat = purc_variant_usage_stat();
     ASSERT_NE(stat, nullptr);
