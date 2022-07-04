@@ -65,6 +65,7 @@ ctxt_for_observe_destroy(struct ctxt_for_observe *ctxt)
         PURC_VARIANT_SAFE_CLEAR(ctxt->as);
         PURC_VARIANT_SAFE_CLEAR(ctxt->with);
         PURC_VARIANT_SAFE_CLEAR(ctxt->against);
+        PURC_VARIANT_SAFE_CLEAR(ctxt->in);
 
         if (ctxt->msg_type) {
             free(ctxt->msg_type);
