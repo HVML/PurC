@@ -41,6 +41,7 @@
 #include "private/atom-buckets.h"
 #include "private/fetcher.h"
 #include "private/pcrdr.h"
+#include "private/msg-queue.h"
 #include "purc-runloop.h"
 
 #include "../interpreter/internal.h"

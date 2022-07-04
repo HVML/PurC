@@ -281,7 +281,7 @@ exe_class_it_begin(const char* rule, purc_variant_t on,
 
         it->ops = *ops;
 
-        if (!it->ops.begin || !it->ops.value || !it->ops.next) {
+        if (!it->ops.begin || !it->ops.next) {
             purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
                     "bad ops from external class executor");
             break;
@@ -289,8 +289,13 @@ exe_class_it_begin(const char* rule, purc_variant_t on,
 
         it->it = it->ops.begin(on, with);
         if (it->it == PURC_VARIANT_INVALID) {
-            PC_ASSERT(purc_get_last_error());
             break;
+        }
+        else {
+            PURC_VARIANT_SAFE_CLEAR(it->val);
+            it->val = it->ops.next(it->it);
+            if (it->val == PURC_VARIANT_INVALID)
+                break;
         }
 
         return it;
@@ -304,13 +309,8 @@ static purc_variant_t
 exe_class_it_value(pcexec_class_iter_t it)
 {
     PC_ASSERT(it);
-    purc_variant_t v = it->ops.value(it->it);
-    if (v != PURC_VARIANT_INVALID) {
-        PURC_VARIANT_SAFE_CLEAR(it->val);
-        it->val = v;
-    }
-
-    return v;
+    PC_ASSERT(it->val != PURC_VARIANT_INVALID);
+    return it->val;
 }
 
 static pcexec_class_iter_t
@@ -318,13 +318,13 @@ exe_class_it_next(pcexec_class_iter_t it)
 {
     PC_ASSERT(it);
     PC_ASSERT(it->ops.next);
-    purc_variant_t v = it->ops.next(it->it);
-    if (v == PURC_VARIANT_INVALID) {
+    PURC_VARIANT_SAFE_CLEAR(it->val);
+    it->val = it->ops.next(it->it);
+    if (it->val == PURC_VARIANT_INVALID) {
         it_destroy(it);
         return NULL;
     }
-    PURC_VARIANT_SAFE_CLEAR(it->it);
-    it->it = v;
+
     return it;
 }
 
