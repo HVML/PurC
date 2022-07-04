@@ -1,5 +1,5 @@
 /*
- * @file cor-vars.c
+ * @file coroutine.c
  * @author Vincent Wei
  * @date 2022/07/03
  * @brief The management of coroutine-level variables.
@@ -200,7 +200,6 @@ purc_variant_t
 purc_coroutine_get_variable(purc_coroutine_t cor, const char *name)
 {
     if (!cor || !cor->vdom || !name) {
-        PC_ASSERT(0);
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
     }
@@ -210,5 +209,25 @@ purc_coroutine_get_variable(purc_coroutine_t cor, const char *name)
         return false;
 
     return pcvarmgr_get(scoped_variables, name);
+}
+
+void *
+purc_coroutine_set_user_data(purc_coroutine_t cor, void *user_data)
+{
+    void *old = cor->user_data;
+    cor->user_data = user_data;
+    return old;
+}
+
+void *
+purc_coroutine_get_user_data(purc_coroutine_t cor)
+{
+    return cor->user_data;
+}
+
+purc_atom_t
+purc_coroutine_identifier(purc_coroutine_t cor)
+{
+    return cor->ident;
 }
 

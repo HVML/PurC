@@ -96,6 +96,8 @@ struct pcintr_heap {
     int64_t               next_coroutine_id;
     purc_atom_t           move_buff;
     pcintr_timer_t        *event_timer; // 10ms
+
+    purc_event_handler    event_handler;
 };
 
 struct pcintr_stack_frame;
@@ -208,9 +210,11 @@ struct pcintr_stack {
     // base uri
     char* base_uri;
 
+#if 0 // VW
     // experimental: currently for test-case-only
     struct pcintr_supervisor_ops         ops;
     void                                *ctxt;  // no-owner-ship!!!
+#endif
 
     purc_variant_t async_request_ids;       // async request ids (array)
 
@@ -288,6 +292,8 @@ struct pcintr_coroutine {
     struct pcinst_msg_queue    *mq;     /* message queue */
     unsigned int volatile       msg_pending:1;
     unsigned int volatile       execution_pending:1;
+
+    void                       *user_data;
 };
 
 enum purc_symbol_var {
@@ -673,7 +679,7 @@ pcintr_util_comp_docs(pchtml_html_document_t *docl,
 bool
 pcintr_util_is_ancestor(pcdom_node_t *ancestor, pcdom_node_t *descendant);
 
-
+#if 0
 purc_vdom_t
 purc_load_hvml_from_string_ex(const char* string,
         struct pcintr_supervisor_ops *ops, void *ctxt);
@@ -689,6 +695,7 @@ purc_load_hvml_from_url_ex(const char* url,
 purc_vdom_t
 purc_load_hvml_from_rwstream_ex(purc_rwstream_t stream,
         struct pcintr_supervisor_ops *ops, void *ctxt);
+#endif
 
 int
 pcintr_init_vdom_under_stack(pcintr_stack_t stack);

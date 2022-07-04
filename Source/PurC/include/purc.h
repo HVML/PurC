@@ -449,7 +449,8 @@ typedef struct pcintr_coroutine *purc_coroutine_t;
  * @page_name: The page name (nullable). When @NULL given, the page will be
  *  assigned with an auto-generated page name like `page-10`.
  * @extra_info: The extra renderer information.
- * @entry: The identifier of the `body` element as the entry in @vdom.
+ * @body_id: The identifier of the `body` element as the entry in @vdom.
+ * @user_data: The pointer to the initial user data.
  *
  * Creates a new coroutine to run the specified vDOM.
  * If success, the new coroutine will be in READY state.
@@ -462,14 +463,61 @@ PCA_EXPORT purc_coroutine_t
 purc_schedule_vdom(purc_vdom_t vdom, purc_coroutine_t curator,
         pcrdr_page_type page_type, const char *target_workspace,
         const char *target_group, const char *page_name,
-        purc_renderer_extra_info *extra_info, const char *entry);
+        purc_renderer_extra_info *extra_info, const char *body_id,
+        void *user_data);
 
 static inline purc_coroutine_t
 purc_schedule_vdom_0(purc_vdom_t vdom)
 {
     return purc_schedule_vdom(vdom, NULL, PCRDR_PAGE_TYPE_NULL,
-            NULL, NULL, NULL, NULL, NULL);
+            NULL, NULL, NULL, NULL, NULL, NULL);
 }
+
+/**
+ * purc_coroutine_set_user_data:
+ *
+ * @cor: The pointer to a coroutine structure which representing a coroutine.
+ * @user_data: The pointer to the user data.
+ *
+ * Sets the user data of the specific coroutine and returns the old one.
+ *
+ * Returns: The pointer to the old user data.
+ *
+ * Since 0.2.0
+ */
+PCA_EXPORT void *
+purc_coroutine_set_user_data(purc_coroutine_t cor, void *user_data);
+
+/**
+ * purc_coroutine_get_user_data:
+ *
+ * @cor: The pointer to a coroutine structure which representing a coroutine.
+ *
+ * Binds a variant as the coroutine-level variable of the specified
+ * coroutine.
+ *
+ * Gets the user data of the specific coroutine.
+ *
+ * Returns: The pointer to the user data attached to the coroutine.
+ *
+ * Since 0.2.0
+ */
+PCA_EXPORT void *
+purc_coroutine_get_user_data(purc_coroutine_t cor);
+
+/**
+ * purc_coroutine_identifier:
+ *
+ * @cor: The pointer to a coroutine structure which representing a coroutine.
+ *
+ * Gets the coroutine identifier (cid) of the specified coroutine.
+ *
+ * Returns: The cid of the coroutine.
+ *
+ * Since 0.2.0
+ */
+PCA_EXPORT purc_atom_t
+purc_coroutine_identifier(purc_coroutine_t cor);
 
 /**
  * purc_coroutine_bind_variable:
@@ -519,23 +567,14 @@ purc_coroutine_unbind_variable(purc_coroutine_t cor, const char *name);
 PCA_EXPORT purc_variant_t
 purc_coroutine_get_variable(purc_coroutine_t cor, const char *name);
 
-#define PURC_INST_SELF           0
-#define PURC_INST_BROADCAST     -1
+/** The coroutine event */
+typedef enum pccor_event {
+    PCCOR_EVENT_EXIT = 0,
+    PCCOR_EVENT_DESTROY,
+} pccor_event_t;
 
-/**
- * Post the message to the instance.
- *
- * @param inst: the instance.
- * @param msg: the message structure.
- *
- * Returns: -1 for error; zero means everything is ok.
- *
- * Since: 0.2.0
- */
-PCA_EXPORT int
-purc_inst_post_event(purc_atom_t inst_to, pcrdr_msg *msg);
-
-typedef int (*purc_event_handler)(const struct pcrdr_msg *event);
+typedef void (*purc_event_handler)(purc_coroutine_t cor,
+        pccor_event_t event, void *user_data);
 
 /**
  * purc_run:
@@ -607,6 +646,22 @@ purc_inst_schedule_vdom(purc_atom_t inst, purc_vdom_t vdom, purc_atom_t curator,
         purc_renderer_extra_info *extra_rdr_info,
         const char *entry, purc_variant_t request);
 
+#define PURC_INST_SELF           0
+#define PURC_INST_BROADCAST     -1
+
+/**
+ * Post an event message to the instance.
+ *
+ * @param inst: the instance.
+ * @param msg: the message structure.
+ *
+ * Returns: -1 for error; zero means everything is ok.
+ *
+ * Since: 0.2.0
+ */
+PCA_EXPORT int
+purc_inst_post_event(purc_atom_t inst_to, pcrdr_msg *msg);
+
 typedef enum {
     PURC_INST_SIGNAL_CANCEL,
     PURC_INST_SIGNAL_KILL,
@@ -630,7 +685,7 @@ typedef enum {
  * Proposal; not implemented.
  */
 PCA_EXPORT int
-purc_inst_cancel(purc_atom_t inst);
+purc_inst_emit_signal(purc_atom_t inst, purc_inst_signal_t signal);
 
 PCA_EXTERN_C_END
 

@@ -92,10 +92,49 @@ on_cleanup(pcintr_stack_t stack, void *ctxt)
 {
     UNUSED_PARAM(stack);
 
-    struct sample_ctxt *ud = (struct sample_ctxt*)ctxt;
-    sample_destroy(ud);
 }
 #endif
+
+static void my_event_handler(purc_coroutine_t cor,
+        pccor_event_t event, void *data)
+{
+    void *user_data = purc_coroutine_get_user_data(cor);
+    struct sample_ctxt *ud = (struct sample_ctxt*)user_data;
+
+    if (event == PCCOR_EVENT_EXIT) {
+        pchtml_html_document_t *doc = (pchtml_html_document_t *)data;
+
+        if (ud->terminated) {
+            ADD_FAILURE() << "internal logic error: reentrant" << std::endl;
+            return;
+        }
+        ud->terminated = 1;
+
+        if (ud->html) {
+            int diff = 0;
+            int r = 0;
+            pcintr_util_comp_docs(doc, ud->html, &diff);
+            if (r == 0 && diff == 0)
+                return;
+
+            char buf[8192];
+            size_t nr = sizeof(nr);
+            char *p = pchtml_doc_snprintf_plain(doc, buf, &nr, "");
+
+            ADD_FAILURE()
+                << "failed to compare:" << std::endl
+                << "input:" << std::endl << ud->input_hvml << std::endl
+                << "output:" << std::endl << p << std::endl
+                << "expected:" << std::endl << ud->expected_html << std::endl;
+
+            if (p != buf)
+                free(p);
+        }
+    }
+    else if (event == PCCOR_EVENT_DESTROY) {
+        sample_destroy(ud);
+    }
+}
 
 static int
 add_sample(const struct sample_data *sample)
@@ -154,7 +193,8 @@ add_sample(const struct sample_data *sample)
         return -1;
     }
     else {
-        purc_schedule_vdom_0(vdom);
+        purc_coroutine_t cor = purc_schedule_vdom_0(vdom);
+        purc_coroutine_set_user_data(cor, ud);
     }
 
     return 0;
@@ -250,7 +290,7 @@ TEST(samples, files)
             }
             if (r)
                 break;
-            purc_run(NULL);
+            purc_run(my_event_handler);
         } while (0);
         globfree(&globbuf);
     }
