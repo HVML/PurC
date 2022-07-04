@@ -908,7 +908,18 @@ pcintr_rdr_page_control_load(pcintr_stack_t stack)
     int opt = 0;
     purc_rwstream_t out = NULL;
 
-    target = stack->co->target_page_type;
+    switch (stack->co->target_page_type) {
+    case PCRDR_PAGE_TYPE_NULL:
+        goto failed;
+
+    case PCRDR_PAGE_TYPE_PLAINWIN:
+        target = PCRDR_MSG_TARGET_PLAINWINDOW;
+        break;
+
+    case PCRDR_PAGE_TYPE_WIDGET:
+        target = PCRDR_MSG_TARGET_WIDGET;
+        break;
+    }
     target_value = stack->co->target_page_handle;
 
     out = purc_rwstream_new_buffer(BUFF_MIN, BUFF_MAX);
