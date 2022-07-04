@@ -99,6 +99,14 @@ do {                                              \
 [0-9]+"."[0-9]*  { C(); SET_TOKEN(); R(); return MKT(NUMBER); }
 [0-9]+("."[0-9]*)?[eE][+-]?[0-9]+ { C(); SET_TOKEN(); R(); return MKT(NUMBER); }
 
+sin              { C(); R(); return MKT(SIN); }
+cos              { C(); R(); return MKT(COS); }
+tan              { C(); R(); return MKT(TAN); }
+asin             { C(); R(); return MKT(ASIN); }
+acos             { C(); R(); return MKT(ACOS); }
+atan             { C(); R(); return MKT(ATAN); }
+log              { C(); R(); return MKT(LOG); }
+
 [_[:alpha:]][[:alnum:]]*  { C(); SET_TOKEN(); R(); return MKT(VAR); }
 
 [ \t\r\n]   { C(); R(); /* ignore white space */ }

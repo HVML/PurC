@@ -43,6 +43,17 @@
         #define STRTOD         strtod
         #define CAST_TO_NUMBER purc_variant_cast_to_number
         #define MAKE_NUMBER    purc_variant_make_number
+
+        #define UNI_FUNC       math_uni
+
+        #define SIN            sin
+        #define COS            cos
+        #define TAN            tan
+        #define ASIN           asin
+        #define ACOS           acos
+        #define ATAN           atan
+        #define LOG            log
+
     #elif defined(M_math_l)
         #define YYSTYPE        MATH_L_YYSTYPE
         #define YYLTYPE        MATH_L_YYLTYPE
@@ -54,6 +65,16 @@
         #define STRTOD         strtold
         #define CAST_TO_NUMBER purc_variant_cast_to_longdouble
         #define MAKE_NUMBER    purc_variant_make_longdouble
+
+        #define UNI_FUNC       math_unil
+
+        #define SIN            sinl
+        #define COS            cosl
+        #define TAN            tanl
+        #define ASIN           asinl
+        #define ACOS           acosl
+        #define ATAN           atanl
+        #define LOG            logl
     #endif
 
     struct internal_value {
@@ -161,6 +182,12 @@
             YYABORT;                                                     \
     } while (0)
 
+    #define EVAL_BY_UNI_FUNC(_r, _f, _a) do {                            \
+        int r = UNI_FUNC(&_r.d, _f, _a.d);                               \
+        if (r)                                                           \
+            YYABORT;                                                     \
+    } while (0)
+
     static void yyerror(
         YYLTYPE *yylloc,                   // match %define locations
         yyscan_t arg,                      // match %param
@@ -185,6 +212,7 @@
 
 %union { struct math_token token; }
 %union { struct internal_value v; }
+%union { VALUE_TYPE (*uni_func)(VALUE_TYPE a); }
 
 %precedence '='
 %left '-' '+'
@@ -192,8 +220,10 @@
 %precedence NEG /* negation--unary minus */
 %right '^'      /* exponentiation */
 
+%token SIN COS TAN ASIN ACOS ATAN LOG
 %token <token> NUMBER VAR
 %nterm <v> exp term
+%nterm <uni_func> uni_func
 
 
 %% /* The grammar follows. */
@@ -220,7 +250,18 @@ exp:
 term:
   NUMBER      { SET_BY_NUM($$, $1); }
 | VAR         { SET_BY_VAR($$, $1); }
+| uni_func '(' term ')' { EVAL_BY_UNI_FUNC($$, $1, $3); }
 | '(' exp ')' { $$ = $2; }
+;
+
+uni_func:
+  SIN         { $$ = SIN; }
+| COS         { $$ = COS; }
+| TAN         { $$ = TAN; }
+| ASIN        { $$ = ASIN; }
+| ACOS        { $$ = ACOS; }
+| ATAN        { $$ = ATAN; }
+| LOG         { $$ = LOG; }
 ;
 
 %%

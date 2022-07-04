@@ -1,0 +1,18 @@
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<hvml target="html" lang="en">
+    <head>
+    </head>
+
+    <body>
+        <div>
+            <update on="$@" to="append" with="$MATH.eval("3")"/>
+            <update on="$@" to="append" with=","/>
+            <update on="$@" to="append" with="$MATH.eval("sin(3)")"/>
+            <update on="$@" to="append" with=","/>
+            <update on="$@" to="append" with="$MATH.eval("log(3)")"/>
+        </div>
+    </body>
+</hvml>
+
+
+
