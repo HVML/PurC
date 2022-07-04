@@ -29,6 +29,8 @@
 #include "purc-errors.h"
 #include "purc-variant.h"
 
+#define PURC_ENVV_EXECUTOR_PATH "PURC_EXECUTOR_PATH"
+
 PCA_EXTERN_C_BEGIN
 
 struct purc_exec_inst;

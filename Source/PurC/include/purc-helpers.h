@@ -263,6 +263,20 @@ PCA_EXPORT bool
 purc_is_valid_md5_id(const char *id);
 
 /**
+ * Get monotomic time after the specific seconds.
+ *
+ * @param seconds: the number of seconds.
+ *
+ * Calculates monotomic time after the specific seconds.
+ *
+ * Returns: the monotomic time after the specific seconds.
+ *
+ * Since: 0.2.0
+ */
+PCA_EXPORT time_t
+purc_monotonic_time_after(time_t seconds);
+
+/**
  * Get the elapsed seconds.
  *
  * @param ts1: the earlier time.
@@ -278,6 +292,20 @@ purc_is_valid_md5_id(const char *id);
 PCA_EXPORT double
 purc_get_elapsed_seconds(const struct timespec *ts1,
         const struct timespec *ts2);
+
+/**
+ * Loads the whole contents from a file.
+ *
+ * @param file: the file name.
+ * @param ts2 (nullable): the length of the contents in bytes.
+ *
+ * Loads the whole contents from the specific file.
+ *
+ * Returns: The pointer to the loaded contents, @NULL for error.
+ *
+ * Since: 0.2.0
+ */
+char *purc_load_file_contents(const char *file, size_t *length);
 
 #define PURC_ENVV_LOG_ENABLE        "PURC_LOG_ENABLE"
 #define PURC_ENVV_LOG_SYSLOG        "PURC_LOG_SYSLOG"

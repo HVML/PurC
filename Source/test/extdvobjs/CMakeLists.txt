@@ -15,7 +15,7 @@ list(APPEND test_extdvobjs_math_PRIVATE_INCLUDE_DIRECTORIES
     ${WTF_DIR}
 )
 
-target_compile_definitions(test_extdvobjs_math PRIVATE SOPATH="${CMAKE_BINARY_DIR}/Source/ExtDVObjs/math")
+target_compile_definitions(test_extdvobjs_math PRIVATE SOPATH="${CMAKE_BINARY_DIR}/lib")
 
 PURC_EXECUTABLE(test_extdvobjs_math)
 
@@ -48,7 +48,7 @@ list(APPEND test_extdvobjs_fs_PRIVATE_INCLUDE_DIRECTORIES
 
 PURC_EXECUTABLE(test_extdvobjs_fs)
 
-target_compile_definitions(test_extdvobjs_fs PRIVATE SOPATH="${CMAKE_BINARY_DIR}/Source/ExtDVObjs/fs")
+target_compile_definitions(test_extdvobjs_fs PRIVATE SOPATH="${CMAKE_BINARY_DIR}/lib")
 
 set(test_extdvobjs_fs_SOURCES
     test_extdvobjs_fs.cpp
@@ -79,7 +79,7 @@ list(APPEND test_extdvobjs_file_PRIVATE_INCLUDE_DIRECTORIES
 
 PURC_EXECUTABLE(test_extdvobjs_file)
 
-target_compile_definitions(test_extdvobjs_file PRIVATE SOPATH="${CMAKE_BINARY_DIR}/Source/ExtDVObjs/fs")
+target_compile_definitions(test_extdvobjs_file PRIVATE SOPATH="${CMAKE_BINARY_DIR}/lib")
 
 set(test_extdvobjs_file_SOURCES
     test_extdvobjs_file.cpp

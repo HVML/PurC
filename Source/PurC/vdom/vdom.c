@@ -119,7 +119,7 @@ pcvdom_document_ref(struct pcvdom_document *doc)
     if (!doc)
         return NULL;
 
-    int refc = atomic_fetch_add(&doc->refc, 1);
+    unsigned long long refc = atomic_fetch_add(&doc->refc, 1);
     PC_ASSERT(refc > 0);
 
     return doc;
@@ -130,8 +130,8 @@ pcvdom_document_unref(struct pcvdom_document *doc)
 {
     PC_ASSERT(doc);
 
-    int refc = atomic_fetch_sub(&doc->refc, 1);
-    if (refc == 1) {
+    unsigned long long refc = atomic_fetch_sub(&doc->refc, 1);
+    if (refc <= 2) {
         document_destroy(doc);
     }
 }
@@ -345,70 +345,6 @@ pcvdom_document_append_comment(struct pcvdom_document *doc,
     return 0;
 }
 
-bool
-pcvdom_document_bind_variable(purc_vdom_t vdom, const char *name,
-        purc_variant_t variant)
-{
-    if (!vdom || !vdom->document || !name || !variant) {
-        PC_ASSERT(0);
-        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
-        return false;
-    }
-
-    struct pcvdom_node *node = &vdom->document->node;
-    pcvarmgr_t scoped_variables = pcintr_create_scoped_variables(node);
-    if (!scoped_variables)
-        return false;
-
-    bool b = pcvarmgr_add(scoped_variables, name, variant);
-    return b;
-}
-
-bool
-pcvdom_document_unbind_variable(purc_vdom_t vdom,
-        const char *name)
-{
-    if (!vdom || !vdom->document || !name) {
-        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
-        return false;
-    }
-
-    pcvarmgr_t scoped_variables = pcvdom_document_get_variables(vdom);
-    if (!scoped_variables)
-        return false;
-
-    return pcvarmgr_remove(scoped_variables, name);
-}
-
-purc_variant_t
-pcvdom_document_get_variable(purc_vdom_t vdom,
-        const char *name)
-{
-    if (!vdom || !vdom->document || !name) {
-        PC_ASSERT(0);
-        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
-        return PURC_VARIANT_INVALID;
-    }
-
-    pcvarmgr_t scoped_variables = pcvdom_document_get_variables(vdom);
-    if (!scoped_variables)
-        return false;
-
-    return pcvarmgr_get(scoped_variables, name);
-}
-
-pcvarmgr_t
-pcvdom_document_get_variables(purc_vdom_t vdom)
-{
-    if (!vdom || !vdom->document) {
-        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
-        return NULL;
-    }
-
-    struct pcvdom_node *node = &vdom->document->node;
-    return pcintr_get_scoped_variables(node);
-}
-
 int
 pcvdom_element_append_attr(struct pcvdom_element *elem,
         struct pcvdom_attr *attr)
@@ -494,66 +430,6 @@ pcvdom_element_set_vcm_content(struct pcvdom_element *elem,
     PC_ASSERT(b);
 
     return 0;
-}
-
-bool
-pcvdom_element_bind_variable(struct pcvdom_element *elem,
-        const char *name, purc_variant_t variant)
-{
-    if (!elem || !name || !variant) {
-        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
-        return false;
-    }
-
-    struct pcvdom_node *node = &elem->node;
-    pcvarmgr_t scoped_variables = pcintr_create_scoped_variables(node);
-    if (!scoped_variables)
-        return false;
-
-    return pcvarmgr_add(scoped_variables, name, variant);
-}
-
-bool
-pcvdom_element_unbind_variable(struct pcvdom_element *elem,
-        const char *name)
-{
-    if (!elem || !name) {
-        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
-        return false;
-    }
-
-    pcvarmgr_t scoped_variables = pcvdom_element_get_variables(elem);
-    if (!scoped_variables)
-        return false;
-
-    return pcvarmgr_remove(scoped_variables, name);
-}
-
-purc_variant_t
-pcvdom_element_get_variable(struct pcvdom_element *elem,
-        const char *name)
-{
-    if (!elem || !name) {
-        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
-        return PURC_VARIANT_INVALID;
-    }
-    pcvarmgr_t scoped_variables = pcvdom_element_get_variables(elem);
-    if (!scoped_variables)
-        return PURC_VARIANT_INVALID;
-
-    return pcvarmgr_get(scoped_variables, name);
-}
-
-pcvarmgr_t
-pcvdom_element_get_variables(struct pcvdom_element *elem)
-{
-    if (!elem) {
-        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
-        return NULL;
-    }
-
-    struct pcvdom_node *node = &elem->node;
-    return pcintr_get_scoped_variables(node);
 }
 
 // accessor api
@@ -2284,66 +2160,6 @@ pcvdom_tokenwised_eval_attr(enum pchvml_attr_operator op,
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
     }
-}
-
-void
-pcvdom_document_set_target_workspace(purc_vdom_t vdom, uintptr_t workspace)
-{
-    vdom->target_workspace_handle = workspace;
-}
-
-uintptr_t
-pcvdom_document_get_target_workspace(purc_vdom_t vdom)
-{
-    return vdom->target_workspace_handle;
-}
-
-void
-pcvdom_document_set_target_window(purc_vdom_t vdom, uintptr_t window)
-{
-    vdom->target_window_handle = window;
-}
-
-uintptr_t
-pcvdom_document_get_target_window(purc_vdom_t vdom)
-{
-    return vdom->target_window_handle;
-}
-
-void
-pcvdom_document_set_target_tabpage(purc_vdom_t vdom, uintptr_t tabpage)
-{
-    vdom->target_tabpage_handle = tabpage;
-}
-
-uintptr_t
-pcvdom_document_get_target_tabpage(purc_vdom_t vdom)
-{
-    return vdom->target_tabpage_handle;
-}
-
-void
-pcvdom_document_set_target_dom(purc_vdom_t vdom, uintptr_t dom)
-{
-    vdom->target_dom_handle = dom;
-}
-
-uintptr_t
-pcvdom_document_get_target_dom(purc_vdom_t vdom)
-{
-    return vdom->target_dom_handle;
-}
-
-bool
-pcvdom_document_is_attached_rdr(purc_vdom_t vdom)
-{
-    return (vdom->target_tabpage_handle || vdom->target_window_handle);
-}
-
-void
-pcvdom_document_set_dump_buff(purc_vdom_t vdom, char **dump_buff)
-{
-    vdom->dump_buff = dump_buff;
 }
 
 struct pcvdom_element*

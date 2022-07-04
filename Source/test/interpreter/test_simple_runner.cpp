@@ -76,6 +76,7 @@ TEST(runner, simple)
                 break;
 
             purc_vdom_t vdom = purc_load_hvml_from_file (file);
+            purc_schedule_vdom_0(vdom);
             EXPECT_NE(vdom, nullptr) << file << std::endl;
             if (!vdom)
                 break;
