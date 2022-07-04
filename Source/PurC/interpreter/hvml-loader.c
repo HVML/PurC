@@ -27,6 +27,7 @@
 #include "private/hvml.h"
 #include "private/map.h"
 #include "private/fetcher.h"
+#include "private/ports.h"
 #include "../hvml/hvml-gen.h"
 
 #include <time.h>
@@ -87,6 +88,13 @@ end:
 }
 
 static pcutils_map* md5_vdom_map;
+static size_t total_orig_size;
+
+struct vdom_entry {
+    time_t expire;
+    size_t length;
+    purc_vdom_t vdom;
+};
 
 /* common functions for string key */
 static void* copy_md5_key(const void *key)
@@ -106,41 +114,86 @@ static int cmp_md5_keys(const void *key1, const void *key2)
     return memcmp((const char*)key1, (const char*)key2, MD5_DIGEST_SIZE);
 }
 
-static void free_md5_vdom(void *key, void *val)
+static void *copy_entry(const void *val)
 {
-    free(key);
-    pcvdom_document_unref((purc_vdom_t)val);
+    const struct vdom_entry *entry = val;
+    total_orig_size += entry->length;
+    return (void *)val;
 }
 
-bool init_vdom_map(void)
+static void free_entry(void *val)
 {
-    md5_vdom_map = pcutils_map_create(copy_md5_key, free_md5_key,
-            NULL, NULL, cmp_md5_keys, true);
-    return md5_vdom_map != NULL;
+    struct vdom_entry *entry = val;
+    total_orig_size -= entry->length;
+    pcvdom_document_unref(entry->vdom);
+    free(val);
 }
 
-void term_vdom_map(void)
+static void cleanup_loader_once(void)
 {
+    size_t n = pcutils_map_get_size(md5_vdom_map);
+
+    purc_log_info("Totally cached vdom: %llu/%llu\n",
+            (unsigned long long)total_orig_size,
+            (unsigned long long)n);
     pcutils_map_destroy(md5_vdom_map);
 }
 
-static bool cache_doc(unsigned char *md5, purc_vdom_t vdom)
+int pcintr_init_loader_once(void)
 {
-    if (pcutils_map_insert_ex(md5_vdom_map, md5, vdom, free_md5_vdom))
+    md5_vdom_map = pcutils_map_create(copy_md5_key, free_md5_key,
+            copy_entry, free_entry, cmp_md5_keys, true);
+    if (md5_vdom_map == NULL)
+        goto failed;
+
+    if (atexit(cleanup_loader_once))
+        goto failed;
+
+    return 0;
+
+failed:
+    if (md5_vdom_map)
+        pcutils_map_destroy(md5_vdom_map);
+    return -1;
+}
+
+static bool
+cache_vdom(unsigned char *md5, unsigned expire_after, size_t length,
+        purc_vdom_t vdom)
+{
+    struct vdom_entry *entry = calloc(1, sizeof(*entry));
+
+    time_t expire;
+    if (expire_after)
+       expire = purc_monotonic_time_after(expire_after);
+    else
+       expire = purc_monotonic_time_after(3600);
+
+    entry->expire = expire;
+    entry->length = length;
+    entry->vdom = vdom;
+
+    if (pcutils_map_insert_ex(md5_vdom_map, md5, entry, NULL))
         return false;
 
     pcvdom_document_ref(vdom);
     return true;
 }
 
-static purc_vdom_t find_doc_in_cache(unsigned char *md5)
+static purc_vdom_t find_vdom_in_cache(unsigned char *md5)
 {
     pcutils_map_entry* entry;
     entry = pcutils_map_find(md5_vdom_map, md5);
     if (entry) {
-        purc_vdom_t vdom = entry->val;
-        pcvdom_document_ref(vdom);
-        return entry->val;
+        time_t t = purc_get_monotoic_time();
+        struct vdom_entry *vdom_entry = entry->val;
+        if (t >= vdom_entry->expire) {
+            pcutils_map_erase_entry(md5_vdom_map, entry);
+        }
+        else {
+            purc_vdom_t vdom = entry->val;
+            return vdom;
+        }
     }
 
     return NULL;
@@ -160,7 +213,7 @@ purc_load_hvml_from_string(const char* string)
 
     pcutils_md5digest(string, md5);
 
-    vdom = find_doc_in_cache(md5);
+    vdom = find_vdom_in_cache(md5);
     if (vdom == NULL) {
         purc_rwstream_t in;
         in = purc_rwstream_new_from_mem((void*)string, length);
@@ -169,7 +222,7 @@ purc_load_hvml_from_string(const char* string)
         }
 
         if ((vdom = purc_load_hvml_from_rwstream(in))) {
-            cache_doc(md5, vdom);
+            cache_vdom(md5, 0, length, vdom);
         }
 
         purc_rwstream_destroy(in);
@@ -177,36 +230,6 @@ purc_load_hvml_from_string(const char* string)
 
 failed:
     return vdom;
-}
-
-static FILE *md5sum(const char *file, unsigned char *md5_buf, size_t *length)
-{
-    char buf[1024];
-    pcutils_md5_ctxt ctx;
-    size_t len = 0;
-    FILE *f;
-
-    f = fopen(file, "r");
-    if (!f)
-        return NULL;
-
-    pcutils_md5_begin(&ctx);
-    do {
-        size_t len = fread(buf, 1, sizeof(buf), f);
-        if (!len)
-            break;
-
-        pcutils_md5_hash(&ctx, buf, len);
-        len += len;
-    } while(1);
-
-    pcutils_md5_end(&ctx, md5_buf);
-    fseek(f, SEEK_SET, 0);
-
-    if (length)
-        *length = len;
-
-    return f;
 }
 
 purc_vdom_t
@@ -216,22 +239,21 @@ purc_load_hvml_from_file(const char* file)
     purc_vdom_t vdom;
     unsigned char md5[MD5_DIGEST_SIZE];
 
-    FILE *fp = md5sum(file, md5, &length);
-    if (fp == NULL || length == 0) {
-        purc_set_error(PURC_ERROR_BAD_STDC_CALL);
+    if (!pcutils_file_md5(file, md5, &length) || length == 0) {
+        purc_set_error(PURC_ERROR_BAD_SYSTEM_CALL);
         return NULL;
     }
 
-    vdom = find_doc_in_cache(md5);
+    vdom = find_vdom_in_cache(md5);
     if (vdom == NULL) {
         purc_rwstream_t in;
-        in = purc_rwstream_new_from_fp(fp);
+        in = purc_rwstream_new_from_file(file, "r");
         if (!in) {
             goto failed;
         }
 
         if ((vdom = purc_load_hvml_from_rwstream(in))) {
-            cache_doc(md5, vdom);
+            cache_vdom(md5, 0, length, vdom);
         }
         purc_rwstream_destroy(in);
     }
@@ -239,9 +261,6 @@ purc_load_hvml_from_file(const char* file)
     return vdom;
 
 failed:
-    if (fp)
-        fclose(fp);
-
     return NULL;
 }
 
@@ -258,10 +277,9 @@ purc_load_hvml_from_url(const char* url)
         return NULL;
     }
 
-    // TODO: time_t expire = purc_monotonic_time_after(60);
     pcutils_md5digest(url, md5);
 
-    vdom = find_doc_in_cache(md5);
+    vdom = find_vdom_in_cache(md5);
     if (vdom == NULL) {
         struct pcfetcher_resp_header resp_header = {0};
         purc_rwstream_t resp = pcfetcher_request_sync(
@@ -274,7 +292,8 @@ purc_load_hvml_from_url(const char* url)
         if (resp_header.ret_code == 200) {
             vdom = purc_load_hvml_from_rwstream(resp);
             if (vdom) {
-                cache_doc(md5, vdom);
+                size_t length = purc_rwstream_tell(resp);
+                cache_vdom(md5, 60, length, vdom);
             }
             purc_rwstream_destroy(resp);
         }

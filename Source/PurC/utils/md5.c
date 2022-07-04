@@ -303,30 +303,47 @@ void pcutils_md5digest(const char *string, unsigned char* digest)
     pcutils_md5_end(&ctx, digest);
 }
 
-int pcutils_md5sum(const char *file, unsigned char *md5_buf)
+FILE *
+pcutils_md5sum_ex(const char *file, unsigned char *md5_buf, size_t *length)
 {
-    char buf[256];
+    char buf[1024];
     pcutils_md5_ctxt ctx;
-    int ret = 0;
+    size_t len = 0;
     FILE *f;
 
     f = fopen(file, "r");
     if (!f)
-        return -1;
+        return NULL;
 
     pcutils_md5_begin(&ctx);
     do {
-        int len = fread(buf, 1, sizeof(buf), f);
+        size_t len = fread(buf, 1, sizeof(buf), f);
         if (!len)
             break;
 
         pcutils_md5_hash(&ctx, buf, len);
-        ret += len;
+        len += len;
     } while(1);
 
     pcutils_md5_end(&ctx, md5_buf);
-    fclose(f);
+    fseek(f, SEEK_SET, 0);
 
-    return ret;
+    if (length)
+        *length = len;
+
+    return f;
+}
+
+ssize_t pcutils_md5sum(const char *file, unsigned char *md5_buf)
+{
+    size_t sz;
+    FILE *f = pcutils_md5sum_ex(file, md5_buf, &sz);
+
+    if (f) {
+        fclose(f);
+        return sz;
+    }
+
+    return -1;
 }
 

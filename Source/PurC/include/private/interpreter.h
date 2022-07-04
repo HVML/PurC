@@ -718,6 +718,8 @@ pcintr_load_module(const char *module,
 void
 pcintr_unload_module(void *handle);
 
+int pcintr_init_loader_once(void);
+
 bool
 pcintr_attach_to_renderer(pcintr_coroutine_t cor,
         pcrdr_page_type page_type, const char *target_workspace,

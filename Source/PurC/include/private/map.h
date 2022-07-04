@@ -91,9 +91,13 @@ int pcutils_map_replace (pcutils_map* map, const void* key,
         const void* val, free_kv_fn free_kv_alt);
 
 int pcutils_map_erase (pcutils_map* map, void* key);
+void pcutils_map_erase_entry (pcutils_map* map, pcutils_map_entry *entry);
 
 int pcutils_map_traverse (pcutils_map *map, void *ud,
         int (*cb)(void *key, void *val, void *ud));
+
+void pcutils_map_lock(pcutils_map *map);
+void pcutils_map_unlock(pcutils_map *map);
 
 struct pcutils_map_iterator {
     struct pcutils_map_entry         *curr;

@@ -106,7 +106,10 @@ TEST_P(TestHVMLTag, hvml_tags)
     purc_vdom_t vdom = purc_load_hvml_from_string(test_case.hvml);
     ASSERT_NE(vdom, nullptr);
 
-    pcvdom_document_set_dump_buff(vdom, &buf.dump_buff);
+    purc_coroutine_t co = purc_schedule_vdom_0(vdom);
+    ASSERT_NE(co, nullptr);
+
+    // VW pcvdom_document_set_dump_buff(vdom, &buf.dump_buff);
 
     purc_run(NULL);
 

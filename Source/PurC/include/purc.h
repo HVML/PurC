@@ -431,35 +431,6 @@ typedef enum pcrdr_page_type {
     PCRDR_PAGE_TYPE_WIDGET,
 } pcrdr_page_type;
 
-/**
- * purc_attach_vdom_to_renderer:
- *
- * @vdom: The vDOM entity returned by @purc_load_hvml_from_rwstream or
- *      its brother functions.
- * @page_type: the target page type.
- * @target_workspace: The name of the target workspace.
- * @target_group: The identifier of the target group (nullable) in the layout
- *  HTML contents. When @NULL given, the renderer will create an ungrouped
- *  plainw window for this vDOM.
- * @page_name: The page name (nullable). When @NULL given, the page will be
- *  assigned with an auto-generated page name like `page-10`.
- * @extra_rdr_info: The extra renderer information.
- *
- * Attaches a vDOM tree to a plain window or a widget in the specified
- * workspace in the connected renderer.
- *
- * Returns: @true on success; otherwise @false.
- *
- * XXX: This function will be substituted by `purc_schedule_vdom`.
- *
- * Since 0.1.0
- */
-PCA_EXPORT bool
-purc_attach_vdom_to_renderer(purc_vdom_t vdom,
-        pcrdr_page_type page_type, const char *target_workspace,
-        const char *target_group, const char *page_name,
-        purc_renderer_extra_info *extra_rdr_info);
-
 struct pcintr_coroutine;
 typedef struct pcintr_coroutine *purc_coroutine_t;
 
@@ -492,6 +463,13 @@ purc_schedule_vdom(purc_vdom_t vdom, purc_coroutine_t curator,
         pcrdr_page_type page_type, const char *target_workspace,
         const char *target_group, const char *page_name,
         purc_renderer_extra_info *extra_info, const char *entry);
+
+static inline purc_coroutine_t
+purc_schedule_vdom_0(purc_vdom_t vdom)
+{
+    return purc_schedule_vdom(vdom, NULL, PCRDR_PAGE_TYPE_NULL,
+            NULL, NULL, NULL, NULL, NULL);
+}
 
 /**
  * purc_coroutine_bind_variable:

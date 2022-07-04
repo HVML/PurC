@@ -621,7 +621,7 @@ static int _init_once(void)
 
     INIT_LIST_HEAD(&_all_heaps);
 
-    return 0;
+    return pcintr_init_loader_once();
 }
 
 struct pcmodule _module_interpreter = {
