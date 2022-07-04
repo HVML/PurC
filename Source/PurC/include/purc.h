@@ -569,12 +569,14 @@ purc_coroutine_get_variable(purc_coroutine_t cor, const char *name);
 
 /** The coroutine event */
 typedef enum pccor_event {
+    /** Indicating that the coroutine exited or teminated */
     PCCOR_EVENT_EXIT = 0,
+    /** Indicating that PurC is destroying a coroutine */
     PCCOR_EVENT_DESTROY,
 } pccor_event_t;
 
 typedef void (*purc_event_handler)(purc_coroutine_t cor,
-        pccor_event_t event, void *user_data);
+        pccor_event_t event, void *data);
 
 /**
  * purc_run:
