@@ -46,6 +46,7 @@ struct ctxt_for_observe {
     purc_variant_t                as;
     purc_variant_t                with;
     purc_variant_t                against;
+    purc_variant_t                in;
 
     pcvdom_element_t              define;
 
@@ -367,6 +368,31 @@ process_attr_against(struct pcintr_stack_frame *frame,
 }
 
 static int
+process_attr_in(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element,
+        purc_atom_t name, purc_variant_t val)
+{
+    struct ctxt_for_observe *ctxt;
+    ctxt = (struct ctxt_for_observe*)frame->ctxt;
+    if (ctxt->in != PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_DUPLICATED,
+                "vdom attribute '%s' for element <%s>",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    if (val == PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "vdom attribute '%s' for element <%s> undefined",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    ctxt->in = val;
+    purc_variant_ref(val);
+
+    return 0;
+}
+
+static int
 attr_found_val(struct pcintr_stack_frame *frame,
         struct pcvdom_element *element,
         purc_atom_t name, purc_variant_t val,
@@ -395,6 +421,9 @@ attr_found_val(struct pcintr_stack_frame *frame,
     }
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, AGAINST)) == name) {
         return process_attr_against(frame, element, name, val);
+    }
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, IN)) == name) {
+        return process_attr_in(frame, element, name, val);
     }
 
     purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
@@ -842,6 +871,28 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (for_var == PURC_VARIANT_INVALID || !purc_variant_is_string(for_var)) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         return ctxt;
+    }
+
+    purc_variant_t in;
+    in = ctxt->in;
+    if (in != PURC_VARIANT_INVALID) {
+        if (!purc_variant_is_string(in)) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            return ctxt;
+        }
+
+        purc_variant_t elements = pcintr_doc_query(stack->vdom,
+                purc_variant_get_string_const(in), frame->silently);
+        if (elements == PURC_VARIANT_INVALID) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            return ctxt;
+        }
+
+        r = pcintr_set_at_var(frame, elements);
+        purc_variant_unref(elements);
+        if (r) {
+            return ctxt;
+        }
     }
 
     if (stack->stage != STACK_STAGE_FIRST_ROUND) {
