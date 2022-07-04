@@ -137,11 +137,13 @@ enum pcintr_stack_vdom_insertion_mode {
     STACK_VDOM_AFTER_HVML,
 };
 
+#if 0 // VW
 // experimental: currently for test-case-only
 struct pcintr_supervisor_ops {
     void (*on_terminated)(pcintr_stack_t stack, void *ctxt);
     void (*on_cleanup)(pcintr_stack_t stack, void *ctxt);
 };
+#endif
 
 struct pcintr_exception {
     int                      errcode;
