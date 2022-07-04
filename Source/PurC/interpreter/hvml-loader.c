@@ -131,11 +131,12 @@ static void free_entry(void *val)
 
 static void cleanup_loader_once(void)
 {
+#ifndef NDEBUG
     size_t n = pcutils_map_get_size(md5_vdom_map);
-
-    purc_log_info("Totally cached vdom: %llu/%llu\n",
+    fprintf(stderr, "Totally cached vdom: %llu/%llu\n",
             (unsigned long long)total_orig_size,
             (unsigned long long)n);
+#endif
     pcutils_map_destroy(md5_vdom_map);
 }
 
