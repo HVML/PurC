@@ -205,7 +205,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
             return -1;
         }
 
-        r = pcintr_set_question_var(frame, elements);
+        r = pcintr_set_at_var(frame, elements);
         purc_variant_unref(elements);
         if (r)
             return -1;
