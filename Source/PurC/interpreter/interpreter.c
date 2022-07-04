@@ -376,10 +376,17 @@ stack_release(pcintr_stack_t stack)
         PURC_VARIANT_SAFE_CLEAR(stack->async_request_ids);
     }
 
+#if 0 // VW
     if (stack->ops.on_cleanup) {
         stack->ops.on_cleanup(stack, stack->ctxt);
         stack->ops.on_cleanup = NULL;
         stack->ctxt = NULL;
+    }
+#endif
+    pcintr_heap_t heap = stack->co->owner;
+    if (heap->event_handler) {
+        heap->event_handler(stack->co, PCCOR_EVENT_DESTROY,
+                stack->co->user_data);
     }
 
     struct list_head *frames = &stack->frames;
@@ -1469,7 +1476,7 @@ pcintr_stack_frame_get_parent(struct pcintr_stack_frame *frame)
 #define BUILDIN_VAR_STREAM      "STREAM"
 
 static bool
-bind_doc_named_variable(pcintr_stack_t stack, const char* name,
+bind_cor_named_variable(pcintr_stack_t stack, const char* name,
         purc_variant_t var)
 {
     if (var == PURC_VARIANT_INVALID) {
@@ -1486,7 +1493,7 @@ bind_doc_named_variable(pcintr_stack_t stack, const char* name,
 }
 
 static bool
-init_buidin_doc_variable(pcintr_stack_t stack)
+bind_builtin_coroutine_variables(pcintr_stack_t stack)
 {
     // $TIMERS
     stack->timers = pcintr_timers_init(stack);
@@ -1495,44 +1502,44 @@ init_buidin_doc_variable(pcintr_stack_t stack)
     }
 
     // $HVML
-    if(!bind_doc_named_variable(stack, BUILDIN_VAR_HVML,
+    if(!bind_cor_named_variable(stack, BUILDIN_VAR_HVML,
                 purc_dvobj_hvml_new(&stack->co->hvml_ctrl_props))) {
         return false;
     }
 
     // $SYSTEM
-    if(!bind_doc_named_variable(stack, BUILDIN_VAR_SYSTEM,
+    if(!bind_cor_named_variable(stack, BUILDIN_VAR_SYSTEM,
                 purc_dvobj_system_new())) {
         return false;
     }
 
     // $DATETIME
-    if(!bind_doc_named_variable(stack, BUILDIN_VAR_DATETIME,
+    if(!bind_cor_named_variable(stack, BUILDIN_VAR_DATETIME,
                 purc_dvobj_datetime_new())) {
         return false;
     }
 
     // $T
-    if(!bind_doc_named_variable(stack, BUILDIN_VAR_T,
+    if(!bind_cor_named_variable(stack, BUILDIN_VAR_T,
                 purc_dvobj_text_new())) {
         return false;
     }
 
     // $L
-    if(!bind_doc_named_variable(stack, BUILDIN_VAR_L,
+    if(!bind_cor_named_variable(stack, BUILDIN_VAR_L,
                 purc_dvobj_logical_new())) {
         return false;
     }
 
     // FIXME: document-wide-variant???
     // $STR
-    if(!bind_doc_named_variable(stack, BUILDIN_VAR_STR,
+    if(!bind_cor_named_variable(stack, BUILDIN_VAR_STR,
                 purc_dvobj_string_new())) {
         return false;
     }
 
     // $STREAM
-    if(!bind_doc_named_variable(stack, BUILDIN_VAR_STREAM,
+    if(!bind_cor_named_variable(stack, BUILDIN_VAR_STREAM,
                 purc_dvobj_stream_new())) {
         return false;
     }
@@ -1541,7 +1548,7 @@ init_buidin_doc_variable(pcintr_stack_t stack)
     // $DOC
     pchtml_html_document_t *doc = stack->doc;
     pcdom_document_t *document = (pcdom_document_t*)doc;
-    if(!bind_doc_named_variable(stack, BUILDIN_VAR_DOC,
+    if(!bind_cor_named_variable(stack, BUILDIN_VAR_DOC,
                 purc_dvobj_doc_new(document))) {
         return false;
     }
@@ -1549,13 +1556,13 @@ init_buidin_doc_variable(pcintr_stack_t stack)
     // TODO : bind by  purc_bind_variable
     // begin
     // $SESSION
-    if(!bind_doc_named_variable(stack, BUILDIN_VAR_SESSION,
+    if(!bind_cor_named_variable(stack, BUILDIN_VAR_SESSION,
                 purc_dvobj_session_new())) {
         return false;
     }
 
     // $EJSON
-    if(!bind_doc_named_variable(stack, BUILDIN_VAR_EJSON,
+    if(!bind_cor_named_variable(stack, BUILDIN_VAR_EJSON,
                 purc_dvobj_ejson_new())) {
         return false;
     }
@@ -1580,7 +1587,7 @@ pcintr_init_vdom_under_stack(pcintr_stack_t stack)
         return -1;
     }
 
-    if(!init_buidin_doc_variable(stack))
+    if (!bind_builtin_coroutine_variables(stack))
         return -1;
 
     return 0;
@@ -1664,6 +1671,7 @@ static void execute_one_step_for_exiting_co(pcintr_coroutine_t co)
 
     PC_ASSERT(co->stack.back_anchor == NULL);
 
+#if 0 // VW
     if (co->stack.ops.on_terminated) {
         co->stack.ops.on_terminated(&co->stack, co->stack.ctxt);
         co->stack.ops.on_terminated = NULL;
@@ -1673,9 +1681,14 @@ static void execute_one_step_for_exiting_co(pcintr_coroutine_t co)
         co->stack.ops.on_cleanup = NULL;
         co->stack.ctxt = NULL;
     }
+#endif
 
     pcintr_heap_t heap = co->owner;
     struct pcinst *inst = heap->owner;
+
+    if (heap->event_handler) {
+        heap->event_handler(co, PCCOR_EVENT_EXIT, stack->doc);
+    }
 
     if (co->parent) {
         PC_ASSERT(co->parent->owner == co->owner);
@@ -2244,7 +2257,7 @@ cmp_by_atom(struct rb_node *node, void *ud)
 
 static pcintr_coroutine_t
 coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
-        purc_variant_t as, struct pcintr_supervisor_ops *ops, void *ctxt)
+        purc_variant_t as, void *user_data)
 {
     struct pcinst *inst = pcinst_current();
     struct pcintr_heap *heap = inst->intr_heap;
@@ -2298,6 +2311,7 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
     stack = &co->stack;
     stack->co = co;
     co->owner = heap;
+    co->user_data = user_data;
 
     int r;
     r = pcutils_rbtree_insert_only(coroutines, &co->ident,
@@ -2306,10 +2320,12 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
 
     stack_init(stack);
 
+#if 0 // VW
     if (ops) {
         stack->ops  = *ops;
         stack->ctxt = ctxt;
     }
+#endif
 
     stack->vdom = vdom;
     return co;
@@ -2327,12 +2343,13 @@ purc_coroutine_t
 purc_schedule_vdom(purc_vdom_t vdom, purc_coroutine_t curator,
         pcrdr_page_type page_type, const char *target_workspace,
         const char *target_group, const char *page_name,
-        purc_renderer_extra_info *extra_info, const char *entry)
+        purc_renderer_extra_info *extra_info, const char *body_id,
+        void *user_data)
 {
     pcintr_coroutine_t co = pcintr_get_coroutine();
     PC_ASSERT(co == NULL);
 
-    co = coroutine_create(vdom, curator, NULL, NULL, NULL);
+    co = coroutine_create(vdom, curator, NULL, user_data);
     if (!co) {
         purc_log_error("Failed to create coroutine\n");
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
@@ -2351,7 +2368,7 @@ purc_schedule_vdom(purc_vdom_t vdom, purc_coroutine_t curator,
     }
 
     /* TODO: handle entry here */
-    UNUSED_PARAM(entry);
+    UNUSED_PARAM(body_id);
 
     pcintr_wakeup_target(co, run_co_main);
     return co;
@@ -2376,6 +2393,7 @@ purc_run(purc_event_handler handler)
         return -1;
     }
 
+    heap->event_handler = handler;
     purc_runloop_run();
 
     return 0;
@@ -3715,7 +3733,7 @@ pcintr_create_child_co(pcvdom_element_t vdom_element,
     PC_ASSERT(vdom_element);
 
     pcintr_coroutine_t child;
-    child = coroutine_create(co->vdom, co, as, NULL, NULL);
+    child = coroutine_create(co->vdom, co, as, NULL);
     do {
         if (!child)
             break;
@@ -3748,7 +3766,7 @@ pcintr_load_child_co(const char *hvml,
     PC_ASSERT(co);
 
     pcintr_coroutine_t child;
-    child = coroutine_create(vdom, co, as, NULL, NULL);
+    child = coroutine_create(vdom, co, as, NULL);
     do {
         if (!child)
             break;

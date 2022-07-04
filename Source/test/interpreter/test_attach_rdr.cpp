@@ -612,7 +612,7 @@ TEST(interpreter, basic)
                 "main",         /* target_workspace */
                 NULL,           /* target_group */
                 "def_page",     /* page_name */
-                &extra_info, NULL);
+                &extra_info, NULL, NULL);
         ASSERT_NE(co, nullptr);
     }
 

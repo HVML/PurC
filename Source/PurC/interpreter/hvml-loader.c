@@ -87,8 +87,15 @@ end:
     return doc;
 }
 
-static pcutils_map* md5_vdom_map;
+/*
+ * TODO:
+ * When total_orig_size reaches a number (say 64KB), we can shrink the cached
+ * by emoving some vDOMs according to LRU.
+ *
+ * By now, we keep all vDOMs until the program exits.
+ */
 static size_t total_orig_size;
+static pcutils_map* md5_vdom_map;
 
 struct vdom_entry {
     time_t expire;
