@@ -131,7 +131,7 @@ pcvdom_document_unref(struct pcvdom_document *doc)
     PC_ASSERT(doc);
 
     unsigned long long refc = atomic_fetch_sub(&doc->refc, 1);
-    if (refc <= 2) {
+    if (refc <= 1) {
         document_destroy(doc);
     }
 }
