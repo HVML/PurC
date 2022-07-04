@@ -3701,8 +3701,6 @@ event_timer_fire(pcintr_timer_t timer, const char* id, void* data)
     struct pcinst *inst = (struct pcinst *)data;
     pcintr_dispatch_msg();
 
-    pcintr_check_and_dispatch_msg();
-
     if (inst != NULL && inst->rdr_caps != NULL) {
         pcrdr_wait_and_dispatch_message(inst->conn_to_rdr, 1);
         purc_clr_error();

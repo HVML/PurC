@@ -75,9 +75,6 @@ void
 pcintr_dispatch_msg(void);
 
 void
-pcintr_check_and_dispatch_msg(void);
-
-void
 pcintr_check_and_dispatch_coroutine_event(pcintr_coroutine_t co);
 
 void
