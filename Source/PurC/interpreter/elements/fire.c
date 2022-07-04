@@ -308,9 +308,13 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         const char* name = purc_variant_get_string_const(ctxt->at);
         purc_variant_t observed = pcintr_get_named_var_for_event(stack, name);
         if (observed) {
-            int ret = pcintr_dispatch_message(stack, observed,
-                    ctxt->for_var, ctxt->msg_type_atom, ctxt->sub_type,
+            purc_variant_t source_uri = purc_variant_make_string(
+                    stack->co->full_name, false);
+            int ret = pcintr_post_event_by_ctype(stack->co,
+                    PCRDR_MSG_EVENT_REDUCE_OPT_IGNORE, source_uri,
+                    observed, ctxt->msg_type, ctxt->sub_type,
                     ctxt->with);
+            purc_variant_unref(source_uri);
             purc_variant_unref(observed);
             if (ret != PURC_ERROR_OK) {
                 return ctxt;
@@ -323,18 +327,26 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
             // XXX: optimization
             // CSS selector used string
             // handle by elements.c match_observe
-            int ret = pcintr_dispatch_message(stack, on,
-                    ctxt->for_var, ctxt->msg_type_atom, ctxt->sub_type,
+            purc_variant_t source_uri = purc_variant_make_string(
+                    stack->co->full_name, false);
+            int ret = pcintr_post_event_by_ctype(stack->co,
+                    PCRDR_MSG_EVENT_REDUCE_OPT_IGNORE, source_uri,
+                    on, ctxt->msg_type, ctxt->sub_type,
                     ctxt->with);
+            purc_variant_unref(source_uri);
             if (ret != PURC_ERROR_OK) {
                 return ctxt;
             }
         }
         else
         {
-            int ret = pcintr_dispatch_message(stack, on,
-                    ctxt->for_var, ctxt->msg_type_atom, ctxt->sub_type,
+            purc_variant_t source_uri = purc_variant_make_string(
+                    stack->co->full_name, false);
+            int ret = pcintr_post_event_by_ctype(stack->co,
+                    PCRDR_MSG_EVENT_REDUCE_OPT_IGNORE, source_uri,
+                    on, ctxt->msg_type, ctxt->sub_type,
                     ctxt->with);
+            purc_variant_unref(source_uri);
             if (ret != PURC_ERROR_OK) {
                 return ctxt;
             }

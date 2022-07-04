@@ -95,6 +95,7 @@ struct pcintr_heap {
 
     int64_t               next_coroutine_id;
     purc_atom_t           move_buff;
+    pcintr_timer_t        *event_timer; // 10ms
 };
 
 struct pcintr_stack_frame;
@@ -211,8 +212,6 @@ struct pcintr_stack {
     struct pcintr_supervisor_ops         ops;
     void                                *ctxt;  // no-owner-ship!!!
 
-    pcintr_timer_t                      *event_timer; // 10ms
-
     purc_variant_t async_request_ids;       // async request ids (array)
 
     struct rb_root  scoped_variables; // key: vdom_node
@@ -285,6 +284,8 @@ struct pcintr_coroutine {
     void (*continuation)(void *ctxt, void *extra);
 
     struct list_head            msgs;   /* struct pcintr_msg */
+
+    struct pcinst_msg_queue    *mq;     /* message queue */
     unsigned int volatile       msg_pending:1;
     unsigned int volatile       execution_pending:1;
 };
@@ -603,16 +604,6 @@ pcintr_fire_event_to_target(pcintr_coroutine_t target,
         purc_variant_t src,
         purc_variant_t payload);
 
-int
-pcintr_dispatch_message(pcintr_stack_t stack, purc_variant_t source,
-        purc_variant_t for_value,
-        purc_atom_t msg_type_atom, const char *sub_type,
-        purc_variant_t extra);
-
-int
-pcintr_dispatch_message_ex(pcintr_stack_t stack, purc_variant_t source,
-        purc_variant_t type, purc_variant_t sub_type, purc_variant_t extra);
-
 bool
 pcintr_load_dynamic_variant(pcintr_stack_t stack,
     const char *name, size_t len);
@@ -732,6 +723,18 @@ pcintr_attach_to_renderer(pcintr_coroutine_t cor,
         pcrdr_page_type page_type, const char *target_workspace,
         const char *target_group, const char *page_name,
         purc_renderer_extra_info *extra_info);
+
+int
+pcintr_post_event(pcintr_coroutine_t co,
+        pcrdr_msg_event_reduce_opt reduce_op, purc_variant_t source_uri,
+        purc_variant_t observed, purc_variant_t event_name,
+        purc_variant_t data);
+
+int
+pcintr_post_event_by_ctype(pcintr_coroutine_t co,
+        pcrdr_msg_event_reduce_opt reduce_op, purc_variant_t source_uri,
+        purc_variant_t observed, const char *event_type,
+        const char *event_sub_type, purc_variant_t data);
 
 PCA_EXTERN_C_END
 

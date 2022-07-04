@@ -43,13 +43,42 @@ struct pcvdom_template {
     bool                          to_free;
 };
 
+struct pcintr_observer_matched_data {
+    pcvdom_element_t              pos;
+    pcvdom_element_t              scope;
+    struct pcdom_element         *edom_element;
+    purc_variant_t               payload;
+    purc_variant_t               event_name;
+    purc_variant_t               source;
+};
+
+
 PCA_EXTERN_C_BEGIN
+
+void
+pcintr_destroy_observer_list(struct list_head *observer_list);
+
+struct list_head *
+pcintr_get_observer_list(pcintr_stack_t stack, purc_variant_t observed);
+
+bool
+pcintr_is_observer_match(struct pcintr_observer *observer,
+        purc_variant_t observed, purc_atom_t type_atom, const char *sub_type);
+
+struct pcintr_stack_frame_normal *
+pcintr_push_stack_frame_normal(pcintr_stack_t stack);
+
+void
+pcintr_execute_one_step_for_ready_co(pcintr_coroutine_t co);
+
+void
+pcintr_dispatch_msg(void);
 
 void
 pcintr_check_and_dispatch_msg(void);
 
-int
-pcintr_post_event(pcintr_coroutine_t target, const char *event);
+void
+pcintr_check_and_dispatch_coroutine_event(pcintr_coroutine_t co);
 
 void
 pcintr_synchronize(void *ctxt, void (*routine)(void *ctxt));

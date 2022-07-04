@@ -541,6 +541,22 @@ purc_coroutine_unbind_variable(purc_coroutine_t cor, const char *name);
 PCA_EXPORT purc_variant_t
 purc_coroutine_get_variable(purc_coroutine_t cor, const char *name);
 
+#define PURC_INST_SELF           0
+#define PURC_INST_BROADCAST     -1
+
+/**
+ * Post the message to the instance.
+ *
+ * @param inst: the instance.
+ * @param msg: the message structure.
+ *
+ * Returns: -1 for error; zero means everything is ok.
+ *
+ * Since: 0.2.0
+ */
+PCA_EXPORT int
+purc_inst_post_event(purc_atom_t inst_to, pcrdr_msg *msg);
+
 typedef int (*purc_event_handler)(const struct pcrdr_msg *event);
 
 /**
