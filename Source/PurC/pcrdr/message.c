@@ -503,6 +503,7 @@ static const char *element_type_names[] = {
     "handle",
     "handles",
     "id",
+    "variant",
 };
 
 /* make sure number of element_type_names matches the enums */

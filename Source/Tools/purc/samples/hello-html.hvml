@@ -1,0 +1,14 @@
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<hvml target="html">
+    <head>
+        <title>Hello, world!</title>
+    <head>
+
+    <body>
+        <ul>
+            <iterate on 0 onlyif=$L.lt($0<, 10) with=$MATH.add($0<, 1) >
+                <li>$< Hello, world! --from COROUTINE-$HVML.cid</li>
+            </iterate>
+        </ul>
+    </body>
+</hvml>

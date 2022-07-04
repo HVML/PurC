@@ -301,7 +301,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     }
 
     bool for_yielded = true;
-    ctxt->timer = pcintr_timer_create(NULL, for_yielded, NULL, NULL);
+    ctxt->timer = pcintr_timer_create(NULL, for_yielded, false, NULL, NULL, NULL);
     if (!ctxt->timer)
         return ctxt;
 

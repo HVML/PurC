@@ -108,12 +108,12 @@ void **pcutils_array_expand(pcutils_array_t *array, size_t up_to)
 unsigned int pcutils_array_push(pcutils_array_t *array, void *value)
 {
     if (array->length >= array->size) {
-        if ((pcutils_array_expand(array, 128) == NULL)) {
+        if ((pcutils_array_expand(array, 8) == NULL)) {
             return PURC_ERROR_OUT_OF_MEMORY;
         }
     }
 
-    array->list[ array->length ] = value;
+    array->list[array->length] = value;
     array->length++;
 
     return PURC_ERROR_OK;
@@ -151,7 +151,7 @@ pcutils_array_insert(pcutils_array_t *array, size_t idx, void *value)
     }
 
     if (array->length >= array->size) {
-        if ((pcutils_array_expand(array, 32) == NULL)) {
+        if ((pcutils_array_expand(array, 8) == NULL)) {
             return PURC_ERROR_OUT_OF_MEMORY;
         }
     }

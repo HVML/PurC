@@ -177,7 +177,7 @@ re_eval_with(struct pcintr_stack_frame *frame,
     return r ? -1 : 0;
 }
 
-static void
+static struct ctxt_for_iterate*
 post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
     UNUSED_PARAM(co);
@@ -192,36 +192,45 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     if (on == PURC_VARIANT_INVALID) {
         purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
                 "lack of vdom attribute 'on' for element <iterate>");
-        return;
+        return ctxt;
     }
 
     if (ctxt->onlyif_attr) {
         bool stop;
         int r = check_onlyif(ctxt->onlyif_attr, &stop);
-        if (r)
-            return;
+        if (r) {
+            if (purc_get_last_error())
+                return ctxt;
+            return NULL;
+        }
 
         if (stop) {
             ctxt->stop = 1;
-            return;
+            return NULL;
         }
     }
 
     if (ctxt->with_attr == NULL) {
         ctxt->stop = 1;
-        return;
+        return NULL;
     }
 
     bool stop;
 
     int r;
     r = re_eval_with(frame, ctxt->with_attr, &stop);
-    if (r)
-        return;
+    if (r) {
+        if (purc_get_last_error())
+            return ctxt;
+        return NULL;
+    }
 
     if (stop) {
         ctxt->stop = 1;
+        return NULL;
     }
+
+    return ctxt;
 }
 
 const char *
@@ -251,7 +260,7 @@ eval_rule(struct ctxt_for_iterate *ctxt)
     return rule;
 }
 
-static void
+static struct ctxt_for_iterate*
 post_process_by_internal_rule(struct ctxt_for_iterate *ctxt,
         struct pcintr_stack_frame *frame, const char *rule,
         purc_variant_t on, purc_variant_t with)
@@ -267,8 +276,11 @@ post_process_by_internal_rule(struct ctxt_for_iterate *ctxt,
 
     purc_exec_inst_t exec_inst;
     exec_inst = ops->create(PURC_EXEC_TYPE_ITERATE, on, false);
-    if (!exec_inst)
-        return;
+    if (!exec_inst) {
+        if (purc_get_last_error())
+            return ctxt;
+        return NULL;
+    }
 
     exec_inst->with = with;
 
@@ -276,20 +288,28 @@ post_process_by_internal_rule(struct ctxt_for_iterate *ctxt,
 
     purc_exec_iter_t it;
     it = ops->it_begin(exec_inst, rule);
-    if (!it)
-        return;
+    if (!it) {
+        if (purc_get_last_error())
+            return ctxt;
+        return NULL;
+    }
 
     ctxt->it = it;
 
     purc_variant_t value;
     value = ops->it_value(exec_inst, it);
-    if (value == PURC_VARIANT_INVALID)
-        return;
+    if (value == PURC_VARIANT_INVALID) {
+        if (purc_get_last_error())
+            return ctxt;
+        return NULL;
+    }
 
     pcintr_set_question_var(frame, value);
+
+    return ctxt;
 }
 
-static void
+static struct ctxt_for_iterate*
 post_process_by_external_class(struct ctxt_for_iterate *ctxt,
         struct pcintr_stack_frame *frame, const char *rule,
         purc_variant_t on, purc_variant_t with)
@@ -303,20 +323,28 @@ post_process_by_external_class(struct ctxt_for_iterate *ctxt,
 
     pcexec_class_iter_t it;
     it = ops->it_begin(rule, on, with);
-    if (!it)
-        return;
+    if (!it) {
+        if (purc_get_last_error())
+            return ctxt;
+        return NULL;
+    }
 
     ctxt->it_class = it;
 
     purc_variant_t value;
     value = ops->it_value(ctxt->it_class);
-    if (value == PURC_VARIANT_INVALID)
-        return;
+    if (value == PURC_VARIANT_INVALID) {
+        if (purc_get_last_error())
+            return ctxt;
+        return NULL;
+    }
 
     pcintr_set_question_var(frame, value);
+
+    return ctxt;
 }
 
-static void
+static struct ctxt_for_iterate*
 post_process_by_external_func(struct ctxt_for_iterate *ctxt,
         struct pcintr_stack_frame *frame, const char *rule,
         purc_variant_t on, purc_variant_t with)
@@ -325,8 +353,11 @@ post_process_by_external_func(struct ctxt_for_iterate *ctxt,
 
     pcexec_func_ops_t ops = &ctxt->ops.external_func_ops;
     purc_variant_t v = ops->iterator(rule, on, with);
-    if (v == PURC_VARIANT_INVALID)
-        return;
+    if (v == PURC_VARIANT_INVALID) {
+        if (purc_get_last_error())
+            return ctxt;
+        return NULL;
+    }
 
     bool ok;
     size_t sz = 0;
@@ -334,10 +365,10 @@ post_process_by_external_func(struct ctxt_for_iterate *ctxt,
     if (!ok) {
         purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
                 "not a linear container from external func executor");
-        return;
+        return ctxt;
     }
     if (sz == 0)
-        return;
+        return NULL;
 
     PURC_VARIANT_SAFE_CLEAR(ctxt->val_from_func);
     ctxt->val_from_func = v;
@@ -350,9 +381,11 @@ post_process_by_external_func(struct ctxt_for_iterate *ctxt,
     PC_ASSERT(value != PURC_VARIANT_INVALID);
 
     pcintr_set_question_var(frame, value);
+
+    return ctxt;
 }
 
-static void
+static struct ctxt_for_iterate *
 post_process_by_rule(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
     UNUSED_PARAM(co);
@@ -365,7 +398,7 @@ post_process_by_rule(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     if (on == PURC_VARIANT_INVALID) {
         purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
                 "lack of vdom attribute 'on' for element <iterate>");
-        return;
+        return NULL;
     }
 
     purc_variant_t with;
@@ -377,31 +410,31 @@ post_process_by_rule(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     }
 
     if (with == PURC_VARIANT_INVALID)
-        return;
+        return ctxt;
 
     PURC_VARIANT_SAFE_CLEAR(ctxt->with);
     ctxt->with = with;
 
     const char *rule = eval_rule(ctxt);
     if (!rule)
-        return;
+        return ctxt;
 
     int r;
     r = pcexecutor_get_by_rule(rule, &ctxt->ops);
     if (r)
-        return;
+        return ctxt;
 
     switch (ctxt->ops.type) {
         case PCEXEC_TYPE_INTERNAL:
-            post_process_by_internal_rule(ctxt, frame, rule, on, with);
+            return post_process_by_internal_rule(ctxt, frame, rule, on, with);
             break;
 
         case PCEXEC_TYPE_EXTERNAL_FUNC:
-            post_process_by_external_func(ctxt, frame, rule, on, with);
+            return post_process_by_external_func(ctxt, frame, rule, on, with);
             break;
 
         case PCEXEC_TYPE_EXTERNAL_CLASS:
-            post_process_by_external_class(ctxt, frame, rule, on, with);
+            return post_process_by_external_class(ctxt, frame, rule, on, with);
             break;
 
         default:
@@ -587,13 +620,11 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     }
 
     if (ctxt->by_rule) {
-        post_process_by_rule(stack->co, frame);
+        return post_process_by_rule(stack->co, frame);
     }
     else {
-        post_process(stack->co, frame);
+        return post_process(stack->co, frame);
     }
-
-    return ctxt;
 }
 
 static bool

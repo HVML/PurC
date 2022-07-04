@@ -26,4 +26,14 @@ set(purc_LIBRARIES
 PURC_COMPUTE_SOURCES(purc)
 PURC_FRAMEWORK(purc)
 
+set(sample_FILES
+    "samples/hello.hvml"
+    "samples/hello-10.hvml"
+    "samples/hello-html.hvml"
+)
+
+PURC_COPY_FILES(purc_copy_samples
+    DESTINATION "${CMAKE_BINARY_DIR}"
+    FILES ${sample_FILES}
+)
 

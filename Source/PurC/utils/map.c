@@ -76,6 +76,16 @@ struct pcutils_map {
     purc_rwlock     rwlock;     // read-write lock
 };
 
+void pcutils_map_lock(pcutils_map *map)
+{
+    WRLOCK_MAP(map);
+}
+
+void pcutils_map_unlock(pcutils_map *map)
+{
+    WRUNLOCK_MAP(map);
+}
+
 pcutils_map* pcutils_map_create (copy_key_fn copy_key, free_key_fn free_key,
         copy_val_fn copy_val, free_val_fn free_val,
         comp_key_fn comp_key, bool threads)
@@ -271,6 +281,16 @@ int pcutils_map_erase (pcutils_map* map, void* key)
 
     WRUNLOCK_MAP (map);
     return retval;
+}
+
+void pcutils_map_erase_entry (pcutils_map* map, pcutils_map_entry *entry)
+{
+    if (map == NULL || entry == NULL)
+        return;
+
+    WRLOCK_MAP (map);
+    erase_entry (map, entry);
+    WRUNLOCK_MAP (map);
 }
 
 int pcutils_map_replace (pcutils_map* map, const void* key,
@@ -477,7 +497,8 @@ pcutils_map_it_begin_first(pcutils_map *map)
     if (!map)
         return it;
 
-    PC_ASSERT((map)->rwlock.native_impl == NULL);
+    /* VW: call pcutils_map_lock()/pcutils_map_unlok() explicitly instead
+       PC_ASSERT((map)->rwlock.native_impl == NULL); */
 
     struct rb_root *root = &map->root;
     if (!root)
@@ -499,7 +520,8 @@ pcutils_map_it_begin_last(pcutils_map *map)
     if (!map)
         return it;
 
-    PC_ASSERT((map)->rwlock.native_impl == NULL);
+    /* VW: call pcutils_map_lock()/pcutils_map_unlok() explicitly instead
+    PC_ASSERT((map)->rwlock.native_impl == NULL); */
 
     struct rb_root *root = &map->root;
     if (!root)

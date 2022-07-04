@@ -1,68 +1,91 @@
 # TODO List
 
-## 长期
+## 0) 长期
+
+### 0.1) 变体
+
+1. 实现新的线性容器类型元组（tuple）。
+
+### 0.2) eDOM
+
+1. 优化元素汇集原生实体的实现，使之可以处理 eDOM 变化的情形，并符合 CSS Selector Level 3 的规范要求。
+
+### 0.3) eJSON 解析和求值
+
+1. 支持元组。
+
+### 0.4) 解释器
+
+1. 不可捕获错误的产生及处理机制：
+   - `error` 标签支持 `type` 属性。
+1. `update` 元素支持同时修改多个数据项，支持 `individually` 副词。
+
+## 1) 当前（202207）
+
+### 1.1) 变体
+
+1. 容器子孙成员变化后在容器变体上产生 `change` 事件。
+
+### 1.2) 预定义变量
+
+1. 增加、调整或补充预定义变量的实现：
+   - `$HVML`
+   - `$RDR`
+   - `$URL`
+   - `$STR`
+   - ~~`$MATH.eval` 和 `$MATH.eval_l` 支持函数（如 `sin` 、`log` 等）。~~
+1. 评估并合并如下预定义变量的实现：
+   - `$FS`
+   - `$FILE`
+1. 在预定义变量的实现中，使用线性容器封装接口获取容器类参数的大小及其成员。
+
+### 1.3) eDOM
+
+1. 实现 `void` 目标文档类型。
+
+### 1.4) vDOM 解析器
+
+1. 忽略 HVML 文件中所有以 `#` 打头的行
+
+### 1.5) 解释器
+
+1. 统一使用协程消息队列处理来自变体变化、渲染器以及其他实例的事件、请求或者响应消息。
+   - `observe` 元素支持隐含的临时变量 `_eventName` 和 `_eventSource`。
+   - `observe` 元素 `in` 属性的处理。
+   - 正确区分会话级变量及协程级变量，`observe` 可观察会话级变体（$SESSION.myObj）上的 `change` 事件。
+1. 接口及实现调整：
+   - ~~实现 `purc_schedule_vdom()` 替代 `purc_attach_vdom_to_renderer()`。~~
+   - ~~调整 `purc_bind_document_variable()` 为 `purc_coroutine_bind_variable()`。~~
+   - ~~交由应用处理：将请求参数绑定到协程级 `$REQUEST` 变量上。~~
+1. 实现支持多实例相关的接口：
+   - `purc_inst_new()`
+   - `purc_inst_schedule_vdom()`
+1. 调整对动作元素内容数据的处理逻辑：
+   - 在对动作元素的属性值求值时，若该动作元素定义有内容，则一并完成求值，并将其绑定到当前栈帧的上下文变量 `$^` 上。
+   - 当动作元素需要 `with` 属性值但未定义时，使用内容数据。
+1. 完善如下标签的实现：
+   - `call` 标签。
+   - `return` 标签。
+   - `load` 标签。
+   - `exit` 标签。
+   - `request` 标签。
+1. 完善如下标签从外部数据源获取数据的功能：
+   - ~~`init` 标签：支持 `from`、`with` 及 `via` 属性定义的请求参数及方法。~~
+   - ~~`archetype` 标签：`src`、`param` 和 `method` 属性的支持。~~
+   - `archedata` 标签：`src`、`param` 和 `method` 属性的支持。
+   - `error` 标签：`src`、`param` 和 `method` 属性的支持。
+   - `except` 标签：`src`、`param` 和 `method` 属性的支持。
+   - `define` 标签： 支持 `from`、`with` 及 `via` 属性定义的请求参数及方法。
+   - `update` 标签： 支持 `from`、`with` 及 `via` 属性定义的请求参数及方法。
+1. `update` 标签。
+   - `to` 属性支持 `prepend`、 `remove`、 `insertBefore`、 `insertAfter`、 `intersect`、 `subtract`、 `xor`。
+   - `at` 属性支持 `content`。
+1. `sleep` 标签在调度器检查到有针对休眠协程的事件时，可由调度器唤醒。
+
+## 过往（202206）
 
 ### 变体
 
-* 实现新的线性容器类型元组（tuple）。
-
-### eDOM
-
-* 优化元素汇集原生实体的实现，使之可以处理 eDOM 变化的情形，并符合 CSS Selector Level 3 的规范要求。
-
-### eJSON 解析和求值
-
-* 支持元组。
-
-### 解释器
-
-* 不可捕获错误的产生及处理机制：
-  1. `error` 标签支持 `type` 属性。
-
-## 202207
-
-### 变体
-
-* 在预定义变量的实现中，使用线性容器封装接口获取容器类参数的大小及其成员。
-
-### 预定义变量
-
-* 增加、调整或补充预定义变量的实现：
-  1. `$RDR`
-  1. `$URL`
-  1. `$FS`
-  1. `$FILE`
-  1. `$STR`
-
-### eDOM
-
-* 实现 `void` 目标文档类型。
-
-### 解释器
-
-* 支持 `request` 标签。
-* 支持多个 `body` 标签。
-* `call`、`load` 标签支持创建新行者。
-* `exit` 标签支持 `with` 属性。
-* 完善如下标签从外部数据源获取数据的功能：
-  1. ~~`init` 标签：支持 `from`、`with` 及 `via` 属性定义的请求参数及方法。~~
-  1. ~~`archetype` 标签：`src`、`param` 和 `method` 属性的支持。~~
-  1. `archedata` 标签：`src`、`param` 和 `method` 属性的支持。
-  1. `error` 标签：`src`、`param` 和 `method` 属性的支持。
-  1. `except` 标签：`src`、`param` 和 `method` 属性的支持。
-  1. `define` 标签： 支持 `from`、`with` 及 `via` 属性定义的请求参数及方法。
-  1. `update` 标签： 支持 `from`、`with` 及 `via` 属性定义的请求参数及方法。
-* `update` 标签。
-  1. `to` 属性支持 `prepend` 、`remove` 、`insertBefore` 、`insertAfter` 、`insertAfter` 、`intersect` 、`subtract` 、`xor`。
-  1. `at` 属性支持 `content`。
-  1.  支持同时修改多个数据项，支持 `individually` 副词。
-* `sleep` 标签在调度器检查到有针对休眠协程的事件时，可由调度器唤醒。
-
-## 202206
-
-### 变体
-
-* 容器子孙成员变化后在容器变体上产生 `change` 事件。
 * ~~优化集合的 `overwrite` 等处理，在已经根据给定的唯一性键键值定位要更新的成员后，逐个更新该成员的其他字段，而不是先移除老的成员再构建一个新成员插入。~~
 
 ### eDOM
@@ -70,7 +93,6 @@
 ### 预定义变量
 
 * ~~实现 `$HVML.target` 获取器。~~
-* 实现文档级 `$REQUEST` 预定义变量，将该变量和 `purc_schedule_vdom` 函数中的 `request` 参数关联。
 
 ### vDOM 解析器
 
@@ -84,12 +106,7 @@
   1. ~~`except` 标签支持 `type` 属性。~~
   1. ~~`init` 标签支持使用 `via` 属性值 `LOAD` 从外部模块中加载自定义变量：`from` 属性指定外部模块名，`for` 指定模块中的动态对象名。~~
   1. ~~`init` 标签初始化集合时，支持 `casesensitively` 属性和 `caseinsensitively` 属性。~~
-  1. `call` 标签。
-  1. `return` 标签。
-  1. `load` 标签。
-  1. `exit` 标签（不含对 `with` 属性的支持）。
   1. ~~`iterate` 标签支持外部类执行器。~~
-  1. `observe` 标签支持上下文变量: `$!` 和 `$@`。
   1. ~~`observe` 标签支持 `against` 属性。~~
   1. ~~`forget` 标签支持元素汇集。~~
   1. ~~`fire` 标签支持元素汇集。~~
@@ -122,7 +139,7 @@
      - 支持 `individually` 副词
   1. `request` 标签。
 
-## 202205
+## 过往（202205）
 
 ### 预定义变量
 

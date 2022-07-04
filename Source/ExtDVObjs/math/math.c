@@ -1674,7 +1674,10 @@ purc_variant_t __purcex_load_dynamic_variant (const char *name, int *ver_code)
     UNUSED_PARAM(name);
     *ver_code = MATH_DVOBJ_VERSION;
 
-    return pcdvobjs_create_math ();
+    if (name == NULL || pcutils_strcasecmp(name, "MATH") == 0)
+        return pcdvobjs_create_math ();
+
+    return PURC_VARIANT_INVALID;
 }
 
 size_t __purcex_get_number_of_dynamic_variants (void)
@@ -1696,6 +1699,45 @@ const char * __purcex_get_dynamic_variant_desc (size_t idx)
         return NULL;
 
     return MATH_DESCRIPTION;
+}
+
+static int post_check(void)
+{
+    int flags = FE_INVALID | FE_DIVBYZERO | FE_OVERFLOW | FE_UNDERFLOW;
+    int x = fetestexcept(flags);
+
+    if (x & FE_INVALID)
+        purc_set_error(PURC_ERROR_INVALID_FLOAT);
+    else if (x & FE_DIVBYZERO)
+        purc_set_error (PURC_ERROR_DIVBYZERO);
+    else if (x & FE_OVERFLOW)
+        purc_set_error (PURC_ERROR_OVERFLOW);
+    else if (x & FE_UNDERFLOW)
+        purc_set_error (PURC_ERROR_UNDERFLOW);
+    else
+        return 0;
+
+    return -1;
+}
+
+int
+math_uni(double *r, double (*f)(double a), double a)
+{
+    feclearexcept(FE_ALL_EXCEPT);
+
+    *r = f(a);
+
+    return post_check();
+}
+
+int
+math_unil(long double *r, long double (*f)(long double a), long double a)
+{
+    feclearexcept(FE_ALL_EXCEPT);
+
+    *r = f(a);
+
+    return post_check();
 }
 
 /*

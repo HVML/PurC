@@ -41,6 +41,14 @@ int
 math_eval_l(const char *input, long double *d, purc_variant_t param)
 __attribute__((visibility("hidden")));
 
+int
+math_uni(double *r, double (*f)(double a), double a)
+__attribute__((visibility("hidden")));
+
+int
+math_unil(long double *r, long double (*f)(long double a), long double a)
+__attribute__((visibility("hidden")));
+
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */

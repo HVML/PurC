@@ -603,9 +603,10 @@ typedef enum {
     PCRDR_MSG_ELEMENT_TYPE_HANDLE,
     PCRDR_MSG_ELEMENT_TYPE_HANDLES,
     PCRDR_MSG_ELEMENT_TYPE_ID,
+    PCRDR_MSG_ELEMENT_TYPE_VARIANT,
 
     /* XXX: change this if you append a new enumerator */
-    PCRDR_MSG_ELEMENT_TYPE_LAST = PCRDR_MSG_ELEMENT_TYPE_ID,
+    PCRDR_MSG_ELEMENT_TYPE_LAST = PCRDR_MSG_ELEMENT_TYPE_VARIANT,
 } pcrdr_msg_element_type;
 
 #define PCRDR_MSG_ELEMENT_TYPE_NR     \
@@ -625,6 +626,21 @@ typedef enum {
 #define PCRDR_MSG_DATA_TYPE_NR     \
     (PCRDR_MSG_DATA_TYPE_LAST - PCRDR_MSG_DATA_TYPE_FIRST + 1)
 
+typedef enum
+{
+    PCRDR_MSG_EVENT_REDUCE_OPT_FIRST = 0,
+
+    PCRDR_MSG_EVENT_REDUCE_OPT_KEEP = PCRDR_MSG_EVENT_REDUCE_OPT_FIRST,
+    PCRDR_MSG_EVENT_REDUCE_OPT_IGNORE,
+    PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
+
+    /* XXX: change this if you append a new enumerator */
+    PCRDR_MSG_EVENT_REDUCE_OPT_LAST = PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
+} pcrdr_msg_event_reduce_opt;
+
+#define PCRDR_MSG_EVENT_REDUCE_OPT_NR     \
+    (PCRDR_MSG_EVENT_REDUCE_OPT_LAST - PCRDR_MSG_EVENT_REDUCE_OPT_FIRST + 1)
+
 /** the renderer message structure */
 struct pcrdr_msg
 {
@@ -636,6 +652,12 @@ struct pcrdr_msg
     pcrdr_msg_target        target;
     pcrdr_msg_element_type  elementType;
     pcrdr_msg_data_type     dataType;
+
+    /**
+     * The event reduce option
+     */
+    pcrdr_msg_event_reduce_opt reduceOpt;
+
     unsigned int            retCode;
     union {
         unsigned int        __data_len; // internal use only
@@ -1289,6 +1311,7 @@ purc_inst_retrieve_message(size_t index);
  */
 PCA_EXPORT pcrdr_msg *
 purc_inst_take_away_message(size_t index);
+
 
 /**@}*/
 

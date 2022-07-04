@@ -25,6 +25,8 @@
 #ifndef PURC_RUNLOOP_H
 #define PURC_RUNLOOP_H
 
+#include "purc-macros.h"
+
 #include <stdint.h>
 
 typedef void* purc_runloop_t;
@@ -149,27 +151,6 @@ uintptr_t purc_runloop_add_fd_monitor(purc_runloop_t runloop, int fd,
  */
 PCA_EXPORT
 void purc_runloop_remove_fd_monitor(purc_runloop_t runloop, uintptr_t handle);
-
-/**
- * Dispatch message
- *
- * @param runloop: the runloop
- * @param source: the source of the message
- * @param type: the type of the message
- * @param sub_type: the sub type of the message
- * @param extra: the extra of the message
- * @param stack: the pointer to the stack
- *
- * Return: denote if the function succeeds or not
- *         0:  Success
- *         -1: Failed
- *
- * Since: 0.1.1
- */
-PCA_EXPORT
-int purc_runloop_dispatch_message(purc_runloop_t runloop, purc_variant_t source,
-        purc_variant_t type, purc_variant_t sub_type, purc_variant_t extra,
-        void  *stack);
 
 PCA_EXTERN_C_END
 

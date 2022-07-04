@@ -1,0 +1,100 @@
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<hvml target="html">
+    <head>
+        <meta charset="utf-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+        <update on="$TIMERS" to="unite">
+            [
+                { "id" : "rate", "interval" : 60, "active" : "yes" },
+            ]
+        </update>
+
+        <style>
+body {
+  margin: 0;
+  background: #000;
+  overflow: hidden;
+}
+svg {
+  display: block;
+  margin: 0 auto;
+  width: 50%;
+}
+#orbits circle {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 3px;
+}
+#lineGroup line {
+  stroke-width: 1px;
+}
+#earth {
+  fill: blue;
+}
+#venus {
+  fill: hsl(60,80%,80%)
+}
+#sol {
+  fill: yellow;
+}
+        </style>
+
+        <title>Planetary Resonance</title>
+
+    </head>
+
+    <body>
+        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 500 500">
+            <g id="orbits">
+                <circle id="venusorbit" cx="250" cy="250" r="120" />
+                <circle id="earthorbit" cx="250" cy="250" r="165" />
+            </g>
+            <g id="lineGroup" transform="rotate(-90 250 250)"></g>
+            <circle id="earth" cx="250" cy="85" r="8" />
+            <circle id="venus" cx="250" cy="130" r="5" />
+            <circle id="sol" cx="250" cy="250" r="16" />
+        </svg>
+
+        <archetype name="line">
+            <line x1="$?.earthX" y1="$?.earthY" x2="$?.venusX" y2="$?.venusY" stroke="hsla($?.i, 50%, 50%, 0.5)" />
+        </archetype>
+
+        <init as params >
+            {
+                i: 0,
+                earthDeg: 5, earthOrbits: 8, venusOrbits: 13,
+                resonance: $MATH.div(8, 13), centre: 250,
+                earthDist: $MATH.sub(250, 85),
+                venusDist: $MATH.sub(250, 130),
+            }
+        </init>
+
+        <observe on $TIMERS for "expired:rate" >
+            <update on #earth at "attr.transform" with $STR.join("rotate(", $params.i, ' ' + $params.centre, ' ', $params.centre, ')') />
+            <update on #venus at "attr.transform" with $STR.join("rotate(", $MATH.div($i, $params.resonance), ' ', $params.centre, ' ', $params.centre, ')') />
+
+            <init as result temp>
+                {
+                    i: $params.i,
+                    earthX: $MATH.eval("cos(i*pi()/180) * earthDist + centre", $params),
+                    earthY: $MATH.eval("sin((i*pi()/180)) * earthDist + centre", $params),
+                    venusX: $MATH.eval("cos((i/(earthOrbits/13))*pi()/180) * venusDist + centre", $params),
+                    venusY: $MATH.eval("sin((i/(earthOrbits/13))*pi()/180) * venusDist + centre", $params),
+                }
+
+                <update on '#lineGroup' to 'append' with $line />
+            </init>
+
+            <update on $params at 'i' with += $params.earthDeg />
+
+            <test with $L.le($i, $MATH.eval('360 * earthOrbits + earthDeg', $params)) >
+                <update on $TIMES to subtract with { id: "rate" } />
+            </test>
+
+        </observe>
+
+    </body>
+
+</hvml>
+
