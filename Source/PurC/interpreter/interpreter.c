@@ -3512,7 +3512,7 @@ pcintr_observe_vcm_ev(pcintr_stack_t stack, struct pcintr_observer* observer,
     // dispatch change event
     purc_variant_t source_uri = purc_variant_make_string(
             stack->co->full_name, false);
-    pcintr_post_event_by_ctype(stack->co,
+    pcintr_post_event_by_ctype(stack->co->ident,
             PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY, source_uri,
             var, MSG_TYPE_CHANGE, NULL,
             PURC_VARIANT_INVALID);

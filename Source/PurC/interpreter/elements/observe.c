@@ -119,7 +119,7 @@ bool base_variant_msg_listener(purc_variant_t source, pcvar_op_t msg_type,
     pcintr_stack_t stack = (pcintr_stack_t)ctxt;
     purc_variant_t source_uri = purc_variant_make_string(
             stack->co->full_name, false);
-    pcintr_post_event_by_ctype(stack->co,
+    pcintr_post_event_by_ctype(stack->co->ident,
             PCRDR_MSG_EVENT_REDUCE_OPT_IGNORE, source_uri,
             source, smsg, NULL, PURC_VARIANT_INVALID);
     purc_variant_unref(source_uri);

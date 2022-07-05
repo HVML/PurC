@@ -135,7 +135,7 @@ static bool mgr_grow_handler(purc_variant_t source, pcvar_op_t msg_type,
 
         purc_variant_t source_uri = purc_variant_make_string(
                 stack->co->full_name, false);
-        pcintr_post_event_by_ctype(stack->co,
+        pcintr_post_event_by_ctype(stack->co->ident,
                 PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY, source_uri,
                 dest, MSG_TYPE_CHANGE, SUB_TYPE_ATTACHED,
                 PURC_VARIANT_INVALID);
@@ -165,7 +165,7 @@ static bool mgr_shrink_handler(purc_variant_t source, pcvar_op_t msg_type,
         pcintr_stack_t stack = pcintr_get_stack();
         purc_variant_t source_uri = purc_variant_make_string(
                 stack->co->full_name, false);
-        pcintr_post_event_by_ctype(stack->co,
+        pcintr_post_event_by_ctype(stack->co->ident,
                 PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY, source_uri,
                 dest, MSG_TYPE_CHANGE, SUB_TYPE_DETACHED,
                 PURC_VARIANT_INVALID);
@@ -196,7 +196,7 @@ static bool mgr_change_handler(purc_variant_t source, pcvar_op_t msg_type,
 
         purc_variant_t source_uri = purc_variant_make_string(
                 stack->co->full_name, false);
-        pcintr_post_event_by_ctype(stack->co,
+        pcintr_post_event_by_ctype(stack->co->ident,
                 PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY, source_uri,
                 dest, MSG_TYPE_CHANGE, SUB_TYPE_DISPLACED,
                 PURC_VARIANT_INVALID);
@@ -368,7 +368,7 @@ bool pcvarmgr_dispatch_except(pcvarmgr_t mgr, const char* name,
 
         purc_variant_t source_uri = purc_variant_make_string(
                 stack->co->full_name, false);
-        pcintr_post_event_by_ctype(stack->co,
+        pcintr_post_event_by_ctype(stack->co->ident,
                 PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY, source_uri,
                 dest, MSG_TYPE_CHANGE, except,
                 PURC_VARIANT_INVALID);

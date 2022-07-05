@@ -310,7 +310,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         if (observed) {
             purc_variant_t source_uri = purc_variant_make_string(
                     stack->co->full_name, false);
-            int ret = pcintr_post_event_by_ctype(stack->co,
+            int ret = pcintr_post_event_by_ctype(stack->co->ident,
                     PCRDR_MSG_EVENT_REDUCE_OPT_IGNORE, source_uri,
                     observed, ctxt->msg_type, ctxt->sub_type,
                     ctxt->with);
@@ -329,7 +329,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
             // handle by elements.c match_observe
             purc_variant_t source_uri = purc_variant_make_string(
                     stack->co->full_name, false);
-            int ret = pcintr_post_event_by_ctype(stack->co,
+            int ret = pcintr_post_event_by_ctype(stack->co->ident,
                     PCRDR_MSG_EVENT_REDUCE_OPT_IGNORE, source_uri,
                     on, ctxt->msg_type, ctxt->sub_type,
                     ctxt->with);
@@ -342,7 +342,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         {
             purc_variant_t source_uri = purc_variant_make_string(
                     stack->co->full_name, false);
-            int ret = pcintr_post_event_by_ctype(stack->co,
+            int ret = pcintr_post_event_by_ctype(stack->co->ident,
                     PCRDR_MSG_EVENT_REDUCE_OPT_IGNORE, source_uri,
                     on, ctxt->msg_type, ctxt->sub_type,
                     ctxt->with);

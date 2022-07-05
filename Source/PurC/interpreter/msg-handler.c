@@ -370,12 +370,11 @@ pcintr_dispatch_msg(void)
 }
 
 int
-pcintr_post_event(pcintr_coroutine_t co,
+pcintr_post_event(purc_atom_t co_id,
         pcrdr_msg_event_reduce_opt reduce_op, purc_variant_t source_uri,
         purc_variant_t observed, purc_variant_t event_name,
         purc_variant_t data)
 {
-    UNUSED_PARAM(co);
     UNUSED_PARAM(source_uri);
     UNUSED_PARAM(event_name);
     UNUSED_PARAM(data);
@@ -384,12 +383,6 @@ pcintr_post_event(pcintr_coroutine_t co,
         return -1;
     }
 
-#if 0
-    pcintr_stack_t stack = &co->stack;
-    struct pcintr_heap *heap = stack->owning_heap;
-    struct pcinst *inst = heap->owner;
-#endif
-
     pcrdr_msg *msg = pcinst_get_message();
     if (msg == NULL) {
         return -1;
@@ -397,7 +390,7 @@ pcintr_post_event(pcintr_coroutine_t co,
 
     msg->type = PCRDR_MSG_TYPE_EVENT;
     msg->target = PCRDR_MSG_TARGET_COROUTINE;
-    msg->targetValue = co->ident;
+    msg->targetValue = co_id;
     msg->reduceOpt = reduce_op;
 
     if (source_uri) {
@@ -421,7 +414,7 @@ pcintr_post_event(pcintr_coroutine_t co,
 }
 
 int
-pcintr_post_event_by_ctype(pcintr_coroutine_t co,
+pcintr_post_event_by_ctype(purc_atom_t co_id,
         pcrdr_msg_event_reduce_opt reduce_op, purc_variant_t source_uri,
         purc_variant_t observed, const char *event_type,
         const char *event_sub_type, purc_variant_t data)
@@ -455,7 +448,7 @@ pcintr_post_event_by_ctype(pcintr_coroutine_t co,
         return -1;
     }
 
-    int ret = pcintr_post_event(co, reduce_op, source_uri, observed,
+    int ret = pcintr_post_event(co_id, reduce_op, source_uri, observed,
             event_name, data);
     purc_variant_unref(event_name);
 
