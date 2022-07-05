@@ -420,6 +420,7 @@ pcintr_post_event(purc_atom_t co_id,
     purc_variant_ref(msg->elementValue);
 
     if (data) {
+        msg->dataType = PCRDR_MSG_DATA_TYPE_JSON;
         msg->data = data;
         purc_variant_ref(msg->data);
     }
