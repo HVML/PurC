@@ -2342,7 +2342,8 @@ fail_co:
 }
 
 purc_coroutine_t
-purc_schedule_vdom(purc_vdom_t vdom, purc_coroutine_t curator,
+purc_schedule_vdom(purc_vdom_t vdom,
+        purc_coroutine_t curator, purc_variant_t request,
         pcrdr_page_type page_type, const char *target_workspace,
         const char *target_group, const char *page_name,
         purc_renderer_extra_info *extra_info, const char *body_id,
@@ -2371,6 +2372,7 @@ purc_schedule_vdom(purc_vdom_t vdom, purc_coroutine_t curator,
 
     /* TODO: handle entry here */
     UNUSED_PARAM(body_id);
+    UNUSED_PARAM(request);
 
     pcintr_wakeup_target(co, run_co_main);
     return co;

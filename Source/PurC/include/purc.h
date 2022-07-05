@@ -335,6 +335,18 @@ purc_get_local_data(const char* data_name, uintptr_t *local_data,
 PCA_EXPORT bool
 purc_bind_variable(const char* name, purc_variant_t variant);
 
+/**
+ * purc_bind_session_variables:
+ *
+ * Binds all predefined session variables for current PurC instance.
+ *
+ * Returns: @true for success; @false for failure.
+ *
+ * Since 0.2.0
+ */
+PCA_EXPORT bool
+purc_bind_session_variables(void);
+
 struct pcvdom_document;
 typedef struct pcvdom_document* purc_vdom_t;
 
@@ -441,6 +453,7 @@ typedef struct pcintr_coroutine *purc_coroutine_t;
  *  its brother functions.
  * @curator: The curator of the new coroutine, i.e., the coroutine which is
  *  waiting for the the execute result of the new coroutine; 0 for no curator.
+ * @request: The request variant for the new coroutine.
  * @page_type: the target renderer page type.
  * @target_workspace: The name of the target renderer workspace.
  * @target_group: The identifier of the target group (nullable) in the layout
@@ -460,17 +473,18 @@ typedef struct pcintr_coroutine *purc_coroutine_t;
  * Since 0.2.0
  */
 PCA_EXPORT purc_coroutine_t
-purc_schedule_vdom(purc_vdom_t vdom, purc_coroutine_t curator,
+purc_schedule_vdom(purc_vdom_t vdom,
+        purc_coroutine_t curator, purc_variant_t request,
         pcrdr_page_type page_type, const char *target_workspace,
         const char *target_group, const char *page_name,
         purc_renderer_extra_info *extra_info, const char *body_id,
         void *user_data);
 
 static inline purc_coroutine_t
-purc_schedule_vdom_0(purc_vdom_t vdom)
+purc_schedule_vdom_null(purc_vdom_t vdom)
 {
-    return purc_schedule_vdom(vdom, NULL, PCRDR_PAGE_TYPE_NULL,
-            NULL, NULL, NULL, NULL, NULL, NULL);
+    return purc_schedule_vdom(vdom, NULL, PURC_VARIANT_INVALID,
+            PCRDR_PAGE_TYPE_NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 }
 
 /**
@@ -645,11 +659,12 @@ purc_inst_create_or_get(const char *app_name, const char *runner_name,
  * Since 0.2.0
  */
 PCA_EXPORT purc_atom_t
-purc_inst_schedule_vdom(purc_atom_t inst, purc_vdom_t vdom, purc_atom_t curator,
+purc_inst_schedule_vdom(purc_atom_t inst, purc_vdom_t vdom,
+        purc_atom_t curator, purc_variant_t request,
         pcrdr_page_type page_type, const char *target_workspace,
         const char *target_group, const char *page_name,
         purc_renderer_extra_info *extra_rdr_info,
-        const char *entry, purc_variant_t request);
+        const char *entry);
 
 #define PURC_INST_SELF           0
 #define PURC_INST_BROADCAST     -1

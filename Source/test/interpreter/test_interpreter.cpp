@@ -868,7 +868,7 @@ TEST(interpreter, basic)
     for (size_t i=0; i<PCA_TABLESIZE(hvmls); ++i) {
         const char *hvml = hvmls[i];
         purc_vdom_t vdom = purc_load_hvml_from_string(hvml);
-        purc_schedule_vdom_0(vdom);
+        purc_schedule_vdom_null(vdom);
         ASSERT_NE(vdom, nullptr);
     }
 
