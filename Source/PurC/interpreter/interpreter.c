@@ -385,7 +385,7 @@ stack_release(pcintr_stack_t stack)
 #endif
     pcintr_heap_t heap = stack->co->owner;
     if (heap->event_handler) {
-        heap->event_handler(stack->co, PCCOR_EVENT_DESTROY,
+        heap->event_handler(stack->co, PURC_EVENT_DESTROY,
                 stack->co->user_data);
     }
 
@@ -1689,7 +1689,7 @@ static void execute_one_step_for_exiting_co(pcintr_coroutine_t co)
     struct pcinst *inst = heap->owner;
 
     if (heap->event_handler) {
-        heap->event_handler(co, PCCOR_EVENT_EXIT, stack->doc);
+        heap->event_handler(co, PURC_EVENT_EXIT, stack->doc);
     }
 
     if (co->parent) {
@@ -2378,11 +2378,47 @@ purc_schedule_vdom(purc_vdom_t vdom,
     return co;
 }
 
+purc_event_handler
+purc_get_event_handler(void)
+{
+    struct pcinst *inst = pcinst_current();
+    if (inst) {
+        purc_set_error(PURC_ERROR_NO_INSTANCE);
+        return (purc_event_handler)PURC_INVPTR;
+    }
+
+    struct pcintr_heap *heap = inst->intr_heap;
+    if (!heap) {
+        purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+        return (purc_event_handler)PURC_INVPTR;
+    }
+
+    return heap->event_handler;
+}
+
+purc_event_handler
+purc_set_event_handler(purc_event_handler handler)
+{
+    struct pcinst *inst = pcinst_current();
+    if (inst) {
+        purc_set_error(PURC_ERROR_NO_INSTANCE);
+        return (purc_event_handler)PURC_INVPTR;
+    }
+
+    struct pcintr_heap *heap = inst->intr_heap;
+    if (!heap) {
+        purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+        return (purc_event_handler)PURC_INVPTR;
+    }
+
+    purc_event_handler old = heap->event_handler;
+    heap->event_handler = handler;
+    return old;
+}
+
 int
 purc_run(purc_event_handler handler)
 {
-    UNUSED_PARAM(handler);
-
     struct pcinst *inst = pcinst_current();
     PC_ASSERT(inst);
     struct pcintr_heap *heap = inst->intr_heap;
