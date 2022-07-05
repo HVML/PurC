@@ -319,7 +319,7 @@ purc_inst_post_event(purc_atom_t inst_to, pcrdr_msg *msg)
         return -1;
     }
 
-    if (inst_to == PURC_INST_SELF) {
+    if (inst_to == PURC_EVENT_TARGET_SELF) {
         if (msg->target != PCRDR_MSG_TARGET_COROUTINE) {
             return 0;
         }

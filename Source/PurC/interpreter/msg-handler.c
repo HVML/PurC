@@ -410,7 +410,7 @@ pcintr_post_event(purc_atom_t co_id,
         purc_variant_ref(msg->data);
     }
 
-    return purc_inst_post_event(PURC_INST_SELF, msg);
+    return purc_inst_post_event(PURC_EVENT_TARGET_SELF, msg);
 }
 
 int

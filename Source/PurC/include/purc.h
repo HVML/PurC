@@ -699,8 +699,8 @@ purc_inst_schedule_vdom(purc_atom_t inst, purc_vdom_t vdom,
         purc_renderer_extra_info *extra_rdr_info,
         const char *entry);
 
-#define PURC_INST_SELF          0
-#define PURC_INST_BROADCAST     ((purc_atom_t)-1)
+#define PURC_EVENT_TARGET_SELF          0
+#define PURC_EVENT_TARGET_BROADCAST     ((purc_atom_t)-1)
 
 /**
  * Post an event message to the instance.
