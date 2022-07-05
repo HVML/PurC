@@ -594,7 +594,7 @@ PCA_EXPORT int
 purc_run(purc_event_handler handler);
 
 /**
- * purc_inst_new:
+ * purc_inst_create_or_get:
  *
  * @app_name: a pointer to the string contains the app name.
  *      If this argument is null, the executable program name of the command
@@ -602,14 +602,17 @@ purc_run(purc_event_handler handler);
  * @runner_name: a pointer to the string contains the runner name.
  *      If this argument is null, `unknown` will be used for the runner name.
  * @extra_info: a pointer (nullable) to the extra information for the new
- *      PurC instance, e.g., the URI of the renderer.
+ *      PurC instance, e.g., the type and the URI of the renderer.
+ *
+ * Creates a new PurC instance or gets the atom value of the existing
+ * PurC instance.
  *
  * Returns: The atom representing the new PurC instance, 0 for error.
  *
  * Since 0.2.0
  */
 PCA_EXPORT purc_atom_t
-purc_inst_new(const char *app_name, const char *runner_name,
+purc_inst_create_or_get(const char *app_name, const char *runner_name,
         const purc_instance_extra_info* extra_info);
 
 /**
