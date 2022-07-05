@@ -190,21 +190,25 @@ cache_vdom(unsigned char *md5, unsigned expire_after, size_t length,
 
 static purc_vdom_t find_vdom_in_cache(unsigned char *md5)
 {
+    purc_vdom_t vdom = NULL;
+
     pcutils_map_entry* entry;
-    entry = pcutils_map_find(md5_vdom_map, md5);
+    entry = pcutils_map_find_and_lock(md5_vdom_map, md5);
     if (entry) {
         time_t t = purc_get_monotoic_time();
         struct vdom_entry *vdom_entry = entry->val;
         if (t >= vdom_entry->expire) {
-            pcutils_map_erase_entry(md5_vdom_map, entry);
+            pcutils_map_erase_entry_nolock(md5_vdom_map, entry);
         }
         else {
             struct vdom_entry *vdom_entry = entry->val;
-            return vdom_entry->vdom;
+            vdom = vdom_entry->vdom;
         }
+
+        pcutils_map_unlock(md5_vdom_map);
     }
 
-    return NULL;
+    return vdom;
 }
 
 purc_vdom_t

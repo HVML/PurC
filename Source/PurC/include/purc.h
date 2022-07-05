@@ -266,7 +266,7 @@ typedef void (*cb_free_local_data) (void *key, void *local_data);
  *     of double (number) type. If not defined, use the default format
  *     (`%.17g`).
  *  - `format-long-double`: This local data contains the format (should be
- *     a pointer to a static string), which will be  used to serilize a
+ *     a pointer to a static string), which will be used to serilize a
  *     variant of long double type. If not defined, use the default format
  *     (%.17Lg).
  *
@@ -425,9 +425,9 @@ typedef struct purc_renderer_extra_info {
     /** the title of the widget */
     const char *title;
     /** the layout style of the page (like `width:100px`) */
-    const char *layoutStyle;
+    const char *layout_style;
     /** the toolkit style of the page (an object variant) */
-    purc_variant_t toolkitStyle;
+    purc_variant_t toolkit_style;
 
     /** The page groups to add to the layout DOM */
     const char *page_groups;
@@ -474,7 +474,7 @@ typedef struct pcintr_coroutine *purc_coroutine_t;
  */
 PCA_EXPORT purc_coroutine_t
 purc_schedule_vdom(purc_vdom_t vdom,
-        purc_coroutine_t curator, purc_variant_t request,
+        purc_atom_t curator, purc_variant_t request,
         pcrdr_page_type page_type, const char *target_workspace,
         const char *target_group, const char *page_name,
         purc_renderer_extra_info *extra_info, const char *body_id,
@@ -483,7 +483,7 @@ purc_schedule_vdom(purc_vdom_t vdom,
 static inline purc_coroutine_t
 purc_schedule_vdom_null(purc_vdom_t vdom)
 {
-    return purc_schedule_vdom(vdom, NULL, PURC_VARIANT_INVALID,
+    return purc_schedule_vdom(vdom, 0, PURC_VARIANT_INVALID,
             PCRDR_PAGE_TYPE_NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 }
 

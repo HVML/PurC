@@ -2343,7 +2343,7 @@ fail_co:
 
 purc_coroutine_t
 purc_schedule_vdom(purc_vdom_t vdom,
-        purc_coroutine_t curator, purc_variant_t request,
+        purc_atom_t curator, purc_variant_t request,
         pcrdr_page_type page_type, const char *target_workspace,
         const char *target_group, const char *page_name,
         purc_renderer_extra_info *extra_info, const char *body_id,
@@ -2352,7 +2352,10 @@ purc_schedule_vdom(purc_vdom_t vdom,
     pcintr_coroutine_t co = pcintr_get_coroutine();
     PC_ASSERT(co == NULL);
 
-    co = coroutine_create(vdom, curator, NULL, user_data);
+    /* TODO: check curator here */
+    UNUSED_PARAM(curator);
+
+    co = coroutine_create(vdom, NULL, NULL, user_data);
     if (!co) {
         purc_log_error("Failed to create coroutine\n");
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
