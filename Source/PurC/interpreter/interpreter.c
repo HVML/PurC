@@ -2363,8 +2363,6 @@ purc_schedule_vdom(purc_vdom_t vdom,
         return NULL;
     }
 
-    //pcvdom_document_ref(vdom);
-
     PC_ASSERT(co->stack.vdom);
 
     if (page_type != PCRDR_PAGE_TYPE_NULL &&
@@ -3785,7 +3783,8 @@ pcintr_create_child_co(pcvdom_element_t vdom_element,
         PC_ASSERT(co->stack.vdom);
 
         child->stack.entry = vdom_element;
-        // pcvdom_document_ref(co->vdom);
+        // VW: we reuse the vDOM, so must increase refcount.
+        pcvdom_document_ref(co->vdom);
 
         purc_log_debug("running parent/child: %p/%p", co, child);
         PRINT_VDOM_NODE(&vdom_element->node);
@@ -3817,8 +3816,6 @@ pcintr_load_child_co(const char *hvml,
             break;
 
         PC_ASSERT(co->stack.vdom);
-
-        //pcvdom_document_ref(co->vdom);
 
         PC_DEBUGX("running parent/child: %p/%p", co, child);
         pcintr_wakeup_target(child, run_co_main);
