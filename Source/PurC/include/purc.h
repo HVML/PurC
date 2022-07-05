@@ -581,16 +581,48 @@ purc_coroutine_unbind_variable(purc_coroutine_t cor, const char *name);
 PCA_EXPORT purc_variant_t
 purc_coroutine_get_variable(purc_coroutine_t cor, const char *name);
 
-/** The coroutine event */
-typedef enum pccor_event {
-    /** Indicating that the coroutine exited or teminated */
-    PCCOR_EVENT_EXIT = 0,
+/** The PurC instance events */
+typedef enum purc_event {
+    /** Indicating that there is no coroutine scheduled. */
+    PURC_EVENT_NOCOR = 0,
+    /** Indicating that there is no coroutine in ready state. */
+    PURC_EVENT_IDLE,
+    /** Indicating that a coroutine exited or teminated */
+    PURC_EVENT_EXIT,
     /** Indicating that PurC is destroying a coroutine */
-    PCCOR_EVENT_DESTROY,
-} pccor_event_t;
+    PURC_EVENT_DESTROY,
+} purc_event_t;
 
-typedef void (*purc_event_handler)(purc_coroutine_t cor,
-        pccor_event_t event, void *data);
+typedef int (*purc_event_handler)(purc_coroutine_t cor,
+        purc_event_t event, void *data);
+
+#define PURC_INVPTR         ((void *)-1)
+
+/**
+ * purc_get_event_handler:
+ *
+ * Returns: The pointer to the current event handler; @PURC_INVPTR for error.
+ *
+ * Since 0.2.0
+ */
+PCA_EXPORT purc_event_handler
+purc_get_event_handler(void);
+
+/**
+ * purc_set_event_handler:
+ *
+ * @handler: The pointer to a call-back function which handles
+ *      the session events.
+ *
+ * Sets the event handler of the current PurC instance, and returns
+ * the old event handler.
+ *
+ * Returns: The pointer to the old event handler; @PURC_INVPTR for error.
+ *
+ * Since 0.2.0
+ */
+PCA_EXPORT purc_event_handler
+purc_set_event_handler(purc_event_handler handler);
 
 /**
  * purc_run:
@@ -598,7 +630,8 @@ typedef void (*purc_event_handler)(purc_coroutine_t cor,
  * @handler: The pointer to a call-back function which handles
  *      the session events.
  *
- * Runs all HVML coroutines which are ready in the current PurC instance.
+ * Enter event loop and runs all HVML coroutines which are ready in
+ * the current PurC instance.
  *
  * Returns: @true for success; @false for failure.
  *
@@ -666,8 +699,8 @@ purc_inst_schedule_vdom(purc_atom_t inst, purc_vdom_t vdom,
         purc_renderer_extra_info *extra_rdr_info,
         const char *entry);
 
-#define PURC_INST_SELF           0
-#define PURC_INST_BROADCAST     -1
+#define PURC_INST_SELF          0
+#define PURC_INST_BROADCAST     ((purc_atom_t)-1)
 
 /**
  * Post an event message to the instance.

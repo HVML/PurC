@@ -95,21 +95,22 @@ on_cleanup(pcintr_stack_t stack, void *ctxt)
 }
 #endif
 
-static void my_event_handler(purc_coroutine_t cor,
-        pccor_event_t event, void *data)
+static int my_event_handler(purc_coroutine_t cor,
+        purc_event_t event, void *data)
 {
     void *user_data = purc_coroutine_get_user_data(cor);
     if (!user_data) {
-        return;
+        return -1;
     }
+
     struct sample_ctxt *ud = (struct sample_ctxt*)user_data;
 
-    if (event == PCCOR_EVENT_EXIT) {
+    if (event == PURC_EVENT_EXIT) {
         pchtml_html_document_t *doc = (pchtml_html_document_t *)data;
 
         if (ud->terminated) {
             ADD_FAILURE() << "internal logic error: reentrant" << std::endl;
-            return;
+            return -1;
         }
         ud->terminated = 1;
 
@@ -118,7 +119,7 @@ static void my_event_handler(purc_coroutine_t cor,
             int r = 0;
             pcintr_util_comp_docs(doc, ud->html, &diff);
             if (r == 0 && diff == 0)
-                return;
+                return 0;
 
             char buf[8192];
             size_t nr = sizeof(nr);
@@ -134,9 +135,11 @@ static void my_event_handler(purc_coroutine_t cor,
                 free(p);
         }
     }
-    else if (event == PCCOR_EVENT_DESTROY) {
+    else if (event == PURC_EVENT_DESTROY) {
         sample_destroy(ud);
     }
+
+    return 0;
 }
 
 static int
