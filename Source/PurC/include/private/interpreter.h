@@ -414,6 +414,9 @@ struct pcintr_observer {
     // the `observe` element who creates this observer.
     pcvdom_element_t pos;
 
+    // keep at_symbol
+    purc_variant_t at_symbol;
+
     // the arraylist containing this struct pointer
     struct list_head* list;
 
@@ -590,6 +593,7 @@ pcintr_register_observer(purc_variant_t observed,
         pcvdom_element_t scope,
         pcdom_element_t *edom_element,
         pcvdom_element_t pos,
+        purc_variant_t at_symbol,
         pcintr_on_revoke_observer on_revoke,
         void *on_revoke_data
         );

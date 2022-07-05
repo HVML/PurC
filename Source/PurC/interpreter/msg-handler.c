@@ -77,6 +77,11 @@ on_observer_matched(void *ud)
         purc_variant_unref(p->payload);
     }
 
+    if (p->at_symbol) {
+        pcintr_set_at_var(frame, p->at_symbol);
+        purc_variant_unref(p->at_symbol);
+    }
+
     purc_variant_t exclamation_var = pcintr_get_exclamation_var(frame);
     // set $! _eventName
     if (p->event_name) {
@@ -129,6 +134,11 @@ observer_matched(pcintr_stack_t stack, struct pcintr_observer *p,
     if (payload) {
         data->payload = payload;
         purc_variant_ref(data->payload);
+    }
+
+    if (p->at_symbol) {
+        data->at_symbol = p->at_symbol;
+        purc_variant_ref(data->at_symbol);
     }
 
     pcintr_post_msg(data, on_observer_matched);
