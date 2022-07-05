@@ -2328,7 +2328,7 @@ fail_co:
 
 purc_coroutine_t
 purc_schedule_vdom(purc_vdom_t vdom,
-        purc_coroutine_t curator, purc_variant_t request,
+        purc_atom_t curator, purc_variant_t request,
         pcrdr_page_type page_type, const char *target_workspace,
         const char *target_group, const char *page_name,
         purc_renderer_extra_info *extra_info, const char *body_id,
@@ -2337,14 +2337,16 @@ purc_schedule_vdom(purc_vdom_t vdom,
     pcintr_coroutine_t co = pcintr_get_coroutine();
     PC_ASSERT(co == NULL);
 
-    co = coroutine_create(vdom, curator, NULL, user_data);
+    /* TODO: check curator here */
+    UNUSED_PARAM(curator);
+
+    co = coroutine_create(vdom, NULL, NULL, user_data);
     if (!co) {
+        pcvdom_document_unref(vdom);
         purc_log_error("Failed to create coroutine\n");
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
     }
-
-    pcvdom_document_ref(vdom);
 
     PC_ASSERT(co->stack.vdom);
 
@@ -3766,6 +3768,7 @@ pcintr_create_child_co(pcvdom_element_t vdom_element,
         PC_ASSERT(co->stack.vdom);
 
         child->stack.entry = vdom_element;
+        // VW: we reuse the vDOM, so must increase refcount.
         pcvdom_document_ref(co->vdom);
 
         purc_log_debug("running parent/child: %p/%p", co, child);
@@ -3798,8 +3801,6 @@ pcintr_load_child_co(const char *hvml,
             break;
 
         PC_ASSERT(co->stack.vdom);
-
-        pcvdom_document_ref(co->vdom);
 
         PC_DEBUGX("running parent/child: %p/%p", co, child);
         pcintr_wakeup_target(child, run_co_main);

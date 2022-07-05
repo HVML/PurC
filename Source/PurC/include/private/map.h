@@ -76,6 +76,9 @@ size_t pcutils_map_get_size (pcutils_map* map);
 
 pcutils_map_entry* pcutils_map_find (pcutils_map* map, const void* key);
 
+pcutils_map_entry*
+pcutils_map_find_and_lock (pcutils_map* map, const void* key);
+
 int pcutils_map_insert_ex (pcutils_map* map, const void* key,
         const void* val, free_kv_fn free_kv_alt);
 static inline int  pcutils_map_insert (pcutils_map* map, const void* key,
@@ -91,7 +94,8 @@ int pcutils_map_replace (pcutils_map* map, const void* key,
         const void* val, free_kv_fn free_kv_alt);
 
 int pcutils_map_erase (pcutils_map* map, void* key);
-void pcutils_map_erase_entry (pcutils_map* map, pcutils_map_entry *entry);
+void
+pcutils_map_erase_entry_nolock (pcutils_map* map, pcutils_map_entry *entry);
 
 int pcutils_map_traverse (pcutils_map *map, void *ud,
         int (*cb)(void *key, void *val, void *ud));

@@ -874,7 +874,7 @@ pcintr_attach_to_renderer(pcintr_coroutine_t cor,
     page = pcintr_rdr_create_page(conn_to_rdr, workspace,
             page_type, target_group, page_name,
             extra_info->title, extra_info->klass,
-            extra_info->layoutStyle, extra_info->toolkitStyle);
+            extra_info->layout_style, extra_info->toolkit_style);
     if (!page) {
         purc_log_error("Failed to create page: %s.\n", page_name);
         purc_set_error(PCRDR_ERROR_SERVER_REFUSED);
