@@ -195,7 +195,7 @@ add_sample(const struct sample_data *sample)
         return -1;
     }
     else {
-        purc_coroutine_t cor = purc_schedule_vdom_0(vdom);
+        purc_coroutine_t cor = purc_schedule_vdom_null(vdom);
         purc_coroutine_set_user_data(cor, ud);
     }
 

@@ -109,7 +109,7 @@ TEST_P(TestHVMLTag, hvml_tags)
     purc_vdom_t vdom = purc_load_hvml_from_string(test_case.hvml);
     ASSERT_NE(vdom, nullptr);
 
-    purc_coroutine_t co = purc_schedule_vdom_0(vdom);
+    purc_coroutine_t co = purc_schedule_vdom_null(vdom);
     ASSERT_NE(co, nullptr);
 
     pcintr_coroutine_set_dump_buff(co, &buf.dump_buff);
