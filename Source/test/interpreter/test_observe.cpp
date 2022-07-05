@@ -54,6 +54,7 @@ TEST(observe, basic)
             "test_init", &info);
 
     ASSERT_EQ (ret, PURC_ERROR_OK);
+    purc_bind_session_variables();
 
     // get statitics information
     const struct purc_variant_stat * stat = purc_variant_usage_stat ();

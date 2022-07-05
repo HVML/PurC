@@ -1467,12 +1467,10 @@ pcintr_stack_frame_get_parent(struct pcintr_stack_frame *frame)
 }
 
 #define BUILDIN_VAR_HVML        "HVML"
-#define BUILDIN_VAR_SYSTEM      "SYSTEM"
 #define BUILDIN_VAR_DATETIME    "DATETIME"
 #define BUILDIN_VAR_T           "T"
 #define BUILDIN_VAR_L           "L"
 #define BUILDIN_VAR_DOC         "DOC"
-#define BUILDIN_VAR_SESSION     "SESSION"
 #define BUILDIN_VAR_EJSON       "EJSON"
 #define BUILDIN_VAR_STR         "STR"
 #define BUILDIN_VAR_STREAM      "STREAM"
@@ -1506,12 +1504,6 @@ bind_builtin_coroutine_variables(pcintr_stack_t stack)
     // $HVML
     if(!bind_cor_named_variable(stack, BUILDIN_VAR_HVML,
                 purc_dvobj_hvml_new(&stack->co->hvml_ctrl_props))) {
-        return false;
-    }
-
-    // $SYSTEM
-    if(!bind_cor_named_variable(stack, BUILDIN_VAR_SYSTEM,
-                purc_dvobj_system_new())) {
         return false;
     }
 
@@ -1555,13 +1547,6 @@ bind_builtin_coroutine_variables(pcintr_stack_t stack)
         return false;
     }
 
-    // TODO : bind by  purc_bind_variable
-    // begin
-    // $SESSION
-    if(!bind_cor_named_variable(stack, BUILDIN_VAR_SESSION,
-                purc_dvobj_session_new())) {
-        return false;
-    }
 
     // $EJSON
     if(!bind_cor_named_variable(stack, BUILDIN_VAR_EJSON,

@@ -593,6 +593,7 @@ TEST(interpreter, basic)
     PurCInstance purc(modules, "cn.fmsoft.hybridos.test", "test_attach_rdr",
             &info);
     ASSERT_TRUE(purc);
+    purc_bind_session_variables();
 
     purc_enable_log(true, false);
 

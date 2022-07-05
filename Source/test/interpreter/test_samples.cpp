@@ -212,6 +212,7 @@ TEST(samples, basic)
 {
     bool enable_remote_fetcher = true;
     PurCInstance purc(enable_remote_fetcher);
+    purc_bind_session_variables();
 
     ASSERT_TRUE(purc);
 
@@ -244,6 +245,7 @@ TEST(samples, samples)
     PurCInstance purc;
 
     ASSERT_TRUE(purc);
+    purc_bind_session_variables();
 
     setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     setenv(PURC_ENVV_EXECUTOR_PATH, SOPATH, 1);

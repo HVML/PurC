@@ -76,6 +76,7 @@ protected:
     void SetUp() {
         purc_init_ex(PURC_MODULE_HVML, "cn.fmsoft.hybridos.test",
                 "test_hvml_tag", NULL);
+        purc_bind_session_variables();
     }
     void TearDown() {
         purc_cleanup ();

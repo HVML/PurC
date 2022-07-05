@@ -860,6 +860,7 @@ TEST(interpreter, basic)
     PurCInstance purc("cn.fmsoft.hybridos.test", "interpreter", false);
 
     ASSERT_TRUE(purc);
+    purc_bind_session_variables();
 
     // get statitics information
     const struct purc_variant_stat * stat = purc_variant_usage_stat ();
