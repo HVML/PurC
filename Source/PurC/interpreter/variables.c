@@ -42,14 +42,75 @@
 
 #define USER_OBJ                "myObj"
 #define INNER_WRAP              "__inner_wrap"
+#define MSG_TYPE_CHANGE         "change"
 
 struct session_myobj_wrap {
     purc_variant_t object;
     struct pcvar_listener *listener;
 };
 
-static bool myobj_handler(purc_variant_t source, pcvar_op_t msg_type,
-        void* ctxt, size_t nr_args, purc_variant_t* argv)
+void
+post_event(purc_variant_t key, purc_variant_t value)
+{
+    UNUSED_PARAM(key);
+    UNUSED_PARAM(value);
+#if 0
+    struct pcinst* inst = pcinst_current();
+    const char *k = purc_variant_get_string_const(key);
+
+    purc_variant_t source_uri = purc_variant_make_string(
+            inst->endpoint_name, false);
+    pcintr_post_event_by_ctype(PURC_INST_BROADCAST,
+            PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY, source_uri,
+            source, MSG_TYPE_CHANGE, k, value);
+    purc_variant_unref(source_uri);
+#endif
+}
+
+static bool
+myobj_grow_handler(purc_variant_t source, pcvar_op_t msg_type, void *ctxt,
+        size_t nr_args, purc_variant_t *argv)
+{
+    UNUSED_PARAM(source);
+    UNUSED_PARAM(msg_type);
+    UNUSED_PARAM(ctxt);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+
+    post_event(argv[0], argv[1]);
+
+    return true;
+}
+
+static bool
+myobj_change_handler(purc_variant_t source, pcvar_op_t msg_type, void *ctxt,
+        size_t nr_args, purc_variant_t *argv)
+{
+    UNUSED_PARAM(source);
+    UNUSED_PARAM(msg_type);
+    UNUSED_PARAM(ctxt);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    post_event(argv[2], argv[3]);
+    return true;
+}
+
+static bool
+myobj_shrink_handler(purc_variant_t source, pcvar_op_t msg_type, void *ctxt,
+        size_t nr_args, purc_variant_t *argv)
+{
+    UNUSED_PARAM(source);
+    UNUSED_PARAM(msg_type);
+    UNUSED_PARAM(ctxt);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    post_event(argv[2], PURC_VARIANT_INVALID);
+    return true;
+}
+
+static bool
+myobj_handler(purc_variant_t source, pcvar_op_t msg_type, void *ctxt,
+        size_t nr_args, purc_variant_t *argv)
 {
     UNUSED_PARAM(source);
     UNUSED_PARAM(msg_type);
@@ -58,13 +119,13 @@ static bool myobj_handler(purc_variant_t source, pcvar_op_t msg_type,
     UNUSED_PARAM(argv);
     switch (msg_type) {
     case PCVAR_OPERATION_GROW:
-        return true;
+        return myobj_grow_handler(source, msg_type, ctxt, nr_args, argv);
 
     case PCVAR_OPERATION_SHRINK:
-        return true;
+        return myobj_shrink_handler(source, msg_type, ctxt, nr_args, argv);
 
     case PCVAR_OPERATION_CHANGE:
-        return true;
+        return myobj_change_handler(source, msg_type, ctxt, nr_args, argv);
 
     default:
         return true;
@@ -73,7 +134,7 @@ static bool myobj_handler(purc_variant_t source, pcvar_op_t msg_type,
 }
 
 void
-on_session_myobj_release(void* native_entity)
+on_session_myobj_release(void *native_entity)
 {
     struct session_myobj_wrap *wrap = (struct session_myobj_wrap*)native_entity;
     if (wrap->listener) {
