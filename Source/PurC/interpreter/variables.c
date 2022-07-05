@@ -50,21 +50,17 @@ struct session_myobj_wrap {
 };
 
 void
-post_event(purc_variant_t key, purc_variant_t value)
+post_event(purc_variant_t source, purc_variant_t key, purc_variant_t value)
 {
-    UNUSED_PARAM(key);
-    UNUSED_PARAM(value);
-#if 0
     struct pcinst* inst = pcinst_current();
     const char *k = purc_variant_get_string_const(key);
 
     purc_variant_t source_uri = purc_variant_make_string(
             inst->endpoint_name, false);
-    pcintr_post_event_by_ctype(PURC_INST_BROADCAST,
+    pcintr_post_event_by_ctype(PURC_EVENT_TARGET_BROADCAST,
             PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY, source_uri,
             source, MSG_TYPE_CHANGE, k, value);
     purc_variant_unref(source_uri);
-#endif
 }
 
 static bool
@@ -77,7 +73,7 @@ myobj_grow_handler(purc_variant_t source, pcvar_op_t msg_type, void *ctxt,
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
 
-    post_event(argv[0], argv[1]);
+    post_event(source, argv[0], argv[1]);
 
     return true;
 }
@@ -91,7 +87,7 @@ myobj_change_handler(purc_variant_t source, pcvar_op_t msg_type, void *ctxt,
     UNUSED_PARAM(ctxt);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
-    post_event(argv[2], argv[3]);
+    post_event(source, argv[0], argv[1]);
     return true;
 }
 
@@ -104,7 +100,7 @@ myobj_shrink_handler(purc_variant_t source, pcvar_op_t msg_type, void *ctxt,
     UNUSED_PARAM(ctxt);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
-    post_event(argv[2], PURC_VARIANT_INVALID);
+    post_event(source, argv[0], argv[1]);
     return true;
 }
 
