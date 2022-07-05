@@ -40,20 +40,99 @@
 #define BUILDIN_VAR_SYSTEM      "SYSTEM"
 #define BUILDIN_VAR_SESSION     "SESSION"
 
+#define USER_OBJ                "myObj"
+#define INNER_WRAP              "__inner_wrap"
+
+struct session_myobj_wrap {
+    purc_variant_t object;
+    struct pcvar_listener *listener;
+};
+
+static bool myobj_handler(purc_variant_t source, pcvar_op_t msg_type,
+        void* ctxt, size_t nr_args, purc_variant_t* argv)
+{
+    UNUSED_PARAM(source);
+    UNUSED_PARAM(msg_type);
+    UNUSED_PARAM(ctxt);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    switch (msg_type) {
+    case PCVAR_OPERATION_GROW:
+        return true;
+
+    case PCVAR_OPERATION_SHRINK:
+        return true;
+
+    case PCVAR_OPERATION_CHANGE:
+        return true;
+
+    default:
+        return true;
+    }
+    return true;
+}
+
+void
+on_session_myobj_release(void* native_entity)
+{
+    struct session_myobj_wrap *wrap = (struct session_myobj_wrap*)native_entity;
+    if (wrap->listener) {
+        purc_variant_revoke_listener(wrap->object, wrap->listener);
+    }
+    free(wrap);
+}
+
+bool
+add_session_myobj_listener(purc_variant_t session)
+{
+    purc_variant_t my_obj = purc_variant_object_get_by_ckey(session, USER_OBJ);
+    int op = PCVAR_OPERATION_GROW | PCVAR_OPERATION_SHRINK |
+        PCVAR_OPERATION_CHANGE;
+    struct session_myobj_wrap *wrap = (struct session_myobj_wrap*)calloc(1,
+            sizeof(*wrap));
+    if (!wrap) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return false;
+    }
+
+    // do not need ref
+    wrap->object = my_obj;
+
+    wrap->listener = purc_variant_register_post_listener(my_obj,
+        (pcvar_op_t)op, myobj_handler, wrap);
+
+    static struct purc_native_ops ops = {
+        .on_release                   = on_session_myobj_release,
+    };
+
+    purc_variant_t v = purc_variant_make_native(wrap, &ops);
+    if (v == PURC_VARIANT_INVALID) {
+        on_session_myobj_release(wrap);
+        return false;
+    }
+
+    bool ret = purc_variant_object_set_by_static_ckey(session, INNER_WRAP, v);
+    purc_variant_unref(v);
+    return ret;
+}
+
 bool
 purc_bind_session_variables(void)
 {
     // $SYSTEM
-    if(!purc_bind_variable(BUILDIN_VAR_SYSTEM,
-                purc_dvobj_system_new())) {
+    purc_variant_t sys = purc_dvobj_system_new();
+    if(!purc_bind_variable(BUILDIN_VAR_SYSTEM, sys)) {
         return false;
     }
+    purc_variant_unref(sys);
 
     // $SESSION
-    if(!purc_bind_variable(BUILDIN_VAR_SESSION,
-                purc_dvobj_session_new())) {
+    purc_variant_t session = purc_dvobj_session_new();
+    if(!purc_bind_variable(BUILDIN_VAR_SESSION, session)) {
         return false;
     }
 
-    return true;
+    bool ret = add_session_myobj_listener(session);
+    purc_variant_unref(session);
+    return ret;
 }
