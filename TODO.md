@@ -50,8 +50,8 @@
 ### 1.5) 解释器
 
 1. 统一使用协程消息队列处理来自变体变化、渲染器以及其他实例的事件、请求或者响应消息。
-   - `observe` 元素支持隐含的临时变量 `_eventName` 和 `_eventSource`。
-   - `observe` 元素 `in` 属性的处理。
+   - ~~`observe` 元素支持隐含的临时变量 `_eventName` 和 `_eventSource`。~~
+   - ~~`observe` 元素 `in` 属性的处理。~~
    - 正确区分会话级变量及协程级变量，`observe` 可观察会话级变体（$SESSION.myObj）上的 `change` 事件。
 1. 接口及实现调整：
    - ~~实现 `purc_schedule_vdom()` 替代 `purc_attach_vdom_to_renderer()`。~~
