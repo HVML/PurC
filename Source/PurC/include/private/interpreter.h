@@ -39,6 +39,8 @@
 #include "private/vdom.h"
 #include "private/timer.h"
 
+#define PCINTR_MOVE_BUFFER_SIZE 64
+
 struct pcintr_heap;
 typedef struct pcintr_heap pcintr_heap;
 typedef struct pcintr_heap *pcintr_heap_t;
