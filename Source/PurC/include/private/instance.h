@@ -111,9 +111,22 @@ PCA_EXTERN_C_BEGIN
 /* gets the current instance */
 struct pcinst* pcinst_current(void) WTF_INTERNAL;
 pcvarmgr_t pcinst_get_variables(void) WTF_INTERNAL;
+purc_variant_t pcinst_get_variable(const char* name);
+
+static inline purc_variant_t
+pcinst_get_session_variables(const char* name)
+{
+    return pcinst_get_variable(name);
+}
 
 struct pcrdr_msg *pcinst_get_message(void) WTF_INTERNAL;
 void pcinst_put_message(struct pcrdr_msg *msg) WTF_INTERNAL;
+
+int
+pcinst_broadcast_event(pcrdr_msg_event_reduce_opt reduce_op,
+        purc_variant_t source_uri, purc_variant_t observed,
+        const char *event_type, const char *event_sub_type,
+        purc_variant_t data);
 
 void pcinst_clear_error(struct pcinst *inst) WTF_INTERNAL;
 

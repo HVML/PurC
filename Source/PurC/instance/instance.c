@@ -660,7 +660,7 @@ pcvarmgr_t pcinst_get_variables(void)
     return inst->variables;
 }
 
-purc_variant_t purc_get_variable(const char* name)
+purc_variant_t pcinst_get_variable(const char* name)
 {
     pcvarmgr_t varmgr = pcinst_get_variables();
     PC_ASSERT(varmgr);

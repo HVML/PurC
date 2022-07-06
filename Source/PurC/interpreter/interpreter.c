@@ -578,7 +578,7 @@ static int _init_instance(struct pcinst* inst,
         return PURC_ERROR_OUT_OF_MEMORY;
 
     heap->move_buff = purc_inst_create_move_buffer(
-            PCINST_MOVE_BUFFER_FLAG_NONE, 64);
+            PCINST_MOVE_BUFFER_BROADCAST, 64);
     if (!heap->move_buff) {
         free(heap);
         return PURC_ERROR_OUT_OF_MEMORY;

@@ -272,6 +272,26 @@ dispatch_move_buffer_msg(struct pcinst *inst, pcrdr_msg *msg)
     switch (msg->type) {
     case PCRDR_MSG_TYPE_EVENT:
     {
+        purc_variant_t elementValue = msg->elementValue;
+        if (!purc_variant_is_string(elementValue)) {
+            PC_WARN("invalid elementvalue for broadcast event");
+            return 0;
+        }
+
+        purc_variant_t observed = pcinst_get_session_variables(
+                purc_variant_get_string_const(elementValue));
+        if (!observed) {
+            PC_WARN("can not found observed for broadcast event %s",
+                    purc_variant_get_string_const(elementValue));
+            return 0;
+        }
+
+        if (msg->elementValue) {
+            purc_variant_unref(msg->elementValue);
+        }
+        msg->elementValue = observed;
+        purc_variant_ref(msg->elementValue);
+
         // add msg to coroutine message queue
         struct rb_root *coroutines = &heap->coroutines;
         struct rb_node *p, *n;
