@@ -52,7 +52,7 @@
 1. 统一使用协程消息队列处理来自变体变化、渲染器以及其他实例的事件、请求或者响应消息。
    - ~~`observe` 元素支持隐含的临时变量 `_eventName` 和 `_eventSource`。~~
    - ~~`observe` 元素 `in` 属性的处理。~~
-   - 正确区分会话级变量及协程级变量：`observe` 可观察会话级变体（$SESSION.myObj）上的 `change` 事件；`$SYSTEM` 上调用修改时间、当前工作路径等，会广播更新事件（如 `change:time`）给所有实例。
+   - ~~正确区分会话级变量及协程级变量：`observe` 可观察会话级变体（$SESSION.myObj）上的 `change` 事件；`$SYSTEM` 上调用修改时间、当前工作路径等，会广播更新事件（如 `change:time`）给所有实例。~~
 1. 接口及实现调整：
    - ~~实现 `purc_schedule_vdom()` 替代 `purc_attach_vdom_to_renderer()`。~~
    - ~~调整 `purc_bind_document_variable()` 为 `purc_coroutine_bind_variable()`。~~
