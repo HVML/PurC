@@ -258,12 +258,8 @@ pcrun_event_handler(purc_coroutine_t cor, purc_event_t event, void *data)
     UNUSED_PARAM(data);
 
     if (event == PURC_EVENT_NOCOR) {
-        struct pcrun_inst_info *info;
-
-        purc_get_local_data(PCRUN_LOCAL_DATA, (uintptr_t *)&info, NULL);
-        assert(info);
-
-        return info->request_to_shutdown ? -1 : 0;
+        struct pcinst* inst = pcinst_current();
+        return inst->request_to_shutdown ? -1 : 0;
     }
 
     return 0;

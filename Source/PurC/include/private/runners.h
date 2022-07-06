@@ -33,8 +33,6 @@
 #define PCRUN_INSTMGR_APP_NAME      "cn.fmsoft.hvml"
 #define PCRUN_INSTMGR_RUN_NAME      "instmgr"
 
-#define PCRUN_LOCAL_DATA    "inst-info"
-
 /* operations */
 enum {
     PCRUN_K_OPERATION_FIRST = 0,

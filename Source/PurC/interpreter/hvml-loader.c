@@ -205,7 +205,6 @@ static purc_vdom_t find_vdom_in_cache(unsigned char *md5)
         else {
             struct vdom_entry *vdom_entry = entry->val;
             vdom = vdom_entry->vdom;
-            pcvdom_document_ref(vdom);
         }
 
         pcutils_map_unlock(md5_vdom_map);

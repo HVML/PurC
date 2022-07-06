@@ -103,7 +103,8 @@ struct pcinst {
     /* FIXME: enable the fields ONLY when NDEBUG is undefined */
     struct pcdebug_backtrace  *bt;
 
-    unsigned int               keep_alive:1;
+    unsigned int            keep_alive:1;
+    unsigned int            request_to_shutdown:1;
 };
 
 PCA_EXTERN_C_BEGIN

@@ -377,13 +377,6 @@ stack_release(pcintr_stack_t stack)
         PURC_VARIANT_SAFE_CLEAR(stack->async_request_ids);
     }
 
-#if 0 // VW
-    if (stack->ops.on_cleanup) {
-        stack->ops.on_cleanup(stack, stack->ctxt);
-        stack->ops.on_cleanup = NULL;
-        stack->ctxt = NULL;
-    }
-#endif
     pcintr_heap_t heap = stack->co->owner;
     if (heap->event_handler) {
         heap->event_handler(stack->co, PURC_EVENT_DESTROY,
@@ -578,17 +571,11 @@ static int _init_instance(struct pcinst* inst,
         return PURC_ERROR_OUT_OF_MEMORY;
 
     heap->move_buff = purc_inst_create_move_buffer(
-            PCINST_MOVE_BUFFER_BROADCAST, 64);
+            PCINST_MOVE_BUFFER_BROADCAST, PCINTR_MOVE_BUFFER_SIZE);
     if (!heap->move_buff) {
         free(heap);
         return PURC_ERROR_OUT_OF_MEMORY;
     }
-
-    struct pcrdr_conn *conn = purc_get_conn_to_renderer();
-    assert(conn);
-    pcrdr_conn_set_extra_message_source(conn, pcrun_extra_message_source,
-            NULL, NULL);
-    pcrdr_conn_set_request_handler(conn, pcrun_request_handler);
 
     int r;
     r = pthread_mutex_init(&heap->locker, NULL);
@@ -1665,18 +1652,6 @@ static void execute_one_step_for_exiting_co(pcintr_coroutine_t co)
 
     PC_ASSERT(co->stack.back_anchor == NULL);
 
-#if 0 // VW
-    if (co->stack.ops.on_terminated) {
-        co->stack.ops.on_terminated(&co->stack, co->stack.ctxt);
-        co->stack.ops.on_terminated = NULL;
-    }
-    if (co->stack.ops.on_cleanup) {
-        co->stack.ops.on_cleanup(&co->stack, co->stack.ctxt);
-        co->stack.ops.on_cleanup = NULL;
-        co->stack.ctxt = NULL;
-    }
-#endif
-
     pcintr_heap_t heap = co->owner;
     struct pcinst *inst = heap->owner;
 
@@ -2281,6 +2256,7 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
         goto fail_name;
     }
 
+    pcvdom_document_ref(vdom);
     co->vdom = vdom;
     co->state = CO_STATE_READY;
     INIT_LIST_HEAD(&co->children);
@@ -2313,13 +2289,6 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
     PC_ASSERT(r == 0);
 
     stack_init(stack);
-
-#if 0 // VW
-    if (ops) {
-        stack->ops  = *ops;
-        stack->ctxt = ctxt;
-    }
-#endif
 
     stack->vdom = vdom;
     return co;
@@ -3775,8 +3744,6 @@ pcintr_create_child_co(pcvdom_element_t vdom_element,
         PC_ASSERT(co->stack.vdom);
 
         child->stack.entry = vdom_element;
-        // VW: we reuse the vDOM, so must increase refcount.
-        pcvdom_document_ref(co->vdom);
 
         purc_log_debug("running parent/child: %p/%p", co, child);
         PRINT_VDOM_NODE(&vdom_element->node);
