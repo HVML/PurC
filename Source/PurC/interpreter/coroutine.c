@@ -251,7 +251,7 @@ get_coroutine_by_id(struct pcinst *inst, purc_atom_t id)
 }
 
 pcintr_coroutine_t
-pcintr_get_coroutine_by_id(purc_atom_t id)
+pcintr_coroutine_get_by_id(purc_atom_t id)
 {
     struct pcinst *inst = pcinst_current();
     if (!inst) {
