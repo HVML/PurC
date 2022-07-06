@@ -42,6 +42,8 @@
 #include <sys/utsname.h>
 #include <sys/time.h>
 
+#define MSG_SOURCE_SYSTEM         "SYSTEM"
+
 #define MSG_TYPE_CHANGE           "change"
 #define MSG_SUB_TYPE_TIME         "time"
 #define MSG_SUB_TYPE_ENV          "env"
@@ -147,11 +149,19 @@ static int
 broadcast_event(purc_variant_t source, const char *type, const char *sub_type,
         purc_variant_t data)
 {
+    UNUSED_PARAM(source);
     struct pcinst* inst = pcinst_current();
     purc_variant_t source_uri = purc_variant_make_string(
             inst->endpoint_name, false);
-    return pcinst_broadcast_event(PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
-            source_uri, source, type, sub_type, data);
+    purc_variant_t observed = purc_variant_make_string_static(
+            MSG_SOURCE_SYSTEM, false);
+
+    int ret = pcinst_broadcast_event(PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
+            source_uri, observed, type, sub_type, data);
+
+    purc_variant_unref(source_uri);
+    purc_variant_unref(observed);
+    return ret;
 }
 
 static purc_variant_t
