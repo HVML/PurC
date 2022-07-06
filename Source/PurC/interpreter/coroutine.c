@@ -30,6 +30,7 @@
 #include "private/debug.h"
 #include "private/interpreter.h"
 #include "private/vdom.h"
+#include "private/instance.h"
 
 static int
 cmp_f(struct rb_node *node, void *ud)
@@ -229,5 +230,33 @@ purc_atom_t
 purc_coroutine_identifier(purc_coroutine_t cor)
 {
     return cor->ident;
+}
+
+static
+pcintr_coroutine_t
+get_coroutine_by_id(struct pcinst *inst, purc_atom_t id)
+{
+    struct pcintr_heap *heap = inst->intr_heap;
+    struct rb_root *coroutines = &heap->coroutines;
+    struct rb_node *p, *n;
+    struct rb_node *first = pcutils_rbtree_first(coroutines);
+    pcutils_rbtree_for_each_safe(first, p, n) {
+        pcintr_coroutine_t co = container_of(p, struct pcintr_coroutine,
+                node);
+        if (co->ident == id) {
+            return co;
+        }
+    }
+    return NULL;
+}
+
+pcintr_coroutine_t
+pcintr_coroutine_get_by_id(purc_atom_t id)
+{
+    struct pcinst *inst = pcinst_current();
+    if (!inst) {
+        return NULL;
+    }
+    return get_coroutine_by_id(inst, id);
 }
 

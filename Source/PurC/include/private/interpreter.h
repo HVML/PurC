@@ -260,6 +260,7 @@ struct pcintr_coroutine {
     pcintr_heap_t               owner;    /* owner heap */
     char                       *full_name;   /* prefixed with runnerName/ */
     purc_atom_t                 ident;
+    purc_atom_t                 curator;
 
     purc_vdom_t                 vdom;
 
@@ -274,7 +275,6 @@ struct pcintr_coroutine {
 
     struct rb_node              node;     /* heap::coroutines */
 
-    pcintr_coroutine_t          parent;
     struct list_head            children; /* struct pcintr_coroutine_result */
 
     pcintr_coroutine_result_t   result;
