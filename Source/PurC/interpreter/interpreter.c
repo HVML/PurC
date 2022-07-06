@@ -1678,10 +1678,10 @@ static void execute_one_step_for_exiting_co(pcintr_coroutine_t co)
         heap->event_handler(co, PURC_EVENT_EXIT, stack->doc);
     }
 
-    if (co->parent) {
-        PC_ASSERT(co->parent->owner == co->owner);
-        pcintr_coroutine_t parent = co->parent;
-        co->parent = NULL;
+    if (co->curator) {
+        pcintr_coroutine_t parent = pcintr_coroutine_get_by_id(co->curator);
+        PC_ASSERT(parent->owner == co->owner);
+        co->curator = 0;
         pcintr_coroutine_result_t co_result;
         co_result = co->result;
         co->result = NULL;
@@ -1879,15 +1879,15 @@ static void on_last_msg(void *ctxt)
 static void
 post_callstate_success_event(pcintr_coroutine_t co, purc_variant_t with)
 {
-    if (!co->parent)
+    if (!co->curator)
         return;
 
+    pcintr_coroutine_t target = pcintr_coroutine_get_by_id(co->curator);
+
     PC_ASSERT(co->result);
-    PC_ASSERT(co->owner && co->parent->owner);
+    PC_ASSERT(co->owner && target->owner);
     PURC_VARIANT_SAFE_CLEAR(co->result->result);
     co->result->result = purc_variant_ref(with);
-
-    pcintr_coroutine_t target = co->parent;
 
     purc_atom_t msg_type;
     msg_type = pchvml_keyword(PCHVML_KEYWORD_ENUM(MSG, CALLSTATE));
@@ -1913,10 +1913,10 @@ post_callstate_success_event(pcintr_coroutine_t co, purc_variant_t with)
 static void
 post_callstate_except_event(pcintr_coroutine_t co, const char *error_except)
 {
-    if (!co->parent)
+    if (!co->curator)
         return;
 
-    pcintr_coroutine_t target = co->parent;
+    pcintr_coroutine_t target = pcintr_coroutine_get_by_id(co->curator);
 
     purc_atom_t msg_type;
     msg_type = pchvml_keyword(PCHVML_KEYWORD_ENUM(MSG, CALLSTATE));
@@ -2101,7 +2101,7 @@ static void check_after_execution(pcintr_coroutine_t co)
     PC_DEBUGX("last msg was processed");
 #endif                          /* } */
 
-    if (co->parent) {
+    if (co->curator) {
         if (co->error_except) {
             // TODO: which is error, which is except?
             // currently, we treat all as except
@@ -2287,8 +2287,8 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
         goto fail_name;
     }
 
-    co->parent = parent;
     if (parent) {
+        co->curator = parent->ident;
         if (as != PURC_VARIANT_INVALID)
             co_result->as = purc_variant_ref(as);
         list_add_tail(&co_result->node, &parent->children);
