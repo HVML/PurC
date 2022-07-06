@@ -290,6 +290,7 @@ dispatch_move_buffer_msg(struct pcinst *inst, pcrdr_msg *msg)
             purc_variant_unref(msg->elementValue);
         }
         msg->elementValue = observed;
+        purc_variant_ref(msg->elementValue);
 
         // add msg to coroutine message queue
         struct rb_root *coroutines = &heap->coroutines;
