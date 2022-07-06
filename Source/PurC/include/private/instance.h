@@ -106,6 +106,8 @@ struct pcinst {
     unsigned int               keep_alive:1;
 };
 
+PCA_EXTERN_C_BEGIN
+
 /* gets the current instance */
 struct pcinst* pcinst_current(void) WTF_INTERNAL;
 pcvarmgr_t pcinst_get_variables(void) WTF_INTERNAL;
@@ -124,6 +126,8 @@ pcinst_dump_err_except_info(purc_variant_t err_except_info) WTF_INTERNAL;
 
 void
 pcinst_dump_err_info(void) WTF_INTERNAL;
+
+PCA_EXTERN_C_END
 
 #endif /* not defined PURC_PRIVATE_INSTANCE_H */
 

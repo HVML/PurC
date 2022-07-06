@@ -30,12 +30,13 @@
 #include "private/errors.h"
 #include "private/interpreter.h"
 #include "private/instance.h"
+#include "private/runners.h"
+#include "private/sorted-array.h"
 #include "internal.h"
 
 #include <wtf/Threading.h>
 #include <wtf/RunLoop.h>
 #include <wtf/threads/BinarySemaphore.h>
-
 
 #include <stdlib.h>
 #include <string.h>
@@ -378,15 +379,89 @@ pcintr_synchronize(void *ctxt, void (*routine)(void *ctxt))
     semaphore.wait();
 }
 
+extern "C" purc_atom_t
+pcrun_create_inst_thread(const char *app_name, const char *runner_name,
+        struct purc_instance_extra_info *extra_info, void **th)
+{
+    purc_atom_t atom = 0;
+    BinarySemaphore semaphore;
+
+    RefPtr<Thread> inst_th =
+        Thread::create("hvml-instance", [&] {
+                int ret = purc_init_ex(PURC_MODULE_HVML,
+                        app_name, runner_name, extra_info);
+
+                if (ret != PURC_ERROR_OK) {
+                    semaphore.signal();
+                }
+                else {
+                    struct pcinst *inst = pcinst_current();
+                    assert(inst && inst->instr_heap);
+                    atom = inst->intr_heap->move_buff;
+                    semaphore.signal();
+
+                    purc_run(pcrun_event_handler);
+
+                    purc_cleanup();
+                }
+            });
+
+    UNUSED_PARAM(th);
+
+    semaphore.wait();
+
+    return atom;
+}
+
+static void my_sa_free(void *sortv, void *data)
+{
+    (void)sortv;
+    free(data);
+}
+
 static void _runloop_init_sync(void)
 {
     BinarySemaphore semaphore;
     _sync_thread = Thread::create("_sync_runloop", [&] {
+            int ret;
+            purc_atom_t atom;
+
+            ret = purc_init_ex(PURC_MODULE_EJSON,
+                    PCRUN_INSTMGR_APP_NAME, PCRUN_INSTMGR_RUN_NAME, NULL);
+            if (ret != PURC_ERROR_OK) {
+                purc_log_error("Failed to init instance manager\n");
+                return;
+            }
+
+            atom = purc_inst_create_move_buffer(PCINST_MOVE_BUFFER_BROADCAST, 16);
+            if (atom == 0) {
+                purc_log_error("Failed to create move buffer for InstMgr\n");
+                return;
+            }
+
+            struct instmgr_info info = { 0, NULL };
+            info.sa_insts = pcutils_sorted_array_create(SAFLAG_DEFAULT, 0,
+                    my_sa_free, NULL);
+
             RunLoop& runloop = RunLoop::current();
             _sync_runloop = &runloop;
+
+            purc_runloop_func func = pcrun_instmgr_handle_message;
+            _sync_runloop->setIdleCallback([func, &info]() {
+                    func(&info);
+                    });
+
             semaphore.signal();
             runloop.run();
+
+            pcutils_sorted_array_destroy(info.sa_insts);
+
+            size_t n = purc_inst_destroy_move_buffer();
+            purc_log_debug("SyncThread quiting, %u messages discarded\n", (unsigned)n);
+
+            purc_cleanup();
             });
+
     semaphore.wait();
 }
 

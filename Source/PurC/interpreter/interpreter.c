@@ -36,6 +36,7 @@
 #include "private/regex.h"
 #include "private/stringbuilder.h"
 #include "private/msg-queue.h"
+#include "private/runners.h"
 
 #include "ops.h"
 #include "../hvml/hvml-gen.h"
@@ -582,6 +583,12 @@ static int _init_instance(struct pcinst* inst,
         free(heap);
         return PURC_ERROR_OUT_OF_MEMORY;
     }
+
+    struct pcrdr_conn *conn = purc_get_conn_to_renderer();
+    assert(conn);
+    pcrdr_conn_set_extra_message_source(conn, pcrun_extra_message_source,
+            NULL, NULL);
+    pcrdr_conn_set_request_handler(conn, pcrun_request_handler);
 
     int r;
     r = pthread_mutex_init(&heap->locker, NULL);
