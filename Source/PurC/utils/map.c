@@ -76,16 +76,6 @@ struct pcutils_map {
     purc_rwlock     rwlock;     // read-write lock
 };
 
-void pcutils_map_lock(pcutils_map *map)
-{
-    WRLOCK_MAP(map);
-}
-
-void pcutils_map_unlock(pcutils_map *map)
-{
-    WRUNLOCK_MAP(map);
-}
-
 pcutils_map* pcutils_map_create (copy_key_fn copy_key, free_key_fn free_key,
         copy_val_fn copy_val, free_val_fn free_val,
         comp_key_fn comp_key, bool threads)
@@ -266,6 +256,24 @@ pcutils_map_entry* pcutils_map_find (pcutils_map* map, const void* key)
     return entry;
 }
 
+pcutils_map_entry *
+pcutils_map_find_and_lock (pcutils_map* map, const void* key)
+{
+    pcutils_map_entry* entry = NULL;
+
+    if (map == NULL)
+        return NULL;
+
+    WRLOCK_MAP (map);
+
+    entry = find_entry (map, key);
+    if (entry == NULL) {
+        WRUNLOCK_MAP (map);
+    }
+
+    return entry;
+}
+
 int pcutils_map_erase (pcutils_map* map, void* key)
 {
     int retval = -1;
@@ -283,14 +291,23 @@ int pcutils_map_erase (pcutils_map* map, void* key)
     return retval;
 }
 
-void pcutils_map_erase_entry (pcutils_map* map, pcutils_map_entry *entry)
+void pcutils_map_erase_entry_nolock (pcutils_map* map,
+        pcutils_map_entry *entry)
 {
     if (map == NULL || entry == NULL)
         return;
 
-    WRLOCK_MAP (map);
     erase_entry (map, entry);
-    WRUNLOCK_MAP (map);
+}
+
+void pcutils_map_lock(pcutils_map *map)
+{
+    WRLOCK_MAP(map);
+}
+
+void pcutils_map_unlock(pcutils_map *map)
+{
+    WRUNLOCK_MAP(map);
 }
 
 int pcutils_map_replace (pcutils_map* map, const void* key,

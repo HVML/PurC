@@ -47,6 +47,7 @@ struct ctxt_for_observe {
     purc_variant_t                with;
     purc_variant_t                against;
     purc_variant_t                in;
+    purc_variant_t                at_symbol;
 
     pcvdom_element_t              define;
 
@@ -66,6 +67,7 @@ ctxt_for_observe_destroy(struct ctxt_for_observe *ctxt)
         PURC_VARIANT_SAFE_CLEAR(ctxt->with);
         PURC_VARIANT_SAFE_CLEAR(ctxt->against);
         PURC_VARIANT_SAFE_CLEAR(ctxt->in);
+        PURC_VARIANT_SAFE_CLEAR(ctxt->at_symbol);
 
         if (ctxt->msg_type) {
             free(ctxt->msg_type);
@@ -117,7 +119,7 @@ bool base_variant_msg_listener(purc_variant_t source, pcvar_op_t msg_type,
     pcintr_stack_t stack = (pcintr_stack_t)ctxt;
     purc_variant_t source_uri = purc_variant_make_string(
             stack->co->full_name, false);
-    pcintr_post_event_by_ctype(stack->co,
+    pcintr_post_event_by_ctype(stack->co->ident,
             PCRDR_MSG_EVENT_REDUCE_OPT_IGNORE, source_uri,
             source, smsg, NULL, PURC_VARIANT_INVALID);
     purc_variant_unref(source_uri);
@@ -491,7 +493,8 @@ register_named_var_observer(pcintr_stack_t stack,
 
     struct pcintr_observer *result = pcintr_register_observer(observed,
             ctxt->for_var, ctxt->msg_type_atom, ctxt->sub_type,
-            frame->pos, frame->edom_element, frame->pos, NULL, NULL);
+            frame->pos, frame->edom_element, frame->pos, ctxt->at_symbol,
+            NULL, NULL);
     purc_variant_unref(observed);
     return result;
 }
@@ -523,7 +526,7 @@ register_native_var_observer(pcintr_stack_t stack,
     observer = pcintr_register_observer(observed,
             ctxt->for_var, ctxt->msg_type_atom, ctxt->sub_type,
             frame->pos,
-            frame->edom_element, frame->pos, NULL, NULL);
+            frame->edom_element, frame->pos, ctxt->at_symbol, NULL, NULL);
 
     return observer;
 }
@@ -541,7 +544,7 @@ register_timer_observer(pcintr_stack_t stack,
     return pcintr_register_observer(on,
             ctxt->for_var, ctxt->msg_type_atom, ctxt->sub_type,
             frame->pos,
-            frame->edom_element, frame->pos, NULL, NULL);
+            frame->edom_element, frame->pos, ctxt->at_symbol, NULL, NULL);
 }
 
 void on_revoke_mmutable_var_observer(struct pcintr_observer *observer,
@@ -572,7 +575,7 @@ register_mmutable_var_observer(pcintr_stack_t stack,
     return pcintr_register_observer(on,
             ctxt->for_var, ctxt->msg_type_atom, ctxt->sub_type,
             frame->pos,
-            frame->edom_element, frame->pos,
+            frame->edom_element, frame->pos, ctxt->at_symbol,
             on_revoke_mmutable_var_observer, listener);
 }
 
@@ -611,7 +614,8 @@ register_default_observer(pcintr_stack_t stack,
     ctxt = (struct ctxt_for_observe*)frame->ctxt;
     return pcintr_register_observer(observed,
             ctxt->for_var, ctxt->msg_type_atom, ctxt->sub_type,
-            frame->pos, frame->edom_element, frame->pos, NULL, NULL);
+            frame->pos, frame->edom_element, frame->pos, ctxt->at_symbol,
+            NULL, NULL);
 }
 
 static struct pcintr_observer *
@@ -894,6 +898,10 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         if (r) {
             return ctxt;
         }
+    }
+    else {
+        ctxt->at_symbol = frame->symbol_vars[PURC_SYMBOL_VAR_AT_SIGN];
+        purc_variant_ref(ctxt->at_symbol);
     }
 
     if (stack->stage != STACK_STAGE_FIRST_ROUND) {

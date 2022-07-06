@@ -319,7 +319,7 @@ purc_inst_post_event(purc_atom_t inst_to, pcrdr_msg *msg)
         return -1;
     }
 
-    if (inst_to == PURC_INST_SELF) {
+    if (inst_to == PURC_EVENT_TARGET_SELF) {
         if (msg->target != PCRDR_MSG_TARGET_COROUTINE) {
             return 0;
         }
@@ -331,12 +331,26 @@ purc_inst_post_event(purc_atom_t inst_to, pcrdr_msg *msg)
         struct rb_root *coroutines = &heap->coroutines;
         struct rb_node *p, *n;
         struct rb_node *first = pcutils_rbtree_first(coroutines);
-        pcutils_rbtree_for_each_safe(first, p, n) {
-            pcintr_coroutine_t co = container_of(p, struct pcintr_coroutine,
-                    node);
-            if (co->ident == msg->targetValue) {
-                return pcinst_msg_queue_append(co->mq, msg);
+
+        if (PURC_EVENT_TARGET_BROADCAST != msg->targetValue) {
+            pcutils_rbtree_for_each_safe(first, p, n) {
+                pcintr_coroutine_t co = container_of(p, struct pcintr_coroutine,
+                        node);
+                if (co->ident == msg->targetValue) {
+                    return pcinst_msg_queue_append(co->mq, msg);
+                }
             }
+        }
+        else {
+            pcutils_rbtree_for_each_safe(first, p, n) {
+                pcintr_coroutine_t co = container_of(p, struct pcintr_coroutine,
+                        node);
+
+                pcrdr_msg *my_msg = pcrdr_clone_message(msg);
+                my_msg->targetValue = co->ident;
+                pcinst_msg_queue_append(co->mq, my_msg);
+            }
+            pcinst_put_message(msg);
         }
 
         return 0;

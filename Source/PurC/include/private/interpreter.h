@@ -414,6 +414,9 @@ struct pcintr_observer {
     // the `observe` element who creates this observer.
     pcvdom_element_t pos;
 
+    // keep at_symbol
+    purc_variant_t at_symbol;
+
     // the arraylist containing this struct pointer
     struct list_head* list;
 
@@ -590,6 +593,7 @@ pcintr_register_observer(purc_variant_t observed,
         pcvdom_element_t scope,
         pcdom_element_t *edom_element,
         pcvdom_element_t pos,
+        purc_variant_t at_symbol,
         pcintr_on_revoke_observer on_revoke,
         void *on_revoke_data
         );
@@ -743,13 +747,13 @@ pcintr_attach_to_renderer(pcintr_coroutine_t cor,
         purc_renderer_extra_info *extra_info);
 
 int
-pcintr_post_event(pcintr_coroutine_t co,
+pcintr_post_event(purc_atom_t co_id,
         pcrdr_msg_event_reduce_opt reduce_op, purc_variant_t source_uri,
         purc_variant_t observed, purc_variant_t event_name,
         purc_variant_t data);
 
 int
-pcintr_post_event_by_ctype(pcintr_coroutine_t co,
+pcintr_post_event_by_ctype(purc_atom_t co_id,
         pcrdr_msg_event_reduce_opt reduce_op, purc_variant_t source_uri,
         purc_variant_t observed, const char *event_type,
         const char *event_sub_type, purc_variant_t data);

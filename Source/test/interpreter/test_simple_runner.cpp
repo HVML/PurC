@@ -51,6 +51,7 @@ TEST(runner, simple)
     ssize_t read = 0;
 
     PurCInstance purc;
+    purc_bind_session_variables();
 
     test_getpath_from_env_or_rel(data_path, sizeof(data_path), env,
             "simple_runner");
@@ -76,7 +77,7 @@ TEST(runner, simple)
                 break;
 
             purc_vdom_t vdom = purc_load_hvml_from_file (file);
-            purc_schedule_vdom_0(vdom);
+            purc_schedule_vdom_null(vdom);
             EXPECT_NE(vdom, nullptr) << file << std::endl;
             if (!vdom)
                 break;

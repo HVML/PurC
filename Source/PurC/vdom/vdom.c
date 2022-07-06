@@ -116,21 +116,18 @@ vdom_node_destroy(struct pcvdom_node *node);
 struct pcvdom_document*
 pcvdom_document_ref(struct pcvdom_document *doc)
 {
-    if (!doc)
-        return NULL;
+    assert(doc);
 
-    unsigned long long refc = atomic_fetch_add(&doc->refc, 1);
-    PC_ASSERT(refc > 0);
-
+    atomic_fetch_add(&doc->refc, 1);
     return doc;
 }
 
 void
 pcvdom_document_unref(struct pcvdom_document *doc)
 {
-    PC_ASSERT(doc);
+    assert(doc);
 
-    unsigned long long refc = atomic_fetch_sub(&doc->refc, 1);
+    unsigned long refc = atomic_fetch_sub(&doc->refc, 1);
     if (refc <= 1) {
         document_destroy(doc);
     }

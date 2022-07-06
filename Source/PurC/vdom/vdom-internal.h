@@ -79,7 +79,7 @@ struct pcvdom_document {
 
     struct pcutils_arrlist *bodies;
 
-    atomic_int              refc;
+    atomic_ulong            refc;
 
     unsigned int            quirks:1;
 };

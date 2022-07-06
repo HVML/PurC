@@ -38,9 +38,7 @@ typedef struct pcvarmgr*  pcvarmgr_t;
 
 struct pcvarmgr {
     purc_variant_t object;
-    struct pcvar_listener* grow_listener;
-    struct pcvar_listener* shrink_listener;
-    struct pcvar_listener* change_listener;
+    struct pcvar_listener *listener;
 
     struct rb_node            node;
     struct pcvdom_node       *vdom_node;

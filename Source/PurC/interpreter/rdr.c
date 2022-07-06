@@ -815,7 +815,7 @@ void pcintr_rdr_event_handler(pcrdr_conn *conn, const pcrdr_msg *msg)
     // FIXME: soure_uri msg->sourcURI or  co->full_name
     purc_variant_t source_uri = purc_variant_make_string(
             stack->co->full_name, false);
-    pcintr_post_event(stack->co, msg->reduceOpt, source_uri, source,
+    pcintr_post_event(stack->co->ident, msg->reduceOpt, source_uri, source,
             msg->eventName, msg->data);
     purc_variant_unref(source_uri);
 
@@ -874,7 +874,7 @@ pcintr_attach_to_renderer(pcintr_coroutine_t cor,
     page = pcintr_rdr_create_page(conn_to_rdr, workspace,
             page_type, target_group, page_name,
             extra_info->title, extra_info->klass,
-            extra_info->layoutStyle, extra_info->toolkitStyle);
+            extra_info->layout_style, extra_info->toolkit_style);
     if (!page) {
         purc_log_error("Failed to create page: %s.\n", page_name);
         purc_set_error(PCRDR_ERROR_SERVER_REFUSED);

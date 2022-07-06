@@ -50,15 +50,15 @@
 ### 1.5) 解释器
 
 1. 统一使用协程消息队列处理来自变体变化、渲染器以及其他实例的事件、请求或者响应消息。
-   - `observe` 元素支持隐含的临时变量 `_eventName` 和 `_eventSource`。
-   - `observe` 元素 `in` 属性的处理。
-   - 正确区分会话级变量及协程级变量，`observe` 可观察会话级变体（$SESSION.myObj）上的 `change` 事件。
+   - ~~`observe` 元素支持隐含的临时变量 `_eventName` 和 `_eventSource`。~~
+   - ~~`observe` 元素 `in` 属性的处理。~~
+   - 正确区分会话级变量及协程级变量：`observe` 可观察会话级变体（$SESSION.myObj）上的 `change` 事件；`$SYSTEM` 上调用修改时间、当前工作路径等，会广播更新事件（如 `change:time`）给所有实例。
 1. 接口及实现调整：
    - ~~实现 `purc_schedule_vdom()` 替代 `purc_attach_vdom_to_renderer()`。~~
    - ~~调整 `purc_bind_document_variable()` 为 `purc_coroutine_bind_variable()`。~~
    - ~~交由应用处理：将请求参数绑定到协程级 `$REQUEST` 变量上。~~
 1. 实现支持多实例相关的接口：
-   - `purc_inst_new()`
+   - `purc_inst_create_or_get()`
    - `purc_inst_schedule_vdom()`
 1. 调整对动作元素内容数据的处理逻辑：
    - 在对动作元素的属性值求值时，若该动作元素定义有内容，则一并完成求值，并将其绑定到当前栈帧的上下文变量 `$^` 上。

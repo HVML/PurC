@@ -385,7 +385,7 @@ stack_release(pcintr_stack_t stack)
 #endif
     pcintr_heap_t heap = stack->co->owner;
     if (heap->event_handler) {
-        heap->event_handler(stack->co, PCCOR_EVENT_DESTROY,
+        heap->event_handler(stack->co, PURC_EVENT_DESTROY,
                 stack->co->user_data);
     }
 
@@ -423,6 +423,7 @@ stack_release(pcintr_stack_t stack)
 
     pcintr_exception_clear(&stack->exception);
 
+#if 0 // VW
     if (stack->entry) {
         struct pcvdom_document *vdom_document;
         vdom_document = pcvdom_document_from_node(&stack->entry->node);
@@ -430,6 +431,7 @@ stack_release(pcintr_stack_t stack)
         pcvdom_document_unref(vdom_document);
         stack->entry = NULL;
     }
+#endif
 }
 
 enum pcintr_req_state {
@@ -1465,12 +1467,10 @@ pcintr_stack_frame_get_parent(struct pcintr_stack_frame *frame)
 }
 
 #define BUILDIN_VAR_HVML        "HVML"
-#define BUILDIN_VAR_SYSTEM      "SYSTEM"
 #define BUILDIN_VAR_DATETIME    "DATETIME"
 #define BUILDIN_VAR_T           "T"
 #define BUILDIN_VAR_L           "L"
 #define BUILDIN_VAR_DOC         "DOC"
-#define BUILDIN_VAR_SESSION     "SESSION"
 #define BUILDIN_VAR_EJSON       "EJSON"
 #define BUILDIN_VAR_STR         "STR"
 #define BUILDIN_VAR_STREAM      "STREAM"
@@ -1504,12 +1504,6 @@ bind_builtin_coroutine_variables(pcintr_stack_t stack)
     // $HVML
     if(!bind_cor_named_variable(stack, BUILDIN_VAR_HVML,
                 purc_dvobj_hvml_new(&stack->co->hvml_ctrl_props))) {
-        return false;
-    }
-
-    // $SYSTEM
-    if(!bind_cor_named_variable(stack, BUILDIN_VAR_SYSTEM,
-                purc_dvobj_system_new())) {
         return false;
     }
 
@@ -1553,13 +1547,6 @@ bind_builtin_coroutine_variables(pcintr_stack_t stack)
         return false;
     }
 
-    // TODO : bind by  purc_bind_variable
-    // begin
-    // $SESSION
-    if(!bind_cor_named_variable(stack, BUILDIN_VAR_SESSION,
-                purc_dvobj_session_new())) {
-        return false;
-    }
 
     // $EJSON
     if(!bind_cor_named_variable(stack, BUILDIN_VAR_EJSON,
@@ -1687,7 +1674,7 @@ static void execute_one_step_for_exiting_co(pcintr_coroutine_t co)
     struct pcinst *inst = heap->owner;
 
     if (heap->event_handler) {
-        heap->event_handler(co, PCCOR_EVENT_EXIT, stack->doc);
+        heap->event_handler(co, PURC_EVENT_EXIT, stack->doc);
     }
 
     if (co->parent) {
@@ -2340,7 +2327,8 @@ fail_co:
 }
 
 purc_coroutine_t
-purc_schedule_vdom(purc_vdom_t vdom, purc_coroutine_t curator,
+purc_schedule_vdom(purc_vdom_t vdom,
+        purc_atom_t curator, purc_variant_t request,
         pcrdr_page_type page_type, const char *target_workspace,
         const char *target_group, const char *page_name,
         purc_renderer_extra_info *extra_info, const char *body_id,
@@ -2349,14 +2337,16 @@ purc_schedule_vdom(purc_vdom_t vdom, purc_coroutine_t curator,
     pcintr_coroutine_t co = pcintr_get_coroutine();
     PC_ASSERT(co == NULL);
 
-    co = coroutine_create(vdom, curator, NULL, user_data);
+    /* TODO: check curator here */
+    UNUSED_PARAM(curator);
+
+    co = coroutine_create(vdom, NULL, NULL, user_data);
     if (!co) {
+        pcvdom_document_unref(vdom);
         purc_log_error("Failed to create coroutine\n");
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
     }
-
-    pcvdom_document_ref(vdom);
 
     PC_ASSERT(co->stack.vdom);
 
@@ -2369,16 +2359,53 @@ purc_schedule_vdom(purc_vdom_t vdom, purc_coroutine_t curator,
 
     /* TODO: handle entry here */
     UNUSED_PARAM(body_id);
+    UNUSED_PARAM(request);
 
     pcintr_wakeup_target(co, run_co_main);
     return co;
 }
 
+purc_event_handler
+purc_get_event_handler(void)
+{
+    struct pcinst *inst = pcinst_current();
+    if (inst) {
+        purc_set_error(PURC_ERROR_NO_INSTANCE);
+        return (purc_event_handler)PURC_INVPTR;
+    }
+
+    struct pcintr_heap *heap = inst->intr_heap;
+    if (!heap) {
+        purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+        return (purc_event_handler)PURC_INVPTR;
+    }
+
+    return heap->event_handler;
+}
+
+purc_event_handler
+purc_set_event_handler(purc_event_handler handler)
+{
+    struct pcinst *inst = pcinst_current();
+    if (inst) {
+        purc_set_error(PURC_ERROR_NO_INSTANCE);
+        return (purc_event_handler)PURC_INVPTR;
+    }
+
+    struct pcintr_heap *heap = inst->intr_heap;
+    if (!heap) {
+        purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+        return (purc_event_handler)PURC_INVPTR;
+    }
+
+    purc_event_handler old = heap->event_handler;
+    heap->event_handler = handler;
+    return old;
+}
+
 int
 purc_run(purc_event_handler handler)
 {
-    UNUSED_PARAM(handler);
-
     struct pcinst *inst = pcinst_current();
     PC_ASSERT(inst);
     struct pcintr_heap *heap = inst->intr_heap;
@@ -3487,7 +3514,7 @@ pcintr_observe_vcm_ev(pcintr_stack_t stack, struct pcintr_observer* observer,
     // dispatch change event
     purc_variant_t source_uri = purc_variant_make_string(
             stack->co->full_name, false);
-    pcintr_post_event_by_ctype(stack->co,
+    pcintr_post_event_by_ctype(stack->co->ident,
             PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY, source_uri,
             var, MSG_TYPE_CHANGE, NULL,
             PURC_VARIANT_INVALID);
@@ -3741,6 +3768,7 @@ pcintr_create_child_co(pcvdom_element_t vdom_element,
         PC_ASSERT(co->stack.vdom);
 
         child->stack.entry = vdom_element;
+        // VW: we reuse the vDOM, so must increase refcount.
         pcvdom_document_ref(co->vdom);
 
         purc_log_debug("running parent/child: %p/%p", co, child);

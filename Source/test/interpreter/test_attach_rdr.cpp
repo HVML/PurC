@@ -593,6 +593,7 @@ TEST(interpreter, basic)
     PurCInstance purc(modules, "cn.fmsoft.hybridos.test", "test_attach_rdr",
             &info);
     ASSERT_TRUE(purc);
+    purc_bind_session_variables();
 
     purc_enable_log(true, false);
 
@@ -607,8 +608,8 @@ TEST(interpreter, basic)
 
         purc_renderer_extra_info extra_info = {};
         extra_info.title = "def_page_title";
-        purc_coroutine_t co = purc_schedule_vdom(vdom, NULL,
-                PCRDR_PAGE_TYPE_PLAINWIN,
+        purc_coroutine_t co = purc_schedule_vdom(vdom,
+                0, PURC_VARIANT_INVALID, PCRDR_PAGE_TYPE_PLAINWIN,
                 "main",         /* target_workspace */
                 NULL,           /* target_group */
                 "def_page",     /* page_name */

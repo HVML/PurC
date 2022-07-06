@@ -135,7 +135,7 @@ static bool mgr_grow_handler(purc_variant_t source, pcvar_op_t msg_type,
 
         purc_variant_t source_uri = purc_variant_make_string(
                 stack->co->full_name, false);
-        pcintr_post_event_by_ctype(stack->co,
+        pcintr_post_event_by_ctype(stack->co->ident,
                 PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY, source_uri,
                 dest, MSG_TYPE_CHANGE, SUB_TYPE_ATTACHED,
                 PURC_VARIANT_INVALID);
@@ -165,7 +165,7 @@ static bool mgr_shrink_handler(purc_variant_t source, pcvar_op_t msg_type,
         pcintr_stack_t stack = pcintr_get_stack();
         purc_variant_t source_uri = purc_variant_make_string(
                 stack->co->full_name, false);
-        pcintr_post_event_by_ctype(stack->co,
+        pcintr_post_event_by_ctype(stack->co->ident,
                 PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY, source_uri,
                 dest, MSG_TYPE_CHANGE, SUB_TYPE_DETACHED,
                 PURC_VARIANT_INVALID);
@@ -196,7 +196,7 @@ static bool mgr_change_handler(purc_variant_t source, pcvar_op_t msg_type,
 
         purc_variant_t source_uri = purc_variant_make_string(
                 stack->co->full_name, false);
-        pcintr_post_event_by_ctype(stack->co,
+        pcintr_post_event_by_ctype(stack->co->ident,
                 PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY, source_uri,
                 dest, MSG_TYPE_CHANGE, SUB_TYPE_DISPLACED,
                 PURC_VARIANT_INVALID);
@@ -205,6 +205,38 @@ static bool mgr_change_handler(purc_variant_t source, pcvar_op_t msg_type,
     }
 
     return true;
+}
+
+static bool mgr_handler(purc_variant_t source, pcvar_op_t msg_type,
+        void* ctxt, size_t nr_args, purc_variant_t* argv)
+{
+    switch (msg_type) {
+    case PCVAR_OPERATION_GROW:
+        return mgr_grow_handler(source, msg_type, ctxt, nr_args, argv);
+
+    case PCVAR_OPERATION_SHRINK:
+        return mgr_shrink_handler(source, msg_type, ctxt, nr_args, argv);
+
+    case PCVAR_OPERATION_CHANGE:
+        return mgr_change_handler(source, msg_type, ctxt, nr_args, argv);
+
+    default:
+        return true;
+    }
+    return true;
+}
+
+static int
+add_listener_for_co_variables(pcvarmgr_t mgr)
+{
+    int op = PCVAR_OPERATION_GROW | PCVAR_OPERATION_SHRINK |
+        PCVAR_OPERATION_CHANGE;
+    mgr->listener = purc_variant_register_post_listener(mgr->object,
+        (pcvar_op_t)op, mgr_handler, mgr);
+    if (mgr->listener) {
+        return 0;
+    }
+    return -1;
 }
 
 #define DEF_ARRAY_SIZE 10
@@ -223,31 +255,16 @@ pcvarmgr_t pcvarmgr_create(void)
         goto err_free_mgr;
     }
 
-    mgr->grow_listener = purc_variant_register_post_listener(mgr->object,
-        PCVAR_OPERATION_GROW, mgr_grow_handler, mgr);
-    if (!mgr->grow_listener) {
-        goto err_clear_object;
+    pcintr_stack_t stack = pcintr_get_stack();
+    if (stack) {
+        int ret = add_listener_for_co_variables(mgr);
+        if (ret != 0) {
+            goto err_clear_object;
+        }
     }
 
-    mgr->shrink_listener = purc_variant_register_post_listener(mgr->object,
-        PCVAR_OPERATION_SHRINK, mgr_shrink_handler, mgr);
-    if (!mgr->shrink_listener) {
-        goto err_revoke_grow_listener;
-    }
-
-    mgr->change_listener = purc_variant_register_post_listener(mgr->object,
-        PCVAR_OPERATION_CHANGE, mgr_change_handler, mgr);
-    if (!mgr->change_listener) {
-        goto err_revoke_shrink_listener;
-    }
 
     return mgr;
-
-err_revoke_shrink_listener:
-    purc_variant_revoke_listener(mgr->object, mgr->shrink_listener);
-
-err_revoke_grow_listener:
-    purc_variant_revoke_listener(mgr->object, mgr->grow_listener);
 
 err_clear_object:
     purc_variant_unref(mgr->object);
@@ -263,9 +280,9 @@ int pcvarmgr_destroy(pcvarmgr_t mgr)
 {
     if (mgr) {
         PC_ASSERT(mgr->node.rb_parent == NULL);
-        purc_variant_revoke_listener(mgr->object, mgr->grow_listener);
-        purc_variant_revoke_listener(mgr->object, mgr->shrink_listener);
-        purc_variant_revoke_listener(mgr->object, mgr->change_listener);
+        if (mgr->listener) {
+            purc_variant_revoke_listener(mgr->object, mgr->listener);
+        }
         purc_variant_unref(mgr->object);
         free(mgr);
     }
@@ -351,7 +368,7 @@ bool pcvarmgr_dispatch_except(pcvarmgr_t mgr, const char* name,
 
         purc_variant_t source_uri = purc_variant_make_string(
                 stack->co->full_name, false);
-        pcintr_post_event_by_ctype(stack->co,
+        pcintr_post_event_by_ctype(stack->co->ident,
                 PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY, source_uri,
                 dest, MSG_TYPE_CHANGE, except,
                 PURC_VARIANT_INVALID);

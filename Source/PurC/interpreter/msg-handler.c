@@ -77,6 +77,11 @@ on_observer_matched(void *ud)
         purc_variant_unref(p->payload);
     }
 
+    if (p->at_symbol) {
+        pcintr_set_at_var(frame, p->at_symbol);
+        purc_variant_unref(p->at_symbol);
+    }
+
     purc_variant_t exclamation_var = pcintr_get_exclamation_var(frame);
     // set $! _eventName
     if (p->event_name) {
@@ -129,6 +134,11 @@ observer_matched(pcintr_stack_t stack, struct pcintr_observer *p,
     if (payload) {
         data->payload = payload;
         purc_variant_ref(data->payload);
+    }
+
+    if (p->at_symbol) {
+        data->at_symbol = p->at_symbol;
+        purc_variant_ref(data->at_symbol);
     }
 
     pcintr_post_msg(data, on_observer_matched);
@@ -266,12 +276,26 @@ dispatch_move_buffer_msg(struct pcinst *inst, pcrdr_msg *msg)
         struct rb_root *coroutines = &heap->coroutines;
         struct rb_node *p, *n;
         struct rb_node *first = pcutils_rbtree_first(coroutines);
-        pcutils_rbtree_for_each_safe(first, p, n) {
-            pcintr_coroutine_t co = container_of(p, struct pcintr_coroutine,
-                    node);
-            if (co->ident == msg->targetValue) {
-                return pcinst_msg_queue_append(co->mq, msg);
+
+        if (PURC_EVENT_TARGET_BROADCAST != msg->targetValue) {
+            pcutils_rbtree_for_each_safe(first, p, n) {
+                pcintr_coroutine_t co = container_of(p, struct pcintr_coroutine,
+                        node);
+                if (co->ident == msg->targetValue) {
+                    return pcinst_msg_queue_append(co->mq, msg);
+                }
             }
+        }
+        else {
+            pcutils_rbtree_for_each_safe(first, p, n) {
+                pcintr_coroutine_t co = container_of(p, struct pcintr_coroutine,
+                        node);
+
+                pcrdr_msg *my_msg = pcrdr_clone_message(msg);
+                my_msg->targetValue = co->ident;
+                pcinst_msg_queue_append(co->mq, my_msg);
+            }
+            pcinst_put_message(msg);
         }
     }
         break;
@@ -360,12 +384,11 @@ pcintr_dispatch_msg(void)
 }
 
 int
-pcintr_post_event(pcintr_coroutine_t co,
+pcintr_post_event(purc_atom_t co_id,
         pcrdr_msg_event_reduce_opt reduce_op, purc_variant_t source_uri,
         purc_variant_t observed, purc_variant_t event_name,
         purc_variant_t data)
 {
-    UNUSED_PARAM(co);
     UNUSED_PARAM(source_uri);
     UNUSED_PARAM(event_name);
     UNUSED_PARAM(data);
@@ -374,12 +397,6 @@ pcintr_post_event(pcintr_coroutine_t co,
         return -1;
     }
 
-#if 0
-    pcintr_stack_t stack = &co->stack;
-    struct pcintr_heap *heap = stack->owning_heap;
-    struct pcinst *inst = heap->owner;
-#endif
-
     pcrdr_msg *msg = pcinst_get_message();
     if (msg == NULL) {
         return -1;
@@ -387,7 +404,7 @@ pcintr_post_event(pcintr_coroutine_t co,
 
     msg->type = PCRDR_MSG_TYPE_EVENT;
     msg->target = PCRDR_MSG_TARGET_COROUTINE;
-    msg->targetValue = co->ident;
+    msg->targetValue = co_id;
     msg->reduceOpt = reduce_op;
 
     if (source_uri) {
@@ -403,15 +420,16 @@ pcintr_post_event(pcintr_coroutine_t co,
     purc_variant_ref(msg->elementValue);
 
     if (data) {
+        msg->dataType = PCRDR_MSG_DATA_TYPE_JSON;
         msg->data = data;
         purc_variant_ref(msg->data);
     }
 
-    return purc_inst_post_event(PURC_INST_SELF, msg);
+    return purc_inst_post_event(PURC_EVENT_TARGET_SELF, msg);
 }
 
 int
-pcintr_post_event_by_ctype(pcintr_coroutine_t co,
+pcintr_post_event_by_ctype(purc_atom_t co_id,
         pcrdr_msg_event_reduce_opt reduce_op, purc_variant_t source_uri,
         purc_variant_t observed, const char *event_type,
         const char *event_sub_type, purc_variant_t data)
@@ -445,7 +463,7 @@ pcintr_post_event_by_ctype(pcintr_coroutine_t co,
         return -1;
     }
 
-    int ret = pcintr_post_event(co, reduce_op, source_uri, observed,
+    int ret = pcintr_post_event(co_id, reduce_op, source_uri, observed,
             event_name, data);
     purc_variant_unref(event_name);
 
