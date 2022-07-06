@@ -49,6 +49,7 @@
 #include <libgen.h>
 
 #define EVENT_TIMER_INTRVAL  10
+#define DEFAULT_MOVE_BUFFER_SIZE 64
 
 #define EVENT_SEPARATOR      ':'
 #define MSG_TYPE_CHANGE     "change"
@@ -577,7 +578,7 @@ static int _init_instance(struct pcinst* inst,
         return PURC_ERROR_OUT_OF_MEMORY;
 
     heap->move_buff = purc_inst_create_move_buffer(
-            PCINST_MOVE_BUFFER_BROADCAST, 64);
+            PCINST_MOVE_BUFFER_BROADCAST, DEFAULT_MOVE_BUFFER_SIZE);
     if (!heap->move_buff) {
         free(heap);
         return PURC_ERROR_OUT_OF_MEMORY;
