@@ -565,9 +565,6 @@ register_mmutable_var_observer(pcintr_stack_t stack,
     struct ctxt_for_observe *ctxt;
     ctxt = (struct ctxt_for_observe*)frame->ctxt;
 
-    if (!is_mmutable_variant_msg(ctxt->msg_type_atom))
-        return NULL;
-
     struct pcvar_listener *listener = NULL;
     if (!regist_variant_listener(stack, on, ctxt->msg_type_atom, &listener))
         return NULL;
@@ -635,6 +632,8 @@ process_variant_observer(pcintr_stack_t stack,
     if (pcintr_is_timers(stack, observed)) {
         return register_timer_observer(stack, frame, observed);
     }
+    struct ctxt_for_observe *ctxt;
+    ctxt = (struct ctxt_for_observe*)frame->ctxt;
 
     enum purc_variant_type type = purc_variant_get_type(observed);
     switch (type) {
@@ -644,7 +643,11 @@ process_variant_observer(pcintr_stack_t stack,
     case PURC_VARIANT_TYPE_OBJECT:
     case PURC_VARIANT_TYPE_ARRAY:
     case PURC_VARIANT_TYPE_SET:
-        return register_mmutable_var_observer(stack, frame, observed);
+        if (is_mmutable_variant_msg(ctxt->msg_type_atom) &&
+                (ctxt->sub_type == NULL)) {
+            return register_mmutable_var_observer(stack, frame, observed);
+        }
+        return register_default_observer(stack, frame, observed);
 
     case PURC_VARIANT_TYPE_STRING:
         if (is_css_select(purc_variant_get_string_const(observed))) {
