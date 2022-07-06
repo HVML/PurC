@@ -842,24 +842,27 @@ init_caret_symbol(pcintr_stack_t stack, struct pcintr_stack_frame *frame)
     struct pcvdom_node *node = &elem->node;
     node = pcvdom_node_first_child(node);
     if (!node || node->type != PCVDOM_NODE_CONTENT) {
+        purc_clr_error();
         return 0;
     }
 
     struct pcvdom_content *content = PCVDOM_CONTENT_FROM_NODE(node);
     struct pcvcm_node *vcm = content->vcm;
     if (!vcm) {
+        purc_clr_error();
         return 0;
     }
 
     purc_variant_t v = pcvcm_eval(vcm, stack, frame->silently);
     if (v == PURC_VARIANT_INVALID) {
+        purc_clr_error();
         return 0;
     }
-    purc_clr_error();
 
     int ret = pcintr_set_symbol_var(frame, PURC_SYMBOL_VAR_CARET, v);
     purc_variant_unref(v);
 
+    purc_clr_error();
     return ret;
 }
 
