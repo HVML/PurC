@@ -52,6 +52,7 @@ sample_destroy(struct sample_ctxt *ud)
     free(ud);
 }
 
+#if 0 // VW: use event handler instead
 static void
 on_terminated(pcintr_stack_t stack, void *ctxt)
 {
@@ -91,8 +92,54 @@ on_cleanup(pcintr_stack_t stack, void *ctxt)
 {
     UNUSED_PARAM(stack);
 
-    struct sample_ctxt *ud = (struct sample_ctxt*)ctxt;
-    sample_destroy(ud);
+}
+#endif
+
+static int my_event_handler(purc_coroutine_t cor,
+        purc_event_t event, void *data)
+{
+    void *user_data = purc_coroutine_get_user_data(cor);
+    if (!user_data) {
+        return -1;
+    }
+
+    struct sample_ctxt *ud = (struct sample_ctxt*)user_data;
+
+    if (event == PURC_EVENT_EXIT) {
+        pchtml_html_document_t *doc = (pchtml_html_document_t *)data;
+
+        if (ud->terminated) {
+            ADD_FAILURE() << "internal logic error: reentrant" << std::endl;
+            return -1;
+        }
+        ud->terminated = 1;
+
+        if (ud->html) {
+            int diff = 0;
+            int r = 0;
+            pcintr_util_comp_docs(doc, ud->html, &diff);
+            if (r == 0 && diff == 0)
+                return 0;
+
+            char buf[8192];
+            size_t nr = sizeof(nr);
+            char *p = pchtml_doc_snprintf_plain(doc, buf, &nr, "");
+
+            ADD_FAILURE()
+                << "failed to compare:" << std::endl
+                << "input:" << std::endl << ud->input_hvml << std::endl
+                << "output:" << std::endl << p << std::endl
+                << "expected:" << std::endl << ud->expected_html << std::endl;
+
+            if (p != buf)
+                free(p);
+        }
+    }
+    else if (event == PURC_EVENT_DESTROY) {
+        sample_destroy(ud);
+    }
+
+    return 0;
 }
 
 static int
@@ -135,12 +182,14 @@ add_sample(const struct sample_data *sample)
         return -1;
     }
 
+#if 0 // VW: use event handler instead
     struct pcintr_supervisor_ops ops = {};
     ops.on_terminated = on_terminated;
     ops.on_cleanup    = on_cleanup;
+#endif
 
     purc_vdom_t vdom;
-    vdom = purc_load_hvml_from_string_ex(sample->input_hvml, &ops, ud);
+    vdom = purc_load_hvml_from_string(sample->input_hvml);
 
     if (vdom == NULL) {
         ADD_FAILURE()
@@ -148,6 +197,10 @@ add_sample(const struct sample_data *sample)
             << sample->input_hvml << std::endl;
         sample_destroy(ud);
         return -1;
+    }
+    else {
+        purc_coroutine_t cor = purc_schedule_vdom_null(vdom);
+        purc_coroutine_set_user_data(cor, ud);
     }
 
     return 0;
@@ -205,6 +258,7 @@ TEST(samples, files)
 {
     bool enable_remote_fetcher = true;
     PurCInstance purc(enable_remote_fetcher);
+    purc_bind_session_variables();
 
     ASSERT_TRUE(purc);
 
@@ -243,7 +297,7 @@ TEST(samples, files)
             }
             if (r)
                 break;
-            purc_run(NULL);
+            purc_run(my_event_handler);
         } while (0);
         globfree(&globbuf);
     }

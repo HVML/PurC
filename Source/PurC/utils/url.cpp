@@ -270,6 +270,14 @@ bool pcutils_url_break_down(struct purc_broken_down_url *url_struct,
     return valid;
 }
 
+bool pcutils_url_is_valid(const char *url_string)
+{
+    String encode_url = percentEncodeCharacters((const unsigned char *)url_string);
+    PurCWTF::URL url(URL(), encode_url);
+
+    return url.isValid();
+}
+
 #define PAIR_SEPERATOR      '&'
 #define KV_SEPERATOR        '='
 

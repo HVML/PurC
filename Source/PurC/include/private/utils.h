@@ -181,7 +181,8 @@ void pcutils_md5_end(pcutils_md5_ctxt *ctxt, unsigned char *resbuf);
 
 /* digest should be long enough (at least 16) to store the returned digest */
 void pcutils_md5digest(const char *string, unsigned char *digest);
-int pcutils_md5sum(const char *file, unsigned char *md5_buf);
+ssize_t pcutils_md5sum(const char *file, unsigned char *md5_buf);
+FILE *pcutils_md5sum_alt(const char *file, unsigned char *md5_buf, size_t *sz);
 
 typedef struct pcutils_sha1_ctxt {
   uint32_t      state[5];

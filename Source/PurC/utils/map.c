@@ -256,6 +256,24 @@ pcutils_map_entry* pcutils_map_find (pcutils_map* map, const void* key)
     return entry;
 }
 
+pcutils_map_entry *
+pcutils_map_find_and_lock (pcutils_map* map, const void* key)
+{
+    pcutils_map_entry* entry = NULL;
+
+    if (map == NULL)
+        return NULL;
+
+    WRLOCK_MAP (map);
+
+    entry = find_entry (map, key);
+    if (entry == NULL) {
+        WRUNLOCK_MAP (map);
+    }
+
+    return entry;
+}
+
 int pcutils_map_erase (pcutils_map* map, void* key)
 {
     int retval = -1;
@@ -271,6 +289,25 @@ int pcutils_map_erase (pcutils_map* map, void* key)
 
     WRUNLOCK_MAP (map);
     return retval;
+}
+
+void pcutils_map_erase_entry_nolock (pcutils_map* map,
+        pcutils_map_entry *entry)
+{
+    if (map == NULL || entry == NULL)
+        return;
+
+    erase_entry (map, entry);
+}
+
+void pcutils_map_lock(pcutils_map *map)
+{
+    WRLOCK_MAP(map);
+}
+
+void pcutils_map_unlock(pcutils_map *map)
+{
+    WRUNLOCK_MAP(map);
 }
 
 int pcutils_map_replace (pcutils_map* map, const void* key,
@@ -477,7 +514,8 @@ pcutils_map_it_begin_first(pcutils_map *map)
     if (!map)
         return it;
 
-    PC_ASSERT((map)->rwlock.native_impl == NULL);
+    /* VW: call pcutils_map_lock()/pcutils_map_unlok() explicitly instead
+       PC_ASSERT((map)->rwlock.native_impl == NULL); */
 
     struct rb_root *root = &map->root;
     if (!root)
@@ -499,7 +537,8 @@ pcutils_map_it_begin_last(pcutils_map *map)
     if (!map)
         return it;
 
-    PC_ASSERT((map)->rwlock.native_impl == NULL);
+    /* VW: call pcutils_map_lock()/pcutils_map_unlok() explicitly instead
+    PC_ASSERT((map)->rwlock.native_impl == NULL); */
 
     struct rb_root *root = &map->root;
     if (!root)

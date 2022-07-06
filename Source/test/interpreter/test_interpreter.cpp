@@ -860,6 +860,7 @@ TEST(interpreter, basic)
     PurCInstance purc("cn.fmsoft.hybridos.test", "interpreter", false);
 
     ASSERT_TRUE(purc);
+    purc_bind_session_variables();
 
     // get statitics information
     const struct purc_variant_stat * stat = purc_variant_usage_stat ();
@@ -868,6 +869,7 @@ TEST(interpreter, basic)
     for (size_t i=0; i<PCA_TABLESIZE(hvmls); ++i) {
         const char *hvml = hvmls[i];
         purc_vdom_t vdom = purc_load_hvml_from_string(hvml);
+        purc_schedule_vdom_null(vdom);
         ASSERT_NE(vdom, nullptr);
     }
 

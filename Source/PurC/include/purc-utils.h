@@ -980,6 +980,16 @@ pcutils_url_break_down(struct purc_broken_down_url *broken_down,
         const char *url);
 
 /**
+ * Checks whether the URL string is valid.
+ *
+ * @param url The null-terminated URL string.
+ *
+ * Returns: @true on success, @false for a bad URL string.
+ */
+PCA_EXPORT bool
+pcutils_url_is_valid(const char *url);
+
+/**
  * Copy the value of the specified key from a broken down URL to the specified
  * bufffer if found.
  *

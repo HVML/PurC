@@ -593,9 +593,12 @@ TEST(interpreter, basic)
     PurCInstance purc(modules, "cn.fmsoft.hybridos.test", "test_attach_rdr",
             &info);
     ASSERT_TRUE(purc);
+    purc_bind_session_variables();
+
+    purc_enable_log(true, false);
 
     // get statitics information
-    const struct purc_variant_stat * stat = purc_variant_usage_stat ();
+    const struct purc_variant_stat *stat = purc_variant_usage_stat();
     ASSERT_NE(stat, nullptr);
 
     for (size_t i=0; i<PCA_TABLESIZE(hvmls); ++i) {
@@ -605,13 +608,13 @@ TEST(interpreter, basic)
 
         purc_renderer_extra_info extra_info = {};
         extra_info.title = "def_page_title";
-        bool ret = purc_attach_vdom_to_renderer(vdom,
-                PCRDR_PAGE_TYPE_PLAINWIN,
+        purc_coroutine_t co = purc_schedule_vdom(vdom,
+                0, PURC_VARIANT_INVALID, PCRDR_PAGE_TYPE_PLAINWIN,
                 "main",         /* target_workspace */
                 NULL,           /* target_group */
                 "def_page",     /* page_name */
-                &extra_info);
-        ASSERT_EQ(ret, true);
+                &extra_info, NULL, NULL);
+        ASSERT_NE(co, nullptr);
     }
 
     purc_run(NULL);

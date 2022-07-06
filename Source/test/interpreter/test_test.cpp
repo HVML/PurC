@@ -83,6 +83,7 @@ TEST(observe, basic)
             "test_init", &info);
 
     ASSERT_EQ (ret, PURC_ERROR_OK);
+    purc_bind_session_variables();
 
     // get statitics information
     const struct purc_variant_stat * stat = purc_variant_usage_stat ();
@@ -91,6 +92,7 @@ TEST(observe, basic)
     for (size_t i=0; i<PCA_TABLESIZE(hvmls); ++i) {
         const char *hvml = hvmls[i];
         purc_vdom_t vdom = purc_load_hvml_from_string(hvml);
+        purc_schedule_vdom_null(vdom);
         ASSERT_NE(vdom, nullptr);
     }
 

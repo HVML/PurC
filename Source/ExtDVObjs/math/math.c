@@ -1674,7 +1674,10 @@ purc_variant_t __purcex_load_dynamic_variant (const char *name, int *ver_code)
     UNUSED_PARAM(name);
     *ver_code = MATH_DVOBJ_VERSION;
 
-    return pcdvobjs_create_math ();
+    if (name == NULL || pcutils_strcasecmp(name, "MATH") == 0)
+        return pcdvobjs_create_math ();
+
+    return PURC_VARIANT_INVALID;
 }
 
 size_t __purcex_get_number_of_dynamic_variants (void)

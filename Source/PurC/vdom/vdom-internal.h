@@ -23,8 +23,8 @@
  *
  */
 
-#ifndef PURC_PRIVATE_VDOM_INTERNAL_H
-#define PURC_PRIVATE_VDOM_INTERNAL_H
+#ifndef PURC_VDOM_VDOM_INTERNAL_H
+#define PURC_VDOM_VDOM_INTERNAL_H
 
 /* this feature needs C11 (stdatomic.h) or above */
 #if HAVE(STDATOMIC_H)           /* { */
@@ -79,7 +79,7 @@ struct pcvdom_document {
 
     struct pcutils_arrlist *bodies;
 
-    atomic_int              refc;
+    atomic_ulong            refc;
 
     unsigned int            quirks:1;
 };
@@ -127,15 +127,5 @@ struct pcvdom_comment {
     char                   *text;
 };
 
-struct purc_vdom {
-    struct pcvdom_document          *document;
-    const struct purc_hvml_ctrl_props     *hvml_ctrl_props;
-    char **dump_buff;
-    uintptr_t   target_workspace_handle;  /* rdr workspace */
-    uintptr_t   target_window_handle;
-    uintptr_t   target_tabpage_handle;
-    uintptr_t   target_dom_handle;
-};
-
-#endif // PURC_PRIVATE_VDOM_INTERNAL_H
+#endif // PURC_VDOM_VDOM_INTERNAL_H
 

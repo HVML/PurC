@@ -27,6 +27,7 @@ TEST(idle, idle)
             "test_init", &info);
 
     ASSERT_EQ (ret, PURC_ERROR_OK);
+    purc_bind_session_variables();
 
     purc_runloop_set_idle_func(purc_runloop_get_current(), on_idle_callback, NULL);
 

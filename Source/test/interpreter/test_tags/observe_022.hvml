@@ -1,0 +1,39 @@
+<!DOCTYPE hvml>
+<hvml target="html" lang="en">
+    <head>
+        <link rel="stylesheet" type="text/css" href="calculator.css" />
+
+        <update on="$TIMERS" to="displace">
+            [
+                { "id" : "clock", "interval" : 1000, "active" : "yes" },
+            ]
+        </update>
+    </head>
+
+    <body>
+        <div id="calculator">
+
+            <div id="c_title">
+                <h2 id="c_title">Test Observe<br/>
+                    <span id="author"></span>
+                </h2>
+                <observe on="$SESSION.myObj" for="change:AUTHOR" in="#author">
+                    <update on="$@" at="textContent" with="$?" />
+                    <forget on="$SESSION.myObj" for="change:AUTHOR"/>
+                </observe>
+                <observe on="$TIMERS" for="expired:clock">
+                    <update on="$TIMERS" to="overwrite">
+                       { "id" : "clock", "active" : "no" }
+                    </update>
+                    <update on="$SESSION.myObj" to="merge">
+                        {
+                            "AUTHOR": "Vincent Wei",
+                        }
+                    </update>
+                    <forget on="$TIMERS" for="expired:clock"/>
+                </observe>
+                <p>this is after observe</p>
+            </div>
+        </div>
+    </body>
+</hvml>

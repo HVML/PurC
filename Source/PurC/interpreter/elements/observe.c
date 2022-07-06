@@ -46,6 +46,8 @@ struct ctxt_for_observe {
     purc_variant_t                as;
     purc_variant_t                with;
     purc_variant_t                against;
+    purc_variant_t                in;
+    purc_variant_t                at_symbol;
 
     pcvdom_element_t              define;
 
@@ -64,6 +66,8 @@ ctxt_for_observe_destroy(struct ctxt_for_observe *ctxt)
         PURC_VARIANT_SAFE_CLEAR(ctxt->as);
         PURC_VARIANT_SAFE_CLEAR(ctxt->with);
         PURC_VARIANT_SAFE_CLEAR(ctxt->against);
+        PURC_VARIANT_SAFE_CLEAR(ctxt->in);
+        PURC_VARIANT_SAFE_CLEAR(ctxt->at_symbol);
 
         if (ctxt->msg_type) {
             free(ctxt->msg_type);
@@ -115,7 +119,7 @@ bool base_variant_msg_listener(purc_variant_t source, pcvar_op_t msg_type,
     pcintr_stack_t stack = (pcintr_stack_t)ctxt;
     purc_variant_t source_uri = purc_variant_make_string(
             stack->co->full_name, false);
-    pcintr_post_event_by_ctype(stack->co,
+    pcintr_post_event_by_ctype(stack->co->ident,
             PCRDR_MSG_EVENT_REDUCE_OPT_IGNORE, source_uri,
             source, smsg, NULL, PURC_VARIANT_INVALID);
     purc_variant_unref(source_uri);
@@ -367,6 +371,31 @@ process_attr_against(struct pcintr_stack_frame *frame,
 }
 
 static int
+process_attr_in(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element,
+        purc_atom_t name, purc_variant_t val)
+{
+    struct ctxt_for_observe *ctxt;
+    ctxt = (struct ctxt_for_observe*)frame->ctxt;
+    if (ctxt->in != PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_DUPLICATED,
+                "vdom attribute '%s' for element <%s>",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    if (val == PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "vdom attribute '%s' for element <%s> undefined",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    ctxt->in = val;
+    purc_variant_ref(val);
+
+    return 0;
+}
+
+static int
 attr_found_val(struct pcintr_stack_frame *frame,
         struct pcvdom_element *element,
         purc_atom_t name, purc_variant_t val,
@@ -395,6 +424,9 @@ attr_found_val(struct pcintr_stack_frame *frame,
     }
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, AGAINST)) == name) {
         return process_attr_against(frame, element, name, val);
+    }
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, IN)) == name) {
+        return process_attr_in(frame, element, name, val);
     }
 
     purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
@@ -461,7 +493,8 @@ register_named_var_observer(pcintr_stack_t stack,
 
     struct pcintr_observer *result = pcintr_register_observer(observed,
             ctxt->for_var, ctxt->msg_type_atom, ctxt->sub_type,
-            frame->pos, frame->edom_element, frame->pos, NULL, NULL);
+            frame->pos, frame->edom_element, frame->pos, ctxt->at_symbol,
+            NULL, NULL);
     purc_variant_unref(observed);
     return result;
 }
@@ -493,7 +526,7 @@ register_native_var_observer(pcintr_stack_t stack,
     observer = pcintr_register_observer(observed,
             ctxt->for_var, ctxt->msg_type_atom, ctxt->sub_type,
             frame->pos,
-            frame->edom_element, frame->pos, NULL, NULL);
+            frame->edom_element, frame->pos, ctxt->at_symbol, NULL, NULL);
 
     return observer;
 }
@@ -511,7 +544,7 @@ register_timer_observer(pcintr_stack_t stack,
     return pcintr_register_observer(on,
             ctxt->for_var, ctxt->msg_type_atom, ctxt->sub_type,
             frame->pos,
-            frame->edom_element, frame->pos, NULL, NULL);
+            frame->edom_element, frame->pos, ctxt->at_symbol, NULL, NULL);
 }
 
 void on_revoke_mmutable_var_observer(struct pcintr_observer *observer,
@@ -542,7 +575,7 @@ register_mmutable_var_observer(pcintr_stack_t stack,
     return pcintr_register_observer(on,
             ctxt->for_var, ctxt->msg_type_atom, ctxt->sub_type,
             frame->pos,
-            frame->edom_element, frame->pos,
+            frame->edom_element, frame->pos, ctxt->at_symbol,
             on_revoke_mmutable_var_observer, listener);
 }
 
@@ -581,7 +614,8 @@ register_default_observer(pcintr_stack_t stack,
     ctxt = (struct ctxt_for_observe*)frame->ctxt;
     return pcintr_register_observer(observed,
             ctxt->for_var, ctxt->msg_type_atom, ctxt->sub_type,
-            frame->pos, frame->edom_element, frame->pos, NULL, NULL);
+            frame->pos, frame->edom_element, frame->pos, ctxt->at_symbol,
+            NULL, NULL);
 }
 
 static struct pcintr_observer *
@@ -665,16 +699,16 @@ match_id(pcintr_stack_t stack, struct pcvdom_element *elem, const char *id)
 }
 
 static int
-bind_at_element(struct pcvdom_element *elem, const char *name,
+bind_at_element(purc_coroutine_t cor, struct pcvdom_element *elem, const char *name,
         purc_variant_t val)
 {
-    return pcintr_bind_scope_variable(elem, name, val) ? 0 : -1 ;
+    return pcintr_bind_scope_variable(cor, elem, name, val) ? 0 : -1 ;
 }
 
 static int
-bind_at_vdom(purc_vdom_t vdom, const char *name, purc_variant_t val)
+bind_at_coroutine(purc_coroutine_t cor, const char *name, purc_variant_t val)
 {
-    return purc_bind_document_variable(vdom, name, val) ? 0 : -1;
+    return purc_coroutine_bind_variable(cor, name, val) ? 0 : -1;
 }
 
 static int
@@ -692,11 +726,11 @@ bind_by_level(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
     }
 
     if (p && p->node.type != PCVDOM_NODE_DOCUMENT) {
-        return bind_at_element(p, name, val);
+        return bind_at_element(stack->co, p, name, val);
     }
 
     if (silently) {
-        return bind_at_vdom(stack->vdom, name, val);
+        return bind_at_coroutine(stack->co, name, val);
     }
     purc_set_error_with_info(PURC_ERROR_ENTITY_NOT_FOUND,
             "no vdom element exists");
@@ -725,7 +759,7 @@ process_bind_by_elem_id(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
     }
 
     if (dest && dest->node.type != PCVDOM_NODE_DOCUMENT) {
-        return bind_at_element(dest, name, val);
+        return bind_at_element(stack->co, dest, name, val);
     }
 
     if (frame->silently) {
@@ -756,7 +790,7 @@ process_bind_by_name_space(pcintr_stack_t stack,
     }
 
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, _ROOT)) == atom ) {
-        return bind_at_vdom(stack->vdom, name, val);
+        return bind_at_coroutine(stack->co, name, val);
     }
 
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, _LAST)) == atom) {
@@ -768,7 +802,7 @@ process_bind_by_name_space(pcintr_stack_t stack,
     }
 
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, _TOPMOST)) == atom) {
-        return bind_at_vdom(stack->vdom, name, val);
+        return bind_at_coroutine(stack->co, name, val);
     }
 
 not_found:
@@ -844,6 +878,32 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         return ctxt;
     }
 
+    purc_variant_t in;
+    in = ctxt->in;
+    if (in != PURC_VARIANT_INVALID) {
+        if (!purc_variant_is_string(in)) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            return ctxt;
+        }
+
+        purc_variant_t elements = pcintr_doc_query(stack->co,
+                purc_variant_get_string_const(in), frame->silently);
+        if (elements == PURC_VARIANT_INVALID) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            return ctxt;
+        }
+
+        r = pcintr_set_at_var(frame, elements);
+        purc_variant_unref(elements);
+        if (r) {
+            return ctxt;
+        }
+    }
+    else {
+        ctxt->at_symbol = frame->symbol_vars[PURC_SYMBOL_VAR_AT_SIGN];
+        purc_variant_ref(ctxt->at_symbol);
+    }
+
     if (stack->stage != STACK_STAGE_FIRST_ROUND) {
         purc_clr_error();
         return ctxt;
@@ -895,7 +955,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
                         bind_ret = bind_by_level(stack, frame, name, v, level);
                     }
                     else {
-                        bind_ret = bind_at_vdom(stack->vdom, name, v);
+                        bind_ret = bind_at_coroutine(stack->co, name, v);
                     }
                 }
             }
@@ -906,7 +966,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
                     bind_ret = bind_by_level(stack, frame, name, v, level);
                 }
                 else {
-                    bind_ret = bind_at_vdom(stack->vdom, name, v);
+                    bind_ret = bind_at_coroutine(stack->co, name, v);
                 }
             }
         }

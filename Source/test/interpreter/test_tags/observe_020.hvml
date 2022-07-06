@@ -1,0 +1,23 @@
+<!DOCTYPE hvml>
+<hvml target="html" lang="en">
+    <head>
+        <update on="$TIMERS" to="displace">
+            [
+                { "id" : "clock", "interval" : 1000, "active" : "yes" },
+            ]
+        </update>
+    </head>
+
+    <body>
+        <div id="calculator">
+
+            <div id="c_title">
+                <observe on="$TIMERS" for="expired:clock" in="#clock">
+                    <forget on="$TIMERS" for="expired:clock"/>
+                </observe>
+                <p>this is after observe</p>
+            </div>
+        </div>
+    </body>
+</hvml>
+

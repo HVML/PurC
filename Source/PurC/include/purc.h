@@ -42,6 +42,7 @@
 #include "purc-helpers.h"
 #include "purc-pcrdr.h"
 #include "purc-dvobjs.h"
+#include "purc-executor.h"
 #include "purc-runloop.h"
 
 /** The structure defining the extra information for a new PurC instance. */
@@ -61,7 +62,7 @@ typedef struct purc_instance_extra_info {
 
     /**
      * When using a HEADLESS renderer, you should specify a file
-     * or a named pipe, like `file:///var/tmp/purc-foo-bar-msgs.log`.
+     * or a named pipe (FIFO), like `file:///var/tmp/purc-foo-bar-msgs.log`.
      *
      * When using a THREAD renderer, you should specify the endpoint name
      * of the renderer like `//-/<app_name>/<runner_name>`. The endpoint name
@@ -265,7 +266,7 @@ typedef void (*cb_free_local_data) (void *key, void *local_data);
  *     of double (number) type. If not defined, use the default format
  *     (`%.17g`).
  *  - `format-long-double`: This local data contains the format (should be
- *     a pointer to a static string), which will be  used to serilize a
+ *     a pointer to a static string), which will be used to serilize a
  *     variant of long double type. If not defined, use the default format
  *     (%.17Lg).
  *
@@ -334,9 +335,20 @@ purc_get_local_data(const char* data_name, uintptr_t *local_data,
 PCA_EXPORT bool
 purc_bind_variable(const char* name, purc_variant_t variant);
 
-struct purc_vdom;
-typedef struct purc_vdom  purc_vdom;
-typedef struct purc_vdom* purc_vdom_t;
+/**
+ * purc_bind_session_variables:
+ *
+ * Binds all predefined session variables for current PurC instance.
+ *
+ * Returns: @true for success; @false for failure.
+ *
+ * Since 0.2.0
+ */
+PCA_EXPORT bool
+purc_bind_session_variables(void);
+
+struct pcvdom_document;
+typedef struct pcvdom_document* purc_vdom_t;
 
 /**
  * purc_load_hvml_from_string:
@@ -395,22 +407,6 @@ PCA_EXPORT purc_vdom_t
 purc_load_hvml_from_rwstream(purc_rwstream_t stream);
 
 /**
- * purc_bind_document_variable:
- *
- * @name: The pointer to the string contains the name for the variable.
- * @variant: The variant.
- *
- * Binds a variant value as the document-level variable of the specified vDOM.
- *
- * Returns: @true for success; @false for failure.
- *
- * Since 0.0.1
- */
-PCA_EXPORT bool
-purc_bind_document_variable(purc_vdom_t vdom, const char* name,
-        purc_variant_t variant);
-
-/**
  * purc_get_conn_to_renderer:
  *
  * Retrieve the connection to the renderer of the current PurC instance.
@@ -429,68 +425,285 @@ typedef struct purc_renderer_extra_info {
     /** the title of the widget */
     const char *title;
     /** the layout style of the page (like `width:100px`) */
-    const char *layoutStyle;
+    const char *layout_style;
     /** the toolkit style of the page (an object variant) */
-    purc_variant_t toolkitStyle;
+    purc_variant_t toolkit_style;
 
     /** The page groups to add to the layout DOM */
     const char *page_groups;
 } purc_renderer_extra_info;
 
+/** The rendere page type */
 typedef enum pcrdr_page_type {
-    PCRDR_PAGE_TYPE_PLAINWIN = 0,
+    /** Do not create any page for the HVML coroutine. */
+    PCRDR_PAGE_TYPE_NULL = 0,
+    /** Create a plain window for the HVML coroutine. */
+    PCRDR_PAGE_TYPE_PLAINWIN,
+    /** Create a widget in the specified page group for the HVML coroutine. */
     PCRDR_PAGE_TYPE_WIDGET,
 } pcrdr_page_type;
 
-/**
- * purc_attach_vdom_to_renderer:
- *
- * @vdom: The vDOM entity returned by @purc_load_hvml_from_rwstream or
- *      its brother functions.
- * @page_type: the target page type.
- * @target_workspace: The name of the target workspace.
- * @target_group: The identifier of the target group (nullable) in the layout
- *  HTML contents. When @NULL given, the renderer will create an ungrouped
- *  plainw window for this vDOM.
- * @page_name: The page name (nullable). When @NULL given, the page will be
- *  assigned with an auto-generated page name like `page-10`.
- *
- * Attaches a vDOM tree to a plain window or a widget in the specified
- * workspace in the connected renderer.
- *
- * Returns: @true on success; otherwise @false.
- *
- * Since 0.1.0
- */
-PCA_EXPORT bool
-purc_attach_vdom_to_renderer(purc_vdom_t vdom,
-        pcrdr_page_type page_type, const char *target_workspace,
-        const char *target_group, const char *page_name,
-        purc_renderer_extra_info *extra_info);
+struct pcintr_coroutine;
+typedef struct pcintr_coroutine *purc_coroutine_t;
 
 /**
  * purc_schedule_vdom:
  *
  * @vdom: The vDOM entity returned by @purc_load_hvml_from_rwstream or
- *      its brother functions.
- * @request: The variant which will be used as the request data.
+ *  its brother functions.
+ * @curator: The curator of the new coroutine, i.e., the coroutine which is
+ *  waiting for the the execute result of the new coroutine; 0 for no curator.
+ * @request: The request variant for the new coroutine.
+ * @page_type: the target renderer page type.
+ * @target_workspace: The name of the target renderer workspace.
+ * @target_group: The identifier of the target group (nullable) in the layout
+ *  HTML contents. When @NULL given, the renderer will create an ungrouped
+ *  plainw window for this coroutine.
+ * @page_name: The page name (nullable). When @NULL given, the page will be
+ *  assigned with an auto-generated page name like `page-10`.
+ * @extra_info: The extra renderer information.
+ * @body_id: The identifier of the `body` element as the entry in @vdom.
+ * @user_data: The pointer to the initial user data.
  *
  * Creates a new coroutine to run the specified vDOM.
  * If success, the new coroutine will be in READY state.
  *
- * Returns: A native entity variant representing the coroutine,
- *      @PURC_VARIANT_INVALID for error.
+ * Returns: The pointer to the new coroutine, 0 for error.
+ *
+ * Since 0.2.0
+ */
+PCA_EXPORT purc_coroutine_t
+purc_schedule_vdom(purc_vdom_t vdom,
+        purc_atom_t curator, purc_variant_t request,
+        pcrdr_page_type page_type, const char *target_workspace,
+        const char *target_group, const char *page_name,
+        purc_renderer_extra_info *extra_info, const char *body_id,
+        void *user_data);
+
+static inline purc_coroutine_t
+purc_schedule_vdom_null(purc_vdom_t vdom)
+{
+    return purc_schedule_vdom(vdom, 0, PURC_VARIANT_INVALID,
+            PCRDR_PAGE_TYPE_NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+}
+
+/**
+ * purc_coroutine_set_user_data:
+ *
+ * @cor: The pointer to a coroutine structure which representing a coroutine.
+ * @user_data: The pointer to the user data.
+ *
+ * Sets the user data of the specific coroutine and returns the old one.
+ *
+ * Returns: The pointer to the old user data.
+ *
+ * Since 0.2.0
+ */
+PCA_EXPORT void *
+purc_coroutine_set_user_data(purc_coroutine_t cor, void *user_data);
+
+/**
+ * purc_coroutine_get_user_data:
+ *
+ * @cor: The pointer to a coroutine structure which representing a coroutine.
+ *
+ * Binds a variant as the coroutine-level variable of the specified
+ * coroutine.
+ *
+ * Gets the user data of the specific coroutine.
+ *
+ * Returns: The pointer to the user data attached to the coroutine.
+ *
+ * Since 0.2.0
+ */
+PCA_EXPORT void *
+purc_coroutine_get_user_data(purc_coroutine_t cor);
+
+/**
+ * purc_coroutine_identifier:
+ *
+ * @cor: The pointer to a coroutine structure which representing a coroutine.
+ *
+ * Gets the coroutine identifier (cid) of the specified coroutine.
+ *
+ * Returns: The cid of the coroutine.
+ *
+ * Since 0.2.0
+ */
+PCA_EXPORT purc_atom_t
+purc_coroutine_identifier(purc_coroutine_t cor);
+
+/**
+ * purc_coroutine_bind_variable:
+ *
+ * @cor: The pointer to a coroutine structure which representing a coroutine.
+ * @name: The pointer to the string contains the name for the variable.
+ * @variant: The variant.
+ *
+ * Binds a variant as the coroutine-level variable of the specified
+ * coroutine.
+ *
+ * Returns: @true for success; @false for failure.
+ *
+ * Since 0.2.0
+ */
+PCA_EXPORT bool
+purc_coroutine_bind_variable(purc_coroutine_t cor, const char* name,
+        purc_variant_t variant);
+
+/**
+ * purc_coroutine_unbind_variable:
+ *
+ * @cor: The pointer to a coroutine structure which representing a coroutine.
+ * @name: The pointer to the string contains the name for the variable.
+ *
+ * Unbinds a coroutine-level variable from the specified coroutine.
+ *
+ * Returns: @true for success; @false for failure.
+ *
+ * Since 0.2.0
+ */
+PCA_EXPORT bool
+purc_coroutine_unbind_variable(purc_coroutine_t cor, const char *name);
+
+/**
+ * purc_coroutine_get_variable:
+ *
+ * @cor: The pointer to a coroutine structure which representing a coroutine.
+ * @name: The pointer to the string contains the name for the variable.
+ *
+ * Retrieves a coroutine-level variable from the specified coroutine.
+ *
+ * Returns: The variant value on success; PURC_VARIANT_INVALID for failure.
  *
  * Since 0.2.0
  */
 PCA_EXPORT purc_variant_t
-purc_schedule_vdom(purc_vdom_t vdom, purc_variant_t request);
+purc_coroutine_get_variable(purc_coroutine_t cor, const char *name);
 
-#define PURC_INST_SELF           0
-#define PURC_INST_BROADCAST     -1
+/** The PurC instance events */
+typedef enum purc_event {
+    /** Indicating that there is no coroutine scheduled. */
+    PURC_EVENT_NOCOR = 0,
+    /** Indicating that there is no coroutine in ready state. */
+    PURC_EVENT_IDLE,
+    /** Indicating that a coroutine exited or teminated */
+    PURC_EVENT_EXIT,
+    /** Indicating that PurC is destroying a coroutine */
+    PURC_EVENT_DESTROY,
+} purc_event_t;
+
+typedef int (*purc_event_handler)(purc_coroutine_t cor,
+        purc_event_t event, void *data);
+
+#define PURC_INVPTR         ((void *)-1)
 
 /**
- * Post the message to the instance.
+ * purc_get_event_handler:
+ *
+ * Returns: The pointer to the current event handler; @PURC_INVPTR for error.
+ *
+ * Since 0.2.0
+ */
+PCA_EXPORT purc_event_handler
+purc_get_event_handler(void);
+
+/**
+ * purc_set_event_handler:
+ *
+ * @handler: The pointer to a call-back function which handles
+ *      the session events.
+ *
+ * Sets the event handler of the current PurC instance, and returns
+ * the old event handler.
+ *
+ * Returns: The pointer to the old event handler; @PURC_INVPTR for error.
+ *
+ * Since 0.2.0
+ */
+PCA_EXPORT purc_event_handler
+purc_set_event_handler(purc_event_handler handler);
+
+/**
+ * purc_run:
+ *
+ * @handler: The pointer to a call-back function which handles
+ *      the session events.
+ *
+ * Enter event loop and runs all HVML coroutines which are ready in
+ * the current PurC instance.
+ *
+ * Returns: @true for success; @false for failure.
+ *
+ * Since 0.0.1
+ */
+PCA_EXPORT int
+purc_run(purc_event_handler handler);
+
+/**
+ * purc_inst_create_or_get:
+ *
+ * @app_name: a pointer to the string contains the app name.
+ *      If this argument is null, the executable program name of the command
+ *      line will be used for the app name.
+ * @runner_name: a pointer to the string contains the runner name.
+ *      If this argument is null, `unknown` will be used for the runner name.
+ * @extra_info: a pointer (nullable) to the extra information for the new
+ *      PurC instance, e.g., the type and the URI of the renderer.
+ *
+ * Creates a new PurC instance or gets the atom value of the existing
+ * PurC instance.
+ *
+ * Returns: The atom representing the new PurC instance, 0 for error.
+ *
+ * Since 0.2.0
+ */
+PCA_EXPORT purc_atom_t
+purc_inst_create_or_get(const char *app_name, const char *runner_name,
+        const purc_instance_extra_info* extra_info);
+
+/**
+ * purc_inst_schedule_vdom:
+ *
+ * @inst: The atom representing the target PurC instance differs
+ *  from the current instance.
+ * @vdom: The vDOM entity returned by @purc_load_hvml_from_rwstream or
+ *  its brother functions.
+ * @curator: The curator of the new coroutine, i.e., the coroutine which is
+ *  waiting for the the execute result of the new coroutine; 0 for no curator.
+ * @page_type: the target renderer page type.
+ * @target_workspace: The name of the target renderer workspace.
+ * @target_group: The identifier of the target group (nullable) in the layout
+ *  HTML contents. When @NULL given, the renderer will create an ungrouped
+ *  plainw window for this coroutine.
+ * @page_name: The page name (nullable). When @NULL is given, the page will be
+ *  assigned with an auto-generated page name like `page-10`.
+ * @extra_rdr_info: The extra renderer information.
+ * @entry: The identifier of the `body` element as the entry in @vdom.
+ *         When @NULL is given, use the first `body` element as the entry.
+ * @request: The variant which will be used as the request data.
+ *
+ * Creates a new coroutine to run the specified vDOM in the specific instances.
+ * If success, the new coroutine will be in READY state.
+ *
+ * Returns: The atom representing the new coroutine in the PurC instance,
+ *      0 for error.
+ *
+ * Since 0.2.0
+ */
+PCA_EXPORT purc_atom_t
+purc_inst_schedule_vdom(purc_atom_t inst, purc_vdom_t vdom,
+        purc_atom_t curator, purc_variant_t request,
+        pcrdr_page_type page_type, const char *target_workspace,
+        const char *target_group, const char *page_name,
+        purc_renderer_extra_info *extra_rdr_info,
+        const char *entry);
+
+#define PURC_EVENT_TARGET_SELF          0
+#define PURC_EVENT_TARGET_BROADCAST     ((purc_atom_t)-1)
+
+/**
+ * Post an event message to the instance.
  *
  * @param inst: the instance.
  * @param msg: the message structure.
@@ -502,22 +715,30 @@ purc_schedule_vdom(purc_vdom_t vdom, purc_variant_t request);
 PCA_EXPORT int
 purc_inst_post_event(purc_atom_t inst_to, pcrdr_msg *msg);
 
-typedef int (*purc_event_handler)(const struct pcrdr_msg *event);
+typedef enum {
+    PURC_INST_SIGNAL_CANCEL,
+    PURC_INST_SIGNAL_KILL,
+} purc_inst_signal_t;
 
 /**
- * purc_run:
+ * purc_inst_emit_signal:
  *
- * @handler: The pointer to a call-back function which handles
- *      the session events.
+ * @inst: The atom representing the target PurC instance differs
+ *      from the current instance.
+ * @signal: The signal will be emitted to the instance.
+ *      - PURC_INST_SIGNAL_CANCEL
+ *      - PURC_INST_SIGNAL_KILL
+ *      - ...
  *
- * Runs all HVML coroutines which are ready in the current PurC instance.
+ * Emit a signal to the specified PurC instance.
  *
- * Returns: @true for success; @false for failure.
+ * Returns: the error code:
+ *  - @PURC_ERROR_OK: success
  *
- * Since 0.0.1
+ * Proposal; not implemented.
  */
-PCA_EXPORT bool
-purc_run(purc_event_handler handler);
+PCA_EXPORT int
+purc_inst_emit_signal(purc_atom_t inst, purc_inst_signal_t signal);
 
 PCA_EXTERN_C_END
 

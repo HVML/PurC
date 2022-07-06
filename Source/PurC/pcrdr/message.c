@@ -339,15 +339,15 @@ pcrdr_msg *pcrdr_clone_message(const pcrdr_msg *src)
         msg->eventName = purc_variant_ref(src->eventName);
     }
 
-    if (msg->sourceURI) {
+    if (src->sourceURI) {
         msg->sourceURI = purc_variant_ref(src->sourceURI);
     }
 
-    if (msg->elementValue) {
+    if (src->elementValue) {
         msg->elementValue = purc_variant_ref(src->elementValue);
     }
 
-    if (msg->property) {
+    if (src->property) {
         msg->property = purc_variant_ref(src->property);
     }
 

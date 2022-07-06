@@ -1,0 +1,36 @@
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<hvml target="html" lang="en">
+    <head>
+        <title>Fibonacci Numbers</title>
+    </head>
+
+    <body>
+        <header>
+            <h1>Fibonacci Numbers less than 2000</h1>
+            <p hvml:raw>Using temporary variables and while and with attributes</p>
+        </header>
+
+        <init as="count" with=2 temp />
+
+        <section>
+            <dl>
+                <init as="last_one" with=0 temp />
+                <init as="last_two" with=1 temp />
+
+                <iterate on 1 onlyif=$L.lt($0<, 2000) with=$MATH.add($0<, $!.last_one)>
+                    <init as="last_one" at="2" with="$2!.last_two" temp />
+                    <init as="last_two" at="2" with="$?" temp />
+
+                    <update on="$4!" at=".count" to="displace" with += 1 />
+                    <dt>$%</dt>
+                    <dd>$?</dd>
+                </iterate>
+            </dl>
+        </section>
+
+        <footer>
+            <p>Totally $2!.count numbers.</p>
+        </footer>
+    </body>
+
+</hvml>

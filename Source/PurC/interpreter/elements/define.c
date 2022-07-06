@@ -112,7 +112,7 @@ post_process_bind_at_vdom(pcintr_coroutine_t co,
         return -1;
 
     bool ok;
-    ok = pcintr_bind_scope_variable(elem, s_name, src);
+    ok = pcintr_bind_scope_variable(co, elem, s_name, src);
     return ok ? 0 : -1;
 }
 
@@ -217,7 +217,7 @@ post_process_src_by_topmost(pcintr_coroutine_t co,
     if (!s_name)
         return -1;
     bool ok;
-    ok = purc_bind_document_variable(co->stack.vdom, s_name, src);
+    ok = purc_coroutine_bind_variable(co, s_name, src);
     return ok ? 0 : -1;
 }
 
@@ -254,7 +254,7 @@ post_process_src(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         if (ctxt->under_head) {
             uint64_t level = 0;
             struct pcvdom_node *node = &frame->pos->node;
-            while (node && node != &co->stack.vdom->document->node) {
+            while (node && node != &co->stack.vdom->node) {
                 node = pcvdom_node_parent(node);
                 level += 1;
             }
@@ -264,7 +264,7 @@ post_process_src(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
                 return -1;
             }
             bool ok;
-            ok = purc_bind_document_variable(co->stack.vdom, s_name, src);
+            ok = purc_coroutine_bind_variable(co, s_name, src);
             return ok ? 0 : -1;
         }
         return post_process_src_by_level(co, frame, src, 1);

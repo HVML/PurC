@@ -310,6 +310,8 @@ set(test_samples_LIBRARIES
     pthread
 )
 
+target_compile_definitions(test_samples PRIVATE SOPATH="${CMAKE_BINARY_DIR}/lib")
+
 PURC_COMPUTE_SOURCES(test_samples)
 PURC_FRAMEWORK(test_samples)
 GTEST_DISCOVER_TESTS(test_samples DISCOVERY_TIMEOUT 10)
@@ -337,6 +339,8 @@ set(test_hvml_tag_LIBRARIES
     gtest
     pthread
 )
+
+target_compile_definitions(test_hvml_tag PRIVATE SOPATH="${CMAKE_BINARY_DIR}/lib")
 
 PURC_COMPUTE_SOURCES(test_hvml_tag)
 PURC_FRAMEWORK(test_hvml_tag)

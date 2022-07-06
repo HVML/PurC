@@ -1,0 +1,106 @@
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<hvml target="html" lang="en">
+    <head>
+        <base href="$HVML.base(! 'https://gitlab.fmsoft.cn/hvml/hvml-docs/raw/master/samples/calculator/' )" />
+
+        <update on="$T.map" from="assets/{$SYSTEM.locale}.json" to="merge" />
+
+        <init as="buttons" from="assets/buttons.json" />
+
+        <init as="expressions" from="assets/expressions.json" />
+
+        <title>$T.get('HVML Calculator')</title>
+
+        <update on="$TIMERS" to="unite">
+            [
+                { "id" : "clock", "interval" : 1000, "active" : "yes" },
+                { "id" : "input", "interval" : 1500, "active" : "yes" },
+            ]
+        </update>
+
+        <link rel="stylesheet" type="text/css" href="assets/calculator.css" />
+    </head>
+
+    <body>
+        <init as="exp_chars" with="[]" />
+
+        <iterate on="$expressions" by="RANGE: FROM 0" >
+            <update on="$exp_chars" to="append" with="[]" />
+
+            <iterate on="$?" by="CHAR: FROM 0" >
+                <update on="$exp_chars" at="$2%" to="append" with="$?" />
+            </iterate>
+        </iterate>
+
+        <init as="info">
+            {
+                "chars" : $exp_chars[$SYSTEM.random($EJSON.count($exp_chars))],
+                "index" : 0,
+            }
+        </init>
+
+        <div id="calculator">
+
+            <div id="c_title">
+                <h2 id="c_title">$T.get('HVML Calculator')
+                    <small>$T.get('Current Time: ')<span id="clock">$DATETIME.time_prt()</span></small>
+                </h2>
+                <observe on="$TIMERS" for="expired:clock">
+                    <update on="#clock" at="textContent" with="$DATETIME.time_prt()" />
+                </observe>
+            </div>
+
+            <div id="c_text">
+                <input type="text" id="expression" value="0" readonly="readonly" />
+                <observe on="$TIMERS" for="expired:input">
+                    <test on="$info.chars[$info.index]">
+                        <update on="$info" at=".index" with="$MATH.add($info.index, 1)" />
+
+                        <match for="AS '='" exclusively>
+                            <choose on="$MATH.eval($DOC.query('#expression').attr('value'))">
+                                <update on="#expression" at="attr.value" with="$?" />
+                                <update on="$TIMERS" to="overwrite">
+                                    { "id" : "input", "active" : "no" }
+                                </update>
+                                <catch for='*'>
+                                    <update on="#expression" at="attr.value" with="ERR" />
+                                </catch>
+                            </choose>
+                        </match>
+
+                        <match for="AS 'C'" exclusively>
+                            <update on="#expression" at="attr.value" with="" />
+                        </match>
+
+                        <match for="AS '←'" exclusively>
+                            <choose on="$DOC.query('#expression').attr.value">
+                                <update on="#expression" at="attr.value" with="$STR.substr($?, 0, -1)" />
+                            </choose>
+                        </match>
+
+                        <match>
+                            <update on="#expression" at="attr.value" with $= "$?" />
+                        </match>
+                    </test>
+                </observe>
+            </div>
+
+            <div id="c_value">
+                <archetype name="button">
+                    <li class="$?.class">$?.letters</li>
+                </archetype>
+
+                <ul>
+                    <iterate on="$buttons">
+                        <update on="$@" to="append" with="$button" />
+                        <except type="NoData" raw>
+                            <p>Bad data!</p>
+                        </except>
+                    </iterate>
+                </ul>
+            </div>
+        </div>
+    </body>
+
+</hvml>
+

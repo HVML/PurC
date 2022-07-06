@@ -25,11 +25,12 @@
 
 #include "config.h"
 
+#include "purc-runloop.h"
+
 #include "internal.h"
 
 #include "private/debug.h"
 #include "private/instance.h"
-#include "purc-runloop.h"
 #include "private/dvobjs.h"
 #include "private/fetcher.h"
 #include "private/regex.h"
@@ -117,26 +118,6 @@ stack_frame_normal_destroy(struct pcintr_stack_frame_normal *frame_normal)
 
     stack_frame_normal_release(frame_normal);
     free(frame_normal);
-}
-
-static void
-vdom_release(purc_vdom_t vdom)
-{
-    if (vdom->document) {
-        pcvdom_document_unref(vdom->document);
-        vdom->document = NULL;
-    }
-}
-
-static void
-vdom_destroy(purc_vdom_t vdom)
-{
-    if (!vdom)
-        return;
-
-    vdom_release(vdom);
-
-    free(vdom);
 }
 
 void
@@ -395,10 +376,17 @@ stack_release(pcintr_stack_t stack)
         PURC_VARIANT_SAFE_CLEAR(stack->async_request_ids);
     }
 
+#if 0 // VW
     if (stack->ops.on_cleanup) {
         stack->ops.on_cleanup(stack, stack->ctxt);
         stack->ops.on_cleanup = NULL;
         stack->ctxt = NULL;
+    }
+#endif
+    pcintr_heap_t heap = stack->co->owner;
+    if (heap->event_handler) {
+        heap->event_handler(stack->co, PURC_EVENT_DESTROY,
+                stack->co->user_data);
     }
 
     struct list_head *frames = &stack->frames;
@@ -418,11 +406,6 @@ stack_release(pcintr_stack_t stack)
         stack->timers = NULL;
     }
 
-    if (stack->vdom) {
-        vdom_destroy(stack->vdom);
-        stack->vdom = NULL;
-    }
-
     pcintr_destroy_observer_list(&stack->common_variant_observer_list);
     pcintr_destroy_observer_list(&stack->dynamic_variant_observer_list);
     pcintr_destroy_observer_list(&stack->native_variant_observer_list);
@@ -440,6 +423,7 @@ stack_release(pcintr_stack_t stack)
 
     pcintr_exception_clear(&stack->exception);
 
+#if 0 // VW
     if (stack->entry) {
         struct pcvdom_document *vdom_document;
         vdom_document = pcvdom_document_from_node(&stack->entry->node);
@@ -447,6 +431,7 @@ stack_release(pcintr_stack_t stack)
         pcvdom_document_unref(vdom_document);
         stack->entry = NULL;
     }
+#endif
 }
 
 enum pcintr_req_state {
@@ -474,7 +459,10 @@ coroutine_release(pcintr_coroutine_t co)
     if (co) {
         struct pcintr_heap *heap = pcintr_get_heap();
         PC_ASSERT(heap && co->owner == heap);
+
         stack_release(&co->stack);
+        pcvdom_document_unref(co->vdom);
+
         if (co->ident) {
             PC_ASSERT(co->full_name);
             purc_atom_remove_string(co->full_name);
@@ -558,7 +546,6 @@ static void _cleanup_instance(struct pcinst* inst)
     }
 
     if (heap->move_buff) {
-        // VW PC_ASSERT(pthread_equal(pthread_self(), inst->running_thread));
         purc_inst_destroy_move_buffer();
         heap->move_buff = 0;
     }
@@ -639,7 +626,7 @@ static int _init_once(void)
 
     INIT_LIST_HEAD(&_all_heaps);
 
-    return 0;
+    return pcintr_init_loader_once();
 }
 
 struct pcmodule _module_interpreter = {
@@ -657,15 +644,6 @@ struct pcintr_heap* pcintr_get_heap(void)
 
     return inst ? inst->intr_heap : NULL;
 }
-
-#if 0 // VW
-bool pcintr_is_current_thread(void)
-{
-    struct pcintr_heap *heap = pcintr_get_heap();
-    struct pcinst *inst = heap ? heap->owner : NULL;
-    return inst ? (inst->running_thread == pthread_self()) : false;
-}
-#endif
 
 pcintr_coroutine_t
 pcintr_get_coroutine(void)
@@ -1488,147 +1466,24 @@ pcintr_stack_frame_get_parent(struct pcintr_stack_frame *frame)
     return container_of(n, struct pcintr_stack_frame, node);
 }
 
-purc_vdom_t
-purc_load_hvml_from_string(const char* string)
-{
-    return purc_load_hvml_from_string_ex(string, NULL, NULL);
-}
-
-purc_vdom_t
-purc_load_hvml_from_string_ex(const char* string,
-        struct pcintr_supervisor_ops *ops, void *ctxt)
-{
-    purc_rwstream_t in;
-    in = purc_rwstream_new_from_mem ((void*)string, strlen(string));
-    if (!in)
-        return NULL;
-    purc_vdom_t vdom = purc_load_hvml_from_rwstream_ex(in, ops, ctxt);
-    purc_rwstream_destroy(in);
-    return vdom;
-}
-
-purc_vdom_t
-purc_load_hvml_from_file(const char* file)
-{
-    return purc_load_hvml_from_file_ex(file, NULL, NULL);
-}
-
-purc_vdom_t
-purc_load_hvml_from_file_ex(const char* file,
-        struct pcintr_supervisor_ops *ops, void *ctxt)
-{
-    purc_rwstream_t in;
-    in = purc_rwstream_new_from_file(file, "r");
-    if (!in)
-        return NULL;
-    purc_vdom_t vdom = purc_load_hvml_from_rwstream_ex(in, ops, ctxt);
-    purc_rwstream_destroy(in);
-    return vdom;
-}
-
-purc_vdom_t
-purc_load_hvml_from_url(const char* url)
-{
-    return purc_load_hvml_from_url_ex(url, NULL, NULL);
-}
-
-purc_vdom_t
-purc_load_hvml_from_url_ex(const char* url,
-        struct pcintr_supervisor_ops *ops, void *ctxt)
-{
-    purc_vdom_t vdom = NULL;
-    struct pcfetcher_resp_header resp_header = {0};
-    purc_rwstream_t resp = pcfetcher_request_sync(
-            url,
-            PCFETCHER_REQUEST_METHOD_GET,
-            NULL,
-            10,
-            &resp_header);
-    if (resp_header.ret_code == 200) {
-        vdom = purc_load_hvml_from_rwstream_ex(resp, ops, ctxt);
-        purc_rwstream_destroy(resp);
-    }
-
-    if (resp_header.mime_type) {
-        free(resp_header.mime_type);
-    }
-    return vdom;
-}
-
-static struct pcvdom_document*
-load_document(purc_rwstream_t in)
-{
-    struct pchvml_parser *parser = NULL;
-    struct pcvdom_gen *gen = NULL;
-    struct pcvdom_document *doc = NULL;
-    struct pchvml_token *token = NULL;
-    parser = pchvml_create(0, 0);
-    if (!parser)
-        goto error;
-
-    gen = pcvdom_gen_create();
-    if (!gen)
-        goto error;
-
-again:
-    if (token)
-        pchvml_token_destroy(token);
-
-    token = pchvml_next_token(parser, in);
-
-    if (!token)
-        goto error;
-
-    if (pcvdom_gen_push_token(gen, parser, token))
-        goto error;
-
-    if (!pchvml_token_is_type(token, PCHVML_TOKEN_EOF)) {
-        goto again;
-    }
-
-    doc = pcvdom_gen_end(gen);
-    goto end;
-
-error:
-    doc = pcvdom_gen_end(gen);
-    if (doc) {
-        pcvdom_document_unref(doc);
-        doc = NULL;
-    }
-
-end:
-    if (token)
-        pchvml_token_destroy(token);
-
-    if (gen)
-        pcvdom_gen_destroy(gen);
-
-    if (parser)
-        pchvml_destroy(parser);
-
-    return doc;
-}
-
 #define BUILDIN_VAR_HVML        "HVML"
-#define BUILDIN_VAR_SYSTEM      "SYSTEM"
 #define BUILDIN_VAR_DATETIME    "DATETIME"
 #define BUILDIN_VAR_T           "T"
 #define BUILDIN_VAR_L           "L"
 #define BUILDIN_VAR_DOC         "DOC"
-#define BUILDIN_VAR_SESSION     "SESSION"
 #define BUILDIN_VAR_EJSON       "EJSON"
 #define BUILDIN_VAR_STR         "STR"
 #define BUILDIN_VAR_STREAM      "STREAM"
 
 static bool
-bind_doc_named_variable(pcintr_stack_t stack, const char* name,
+bind_cor_named_variable(pcintr_stack_t stack, const char* name,
         purc_variant_t var)
 {
     if (var == PURC_VARIANT_INVALID) {
         return false;
     }
 
-    if (!pcintr_bind_document_variable(stack->vdom, name, var)) {
+    if (!pcintr_bind_coroutine_variable(stack->co, name, var)) {
         purc_variant_unref(var);
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return false;
@@ -1638,7 +1493,7 @@ bind_doc_named_variable(pcintr_stack_t stack, const char* name,
 }
 
 static bool
-init_buidin_doc_variable(pcintr_stack_t stack)
+bind_builtin_coroutine_variables(pcintr_stack_t stack)
 {
     // $TIMERS
     stack->timers = pcintr_timers_init(stack);
@@ -1647,44 +1502,38 @@ init_buidin_doc_variable(pcintr_stack_t stack)
     }
 
     // $HVML
-    if(!bind_doc_named_variable(stack, BUILDIN_VAR_HVML,
-                purc_dvobj_hvml_new(&stack->vdom->hvml_ctrl_props))) {
-        return false;
-    }
-
-    // $SYSTEM
-    if(!bind_doc_named_variable(stack, BUILDIN_VAR_SYSTEM,
-                purc_dvobj_system_new())) {
+    if(!bind_cor_named_variable(stack, BUILDIN_VAR_HVML,
+                purc_dvobj_hvml_new(&stack->co->hvml_ctrl_props))) {
         return false;
     }
 
     // $DATETIME
-    if(!bind_doc_named_variable(stack, BUILDIN_VAR_DATETIME,
+    if(!bind_cor_named_variable(stack, BUILDIN_VAR_DATETIME,
                 purc_dvobj_datetime_new())) {
         return false;
     }
 
     // $T
-    if(!bind_doc_named_variable(stack, BUILDIN_VAR_T,
+    if(!bind_cor_named_variable(stack, BUILDIN_VAR_T,
                 purc_dvobj_text_new())) {
         return false;
     }
 
     // $L
-    if(!bind_doc_named_variable(stack, BUILDIN_VAR_L,
+    if(!bind_cor_named_variable(stack, BUILDIN_VAR_L,
                 purc_dvobj_logical_new())) {
         return false;
     }
 
     // FIXME: document-wide-variant???
     // $STR
-    if(!bind_doc_named_variable(stack, BUILDIN_VAR_STR,
+    if(!bind_cor_named_variable(stack, BUILDIN_VAR_STR,
                 purc_dvobj_string_new())) {
         return false;
     }
 
     // $STREAM
-    if(!bind_doc_named_variable(stack, BUILDIN_VAR_STREAM,
+    if(!bind_cor_named_variable(stack, BUILDIN_VAR_STREAM,
                 purc_dvobj_stream_new())) {
         return false;
     }
@@ -1693,33 +1542,20 @@ init_buidin_doc_variable(pcintr_stack_t stack)
     // $DOC
     pchtml_html_document_t *doc = stack->doc;
     pcdom_document_t *document = (pcdom_document_t*)doc;
-    if(!bind_doc_named_variable(stack, BUILDIN_VAR_DOC,
+    if(!bind_cor_named_variable(stack, BUILDIN_VAR_DOC,
                 purc_dvobj_doc_new(document))) {
         return false;
     }
 
-    // TODO : bind by  purc_bind_variable
-    // begin
-    // $SESSION
-    if(!bind_doc_named_variable(stack, BUILDIN_VAR_SESSION,
-                purc_dvobj_session_new())) {
-        return false;
-    }
 
     // $EJSON
-    if(!bind_doc_named_variable(stack, BUILDIN_VAR_EJSON,
+    if(!bind_cor_named_variable(stack, BUILDIN_VAR_EJSON,
                 purc_dvobj_ejson_new())) {
         return false;
     }
     // end
 
     return true;
-}
-
-purc_vdom_t
-purc_load_hvml_from_rwstream(purc_rwstream_t stream)
-{
-    return purc_load_hvml_from_rwstream_ex(stream, NULL, NULL);
 }
 
 int
@@ -1738,7 +1574,7 @@ pcintr_init_vdom_under_stack(pcintr_stack_t stack)
         return -1;
     }
 
-    if(!init_buidin_doc_variable(stack))
+    if (!bind_builtin_coroutine_variables(stack))
         return -1;
 
     return 0;
@@ -1822,6 +1658,7 @@ static void execute_one_step_for_exiting_co(pcintr_coroutine_t co)
 
     PC_ASSERT(co->stack.back_anchor == NULL);
 
+#if 0 // VW
     if (co->stack.ops.on_terminated) {
         co->stack.ops.on_terminated(&co->stack, co->stack.ctxt);
         co->stack.ops.on_terminated = NULL;
@@ -1831,9 +1668,14 @@ static void execute_one_step_for_exiting_co(pcintr_coroutine_t co)
         co->stack.ops.on_cleanup = NULL;
         co->stack.ctxt = NULL;
     }
+#endif
 
     pcintr_heap_t heap = co->owner;
     struct pcinst *inst = heap->owner;
+
+    if (heap->event_handler) {
+        heap->event_handler(co, PURC_EVENT_EXIT, stack->doc);
+    }
 
     if (co->parent) {
         PC_ASSERT(co->parent->owner == co->owner);
@@ -2364,10 +2206,8 @@ static void run_co_main(void)
     }
 }
 
-static int set_coroutine_id(pcintr_coroutine_t coroutine, const char *name)
+static int set_coroutine_id(pcintr_coroutine_t coroutine)
 {
-    UNUSED_PARAM(name);
-
     pcintr_heap_t heap = pcintr_get_heap();
     PC_ASSERT(heap);
     struct pcinst *inst = pcinst_current();
@@ -2403,11 +2243,8 @@ cmp_by_atom(struct rb_node *node, void *ud)
 }
 
 static pcintr_coroutine_t
-coroutine_create(const char *name,
-        purc_variant_t as,
-        pcintr_coroutine_t parent,
-        purc_rwstream_t stream,
-        struct pcintr_supervisor_ops *ops, void *ctxt)
+coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
+        purc_variant_t as, void *user_data)
 {
     struct pcinst *inst = pcinst_current();
     struct pcintr_heap *heap = inst->intr_heap;
@@ -2425,20 +2262,6 @@ coroutine_create(const char *name,
         }
     }
 
-    struct pcvdom_document *doc = NULL;
-    doc = load_document(stream);
-    if (!doc)
-        goto fail_doc;
-
-    purc_vdom_t vdom = (purc_vdom_t)calloc(1, sizeof(*vdom));
-    if (!vdom) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        goto fail_vdom;
-    }
-
-    vdom->document = doc;
-    doc = NULL;
-
     co = (pcintr_coroutine_t)calloc(1, sizeof(*co));
     if (!co) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
@@ -2447,10 +2270,11 @@ coroutine_create(const char *name,
     co->val_from_return_or_exit = purc_variant_make_undefined();
     PC_ASSERT(co->val_from_return_or_exit != PURC_VARIANT_INVALID);
 
-    if (set_coroutine_id(co, name)) {
+    if (set_coroutine_id(co)) {
         goto fail_name;
     }
 
+    co->vdom = vdom;
     co->state = CO_STATE_READY;
     INIT_LIST_HEAD(&co->children);
     INIT_LIST_HEAD(&co->registered_cancels);
@@ -2474,6 +2298,7 @@ coroutine_create(const char *name,
     stack = &co->stack;
     stack->co = co;
     co->owner = heap;
+    co->user_data = user_data;
 
     int r;
     r = pcutils_rbtree_insert_only(coroutines, &co->ident,
@@ -2482,74 +2307,123 @@ coroutine_create(const char *name,
 
     stack_init(stack);
 
+#if 0 // VW
     if (ops) {
         stack->ops  = *ops;
         stack->ctxt = ctxt;
     }
+#endif
 
     stack->vdom = vdom;
-    vdom = NULL;
-
-    // FIXME: double-free, potentially!!!
-    // return stack->vdom;
     return co;
 
 fail_name:
     free(co);
 
 fail_co:
-    vdom_destroy(vdom);
-
-fail_vdom:
-    pcvdom_document_unref(doc);
-
-fail_doc:
     free(co_result);
 
     return NULL;
 }
 
-purc_vdom_t
-purc_load_hvml_from_rwstream_ex(purc_rwstream_t stream,
-        struct pcintr_supervisor_ops *ops, void *ctxt)
+purc_coroutine_t
+purc_schedule_vdom(purc_vdom_t vdom,
+        purc_atom_t curator, purc_variant_t request,
+        pcrdr_page_type page_type, const char *target_workspace,
+        const char *target_group, const char *page_name,
+        purc_renderer_extra_info *extra_info, const char *body_id,
+        void *user_data)
 {
     pcintr_coroutine_t co = pcintr_get_coroutine();
     PC_ASSERT(co == NULL);
-    co = coroutine_create(NULL, NULL, NULL, stream, ops, ctxt);
-    if (!co)
+
+    /* TODO: check curator here */
+    UNUSED_PARAM(curator);
+
+    co = coroutine_create(vdom, NULL, NULL, user_data);
+    if (!co) {
+        pcvdom_document_unref(vdom);
+        purc_log_error("Failed to create coroutine\n");
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
+    }
 
     PC_ASSERT(co->stack.vdom);
 
-    pcintr_wakeup_target(co, run_co_main);
+    if (page_type != PCRDR_PAGE_TYPE_NULL &&
+            !pcintr_attach_to_renderer(co,
+                page_type, target_workspace,
+                target_group, page_name, extra_info)) {
+        purc_log_warn("Failed to attach to renderer\n");
+    }
 
-    return co->stack.vdom;
+    /* TODO: handle entry here */
+    UNUSED_PARAM(body_id);
+    UNUSED_PARAM(request);
+
+    pcintr_wakeup_target(co, run_co_main);
+    return co;
 }
 
-bool
+purc_event_handler
+purc_get_event_handler(void)
+{
+    struct pcinst *inst = pcinst_current();
+    if (inst) {
+        purc_set_error(PURC_ERROR_NO_INSTANCE);
+        return (purc_event_handler)PURC_INVPTR;
+    }
+
+    struct pcintr_heap *heap = inst->intr_heap;
+    if (!heap) {
+        purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+        return (purc_event_handler)PURC_INVPTR;
+    }
+
+    return heap->event_handler;
+}
+
+purc_event_handler
+purc_set_event_handler(purc_event_handler handler)
+{
+    struct pcinst *inst = pcinst_current();
+    if (inst) {
+        purc_set_error(PURC_ERROR_NO_INSTANCE);
+        return (purc_event_handler)PURC_INVPTR;
+    }
+
+    struct pcintr_heap *heap = inst->intr_heap;
+    if (!heap) {
+        purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+        return (purc_event_handler)PURC_INVPTR;
+    }
+
+    purc_event_handler old = heap->event_handler;
+    heap->event_handler = handler;
+    return old;
+}
+
+int
 purc_run(purc_event_handler handler)
 {
-    UNUSED_PARAM(handler);
-
     struct pcinst *inst = pcinst_current();
     PC_ASSERT(inst);
     struct pcintr_heap *heap = inst->intr_heap;
     if (!heap) {
         purc_set_error(PURC_ERROR_NOT_SUPPORTED);
-        return false;
+        return -1;
     }
 
     purc_runloop_t runloop = purc_runloop_get_current();
     if (inst->running_loop != runloop) {
         purc_set_error(PURC_ERROR_NOT_SUPPORTED);
-        return false;
+        return -1;
     }
 
-    // VW: heap->owner->running_thread = pthread_self();
-
+    heap->event_handler = handler;
     purc_runloop_run();
 
-    return true;
+    return 0;
 }
 
 static bool
@@ -2639,12 +2513,12 @@ pcintr_load_from_uri(pcintr_stack_t stack, const char* uri)
         return PURC_VARIANT_INVALID;
     }
 
-    if (stack->vdom->hvml_ctrl_props->base_url_string) {
-        pcfetcher_set_base_url(stack->vdom->hvml_ctrl_props->base_url_string);
+    if (stack->co->hvml_ctrl_props->base_url_string) {
+        pcfetcher_set_base_url(stack->co->hvml_ctrl_props->base_url_string);
     }
     purc_variant_t ret = PURC_VARIANT_INVALID;
     struct pcfetcher_resp_header resp_header = {0};
-    uint32_t timeout = stack->vdom->hvml_ctrl_props->timeout.tv_sec;
+    uint32_t timeout = stack->co->hvml_ctrl_props->timeout.tv_sec;
     purc_rwstream_t resp = pcfetcher_request_sync(
             uri,
             PCFETCHER_REQUEST_METHOD_GET,
@@ -2708,16 +2582,12 @@ on_load_async_done(
 {
     PC_ASSERT(request_id != PURC_VARIANT_INVALID);
     PC_ASSERT(ctxt);
-    // VW PC_ASSERT(pcintr_is_current_thread());
     struct load_async_data *data;
     data = (struct load_async_data*)ctxt;
     PC_ASSERT(data);
     PC_ASSERT(data->request_id == request_id);
     PC_ASSERT(data->handler);
     PC_ASSERT(data->requesting_thread == pthread_self());
-    // pcintr_stack_t stack = pcintr_get_stack();
-    // PC_ASSERT(stack);
-    // PC_ASSERT(data->requesting_stack == stack);
 
     data->handler(request_id, data->ctxt, resp_header, resp);
 
@@ -2747,11 +2617,11 @@ pcintr_load_from_uri_async(pcintr_stack_t stack, const char* uri,
     data->requesting_stack     = stack;
     data->request_id           = PURC_VARIANT_INVALID;
 
-    if (stack->vdom->hvml_ctrl_props->base_url_string) {
-        pcfetcher_set_base_url(stack->vdom->hvml_ctrl_props->base_url_string);
+    if (stack->co->hvml_ctrl_props->base_url_string) {
+        pcfetcher_set_base_url(stack->co->hvml_ctrl_props->base_url_string);
     }
 
-    uint32_t timeout = stack->vdom->hvml_ctrl_props->timeout.tv_sec;
+    uint32_t timeout = stack->co->hvml_ctrl_props->timeout.tv_sec;
     data->request_id = pcfetcher_request_async(
             uri,
             method,
@@ -2801,10 +2671,10 @@ pcintr_load_vdom_fragment_from_uri(pcintr_stack_t stack, const char* uri)
         return PURC_VARIANT_INVALID;
     }
 
-    if (stack->vdom->hvml_ctrl_props->base_url_string) {
-        pcfetcher_set_base_url(stack->vdom->hvml_ctrl_props->base_url_string);
+    if (stack->co->hvml_ctrl_props->base_url_string) {
+        pcfetcher_set_base_url(stack->co->hvml_ctrl_props->base_url_string);
     }
-    uint32_t timeout = stack->vdom->hvml_ctrl_props->timeout.tv_sec;
+    uint32_t timeout = stack->co->hvml_ctrl_props->timeout.tv_sec;
     purc_variant_t ret = PURC_VARIANT_INVALID;
     struct pcfetcher_resp_header resp_header = {0};
     purc_rwstream_t resp = pcfetcher_request_sync(
@@ -2833,20 +2703,20 @@ pcintr_load_vdom_fragment_from_uri(pcintr_stack_t stack, const char* uri)
 #define DOC_QUERY         "query"
 
 purc_variant_t
-pcintr_doc_query(purc_vdom_t vdom, const char* css, bool silently)
+pcintr_doc_query(purc_coroutine_t cor, const char* css, bool silently)
 {
     purc_variant_t ret = PURC_VARIANT_INVALID;
-    if (vdom == NULL || css == NULL) {
+    if (cor == NULL || css == NULL) {
         goto end;
     }
 
-    purc_variant_t doc = pcvdom_document_get_variable(vdom, BUILDIN_VAR_DOC);
+    purc_variant_t doc = pcintr_get_coroutine_variable(cor, BUILDIN_VAR_DOC);
     if (doc == PURC_VARIANT_INVALID) {
         PC_ASSERT(0);
         goto end;
     }
 
-    struct purc_native_ops *ops = purc_variant_native_get_ops (doc);
+    struct purc_native_ops *ops = purc_variant_native_get_ops(doc);
     if (ops == NULL) {
         PC_ASSERT(0);
         goto end;
@@ -2925,7 +2795,7 @@ pcintr_load_dynamic_variant(pcintr_stack_t stack,
     pcutils_rbtree_link_node(entry, parent, pnode);
     pcutils_rbtree_insert_color(entry, root);
 
-    if (pcintr_bind_document_variable(stack->vdom, NAME, v)) {
+    if (pcintr_bind_coroutine_variable(stack->co, NAME, v)) {
         return true;
     }
 
@@ -3644,7 +3514,7 @@ pcintr_observe_vcm_ev(pcintr_stack_t stack, struct pcintr_observer* observer,
     // dispatch change event
     purc_variant_t source_uri = purc_variant_make_string(
             stack->co->full_name, false);
-    pcintr_post_event_by_ctype(stack->co,
+    pcintr_post_event_by_ctype(stack->co->ident,
             PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY, source_uri,
             var, MSG_TYPE_CHANGE, NULL,
             PURC_VARIANT_INVALID);
@@ -3777,73 +3647,6 @@ pcintr_get_vdom_from_variant(purc_variant_t val)
     return (pcvdom_element_t)native;
 }
 
-static int
-cmp_f(struct rb_node *node, void *ud)
-{
-    pcvarmgr_t mgr = container_of(node, struct pcvarmgr, node);
-    PC_ASSERT(mgr->vdom_node);
-    PC_ASSERT(ud);
-    struct pcvdom_node *v = (struct pcvdom_node*)ud;
-    if (mgr->vdom_node < v)
-        return -1;
-    if (mgr->vdom_node > v)
-        return 1;
-    return 0;
-}
-
-struct rb_node*
-new_varmgr(void *ud)
-{
-    PC_ASSERT(ud);
-    struct pcvdom_node *v = (struct pcvdom_node*)ud;
-
-    pcvarmgr_t mgr = pcvarmgr_create();
-    if (!mgr)
-        return NULL;
-
-    mgr->vdom_node = v;
-
-    return &mgr->node;
-}
-
-pcvarmgr_t
-pcintr_create_scoped_variables(struct pcvdom_node *node)
-{
-    PC_ASSERT(node);
-    pcintr_stack_t stack = pcintr_get_stack();
-    PC_ASSERT(stack);
-
-    struct rb_node *p;
-    int r = pcutils_rbtree_insert_or_get(&stack->scoped_variables, node,
-            cmp_f, new_varmgr, &p);
-    if (r) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return NULL;
-    }
-
-    PC_ASSERT(p);
-
-    return container_of(p, struct pcvarmgr, node);
-}
-
-pcvarmgr_t
-pcintr_get_scoped_variables(struct pcvdom_node *node)
-{
-    PC_ASSERT(node);
-    pcintr_stack_t stack = pcintr_get_stack();
-    PC_ASSERT(stack);
-
-    struct rb_node *p;
-    struct rb_node *first = pcutils_rbtree_first(&stack->scoped_variables);
-    pcutils_rbtree_for_each(first, p) {
-        pcvarmgr_t mgr = container_of(p, struct pcvarmgr, node);
-        if (mgr->vdom_node == node)
-            return mgr;
-    }
-
-    return NULL;
-}
-
 void
 pcintr_post_msg(void *ctxt, pcintr_msg_callback_f cb)
 {
@@ -3955,19 +3758,9 @@ pcintr_create_child_co(pcvdom_element_t vdom_element,
     PC_ASSERT(co);
 
     PC_ASSERT(vdom_element);
-    struct pcvdom_document *vdom_document;
-    vdom_document = pcvdom_document_from_node(&vdom_element->node);
-    PC_ASSERT(vdom_document);
-
-    const char *hvml = "<hvml><body/></hvml>";
-
-    purc_rwstream_t rws;
-    rws = purc_rwstream_new_from_mem((char*)hvml, strlen(hvml));
-    if (!rws)
-        return NULL;
 
     pcintr_coroutine_t child;
-    child = coroutine_create(NULL, as, co, rws, NULL, NULL);
+    child = coroutine_create(co->vdom, co, as, NULL);
     do {
         if (!child)
             break;
@@ -3975,14 +3768,13 @@ pcintr_create_child_co(pcvdom_element_t vdom_element,
         PC_ASSERT(co->stack.vdom);
 
         child->stack.entry = vdom_element;
-        pcvdom_document_ref(vdom_document);
+        // VW: we reuse the vDOM, so must increase refcount.
+        pcvdom_document_ref(co->vdom);
 
-        PC_DEBUGX("running parent/child: %p/%p", co, child);
+        purc_log_debug("running parent/child: %p/%p", co, child);
         PRINT_VDOM_NODE(&vdom_element->node);
         pcintr_wakeup_target(child, run_co_main);
     } while (0);
-
-    purc_rwstream_destroy(rws);
 
     return child;
 }
@@ -3991,20 +3783,19 @@ pcintr_coroutine_t
 pcintr_load_child_co(const char *hvml,
         purc_variant_t as, purc_variant_t within)
 {
+    purc_vdom_t vdom;
+
+    vdom = purc_load_hvml_from_string(hvml);
+    if (vdom == NULL)
+        return NULL;
+
     UNUSED_PARAM(within);
 
     pcintr_coroutine_t co = pcintr_get_coroutine();
     PC_ASSERT(co);
 
-    PC_ASSERT(hvml);
-
-    purc_rwstream_t rws;
-    rws = purc_rwstream_new_from_mem((char*)hvml, strlen(hvml));
-    if (!rws)
-        return NULL;
-
     pcintr_coroutine_t child;
-    child = coroutine_create(NULL, as, co, rws, NULL, NULL);
+    child = coroutine_create(vdom, co, as, NULL);
     do {
         if (!child)
             break;
@@ -4014,8 +3805,6 @@ pcintr_load_child_co(const char *hvml,
         PC_DEBUGX("running parent/child: %p/%p", co, child);
         pcintr_wakeup_target(child, run_co_main);
     } while (0);
-
-    purc_rwstream_destroy(rws);
 
     return child;
 }

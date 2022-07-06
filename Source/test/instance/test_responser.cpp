@@ -241,7 +241,7 @@ TEST(instance, responser)
                         PCRDR_MSG_DATA_TYPE_VOID, NULL, 0);
 
                 // broadcast the event
-                if (purc_inst_move_message(PURC_INST_BROADCAST, event) == 0) {
+                if (purc_inst_move_message(PURC_EVENT_TARGET_BROADCAST, event) == 0) {
                     purc_log_error("purc_inst_move_message: no recipient\n");
                 }
                 pcrdr_release_message(event);

@@ -105,7 +105,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     frame->edom_element = NULL;
 
     struct pcvdom_document *document;
-    document = stack->vdom->document;
+    document = stack->vdom;
     PC_ASSERT(document);
     struct pcvdom_doctype  *doctype = &document->doctype;
     const char *system_info = doctype->system_info;
@@ -230,7 +230,7 @@ again:
     curr = ctxt->curr;
 
     if (curr == NULL) {
-        struct pcvdom_document *document = stack->vdom->document;
+        struct pcvdom_document *document = stack->vdom;
         curr = pcvdom_node_first_child(&document->node);
         purc_clr_error();
     }
