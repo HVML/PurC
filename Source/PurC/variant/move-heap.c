@@ -96,6 +96,10 @@ static int mvheap_init_once(void)
     stat->nr_reserved = 0;
     stat->nr_max_reserved = 0;  // no need to reserve variants for move heap.
 
+#if !USE(LOOP_BUFFER_FOR_RESERVED)
+    INIT_LIST_HEAD(&move_heap.v_reserved);
+#endif
+
     purc_mutex_init(&mh_lock);
     if (mh_lock.native_impl == NULL)
         return -1;
