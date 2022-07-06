@@ -827,6 +827,43 @@ init_undefined_symvals(struct pcintr_stack_frame *frame)
 }
 
 static int
+init_caret_symbol(pcintr_stack_t stack, struct pcintr_stack_frame *frame)
+{
+    pcvdom_element_t elem = frame->pos;
+    if (!elem) {
+        return 0;
+    }
+
+    bool operation = pcvdom_element_is_hvml_operation(elem);
+    if (!operation) {
+        return 0;
+    }
+
+    struct pcvdom_node *node = &elem->node;
+    node = pcvdom_node_first_child(node);
+    if (!node || node->type != PCVDOM_NODE_CONTENT) {
+        return 0;
+    }
+
+    struct pcvdom_content *content = PCVDOM_CONTENT_FROM_NODE(node);
+    struct pcvcm_node *vcm = content->vcm;
+    if (!vcm) {
+        return 0;
+    }
+
+    purc_variant_t v = pcvcm_eval(vcm, stack, frame->silently);
+    if (v == PURC_VARIANT_INVALID) {
+        return 0;
+    }
+    purc_clr_error();
+
+    int ret = pcintr_set_symbol_var(frame, PURC_SYMBOL_VAR_CARET, v);
+    purc_variant_unref(v);
+
+    return ret;
+}
+
+static int
 init_symvals_with_vals(struct pcintr_stack_frame *frame)
 {
     if (frame->type == STACK_FRAME_TYPE_PSEUDO)
@@ -1584,6 +1621,7 @@ void pcintr_execute_one_step_for_ready_co(pcintr_coroutine_t co)
 
     switch (frame->next_step) {
         case NEXT_STEP_AFTER_PUSHED:
+            init_caret_symbol(stack, frame);
             after_pushed(co, frame);
             break;
         case NEXT_STEP_ON_POPPING:
