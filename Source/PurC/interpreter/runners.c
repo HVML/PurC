@@ -22,6 +22,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#undef NDEBUG
+
 #include "config.h"
 
 #include "purc.h"
@@ -218,7 +220,15 @@ void pcrun_request_handler(pcrdr_conn* conn, const pcrdr_msg *msg)
             purc_log_warn("Not implemented operation: %s\n", op);
         }
         else {
-            purc_log_warn("Unknown operation: %s\n", op);
+            struct pcinst *inst = pcinst_current();
+            assert(inst && inst->intr_heap);
+            if (inst->intr_heap->cond_handler) {
+                inst->intr_heap->cond_handler(PURC_COND_UNK_REQUEST,
+                        (void*)msg, response);
+            }
+            else {
+                purc_log_warn("Unknown operation: %s\n", op);
+            }
         }
     }
     else if (msg->target == PCRDR_MSG_TARGET_COROUTINE) {
