@@ -151,6 +151,9 @@ broadcast_event(purc_variant_t source, const char *type, const char *sub_type,
 {
     UNUSED_PARAM(source);
     struct pcinst* inst = pcinst_current();
+    if (!inst->intr_heap) {
+        return 0;
+    }
     purc_variant_t source_uri = purc_variant_make_string(
             inst->endpoint_name, false);
     purc_variant_t observed = purc_variant_make_string_static(
