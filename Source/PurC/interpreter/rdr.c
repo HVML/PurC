@@ -813,8 +813,17 @@ void pcintr_rdr_event_handler(pcrdr_conn *conn, const pcrdr_msg *msg)
     }
 
     // FIXME: soure_uri msg->sourcURI or  co->full_name
-    purc_variant_t source_uri = pcintr_coroutine_build_source_uri(
-            stack->co);
+    const char *uri = pcintr_coroutine_get_uri(stack->co);
+    if (!uri) {
+        goto out;
+    }
+
+    purc_variant_t source_uri = purc_variant_make_string(uri, false);
+    if (!source_uri) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto out;
+    }
+
     pcintr_post_event(stack->co->cid, msg->reduceOpt, source_uri, source,
             msg->eventName, msg->data);
     purc_variant_unref(source_uri);

@@ -403,7 +403,7 @@ pcintr_dispatch_msg(void)
 }
 
 int
-pcintr_post_event(purc_atom_t co_id,
+pcintr_post_event(purc_atom_t cid,
         pcrdr_msg_event_reduce_opt reduce_op, purc_variant_t source_uri,
         purc_variant_t observed, purc_variant_t event_name,
         purc_variant_t data)
@@ -423,16 +423,12 @@ pcintr_post_event(purc_atom_t co_id,
 
     msg->type = PCRDR_MSG_TYPE_EVENT;
     msg->target = PCRDR_MSG_TARGET_COROUTINE;
-    msg->targetValue = co_id;
+    msg->targetValue = cid;
     msg->reduceOpt = reduce_op;
 
     if (source_uri) {
         msg->sourceURI = source_uri;
         purc_variant_ref(msg->sourceURI);
-    }
-    else {
-        const char *uri = purc_atom_to_string(co_id);
-        msg->sourceURI = purc_variant_make_string(uri, false);
     }
 
     msg->eventName = event_name;
@@ -452,7 +448,7 @@ pcintr_post_event(purc_atom_t co_id,
 }
 
 int
-pcintr_post_event_by_ctype(purc_atom_t co_id,
+pcintr_post_event_by_ctype(purc_atom_t cid,
         pcrdr_msg_event_reduce_opt reduce_op, purc_variant_t source_uri,
         purc_variant_t observed, const char *event_type,
         const char *event_sub_type, purc_variant_t data)
@@ -486,10 +482,35 @@ pcintr_post_event_by_ctype(purc_atom_t co_id,
         return -1;
     }
 
-    int ret = pcintr_post_event(co_id, reduce_op, source_uri, observed,
+    int ret = pcintr_post_event(cid, reduce_op, source_uri, observed,
             event_name, data);
     purc_variant_unref(event_name);
 
+    return ret;
+}
+
+int
+pcintr_coroutine_post_event(purc_atom_t cid,
+        pcrdr_msg_event_reduce_opt reduce_op,
+        purc_variant_t observed, const char *event_type,
+        const char *event_sub_type, purc_variant_t data)
+{
+    const char *uri = purc_atom_to_string(cid);
+    if (!uri) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        return -1;
+    }
+
+    purc_variant_t source_uri = purc_variant_make_string(uri, false);
+    if (!source_uri) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return -1;
+    }
+
+    int ret = pcintr_post_event_by_ctype(cid, reduce_op, source_uri,
+            observed, event_type, event_sub_type, data);
+
+    purc_variant_unref(source_uri);
     return ret;
 }
 

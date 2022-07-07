@@ -3525,13 +3525,10 @@ pcintr_observe_vcm_ev(pcintr_stack_t stack, struct pcintr_observer* observer,
             frame->silently ? true : false);
 
     // dispatch change event
-    purc_variant_t source_uri = pcintr_coroutine_build_source_uri(
-            stack->co);
-    pcintr_post_event_by_ctype(stack->co->cid,
-            PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY, source_uri,
+    pcintr_coroutine_post_event(stack->co->cid,
+            PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
             var, MSG_TYPE_CHANGE, NULL,
             PURC_VARIANT_INVALID);
-    purc_variant_unref(source_uri);
 }
 
 purc_runloop_t
