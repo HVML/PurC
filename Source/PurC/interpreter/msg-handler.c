@@ -261,7 +261,7 @@ dispatch_coroutine_msg(pcintr_coroutine_t co, pcrdr_msg *msg)
 }
 
 int
-dispatch_move_buffer_msg(struct pcinst *inst, pcrdr_msg *msg)
+dispatch_move_buffer_msg(struct pcinst *inst, const pcrdr_msg *msg)
 {
     UNUSED_PARAM(inst);
     struct pcintr_heap *heap = inst->intr_heap;
@@ -286,23 +286,24 @@ dispatch_move_buffer_msg(struct pcinst *inst, pcrdr_msg *msg)
             return 0;
         }
 
-        if (msg->elementValue) {
-            purc_variant_unref(msg->elementValue);
+        pcrdr_msg *msg_clone = pcrdr_clone_message(msg);
+        if (msg_clone->elementValue) {
+            purc_variant_unref(msg_clone->elementValue);
         }
-        msg->elementValue = observed;
-        purc_variant_ref(msg->elementValue);
+        msg_clone->elementValue = observed;
+        purc_variant_ref(msg_clone->elementValue);
 
         // add msg to coroutine message queue
         struct rb_root *coroutines = &heap->coroutines;
         struct rb_node *p, *n;
         struct rb_node *first = pcutils_rbtree_first(coroutines);
 
-        if (PURC_EVENT_TARGET_BROADCAST != msg->targetValue) {
+        if (PURC_EVENT_TARGET_BROADCAST != msg_clone->targetValue) {
             pcutils_rbtree_for_each_safe(first, p, n) {
                 pcintr_coroutine_t co = container_of(p, struct pcintr_coroutine,
                         node);
                 if (co->cid == msg->targetValue) {
-                    return pcinst_msg_queue_append(co->mq, msg);
+                    return pcinst_msg_queue_append(co->mq, msg_clone);
                 }
             }
         }
@@ -311,10 +312,11 @@ dispatch_move_buffer_msg(struct pcinst *inst, pcrdr_msg *msg)
                 pcintr_coroutine_t co = container_of(p, struct pcintr_coroutine,
                         node);
 
-                pcrdr_msg *my_msg = pcrdr_clone_message(msg);
+                pcrdr_msg *my_msg = pcrdr_clone_message(msg_clone);
                 my_msg->targetValue = co->cid;
                 pcinst_msg_queue_append(co->mq, my_msg);
             }
+            pcrdr_release_message(msg_clone);
         }
     }
         break;
@@ -361,6 +363,143 @@ handle_move_buffer_msg(void)
         // TODO: how to handle dispatch failed
         dispatch_move_buffer_msg(inst, msg);
         pcrdr_release_message(msg);
+    }
+}
+
+static
+purc_vdom_t find_vdom_by_target_vdom(uint64_t handle, pcintr_stack_t *pstack)
+{
+    pcintr_heap_t heap = pcintr_get_heap();
+    if (heap == NULL) {
+        return NULL;
+    }
+
+    struct rb_node *p, *n;
+    struct rb_node *first = pcutils_rbtree_first(&heap->coroutines);
+    pcutils_rbtree_for_each_safe(first, p, n) {
+        pcintr_coroutine_t co;
+        co = container_of(p, struct pcintr_coroutine, node);
+
+        if (handle == co->target_dom_handle) {
+            if (pstack) {
+                *pstack = &(co->stack);
+            }
+            return co->stack.vdom;
+        }
+    }
+    return NULL;
+}
+
+static purc_vdom_t
+find_vdom_by_target_window(uint64_t handle, pcintr_stack_t *pstack)
+{
+    pcintr_heap_t heap = pcintr_get_heap();
+    if (heap == NULL) {
+        return NULL;
+    }
+
+    struct rb_node *p, *n;
+    struct rb_node *first = pcutils_rbtree_first(&heap->coroutines);
+    pcutils_rbtree_for_each_safe(first, p, n) {
+        pcintr_coroutine_t co;
+        co = container_of(p, struct pcintr_coroutine, node);
+
+        if (handle == co->target_page_handle) {
+            if (pstack) {
+                *pstack = &(co->stack);
+            }
+            return co->stack.vdom;
+        }
+    }
+    return NULL;
+}
+
+
+void
+pcintr_conn_event_handler(pcrdr_conn *conn, const pcrdr_msg *msg)
+{
+    UNUSED_PARAM(conn);
+    UNUSED_PARAM(msg);
+    struct pcinst *inst = pcinst_current();
+    if (inst == NULL || inst->rdr_caps == NULL || msg == NULL) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        return;
+    }
+
+    if (!purc_variant_is_string(msg->eventName)) {
+        return;
+    }
+
+    pcintr_stack_t stack = NULL;
+    purc_variant_t source = PURC_VARIANT_INVALID;
+    switch (msg->target) {
+    case PCRDR_MSG_TARGET_SESSION:
+        //TODO
+        break;
+
+    case PCRDR_MSG_TARGET_WORKSPACE:
+        //TODO
+        break;
+
+    case PCRDR_MSG_TARGET_PLAINWINDOW:
+        {
+            purc_vdom_t vdom = find_vdom_by_target_window(
+                    (uint64_t)msg->targetValue, &stack);
+            source = purc_variant_make_native(vdom, NULL);
+        }
+        break;
+
+    case PCRDR_MSG_TARGET_WIDGET:
+        //TODO
+        break;
+
+    case PCRDR_MSG_TARGET_DOM:
+        {
+            const char *element = purc_variant_get_string_const(
+                    msg->elementValue);
+            if (element == NULL) {
+                goto out;
+            }
+
+            if (msg->elementType == PCRDR_MSG_ELEMENT_TYPE_HANDLE) {
+                unsigned long long int p = strtoull(element, NULL, 16);
+                find_vdom_by_target_vdom((uint64_t)msg->targetValue, &stack);
+                source = purc_variant_make_native((void*)(uint64_t)p, NULL);
+            }
+        }
+        break;
+
+    case PCRDR_MSG_TARGET_COROUTINE:
+        dispatch_move_buffer_msg(inst, msg);
+        goto out;
+
+    case PCRDR_MSG_TARGET_USER:
+        //TODO
+        break;
+
+    default:
+        goto out;
+    }
+
+    // FIXME: soure_uri msg->sourcURI or  co->full_name
+    const char *uri = pcintr_coroutine_get_uri(stack->co);
+    if (!uri) {
+        goto out;
+    }
+
+    purc_variant_t source_uri = purc_variant_make_string(uri, false);
+    if (!source_uri) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto out;
+    }
+
+    pcintr_post_event(stack->co->cid, msg->reduceOpt, source_uri, source,
+            msg->eventName, msg->data);
+    purc_variant_unref(source_uri);
+
+out:
+    if (source) {
+        purc_variant_unref(source);
     }
 }
 
