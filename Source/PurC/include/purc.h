@@ -584,10 +584,25 @@ purc_coroutine_get_variable(purc_coroutine_t cor, const char *name);
 /** The PurC instance events */
 typedef enum purc_cond {
     /**
+     * Indicating that the instance has started.
+     * In the event handler, `arg` is the atom value of the instance,
+     * `data` is the pointer to the struct purc_instance_extra_info,
+     * in which contains the extra information to start the instance.
+     */
+    PURC_COND_STARTED = 0,
+
+    /**
+     * Indicating that the instance has stopped.
+     * In the event handler, `arg` is the atom value of the instance,
+     * `data` is NULL.
+     */
+    PURC_COND_STOPPED,
+
+    /**
      * Indicating that there is no coroutine scheduled.
      * In the event handler, `arg` and `data` both are NULL.
      */
-    PURC_COND_NOCOR = 0,
+    PURC_COND_NOCOR,
 
     /**
      * Indicating that there is no coroutine in ready state.
@@ -598,9 +613,24 @@ typedef enum purc_cond {
     /**
      * Indicating that there is a new coroutine created.
      * In the event handler, `arg` is the pointer to the coroutine structure,
-     * `data` is the number of total coroutines.
+     * `data` is the coroutine indentifier.
      */
-    PURC_COND_NEW_COR,
+    PURC_COND_COR_CREATED,
+
+    /**
+     * Indicating that a coroutine exited or teminated.
+     * In the event handler, `arg` is the pointer to the coroutine structure,
+     * `data` is the pointer to the targe document genenerated by the
+     * HVML coroutine.
+     */
+    PURC_COND_COR_EXITED,
+
+    /**
+     * Indicating that PurC is destroying a coroutine.
+     * In the event handler, `arg` is the pointer to the coroutine structure,
+     * `data` is the user data bound to the corontine.
+     */
+    PURC_COND_COR_DESTROYED,
 
     /**
      * Indicating that the PurC instance got an unknown request message.
@@ -617,20 +647,6 @@ typedef enum purc_cond {
      */
     PURC_COND_UNK_EVENT,
 
-    /**
-     * Indicating that a coroutine exited or teminated.
-     * In the event handler, `arg` is the pointer to the coroutine structure,
-     * `data` is the pointer to the targe document genenerated by the
-     * HVML coroutine.
-     */
-    PURC_COND_EXIT,
-
-    /**
-     * Indicating that PurC is destroying a coroutine.
-     * In the event handler, `arg` is the pointer to the coroutine structure,
-     * `data` is the user data bound to the corontine.
-     */
-    PURC_COND_DESTROY,
 } purc_cond_t;
 
 typedef int (*purc_cond_handler)(purc_cond_t event, void *arg, void *data);

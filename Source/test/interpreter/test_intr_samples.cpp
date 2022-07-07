@@ -105,7 +105,7 @@ static int my_cond_handler(purc_cond_t event, purc_coroutine_t cor,
 
     struct sample_ctxt *ud = (struct sample_ctxt*)user_data;
 
-    if (event == PURC_COND_EXIT) {
+    if (event == PURC_COND_COR_EXITED) {
         pchtml_html_document_t *doc = (pchtml_html_document_t *)data;
 
         if (ud->terminated) {
@@ -135,7 +135,7 @@ static int my_cond_handler(purc_cond_t event, purc_coroutine_t cor,
                 free(p);
         }
     }
-    else if (event == PURC_COND_DESTROY) {
+    else if (event == PURC_COND_COR_DESTROYED) {
         sample_destroy(ud);
     }
 

@@ -203,6 +203,9 @@ void pcrun_request_handler(pcrdr_conn* conn, const pcrdr_msg *msg)
     op = purc_variant_get_string_const(msg->operation);
     assert(op);
 
+    purc_log_debug("%s got `%s` request from %s\n",
+            purc_get_endpoint(NULL), op, source_uri);
+
     if (msg->target == PCRDR_MSG_TARGET_INSTANCE) {
         if (strcmp(op, PCRUN_OPERATION_createCoroutine) == 0) {
             create_coroutine(msg, response);
@@ -279,7 +282,7 @@ pcrdr_msg *pcrun_extra_message_source(pcrdr_conn* conn, void *ctxt)
     return NULL;
 }
 
-static void get_instance(struct instmgr_info *mgr_info,
+static void create_instance(struct instmgr_info *mgr_info,
         const pcrdr_msg *request, pcrdr_msg *response)
 {
     char endpoint_name[PURC_LEN_ENDPOINT_NAME + 1];
@@ -562,24 +565,22 @@ void pcrun_instmgr_handle_message(void *ctxt)
         const char *op;
         op = purc_variant_get_string_const(msg->operation);
         assert(op);
-        purc_log_debug("InstMrg got `%s` request from %s\n", op, source_uri);
+        purc_log_debug("InstMgr got `%s` request from %s\n", op, source_uri);
 
         pcrdr_msg *response = pcrdr_make_void_message();
 
-        if (msg->elementType == PCRDR_MSG_ELEMENT_TYPE_ID) {
-            if (strcmp(op, PCRUN_OPERATION_createInstance) == 0) {
-                get_instance(info, msg, response);
-            }
-            else if (strcmp(op, PCRUN_OPERATION_cancelInstance) == 0) {
-                cancel_instance(info, msg, response);
-            }
-            else if (strcmp(op, PCRUN_OPERATION_killInstance) == 0) {
-                kill_instance(info, msg, response);
-            }
-            else {
-                purc_log_warn("InstMrg got an unknown `%s` request from %s\n",
-                        op, source_uri);
-            }
+        if (strcmp(op, PCRUN_OPERATION_createInstance) == 0) {
+            create_instance(info, msg, response);
+        }
+        else if (strcmp(op, PCRUN_OPERATION_cancelInstance) == 0) {
+            cancel_instance(info, msg, response);
+        }
+        else if (strcmp(op, PCRUN_OPERATION_killInstance) == 0) {
+            kill_instance(info, msg, response);
+        }
+        else {
+            purc_log_warn("InstMgr got an unknown `%s` request from %s\n",
+                    op, source_uri);
         }
 
         if (response->type == PCRDR_MSG_TYPE_VOID) {
@@ -736,18 +737,24 @@ purc_inst_create_or_get(const char *app_name, const char *runner_name,
 
     pcrdr_msg *response;
     int ret = pcrdr_wait_response_for_specific_request(conn,
-            request->requestId, 1, &response);
+            request->requestId, 0, &response); // Wait forever
     pcrdr_release_message(request);
 
-    if (ret || (response->retCode != PCRDR_SC_OK &&
-                response->retCode != PCRDR_SC_CONFLICT)) {
-        purc_log_error("Failed to schedule vDOM in another instance\n");
+    if (ret) {
+        purc_log_error("Failed to create a new instance: %s\n",
+               purc_get_error_message(purc_get_last_error()));
+    }
+    else if (response->retCode != PCRDR_SC_OK &&
+                response->retCode != PCRDR_SC_CONFLICT) {
+        purc_log_error("Failed to create a new instance: %d\n",
+                response->retCode);
     }
     else {
         atom = (purc_atom_t)response->resultValue;
     }
 
-    pcrdr_release_message(response);
+    if (response)
+        pcrdr_release_message(response);
     return atom;
 }
 
