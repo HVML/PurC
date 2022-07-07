@@ -184,6 +184,11 @@ static void shutdown_instance(purc_atom_t requester,
         inst->intr_heap->keep_alive = 0;
     }
 
+    if (inst->intr_heap->keep_alive == 0 &&
+            pcutils_rbtree_first(&inst->intr_heap->coroutines) == NULL) {
+        purc_runloop_stop(inst->running_loop);
+    }
+
     response->type = PCRDR_MSG_TYPE_RESPONSE;
     response->requestId = purc_variant_ref(msg->requestId);
     response->sourceURI = purc_variant_make_string(self_ept, false);
@@ -895,6 +900,14 @@ purc_inst_schedule_vdom(purc_atom_t inst, purc_vdom_t vdom,
             purc_variant_object_set_by_static_ckey(data, "toolkitStyle",
                     extra_rdr_info->toolkit_style);
         }
+
+        if (extra_rdr_info->page_groups) {
+            tmp = purc_variant_make_string_static(extra_rdr_info->page_groups,
+                    false);
+            purc_variant_object_set_by_static_ckey(data, "pageGroups",
+                    tmp);
+            purc_variant_unref(tmp);
+        }
     }
 
     if (body_id) {
@@ -971,9 +984,9 @@ purc_inst_ask_to_shutdown(purc_atom_t inst)
     }
     else {
         retv = response->retCode;
+        pcrdr_release_message(response);
     }
 
-    pcrdr_release_message(response);
     return retv;
 }
 

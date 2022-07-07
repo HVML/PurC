@@ -43,7 +43,7 @@ static struct purc_instance_extra_info worker_info = {
 
 static int work_cond_handler(purc_cond_t event, void *arg, void *data)
 {
-    purc_log_info("called\n");
+    purc_log_info("called: %d\n", event);
 
     if (event == PURC_COND_STARTED) {
         purc_atom_t sid = (purc_atom_t)(uintptr_t)arg;
@@ -64,8 +64,6 @@ static int work_cond_handler(purc_cond_t event, void *arg, void *data)
         purc_extract_runner_name(endpoint, run_name);
         assert(strcmp(run_name, "worker") == 0);
 
-        assert(info->ssl_cert != NULL);
-
         assert(info->renderer_prot == worker_info.renderer_prot);
         assert(strcmp(info->renderer_uri, worker_info.renderer_uri) == 0);
         assert(strcmp(info->ssl_cert, worker_info.ssl_cert) == 0);
@@ -73,6 +71,7 @@ static int work_cond_handler(purc_cond_t event, void *arg, void *data)
     }
     else if (event == PURC_COND_STOPPED) {
         purc_atom_t sid = (purc_atom_t)(uintptr_t)arg;
+        assert(sid != 0);
 
         const char *endpoint = purc_atom_to_string(sid);
         assert(endpoint);
@@ -87,13 +86,16 @@ static int work_cond_handler(purc_cond_t event, void *arg, void *data)
 
         char run_name[PURC_LEN_RUNNER_NAME + 1];
         purc_extract_runner_name(endpoint, run_name);
-        assert(strcmp(app_name, "worker") == 0);
+        assert(strcmp(run_name, "worker") == 0);
+    }
+    else if (event == PURC_COND_SHUTDOWN_ASKED) {
+        return 0;
     }
 
     return 0;
 }
 
-static const char *hvml = "<hvml><body><sleep for 5s /></body></hvml>";
+static const char *hvml = "<hvml><body><sleep for 2s /></body></hvml>";
 static const char *request_json = "{ name: 'PurC' }";
 static const char *toolkit_style_json = "{ 'darkMode': true }";
 
@@ -113,9 +115,12 @@ TEST(interpreter, runners)
     purc_variant_t request =
         purc_variant_make_from_json_string(request_json,
                 strlen(request_json));
+    ASSERT_NE(request, nullptr);
+
     purc_variant_t toolkit_style =
         purc_variant_make_from_json_string(toolkit_style_json,
                 strlen(toolkit_style_json));
+    ASSERT_NE(toolkit_style, nullptr);
 
     purc_vdom_t vdom = purc_load_hvml_from_string(hvml);
     ASSERT_NE(vdom, nullptr);
@@ -130,26 +135,26 @@ TEST(interpreter, runners)
             &rdr_info, NULL, NULL);
     ASSERT_NE(co, nullptr);
 
-#if 0
     struct purc_renderer_extra_info worker_rdr_info =
     {
-        "class",
-        "title",
-        "layoutStyle",
-        NULL,
-        "<section></section>",      // pageGroups
+        "my class",
+        "my title",
+        "my layoutStyle",
+        toolkit_style,
+        "<section></section>",
     };
 
     purc_atom_t worker_cor = purc_inst_schedule_vdom(work_inst, vdom,
             purc_coroutine_identifier(co), request, PCRDR_PAGE_TYPE_NULL,
             "main",
             NULL,
-            "pageName",
+            "my page name",
             &worker_rdr_info, NULL);
     ASSERT_NE(worker_cor, 0);
-#endif
 
     purc_run(NULL);
+
+    purc_inst_ask_to_shutdown(work_inst);
 
     unsigned int seconds = 0;
     while (purc_atom_to_string(work_inst) && seconds < 10) {
@@ -159,6 +164,6 @@ TEST(interpreter, runners)
     }
 
     purc_variant_unref(request);
-    purc_variant_unref(toolkit_style);
+    //purc_variant_unref(toolkit_style);
 }
 

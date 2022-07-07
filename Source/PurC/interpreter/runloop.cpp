@@ -349,7 +349,10 @@ pcrun_create_inst_thread(const char *app_name, const char *runner_name,
                 else {
                     struct pcinst *inst = pcinst_current();
                     assert(inst && inst->intr_heap);
-                    atom = inst->intr_heap->move_buff;
+                    purc_atom_t my_atom;
+                    atom = my_atom = inst->intr_heap->move_buff;
+
+                    purc_cond_handler my_handler = cond_handler;
 
                     if (cond_handler) {
                         cond_handler(PURC_COND_STARTED,
@@ -357,11 +360,11 @@ pcrun_create_inst_thread(const char *app_name, const char *runner_name,
                     }
                     semaphore.signal();
 
-                    purc_run(cond_handler);
+                    purc_run(my_handler);
 
-                    if ((cond_handler = inst->intr_heap->cond_handler)) {
-                        cond_handler(PURC_COND_STOPPED,
-                                (void *)(uintptr_t)atom, NULL);
+                    if ((my_handler = inst->intr_heap->cond_handler)) {
+                        my_handler(PURC_COND_STOPPED,
+                                (void *)(uintptr_t)my_atom, NULL);
                     }
 
                     purc_cleanup();

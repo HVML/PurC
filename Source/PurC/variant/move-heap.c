@@ -239,14 +239,6 @@ static bool
 move_or_clone_mutable_descendants_in_array(struct travel_context *ctxt,
         purc_variant_t arr)
 {
-#if 0
-    ctxt->el++;
-    if (ctxt->el >= ctxt->inst->max_embedded_levels) {
-        purc_set_error(PCEJSON_ERROR_MAX_DEPTH_EXCEEDED);
-        return false;
-    }
-#endif
-
     size_t idx;
     purc_variant_t v;
     foreach_value_in_variant_array(arr, v, idx) {
@@ -257,37 +249,39 @@ move_or_clone_mutable_descendants_in_array(struct travel_context *ctxt,
         case PURC_VARIANT_TYPE_ARRAY:
             if (v->refc == 1) {
                 move_variant_in(ctxt->inst, v);
-                return move_or_clone_mutable_descendants_in_array(ctxt, v);
+                move_or_clone_mutable_descendants_in_array(ctxt, v);
             }
             break;
 
         case PURC_VARIANT_TYPE_OBJECT:
             if (v->refc == 1) {
                 move_variant_in(ctxt->inst, v);
-                return move_or_clone_mutable_descendants_in_object(ctxt, v);
+                move_or_clone_mutable_descendants_in_object(ctxt, v);
             }
             break;
 
         case PURC_VARIANT_TYPE_SET:
             if (v->refc == 1) {
                 move_variant_in(ctxt->inst, v);
-                return move_or_clone_mutable_descendants_in_set(ctxt, v);
+                move_or_clone_mutable_descendants_in_set(ctxt, v);
             }
             break;
 
         default:
             // immutable element
-            return true;
+            break;
         }
 
-        retv = purc_variant_container_clone_recursively(v);
-        if (retv == PURC_VARIANT_INVALID) {
-            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-            return false;
-        }
+        if (IS_CONTAINER(v->type) && v->refc > 1) {
+            retv = purc_variant_container_clone_recursively(v);
+            if (retv == PURC_VARIANT_INVALID) {
+                purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+                return false;
+            }
 
-        _p->val = retv;
-        pcutils_arrlist_append(ctxt->vrts_to_unref, v);
+            _p->val = retv;
+            pcutils_arrlist_append(ctxt->vrts_to_unref, v);
+        }
 
     } end_foreach;
 
@@ -298,55 +292,56 @@ static bool
 move_or_clone_mutable_descendants_in_object(struct travel_context *ctxt,
         purc_variant_t obj)
 {
-#if 0
-    ctxt->el++;
-    if (ctxt->el >= ctxt->inst->max_embedded_levels) {
-        purc_set_error(PCEJSON_ERROR_MAX_DEPTH_EXCEEDED);
-        return false;
-    }
-#endif
-
     purc_variant_t k,v;
     foreach_key_value_in_variant_object(obj, k, v) {
-        purc_variant_t retv;
-
-        UNUSED_PARAM(k);
+        purc_variant_t retk, retv;
 
         switch (v->type) {
         case PURC_VARIANT_TYPE_ARRAY:
             if (v->refc == 1) {
                 move_variant_in(ctxt->inst, v);
-                return move_or_clone_mutable_descendants_in_array(ctxt, v);
+                move_or_clone_mutable_descendants_in_array(ctxt, v);
             }
             break;
 
         case PURC_VARIANT_TYPE_OBJECT:
             if (v->refc == 1) {
                 move_variant_in(ctxt->inst, v);
-                return move_or_clone_mutable_descendants_in_object(ctxt, v);
+                move_or_clone_mutable_descendants_in_object(ctxt, v);
             }
             break;
 
         case PURC_VARIANT_TYPE_SET:
             if (v->refc == 1) {
                 move_variant_in(ctxt->inst, v);
-                return move_or_clone_mutable_descendants_in_set(ctxt, v);
+                move_or_clone_mutable_descendants_in_set(ctxt, v);
             }
             break;
 
         default:
             // immutable element
-            return true;
+            break;
         }
 
-        retv = purc_variant_container_clone_recursively(v);
-        if (retv == PURC_VARIANT_INVALID) {
-            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-            return false;
+        if (IS_CONTAINER(v->type)) {
+            retk = move_or_clone_immutable(ctxt->inst, k);
+            if (retk != k) {
+                _node->key = retk;
+                pcutils_arrlist_append(ctxt->vrts_to_unref, k);
+            }
+
+            if (v->refc > 1) {
+                retv = purc_variant_container_clone_recursively(v);
+                if (retv == PURC_VARIANT_INVALID) {
+                    purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+                    return false;
+                }
+
+                _node->val = retv;
+                pcutils_arrlist_append(ctxt->vrts_to_unref, v);
+            }
         }
 
-        _node->val = retv;
-        pcutils_arrlist_append(ctxt->vrts_to_unref, v);
     } end_foreach;
 
     return true;
@@ -356,14 +351,6 @@ static bool
 move_or_clone_mutable_descendants_in_set(struct travel_context *ctxt,
         purc_variant_t set)
 {
-#if 0
-    ctxt->el++;
-    if (ctxt->el >= ctxt->inst->max_embedded_levels) {
-        purc_set_error(PCEJSON_ERROR_MAX_DEPTH_EXCEEDED);
-        return false;
-    }
-#endif
-
     purc_variant_t v;
     foreach_value_in_variant_set(set, v) {
         purc_variant_t retv;
@@ -372,37 +359,39 @@ move_or_clone_mutable_descendants_in_set(struct travel_context *ctxt,
         case PURC_VARIANT_TYPE_ARRAY:
             if (v->refc == 1) {
                 move_variant_in(ctxt->inst, v);
-                return move_or_clone_mutable_descendants_in_array(ctxt, v);
+                move_or_clone_mutable_descendants_in_array(ctxt, v);
             }
             break;
 
         case PURC_VARIANT_TYPE_OBJECT:
             if (v->refc == 1) {
                 move_variant_in(ctxt->inst, v);
-                return move_or_clone_mutable_descendants_in_object(ctxt, v);
+                move_or_clone_mutable_descendants_in_object(ctxt, v);
             }
             break;
 
         case PURC_VARIANT_TYPE_SET:
             if (v->refc == 1) {
                 move_variant_in(ctxt->inst, v);
-                return move_or_clone_mutable_descendants_in_set(ctxt, v);
+                move_or_clone_mutable_descendants_in_set(ctxt, v);
             }
             break;
 
         default:
             // immutable element
-            return true;
+            break;
         }
 
-        retv = purc_variant_container_clone_recursively(v);
-        if (retv == PURC_VARIANT_INVALID) {
-            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-            return false;
-        }
+        if (IS_CONTAINER(v->type) && v->refc > 1) {
+            retv = purc_variant_container_clone_recursively(v);
+            if (retv == PURC_VARIANT_INVALID) {
+                purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+                return false;
+            }
 
-        _sn->val = retv;
-        pcutils_arrlist_append(ctxt->vrts_to_unref, v);
+            _sn->val = retv;
+            pcutils_arrlist_append(ctxt->vrts_to_unref, v);
+        }
 
     } end_foreach;
 
@@ -441,14 +430,6 @@ static bool
 move_or_clone_immutable_descendants_in_array(struct travel_context *ctxt,
         purc_variant_t arr)
 {
-#if 0
-    ctxt->el++;
-    if (ctxt->el >= ctxt->inst->max_embedded_levels) {
-        purc_set_error(PCEJSON_ERROR_MAX_DEPTH_EXCEEDED);
-        return false;
-    }
-#endif
-
     size_t idx;
     purc_variant_t v;
     foreach_value_in_variant_array(arr, v, idx) {
@@ -457,13 +438,19 @@ move_or_clone_immutable_descendants_in_array(struct travel_context *ctxt,
         UNUSED_PARAM(idx);
         switch (v->type) {
         case PURC_VARIANT_TYPE_ARRAY:
-            return move_or_clone_immutable_descendants_in_array(ctxt, v);
+            move_or_clone_immutable_descendants_in_array(ctxt, v);
+            retv = v;
+            break;
 
         case PURC_VARIANT_TYPE_OBJECT:
-            return move_or_clone_immutable_descendants_in_object(ctxt, v);
+            move_or_clone_immutable_descendants_in_object(ctxt, v);
+            retv = v;
+            break;
 
         case PURC_VARIANT_TYPE_SET:
-            return move_or_clone_immutable_descendants_in_set(ctxt, v);
+            move_or_clone_immutable_descendants_in_set(ctxt, v);
+            retv = v;
+            break;
 
         default:
             retv = move_or_clone_immutable(ctxt->inst, v);
@@ -471,13 +458,14 @@ move_or_clone_immutable_descendants_in_array(struct travel_context *ctxt,
                 purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
                 return false;
             }
-
-            if (retv != v) {
-                _p->val = retv;
-                pcutils_arrlist_append(ctxt->vrts_to_unref, v);
-            }
             break;
         }
+
+        if (retv != v) {
+            _p->val = retv;
+            pcutils_arrlist_append(ctxt->vrts_to_unref, v);
+        }
+
     } end_foreach;
 
     return true;
@@ -487,47 +475,38 @@ static bool
 move_or_clone_immutable_descendants_in_object(struct travel_context *ctxt,
         purc_variant_t obj)
 {
-#if 0
-    ctxt->el++;
-    if (ctxt->el >= ctxt->inst->max_embedded_levels) {
-        purc_set_error(PCEJSON_ERROR_MAX_DEPTH_EXCEEDED);
-        return false;
-    }
-#endif
-
     purc_variant_t k,v;
     foreach_key_value_in_variant_object(obj, k, v) {
         purc_variant_t retk, retv;
 
         switch (v->type) {
         case PURC_VARIANT_TYPE_ARRAY:
-            return move_or_clone_immutable_descendants_in_array(ctxt, v);
+            move_or_clone_immutable_descendants_in_array(ctxt, v);
+            break;
 
         case PURC_VARIANT_TYPE_OBJECT:
-            return move_or_clone_immutable_descendants_in_object(ctxt, v);
+            move_or_clone_immutable_descendants_in_object(ctxt, v);
+            break;
 
         case PURC_VARIANT_TYPE_SET:
-            return move_or_clone_immutable_descendants_in_set(ctxt, v);
+            move_or_clone_immutable_descendants_in_set(ctxt, v);
+            break;
 
         default:
             retk = move_or_clone_immutable(ctxt->inst, k);
-            retv = move_or_clone_immutable(ctxt->inst, v);
-            if (retk == PURC_VARIANT_INVALID || retv == PURC_VARIANT_INVALID) {
-                purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-                return false;
-            }
-
             if (retk != k) {
                 _node->key = retk;
                 pcutils_arrlist_append(ctxt->vrts_to_unref, k);
             }
 
+            retv = move_or_clone_immutable(ctxt->inst, v);
             if (retv != v) {
                 _node->val = retv;
                 pcutils_arrlist_append(ctxt->vrts_to_unref, v);
             }
             break;
         }
+
     } end_foreach;
 
     return true;
@@ -537,27 +516,25 @@ static bool
 move_or_clone_immutable_descendants_in_set(struct travel_context *ctxt,
         purc_variant_t set)
 {
-#if 0
-    ctxt->el++;
-    if (ctxt->el >= ctxt->inst->max_embedded_levels) {
-        purc_set_error(PCEJSON_ERROR_MAX_DEPTH_EXCEEDED);
-        return false;
-    }
-#endif
-
     purc_variant_t v;
     foreach_value_in_variant_set(set, v) {
         purc_variant_t retv;
 
         switch (v->type) {
         case PURC_VARIANT_TYPE_ARRAY:
-            return move_or_clone_immutable_descendants_in_array(ctxt, v);
+            move_or_clone_immutable_descendants_in_array(ctxt, v);
+            retv = v;
+            break;
 
         case PURC_VARIANT_TYPE_OBJECT:
-            return move_or_clone_immutable_descendants_in_object(ctxt, v);
+            move_or_clone_immutable_descendants_in_object(ctxt, v);
+            retv = v;
+            break;
 
         case PURC_VARIANT_TYPE_SET:
-            return move_or_clone_immutable_descendants_in_set(ctxt, v);
+            move_or_clone_immutable_descendants_in_set(ctxt, v);
+            retv = v;
+            break;
 
         default:
             retv = move_or_clone_immutable(ctxt->inst, v);
@@ -565,13 +542,14 @@ move_or_clone_immutable_descendants_in_set(struct travel_context *ctxt,
                 purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
                 return false;
             }
-
-            if (retv != v) {
-                _sn->val = retv;
-                pcutils_arrlist_append(ctxt->vrts_to_unref, v);
-            }
             break;
         }
+
+        if (retv != v) {
+            _sn->val = retv;
+            pcutils_arrlist_append(ctxt->vrts_to_unref, v);
+        }
+
     } end_foreach;
 
     return true;
@@ -623,13 +601,14 @@ purc_variant_t pcvariant_move_heap_in(purc_variant_t v)
             move_variant_in(inst, v);
             ctxt.el = 0;
             move_or_clone_mutable_descendants(&ctxt, v);
+
+            ctxt.el = 0;
+            move_or_clone_immutable_descendants(&ctxt, v);
         }
         else {
             retv = purc_variant_container_clone_recursively(v);
         }
 
-        ctxt.el = 0;
-        move_or_clone_immutable_descendants(&ctxt, v);
     }
     else {
         retv = move_or_clone_immutable(inst, v);
@@ -649,6 +628,28 @@ purc_variant_t pcvariant_move_heap_in(purc_variant_t v)
 
 // move the variant from the move heap to the current instance.
 // we only need to update the stat information.
+static void move_container_self_out(purc_variant_t v)
+{
+    struct pcinst *inst = pcinst_current();
+
+    inst->org_vrt_heap->stat.sz_mem[v->type] += v->sz_ptr[0];
+    inst->org_vrt_heap->stat.sz_total_mem += v->sz_ptr[0];
+
+    move_heap.stat.sz_mem[v->type] -= v->sz_ptr[0];
+    move_heap.stat.sz_total_mem -= v->sz_ptr[0];
+
+    inst->org_vrt_heap->stat.nr_values[v->type]++;
+    inst->org_vrt_heap->stat.nr_total_values++;
+
+    move_heap.stat.nr_values[v->type]--;
+    move_heap.stat.nr_total_values--;
+
+    inst->org_vrt_heap->stat.sz_mem[v->type] += sizeof(purc_variant);
+    inst->org_vrt_heap->stat.sz_total_mem += sizeof(purc_variant);
+    move_heap.stat.sz_mem[v->type] -= sizeof(purc_variant);
+    move_heap.stat.sz_total_mem -= sizeof(purc_variant);
+}
+
 static purc_variant_t move_variant_out(purc_variant_t v);
 static purc_variant_t move_array_descendants_out(purc_variant_t v);
 static purc_variant_t move_object_descendants_out(purc_variant_t v);
@@ -666,14 +667,17 @@ static purc_variant_t move_array_descendants_out(purc_variant_t arr)
         switch (v->type) {
         case PURC_VARIANT_TYPE_ARRAY:
             retv = move_array_descendants_out(v);
+            move_container_self_out(retv);
             break;
 
         case PURC_VARIANT_TYPE_OBJECT:
             retv = move_object_descendants_out(v);
+            move_container_self_out(retv);
             break;
 
         case PURC_VARIANT_TYPE_SET:
             retv = move_set_descendants_out(v);
+            move_container_self_out(retv);
             break;
 
         default:
@@ -698,14 +702,17 @@ static purc_variant_t move_object_descendants_out(purc_variant_t obj)
         switch (v->type) {
         case PURC_VARIANT_TYPE_ARRAY:
             retv = move_array_descendants_out(v);
+            move_container_self_out(retv);
             break;
 
         case PURC_VARIANT_TYPE_OBJECT:
             retv = move_object_descendants_out(v);
+            move_container_self_out(retv);
             break;
 
         case PURC_VARIANT_TYPE_SET:
             retv = move_set_descendants_out(v);
+            move_container_self_out(retv);
             break;
 
         default:
@@ -713,6 +720,8 @@ static purc_variant_t move_object_descendants_out(purc_variant_t obj)
             break;
         }
 
+        fprintf(stderr, "Moving property %s out\n",
+                purc_variant_get_string_const(retk));
         _node->key = retk;
         _node->val = retv;
 
@@ -730,14 +739,17 @@ static purc_variant_t move_set_descendants_out(purc_variant_t set)
         switch (v->type) {
         case PURC_VARIANT_TYPE_ARRAY:
             retv = move_array_descendants_out(v);
+            move_container_self_out(retv);
             break;
 
         case PURC_VARIANT_TYPE_OBJECT:
             retv = move_object_descendants_out(v);
+            move_container_self_out(retv);
             break;
 
         case PURC_VARIANT_TYPE_SET:
             retv = move_set_descendants_out(v);
+            move_container_self_out(retv);
             break;
 
         default:
@@ -797,18 +809,27 @@ static purc_variant_t move_variant_out(purc_variant_t v)
         move_heap.stat.sz_total_mem -= v->sz_ptr[0];
 
         if (v->type == PURC_VARIANT_TYPE_ARRAY) {
-            move_array_descendants_out(v);
+            retv = move_array_descendants_out(v);
         }
         else if (v->type == PURC_VARIANT_TYPE_OBJECT) {
-            move_object_descendants_out(v);
+            retv = move_object_descendants_out(v);
         }
         else if (v->type == PURC_VARIANT_TYPE_SET) {
-            move_set_descendants_out(v);
+            retv = move_set_descendants_out(v);
         }
+    }
+
+    if (v->type == PURC_VARIANT_TYPE_OBJECT) {
+        fprintf(stderr, "Moving object out (%u)\n",
+                (unsigned)move_heap.stat.nr_values[v->type]);
     }
 
     inst->org_vrt_heap->stat.nr_values[v->type]++;
     inst->org_vrt_heap->stat.nr_total_values++;
+
+    assert(move_heap.stat.nr_values[v->type] > 0);
+    assert(move_heap.stat.nr_total_values > 0);
+
     move_heap.stat.nr_values[v->type]--;
     move_heap.stat.nr_total_values--;
 
