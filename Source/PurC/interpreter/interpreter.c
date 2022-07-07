@@ -379,7 +379,7 @@ stack_release(pcintr_stack_t stack)
 
     pcintr_heap_t heap = stack->co->owner;
     if (heap->cond_handler) {
-        heap->cond_handler(PURC_COND_DESTROY, stack->co,
+        heap->cond_handler(PURC_COND_COR_DESTROYED, stack->co,
                 stack->co->user_data);
     }
 
@@ -1695,7 +1695,7 @@ static void execute_one_step_for_exiting_co(pcintr_coroutine_t co)
     struct pcinst *inst = heap->owner;
 
     if (heap->cond_handler) {
-        heap->cond_handler(PURC_COND_EXIT, co, stack->doc);
+        heap->cond_handler(PURC_COND_COR_EXITED, co, stack->doc);
     }
 
     if (co->curator) {
@@ -2328,6 +2328,11 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
     stack_init(stack);
 
     stack->vdom = vdom;
+    if (heap->cond_handler) {
+        heap->cond_handler(PURC_COND_COR_CREATED, co,
+                (void *)(uintptr_t)co->cid);
+    }
+
     return co;
 
 fail_name:

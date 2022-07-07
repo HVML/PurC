@@ -48,12 +48,14 @@ struct rb_node {
 #define pcutils_rbtree_set_red(r)   do { (r)->rb_color = 0; } while (0)
 #define pcutils_rbtree_set_black(r) do { (r)->rb_color = 1; } while (0)
 
-static inline void pcutils_rbtree_set_parent(struct rb_node *rb, struct rb_node *p)
+static inline void
+pcutils_rbtree_set_parent(struct rb_node *rb, struct rb_node *p)
 {
     rb->rb_parent = p;
 }
 
-static inline void pcutils_rbtree_set_color(struct rb_node *rb, int color)
+static inline void
+pcutils_rbtree_set_color(struct rb_node *rb, int color)
 {
     rb->rb_color = color;
 }
@@ -99,8 +101,9 @@ struct rb_node *pcutils_rbtree_last(const struct rb_root *);
 void pcutils_rbtree_replace_node(struct rb_node *victim, struct rb_node *newnode,
                 struct rb_root *root);
 
-static inline void pcutils_rbtree_link_node(struct rb_node * node, struct rb_node * parent,
-                struct rb_node ** rb_link)
+static inline void
+pcutils_rbtree_link_node(struct rb_node * node,
+        struct rb_node * parent, struct rb_node ** rb_link)
 {
     node->rb_color = 0;
     node->rb_parent = parent;

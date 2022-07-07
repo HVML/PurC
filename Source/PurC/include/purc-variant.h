@@ -1988,7 +1988,7 @@ typedef enum purc_variant_type
     PURC_VARIANT_TYPE_ARRAY,
 #define PURC_VARIANT_TYPE_NAME_SET          "set"
     PURC_VARIANT_TYPE_SET,
-#define PURC_VARIANT_TYPE_NAME_TUPLE      "tuple"
+#define PURC_VARIANT_TYPE_NAME_TUPLE        "tuple"
     PURC_VARIANT_TYPE_TUPLE,
 
     /* XXX: change this if you append a new type. */

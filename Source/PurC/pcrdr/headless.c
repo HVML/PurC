@@ -121,9 +121,30 @@ struct pcrdr_prot_data {
     struct session_info *session;
 };
 
-static int my_wait_message(pcrdr_conn* conn, int timeout_ms)
+static struct result_info *result_of_first_request(pcrdr_conn* conn)
 {
     if (list_empty(&conn->pending_requests)) {
+        return NULL;
+    }
+
+    struct pending_request *pr;
+    pr = list_first_entry(&conn->pending_requests,
+            struct pending_request, list);
+
+    const char *request_id;
+    request_id = purc_variant_get_string_const(pr->request_id);
+
+    struct result_info **data;
+    data = pcutils_kvlist_get(&conn->prot_data->results, request_id);
+    if (data == NULL)
+        return NULL;
+
+    return *data;
+}
+
+static int my_wait_message(pcrdr_conn* conn, int timeout_ms)
+{
+    if (result_of_first_request(conn) == NULL) {
         if (timeout_ms > 1000) {
             pcutils_sleep(timeout_ms / 1000);
         }
@@ -155,9 +176,10 @@ static ssize_t write_to_log(void *ctxt, const void *buf, size_t count)
 static pcrdr_msg *my_read_message(pcrdr_conn* conn)
 {
     pcrdr_msg* msg = NULL;
-    struct result_info **data;
+    struct result_info *result;
 
-    if (list_empty(&conn->pending_requests)) {
+    if ((result = result_of_first_request(conn)) == NULL) {
+        purc_log_warn("There is not any result for the first request.\n");
         purc_set_error(PCRDR_ERROR_UNEXPECTED);
         return NULL;
     }
@@ -169,32 +191,24 @@ static pcrdr_msg *my_read_message(pcrdr_conn* conn)
     const char *request_id;
     request_id = purc_variant_get_string_const(pr->request_id);
 
-    data = pcutils_kvlist_get(&conn->prot_data->results, request_id);
-    if (data) {
-        struct result_info *result = *data;
-        msg = pcrdr_make_response_message(
-                purc_variant_get_string_const(pr->request_id), NULL,
-                result->retCode, (uint64_t)(uintptr_t)result->resultValue,
-                PCRDR_MSG_DATA_TYPE_VOID, NULL, 0);
-        msg->dataType = result->data_type;
-        msg->data = result->data;
+    msg = pcrdr_make_response_message(
+            request_id, NULL,
+            result->retCode, (uint64_t)(uintptr_t)result->resultValue,
+            PCRDR_MSG_DATA_TYPE_VOID, NULL, 0);
+    msg->dataType = result->data_type;
+    msg->data = result->data;
 
-        pcutils_kvlist_delete(&conn->prot_data->results, request_id);
-        free(result);
+    pcutils_kvlist_delete(&conn->prot_data->results, request_id);
+    free(result);
 
-        if (msg == NULL) {
-            purc_set_error(PCRDR_ERROR_NOMEM);
-        }
-        else {
-            fputs("<<<\n", conn->prot_data->fp);
-            pcrdr_serialize_message(msg,
-                        (pcrdr_cb_write)write_to_log, conn->prot_data->fp);
-            fputs("\n<<<END\n", conn->prot_data->fp);
-        }
+    if (msg == NULL) {
+        purc_set_error(PCRDR_ERROR_NOMEM);
     }
     else {
-        purc_set_error(PCRDR_ERROR_UNEXPECTED);
-        return NULL;
+        fputs("<<<\n", conn->prot_data->fp);
+        pcrdr_serialize_message(msg,
+                (pcrdr_cb_write)write_to_log, conn->prot_data->fp);
+        fputs("\n<<<END\n", conn->prot_data->fp);
     }
 
     return msg;

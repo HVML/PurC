@@ -49,6 +49,7 @@ static void mvheap_cleanup_once(void)
     PC_DEBUG("refc of v_null in move heap: %u\n", move_heap.v_null.refc);
     PC_DEBUG("refc of v_true in move heap: %u\n", move_heap.v_true.refc);
     PC_DEBUG("refc of v_false in move heap: %u\n", move_heap.v_false.refc);
+    PC_DEBUG("refc of v_false in move heap: %u\n", move_heap.v_false.refc);
     PC_DEBUG("total values in move heap: %u\n", (unsigned int)stat->nr_total_values);
     PC_DEBUG("total memory used by move heap: %u\n", (unsigned int)stat->sz_total_mem);
 
@@ -56,6 +57,12 @@ static void mvheap_cleanup_once(void)
     PC_ASSERT(move_heap.v_null.refc == 0);
     PC_ASSERT(move_heap.v_true.refc == 0);
     PC_ASSERT(move_heap.v_false.refc == 0);
+
+    for (int t = PURC_VARIANT_TYPE_FIRST; t < PURC_VARIANT_TYPE_LAST; t++) {
+        PC_DEBUG("values of type (%s): %u\n", purc_variant_typename(t),
+                (unsigned int)stat->nr_values[t]);
+    }
+
     PC_ASSERT(stat->nr_total_values == 4);
     PC_ASSERT(stat->sz_total_mem == 4 * sizeof(purc_variant));
 }
@@ -642,12 +649,188 @@ purc_variant_t pcvariant_move_heap_in(purc_variant_t v)
 
 // move the variant from the move heap to the current instance.
 // we only need to update the stat information.
+static purc_variant_t move_variant_out(purc_variant_t v);
+static purc_variant_t move_array_descendants_out(purc_variant_t v);
+static purc_variant_t move_object_descendants_out(purc_variant_t v);
+static purc_variant_t move_set_descendants_out(purc_variant_t v);
+
+static purc_variant_t move_array_descendants_out(purc_variant_t arr)
+{
+    size_t idx;
+    purc_variant_t v;
+
+    foreach_value_in_variant_array(arr, v, idx) {
+        purc_variant_t retv;
+
+        UNUSED_PARAM(idx);
+        switch (v->type) {
+        case PURC_VARIANT_TYPE_ARRAY:
+            retv = move_array_descendants_out(v);
+            break;
+
+        case PURC_VARIANT_TYPE_OBJECT:
+            retv = move_object_descendants_out(v);
+            break;
+
+        case PURC_VARIANT_TYPE_SET:
+            retv = move_set_descendants_out(v);
+            break;
+
+        default:
+            retv = move_variant_out(v);
+            break;
+        }
+
+        _p->val = retv;
+
+    } end_foreach;
+
+    return arr;
+}
+
+static purc_variant_t move_object_descendants_out(purc_variant_t obj)
+{
+    purc_variant_t k,v;
+    foreach_key_value_in_variant_object(obj, k, v) {
+        purc_variant_t retk, retv;
+
+        retk = move_variant_out(k);
+        switch (v->type) {
+        case PURC_VARIANT_TYPE_ARRAY:
+            retv = move_array_descendants_out(v);
+            break;
+
+        case PURC_VARIANT_TYPE_OBJECT:
+            retv = move_object_descendants_out(v);
+            break;
+
+        case PURC_VARIANT_TYPE_SET:
+            retv = move_set_descendants_out(v);
+            break;
+
+        default:
+            retv = move_variant_out(v);
+            break;
+        }
+
+        _node->key = retk;
+        _node->val = retv;
+
+    } end_foreach;
+
+    return obj;
+}
+
+static purc_variant_t move_set_descendants_out(purc_variant_t set)
+{
+    purc_variant_t v;
+    foreach_value_in_variant_set(set, v) {
+        purc_variant_t retv;
+
+        switch (v->type) {
+        case PURC_VARIANT_TYPE_ARRAY:
+            retv = move_array_descendants_out(v);
+            break;
+
+        case PURC_VARIANT_TYPE_OBJECT:
+            retv = move_object_descendants_out(v);
+            break;
+
+        case PURC_VARIANT_TYPE_SET:
+            retv = move_set_descendants_out(v);
+            break;
+
+        default:
+            retv = move_variant_out(v);
+            break;
+        }
+
+        _sn->val = retv;
+    } end_foreach;
+
+    return set;
+}
+
+static purc_variant_t move_variant_out(purc_variant_t v)
+{
+    purc_variant_t retv = v;
+    struct pcinst *inst = pcinst_current();
+
+    if (v == &move_heap.v_undefined) {
+        retv = &inst->org_vrt_heap->v_undefined;
+        v->refc--;
+        retv->refc++;
+        return retv;
+    }
+    else if (v == &move_heap.v_null) {
+        retv = &inst->org_vrt_heap->v_null;
+        v->refc--;
+        retv->refc++;
+        return retv;
+    }
+    else if (v == &move_heap.v_false) {
+        retv = &inst->org_vrt_heap->v_false;
+        v->refc--;
+        retv->refc++;
+        return retv;
+    }
+    else if (v == &move_heap.v_true) {
+        retv = &inst->org_vrt_heap->v_true;
+        v->refc--;
+        retv->refc++;
+        return retv;
+    }
+    else if ((v->type == PURC_VARIANT_TYPE_STRING ||
+                  v->type == PURC_VARIANT_TYPE_BSEQUENCE) &&
+                 (v->flags & PCVARIANT_FLAG_EXTRA_SIZE)) {
+        inst->org_vrt_heap->stat.sz_mem[v->type] += v->sz_ptr[0];
+        inst->org_vrt_heap->stat.sz_total_mem += v->sz_ptr[0];
+
+        move_heap.stat.sz_mem[v->type] -= v->sz_ptr[0];
+        move_heap.stat.sz_total_mem -= v->sz_ptr[0];
+    }
+    else if (IS_CONTAINER(v->type)) {
+        inst->org_vrt_heap->stat.sz_mem[v->type] += v->sz_ptr[0];
+        inst->org_vrt_heap->stat.sz_total_mem += v->sz_ptr[0];
+
+        move_heap.stat.sz_mem[v->type] -= v->sz_ptr[0];
+        move_heap.stat.sz_total_mem -= v->sz_ptr[0];
+
+        if (v->type == PURC_VARIANT_TYPE_ARRAY) {
+            move_array_descendants_out(v);
+        }
+        else if (v->type == PURC_VARIANT_TYPE_OBJECT) {
+            move_object_descendants_out(v);
+        }
+        else if (v->type == PURC_VARIANT_TYPE_SET) {
+            move_set_descendants_out(v);
+        }
+    }
+
+    inst->org_vrt_heap->stat.nr_values[v->type]++;
+    inst->org_vrt_heap->stat.nr_total_values++;
+    move_heap.stat.nr_values[v->type]--;
+    move_heap.stat.nr_total_values--;
+
+    inst->org_vrt_heap->stat.sz_mem[v->type] += sizeof(purc_variant);
+    inst->org_vrt_heap->stat.sz_total_mem += sizeof(purc_variant);
+    move_heap.stat.sz_mem[v->type] -= sizeof(purc_variant);
+    move_heap.stat.sz_total_mem -= sizeof(purc_variant);
+
+    return retv;
+}
+
 purc_variant_t pcvariant_move_heap_out(purc_variant_t v)
 {
     purc_variant_t retv = PURC_VARIANT_INVALID;
-    struct pcinst *inst = pcinst_current();
 
     pcvariant_use_move_heap();
+    retv = move_variant_out(v);
+    pcvariant_use_norm_heap();
+
+    return retv;
+
+#if 0
     if (v == &move_heap.v_undefined) {
         retv = &inst->org_vrt_heap->v_undefined;
         v->refc--;
@@ -696,6 +879,7 @@ purc_variant_t pcvariant_move_heap_out(purc_variant_t v)
     pcvariant_use_norm_heap();
 
     return retv;
+#endif
 }
 
 void pcvariant_use_move_heap(void)
