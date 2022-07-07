@@ -315,7 +315,6 @@ dispatch_move_buffer_msg(struct pcinst *inst, pcrdr_msg *msg)
                 my_msg->targetValue = co->cid;
                 pcinst_msg_queue_append(co->mq, my_msg);
             }
-            pcrdr_release_message(msg);
         }
     }
         break;
