@@ -356,7 +356,9 @@ purc_inst_post_event(purc_atom_t inst_to, pcrdr_msg *msg)
         return 0;
     }
 
-    return (purc_inst_move_message(inst_to, msg) != 0) ? 0 : -1;
+    int ret = (purc_inst_move_message(inst_to, msg) != 0) ? 0 : -1;
+    pcrdr_release_message(msg);
+    return ret;
 }
 
 int
