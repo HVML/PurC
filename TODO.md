@@ -57,9 +57,9 @@
    - ~~实现 `purc_schedule_vdom()` 替代 `purc_attach_vdom_to_renderer()`。~~
    - ~~调整 `purc_bind_document_variable()` 为 `purc_coroutine_bind_variable()`。~~
 1. 实现支持多实例相关的接口：
-   - `purc_inst_create_or_get()`
-   - `purc_inst_schedule_vdom()`
-   - 完善相关测试用例。
+   - ~~`purc_inst_create_or_get()`~~
+   - ~~`purc_inst_schedule_vdom()`~~
+   - 完善相关测试用例，修复相关缺陷。
 1. 整理代码：
    - 在创建协程时完成协程级变量的绑定，同时处理 `$REQUEST` 的绑定。
    - 合并协程栈以及协程数据结构中重复的字段。
