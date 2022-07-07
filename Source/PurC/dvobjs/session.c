@@ -112,6 +112,57 @@ failed:
     return PURC_VARIANT_INVALID;
 }
 
+static purc_variant_t
+app_getter(purc_variant_t root,
+        size_t nr_args, purc_variant_t *argv, bool silently)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(silently);
+
+    struct pcinst* inst = pcinst_current();
+    return purc_variant_make_string_static(inst->app_name, false);
+}
+
+static purc_variant_t
+runner_getter(purc_variant_t root,
+        size_t nr_args, purc_variant_t *argv, bool silently)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(silently);
+
+    struct pcinst* inst = pcinst_current();
+    return purc_variant_make_string_static(inst->runner_name, false);
+}
+
+static purc_variant_t
+sid_getter(purc_variant_t root,
+        size_t nr_args, purc_variant_t *argv, bool silently)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(silently);
+
+    struct pcinst* inst = pcinst_current();
+    return purc_variant_make_ulongint(inst->endpoint_atom);
+}
+
+static purc_variant_t
+uri_getter(purc_variant_t root,
+        size_t nr_args, purc_variant_t *argv, bool silently)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(silently);
+
+    struct pcinst* inst = pcinst_current();
+    return purc_variant_make_string_static(inst->endpoint_name, false);
+}
 
 purc_variant_t
 purc_dvobj_session_new(void)
@@ -120,6 +171,10 @@ purc_dvobj_session_new(void)
 
     static struct purc_dvobj_method method [] = {
         { "user",   user_getter,    user_setter },
+        { "app",    app_getter,     NULL },
+        { "runner", runner_getter,  NULL },
+        { "sid",    sid_getter,     NULL },
+        { "uri",    uri_getter,     NULL },
     };
 
     retv = purc_dvobj_make_from_methods(method, PCA_TABLESIZE(method));
