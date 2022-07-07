@@ -315,7 +315,7 @@ dispatch_move_buffer_msg(struct pcinst *inst, pcrdr_msg *msg)
                 my_msg->targetValue = co->cid;
                 pcinst_msg_queue_append(co->mq, my_msg);
             }
-            pcinst_put_message(msg);
+            pcrdr_release_message(msg);
         }
     }
         break;
@@ -361,7 +361,7 @@ handle_move_buffer_msg(void)
 
         // TODO: how to handle dispatch failed
         dispatch_move_buffer_msg(inst, msg);
-        pcinst_put_message(msg);
+        pcrdr_release_message(msg);
     }
 }
 
@@ -380,7 +380,7 @@ handle_coroutine_msg(pcintr_coroutine_t co)
     pcrdr_msg *msg = pcinst_msg_queue_get_msg(queue);
     while (msg) {
         dispatch_coroutine_msg(co, msg);
-        pcinst_put_message(msg);
+        pcrdr_release_message(msg);
         msg = pcinst_msg_queue_get_msg(queue);
     }
 }

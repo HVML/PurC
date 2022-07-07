@@ -85,7 +85,7 @@ grind_msg_list(struct list_head *msgs)
         struct pcinst_msg_hdr *hdr;
         hdr = list_entry(p, struct pcinst_msg_hdr, ln);
         list_del(p);
-        pcinst_put_message((pcrdr_msg *)hdr);
+        pcrdr_release_message((pcrdr_msg *)hdr);
         nr++;
     }
     return nr;
@@ -350,7 +350,7 @@ purc_inst_post_event(purc_atom_t inst_to, pcrdr_msg *msg)
                 my_msg->targetValue = co->cid;
                 pcinst_msg_queue_append(co->mq, my_msg);
             }
-            pcinst_put_message(msg);
+            pcrdr_release_message(msg);
         }
 
         return 0;
