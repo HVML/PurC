@@ -79,12 +79,10 @@ pcrun_request_handler(pcrdr_conn* conn, const pcrdr_msg *msg) WTF_INTERNAL;
 
 purc_atom_t
 pcrun_create_inst_thread(const char *app_name, const char *runner_name,
+        purc_cond_handler cond_handler,
         struct purc_instance_extra_info *extra_info, void **th);
 
 void pcrun_instmgr_handle_message(void *ctxt);
-
-int
-pcrun_event_handler(purc_coroutine_t cor, purc_event_t event, void *data);
 
 PCA_EXTERN_C_END
 

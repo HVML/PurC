@@ -332,6 +332,7 @@ pcintr_fire_event_to_target(pcintr_coroutine_t target,
 
 extern "C" purc_atom_t
 pcrun_create_inst_thread(const char *app_name, const char *runner_name,
+        purc_cond_handler cond_handler,
         struct purc_instance_extra_info *extra_info, void **th)
 {
     purc_atom_t atom = 0;
@@ -351,7 +352,7 @@ pcrun_create_inst_thread(const char *app_name, const char *runner_name,
                     atom = inst->intr_heap->move_buff;
                     semaphore.signal();
 
-                    purc_run(pcrun_event_handler);
+                    purc_run(cond_handler);
 
                     purc_cleanup();
                 }

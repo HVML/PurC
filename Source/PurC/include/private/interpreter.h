@@ -99,7 +99,7 @@ struct pcintr_heap {
     purc_atom_t           move_buff;
     pcintr_timer_t        *event_timer; // 10ms
 
-    purc_event_handler    event_handler;
+    purc_cond_handler    cond_handler;
 };
 
 struct pcintr_stack_frame;

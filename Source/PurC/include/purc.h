@@ -582,34 +582,73 @@ PCA_EXPORT purc_variant_t
 purc_coroutine_get_variable(purc_coroutine_t cor, const char *name);
 
 /** The PurC instance events */
-typedef enum purc_event {
-    /** Indicating that there is no coroutine scheduled. */
-    PURC_EVENT_NOCOR = 0,
-    /** Indicating that there is no coroutine in ready state. */
-    PURC_EVENT_IDLE,
-    /** Indicating that a coroutine exited or teminated */
-    PURC_EVENT_EXIT,
-    /** Indicating that PurC is destroying a coroutine */
-    PURC_EVENT_DESTROY,
-} purc_event_t;
+typedef enum purc_cond {
+    /**
+     * Indicating that there is no coroutine scheduled.
+     * In the event handler, `arg` and `data` both are NULL.
+     */
+    PURC_COND_NOCOR = 0,
 
-typedef int (*purc_event_handler)(purc_coroutine_t cor,
-        purc_event_t event, void *data);
+    /**
+     * Indicating that there is no coroutine in ready state.
+     * In the event handler, `arg` and `data` both are NULL.
+     */
+    PURC_COND_IDLE,
+
+    /**
+     * Indicating that there is a new coroutine created.
+     * In the event handler, `arg` is the pointer to the coroutine structure,
+     * `data` is the number of total coroutines.
+     */
+    PURC_COND_NEW_COR,
+
+    /**
+     * Indicating that the PurC instance got an unknown request message.
+     * In the event handler, `arg` is the pointer to the request message,
+     * `data` is the pointer to a response message initialized as
+     * a `void` message.
+     */
+    PURC_COND_UNK_REQUEST,
+
+    /**
+     * Indicating that the PurC instance got an unknown event message.
+     * In the event handler, `arg` is the pointer to the event message,
+     * `data` is NULL.
+     */
+    PURC_COND_UNK_EVENT,
+
+    /**
+     * Indicating that a coroutine exited or teminated.
+     * In the event handler, `arg` is the pointer to the coroutine structure,
+     * `data` is the pointer to the targe document genenerated by the
+     * HVML coroutine.
+     */
+    PURC_COND_EXIT,
+
+    /**
+     * Indicating that PurC is destroying a coroutine.
+     * In the event handler, `arg` is the pointer to the coroutine structure,
+     * `data` is the user data bound to the corontine.
+     */
+    PURC_COND_DESTROY,
+} purc_cond_t;
+
+typedef int (*purc_cond_handler)(purc_cond_t event, void *arg, void *data);
 
 #define PURC_INVPTR         ((void *)-1)
 
 /**
- * purc_get_event_handler:
+ * purc_get_cond_handler:
  *
  * Returns: The pointer to the current event handler; @PURC_INVPTR for error.
  *
  * Since 0.2.0
  */
-PCA_EXPORT purc_event_handler
-purc_get_event_handler(void);
+PCA_EXPORT purc_cond_handler
+purc_get_cond_handler(void);
 
 /**
- * purc_set_event_handler:
+ * purc_set_cond_handler:
  *
  * @handler: The pointer to a call-back function which handles
  *      the session events.
@@ -621,8 +660,8 @@ purc_get_event_handler(void);
  *
  * Since 0.2.0
  */
-PCA_EXPORT purc_event_handler
-purc_set_event_handler(purc_event_handler handler);
+PCA_EXPORT purc_cond_handler
+purc_set_cond_handler(purc_cond_handler handler);
 
 /**
  * purc_run:
@@ -638,7 +677,7 @@ purc_set_event_handler(purc_event_handler handler);
  * Since 0.0.1
  */
 PCA_EXPORT int
-purc_run(purc_event_handler handler);
+purc_run(purc_cond_handler handler);
 
 /**
  * purc_inst_create_or_get:
@@ -648,6 +687,7 @@ purc_run(purc_event_handler handler);
  *      line will be used for the app name.
  * @runner_name: a pointer to the string contains the runner name.
  *      If this argument is null, `unknown` will be used for the runner name.
+ * @cond_handler: a pointer to the condition handler for the new instance.
  * @extra_info: a pointer (nullable) to the extra information for the new
  *      PurC instance, e.g., the type and the URI of the renderer.
  *
@@ -660,6 +700,7 @@ purc_run(purc_event_handler handler);
  */
 PCA_EXPORT purc_atom_t
 purc_inst_create_or_get(const char *app_name, const char *runner_name,
+        purc_cond_handler cond_handler,
         const purc_instance_extra_info* extra_info);
 
 /**

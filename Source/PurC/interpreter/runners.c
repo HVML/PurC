@@ -251,20 +251,6 @@ void pcrun_request_handler(pcrdr_conn* conn, const pcrdr_msg *msg)
     pcrdr_release_message(response);
 }
 
-int
-pcrun_event_handler(purc_coroutine_t cor, purc_event_t event, void *data)
-{
-    UNUSED_PARAM(cor);
-    UNUSED_PARAM(data);
-
-    if (event == PURC_EVENT_NOCOR) {
-        struct pcinst* inst = pcinst_current();
-        return inst->request_to_shutdown ? -1 : 0;
-    }
-
-    return 0;
-}
-
 pcrdr_msg *pcrun_extra_message_source(pcrdr_conn* conn, void *ctxt)
 {
     UNUSED_PARAM(conn);
@@ -318,6 +304,14 @@ static void get_instance(struct instmgr_info *mgr_info,
         goto done;
     }
 
+    purc_cond_handler cond_handler = NULL;
+    tmp = purc_variant_object_get_by_ckey(request->data, "condHandler");
+    if (tmp) {
+        uint64_t u64;
+        purc_variant_cast_to_ulongint(tmp, &u64, false);
+        cond_handler = (purc_cond_handler)(uintptr_t)u64;
+    }
+
     struct purc_instance_extra_info info = {};
 
     tmp = purc_variant_object_get_by_ckey(request->data, "rendererProt");
@@ -358,7 +352,8 @@ static void get_instance(struct instmgr_info *mgr_info,
     }
 
     void *th;
-    atom = pcrun_create_inst_thread(app_name, runner_name, &info, &th);
+    atom = pcrun_create_inst_thread(app_name, runner_name, cond_handler,
+            &info, &th);
     if (atom) {
         pcutils_sorted_array_add(mgr_info->sa_insts,
                 (void *)(uintptr_t)atom, th);
@@ -619,6 +614,7 @@ void pcrun_instmgr_handle_message(void *ctxt)
 
 purc_atom_t
 purc_inst_create_or_get(const char *app_name, const char *runner_name,
+        purc_cond_handler cond_handler,
         const purc_instance_extra_info* extra_info)
 {
     char endpoint_name[PURC_LEN_ENDPOINT_NAME + 1];
@@ -634,8 +630,10 @@ purc_inst_create_or_get(const char *app_name, const char *runner_name,
             endpoint_name, sizeof(endpoint_name) - 1);
     purc_atom_t atom = purc_atom_try_string_ex(PURC_ATOM_BUCKET_USER,
             endpoint_name);
-    if (atom != 0)
+    if (atom != 0) {
+        /* TODO: change the condition handler for an exisiting runner? */
         return atom;
+    }
 
     purc_assemble_endpoint_name_ex(PCRDR_LOCALHOST,
             PCRUN_INSTMGR_APP_NAME, PCRUN_INSTMGR_RUN_NAME,
@@ -664,6 +662,12 @@ purc_inst_create_or_get(const char *app_name, const char *runner_name,
     tmp = purc_variant_make_string_static(runner_name, false);
     purc_variant_object_set_by_static_ckey(data, "runnerName", tmp);
     purc_variant_unref(tmp);
+
+    if (cond_handler) {
+        tmp = purc_variant_make_ulongint((uint64_t)(uintptr_t)cond_handler);
+        purc_variant_object_set_by_static_ckey(data, "condHandler", tmp);
+        purc_variant_unref(tmp);
+    }
 
     if (extra_info) {
         tmp = purc_variant_make_ulongint((uint64_t)extra_info->renderer_prot);
@@ -925,6 +929,20 @@ start_instance(const char *app, const char *run,
     sem_close(arg.sync);
 
     return arg.atom;
+}
+
+int
+pcrun_event_handler(purc_coroutine_t cor, purc_cond_t event, void *data)
+{
+    UNUSED_PARAM(cor);
+    UNUSED_PARAM(data);
+
+    if (event == PURC_COND_NOCOR) {
+        struct pcinst* inst = pcinst_current();
+        return inst->request_to_shutdown ? -1 : 0;
+    }
+
+    return 0;
 }
 
 #endif /* USE(PTHREADS) */

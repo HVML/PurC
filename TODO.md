@@ -56,6 +56,8 @@
 1. 接口及实现调整：
    - ~~实现 `purc_schedule_vdom()` 替代 `purc_attach_vdom_to_renderer()`。~~
    - ~~调整 `purc_bind_document_variable()` 为 `purc_coroutine_bind_variable()`。~~
+   - 调整 `purc_run()` 的实现，产生 `idle` 事件，并根据 `purc_cond_hanlder` 回调函数的设置情况及其返回值确定是否终止循环。
+   - 当未收到任何底层事件的时间累计达到或超过 100ms 时，产生一次 `idle` 事件，广播给所有进入事件循环阶段的协程，此事件可规约。
 1. 实现支持多实例相关的接口：
    - ~~`purc_inst_create_or_get()`~~
    - ~~`purc_inst_schedule_vdom()`~~
