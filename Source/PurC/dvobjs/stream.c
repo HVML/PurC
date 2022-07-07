@@ -961,8 +961,7 @@ static void on_stream_io_callback(void *ctxt)
         sub = STREAM_SUB_EVENT_WRITE;
     }
     if (sub) {
-        purc_variant_t source_uri = purc_variant_make_string(
-                stack->co->full_name, false);
+        purc_variant_t source_uri = pcintr_coroutine_build_source_uri(stack->co);
         pcintr_post_event_by_ctype(stack->co->cid,
                 PCRDR_MSG_EVENT_REDUCE_OPT_IGNORE, source_uri,
                 stream->observed, STREAM_EVENT_NAME, sub,

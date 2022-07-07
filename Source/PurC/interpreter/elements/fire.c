@@ -308,8 +308,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         const char* name = purc_variant_get_string_const(ctxt->at);
         purc_variant_t observed = pcintr_get_named_var_for_event(stack, name);
         if (observed) {
-            purc_variant_t source_uri = purc_variant_make_string(
-                    stack->co->full_name, false);
+            purc_variant_t source_uri = pcintr_coroutine_build_source_uri(
+                    stack->co);
             int ret = pcintr_post_event_by_ctype(stack->co->cid,
                     PCRDR_MSG_EVENT_REDUCE_OPT_IGNORE, source_uri,
                     observed, ctxt->msg_type, ctxt->sub_type,
@@ -327,8 +327,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
             // XXX: optimization
             // CSS selector used string
             // handle by elements.c match_observe
-            purc_variant_t source_uri = purc_variant_make_string(
-                    stack->co->full_name, false);
+            purc_variant_t source_uri = pcintr_coroutine_build_source_uri(
+                    stack->co);
             int ret = pcintr_post_event_by_ctype(stack->co->cid,
                     PCRDR_MSG_EVENT_REDUCE_OPT_IGNORE, source_uri,
                     on, ctxt->msg_type, ctxt->sub_type,
@@ -340,8 +340,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         }
         else
         {
-            purc_variant_t source_uri = purc_variant_make_string(
-                    stack->co->full_name, false);
+            purc_variant_t source_uri = pcintr_coroutine_build_source_uri(
+                    stack->co);
             int ret = pcintr_post_event_by_ctype(stack->co->cid,
                     PCRDR_MSG_EVENT_REDUCE_OPT_IGNORE, source_uri,
                     on, ctxt->msg_type, ctxt->sub_type,

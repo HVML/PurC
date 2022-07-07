@@ -133,8 +133,8 @@ static bool mgr_grow_handler(purc_variant_t source, pcvar_op_t msg_type,
     if (dest) {
         pcintr_stack_t stack = pcintr_get_stack();
 
-        purc_variant_t source_uri = purc_variant_make_string(
-                stack->co->full_name, false);
+        purc_variant_t source_uri = pcintr_coroutine_build_source_uri(
+                stack->co);
         pcintr_post_event_by_ctype(stack->co->cid,
                 PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY, source_uri,
                 dest, MSG_TYPE_CHANGE, SUB_TYPE_ATTACHED,
@@ -163,8 +163,8 @@ static bool mgr_shrink_handler(purc_variant_t source, pcvar_op_t msg_type,
     purc_variant_t dest = pcvarmgr_build_event_observed(name, mgr);
     if (dest) {
         pcintr_stack_t stack = pcintr_get_stack();
-        purc_variant_t source_uri = purc_variant_make_string(
-                stack->co->full_name, false);
+        purc_variant_t source_uri = pcintr_coroutine_build_source_uri(
+                stack->co);
         pcintr_post_event_by_ctype(stack->co->cid,
                 PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY, source_uri,
                 dest, MSG_TYPE_CHANGE, SUB_TYPE_DETACHED,
@@ -194,8 +194,8 @@ static bool mgr_change_handler(purc_variant_t source, pcvar_op_t msg_type,
     if (dest) {
         pcintr_stack_t stack = pcintr_get_stack();
 
-        purc_variant_t source_uri = purc_variant_make_string(
-                stack->co->full_name, false);
+        purc_variant_t source_uri = pcintr_coroutine_build_source_uri(
+                stack->co);
         pcintr_post_event_by_ctype(stack->co->cid,
                 PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY, source_uri,
                 dest, MSG_TYPE_CHANGE, SUB_TYPE_DISPLACED,
@@ -366,8 +366,8 @@ bool pcvarmgr_dispatch_except(pcvarmgr_t mgr, const char* name,
     if (dest) {
         pcintr_stack_t stack = pcintr_get_stack();
 
-        purc_variant_t source_uri = purc_variant_make_string(
-                stack->co->full_name, false);
+        purc_variant_t source_uri = pcintr_coroutine_build_source_uri(
+                stack->co);
         pcintr_post_event_by_ctype(stack->co->cid,
                 PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY, source_uri,
                 dest, MSG_TYPE_CHANGE, except,
