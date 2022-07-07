@@ -430,6 +430,10 @@ pcintr_post_event(purc_atom_t co_id,
         msg->sourceURI = source_uri;
         purc_variant_ref(msg->sourceURI);
     }
+    else {
+        const char *uri = purc_atom_to_string(co_id);
+        msg->sourceURI = purc_variant_make_string(uri, false);
+    }
 
     msg->eventName = event_name;
     purc_variant_ref(msg->eventName);
