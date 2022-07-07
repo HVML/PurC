@@ -76,7 +76,7 @@ void
 pcintr_dispatch_msg(void);
 
 void
-pcintr_check_and_dispatch_coroutine_event(pcintr_coroutine_t co);
+pcintr_conn_event_handler(pcrdr_conn *conn, const pcrdr_msg *msg);
 
 void
 pcintr_synchronize(void *ctxt, void (*routine)(void *ctxt));

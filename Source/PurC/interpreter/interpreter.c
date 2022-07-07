@@ -3533,13 +3533,10 @@ pcintr_observe_vcm_ev(pcintr_stack_t stack, struct pcintr_observer* observer,
             frame->silently ? true : false);
 
     // dispatch change event
-    purc_variant_t source_uri = pcintr_coroutine_build_source_uri(
-            stack->co);
-    pcintr_post_event_by_ctype(stack->co->cid,
-            PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY, source_uri,
+    pcintr_coroutine_post_event(stack->co->cid,
+            PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
             var, MSG_TYPE_CHANGE, NULL,
             PURC_VARIANT_INVALID);
-    purc_variant_unref(source_uri);
 }
 
 purc_runloop_t
@@ -3590,6 +3587,15 @@ event_timer_fire(pcintr_timer_t timer, const char* id, void* data)
     PC_ASSERT(pcintr_get_heap());
 
     struct pcinst *inst = (struct pcinst *)data;
+    struct pcrdr_conn *conn =  purc_get_conn_to_renderer();
+
+    if (conn) {
+        pcrdr_event_handler handle = pcrdr_conn_get_event_handler(conn);
+        if (!handle) {
+            pcrdr_conn_set_event_handler(conn, pcintr_conn_event_handler);
+        }
+    }
+
     pcintr_dispatch_msg();
 
     if (inst != NULL && inst->rdr_caps != NULL) {
