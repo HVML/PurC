@@ -760,6 +760,13 @@ pcintr_post_event_by_ctype(purc_atom_t co_id,
         purc_variant_t observed, const char *event_type,
         const char *event_sub_type, purc_variant_t data);
 
+
+static inline const char*
+pcintr_coroutine_get_uri(pcintr_coroutine_t co)
+{
+    return purc_atom_to_string(co->cid);
+}
+
 PCA_EXTERN_C_END
 
 #endif  /* PURC_PRIVATE_INTERPRETER_H */
