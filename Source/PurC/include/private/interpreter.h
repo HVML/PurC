@@ -92,7 +92,6 @@ struct pcintr_heap {
     struct rb_root        coroutines;
 
     pthread_mutex_t       locker;
-    volatile bool         exiting;
     struct list_head      routines;     // struct pcintr_routine
 
     int64_t               next_coroutine_id;
@@ -100,6 +99,7 @@ struct pcintr_heap {
     pcintr_timer_t        *event_timer; // 10ms
 
     purc_cond_handler    cond_handler;
+    unsigned int         keep_alive:1;
 };
 
 struct pcintr_stack_frame;

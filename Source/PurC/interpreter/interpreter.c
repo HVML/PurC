@@ -522,8 +522,10 @@ static void _cleanup_instance(struct pcinst* inst)
         PC_ASSERT(heap->owning_heaps == NULL);
     }
 
+#if 0 // VW
     PC_ASSERT(heap->exiting == false);
     heap->exiting = true;
+#endif
 
     struct rb_root *coroutines = &heap->coroutines;
 
@@ -1713,7 +1715,7 @@ static void execute_one_step_for_exiting_co(pcintr_coroutine_t co)
     pcutils_rbtree_erase(&co->node, &heap->coroutines);
     coroutine_destroy(co);
 
-    if (inst->keep_alive == 0 &&
+    if (heap->keep_alive == 0 &&
             pcutils_rbtree_first(&heap->coroutines) == NULL)
     {
         purc_runloop_stop(inst->running_loop);
@@ -2438,6 +2440,7 @@ purc_run(purc_cond_handler handler)
         return -1;
     }
 
+    heap->keep_alive = 0;
     heap->cond_handler = handler;
     purc_runloop_run();
 

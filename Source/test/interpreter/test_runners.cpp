@@ -151,6 +151,13 @@ TEST(interpreter, runners)
 
     purc_run(NULL);
 
+    unsigned int seconds = 0;
+    while (purc_atom_to_string(work_inst) && seconds < 10) {
+        purc_log_info("Wait for the termination of worker instance...\n");
+        sleep(1);
+        seconds++;
+    }
+
     purc_variant_unref(request);
     purc_variant_unref(toolkit_style);
 }

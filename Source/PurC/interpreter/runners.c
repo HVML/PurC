@@ -37,9 +37,6 @@
 
 static void create_coroutine(const pcrdr_msg *msg, pcrdr_msg *response)
 {
-    UNUSED_PARAM(msg);
-    UNUSED_PARAM(response);
-
     if (msg->dataType != PCRDR_MSG_DATA_TYPE_JSON)
         return;
 
@@ -148,6 +145,54 @@ static void create_coroutine(const pcrdr_msg *msg, pcrdr_msg *response)
     }
 }
 
+static void shutdown_instance(purc_atom_t requester,
+        const pcrdr_msg *msg, pcrdr_msg *response)
+{
+    purc_atom_t self_atom;
+    const char *self_ept = purc_get_endpoint(&self_atom);
+    if (self_atom != requester) {
+        const char *rqst_ept = purc_variant_get_string_const(msg->sourceURI);
+
+        char self_host_name[PURC_LEN_HOST_NAME + 1];
+        purc_extract_host_name(self_ept, self_host_name);
+
+        char self_app_name[PURC_LEN_APP_NAME + 1];
+        purc_extract_app_name(self_ept, self_app_name);
+
+        char rqst_host_name[PURC_LEN_HOST_NAME + 1];
+        purc_extract_host_name(rqst_ept, rqst_host_name);
+
+        char rqst_app_name[PURC_LEN_APP_NAME + 1];
+        purc_extract_app_name(rqst_ept, rqst_app_name);
+
+        if (strcmp(self_host_name, rqst_host_name) ||
+                strcmp(self_app_name, rqst_app_name)) {
+            // not allowed
+            return;
+        }
+    }
+
+    struct pcinst *inst = pcinst_current();
+    assert(inst && inst->intr_heap);
+    if (inst->intr_heap->cond_handler) {
+        if (inst->intr_heap->cond_handler(PURC_COND_SHUTDOWN_ASKED,
+                (void*)msg, NULL) == 0) {
+            inst->intr_heap->keep_alive = 0;
+        }
+    }
+    else {
+        inst->intr_heap->keep_alive = 0;
+    }
+
+    response->type = PCRDR_MSG_TYPE_RESPONSE;
+    response->requestId = purc_variant_ref(msg->requestId);
+    response->sourceURI = purc_variant_make_string(self_ept, false);
+    response->retCode = PCRDR_SC_OK;
+    response->resultValue = 0;
+    response->dataType = PCRDR_MSG_DATA_TYPE_VOID;
+    response->data = PURC_VARIANT_INVALID;
+}
+
 /*
    A request message sent to the instance can be used to manage
    the coroutines, for example, create or kill a coroutine. This type
@@ -220,7 +265,7 @@ void pcrun_request_handler(pcrdr_conn* conn, const pcrdr_msg *msg)
             purc_log_warn("Not implemented operation: %s\n", op);
         }
         else if (strcmp(op, PCRUN_OPERATION_shutdownInstance) == 0) {
-            purc_log_warn("Not implemented operation: %s\n", op);
+            shutdown_instance(requester, msg, response);
         }
         else {
             struct pcinst *inst = pcinst_current();
@@ -311,6 +356,9 @@ static void create_instance(struct instmgr_info *mgr_info,
         return;
     }
 
+    purc_assemble_endpoint_name_ex(PCRDR_LOCALHOST,
+            app_name, runner_name,
+            endpoint_name, sizeof(endpoint_name) - 1);
     purc_atom_t atom = purc_atom_try_string_ex(PURC_ATOM_BUCKET_USER,
             endpoint_name);
     if (atom) {
@@ -728,17 +776,20 @@ purc_inst_create_or_get(const char *app_name, const char *runner_name,
         }
     }
 
+    purc_variant_t request_id = purc_variant_ref(request->requestId);
+
     request->dataType = PCRDR_MSG_DATA_TYPE_JSON;
     request->data = data;
     purc_inst_move_message(atom, request);
+    pcrdr_release_message(request);
 
     struct pcrdr_conn *conn = purc_get_conn_to_renderer();
     assert(conn);
 
-    pcrdr_msg *response;
+    pcrdr_msg *response = NULL;
     int ret = pcrdr_wait_response_for_specific_request(conn,
-            request->requestId, 0, &response); // Wait forever
-    pcrdr_release_message(request);
+            request_id, 0, &response); // Wait forever
+    purc_variant_unref(request_id);
 
     if (ret) {
         purc_log_error("Failed to create a new instance: %s\n",
@@ -767,7 +818,11 @@ purc_inst_schedule_vdom(purc_atom_t inst, purc_vdom_t vdom,
         const char *body_id)
 {
     const char *inst_endpoint = purc_atom_to_string(inst);
-    if (inst_endpoint == NULL) {
+    struct pcinst *curr_inst = pcinst_current();
+    if (inst_endpoint == NULL || curr_inst == NULL ||
+            curr_inst->intr_heap == NULL ||
+            curr_inst->intr_heap->move_buff == inst) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
         return 0;
     }
 
@@ -850,15 +905,18 @@ purc_inst_schedule_vdom(purc_atom_t inst, purc_vdom_t vdom,
 
     request_msg->dataType = PCRDR_MSG_DATA_TYPE_JSON;
     request_msg->data = data;
+
+    purc_variant_t request_id = purc_variant_ref(request_msg->requestId);
     purc_inst_move_message(inst, request_msg);
+    pcrdr_release_message(request_msg);
 
     struct pcrdr_conn *conn = purc_get_conn_to_renderer();
     assert(conn);
 
-    pcrdr_msg *response;
+    pcrdr_msg *response = NULL;
     int ret = pcrdr_wait_response_for_specific_request(conn,
-            request_msg->requestId, 1, &response);
-    pcrdr_release_message(request_msg);
+            request_id, 1, &response);
+    purc_variant_unref(request_id);
 
     if (ret || response->retCode != PCRDR_SC_OK) {
         purc_log_error("Failed to schedule vDOM in another instance\n");
@@ -871,96 +929,51 @@ purc_inst_schedule_vdom(purc_atom_t inst, purc_vdom_t vdom,
     return atom;
 }
 
-#if 0 //
-
-#include <pthread.h>
-#include <semaphore.h>
-#include <unistd.h>
-#include <fcntl.h>           /* For O_* constants */
-
-struct inst_arg {
-    sem_t      *sync;
-    const char *app;
-    const char *run;
-    const purc_instance_extra_info* extra_info;
-    purc_atom_t atom;
-};
-
-static void* general_instance_entry(void* arg)
-{
-    struct inst_arg *inst_arg = (struct inst_arg *)arg;
-
-    int ret = purc_init_ex(PURC_MODULE_HVML,
-            inst_arg->app, inst_arg->run, inst_arg->extra_info);
-
-    inst_arg->atom = 0;
-    if (ret != PURC_ERROR_OK) {
-        sem_post(inst_arg->sync);
-        return NULL;
-    }
-
-    struct pcinst *inst = pcinst_current();
-    assert(inst && inst->instr_heap);
-    inst_arg->atom = inst->intr_heap->move_buff;
-    sem_post(inst_arg->sync);
-
-    purc_run(inst_event_handler);
-
-    purc_cleanup();
-    return NULL;
-}
-
-static purc_atom_t
-start_instance(const char *app, const char *run,
-        const purc_instance_extra_info* extra_info)
-{
-    pthread_t th;
-    struct inst_arg arg;
-
-    pthread_attr_t attr;
-    pthread_attr_init(&attr);
-    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-
-    char sem_name[PURC_LEN_UNIQUE_ID + 1];
-    purc_generate_unique_id(sem_name, "/SEM4SYNC");
-    sem_unlink(sem_name);
-    arg.sync = sem_open(sem_name, O_CREAT | O_EXCL, 0644, 0);
-    if (arg.sync == SEM_FAILED) {
-        purc_set_error(PURC_ERROR_BAD_SYSTEM_CALL);
-        purc_log_error("failed to create semaphore: %s\n", strerror(errno));
-        return 0;
-    }
-    arg.app = app;
-    arg.run = run;
-    arg.extra_info = extra_info;
-    int ret = pthread_create(&th, &attr, general_instance_entry, &arg);
-    if (ret) {
-        sem_close(arg.sync);
-        purc_log_error("failed to create thread for instance: %s/%s\n",
-                app, run);
-        return 0;
-    }
-    pthread_attr_destroy(&attr);
-
-    sem_wait(arg.sync);
-    sem_close(arg.sync);
-
-    return arg.atom;
-}
-
 int
-pcrun_event_handler(purc_coroutine_t cor, purc_cond_t event, void *data)
+purc_inst_ask_to_shutdown(purc_atom_t inst)
 {
-    UNUSED_PARAM(cor);
-    UNUSED_PARAM(data);
-
-    if (event == PURC_COND_NOCOR) {
-        struct pcinst* inst = pcinst_current();
-        return inst->request_to_shutdown ? -1 : 0;
+    const char *inst_endpoint = purc_atom_to_string(inst);
+    if (inst_endpoint == NULL) {
+        return PCRDR_SC_OK;
     }
 
-    return 0;
-}
+    struct pcinst *curr_inst = pcinst_current();
+    if (curr_inst == NULL || curr_inst->intr_heap == NULL ||
+            curr_inst->intr_heap->move_buff == inst) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        return -1;
+    }
 
-#endif /* USE(PTHREADS) */
+    pcrdr_msg *request_msg = pcrdr_make_request_message(
+            PCRDR_MSG_TARGET_INSTANCE, inst,
+            PCRUN_OPERATION_shutdownInstance, NULL,
+            purc_get_endpoint(NULL),
+            PCRDR_MSG_ELEMENT_TYPE_VOID, NULL,
+            NULL,
+            PCRDR_MSG_DATA_TYPE_VOID, NULL, 0);
+
+    purc_variant_t request_id = purc_variant_ref(request_msg->requestId);
+    purc_inst_move_message(inst, request_msg);
+    pcrdr_release_message(request_msg);
+
+    struct pcrdr_conn *conn = purc_get_conn_to_renderer();
+    assert(conn);
+
+    pcrdr_msg *response = NULL;
+    int ret = pcrdr_wait_response_for_specific_request(conn,
+            request_id, 1, &response);
+    purc_variant_unref(request_id);
+
+    int retv = 0;
+    if (ret || response == NULL) {
+        purc_log_error("Failed to ask the instance to shutdown\n");
+        retv = -1;
+    }
+    else {
+        retv = response->retCode;
+    }
+
+    pcrdr_release_message(response);
+    return retv;
+}
 

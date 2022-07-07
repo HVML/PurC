@@ -581,11 +581,11 @@ purc_coroutine_unbind_variable(purc_coroutine_t cor, const char *name);
 PCA_EXPORT purc_variant_t
 purc_coroutine_get_variable(purc_coroutine_t cor, const char *name);
 
-/** The PurC instance events */
+/** The PurC instance conditions */
 typedef enum purc_cond {
     /**
      * Indicating that the instance has started.
-     * In the event handler, `arg` is the atom value of the instance,
+     * In the condition handler, `arg` is the atom value of the instance,
      * `data` is the pointer to the struct purc_instance_extra_info,
      * in which contains the extra information to start the instance.
      */
@@ -593,33 +593,33 @@ typedef enum purc_cond {
 
     /**
      * Indicating that the instance has stopped.
-     * In the event handler, `arg` is the atom value of the instance,
+     * In the condition handler, `arg` is the atom value of the instance,
      * `data` is NULL.
      */
     PURC_COND_STOPPED,
 
     /**
      * Indicating that there is no coroutine scheduled.
-     * In the event handler, `arg` and `data` both are NULL.
+     * In the condition handler, `arg` and `data` both are NULL.
      */
     PURC_COND_NOCOR,
 
     /**
      * Indicating that there is no coroutine in ready state.
-     * In the event handler, `arg` and `data` both are NULL.
+     * In the condition handler, `arg` and `data` both are NULL.
      */
     PURC_COND_IDLE,
 
     /**
      * Indicating that there is a new coroutine created.
-     * In the event handler, `arg` is the pointer to the coroutine structure,
+     * In the condition handler, `arg` is the pointer to the coroutine structure,
      * `data` is the coroutine indentifier.
      */
     PURC_COND_COR_CREATED,
 
     /**
      * Indicating that a coroutine exited or teminated.
-     * In the event handler, `arg` is the pointer to the coroutine structure,
+     * In the condition handler, `arg` is the pointer to the coroutine structure,
      * `data` is the pointer to the targe document genenerated by the
      * HVML coroutine.
      */
@@ -627,14 +627,14 @@ typedef enum purc_cond {
 
     /**
      * Indicating that PurC is destroying a coroutine.
-     * In the event handler, `arg` is the pointer to the coroutine structure,
+     * In the condition handler, `arg` is the pointer to the coroutine structure,
      * `data` is the user data bound to the corontine.
      */
     PURC_COND_COR_DESTROYED,
 
     /**
      * Indicating that the PurC instance got an unknown request message.
-     * In the event handler, `arg` is the pointer to the request message,
+     * In the condition handler, `arg` is the pointer to the request message,
      * `data` is the pointer to a response message initialized as
      * a `void` message.
      */
@@ -642,10 +642,19 @@ typedef enum purc_cond {
 
     /**
      * Indicating that the PurC instance got an unknown event message.
-     * In the event handler, `arg` is the pointer to the event message,
+     * In the condition handler, `arg` is the pointer to the event message,
      * `data` is NULL.
      */
     PURC_COND_UNK_EVENT,
+
+    /**
+     * Indicating that the PurC instance has been asked by another intance to
+     * to shutdown.
+     *
+     * In the condition handler, `arg` is the pointer to the request message,
+     * `data` is NULL. If allowed, the condition handler should returns 0.
+     */
+    PURC_COND_SHUTDOWN_ASKED,
 
 } purc_cond_t;
 
@@ -656,7 +665,7 @@ typedef int (*purc_cond_handler)(purc_cond_t event, void *arg, void *data);
 /**
  * purc_get_cond_handler:
  *
- * Returns: The pointer to the current event handler; @PURC_INVPTR for error.
+ * Returns: The pointer to the current condition handler; @PURC_INVPTR for error.
  *
  * Since 0.2.0
  */
@@ -669,10 +678,10 @@ purc_get_cond_handler(void);
  * @handler: The pointer to a call-back function which handles
  *      the session events.
  *
- * Sets the event handler of the current PurC instance, and returns
- * the old event handler.
+ * Sets the condition handler of the current PurC instance, and returns
+ * the old condition handler.
  *
- * Returns: The pointer to the old event handler; @PURC_INVPTR for error.
+ * Returns: The pointer to the old condition handler; @PURC_INVPTR for error.
  *
  * Since 0.2.0
  */
@@ -718,6 +727,22 @@ PCA_EXPORT purc_atom_t
 purc_inst_create_or_get(const char *app_name, const char *runner_name,
         purc_cond_handler cond_handler,
         const purc_instance_extra_info* extra_info);
+
+/**
+ * purc_inst_ask_to_shutdown:
+ *
+ * @inst: The atom representing the target PurC instance differs
+ *  from the current instance.
+ *
+ * Asks the specified instance to shutdown. This function send a
+ * `shutdownIntance` request to the target instance.
+ *
+ * Returns: The return code of the request; -1 on failure to send the request.
+ *
+ * Since 0.2.0
+ */
+PCA_EXPORT int
+purc_inst_ask_to_shutdown(purc_atom_t inst);
 
 /**
  * purc_inst_schedule_vdom:

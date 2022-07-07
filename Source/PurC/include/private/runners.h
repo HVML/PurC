@@ -60,10 +60,6 @@ enum {
 #define PCRUN_NR_OPERATIONS \
     (PCRUN_K_OPERATION_LAST - PCRUN_K_OPERATION_FIRST + 1)
 
-struct pcrun_inst_info {
-    bool request_to_shutdown;
-};
-
 struct instmgr_info {
     unsigned nr_insts;
     struct sorted_array *sa_insts;
