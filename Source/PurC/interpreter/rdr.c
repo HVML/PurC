@@ -813,9 +813,9 @@ void pcintr_rdr_event_handler(pcrdr_conn *conn, const pcrdr_msg *msg)
     }
 
     // FIXME: soure_uri msg->sourcURI or  co->full_name
-    purc_variant_t source_uri = purc_variant_make_string(
-            stack->co->full_name, false);
-    pcintr_post_event(stack->co->ident, msg->reduceOpt, source_uri, source,
+    purc_variant_t source_uri = pcintr_coroutine_build_source_uri(
+            stack->co);
+    pcintr_post_event(stack->co->cid, msg->reduceOpt, source_uri, source,
             msg->eventName, msg->data);
     purc_variant_unref(source_uri);
 

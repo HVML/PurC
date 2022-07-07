@@ -258,8 +258,7 @@ struct pcintr_coroutine_result {
 
 struct pcintr_coroutine {
     pcintr_heap_t               owner;    /* owner heap */
-    char                       *full_name;   /* prefixed with runnerName/ */
-    purc_atom_t                 ident;
+    purc_atom_t                 cid;
     purc_atom_t                 curator;
 
     purc_vdom_t                 vdom;
@@ -759,6 +758,20 @@ pcintr_post_event_by_ctype(purc_atom_t co_id,
         pcrdr_msg_event_reduce_opt reduce_op, purc_variant_t source_uri,
         purc_variant_t observed, const char *event_type,
         const char *event_sub_type, purc_variant_t data);
+
+
+static inline const char*
+pcintr_coroutine_get_uri(pcintr_coroutine_t co)
+{
+    return purc_atom_to_string(co->cid);
+}
+
+static inline purc_variant_t
+pcintr_coroutine_build_source_uri(pcintr_coroutine_t co)
+{
+    const char *uri = pcintr_coroutine_get_uri(co);
+    return purc_variant_make_string(uri, false);
+}
 
 PCA_EXTERN_C_END
 

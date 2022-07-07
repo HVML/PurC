@@ -85,7 +85,7 @@ grind_msg_list(struct list_head *msgs)
         struct pcinst_msg_hdr *hdr;
         hdr = list_entry(p, struct pcinst_msg_hdr, ln);
         list_del(p);
-        pcinst_put_message((pcrdr_msg *)hdr);
+        pcrdr_release_message((pcrdr_msg *)hdr);
         nr++;
     }
     return nr;
@@ -336,7 +336,7 @@ purc_inst_post_event(purc_atom_t inst_to, pcrdr_msg *msg)
             pcutils_rbtree_for_each_safe(first, p, n) {
                 pcintr_coroutine_t co = container_of(p, struct pcintr_coroutine,
                         node);
-                if (co->ident == msg->targetValue) {
+                if (co->cid == msg->targetValue) {
                     return pcinst_msg_queue_append(co->mq, msg);
                 }
             }
@@ -347,16 +347,18 @@ purc_inst_post_event(purc_atom_t inst_to, pcrdr_msg *msg)
                         node);
 
                 pcrdr_msg *my_msg = pcrdr_clone_message(msg);
-                my_msg->targetValue = co->ident;
+                my_msg->targetValue = co->cid;
                 pcinst_msg_queue_append(co->mq, my_msg);
             }
-            pcinst_put_message(msg);
+            pcrdr_release_message(msg);
         }
 
         return 0;
     }
 
-    return (purc_inst_move_message(inst_to, msg) != 0) ? 0 : -1;
+    int ret = (purc_inst_move_message(inst_to, msg) != 0) ? 0 : -1;
+    pcrdr_release_message(msg);
+    return ret;
 }
 
 int

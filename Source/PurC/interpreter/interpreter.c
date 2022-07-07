@@ -457,11 +457,9 @@ coroutine_release(pcintr_coroutine_t co)
         stack_release(&co->stack);
         pcvdom_document_unref(co->vdom);
 
-        if (co->ident) {
-            PC_ASSERT(co->full_name);
-            purc_atom_remove_string(co->full_name);
-            free(co->full_name);
-            co->full_name = NULL;
+        if (co->cid) {
+            const char *uri = pcintr_coroutine_get_uri(co);
+            purc_atom_remove_string_ex(PURC_ATOM_BUCKET_USER, uri);
         }
         if (co->mq) {
             pcinst_msg_queue_destroy(co->mq);
@@ -2248,10 +2246,8 @@ static int set_coroutine_id(pcintr_coroutine_t coroutine)
     purc_generate_unique_id(id_buf, COROUTINE_PREFIX);
 
     sprintf(p, "%s/%s", inst->endpoint_name, id_buf);
-    coroutine->full_name = p;
-
-    coroutine->ident = purc_atom_from_string_ex(PURC_ATOM_BUCKET_USER,
-            coroutine->full_name);
+    coroutine->cid = purc_atom_from_string_ex(PURC_ATOM_BUCKET_USER, p);
+    free(p);
 
     return 0;
 }
@@ -2262,7 +2258,7 @@ cmp_by_atom(struct rb_node *node, void *ud)
     purc_atom_t *atom = (purc_atom_t*)ud;
     pcintr_coroutine_t co;
     co = container_of(node, struct pcintr_coroutine, node);
-    return (*atom) - co->ident;
+    return (*atom) - co->cid;
 }
 
 static pcintr_coroutine_t
@@ -2311,7 +2307,7 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
     }
 
     if (parent) {
-        co->curator = parent->ident;
+        co->curator = parent->cid;
         if (as != PURC_VARIANT_INVALID)
             co_result->as = purc_variant_ref(as);
         list_add_tail(&co_result->node, &parent->children);
@@ -2325,7 +2321,7 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
     co->user_data = user_data;
 
     int r;
-    r = pcutils_rbtree_insert_only(coroutines, &co->ident,
+    r = pcutils_rbtree_insert_only(coroutines, &co->cid,
             cmp_by_atom, &co->node);
     PC_ASSERT(r == 0);
 
@@ -3529,9 +3525,9 @@ pcintr_observe_vcm_ev(pcintr_stack_t stack, struct pcintr_observer* observer,
             frame->silently ? true : false);
 
     // dispatch change event
-    purc_variant_t source_uri = purc_variant_make_string(
-            stack->co->full_name, false);
-    pcintr_post_event_by_ctype(stack->co->ident,
+    purc_variant_t source_uri = pcintr_coroutine_build_source_uri(
+            stack->co);
+    pcintr_post_event_by_ctype(stack->co->cid,
             PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY, source_uri,
             var, MSG_TYPE_CHANGE, NULL,
             PURC_VARIANT_INVALID);

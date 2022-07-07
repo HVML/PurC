@@ -373,9 +373,9 @@ static void timer_fire_func(pcintr_timer_t timer, const char* id, void* data)
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame == NULL);
 
-    purc_variant_t source_uri = purc_variant_make_string(co->full_name, false);
+    purc_variant_t source_uri = pcintr_coroutine_build_source_uri(co);
 
-    pcintr_post_event_by_ctype(co->ident,
+    pcintr_post_event_by_ctype(co->cid,
         PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY, source_uri,
         stack->timers->timers_var, TIMERS_STR_EXPIRED, id,
         PURC_VARIANT_INVALID);
