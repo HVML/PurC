@@ -122,7 +122,7 @@ app_getter(purc_variant_t root,
     UNUSED_PARAM(silently);
 
     struct pcinst* inst = pcinst_current();
-    return purc_variant_make_string_static(inst->app_name, false);
+    return purc_variant_make_string(inst->app_name, false);
 }
 
 static purc_variant_t
@@ -135,7 +135,7 @@ runner_getter(purc_variant_t root,
     UNUSED_PARAM(silently);
 
     struct pcinst* inst = pcinst_current();
-    return purc_variant_make_string_static(inst->runner_name, false);
+    return purc_variant_make_string(inst->runner_name, false);
 }
 
 static purc_variant_t
@@ -161,7 +161,7 @@ uri_getter(purc_variant_t root,
     UNUSED_PARAM(silently);
 
     struct pcinst* inst = pcinst_current();
-    return purc_variant_make_string_static(inst->endpoint_name, false);
+    return purc_variant_make_string(inst->endpoint_name, false);
 }
 
 purc_variant_t
