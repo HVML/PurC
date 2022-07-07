@@ -373,12 +373,9 @@ pcintr_conn_event_handler(pcrdr_conn *conn, const pcrdr_msg *msg)
     UNUSED_PARAM(conn);
     UNUSED_PARAM(msg);
     struct pcinst *inst = pcinst_current();
-    if (inst == NULL || inst->rdr_caps == NULL || msg == NULL) {
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
-        return;
-    }
 
-    if (!purc_variant_is_string(msg->eventName)) {
+    if (msg->target == PCRDR_MSG_TARGET_COROUTINE) {
+        dispatch_move_buffer_event(inst, msg);
         return;
     }
 
@@ -420,10 +417,6 @@ pcintr_conn_event_handler(pcrdr_conn *conn, const pcrdr_msg *msg)
             }
         }
         break;
-
-    case PCRDR_MSG_TARGET_COROUTINE:
-        dispatch_move_buffer_event(inst, msg);
-        goto out;
 
     case PCRDR_MSG_TARGET_USER:
         //TODO
