@@ -336,7 +336,7 @@ purc_inst_post_event(purc_atom_t inst_to, pcrdr_msg *msg)
             pcutils_rbtree_for_each_safe(first, p, n) {
                 pcintr_coroutine_t co = container_of(p, struct pcintr_coroutine,
                         node);
-                if (co->ident == msg->targetValue) {
+                if (co->cid == msg->targetValue) {
                     return pcinst_msg_queue_append(co->mq, msg);
                 }
             }
@@ -347,7 +347,7 @@ purc_inst_post_event(purc_atom_t inst_to, pcrdr_msg *msg)
                         node);
 
                 pcrdr_msg *my_msg = pcrdr_clone_message(msg);
-                my_msg->targetValue = co->ident;
+                my_msg->targetValue = co->cid;
                 pcinst_msg_queue_append(co->mq, my_msg);
             }
             pcinst_put_message(msg);

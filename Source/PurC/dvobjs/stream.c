@@ -963,7 +963,7 @@ static void on_stream_io_callback(void *ctxt)
     if (sub) {
         purc_variant_t source_uri = purc_variant_make_string(
                 stack->co->full_name, false);
-        pcintr_post_event_by_ctype(stack->co->ident,
+        pcintr_post_event_by_ctype(stack->co->cid,
                 PCRDR_MSG_EVENT_REDUCE_OPT_IGNORE, source_uri,
                 stream->observed, STREAM_EVENT_NAME, sub,
                 PURC_VARIANT_INVALID);

@@ -259,7 +259,7 @@ struct pcintr_coroutine_result {
 struct pcintr_coroutine {
     pcintr_heap_t               owner;    /* owner heap */
     char                       *full_name;   /* prefixed with runnerName/ */
-    purc_atom_t                 ident;
+    purc_atom_t                 cid;
     purc_atom_t                 curator;
 
     purc_vdom_t                 vdom;

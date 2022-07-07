@@ -229,7 +229,7 @@ purc_coroutine_get_user_data(purc_coroutine_t cor)
 purc_atom_t
 purc_coroutine_identifier(purc_coroutine_t cor)
 {
-    return cor->ident;
+    return cor->cid;
 }
 
 static
@@ -243,7 +243,7 @@ get_coroutine_by_id(struct pcinst *inst, purc_atom_t id)
     pcutils_rbtree_for_each_safe(first, p, n) {
         pcintr_coroutine_t co = container_of(p, struct pcintr_coroutine,
                 node);
-        if (co->ident == id) {
+        if (co->cid == id) {
             return co;
         }
     }
