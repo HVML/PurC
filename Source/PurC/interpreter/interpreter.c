@@ -3583,10 +3583,11 @@ event_timer_fire(pcintr_timer_t timer, const char* id, void* data)
 {
     UNUSED_PARAM(timer);
     UNUSED_PARAM(id);
+    UNUSED_PARAM(data);
 
     PC_ASSERT(pcintr_get_heap());
 
-    struct pcinst *inst = (struct pcinst *)data;
+//    struct pcinst *inst = (struct pcinst *)data;
     struct pcrdr_conn *conn =  purc_get_conn_to_renderer();
 
     if (conn) {
@@ -3594,14 +3595,11 @@ event_timer_fire(pcintr_timer_t timer, const char* id, void* data)
         if (!handle) {
             pcrdr_conn_set_event_handler(conn, pcintr_conn_event_handler);
         }
+        pcrdr_wait_and_dispatch_message(conn, 1);
+        purc_clr_error();
     }
 
     pcintr_dispatch_msg();
-
-    if (inst != NULL && inst->rdr_caps != NULL) {
-        pcrdr_wait_and_dispatch_message(inst->conn_to_rdr, 1);
-        purc_clr_error();
-    }
 
     pcintr_coroutine_t co = pcintr_get_coroutine();
     if (co == NULL) {

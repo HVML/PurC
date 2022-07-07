@@ -1,0 +1,9 @@
+<hvml target="html" id="ab" value="test" custom="cust">
+    <body>
+        <div>$HVML.target</div>
+        <div>$SESSION.app</div>
+        <div>$SESSION.runner</div>
+        <div>$EJSON.type($SESSION.sid)</div>
+        <div>$SESSION.uri</div>
+    </body>
+</hvml>
