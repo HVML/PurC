@@ -757,7 +757,6 @@ pcintr_attach_to_renderer(pcintr_coroutine_t cor,
         return false;
     }
 
-    pcrdr_conn_set_event_handler(conn_to_rdr, pcintr_conn_event_handler);
     cor->target_workspace_handle = workspace;
     cor->target_page_type = page_type;
     cor->target_page_handle = page;

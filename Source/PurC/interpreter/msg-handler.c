@@ -526,9 +526,6 @@ handle_coroutine_msg(pcintr_coroutine_t co)
 void
 pcintr_dispatch_msg(void)
 {
-    // handle msg from move buffer
-    handle_move_buffer_msg();
-
     // handle msg from message queue of the current co
     struct pcintr_heap *heap = pcintr_get_heap();
     struct rb_root *coroutines = &heap->coroutines;
