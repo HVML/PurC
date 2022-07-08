@@ -128,7 +128,7 @@ pcvdom_document_unref(struct pcvdom_document *doc)
     assert(doc);
 
     unsigned long refc = atomic_fetch_sub(&doc->refc, 1);
-    if (refc <= 1) {
+    if (refc <= 2) {
         document_destroy(doc);
     }
 }
@@ -1306,6 +1306,14 @@ pcvdom_element_is_hvml_native(struct pcvdom_element *element)
     enum pchvml_tag_category cats;
     cats = pcvdom_element_categories(element);
     return cats & (PCHVML_TAGCAT_TEMPLATE | PCHVML_TAGCAT_VERB);
+}
+
+bool
+pcvdom_element_is_hvml_operation(struct pcvdom_element *element)
+{
+    enum pchvml_tag_category cats;
+    cats = pcvdom_element_categories(element);
+    return cats & PCHVML_TAGCAT_VERB;
 }
 
 struct pcvdom_attr*

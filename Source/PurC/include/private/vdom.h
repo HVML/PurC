@@ -212,6 +212,9 @@ pcvdom_element_is_foreign(struct pcvdom_element *element);
 bool
 pcvdom_element_is_hvml_native(struct pcvdom_element *element);
 
+bool
+pcvdom_element_is_hvml_operation(struct pcvdom_element *element);
+
 struct pcvdom_attr*
 pcvdom_element_find_attr(struct pcvdom_element *element, const char *key);
 

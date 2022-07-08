@@ -39,6 +39,8 @@
 #include "private/vdom.h"
 #include "private/timer.h"
 
+#define PCINTR_MOVE_BUFFER_SIZE 64
+
 struct pcintr_heap;
 typedef struct pcintr_heap pcintr_heap;
 typedef struct pcintr_heap *pcintr_heap_t;
@@ -90,14 +92,14 @@ struct pcintr_heap {
     struct rb_root        coroutines;
 
     pthread_mutex_t       locker;
-    volatile bool         exiting;
     struct list_head      routines;     // struct pcintr_routine
 
     int64_t               next_coroutine_id;
     purc_atom_t           move_buff;
     pcintr_timer_t        *event_timer; // 10ms
 
-    purc_event_handler    event_handler;
+    purc_cond_handler    cond_handler;
+    unsigned int         keep_alive:1;
 };
 
 struct pcintr_stack_frame;
@@ -256,8 +258,8 @@ struct pcintr_coroutine_result {
 
 struct pcintr_coroutine {
     pcintr_heap_t               owner;    /* owner heap */
-    char                       *full_name;   /* prefixed with runnerName/ */
-    purc_atom_t                 ident;
+    purc_atom_t                 cid;
+    purc_atom_t                 curator;
 
     purc_vdom_t                 vdom;
 
@@ -272,7 +274,6 @@ struct pcintr_coroutine {
 
     struct rb_node              node;     /* heap::coroutines */
 
-    pcintr_coroutine_t          parent;
     struct list_head            children; /* struct pcintr_coroutine_result */
 
     pcintr_coroutine_result_t   result;
@@ -295,6 +296,7 @@ struct pcintr_coroutine {
     unsigned int volatile       msg_pending:1;
     unsigned int volatile       execution_pending:1;
 
+    struct pcvarmgr            *variables;
     void                       *user_data;
 };
 
@@ -747,16 +749,28 @@ pcintr_attach_to_renderer(pcintr_coroutine_t cor,
         purc_renderer_extra_info *extra_info);
 
 int
-pcintr_post_event(purc_atom_t co_id,
+pcintr_post_event(purc_atom_t cid,
         pcrdr_msg_event_reduce_opt reduce_op, purc_variant_t source_uri,
         purc_variant_t observed, purc_variant_t event_name,
         purc_variant_t data);
 
 int
-pcintr_post_event_by_ctype(purc_atom_t co_id,
+pcintr_post_event_by_ctype(purc_atom_t cid,
         pcrdr_msg_event_reduce_opt reduce_op, purc_variant_t source_uri,
         purc_variant_t observed, const char *event_type,
         const char *event_sub_type, purc_variant_t data);
+
+int
+pcintr_coroutine_post_event(purc_atom_t cid,
+        pcrdr_msg_event_reduce_opt reduce_op,
+        purc_variant_t observed, const char *event_type,
+        const char *event_sub_type, purc_variant_t data);
+
+static inline const char*
+pcintr_coroutine_get_uri(pcintr_coroutine_t co)
+{
+    return purc_atom_to_string(co->cid);
+}
 
 PCA_EXTERN_C_END
 

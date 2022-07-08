@@ -76,7 +76,7 @@ void
 pcintr_dispatch_msg(void);
 
 void
-pcintr_check_and_dispatch_coroutine_event(pcintr_coroutine_t co);
+pcintr_conn_event_handler(pcrdr_conn *conn, const pcrdr_msg *msg);
 
 void
 pcintr_synchronize(void *ctxt, void (*routine)(void *ctxt));
@@ -364,6 +364,9 @@ pcintr_bind_template(purc_variant_t templates,
 
 purc_variant_t
 pcintr_template_expansion(purc_variant_t val);
+
+pcintr_coroutine_t
+pcintr_coroutine_get_by_id(purc_atom_t id);
 
 PCA_EXTERN_C_END
 

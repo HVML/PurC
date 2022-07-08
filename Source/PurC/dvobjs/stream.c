@@ -961,13 +961,10 @@ static void on_stream_io_callback(void *ctxt)
         sub = STREAM_SUB_EVENT_WRITE;
     }
     if (sub) {
-        purc_variant_t source_uri = purc_variant_make_string(
-                stack->co->full_name, false);
-        pcintr_post_event_by_ctype(stack->co->ident,
-                PCRDR_MSG_EVENT_REDUCE_OPT_IGNORE, source_uri,
+        pcintr_coroutine_post_event(stack->co->cid,
+                PCRDR_MSG_EVENT_REDUCE_OPT_IGNORE,
                 stream->observed, STREAM_EVENT_NAME, sub,
                 PURC_VARIANT_INVALID);
-        purc_variant_unref(source_uri);
     }
 
     free(data);

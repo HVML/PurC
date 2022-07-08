@@ -52,53 +52,8 @@ sample_destroy(struct sample_ctxt *ud)
     free(ud);
 }
 
-#if 0 // VW: use event handler instead
-static void
-on_terminated(pcintr_stack_t stack, void *ctxt)
-{
-    struct sample_ctxt *ud = (struct sample_ctxt*)ctxt;
-    pchtml_html_document_t *doc = stack->doc;
-
-    if (ud->terminated) {
-        ADD_FAILURE() << "internal logic error: reentrant" << std::endl;
-        return;
-    }
-    ud->terminated = 1;
-
-    if (ud->html) {
-        int diff = 0;
-        int r = 0;
-        pcintr_util_comp_docs(doc, ud->html, &diff);
-        if (r == 0 && diff == 0)
-            return;
-
-        char buf[8192];
-        size_t nr = sizeof(nr);
-        char *p = pchtml_doc_snprintf_plain(doc, buf, &nr, "");
-
-        ADD_FAILURE()
-            << "failed to compare:" << std::endl
-            << "input:" << std::endl << ud->input_hvml << std::endl
-            << "output:" << std::endl << p << std::endl
-            << "expected:" << std::endl << ud->expected_html << std::endl;
-
-        if (p != buf)
-            free(p);
-    }
-}
-
-static void
-on_cleanup(pcintr_stack_t stack, void *ctxt)
-{
-    UNUSED_PARAM(stack);
-
-    struct sample_ctxt *ud = (struct sample_ctxt*)ctxt;
-    sample_destroy(ud);
-}
-#endif
-
-static int my_event_handler(purc_coroutine_t cor,
-        purc_event_t event, void *data)
+static int my_cond_handler(purc_cond_t event, purc_coroutine_t cor,
+        void *data)
 {
     void *user_data = purc_coroutine_get_user_data(cor);
     if (!user_data) {
@@ -107,7 +62,7 @@ static int my_event_handler(purc_coroutine_t cor,
 
     struct sample_ctxt *ud = (struct sample_ctxt*)user_data;
 
-    if (event == PURC_EVENT_EXIT) {
+    if (event == PURC_COND_COR_EXITED) {
         pchtml_html_document_t *doc = (pchtml_html_document_t *)data;
 
         if (ud->terminated) {
@@ -137,7 +92,7 @@ static int my_event_handler(purc_coroutine_t cor,
                 free(p);
         }
     }
-    else if (event == PURC_EVENT_DESTROY) {
+    else if (event == PURC_COND_COR_DESTROYED) {
         sample_destroy(ud);
     }
 
@@ -223,7 +178,7 @@ TEST(samples, basic)
 
     add_sample(&sample);
 
-    purc_run(my_event_handler);
+    purc_run((purc_cond_handler)my_cond_handler);
 }
 
 static void
@@ -233,11 +188,11 @@ run_tests(struct sample_data *samples, size_t nr, int parallel)
         const struct sample_data *sample = samples + i;
         add_sample(sample);
         if (!parallel)
-            purc_run(my_event_handler);
+            purc_run((purc_cond_handler)my_cond_handler);
     }
 
     if (parallel)
-        purc_run(my_event_handler);
+        purc_run((purc_cond_handler)my_cond_handler);
 }
 
 TEST(samples, samples)

@@ -30,12 +30,13 @@
 #include "private/errors.h"
 #include "private/interpreter.h"
 #include "private/instance.h"
+#include "private/runners.h"
+#include "private/sorted-array.h"
 #include "internal.h"
 
 #include <wtf/Threading.h>
 #include <wtf/RunLoop.h>
 #include <wtf/threads/BinarySemaphore.h>
-
 
 #include <stdlib.h>
 #include <string.h>
@@ -329,6 +330,65 @@ pcintr_fire_event_to_target(pcintr_coroutine_t target,
         });
 }
 
+extern "C" purc_atom_t
+pcrun_create_inst_thread(const char *app_name, const char *runner_name,
+        purc_cond_handler cond_handler,
+        struct purc_instance_extra_info *extra_info, void **th)
+{
+    purc_atom_t atom = 0;
+    BinarySemaphore semaphore;
+
+    RefPtr<Thread> inst_th =
+        Thread::create("hvml-instance", [&] {
+                int ret = purc_init_ex(PURC_MODULE_HVML,
+                        app_name, runner_name, extra_info);
+
+                if (ret != PURC_ERROR_OK) {
+                    semaphore.signal();
+                }
+                else {
+                    struct pcinst *inst = pcinst_current();
+                    assert(inst && inst->intr_heap);
+                    purc_atom_t my_atom;
+                    atom = my_atom = inst->intr_heap->move_buff;
+
+                    purc_cond_handler my_handler = cond_handler;
+
+#if USE(PTHREADS)
+                    pthread_t *my_th = (pthread_t *)malloc(sizeof(pthread_t));
+                    *my_th = pthread_self();
+                    *th = (void *)my_th;
+#else
+#error "Need code when not using PThreas"
+#endif
+                    if (cond_handler) {
+                        cond_handler(PURC_COND_STARTED,
+                                (void *)(uintptr_t)atom, extra_info);
+                    }
+                    semaphore.signal();
+
+                    purc_run(my_handler);
+
+                    if ((my_handler = inst->intr_heap->cond_handler)) {
+                        my_handler(PURC_COND_STOPPED,
+                                (void *)(uintptr_t)my_atom, NULL);
+                    }
+
+                    purc_cleanup();
+                }
+            });
+
+    semaphore.wait();
+
+    return atom;
+}
+
+static void my_sa_free(void *sortv, void *data)
+{
+    (void)sortv;
+    if (data)
+        free(data);
+}
 
 #define MAIN_RUNLOOP_THREAD_NAME    "__purc_main_runloop_thread"
 
@@ -344,7 +404,42 @@ static void _runloop_init_main(void)
             RunLoop& runloop = RunLoop::main();
             PC_ASSERT(&runloop == &RunLoop::current());
             semaphore.signal();
+
+            int ret;
+            purc_atom_t atom;
+
+            ret = purc_init_ex(PURC_MODULE_EJSON,
+                    PCRUN_INSTMGR_APP_NAME, PCRUN_INSTMGR_RUN_NAME, NULL);
+            if (ret != PURC_ERROR_OK) {
+                purc_log_error("Failed to init InstMgr\n");
+                return;
+            }
+
+            atom = purc_inst_create_move_buffer(PCINST_MOVE_BUFFER_FLAG_NONE,
+                    PCINTR_MOVE_BUFFER_SIZE >> 1);
+            if (atom == 0) {
+                purc_log_error("Failed to create move buffer for InstMgr.\n");
+                return;
+            }
+
+            struct instmgr_info info = { 0, NULL };
+            info.sa_insts = pcutils_sorted_array_create(SAFLAG_DEFAULT, 0,
+                    my_sa_free, NULL);
+
+            purc_runloop_func func = pcrun_instmgr_handle_message;
+            runloop.setIdleCallback([func, &info]() {
+                    func(&info);
+                    });
+
             runloop.run();
+
+            pcutils_sorted_array_destroy(info.sa_insts);
+
+            size_t n = purc_inst_destroy_move_buffer();
+            purc_log_debug("InstMgr is quiting, %u messages discarded\n",
+                    (unsigned)n);
+
+            purc_cleanup();
             });
     semaphore.wait();
 }
@@ -387,6 +482,7 @@ static void _runloop_init_sync(void)
             semaphore.signal();
             runloop.run();
             });
+
     semaphore.wait();
 }
 

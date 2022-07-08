@@ -42,6 +42,13 @@
 #include <sys/utsname.h>
 #include <sys/time.h>
 
+#define MSG_SOURCE_SYSTEM         "SYSTEM"
+
+#define MSG_TYPE_CHANGE           "change"
+#define MSG_SUB_TYPE_TIME         "time"
+#define MSG_SUB_TYPE_ENV          "env"
+#define MSG_SUB_TYPE_CWD          "cwd"
+
 enum {
 #define _KW_HVML_SPEC_VERSION   "HVML_SPEC_VERSION"
     K_KW_HVML_SPEC_VERSION,
@@ -137,6 +144,28 @@ static struct keyword_to_atom {
     { _KW_measurement, 0 },            // "measurement"
     { _KW_identification, 0 },         // "identification"
 };
+
+static int
+broadcast_event(purc_variant_t source, const char *type, const char *sub_type,
+        purc_variant_t data)
+{
+    UNUSED_PARAM(source);
+    struct pcinst* inst = pcinst_current();
+    if (!inst->intr_heap) {
+        return 0;
+    }
+    purc_variant_t source_uri = purc_variant_make_string(
+            inst->endpoint_name, false);
+    purc_variant_t observed = purc_variant_make_string_static(
+            MSG_SOURCE_SYSTEM, false);
+
+    int ret = pcinst_broadcast_event(PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
+            source_uri, observed, type, sub_type, data);
+
+    purc_variant_unref(source_uri);
+    purc_variant_unref(observed);
+    return ret;
+}
 
 static purc_variant_t
 const_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
@@ -651,7 +680,9 @@ time_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto failed;
     }
 
-    // TODO: broadcast "change:time" event
+    // broadcast "change:time" event
+    broadcast_event(root, MSG_TYPE_CHANGE, MSG_SUB_TYPE_TIME,
+            PURC_VARIANT_INVALID);
     return purc_variant_make_boolean(true);
 
 failed:
@@ -821,7 +852,9 @@ time_us_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto failed;
     }
 
-    // TODO: broadcast "change:time" event
+    // broadcast "change:time" event
+    broadcast_event(root, MSG_TYPE_CHANGE, MSG_SUB_TYPE_TIME,
+            PURC_VARIANT_INVALID);
     return purc_variant_make_boolean(true);
 
 failed:
@@ -1376,7 +1409,9 @@ timezone_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     setenv("TZ", path, 1);
     tzset();
 
-    // TODO: broadcast "change:env" event
+    // broadcast "change:env" event
+    broadcast_event(root, MSG_TYPE_CHANGE, MSG_SUB_TYPE_ENV,
+            PURC_VARIANT_INVALID);
     return purc_variant_make_boolean(true);
 
 failed:
@@ -1485,7 +1520,9 @@ cwd_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto failed;
     }
 
-    // TODO: broadcast "change:cwd" event
+    // broadcast "change:cwd" event
+    broadcast_event(root, MSG_TYPE_CHANGE, MSG_SUB_TYPE_CWD,
+            PURC_VARIANT_INVALID);
     return purc_variant_make_boolean(true);
 
 failed:
@@ -1578,7 +1615,9 @@ env_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto failed;
     }
 
-    // TODO: broadcast "change:env" event
+    // broadcast "change:env" event
+    broadcast_event(root, MSG_TYPE_CHANGE, MSG_SUB_TYPE_ENV,
+            PURC_VARIANT_INVALID);
     return purc_variant_make_boolean(true);
 
 failed:

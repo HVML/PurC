@@ -261,7 +261,7 @@ dispatch_coroutine_msg(pcintr_coroutine_t co, pcrdr_msg *msg)
 }
 
 int
-dispatch_move_buffer_msg(struct pcinst *inst, pcrdr_msg *msg)
+dispatch_move_buffer_event(struct pcinst *inst, const pcrdr_msg *msg)
 {
     UNUSED_PARAM(inst);
     struct pcintr_heap *heap = inst->intr_heap;
@@ -269,79 +269,182 @@ dispatch_move_buffer_msg(struct pcinst *inst, pcrdr_msg *msg)
         return 0;
     }
 
-    switch (msg->type) {
-    case PCRDR_MSG_TYPE_EVENT:
-    {
-        // add msg to coroutine message queue
-        struct rb_root *coroutines = &heap->coroutines;
-        struct rb_node *p, *n;
-        struct rb_node *first = pcutils_rbtree_first(coroutines);
+    purc_variant_t elementValue = msg->elementValue;
+    if (!purc_variant_is_string(elementValue)) {
+        PC_WARN("invalid elementvalue for broadcast event");
+        return 0;
+    }
 
-        if (PURC_EVENT_TARGET_BROADCAST != msg->targetValue) {
-            pcutils_rbtree_for_each_safe(first, p, n) {
-                pcintr_coroutine_t co = container_of(p, struct pcintr_coroutine,
-                        node);
-                if (co->ident == msg->targetValue) {
-                    return pcinst_msg_queue_append(co->mq, msg);
-                }
-            }
-        }
-        else {
-            pcutils_rbtree_for_each_safe(first, p, n) {
-                pcintr_coroutine_t co = container_of(p, struct pcintr_coroutine,
-                        node);
+    purc_variant_t observed = pcinst_get_session_variables(
+            purc_variant_get_string_const(elementValue));
+    if (!observed) {
+        PC_WARN("can not found observed for broadcast event %s",
+                purc_variant_get_string_const(elementValue));
+        return 0;
+    }
 
-                pcrdr_msg *my_msg = pcrdr_clone_message(msg);
-                my_msg->targetValue = co->ident;
-                pcinst_msg_queue_append(co->mq, my_msg);
+    pcrdr_msg *msg_clone = pcrdr_clone_message(msg);
+    if (msg_clone->elementValue) {
+        purc_variant_unref(msg_clone->elementValue);
+    }
+    msg_clone->elementValue = observed;
+    purc_variant_ref(msg_clone->elementValue);
+
+    // add msg to coroutine message queue
+    struct rb_root *coroutines = &heap->coroutines;
+    struct rb_node *p, *n;
+    struct rb_node *first = pcutils_rbtree_first(coroutines);
+
+    if (PURC_EVENT_TARGET_BROADCAST != msg_clone->targetValue) {
+        pcutils_rbtree_for_each_safe(first, p, n) {
+            pcintr_coroutine_t co = container_of(p, struct pcintr_coroutine,
+                    node);
+            if (co->cid == msg->targetValue) {
+                return pcinst_msg_queue_append(co->mq, msg_clone);
             }
-            pcinst_put_message(msg);
         }
     }
-        break;
+    else {
+        pcutils_rbtree_for_each_safe(first, p, n) {
+            pcintr_coroutine_t co = container_of(p, struct pcintr_coroutine,
+                    node);
 
-    case PCRDR_MSG_TYPE_VOID:
-        PC_ASSERT(0);
-        break;
-
-    case PCRDR_MSG_TYPE_REQUEST:
-        PC_ASSERT(0);
-        break;
-
-    case PCRDR_MSG_TYPE_RESPONSE:
-        PC_ASSERT(0);
-        break;
-
-    default:
-        // NOTE: shouldn't happen, no way to recover gracefully, fail-fast
-        PC_ASSERT(0);
+            pcrdr_msg *my_msg = pcrdr_clone_message(msg_clone);
+            my_msg->targetValue = co->cid;
+            pcinst_msg_queue_append(co->mq, my_msg);
+        }
+        pcrdr_release_message(msg_clone);
     }
     return 0;
 }
 
+static
+purc_vdom_t find_vdom_by_target_vdom(uint64_t handle, pcintr_stack_t *pstack)
+{
+    pcintr_heap_t heap = pcintr_get_heap();
+    if (heap == NULL) {
+        return NULL;
+    }
+
+    struct rb_node *p, *n;
+    struct rb_node *first = pcutils_rbtree_first(&heap->coroutines);
+    pcutils_rbtree_for_each_safe(first, p, n) {
+        pcintr_coroutine_t co;
+        co = container_of(p, struct pcintr_coroutine, node);
+
+        if (handle == co->target_dom_handle) {
+            if (pstack) {
+                *pstack = &(co->stack);
+            }
+            return co->stack.vdom;
+        }
+    }
+    return NULL;
+}
+
+static purc_vdom_t
+find_vdom_by_target_window(uint64_t handle, pcintr_stack_t *pstack)
+{
+    pcintr_heap_t heap = pcintr_get_heap();
+    if (heap == NULL) {
+        return NULL;
+    }
+
+    struct rb_node *p, *n;
+    struct rb_node *first = pcutils_rbtree_first(&heap->coroutines);
+    pcutils_rbtree_for_each_safe(first, p, n) {
+        pcintr_coroutine_t co;
+        co = container_of(p, struct pcintr_coroutine, node);
+
+        if (handle == co->target_page_handle) {
+            if (pstack) {
+                *pstack = &(co->stack);
+            }
+            return co->stack.vdom;
+        }
+    }
+    return NULL;
+}
+
 
 void
-handle_move_buffer_msg(void)
+pcintr_conn_event_handler(pcrdr_conn *conn, const pcrdr_msg *msg)
 {
-    size_t n;
-    int r = purc_inst_holding_messages_count(&n);
-    PC_ASSERT(r == 0);
-    if (n <= 0) {
+    UNUSED_PARAM(conn);
+    UNUSED_PARAM(msg);
+    struct pcinst *inst = pcinst_current();
+
+    if (msg->target == PCRDR_MSG_TARGET_COROUTINE) {
+        dispatch_move_buffer_event(inst, msg);
         return;
     }
 
-    struct pcinst *inst = pcinst_current();
+    pcintr_stack_t stack = NULL;
+    purc_variant_t source = PURC_VARIANT_INVALID;
+    switch (msg->target) {
+    case PCRDR_MSG_TARGET_SESSION:
+        //TODO
+        break;
 
-    for (size_t i = 0; i < n; i++) {
-        pcrdr_msg *msg = purc_inst_take_away_message(0);
-        if (msg == NULL) {
-            PC_ASSERT(purc_get_last_error() == 0);
-            return;
+    case PCRDR_MSG_TARGET_WORKSPACE:
+        //TODO
+        break;
+
+    case PCRDR_MSG_TARGET_PLAINWINDOW:
+        {
+            purc_vdom_t vdom = find_vdom_by_target_window(
+                    (uint64_t)msg->targetValue, &stack);
+            source = purc_variant_make_native(vdom, NULL);
         }
+        break;
 
-        // TODO: how to handle dispatch failed
-        dispatch_move_buffer_msg(inst, msg);
-        pcinst_put_message(msg);
+    case PCRDR_MSG_TARGET_WIDGET:
+        //TODO
+        break;
+
+    case PCRDR_MSG_TARGET_DOM:
+        {
+            const char *element = purc_variant_get_string_const(
+                    msg->elementValue);
+            if (element == NULL) {
+                goto out;
+            }
+
+            if (msg->elementType == PCRDR_MSG_ELEMENT_TYPE_HANDLE) {
+                unsigned long long int p = strtoull(element, NULL, 16);
+                find_vdom_by_target_vdom((uint64_t)msg->targetValue, &stack);
+                source = purc_variant_make_native((void*)(uint64_t)p, NULL);
+            }
+        }
+        break;
+
+    case PCRDR_MSG_TARGET_USER:
+        //TODO
+        break;
+
+    default:
+        goto out;
+    }
+
+    // FIXME: soure_uri msg->sourcURI or  co->full_name
+    const char *uri = pcintr_coroutine_get_uri(stack->co);
+    if (!uri) {
+        goto out;
+    }
+
+    purc_variant_t source_uri = purc_variant_make_string(uri, false);
+    if (!source_uri) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto out;
+    }
+
+    pcintr_post_event(stack->co->cid, msg->reduceOpt, source_uri, source,
+            msg->eventName, msg->data);
+    purc_variant_unref(source_uri);
+
+out:
+    if (source) {
+        purc_variant_unref(source);
     }
 }
 
@@ -360,7 +463,7 @@ handle_coroutine_msg(pcintr_coroutine_t co)
     pcrdr_msg *msg = pcinst_msg_queue_get_msg(queue);
     while (msg) {
         dispatch_coroutine_msg(co, msg);
-        pcinst_put_message(msg);
+        pcrdr_release_message(msg);
         msg = pcinst_msg_queue_get_msg(queue);
     }
 }
@@ -368,9 +471,6 @@ handle_coroutine_msg(pcintr_coroutine_t co)
 void
 pcintr_dispatch_msg(void)
 {
-    // handle msg from move buffer
-    handle_move_buffer_msg();
-
     // handle msg from message queue of the current co
     struct pcintr_heap *heap = pcintr_get_heap();
     struct rb_root *coroutines = &heap->coroutines;
@@ -384,7 +484,7 @@ pcintr_dispatch_msg(void)
 }
 
 int
-pcintr_post_event(purc_atom_t co_id,
+pcintr_post_event(purc_atom_t cid,
         pcrdr_msg_event_reduce_opt reduce_op, purc_variant_t source_uri,
         purc_variant_t observed, purc_variant_t event_name,
         purc_variant_t data)
@@ -404,7 +504,7 @@ pcintr_post_event(purc_atom_t co_id,
 
     msg->type = PCRDR_MSG_TYPE_EVENT;
     msg->target = PCRDR_MSG_TARGET_COROUTINE;
-    msg->targetValue = co_id;
+    msg->targetValue = cid;
     msg->reduceOpt = reduce_op;
 
     if (source_uri) {
@@ -429,7 +529,7 @@ pcintr_post_event(purc_atom_t co_id,
 }
 
 int
-pcintr_post_event_by_ctype(purc_atom_t co_id,
+pcintr_post_event_by_ctype(purc_atom_t cid,
         pcrdr_msg_event_reduce_opt reduce_op, purc_variant_t source_uri,
         purc_variant_t observed, const char *event_type,
         const char *event_sub_type, purc_variant_t data)
@@ -463,10 +563,35 @@ pcintr_post_event_by_ctype(purc_atom_t co_id,
         return -1;
     }
 
-    int ret = pcintr_post_event(co_id, reduce_op, source_uri, observed,
+    int ret = pcintr_post_event(cid, reduce_op, source_uri, observed,
             event_name, data);
     purc_variant_unref(event_name);
 
+    return ret;
+}
+
+int
+pcintr_coroutine_post_event(purc_atom_t cid,
+        pcrdr_msg_event_reduce_opt reduce_op,
+        purc_variant_t observed, const char *event_type,
+        const char *event_sub_type, purc_variant_t data)
+{
+    const char *uri = purc_atom_to_string(cid);
+    if (!uri) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        return -1;
+    }
+
+    purc_variant_t source_uri = purc_variant_make_string(uri, false);
+    if (!source_uri) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return -1;
+    }
+
+    int ret = pcintr_post_event_by_ctype(cid, reduce_op, source_uri,
+            observed, event_type, event_sub_type, data);
+
+    purc_variant_unref(source_uri);
     return ret;
 }
 

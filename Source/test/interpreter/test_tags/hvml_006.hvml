@@ -1,0 +1,5 @@
+<hvml target="html" id="ab" value="test" custom="cust">
+    <body>
+        <div>$REQUEST.names</div>
+    </body>
+</hvml>

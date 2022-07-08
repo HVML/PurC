@@ -52,23 +52,34 @@
 1. 统一使用协程消息队列处理来自变体变化、渲染器以及其他实例的事件、请求或者响应消息。
    - ~~`observe` 元素支持隐含的临时变量 `_eventName` 和 `_eventSource`。~~
    - ~~`observe` 元素 `in` 属性的处理。~~
-   - 正确区分会话级变量及协程级变量：`observe` 可观察会话级变体（$SESSION.myObj）上的 `change` 事件；`$SYSTEM` 上调用修改时间、当前工作路径等，会广播更新事件（如 `change:time`）给所有实例。
+   - ~~正确区分会话级变量及协程级变量：`observe` 可观察会话级变体（$SESSION.myObj）上的 `change` 事件；`$SYSTEM` 上调用修改时间、当前工作路径等，会广播更新事件（如 `change:time`）给所有实例。~~
 1. 接口及实现调整：
    - ~~实现 `purc_schedule_vdom()` 替代 `purc_attach_vdom_to_renderer()`。~~
    - ~~调整 `purc_bind_document_variable()` 为 `purc_coroutine_bind_variable()`。~~
-   - ~~交由应用处理：将请求参数绑定到协程级 `$REQUEST` 变量上。~~
+   - 调整 `purc_run()` 的实现，产生 `idle` 事件，并根据 `purc_cond_hanlder` 回调函数的设置情况及其返回值确定是否终止循环。
+   - 当未收到任何底层事件的时间累计达到或超过 100ms 时，产生一次 `idle` 事件，广播给所有进入事件循环阶段的协程，此事件可规约。
 1. 实现支持多实例相关的接口：
-   - `purc_inst_create_or_get()`
-   - `purc_inst_schedule_vdom()`
+   - ~~`purc_inst_create_or_get()`~~
+   - ~~`purc_inst_schedule_vdom()`~~
+   - ~~完善相关测试用例，修复相关缺陷。~~
+1. 整理代码：
+   - ~~在创建协程时完成协程级变量的绑定，同时处理 `$REQUEST` 的绑定。~~
+   - 合并协程栈以及协程数据结构中重复的字段。
+   - ~~协程结构中，使用 `cid` 替代 `ident` 名称。~~
+   - ~~协程结构中，使用 `uri` 替代 `fullname` 字段名（该字段其实没必要保存两份，通过 `cid` 在原子字符串中查找即可获得）。~~
+   - 移除代码中对当前协程（调用 `get_coroutine` 函数）以及当前栈（调用 `get_stack` 函数）的依赖。
+   - `$HVML` 变量使用协程数据结构做初始化，并实现 `cid` 属性、`uri` 属性以及 `token` 属性获取器。
+   - ~~实现 `$SESSION` 变量的 `sid` 属性以及 `uri` 属性获取器。~~
+1. 调整调度器实现并完善如下标签的实现：
+   - `sleep` 标签：在调度器检查到针对休眠协程的事件时，可由调度器唤醒。
+   - `call` 和 `return` 标签。
+   - `load` 和 `exit` 标签。
+   - `request` 标签。
 1. 调整对动作元素内容数据的处理逻辑：
    - 在对动作元素的属性值求值时，若该动作元素定义有内容，则一并完成求值，并将其绑定到当前栈帧的上下文变量 `$^` 上。
    - 当动作元素需要 `with` 属性值但未定义时，使用内容数据。
-1. 完善如下标签的实现：
-   - `call` 标签。
-   - `return` 标签。
-   - `load` 标签。
-   - `exit` 标签。
-   - `request` 标签。
+1. 检查所有动作元素实现，确保具有合理的结果数据：
+   - `init` 动作元素其结果数据同绑定的变量数据（甚至可支持 `as` 可选？）
 1. 完善如下标签从外部数据源获取数据的功能：
    - ~~`init` 标签：支持 `from`、`with` 及 `via` 属性定义的请求参数及方法。~~
    - ~~`archetype` 标签：`src`、`param` 和 `method` 属性的支持。~~
@@ -80,7 +91,6 @@
 1. `update` 标签。
    - `to` 属性支持 `prepend`、 `remove`、 `insertBefore`、 `insertAfter`、 `intersect`、 `subtract`、 `xor`。
    - `at` 属性支持 `content`。
-1. `sleep` 标签在调度器检查到有针对休眠协程的事件时，可由调度器唤醒。
 
 ## 过往（202206）
 
