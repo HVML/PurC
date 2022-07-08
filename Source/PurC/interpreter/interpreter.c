@@ -395,11 +395,6 @@ stack_release(pcintr_stack_t stack)
 
     release_scoped_variables(stack);
 
-    if (stack->timers) {
-        pcintr_timers_destroy(stack->timers);
-        stack->timers = NULL;
-    }
-
     pcintr_destroy_observer_list(&stack->common_variant_observer_list);
     pcintr_destroy_observer_list(&stack->dynamic_variant_observer_list);
     pcintr_destroy_observer_list(&stack->native_variant_observer_list);
@@ -504,6 +499,11 @@ coroutine_release(pcintr_coroutine_t co)
 
         if (co->base_url_string) {
             free(co->base_url_string);
+        }
+
+        if (co->timers) {
+            pcintr_timers_destroy(co->timers);
+            co->timers = NULL;
         }
 
         PURC_VARIANT_SAFE_CLEAR(co->val_from_return_or_exit);
@@ -1572,11 +1572,9 @@ bind_cor_named_variable(purc_coroutine_t cor, const char* name,
 static bool
 bind_builtin_coroutine_variables(purc_coroutine_t cor, purc_variant_t request)
 {
-    UNUSED_PARAM(request);
-    pcintr_stack_t stack = &cor->stack;
     // $TIMERS
-    stack->timers = pcintr_timers_init(stack);
-    if (!stack->timers) {
+    cor->timers = pcintr_timers_init(cor);
+    if (!cor->timers) {
         return false;
     }
 

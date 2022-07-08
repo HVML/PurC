@@ -224,7 +224,6 @@ struct pcintr_stack {
 
     struct rb_root  scoped_variables; // key: vdom_node
                                       // val: pcvarmgr_t
-    struct pcintr_timers  *timers;
 };
 
 enum pcintr_coroutine_state {
@@ -317,6 +316,7 @@ struct pcintr_coroutine {
     struct timespec             timeout;
     /* $HVML  end */
 
+    struct pcintr_timers       *timers;     // $TIMERS
     struct pcvarmgr            *variables;
     void                       *user_data;
 };
@@ -595,8 +595,8 @@ bool
 pcintr_is_named_var_for_event(purc_variant_t val);
 
 // $TIMERS
-struct pcintr_timers*
-pcintr_timers_init(pcintr_stack_t stack);
+struct pcintr_timers *
+pcintr_timers_init(purc_coroutine_t cor);
 
 void
 pcintr_timers_destroy(struct pcintr_timers* timers);
