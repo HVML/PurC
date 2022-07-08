@@ -111,10 +111,10 @@ check_stop(purc_variant_t val)
 }
 
 static int
-check_onlyif(struct pcvdom_attr *onlyif, bool *stop)
+check_onlyif(struct pcvdom_attr *onlyif, bool *stop, pcintr_stack_t stack)
 {
     purc_variant_t val;
-    val = pcintr_eval_vdom_attr(pcintr_get_stack(), onlyif);
+    val = pcintr_eval_vdom_attr(stack, onlyif);
     if (val == PURC_VARIANT_INVALID)
         return -1;
 
@@ -133,10 +133,10 @@ check_onlyif(struct pcvdom_attr *onlyif, bool *stop)
 }
 
 static int
-check_while(struct pcvdom_attr *_while, bool *stop)
+check_while(struct pcvdom_attr *_while, bool *stop, pcintr_stack_t stack)
 {
     purc_variant_t val;
-    val = pcintr_eval_vdom_attr(pcintr_get_stack(), _while);
+    val = pcintr_eval_vdom_attr(stack, _while);
     if (val == PURC_VARIANT_INVALID)
         return -1;
 
@@ -155,10 +155,10 @@ check_while(struct pcvdom_attr *_while, bool *stop)
 
 static int
 re_eval_with(struct pcintr_stack_frame *frame,
-        struct pcvdom_attr *with, bool *stop)
+        struct pcvdom_attr *with, bool *stop, pcintr_stack_t stack)
 {
     purc_variant_t val;
-    val = pcintr_eval_vdom_attr(pcintr_get_stack(), with);
+    val = pcintr_eval_vdom_attr(stack, with);
     PC_ASSERT(val != PURC_VARIANT_INVALID);
     if (val == PURC_VARIANT_INVALID)
         return -1;
@@ -197,7 +197,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 
     if (ctxt->onlyif_attr) {
         bool stop;
-        int r = check_onlyif(ctxt->onlyif_attr, &stop);
+        int r = check_onlyif(ctxt->onlyif_attr, &stop, &co->stack);
         if (r) {
             if (purc_get_last_error())
                 return ctxt;
@@ -218,7 +218,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     bool stop;
 
     int r;
-    r = re_eval_with(frame, ctxt->with_attr, &stop);
+    r = re_eval_with(frame, ctxt->with_attr, &stop, &co->stack);
     if (r) {
         if (purc_get_last_error())
             return ctxt;
@@ -234,12 +234,12 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 }
 
 const char *
-eval_rule(struct ctxt_for_iterate *ctxt)
+eval_rule(struct ctxt_for_iterate *ctxt, pcintr_stack_t stack)
 {
     const char *rule = "RANGE: FROM 0";
     if (ctxt->rule_attr) {
         purc_variant_t val;
-        val = pcintr_eval_vdom_attr(pcintr_get_stack(), ctxt->rule_attr);
+        val = pcintr_eval_vdom_attr(stack, ctxt->rule_attr);
         if (val == PURC_VARIANT_INVALID)
             return NULL;
 
@@ -403,7 +403,7 @@ post_process_by_rule(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 
     purc_variant_t with;
     if (ctxt->with_attr) {
-        with = pcintr_eval_vdom_attr(pcintr_get_stack(), ctxt->with_attr);
+        with = pcintr_eval_vdom_attr(&co->stack, ctxt->with_attr);
     }
     else {
         with = purc_variant_make_undefined();
@@ -415,7 +415,7 @@ post_process_by_rule(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     PURC_VARIANT_SAFE_CLEAR(ctxt->with);
     ctxt->with = with;
 
-    const char *rule = eval_rule(ctxt);
+    const char *rule = eval_rule(ctxt, &co->stack);
     if (!rule)
         return ctxt;
 
@@ -445,7 +445,7 @@ post_process_by_rule(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 static int
 process_attr_on(struct pcintr_stack_frame *frame,
         struct pcvdom_element *element,
-        purc_atom_t name, purc_variant_t val)
+        purc_atom_t name, purc_variant_t val, pcintr_stack_t stack)
 {
     struct ctxt_for_iterate *ctxt;
     ctxt = (struct ctxt_for_iterate*)frame->ctxt;
@@ -461,7 +461,7 @@ process_attr_on(struct pcintr_stack_frame *frame,
     PURC_VARIANT_SAFE_CLEAR(ctxt->on);
     ctxt->on = purc_variant_ref(val);
 
-    pcintr_set_input_var(pcintr_get_stack(), val);
+    pcintr_set_input_var(stack, val);
 
     return 0;
 }
@@ -519,6 +519,7 @@ attr_found_val(struct pcintr_stack_frame *frame,
 {
     UNUSED_PARAM(ud);
 
+    pcintr_stack_t stack = (pcintr_stack_t) ud;
     struct ctxt_for_iterate *ctxt;
     ctxt = (struct ctxt_for_iterate*)frame->ctxt;
 
@@ -526,7 +527,7 @@ attr_found_val(struct pcintr_stack_frame *frame,
     PC_ASSERT(attr->op == PCHVML_ATTRIBUTE_OPERATOR);
 
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, ON)) == name) {
-        return process_attr_on(frame, element, name, val);
+        return process_attr_on(frame, element, name, val, stack);
     }
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, BY)) == name) {
         ctxt->rule_attr = attr;
@@ -564,7 +565,8 @@ attr_found(struct pcintr_stack_frame *frame,
     PC_ASSERT(name);
     PC_ASSERT(attr->op == PCHVML_ATTRIBUTE_OPERATOR);
 
-    purc_variant_t val = pcintr_eval_vdom_attr(pcintr_get_stack(), attr);
+    pcintr_stack_t stack = (pcintr_stack_t) ud;
+    purc_variant_t val = pcintr_eval_vdom_attr(stack, attr);
     if (val == PURC_VARIANT_INVALID)
         return -1;
 
@@ -578,7 +580,6 @@ static void*
 after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 {
     PC_ASSERT(stack && pos);
-    PC_ASSERT(stack == pcintr_get_stack());
 
     if (stack->except)
         return NULL;
@@ -609,7 +610,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     PC_ASSERT(element);
 
     int r;
-    r = pcintr_vdom_walk_attrs(frame, element, NULL, attr_found);
+    r = pcintr_vdom_walk_attrs(frame, element, stack, attr_found);
     if (r)
         return ctxt;
 
@@ -645,7 +646,7 @@ on_popping_with(pcintr_stack_t stack)
 
     if (ctxt->while_attr) {
         bool stop;
-        int r = check_while(ctxt->while_attr, &stop);
+        int r = check_while(ctxt->while_attr, &stop, stack);
         PC_ASSERT(r == 0);
 
         if (stop) {
@@ -663,7 +664,7 @@ on_popping_with(pcintr_stack_t stack)
 }
 
 static bool
-on_popping_internal_rule(struct ctxt_for_iterate *ctxt)
+on_popping_internal_rule(struct ctxt_for_iterate *ctxt, pcintr_stack_t stack)
 {
     purc_exec_inst_t exec_inst;
     exec_inst = ctxt->exec_inst;
@@ -674,7 +675,7 @@ on_popping_internal_rule(struct ctxt_for_iterate *ctxt)
     if (!it)
         return true;
 
-    const char *rule = eval_rule(ctxt);
+    const char *rule = eval_rule(ctxt, stack);
     if (!rule)
         return true;
 
@@ -737,7 +738,6 @@ static bool
 on_popping(pcintr_stack_t stack, void* ud)
 {
     PC_ASSERT(stack);
-    PC_ASSERT(stack == pcintr_get_stack());
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
@@ -756,7 +756,7 @@ on_popping(pcintr_stack_t stack, void* ud)
 
     switch (ctxt->ops.type) {
         case PCEXEC_TYPE_INTERNAL:
-            return on_popping_internal_rule(ctxt);
+            return on_popping_internal_rule(ctxt, stack);
             break;
 
         case PCEXEC_TYPE_EXTERNAL_FUNC:
@@ -776,7 +776,6 @@ static bool
 rerun_with(pcintr_stack_t stack)
 {
     PC_ASSERT(stack);
-    PC_ASSERT(stack == pcintr_get_stack());
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
@@ -801,14 +800,14 @@ rerun_with(pcintr_stack_t stack)
 
     if (ctxt->onlyif_attr) {
         bool stop;
-        int r = check_onlyif(ctxt->onlyif_attr, &stop);
+        int r = check_onlyif(ctxt->onlyif_attr, &stop, stack);
         if (r || stop) {
             ctxt->stop = 1;
             return true;
         }
     }
 
-    r = re_eval_with(frame, ctxt->with_attr, &stop);
+    r = re_eval_with(frame, ctxt->with_attr, &stop, stack);
     if (r) {
         // FIXME: let catch to effect afterward???
         return true;
@@ -824,7 +823,7 @@ rerun_with(pcintr_stack_t stack)
 
 static bool
 rerun_internal_rule(struct ctxt_for_iterate *ctxt,
-        struct pcintr_stack_frame *frame)
+        struct pcintr_stack_frame *frame, pcintr_stack_t stack)
 {
     purc_exec_inst_t exec_inst;
     exec_inst = ctxt->exec_inst;
@@ -842,7 +841,7 @@ rerun_internal_rule(struct ctxt_for_iterate *ctxt,
     int r;
     r = pcintr_set_question_var(frame, value);
     if (r == 0) {
-        pcintr_set_input_var(pcintr_get_stack(), value);
+        pcintr_set_input_var(stack, value);
     }
 
     return r ? false : true;
@@ -850,7 +849,7 @@ rerun_internal_rule(struct ctxt_for_iterate *ctxt,
 
 static bool
 rerun_external_class(struct ctxt_for_iterate *ctxt,
-        struct pcintr_stack_frame *frame)
+        struct pcintr_stack_frame *frame, pcintr_stack_t stack)
 {
     pcexec_class_iter_t it = ctxt->it_class;
     PC_ASSERT(it);
@@ -865,7 +864,7 @@ rerun_external_class(struct ctxt_for_iterate *ctxt,
     int r;
     r = pcintr_set_question_var(frame, value);
     if (r == 0) {
-        pcintr_set_input_var(pcintr_get_stack(), value);
+        pcintr_set_input_var(stack, value);
     }
 
     return r ? false : true;
@@ -873,7 +872,7 @@ rerun_external_class(struct ctxt_for_iterate *ctxt,
 
 static bool
 rerun_external_func(struct ctxt_for_iterate *ctxt,
-        struct pcintr_stack_frame *frame)
+        struct pcintr_stack_frame *frame, pcintr_stack_t stack)
 {
     purc_variant_t value;
     value = purc_variant_linear_container_get(ctxt->val_from_func,
@@ -884,7 +883,7 @@ rerun_external_func(struct ctxt_for_iterate *ctxt,
     int r;
     r = pcintr_set_question_var(frame, value);
     if (r == 0) {
-        pcintr_set_input_var(pcintr_get_stack(), value);
+        pcintr_set_input_var(stack, value);
     }
 
     return r ? false : true;
@@ -894,7 +893,6 @@ static bool
 rerun(pcintr_stack_t stack, void* ud)
 {
     PC_ASSERT(stack);
-    PC_ASSERT(stack == pcintr_get_stack());
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
@@ -918,15 +916,15 @@ rerun(pcintr_stack_t stack, void* ud)
 
     switch (ctxt->ops.type) {
         case PCEXEC_TYPE_INTERNAL:
-            return rerun_internal_rule(ctxt, frame);
+            return rerun_internal_rule(ctxt, frame, stack);
             break;
 
         case PCEXEC_TYPE_EXTERNAL_FUNC:
-            return rerun_external_func(ctxt, frame);
+            return rerun_external_func(ctxt, frame, stack);
             break;
 
         case PCEXEC_TYPE_EXTERNAL_CLASS:
-            return rerun_external_class(ctxt, frame);
+            return rerun_external_class(ctxt, frame, stack);
             break;
 
         default:
@@ -965,7 +963,6 @@ static pcvdom_element_t
 select_child(pcintr_stack_t stack, void* ud)
 {
     PC_ASSERT(stack);
-    PC_ASSERT(stack == pcintr_get_stack());
 
     pcintr_coroutine_t co = stack->co;
     struct pcintr_stack_frame *frame;

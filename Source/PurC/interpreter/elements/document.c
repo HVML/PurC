@@ -75,7 +75,6 @@ static void*
 after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 {
     PC_ASSERT(stack);
-    PC_ASSERT(stack == pcintr_get_stack());
     PC_ASSERT(stack->mode == STACK_VDOM_BEFORE_HVML);
 
     if (stack->except)
@@ -130,7 +129,6 @@ static bool
 on_popping(pcintr_stack_t stack, void* ud)
 {
     PC_ASSERT(stack);
-    PC_ASSERT(stack == pcintr_get_stack());
     switch (stack->mode) {
         case STACK_VDOM_BEFORE_HVML:
             stack->mode = STACK_VDOM_AFTER_HVML;
@@ -205,7 +203,6 @@ static pcvdom_element_t
 select_child(pcintr_stack_t stack, void* ud)
 {
     PC_ASSERT(stack);
-    PC_ASSERT(stack == pcintr_get_stack());
 
     pcintr_coroutine_t co = stack->co;
     struct pcintr_stack_frame *frame;

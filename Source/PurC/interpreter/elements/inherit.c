@@ -59,7 +59,6 @@ static void*
 after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 {
     PC_ASSERT(stack && pos);
-    PC_ASSERT(stack == pcintr_get_stack());
     if (stack->except)
         return NULL;
 
@@ -112,7 +111,6 @@ static bool
 on_popping(pcintr_stack_t stack, void* ud)
 {
     PC_ASSERT(stack);
-    PC_ASSERT(stack == pcintr_get_stack());
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
@@ -184,7 +182,6 @@ static pcvdom_element_t
 select_child(pcintr_stack_t stack, void* ud)
 {
     PC_ASSERT(stack);
-    PC_ASSERT(stack == pcintr_get_stack());
 
     pcintr_coroutine_t co = stack->co;
     struct pcintr_stack_frame *frame;
