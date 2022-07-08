@@ -527,12 +527,6 @@ stack_init(pcintr_stack_t stack)
     stack->stage = STACK_STAGE_FIRST_ROUND;
     stack->loaded_vars = RB_ROOT;
     stack->mode = STACK_VDOM_BEFORE_HVML;
-
-    struct pcinst *inst = pcinst_current();
-    PC_ASSERT(inst);
-    struct pcintr_heap *heap = inst->intr_heap;
-    PC_ASSERT(heap);
-    stack->owning_heap = heap;
 }
 
 void pcintr_heap_lock(struct pcintr_heap *heap)

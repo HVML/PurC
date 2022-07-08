@@ -157,7 +157,6 @@ struct pcintr_exception {
 };
 
 struct pcintr_stack {
-    struct pcintr_heap           *owning_heap;
     struct list_head              frames;
 
     // the number of stack frames.
