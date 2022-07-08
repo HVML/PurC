@@ -1511,6 +1511,7 @@ pcintr_stack_frame_get_parent(struct pcintr_stack_frame *frame)
 #define BUILDIN_VAR_EJSON       "EJSON"
 #define BUILDIN_VAR_STR         "STR"
 #define BUILDIN_VAR_STREAM      "STREAM"
+#define BUILDIN_VAR_REQUEST     "REQUEST"
 
 static bool
 bind_cor_named_variable(purc_coroutine_t cor, const char* name,
@@ -1530,8 +1531,9 @@ bind_cor_named_variable(purc_coroutine_t cor, const char* name,
 }
 
 static bool
-bind_builtin_coroutine_variables(purc_coroutine_t cor)
+bind_builtin_coroutine_variables(purc_coroutine_t cor, purc_variant_t request)
 {
+    UNUSED_PARAM(request);
     pcintr_stack_t stack = &cor->stack;
     // $TIMERS
     stack->timers = pcintr_timers_init(stack);
@@ -1539,9 +1541,10 @@ bind_builtin_coroutine_variables(purc_coroutine_t cor)
         return false;
     }
 
-    // $HVML
-    if(!bind_cor_named_variable(cor, BUILDIN_VAR_HVML,
-                purc_dvobj_hvml_new(&stack->co->hvml_ctrl_props))) {
+    // $REQUEST
+    if (request && !pcintr_bind_coroutine_variable(
+                cor, BUILDIN_VAR_REQUEST, request)) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return false;
     }
 
@@ -1577,14 +1580,6 @@ bind_builtin_coroutine_variables(purc_coroutine_t cor)
     }
 
 
-    // $DOC
-    pchtml_html_document_t *doc = stack->doc;
-    pcdom_document_t *document = (pcdom_document_t*)doc;
-    if(!bind_cor_named_variable(cor, BUILDIN_VAR_DOC,
-                purc_dvobj_doc_new(document))) {
-        return false;
-    }
-
 
     // $EJSON
     if(!bind_cor_named_variable(cor, BUILDIN_VAR_EJSON,
@@ -1612,8 +1607,19 @@ pcintr_init_vdom_under_stack(pcintr_stack_t stack)
         return -1;
     }
 
-    if (!bind_builtin_coroutine_variables(stack->co))
+    // $HVML
+    if(!bind_cor_named_variable(stack->co, BUILDIN_VAR_HVML,
+                purc_dvobj_hvml_new(&stack->co->hvml_ctrl_props))) {
+        return false;
+    }
+
+    // $DOC
+    pchtml_html_document_t *doc = stack->doc;
+    pcdom_document_t *document = (pcdom_document_t*)doc;
+    if(!bind_cor_named_variable(stack->co, BUILDIN_VAR_DOC,
+                purc_dvobj_doc_new(document))) {
         return -1;
+    }
 
     return 0;
 }
@@ -2392,6 +2398,11 @@ purc_schedule_vdom(purc_vdom_t vdom,
     /* TODO: handle entry here */
     UNUSED_PARAM(body_id);
     UNUSED_PARAM(request);
+
+    if (!bind_builtin_coroutine_variables(co, request)) {
+        coroutine_destroy(co);
+        return NULL;
+    }
 
     pcintr_wakeup_target(co, run_co_main);
     return co;
