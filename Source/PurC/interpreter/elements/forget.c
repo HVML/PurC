@@ -277,7 +277,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (ctxt->at != PURC_VARIANT_INVALID && purc_variant_is_string(ctxt->at)) {
         const char* name = purc_variant_get_string_const(ctxt->at);
         purc_variant_t v = pcintr_get_named_var_for_event(stack, name);
-        pcintr_revoke_observer_ex(v, ctxt->msg_type_atom, ctxt->sub_type);
+        pcintr_revoke_observer_ex(stack, v, ctxt->msg_type_atom, ctxt->sub_type);
         purc_variant_unref(v);
     }
     else {
@@ -286,12 +286,12 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
             // XXX: optimization
             // CSS selector used string
             // handle by elements.c match_observe
-            pcintr_revoke_observer_ex(on,
+            pcintr_revoke_observer_ex(stack, on,
                 ctxt->msg_type_atom, ctxt->sub_type);
         }
         else
         {
-            pcintr_revoke_observer_ex(on,
+            pcintr_revoke_observer_ex(stack, on,
                 ctxt->msg_type_atom, ctxt->sub_type);
         }
     }

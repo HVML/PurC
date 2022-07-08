@@ -489,7 +489,7 @@ register_named_var_observer(pcintr_stack_t stack,
         return NULL;
     }
 
-    struct pcintr_observer *result = pcintr_register_observer(observed,
+    struct pcintr_observer *result = pcintr_register_observer(stack, observed,
             ctxt->for_var, ctxt->msg_type_atom, ctxt->sub_type,
             frame->pos, frame->edom_element, frame->pos, ctxt->at_symbol,
             NULL, NULL);
@@ -521,7 +521,7 @@ register_native_var_observer(pcintr_stack_t stack,
         return NULL;
     }
 
-    observer = pcintr_register_observer(observed,
+    observer = pcintr_register_observer(stack, observed,
             ctxt->for_var, ctxt->msg_type_atom, ctxt->sub_type,
             frame->pos,
             frame->edom_element, frame->pos, ctxt->at_symbol, NULL, NULL);
@@ -539,7 +539,7 @@ register_timer_observer(pcintr_stack_t stack,
     struct ctxt_for_observe *ctxt;
     ctxt = (struct ctxt_for_observe*)frame->ctxt;
 
-    return pcintr_register_observer(on,
+    return pcintr_register_observer(stack, on,
             ctxt->for_var, ctxt->msg_type_atom, ctxt->sub_type,
             frame->pos,
             frame->edom_element, frame->pos, ctxt->at_symbol, NULL, NULL);
@@ -567,7 +567,7 @@ register_mmutable_var_observer(pcintr_stack_t stack,
     if (!regist_variant_listener(stack, on, ctxt->msg_type_atom, &listener))
         return NULL;
 
-    return pcintr_register_observer(on,
+    return pcintr_register_observer(stack, on,
             ctxt->for_var, ctxt->msg_type_atom, ctxt->sub_type,
             frame->pos,
             frame->edom_element, frame->pos, ctxt->at_symbol,
@@ -607,7 +607,7 @@ register_default_observer(pcintr_stack_t stack,
     UNUSED_PARAM(stack);
     struct ctxt_for_observe *ctxt;
     ctxt = (struct ctxt_for_observe*)frame->ctxt;
-    return pcintr_register_observer(observed,
+    return pcintr_register_observer(stack, observed,
             ctxt->for_var, ctxt->msg_type_atom, ctxt->sub_type,
             frame->pos, frame->edom_element, frame->pos, ctxt->at_symbol,
             NULL, NULL);

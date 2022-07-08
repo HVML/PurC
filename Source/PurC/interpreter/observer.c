@@ -79,14 +79,13 @@ free_observer(struct pcintr_observer *observer)
 }
 
 static void
-add_observer_into_list(struct list_head *list,
+add_observer_into_list(pcintr_stack_t stack, struct list_head *list,
         struct pcintr_observer* observer)
 {
     observer->list = list;
     list_add_tail(&observer->node, list);
 
     // TODO:
-    pcintr_stack_t stack = pcintr_get_stack();
     PC_ASSERT(stack);
     PC_ASSERT(stack->co->waits >= 0);
     stack->co->waits++;
@@ -173,7 +172,8 @@ pcintr_is_observer_match(struct pcintr_observer *observer,
 
 
 struct pcintr_observer*
-pcintr_register_observer(purc_variant_t observed,
+pcintr_register_observer(pcintr_stack_t stack,
+        purc_variant_t observed,
         purc_variant_t for_value,
         purc_atom_t msg_type_atom, const char *sub_type,
         pcvdom_element_t scope,
@@ -187,7 +187,6 @@ pcintr_register_observer(purc_variant_t observed,
     UNUSED_PARAM(for_value);
     UNUSED_PARAM(at_symbol);
 
-    pcintr_stack_t stack = pcintr_get_stack();
     struct list_head *list = NULL;
     if (purc_variant_is_type(observed, PURC_VARIANT_TYPE_DYNAMIC)) {
         list = &stack->dynamic_observers;
@@ -206,6 +205,7 @@ pcintr_register_observer(purc_variant_t observed,
         return NULL;
     }
 
+    observer->stack = stack;
     observer->observed = observed;
     purc_variant_ref(observed);
     observer->scope = scope;
@@ -219,7 +219,7 @@ pcintr_register_observer(purc_variant_t observed,
     }
     observer->on_revoke = on_revoke;
     observer->on_revoke_data = on_revoke_data;
-    add_observer_into_list(list, observer);
+    add_observer_into_list(stack, list, observer);
 
     return observer;
 }
@@ -233,18 +233,16 @@ pcintr_revoke_observer(struct pcintr_observer* observer)
     free_observer(observer);
 
     // TODO:
-    pcintr_stack_t stack = pcintr_get_stack();
+    pcintr_stack_t stack = observer->stack;
     PC_ASSERT(stack);
     PC_ASSERT(stack->co->waits >= 1);
     stack->co->waits--;
 }
 
 void
-pcintr_revoke_observer_ex(purc_variant_t observed,
+pcintr_revoke_observer_ex(pcintr_stack_t stack, purc_variant_t observed,
         purc_atom_t msg_type_atom, const char *sub_type)
 {
-    pcintr_stack_t stack = pcintr_get_stack();
-
     struct list_head* list = pcintr_get_observer_list(stack, observed);
     struct pcintr_observer *p, *n;
     list_for_each_entry_safe(p, n, list, node) {

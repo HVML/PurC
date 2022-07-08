@@ -414,6 +414,7 @@ struct pcintr_dynamic_args {
 struct pcintr_observer {
     struct list_head            node;
 
+    pcintr_stack_t              stack;
     // the observed variant.
     purc_variant_t observed;
 
@@ -602,7 +603,8 @@ pcintr_parse_event(const char *event, purc_variant_t *type,
         purc_variant_t *sub_type);
 
 struct pcintr_observer*
-pcintr_register_observer(purc_variant_t observed,
+pcintr_register_observer(pcintr_stack_t stack,
+        purc_variant_t observed,
         purc_variant_t for_value,
         purc_atom_t msg_type_atom, const char *sub_type,
         pcvdom_element_t scope,
@@ -617,7 +619,7 @@ void
 pcintr_revoke_observer(struct pcintr_observer* observer);
 
 void
-pcintr_revoke_observer_ex(purc_variant_t observed,
+pcintr_revoke_observer_ex(pcintr_stack_t stack, purc_variant_t observed,
         purc_atom_t msg_type_atom, const char *sub_type);
 
 void
