@@ -296,6 +296,7 @@ struct pcintr_coroutine {
     unsigned int volatile       msg_pending:1;
     unsigned int volatile       execution_pending:1;
 
+    struct pcvarmgr            *variables;
     void                       *user_data;
 };
 

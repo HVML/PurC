@@ -464,6 +464,9 @@ coroutine_release(pcintr_coroutine_t co)
         if (co->mq) {
             pcinst_msg_queue_destroy(co->mq);
         }
+        if (co->variables) {
+            pcvarmgr_destroy(co->variables);
+        }
         PURC_VARIANT_SAFE_CLEAR(co->val_from_return_or_exit);
     }
 }
@@ -2308,6 +2311,11 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
         goto fail_name;
     }
 
+    co->variables = pcvarmgr_create();
+    if (!co->variables) {
+        goto fail_variables;
+    }
+
     if (parent) {
         co->curator = parent->cid;
         if (as != PURC_VARIANT_INVALID)
@@ -2336,6 +2344,9 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
     }
 
     return co;
+
+fail_variables:
+    pcinst_msg_queue_destroy(co->mq);
 
 fail_name:
     free(co);
