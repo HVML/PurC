@@ -72,16 +72,14 @@ attr_found_val(struct pcintr_stack_frame *frame,
 
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, TARGET)) == name) {
         pcintr_stack_t stack = pcintr_get_stack();
-        if (stack->co->hvml_ctrl_props->target) {
+        if (stack->co->target) {
             char *target = strdup(sv);
             if (!target) {
                 purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
                 return -1;
             }
-            struct purc_hvml_ctrl_props *props =
-                (struct purc_hvml_ctrl_props *)stack->co->hvml_ctrl_props;
-            free(props->target);
-            props->target = target;
+            free(stack->co->target);
+            stack->co->target = target;
         }
     }
 

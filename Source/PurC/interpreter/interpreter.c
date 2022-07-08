@@ -1648,7 +1648,7 @@ pcintr_init_vdom_under_stack(pcintr_stack_t stack)
 
     // $HVML
     if(!bind_cor_named_variable(stack->co, BUILDIN_VAR_HVML,
-                purc_dvobj_hvml_new(&stack->co->hvml_ctrl_props))) {
+                purc_dvobj_hvml_new(stack->co))) {
         return false;
     }
 
@@ -2596,12 +2596,12 @@ pcintr_load_from_uri(pcintr_stack_t stack, const char* uri)
         return PURC_VARIANT_INVALID;
     }
 
-    if (stack->co->hvml_ctrl_props->base_url_string) {
-        pcfetcher_set_base_url(stack->co->hvml_ctrl_props->base_url_string);
+    if (stack->co->base_url_string) {
+        pcfetcher_set_base_url(stack->co->base_url_string);
     }
     purc_variant_t ret = PURC_VARIANT_INVALID;
     struct pcfetcher_resp_header resp_header = {0};
-    uint32_t timeout = stack->co->hvml_ctrl_props->timeout.tv_sec;
+    uint32_t timeout = stack->co->timeout.tv_sec;
     purc_rwstream_t resp = pcfetcher_request_sync(
             uri,
             PCFETCHER_REQUEST_METHOD_GET,
@@ -2700,11 +2700,11 @@ pcintr_load_from_uri_async(pcintr_stack_t stack, const char* uri,
     data->requesting_stack     = stack;
     data->request_id           = PURC_VARIANT_INVALID;
 
-    if (stack->co->hvml_ctrl_props->base_url_string) {
-        pcfetcher_set_base_url(stack->co->hvml_ctrl_props->base_url_string);
+    if (stack->co->base_url_string) {
+        pcfetcher_set_base_url(stack->co->base_url_string);
     }
 
-    uint32_t timeout = stack->co->hvml_ctrl_props->timeout.tv_sec;
+    uint32_t timeout = stack->co->timeout.tv_sec;
     data->request_id = pcfetcher_request_async(
             uri,
             method,
@@ -2754,10 +2754,10 @@ pcintr_load_vdom_fragment_from_uri(pcintr_stack_t stack, const char* uri)
         return PURC_VARIANT_INVALID;
     }
 
-    if (stack->co->hvml_ctrl_props->base_url_string) {
-        pcfetcher_set_base_url(stack->co->hvml_ctrl_props->base_url_string);
+    if (stack->co->base_url_string) {
+        pcfetcher_set_base_url(stack->co->base_url_string);
     }
-    uint32_t timeout = stack->co->hvml_ctrl_props->timeout.tv_sec;
+    uint32_t timeout = stack->co->timeout.tv_sec;
     purc_variant_t ret = PURC_VARIANT_INVALID;
     struct pcfetcher_resp_header resp_header = {0};
     purc_rwstream_t resp = pcfetcher_request_sync(

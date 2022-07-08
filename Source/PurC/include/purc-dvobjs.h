@@ -41,28 +41,6 @@
 
 #define PURC_TFORMAT_PREFIX_UTC       "{UTC}"
 
-/** The structure defining the control properties of a HVML program */
-struct purc_hvml_ctrl_props {
-    /** The target as a null-terminated string. */
-    char *target;
-
-    /** The base URL as a null-terminated string. */
-    char *base_url_string;
-
-    /** The base URL broken down. */
-    struct purc_broken_down_url base_url_broken_down;
-
-    /** The maximal iteration count. */
-    uint64_t            max_iteration_count;
-    /** The maximal recursion depth. */
-    uint64_t            max_recursion_depth;
-    /** The maximal embedded levels of a EJSON container. */
-    uint64_t            max_embedded_levels;
-
-    /** The timeout value for a remote request. */
-    struct timespec     timeout;
-};
-
 /** The structure defining a method of a dynamic variant object. */
 struct purc_dvobj_method {
     /* The method name. */
@@ -72,6 +50,10 @@ struct purc_dvobj_method {
     /* The setter of the method. */
     purc_dvariant_method setter;
 };
+
+struct pcintr_coroutine;
+typedef struct pcintr_coroutine pcintr_coroutine;
+typedef struct pcintr_coroutine *pcintr_coroutine_t;
 
 PCA_EXTERN_C_BEGIN
 
@@ -102,7 +84,7 @@ purc_dvobj_datetime_new(void);
 
 /** Make a dynamic variant object for built-in `$HVML` variable. */
 PCA_EXPORT purc_variant_t
-purc_dvobj_hvml_new(const struct purc_hvml_ctrl_props **ctrl_props);
+purc_dvobj_hvml_new(pcintr_coroutine_t cor);
 
 /** Make a dynamic variant object for built-in `$DOC` variable. */
 PCA_EXPORT purc_variant_t
