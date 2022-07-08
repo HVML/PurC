@@ -122,7 +122,8 @@ static bool mgr_grow_handler(purc_variant_t source, pcvar_op_t msg_type,
     UNUSED_PARAM(msg_type);
     UNUSED_PARAM(nr_args);
 
-    if (ctxt == NULL) {
+    pcintr_stack_t stack = pcintr_get_stack();
+    if (ctxt == NULL || !stack) {
         return true;
     }
 
@@ -131,8 +132,6 @@ static bool mgr_grow_handler(purc_variant_t source, pcvar_op_t msg_type,
     const char* name = purc_variant_get_string_const(argv[0]);
     purc_variant_t dest = pcvarmgr_build_event_observed(name, mgr);
     if (dest) {
-        pcintr_stack_t stack = pcintr_get_stack();
-
         pcintr_coroutine_post_event(stack->co->cid,
                 PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
                 dest, MSG_TYPE_CHANGE, SUB_TYPE_ATTACHED,
@@ -150,7 +149,8 @@ static bool mgr_shrink_handler(purc_variant_t source, pcvar_op_t msg_type,
     UNUSED_PARAM(msg_type);
     UNUSED_PARAM(nr_args);
 
-    if (ctxt == NULL) {
+    pcintr_stack_t stack = pcintr_get_stack();
+    if (ctxt == NULL || !stack) {
         return true;
     }
 
@@ -159,7 +159,6 @@ static bool mgr_shrink_handler(purc_variant_t source, pcvar_op_t msg_type,
     const char* name = purc_variant_get_string_const(argv[0]);
     purc_variant_t dest = pcvarmgr_build_event_observed(name, mgr);
     if (dest) {
-        pcintr_stack_t stack = pcintr_get_stack();
         pcintr_coroutine_post_event(stack->co->cid,
                 PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
                 dest, MSG_TYPE_CHANGE, SUB_TYPE_DETACHED,
@@ -177,7 +176,8 @@ static bool mgr_change_handler(purc_variant_t source, pcvar_op_t msg_type,
     UNUSED_PARAM(msg_type);
     UNUSED_PARAM(nr_args);
 
-    if (ctxt == NULL) {
+    pcintr_stack_t stack = pcintr_get_stack();
+    if (ctxt == NULL || !stack) {
         return true;
     }
 
@@ -186,8 +186,6 @@ static bool mgr_change_handler(purc_variant_t source, pcvar_op_t msg_type,
     const char* name = purc_variant_get_string_const(argv[0]);
     purc_variant_t dest = pcvarmgr_build_event_observed(name, mgr);
     if (dest) {
-        pcintr_stack_t stack = pcintr_get_stack();
-
         pcintr_coroutine_post_event(stack->co->cid,
                 PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
                 dest, MSG_TYPE_CHANGE, SUB_TYPE_DISPLACED,
@@ -246,12 +244,9 @@ pcvarmgr_t pcvarmgr_create(void)
         goto err_free_mgr;
     }
 
-    pcintr_stack_t stack = pcintr_get_stack();
-    if (stack) {
-        int ret = add_listener_for_co_variables(mgr);
-        if (ret != 0) {
-            goto err_clear_object;
-        }
+    int ret = add_listener_for_co_variables(mgr);
+    if (ret != 0) {
+        goto err_clear_object;
     }
 
 
@@ -353,10 +348,12 @@ bool pcvarmgr_remove_ex(pcvarmgr_t mgr, const char* name, bool silently)
 bool pcvarmgr_dispatch_except(pcvarmgr_t mgr, const char* name,
         const char* except)
 {
+    pcintr_stack_t stack = pcintr_get_stack();
+    if (!stack) {
+        return true;
+    }
     purc_variant_t dest = pcvarmgr_build_event_observed(name, mgr);
     if (dest) {
-        pcintr_stack_t stack = pcintr_get_stack();
-
         pcintr_coroutine_post_event(stack->co->cid,
                 PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
                 dest, MSG_TYPE_CHANGE, except,

@@ -68,6 +68,11 @@ pcintr_create_scoped_variables(struct pcvdom_node *node)
     pcintr_stack_t stack = pcintr_get_stack();
     PC_ASSERT(stack);
 
+    /* vdom level manage by coroutine */
+    if (node == (void*)stack->vdom) {
+        return stack->co->variables;
+    }
+
     struct rb_node *p;
     int r = pcutils_rbtree_insert_or_get(&stack->scoped_variables, node,
             cmp_f, new_varmgr, &p);
@@ -140,6 +145,11 @@ pcintr_get_scoped_variables(purc_coroutine_t cor, struct pcvdom_node *node)
     PC_ASSERT(stack);
     PC_ASSERT(stack->co == cor);
 
+    /* vdom level manage by coroutine */
+    if (node == (void *)cor->stack.vdom) {
+        return cor->variables;
+    }
+
     struct rb_node *p;
     struct rb_node *first = pcutils_rbtree_first(&stack->scoped_variables);
     pcutils_rbtree_for_each(first, p) {
@@ -161,25 +171,7 @@ purc_coroutine_bind_variable(purc_coroutine_t cor, const char *name,
         return false;
     }
 
-    struct pcvdom_node *node = pcvdom_doc_cast_to_node(cor->vdom);
-    pcvarmgr_t scoped_variables = pcintr_create_scoped_variables(node);
-    if (!scoped_variables)
-        return false;
-
-    bool b = pcvarmgr_add(scoped_variables, name, variant);
-    return b;
-}
-
-static pcvarmgr_t
-purc_coroutine_get_varmgr(purc_coroutine_t cor)
-{
-    if (!cor || !cor->vdom) {
-        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
-        return NULL;
-    }
-
-    struct pcvdom_node *node = pcvdom_doc_cast_to_node(cor->vdom);
-    return pcintr_get_scoped_variables(cor, node);
+    return pcvarmgr_add(cor->variables, name, variant);
 }
 
 bool
@@ -190,11 +182,7 @@ purc_coroutine_unbind_variable(purc_coroutine_t cor, const char *name)
         return false;
     }
 
-    pcvarmgr_t scoped_variables = purc_coroutine_get_varmgr(cor);
-    if (!scoped_variables)
-        return false;
-
-    return pcvarmgr_remove(scoped_variables, name);
+    return pcvarmgr_remove(cor->variables, name);
 }
 
 purc_variant_t
@@ -205,11 +193,7 @@ purc_coroutine_get_variable(purc_coroutine_t cor, const char *name)
         return PURC_VARIANT_INVALID;
     }
 
-    pcvarmgr_t scoped_variables = purc_coroutine_get_varmgr(cor);
-    if (!scoped_variables)
-        return false;
-
-    return pcvarmgr_get(scoped_variables, name);
+    return pcvarmgr_get(cor->variables, name);
 }
 
 void *

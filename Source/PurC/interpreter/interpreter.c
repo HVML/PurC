@@ -1513,14 +1513,14 @@ pcintr_stack_frame_get_parent(struct pcintr_stack_frame *frame)
 #define BUILDIN_VAR_STREAM      "STREAM"
 
 static bool
-bind_cor_named_variable(pcintr_stack_t stack, const char* name,
+bind_cor_named_variable(purc_coroutine_t cor, const char* name,
         purc_variant_t var)
 {
     if (var == PURC_VARIANT_INVALID) {
         return false;
     }
 
-    if (!pcintr_bind_coroutine_variable(stack->co, name, var)) {
+    if (!pcintr_bind_coroutine_variable(cor, name, var)) {
         purc_variant_unref(var);
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return false;
@@ -1530,8 +1530,9 @@ bind_cor_named_variable(pcintr_stack_t stack, const char* name,
 }
 
 static bool
-bind_builtin_coroutine_variables(pcintr_stack_t stack)
+bind_builtin_coroutine_variables(purc_coroutine_t cor)
 {
+    pcintr_stack_t stack = &cor->stack;
     // $TIMERS
     stack->timers = pcintr_timers_init(stack);
     if (!stack->timers) {
@@ -1539,38 +1540,38 @@ bind_builtin_coroutine_variables(pcintr_stack_t stack)
     }
 
     // $HVML
-    if(!bind_cor_named_variable(stack, BUILDIN_VAR_HVML,
+    if(!bind_cor_named_variable(cor, BUILDIN_VAR_HVML,
                 purc_dvobj_hvml_new(&stack->co->hvml_ctrl_props))) {
         return false;
     }
 
     // $DATETIME
-    if(!bind_cor_named_variable(stack, BUILDIN_VAR_DATETIME,
+    if(!bind_cor_named_variable(cor, BUILDIN_VAR_DATETIME,
                 purc_dvobj_datetime_new())) {
         return false;
     }
 
     // $T
-    if(!bind_cor_named_variable(stack, BUILDIN_VAR_T,
+    if(!bind_cor_named_variable(cor, BUILDIN_VAR_T,
                 purc_dvobj_text_new())) {
         return false;
     }
 
     // $L
-    if(!bind_cor_named_variable(stack, BUILDIN_VAR_L,
+    if(!bind_cor_named_variable(cor, BUILDIN_VAR_L,
                 purc_dvobj_logical_new())) {
         return false;
     }
 
     // FIXME: document-wide-variant???
     // $STR
-    if(!bind_cor_named_variable(stack, BUILDIN_VAR_STR,
+    if(!bind_cor_named_variable(cor, BUILDIN_VAR_STR,
                 purc_dvobj_string_new())) {
         return false;
     }
 
     // $STREAM
-    if(!bind_cor_named_variable(stack, BUILDIN_VAR_STREAM,
+    if(!bind_cor_named_variable(cor, BUILDIN_VAR_STREAM,
                 purc_dvobj_stream_new())) {
         return false;
     }
@@ -1579,14 +1580,14 @@ bind_builtin_coroutine_variables(pcintr_stack_t stack)
     // $DOC
     pchtml_html_document_t *doc = stack->doc;
     pcdom_document_t *document = (pcdom_document_t*)doc;
-    if(!bind_cor_named_variable(stack, BUILDIN_VAR_DOC,
+    if(!bind_cor_named_variable(cor, BUILDIN_VAR_DOC,
                 purc_dvobj_doc_new(document))) {
         return false;
     }
 
 
     // $EJSON
-    if(!bind_cor_named_variable(stack, BUILDIN_VAR_EJSON,
+    if(!bind_cor_named_variable(cor, BUILDIN_VAR_EJSON,
                 purc_dvobj_ejson_new())) {
         return false;
     }
@@ -1611,7 +1612,7 @@ pcintr_init_vdom_under_stack(pcintr_stack_t stack)
         return -1;
     }
 
-    if (!bind_builtin_coroutine_variables(stack))
+    if (!bind_builtin_coroutine_variables(stack->co))
         return -1;
 
     return 0;
