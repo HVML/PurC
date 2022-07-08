@@ -1625,8 +1625,6 @@ bind_builtin_coroutine_variables(purc_coroutine_t cor, purc_variant_t request)
 int
 pcintr_init_vdom_under_stack(pcintr_stack_t stack)
 {
-    PC_ASSERT(stack == pcintr_get_stack());
-
     stack->async_request_ids = purc_variant_make_array(0, PURC_VARIANT_INVALID);
     if (!stack->async_request_ids) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
@@ -1791,9 +1789,8 @@ static void run_exiting_co(void *ctxt)
 static void run_ready_co(void);
 
 static void
-revoke_all_dynamic_observers(void)
+revoke_all_dynamic_observers(pcintr_stack_t stack)
 {
-    pcintr_stack_t stack = pcintr_get_stack();
     PC_ASSERT(stack);
     struct list_head *observers = &stack->dynamic_observers;
     struct pcintr_observer *p, *n;
@@ -1803,9 +1800,8 @@ revoke_all_dynamic_observers(void)
 }
 
 static void
-revoke_all_native_observers(void)
+revoke_all_native_observers(pcintr_stack_t stack)
 {
-    pcintr_stack_t stack = pcintr_get_stack();
     PC_ASSERT(stack);
     struct list_head *observers = &stack->native_observers;
     struct pcintr_observer *p, *n;
@@ -1815,9 +1811,8 @@ revoke_all_native_observers(void)
 }
 
 static void
-revoke_all_common_observers(void)
+revoke_all_common_observers(pcintr_stack_t stack)
 {
-    pcintr_stack_t stack = pcintr_get_stack();
     PC_ASSERT(stack);
     struct list_head *observers = &stack->common_observers;
     struct pcintr_observer *p, *n;
@@ -2092,11 +2087,11 @@ static void check_after_execution(pcintr_coroutine_t co)
     }
 
     if (co->stack.exited) {
-        revoke_all_dynamic_observers();
+        revoke_all_dynamic_observers(&co->stack);
         PC_ASSERT(list_empty(&co->stack.dynamic_observers));
-        revoke_all_native_observers();
+        revoke_all_native_observers(&co->stack);
         PC_ASSERT(list_empty(&co->stack.native_observers));
-        revoke_all_common_observers();
+        revoke_all_common_observers(&co->stack);
         PC_ASSERT(list_empty(&co->stack.common_observers));
     }
 
