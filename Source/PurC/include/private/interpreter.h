@@ -535,14 +535,14 @@ pcintr_get_coroutine_variable(purc_coroutine_t cor, const char* name)
     return purc_coroutine_get_variable(cor, name);
 }
 
-pcvarmgr_t
-pcintr_get_scoped_variables(purc_coroutine_t cor, struct pcvdom_node *node);
-
 static inline pcvarmgr_t
 pcintr_get_coroutine_variables(purc_coroutine_t cor)
 {
-    return pcintr_get_scoped_variables(cor, pcvdom_doc_cast_to_node(cor->vdom));
+    return cor->variables;
 }
+
+pcvarmgr_t
+pcintr_get_scoped_variables(purc_coroutine_t cor, struct pcvdom_node *node);
 
 static inline pcvarmgr_t
 pcintr_get_scope_variables(purc_coroutine_t cor, pcvdom_element_t elem)
