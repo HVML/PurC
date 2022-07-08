@@ -406,10 +406,6 @@ stack_release(pcintr_stack_t stack)
 
     loaded_vars_release(stack);
 
-    if (stack->base_uri) {
-        free(stack->base_uri);
-    }
-
     pcintr_exception_clear(&stack->exception);
 
 #if 0 // VW

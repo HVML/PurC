@@ -158,28 +158,28 @@ struct pcintr_exception {
 
 struct pcintr_stack {
     struct pcintr_heap           *owning_heap;
-    struct list_head frames;
+    struct list_head              frames;
 
     // the number of stack frames.
-    size_t nr_frames;
+    size_t                        nr_frames;
 
     // the pointer to the vDOM tree.
-    purc_vdom_t vdom;
-    struct pcvdom_element         *entry;
+    purc_vdom_t                   vdom;
+    struct pcvdom_element        *entry;
 
     enum pcintr_stack_vdom_insertion_mode        mode;
 
     // the returned variant
-    purc_variant_t ret_var;
+    purc_variant_t                ret_var;
 
     // executing state
     // FIXME: move to struct pcintr_coroutine?
-    // uint32_t        error:1;
-    uint32_t        except:1;
-    uint32_t        exited:1;
-    uint32_t volatile       last_msg_sent:1;
-    uint32_t volatile       last_msg_read:1;
-    /* uint32_t        paused:1; */
+    // uint32_t                   error:1;
+    uint32_t                      except:1;
+    uint32_t                      exited:1;
+    uint32_t volatile             last_msg_sent:1;
+    uint32_t volatile             last_msg_read:1;
+    /* uint32_t                   paused:1; */
 
     enum pcintr_stack_stage       stage;
 
@@ -188,42 +188,39 @@ struct pcintr_stack {
     struct pcintr_exception       exception;
 
     // for `back` to use
-    struct pcintr_stack_frame         *back_anchor;
+    struct pcintr_stack_frame    *back_anchor;
 
     // executing statistics
-    struct timespec time_executed;
-    struct timespec time_idle;
-    size_t          peak_mem_use;
-    size_t          peak_nr_variants;
+    struct timespec               time_executed;
+    struct timespec               time_idle;
+    size_t                        peak_mem_use;
+    size_t                        peak_nr_variants;
 
     /* coroutine that this stack `owns` */
     /* FIXME: switch owner-ship ? */
-    struct pcintr_coroutine       *co;
+    struct pcintr_coroutine      *co;
 
     // for observe
     // struct pcintr_observer
-    struct list_head common_variant_observer_list;
-    struct list_head dynamic_variant_observer_list;
-    struct list_head native_variant_observer_list;
+    struct list_head              common_variant_observer_list;
+    struct list_head              dynamic_variant_observer_list;
+    struct list_head              native_variant_observer_list;
 
-    pchtml_html_document_t     *doc;
+    pchtml_html_document_t       *doc;
 
     // for loaded dynamic variants
-    struct rb_root             loaded_vars;  // struct pcintr_loaded_var*
-
-    // base uri
-    char* base_uri;
+    struct rb_root                loaded_vars;  // struct pcintr_loaded_var*
 
 #if 0 // VW
     // experimental: currently for test-case-only
-    struct pcintr_supervisor_ops         ops;
-    void                                *ctxt;  // no-owner-ship!!!
+    struct pcintr_supervisor_ops  ops;
+    void                         *ctxt;  // no-owner-ship!!!
 #endif
+    // async request ids (array)
+    purc_variant_t                async_request_ids;
 
-    purc_variant_t async_request_ids;       // async request ids (array)
-
-    struct rb_root  scoped_variables; // key: vdom_node
-                                      // val: pcvarmgr_t
+    // key: vdom_node  val: pcvarmgr_t
+    struct rb_root                scoped_variables;
 };
 
 enum pcintr_coroutine_state {
