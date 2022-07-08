@@ -61,12 +61,10 @@ new_varmgr(void *ud)
     return &mgr->node;
 }
 
-pcvarmgr_t
-pcintr_create_scoped_variables(struct pcvdom_node *node)
+static pcvarmgr_t
+create_scoped_variables(purc_coroutine_t cor, struct pcvdom_node *node)
 {
-    PC_ASSERT(node);
-    pcintr_stack_t stack = pcintr_get_stack();
-    PC_ASSERT(stack);
+    pcintr_stack_t stack = &cor->stack;
 
     /* vdom level manage by coroutine */
     if (node == (void*)stack->vdom) {
@@ -96,7 +94,7 @@ pcintr_bind_scope_variable(purc_coroutine_t cor, struct pcvdom_element *elem,
     }
 
     struct pcvdom_node *node = pcvdom_ele_cast_to_node(elem);
-    pcvarmgr_t scoped_variables = pcintr_create_scoped_variables(node);
+    pcvarmgr_t scoped_variables = create_scoped_variables(cor, node);
     if (!scoped_variables)
         return false;
 
@@ -141,12 +139,10 @@ pcvarmgr_t
 pcintr_get_scoped_variables(purc_coroutine_t cor, struct pcvdom_node *node)
 {
     PC_ASSERT(node);
-    pcintr_stack_t stack = pcintr_get_stack();
-    PC_ASSERT(stack);
-    PC_ASSERT(stack->co == cor);
+    pcintr_stack_t stack = &cor->stack;
 
     /* vdom level manage by coroutine */
-    if (node == (void *)cor->stack.vdom) {
+    if (node == (void *)stack->vdom) {
         return cor->variables;
     }
 

@@ -44,6 +44,7 @@ struct pcvdom_template {
 };
 
 struct pcintr_observer_matched_data {
+    pcintr_stack_t                stack;
     pcvdom_element_t              pos;
     pcvdom_element_t              scope;
     struct pcdom_element         *edom_element;

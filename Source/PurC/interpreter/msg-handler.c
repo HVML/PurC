@@ -49,7 +49,7 @@ on_observer_matched(void *ud)
     p = (struct pcintr_observer_matched_data*)ud;
     PC_ASSERT(p);
 
-    pcintr_stack_t stack = pcintr_get_stack();
+    pcintr_stack_t stack = p->stack;
     PC_ASSERT(stack);
     pcintr_coroutine_t co = stack->co;
 
@@ -121,6 +121,7 @@ observer_matched(pcintr_stack_t stack, struct pcintr_observer *p,
     data->pos = p->pos;
     data->scope = p->scope;
     data->edom_element = p->edom_element;
+    data->stack = stack;
 
     if (event_name) {
         data->event_name = event_name;

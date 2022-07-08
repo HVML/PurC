@@ -721,9 +721,6 @@ purc_load_hvml_from_rwstream_ex(purc_rwstream_t stream,
 int
 pcintr_init_vdom_under_stack(pcintr_stack_t stack);
 
-pcvarmgr_t
-pcintr_create_scoped_variables(struct pcvdom_node *node);
-
 purc_runloop_t
 pcintr_co_get_runloop(pcintr_coroutine_t co);
 
