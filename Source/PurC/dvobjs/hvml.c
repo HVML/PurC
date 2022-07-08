@@ -411,6 +411,51 @@ failed:
     return PURC_VARIANT_INVALID;
 }
 
+static purc_variant_t
+cid_getter(purc_variant_t root,
+        size_t nr_args, purc_variant_t *argv, bool silently)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(silently);
+
+    pcintr_coroutine_t cor = hvml_ctrl_coroutine(root);
+    return purc_variant_make_ulongint(cor->cid);
+}
+
+static purc_variant_t
+uri_getter(purc_variant_t root,
+        size_t nr_args, purc_variant_t *argv, bool silently)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(silently);
+
+    pcintr_coroutine_t cor = hvml_ctrl_coroutine(root);
+    const char *uri = pcintr_coroutine_get_uri(cor);
+    return purc_variant_make_string(uri, false);
+}
+
+static purc_variant_t
+token_getter(purc_variant_t root,
+        size_t nr_args, purc_variant_t *argv, bool silently)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(silently);
+
+    pcintr_coroutine_t cor = hvml_ctrl_coroutine(root);
+    const char *uri = pcintr_coroutine_get_uri(cor);
+    const char *token = pcutils_basename(uri);
+    if (token) {
+        return purc_variant_make_string(token, false);
+    }
+    return purc_variant_make_string(uri, false);
+}
+
 purc_variant_t
 purc_dvobj_hvml_new(pcintr_coroutine_t cor)
 {
@@ -427,6 +472,9 @@ purc_dvobj_hvml_new(pcintr_coroutine_t cor)
         { "max_embedded_levels",
             max_embedded_levels_getter, max_embedded_levels_setter },
         { "timeout", timeout_getter, timeout_setter },
+        { "cid",     cid_getter,     NULL },
+        { "uri",     uri_getter,     NULL },
+        { "token",   token_getter,   NULL },
     };
 
     retv = purc_dvobj_make_from_methods(method, PCA_TABLESIZE(method));
