@@ -130,6 +130,10 @@ static void create_coroutine(const pcrdr_msg *msg, pcrdr_msg *response)
     purc_coroutine_t cor = purc_schedule_vdom(vdom, curator,
             request, page_type, target_workspace,
             target_group, page_name, &extra_rdr_info, body_id, NULL);
+    if (request)
+        purc_variant_unref(request);
+    if (extra_rdr_info.toolkit_style)
+        purc_variant_unref(extra_rdr_info.toolkit_style);
 
     if (cor) {
         purc_atom_t cor_atom = purc_coroutine_identifier(cor);

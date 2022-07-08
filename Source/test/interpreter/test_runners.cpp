@@ -164,6 +164,6 @@ TEST(interpreter, runners)
     }
 
     purc_variant_unref(request);
-    //purc_variant_unref(toolkit_style);
+    purc_variant_unref(toolkit_style);
 }
 

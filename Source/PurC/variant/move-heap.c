@@ -463,7 +463,8 @@ move_or_clone_immutable_descendants_in_array(struct travel_context *ctxt,
 
         if (retv != v) {
             _p->val = retv;
-            pcutils_arrlist_append(ctxt->vrts_to_unref, v);
+            if (!(v->flags & PCVARIANT_FLAG_NOFREE))
+                pcutils_arrlist_append(ctxt->vrts_to_unref, v);
         }
 
     } end_foreach;
@@ -502,7 +503,8 @@ move_or_clone_immutable_descendants_in_object(struct travel_context *ctxt,
             retv = move_or_clone_immutable(ctxt->inst, v);
             if (retv != v) {
                 _node->val = retv;
-                pcutils_arrlist_append(ctxt->vrts_to_unref, v);
+                if (!(v->flags & PCVARIANT_FLAG_NOFREE))
+                    pcutils_arrlist_append(ctxt->vrts_to_unref, v);
             }
             break;
         }
@@ -547,7 +549,8 @@ move_or_clone_immutable_descendants_in_set(struct travel_context *ctxt,
 
         if (retv != v) {
             _sn->val = retv;
-            pcutils_arrlist_append(ctxt->vrts_to_unref, v);
+            if (!(v->flags & PCVARIANT_FLAG_NOFREE))
+                pcutils_arrlist_append(ctxt->vrts_to_unref, v);
         }
 
     } end_foreach;
@@ -601,14 +604,13 @@ purc_variant_t pcvariant_move_heap_in(purc_variant_t v)
             move_variant_in(inst, v);
             ctxt.el = 0;
             move_or_clone_mutable_descendants(&ctxt, v);
-
-            ctxt.el = 0;
-            move_or_clone_immutable_descendants(&ctxt, v);
         }
         else {
             retv = purc_variant_container_clone_recursively(v);
         }
 
+        ctxt.el = 0;
+        move_or_clone_immutable_descendants(&ctxt, v);
     }
     else {
         retv = move_or_clone_immutable(inst, v);
@@ -720,8 +722,6 @@ static purc_variant_t move_object_descendants_out(purc_variant_t obj)
             break;
         }
 
-        fprintf(stderr, "Moving property %s out\n",
-                purc_variant_get_string_const(retk));
         _node->key = retk;
         _node->val = retv;
 
@@ -817,11 +817,6 @@ static purc_variant_t move_variant_out(purc_variant_t v)
         else if (v->type == PURC_VARIANT_TYPE_SET) {
             retv = move_set_descendants_out(v);
         }
-    }
-
-    if (v->type == PURC_VARIANT_TYPE_OBJECT) {
-        fprintf(stderr, "Moving object out (%u)\n",
-                (unsigned)move_heap.stat.nr_values[v->type]);
     }
 
     inst->org_vrt_heap->stat.nr_values[v->type]++;
