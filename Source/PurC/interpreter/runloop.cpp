@@ -378,6 +378,7 @@ pcrun_create_inst_thread(const char *app_name, const char *runner_name,
                 }
             });
 
+    inst_th->detach();
     semaphore.wait();
 
     return atom;
