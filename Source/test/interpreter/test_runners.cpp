@@ -96,7 +96,7 @@ static int work_cond_handler(purc_cond_t event, void *arg, void *data)
 }
 
 static const char *hvml = "<hvml><body><sleep for 2s /></body></hvml>";
-static const char *request_json = "{ name: 'PurC' }";
+static const char *request_json = "{ names: 'PurC', OS: ['Linux', 'macOS', 'HybridOS', 'Windows'] }";
 static const char *toolkit_style_json = "{ 'darkMode': true, 'backgroudColor': { 'r': 0, 'g': 0, 'b': 0 } }";
 
 TEST(interpreter, runners)
