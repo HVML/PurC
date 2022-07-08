@@ -626,7 +626,7 @@ static struct pcintr_observer *
 process_variant_observer(pcintr_stack_t stack,
         struct pcintr_stack_frame *frame, purc_variant_t observed)
 {
-    if (pcintr_is_timers(stack, observed)) {
+    if (pcintr_is_timers(stack->co, observed)) {
         return register_timer_observer(stack, frame, observed);
     }
     struct ctxt_for_observe *ctxt;

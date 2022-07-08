@@ -602,7 +602,7 @@ void
 pcintr_timers_destroy(struct pcintr_timers* timers);
 
 bool
-pcintr_is_timers(pcintr_stack_t stack, purc_variant_t v);
+pcintr_is_timers(purc_coroutine_t cor, purc_variant_t v);
 
 // type:sub_type
 bool
