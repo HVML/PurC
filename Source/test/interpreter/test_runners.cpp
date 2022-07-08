@@ -96,8 +96,8 @@ static int work_cond_handler(purc_cond_t event, void *arg, void *data)
 }
 
 static const char *hvml = "<hvml><body><sleep for 2s /></body></hvml>";
-static const char *request_json = "{ name: 'PurC' }";
-static const char *toolkit_style_json = "{ 'darkMode': true }";
+static const char *request_json = "{ names: 'PurC', OS: ['Linux', 'macOS', 'HybridOS', 'Windows'] }";
+static const char *toolkit_style_json = "{ 'darkMode': true, 'backgroudColor': { 'r': 0, 'g': 0, 'b': 0 } }";
 
 TEST(interpreter, runners)
 {
@@ -108,10 +108,6 @@ TEST(interpreter, runners)
     PurCInstance purc(PURC_MODULE_HVML, APP_NAME, "main", &inst_info);
     ASSERT_TRUE(purc);
 
-    purc_atom_t work_inst = purc_inst_create_or_get(APP_NAME,
-            "worker", work_cond_handler, &worker_info);
-    ASSERT_NE(work_inst, 0);
-
     purc_variant_t request =
         purc_variant_make_from_json_string(request_json,
                 strlen(request_json));
@@ -121,6 +117,10 @@ TEST(interpreter, runners)
         purc_variant_make_from_json_string(toolkit_style_json,
                 strlen(toolkit_style_json));
     ASSERT_NE(toolkit_style, nullptr);
+
+    purc_atom_t work_inst = purc_inst_create_or_get(APP_NAME,
+            "worker", work_cond_handler, &worker_info);
+    ASSERT_NE(work_inst, 0);
 
     purc_vdom_t vdom = purc_load_hvml_from_string(hvml);
     ASSERT_NE(vdom, nullptr);

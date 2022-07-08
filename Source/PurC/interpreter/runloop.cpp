@@ -354,6 +354,13 @@ pcrun_create_inst_thread(const char *app_name, const char *runner_name,
 
                     purc_cond_handler my_handler = cond_handler;
 
+#if USE(PTHREADS)
+                    pthread_t *my_th = (pthread_t *)malloc(sizeof(pthread_t));
+                    *my_th = pthread_self();
+                    *th = (void *)my_th;
+#else
+#error "Need code when not using PThreas"
+#endif
                     if (cond_handler) {
                         cond_handler(PURC_COND_STARTED,
                                 (void *)(uintptr_t)atom, extra_info);
@@ -371,8 +378,6 @@ pcrun_create_inst_thread(const char *app_name, const char *runner_name,
                 }
             });
 
-    UNUSED_PARAM(th);
-
     semaphore.wait();
 
     return atom;
@@ -381,9 +386,9 @@ pcrun_create_inst_thread(const char *app_name, const char *runner_name,
 static void my_sa_free(void *sortv, void *data)
 {
     (void)sortv;
-    free(data);
+    if (data)
+        free(data);
 }
-
 
 #define MAIN_RUNLOOP_THREAD_NAME    "__purc_main_runloop_thread"
 

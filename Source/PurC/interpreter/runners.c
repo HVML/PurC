@@ -421,7 +421,7 @@ static void create_instance(struct instmgr_info *mgr_info,
         info.workspace_layout = purc_variant_get_string_const(tmp);
     }
 
-    void *th;
+    void *th = NULL;
     atom = pcrun_create_inst_thread(app_name, runner_name, cond_handler,
             &info, &th);
     if (atom) {
@@ -498,14 +498,14 @@ static void cancel_instance(struct instmgr_info *info,
         return; /* not instance for the runner name */
     }
 
-    pthread_t *th;
+    void *th;
     if (!pcutils_sorted_array_find(info->sa_insts, (void *)(uintptr_t)atom,
             (void **)&th)) {
         response->retCode = PCRDR_SC_GONE;
         response->resultValue = (uint64_t)atom;
     }
     else {
-#if 0
+#if 0 // TODO
         if (pthread_cancel(*th)) {
             pcutils_sorted_array_remove(info->sa_insts, (void *)(uintptr_t)atom);
             info->nr_insts--;
@@ -567,7 +567,7 @@ static void kill_instance(struct instmgr_info *info,
         return; /* not instance for the runner name */
     }
 
-    pthread_t *th;
+    void *th;
     if (!pcutils_sorted_array_find(info->sa_insts, (void *)(uintptr_t)atom,
             (void **)&th)) {
         response->retCode = PCRDR_SC_GONE;

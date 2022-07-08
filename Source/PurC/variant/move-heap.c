@@ -188,11 +188,20 @@ move_or_clone_immutable(struct pcinst *inst, purc_variant_t v)
         retv->refc++;
     }
     else if (v->refc == 1) {
+        PC_DEBUG("Move in variant type %s (%u): %s\n",
+                purc_variant_typename(v->type),
+                (unsigned)move_heap.stat.nr_values[v->type],
+                purc_variant_get_string_const(v));
+
         retv = v;
         move_variant_in(inst, v);
     }
     else {
         // clone the immutable variant
+        PC_DEBUG("Clone a variant type %s (%u): %s\n",
+                purc_variant_typename(v->type),
+                (unsigned)move_heap.stat.nr_values[v->type],
+                purc_variant_get_string_const(v));
 
         retv = pcvariant_alloc();
         memcpy(retv, v, sizeof(*retv));
@@ -222,7 +231,6 @@ move_or_clone_immutable(struct pcinst *inst, purc_variant_t v)
 struct travel_context {
     struct pcinst *inst;
     struct pcutils_arrlist *vrts_to_unref;
-    unsigned int el; /* embedded levels */
 };
 
 static bool
@@ -289,12 +297,51 @@ move_or_clone_mutable_descendants_in_array(struct travel_context *ctxt,
 }
 
 static bool
+move_keys_in_cloned_object(struct travel_context *ctxt, purc_variant_t obj)
+{
+    purc_variant_t k,v;
+    foreach_key_value_in_variant_object(obj, k, v) {
+
+        if (IS_CONTAINER(v->type)) {
+            PC_DEBUG("Move in a key %s (%u): %s\n",
+                    purc_variant_typename(k->type),
+                    (unsigned)move_heap.stat.nr_values[k->type],
+                    purc_variant_get_string_const(k));
+        }
+
+        switch (v->type) {
+        case PURC_VARIANT_TYPE_ARRAY:
+            move_variant_in(ctxt->inst, k);
+            break;
+
+        case PURC_VARIANT_TYPE_OBJECT:
+            move_variant_in(ctxt->inst, k);
+            move_keys_in_cloned_object(ctxt, v);
+            break;
+
+        case PURC_VARIANT_TYPE_SET:
+            move_variant_in(ctxt->inst, k);
+            break;
+
+        default:
+            break;
+        }
+
+    } end_foreach;
+
+    return true;
+}
+
+static bool
 move_or_clone_mutable_descendants_in_object(struct travel_context *ctxt,
         purc_variant_t obj)
 {
     purc_variant_t k,v;
     foreach_key_value_in_variant_object(obj, k, v) {
         purc_variant_t retk, retv;
+
+        PC_DEBUG("a key when handling mutable variant: %s (%u)\n",
+                purc_variant_get_string_const(k), (unsigned)v->refc);
 
         switch (v->type) {
         case PURC_VARIANT_TYPE_ARRAY:
@@ -336,6 +383,13 @@ move_or_clone_mutable_descendants_in_object(struct travel_context *ctxt,
                     purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
                     return false;
                 }
+
+                // XXX: for cloned object, we need to move in the cloned keys
+                PC_DEBUG("a container cloned for key %s: %s (%u)\n",
+                        purc_variant_get_string_const(k),
+                        purc_variant_typename(retv->type),
+                        (unsigned)retv->refc);
+                move_keys_in_cloned_object(ctxt, retv);
 
                 _node->val = retv;
                 pcutils_arrlist_append(ctxt->vrts_to_unref, v);
@@ -589,7 +643,6 @@ purc_variant_t pcvariant_move_heap_in(purc_variant_t v)
     struct travel_context ctxt;
 
     ctxt.inst = pcinst_current();
-    ctxt.el = 0;
     ctxt.vrts_to_unref = pcutils_arrlist_new(cb_free_element);
     if (ctxt.vrts_to_unref == NULL) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
@@ -602,15 +655,14 @@ purc_variant_t pcvariant_move_heap_in(purc_variant_t v)
         if (v->refc == 1) {
             retv = v;
             move_variant_in(inst, v);
-            ctxt.el = 0;
             move_or_clone_mutable_descendants(&ctxt, v);
+
         }
         else {
             retv = purc_variant_container_clone_recursively(v);
         }
 
-        ctxt.el = 0;
-        move_or_clone_immutable_descendants(&ctxt, v);
+        move_or_clone_immutable_descendants(&ctxt, retv);
     }
     else {
         retv = move_or_clone_immutable(inst, v);
@@ -822,6 +874,11 @@ static purc_variant_t move_variant_out(purc_variant_t v)
     inst->org_vrt_heap->stat.nr_values[v->type]++;
     inst->org_vrt_heap->stat.nr_total_values++;
 
+    PC_DEBUG("Move out a variant type: %s (%u): %s\n",
+            purc_variant_typename(v->type),
+            (unsigned)move_heap.stat.nr_values[v->type],
+            purc_variant_get_string_const(v));
+
     assert(move_heap.stat.nr_values[v->type] > 0);
     assert(move_heap.stat.nr_total_values > 0);
 
@@ -845,57 +902,6 @@ purc_variant_t pcvariant_move_heap_out(purc_variant_t v)
     pcvariant_use_norm_heap();
 
     return retv;
-
-#if 0
-    if (v == &move_heap.v_undefined) {
-        retv = &inst->org_vrt_heap->v_undefined;
-        v->refc--;
-        retv->refc++;
-    }
-    else if (v == &move_heap.v_null) {
-        retv = &inst->org_vrt_heap->v_null;
-        v->refc--;
-        retv->refc++;
-    }
-    else if (v == &move_heap.v_false) {
-        retv = &inst->org_vrt_heap->v_false;
-        v->refc--;
-        retv->refc++;
-    }
-    else if (v == &move_heap.v_true) {
-        retv = &inst->org_vrt_heap->v_true;
-        v->refc--;
-        retv->refc++;
-    }
-    else {
-        retv = v;
-
-        /* change the stat info */
-        if (IS_CONTAINER(v->type) ||
-                ((v->type == PURC_VARIANT_TYPE_STRING ||
-                  v->type == PURC_VARIANT_TYPE_BSEQUENCE) &&
-                 (v->flags & PCVARIANT_FLAG_EXTRA_SIZE))) {
-            inst->org_vrt_heap->stat.sz_mem[v->type] += v->sz_ptr[0];
-            inst->org_vrt_heap->stat.sz_total_mem += v->sz_ptr[0];
-
-            move_heap.stat.sz_mem[v->type] -= v->sz_ptr[0];
-            move_heap.stat.sz_total_mem -= v->sz_ptr[0];
-        }
-
-        inst->org_vrt_heap->stat.nr_values[v->type]++;
-        inst->org_vrt_heap->stat.nr_total_values++;
-        move_heap.stat.nr_values[v->type]--;
-        move_heap.stat.nr_total_values--;
-
-        inst->org_vrt_heap->stat.sz_mem[v->type] += sizeof(purc_variant);
-        inst->org_vrt_heap->stat.sz_total_mem += sizeof(purc_variant);
-        move_heap.stat.sz_mem[v->type] -= sizeof(purc_variant);
-        move_heap.stat.sz_total_mem -= sizeof(purc_variant);
-    }
-    pcvariant_use_norm_heap();
-
-    return retv;
-#endif
 }
 
 void pcvariant_use_move_heap(void)
