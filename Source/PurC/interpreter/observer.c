@@ -129,10 +129,10 @@ pcintr_get_observer_list(pcintr_stack_t stack, purc_variant_t observed)
 
     struct list_head *list = NULL;
     if (purc_variant_is_type(observed, PURC_VARIANT_TYPE_DYNAMIC)) {
-        list = &stack->dynamic_variant_observer_list;
+        list = &stack->dynamic_observers;
     }
     else if (purc_variant_is_type(observed, PURC_VARIANT_TYPE_NATIVE)) {
-        list = &stack->native_variant_observer_list;
+        list = &stack->native_observers;
     }
     else if (purc_variant_is_string(observed)) {
         // XXX: optimization
@@ -140,17 +140,17 @@ pcintr_get_observer_list(pcintr_stack_t stack, purc_variant_t observed)
         // handle by elements.c match_observe
         const char *s = purc_variant_get_string_const(observed);
         if (strlen(s) > 0 && (s[0] == '#' || s[0] == '.')) {
-            list = &stack->native_variant_observer_list;
+            list = &stack->native_observers;
         }
         else {
-            list = &stack->common_variant_observer_list;
+            list = &stack->common_observers;
         }
     }
     else if (pcintr_is_named_var_for_event(observed)) {
-        list = &stack->native_variant_observer_list;
+        list = &stack->native_observers;
     }
     else {
-        list = &stack->common_variant_observer_list;
+        list = &stack->common_observers;
     }
     return list;
 }
@@ -190,13 +190,13 @@ pcintr_register_observer(purc_variant_t observed,
     pcintr_stack_t stack = pcintr_get_stack();
     struct list_head *list = NULL;
     if (purc_variant_is_type(observed, PURC_VARIANT_TYPE_DYNAMIC)) {
-        list = &stack->dynamic_variant_observer_list;
+        list = &stack->dynamic_observers;
     }
     else if (purc_variant_is_type(observed, PURC_VARIANT_TYPE_NATIVE)) {
-        list = &stack->native_variant_observer_list;
+        list = &stack->native_observers;
     }
     else {
-        list = &stack->common_variant_observer_list;
+        list = &stack->common_observers;
     }
 
     struct pcintr_observer* observer =  (struct pcintr_observer*)calloc(1,

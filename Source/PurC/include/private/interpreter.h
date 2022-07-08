@@ -157,14 +157,16 @@ struct pcintr_exception {
 };
 
 struct pcintr_stack {
-    struct list_head              frames;
+    enum pcintr_stack_stage       stage;
 
+    struct list_head              frames;
     // the number of stack frames.
     size_t                        nr_frames;
 
     // the pointer to the vDOM tree.
     purc_vdom_t                   vdom;
     struct pcvdom_element        *entry;
+    pchtml_html_document_t       *doc;
 
     enum pcintr_stack_vdom_insertion_mode        mode;
 
@@ -176,8 +178,6 @@ struct pcintr_stack {
     uint32_t volatile             last_msg_sent:1;
     uint32_t volatile             last_msg_read:1;
     /* uint32_t                   paused:1; */
-
-    enum pcintr_stack_stage       stage;
 
     // error or except info
     // valid only when except == 1
@@ -198,11 +198,9 @@ struct pcintr_stack {
 
     // for observe
     // struct pcintr_observer
-    struct list_head              common_variant_observer_list;
-    struct list_head              dynamic_variant_observer_list;
-    struct list_head              native_variant_observer_list;
-
-    pchtml_html_document_t       *doc;
+    struct list_head              common_observers;
+    struct list_head              dynamic_observers;
+    struct list_head              native_observers;
 
     // for loaded dynamic variants
     struct rb_root                loaded_vars;  // struct pcintr_loaded_var*
