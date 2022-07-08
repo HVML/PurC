@@ -296,6 +296,27 @@ struct pcintr_coroutine {
     unsigned int volatile       msg_pending:1;
     unsigned int volatile       execution_pending:1;
 
+    /* $HVML  begin */
+    /** The target as a null-terminated string. */
+    char                       *target;
+
+    /** The base URL as a null-terminated string. */
+    char                       *base_url_string;
+
+    /** The base URL broken down. */
+    struct purc_broken_down_url base_url_broken_down;
+
+    /** The maximal iteration count. */
+    uint64_t                    max_iteration_count;
+    /** The maximal recursion depth. */
+    uint64_t                    max_recursion_depth;
+    /** The maximal embedded levels of a EJSON container. */
+    uint64_t                    max_embedded_levels;
+
+    /** The timeout value for a remote request. */
+    struct timespec             timeout;
+    /* $HVML  end */
+
     struct pcvarmgr            *variables;
     void                       *user_data;
 };

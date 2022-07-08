@@ -467,6 +467,45 @@ coroutine_release(pcintr_coroutine_t co)
         if (co->variables) {
             pcvarmgr_destroy(co->variables);
         }
+
+        struct purc_broken_down_url *url = &co->base_url_broken_down;
+
+        if (url->schema) {
+            free(url->schema);
+        }
+
+        if (url->user) {
+            free(url->user);
+        }
+
+        if (url->passwd) {
+            free(url->passwd);
+        }
+
+        if (url->host) {
+            free(url->host);
+        }
+
+        if (url->path) {
+            free(url->path);
+        }
+
+        if (url->query) {
+            free(url->query);
+        }
+
+        if (url->fragment) {
+            free(url->fragment);
+        }
+
+        if (co->target) {
+            free(co->target);
+        }
+
+        if (co->base_url_string) {
+            free(co->base_url_string);
+        }
+
         PURC_VARIANT_SAFE_CLEAR(co->val_from_return_or_exit);
     }
 }
