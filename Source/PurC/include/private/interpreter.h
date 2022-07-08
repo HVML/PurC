@@ -168,6 +168,9 @@ struct pcintr_stack {
     struct pcvdom_element        *entry;
     pchtml_html_document_t       *doc;
 
+    // for `back` to use
+    struct pcintr_stack_frame    *back_anchor;
+
     enum pcintr_stack_vdom_insertion_mode        mode;
 
     // executing state
@@ -182,9 +185,6 @@ struct pcintr_stack {
     // error or except info
     // valid only when except == 1
     struct pcintr_exception       exception;
-
-    // for `back` to use
-    struct pcintr_stack_frame    *back_anchor;
 
     // executing statistics
     struct timespec               time_executed;
@@ -202,9 +202,6 @@ struct pcintr_stack {
     struct list_head              dynamic_observers;
     struct list_head              native_observers;
 
-    // for loaded dynamic variants
-    struct rb_root                loaded_vars;  // struct pcintr_loaded_var*
-
 #if 0 // VW
     // experimental: currently for test-case-only
     struct pcintr_supervisor_ops  ops;
@@ -212,6 +209,10 @@ struct pcintr_stack {
 #endif
     // async request ids (array)
     purc_variant_t                async_request_ids;
+
+
+    // for loaded dynamic variants
+    struct rb_root                loaded_vars;  // struct pcintr_loaded_var*
 
     // key: vdom_node  val: pcvarmgr_t
     struct rb_root                scoped_variables;
@@ -307,7 +308,7 @@ struct pcintr_coroutine {
     /* $HVML  end */
 
     struct pcintr_timers       *timers;     // $TIMERS
-    struct pcvarmgr            *variables;
+    struct pcvarmgr            *variables;  // coroutine level named variable
     void                       *user_data;
 };
 

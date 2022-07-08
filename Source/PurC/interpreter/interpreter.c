@@ -1575,6 +1575,12 @@ bind_builtin_coroutine_variables(purc_coroutine_t cor, purc_variant_t request)
         return false;
     }
 
+    // $HVML
+    if(!bind_cor_named_variable(cor, BUILDIN_VAR_HVML,
+                purc_dvobj_hvml_new(cor))) {
+        return false;
+    }
+
     // $DATETIME
     if(!bind_cor_named_variable(cor, BUILDIN_VAR_DATETIME,
                 purc_dvobj_datetime_new())) {
@@ -1632,12 +1638,6 @@ pcintr_init_vdom_under_stack(pcintr_stack_t stack)
     if (doc_init(stack)) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return -1;
-    }
-
-    // $HVML
-    if(!bind_cor_named_variable(stack->co, BUILDIN_VAR_HVML,
-                purc_dvobj_hvml_new(stack->co))) {
-        return false;
     }
 
     // $DOC
