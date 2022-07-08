@@ -262,13 +262,13 @@ struct pcintr_coroutine {
 
     purc_vdom_t                 vdom;
 
-    char **dump_buff;
+    char                      **dump_buff;
 
     /* fields for renderer */
-    pcrdr_page_type target_page_type;
-    uint64_t        target_workspace_handle;
-    uint64_t        target_page_handle;
-    uint64_t        target_dom_handle;
+    pcrdr_page_type             target_page_type;
+    uint64_t                    target_workspace_handle;
+    uint64_t                    target_page_handle;
+    uint64_t                    target_dom_handle;
 
     struct rb_node              node;     /* heap::coroutines */
 
