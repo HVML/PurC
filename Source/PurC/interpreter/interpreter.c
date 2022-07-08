@@ -268,9 +268,9 @@ unload_dynamic_var(struct rb_node *node, void *ud)
 }
 
 static void
-loaded_vars_release(pcintr_stack_t stack)
+loaded_vars_release(pcintr_coroutine_t cor)
 {
-    struct rb_root *root = &stack->loaded_vars;
+    struct rb_root *root = &cor->loaded_vars;
     if (RB_EMPTY_ROOT(root))
         return;
 
@@ -404,8 +404,6 @@ stack_release(pcintr_stack_t stack)
         stack->doc = NULL;
     }
 
-    loaded_vars_release(stack);
-
     pcintr_exception_clear(&stack->exception);
 
 #if 0 // VW
@@ -502,6 +500,7 @@ coroutine_release(pcintr_coroutine_t co)
             co->timers = NULL;
         }
 
+        loaded_vars_release(co);
         PURC_VARIANT_SAFE_CLEAR(co->val_from_return_or_exit);
     }
 }
@@ -525,7 +524,6 @@ stack_init(pcintr_stack_t stack)
     stack->scoped_variables = RB_ROOT;
 
     stack->stage = STACK_STAGE_FIRST_ROUND;
-    stack->loaded_vars = RB_ROOT;
     stack->mode = STACK_VDOM_BEFORE_HVML;
 }
 
@@ -2363,6 +2361,7 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
     stack->co = co;
     co->owner = heap;
     co->user_data = user_data;
+    co->loaded_vars = RB_ROOT;
 
     int r;
     r = pcutils_rbtree_insert_only(coroutines, &co->cid,
@@ -2813,13 +2812,13 @@ end:
 }
 
 bool
-pcintr_load_dynamic_variant(pcintr_stack_t stack,
+pcintr_load_dynamic_variant(pcintr_coroutine_t cor,
     const char *name, size_t len)
 {
     char NAME[PATH_MAX+1];
     snprintf(NAME, sizeof(NAME), "%.*s", (int)len, name);
 
-    struct rb_root *root = &stack->loaded_vars;
+    struct rb_root *root = &cor->loaded_vars;
 
     struct rb_node **pnode = &root->rb_node;
     struct rb_node *parent = NULL;
@@ -2866,7 +2865,7 @@ pcintr_load_dynamic_variant(pcintr_stack_t stack,
     pcutils_rbtree_link_node(entry, parent, pnode);
     pcutils_rbtree_insert_color(entry, root);
 
-    if (pcintr_bind_coroutine_variable(stack->co, NAME, v)) {
+    if (pcintr_bind_coroutine_variable(cor, NAME, v)) {
         return true;
     }
 

@@ -66,7 +66,7 @@ token_found(const char *start, const char *end, void *ud)
         return 0;
 
     bool ok;
-    ok = pcintr_load_dynamic_variant(stack, start, end-start);
+    ok = pcintr_load_dynamic_variant(stack->co, start, end-start);
 
     return ok ? 0 : -1;
 }

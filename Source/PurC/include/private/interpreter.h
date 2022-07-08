@@ -211,9 +211,6 @@ struct pcintr_stack {
     purc_variant_t                async_request_ids;
 
 
-    // for loaded dynamic variants
-    struct rb_root                loaded_vars;  // struct pcintr_loaded_var*
-
     // key: vdom_node  val: pcvarmgr_t
     struct rb_root                scoped_variables;
 };
@@ -309,6 +306,10 @@ struct pcintr_coroutine {
 
     struct pcintr_timers       *timers;     // $TIMERS
     struct pcvarmgr            *variables;  // coroutine level named variable
+
+    // for loaded dynamic variants
+    struct rb_root              loaded_vars;  // struct pcintr_loaded_var*
+
     void                       *user_data;
 };
 
@@ -631,7 +632,7 @@ pcintr_fire_event_to_target(pcintr_coroutine_t target,
         purc_variant_t payload);
 
 bool
-pcintr_load_dynamic_variant(pcintr_stack_t stack,
+pcintr_load_dynamic_variant(pcintr_coroutine_t cor,
     const char *name, size_t len);
 
 // utilities
