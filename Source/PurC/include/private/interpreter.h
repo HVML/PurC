@@ -168,9 +168,6 @@ struct pcintr_stack {
 
     enum pcintr_stack_vdom_insertion_mode        mode;
 
-    // the returned variant
-    purc_variant_t                ret_var;
-
     // executing state
     // FIXME: move to struct pcintr_coroutine?
     // uint32_t                   error:1;
