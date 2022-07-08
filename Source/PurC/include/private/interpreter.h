@@ -262,7 +262,6 @@ struct pcintr_coroutine {
 
     purc_vdom_t                 vdom;
 
-    const struct purc_hvml_ctrl_props     *hvml_ctrl_props;
     char **dump_buff;
 
     /* fields for renderer */
