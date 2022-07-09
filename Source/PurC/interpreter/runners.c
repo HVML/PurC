@@ -37,8 +37,10 @@
 
 static void create_coroutine(const pcrdr_msg *msg, pcrdr_msg *response)
 {
-    if (msg->dataType != PCRDR_MSG_DATA_TYPE_JSON)
+    if (msg->dataType != PCRDR_MSG_DATA_TYPE_JSON) {
+        purc_log_warn("Bad request data type: %d\n", msg->dataType);
         return;
+    }
 
     assert(msg->data);
 
@@ -52,8 +54,10 @@ static void create_coroutine(const pcrdr_msg *msg, pcrdr_msg *response)
         vdom = (purc_vdom_t)(uintptr_t)u64;
     }
 
-    if (vdom == NULL)
+    if (vdom == NULL) {
+        purc_log_warn("Bad vDOM (%p)\n", vdom);
         return;
+    }
 
     purc_atom_t curator = 0;
     tmp = purc_variant_object_get_by_ckey(msg->data, "curator");
@@ -247,7 +251,7 @@ void pcrun_request_handler(pcrdr_conn* conn, const pcrdr_msg *msg)
     if (source_uri == NULL || (requester =
                 purc_atom_try_string_ex(PURC_ATOM_BUCKET_USER,
                     source_uri)) == 0) {
-        purc_log_error("No sourceURI or the requester disappeared\n");
+        purc_log_warn("No sourceURI or the requester disappeared\n");
         return;
     }
 
@@ -257,7 +261,7 @@ void pcrun_request_handler(pcrdr_conn* conn, const pcrdr_msg *msg)
     op = purc_variant_get_string_const(msg->operation);
     assert(op);
 
-    purc_log_debug("%s got `%s` request from %s\n",
+    PC_DEBUG("%s got `%s` request from %s\n",
             purc_get_endpoint(NULL), op, source_uri);
 
     if (msg->target == PCRDR_MSG_TARGET_INSTANCE) {
@@ -334,6 +338,30 @@ pcrdr_msg *pcrun_extra_message_source(pcrdr_conn* conn, void *ctxt)
     }
 
     return NULL;
+}
+
+void
+pcrun_notify_instmgr(const char* event_name, purc_atom_t inst_crtn_id)
+{
+    purc_atom_t instmgr = purc_get_instmgr_sid();
+    assert(instmgr != 0);
+
+    pcrdr_msg *event;
+    event = pcrdr_make_event_message(
+            PCRDR_MSG_TARGET_INSTANCE, instmgr,
+            event_name, purc_get_endpoint(NULL),
+            PCRDR_MSG_ELEMENT_TYPE_VOID, NULL, NULL,
+            PCRDR_MSG_DATA_TYPE_VOID, NULL, 0);
+    assert(event);
+    event->elementType = PCRDR_MSG_ELEMENT_TYPE_VARIANT;
+    event->elementValue = purc_variant_make_ulongint(inst_crtn_id);
+
+    // move the event message to instance manager
+    if (purc_inst_move_message(instmgr, event) == 0) {
+        purc_log_error("no instance manager\n");
+    }
+
+    pcrdr_release_message(event);
 }
 
 static void create_instance(struct instmgr_info *mgr_info,
@@ -622,7 +650,7 @@ void pcrun_instmgr_handle_message(void *ctxt)
         const char *op;
         op = purc_variant_get_string_const(msg->operation);
         assert(op);
-        purc_log_debug("InstMgr got `%s` request from %s\n", op, source_uri);
+        PC_DEBUG("InstMgr got `%s` request from %s\n", op, source_uri);
 
         pcrdr_msg *response = pcrdr_make_void_message();
 
@@ -663,15 +691,37 @@ void pcrun_instmgr_handle_message(void *ctxt)
         const char *event_name;
         event_name = purc_variant_get_string_const(msg->eventName);
 
-        purc_log_debug("InstMgr got an event message:\n");
-        purc_log_debug("    target:      %d\n", msg->target);
-        purc_log_debug("    targetValue: %u\n", (unsigned)msg->targetValue);
-        purc_log_debug("    eventName:   %s\n", event_name);
-        purc_log_debug("    sourceURI:   %s\n",
-                purc_variant_get_string_const(msg->sourceURI));
+        PC_DEBUG("InstMgr got an event message: %s\n", event_name);
+        if (strcmp(event_name, PCRUN_EVENT_inst_stopped) == 0) {
+            assert(msg->elementType == PCRDR_MSG_ELEMENT_TYPE_VARIANT &&
+                    purc_variant_is_type(msg->elementValue,
+                        PURC_VARIANT_TYPE_ULONGINT));
+
+            uint64_t sid;
+            purc_variant_cast_to_ulongint(msg->elementValue, &sid, false);
+
+            if (pcutils_sorted_array_find(info->sa_insts,
+                        (void *)(uintptr_t)sid, NULL)) {
+                pcutils_sorted_array_remove(info->sa_insts,
+                        (void *)(uintptr_t)sid);
+                info->nr_insts--;
+
+                PC_DEBUG("InstMgr removes record of instance %u/%u\n",
+                        (unsigned)sid, (unsigned)info->nr_insts);
+            }
+        }
+        else {
+            PC_DEBUG("InstMgr got an event message not interested in:\n");
+            PC_DEBUG("    type:        %d\n", msg->type);
+            PC_DEBUG("    target:      %d\n", msg->target);
+            PC_DEBUG("    targetValue: %u\n", (unsigned)msg->targetValue);
+            PC_DEBUG("    eventName:   %s\n", event_name);
+            PC_DEBUG("    sourceURI:   %s\n",
+                    purc_variant_get_string_const(msg->sourceURI));
+        }
     }
     else if (msg->type == PCRDR_MSG_TYPE_RESPONSE) {
-        purc_log_debug("InstMgr got a response for request: %s from %s\n",
+        PC_DEBUG("InstMgr got a response for request: %s from %s\n",
                 purc_variant_get_string_const(msg->requestId),
                 purc_variant_get_string_const(msg->sourceURI));
     }
@@ -703,13 +753,10 @@ purc_inst_create_or_get(const char *app_name, const char *runner_name,
         return atom;
     }
 
-    purc_assemble_endpoint_name_ex(PCRDR_LOCALHOST,
-            PCRUN_INSTMGR_APP_NAME, PCRUN_INSTMGR_RUN_NAME,
-            endpoint_name, sizeof(endpoint_name) - 1);
-    atom = purc_atom_try_string_ex(PURC_ATOM_BUCKET_USER, endpoint_name);
+    atom = purc_get_instmgr_sid();
     if (atom == 0) {
-        purc_log_error("No instance manager\n");
-        return atom;
+        purc_set_error(PURC_ERROR_NO_INSTANCE);
+        return 0;
     }
 
     pcrdr_msg *request;
@@ -801,7 +848,7 @@ purc_inst_create_or_get(const char *app_name, const char *runner_name,
     purc_variant_unref(request_id);
 
     if (ret) {
-        purc_log_error("Failed to create a new instance: %s\n",
+        purc_log_error("Failed to wait response: %s\n",
                purc_get_error_message(purc_get_last_error()));
     }
     else if (response->retCode != PCRDR_SC_OK &&
@@ -935,8 +982,13 @@ purc_inst_schedule_vdom(purc_atom_t inst, purc_vdom_t vdom,
             request_id, 1, &response);
     purc_variant_unref(request_id);
 
-    if (ret || response->retCode != PCRDR_SC_OK) {
-        purc_log_error("Failed to schedule vDOM in another instance\n");
+    if (ret) {
+        purc_log_error("Failed to wait response: %s\n",
+               purc_get_error_message(purc_get_last_error()));
+    }
+    else if (response->retCode != PCRDR_SC_OK) {
+        purc_log_error("Failed to schedule vDOM in another instance: %d\n",
+                response->retCode);
     }
     else {
         atom = (purc_atom_t)response->resultValue;
@@ -1017,5 +1069,23 @@ purc_get_sid_by_cid(purc_atom_t cid)
         purc_atom_try_string_ex(PURC_ATOM_BUCKET_USER, endpoint_name);
 
     return sid;
+}
+
+purc_atom_t
+purc_get_instmgr_sid(void)
+{
+    char endpoint_name[PURC_LEN_ENDPOINT_NAME + 1];
+
+    purc_assemble_endpoint_name_ex(PCRDR_LOCALHOST,
+            PCRUN_INSTMGR_APP_NAME, PCRUN_INSTMGR_RUN_NAME,
+            endpoint_name, sizeof(endpoint_name) - 1);
+
+    purc_atom_t atom;
+    atom = purc_atom_try_string_ex(PURC_ATOM_BUCKET_USER, endpoint_name);
+    if (atom == 0) {
+        purc_log_warn("No instance manager\n");
+    }
+
+    return atom;
 }
 

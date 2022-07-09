@@ -63,12 +63,16 @@ struct pcmodule {
 
 struct pcinst {
     int                     errcode;
-    purc_variant_t          err_exinfo;
     purc_atom_t             error_except;
+    purc_variant_t          err_exinfo;
     struct pcvdom_element  *err_element;
 
     unsigned int            modules;
     unsigned int            modules_inited;
+
+    // flags go here
+    unsigned int            enable_remote_fetcher:1;
+    unsigned int            is_instmgr:1;
 
     char                   *app_name;
     char                   *runner_name;
@@ -78,7 +82,6 @@ struct pcinst {
     // fetcher related
     size_t                  max_conns;
     size_t                  cache_quota;
-    bool                    enable_remote_fetcher;
 
 #define LOG_FILE_SYSLOG     ((FILE *)-1)
     /* the FILE object for logging (-1: use syslog; NULL: disabled) */
