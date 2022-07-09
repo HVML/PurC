@@ -2,9 +2,13 @@
  * @file test-runners.c
  * @author Vincent Wei
  * @date 2022/07/07
- * @brief The program to test the following APIs:
+ * @brief The program to test multiple runners; the following APIs covered:
  *      - purc_inst_create_or_get()
  *      - purc_inst_schedule_vdom()
+ *      - purc_get_sid_by_cid()
+ *      - purc_inst_ask_to_shutdown()
+ *      - purc_schedule_vdom()
+ *      - Instance Manager/Move Buffer
  *
  * Copyright (C) 2022 FMSoft <https://www.fmsoft.cn>
  *
@@ -30,6 +34,8 @@
 #include "../helpers.h"
 
 #include <gtest/gtest.h>
+
+#define NR_WORKERS  5
 
 static struct purc_instance_extra_info worker_info = {
     PURC_RDRPROT_HEADLESS,
@@ -62,7 +68,7 @@ static int work_cond_handler(purc_cond_t event, void *arg, void *data)
 
         char run_name[PURC_LEN_RUNNER_NAME + 1];
         purc_extract_runner_name(endpoint, run_name);
-        assert(strcmp(run_name, "worker") == 0);
+        assert(strncmp(run_name, "worker", 6) == 0);
 
         assert(info->renderer_prot == worker_info.renderer_prot);
         assert(strcmp(info->renderer_uri, worker_info.renderer_uri) == 0);
@@ -86,7 +92,7 @@ static int work_cond_handler(purc_cond_t event, void *arg, void *data)
 
         char run_name[PURC_LEN_RUNNER_NAME + 1];
         purc_extract_runner_name(endpoint, run_name);
-        assert(strcmp(run_name, "worker") == 0);
+        assert(strncmp(run_name, "worker", 6) == 0);
     }
     else if (event == PURC_COND_SHUTDOWN_ASKED) {
         return 0;
@@ -96,8 +102,39 @@ static int work_cond_handler(purc_cond_t event, void *arg, void *data)
 }
 
 static const char *hvml = "<hvml><body><sleep for 2s /></body></hvml>";
-static const char *request_json = "{ names: 'PurC', OS: ['Linux', 'macOS', 'HybridOS', 'Windows'] }";
+static const char *request_json = "{ name: 'PurC', OS: ['Linux', 'macOS', 'HybridOS', 'Windows'] }";
 static const char *toolkit_style_json = "{ 'darkMode': true, 'backgroudColor': { 'r': 0, 'g': 0, 'b': 0 } }";
+
+static purc_atom_t start_worker(purc_atom_t curator, purc_vdom_t vdom, int idx,
+        purc_variant_t request, purc_variant_t toolkit_style)
+{
+    char worker_name[sizeof("worker") + 10];
+    sprintf(worker_name, "worker%d", idx);
+
+    purc_atom_t work_inst = purc_inst_create_or_get(APP_NAME,
+            worker_name, work_cond_handler, &worker_info);
+    assert(work_inst != 0);
+
+    struct purc_renderer_extra_info worker_rdr_info = {
+        "worker-class",
+        "worker title",
+        "worker layoutStyle",
+        toolkit_style,
+        "<section></section>",
+    };
+
+    purc_variant_t worker_no = purc_variant_make_number(idx);
+    purc_variant_object_set_by_static_ckey(request, "number", worker_no);
+    purc_variant_unref(worker_no);
+
+    purc_atom_t worker_cor = purc_inst_schedule_vdom(work_inst, vdom,
+            curator, request, PCRDR_PAGE_TYPE_NULL,
+            "main", NULL, "worker page name",
+            &worker_rdr_info, NULL);
+    assert(worker_cor != 0);
+
+    return worker_cor;
+}
 
 TEST(interpreter, runners)
 {
@@ -118,10 +155,6 @@ TEST(interpreter, runners)
                 strlen(toolkit_style_json));
     ASSERT_NE(toolkit_style, nullptr);
 
-    purc_atom_t work_inst = purc_inst_create_or_get(APP_NAME,
-            "worker", work_cond_handler, &worker_info);
-    ASSERT_NE(work_inst, 0);
-
     purc_vdom_t vdom = purc_load_hvml_from_string(hvml);
     ASSERT_NE(vdom, nullptr);
 
@@ -135,32 +168,30 @@ TEST(interpreter, runners)
             &rdr_info, NULL, NULL);
     ASSERT_NE(co, nullptr);
 
-    struct purc_renderer_extra_info worker_rdr_info =
-    {
-        "my class",
-        "my title",
-        "my layoutStyle",
-        toolkit_style,
-        "<section></section>",
-    };
+    purc_atom_t worker_insts[NR_WORKERS];
+    purc_atom_t worker_crtns[NR_WORKERS];
 
-    purc_atom_t worker_cor = purc_inst_schedule_vdom(work_inst, vdom,
-            purc_coroutine_identifier(co), request, PCRDR_PAGE_TYPE_NULL,
-            "main",
-            NULL,
-            "my page name",
-            &worker_rdr_info, NULL);
-    ASSERT_NE(worker_cor, 0);
+    for (int i = 0; i < NR_WORKERS; i++) {
+        worker_crtns[i] = start_worker(purc_coroutine_identifier(co),
+                vdom, i, request, toolkit_style);
+        ASSERT_NE(worker_crtns[i], 0);
+
+        worker_insts[i] = purc_get_sid_by_cid(worker_crtns[i]);
+        ASSERT_NE(worker_insts[i], 0);
+    }
 
     purc_run(NULL);
 
-    purc_inst_ask_to_shutdown(work_inst);
+    for (int i = 0; i < NR_WORKERS; i++) {
+        purc_inst_ask_to_shutdown(worker_insts[i]);
 
-    unsigned int seconds = 0;
-    while (purc_atom_to_string(work_inst) && seconds < 10) {
-        purc_log_info("Wait for the termination of worker instance...\n");
-        sleep(1);
-        seconds++;
+        unsigned int seconds = 0;
+        while (purc_atom_to_string(worker_insts[i])) {
+            purc_log_info("Wait for termination of worker instance %d...\n", i);
+            sleep(1);
+            seconds++;
+            ASSERT_LT(seconds, 10);
+        }
     }
 
     purc_variant_unref(request);

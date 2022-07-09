@@ -942,7 +942,8 @@ purc_inst_schedule_vdom(purc_atom_t inst, purc_vdom_t vdom,
         atom = (purc_atom_t)response->resultValue;
     }
 
-    pcrdr_release_message(response);
+    if (response)
+        pcrdr_release_message(response);
     return atom;
 }
 
@@ -992,5 +993,29 @@ purc_inst_ask_to_shutdown(purc_atom_t inst)
     }
 
     return retv;
+}
+
+purc_atom_t
+purc_get_sid_by_cid(purc_atom_t cid)
+{
+    const char *cor_uri = purc_atom_to_string(cid);
+    if (cor_uri == NULL) {
+        purc_set_error(PURC_ERROR_ENTITY_NOT_FOUND);
+        return 0;
+    }
+
+    char endpoint_name[PURC_LEN_ENDPOINT_NAME + 1];
+    char *last_slash = strrchr(cor_uri, '/');
+    assert(last_slash);
+
+    size_t len = last_slash - cor_uri;
+    assert(len < PURC_LEN_ENDPOINT_NAME + 1);
+    strncpy(endpoint_name, cor_uri, len);
+    endpoint_name[len] = 0;
+
+    purc_atom_t sid =
+        purc_atom_try_string_ex(PURC_ATOM_BUCKET_USER, endpoint_name);
+
+    return sid;
 }
 

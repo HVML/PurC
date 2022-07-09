@@ -384,7 +384,9 @@ move_or_clone_mutable_descendants_in_object(struct travel_context *ctxt,
                     return false;
                 }
 
-                // XXX: for cloned object, we need to move in the cloned keys
+                /* XXX: for cloned object, we need to move in the cloned keys,
+                 * cause purc_variant_container_clone_recursively() does not
+                 * clone the keys */
                 PC_DEBUG("a container cloned for key %s: %s (%u)\n",
                         purc_variant_get_string_const(k),
                         purc_variant_typename(retv->type),
