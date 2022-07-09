@@ -1606,7 +1606,7 @@ bind_builtin_coroutine_variables(purc_coroutine_t cor, purc_variant_t request)
 
     // $STREAM
     if(!bind_cor_named_variable(cor, BUILDIN_VAR_STREAM,
-                purc_dvobj_stream_new())) {
+                purc_dvobj_stream_new(cor->cid))) {
         return false;
     }
 
