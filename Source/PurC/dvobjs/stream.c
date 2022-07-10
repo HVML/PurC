@@ -1812,6 +1812,8 @@ purc_variant_t purc_dvobj_stream_new(purc_atom_t cid)
         goto out;
     }
 
+    purc_variant_unref(cv);
+
     if (add_stdio_property(v, cid)) {
         return v;
     }
