@@ -51,7 +51,6 @@ struct pcintr_observer_matched_data {
     purc_variant_t               payload;
     purc_variant_t               event_name;
     purc_variant_t               source;
-    purc_variant_t               at_symbol;
 };
 
 

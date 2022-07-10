@@ -47,7 +47,6 @@ struct ctxt_for_observe {
     purc_variant_t                with;
     purc_variant_t                against;
     purc_variant_t                in;
-    purc_variant_t                at_symbol;
 
     pcvdom_element_t              define;
 
@@ -67,7 +66,6 @@ ctxt_for_observe_destroy(struct ctxt_for_observe *ctxt)
         PURC_VARIANT_SAFE_CLEAR(ctxt->with);
         PURC_VARIANT_SAFE_CLEAR(ctxt->against);
         PURC_VARIANT_SAFE_CLEAR(ctxt->in);
-        PURC_VARIANT_SAFE_CLEAR(ctxt->at_symbol);
 
         if (ctxt->msg_type) {
             free(ctxt->msg_type);
@@ -489,10 +487,14 @@ register_named_var_observer(pcintr_stack_t stack,
         return NULL;
     }
 
+    purc_variant_t at = pcintr_get_at_var(frame);
+    struct pcdom_element *edom_element;
+    edom_element = pcdvobjs_get_element_from_elements(at, 0);
+    PC_ASSERT(edom_element);
+
     struct pcintr_observer *result = pcintr_register_observer(stack, observed,
             ctxt->for_var, ctxt->msg_type_atom, ctxt->sub_type,
-            frame->pos, frame->edom_element, frame->pos, ctxt->at_symbol,
-            NULL, NULL);
+            frame->pos, edom_element, frame->pos, NULL, NULL);
     purc_variant_unref(observed);
     return result;
 }
@@ -521,10 +523,15 @@ register_native_var_observer(pcintr_stack_t stack,
         return NULL;
     }
 
+    purc_variant_t at = pcintr_get_at_var(frame);
+    struct pcdom_element *edom_element;
+    edom_element = pcdvobjs_get_element_from_elements(at, 0);
+    PC_ASSERT(edom_element);
+
     observer = pcintr_register_observer(stack, observed,
             ctxt->for_var, ctxt->msg_type_atom, ctxt->sub_type,
             frame->pos,
-            frame->edom_element, frame->pos, ctxt->at_symbol, NULL, NULL);
+            edom_element, frame->pos, NULL, NULL);
 
     return observer;
 }
@@ -539,10 +546,19 @@ register_timer_observer(pcintr_stack_t stack,
     struct ctxt_for_observe *ctxt;
     ctxt = (struct ctxt_for_observe*)frame->ctxt;
 
+    purc_variant_t at = pcintr_get_at_var(frame);
+    struct pcdom_element *edom_element;
+    edom_element = pcdvobjs_get_element_from_elements(at, 0);
+    if (edom_element == NULL) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "`in` not valid");
+        return NULL;
+    }
+
     return pcintr_register_observer(stack, on,
             ctxt->for_var, ctxt->msg_type_atom, ctxt->sub_type,
             frame->pos,
-            frame->edom_element, frame->pos, ctxt->at_symbol, NULL, NULL);
+            edom_element, frame->pos, NULL, NULL);
 }
 
 void on_revoke_mmutable_var_observer(struct pcintr_observer *observer,
@@ -567,10 +583,15 @@ register_mmutable_var_observer(pcintr_stack_t stack,
     if (!regist_variant_listener(stack, on, ctxt->msg_type_atom, &listener))
         return NULL;
 
+    purc_variant_t at = pcintr_get_at_var(frame);
+    struct pcdom_element *edom_element;
+    edom_element = pcdvobjs_get_element_from_elements(at, 0);
+    PC_ASSERT(edom_element);
+
     return pcintr_register_observer(stack, on,
             ctxt->for_var, ctxt->msg_type_atom, ctxt->sub_type,
             frame->pos,
-            frame->edom_element, frame->pos, ctxt->at_symbol,
+            edom_element, frame->pos,
             on_revoke_mmutable_var_observer, listener);
 }
 
@@ -607,9 +628,15 @@ register_default_observer(pcintr_stack_t stack,
     UNUSED_PARAM(stack);
     struct ctxt_for_observe *ctxt;
     ctxt = (struct ctxt_for_observe*)frame->ctxt;
+
+    purc_variant_t at = pcintr_get_at_var(frame);
+    struct pcdom_element *edom_element;
+    edom_element = pcdvobjs_get_element_from_elements(at, 0);
+    PC_ASSERT(edom_element);
+
     return pcintr_register_observer(stack, observed,
             ctxt->for_var, ctxt->msg_type_atom, ctxt->sub_type,
-            frame->pos, frame->edom_element, frame->pos, ctxt->at_symbol,
+            frame->pos, edom_element, frame->pos,
             NULL, NULL);
 }
 
@@ -840,6 +867,13 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     frame->pos = pos; // ATTENTION!!
 
+    if (NULL == pcintr_stack_frame_get_parent(frame)) {
+        PC_ASSERT(frame->edom_element);
+        purc_variant_t at = pcintr_get_at_var(frame);
+        PC_ASSERT(!purc_variant_is_undefined(at));
+        return ctxt;
+    }
+
     struct pcvdom_element *element = frame->pos;
     PC_ASSERT(element);
 
@@ -898,10 +932,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         if (r) {
             return ctxt;
         }
-    }
-    else {
-        ctxt->at_symbol = frame->symbol_vars[PURC_SYMBOL_VAR_AT_SIGN];
-        purc_variant_ref(ctxt->at_symbol);
     }
 
     if (stack->stage != STACK_STAGE_FIRST_ROUND) {

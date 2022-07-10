@@ -59,10 +59,6 @@ release_observer(struct pcintr_observer *observer)
         PURC_VARIANT_SAFE_CLEAR(observer->observed);
     }
 
-    if (observer->at_symbol) {
-        PURC_VARIANT_SAFE_CLEAR(observer->at_symbol);
-    }
-
     free(observer->sub_type);
     observer->sub_type = NULL;
 }
@@ -179,13 +175,11 @@ pcintr_register_observer(pcintr_stack_t stack,
         pcvdom_element_t scope,
         pcdom_element_t *edom_element,
         pcvdom_element_t pos,
-        purc_variant_t at_symbol,
         pcintr_on_revoke_observer on_revoke,
         void *on_revoke_data
         )
 {
     UNUSED_PARAM(for_value);
-    UNUSED_PARAM(at_symbol);
 
     struct list_head *list = NULL;
     if (purc_variant_is_type(observed, PURC_VARIANT_TYPE_DYNAMIC)) {
@@ -213,10 +207,6 @@ pcintr_register_observer(pcintr_stack_t stack,
     observer->pos = pos;
     observer->msg_type_atom = msg_type_atom;
     observer->sub_type = sub_type ? strdup(sub_type) : NULL;
-    if (at_symbol) {
-        observer->at_symbol = at_symbol;
-        purc_variant_ref(observer->at_symbol);
-    }
     observer->on_revoke = on_revoke;
     observer->on_revoke_data = on_revoke_data;
     add_observer_into_list(stack, list, observer);
