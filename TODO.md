@@ -57,8 +57,6 @@
 1. 接口及实现调整：
    - ~~实现 `purc_schedule_vdom()` 替代 `purc_attach_vdom_to_renderer()`。~~
    - ~~调整 `purc_bind_document_variable()` 为 `purc_coroutine_bind_variable()`。~~
-   - 调整 `purc_run()` 的实现，产生 `idle` 事件，并根据 `purc_cond_hanlder` 回调函数的设置情况及其返回值确定是否终止循环。
-   - 当未收到任何底层事件的时间累计达到或超过 100ms 时，产生一次 `idle` 事件，广播给所有进入事件循环阶段的协程，此事件可规约。
 1. 实现支持多实例相关的接口：
    - ~~`purc_inst_create_or_get()`~~
    - ~~`purc_inst_schedule_vdom()`~~
@@ -71,7 +69,11 @@
    - 移除代码中对当前协程（调用 `get_coroutine` 函数）以及当前栈（调用 `get_stack` 函数）的依赖。
    - ~~`$HVML` 变量使用协程数据结构做初始化，并实现 `cid` 属性、`uri` 属性以及 `token` 属性获取器。~~
    - ~~实现 `$SESSION` 变量的 `sid` 属性以及 `uri` 属性获取器。~~
-1. 调整调度器实现并完善如下标签的实现：
+1. 调整调度器实现：
+   - 调整调度器实现，明确区分协程的执行阶段（execution stage）和执行状态（execution state）。
+   - 调整调度器实现，通过设置协程进入休眠状态以及对应的唤醒条件来实现协程同步等待数据获取器的返回、主动休眠的超时及提前唤醒、其他协程的退出状态、并发调用的返回等。
+   - `idle` 事件：当所有协程进入事件驱动执行阶段，但未收到任何底层事件的时间累计达到或超过 100ms 时，自动产生一次 `idle` 事件，并广播给所有进入事件循环阶段，且正在 `$HVML` 变体上监听 `idle` 事件的协程；`idle` 事件可规约。
+1. 完善如下标签的实现
    - `sleep` 标签：在调度器检查到针对休眠协程的事件时，可由调度器唤醒。
    - `call` 和 `return` 标签。
    - `load` 和 `exit` 标签。
