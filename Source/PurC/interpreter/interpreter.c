@@ -812,13 +812,12 @@ init_at_symval(struct pcintr_stack_frame *frame)
     if (!parent || !parent->edom_element)
         return 0;
 
-    purc_variant_t at = pcdvobjs_make_elements(parent->edom_element);
+    purc_variant_t at = pcintr_get_at_var(parent);
     if (at == PURC_VARIANT_INVALID)
         return -1;
 
     int r;
     r = pcintr_set_at_var(frame, at);
-    purc_variant_unref(at);
 
     return r ? -1 : 0;
 }
@@ -1447,6 +1446,13 @@ on_select_child(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         if (!frame_normal)
             return;
 
+        purc_variant_t at = pcintr_get_at_var(frame);
+        PC_ASSERT(at != PURC_VARIANT_INVALID);
+
+        pcdom_element_t *edom_element = NULL;
+        if (!purc_variant_is_undefined(at))
+            edom_element = pcdvobjs_get_element_from_elements(at, 0);
+
         struct pcintr_stack_frame *child_frame;
         child_frame = &frame_normal->frame;
         child_frame->ops = pcintr_get_ops_by_element(element);
@@ -1454,7 +1460,7 @@ on_select_child(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         PC_ASSERT(element);
         child_frame->silently = pcintr_is_element_silently(child_frame->pos) ?
             1 : 0;
-        child_frame->edom_element = frame->edom_element;
+        child_frame->edom_element = edom_element;
         child_frame->scope = NULL;
 
         child_frame->next_step = NEXT_STEP_AFTER_PUSHED;
@@ -3477,6 +3483,12 @@ int
 pcintr_set_at_var(struct pcintr_stack_frame *frame, purc_variant_t val)
 {
     return pcintr_set_symbol_var(frame, PURC_SYMBOL_VAR_AT_SIGN, val);
+}
+
+purc_variant_t
+pcintr_get_at_var(struct pcintr_stack_frame *frame)
+{
+    return pcintr_get_symbol_var(frame, PURC_SYMBOL_VAR_AT_SIGN);
 }
 
 int
