@@ -230,13 +230,13 @@ pcintr_revoke_observer(struct pcintr_observer* observer)
     if (!observer)
         return;
 
-    free_observer(observer);
-
     // TODO:
     pcintr_stack_t stack = observer->stack;
     PC_ASSERT(stack);
     PC_ASSERT(stack->co->waits >= 1);
     stack->co->waits--;
+
+    free_observer(observer);
 }
 
 void
