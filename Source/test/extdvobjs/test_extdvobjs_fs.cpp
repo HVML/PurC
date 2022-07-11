@@ -565,7 +565,6 @@ TEST(dvobjs, dvobjs_fs_chgrp)
     size_t sz_total_mem_after = 0;
     size_t sz_total_values_after = 0;
     size_t nr_reserved_after = 0;
-    const char *func_result = NULL;
 
     purc_instance_extra_info info = {};
     int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
@@ -605,14 +604,12 @@ TEST(dvobjs, dvobjs_fs_chgrp)
     printf("\t\tReturn PURC_VARIANT_INVALID\n");
 
     // String param
-    printf ("TEST chgrp: nr_args = 2, param[0] = file_path, param[1] = 'sys':\n");
+    printf ("TEST chgrp: nr_args = 2, param[0] = file_path, param[1] = 'root':\n");
     param[0] = purc_variant_make_string (file_path, true);
     param[1] = purc_variant_make_string ("sys", true);
     ret_var = func (NULL, 2, param, false);
     ASSERT_NE(ret_var, nullptr);
-    func_result = purc_variant_get_string_const(ret_var);
-    ASSERT_NE(func_result, nullptr);
-    ASSERT_STREQ (func_result, "");
+    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN), true);
     purc_variant_unref(param[0]);
     purc_variant_unref(param[1]);
     purc_variant_unref(ret_var);
@@ -623,15 +620,10 @@ TEST(dvobjs, dvobjs_fs_chgrp)
     param[1] = purc_variant_make_ulongint (1); // daemon
     ret_var = func (NULL, 2, param, false);
     ASSERT_NE(ret_var, nullptr);
-    func_result = purc_variant_get_string_const(ret_var);
-    ASSERT_NE(func_result, nullptr);
-    ASSERT_STREQ (func_result, "");
+    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN), true);
     purc_variant_unref(param[0]);
     purc_variant_unref(param[1]);
     purc_variant_unref(ret_var);
-
-    printf ("------------------------------------------->>>>> %s\n", file_path);
-
 
 
     // Clean up
@@ -649,11 +641,179 @@ TEST(dvobjs, dvobjs_fs_chgrp)
 // chmod
 TEST(dvobjs, dvobjs_fs_chmod)
 {
+    purc_variant_t param[MAX_PARAM_NR];
+    purc_variant_t ret_var = NULL;
+    size_t sz_total_mem_before = 0;
+    size_t sz_total_values_before = 0;
+    size_t nr_reserved_before = 0;
+    size_t sz_total_mem_after = 0;
+    size_t sz_total_values_after = 0;
+    size_t nr_reserved_after = 0;
+
+    purc_instance_extra_info info = {};
+    int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
+            "dvobjs", &info);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
+            &nr_reserved_before);
+
+    setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
+    purc_variant_t fs = purc_variant_load_dvobj_from_so (NULL, "FS");
+    ASSERT_NE(fs, nullptr);
+    ASSERT_EQ(purc_variant_is_object (fs), true);
+
+    purc_variant_t dynamic = purc_variant_object_get_by_ckey (fs, "chmod");
+    ASSERT_NE(dynamic, nullptr);
+    ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
+
+    purc_dvariant_method func = NULL;
+    func = purc_variant_dynamic_get_getter (dynamic);
+    ASSERT_NE(func, nullptr);
+
+    const char *env = "DVOBJS_TEST_PATH";
+    char data_path[PATH_MAX+1];
+    test_getpath_from_env_or_rel(data_path, sizeof(data_path),
+        env, "test_files");
+    std::cerr << "env: " << env << "=" << data_path << std::endl;
+
+    char file_path[1024] = {0};
+    strncpy (file_path, data_path, sizeof(file_path)-1);
+    strncat (file_path, "/fs/chmod.test", sizeof(file_path)-1);
+
+
+    printf ("TEST chmod: nr_args = 0, param = NULL:\n");
+    ret_var = func (NULL, 0, param, false);
+    ASSERT_EQ(ret_var, nullptr);
+    printf("\t\tReturn PURC_VARIANT_INVALID\n");
+
+    // Code string param
+    printf ("TEST chmod: nr_args = 2, param[0] = file_path, param[1] = 'u+x,g-w':\n");
+    param[0] = purc_variant_make_string (file_path, true);
+    param[1] = purc_variant_make_string ("u+x,g-w", true);
+    ret_var = func (NULL, 2, param, false);
+    ASSERT_NE(ret_var, nullptr);
+    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN), true);
+    purc_variant_unref(param[0]);
+    purc_variant_unref(param[1]);
+    purc_variant_unref(ret_var);
+
+    // Number string param (octal)
+    printf ("TEST chmod: nr_args = 2, param[0] = file_path, param[1] = '754':\n");
+    param[0] = purc_variant_make_string (file_path, true);
+    param[1] = purc_variant_make_string ("0754", true);
+    ret_var = func (NULL, 2, param, false);
+    ASSERT_NE(ret_var, nullptr);
+    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN), true);
+    purc_variant_unref(param[0]);
+    purc_variant_unref(param[1]);
+    purc_variant_unref(ret_var);
+
+    // Number string param (decimal)
+    printf ("TEST chmod: nr_args = 2, param[0] = file_path, param[1] = '754':\n");
+    param[0] = purc_variant_make_string (file_path, true);
+    param[1] = purc_variant_make_string ("511", true);
+    ret_var = func (NULL, 2, param, false);
+    ASSERT_NE(ret_var, nullptr);
+    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN), true);
+    purc_variant_unref(param[0]);
+    purc_variant_unref(param[1]);
+    purc_variant_unref(ret_var);
+
+    // Clean up
+    purc_variant_unload_dvobj (fs);
+
+    get_variant_total_info (&sz_total_mem_after,
+            &sz_total_values_after, &nr_reserved_after);
+    ASSERT_EQ(sz_total_values_before, sz_total_values_after);
+    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
+                nr_reserved_before) * sizeof(purc_variant));
+
+    purc_cleanup ();
 }
 
 // chown
 TEST(dvobjs, dvobjs_fs_chown)
 {
+    purc_variant_t param[MAX_PARAM_NR];
+    purc_variant_t ret_var = NULL;
+    size_t sz_total_mem_before = 0;
+    size_t sz_total_values_before = 0;
+    size_t nr_reserved_before = 0;
+    size_t sz_total_mem_after = 0;
+    size_t sz_total_values_after = 0;
+    size_t nr_reserved_after = 0;
+
+    purc_instance_extra_info info = {};
+    int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
+            "dvobjs", &info);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
+            &nr_reserved_before);
+
+    setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
+    purc_variant_t fs = purc_variant_load_dvobj_from_so (NULL, "FS");
+    ASSERT_NE(fs, nullptr);
+    ASSERT_EQ(purc_variant_is_object (fs), true);
+
+    purc_variant_t dynamic = purc_variant_object_get_by_ckey (fs, "chown");
+    ASSERT_NE(dynamic, nullptr);
+    ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
+
+    purc_dvariant_method func = NULL;
+    func = purc_variant_dynamic_get_getter (dynamic);
+    ASSERT_NE(func, nullptr);
+
+    const char *env = "DVOBJS_TEST_PATH";
+    char data_path[PATH_MAX+1];
+    test_getpath_from_env_or_rel(data_path, sizeof(data_path),
+        env, "test_files");
+    std::cerr << "env: " << env << "=" << data_path << std::endl;
+
+    char file_path[1024] = {0};
+    strncpy (file_path, data_path, sizeof(file_path)-1);
+    strncat (file_path, "/fs/chwon.test", sizeof(file_path)-1);
+
+
+    printf ("TEST chown: nr_args = 0, param = NULL:\n");
+    ret_var = func (NULL, 0, param, false);
+    ASSERT_EQ(ret_var, nullptr);
+    printf("\t\tReturn PURC_VARIANT_INVALID\n");
+
+    // String param
+    printf ("TEST chown: nr_args = 2, param[0] = file_path, param[1] = 'root':\n");
+    param[0] = purc_variant_make_string (file_path, true);
+    param[1] = purc_variant_make_string ("sys", true);
+    ret_var = func (NULL, 2, param, false);
+    ASSERT_NE(ret_var, nullptr);
+    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN), true);
+    purc_variant_unref(param[0]);
+    purc_variant_unref(param[1]);
+    purc_variant_unref(ret_var);
+
+    // Number param
+    printf ("TEST chown: nr_args = 2, param[0] = file_path, param[1] = 2:\n");
+    param[0] = purc_variant_make_string (file_path, true);
+    param[1] = purc_variant_make_ulongint (1); // daemon
+    ret_var = func (NULL, 2, param, false);
+    ASSERT_NE(ret_var, nullptr);
+    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN), true);
+    purc_variant_unref(param[0]);
+    purc_variant_unref(param[1]);
+    purc_variant_unref(ret_var);
+
+
+    // Clean up
+    purc_variant_unload_dvobj (fs);
+
+    get_variant_total_info (&sz_total_mem_after,
+            &sz_total_values_after, &nr_reserved_after);
+    ASSERT_EQ(sz_total_values_before, sz_total_values_after);
+    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
+                nr_reserved_before) * sizeof(purc_variant));
+
+    purc_cleanup ();
 }
 
 // copy
