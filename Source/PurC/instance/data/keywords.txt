@@ -81,4 +81,5 @@ msg callState
 msg corState
 msg click
 msg close
+msg idle
 

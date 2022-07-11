@@ -31,6 +31,8 @@
 #include "private/interpreter.h"
 #include "private/regex.h"
 
+#define BUILDIN_VAR_HVML        "HVML"
+
 static void
 release_observer(struct pcintr_observer *observer)
 {
@@ -211,6 +213,13 @@ pcintr_register_observer(pcintr_stack_t stack,
     observer->on_revoke_data = on_revoke_data;
     add_observer_into_list(stack, list, observer);
 
+    // observe idle
+    purc_variant_t hvml = pcintr_get_coroutine_variable(stack->co,
+            BUILDIN_VAR_HVML);
+    if (observed == hvml) {
+        stack->observe_idle = 1;
+    }
+
     return observer;
 }
 
@@ -225,6 +234,13 @@ pcintr_revoke_observer(struct pcintr_observer* observer)
     PC_ASSERT(stack);
     PC_ASSERT(stack->co->waits >= 1);
     stack->co->waits--;
+
+    // observe idle
+    purc_variant_t hvml = pcintr_get_coroutine_variable(stack->co,
+            BUILDIN_VAR_HVML);
+    if (observer->observed == hvml) {
+        stack->observe_idle = 0;
+    }
 
     free_observer(observer);
 }
