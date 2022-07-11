@@ -43,12 +43,35 @@
 #define SCHEDULE_TIMEOUT        10000           // usec
 #define IDLE_EVENT_TIMEOUT      100             // ms
 
+#define MSG_TYPE_IDLE           "idle"
+#define BUILDIN_VAR_HVML        "HVML"
+
 static inline
 double current_time()
 {
     struct timeval now;
     gettimeofday(&now, 0);
     return now.tv_sec * 1000 + now.tv_usec / 1000;
+}
+
+void broadcast_idle_event(struct pcinst *inst)
+{
+    struct pcintr_heap *heap = inst->intr_heap;
+    struct rb_root *coroutines = &heap->coroutines;
+    struct rb_node *p, *n;
+    struct rb_node *first = pcutils_rbtree_first(coroutines);
+    pcutils_rbtree_for_each_safe(first, p, n) {
+        pcintr_coroutine_t co = container_of(p, struct pcintr_coroutine,
+                node);
+        pcintr_stack_t stack = &co->stack;
+        if (stack->observe_idle) {
+            purc_variant_t hvml = pcintr_get_coroutine_variable(stack->co,
+                    BUILDIN_VAR_HVML);
+            pcintr_coroutine_post_event(stack->co->cid,
+                    PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
+                    hvml, MSG_TYPE_IDLE, NULL, PURC_VARIANT_INVALID);
+        }
+    }
 }
 
 void
@@ -84,7 +107,7 @@ pcintr_schedule(void *ctxt)
     }
 
     if (now - IDLE_EVENT_TIMEOUT > heap->timeout) {
-        // TODO: broadcast idle
+        broadcast_idle_event(inst);
         heap->timeout =now;
     }
 
