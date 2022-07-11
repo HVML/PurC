@@ -104,6 +104,22 @@ void purc_runloop_dispatch(purc_runloop_t runloop, purc_runloop_func func,
         void *ctxt);
 
 /**
+ * Dispatch function on the runloop after specified time
+ *
+ * @param runloop: the runloop.
+ * @param func: the function to dispatch.
+ * @param ctxt: the data to pass to the function
+ * @param time_ms: time in millisecond
+ *
+ * Returns: void
+ *
+ * Since: 0.2.0
+ */
+PCA_EXPORT
+void purc_runloop_dispatch_after(purc_runloop_t runloop, long time_ms,
+        purc_runloop_func func, void *ctxt);
+
+/**
  * Set the idle function on the runloop which will be called on idle.
  *
  * @param runloop: the runloop.

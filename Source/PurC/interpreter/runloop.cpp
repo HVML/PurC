@@ -77,6 +77,17 @@ void purc_runloop_dispatch(purc_runloop_t runloop, purc_runloop_func func,
     }
 }
 
+void purc_runloop_dispatch_after(purc_runloop_t runloop, long time_ms,
+        purc_runloop_func func, void *ctxt)
+{
+    ((RunLoop*)runloop)->dispatchAfter(
+        PurCWTF::Seconds::fromMilliseconds(time_ms),
+        [func, ctxt]() {
+            func(ctxt);
+        }
+    );
+}
+
 void purc_runloop_set_idle_func(purc_runloop_t runloop, purc_runloop_func func,
         void* ctxt)
 {
