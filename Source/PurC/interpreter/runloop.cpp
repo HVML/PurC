@@ -320,7 +320,7 @@ pcintr_fire_event_to_target(pcintr_coroutine_t target,
     ((RunLoop*)target_runloop)->dispatch([target, event]() {
             pcintr_set_current_co(target);
             if (target->continuation) {
-                pcintr_resume(event);
+                pcintr_resume(target, event);
             }
             else {
                 PC_ASSERT(0);

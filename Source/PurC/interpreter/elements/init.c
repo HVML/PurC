@@ -949,7 +949,7 @@ static void on_sync_complete_on_frame(struct ctxt_for_init *ctxt,
     ctxt->resp = resp;
     PC_ASSERT(purc_get_last_error() == PURC_ERROR_OK);
 
-    pcintr_resume(NULL);
+    pcintr_resume(ctxt->co, NULL);
 }
 
 static void on_sync_complete(purc_variant_t request_id, void *ud,

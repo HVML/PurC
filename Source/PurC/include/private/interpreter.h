@@ -484,7 +484,7 @@ pcintr_stack_frame_get_parent(struct pcintr_stack_frame *frame);
 
 void pcintr_yield(void *ctxt, void (*continuation)(void *ctxt, void *extra),
         purc_variant_t request_id, purc_variant_t event_name);
-void pcintr_resume(void *extra);
+void pcintr_resume(pcintr_coroutine_t cor, void *extra);
 
 void
 pcintr_push_stack_frame_pseudo(pcvdom_element_t vdom_element);

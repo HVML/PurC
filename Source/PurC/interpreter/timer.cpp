@@ -166,7 +166,7 @@ class PurcTimer : public Timer {
                     ++m_fired;
                     stop();
                     pcintr_set_current_co(m_coroutine);
-                    pcintr_resume(NULL);
+                    pcintr_resume(m_coroutine, NULL);
                     pcintr_set_current_co(NULL);
                     return;
                 }

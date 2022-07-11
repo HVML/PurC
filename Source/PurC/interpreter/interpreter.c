@@ -3827,9 +3827,8 @@ void pcintr_yield(void *ctxt, void (*continuation)(void *ctxt, void *extra),
     }
 }
 
-void pcintr_resume(void *extra)
+void pcintr_resume(pcintr_coroutine_t co, void *extra)
 {
-    pcintr_coroutine_t co = pcintr_get_coroutine();
     PC_ASSERT(co);
     PC_ASSERT(co->state == CO_STATE_WAIT);
     PC_ASSERT(co->yielded_ctxt);
