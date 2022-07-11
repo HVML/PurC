@@ -353,7 +353,9 @@ static int init_modules(struct pcinst *curr_inst,
 
     curr_inst->max_conns                  = FETCHER_MAX_CONNS;
     curr_inst->cache_quota                = FETCHER_CACHE_QUOTA;
-    curr_inst->enable_remote_fetcher      = modules & PURC_HAVE_FETCHER_R;
+    if (modules & PURC_HAVE_FETCHER_R) {
+        curr_inst->enable_remote_fetcher      =  1;
+    }
 
     // call mdule initializers
     for (size_t i = 0; i < PCA_TABLESIZE(_pc_modules); ++i) {

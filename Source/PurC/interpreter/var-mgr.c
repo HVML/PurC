@@ -617,7 +617,8 @@ pcintr_find_anchor_symbolized_var(pcintr_stack_t stack, const char *anchor,
 
     while (frame) {
         pcvdom_element_t elem = frame->pos;
-        purc_variant_t elem_id = pcvdom_element_eval_attr_val(elem, ATTR_KEY_ID);
+        purc_variant_t elem_id = pcvdom_element_eval_attr_val(stack, elem,
+                ATTR_KEY_ID);
         if (!elem_id) {
             frame = pcintr_stack_frame_get_parent(frame);
             continue;

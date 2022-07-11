@@ -359,7 +359,7 @@ pcrun_create_inst_thread(const char *app_name, const char *runner_name,
                     *my_th = pthread_self();
                     *th = (void *)my_th;
 #else
-#error "Need code when not using PThreas"
+#error "Need code when not using PThreads"
 #endif
                     if (cond_handler) {
                         cond_handler(PURC_COND_STARTED,
@@ -369,6 +369,7 @@ pcrun_create_inst_thread(const char *app_name, const char *runner_name,
 
                     purc_run(my_handler);
 
+                    pcrun_notify_instmgr(PCRUN_EVENT_inst_stopped, my_atom);
                     if ((my_handler = inst->intr_heap->cond_handler)) {
                         my_handler(PURC_COND_STOPPED,
                                 (void *)(uintptr_t)my_atom, NULL);
@@ -378,6 +379,7 @@ pcrun_create_inst_thread(const char *app_name, const char *runner_name,
                 }
             });
 
+    inst_th->detach();
     semaphore.wait();
 
     return atom;
@@ -422,6 +424,7 @@ static void _runloop_init_main(void)
                 return;
             }
 
+            pcinst_current()->is_instmgr = 1;
             struct instmgr_info info = { 0, NULL };
             info.sa_insts = pcutils_sorted_array_create(SAFLAG_DEFAULT, 0,
                     my_sa_free, NULL);

@@ -268,9 +268,9 @@ unload_dynamic_var(struct rb_node *node, void *ud)
 }
 
 static void
-loaded_vars_release(pcintr_stack_t stack)
+loaded_vars_release(pcintr_coroutine_t cor)
 {
-    struct rb_root *root = &stack->loaded_vars;
+    struct rb_root *root = &cor->loaded_vars;
     if (RB_EMPTY_ROOT(root))
         return;
 
@@ -395,24 +395,13 @@ stack_release(pcintr_stack_t stack)
 
     release_scoped_variables(stack);
 
-    if (stack->timers) {
-        pcintr_timers_destroy(stack->timers);
-        stack->timers = NULL;
-    }
-
-    pcintr_destroy_observer_list(&stack->common_variant_observer_list);
-    pcintr_destroy_observer_list(&stack->dynamic_variant_observer_list);
-    pcintr_destroy_observer_list(&stack->native_variant_observer_list);
+    pcintr_destroy_observer_list(&stack->common_observers);
+    pcintr_destroy_observer_list(&stack->dynamic_observers);
+    pcintr_destroy_observer_list(&stack->native_observers);
 
     if (stack->doc) {
         pchtml_html_document_destroy(stack->doc);
         stack->doc = NULL;
-    }
-
-    loaded_vars_release(stack);
-
-    if (stack->base_uri) {
-        free(stack->base_uri);
     }
 
     pcintr_exception_clear(&stack->exception);
@@ -467,6 +456,51 @@ coroutine_release(pcintr_coroutine_t co)
         if (co->variables) {
             pcvarmgr_destroy(co->variables);
         }
+
+        struct purc_broken_down_url *url = &co->base_url_broken_down;
+
+        if (url->schema) {
+            free(url->schema);
+        }
+
+        if (url->user) {
+            free(url->user);
+        }
+
+        if (url->passwd) {
+            free(url->passwd);
+        }
+
+        if (url->host) {
+            free(url->host);
+        }
+
+        if (url->path) {
+            free(url->path);
+        }
+
+        if (url->query) {
+            free(url->query);
+        }
+
+        if (url->fragment) {
+            free(url->fragment);
+        }
+
+        if (co->target) {
+            free(co->target);
+        }
+
+        if (co->base_url_string) {
+            free(co->base_url_string);
+        }
+
+        if (co->timers) {
+            pcintr_timers_destroy(co->timers);
+            co->timers = NULL;
+        }
+
+        loaded_vars_release(co);
         PURC_VARIANT_SAFE_CLEAR(co->val_from_return_or_exit);
     }
 }
@@ -484,20 +518,13 @@ static void
 stack_init(pcintr_stack_t stack)
 {
     INIT_LIST_HEAD(&stack->frames);
-    INIT_LIST_HEAD(&stack->common_variant_observer_list);
-    INIT_LIST_HEAD(&stack->dynamic_variant_observer_list);
-    INIT_LIST_HEAD(&stack->native_variant_observer_list);
+    INIT_LIST_HEAD(&stack->common_observers);
+    INIT_LIST_HEAD(&stack->dynamic_observers);
+    INIT_LIST_HEAD(&stack->native_observers);
     stack->scoped_variables = RB_ROOT;
 
     stack->stage = STACK_STAGE_FIRST_ROUND;
-    stack->loaded_vars = RB_ROOT;
     stack->mode = STACK_VDOM_BEFORE_HVML;
-
-    struct pcinst *inst = pcinst_current();
-    PC_ASSERT(inst);
-    struct pcintr_heap *heap = inst->intr_heap;
-    PC_ASSERT(heap);
-    stack->owning_heap = heap;
 }
 
 void pcintr_heap_lock(struct pcintr_heap *heap)
@@ -785,13 +812,12 @@ init_at_symval(struct pcintr_stack_frame *frame)
     if (!parent || !parent->edom_element)
         return 0;
 
-    purc_variant_t at = pcdvobjs_make_elements(parent->edom_element);
+    purc_variant_t at = pcintr_get_at_var(parent);
     if (at == PURC_VARIANT_INVALID)
         return -1;
 
     int r;
     r = pcintr_set_at_var(frame, at);
-    purc_variant_unref(at);
 
     return r ? -1 : 0;
 }
@@ -1420,6 +1446,13 @@ on_select_child(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         if (!frame_normal)
             return;
 
+        purc_variant_t at = pcintr_get_at_var(frame);
+        PC_ASSERT(at != PURC_VARIANT_INVALID);
+
+        pcdom_element_t *edom_element = NULL;
+        if (!purc_variant_is_undefined(at))
+            edom_element = pcdvobjs_get_element_from_elements(at, 0);
+
         struct pcintr_stack_frame *child_frame;
         child_frame = &frame_normal->frame;
         child_frame->ops = pcintr_get_ops_by_element(element);
@@ -1427,7 +1460,7 @@ on_select_child(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         PC_ASSERT(element);
         child_frame->silently = pcintr_is_element_silently(child_frame->pos) ?
             1 : 0;
-        child_frame->edom_element = frame->edom_element;
+        child_frame->edom_element = edom_element;
         child_frame->scope = NULL;
 
         child_frame->next_step = NEXT_STEP_AFTER_PUSHED;
@@ -1460,13 +1493,13 @@ exception_copy(struct pcintr_exception *exception)
 
 static bool co_is_observed(pcintr_coroutine_t co)
 {
-    if (!list_empty(&co->stack.common_variant_observer_list))
+    if (!list_empty(&co->stack.common_observers))
         return true;
 
-    if (!list_empty(&co->stack.dynamic_variant_observer_list))
+    if (!list_empty(&co->stack.dynamic_observers))
         return true;
 
-    if (!list_empty(&co->stack.native_variant_observer_list))
+    if (!list_empty(&co->stack.native_observers))
         return true;
 
     return false;
@@ -1533,11 +1566,9 @@ bind_cor_named_variable(purc_coroutine_t cor, const char* name,
 static bool
 bind_builtin_coroutine_variables(purc_coroutine_t cor, purc_variant_t request)
 {
-    UNUSED_PARAM(request);
-    pcintr_stack_t stack = &cor->stack;
     // $TIMERS
-    stack->timers = pcintr_timers_init(stack);
-    if (!stack->timers) {
+    cor->timers = pcintr_timers_init(cor);
+    if (!cor->timers) {
         return false;
     }
 
@@ -1545,6 +1576,12 @@ bind_builtin_coroutine_variables(purc_coroutine_t cor, purc_variant_t request)
     if (request && !pcintr_bind_coroutine_variable(
                 cor, BUILDIN_VAR_REQUEST, request)) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return false;
+    }
+
+    // $HVML
+    if(!bind_cor_named_variable(cor, BUILDIN_VAR_HVML,
+                purc_dvobj_hvml_new(cor))) {
         return false;
     }
 
@@ -1575,7 +1612,7 @@ bind_builtin_coroutine_variables(purc_coroutine_t cor, purc_variant_t request)
 
     // $STREAM
     if(!bind_cor_named_variable(cor, BUILDIN_VAR_STREAM,
-                purc_dvobj_stream_new())) {
+                purc_dvobj_stream_new(cor->cid))) {
         return false;
     }
 
@@ -1594,8 +1631,6 @@ bind_builtin_coroutine_variables(purc_coroutine_t cor, purc_variant_t request)
 int
 pcintr_init_vdom_under_stack(pcintr_stack_t stack)
 {
-    PC_ASSERT(stack == pcintr_get_stack());
-
     stack->async_request_ids = purc_variant_make_array(0, PURC_VARIANT_INVALID);
     if (!stack->async_request_ids) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
@@ -1605,12 +1640,6 @@ pcintr_init_vdom_under_stack(pcintr_stack_t stack)
     if (doc_init(stack)) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return -1;
-    }
-
-    // $HVML
-    if(!bind_cor_named_variable(stack->co, BUILDIN_VAR_HVML,
-                purc_dvobj_hvml_new(&stack->co->hvml_ctrl_props))) {
-        return false;
     }
 
     // $DOC
@@ -1766,11 +1795,10 @@ static void run_exiting_co(void *ctxt)
 static void run_ready_co(void);
 
 static void
-revoke_all_dynamic_observers(void)
+revoke_all_dynamic_observers(pcintr_stack_t stack)
 {
-    pcintr_stack_t stack = pcintr_get_stack();
     PC_ASSERT(stack);
-    struct list_head *observers = &stack->dynamic_variant_observer_list;
+    struct list_head *observers = &stack->dynamic_observers;
     struct pcintr_observer *p, *n;
     list_for_each_entry_safe(p, n, observers, node) {
         pcintr_revoke_observer(p);
@@ -1778,11 +1806,10 @@ revoke_all_dynamic_observers(void)
 }
 
 static void
-revoke_all_native_observers(void)
+revoke_all_native_observers(pcintr_stack_t stack)
 {
-    pcintr_stack_t stack = pcintr_get_stack();
     PC_ASSERT(stack);
-    struct list_head *observers = &stack->native_variant_observer_list;
+    struct list_head *observers = &stack->native_observers;
     struct pcintr_observer *p, *n;
     list_for_each_entry_safe(p, n, observers, node) {
         pcintr_revoke_observer(p);
@@ -1790,11 +1817,10 @@ revoke_all_native_observers(void)
 }
 
 static void
-revoke_all_common_observers(void)
+revoke_all_common_observers(pcintr_stack_t stack)
 {
-    pcintr_stack_t stack = pcintr_get_stack();
     PC_ASSERT(stack);
-    struct list_head *observers = &stack->common_variant_observer_list;
+    struct list_head *observers = &stack->common_observers;
     struct pcintr_observer *p, *n;
     list_for_each_entry_safe(p, n, observers, node) {
         pcintr_revoke_observer(p);
@@ -2067,12 +2093,12 @@ static void check_after_execution(pcintr_coroutine_t co)
     }
 
     if (co->stack.exited) {
-        revoke_all_dynamic_observers();
-        PC_ASSERT(list_empty(&co->stack.dynamic_variant_observer_list));
-        revoke_all_native_observers();
-        PC_ASSERT(list_empty(&co->stack.native_variant_observer_list));
-        revoke_all_common_observers();
-        PC_ASSERT(list_empty(&co->stack.common_variant_observer_list));
+        revoke_all_dynamic_observers(&co->stack);
+        PC_ASSERT(list_empty(&co->stack.dynamic_observers));
+        revoke_all_native_observers(&co->stack);
+        PC_ASSERT(list_empty(&co->stack.native_observers));
+        revoke_all_common_observers(&co->stack);
+        PC_ASSERT(list_empty(&co->stack.common_observers));
     }
 
     bool still_observed = co_is_observed(co);
@@ -2336,6 +2362,7 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
     stack->co = co;
     co->owner = heap;
     co->user_data = user_data;
+    co->loaded_vars = RB_ROOT;
 
     int r;
     r = pcutils_rbtree_insert_only(coroutines, &co->cid,
@@ -2557,12 +2584,12 @@ pcintr_load_from_uri(pcintr_stack_t stack, const char* uri)
         return PURC_VARIANT_INVALID;
     }
 
-    if (stack->co->hvml_ctrl_props->base_url_string) {
-        pcfetcher_set_base_url(stack->co->hvml_ctrl_props->base_url_string);
+    if (stack->co->base_url_string) {
+        pcfetcher_set_base_url(stack->co->base_url_string);
     }
     purc_variant_t ret = PURC_VARIANT_INVALID;
     struct pcfetcher_resp_header resp_header = {0};
-    uint32_t timeout = stack->co->hvml_ctrl_props->timeout.tv_sec;
+    uint32_t timeout = stack->co->timeout.tv_sec;
     purc_rwstream_t resp = pcfetcher_request_sync(
             uri,
             PCFETCHER_REQUEST_METHOD_GET,
@@ -2661,11 +2688,11 @@ pcintr_load_from_uri_async(pcintr_stack_t stack, const char* uri,
     data->requesting_stack     = stack;
     data->request_id           = PURC_VARIANT_INVALID;
 
-    if (stack->co->hvml_ctrl_props->base_url_string) {
-        pcfetcher_set_base_url(stack->co->hvml_ctrl_props->base_url_string);
+    if (stack->co->base_url_string) {
+        pcfetcher_set_base_url(stack->co->base_url_string);
     }
 
-    uint32_t timeout = stack->co->hvml_ctrl_props->timeout.tv_sec;
+    uint32_t timeout = stack->co->timeout.tv_sec;
     data->request_id = pcfetcher_request_async(
             uri,
             method,
@@ -2715,10 +2742,10 @@ pcintr_load_vdom_fragment_from_uri(pcintr_stack_t stack, const char* uri)
         return PURC_VARIANT_INVALID;
     }
 
-    if (stack->co->hvml_ctrl_props->base_url_string) {
-        pcfetcher_set_base_url(stack->co->hvml_ctrl_props->base_url_string);
+    if (stack->co->base_url_string) {
+        pcfetcher_set_base_url(stack->co->base_url_string);
     }
-    uint32_t timeout = stack->co->hvml_ctrl_props->timeout.tv_sec;
+    uint32_t timeout = stack->co->timeout.tv_sec;
     purc_variant_t ret = PURC_VARIANT_INVALID;
     struct pcfetcher_resp_header resp_header = {0};
     purc_rwstream_t resp = pcfetcher_request_sync(
@@ -2786,13 +2813,13 @@ end:
 }
 
 bool
-pcintr_load_dynamic_variant(pcintr_stack_t stack,
+pcintr_load_dynamic_variant(pcintr_coroutine_t cor,
     const char *name, size_t len)
 {
     char NAME[PATH_MAX+1];
     snprintf(NAME, sizeof(NAME), "%.*s", (int)len, name);
 
-    struct rb_root *root = &stack->loaded_vars;
+    struct rb_root *root = &cor->loaded_vars;
 
     struct rb_node **pnode = &root->rb_node;
     struct rb_node *parent = NULL;
@@ -2839,7 +2866,7 @@ pcintr_load_dynamic_variant(pcintr_stack_t stack,
     pcutils_rbtree_link_node(entry, parent, pnode);
     pcutils_rbtree_insert_color(entry, root);
 
-    if (pcintr_bind_coroutine_variable(stack->co, NAME, v)) {
+    if (pcintr_bind_coroutine_variable(cor, NAME, v)) {
         return true;
     }
 
@@ -3458,6 +3485,12 @@ pcintr_set_at_var(struct pcintr_stack_frame *frame, purc_variant_t val)
     return pcintr_set_symbol_var(frame, PURC_SYMBOL_VAR_AT_SIGN, val);
 }
 
+purc_variant_t
+pcintr_get_at_var(struct pcintr_stack_frame *frame)
+{
+    return pcintr_get_symbol_var(frame, PURC_SYMBOL_VAR_AT_SIGN);
+}
+
 int
 pcintr_set_question_var(struct pcintr_stack_frame *frame, purc_variant_t val)
 {
@@ -3638,7 +3671,7 @@ event_timer_fire(pcintr_timer_t timer, const char* id, void* data)
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame == NULL);
 
-    struct list_head *observer_list = &stack->native_variant_observer_list;
+    struct list_head *observer_list = &stack->native_observers;
     struct pcintr_observer *p, *n;
     list_for_each_entry_safe(p, n, observer_list, node) {
         purc_variant_t var = p->observed;

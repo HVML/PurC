@@ -215,7 +215,8 @@ attr_found(struct pcintr_stack_frame *frame,
     PC_ASSERT(name);
     PC_ASSERT(attr->op == PCHVML_ATTRIBUTE_OPERATOR);
 
-    purc_variant_t val = pcintr_eval_vdom_attr(pcintr_get_stack(), attr);
+    pcintr_stack_t stack = (pcintr_stack_t) ud;
+    purc_variant_t val = pcintr_eval_vdom_attr(stack, attr);
     if (val == PURC_VARIANT_INVALID)
         return -1;
 
@@ -229,7 +230,6 @@ static void*
 after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 {
     PC_ASSERT(stack && pos);
-    PC_ASSERT(stack == pcintr_get_stack());
 
     if (stack->except)
         return NULL;
@@ -255,7 +255,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     PC_ASSERT(element);
 
     int r;
-    r = pcintr_vdom_walk_attrs(frame, element, NULL, attr_found);
+    r = pcintr_vdom_walk_attrs(frame, element, stack, attr_found);
     if (r)
         return ctxt;
 
@@ -277,7 +277,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (ctxt->at != PURC_VARIANT_INVALID && purc_variant_is_string(ctxt->at)) {
         const char* name = purc_variant_get_string_const(ctxt->at);
         purc_variant_t v = pcintr_get_named_var_for_event(stack, name);
-        pcintr_revoke_observer_ex(v, ctxt->msg_type_atom, ctxt->sub_type);
+        pcintr_revoke_observer_ex(stack, v, ctxt->msg_type_atom, ctxt->sub_type);
         purc_variant_unref(v);
     }
     else {
@@ -286,12 +286,12 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
             // XXX: optimization
             // CSS selector used string
             // handle by elements.c match_observe
-            pcintr_revoke_observer_ex(on,
+            pcintr_revoke_observer_ex(stack, on,
                 ctxt->msg_type_atom, ctxt->sub_type);
         }
         else
         {
-            pcintr_revoke_observer_ex(on,
+            pcintr_revoke_observer_ex(stack, on,
                 ctxt->msg_type_atom, ctxt->sub_type);
         }
     }
@@ -306,7 +306,6 @@ static bool
 on_popping(pcintr_stack_t stack, void* ud)
 {
     PC_ASSERT(stack);
-    PC_ASSERT(stack == pcintr_get_stack());
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
@@ -386,7 +385,6 @@ static pcvdom_element_t
 select_child(pcintr_stack_t stack, void* ud)
 {
     PC_ASSERT(stack);
-    PC_ASSERT(stack == pcintr_get_stack());
 
     pcintr_coroutine_t co = stack->co;
     struct pcintr_stack_frame *frame;

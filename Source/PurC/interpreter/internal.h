@@ -44,13 +44,13 @@ struct pcvdom_template {
 };
 
 struct pcintr_observer_matched_data {
+    pcintr_stack_t                stack;
     pcvdom_element_t              pos;
     pcvdom_element_t              scope;
     struct pcdom_element         *edom_element;
     purc_variant_t               payload;
     purc_variant_t               event_name;
     purc_variant_t               source;
-    purc_variant_t               at_symbol;
 };
 
 
@@ -105,6 +105,8 @@ pcintr_get_symbol_var(struct pcintr_stack_frame *frame,
 
 int
 pcintr_set_at_var(struct pcintr_stack_frame *frame, purc_variant_t val);
+purc_variant_t
+pcintr_get_at_var(struct pcintr_stack_frame *frame);
 int
 pcintr_refresh_at_var(struct pcintr_stack_frame *frame);
 

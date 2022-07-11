@@ -705,6 +705,33 @@ PCA_EXPORT int
 purc_run(purc_cond_handler handler);
 
 /**
+ * purc_get_sid_by_cid:
+ *
+ * @cid: A coroutine identifier.
+ *
+ * Gets the instance identifier (session identifier, sid) of a specific
+ * coroutine.
+ *
+ * Returns: the instance identifier or zero for failure.
+ *
+ * Since 0.2.0
+ */
+PCA_EXPORT purc_atom_t
+purc_get_sid_by_cid(purc_atom_t cid);
+
+/**
+ * purc_get_instmgr_sid:
+ *
+ * Gets the instance identifier of the instance manager.
+ *
+ * Returns: the sid of the instance manager or zero for failure.
+ *
+ * Since 0.2.0
+ */
+PCA_EXPORT purc_atom_t
+purc_get_instmgr_sid(void);
+
+/**
  * purc_inst_create_or_get:
  *
  * @app_name: a pointer to the string contains the app name.

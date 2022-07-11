@@ -68,8 +68,7 @@ attr_found(struct pcintr_stack_frame *frame,
     PC_ASSERT(attr->op == PCHVML_ATTRIBUTE_OPERATOR);
     PC_ASSERT(attr->key);
 
-    pcintr_stack_t stack = pcintr_get_stack();
-    PC_ASSERT(stack);
+    pcintr_stack_t stack = (pcintr_stack_t) ud;
     int r = pcintr_set_edom_attribute(stack, attr);
 
     return r ? -1 : 0;
@@ -79,7 +78,6 @@ static void*
 after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 {
     PC_ASSERT(stack && pos);
-    PC_ASSERT(stack == pcintr_get_stack());
     PC_ASSERT(stack->mode == STACK_VDOM_BEFORE_HEAD);
     stack->mode = STACK_VDOM_IN_HEAD;
 
@@ -110,7 +108,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     struct pcvdom_element *element = frame->pos;
     PC_ASSERT(element);
 
-    r = pcintr_vdom_walk_attrs(frame, element, NULL, attr_found);
+    r = pcintr_vdom_walk_attrs(frame, element, stack, attr_found);
     if (r)
         return ctxt;
 
@@ -123,7 +121,6 @@ static bool
 on_popping(pcintr_stack_t stack, void* ud)
 {
     PC_ASSERT(stack);
-    PC_ASSERT(stack == pcintr_get_stack());
     PC_ASSERT(stack->mode == STACK_VDOM_IN_HEAD);
     stack->mode = STACK_VDOM_AFTER_HEAD;
 
@@ -179,7 +176,6 @@ static pcvdom_element_t
 select_child(pcintr_stack_t stack, void* ud)
 {
     PC_ASSERT(stack);
-    PC_ASSERT(stack == pcintr_get_stack());
 
     pcintr_coroutine_t co = stack->co;
     struct pcintr_stack_frame *frame;

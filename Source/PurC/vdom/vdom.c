@@ -1336,7 +1336,8 @@ pcvdom_element_find_attr(struct pcvdom_element *element, const char *key)
 }
 
 purc_variant_t
-pcvdom_element_eval_attr_val(pcvdom_element_t element, const char *key)
+pcvdom_element_eval_attr_val(pcintr_stack_t stack, pcvdom_element_t element,
+        const char *key)
 {
     struct pcvdom_attr *attr;
     attr = pcvdom_element_find_attr(element, key);
@@ -1345,9 +1346,6 @@ pcvdom_element_eval_attr_val(pcvdom_element_t element, const char *key)
 
     enum pchvml_attr_operator  op  = attr->op;
     struct pcvcm_node           *val = attr->val;
-
-    pcintr_stack_t stack;
-    stack = pcintr_get_stack();
 
     purc_variant_t v;
     v = pcvcm_eval(val, stack, pcvdom_element_is_silently(element));
