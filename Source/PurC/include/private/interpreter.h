@@ -100,6 +100,7 @@ struct pcintr_heap {
 
     purc_cond_handler    cond_handler;
     unsigned int         keep_alive:1;
+    double               timeout;
 };
 
 struct pcintr_stack_frame;

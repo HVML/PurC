@@ -41,6 +41,7 @@
 #include <sys/time.h>
 
 #define SCHEDULE_TIMEOUT        10000           // usec
+#define IDLE_EVENT_TIMEOUT      100             // ms
 
 static inline
 double current_time()
@@ -57,6 +58,37 @@ pcintr_schedule(void *ctxt)
     if (!inst) {
         return;
     }
+    struct pcintr_heap *heap = inst->intr_heap;
+    if (!heap) {
+        return;
+    }
+
+
+    // check if all coroutine STACK_STAGE_EVENT_LOOP
+    struct rb_root *coroutines = &heap->coroutines;
+    struct rb_node *p, *n;
+    struct rb_node *first = pcutils_rbtree_first(coroutines);
+    pcutils_rbtree_for_each_safe(first, p, n) {
+        pcintr_coroutine_t co = container_of(p, struct pcintr_coroutine,
+                node);
+        pcintr_stack_t stack = &co->stack;
+        if (stack->stage != STACK_STAGE_EVENT_LOOP) {
+            goto out;
+        }
+    }
+
+    double now = current_time();
+    // first update timeout
+    if (heap->timeout == 0) {
+        heap->timeout = now;
+    }
+
+    if (now - IDLE_EVENT_TIMEOUT > heap->timeout) {
+        // TODO: broadcast idle
+        heap->timeout =now;
+    }
+
+out:
     pcutils_usleep(SCHEDULE_TIMEOUT);
 }
 
