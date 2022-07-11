@@ -457,6 +457,14 @@ coroutine_release(pcintr_coroutine_t co)
             pcvarmgr_destroy(co->variables);
         }
 
+        if (co->wait_request_id) {
+            purc_variant_unref(co->wait_request_id);
+        }
+
+        if (co->wait_event) {
+            purc_variant_unref(co->wait_event);
+        }
+
         struct purc_broken_down_url *url = &co->base_url_broken_down;
 
         if (url->schema) {
@@ -3788,8 +3796,11 @@ void pcintr_unregister_cancel(pcintr_cancel_t cancel)
     cancel->list = NULL;
 }
 
-void pcintr_yield(void *ctxt, void (*continuation)(void *ctxt, void *extra))
+void pcintr_yield(void *ctxt, void (*continuation)(void *ctxt, void *extra),
+        purc_variant_t request_id, purc_variant_t event_name)
 {
+    UNUSED_PARAM(request_id);
+    UNUSED_PARAM(event_name);
     PC_ASSERT(ctxt);
     PC_ASSERT(continuation);
     pcintr_coroutine_t co = pcintr_get_coroutine();
@@ -3805,6 +3816,15 @@ void pcintr_yield(void *ctxt, void (*continuation)(void *ctxt, void *extra))
     co->state = CO_STATE_WAIT;
     co->yielded_ctxt = ctxt;
     co->continuation = continuation;
+    if (request_id) {
+        co->wait_request_id = request_id;
+        purc_variant_ref(co->wait_request_id);
+    }
+
+    if (event_name) {
+        co->wait_event = event_name;
+        purc_variant_ref(co->wait_event);
+    }
 }
 
 void pcintr_resume(void *extra)
@@ -3825,6 +3845,16 @@ void pcintr_resume(void *extra)
     co->state = CO_STATE_RUN;
     co->yielded_ctxt = NULL;
     co->continuation = NULL;
+    if (co->wait_request_id) {
+        purc_variant_unref(co->wait_request_id);
+        co->wait_request_id = NULL;
+    }
+
+    if (co->wait_event) {
+        purc_variant_unref(co->wait_event);
+        co->wait_event = NULL;
+    }
+
     continuation(ctxt, extra);
     check_after_execution(co);
 }

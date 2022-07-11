@@ -308,7 +308,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     pcintr_timer_set_interval(ctxt->timer, ctxt->for_ns / (1000 * 1000));
     pcintr_timer_start_oneshot(ctxt->timer);
 
-    pcintr_yield(frame, on_continuation);
+    pcintr_yield(frame, on_continuation, PURC_VARIANT_INVALID,
+                    PURC_VARIANT_INVALID);
 
     purc_clr_error();
 

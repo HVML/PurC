@@ -276,6 +276,8 @@ struct pcintr_coroutine {
     struct list_head            registered_cancels;
     void                       *yielded_ctxt;
     void (*continuation)(void *ctxt, void *extra);
+    purc_variant_t              wait_request_id;
+    purc_variant_t              wait_event;
 
     struct list_head            msgs;   /* struct pcintr_msg */
 
@@ -480,7 +482,8 @@ pcintr_stack_get_bottom_frame(pcintr_stack_t stack);
 struct pcintr_stack_frame*
 pcintr_stack_frame_get_parent(struct pcintr_stack_frame *frame);
 
-void pcintr_yield(void *ctxt, void (*continuation)(void *ctxt, void *extra));
+void pcintr_yield(void *ctxt, void (*continuation)(void *ctxt, void *extra),
+        purc_variant_t request_id, purc_variant_t event_name);
 void pcintr_resume(void *extra);
 
 void
